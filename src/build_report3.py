@@ -21,7 +21,7 @@ def main():
 
     print("\n" + "=" * 64, "\n▶ 2) 마이크로도플러 제원\n", "=" * 64)
     from microdoppler import microdoppler_series
-    for k in ("phantom4", "s1000plus"):
+    for k in ("mavic4pro", "s1000plus"):
         _, _, info = microdoppler_series(DRONES[k], rpm=6000)
         print(f"  {k:10s} 로터{info['n_rotors']} v_tip={info['v_tip']:.0f}m/s "
               f"f_tip=±{info['f_tip']:.0f}Hz 플래시={info['flash_hz']:.0f}Hz")

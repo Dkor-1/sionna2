@@ -34,18 +34,19 @@ def _look(az_deg, el_deg):
 
 
 def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=6000.0,
-                        prf=20000.0, n_t=2048, spacing=None):
-    """회전 블레이드의 슬로타임 복소장 E(t). 반환 (t[s], E[복소], info)."""
+                        prf=20000.0, n_t=2048, spacing=None, blade_n=26):
+    """회전 블레이드의 슬로타임 복소장 E(t). 반환 (t[s], E[복소], info).
+    blade_n : 블레이드 스팬 분할(촘촘할수록 도플러 트랙이 매끈 — 이산/블록 현상 완화)."""
     lam = C0 / fc; k = 2 * np.pi / lam
-    spacing = spacing or lam / 6.0
+    spacing = spacing or lam / 11.0                # 촘촘한 점구름(매끈한 도플러)
     u = _look(az, el); ux, uy, uz = u
 
     # 프레임(비회전) → 상수 산란장
-    Pf, Nf, dAf = mesh_to_points(build_frame(spec), spacing)
+    Pf, Nf, dAf = mesh_to_points(build_frame(spec), lam / 6.0)
     Ef = po_field_dir(Pf, Nf, dAf, fc, u)
 
-    # 프로펠러 1개(허브 로컬) → 모든 로터가 공유, 회전만 다름
-    Pp, Np_, dAp = mesh_to_points(build_propeller(spec), spacing)
+    # 프로펠러 1개(허브 로컬, 촘촘) → 모든 로터가 공유, 회전만 다름
+    Pp, Np_, dAp = mesh_to_points(build_propeller(spec, n=blade_n), spacing)
     rl = rotor_layout(spec)
 
     t = np.arange(n_t) / prf
@@ -73,18 +74,20 @@ def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=6000.0,
     return t, E, info
 
 
-def spectrogram(E, prf, nperseg=256, noverlap=None, remove_dc=True):
+def spectrogram(E, prf, nperseg=256, noverlap=None, nfft=None, remove_dc=True):
     """복소 E(t) → (도플러축 f[Hz], 시간축 t[s], |STFT| dB). 양측(±) 도플러.
     remove_dc=True: **정적 0-도플러(몸체 프레임) 성분을 빼고** 회전 블레이드 마이크로도플러만 본다
     (패시브레이더의 '정적 클러터 제거'에 해당). E(t) 자체엔 몸체가 강한 0-도플러 상수항으로 들어 있어
-    (|DC|/std(AC)≈25), 그대로 두면 블레이드 성분이 묻힌다. 평균 제거 후 detrend=False 로 STFT."""
+    (|DC|/std(AC)≈25), 그대로 두면 블레이드 성분이 묻힌다. 평균 제거 후 detrend=False 로 STFT.
+    nfft : 제로패딩 FFT 크기(>nperseg) — 도플러축을 더 매끈하게(보간) 표시. 큰 noverlap → 시간 매끈."""
     from scipy.signal import spectrogram as _spec
     E = np.asarray(E)
     if remove_dc:
         E = E - E.mean()                                # 정적(몸체) 0-도플러 클러터 제거
-    noverlap = noverlap if noverlap is not None else nperseg - nperseg // 8
-    f, tt, Sxx = _spec(E, fs=prf, nperseg=nperseg, noverlap=noverlap, detrend=False,
-                       return_onesided=False, scaling="spectrum", mode="magnitude")
+    noverlap = noverlap if noverlap is not None else nperseg - max(1, nperseg // 16)
+    nfft = nfft or nperseg
+    f, tt, Sxx = _spec(E, fs=prf, nperseg=nperseg, noverlap=noverlap, nfft=nfft, detrend=False,
+                       window=("hann"), return_onesided=False, scaling="spectrum", mode="magnitude")
     f = np.fft.fftshift(f); Sxx = np.fft.fftshift(Sxx, axes=0)
     Sdb = 20 * np.log10(Sxx / (Sxx.max() + 1e-30) + 1e-12)
     return f, tt, Sdb

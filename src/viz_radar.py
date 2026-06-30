@@ -135,7 +135,7 @@ def fig_wave_spectra(outdir=FIG):
     print("[radar]", os.path.relpath(fn)); return fn
 
 
-def fig_range_profiles(outdir=FIG, target="phantom4", R=10.0, snr_db=20.0):
+def fig_range_profiles(outdir=FIG, target="mavic4pro", R=10.0, snr_db=20.0):
     wfs = all_waveforms()
     fig, ax = plt.subplots(figsize=(12, 5.4), constrained_layout=True)
     col = {"wifi": "#1565c0", "lte": "#ef6c00", "nr": "#2e7d32"}
@@ -157,7 +157,7 @@ def fig_range_profiles(outdir=FIG, target="phantom4", R=10.0, snr_db=20.0):
     print("[radar]", os.path.relpath(fn)); return fn
 
 
-def fig_summary(outdir=FIG, target="phantom4", R=10.0):
+def fig_summary(outdir=FIG, target="mavic4pro", R=10.0):
     wfs = all_waveforms()
     rows = []
     for key, wf in wfs.items():

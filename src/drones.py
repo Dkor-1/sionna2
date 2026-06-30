@@ -185,8 +185,8 @@ def build_frame(spec: DroneSpec) -> Mesh:
                  center=(0, 0, 0), group="body"))
     m.merge(hull(body_l * 0.34, body_w * 0.6, body_z * 0.72, sides=12, taper_top=0.45,
                  center=(body_l * 0.44, 0, -body_z * 0.05), group="body"))     # 코(돌출·테이퍼)
-    m.merge(hull(body_l * 0.62, body_w * 0.72, body_z * 1.1, sides=16, taper_top=0.32,
-                 center=(-0.04 * body_l, 0, body_z * 0.7), group="canopy"))    # 캐노피 돔
+    m.merge(hull(body_l * 0.64, body_w * 0.74, body_z * 0.62, sides=16, taper_top=0.5,
+                 center=(-0.04 * body_l, 0, body_z * 0.42), group="canopy"))   # 캐노피(낮고 평평한 돔)
     # 암(둥근 카본 튜브) + 모터(약간 벨형) — 프로펠러는 분리
     hub_r = max(body_l, body_w) * 0.5 * 0.9
     arm_rad = (0.050 if spec.fixed_arm else 0.028) * diag
@@ -213,14 +213,15 @@ def build_frame(spec: DroneSpec) -> Mesh:
     return m
 
 
-def build_propeller(spec: DroneSpec) -> Mesh:
+def build_propeller(spec: DroneSpec, n: int = 10) -> Mesh:
     """**프로펠러 1개**(prop_blades 장)를 허브 원점 기준으로 생성(스핀 적용 전, z축 회전).
-    pose_articulated/마이크로도플러에서 이 메쉬를 z회전(스핀)시켜 각 로터에 배치한다."""
+    pose_articulated/마이크로도플러에서 이 메쉬를 z회전(스핀)시켜 각 로터에 배치한다.
+    n : 블레이드 스팬 분할(기본 10=시각화용; 마이크로도플러는 더 촘촘히 줘서 도플러 트랙을 매끈하게)."""
     _, _, prop_r, *_ = _drone_dims(spec)
     m = Mesh()
     for b in range(spec.prop_blades):
         bang = (360.0 / spec.prop_blades) * b
-        m.merge(prop_blade(prop_r).transformed(rotate("z", bang)), group="prop")
+        m.merge(prop_blade(prop_r, n=n).transformed(rotate("z", bang)), group="prop")
     return m
 
 
@@ -340,14 +341,13 @@ def _add_camera(m, spec, body_l, body_z):
 
 
 def _add_antenna(m, spec, body_l, body_w, body_z):
-    """RTK GNSS 안테나(후방 상단 마스트 + 퍽) — Matrice 등 rtk=True 기체의 식별 특징."""
-    mast_h = 0.45 * body_l
-    mx = -0.18 * body_l
-    z0 = body_z * 1.1
-    m.merge(cylinder(0.022 * body_l, mast_h, axis="z", seg=10,
-                     center=(mx, 0, z0 + mast_h / 2), group="body"))
-    m.merge(cylinder(0.075 * body_l, 0.05 * body_l, axis="z", seg=14, r_top=0.06 * body_l,
-                     center=(mx, 0, z0 + mast_h), group="body"))      # 퍽(돔)
+    """RTK GNSS 안테나 — 동체 위 **낮고 매끈한 듀얼 너브**(과한 마스트 돌출 없이, 사진처럼).
+    Matrice 등 rtk=True 기체의 식별 특징(짧은 GNSS 안테나 2개)."""
+    z0 = body_z * 0.78                                # 캐노피 바로 위(낮게)
+    h = 0.06 * body_l
+    for sx in (-0.16 * body_l, 0.02 * body_l):        # 전후로 작은 안테나 2개
+        m.merge(cylinder(0.05 * body_l, h, axis="z", seg=12, r_top=0.034 * body_l,
+                         center=(sx, 0, z0 + h / 2), group="body"))
 
 
 def drone_colors(spec: DroneSpec) -> dict:

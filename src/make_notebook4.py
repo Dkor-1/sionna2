@@ -1,0 +1,105 @@
+# -*- coding: utf-8 -*-
+"""make_notebook4.py — report4.ipynb (바이스태틱 패시브 레이더 탐지 체인) 생성기."""
+import json, os
+HERE = os.path.dirname(os.path.abspath(__file__))
+NB = os.path.abspath(os.path.join(HERE, "..", "report4.ipynb"))
+
+
+def md(*l): return {"cell_type": "markdown", "metadata": {}, "source": _s(list(l))}
+def code(*l): return {"cell_type": "code", "metadata": {}, "execution_count": None, "outputs": [], "source": _s(list(l))}
+def _s(lines):
+    out = "\n".join(lines).splitlines(keepends=True)
+    return out if out else [""]
+
+
+cells = []
+cells.append(md(
+    "# 📡 report4 — 바이스태틱 패시브 레이더 **탐지** 체인",
+    "",
+    "> **이 노트북 = 4단계: 진짜 탐지.** report1(환경)·report2(RCS/파형)·report3(분절/마이크로도플러)에서",
+    "> 만든 *재료*로, 이제 **실제로 드론을 탐지**합니다. 패시브 레이더는 송신기(주변 기지국/AP)와 수신기가",
+    "> 떨어진 **바이스태틱** 구성 — 문헌(`papers/`의 LTE/5G/WiFi 패시브레이더) 21편의 공통 파이프라인을 재현합니다.",
+    "",
+    "**처리 체인**: 기준+감시 2채널 → **ECA**(직접파·클러터 제거) → **CAF 거리-도플러 맵** → **CFAR** 검출 → **Pd/Pfa**.",
+    "",
+    "**3줄 결론**",
+    "1. 바이스태틱 기하: 측정량은 (바이스태틱 거리 Rb, 도플러 f_d). 한 수신기로는 **등Rb 타원** 위 모호 → AoA로 확정(다음).",
+    "2. **ECA가 직접파/정적 클러터를 ~수십 dB 제거**해야 도플러 있는 표적이 거리-도플러 맵에 드러남(CFAR 검출).",
+    "3. 탐지 성능은 **파형(대역)·점유(기준신호)** 가 좌우 — 한가한 5G(SSB만)는 협대역·저SNR로 탐지 불리(report2와 직결).",
+))
+
+cells.append(md(
+    "## 1. 바이스태틱 기하 — TX(기지국) ↔ 표적 ↔ RX(수신기)",
+    "",
+    "- 베이스라인 L=|TX−RX|, 경로합 R1+R2, **바이스태틱 거리 Rb=(R1+R2)−L** (직접파 대비 추가경로) → 지연 τ=Rb/c.",
+    "- **바이스태틱 도플러** f_d = −(1/λ)·v·(û1+û2). 등Rb 면은 TX·RX 초점 **타원체**.",
+    "- 한 수신기로는 (Rb, f_d) 만 → 위치는 타원 위 모호. (AoA·다중수신기로 확정 — §4)",
+    "",
+    "![geometry](outputs/figures/report4_geometry.png)",
+))
+cells.append(code(
+    "import sys; sys.path.insert(0, 'src')",
+    "from bistatic_scene import bistatic_params",
+    "TX=(0,250,35); RX=(0,0,6)            # 기지국, 수신기",
+    "p = bistatic_params(TX, RX, (90,110,55), (14,-6,0), 3.5e9)",
+    "print(f\"L={p['L']:.0f}m  Rb={p['Rb']:.0f}m  지연={p['tau']*1e9:.0f}ns  f_d={p['fd']:+.0f}Hz  바이각={p['beta']:.0f}deg\")",
+))
+
+cells.append(md(
+    "## 2. 처리 체인 — ECA → CAF 거리-도플러 → CFAR",
+    "",
+    "- **CAF(교차모호함수) 거리-도플러**: CPI 를 프레임(slow-time)으로 쪼개 ① 프레임마다 기준과 정합필터(거리) ②",
+    "  프레임축 FFT(도플러). 거리분해능 ΔRb=c/B, 도플러분해능=PRF/M, **최대 무모호 도플러=±PRF/2 = 파일럿률**(report2/3 v_max!).",
+    "- **ECA**(Extended Cancellation): 기준의 지연복제(0-도플러) 부분공간을 최소제곱 투영·제거 → **직접파 누설+정적 클러터** 제거,",
+    "  도플러 있는 표적은 보존. 패시브레이더의 핵심 전처리(문헌 보편).",
+    "- **CA-CFAR**: 거리-도플러 맵에서 주변 잡음 추정 대비 임계 초과 셀을 검출(Pfa 제어).",
+    "",
+    "아래: 5G NR 100MHz 로 표적(Rb≈66m, f_d≈+193Hz)을 비춤. **ECA 전엔 0-도플러 클러터가 지배**해 표적이 안 보이고,",
+    "**ECA 후** 표적이 거리-도플러 맵에 또렷이 드러나 CFAR이 검출합니다:",
+    "![range-doppler](outputs/figures/report4_rangedoppler.png)",
+))
+cells.append(code(
+    "import numpy as np",
+    "from waveforms import nr_downlink",
+    "from bistatic_scene import bistatic_params, C0",
+    "from passive_process import make_cpi, eca, range_doppler, ca_cfar_2d, peak_detection",
+    "wf = nr_downlink(occupancy='G3'); fs = wf.fs_hz; M = 48",
+    "p = bistatic_params((0,250,35),(0,0,6),(90,110,55),(14,-6,0), wf.carrier_hz)",
+    "surv, ref = make_cpi(wf.tx, M, fs, p['tau'], p['fd'], a_tgt=1.0, dpi_amp=60, snr_db=14)",
+    "Rb, f_d, rd = range_doppler(eca(surv, ref, 40), ref, fs, M, n_range=int(900/(C0/fs)))",
+    "det,_,_ = ca_cfar_2d(rd, pfa=1e-4); pk = peak_detection(Rb, f_d, rd, det)",
+    "print('참 표적:', round(p['Rb']), 'm', round(p['fd']),'Hz   ->  검출:', pk and (round(pk['Rb']),round(pk['fd'])))",
+))
+
+cells.append(md(
+    "## 3. 탐지 성능 — 파형·점유가 Pd 를 좌우",
+    "",
+    "표적 SNR 을 바꿔가며 검출확률 Pd 를 Monte-Carlo 로 잰 곡선입니다. **앞선 모든 작업이 여기서 '탐지 성능'으로 귀결**됩니다:",
+    "",
+    "![detection](outputs/figures/report4_detection.png)",
+    "",
+    "- **(a) 파형별**: 대역폭이 클수록(5G 100MHz>WiFi 80MHz>LTE 20MHz) 거리분해능·처리이득이 좋아 같은 SNR 에서 Pd↑.",
+    "- **(b) 5G 점유별**: **G1(SSB만)은 협대역(7MHz)·저점유 → 분해능·SNR 모두 불리 → Pd 낮음.** G2(PRS 전대역)부터 급상승.",
+    "  → report2 의 '한가한 5G 는 거리·속도 두 축 다 나쁨'이 **여기선 낮은 Pd 로 정량화**됩니다(Rényi 논문의 적응적분 동기).",
+))
+
+cells.append(md(
+    "## 4. 정리 & 다음 단계",
+    "",
+    "**한 일** — 문헌의 보편 파이프라인을 재현: 바이스태틱 기하 → ECA 클러터제거 → CAF 거리-도플러 → CFAR → Pd/Pfa.",
+    "report2(파형·점유)·report3(분절·마이크로도플러)가 모두 **탐지 성능**으로 연결됨.",
+    "",
+    "**다음 후보**",
+    "- 📐 **AoA + 위치확정**: 수신 배열로 방위 추정 → 등Rb 타원 × 방위선 교점으로 3D 위치(문헌의 디지털배열 LTE).",
+    "- 🛰️ **다중정적(multistatic)**: 여러 기지국 → 타원 교차로 위치 확정 + 추적(Kalman/MTT).",
+    "- 🌀 **마이크로도플러 결합**: 거리-도플러 셀에서 블레이드 시그니처 추출 → 드론 vs 새 분류(report3 연결).",
+    "- 🔁 **Rényi 적응적분**: 5G 점유가 높은 구간만 골라 적분(낮은 점유의 outage 회피).",
+))
+
+nb = {"cells": cells,
+      "metadata": {"kernelspec": {"display_name": "Python 3.12 (py312)", "language": "python", "name": "py312"},
+                   "language_info": {"name": "python"}},
+      "nbformat": 4, "nbformat_minor": 5}
+with open(NB, "w") as f:
+    json.dump(nb, f, ensure_ascii=False, indent=1)
+print("notebook 생성:", os.path.relpath(NB), f"({len(cells)} cells)")

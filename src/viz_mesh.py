@@ -80,7 +80,7 @@ def _face_geom(mesh):
 # --------------------------------------------------------------------------- #
 #  (1) 모노스태틱 측정 3D 장면 — 챔버 + 드론메쉬 + 안테나 + 빔
 # --------------------------------------------------------------------------- #
-def fig_setup_3d(outdir=FIG, target="phantom4", fc=3.5e9, exagg=12.0):
+def fig_setup_3d(outdir=FIG, target="mavic4pro", fc=3.5e9, exagg=12.0):
     from rcs_po import C0 as _c
     W, D, H = 30.0, 20.0, 11.0
     R = abs(TGT_POS[0] - ANT_POS[0])
@@ -222,7 +222,7 @@ def _look_dir(az_deg, el_deg):
     return np.array([np.cos(el)*np.cos(az), np.cos(el)*np.sin(az), np.sin(el)])
 
 
-def fig_rcs_facets(outdir=FIG, target="phantom4", fc=3.5e9, aspects=(0, 45, 90), el=34.0):
+def fig_rcs_facets(outdir=FIG, target="mavic4pro", fc=3.5e9, aspects=(0, 45, 90), el=34.0):
     """레이더를 살짝 위(el)에서 보게 해서 윗면/측면 조명면이 카메라를 향하도록 한다.
     (el=0 수평이면 평평한 드론의 조명면이 얇게 보여 오해를 부름.)"""
     spec = DRONES[target]; mesh = build_drone(spec)

@@ -91,8 +91,8 @@ cells.append(code(
     "import numpy as np; from rcs_po import drone_rcs_pattern, dbsm",
     "az = np.arange(0, 360, 2.0)",
     "for fc in [1.84e9, 3.5e9, 5.21e9]:",
-    "    sig,_ = drone_rcs_pattern('phantom4', fc, az)",
-    "    print(f'Phantom4 @ {fc/1e9:.2f} GHz : 평균 {dbsm(sig.mean()):.1f} dBsm, 최대 {dbsm(sig.max()):.1f} dBsm')",
+    "    sig,_ = drone_rcs_pattern('mavic4pro', fc, az)",
+    "    print(f'Mavic4Pro @ {fc/1e9:.2f} GHz : 평균 {dbsm(sig.mean()):.1f} dBsm, 최대 {dbsm(sig.max()):.1f} dBsm')",
 ))
 
 cells.append(md(
@@ -220,7 +220,7 @@ cells.append(code(
     "import numpy as np",
     "from waveforms import all_waveforms; from rcs_po import drone_rcs_pattern, dbsm",
     "from radar_process import range_profile, mainlobe_width_m, sphere_calib, estimate_rcs_dbsm",
-    "R = 10.0; target='phantom4'",
+    "R = 10.0; target='mavic4pro'",
     "for k, wf in all_waveforms().items():",
     "    sig,_ = drone_rcs_pattern(target, wf.carrier_hz, np.array([0.0])); sig=float(sig[0])",
     "    rng_m, prof, pkr, pkv = range_profile(wf, R, sig, snr_db=20, rng=np.random.default_rng(7))",

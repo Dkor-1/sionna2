@@ -43,7 +43,7 @@ def _equal(ax, mesh, pad=1.05):
 # --------------------------------------------------------------------------- #
 #  (1) 분절 검증 — 몸체 자세(RPY) ⟂ 블레이드 회전
 # --------------------------------------------------------------------------- #
-def fig_articulation(outdir=FIG, target="phantom4"):
+def fig_articulation(outdir=FIG, target="mavic4pro"):
     spec = DRONES[target]; cmap = drone_colors(spec)
     fig = plt.figure(figsize=(15, 7.6), constrained_layout=True)
     fig.suptitle(f"분절(articulation) 검증 — {_NAME[target]}: 몸체 자세(롤·피치·요)와 프로펠러 회전은 독립",
@@ -72,8 +72,8 @@ def fig_articulation(outdir=FIG, target="phantom4"):
 # --------------------------------------------------------------------------- #
 #  (2) 마이크로도플러 스펙트로그램
 # --------------------------------------------------------------------------- #
-def fig_microdoppler(outdir=FIG, targets=("phantom4", "s1000plus"),
-                     rpm=6000.0, prf=24000.0, n_t=4096):
+def fig_microdoppler(outdir=FIG, targets=("mavic4pro", "s1000plus"),
+                     rpm=6000.0, prf=20000.0, n_t=6144):
     fig, axes = plt.subplots(1, len(targets), figsize=(14, 5.4), constrained_layout=True)
     if len(targets) == 1:
         axes = [axes]
@@ -83,8 +83,9 @@ def fig_microdoppler(outdir=FIG, targets=("phantom4", "s1000plus"),
     for ax, key in zip(axes, targets):
         spec = DRONES[key]
         t, E, info = microdoppler_series(spec, rpm=rpm, prf=prf, n_t=n_t, az=0.0, el=15.0)
-        f, tt, Sdb = spectrogram(E, prf, nperseg=192)
-        im = ax.pcolormesh(tt * 1e3, f, Sdb, cmap="turbo", vmin=-45, vmax=0, shading="auto")
+        # 짧은 윈도우(<플래시 주기) → 블레이드 플래시·사인 도플러 트랙이 드러남(특유의 마이크로도플러)
+        f, tt, Sdb = spectrogram(E, prf, nperseg=64, noverlap=58, nfft=1024)
+        im = ax.pcolormesh(tt * 1e3, f, Sdb, cmap="turbo", vmin=-45, vmax=0, shading="gouraud")
         for sgn in (+1, -1):
             ax.axhline(sgn * info["f_tip"], color="k", ls="--", lw=1.8, zorder=5)
         ax.text(tt[-1] * 1e3 * 0.99, info["f_tip"], f" 팁 도플러 +{info['f_tip']:.0f}Hz",
@@ -105,7 +106,7 @@ def fig_microdoppler(outdir=FIG, targets=("phantom4", "s1000plus"),
 # --------------------------------------------------------------------------- #
 #  (3) 회전 애니메이션 — 몸체 흔들림 + 프로펠러 스핀 동시
 # --------------------------------------------------------------------------- #
-def gif_articulation(outdir=FIG, target="phantom4", frames=36, fps=18):
+def gif_articulation(outdir=FIG, target="mavic4pro", frames=36, fps=18):
     spec = DRONES[target]; cmap = drone_colors(spec)
     n_rot = spec.num_rotors
     fig = plt.figure(figsize=(5.2, 5.2))

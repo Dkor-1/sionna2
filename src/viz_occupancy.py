@@ -79,7 +79,7 @@ def fig_resource_grids(std, outdir=FIG):
     plt.close(fig); print("[occ]", os.path.relpath(fn)); return fn
 
 
-def fig_occupancy_experiment(outdir=FIG, target="phantom4", R=10.0, snr_db=18.0):
+def fig_occupancy_experiment(outdir=FIG, target="mavic4pro", R=10.0, snr_db=18.0):
     """점유모드 실험: (a) 5G 거리프로파일 G1/G2/G3, (b~d) 막대 비교."""
     modes = ["G1", "G2", "G3"]; stds = ["wifi", "lte", "nr"]
     fig = plt.figure(figsize=(19, 8.2), constrained_layout=True)
@@ -133,10 +133,10 @@ def fig_occupancy_experiment(outdir=FIG, target="phantom4", R=10.0, snr_db=18.0)
     axE = fig.add_subplot(gs[1, 3])
     for j, m in enumerate(modes):
         axE.bar(x + (j - 1) * w, [metrics[s][m].v_unambiguous_ms for s in stds], w, color=col[m])
-    for key in ("phantom4", "mini5pro"):                  # 일반 드론 최고속도 기준선
+    for key in ("mavic4pro", "mini5pro"):                 # 일반 드론 최고속도 기준선
         sp = DRONES[key].max_speed_ms
         axE.axhline(sp, ls="--", lw=1, color="0.4", alpha=0.7)
-    axE.text(len(stds)-1, DRONES["phantom4"].max_speed_ms*1.05, "일반 드론 ~20m/s",
+    axE.text(len(stds)-1, DRONES["mavic4pro"].max_speed_ms*1.05, "일반 드론 19~25m/s",
              fontsize=7.5, color="0.35", ha="right", va="bottom")
     axE.set_xticks(x); axE.set_xticklabels(labs, fontsize=8); axE.set_ylabel("최대속도 v_max [m/s]")
     axE.set_yscale("log"); axE.set_title("(e) 최대 무모호 속도 ←반복률(시간축)", fontsize=10); axE.grid(axis="y", alpha=0.3)

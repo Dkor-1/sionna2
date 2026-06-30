@@ -8,6 +8,7 @@
 > - **[`report1.ipynb`](report1.ipynb)** — 1단계: 환경 세팅 (차폐시설 + 드론 5종)
 > - **[`report2.ipynb`](report2.ipynb)** — 2단계: 레이더 구성 & RCS 특성화 (WiFi·LTE·5G 비교)
 > - **[`report3.ipynb`](report3.ipynb)** — 3단계: 분절 드론 + 마이크로-도플러 (+ PX4 연동 가능성)
+> - **[`report4.ipynb`](report4.ipynb)** — 4단계: 바이스태틱 패시브 레이더 **탐지**(ECA·CAF·CFAR·Pd/Pfa)
 
 ---
 
@@ -88,12 +89,18 @@ drones.py       (분절 추가) build_frame/build_propeller/rotor_layout/pose_ar
 microdoppler.py 회전 블레이드 마이크로도플러 — PO 복소장 E(t) + 스펙트로그램
 viz_articulation.py 분절 검증 도면 + 마이크로도플러 + 회전 GIF
 build_report3.py report3 산출물 한 번에 생성
+--- report4 (바이스태틱 탐지) ---
+bistatic_scene.py 바이스태틱 기하 (Rb·τ·f_d·β, 등Rb 타원)
+passive_process.py 처리 체인 — make_cpi/ECA(클러터제거)/CAF 거리-도플러/CA-CFAR
+viz_bistatic.py 기하·거리도플러맵(ECA 전후)·검출성능(Pd vs SNR) 시각화
+build_report4.py report4 산출물 한 번에 생성
 ```
 
 ### report2 / report3 한 번에 만들기
 ```bash
 cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_report2.py   # GPU 불필요(PO+DSP)
 cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_report3.py   # GPU 불필요(메쉬+PO+DSP)
+cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_report4.py   # GPU 불필요(기하+DSP)
 ```
 
 설계 원칙: **OBJ 1개 = 부위 1개 = Sionna 재질 1개.** 그래서 부위별로 색/전파재질을
@@ -109,4 +116,5 @@ cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_report3.py   # GPU 불필요(
 - ✅ **report1** 환경 세팅(차폐시설+드론)
 - ✅ **report2** 모노스태틱 RCS + WiFi/LTE/5G 비교 + 점유모드(G1/G2/G3, 거리×속도 두 축) + 메쉬 실험 시각화
 - ✅ **report3** 분절 드론(몸체 RPY ⟂ 로터별 스핀) + 회전 블레이드 마이크로-도플러 + PX4/Gazebo 연동 가능성 검증
-- 다음 후보: 🛰️ 바이스태틱(패시브)+클러터제거(ECA)·CFAR·추적, 🔁 분절모델→Gazebo SDF/PX4 airframe 내보내기, 🎯 마이크로도플러 드론 vs 새 분류.
+- ✅ **report4** 바이스태틱 패시브 레이더 탐지: ECA 클러터제거 → CAF 거리-도플러 → CFAR → Pd/Pfa (파형·점유가 탐지 좌우)
+- 다음 후보: 📐 AoA+위치확정/다중정적+추적(Kalman/MTT), 🔁 분절모델→Gazebo SDF/PX4 airframe, 🎯 마이크로도플러 드론 vs 새 분류, 🔢 Rényi 적응적분.
