@@ -4,7 +4,7 @@
 딱 두 가지만 다룹니다: **① 대형 차폐시설(전파무반사실)** 과 **② DJI 드론 5종**.
 그리고 **그림으로 최대한 많이** 보여줍니다.
 
-> 가장 먼저 볼 것 → **[`report.ipynb`](report.ipynb)** (한글 단계별 설명서. 커널 없이도 그림이 보임)
+> 가장 먼저 볼 것 → **[`report1.ipynb`](report1.ipynb)** (한글 단계별 설명서. 커널 없이도 그림이 보임)
 
 ---
 
@@ -69,7 +69,7 @@ viz_anim.py     회전 GIF
 render_drones.py Sionna 사진풍 렌더
 viz_montage.py  렌더 모아 카탈로그
 build_all.py    한 번에 전부 생성
-make_notebook.py report.ipynb 생성기
+make_notebook.py report1.ipynb 생성기
 ```
 
 설계 원칙: **OBJ 1개 = 부위 1개 = Sionna 재질 1개.** 그래서 부위별로 색/전파재질을

@@ -5,7 +5,7 @@
 import json, os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-NB = os.path.abspath(os.path.join(HERE, "..", "report.ipynb"))
+NB = os.path.abspath(os.path.join(HERE, "..", "report1.ipynb"))
 
 
 def md(*lines):
@@ -26,7 +26,11 @@ def _split(lines):
 cells = []
 
 cells.append(md(
-    "# 🛰️ sionna2 — 대형 차폐시설 & DJI 드론 5종  (단계별 설명서)",
+    "# 📦 report1 — 환경 세팅 (Environment Setup)",
+    "",
+    "> **이 노트북 = 1단계: 환경 세팅.** 레이더 실험을 하기 위한 '무대'를 만든 단계입니다.",
+    "> 여기서는 **차폐시설 + DJI 드론 5종**을 3D로 만들고 시각화했습니다.",
+    "> 실제 레이더(송수신·RCS·검출) 실험은 다음 노트북 **report2, report3 …** 으로 이어집니다.",
     "",
     "> 이 노트북은 **처음 보는 사람도 차근차근 이해**할 수 있도록 만든 안내서입니다.",
     "> 셀을 실행하지 않아도 아래 그림들은 바로 보입니다(이미지를 박아 두었기 때문).",
