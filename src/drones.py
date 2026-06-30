@@ -60,6 +60,12 @@ class DroneSpec:
     gimbal: str = "front"       # 'front'(전방하단) / 'belly'(중앙하단)
     accent_rgb: tuple | None = None   # 전방 암/프롭팁 식별색 (없으면 None)
     body_frac: float = 0.42     # 동체 크기/대각 비율(외형 튜닝)
+    # --- 드론별 개성(실루엣) — 스펙·대각·좌우대칭(비행안정) 유지하며 외형만 ---
+    rotor_deg: tuple | None = None   # 모터 각도[deg] 목록. None=기본 X(쿼드)/옥토.
+                                     #   접이형은 전방스윕(좌우대칭+마주보는 쌍 180°→대각 보존)
+    body_lw: tuple = (1.15, 0.85)    # 동체 (길이,폭)/hub 비 — 접이 슬림기는 길쭉·좁게
+    gimbal_style: str = "single"     # single / triple(마빅 3카메라) / sensor(매트리스+RTK)
+                                     #   / recessed(팬텀 함몰) / belly(S1000 벨리)
 
 
 # 화면표시 색(RGB)
@@ -79,7 +85,8 @@ DRONES: dict[str, DroneSpec] = {
         max_speed_ms=19, rtk=False, release="released", confidence="high",
         note="대각거리(250mm)는 DJI 비공개 → 언폴드 외형서 추정(±20mm). 무게/프롭/로터수 공식.",
         body_rgb=_GRAY_D, arm_style="body", gear="none", gimbal="front",
-        accent_rgb=(0.95, 0.45, 0.05), body_frac=0.46),
+        accent_rgb=(0.95, 0.45, 0.05), body_frac=0.46,
+        rotor_deg=(40, 140, 220, 320), body_lw=(1.42, 0.66), gimbal_style="single"),
     # 2) 대형 소비자 플래그십 (출시작)
     "mavic4pro": DroneSpec(
         key="mavic4pro", name="DJI Mavic 4 Pro",
@@ -90,7 +97,8 @@ DRONES: dict[str, DroneSpec] = {
         note="대형 소비자 플래그십(2025). 전방 3카메라 짐벌(360° 무한회전)이 특징. "
              "무게/외형 공식, 대각거리·프롭지름은 DJI 비공개라 외형서 추정.",
         body_rgb=_SILVER, arm_style="body", gear="none", gimbal="front",
-        accent_rgb=None, body_frac=0.42),
+        accent_rgb=None, body_frac=0.42,
+        rotor_deg=(32, 148, 212, 328), body_lw=(1.52, 0.62), gimbal_style="triple"),
     # 3) 엔터프라이즈 측량기 (RTK 탑재)
     "matrice4e": DroneSpec(
         key="matrice4e", name="DJI Matrice 4E",
@@ -100,7 +108,8 @@ DRONES: dict[str, DroneSpec] = {
         max_speed_ms=21, rtk=True, release="released", confidence="high",
         note="검증으로 프롭 지름 274mm 확정(292→274). 온보드 RTK(정밀 측위 안테나).",
         body_rgb=_OFFWHT, arm_style="body", gear="feet", gimbal="front",
-        accent_rgb=None, body_frac=0.42),
+        accent_rgb=None, body_frac=0.42,
+        rotor_deg=(45, 135, 225, 315), body_lw=(1.08, 0.98), gimbal_style="sensor"),
     # 4) 대형 산업용 옥토콥터 (8암) — 단종, 카본 프레임
     "s1000plus": DroneSpec(
         key="s1000plus", name="DJI S1000+",
@@ -110,7 +119,8 @@ DRONES: dict[str, DroneSpec] = {
         max_speed_ms=None, rtk=False, release="discontinued", confidence="high",
         note="옥토콥터: 8암·암당 로터 1개(비동축). 카본 프레임, 접이식+격납형 착륙장치, 벨리 짐벌.",
         body_rgb=_BLACK, arm_style="carbon", gear="tall", gimbal="belly",
-        accent_rgb=(0.85, 0.10, 0.10), body_frac=0.30),
+        accent_rgb=(0.85, 0.10, 0.10), body_frac=0.30,
+        body_lw=(1.0, 1.0), gimbal_style="belly"),
     # 5) 고정암 쿼드 (클래식, 흰색 셸)
     "phantom4": DroneSpec(
         key="phantom4", name="DJI Phantom 4",
@@ -120,7 +130,8 @@ DRONES: dict[str, DroneSpec] = {
         max_speed_ms=20, rtk=False, release="released", confidence="high",
         note="고정암(접이 불가) 일체형 흰색 셸 + 일체형 착륙다리. 클래식 팬텀 형상.",
         body_rgb=_WHITE, arm_style="body", fixed_arm=True, gear="legs", gimbal="front",
-        accent_rgb=None, body_frac=0.52),
+        accent_rgb=None, body_frac=0.52,
+        rotor_deg=(45, 135, 225, 315), body_lw=(1.06, 1.0), gimbal_style="recessed"),
 }
 
 # 부위(그룹) → (재질키, 한글설명). 색은 build_drone 가 스펙에서 직접 지정.
@@ -140,7 +151,11 @@ DRONE_GROUP_MAT = {
 #  파라메트릭 멀티로터 생성기
 # --------------------------------------------------------------------------- #
 def _motor_angles(spec: DroneSpec) -> list[float]:
-    """모터(=암) 각도[deg] 목록. 전방(+x)이 비도록 배치."""
+    """모터(=암) 각도[deg] 목록. spec.rotor_deg 가 있으면 그대로(드론별 실제 배치).
+    없으면 기본 — 쿼드 X자(45/135/225/315), 옥토는 22.5° 오프셋.
+    ※ rotor_deg 는 좌우대칭이고 마주보는 쌍이 180° → 대각거리 스펙 보존 + 무게중심 중앙(비행안정)."""
+    if spec.rotor_deg is not None:
+        return list(spec.rotor_deg)
     n = spec.num_rotors
     if n == 4:                          # 쿼드 X자: 45,135,225,315 (전방 비움)
         return [45, 135, 225, 315]
@@ -155,7 +170,8 @@ def _drone_dims(spec: DroneSpec):
     prop_r = spec.prop_dia_mm / 1000.0 / 2.0
     bh = spec.body_h_mm / 1000.0
     hub = spec.body_frac * diag
-    body_l = hub * 1.15; body_w = hub * 0.85; body_z = 0.35 * bh
+    lf, wf = spec.body_lw                            # 드론별 동체 길이/폭 비(접이형은 길쭉)
+    body_l = hub * lf; body_w = hub * wf; body_z = 0.35 * bh
     return diag, r, prop_r, bh, body_l, body_w, body_z
 
 
@@ -192,6 +208,8 @@ def build_frame(spec: DroneSpec) -> Mesh:
                          center=(mx, my, motor_h / 2 + arm_t / 2), group="motor"))
     _add_gear(m, spec, body_l, body_w, body_z, diag)
     _add_camera(m, spec, body_l, body_z)
+    if spec.rtk:                                     # 엔터프라이즈 RTK 안테나(매트리스)
+        _add_antenna(m, spec, body_l, body_w, body_z)
     return m
 
 
@@ -289,18 +307,47 @@ def _add_gear(m, spec, body_l, body_w, body_z, diag):
 
 
 def _add_camera(m, spec, body_l, body_z):
-    if spec.gimbal == "front":                       # 전방 하단 짐벌
-        cx, cz = body_l * 0.42, -body_z * 0.55
-        m.merge(box(0.10 * body_l, 0.12 * body_l, 0.10 * body_l,
-                    center=(cx, 0, cz), group="camera"))
-        m.merge(uv_sphere(0.045 * body_l, center=(cx + 0.05 * body_l, 0, cz),
-                          seg=12, rings=7, group="camera"))
-    elif spec.gimbal == "belly":                     # 중앙 하단 벨리 짐벌(브래킷)
+    """드론별 개성 짐벌. gimbal=='belly' 면 벨리, 아니면 gimbal_style 로 분기."""
+    if spec.gimbal == "belly" or spec.gimbal_style == "belly":   # S1000 중앙 하단 벨리
         cz = -body_z * 1.2
         m.merge(box(0.18 * body_l, 0.18 * body_l, 0.16 * body_l,
                     center=(0, 0, cz), group="camera"))
         m.merge(uv_sphere(0.07 * body_l, center=(0, 0, cz - 0.08 * body_l),
                           seg=12, rings=7, group="camera"))
+        return
+    cx, cz = body_l * 0.42, -body_z * 0.55
+    st = spec.gimbal_style
+    if st == "triple":                               # Mavic 3-카메라(가로로 넓은 블록 + 렌즈 3)
+        m.merge(box(0.10 * body_l, 0.30 * body_l, 0.12 * body_l, center=(cx, 0, cz), group="camera"))
+        for dy in (-0.085 * body_l, 0.0, 0.085 * body_l):
+            m.merge(uv_sphere(0.038 * body_l, center=(cx + 0.05 * body_l, dy, cz),
+                              seg=10, rings=6, group="camera"))
+    elif st == "sensor":                             # Matrice 짐벌 + 측거센서 클러스터
+        m.merge(box(0.12 * body_l, 0.17 * body_l, 0.12 * body_l, center=(cx, 0, cz), group="camera"))
+        m.merge(uv_sphere(0.05 * body_l, center=(cx + 0.05 * body_l, 0.035 * body_l, cz),
+                          seg=12, rings=7, group="camera"))
+        m.merge(box(0.06 * body_l, 0.05 * body_l, 0.05 * body_l,
+                    center=(cx + 0.02 * body_l, -0.07 * body_l, cz), group="camera"))   # 레이저 측거
+    elif st == "recessed":                           # Phantom 함몰 짐벌(동체에 더 붙음)
+        cx2 = body_l * 0.32
+        m.merge(box(0.08 * body_l, 0.11 * body_l, 0.08 * body_l, center=(cx2, 0, cz * 0.8), group="camera"))
+        m.merge(uv_sphere(0.042 * body_l, center=(cx2 + 0.03 * body_l, 0, cz * 0.8),
+                          seg=12, rings=7, group="camera"))
+    else:                                            # single (Mini 등 소형 전방 짐벌)
+        m.merge(box(0.09 * body_l, 0.11 * body_l, 0.09 * body_l, center=(cx, 0, cz), group="camera"))
+        m.merge(uv_sphere(0.045 * body_l, center=(cx + 0.05 * body_l, 0, cz),
+                          seg=12, rings=7, group="camera"))
+
+
+def _add_antenna(m, spec, body_l, body_w, body_z):
+    """RTK GNSS 안테나(후방 상단 마스트 + 퍽) — Matrice 등 rtk=True 기체의 식별 특징."""
+    mast_h = 0.45 * body_l
+    mx = -0.18 * body_l
+    z0 = body_z * 1.1
+    m.merge(cylinder(0.022 * body_l, mast_h, axis="z", seg=10,
+                     center=(mx, 0, z0 + mast_h / 2), group="body"))
+    m.merge(cylinder(0.075 * body_l, 0.05 * body_l, axis="z", seg=14, r_top=0.06 * body_l,
+                     center=(mx, 0, z0 + mast_h), group="body"))      # 퍽(돔)
 
 
 def drone_colors(spec: DroneSpec) -> dict:
