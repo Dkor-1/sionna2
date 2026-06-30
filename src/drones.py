@@ -27,7 +27,7 @@ import math
 from dataclasses import dataclass, field
 
 import numpy as np
-from geom import Mesh, box, cylinder, uv_sphere, blade, rotate, translate
+from geom import Mesh, box, cylinder, uv_sphere, blade, prop_blade, hull, rotate, translate
 
 
 # --------------------------------------------------------------------------- #
@@ -164,16 +164,17 @@ def build_frame(spec: DroneSpec) -> Mesh:
     드론 로컬 프레임(전방 +x). pose_articulated 에서 몸체 자세를 통째로 적용한다."""
     m = Mesh()
     diag, r, prop_r, bh, body_l, body_w, body_z = _drone_dims(spec)
-    # 동체 + 캐노피 + 전방 코
-    m.merge(box(body_l, body_w, body_z, center=(0, 0, 0), group="body"))
-    m.merge(box(body_l * 0.6, body_w * 0.7, body_z * 0.9,
-                center=(-0.04 * body_l, 0, body_z * 0.8), group="canopy"))
-    m.merge(box(body_l * 0.25, body_w * 0.5, body_z * 0.7,
-                center=(body_l * 0.5, 0, 0), group="body"))
-    # 암 + 모터(프로펠러는 분리)
+    # 동체(둥근 hull) + 전방 코(테이퍼) + 캐노피(돔) — 박스 대신 곡면
+    m.merge(hull(body_l, body_w, body_z, sides=16, taper_top=0.80,
+                 center=(0, 0, 0), group="body"))
+    m.merge(hull(body_l * 0.34, body_w * 0.6, body_z * 0.72, sides=12, taper_top=0.45,
+                 center=(body_l * 0.44, 0, -body_z * 0.05), group="body"))     # 코(돌출·테이퍼)
+    m.merge(hull(body_l * 0.62, body_w * 0.72, body_z * 1.1, sides=16, taper_top=0.32,
+                 center=(-0.04 * body_l, 0, body_z * 0.7), group="canopy"))    # 캐노피 돔
+    # 암(둥근 카본 튜브) + 모터(약간 벨형) — 프로펠러는 분리
     hub_r = max(body_l, body_w) * 0.5 * 0.9
-    arm_w = (0.10 if spec.fixed_arm else 0.05) * diag
-    arm_t = (0.08 if spec.fixed_arm else 0.045) * diag
+    arm_rad = (0.050 if spec.fixed_arm else 0.028) * diag
+    arm_t = (0.08 if spec.fixed_arm else 0.045) * diag                          # 모터 안착 높이 기준(유지)
     motor_r = 0.05 * diag; motor_h = 0.045 * diag
     for ang in _motor_angles(spec):
         ca, sa = math.cos(math.radians(ang)), math.sin(math.radians(ang))
@@ -181,12 +182,13 @@ def build_frame(spec: DroneSpec) -> Mesh:
         L = r - hub_r; rc = (hub_r + r) / 2.0
         arm_grp = "arm" if spec.arm_style == "carbon" else "body"
         M = rotate("z", ang) @ translate(rc, 0, 0)
-        m.merge(box(L, arm_w, arm_t, center=(0, 0, 0)).transformed(M), group=arm_grp)
-        if spec.accent_rgb is not None and ca > 0.1:
+        m.merge(cylinder(arm_rad, L, axis="x", seg=12, center=(0, 0, 0)).transformed(M),
+                group=arm_grp)
+        if spec.accent_rgb is not None and ca > 0.1:                            # 전방 암 식별 컬러밴드
             Mc = rotate("z", ang) @ translate(r - L * 0.18, 0, 0)
-            m.merge(box(L * 0.30, arm_w * 1.05, arm_t * 1.05,
-                        center=(0, 0, 0)).transformed(Mc), group="accent")
-        m.merge(cylinder(motor_r, motor_h, axis="z",
+            m.merge(cylinder(arm_rad * 1.25, L * 0.28, axis="x", seg=12,
+                             center=(0, 0, 0)).transformed(Mc), group="accent")
+        m.merge(cylinder(motor_r, motor_h, axis="z", seg=16, r_top=motor_r * 0.82,
                          center=(mx, my, motor_h / 2 + arm_t / 2), group="motor"))
     _add_gear(m, spec, body_l, body_w, body_z, diag)
     _add_camera(m, spec, body_l, body_z)
@@ -200,7 +202,7 @@ def build_propeller(spec: DroneSpec) -> Mesh:
     m = Mesh()
     for b in range(spec.prop_blades):
         bang = (360.0 / spec.prop_blades) * b
-        m.merge(blade(prop_r, prop_r * 0.22, 0.004).transformed(rotate("z", bang)), group="prop")
+        m.merge(prop_blade(prop_r).transformed(rotate("z", bang)), group="prop")
     return m
 
 

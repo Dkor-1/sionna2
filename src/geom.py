@@ -311,6 +311,75 @@ def blade(length, width, thick, group="prop") -> Mesh:
     return m
 
 
+def prop_blade(R, root=0.12, thick=None, pitch_deg=18.0, twist_deg=11.0,
+               sweep=0.10, n=10, group="prop") -> Mesh:
+    """**곡면·트위스트·테이퍼 프로펠러 날개 1장** (평면 8각판 blade() 의 사실적 버전).
+    +x = 스팬(길이) 방향, y = 시위(chord), z = 두께. 루트→팁으로 시위가 변하고(테이퍼),
+    피치가 줄며(워시아웃 트위스트), 회전방향으로 약간 휜다(scimitar sweep). 끝은 좁고 둥글다.
+      R         : 날개 길이(=프로펠러 반경) [m]
+      root      : 루트 시작 반경비(허브 안쪽 비움)
+      pitch_deg : 루트 피치(받음각), twist_deg : 루트→팁 워시아웃 감소량
+      sweep     : 후퇴 곡선량(반경 대비), n : 스팬 분할
+    단면은 시위 방향 직사각(LE_top,TE_top,TE_bot,LE_bot) 링을 트위스트시켜 잇는다."""
+    m = Mesh(group)
+    r0 = root * R
+    thick = thick if thick is not None else 0.012 * R
+
+    def chord(t):                                    # 시위 분포(루트 좁→0.3R 최대→끝 둥글게)
+        ts = [0.0, 0.15, 0.35, 0.80, 1.0]
+        cs = [0.10, 0.20, 0.22, 0.16, 0.03]
+        # 선형보간(numpy 없이)
+        for j in range(len(ts) - 1):
+            if t <= ts[j + 1]:
+                f = (t - ts[j]) / (ts[j + 1] - ts[j] + 1e-12)
+                return (cs[j] + f * (cs[j + 1] - cs[j])) * R
+        return cs[-1] * R
+
+    rings = []
+    for i in range(n + 1):
+        t = i / n
+        x = r0 + (R - r0) * t
+        c = chord(t)
+        th = math.radians(pitch_deg - twist_deg * t)         # 워시아웃 트위스트
+        cy = sweep * R * math.sin(math.pi / 2 * t)           # 후퇴 곡선
+        ct, st = math.cos(th), math.sin(th)
+        ring = []
+        for s, zc in [(-0.5, +thick/2), (+0.5, +thick/2), (+0.5, -thick/2), (-0.5, -thick/2)]:
+            yy, zz = s * c, zc                               # 시위(y)·두께(z)
+            y = cy + yy * ct - zz * st                       # x축(스팬) 둘레 트위스트
+            z = yy * st + zz * ct
+            ring.append(m.add_vertex(x, y, z))
+        rings.append(ring)
+    for i in range(n):                                       # 스팬 방향으로 잇기
+        a, b = rings[i], rings[i + 1]
+        for k in range(4):
+            k2 = (k + 1) % 4
+            m.add_quad(a[k], a[k2], b[k2], b[k])
+    m.add_quad(rings[0][0], rings[0][1], rings[0][2], rings[0][3])     # 루트 캡
+    m.add_quad(rings[-1][3], rings[-1][2], rings[-1][1], rings[-1][0]) # 팁 캡
+    return m
+
+
+def hull(lx, ly, lz, sides=12, taper_top=0.72, center=(0, 0, 0), group="hull") -> Mesh:
+    """**둥근 동체** — 타원 단면(반경 lx/2, ly/2)의 다각 기둥, 위로 갈수록 taper_top 배로 좁아짐.
+    sides 를 크게 하면 매끈해진다(박스 대신). 드론 동체/캐노피에 사용."""
+    m = Mesh(group)
+    cx, cy, cz = center; hx, hy, hz = lx/2, ly/2, lz/2
+    bot, top = [], []
+    for k in range(sides):
+        a = 2 * math.pi * k / sides; ca, sa = math.cos(a), math.sin(a)
+        bot.append(m.add_vertex(cx + hx*ca, cy + hy*sa, cz - hz))
+        top.append(m.add_vertex(cx + taper_top*hx*ca, cy + taper_top*hy*sa, cz + hz))
+    for k in range(sides):
+        k2 = (k + 1) % sides
+        m.add_quad(bot[k], bot[k2], top[k2], top[k])
+    cb = m.add_vertex(cx, cy, cz - hz); ct = m.add_vertex(cx, cy, cz + hz)
+    for k in range(sides):
+        k2 = (k + 1) % sides
+        m.add_tri(cb, bot[k2], bot[k]); m.add_tri(ct, top[k], top[k2])
+    return m
+
+
 # --------------------------------------------------------------------------- #
 #  편의: 평평한 사각 영역을 '피라미드 밭'으로 채우기 (전파흡수체 라이닝)
 # --------------------------------------------------------------------------- #
