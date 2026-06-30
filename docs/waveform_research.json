@@ -1,0 +1,329 @@
+[
+  {
+    "research": {
+      "key": "wifi",
+      "standard_name": "IEEE 802.11 WLAN OFDM PHY (Wi-Fi)",
+      "representative_variant": "802.11ac (VHT, Wi-Fi 5) at 5 GHz as primary; 802.11ax (HE, Wi-Fi 6) noted; legacy 802.11a/g/n OFDM is the common backbone",
+      "waveform_type": "CP-OFDM (single-user); 802.11ax/be add OFDMA (multi-user) on the same CP-OFDM tone grid. Legacy/VHT use a fixed 0.8/0.4 us cyclic prefix (\"guard interval\"); HE/EHT add 1.6/3.2 us GI options.",
+      "typical_carriers_hz": [
+        2412000000,
+        2437000000,
+        2462000000,
+        5180000000,
+        5210000000,
+        5500000000,
+        5745000000,
+        5955000000
+      ],
+      "typical_bandwidths_hz": [
+        20000000,
+        40000000,
+        80000000,
+        160000000
+      ],
+      "subcarrier_spacing_hz": [
+        312500,
+        78125
+      ],
+      "cp_description": "\"Guard interval\" = cyclic prefix. Legacy/HT/VHT (312.5 kHz SCS): Normal GI = 0.8 us (16 samples at 20 MHz / 20 MHz sampling); Short GI = 0.4 us (8 samples). HE/EHT (78.125 kHz SCS): GI options 0.8 / 1.6 / 3.2 us (16 / 32 / 64 samples relative to the 12.8 us useful symbol). CP is a copy of the OFDM symbol tail prepended to the front.",
+      "frame_slot_structure": "Packet-based PPDU, not a continuous frame/slot grid. VHT PPDU = L-STF (8 us) + L-LTF (8 us) + L-SIG (4 us) + VHT-SIG-A (2 OFDM sym, 8 us) + VHT-STF (4 us) + VHT-LTF (NLTF x 4 us, NLTF in {1,2,4,6,8} = Nss rounded up) + VHT-SIG-B (4 us) + DATA (variable, integer number of 4 us symbols, or 3.6 us with short GI). HE PPDU: RL-SIG + HE-SIG-A/B + HE-STF + HE-LTF (each HE-LTF symbol 12.8 us+GI) + HE-DATA (13.6 us symbols at 0.8 us GI). Legacy OFDM symbol = 3.2 us useful + 0.8 us CP = 4.0 us. There is no fixed superframe; transmissions are gated by CSMA/CA, so a passive radar must detect each PPDU's preamble.",
+      "reference_signals": [
+        {
+          "name": "L-STF (Legacy Short Training Field)",
+          "purpose": "Packet detection, AGC, coarse CFO, coarse timing",
+          "sequence": "BPSK on 12 of 52 subcarriers (indices +/-4,8,12,16,20,24 at 20 MHz), scaled by sqrt(13/6); periodic with 0.8 us period -> ten 0.8 us repetitions in 8 us",
+          "time_freq_pattern": "First 8 us; energy on 12 evenly spaced subcarriers only -> short 0.8 us autocorrelation period (good for detection, poor for ranging due to ambiguity)",
+          "radar_sensing_use": "Used for robust packet detection / time-of-arrival gating; periodicity gives multiple correlation peaks so it is NOT ideal as the matched-filter range reference."
+        },
+        {
+          "name": "L-LTF (Legacy Long Training Field)",
+          "purpose": "Fine CFO, fine symbol timing, legacy channel estimation",
+          "sequence": "Known BPSK sequence on 52 subcarriers (indices -26..+26 excluding DC), the standardized L array {1,1,-1,-1,1,1,-1,1,...}; two identical 3.2 us long symbols preceded by a 1.6 us double guard interval (total 8 us)",
+          "time_freq_pattern": "8 us; 53 occupied tones (-26..26, DC null) modulated by fixed BPSK; flat, full-band, deterministic -> thumbtack-like autocorrelation over 20 MHz",
+          "radar_sensing_use": "PRIMARY passive-radar matched-filter reference: fully known, occupies the whole 20 MHz band, two repetitions for integration, deterministic so the reference is identical across every packet from any AP. Used as the reference channel to correlate against the surveillance channel."
+        },
+        {
+          "name": "VHT-LTF / HE-LTF (channel-estimation long training fields)",
+          "purpose": "MIMO channel estimation per spatial stream",
+          "sequence": "Full-band BPSK pilot pattern mapped through a P (orthogonal-mapping) matrix across NLTF symbols; HE-LTF uses 78.125 kHz tones (1x/2x/4x LTF modes)",
+          "time_freq_pattern": "Occupy the full channel BW (e.g. 242 tones at HE 20 MHz); one symbol per spatial stream (4 us VHT, 12.8 us+GI HE)",
+          "radar_sensing_use": "Wider-band, full-occupancy reference for 40/80/160 MHz where finer range resolution is wanted; per-stream orthogonality lets MIMO passive radar separate spatial channels. Known content -> usable as matched-filter reference."
+        },
+        {
+          "name": "DATA field (PSDU OFDM symbols)",
+          "purpose": "Carries user payload (PDSCH-equivalent)",
+          "sequence": "Scrambled, FEC-coded, interleaved QAM (BPSK..1024-QAM) on data tones + 4 fixed pilot tones (indices +/-7,+/-21 at 20 MHz) per symbol",
+          "time_freq_pattern": "Variable number of 4 us (legacy/VHT) or 13.6 us (HE 0.8 GI) symbols; 48 data + 4 pilot tones at legacy 20 MHz, 234 data + 8 pilot at HE 20 MHz",
+          "radar_sensing_use": "Data symbols are a priori unknown, so they need a reciprocal/reference-channel reconstruction (demodulate-and-remodulate) before use; the 4 pilot tones are the only deterministic part. Good for long coherent integration once decoded, but not a clean matched-filter template by themselves."
+        },
+        {
+          "name": "Wi-Fi CSI (Channel State Information)",
+          "purpose": "Per-subcarrier complex channel H(f) estimated from L-LTF/HT-LTF/VHT-LTF/HE-LTF",
+          "sequence": "Derived quantity: H_k = Y_k / X_k on training tones (X_k known BPSK), exported per subcarrier per Rx/Tx antenna",
+          "time_freq_pattern": "One complex value per occupied subcarrier per spatial stream per packet (e.g. 52 or 56 tones at 20 MHz, 242 at HE 20 MHz)",
+          "radar_sensing_use": "Basis of WiFi sensing: CSI amplitude/phase time series across packets gives micro-Doppler and range-bin-like delay info; csitool/nexmon/Atheros expose it. Effectively the channel impulse response a passive sensor would otherwise estimate."
+        }
+      ],
+      "best_signal_for_passive_radar": "The L-LTF (Legacy Long Training Field) is the preferred matched-filter reference. It is (1) fully deterministic and identical in every 802.11a/g/n/ac/ax packet regardless of AP or payload, so the reference template is known a priori with no demodulation; (2) full-band over the entire 20 MHz channel giving a thumbtack-like, near-flat-spectrum autocorrelation and hence the best achievable range resolution for the band; (3) present once per packet for clean time-of-arrival gating; and (4) repeated twice (two 3.2 us symbols) for ~3 dB coherent integration. The L-STF is good for detection/AGC but its 0.8 us periodicity creates range ambiguities, and the DATA field is unknown so it requires reciprocal-filter reconstruction. For wider instantaneous bandwidth (finer range resolution) at 40/80/160 MHz, use the full-band VHT-LTF/HE-LTF; for non-cooperative continuous illumination, a reciprocal (reference-reconstruction) filter over the whole reconstructed PPDU is used.",
+      "range_resolution_note": "Range resolution dR = c/(2*B). 20 MHz: 3e8/(2*2e7) = 7.5 m. 40 MHz: 3.75 m. 80 MHz: 1.875 m. 160 MHz: 0.9375 m (320 MHz 802.11be: ~0.47 m). Note the L-LTF spans the full nominal channel BW (occupied ~16.6 MHz of legacy 20 MHz -> effective ~9 m if only occupied tones used), so for best resolution use the widest full-occupancy field (HE/EHT LTF or DATA) at 80/160 MHz. Doppler/velocity resolution is set by coherent processing interval (number of packets x packet spacing), independent of B.",
+      "synthesis_notes": "1) Pick variant/BW, e.g. 802.11ac VHT 80 MHz at 5.21 GHz center. 2) Set FFT/SCS: legacy/VHT 312.5 kHz, useful symbol 3.2 us; 20 MHz->64-FFT (52 used: 48 data+4 pilot, ~56 occupied incl. edge tones for HT/VHT), 40->128, 80->256 (234 data+8 pilot), 160->512. HE: 78.125 kHz, 12.8 us useful, 20 MHz->256-FFT (234 data+8 pilot+DC), 80 MHz->1024-FFT (980 data+16 pilot), 160->2048-FFT. 3) Build the resource grid per field: L-STF = sqrt(13/6) on the 12 STF tones, zeros elsewhere; L-LTF = the standardized 52-entry BPSK L sequence on tones -26..26 (DC=0); L-SIG/VHT-SIG = BPSK/QPSK OFDM symbols (can be set to valid header bits or placeholders); VHT-STF/VHT-LTF = standard STF tones / P-matrix-mapped full-band BPSK; DATA = scramble(PSDU) -> BCC or LDPC encode -> interleave -> QAM map onto 48/234 data tones with 4/8 fixed pilots. 4) Per OFDM symbol: place complex symbols on used subcarriers (Hermitian not required since complex baseband), IFFT (size=FFT), prepend CP/GI (16 samples=0.8 us legacy; 16/32/64 samples HE), optionally apply window/ramp to limit spectral leakage. 5) Concatenate fields in order L-STF|L-LTF|L-SIG|SIG-A|VHT-STF|VHT-LTF|SIG-B|DATA to form the PPDU at the base sample rate (20/40/80/160 Msps = SCS x FFT). 6) Resample to RF DAC rate, upconvert to carrier. 7) For the passive-radar reference, simplest path is to synthesize just the L-LTF (two 3.2 us symbols + 1.6 us GI) at 20 Msps as the matched-filter template, or generate full PPDUs (e.g. via MATLAB WLAN Toolbox wlanWaveformGenerator / wlanVHTConfig / wlanHESUConfig) and gate on the L-LTF. 8) For CSI-style sensing, estimate H_k = Y_k/X_k on the LTF tones and track amplitude/phase across many packets for micro-Doppler.",
+      "fft_size_examples": "Legacy/VHT (312.5 kHz): 20 MHz->64-FFT, 40 MHz->128, 80 MHz->256, 160 MHz->512. HE/EHT (78.125 kHz): 20 MHz->256-FFT, 40 MHz->512, 80 MHz->1024, 160 MHz->2048. Representative 802.11ac 80 MHz = 256-point IFFT.",
+      "num_used_subcarriers": "Legacy 802.11a/g 20 MHz: 52 used (48 data + 4 pilot), indices -26..+26 (DC null), 11 guard tones each edge. HT/VHT 20 MHz: 56 used (52 data + 4 pilot), -28..+28. VHT 80 MHz (256-FFT): 242 used (234 data + 8 pilot), DC and edge tones nulled. HE 20 MHz (256-FFT): 242 used (234 data + 8 pilot), 6 DC/null + edge guards. HE 80 MHz (1024-FFT): 996 used (980 data + 16 pilot). Guard/null tones at band edges suppress out-of-band emission; DC tone(s) nulled to avoid LO leakage.",
+      "ofdm_symbol_duration_us": 4,
+      "sources": [
+        "IEEE Std 802.11-2020 (and 802.11ac-2013, 802.11ax-2021) Clause 17/19/21/27 OFDM/VHT/HE PHY",
+        "Rohde & Schwarz 802.11ac Technology Introduction White Paper (1MA192): https://scdn.rohde-schwarz.com/ur/pws/dl_downloads/dl_application/application_notes/1ma192/1MA192_7e_80211ac_technology.pdf",
+        "MathWorks WLAN Toolbox - VHT PPDU Structure: https://www.mathworks.com/help/wlan/gs/vht-ppdu-structure.html",
+        "MathWorks WLAN Toolbox - Non-HT PPDU Structure: https://www.mathworks.com/help/wlan/gs/non-ht-ppdu-structure.html",
+        "ShareTechnote WLAN PHY Frames: https://www.sharetechnote.com/html/WLAN_PHY_Frames.html",
+        "NI Introduction to 802.11ax HE: https://www.ni.com/en/solutions/semiconductor/wireless-connectivity-test/introduction-to-802-11ax-high-efficiency-wireless.html",
+        "LitePoint Wi-Fi 6 vs Wi-Fi 5 RF PHY: https://www.litepoint.com/blog/wi-fi-6-vs-wi-fi-5-key-changes-to-the-rf-physical-layer/",
+        "SimHumalator: Open Source WiFi Passive Radar Human Simulator (arXiv:2103.01677): https://arxiv.org/pdf/2103.01677",
+        "Yildirim et al., Super-resolution passive radars based on 802.11ax Wi-Fi signals, IET Radar Sonar Navig 2021: https://ietresearch.onlinelibrary.wiley.com/doi/full/10.1049/rsn2.12038",
+        "On the Use of Reciprocal Filter against WiFi Packets for Passive Radar (ResearchGate): https://www.researchgate.net/publication/357389345"
+      ],
+      "confidence": "high"
+    },
+    "verify": {
+      "key": "wifi",
+      "agrees": true,
+      "corrections": "No substantive corrections needed. All load-bearing parameters were independently verified against IEEE/MathWorks/vendor sources and are correct. Verified items: (1) SCS = 312.5 kHz (legacy/HT/VHT) and 78.125 kHz (HE/EHT) -- CONFIRMED. (2) FFT sizes -- legacy/VHT 64/128/256/512 at 20/40/80/160 MHz, HE 256/512/1024/2048 -- CONFIRMED (e.g. 802.11ac 80 MHz = 256-FFT with 242 used = 234 data + 8 pilot; HE 20 MHz = 256-FFT, 242-tone RU = 234 data + 8 pilot; HE 80 MHz 996-tone = 980 data + 16 pilot; HE 160 MHz = 2x996). (3) Useful symbol 3.2 us (legacy) / 12.8 us (HE); CP/GI 0.8 us normal & 0.4 us short (legacy), 0.8/1.6/3.2 us (HE) -- CONFIRMED; HE-DATA symbol = 12.8 + 0.8 = 13.6 us -- CONFIRMED. (4) Legacy OFDM symbol 3.2 + 0.8 = 4 us -- CONFIRMED. (5) L-STF: 12 of 52 tones at indices +/-{4,8,12,16,20,24}, scaled sqrt(13/6), 8 us, 0.8 us periodicity (ten reps) -- CONFIRMED. (6) L-LTF: 52 BPSK tones on -26..+26 (DC null), two identical 3.2 us symbols preceded by a 1.6 us double GI, total 8 us -- CONFIRMED (MathWorks: T_GI2 = 1.6 us = T_FFT/2, total = T_GI2 + 2*T_FFT = 8 us). (7) Data field: 48 data + 4 pilot at legacy 20 MHz, pilots at indices -21,-7,+7,+21 -- CONFIRMED; 234 data + 8 pilot at HE 20 MHz -- CONFIRMED. (8) Subcarrier counts: legacy 802.11a/g 20 MHz = 52 used (-26..+26), HT/VHT 20 MHz = 56 used (-28..+28) -- CONFIRMED. (9) L-LTF as the preferred passive-radar matched-filter reference (deterministic, full-band, twice-repeated) -- consistent with the passive-radar literature cited (SimHumalator, reciprocal-filter WiFi PR work). Minor nuance (not an error): the range-resolution note's '~16.6 MHz occupied / effective ~9 m' for L-LTF is approximate -- the occupied span -26..+26 is 52*312.5 kHz = 16.25 MHz (or 16.5625 MHz edge-to-edge across 53 grid positions), so 'effective ~9 m' is a fair rough figure; no change required. Also acceptable simplification: 'ofdm_symbol_duration_us: 4' is the legacy/VHT value only (HE symbols are 13.6 us), which the prose already states explicitly.",
+      "confidence": "high",
+      "confirmed_range_resolution": "dR = c/(2B) verified exactly: 20 MHz -> 7.5 m, 40 MHz -> 3.75 m, 80 MHz -> 1.875 m, 160 MHz -> 0.9375 m, 320 MHz (802.11be) -> 0.46875 m (~0.47 m). All match the document.",
+      "sources": [
+        "IEEE 802.11a-1999 / IEEE Std 802.11-2020 Clause 17 (OFDM PHY): L-STF tones +/-{4,8,12,16,20,24} scaled sqrt(13/6); L-LTF 52 BPSK tones -26..+26 with 1.6 us double GI + two 3.2 us symbols; data pilots at -21,-7,+7,+21",
+        "MathWorks WLAN Toolbox - Non-HT PPDU Structure (https://www.mathworks.com/help/wlan/gs/non-ht-ppdu-structure.html): L-STF 8 us / 12 of 52 tones; L-LTF GI = 1.6 us = T_FFT/2, total 8 us; L-SIG 4 us; symbol 3.2 us FFT + 0.8 us GI = 4 us",
+        "Keysight L-LTF help (helpfiles.keysight.com): L-LTF = 53 subcarriers incl DC null (52 active), BPSK, identical to 802.11a long training symbol",
+        "Keysight/Agilent 802.11a OFDM overview: 52 subcarriers = 48 data + 4 pilot, pilots at -21,-7,+7,+21, DC null, data span -26..+26",
+        "LitePoint Wi-Fi 6 vs Wi-Fi 5 RF PHY + NI Intro to 802.11ax (https://www.litepoint.com/blog/...): HE SCS 78.125 kHz, useful symbol 12.8 us, FFT 64->256 at 20 MHz",
+        "ClearToSend CTS 162 802.11ax OFDMA Subcarriers (https://www.cleartosend.net/802-11ax-ofdma-subcarriers/) + Resource Unit (Wikipedia/Grokipedia): 242-tone RU = 234 data + 8 pilot (HE 20 MHz); 996-tone RU = 980 data + 16 pilot (80 MHz); 160 MHz = 2x996-tone",
+        "Rohde & Schwarz 802.11ac (1MA192) and 802.11ax Technology Introduction white papers: VHT 80 MHz 256-FFT, 242 used (234 data + 8 pilot), SCS 312.5 kHz",
+        "Range-resolution arithmetic dR=c/(2B) recomputed and confirmed for 20/40/80/160/320 MHz"
+      ]
+    }
+  },
+  {
+    "research": {
+      "key": "lte",
+      "standard_name": "LTE (3GPP E-UTRA) downlink, OFDMA (CP-OFDM)",
+      "representative_variant": "LTE Rel-9 FDD downlink, Band 3 (~1.8 GHz), 20 MHz, normal CP, 15 kHz SCS (PRS introduced in Rel-9). Per 3GPP TS 36.211.",
+      "waveform_type": "CP-OFDM (OFDMA on the downlink). Fixed 15 kHz subcarrier spacing, normal or extended cyclic prefix. IFFT-based OFDM with per-symbol cyclic prefix; QPSK/16/64/256-QAM data on PDSCH.",
+      "typical_carriers_hz": [
+        1842500000,
+        1815000000,
+        806000000,
+        942000000,
+        2120000000,
+        2350000000,
+        2630000000
+      ],
+      "typical_bandwidths_hz": [
+        1400000,
+        3000000,
+        5000000,
+        10000000,
+        15000000,
+        20000000
+      ],
+      "subcarrier_spacing_hz": [
+        15000
+      ],
+      "cp_description": "Normal CP (7 OFDM symbols/slot): at 20 MHz / 30.72 MHz sampling, the first symbol of each 0.5 ms slot has CP = 160 samples = 5.208 us (5.21 us); symbols 1-6 have CP = 144 samples = 4.6875 us (4.69 us). (Generic Ts-units: 160*Ts and 144*Ts, Ts=1/30.72MHz=32.55 ns.) Extended CP (optional, 6 symbols/slot): CP = 512 samples = 16.67 us for all symbols. CP lengths scale down with FFT size at lower BW (e.g. 10 MHz/1024-FFT/15.36 MHz: 80 and 72 samples) but the durations in us are bandwidth-independent.",
+      "frame_slot_structure": "Radio frame = 10 ms = 307200 Ts. 1 frame = 10 subframes of 1 ms (= 2 slots x 0.5 ms = 15360 Ts). Normal CP: 7 OFDM symbols/slot -> 14 symbols/subframe -> 140 symbols/frame. Subframe symbol index l=0..13; slot symbol index l=0..6. PSS/SSS repeat every 5 ms (subframes 0 and 5). One subframe (1 ms) is the natural coherent processing interval for synchronization-signal-based passive radar; full-reference reconstruction can integrate over many subframes. FDD frame structure type 1 (Band 3 is FDD).",
+      "num_used_subcarriers": "20 MHz: 1200 occupied subcarriers = 100 PRBs x 12 subcarriers. FFT size 2048, so 2048-1200 = 848 guard/null bins including DC (DC subcarrier is nulled). Occupied bandwidth = 1200 x 15 kHz = 18.0 MHz (the nominal channel is 20 MHz with ~1 MHz total guard, 90% occupancy). Lower BWs: 1.4 MHz=72 used/128-FFT(6 RB); 3 MHz=180/256(15 RB); 5 MHz=300/512(25 RB); 10 MHz=600/1024(50 RB); 15 MHz=900/1536(75 RB).",
+      "fft_size_examples": "20 MHz: FFT=2048, fs=30.72 MHz. Others: 1.4 MHz->128/1.92 MHz; 3 MHz->256/3.84 MHz; 5 MHz->512/7.68 MHz; 10 MHz->1024/15.36 MHz; 15 MHz->1536/23.04 MHz. All fs = FFT x 15 kHz.",
+      "ofdm_symbol_duration_us": 71.354,
+      "reference_signals": [
+        {
+          "name": "CRS (Cell-specific Reference Signal)",
+          "purpose": "Always-on cell-wide pilots for channel estimation, demodulation, and cell power/measurement reference; present in every downlink subframe across the entire occupied bandwidth.",
+          "sequence": "QPSK symbols r(m) = (1/sqrt2)(1-2c(2m)) + j(1/sqrt2)(1-2c(2m+1)) where c(n) is a length-31 Gold (pseudo-random) sequence initialized per OFDM symbol with c_init = 2^10*(7*(n_s+1)+l+1)*(2*N_ID_cell+1) + 2*N_ID_cell + N_CP, n_s = slot number, l = symbol-in-slot, N_CP=1 normal / 0 extended CP. Fully deterministic given physical cell ID (0..503) and timing.",
+          "time_freq_pattern": "Comb-6 in frequency. Normal CP, ports 0/1: CRS on OFDM symbols l=0 and l=4 of every slot (subframe symbols 0,4,7,11); port 0 on subcarriers k = 6*m + (v + v_shift) mod 6 with v=0 (l=0) / v=3 (l=4); port 1 swaps the v offsets; v_shift = N_ID_cell mod 6. Ports 2/3 sit on symbol l=1, comb-6. 2 CRS REs per RB per port per CRS symbol; antenna ports 0-3 use mutually offset combs.",
+          "radar_sensing_use": "Excellent always-on deterministic reference: spans the full 18 MHz occupied bandwidth in every 1 ms subframe, so it supports full-bandwidth (7.5 m) range resolution and long coherent integration without needing to decode user data. Reconstruct the CRS grid from the cell ID, IFFT, and use as the matched-filter reference channel; or use it to estimate/clean the reference channel for the full-reference method."
+        },
+        {
+          "name": "PSS (Primary Synchronization Signal)",
+          "purpose": "Coarse time/frequency sync and N_ID_2 (0,1,2) of the physical cell ID; first acquisition anchor.",
+          "sequence": "Frequency-domain Zadoff-Chu of length 63 (center punctured at DC) -> 62 used symbols: d_u(n) = exp(-j*pi*u*n*(n+1)/63), roots u = 25, 29, 34 for N_ID_2 = 0,1,2.",
+          "time_freq_pattern": "Central 62 subcarriers (6 RB = 72-subcarrier / 1.08 MHz block, 5 nulls each side, DC skipped), regardless of channel BW. FDD: last OFDM symbol (l=6) of slots 0 and 10 (i.e., subframes 0 and 5). Repeats every 5 ms.",
+          "radar_sensing_use": "Constant, non-data-dependent, strong-autocorrelation ZC sequence -> classic time-domain correlator anchor for sync and a clean matched-filter template. BUT only 1.08 MHz wide, so range resolution is coarse (~139 m); used for timing/Doppler reference, not high range resolution."
+        },
+        {
+          "name": "SSS (Secondary Synchronization Signal)",
+          "purpose": "Frame timing and N_ID_1 (0..167) cell group -> full physical cell ID N_ID_cell = 3*N_ID_1 + N_ID_2.",
+          "sequence": "Length-62, interleaved concatenation of two length-31 m-sequences (BPSK), scrambled by sequences derived from N_ID_2; the two halves are swapped between subframe 0 and subframe 5 to resolve 10 ms frame timing.",
+          "time_freq_pattern": "Same central 62 subcarriers as PSS. FDD: the OFDM symbol immediately before PSS (l=5) of slots 0 and 10 (subframes 0 and 5).",
+          "radar_sensing_use": "Provides the cell ID needed to regenerate CRS/PRS, and frame timing for unambiguous bistatic delay referencing. Same 1.08 MHz narrowband limitation as PSS for direct ranging."
+        },
+        {
+          "name": "PRS (Positioning Reference Signal, Rel-9)",
+          "purpose": "Dedicated wideband, low-interference pilots designed for OTDOA positioning; intended to give clean wideband timing references, also ideal for sensing.",
+          "sequence": "Same QPSK Gold-sequence construction as CRS (length-31 Gold, c_init = 2^10*(7*(n_s+1)+l+1)*(2*N_ID_cell+1)+2*N_ID_cell+N_CP); mapped to antenna port 6.",
+          "time_freq_pattern": "Diagonal comb-6 pattern. Normal CP RE mapping k = 6*(m + N_RB_DL - N_RB_PRS) + (6 - l + v_shift) mod 6, v_shift = N_ID_cell mod 6; symbols l in {3,5,6} when n_s mod 2 = 0 and {1,2,3,5,6} (or {2,3,5,6} for 4 PBCH ports) when n_s mod 2 = 1. Transmitted in N_PRS = 1/2/4/6 consecutive 'positioning subframes' with periodicity T_PRS = 160/320/640/1280 ms (set by configuration index I_PRS in 0..2399); configurable PRS bandwidth 6..100 RB (1.4..20 MHz). Often sent in muted/near-empty subframes for low interference.",
+          "radar_sensing_use": "When enabled at full 100-RB bandwidth it is a near-ideal wideband, deterministic, low-interference radar reference (full 7.5 m resolution, diagonal pattern -> good ambiguity). Limitation: PRS is only present in sparse positioning subframes (low duty cycle) and is not always configured by operators, so it cannot be relied on as an always-on illuminator the way CRS can."
+        },
+        {
+          "name": "PDSCH (Physical Downlink Shared Channel) + full-signal reference",
+          "purpose": "Carries user data (QPSK/16/64/256-QAM); occupies the bulk of the resource grid not used by control/RS.",
+          "sequence": "Scrambled, modulated user data (not a fixed sequence); cell-/UE-scrambled. Data-dependent, so only usable as a reference after demodulation and re-encoding (the 'reference reconstruction' / dirty-template method).",
+          "time_freq_pattern": "Fills the occupied subcarriers across symbols not reserved for PDCCH (first 1-3 symbols), CRS, PSS/SSS, PBCH, etc. Spans full 18 MHz when fully loaded.",
+          "radar_sensing_use": "The decoded-and-reconstructed full downlink subframe (PDSCH + CRS + sync + PBCH re-modulated to baseband) is the highest-fidelity reference: full 18 MHz bandwidth AND high, continuous energy -> best processing gain and best (7.5 m) range resolution. Requires successfully demodulating/decoding the cell's transmission to rebuild a clean reference channel."
+        }
+      ],
+      "best_signal_for_passive_radar": "For maximum performance, the best reference is the reconstructed full downlink signal (demodulate/decode the cell's transmission, then re-modulate PDSCH+CRS+sync to baseband): it gives the entire 18 MHz occupied bandwidth (-> 7.5 m range resolution) plus high, continuous energy for large time-bandwidth processing gain, and it removes the noisy reference-channel problem. If you want an always-on signal that needs no data decoding, CRS is the best practical choice: it is fully deterministic from the physical cell ID, spans the full bandwidth in every 1 ms subframe (so it preserves full range resolution and allows long coherent integration), and reconstructs trivially. PSS/SSS are the cleanest fixed sequences (constant, strong autocorrelation, used for the sync/Doppler anchor) but only 1.08 MHz wide, giving coarse (~139 m) resolution; PRS is near-ideal when present at full bandwidth but has a low duty cycle and is often not configured. Practical pipeline: PSS/SSS for sync and cell ID -> CRS (or reconstructed full signal) as the wideband matched-filter reference -> cross-correlate reference vs surveillance channel for bistatic range-Doppler.",
+      "range_resolution_note": "Range resolution dR = c/(2B). At nominal channel BW 20 MHz: dR = 3e8/(2*20e6) = 7.5 m. At the actual occupied/transmitted bandwidth 18 MHz (1200 x 15 kHz): dR = 3e8/(2*18e6) = 8.33 m (the realistic figure for a CRS/PDSCH wideband reference). Narrowband references limited to the central 6 RB (PSS/SSS, 1.08 MHz): dR = 3e8/(2*1.08e6) = 138.9 m. Other channel BWs: 10 MHz -> 15 m (occupied 9 MHz -> 16.7 m); 5 MHz -> 30 m; 1.4 MHz -> 107 m. PRS at full 100 RB matches the 18 MHz / 8.33 m figure.",
+      "synthesis_notes": "Build a 20 MHz, normal-CP, 15 kHz LTE downlink baseband subframe: (1) Grid: allocate a complex resource grid of 1200 subcarriers x 14 OFDM symbols per 1 ms subframe (100 RB x 12 SC). Index occupied subcarriers symmetrically about a nulled DC bin; map to FFT bins so that the 1200 actives occupy bins (2048-1200)/2 ... edges, DC at bin 0, leaving 848 guard bins. (2) Cell ID: pick N_ID_cell = 3*N_ID_1 + N_ID_2 (e.g., 0). Derive v_shift = N_ID_cell mod 6. (3) Sync: build PSS (ZC root from N_ID_2: 25/29/34) on the central 62 subcarriers at symbol l=6 of slots 0 and 10; build SSS (two length-31 m-sequences, swapped between subframe 0 and 5) at l=5. (4) CRS: generate the length-31 Gold sequence with c_init per symbol, take QPSK pairs, and place on symbols l=0,4 of each slot (subframe symbols 0,4,7,11), comb-6 at k=6m+(v+v_shift)mod6 (v=0 at l=0, v=3 at l=4) for port 0 (offset by 3 for port 1). (5) Optional PRS: same Gold sequence on port 6, diagonal comb-6 k=6(m+N_RB_DL-N_RB_PRS)+(6-l+v_shift)mod6 over symbols l in {3,5,6}/{1,2,3,5,6} in designated positioning subframes. (6) PDSCH: fill remaining REs (after reserving PDCCH in the first 1-3 symbols, CRS, sync, PBCH) with scrambled QPSK/16/64/256-QAM symbols. (7) OFDM modulate each symbol: 2048-point IFFT of the mapped grid, then prepend CP = 160 samples for symbol l=0 of each slot, 144 samples for l=1..6; concatenate. Result is 30720 complex samples per 1 ms at fs=30.72 MHz. (8) Upconvert to the carrier (e.g., 1842.5 MHz, Band 3) if RF is needed. For passive radar, also produce a 'reference-only' grid (CRS-only or reconstructed full signal) and IFFT it identically to use as the matched-filter template. MathWorks LTE Toolbox (lteRMCDL, lteOFDMModulate, lteCellRS, ltePRS, ltePSS/lteSSS) or sionna/py3gpp reproduce this exactly. Verify: total samples 30720/ms, occupied BW 18 MHz, symbol durations 71.875 us (l=0) and 71.354 us (l=1..6).",
+      "sources": [
+        "3GPP TS 36.211 'E-UTRA Physical channels and modulation' (v12.6.0 PDF): https://www.sigidwiki.com/images/e/ea/Ts_136211v120600p.pdf - CRS clause 6.10.1, PRS clause 6.10.4 (RE map k=6(m+N_RB_DL-N_RB_PRS)+(6-l+v_shift)mod6), PSS/SSS clauses 6.11.1/6.11.2, frame structure clause 4",
+        "MathWorks LTE Toolbox - Synchronization Signals (PSS and SSS): https://www.mathworks.com/help/lte/ug/synchronization-signals-pss-and-sss.html (ZC roots 25/29/34, 62 symbols, central 6 RB, FDD symbol positions)",
+        "MathWorks LTE Toolbox User's Guide (R2026a) PDF: https://www.mathworks.com/help/pdf_doc/lte/lte_ug.pdf",
+        "ShareTechnote - LTE DL Frame Structure: https://www.sharetechnote.com/html/FrameStructure_DL.html (10ms frame, 7 sym/slot, Tu=66.67us, CP 160/144 samples, 2048-FFT/30.72MHz, 1200 SC)",
+        "Keysight N7624 - Positioning Reference Signals (Advanced LTE Downlink): https://helpfiles.keysight.com/csg/n7624/Content/Main/Positioning%20Reference%20Signals%20(Adv%20LTE%20Downlink).htm (antenna port 6, N_PRS 1/2/4/6, T_PRS 160/320/640/1280, I_PRS 0..2399, BW 6..100 RB)",
+        "Daniel Estevez - LTE downlink reference signals and transmit diversity: https://destevez.net/2022/05/lte-downlink-reference-signals-and-transmit-diversity/ (CRS symbols 0,4,7,11; comb-6; v_shift=PCI mod6; Gold/QPSK; full-BW every subframe)",
+        "CRS c_init formula c_init=2^10*(7*(n_s+1)+l+1)*(2*N_ID+1)+2*N_ID+N_CP - 3GPP TS 36.211 clause 6.10.1.1 (confirmed via telecomstudy18 / US patent 9265068)",
+        "LTE-based passive radars and applications: a review, Int. J. Remote Sensing 2021: https://www.tandfonline.com/doi/full/10.1080/01431161.2021.1959669 (cross-correlation of reference vs surveillance for bistatic range-Doppler; CRS/PSS as references)",
+        "LTE-based multistatic passive radar for UAV detection, IET Radar Sonar Navig. 2020: https://ietresearch.onlinelibrary.wiley.com/doi/full/10.1049/iet-rsn.2019.0452"
+      ],
+      "confidence": "high"
+    },
+    "verify": {
+      "key": "lte",
+      "agrees": true,
+      "corrections": "Verified directly against 3GPP TS 36.211 v12.6.0 (full-text extraction of clauses 4, 6.10.1, 6.10.4, 6.11.1, 6.11.2). The description is standards-accurate; essentially all load-bearing numbers and RE-mapping formulas are CORRECT. No substantive corrections required. Only two minor nits:\n\n1) MINOR WORDING SLIP (frame_slot_structure): \"1 frame = 10 subframes of 1 ms (= 2 slots x 0.5 ms = 15360 Ts)\". The 15360 Ts label is attached to the wrong unit: per TS 36.211 clause 4, a SLOT = 15360*Ts = 0.5 ms, and a 1 ms SUBFRAME = 30720*Ts (two slots). The radio frame = 307200*Ts = 10 ms is stated correctly. Fix: 1 ms subframe = 30720 Ts = 2 slots of 15360 Ts each.\n\n2) MINOR/ACCEPTABLE (PSS sequence): the doc gives d_u(n)=exp(-j*pi*u*n*(n+1)/63) as a single expression. The spec (6.11.1.1) actually has two branches: exp(-j*pi*u*n*(n+1)/63) for n=0..30 and exp(-j*pi*u*(n+1)*(n+2)/63) for n=31..61 (the DC/center puncture). The single-branch form is the conventional textbook shorthand and is acceptable; for a fully faithful generator, implement both branches over the 62 used subcarriers (center skipped). Roots u=25/29/34 for N_ID_2=0/1/2 confirmed exact.\n\nCONFIRMED EXACTLY (no change): SCS=15 kHz (CRS defined for 15 kHz only); FFT=2048 & fs=30.72 MHz at 20 MHz, and all BW/FFT/used-SC pairs (1.4MHz=128/72, 3=256/180, 5=512/300, 10=1024/600, 15=1536/900, 20=2048/1200), all fs=FFT*15kHz; CP normal=160 samples (5.208 us) first symbol + 144 (4.6875 us) symbols 1-6, extended=512 (16.67 us); symbol durations 71.875 us (l=0) / 71.354 us (l=1-6), Tu=66.67 us; CRS on l=0 and l=N_symb-3 (=4 normal CP) ports 0/1, l=1 ports 2/3, comb-6, v table v=0/3, v_shift=N_ID_cell mod 6, and c_init=2^10*(7*(n_s+1)+l+1)*(2*N_ID+1)+2*N_ID+N_CP (N_CP=1 normal/0 extended) all verbatim from clause 6.10.1; PRS k=6*(m+N_RB_DL-N_RB_PRS)+(6-l+v_shift)mod6, l in {3,5,6} (ns even) / {1,2,3,5,6} (ns odd, 1-2 PBCH ports) / {2,3,5,6} (ns odd, 4 PBCH ports), antenna port 6, N_PRS=1/2/4/6, T_PRS=160/320/640/1280 ms, I_PRS 0..2399, 6..100 RB all verbatim from clause 6.10.4; PSS ZC length-63 -> 62 used, central 6 RB, FDD last symbol (l=6) of slots 0 and 10 (subframes 0,5); SSS at l=N_symb-2 (=5) slots 0 and 10 (frame structure type 1), interleaved two length-31 m-sequences swapped between subframe 0 and 5; frame=307200 Ts=10 ms, slot=15360 Ts=0.5 ms, 30720 samples/ms; N_ID_cell=3*N_ID_1+N_ID_2; range resolution dR=c/2B all correct: 20MHz=7.5 m, occupied 18MHz=8.33 m, 10MHz=15 m (9MHz=16.67 m), 5MHz=30 m, 1.4MHz=107 m, central 6RB/1.08MHz=138.9 m. SSB (raised in the verification prompt) is a 5G NR construct and correctly does NOT appear here; LTE correctly uses separate PSS/SSS/PBCH.",
+      "confidence": "high",
+      "sources": [
+        "3GPP TS 36.211 v12.6.0 (2015-07) full-text extraction: clause 4 frame structure (T_f=307200*Ts=10ms, slot=15360*Ts=0.5ms); clause 6.10.1.1/6.10.1.2 CRS sequence + RE mapping k=6m+(v+v_shift)mod6 with v-table and c_init; clause 6.10.4.2 PRS mapping k=6(m+N_RB_DL-N_RB_PRS)+(6-l+v_shift)mod6 with normal-CP symbol sets {3,5,6}/{1,2,3,5,6}/{2,3,5,6} and antenna port 6; clause 6.11.1.1/6.11.1.2 PSS ZC roots 25/29/34, 62 SC, last symbol slots 0,10; clause 6.11.2.2 SSS at N_symb-2 slots 0,10 (https://www.sigidwiki.com/images/e/ea/Ts_136211v120600p.pdf)",
+        "Keysight N7624 PRS help page: antenna port 6, N_PRS=1/2/4/6, T_PRS=160/320/640/1280, I_PRS 0..2399, BW 6..100 RB (https://helpfiles.keysight.com/csg/n7624/Content/Main/Positioning%20Reference%20Signals%20(Adv%20LTE-A%20Downlink).htm)",
+        "Daniel Estevez - LTE downlink reference signals: CRS on first and fifth symbol of each slot (l=0,4) ports 0/1, comb-6, offset PCI mod 6 (https://destevez.net/2022/05/lte-downlink-reference-signals-and-transmit-diversity/)",
+        "Daniel Estevez - LTE downlink synchronization signals: PSS last symbol (l=6) slots 0/10, SSS immediately before (l=5), SSS halves swapped subframe 0 vs 5 (https://destevez.net/2022/04/lte-downlink-synchronization-signals/)",
+        "MathWorks/NI LTE OFDM modulator docs: 20 MHz -> 2048-FFT, 30.72 Msps, normal CP 160 samples first symbol + 144 subsequent (https://www.mathworks.com/help/wireless-hdl/ref/lteofdmmodulator.html)",
+        "Numeric verification: Ts=1/30.72MHz=32.55ns; CP 160=5.208us/144=4.6875us/512=16.67us; symbol l0=71.875us, l1-6=71.354us, Tu=66.67us; 30720 samples/ms, 307200 Ts/frame; dR=c/2B gives 7.5/8.33/15/16.67/30/107/138.9 m"
+      ]
+    }
+  },
+  {
+    "research": {
+      "key": "5g_nr",
+      "standard_name": "5G NR (3GPP New Radio) downlink CP-OFDM",
+      "representative_variant": "5G NR Rel-16 (FR1), band n78 ~3.5 GHz, 100 MHz channel, numerology mu=1 (30 kHz SCS); PRS/positioning per Rel-16 (TS 38.211 v15.x+/v16.x)",
+      "waveform_type": "CP-OFDM (cyclic-prefix OFDM, DFT-precoding NOT used on downlink). Optional windowing/filtering at TX is implementation-specific; the spec defines an unwindowed CP-OFDM grid. Normal cyclic prefix is the norm in FR1; extended CP exists only for 60 kHz SCS.",
+      "typical_carriers_hz": [
+        3500000000,
+        3300000000,
+        3700000000,
+        2600000000,
+        700000000,
+        28000000000,
+        39000000000
+      ],
+      "typical_bandwidths_hz": [
+        100000000,
+        20000000,
+        40000000,
+        50000000,
+        60000000,
+        80000000,
+        400000000
+      ],
+      "subcarrier_spacing_hz": [
+        15000,
+        30000,
+        60000,
+        120000,
+        240000
+      ],
+      "cp_description": "Normal CP (used in FR1). At mu=1 (30 kHz SCS), FFT N=4096, sample rate fs=122.88 MHz: regular OFDM symbols have CP = 288 samples = 2.34375 us; the FIRST symbol after each 0.5 ms boundary (symbol l=0 and l=7 within each 0.5 ms slot at mu=1) carries a LONGER CP of 352 samples = 2.864583 us (extra 16*kappa=1024 Tc = 64 samples to absorb the leftover so a slot is exactly 500 us). Per TS 38.211 5.3.1: regular CP = 144*kappa*2^-mu Tc, extra first-symbol CP = 16*kappa Tc, with kappa=64, Tc=1/(480000*4096) s = 0.50863 ns. Reference mu=0 (15 kHz, N=2048, fs=30.72 MHz): regular CP=144 samples=4.6875 us, long CP=160 samples=5.208 us. Extended CP (only mu=2/60 kHz): 512*2^-mu Tc, 12 symbols/slot.",
+      "frame_slot_structure": "Radio frame = 10 ms (= 307200 Tc), divided into 10 subframes of 1 ms each. Number of slots per subframe = 2^mu, each slot = 14 OFDM symbols (normal CP). For mu=1 (30 kHz): 2 slots/subframe, 20 slots/frame, slot duration = 0.5 ms = 500 us. Symbol math at 30 kHz (verified to sum exactly to 500 us/slot): useful symbol = 4096 samples = 33.3333 us; 14 symbols = 14*4096 + (1 long CP 352 + 13 regular CP 288) = 57344 + 4096 = 61440 samples = 500 us. Other numerologies: mu=0 -> 1 slot/subframe (1 ms), mu=2 -> 4 slots (0.25 ms), mu=3 -> 8 slots (0.125 ms), mu=4 -> 16 slots. Symbols indexed l=0..13 in slot; subcarriers grouped in resource blocks of 12 subcarriers; a resource element = 1 subcarrier x 1 OFDM symbol.",
+      "num_used_subcarriers": "At 100 MHz / 30 kHz: N_RB = 273 resource blocks -> 273*12 = 3276 occupied subcarriers, spanning 3276*30 kHz = 98.28 MHz. FFT size 4096, so guard = 4096-3276 = 820 unused bins (split as edge guards, DC not explicitly nulled in NR—no reserved DC subcarrier unlike LTE). Occupied-BW/channel-BW = 98.28/100 = 98.28% (NR 30 kHz spectral utilization). For 20 MHz/30 kHz: 51 RB = 612 subcarriers, FFT 1024 (fs 30.72 MHz). For 100 MHz/15 kHz NR does not apply (max 270 RB at 15 kHz=216 MHz exceeds; at 15 kHz the max FR1 BW is 50 MHz/270 RB).",
+      "fft_size_examples": "100 MHz @ 30 kHz SCS: FFT = 4096 (sample rate 122.88 MHz). 100 MHz @ 15 kHz: not standard (use 30 kHz). 20 MHz @ 30 kHz: 1024 (30.72 MHz). 50 MHz @ 30 kHz: 2048 (61.44 MHz). 400 MHz @ 120 kHz (FR2): 4096 (491.52 MHz). FFT is implementation choice >= used subcarriers; 4096 is the standard min-rate choice at 100 MHz/30 kHz.",
+      "ofdm_symbol_duration_us": 35.677083,
+      "reference_signals": [
+        {
+          "name": "PSS (Primary Synchronization Signal)",
+          "purpose": "Coarse time/frequency sync, half of physical cell ID (N_ID(2) in {0,1,2})",
+          "sequence": "Length-127 BPSK m-sequence (x(i+7)=(x(i+4)+x(i)) mod 2), cyclically shifted by 43*N_ID(2)",
+          "time_freq_pattern": "Inside SSB: OFDM symbol 0 of the 4-symbol SSB, 127 contiguous subcarriers (SSB subcarriers 56..182), centered",
+          "radar_sensing_use": "Strong known short sequence with good autocorrelation; usable as a matched-filter template for coarse delay/Doppler, but only 127 subcarriers (~3.8 MHz at 30 kHz) so low range resolution"
+        },
+        {
+          "name": "SSS (Secondary Synchronization Signal)",
+          "purpose": "Full cell ID (N_ID(1) in 0..335 combined with PSS -> 1008 cell IDs), frame timing",
+          "sequence": "Length-127 BPSK Gold sequence (two length-127 m-sequences combined, shifts from N_ID(1),N_ID(2))",
+          "time_freq_pattern": "SSB symbol 2, 127 subcarriers (56..182)",
+          "radar_sensing_use": "Same band as PSS; together PSS+SSS+PBCH form the always-on SSB beacon usable as an opportunistic illuminator reference"
+        },
+        {
+          "name": "PBCH + PBCH-DMRS (SSB)",
+          "purpose": "Carries MIB; DMRS enables coherent PBCH demod and SSB index detection",
+          "sequence": "PBCH data: QPSK of polar-coded MIB scrambled by length-31 Gold sequence. PBCH-DMRS: QPSK length-31 Gold sequence, RE offset = N_ID_cell mod 4",
+          "time_freq_pattern": "SSB symbols 1 and 3 (full 240 subcarriers) plus symbol 2 edges (subcarriers 0..47 and 192..239). DMRS on every 4th subcarrier (comb-4) within PBCH REs. Whole SSB = 240 subcarriers x 4 symbols.",
+          "radar_sensing_use": "SSB (PSS+SSS+PBCH) is the periodic always-on beacon (default 20 ms burst period); known once cell is decoded -> deterministic reference, but only ~7.2 MHz wide (240*30 kHz) so coarse range res (~21 m)"
+        },
+        {
+          "name": "NR-PRS (Positioning Reference Signal, Rel-16)",
+          "purpose": "Downlink positioning (TDOA/multi-RTT); purpose-built wideband ranging pilot — the ISAC/radar signal of choice",
+          "sequence": "QPSK-modulated length-31 Gold (pseudo-random) sequence, init c_init from slot number, symbol index and PRS sequence ID (TS 38.211 7.4.1.7.1)",
+          "time_freq_pattern": "Comb-N in frequency with N in {2,4,6,12}; spans 1/2/4/6/12 consecutive OFDM symbols with frequency offsets staggered per symbol so the comb FULLY COVERS every subcarrier over a PRS resource (a 'PRS occasion'). Configurable 24..272 RB bandwidth, fully covers up to ~272 RB = ~100 MHz. Multiple TRPs use orthogonal comb offsets/sequence IDs.",
+          "radar_sensing_use": "BEST passive/active-radar reference: wideband (full 100 MHz achievable -> 1.5 m range res), staggered comb gives a complete, flat, thumbtack-autocorrelation channel estimate across the whole band; deterministic and repeated -> clean matched filter and Doppler integration"
+        },
+        {
+          "name": "CSI-RS",
+          "purpose": "Channel-state-info acquisition, beam management, tracking (TRS)",
+          "sequence": "QPSK length-31 Gold sequence (TS 38.211 7.4.1.5), c_init from slot, symbol, scrambling ID n_ID",
+          "time_freq_pattern": "Highly configurable RE patterns (1..32 ports); density rho in {0.5,1,3} REs/RB/port; can be comb-like; zero-power and non-zero-power variants. Can be wideband. TRS = periodic CSI-RS for tracking.",
+          "radar_sensing_use": "Good secondary sensing reference when configured wideband/periodic (e.g. TRS); known by network, covers data band, but pattern is sparser and more configuration-dependent than PRS"
+        },
+        {
+          "name": "PDSCH-DMRS",
+          "purpose": "Demodulation reference for PDSCH (data channel) coherent channel estimation",
+          "sequence": "QPSK length-31 Gold sequence (TS 38.211 7.4.1.1); Type 1 = comb-2 (CDM in freq), Type 2 = group-based. Front-loaded in 1-2 symbols + optional additional DMRS",
+          "time_freq_pattern": "Type 1: every other subcarrier (comb-2) within scheduled RBs, occupying full PDSCH allocation bandwidth; 1-2 front-loaded symbols + up to 3 additional symbols per slot",
+          "radar_sensing_use": "Spans the full scheduled (up to 100 MHz) bandwidth -> high range resolution, but content/allocation varies per scheduling so reference is only known to the serving receiver; payload-based sensing must first demodulate PDSCH to reconstruct it"
+        },
+        {
+          "name": "PDSCH (data) + payload",
+          "purpose": "User data; not a pilot but carries most of the energy",
+          "sequence": "QPSK/16/64/256-QAM, LDPC coded, scrambled by length-31 Gold sequence",
+          "time_freq_pattern": "Occupies the scheduled RBs/symbols of a slot, full channel BW when fully loaded",
+          "radar_sensing_use": "In a true passive (non-cooperative) setup the surveillance receiver can demodulate-and-remodulate PDSCH to form a wideband reference (reciprocal-filter / payload-based sensing); high BW but requires successful decode and is bursty/traffic-dependent"
+        }
+      ],
+      "best_signal_for_passive_radar": "NR-PRS (Rel-16 Positioning Reference Signal) is the best reference for matched-filter passive/ISAC radar, with PDSCH-DMRS (or a fully decoded PDSCH) as the wideband fallback. PRS wins because: (1) it can be configured to span the FULL channel bandwidth (up to ~272 RB ~ 100 MHz at 30 kHz -> 1.5 m range resolution); (2) its staggered comb-N across multiple OFDM symbols produces a COMPLETE, flat channel estimate over every subcarrier, giving a near-ideal thumbtack ambiguity function with low autocorrelation sidelobes; (3) it is a deterministic, network-known, periodically transmitted pseudo-random (QPSK Gold) sequence — perfect for a reciprocal/matched filter and for coherent Doppler integration across PRS occasions. The always-on SSB (PSS/SSS/PBCH) is the easiest opportunistic beacon (no scheduling knowledge needed) but is narrow (~3.8-7.2 MHz) -> only ~20-40 m range resolution. When PRS is not configured, demodulate-and-remodulate PDSCH (using its DMRS for channel estimation) gives the widest practical reference.",
+      "range_resolution_note": "Range resolution dR = c/(2*B). At the representative 100 MHz n78 channel (occupied B ~ 98.28 MHz, use 100 MHz): dR = 3e8/(2*1e8) = 1.5 m (1.515 m using occupied 98.28 MHz). Other configs: 50 MHz -> 3.0 m; 40 MHz -> 3.75 m; 20 MHz -> 7.5 m; SSB-only ~7.2 MHz -> ~20.8 m; PSS/SSS-only 127*30kHz=3.81 MHz -> ~39 m. FR2 400 MHz -> 0.375 m. Unambiguous range from CP/symbol spacing; max coherent Doppler/velocity set by OFDM symbol rate (symbol period 35.68 us at 30 kHz -> PRF up to ~28 kHz). Doppler/velocity resolution set by total coherent integration time (more PRS occasions/slots -> finer Doppler).",
+      "synthesis_notes": "Buildable steps to synthesize an n78 100 MHz / 30 kHz NR DL CP-OFDM illuminator (MATLAB 5G Toolbox / Sionna / NumPy): (1) Set numerology mu=1 (30 kHz), N_RB=273, FFT N=4096, fs=122.88 MHz, normal CP. (2) Allocate empty resource grid of 3276 subcarriers x (14 symbols * Nslots). Map subcarriers symmetrically around DC (no nulled DC bin in NR); 820 guard bins. (3) Build SSB: place PSS (len-127 BPSK m-seq, cyclic shift 43*N_ID2) on symbol0 subc56..182; SSS (len-127 Gold) on symbol2 subc56..182; PBCH QPSK (Gold-scrambled polar-coded MIB) on symbols1,3 + symbol2 edges; PBCH-DMRS QPSK len-31 Gold comb-4 (offset=N_ID_cell mod 4). Insert SSB at SSB candidate positions; default SS burst period 20 ms (period configurable 5/10/20/40/80/160 ms). (4) Build NR-PRS (Rel-16): choose comb size N (e.g. 2 or 6), number of symbols L (e.g. 6 or 12), bandwidth up to 272 RB; generate QPSK len-31 Gold sequence with c_init from slot/symbol/PRS-ID; map with staggered per-symbol frequency offset so the band is fully covered; this is the primary radar reference. (5) Optionally add PDSCH+DMRS: front-loaded DMRS Type1 (comb-2 QPSK Gold) across scheduled RBs, fill PDSCH REs with QAM payload (LDPC+scrambling) for a wideband, fully-loaded data scenario. Optionally CSI-RS/TRS. (6) Per OFDM symbol: take the 3276-subcarrier column, place into 4096 IFFT (with correct fftshift / DC mapping), IFFT, then prepend CP — 352 samples for symbol l=0 and l=7 of each slot (the two 0.5 ms boundaries), 288 samples for the other 12 symbols. Concatenate symbols -> 61440 samples/slot = exactly 500 us. (7) Scale/normalize power, optionally apply TX windowing/filtering and upconvert to 3.5 GHz for RF (or keep complex baseband). (8) For passive radar: form the matched filter from the known PRS (or remodulated PDSCH) frequency-domain pilots, cross-correlate the reference channel with the surveillance channel, build range-Doppler map (FFT over fast-time for range, slow-time across symbols/occasions for Doppler); range bin = 1.5 m at 100 MHz. Validate slot timing sums to 500 us and that occupied BW = 98.28 MHz.",
+      "sources": [
+        "3GPP TS 38.211 (NR Physical channels and modulation) v15.x/v16.x — Sec 4.3 (frame structure), 5.3.1 (CP/OFDM), 7.4.1.7 (PRS), 7.4.1.5 (CSI-RS), 7.4.1.1 (PDSCH DMRS), 7.4.2/7.4.3 (PSS/SSS/PBCH SSB)",
+        "https://www.sharetechnote.com/html/5G/5G_FrameStructure.html",
+        "https://www.sharetechnote.com/html/5G/5G_PRS.html",
+        "https://www.mathworks.com/help/5g/ug/5g-new-radio-prs.html",
+        "https://www.mathworks.com/help/5g/ug/nr-pdsch-resource-allocation-and-dmrs-and-ptrs-reference-signals.html",
+        "https://www.mathworks.com/help/5g/gs/synchronization-signal-blocks-and-bursts.html",
+        "https://www.techplayon.com/5g-nr-cyclic-prefix-cp-design/",
+        "https://www.techplayon.com/5g-nr-numerology-subcarrier-spcaing-scs/",
+        "https://www.rfwireless-world.com/articles/5g-nr-reference-signals",
+        "https://arxiv.org/pdf/2211.11488 (5G PRS-Based Sensing)",
+        "https://arxiv.org/pdf/2408.00667 (Leveraging PRS and PDSCH for ISAC)",
+        "https://arxiv.org/pdf/2505.24763 (Detecting Airborne Objects with 5G NR Radars)"
+      ],
+      "confidence": "high"
+    },
+    "verify": {
+      "key": "5g_nr",
+      "agrees": true,
+      "corrections": "See corrections field.",
+      "confidence": "high",
+      "confirmed_range_resolution": "All range-resolution numbers confirmed via dR=c/(2B): 100 MHz->1.5 m; 50 MHz->3.0 m; 40 MHz->3.75 m; 20 MHz->7.5 m; FR2 400 MHz->0.375 m; PSS/SSS 127*30kHz=3.81 MHz->39.4 m; SSB 240*30kHz=7.2 MHz->20.8 m. Only fix: occupied 98.28 MHz gives 1.526 m, not the stated 1.515 m (still rounds to ~1.5 m). PRF: regular symbol period 35.677 us -> ~28 kHz max symbol rate confirmed.",
+      "sources": [
+        "3GPP/ETSI TS 38.211 v15.3.0 (and v16.x) Sec 4.3 frame structure, 5.3.1 CP/OFDM, 7.4.1.7 PRS, 7.4.2/7.4.3 SSB — https://www.etsi.org/deliver/etsi_ts/138200_138299/138211/15.03.00_60/ts_138211v150300p.pdf",
+        "MathWorks 5G Toolbox NR PRS — https://www.mathworks.com/help/5g/ug/5g-new-radio-prs.html",
+        "Techplayon 5G NR Cyclic Prefix Design (longer CP on first symbol of every 0.5 ms; l=0 & l=7 only at 15 kHz) — https://www.techplayon.com/5g-nr-cyclic-prefix-cp-design/",
+        "Techplayon 5G NR Numerology/SCS — https://www.techplayon.com/5g-nr-numerology-subcarrier-spcaing-scs/",
+        "ShareTechnote 5G Frame Structure — https://www.sharetechnote.com/html/5G/5G_FrameStructure.html",
+        "5G Toolkit PRS (valid L_PRS/K_comb pairs, Table 7.4.1.7.3-1 staggering) — https://gigayasawireless.github.io/toolkit5G/api/5G_Toolkit/ResourceMapping/resourceMapping.prs.html",
+        "techlteworld PSS (len-127 m-seq, shift 43*N_ID2, subc 56-182) — https://techlteworld.com/primary-synchronization-signal-pss-in-5g-nr/",
+        "nxgconnect SSB time/frequency location & PBCH-DMRS v=N_ID mod4 — https://www.nxgconnect.com/post/5g-nr-synchronization-signal-block-ssb-time-frequency-location",
+        "PRS bandwidth 24-272 RB step-4 (TS 38.214) — arxiv 2211.11488 / Keysight DL PRS docs"
+      ]
+    }
+  }
+]

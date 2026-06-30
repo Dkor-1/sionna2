@@ -4,7 +4,9 @@
 딱 두 가지만 다룹니다: **① 대형 차폐시설(전파무반사실)** 과 **② DJI 드론 5종**.
 그리고 **그림으로 최대한 많이** 보여줍니다.
 
-> 가장 먼저 볼 것 → **[`report1.ipynb`](report1.ipynb)** (한글 단계별 설명서. 커널 없이도 그림이 보임)
+> 먼저 볼 것 (커널 없이도 그림이 보임):
+> - **[`report1.ipynb`](report1.ipynb)** — 1단계: 환경 세팅 (차폐시설 + 드론 5종)
+> - **[`report2.ipynb`](report2.ipynb)** — 2단계: 레이더 구성 & RCS 특성화 (WiFi·LTE·5G 비교)
 
 ---
 
@@ -68,8 +70,20 @@ viz_diagram.py  도면식 그림(matplotlib)
 viz_anim.py     회전 GIF
 render_drones.py Sionna 사진풍 렌더
 viz_montage.py  렌더 모아 카탈로그
-build_all.py    한 번에 전부 생성
+build_all.py    한 번에 전부 생성 (report1)
 make_notebook.py report1.ipynb 생성기
+--- report2 (레이더) ---
+radar_scene.py  모노스태틱 장면 + Sionna RT 채널/클러터 + 원거리장 점검
+rcs_po.py       물리광학(PO) RCS 계산 — 평판·구 이론으로 검증됨
+waveforms.py    실제 OFDM 파형 합성 (WiFi 802.11ac / LTE Rel-9 PRS / 5G NR PRS·SSB)
+radar_process.py 에코 생성 + 정합필터 + RCS 추정/비교
+viz_radar.py    RCS/파형/거리프로파일 시각화
+build_report2.py report2 산출물 한 번에 생성
+```
+
+### report2 한 번에 만들기
+```bash
+cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_report2.py   # GPU 불필요(PO+DSP)
 ```
 
 설계 원칙: **OBJ 1개 = 부위 1개 = Sionna 재질 1개.** 그래서 부위별로 색/전파재질을

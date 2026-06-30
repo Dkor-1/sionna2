@@ -1,0 +1,163 @@
+# -*- coding: utf-8 -*-
+"""make_notebook2.py — report2.ipynb (레이더 구성 & RCS 특성화, WiFi/LTE/5G 비교) 생성기.
+이미지를 markdown 으로 박아 커널 없이도 보이게 한다."""
+import json, os
+HERE = os.path.dirname(os.path.abspath(__file__))
+NB = os.path.abspath(os.path.join(HERE, "..", "report2.ipynb"))
+
+
+def md(*l): return {"cell_type": "markdown", "metadata": {}, "source": _s(list(l))}
+def code(*l): return {"cell_type": "code", "metadata": {}, "execution_count": None, "outputs": [], "source": _s(list(l))}
+def _s(lines):
+    out = "\n".join(lines).splitlines(keepends=True)
+    return out if out else [""]
+
+
+cells = []
+cells.append(md(
+    "# 📡 report2 — 레이더 구성 & RCS 특성화 (WiFi · LTE · 5G 비교)",
+    "",
+    "> **이 노트북 = 2단계: 레이더.** [report1](report1.ipynb)에서 만든 *차폐시설 + 드론 5종* 위에서,",
+    "> **모노스태틱 레이더**를 구성하고 드론의 **RCS(레이더 반사면적)** 를 특성화한 뒤,",
+    "> **실제 상용 신호(WiFi/LTE/5G)** 로 표적을 비추어 세 표준을 비교합니다.",
+    "",
+    "**왜 이걸 하나요?** 패시브 레이더는 주변에 이미 떠다니는 WiFi·LTE·5G 신호를 '레이더 송신기'처럼",
+    "빌려 씁니다(illuminator of opportunity). 어떤 신호가 드론 탐지에 유리한지 비교하는 것이 목표입니다.",
+    "",
+    "**3줄 결론**",
+    "1. 드론 RCS 는 **물리광학(PO)** 으로 메쉬에서 직접 계산 — 평판·구 이론과 일치하게 검증됨.",
+    "2. 같은 드론도 **주파수가 높을수록 RCS 가 커지고**(∝A²/λ²), 방위각에 따라 크게 변동(글린트).",
+    "3. **대역폭이 큰 5G(100MHz)** 가 거리분해능 최우수(≈1.5m), LTE(20MHz)는 ≈7.5m로 가장 거침.",
+))
+
+cells.append(md(
+    "## 1. 레이더 구성 — 모노스태틱 + 원거리장",
+    "",
+    "- **모노스태틱**: 송신(TX)과 수신(RX)을 같은 곳에 둠 → 표적이 되돌려보내는 **후방산란 RCS** 측정.",
+    "  (가장 표준적인 챔버 측정. 이후 report3에서 바이스태틱으로 확장)",
+    "- 안테나는 챔버 한쪽 끝, 표적은 반대쪽 **quiet zone** → 거리 R 최대 확보.",
+    "- ⚠️ **원거리장(far-field)**: RCS 는 R ≥ 2D²/λ 에서만 정의됩니다. 작은 드론 4종은 OK,",
+    "  거대한 **S1000+ 는 고주파에서 30m 챔버 안 far-field 가 안 됨**(아래 도식에 ✓/✗ 표시).",
+    "",
+    "![setup](outputs/figures/report2_setup.png)",
+    "",
+    "왕복지연 τ=2R/c, 도플러 f_D=2v·f_c/c. 에코 전압이득 α ∝ G·λ·√σ / R² (레이더 방정식).",
+))
+
+cells.append(md(
+    "## 2. RCS 특성화 — 물리광학(PO) 으로 메쉬에서 직접",
+    "",
+    "**왜 광선추적(Sionna RT)이 아니라 PO?** 작은 드론의 후방산란을 RT 확산반사로 뽑으면 표본잡음·글린트로",
+    "절대 RCS 가 불안정합니다(예전 작업도 같은 이유로 RT RCS 를 안 믿음). 그래서 CAD 표적 RCS 의 표준기법인",
+    "**물리광학**으로, report1에서 만든 *정확한 메쉬*에서 바로 계산합니다:",
+    "",
+    "$$\\sigma(\\hat u)=\\frac{4\\pi}{\\lambda^2}\\Big|\\sum_{\\text{조명면}} (\\hat n\\cdot\\hat u)\\,\\Delta A\\,e^{\\,j2k(\\mathbf r\\cdot\\hat u)}\\Big|^2$$",
+    "",
+    "**검증(이 방법이 맞다는 근거)** — 표준 표적과 이론값 비교:",
+    "",
+    "| 표적 | PO 결과 | 이론 | 오차 |",
+    "|---|---|---|---|",
+    "| 평판 0.3 m | 11.42 dBsm | 4πA²/λ² = 11.42 | 0.00 dB |",
+    "| 구 r=0.3 m | −5.49 dBsm | πr² = −5.49 | 0.01 dB |",
+    "",
+    "→ 이론과 일치하므로 같은 코드로 드론 RCS 를 신뢰성 있게 계산할 수 있습니다.",
+    "",
+    "![rcs polar](outputs/figures/report2_rcs_polar.png)",
+    "",
+    "- (a) **RCS(방위각)**: 드론이 돌아가면 RCS 가 크게 출렁입니다. S1000+(검정)이 가장 크고,",
+    "  쿼드들은 암 X자 대칭 때문에 **90° 주기 로브**가 보입니다(특정 각도에서 번쩍=글린트).",
+    "- (b) **RCS(주파수)**: 모든 드론이 주파수↑ 일수록 RCS↑ (∝A²/λ²). 크기순(S1000+>…>Mini).",
+    "",
+    "### 표준 반송파별 RCS — 어떤 주파수로 보느냐에 따라 표적이 달라 보인다",
+    "![rcs bands](outputs/figures/report2_rcs_bands.png)",
+))
+
+cells.append(code(
+    "# (선택 실행) 특정 드론의 RCS 를 직접 계산",
+    "import sys; sys.path.insert(0, 'src')",
+    "import numpy as np; from rcs_po import drone_rcs_pattern, dbsm",
+    "az = np.arange(0, 360, 2.0)",
+    "for fc in [1.84e9, 3.5e9, 5.21e9]:",
+    "    sig,_ = drone_rcs_pattern('phantom4', fc, az)",
+    "    print(f'Phantom4 @ {fc/1e9:.2f} GHz : 평균 {dbsm(sig.mean()):.1f} dBsm, 최대 {dbsm(sig.max()):.1f} dBsm')",
+))
+
+cells.append(md(
+    "## 3. 어떻게 쏘는가 — 실제 상용 OFDM 파형 (WiFi / LTE / 5G)",
+    "",
+    "레이더 송신을 **실제 표준 신호 구조 그대로** 만들었습니다(뉴머롤로지·기준신호 충실). 핵심:",
+    "",
+    "| 표준 | 변형 | 반송파 | 대역폭 | SCS | FFT | 기준신호 | 이론 분해능 |",
+    "|---|---|---|---|---|---|---|---|",
+    "| **WiFi** | 802.11ac VHT | 5.2 GHz | 80 MHz | 312.5 kHz | 256 | **L-LTF** | 1.9 m |",
+    "| **LTE** | Rel-9 FDD | 1.8 GHz | 20 MHz | 15 kHz | 2048 | **PRS**/CRS | 7.5 m |",
+    "| **5G NR** | Rel-16 n78 | 3.5 GHz | 100 MHz | 30 kHz | 4096 | **NR-PRS**/SSB | 1.5 m |",
+    "",
+    "- **기준신호**(L-LTF/PRS/SSB)는 송수신이 *미리 아는* 신호라 정합필터(matched filter)의 템플릿이 됩니다.",
+    "  패시브 레이더에서 가장 중요한 부분 — 이걸로 표적까지의 거리/도플러를 잽니다.",
+    "- 거리분해능 = c/(2·대역폭). **대역폭이 클수록 더 가까운 두 표적을 구분**합니다.",
+    "",
+    "![wave spectra](outputs/figures/report2_wave_spectra.png)",
+))
+
+cells.append(code(
+    "# (선택 실행) 세 파형의 제원 확인",
+    "from waveforms import all_waveforms",
+    "for k, wf in all_waveforms().items():",
+    "    print(f'{wf.name:15s} fc={wf.carrier_hz/1e9:.2f}GHz B={wf.bw_hz/1e6:.0f}MHz "
+    "분해능={wf.range_resolution_m:.2f}m 기준={wf.ref_name} 길이={wf.duration_us:.0f}us')",
+))
+
+cells.append(md(
+    "## 4. 측정 & 비교 — 세 파형으로 같은 표적 재기",
+    "",
+    "표적 에코를 만들고(레이더 방정식), **정합필터**로 거리 프로파일을 뽑습니다. 절대 RCS 는",
+    "**기준 금속구(σ=πr²)** 를 똑같이 처리해 보정합니다.",
+    "",
+    "![range profiles](outputs/figures/report2_range_profiles.png)",
+    "",
+    "→ 세 신호 모두 실제 거리(10 m)에서 피크. **5G 가 가장 날카롭고 LTE 가 가장 넓습니다**(대역폭 차이).",
+    "",
+    "![summary](outputs/figures/report2_summary.png)",
+    "",
+    "→ **추정 RCS 가 참값(PO)과 일치** → 구 보정 정합필터가 정상 동작. 표준별 거리분해능 차이도 한눈에.",
+))
+
+cells.append(code(
+    "# (선택 실행) 한 표적을 세 파형으로 측정 비교",
+    "import numpy as np",
+    "from waveforms import all_waveforms; from rcs_po import drone_rcs_pattern, dbsm",
+    "from radar_process import range_profile, mainlobe_width_m, sphere_calib, estimate_rcs_dbsm",
+    "R = 10.0; target='phantom4'",
+    "for k, wf in all_waveforms().items():",
+    "    sig,_ = drone_rcs_pattern(target, wf.carrier_hz, np.array([0.0])); sig=float(sig[0])",
+    "    rng_m, prof, pkr, pkv = range_profile(wf, R, sig, snr_db=20, rng=np.random.default_rng(7))",
+    "    cpk,csig = sphere_calib(wf, R); est = estimate_rcs_dbsm(pkv, cpk, csig)",
+    "    print(f'{wf.name:15s} 참RCS={dbsm(sig):6.1f} 추정={est:6.1f} dBsm  피크R={pkr:.1f}m  분해능={mainlobe_width_m(rng_m,prof):.1f}m')",
+))
+
+cells.append(md(
+    "## 5. 정리 & 다음 단계",
+    "",
+    "**한 일**",
+    "- 모노스태틱 레이더 구성 + 원거리장 점검(거대 S1000+ 는 고주파 한계 명시).",
+    "- 드론 RCS 를 **물리광학으로 검증된** 방식으로 특성화(방위각·주파수 의존성).",
+    "- **실제 WiFi/LTE/5G OFDM 파형**(기준신호 포함)으로 표적을 재고, 거리분해능·RCS추정·반송파의존을 비교.",
+    "",
+    "**알게 된 것**",
+    "- 거리분해능은 **대역폭**이 지배: 5G(100MHz)≫WiFi(80MHz)>LTE(20MHz).",
+    "- 같은 표적도 **반송파(주파수)** 에 따라 RCS 가 수~십 dB 달라짐 → 표준 비교 시 반드시 고려.",
+    "",
+    "**다음(report3 후보)**",
+    "- 🛰️ **바이스태틱**(TX·RX 분리, 각도 β 스윕) — 진짜 패시브 레이더 구성.",
+    "- 🌀 **마이크로-도플러**(회전 프로펠러) — 드론 식별의 핵심 단서.",
+    "- 📊 **검출 성능**(Pd/Pfa) 과 클러터(챔버 벽) 영향 평가.",
+))
+
+nb = {"cells": cells,
+      "metadata": {"kernelspec": {"display_name": "Python 3 (sionna)", "language": "python", "name": "python3"},
+                   "language_info": {"name": "python"}},
+      "nbformat": 4, "nbformat_minor": 5}
+with open(NB, "w") as f:
+    json.dump(nb, f, ensure_ascii=False, indent=1)
+print("notebook 생성:", os.path.relpath(NB), f"({len(cells)} cells)")
