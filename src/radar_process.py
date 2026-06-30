@@ -20,6 +20,7 @@ radar_process.py — (report2) 에코 생성 + 정합필터 + RCS 추정/비교
 from __future__ import annotations
 
 import numpy as np
+from scipy.signal import fftconvolve
 
 C0 = 299792458.0
 
@@ -57,17 +58,20 @@ def make_echo(wf, R, sigma_m2, vel=0.0, snr_db=20.0, rng=None):
 
 
 def matched_filter(rx, ref, fs):
-    """정합필터(상관) → (거리축[m], 프로파일 |r|)."""
-    r = np.correlate(rx, ref, mode="full")
+    """정합필터(상관) → (거리축[m], 프로파일 |r|). FFT 상관으로 O(N log N)."""
+    r = fftconvolve(rx, np.conj(ref[::-1]), mode="full")   # = correlate(rx, ref)
     lags = np.arange(-(len(ref) - 1), len(rx))
     rng_m = lags / fs * C0 / 2.0
     return rng_m, np.abs(r)
 
 
-def range_profile(wf, R, sigma_m2, vel=0.0, snr_db=20.0, rng=None):
-    """에코 → 정합필터 거리 프로파일. (거리축, dB프로파일, 피크거리, 피크값)."""
+def range_profile(wf, R, sigma_m2, vel=0.0, snr_db=20.0, rng=None, passive=False):
+    """에코 → 정합필터 거리 프로파일. (거리축, dB프로파일, 피크거리, 피크값).
+    passive=True 면 수신기가 '기지 파일럿(wf.ref)'만 알고 상관(패시브레이더 현실).
+    에코 자체는 항상 실제 송신(wf.tx)에서 생성된다."""
     rx = make_echo(wf, R, sigma_m2, vel, snr_db, rng)
-    rng_m, prof = matched_filter(rx, wf.tx, wf.fs_hz)
+    ref = wf.ref if passive else wf.tx
+    rng_m, prof = matched_filter(rx, ref, wf.fs_hz)
     m = (rng_m > 0) & (rng_m < 3 * R + 50)
     rng_m, prof = rng_m[m], prof[m]
     pk = np.argmax(prof)

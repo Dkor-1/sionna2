@@ -13,7 +13,7 @@
 ## 한 번에 전부 만들기
 
 ```bash
-PY=/home/yunjung/workspace/jeong/miniforge3/envs/sionna/bin/python
+PY=/home/yunjung/.venvs/py312/bin/python
 cd sionna2/src
 CUDA_VISIBLE_DEVICES=0 $PY build_all.py             # 메쉬+도면+GIF+렌더 전부
 CUDA_VISIBLE_DEVICES=0 $PY build_all.py --no-render # 렌더 빼고 빠르게
@@ -75,9 +75,10 @@ make_notebook.py report1.ipynb 생성기
 --- report2 (레이더) ---
 radar_scene.py  모노스태틱 장면 + Sionna RT 채널/클러터 + 원거리장 점검
 rcs_po.py       물리광학(PO) RCS 계산 — 평판·구 이론으로 검증됨
-waveforms.py    실제 OFDM 파형 합성 (WiFi 802.11ac / LTE Rel-9 PRS / 5G NR PRS·SSB)
-radar_process.py 에코 생성 + 정합필터 + RCS 추정/비교
+waveforms.py    실제 OFDM 파형 합성 + 점유모드 G1/G2/G3 (WiFi/LTE/5G, PRS·SSB·CRS·DMRS 라벨)
+radar_process.py 에코 생성 + 정합필터(FFT) + RCS 추정 + 패시브(파일럿만) 처리
 viz_radar.py    RCS/파형/거리프로파일 시각화
+viz_occupancy.py 리소스 그리드 '사진' + 점유 상태 실험
 build_report2.py report2 산출물 한 번에 생성
 ```
 
@@ -89,11 +90,12 @@ cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_report2.py   # GPU 불필요(
 설계 원칙: **OBJ 1개 = 부위 1개 = Sionna 재질 1개.** 그래서 부위별로 색/전파재질을
 따로 줄 수 있고, 나중에 광선추적(RT) 시뮬레이션에 바로 쓸 수 있습니다.
 
-## 환경
-- Python: `/home/yunjung/workspace/jeong/miniforge3/envs/sionna/bin/python`
-  (sionna-rt 2.0.1, mitsuba 3.8.0, GPU RTX 4090). `conda activate` 대신 **이 경로로 직접** 실행.
-- 추가 설치 불필요 — 메쉬는 numpy 로 직접 OBJ 작성, GIF 는 Pillow 사용.
+## 환경 (단일 env: py312)
+- Python: `/home/yunjung/.venvs/py312/bin/python` — **3.12.13**.
+  DSP/PO/시각화(numpy·scipy·matplotlib) + **Sionna RT 2.0.1 / mitsuba 3.8.0 / drjit 1.3.1**
+  (OptiX GPU 광선추적·렌더 동작 확인) 까지 **이 한 env 로 전부** 실행됩니다.
+- VSCode 노트북은 커널 **py312** 선택. 추가 설치 불필요.
 
-## 아직 안 한 것 (다음 단계 후보)
-외형/시각화까지만 했습니다. 이어서 원하시면: 송수신 안테나 배치 + 광선추적,
-드론 RCS/패시브 레이더 시뮬레이션, 흡수체 무반사 성능(-dB) 검증 등.
+## 진행 상황 & 다음 단계
+- ✅ **report1** 환경 세팅(차폐시설+드론) · ✅ **report2** 모노스태틱 RCS + WiFi/LTE/5G 비교 + 점유모드(G1/G2/G3)
+- 다음(report3 후보): 🛰️ 바이스태틱(패시브), 🌀 마이크로-도플러(프로펠러), 📊 검출 Pd/Pfa + 클러터.

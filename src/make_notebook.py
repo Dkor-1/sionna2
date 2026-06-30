@@ -34,7 +34,7 @@ cells.append(md(
     "",
     "> 이 노트북은 **처음 보는 사람도 차근차근 이해**할 수 있도록 만든 안내서입니다.",
     "> 셀을 실행하지 않아도 아래 그림들은 바로 보입니다(이미지를 박아 두었기 때문).",
-    "> 직접 코드를 돌려보고 싶으면, 오른쪽 위에서 커널을 **sionna 환경**으로 고르고 셀을 실행하세요.",
+    "> 직접 코드를 돌려보고 싶으면, 오른쪽 위에서 커널을 **py312 (Python 3.12)** 로 고르고 셀을 실행하세요.",
     "",
     "**무엇을 만들었나요?**",
     "1. 사진 속 **대형 차폐시설(전파무반사실, 30 m × 20 m × 11 m)** 의 3D 모델",
@@ -70,7 +70,7 @@ cells.append(md(
     "",
     "**한 번에 다시 만들기** (터미널):",
     "```bash",
-    "PY=/home/yunjung/workspace/jeong/miniforge3/envs/sionna/bin/python",
+    "PY=/home/yunjung/.venvs/py312/bin/python",
     "cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_all.py",
     "```",
 ))
@@ -210,8 +210,8 @@ cells.append(md(
 nb = {
     "cells": cells,
     "metadata": {
-        "kernelspec": {"display_name": "Python 3 (sionna)", "language": "python",
-                        "name": "python3"},
+        "kernelspec": {"display_name": "Python 3.12 (py312)", "language": "python",
+                        "name": "py312"},
         "language_info": {"name": "python"},
     },
     "nbformat": 4, "nbformat_minor": 5,

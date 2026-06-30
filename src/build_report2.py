@@ -15,8 +15,11 @@ def main():
         print(f"  {wf.name:15s} fc={wf.carrier_hz/1e9:.2f}GHz B={wf.bw_hz/1e6:.0f}MHz "
               f"분해능={wf.range_resolution_m:.2f}m 기준={wf.ref_name}")
 
-    print("\n" + "="*64, "\n▶ 3) report2 그림 생성\n", "="*64)
+    print("\n" + "="*64, "\n▶ 3) report2 그림 생성 (RCS·파형·비교)\n", "="*64)
     import viz_radar; viz_radar.build_all()
+
+    print("\n" + "="*64, "\n▶ 3b) 점유상태(G1/G2/G3) 그리드 사진 + 실험\n", "="*64)
+    import viz_occupancy; viz_occupancy.build_all()
 
     print("\n" + "="*64, "\n▶ 4) report2.ipynb 생성\n", "="*64)
     import subprocess
