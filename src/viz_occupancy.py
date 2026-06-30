@@ -19,15 +19,17 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 from matplotlib.patches import Patch
 
 from waveforms import (wifi_80211ac, lte_downlink, nr_downlink, all_waveforms,
-                       CH, CH_NAME, CH_COLOR, C0)
+                       CH, CH_NAME, CH_COLOR, C0, MODE_DESC)
 from rcs_po import drone_rcs_pattern, dbsm
 from radar_process import range_profile, mainlobe_width_m
+from drones import DRONES
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
 _BUILD = {"wifi": wifi_80211ac, "lte": lte_downlink, "nr": nr_downlink}
 _TITLE = {"wifi": "WiFi 802.11ac", "lte": "LTE Rel-9", "nr": "5G NR Rel-16"}
-_MODEDESC = {"G1": "G1 · SSB/동기만 (sparse)", "G2": "G2 · 기준+제어 (PRS-rich)",
-             "G3": "G3 · 데이터까지 (full)"}
+# 모드 설명은 표준별로 다르므로 waveforms.MODE_DESC 사용 (단일 소스)
+def _mdesc(std, mode):
+    return f"{mode} · {MODE_DESC[std][mode]}"
 # 사진에 등장하는 채널만 범례로
 _LEGEND_CH = ["PSS", "SSS", "PBCH", "PRS", "CRS", "DMRS", "PDCCH", "PDSCH",
               "LSTF", "LLTF", "WSIG", "WDATA"]
@@ -52,7 +54,7 @@ def _grid_image(ax, wf, fmax_show=None):
               extent=[-0.5, img.shape[1] - 0.5, fr[0], fr[-1]], interpolation="nearest")
     ax.set_xlabel("OFDM 심볼", fontsize=8); ax.set_ylabel("기저대역 [MHz]", fontsize=8)
     ax.tick_params(labelsize=7)
-    ax.set_title(f"{_MODEDESC[wf.mode]}\n점유율 {wf.occupancy_frac*100:.0f}% · "
+    ax.set_title(f"{_mdesc(wf.std, wf.mode)}\n점유율 {wf.occupancy_frac*100:.0f}% · "
                  f"기준 {wf.ref_name} {wf.ref_bw_hz/1e6:.0f}MHz · 분해능 {wf.range_resolution_m:.1f}m",
                  fontsize=8.5)
 
@@ -80,8 +82,8 @@ def fig_resource_grids(std, outdir=FIG):
 def fig_occupancy_experiment(outdir=FIG, target="phantom4", R=10.0, snr_db=18.0):
     """점유모드 실험: (a) 5G 거리프로파일 G1/G2/G3, (b~d) 막대 비교."""
     modes = ["G1", "G2", "G3"]; stds = ["wifi", "lte", "nr"]
-    fig = plt.figure(figsize=(15, 8.2), constrained_layout=True)
-    gs = fig.add_gridspec(2, 3)
+    fig = plt.figure(figsize=(19, 8.2), constrained_layout=True)
+    gs = fig.add_gridspec(2, 4)
     fig.suptitle("점유 상태(occupancy) 실험 — 파일럿만 vs 꽉 찬 신호 (패시브레이더 현실)",
                  fontsize=15, fontweight="bold")
 
@@ -96,7 +98,7 @@ def fig_occupancy_experiment(outdir=FIG, target="phantom4", R=10.0, snr_db=18.0)
         pdb = 20 * np.log10(prof / prof.max() + 1e-12)
         res = mainlobe_width_m(rm, prof)
         axA.plot(rm, pdb, color=col[mode], lw=1.7,
-                 label=f"{_MODEDESC[mode]}  → 분해능≈{res:.1f}m")
+                 label=f"{_mdesc('nr', mode)}  → 분해능≈{res:.1f}m")
     axA.axvline(R, color="k", ls="--", lw=1, label=f"실제 거리 {R:.0f}m")
     axA.set_xlim(0, 2 * R + 5); axA.set_ylim(-40, 2)
     axA.set_xlabel("거리 [m]"); axA.set_ylabel("정합필터 출력 [dB]")
@@ -125,7 +127,19 @@ def fig_occupancy_experiment(outdir=FIG, target="phantom4", R=10.0, snr_db=18.0)
     for j, m in enumerate(modes):
         axD.bar(x + (j - 1) * w, [metrics[s][m].range_resolution_m for s in stds], w, color=col[m])
     axD.set_xticks(x); axD.set_xticklabels(labs, fontsize=8); axD.set_ylabel("거리분해능 [m]")
-    axD.set_yscale("log"); axD.set_title("(d) 실제 거리분해능(기준신호 대역)", fontsize=10); axD.grid(axis="y", alpha=0.3)
+    axD.set_yscale("log"); axD.set_title("(d) 거리분해능 ←기준신호 대역(주파수축)", fontsize=10); axD.grid(axis="y", alpha=0.3)
+
+    # (e) 최대 무모호 속도 ← 기준신호 반복률(시간축) v_max=PRF·λ/4
+    axE = fig.add_subplot(gs[1, 3])
+    for j, m in enumerate(modes):
+        axE.bar(x + (j - 1) * w, [metrics[s][m].v_unambiguous_ms for s in stds], w, color=col[m])
+    for key in ("phantom4", "mini5pro"):                  # 일반 드론 최고속도 기준선
+        sp = DRONES[key].max_speed_ms
+        axE.axhline(sp, ls="--", lw=1, color="0.4", alpha=0.7)
+    axE.text(len(stds)-1, DRONES["phantom4"].max_speed_ms*1.05, "일반 드론 ~20m/s",
+             fontsize=7.5, color="0.35", ha="right", va="bottom")
+    axE.set_xticks(x); axE.set_xticklabels(labs, fontsize=8); axE.set_ylabel("최대속도 v_max [m/s]")
+    axE.set_yscale("log"); axE.set_title("(e) 최대 무모호 속도 ←반복률(시간축)", fontsize=10); axE.grid(axis="y", alpha=0.3)
 
     fn = os.path.join(outdir, "report2_occupancy.png"); fig.savefig(fn, dpi=130); plt.close(fig)
     print("[occ]", os.path.relpath(fn)); return fn

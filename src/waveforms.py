@@ -8,14 +8,24 @@ waveforms.py — (report2) 실제 상용 OFDM 파형 + **점유 상태(occupancy
 데이터(PDSCH)까지 꽉 찹니다. 패시브 레이더는 보통 **기지(known) 파일럿/기준신호만**
 활용하므로, 이 점유 상태별 차이를 실험으로 비교합니다.
 
-점유 모드 (사용자 G1/G2/G3)
-  G1  SSB-like sparse        : 동기/방송(SSB·PSS/SSS)만 — 대부분 빈 격자
-  G2  control/reference-rich : + 기준신호(PRS/CRS/DMRS) + 제어영역(PDCCH) — 데이터 없음
-  G3  full-occupancy         : + 데이터(PDSCH) 까지 꽉 — 상용 풀로드
+점유 모드 G1/G2/G3 — **표준마다 의미가 다르다**(아래 MODES 참고). 실제 셀의 전형적
+점유 단계를 표준별 채널 구성으로 옮긴 것:
+  G1  한가한 셀  : WiFi=프리앰블만 / LTE=동기+CRS(상시·전대역) / 5G=SSB(협대역 비콘)만
+  G2  기준+제어  : + 측위/기준신호(PRS 등) + 제어(PDCCH/SIG) — 데이터 없음
+  G3  풀로드     : + 데이터(PDSCH/DATA) 까지 꽉 — 상용 풀로드
+  ※ 핵심 차이: **LTE 는 CRS 가 매 서브프레임 전대역 상시** → 한가해도(G1) 거리분해능이
+    좋다. **5G 는 상시 셀기준이 없어** 한가하면 SSB(협대역)뿐 → G1 거리분해능이 나쁨
+    (이것이 5G 패시브레이더의 고유 난제 — Rényi/LaSen 계열 문헌의 출발점).
 
 각 자원요소(RE)에 **채널 라벨**을 달아 '리소스 그리드 사진'(시간×주파수 이미지)으로
 보여주고, 모드별로 (a)송신에너지 (b)정합필터 기준신호의 대역 → 거리분해능
 (c)탐지 SNR 이 어떻게 달라지는지 비교합니다.
+
+두 축(독립)으로 성능이 갈립니다:
+  * **주파수축** — 기준신호가 점유한 *대역*  → 거리분해능 ΔR = c/2B  (range_resolution_m)
+  * **시간축**   — 기준신호의 *반복률(PRF)* → 최대속도 v_max = PRF·λ/4 (v_unambiguous_ms)
+LTE 의 CRS 는 상시 전대역(B 큼)+매 서브프레임(PRF 큼) → 두 축 다 좋다. 5G 는 한가하면
+SSB 뿐 → 협대역(B 작음)+저반복(PRF 작음) → 두 축 다 나쁘다(= 5G 패시브레이더의 이중고).
 
 표준별(조사: docs/waveform_research.json)
   WiFi  802.11ac : 패킷형. G1=프리앰블(L-STF/L-LTF), G3=+DATA. (프리앰블이 광대역→분해능 유지)
@@ -39,15 +49,56 @@ CH_COLOR = {                                   # 사진 색
     0: "#f2f2f4", 1: "#c62828", 2: "#ad1457", 3: "#6a1b9a", 4: "#1565c0",
     5: "#00897b", 6: "#2e7d32", 7: "#ef6c00", 8: "#cfd8dc",
     9: "#c62828", 10: "#1565c0", 11: "#ef6c00", 12: "#cfd8dc"}
-# 모드별 '켜는' 채널
+# 점유 모드 → '켜는' 채널.  **표준별로 다르다**(각 표준이 실제로 쓰는 채널만).
+#   WiFi : 패킷형(CSMA). 프리앰블(L-LTF)은 어떤 패킷에도 있고 늘 광대역 → 항상 기준 확보.
+#          점유는 '패킷 종류'(프리앰블만 / +제어헤더 / +데이터)로 구분.
+#   LTE  : CRS 가 매 서브프레임 전대역 상시 송신 → G1(한가한 셀)도 전대역 기준 보유.
+#   5G NR: 상시 셀기준 없음. 한가하면 SSB(중앙 240부반송파, 협대역)만 → G1 분해능 나쁨.
 MODES = {
-    "G1": {"PSS", "SSS", "PBCH", "LSTF", "LLTF"},
-    "G2": {"PSS", "SSS", "PBCH", "PRS", "CRS", "DMRS", "PDCCH", "LSTF", "LLTF", "WSIG"},
-    "G3": {"PSS", "SSS", "PBCH", "PRS", "CRS", "DMRS", "PDCCH", "PDSCH",
-           "LSTF", "LLTF", "WSIG", "WDATA"},
+    "wifi": {                                          # 802.11ac PPDU 구성요소
+        "G1": {"LSTF", "LLTF"},                                  # 프리앰블만(짧은 관리/ACK)
+        "G2": {"LSTF", "LLTF", "WSIG"},                          # + SIG 제어헤더(제어 프레임)
+        "G3": {"LSTF", "LLTF", "WSIG", "WDATA"},                 # + DATA 페이로드(데이터 프레임)
+    },
+    "lte": {                                           # Rel-9 다운링크
+        "G1": {"PSS", "SSS", "CRS"},                             # 동기 + CRS(상시·전대역 기준)
+        "G2": {"PSS", "SSS", "CRS", "PRS", "PDCCH"},             # + PRS(측위) + 제어영역
+        "G3": {"PSS", "SSS", "CRS", "PRS", "PDCCH", "PDSCH"},    # + 데이터
+    },
+    "nr": {                                            # Rel-16 다운링크
+        "G1": {"PSS", "SSS", "PBCH"},                            # SSB(협대역 비콘)만
+        "G2": {"PSS", "SSS", "PBCH", "PRS", "DMRS", "PDCCH"},    # + PRS(전대역 측위)+DMRS+제어
+        "G3": {"PSS", "SSS", "PBCH", "PRS", "DMRS", "PDCCH", "PDSCH"},  # + 데이터
+    },
+}
+# 점유 모드 한글 설명(표준별) — 시각화/노트북이 공유하는 단일 소스
+MODE_DESC = {
+    "wifi": {"G1": "프리앰블만(L-LTF·광대역)", "G2": "+SIG 제어헤더", "G3": "+DATA 페이로드"},
+    "lte":  {"G1": "동기+CRS상시(전대역기준)",  "G2": "+PRS측위+제어",  "G3": "+PDSCH 데이터"},
+    "nr":   {"G1": "SSB만(협대역 비콘)",        "G2": "+PRS측위+DMRS",  "G3": "+PDSCH 데이터"},
 }
 # 정합필터 기준으로 쓰는 '기지' 채널(패시브레이더 관점)
 REF_CH = {"PRS", "PSS", "SSS", "PBCH", "CRS", "DMRS", "LLTF"}
+
+# --- 시간축(slow-time) 파일럿 반복률 → 최대 무모호 속도 ---------------------- #
+# 패시브레이더는 '기준신호가 반복될 때마다' 채널을 한 번 샘플한다. 그 반복률(PRF)이
+# 표적 도플러의 Nyquist 한계를 정한다:  f_d = 2v/λ,  PRF ≥ 2·f_d,max  →  v_max = PRF·λ/4.
+# 기준신호마다 시간축 반복률이 다르다(전형적 배치값; 실제로는 설정가변):
+#   LTE  CRS  : 매 서브프레임(1ms) 존재          → ~1 kHz   (드론 ~42 m/s 까지 OK)
+#   5G   SSB  : SS 버스트 주기 20ms              → ~50 Hz   (~1.1 m/s — 한가한 5G의 한계)
+#   5G   PRS/CSI-RS : 측위/추적 설정             → ~200 Hz  (~4.3 m/s)
+#   WiFi L-LTF: 패킷당 1회(트래픽 의존)          → ~1 kHz(혼잡 AP) / ~333 Hz(비콘만)
+# ※ 이 '반복률'(속도 한계)은 주파수축 대역(거리분해능)과 **독립**이다. 그래서 5G 는
+#   한가하면 SSB 뿐 → 거리(협대역)도 속도(저반복률)도 모두 나쁘다 = 5G 패시브레이더의 이중고.
+#   (DMRS 는 데이터에 종속·간헐적이라 slow-time 기준에서 제외.)
+PILOT_RATE_HZ = {
+    "wifi": {"LLTF": 1000.0},                                  # 패킷률(혼잡 AP 대표값)
+    "lte":  {"CRS": 1000.0, "PSS": 200.0, "SSS": 200.0, "PRS": 100.0},
+    "nr":   {"PSS": 50.0, "SSS": 50.0, "PBCH": 50.0,           # SSB 20ms 버스트 → 50Hz
+             "PRS": 200.0},                                    # 촘촘한 측위/추적 설정(≤5ms)일 때의 상한; 유휴시엔 50~100Hz로 더 낮음
+}
+# ※ WiFi 의 기준은 코드에선 L-LTF 를 80MHz 전대역으로 타일링한다. 엄밀히 802.11ac 80MHz의
+#   전대역 기준은 VHT-LTF 이며(레거시 L-LTF 는 20MHz 중복), 여기선 그 전대역 기준을 근사한다.
 
 
 @dataclass
@@ -76,6 +127,18 @@ class Waveform:
     def channel_res_m(self):                            # 채널 대역 기준(이상적)
         return C0 / (2 * self.bw_hz)
     @property
+    def pilot_rate_hz(self):
+        """기준신호가 slow-time 으로 반복되는 최대 속도[Hz] (가장 촘촘한 기지 파일럿)."""
+        present = set(self.labels.ravel().tolist())
+        rates = [r for ch, r in PILOT_RATE_HZ.get(self.std, {}).items()
+                 if CH.get(ch) in present]
+        return max(rates) if rates else 0.0
+    @property
+    def v_unambiguous_ms(self):
+        """최대 무모호(no-alias) 속도 v_max = PRF·λ/4 [m/s]. PRF=pilot_rate_hz."""
+        lam = C0 / self.carrier_hz
+        return self.pilot_rate_hz * lam / 4.0
+    @property
     def duration_us(self):
         return len(self.tx) / self.fs_hz * 1e6
     @property
@@ -89,9 +152,12 @@ class Waveform:
         present = set(self.labels.ravel().tolist())
         if self.std == "wifi":
             return "L-LTF"
-        if CH["PRS"] in present:
+        if CH["PRS"] in present:                       # PRS 켜지면 전대역 측위기준 우선
             return "NR-PRS" if self.std == "nr" else "PRS"
-        return "SSB" if self.std == "nr" else "PSS/SSS"
+        if self.std == "nr":
+            return "SSB"                               # 5G G1: SSB(협대역)
+        # LTE: PRS 없으면 CRS(상시·전대역)가 실제 기준, 그것도 없으면 동기만
+        return "CRS" if CH["CRS"] in present else "PSS/SSS"
 
 
 # --------------------------------------------------------------------------- #
@@ -165,7 +231,7 @@ _LLTF = np.array([0,0,0,0,0,0,1,1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,1,-1,-1,1,1,-1,1,
 
 
 def wifi_80211ac(bw_hz=80e6, carrier_hz=5.21e9, occupancy="G3", n_data_sym=10, seed=1):
-    on = MODES[occupancy]; scs = 312.5e3
+    on = MODES["wifi"][occupancy]; scs = 312.5e3
     fft = int(round(bw_hz / scs)); fs = fft * scs; cp = fft // 4
     rng = np.random.default_rng(seed)
     half = int(fft * 26 / 64); used = np.r_[np.arange(-half, 0), np.arange(1, half + 1)]
@@ -207,7 +273,7 @@ def wifi_80211ac(bw_hz=80e6, carrier_hz=5.21e9, occupancy="G3", n_data_sym=10, s
 #  LTE Rel-9 다운링크 (1 서브프레임 = 14 sym)
 # --------------------------------------------------------------------------- #
 def lte_downlink(bw_hz=20e6, carrier_hz=1.843e9, occupancy="G3", n_id=0, seed=2):
-    on = MODES[occupancy]; scs = 15e3
+    on = MODES["lte"][occupancy]; scs = 15e3
     fft = 2048 if bw_hz >= 20e6 else 1024; fs = fft * scs
     n_rb = {20e6: 100, 10e6: 50, 5e6: 25}.get(bw_hz, 100); n_used = n_rb * 12
     used = np.r_[np.arange(-n_used // 2, 0), np.arange(1, n_used // 2 + 1)]
@@ -250,7 +316,7 @@ def lte_downlink(bw_hz=20e6, carrier_hz=1.843e9, occupancy="G3", n_id=0, seed=2)
 #  5G NR Rel-16 다운링크 (1 슬롯 = 14 sym)
 # --------------------------------------------------------------------------- #
 def nr_downlink(bw_hz=100e6, scs_hz=30e3, carrier_hz=3.5e9, occupancy="G3", n_id=1, seed=3):
-    on = MODES[occupancy]
+    on = MODES["nr"][occupancy]
     fft = 4096; fs = fft * scs_hz
     n_rb = 273 if bw_hz >= 100e6 else 51; n_used = n_rb * 12
     used = np.r_[np.arange(-n_used // 2, 0), np.arange(1, n_used // 2 + 1)]
@@ -306,6 +372,7 @@ if __name__ == "__main__":
         print(f"\n== 점유모드 {mode} ==")
         for k, wf in all_waveforms(mode).items():
             print(f"  {wf.name:15s} 점유율={wf.occupancy_frac*100:5.1f}%  "
-                  f"기준={'PRS/SSB' if wf.std!='wifi' else 'L-LTF'}  "
-                  f"기준대역={wf.ref_bw_hz/1e6:6.1f}MHz  분해능={wf.range_resolution_m:5.2f}m  "
+                  f"기준={wf.ref_name:7s}  "
+                  f"대역={wf.ref_bw_hz/1e6:6.1f}MHz→{wf.range_resolution_m:5.2f}m  "
+                  f"반복률={wf.pilot_rate_hz:6.0f}Hz→{wf.v_unambiguous_ms:5.1f}m/s  "
                   f"에너지={10*np.log10(wf.tx_energy+1e-30):6.1f}dB")

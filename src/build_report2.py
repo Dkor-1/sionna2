@@ -18,8 +18,11 @@ def main():
     print("\n" + "="*64, "\n▶ 3) report2 그림 생성 (RCS·파형·비교)\n", "="*64)
     import viz_radar; viz_radar.build_all()
 
-    print("\n" + "="*64, "\n▶ 3b) 점유상태(G1/G2/G3) 그리드 사진 + 실험\n", "="*64)
+    print("\n" + "="*64, "\n▶ 3b) 점유상태(G1/G2/G3) 그리드 사진 + 실험(거리×속도)\n", "="*64)
     import viz_occupancy; viz_occupancy.build_all()
+
+    print("\n" + "="*64, "\n▶ 3c) 메쉬 기반 실험 시각화 (셋업·RCS풍선·조명면·도플러)\n", "="*64)
+    import viz_mesh; viz_mesh.build_all()
 
     print("\n" + "="*64, "\n▶ 4) report2.ipynb 생성\n", "="*64)
     import subprocess

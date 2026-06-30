@@ -76,6 +76,14 @@ def rcs_from_points(P, N, dA, fc, az_deg, el_deg=0.0):
     return (4 * np.pi / lam**2) * np.abs(E)**2     # (A,) σ [m²]
 
 
+def po_field_dir(P, N, dA, fc, u):
+    """단일 시선 단위벡터 û 의 **복소 산란장** E = Σ(n̂·û>0)(n̂·û)·ΔA·exp(j2k·P·û).
+    (rcs_from_points 의 σ 직전 값. 마이크로도플러용 — 위상이 필요하므로 σ 가 아닌 E.)"""
+    k = 2 * np.pi * fc / C0
+    NU = N @ np.asarray(u); PU = P @ np.asarray(u)
+    return np.sum(np.where(NU > 0, NU, 0.0) * dA * np.exp(1j * 2 * k * PU))
+
+
 # --------------------------------------------------------------------------- #
 #  드론 RCS (메쉬에서 바로)
 # --------------------------------------------------------------------------- #

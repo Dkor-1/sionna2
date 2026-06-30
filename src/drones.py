@@ -148,63 +148,109 @@ def _motor_angles(spec: DroneSpec) -> list[float]:
     return [(360.0 / n) * k + (360.0 / n) / 2 for k in range(n)]
 
 
-def build_drone(spec: DroneSpec) -> Mesh:
-    """제원에 맞춘 멀티로터 메쉬(부위 그룹 포함)를 만든다. 전방 = +x."""
-    m = Mesh()
+def _drone_dims(spec: DroneSpec):
+    """공용 치수: (diag, r, prop_r, bh, body_l, body_w, body_z)."""
     diag = spec.diagonal_mm / 1000.0
     r = diag / 2.0                                   # 모터 반경(중심→모터)
     prop_r = spec.prop_dia_mm / 1000.0 / 2.0
     bh = spec.body_h_mm / 1000.0
+    hub = spec.body_frac * diag
+    body_l = hub * 1.15; body_w = hub * 0.85; body_z = 0.35 * bh
+    return diag, r, prop_r, bh, body_l, body_w, body_z
 
-    # ---- 동체(중앙 허브) : 살짝 납작한 박스 + 전방으로 좁아지는 느낌 ---------- #
-    hub = spec.body_frac * diag                      # 동체 평면 크기 기준
-    body_l = hub * 1.15                              # 전후로 약간 길게
-    body_w = hub * 0.85
-    body_z = 0.35 * bh                               # 동체 두께(모터면 위로 약간)
+
+def build_frame(spec: DroneSpec) -> Mesh:
+    """**회전하지 않는 부분**: 동체/캐노피/암/모터/착륙장치/카메라/액센트 (프로펠러 제외).
+    드론 로컬 프레임(전방 +x). pose_articulated 에서 몸체 자세를 통째로 적용한다."""
+    m = Mesh()
+    diag, r, prop_r, bh, body_l, body_w, body_z = _drone_dims(spec)
+    # 동체 + 캐노피 + 전방 코
     m.merge(box(body_l, body_w, body_z, center=(0, 0, 0), group="body"))
-    # 상단 캐노피/배터리 험프
     m.merge(box(body_l * 0.6, body_w * 0.7, body_z * 0.9,
                 center=(-0.04 * body_l, 0, body_z * 0.8), group="canopy"))
-    # 전방 코(살짝 돌출) — 방향성 강조
     m.merge(box(body_l * 0.25, body_w * 0.5, body_z * 0.7,
                 center=(body_l * 0.5, 0, 0), group="body"))
-
-    # ---- 암 + 모터 + 프로펠러 ------------------------------------------------ #
-    hub_r = max(body_l, body_w) * 0.5 * 0.9          # 허브 가장자리 반경
+    # 암 + 모터(프로펠러는 분리)
+    hub_r = max(body_l, body_w) * 0.5 * 0.9
     arm_w = (0.10 if spec.fixed_arm else 0.05) * diag
     arm_t = (0.08 if spec.fixed_arm else 0.045) * diag
-    motor_r = 0.05 * diag
-    motor_h = 0.045 * diag
+    motor_r = 0.05 * diag; motor_h = 0.045 * diag
     for ang in _motor_angles(spec):
         ca, sa = math.cos(math.radians(ang)), math.sin(math.radians(ang))
-        mx, my = r * ca, r * sa                       # 모터 위치
-        # 암: 허브 가장자리 ~ 모터. +x로 만든 박스를 반경 위치로 옮기고 각도 회전.
-        L = r - hub_r
-        rc = (hub_r + r) / 2.0
+        mx, my = r * ca, r * sa
+        L = r - hub_r; rc = (hub_r + r) / 2.0
         arm_grp = "arm" if spec.arm_style == "carbon" else "body"
         M = rotate("z", ang) @ translate(rc, 0, 0)
         m.merge(box(L, arm_w, arm_t, center=(0, 0, 0)).transformed(M), group=arm_grp)
-        # 전방 암 식별색(있으면): 암 끝에 작은 컬러 캡
         if spec.accent_rgb is not None and ca > 0.1:
             Mc = rotate("z", ang) @ translate(r - L * 0.18, 0, 0)
             m.merge(box(L * 0.30, arm_w * 1.05, arm_t * 1.05,
                         center=(0, 0, 0)).transformed(Mc), group="accent")
-        # 모터(세로 원기둥)
         m.merge(cylinder(motor_r, motor_h, axis="z",
                          center=(mx, my, motor_h / 2 + arm_t / 2), group="motor"))
-        # 프로펠러(모터 위)
-        prop_z = motor_h + arm_t / 2 + 0.006
-        for b in range(spec.prop_blades):
-            bang = ang + (360.0 / spec.prop_blades) * b + 12.0
-            Mb = translate(mx, my, prop_z) @ rotate("z", bang)
-            m.merge(blade(prop_r, prop_r * 0.22, 0.004).transformed(Mb), group="prop")
-
-    # ---- 착륙장치 ------------------------------------------------------------ #
     _add_gear(m, spec, body_l, body_w, body_z, diag)
-
-    # ---- 짐벌 카메라 --------------------------------------------------------- #
     _add_camera(m, spec, body_l, body_z)
     return m
+
+
+def build_propeller(spec: DroneSpec) -> Mesh:
+    """**프로펠러 1개**(prop_blades 장)를 허브 원점 기준으로 생성(스핀 적용 전, z축 회전).
+    pose_articulated/마이크로도플러에서 이 메쉬를 z회전(스핀)시켜 각 로터에 배치한다."""
+    _, _, prop_r, *_ = _drone_dims(spec)
+    m = Mesh()
+    for b in range(spec.prop_blades):
+        bang = (360.0 / spec.prop_blades) * b
+        m.merge(blade(prop_r, prop_r * 0.22, 0.004).transformed(rotate("z", bang)), group="prop")
+    return m
+
+
+def rotor_layout(spec: DroneSpec) -> list[dict]:
+    """로터별 배치: {center:(x,y,z), base_ang:deg(장착 오프셋), dir:+1/-1(CCW/CW)}.
+    dir 은 인접 로터가 반대로 도는 멀티로터 관례(대각쌍 동일). build_drone 과 동일 좌표."""
+    diag, r, prop_r, bh, body_l, body_w, body_z = _drone_dims(spec)
+    arm_t = (0.08 if spec.fixed_arm else 0.045) * diag
+    motor_h = 0.045 * diag
+    prop_z = motor_h + arm_t / 2 + 0.006
+    out = []
+    for k, ang in enumerate(_motor_angles(spec)):
+        ca, sa = math.cos(math.radians(ang)), math.sin(math.radians(ang))
+        out.append(dict(center=(r * ca, r * sa, prop_z),
+                        base_ang=ang + 12.0, dir=(1 if k % 2 == 0 else -1)))
+    return out
+
+
+def build_drone(spec: DroneSpec) -> Mesh:
+    """정적 멀티로터 메쉬(프레임 + 프로펠러 초기위상). **기존과 동일 출력**(report1/2 RCS 호환).
+    = build_frame + 각 로터에 build_propeller 를 초기위상(스핀 0)으로 배치."""
+    m = build_frame(spec)
+    prop = build_propeller(spec)
+    for rot in rotor_layout(spec):
+        cx, cy, cz = rot["center"]
+        M = translate(cx, cy, cz) @ rotate("z", rot["base_ang"])
+        m.merge(prop.transformed(M), group="prop")
+    return m
+
+
+def pose_articulated(spec: DroneSpec, body_rpy=(0., 0., 0.), body_pos=(0., 0., 0.),
+                     rotor_phase_deg=None) -> Mesh:
+    """**분절 스냅샷 메쉬**: 몸체 자세(roll,pitch,yaw [deg]) + 위치, 로터별 스핀위상[deg]로
+    월드 프레임 메쉬를 만든다. **몸체 회전과 블레이드 회전이 분리되어** 적용된다:
+      - 프레임(비회전부)에는 몸체변환 B 만,
+      - 각 프로펠러에는 B ∘ (로터위치) ∘ (장착오프셋+스핀위상) 을 적용.
+    rotor_phase_deg=None 이면 모두 0. RPY 상태에서도 로터마다 다른 위상을 줄 수 있다."""
+    roll, pitch, yaw = body_rpy
+    B = (translate(*[float(v) for v in body_pos])
+         @ rotate("z", yaw) @ rotate("y", pitch) @ rotate("x", roll))
+    out = build_frame(spec).transformed(B)               # 그룹 보존됨
+    prop = build_propeller(spec)
+    rl = rotor_layout(spec)
+    if rotor_phase_deg is None:
+        rotor_phase_deg = [0.0] * len(rl)
+    for rot, ph in zip(rl, rotor_phase_deg):
+        cx, cy, cz = rot["center"]
+        M = B @ translate(cx, cy, cz) @ rotate("z", rot["base_ang"] + ph)
+        out.merge(prop.transformed(M), group="prop")
+    return out
 
 
 def _add_gear(m, spec, body_l, body_w, body_z, diag):
