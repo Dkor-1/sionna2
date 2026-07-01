@@ -57,6 +57,11 @@ cells.append(md(
     "아래: 5G NR 100MHz 로 표적(Rb≈66m, f_d≈+193Hz)을 비춤. **ECA 전엔 0-도플러 클러터가 지배**해 표적이 안 보이고,",
     "**ECA 후** 표적이 거리-도플러 맵에 또렷이 드러나 CFAR이 검출합니다:",
     "![range-doppler](outputs/figures/report4_rangedoppler.png)",
+    "",
+    "### 실험 애니메이션 — 드론이 날며 검출이 표적을 따라감",
+    "드론이 감시영역을 비행하는 동안 **프레임마다 ECA→CAF→CFAR** 를 돌립니다. 거리-도플러 맵의 검출(×)이",
+    "표적(○)을 따라가고 **검출 궤적(노란 점)이 쌓입니다** — 왼쪽 평면도의 실제 비행경로와 등Rb 타원도 함께 갱신:",
+    "![tracking](outputs/figures/report4_tracking.gif)",
 ))
 cells.append(code(
     "import numpy as np",

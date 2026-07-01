@@ -14,6 +14,7 @@ import numpy as np
 import vizstyle
 vizstyle.use_korean()
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation, PillowWriter
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 
 from drones import DRONES, build_drone, drone_colors
@@ -204,6 +205,92 @@ def fig_detection(outdir=FIG, fc=3.5e9, T_cpi=0.035, K=8):
         ax.grid(alpha=0.3); ax.legend(fontsize=8.5, loc="best")
     fn = os.path.join(outdir, "report4_detection.png"); fig.savefig(fn, dpi=130); plt.close(fig)
     print("[bist]", os.path.relpath(fn)); return fn
+
+
+# --------------------------------------------------------------------------- #
+#  (4) 추적 애니메이션 — 드론이 날며 거리-도플러 검출이 표적을 따라감
+# --------------------------------------------------------------------------- #
+def _trajectory(n_frames, speed=15.0):
+    """감시영역을 가로지르는 곡선 비행경로. 반환 (positions[n,3], velocities[n,3])."""
+    P0 = np.array([25.0, 175.0, 55.0]); C = np.array([70.0, 70.0, 58.0]); P1 = np.array([150.0, 95.0, 52.0])
+    t = np.linspace(0, 1, n_frames)[:, None]
+    pos = (1 - t)**2 * P0 + 2 * (1 - t) * t * C + t**2 * P1        # 2차 베지어
+    dpos = 2 * (1 - t) * (C - P0) + 2 * t * (P1 - C)               # 접선(속도방향)
+    vel = dpos / (np.linalg.norm(dpos, axis=1, keepdims=True) + 1e-9) * speed
+    return pos, vel
+
+
+def gif_bistatic_tracking(outdir=FIG, target="mavic4pro", occupancy="G3",
+                          n_frames=30, M=24, fps=7):
+    """드론 비행 → 프레임마다 ECA+CAF+CFAR 로 거리-도플러 맵 갱신, 검출이 표적 궤적을 따라감."""
+    wf = nr_downlink(occupancy=occupancy); fc = wf.carrier_hz; fs = wf.fs_hz
+    ref_frame = wf.tx; Lf = len(ref_frame); prf = fs / Lf
+    n_range = int(min(Lf, 450 / (C0 / fs)))
+    pos, vel = _trajectory(n_frames)
+    print(f"[bist-gif] {n_frames}프레임 사전계산 (5G {occupancy}, PRF={prf:.0f}Hz, ±{prf/2:.0f}Hz)…")
+
+    frames = []                                                    # 프레임별 (rd_db, Rb, f_d, true, det)
+    rng = np.random.default_rng(11)
+    for kf in range(n_frames):
+        p = bistatic_params(TX, RX, pos[kf], vel[kf], fc)
+        surv, ref = make_cpi(ref_frame, M, fs, p["tau"], p["fd"], a_tgt=1.0, dpi_amp=55.0,
+                             clutter=((0.0, 10.0), (35e-9, 6.0), (85e-9, 4.0)),
+                             snr_db=16.0, rng=rng)
+        Rb, f_d, rd = range_doppler(eca(surv, ref, 36), ref, fs, M, n_range=n_range)
+        rdb = 20 * np.log10(rd / rd.max() + 1e-9)
+        zd = int(np.argmin(np.abs(f_d))); rd2 = rd.copy(); rd2[max(0, zd-1):zd+2, :] = 0
+        di, ri = np.unravel_index(np.argmax(rd2), rd2.shape)
+        thr = 6.0 * np.median(rd2[rd2 > 0])
+        det = (Rb[ri], f_d[di]) if rd2[di, ri] > thr else None
+        frames.append((rdb, Rb, f_d, (p["Rb"], p["fd"]), det, p))
+
+    fig = plt.figure(figsize=(13, 5.6))
+    axg = fig.add_subplot(1, 2, 1); axr = fig.add_subplot(1, 2, 2)
+    Rb0, f_d0 = frames[0][1], frames[0][2]
+    det_hist = []
+
+    def update(kf):
+        rdb, Rb, f_d, (tRb, tfd), det, p = frames[kf]
+        # (좌) 평면 기하
+        axg.clear()
+        axg.plot(TX[0], TX[1], "^", ms=13, color="#ef6c00"); axg.text(TX[0]+4, TX[1], "TX")
+        axg.plot(RX[0], RX[1], "v", ms=13, color="#1565c0"); axg.text(RX[0]+4, RX[1], "RX")
+        axg.plot(pos[:, 0], pos[:, 1], ":", color="0.7", lw=1)           # 전체 경로
+        axg.plot(pos[:kf+1, 0], pos[:kf+1, 1], "-", color="#c62828", lw=1.5)  # 지나온 궤적
+        axg.plot(pos[kf, 0], pos[kf, 1], "o", ms=9, color="k")
+        axg.plot([TX[0], pos[kf, 0]], [TX[1], pos[kf, 1]], "--", color="#ef6c00", lw=0.9)
+        axg.plot([pos[kf, 0], RX[0]], [pos[kf, 1], RX[1]], "-", color="#2e7d32", lw=1.3)
+        # 등Rb 타원
+        fa, fb = np.array(TX[:2]), np.array(RX[:2]); c2 = np.linalg.norm(fa-fb)/2
+        a_e = (p["R1"]+p["R2"])/2; b_e = np.sqrt(max(a_e**2-c2**2, 0)); mid = (fa+fb)/2
+        ang = np.arctan2((fb-fa)[1], (fb-fa)[0]); th = np.linspace(0, 2*np.pi, 160)
+        ER = np.array([[np.cos(ang), -np.sin(ang)], [np.sin(ang), np.cos(ang)]])
+        ell = (ER @ np.vstack([a_e*np.cos(th), b_e*np.sin(th)])).T + mid
+        axg.plot(ell[:, 0], ell[:, 1], color="#7b1fa2", lw=1.0, alpha=0.8)
+        axg.set_xlim(-45, 180); axg.set_ylim(-20, 275); axg.set_aspect("equal")
+        axg.set_title(f"비행 {kf+1}/{n_frames} · Rb={p['Rb']:.0f}m f_d={p['fd']:+.0f}Hz", fontsize=10)
+        axg.set_xlabel("x [m]"); axg.set_ylabel("y [m]"); axg.grid(alpha=0.3)
+        # (우) 거리-도플러 맵
+        axr.clear()
+        axr.pcolormesh(Rb, f_d, rdb, cmap="turbo", vmin=-45, vmax=0, shading="auto")
+        axr.plot(tRb, tfd, "o", mfc="none", mec="w", ms=13, mew=1.4)     # 참 표적
+        if det:
+            det_hist.append(det)
+            axr.plot(det[0], det[1], "x", color="r", ms=11, mew=2.5)
+        if det_hist:
+            dh = np.array(det_hist); axr.plot(dh[:, 0], dh[:, 1], ".", color="#ffd600", ms=4)  # 검출 트랙
+        axr.set_xlim(Rb[0], Rb[-1]); axr.set_ylim(f_d[0], f_d[-1])
+        axr.set_xlabel("바이스태틱 거리 Rb [m]"); axr.set_ylabel("도플러 f_d [Hz]")
+        axr.set_title("거리-도플러 맵 (ECA+CAF+CFAR) — ○참표적 ×검출 ·트랙", fontsize=10)
+        fig.suptitle("바이스태틱 패시브 레이더 — 드론 비행 추적 (5G NR, 프레임마다 검출)",
+                     fontsize=13, fontweight="bold")
+        return ()
+
+    anim = FuncAnimation(fig, update, frames=n_frames, blit=False)
+    os.makedirs(outdir, exist_ok=True)
+    fn = os.path.join(outdir, "report4_tracking.gif")
+    anim.save(fn, writer=PillowWriter(fps=fps), dpi=90)
+    plt.close(fig); print("[bist-gif]", os.path.relpath(fn)); return fn
 
 
 def build_all(outdir=FIG):

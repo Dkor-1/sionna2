@@ -28,8 +28,8 @@ def main():
     print(f"  참 표적 (Rb={p['Rb']:.0f}m, f_d={p['fd']:+.0f}Hz) → 검출 "
           f"{(round(pk['Rb']), round(pk['fd'])) if pk else '없음'}")
 
-    print("\n" + "=" * 64, "\n▶ 3) 그림 생성 (기하·거리도플러·검출성능)\n", "=" * 64)
-    import viz_bistatic; viz_bistatic.build_all()
+    print("\n" + "=" * 64, "\n▶ 3) 그림 생성 (기하·거리도플러·검출성능·추적 애니메이션)\n", "=" * 64)
+    import viz_bistatic; viz_bistatic.build_all(); viz_bistatic.gif_bistatic_tracking()
 
     print("\n" + "=" * 64, "\n▶ 4) report4.ipynb 생성\n", "=" * 64)
     import subprocess
