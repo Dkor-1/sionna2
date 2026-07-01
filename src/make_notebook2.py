@@ -83,6 +83,9 @@ cells.append(md(
     "",
     "왜 각도마다 RCS 가 다를까요? PO 는 **레이더로 향한 면(조명면)만** 위상 맞춰 더합니다. 보는 각도가 바뀌면 번쩍이는 면이 바뀝니다:",
     "![rcs facets](outputs/figures/report2_mesh_rcs_facets.png)",
+    "",
+    "**🎬 애니메이션** — 레이더가 여러 방위에서 볼 때 조명면이 바뀌고 RCS 가 **글린트로 출렁**이는 모습(폴라와 동기):",
+    "![rcs anim](outputs/figures/report2_anim_rcs.gif)",
 ))
 
 cells.append(code(
@@ -150,6 +153,9 @@ cells.append(md(
     "### 점유 상태 실험 — 거리(주파수축) × 속도(시간축)",
     "(d) 거리분해능은 *기준신호 대역*, (e) 최대 무모호 속도는 *기준신호 반복률*이 좌우합니다(속도 이야기는 §4b):",
     "![occupancy](outputs/figures/report2_occupancy.png)",
+    "",
+    "**🎬 애니메이션** — 점유가 G1→G2→G3 로 차오르며 기준신호 대역↑ → 거리 프로파일이 날카로워지는 모습:",
+    "![occupancy anim](outputs/figures/report2_anim_occupancy.gif)",
     "",
     "**핵심 교훈** (패시브 레이더 현실):",
     "1. **거리분해능은 '기준신호가 실제 점유한 대역'이 좌우.** 표준마다 한가한 셀(G1)의 사정이 다릅니다:",

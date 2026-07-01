@@ -92,15 +92,23 @@ build_report3.py report3 산출물 한 번에 생성
 --- report4 (바이스태틱 탐지) ---
 bistatic_scene.py 바이스태틱 기하 (Rb·τ·f_d·β, 등Rb 타원)
 passive_process.py 처리 체인 — make_cpi/ECA(클러터제거)/CAF 거리-도플러/CA-CFAR
-viz_bistatic.py 기하·거리도플러맵(ECA 전후)·검출성능(Pd vs SNR) 시각화
+viz_bistatic.py 기하·거리도플러맵(ECA 전후)·검출성능(Pd vs SNR)·추적 GIF 시각화
 build_report4.py report4 산출물 한 번에 생성
+--- 애니메이션(GIF) ---
+viz_animations.py RCS 글린트(report2)·마이크로도플러 회전(report3)·점유 진행(report2)
+build_animations.py 위 실험 애니메이션 한 번에 생성
 ```
+
+**애니메이션 GIF 모음** (커널 없이 노트북에서 재생):
+turntable(드론 회전)·report3_articulation(분절 회전)·report4_tracking(비행 추적),
+report2_anim_rcs(RCS 글린트)·report3_anim_microdoppler(프로펠러↔플래시)·report2_anim_occupancy(점유 진행).
 
 ### report2 / report3 한 번에 만들기
 ```bash
 cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_report2.py   # GPU 불필요(PO+DSP)
 cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_report3.py   # GPU 불필요(메쉬+PO+DSP)
 cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_report4.py   # GPU 불필요(기하+DSP)
+cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_animations.py # 실험 애니메이션 GIF(GPU 불필요, 느림)
 ```
 
 설계 원칙: **OBJ 1개 = 부위 1개 = Sionna 재질 1개.** 그래서 부위별로 색/전파재질을
