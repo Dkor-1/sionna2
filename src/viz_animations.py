@@ -58,8 +58,8 @@ def anim_rcs_aspect(outdir=FIG, target="mavic4pro", fc=3.5e9, el=22.0, n_frames=
     fig = plt.figure(figsize=(12, 5.6), constrained_layout=True)
     ax3 = fig.add_subplot(1, 2, 1, projection="3d")
     axp = fig.add_subplot(1, 2, 2, projection="polar")
-    fig.suptitle(f"RCS 글린트 — {_NAME[target]} 를 레이더가 여러 방위에서 볼 때 @ {fc/1e9:.1f}GHz\n"
-                 "왼쪽: 레이더로 향한 면(노랑=강)  ·  오른쪽: RCS(방위) — 특정 각도서 번쩍",
+    fig.suptitle(f"RCS glint — {_NAME[target]} seen by the radar from varying azimuth @ {fc/1e9:.1f}GHz\n"
+                 "Left: faces toward the radar (yellow = strong)  ·  Right: RCS vs azimuth — flashes at specific angles",
                  fontsize=12.5, fontweight="bold")
 
     def update(kf):
@@ -83,7 +83,7 @@ def anim_rcs_aspect(outdir=FIG, target="mavic4pro", fc=3.5e9, el=22.0, n_frames=
         axp.plot([np.radians(azd)], [cur], "o", color="#1565c0", ms=11)
         axp.plot([np.radians(azd), np.radians(azd)], [rcs_db.min(), cur], color="#1565c0", lw=1, alpha=0.5)
         axp.set_theta_zero_location("N"); axp.set_theta_direction(-1)
-        axp.set_title(f"방위 {azd:.0f}° → RCS {cur:.1f} dBsm", fontsize=11)
+        axp.set_title(f"Azimuth {azd:.0f}° → RCS {cur:.1f} dBsm", fontsize=11)
         return ()
 
     anim = FuncAnimation(fig, update, frames=n_frames, blit=False)
@@ -113,8 +113,8 @@ def anim_microdoppler(outdir=FIG, target="mavic4pro", rpm=None, n_frames=48, fps
     u2 = _look(0, 0)[:2]                          # 레이더 LOS(방위 0) 상단투영
 
     fig, (axm, axs) = plt.subplots(1, 2, figsize=(12.5, 5.4), constrained_layout=True)
-    fig.suptitle(f"마이크로-도플러의 원리 — {_NAME[target]} 프로펠러 회전 ↔ 블레이드 플래시\n"
-                 f"왼쪽: 회전 프로펠러(파란=레이더 방향)  ·  오른쪽: 스펙트로그램 시간커서 (플래시=블레이드 ⊥ 레이더)",
+    fig.suptitle(f"How micro-Doppler arises — {_NAME[target]} propeller rotation ↔ blade flash\n"
+                 f"Left: rotating propeller (blue = radar direction)  ·  Right: spectrogram time cursor (flash = blade ⊥ radar)",
                  fontsize=12, fontweight="bold")
 
     def update(kf):
@@ -127,17 +127,17 @@ def anim_microdoppler(outdir=FIG, target="mavic4pro", rpm=None, n_frames=48, fps
             axm.add_patch(MplPoly(poly, closed=True, facecolor="0.2", edgecolor="0.35", lw=0.3))
         axm.arrow(0, 0, u2[0]*R*1.3, u2[1]*R*1.3, color="#1565c0", lw=2.5,
                   head_width=R*0.12, length_includes_head=True, zorder=5)
-        axm.text(u2[0]*R*1.45, u2[1]*R*1.1, "레이더", color="#1565c0", fontsize=9)
+        axm.text(u2[0]*R*1.45, u2[1]*R*1.1, "Radar", color="#1565c0", fontsize=9)
         axm.set_xlim(-R*1.5, R*1.5); axm.set_ylim(-R*1.5, R*1.5); axm.set_aspect("equal")
-        axm.set_axis_off(); axm.set_title(f"t={tk*1e3:.1f} ms · 회전 {ph % 360:.0f}°", fontsize=10.5)
+        axm.set_axis_off(); axm.set_title(f"t={tk*1e3:.1f} ms · rotation {ph % 360:.0f}°", fontsize=10.5)
         axs.clear()
         axs.pcolormesh(tt*1e3, f, Sdb, cmap="turbo", vmin=-45, vmax=0, shading="gouraud")
         for sgn in (+1, -1):
             axs.axhline(sgn*info["f_tip"], color="k", ls="--", lw=1.2, zorder=4)
         axs.axvline(tk*1e3, color="w", lw=1.6, zorder=5)
         axs.set_ylim(-1.5*info["f_tip"], 1.5*info["f_tip"])
-        axs.set_xlabel("시간 [ms]"); axs.set_ylabel("도플러 [Hz]")
-        axs.set_title(f"팁 도플러 ±{info['f_tip']:.0f}Hz · 플래시 {info['flash_hz']:.0f}Hz", fontsize=10.5)
+        axs.set_xlabel("Time [ms]"); axs.set_ylabel("Doppler [Hz]")
+        axs.set_title(f"Tip Doppler ±{info['f_tip']:.0f}Hz · flash {info['flash_hz']:.0f}Hz", fontsize=10.5)
         return ()
 
     anim = FuncAnimation(fig, update, frames=n_frames, blit=False)
@@ -151,30 +151,32 @@ def anim_microdoppler(outdir=FIG, target="mavic4pro", rpm=None, n_frames=48, fps
 #  (3) report2 — 점유 G1→G2→G3 그리드 채움 + 거리프로파일
 # --------------------------------------------------------------------------- #
 def anim_occupancy(outdir=FIG, target="mavic4pro", R=10.0, hold=10, fps=6):
-    from waveforms import nr_downlink, MODE_DESC
+    from waveforms import nr_downlink
     from radar_process import range_profile, mainlobe_width_m
     from viz_occupancy import _grid_image          # 리소스그리드 그리기 단일 출처
+    # 그림 제목용 영문 모드 설명(waveforms.MODE_DESC['nr'] 는 한국어라 렌더 텍스트엔 이걸 사용)
+    mode_en = {"G1": "SSB only (narrowband beacon)", "G2": "+PRS positioning +DMRS", "G3": "+PDSCH data"}
     modes = ["G1", "G2", "G3"]
     wfs = {m: nr_downlink(occupancy=m) for m in modes}
     sig, _ = drone_rcs_pattern(target, wfs["G3"].carrier_hz, np.array([0.0])); sig = float(sig[0])
     seq = [m for m in modes for _ in range(hold)]
 
     fig, (axg, axr) = plt.subplots(1, 2, figsize=(13, 5.2), constrained_layout=True)
-    fig.suptitle("5G 점유 상태 진행 — 리소스 그리드가 채워질수록 기준신호 대역↑ → 거리분해능↑",
+    fig.suptitle("5G occupancy progression — as the resource grid fills, reference-signal bandwidth↑ → range resolution↑",
                  fontsize=12.5, fontweight="bold")
 
     def update(kf):
         m = seq[kf]; wf = wfs[m]
         axg.clear()
         _grid_image(axg, wf)                       # 그리드 사진은 viz_occupancy 와 동일 로직 재사용
-        axg.set_title(f"{m} · {MODE_DESC['nr'][m]} · 점유 {wf.occupancy_frac*100:.0f}%", fontsize=10.5)  # 애니메이션용 짧은 제목으로 덮어쓰기
+        axg.set_title(f"{m} · {mode_en[m]} · occupancy {wf.occupancy_frac*100:.0f}%", fontsize=10.5)  # 애니메이션용 짧은 제목으로 덮어쓰기
         axr.clear()
         rm, prof, pr, pv = range_profile(wf, R, sig, snr_db=18, passive=True, rng=np.random.default_rng(kf))
         pdb = 20*np.log10(prof/prof.max()+1e-12); res = mainlobe_width_m(rm, prof)
         axr.plot(rm, pdb, color="#2e7d32", lw=1.6); axr.axvline(R, color="k", ls="--", lw=1)
         axr.set_xlim(0, 2*R+5); axr.set_ylim(-40, 2)
-        axr.set_xlabel("거리 [m]"); axr.set_ylabel("정합필터 [dB]")
-        axr.set_title(f"기준 {wf.ref_name} {wf.ref_bw_hz/1e6:.0f}MHz → 분해능 ≈ {res:.1f} m", fontsize=10.5)
+        axr.set_xlabel("Range [m]"); axr.set_ylabel("Matched filter [dB]")
+        axr.set_title(f"Ref {wf.ref_name} {wf.ref_bw_hz/1e6:.0f}MHz → resolution ≈ {res:.1f} m", fontsize=10.5)
         return ()
 
     anim = FuncAnimation(fig, update, frames=len(seq), blit=False)

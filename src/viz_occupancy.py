@@ -28,14 +28,15 @@ FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
 _BUILD = {"wifi": wifi_80211ac, "lte": lte_downlink, "nr": nr_downlink}
 _TITLE = {"wifi": "WiFi 802.11ac", "lte": "LTE Rel-9", "nr": "5G NR Rel-16"}
 # 모드 설명은 표준별로 다르므로 waveforms.MODE_DESC 사용 (단일 소스)
+_MODE_EN = {"G1": "idle (ref only)", "G2": "ref+control", "G3": "full load"}
 def _mdesc(std, mode):
-    return f"{mode} · {MODE_DESC[std][mode]}"
+    return f"{mode} · {_MODE_EN[mode]}"
 # 사진에 등장하는 채널만 범례로
 _LEGEND_CH = ["PSS", "SSS", "PBCH", "PRS", "CRS", "DMRS", "PDCCH", "PDSCH",
               "LSTF", "LLTF", "WSIG", "WDATA"]
-_KOR = {"PSS": "PSS(동기)", "SSS": "SSS(동기)", "PBCH": "PBCH(방송=SSB)", "PRS": "PRS(측위기준)",
-        "CRS": "CRS(셀기준)", "DMRS": "DMRS(복조기준)", "PDCCH": "PDCCH(제어)", "PDSCH": "PDSCH(데이터)",
-        "LSTF": "L-STF", "LLTF": "L-LTF(기준)", "WSIG": "SIG(제어)", "WDATA": "DATA"}
+_ENG = {"PSS": "PSS (sync)", "SSS": "SSS (sync)", "PBCH": "PBCH (broadcast, SSB)", "PRS": "PRS (positioning RS)",
+        "CRS": "CRS (cell RS)", "DMRS": "DMRS (demod RS)", "PDCCH": "PDCCH (control)", "PDSCH": "PDSCH (data)",
+        "LSTF": "L-STF (preamble)", "LLTF": "L-LTF (preamble)", "WSIG": "SIG", "WDATA": "DATA"}
 
 
 def _grid_image(ax, wf):
@@ -51,17 +52,17 @@ def _grid_image(ax, wf):
     norm = BoundaryNorm([v - 0.5 for v in vals] + [vals[-1] + 0.5], cmap.N)
     ax.imshow(img, aspect="auto", origin="lower", cmap=cmap, norm=norm,
               extent=[-0.5, img.shape[1] - 0.5, fr[0], fr[-1]], interpolation="nearest")
-    ax.set_xlabel("OFDM 심볼", fontsize=8); ax.set_ylabel("기저대역 [MHz]", fontsize=8)
+    ax.set_xlabel("OFDM symbol", fontsize=8); ax.set_ylabel("Baseband [MHz]", fontsize=8)
     ax.tick_params(labelsize=7)
-    ax.set_title(f"{_mdesc(wf.std, wf.mode)}\n점유율 {wf.occupancy_frac*100:.0f}% · "
-                 f"기준 {wf.ref_name} {wf.ref_bw_hz/1e6:.0f}MHz · 분해능 {wf.range_resolution_m:.1f}m",
+    ax.set_title(f"{_mdesc(wf.std, wf.mode)}\nOccupancy {wf.occupancy_frac*100:.0f}% · "
+                 f"ref {wf.ref_name} {wf.ref_bw_hz/1e6:.0f}MHz · resolution {wf.range_resolution_m:.1f}m",
                  fontsize=8.5)
 
 
 def fig_resource_grids(std, outdir=FIG):
     """표준 1개의 G1/G2/G3 리소스 그리드 사진 3장 + 범례."""
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.6), constrained_layout=True)
-    fig.suptitle(f"리소스 그리드 '사진' — {_TITLE[std]}  (실제 셀은 항상 꽉 차 있지 않다)",
+    fig.suptitle(f"Resource grid 'snapshot' — {_TITLE[std]}  (real cells are not always fully loaded)",
                  fontsize=14, fontweight="bold")
     for ax, mode in zip(axes, ("G1", "G2", "G3")):
         wf = _BUILD[std](occupancy=mode)
@@ -70,7 +71,7 @@ def fig_resource_grids(std, outdir=FIG):
     present = set()
     for mode in ("G1", "G2", "G3"):
         present |= set(_BUILD[std](occupancy=mode).labels.ravel().tolist())
-    handles = [Patch(facecolor=CH_COLOR[CH[c]], edgecolor="0.4", label=_KOR[c])
+    handles = [Patch(facecolor=CH_COLOR[CH[c]], edgecolor="0.4", label=_ENG[c])
                for c in _LEGEND_CH if CH[c] in present]
     fig.legend(handles=handles, loc="lower center", ncol=len(handles), fontsize=8.5,
                bbox_to_anchor=(0.5, -0.04))
@@ -83,7 +84,7 @@ def fig_occupancy_experiment(outdir=FIG, target="mavic4pro", R=10.0, snr_db=18.0
     modes = ["G1", "G2", "G3"]; stds = ["wifi", "lte", "nr"]
     fig = plt.figure(figsize=(19, 8.2), constrained_layout=True)
     gs = fig.add_gridspec(2, 4)
-    fig.suptitle("점유 상태(occupancy) 실험 — 파일럿만 vs 꽉 찬 신호 (패시브레이더 현실)",
+    fig.suptitle("Occupancy experiment — pilots only vs fully loaded signal (passive-radar reality)",
                  fontsize=15, fontweight="bold")
 
     # (a) 5G NR 거리프로파일: 모드별 (패시브: 기지 파일럿만 상관)
@@ -97,12 +98,12 @@ def fig_occupancy_experiment(outdir=FIG, target="mavic4pro", R=10.0, snr_db=18.0
         pdb = 20 * np.log10(prof / prof.max() + 1e-12)
         res = mainlobe_width_m(rm, prof)
         axA.plot(rm, pdb, color=col[mode], lw=1.7,
-                 label=f"{_mdesc('nr', mode)}  → 분해능≈{res:.1f}m")
-    axA.axvline(R, color="k", ls="--", lw=1, label=f"실제 거리 {R:.0f}m")
+                 label=f"{_mdesc('nr', mode)}  → resolution≈{res:.1f}m")
+    axA.axvline(R, color="k", ls="--", lw=1, label=f"True range {R:.0f}m")
     axA.set_xlim(0, 2 * R + 5); axA.set_ylim(-40, 2)
-    axA.set_xlabel("거리 [m]"); axA.set_ylabel("정합필터 출력 [dB]")
-    axA.set_title("(a) 5G NR — 기지 파일럿만으로 측정 시 점유모드별 거리 프로파일\n"
-                  "(G1=SSB만→협대역→거리 흐릿 / G2~G3=PRS→광대역→날카로움)", fontsize=11)
+    axA.set_xlabel("Range [m]"); axA.set_ylabel("Matched-filter output [dB]")
+    axA.set_title("(a) 5G NR — range profile per occupancy mode, measured with known pilots only\n"
+                  "(G1=SSB only→narrowband→blurry range / G2~G3=PRS→wideband→sharp)", fontsize=11)
     axA.legend(fontsize=9); axA.grid(alpha=0.3)
 
     # (b) 점유율  (c) 송신에너지  (d) 거리분해능(현실, 로그)
@@ -113,20 +114,20 @@ def fig_occupancy_experiment(outdir=FIG, target="mavic4pro", R=10.0, snr_db=18.0
     axB = fig.add_subplot(gs[1, 0])
     for j, m in enumerate(modes):
         axB.bar(x + (j - 1) * w, [metrics[s][m].occupancy_frac * 100 for s in stds], w, color=col[m], label=m)
-    axB.set_xticks(x); axB.set_xticklabels(labs, fontsize=8); axB.set_ylabel("점유율 [%]")
-    axB.set_title("(b) 자원 점유율", fontsize=10); axB.legend(fontsize=8); axB.grid(axis="y", alpha=0.3)
+    axB.set_xticks(x); axB.set_xticklabels(labs, fontsize=8); axB.set_ylabel("Occupancy [%]")
+    axB.set_title("(b) Resource occupancy fraction", fontsize=10); axB.legend(fontsize=8); axB.grid(axis="y", alpha=0.3)
 
     axC = fig.add_subplot(gs[1, 1])
     for j, m in enumerate(modes):
         axC.bar(x + (j - 1) * w, [10 * np.log10(metrics[s][m].tx_energy) for s in stds], w, color=col[m])
-    axC.set_xticks(x); axC.set_xticklabels(labs, fontsize=8); axC.set_ylabel("송신 에너지 [dB]")
-    axC.set_title("(c) 송신 에너지(↑SNR)", fontsize=10); axC.grid(axis="y", alpha=0.3)
+    axC.set_xticks(x); axC.set_xticklabels(labs, fontsize=8); axC.set_ylabel("TX energy [dB]")
+    axC.set_title("(c) TX energy (↑SNR)", fontsize=10); axC.grid(axis="y", alpha=0.3)
 
     axD = fig.add_subplot(gs[1, 2])
     for j, m in enumerate(modes):
         axD.bar(x + (j - 1) * w, [metrics[s][m].range_resolution_m for s in stds], w, color=col[m])
-    axD.set_xticks(x); axD.set_xticklabels(labs, fontsize=8); axD.set_ylabel("거리분해능 [m]")
-    axD.set_yscale("log"); axD.set_title("(d) 거리분해능 ←기준신호 대역(주파수축)", fontsize=10); axD.grid(axis="y", alpha=0.3)
+    axD.set_xticks(x); axD.set_xticklabels(labs, fontsize=8); axD.set_ylabel("Range resolution [m]")
+    axD.set_yscale("log"); axD.set_title("(d) Range resolution ← ref-signal bandwidth (freq axis)", fontsize=10); axD.grid(axis="y", alpha=0.3)
 
     # (e) 최대 무모호 속도 ← 기준신호 반복률(시간축) v_max=PRF·λ/4
     axE = fig.add_subplot(gs[1, 3])
@@ -135,10 +136,10 @@ def fig_occupancy_experiment(outdir=FIG, target="mavic4pro", R=10.0, snr_db=18.0
     for key in ("mavic4pro", "mini5pro"):                 # 일반 드론 최고속도 기준선
         sp = DRONES[key].max_speed_ms
         axE.axhline(sp, ls="--", lw=1, color="0.4", alpha=0.7)
-    axE.text(len(stds)-1, DRONES["mavic4pro"].max_speed_ms*1.05, "일반 드론 19~25m/s",
+    axE.text(len(stds)-1, DRONES["mavic4pro"].max_speed_ms*1.05, "Typical drones 19~25 m/s",
              fontsize=7.5, color="0.35", ha="right", va="bottom")
-    axE.set_xticks(x); axE.set_xticklabels(labs, fontsize=8); axE.set_ylabel("최대속도 v_max [m/s]")
-    axE.set_yscale("log"); axE.set_title("(e) 최대 무모호 속도 ←반복률(시간축)", fontsize=10); axE.grid(axis="y", alpha=0.3)
+    axE.set_xticks(x); axE.set_xticklabels(labs, fontsize=8); axE.set_ylabel("Max velocity v_max [m/s]")
+    axE.set_yscale("log"); axE.set_title("(e) Max unambiguous velocity ← repetition rate (time axis)", fontsize=10); axE.grid(axis="y", alpha=0.3)
 
     fn = os.path.join(outdir, "report2_occupancy.png"); fig.savefig(fn, dpi=130); plt.close(fig)
     print("[occ]", os.path.relpath(fn)); return fn

@@ -26,8 +26,8 @@ def use_korean():
 
 # 출시상태 → (한글 배지, 색)
 RELEASE_BADGE = {
-    "released":          ("출시", "#2e7d32"),
-    "discontinued":      ("단종", "#6d4c41"),
-    "rumored_unreleased": ("미출시·추정", "#c62828"),
-    "announced":         ("발표", "#1565c0"),
+    "released":          ("Released", "#2e7d32"),
+    "discontinued":      ("Discontinued", "#6d4c41"),
+    "rumored_unreleased": ("Unreleased (est.)", "#c62828"),
+    "announced":         ("Announced", "#1565c0"),
 }

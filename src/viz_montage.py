@@ -26,7 +26,7 @@ def _show(ax, path, title, sub=None, badge=None):
     if os.path.exists(path):
         ax.imshow(mpimg.imread(path))
     else:
-        ax.text(0.5, 0.5, "(렌더 없음)\n" + os.path.basename(path),
+        ax.text(0.5, 0.5, "(render missing)\n" + os.path.basename(path),
                 ha="center", va="center", transform=ax.transAxes)
     ax.set_title(title, fontsize=13, fontweight="bold")
     ax.axis("off")
@@ -43,16 +43,16 @@ def _show(ax, path, title, sub=None, badge=None):
 def catalog(outdir=FIG):
     keys = list(DRONES.keys())
     fig, axes = plt.subplots(2, 3, figsize=(15, 8.4), constrained_layout=True)
-    fig.suptitle("DJI 드론 5종 — Sionna RT 렌더 카탈로그 (실측 제원 기반 3D 모델)",
+    fig.suptitle("5 DJI drones — Sionna RT render catalog (3D models from real specs)",
                  fontsize=17, fontweight="bold")
     for ax, key in zip(axes.flat, keys):
         s = DRONES[key]
-        sub = f"대각 {s.diagonal_mm:.0f} mm · {s.weight_g:.0f} g · 로터 {s.num_rotors}"
+        sub = f"diag {s.diagonal_mm:.0f} mm · {s.weight_g:.0f} g · {s.num_rotors} rotors"
         _show(ax, os.path.join(REN, f"studio_{key}.png"),
               s.name.split("  ")[0], sub, RELEASE_BADGE.get(s.release))
     # 마지막 칸: 비행 장면
     _show(axes.flat[5], os.path.join(REN, "flight_scene.png"),
-          "차폐시설 안의 드론들", "30 m × 20 m × 11 m 무반사실 (실제 축척)")
+          "Drones inside the anechoic chamber", "30 m × 20 m × 11 m anechoic chamber (true scale)")
     fn = os.path.join(outdir, "catalog.png")
     os.makedirs(outdir, exist_ok=True)
     fig.savefig(fn, dpi=120); plt.close(fig)
@@ -62,10 +62,10 @@ def catalog(outdir=FIG):
 
 def facility_views(outdir=FIG):
     fig, axes = plt.subplots(1, 3, figsize=(16, 4.6), constrained_layout=True)
-    fig.suptitle("대형 차폐시설(전파무반사실) — Sionna RT 렌더", fontsize=16, fontweight="bold")
-    _show(axes[0], os.path.join(REN, "facility_hero.png"), "전체 모습 (앞벽 절개)")
-    _show(axes[1], os.path.join(REN, "facility_corner.png"), "코너 근접")
-    _show(axes[2], os.path.join(REN, "lineup_floor.png"), "바닥에 늘어선 5종")
+    fig.suptitle("Large anechoic chamber (shielded facility) — Sionna RT renders", fontsize=16, fontweight="bold")
+    _show(axes[0], os.path.join(REN, "facility_hero.png"), "Overall view (front wall cut away)")
+    _show(axes[1], os.path.join(REN, "facility_corner.png"), "Corner close-up")
+    _show(axes[2], os.path.join(REN, "lineup_floor.png"), "5 drones lined up on the floor")
     fn = os.path.join(outdir, "facility_views.png")
     os.makedirs(outdir, exist_ok=True)
     fig.savefig(fn, dpi=120); plt.close(fig)

@@ -235,18 +235,18 @@ def main():
     rdb = 20 * np.log10(rd / rd.max() + 1e-9)
     fig, ax = plt.subplots(figsize=(8.2, 5.4), constrained_layout=True)
     im = ax.pcolormesh(Rb, f_d, rdb, cmap="turbo", vmin=-50, vmax=0, shading="auto")
-    ax.plot(true_Rb, st.fd, "o", mfc="none", mec="w", ms=15, mew=1.6, label="참 표적")
+    ax.plot(true_Rb, st.fd, "o", mfc="none", mec="w", ms=15, mew=1.6, label="True target")
     det, _, _ = ca_cfar_2d(rd, pfa=1e-4)
     dd, dr = np.where(det)
-    ax.plot(Rb[dr], f_d[dd], "x", color="w", ms=6, mew=1.2, alpha=0.7, label="CFAR 검출")
-    ax.set_xlabel("바이스태틱 거리 Rb [m]")
-    ax.set_ylabel("도플러 f_d [Hz]")
+    ax.plot(Rb[dr], f_d[dd], "x", color="w", ms=6, mew=1.2, alpha=0.7, label="CFAR detections")
+    ax.set_xlabel("Bistatic range Rb [m]")
+    ax.set_ylabel("Doppler f_d [Hz]")
     ax.set_title(
-        f"최소 셀 RD맵 · {wf.name} {wf.bw_hz/1e6:.0f}MHz / {drone} / radial (무반사 챔버)\n"
-        f"에코SNR={lt['snr_echo_db']:+.1f}dB (물리 유도) · "
-        f"SCR={res['scr_mean']:.1f}dB (측정) · Pd={res['pd']*100:.0f}%",
+        f"Minimal cell RD map · {wf.name} {wf.bw_hz/1e6:.0f}MHz / {drone} / radial (anechoic chamber)\n"
+        f"echo SNR={lt['snr_echo_db']:+.1f}dB (physics-derived) · "
+        f"SCR={res['scr_mean']:.1f}dB (measured) · Pd={res['pd']*100:.0f}%",
         fontsize=10.5)
-    fig.colorbar(im, ax=ax, label="정규화 [dB]")
+    fig.colorbar(im, ax=ax, label="Normalized [dB]")
     ax.legend(loc="upper right", fontsize=9)
     out = os.path.abspath(os.path.join(_HERE, "..", "outputs", "figures", "report5_min_cell.png"))
     os.makedirs(os.path.dirname(out), exist_ok=True)

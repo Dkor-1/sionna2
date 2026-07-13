@@ -155,7 +155,7 @@ def fig_overview(R=None, outdir=FIGDIR):
     from bistatic_scene import bistatic_params
 
     fig = plt.figure(figsize=(15, 6.6), constrained_layout=True)
-    fig.suptitle("report5 공정 벤치마크 — 표적 SNR 을 '주입'하지 않고 링크버짓으로 '유도'하고, SCR·Pd 는 '측정'한다",
+    fig.suptitle("report5 fair benchmark — target SNR is derived from the link budget, never injected; SCR·Pd are measured",
                  fontsize=14, fontweight="bold")
 
     # (좌) 챔버 3D 장면 — 고정/유도/측정 라벨
@@ -175,12 +175,12 @@ def fig_overview(R=None, outdir=FIGDIR):
     ax.add_collection3d(Poly3DCollection([[Vs[a], Vs[b], Vs[c]] for a, b, c in mesh.f],
                                          facecolors=[dc.get(g, (.6, .6, .6)) for g in mesh.g],
                                          edgecolors=(0, 0, 0, 0.2), linewidths=0.1))
-    ax.text(tx[0], tx[1] - 1.5, tx[2] + 1.2, f"[1] 고정(통제)\nEIRP {EIRP_DBM:.0f} dBm\nG_rx·NF",
+    ax.text(tx[0], tx[1] - 1.5, tx[2] + 1.2, f"[1] Fixed (controlled)\nEIRP {EIRP_DBM:.0f} dBm\nG_rx·NF",
             color="#ef6c00", fontsize=9, ha="center", fontweight="bold")
     ax.text(tg[0] + 1.5, tg[1], tg[2] + 2.4,
-            f"[2] 유도(물리)\nRCS=PO(자세평균)\nR1={p['R1']:.0f}m R2={p['R2']:.0f}m\n→ 에코 SNR",
+            f"[2] Derived (physics)\nRCS=PO (aspect-avg)\nR1={p['R1']:.0f}m R2={p['R2']:.0f}m\n→ echo SNR",
             color="k", fontsize=9)
-    ax.text(rx[0], rx[1] + 1.5, rx[2] + 1.2, "[3] 측정\nECA→CAF→CFAR\n→ SCR·Pd",
+    ax.text(rx[0], rx[1] + 1.5, rx[2] + 1.2, "[3] Measured\nECA→CAF→CFAR\n→ SCR·Pd",
             color="#1565c0", fontsize=9, ha="center", fontweight="bold")
     ax.set_xlim(0, W); ax.set_ylim(0, D); ax.set_zlim(0, H)
     try: ax.set_box_aspect((W, D, H))
@@ -195,31 +195,31 @@ def fig_overview(R=None, outdir=FIGDIR):
     box_out = dict(boxstyle="round,pad=0.4", fc="#fff8e1", ec="#ef6c00")
     ar = dict(arrowstyle="->", color="0.35", lw=1.6)
     # 위: report4 까지
-    axf.text(0.2, 9.55, "report4 까지 — 처리이득 비교 (신호 간 공정 비교는 불가)",
+    axf.text(0.2, 9.55, "Up to report4 — processing-gain comparison (not fair across signals)",
              fontsize=10.5, fontweight="bold", color="0.35")
-    axf.text(1.6, 8.5, "표적 SNR\n(손잡이로 주입)", ha="center", fontsize=9.5, bbox=box_old)
+    axf.text(1.6, 8.5, "Target SNR\n(injected knob)", ha="center", fontsize=9.5, bbox=box_old)
     axf.text(5.0, 8.5, "ECA → CAF → CFAR", ha="center", fontsize=9.5, bbox=box_old)
-    axf.text(8.4, 8.5, "Pd(주입 SNR)\n곡선", ha="center", fontsize=9.5, bbox=box_old)
+    axf.text(8.4, 8.5, "Pd vs\ninjected SNR", ha="center", fontsize=9.5, bbox=box_old)
     axf.annotate("", xy=(3.5, 8.5), xytext=(2.8, 8.5), arrowprops=ar)
     axf.annotate("", xy=(7.3, 8.5), xytext=(6.5, 8.5), arrowprops=ar)
-    axf.text(1.6, 7.55, "(문제) 신호마다 다른 파장·RCS·잡음대역을 지움", fontsize=8.5, color="#c62828")
+    axf.text(1.6, 7.55, "(problem) erases per-signal wavelength, RCS, noise bandwidth", fontsize=8.5, color="#c62828")
     # 아래: report5
-    axf.text(0.2, 6.55, "report5 — 링크버짓 유도 → 측정 (공정 벤치마크)",
+    axf.text(0.2, 6.55, "report5 — derive from link budget → measure (fair benchmark)",
              fontsize=10.5, fontweight="bold", color="#2e7d32")
-    for x, t in [(1.25, "고정 예산\nEIRP·G_rx·NF"), (3.4, "표적 RCS\n(PO·자세평균)"),
-                 (5.55, "기하\nR1·R2·L"), (7.7, "잡음\nkTFB")]:
+    for x, t in [(1.25, "Fixed budget\nEIRP·G_rx·NF"), (3.4, "Target RCS\n(PO, aspect-avg)"),
+                 (5.55, "Geometry\nR1·R2·L"), (7.7, "Noise\nkTFB")]:
         axf.text(x, 5.55, t, ha="center", fontsize=9, bbox=box_new)
     axf.annotate("", xy=(4.5, 4.35), xytext=(1.25, 5.0), arrowprops=ar)
     axf.annotate("", xy=(4.5, 4.35), xytext=(3.4, 5.0), arrowprops=ar)
     axf.annotate("", xy=(4.5, 4.35), xytext=(5.55, 5.0), arrowprops=ar)
     axf.annotate("", xy=(4.5, 4.35), xytext=(7.7, 5.0), arrowprops=ar)
-    axf.text(4.5, 3.9, "바이스태틱 레이더 방정식 → 에코 SNR·직접파 '유도'",
+    axf.text(4.5, 3.9, "Bistatic radar equation → derive echo SNR & direct path",
              ha="center", fontsize=9.8, bbox=box_new, fontweight="bold")
     axf.annotate("", xy=(4.5, 2.85), xytext=(4.5, 3.4), arrowprops=ar)
-    axf.text(4.5, 2.4, "같은 처리 체인 (ECA → CAF 거리-도플러 → CA-CFAR)",
+    axf.text(4.5, 2.4, "Same processing chain (ECA → CAF range-Doppler → CA-CFAR)",
              ha="center", fontsize=9.5, bbox=box_old)
     axf.annotate("", xy=(4.5, 1.4), xytext=(4.5, 1.95), arrowprops=ar)
-    axf.text(4.5, 0.95, "SCR·Pd·위치오차 = '측정'  →  A 점유 · B 신호×드론 · C 모션 · D RT 교차검증",
+    axf.text(4.5, 0.95, "SCR·Pd·position error = measured  →  A occupancy · B signal×drone · C motion · D RT cross-check",
              ha="center", fontsize=9.8, bbox=box_out, fontweight="bold")
     axf.text(5.0, 7.0,
              r"$P_{echo}=\frac{EIRP\,G_{rx}\lambda^2\sigma}{(4\pi)^3 R_1^2 R_2^2}$"
@@ -256,8 +256,8 @@ def fig_occupancy(a, outdir=FIGDIR):
         axg = fig.add_subplot(gs[0, j])
         wf = make_wf("nr", 100e6, 3.5e9, occ)
         _grid_image(axg, wf)
-        axg.set_title(f"{occ} — 기준 {wf.ref_name} ({wf.ref_bw_hz/1e6:.0f}MHz, "
-                      f"점유 {wf.occupancy_frac*100:.0f}%)", fontsize=9.5, color=MODE_COL[occ])
+        axg.set_title(f"{occ} — ref {wf.ref_name} ({wf.ref_bw_hz/1e6:.0f} MHz, "
+                      f"occ {wf.occupancy_frac*100:.0f}%)", fontsize=9.5, color=MODE_COL[occ])
     ax = fig.add_subplot(gs[1, :])
     for occ in ("G1", "G2", "G3"):
         rr = [r for r in a["rows"] if r["occ"] == occ]
@@ -269,15 +269,15 @@ def fig_occupancy(a, outdir=FIGDIR):
                                 [r["pd_hi"] - r["pd"] for r in rr]])
         wf = make_wf("nr", 100e6, 3.5e9, occ)
         ax.errorbar(x, y, yerr=yerr, marker="o", lw=1.8, capsize=3, color=MODE_COL[occ],
-                    label=f"{occ} (기준 {wf.ref_name}, {wf.ref_bw_hz/1e6:.0f}MHz, "
-                          f"점유 {wf.occupancy_frac*100:.0f}%)")
+                    label=f"{occ} (ref {wf.ref_name}, {wf.ref_bw_hz/1e6:.0f} MHz, "
+                          f"occ {wf.occupancy_frac*100:.0f}%)")
     ax.axhline(0.9, color="0.6", ls="--", lw=0.8)
     ax.text(ax.get_xlim()[0], 0.905, " Pd=0.9", color="0.45", fontsize=8, va="bottom")
     ax.set_ylim(-0.03, 1.05)
-    ax.set_xlabel("조명원 EIRP [dBm]  (물리 손잡이 — 표적 SNR 은 링크버짓으로 유도)")
-    ax.set_ylabel("검출확률 Pd (Wilson 95% CI)")
-    ax.set_title("점유 공정성 — 같은 5G 100MHz 라도 '켜져 있는 것'(위 그리드)이 Pd 를 좌우 (무반사 챔버)\n"
-                 f"mavic4pro · radial · CPI {T_CPI*1e3:.0f}ms · CFAR Pfa={PFA:g} · N={a['N']}/점",
+    ax.set_xlabel("Illuminator EIRP [dBm]  (physical knob — target SNR derived from link budget)")
+    ax.set_ylabel("Detection probability Pd (Wilson 95% CI)")
+    ax.set_title("Occupancy fairness — same 5G 100MHz, yet what is 'on' (grids above) drives Pd (anechoic chamber)\n"
+                 f"mavic4pro · radial · CPI {T_CPI*1e3:.0f}ms · CFAR Pfa={PFA:g} · N={a['N']}/point",
                  fontsize=11.5)
     # '점유의 대가' 화살표 — G3 와 G1 이 Pd 50% 를 처음 넘는 EIRP 사이 간격
     def _tr(occ):
@@ -287,7 +287,7 @@ def fig_occupancy(a, outdir=FIGDIR):
     if t3 is not None and t1 is not None and t1 > t3:
         ax.annotate("", xy=(t1, 0.5), xytext=(t3, 0.5),
                     arrowprops=dict(arrowstyle="<->", color="#6a1b9a", lw=2))
-        ax.text((t1 + t3) / 2, 0.545, f"점유의 대가 ≈{t1 - t3:.0f} dB\n(G1 은 그만큼 더 큰 예산 필요)",
+        ax.text((t1 + t3) / 2, 0.545, f"Cost of occupancy ≈{t1 - t3:.0f} dB\n(G1 needs that much more budget)",
                 ha="center", fontsize=9.5, color="#6a1b9a", fontweight="bold")
     ax.grid(alpha=0.3)
     ax.legend(fontsize=9, loc="upper left")
@@ -361,19 +361,19 @@ def fig_matrix(b, outdir=FIGDIR):
         for j in range(P.shape[1]):
             ink = "white" if S[i, j] > smid else "#1a1a1a"
             err = "—" if np.isnan(E[i, j]) else f"{E[i,j]:.1f}m"
-            ax.text(j, i, f"Pd {P[i,j]*100:.0f}%\nSCR {S[i,j]:.0f}dB\n오차 {err}",
+            ax.text(j, i, f"Pd {P[i,j]*100:.0f}%\nSCR {S[i,j]:.0f}dB\nerr {err}",
                     ha="center", va="center", fontsize=9, color=ink)
-    dr_lab = [f"{DRONES[k].name.replace('DJI ','')}\n(대각 {DRONES[k].diagonal_mm:.0f}mm)"
+    dr_lab = [f"{DRONES[k].name.replace('DJI ','')}\n(diag {DRONES[k].diagonal_mm:.0f} mm)"
               for k in DRONES5]
     # 분해능 라벨은 실제 점유대역 기준(wf.bw_hz) — 본문/CSV 의 delta_rb_m 과 동일 규약
-    wf_lab = [f"{k}\n분해능 {C0/make_wf(*WAVEFORMS[k]).bw_hz:.0f}m" for k in wfs]
+    wf_lab = [f"{k}\nres {C0/make_wf(*WAVEFORMS[k]).bw_hz:.0f} m" for k in wfs]
     ax.set_xticks(range(len(wfs)), wf_lab, fontsize=9)
     ax.set_yticks(range(len(DRONES5)), dr_lab, fontsize=9)
-    ax.set_title("신호 × 드론 매트릭스 — 고정 예산(EIRP %.0fdBm)·radial·G3 (무반사 챔버, 전부 측정값)\n"
-                 "행=드론(크기순), 열=파형(거리분해능순) · 셀 색=SCR 마진 · 오차=단일표적 피크 정확도(고SNR: 정확도≈분해능/√SNR)\n"
-                 "협대역=kTB 잡음↓→SCR↑ · 분해능의 값은 정확도가 아니라 '거리축 분리능력'(직접파 잔류·다중표적)"
+    ax.set_title("Signal × drone matrix — fixed budget (EIRP %.0f dBm) · radial · G3 (anechoic chamber, all measured)\n"
+                 "rows=drones (by size), cols=waveforms (by range resolution) · cell color=SCR margin · err=single-target peak accuracy (high SNR: accuracy≈resolution/√SNR)\n"
+                 "narrowband=lower kTB noise→higher SCR · resolution is range-axis separability (direct-path residual, multi-target), not accuracy"
                  % EIRP_DBM, fontsize=11)
-    fig.colorbar(im, ax=ax, fraction=0.035, label="SCR [dB] (측정)")
+    fig.colorbar(im, ax=ax, fraction=0.035, label="SCR [dB] (measured)")
     fn = os.path.join(outdir, "report5_matrix.png")
     fig.savefig(fn, dpi=130); plt.close(fig)
     print("[matrix]", os.path.relpath(fn)); return fn
@@ -418,28 +418,28 @@ def fig_scenarios(c, outdir=FIGDIR):
     axp.set_xlim(-2, 32); axp.set_ylim(-2, 22)
     axp.set_xlabel("x [m]"); axp.set_ylabel("y [m]"); axp.grid(alpha=0.25)
     axp.legend(fontsize=8.5, loc="lower right")
-    axp.set_title(f"(a) 챔버 안 4가지 모션 (속도 {SPEED:.0f} m/s, ●=시작)", fontsize=11)
+    axp.set_title(f"(a) Four motions inside the chamber (speed {SPEED:.0f} m/s, ●=start)", fontsize=11)
 
     for scen in ("radial", "waypoint", "tangential", "hover"):
         rr = sorted([r for r in c["rows"] if r["scen"] == scen], key=lambda r: r["snap"])
         prog = [r["snap"] / 31 * 100 for r in rr]
         axes[2].plot(prog, [r["pd"] for r in rr], "o-", color=SCEN_COL[scen], lw=1.8,
-                     label=f"{scen} (궤적평균 Pd={np.mean([r['pd'] for r in rr])*100:.0f}%)")
+                     label=f"{scen} (trajectory-mean Pd={np.mean([r['pd'] for r in rr])*100:.0f}%)")
         axes[1].plot(prog, [r["fd_hz"] for r in rr], "o-", color=SCEN_COL[scen], lw=1.8)
-    axes[2].set_ylim(-0.03, 1.05); axes[2].set_ylabel("검출확률 Pd")
-    axes[2].set_title("(c) 궤적 진행률별 Pd — 모션이 탐지를 좌우", fontsize=11)
+    axes[2].set_ylim(-0.03, 1.05); axes[2].set_ylabel("Detection probability Pd")
+    axes[2].set_title("(c) Pd vs trajectory progress — motion drives detection", fontsize=11)
     axes[2].legend(fontsize=8.5, loc="center right")
     axes[1].axhspan(-dop_res, dop_res, color="0.55", alpha=0.18)
-    axes[1].text(50, 0, f"0-도플러 능선 ±도플러분해능({dop_res:.0f}Hz)\n이 안에서도 마진이 크면 검출됨\n"
-                        "(완전 소거는 f_d=0 인 '정지'에서만)",
+    axes[1].text(50, 0, f"zero-Doppler ridge ± Doppler resolution ({dop_res:.0f}Hz)\ndetected even here if the margin is large\n"
+                        "(fully cancelled only at hover, f_d=0)",
                  fontsize=8.5, color="0.35", ha="center", va="center")
-    axes[1].set_ylabel("표적 바이스태틱 도플러 f_d [Hz]")
-    axes[1].set_title("(b) 궤적별 f_d — 정지는 ECA 부분공간에 정확히 들어감", fontsize=11)
+    axes[1].set_ylabel("Target bistatic Doppler f_d [Hz]")
+    axes[1].set_title("(b) f_d per trajectory — hover falls exactly in the ECA subspace", fontsize=11)
     for ax in axes[1:]:
-        ax.set_xlabel("궤적 진행률 [%]"); ax.grid(alpha=0.3)
-    fig.suptitle("시나리오 축 — 정지(hover)만 완전 블라인드, 저속 횡단은 마진이 ECA 감쇠를 흡수 "
-                 "(정지 드론 → report3 마이크로도플러 필요)\n"
-                 f"mavic4pro · 5G 100MHz G3 · EIRP {EIRP_DBM:.0f}dBm · 스냅샷 N={c['N']}",
+        ax.set_xlabel("Trajectory progress [%]"); ax.grid(alpha=0.3)
+    fig.suptitle("Scenario axis — only hover is fully blind; slow crossing is absorbed by the margin against ECA attenuation "
+                 "(hovering drone → needs report3 micro-Doppler)\n"
+                 f"mavic4pro · 5G 100MHz G3 · EIRP {EIRP_DBM:.0f}dBm · snapshot N={c['N']}",
                  fontsize=12, fontweight="bold")
     fn = os.path.join(outdir, "report5_scenarios.png")
     fig.savefig(fn, dpi=130); plt.close(fig)
@@ -508,16 +508,16 @@ def fig_rt(d, outdir=FIGDIR):
     if have_maps:
         fig, axes = plt.subplots(1, 3, figsize=(16.5, 5.4), constrained_layout=True,
                                  gridspec_kw=dict(width_ratios=[1.15, 1.15, 1.0]))
-        for ax, key, tag in [(axes[0], "analytic", "Analytic 채널 (닫힌형 기하 + 가정 잔향)"),
-                             (axes[1], "rt", "Sionna RT 채널 (챔버 메쉬 광선추적 실측)")]:
+        for ax, key, tag in [(axes[0], "analytic", "Analytic channel (closed-form geometry + assumed clutter)"),
+                             (axes[1], "rt", "Sionna RT channel (ray-traced chamber mesh)")]:
             m = d["cell"][key]["map"]
             Rb = np.asarray(m["rb"]); fd = np.asarray(m["fd"]); rdb = np.asarray(m["rd_db"])
             im = ax.pcolormesh(Rb, fd, rdb, cmap="turbo", vmin=-50, vmax=0, shading="auto")
             ax.plot(m["true_rb"], m["true_fd"], "o", mfc="none", mec="w", ms=14, mew=1.6)
-            ax.set_xlabel("바이스태틱 거리 Rb [m]"); ax.set_ylabel("도플러 f_d [Hz]")
+            ax.set_xlabel("Bistatic range Rb [m]"); ax.set_ylabel("Doppler f_d [Hz]")
             ax.set_title(f"{tag}\nPd={d['cell'][key]['pd']*100:.0f}%  "
                          f"SCR={d['cell'][key]['scr']:.1f} dB", fontsize=10.5)
-            fig.colorbar(im, ax=ax, fraction=0.046, label="정규화 [dB]")
+            fig.colorbar(im, ax=ax, fraction=0.046, label="Normalized [dB]")
         ax = axes[2]
     else:
         fig, ax = plt.subplots(figsize=(9.2, 5.2), constrained_layout=True)
@@ -525,16 +525,16 @@ def fig_rt(d, outdir=FIGDIR):
         t = [c[0] for c in d["chamber_clutter"]]; v = [c[1] for c in d["chamber_clutter"]]
         ml, sl, bl = ax.stem(t, v, basefmt=" ", bottom=-56)   # 스템 기준선을 바닥쪽으로
         plt.setp(ml, color="#1565c0", markersize=7); plt.setp(sl, color="#1565c0", lw=1.6)
-        ax.plot([], [], "o-", color="#1565c0", label="RT 실측 (흡수체 챔버)")
+        ax.plot([], [], "o-", color="#1565c0", label="RT-measured (absorber-lined chamber)")
     ta = [c[0] for c in d["assumed_clutter"]]; va = [c[1] for c in d["assumed_clutter"]]
     ax.plot(ta, va, "s", ms=9, mfc="none", mec="#c62828", mew=2,
-            label="Analytic 가정 (CH_CLUTTER_RATIO)")
-    ax.set_xlabel("직접파 대비 상대지연 [ns]")
-    ax.set_ylabel("직접파 대비 진폭 [dB]")
-    ax.set_title(f"챔버 잔향 스펙트럼 — RT 실측 vs 가정\n(자유공간 RT 클러터 "
-                 f"{d['free']['n_clutter']}개 → 기하 교차검증 통과)", fontsize=10.5)
+            label="Analytic assumed (CH_CLUTTER_RATIO)")
+    ax.set_xlabel("Delay relative to direct path [ns]")
+    ax.set_ylabel("Amplitude relative to direct path [dB]")
+    ax.set_title(f"Chamber reverberation spectrum — RT-measured vs assumed\n"
+                 f"({d['free']['n_clutter']} free-space RT clutter paths → geometry cross-check passed)", fontsize=10.5)
     ax.grid(alpha=0.3); ax.legend(fontsize=8.5)
-    fig.suptitle("Sionna RT 교차검증 — 가정(Analytic)이 아니라 광선추적으로 확인 (같은 셀, 같은 처리 체인)",
+    fig.suptitle("Sionna RT cross-check — confirmed by ray tracing, not assumption (Analytic) (same cell, same processing chain)",
                  fontsize=12.5, fontweight="bold")
     fn = os.path.join(outdir, "report5_rt_clutter.png")
     fig.savefig(fn, dpi=130); plt.close(fig)

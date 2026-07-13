@@ -50,16 +50,21 @@ def render_studio(spec, spp=128, res=(1100, 850)):
 
 
 # Sionna 렌더 광원이 (-x,-y,위) 쪽에서 들어오므로, 이 코너에서 찍어야 실내가 고르게 밝다.
-HERO_CAM = ((-26, -30, 22), (14, 9, 4.0))         # 메인 코너 시점(잘 검증됨)
-HERO_CAM2 = ((-22, -24, 15), (14, 9, 3.0))        # 조금 더 낮고 가까운 변형
+# (과거에 방이 '조각난 것'처럼 보이던 원인은 카메라가 아니라 scene_build 의 position 재배치
+#  버그였다 — 수정 후 컷어웨이 3/4 뷰가 의도대로 '한 덩어리 방'으로 나온다.)
+HERO_CAM = ((-26, -30, 22), (14, 9, 4.0))         # 컷어웨이 실내 3/4 (일체형 방)
+HERO_CAM2 = ((-24, -26, 17), (15, 10, 5.0))       # 닫힌 외관 3/4 (금속 차폐 박스 + 골조)
 
 
 def render_facility(spp=160, res=(1280, 960)):
-    """차폐시설만(드론 없음) — 시설 히어로 샷 2종."""
+    """차폐시설만(드론 없음) — 컷어웨이 실내 히어로 + 닫힌 외관 2종."""
     cparts, info = chamber_parts(CMESH, cutaway=True)
-    scene = build_scene(cparts)
-    cams = {"facility_hero": HERO_CAM, "facility_corner": HERO_CAM2}
-    return render_views(scene, cams, OUT, resolution=res, num_samples=spp)
+    out = render_views(build_scene(cparts), {"facility_hero": HERO_CAM}, OUT,
+                       resolution=res, num_samples=spp)
+    cparts2, _ = chamber_parts(CMESH, cutaway=False)      # 외관은 컷어웨이 없이 통짜
+    out += render_views(build_scene(cparts2), {"facility_corner": HERO_CAM2}, OUT,
+                        resolution=res, num_samples=spp)
+    return out
 
 
 def render_lineup(spp=160, res=(1280, 960)):
@@ -78,7 +83,7 @@ def render_lineup(spp=160, res=(1280, 960)):
                            yaw_deg=135, mesh_dir=d)     # 전방이 카메라 코너 쪽
         parts += p
     scene = build_scene(parts)
-    cam = ((-24, -26, 16), (11, y, 1.2))
+    cam = ((3.2, 4.2, 1.7), (11.5, y + 0.6, 0.45))   # 실내 근접 로우앵글 — 원근으로 크기 비교
     return render_views(scene, {"lineup_floor": cam}, OUT,
                         resolution=res, num_samples=spp)
 
@@ -104,7 +109,7 @@ def render_flight(spp=160, res=(1280, 960)):
         p, _ = drone_parts(spec, position=(x, y, lift), yaw_deg=135, mesh_dir=d)
         parts += p
     scene = build_scene(parts)
-    cam = ((-24, -28, 18), (11, 9, 3.0))
+    cam = ((3.0, 3.2, 3.4), (12.5, 9.5, 2.3))        # 실내 근접 — 드론 군집 + 방 배경
     return render_views(scene, {"flight_scene": cam}, OUT,
                         resolution=res, num_samples=spp)
 

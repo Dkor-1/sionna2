@@ -38,7 +38,7 @@ class Part:
     obj: str                        # OBJ 파일 경로
     mat_key: str                    # 재질키 (materials.make_material 참고)
     color: tuple = (0.7, 0.7, 0.7)  # 표시색 RGB
-    position: tuple = (0., 0., 0.)  # 놓을 위치 [m]
+    position: tuple = (0., 0., 0.)  # OBJ 좌표 기준 **평행이동 벡터** [m] (0이면 그대로)
     orientation: tuple = (0., 0., 0.)  # 오일러 회전 [rad] (Sionna 관례)
     scaling: float = 1.0            # 단일 배율
 
@@ -58,8 +58,18 @@ def build_scene(parts: list[Part], fc: float = 3.5e9) -> rt.Scene:
         objs.append((o, p))
     scene.edit(add=[o for o, _ in objs])
     for o, p in objs:
-        o.position = mi.Point3f(*[float(v) for v in p.position])
-        o.orientation = mi.Point3f(*[float(v) for v in p.orientation])
+        # ⚠ SceneObject.position 세터는 '평행이동'이 아니라 **AABB 중심을 그 좌표로 재배치**한다.
+        #   절대좌표가 구워진 메쉬(챔버 부위 등)에 (0,0,0)을 대입하면 원점으로 끌려온다(과거 버그:
+        #   천장이 바닥에 눕고 벽이 방 가운데 십자로 서던 렌더). 그래서 여기서는
+        #   Part.position 을 '평행이동 벡터'로 해석해, 0이면 건드리지 않고
+        #   0이 아니면 현재 중심 + 벡터로 옮긴다(원점 기준 메쉬의 lift 계산과 일치).
+        if any(abs(float(v)) > 1e-12 for v in p.position):
+            c = o.position
+            o.position = mi.Point3f(float(c.x[0]) + float(p.position[0]),
+                                    float(c.y[0]) + float(p.position[1]),
+                                    float(c.z[0]) + float(p.position[2]))
+        if any(abs(float(v)) > 1e-12 for v in p.orientation):
+            o.orientation = mi.Point3f(*[float(v) for v in p.orientation])
         if abs(p.scaling - 1.0) > 1e-9:
             o.scaling = float(p.scaling)
     return scene

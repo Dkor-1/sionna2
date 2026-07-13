@@ -77,8 +77,8 @@ def drone_card(key, outdir=FIG):
     axA.add_collection3d(_mesh_polys(mesh, cmap))
     _set_equal_3d(axA, mesh)
     axA.view_init(elev=24, azim=-58)
-    axA.set_title("3D 모델 (색=부위)", fontsize=12)
-    axA.set_xlabel("x (전방)"); axA.set_ylabel("y"); axA.set_zlabel("z")
+    axA.set_title("3D model (color = part)", fontsize=12)
+    axA.set_xlabel("x (front)"); axA.set_ylabel("y"); axA.set_zlabel("z")
     axA.tick_params(labelsize=7)
 
     # --- (B) 위에서 본 도면 : 대각거리 + 프로펠러 원반 -------------------- #
@@ -100,16 +100,16 @@ def drone_card(key, outdir=FIG):
     p0 = (r*math.cos(a0), r*math.sin(a0)); p2 = (r*math.cos(a2), r*math.sin(a2))
     axB.annotate("", xy=p0, xytext=p2,
                  arrowprops=dict(arrowstyle="<->", color="#c62828", lw=1.8))
-    axB.text(0, 0.06*diag, f"대각 {spec.diagonal_mm:.0f} mm", color="#c62828",
+    axB.text(0, 0.06*diag, f"Diagonal {spec.diagonal_mm:.0f} mm", color="#c62828",
              ha="center", fontsize=11, fontweight="bold",
              bbox=dict(boxstyle="round", fc="white", ec="#c62828", alpha=0.9))
     # 전방 화살표
     lim = (r + prop_r) * 1.2
-    axB.annotate("전방", xy=(lim*0.78, 0), xytext=(lim*0.5, 0),
+    axB.annotate("Front", xy=(lim*0.78, 0), xytext=(lim*0.5, 0),
                  arrowprops=dict(arrowstyle="->", color="g", lw=2),
                  color="g", fontsize=10, va="center")
     axB.set_xlim(-lim, lim); axB.set_ylim(-lim, lim)
-    axB.set_title("위에서 본 도면 — 점선=프로펠러 회전원", fontsize=12)
+    axB.set_title("Top view — dashed = propeller disc", fontsize=12)
     axB.set_xlabel("x [m]"); axB.set_ylabel("y [m]"); axB.grid(alpha=0.25)
 
     # --- (C) 옆에서 본 도면 : 높이 ---------------------------------------- #
@@ -127,10 +127,10 @@ def drone_card(key, outdir=FIG):
     xline = b1[0] + 0.06*diag
     axC.annotate("", xy=(xline, b0[2]), xytext=(xline, b1[2]),
                  arrowprops=dict(arrowstyle="<->", color="#c62828", lw=1.6))
-    axC.text(xline+0.01*diag, (b0[2]+b1[2])/2, f"전체높이\n{total_h*1000:.0f} mm",
+    axC.text(xline+0.01*diag, (b0[2]+b1[2])/2, f"Overall height\n{total_h*1000:.0f} mm",
              color="#c62828", fontsize=9, va="center")
     axC.axhline(0, color="0.7", lw=0.6, ls=":")
-    axC.set_title("옆에서 본 도면 (전방 = 오른쪽)", fontsize=12)
+    axC.set_title("Side view (front = right)", fontsize=12)
     axC.set_xlabel("x [m]"); axC.set_ylabel("z [m]"); axC.grid(alpha=0.25)
 
     # --- (D) 제원 표 ------------------------------------------------------ #
@@ -139,24 +139,24 @@ def drone_card(key, outdir=FIG):
              fontweight="bold", color="white", va="top",
              bbox=dict(boxstyle="round", fc=bcol, ec="none"))
     rows = [
-        ("로터 / 암", f"{spec.num_rotors} 개 / {spec.num_rotors} 암"
-                       + ("  (옥토콥터)" if spec.num_rotors == 8 else "  (쿼드콥터)")),
-        ("대각거리(휠베이스)", f"{spec.diagonal_mm:.0f} mm"),
-        ("이륙중량", f"{spec.weight_g:.0f} g"),
-        ("프로펠러", f"Ø{spec.prop_dia_mm:.0f} mm × {spec.prop_blades}날 × {spec.num_rotors}"),
-        ("언폴드 L×W×H", f"{spec.body_l_mm:.0f} × {spec.body_w_mm:.0f} × {spec.body_h_mm:.0f} mm"),
-        ("최고속도", f"{spec.max_speed_ms} m/s" if spec.max_speed_ms else "—"),
-        ("RTK(정밀측위)", "예" if spec.rtk else "아니오"),
-        ("착륙장치", {"none":"없음(암 접지)","feet":"소형 발","legs":"고정 다리",
-                       "tall":"격납형 다리"}.get(spec.gear, spec.gear)),
-        ("자료 신뢰도", {"high":"높음","medium":"보통","low":"낮음"}.get(spec.confidence)),
+        ("Rotors / Arms", f"{spec.num_rotors} rotors / {spec.num_rotors} arms"
+                       + ("  (octocopter)" if spec.num_rotors == 8 else "  (quadcopter)")),
+        ("Diagonal (wheelbase)", f"{spec.diagonal_mm:.0f} mm"),
+        ("Takeoff weight", f"{spec.weight_g:.0f} g"),
+        ("Propeller", f"Ø{spec.prop_dia_mm:.0f} mm × {spec.prop_blades} blades × {spec.num_rotors}"),
+        ("Unfolded L×W×H", f"{spec.body_l_mm:.0f} × {spec.body_w_mm:.0f} × {spec.body_h_mm:.0f} mm"),
+        ("Max speed", f"{spec.max_speed_ms} m/s" if spec.max_speed_ms else "—"),
+        ("RTK (precise positioning)", "Yes" if spec.rtk else "No"),
+        ("Landing gear", {"none":"None (rests on arms)","feet":"Small feet","legs":"Fixed legs",
+                       "tall":"Retractable legs"}.get(spec.gear, spec.gear)),
+        ("Data confidence", {"high":"High","medium":"Medium","low":"Low"}.get(spec.confidence)),
     ]
     y = 0.85
     for k, v in rows:
         axD.text(0.02, y, k, transform=axD.transAxes, fontsize=10.5, color="#444")
         axD.text(0.46, y, v, transform=axD.transAxes, fontsize=10.5, fontweight="bold")
         y -= 0.087
-    axD.text(0.02, y-0.01, "주의: " + spec.note, transform=axD.transAxes,
+    axD.text(0.02, y-0.01, "Note: " + spec.note, transform=axD.transAxes,
              fontsize=8.4, color="#b71c1c", va="top", wrap=True)
 
     os.makedirs(outdir, exist_ok=True)
@@ -188,13 +188,13 @@ def size_comparison(outdir=FIG):
                                  edgecolor=s.body_rgb, lw=1.2))
             axT.plot([cx, mx], [0, my], color="0.3", lw=1.2)
         axT.add_patch(Circle((cx, 0), 0.04*diag, facecolor="0.2"))
-        axT.text(cx, -maxspan*0.62, f"{s.name.split('  ')[0]}\n대각 {s.diagonal_mm:.0f}mm · {s.weight_g:.0f}g",
+        axT.text(cx, -maxspan*0.62, f"{s.name.split('  ')[0]}\ndiag {s.diagonal_mm:.0f} mm · {s.weight_g:.0f} g",
                  ha="center", va="top", fontsize=9.5)
         x += maxspan*1.24
     axT.set_xlim(-maxspan*0.1, x); axT.set_ylim(-maxspan*0.8, maxspan*0.62)
-    axT.set_title("5종 드론 크기 비교 (같은 축척 · 점선원=프로펠러 회전영역)",
+    axT.set_title("Size comparison of 5 drones (same scale · dashed circle = propeller disc)",
                   fontsize=14, fontweight="bold")
-    axT.set_xlabel("← S1000+ 가 압도적으로 큼  (1 칸 ≈ 1.4 m)"); axT.set_yticks([])
+    axT.set_xlabel("← S1000+ is by far the largest  (1 division ≈ 1.4 m)"); axT.set_yticks([])
 
     # (아래좌) 대각거리 막대
     axL = fig.add_subplot(gs[1, 0])
@@ -204,7 +204,7 @@ def size_comparison(outdir=FIG):
     axL.barh(names, dias, color=cols, edgecolor="k")
     for i, d in enumerate(dias):
         axL.text(d+10, i, f"{d:.0f}", va="center", fontsize=9)
-    axL.set_title("대각거리 [mm]", fontsize=12); axL.invert_yaxis(); axL.grid(axis="x", alpha=0.3)
+    axL.set_title("Diagonal [mm]", fontsize=12); axL.invert_yaxis(); axL.grid(axis="x", alpha=0.3)
 
     # (아래우) 무게 막대 (로그축 — 250g~4400g)
     axR = fig.add_subplot(gs[1, 1])
@@ -212,7 +212,7 @@ def size_comparison(outdir=FIG):
     axR.barh(names, wts, color=cols, edgecolor="k")
     for i, w in enumerate(wts):
         axR.text(w*1.03, i, f"{w:.0f} g", va="center", fontsize=9)
-    axR.set_xscale("log"); axR.set_title("이륙중량 [g, 로그축]", fontsize=12)
+    axR.set_xscale("log"); axR.set_title("Takeoff weight [g, log]", fontsize=12)
     axR.invert_yaxis(); axR.grid(axis="x", alpha=0.3)
 
     os.makedirs(outdir, exist_ok=True)
@@ -227,7 +227,7 @@ def size_comparison(outdir=FIG):
 # --------------------------------------------------------------------------- #
 def chamber_schematic(outdir=FIG, W=30, D=20, H=11, ab_h=0.4):
     fig = plt.figure(figsize=(13, 6), constrained_layout=True)
-    fig.suptitle("대형 차폐시설(전파무반사실) — 30 m × 20 m × 11 m", fontsize=16, fontweight="bold")
+    fig.suptitle("Large anechoic chamber (shielded facility) — 30 m × 20 m × 11 m", fontsize=16, fontweight="bold")
 
     # (좌) 평면도
     ax1 = fig.add_subplot(1, 2, 1); ax1.set_aspect("equal")
@@ -238,7 +238,7 @@ def chamber_schematic(outdir=FIG, W=30, D=20, H=11, ab_h=0.4):
     for x in np.arange(0, W, 0.8):
         ax1.plot([x, x+ab_h], [0, ab_h], color="0.6", lw=0.5)
         ax1.plot([x, x+ab_h], [D, D-ab_h], color="0.6", lw=0.5)
-    ax1.text(W/2, D/2, "실내 사용공간\n(전파흡수체로 둘러싸인 무반사 영역)",
+    ax1.text(W/2, D/2, "Usable interior space\n(anechoic zone lined with RF absorbers)",
              ha="center", va="center", fontsize=10, color="#1565c0")
     ax1.annotate("", xy=(0, -1.2), xytext=(W, -1.2),
                  arrowprops=dict(arrowstyle="<->", lw=1.5))
@@ -249,9 +249,9 @@ def chamber_schematic(outdir=FIG, W=30, D=20, H=11, ab_h=0.4):
     # 문 2개(뒷벽)
     for xc in (W*0.40, W*0.62):
         ax1.add_patch(Rectangle((xc-1, D-0.2), 2, 0.4, facecolor="#90a4ae", edgecolor="k"))
-    ax1.text(W*0.51, D+0.5, "출입문 ×2", ha="center", fontsize=9)
+    ax1.text(W*0.51, D+0.5, "Doors ×2", ha="center", fontsize=9)
     ax1.set_xlim(-4, W+2); ax1.set_ylim(-3.5, D+2); ax1.axis("off")
-    ax1.set_title("평면도 (위에서)", fontsize=12)
+    ax1.set_title("Plan view (from above)", fontsize=12)
 
     # (우) 입면도(단면)
     ax2 = fig.add_subplot(1, 2, 2); ax2.set_aspect("equal")
@@ -266,10 +266,10 @@ def chamber_schematic(outdir=FIG, W=30, D=20, H=11, ab_h=0.4):
     ax2.annotate("", xy=(W+1.2, 0), xytext=(W+1.2, H),
                  arrowprops=dict(arrowstyle="<->", lw=1.5))
     ax2.text(W+1.8, H/2, f"{H:.0f} m", va="center", rotation=90, fontsize=11, fontweight="bold")
-    ax2.text(W/2, H*0.55, "← 4면 벽 + 천장 = 전파흡수체\n바닥 = 체커보드 타일",
+    ax2.text(W/2, H*0.55, "← 4 walls + ceiling = RF absorbers\nfloor = checkerboard tiles",
              ha="center", fontsize=9, color="#444")
     ax2.set_xlim(-1, W+4); ax2.set_ylim(-1, H+1.5); ax2.axis("off")
-    ax2.set_title("입면도 (단면)", fontsize=12)
+    ax2.set_title("Elevation (section)", fontsize=12)
 
     os.makedirs(outdir, exist_ok=True)
     fn = os.path.join(outdir, "chamber_schematic.png")
