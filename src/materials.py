@@ -8,12 +8,13 @@ Sionna 의 광선추적(ray tracing)에서 "재질"은 전파가 그 표면을 �
 재질을 줍니다.
 
 재질 키(mat_key) 요약
-  metal           : 금속(완전도체에 가까움) — 차폐벽, 모터, 강철골조, RTK 안테나
+  metal           : 금속(완전도체에 가까움) — 차폐벽, 모터, 강철골조
   concrete_light  : 콘크리트(밝은 바닥 타일)
   concrete_dark   : 콘크리트(어두운 바닥 타일)
   absorber        : 전파흡수체 — 손실이 큰 유전체. 피라미드 기하구조와 합쳐져
                     여러 번 반사되며 에너지를 잡아먹어 '무반사'를 만든다.
-  plastic         : 일반 플라스틱(드론 동체 셸)
+  plastic         : 일반 플라스틱(드론 동체 셸. RTK 안테나도 플라스틱 레이돔으로
+                    취급 — drones._add_antenna 가 'body' 그룹(→plastic)에 넣는다)
   plastic_blue    : 파란 플라스틱(모서리 트림)
   carbon          : 탄소섬유(도전성↑) — S1000 암/프로펠러 등
 

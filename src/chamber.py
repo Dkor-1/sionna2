@@ -27,7 +27,7 @@ chamber.py — 대형 차폐시설(전파무반사실 / anechoic chamber) 3D 모
 from __future__ import annotations
 
 import numpy as np
-from geom import Mesh, box, pyramid
+from geom import Mesh, box
 
 
 # --------------------------------------------------------------------------- #

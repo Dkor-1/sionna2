@@ -31,23 +31,14 @@ from matplotlib.animation import FuncAnimation, PillowWriter
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 
 from drones import DRONES, build_drone, drone_colors
-from waveforms import all_waveforms, lte_downlink, nr_downlink, wifi_80211ac
-from bistatic_scene import bistatic_params, C0
+from waveforms import all_waveforms, nr_downlink
+# 챔버 배치 상수(TX/RX/TGT/VEL/CH_CLUTTER)의 단일 출처는 bistatic_scene.py
+from bistatic_scene import (bistatic_params, C0,
+                            CHAMBER, TX, RX, TGT, VEL, CH_CLUTTER)
 from passive_process import make_cpi, eca, range_doppler, ca_cfar_2d, peak_detection
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
 _NAME = {k: DRONES[k].name.replace("DJI ", "") for k in DRONES}
-
-# --- 무반사 챔버(30×20×11 m) 내부 바이스태틱 배치 ---------------------------- #
-CHAMBER = (30.0, 20.0, 11.0)      # 내부 치수 W(x)·D(y)·H(z)  (report1 과 동일)
-TX = (4.0, 2.5, 8.0)              # 신호원(illuminator) 안테나 — 한쪽 측벽 상단
-RX = (4.0, 17.5, 6.5)            # 패시브 수신 안테나 — 반대 측벽
-TGT = (21.0, 10.0, 5.5)           # 표적 드론(quiet zone)
-VEL = (-3.0, 2.0, 0.5)            # 표적 속도[m/s] — 실내 저속
-
-# 무반사 잔향 클러터(약함): (지연[s], 진폭). DPI 대비 ~−25~−30 dB 수준(dpi_amp≈55~60 기준).
-#   바닥/장비 반사·흡수체 불완전에서 오는 약한 0-도플러 잔향. ECA 가 DPI 와 함께 제거한다.
-CH_CLUTTER = ((8e-9, 3.0), (22e-9, 2.0), (45e-9, 1.4))
 
 
 def _scaled_mesh(mesh, target_extent, center):
@@ -283,7 +274,7 @@ def _trajectory(n_frames, speed=4.0):
 
 
 def gif_bistatic_tracking(outdir=FIG, target="mavic4pro", occupancy="G3",
-                          n_frames=30, M=24, fps=7):
+                          n_frames=30, M=96, fps=7):
     """드론 비행 → 프레임마다 ECA+CAF+CFAR 로 거리-도플러 맵 갱신, 검출이 표적 궤적을 따라감."""
     wf = nr_downlink(occupancy=occupancy); fc = wf.carrier_hz; fs = wf.fs_hz
     ref_frame = wf.tx; Lf = len(ref_frame); prf = fs / Lf
@@ -300,10 +291,18 @@ def gif_bistatic_tracking(outdir=FIG, target="mavic4pro", occupancy="G3",
                              clutter=CH_CLUTTER, snr_db=16.0, rng=rng)
         Rb, f_d, rd = range_doppler(eca(surv, ref, 36), ref, fs, M, n_range=n_range)
         rdb = 20 * np.log10(rd / rd.max() + 1e-9)
-        zd = int(np.argmin(np.abs(f_d))); rd2 = rd.copy(); rd2[max(0, zd-1):zd+2, :] = 0
-        di, ri = np.unravel_index(np.argmax(rd2), rd2.shape)
-        thr = 6.0 * np.median(rd2[rd2 > 0])
-        det = (Rb[ri], f_d[di]) if rd2[di, ri] > thr else None
+        # 0-도플러 잔여(ECA 찌꺼기) 행을 제외하고 CA-CFAR 검출.
+        #   · M=96 → 도플러 빈 PRF/M≈21Hz: 제외밴드(±1행=±31Hz)가 표적 도플러(수십 Hz)를
+        #     삼키지 않는다 (M 이 작으면 빈이 거칠어 표적이 밴드에 묻히고 누설 빈이 검출됨).
+        #   · 제외 행은 0 이 아니라 잡음 중앙값으로 채워 CFAR 훈련창 왜곡(잡음 과소추정) 방지.
+        zd = int(np.argmin(np.abs(f_d))); rd2 = rd.copy()
+        band = slice(max(0, zd - 1), zd + 2)
+        keep = np.ones(rd.shape[0], bool); keep[band] = False
+        rd2[band, :] = np.median(rd[keep])
+        det_mask, _, _ = ca_cfar_2d(rd2, pfa=1e-4)
+        det_mask[band, :] = False                     # 제외밴드에선 검출 판정 안 함
+        pk = peak_detection(Rb, f_d, rd2, det_mask)
+        det = (pk["Rb"], pk["fd"]) if pk else None
         frames.append((rdb, Rb, f_d, (p["Rb"], p["fd"]), det, p))
 
     fig = plt.figure(figsize=(13, 5.6))
@@ -343,7 +342,7 @@ def gif_bistatic_tracking(outdir=FIG, target="mavic4pro", occupancy="G3",
             dh = np.array(det_hist); axr.plot(dh[:, 0], dh[:, 1], ".", color="#ffd600", ms=4)  # 검출 트랙
         axr.set_xlim(Rb[0], Rb[-1]); axr.set_ylim(f_d[0], f_d[-1])
         axr.set_xlabel("바이스태틱 거리 Rb [m]"); axr.set_ylabel("도플러 f_d [Hz]")
-        axr.set_title("거리-도플러 맵 (ECA+CAF+CFAR) — ○참표적 ×검출 ·트랙", fontsize=10)
+        axr.set_title("거리-도플러 맵 (ECA+CAF+CA-CFAR Pfa=1e-4) — ○참표적 ×검출 ·트랙", fontsize=10)
         fig.suptitle("무반사 챔버 바이스태틱 패시브 레이더 — 드론 비행 추적 (5G NR, 프레임마다 검출)",
                      fontsize=13, fontweight="bold")
         return ()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """make_notebook3.py — report3.ipynb (분절 드론 + 마이크로도플러 + PX4 연동 가능성) 생성기.
-이미지를 markdown 으로 박아 커널 없이도 보이게 한다."""
+outputs/ 의 그림을 markdown 상대경로로 링크해 커널 없이도 보이게 한다."""
 import json, os
 HERE = os.path.dirname(os.path.abspath(__file__))
 NB = os.path.abspath(os.path.join(HERE, "..", "report3.ipynb"))
@@ -56,7 +56,7 @@ cells.append(code(
     "# (선택 실행) 분절 모델 — 몸체 자세와 로터별 위상을 직접 줘 보기",
     "import sys; sys.path.insert(0, 'src')",
     "import numpy as np",
-    "from drones import DRONES, build_frame, pose_articulated",
+    "from drones import DRONES, pose_articulated",
     "spec = DRONES['mavic4pro']",
     "base = pose_articulated(spec)                              # 정지·위상0 (= build_drone)",
     "spun = pose_articulated(spec, rotor_phase_deg=[90,90,90,90])  # 블레이드만 90도",
@@ -143,10 +143,15 @@ cells.append(md(
     "- 🎯 마이크로-도플러 기반 **드론 vs 새 분류**(블레이드 시그니처).",
 ))
 
-nb = {"cells": cells,
-      "metadata": {"kernelspec": {"display_name": "Python 3.12 (py312)", "language": "python", "name": "py312"},
-                   "language_info": {"name": "python"}},
-      "nbformat": 4, "nbformat_minor": 5}
-with open(NB, "w") as f:
-    json.dump(nb, f, ensure_ascii=False, indent=1)
-print("notebook 생성:", os.path.relpath(NB), f"({len(cells)} cells)")
+def main():
+    nb = {"cells": cells,
+          "metadata": {"kernelspec": {"display_name": "Python 3.12 (py312)", "language": "python", "name": "py312"},
+                       "language_info": {"name": "python"}},
+          "nbformat": 4, "nbformat_minor": 5}
+    with open(NB, "w") as f:
+        json.dump(nb, f, ensure_ascii=False, indent=1)
+    print("notebook 생성:", os.path.relpath(NB), f"({len(cells)} cells)")
+
+
+if __name__ == "__main__":
+    main()

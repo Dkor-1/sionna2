@@ -14,7 +14,6 @@ import numpy as np
 import vizstyle
 vizstyle.use_korean()
 import matplotlib.pyplot as plt
-from matplotlib import cm
 from matplotlib.animation import FuncAnimation, PillowWriter
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 

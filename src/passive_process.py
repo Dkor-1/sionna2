@@ -29,12 +29,13 @@ C0 = 299792458.0
 #  CPI(에코) 생성 — 기준 1프레임을 M번 반복, 표적/DPI/클러터/잡음 합성
 # --------------------------------------------------------------------------- #
 def make_cpi(ref_frame, M, fs, tau_s, fd_hz, a_tgt,
-             dpi_amp=30.0, clutter=((0.0, 8.0), (40e-9, 5.0)), snr_db=10.0,
+             dpi_amp=30.0, clutter=((15e-9, 8.0), (40e-9, 5.0)), snr_db=10.0,
              abs_noise=False, noise_var=1.0, rng=None):
     """기준 1프레임 ref_frame 을 M번 반복한 CPI 에서 감시신호와 기준신호를 만든다.
       tau_s, fd_hz : 표적 지연[s]·도플러[Hz],  a_tgt : 표적 에코 전압이득
       dpi_amp      : 직접파누설 진폭(보통 표적보다 수십 dB 큼)
       clutter      : [(지연[s], 진폭), …] 정적(0-도플러) 반사체
+                     ※ 0-지연 탭은 DPI(dpi_amp, 0지연·0도플러)와 중복되므로 사용하지 않음
       abs_noise=False: snr_db(표적피크 대비)로 잡음 — 데모/RD맵 시각화용.
       abs_noise=True : 잡음전력=noise_var(절대 고정), 표적은 a_tgt 절대값 — Pd 연구용
                        (처리이득이 파형/점유마다 달라 Pd 가 의미있게 갈림).
@@ -121,7 +122,9 @@ def range_doppler(surv, ref, fs, M, n_range=None):
 #  ③ 2D CA-CFAR 검출
 # --------------------------------------------------------------------------- #
 def ca_cfar_2d(rd, guard=(2, 2), train=(6, 6), pfa=1e-4):
-    """셀평균 CFAR. rd=|RD|(도플러×거리). 반환 (검출마스크, 임계맵, 추정잡음).
+    """셀평균 CFAR. rd=|RD|(도플러×거리). 반환 (검출마스크, 임계맵, 추정잡음전력).
+      - 임계맵은 sqrt(전력임계) — 입력 rd(|RD|)와 같은 **진폭 스케일**.
+      - 추정잡음전력은 셀별 훈련셀 박스평균(전력 스케일) 배열.
 
     적분영상(summed-area table)으로 **완전 벡터화** — 셀마다 학습창이 가장자리에서
     잘리는 것(가변 Ntrain)까지 정확히 반영해, 기존 이중 for-loop 구현과 **동일 출력**이며
@@ -152,7 +155,7 @@ def ca_cfar_2d(rd, guard=(2, 2), train=(6, 6), pfa=1e-4):
     alpha = ntr_safe * (pfa ** (-1.0 / ntr_safe) - 1.0)       # CA-CFAR: α=Ntr(Pfa^(−1/Ntr)−1)
     thr = alpha * noise
     det = ok & (P > thr)
-    return det, np.sqrt(thr), None
+    return det, np.sqrt(thr), noise
 
 
 def _subbin(vm1, v0, vp1):

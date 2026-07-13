@@ -18,8 +18,8 @@ cells.append(md(
     "",
     "> **이 노트북 = 4단계: 진짜 탐지.** report1~3 과 **같은 30×20×11 m 무반사 차폐시설(챔버) 안에서**,",
     "> 신호원(illuminator) 안테나 TX 와 패시브 수신 안테나 RX 를 양쪽 벽에 벌려 놓고 드론을 **실제로 탐지**합니다.",
-    "> 실외 기지국 시나리오가 아니라 **챔버 내 제어 측정** — 문헌(`papers/`의 LTE/5G/WiFi 패시브레이더) 21편의 공통",
-    "> 파이프라인을 챔버 스케일로 재현합니다.",
+    "> 실외 기지국 시나리오가 아니라 **챔버 내 제어 측정** — LTE/5G/WiFi 패시브레이더 문헌들의 공통",
+    "> 파이프라인(기준+감시 → 클러터 제거 → CAF → CFAR)을 챔버 스케일로 재현합니다.",
     "",
     "**처리 체인**: 기준+감시 2채널 → **ECA**(직접파·잔향 제거) → **CAF 거리-도플러 맵** → **CFAR** 검출 → **Pd/Pfa**.",
     "",
@@ -41,8 +41,7 @@ cells.append(md(
 ))
 cells.append(code(
     "import sys; sys.path.insert(0, 'src')",
-    "from bistatic_scene import bistatic_params",
-    "from viz_bistatic import TX, RX, TGT, VEL     # 챔버 내부 배치(양벽 TX/RX, quiet zone 표적)",
+    "from bistatic_scene import bistatic_params, TX, RX, TGT, VEL   # 챔버 배치(양벽 TX/RX, quiet zone 표적)",
     "p = bistatic_params(TX, RX, TGT, VEL, 3.5e9)",
     "print(f\"챔버 배치  TX={TX} RX={RX}  표적={TGT} v={VEL}\")",
     "print(f\"L={p['L']:.1f}m  Rb={p['Rb']:.1f}m  지연={p['tau']*1e9:.0f}ns  f_d={p['fd']:+.0f}Hz  바이각={p['beta']:.0f}deg\")",
@@ -55,6 +54,7 @@ cells.append(md(
     "  프레임축 FFT(도플러). 거리분해능=c/B, 도플러분해능=PRF/M, **최대 무모호 도플러=±PRF/2** (PRF=프레임률; report2/3 파일럿반복률·v_max 와 동일한 한계).",
     "- **ECA**(Extended Cancellation): 기준의 지연복제(0-도플러) 부분공간을 최소제곱 투영·제거 → **직접파(DPI)+정적 잔향** 제거,",
     "  도플러 있는 표적은 보존. 패시브레이더의 핵심 전처리(문헌 보편). **무반사 챔버**라 클러터가 약해 사실상 *직접파 제거*가 핵심.",
+    "  (아래 예시의 ECA 지연 차수는 40탭 — 거리 40샘플(≈98 m@5G 샘플률)의 0-도플러 부분공간까지 제거)",
     "- **CA-CFAR**: 거리-도플러 맵에서 주변 잡음 추정 대비 임계 초과 셀을 검출(Pfa 제어).",
     "",
     "아래: 5G NR 100MHz 로 챔버 안 표적(Rb≈22m, f_d≈+65Hz)을 비춤. **ECA 전엔 강한 직접파(DPI)가 0-도플러를 지배**해 표적이 안 보이고,",
@@ -69,14 +69,13 @@ cells.append(md(
 cells.append(code(
     "import numpy as np",
     "from waveforms import nr_downlink",
-    "from bistatic_scene import bistatic_params, C0",
+    "from bistatic_scene import bistatic_params, C0, TX, RX, TGT, VEL, CH_CLUTTER  # 챔버 배치 + 약한 잔향",
     "from passive_process import make_cpi, eca, range_doppler, ca_cfar_2d, peak_detection",
-    "from viz_bistatic import TX, RX, TGT, VEL, CH_CLUTTER   # 챔버 배치 + 무반사 약한 잔향",
     "wf = nr_downlink(occupancy='G3'); fs = wf.fs_hz; M = 48",
     "p = bistatic_params(TX, RX, TGT, VEL, wf.carrier_hz)",
     "surv, ref = make_cpi(wf.tx, M, fs, p['tau'], p['fd'], a_tgt=1.0, dpi_amp=55,",
-    "                     clutter=CH_CLUTTER, snr_db=14)",
-    "Rb, f_d, rd = range_doppler(eca(surv, ref, 40), ref, fs, M, n_range=int(45/(C0/fs)))",
+    "                     clutter=CH_CLUTTER, snr_db=14, rng=np.random.default_rng(3))  # 빌더와 같은 시드",
+    "Rb, f_d, rd = range_doppler(eca(surv, ref, 40), ref, fs, M, n_range=int(45/(C0/fs)))  # ECA 지연차수 40탭",
     "det,_,_ = ca_cfar_2d(rd, pfa=1e-4); pk = peak_detection(Rb, f_d, rd, det)",
     "print('참 표적:', round(p['Rb']), 'm', round(p['fd']),'Hz   ->  검출:', pk and (round(pk['Rb']),round(pk['fd'])))",
 ))
@@ -89,8 +88,10 @@ cells.append(md(
     "![detection](outputs/figures/report4_detection.png)",
     "",
     "- **(a) 파형별**: 대역폭이 클수록(5G 100MHz>WiFi 80MHz>LTE 20MHz) 거리분해능·처리이득이 좋아 같은 SNR 에서 Pd↑.",
-    "  ※ **챔버 스케일 주의**: LTE 거리분해능≈17 m 는 챔버 Rb(수~수십 m)를 못 가름 → 표적이 직접파 셀에 묻혀 탐지 불리.",
-    "  광대역 5G(≈3 m)·WiFi(≈4 m)만 챔버 안에서 표적을 또렷이 분리합니다(이것이 좁은 챔버 실험의 핵심 제약).",
+    "  ※ **챔버 스케일 주의**: LTE 거리분해능≈17 m 는 챔버 Rb(수~수십 m)를 못 가름 → 거리축 위치정보가 사실상 없음.",
+    "  광대역 5G(≈3 m)·WiFi(≈4 m)만 챔버 안에서 표적 위치를 또렷이 분리합니다(좁은 챔버 실험의 핵심 제약).",
+    "  ⚠ 이 곡선의 x축은 '주입한 동일 per-sample SNR' — **처리이득 관점 비교**입니다. 고정 물리 예산(EIRP·kTB)에선",
+    "  협대역이 잡음전력이 작아 SNR 이 오히려 높아지는 등 결론이 달라집니다 → **공정 비교는 report5(링크버짓 기반)**.",
     "- **(b) 5G 점유별**: **G1(SSB만)은 협대역(7MHz)·저점유 → 분해능·SNR 모두 불리 → Pd 낮음.** G2(PRS 전대역)부터 급상승.",
     "  → report2 의 '한가한 5G 는 거리·속도 두 축 다 나쁨'이 **여기선 낮은 Pd 로 정량화**됩니다(Rényi 논문의 적응적분 동기).",
 ))
@@ -109,10 +110,15 @@ cells.append(md(
     "- 🔁 **Rényi 적응적분**: 5G 점유가 높은 구간만 골라 적분(낮은 점유의 outage 회피).",
 ))
 
-nb = {"cells": cells,
-      "metadata": {"kernelspec": {"display_name": "Python 3.12 (py312)", "language": "python", "name": "py312"},
-                   "language_info": {"name": "python"}},
-      "nbformat": 4, "nbformat_minor": 5}
-with open(NB, "w") as f:
-    json.dump(nb, f, ensure_ascii=False, indent=1)
-print("notebook 생성:", os.path.relpath(NB), f"({len(cells)} cells)")
+def main():
+    nb = {"cells": cells,
+          "metadata": {"kernelspec": {"display_name": "Python 3.12 (py312)", "language": "python", "name": "py312"},
+                       "language_info": {"name": "python"}},
+          "nbformat": 4, "nbformat_minor": 5}
+    with open(NB, "w") as f:
+        json.dump(nb, f, ensure_ascii=False, indent=1)
+    print("notebook 생성:", os.path.relpath(NB), f"({len(cells)} cells)")
+
+
+if __name__ == "__main__":
+    main()

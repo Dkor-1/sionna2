@@ -23,10 +23,10 @@ import numpy as np
 import vizstyle
 vizstyle.use_korean()
 import matplotlib.pyplot as plt
-from matplotlib.patches import Circle, FancyArrowPatch, Rectangle
+from matplotlib.patches import Circle, Rectangle
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-from drones import DRONES, build_drone, drone_colors, _motor_angles
+from drones import DRONES, build_drone, drone_colors, motor_angles
 from vizstyle import RELEASE_BADGE
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
@@ -88,7 +88,7 @@ def drone_card(key, outdir=FIG):
     bl, bw = spec.body_frac*diag*1.15, spec.body_frac*diag*0.85
     axB.add_patch(Rectangle((-bl/2, -bw/2), bl, bw, facecolor=cmap["body"],
                             edgecolor="k", lw=1.2, zorder=3))
-    angs = _motor_angles(spec)
+    angs = motor_angles(spec)
     for a in angs:
         mx, my = r*math.cos(math.radians(a)), r*math.sin(math.radians(a))
         axB.plot([0, mx], [0, my], color=(0.15, 0.15, 0.15), lw=2, zorder=2)  # 암
@@ -181,9 +181,8 @@ def size_comparison(outdir=FIG):
     x = 0.0
     for s in specs:
         diag = s.diagonal_mm/1000; r = diag/2; pr = s.prop_dia_mm/1000/2
-        span = diag + 2*pr
         cx = x + maxspan*0.62
-        for a in _motor_angles(s):
+        for a in motor_angles(s):
             mx = cx + r*math.cos(math.radians(a)); my = r*math.sin(math.radians(a))
             axT.add_patch(Circle((mx, my), pr, facecolor=s.body_rgb, alpha=0.30,
                                  edgecolor=s.body_rgb, lw=1.2))

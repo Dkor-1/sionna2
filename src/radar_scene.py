@@ -26,10 +26,9 @@ import os
 import math
 import numpy as np
 
-import mitsuba as mi
-import sionna.rt as rt
-
-from scene_build import build_scene, chamber_parts, drone_parts
+# mitsuba/sionna/scene_build 는 무겁고 GPU 초기화를 동반하므로 **함수 안에서 지연 import** 한다.
+# 덕분에 viz_* 모듈이 ANT_POS/TGT_POS/farfield_distance 등 가벼운 상수·함수를
+# sionna 없이 import 할 수 있다 (좌표 이중정의 방지).
 from drones import DRONES
 
 C0 = 299792458.0
@@ -64,6 +63,12 @@ def build_monostatic_scene(target_key: str | None, fc: float = 3.5e9,
     target_key=None  → 표적 없는 장면(배경 차감용).
     with_chamber=False → 자유공간(깨끗한 RCS 측정). True → 챔버 벽 포함(클러터 평가용).
     """
+    # scene_build 를 먼저 import — 그 안에서 CUDA_VISIBLE_DEVICES(GPU 2번) setdefault 가
+    # mitsuba/sionna 의 CUDA 초기화보다 앞서 실행되도록 순서를 보장한다.
+    from scene_build import build_scene, chamber_parts, drone_parts
+    import mitsuba as mi
+    import sionna.rt as rt
+
     parts = []
     if with_chamber:
         cparts, info = chamber_parts(CMESH, cutaway=False)
@@ -90,6 +95,7 @@ def build_monostatic_scene(target_key: str | None, fc: float = 3.5e9,
 
 
 def solve_paths(scene, spp=2_000_000, max_depth=2):
+    import sionna.rt as rt
     return rt.PathSolver()(scene, max_depth=max_depth, los=True,
                            specular_reflection=True, diffuse_reflection=True,
                            refraction=False, samples_per_src=spp, seed=1)
@@ -102,6 +108,8 @@ def paths_arrays(paths):
     a = (ar + 1j * ai).reshape(-1, ar.shape[-1])[0]          # (P,)
     P = a.shape[0]
     tau = np.asarray(paths.tau).reshape(-1, P)[0]            # (P,)
+    # Sionna 는 장면에 움직이는 물체가 없으면 doppler 를 경로 수보다 짧게/비워서 줄 수 있다.
+    # 그 경우 도플러 0 으로 채운다(정지 장면에선 물리적으로 옳음) — 조용한 대체임에 유의.
     dop = np.asarray(paths.doppler).reshape(-1)
     dop = dop[:P] if dop.shape[0] >= P else np.zeros(P)
     V = np.asarray(paths.vertices)[:, 0, 0, :, :]            # (depth,P,3)

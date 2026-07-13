@@ -18,9 +18,9 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, BoundaryNorm
 from matplotlib.patches import Patch
 
-from waveforms import (wifi_80211ac, lte_downlink, nr_downlink, all_waveforms,
-                       CH, CH_NAME, CH_COLOR, C0, MODE_DESC)
-from rcs_po import drone_rcs_pattern, dbsm
+from waveforms import (wifi_80211ac, lte_downlink, nr_downlink,
+                       CH, CH_COLOR, MODE_DESC)
+from rcs_po import drone_rcs_pattern
 from radar_process import range_profile, mainlobe_width_m
 from drones import DRONES
 
@@ -38,14 +38,13 @@ _KOR = {"PSS": "PSS(동기)", "SSS": "SSS(동기)", "PBCH": "PBCH(방송=SSB)", 
         "LSTF": "L-STF", "LLTF": "L-LTF(기준)", "WSIG": "SIG(제어)", "WDATA": "DATA"}
 
 
-def _grid_image(ax, wf, fmax_show=None):
+def _grid_image(ax, wf):
     """한 파형의 리소스 그리드(라벨)를 사진으로 그린다. y=주파수, x=심볼."""
     L = wf.labels
     fft = wf.fft
     half = len(wf.used) // 2
     lo, hi = fft // 2 - half, fft // 2 + half
-    img = L[:, lo:hi].T                      # (nfreq, nsym)
-    # 표시 대역 제한(가독성)
+    img = L[:, lo:hi].T                      # (nfreq, nsym) — 사용 부반송파만 표시(가독성)
     fr = (np.arange(img.shape[0]) - img.shape[0] / 2) * wf.scs_hz / 1e6
     vals = sorted(CH_COLOR.keys())
     cmap = ListedColormap([CH_COLOR[v] for v in vals])

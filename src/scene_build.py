@@ -19,7 +19,7 @@ Sionna RT 2.0 좌표/관례
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 # GPU 는 **2번**을 기본 사용(사용자 지정 시 존중). mitsuba/OptiX 가 import 시점에
 # CUDA_VISIBLE_DEVICES 를 읽으므로 반드시 mitsuba import 전에 설정한다.
@@ -84,7 +84,7 @@ def render_views(scene: rt.Scene, cameras: dict, out_dir: str,
 # --------------------------------------------------------------------------- #
 #  차폐시설 → Part 목록
 # --------------------------------------------------------------------------- #
-def chamber_parts(mesh_dir: str, cutaway: bool = False) -> list[Part]:
+def chamber_parts(mesh_dir: str, cutaway: bool = False) -> tuple[list[Part], dict]:
     """차폐시설 메쉬를 부위별 OBJ 로 저장하고 Part 목록을 만든다.
     cutaway=True 면 앞벽/앞골조를 빼서 내부를 들여다볼 수 있게 한다."""
     from chamber import build_chamber, chamber_group_style, CUTAWAY_OMIT
@@ -104,12 +104,14 @@ def chamber_parts(mesh_dir: str, cutaway: bool = False) -> list[Part]:
 # --------------------------------------------------------------------------- #
 def drone_parts(spec, position=(0., 0., 0.), yaw_deg=0.0, mesh_dir=None):
     """드론 1대를 부위별 OBJ 로 저장하고 Part 목록을 만든다.
-    yaw_deg 로 수평 회전(메쉬를 직접 회전시켜 export — 좌표계 혼동 방지)."""
+    yaw_deg 로 수평 회전(메쉬를 직접 회전시켜 export — 좌표계 혼동 방지).
+    장면용 OBJ 는 mesh_dir/_scene/ 에 저장한다 — 정본 자산(assets/meshes/drones/<key>/*.obj)을
+    회전된 메쉬로 덮어쓰면 '마지막 렌더의 yaw' 에 따라 자산 내용이 달라지는 오염이 생긴다."""
     from drones import build_drone, drone_colors, DRONE_GROUP_MAT
     m = build_drone(spec)
     if abs(yaw_deg) > 1e-9:
         m = m.rotated("z", yaw_deg)
-    paths = m.write_obj_per_group(mesh_dir, spec.key)
+    paths = m.write_obj_per_group(os.path.join(mesh_dir, "_scene"), spec.key)
     cols = drone_colors(spec)
     parts = []
     for g, p in paths.items():

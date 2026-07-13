@@ -9,7 +9,7 @@ link_budget.py — (benchmark) 바이스태틱 패시브 레이더 링크 버짓
   · 대역폭(B)  → 잡음전력 ∝ B   (넓을수록 잡음↑ = 공정성의 핵심 변수!)
   · 점유(에너지)→ 파형 자체 + 처리이득으로 반영(DSP 에서 자연히 나옴)
 
-이것이 EXPERIMENT_SPEC 의 "SCR is measured, not swept" 를 코드로 옮긴 것이다.
+이것이 벤치마크 원칙 "SCR is measured, not swept" 를 코드로 옮긴 것이다.
 (이전 report4 는 표적 SNR 을 직접 sweep 했음 → 공정성 위배. 여기서 바로잡는다.)
 
 바이스태틱 레이더 방정식 (수신 에코전력):
@@ -44,6 +44,7 @@ def lin2db(x):
 class LinkBudget:
     """고정하는 외부 예산(공정성의 '통제 변수'). **모든 신호에 동일 적용**한다."""
     eirp_dbm: float = 63.0         # 조명원 EIRP(기지국/AP). 63 dBm ≈ 2 kW(매크로 셀 대표값)
+                                   # ※ 챔버 실험은 저출력 12 dBm 사용(run_min_cell.EIRP_DBM)
     rx_gain_dbi: float = 10.0      # 감시 수신 안테나 이득
     noise_figure_db: float = 5.0   # 수신 잡음지수
     sys_loss_db: float = 0.0       # 기타 시스템 손실(케이블·정합 등)
@@ -89,9 +90,16 @@ def link_terms(lb: LinkBudget, lam, sigma_m2, R1, R2, L, bw_hz):
 
 
 if __name__ == "__main__":
-    lb = LinkBudget()
-    lam = C0 / 1.843e9
-    lt = link_terms(lb, lam, sigma_m2=10 ** (-1.8), R1=180.0, R2=290.0, L=252.0, bw_hz=10e6)
-    print("LTE 10MHz@1.8GHz, σ=-18dBsm, R1=180 R2=290 L=252:")
+    # 챔버 데모: geometry 의 TX/RX/CENTER 기하 + 저출력 12 dBm + 5G NR 100 MHz(점유 B=98.28 MHz)
+    from geometry import TX, RX, CENTER
+    tx, rx, c = (np.asarray(p, float) for p in (TX, RX, CENTER))
+    R1 = float(np.linalg.norm(tx - c))
+    R2 = float(np.linalg.norm(rx - c))
+    L = float(np.linalg.norm(tx - rx))
+    lb = LinkBudget(eirp_dbm=12.0)
+    lam = C0 / 3.5e9
+    lt = link_terms(lb, lam, sigma_m2=10 ** (-1.8), R1=R1, R2=R2, L=L, bw_hz=98.28e6)
+    print(f"5G NR 100MHz@3.5GHz, EIRP=12dBm, σ=-18dBsm, "
+          f"R1={R1:.1f} R2={R2:.1f} L={L:.1f} (무반사 챔버):")
     for k, v in lt.items():
         print(f"  {k:14s} {v:.4g}")

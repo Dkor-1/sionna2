@@ -4,7 +4,7 @@ viz_animations.py — 실험별 애니메이션(GIF) 모음 (matplotlib, GPU 불
 =========================================================================
 이미 있는 GIF: turntable_*(report1), report3_articulation, report4_tracking.
 여기서 추가로 만드는 것:
-  report2_anim_rcs.png/gif        : 표적 회전 → RCS 글린트 + 조명면 변화 (report2)
+  report2_anim_rcs.gif            : 표적 회전 → RCS 글린트 + 조명면 변화 (report2)
   report3_anim_microdoppler.gif   : 회전 프로펠러 + 스펙트로그램 시간커서 (report3)
   report2_anim_occupancy.gif      : 점유 G1→G2→G3 그리드 채움 + 거리분해능 (report2)
 """
@@ -17,12 +17,11 @@ vizstyle.use_korean()
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.animation import FuncAnimation, PillowWriter
-from matplotlib.colors import ListedColormap, BoundaryNorm
 from matplotlib.patches import Polygon as MplPoly
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-from drones import DRONES, build_drone, build_propeller, drone_colors
-from rcs_po import drone_rcs_pattern, dbsm, C0
+from drones import DRONES, build_drone, build_propeller
+from rcs_po import drone_rcs_pattern, dbsm
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
 _NAME = {k: DRONES[k].name.replace("DJI ", "") for k in DRONES}
@@ -80,7 +79,7 @@ def anim_rcs_aspect(outdir=FIG, target="mavic4pro", fc=3.5e9, el=22.0, n_frames=
         # 폴라 RCS
         axp.clear()
         axp.plot(np.radians(az_fine), rcs_db, color="#c62828", lw=1.3)
-        cur = dbsm(sig[np.argmin(np.abs(az_fine-azd % 360))])
+        cur = dbsm(sig[np.argmin(np.abs(az_fine - (azd % 360)))])
         axp.plot([np.radians(azd)], [cur], "o", color="#1565c0", ms=11)
         axp.plot([np.radians(azd), np.radians(azd)], [rcs_db.min(), cur], color="#1565c0", lw=1, alpha=0.5)
         axp.set_theta_zero_location("N"); axp.set_theta_direction(-1)
@@ -152,16 +151,13 @@ def anim_microdoppler(outdir=FIG, target="mavic4pro", rpm=None, n_frames=48, fps
 #  (3) report2 — 점유 G1→G2→G3 그리드 채움 + 거리프로파일
 # --------------------------------------------------------------------------- #
 def anim_occupancy(outdir=FIG, target="mavic4pro", R=10.0, hold=10, fps=6):
-    from waveforms import nr_downlink, CH_COLOR, MODE_DESC
+    from waveforms import nr_downlink, MODE_DESC
     from radar_process import range_profile, mainlobe_width_m
+    from viz_occupancy import _grid_image          # 리소스그리드 그리기 단일 출처
     modes = ["G1", "G2", "G3"]
     wfs = {m: nr_downlink(occupancy=m) for m in modes}
     sig, _ = drone_rcs_pattern(target, wfs["G3"].carrier_hz, np.array([0.0])); sig = float(sig[0])
-    vals = sorted(CH_COLOR.keys())
-    cmap = ListedColormap([CH_COLOR[v] for v in vals])
-    norm = BoundaryNorm([v-0.5 for v in vals] + [vals[-1]+0.5], cmap.N)
-    order = modes * 1
-    seq = [m for m in order for _ in range(hold)]
+    seq = [m for m in modes for _ in range(hold)]
 
     fig, (axg, axr) = plt.subplots(1, 2, figsize=(13, 5.2), constrained_layout=True)
     fig.suptitle("5G 점유 상태 진행 — 리소스 그리드가 채워질수록 기준신호 대역↑ → 거리분해능↑",
@@ -170,13 +166,8 @@ def anim_occupancy(outdir=FIG, target="mavic4pro", R=10.0, hold=10, fps=6):
     def update(kf):
         m = seq[kf]; wf = wfs[m]
         axg.clear()
-        Lg = wf.labels; half = len(wf.used)//2; lo, hi = wf.fft//2-half, wf.fft//2+half
-        img = Lg[:, lo:hi].T
-        fr = (np.arange(img.shape[0])-img.shape[0]/2)*wf.scs_hz/1e6
-        axg.imshow(img, aspect="auto", origin="lower", cmap=cmap, norm=norm,
-                   extent=[-0.5, img.shape[1]-0.5, fr[0], fr[-1]], interpolation="nearest")
-        axg.set_xlabel("OFDM 심볼", fontsize=8); axg.set_ylabel("기저대역 [MHz]", fontsize=8)
-        axg.set_title(f"{m} · {MODE_DESC['nr'][m]} · 점유 {wf.occupancy_frac*100:.0f}%", fontsize=10.5)
+        _grid_image(axg, wf)                       # 그리드 사진은 viz_occupancy 와 동일 로직 재사용
+        axg.set_title(f"{m} · {MODE_DESC['nr'][m]} · 점유 {wf.occupancy_frac*100:.0f}%", fontsize=10.5)  # 애니메이션용 짧은 제목으로 덮어쓰기
         axr.clear()
         rm, prof, pr, pv = range_profile(wf, R, sig, snr_db=18, passive=True, rng=np.random.default_rng(kf))
         pdb = 20*np.log10(prof/prof.max()+1e-12); res = mainlobe_width_m(rm, prof)

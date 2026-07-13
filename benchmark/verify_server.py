@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-verify_server.py — (benchmark) **서버 전용** Sionna RT 검증 엔트리
-==================================================================
-서버(Sionna RT + GPU/OptiX)에서 실행한다. 로컬(맥, sionna 미설치)에선 RT 부분이
-명확한 가드와 함께 실패하도록 되어 있다(그게 정상 — 로컬은 개발, 서버는 검증).
+verify_server.py — (benchmark) Sionna RT 검증 엔트리
+====================================================
+Sionna RT + GPU/OptiX 로 실행한다(py312 venv 에 Sionna RT 설치됨).
+OptiX 미해결 환경에선 RT 부분이 명확한 가드와 함께 실패하도록 되어 있다(그게 정상 —
+개발/sanity 는 AnalyticChannel, 여기는 RT 검증).
 
 하는 일
   1) 환경 진단  : python, sionna/mitsuba/drjit, mitsuba variants, CUDA 가시성.
@@ -12,11 +13,10 @@ verify_server.py — (benchmark) **서버 전용** Sionna RT 검증 엔트리
                   (깨끗한 챔버면 RT ≈ Analytic = 교차검증 통과)
   4) RT 최소셀  : RT 백엔드로 SCR/Pd 측정 + RD맵 저장(outputs/figures/bench_rt_cell.png).
 
-실행 (서버)
-  source /workspace/jeong/miniforge3/etc/profile.d/conda.sh && conda activate sionna
+실행
   cd sionna2/benchmark
-  CUDA_VISIBLE_DEVICES=0 python verify_server.py
-  # OptiX 미해결이면 3)에서 명확한 안내와 함께 멈춘다.
+  CUDA_VISIBLE_DEVICES=2 /home/yunjung/.venvs/py312/bin/python verify_server.py
+  # (GPU 는 #2 사용이 sionna2 정책.) OptiX 미해결이면 3)에서 명확한 안내와 함께 멈춘다.
   #   해결: libnvoptix.so.1 경로 찾아 DRJIT_LIBOPTIX_PATH 지정,
   #        또는 관리자에게 NVIDIA_DRIVER_CAPABILITIES=all 로 컨테이너 재기동 요청.
 """
@@ -31,11 +31,12 @@ for _p in (_SRC, _HERE):
 
 import numpy as np                                          # noqa: E402
 from bistatic_scene import C0                               # noqa: E402
-from waveforms import lte_downlink                          # noqa: E402
+from waveforms import nr_downlink                           # noqa: E402
 from link_budget import LinkBudget                          # noqa: E402
 from channel import AnalyticChannel, SionnaRTChannel        # noqa: E402
 from scenarios import radial                                # noqa: E402
-from run_min_cell import run_cell, TX, RX, TGT0             # noqa: E402
+from run_min_cell import run_cell                           # noqa: E402
+from geometry import TX, RX, CENTER                         # noqa: E402
 
 
 def diagnostics():
@@ -58,10 +59,10 @@ def diagnostics():
 
 def compare_states(fc=1.843e9, drone="mavic4pro"):
     print("\n" + "=" * 64); print("2·3) RT CIR 추출 + RT↔Analytic 교차검증"); print("=" * 64)
-    pos, vel = radial(TX, RX, TGT0, n=48); mid = len(pos) // 2
+    pos, vel = radial(TX, RX, CENTER, n=48); mid = len(pos) // 2
     ca = AnalyticChannel()
-    # 자유공간 RT(야외 스케일 기하) → 클러터 없이 RT↔Analytic 깨끗한 교차검증.
-    # (챔버 클러터를 보려면 기하를 30m 로 축소하고 with_chamber=True 로.)
+    # 자유공간 RT(챔버 스케일 기하, 벽 없음) → 클러터 없이 RT↔Analytic 깨끗한 교차검증.
+    # (챔버 흡수체 클러터까지 보려면 with_chamber=True 로 — 무반사라 약하게 나온다.)
     cr = SionnaRTChannel(with_chamber=False)                # ← 서버 RT (OptiX 필요)
     sa = ca.state(TX, RX, pos[mid], vel[mid], fc, drone)
     print(f"  [Analytic ] Rb={sa.tau*C0:7.1f}m  fd={sa.fd:+7.1f}Hz  "
@@ -83,9 +84,9 @@ def compare_states(fc=1.843e9, drone="mavic4pro"):
 
 def run_rt_cell(cr, target_amp="po"):
     print("\n" + "=" * 64); print("4) RT 백엔드로 최소셀 실행 + RD맵"); print("=" * 64)
-    lb = LinkBudget(eirp_dbm=43.0)
-    pos, vel = radial(TX, RX, TGT0, n=48)
-    wf = lte_downlink(bw_hz=10e6, carrier_hz=1.843e9, occupancy="G3")
+    lb = LinkBudget(eirp_dbm=12.0)          # 챔버 저출력 조명원(run_min_cell.EIRP_DBM 과 동일)
+    pos, vel = radial(TX, RX, CENTER, n=48)
+    wf = nr_downlink(bw_hz=100e6, carrier_hz=3.5e9, occupancy="G3")   # run_min_cell 최소셀과 동일
     res = run_cell(wf, "mavic4pro", pos, vel, lb, channel=cr, target_amp=target_amp,
                    M=48, N=100)
     lt = res["link"]; st = res["state"]
@@ -121,7 +122,7 @@ if __name__ == "__main__":
         run_rt_cell(cr)
         print("\n✅ RT 검증 완료.")
     except (RuntimeError, NotImplementedError) as e:
-        print("\n⚠️  RT 백엔드 실행 실패 (로컬이거나 OptiX 미해결):")
+        print("\n⚠️  RT 백엔드 실행 실패 (OptiX 미해결 등):")
         print(e)
-        print("\n→ 서버에서: conda activate sionna 후 CUDA_VISIBLE_DEVICES=0 python verify_server.py")
+        print("\n→ CUDA_VISIBLE_DEVICES=2 /home/yunjung/.venvs/py312/bin/python verify_server.py 로 재실행")
         sys.exit(1)

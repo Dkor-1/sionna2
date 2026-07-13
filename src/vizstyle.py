@@ -17,6 +17,8 @@ def use_korean():
         font_manager.fontManager.addfont(_FONT)
         name = font_manager.FontProperties(fname=_FONT).get_name()
         plt.rcParams["font.family"] = name
+    else:
+        print(f"[vizstyle] 경고: NanumGothic.ttf 없음 — 한글이 깨질 수 있음: {os.path.abspath(_FONT)}")
     plt.rcParams["axes.unicode_minus"] = False  # 음수 부호 깨짐 방지
     plt.rcParams["figure.facecolor"] = "white"
     plt.rcParams["savefig.facecolor"] = "white"

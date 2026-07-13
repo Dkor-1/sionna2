@@ -9,6 +9,7 @@
 > - **[`report2.ipynb`](report2.ipynb)** — 2단계: 레이더 구성 & RCS 특성화 (WiFi·LTE·5G 비교)
 > - **[`report3.ipynb`](report3.ipynb)** — 3단계: 분절 드론 + 마이크로-도플러 (+ PX4 연동 가능성)
 > - **[`report4.ipynb`](report4.ipynb)** — 4단계: **무반사 챔버 내부** 바이스태틱 패시브 레이더 **탐지**(ECA·CAF·CFAR·Pd/Pfa)
+> - **[`report5.ipynb`](report5.ipynb)** — 5단계: **공정 벤치마크** — 링크버짓(EIRP·kTB·PO-RCS)으로 SNR 을 유도하고 SCR·Pd 는 측정(점유·신호×드론·시나리오·RT 교차검증)
 >
 > ※ **모든 실험은 30×20×11 m 무반사 차폐시설(챔버) 안에서** 진행합니다. report4 도 챔버 양쪽 벽에 신호원 TX·
 > 패시브 RX 를 놓고 quiet zone 의 드론을 탐지합니다(베이스라인 L≈15 m, Rb 수~수십 m). 무반사라 클러터가 약해
@@ -98,21 +99,38 @@ bistatic_scene.py 바이스태틱 기하 (Rb·τ·f_d·β, 등Rb 타원)
 passive_process.py 처리 체인 — make_cpi/ECA(클러터제거)/CAF 거리-도플러/CA-CFAR
 viz_bistatic.py 기하·거리도플러맵(ECA 전후)·검출성능(Pd vs SNR)·추적 GIF 시각화
 build_report4.py report4 산출물 한 번에 생성
+--- report5 (공정 벤치마크; 하네스는 ../benchmark/) ---
+build_report5.py  benchmark 하네스(최소셀→매트릭스 A~D)를 실행하고 report5.ipynb 생성
+make_notebook5.py report5.ipynb 생성기 — outputs/report5_results.json 의 실측 수치를 읽어 삽입
 --- 애니메이션(GIF) ---
 viz_animations.py RCS 글린트(report2)·마이크로도플러 회전(report3)·점유 진행(report2)
 build_animations.py 위 실험 애니메이션 한 번에 생성
+```
+
+### 벤치마크 하네스 (`benchmark/`, report5 의 실험 코드)
+
+```
+geometry.py     챔버 내 TX/RX/quiet-zone 배치 + RD 거리창 환산(chamber_window)
+link_budget.py  바이스태틱 레이더 방정식 + Friis + kTB — 에코/직접파 SNR 을 물리로 유도
+channel.py      채널 백엔드 스왑: AnalyticChannel(기하+PO) ↔ SionnaRTChannel(RT 멀티패스, GPU)
+scenarios.py    통제 모션 4종(radial/tangential/hover/waypoint) — 전 신호·드론 공통
+run_min_cell.py 최소 셀 1개 + 고속 Monte-Carlo(run_cell) — "SCR is measured, not swept"
+run_matrix.py   본 실험: 점유(A)·신호×드론(B)·시나리오(C)·RT 교차검증(D) → 그림/CSV/JSON
+verify_server.py RT 백엔드 진단·교차검증 단독 실행기
 ```
 
 **애니메이션 GIF 모음** (커널 없이 노트북에서 재생):
 turntable(드론 회전)·report3_articulation(분절 회전)·report4_tracking(비행 추적),
 report2_anim_rcs(RCS 글린트)·report3_anim_microdoppler(프로펠러↔플래시)·report2_anim_occupancy(점유 진행).
 
-### report2 / report3 한 번에 만들기
+### report2~5 한 번에 만들기
 ```bash
-cd sionna2/src && CUDA_VISIBLE_DEVICES=2 $PY build_report2.py   # GPU 불필요(PO+DSP)
-cd sionna2/src && CUDA_VISIBLE_DEVICES=2 $PY build_report3.py   # GPU 불필요(메쉬+PO+DSP)
-cd sionna2/src && CUDA_VISIBLE_DEVICES=2 $PY build_report4.py   # GPU 불필요(기하+DSP)
-cd sionna2/src && CUDA_VISIBLE_DEVICES=2 $PY build_animations.py # 실험 애니메이션 GIF(GPU 불필요, 느림)
+cd sionna2/src
+$PY build_report2.py                          # GPU 불필요(PO+DSP)
+$PY build_report3.py                          # GPU 불필요(메쉬+PO+DSP)
+$PY build_report4.py                          # GPU 불필요(기하+DSP)
+$PY build_animations.py                       # 실험 애니메이션 GIF(GPU 불필요, 느림)
+CUDA_VISIBLE_DEVICES=2 $PY build_report5.py   # 벤치마크(D 섹션 Sionna RT 가 GPU 1장 사용)
 ```
 
 설계 원칙: **OBJ 1개 = 부위 1개 = Sionna 재질 1개.** 그래서 부위별로 색/전파재질을
@@ -129,4 +147,5 @@ cd sionna2/src && CUDA_VISIBLE_DEVICES=2 $PY build_animations.py # 실험 애니
 - ✅ **report2** 모노스태틱 RCS + WiFi/LTE/5G 비교 + 점유모드(G1/G2/G3, 거리×속도 두 축) + 메쉬 실험 시각화
 - ✅ **report3** 분절 드론(몸체 RPY ⟂ 로터별 스핀) + 회전 블레이드 마이크로-도플러 + PX4/Gazebo 연동 가능성 검증
 - ✅ **report4** 바이스태틱 패시브 레이더 탐지: ECA 클러터제거 → CAF 거리-도플러 → CFAR → Pd/Pfa (파형·점유가 탐지 좌우)
-- 다음 후보: 📐 AoA+위치확정/다중정적+추적(Kalman/MTT), 🔁 분절모델→Gazebo SDF/PX4 airframe, 🎯 마이크로도플러 드론 vs 새 분류, 🔢 Rényi 적응적분.
+- ✅ **report5** 공정 벤치마크(`benchmark/`): 링크버짓으로 SNR 유도 + SCR·Pd 측정 — 점유 공정성·신호×드론 매트릭스(CSV)·0-도플러 블라인드·Sionna RT 교차검증
+- 다음 후보: 🌀 마이크로도플러 결합 탐지(블라인드 메우기), 📐 AoA+위치확정/다중정적+추적(Kalman/MTT), 🔁 분절모델→Gazebo SDF/PX4 airframe, 🔢 Rényi 적응적분.

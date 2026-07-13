@@ -300,7 +300,8 @@ def uv_sphere(radius, center=(0, 0, 0), seg=18, rings=10, group="sph") -> Mesh:
 
 
 def blade(length, width, thick, group="prop") -> Mesh:
-    """프로펠러 날개 한 장. +x 방향으로 length, 살짝 둥근 얇은 판."""
+    """프로펠러 날개 한 장 — **구버전 평면 근사**(자체점검용으로만 사용).
+    실제 드론 프로펠러는 곡면·트위스트가 있는 prop_blade() 를 쓴다(drones.py)."""
     m = Mesh(group)
     L, w, t = length, width / 2, thick / 2
     # 뿌리(좁게)→끝(넓다가 다시 좁아짐) 단순 8각 판을 위/아래 2겹으로
@@ -394,8 +395,8 @@ def hull(lx, ly, lz, sides=12, taper_top=0.72, center=(0, 0, 0), group="hull") -
 # --------------------------------------------------------------------------- #
 def pyramid_field(u_len, v_len, pitch, height, group="absorber") -> Mesh:
     """xy 평면(z=0) 위, [0,u_len]x[0,v_len] 영역을 한 변 pitch 인 피라미드로 채운다.
-    피라미드는 +z 로 뾰족. 만들어 두고 호출부에서 원하는 벽으로 회전/이동시킨다.
-    (벽 라이닝은 chamber.py 에서 이 밭을 회전시켜 각 벽에 붙인다.)"""
+    피라미드는 +z 로 뾰족. **독립 데모/자체점검용 프리미티브** — 챔버 벽 라이닝은
+    chamber._add_pyramids_on_plane 이 벽 평면 위에 직접 생성하므로 이 함수를 쓰지 않는다."""
     m = Mesh(group)
     nu = max(1, int(round(u_len / pitch)))
     nv = max(1, int(round(v_len / pitch)))

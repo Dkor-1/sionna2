@@ -24,10 +24,9 @@ drones.py — DJI 드론 5종의 '실측 제원' + 파라메트릭 3D 모델 생
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
-import numpy as np
-from geom import Mesh, box, cylinder, uv_sphere, blade, prop_blade, hull, rotate, translate
+from geom import Mesh, box, cylinder, uv_sphere, prop_blade, hull, rotate, translate
 
 
 # --------------------------------------------------------------------------- #
@@ -152,7 +151,7 @@ DRONE_GROUP_MAT = {
 # --------------------------------------------------------------------------- #
 #  파라메트릭 멀티로터 생성기
 # --------------------------------------------------------------------------- #
-def _motor_angles(spec: DroneSpec) -> list[float]:
+def motor_angles(spec: DroneSpec) -> list[float]:
     """모터(=암) 각도[deg] 목록. spec.rotor_deg 가 있으면 그대로(드론별 실제 배치).
     없으면 기본 — 쿼드 X자(45/135/225/315), 옥토는 22.5° 오프셋.
     ※ rotor_deg 는 좌우대칭이고 마주보는 쌍이 180° → 대각거리 스펙 보존 + 무게중심 중앙(비행안정)."""
@@ -163,6 +162,9 @@ def _motor_angles(spec: DroneSpec) -> list[float]:
         return [45, 135, 225, 315]
     # 옥토 등: 전방(0)·후방(180)이 비도록 22.5 오프셋
     return [(360.0 / n) * k + (360.0 / n) / 2 for k in range(n)]
+
+
+_motor_angles = motor_angles    # 하위호환 별칭(viz_diagram 등 구버전 import 용)
 
 
 def _drone_dims(spec: DroneSpec):
@@ -194,7 +196,7 @@ def build_frame(spec: DroneSpec) -> Mesh:
     arm_rad = (0.050 if spec.fixed_arm else 0.028) * diag
     arm_t = (0.08 if spec.fixed_arm else 0.045) * diag                          # 모터 안착 높이 기준(유지)
     motor_r = 0.05 * diag; motor_h = 0.045 * diag
-    for ang in _motor_angles(spec):
+    for ang in motor_angles(spec):
         ca, sa = math.cos(math.radians(ang)), math.sin(math.radians(ang))
         mx, my = r * ca, r * sa
         L = r - hub_r; rc = (hub_r + r) / 2.0
@@ -235,7 +237,7 @@ def rotor_layout(spec: DroneSpec) -> list[dict]:
     motor_h = 0.045 * diag
     prop_z = motor_h + arm_t / 2 + 0.006
     out = []
-    for k, ang in enumerate(_motor_angles(spec)):
+    for k, ang in enumerate(motor_angles(spec)):
         ca, sa = math.cos(math.radians(ang)), math.sin(math.radians(ang))
         out.append(dict(center=(r * ca, r * sa, prop_z),
                         base_ang=ang + 12.0, dir=(1 if k % 2 == 0 else -1)))

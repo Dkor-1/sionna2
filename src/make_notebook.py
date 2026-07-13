@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""make_notebook.py — report.ipynb(한글 단계별 설명서) 생성기.
-이미지를 markdown 으로 박아 넣어, 커널을 안 돌려도 VSCode 미리보기에서 바로 보인다.
-실행하면 sionna2/report.ipynb 를 새로 만든다."""
+"""make_notebook.py — report1.ipynb(한글 단계별 설명서) 생성기.
+outputs/ 의 그림을 markdown 상대경로로 링크해, 커널을 안 돌려도 VSCode 미리보기에서 바로 보인다.
+실행하면 sionna2/report1.ipynb 를 새로 만든다."""
 import json, os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -33,7 +33,8 @@ cells.append(md(
     "> 실제 레이더(송수신·RCS·검출) 실험은 다음 노트북 **report2, report3 …** 으로 이어집니다.",
     "",
     "> 이 노트북은 **처음 보는 사람도 차근차근 이해**할 수 있도록 만든 안내서입니다.",
-    "> 셀을 실행하지 않아도 아래 그림들은 바로 보입니다(이미지를 박아 두었기 때문).",
+    "> 그림은 `outputs/` 폴더의 파일을 **상대경로로 링크**해 두어, 저장소를 통째로 받으면",
+    "> 셀을 실행하지 않아도 바로 보입니다.",
     "> 직접 코드를 돌려보고 싶으면, 오른쪽 위에서 커널을 **py312 (Python 3.12)** 로 고르고 셀을 실행하세요.",
     "",
     "**무엇을 만들었나요?**",
@@ -195,28 +196,31 @@ cells.append(md(
 ))
 
 cells.append(md(
-    "## 6. 다음에 할 수 있는 것 (아직 안 한 것)",
+    "## 6. 여기서 이어지는 것 (report2~5)",
     "",
-    "지금까지는 **'기하 + 외형 + 시각화'** 까지만 했습니다(요청하신 범위). 이 모델은 그대로",
-    "전파 시뮬레이션에 쓸 수 있게 **부위별 전파재질**까지 붙어 있습니다. 원하시면 다음을 이어서:",
+    "이 노트북은 **'기하 + 외형 + 시각화'**(1단계)까지입니다. 모델에는 **부위별 전파재질**까지",
+    "붙어 있어 그대로 전파 시뮬레이션에 쓰이며, 실제로 후속 리포트에서 이렇게 이어집니다:",
     "",
-    "- 📡 송신기/수신기 안테나를 시설 안에 놓고 **광선추적(PathSolver)** 실행",
-    "- 🎯 드론을 표적으로 한 **RCS / 패시브 레이더** 시뮬레이션",
-    "- 🌀 흡수체가 실제로 '무반사'인지 **반사량(-dB) 측정**으로 검증",
-    "",
-    "원하시는 것만 말씀해 주시면 **한 단계씩** 추가하겠습니다.",
+    "- 🎯 **report2** — 모노스태틱 레이더 + PO 기반 RCS 특성화 + WiFi/LTE/5G 파형·점유 비교",
+    "- 🌀 **report3** — 분절 드론(몸체⟂로터) + 회전 블레이드 마이크로도플러",
+    "- 📡 **report4** — 챔버 내부 바이스태틱 패시브 레이더 탐지(ECA→CAF→CFAR→Pd)",
+    "- ⚖️ **report5** — 링크버짓 기반 공정 벤치마크(benchmark/) + Sionna RT 교차검증",
 ))
 
-nb = {
-    "cells": cells,
-    "metadata": {
-        "kernelspec": {"display_name": "Python 3.12 (py312)", "language": "python",
-                        "name": "py312"},
-        "language_info": {"name": "python"},
-    },
-    "nbformat": 4, "nbformat_minor": 5,
-}
+def main():
+    nb = {
+        "cells": cells,
+        "metadata": {
+            "kernelspec": {"display_name": "Python 3.12 (py312)", "language": "python",
+                            "name": "py312"},
+            "language_info": {"name": "python"},
+        },
+        "nbformat": 4, "nbformat_minor": 5,
+    }
+    with open(NB, "w") as f:
+        json.dump(nb, f, ensure_ascii=False, indent=1)
+    print("notebook 생성:", os.path.relpath(NB), f"({len(cells)} cells)")
 
-with open(NB, "w") as f:
-    json.dump(nb, f, ensure_ascii=False, indent=1)
-print("notebook 생성:", os.path.relpath(NB), f"({len(cells)} cells)")
+
+if __name__ == "__main__":
+    main()

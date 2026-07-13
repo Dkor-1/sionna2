@@ -7,8 +7,7 @@ import os, sys, time
 def main():
     t0 = time.time()
     print("=" * 64, "\n▶ 1) 무반사 챔버 바이스태틱 기하 점검\n", "=" * 64)
-    from bistatic_scene import bistatic_params
-    from viz_bistatic import TX, RX, CH_CLUTTER      # 챔버 내부 배치(양벽 TX/RX)
+    from bistatic_scene import bistatic_params, TX, RX, CH_CLUTTER   # 챔버 내부 배치(양벽 TX/RX)
     for pos, vel in [((21, 10, 5.5), (-3, 2, 0.5)), ((24, 13, 5), (2, -3, 0))]:
         p = bistatic_params(TX, RX, pos, vel, 3.5e9)
         print(f"  표적{pos} v{vel}: L={p['L']:.1f}m Rb={p['Rb']:.1f}m "
@@ -33,7 +32,8 @@ def main():
 
     print("\n" + "=" * 64, "\n▶ 4) report4.ipynb 생성\n", "=" * 64)
     import subprocess
-    subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), "make_notebook4.py")])
+    subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), "make_notebook4.py")],
+                   check=True)
     print(f"\n✅ report4 완료 ({time.time()-t0:.0f}s)")
 
 

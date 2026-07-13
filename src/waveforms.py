@@ -34,7 +34,7 @@ SSB 뿐 → 협대역(B 작음)+저반복(PRF 작음) → 두 축 다 나쁘다(
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import numpy as np
 
 C0 = 299792458.0
@@ -194,7 +194,7 @@ def ofdm_modulate(grid, fft, cp_lens):
     return np.concatenate(out)
 
 
-def _ci(g, fft, idx):       # 중앙기준 부반송파 → 절대 인덱스
+def _ci(fft, idx):          # 중앙기준 부반송파 → 절대 인덱스
     return fft // 2 + np.asarray(idx)
 
 
@@ -204,7 +204,7 @@ def _ref_grid(grid, labels):
     return np.where(keep, grid, 0.0)
 
 
-def _ref_bw(labels, used_count, scs, fft):
+def _ref_bw(labels, scs):
     """기준신호가 차지한 '부반송파 폭' → 대역[Hz]."""
     keep = np.isin(labels, [CH[c] for c in REF_CH])
     cols = np.where(keep.any(axis=0))[0]
@@ -217,7 +217,7 @@ def _finish(name, std, mode, carrier, bw, scs, fft, fs, cp_lens, grid, labels, u
     tx = ofdm_modulate(grid, fft, cp_lens)
     refg = _ref_grid(grid, labels)
     ref = ofdm_modulate(refg, fft, cp_lens)
-    rbw = _ref_bw(labels, len(used), scs, fft)
+    rbw = _ref_bw(labels, scs)
     return Waveform(name, std, mode, carrier, bw, scs, fft, fs, cp_lens,
                     grid, labels, used, tx, ref, rbw, notes)
 
@@ -246,7 +246,7 @@ def wifi_80211ac(bw_hz=80e6, carrier_hz=5.21e9, occupancy="G3", n_data_sym=10, s
     # L-STF
     r = np.zeros(fft, complex); l = np.zeros(fft, int)
     if "LSTF" in on:
-        idx = used[::4]; r[_ci(r, fft, idx)] = np.sqrt(13/6) * (1 + 1j); l[_ci(l, fft, idx)] = CH["LSTF"]
+        idx = used[::4]; r[_ci(fft, idx)] = np.sqrt(13/6) * (1 + 1j); l[_ci(fft, idx)] = CH["LSTF"]
     addrow(r, l)
     # L-LTF ×2 (광대역 기준)
     base = np.fft.ifftshift(_LLTF); reps = max(1, fft // 64)
@@ -259,13 +259,13 @@ def wifi_80211ac(bw_hz=80e6, carrier_hz=5.21e9, occupancy="G3", n_data_sym=10, s
     # SIG (제어 헤더)
     r = np.zeros(fft, complex); l = np.zeros(fft, int)
     if "WSIG" in on:
-        r[_ci(r, fft, used)] = (1 - 2 * rng.integers(0, 2, len(used))); l[_ci(l, fft, used)] = CH["WSIG"]
+        r[_ci(fft, used)] = (1 - 2 * rng.integers(0, 2, len(used))); l[_ci(fft, used)] = CH["WSIG"]
     addrow(r, l)
     # DATA
     for _ in range(n_data_sym):
         r = np.zeros(fft, complex); l = np.zeros(fft, int)
         if "WDATA" in on:
-            r[_ci(r, fft, used)] = rand_qam(rng, len(used)); l[_ci(l, fft, used)] = CH["WDATA"]
+            r[_ci(fft, used)] = rand_qam(rng, len(used)); l[_ci(fft, used)] = CH["WDATA"]
         addrow(r, l)
     grid = np.array(rows); labels = np.array(labs)
     return _finish("WiFi 802.11ac", "wifi", occupancy, carrier_hz, len(used) * scs,
@@ -280,12 +280,15 @@ def lte_downlink(bw_hz=20e6, carrier_hz=1.843e9, occupancy="G3", n_id=0, seed=2)
     fft = 2048 if bw_hz >= 20e6 else 1024; fs = fft * scs
     n_rb = {20e6: 100, 10e6: 50, 5e6: 25}.get(bw_hz, 100); n_used = n_rb * 12
     used = np.r_[np.arange(-n_used // 2, 0), np.arange(1, n_used // 2 + 1)]
-    cp_lens = ([160] + [144] * 6) * 2; nsym = 14
+    # CP 는 fs 에 비례(TS 36.211 의 160/144 는 fs=30.72 Msps 기준) — fft=1024(10 MHz)면 80/72.
+    #   고정하면 서브프레임이 1 ms 를 벗어난다(10 MHz 에서 1.067 ms, PRF 937.5 Hz 왜곡).
+    sc = fft / 2048
+    cp_lens = ([int(160 * sc)] + [int(144 * sc)] * 6) * 2; nsym = 14
     rng = np.random.default_rng(seed)
     grid = np.zeros((nsym, fft), complex); labels = np.zeros((nsym, fft), int)
 
     def put(l, idx, vals, ch):
-        ai = _ci(grid[l], fft, idx); grid[l, ai] = vals; labels[l, ai] = CH[ch]
+        ai = _ci(fft, idx); grid[l, ai] = vals; labels[l, ai] = CH[ch]
 
     # PDSCH (G3): 먼저 데이터로 채움
     if "PDSCH" in on:
@@ -330,7 +333,7 @@ def nr_downlink(bw_hz=100e6, scs_hz=30e3, carrier_hz=3.5e9, occupancy="G3", n_id
     grid = np.zeros((nsym, fft), complex); labels = np.zeros((nsym, fft), int)
 
     def put(l, idx, vals, ch):
-        ai = _ci(grid[l], fft, idx); grid[l, ai] = vals; labels[l, ai] = CH[ch]
+        ai = _ci(fft, idx); grid[l, ai] = vals; labels[l, ai] = CH[ch]
 
     # PDSCH (G3)
     if "PDSCH" in on:

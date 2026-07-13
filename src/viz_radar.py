@@ -19,9 +19,10 @@ vizstyle.use_korean()
 import matplotlib.pyplot as plt
 
 from drones import DRONES
-from rcs_po import drone_rcs_pattern, dbsm, C0
+from rcs_po import drone_rcs_pattern, dbsm
 from waveforms import all_waveforms
 from radar_process import range_profile, mainlobe_width_m, sphere_calib, estimate_rcs_dbsm
+from radar_scene import ANT_POS, TGT_POS, farfield_distance, target_extent  # sionna 지연 import 라 가벼움
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
 _COL = {"mini5pro": "#1565c0", "mavic4pro": "#2e7d32", "matrice4e": "#ef6c00",
@@ -30,7 +31,6 @@ _NAME = {k: DRONES[k].name.split("  ")[0].replace("DJI ", "") for k in DRONES}
 
 
 def fig_setup(outdir=FIG):
-    from radar_scene import ANT_POS, TGT_POS, farfield_distance, target_extent
     R = abs(TGT_POS[0] - ANT_POS[0])
     fig, ax = plt.subplots(figsize=(12, 4.6), constrained_layout=True)
     ax.add_patch(plt.Rectangle((0, 0), 30, 11, fill=False, ec="0.5", lw=1.5))
@@ -52,7 +52,7 @@ def fig_setup(outdir=FIG):
     txt = "원거리장 2D²/λ 점검 @3.5GHz:  "
     for k in DRONES:
         D = target_extent(k); rff = farfield_distance(D, 3.5e9)
-        ok = "✓" if rff <= R else "✗"
+        ok = "○" if rff <= R else "×"        # (✓/✗ 는 NanumGothic 에 글리프가 없어 □ 로 깨짐)
         txt += f"{_NAME[k]} {rff:.0f}m{ok}  "
     ax.text(15, -1.6, txt, ha="center", fontsize=8.5, color="#444")
     ax.set_xlim(-2, 32); ax.set_ylim(-2.5, 13); ax.axis("off")
@@ -64,7 +64,7 @@ def fig_setup(outdir=FIG):
 def fig_rcs_polar(outdir=FIG, fc=3.5e9):
     az = np.arange(0, 360, 1.0)
     fig = plt.figure(figsize=(13, 5.8), constrained_layout=True)
-    fig.suptitle(f"드론 RCS 특성 — 물리광학(PO) 계산  ·  검증됨(평판·구 이론 일치)",
+    fig.suptitle("드론 RCS 특성 — 물리광학(PO) 계산  ·  검증됨(평판·구 이론 일치)",
                  fontsize=14, fontweight="bold")
     axp = fig.add_subplot(1, 2, 1, projection="polar")
     for k in DRONES:

@@ -31,7 +31,7 @@ def main():
 
     print("\n" + "=" * 64, "\n▶ 4) report3.ipynb 생성\n", "=" * 64)
     import subprocess
-    subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), "make_notebook3.py")])
+    subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), "make_notebook3.py")], check=True)
     print(f"\n✅ report3 완료 ({time.time()-t0:.0f}s)")
 
 

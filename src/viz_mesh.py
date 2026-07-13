@@ -28,28 +28,16 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 from drones import DRONES, build_drone, drone_colors
 from rcs_po import mesh_to_points, rcs_from_points, dbsm, C0
 from waveforms import PILOT_RATE_HZ
+from radar_scene import ANT_POS, TGT_POS    # 모노스태틱 기하 단일 출처(sionna 는 지연 import 라 가벼움)
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
 
-# radar_scene.py 와 동일한 모노스태틱 기하(여기선 sionna/mitsuba import 회피 위해 직접 명시)
-ANT_POS = (2.0, 10.0, 5.5)
-TGT_POS = (12.0, 10.0, 5.5)
-
-_COL = {"mini5pro": "#1565c0", "mavic4pro": "#2e7d32", "matrice4e": "#ef6c00",
-        "s1000plus": "#000000", "phantom4": "#c62828"}
 _NAME = {k: DRONES[k].name.replace("DJI ", "") for k in DRONES}
 
 
 # --------------------------------------------------------------------------- #
 #  메쉬 → matplotlib 3D 보조
 # --------------------------------------------------------------------------- #
-def _mesh_polys(mesh, cmap, default=(0.6, 0.6, 0.6), alpha=1.0, ec=(0, 0, 0, 0.12), lw=0.15):
-    V = np.array(mesh.v)
-    tris = [[V[a], V[b], V[c]] for (a, b, c) in mesh.f]
-    cols = [cmap.get(g, default) for g in mesh.g]
-    return Poly3DCollection(tris, facecolors=cols, edgecolors=ec, linewidths=lw, alpha=alpha)
-
-
 def _equal_3d(ax, lo, hi, pad=1.05):
     c = (np.asarray(lo) + np.asarray(hi)) / 2
     r = (np.asarray(hi) - np.asarray(lo)).max() * pad / 2
@@ -81,13 +69,12 @@ def _face_geom(mesh):
 #  (1) 모노스태틱 측정 3D 장면 — 챔버 + 드론메쉬 + 안테나 + 빔
 # --------------------------------------------------------------------------- #
 def fig_setup_3d(outdir=FIG, target="mavic4pro", fc=3.5e9, exagg=12.0):
-    from rcs_po import C0 as _c
     W, D, H = 30.0, 20.0, 11.0
     R = abs(TGT_POS[0] - ANT_POS[0])
     spec = DRONES[target]
     mesh = build_drone(spec)
     Dext = max(np.array(mesh.v).max(0) - np.array(mesh.v).min(0))      # 표적 크기 D[m]
-    rff = 2 * Dext**2 / (_c / fc)
+    rff = 2 * Dext**2 / (C0 / fc)
 
     fig = plt.figure(figsize=(13, 7.6), constrained_layout=True)
     ax = fig.add_subplot(111, projection="3d")
@@ -286,11 +273,11 @@ def fig_doppler_mesh(outdir=FIG, target="matrice4e"):
 
     # (우) 표준별 기준신호 반복률 → v_max (막대) + 드론 최고속도 기준선
     axB = fig.add_subplot(1, 2, 2)
-    # (이름, 반복률Hz, 반송파Hz)  — 표준별 대표 기준신호
-    refs = [("LTE CRS\n(1.8GHz)", 1000.0, 1.843e9, "#ef6c00"),
-            ("WiFi VHT-LTF\n(5.2GHz)", 1000.0, 5.21e9, "#1565c0"),
-            ("5G PRS/CSI-RS\n(3.5GHz, 촘촘)", 200.0, 3.5e9, "#2e7d32"),
-            ("5G SSB\n(3.5GHz)", 50.0, 3.5e9, "#6a1b9a")]
+    # (이름, 반복률Hz, 반송파Hz)  — 반복률은 waveforms.PILOT_RATE_HZ 단일 소스에서 가져온다
+    refs = [("LTE CRS\n(1.8GHz)", PILOT_RATE_HZ["lte"]["CRS"], 1.843e9, "#ef6c00"),
+            ("WiFi VHT-LTF\n(5.2GHz)", PILOT_RATE_HZ["wifi"]["LLTF"], 5.21e9, "#1565c0"),
+            ("5G PRS/CSI-RS\n(3.5GHz, 촘촘)", PILOT_RATE_HZ["nr"]["PRS"], 3.5e9, "#2e7d32"),
+            ("5G SSB\n(3.5GHz)", PILOT_RATE_HZ["nr"]["PBCH"], 3.5e9, "#6a1b9a")]
     vmax = [prf * (C0/fc) / 4.0 for (_, prf, fc, _c) in refs]
     names = [r[0] for r in refs]; cols = [r[3] for r in refs]
     x = np.arange(len(refs))

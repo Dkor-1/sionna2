@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """make_notebook2.py — report2.ipynb (레이더 구성 & RCS 특성화, WiFi/LTE/5G 비교) 생성기.
-이미지를 markdown 으로 박아 커널 없이도 보이게 한다."""
+outputs/ 의 그림을 markdown 상대경로로 링크해 커널 없이도 보이게 한다."""
 import json, os
 HERE = os.path.dirname(os.path.abspath(__file__))
 NB = os.path.abspath(os.path.join(HERE, "..", "report2.ipynb"))
@@ -36,7 +36,7 @@ cells.append(md(
     "## 1. 레이더 구성 — 모노스태틱 + 원거리장",
     "",
     "- **모노스태틱**: 송신(TX)과 수신(RX)을 같은 곳에 둠 → 표적이 되돌려보내는 **후방산란 RCS** 측정.",
-    "  (가장 표준적인 챔버 측정. 이후 report3에서 바이스태틱으로 확장)",
+    "  (가장 표준적인 챔버 측정. 이후 report4에서 바이스태틱으로 확장)",
     "- 안테나는 챔버 한쪽 끝, 표적은 반대쪽 **quiet zone** → 거리 R 최대 확보.",
     "- ⚠️ **원거리장(far-field)**: RCS 는 R ≥ 2D²/λ 에서만 정의됩니다. 측정거리 R=10 m 기준,",
     "  작은 드론 4종은 3.5 GHz(아래 ✓/✗ 도식)에서 OK지만 **WiFi 5.21 GHz 에선 Mavic4Pro(12.5 m)·Matrice4E(10.8 m)도 R 초과**입니다.",
@@ -220,7 +220,7 @@ cells.append(md(
     "",
     "![range profiles](outputs/figures/report2_range_profiles.png)",
     "",
-    "→ 세 신호 모두 실제 거리(10 m)에서 피크. **5G 가 가장 날카롭고 LTE 가 가장 넓습니다**(대역폭 차이).",
+    "→ 세 신호 모두 실제 거리 10 m 부근(각 분해능 이내, 9.4~9.8 m)에서 피크. **5G 가 가장 날카롭고 LTE 가 가장 넓습니다**(대역폭 차이).",
     "",
     "![summary](outputs/figures/report2_summary.png)",
     "",
@@ -255,16 +255,20 @@ cells.append(md(
     "- 같은 표적도 **반송파(주파수)** 에 따라 RCS 가 수~십 dB 달라짐 → 표준 비교 시 반드시 고려.",
     "- 즉 **5G 는 한가하면(SSB만) 거리·속도 두 축 다 나쁨** — 이것이 패시브 5G 센싱의 핵심 난제(LaSen 등의 출발점).",
     "",
-    "**다음(report3 후보)**",
-    "- 🛰️ **바이스태틱**(TX·RX 분리, 각도 β 스윕) — 진짜 패시브 레이더 구성.",
-    "- 🌀 **마이크로-도플러**(회전 프로펠러) — 드론 식별의 핵심 단서.",
-    "- 📊 **검출 성능**(Pd/Pfa) 과 클러터(챔버 벽) 영향 평가.",
+    "**다음 단계**",
+    "- 🌀 **report3 — 분절 모델 + 마이크로-도플러**(회전 프로펠러) — 드론 식별의 핵심 단서.",
+    "- 🛰️ **report4 — 바이스태틱 탐지**(TX·RX 분리) + ECA·거리-도플러·CFAR·**검출 성능(Pd/Pfa)**.",
 ))
 
-nb = {"cells": cells,
-      "metadata": {"kernelspec": {"display_name": "Python 3.12 (py312)", "language": "python", "name": "py312"},
-                   "language_info": {"name": "python"}},
-      "nbformat": 4, "nbformat_minor": 5}
-with open(NB, "w") as f:
-    json.dump(nb, f, ensure_ascii=False, indent=1)
-print("notebook 생성:", os.path.relpath(NB), f"({len(cells)} cells)")
+def main():
+    nb = {"cells": cells,
+          "metadata": {"kernelspec": {"display_name": "Python 3.12 (py312)", "language": "python", "name": "py312"},
+                       "language_info": {"name": "python"}},
+          "nbformat": 4, "nbformat_minor": 5}
+    with open(NB, "w") as f:
+        json.dump(nb, f, ensure_ascii=False, indent=1)
+    print("notebook 생성:", os.path.relpath(NB), f"({len(cells)} cells)")
+
+
+if __name__ == "__main__":
+    main()

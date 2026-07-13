@@ -21,6 +21,18 @@ import numpy as np
 
 C0 = 299792458.0
 
+# --- 무반사 챔버(30×20×11 m) 내부 바이스태틱 배치 — report4/benchmark 의 단일 출처 -------- #
+#     (viz_bistatic·build_report4·benchmark 가 모두 여기서 import 한다)
+CHAMBER = (30.0, 20.0, 11.0)      # 내부 치수 W(x)·D(y)·H(z)  (report1 과 동일)
+TX = (4.0, 2.5, 8.0)              # 신호원(illuminator) 안테나 — 한쪽 측벽 상단
+RX = (4.0, 17.5, 6.5)             # 패시브 수신 안테나 — 반대 측벽
+TGT = (21.0, 10.0, 5.5)           # 표적 드론(quiet zone)
+VEL = (-3.0, 2.0, 0.5)            # 표적 속도[m/s] — 실내 저속
+
+# 무반사 잔향 클러터(약함): (지연[s], 진폭). DPI 대비 ~−25~−30 dB 수준(dpi_amp≈55~60 기준).
+#   바닥/장비 반사·흡수체 불완전에서 오는 약한 0-도플러 잔향. ECA 가 DPI 와 함께 제거한다.
+CH_CLUTTER = ((8e-9, 3.0), (22e-9, 2.0), (45e-9, 1.4))
+
 
 def bistatic_params(tx, rx, tgt, vel, fc):
     """TX/RX/표적 위치[m]·표적속도[m/s]·반송파[Hz] → 바이스태틱 파라미터 dict."""
@@ -45,8 +57,7 @@ def bistatic_velocity_to_doppler(v_radial_sum, fc):
 
 if __name__ == "__main__":
     # 예: 무반사 챔버(30×20×11) 내부 — TX/RX 를 양쪽 측벽에, 표적이 quiet zone 을 비행
-    tx = (4.0, 2.5, 8.0); rx = (4.0, 17.5, 6.5)
-    for (pos, vel) in [((21, 10, 5.5), (-3, 2, 0.5)), ((24, 13, 5.0), (2, -3, 0))]:
-        p = bistatic_params(tx, rx, pos, vel, 3.5e9)
+    for (pos, vel) in [(TGT, VEL), ((24, 13, 5.0), (2, -3, 0))]:
+        p = bistatic_params(TX, RX, pos, vel, 3.5e9)
         print(f"표적{pos} v{vel}: L={p['L']:.1f}m Rb={p['Rb']:.1f}m "
               f"τ={p['tau']*1e9:.0f}ns f_d={p['fd']:+.1f}Hz β={p['beta']:.0f}°")
