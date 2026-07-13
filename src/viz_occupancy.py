@@ -28,15 +28,24 @@ FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
 _BUILD = {"wifi": wifi_80211ac, "lte": lte_downlink, "nr": nr_downlink}
 _TITLE = {"wifi": "WiFi 802.11ac", "lte": "LTE Rel-9", "nr": "5G NR Rel-16"}
 # 모드 설명(그림 영어 표기)은 아래 로컬 매핑 사용 — 본문 한글 설명은 waveforms.MODE_DESC
-_MODE_EN = {"G1": "idle (ref only)", "G2": "ref+control", "G3": "full load"}
+# 서사: 상시 기준신호는 5G=SSB / LTE=CRS 이고, PRS 는 '측위 세션이 켜졌을 때만' 나오는
+# 옵션 신호다. 따라서 G1 = 상시 신호만(유휴 셀), G2/G3 = PRS 가 켜진 측위 세션 셀.
+# (채널 구성 자체는 waveforms.MODES 가 단일 소스 — 여기선 그 상태를 영어로 부를 뿐이다)
+_MODE_EN = {
+    "wifi": {"G1": "idle - preamble only", "G2": "+ SIG control", "G3": "+ DATA payload"},
+    "lte":  {"G1": "idle - CRS (always-on ref)", "G2": "PRS on (positioning session) + control",
+             "G3": "PRS on + PDSCH data"},
+    "nr":   {"G1": "idle - SSB only (always-on ref)", "G2": "PRS on (positioning session) + control",
+             "G3": "PRS on + PDSCH data"},
+}
 def _mdesc(std, mode):
-    return f"{mode} · {_MODE_EN[mode]}"
+    return f"{mode} · {_MODE_EN[std][mode]}"
 # 사진에 등장하는 채널만 범례로
 _LEGEND_CH = ["PSS", "SSS", "PBCH", "PRS", "CRS", "DMRS", "PDCCH", "PDSCH",
               "LSTF", "LLTF", "WSIG", "WDATA"]
 _ENG = {"PSS": "PSS (sync)", "SSS": "SSS (sync)", "PBCH": "PBCH (broadcast, SSB)", "PRS": "PRS (positioning RS)",
         "CRS": "CRS (cell RS)", "DMRS": "DMRS (demod RS)", "PDCCH": "PDCCH (control)", "PDSCH": "PDSCH (data)",
-        "LSTF": "L-STF (preamble)", "LLTF": "L-LTF (preamble)", "WSIG": "SIG", "WDATA": "DATA"}
+        "LSTF": "L-STF (preamble)", "LLTF": "VHT-LTF (preamble)", "WSIG": "SIG", "WDATA": "DATA"}
 
 
 def _grid_image(ax, wf):
@@ -50,6 +59,9 @@ def _grid_image(ax, wf):
     vals = sorted(CH_COLOR.keys())
     cmap = ListedColormap([CH_COLOR[v] for v in vals])
     norm = BoundaryNorm([v - 0.5 for v in vals] + [vals[-1] + 0.5], cmap.N)
+    # interpolation="nearest" 유지 필수: 라벨(img)은 '채널 번호'라는 범주형 스칼라라,
+    # 축소 시 값을 평균내면 EMPTY(0)+CRS(5)가 2.5 가 되어 BoundaryNorm 이 PBCH 색으로
+    # 칠하는 '유령 채널'이 생긴다. nearest 는 점샘플링이라 그런 혼색이 없다(렌더 검증 완료).
     ax.imshow(img, aspect="auto", origin="lower", cmap=cmap, norm=norm,
               extent=[-0.5, img.shape[1] - 0.5, fr[0], fr[-1]], interpolation="nearest")
     ax.set_xlabel("OFDM symbol", fontsize=8); ax.set_ylabel("Baseband [MHz]", fontsize=8)
@@ -73,8 +85,9 @@ def fig_resource_grids(std, outdir=FIG):
         present |= set(_BUILD[std](occupancy=mode).labels.ravel().tolist())
     handles = [Patch(facecolor=CH_COLOR[CH[c]], edgecolor="0.4", label=_ENG[c])
                for c in _LEGEND_CH if CH[c] in present]
-    fig.legend(handles=handles, loc="lower center", ncol=len(handles), fontsize=8.5,
-               bbox_to_anchor=(0.5, -0.04))
+    # constrained_layout 이 범례 자리를 따로 잡아 준다(=축 밖) → 'OFDM symbol' x라벨을 덮지 않음.
+    # bbox_to_anchor 로 밀어내면 축 위로 겹치므로 쓰지 않는다(subplots_adjust 병용도 금지).
+    fig.legend(handles=handles, loc="outside lower center", ncol=len(handles), fontsize=8.5)
     fn = os.path.join(outdir, f"report2_grids_{std}.png"); fig.savefig(fn, dpi=130, bbox_inches="tight")
     plt.close(fig); print("[occ]", os.path.relpath(fn)); return fn
 
@@ -93,17 +106,21 @@ def fig_occupancy_experiment(outdir=FIG, target="mavic4pro", R=10.0, snr_db=18.0
     for mode in modes:
         wf = nr_downlink(occupancy=mode)
         sig, _ = drone_rcs_pattern(target, wf.carrier_hz, np.array([0.0])); sig = float(sig[0])
-        rm, prof, pr, pv = range_profile(wf, R, sig, snr_db=snr_db, passive=True,
+        rm, prof, pr, pv = range_profile(wf, R, sig, snr_db=snr_db, passive=True, up=8,
                                          rng=np.random.default_rng(5))
         pdb = 20 * np.log10(prof / prof.max() + 1e-12)
+        # 실측 -3dB 주엽폭 — 거리축을 8배 보간해서 잰다(원격자 c/2fs ≈ 1.2 m 에 양자화되면
+        # 이론 c/2B 와 어긋나 보인다). 보간하면 실측≈이론 이 되어 (d) 막대와 일관된다.
         res = mainlobe_width_m(rm, prof)
         axA.plot(rm, pdb, color=col[mode], lw=1.7,
-                 label=f"{_mdesc('nr', mode)}  → resolution≈{res:.1f}m")
+                 label=f"{_mdesc('nr', mode)}  -> measured -3dB {res:.1f} m "
+                       f"(theory {wf.range_resolution_m:.1f} m)")
     axA.axvline(R, color="k", ls="--", lw=1, label=f"True range {R:.0f}m")
     axA.set_xlim(0, 2 * R + 5); axA.set_ylim(-40, 2)
     axA.set_xlabel("Range [m]"); axA.set_ylabel("Matched-filter output [dB]")
     axA.set_title("(a) 5G NR — range profile per occupancy mode, measured with known pilots only\n"
-                  "(G1=SSB only→narrowband→blurry range / G2~G3=PRS→wideband→sharp)", fontsize=11)
+                  "(G1 = idle cell, SSB only → narrowband → blurry range / G2~G3 = positioning "
+                  "session, PRS on → wideband → sharp)", fontsize=11)
     axA.legend(fontsize=9); axA.grid(alpha=0.3)
 
     # (b) 점유율  (c) 송신에너지  (d) 거리분해능(현실, 로그)

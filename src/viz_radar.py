@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 from drones import DRONES
 from rcs_po import drone_rcs_pattern, dbsm
-from waveforms import all_waveforms
+from waveforms import all_waveforms, always_on_waveforms
 from radar_process import range_profile, mainlobe_width_m, sphere_calib, estimate_rcs_dbsm
 from radar_scene import ANT_POS, TGT_POS, farfield_distance, target_extent  # sionna 지연 import 라 가벼움
 
@@ -48,8 +48,8 @@ def fig_setup(outdir=FIG):
                 arrowprops=dict(arrowstyle="->", color="#1565c0", lw=2, ls=":"))
     ax.text((ANT_POS[0]+TGT_POS[0])/2, ANT_POS[2]+0.5, f"R = {R:.0f} m  (round trip 2R/c)",
             ha="center", fontsize=10, color="#1565c0")
-    # 원거리장 표
-    txt = "Far-field 2D²/λ check @3.5GHz:  "
+    # 원거리장 표 (λ 는 NanumGothic 에 글리프가 없어 □ 로 깨짐 → mathtext 로 렌더)
+    txt = "Far-field " + r"$2D^2/\lambda$" + " check @3.5GHz (D = max horizontal span incl. props):  "
     for k in DRONES:
         D = target_extent(k); rff = farfield_distance(D, 3.5e9)
         ok = "○" if rff <= R else "×"        # (✓/✗ 는 NanumGothic 에 글리프가 없어 □ 로 깨짐)
@@ -61,6 +61,9 @@ def fig_setup(outdir=FIG):
     print("[radar]", os.path.relpath(fn)); return fn
 
 
+RFLOOR_DBSM = -45.0    # 폴라 RCS 의 반경축 바닥(코히런트 PO 의 깊은 널을 여기서 포화시킨다)
+
+
 def fig_rcs_polar(outdir=FIG, fc=3.5e9):
     az = np.arange(0, 360, 1.0)
     fig = plt.figure(figsize=(13, 5.8), constrained_layout=True)
@@ -69,9 +72,15 @@ def fig_rcs_polar(outdir=FIG, fc=3.5e9):
     axp = fig.add_subplot(1, 2, 1, projection="polar")
     for k in DRONES:
         sig, _ = drone_rcs_pattern(k, fc, az)
-        axp.plot(np.radians(az), dbsm(sig), color=_COL[k], lw=1.3, label=_NAME[k])
-    axp.set_title(f"(a) RCS (azimuth) @ {fc/1e9:.1f} GHz [dBsm]", fontsize=11)
+        # 코히런트 PO 는 위상 상쇄로 폭 2~3° 의 깊은 널(−70 dBsm 까지)을 만든다. 값을 바닥에서
+        # 포화시키지 않으면 널 한 점이 선을 원 중심까지 끌고 들어가 '표적 소멸'처럼 보인다.
+        # (현실에선 유한 대역폭·표면거칠기·다중경로가 널을 메운다.)
+        axp.plot(np.radians(az), np.maximum(dbsm(sig), RFLOOR_DBSM),
+                 color=_COL[k], lw=1.3, label=_NAME[k])
+    axp.set_title(f"(a) RCS (azimuth) @ {fc/1e9:.1f} GHz [dBsm]\n"
+                  f"(deep coherent nulls saturated at the {RFLOOR_DBSM:.0f} dBsm floor)", fontsize=11)
     axp.set_theta_zero_location("N"); axp.set_theta_direction(-1)
+    axp.set_rlim(RFLOOR_DBSM, None)
     axp.set_rlabel_position(135); axp.legend(loc="upper right", bbox_to_anchor=(1.18, 1.1), fontsize=8)
     # RCS vs frequency
     axf = fig.add_subplot(1, 2, 2)
@@ -115,69 +124,147 @@ def fig_rcs_bands(outdir=FIG):
     print("[radar]", os.path.relpath(fn)); return fn
 
 
+def _psd_db(x, fs):
+    """정규화 PSD [dB] 와 baseband 주파수축 [MHz]."""
+    f = np.fft.fftshift(np.fft.fftfreq(len(x), 1/fs))/1e6
+    P = np.fft.fftshift(np.abs(np.fft.fft(x))**2)
+    return f, 10*np.log10(P/(P.max()+1e-30) + 1e-12)
+
+
+def _mf_range_db(ref, fs, rmax=45.0, up=8):
+    """기준신호 자기상관(=이상적 점표적의 정합필터 응답)을 '거리[m]' 축으로.
+    - np.correlate(O(n²))는 NR 6만 샘플에서 수십 분 → **FFT 상관**(O(n log n)).
+    - 거리축 원샘플 간격 c/2fs 는 LTE 에서 4.9 m 나 되어 곡선이 톱니가 된다 →
+      상관 스펙트럼을 제로패딩해 시간축을 `up`배 **보간**(대역제한 신호라 정보 왜곡 없음)."""
+    n = len(ref)
+    nf = 1 << int(np.ceil(np.log2(2 * n)))          # 제로패딩 → 순환상관이 아닌 선형상관
+    S = np.abs(np.fft.fft(ref, nf)) ** 2            # 자기상관의 스펙트럼(실수·비음수)
+    Su = np.zeros(nf * up, complex)                 # 스펙트럼 가운데를 0 으로 채워 시간축 보간
+    Su[:nf // 2] = S[:nf // 2]; Su[-(nf // 2):] = S[nf // 2:]
+    r = np.abs(np.fft.ifft(Su))[: n * up]
+    r /= r.max() + 1e-30
+    rng = np.arange(n * up) / (fs * up) * 299792458.0 / 2.0
+    m = rng <= rmax
+    return rng[m], 20*np.log10(r[m] + 1e-12)
+
+
 def fig_wave_spectra(outdir=FIG):
-    wfs = all_waveforms()
-    fig, axes = plt.subplots(2, 3, figsize=(14, 6.4), constrained_layout=True)
-    fig.suptitle("Real commercial OFDM waveforms — spectra (occupied band) and time waveforms", fontsize=14, fontweight="bold")
-    for j, (key, wf) in enumerate(wfs.items()):
-        f = np.fft.fftshift(np.fft.fftfreq(len(wf.tx), 1/wf.fs_hz))/1e6
-        P = np.fft.fftshift(np.abs(np.fft.fft(wf.tx))**2); P = 10*np.log10(P/P.max()+1e-12)
-        axes[0, j].plot(f, P, lw=0.5, color="#1565c0")
-        axes[0, j].set_title(f"{wf.name}\n{wf.bw_hz/1e6:.0f}MHz · {wf.carrier_hz/1e9:.2f}GHz · resolution {wf.range_resolution_m:.2f}m",
-                             fontsize=10)
-        axes[0, j].set_xlabel("Baseband frequency [MHz]"); axes[0, j].set_ylabel("PSD [dB]")
-        axes[0, j].set_ylim(-60, 3); axes[0, j].grid(alpha=0.3)
-        t = np.arange(min(800, len(wf.tx)))/wf.fs_hz*1e6
-        axes[1, j].plot(t, np.real(wf.tx[:len(t)]), lw=0.6, color="#2e7d32")
-        axes[1, j].set_xlabel("Time [µs]"); axes[1, j].set_ylabel("Re{s(t)}")
-        axes[1, j].set_title(f"Reference signal={wf.ref_name} · FFT{wf.fft}", fontsize=9); axes[1, j].grid(alpha=0.3)
-    fn = os.path.join(outdir, "report2_wave_spectra.png"); fig.savefig(fn, dpi=130); plt.close(fig)
+    """상시(always-on) 기준신호가 실제로 점유하는 대역과, 그것이 만드는 정합필터 응답.
+    핵심 메시지: 패시브 레이더가 언제나 기댈 수 있는 건 LTE=CRS · 5G=SSB · WiFi=프리앰블뿐이고,
+    5G 의 SSB 는 100MHz 채널 한가운데의 7.2MHz 조각이라 거리가 흐릿하다(PRS 는 측위 세션 옵션)."""
+    ch = all_waveforms("G3")                      # 채널(풀로드) 스펙트럼 — 배경
+    on = always_on_waveforms()                    # 상시 기준신호 — 주인공
+    prs = all_waveforms("G2")["nr"]               # 측위 세션이 켜졌을 때의 5G 기준(비교용)
+    col = {"wifi": "#1565c0", "lte": "#ef6c00", "nr": "#2e7d32"}
+    fig, axes = plt.subplots(2, 3, figsize=(14.4, 6.8), constrained_layout=True)
+    fig.suptitle("What a passive radar can actually use — the always-on reference signal of each standard",
+                 fontsize=14, fontweight="bold")
+    for j, key in enumerate(("wifi", "lte", "nr")):
+        wf, wch = on[key], ch[key]
+        # (위) 채널 점유대역(회색) 위에 상시 기준신호가 덮는 대역(색)
+        f0, P0 = _psd_db(wch.tx, wch.fs_hz)
+        f1, P1 = _psd_db(wf.ref, wf.fs_hz)
+        ax = axes[0, j]
+        ax.plot(f0, P0, lw=0.5, color="0.72", label=f"channel, full load ({wch.bw_hz/1e6:.0f} MHz)")
+        ax.plot(f1, P1, lw=0.6, color=col[key], label=f"always-on ref: {wf.ref_name} ({wf.ref_bw_hz/1e6:.1f} MHz)")
+        ax.set_title(f"{wf.name} · {wf.carrier_hz/1e9:.2f} GHz", fontsize=10.5, fontweight="bold")
+        ax.set_xlabel("Baseband frequency [MHz]"); ax.set_ylabel("PSD [dB, self-normalized]")
+        ax.set_ylim(-60, 3); ax.grid(alpha=0.3); ax.legend(fontsize=7.6, loc="lower center")
+        # (아래) 그 기준신호의 정합필터 응답 → 거리분해능
+        ax = axes[1, j]
+        rr, pp = _mf_range_db(wf.ref, wf.fs_hz)
+        ax.plot(rr, pp, lw=1.5, color=col[key],
+                label=f"{wf.ref_name}: c/2B = {wf.range_resolution_m:.1f} m")
+        if key == "nr":                            # 5G 만: PRS 가 켜지면 어떻게 되는지 점선으로
+            rr2, pp2 = _mf_range_db(prs.ref, prs.fs_hz)
+            ax.plot(rr2, pp2, lw=1.3, ls="--", color="#7b1fa2",
+                    label=f"if PRS is configured: {prs.range_resolution_m:.1f} m")
+        ax.axhline(-3, color="0.6", ls=":", lw=1)
+        ax.set_xlim(0, 45); ax.set_ylim(-40, 3)
+        ax.set_xlabel("Range [m]"); ax.set_ylabel("Matched-filter output [dB]")
+        ax.set_title("Range response of that reference", fontsize=9.5)
+        ax.grid(alpha=0.3); ax.legend(fontsize=8, loc="upper right")
+    fig.text(0.5, -0.012,
+             "LTE keeps an always-on wideband pilot (CRS, every 1 ms) — 5G does not: an idle gNB only emits SSB "
+             "(7.2 MHz, every 20 ms). PRS is a positioning-session option, not something a passive receiver can assume.",
+             ha="center", fontsize=9, color="0.35")
+    fn = os.path.join(outdir, "report2_wave_spectra.png"); fig.savefig(fn, dpi=130, bbox_inches="tight"); plt.close(fig)
     print("[radar]", os.path.relpath(fn)); return fn
 
 
 def fig_range_profiles(outdir=FIG, target="mavic4pro", R=10.0, snr_db=20.0):
-    wfs = all_waveforms()
-    fig, ax = plt.subplots(figsize=(12, 5.4), constrained_layout=True)
+    """같은 표적을 세 표준의 **상시 기준신호**로 재본다(+5G 는 PRS 가 켜졌을 때를 점선으로).
+    '5G 가 제일 날카롭다'는 PRS 를 가정할 때만 참이고, 유휴 셀에선 5G 가 가장 거칠다."""
+    wfs = always_on_waveforms()
+    prs = all_waveforms("G2")["nr"]
+    fig, ax = plt.subplots(figsize=(12.4, 5.6), constrained_layout=True)
     col = {"wifi": "#1565c0", "lte": "#ef6c00", "nr": "#2e7d32"}
-    for key, wf in wfs.items():
+    def _trace(wf):
+        """패시브 처리(기준신호만 아는 상관) + 거리축 보간(up=8).
+        보간 없이 원격자(c/2fs: LTE 4.9 m)에서 재면 -3dB 폭이 격자에 양자화돼 이론과 어긋난다."""
         sig, _ = drone_rcs_pattern(target, wf.carrier_hz, np.array([0.0])); sig = float(sig[0])
-        rng_m, prof, pkr, pkv = range_profile(wf, R, sig, snr_db=snr_db,
-                                              rng=np.random.default_rng(7))
-        pdb = 20*np.log10(prof/prof.max()+1e-12)
-        res = mainlobe_width_m(rng_m, prof)
-        ax.plot(rng_m, pdb, color=col[key], lw=1.6,
-                label=f"{wf.name}  (B={wf.bw_hz/1e6:.0f}MHz, resolution≈{res:.1f}m)")
+        rm, p, _, _ = range_profile(wf, R, sig, snr_db=snr_db, passive=True, up=8,
+                                    rng=np.random.default_rng(7))
+        return rm, 20*np.log10(p/p.max()+1e-12), mainlobe_width_m(rm, p)
+
+    for key, wf in wfs.items():
+        rm, pdb, res = _trace(wf)
+        ax.plot(rm, pdb, color=col[key], lw=1.7,
+                label=f"{wf.name} — {wf.ref_name} {wf.ref_bw_hz/1e6:.1f} MHz: "
+                      f"theory {wf.range_resolution_m:.1f} m / measured -3dB {res:.1f} m")
+    rm, pdb, _ = _trace(prs)
+    ax.plot(rm, pdb, color="#7b1fa2", lw=1.4, ls="--",
+            label=f"5G NR *if PRS is configured* — NR-PRS {prs.ref_bw_hz/1e6:.0f} MHz: "
+                  f"theory {prs.range_resolution_m:.1f} m")
     ax.axvline(R, color="k", ls="--", lw=1, label=f"True range {R:.0f} m")
     ax.set_xlim(0, 2*R+5); ax.set_ylim(-40, 2)
     ax.set_xlabel("Range [m]"); ax.set_ylabel("Matched-filter output [dB]")
-    ax.set_title(f"Same target ({_NAME[target]}) measured with three waveforms — range resolution comparison\n"
-                 f"(wider bandwidth → sharper peak: 5G > WiFi > LTE)", fontsize=13, fontweight="bold")
-    ax.legend(fontsize=9.5); ax.grid(alpha=0.3)
+    w, l, n = wfs["wifi"], wfs["lte"], wfs["nr"]
+    ax.set_title(f"Same target ({_NAME[target]}), measured with each standard's ALWAYS-ON reference\n"
+                 f"WiFi {w.ref_name} {w.range_resolution_m:.1f} m  >  LTE {l.ref_name} {l.range_resolution_m:.1f} m  >  "
+                 f"5G {n.ref_name} {n.range_resolution_m:.0f} m — an idle 5G cell is the blurriest, and only sharpens "
+                 f"to {prs.range_resolution_m:.1f} m if PRS is switched on",
+                 fontsize=12.5, fontweight="bold")
+    ax.legend(fontsize=9, loc="upper right"); ax.grid(alpha=0.3)
     fn = os.path.join(outdir, "report2_range_profiles.png"); fig.savefig(fn, dpi=130); plt.close(fig)
     print("[radar]", os.path.relpath(fn)); return fn
 
 
 def fig_summary(outdir=FIG, target="mavic4pro", R=10.0):
-    wfs = all_waveforms()
-    rows = []
-    for key, wf in wfs.items():
+    """요약표 — 상시 기준신호 3종 + '5G 에 PRS 가 켜졌을 때'를 마지막 행에 따로."""
+    rows, rowkind = [], []
+    entries = [(k, wf, True) for k, wf in always_on_waveforms().items()]
+    entries.append(("nr_prs", all_waveforms("G2")["nr"], False))
+    for key, wf, always in entries:
         sig, _ = drone_rcs_pattern(target, wf.carrier_hz, np.array([0.0])); sig = float(sig[0])
-        rng_m, prof, pkr, pkv = range_profile(wf, R, sig, snr_db=20.0, rng=np.random.default_rng(7))
+        rng_m, prof, pkr, pkv = range_profile(wf, R, sig, snr_db=20.0, passive=True, up=8,
+                                              rng=np.random.default_rng(7))
         res = mainlobe_width_m(rng_m, prof)
-        cpk, csig = sphere_calib(wf, R); est = estimate_rcs_dbsm(pkv, cpk, csig)
-        rows.append([wf.name, f"{wf.carrier_hz/1e9:.2f} GHz", f"{wf.bw_hz/1e6:.0f} MHz",
-                     wf.ref_name, f"{wf.range_resolution_m:.2f} m", f"{res:.1f} m",
-                     f"{dbsm(sig):.1f}", f"{est:.1f}"])
-    fig, ax = plt.subplots(figsize=(13, 3.2), constrained_layout=True); ax.axis("off")
-    cols = ["Standard", "Carrier", "Channel BW", "Reference\nsignal", "Theoretical res.\nc/2·ref BW", "Measured res.\n(-3dB)",
+        cpk, csig = sphere_calib(wf, R, passive=True, up=8)   # 표적과 동일 처리(안 그러면 보정 상수가 안 상쇄)
+        est = estimate_rcs_dbsm(pkv, cpk, csig)
+        name = wf.name if always else "5G NR  (PRS session)"
+        rows.append([name, f"{wf.carrier_hz/1e9:.2f} GHz", f"{wf.bw_hz/1e6:.0f} MHz",
+                     wf.ref_name if always else f"{wf.ref_name} (optional)",
+                     f"{wf.ref_bw_hz/1e6:.1f} MHz",
+                     f"{wf.range_resolution_m:.2f} m", f"{res:.1f} m",
+                     f"{wf.v_unambiguous_ms:.1f} m/s", f"{dbsm(sig):.1f}", f"{est:.1f}"])
+        rowkind.append(always)
+    fig, ax = plt.subplots(figsize=(15, 3.4), constrained_layout=True); ax.axis("off")
+    cols = ["Standard", "Carrier", "Channel BW", "Reference signal", "Reference BW",
+            "Range res.\nc/2B (theory)", "Measured\n-3 dB width", "Max speed\n" + r"PRF$\cdot\lambda$/4",
             "True RCS\n[dBsm]", "Estimated RCS\n[dBsm]"]
     t = ax.table(cellText=rows, colLabels=cols, loc="center", cellLoc="center")
-    t.auto_set_font_size(False); t.set_fontsize(10.5); t.scale(1, 2.0)
+    t.auto_set_font_size(False); t.set_fontsize(10.0); t.scale(1, 2.0)
     for c in range(len(cols)):
         t[0, c].set_facecolor("#1565c0"); t[0, c].set_text_props(color="white", fontweight="bold")
-    ax.set_title(f"WiFi vs LTE vs 5G — target {_NAME[target]} @ R={R:.0f}m summary\n"
-                 f"(Estimated RCS matches true value → sphere-calibrated matched filter OK; 5G best resolution)",
-                 fontsize=13, fontweight="bold", pad=14)
+    for i, always in enumerate(rowkind, start=1):          # PRS 행은 '옵션'이라 흐리게
+        if not always:
+            for c in range(len(cols)):
+                t[i, c].set_facecolor("#f3e5f5"); t[i, c].set_text_props(color="#4a148c")
+    ax.set_title(f"Always-on references vs the PRS option — target {_NAME[target]} @ R = {R:.0f} m\n"
+                 "Estimated RCS tracks the true value (sphere-calibrated matched filter works). "
+                 "Note LTE CRS beats 5G SSB on BOTH axes: range 8.3 m vs 21 m, speed 41 m/s vs 1.1 m/s.",
+                 fontsize=12.5, fontweight="bold", pad=14)
     fn = os.path.join(outdir, "report2_summary.png"); fig.savefig(fn, dpi=130); plt.close(fig)
     print("[radar]", os.path.relpath(fn)); return fn
 
@@ -213,10 +300,15 @@ def fig_rcs_materials(outdir=FIG, fc=3.5e9):
         olds.append(dbsm(rcs_from_points(P2, N2, dA2, fc, az, w=wo).mean()))
         news.append(dbsm(rcs_from_points(P2, N2, dA2, fc, az, w=wn).mean()))
     x = np.arange(len(keys)); wbar = 0.38
-    axes[1].bar(x - wbar/2, olds, wbar, color="0.6", label="old (all-PEC)")
-    axes[1].bar(x + wbar/2, news, wbar, color="#2e7d32", label="new (material-weighted)")
+    # S1000+ 의 old 값이 ≈0 dBsm 이라 baseline=0 막대는 높이 0 → 안 보인다. 바닥을 내려 그린다.
+    base = float(np.floor(min(olds + news))) - 3.0
+    axes[1].bar(x - wbar/2, np.array(olds) - base, wbar, bottom=base, color="0.6", label="old (all-PEC)")
+    axes[1].bar(x + wbar/2, np.array(news) - base, wbar, bottom=base, color="#2e7d32",
+                label="new (material-weighted)")
     for xi, (o, n) in enumerate(zip(olds, news)):
+        axes[1].text(xi - wbar/2, o + 0.4, f"{o:+.1f}", ha="center", fontsize=7.5, color="0.35")
         axes[1].text(xi + wbar/2, n + 0.4, f"{n-o:+.1f} dB", ha="center", fontsize=8.5)
+    axes[1].set_ylim(base, 3.5)
     axes[1].set_xticks(x, [_NAME[k] for k in keys], fontsize=8.5)
     axes[1].set_ylabel("Azimuth-avg RCS [dBsm]")
     axes[1].set_title("(b) Azimuth-mean per drone — plastic shell is semi-transparent to RF",
@@ -231,9 +323,9 @@ def fig_rcs_materials(outdir=FIG, fc=3.5e9):
 
 def fig_rcs_shape_ab(outdir=FIG):
     """형상 민감도 A/B — 파라메트릭 메쉬 vs **실기체 3D 스캔**(Phantom 4, CC-BY).
-    두 모델 모두 PEC + 동일 부위구성(스캔엔 프로펠러·카메라가 없어 파라메트릭도 제외)으로
-    맞춰 **순수 형상 차이만** 측정한다. λ=6~16cm 에선 λ/8 이하 디테일이 안 보인다는
-    주장을 데이터로 검증하는 그림."""
+    두 모델 모두 PEC + 동일 부위구성(스캔에 없는 프로펠러·카메라 **및 내부 산란체(배터리/PCB)** 는
+    파라메트릭에서도 제외)으로 맞춰 **순수 형상 차이만** 측정한다. λ=6~16cm 에선 λ/8 이하
+    디테일이 안 보인다는 주장을 데이터로 검증하는 그림."""
     from drones import build_drone
     from rcs_po import mesh_to_points, rcs_from_points
     npz = os.path.join(os.path.dirname(__file__), "..", "assets", "meshes", "cad",
@@ -263,7 +355,7 @@ def fig_rcs_shape_ab(outdir=FIG):
     axes[0].axhline(dbsm(s_scan.mean()), color="#1565c0", ls="--", lw=1)
     axes[0].set_xlabel("Azimuth [deg]"); axes[0].set_ylabel("RCS [dBsm]")
     axes[0].set_title(f"(a) Phantom 4 azimuth pattern @ {fc0/1e9:.1f} GHz — both PEC, "
-                      "matched parts (no props/camera)", fontsize=10.5)
+                      "matched parts (no props/camera/internals)", fontsize=10.5)
     axes[0].grid(alpha=0.3); axes[0].legend(fontsize=9, loc="lower left")
     # (b) 대역별 방위평균
     means_p, means_s = [], []

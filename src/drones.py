@@ -5,7 +5,8 @@ drones.py — DJI 드론 5종의 '실측 제원' + 파라메트릭 3D 모델 생
 
 목표
   사진처럼 보이는 '대충 만든 드론'이 아니라, **실제 제원(대각거리/무게/프로펠러
-  지름/로터 수 …)을 그대로 반영**한, 치수가 정확한 멀티로터 3D 모델을 만든다.
+  지름/로터 수 …)을 그대로 반영**한 멀티로터 3D 모델을 만든다. 대각거리·프로펠러·
+  로터 수는 제원 그대로, 동체 높이/두께는 비율 근사한다.
 
 제원 출처
   src/.. 의 백그라운드 리서치(웹 검색 + 독립 검증, docs/drone_research.json)에서
@@ -38,7 +39,8 @@ class DroneSpec:
     name: str
     # --- 실측 제원 (리서치+검증) ---
     diagonal_mm: float          # 모터-모터 대각거리(휠베이스)
-    weight_g: float             # 이륙중량
+    weight_g: float             # 무게[g] — 이륙중량(TOW). 단 S1000+ 는 기체(airframe) 자중 4.4 kg
+                                #   (권장 TOW 6.0~11.0 kg, 대표 ~9.5, 최대 11)
     body_l_mm: float            # 동체(언폴드) 길이/폭/높이 — 외형 비율 참고용
     body_w_mm: float
     body_h_mm: float
@@ -96,7 +98,8 @@ DRONES: dict[str, DroneSpec] = {
         prop_dia_mm=267, prop_blades=2, num_rotors=4,
         max_speed_ms=25, hover_rpm=5500, rtk=False, release="released", confidence="high",
         note="Large consumer flagship (2025); front triple-camera gimbal (360° infinity). "
-             "Weight/dimensions official; diagonal & prop diameter estimated (not published).",
+             "Weight/dimensions/propeller official (prop 266.7 mm, shown rounded to 267 mm); "
+             "diagonal estimated (not published by DJI; Mavic 3 = 380.1 mm).",
         body_rgb=_SILVER, arm_style="body", gear="none", gimbal="front",
         accent_rgb=None, body_frac=0.42,
         rotor_deg=(32, 148, 212, 328), body_lw=(1.52, 0.62), gimbal_style="triple"),
@@ -118,7 +121,8 @@ DRONES: dict[str, DroneSpec] = {
         body_l_mm=1045, body_w_mm=1045, body_h_mm=462,
         prop_dia_mm=381, prop_blades=2, num_rotors=8,
         max_speed_ms=None, hover_rpm=3500, rtk=False, release="discontinued", confidence="high",
-        note="Octocopter: 8 arms, 1 rotor per arm (non-coaxial). Carbon frame, retractable landing gear, belly gimbal.",
+        note="Octocopter: 8 arms, 1 rotor per arm (non-coaxial). Carbon frame, retractable landing gear, belly gimbal. "
+             "4400 g is the AIRFRAME weight; recommended takeoff weight 6.0-11.0 kg.",
         body_rgb=_BLACK, arm_style="carbon", gear="tall", gimbal="belly",
         accent_rgb=(0.85, 0.10, 0.10), body_frac=0.30,
         body_lw=(1.0, 1.0), gimbal_style="belly"),

@@ -47,7 +47,7 @@ def catalog(outdir=FIG):
                  fontsize=17, fontweight="bold")
     for ax, key in zip(axes.flat, keys):
         s = DRONES[key]
-        sub = f"diag {s.diagonal_mm:.0f} mm · {s.weight_g:.0f} g · {s.num_rotors} rotors"
+        sub = f"diag {s.diagonal_mm:.0f} mm · {s.weight_g:g} g · {s.num_rotors} rotors"
         _show(ax, os.path.join(REN, f"studio_{key}.png"),
               s.name.split("  ")[0], sub, RELEASE_BADGE.get(s.release))
     # 마지막 칸: 비행 장면
@@ -64,11 +64,15 @@ def facility_views(outdir=FIG):
     fig, axes = plt.subplots(1, 3, figsize=(16, 4.6), constrained_layout=True)
     fig.suptitle("Large anechoic chamber (shielded facility) — Sionna RT renders", fontsize=16, fontweight="bold")
     _show(axes[0], os.path.join(REN, "facility_hero.png"), "Overall view (front wall cut away)")
-    _show(axes[1], os.path.join(REN, "facility_corner.png"), "Corner close-up")
+    # HERO_CAM2 렌더는 '코너 접사'가 아니라 벽이 닫힌 외관 뷰다(재렌더 금지 — 제목만 실물에 맞춤).
+    _show(axes[1], os.path.join(REN, "facility_corner.png"),
+          "Exterior view (shield walls closed)", "metal shield box + steel frame")
     _show(axes[2], os.path.join(REN, "lineup_floor.png"), "5 drones lined up on the floor")
     fn = os.path.join(outdir, "facility_views.png")
     os.makedirs(outdir, exist_ok=True)
-    fig.savefig(fn, dpi=120); plt.close(fig)
+    # 이미지 축은 aspect=equal 이라 축 박스가 그림 하단에 바짝 붙는다. sub 텍스트(축 밖 y=-0.04)가
+    # 잘리지 않도록 저장 시 bbox 를 넓힌다(constrained_layout 은 자유 텍스트를 계산에 넣지 않음).
+    fig.savefig(fn, dpi=120, bbox_inches="tight"); plt.close(fig)
     print("[montage]", os.path.relpath(fn))
     return fn
 

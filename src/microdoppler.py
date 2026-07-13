@@ -9,7 +9,7 @@ microdoppler.py — (report3 토대) 회전 프로펠러의 **마이크로-도�
 원리
   몸체(프레임)는 0 도플러(상수 산란장 E_frame). 각 로터의 블레이드는 ω로 회전하므로
   표면점 위치가 시간에 따라 변해 위상이 변조된다 → 슬로타임 복소장 E(t):
-      E(t) = E_frame + Σ_rotor exp(j2k·c·û) · Σ_p [n̂·v>0](n̂·v)ΔA·exp(j2k·P_local·v(t))
+      E(t) = E_frame + Σ_rotor exp(j2k·c·û) · Σ_p [n̂·v>0]|Γ_g|(n̂·v)ΔA·exp(j2k·P_local·v(t))
   여기서 v(t)=Rz(−θ(t))·û 는 '블레이드를 돌리는 대신 시선을 반대로 돌린' 등가표현(벡터화).
   θ(t)=base+dir·ω·t,  ω=2π·rpm/60,  dir=±1(CW/CCW).
 
@@ -83,8 +83,12 @@ def spectrogram(E, prf, nperseg=256, noverlap=None, nfft=None, remove_dc=True):
     """복소 E(t) → (도플러축 f[Hz], 시간축 t[s], |STFT| dB). 양측(±) 도플러.
     remove_dc=True: **정적 0-도플러(몸체 프레임) 성분을 빼고** 회전 블레이드 마이크로도플러만 본다
     (패시브레이더의 '정적 클러터 제거'에 해당). E(t) 자체엔 몸체가 강한 0-도플러 상수항으로 들어 있고
-    |DC|/std(AC) 는 **드론·시선기하에 따라 ~1(작은 mini)~30(큰 phantom)** 로 크게 다르다 — 몸체가 큰
-    드론일수록 DC 제거가 필수(작은 드론은 블레이드가 덜 묻힘). 평균 제거 후 detrend=False 로 STFT.
+    |DC|/std(AC) 는 **드론·시선기하에 따라 ~1 에서 100 이상까지** 크게 다르다.
+    (기본 기하 az=0°/el=15°: mini5pro 12.5, mavic4pro 20.1, matrice4e 32.8, s1000plus 62.1, phantom4 121.1
+     — 대체로 몸체가 클수록 크지만 엄밀한 순서는 아니고, 같은 드론도 시선각을 바꾸면 한 자릿수까지 떨어진다:
+     phantom4 는 az=30°/el=60° 에서 0.7, mini5pro 는 el=0° 에서 133.)
+    → 몸체가 클수록/저앙각일수록 블레이드가 묻히므로 DC 제거는 기본으로 켜 두는 편이 안전하다.
+    평균 제거 후 detrend=False 로 STFT.
     nfft : 제로패딩 FFT 크기(>nperseg) — 도플러축을 더 매끈하게(보간) 표시. 큰 noverlap → 시간 매끈."""
     from scipy.signal import spectrogram as _spec
     E = np.asarray(E)

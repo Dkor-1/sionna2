@@ -42,10 +42,12 @@ CUDA_VISIBLE_DEVICES=2 $PY build_all.py --no-render # 렌더 빼고 빠르게
 | **Mini 5 Pro** | 출시(2025) | 4 | ~250 mm* | 249.9 g | Ø152 mm ×2 |
 | **Mavic 4 Pro** | 출시(2025) | 4 | ~400 mm* | 1063 g | Ø267 mm ×2 |
 | **Matrice 4E** | 출시(2025) | 4 | 438.8 mm | 1219 g | Ø274 mm ×2 |
-| **S1000+** | 단종(2014) | **8** | 1045 mm | 4400 g | Ø381 mm ×2 |
+| **S1000+** | 단종(2014) | **8** | 1045 mm | 4400 g† | Ø381 mm ×2 |
 | **Phantom 4** | 출시(2016) | 4 | 350 mm | 1380 g | Ø239 mm ×2 |
 
-\* 대각거리는 DJI 비공개라 외형에서 추정한 값입니다. 무게·언폴드 치수 등은 공식 제원입니다
+\* 대각거리는 DJI 비공개라 외형에서 추정한 값입니다(Mini 5 Pro 는 외형에서 ±20 mm, Mavic 4 Pro 는 Mavic 3 의 380.1 mm 와 언폴드 치수에서 추정).
+무게·언폴드 치수·프로펠러 지름 등은 공식 제원입니다.
+† S1000+ 의 4400 g 은 **기체(airframe) 자중**입니다 — 권장 이륙중량은 6.0~11.0 kg(대표 ~9.5, 최대 11). 나머지 4종은 이륙중량(TOW) 기준.
 (원자료·근거: `docs/drone_research.json`, `docs/SPECS.md`).
 
 ---
@@ -67,38 +69,50 @@ CUDA_VISIBLE_DEVICES=2 $PY build_all.py --no-render # 렌더 빼고 빠르게
 
 ## 코드 구조 (`src/`, 전부 한글 주석)
 
+> ⚠️ **`reportN.ipynb` 는 전부 생성물이다.** 서술(마크다운) 수정은 `src/make_notebook*.py`,
+> 그림 수정은 `src/viz_*.py` / `src/build_report*.py` 에서 한다.
+> `build_all.py`(report1) 와 `build_report2~5.py` 가 대응 `make_notebook*.py` 를 자동 호출해 노트북을
+> 덮어쓰므로, `.ipynb` 를 직접 고치면 다음 빌드에서 사라진다.
+
 ```
 geom.py         삼각형으로 3D 도형 만드는 미니 도구 (외부 의존성 없음)
 chamber.py      차폐시설 모델
 drones.py       드론 5종 실측 제원 + 파라메트릭 생성기
 materials.py    Sionna 전파재질(금속/콘크리트/흡수체/플라스틱/카본)
 scene_build.py  부위 OBJ → Sionna 장면 조립 + 렌더 엔진
+vizstyle.py     matplotlib 공통 스타일(한글 폰트 등록·출시상태 배지 색)
 viz_diagram.py  도면식 그림(matplotlib)
 viz_anim.py     회전 GIF
 render_drones.py Sionna 사진풍 렌더
 viz_montage.py  렌더 모아 카탈로그
 build_all.py    한 번에 전부 생성 (report1)
-make_notebook.py report1.ipynb 생성기
+make_notebook.py report1.ipynb 생성기 — 서술(마크다운) 원본
 --- report2 (레이더) ---
 radar_scene.py  모노스태틱 장면 + Sionna RT 채널/클러터 + 원거리장 점검
-rcs_po.py       물리광학(PO) RCS 계산 — 평판·구 이론으로 검증됨
+rcs_po.py       물리광학(PO) RCS — 평판·구 이론 검증 + 부위별 |Γ| 재질 가중(drones.GROUP_GAMMA)
+                ·내부 금속 산란체(배터리/PCB)
+prep_cad_scan.py 실기체 3D 스캔 STL(Thingiverse 1456295, CC-BY) → PO 점군 전처리
+                (1회 오프라인; 산출물 assets/meshes/cad/phantom4_scan_points.npz 는 저장소 포함)
 waveforms.py    실제 OFDM 파형 합성 + 점유모드 G1/G2/G3 (WiFi/LTE/5G, PRS·SSB·CRS·DMRS 라벨)
 radar_process.py 에코 생성 + 정합필터(FFT) + RCS 추정 + 패시브(파일럿만) 처리
 viz_radar.py    RCS/파형/거리프로파일 시각화
 viz_occupancy.py 리소스 그리드 '사진' + 점유 상태 실험(거리×속도 두 축)
 viz_mesh.py     메쉬 기반 실험 시각화 — 셋업 3D·RCS '풍선'·조명면·도플러
 build_report2.py report2 산출물 한 번에 생성
+make_notebook2.py report2.ipynb 생성기 — 서술(마크다운) 원본
 --- report3 (분절 + 마이크로도플러) ---
 drones.py       (분절 추가) build_frame/build_propeller/rotor_layout/pose_articulated
                 — 몸체 RPY ⟂ 로터별 스핀 (build_drone 출력 동일·호환)
 microdoppler.py 회전 블레이드 마이크로도플러 — PO 복소장 E(t) + 스펙트로그램
 viz_articulation.py 분절 검증 도면 + 마이크로도플러 + 회전 GIF
 build_report3.py report3 산출물 한 번에 생성
+make_notebook3.py report3.ipynb 생성기 — 서술(마크다운) 원본
 --- report4 (바이스태틱 탐지) ---
 bistatic_scene.py 바이스태틱 기하 (Rb·τ·f_d·β, 등Rb 타원)
 passive_process.py 처리 체인 — make_cpi/ECA(클러터제거)/CAF 거리-도플러/CA-CFAR
 viz_bistatic.py 기하·거리도플러맵(ECA 전후)·검출성능(Pd vs SNR)·추적 GIF 시각화
 build_report4.py report4 산출물 한 번에 생성
+make_notebook4.py report4.ipynb 생성기 — 서술(마크다운) 원본
 --- report5 (공정 벤치마크; 하네스는 ../benchmark/) ---
 build_report5.py  benchmark 하네스(최소셀→매트릭스 A~D)를 실행하고 report5.ipynb 생성
 make_notebook5.py report5.ipynb 생성기 — outputs/report5_results.json 의 실측 수치를 읽어 삽입
@@ -145,6 +159,8 @@ CUDA_VISIBLE_DEVICES=2 $PY build_report5.py   # 벤치마크(D 섹션 Sionna RT 
 ## 진행 상황 & 다음 단계
 - ✅ **report1** 환경 세팅(차폐시설+드론)
 - ✅ **report2** 모노스태틱 RCS + WiFi/LTE/5G 비교 + 점유모드(G1/G2/G3, 거리×속도 두 축) + 메쉬 실험 시각화
+  + 재질 가중 PO(방위평균 약 2~6 dB↓)·공개 실측 문헌 앵커링·실기체 3D 스캔 형상 A/B(+0.7~2.8 dB)
+  + **상시 기준신호(LTE CRS vs 5G SSB) 중심 비교** — PRS 는 측위 세션에서만 켜지는 옵션으로 분리
 - ✅ **report3** 분절 드론(몸체 RPY ⟂ 로터별 스핀) + 회전 블레이드 마이크로-도플러 + PX4/Gazebo 연동 가능성 검증
 - ✅ **report4** 바이스태틱 패시브 레이더 탐지: ECA 클러터제거 → CAF 거리-도플러 → CFAR → Pd/Pfa (파형·점유가 탐지 좌우)
 - ✅ **report5** 공정 벤치마크(`benchmark/`): 링크버짓으로 SNR 유도 + SCR·Pd 측정 — 점유 공정성·신호×드론 매트릭스(CSV)·0-도플러 블라인드·Sionna RT 교차검증

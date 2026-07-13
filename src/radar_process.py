@@ -57,21 +57,35 @@ def make_echo(wf, R, sigma_m2, vel=0.0, snr_db=20.0, rng=None):
     return echo + noise
 
 
-def matched_filter(rx, ref, fs):
-    """정합필터(상관) → (거리축[m], 프로파일 |r|). FFT 상관으로 O(N log N)."""
+def _fft_upsample(x, up):
+    """대역제한 복소신호를 FFT 제로패딩으로 up 배 보간(정보 왜곡 없음)."""
+    n = len(x); h = n // 2
+    X = np.fft.fft(x)
+    Xu = np.zeros(n * up, complex)
+    Xu[:h] = X[:h]; Xu[-(n - h):] = X[h:]
+    return np.fft.ifft(Xu) * up
+
+
+def matched_filter(rx, ref, fs, up=1):
+    """정합필터(상관) → (거리축[m], 프로파일 |r|). FFT 상관으로 O(N log N).
+    up>1 이면 거리축을 up 배로 보간한다 — 원 샘플간격 c/2fs 가 LTE 에선 4.9 m 나 되어
+    **그리기용**으로만 쓴다(측정 -3dB 폭은 up=1 원격자에서 재는 것이 게시 수치와 일관)."""
     r = fftconvolve(rx, np.conj(ref[::-1]), mode="full")   # = correlate(rx, ref)
-    lags = np.arange(-(len(ref) - 1), len(rx))
-    rng_m = lags / fs * C0 / 2.0
+    if up > 1:
+        r = _fft_upsample(r, up)
+    idx = np.arange(len(r)) / up - (len(ref) - 1)           # 지연(샘플) — up=1 이면 정수격자
+    rng_m = idx / fs * C0 / 2.0
     return rng_m, np.abs(r)
 
 
-def range_profile(wf, R, sigma_m2, vel=0.0, snr_db=20.0, rng=None, passive=False):
+def range_profile(wf, R, sigma_m2, vel=0.0, snr_db=20.0, rng=None, passive=False, up=1):
     """에코 → 정합필터 거리 프로파일. (거리축, dB프로파일, 피크거리, 피크값).
-    passive=True 면 수신기가 '기지 파일럿(wf.ref)'만 알고 상관(패시브레이더 현실).
-    에코 자체는 항상 실제 송신(wf.tx)에서 생성된다."""
+    passive=True 면 수신기가 '기지 기준신호(wf.ref)'만 알고 상관한다(패시브레이더의 현실).
+    에코 자체는 항상 실제 송신(wf.tx)에서 생성된다.
+    up>1 은 거리축 보간(그리기용)."""
     rx = make_echo(wf, R, sigma_m2, vel, snr_db, rng)
     ref = wf.ref if passive else wf.tx
-    rng_m, prof = matched_filter(rx, ref, wf.fs_hz)
+    rng_m, prof = matched_filter(rx, ref, wf.fs_hz, up=up)
     m = (rng_m > 0) & (rng_m < 3 * R + 50)
     rng_m, prof = rng_m[m], prof[m]
     pk = np.argmax(prof)
@@ -87,10 +101,12 @@ def mainlobe_width_m(rng_m, prof):
     return rng_m[hi] - rng_m[lo]
 
 
-def sphere_calib(wf, R, r_sphere=0.5, snr_db=60.0):
-    """기준 금속구(σ=πr²)를 똑같이 처리한 정합필터 피크값(절대 RCS 보정용)."""
+def sphere_calib(wf, R, r_sphere=0.5, snr_db=60.0, passive=False, up=1):
+    """기준 금속구(σ=πr²)를 똑같이 처리한 정합필터 피크값(절대 RCS 보정용).
+    ⚠ 표적과 **완전히 같은 처리**(passive·up)로 재야 λ·R²·처리이득이 상쇄된다.
+      특히 up 이 다르면 분수지연(예: WiFi 는 5.33샘플) 피크를 한쪽만 놓쳐 1~2 dB 편향이 생긴다."""
     sig = np.pi * r_sphere**2
-    _, _, _, pk = range_profile(wf, R, sig, snr_db=snr_db,
+    _, _, _, pk = range_profile(wf, R, sig, snr_db=snr_db, passive=passive, up=up,
                                 rng=np.random.default_rng(123))
     return pk, sig
 

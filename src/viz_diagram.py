@@ -24,9 +24,12 @@ import vizstyle
 vizstyle.use_korean()
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Rectangle
+from matplotlib.ticker import MultipleLocator
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-from drones import DRONES, build_drone, drone_colors, motor_angles
+# _drone_dims 는 메쉬 생성기(build_frame/rotor_layout)가 쓰는 치수 소스 그대로다.
+# 도면(위/옆면도)이 3D 패널·OBJ 메쉬와 어긋나지 않도록 같은 함수를 재사용한다.
+from drones import DRONES, build_drone, drone_colors, motor_angles, _drone_dims
 from vizstyle import RELEASE_BADGE
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
@@ -64,9 +67,8 @@ def drone_card(key, outdir=FIG):
     spec = DRONES[key]
     mesh = build_drone(spec)
     cmap = drone_colors(spec)
-    diag = spec.diagonal_mm / 1000.0
-    r = diag / 2
-    prop_r = spec.prop_dia_mm / 1000.0 / 2
+    # 메쉬와 동일한 치수(동체 길이 bl·폭 bw·두께 body_z 는 body_lw/body_frac/0.35·H 반영)
+    diag, r, prop_r, bh, bl, bw, body_z = _drone_dims(spec)
 
     fig = plt.figure(figsize=(13, 8.2), constrained_layout=True)
     badge, bcol = RELEASE_BADGE.get(spec.release, ("", "#555"))
@@ -84,8 +86,7 @@ def drone_card(key, outdir=FIG):
     # --- (B) 위에서 본 도면 : 대각거리 + 프로펠러 원반 -------------------- #
     axB = fig.add_subplot(2, 2, 2)
     axB.set_aspect("equal")
-    # 동체
-    bl, bw = spec.body_frac*diag*1.15, spec.body_frac*diag*0.85
+    # 동체(메쉬와 같은 bl×bw — 접이형은 길쭉, 팬텀/S1000 은 정사각에 가까움)
     axB.add_patch(Rectangle((-bl/2, -bw/2), bl, bw, facecolor=cmap["body"],
                             edgecolor="k", lw=1.2, zorder=3))
     angs = motor_angles(spec)
@@ -115,19 +116,19 @@ def drone_card(key, outdir=FIG):
     # --- (C) 옆에서 본 도면 : 높이 ---------------------------------------- #
     axC = fig.add_subplot(2, 2, 3)
     axC.set_aspect("equal")
-    bh = spec.body_h_mm/1000.0
     b0, b1 = mesh.bounds()
     total_h = (b1[2]-b0[2])
     # 동체 측면(간단 박스) + 메쉬 측면 외곽(x-z 투영 점)
     V = np.array(mesh.v)
     axC.scatter(V[:, 0], V[:, 2], s=2, c="0.5", alpha=0.35)
-    axC.add_patch(Rectangle((-bl/2, -0.2*bh), bl, 0.5*bh, facecolor=cmap["body"],
+    # 메쉬 hull 과 동일: z 중심 0, 두께 body_z(=0.35·H_spec)
+    axC.add_patch(Rectangle((-bl/2, -0.5*body_z), bl, body_z, facecolor=cmap["body"],
                             edgecolor="k", lw=1.0, zorder=3))
-    # 전체 높이 치수
+    # 전체 높이 치수 — '생성 메쉬'의 z 범위(프롭·기어 포함). 제원표의 Unfolded H(셸 전고)와 다름.
     xline = b1[0] + 0.06*diag
     axC.annotate("", xy=(xline, b0[2]), xytext=(xline, b1[2]),
                  arrowprops=dict(arrowstyle="<->", color="#c62828", lw=1.6))
-    axC.text(xline+0.01*diag, (b0[2]+b1[2])/2, f"Overall height\n{total_h*1000:.0f} mm",
+    axC.text(xline+0.01*diag, (b0[2]+b1[2])/2, f"Model z-span\n{total_h*1000:.0f} mm",
              color="#c62828", fontsize=9, va="center")
     axC.axhline(0, color="0.7", lw=0.6, ls=":")
     axC.set_title("Side view (front = right)", fontsize=12)
@@ -142,7 +143,10 @@ def drone_card(key, outdir=FIG):
         ("Rotors / Arms", f"{spec.num_rotors} rotors / {spec.num_rotors} arms"
                        + ("  (octocopter)" if spec.num_rotors == 8 else "  (quadcopter)")),
         ("Diagonal (wheelbase)", f"{spec.diagonal_mm:.0f} mm"),
-        ("Takeoff weight", f"{spec.weight_g:.0f} g"),
+        # S1000+ 의 4400 g 은 이륙중량이 아니라 기체(airframe) 자중 → 라벨을 분리한다.
+        ("Airframe weight" if spec.key == "s1000plus" else "Takeoff weight",
+         f"{spec.weight_g:g} g  (TOW 6-11 kg)" if spec.key == "s1000plus"
+         else f"{spec.weight_g:g} g"),
         ("Propeller", f"Ø{spec.prop_dia_mm:.0f} mm × {spec.prop_blades} blades × {spec.num_rotors}"),
         ("Unfolded L×W×H", f"{spec.body_l_mm:.0f} × {spec.body_w_mm:.0f} × {spec.body_h_mm:.0f} mm"),
         ("Max speed", f"{spec.max_speed_ms} m/s" if spec.max_speed_ms else "—"),
@@ -184,17 +188,23 @@ def size_comparison(outdir=FIG):
         cx = x + maxspan*0.62
         for a in motor_angles(s):
             mx = cx + r*math.cos(math.radians(a)); my = r*math.sin(math.radians(a))
-            axT.add_patch(Circle((mx, my), pr, facecolor=s.body_rgb, alpha=0.30,
-                                 edgecolor=s.body_rgb, lw=1.2))
-            axT.plot([cx, mx], [0, my], color="0.3", lw=1.2)
-        axT.add_patch(Circle((cx, 0), 0.04*diag, facecolor="0.2"))
-        axT.text(cx, -maxspan*0.62, f"{s.name.split('  ')[0]}\ndiag {s.diagonal_mm:.0f} mm · {s.weight_g:.0f} g",
+            # 프롭원: 카드(B)와 동일한 파란 점선 테두리 + 기체색 반투명 채움.
+            #   alpha= 는 테두리에도 먹고 edgecolor=body_rgb 는 흰 기체에서 안 보이므로
+            #   채움만 RGBA 로 주고 테두리는 불투명 파란 점선으로 분리한다.
+            axT.add_patch(Circle((mx, my), pr, facecolor=(*s.body_rgb, 0.30),
+                                 edgecolor="#1565c0", ls="--", lw=1.0, zorder=2))
+            axT.plot([cx, mx], [0, my], color="0.3", lw=1.2, zorder=3)
+        axT.add_patch(Circle((cx, 0), 0.04*diag, facecolor="0.2", zorder=4))
+        axT.text(cx, -maxspan*0.62, f"{s.name.split('  ')[0]}\ndiag {s.diagonal_mm:.0f} mm · {s.weight_g:g} g",
                  ha="center", va="top", fontsize=9.5)
         x += maxspan*1.24
     axT.set_xlim(-maxspan*0.1, x); axT.set_ylim(-maxspan*0.8, maxspan*0.62)
     axT.set_title("Size comparison of 5 drones (same scale · dashed circle = propeller disc)",
                   fontsize=14, fontweight="bold")
-    axT.set_xlabel("← S1000+ is by far the largest  (1 division ≈ 1.4 m)"); axT.set_yticks([])
+    # 눈금 간격을 1 m 로 고정 — 라벨과 실제 눈금이 어긋나지 않게(기존 '1 division ≈ 1.4 m' 는 오류)
+    axT.xaxis.set_major_locator(MultipleLocator(1.0))
+    axT.set_xlabel("x [m] — same scale for all  (tick spacing = 1 m) · S1000+ is by far the largest")
+    axT.set_yticks([])
 
     # (아래좌) 대각거리 막대
     axL = fig.add_subplot(gs[1, 0])
@@ -206,13 +216,14 @@ def size_comparison(outdir=FIG):
         axL.text(d+10, i, f"{d:.0f}", va="center", fontsize=9)
     axL.set_title("Diagonal [mm]", fontsize=12); axL.invert_yaxis(); axL.grid(axis="x", alpha=0.3)
 
-    # (아래우) 무게 막대 (로그축 — 250g~4400g)
+    # (아래우) 무게 막대 (로그축 — 249.9g~4400g). S1000+ 만 기체 자중(TOW 6~11 kg)이라 과소평가됨.
     axR = fig.add_subplot(gs[1, 1])
     wts = [s.weight_g for s in specs]
     axR.barh(names, wts, color=cols, edgecolor="k")
     for i, w in enumerate(wts):
-        axR.text(w*1.03, i, f"{w:.0f} g", va="center", fontsize=9)
-    axR.set_xscale("log"); axR.set_title("Takeoff weight [g, log]", fontsize=12)
+        axR.text(w*1.03, i, f"{w:g} g", va="center", fontsize=9)
+    axR.set_xscale("log")
+    axR.set_title("Weight [g, log] — takeoff weight (S1000+ = airframe; TOW 6-11 kg)", fontsize=11)
     axR.invert_yaxis(); axR.grid(axis="x", alpha=0.3)
 
     os.makedirs(outdir, exist_ok=True)

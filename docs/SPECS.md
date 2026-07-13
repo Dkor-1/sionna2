@@ -67,7 +67,7 @@
 - **출시상태**: discontinued (2014) · 신뢰도 high
 - **구성**: fixed-position-rotor folding octocopter (8 arms, 1 rotor per arm) · 로터 8 · 암 8 · 동축 False
 - **대각거리(휠베이스)**: 1045 mm
-- **이륙중량**: 4400 g
+- **기체 자중(airframe)**: 4400 g (권장 이륙중량 6.0~11.0 kg — 대표 ~9.5 kg, 최대 11 kg)
 - **언폴드 L×W×H**: 1045 × 1045 × 462 mm
 - **프로펠러**: Ø381 mm × 2날
 - **착륙장치**: retractable (motorized/servo-driven, raises out of frame for unobstructed camera view)

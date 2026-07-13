@@ -108,7 +108,9 @@ def fig_setup_3d(outdir=FIG, target="mavic4pro", fc=3.5e9, exagg=12.0):
     cmap = drone_colors(spec)
     cols = [cmap.get(g, (0.6,0.6,0.6)) for g in mesh.g]
     ax.add_collection3d(Poly3DCollection(tris, facecolors=cols, edgecolors=(0,0,0,0.15), linewidths=0.1))
-    ax.text(TGT_POS[0], TGT_POS[1], TGT_POS[2]+2.6,
+    # 표적 라벨을 위로 띄운다(+2.6 → +4.6): 빔 라벨 'R = 10 m' (z=7.6)과 겹쳐 판독 불가였음.
+    # 절대 z = 5.5+4.6 = 10.1 m < 챔버 H=11 m 라 상단 밖으로 나가지 않는다.
+    ax.text(TGT_POS[0], TGT_POS[1], TGT_POS[2]+4.6,
             f"Target: {_NAME[target]}\n(mesh shown ×{exagg:.0f})", color="k", fontsize=9, ha="center")
 
     # 원거리장 점검 박스
@@ -190,12 +192,18 @@ def fig_rcs_balloon(outdir=FIG, fc=3.5e9):
     sm = cm.ScalarMappable(cmap=cmap, norm=Normalize(0, 1)); sm.set_array([])
     cb = fig.colorbar(sm, ax=axL, fraction=0.5, aspect=12)
     cb.set_label("Normalized RCS (per-drone max=1.0, floor -25 dB)", fontsize=9)
+    # 로터 배치 실측(방위 자기상관 @3.5GHz): corr(180°) 가 corr(90°) 보다 훨씬 크다
+    #   corr(90°)  mini5pro -0.01 · mavic4pro -0.05 / phantom4 +0.39 · matrice4e +0.30
+    #   corr(180°) mavic4pro +0.56 · phantom4 +0.69
+    # → '쿼드=90° 주기'는 사실이 아니다. 마주보는 암 쌍 때문에 180° 준대칭이 지배적이고,
+    #   로터가 직교배치(45/135/225/315°)이고 동체가 정사각에 가까운 기종만 90° 로브가 약하게 보인다.
     axL.text(0.0, 0.92,
              "How to read\n"
              "• Larger balloon (further out) = larger RCS in that direction\n"
              "• Sharp spikes = glint (plates/arms reflect like mirrors)\n"
-             "• Quad (4-arm X) shows 90°-periodic lobes; octo (S1000+)\n"
-             "  has denser, overall larger lobes\n"
+             "• Quads are ~180°-symmetric (opposite arm pairs); only the\n"
+             "  orthogonal-rotor, square-body quads show weak 90° lobes\n"
+             "• Octo (S1000+) has denser, overall larger lobes\n"
              "• Mesh +x (green arrow) is the forward reference",
              transform=axL.transAxes, fontsize=10, va="top")
     fn = os.path.join(outdir, "report2_mesh_rcs_balloon.png"); fig.savefig(fn, dpi=130); plt.close(fig)
@@ -222,16 +230,22 @@ def fig_rcs_facets(outdir=FIG, target="mavic4pro", fc=3.5e9, aspects=(0, 45, 90)
     fig = plt.figure(figsize=(15, 5.6), constrained_layout=True)
     fig.suptitle(f"Illuminated facets — facets of {_NAME[target]} facing the radar per look angle @ {fc/1e9:.1f} GHz\n"
                  "Color = PO contribution " r"$|\Gamma|\,(\hat{n}\cdot\hat{u})\,\Delta A$"
-                 "  (yellow=strong, purple=weak, gray=back-facing).  Blue arrow = radar look direction (camera at radar position)",
+                 " on a 25 dB log scale — yellow = strong, purple = weak;"
+                 "  light gray = back-facing (mostly hidden behind the body)\n"
+                 "Blue arrow = radar look direction (camera is offset from it so the arrow stays visible)",
                  fontsize=13, fontweight="bold")
     cmap = cm.inferno
+    DR = 25.0                                   # balloon 그림과 동일한 25 dB 동적범위
     for j, azd in enumerate(aspects):
         ax = fig.add_subplot(1, len(aspects), j+1, projection="3d")
         u = _look_dir(azd, el)                               # 표적→레이더 (살짝 위에서)
         proj = nhat @ u
         contrib = np.maximum(proj, 0.0) * area * wfac   # 재질 가중 PO 기여
-        cn = contrib / (contrib.max() + 1e-30)
-        cols = [cmap(c2) if p > 0 else (0.22, 0.22, 0.25) for c2, p in zip(cn, proj)]
+        # 선형 정규화면 기여가 최댓값의 1~2% 인 면이 대부분이라 조명면이 통째로 검게 뭉갠다.
+        # → 최댓값 대비 dB 로 펴고 25 dB 로 자른다(20log10 아님: contrib 는 이미 전력차원 기여량).
+        cdb = 10*np.log10(contrib/(contrib.max()+1e-30) + 1e-30)   # eps 필수(후면 0 → -inf)
+        cn = np.clip((cdb + DR)/DR, 0.0, 1.0)
+        cols = [cmap(c2) if p > 0 else (0.75, 0.75, 0.78) for c2, p in zip(cn, proj)]
         ax.add_collection3d(Poly3DCollection(tris0, facecolors=cols,
                                              edgecolors=(0, 0, 0, 0.10), linewidths=0.1))
         # 레이더 입사 화살표(밖→드론, +u 쪽에서 들어옴)
@@ -243,9 +257,14 @@ def fig_rcs_facets(outdir=FIG, target="mavic4pro", fc=3.5e9, aspects=(0, 45, 90)
         try: ax.set_box_aspect((1, 1, 1))
         except Exception: pass
         ax.set_axis_off()
-        ax.view_init(elev=el, azim=azd)                      # 카메라 = 레이더 시선
+        # 카메라를 시선 u 에서 살짝 비켜 놓는다: 정확히 u 위에 두면 파란 LOS 화살표가
+        # 화면상 0 px 로 소실된다. 면 색(cn)은 카메라가 아니라 u 로 계산하므로 물리는 그대로.
+        ax.view_init(elev=el + 18, azim=azd + 35)
         nlit = int((proj > 0).sum())
         ax.set_title(f"Radar azimuth {azd}° · elevation {el:.0f}°  ·  illuminated facets {nlit}/{len(F)}", fontsize=10)
+    sm = cm.ScalarMappable(cmap=cmap, norm=Normalize(-DR, 0)); sm.set_array([])
+    cb = fig.colorbar(sm, ax=fig.axes, fraction=0.02, pad=0.02)
+    cb.set_label("PO facet contribution [dB re. max, 25 dB range]", fontsize=9)
     fn = os.path.join(outdir, "report2_mesh_rcs_facets.png"); fig.savefig(fn, dpi=130); plt.close(fig)
     print("[mesh]", os.path.relpath(fn)); return fn
 
