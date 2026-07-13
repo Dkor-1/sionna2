@@ -8,7 +8,11 @@
 > - **[`report1.ipynb`](report1.ipynb)** — 1단계: 환경 세팅 (차폐시설 + 드론 5종)
 > - **[`report2.ipynb`](report2.ipynb)** — 2단계: 레이더 구성 & RCS 특성화 (WiFi·LTE·5G 비교)
 > - **[`report3.ipynb`](report3.ipynb)** — 3단계: 분절 드론 + 마이크로-도플러 (+ PX4 연동 가능성)
-> - **[`report4.ipynb`](report4.ipynb)** — 4단계: 바이스태틱 패시브 레이더 **탐지**(ECA·CAF·CFAR·Pd/Pfa)
+> - **[`report4.ipynb`](report4.ipynb)** — 4단계: **무반사 챔버 내부** 바이스태틱 패시브 레이더 **탐지**(ECA·CAF·CFAR·Pd/Pfa)
+>
+> ※ **모든 실험은 30×20×11 m 무반사 차폐시설(챔버) 안에서** 진행합니다. report4 도 챔버 양쪽 벽에 신호원 TX·
+> 패시브 RX 를 놓고 quiet zone 의 드론을 탐지합니다(베이스라인 L≈15 m, Rb 수~수십 m). 무반사라 클러터가 약해
+> ECA 는 주로 직접파(DPI)를 제거하고, 좁은 챔버라 거리분해능(대역폭)이 탐지 성패를 좌우합니다.
 
 ---
 
@@ -17,8 +21,8 @@
 ```bash
 PY=/home/yunjung/.venvs/py312/bin/python
 cd sionna2/src
-CUDA_VISIBLE_DEVICES=0 $PY build_all.py             # 메쉬+도면+GIF+렌더 전부
-CUDA_VISIBLE_DEVICES=0 $PY build_all.py --no-render # 렌더 빼고 빠르게
+CUDA_VISIBLE_DEVICES=2 $PY build_all.py             # 메쉬+도면+GIF+렌더 전부 (GPU 2번 사용)
+CUDA_VISIBLE_DEVICES=2 $PY build_all.py --no-render # 렌더 빼고 빠르게
 ```
 
 생성물은 `outputs/figures/`(도면·그래프·GIF) 와 `outputs/renders/`(Sionna 렌더 PNG) 에 쌓입니다.
@@ -105,10 +109,10 @@ report2_anim_rcs(RCS 글린트)·report3_anim_microdoppler(프로펠러↔플래
 
 ### report2 / report3 한 번에 만들기
 ```bash
-cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_report2.py   # GPU 불필요(PO+DSP)
-cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_report3.py   # GPU 불필요(메쉬+PO+DSP)
-cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_report4.py   # GPU 불필요(기하+DSP)
-cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_animations.py # 실험 애니메이션 GIF(GPU 불필요, 느림)
+cd sionna2/src && CUDA_VISIBLE_DEVICES=2 $PY build_report2.py   # GPU 불필요(PO+DSP)
+cd sionna2/src && CUDA_VISIBLE_DEVICES=2 $PY build_report3.py   # GPU 불필요(메쉬+PO+DSP)
+cd sionna2/src && CUDA_VISIBLE_DEVICES=2 $PY build_report4.py   # GPU 불필요(기하+DSP)
+cd sionna2/src && CUDA_VISIBLE_DEVICES=2 $PY build_animations.py # 실험 애니메이션 GIF(GPU 불필요, 느림)
 ```
 
 설계 원칙: **OBJ 1개 = 부위 1개 = Sionna 재질 1개.** 그래서 부위별로 색/전파재질을

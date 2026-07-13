@@ -73,7 +73,7 @@ def fig_articulation(outdir=FIG, target="mavic4pro"):
 #  (2) 마이크로도플러 스펙트로그램
 # --------------------------------------------------------------------------- #
 def fig_microdoppler(outdir=FIG, targets=("mavic4pro", "s1000plus"),
-                     rpm=6000.0, prf=20000.0, n_t=6144):
+                     rpm=None, prf=20000.0, n_t=6144):   # rpm=None → 드론별 hover_rpm
     fig, axes = plt.subplots(1, len(targets), figsize=(14, 5.4), constrained_layout=True)
     if len(targets) == 1:
         axes = [axes]
@@ -92,7 +92,7 @@ def fig_microdoppler(outdir=FIG, targets=("mavic4pro", "s1000plus"),
                 color="k", fontsize=8, ha="right", va="bottom", zorder=6)
         ax.set_ylim(-1.5 * info["f_tip"], 1.5 * info["f_tip"])
         ax.set_xlabel("시간 [ms]"); ax.set_ylabel("도플러 주파수 [Hz]")
-        ax.set_title(f"{_NAME[key]}  ·  로터 {info['n_rotors']}개 @ {rpm:.0f}rpm\n"
+        ax.set_title(f"{_NAME[key]}  ·  로터 {info['n_rotors']}개 @ {info['rpm']:.0f}rpm\n"
                      f"팁속도 {info['v_tip']:.0f}m/s → f_tip≈±{info['f_tip']:.0f}Hz · 플래시 {info['flash_hz']:.0f}Hz",
                      fontsize=10)
         fig.colorbar(im, ax=ax, fraction=0.046, label="정규화 세기 [dB]")

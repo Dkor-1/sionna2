@@ -33,10 +33,14 @@ def _look(az_deg, el_deg):
     return np.array([np.cos(el) * np.cos(az), np.cos(el) * np.sin(az), np.sin(el)])
 
 
-def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=6000.0,
+def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None,
                         prf=20000.0, n_t=2048, spacing=None, blade_n=26):
     """회전 블레이드의 슬로타임 복소장 E(t). 반환 (t[s], E[복소], info).
+    rpm=None 이면 드론별 대표 호버 회전수(spec.hover_rpm) 사용 — 큰 프로펠러(S1000 15in)는
+      느리게 돌아 v_tip 이 현실적(Mach≈0.2)으로 나온다(고정 6000rpm 은 대형기에 과대).
     blade_n : 블레이드 스팬 분할(촘촘할수록 도플러 트랙이 매끈 — 이산/블록 현상 완화)."""
+    if rpm is None:
+        rpm = getattr(spec, "hover_rpm", 6000.0)
     lam = C0 / fc; k = 2 * np.pi / lam
     spacing = spacing or lam / 11.0                # 촘촘한 점구름(매끈한 도플러)
     u = _look(az, el); ux, uy, uz = u
@@ -77,8 +81,9 @@ def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=6000.0,
 def spectrogram(E, prf, nperseg=256, noverlap=None, nfft=None, remove_dc=True):
     """복소 E(t) → (도플러축 f[Hz], 시간축 t[s], |STFT| dB). 양측(±) 도플러.
     remove_dc=True: **정적 0-도플러(몸체 프레임) 성분을 빼고** 회전 블레이드 마이크로도플러만 본다
-    (패시브레이더의 '정적 클러터 제거'에 해당). E(t) 자체엔 몸체가 강한 0-도플러 상수항으로 들어 있어
-    (|DC|/std(AC)≈25), 그대로 두면 블레이드 성분이 묻힌다. 평균 제거 후 detrend=False 로 STFT.
+    (패시브레이더의 '정적 클러터 제거'에 해당). E(t) 자체엔 몸체가 강한 0-도플러 상수항으로 들어 있고
+    |DC|/std(AC) 는 **드론·시선기하에 따라 ~1(작은 mini)~30(큰 phantom)** 로 크게 다르다 — 몸체가 큰
+    드론일수록 DC 제거가 필수(작은 드론은 블레이드가 덜 묻힘). 평균 제거 후 detrend=False 로 STFT.
     nfft : 제로패딩 FFT 크기(>nperseg) — 도플러축을 더 매끈하게(보간) 표시. 큰 noverlap → 시간 매끈."""
     from scipy.signal import spectrogram as _spec
     E = np.asarray(E)
@@ -96,7 +101,7 @@ def spectrogram(E, prf, nperseg=256, noverlap=None, nfft=None, remove_dc=True):
 if __name__ == "__main__":
     from drones import DRONES
     for k in ("phantom4", "s1000plus"):
-        t, E, info = microdoppler_series(DRONES[k], rpm=6000)
+        t, E, info = microdoppler_series(DRONES[k])      # 드론별 hover_rpm 사용
         print(f"{k:10s} 로터{info['n_rotors']} rpm{info['rpm']:.0f} "
               f"f_tip={info['f_tip']:.0f}Hz flash={info['flash_hz']:.0f}Hz "
               f"v_tip={info['v_tip']:.0f}m/s  |E|평균={np.abs(E).mean():.2e} 변동={np.std(np.abs(E)):.2e}")

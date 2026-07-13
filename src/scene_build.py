@@ -21,6 +21,10 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
+# GPU 는 **2번**을 기본 사용(사용자 지정 시 존중). mitsuba/OptiX 가 import 시점에
+# CUDA_VISIBLE_DEVICES 를 읽으므로 반드시 mitsuba import 전에 설정한다.
+os.environ.setdefault("CUDA_VISIBLE_DEVICES", "2")
+
 import mitsuba as mi
 import sionna.rt as rt
 

@@ -71,7 +71,7 @@ cells.append(md(
     "**한 번에 다시 만들기** (터미널):",
     "```bash",
     "PY=/home/yunjung/.venvs/py312/bin/python",
-    "cd sionna2/src && CUDA_VISIBLE_DEVICES=0 $PY build_all.py",
+    "cd sionna2/src && CUDA_VISIBLE_DEVICES=2 $PY build_all.py   # GPU 2번",
     "```",
 ))
 

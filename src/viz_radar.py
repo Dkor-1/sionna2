@@ -169,7 +169,7 @@ def fig_summary(outdir=FIG, target="mavic4pro", R=10.0):
                      wf.ref_name, f"{wf.range_resolution_m:.2f} m", f"{res:.1f} m",
                      f"{dbsm(sig):.1f}", f"{est:.1f}"])
     fig, ax = plt.subplots(figsize=(13, 3.2), constrained_layout=True); ax.axis("off")
-    cols = ["표준", "반송파", "대역폭", "기준신호", "이론분해능\nc/2B", "측정분해능\n(-3dB)",
+    cols = ["표준", "반송파", "채널대역", "기준신호", "이론분해능\nc/2·기준대역", "측정분해능\n(-3dB)",
             "참RCS\n[dBsm]", "추정RCS\n[dBsm]"]
     t = ax.table(cellText=rows, colLabels=cols, loc="center", cellLoc="center")
     t.auto_set_font_size(False); t.set_fontsize(10.5); t.scale(1, 2.0)

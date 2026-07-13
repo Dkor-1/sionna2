@@ -228,9 +228,9 @@ def cylinder(radius, height, axis="z", center=(0, 0, 0), seg=24,
         elif axis == "x":
             ring_b.append(m.add_vertex(cx - h, cy + radius*ca, cz + radius*sa))
             ring_t.append(m.add_vertex(cx + h, cy + r_top*ca, cz + r_top*sa))
-        else:  # y
-            ring_b.append(m.add_vertex(cx + radius*ca, cy - h, cz + radius*sa))
-            ring_t.append(m.add_vertex(cx + r_top*ca, cy + h, cz + r_top*sa))
+        else:  # y — +y 축 기준 오른손 방향(z=-sin)으로 감아 법선이 바깥을 향하게(z/x축과 동일 규약)
+            ring_b.append(m.add_vertex(cx + radius*ca, cy - h, cz - radius*sa))
+            ring_t.append(m.add_vertex(cx + r_top*ca, cy + h, cz - r_top*sa))
     for k in range(seg):
         k2 = (k + 1) % seg
         m.add_quad(ring_b[k], ring_b[k2], ring_t[k2], ring_t[k])  # 옆면
@@ -286,7 +286,16 @@ def uv_sphere(radius, center=(0, 0, 0), seg=18, rings=10, group="sph") -> Mesh:
     for i in range(rings):
         for j in range(seg):
             j2 = (j + 1) % seg
-            m.add_quad(grid[i][j], grid[i][j2], grid[i+1][j2], grid[i+1][j])
+            # winding: 법선이 **바깥(outward)** 을 향하도록 (box/cylinder 와 동일 규약).
+            # PO(rcs_po)는 조명면을 n̂·û>0 로 고르므로 법선 방향이 맞아야 한다.
+            # 극점(i=0: φ=0, i=rings-1: φ=π) 밴드는 정점이 한 점으로 뭉쳐 사각형이면
+            # 0-넓이 삼각형이 생긴다 → 삼각형 팬으로만 이어 degenerate 면을 없앤다.
+            if i == 0:                                   # 북극 팬
+                m.add_tri(grid[i][j], grid[i+1][j], grid[i+1][j2])
+            elif i == rings - 1:                         # 남극 팬
+                m.add_tri(grid[i][j], grid[i+1][j], grid[i][j2])
+            else:
+                m.add_quad(grid[i][j], grid[i+1][j], grid[i+1][j2], grid[i][j2])
     return m
 
 
@@ -300,10 +309,10 @@ def blade(length, width, thick, group="prop") -> Mesh:
     top = [m.add_vertex(x, y, t) for x, y in prof]
     bot = [m.add_vertex(x, y, -t) for x, y in prof]
     n = len(prof)
-    # 위/아래 면 (팬 삼각형)
+    # 위/아래 면 (팬 삼각형) — 법선이 바깥(+z/−z)을 향하도록 (outward 규약)
     for k in range(1, n - 1):
-        m.add_tri(top[0], top[k], top[k+1])
-        m.add_tri(bot[0], bot[k+1], bot[k])
+        m.add_tri(top[0], top[k+1], top[k])     # +z 바깥
+        m.add_tri(bot[0], bot[k], bot[k+1])     # −z 바깥
     # 옆 테두리
     for k in range(n):
         k2 = (k + 1) % n
@@ -354,9 +363,9 @@ def prop_blade(R, root=0.12, thick=None, pitch_deg=18.0, twist_deg=11.0,
         a, b = rings[i], rings[i + 1]
         for k in range(4):
             k2 = (k + 1) % 4
-            m.add_quad(a[k], a[k2], b[k2], b[k])
-    m.add_quad(rings[0][0], rings[0][1], rings[0][2], rings[0][3])     # 루트 캡
-    m.add_quad(rings[-1][3], rings[-1][2], rings[-1][1], rings[-1][0]) # 팁 캡
+            m.add_quad(a[k], b[k], b[k2], a[k2])             # 법선 바깥(outward) 규약
+    m.add_quad(rings[0][3], rings[0][2], rings[0][1], rings[0][0])     # 루트 캡(outward)
+    m.add_quad(rings[-1][0], rings[-1][1], rings[-1][2], rings[-1][3]) # 팁 캡(outward)
     return m
 
 

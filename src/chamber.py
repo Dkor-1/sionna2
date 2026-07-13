@@ -79,6 +79,9 @@ def _add_pyramids_on_plane(m: Mesh, origin, u_vec, v_vec, normal,
     nu = max(1, int(round(ulen / pitch)))
     nv = max(1, int(round(vlen / pitch)))
     du = ulen / nu; dv = vlen / nv
+    # 옆면 winding 은 (uhat×vhat)·normal 의 부호에 따라 뒤집어야 법선이 **방 안쪽(outward)** 을
+    # 향한다. 벽마다 (u,v,normal) 손잡이(handedness)가 달라 고정 winding 이면 절반은 뒤집힌다.
+    s = np.sign(np.dot(np.cross(uhat, vhat), normal)) or 1.0
     for i in range(nu):
         for j in range(nv):
             c = origin + (i + 0.5) * du * uhat + (j + 0.5) * dv * vhat  # 밑면 중심
@@ -93,7 +96,10 @@ def _add_pyramids_on_plane(m: Mesh, origin, u_vec, v_vec, normal,
             ai = m.add_vertex(*apex)
             for k in range(4):
                 k2 = (k + 1) % 4
-                m.add_tri(idx[k], idx[k2], ai, group=group)
+                if s > 0:
+                    m.add_tri(idx[k], idx[k2], ai, group=group)
+                else:
+                    m.add_tri(idx[k2], idx[k], ai, group=group)
 
 
 def build_chamber(W=30.0, D=20.0, H=11.0, pitch=0.6, ab_h=0.4,

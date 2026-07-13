@@ -234,7 +234,10 @@ def wifi_80211ac(bw_hz=80e6, carrier_hz=5.21e9, occupancy="G3", n_data_sym=10, s
     on = MODES["wifi"][occupancy]; scs = 312.5e3
     fft = int(round(bw_hz / scs)); fs = fft * scs; cp = fft // 4
     rng = np.random.default_rng(seed)
-    half = int(fft * 26 / 64); used = np.r_[np.arange(-half, 0), np.arange(1, half + 1)]
+    # 데이터(DATA/SIG)는 802.11ac VHT80 표준 점유폭 = **242 톤**(234 데이터 + 8 파일럿, 부반송파
+    # −122..+122, DC 널)을 채운다 → bw_hz ≈ 75.6 MHz. 정합필터 기준 L-LTF 는 80MHz 전대역으로
+    # 타일링하므로 ref_bw ≈ 80MHz, 분해능(range_resolution_m) ≈ 1.9m (기준 대역이 정함).
+    half = int(round(fft * 121 / 256)); used = np.r_[np.arange(-half, 0), np.arange(1, half + 1)]
     rows, labs = [], []
 
     def addrow(vals_full, lab_full):
@@ -292,17 +295,17 @@ def lte_downlink(bw_hz=20e6, carrier_hz=1.843e9, occupancy="G3", n_id=0, seed=2)
     if "PDCCH" in on:
         for l in range(3):
             put(l, used, rand_qam(rng, n_used) * 0.9, "PDCCH")
-    # CRS (G2/G3): l=0,4,7,11, 6 간격
+    # CRS (G2/G3): l=0,4,7,11, 6 간격.  (DC 부반송파 0 은 송신 안 함 → 제외: TS 36.211)
     if "CRS" in on:
         for sl in range(2):
             for li, sh in ((0, n_id % 6), (4, (n_id + 3) % 6)):
-                l = sl * 7 + li; idx = np.arange(-n_used // 2 + sh, n_used // 2, 6)
+                l = sl * 7 + li; idx = np.arange(-n_used // 2 + sh, n_used // 2, 6); idx = idx[idx != 0]
                 put(l, idx, qpsk_from_gold((l + 1) * (2 * n_id + 1) * 1024 + n_id, len(idx)) * np.sqrt(2), "CRS")
-    # PRS (G2/G3): comb-6 대각, 전대역, l=3,5,6 (슬롯)
+    # PRS (G2/G3): comb-6 대각, 전대역, l=3,5,6 (슬롯).  (DC 제외)
     if "PRS" in on:
         for sl in range(2):
             for li in (3, 5, 6):
-                l = sl * 7 + li; sh = (n_id + li) % 6; idx = np.arange(-n_used // 2 + sh, n_used // 2, 6)
+                l = sl * 7 + li; sh = (n_id + li) % 6; idx = np.arange(-n_used // 2 + sh, n_used // 2, 6); idx = idx[idx != 0]
                 put(l, idx, qpsk_from_gold(2**22 + l * 97 + n_id, len(idx)) * np.sqrt(2), "PRS")
     # PSS/SSS (항상): 중앙 62 부반송파, l=6(PSS)/5(SSS) of slot0
     cen = np.r_[np.arange(-31, 0), np.arange(1, 32)]
@@ -320,7 +323,9 @@ def nr_downlink(bw_hz=100e6, scs_hz=30e3, carrier_hz=3.5e9, occupancy="G3", n_id
     fft = 4096; fs = fft * scs_hz
     n_rb = 273 if bw_hz >= 100e6 else 51; n_used = n_rb * 12
     used = np.r_[np.arange(-n_used // 2, 0), np.arange(1, n_used // 2 + 1)]
-    cp = 288; nsym = 14
+    # NR μ=1 정상 CP: 0.5ms 슬롯(=14 sym) 첫 심볼만 긴 CP(352), 나머지 288 →
+    #   14·4096 + 352 + 13·288 = 61440 = 정확히 500 µs (TS 38.211 §5.3.1)
+    cp = [352] + [288] * 13; nsym = 14
     rng = np.random.default_rng(seed)
     grid = np.zeros((nsym, fft), complex); labels = np.zeros((nsym, fft), int)
 
@@ -344,13 +349,16 @@ def nr_downlink(bw_hz=100e6, scs_hz=30e3, carrier_hz=3.5e9, occupancy="G3", n_id
         for li in range(4, 10):
             sh = li % 4; idx = np.arange(-n_used // 2 + sh, n_used // 2, 4)
             put(li, idx, qpsk_from_gold(2**20 + li * 131 + n_id, len(idx)) * 2.0, "PRS")
-    # SSB (항상): 중앙 240 부반송파, l=0..3 (PSS/PBCH/SSS/PBCH)
-    ssb = np.arange(-120, 120)
-    if "PSS" in on: put(0, ssb, qpsk_from_gold(11 + n_id, len(ssb)), "PSS")
+    # SSB (항상): 블록 중앙 240 부반송파(20 RB), l=0..3. PSS(l=0)·SSS(l=2)는 표준상
+    #   블록 내 **127 부반송파**(TS 38.211 §7.4.3), PBCH(l=1,3)는 240 전체.
+    #   → ref_bw 는 PBCH(240=7.2MHz)가 정하므로 분해능(≈20.8m)엔 영향 없음.
+    ssb = np.arange(-120, 120)                     # SSB 블록 폭(20 RB) — PBCH
+    ssb_sync = np.arange(-63, 64)                  # PSS/SSS: 중앙 127 부반송파
+    if "PSS" in on: put(0, ssb_sync, qpsk_from_gold(11 + n_id, len(ssb_sync)), "PSS")
     if "PBCH" in on:
         put(1, ssb, qpsk_from_gold(12 + n_id, len(ssb)), "PBCH")
         put(3, ssb, qpsk_from_gold(14 + n_id, len(ssb)), "PBCH")
-    if "SSS" in on: put(2, ssb, qpsk_from_gold(13 + n_id, len(ssb)), "SSS")
+    if "SSS" in on: put(2, ssb_sync, qpsk_from_gold(13 + n_id, len(ssb_sync)), "SSS")
     return _finish("5G NR Rel-16", "nr", occupancy, carrier_hz, n_used * scs_hz,
                    scs_hz, fft, fs, cp, grid, labels, used, f"n78 {bw_hz/1e6:.0f}MHz, 30kHz, 3.5GHz")
 

@@ -42,7 +42,8 @@ def make_material(mat_key: str, name: str, color=None) -> rt.RadioMaterial:
                                    thickness=0.30, color=c)
     if mat_key == "absorber":
         # 손실이 큰 유전체: 유전율 약간↑, 도전율 크게 → 침투한 전파를 감쇠.
-        # 피라미드 기하와 합쳐져 순(net) 반사가 매우 작아진다.
+        # ※ 단일 면 수직입사 반사는 |Γ|≈−5 dB(모델값)로 그리 낮지 않다 — 무반사(−25~−30dB)는
+        #   **피라미드 골짜기 다중반사**(4~5회, 회당 ≈−5.8dB)로 달성된다(기하 의존). 실측치 아님.
         return rt.RadioMaterial(name=name, relative_permittivity=1.4,
                                 conductivity=1.2, scattering_coefficient=0.35,
                                 color=c)

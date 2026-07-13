@@ -9,11 +9,13 @@ report1 에서 만든 차폐시설 + 드론을 그대로 가져와, **모노스�
   * 안테나(송신 TX ≈ 수신 RX, 같은 쪽)를 챔버 한쪽 끝에 둔다.
   * 표적 드론을 반대쪽 '조용한 영역(quiet zone)' 중앙에 둔다 → 거리 R 최대 확보.
   * Sionna 광선추적으로 TX→표적→RX 경로(에코)를 얻는다.
-  * 표적 있을 때 / 없을 때를 각각 풀어 **배경 차감**으로 순수 표적 산란만 남긴다.
+  * 표적 산란만 남기려면 **표적 근처(TGT_POS 반경 radius)에서 실제 상호작용한 경로만** 고른다
+    (target_echo_paths: interactions≠0 & 표적반경 내). ※ 배경 차감(있음−없음)은 미구현.
 
 원거리장(far-field) 점검
   RCS 는 R ≥ 2D²/λ 에서만 정의. farfield_distance() 로 (드론×주파수) 조합을 점검한다.
-  (거대한 S1000+ 는 고주파에서 30 m 챔버 안 far-field 가 안 됨 → 명시)
+  R=10 m 기준: 작은 4종은 3.5 GHz 에선 OK 지만 WiFi 5.21 GHz 에선 Mavic4Pro(12.5 m)·Matrice4E(10.8 m)도
+  R 초과. 거대한 S1000+ 는 세 밴드 전부 far-field 미달(LTE 22 / 5G 42 / WiFi 63 m). (밴드별로 다름)
 
 이 파일은 '파형(WiFi/LTE/5G)'과 무관한 장면/채널 부분만 담당한다.
 파형 합성·정합필터·RCS 비교는 별도 모듈(waveforms.py, radar_process.py)에서.
@@ -36,7 +38,7 @@ CMESH = os.path.abspath(os.path.join(_HERE, "..", "assets", "meshes", "chamber")
 DMESH = os.path.abspath(os.path.join(_HERE, "..", "assets", "meshes", "drones"))
 
 # 챔버 x∈[0,30]. 안테나는 한쪽 끝, 표적은 quiet zone.
-# 거리 R=10 m: 작은 드론 4종은 far-field(2~7 m) 만족 + 광선이 표적을 충분히 맞힘.
+# 거리 R=10 m: 작은 드론 4종은 3.5GHz far-field(2.6~8.4 m) 만족 + 광선이 표적을 충분히 맞힘.
 # (22 m 처럼 너무 멀면 작은 표적에 광선이 거의 안 닿아 에코를 못 찾음)
 ANT_POS = (2.0, 10.0, 5.5)
 TGT_POS = (12.0, 10.0, 5.5)

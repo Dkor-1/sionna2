@@ -97,9 +97,10 @@ def anim_rcs_aspect(outdir=FIG, target="mavic4pro", fc=3.5e9, el=22.0, n_frames=
 # --------------------------------------------------------------------------- #
 #  (2) report3 — 회전 프로펠러 + 마이크로도플러 스펙트로그램 커서
 # --------------------------------------------------------------------------- #
-def anim_microdoppler(outdir=FIG, target="mavic4pro", rpm=6000.0, n_frames=48, fps=12):
+def anim_microdoppler(outdir=FIG, target="mavic4pro", rpm=None, n_frames=48, fps=12):
     from microdoppler import microdoppler_series, spectrogram
     spec = DRONES[target]
+    rpm = rpm if rpm is not None else spec.hover_rpm     # 드론별 hover_rpm
     prf, n_t = 20000.0, 6144
     t, E, info = microdoppler_series(spec, rpm=rpm, prf=prf, n_t=n_t, az=0.0, el=15.0)
     f, tt, Sdb = spectrogram(E, prf, nperseg=64, noverlap=58, nfft=1024)

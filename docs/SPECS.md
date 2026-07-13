@@ -49,7 +49,7 @@
 - **대각거리(휠베이스)**: 438.8 mm
 - **이륙중량**: 1219 g
 - **언폴드 L×W×H**: 307 × 387.5 × 149.5 mm
-- **프로펠러**: Ø292 mm × 2날
+- **프로펠러**: Ø274 mm × 2날 (검증 정정: 292→274, 아래 주의·검증 참고)
 - **착륙장치**: none (skid-free; rests on lower arm/body and battery base)
 - **짐벌/색상**: front-bottom (3-axis gimbal mounted at the nose/front-belly) · light gray / off-white
 - **RTK**: True · **최고속도**: 21

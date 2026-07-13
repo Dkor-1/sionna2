@@ -10,7 +10,7 @@ render_drones.py — 드론 & 전체 장면의 Sionna RT 사진풍 렌더(PNG)
 
 실행:
   PY=/home/yunjung/.venvs/py312/bin/python
-  CUDA_VISIBLE_DEVICES=0 $PY render_drones.py --spp 128
+  CUDA_VISIBLE_DEVICES=2 $PY render_drones.py --spp 128   # GPU 2번 사용
 """
 from __future__ import annotations
 

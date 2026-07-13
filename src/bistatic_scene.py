@@ -9,7 +9,8 @@ bistatic_scene.py — (report4) 바이스태틱 패시브 레이더 기하
   베이스라인  L  = |TX−RX|
   경로합      R1+R2 = |TX→표적| + |표적→RX|
   바이스태틱 거리 Rb = (R1+R2) − L   (직접파 대비 '추가 경로')  → 지연 τ = Rb/c
-  바이스태틱 도플러 f_d = −(1/λ)·v·(û1+û2)   (û1=표적→TX, û2=표적→RX 단위벡터)
+  바이스태틱 도플러 f_d = −(1/λ)·d(R1+R2)/dt = +(1/λ)·v·(û1+û2)
+    (û1=표적→TX, û2=표적→RX 단위벡터. dR1/dt=−û1·v 이므로 경로가 길어지면=멀어지면 f_d<0)
   바이스태틱 각  β  = û1, û2 사이 각
 
 등Rb 면은 TX·RX 를 초점으로 하는 **타원체**(2D 에선 타원). 한 수신기로는 (Rb, f_d) 만,
@@ -31,21 +32,21 @@ def bistatic_params(tx, rx, tgt, vel, fc):
     u1 = d1 / max(R1, 1e-9); u2 = d2 / max(R2, 1e-9)        # 표적→TX, 표적→RX
     Rb = R1 + R2 - L                                        # 바이스태틱(추가) 거리
     tau = Rb / C0                                           # 상대 지연(직접파 기준)
-    fd = -float(vel @ (u1 + u2)) / lam                      # 바이스태틱 도플러
+    fd = float(vel @ (u1 + u2)) / lam                       # 바이스태틱 도플러(멀어지면 <0)
     beta = float(np.degrees(np.arccos(np.clip(u1 @ u2, -1, 1))))
     return dict(L=L, R1=R1, R2=R2, Rb=Rb, tau=tau, fd=fd, beta=beta, lam=lam,
                 u1=u1, u2=u2)
 
 
 def bistatic_velocity_to_doppler(v_radial_sum, fc):
-    """경로변화율(dR1/dt+dR2/dt)[m/s] → 도플러[Hz]."""
-    return v_radial_sum / (C0 / fc)
+    """경로변화율(dR1/dt+dR2/dt)[m/s] → 도플러[Hz].  f_d = −(1/λ)·d(R1+R2)/dt (멀어지면<0)."""
+    return -v_radial_sum / (C0 / fc)
 
 
 if __name__ == "__main__":
-    # 예: TX(기지국) 100m 옆, RX 원점, 표적이 감시영역을 가로지름
-    tx = (0.0, 120.0, 30.0); rx = (0.0, 0.0, 5.0)
-    for (pos, vel) in [((60, 60, 40), (15, 0, 0)), ((30, 80, 50), (0, -12, 0))]:
+    # 예: 무반사 챔버(30×20×11) 내부 — TX/RX 를 양쪽 측벽에, 표적이 quiet zone 을 비행
+    tx = (4.0, 2.5, 8.0); rx = (4.0, 17.5, 6.5)
+    for (pos, vel) in [((21, 10, 5.5), (-3, 2, 0.5)), ((24, 13, 5.0), (2, -3, 0))]:
         p = bistatic_params(tx, rx, pos, vel, 3.5e9)
-        print(f"표적{pos} v{vel}: L={p['L']:.0f}m Rb={p['Rb']:.1f}m "
+        print(f"표적{pos} v{vel}: L={p['L']:.1f}m Rb={p['Rb']:.1f}m "
               f"τ={p['tau']*1e9:.0f}ns f_d={p['fd']:+.1f}Hz β={p['beta']:.0f}°")

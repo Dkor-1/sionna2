@@ -48,6 +48,8 @@ class DroneSpec:
     num_rotors: int             # 로터 수 (=암 수, 비동축)
     coaxial: bool = False       # 동축(2개/암) 여부
     max_speed_ms: float | None = None
+    hover_rpm: float = 6000.0    # 대표 호버 회전수[rpm] — 프로펠러 크기에 맞춘 현실값(마이크로도플러용).
+                                 #   큰 프로펠러는 느리게(예: S1000 15in ~3500), 작은건 빠르게 돈다.
     rtk: bool = False
     release: str = "released"   # released / rumored_unreleased / discontinued
     confidence: str = "high"
@@ -82,7 +84,7 @@ DRONES: dict[str, DroneSpec] = {
         diagonal_mm=250, weight_g=249.9,
         body_l_mm=255, body_w_mm=181, body_h_mm=91,
         prop_dia_mm=152, prop_blades=2, num_rotors=4,
-        max_speed_ms=19, rtk=False, release="released", confidence="high",
+        max_speed_ms=19, hover_rpm=7500, rtk=False, release="released", confidence="high",
         note="대각거리(250mm)는 DJI 비공개 → 언폴드 외형서 추정(±20mm). 무게/프롭/로터수 공식.",
         body_rgb=_GRAY_D, arm_style="body", gear="none", gimbal="front",
         accent_rgb=(0.95, 0.45, 0.05), body_frac=0.46,
@@ -93,7 +95,7 @@ DRONES: dict[str, DroneSpec] = {
         diagonal_mm=400, weight_g=1063,
         body_l_mm=329, body_w_mm=391, body_h_mm=135,
         prop_dia_mm=267, prop_blades=2, num_rotors=4,
-        max_speed_ms=25, rtk=False, release="released", confidence="high",
+        max_speed_ms=25, hover_rpm=5500, rtk=False, release="released", confidence="high",
         note="대형 소비자 플래그십(2025). 전방 3카메라 짐벌(360° 무한회전)이 특징. "
              "무게/외형 공식, 대각거리·프롭지름은 DJI 비공개라 외형서 추정.",
         body_rgb=_SILVER, arm_style="body", gear="none", gimbal="front",
@@ -105,7 +107,7 @@ DRONES: dict[str, DroneSpec] = {
         diagonal_mm=438.8, weight_g=1219,
         body_l_mm=307, body_w_mm=388, body_h_mm=150,
         prop_dia_mm=274, prop_blades=2, num_rotors=4,
-        max_speed_ms=21, rtk=True, release="released", confidence="high",
+        max_speed_ms=21, hover_rpm=5200, rtk=True, release="released", confidence="high",
         note="검증으로 프롭 지름 274mm 확정(292→274). 온보드 RTK(정밀 측위 안테나).",
         body_rgb=_OFFWHT, arm_style="body", gear="feet", gimbal="front",
         accent_rgb=None, body_frac=0.42,
@@ -116,7 +118,7 @@ DRONES: dict[str, DroneSpec] = {
         diagonal_mm=1045, weight_g=4400,
         body_l_mm=1045, body_w_mm=1045, body_h_mm=462,
         prop_dia_mm=381, prop_blades=2, num_rotors=8,
-        max_speed_ms=None, rtk=False, release="discontinued", confidence="high",
+        max_speed_ms=None, hover_rpm=3500, rtk=False, release="discontinued", confidence="high",
         note="옥토콥터: 8암·암당 로터 1개(비동축). 카본 프레임, 접이식+격납형 착륙장치, 벨리 짐벌.",
         body_rgb=_BLACK, arm_style="carbon", gear="tall", gimbal="belly",
         accent_rgb=(0.85, 0.10, 0.10), body_frac=0.30,
@@ -127,7 +129,7 @@ DRONES: dict[str, DroneSpec] = {
         diagonal_mm=350, weight_g=1380,
         body_l_mm=350, body_w_mm=350, body_h_mm=198,
         prop_dia_mm=239, prop_blades=2, num_rotors=4,
-        max_speed_ms=20, rtk=False, release="released", confidence="high",
+        max_speed_ms=20, hover_rpm=6000, rtk=False, release="released", confidence="high",
         note="고정암(접이 불가) 일체형 흰색 셸 + 일체형 착륙다리. 클래식 팬텀 형상.",
         body_rgb=_WHITE, arm_style="body", fixed_arm=True, gear="legs", gimbal="front",
         accent_rgb=None, body_frac=0.52,

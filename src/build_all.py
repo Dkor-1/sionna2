@@ -7,8 +7,8 @@ build_all.py — 한 번에 전부 생성하는 진입점
 
 실행:
   PY=/home/yunjung/.venvs/py312/bin/python
-  CUDA_VISIBLE_DEVICES=0 $PY build_all.py            # 전체
-  CUDA_VISIBLE_DEVICES=0 $PY build_all.py --no-render # 렌더 빼고(빠름)
+  CUDA_VISIBLE_DEVICES=2 $PY build_all.py            # 전체 (GPU 2번 사용)
+  CUDA_VISIBLE_DEVICES=2 $PY build_all.py --no-render # 렌더 빼고(빠름)
 """
 from __future__ import annotations
 import os, sys, time, argparse

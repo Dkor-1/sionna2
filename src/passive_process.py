@@ -19,6 +19,8 @@ CAF(교차모호함수) 거리-도플러는 **CPI 를 프레임(slow-time)으로
 """
 from __future__ import annotations
 import numpy as np
+from scipy.linalg import cho_factor, cho_solve
+from scipy.signal import fftconvolve
 
 C0 = 299792458.0
 
@@ -62,20 +64,37 @@ def make_cpi(ref_frame, M, fs, tau_s, fd_hz, a_tgt,
 # --------------------------------------------------------------------------- #
 #  ① ECA — Extended Cancellation Algorithm (직접파 + 정적 클러터 제거)
 # --------------------------------------------------------------------------- #
+class ECACanceller:
+    """**참조 자기상관을 1회만** 계산해두고 여러 감시신호에 재사용하는 ECA.
+
+    XᴴX(=ref 자기상관의 Hermitian Toeplitz)·그 Cholesky 인수는 ref 에만 의존하므로,
+    같은 기준파형으로 N-trial Monte-Carlo 를 돌 때 **매 trial 재계산은 낭비**다. 여기서
+    한 번 프리컴퓨트하면 per-trial 은 교차상관 Xᴴsurv + 후방대입 + FIR 제거만 남는다.
+      n_taps : 제거할 지연(거리) 탭 수 — 가까운 클러터/직접파 영역 폭.
+    (모듈 함수 eca() 는 이 클래스를 1회용으로 감싼 것 — 기존 호출부 호환.)"""
+
+    def __init__(self, ref, n_taps=40):
+        self.ref = np.asarray(ref)
+        self.n_taps = int(n_taps)
+        N = len(self.ref); n = self.n_taps
+        R = np.array([np.vdot(self.ref[:N - d], self.ref[d:]) for d in range(n)])  # 자기상관 lag 0..n
+        idx = np.arange(n); D = idx[None, :] - idx[:, None]                        # j−i
+        XhX = np.where(D <= 0, R[np.abs(D)], np.conj(R[np.abs(D)])) + 1e-6 * np.eye(n)
+        self._cho = cho_factor(XhX)                    # Hermitian PD → Cholesky 1회
+
+    def cancel(self, surv):
+        """감시신호에서 '기준의 지연복제(0-도플러)' 부분공간을 최소제곱 투영·제거.
+        직접파누설 + 정적 클러터(지연만 있고 도플러 0)를 없앤다(도플러 있는 표적은 보존)."""
+        surv = np.asarray(surv); N = len(surv)
+        C = np.array([np.vdot(self.ref[:N - i], surv[i:]) for i in range(self.n_taps)])  # Xᴴsurv
+        w = cho_solve(self._cho, C)
+        return surv - fftconvolve(self.ref, w)[:N]     # ref ∗ w (인과 FIR) 제거
+
+
 def eca(surv, ref, n_taps=40):
-    """감시신호에서 '기준의 지연복제(0-도플러)' 부분공간을 최소제곱으로 투영·제거.
-    직접파누설 + 정적 클러터(지연만 있고 도플러 0)를 없앤다. (Doppler 있는 표적은 보존)
-      n_taps : 제거할 지연(거리) 탭 수 — 가까운 클러터 영역 폭.
-    효율 구현: XᴴX 는 ref 자기상관의 Hermitian Toeplitz, Xᴴsurv 는 교차상관 → N×n_taps
-    행렬을 만들지 않고(메모리 O(N)) 계산. 잔차 = surv − (ref ∗ w)."""
-    from scipy.signal import fftconvolve
-    N = len(surv)
-    R = np.array([np.vdot(ref[:N - d], ref[d:]) for d in range(n_taps)])   # 자기상관 lag 0..n
-    idx = np.arange(n_taps); D = idx[None, :] - idx[:, None]               # j−i
-    XhX = np.where(D <= 0, R[np.abs(D)], np.conj(R[np.abs(D)])) + 1e-6 * np.eye(n_taps)
-    C = np.array([np.vdot(ref[:N - i], surv[i:]) for i in range(n_taps)])  # 교차상관 Xᴴsurv
-    w = np.linalg.solve(XhX, C)
-    return surv - fftconvolve(ref, w)[:N]          # ref ∗ w (인과 FIR) 제거
+    """단발 ECA — ECACanceller(ref, n_taps).cancel(surv) 와 동일.
+    반복 호출(같은 ref)이면 ECACanceller 를 만들어 .cancel() 을 재사용하라(자기상관 프리컴퓨트)."""
+    return ECACanceller(ref, n_taps).cancel(surv)
 
 
 # --------------------------------------------------------------------------- #
@@ -102,57 +121,80 @@ def range_doppler(surv, ref, fs, M, n_range=None):
 #  ③ 2D CA-CFAR 검출
 # --------------------------------------------------------------------------- #
 def ca_cfar_2d(rd, guard=(2, 2), train=(6, 6), pfa=1e-4):
-    """셀평균 CFAR. rd=|RD|(도플러×거리). 반환 (검출마스크, 임계맵, 추정잡음)."""
+    """셀평균 CFAR. rd=|RD|(도플러×거리). 반환 (검출마스크, 임계맵, 추정잡음).
+
+    적분영상(summed-area table)으로 **완전 벡터화** — 셀마다 학습창이 가장자리에서
+    잘리는 것(가변 Ntrain)까지 정확히 반영해, 기존 이중 for-loop 구현과 **동일 출력**이며
+    맵이 커질수록 크게 빠르다(Monte-Carlo·매트릭스에서 CFAR 를 수천 번 부를 때 중요)."""
     P = rd ** 2                                    # 전력
     gd, gr = guard; td, tr = train
     nd, nr = P.shape
-    det = np.zeros_like(P, bool); thr = np.zeros_like(P)
     win_d, win_r = gd + td, gr + tr
-    # CA-CFAR 스케일: alpha = Ntrain (Pfa^(-1/N) − 1)
-    for i in range(nd):
-        for j in range(nr):
-            d0, d1 = max(0, i - win_d), min(nd, i + win_d + 1)
-            r0, r1 = max(0, j - win_r), min(nr, j + win_r + 1)
-            blk = P[d0:d1, r0:r1].copy()
-            gd0, gd1 = max(0, i - gd), min(nd, i + gd + 1)
-            gr0, gr1 = max(0, j - gr), min(nr, j + gr + 1)
-            # 학습셀 평균 = (전체블록합 − 가드블록합) / 학습셀수
-            tot = blk.sum(); gblk = P[gd0:gd1, gr0:gr1].sum()
-            ntr = blk.size - (gd1 - gd0) * (gr1 - gr0)
-            if ntr <= 0:
-                continue
-            noise = (tot - gblk) / ntr
-            alpha = ntr * (pfa ** (-1.0 / ntr) - 1.0)
-            thr[i, j] = alpha * noise
-            det[i, j] = P[i, j] > thr[i, j]
+
+    S = np.zeros((nd + 1, nr + 1))                 # 적분영상: S[a,b]=sum(P[:a,:b])
+    S[1:, 1:] = np.cumsum(np.cumsum(P, axis=0), axis=1)
+
+    def box_sum(r0, r1, c0, c1):                   # 합(P[r0:r1, c0:c1]), 경계 브로드캐스트
+        return S[r1, c1] - S[r0, c1] - S[r1, c0] + S[r0, c0]
+
+    i = np.arange(nd); j = np.arange(nr)
+    r0 = np.clip(i - win_d, 0, nd)[:, None]; r1 = np.clip(i + win_d + 1, 0, nd)[:, None]
+    c0 = np.clip(j - win_r, 0, nr)[None, :]; c1 = np.clip(j + win_r + 1, 0, nr)[None, :]
+    gr0 = np.clip(i - gd, 0, nd)[:, None]; gr1 = np.clip(i + gd + 1, 0, nd)[:, None]
+    gc0 = np.clip(j - gr, 0, nr)[None, :]; gc1 = np.clip(j + gr + 1, 0, nr)[None, :]
+
+    tot = box_sum(r0, r1, c0, c1)                  # 전체 창 합 (가드 포함)
+    gblk = box_sum(gr0, gr1, gc0, gc1)             # 가드 창 합
+    ntr = (r1 - r0) * (c1 - c0) - (gr1 - gr0) * (gc1 - gc0)   # 학습셀 수(가변)
+    ok = ntr > 0
+    noise = np.where(ok, (tot - gblk) / np.where(ok, ntr, 1), 0.0)
+    ntr_safe = np.where(ok, ntr, 1)
+    alpha = ntr_safe * (pfa ** (-1.0 / ntr_safe) - 1.0)       # CA-CFAR: α=Ntr(Pfa^(−1/Ntr)−1)
+    thr = alpha * noise
+    det = ok & (P > thr)
     return det, np.sqrt(thr), None
 
 
+def _subbin(vm1, v0, vp1):
+    """3점 포물선 피크의 서브빈 오프셋 δ∈[-0.5,0.5] (양자화된 빈 → 참 피크 위치 보간)."""
+    den = vm1 - 2.0 * v0 + vp1
+    if den >= 0:                                   # 볼록 피크가 아니면 보간 안 함
+        return 0.0
+    return float(np.clip(0.5 * (vm1 - vp1) / den, -0.5, 0.5))
+
+
 def peak_detection(Rb, f_d, rd, det):
-    """검출 마스크에서 최댓값 셀의 (거리, 도플러, 값) 반환."""
+    """검출 마스크에서 최댓값 셀의 (거리, 도플러, 값) 반환.
+    도플러·거리축에 **서브빈 포물선 보간**을 적용해, 참 표적이 DFT 빈 사이에 걸릴 때
+    라벨이 실제 위치와 맞게 한다(빈 양자화 ±Δ/2 오차 완화)."""
     masked = np.where(det, rd, 0.0)
     if masked.max() <= 0:
         return None
     di, ri = np.unravel_index(np.argmax(masked), masked.shape)
-    return dict(Rb=float(Rb[ri]), fd=float(f_d[di]), val=float(rd[di, ri]),
-                di=int(di), ri=int(ri))
+    fd = float(f_d[di]); rb = float(Rb[ri])
+    if 0 < di < rd.shape[0] - 1:                    # 도플러축 보간
+        fd += _subbin(rd[di-1, ri], rd[di, ri], rd[di+1, ri]) * (f_d[1] - f_d[0])
+    if 0 < ri < rd.shape[1] - 1:                    # 거리축 보간
+        rb += _subbin(rd[di, ri-1], rd[di, ri], rd[di, ri+1]) * (Rb[1] - Rb[0])
+    return dict(Rb=rb, fd=fd, val=float(rd[di, ri]), di=int(di), ri=int(ri))
 
 
 if __name__ == "__main__":
-    from waveforms import lte_downlink
-    wf = lte_downlink(occupancy="G3")
+    # 무반사 챔버(30×20×11 m) 내부 바이스태틱: Rb 는 수~수십 m (실외 수백 m 아님)
+    from waveforms import nr_downlink
+    wf = nr_downlink(occupancy="G3")
     fs = wf.fs_hz; ref_frame = wf.tx
     M = 48
     Lf = len(ref_frame); prf = fs / Lf
-    # 표적: Rb=300m → τ, f_d=120Hz
-    Rb_true = 300.0; tau = Rb_true / C0; fd_true = 120.0
-    surv, ref = make_cpi(ref_frame, M, fs, tau, fd_true, a_tgt=1.0,
-                         dpi_amp=50.0, snr_db=12.0)
-    print(f"LTE CPI: M={M} 프레임, PRF={prf:.0f}Hz, 최대무모호도플러=±{prf/2:.0f}Hz, "
+    # 챔버 표적: Rb≈22m → τ, f_d=65Hz. DPI 강하고 잔향(클러터)은 약함(무반사).
+    Rb_true = 22.0; tau = Rb_true / C0; fd_true = 65.0
+    surv, ref = make_cpi(ref_frame, M, fs, tau, fd_true, a_tgt=1.0, dpi_amp=55.0,
+                         clutter=((8e-9, 3.0), (22e-9, 2.0), (45e-9, 1.4)), snr_db=12.0)
+    print(f"5G 챔버 CPI: M={M} 프레임, PRF={prf:.0f}Hz, 최대무모호도플러=±{prf/2:.0f}Hz, "
           f"Δf_d={prf/M:.1f}Hz, ΔRb={C0/wf.bw_hz:.1f}m")
     surv_c = eca(surv, ref, n_taps=40)
     for tag, sig in [("ECA 전", surv), ("ECA 후", surv_c)]:
-        Rb, f_d, rd = range_doppler(sig, ref, fs, M, n_range=int(800 / (C0 / fs)))
+        Rb, f_d, rd = range_doppler(sig, ref, fs, M, n_range=int(45 / (C0 / fs)))
         det, thr, _ = ca_cfar_2d(rd, pfa=1e-4)
         pk = peak_detection(Rb, f_d, rd, det)
         zd = np.argmin(np.abs(f_d))
