@@ -19,7 +19,7 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 from matplotlib.patches import Patch
 
 from waveforms import (wifi_80211ac, lte_downlink, nr_downlink,
-                       CH, CH_COLOR, MODE_DESC)
+                       CH, CH_COLOR)
 from rcs_po import drone_rcs_pattern
 from radar_process import range_profile, mainlobe_width_m
 from drones import DRONES
@@ -27,7 +27,7 @@ from drones import DRONES
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
 _BUILD = {"wifi": wifi_80211ac, "lte": lte_downlink, "nr": nr_downlink}
 _TITLE = {"wifi": "WiFi 802.11ac", "lte": "LTE Rel-9", "nr": "5G NR Rel-16"}
-# 모드 설명은 표준별로 다르므로 waveforms.MODE_DESC 사용 (단일 소스)
+# 모드 설명(그림 영어 표기)은 아래 로컬 매핑 사용 — 본문 한글 설명은 waveforms.MODE_DESC
 _MODE_EN = {"G1": "idle (ref only)", "G2": "ref+control", "G3": "full load"}
 def _mdesc(std, mode):
     return f"{mode} · {_MODE_EN[mode]}"

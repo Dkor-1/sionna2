@@ -25,7 +25,7 @@ from matplotlib import cm
 from matplotlib.colors import Normalize
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 
-from drones import DRONES, build_drone, drone_colors
+from drones import DRONES, build_drone, drone_colors, drone_gamma_map
 from rcs_po import mesh_to_points, rcs_from_points, dbsm, C0
 from waveforms import PILOT_RATE_HZ
 from radar_scene import ANT_POS, TGT_POS    # 모노스태틱 기하 단일 출처(sionna 는 지연 import 라 가벼움)
@@ -133,11 +133,12 @@ def fig_setup_3d(outdir=FIG, target="mavic4pro", fc=3.5e9, exagg=12.0):
 def _rcs_grid(key, fc, az, el, spacing=None):
     """드론 1종의 σ(el, az)[m²] 격자. 점구름 한 번 만들고 el 별로 az 벡터화."""
     lam = C0 / fc; spacing = spacing or lam / 6.0
-    mesh = build_drone(DRONES[key])
-    P, N, dA = mesh_to_points(mesh, spacing)
+    spec = DRONES[key]
+    mesh = build_drone(spec)
+    P, N, dA, w = mesh_to_points(mesh, spacing, gamma=drone_gamma_map(spec))
     S = np.zeros((len(el), len(az)))
     for i, e in enumerate(el):
-        S[i] = rcs_from_points(P, N, dA, fc, az, e)
+        S[i] = rcs_from_points(P, N, dA, fc, az, e, w=w)
     return S, mesh
 
 
@@ -214,11 +215,13 @@ def fig_rcs_facets(outdir=FIG, target="mavic4pro", fc=3.5e9, aspects=(0, 45, 90)
     (el=0 수평이면 평평한 드론의 조명면이 얇게 보여 오해를 부름.)"""
     spec = DRONES[target]; mesh = build_drone(spec)
     V, F, cen, nhat, area = _face_geom(mesh)
+    gm = drone_gamma_map(spec)
+    wfac = np.array([gm.get(g, 1.0) for g in mesh.g])       # 면별 재질 |Γ|
     tris0 = [[V[a], V[b], V[c]] for (a, b, c) in mesh.f]
     b0, b1 = V.min(0), V.max(0); c = (b0 + b1) / 2; half = (b1 - b0).max() / 2
     fig = plt.figure(figsize=(15, 5.6), constrained_layout=True)
     fig.suptitle(f"Illuminated facets — facets of {_NAME[target]} facing the radar per look angle @ {fc/1e9:.1f} GHz\n"
-                 "Color = PO contribution " r"$(\hat{n}\cdot\hat{u})\,\Delta A$"
+                 "Color = PO contribution " r"$|\Gamma|\,(\hat{n}\cdot\hat{u})\,\Delta A$"
                  "  (yellow=strong, purple=weak, gray=back-facing).  Blue arrow = radar look direction (camera at radar position)",
                  fontsize=13, fontweight="bold")
     cmap = cm.inferno
@@ -226,7 +229,7 @@ def fig_rcs_facets(outdir=FIG, target="mavic4pro", fc=3.5e9, aspects=(0, 45, 90)
         ax = fig.add_subplot(1, len(aspects), j+1, projection="3d")
         u = _look_dir(azd, el)                               # 표적→레이더 (살짝 위에서)
         proj = nhat @ u
-        contrib = np.maximum(proj, 0.0) * area
+        contrib = np.maximum(proj, 0.0) * area * wfac   # 재질 가중 PO 기여
         cn = contrib / (contrib.max() + 1e-30)
         cols = [cmap(c2) if p > 0 else (0.22, 0.22, 0.25) for c2, p in zip(cn, proj)]
         ax.add_collection3d(Poly3DCollection(tris0, facecolors=cols,

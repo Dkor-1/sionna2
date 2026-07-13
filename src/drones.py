@@ -145,7 +145,30 @@ DRONE_GROUP_MAT = {
     "gear":   ("plastic", "착륙장치"),
     "camera": ("plastic", "짐벌 카메라"),
     "accent": ("plastic", "전방 식별색"),
+    "battery": ("metal",  "배터리팩(내부)"),
+    "pcb":    ("metal",   "ESC/메인보드(내부)"),
 }
+
+# 부위(그룹) → PO 진폭 반사계수 |Γ| (rcs_po 재질 가중용).
+#   근거(수직입사 |Γ|=(√εr−1)/(√εr+1) 기준 대표값):
+#   · 플라스틱 셸(ABS/PC, εr≈2.7, 1~3mm 박막): 단일면 0.24, 박막 간섭 밴드 0.1~0.45 → 대표 0.28
+#   · 프로펠러(얇은 플라스틱, 카본충전이면 ↑): 0.25
+#   · 카본(준도체, 섬유 이방성 무시): 0.90
+#   · 금속(모터·배터리 파우치포일·짐벌 하우징): 1.0 (배터리 셀 포일은 GHz 에서 사실상 금속)
+#   · PCB(FR-4+구리 그라운드플레인): 0.80
+#   · 카메라/짐벌(금속 하우징+유리+모터 혼합): 0.85
+_GAMMA_PLASTIC = 0.28
+GROUP_GAMMA = {
+    "body": _GAMMA_PLASTIC, "canopy": _GAMMA_PLASTIC, "accent": _GAMMA_PLASTIC,
+    "gear": _GAMMA_PLASTIC, "prop": 0.25,
+    "arm": 0.90, "motor": 1.0, "camera": 0.85, "battery": 1.0, "pcb": 0.80,
+}
+
+
+def drone_gamma_map(spec: DroneSpec) -> dict:
+    """드론 1종의 그룹→|Γ| 맵. 셸형 암(arm_style≠carbon)은 build_frame 이 'body' 그룹으로
+    넣으므로 자동으로 플라스틱 |Γ| 가 적용된다(카본 암은 'arm' 그룹 → 0.90)."""
+    return dict(GROUP_GAMMA)
 
 
 # --------------------------------------------------------------------------- #
@@ -214,6 +237,16 @@ def build_frame(spec: DroneSpec) -> Mesh:
     _add_camera(m, spec, body_l, body_z)
     if spec.rtk:                                     # 엔터프라이즈 RTK 안테나(매트리스)
         _add_antenna(m, spec, body_l, body_w, body_z)
+    # --- 내부 금속 산란체(RCS 용) ---------------------------------------------
+    # 플라스틱 셸은 RF 에 반투명(|Γ|≈0.3)이라 실물 드론의 후방산란은 셸이 아니라
+    # **배터리팩·ESC/PCB·모터·카메라 금속**이 지배한다. 렌더에선 셸 안이라 안 보이지만
+    # 재질 가중 PO(rcs_po + drone_gamma_map)가 이들을 주 산란체로 계상한다.
+    # 치수는 동체 대비 대표 비율(실물 배터리 ≈ 동체 부피의 40~60%; 기종별 정확 치수는
+    # 대부분 비공개라 파라메트릭). Sionna RT 전파에는 refraction OFF 라 영향 없음.
+    m.merge(box(body_l * 0.50, body_w * 0.60, body_z * 0.55,
+                center=(-0.08 * body_l, 0, -0.05 * body_z), group="battery"))
+    m.merge(box(body_l * 0.36, body_w * 0.52, body_z * 0.06,
+                center=(0.02 * body_l, 0, 0.24 * body_z), group="pcb"))
     return m
 
 
@@ -366,6 +399,8 @@ def drone_colors(spec: DroneSpec) -> dict:
         "gear":   tuple(0.7 * c for c in body) if spec.fixed_arm else (0.12, 0.12, 0.13),
         "camera": (0.08, 0.08, 0.09),
         "accent": spec.accent_rgb or (0.85, 0.1, 0.1),
+        "battery": (0.16, 0.16, 0.19),               # 내부(렌더에선 셸에 가려 안 보임)
+        "pcb":    (0.10, 0.32, 0.16),
     }
 
 

@@ -182,8 +182,117 @@ def fig_summary(outdir=FIG, target="mavic4pro", R=10.0):
     print("[radar]", os.path.relpath(fn)); return fn
 
 
+def fig_rcs_materials(outdir=FIG, fc=3.5e9):
+    """재질 가중의 효과 — 구모델(전부 PEC·내부 산란체 없음) vs 신모델(재질 |Γ| + 내부 금속).
+    좌: mavic4pro 방위 패턴 비교 / 우: 5종 방위평균 막대 비교(감소량 표기)."""
+    from drones import build_drone, drone_gamma_map
+    from rcs_po import mesh_to_points, rcs_from_points
+    az = np.arange(0, 360, 2.0)
+    fig, axes = plt.subplots(1, 2, figsize=(13.6, 5.4), constrained_layout=True,
+                             gridspec_kw=dict(width_ratios=[1.15, 1.0]))
+    # (a) mavic4pro 패턴: 구모델 = 내부(battery/pcb) 기여 0 + 전 부위 |Γ|=1
+    spec = DRONES["mavic4pro"]; mesh = build_drone(spec)
+    spacing = (299792458.0 / fc) / 7.0
+    g_old = {"battery": 0.0, "pcb": 0.0}                 # 나머지 그룹은 기본 1.0(PEC)
+    P, N, dA, w_old = mesh_to_points(mesh, spacing, gamma=g_old)
+    _, _, _, w_new = mesh_to_points(mesh, spacing, gamma=drone_gamma_map(spec))
+    s_old = rcs_from_points(P, N, dA, fc, az, w=w_old)
+    s_new = rcs_from_points(P, N, dA, fc, az, w=w_new)
+    axes[0].plot(az, dbsm(s_old), color="0.55", lw=1.4, label="old: all-PEC, no internals")
+    axes[0].plot(az, dbsm(s_new), color="#2e7d32", lw=1.8,
+                 label="new: material-weighted + internal metal (battery/PCB)")
+    axes[0].set_xlabel("Azimuth [deg]"); axes[0].set_ylabel("RCS [dBsm]")
+    axes[0].set_title(f"(a) Mavic 4 Pro azimuth pattern @ {fc/1e9:.1f} GHz", fontsize=11)
+    axes[0].grid(alpha=0.3); axes[0].legend(fontsize=9)
+    # (b) 5종 방위평균 비교
+    keys = list(DRONES.keys()); olds, news = [], []
+    for k in keys:
+        sp2 = DRONES[k]; m2 = build_drone(sp2)
+        P2, N2, dA2, wo = mesh_to_points(m2, spacing, gamma=g_old)
+        _, _, _, wn = mesh_to_points(m2, spacing, gamma=drone_gamma_map(sp2))
+        olds.append(dbsm(rcs_from_points(P2, N2, dA2, fc, az, w=wo).mean()))
+        news.append(dbsm(rcs_from_points(P2, N2, dA2, fc, az, w=wn).mean()))
+    x = np.arange(len(keys)); wbar = 0.38
+    axes[1].bar(x - wbar/2, olds, wbar, color="0.6", label="old (all-PEC)")
+    axes[1].bar(x + wbar/2, news, wbar, color="#2e7d32", label="new (material-weighted)")
+    for xi, (o, n) in enumerate(zip(olds, news)):
+        axes[1].text(xi + wbar/2, n + 0.4, f"{n-o:+.1f} dB", ha="center", fontsize=8.5)
+    axes[1].set_xticks(x, [_NAME[k] for k in keys], fontsize=8.5)
+    axes[1].set_ylabel("Azimuth-avg RCS [dBsm]")
+    axes[1].set_title("(b) Azimuth-mean per drone — plastic shell is semi-transparent to RF",
+                      fontsize=10.5)
+    axes[1].grid(axis="y", alpha=0.3); axes[1].legend(fontsize=9)
+    fig.suptitle("Material-weighted PO — the shell reflects ~" r"$|\Gamma|\!\approx\!0.3$"
+                 "; battery/motors/PCB dominate the echo",
+                 fontsize=13, fontweight="bold")
+    fn = os.path.join(outdir, "report2_rcs_materials.png"); fig.savefig(fn, dpi=130); plt.close(fig)
+    print("[radar]", os.path.relpath(fn)); return fn
+
+
+def fig_rcs_shape_ab(outdir=FIG):
+    """형상 민감도 A/B — 파라메트릭 메쉬 vs **실기체 3D 스캔**(Phantom 4, CC-BY).
+    두 모델 모두 PEC + 동일 부위구성(스캔엔 프로펠러·카메라가 없어 파라메트릭도 제외)으로
+    맞춰 **순수 형상 차이만** 측정한다. λ=6~16cm 에선 λ/8 이하 디테일이 안 보인다는
+    주장을 데이터로 검증하는 그림."""
+    from drones import build_drone
+    from rcs_po import mesh_to_points, rcs_from_points
+    npz = os.path.join(os.path.dirname(__file__), "..", "assets", "meshes", "cad",
+                       "phantom4_scan_points.npz")
+    d = np.load(npz)
+    Ps, Ns, dAs = d["P"].astype(float), d["N"].astype(float), d["dA"].astype(float)
+    spec = DRONES["phantom4"]; mesh = build_drone(spec)
+    az = np.arange(0, 360, 1.0)
+    bands = [("LTE 1.84", 1.84e9), ("5G 3.5", 3.5e9), ("WiFi 5.21", 5.21e9)]
+    # 비교 가능 부위만: 스캔에 없는 프로펠러/카메라(+내부 산란체)는 파라메트릭에서 제외
+    g_cmp = {"prop": 0.0, "camera": 0.0, "battery": 0.0, "pcb": 0.0}
+
+    fig, axes = plt.subplots(1, 2, figsize=(13.6, 5.4), constrained_layout=True,
+                             gridspec_kw=dict(width_ratios=[1.25, 1.0]))
+    fc0 = 3.5e9
+    Pp, Np_, dAp, wp = mesh_to_points(mesh, (299792458.0 / fc0) / 7.0, gamma=g_cmp)
+    s_par = rcs_from_points(Pp, Np_, dAp, fc0, az, w=wp)
+    s_scan = rcs_from_points(Ps, Ns, dAs, fc0, az)
+    # 방위 오프셋 정렬(스캔의 기수 방향은 미지 — dB 패턴 순환상관 최대점으로 정렬, 쿼드 90° 모호)
+    a_p, a_s = dbsm(s_par), dbsm(s_scan)
+    xc = [np.corrcoef(a_p, np.roll(a_s, k))[0, 1] for k in range(360)]
+    k0 = int(np.argmax(xc))
+    axes[0].plot(az, a_p, color="0.55", lw=1.5, label="parametric mesh (spec-sheet)")
+    axes[0].plot(az, np.roll(a_s, k0), color="#1565c0", lw=1.6,
+                 label=f"real-body 3D scan (az-aligned {k0}°)")
+    axes[0].axhline(dbsm(s_par.mean()), color="0.55", ls="--", lw=1)
+    axes[0].axhline(dbsm(s_scan.mean()), color="#1565c0", ls="--", lw=1)
+    axes[0].set_xlabel("Azimuth [deg]"); axes[0].set_ylabel("RCS [dBsm]")
+    axes[0].set_title(f"(a) Phantom 4 azimuth pattern @ {fc0/1e9:.1f} GHz — both PEC, "
+                      "matched parts (no props/camera)", fontsize=10.5)
+    axes[0].grid(alpha=0.3); axes[0].legend(fontsize=9, loc="lower left")
+    # (b) 대역별 방위평균
+    means_p, means_s = [], []
+    for _, f in bands:
+        Pp2, Np2, dAp2, wp2 = mesh_to_points(mesh, (299792458.0 / f) / 7.0, gamma=g_cmp)
+        means_p.append(dbsm(rcs_from_points(Pp2, Np2, dAp2, f, az, w=wp2).mean()))
+        means_s.append(dbsm(rcs_from_points(Ps, Ns, dAs, f, az).mean()))
+    x = np.arange(len(bands)); wb = 0.38
+    axes[1].bar(x - wb/2, means_p, wb, color="0.6", label="parametric")
+    axes[1].bar(x + wb/2, means_s, wb, color="#1565c0", label="3D scan")
+    for xi, (mp, ms) in enumerate(zip(means_p, means_s)):
+        axes[1].text(xi, max(mp, ms) + 0.4, f"{ms-mp:+.1f} dB", ha="center",
+                     fontsize=9.5, fontweight="bold")
+    axes[1].set_xticks(x, [b[0] + " GHz" for b in bands], fontsize=9)
+    axes[1].set_ylabel("Azimuth-avg RCS [dBsm]")
+    axes[1].set_title("(b) Azimuth-mean per band — shape realism costs only a few dB",
+                      fontsize=10.5)
+    axes[1].grid(axis="y", alpha=0.3); axes[1].legend(fontsize=9)
+    fig.suptitle("Shape sensitivity A/B — spec-sheet parametric mesh vs real-body 3D scan (Phantom 4)",
+                 fontsize=13, fontweight="bold")
+    fig.text(0.01, 0.005, "Scan: 'DJI PHANTOM 4 HI RES SCAN' by NeverDun, Thingiverse 1456295 (CC-BY)",
+             fontsize=7.5, color="0.45")
+    fn = os.path.join(outdir, "report2_rcs_shape_ab.png"); fig.savefig(fn, dpi=130); plt.close(fig)
+    print("[radar]", os.path.relpath(fn)); return fn
+
+
 def build_all(outdir=FIG):
     fig_setup(outdir); fig_rcs_polar(outdir); fig_rcs_bands(outdir)
+    fig_rcs_materials(outdir); fig_rcs_shape_ab(outdir)
     fig_wave_spectra(outdir); fig_range_profiles(outdir); fig_summary(outdir)
     print("report2 그림 생성 완료 →", os.path.relpath(outdir))
 

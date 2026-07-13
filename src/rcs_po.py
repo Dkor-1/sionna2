@@ -9,12 +9,21 @@ rcs_po.py — (report2) 물리광학(Physical Optics)으로 드론 RCS 계산
   RT 의 RCS 를 신뢰하지 않았음). 그래서 CAD 표적 RCS 의 표준 기법인
   **물리광학(PO)** 으로, 우리가 report1 에서 만든 '정확한 메쉬'로부터 직접 계산합니다.
 
-PO 핵심 (모노스태틱 후방산란)
+PO 핵심 (모노스태틱 후방산란, **재질 가중**)
   표적 표면을 점들로 잘게 나누고, 레이더를 향한(조명된) 면만 골라
-  위상을 맞춰 더합니다:
-      E(û) = Σ (n̂·û>0) (n̂·û) ΔA · exp(j·2k·(r·û))
+  위상을 맞춰 더합니다. 각 점에는 부위 재질의 진폭 반사계수 |Γ| 를 곱합니다:
+      E(û) = Σ (n̂·û>0) |Γ|·(n̂·û) ΔA · exp(j·2k·(r·û))
       σ    = (4π/λ²) · |E|²
   û = 표적→레이더 방향, k=2π/λ, r=표면점 위치, n̂=면 법선.
+  |Γ|=1(전부 PEC)이면 고전 PO — 검증 표적(금속 평판·구)이 이 경우입니다.
+
+재질 가중이 필요한 이유
+  플라스틱 셸(εr≈2.7)은 RF 에 반투명(|Γ|≈0.3)이라, 실물 드론의 후방산란은 셸이
+  아니라 **배터리·모터·PCB·카메라 금속**(drones.build_frame 의 내부 산란체 포함)이
+  지배합니다. 전부 PEC 로 두면 셸 기여가 ~10 dB 과대계상됩니다.
+  그룹별 |Γ| 는 drones.GROUP_GAMMA / drone_gamma_map() 에 근거와 함께 정의.
+  (반투명 셸을 통과해 내부가 보이는 효과는 '셸 |Γ| 축소 + 내부 |Γ|=1 합산'으로
+  1차 근사 — 셸 투과손실(왕복 ~0.5 dB)은 무시.)
 
 검증 (이 모듈이 맞다는 근거)
   * 평판(넓이 A): 수직입사 σ = 4π A²/λ² (이론) — 일치 확인
@@ -38,11 +47,13 @@ C0 = 299792458.0
 # --------------------------------------------------------------------------- #
 #  메쉬 → 표면 점구름(point cloud): 위치 r, 법선 n̂, 면적요소 ΔA
 # --------------------------------------------------------------------------- #
-def mesh_to_points(mesh, spacing):
-    """삼각형들을 spacing[m] 간격 점으로 잘게 나눠 (P, N, dA) 를 돌려준다."""
+def mesh_to_points(mesh, spacing, gamma=None):
+    """삼각형들을 spacing[m] 간격 점으로 잘게 나눠 (P, N, dA[, w]) 를 돌려준다.
+    gamma : 그룹→진폭 반사계수 |Γ| dict. 주면 점별 가중 w 를 **네 번째 값으로 추가 반환**
+            (없는 그룹은 1.0=PEC). None(기본)이면 기존과 동일한 3-튜플."""
     V = np.array(mesh.v)
-    Ps, Ns, dAs = [], [], []
-    for (ia, ib, ic) in mesh.f:
+    Ps, Ns, dAs, Ws = [], [], [], []
+    for fi, (ia, ib, ic) in enumerate(mesh.f):
         v0, v1, v2 = V[ia], V[ib], V[ic]
         e1, e2 = v1 - v0, v2 - v0
         nrm = np.cross(e1, e2)
@@ -61,7 +72,10 @@ def mesh_to_points(mesh, spacing):
         Ps.append(pts)
         Ns.append(np.tile(nhat, (len(pts), 1)))
         dAs.append(np.full(len(pts), area / len(pts)))
-    return np.vstack(Ps), np.vstack(Ns), np.concatenate(dAs)
+        if gamma is not None:
+            Ws.append(np.full(len(pts), float(gamma.get(mesh.g[fi], 1.0))))
+    out = (np.vstack(Ps), np.vstack(Ns), np.concatenate(dAs))
+    return out + (np.concatenate(Ws),) if gamma is not None else out
 
 
 def _look_dirs(az_deg, el_deg=0.0):
@@ -71,37 +85,47 @@ def _look_dirs(az_deg, el_deg=0.0):
                      np.full_like(az, np.sin(el))], axis=-1)
 
 
-def rcs_from_points(P, N, dA, fc, az_deg, el_deg=0.0):
-    """점구름에서 PO 모노스태틱 RCS σ(az)[m²] 를 계산(벡터화)."""
+def rcs_from_points(P, N, dA, fc, az_deg, el_deg=0.0, w=None):
+    """점구름에서 PO 모노스태틱 RCS σ(az)[m²] 를 계산(벡터화).
+    w : 점별 진폭 반사계수 |Γ| (mesh_to_points(gamma=…) 의 4번째 반환). None=PEC."""
     lam = C0 / fc; k = 2 * np.pi / lam
     U = _look_dirs(az_deg, el_deg)                 # (A,3)
     PU = P @ U.T                                   # (Np,A) 위상거리
     NU = N @ U.T                                   # (Np,A) 면법선·시선
     illum = NU > 0
-    integrand = np.where(illum, NU, 0.0) * dA[:, None] * np.exp(1j * 2 * k * PU)
+    amp = dA if w is None else dA * w              # 재질 가중 진폭
+    integrand = np.where(illum, NU, 0.0) * amp[:, None] * np.exp(1j * 2 * k * PU)
     E = integrand.sum(axis=0)                      # (A,)
     return (4 * np.pi / lam**2) * np.abs(E)**2     # (A,) σ [m²]
 
 
-def po_field_dir(P, N, dA, fc, u):
-    """단일 시선 단위벡터 û 의 **복소 산란장** E = Σ(n̂·û>0)(n̂·û)·ΔA·exp(j2k·P·û).
+def po_field_dir(P, N, dA, fc, u, w=None):
+    """단일 시선 단위벡터 û 의 **복소 산란장** E = Σ(n̂·û>0)|Γ|(n̂·û)·ΔA·exp(j2k·P·û).
     (rcs_from_points 의 σ 직전 값. 마이크로도플러용 — 위상이 필요하므로 σ 가 아닌 E.)"""
     k = 2 * np.pi * fc / C0
     NU = N @ np.asarray(u); PU = P @ np.asarray(u)
-    return np.sum(np.where(NU > 0, NU, 0.0) * dA * np.exp(1j * 2 * k * PU))
+    amp = dA if w is None else dA * w
+    return np.sum(np.where(NU > 0, NU, 0.0) * amp * np.exp(1j * 2 * k * PU))
 
 
 # --------------------------------------------------------------------------- #
 #  드론 RCS (메쉬에서 바로)
 # --------------------------------------------------------------------------- #
-def drone_rcs_pattern(drone_key, fc, az_deg, el_deg=0.0, spacing=None):
-    """드론 1종의 RCS(az)[m²]. spacing 기본 = λ/7 (정확도/속도 균형)."""
-    from drones import DRONES, build_drone
+def drone_rcs_pattern(drone_key, fc, az_deg, el_deg=0.0, spacing=None, materials=True):
+    """드론 1종의 RCS(az)[m²]. spacing 기본 = λ/7 (정확도/속도 균형).
+    materials=True(기본): 부위 재질 |Γ| 가중(플라스틱 셸 반투명 + 내부 금속 산란체 반영).
+    materials=False: 전부 PEC(고전 PO) — 재질 민감도 비교용."""
+    from drones import DRONES, build_drone, drone_gamma_map
     lam = C0 / fc
     spacing = spacing or lam / 7.0
-    mesh = build_drone(DRONES[drone_key])
-    P, N, dA = mesh_to_points(mesh, spacing)
-    return rcs_from_points(P, N, dA, fc, az_deg, el_deg), len(dA)
+    spec = DRONES[drone_key]
+    mesh = build_drone(spec)
+    if materials:
+        P, N, dA, w = mesh_to_points(mesh, spacing, gamma=drone_gamma_map(spec))
+    else:
+        P, N, dA = mesh_to_points(mesh, spacing)
+        w = None
+    return rcs_from_points(P, N, dA, fc, az_deg, el_deg, w=w), len(dA)
 
 
 def dbsm(sigma):
@@ -149,8 +173,9 @@ if __name__ == "__main__":
     from drones import DRONES
     fc = 3.5e9
     az = np.arange(0, 360, 2.0)
-    print(f"== 드론별 RCS @ {fc/1e9:.1f} GHz (방위 평균 / 최대) ==")
+    print(f"== 드론별 RCS @ {fc/1e9:.1f} GHz (방위 평균 dBsm: 재질 가중 vs 전부 PEC) ==")
     for k in DRONES:
-        sig, npts = drone_rcs_pattern(k, fc, az)
-        print(f"  {k:10s} 점{npts:6d}  평균={dbsm(sig.mean()):6.2f} dBsm  "
-              f"최대={dbsm(sig.max()):6.2f} dBsm  최소={dbsm(sig.min()):7.2f} dBsm")
+        sw, npts = drone_rcs_pattern(k, fc, az, materials=True)
+        sp, _ = drone_rcs_pattern(k, fc, az, materials=False)
+        print(f"  {k:10s} 점{npts:6d}  재질가중 평균={dbsm(sw.mean()):6.2f} 최대={dbsm(sw.max()):6.2f}"
+              f"   PEC 평균={dbsm(sp.mean()):6.2f}  (Δ평균={dbsm(sw.mean())-dbsm(sp.mean()):+.1f} dB)")

@@ -34,7 +34,7 @@ if _SRC not in sys.path:
 
 from bistatic_scene import bistatic_params, C0          # noqa: E402  (numpy 전용)
 from rcs_po import mesh_to_points, rcs_from_points       # noqa: E402
-from drones import DRONES, build_drone                   # noqa: E402
+from drones import DRONES, build_drone, drone_gamma_map  # noqa: E402
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _CMESH = os.path.abspath(os.path.join(_HERE, "..", "assets", "meshes", "chamber"))
@@ -50,7 +50,8 @@ def _drone_points(drone_key, fc):
     key = (drone_key, round(fc / 1e6))
     if key not in _PTS_CACHE:
         mesh = build_drone(DRONES[drone_key])
-        _PTS_CACHE[key] = mesh_to_points(mesh, spacing)
+        _PTS_CACHE[key] = mesh_to_points(mesh, spacing,
+                                          gamma=drone_gamma_map(DRONES[drone_key]))
     return _PTS_CACHE[key]
 
 
@@ -72,8 +73,8 @@ def bistatic_rcs_m2(drone_key, fc, u1, u2, az_span_deg=8.0, n_az=5):
         az_list = az + np.linspace(-az_span_deg / 2, az_span_deg / 2, int(n_az))
     else:
         az_list = [az]
-    P, N, dA = _drone_points(drone_key, fc)
-    sig = rcs_from_points(P, N, dA, fc, az_deg=az_list, el_deg=el)   # (n_az,) σ[m²]
+    P, N, dA, w = _drone_points(drone_key, fc)
+    sig = rcs_from_points(P, N, dA, fc, az_deg=az_list, el_deg=el, w=w)  # (n_az,) σ[m²]
     return float(np.mean(sig))                                       # 선형 평균 = 기대 RCS
 
 

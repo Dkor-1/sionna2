@@ -24,7 +24,7 @@ microdoppler.py — (report3 토대) 회전 프로펠러의 **마이크로-도�
 from __future__ import annotations
 import numpy as np
 
-from drones import build_frame, build_propeller, rotor_layout
+from drones import build_frame, build_propeller, rotor_layout, drone_gamma_map
 from rcs_po import mesh_to_points, po_field_dir, C0
 
 
@@ -46,11 +46,12 @@ def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None,
     u = _look(az, el); ux, uy, uz = u
 
     # 프레임(비회전) → 상수 산란장
-    Pf, Nf, dAf = mesh_to_points(build_frame(spec), lam / 6.0)
-    Ef = po_field_dir(Pf, Nf, dAf, fc, u)
+    gm = drone_gamma_map(spec)                     # 부위 재질 |Γ| (셸 반투명 + 내부 금속)
+    Pf, Nf, dAf, wf = mesh_to_points(build_frame(spec), lam / 6.0, gamma=gm)
+    Ef = po_field_dir(Pf, Nf, dAf, fc, u, w=wf)
 
     # 프로펠러 1개(허브 로컬, 촘촘) → 모든 로터가 공유, 회전만 다름
-    Pp, Np_, dAp = mesh_to_points(build_propeller(spec, n=blade_n), spacing)
+    Pp, Np_, dAp, wp = mesh_to_points(build_propeller(spec, n=blade_n), spacing, gamma=gm)
     rl = rotor_layout(spec)
 
     t = np.arange(n_t) / prf
@@ -66,7 +67,7 @@ def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None,
         V = np.stack([vx, vy, vz], axis=1)                          # (n_t,3)
         NU = Np_ @ V.T                                              # (Npts, n_t)
         PU = Pp @ V.T
-        integ = np.where(NU > 0, NU, 0.0) * dAp[:, None] * np.exp(1j * 2 * k * PU)
+        integ = np.where(NU > 0, NU, 0.0) * (dAp * wp)[:, None] * np.exp(1j * 2 * k * PU)
         Eb = integ.sum(axis=0) * np.exp(1j * 2 * k * (cx * ux + cy * uy + cz * uz))
         E += Eb
 
