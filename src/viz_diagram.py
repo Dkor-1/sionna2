@@ -220,10 +220,12 @@ def size_comparison(outdir=FIG):
     axR = fig.add_subplot(gs[1, 1])
     wts = [s.weight_g for s in specs]
     axR.barh(names, wts, color=cols, edgecolor="k")
-    for i, w in enumerate(wts):
-        axR.text(w*1.03, i, f"{w:g} g", va="center", fontsize=9)
+    for i, (sp, w) in enumerate(zip(specs, wts)):
+        # S1000+ 만 '기체 자중'이라 별표 — 축 제목이 'Takeoff weight' 라고만 하면 같은 그림의 각주와 모순된다.
+        axR.text(w*1.03, i, f"{w:g} g*" if sp.key == "s1000plus" else f"{w:g} g",
+                 va="center", fontsize=9)
     axR.set_xscale("log")
-    axR.set_title("Takeoff weight [g, log]", fontsize=12)
+    axR.set_title("Weight [g, log] — TOW  (* = airframe only)", fontsize=12)
     axR.invert_yaxis(); axR.grid(axis="x", alpha=0.3)
 
     # 제목에서 뺀 단서는 하단 회색 캡션 한 줄로(constrained_layout 이 자리를 잡아 주는 supxlabel)
