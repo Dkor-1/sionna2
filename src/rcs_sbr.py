@@ -60,6 +60,10 @@ from materials import gamma_po                       # noqa: E402  (Sionna 와 �
 
 C0 = 299792458.0
 
+#  광선 격자 간격 = λ / DEFAULT_DIV.  촘촘할수록 정확하다(검증: λ/6 에서 평판 오차 −0.01 dB).
+#  GPU 메모리는 남아돌므로 **넉넉히 촘촘하게** 잡는다 — λ/12 면 드론 1방위당 ~15k 광선.
+DEFAULT_DIV = 12
+
 
 # --------------------------------------------------------------------------- #
 #  geom.Mesh → Mitsuba 씬 (그룹당 shape 1개 → 그룹별 |Γ| 를 붙일 수 있다)
@@ -97,6 +101,139 @@ def _look(az_deg, el_deg):
 # --------------------------------------------------------------------------- #
 #  SBR — 모노스태틱 후방산란 RCS
 # --------------------------------------------------------------------------- #
+_SCENE_CACHE: dict = {}
+
+
+def _scene_for(mesh: Mesh, group_mat: dict, key=None):
+    """씬 재사용 — 같은 메쉬로 방위각을 스윕할 때 매번 다시 만들지 않는다."""
+    if key is not None and key in _SCENE_CACHE:
+        return _SCENE_CACHE[key]
+    out = _mi_scene_from_mesh(mesh, group_mat)
+    if key is not None:
+        _SCENE_CACHE[key] = out
+    return out
+
+
+def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
+                  spacing=None, pad=1.15, cache_key=None, chunk_az=None):
+    """**방위각 전체를 한 배치로** GPU 에 올려 1-bounce SBR σ 를 낸다 (가림 포함).
+
+    왜 배치인가: 방위각 하나당 Mitsuba 호출을 따로 하면 커널 실행 오버헤드가 지배한다.
+    광선 격자 여러 방위를 **하나의 큰 광선 다발**로 합쳐 쏘면 GPU 를 제대로 쓴다
+    (메모리 예산은 gpu.budget_mb() 를 따른다).
+
+    다중반사가 필요하면 rcs_sbr(..., max_bounce≥2) 를 쓸 것 (배치 안 함)."""
+    from gpu import budget_mb
+    lam = C0 / float(fc)
+    k = 2.0 * np.pi / lam
+    d = float(spacing) if spacing else lam / DEFAULT_DIV      # 촘촘하게 — GPU 는 남는다
+
+    scene, shapes, gammas = _scene_for(mesh, group_mat, cache_key)
+    shape_ptrs = [mi.ShapePtr(s) for s in shapes]
+
+    V = np.asarray(mesh.v, float)
+    ctr = 0.5 * (V.max(0) + V.min(0))
+    Rout = float(np.linalg.norm(V - ctr, axis=1).max()) * pad + 3 * d
+
+    n = int(np.ceil(2 * Rout / d))
+    t = (np.arange(n) - (n - 1) / 2.0) * d
+    A, B = np.meshgrid(t, t, indexing="ij")
+    A, B = A.ravel(), B.ravel()
+    rays_per_az = A.size
+
+    az = np.atleast_1d(np.asarray(az_deg, float))
+    # 한 배치에 몇 방위? — ray 1발당 대략 160 B (o,d,si) 로 잡고 예산의 50% 사용
+    if chunk_az is None:
+        per_az_bytes = rays_per_az * 160
+        # 예산의 85% 를 채운다 — 찔끔 쓰지 않는다(사용자 지시)
+        chunk_az = int(max(1, min(len(az), budget_mb() * 1024 * 1024 * 0.85 / per_az_bytes)))
+
+    sig = np.zeros(len(az))
+    for s0 in range(0, len(az), chunk_az):
+        sub = az[s0:s0 + chunk_az]
+        O_all, D_all, U_all = [], [], []
+        for a in sub:
+            u = _look(a, el_deg)
+            tmp = np.array([0.0, 0.0, 1.0]) if abs(u[2]) < 0.9 else np.array([1.0, 0.0, 0.0])
+            e1 = np.cross(u, tmp); e1 /= np.linalg.norm(e1)
+            e2 = np.cross(u, e1)
+            O_all.append((ctr + Rout * u)[None, :] + A[:, None] * e1 + B[:, None] * e2)
+            D_all.append(np.tile(-u, (rays_per_az, 1)))
+            U_all.append(np.tile(u, (rays_per_az, 1)))
+        O = np.concatenate(O_all); D = np.concatenate(D_all); U = np.concatenate(U_all)
+
+        ray = mi.Ray3f(o=mi.Point3f(*O.T.astype(np.float32)),
+                       d=mi.Vector3f(*D.T.astype(np.float32)))
+        si = scene.ray_intersect(ray)
+        valid = np.asarray(si.is_valid()).astype(bool)
+        P = np.asarray(mi.Point3f(si.p)).T
+        Nn = np.asarray(mi.Vector3f(si.n)).T
+        g = np.zeros(P.shape[0])
+        for sp, gm in zip(shape_ptrs, gammas):
+            g = np.where(np.asarray(si.shape == sp).astype(bool), gm, g)
+
+        # 법선을 광선 반대쪽으로 정렬 → (n̂·û)>0 인 면만 레이더로 되돌아간다
+        sgn = np.sign(np.einsum("ij,ij->i", Nn, -D)); sgn[sgn == 0] = 1.0
+        Nn = Nn * sgn[:, None]
+        cosr = np.einsum("ij,ij->i", Nn, U)
+        lit = valid & (cosr > 1e-6)
+
+        # 방위각별로 코히어런트 합
+        aidx = np.repeat(np.arange(len(sub)), rays_per_az)
+        phase = np.exp(1j * 2.0 * k * np.einsum("ij,ij->i", P, U))
+        contrib = np.where(lit, g * 1.0, 0.0) * phase
+        E = np.zeros(len(sub), complex)
+        np.add.at(E, aidx, contrib)
+        sig[s0:s0 + len(sub)] = (4.0 * np.pi / lam ** 2) * np.abs(E * d * d) ** 2
+
+    return sig if len(az) > 1 else float(sig[0])
+
+
+def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
+              cache_key=None):
+    """**복소 산란장 E(û)** 를 돌려준다 (σ 가 아니라 E — 마이크로도플러는 위상이 필요하다).
+
+        E(û) = Σ_hits |Γ_i| · e^{j2k p_i·û} · d²          σ = (4π/λ²)|E|²
+
+    û 는 표적 → 레이더 방향 단위벡터."""
+    lam = C0 / float(fc)
+    k = 2.0 * np.pi / lam
+    d = float(spacing) if spacing else lam / DEFAULT_DIV
+    u = np.asarray(u, float); u = u / np.linalg.norm(u)
+
+    scene, shapes, gammas = _scene_for(mesh, group_mat, cache_key)
+    shape_ptrs = [mi.ShapePtr(s) for s in shapes]
+
+    V = np.asarray(mesh.v, float)
+    ctr = 0.5 * (V.max(0) + V.min(0))
+    Rout = float(np.linalg.norm(V - ctr, axis=1).max()) * pad + 3 * d
+    n = int(np.ceil(2 * Rout / d))
+    t = (np.arange(n) - (n - 1) / 2.0) * d
+    A, B = np.meshgrid(t, t, indexing="ij")
+    tmp = np.array([0.0, 0.0, 1.0]) if abs(u[2]) < 0.9 else np.array([1.0, 0.0, 0.0])
+    e1 = np.cross(u, tmp); e1 /= np.linalg.norm(e1)
+    e2 = np.cross(u, e1)
+    O = (ctr + Rout * u)[None, :] + A.ravel()[:, None] * e1 + B.ravel()[:, None] * e2
+    D = np.tile(-u, (O.shape[0], 1))
+
+    ray = mi.Ray3f(o=mi.Point3f(*O.T.astype(np.float32)),
+                   d=mi.Vector3f(*D.T.astype(np.float32)))
+    si = scene.ray_intersect(ray)
+    valid = np.asarray(si.is_valid()).astype(bool)
+    P = np.asarray(mi.Point3f(si.p)).T
+    Nn = np.asarray(mi.Vector3f(si.n)).T
+    g = np.zeros(P.shape[0])
+    for sp, gm in zip(shape_ptrs, gammas):
+        g = np.where(np.asarray(si.shape == sp).astype(bool), gm, g)
+    # 법선을 **광선이 오는 쪽**(= 레이더 방향 û)으로 정렬한다.
+    #   광선 방향 D = −û 이므로 광선 반대쪽은 −D = +û.  ⚠ 여기서 부호를 틀리면 조명면이
+    #   0개가 되어 E ≡ 0 이 된다(실제로 한 번 그랬다).
+    sgn = np.sign(Nn @ u); sgn[sgn == 0] = 1.0
+    Nn = Nn * sgn[:, None]
+    lit = valid & ((Nn @ u) > 1e-6)
+    return complex(np.sum(np.where(lit, g, 0.0) * np.exp(1j * 2.0 * k * (P @ u)))) * d * d
+
+
 def rcs_sbr(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
             spacing=None, max_bounce=1, pad=1.15, return_hits=False):
     """SBR 로 **모노스태틱 RCS σ[m²]** 를 낸다. az_deg 는 스칼라 또는 배열.
@@ -111,7 +248,7 @@ def rcs_sbr(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
     반환: σ (스칼라 또는 (n_az,) 배열).  return_hits=True 면 (σ, 진단dict)."""
     lam = C0 / float(fc)
     k = 2.0 * np.pi / lam
-    d = float(spacing) if spacing else lam / 6.0
+    d = float(spacing) if spacing else lam / DEFAULT_DIV
 
     scene, shapes, gammas = _mi_scene_from_mesh(mesh, group_mat)
     shape_ptrs = [mi.ShapePtr(s) for s in shapes]

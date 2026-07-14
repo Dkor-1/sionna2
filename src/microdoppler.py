@@ -110,3 +110,60 @@ if __name__ == "__main__":
         print(f"{k:10s} 로터{info['n_rotors']} rpm{info['rpm']:.0f} "
               f"f_tip={info['f_tip']:.0f}Hz flash={info['flash_hz']:.0f}Hz "
               f"v_tip={info['v_tip']:.0f}m/s  |E|평균={np.abs(E).mean():.2e} 변동={np.std(np.abs(E)):.2e}")
+
+
+# --------------------------------------------------------------------------- #
+#  SBR 기반 마이크로도플러 (2026-07-14) — 가림(occlusion)이 들어간다
+# --------------------------------------------------------------------------- #
+#  왜 필요한가:
+#    위 microdoppler_series() 는 순수 PO 다 — **가림이 없다**. 블레이드가 동체·모터 뒤로
+#    돌아가도 계속 산란체로 계상된다. 실제로는 가려진다. 그리고 프로펠러는 **신호 그 자체**다.
+#
+#  핵심 통찰 — **드론 전체 자세는 단일 각도 φ = ωt 의 함수다.**
+#    로터 k 의 스핀 위상 = dir_k · φ (base_ang 은 rotor_layout 이 이미 갖고 있다).
+#    n-블레이드 프로펠러는 360/n 도 회전에 불변 → **φ 의 주기 = 360/n_blades**.
+#    그래서 φ ∈ [0, 360/n) 를 n_phase 개로 잘라 SBR 을 **미리 계산**해 두고,
+#    E(t) = E_table[φ(t) mod (360/n)] 로 조회하면 된다. 시간 스텝마다 광선을 쏘지 않는다.
+def microdoppler_sbr(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None, prf=20000.0,
+                     n_t=6144, n_phase=240, spacing=None):
+    """회전 블레이드의 슬로타임 복소장 E(t) — **SBR(가림 포함)**. 반환 (t, E, info).
+
+    microdoppler_series() 의 SBR 판. 인터페이스 동일."""
+    import numpy as _np
+    from drones import pose_articulated, rotor_layout, DRONE_GROUP_MAT
+    from rcs_sbr import sbr_field
+
+    if rpm is None:
+        rpm = getattr(spec, "hover_rpm", 6000.0)
+    lam = C0 / fc
+    u = _look(az, el)
+    gmat = {g: mat for g, (mat, _) in DRONE_GROUP_MAT.items()}
+    rl = rotor_layout(spec)
+    dirs = [r["dir"] for r in rl]
+
+    period = 360.0 / max(1, spec.prop_blades)          # φ 의 주기 [deg]
+    phis = _np.linspace(0.0, period, n_phase, endpoint=False)
+
+    # φ 별 복소장 테이블 (여기서만 광선을 쏜다)
+    tab = _np.zeros(n_phase, complex)
+    for i, ph in enumerate(phis):
+        mesh = pose_articulated(spec, rotor_phase_deg=[d * ph for d in dirs])
+        tab[i] = sbr_field(mesh, gmat, fc, u, spacing=spacing)   # 자세마다 씬이 바뀐다(캐시 불가)
+
+    # 시간축으로 조회 — φ(t) = 360·rpm/60 · t  (deg)
+    t = _np.arange(n_t) / prf
+    phi_t = (360.0 * rpm / 60.0) * t
+    idx = _np.mod(phi_t / period * n_phase, n_phase)
+    i0 = _np.floor(idx).astype(int) % n_phase
+    i1 = (i0 + 1) % n_phase
+    f = idx - _np.floor(idx)
+    E = tab[i0] * (1 - f) + tab[i1] * f                 # 선형보간(테이블 사이)
+
+    omega = 2 * _np.pi * rpm / 60.0
+    prop_R = spec.prop_dia_mm / 1000.0 / 2.0
+    info = dict(rpm=rpm, prf=prf, fc=fc, lam=lam, az=az, el=el,
+                f_tip=2.0 * (omega * prop_R) / lam * _np.cos(_np.radians(el)),
+                flash_hz=spec.prop_blades * rpm / 60.0,
+                v_tip=omega * prop_R, n_rotors=len(rl),
+                engine="sbr", n_phase=n_phase, period_deg=period)
+    return t, E, info

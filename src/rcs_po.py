@@ -127,15 +127,47 @@ def po_field_dir(P, N, dA, fc, u, w=None):
 # --------------------------------------------------------------------------- #
 #  드론 RCS (메쉬에서 바로)
 # --------------------------------------------------------------------------- #
-def drone_rcs_pattern(drone_key, fc, az_deg, el_deg=0.0, spacing=None, materials=True):
-    """드론 1종의 RCS(az)[m²]. spacing 기본 = λ/7 (정확도/속도 균형).
-    materials=True(기본): 부위 재질 |Γ| 가중(플라스틱 셸 반투명 + 내부 금속 산란체 반영).
-    materials=False: 전부 PEC(고전 PO) — 재질 민감도 비교용."""
-    from drones import DRONES, build_drone, drone_gamma_map
+#  ⚠ 2026-07-14 — **기본 엔진이 SBR 로 바뀌었다**
+#
+#  기존 순수 PO(`engine="po"`)에는 **가림(self-occlusion)이 없다** — 광선이 앞면에 막혀
+#  실제로는 안 보이는 뒷면·내부면까지 전부 적분에 넣는다. 측정 결과 드론 RCS 를 **+5.3 dB
+#  과대평가**했다(mavic4pro, el=15°, 방위평균: PO −16.83 → SBR −22.11 dBsm).
+#
+#  SBR(`engine="sbr"`, 기본)은 Mitsuba 광선이 "실제로 맞은 첫 지점"만 적분하므로 가림이 공짜다.
+#  해석해 검증: 평판 −0.01 dB, 금속구 +0.39 dB (rcs_sbr.validate()).
+#  → 오목부 다중반사가 필요하면 rcs_sbr.rcs_sbr(max_bounce=3) 을 직접 부를 것(−0.23 dB 추가).
+#
+#  engine="po" 는 **비교·검증용으로만** 남긴다 (report6 이 두 엔진을 대조한다).
+RCS_ENGINE_DEFAULT = "sbr"
+
+
+def drone_rcs_pattern(drone_key, fc, az_deg, el_deg=0.0, spacing=None, materials=True,
+                      engine=None):
+    """드론 1종의 RCS(az)[m²].
+
+      engine="sbr" (기본) : Mitsuba 광선 + PO 적분. **가림 포함**. GPU.
+      engine="po"         : 옛 순수 PO(점구름). **가림 없음** — 비교용으로만.
+      materials=False     : 전부 PEC(고전 PO) — 재질 민감도 비교용.
+
+    반환: (sigma[m²], n_points)  — n_points 는 SBR 에선 방위당 광선 수."""
+    from drones import DRONES, build_drone, drone_gamma_map, DRONE_GROUP_MAT
     lam = C0 / fc
-    spacing = spacing or lam / 7.0
     spec = DRONES[drone_key]
     mesh = build_drone(spec)
+    eng = engine or RCS_ENGINE_DEFAULT
+
+    if eng == "sbr":
+        from rcs_sbr import rcs_sbr_batch, DEFAULT_DIV
+        gm = ({g: mat for g, (mat, _) in DRONE_GROUP_MAT.items()} if materials
+              else {g: 1.0 for g in DRONE_GROUP_MAT})           # PEC 비교모드
+        d = spacing or lam / DEFAULT_DIV
+        sig = rcs_sbr_batch(mesh, gm, fc, az_deg=az_deg, el_deg=el_deg, spacing=d,
+                            cache_key=(drone_key, round(fc / 1e6), bool(materials)))
+        n = int(np.ceil(2 * (np.linalg.norm(np.asarray(mesh.v) -
+                                            np.asarray(mesh.v).mean(0), axis=1).max() * 1.15 + 3 * d) / d)) ** 2
+        return np.atleast_1d(sig) if np.ndim(az_deg) else sig, n
+
+    spacing = spacing or lam / 7.0
     if materials:
         P, N, dA, w = mesh_to_points(mesh, spacing, gamma=drone_gamma_map(spec))
     else:

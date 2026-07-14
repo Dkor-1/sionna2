@@ -30,7 +30,7 @@ _BUDGET_MB: int | None = None
 
 #  사용자 지시(2026-07-14): "점유 가능하면 최대한 점유해서 써버려".
 #  → 여유 메모리의 FRACTION 만큼을 이 워크로드의 예산으로 잡는다. 찔끔 쓰지 않는다.
-MEM_FRACTION = 0.90                 # 여유 메모리의 90% 를 예산으로
+MEM_FRACTION = 0.92                 # 여유 메모리의 92% 를 예산으로 (아끼지 않는다)
 MIN_TARGET_MB = 4_000               # 그래도 최소 4 GB 는 확보
 MIN_FREE_MB = 6_000                 # 이보다 적게 남은 GPU 는 후보에서 뺀다
 
@@ -144,7 +144,7 @@ def budget_mb() -> int:
     return _BUDGET_MB
 
 
-def batch_for(bytes_per_item: int, safety: float = 0.6, cap: int | None = None) -> int:
+def batch_for(bytes_per_item: int, safety: float = 0.85, cap: int | None = None) -> int:
     """항목 1개가 bytes_per_item 바이트를 쓸 때, 예산 안에서 **한 번에 몇 개** 돌릴지.
     찔끔 쓰지 말고 예산을 채우는 것이 목적이다."""
     n = int(budget_mb() * 1024 * 1024 * safety / max(1, bytes_per_item))
