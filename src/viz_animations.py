@@ -21,7 +21,7 @@ from matplotlib.patches import Polygon as MplPoly
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 from drones import DRONES, build_drone, build_propeller
-from rcs_po import drone_rcs_pattern, dbsm
+from rcs_po import drone_rcs_pattern, drone_rcs_pattern_bw, angular_smooth, dbsm
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
 _NAME = {k: DRONES[k].name.replace("DJI ", "") for k in DRONES}
@@ -49,7 +49,9 @@ def anim_rcs_aspect(outdir=FIG, target="mavic4pro", fc=3.5e9, el=22.0, n_frames=
     V, F, nhat, area = _face_geom(mesh)
     tris0 = [[V[a], V[b], V[c]] for (a, b, c) in mesh.f]
     az_fine = np.arange(0, 360, 2.0)
-    sig, _ = drone_rcs_pattern(target, fc, az_fine, el_deg=el)
+    # 대역폭 평균(100MHz) — 단일주파수 널은 이산화 의존 아티팩트라 그리지 않는다(rcs_po 참조)
+    sig, _ = drone_rcs_pattern_bw(target, fc, 100e6, az_fine, el_deg=el)
+    sig = angular_smooth(sig, 3.0, float(az_fine[1] - az_fine[0]))   # 정적 폴라 그림과 동일 규약
     rcs_db = dbsm(sig)
     az_frames = np.linspace(0, 360, n_frames, endpoint=False)
     cmap = cm.inferno

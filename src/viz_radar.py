@@ -19,7 +19,7 @@ vizstyle.use_korean()
 import matplotlib.pyplot as plt
 
 from drones import DRONES
-from rcs_po import drone_rcs_pattern, dbsm
+from rcs_po import drone_rcs_pattern, drone_rcs_pattern_bw, angular_smooth, dbsm
 from waveforms import all_waveforms, always_on_waveforms
 from radar_process import range_profile, mainlobe_width_m, sphere_calib, estimate_rcs_dbsm
 from radar_scene import ANT_POS, TGT_POS, farfield_distance, target_extent  # sionna 지연 import 라 가벼움
@@ -61,7 +61,9 @@ def fig_setup(outdir=FIG):
     print("[radar]", os.path.relpath(fn)); return fn
 
 
-RFLOOR_DBSM = -45.0    # 폴라 RCS 의 반경축 바닥(코히런트 PO 의 깊은 널을 여기서 포화시킨다)
+RFLOOR_DBSM = -45.0    # 폴라 RCS 반경축 바닥(대역평균 후엔 최저 ≈−48 dBsm 라 거의 닿지 않는다)
+BW_HZ = 100e6          # 방위 패턴을 평균낼 신호 대역(5G n78 100MHz) — "레이더가 실제로 보는 값"
+SMOOTH_DEG = 3.0       # 방위 스무딩 창(안테나 빔폭·표적 요 지터·유한 샘플링이 하는 평활)
 
 
 def fig_rcs_polar(outdir=FIG, fc=3.5e9):
@@ -70,13 +72,16 @@ def fig_rcs_polar(outdir=FIG, fc=3.5e9):
     fig.suptitle("Drone RCS — physical optics", fontsize=14, fontweight="bold")
     axp = fig.add_subplot(1, 2, 1, projection="polar")
     for k in DRONES:
-        sig, _ = drone_rcs_pattern(k, fc, az)
-        # 코히런트 PO 는 위상 상쇄로 폭 2~3° 의 깊은 널(−70 dBsm 까지)을 만든다. 값을 바닥에서
-        # 포화시키지 않으면 널 한 점이 선을 원 중심까지 끌고 들어가 '표적 소멸'처럼 보인다.
-        # (현실에선 유한 대역폭·표면거칠기·다중경로가 널을 메운다.)
+        # **대역폭 평균**(5G 100MHz)으로 그린다 — 단일주파수 코히런트 PO 의 깊은 널은
+        # 이산화에 따라 위치가 춤추는 수치 아티팩트이고(λ/7↔λ/12 에서 최저점 330°→127°),
+        # 유한 대역폭을 가진 실제 레이더는 그 널을 보지 못한다(최저값 +20 dB 상승). rcs_po 참조.
+        sig, _ = drone_rcs_pattern_bw(k, fc, BW_HZ, az)
+        sig = angular_smooth(sig, SMOOTH_DEG, float(az[1] - az[0]))
         axp.plot(np.radians(az), np.maximum(dbsm(sig), RFLOOR_DBSM),
                  color=_COL[k], lw=1.3, label=_NAME[k])
-    axp.set_title(f"(a) RCS vs azimuth @ {fc/1e9:.1f} GHz [dBsm]", fontsize=11)
+    axp.set_title(f"(a) RCS vs azimuth @ {fc/1e9:.1f} GHz\n"
+                  f"(as a radar sees it: {BW_HZ/1e6:.0f} MHz band, {SMOOTH_DEG:.0f}° window)",
+                  fontsize=11)
     axp.set_theta_zero_location("N"); axp.set_theta_direction(-1)
     axp.set_rlim(RFLOOR_DBSM, None)
     axp.set_rlabel_position(135); axp.legend(loc="upper right", bbox_to_anchor=(1.18, 1.1), fontsize=8)

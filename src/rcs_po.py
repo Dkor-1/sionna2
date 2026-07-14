@@ -131,6 +131,41 @@ def drone_rcs_pattern(drone_key, fc, az_deg, el_deg=0.0, spacing=None, materials
     return rcs_from_points(P, N, dA, fc, az_deg, el_deg, w=w), len(dA)
 
 
+def drone_rcs_pattern_bw(drone_key, fc, bw_hz, az_deg, el_deg=0.0, n_f=9, **kw):
+    """**대역폭 평균 RCS** — 실제 레이더(대역 B)가 관측하는 값.
+
+    왜 필요한가: 단일 주파수 코히런트 PO 는 위상이 무작위로 더해져 |E|² 가 지수분포(레일리)를
+    따르므로, 방위 패턴에 **깊은 널**이 생긴다(측정: −45 dBsm 미만이 방위의 0.97%, 최저 −68 dBsm).
+    그런데 그 널들은
+      · **개별적으로는 수치 아티팩트**다 — 메쉬 이산화를 λ/7→λ/12 로 바꾸면 방위평균은 0.12 dB
+        밖에 안 변하는데(패턴 상관 0.986) **최저점 위치가 330°→127° 로 완전히 이동**한다.
+      · **실제로 관측되지도 않는다** — 유한 대역폭이 널을 메운다. 5G 100 MHz 로 평균하면 최저값이
+        −68 → −48 dBsm 로 **+20 dB** 올라오고, −45 dBsm 미만 비율은 0.97%→0.28% 로 줄어든다.
+    따라서 방위 패턴 그림은 **대역 평균**(비코히런트)으로 그리는 것이 정직하다. 방위평균 RCS 는
+    대역평균 여부와 무관하게 같으므로(−20.8 dBsm), 앵커링·막대그래프 수치에는 영향이 없다.
+    """
+    freqs = np.linspace(fc - bw_hz / 2, fc + bw_hz / 2, n_f) if n_f > 1 else [fc]
+    acc, npts = None, 0
+    for f in freqs:
+        s, npts = drone_rcs_pattern(drone_key, f, az_deg, el_deg, **kw)
+        acc = s if acc is None else acc + s
+    return acc / len(freqs), npts
+
+
+def angular_smooth(sigma, win_deg, az_step_deg):
+    """방위 패턴을 win_deg 창으로 **전력 평균**(비코히런트) — 실측이 자연히 하는 평활.
+    근거: 실제 관측은 (a) 안테나 빔폭, (b) 표적의 요(yaw) 지터·진동, (c) 유한 각도 샘플링 때문에
+    수 도(度) 창에서 평균된 값을 본다. 3° 창이면 로브 피크(−11.5→−11.7 dBsm)와 방위평균(−20.8)은
+    사실상 그대로인데, 로브 사이 골의 최저값은 −45 → −41 dBsm 로 올라온다(needle 소멸).
+    """
+    n = max(1, int(round(win_deg / az_step_deg)))
+    if n <= 1:
+        return sigma
+    k = np.ones(n) / n
+    pad = np.r_[sigma[-n:], sigma, sigma[:n]]          # 방위는 순환축
+    return np.convolve(pad, k, "same")[n:-n]
+
+
 def dbsm(sigma):
     """m² → dBsm."""
     return 10 * np.log10(np.maximum(sigma, 1e-30))
