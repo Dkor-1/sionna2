@@ -284,7 +284,7 @@ def build_frame_cad(spec) -> "trimesh.Trimesh":
         # 짐벌 — 기종별 실루엣
         nose_x = 0.50 * bl
         if key == "mavic4pro":
-            for g, m in _gimbal_infinity(0.052, nose_x + 0.010, -0.10 * bh):
+            for g, m in _gimbal_infinity(0.032, nose_x + 0.006, -0.12 * bh):   # 볼 지름 64mm (실물 60~70mm)
                 A.add(m, g)
         elif key == "matrice4e":
             for g, m in _gimbal_sensor(0.055, 0.052, 0.062, nose_x + 0.012, -0.34 * bh):

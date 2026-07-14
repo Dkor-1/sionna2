@@ -49,6 +49,8 @@ class DroneSpec:
     num_rotors: int             # 로터 수 (=암 수, 비동축)
     coaxial: bool = False       # 동축(2개/암) 여부
     max_speed_ms: float | None = None
+    max_rpm: float | None = None       # 최대 프로펠러 회전수[rpm] — DJI 인증표(C0/C1/C2)에 공식값이 있다
+    prop_pitch_in: float | None = None # 프로펠러 피치[inch]
     hover_rpm: float = 6000.0    # 대표 호버 회전수[rpm] — 프로펠러 크기에 맞춘 현실값(마이크로도플러용).
                                  #   큰 프로펠러는 느리게(예: S1000 15in ~3500), 작은건 빠르게 돈다.
     rtk: bool = False
@@ -72,6 +74,8 @@ class DroneSpec:
     rotor_deg: tuple | None = None   # 모터 각도[deg] 목록. None=기본 X(쿼드)/옥토.
                                      #   접이형은 전방스윕(좌우대칭+마주보는 쌍 180°→대각 보존)
     body_lw: tuple = (1.15, 0.85)    # 동체 (길이,폭)/hub 비 — 접이 슬림기는 길쭉·좁게
+    rotor_z_mm: tuple | None = None  # 로터별 z 오프셋[mm] — 프롭 디스크가 겹치는 기체(Mini)는
+                                     #   앞/뒤 모터 높이가 다르다. None = 전부 같은 높이.
     gimbal_style: str = "single"     # single / triple(마빅 3카메라) / sensor(매트리스+RTK)
                                      #   / recessed(팬텀 함몰) / belly(S1000 벨리)
 
@@ -87,10 +91,10 @@ DRONES: dict[str, DroneSpec] = {
     # 1) 초소형 (sub-250g) — 가장 작고 탐지하기 어려운 표적
     "mini5pro": DroneSpec(
         key="mini5pro", name="DJI Mini 5 Pro",
-        diagonal_mm=250, weight_g=249.9,
+        diagonal_mm=275, weight_g=249.9,
         body_l_mm=255, body_w_mm=181, body_h_mm=91,
-        prop_dia_mm=152, prop_blades=2, num_rotors=4,
-        max_speed_ms=19, hover_rpm=7500, rtk=False, release="released", confidence="high",
+        prop_dia_mm=152.4, prop_blades=2, num_rotors=4,
+        max_speed_ms=19, hover_rpm=5500, max_rpm=7800, prop_pitch_in=2.8, rtk=False, release="released", confidence="high",
         note="Diagonal (250 mm) not published by DJI — was estimated from the unfolded shape. "
              "⚠ 2026-07-14: after fitting the frame to the OFFICIAL envelope (255×181×91 mm), the "
              "implied motor-to-motor diagonal is 274.6 mm, i.e. the old 250 mm estimate was ~9% low. "
@@ -98,15 +102,17 @@ DRONES: dict[str, DroneSpec] = {
              "Weight/prop/rotor count official.",
         body_rgb=_GRAY_D, arm_style="body", gear="none", gimbal="front",
         accent_rgb=(0.95, 0.45, 0.05), body_frac=0.46,
-        rotor_deg=(40, 140, 220, 320), body_lw=(1.42, 0.66), gimbal_style="single",
+        rotor_deg=(56.3, 123.7, 236.3, 303.7), body_lw=(1.42, 0.66), gimbal_style="single",
+        rotor_z_mm=(-12.0, +2.0, +2.0, -12.0),   # ⚠ 프롭(152.4) > 앞뒤 모터간격(152) → 디스크가 겹친다.
+                                                 #   실물은 **앞 모터가 더 낮다**(간섭 회피). 조사 확인.
         envelope_mm=(255.0, 181.0, 91.0)),        # DJI 공식(언폴드·프롭제외) — 255×181×91,
     # 2) 대형 소비자 플래그십 (출시작)
     "mavic4pro": DroneSpec(
         key="mavic4pro", name="DJI Mavic 4 Pro",
-        diagonal_mm=400, weight_g=1063,
+        diagonal_mm=441, weight_g=1063,
         body_l_mm=329, body_w_mm=391, body_h_mm=135,
         prop_dia_mm=267, prop_blades=2, num_rotors=4,
-        max_speed_ms=25, hover_rpm=5500, rtk=False, release="released", confidence="high",
+        max_speed_ms=25, hover_rpm=3600, max_rpm=6000, prop_pitch_in=5.8, rtk=False, release="released", confidence="high",
         note="Large consumer flagship (2025); front triple-camera gimbal (360° infinity). "
              "Weight/dimensions/propeller official (prop 266.7 mm, shown rounded to 267 mm). "
              "⚠ diagonal was ESTIMATED (400 mm) and is geometrically INCONSISTENT with the official "
@@ -123,7 +129,7 @@ DRONES: dict[str, DroneSpec] = {
         diagonal_mm=438.8, weight_g=1219,
         body_l_mm=307, body_w_mm=388, body_h_mm=150,
         prop_dia_mm=274, prop_blades=2, num_rotors=4,
-        max_speed_ms=21, hover_rpm=5200, rtk=True, release="released", confidence="high",
+        max_speed_ms=21, hover_rpm=3800, max_rpm=7500, prop_pitch_in=5.7, rtk=True, release="released", confidence="high",
         note="Prop diameter confirmed 274 mm by verification (292→274). Onboard RTK (precise-positioning antenna).",
         body_rgb=_OFFWHT, arm_style="body", gear="feet", gimbal="front",
         accent_rgb=None, body_frac=0.42,
@@ -132,28 +138,28 @@ DRONES: dict[str, DroneSpec] = {
     # 4) 대형 산업용 옥토콥터 (8암) — 단종, 카본 프레임
     "s1000plus": DroneSpec(
         key="s1000plus", name="DJI S1000+",
-        diagonal_mm=1045, weight_g=4400,
-        body_l_mm=1045, body_w_mm=1045, body_h_mm=462,
+        diagonal_mm=1045, weight_g=9500,
+        body_l_mm=1016, body_w_mm=1016, body_h_mm=380,
         prop_dia_mm=381, prop_blades=2, num_rotors=8,
-        max_speed_ms=None, hover_rpm=3500, rtk=False, release="discontinued", confidence="high",
+        max_speed_ms=None, hover_rpm=3600, max_rpm=5600, prop_pitch_in=5.2, rtk=False, release="discontinued", confidence="high",
         note="Octocopter: 8 arms, 1 rotor per arm (non-coaxial). Carbon frame, retractable landing gear, belly gimbal. "
              "4400 g is the AIRFRAME weight; recommended takeoff weight 6.0-11.0 kg.",
         body_rgb=_BLACK, arm_style="carbon", gear="tall", gimbal="belly",
         accent_rgb=(0.85, 0.10, 0.10), body_frac=0.30,
         body_lw=(1.0, 1.0), gimbal_style="belly",
-        envelope_mm=(None, None, 462.0)),        # 높이만 공식(1045 은 대각선 → L/W 는 맞추지 않는다),
+        envelope_mm=(1016.0, 1016.0, 380.0)),   # DJI 공식 — 센터프레임 337.5mm, 암 386mm, 랜딩기어 460x511x305,
     # 5) 고정암 쿼드 (클래식, 흰색 셸)
     "phantom4": DroneSpec(
         key="phantom4", name="DJI Phantom 4",
         diagonal_mm=350, weight_g=1380,
-        body_l_mm=350, body_w_mm=350, body_h_mm=198,
-        prop_dia_mm=239, prop_blades=2, num_rotors=4,
-        max_speed_ms=20, hover_rpm=6000, rtk=False, release="released", confidence="high",
+        body_l_mm=289.5, body_w_mm=289.5, body_h_mm=196,
+        prop_dia_mm=240, prop_blades=2, num_rotors=4,
+        max_speed_ms=20, hover_rpm=5500, max_rpm=8500, prop_pitch_in=5.0, rtk=False, release="released", confidence="high",
         note="Fixed (non-folding) arms, one-piece white shell + integrated landing legs. Classic Phantom shape.",
         body_rgb=_WHITE, arm_style="body", fixed_arm=True, gear="legs", gimbal="front",
         accent_rgb=None, body_frac=0.52,
         rotor_deg=(45, 135, 225, 315), body_lw=(1.06, 1.0), gimbal_style="recessed",
-        envelope_mm=(None, None, 198.0)),        # 높이만 공식(350 은 대각선 → L/W 는 맞추지 않는다),
+        envelope_mm=(289.5, 289.5, 196.0)),     # DJI 공식 Quick Start Guide v1.2 (프롭 제외),
 }
 
 # 부위(그룹) → (재질키, 한글설명).  **재질 정의는 materials.MATERIALS 가 유일한 진리원**이고,
@@ -360,10 +366,12 @@ def rotor_layout(spec: DroneSpec) -> list[dict]:
     motor_h = 0.045 * diag
     prop_z = motor_h + arm_t / 2 + 0.006
     sx, sy, sz = frame_fit_scale(spec)            # 프레임과 **같은** 외형보정 배율
+    zoff = spec.rotor_z_mm or ((0.0,) * spec.num_rotors)
     out = []
     for k, ang in enumerate(motor_angles(spec)):
         ca, sa = math.cos(math.radians(ang)), math.sin(math.radians(ang))
-        out.append(dict(center=(r * ca * sx, r * sa * sy, prop_z * sz),
+        dz = float(zoff[k]) / 1000.0 if k < len(zoff) else 0.0   # 로터별 z 오프셋(프롭 디스크 겹침 회피)
+        out.append(dict(center=(r * ca * sx, r * sa * sy, (prop_z + dz) * sz),
                         base_ang=ang + 12.0, dir=(1 if k % 2 == 0 else -1)))
     return out
 
