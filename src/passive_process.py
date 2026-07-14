@@ -217,3 +217,119 @@ if __name__ == "__main__":
         zd = np.argmin(np.abs(f_d))
         print(f"  {tag}: 0-도플러 최대={20*np.log10(rd[zd].max()+1e-9):.1f}dB  "
               f"검출={'(%.0fm, %+.0fHz)'%(pk['Rb'],pk['fd']) if pk else '없음'}")
+
+
+# --------------------------------------------------------------------------- #
+#  ⚠ CFAR 교정 — report4 [E1] 이 측정한 것 (2026-07-14)
+# --------------------------------------------------------------------------- #
+#  **경험적 오경보율은 명목값과 다르다. 그리고 파형마다 다르다.**
+#
+#  구현·alpha 식 자체는 완벽하다 — 이상적 백색 맵(5.76e8 셀)에서 배율 1.00,
+#  alpha 가 이론식 N(Pfa^(-1/N) - 1) 와 상대오차 7.6e-16 로 일치한다.
+#  그런데 **실제 거리-도플러 맵은 백색이 아니다**:
+#    · slow-time **Hann 창**이 도플러축 인접셀을 상관시킨다 (rho ≈ +0.46, 전 파형 공통)
+#    · 기준신호 대역이 fs 보다 좁으면 **거리축이 과표본**돼 상관된다
+#      (LTE CRS 18 MHz << fs 30.7 MHz → rho ≈ +0.28)
+#    · 유효 독립 훈련셀 비율: WiFi 0.49 / NR 0.40 / **LTE 0.31**
+#  → CA-CFAR 의 "훈련셀은 독립" 가정이 깨져 잡음 추정이 낮아지고 **문턱이 느슨해진다.**
+#
+#  운용 형상(DPI + ECA, 챔버 거리창)에서 측정한 배율 (경험/명목):
+#      명목 1e-4 :  WiFi **1.45x**  ·  LTE **2.47x**  ·  NR **1.56x**
+#      명목 1e-6 :  WiFi 2.83x      ·  LTE 4.43x      ·  NR 2.22x
+#
+#  ❗ **이것이 벤치마크의 공정성을 깨뜨린다.** "같은 명목 Pfa 에서 조명원 비교" 는
+#     실제로는 **LTE 에게 5G 보다 1.6배 느슨한 문턱**을 준 비교였다.
+#     → Pd 를 비교하려면 **경험적 Pfa 를 맞춰야 한다.** 아래 표를 쓰거나,
+#       ROC 를 **경험적 Pfa 축**에 그릴 것.
+#
+#  대조군이 원인을 확정했다(NR100, 9.6e7 셀): Hann 제거 → 배율 1.02,
+#  백색화 정합필터 → 1.19, 둘 다 → **1.00**.
+#
+#  재현: python benchmark/verify_cfar.py  → outputs/verify_cfar.json
+PFA_CALIBRATION = {
+    # 파형 -> {목표 경험적 Pfa : 줘야 할 명목 Pfa}   (운용 형상: DPI+ECA, 챔버 거리창, guard 2x2 / train 6x6)
+    "wifi": {1e-3: 7.62e-4, 1e-4: 6.79e-5, 1e-5: 5.13e-6},
+    "lte":  {1e-3: 5.04e-4, 1e-4: 3.28e-5, 1e-5: 2.16e-6},   # ← 2배 이상 조여야 한다
+    "nr":   {1e-3: 7.59e-4, 1e-4: 6.30e-5, 1e-5: 5.29e-6},
+}
+
+
+def pfa_nominal_for(std: str, pfa_target: float) -> float:
+    """**경험적** Pfa 목표 → ca_cfar_2d 에 줘야 할 **명목** Pfa.
+    파형(std = 'wifi'|'lte'|'nr')마다 다르다 — 이걸 안 쓰면 Pd 비교가 공정하지 않다."""
+    tab = PFA_CALIBRATION.get(str(std).lower())
+    if not tab:
+        return float(pfa_target)
+    if pfa_target in tab:
+        return tab[pfa_target]
+    # 로그-로그 보간 (측정 구간 밖은 외삽 — 주의)
+    ks = sorted(tab)
+    lx = np.log10(ks); ly = np.log10([tab[k] for k in ks])
+    return float(10 ** np.interp(np.log10(pfa_target), lx, ly))
+
+
+def doppler_guard_mask(det, f_d, width=3, also_exclude_from_training=True):
+    """**0-도플러 능선 가드** — report4 [E2/E1] 이 찾은 지뢰를 막는다 (2026-07-14).
+
+    왜 필요한가:
+      slow-time **Hann 창의 DFT 는 ±1 빈에서 −5.75 dB 밖에 안 떨어진다**(±2 는 −42.5 dB).
+      그래서 직접파(DPI) 잔류가 0-도플러 행(zd)뿐 아니라 **zd±1 행에도 거의 그대로 실린다.**
+      기존 코드의 `det[zd, :] = False` 는 그 두 행을 **못 지운다.**
+
+    얼마나 위험한가 (측정, benchmark/verify_cfar.py):
+      거리창이 ECA 탭 수(n_taps) 너머로 넓어지면 경험적 Pfa 가
+        명목 1e-4 에서 **41~59배**,  명목 1e-6 에서 **1015~2328배** 로 폭발한다.
+      지금까지 이 지뢰를 안 밟은 건 `chamber_window()` 가 n_taps = n_range + 8 로 잡아
+      **거리창이 항상 ECA 탭 안에 들어오기 때문**이다 — **설계가 아니라 운(암묵적 의존)이다.**
+      챔버가 커지거나 Rb 창을 넓히는 순간 무너진다.
+
+      width=3(zd±1 까지) 로 마스킹하면 배율이 41~59배 → **0.65~0.82** 로 즉시 정상화된다.
+
+    ⚠ 다만 width=3 만으로는 **과보정**(배율 0.65~0.82 < 1)이 된다 — 뜨거운 zd±1 행을
+      *검출*에서만 빼고 *훈련셀*에는 그대로 두면 이웃 행의 잡음 추정이 부풀어 문턱이 과하게
+      올라가기 때문이다. **제대로 하려면 훈련창에서도 배제**해야 한다(also_exclude_from_training).
+      → 그 경우 ca_cfar_2d 를 그 행들을 뺀 부분맵에 적용하라. 이 함수는 검출 마스크만 다룬다.
+
+    반환: 마스킹된 det (in-place 아님)."""
+    det = np.asarray(det).copy()
+    zd = int(np.argmin(np.abs(np.asarray(f_d))))
+    h = int(width) // 2
+    lo, hi = max(0, zd - h), min(det.shape[0], zd + h + 1)
+    det[lo:hi, :] = False
+    return det
+
+
+def check_detector_config(wf, n_range, n_taps, M, pfa, verbose=True) -> list[str]:
+    """**다음 벤치마크가 report4 의 결함을 조용히 반복하지 못하게** 하는 검사기.
+
+    report4 가 측정으로 확정한 차단 결함 4개를 검사한다. 경고 목록을 돌려준다."""
+    warn = []
+    CFAR_WIN = 2 * (2 + 6) + 1          # guard 2 + train 6 → 한 축 훈련창 17 빈
+
+    if n_range < CFAR_WIN:
+        warn.append(
+            f"[R2] 거리빈 {n_range}개 < CFAR 훈련창 {CFAR_WIN}빈 → **CFAR 가 1D 로 퇴화**한다. "
+            f"파형 간 CFAR 형상이 달라지면 Pd 비교가 불공정하다. (LTE 가 실제로 6빈이었다)")
+    if n_range > n_taps:
+        warn.append(
+            f"[R3] 거리창({n_range})이 ECA 탭({n_taps})보다 넓다 → DPI 잔류가 거리창 밖으로 새어 "
+            f"**경험적 Pfa 가 41~2300배 폭발**한다. doppler_guard_mask(width=3) 를 반드시 쓸 것.")
+    std = getattr(wf, "std", "").lower()
+    if std in PFA_CALIBRATION:
+        need = pfa_nominal_for(std, pfa)
+        if abs(np.log10(need / max(pfa, 1e-30))) > 0.05:
+            warn.append(
+                f"[R1] 명목 Pfa {pfa:.1e} 를 그대로 쓰면 {std} 의 **경험적** Pfa 는 다르다. "
+                f"경험적 {pfa:.1e} 를 원하면 명목 **{need:.2e}** 를 줄 것 "
+                f"(pfa_nominal_for). 안 그러면 파형 간 Pd 비교가 서로 다른 오경보율에서 이뤄진다.")
+    T_cpi = M * (len(wf.tx) / wf.fs_hz) if hasattr(wf, "tx") else None
+    if T_cpi is not None:
+        warn.append(
+            f"[R4] 이 파형의 T_CPI = {T_cpi*1e3:.1f} ms (M={M}). **M 이 아니라 T_CPI 를 맞춰야** "
+            f"공정하다 — M 고정은 프레임 길이가 다른 파형에 서로 다른 관측시간을 준다"
+            f"(5G 24 ms vs WiFi/LTE 48 ms → 물리가 아닌 규약에서 3.01 dB 차이).")
+    if verbose and warn:
+        print("⚠ 검출기 설정 경고 (report4 근거):")
+        for w in warn:
+            print("   -", w)
+    return warn

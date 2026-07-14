@@ -1,13 +1,24 @@
 # -*- coding: utf-8 -*-
-"""build_report4.py — report4 (semi-anechoic 챔버 바이스태틱 패시브 레이더 탐지) 산출물 생성.
+"""build_report4.py — report4 (탐지·추적 벤치마크를 위한 신호처리 체인 검증) 산출물 생성.
 
-**GPU 필요** — 이제 report4 는 전부 Sionna 다:
-  환경 경로 = Sionna RT / 표적 σ = SBR / 신호 합성 = Sionna PHY / 렌더 = Sionna RT 렌더러.
-(ECA·CAF·CFAR 만 passive_process — 레이더 고유라 Sionna 에 없다.)
+**이 리포트는 벤치마크를 돌리지 않는다.** 벤치마크를 *믿을 수 있게* 만든다:
+6개 검증실험(E1..E6)의 JSON 을 읽어 그림 7장 + 노트북을 만든다.
 
-실행:  python src/build_report4.py              (그림 4장 + GIF + 노트북)
-       python src/build_report4.py --no-gif     (GIF 생략 — 빠름)
-       python src/build_report4.py --rt         (RT 환경경로 재측정)
+⚠ 측정 자체는 여기서 하지 않는다. 측정 스크립트가 JSON 을 남기고, 이 스크립트는 **읽기만** 한다.
+   (그래야 그림과 글이 어긋날 수 없다.)
+
+필요한 JSON (없으면 어떤 스크립트를 돌려야 하는지 알려준다):
+    outputs/verify_cfar.json          benchmark/verify_cfar.py          [E1]
+    outputs/verify_eca.json           benchmark/verify_eca.py           [E2]
+    outputs/verify_ambiguity.json     benchmark/verify_ambiguity.py     [E3]
+    outputs/verify_linkbudget.json    benchmark/verify_linkbudget.py    [E4]
+    outputs/verify_observability.json benchmark/verify_observability.py [E5]
+    outputs/verify_ghost_impact.json  benchmark/verify_ghost_impact.py  [E6]
+    outputs/report4_fixups.json       benchmark/report4_fixups.py       ← 적대적 검증의 **정정값**
+
+실행:  python src/build_report4.py            (그림 7장 + 노트북)
+       python src/build_report4.py --figs     (그림만)
+       python src/build_report4.py --nb       (노트북만)
 """
 import argparse
 import os
@@ -16,54 +27,66 @@ import sys
 import time
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-for _p in (_HERE, os.path.abspath(os.path.join(_HERE, "..", "benchmark"))):
+_ROOT = os.path.abspath(os.path.join(_HERE, ".."))
+for _p in (_HERE, os.path.join(_ROOT, "benchmark")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
+
+NEEDED = [
+    ("verify_cfar.json", "benchmark/verify_cfar.py", "[E1] CFAR 오경보율 교정"),
+    ("verify_eca.json", "benchmark/verify_eca.py", "[E2] ECA 상쇄깊이·저속표적 손실"),
+    ("verify_ambiguity.json", "benchmark/verify_ambiguity.py", "[E3] 모호함수"),
+    ("verify_linkbudget.json", "benchmark/verify_linkbudget.py", "[E4] 링크버짓 → RD SNR"),
+    ("verify_observability.json", "benchmark/verify_observability.py", "[E5] 관측가능성"),
+    ("verify_ghost_impact.json", "benchmark/verify_ghost_impact.py", "[E6] 바닥 유령"),
+    ("report4_fixups.json", "benchmark/report4_fixups.py", "⭐ 적대적 검증의 정정값"),
+]
+
+
+def check_inputs():
+    missing = [(f, s, w) for f, s, w in NEEDED
+               if not os.path.exists(os.path.join(_ROOT, "outputs", f))]
+    if missing:
+        print("❌ 측정 JSON 이 없다. 먼저 아래를 돌려라:\n")
+        for f, s, w in missing:
+            print(f"   ~/.venvs/py312/bin/python {s:40s}  # {w}  → outputs/{f}")
+        sys.exit(1)
+    print("✔ 측정 JSON 7종 확인 — 본문 숫자는 전부 여기서 읽는다 (하드코딩 없음)")
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--no-gif", action="store_true")
-    ap.add_argument("--rt", action="store_true", help="Sionna RT 환경경로 재측정")
+    ap.add_argument("--figs", action="store_true", help="그림만")
+    ap.add_argument("--nb", action="store_true", help="노트북만")
     a = ap.parse_args()
     t0 = time.time()
+    both = not (a.figs or a.nb)
 
-    import numpy as np
-    import viz_report4 as V
-    from bistatic_scene import bistatic_params, TX, RX, TGT, VEL
-    from geometry import floor_ghost
+    print("=" * 72)
+    print("▶ report4 — 탐지·추적 벤치마크를 위한 신호처리 체인 검증")
+    print("   질문: 벤치마크를 돌리기 전에, 우리 검출기가 교정돼 있는가?")
+    print("=" * 72)
+    check_inputs()
 
-    print("=" * 70, "\n▶ 1) 챔버 바이스태틱 기하 + 바닥 유령\n", "=" * 70)
-    for pos, vel in [(TGT, VEL), ((24, 13, 5.0), (2, -3, 0))]:
-        p = bistatic_params(TX, RX, pos, vel, 3.5e9)
-        g = floor_ghost(TX, RX, pos, vel, 3.5e9, pol="V")
-        print(f"  표적{tuple(pos)} v{tuple(vel)}:  L={p['L']:.1f}m  Rb={p['Rb']:.2f}m  "
-              f"f_d={p['fd']:+.0f}Hz  beta={p['beta']:.0f}deg")
-        print(f"      바닥 유령 → Rb={g['rb_m']:.2f}m ({g['rb_m']-p['Rb']:+.2f}m)  "
-              f"f_d={g['fd']:+.0f}Hz  {20*np.log10(g['amp_ratio']):+.1f}dB re echo  "
-              f"(theta_i={g['theta_i_deg']:.0f}deg, |G|={g['gamma']:.2f})")
+    if both or a.figs:
+        print("\n" + "=" * 72, "\n▶ 그림 7장 (전부 JSON 에서 읽어 그린다)\n", "=" * 72)
+        import viz_report4 as V
+        V.build_all()
 
-    print("\n" + "=" * 70, "\n▶ 2) Sionna RT — 챔버 환경 경로\n", "=" * 70)
-    if a.rt or not os.path.exists(V.RT_ENV):
-        V.measure_rt_env()
-    tau, amp = V.rt_env(3.5e9)
-    print(f"  RT 챔버 CIR: 반사경로 {len(tau)-1}개, 최강 {20*np.log10(amp[1:].max()):+.1f} dB")
-    print("  ⚠ 전부 0-도플러(정적) → ECA 가 진폭과 무관하게 0 으로 지운다 = 죽은 파라미터.")
-    print("  ⚠ 진짜 위협은 표적 경유 바닥 유령(위 §1) — 도플러가 실려 ECA 를 통과한다.")
+    if both or a.nb:
+        print("\n" + "=" * 72, "\n▶ report4.ipynb\n", "=" * 72)
+        subprocess.run([sys.executable, os.path.join(_HERE, "make_notebook4.py")], check=True)
 
-    print("\n" + "=" * 70, "\n▶ 3) Sionna PHY 신호체인 검증 (↔ 손합성 make_cpi)\n", "=" * 70)
-    V.crosscheck()
-
-    print("\n" + "=" * 70, "\n▶ 4) 그림 (Sionna RT 렌더 + Sionna PHY 신호)\n", "=" * 70)
-    V.fig_geometry()
-    V.fig_rangedoppler()
-    V.fig_ghost()
-    V.fig_detection()
-    if not a.no_gif:
-        V.gif_tracking()
-
-    print("\n" + "=" * 70, "\n▶ 5) report4.ipynb 생성\n", "=" * 70)
-    subprocess.run([sys.executable, os.path.join(_HERE, "make_notebook4.py")], check=True)
+    # 판정 요약 — 그림/노트북과 **같은 소스**(viz_report4.VERDICT)에서 센다
+    from viz_report4 import VERDICT
+    npass = sum(1 for v in VERDICT if v[2] == "PASS")
+    nfail = sum(1 for v in VERDICT if v[2] == "FAIL")
+    ncond = sum(1 for v in VERDICT if v[2] == "COND")
+    print("\n" + "=" * 72)
+    print(f"  판정: {npass} PASS / {ncond} 조건부 / {nfail} FAIL")
+    print("  → 벤치마크가 불가능하다는 뜻이 아니라, 지금 명세 그대로 돌리면")
+    print("    방어할 수 없는 숫자가 나온다는 뜻이다. 처방은 노트북 §8.")
+    print("=" * 72)
     print(f"\n✅ report4 완료 ({time.time()-t0:.0f}s)")
 
 
