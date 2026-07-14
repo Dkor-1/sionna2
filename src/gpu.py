@@ -135,12 +135,24 @@ def parallel_over_gpus(items, worker, min_free_mb: int = MIN_FREE_MB, verbose: b
 
 
 def budget_mb() -> int:
-    """이 워크로드가 **써도 되는 GPU 메모리** [MiB]. 배치 크기를 여기에 맞춰 키울 것."""
+    """이 워크로드가 **써도 되는 GPU 메모리** [MiB]. 배치 크기를 여기에 맞춰 키울 것.
+
+    ⚠ 2026-07-14 버그 수정: CUDA_VISIBLE_DEVICES / SIONNA2_GPU 가 **이미 설정돼 있으면**
+      pick() 이 조기 return 하면서 _BUDGET_MB 를 세팅하지 않는다. 그때 예전 코드는 존재하지 않는
+      DEFAULT_TARGET_MB 를 참조해 **NameError 로 죽었다** — 즉 `CUDA_VISIBLE_DEVICES=2 python ...`
+      처럼 GPU 를 손으로 고정하면 rcs_sbr 의 배치 스윕이 즉사했다(report1 에이전트가 발견).
+      이제 그 경우 **실제 여유 메모리를 다시 읽어** 예산을 잡는다."""
     global _BUDGET_MB
     if _BUDGET_MB is None:
         pick(verbose=False)
-        if _BUDGET_MB is None:
-            _BUDGET_MB = DEFAULT_TARGET_MB
+    if _BUDGET_MB is None:                       # 손으로 고정한 GPU → 그 GPU 의 여유를 읽는다
+        try:
+            idx = int(str(_PICKED).split(",")[0])
+        except Exception:
+            idx = 0
+        st = {g["index"]: g for g in gpu_status()}
+        free = st[idx]["free_mb"] if idx in st else MIN_TARGET_MB
+        _BUDGET_MB = _compute_budget(int(free))
     return _BUDGET_MB
 
 

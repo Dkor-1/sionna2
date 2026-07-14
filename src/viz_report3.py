@@ -476,6 +476,9 @@ def fig6_no_sigma(J):
 #  F7 — 하이브리드: 환경 = RT, 표적 = SBR
 # =========================================================================== #
 def fig7_hybrid(J):
+    F = J["S2_floor"]                                   # 숫자는 손으로 적지 않는다
+    FLOOR_TAG = (f"{F['rt_floor']['delay_ns']:.2f} ns / {F['rt_floor']['rel_db']:+.2f} dB"
+                 f"   (RT vs hand calc: {abs(F['agree_db']):.2f} dB)")
     fig, ax = plt.subplots(figsize=(16.5, 7.6), constrained_layout=True)
     fig.suptitle("The split this report forces: environment = Sionna RT, target = SBR",
                  fontsize=20, fontweight="bold", color=INK)
@@ -502,29 +505,31 @@ def fig7_hybrid(J):
                                      connectionstyle=f"arc3,rad={rad}",
                                      shrinkA=9, shrinkB=9))
 
-    arrow(tx, rx, BLUE)                                    # 직접파
+    #  화살표에는 **짧은 태그**만 붙인다 — 설명은 위 범례로 뺀다(겹침 방지).
+    arrow(tx, rx, BLUE)                                             # 직접파
+    ax.text(7.8, 5.42, "direct (LOS)", fontsize=10.5, color=BLUE,
+            fontweight="bold", ha="center")
+
     arrow(tx, (7.4, 1.15), BLUE); arrow((7.4, 1.15), rx, BLUE)      # 바닥 반사
-    ax.text(4.2, 6.05, "direct path, wall/ceiling/floor bounces\n"
-                       "delay, Doppler, amplitude, geometry", fontsize=11,
-            color=BLUE, fontweight="bold", ha="center")
-    ax.text(7.4, 1.45, "floor bounce\n19.31 ns / -14.68 dB\n(verified to 0.00 dB)",
-            fontsize=9.5, color=BLUE, ha="center", fontweight="bold")
+    ax.text(4.15, 1.72, f"floor bounce  {FLOOR_TAG}",
+            fontsize=10, color=BLUE, ha="center", fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.3", fc="white", ec=BLUE, alpha=.95))
 
-    arrow(tx, tg, ORANGE, rad=-.14)
-    arrow(tg, rx, ORANGE, rad=-.14)
-    ax.text(7.9, 2.35, "target scattering: sigma(az, el)\nMitsuba rays + PO surface integral\n(occlusion included)",
-            fontsize=11, color=ORANGE, fontweight="bold", ha="center")
+    arrow(tx, tg, ORANGE, rad=-.16)
+    arrow(tg, rx, ORANGE, rad=-.16)
+    ax.text(7.9, 4.62, "target scattering  sigma(az, el)", fontsize=10.5, color=ORANGE,
+            fontweight="bold", ha="center",
+            bbox=dict(boxstyle="round,pad=0.3", fc="white", ec=ORANGE, alpha=.9))
 
-    arrow(tg, (10.6, 1.15), VIOLET, lw=2.2, ls="--")
-    arrow((10.6, 1.15), rx, VIOLET, lw=2.2, ls="--")
-    ax.text(11.6, 2.15, "target-via-floor GHOST\ncarries Doppler -> survives ECA",
-            fontsize=10.5, color=VIOLET, fontweight="bold", ha="center")
+    arrow(tg, (10.9, 1.15), VIOLET, lw=2.2, ls="--")
+    arrow((10.9, 1.15), rx, VIOLET, lw=2.2, ls="--")
+    ax.text(11.55, 2.62, "GHOST", fontsize=11, color=VIOLET, fontweight="bold", ha="center")
 
-    for c, t, y in ((BLUE, "Sionna RT  (PathSolver / RadioMapSolver)  -- GREEN light: we trust it", 7.75),
-                    (ORANGE, "SBR  (src/rcs_sbr.py: Mitsuba rays + PO integral)  -- because Sionna has no RCS solver", 7.35),
-                    (VIOLET, "image source + Fresnel  -- the ghost, derived by hand (section 4)", 6.95)):
+    for c, t, y in ((BLUE, "Sionna RT (PathSolver / RadioMapSolver) -- environment: delay, Doppler, geometry. WE TRUST IT (section 2)", 7.85),
+                    (ORANGE, "SBR (src/rcs_sbr.py: Mitsuba rays + PO surface integral, occlusion included) -- target sigma. Sionna has no RCS solver (section 3)", 7.45),
+                    (VIOLET, "image source + Fresnel -- the target-via-floor ghost. Carries Doppler, so ECA does not delete it (section 4)", 7.05)):
         ax.plot([.6, 1.5], [y, y], color=c, lw=3.2, solid_capstyle="round")
-        ax.text(1.75, y, t, va="center", fontsize=11.5, color=INK)
+        ax.text(1.75, y, t, va="center", fontsize=10.5, color=INK)
 
     _cap(fig, "Neither engine is a fallback for the other. Sionna RT gives geometry, delay and Doppler exactly (section 2 verifies it to 0.00 dB) but carries no target sigma (section 3 proves it five ways).\n"
                "SBR gives sigma (validated against analytic plate -0.01 dB and metal sphere +0.39 dB) but knows nothing about the room. The passive-radar chain needs both.")
@@ -547,7 +552,7 @@ def fig8_ghost(J):
     ax.plot(t["Rb"], t["fd"], "o", ms=17, color=GREEN, mec="white", mew=2, zorder=5)
     ax.plot(g["Rb"], g["fd"], "X", ms=17, color=VIOLET, mec="white", mew=1.6, zorder=5)
     ax.annotate(f"TRUE target\nRb = {t['Rb']:.2f} m\nf_d = {t['fd']:+.1f} Hz\n0 dB (reference)",
-                (t["Rb"], t["fd"]), xytext=(-14, -62), textcoords="offset points",
+                (t["Rb"], t["fd"]), xytext=(-64, -46), textcoords="offset points",
                 fontsize=10.5, color=INK, fontweight="bold", ha="center",
                 bbox=dict(boxstyle="round,pad=0.4", fc="#eaf7ea", ec=GREEN))
     ax.annotate(f"GHOST (TX -> drone -> floor -> RX)\nRb = {g['Rb']:.2f} m ({G['sep_m']:+.2f} m)\n"
@@ -575,8 +580,12 @@ def fig8_ghost(J):
     cols = [CRIT if r > 1 else GOOD for r in ratio]
     bars = ax.barh(names, ratio, color=cols, height=.5, zorder=3)
     ax.axvline(1.0, color=INK, lw=2, ls="--", zorder=4)
-    ax.text(1.05, 2.52, "resolved ->\nseparate (false) target", fontsize=10.5,
-            color=CRIT, fontweight="bold", va="top")
+    ax.text(.53, .97, "1 range cell", transform=ax.transAxes, fontsize=10,
+            color=INK, fontweight="bold", ha="center", va="top")
+    ax.text(.99, .55, "to the RIGHT of this line =\nresolved = a separate\n(false) target appears",
+            transform=ax.transAxes, fontsize=10.5, color=CRIT, fontweight="bold",
+            ha="right", va="center",
+            bbox=dict(boxstyle="round,pad=0.4", fc="#fdecec", ec=CRIT))
     for b, w in zip(bars, W):
         ax.text(w["sep_over_drb"] + .04, b.get_y() + b.get_height() / 2,
                 f"{w['sep_over_drb']:.2f}x   (B = {w['bw_hz']/1e6:.0f} MHz, "

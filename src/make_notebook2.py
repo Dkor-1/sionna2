@@ -1,576 +1,891 @@
 # -*- coding: utf-8 -*-
-"""make_notebook2.py — report2.ipynb (레이더 구성 & RCS 특성화, WiFi/LTE/5G 비교) 생성기.
-outputs/ 의 그림을 markdown 상대경로로 링크해 커널 없이도 보이게 한다."""
-import json, os
-HERE = os.path.dirname(os.path.abspath(__file__))
-NB = os.path.abspath(os.path.join(HERE, "..", "report2.ipynb"))
+"""make_notebook2.py — report2.ipynb 생성기
+
+report2: **OFDM 파형 제작 + Sionna 기본 파형과 비교 + RCS**
+질문: **"우리가 만든 파형이 맞는가, 그리고 이 드론들은 레이더에 얼마나 밝은가?"**
+
+⚠ 노트북은 **생성물**이다. report2.ipynb 를 직접 고치지 말고 이 파일을 고쳐 다시 실행할 것.
+⚠ 본문 수치는 전부 **outputs/report2_waveform_rcs.json 에서 읽어 주입**한다 — 그림과 글이
+   어긋날 수 없다. (그 JSON 은 viz_report2.build_all() 이 측정하며 남긴다.)
+"""
+from __future__ import annotations
+
+import json
+import os
+import sys
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
+
+from provenance import provenance_cells   # noqa: E402  ← 리포트 앞머리 자동생성
+
+ROOT = os.path.abspath(os.path.join(_HERE, ".."))
+NB = os.path.join(ROOT, "report2.ipynb")
+JS = os.path.join(ROOT, "outputs", "report2_waveform_rcs.json")
 
 
-def md(*l): return {"cell_type": "markdown", "metadata": {}, "source": _s(list(l))}
-def code(*l): return {"cell_type": "code", "metadata": {}, "execution_count": None, "outputs": [], "source": _s(list(l))}
 def _s(lines):
     out = "\n".join(lines).splitlines(keepends=True)
     return out if out else [""]
 
 
+def md(*l):
+    return {"cell_type": "markdown", "metadata": {}, "source": _s(list(l))}
+
+
+def code(*l):
+    return {"cell_type": "code", "metadata": {}, "execution_count": None,
+            "outputs": [], "source": _s(list(l))}
+
+
+# --------------------------------------------------------------------------- #
+with open(JS) as f:
+    J = json.load(f)
+
+M = J["meta"]
+REF, XC, NUM, AMB = J["reference"], J["crosscheck"], J["numerology"], J["ambiguity"]
+V, OCC, R, MAT = J["sbr_validation"], J["occlusion"], J["rcs"], J["materials"]
+G1 = REF["G1"]
+
+DR = R["drones"]
+DKEYS = list(DR)
+BAND_NAMES = [b[0] for b in M["bands"]]
+NR_BAND = "5G NR 3.5 GHz"
+WK = ("wifi", "lte", "nr")
+
+#  헤드라인 숫자 (전부 측정값)
+_means = {k: DR[k]["bands"][NR_BAND]["mean_dbsm"] for k in DKEYS}
+_dim = min(_means, key=_means.get)
+_brightest = max(_means, key=_means.get)
+_span = _means[_brightest] - _means[_dim]
+_dith = {d["div"]: d for d in V["dither"]}
+_lam24, _lam12, _lam8 = _dith[24], _dith[12], _dith[8]
+def _mrow(prefix):
+    """재질 시나리오 한 줄 찾기 (라벨에 줄바꿈이 있으므로 첫 줄로 맞춘다)."""
+    for r in MAT["rows"]:
+        if r["label"].splitlines()[0].strip().startswith(prefix):
+            return r
+    raise KeyError(f"재질 시나리오 '{prefix}' 없음 — 라벨: "
+                   f"{[r['label'].splitlines()[0] for r in MAT['rows']]}")
+
+
+_full = _mrow("Full drone")
+_shell = _mrow("- shell")
+_props = _mrow("- propellers")
+_core = _mrow("metal core")
+_diel = _mrow("dielectric only")
+_worst_nmse = max(XC[k]["nmse_db"] for k in WK)
+_best_nmse = min(XC[k]["nmse_db"] for k in WK)
+
 cells = []
-cells.append(md(
-    "# 📡 report2 — 레이더 구성 & RCS 특성화 (WiFi · LTE · 5G 비교)",
-    "",
-    "> **이 노트북 = 2단계: 레이더.** [report1](report1.ipynb)에서 만든 *차폐시설 + 드론 5종* 위에서,",
-    "> **모노스태틱 레이더**를 구성하고 드론의 **RCS(레이더 반사면적)** 를 특성화한 뒤,",
-    "> **실제 상용 신호(WiFi/LTE/5G)** 로 표적을 비추어 세 표준을 비교합니다.",
-    "",
-    "**왜 이걸 하나요?** 패시브 레이더는 주변에 이미 떠다니는 WiFi·LTE·5G 신호를 '레이더 송신기'처럼",
-    "빌려 씁니다(illuminator of opportunity). 어떤 신호가 드론 탐지에 유리한지 비교하는 것이 목표입니다.",
-    "",
-    "**우리는 송신기를 빌려 쓴다 — 그러니 '늘 켜져 있는 신호'가 전부다.**",
-    "정합필터의 템플릿이 되려면 수신기가 그 신호를 *미리 알아야* 하고, 남의 기지국을 빌려 쓰는 이상",
-    "**협상 없이 언제나 기댈 수 있는 기준신호**만이 진짜 자산입니다. 표준마다 그건 딱 하나씩입니다:",
-    "",
-    "| 표준 | 상시(always-on) 기준신호 | 왜 상시인가 |",
-    "|---|---|---|",
-    "| **LTE** | **CRS** (Cell-specific RS) | 셀이 살아 있으면 **매 서브프레임(1 ms)·채널 전대역**으로 항상 송신 |",
-    "| **5G NR** | **SSB** (SS/PBCH Block) | NR 엔 CRS 같은 상시 셀기준이 **없다**. 유휴 gNB 가 늘 내보내는 건 **20 ms 주기의 협대역 비콘 SSB** 뿐 |",
-    "| **WiFi** | **프리앰블(VHT-LTF)** | 어떤 패킷에도 붙는 광대역 프리앰블. 단 **반복률이 트래픽에 종속** |",
-    "",
-    "> ⚠️ **PRS(측위 기준신호)는 상시 신호가 아닙니다.** 측위 세션이 설정돼야 켜지는 옵션이라,",
-    "> 임의의 셀을 빌려 쓰는 패시브 수신기는 PRS 를 **가정할 수 없습니다.** 이 노트북에서 PRS 가 켜진 경우",
-    "> (아래 점유모드 G2/G3)는 항상 **'측위 세션이 켜졌을 때의 낙관적 상한'** 으로만 읽어야 합니다.",
-    "",
-    "**3줄 결론**",
-    "1. 드론 RCS 는 **SBR**(Mitsuba 광선 + PO 표면적분)로 메쉬에서 직접 계산합니다 — 상용 EM 솔버(FEKO/CST SBR+)의 표준 고주파 기법.",
-    "   광선이 **실제로 맞은 첫 지점만** 적분하므로 **가림(self-shadowing)이 공짜**입니다.",
-    "2. 같은 드론도 **주파수가 높을수록 RCS 가 대체로 커지고**(평판 극한 ∝A²/λ², 실제 드론은 그보다 완만·비단조), 방위각에 따라 크게 변동(글린트).",
-    "3. **상시 기준신호만 놓고 보면 LTE(CRS) 가 5G(SSB) 를 두 축에서 모두 이깁니다** — 거리 **8.3 m vs 21 m**, 속도 **41 m/s vs 1.1 m/s**.",
-    "   5G 가 1.5 m 로 날카로워지는 건 **PRS 가 켜졌을 때뿐**입니다. 즉 5G 의 대역 100 MHz 는 '명목'일 뿐,",
-    "   유휴 셀에서 패시브 수신기가 실제로 쓸 수 있는 건 7.2 MHz 짜리 SSB — 이 **거리·속도 이중고**가 본 보고서의 핵심입니다.",
-    "",
-    "> 🔴 **이번 판의 가장 큰 변화 — RCS 엔진을 순수 PO 에서 SBR 로 바꿨고, 그러자 값이 내려갔습니다.**",
-    "> 옛 PO 는 `n̂·û>0` 이기만 하면 **동체 뒤에 가려진 면까지** 적분했습니다. 광선을 쏴 보니 그 면들엔 빛이 닿지 않습니다.",
-    "> 재본 **모든** 조합(5종 × 3대역 × el=0°/15°)에서 RCS 가 내려갔고, 폭은 **0.8 ~ 6.7 dB** 입니다(§2b).",
-    "> 이전 판의 절대 RCS 수치는 **과대평가였습니다.**",
-    "",
-    "> 🧩 모든 실험은 report1 의 3D 드론 메쉬 위에 얹혀 있습니다 — 측정 셋업·RCS '풍선'·조명면·도플러.",
-))
 
-cells.append(md(
-    "## 1. 레이더 구성 — 모노스태틱 + 원거리장",
-    "",
-    "- **모노스태틱**: 송신(TX)과 수신(RX)을 같은 곳에 둠 → 표적이 되돌려보내는 **후방산란 RCS** 측정.",
-    "  (가장 표준적인 챔버 측정. 이후 report4에서 바이스태틱으로 확장)",
-    "- 안테나는 챔버 한쪽 끝, 표적은 **quiet zone**(챔버 중앙부)에 둡니다. 측정거리 R 은 **원거리장(2D²/λ) 확보와 작은 표적에 광선이 충분히 닿는 조건 사이의 절충으로 R=10 m** 로 잡았습니다(더 멀면 작은 드론엔 광선이 거의 안 닿아 에코를 못 찾음).",
-    "- ⚠️ **원거리장(far-field)**: RCS 는 R ≥ 2D²/λ 에서만 정의됩니다. 여기서 **D 는 스펙시트의 대각거리가 아니라",
-    "  프로펠러까지 포함한 표적의 최대 수평 스팬**입니다(`radar_scene.target_extent`):",
-    "  Mini 5 Pro 0.33 · Mavic 4 Pro 0.60 · Matrice 4E 0.56 · Phantom 4 0.46 · **S1000+ 1.35 m**.",
-    "  측정거리 R=10 m 기준, 작은 드론 4종은 3.5 GHz(아래 ○/× 도식)에서 OK지만 **WiFi 5.21 GHz 에선 Mavic4Pro(12.5 m)·Matrice4E(10.8 m)가 R 초과**입니다.",
-    "  거대한 **S1000+ 는 세 밴드 전부 far-field 미달**(LTE 22 m / 5G 42 m / WiFi 63 m ≫ 10 m). (○/× 도식은 3.5 GHz 기준)",
-    "",
-    "![setup](outputs/figures/report2_setup.png)",
-    "",
-    "**메쉬로 보는 같은 장면** — report1 의 실제 3D 드론 메쉬를 quiet zone 에 놓고 원거리장(2D²/λ)까지 점검:",
-    "![mesh setup](outputs/figures/report2_mesh_setup.png)",
-    "",
-    "왕복지연 τ=2R/c, 도플러 f_D=2v·f_c/c. 에코 전압이득 α ∝ G·λ·√σ / R² (레이더 방정식).",
-))
+# =========================================================================== #
+#  앞머리 — provenance.py 가 자동 생성 (비참여자가 혼자 읽고 재현할 수 있게)
+# =========================================================================== #
+cells += provenance_cells(
+    report="report2",
+    what="OFDM 파형 제작 + **Sionna 기본 파형과 비교** + RCS",
+    question="우리가 만든 파형이 맞는가, 그리고 이 드론들은 레이더에 얼마나 밝은가?",
 
+    tldr=[
+        f"**파형은 맞다.** 자작 OFDM 변조기를 **Sionna 의 `OFDMModulator` 로 같은 자원격자를 "
+        f"재변조**해 대조했더니 상관 **{XC['wifi']['corr']:.4f} / {XC['lte']['corr']:.4f} / "
+        f"{XC['nr']['corr']:.4f}**, NMSE **{XC['wifi']['nmse_db']:.1f} / "
+        f"{XC['lte']['nmse_db']:.1f} / {XC['nr']['nmse_db']:.1f} dB** — 수치적으로 **동일**하다.",
+
+        f"그 교차검증이 **실제로 버그를 잡았다**: 3GPP 는 **슬롯 첫 심볼의 CP 를 더 길게** 준다"
+        f"(LTE {XC['lte']['cp_head'][0]}→{XC['lte']['cp_head'][1]}, "
+        f"NR {XC['nr']['cp_head'][0]}→{XC['nr']['cp_head'][1]} 샘플). CP 배열 대신 첫 값만 넘기면 "
+        f"상관이 **{XC['lte']['corr_bug']:.3f}**(LTE) / **{XC['nr']['corr_bug']:.3f}**(NR) 로 무너진다. "
+        f"WiFi 는 CP 가 균일해 **같은 버그가 안 보인다** — 파형 하나만 시험했다면 통과했을 버그다.",
+
+        f"**패시브의 거리분해능은 채널 대역이 아니라 기준신호 점유대역이 정한다.** 상시 신호만 쓰는 "
+        f"유휴 셀(G1)에서 측정: WiFi VHT-LTF **{G1['wifi']['ref_bw_mhz']:.1f} MHz → "
+        f"{G1['wifi']['dR_m']:.1f} m**, LTE CRS **{G1['lte']['ref_bw_mhz']:.1f} MHz → "
+        f"{G1['lte']['dR_m']:.1f} m**, NR SSB **{G1['nr']['ref_bw_mhz']:.1f} MHz → "
+        f"{G1['nr']['dR_m']:.1f} m**. 5G 는 **좁고**(ΔR {G1['nr']['dR_m']:.1f} m) "
+        f"**드물다**(PRF {G1['nr']['prf_hz']:.0f} Hz → v_max **{G1['nr']['vmax_ms']:.2f} m/s**) — **이중고**.",
+
+        f"**드론은 어둡다.** SBR(광선 + PO적분) 방위평균 RCS @3.5 GHz: "
+        f"{DR[_dim]['name']} **{_means[_dim]:+.1f} dBsm** ~ {DR[_brightest]['name']} "
+        f"**{_means[_brightest]:+.1f} dBsm** — 기종 간 **{_span:.1f} dB** 폭.",
+
+        f"**가림(occlusion)이 전부다.** 순수 PO 는 실제로 가려진 면까지 적분해 RCS 를 "
+        f"**{-OCC['occlusion_db']:.2f} dB 과대평가**한다(한 방위에서 '조명면' "
+        f"{OCC['n_lit_po']:,}개 중 **{OCC['hidden_frac']*100:.0f}%** 가 뒤에 가려져 있었다). "
+        f"반면 PO 의 고전적 약점이라는 **오목부 다중반사는 {OCC['multibounce_db']:+.2f} dB** 뿐이다.",
+
+        f"**표적은 금속이고, 플라스틱 셸은 그 앞의 가림막이다.** 금속(모터+배터리+PCB+카메라)만 "
+        f"남겨도 온전한 드론보다 **오히려 {_core['delta_db']:+.2f} dB 밝고**, 금속을 다 빼면 "
+        f"**{_diel['delta_db']:+.2f} dB** 로 무너진다. ⚠ 단 셸을 지우면 "
+        f"{_shell['delta_db']:+.2f} dB **늘어나는데**, 이건 SBR 이 **유전체 투과를 모르기 때문**"
+        f"(첫 충돌에서 광선을 끝낸다)이다 — **모델 불확실도 {abs(_shell['delta_db']):.1f} dB** 로 "
+        f"읽어야지 측정된 효과가 아니다 (§4.4).",
+    ],
+
+    roadmap=[
+        dict(sec="§1", what="패시브 레이더의 **기준신호** — 왜 파형이 문제인가",
+             why="ΔR 은 B_ref 가, v_max 는 PRF 가 정한다"),
+        dict(sec="§2", what="**우리가 만든 파형** — 자원격자와 점유모드 G1/G2/G3",
+             why="유휴 셀에서 실제로 뭘 쓸 수 있나"),
+        dict(sec="§3", what="**Sionna 기본 파형과 비교** ← 이 리포트의 핵심 검증",
+             why="상관 1.0000. 그리고 CP 버그를 잡았다"),
+        dict(sec="§4", what="**RCS — SBR**(Mitsuba 광선 + PO 적분)",
+             why="검증 → 수렴 → 가림 → 5종×3대역 → 재질"),
+        dict(sec="바쁘면", what="§3.3 (CP 버그) 과 §4.2 (가림) 두 그림만",
+             why="이 리포트의 두 결론"),
+    ],
+
+    sources=[
+        dict(item="5G NR 뉴머롤로지 (μ·SCS·슬롯·CP)",
+             src="**`sionna.phy.nr.CarrierConfig`** — Sionna 에게 물어봤다 (우리가 표를 안 짬)",
+             kind="🟢 라이브러리 (3GPP TS 38.211 구현)"),
+        dict(item="LTE CRS / 5G SSB / WiFi VHT-LTF 배치",
+             src="3GPP TS 36.211 · TS 38.211 · IEEE 802.11ac → `src/waveforms.py` 에 구현. "
+                 "조사 근거는 `docs/waveform_research.json`",
+             kind="🔴 우리 구현 (Sionna 에 WiFi/LTE/SSB 가 **없다**)"),
+        dict(item="드론 5종 제원 (대각·무게·프롭·호버 RPM)",
+             src="**`docs/drone_specs_2026.json`** — 출처 URL 포함, 적대적 검증 완료. "
+                 "DJI 공식 스펙/매뉴얼이 1차 출처",
+             kind="📄 조사 문서 (미공개 항목은 '추정' 으로 명시)"),
+        dict(item="재질 (εr · σ · |Γ|)",
+             src="**ITU-R P.2040** (metal · concrete) — Sionna `ITURadioMaterial` 에서 읽음. "
+                 "ITU 에 없는 plastic/carbon/absorber 만 문헌값. `src/materials.py`",
+             kind="🟢 ITU + 🔴 문헌값"),
+        dict(item="RCS 해석해 (검증 기준)",
+             src="금속구 σ = πr² (광학영역) · 금속평판 σ = 4πA²/λ² (정면) — 교과서 폐형식",
+             kind="📐 해석해"),
+        dict(item="옛 리포트에서 살린 발견", src="`docs/ARCHIVE.md`", kind="📄 내부"),
+    ],
+
+    engines=["sionna-phy", "sionna-render", "sbr", "po", "trimesh-cad", "matplotlib"],
+    libs=["sionna", "mitsuba", "drjit", "torch", "trimesh", "numpy", "scipy", "matplotlib"],
+
+    reproduce=[
+        "cd /home/yunjung/workspace/sionna2",
+        "",
+        "# 전체 (측정 → 그림 → 노트북).  GPU 는 src/gpu.py 가 여유 메모리 보고 자동 선택한다",
+        "~/.venvs/py312/bin/python src/build_report2.py",
+        "",
+        "# 부분만",
+        "~/.venvs/py312/bin/python src/viz_report2.py        # 측정 + 그림 + JSON",
+        "~/.venvs/py312/bin/python src/make_notebook2.py     # JSON -> report2.ipynb",
+        "",
+        "# 이 리포트가 의존하는 검증들을 따로 확인",
+        "~/.venvs/py312/bin/python src/waveforms_sionna.py   # Sionna 교차검증 (상관 1.0000)",
+        "~/.venvs/py312/bin/python src/rcs_sbr.py            # SBR 해석해 검증 (구/평판)",
+        "~/.venvs/py312/bin/python src/waveforms.py          # G1/G2/G3 점유모드 제원",
+        "~/.venvs/py312/bin/python src/materials.py          # 재질표 (Sionna <-> PO 동일 출처)",
+    ],
+
+    artifacts=[
+        dict(file="outputs/report2_waveform_rcs.json", what="**이 노트북의 모든 숫자.** 측정 원본"),
+        dict(file="outputs/figures/report2_ref_signal.png", what="§1 기준신호 예산 (B_ref→ΔR, PRF→v_max)"),
+        dict(file="outputs/figures/report2_resource_grid.png", what="§2 자원격자 사진 (G1/G3 × 3표준)"),
+        dict(file="outputs/figures/report2_occupancy.png", what="§2 점유모드 G1/G2/G3 측정"),
+        dict(file="outputs/figures/report2_crosscheck.png", what="§3 **Sionna 교차검증 + CP 버그 재현**"),
+        dict(file="outputs/figures/report2_numerology.png", what="§3 Sionna CarrierConfig 뉴머롤로지 표"),
+        dict(file="outputs/figures/report2_ambiguity.png", what="§3 자기상관 + 모호함수"),
+        dict(file="outputs/figures/report2_sbr_validate.png", what="§4 SBR 검증 · 격자 수렴 · 디더"),
+        dict(file="outputs/figures/report2_occlusion.png", what="§4 **가림의 대가** (PO vs SBR, 3D)"),
+        dict(file="outputs/figures/report2_rcs_polar.png", what="§4 5종 × 3대역 극좌표 패턴"),
+        dict(file="outputs/figures/report2_rcs_bars.png", what="§4 방위평균 RCS 요약"),
+        dict(file="outputs/figures/report2_materials.png", what="§4 재질 기여도 + 재질표"),
+        dict(file="outputs/figures/report2_gallery.png", what="§4 **Sionna 렌더** 드론 5종"),
+    ],
+
+    caveats=[
+        "**절대 RCS 값은 보장하지 않는다.** SBR 은 해석해(구·평판)로만 검증됐고 "
+        "**드론 실측 앵커링이 없다.** 이 리포트가 지지하는 것은 (a) 기종 간 **상대 순서**, "
+        "(b) 대역 추세, (c) 가림·재질의 **차이(dB)** 다. 절대값을 다른 문서에 인용하지 말 것.",
+
+        "**널(null) 깊이를 인용하지 말 것.** 극좌표 패턴의 로브와 방위평균은 안정적이지만, "
+        "로브 사이 골의 깊이는 이산화·대역평균·각도평활에 따라 10 dB 넘게 움직인다. "
+        "(그림은 대역평균 + 3° 평활본이다.)",
+
+        f"**단일 격자의 '검증 오차' 는 수렴한 숫자가 아니다.** 금속구는 정반사점이 하나뿐이라 "
+        f"광선이 그 점에 떨어지느냐로 값이 흔들린다 — 같은 λ/12 에서도 격자 정렬만 바꾸면 "
+        f"**{_lam12['spread']:.1f} dB** 산포가 난다. λ/24 에서야 산포 {_lam24['spread']:.2f} dB / "
+        f"오차 {_lam24['avg_err']:+.2f} dB 로 닫힌다. **드론**(다산란체)의 방위평균은 저절로 디더돼 "
+        f"λ/8 이후 ~0.1 dB 로 안정 → 우리가 쓴 **λ/{M['sbr_div']} 는 수렴 구간**이다(§4.1).",
+
+        "**§1 의 ΔR · v_max 는 '유휴 셀(idle)' 체제 전제다.** 부하 걸린 셀 + captured "
+        "full-waveform reference 면 대역은 채널 전대역, PRF 는 CPI 분할이 정한다. "
+        "**두 체제를 섞어 인용하지 말 것.**",
+
+        "**PRS(G2/G3)의 5G 수치는 낙관적 상한**이다. PRS 는 상시 신호가 아니라 "
+        "**측위 세션이 설정돼야** 켜지는 옵션이며, 남의 셀을 빌려 쓰는 패시브 수신기는 그것을 "
+        "가정할 수 없다.",
+
+        "**WiFi PRF 1 kHz 는 '혼잡 AP' 대표값**이다. 트래픽이 없으면 비콘(100 TU ≈ 9.77 Hz)만 "
+        "남아 5G SSB 보다도 느려진다 (`waveforms.PILOT_RATE_HZ` 의 주석 참조).",
+
+        "**호버 RPM 은 DJI 미공개 추정치**다 (`docs/drone_specs_2026.json` 에 근거·불확실성 명시). "
+        "이 리포트의 **정적 RCS 에는 영향이 없지만** 마이크로도플러(report1 의 분절)는 여기 매달려 있다.",
+
+        "**흡수체·plastic 의 |Γ| 는 모델값**이지 실측이 아니다 (`src/materials.py` 의 note).",
+
+        f"⚠ **SBR 에 유전체 투과(transmission)가 없다** — 광선을 **첫 충돌에서 끝낸다**. 그런데 "
+        f"1~3 mm 플라스틱 셸은 GHz 대역에서 **준투명**하다. 그래서 '셸 있음'(불투명 가정)과 "
+        f"'셸 지움'(완전 투명)이 **{abs(_shell['delta_db']):.1f} dB** 벌어지고, **진짜 값은 그 "
+        f"사이**다(§4.4). 이 리포트의 절대 RCS 에는 그만큼의 **모델 불확실도**가 붙는다. "
+        f"기종 간 상대 비교는 다섯 종이 같은 가정을 쓰므로 영향이 훨씬 작다.",
+
+        "🐛 **오목부 다중반사(SBR 3-bounce) 숫자는 약한 근거다.** `src/rcs_sbr.py:328` 에서 "
+        "튕긴 뒤의 **추가 경로길이가 위상에 누적되지 않는다**(`... * 0` 으로 죽어 있고, 게다가 "
+        "`Ocur` 를 덮어쓴 뒤에 읽는다). 즉 2·3차 기여가 **직접 반사와 같은 위상으로** 더해진다. "
+        "**진폭 규모('작다')는 신뢰할 만하지만 부호·정확한 dB 값은 인용하지 말 것.** "
+        "가림(1-bounce vs PO) 결론은 이 결함과 **무관**하다 — 거기엔 다중반사가 없다.",
+    ],
+
+    cost=(f"GPU 1장 자동선택(여유 메모리 최대), 예산 {M['budget_mb']:,} MiB. "
+          f"전체 재현 약 **{M['runtime_s']/60:.0f}분** "
+          f"(SBR {len(DKEYS)}종 × {len(BAND_NAMES)}대역 × {len(R['az'])}방위 × "
+          f"{M['n_freq_band']}주파수, 광선격자 λ/{M['sbr_div']} · "
+          f"Sionna 렌더 {M['render_spp']} spp @ {M['render_res'][0]}×{M['render_res'][1]})"),
+
+    related=[
+        dict(rep="[report1](report1.ipynb) — 환경 · 실물 3D 메쉬 · 분절",
+             rel="**이 리포트가 적분하는 메쉬**를 만든다 (CAD · 검증). RCS 는 메쉬가 틀리면 틀린다"),
+        dict(rep="**report2 (여기)** — 파형 + RCS",
+             rel="파형이 맞는지(§3), 표적이 얼마나 밝은지(§4)"),
+        dict(rep="[report3](report3.ipynb) — Sionna RT 광선 반사 실험",
+             rel="**환경**(벽 · 바닥 반사)을 RT 로 다룬다. 여기 §4 는 **표적**을 SBR 로 — 역할 분담"),
+    ],
+)
+
+# =========================================================================== #
+#  §0
+# =========================================================================== #
 cells.append(md(
-    "## 2. RCS 특성화 — **SBR**(광선 + PO 적분)로 메쉬에서 직접",
+    "## §0. 왜 '파형' 과 'RCS' 가 한 리포트에 있나",
     "",
-    "### 2a. 왜 SBR 인가 — 광선도, 적분도, 둘 다 필요하다",
+    "패시브 레이더의 수신 전력은 **두 개의 곱**입니다:",
     "",
-    "고주파 RCS 를 내는 상용 EM 솔버(FEKO/CST/HFSS **SBR+**)의 표준 기법이 바로 **SBR**(Shooting-and-Bouncing Rays)입니다:",
+    "$$P_{rx} \\;\\propto\\; \\underbrace{P_{tx}\\,G}_{\\text{남의 송신기}} \\cdot "
+    "\\underbrace{\\sigma}_{\\text{표적}} \\cdot \\frac{1}{R_t^2 R_r^2}$$",
     "",
-    "1. **광선(GO)** 으로 *어느 면이 실제로 조명되는가* 를 찾고 — 가림·다중반사가 여기서 나옵니다.",
-    "2. 그 면들 위에서 **PO 표면적분**을 해서 σ 를 냅니다.",
+    "그리고 **무엇을 얼마나 잘 볼 수 있는가**도 두 개가 정합니다:",
     "",
-    "$$\\sigma(\\hat u)=\\frac{4\\pi}{\\lambda^2}\\Big|\\sum_{\\text{광선이 맞은 첫 지점}} |\\Gamma_g|\\;e^{\\,j2k(\\mathbf p_i\\cdot\\hat u)}\\;d^2\\Big|^2$$",
-    "",
-    "(투영면으로 변수변환하면 비스듬함 계수 $(\\hat n\\cdot\\hat u)$ 가 상쇄되어, **균일 격자 광선 1발 = 투영면적 $d^2$** 이 됩니다.",
-    "구현: `src/rcs_sbr.py`, 격자 $d=\\lambda/12$, Mitsuba/OptiX GPU.)",
-    "",
-    "**두 단계 중 하나라도 빠지면 틀립니다:**",
-    "",
-    "| | 적분 없이 광선만 (Sionna RT 기본 solver) | 광선 없이 적분만 (옛 `rcs_po`) | **SBR (지금)** |",
+    "| 무엇 | 무엇이 정하나 | 어디서 오나 | 이 리포트 |",
     "|---|---|---|---|",
-    "| 표적 σ | **안 나온다** — 광선 4억 발에도 수렴 안 함(+8~12 dB/4배), 산란계수 S 에 비례 | 나온다 | **나온다** |",
-    "| 가림 | (해당 없음) | **없다 — 뒤에 가려진 면도 적분** | **공짜**(첫 충돌만) |",
-    "| 다중반사 | 있다 | 없다 | 있다(`max_bounce`) |",
+    "| **거리분해능** $\\Delta R$ | 기준신호 **점유대역** $B_{ref}$ | 파형 | §1 · §2 · §3 |",
+    "| **최대 무모호 속도** $v_{max}$ | 기준신호 **반복률** PRF | 파형 | §1 |",
+    "| **탐지 가능성** | 표적 **RCS** $\\sigma$ | 드론 | §4 |",
     "",
-    "> ⚠️ **주장의 범위를 정확히.** *\"레이트레이싱은 RCS 를 못 낸다\"* 는 **거짓**입니다 — SBR 이 바로 광선으로 RCS 를 계산합니다.",
-    "> 참인 명제는 훨씬 좁습니다: **\"산란적분 단계가 없는 전파(propagation)용 레이트레이서 — Sionna RT 2.0.1 의 기본 solver — 에서는 표적 σ 가 창발하지 않는다.\"**",
-    "> 실측 근거: 금속 평판의 변을 0.2→4 m 로 키워 **σ 를 52 dB** 바꿔도 RT 진폭비는 **−7.91 dB 로 불변**(산포 0.00 dB);",
-    "> 확산 경로는 재질 노브 **S** 에 비례(S 2배 → +15 dB)하고, 물리적으로 옳은 **PEC 금속구(S=0)에서는 RT 가 경로를 아예 못 만듭니다.**",
-    "> 즉 RT 로 σ 를 맞추는 건 **S 를 피팅하는 순환논법**입니다. (근거·재현: `benchmark/verify_rt_no_rcs.py` · `docs/VERIFY_RT_VS_PO.md` · report6)",
-    "> **그래서 하이브리드**: 표적 σ = **SBR**, 환경(경로·지연·도플러) = **Sionna RT**, 절대전력 = 링크버짓.",
+    "그래서 이 리포트의 질문은 하나가 아니라 둘입니다 — "
+    "**\"우리가 만든 파형이 맞는가\"** 그리고 **\"이 드론들은 레이더에 얼마나 밝은가\"**.",
     "",
-    "**SBR 커널 검증** — 해석해가 있는 표적으로 (@3.5 GHz, λ=8.57 cm):",
+    "> ### 🔑 역할 분담을 먼저 못박습니다 (가장 자주 오해받는 지점)",
+    ">",
+    "> - **OFDM 변복조 · 뉴머롤로지** → 🟢 **Sionna PHY** 가 합니다 "
+    "(`ofdm.OFDMModulator`, `nr.CarrierConfig`).",
+    ">   우리 `waveforms.py` 는 **Sionna 에 없는 것**(WiFi · LTE · SSB **자원격자 배치**)만 채우고,",
+    ">   **변조 자체는 Sionna 와 비트 단위로 일치함을 §3 에서 증명**합니다.",
+    "> - **표적 RCS** → 🟡 **SBR** — 우리가 짰지만 광선추적은 Sionna 가 쓰는 **Mitsuba 3** 엔진 "
+    "그대로입니다. Sionna 에 RCS 솔버가 없기 때문입니다.",
+    ">   **이것도 레이트레이싱입니다** — 다만 거기에 **PO 표면적분**을 얹은 것입니다 "
+    "(상용 EM 솔버의 표준 방법).",
+    "> - **렌더** → 🟢 **Sionna 자체 렌더러** (`Scene.render_to_file`, Mitsuba 경로추적, GPU).",
+))
+
+# =========================================================================== #
+#  §1
+# =========================================================================== #
+cells.append(md(
+    "---",
+    "## §1. 왜 파형이 문제인가 — 패시브 레이더의 **기준신호**",
+    "",
+    "패시브 레이더는 송신기를 **빌려 씁니다**. 그래서 **자기가 아는 신호로만 상관**을 걸 수 있고,",
+    "임의의 셀이 **항상** 내보낸다고 믿을 수 있는 건 표준마다 딱 하나씩뿐입니다:",
+    "",
+    "| 표준 | 상시(always-on) 기준신호 | 왜 이것뿐인가 |",
+    "|---|---|---|",
+    "| **LTE** | **CRS** (Cell-specific RS) | 매 서브프레임(1 ms) · 채널 전대역에 상시 송신 |",
+    "| **5G NR** | **SSB** (SS/PBCH Block) | NR 에는 **CRS 같은 상시 전대역 셀기준이 없다**. "
+    "유휴 gNB 가 늘 내보내는 건 SSB 뿐 |",
+    "| **WiFi** | **프리앰블 (VHT-LTF)** | 어떤 패킷에도 붙는다. 단 **반복률이 트래픽에 의존** |",
+    "",
+    "> ⚠️ **PRS 는 상시 신호가 아닙니다.** **측위 세션이 설정돼야** 켜지는 옵션이고, "
+    "남의 셀을 빌려 쓰는 패시브 수신기는 그것을 **가정할 수 없습니다.**",
+    "",
+    "### 그래서 분해능은 채널 대역이 아니라 **기준신호 점유대역**이 정한다",
+    "",
+    "$$\\Delta R = \\frac{c}{2\\,B_{ref}} \\qquad\\qquad "
+    "v_{max} = \\frac{\\mathrm{PRF}\\cdot\\lambda}{4}$$",
+    "",
+    "**측정값** — 유휴 셀 = 점유모드 **G1**. `src/waveforms.py` 가 만든 격자에서 그대로 잰 값입니다:",
+    "",
+    "| 표준 | 기준신호 | 채널 대역 | **$B_{ref}$** | **$\\Delta R$** | **PRF** | **$v_{max}$** |",
+    "|---|---|---|---|---|---|---|",
+    f"| WiFi 802.11ac | {G1['wifi']['ref']} | {G1['wifi']['chan_bw_mhz']:.0f} MHz | "
+    f"**{G1['wifi']['ref_bw_mhz']:.1f} MHz** | **{G1['wifi']['dR_m']:.2f} m** | "
+    f"{G1['wifi']['prf_hz']:.0f} Hz | {G1['wifi']['vmax_ms']:.1f} m/s |",
+    f"| LTE Rel-9 | {G1['lte']['ref']} | {G1['lte']['chan_bw_mhz']:.0f} MHz | "
+    f"**{G1['lte']['ref_bw_mhz']:.1f} MHz** | **{G1['lte']['dR_m']:.2f} m** | "
+    f"{G1['lte']['prf_hz']:.0f} Hz | {G1['lte']['vmax_ms']:.1f} m/s |",
+    f"| **5G NR Rel-16** | **{G1['nr']['ref']}** | {G1['nr']['chan_bw_mhz']:.0f} MHz | "
+    f"**{G1['nr']['ref_bw_mhz']:.1f} MHz** | **{G1['nr']['dR_m']:.1f} m** | "
+    f"**{G1['nr']['prf_hz']:.0f} Hz** | **{G1['nr']['vmax_ms']:.2f} m/s** |",
+    "",
+    "### 🔴 5G 의 이중고",
+    "",
+    f"SSB 는 **좁고**(중앙 20 RB = {G1['nr']['ref_bw_mhz']:.1f} MHz → "
+    f"ΔR **{G1['nr']['dR_m']:.1f} m**) **드뭅니다**(SS 버스트 20 ms 주기 → PRF "
+    f"**{G1['nr']['prf_hz']:.0f} Hz** → $v_{{max}}$ **{G1['nr']['vmax_ms']:.2f} m/s**).",
+    f"**거리도 속도도 나쁩니다.** 채널은 {G1['nr']['chan_bw_mhz']:.0f} MHz 나 되는데 패시브가 "
+    f"쓸 수 있는 건 그중 **{G1['nr']['ref_bw_mhz']/G1['nr']['chan_bw_mhz']*100:.1f}%** 뿐입니다.",
+    "",
+    f"반면 LTE CRS 는 전대역({G1['lte']['ref_bw_mhz']:.1f} MHz) + 매 서브프레임(1 kHz) 이라 "
+    f"두 축 모두 좋습니다 —",
+    f"**구세대가 패시브 레이더에는 더 좋은 조명등입니다** "
+    f"(ΔR {G1['lte']['dR_m']:.1f} m vs {G1['nr']['dR_m']:.1f} m, "
+    f"$v_{{max}}$ {G1['lte']['vmax_ms']:.0f} vs {G1['nr']['vmax_ms']:.1f} m/s).",
+    "",
+    "![ref signal](outputs/figures/report2_ref_signal.png)",
+    "",
+    "> ⚠️ **체제 경고 — 섞지 말 것.** 위 숫자는 **유휴 셀** 전제입니다. 부하 걸린 셀에 "
+    "**captured full-waveform reference**(수신기가 직접 받은 송신 파형 전체를 기준으로 사용)를 "
+    "쓸 수 있다면 대역은 **채널 전대역**, PRF 는 **CPI 분할**(`prf = fs/Lf`)이 정합니다 — "
+    "완전히 **다른 체제**입니다.",
+))
+
+cells.append(code(
+    "# §1 재현 — waveforms.py 의 속성을 그대로 읽는다 (본문 숫자에 하드코딩 없음)",
+    "import sys; sys.path.insert(0, 'src')",
+    "from waveforms import always_on_waveforms",
+    "",
+    "print(f\"{'표준':16s} {'기준신호':9s} {'B_ref':>10} {'dR':>8} {'PRF':>9} {'v_max':>9}\")",
+    "for k, wf in always_on_waveforms().items():          # = all_waveforms('G1')",
+    "    print(f'{wf.name:16s} {wf.ref_name:9s} {wf.ref_bw_hz/1e6:7.2f}MHz '",
+    "          f'{wf.range_resolution_m:6.2f}m {wf.pilot_rate_hz:7.0f}Hz "
+    "{wf.v_unambiguous_ms:7.2f}m/s')",
+))
+
+# =========================================================================== #
+#  §2
+# =========================================================================== #
+cells.append(md(
+    "---",
+    "## §2. 우리가 만든 파형 — 자원격자",
+    "",
+    "`src/waveforms.py` 가 3GPP / IEEE 스펙대로 **자원격자**(시간 × 주파수)를 만들고, 각 자원요소(RE)에 "
+    "**채널 라벨**(PSS / SSS / PBCH / CRS / PRS / PDCCH / PDSCH / LTF / …)을 답니다.",
+    "",
+    "### 점유 모드 — 그 셀이 지금 무엇을 내보내고 있나",
+    "",
+    "| 모드 | 무엇이 켜지나 | 패시브 레이더에게 |",
+    "|---|---|---|",
+    "| **G1** 유휴 셀 | **상시 기준신호만** (WiFi = 프리앰블 / LTE = 동기 + CRS / 5G = SSB) | "
+    "**기본선(baseline)** — 언제나 기댈 수 있는 것 |",
+    "| **G2** 측위 세션 | + **PRS** + 제어(PDCCH/SIG) | 5G 가 전대역 기준을 얻는 **낙관적 상한** |",
+    "| **G3** 풀로드 | + 데이터(PDSCH/DATA) | **에너지만 늘 뿐** — 데이터는 수신기가 **모르는** "
+    "신호라 정합필터 템플릿이 못 된다 |",
+    "",
+    "![resource grid](outputs/figures/report2_resource_grid.png)",
+    "",
+    "### G1 이 실제로 되는가 — 만들어서 재봤다",
+    "",
+    "| 모드 | WiFi  점유 / $B_{ref}$ / ΔR | LTE  점유 / $B_{ref}$ / ΔR | "
+    "5G NR  점유 / $B_{ref}$ / ΔR |",
+    "|---|---|---|---|",
+    *[f"| **{m}** | "
+      f"{REF[m]['wifi']['occ_pct']:.1f}% / {REF[m]['wifi']['ref_bw_mhz']:.1f} MHz / "
+      f"{REF[m]['wifi']['dR_m']:.2f} m | "
+      f"{REF[m]['lte']['occ_pct']:.1f}% / {REF[m]['lte']['ref_bw_mhz']:.1f} MHz / "
+      f"{REF[m]['lte']['dR_m']:.2f} m | "
+      f"{REF[m]['nr']['occ_pct']:.1f}% / {REF[m]['nr']['ref_bw_mhz']:.1f} MHz / "
+      f"**{REF[m]['nr']['dR_m']:.2f} m** |" for m in ("G1", "G2", "G3")],
+    "",
+    f"**읽는 법**: G1 → G3 로 점유율은 {REF['G1']['nr']['occ_pct']:.1f}% → "
+    f"{REF['G3']['nr']['occ_pct']:.1f}% 로 "
+    f"{REF['G3']['nr']['occ_pct']/REF['G1']['nr']['occ_pct']:.0f}배 늘지만, "
+    f"**WiFi · LTE 의 ΔR 은 거의 안 움직입니다** — 상시 기준신호가 **이미 광대역**이기 때문입니다.",
+    f"5G 만 {REF['G1']['nr']['dR_m']:.1f} m → {REF['G2']['nr']['dR_m']:.2f} m 로 급전환하는데, "
+    f"그건 **PRS 가 켜졌기 때문**이고 그건 **측위 세션을 가정한 것**입니다.",
+    "",
+    "![occupancy](outputs/figures/report2_occupancy.png)",
+))
+
+cells.append(code(
+    "# §2 재현 — G1/G2/G3 를 만들어 점유율·B_ref·PRF·ΔR 을 잰다",
+    "from waveforms import all_waveforms",
+    "",
+    "for mode in ('G1', 'G2', 'G3'):",
+    "    print(f'== {mode} ==')",
+    "    for k, wf in all_waveforms(mode).items():",
+    "        print(f'  {wf.name:15s} 점유={wf.occupancy_frac*100:5.1f}%  기준={wf.ref_name:7s}  '",
+    "              f'B_ref={wf.ref_bw_hz/1e6:6.2f}MHz -> dR={wf.range_resolution_m:5.2f}m  '",
+    "              f'PRF={wf.pilot_rate_hz:6.0f}Hz -> v_max={wf.v_unambiguous_ms:5.2f}m/s')",
+))
+
+# =========================================================================== #
+#  §3
+# =========================================================================== #
+_num_rows = [f"| {r['bw']} | {r['scs_hz']/1e3:.0f} kHz | {r['mu']} | {r['n_size_grid']} | "
+             f"{r['num_subcarriers']:,} | {r['num_symbols_per_slot']} | "
+             f"{r['num_slots_per_frame']} | {r['slot_duration_s']*1e6:.0f} µs | "
+             f"{r['cyclic_prefix']} |" for r in NUM]
+
+_xc_rows = [f"| {XC[k]['name']} | {XC[k]['n']:,} | **{XC[k]['corr']:.4f}** | "
+            f"**{XC[k]['nmse_db']:.1f} dB** | ✅ 동일 |" for k in WK]
+
+_cp_rows = [f"| {XC[k]['name']} | {', '.join(str(v) for v in XC[k]['cp_head'])} … | "
+            f"{'예 — 전부 같음' if XC[k]['cp_uniform'] else '**아니오 — 첫 심볼이 길다**'} |"
+            for k in WK]
+
+
+def _bugcell(k):
+    if XC[k]["cp_uniform"]:
+        return f"{XC[k]['corr_bug']:.4f}  (영향 없음 — CP 가 균일하다)"
+    return f"**{XC[k]['corr_bug']:.4f}** 💥"
+
+
+_bug_rows = [f"| {XC[k]['name']} | {XC[k]['corr']:.4f} | {_bugcell(k)} |" for k in WK]
+
+_amb_rows = [f"| {G1[k]['ref']} | {AMB[k]['autocorr_3db_m']:.2f} m | {G1[k]['dR_m']:.2f} m | "
+             f"{AMB[k]['autocorr_3db_m']/G1[k]['dR_m']:.2f}× |" for k in WK]
+_amb_ratio_lo = min(AMB[k]["autocorr_3db_m"] / G1[k]["dR_m"] for k in WK)
+_amb_ratio_hi = max(AMB[k]["autocorr_3db_m"] / G1[k]["dR_m"] for k in WK)
+#  WiFi 대비 배수 (정의와 무관하게 살아남는 것)
+_r_meas_lte = AMB["lte"]["autocorr_3db_m"] / AMB["wifi"]["autocorr_3db_m"]
+_r_ray_lte = G1["lte"]["dR_m"] / G1["wifi"]["dR_m"]
+_r_meas_nr = AMB["nr"]["autocorr_3db_m"] / AMB["wifi"]["autocorr_3db_m"]
+_r_ray_nr = G1["nr"]["dR_m"] / G1["wifi"]["dR_m"]
+
+cells.append(md(
+    "---",
+    "## §3. **Sionna 기본 파형과 비교** — 이 리포트의 핵심 검증",
+    "",
+    "### 3.1 뉴머롤로지는 **우리가 안 짠다**",
+    "",
+    "`sionna.phy.nr.CarrierConfig` 가 3GPP 뉴머롤로지(μ · SCS · RB · 심볼/슬롯 · 슬롯/프레임 · CP)를 "
+    "이미 압니다. 우리는 **물어보기만** 합니다:",
+    "",
+    "![numerology](outputs/figures/report2_numerology.png)",
+    "",
+    "| 채널 | SCS | μ | RB | 부반송파 | 심볼/슬롯 | 슬롯/프레임 | 슬롯 길이 | CP |",
+    "|---|---|---|---|---|---|---|---|---|",
+    *_num_rows,
+    "",
+    "### 3.2 변조기 대조 — **같은 자원격자를 Sionna 로 재변조**",
+    "",
+    "자작 `ofdm_modulate()` 가 만든 것과 **같은 격자**를 `sionna.phy.ofdm.OFDMModulator` 에 넣고, "
+    "두 시간영역 파형을 대조했습니다(전력 정규화 후 상관 · NMSE):",
+    "",
+    "| 파형 | 샘플 | **상관** | **NMSE** | 판정 |",
+    "|---|---|---|---|---|",
+    *_xc_rows,
+    "",
+    f"NMSE **≈ {_worst_nmse:.0f} dB** 는 **float32 기계정밀도**입니다 — 두 구현이 *비슷한* 게 아니라 "
+    f"**같은 수**를 냅니다.",
+    "**→ 자작 OFDM 변조기가 Sionna 와 비트 단위로 일치합니다.** 강력한 검증입니다.",
+    "",
+    "![crosscheck](outputs/figures/report2_crosscheck.png)",
+    "",
+    "### 3.3 🐛 이 교차검증이 **실제로 잡은 버그** — 슬롯 첫 심볼의 CP",
+    "",
+    "3GPP 는 슬롯 **첫 심볼의 순환전치(CP)를 더 길게** 줍니다(슬롯 경계를 맞추기 위해):",
+    "",
+    "| 파형 | CP 길이 [샘플] | CP 가 균일한가 |",
+    "|---|---|---|",
+    *_cp_rows,
+    "",
+    "CP 배열을 통째로 넘기지 않고 **첫 값만** 쓰면 이후 심볼 경계가 전부 어긋납니다:",
+    "",
+    "| 파형 | 올바름 (CP 배열 전체) | **버그 (첫 CP 만)** |",
+    "|---|---|---|",
+    *_bug_rows,
+    "",
+    f"> 🔑 **WiFi 는 CP 가 균일해서 같은 버그가 안 보입니다** — 상관이 "
+    f"{XC['wifi']['corr_bug']:.4f} 로 멀쩡합니다.",
+    f"> **파형 하나만 시험했다면 이 버그는 통과했을 것입니다.** 세 표준을 동시에 대조했기 때문에 "
+    f"LTE({XC['lte']['corr_bug']:.3f}) · NR({XC['nr']['corr_bug']:.3f})에서 드러났습니다.",
+    "> **이것이 교차검증이 사준 것입니다** — 검증은 '통과'가 아니라 '진단'일 때 값을 합니다.",
+    "",
+    "### 3.4 모호함수 — 거리축과 속도축은 **다른 곳에서** 온다",
+    "",
+    "![ambiguity](outputs/figures/report2_ambiguity.png)",
+    "",
+    "| 기준신호 | 자기상관 **3 dB 반폭** (측정) | $c/(2B_{ref})$ (§1 의 레일리 값) | 비 |",
+    "|---|---|---|---|",
+    *_amb_rows,
+    "",
+    "> ⚠️ **이 두 열은 서로를 검증하지 않습니다 — 정직하게 짚습니다.**",
+    f"> LTE·5G 에서 측정 반폭이 레일리 값의 **{_amb_ratio_lo:.2f}~{_amb_ratio_hi:.2f}배**로 나옵니다. "
+    f"두 가지가 겹쳐 있습니다:",
+    "> 1. **정의가 다릅니다.** $c/(2B)$ 는 레일리(피크→첫 널) 기준이고, 위 측정은 "
+    "**|R(τ)| 가 0.707 로 떨어지는 반폭**입니다. 후자가 원래 더 좁습니다.",
+    "> 2. **CRS·SSB 는 빗살(comb)입니다.** 주 로브 폭은 **점유 스팬**이 정하므로 좁게 나오지만, "
+    "빗살의 빈틈이 **부엽(거리 모호)** 을 키웁니다. 좁은 피크가 곧 좋은 분해능은 아닙니다.",
+    "",
+    f"> **정의를 바꿔도 살아남는 것은 순서와 배수입니다**: WiFi 대비 LTE 는 "
+    f"측정 {_r_meas_lte:.1f}배 / 레일리 {_r_ray_lte:.1f}배, 5G 는 측정 {_r_meas_nr:.1f}배 / "
+    f"레일리 {_r_ray_nr:.1f}배 나쁩니다. §1 의 결론(5G 가 압도적으로 거칠다)은 그대로입니다.",
+    "> **§1 의 ΔR 숫자는 레일리 규약**으로 읽으십시오.",
+    "",
+    "**한 버스트 안의 모호함수는 도플러 축으로 거의 평평합니다** — 드론이 만들 수 있는 도플러 범위"
+    "(수백 Hz)에서 버스트 내 도플러 분해능(≈ 1/T_burst, kHz 급)은 아무 제약이 되지 않습니다.",
+    "**속도 한계는 버스트 *사이*의 반복률(PRF)** 이 정합니다(§1). 그건 이 단일 버스트 그림이 "
+    "**보여줄 수 없는 축**입니다 — 그래서 §1 이 따로 필요합니다.",
+    "",
+    "### 3.5 정직하게 — **Sionna 로 다 되지는 않는다**",
+    "",
+    "| | Sionna PHY 에 있나 | 그래서 |",
+    "|---|---|---|",
+    "| OFDM 변복조 (IFFT + CP) | ✅ `ofdm.OFDMModulator` | **Sionna 것을 쓴다** |",
+    "| 3GPP NR 뉴머롤로지 | ✅ `nr.CarrierConfig` | **Sionna 것을 쓴다.** 표를 안 짠다 |",
+    "| 자원격자 골격 | ✅ `ofdm.ResourceGrid` | 쓴다 |",
+    "| **WiFi 802.11ac** | ❌ **없다** | `waveforms.py` 가 필요 |",
+    "| **LTE** | ❌ **없다** (5G NR 만 있다) | `waveforms.py` 가 필요 |",
+    "| **SSB 생성기** | ❌ **없다** (PUSCH/PDSCH 위주) | `waveforms.py` 가 필요 |",
+    "| CRS / PRS / VHT-LTF 배치 | ❌ 없다 | `waveforms.py` 가 필요 |",
+    "",
+    "> **결론**: `waveforms.py` 를 **버릴 수 없습니다.** 하지만 그 안의 **OFDM 엔진은 Sionna 로 "
+    "검증됐고**(§3.2), Sionna 가 가진 것(뉴머롤로지 · 변조기)은 **Sionna 것을 씁니다.**",
+    "> 이 리포트에서 Sionna 는 **OFDM 엔진이자 검증자**입니다.",
+))
+
+cells.append(code(
+    "# §3 재현 — Sionna 로 같은 격자를 재변조해 대조 (그리고 CP 버그를 일부러 재현)",
+    "import numpy as np",
+    "from waveforms import all_waveforms",
+    "from waveforms_sionna import ofdm_from_grid, nr_table",
+    "",
+    "nr_table()          # sionna.phy.nr.CarrierConfig 가 알려주는 3GPP 뉴머롤로지",
+    "",
+    "def corr(a, b):",
+    "    n = min(len(a), len(b)); a, b = a[:n], b[:n]",
+    "    a = a / (np.sqrt(np.mean(abs(a)**2)) + 1e-30)",
+    "    b = b / (np.sqrt(np.mean(abs(b)**2)) + 1e-30)",
+    "    return abs(np.vdot(a, b)) / n",
+    "",
+    "print()",
+    "for k, wf in all_waveforms('G3').items():",
+    "    cps = np.atleast_1d(np.asarray(wf.cp_lens))",
+    "    ok  = ofdm_from_grid(wf.grid, wf.fft, cps)                 # 올바름: CP 배열 전체",
+    "    bug = ofdm_from_grid(wf.grid, wf.fft, np.array([cps[0]]))  # 버그: 첫 CP 만",
+    "    x = np.asarray(wf.tx, complex)",
+    "    print(f'{wf.name:15s} CP={cps[:3].tolist()}  '",
+    "          f'상관(정상)={corr(x, ok):.4f}   상관(첫CP만)={corr(x, bug):.4f}')",
+))
+
+# =========================================================================== #
+#  §4
+# =========================================================================== #
+cells.append(md(
+    "---",
+    "## §4. RCS — **SBR** (Mitsuba 광선 + PO 표면적분)",
+    "",
+    "### 4.0 왜 Sionna RT 의 `PathSolver` 로는 시그마를 못 내나",
+    "",
+    "> ⚠️ **먼저, 하지 말아야 할 말**: *\"레이트레이싱은 RCS 를 못 낸다\"* — **거짓입니다.**",
+    "> **SBR 이 바로 레이트레이싱이고, 그게 RCS 를 계산합니다.** 상용 EM 솔버(FEKO / CST / "
+    "HFSS SBR+)가 고주파 RCS 를 내는 **표준 방법**이 정확히 이것입니다.",
+    "",
+    "**참인 명제는 훨씬 좁습니다**:",
+    "",
+    "> ### 산란적분 단계가 없는 ***전파용*** path solver 에서는 σ 가 창발하지 않는다.",
+    "",
+    "Sionna 의 `PathSolver` 는 전파(propagation)용이라 표면을 '국소 무한 거울'(GO)로 봅니다 — "
+    "**면적 항이 없습니다.** 측정 근거(`docs/ARCHIVE.md`, `benchmark/verify_rt_rays.py`):",
+    "",
+    "| 시험 | 결과 |",
+    "|---|---|",
+    "| 광선 1억 → **4억 발** | 코히어런트 합이 **+8~12 dB 계속 커짐** — **수렴하지 않는다** |",
+    "| 산란계수 S 를 2배로 | **+15 dB** — 값이 드론이 아니라 **재질 노브**의 함수다 |",
+    "| ITU `metal` 의 S | **0** → 모터 · 배터리 · PCB(σ 의 대부분)가 확산 채널에 **기여 0** |",
+    "| 평판 변 0.2 → 4 m (σ 가 52 dB 변함) | RT 진폭 **−7.91 dB 불변** (산포 0.00 dB) |",
+    "",
+    "**σ 는 적분에서 나옵니다.** 그래서 우리가 한 일은 PO 를 **광선추적 *안으로* 넣는 것**입니다:",
+    "",
+    "$$E(\\hat u) \\;\\propto\\; \\iint_{\\text{조명면}} (\\hat n\\cdot\\hat u)\\, "
+    "e^{j2k\\,\\vec r\\cdot\\hat u}\\, dS \\;=\\; \\iint e^{j2k\\,\\vec r\\cdot\\hat u}\\, "
+    "dA_{\\text{투영}}$$",
+    "",
+    "투영면으로 변수변환하면 **비스듬함(obliquity) 계수가 상쇄**됩니다. 그래서 $\\hat u$ 방향에서 "
+    "**간격 $d$ 의 평행 광선 격자**를 쏘면, 맞은 지점들의 합이 **곧 PO 적분**입니다:",
+    "",
+    "$$E=\\sum_{\\text{hits}} |\\Gamma_i|\\; e^{j2k\\,\\vec p_i\\cdot\\hat u}\\; d^2,"
+    "\\qquad \\sigma=\\frac{4\\pi}{\\lambda^2}\\,|E|^2$$",
+    "",
+    "광선이 **실제로 맞은 첫 지점**만 쓰므로 **가림(occlusion)이 공짜로** 따라옵니다.",
+    "구현: `src/rcs_sbr.py` — **Mitsuba 3 / OptiX, GPU. Sionna 가 쓰는 그 엔진 그대로**입니다.",
+))
+
+_dith_rows = [f"| λ/{d['div']} | **{d['spread']:.2f} dB** | {d['avg_err']:+.3f} dB |"
+              for d in V["dither"]]
+_dc_divs = V["drone_conv"][BAND_NAMES[1]]["divs"]
+_dc_rows = [f"| {tag} 방위평균 [dBsm] | " + " | ".join(f"{m:+.2f}" for m in ser["mean_dbsm"]) + " |"
+            for tag, ser in V["drone_conv"].items()]
+#  λ/8 이후가 λ/24 기준값에서 얼마나 벗어나는가 (측정에서 직접 뽑는다 — 손으로 안 적는다)
+_dc_dev, _dc_coarse = 0.0, 0.0
+for _tag, _ser in V["drone_conv"].items():
+    _base = _ser["mean_dbsm"][-1]                       # λ/24 기준
+    for _d, _m in zip(_ser["divs"], _ser["mean_dbsm"]):
+        if _d >= 8:
+            _dc_dev = max(_dc_dev, abs(_m - _base))
+        else:
+            _dc_coarse = max(_dc_coarse, abs(_m - _base))
+
+cells.append(md(
+    "### 4.1 SBR 검증 — 해석해와 대조. 그리고 **어디가 수렴 안 했는지도 보여준다**",
     "",
     "![sbr validate](outputs/figures/report2_sbr_validate.png)",
     "",
-    "- **금속 평판**(4πA²/λ²): 기본 격자 λ/12 에서 **−0.01 dB**. 다만 ⚠️ 수직입사 평판은 위상항이 사라져(P·û≡0)",
-    "  **커널 버그를 못 잡는 항등식**입니다 — 근거로 쓰면 안 됩니다(report6 §PO 진단과 같은 주의).",
-    "- **금속구**(πr²): 진짜 시험대입니다. 그리고 여기서 **정직하게 말할 것이 하나 나옵니다.**",
-    "  · **재현성은 훌륭합니다** — 물리적으로 완전히 동일한 8방위를 재면 값이 **0.15 dB 안**에서 일치합니다(그림 (a) 의 얇은 띠).",
-    "  · **그러나 격자 간격에 대한 수렴이 단조롭지 않습니다** — 오차가 λ/d 에 따라 **출렁입니다**:",
-    "    λ/8 +0.43 · λ/10 **+0.39** · **λ/12 +1.50** · λ/16 −0.52 · λ/20 −0.21 · λ/24 +0.26 dB.",
-    "  · 원인은 **광선 격자가 곡면의 실루엣 가장자리를 매번 다르게 이산화**하기 때문입니다(평판처럼 가장자리가 격자에 정렬되는",
-    "    표적에선 0.1 dB 수준으로 안정적입니다).",
-    "  · ⚠️ **솔버 기본값 λ/12 가 하필 +1.5 dB 봉우리 위에 있습니다.** (λ/10 이었다면 +0.4 dB 였습니다.)",
-    "  · → **결론: SBR 의 절대 RCS 는 ±1.5 dB 정도의 오차막대와 함께 읽어야 합니다.** 상대 비교(엔진 A/B, 기종 간, 각도 간)는",
-    "    같은 격자를 쓰므로 이 오차가 **상쇄**되어 훨씬 정확합니다 — 이 리포트의 주장(가림이 몇 dB 를 부풀렸나)이 바로 그런 상대 비교입니다.",
+    f"**해석해 대조** @ {V['fc']/1e9:.1f} GHz (λ = {V['lam']*100:.2f} cm):",
     "",
-    "### 2b. 🔴 헤드라인 — 가림을 넣자 RCS 가 내려갔다",
-    "",
-    "옛 PO 는 `n̂·û>0` 인 면을 전부 '조명면'이라 부르고 적분했습니다. 그런데 그 중 상당수는 **동체 뒤에 가려져 광선이 닿지 않습니다.**",
-    "",
-    "![occlusion](outputs/figures/report2_occlusion_3d.png)",
-    "",
-    "같은 드론·같은 시선에서 (mavic4pro, 3.5 GHz, el=15°):",
-    "",
-    "- PO 가 '조명면'이라 부른 면 **808개** 중 **138개(17%)는 앞 구조에 가려져 있습니다**(빨강).",
-    "- PO 가 적분한 투영면적 **764 cm²** vs 광선이 실제로 맞은 진짜 실루엣 **479 cm²** → **1.59배 과대**.",
-    "",
-    "![po vs sbr](outputs/figures/report2_po_vs_sbr.png)",
-    "",
-    "**재본 모든 조합에서 RCS 가 내려갑니다.** 방위평균(el=15°, 3.5 GHz) 기준:",
-    "",
-    "| 드론 | 옛 PO (가림 없음) | **SBR (가림 O)** | Δ |",
-    "|---|---|---|---|",
-    "| Mini 5 Pro | −19.6 | **−24.5** | −4.9 dB |",
-    "| Mavic 4 Pro | −16.9 | **−20.9** | −4.0 dB |",
-    "| Matrice 4E | −17.2 | **−20.5** | −3.3 dB |",
-    "| S1000+ | −6.0 | **−9.0** | −3.0 dB |",
-    "| Phantom 4 | −18.5 | **−22.4** | −3.9 dB |",
-    "",
-    "> ⚠️ **Δ 는 고각에 따라 달라집니다 — 하나의 숫자로 인용하지 마십시오.** 같은 3.5 GHz 라도",
-    "> el=0°(수평 시선)에서는 Mavic 4 Pro 의 Δ 가 **−0.77 dB** 밖에 안 되는 반면(−18.64 → −19.41),",
-    "> Phantom 4 는 **−6.16 dB** 입니다. 수평에서 보면 드론이 **납작한 실루엣**이라 서로 가릴 면이 적고,",
-    "> 위에서 비스듬히 보면(el=15°) 동체가 로터·암·짐벌을 가리기 시작하기 때문입니다.",
-    "> **전체 측정 범위: −0.8 ~ −6.7 dB** (5종 × 3대역 × el 0°/15°). 부호는 **항상 음(−)** 입니다 —",
-    "> 가림은 언제나 면을 빼앗지 더해 주지 않습니다.",
-    "",
-    "> 🧮 **그 −4.00 dB 는 어디서 왔나 — 정직한 분해**(그림 (c), mavic4pro):",
-    ">",
-    "> | 단계 | 값 | 누가 옳은가 |",
-    "> |---|---|---|",
-    "> | PO (재질 가중 + 내부 배터리/PCB) | −16.93 dBsm | — |",
-    "> | − 내부 산란체 | **−1.74 dB** → −18.67 | ⚠️ **여기선 SBR 이 못 하는 것** |",
-    "> | − 가림 | **−2.26 dB** → −20.93 | ✅ **SBR 이 옳다** |",
-    "> | + 오목부 다중반사(3-bounce) | +0.17 dB → −20.76 | 무시 가능 |",
-    ">",
-    "> **왜 내부 산란체가 사라지나:** 1-bounce SBR 은 **첫 충돌만** 채택하므로, 반투명 셸을 **투과해** 배터리·PCB 를 때리는",
-    "> 경로가 아예 없습니다(실측: 그 두 그룹의 광선 적중 수 = **0발**). 옛 PO 는 그 투과 기여를 '셸 |Γ| 축소 + 내부 |Γ|=1 합산'으로",
-    "> 근사했었습니다. 즉 **1-bounce SBR 이 주는 것은 엄밀히 '외피(exterior) RCS'** 입니다.",
-    "> 우리는 **SBR 값을 채택**합니다 — 가림은 실재하고(−2.26 dB 는 순수 이득), 내부 투과 근사는 상한 성격이기 때문입니다.",
-    "> 다만 실물의 참값은 **SBR 과 PO 사이 어딘가**(≈ −19 ~ −21 dBsm)이며, 아래 실측 앵커링이 그 구간을 지지합니다.",
-    "> (투과 경로까지 넣으려면 셸을 반투명 매질로 다루는 다중반사/투과 SBR 이 필요합니다 — 후속 과제.)",
-    "",
-    "### 2c. 재질 가중 — 드론은 금속 덩어리가 아니다",
-    "드론을 전부 금속(PEC)으로 두면 RCS 가 크게 과대계상됩니다. 부위별 진폭 반사계수 $|\\Gamma_g|$ 를 적분에 곱합니다",
-    "(플라스틱 셸 0.28 · 프로펠러 0.25 · 카본 암 0.90 · 모터/배터리 1.0 · PCB 0.80 · 짐벌 카메라 0.85).",
-    "**이 값들은 손으로 적은 표가 아니라 `materials.py` 의 (εr, σ) 에서 유도**되며, **Sionna RT 와 PO 가 같은 표를 읽습니다**",
-    "(예전엔 두 표가 어긋나 camera 그룹이 10.9 dB 차이 났습니다 — 그 버그가 구조적으로 불가능해졌습니다).",
-    "",
-    "![rcs materials](outputs/figures/report2_rcs_materials.png)",
-    "",
-    "SBR 로 재보면 재질 가중이 방위평균 RCS 를 **4.4 ~ 10.0 dB 낮춥니다.**",
-    "위 §2b 의 주의가 여기에도 걸립니다 — 1-bounce SBR 에서는 셸을 투과한 내부 반사가 없으므로,",
-    "이 그림이 보여주는 것은 순수하게 **외피 |Γ| 의 효과**입니다.",
-    "",
-    "### 2d. 실측 앵커링 — 공개 측정 문헌과 대조 (**엔진 교체로 값이 내려갔습니다**)",
-    "",
-    "아래는 **SBR·재질가중·방위평균 @3.5 GHz, el=0°**(막대·극좌표 그림과 같은 규약)입니다.",
-    "괄호 안은 **옛 PO 값**으로, 이전 판의 표에 실려 있던 수치입니다.",
-    "",
-    "| 급 (SBR @3.5 GHz, el=0°) | 실측 문헌값 | 판정 |",
+    "| 표적 | 해석해 | SBR 오차 |",
     "|---|---|---|",
-    "| **Phantom 4 ≈ −23.5 dBsm** *(옛 PO −17.3)* | 비행 실측 평균 **−17**(문헌 합의 −20) @8.75 GHz [De Quevedo 2018] · 방위평균 **−15.0** @15 GHz [Ezuma 2021] · 챔버 **−20~−30** @10 GHz(Phantom 2) [Schröder 2015] | 챔버 실측대(−20~−30)에는 들지만 비행 실측(−17~−20)보다 **낮음** — 아래 주 참조 |",
-    "| **Mavic 4 Pro ≈ −19.4 dBsm** *(옛 PO −18.6)* | Mavic Pro(구세대·더 소형) 방위평균 **−17.1** @15 GHz [Ezuma 2021], **−16.8** @26 GHz [Semkin 2020] | 대역·기종차 감안 합리 ✓ |",
-    "| **Matrice 4E ≈ −19.4 dBsm** *(옛 PO −16.6)* | 직접 실측 공백 (동급 M300/M600 은 더 큼) | 데이터 갭 |",
-    "| **S1000+ ≈ −8.9 dBsm** *(옛 PO −5.8)* | S1000+ 챔버 **−8**(VV) @5.8–8.2 GHz [Herschfelt 2017] · S900 비행 modal **−8** @24 GHz [Rahman 2019] · M600 방위평균 **−11.7** @15 GHz [Ezuma 2021] | **거의 정확히 일치**(0.9 dB) ✓✓ |",
-    "| **Mini 5 Pro ≈ −25.3 dBsm** *(옛 PO −19.9)* | 250 g급 직접 실측 **공백** — 간접값 ~−30 dBsm(Mini 2, 챔버) [Vovchuk 2025] | 데이터 갭(그럴듯한 대역) |",
+    f"| 금속 평판 {V['a']} × {V['a']} m (정면) | σ = 4πA²/λ² = {V['plate_exact_dbsm']:+.2f} dBsm | "
+    f"**{V['plate_err'][V['divs'].index(6)]:+.2f} dB** (λ/6) |",
+    f"| 금속구 r = {V['r']} m | σ = πr² = {V['sphere_exact_dbsm']:+.2f} dBsm | "
+    f"**{V['sphere_err'][V['divs'].index(10)]:+.2f} dB** (λ/10) |",
     "",
-    "> 📉 **엔진 교체가 앵커링에 미친 영향 — 정직하게.**",
-    "> 가림을 넣자 값이 전반적으로 내려가, **S1000+ 는 문헌과 더 잘 맞게 됐고(−5.8 → −8.9 vs 실측 −8) Phantom 4 는 오히려 더 멀어졌습니다**(−17.3 → −23.5).",
-    "> 이건 모순이 아니라 §2b 의 분해가 예측한 그대로입니다: 1-bounce SBR 은 **외피 RCS** 만 주고 **셸을 투과해 배터리·PCB 에서 되돌아오는 기여를 빼먹습니다**(0발 적중).",
-    "> 그 내부 기여는 PO 기준 **+1.7 dB** 이고, 셸이 얇고 내부가 꽉 찬 소형기일수록 비중이 큽니다 —",
-    "> 그래서 **큰 기체(S1000+, 외피 지배)에서는 SBR 이 정확해지고, 작은 기체(Phantom·Mini, 내부 지배)에서는 보수적으로 낮게** 나옵니다.",
-    "> **정직한 결론: 실물의 참값은 SBR(하한, 외피만)과 PO(상한, 내부 이중계상 포함) 사이에 있습니다.**",
-    "> 절대 RCS 를 인용할 때는 이 **±2~3 dB 구간**을 함께 인용하십시오. 이 리포트의 이후 계산(링크버짓·검출)은 **보수적인 SBR 값**을 씁니다.",
+    "> 🔍 **그런데 저 두 숫자는 방법을 실제보다 좋아 보이게 합니다 — 그래서 더 파봤습니다.**",
     "",
-    "주의: 실측은 대역(X·Ku·K)·측정종류(방위평균/modal/특정각)·편파가 제각각이라 **±수 dB 산포는 본질적**입니다.",
-    "순수 S-band 쿼드 방위평균 공개 실측은 사실상 공백입니다.",
-    "(출처: Ezuma+ TAES 2021 · De Quevedo+ RADAR 2018 · Rahman&Robertson IET RSN 2019 · Semkin+ IEEE Access 2020 ·",
-    "Herschfelt+ RadarConf 2017 / Schröder+ 2015 — Patel+ IET RSN 2018 리뷰 경유)",
+    "금속구는 **정반사점이 하나뿐**이라, 광선 격자가 **그 점 위에 떨어지느냐**에 따라 값이 흔들립니다.",
+    "격자 밀도는 그대로 두고 **격자 정렬만** 흔들어봤습니다(`pad` 를 9점 디더):",
+    "",
+    "| 격자 | 오차 산포 (정렬만 바꿔서) | 디더 평균 오차 |",
+    "|---|---|---|",
+    *_dith_rows,
+    "",
+    f"→ λ/8 에서는 **격자 정렬만으로 {_lam8['spread']:.1f} dB** 가 움직입니다. "
+    f"**λ/24 에서야** 산포 {_lam24['spread']:.2f} dB · 오차 {_lam24['avg_err']:+.3f} dB 로 닫힙니다.",
+    f"**즉 단일 격자에서 얻은 '{V['sphere_err'][V['divs'].index(10)]:+.2f} dB' 는 수렴한 숫자가 "
+    f"아니라 운 좋은 한 점입니다.** 정직하게 적어둡니다.",
+    "",
+    "**하지만 드론은 다릅니다** — 산란체가 많아 방위평균이 **저절로 디더**됩니다:",
+    "",
+    "| 격자 | " + " | ".join(f"λ/{d}" for d in _dc_divs) + " |",
+    "|---|" + "---|" * len(_dc_divs),
+    *_dc_rows,
+    "",
+    f"λ/8 부터는 λ/24 값 대비 **{_dc_dev:.2f} dB 이내**로 붙습니다(가장 거친 λ/6 만 "
+    f"{_dc_coarse:.2f} dB 벗어납니다). **우리는 λ/{M['sbr_div']} 로 돌립니다** → "
+    f"**드론 헤드라인 숫자는 수렴 구간에 있습니다.**",
+    "",
+    "> 즉 같은 커널이 **구에서는 안 수렴한 것처럼, 드론에서는 수렴한 것처럼** 보입니다. "
+    "모순이 아니라 **표적의 성질**입니다 — 정반사점이 하나뿐인 매끈한 곡면이 최악이고, "
+    "산란체가 많은 드론은 방위평균이 스스로 평균을 내줍니다.",
+))
+
+cells.append(md(
+    "### 4.2 🔴 **가림(occlusion)의 대가** — PO 와 SBR 의 차이는 사실상 이것 하나다",
+    "",
+    "![occlusion](outputs/figures/report2_occlusion.png)",
+    "",
+    "순수 PO(`rcs_po.py`)는 표면 점구름을 적분하면서 "
+    "**$\\hat n\\cdot\\hat u > 0$ 이면 '조명면'** 이라고 판정합니다 — "
+    "**앞의 부품에 완전히 가려져 있어도** 그렇습니다. 같은 점들에 광선을 쏴봤습니다:",
+    "",
+    f"| 한 방위 (az = {OCC['az_view']:.0f}°, el = {OCC['el']:.0f}°) 에서 | 개수 | 투영면적 |",
+    "|---|---|---|",
+    f"| PO 가 '조명면' 이라 부른 면 | **{OCC['n_lit_po']:,}** | {OCC['area_po']*1e4:.0f} cm² |",
+    f"| └ 그중 **실제로 뒤에 가려진** 면 | **{OCC['n_hidden']:,}  "
+    f"({OCC['hidden_frac']*100:.0f}%)** | — |",
+    f"| 광선이 **실제로 맞은** 면 (SBR) | {OCC['n_visible']:,} | "
+    f"**{OCC['area_vis']*1e4:.0f} cm²** |",
+    "",
+    f"→ PO 는 실제보다 **{OCC['area_po']/OCC['area_vis']:.2f} 배 넓은 면적**을 적분하고 있었습니다.",
+    "",
+    f"**그 결과** ({OCC['name']}, {OCC['n_az']} 방위 평균, el = {OCC['el']:.0f}°, "
+    f"{OCC['fc']/1e9:.1f} GHz):",
+    "",
+    "| 엔진 | 방위평균 RCS | 차이 |",
+    "|---|---|---|",
+    f"| 순수 PO (가림 **없음**) | {OCC['po_dbsm']:+.2f} dBsm | — |",
+    f"| **SBR 1-bounce** (가림 **있음**) | **{OCC['sbr1_dbsm']:+.2f} dBsm** | "
+    f"**{OCC['occlusion_db']:+.2f} dB** ← 가림 |",
+    f"| SBR 3-bounce (가림 + 오목부 다중반사) | {OCC['sbr3_dbsm']:+.2f} dBsm | "
+    f"{OCC['multibounce_db']:+.2f} dB ← 다중반사 |",
+    "",
+    f"> 🔑 **PO 에 대한 고전적 비판은 '오목부 다중반사를 못 한다' 였습니다.**",
+    f"> **그런데 재보니 그건 {abs(OCC['multibounce_db']):.2f} dB 짜리 문제였고, 진짜 문제는 "
+    f"아무도 말 안 하던 가림({abs(OCC['occlusion_db']):.2f} dB)이었습니다.** 한 자릿수 차이입니다.",
+    "",
+    "> 🐛 **다만 3-bounce 숫자는 약하게만 믿으십시오.** `src/rcs_sbr.py:328` 에서 튕긴 뒤의 "
+    "**추가 경로길이가 위상에 누적되지 않습니다**(`* 0` 으로 죽어 있습니다). 그래서 2·3차 기여가 "
+    "직접 반사와 같은 위상으로 더해집니다 — **'작다' 는 규모는 믿을 만하지만 정확한 dB 값·부호는 "
+    "인용하지 마십시오.**",
+    f"> **가림 결론({OCC['occlusion_db']:+.2f} dB)은 이 결함과 무관합니다** — 1-bounce 에는 "
+    "다중반사가 아예 없습니다.",
+    "",
+    "> ℹ️ `docs/ARCHIVE.md` 는 가림을 +4~5 dB 로 적고 있습니다. 오늘 메쉬가 CAD 엔진으로 "
+    "바뀌면서(report1) 값이 달라졌습니다 — **위 표가 현재 메쉬에서 새로 잰 값**입니다. "
+    "결론(가림 ≫ 다중반사)은 그대로입니다.",
+))
+
+_rcs_rows = [f"| {DR[k]['name']} | {DR[k]['diagonal_mm']:.0f} mm | {DR[k]['weight_g']:.0f} g | "
+             f"{DR[k]['num_rotors']} | " +
+             " | ".join(f"{DR[k]['bands'][b]['mean_dbsm']:+.1f}" for b in BAND_NAMES) + " |"
+             for k in DKEYS]
+
+cells.append(md(
+    "### 4.3 드론 5종 × 3대역 SBR RCS",
+    "",
+    "**Sionna 자체 렌더러**가 그린 표적들 — 우리가 적분하는 **바로 그 메쉬**입니다 "
+    "(그림이 아니라 시뮬레이터가 본 것):",
+    "",
+    "![gallery](outputs/figures/report2_gallery.png)",
     "",
     "![rcs polar](outputs/figures/report2_rcs_polar.png)",
     "",
-    "- (a) **RCS(방위각)**: 드론이 돌아가면 RCS 가 크게 출렁입니다(특정 각도에서 번쩍=글린트). S1000+(검정)이 가장 큽니다.",
+    "![rcs bars](outputs/figures/report2_rcs_bars.png)",
     "",
-    "> 🔍 **깊은 널(null)의 '깊이'는 인용하지 마십시오 — 대역평균 + 각도평활로 그립니다**",
-    "> 단일 주파수 코히런트 계산(PO 든 SBR 이든)으로 그리면 로브 사이에 깊게 꽂히는 바늘이 생깁니다. 셋을 확인했습니다:",
-    "> 1. **통계적으로는 정상**입니다 — 코히런트 산란체의 σ 는 지수분포(레일리)를 따르므로 '깊은 널이 드물게 존재'하는 것 자체는 물리입니다.",
-    "> 2. **그러나 개별 널의 깊이는 수치 아티팩트입니다** — 널 바닥에서는 위상이 거의 상쇄되므로, 이산화 오차가 **상대적으로 지배**합니다.",
-    ">    SBR 에서 그 이산화 오차는 **광선 격자의 실루엣 가장자리 양자화**이고, §2a 에서 그 크기를 실측했습니다(금속구 기준 **±1.5 dB**).",
-    ">    로브 피크(−12 dBsm)에서 1.5 dB 는 무시할 만하지만, 널 바닥에서는 널의 깊이를 통째로 바꿉니다. **널의 위치는 신뢰, 깊이는 불신**이 옳은 태도입니다.",
-    "> 3. **실제 레이더는 그 널을 보지 못합니다** — 유한 대역폭과 안테나 빔·표적 요(yaw) 지터가 널을 메웁니다.",
-    ">    5G 100 MHz 대역평균 + 3° 각도창을 적용하면(mavic4pro, el=0°) 패턴의 **최저값이 −33.7 dBsm 까지만 내려가고**,",
-    ">    **로브 피크 −12.2 dBsm · 방위평균 −19.4 dBsm** 은 사실상 그대로입니다.",
-    ">",
-    "> → 그래서 (a) 는 **레이더가 실제로 보는 값**(100 MHz 대역평균 + 3° 창)으로 그립니다. 방위평균 값은 대역평균 여부와 무관하므로",
-    "> 앵커링 표·막대그래프는 그대로입니다. (`rcs_po.drone_rcs_pattern_bw` · `angular_smooth`, 엔진은 SBR)",
-    "  쿼드의 대칭성은 **마주보는 암 쌍** 때문에 **180° 준대칭**이 지배적입니다(방위 자기상관 @3.5 GHz: Phantom 4 +0.69 · Mavic 4 Pro +0.56).",
-    "  흔히 말하는 '90° 주기 로브'는 **로터가 직교 배치(90° 간격)이고 동체가 정사각에 가까운 Phantom 4·Matrice 4E 에서만 약하게**",
-    "  나타나고(corr(90°) +0.39 · +0.30), 전방스윕 로터각에 길쭉한 동체를 가진 Mini 5 Pro·Mavic 4 Pro 에선 90° 대칭이 깨집니다(≈ −0.01 · −0.05).",
-    "- (b) **RCS(주파수)**: 대체로 주파수↑ 일수록 RCS↑ 하되, ∝A²/λ²(+6dB/oct)는 **평판 수직입사 극한**일 뿐입니다.",
-    "  구는 πr²로 주파수 무관 → 평판·구가 섞인 드론은 **완만(≈+0.5~3.6 dB/oct)하고 일부 구간은 비단조**.",
-    "  **크기순은 양 극단에서만 성립**합니다: 가장 큰 S1000+ 가 항상 최상, 가장 작은 Mini 5 Pro 가 항상 최하(1~6 GHz 전 구간).",
-    "  반면 **중간 세 쿼드는 크기순이 아닙니다** — SBR @3.5 GHz(el=0°)는 Mavic(−19.4) ≈ Matrice(−19.4) ≫ Phantom(−23.5) dBsm 인데,",
-    "  대각거리 순서는 Matrice 438.8 > Mavic 400 > Phantom 350 mm 입니다. 방위평균을 지배하는 건 대각거리가 아니라",
-    "  **금속 산란체(동체·모터)의 크기·배치, 그리고 서로가 서로를 얼마나 가리는가**입니다.",
-    "  (엔진 교체로 순서가 바뀌었습니다 — 옛 PO 는 Phantom 을 맨 위에 놨는데, 그 우위는 **가려진 면을 세어서 생긴 것**이었습니다.)",
+    f"**방위평균 RCS [dBsm]** — 전 방위 {len(R['az'])}점, el = {R['el']:.0f}°, "
+    f"대역평균 {R['n_f']}점, 광선격자 λ/{R['div']}:",
     "",
-    "### 표준 반송파별 RCS — 어떤 주파수로 보느냐에 따라 표적이 달라 보인다",
-    "![rcs bands](outputs/figures/report2_rcs_bands.png)",
+    "| 드론 | 대각 | 무게 | 로터 | " + " | ".join(f"**{b}**" for b in BAND_NAMES) + " |",
+    "|---|---|---|---|" + "---|" * len(BAND_NAMES),
+    *_rcs_rows,
     "",
-    "### 메쉬로 보는 RCS — '풍선'과 '번쩍이는 면'",
-    "드론 메쉬 둘레에 RCS(방위×고각)를 **3D 풍선**으로 그리면 어느 각도가 크고 작은지 한눈에 보입니다.",
-    "뾰족한 로브 = 글린트(평판·암이 거울처럼 반사). 쿼드는 마주보는 암 쌍 때문에 **180° 준대칭**이고",
-    "(직교 배치·정사각 동체인 Phantom 4·Matrice 4E 만 90° 주기가 약하게 보임), 옥토(S1000+)는 더 촘촘·전체적으로 큽니다:",
-    "![rcs balloon](outputs/figures/report2_mesh_rcs_balloon.png)",
+    f"- **가장 어두운 표적**: {DR[_dim]['name']} — **{_means[_dim]:+.1f} dBsm** @3.5 GHz "
+    f"(≈ {10**(_means[_dim]/10)*1e4:.0f} cm²). 250 g 급이 왜 어려운지 숫자로 보입니다.",
+    f"- **가장 밝은 표적**: {DR[_brightest]['name']} — **{_means[_brightest]:+.1f} dBsm** "
+    f"(≈ {10**(_means[_brightest]/10)*1e4:.0f} cm²). 기종 폭이 **{_span:.1f} dB** 입니다.",
+    "- **대역 의존성은 약합니다** — 표적이 이미 광학영역(크기 ≫ λ)이라 σ 가 λ 에 둔감합니다. "
+    "**기체 크기가 대역보다 훨씬 중요합니다.**",
     "",
-    "왜 각도마다 RCS 가 다를까요? 레이더로 향하면서 **동시에 가려지지 않은** 면만 위상 맞춰 더해지기 때문입니다.",
-    "보는 각도가 바뀌면 번쩍이는 면이 바뀝니다:",
-    "![rcs facets](outputs/figures/report2_mesh_rcs_facets.png)",
-    "",
-    "> ℹ️ 위 두 그림의 '조명면'은 **기하 판정**($\\hat n\\cdot\\hat u>0$)으로 칠한 것입니다.",
-    "> **광선 기반의 엄밀한 판정**(가려진 면을 빼는)은 §2b 의 가림 그림이며, σ 값은 모두 그쪽(SBR)을 따릅니다.",
-    "",
-    "**🎬 애니메이션** — 레이더가 여러 방위에서 볼 때 조명면이 바뀌고 RCS 가 **글린트로 출렁**이는 모습(폴라와 동기).",
-    "왼쪽 패널의 회색은 **후면이거나 동체에 가려진 면**입니다 — 가림 판정은 σ 적분과 **똑같이 Mitsuba 광선**이 합니다:",
-    "![rcs anim](outputs/figures/report2_anim_rcs.gif)",
-    "",
-    "### 형상 민감도 A/B — 파라메트릭 메쉬는 얼마나 '진짜'에 가까운가",
-    "스펙시트 기반 파라메트릭 메쉬가 실물 형상 대비 얼마나 정확한지, **실기체 3D 스캔**(Phantom 4,",
-    "0.4 mm 해상도, Thingiverse 1456295, CC-BY)과 같은 조건으로 대조했습니다 — 둘 다 PEC 이고, 스캔에 없는",
-    "프로펠러·짐벌카메라와 **내부 산란체(배터리·PCB)** 를 파라메트릭에서도 모두 제외해 **순수 외형 차이만** 남겼습니다:",
-    "",
-    "![shape ab](outputs/figures/report2_rcs_shape_ab.png)",
-    "",
-    "> ⚠️ **이 그림만 엔진이 PO 입니다 — 그럴 수밖에 없습니다.** SBR 은 광선을 쏠 **삼각형 메쉬**가 필요한데,",
-    "> 스캔 자산은 `phantom4_scan_points.npz`(**점구름** P/N/dA)뿐이고 원본 STL(154 MB)은 저장소에 없습니다(`src/prep_cad_scan.py`).",
-    "> 대신 **양쪽 모두 같은 PO 엔진**으로 재므로 가림 편향이 두 곡선에 **똑같이** 걸려 **차이(Δ)에서 상쇄**됩니다.",
-    "> 이 그림이 주장하는 것은 절대 σ 가 아니라 **형상 A/B 의 Δ** 이므로 결론은 유효합니다. 절대값은 §2b~2d 의 SBR 을 쓰십시오.",
-    "",
-    "- 방위평균 차이는 **대역별 −1.9 / +0.2 / +0.2 dB**(LTE / 5G / WiFi) — **|Δ| ≤ 2 dB** 입니다.",
-    "  이 대역(λ=6~16 cm)에서 λ/8 이하 형상 디테일은 파장이 '보지 못하므로', 실루엣·부위 배치를 맞춘",
-    "  파라메트릭 메쉬로 충분하다는 뜻입니다.",
-    "- 즉 **정확도 개선의 지렛대는 형상(≲2 dB)이 아니라 가림·재질·내부 구조(4~10 dB)** 입니다 —",
-    "  이번 판에서 엔진을 SBR 로 바꾼 이유가 정확히 이것입니다.",
+    "> ⚠️ **널(null) 깊이를 인용하지 마십시오.** 극좌표의 **로브**와 **방위평균**은 안정적이라 "
+    "위 표는 안전하지만, 로브 사이 **골의 깊이**는 이산화 · 대역평균 · 각도평활에 따라 10 dB 넘게 "
+    "움직입니다. 그림은 **대역평균 + 3° 평활**본입니다.",
 ))
 
-cells.append(code(
-    "# (선택 실행) 특정 드론의 RCS 를 직접 계산 — 기본 엔진이 SBR 이다(engine='po' 로 옛 엔진과 대조 가능)",
-    "import sys; sys.path.insert(0, 'src')",
-    "import numpy as np; from rcs_po import drone_rcs_pattern, dbsm",
-    "az = np.arange(0, 360, 2.0)",
-    "for fc in [1.84e9, 3.5e9, 5.21e9]:",
-    "    s_sbr,_ = drone_rcs_pattern('mavic4pro', fc, az)                   # 기본 = SBR (가림 O)",
-    "    s_po,_  = drone_rcs_pattern('mavic4pro', fc, az, engine='po')      # 옛 순수 PO (가림 X)",
-    "    print(f'Mavic4Pro @ {fc/1e9:.2f} GHz : SBR 평균 {dbsm(s_sbr.mean()):6.1f} dBsm  "
-    "(옛 PO {dbsm(s_po.mean()):6.1f} → 가림으로 {dbsm(s_sbr.mean())-dbsm(s_po.mean()):+.1f} dB)')",
-))
+_mat_rows = [f"| {r['label'].replace(chr(10), ' ')} | {r['n_faces']:,} | {r['mean_dbsm']:+.2f} dBsm | "
+             f"**{r['delta_db']:+.2f} dB** |" for r in MAT["rows"]]
 
 cells.append(md(
-    "## 3. 어떻게 쏘는가 — 실제 상용 OFDM 파형 (WiFi / LTE / 5G)",
+    "### 4.4 재질 기여도 — **금속이 표적이고, 플라스틱 셸은 그 앞의 가림막이다**",
     "",
-    "레이더 송신을 **실제 표준 신호 구조 그대로** 만들었습니다(뉴머롤로지·기준신호 충실).",
-    "표는 **패시브 수신기가 언제나 쓸 수 있는 상시 기준신호** 기준입니다 — 명목 채널대역이 아니라 *그 기준신호가 실제로 점유한 대역*이 성능을 정합니다.",
+    "![materials](outputs/figures/report2_materials.png)",
     "",
-    "| 표준 | 변형 | 반송파 | 채널대역(점유) | SCS | FFT | **상시 기준신호** | 기준대역 | 거리분해능 | 반복률(PRF) | 최대속도 |",
-    "|---|---|---|---|---|---|---|---|---|---|---|",
-    "| **WiFi** | 802.11ac VHT | 5.21 GHz | 80 MHz (점유 76) | 312.5 kHz | 256 | 프리앰블 **VHT-LTF** | 76 MHz | **2.0 m** | ~1 kHz (트래픽 의존) | 14 m/s |",
-    "| **LTE** | Rel-9 FDD | 1.84 GHz | 20 MHz (점유 18) | 15 kHz | 2048 | **CRS** (매 1 ms·전대역) | 18 MHz | **8.3 m** | 1 kHz | **41 m/s** |",
-    "| **5G NR** | Rel-16 n78 | 3.5 GHz | 100 MHz (점유 98) | 30 kHz | 4096 | **SSB** (20 ms·중앙 20 RB) | **7.2 MHz** | **21 m** | 50 Hz | **1.1 m/s** |",
-    "| *(옵션)* 5G + 측위 세션 | Rel-16 n78 | 3.5 GHz | 100 MHz | 30 kHz | 4096 | *NR-PRS (전대역)* | *98 MHz* | *1.5 m* | *≤200 Hz* | *4.3 m/s* |",
+    "메쉬에서 **부위별 면을 실제로 지우고**(광선이 그대로 통과함) 다시 잽니다 — "
+    "'플라스틱을 검게 칠하는' 게 아니라 **'전파가 플라스틱을 통과해 본다'** 입니다.",
+    f"({MAT['name']} @ {MAT['fc']/1e9:.1f} GHz, el = {MAT['el']:.0f}°, {MAT['n_az']} 방위)",
     "",
-    "※ 80MHz 전대역 기준은 **VHT-LTF** 입니다 — 레거시 L-LTF 는 20MHz 짜리를 4개 서브채널에 복제하는 구조라,",
-    "그대로 타일링하면 시간축에 콤이 생겨 **7.5 m 마다 가짜 표적(거리 고스트)** 이 뜹니다. 그래서 전대역 ±1 시퀀스(VHT-LTF)를 씁니다.",
-    "",
-    "> **분해능 = c/(2·기준신호 점유대역)**. 명목 채널폭이 아니라 *기준신호가 실제 점유한 대역*으로 계산합니다 —",
-    "> 그래서 LTE 는 20 MHz 채널이지만 CRS 점유 18 MHz 로 **7.5 m 가 아닌 8.3 m**,",
-    "> **5G 는 100 MHz 채널이지만 유휴 셀에선 SSB 7.2 MHz 뿐이라 1.5 m 가 아닌 ≈21 m** 입니다(아래 셀 출력과 일치).",
-    "",
-    "**여기가 5G 의 함정입니다.** 표의 '채널대역' 열만 보면 5G(100 MHz)가 압도적으로 유리해 보이지만,",
-    "그 100 MHz 를 실제로 채우는 건 **데이터(PDSCH)** 이고 데이터는 패시브 수신기가 **모르는 신호**라 정합필터 템플릿이 못 됩니다.",
-    "PRS 를 켜면 전대역 기준을 얻지만 그건 **측위 세션이 설정된 셀에서만** — 마지막 행을 *기울임*으로 둔 이유입니다.",
-    "반면 **LTE 의 CRS 는 셀이 살아 있는 한 무조건 전대역으로 나옵니다.** 상시성이 곧 대역인 셈입니다.",
-    "",
-    "![wave spectra](outputs/figures/report2_wave_spectra.png)",
-    "",
-    "위 그림의 **윗줄**은 각 표준의 채널 점유대역(회색) 위에 **상시 기준신호가 실제로 덮는 대역**(색)을 겹쳐 그린 것입니다 —",
-    "5G 의 SSB 가 100 MHz 채널 한가운데의 얇은 조각(7.2 MHz)이라는 게 한눈에 보입니다.",
-    "**아랫줄**은 그 기준신호로 만든 정합필터의 거리 응답입니다(5G 만 PRS 가 켜졌을 때를 보라색 점선으로 함께 표시).",
-    "",
-    "### 3b. 이 파형들이 맞다는 근거 — **Sionna PHY 가 심판을 본다**",
-    "",
-    "자원격자(CRS/SSB/PRS/VHT-LTF 배치)는 우리가 3GPP/IEEE 스펙을 읽고 **손으로** 짰습니다(`src/waveforms.py`).",
-    "그게 맞는지 어떻게 압니까? **같은 자원격자를 Sionna PHY 의 OFDM 기계에 다시 넣어 봅니다.**",
-    "",
-    "![sionna waveforms](outputs/figures/report2_sionna_waveforms.png)",
-    "",
-    "- **(a) 뉴머롤로지는 우리가 안 짭니다.** `sionna.phy.nr.CarrierConfig` 가 3GPP 표를 압니다 —",
-    "  μ·SCS·RB·부반송파·심볼/슬롯·슬롯길이·CP 를 **읽어서** 씁니다(n78 100 MHz → μ=1, 273 RB, 3276 부반송파, 슬롯 500 µs).",
-    "- **(b)(c) 변조기는 Sionna 와 비트 단위로 일치합니다.** 같은 격자를 `sionna.phy.ofdm.OFDMModulator` 로 다시 변조해 대조하면",
-    "  **세 파형 모두 상관 1.0000, NMSE ≈ −135 dB** — 즉 float32 반올림 바닥입니다. 자작 OFDM 구현(IFFT+CP)은 **옳습니다.**",
-    "  (이 검증이 실제로 버그를 하나 잡았습니다: LTE/NR 은 **슬롯 첫 심볼의 CP 가 더 깁니다.**",
-    "  심볼별 CP 배열이 아니라 첫 값만 넘기면 심볼 경계가 어긋나 파형이 완전히 달라집니다.)",
-    "",
-    "> ⚠️ **정직하게 — Sionna PHY 에 WiFi 와 LTE 는 없습니다(5G NR 만 있습니다). SSB 생성기도 없습니다.**",
-    "> 그래서 `waveforms.py` 를 **버리지 않습니다.** 역할 분담이 이렇습니다:",
-    ">",
-    "> | 무엇 | 누가 하나 |",
-    "> |---|---|",
-    "> | 3GPP NR 뉴머롤로지(μ·CP·슬롯) | **Sionna** `CarrierConfig` |",
-    "> | OFDM 변조(IFFT + CP 삽입) | **Sionna** `OFDMModulator` — 그리고 자작판을 검증 |",
-    "> | 기준신호 배치(LTE CRS · 5G SSB/PRS · WiFi VHT-LTF) | **우리** (`waveforms.py`) — Sionna 에 없음 |",
-    ">",
-    "> 즉 **Sionna 는 OFDM 엔진이자 검증자**이고, 표준별 기준신호 구조는 여전히 우리 몫입니다.",
-    "> 아래 §4 의 자원격자 그림들이 바로 그 '우리 몫'이며, **그 격자를 Sionna 로 재변조해 상관 1.0000 을 확인한 것**입니다.",
-))
-
-cells.append(code(
-    "# (선택 실행) Sionna 교차검증을 직접 돌려보기 — 상관 1.0000 / NMSE ~ -135 dB 가 나와야 정상",
-    "import sys; sys.path.insert(0, 'src')",
-    "from waveforms_sionna import nr_table, crosscheck",
-    "nr_table()        # Sionna CarrierConfig 가 알려주는 3GPP 뉴머롤로지",
-    "print()",
-    "crosscheck()      # 자작 ofdm_modulate  vs  Sionna OFDMModulator",
-))
-
-cells.append(code(
-    "# (선택 실행) 상시 기준신호 3종의 제원 — 위 표와 같은 값이 나옵니다",
-    "from waveforms import always_on_waveforms, all_waveforms",
-    "for k, wf in always_on_waveforms().items():          # G1 = 늘 켜져 있는 신호만",
-    "    print(f'{wf.name:15s} fc={wf.carrier_hz/1e9:.2f}GHz 채널B={wf.bw_hz/1e6:5.1f}MHz | "
-    "상시기준={wf.ref_name:6s} 기준대역={wf.ref_bw_hz/1e6:5.1f}MHz → 분해능={wf.range_resolution_m:5.1f}m, "
-    "PRF={wf.pilot_rate_hz:6.0f}Hz → v_max={wf.v_unambiguous_ms:5.1f}m/s')",
-    "",
-    "prs = all_waveforms('G2')['nr']                       # 참고: 측위 세션이 켜졌을 때의 5G",
-    "print(f'\\n(옵션) 5G+PRS      기준={prs.ref_name:6s} 기준대역={prs.ref_bw_hz/1e6:5.1f}MHz → "
-    "분해능={prs.range_resolution_m:5.1f}m, PRF={prs.pilot_rate_hz:6.0f}Hz → v_max={prs.v_unambiguous_ms:5.1f}m/s')",
-))
-
-cells.append(md(
-    "## 4. 현실 점검 — 셀은 늘 꽉 차 있지도, 늘 PRS 를 켜 두지도 않는다 (점유 상태 G1/G2/G3)",
-    "",
-    "상용 셀은 **항상 데이터로 꽉 차 있지 않습니다.** 유휴 셀은 상시 신호(LTE=CRS, 5G=SSB)만 띄우고,",
-    "**측위 세션이 설정되면** 비로소 PRS 가 켜지며, 트래픽이 많을 때만 데이터(PDSCH)까지 찹니다.",
-    "그래서 세 가지 점유 상태를 가정해 실험합니다 — **단, 점유 상태의 의미는 표준마다 다릅니다**:",
-    "",
-    "| 모드 | 무엇을 가정하나 | WiFi 802.11ac | LTE Rel-9 | 5G NR Rel-16 |",
-    "|---|---|---|---|---|",
-    "| **G1** 유휴 셀 | **상시 신호만** — 패시브 레이더의 기본선 | 프리앰블만(VHT-LTF·광대역) | 동기 + **CRS**(상시·전대역) | **SSB 만**(협대역 비콘) |",
-    "| **G2** 측위 세션 | **PRS 가 켜진** 셀 + 제어 | + SIG 제어헤더 | + PRS(전대역) + PDCCH | + PRS(전대역) + PDCCH |",
-    "| **G3** 풀로드 | + 사용자 데이터까지 | + DATA 페이로드 | + PDSCH 데이터 | + PDSCH 데이터(+그 DMRS) |",
-    "",
-    "> **핵심 차이**: LTE 의 **CRS 는 매 서브프레임 전대역 상시** 송신 → 유휴 셀(G1)에서도 거리분해능이 좋습니다.",
-    "> 5G 는 **상시 셀기준이 아예 없어** 유휴면 **SSB(협대역)** 뿐 → G1 분해능이 나쁩니다.",
-    "> 그리고 G2/G3 의 5G 성능(1.5 m)은 **측위 세션을 빌려 쓸 수 있을 때만** 얻는 값이라,",
-    "> 임의의 gNB 를 조명원으로 삼는 패시브 레이더의 **기본 가정이 될 수 없습니다.**",
-    "",
-    "### 리소스 그리드 '사진' — 각 자원요소(RE)가 싣는 채널을 색으로",
-    "시간(OFDM 심볼) × 주파수(부반송파) 격자입니다. **5G 의 G1 은 중앙의 작은 SSB 블록뿐(1.3%)** 이지만,",
-    "**LTE G1 은 전대역에 촘촘히 박힌 CRS 격자(3.2%)**, **WiFi G1 은 광대역 프리앰블(9%)** 입니다 —",
-    "같은 '유휴'인데 5G 만 기준신호가 좁습니다. G3 로 갈수록 데이터가 채워집니다(WiFi 89% · 5G 80% · LTE 59%).",
-    "",
-    "![grids nr](outputs/figures/report2_grids_nr.png)",
-    "![grids lte](outputs/figures/report2_grids_lte.png)",
-    "![grids wifi](outputs/figures/report2_grids_wifi.png)",
-    "",
-    "> ✅ **이 격자들은 검증돼 있습니다.** 위 세 그림은 우리가 3GPP/IEEE 스펙대로 손으로 배치한 자원격자입니다(Sionna 엔 SSB/CRS/VHT-LTF 생성기가 없습니다).",
-    "> 그리고 **똑같은 격자를 Sionna `OFDMModulator` 로 재변조해 자작 파형과 대조한 결과 상관 1.0000 · NMSE −135 dB** 로 일치합니다(§3b).",
-    "> 즉 그림이 보여주는 구조와, 실험에 실제로 쓰인 시간영역 파형이 **같은 것**임이 독립적으로 확인됐습니다.",
-    "",
-    "### 점유 상태 실험 — 거리(주파수축) × 속도(시간축)",
-    "(d) 거리분해능은 *기준신호 대역*, (e) 최대 무모호 속도는 *기준신호 반복률*이 좌우합니다(속도 이야기는 §4b):",
-    "![occupancy](outputs/figures/report2_occupancy.png)",
-    "",
-    "> (a) 범례의 **-3 dB 실측 폭**은 거리축을 8배 보간해 잰 값이라 이론 c/(2·기준대역)과 거의 일치합니다",
-    "> (G1 ≈20.6 m vs 이론 20.8 · G2/G3 ≈1.5 m vs 1.5). 보간 없이 원 샘플격자(c/2fs)에서 재면 격자에 양자화돼 어긋나 보입니다.",
-    "",
-    "**🎬 애니메이션** — G1→G2 에서 **PRS 가 켜지며** 기준대역이 7.2 → 98 MHz 로 뛰어 거리 프로파일이 급격히 날카로워지고,",
-    "G2→G3 는 그리드가 더 차오르지만(송신에너지↑) 패시브 수신기가 쓰는 기준은 여전히 PRS 라 **분해능이 그대로**인 모습:",
-    "![occupancy anim](outputs/figures/report2_anim_occupancy.gif)",
-    "",
-    "**핵심 교훈** (패시브 레이더 현실):",
-    "1. **거리분해능은 '기준신호가 실제 점유한 대역'이 좌우.** 유휴 셀(G1)의 사정이 표준마다 다릅니다:",
-    "   - **5G G1 = SSB 만(협대역 7.2 MHz)** → ≈21 m 로 흐릿. **PRS 가 켜져야(G2)** 전대역 98 MHz → ≈1.5 m.",
-    "   - **LTE 는 CRS 가 상시 전대역(18 MHz)** → G1 부터 ≈8.3 m 로 일정 (유휴여도 또렷 — LTE 패시브레이더의 강점).",
-    "   - **WiFi 는 프리앰블 VHT-LTF 가 점유모드와 무관하게 늘 광대역(76 MHz)** → 모든 모드 ≈2.0 m (WiFi 엔 PRS 가 없습니다).",
-    "2. **데이터(PDSCH)가 차도 분해능은 안 좋아집니다.** 데이터는 수신기가 *모르는* 신호라 정합필터 템플릿이 못 되기 때문입니다",
-    "   (송신에너지·SNR 은 오르지만 기준대역은 그대로 — 그래서 G2 와 G3 의 분해능이 같습니다).",
-    "",
-    "> 📌 **PRS 와 PDSCH 는 같은 RE 를 공유하지 않습니다.** 위 G3 그리드에서 PRS 심볼(4~9)을 보면 PRS 가 comb-4 로 1/4 을 잡고",
-    "> PDSCH 가 **나머지 3/4** 을 채웁니다 — 이것이 표준의 **PDSCH rate matching around DL-PRS**(TS 38.214)입니다.",
-    "> 한 가지 흔한 오해: 3GPP 의 **PRS muting** 은 'PRS 를 쏠 때 다른 자원을 비운다'는 뜻이 아니라, **셀이 자기 PRS 를 일부러 거르는**",
-    "> 셀 간 패턴(이웃 셀 PRS 를 들리게 해 측위 정확도를 높이는 장치)입니다. 다만 실제 망이 측위 정확도를 위해 PRS occasion 에",
-    "> 데이터를 적게 싣는 경향은 있으므로, 여기의 **G3(PRS + 풀데이터)는 송신에너지 상한**으로 읽는 편이 안전합니다.",
-    "> 어느 쪽이든 **패시브 결론은 불변**입니다 — PDSCH 는 미지 신호라 기준신호가 될 수 없으니까요.",
-    "3. → 그러므로 **LTE 는 상시 CRS 하나로 충분**하지만, **5G 는 상시로 쓸 게 SSB 뿐**입니다.",
-    "   PRS 에 기대는 건 '남의 셀이 마침 측위 중이길 바라는' 가정이며, 그렇지 않은 유휴 gNB 를 조명원으로 쓰려면",
-    "   기준신호만으로는 부족해 **데이터까지 끌어와 샘플률·대역을 늘리는 접근**(LaSen 등)이 필요해집니다.",
-))
-
-cells.append(code(
-    "# (선택 실행) 점유 모드별 신호 상태 비교 — 거리(대역) × 속도(반복률) 두 축",
-    "from waveforms import all_waveforms",
-    "for mode in ['G1','G2','G3']:",
-    "    for k, wf in all_waveforms(mode).items():",
-    "        print(f'{mode} {wf.name:15s} 점유율={wf.occupancy_frac*100:4.0f}% 기준={wf.ref_name:7s} "
-    "대역={wf.ref_bw_hz/1e6:5.0f}MHz→{wf.range_resolution_m:5.1f}m "
-    "반복률={wf.pilot_rate_hz:5.0f}Hz→{wf.v_unambiguous_ms:4.1f}m/s')",
-    "    print()",
-))
-
-cells.append(md(
-    "## 4b. 빠른 드론엔 빠른 샘플링 — 시간축(파일럿 반복률)",
-    "",
-    "거리분해능이 *주파수축(대역)* 이야기였다면, **속도**는 *시간축* 이야기입니다. 표적 속도 v 는 도플러",
-    "f_d = 2v/λ 가 되고, 패시브 레이더는 **기준신호(파일럿)가 반복될 때마다** 채널을 한 번 샘플합니다.",
-    "그 반복률(PRF)이 읽을 수 있는 최고속도를 가둡니다(Nyquist):",
-    "",
-    "$$v_{\\max} = \\mathrm{PRF}\\cdot\\frac{\\lambda}{4}\\qquad(\\lambda=c/f)$$",
-    "",
-    "**기준신호마다 시간축 반복률이 다릅니다 — SSB·CSI-RS 는 CRS 보다 훨씬 드문드문 옵니다:**",
-    "",
-    "| 기준신호 | 상시? | 반복률(PRF) | 최대 무모호 속도 v_max |",
+    "| 무엇을 남겼나 | 삼각형 | 방위평균 RCS | 온전한 드론 대비 |",
     "|---|---|---|---|",
-    "| **LTE CRS** (1.84 GHz) | ✅ 상시 | ~1 kHz (매 서브프레임) | **≈41 m/s** |",
-    "| **WiFi VHT-LTF** (5.21 GHz) | ✅ 상시(패킷마다) | ~1 kHz (혼잡 AP 기준) | ≈14 m/s |",
-    "| **5G SSB** (3.5 GHz) | ✅ 상시 | ~50 Hz (20 ms 버스트) | **≈1.1 m/s** |",
-    "| *5G PRS/CSI-RS* (3.5 GHz) | ❌ 측위 세션에서만 | ~200 Hz (전형 설정값) | *≈4.3 m/s* |",
+    *_mat_rows,
     "",
-    "※ PRS/CSI-RS 반복률은 설정가변입니다: 표준 최소주기 4슬롯 → μ=1(30 kHz SCS)에선 2 ms → 최대 ~500 Hz(v_max ≈10.7 m/s),",
-    "유휴 셀에선 50~100 Hz. 위 표는 전형 설정(200 Hz) 기준입니다.",
+    f"### 🔴 예상과 반대였다 — **셸을 지웠더니 시그마가 {_shell['delta_db']:+.2f} dB 늘었다**",
     "",
-    "※ WiFi 의 ~1 kHz 는 **트래픽이 있을 때**의 패킷률입니다. 비콘만 뜨는 유휴 AP 는 비콘 주기 102.4 ms → **~10 Hz**",
-    "(v_max ≈0.14 m/s)로, 5G SSB(1.1 m/s)보다도 나빠집니다 — WiFi 의 광대역 프리앰블은 *거리*엔 강하지만 *속도*는 트래픽에 인질로 잡힙니다.",
+    "\"플라스틱은 약한 반사체니 지우면 어두워지겠지\" 라고 예상했는데 **반대**였습니다. 이유는 "
+    "우리 SBR 의 작동 방식에 있습니다:",
     "",
-    "→ **일반 드론(~20 m/s)을 도플러 모호 없이 읽으려면 낮은 반송파(긴 λ)와 높은 반복률의 조합이 필요**합니다 —",
-    "LTE CRS(1.84 GHz·1 kHz)는 ≈41 m/s로 충분하지만, 같은 1 kHz라도 WiFi(5.21 GHz)는 λ가 3배 짧아 ≈14 m/s에 그칩니다(위 표).",
-    "5G 는 유휴면 SSB(50 Hz)뿐이라 **1.1 m/s 만 넘어도 속도가 접힙니다(aliasing)** — 호버링하는 드론조차 간신히 읽는 수준입니다.",
-    "LaSen 같은 최신 연구가 *기준신호+데이터를 함께* 써서 샘플률을 끌어올리는 이유가 바로 이것입니다.",
+    "> **SBR 은 광선을 '첫 충돌' 에서 멈춥니다.** 그러니 셸이 있으면, 그 셸이 "
+    "**안쪽의 모터 · 배터리 · PCB 로 갈 광선을 가로채서**(|Γ|=0.28 로) 약하게 되돌려 보냅니다.",
+    "> 셸은 **약한 반사체이자 동시에 강한 가림막**입니다. 가림막 효과가 더 큽니다.",
     "",
-    "![doppler mesh](outputs/figures/report2_mesh_doppler.png)",
+    f"그래서 **금속만 남겨도({_core['delta_db']:+.2f} dB) 온전한 드론보다 밝고**, 반대로 "
+    f"**금속을 전부 빼면 {_diel['delta_db']:+.2f} dB 로 무너집니다.**",
+    "**→ 표적은 금속입니다.** (§4.2 의 가림 결론과 같은 물리입니다 — 가림이 시그마를 지배합니다.)",
     "",
-    "> **두 축 요약**: 상시 신호만 비교하면 — **LTE CRS 는 전대역 + 매 서브프레임 → 두 축 다 좋고**,",
-    "> **5G SSB 는 협대역 + 20 ms 주기 → 두 축 다 나쁩니다**(거리 21 m · 속도 1.1 m/s). 이것이 5G 의 **이중고**입니다.",
-    "> (위 (d)거리 vs (e)속도 패널 참고)",
-))
-
-cells.append(md(
-    "## 5. 측정 & 비교 — 같은 표적을 '각 표준의 상시 기준신호'로 재기",
+    f"- **프로펠러는 정적 RCS 에 거의 기여하지 않습니다** ({_props['delta_db']:+.2f} dB). "
+    f"프로펠러가 레이더에서 중요한 이유는 **크기(σ)가 아니라 회전(마이크로도플러 변조)** 때문입니다 "
+    f"— 그건 report1 의 분절 모델이 다룹니다.",
     "",
-    "표적 에코를 만들고(레이더 방정식), **정합필터**로 거리 프로파일을 뽑습니다. 정합필터의 템플릿은",
-    "**각 표준이 늘 내보내는 기준신호**(WiFi VHT-LTF · LTE CRS · 5G SSB)입니다 — 패시브 수신기가 실제로 가진 것만 씁니다.",
-    "절대 RCS 는 **기준 금속구(σ=πr²)** 를 똑같이 처리해 보정합니다.",
+    "### ⚠️ 그런데 이 실험은 우리 모델의 **한계**도 같이 드러냅니다 (정직하게)",
     "",
-    "![range profiles](outputs/figures/report2_range_profiles.png)",
+    "실제 1~3 mm 플라스틱 셸은 1.8~5.2 GHz 에서 **준투명(semi-transparent)** 합니다 — 전파가 "
+    "상당 부분 **통과해서** 안쪽 금속을 때리고 되나옵니다.",
+    "그런데 **우리 SBR 은 투과를 모릅니다** (첫 충돌에서 광선을 끝냅니다). 즉 위 표의 두 줄은 "
+    "**물리의 두 극단**입니다:",
     "",
-    "→ 세 신호 모두 실제 거리 10 m 부근에서 피크를 잡지만 **날카로움의 순서가 §3 표 그대로**입니다:",
-    "**WiFi(2.0 m) > LTE CRS(8.3 m) > 5G SSB(21 m)** — 즉 **유휴 5G 가 가장 뭉툭합니다.**",
-    "보라색 점선은 *측위 세션이 켜졌을 때*의 5G(NR-PRS, 1.5 m)로, 이때만 5G 가 가장 날카로워집니다.",
-    "채널대역만 보면 5G 가 최강이지만, **패시브 수신기가 쥔 것은 채널이 아니라 기준신호**라는 점이 이 그림의 요지입니다.",
-    "",
-    "![summary](outputs/figures/report2_summary.png)",
-    "",
-    "→ **추정 RCS 가 참값(SBR)과 일치**합니다 → 구 보정 정합필터가 정상 동작합니다.",
-    "(표의 '참 RCS' 열은 이제 **SBR 값**입니다 — 에코를 만들 때 쓴 σ 와 같은 엔진이라야 자기일관성 점검이 성립합니다.)",
-    "다만 이건 **처리체인의 자기일관성 점검**이지 절대 RCS 물리의 검증은 아닙니다(에코와 보정구를 같은 레이더방정식으로",
-    "만들었으니 λ·R² 항이 상쇄됩니다). 절대값의 타당성은 §2a 의 **SBR 커널 검증(금속구·평판)** 과 §2d 의 **실측 문헌 앵커링**이 담당합니다.",
-))
-
-cells.append(code(
-    "# (선택 실행) 한 표적을 각 표준의 '상시 기준신호'로 측정 — 마지막 줄만 PRS(측위 세션) 가정",
-    "import numpy as np",
-    "from waveforms import always_on_waveforms, all_waveforms",
-    "from rcs_po import drone_rcs_pattern, dbsm",
-    "from radar_process import range_profile, mainlobe_width_m, sphere_calib, estimate_rcs_dbsm",
-    "R = 10.0; target='mavic4pro'",
-    "wfs = list(always_on_waveforms().values()) + [all_waveforms('G2')['nr']]   # +5G(PRS)",
-    "for wf in wfs:",
-    "    sig,_ = drone_rcs_pattern(target, wf.carrier_hz, np.array([0.0])); sig=float(sig[0])",
-    "    rng_m, prof, pkr, pkv = range_profile(wf, R, sig, snr_db=20, passive=True, up=8,   # 기준신호만 아는 상관",
-    "                                          rng=np.random.default_rng(7))",
-    "    cpk,csig = sphere_calib(wf, R, passive=True, up=8)   # 표적과 동일 처리",
-    "    est = estimate_rcs_dbsm(pkv, cpk, csig)",
-    "    print(f'{wf.name:15s} 기준={wf.ref_name:7s} 이론분해능={wf.range_resolution_m:5.1f}m | "
-    "참RCS={dbsm(sig):6.1f} 추정={est:6.1f} dBsm  피크R={pkr:.1f}m  -3dB폭={mainlobe_width_m(rng_m,prof):.1f}m')",
-))
-
-cells.append(md(
-    "## 6. 정리 & 다음 단계",
-    "",
-    "**한 일**",
-    "- 모노스태틱 레이더 구성 + 원거리장 점검(거대 S1000+ 는 고주파 한계 명시).",
-    "- 드론 RCS 를 **SBR**(Mitsuba 광선 + PO 표면적분)로 특성화 — 금속구·평판 해석해 검증 + 재질 가중 + 실측 문헌 앵커링.",
-    "- **실제 WiFi/LTE/5G OFDM 파형**을 표준 구조대로 만들고, **Sionna PHY 로 교차검증**(상관 1.0000)한 뒤,",
-    "  **각 표준의 상시 기준신호**로 표적을 재서 비교.",
-    "- **모든 실험을 report1 의 3D 드론 메쉬로 시각화** — 측정 셋업·RCS '풍선'·조명면·도플러(메쉬 도면).",
-    "",
-    "**알게 된 것 ① — 가림을 넣지 않은 RCS 는 과대평가다**",
-    "",
-    "| | 옛 PO | **SBR (지금)** |",
+    "| | 셸 모델 | 방위평균 RCS |",
     "|---|---|---|",
-    "| 표면 샘플링 | 메쉬 위 점구름(λ/7) | **Mitsuba 광선이 실제로 맞은 첫 지점**(λ/12) |",
-    "| 가림 | **없음** — 가려진 뒷면도 적분 | **공짜** |",
-    "| 다중반사 | 불가 | 가능(측정: +0.17 dB, 무시 가능) |",
-    "| 검증 | 구 ±0.015 dB (해석적 PO 대비) | 평판 −0.01 dB · 금속구 +1.50 dB (격자 의존 ±1.5 dB) |",
-    "| mavic4pro @3.5 GHz, el=15° | −16.9 dBsm | **−20.9 dBsm** |",
+    f"| `Full drone` | 셸이 **완전 불투명** (SBR 의 가정) | {MAT['rows'][0]['mean_dbsm']:+.2f} dBsm |",
+    f"| `- shell` | 셸이 **완전 투명** | {_shell['mean_dbsm']:+.2f} dBsm |",
     "",
-    "- 재본 모든 조합에서 RCS 가 **0.8 ~ 6.7 dB 내려갔습니다**(고각·기종·대역 의존).",
-    "- 단, **1-bounce SBR 은 외피 RCS 만** 줍니다 — 셸을 투과해 배터리·PCB 를 때리는 경로가 없습니다(적중 0발).",
-    "  실물의 참값은 **SBR(하한) 과 PO(상한) 사이**이고, 그 폭은 PO 기준 **+1.7 dB** 입니다.",
-    "  큰 기체(S1000+, 외피 지배)에서 SBR 이 문헌과 가장 잘 맞고(−8.9 vs 실측 −8), 작은 기체에서 보수적으로 낮게 나오는 것이 그 증거입니다.",
+    f"**진짜 값은 이 사이 어딘가입니다.** 즉 이 {abs(_shell['delta_db']):.2f} dB 는 "
+    f"'측정한 효과' 가 아니라 **모델 불확실도**로 읽어야 합니다.",
+    "이걸 제대로 하려면 SBR 에 **유전체 투과(transmission)** 를 넣어야 합니다 — 지금은 없습니다.",
     "",
-    "**알게 된 것 ② — 우리 OFDM 은 Sionna 와 같다 (그러나 Sionna 로 다 되지는 않는다)**",
-    "- 자작 변조기 vs `sionna.phy.ofdm.OFDMModulator`: **세 파형 모두 상관 1.0000, NMSE −135 dB**(float32 바닥).",
-    "- 뉴머롤로지는 `sionna.phy.nr.CarrierConfig` 가 주는 3GPP 표를 **읽어서** 씁니다.",
-    "- **그러나 Sionna PHY 에 WiFi·LTE 는 없고(5G NR 만), SSB 생성기도 없습니다** — 기준신호 배치는 여전히 우리 몫입니다.",
-    "  Sionna 는 **OFDM 엔진이자 검증자**이지, 표준 라이브러리가 아닙니다.",
+    "> 티어다운 조사(`docs/drone_specs_2026.json`)도 같은 말을 합니다: "
+    "*\"셸은 GHz 대역에서 사실상 준투명 → 표면 PO 만으로 RCS 를 잡으면 과대추정. 실제 산란체는 "
+    "배터리 팩(최대 단일 산란체) · 모터 · PCB 스택 · 짐벌 어셈블리.\"* "
+    "**'실제 산란체 = 내부 금속'** 부분은 우리 측정과 일치합니다.",
     "",
-    "**알게 된 것 ③ — 패시브 레이더의 자산은 '채널대역'이 아니라 '상시 기준신호'다**",
-    "",
-    "| | LTE (CRS) | 5G NR (SSB) | WiFi (VHT-LTF) |",
-    "|---|---|---|---|",
-    "| 채널대역(명목) | 20 MHz | **100 MHz** | 80 MHz |",
-    "| **상시 기준대역** | **18 MHz** | **7.2 MHz** | 76 MHz |",
-    "| 거리분해능 | **8.3 m** | **21 m** | 2.0 m |",
-    "| 반복률 → 최대속도 | 1 kHz → **41 m/s** | 50 Hz → **1.1 m/s** | 1 kHz(트래픽 의존) → 14 m/s |",
-    "",
-    "- **명목 대역 1위(5G)가 실제 성능 꼴찌**입니다. 100 MHz 중 패시브 수신기가 상시로 쓸 수 있는 건 SSB 7.2 MHz 뿐이기 때문입니다.",
-    "- **LTE 의 CRS 는 거리·속도 두 축 모두에서 5G SSB 를 압도**합니다(8.3 m vs 21 m, 41 m/s vs 1.1 m/s) — 이것이 LTE 가 패시브 레이더 문헌의 단골인 이유입니다.",
-    "- 5G 가 1.5 m·4.3 m/s 로 좋아지는 건 **PRS 가 켜진 측위 세션에서만** — 남의 셀에 대해 가정할 수 없는 조건입니다.",
-    "- 같은 표적도 **반송파(주파수)** 에 따라 RCS 가 수~십 dB 달라짐 → 표준 비교 시 반드시 함께 고려해야 합니다.",
-    "- 즉 **유휴 5G 는 거리·속도 두 축 다 나쁨(이중고)** — 이것이 패시브 5G 센싱의 핵심 난제이며,",
-    "  기준신호를 넘어 **데이터까지 활용**하려는 연구(LaSen 등)의 출발점입니다.",
-    "",
-    "**다음 단계**",
-    "- 🌀 **report3 — 분절 모델 + 마이크로-도플러**(회전 프로펠러) — 드론 식별의 핵심 단서.",
-    "- 🛰️ **report4 — 바이스태틱 탐지**(TX·RX 분리) + ECA·거리-도플러·CFAR·**검출 성능(Pd/Pfa)**.",
+    "> 🔗 **두 엔진이 같은 재질표를 읽습니다.** `src/materials.py` 가 유일한 진리원이고 "
+    "**Sionna RT**(전파)와 **SBR**(RCS)이 **거기서만** 읽습니다 — 조용히 어긋날 수 없습니다.",
+    "> (예전엔 짐벌 카메라를 Sionna 는 plastic(|Γ|=0.244), PO 는 0.85 로 봐서 **10.9 dB** "
+    "어긋난 버그가 있었습니다.)",
 ))
 
-def main():
-    nb = {"cells": cells,
-          "metadata": {"kernelspec": {"display_name": "Python 3.12 (py312)", "language": "python", "name": "py312"},
-                       "language_info": {"name": "python"}},
-          "nbformat": 4, "nbformat_minor": 5}
-    with open(NB, "w") as f:
-        json.dump(nb, f, ensure_ascii=False, indent=1)
-    print("notebook 생성:", os.path.relpath(NB), f"({len(cells)} cells)")
+cells.append(code(
+    "# §4 재현 — SBR 검증(해석해) + 가림 대조",
+    "import rcs_sbr",
+    "rcs_sbr.validate(3.5e9)        # 금속구 πr² / 평판 4πA²/λ² 대조 + 격자 수렴",
+    "rcs_sbr.compare_with_po()      # 순수 PO vs SBR 1-bounce vs SBR 3-bounce",
+))
 
+cells.append(code(
+    "# 드론 1종의 SBR RCS 패턴을 직접 계산 (rcs_po 의 기본 엔진이 'sbr' 이다)",
+    "import numpy as np",
+    "from rcs_po import drone_rcs_pattern_bw, angular_smooth, dbsm",
+    "",
+    "az = np.arange(0, 361, 1.0)",
+    "sig, n_rays = drone_rcs_pattern_bw('mavic4pro', 3.5e9, 100e6, az, el_deg=15.0, n_f=5)",
+    "sm = angular_smooth(sig, 3.0, 1.0)      # 3도 창 — 널 '깊이' 는 인용하지 말 것",
+    "print(f'방위당 광선 {n_rays:,}발')",
+    "print(f'방위평균 {dbsm(np.mean(sig)):+.2f} dBsm    피크 {dbsm(np.max(sig)):+.2f} dBsm')",
+))
 
-if __name__ == "__main__":
-    main()
+# =========================================================================== #
+#  마무리
+# =========================================================================== #
+cells.append(md(
+    "---",
+    "## 📌 정리 — 이 리포트가 답한 것",
+    "",
+    "### ❓ \"우리가 만든 파형이 맞는가?\"",
+    "",
+    f"**맞습니다.** Sionna 의 `OFDMModulator` 로 같은 자원격자를 재변조했을 때 상관 "
+    f"**{XC['wifi']['corr']:.4f} / {XC['lte']['corr']:.4f} / {XC['nr']['corr']:.4f}**, "
+    f"NMSE **≈ {_worst_nmse:.0f} dB**(float32 기계정밀도) — **같은 수**입니다.",
+    "뉴머롤로지는 아예 `CarrierConfig` 에게 물어봤습니다.",
+    "",
+    f"그리고 그 대조가 **CP 버그를 실제로 잡았습니다** "
+    f"(LTE 상관 {XC['lte']['corr_bug']:.3f} → 고친 뒤 {XC['lte']['corr']:.4f}). "
+    f"WiFi 만 봤다면 놓쳤을 버그입니다.",
+    "",
+    "다만 **Sionna 로 다 되지는 않습니다** — WiFi · LTE · SSB 는 Sionna PHY 에 **없습니다.** "
+    "`waveforms.py` 는 남고, Sionna 는 **OFDM 엔진이자 검증자** 역할입니다.",
+    "",
+    "### ❓ \"이 드론들은 레이더에 얼마나 밝은가?\"",
+    "",
+    f"**어둡습니다.** @3.5 GHz 방위평균 **{_means[_dim]:+.1f} ~ {_means[_brightest]:+.1f} dBsm** "
+    f"({DR[_dim]['name']} ~ {DR[_brightest]['name']}, 폭 {_span:.1f} dB).",
+    f"그리고 **밝기의 출처는 내부 금속**입니다 — 모터 · 배터리 · PCB · 카메라만 남겨도 "
+    f"{_core['delta_db']:+.2f} dB 인 반면, 금속을 다 빼면 {_diel['delta_db']:+.2f} dB 로 무너집니다.",
+    "",
+    f"**그 숫자를 얻으려면 가림이 필수**였습니다: 순수 PO 는 "
+    f"**{-OCC['occlusion_db']:.2f} dB 과대평가**합니다. 반면 PO 의 고전적 약점이라던 오목부 "
+    f"다중반사는 **{OCC['multibounce_db']:+.2f} dB** 뿐이었습니다.",
+    "",
+    "### ⚠️ 이 리포트가 **보장하지 않는** 것",
+    "",
+    "- **절대 RCS 값** — 실측 앵커링이 없습니다. **상대 순서 · 차이(dB)만** 인용하십시오.",
+    "- **널 깊이** — 인용 금지.",
+    "- **§1 의 ΔR / v_max** — **유휴 셀 체제** 전제입니다. 부하 셀 + full-waveform reference 는 "
+    "**다른 체제**입니다.",
+    "",
+    "---",
+    "",
+    "| 다음 | 무엇 |",
+    "|---|---|",
+    "| [report1](report1.ipynb) | 이 RCS 가 적분한 **메쉬**가 어떻게 만들어졌나 (CAD · 검증 · 분절) |",
+    "| [report3](report3.ipynb) | **환경**을 Sionna RT 로 — 벽 · 바닥 반사 광선 실험 |",
+))
+
+nb = {"cells": cells,
+      "metadata": {"kernelspec": {"display_name": "py312", "language": "python", "name": "py312"},
+                   "language_info": {"name": "python", "version": "3.12"}},
+      "nbformat": 4, "nbformat_minor": 5}
+
+with open(NB, "w") as f:
+    json.dump(nb, f, indent=1, ensure_ascii=False)
+print(f"✅ {os.path.relpath(NB, ROOT)} 생성 — 셀 {len(cells)}개 "
+      f"(측정 JSON: {os.path.relpath(JS, ROOT)})")

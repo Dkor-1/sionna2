@@ -135,7 +135,13 @@ DRONES: dict[str, DroneSpec] = {
         body_l_mm=307, body_w_mm=388, body_h_mm=150,
         prop_dia_mm=274, prop_blades=2, num_rotors=4,
         max_speed_ms=21, hover_rpm=3800, max_rpm=7500, prop_pitch_in=5.7, rtk=True, release="released", confidence="high",
-        note="Prop diameter confirmed 274 mm by verification (292→274). Onboard RTK (precise-positioning antenna).",
+        note="Prop diameter confirmed 274 mm by verification (292->274). Onboard RTK. "
+             "Max propeller speed 7500 RPM / 82 dB — DJI manual C2 certification (official). "
+             "⚠ HOVER RPM UNRESOLVED: the C_T method (C_T 0.08-0.10) gives 3950-4410 rpm, but "
+             "anchoring on the official max (7500 rpm) with a typical T/W of 2.0-2.5 gives 4740-5300 rpm. "
+             "We currently use 3800 (C_T=0.108), which implies T/W(max)=3.9 — higher than the typical 2-2.5. "
+             "**We do not know which is right.** Micro-Doppler flash/tip scale linearly with this. "
+             "Needs telemetry or acoustic measurement to settle.",
         body_rgb=_OFFWHT, arm_style="body", gear="feet", gimbal="front",
         accent_rgb=None, body_frac=0.42,
         rotor_deg=(45, 135, 225, 315), body_lw=(1.08, 0.98), gimbal_style="sensor",

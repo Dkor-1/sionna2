@@ -239,7 +239,7 @@ def render_chamber():
                             R.cam((-26, -22, 18)))
     sc = R.make_scene(cutaway=True)
     plan = (("wide", "wide", None), ("top", "top", R.CLIP_CEIL), ("grazing", "grazing", None),
-            ("side", "side", R.CLIP_CEIL), ("over_target", "over_target", None))
+            ("side", "side", R.CLIP_CEIL), ("over_target", "over_target", R.CLIP_CEIL))
     for i, (tag, key, clip) in enumerate(plan):
         out[tag] = _shot(sc, f"r1_1{i+1}_chamber_{tag}", R.cam(*R.CAMS[key]), clip=clip)
     return out
@@ -668,22 +668,23 @@ def fig_hover(art: dict):
     x = np.arange(len(DKEYS))
     lo = np.array([H[k]["rpm_ct"]["0.12"] for k in DKEYS])
     hi = np.array([H[k]["rpm_ct"]["0.10"] for k in DKEYS])
-    b.bar(x, hi - lo, 0.5, bottom=lo, color="#cfe0ee",
+    b.bar(x, hi - lo, 0.55, bottom=lo, color="#cfe0ee",
           label="physics band, $C_T$ = 0.10 ... 0.12")
     b.plot(x, [H[k]["hover_rpm"] for k in DKEYS], "D", ms=10, color=CG, mec="k", mew=0.6,
            label="value used by the model")
     for i, k in enumerate(DKEYS):
-        b.annotate(f"{H[k]['hover_rpm']:.0f} rpm\n$C_T$ = {H[k]['ct_implied']:.3f}",
-                   (i, H[k]["hover_rpm"]), xytext=(0, 15), textcoords="offset points",
-                   ha="center", fontsize=8.3)
+        b.annotate(f"{H[k]['hover_rpm']:.0f} rpm\n$C_T$ {H[k]['ct_implied']:.3f}",
+                   (i, hi[i]), xytext=(0, 10), textcoords="offset points",
+                   ha="center", va="bottom", fontsize=8.2)
     b.plot([1], [K["old_rpm"]], "X", ms=14, color=CR, mec="k", mew=0.6,
-           label="the OLD mavic4pro number")
-    b.annotate(f"5500 rpm would give {K['thrust_ratio']:.1f} x weight:\nthat is the MAX-THRUST rpm, not hover\n(DJI max {K['max_rpm']:.0f} rpm)",
-               (1, K["old_rpm"]), xytext=(20, 12), textcoords="offset points", fontsize=8.5,
+           label="the OLD mavic4pro number (5500)")
+    b.annotate(f"the old 5500 rpm gives {K['thrust_ratio']:.1f} x weight:\nthat is MAX THRUST, not hover\n(DJI max {K['max_rpm']:.0f} rpm)",
+               (0.50, 0.97), xycoords="axes fraction", ha="center", va="top", fontsize=8.5,
                color=CR, bbox=dict(fc="#fdecea", ec=CR, lw=0.8))
     b.set_xticks(x); b.set_xticklabels(DKEYS, rotation=18, fontsize=9)
-    b.set_ylabel("hover rpm"); b.set_ylim(0, 7600)
-    b.legend(fontsize=8.5, loc="lower left")
+    b.set_ylabel("hover rpm"); b.set_ylim(2600, 8600)
+    b.legend(fontsize=8.2, loc="lower center", ncol=3, framealpha=0.95,
+             bbox_to_anchor=(0.5, -0.01))
     b.set_title("Every hover rpm we use lands inside the physics band", fontsize=11.5,
                 fontweight="bold")
     b.grid(axis="y", alpha=0.3)
@@ -712,13 +713,18 @@ def fig_hover(art: dict):
     return _save(fig, "report1_hover_rpm.png")
 
 
+NPZ = os.path.join(ROOT, "outputs", "report1_microdoppler.npz")
+
+
 def measure_microdoppler(n_phase=144, n_t=6144, prf=20000.0):
-    """5종 SBR 마이크로도플러(가림 포함) + 순수 PO 대조. 무겁다 — GPU."""
+    """5종 SBR 마이크로도플러(가림 포함) + 순수 PO 대조. 무겁다 — GPU.
+    복소장 E(t) 를 outputs/report1_microdoppler.npz 에 저장한다 → 그림만 다시 그릴 수 있다."""
     from drones import DRONES
     from microdoppler import microdoppler_sbr, microdoppler_series, spectrogram
 
     out = {"cfg": dict(fc=FC, az=AZ, el=EL, prf=prf, n_t=n_t, n_phase=n_phase), "drones": {}}
     store = {}
+    raw = {}
     for k in DKEYS:
         t0 = time.time()
         s = DRONES[k]
@@ -737,16 +743,31 @@ def measure_microdoppler(n_phase=144, n_t=6144, prf=20000.0):
             gain_db=float(20 * np.log10(max(r_p, 1e-12) / max(r_s, 1e-12))),
             seconds=float(time.time() - t0))
         store[k] = (f, tt, Sdb)
+        raw[k] = E
         print(f"  [md] {k:10s} rpm {info['rpm']:.0f}  flash {info['flash_hz']:.0f} Hz  "
               f"f_tip {info['f_tip']:.0f} Hz   |DC|/std(AC):  PO {r_p:6.1f} -> SBR {r_s:5.1f}  "
               f"({out['drones'][k]['gain_db']:+.1f} dB)   [{time.time()-t0:.0f}s]")
+    np.savez_compressed(NPZ, prf=prf, **{k: v for k, v in raw.items()})
+    print(f"  [md] 복소장 E(t) 저장 → {os.path.relpath(NPZ, ROOT)}")
     return out, store
+
+
+def spectro_store(md, nperseg=128, nfft=2048):
+    """저장된 E(t) 로 스펙트로그램만 다시 계산 (광선을 다시 쏘지 않는다).
+    nperseg 를 짧게 잡아야 **블레이드 플래시(세로 줄무늬)** 가 시간축에서 보인다:
+    창 길이 {nperseg}/prf 가 플래시 주기(1/flash)보다 짧아야 한다."""
+    from microdoppler import spectrogram
+    z = np.load(NPZ)
+    prf = float(z["prf"])
+    return {k: spectrogram(z[k], prf, nperseg=nperseg,
+                           noverlap=nperseg - max(1, nperseg // 16), nfft=nfft)
+            for k in DKEYS}
 
 
 def fig_microdoppler(md: dict, store: dict):
     D = md["drones"]; C = md["cfg"]
-    fig = plt.figure(figsize=(17.0, 8.4))
-    gs = fig.add_gridspec(2, 3, hspace=0.48, wspace=0.26)
+    fig = plt.figure(figsize=(17.0, 10.4))
+    gs = fig.add_gridspec(2, 3, hspace=0.45, wspace=0.30, top=0.90, bottom=0.20)
     axes = [fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1]), fig.add_subplot(gs[0, 2]),
             fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])]
     m = None
@@ -760,9 +781,11 @@ def fig_microdoppler(md: dict, store: dict):
         ax_.set_ylim(-lim, lim)
         ax_.set_title(f"{k}   {d['rpm']:.0f} rpm,  flash {d['flash_hz']:.0f} Hz",
                       fontsize=10.5, fontweight="bold")
+        ax_.set_xlim(0, 60)                       # 플래시를 셀 수 있게 앞 60 ms 만
         ax_.set_xlabel("slow time [ms]"); ax_.set_ylabel("Doppler [Hz]")
-        ax_.annotate(f"$f_{{tip}}$ = {d['f_tip_hz']:.0f} Hz", (0.98, 0.92),
-                     xycoords="axes fraction", ha="right", fontsize=8.5, color="#4fc3f7")
+        ax_.annotate(f"$f_{{tip}}$ = {d['f_tip_hz']:.0f} Hz", (0.98, 0.03),
+                     xycoords="axes fraction", ha="right", va="bottom", fontsize=8.5,
+                     color="white", bbox=dict(fc="#0d47a1", ec="none", alpha=0.65, pad=1.6))
     fig.colorbar(m, ax=axes[2], fraction=0.046, label="dB  (peak = 0)")
 
     a = fig.add_subplot(gs[1, 2])
@@ -774,7 +797,7 @@ def fig_microdoppler(md: dict, store: dict):
     for i in range(len(DKEYS)):
         a.annotate(f"{D[DKEYS[i]]['gain_db']:+.0f}", (i, max(rp[i], rs[i]) + 1.0), ha="center",
                    fontsize=9, fontweight="bold", color=CR)
-    a.set_xticks(x); a.set_xticklabels(DKEYS, rotation=20, fontsize=8.5)
+    a.set_xticks(x); a.set_xticklabels(DKEYS, rotation=35, fontsize=8, ha="right")
     a.set_ylabel("|DC| / std(AC)   [dB]")
     a.set_title("Occlusion lowers the static pedestal\n(red = dB the blade line gains)",
                 fontsize=10.5, fontweight="bold")
@@ -785,7 +808,9 @@ def fig_microdoppler(md: dict, store: dict):
     _cap(fig, "Each panel is the slow-time complex field E(t) of the fully articulated drone: the frame is static, the propellers spin at the hover rpm derived above. Vertical stripes are blade flashes; the blue dashes are the kinematic limit f_tip.\n"
               "E(t) is not a closed-form model. For every rotor phase the mesh is re-posed and Mitsuba shoots a fresh ray grid at it, so a blade that swings behind the body simply stops scattering. "
               "The whole pose is a function of one angle phi = omega t and an n-blade prop repeats every 360/n degrees, so one period is tabulated and the time axis interpolates it.\n"
-              "Bottom right: the price of the old pure-PO model. Without occlusion it kept counting blades hidden behind the body and hardware sealed inside the shell, over-stating the static pedestal by up to about 20 dB.")
+              f"Bottom right: the price of the old pure-PO model. Without occlusion it kept counting blades hidden behind the body and hardware sealed inside the shell, "
+              f"over-stating the static pedestal by {min(D[k]['gain_db'] for k in DKEYS):.0f} to {max(D[k]['gain_db'] for k in DKEYS):.0f} dB.",
+         bottom=0.17)
     return _save(fig, "report1_microdoppler.png")
 
 
@@ -903,9 +928,10 @@ def build_all(only=None, n_phase=144, n_frames=36):
         J["figures"]["gazebo"] = fig_gazebo()
     if "md" in only:
         print("\n▶ SBR 마이크로도플러 (가림 포함, GPU)")
-        md, store = measure_microdoppler(n_phase=n_phase)
+        md, _ = measure_microdoppler(n_phase=n_phase)
         J["microdoppler"] = md
-        J["figures"]["microdoppler"] = fig_microdoppler(md, store)
+        # 짧은 창(nperseg=128 → 6.4 ms < 플래시 주기)으로 다시 STFT → 블레이드 플래시가 보인다
+        J["figures"]["microdoppler"] = fig_microdoppler(md, spectro_store(md, nperseg=128))
     if "gif" in only:
         print("\n▶ 분절 애니메이션 — Sionna 렌더 → GIF")
         J["renders"]["articulation_gif"] = render_articulation(n_frames=n_frames)

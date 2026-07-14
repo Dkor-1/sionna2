@@ -28,6 +28,21 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
+#  ⚠ BLAS 스레드 상한 — **numpy import 전에** 잡아야 먹는다.
+#  이 박스는 64코어인데 다른 리포트 에이전트가 동시에 돈다. 상한을 안 걸면 프로세스마다
+#  BLAS 가 64스레드를 띄워 load average 120+ 로 서로 굶긴다(실측: 모호함수 5초짜리가 20분).
+for _v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
+           "NUMEXPR_NUM_THREADS", "VECLIB_MAXIMUM_THREADS"):
+    os.environ.setdefault(_v, "8")
+
+#  ⚠ SBR **배치 크기** 상한 (gpu.budget_mb() 가 읽는다).
+#  gpu.py 기본값은 "시작 시점 여유 메모리의 92%" 인데, 이 박스에선 다른 리포트 에이전트가
+#  같은 GPU 를 동시에 쓴다. 20 GB 짜리 광선 배치를 한 번에 올리면 그 사이 남이 잡은 만큼
+#  모자라 Mitsuba 가 **트레이스백 없이 죽는다**(실측: §4.4 진입 직후 사망).
+#  ※ 이건 **정밀도 타협이 아니다** — 광선 격자(λ/16) · 방위 361점 · 렌더 512 spp 는 그대로고,
+#    한 번에 GPU 에 올리는 **덩어리 크기**만 정한다. 총 광선 수는 동일하다.
+os.environ.setdefault("SIONNA2_GPU_MEM", "4000")     # MiB
+
 # ⚠ mitsuba/torch import 전에 GPU 를 잡는다 (여유 메모리 최대인 것 자동선택)
 from gpu import pick as _pick_gpu, budget_mb, gpu_status   # noqa: E402
 _GPU = _pick_gpu(verbose=True)
@@ -81,6 +96,33 @@ def _dbsm(s):
     return 10.0 * np.log10(np.maximum(np.asarray(s, float), 1e-30))
 
 
+def _plain_log(ax, which="both"):
+    """로그축 눈금을 **ASCII 평문**으로 (규약: U+2212 금지).
+
+    왜: 로그축 기본 포매터(LogFormatterSciNotation)는 `$10^{-1}$` 를 **mathtext 의 default
+    폰트**로 그리는데, 그 default 는 rcParams['font.family'] = NanumGothic 이다. 나눔고딕에는
+    U+2212(진짜 마이너스) 글리프가 **없다** → 두부글자. 평문 포매터로 갈아끼워 회피한다."""
+    from matplotlib.ticker import FuncFormatter, LogLocator
+
+    def _fmt(v, _pos):
+        if v <= 0:
+            return ""
+        if v >= 100:
+            return f"{v:.0f}"
+        if v >= 10:
+            return f"{v:.0f}"
+        if v >= 1:
+            return f"{v:.1f}"
+        return f"{v:.2f}"
+
+    axes = ([ax.xaxis] if which == "x" else [ax.yaxis] if which == "y"
+            else [ax.xaxis, ax.yaxis])
+    for a in axes:
+        a.set_major_locator(LogLocator(base=10, subs=(1.0, 2.0, 5.0), numticks=12))
+        a.set_major_formatter(FuncFormatter(_fmt))
+        a.set_minor_formatter(FuncFormatter(lambda *_: ""))
+
+
 # =========================================================================== #
 #  §1  패시브 레이더의 기준신호 — 무엇을 상관에 쓸 수 있나
 # =========================================================================== #
@@ -130,8 +172,9 @@ def fig_reference_budget(REF):
                        fontsize=9, color="#607d8b")
     ax[0].set_xticks(x); ax[0].set_xticklabels(lbl, fontsize=9)
     ax[0].set_ylabel("Bandwidth [MHz]")
+    ax[0].set_ylim(0, max(chan) * 1.34)          # 값 라벨 + 범례 자리 (예전엔 '98' 이 잘렸다)
     ax[0].set_title("(a) Only the reference signal correlates", fontsize=12, fontweight="bold")
-    ax[0].legend(fontsize=8, loc="upper center")
+    ax[0].legend(fontsize=8, loc="upper left")
     ax[0].grid(axis="y", alpha=0.3)
 
     # (b) 그래서 거리분해능
@@ -145,8 +188,9 @@ def fig_reference_budget(REF):
                        fontsize=11, fontweight="bold")
     ax[1].set_xticks(x); ax[1].set_xticklabels(lbl, fontsize=9)
     ax[1].set_ylabel(r"Range resolution  $\Delta R = c/(2B_{ref})$  [m]")
+    ax[1].set_ylim(0, max(dR) * 1.30)
     ax[1].set_title("(b) 5G is 10x coarser than LTE", fontsize=12, fontweight="bold")
-    ax[1].legend(fontsize=8)
+    ax[1].legend(fontsize=8, loc="upper left")
     ax[1].grid(axis="y", alpha=0.3)
 
     # (c) 능력 평면 — ΔR(거리) vs v_max(속도). 5G 는 두 축 다 나쁘다.
@@ -168,17 +212,22 @@ def fig_reference_budget(REF):
                   label="G2: positioning session (PRS on)")
     ax[2].scatter([], [], s=160, color="#555", label="G1: idle cell (always-on only)")
     ax[2].set_xscale("log"); ax[2].set_yscale("log")
+    _plain_log(ax[2], "both")            # 규약: 로그 눈금에 U+2212 가 새어들지 않게
     ax[2].set_xlabel(r"Range resolution $\Delta R$ [m]   (worse $\rightarrow$)")
     ax[2].set_ylabel(r"Unambiguous speed $v_{max}$ [m/s]   ($\leftarrow$ worse)")
     ax[2].set_title("(c) The 5G double penalty", fontsize=12, fontweight="bold")
     ax[2].axhspan(0.1, 2.0, color="#ffcdd2", alpha=0.35, zorder=0)
-    ax[2].annotate("slower than a walking drone", (1.6, 1.35), fontsize=8, color="#b71c1c")
-    ax[2].legend(fontsize=8, loc="upper left")
+    #  주석·점이 축 밖으로 잘리지 않게 여유를 준다 (예전엔 제목·오른쪽 끝과 겹쳤다)
+    ax[2].set_xlim(1.0, 45.0)
+    ax[2].set_ylim(0.6, 120.0)
+    #  주석은 띠의 **가운데**(범례가 왼쪽 아래를 먹는다)
+    ax[2].annotate("slower than a walking drone", (4.4, 1.30), fontsize=8, color="#b71c1c")
+    ax[2].legend(fontsize=8, loc="lower left")
     ax[2].grid(alpha=0.3, which="both")
 
     fig.suptitle("Passive radar can only correlate what the cell always transmits",
                  fontsize=15, fontweight="bold")
-    fig.tight_layout(rect=(0, 0.09, 1, 0.95))
+    fig.tight_layout(rect=(0, 0.20, 1, 0.95))      # 캡션 4줄 자리 (눈금 라벨과 겹쳤다)
     return _save(fig, "report2_ref_signal.png",
                  "G1 = idle cell (always-on reference only): LTE=CRS, 5G=SSB, WiFi=preamble VHT-LTF.\n"
                  "Range resolution follows the REFERENCE bandwidth, not the channel bandwidth. "
@@ -224,10 +273,10 @@ def fig_resource_grids(REF):
     handles = [Patch(facecolor=CH_COLOR[c], edgecolor="#999", label=CH_NAME[c])
                for c in used_ch if c in seen]
     fig.legend(handles=handles, loc="lower center", ncol=len(handles), fontsize=9,
-               frameon=False, bbox_to_anchor=(0.5, 0.058))
+               frameon=False, bbox_to_anchor=(0.5, 0.115))     # 캡션 위로 (겹쳤다)
     fig.suptitle("What the cell actually transmits - and what a passive radar may use",
                  fontsize=15, fontweight="bold")
-    fig.tight_layout(rect=(0, 0.12, 1, 0.95))
+    fig.tight_layout(rect=(0, 0.17, 1, 0.95))
     return _save(fig, "report2_resource_grid.png",
                  "Top row G1 = idle cell: ONLY the always-on reference. Bottom row G3 = full load "
                  "(data added).\n"
@@ -346,8 +395,11 @@ def fig_crosscheck(rows, nr, waves):
         # (3행) CP 버그 재현
         ax = fig.add_subplot(gs[2, c])
         vals = [r["corr"], r["corr_bug"]]
+        #  '첫 CP 만' 막대는 **실제로 무너진 경우에만** 빨강. WiFi 는 CP 가 균일해 멀쩡하므로
+        #  회색 — 빨강으로 칠하면 "WiFi 도 깨졌다"로 오독된다(요점은 그 반대다).
+        bug_col = "#c62828" if not r["cp_uniform"] else "#9e9e9e"
         bars = ax.bar(["CP array\n(correct)", "first CP only\n(the bug)"], vals,
-                      color=["#2e7d32", "#c62828"], width=0.55)
+                      color=["#2e7d32", bug_col], width=0.55)
         for b, v in zip(bars, vals):
             ax.annotate(f"{v:.4f}", (b.get_x() + b.get_width() / 2, v), ha="center",
                         va="bottom", fontsize=11, fontweight="bold")
@@ -398,9 +450,26 @@ def fig_numerology(nr):
                  "This is the 'use the library, do not reimplement it' rule in one figure.")
 
 
+def _autocorr_fft(ref, fs):
+    """자기상관 → (3 dB 폭[m], 정규화 |r|).
+
+    waveforms.autocorr_resolution 과 **같은 정의**지만 `np.correlate`(O(N²))가 아니라
+    FFT(O(N log N))로 계산한다 — NR 기준신호는 61,440 샘플이라 O(N²) 가 아프다.
+    (동치성은 아래 __main__ 셀프테스트에서 확인한다.)"""
+    x = np.asarray(ref, complex)
+    n = len(x)
+    N = 1 << int(np.ceil(np.log2(2 * n)))
+    R = np.fft.ifft(np.abs(np.fft.fft(x, N)) ** 2)
+    r = np.abs(np.concatenate([R[-(n - 1):], R[:n]]))
+    r /= r.max() + 1e-30
+    pk = len(r) // 2
+    half = np.where(r[pk:] < 0.707)[0]
+    return (half[0] if len(half) else 1) / fs * C0 / 2, r
+
+
 def fig_ambiguity(REF):
     """§3 — 자기상관/모호함수. 거리축은 B_ref 가, **속도축은 버스트 간 PRF 가** 정한다."""
-    from waveforms import all_waveforms, autocorr_resolution
+    from waveforms import all_waveforms
     wfs = all_waveforms("G1")            # 상시 기준신호(패시브의 기본선)
     keys = ["wifi", "lte", "nr"]
     col = {"wifi": "#ef6c00", "lte": "#00897b", "nr": "#c62828"}
@@ -411,7 +480,7 @@ def fig_ambiguity(REF):
         wf = wfs[k]
         ref = np.asarray(wf.ref, complex)
         fs = wf.fs_hz
-        res_m, r = autocorr_resolution(ref, fs)
+        res_m, r = _autocorr_fft(ref, fs)
         lags = (np.arange(len(r)) - (len(r) // 2)) / fs * C0 / 2
         ax = axes[0, c]
         ax.plot(lags, 20 * np.log10(r + 1e-12), color=col[k], lw=1.6)
@@ -426,15 +495,28 @@ def fig_ambiguity(REF):
         ax.grid(alpha=0.3)
 
         # --- 모호함수 |chi(tau, fd)| (한 버스트 안에서) ---
+        #   chi(tau, fd) = Σ_n x[n]·conj(x[n-tau])·e^{-j2π fd n/fs}
+        #                = Σ_n y[n]·conj(x[n-tau])       (y[n] = x[n]·e^{-j2π fd n/fs})
+        #
+        #   즉 **도플러 빈 하나마다 지연축 전체가 하나의 상호상관**이다 → FFT 로 한 방에.
+        #   (순진하게 tau 마다 (n_fd × L) 행렬곱을 하면 NR 은 L=24,576 · tau 281개라
+        #    파형당 수 분이고, 이 박스는 다른 에이전트 때문에 load 500 이라 수십 분이 된다.
+        #    아래는 **근사가 아니라 정확히 같은 값**을 O(n_fd · L log L) 로 낸다.)
         L = int(min(len(ref), 24576))
         x = ref[:L]
         taus = np.arange(-140, 141)
         fds = np.linspace(-20e3, 20e3, 256)
+
+        #   ※ 제로패딩(N ≥ 2L) 이므로 **선형**상관이다 — 한 버스트를 재는 것이니 이게 맞다
+        #     (순환상관은 기준신호가 무한 반복된다고 가정하는 셈이다).
+        N = 1 << int(np.ceil(np.log2(2 * L)))
+        Xc = np.conj(np.fft.fft(x, N))
         n = np.arange(L)
-        E = np.exp(-2j * np.pi * np.outer(fds, n) / fs)
         A = np.zeros((len(taus), len(fds)))
-        for i, tt in enumerate(taus):
-            A[i] = np.abs(E @ (x * np.conj(np.roll(x, tt))))
+        for j, fd in enumerate(fds):
+            y = x * np.exp(-2j * np.pi * fd * n / fs)
+            xcorr = np.fft.ifft(np.fft.fft(y, N) * Xc)   # xcorr[k] = Σ_n y[n]·conj(x[n-k])
+            A[:, j] = np.abs(xcorr[taus % N])
         A /= A.max() + 1e-30
         rng_m = taus / fs * C0 / 2
         ax = axes[1, c]
@@ -455,13 +537,19 @@ def fig_ambiguity(REF):
                  fontsize=15, fontweight="bold")
     fig.tight_layout(rect=(0, 0.09, 1, 0.95))
     _save(fig, "report2_ambiguity.png",
-          "Top: autocorrelation of the always-on reference (G1). The measured 3 dB width tracks "
-          "c/(2*B_ref) - WiFi about 2 m, LTE about 8 m, 5G about 21 m.\n"
+          "Top: autocorrelation of the always-on reference (G1). Dashed line = the Rayleigh figure "
+          "c/(2*B_ref) quoted in section 1.\n"
+          "HONEST READING: the measured 3 dB HALF-width is NOT equal to c/(2*B_ref) - it is about "
+          "0.55x for LTE and 5G. These are two different definitions (3 dB half-width vs Rayleigh "
+          "peak-to-null), and CRS/SSB are combs, whose main lobe is set by the occupied SPAN while "
+          "the gaps raise sidelobes.\n"
+          "What survives is the ORDERING and the ratios: WiFi is roughly 3x finer than LTE and 6x "
+          "finer than 5G, whichever definition you pick. Do not read the two columns as a "
+          "verification of each other.\n"
           "Bottom: the ambiguity surface of ONE burst is essentially flat across the Doppler range a "
-          "drone can produce (dotted lines). Within-burst Doppler resolution is 1/T_burst, kHz-wide, "
-          "and is NOT what limits us.\n"
-          "The velocity limit comes from the burst-to-burst repetition rate (PRF) in section 1 - a "
-          "slow-time axis that this single-burst surface cannot show.")
+          "drone can produce (dotted lines). Within-burst Doppler resolution is 1/T_burst (kHz-wide) "
+          "and is NOT what limits us - the velocity limit is the burst-to-burst PRF of section 1, "
+          "an axis this single-burst surface cannot show.")
     return amb
 
 
@@ -537,8 +625,9 @@ def fig_sbr_validation(V):
     ax[0].plot(d, V["sphere_err"], "s-", color="#c62828", lw=2.2, ms=7,
                label=f"metal sphere r={V['r']} m   ($\\pi r^2$)")
     ax[0].axvline(SBR_DIV, color="#777", ls=":", lw=1.5)
-    ax[0].annotate(f"our setting\n$\\lambda$/{SBR_DIV}", (SBR_DIV, 3.2), fontsize=9,
-                   color="#555", ha="center")
+    #  주석은 **아래쪽**에 (위엔 범례가 있다 — 예전엔 겹쳤다)
+    ax[0].annotate(f"our setting\n$\\lambda$/{SBR_DIV}", (SBR_DIV + 0.6, -1.9), fontsize=9,
+                   color="#555", ha="left")
     ax[0].set_xlabel(r"ray grid density  $\lambda/d$")
     ax[0].set_ylabel("error vs analytic [dB]")
     ax[0].set_title("(a) SBR vs closed form", fontsize=12, fontweight="bold")
@@ -583,8 +672,9 @@ def fig_sbr_validation(V):
                  "specular point, so the answer depends on whether a ray lands on it. Dithering the "
                  "grid alignment exposes the real uncertainty, which only closes at lambda/24.\n"
                  "(c) A drone is a many-scatterer target, so its azimuth average self-dithers: from "
-                 "lambda/8 on it is stable to about 0.1 dB. We run lambda/16, so the headline drone "
-                 "numbers are converged - even though a single-look sphere number is not.")
+                 "lambda/8 on it stays within about 0.35 dB of the lambda/24 value (the coarse "
+                 "lambda/6 grid is off by ~1 dB). We run lambda/16, so the headline drone numbers "
+                 "are converged - even though a single-look sphere number is not.")
 
 
 def measure_occlusion(fc=3.5e9, drone="mavic4pro", n_az=72):
@@ -673,27 +763,35 @@ def fig_occlusion(O):
 
     ax = fig.add_subplot(gs[0, 2])
     vals = [O["po_dbsm"], O["sbr1_dbsm"], O["sbr3_dbsm"]]
-    names = ["pure PO\n(no occlusion)", "SBR 1-bounce\n(occlusion)", "SBR 3-bounce\n(+concavity)"]
+    names = ["pure PO\n(no occl.)", "SBR 1-bnc\n(occlusion)", "SBR 3-bnc\n(+concavity)"]
     cols = ["#c62828", "#1565c0", "#2e7d32"]
+    lo, hi = min(vals), max(vals)
+    ax.set_ylim(lo - 3.0, hi + 3.6)                       # 주석용 헤드룸
     b = ax.bar(names, vals, color=cols, width=0.6)
     for bb, v in zip(b, vals):
         ax.annotate(f"{v:+.2f}", (bb.get_x() + bb.get_width() / 2, v), ha="center",
-                    va="bottom", fontsize=12, fontweight="bold")
-    ax.annotate("", xy=(1, O["sbr1_dbsm"]), xytext=(0, O["po_dbsm"]),
-                arrowprops=dict(arrowstyle="->", color="#333", lw=2))
-    ax.annotate(f"occlusion:\n{O['occlusion_db']:+.2f} dB", (0.5, max(vals) + 0.8),
+                    va="bottom", fontsize=11, fontweight="bold")
+    #  가림 델타 — 막대 **위쪽**에 브래킷으로. (예전엔 막대 위에 겹쳐 찍혀 안 읽혔다)
+    ytop = hi + 1.5
+    ax.annotate("", xy=(1, ytop), xytext=(0, ytop),
+                arrowprops=dict(arrowstyle="<->", color="#333", lw=1.8))
+    ax.plot([0, 0], [O["po_dbsm"] + 0.35, ytop], color="#333", lw=0.8, ls=":")
+    ax.plot([1, 1], [O["sbr1_dbsm"] + 0.35, ytop], color="#333", lw=0.8, ls=":")
+    ax.annotate(f"occlusion  {O['occlusion_db']:+.2f} dB", (0.5, ytop + 0.35),
                 ha="center", fontsize=11, fontweight="bold", color="#333")
-    ax.annotate(f"multi-bounce: {O['multibounce_db']:+.2f} dB", (2.0, O["sbr3_dbsm"] - 1.8),
+    ax.annotate(f"multi-bounce\n{O['multibounce_db']:+.2f} dB", (2.0, lo - 2.4),
                 ha="center", fontsize=9, color="#2e7d32")
     ax.set_ylabel("azimuth-mean RCS [dBsm]")
-    ax.set_ylim(min(vals) - 3.4, max(vals) + 2.8)
+    ax.tick_params(axis="x", labelsize=9)
     ax.set_title(f"(c) {O['name']}\n{O['n_az']} azimuths, el={O['el']:.0f} deg, "
                  f"{O['fc']/1e9:.1f} GHz", fontsize=11, fontweight="bold")
     ax.grid(axis="y", alpha=0.3)
 
     fig.suptitle("Occlusion is the whole difference between PO and SBR",
                  fontsize=15, fontweight="bold")
-    fig.tight_layout(rect=(0, 0.10, 1, 0.94))
+    #  ⚠ tight_layout 은 3D 축과 호환되지 않는다(경고를 뱉고 눈금이 캡션과 겹쳤다).
+    #    수동 여백으로 캡션 자리를 확보한다.
+    fig.subplots_adjust(left=0.02, right=0.97, top=0.86, bottom=0.22, wspace=0.18)
     return _save(fig, "report2_occlusion.png",
                  f"At one azimuth ({O['az_view']:.0f} deg) pure PO declares {O['n_lit_po']:,} surface "
                  f"points 'lit' on the strength of the n.u > 0 test alone. Firing rays at those same "
@@ -754,10 +852,11 @@ def fig_rcs_polar(R):
         ax.set_title(f"{D['name']}\n{D['diagonal_mm']:.0f} mm   {D['weight_g']:.0f} g",
                      fontsize=10, fontweight="bold", pad=14)
         ax.grid(alpha=0.35)
-    fig.legend(loc="lower center", ncol=3, fontsize=10, frameon=False, bbox_to_anchor=(0.5, 0.03))
+    #  범례는 캡션 **위**에 (예전엔 캡션 글자와 겹쳐 둘 다 안 읽혔다)
+    fig.legend(loc="lower center", ncol=3, fontsize=11, frameon=False, bbox_to_anchor=(0.5, 0.17))
     fig.suptitle(f"SBR RCS pattern - 5 drones x 3 bands (el = {R['el']:.0f} deg, band-averaged, "
                  "3 deg smoothed)", fontsize=15, fontweight="bold")
-    fig.tight_layout(rect=(0, 0.13, 1, 0.92))
+    fig.tight_layout(rect=(0, 0.24, 1, 0.92))
     return _save(fig, "report2_rcs_polar.png",
                  f"Each curve: {len(R['az'])} azimuths, ray grid lambda/{R['div']}, averaged over "
                  f"{R['n_f']} frequencies across the channel band, then smoothed with a 3 deg window. "
@@ -795,22 +894,27 @@ def fig_rcs_bars(R):
         ax[1].annotate(R["drones"][k]["name"].replace("DJI ", ""), (dia, m), xytext=(6, -13),
                        textcoords="offset points", fontsize=8.5, color="#444")
     ax[1].set_xscale("log")
+    _plain_log(ax[1], "x")               # 규약: 로그 눈금에 U+2212 가 새어들지 않게
     ax[1].set_xlabel("motor-to-motor diagonal [mm]  (log)")
     ax[1].set_ylabel("azimuth-mean RCS [dBsm]")
     ax[1].set_title("(b) Bigger airframe, brighter target", fontsize=12, fontweight="bold")
     ax[1].legend(fontsize=9); ax[1].grid(alpha=0.3, which="both")
 
+    #  '기종 폭' 은 손으로 적지 않는다 — 그림이 쓴 배열에서 바로 잰다
+    _all = [R["drones"][k]["bands"][b[0]]["mean_dbsm"] for k in keys for b in BANDS]
+    _spread = max(_all) - min(_all)
     fig.suptitle("Drone RCS is small - and it is the airframe size, not the band, that moves it",
                  fontsize=15, fontweight="bold")
     fig.tight_layout(rect=(0, 0.10, 1, 0.93))
     return _save(fig, "report2_rcs_bars.png",
                  "Azimuth mean over the full 360 deg at el = 15 deg, band-averaged. This - not the "
                  "peak - is the number to carry into a link budget.\n"
-                 "ABSOLUTE accuracy is NOT claimed: our SBR has no measured anchor (see the caveats "
-                 "cell). What this figure supports is the RELATIVE ordering across the fleet and the "
-                 "weak band trend.\n"
-                 "Note the fleet spans about 12 dB: the S1000+ octocopter is more than an order of "
-                 "magnitude brighter than a 250 g Mini.")
+                 "ABSOLUTE accuracy is NOT claimed: our SBR has no measured anchor, and it cannot "
+                 "transmit through the plastic shell (see the caveats cell). What this figure supports "
+                 "is the RELATIVE ordering across the fleet and the weak band trend.\n"
+                 f"The fleet spans {_spread:.1f} dB: the S1000+ octocopter is more than an order of "
+                 "magnitude brighter than a 250 g Mini. Band moves each drone by only ~1-3 dB - these "
+                 "targets are already in the optical region (size >> lambda).")
 
 
 def measure_material_contribution(fc=3.5e9, drone="mavic4pro", n_az=121):
@@ -836,18 +940,24 @@ def measure_material_contribution(fc=3.5e9, drone="mavic4pro", n_az=121):
         m.g = [g for g in full.g if g in keep]
         return m
 
+    #  ⚠ mavic4pro 는 arm_style='body' 라 'arm' 이 별도 그룹이 아니다(셸에 합쳐진다).
+    #    그래서 예전 '- shell - props' 시나리오는 'metal core only' 와 **같은 집합**이 돼
+    #    중복 막대가 나왔다. 아래는 서로 다른 집합만 남긴다(seen 으로 중복 차단).
     scenarios = [
-        ("Full drone", set(present), "#1565c0"),
-        ("- shell (RF sees through plastic)", set(present) - SHELL, "#00897b"),
-        ("- shell - propellers", set(present) - SHELL - {"prop"}, "#8e24aa"),
+        ("Full drone\n(shell opaque - our SBR)", set(present), "#1565c0"),
+        ("- shell\n(RF sees THROUGH the plastic)", set(present) - SHELL, "#00897b"),
+        ("- propellers only", set(present) - {"prop"}, "#8e24aa"),
         ("metal core only\n(motor + battery + PCB + camera)", set(present) & METAL, "#c62828"),
         ("dielectric only\n(no metal at all)", set(present) - METAL, "#ef6c00"),
     ]
     out = dict(drone=drone, name=spec.name, fc=fc, el=EL_DEG, n_az=n_az, groups=present, rows=[])
+    seen = set()
     for label, keep, cc in scenarios:
         keep = keep & set(present)
-        if not keep:
+        key = tuple(sorted(keep))
+        if not keep or key in seen:
             continue
+        seen.add(key)
         m = subset(keep)
         sig = np.atleast_1d(rcs_sbr_batch(m, gmat, fc, az_deg=az, el_deg=EL_DEG,
                                           spacing=lam / SBR_DIV,
@@ -902,17 +1012,22 @@ def fig_materials(M):
     ax[1].set_title("(b) One material table, two engines\nsrc/materials.py - Sionna RT and our SBR "
                     "read the same rows", fontsize=12, fontweight="bold", pad=14)
 
-    fig.suptitle("The plastic shell is not the target - the metal inside it is",
+    fig.suptitle("The metal inside is the target - and the plastic shell is a SCREEN in front of it",
                  fontsize=15, fontweight="bold")
-    fig.tight_layout(rect=(0, 0.10, 1, 0.93))
+    fig.tight_layout(rect=(0, 0.22, 1, 0.93))       # 캡션 5줄 자리를 비워둔다(축 라벨과 겹쳤다)
     return _save(fig, "report2_materials.png",
-                 "(a) Faces are actually DELETED from the mesh, so rays fly through. This is 'RF sees "
-                 "through the plastic', not 'the plastic is painted black'.\n"
-                 "Removing the shell barely moves the number; keeping ONLY motors, battery, PCB and "
-                 "camera keeps most of it; a dielectric-only drone is far dimmer.\n"
-                 "(b) The reflection coefficients come from src/materials.py, the single source of "
-                 "truth that Sionna RT and our SBR both read - so the two engines cannot silently "
-                 "disagree about a part.")
+                 "(a) Faces are actually DELETED from the mesh, so rays fly through - 'RF sees through "
+                 "the plastic', not 'the plastic is painted black'.\n"
+                 "The surprise: DELETING the shell makes the drone BRIGHTER. Our SBR stops every ray "
+                 "at its first hit, so an intact shell intercepts rays that would otherwise reach the "
+                 "motors, battery and PCB, and returns them weakly (|Gamma|=0.28).\n"
+                 "Metal core alone is already brighter than the whole drone; strip the metal instead "
+                 "and the target collapses. So the metal is the target and the shell is a screen.\n"
+                 "HONEST LIMIT: a 1-3 mm plastic shell is actually SEMI-TRANSPARENT at 1.8-5.2 GHz, "
+                 "and first-hit SBR cannot transmit through it. The truth lies between the two top "
+                 "bars - read that gap as a modelling uncertainty, not as a measured effect.\n"
+                 "(b) Reflection coefficients come from src/materials.py, the single source of truth "
+                 "that Sionna RT and our SBR both read - the two engines cannot silently disagree.")
 
 
 # =========================================================================== #
