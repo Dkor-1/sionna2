@@ -19,7 +19,8 @@ verify_rt_no_rcs.py — **Sionna RT 의 path solver 에는 표적 RCS(σ)를 담
       곡면의 정반사점을 잡지 못한다(디스코볼 문제). 크기·표본수·테셀레이션을 올려도 0.
       ※ 대조군: 같은 위치의 평판은 spp=1M 으로도 즉시 잡힌다 → 메쉬·재질·솔버는 정상이다.
 
-결론: RT 는 표적의 **지연·도플러·기하**는 정확히 준다(τ=(R1+R2)/c 로 확인). 다만 **진폭(σ)** 은 주지 못한다.
+결론: Sionna RT 는 표적의 **지연·도플러·기하**는 정확히 준다(τ=(R1+R2)/c 로 확인). 다만 기본 path solver 에
+      **산란적분(PO) 단계**가 없어 **진폭(σ)** 은 주지 못한다.
       그래서 진폭만 PO 로 대체하는 하이브리드가 필요하다.
 
 실행: CUDA_VISIBLE_DEVICES=2 python benchmark/verify_rt_no_rcs.py
@@ -185,7 +186,7 @@ def main():
     tau_e = (p["R1"] + p["R2"]) / C0
     img = 20 * np.log10(p["L"] / (p["R1"] + p["R2"]))        # image-source(무한거울) 예측
     print("=" * 86)
-    print("Sionna RT 에는 표적 RCS 를 담는 자리가 없다 — 3개 실험")
+    print("Sionna RT 의 기본 path solver 에는 표적 RCS 를 담는 자리가 없다 — 3개 실험")
     print("=" * 86)
     print(f"기하: L={p['L']:.3f} m · R1={p['R1']:.3f} · R2={p['R2']:.3f} · β={p['beta']:.1f}°")
     print(f"표적에코 기대지연 τ=(R1+R2)/c = {tau_e*1e9:.2f} ns · image-source 예측 진폭비 = {img:+.2f} dB\n")
@@ -250,7 +251,8 @@ def main():
     out["C_pec_sphere"] = rows
 
     print("\n" + "=" * 86)
-    print("판정: RT 는 표적의 지연·도플러·기하는 정확히 주지만(τ 확인), **진폭(σ)은 주지 못한다.**")
+    print("판정: Sionna RT 는 표적의 지연·도플러·기하는 정확히 주지만(τ 확인), 기본 solver 에 산란적분(PO) "
+          "단계가 없어 **진폭(σ)은 주지 못한다.**")
     print("      → 표적 진폭은 PO 로, 환경(벽·다중경로)은 RT 로. 이것이 하이브리드의 근거다.")
     print("=" * 86)
 

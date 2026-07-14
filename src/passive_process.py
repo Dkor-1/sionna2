@@ -30,16 +30,28 @@ C0 = 299792458.0
 # --------------------------------------------------------------------------- #
 def make_cpi(ref_frame, M, fs, tau_s, fd_hz, a_tgt,
              dpi_amp=30.0, clutter=((15e-9, 8.0), (40e-9, 5.0)), snr_db=10.0,
-             abs_noise=False, noise_var=1.0, rng=None):
+             abs_noise=False, noise_var=1.0, rng=None, ghosts=()):
     """기준 1프레임 ref_frame 을 M번 반복한 CPI 에서 감시신호와 기준신호를 만든다.
       tau_s, fd_hz : 표적 지연[s]·도플러[Hz],  a_tgt : 표적 에코 전압이득
       dpi_amp      : 직접파누설 진폭(보통 표적보다 수십 dB 큼)
-      clutter      : [(지연[s], 진폭), …] 정적(0-도플러) 반사체
+      clutter      : [(지연[s], 진폭), …] **정적(0-도플러)** 반사체
                      ※ 0-지연 탭은 DPI(dpi_amp, 0지연·0도플러)와 중복되므로 사용하지 않음
+      ghosts       : [(지연[s], 도플러[Hz], 진폭), …] **도플러가 실린** 표적 경유 다중경로
+                     (예: TX→표적→바닥→RX). 기본값 () — 켜지 않으면 기존 동작과 완전히 동일.
       abs_noise=False: snr_db(표적피크 대비)로 잡음 — 데모/RD맵 시각화용.
       abs_noise=True : 잡음전력=noise_var(절대 고정), 표적은 a_tgt 절대값 — Pd 연구용
                        (처리이득이 파형/점유마다 달라 Pd 가 의미있게 갈림).
-    반환: (surv, ref_cpi)  — 둘 다 길이 M*Lf 복소."""
+    반환: (surv, ref_cpi)  — 둘 다 길이 M*Lf 복소.
+
+    ⚠ **clutter 와 ghosts 는 ECA 앞에서 운명이 완전히 다르다** (측정으로 확인 — docs/VERIFY_CLUTTER.md):
+      · clutter 는 지연된 기준신호의 **선형결합**이다(도플러 항이 없다). ECA 의 기저가 바로 그
+        '지연된 기준신호들'이므로, ECA 의 사영이 **진폭과 무관하게 정확히 0 으로 지운다.**
+        → 직접파보다 14 dB 센 클러터를 넣어도 SCR 이 2e-10 dB 밖에 안 움직인다.
+        → 즉 이 하네스에서 **정적 클러터 진폭은 죽은 파라미터**다. 클러터 모델을 아무리 정교하게
+          만들어도 Pd·SCR 은 안 바뀐다. (실제 ECA 는 유한 동적범위·클러터 도플러퍼짐 때문에
+          이렇게 완벽하지 않다 — 그 한계는 아직 모델에 없다.)
+      · ghosts 는 도플러가 있어 **그 부분공간 밖**이다 → ECA 가 못 지운다. 표적 근처에 **가짜
+        검출**로 남는다. 챔버에서 실제로 문제되는 건 clutter 가 아니라 **이쪽**이다."""
     rng = rng or np.random.default_rng(0)
     Lf = len(ref_frame); N = M * Lf
     ref_cpi = np.tile(ref_frame, M)
@@ -51,8 +63,10 @@ def make_cpi(ref_frame, M, fs, tau_s, fd_hz, a_tgt,
 
     surv = a_tgt * delayed(1.0, tau_s) * np.exp(1j * 2 * np.pi * fd_hz * n / fs)   # 표적
     surv = surv + dpi_amp * ref_cpi                                                # 직접파 누설(0지연·0도플러)
-    for (ctau, camp) in clutter:                                                   # 정적 클러터(0-도플러)
+    for (ctau, camp) in clutter:                                                   # 정적 클러터(0-도플러) → ECA 가 정확히 소거
         surv = surv + camp * delayed(1.0, ctau)
+    for (gtau, gfd, gamp) in ghosts:                                               # 표적 경유 유령(도플러 有) → ECA 통과
+        surv = surv + gamp * delayed(1.0, gtau) * np.exp(1j * 2 * np.pi * gfd * n / fs)
     if abs_noise:
         npow = noise_var                                                           # 절대 잡음전력
     else:

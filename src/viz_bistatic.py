@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-viz_bistatic.py — (report4) **무반사 챔버 내부** 바이스태틱 패시브 레이더 시각화
+viz_bistatic.py — (report4) **반무반사(semi-anechoic) 챔버 내부** 바이스태틱 패시브 레이더 시각화
 ==================================================================================
-report1~3 과 동일한 30×20×11 m 무반사 차폐시설(anechoic chamber) **안에서** 바이스태틱
+report1~3 과 동일한 30×20×11 m 차폐시설(**semi-anechoic** chamber) **안에서** 바이스태틱
 패시브 레이더 실험을 구성한다(실외 기지국 시나리오가 아니라 실내 제어 측정):
   · 신호원(illuminator) 안테나 TX 와 패시브 수신 안테나 RX 를 챔버 양쪽 벽에 벌려 놓고,
   · 표적 드론이 quiet zone(중앙~안쪽)을 저속 비행한다.
-  · **무반사**: 벽·천장 피라미드 흡수체가 다중경로를 억제 → 클러터는 약하고, 주된 방해는
-    직접파(DPI, TX→RX 가시선). 그래서 ECA 는 주로 **직접파 제거** + 약한 잔향(흡수체 불완전·
-    바닥/장비 반사, ~−25~−30 dB) 제거가 핵심이다. (실외판의 강한 지형 클러터와 대비)
+  · **벽 4면 + 천장만 흡수체**(피라미드 폼), **바닥은 반사성 콘크리트 타일**이다
+    (chamber.py 참조 — 그래서 anechoic 이 아니라 semi-anechoic).
+    → 주된 방해는 ① 직접파(DPI, TX→RX 가시선) ② **바닥 반사**. 벽/천장 잔향은 약하다
+    (흡수체 ~−25 dB). ECA 의 주 임무는 **직접파 + 정지 바닥반사 제거**다.
+  · ⚠ 다만 **표적을 경유한 바닥 경로**(TX→표적→바닥→RX 등)는 표적과 함께 도플러가 실려
+    **ECA 로 지워지지 않는다** — 표적 근처에 유령(ghost) 검출로 남는다. 아직 정량화하지
+    않았다(report4 수치엔 미반영). 실측 대비 시 **첫 번째로 확인할 항목**.
 
 생성물 (outputs/figures/, report4_ 접두어)
   report4_geometry.png   : 챔버 내부 3D 배치(TX·RX·드론·경로 R1/R2·직접파 L·등Rb 타원·속도벡터)
@@ -72,7 +76,7 @@ def _draw_chamber(ax, W, D, H):
     for yy in np.linspace(2, D - 2, 6):
         for zz in np.linspace(1.5, H - 1.5, 4):
             ax.plot([W, W - 0.7], [yy, yy], [zz, zz], color="#b7c4d6", lw=0.6)
-    ax.text(W * 0.5, D * 0.5, H + 0.6, "Anechoic chamber 30×20×11 m", color="0.4",
+    ax.text(W * 0.5, D * 0.5, H + 0.6, "Semi-anechoic chamber 30×20×11 m", color="0.4",
             fontsize=8, ha="center")
 
 

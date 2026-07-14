@@ -139,12 +139,63 @@ def anim_microdoppler(outdir=FIG, target="mavic4pro", rpm=None, n_frames=48, fps
     # (참고, 코드로 측정한 mavic4pro 값) 지배 플래시 각 81.3°(부피크 94.0°, 상대진폭 0.62), 대각쌍(0·2 / 1·3)이
     # 같은 위상 → 버스트 2갈래(1.1~1.5 / 2.0~2.4 ms), STFT 창 3.2 ms 가 이를 한 줄무늬로 뭉갠다. 본문 설명 참조.
     fig.suptitle(f"How micro-Doppler arises — {_NAME[target]}", fontsize=15, fontweight="bold")
-    # 상세 물리(θ(t) 위상식·플래시 각·버스트 병합)는 본문이 설명한다 → 캡션은 로터 정체와 줄무늬 주기만.
+
+    # ── 하단 캡션 3줄. (fig.text 로 상단에 두면 서브플롯 제목과 겹친다 — constrained_layout 이
+    #    fig.text 자리를 잡아 주지 않기 때문. supxlabel 은 레이아웃이 자리를 확보해 준다.)
+    #    1행 provenance : 두 헤드라인 숫자(f_tip·flash)가 무엇에 매달려 있는지. hover_rpm 은 DJI 미발표
+    #                     → **우리 추정치**이고, f_tip 은 fc 에 선형이므로 반송파를 반드시 적는다.
+    #                     (덱 전체에 'GHz' 가 한 번도 안 나오던 문제 — Wi-Fi/LTE/5G 비교와 직결)
+    #    2행 로터 정체/위상,  3~4행 **DC(몸체) 제거** + 점선 밖 에너지의 정직한 2분해.
+    #    3~4행이 없으면 "저 밝은 건 몸체인가요?" / "왜 tip Doppler 를 넘어가죠?" 를 반드시 맞는다.
+    #
+    #    ※ 점선 밖 에너지를 "전부 STFT leakage" 라고 하면 **절반은 거짓**이다(창을 64배 늘려 실측):
+    #       nperseg 64→2048 (3.2→102 ms) 스윕 결과 —
+    #         대역밖 peak : -8.5 dB → -16.6 dB 로 수렴(1833 Hz), 더는 안 내려감 = 분해능 무관
+    #         -45 dB 폭  : 2500 Hz → 2029 Hz 로 수렴
+    #         @2500 Hz   : -42.6 → -90.2 dB (48 dB 붕괴) = 순수 창 leakage
+    #         @2200 Hz   : -27.3 → -56.2 dB (29 dB 붕괴) = 대부분 leakage
+    #         @2000 Hz   : -15.4 → -31.2 dB 에서 바닥 = **분해능 무관 → leakage 아님**
+    #       (i) 먼 꼬리(≳2.2 kHz)만 창 leakage. (ii) 가까운 어깨(~2.0 kHz)는 **블레이드 플래시**
+    #       (서브-ms 진폭 트랜지언트)가 183 Hz 플래시 콤과 컨볼루션돼 생기는 진짜 신호구조 —
+    #       단, 그것도 '팁보다 빠른 산란체'는 아니다. (iii) 반박 불가한 상한은 **운동학 천장**:
+    #       반지름 r 인 블레이드 점의 |f_d| ≤ 2ωr·cos(el)/λ. 실제 점구름(build_propeller)의
+    #       r_max=134.4 mm → 1746 Hz. 모델 안 어떤 것도 이걸 못 넘는다. (점선은 규격 반지름
+    #       133.5 mm 의 1734 Hz 그대로 — microdoppler.py 는 건드리지 않는다.)
     # θ·ω 는 NanumGothic 에 글리프가 없어 두부(□)로 깨진다 → mathtext(DejaVu) 로 렌더
-    fig.supxlabel(f"Rotor #1 (mount {rot0['base_ang']:.0f}°, {spin}) drawn with the model's own phase "
+    win_ms = 1e3 * 64 / prf                        # nperseg=64 → STFT 창 길이[ms]
+    df_stft = prf / 64.0                           # STFT 빈 간격[Hz] (=1/T, 제로패딩 무관). Hann 주엽 반폭 = 2빈(±625Hz)
+    # 운동학 천장: 그림이 쓰는 바로 그 점구름에서 최대 반지름을 뽑아 계산(하드코딩 금지)
+    r_max = float(np.max(np.hypot(Vp[:, 0], Vp[:, 1])))
+    f_ceil = 2.0 * omega * r_max / info["lam"] * np.cos(np.radians(info["el"]))   # 1746 Hz
+    fig.supxlabel(f"{rpm:.0f} rpm (assumed — DJI publishes none)  ·  fc {info['fc']/1e9:.1f} GHz (5G n78)  ·  "
+                  f"az {info['az']:.0f}° / el {info['el']:.0f}°  ·  monostatic  ·  "
+                  f"PRF {prf/1e3:.0f} kHz (ideal)\n"
+                  f"Rotor #1 (mount {rot0['base_ang']:.0f}°, {spin}) drawn with the model's own phase "
                   r"$\theta(t)=\theta_0+\mathrm{dir}\cdot\omega t$"
-                  f" · diagonal pairs share phase → one stripe every {1e3/info['flash_hz']:.2f} ms",
+                  f" · diagonal pairs share phase → one stripe every {1e3/info['flash_hz']:.2f} ms\n"
+                  f"Static 0-Doppler (body) removed — blade-only residual.  Kinematic ceiling: the mesh "
+                  f"reaches r = {r_max*1e3:.0f} mm, so "
+                  r"$|f_d|\leq 2\omega r\cos(\mathrm{el})/\lambda$ = "
+                  f"{f_ceil:.0f} Hz — nothing in the model is faster.\n"
+                  f"Past ~2.2 kHz the wash is Hann-window leakage ({win_ms:.1f} ms window, {df_stft:.0f} Hz "
+                  f"bins): it falls 48 dB at 2.5 kHz when the window is lengthened to 102 ms.\n"
+                  f"The shoulder out to ~2.0 kHz does not fall: {info['flash_hz']:.0f} Hz blade-flash "
+                  f"sidebands (amplitude modulation), not a faster scatterer.",
                   fontsize=8.5, color="0.45")
+
+    # ── 스펙트로그램은 **한 번만** 그린다(예전엔 update 안에서 clear+pcolormesh → 컬러바를 달 수 없었다).
+    #    프레임마다 움직이는 건 흰 커서 하나뿐.
+    pcm = axs.pcolormesh(tt_z*1e3, f, Sdb_z, cmap="turbo", vmin=-45, vmax=0, shading="gouraud")
+    for sgn in (+1, -1):
+        axs.axhline(sgn*info["f_tip"], color="k", ls="--", lw=1.2, zorder=4)
+    cursor = axs.axvline(t_frames[0]*1e3, color="w", lw=1.6, zorder=5)
+    axs.set_xlim(t_frames[0]*1e3, t_frames[-1]*1e3)
+    axs.set_ylim(-1.5*info["f_tip"], 1.5*info["f_tip"])
+    axs.set_xlabel("Time [ms]"); axs.set_ylabel("Doppler [Hz]")
+    axs.set_title(f"Tip Doppler ±{info['f_tip']:.0f} Hz · flash {info['flash_hz']:.0f} Hz", fontsize=11.5)
+    cb = fig.colorbar(pcm, ax=axs, pad=0.02)
+    cb.set_label("Normalized power [dB]", fontsize=9)
+    cb.ax.tick_params(labelsize=8)
 
     def update(kf):
         tk = t_frames[kf]
@@ -160,16 +211,7 @@ def anim_microdoppler(outdir=FIG, target="mavic4pro", rpm=None, n_frames=48, fps
         axm.text(u2[0]*R*1.45, u2[1]*R*1.1, "Radar", color="#1565c0", fontsize=9)
         axm.set_xlim(-R*1.5, R*1.5); axm.set_ylim(-R*1.5, R*1.5); axm.set_aspect("equal")
         axm.set_axis_off(); axm.set_title(f"t={tk*1e3:.2f} ms · blade angle {ph % 360:.0f}°", fontsize=10.5)
-        axs.clear()
-        axs.pcolormesh(tt_z*1e3, f, Sdb_z, cmap="turbo", vmin=-45, vmax=0, shading="gouraud")
-        for sgn in (+1, -1):
-            axs.axhline(sgn*info["f_tip"], color="k", ls="--", lw=1.2, zorder=4)
-        axs.axvline(tk*1e3, color="w", lw=1.6, zorder=5)
-        axs.set_xlim(t_frames[0]*1e3, t_frames[-1]*1e3)              # clear() 뒤라 update 안에서 다시 설정
-        axs.set_ylim(-1.5*info["f_tip"], 1.5*info["f_tip"])
-        axs.set_xlabel("Time [ms]"); axs.set_ylabel("Doppler [Hz]")
-        axs.set_title(f"Tip Doppler ±{info['f_tip']:.0f} Hz · flash {info['flash_hz']:.0f} Hz",
-                      fontsize=11.5)
+        cursor.set_xdata([tk*1e3, tk*1e3])                            # 커서만 이동(컬러바 유지)
         return ()
 
     anim = FuncAnimation(fig, update, frames=n_frames, blit=False)

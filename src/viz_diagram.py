@@ -196,7 +196,8 @@ def size_comparison(outdir=FIG):
                                  edgecolor="#1565c0", ls="--", lw=1.0, zorder=2))
             axT.plot([cx, mx], [0, my], color="0.3", lw=1.2, zorder=3)
         axT.add_patch(Circle((cx, 0), 0.04*diag, facecolor="0.2", zorder=4))
-        axT.text(cx, -maxspan*0.62, f"{s.name.split('  ')[0]}\ndiag {s.diagonal_mm:.0f} mm · {s.weight_g:g} g",
+        dag = f"{s.diagonal_mm:.0f} mm†" if s.key in ("mini5pro", "mavic4pro") else f"{s.diagonal_mm:.0f} mm"
+        axT.text(cx, -maxspan*0.62, f"{s.name.split('  ')[0]}\ndiag {dag} · {s.weight_g:g} g",
                  ha="center", va="top", fontsize=9.5)
         x += maxspan*1.24
     axT.set_xlim(-maxspan*0.1, x); axT.set_ylim(-maxspan*0.8, maxspan*0.62)
@@ -212,24 +213,30 @@ def size_comparison(outdir=FIG):
     dias = [s.diagonal_mm for s in specs]
     cols = [s.body_rgb if max(s.body_rgb) < 0.9 else (0.6, 0.6, 0.65) for s in specs]
     axL.barh(names, dias, color=cols, edgecolor="k")
-    for i, d in enumerate(dias):
-        axL.text(d+10, i, f"{d:.0f}", va="center", fontsize=9)
-    axL.set_title("Diagonal [mm]", fontsize=12); axL.invert_yaxis(); axL.grid(axis="x", alpha=0.3)
+    # DJI 는 Mini/Mavic 시리즈의 motor-to-motor 대각거리를 발표하지 않는다(SPECS.md L17/L38).
+    # 250 / 400 mm 는 우리 추정치(±20 mm)이므로 무게의 '*' 규약과 똑같이 표시한다.
+    for i, (sp, d) in enumerate(zip(specs, dias)):
+        est = sp.key in ("mini5pro", "mavic4pro")
+        axL.text(d+10, i, f"{d:.0f}†" if est else f"{d:.0f}", va="center", fontsize=9)
+    axL.set_title("Diagonal [mm]  († = estimated)", fontsize=12)
+    axL.invert_yaxis(); axL.grid(axis="x", alpha=0.3)
 
-    # (아래우) 무게 막대 (로그축 — 249.9g~4400g). S1000+ 만 기체 자중(TOW 6~11 kg)이라 과소평가됨.
+    # (아래우) 무게 막대 — **선형축**. 로그축은 17.6:1 범위를 1.9:1 로 압축해서
+    # 바로 옆 캡션("S1000+ is by far the largest")과 정면으로 모순됐다. 선형이면 그대로 보인다.
     axR = fig.add_subplot(gs[1, 1])
     wts = [s.weight_g for s in specs]
     axR.barh(names, wts, color=cols, edgecolor="k")
     for i, (sp, w) in enumerate(zip(specs, wts)):
         # S1000+ 만 '기체 자중'이라 별표 — 축 제목이 'Takeoff weight' 라고만 하면 같은 그림의 각주와 모순된다.
-        axR.text(w*1.03, i, f"{w:g} g*" if sp.key == "s1000plus" else f"{w:g} g",
+        axR.text(w + 90, i, f"{w:g} g*" if sp.key == "s1000plus" else f"{w:g} g",
                  va="center", fontsize=9)
-    axR.set_xscale("log")
-    axR.set_title("Weight [g, log] — TOW  (* = airframe only)", fontsize=12)
+    axR.set_xlim(0, max(wts) * 1.22)
+    axR.set_title("Takeoff weight [g]  (* = airframe only)", fontsize=12)
     axR.invert_yaxis(); axR.grid(axis="x", alpha=0.3)
 
     # 제목에서 뺀 단서는 하단 회색 캡션 한 줄로(constrained_layout 이 자리를 잡아 주는 supxlabel)
-    fig.supxlabel("S1000+ is by far the largest; its 4400 g is airframe weight only (takeoff weight 6-11 kg).",
+    fig.supxlabel("S1000+ is by far the largest; its 4400 g is airframe weight only (takeoff weight 6-11 kg).   "
+                  "† motor-to-motor diagonal estimated — DJI publishes no wheelbase for the Mini/Mavic series.",
                   fontsize=8.5, color="0.45")
 
     os.makedirs(outdir, exist_ok=True)
@@ -244,7 +251,9 @@ def size_comparison(outdir=FIG):
 # --------------------------------------------------------------------------- #
 def chamber_schematic(outdir=FIG, W=30, D=20, H=11, ab_h=0.4):
     fig = plt.figure(figsize=(13, 6), constrained_layout=True)
-    fig.suptitle("Shielded anechoic chamber — 30 × 20 × 11 m", fontsize=17, fontweight="bold")
+    # 5면(벽4+천장)만 흡수체이고 바닥은 경질 타일 → 정의상 semi-anechoic. 'anechoic' 이라 부르면
+    # 같은 그림의 elevation 주석("floor = checkerboard tiles")과 모순된다.
+    fig.suptitle("Shielded semi-anechoic chamber — 30 × 20 × 11 m", fontsize=17, fontweight="bold")
 
     # (좌) 평면도
     ax1 = fig.add_subplot(1, 2, 1); ax1.set_aspect("equal")
@@ -255,7 +264,7 @@ def chamber_schematic(outdir=FIG, W=30, D=20, H=11, ab_h=0.4):
     for x in np.arange(0, W, 0.8):
         ax1.plot([x, x+ab_h], [0, ab_h], color="0.6", lw=0.5)
         ax1.plot([x, x+ab_h], [D, D-ab_h], color="0.6", lw=0.5)
-    ax1.text(W/2, D/2, "Usable interior space\n(anechoic zone lined with RF absorbers)",
+    ax1.text(W/2, D/2, "Usable interior space\n(walls + ceiling lined with RF absorbers)",
              ha="center", va="center", fontsize=10, color="#1565c0")
     ax1.annotate("", xy=(0, -1.2), xytext=(W, -1.2),
                  arrowprops=dict(arrowstyle="<->", lw=1.5))

@@ -35,7 +35,8 @@ from bistatic_scene import C0                                   # noqa: E402
 from link_budget import LinkBudget, link_terms                  # noqa: E402
 from channel import AnalyticChannel                             # noqa: E402
 from scenarios import radial                                    # noqa: E402
-from geometry import TX, RX, CENTER, CH_CLUTTER_RATIO, chamber_window, SPEED, SPAN  # noqa: E402
+from geometry import (TX, RX, CENTER, CH_CLUTTER_RATIO, chamber_window,  # noqa: E402
+                      SPEED, SPAN, floor_ghost)
 
 # 챔버 EIRP(통제 변수): 챔버 조명원은 저출력 안테나(12 dBm ≈ 16 mW, WiFi AP 급).
 # R~20 m 근거리라 이 값에서 G3 광대역 조합은 전부 여유 있게 탐지된다(측정 결과) —
@@ -82,13 +83,20 @@ def frame_len(wf):
 
 
 def run_cell(wf, drone, pos, vel, lb, channel=None, target_amp="po",
-             M=48, N=200, pfa=1e-4, seed0=0, noise_var=1.0, power_ref_tx=None):
+             M=48, N=200, pfa=1e-4, seed0=0, noise_var=1.0, power_ref_tx=None,
+             floor_ghost_on=False):
     """(신호 wf) × (드론) × (궤적) 셀 1개 → 유도 링크텀 + 측정 SCR/Pd(+CI)/거리오차.
       channel     : 채널 백엔드(None=AnalyticChannel). RT 교차검증 시 SionnaRTChannel 주입.
       target_amp  : 'po'(기본) | 'rt'(RT 표적산란비 — RT 백엔드에서만 유효).
       power_ref_tx: 전력 정규화 기준 파형(기본 wf.tx). **점유모드 간 비교**(G1/G2/G3) 시
                     G3 의 tx 를 넘기면 'per-RE 송신전력 동일' 가정이 되어, 시간희소한
-                    G1(SSB 버스트만)의 낮은 평균 방사전력이 물리대로 반영된다."""
+                    G1(SSB 버스트만)의 낮은 평균 방사전력이 물리대로 반영된다.
+      floor_ghost_on : True 면 **표적 경유 바닥 유령**(TX→표적→바닥→RX)을 주입한다
+                    (geometry.floor_ghost — 도플러가 실려 ECA 가 못 지운다). 기본 False
+                    = 기존 report4/5 수치와 완전히 동일. 반환 dict 에 'ghost' 진단 추가.
+
+    ※ 정적 클러터(st.clutter)는 이 하네스에서 **어떤 수치에도 영향을 줄 수 없다** — ECA 사영
+      + 0-도플러 행 마스킹(det[zd,:]=False)으로 삼중 차단된다. 자세한 측정: docs/VERIFY_CLUTTER.md"""
     ch = channel or AnalyticChannel()
     fs = wf.fs_hz
 
@@ -133,8 +141,21 @@ def run_cell(wf, drone, pos, vel, lb, channel=None, target_amp="po",
 
     # --- 결정론적 surv(표적+DPI+클러터) 1회 + ECA 참조 프리컴퓨트 1회 ---
     # 표적 에코 = 기준성분만 코히어런트 기여(데이터 성분은 미지→상관에서 잡음화, 에코는 미약해 무시).
+    # 표적 경유 바닥 유령(옵션): 표적과 **같은 기준성분**으로 코히어런트하게 들어오고,
+    #   도플러가 실려 있어 ECA 의 영공간 밖 → 지워지지 않는다.
+    ghost = None
+    if floor_ghost_on:
+        g = floor_ghost(TX, RX, pos[mid], vel[mid], wf.carrier_hz, pol="V")
+        ghost = dict(g, amp_abs=a_tgt * g["amp_ratio"],
+                     amp_db=float(20 * np.log10(g["amp_ratio"] + 1e-30)),
+                     sep_m=float(g["rb_m"] - true_Rb),
+                     d_rb_m=float(C0 / wf.bw_hz))          # ΔRb = c/B (바이스태틱 거리분해능)
+        ghost["resolved"] = bool(abs(ghost["sep_m"]) > ghost["d_rb_m"])
+    ghosts = ((ghost["tau"], ghost["fd"], ghost["amp_abs"]),) if ghost else ()
+
     tgt_det, ref_cpi = make_cpi(ref_frame, M, fs, st.tau, st.fd, a_tgt=a_tgt,
-                                dpi_amp=0.0, clutter=(), abs_noise=True, noise_var=0.0)
+                                dpi_amp=0.0, clutter=(), abs_noise=True, noise_var=0.0,
+                                ghosts=ghosts)
     # DPI·클러터 = **전체 송신신호**(파일럿+데이터). ECA(파일럿 지연복제 부분공간)는 파일럿
     #   성분만 지울 수 있고 **데이터-DPI 잔류**가 남는다. (DPI 를 파일럿만으로 합성하면
     #   ECA 가 직접파를 '이상적으로 완전 제거'해 협대역이 비현실적으로 유리해지는 왜곡 방지.)
@@ -148,6 +169,7 @@ def run_cell(wf, drone, pos, vel, lb, channel=None, target_amp="po",
     nstd = np.sqrt(noise_var / 2.0)
 
     hits = 0
+    ghost_hits = 0                       # 유령 셀에 CFAR 가 찍은 횟수(= 가짜 표적)
     scrs = []
     rb_errs = []
     example = None
@@ -162,6 +184,11 @@ def run_cell(wf, drone, pos, vel, lb, channel=None, target_amp="po",
         det[zd, :] = False       # 0-도플러 능선 행 자체는 히트로 안 침(DPI/클러터 잔류 보호)
         hit = det[max(0, di - 1):di + 2, max(0, ri - 1):ri + 2].any()   # 참셀 ±1 에 CFAR 히트
         hits += int(hit)
+        if ghost:                # 유령 셀(진짜 표적 셀과 겹치지 않을 때만) 히트 집계
+            gi = int(np.argmin(np.abs(Rb - ghost["rb_m"])))
+            gd = int(np.argmin(np.abs(f_d - ghost["fd"])))
+            if abs(gi - ri) > 1 or abs(gd - di) > 1:
+                ghost_hits += int(det[max(0, gd - 1):gd + 2, max(0, gi - 1):gi + 2].any())
         scrs.append(scr)
         # 위치정보 유용성 측정: 0-도플러 능선 제외 후 최강 피크의 Rb 오차 —
         #   '탐지되지만(도플러축) 위치는 못 준다(거친 ΔRb)' 를 수치로 드러낸다.
@@ -172,10 +199,12 @@ def run_cell(wf, drone, pos, vel, lb, channel=None, target_amp="po",
         if k == 0:
             example = (Rb, f_d, rd, st, lt, (ri, di), true_Rb)
     lo, hi = wilson_ci(hits, N)
+    if ghost:
+        ghost["p_false"] = ghost_hits / N            # 유령이 별개 표적으로 찍힐 확률
     return dict(pd=hits / N, pd_lo=lo, pd_hi=hi,
                 scr_mean=float(np.mean(scrs)), scr_std=float(np.std(scrs)),
                 rb_err_m=(float(np.mean(rb_errs)) if rb_errs else None),
-                snr_echo_eff_db=snr_echo_eff_db,
+                snr_echo_eff_db=snr_echo_eff_db, ghost=ghost,
                 link=lt, state=st, example=example, wf=wf, drone=drone, M=M, N=N,
                 n_range=n_range, n_taps=n_taps)
 
@@ -242,7 +271,7 @@ def main():
     ax.set_xlabel("Bistatic range Rb [m]")
     ax.set_ylabel("Doppler f_d [Hz]")
     ax.set_title(
-        f"Minimal cell RD map · {wf.name} {wf.bw_hz/1e6:.0f}MHz / {drone} / radial (anechoic chamber)\n"
+        f"Minimal cell RD map · {wf.name} {wf.bw_hz/1e6:.0f}MHz / {drone} / radial (semi-anechoic chamber)\n"
         f"echo SNR={lt['snr_echo_db']:+.1f}dB (physics-derived) · "
         f"SCR={res['scr_mean']:.1f}dB (measured) · Pd={res['pd']*100:.0f}%",
         fontsize=10.5)

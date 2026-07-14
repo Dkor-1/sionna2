@@ -47,12 +47,20 @@ def catalog(outdir=FIG):
                  fontsize=17, fontweight="bold")
     for ax, key in zip(axes.flat, keys):
         s = DRONES[key]
-        sub = f"diag {s.diagonal_mm:.0f} mm · {s.weight_g:g} g · {s.num_rotors} rotors"
+        # Mini/Mavic 의 대각거리는 DJI 미발표 → 우리 추정치. size_compare 와 같은 '†' 규약.
+        dag = f"{s.diagonal_mm:.0f} mm†" if key in ("mini5pro", "mavic4pro") else f"{s.diagonal_mm:.0f} mm"
+        sub = f"diag {dag} · {s.weight_g:g} g · {s.num_rotors} rotors"
         _show(ax, os.path.join(REN, f"studio_{key}.png"),
               s.name.split("  ")[0], sub, RELEASE_BADGE.get(s.release))
     # 마지막 칸: 비행 장면
     _show(axes.flat[5], os.path.join(REN, "flight_scene.png"),
-          "Drones inside the anechoic chamber", "30 m × 20 m × 11 m anechoic chamber (true scale)")
+          "Drones inside the semi-anechoic chamber",
+          "30 m × 20 m × 11 m semi-anechoic chamber (true scale) — walls + ceiling absorber, floor reflective")
+    # '†' 를 달아 놓고 범례가 없으면 "저 단검 뭐냐"만 부른다 → 키를 그림 안에 남긴다.
+    #   (constrained_layout=True 라 supxlabel 자리는 레이아웃이 확보해 준다. bbox_inches="tight" 는
+    #    금지 — 1800x1008 크기가 바뀌면 build_deck_v15.py 의 이미지 스왑 키가 깨진다.)
+    fig.supxlabel("† motor-to-motor diagonal estimated — DJI does not publish a wheelbase for these two models.",
+                  fontsize=8.5, color="0.45")
     fn = os.path.join(outdir, "catalog.png")
     os.makedirs(outdir, exist_ok=True)
     fig.savefig(fn, dpi=120); plt.close(fig)
@@ -62,7 +70,7 @@ def catalog(outdir=FIG):
 
 def facility_views(outdir=FIG):
     fig, axes = plt.subplots(1, 3, figsize=(16, 4.6), constrained_layout=True)
-    fig.suptitle("Large anechoic chamber (shielded facility) — Sionna RT renders", fontsize=16, fontweight="bold")
+    fig.suptitle("Large semi-anechoic chamber (shielded facility) — Sionna RT renders", fontsize=16, fontweight="bold")
     _show(axes[0], os.path.join(REN, "facility_hero.png"), "Overall view (front wall cut away)")
     # HERO_CAM2 렌더는 '코너 접사'가 아니라 벽이 닫힌 외관 뷰다(재렌더 금지 — 제목만 실물에 맞춤).
     _show(axes[1], os.path.join(REN, "facility_corner.png"),

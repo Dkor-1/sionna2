@@ -12,11 +12,15 @@ channel.py — (benchmark) 채널/기하 모델: 바이스태틱 CIR 상태
   · RT       : 같은 셀을 SionnaRTChannel 로 스왑해 흡수체 챔버 잔향 등 환경효과 실측.
   두 백엔드가 동일 ChannelState 를 주므로 상위 하네스는 **엔진과 무관하게 동일**하다.
 
-■ 설계 원칙 — calibration-robust 하이브리드 (report2 근거)
-  RT 의 '작은 드론' 후방산란 RCS 는 표본잡음·글린트로 불안정하고, RT 절대전력 보정도
-  까다롭다. 그래서:
+■ 설계 원칙 — calibration-robust 하이브리드 (근거: docs/VERIFY_RT_VS_PO.md · benchmark/verify_rt_no_rcs.py)
+  Sionna RT 의 기본 path solver 에는 산란적분(PO) 단계가 없어 표적 σ 가 창발하지 않는다:
+  표적에서 나오는 경로는 정반사(image-source = 무한거울, σ 와 무관: 평판 변 0.2→4 m 로 σ 를
+  52 dB 바꿔도 진폭비 −7.91 dB 불변)와 확산(산란계수 S 의 함수, σ 의 함수가 아님)뿐이다.
+  (RT 자체가 원리적으로 불가능한 게 아니라 — SBR=GO+PO 는 RCS 를 계산한다 — Sionna RT 의
+   전파용 path solver 에 그 단계가 없다는 좁은 명제다.) RT 절대전력 보정도 까다롭다. 그래서:
     · RT 는 **iso 안테나**로 순수 기하/재질만 → 경로들의 '직접파 대비 진폭비'만 취함(보정 무관).
-    · **직접파 절대크기·잡음** = link_budget(EIRP·kTB),  **표적 σ** = PO(검증됨).
+    · **직접파 절대크기·잡음** = link_budget(EIRP·kTB),  **표적 σ** = PO(해석해 대조 검증:
+      볼록 PEC ±0.015 dB; 드론 절대값은 실측 앵커링 전까지 미확정).
     · 클러터 = RT 가 찾아준 (상대지연, 직접파대비 진폭비) → 상위에서 dpi_amp 로 스케일.
   깨끗한 챔버(흡수체)면 RT 클러터가 미미 → RT ≈ Analytic (= 서로 교차검증).
 """
@@ -145,7 +149,9 @@ class SionnaRTChannel:
         #   챔버 안 멀티패스(약한 잔향 클러터)를 RT 로 뽑을 수 있다. 자유공간이면 클러터≈0
         #   → RT ≈ Analytic (기하 교차검증). 챔버면 RT 가 약한 잔향 클러터를 실측.
         self.with_chamber = with_chamber
-        self.target_amp = target_amp          # 'po'(권장, 하이브리드) | 'rt'(RT 산란비 사용)
+        # 'po'(권장, 하이브리드) | 'rt'(진단용 only — RT 표적경로는 절대진폭 소스로 쓰면 안 된다,
+        #                              docs/VERIFY_RT_VS_PO.md §6 유효조건 2)
+        self.target_amp = target_amp
         self.max_depth = max_depth
         self.spp = spp
         self.echo_radius = echo_radius        # 표적 근방 판정 반경 [m]

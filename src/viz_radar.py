@@ -34,7 +34,8 @@ def fig_setup(outdir=FIG):
     R = abs(TGT_POS[0] - ANT_POS[0])
     fig, ax = plt.subplots(figsize=(12, 4.6), constrained_layout=True)
     ax.add_patch(plt.Rectangle((0, 0), 30, 11, fill=False, ec="0.5", lw=1.5))
-    ax.text(15, 11.4, "Anechoic chamber cross-section (30 m × 11 m)  ·  walls = RF absorber", ha="center", fontsize=10, color="0.4")
+    ax.text(15, 11.4, "Semi-anechoic chamber cross-section (30 m × 11 m)  ·  walls + ceiling = RF absorber, floor = reflective",
+            ha="center", fontsize=10, color="0.4")
     # 안테나
     ax.plot(ANT_POS[0], ANT_POS[2], "^", ms=16, color="#c62828")
     ax.text(ANT_POS[0], ANT_POS[2] - 1.1, "Monostatic\nantenna (TX≈RX)", ha="center", fontsize=9, color="#c62828")

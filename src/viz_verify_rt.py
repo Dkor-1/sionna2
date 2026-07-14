@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-viz_verify_rt.py — (report6) **Sionna RT 에는 표적 RCS 를 담는 자리가 없다** 를 그림으로.
+viz_verify_rt.py — (report6) **Sionna RT 의 기본 path solver 에는 산란적분 단계가 없어 표적 σ 가
+창발하지 않는다** 를 그림으로. (⚠ "레이트레이싱은 RCS 를 못 낸다" 는 거짓 — SBR(GO+PO)은 계산해낸다.)
 
 모든 수치는 benchmark/verify_rt_no_rcs.py 가 실제로 측정해 남긴
 outputs/rt_no_rcs_verify.json 에서 읽는다(하드코딩 없음).
@@ -39,7 +40,7 @@ def _load():
 def fig_no_sigma(outdir=FIG):
     d = _load()
     fig, axes = plt.subplots(1, 2, figsize=(14, 5.4), constrained_layout=True)
-    fig.suptitle("Sionna RT has no place for target RCS", fontsize=16, fontweight="bold")
+    fig.suptitle("Sionna RT's stock path solver has no place for target RCS", fontsize=16, fontweight="bold")
 
     # (a) 평판: σ 를 52 dB 바꿔도 RT 는 꿈쩍 않는다
     A = [r for r in d["A_plate"] if r.get("ratio_db") is not None]
@@ -137,8 +138,10 @@ def fig_missing(outdir=FIG):
     ax.set_ylim(0, 1.6); ax.set_ylabel("Paths found"); ax.grid(axis="y", alpha=0.3)
     ax.set_title("The mesh, material and solver are fine", fontsize=12)
 
-    fig.supxlabel("Only the curvature matters, not the size: a shoot-and-bounce solver cannot land the specular "
-                  "point on a curved facet (the disco-ball problem), while a flat plate is caught with 1M rays.",
+    fig.supxlabel("Curvature, not size, is what breaks it: tessellate a sphere and almost no facet contains its own specular\n"
+                  "point, so an image-method specular search (Sionna RT) finds nothing — the disco-ball problem. A few % of random\n"
+                  "poses do yield a path, but its amplitude is meaningless (single facet reflects as a plate, ~+15 dB vs sphere\n"
+                  "theory). A flat plate in the same spot is caught with 1M rays.",
                   fontsize=9, color="0.4")
     fn = os.path.join(outdir, "report6_rt_missing.png")
     fig.savefig(fn, dpi=130, bbox_inches="tight"); plt.close(fig)
@@ -224,9 +227,9 @@ def fig_hybrid(outdir=FIG):
     ax.text(83.5, 22.6, "NEVER the target's amplitude", ha="center", fontsize=9.5,
             color="#c62828", fontweight="bold")
 
-    fig.supxlabel("RT gives the room and the geometry (delay, Doppler) exactly; it cannot give the RCS. "
-                  "So the target's amplitude comes from PO, the absolute scale from the link budget, "
-                  "and everything else from RT.",
+    fig.supxlabel("Sionna RT's stock path solver has no scattering-integral stage, so the target's $\\sigma$ cannot\n"
+                  "emerge from it — but its geometry (delay, Doppler) is exact. So the target's amplitude comes from PO, "
+                  "the absolute scale from the link budget, and everything else from RT.",
                   fontsize=9, color="0.4")
     fn = os.path.join(outdir, "report6_hybrid.png")
     fig.savefig(fn, dpi=130, bbox_inches="tight"); plt.close(fig)

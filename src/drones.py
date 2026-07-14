@@ -63,6 +63,11 @@ class DroneSpec:
     gimbal: str = "front"       # 'front'(전방하단) / 'belly'(중앙하단)
     accent_rgb: tuple | None = None   # 전방 암/프롭팁 식별색 (없으면 None)
     body_frac: float = 0.42     # 동체 크기/대각 비율(외형 튜닝)
+    # --- 공식 외형(암 펼침·**프로펠러 제외**) L×W×H [mm] — build_frame 이 여기에 맞춰진다 ---
+    #   축별로 None 이면 그 축은 맞추지 않는다(= 공식값이 없음).
+    #   ⚠ body_l_mm/body_w_mm/body_h_mm 는 '비율 참고용'이고 s1000plus·phantom4 는 L/W 자리에
+    #     **대각선 값이 placeholder 로** 들어가 있다 → 그걸 외형으로 쓰면 안 된다. 그래서 별도 필드.
+    envelope_mm: tuple | None = None
     # --- 드론별 개성(실루엣) — 스펙·대각·좌우대칭(비행안정) 유지하며 외형만 ---
     rotor_deg: tuple | None = None   # 모터 각도[deg] 목록. None=기본 X(쿼드)/옥토.
                                      #   접이형은 전방스윕(좌우대칭+마주보는 쌍 180°→대각 보존)
@@ -86,10 +91,15 @@ DRONES: dict[str, DroneSpec] = {
         body_l_mm=255, body_w_mm=181, body_h_mm=91,
         prop_dia_mm=152, prop_blades=2, num_rotors=4,
         max_speed_ms=19, hover_rpm=7500, rtk=False, release="released", confidence="high",
-        note="Diagonal (250 mm) not published by DJI — estimated from unfolded shape (±20 mm). Weight/prop/rotor count official.",
+        note="Diagonal (250 mm) not published by DJI — was estimated from the unfolded shape. "
+             "⚠ 2026-07-14: after fitting the frame to the OFFICIAL envelope (255×181×91 mm), the "
+             "implied motor-to-motor diagonal is 274.6 mm, i.e. the old 250 mm estimate was ~9% low. "
+             "diagonal_mm is kept as-is (it only sizes arm/motor thickness); the envelope now rules. "
+             "Weight/prop/rotor count official.",
         body_rgb=_GRAY_D, arm_style="body", gear="none", gimbal="front",
         accent_rgb=(0.95, 0.45, 0.05), body_frac=0.46,
-        rotor_deg=(40, 140, 220, 320), body_lw=(1.42, 0.66), gimbal_style="single"),
+        rotor_deg=(40, 140, 220, 320), body_lw=(1.42, 0.66), gimbal_style="single",
+        envelope_mm=(255.0, 181.0, 91.0)),        # DJI 공식(언폴드·프롭제외) — 255×181×91,
     # 2) 대형 소비자 플래그십 (출시작)
     "mavic4pro": DroneSpec(
         key="mavic4pro", name="DJI Mavic 4 Pro",
@@ -98,11 +108,15 @@ DRONES: dict[str, DroneSpec] = {
         prop_dia_mm=267, prop_blades=2, num_rotors=4,
         max_speed_ms=25, hover_rpm=5500, rtk=False, release="released", confidence="high",
         note="Large consumer flagship (2025); front triple-camera gimbal (360° infinity). "
-             "Weight/dimensions/propeller official (prop 266.7 mm, shown rounded to 267 mm); "
-             "diagonal estimated (not published by DJI; Mavic 3 = 380.1 mm).",
+             "Weight/dimensions/propeller official (prop 266.7 mm, shown rounded to 267 mm). "
+             "⚠ diagonal was ESTIMATED (400 mm) and is geometrically INCONSISTENT with the official "
+             "envelope: 328.7×390.5 mm cannot be spanned by a 400 mm motor diagonal. Fitting the frame "
+             "to the official envelope implies a diagonal of 440.9 mm. The envelope (official) wins; "
+             "diagonal_mm is kept only as an arm/motor thickness scale.",
         body_rgb=_SILVER, arm_style="body", gear="none", gimbal="front",
         accent_rgb=None, body_frac=0.42,
-        rotor_deg=(32, 148, 212, 328), body_lw=(1.52, 0.62), gimbal_style="triple"),
+        rotor_deg=(32, 148, 212, 328), body_lw=(1.52, 0.62), gimbal_style="triple",
+        envelope_mm=(328.7, 390.5, 135.2)),      # DJI 공식(언폴드·프롭제외),
     # 3) 엔터프라이즈 측량기 (RTK 탑재)
     "matrice4e": DroneSpec(
         key="matrice4e", name="DJI Matrice 4E",
@@ -113,7 +127,8 @@ DRONES: dict[str, DroneSpec] = {
         note="Prop diameter confirmed 274 mm by verification (292→274). Onboard RTK (precise-positioning antenna).",
         body_rgb=_OFFWHT, arm_style="body", gear="feet", gimbal="front",
         accent_rgb=None, body_frac=0.42,
-        rotor_deg=(45, 135, 225, 315), body_lw=(1.08, 0.98), gimbal_style="sensor"),
+        rotor_deg=(45, 135, 225, 315), body_lw=(1.08, 0.98), gimbal_style="sensor",
+        envelope_mm=(307.0, 387.5, 149.5)),      # DJI 공식(언폴드·프롭제외),
     # 4) 대형 산업용 옥토콥터 (8암) — 단종, 카본 프레임
     "s1000plus": DroneSpec(
         key="s1000plus", name="DJI S1000+",
@@ -125,7 +140,8 @@ DRONES: dict[str, DroneSpec] = {
              "4400 g is the AIRFRAME weight; recommended takeoff weight 6.0-11.0 kg.",
         body_rgb=_BLACK, arm_style="carbon", gear="tall", gimbal="belly",
         accent_rgb=(0.85, 0.10, 0.10), body_frac=0.30,
-        body_lw=(1.0, 1.0), gimbal_style="belly"),
+        body_lw=(1.0, 1.0), gimbal_style="belly",
+        envelope_mm=(None, None, 462.0)),        # 높이만 공식(1045 은 대각선 → L/W 는 맞추지 않는다),
     # 5) 고정암 쿼드 (클래식, 흰색 셸)
     "phantom4": DroneSpec(
         key="phantom4", name="DJI Phantom 4",
@@ -136,43 +152,37 @@ DRONES: dict[str, DroneSpec] = {
         note="Fixed (non-folding) arms, one-piece white shell + integrated landing legs. Classic Phantom shape.",
         body_rgb=_WHITE, arm_style="body", fixed_arm=True, gear="legs", gimbal="front",
         accent_rgb=None, body_frac=0.52,
-        rotor_deg=(45, 135, 225, 315), body_lw=(1.06, 1.0), gimbal_style="recessed"),
+        rotor_deg=(45, 135, 225, 315), body_lw=(1.06, 1.0), gimbal_style="recessed",
+        envelope_mm=(None, None, 198.0)),        # 높이만 공식(350 은 대각선 → L/W 는 맞추지 않는다),
 }
 
-# 부위(그룹) → (재질키, 한글설명). 색은 build_drone 가 스펙에서 직접 지정.
+# 부위(그룹) → (재질키, 한글설명).  **재질 정의는 materials.MATERIALS 가 유일한 진리원**이고,
+#   Sionna RT(전파)와 PO(RCS)가 **둘 다 거기서 읽는다**. 여기선 '어느 부위가 어느 재질인가'만 정한다.
+#   색은 build_drone 가 스펙에서 직접 지정(전파물성과 무관).
 DRONE_GROUP_MAT = {
-    "body":   ("plastic", "동체 셸"),
-    "canopy": ("plastic", "상단 캐노피/배터리"),
-    "arm":    ("carbon",  "암"),
-    "motor":  ("metal",   "모터"),
-    "prop":   ("plastic", "프로펠러"),
-    "gear":   ("plastic", "착륙장치"),
-    "camera": ("plastic", "짐벌 카메라"),
-    "accent": ("plastic", "전방 식별색"),
-    "battery": ("metal",  "배터리팩(내부)"),
-    "pcb":    ("metal",   "ESC/메인보드(내부)"),
+    "body":    ("plastic",         "동체 셸"),
+    "canopy":  ("plastic",         "상단 캐노피/배터리"),
+    "arm":     ("carbon",          "암"),
+    "motor":   ("metal",           "모터"),
+    "prop":    ("prop_plastic",    "프로펠러"),
+    "gear":    ("plastic",         "착륙장치"),
+    "camera":  ("camera_assembly", "짐벌 카메라(금속 하우징+유리렌즈)"),
+    "accent":  ("plastic",         "전방 식별색"),
+    "battery": ("metal",           "배터리팩(내부) — GHz 에서 파우치 포일은 사실상 금속"),
+    "pcb":     ("pcb",             "ESC/메인보드(내부) — FR-4 + 구리 그라운드플레인"),
 }
-
-# 부위(그룹) → PO 진폭 반사계수 |Γ| (rcs_po 재질 가중용).
-#   근거(수직입사 |Γ|=(√εr−1)/(√εr+1) 기준 대표값):
-#   · 플라스틱 셸(ABS/PC, εr≈2.7, 1~3mm 박막): 단일면 0.24, 박막 간섭 밴드 0.1~0.45 → 대표 0.28
-#   · 프로펠러(얇은 플라스틱, 카본충전이면 ↑): 0.25
-#   · 카본(준도체, 섬유 이방성 무시): 0.90
-#   · 금속(모터·배터리 파우치포일·짐벌 하우징): 1.0 (배터리 셀 포일은 GHz 에서 사실상 금속)
-#   · PCB(FR-4+구리 그라운드플레인): 0.80
-#   · 카메라/짐벌(금속 하우징+유리+모터 혼합): 0.85
-_GAMMA_PLASTIC = 0.28
-GROUP_GAMMA = {
-    "body": _GAMMA_PLASTIC, "canopy": _GAMMA_PLASTIC, "accent": _GAMMA_PLASTIC,
-    "gear": _GAMMA_PLASTIC, "prop": 0.25,
-    "arm": 0.90, "motor": 1.0, "camera": 0.85, "battery": 1.0, "pcb": 0.80,
-}
+#  ⚠ 2026-07-14 수정: camera 는 Sionna 에서 **plastic**(|Γ|=0.244)이었는데 PO 에선 0.85 였다
+#     — 같은 부품을 두 엔진이 **10.9 dB** 다르게 본 버그. 이제 'camera_assembly'(ITU metal +
+#     PO 실효 0.85)로 통합되어 그런 어긋남이 구조적으로 불가능하다.
+#     prop 도 'prop_plastic'(PO 실효 0.25)으로 분리 — 예전 손표의 값을 재질 정의로 옮겼다.
 
 
-def drone_gamma_map(spec: DroneSpec) -> dict:
-    """드론 1종의 그룹→|Γ| 맵. 셸형 암(arm_style≠carbon)은 build_frame 이 'body' 그룹으로
-    넣으므로 자동으로 플라스틱 |Γ| 가 적용된다(카본 암은 'arm' 그룹 → 0.90)."""
-    return dict(GROUP_GAMMA)
+def drone_gamma_map(spec: DroneSpec, fc: float = 3.5e9) -> dict:
+    """드론 1종의 **그룹 → PO 진폭 반사계수 |Γ|** 맵.
+    ⚠ 더 이상 손으로 적은 표가 아니다 — **materials.MATERIALS 에서 유도**한다(Sionna 와 동일 출처).
+    셸형 암(arm_style≠carbon)은 build_frame 이 'body' 그룹으로 넣으므로 자동으로 플라스틱이 적용된다."""
+    from materials import gamma_po
+    return {grp: gamma_po(mat, fc) for grp, (mat, _) in DRONE_GROUP_MAT.items()}
 
 
 # --------------------------------------------------------------------------- #
@@ -206,9 +216,8 @@ def _drone_dims(spec: DroneSpec):
     return diag, r, prop_r, bh, body_l, body_w, body_z
 
 
-def build_frame(spec: DroneSpec) -> Mesh:
-    """**회전하지 않는 부분**: 동체/캐노피/암/모터/착륙장치/카메라/액센트 (프로펠러 제외).
-    드론 로컬 프레임(전방 +x). pose_articulated 에서 몸체 자세를 통째로 적용한다."""
+def _build_frame_raw(spec: DroneSpec) -> Mesh:
+    """(내부) 외형보정 **전** 프레임 — 파라메트릭 실루엣만. build_frame 을 쓸 것."""
     m = Mesh()
     diag, r, prop_r, bh, body_l, body_w, body_z = _drone_dims(spec)
     # 동체(둥근 hull) + 전방 코(테이퍼) + 캐노피(돔) — 박스 대신 곡면
@@ -254,6 +263,57 @@ def build_frame(spec: DroneSpec) -> Mesh:
     return m
 
 
+# --------------------------------------------------------------------------- #
+#  공식 외형 맞춤 (envelope fit) — RCS 를 위해 **투영면적이 제원과 같아야** 한다
+# --------------------------------------------------------------------------- #
+#  왜 필요한가 (2026-07-14 감사):
+#    파라메트릭 실루엣만으로 만든 프레임은 공식 외형과 크게 어긋나 있었다.
+#      높이  : 전 기종 **−25 ~ −47 %**  (원인: _drone_dims 의 body_z = 0.35·body_h)
+#      폭    : mavic4pro **−36 %**
+#    저앙각(챔버 기하 el≈15°) 관측에선 **높이가 측면 투영면적을 지배**하고, 평판극한에서
+#    σ ∝ (투영면적)² 이므로 높이 −44 % 는 σ 를 ~5 dB 과소평가한다 → RCS·Pd 에 직접 파급.
+#  무엇을 하나:
+#    실루엣(파라메트릭)은 그대로 두고, **프레임 바운딩박스가 공식 L×W×H 와 같아지도록**
+#    축별 배율을 건다. 프로펠러는 제원 지름(prop_dia_mm)이 따로 있으므로 **스케일하지 않는다.**
+#    모터 위치(rotor_layout)에는 같은 배율을 걸어 프로펠러가 모터 위에 정확히 앉게 한다.
+#  대가(정직하게):
+#    비등방 배율이라 모터 원통이 약간 타원이 된다(시각적 미세 왜곡). RCS 가 보는 것은
+#    **투영면적과 외형**이므로 이쪽을 맞추는 것이 옳다는 판단.
+#  ⚠ 대각선(diagonal_mm)은 모터-모터 거리이고 이 배율에 따라 **변한다** — 원래 스펙의
+#    diagonal 은 mavic4pro 의 경우 '추정값'이고 공식 외형과 기하학적으로 모순이었다
+#    (400 mm 로는 329×391 외형이 불가능; 외형에서 유도하면 ~440 mm). 공식 외형을 우선한다.
+_FIT_CACHE: dict = {}
+
+
+def frame_fit_scale(spec: DroneSpec) -> tuple[float, float, float]:
+    """프레임을 공식 외형(spec.envelope_mm)에 맞추는 축별 배율 (sx, sy, sz).
+    envelope_mm 이 없거나 해당 축이 None 이면 그 축 배율은 1.0."""
+    if spec.key in _FIT_CACHE:
+        return _FIT_CACHE[spec.key]
+    env = spec.envelope_mm
+    if not env:
+        _FIT_CACHE[spec.key] = (1.0, 1.0, 1.0)
+        return _FIT_CACHE[spec.key]
+    import numpy as _np
+    V = _np.asarray(_build_frame_raw(spec).v, float)
+    ext = (V.max(0) - V.min(0)) * 1000.0                  # 현재 바운딩박스 [mm]
+    s = []
+    for i in range(3):
+        tgt = env[i]
+        s.append(1.0 if (tgt is None or ext[i] <= 1e-9) else float(tgt) / float(ext[i]))
+    _FIT_CACHE[spec.key] = tuple(s)
+    return _FIT_CACHE[spec.key]
+
+
+def build_frame(spec: DroneSpec) -> Mesh:
+    """**회전하지 않는 부분**: 동체/캐노피/암/모터/착륙장치/카메라/액센트 (프로펠러 제외).
+    드론 로컬 프레임(전방 +x). 바운딩박스는 **공식 외형(envelope_mm)과 일치**한다.
+    pose_articulated 에서 몸체 자세를 통째로 적용한다."""
+    m = _build_frame_raw(spec)
+    sx, sy, sz = frame_fit_scale(spec)
+    return m if (sx, sy, sz) == (1.0, 1.0, 1.0) else m.scaled(sx, sy, sz)
+
+
 def build_propeller(spec: DroneSpec, n: int = 10) -> Mesh:
     """**프로펠러 1개**(prop_blades 장)를 허브 원점 기준으로 생성(스핀 적용 전, z축 회전).
     pose_articulated/마이크로도플러에서 이 메쉬를 z회전(스핀)시켜 각 로터에 배치한다.
@@ -273,12 +333,25 @@ def rotor_layout(spec: DroneSpec) -> list[dict]:
     arm_t = (0.08 if spec.fixed_arm else 0.045) * diag
     motor_h = 0.045 * diag
     prop_z = motor_h + arm_t / 2 + 0.006
+    sx, sy, sz = frame_fit_scale(spec)            # 프레임과 **같은** 외형보정 배율
     out = []
     for k, ang in enumerate(motor_angles(spec)):
         ca, sa = math.cos(math.radians(ang)), math.sin(math.radians(ang))
-        out.append(dict(center=(r * ca, r * sa, prop_z),
+        out.append(dict(center=(r * ca * sx, r * sa * sy, prop_z * sz),
                         base_ang=ang + 12.0, dir=(1 if k % 2 == 0 else -1)))
     return out
+
+
+def frame_envelope_mm(spec: DroneSpec) -> dict:
+    """진단용: 이 스펙이 만드는 프레임의 실제 외형/대각선을 재서 공식값과 비교한다."""
+    import numpy as _np
+    V = _np.asarray(build_frame(spec).v, float)
+    ext = (V.max(0) - V.min(0)) * 1000.0
+    C = _np.array([r["center"] for r in rotor_layout(spec)], float)
+    diag_eff = 2.0 * float(_np.linalg.norm(C[:, :2], axis=1).mean()) * 1000.0
+    return dict(lwh_mm=tuple(map(float, ext)), official_mm=spec.envelope_mm,
+                diagonal_spec_mm=spec.diagonal_mm, diagonal_effective_mm=diag_eff,
+                fit_scale=frame_fit_scale(spec))
 
 
 def build_drone(spec: DroneSpec) -> Mesh:

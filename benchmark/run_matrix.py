@@ -276,7 +276,7 @@ def fig_occupancy(a, outdir=FIGDIR):
     ax.set_ylim(-0.03, 1.05)
     ax.set_xlabel("Illuminator EIRP [dBm]  (physical knob — target SNR derived from link budget)")
     ax.set_ylabel("Detection probability Pd (Wilson 95% CI)")
-    ax.set_title("Occupancy fairness — same 5G 100MHz, yet what is 'on' (grids above) drives Pd (anechoic chamber)\n"
+    ax.set_title("Occupancy fairness — same 5G 100MHz, yet what is 'on' (grids above) drives Pd (semi-anechoic chamber)\n"
                  f"mavic4pro · radial · CPI {T_CPI*1e3:.0f}ms · CFAR Pfa={PFA:g} · N={a['N']}/point",
                  fontsize=11.5)
     # '점유의 대가' 화살표 — G3 와 G1 이 Pd 50% 를 처음 넘는 EIRP 사이 간격
@@ -369,7 +369,7 @@ def fig_matrix(b, outdir=FIGDIR):
     wf_lab = [f"{k}\nres {C0/make_wf(*WAVEFORMS[k]).bw_hz:.0f} m" for k in wfs]
     ax.set_xticks(range(len(wfs)), wf_lab, fontsize=9)
     ax.set_yticks(range(len(DRONES5)), dr_lab, fontsize=9)
-    ax.set_title("Signal × drone matrix — fixed budget (EIRP %.0f dBm) · radial · G3 (anechoic chamber, all measured)\n"
+    ax.set_title("Signal × drone matrix — fixed budget (EIRP %.0f dBm) · radial · G3 (semi-anechoic chamber, all measured)\n"
                  "rows=drones (by size), cols=waveforms (by range resolution) · cell color=SCR margin · err=single-target peak accuracy (high SNR: accuracy≈resolution/√SNR)\n"
                  "narrowband=lower kTB noise→higher SCR · resolution is range-axis separability (direct-path residual, multi-target), not accuracy"
                  % EIRP_DBM, fontsize=11)
@@ -547,6 +547,9 @@ def main():
     ap.add_argument("--quick", action="store_true", help="빠른 점검(셀·trial 축소)")
     ap.add_argument("--only", default="a,b,c,d", help="실행 섹션 (예: a,b)")
     ap.add_argument("--workers", type=int, default=min(12, os.cpu_count() or 4))
+    ap.add_argument("--replot", action="store_true",
+                    help="계산은 건너뛰고 캐시된 report5_results.json 으로 그림만 다시 그린다 "
+                         "(제목·캡션 문구만 고쳤을 때 — 몬테카를로 수 분을 아낀다)")
     args = ap.parse_args()
     only = set(args.only.lower().split(","))
 
@@ -575,6 +578,18 @@ def main():
             json.dump(results, f, ensure_ascii=False, indent=1, default=float)
 
     fig_overview(results)                       # '이 벤치마크가 무엇을 하는가' 한 장 (항상 갱신)
+
+    if args.replot:                             # 캐시된 결과로 그림만 재생성
+        missing = [k for k in ("A_occupancy", "B_matrix", "C_scenarios", "D_rt") if k not in results]
+        if missing:
+            raise SystemExit(f"[matrix] --replot 불가: {out} 에 {missing} 없음 — 먼저 계산을 돌리세요.")
+        fig_occupancy(results["A_occupancy"])
+        fig_matrix(results["B_matrix"])
+        fig_scenarios(results["C_scenarios"])
+        fig_rt(results["D_rt"])
+        print(f"[matrix] replot 완료 ({time.time()-t0:.0f}s) — 계산은 건너뜀")
+        return
+
     if "a" in only:
         results["A_occupancy"] = section_a(args.workers, args.quick); _save()
         fig_occupancy(results["A_occupancy"])

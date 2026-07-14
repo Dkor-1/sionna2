@@ -23,7 +23,11 @@ from dataclasses import dataclass
 
 # GPU 는 **2번**을 기본 사용(사용자 지정 시 존중). mitsuba/OptiX 가 import 시점에
 # CUDA_VISIBLE_DEVICES 를 읽으므로 반드시 mitsuba import 전에 설정한다.
-os.environ.setdefault("CUDA_VISIBLE_DEVICES", "2")
+#   ⚠ 2026-07-14: 예전엔 "2" 로 하드코딩했다 — 다른 GPU 가 놀고 있어도 2번만 쓰고,
+#      2번이 남의 작업으로 차 있으면 OOM 이 났다. 이제 **가장 한가한 GPU 를 자동 선택**한다.
+#      강제하려면 SIONNA2_GPU=1 (또는 CUDA_VISIBLE_DEVICES 를 직접 세팅).
+from gpu import pick as _pick_gpu    # noqa: E402
+_pick_gpu(verbose=False)
 
 import mitsuba as mi
 import sionna.rt as rt

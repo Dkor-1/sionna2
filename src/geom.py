@@ -365,8 +365,15 @@ def prop_blade(R, root=0.12, thick=None, pitch_deg=18.0, twist_deg=11.0,
         for k in range(4):
             k2 = (k + 1) % 4
             m.add_quad(a[k], b[k], b[k2], a[k2])             # 법선 바깥(outward) 규약
-    m.add_quad(rings[0][3], rings[0][2], rings[0][1], rings[0][0])     # 루트 캡(outward)
-    m.add_quad(rings[-1][0], rings[-1][1], rings[-1][2], rings[-1][3]) # 팁 캡(outward)
+    # 캡(뚜껑) 2장 — **바깥 법선**이 되도록 감는다.
+    #   ⚠ 2026-07-14 수정: 예전 코드는 두 캡의 감기가 **반대**여서 법선이 안쪽을 향했다
+    #     (주석엔 outward 라고 적혀 있었지만 우권 규칙으로 계산하면 루트 +x, 팁 −x = 둘 다 안쪽).
+    #     PO 는 조명 판정을 n̂·û>0 로 하므로 뒤집힌 면은 **잘못 포함/제외**된다.
+    #     프로펠러는 마이크로도플러의 신호 그 자체라 특히 민감하다.
+    #   단면 링 순서는 (LE_top, TE_top, TE_bot, LE_bot) = +x 에서 볼 때 시계방향.
+    #   루트(작은 x) 는 법선 −x, 팁(큰 x) 은 법선 +x 가 바깥이다.
+    m.add_quad(rings[0][0], rings[0][1], rings[0][2], rings[0][3])      # 루트 캡 → 법선 −x (바깥)
+    m.add_quad(rings[-1][3], rings[-1][2], rings[-1][1], rings[-1][0])  # 팁  캡 → 법선 +x (바깥)
     return m
 
 

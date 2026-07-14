@@ -93,10 +93,12 @@ def render_flight(spp=160, res=(1280, 960)):
     cparts, info = chamber_parts(CMESH, cutaway=True)
     W, D, H = info["W"], info["D"], info["H"]
     # (key, x, y, z) — 밝은 -x 절반에 모으고 높이를 다양하게
+    # ※ matrice4e 는 (5, 11, 1.6) 이면 카메라 축에서 42° — 화각(반각 ~25°) **밖**이라 프레임에서
+    #   잘려 나갔다("Matrice 는 어디 있죠?"). (9, 8, 1.6) 이면 축에서 9°로 확실히 들어온다.
     placement = [
         ("mini5pro",  7,  7,  3.2),
         ("mavic4pro", 13, 9,  2.4),
-        ("matrice4e", 5,  11, 1.6),
+        ("matrice4e", 9,  8,  1.6),
         ("phantom4",  15, 7,  2.8),
         ("s1000plus", 10, 10, 0.0),     # 바닥에 착륙
     ]
