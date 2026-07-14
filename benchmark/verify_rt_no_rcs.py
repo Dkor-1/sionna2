@@ -141,6 +141,45 @@ def rt_sphere_with_S(r, S, spp=4_000_000, seed=1):
     return float(np.sqrt(np.sum(np.abs(a[gate]) ** 2)) / A), int(gate.sum())
 
 
+def chamber_path_dump(spp=4_000_000, seed=1, echo_radius=2.0):
+    """[D] 챔버에서 'echo_radius 2m' 규약이 무엇을 표적에코로 오인하는지 — 지연을 그대로 덤프."""
+    from scene_build import build_scene, chamber_parts, drone_parts
+    from channel import _CMESH, _DMESH
+    from drones import DRONES
+    from radar_scene import paths_arrays
+    import mitsuba as mi
+    import sionna.rt as rt
+    cparts, _ = chamber_parts(_CMESH, cutaway=False)
+    dp, _m = drone_parts(DRONES["mavic4pro"], position=tuple(float(v) for v in TGT),
+                         yaw_deg=0.0, mesh_dir=os.path.join(_DMESH, "mavic4pro"))
+    scene = build_scene(cparts + dp, fc=FC)
+    scene.tx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+    scene.rx_array = rt.PlanarArray(num_rows=1, num_cols=1, pattern="iso", polarization="V")
+    scene.add(rt.Transmitter("tx", position=mi.Point3f(*[float(v) for v in TX])))
+    scene.add(rt.Receiver("rx", position=mi.Point3f(*[float(v) for v in RX])))
+    paths = rt.PathSolver()(scene, max_depth=3, los=True, specular_reflection=True,
+                            diffuse_reflection=True, refraction=False,
+                            samples_per_src=int(spp), seed=int(seed))
+    a, tau, dop, V, inter = paths_arrays(paths)
+    a = np.asarray(a); tau = np.asarray(tau); inter = np.asarray(inter)
+    tgtp = np.asarray(TGT, float)
+    depth, P = inter.shape
+    any_int = np.zeros(P, bool); near = np.zeros(P, bool); nbounce = np.zeros(P, int)
+    for d in range(depth):
+        pres = inter[d] != 0
+        any_int |= pres; nbounce += pres.astype(int)
+        near |= pres & (np.linalg.norm(V[d] - tgtp, axis=-1) < echo_radius)
+    A = abs(complex(np.sum(a[~any_int]))) + 1e-30
+    p = bistatic_params(TX, RX, TGT, (0, 0, 0), FC)
+    tau_e = (p["R1"] + p["R2"]) / C0
+    rows = [dict(tau_ns=float(tau[i]*1e9), amp_db=float(20*np.log10(abs(a[i])/A + 1e-30)),
+                 bounces=int(nbounce[i]),
+                 is_true_echo=bool(nbounce[i] == 1 and abs(tau[i]-tau_e) < 3e-9))
+            for i in np.where(near)[0]]
+    return dict(tau_expect_ns=tau_e*1e9, tau_los_ns=p["L"]/C0*1e9, rows=rows,
+                n_near=len(rows), n_true=sum(r["is_true_echo"] for r in rows))
+
+
 def main():
     p = bistatic_params(TX, RX, TGT, (0, 0, 0), FC)
     tau_e = (p["R1"] + p["R2"]) / C0
@@ -214,6 +253,18 @@ def main():
     print("판정: RT 는 표적의 지연·도플러·기하는 정확히 주지만(τ 확인), **진폭(σ)은 주지 못한다.**")
     print("      → 표적 진폭은 PO 로, 환경(벽·다중경로)은 RT 로. 이것이 하이브리드의 근거다.")
     print("=" * 86)
+
+    # ---------- [D] 챔버에서 '표적 근방 2m' 규약이 삼키는 것 ----------
+    print("\n" + "-" * 86)
+    print("[D] 챔버: 'echo_radius 2m' 규약이 표적에코로 오인하는 경로들")
+    print("-" * 86)
+    d = chamber_path_dump()
+    print(f"  '표적 근방' 경로 {d['n_near']}개 중 **진짜 1-bounce 표적에코는 {d['n_true']}개**")
+    for r in sorted(d["rows"], key=lambda x: x["tau_ns"])[:12]:
+        tag = "← 진짜 표적에코" if r["is_true_echo"] else "  (벽 다중반사 오분류)"
+        print(f"    τ={r['tau_ns']:7.1f} ns · {r['amp_db']:+7.1f} dB · {r['bounces']}-bounce {tag}")
+    print(f"  (기대 지연 τ=(R1+R2)/c = {d['tau_expect_ns']:.1f} ns · LOS = {d['tau_los_ns']:.1f} ns)")
+    out["D_chamber_paths"] = d
 
     fn = os.path.join(HERE, "..", "outputs", "rt_no_rcs_verify.json")
     with open(fn, "w") as f:
