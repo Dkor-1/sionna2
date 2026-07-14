@@ -95,7 +95,7 @@ def _draw_chamber_plan(ax, W, D):
 def fig_geometry(outdir=FIG, target="mavic4pro", fc=3.5e9):
     p = bistatic_params(TX, RX, TGT, VEL, fc)
     fig = plt.figure(figsize=(13, 6.4), constrained_layout=True)
-    fig.suptitle("Bistatic passive radar inside the anechoic chamber — Illuminator (TX) ↔ target drone ↔ passive receiver (RX)",
+    fig.suptitle("Bistatic passive radar in the chamber",
                  fontsize=14, fontweight="bold")
     ax = fig.add_subplot(1, 2, 1, projection="3d")
     tx, rx, tg = np.array(TX), np.array(RX), np.array(TGT)
@@ -169,11 +169,12 @@ def fig_rangedoppler(outdir=FIG, fc=3.5e9, M=48):
                          clutter=CH_CLUTTER, snr_db=14.0, rng=np.random.default_rng(3))
     fig, axes = plt.subplots(1, 2, figsize=(14, 5.6), constrained_layout=True)
     prf = fs / (len(ref) // M)
-    fig.suptitle(f"Range-Doppler map (5G NR 100MHz, anechoic chamber) — before/after ECA direct-path/reverberation removal  ·  "
-                 f"PRF={prf:.0f}Hz (±{prf/2:.0f}Hz), range resolution {C0/wf.bw_hz:.1f}m, Doppler resolution {prf/M:.1f}Hz",
-                 fontsize=13, fontweight="bold")
-    for ax, (tag, sig) in zip(axes, [("Before ECA — DPI dominates", surv),
-                                     ("After ECA — target revealed + CFAR detection", eca(surv, ref, 40))]):
+    fig.suptitle("Range-Doppler map — before and after clutter removal", fontsize=15, fontweight="bold")
+    fig.supxlabel(f"5G NR · PRF {prf:.0f} Hz (±{prf/2:.0f} Hz) · range resolution {C0/wf.ref_bw_hz:.1f} m · "
+                  f"Doppler resolution {prf/M:.1f} Hz",
+                  fontsize=8.5, color="0.45")
+    for ax, (tag, sig) in zip(axes, [("Before — direct path dominates", surv),
+                                     ("After — target revealed (CFAR)", eca(surv, ref, 40))]):
         Rb, f_d, rd = range_doppler(sig, ref, fs, M, n_range=n_range)
         rdb = 20 * np.log10(rd / rd.max() + 1e-9)
         im = ax.pcolormesh(Rb, f_d, rdb, cmap="turbo", vmin=-50, vmax=0, shading="auto")
@@ -205,7 +206,10 @@ def _pd_curve(wf, fc, snr_list, T_cpi=0.03, K=6, pfa=1e-3, seed0=0):
     0-도플러(DPI) 빈에 묻혀 ECA 에 함께 지워진다(검출 실패). T_cpi 고정이면 WiFi 도 충분한 M(≈수백)을
     얻어 표적을 DPI 와 분리한다. 절대 잡음(σ²=1), 표적은 에코 SNR 로 진폭 결정.
     무반사 챔버는 DPI 지배(잔향 약함)라 Pd 계산은 **DPI만**(clutter 생략)으로 두어도 결과 동일하고 빠르다."""
-    fs = wf.fs_hz; ref_frame = wf.tx; Lf = len(ref_frame)
+    # ⚠ 기준신호는 **wf.ref**(수신기가 아는 기준신호만) 이다 — wf.tx(미지 PDSCH 포함 전체 송신)를 쓰면
+    #   report2 의 핵심 명제("데이터는 모르는 신호라 정합필터 템플릿이 못 된다")와 report5 의 공정성
+    #   규약을 위반하고, 파형별로 4~8 dB 씩 불균등한 코히런트 이득을 공짜로 얹게 된다.
+    fs = wf.fs_hz; ref_frame = wf.ref; Lf = len(ref_frame)
     prf = fs / Lf
     # M(슬로타임 프레임수)을 2의 거듭제곱으로 → slow-time FFT 가 빠르다(소수 M 회피). Δf_d≈1/T_cpi 유지.
     M = int(2 ** round(np.log2(max(16, T_cpi * prf))))
@@ -236,22 +240,26 @@ def _pd_curve(wf, fc, snr_list, T_cpi=0.03, K=6, pfa=1e-3, seed0=0):
 def fig_detection(outdir=FIG, fc=3.5e9, T_cpi=0.03, K=4):
     snr_list = list(range(-70, -24, 8))            # 표적 에코 진폭[dB] (동일 물리 에코, 잡음 고정)
     fig, axes = plt.subplots(1, 2, figsize=(14, 5.2), constrained_layout=True)
-    fig.suptitle("Anechoic-chamber detection performance: Pd vs echo amplitude — waveform/occupancy governs detection (why idle 5G (SSB) fails)\n"
-                 f"Same physical echo · fixed noise / CPI {T_cpi*1e3:.0f}ms (uniform Doppler resolution {1/T_cpi:.0f}Hz) / CFAR Pfa=1e-3",
-                 fontsize=12.5, fontweight="bold")
+    fig.suptitle("Detection probability in the chamber", fontsize=15, fontweight="bold")
+    fig.supxlabel(f"Passive processing — matched filter uses the known reference signal only · "
+                  f"same echo, fixed noise · CPI {T_cpi*1e3:.0f} ms · CFAR Pfa = 1e-3",
+                  fontsize=8.5, color="0.45")
     col = {"wifi": "#1565c0", "lte": "#ef6c00", "nr": "#2e7d32"}
     for key, wf in all_waveforms("G3").items():
         pd, M = _pd_curve(wf, wf.carrier_hz, snr_list, T_cpi, K)
+        std_name = {"wifi": "WiFi", "lte": "LTE", "nr": "5G"}[key]
         axes[0].plot(snr_list, pd, "o-", color=col[key], lw=1.8,
-                     label=f"{wf.name} (B={wf.bw_hz/1e6:.0f}MHz, resolution={C0/wf.bw_hz:.0f}m, M={M})")
-    axes[0].set_title("(a) Per waveform (G3 full load) — bandwidth↑ → processing gain & range resolution↑ → higher Pd at same SNR\n"
-                      "  Note (chamber scale): LTE range resolution ≈17 m cannot resolve chamber Rb", fontsize=10)
+                     label=f"{std_name} · {wf.ref_name} {wf.ref_bw_hz/1e6:.0f} MHz  →  {C0/wf.ref_bw_hz:.0f} m")
+    axes[0].set_title("(a) Per standard (PRS session)", fontsize=11.5)
+    # G2 와 G3 는 패시브 기준신호가 똑같이 NR-PRS 라 곡선이 완전히 겹친다(= report2 의 'G2=G3' 결론).
+    #   그대로 그리면 G2 가 G3 밑에 완전히 가려지므로 G3 를 굵은 점선으로 겹쳐 둘 다 보이게 한다.
+    styles = {"G1": dict(ls="-", lw=1.8, marker="o"), "G2": dict(ls="-", lw=2.6, marker="o"),
+              "G3": dict(ls="--", lw=1.8, marker="s", ms=4)}
     for mode, c in [("G1", "#c62828"), ("G2", "#ef6c00"), ("G3", "#2e7d32")]:
         wf = nr_downlink(occupancy=mode)
         pd, M = _pd_curve(wf, wf.carrier_hz, snr_list, T_cpi, K)
-        axes[1].plot(snr_list, pd, "o-", color=c, lw=1.8,
-                     label=f"5G {mode} (ref {wf.ref_name}, occ {wf.occupancy_frac*100:.0f}%)")
-    axes[1].set_title("(b) Per 5G occupancy mode — G1 (SSB · sparse · narrowband) loses processing gain → poor detection", fontsize=10.5)
+        axes[1].plot(snr_list, pd, color=c, label=f"5G {mode} · ref {wf.ref_name}", **styles[mode])
+    axes[1].set_title("(b) 5G per occupancy mode — G2 and G3 coincide", fontsize=11.5)
     for ax in axes:
         ax.axhline(0.9, color="0.6", ls="--", lw=0.8); ax.set_ylim(-0.03, 1.03)
         ax.set_xlabel("Target echo amplitude [dB] (absolute, fixed noise)"); ax.set_ylabel("Detection probability Pd")
@@ -342,8 +350,8 @@ def gif_bistatic_tracking(outdir=FIG, target="mavic4pro", occupancy="G3",
             dh = np.array(det_hist); axr.plot(dh[:, 0], dh[:, 1], ".", color="#ffd600", ms=4)  # 검출 트랙
         axr.set_xlim(Rb[0], Rb[-1]); axr.set_ylim(f_d[0], f_d[-1])
         axr.set_xlabel("Bistatic range Rb [m]"); axr.set_ylabel("Doppler f_d [Hz]")
-        axr.set_title("Range-Doppler map (ECA+CAF+CA-CFAR Pfa=1e-4) — ○ true target  × detection  · track", fontsize=10)
-        fig.suptitle("Anechoic-chamber bistatic passive radar — drone flight tracking (5G NR, detection every frame)",
+        axr.set_title("Range-Doppler — ○ truth  × detection  · track", fontsize=10)
+        fig.suptitle("Drone flight tracking in the chamber",
                      fontsize=13, fontweight="bold")
         return ()
 

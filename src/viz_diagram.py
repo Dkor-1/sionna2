@@ -178,6 +178,7 @@ def size_comparison(outdir=FIG):
     specs = [DRONES[k] for k in keys]
     fig = plt.figure(figsize=(14, 8.5), constrained_layout=True)
     gs = fig.add_gridspec(2, 2, height_ratios=[1.5, 1])
+    fig.suptitle("Five DJI drones at the same scale", fontsize=17, fontweight="bold")
 
     # (위) 같은 축척 평면 비교 — 프로펠러 회전원 기준
     axT = fig.add_subplot(gs[0, :]); axT.set_aspect("equal")
@@ -199,11 +200,10 @@ def size_comparison(outdir=FIG):
                  ha="center", va="top", fontsize=9.5)
         x += maxspan*1.24
     axT.set_xlim(-maxspan*0.1, x); axT.set_ylim(-maxspan*0.8, maxspan*0.62)
-    axT.set_title("Size comparison of 5 drones (same scale · dashed circle = propeller disc)",
-                  fontsize=14, fontweight="bold")
+    axT.set_title("Top view — dashed = propeller disc", fontsize=12)
     # 눈금 간격을 1 m 로 고정 — 라벨과 실제 눈금이 어긋나지 않게(기존 '1 division ≈ 1.4 m' 는 오류)
     axT.xaxis.set_major_locator(MultipleLocator(1.0))
-    axT.set_xlabel("x [m] — same scale for all  (tick spacing = 1 m) · S1000+ is by far the largest")
+    axT.set_xlabel("x [m]  (tick spacing = 1 m)")
     axT.set_yticks([])
 
     # (아래좌) 대각거리 막대
@@ -223,8 +223,12 @@ def size_comparison(outdir=FIG):
     for i, w in enumerate(wts):
         axR.text(w*1.03, i, f"{w:g} g", va="center", fontsize=9)
     axR.set_xscale("log")
-    axR.set_title("Weight [g, log] — takeoff weight (S1000+ = airframe; TOW 6-11 kg)", fontsize=11)
+    axR.set_title("Takeoff weight [g, log]", fontsize=12)
     axR.invert_yaxis(); axR.grid(axis="x", alpha=0.3)
+
+    # 제목에서 뺀 단서는 하단 회색 캡션 한 줄로(constrained_layout 이 자리를 잡아 주는 supxlabel)
+    fig.supxlabel("S1000+ is by far the largest; its 4400 g is airframe weight only (takeoff weight 6-11 kg).",
+                  fontsize=8.5, color="0.45")
 
     os.makedirs(outdir, exist_ok=True)
     fn = os.path.join(outdir, "size_compare.png")
@@ -238,7 +242,7 @@ def size_comparison(outdir=FIG):
 # --------------------------------------------------------------------------- #
 def chamber_schematic(outdir=FIG, W=30, D=20, H=11, ab_h=0.4):
     fig = plt.figure(figsize=(13, 6), constrained_layout=True)
-    fig.suptitle("Large anechoic chamber (shielded facility) — 30 m × 20 m × 11 m", fontsize=16, fontweight="bold")
+    fig.suptitle("Shielded anechoic chamber — 30 × 20 × 11 m", fontsize=17, fontweight="bold")
 
     # (좌) 평면도
     ax1 = fig.add_subplot(1, 2, 1); ax1.set_aspect("equal")

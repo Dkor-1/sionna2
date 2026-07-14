@@ -45,8 +45,7 @@ def _equal(ax, mesh, pad=1.05):
 def fig_articulation(outdir=FIG, target="mavic4pro"):
     spec = DRONES[target]; cmap = drone_colors(spec)
     fig = plt.figure(figsize=(15, 7.6), constrained_layout=True)
-    fig.suptitle(f"Articulation check — {_NAME[target]}: body attitude (roll·pitch·yaw) independent of propeller rotation",
-                 fontsize=14, fontweight="bold")
+    fig.suptitle(f"Articulation check — {_NAME[target]}", fontsize=16, fontweight="bold")
     # 1행: 몸체 자세 변화 (프로펠러 위상 0)
     row1 = [("level", (0, 0, 0)), ("roll 30°", (30, 0, 0)),
             ("pitch 30°", (0, 30, 0)), ("yaw 45°", (0, 0, 45))]
@@ -54,16 +53,17 @@ def fig_articulation(outdir=FIG, target="mavic4pro"):
         ax = fig.add_subplot(2, 4, j + 1, projection="3d")
         m = pose_articulated(spec, body_rpy=rpy)
         ax.add_collection3d(_polys(m, cmap)); _equal(ax, m); ax.view_init(elev=20, azim=-60)
-        ax.set_title(f"Body {lab}\n(propeller phase 0)", fontsize=9.5)
+        ax.set_title(f"Body {lab}", fontsize=11)
     # 2행: 몸체 수평 고정, 프로펠러만 회전 (위상 증가) → 분리 입증
     for j, ph in enumerate((0, 25, 50, 80)):
         ax = fig.add_subplot(2, 4, 4 + j + 1, projection="3d")
         phases = [ph] * spec.num_rotors
         m = pose_articulated(spec, body_rpy=(0, 0, 0), rotor_phase_deg=phases)
         ax.add_collection3d(_polys(m, cmap)); _equal(ax, m); ax.view_init(elev=58, azim=-60)
-        ax.set_title(f"Propeller spin {ph}°\n(body held level)", fontsize=9.5)
-    fig.text(0.5, 0.005, "Top: body tilt only (propellers stopped)   ·   Bottom: body fixed + propellers spinning  "
-             "→ the two DoF are decoupled (body RPY independent of blade spin)", ha="center", fontsize=10, color="#1565c0")
+        ax.set_title(f"Propeller spin {ph}°", fontsize=11)
+    # 각 행의 통제조건(위=몸체만 기울임 / 아래=프로펠러만 회전)은 패널 제목에서 빼고 캡션 한 줄로
+    fig.supxlabel("Top row: body tilt only · Bottom row: propellers spin only → the two degrees of freedom are decoupled",
+                  fontsize=8.5, color="0.45")
     fn = os.path.join(outdir, "report3_articulation.png"); fig.savefig(fn, dpi=130); plt.close(fig)
     print("[artic]", os.path.relpath(fn)); return fn
 
@@ -76,9 +76,7 @@ def fig_microdoppler(outdir=FIG, targets=("mavic4pro", "s1000plus"),
     fig, axes = plt.subplots(1, len(targets), figsize=(14, 5.4), constrained_layout=True)
     if len(targets) == 1:
         axes = [axes]
-    fig.suptitle("Micro-Doppler of rotating propellers — blades time-modulate backscatter even while the target hovers\n"
-                 "(vertical stripes = blade flash, black dashed = ±tip-Doppler limit, static-body 0-Doppler removed as clutter)  PO complex field E(t) STFT",
-                 fontsize=12.5, fontweight="bold")
+    fig.suptitle("Micro-Doppler of spinning propellers", fontsize=16, fontweight="bold")
     for ax, key in zip(axes, targets):
         spec = DRONES[key]
         t, E, info = microdoppler_series(spec, rpm=rpm, prf=prf, n_t=n_t, az=0.0, el=15.0)
@@ -91,13 +89,14 @@ def fig_microdoppler(outdir=FIG, targets=("mavic4pro", "s1000plus"),
                 color="k", fontsize=8, ha="right", va="bottom", zorder=6)
         ax.set_ylim(-1.5 * info["f_tip"], 1.5 * info["f_tip"])
         ax.set_xlabel("Time [ms]"); ax.set_ylabel("Doppler frequency [Hz]")
-        ax.set_title(f"{_NAME[key]}  ·  {info['n_rotors']} rotors @ {info['rpm']:.0f}rpm\n"
-                     f"Tip speed {info['v_tip']:.0f}m/s → f_tip≈±{info['f_tip']:.0f}Hz · flash {info['flash_hz']:.0f}Hz",
-                     fontsize=10)
+        ax.set_title(f"{_NAME[key]} · {info['n_rotors']} rotors @ {info['rpm']:.0f} rpm\n"
+                     f"Tip {info['v_tip']:.0f} m/s → ±{info['f_tip']:.0f} Hz · flash {info['flash_hz']:.0f} Hz",
+                     fontsize=11)
         fig.colorbar(im, ax=ax, fraction=0.046, label="Normalized power [dB]")
-    fig.text(0.5, -0.02, "Note: f_tip reaches hundreds–thousands of Hz → unambiguous view needs PRF≳2·f_tip (several kHz+). "
-             "At 5G SSB(50Hz)/CSI-RS(200Hz)/LTE CRS(1kHz) pilot rates the blade Doppler folds (aliases).",
-             ha="center", fontsize=9.5, color="#444")
+    # 줄무늬/점선의 뜻과 PRF 요구조건은 캡션 한 줄로(파일럿 반복률로는 접힌다 = 서사의 핵심)
+    fig.supxlabel("Stripes = blade flash · dashed = ±tip Doppler · static 0-Doppler removed · "
+                  "unaliased view needs PRF ≳ 2·f_tip",
+                  fontsize=8.5, color="0.45")
     fn = os.path.join(outdir, "report3_microdoppler.png"); fig.savefig(fn, dpi=130, bbox_inches="tight")
     plt.close(fig); print("[micro]", os.path.relpath(fn)); return fn
 
@@ -127,7 +126,7 @@ def gif_articulation(outdir=FIG, target="mavic4pro", frames=36, fps=18):
         try: ax.set_box_aspect((1, 1, 1))
         except Exception: pass
         ax.set_axis_off(); ax.view_init(elev=22, azim=-60)
-        ax.set_title(f"{_NAME[target]} — Body RPY wobble + propeller spin", fontsize=10)
+        ax.set_title(f"{_NAME[target]} — wobble + spin", fontsize=11)
         return ()
 
     anim = FuncAnimation(fig, update, frames=frames, blit=False)

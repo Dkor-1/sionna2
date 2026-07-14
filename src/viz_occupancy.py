@@ -16,6 +16,7 @@ import vizstyle
 vizstyle.use_korean()
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, BoundaryNorm
+from matplotlib.ticker import NullFormatter
 from matplotlib.patches import Patch
 
 from waveforms import (wifi_80211ac, lte_downlink, nr_downlink,
@@ -66,16 +67,16 @@ def _grid_image(ax, wf):
               extent=[-0.5, img.shape[1] - 0.5, fr[0], fr[-1]], interpolation="nearest")
     ax.set_xlabel("OFDM symbol", fontsize=8); ax.set_ylabel("Baseband [MHz]", fontsize=8)
     ax.tick_params(labelsize=7)
-    ax.set_title(f"{_mdesc(wf.std, wf.mode)}\nOccupancy {wf.occupancy_frac*100:.0f}% · "
-                 f"ref {wf.ref_name} {wf.ref_bw_hz/1e6:.0f}MHz · resolution {wf.range_resolution_m:.1f}m",
-                 fontsize=8.5)
+    ax.set_title(f"{_mdesc(wf.std, wf.mode)}\n"
+                 f"{wf.occupancy_frac*100:.0f}% occupied · ref {wf.ref_name} "
+                 f"{wf.ref_bw_hz/1e6:.0f} MHz → {wf.range_resolution_m:.1f} m",
+                 fontsize=9)
 
 
 def fig_resource_grids(std, outdir=FIG):
     """표준 1개의 G1/G2/G3 리소스 그리드 사진 3장 + 범례."""
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.6), constrained_layout=True)
-    fig.suptitle(f"Resource grid 'snapshot' — {_TITLE[std]}  (real cells are not always fully loaded)",
-                 fontsize=14, fontweight="bold")
+    fig.suptitle(f"Resource grid — {_TITLE[std]}", fontsize=16, fontweight="bold")
     for ax, mode in zip(axes, ("G1", "G2", "G3")):
         wf = _BUILD[std](occupancy=mode)
         _grid_image(ax, wf)
@@ -97,8 +98,12 @@ def fig_occupancy_experiment(outdir=FIG, target="mavic4pro", R=10.0, snr_db=18.0
     modes = ["G1", "G2", "G3"]; stds = ["wifi", "lte", "nr"]
     fig = plt.figure(figsize=(19, 8.2), constrained_layout=True)
     gs = fig.add_gridspec(2, 4)
-    fig.suptitle("Occupancy experiment — pilots only vs fully loaded signal (passive-radar reality)",
-                 fontsize=15, fontweight="bold")
+    fig.suptitle("Occupancy experiment — idle cell vs loaded cell",
+                 fontsize=17, fontweight="bold")
+    # 서사 유지: 패시브는 '아는 기준신호'만 상관하고, PRS 는 측위 세션에서만 켜지는 옵션이다.
+    fig.supxlabel("Passive receiver correlates known reference signals only · PRS is on only during a "
+                  "positioning session",
+                  fontsize=8.5, color="0.45")
 
     # (a) 5G NR 거리프로파일: 모드별 (패시브: 기지 파일럿만 상관)
     axA = fig.add_subplot(gs[0, :])
@@ -112,15 +117,14 @@ def fig_occupancy_experiment(outdir=FIG, target="mavic4pro", R=10.0, snr_db=18.0
         # 실측 -3dB 주엽폭 — 거리축을 8배 보간해서 잰다(원격자 c/2fs ≈ 1.2 m 에 양자화되면
         # 이론 c/2B 와 어긋나 보인다). 보간하면 실측≈이론 이 되어 (d) 막대와 일관된다.
         res = mainlobe_width_m(rm, prof)
+        short = {"G1": "G1 idle · SSB only", "G2": "G2 PRS on (positioning session)",
+                 "G3": "G3 PRS on + user data"}[mode]
         axA.plot(rm, pdb, color=col[mode], lw=1.7,
-                 label=f"{_mdesc('nr', mode)}  -> measured -3dB {res:.1f} m "
-                       f"(theory {wf.range_resolution_m:.1f} m)")
+                 label=f"{short}  →  {wf.range_resolution_m:.1f} m")
     axA.axvline(R, color="k", ls="--", lw=1, label=f"True range {R:.0f}m")
     axA.set_xlim(0, 2 * R + 5); axA.set_ylim(-40, 2)
     axA.set_xlabel("Range [m]"); axA.set_ylabel("Matched-filter output [dB]")
-    axA.set_title("(a) 5G NR — range profile per occupancy mode, measured with known pilots only\n"
-                  "(G1 = idle cell, SSB only → narrowband → blurry range / G2~G3 = positioning "
-                  "session, PRS on → wideband → sharp)", fontsize=11)
+    axA.set_title("(a) 5G NR — range profile per mode", fontsize=12)
     axA.legend(fontsize=9); axA.grid(alpha=0.3)
 
     # (b) 점유율  (c) 송신에너지  (d) 거리분해능(현실, 로그)
@@ -144,19 +148,28 @@ def fig_occupancy_experiment(outdir=FIG, target="mavic4pro", R=10.0, snr_db=18.0
     for j, m in enumerate(modes):
         axD.bar(x + (j - 1) * w, [metrics[s][m].range_resolution_m for s in stds], w, color=col[m])
     axD.set_xticks(x); axD.set_xticklabels(labs, fontsize=8); axD.set_ylabel("Range resolution [m]")
-    axD.set_yscale("log"); axD.set_title("(d) Range resolution ← ref-signal bandwidth (freq axis)", fontsize=10); axD.grid(axis="y", alpha=0.3)
+    axD.set_yscale("log"); axD.set_title("(d) Range resolution ← ref bandwidth", fontsize=10); axD.grid(axis="y", alpha=0.3)
+    # 로그축 눈금을 '2×10¹' 같은 지수표기 대신 읽기 쉬운 숫자로
+    axD.set_yticks([1, 2, 5, 10, 20]); axD.set_yticklabels(["1", "2", "5", "10", "20"])
+    axD.yaxis.set_minor_formatter(NullFormatter())          # 3×10⁰ 같은 지수 라벨 제거
+    axD.set_ylim(1.2, 32)
 
     # (e) 최대 무모호 속도 ← 기준신호 반복률(시간축) v_max=PRF·λ/4
     axE = fig.add_subplot(gs[1, 3])
+    vmax_all = [metrics[s][m].v_unambiguous_ms for s in stds for m in modes]
     for j, m in enumerate(modes):
         axE.bar(x + (j - 1) * w, [metrics[s][m].v_unambiguous_ms for s in stds], w, color=col[m])
     for key in ("mavic4pro", "mini5pro"):                 # 일반 드론 최고속도 기준선
         sp = DRONES[key].max_speed_ms
         axE.axhline(sp, ls="--", lw=1, color="0.4", alpha=0.7)
-    axE.text(len(stds)-1, DRONES["mavic4pro"].max_speed_ms*1.05, "Typical drones 19~25 m/s",
-             fontsize=7.5, color="0.35", ha="right", va="bottom")
     axE.set_xticks(x); axE.set_xticklabels(labs, fontsize=8); axE.set_ylabel("Max velocity v_max [m/s]")
-    axE.set_yscale("log"); axE.set_title("(e) Max unambiguous velocity ← repetition rate (time axis)", fontsize=10); axE.grid(axis="y", alpha=0.3)
+    axE.set_yscale("log"); axE.set_title("(e) Max velocity ← repetition rate", fontsize=10); axE.grid(axis="y", alpha=0.3)
+    # LTE 막대(≈41 m/s)가 축 상단에서 잘리지 않도록 여유를 두고, 주석은 막대 위 빈 공간에 놓는다.
+    axE.set_ylim(0.7, max(vmax_all) * 2.2)
+    axE.set_yticks([1, 2, 5, 10, 20, 50]); axE.set_yticklabels(["1", "2", "5", "10", "20", "50"])
+    axE.yaxis.set_minor_formatter(NullFormatter())
+    axE.text(0.02, 0.97, "Typical drones 19~25 m/s", transform=axE.transAxes,
+             fontsize=7.5, color="0.35", ha="left", va="top")
 
     fn = os.path.join(outdir, "report2_occupancy.png"); fig.savefig(fn, dpi=130); plt.close(fig)
     print("[occ]", os.path.relpath(fn)); return fn

@@ -78,8 +78,8 @@ def fig_setup_3d(outdir=FIG, target="mavic4pro", fc=3.5e9, exagg=12.0):
 
     fig = plt.figure(figsize=(13, 7.6), constrained_layout=True)
     ax = fig.add_subplot(111, projection="3d")
-    fig.suptitle("Monostatic measurement scene — antenna (one end) ↔ drone (quiet zone)",
-                 fontsize=15, fontweight="bold")
+    fig.suptitle("Monostatic setup — antenna and drone in the chamber",
+                 fontsize=16, fontweight="bold")
 
     # 챔버 와이어프레임(반투명) + 바닥 체커 격자 느낌
     corners = np.array([[0,0,0],[W,0,0],[W,D,0],[0,D,0],[0,0,H],[W,0,H],[W,D,H],[0,D,H]], float)
@@ -161,9 +161,9 @@ def fig_rcs_balloon(outdir=FIG, fc=3.5e9):
     el = np.arange(-80, 81, 8.0)
     keys = list(DRONES.keys())
     fig = plt.figure(figsize=(15, 9.2), constrained_layout=True)
-    fig.suptitle(f"Drone RCS 'balloon' — azimuth×elevation backscatter pattern around the mesh @ {fc/1e9:.1f} GHz (PO)\n"
-                 "Radius & color = RCS [dBsm].  Sharp lobes = glint (flash at specific angles).  ＋ = forward (+x)",
-                 fontsize=14, fontweight="bold")
+    # 상세(반경·색 의미, 글린트, +x 화살표)는 오른쪽 아래 'How to read' 패널과 컬러바가 이미 설명한다.
+    fig.suptitle(f"RCS balloon — azimuth × elevation pattern @ {fc/1e9:.1f} GHz",
+                 fontsize=16, fontweight="bold")
     cmap = cm.turbo
     norm = None
     for j, key in enumerate(keys):
@@ -228,12 +228,13 @@ def fig_rcs_facets(outdir=FIG, target="mavic4pro", fc=3.5e9, aspects=(0, 45, 90)
     tris0 = [[V[a], V[b], V[c]] for (a, b, c) in mesh.f]
     b0, b1 = V.min(0), V.max(0); c = (b0 + b1) / 2; half = (b1 - b0).max() / 2
     fig = plt.figure(figsize=(15, 5.6), constrained_layout=True)
-    fig.suptitle(f"Illuminated facets — facets of {_NAME[target]} facing the radar per look angle @ {fc/1e9:.1f} GHz\n"
-                 "Color = PO contribution " r"$|\Gamma|\,(\hat{n}\cdot\hat{u})\,\Delta A$"
-                 " on a 25 dB log scale — yellow = strong, purple = weak;"
-                 "  light gray = back-facing (mostly hidden behind the body)\n"
-                 "Blue arrow = radar look direction (camera is offset from it so the arrow stays visible)",
-                 fontsize=13, fontweight="bold")
+    fig.suptitle(f"Which facets light up — {_NAME[target]} @ {fc/1e9:.1f} GHz",
+                 fontsize=16, fontweight="bold")
+    # 색 스케일(25 dB)은 컬러바가 말한다 → 캡션엔 컬러바에 없는 것만: 시선 고각·PO 식·회색면·화살표
+    fig.supxlabel(f"Radar {el:.0f}° above horizon · color = PO contribution "
+                  r"$|\Gamma|(\hat{n}\cdot\hat{u})\Delta A$"
+                  " · gray = back-facing · arrow = look direction",
+                  fontsize=8.5, color="0.45")
     cmap = cm.inferno
     DR = 25.0                                   # balloon 그림과 동일한 25 dB 동적범위
     for j, azd in enumerate(aspects):
@@ -261,7 +262,7 @@ def fig_rcs_facets(outdir=FIG, target="mavic4pro", fc=3.5e9, aspects=(0, 45, 90)
         # 화면상 0 px 로 소실된다. 면 색(cn)은 카메라가 아니라 u 로 계산하므로 물리는 그대로.
         ax.view_init(elev=el + 18, azim=azd + 35)
         nlit = int((proj > 0).sum())
-        ax.set_title(f"Radar azimuth {azd}° · elevation {el:.0f}°  ·  illuminated facets {nlit}/{len(F)}", fontsize=10)
+        ax.set_title(f"Azimuth {azd}°  ·  {nlit}/{len(F)} facets lit", fontsize=11)
     sm = cm.ScalarMappable(cmap=cmap, norm=Normalize(-DR, 0)); sm.set_array([])
     cb = fig.colorbar(sm, ax=fig.axes, fraction=0.02, pad=0.02)
     cb.set_label("PO facet contribution [dB re. max, 25 dB range]", fontsize=9)
@@ -275,9 +276,12 @@ def fig_rcs_facets(outdir=FIG, target="mavic4pro", fc=3.5e9, aspects=(0, 45, 90)
 def fig_doppler_mesh(outdir=FIG, target="matrice4e"):
     spec = DRONES[target]; mesh = build_drone(spec)
     fig = plt.figure(figsize=(14, 5.8), constrained_layout=True)
-    fig.suptitle("Fast drones need fast sampling — velocity v → Doppler " r"$f_d=2v/\lambda$"
-                 ",  max readable velocity " r"$v_{\max}=\mathrm{PRF}\cdot\lambda/4$",
-                 fontsize=14, fontweight="bold")
+    fig.suptitle("Fast drones need fast sampling", fontsize=16, fontweight="bold")
+    # 두 공식은 제목에서 빼고 캡션 한 줄로(패널 제목·축라벨이 각각의 물리량을 이미 말한다)
+    fig.supxlabel("Doppler " r"$f_d=2v/\lambda$" " · max unambiguous "
+                  r"$v_{\max}=\mathrm{PRF}\cdot\lambda/4$"
+                  " — only the LTE CRS rate clears typical drone speeds",
+                  fontsize=8.5, color="0.45")
 
     # (좌) 드론 메쉬 + 속도 화살표
     axA = fig.add_subplot(1, 2, 1, projection="3d")
@@ -291,7 +295,7 @@ def fig_doppler_mesh(outdir=FIG, target="matrice4e"):
     axA.text2D(0.02, 0.95, f"{_NAME[target]}\nTop speed {spec.max_speed_ms or '—'} m/s",
                transform=axA.transAxes, fontsize=10, va="top")
     _equal_3d(axA, [-1,-1,-1], [1,1,1], pad=1.0); axA.set_axis_off(); axA.view_init(elev=20, azim=-55)
-    axA.set_title("Target velocity is the Doppler", fontsize=11)
+    axA.set_title("Target velocity", fontsize=12)
 
     # (우) 표준별 기준신호 반복률 → v_max (막대) + 드론 최고속도 기준선
     axB = fig.add_subplot(1, 2, 2)
@@ -312,8 +316,7 @@ def fig_doppler_mesh(outdir=FIG, target="matrice4e"):
         axB.text(xi, v*1.06, f"{v:.1f}", ha="center", fontsize=10, fontweight="bold")
     axB.set_yscale("log"); axB.set_xticks(x); axB.set_xticklabels(names, fontsize=9)
     axB.set_ylabel("Max unambiguous velocity v_max [m/s, log]")
-    axB.set_title("Pilot repetition rate (PRF) caps the readable top speed\n"
-                  "(only LTE CRS exceeds typical drone ~20 m/s — 5G SSB/PRS cannot)", fontsize=10.5)
+    axB.set_title("Pilot rate caps the readable speed", fontsize=12)
     axB.grid(axis="y", alpha=0.3, zorder=0)
     fn = os.path.join(outdir, "report2_mesh_doppler.png"); fig.savefig(fn, dpi=130); plt.close(fig)
     print("[mesh]", os.path.relpath(fn)); return fn

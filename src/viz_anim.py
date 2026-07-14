@@ -74,7 +74,7 @@ def turntable_all(outdir=FIG, frames=36, fps=18):
         ax.add_collection3d(_polys(meshes[k], cmaps[k])); _equal(ax, meshes[k])
         ax.set_title(DRONES[k].name.split("  ")[0].replace("DJI ", ""), fontsize=10)
         axes[k] = ax
-    fig.suptitle("5 DJI drones — turntable in one view (not to scale · shape comparison)", fontsize=12)
+    fig.suptitle("Five DJI drones — turntable (not to scale)", fontsize=13, fontweight="bold")
 
     def update(i):
         for ax in axes.values():

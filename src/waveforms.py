@@ -249,40 +249,48 @@ def wifi_80211ac(bw_hz=80e6, carrier_hz=5.21e9, occupancy="G3", n_data_sym=10, s
     on = MODES["wifi"][occupancy]; scs = 312.5e3
     fft = int(round(bw_hz / scs)); fs = fft * scs; cp = fft // 4
     rng = np.random.default_rng(seed)
-    # 데이터(DATA/SIG)는 802.11ac VHT80 표준 점유폭 = **242 톤**(234 데이터 + 8 파일럿, 부반송파
-    # −122..+122, DC 널)을 채운다 → bw_hz ≈ 75.6 MHz. 정합필터 기준(VHT-LTF)도 같은 242톤을
-    # 채우므로 ref_bw ≈ 채널 점유대역, 분해능(range_resolution_m) ≈ 2.0m.
-    half = int(round(fft * 121 / 256)); used = np.r_[np.arange(-half, 0), np.arange(1, half + 1)]
+    # 802.11ac VHT80 점유 톤 = **242**(234 데이터 + 8 파일럿). 부반송파 인덱스는 −122..−2, +2..+122
+    # (DC 와 ±1 은 널 — IEEE 802.11-2016 §21.3.7). 이전 판은 ±1..±121 이라 개수만 맞고 위치가
+    # 한 칸씩 밀려 널 톤(±1)에 에너지를 싣고 ±122 를 비웠다 → 표준 인덱스로 정정.
+    sc_max = int(round(fft * 122 / 256))                      # 80MHz(fft=256) → 122
+    used = np.r_[np.arange(-sc_max, -1), np.arange(2, sc_max + 1)]
+    PILOT_SC = np.array([-103, -75, -39, -11, 11, 39, 75, 103])   # VHT80 파일럿 톤
+    data_sc = np.array([k for k in used if k not in set(PILOT_SC.tolist())])
     rows, labs = [], []
 
     def addrow(vals_full, lab_full):
         rows.append(vals_full); labs.append(lab_full)
 
-    # L-STF
+    # L-STF: 4의 배수 톤만(±4,8,…) — 시간축 0.8µs 주기성의 근원. used[::4] 는 격자가 어긋나 주기성이 깨졌다.
     r = np.zeros(fft, complex); l = np.zeros(fft, int)
     if "LSTF" in on:
-        idx = used[::4]; r[_ci(fft, idx)] = np.sqrt(13/6) * (1 + 1j); l[_ci(fft, idx)] = CH["LSTF"]
+        idx = np.arange(-sc_max, sc_max + 1, 4); idx = idx[idx != 0]
+        r[_ci(fft, idx)] = np.sqrt(13/6) * (1 + 1j); l[_ci(fft, idx)] = CH["LSTF"]
     addrow(r, l)
-    # 광대역 LTF ×2 (정합필터 기준) — **VHT-LTF 근사**: 사용 부반송파(242톤) 전체에 ±1 시퀀스.
+    # VHT-LTF ×1 (정합필터 기준) — 242톤 전체에 ±1 시퀀스.
     #   ※ 레거시 L-LTF(20MHz)를 80MHz 로 '타일링'하면 주파수축이 주기적이 되어 시간축에 콤이 생기고,
-    #     자기상관에 **7.5 m 마다 가짜 피크(거리 고스트)** 가 뜬다(−15 dB 수준). 실제 802.11ac 80MHz 의
-    #     전대역 기준은 VHT-LTF(전 톤 ±1)이므로 그것을 모사한다 → 기준대역 = 채널 점유대역(75.6MHz).
+    #     자기상관에 7.5 m 주기의 가짜 피크(거리 고스트)가 뜬다 → 쓰지 않는다.
+    #   ※ 심볼을 2회 반복하면 자기상관이 심볼 간격(±600 m)에서 −6 dB 로 되살아난다. 802.11ac 는
+    #     Nss=1 이면 N_VHTLTF = **1 심볼**이므로 1개만 둔다(고스트 자체가 생기지 않음).
     ltf_vals = (1 - 2 * gold_seq(0x5A5, len(used))).astype(complex)
-    for _ in range(2):
-        r = np.zeros(fft, complex); l = np.zeros(fft, int)
-        if "LLTF" in on:
-            r[_ci(fft, used)] = ltf_vals; l[_ci(fft, used)] = CH["LLTF"]
-        addrow(r, l)
-    # SIG (제어 헤더)
+    r = np.zeros(fft, complex); l = np.zeros(fft, int)
+    if "LLTF" in on:
+        r[_ci(fft, used)] = ltf_vals; l[_ci(fft, used)] = CH["LLTF"]
+    addrow(r, l)
+    # SIG (제어 헤더) — 데이터 톤 BPSK + 파일럿 톤
     r = np.zeros(fft, complex); l = np.zeros(fft, int)
     if "WSIG" in on:
-        r[_ci(fft, used)] = (1 - 2 * rng.integers(0, 2, len(used))); l[_ci(fft, used)] = CH["WSIG"]
+        r[_ci(fft, data_sc)] = (1 - 2 * rng.integers(0, 2, len(data_sc)))
+        r[_ci(fft, PILOT_SC)] = 1.0
+        l[_ci(fft, used)] = CH["WSIG"]
     addrow(r, l)
-    # DATA
+    # DATA — 234 데이터 톤(QAM) + 8 파일럿 톤(±1 BPSK)
     for _ in range(n_data_sym):
         r = np.zeros(fft, complex); l = np.zeros(fft, int)
         if "WDATA" in on:
-            r[_ci(fft, used)] = rand_qam(rng, len(used)); l[_ci(fft, used)] = CH["WDATA"]
+            r[_ci(fft, data_sc)] = rand_qam(rng, len(data_sc))
+            r[_ci(fft, PILOT_SC)] = 1 - 2 * rng.integers(0, 2, len(PILOT_SC))
+            l[_ci(fft, used)] = CH["WDATA"]
         addrow(r, l)
     grid = np.array(rows); labels = np.array(labs)
     return _finish("WiFi 802.11ac", "wifi", occupancy, carrier_hz, len(used) * scs,
@@ -315,18 +323,29 @@ def lte_downlink(bw_hz=20e6, carrier_hz=1.843e9, occupancy="G3", n_id=0, seed=2)
     if "PDCCH" in on:
         for l in range(3):
             put(l, used, rand_qam(rng, n_used) * 0.9, "PDCCH")
-    # CRS (G2/G3): l=0,4,7,11, 6 간격.  (DC 부반송파 0 은 송신 안 함 → 제외: TS 36.211)
+    # ⚠ LTE 는 DC 부반송파를 **송신하지 않고 건너뛴다**(TS 36.211 §6.12) — comb 격자는 'RE 번호'(0..n_used-1)
+    #   위에서 세고, 그 다음에 물리 부반송파로 사상해야 한다. 물리축에서 바로 6간격으로 깔면 DC 를 지나며
+    #   상반대역이 통째로 1 부반송파(15 kHz) 밀린다(이전 판의 버그).
+    def _re_to_sc(k):
+        """논리 RE 번호(0..n_used-1) → 물리 부반송파(음수 …, −1, +1, …; DC 없음)."""
+        half = n_used // 2
+        return np.where(k < half, k - half, k - half + 1)
+
+    # CRS (상시): 포트0 → 슬롯당 l=0,4 · comb-6.  v_shift = n_id % 6 (TS 36.211 §6.10.1.2)
     if "CRS" in on:
         for sl in range(2):
-            for li, sh in ((0, n_id % 6), (4, (n_id + 3) % 6)):
-                l = sl * 7 + li; idx = np.arange(-n_used // 2 + sh, n_used // 2, 6); idx = idx[idx != 0]
-                put(l, idx, qpsk_from_gold((l + 1) * (2 * n_id + 1) * 1024 + n_id, len(idx)) * np.sqrt(2), "CRS")
-    # PRS (G2/G3): comb-6 대각, 전대역, l=3,5,6 (슬롯).  (DC 제외)
+            for li, v in ((0, 0), (4, 3)):
+                l = sl * 7 + li
+                k = np.arange((v + n_id) % 6, n_used, 6)
+                put(l, _re_to_sc(k), qpsk_from_gold((l + 1) * (2 * n_id + 1) * 1024 + n_id, len(k)) * np.sqrt(2), "CRS")
+    # PRS (측위 세션): comb-6 대각. TS 36.211 §6.10.4.2 — normal CP 에서 짝수슬롯 l∈{3,5,6},
+    #   홀수슬롯 l∈{1,2,3,5,6} (총 8 심볼). 이전 판은 홀수슬롯의 l=1,2 가 빠져 6 심볼뿐이었다.
     if "PRS" in on:
         for sl in range(2):
-            for li in (3, 5, 6):
-                l = sl * 7 + li; sh = (n_id + li) % 6; idx = np.arange(-n_used // 2 + sh, n_used // 2, 6); idx = idx[idx != 0]
-                put(l, idx, qpsk_from_gold(2**22 + l * 97 + n_id, len(idx)) * np.sqrt(2), "PRS")
+            for li in ((3, 5, 6) if sl == 0 else (1, 2, 3, 5, 6)):
+                l = sl * 7 + li
+                k = np.arange((6 - n_id % 6 + li) % 6, n_used, 6)
+                put(l, _re_to_sc(k), qpsk_from_gold(2**22 + l * 97 + n_id, len(k)) * np.sqrt(2), "PRS")
     # PSS/SSS (항상): 중앙 62 부반송파, l=6(PSS)/5(SSS) of slot0
     cen = np.r_[np.arange(-31, 0), np.arange(1, 32)]
     if "PSS" in on: put(6, cen, qpsk_from_gold(101, len(cen)), "PSS")
@@ -342,7 +361,9 @@ def nr_downlink(bw_hz=100e6, scs_hz=30e3, carrier_hz=3.5e9, occupancy="G3", n_id
     on = MODES["nr"][occupancy]
     fft = 4096; fs = fft * scs_hz
     n_rb = 273 if bw_hz >= 100e6 else 51; n_used = n_rb * 12
-    used = np.r_[np.arange(-n_used // 2, 0), np.arange(1, n_used // 2 + 1)]
+    # NR 은 LTE 와 달리 **예약 DC 널이 없다**(TS 38.211 — DC 위치는 시그널링될 뿐 펑처되지 않음).
+    # SSB·PRS 도 실제로 k=0 에 송신하므로, 연속 격자를 쓴다(이전 판은 LTE 관습대로 k=0 을 빼 자기모순).
+    used = np.arange(-n_used // 2, n_used // 2)
     # NR μ=1 정상 CP: 0.5ms 슬롯(=14 sym) 첫 심볼만 긴 CP(352), 나머지 288 →
     #   14·4096 + 352 + 13·288 = 61440 = 정확히 500 µs (TS 38.211 §5.3.1)
     cp = [352] + [288] * 13; nsym = 14
@@ -373,19 +394,32 @@ def nr_downlink(bw_hz=100e6, scs_hz=30e3, carrier_hz=3.5e9, occupancy="G3", n_id
     #     에서 안 쏴서 **이웃 셀 PRS 의 hearability** 를 높이는 셀 간 패턴이다. 다만 실제 망은 측위
     #     정확도를 위해 PRS occasion 에 데이터를 적게 싣는 경향이 있으므로, 여기의 G3(PRS+풀데이터)는
     #     **송신에너지 상한**으로 읽는 게 안전하다. 패시브 결론(PDSCH 는 미지 → 기준 못 됨)은 불변.
+    #   ※ comb-N 과 심볼 수는 표준 조합만 유효하다(TS 38.211 Table 7.4.1.7.3-1): comb-4 는 4 또는 12 심볼.
+    #     comb-4 × 6심볼은 표준에 없는 조합이라 **comb-4 × 4심볼(l=4..7)** 로 바로잡고, 심볼별 주파수
+    #     오프셋도 표준 패턴 [0,2,1,3] 을 쓴다(이전 판은 li%4 선형 램프).
     if "PRS" in on:
-        for li in range(4, 10):
-            sh = li % 4; idx = np.arange(-n_used // 2 + sh, n_used // 2, 4)
+        for i, sh in enumerate((0, 2, 1, 3)):
+            li = 4 + i
+            idx = np.arange(-n_used // 2 + sh, n_used // 2, 4)
             put(li, idx, qpsk_from_gold(2**20 + li * 131 + n_id, len(idx)) * 2.0, "PRS")
-    # SSB (항상): 블록 중앙 240 부반송파(20 RB), l=0..3. PSS(l=0)·SSS(l=2)는 표준상
-    #   블록 내 **127 부반송파**(TS 38.211 §7.4.3), PBCH(l=1,3)는 240 전체.
-    #   → ref_bw 는 PBCH(240=7.2MHz)가 정하므로 분해능(≈20.8m)엔 영향 없음.
-    ssb = np.arange(-120, 120)                     # SSB 블록 폭(20 RB) — PBCH
+    # SSB (항상): 블록 중앙 240 부반송파(20 RB), l=0..3 (TS 38.211 §7.4.3 Table 7.4.3.1-1)
+    #   ※ PSS/SSS 시퀀스는 표준의 m-sequence 대신 Gold-QPSK 로 근사한다. 본 리포트에서 PSS/SSS 는
+    #     기준신호 대역(PBCH 240 SC 가 결정)·분해능·PRF 어디에도 영향이 없어 결론에 무영향.
+    #   PSS(l=0)·SSS(l=2) = 블록 내 중앙 **127** 부반송파, PBCH = l=1,3 전체(240) + **l=2 의 양측 48+48**.
+    #   ※ SSB 영역은 다른 채널이 쓰지 못하므로(rate matching around SSB, TS 38.214 §5.1.4)
+    #     먼저 블록 전체를 비운 뒤 SSB 를 그린다 — 안 그러면 PDSCH/PDCCH 가 SSB 안으로 침범한다.
+    ssb = np.arange(-120, 120)                     # SSB 블록 폭(20 RB)
     ssb_sync = np.arange(-63, 64)                  # PSS/SSS: 중앙 127 부반송파
+    ssb_side = np.r_[np.arange(-120, -72), np.arange(72, 120)]   # l=2 의 PBCH 측대역(48+48)
+    if "PSS" in on or "PBCH" in on:
+        c = fft // 2
+        grid[0:4, c - 120:c + 120] = 0.0           # SSB 블록 예약(다른 채널 지움)
+        labels[0:4, c - 120:c + 120] = CH["EMPTY"]
     if "PSS" in on: put(0, ssb_sync, qpsk_from_gold(11 + n_id, len(ssb_sync)), "PSS")
     if "PBCH" in on:
         put(1, ssb, qpsk_from_gold(12 + n_id, len(ssb)), "PBCH")
         put(3, ssb, qpsk_from_gold(14 + n_id, len(ssb)), "PBCH")
+        put(2, ssb_side, qpsk_from_gold(15 + n_id, len(ssb_side)), "PBCH")   # l=2 측대역
     if "SSS" in on: put(2, ssb_sync, qpsk_from_gold(13 + n_id, len(ssb_sync)), "SSS")
     return _finish("5G NR Rel-16", "nr", occupancy, carrier_hz, n_used * scs_hz,
                    scs_hz, fft, fs, cp, grid, labels, used, f"n78 {bw_hz/1e6:.0f}MHz, 30kHz, 3.5GHz")

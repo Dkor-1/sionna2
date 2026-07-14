@@ -60,11 +60,11 @@ def anim_rcs_aspect(outdir=FIG, target="mavic4pro", fc=3.5e9, el=22.0, n_frames=
     fig = plt.figure(figsize=(12, 5.6), constrained_layout=True)
     ax3 = fig.add_subplot(1, 2, 1, projection="3d")
     axp = fig.add_subplot(1, 2, 2, projection="polar")
-    fig.suptitle(f"RCS glint — {_NAME[target]} seen by the radar from varying azimuth @ {fc/1e9:.1f}GHz\n"
-                 f"Left: PO facet contribution toward the radar (yellow = strong, purple = weak over {DR:.0f} dB, "
-                 "light gray = back-facing)\n"
-                 "Right: RCS vs azimuth — flashes at specific angles  ·  blue arrow = radar line of sight",
-                 fontsize=11.5, fontweight="bold")
+    fig.suptitle(f"RCS glint — {_NAME[target]} @ {fc/1e9:.1f} GHz", fontsize=15, fontweight="bold")
+    # 이 그림엔 컬러바가 없다 → 색 규약은 캡션에 남긴다(GIF 라 bbox_inches 를 못 쓰므로 supxlabel)
+    fig.supxlabel(f"Left: PO facets — bright = strong, gray = back-facing, arrow = radar LOS ({DR:.0f} dB range) · "
+                  "Right: RCS vs azimuth",
+                  fontsize=8.5, color="0.45")
 
     def update(kf):
         azd = az_frames[kf]; u = _look(azd, el)
@@ -94,7 +94,7 @@ def anim_rcs_aspect(outdir=FIG, target="mavic4pro", fc=3.5e9, el=22.0, n_frames=
                  color="#1565c0", lw=1, alpha=0.5)
         axp.set_theta_zero_location("N"); axp.set_theta_direction(-1)
         axp.set_rlim(RFLOOR, None)
-        axp.set_title(f"Azimuth {azd:.0f}° → RCS {cur:.1f} dBsm  (floor {RFLOOR:.0f} dBsm)", fontsize=11)
+        axp.set_title(f"Azimuth {azd:.0f}° → RCS {cur:.1f} dBsm", fontsize=11.5)
         return ()
 
     anim = FuncAnimation(fig, update, frames=n_frames, blit=False)
@@ -134,18 +134,15 @@ def anim_microdoppler(outdir=FIG, target="mavic4pro", rpm=None, n_frames=48, fps
     spin = "CCW" if rot0["dir"] > 0 else "CW"
 
     fig, (axm, axs) = plt.subplots(1, 2, figsize=(12.5, 5.4), constrained_layout=True)
-    # 자막의 수치는 코드로 측정한 값(mavic4pro): 지배 플래시 각 81.3°(부피크 94.0°, 상대진폭 0.62),
-    # 대각쌍(0·2 / 1·3)이 같은 위상 → 버스트 2갈래(1.1~1.5 / 2.0~2.4 ms), STFT 창 3.2 ms 가 이를 한 줄무늬로 뭉갬.
-    stft_ms = 64/prf*1e3
-    fig.suptitle(f"How micro-Doppler arises — {_NAME[target]} rotor #1 (mount angle {rot0['base_ang']:.0f}°, {spin}) ↔ blade flash\n"
-                 # θ·ω 는 NanumGothic 에 글리프가 없어 두부(□)로 깨진다 → mathtext(DejaVu) 로 렌더
-                 "Left: propeller drawn with the physics model's own phase "
-                 r"$\theta(t)=\theta_0+\mathrm{dir}\cdot\omega t$" " (blue = radar direction)  ·  "
-                 "Right: spectrogram zoomed to ~3 flash periods\n"
-                 "Flash = blade ~broadside to the radar — blade sweep/twist puts the dominant peak at ~81°, not exactly 90°\n"
-                 f"Diagonal rotor pairs share phase ⇒ only 2 flash bursts (~0.9 ms apart), merged by the {stft_ms:.1f} ms STFT window "
-                 f"into one broad stripe every {1e3/info['flash_hz']:.2f} ms",
-                 fontsize=10, fontweight="bold")
+    # (참고, 코드로 측정한 mavic4pro 값) 지배 플래시 각 81.3°(부피크 94.0°, 상대진폭 0.62), 대각쌍(0·2 / 1·3)이
+    # 같은 위상 → 버스트 2갈래(1.1~1.5 / 2.0~2.4 ms), STFT 창 3.2 ms 가 이를 한 줄무늬로 뭉갠다. 본문 설명 참조.
+    fig.suptitle(f"How micro-Doppler arises — {_NAME[target]}", fontsize=15, fontweight="bold")
+    # 상세 물리(θ(t) 위상식·플래시 각·버스트 병합)는 본문이 설명한다 → 캡션은 로터 정체와 줄무늬 주기만.
+    # θ·ω 는 NanumGothic 에 글리프가 없어 두부(□)로 깨진다 → mathtext(DejaVu) 로 렌더
+    fig.supxlabel(f"Rotor #1 (mount {rot0['base_ang']:.0f}°, {spin}) drawn with the model's own phase "
+                  r"$\theta(t)=\theta_0+\mathrm{dir}\cdot\omega t$"
+                  f" · diagonal pairs share phase → one stripe every {1e3/info['flash_hz']:.2f} ms",
+                  fontsize=8.5, color="0.45")
 
     def update(kf):
         tk = t_frames[kf]
@@ -169,8 +166,8 @@ def anim_microdoppler(outdir=FIG, target="mavic4pro", rpm=None, n_frames=48, fps
         axs.set_xlim(t_frames[0]*1e3, t_frames[-1]*1e3)              # clear() 뒤라 update 안에서 다시 설정
         axs.set_ylim(-1.5*info["f_tip"], 1.5*info["f_tip"])
         axs.set_xlabel("Time [ms]"); axs.set_ylabel("Doppler [Hz]")
-        axs.set_title(f"Tip Doppler ±{info['f_tip']:.0f}Hz · flash {info['flash_hz']:.0f}Hz per rotor "
-                      f"(= {spec.prop_blades} blades × {rpm/60:.0f} rev/s)", fontsize=10.5)
+        axs.set_title(f"Tip Doppler ±{info['f_tip']:.0f} Hz · flash {info['flash_hz']:.0f} Hz",
+                      fontsize=11.5)
         return ()
 
     anim = FuncAnimation(fig, update, frames=n_frames, blit=False)
@@ -200,10 +197,10 @@ def anim_occupancy(outdir=FIG, target="mavic4pro", R=10.0, hold=10, fps=6):
     fig, (axg, axr) = plt.subplots(1, 2, figsize=(13, 5.2), constrained_layout=True)
     # 서사: 분해능을 정하는 건 '점유율'이 아니라 '패시브 수신기가 빌려 쓸 수 있는 기준신호의 대역'.
     # G2 에서 PRS(측위 세션)가 켜지며 대역이 뛰고, G3 는 데이터만 더 찰 뿐 기준은 그대로 PRS.
-    fig.suptitle("5G occupancy progression — G1 (idle, SSB only) is coarse; once PRS turns on at G2 the reference\n"
-                 "bandwidth jumps 7.2 -> 98 MHz and the range profile sharpens. G3 only adds unknown PDSCH data\n"
-                 "— same PRS reference, so resolution is unchanged.",
-                 fontsize=11.5, fontweight="bold")
+    fig.suptitle("5G occupancy — idle cell vs positioning session", fontsize=15, fontweight="bold")
+    fig.supxlabel("Resolution follows the reference bandwidth: PRS (G2) widens it 7 → 98 MHz; "
+                  "G3 adds data only, same reference",
+                  fontsize=8.5, color="0.45")
 
     def update(kf):
         m = seq[kf]; wf = wfs[m]
