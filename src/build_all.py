@@ -32,6 +32,10 @@ def main():
 
     step("메쉬 생성 — 차폐시설 + 드론 5종 (OBJ)")
     import chamber, drones
+    # trimesh 검증을 **빌드에 붙인다** — 프로펠러 법선 뒤집힘 같은 버그의 회귀 방지.
+    import mesh_check
+    mesh_check.assert_ok()
+    print("  메쉬 검증(trimesh): 5종 전 부위 통과 ✅")
     m, info = chamber.build_chamber()
     cdir = os.path.join(os.path.dirname(__file__), "..", "assets", "meshes", "chamber")
     m.write_obj_per_group(os.path.abspath(cdir), "chamber")
@@ -42,22 +46,8 @@ def main():
         dm.write_obj_per_group(os.path.abspath(os.path.join(ddir, key)), key)
         print(f"  {spec.name:26s} {dm.n_tris():5d} 삼각형  ({spec.release})")
 
-    step("도면/그래프 (matplotlib)")
-    import viz_diagram
-    viz_diagram.chamber_schematic()
-    viz_diagram.size_comparison()
-    for k in drones.DRONES:
-        viz_diagram.drone_card(k)
-
-    if not args.no_anim:
-        step("회전 GIF (turntable)")
-        import viz_anim
-        for k in drones.DRONES:
-            viz_anim.turntable(k)
-        viz_anim.turntable_all()
-
     if not args.no_render:
-        step("Sionna RT 렌더 (PNG)")
+        step("Sionna RT 렌더 (PNG) — 시설/스튜디오/라인업/비행")
         import render_drones
         render_drones.render_facility(spp=args.spp)
         for k in drones.DRONES:
@@ -65,10 +55,38 @@ def main():
         render_drones.render_lineup(spp=args.spp)
         render_drones.render_flight(spp=args.spp)
 
+        # ★ report1 의 주력 그림 — 챔버/경로/라디오맵/드론 3뷰를 **Sionna 가 렌더**한다.
+        #   (viz_diagram 의 카드가 여기서 만든 r1_drone_*_iso.png 를 3D 패널로 쓰므로 먼저 돈다)
+        step("Sionna 렌더 그림 — 챔버·경로·라디오맵·드론 3뷰 (viz_report1)")
+        import viz_report1
+        viz_report1.render_chamber(); viz_report1.fig_chamber()
+        viz_report1.render_paths();   viz_report1.fig_paths()
+        viz_report1.render_radiomap(); viz_report1.fig_radiomap()
+        viz_report1.render_drones()
+        for k in drones.DRONES:
+            viz_report1.fig_drone(k)
+        viz_report1.fig_gallery()
+        viz_report1.fig_envelope_fit()
+        viz_report1.fig_mesh_check()
+
         step("카탈로그/시설뷰 몽타주")
         import viz_montage
         viz_montage.catalog()
         viz_montage.facility_views()
+
+    step("치수 도면 (matplotlib — 렌더로 대체 불가)")
+    import viz_diagram
+    viz_diagram.chamber_schematic()
+    viz_diagram.size_comparison()
+    for k in drones.DRONES:
+        viz_diagram.drone_card(k)          # 3D 패널 = Sionna 렌더(r1_drone_*_iso.png)
+
+    if not args.no_anim and not args.no_render:
+        step("회전 GIF (Sionna 턴테이블)")
+        import viz_report1 as V1
+        for k in drones.DRONES:
+            V1.turntable(k)
+        V1.turntable_all()
 
     step("report1.ipynb 생성")
     subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), "make_notebook.py")], check=True)

@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-viz_articulation.py — (report3 토대) 분절 드론 + 마이크로도플러 **메쉬 시각화**
+viz_articulation.py — (report3 토대) 분절 드론 **메쉬 검증 도해** (matplotlib)
 ==============================================================================
 생성물 (outputs/figures/, report3_ 접두어)
   report3_articulation.png  : 몸체 자세(RPY) ⟂ 블레이드 회전 분리 — 메쉬 스냅샷 격자(검증)
-  report3_microdoppler.png  : 회전 블레이드의 마이크로도플러 스펙트로그램(블레이드 플래시)
   report3_articulation.gif  : 몸체가 흔들리는 동안 프로펠러가 도는 회전 애니메이션
+
+⚠ 마이크로도플러 그림은 **여기서 빠졌다**(2026-07-14). 예전엔 이 파일이
+  microdoppler_series()(순수 PO, **가림 없음**)로 report3_microdoppler.png 를 그렸는데,
+  그건 동체 내부·블레이드 뒷면의 **가려진 면을 정적 산란체로 계상**해 DC 를 부풀린다.
+  이제 마이크로도플러는 **SBR(가림 포함)** 로 viz_report3.py 가 그린다.
+  이 파일은 '메쉬 자유도 분리'를 눈으로 확인하는 **검증 도해**만 남긴다(공학 도해라 mpl 이 정당).
+  같은 실험의 **Sionna 렌더판**은 viz_report3.fig_rt_articulation() 이다.
 """
 from __future__ import annotations
 import os
@@ -18,7 +24,6 @@ from matplotlib.animation import FuncAnimation, PillowWriter
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 from drones import DRONES, pose_articulated, drone_colors
-from microdoppler import microdoppler_series, spectrogram
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
 _NAME = {k: DRONES[k].name.replace("DJI ", "") for k in DRONES}
@@ -69,40 +74,7 @@ def fig_articulation(outdir=FIG, target="mavic4pro"):
 
 
 # --------------------------------------------------------------------------- #
-#  (2) 마이크로도플러 스펙트로그램
-# --------------------------------------------------------------------------- #
-def fig_microdoppler(outdir=FIG, targets=("mavic4pro", "s1000plus"),
-                     rpm=None, prf=20000.0, n_t=6144):   # rpm=None → 드론별 hover_rpm
-    fig, axes = plt.subplots(1, len(targets), figsize=(14, 5.4), constrained_layout=True)
-    if len(targets) == 1:
-        axes = [axes]
-    fig.suptitle("Micro-Doppler of spinning propellers", fontsize=16, fontweight="bold")
-    for ax, key in zip(axes, targets):
-        spec = DRONES[key]
-        t, E, info = microdoppler_series(spec, rpm=rpm, prf=prf, n_t=n_t, az=0.0, el=15.0)
-        # 짧은 윈도우(<플래시 주기) → 블레이드 플래시·사인 도플러 트랙이 드러남(특유의 마이크로도플러)
-        f, tt, Sdb = spectrogram(E, prf, nperseg=64, noverlap=58, nfft=1024)
-        im = ax.pcolormesh(tt * 1e3, f, Sdb, cmap="turbo", vmin=-45, vmax=0, shading="gouraud")
-        for sgn in (+1, -1):
-            ax.axhline(sgn * info["f_tip"], color="k", ls="--", lw=1.8, zorder=5)
-        ax.text(tt[-1] * 1e3 * 0.99, info["f_tip"], f" Tip Doppler +{info['f_tip']:.0f}Hz",
-                color="k", fontsize=8, ha="right", va="bottom", zorder=6)
-        ax.set_ylim(-1.5 * info["f_tip"], 1.5 * info["f_tip"])
-        ax.set_xlabel("Time [ms]"); ax.set_ylabel("Doppler frequency [Hz]")
-        ax.set_title(f"{_NAME[key]} · {info['n_rotors']} rotors @ {info['rpm']:.0f} rpm\n"
-                     f"Tip {info['v_tip']:.0f} m/s → ±{info['f_tip']:.0f} Hz · flash {info['flash_hz']:.0f} Hz",
-                     fontsize=11)
-        fig.colorbar(im, ax=ax, fraction=0.046, label="Normalized power [dB]")
-    # 줄무늬/점선의 뜻과 PRF 요구조건은 캡션 한 줄로(파일럿 반복률로는 접힌다 = 서사의 핵심)
-    fig.supxlabel("Stripes = blade flash · dashed = ±tip Doppler · static 0-Doppler removed · "
-                  "unaliased view needs PRF ≳ 2·f_tip",
-                  fontsize=8.5, color="0.45")
-    fn = os.path.join(outdir, "report3_microdoppler.png"); fig.savefig(fn, dpi=130, bbox_inches="tight")
-    plt.close(fig); print("[micro]", os.path.relpath(fn)); return fn
-
-
-# --------------------------------------------------------------------------- #
-#  (3) 회전 애니메이션 — 몸체 흔들림 + 프로펠러 스핀 동시
+#  (2) 회전 애니메이션 — 몸체 흔들림 + 프로펠러 스핀 동시
 # --------------------------------------------------------------------------- #
 def gif_articulation(outdir=FIG, target="mavic4pro", frames=36, fps=18):
     spec = DRONES[target]; cmap = drone_colors(spec)
@@ -138,9 +110,9 @@ def gif_articulation(outdir=FIG, target="mavic4pro", frames=36, fps=18):
 
 def build_all(outdir=FIG):
     fig_articulation(outdir)
-    fig_microdoppler(outdir)
     gif_articulation(outdir)
-    print("분절/마이크로도플러 시각화 완료 →", os.path.relpath(outdir))
+    print("분절 검증 도해 완료 →", os.path.relpath(outdir),
+          "(마이크로도플러는 viz_report3.py — SBR)")
 
 
 if __name__ == "__main__":

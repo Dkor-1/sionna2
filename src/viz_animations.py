@@ -44,10 +44,27 @@ def _look(az_deg, el_deg):
 # --------------------------------------------------------------------------- #
 #  (1) report2 — RCS 글린트 스윕 (표적 회전 시 RCS 출렁 + 조명면)
 # --------------------------------------------------------------------------- #
+def _visible_faces(scene, cen, u):
+    """면 무게중심에서 레이더 방향(+û)으로 광선을 쏴 **탈출하는 면만** 남긴다(가림 판정).
+
+    ⚠ 이게 없으면 n̂·û>0 이라는 이유만으로 **앞 구조에 가려진 뒷면까지 '조명면'으로 색칠**하게 된다
+      — 그림이 물리적으로 틀린다. SBR(rcs_sbr)이 σ 에서 하는 것과 같은 판정을 색칠에도 적용한다."""
+    import mitsuba as mi
+    O = cen + 1e-3 * u
+    si = scene.ray_intersect(mi.Ray3f(o=mi.Point3f(*O.T.astype(np.float32)),
+                                      d=mi.Vector3f(*np.tile(u, (len(O), 1)).T.astype(np.float32))))
+    return ~np.asarray(si.is_valid()).astype(bool)       # True = 가려지지 않음(진짜 조명면)
+
+
 def anim_rcs_aspect(outdir=FIG, target="mavic4pro", fc=3.5e9, el=22.0, n_frames=48, fps=12):
     spec = DRONES[target]; mesh = build_drone(spec)
     V, F, nhat, area = _face_geom(mesh)
     tris0 = [[V[a], V[b], V[c]] for (a, b, c) in mesh.f]
+    # 가림 판정용 Mitsuba 씬 — σ 를 내는 SBR 과 **같은 기하**를 쓴다(한 번만 만들고 프레임마다 재사용)
+    from rcs_sbr import _mi_scene_from_mesh
+    from drones import DRONE_GROUP_MAT
+    _scene, _, _ = _mi_scene_from_mesh(mesh, {g: m for g, (m, _d) in DRONE_GROUP_MAT.items()})
+    cen = V[F].mean(axis=1)
     az_fine = np.arange(0, 360, 2.0)
     # 대역폭 평균(100MHz) — 단일주파수 널은 이산화 의존 아티팩트라 그리지 않는다(rcs_po 참조)
     sig, _ = drone_rcs_pattern_bw(target, fc, 100e6, az_fine, el_deg=el)
@@ -64,16 +81,21 @@ def anim_rcs_aspect(outdir=FIG, target="mavic4pro", fc=3.5e9, el=22.0, n_frames=
     axp = fig.add_subplot(1, 2, 2, projection="polar")
     fig.suptitle(f"RCS glint — {_NAME[target]} @ {fc/1e9:.1f} GHz", fontsize=15, fontweight="bold")
     # 이 그림엔 컬러바가 없다 → 색 규약은 캡션에 남긴다(GIF 라 bbox_inches 를 못 쓰므로 supxlabel)
-    fig.supxlabel(f"Left: PO facets — bright = strong, gray = back-facing, arrow = radar LOS ({DR:.0f} dB range) · "
-                  "Right: RCS vs azimuth",
+    fig.supxlabel(f"Left: SBR facets — bright = strong, gray = back-facing OR occluded by the airframe, "
+                  f"arrow = radar LOS ({DR:.0f} dB range) · Right: RCS vs azimuth\n"
+                  "Occlusion is decided by Mitsuba rays, exactly as in the RCS integral -- a face that "
+                  "faces the radar but sits behind the body contributes nothing.",
                   fontsize=8.5, color="0.45")
 
     def update(kf):
         azd = az_frames[kf]; u = _look(azd, el)
-        proj = nhat @ u; contrib = np.maximum(proj, 0.0)*area
+        proj = nhat @ u
+        vis = _visible_faces(_scene, cen, u)                        # 가림 판정(SBR 과 동일)
+        lit = (proj > 0) & vis
+        contrib = np.where(lit, proj, 0.0)*area
         cdb = 10*np.log10(contrib/(contrib.max()+1e-30) + 1e-30)    # eps 필수(후면 0 → -inf 방지)
         cn = np.clip((cdb + DR)/DR, 0.0, 1.0)
-        cols = [cmap(x) if p > 0 else (0.75, 0.75, 0.78) for x, p in zip(cn, proj)]
+        cols = [cmap(x) if L else (0.75, 0.75, 0.78) for x, L in zip(cn, lit)]
         ax3.clear()
         ax3.add_collection3d(Poly3DCollection(tris0, facecolors=cols, edgecolors=(0, 0, 0, 0.12), linewidths=0.1))
         # LOS 화살표: 카메라를 LOS 와 어긋나게(+18°/+35°) 둬야 화살표가 화면에서 길이를 갖는다

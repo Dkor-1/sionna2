@@ -15,7 +15,7 @@ import vizstyle
 vizstyle.use_korean()
 import matplotlib.pyplot as plt
 
-from drones import DRONES
+from drones import DRONES, frame_envelope_mm
 from vizstyle import RELEASE_BADGE
 
 REN = os.path.join(os.path.dirname(__file__), "..", "outputs", "renders")
@@ -47,8 +47,10 @@ def catalog(outdir=FIG):
                  fontsize=17, fontweight="bold")
     for ax, key in zip(axes.flat, keys):
         s = DRONES[key]
-        # Mini/Mavic 의 대각거리는 DJI 미발표 → 우리 추정치. size_compare 와 같은 '†' 규약.
-        dag = f"{s.diagonal_mm:.0f} mm†" if key in ("mini5pro", "mavic4pro") else f"{s.diagonal_mm:.0f} mm"
+        # 2026-07-14: 대각거리는 **메쉬**(공식 외형 정합) 기준. Mini/Mavic 은 DJI 미발표라
+        #   카탈로그값이 추정치였고, Mavic 은 공식 외형과 기하학적으로 모순이었다(†).
+        d = frame_envelope_mm(s)["diagonal_effective_mm"]
+        dag = f"{d:.0f} mm†" if key in ("mini5pro", "mavic4pro") else f"{d:.0f} mm"
         sub = f"diag {dag} · {s.weight_g:g} g · {s.num_rotors} rotors"
         _show(ax, os.path.join(REN, f"studio_{key}.png"),
               s.name.split("  ")[0], sub, RELEASE_BADGE.get(s.release))
@@ -59,7 +61,8 @@ def catalog(outdir=FIG):
     # '†' 를 달아 놓고 범례가 없으면 "저 단검 뭐냐"만 부른다 → 키를 그림 안에 남긴다.
     #   (constrained_layout=True 라 supxlabel 자리는 레이아웃이 확보해 준다. bbox_inches="tight" 는
     #    금지 — 1800x1008 크기가 바뀌면 build_deck_v15.py 의 이미지 스왑 키가 깨진다.)
-    fig.supxlabel("† motor-to-motor diagonal estimated — DJI does not publish a wheelbase for these two models.",
+    fig.supxlabel("Diagonal is measured on the mesh, which is fitted to DJI's official envelope.   "
+                  "† DJI does not publish a wheelbase for these two models, so this value is implied by that envelope.",
                   fontsize=8.5, color="0.45")
     fn = os.path.join(outdir, "catalog.png")
     os.makedirs(outdir, exist_ok=True)

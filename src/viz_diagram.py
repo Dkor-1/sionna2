@@ -23,16 +23,26 @@ import numpy as np
 import vizstyle
 vizstyle.use_korean()
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 from matplotlib.patches import Circle, Rectangle
 from matplotlib.ticker import MultipleLocator
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 # _drone_dims 는 메쉬 생성기(build_frame/rotor_layout)가 쓰는 치수 소스 그대로다.
 # 도면(위/옆면도)이 3D 패널·OBJ 메쉬와 어긋나지 않도록 같은 함수를 재사용한다.
-from drones import DRONES, build_drone, drone_colors, motor_angles, _drone_dims
+from drones import (DRONES, build_drone, drone_colors, motor_angles, _drone_dims,
+                    frame_envelope_mm, rotor_layout)
 from vizstyle import RELEASE_BADGE
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
+REN = os.path.join(os.path.dirname(__file__), "..", "outputs", "renders")
+
+#  2026-07-14: 카드의 3D 패널은 더 이상 matplotlib Poly3DCollection 이 아니라
+#  **Sionna 렌더**(viz_report1.render_drones() 가 만든 r1_drone_<key>_iso.png)다.
+#  렌더가 없으면(=아직 GPU 작업을 안 돌렸으면) 예전 mpl 3D 로 자동 폴백한다.
+def _sionna_iso(key):
+    p = os.path.join(REN, f"r1_drone_{key}_iso.png")
+    return p if os.path.exists(p) else None
 
 
 # --------------------------------------------------------------------------- #
@@ -67,71 +77,80 @@ def drone_card(key, outdir=FIG):
     spec = DRONES[key]
     mesh = build_drone(spec)
     cmap = drone_colors(spec)
-    # 메쉬와 동일한 치수(동체 길이 bl·폭 bw·두께 body_z 는 body_lw/body_frac/0.35·H 반영)
-    diag, r, prop_r, bh, bl, bw, body_z = _drone_dims(spec)
+    diag, r0, prop_r, bh, bl, bw, body_z = _drone_dims(spec)
+    # ⚠ 2026-07-14: 메쉬는 **공식 외형(envelope_mm)에 맞춰 축별로 스케일**된다.
+    #    그래서 도면은 더 이상 카탈로그 대각선(r0=diag/2)이 아니라 **rotor_layout(=메쉬 진실)**
+    #    을 그려야 한다. 예전 카드는 스케일 전 좌표를 그려서 메쉬와 어긋나 있었다.
+    env = frame_envelope_mm(spec)
+    rl = rotor_layout(spec)
+    C = np.array([rot["center"] for rot in rl], float)      # 모터 중심 (스케일 반영)
+    diag_eff = env["diagonal_effective_mm"]
+    V = np.array(mesh.v)
+    b0, b1 = mesh.bounds()
 
     fig = plt.figure(figsize=(13, 8.2), constrained_layout=True)
     badge, bcol = RELEASE_BADGE.get(spec.release, ("", "#555"))
     fig.suptitle(f"{spec.name}", fontsize=19, fontweight="bold")
 
-    # --- (A) 3D 색칠 모델 ------------------------------------------------- #
-    axA = fig.add_subplot(2, 2, 1, projection="3d")
-    axA.add_collection3d(_mesh_polys(mesh, cmap))
-    _set_equal_3d(axA, mesh)
-    axA.view_init(elev=24, azim=-58)
-    axA.set_title("3D model (color = part)", fontsize=12)
-    axA.set_xlabel("x (front)"); axA.set_ylabel("y"); axA.set_zlabel("z")
-    axA.tick_params(labelsize=7)
+    # --- (A) 3D 모델 — **Sionna 렌더** (없으면 mpl 3D 폴백) ---------------- #
+    iso = _sionna_iso(key)
+    if iso:
+        axA = fig.add_subplot(2, 2, 1)
+        axA.imshow(mpimg.imread(iso)); axA.axis("off")
+        axA.set_title("3D model - Sionna RT render", fontsize=12)
+    else:
+        axA = fig.add_subplot(2, 2, 1, projection="3d")
+        axA.add_collection3d(_mesh_polys(mesh, cmap))
+        _set_equal_3d(axA, mesh)
+        axA.view_init(elev=24, azim=-58)
+        axA.set_title("3D model (color = part)", fontsize=12)
+        axA.set_xlabel("x (front)"); axA.set_ylabel("y"); axA.set_zlabel("z")
+        axA.tick_params(labelsize=7)
 
     # --- (B) 위에서 본 도면 : 대각거리 + 프로펠러 원반 -------------------- #
     axB = fig.add_subplot(2, 2, 2)
     axB.set_aspect("equal")
-    # 동체(메쉬와 같은 bl×bw — 접이형은 길쭉, 팬텀/S1000 은 정사각에 가까움)
-    axB.add_patch(Rectangle((-bl/2, -bw/2), bl, bw, facecolor=cmap["body"],
-                            edgecolor="k", lw=1.2, zorder=3))
-    angs = motor_angles(spec)
-    for a in angs:
-        mx, my = r*math.cos(math.radians(a)), r*math.sin(math.radians(a))
-        axB.plot([0, mx], [0, my], color=(0.15, 0.15, 0.15), lw=2, zorder=2)  # 암
+    # 동체 외곽 — 메쉬의 x/y 범위(=공식 외형)를 그대로 쓴다
+    axB.add_patch(Rectangle((b0[0], b0[1]), b1[0]-b0[0], b1[1]-b0[1], fill=False,
+                            edgecolor="#455a64", ls=":", lw=1.0, zorder=1))
+    for (mx, my, _mz) in C:
+        axB.plot([0, mx], [0, my], color=(0.15, 0.15, 0.15), lw=2, zorder=2)   # 암
         axB.add_patch(Circle((mx, my), prop_r, fill=False, ls="--",
                              edgecolor="#1565c0", lw=1.0, alpha=0.8, zorder=2))  # 프롭원
-        axB.add_patch(Circle((mx, my), 0.03*diag, facecolor="0.2", zorder=4))   # 모터
-    # 대각 치수선(마주보는 두 모터)
-    a0 = math.radians(angs[0]); a2 = math.radians(angs[len(angs)//2])
-    p0 = (r*math.cos(a0), r*math.sin(a0)); p2 = (r*math.cos(a2), r*math.sin(a2))
-    axB.annotate("", xy=p0, xytext=p2,
+        axB.add_patch(Circle((mx, my), 0.03*diag, facecolor="0.2", zorder=4))    # 모터
+    # 대각 치수선 — 마주보는 두 모터(메쉬 좌표)
+    p0 = C[0][:2]; p2 = C[len(C)//2][:2]
+    axB.annotate("", xy=tuple(p0), xytext=tuple(p2),
                  arrowprops=dict(arrowstyle="<->", color="#c62828", lw=1.8))
-    axB.text(0, 0.06*diag, f"Diagonal {spec.diagonal_mm:.0f} mm", color="#c62828",
+    axB.text(0, 0.06*diag, f"Diagonal {diag_eff:.0f} mm (mesh)", color="#c62828",
              ha="center", fontsize=11, fontweight="bold",
              bbox=dict(boxstyle="round", fc="white", ec="#c62828", alpha=0.9))
-    # 전방 화살표
-    lim = (r + prop_r) * 1.2
-    axB.annotate("Front", xy=(lim*0.78, 0), xytext=(lim*0.5, 0),
+    lim = float(np.abs(C[:, :2]).max()) + prop_r * 1.15
+    axB.annotate("Front", xy=(lim*0.82, 0), xytext=(lim*0.5, 0),
                  arrowprops=dict(arrowstyle="->", color="g", lw=2),
                  color="g", fontsize=10, va="center")
     axB.set_xlim(-lim, lim); axB.set_ylim(-lim, lim)
-    axB.set_title("Top view — dashed = propeller disc", fontsize=12)
+    axB.set_title("Top view - dashed = propeller disc, dotted = official envelope", fontsize=11)
     axB.set_xlabel("x [m]"); axB.set_ylabel("y [m]"); axB.grid(alpha=0.25)
 
-    # --- (C) 옆에서 본 도면 : 높이 ---------------------------------------- #
+    # --- (C) 옆에서 본 도면 : 높이 (오늘 고친 부분) ------------------------ #
     axC = fig.add_subplot(2, 2, 3)
     axC.set_aspect("equal")
-    b0, b1 = mesh.bounds()
     total_h = (b1[2]-b0[2])
-    # 동체 측면(간단 박스) + 메쉬 측면 외곽(x-z 투영 점)
-    V = np.array(mesh.v)
     axC.scatter(V[:, 0], V[:, 2], s=2, c="0.5", alpha=0.35)
-    # 메쉬 hull 과 동일: z 중심 0, 두께 body_z(=0.35·H_spec)
-    axC.add_patch(Rectangle((-bl/2, -0.5*body_z), bl, body_z, facecolor=cmap["body"],
-                            edgecolor="k", lw=1.0, zorder=3))
-    # 전체 높이 치수 — '생성 메쉬'의 z 범위(프롭·기어 포함). 제원표의 Unfolded H(셸 전고)와 다름.
+    # 공식 전고(H) 밴드 — 프레임(프롭 제외) 이 여기에 정확히 들어맞는다
+    Hspec = (spec.envelope_mm or (None, None, None))[2]
+    if Hspec:
+        axC.axhspan(-Hspec/2000.0, Hspec/2000.0, color="#1565c0", alpha=0.10, zorder=0)
+        axC.text(0.02, 0.03, f"blue band = official H = {Hspec:.0f} mm",
+                 transform=axC.transAxes, color="#1565c0", fontsize=9, va="bottom")
     xline = b1[0] + 0.06*diag
     axC.annotate("", xy=(xline, b0[2]), xytext=(xline, b1[2]),
                  arrowprops=dict(arrowstyle="<->", color="#c62828", lw=1.6))
-    axC.text(xline+0.01*diag, (b0[2]+b1[2])/2, f"Model z-span\n{total_h*1000:.0f} mm",
+    axC.text(xline+0.01*diag, (b0[2]+b1[2])/2, f"Mesh z-span\n{total_h*1000:.0f} mm",
              color="#c62828", fontsize=9, va="center")
     axC.axhline(0, color="0.7", lw=0.6, ls=":")
-    axC.set_title("Side view (front = right)", fontsize=12)
+    axC.set_title("Side view (front = right) - props included in z-span", fontsize=11)
     axC.set_xlabel("x [m]"); axC.set_ylabel("z [m]"); axC.grid(alpha=0.25)
 
     # --- (D) 제원 표 ------------------------------------------------------ #
@@ -139,29 +158,41 @@ def drone_card(key, outdir=FIG):
     axD.text(0.02, 0.96, badge, transform=axD.transAxes, fontsize=12,
              fontweight="bold", color="white", va="top",
              bbox=dict(boxstyle="round", fc=bcol, ec="none"))
+    off = spec.envelope_mm or (None, None, None)
+    fit = env["lwh_mm"]
+
+    def _f(v):
+        return "-" if v is None else f"{v:.0f}"
     rows = [
         ("Rotors / Arms", f"{spec.num_rotors} rotors / {spec.num_rotors} arms"
                        + ("  (octocopter)" if spec.num_rotors == 8 else "  (quadcopter)")),
-        ("Diagonal (wheelbase)", f"{spec.diagonal_mm:.0f} mm"),
+        # 카탈로그 대각선 vs **메쉬 대각선** — 둘이 다르면 그게 정보다(mavic 400 → 441).
+        ("Diagonal: catalogue / mesh",
+         f"{spec.diagonal_mm:.0f} / {diag_eff:.0f} mm"
+         + ("  (catalogue estimated)" if key in ("mini5pro", "mavic4pro") else "")),
         # S1000+ 의 4400 g 은 이륙중량이 아니라 기체(airframe) 자중 → 라벨을 분리한다.
         ("Airframe weight" if spec.key == "s1000plus" else "Takeoff weight",
          f"{spec.weight_g:g} g  (TOW 6-11 kg)" if spec.key == "s1000plus"
          else f"{spec.weight_g:g} g"),
         ("Propeller", f"Ø{spec.prop_dia_mm:.0f} mm × {spec.prop_blades} blades × {spec.num_rotors}"),
-        ("Unfolded L×W×H", f"{spec.body_l_mm:.0f} × {spec.body_w_mm:.0f} × {spec.body_h_mm:.0f} mm"),
+        ("Official envelope L×W×H", f"{_f(off[0])} × {_f(off[1])} × {_f(off[2])} mm"),
+        ("Mesh envelope L×W×H",
+         f"{fit[0]:.0f} × {fit[1]:.0f} × {fit[2]:.0f} mm   (fitted)"),
         ("Max speed", f"{spec.max_speed_ms} m/s" if spec.max_speed_ms else "—"),
         ("RTK (precise positioning)", "Yes" if spec.rtk else "No"),
         ("Landing gear", {"none":"None (rests on arms)","feet":"Small feet","legs":"Fixed legs",
                        "tall":"Retractable legs"}.get(spec.gear, spec.gear)),
         ("Data confidence", {"high":"High","medium":"Medium","low":"Low"}.get(spec.confidence)),
     ]
-    y = 0.85
+    y = 0.86
     for k, v in rows:
-        axD.text(0.02, y, k, transform=axD.transAxes, fontsize=10.5, color="#444")
-        axD.text(0.46, y, v, transform=axD.transAxes, fontsize=10.5, fontweight="bold")
-        y -= 0.087
-    axD.text(0.02, y-0.01, "Note: " + spec.note, transform=axD.transAxes,
-             fontsize=8.4, color="#b71c1c", va="top", wrap=True)
+        axD.text(0.02, y, k, transform=axD.transAxes, fontsize=10.2, color="#444")
+        axD.text(0.50, y, v, transform=axD.transAxes, fontsize=10.2, fontweight="bold")
+        y -= 0.081
+    # NanumGothic 에는 '⚠' 같은 기호가 없어 두부(□)로 렌더된다 → ASCII 로 치환.
+    note = spec.note.replace("⚠", "!").replace("→", "->").replace("×", "x")
+    axD.text(0.02, y-0.01, "Note: " + note, transform=axD.transAxes,
+             fontsize=8.0, color="#b71c1c", va="top", wrap=True)
 
     os.makedirs(outdir, exist_ok=True)
     fn = os.path.join(outdir, f"card_{key}.png")
@@ -181,14 +212,18 @@ def size_comparison(outdir=FIG):
     fig.suptitle("Five DJI drones at the same scale", fontsize=17, fontweight="bold")
 
     # (위) 같은 축척 평면 비교 — 프로펠러 회전원 기준
+    #   ⚠ 2026-07-14: 모터 위치는 **rotor_layout(=공식 외형에 맞춰 스케일된 메쉬)** 에서 읽는다.
+    #      카탈로그 대각선으로 그리면 옆의 3D 렌더/카드와 어긋난다(mavic 400 vs 441 mm).
     axT = fig.add_subplot(gs[0, :]); axT.set_aspect("equal")
-    maxspan = max((s.diagonal_mm/1000 + s.prop_dia_mm/1000) for s in specs)
+    LAY = {s.key: np.array([r["center"] for r in rotor_layout(s)], float) for s in specs}
+    DEFF = {s.key: frame_envelope_mm(s)["diagonal_effective_mm"] for s in specs}
+    maxspan = max(2*np.abs(LAY[s.key][:, :2]).max() + s.prop_dia_mm/1000 for s in specs)
     x = 0.0
     for s in specs:
-        diag = s.diagonal_mm/1000; r = diag/2; pr = s.prop_dia_mm/1000/2
+        diag = s.diagonal_mm/1000; pr = s.prop_dia_mm/1000/2
         cx = x + maxspan*0.62
-        for a in motor_angles(s):
-            mx = cx + r*math.cos(math.radians(a)); my = r*math.sin(math.radians(a))
+        for (mx0, my, _mz) in LAY[s.key]:
+            mx = cx + mx0
             # 프롭원: 카드(B)와 동일한 파란 점선 테두리 + 기체색 반투명 채움.
             #   alpha= 는 테두리에도 먹고 edgecolor=body_rgb 는 흰 기체에서 안 보이므로
             #   채움만 RGBA 로 주고 테두리는 불투명 파란 점선으로 분리한다.
@@ -196,8 +231,8 @@ def size_comparison(outdir=FIG):
                                  edgecolor="#1565c0", ls="--", lw=1.0, zorder=2))
             axT.plot([cx, mx], [0, my], color="0.3", lw=1.2, zorder=3)
         axT.add_patch(Circle((cx, 0), 0.04*diag, facecolor="0.2", zorder=4))
-        dag = f"{s.diagonal_mm:.0f} mm†" if s.key in ("mini5pro", "mavic4pro") else f"{s.diagonal_mm:.0f} mm"
-        axT.text(cx, -maxspan*0.62, f"{s.name.split('  ')[0]}\ndiag {dag} · {s.weight_g:g} g",
+        axT.text(cx, -maxspan*0.62,
+                 f"{s.name.split('  ')[0]}\ndiag {DEFF[s.key]:.0f} mm · {s.weight_g:g} g",
                  ha="center", va="top", fontsize=9.5)
         x += maxspan*1.24
     axT.set_xlim(-maxspan*0.1, x); axT.set_ylim(-maxspan*0.8, maxspan*0.62)
@@ -207,18 +242,18 @@ def size_comparison(outdir=FIG):
     axT.set_xlabel("x [m]  (tick spacing = 1 m)")
     axT.set_yticks([])
 
-    # (아래좌) 대각거리 막대
+    # (아래좌) 대각거리 막대 — **메쉬 대각선**(공식 외형에서 유도) 기준
     axL = fig.add_subplot(gs[1, 0])
     names = [s.name.split("  ")[0].replace("DJI ", "") for s in specs]
-    dias = [s.diagonal_mm for s in specs]
+    dias = [DEFF[s.key] for s in specs]
     cols = [s.body_rgb if max(s.body_rgb) < 0.9 else (0.6, 0.6, 0.65) for s in specs]
     axL.barh(names, dias, color=cols, edgecolor="k")
     # DJI 는 Mini/Mavic 시리즈의 motor-to-motor 대각거리를 발표하지 않는다(SPECS.md L17/L38).
-    # 250 / 400 mm 는 우리 추정치(±20 mm)이므로 무게의 '*' 규약과 똑같이 표시한다.
+    # 그 두 기종은 카탈로그값이 추정치라 **공식 외형에서 유도한 메쉬 대각선**을 쓴다.
     for i, (sp, d) in enumerate(zip(specs, dias)):
         est = sp.key in ("mini5pro", "mavic4pro")
         axL.text(d+10, i, f"{d:.0f}†" if est else f"{d:.0f}", va="center", fontsize=9)
-    axL.set_title("Diagonal [mm]  († = estimated)", fontsize=12)
+    axL.set_title("Diagonal of the mesh [mm]  († = DJI publishes none)", fontsize=11)
     axL.invert_yaxis(); axL.grid(axis="x", alpha=0.3)
 
     # (아래우) 무게 막대 — **선형축**. 로그축은 17.6:1 범위를 1.9:1 로 압축해서
@@ -236,7 +271,9 @@ def size_comparison(outdir=FIG):
 
     # 제목에서 뺀 단서는 하단 회색 캡션 한 줄로(constrained_layout 이 자리를 잡아 주는 supxlabel)
     fig.supxlabel("S1000+ is by far the largest; its 4400 g is airframe weight only (takeoff weight 6-11 kg).   "
-                  "† motor-to-motor diagonal estimated — DJI publishes no wheelbase for the Mini/Mavic series.",
+                  "Motor positions are read from the mesh, which is fitted to the official DJI envelope.\n"
+                  "† DJI publishes no wheelbase for the Mini / Mavic series, so their diagonal is the one implied "
+                  "by that envelope (Mini 274.6 mm, Mavic 440.9 mm) - not the old estimates (250 / 400 mm).",
                   fontsize=8.5, color="0.45")
 
     os.makedirs(outdir, exist_ok=True)

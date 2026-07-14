@@ -50,31 +50,50 @@ def build_cells(R):
                         max(1, len([r for r in C if r["scen"] == s])))
                for s in ("radial", "waypoint", "tangential", "hover")}
     D = R["D_rt"]
+    E = R["E_ghost"]
+    gh = E["ghost"]
+    Eg = {r["wf"]: r for r in E["rows"] if r["ghost_on"] and r["drone"] == "mavic4pro"}
+    dead = D.get("clutter_dead", [])
+    sig_sbr = head["sigma_dbsm"]
+    sig_po = head.get("sigma_po_dbsm", float("nan"))
+    occ_db = R["B_matrix"].get("occlusion_db_mean", float("nan"))
+    occ_med = R["B_matrix"].get("occlusion_db_median", float("nan"))
 
     cells = []
     cells.append(md(
-        "# ⚖️ report5 — **공정 벤치마크**: 링크버짓으로 유도하고, SCR·Pd 는 측정한다",
+        "# ⚖️ report5 — **공정 벤치마크**: 환경은 RT, 표적 σ 는 SBR, 절대전력은 링크버짓",
         "",
         "> **이 노트북 = 5단계: 공정성.** report4 까지는 표적 SNR 을 손잡이로 주입해 곡선을 그렸다",
         "> (처리이득 비교로는 유효하지만, '어떤 신호가 정말 유리한가'에는 **불공정**). 여기서는",
-        "> **benchmark/** 하네스로 바로잡는다: 고정 예산(EIRP·수신이득·잡음지수) + PO-RCS·기하·대역폭에서",
-        "> 에코 SNR 을 **물리로 유도**하고(링크버짓), SCR·Pd 는 RD맵에서 **측정**한다 — *SCR is measured, not swept*.",
-        "> 무대는 report1~4 와 같은 30×20×11 m 무반사 챔버(TX/RX 양쪽 측벽, L≈15 m, 표적 quiet zone).",
+        "> **benchmark/** 하네스로 바로잡는다: 고정 예산(EIRP·수신이득·잡음지수) + RCS·기하·대역폭에서",
+        "> 에코 SNR 을 **물리로 유도**하고, SCR·Pd 는 RD맵에서 **측정**한다 — *SCR is measured, not swept*.",
+        "> 무대는 report1~4 와 같은 30×20×11 m **semi-anechoic** 챔버(벽·천장만 흡수체, **바닥은 콘크리트**).",
         "",
-        "**3줄 결론** (전부 아래 실험의 측정값)",
-        f"1. **탐지력은 협대역이 우세, 대역폭의 값은 '분리'**: EIRP {eirp:.0f} dBm(저출력)에서 radial 탐지는 "
-        f"{n_pass}/{n_cells} 셀 성공이고 SCR 은 잡음(kTB)이 작은 협대역 LTE 가 최고다. 단일표적 위치오차도 "
-        f"서브미터(5G {_err(head)}, LTE10 {_err(lte10)} — 고SNR 에선 정확도≈분해능/√SNR). 대역폭이 사는 것은 "
-        "**거리축 분리능력**이다: LTE10 은 거리셀이 2~3개(ΔRb≈33 m ≳ 챔버)라 직접파 잔류·다중표적이 표적과 "
-        "같은 셀에 겹치면 원리적으로 구분 불가. (report4 의 'LTE 불리'는 동일 SNR 주입 비교의 산물 — "
-        "공정 예산에선 이렇게 갈린다.)",
+        "> **🔬 이번 판의 엔진 교체 (2026-07-14)** — 벤치마크가 드디어 **하이브리드**로 돈다:",
+        "> - **표적 σ = SBR**(Mitsuba 광선 + PO 표면적분, **가림 포함**). 이전 판은 순수 PO(점구름, 가림 없음)라",
+        ">   드론 RCS 를 **과대평가**하고 있었고, σ 는 링크버짓에 그대로 곱해지므로 그 오차가 에코 SNR→SCR→Pd",
+        f">   전체에 실려 있었다. 같은 시선각에서 다시 재보니 σ 가 **평균 {occ_db:+.1f} dB**(중앙값 {occ_med:+.1f}) "
+        f"내려갔다 —",
+        f">   mavic4pro @3.5GHz 는 {sig_po:.1f} → **{sig_sbr:.1f} dBsm**. 그만큼 에코 SNR·SCR 도 함께 내려간다.",
+        "> - **환경(정적 잔향) = Sionna RT 실측**(챔버 메쉬·ITU 재질, 반송파별 1회 광선추적 → 캐시).",
+        ">   더 이상 클러터를 '가정'하지 않는다.",
+        "> - **절대전력 = link_budget**(EIRP·kTB). RT 의 절대보정에 의존하지 않는다.",
+        "",
+        "**4줄 결론** (전부 아래 실험의 측정값)",
+        f"1. **탐지력은 협대역이 우세, 대역폭의 값은 '분리'** — *살아남은 결론*: EIRP {eirp:.0f} dBm(저출력)에서 "
+        f"radial 탐지는 {n_pass}/{n_cells} 셀 성공이고 SCR 은 잡음(kTB)이 작은 협대역 LTE 가 최고다. 대역폭이 "
+        "사는 곳은 **거리축 분리능력**(위치정보·다중표적)이다 — LTE10 은 거리셀이 챔버 전체에 2~3개뿐이다.",
         f"2. **점유의 대가는 약 {gap_db:.0f} dB**: 같은 5G 100MHz 라도 G1(SSB만)은 Pd 50% 에 EIRP "
         f"{g1_tr:+.0f} dBm 이 필요한 반면 G3(풀로드)는 {g3_tr:+.0f} dBm 이면 충분 — 기준신호가 협대역·저에너지·"
         "시간희소인 '한가한 5G 이중고'(report2)가 고정 예산 Pd 로 정량화됨(Rényi 적응적분 동기).",
-        f"3. **모션 블라인드는 '정확히 0-도플러'에서**: hover(정지)는 전 구간 Pd={mean_pd['hover']*100:.0f}% — "
-        "정지 표적의 에코는 ECA 의 지연복제 부분공간에 정확히 들어가 직접파와 함께 소거된다. 반면 저속 횡단"
-        f"(tangential, |f_d|≤14 Hz)은 이 예산의 SCR 마진이 ECA 감쇠를 흡수해 Pd={mean_pd['tangential']*100:.0f}%. "
-        "→ 정지 드론은 bulk 도플러로는 원리적으로 못 잡는다 — report3 마이크로도플러가 필요한 지점.",
+        f"3. **모션 블라인드는 '정확히 0-도플러'에서**: hover(정지)는 전 구간 Pd={mean_pd['hover']*100:.0f}%, "
+        f"저속 횡단(tangential)은 마진이 흡수해 Pd={mean_pd['tangential']*100:.0f}%. 정지 드론은 bulk 도플러로 "
+        "원리적으로 못 잡는다 → report3 마이크로도플러가 필요한 지점.",
+        f"4. **🆕 그런데 바닥이 표적을 복제한다 — '5G 가 최고'가 여기서 뒤집힌다**: TX→표적→**바닥**→RX 유령은 "
+        f"표적을 거치므로 **도플러가 실려** ECA 가 못 지운다. 표적 에코보다 {gh['amp_db']:.1f} dB 약한데도 "
+        f"CFAR 임계보다 **{Eg['nr100']['ghost_margin_db']:+.1f} dB 위**에 뜨고(5G), 표적에서 **{gh['sep_m']:+.2f} m** "
+        f"떨어져 있다. 5G 의 ΔRb={gh['d_rb_m']:.1f} m 는 이걸 **분해해 버려** 별개의 '유령 드론'으로 만든다. "
+        "광대역의 장점(분해능)이 그대로 오검출로 되돌아온다. **Pd 는 안 떨어진다 — 무너지는 건 신뢰다.**",
     ))
 
     cells.append(md(
@@ -87,21 +106,34 @@ def build_cells(R):
         "  데는 유효하지만, 신호마다 다른 반송파(λ→전파감쇠·RCS)·대역폭(B→잡음 kTB)·점유(에너지)를 지워버리므로",
         "  \"어떤 신호가 정말 유리한가\"에는 답할 수 없습니다.",
         "- report5(아래 초록 흐름)는 그 손잡이를 없앱니다. **고정하는 것은 조명원 예산(EIRP·수신이득·잡음지수)뿐**이고,",
-        "  에코 SNR 은 레이더 방정식이 **유도**하며(PO RCS σ, 기하 R1·R2, λ, kT₀FB), SCR·Pd 는 거리-도플러 맵에서",
+        "  에코 SNR 은 레이더 방정식이 **유도**하며(SBR RCS σ, 기하 R1·R2, λ, kT₀FB), SCR·Pd 는 거리-도플러 맵에서",
         "  **측정**합니다. 신호를 가르는 물리가 결과에 저절로 반영됩니다 — *SCR is measured, not swept*.",
-        "- 이 위에서 네 가지 실험을 합니다: **A** 점유(G1/G2/G3)의 대가, **B** 신호×드론 매트릭스,",
-        "  **C** 모션(0-도플러 블라인드), **D** Sionna RT 광선추적 교차검증.",
+        "- 이 위에서 다섯 가지 실험을 합니다: **A** 점유(G1/G2/G3)의 대가, **B** 신호×드론 매트릭스,",
+        "  **C** 모션(0-도플러 블라인드), **E** 🆕 **유령 매트릭스**(바닥 유령 off/on), **D** Sionna RT 교차검증.",
+        "",
+        "### 무엇이 무엇을 계산하나 — 하이브리드 분업",
+        "",
+        "| 물리량 | 엔진 | 왜 |",
+        "|---|---|---|",
+        "| 표적 RCS σ | **SBR** (`src/rcs_sbr.py`: Mitsuba 광선 + PO 표면적분) | Sionna RT 의 전파용 path solver 에는 **산란적분 단계가 없어** σ 가 창발하지 않는다(광선을 4배로 늘려도 값이 수렴하지 않고 계속 커진다). σ 는 적분에서 나온다 → 광선추적 **안에** PO 를 넣은 것이 SBR. 해석해 검증: 평판 −0.01 dB, 금속구 +0.39 dB. |",
+        "| 환경 경로·잔향 | **Sionna RT** (`SionnaRTChannel`, 캐시) | RT 는 **환경**에서 정확하다 — 바닥 반사를 19.3 ns / −14.7 dB 로 찾았고 프레넬 예측과 0.02 dB 일치. |",
+        "| 절대전력·잡음 | **link_budget** (EIRP·kTB) | RT 절대보정에 의존하지 않기 위해 모든 경로를 '직접파 대비 비율'로만 쓴다. |",
         "",
         "### benchmark/ 하네스 구조",
         "",
         "| 파일 | 역할 |",
         "|---|---|",
-        "| `benchmark/geometry.py` | 챔버 내 TX/RX/quiet-zone 배치 + RD 거리창(`chamber_window`) |",
+        "| `benchmark/geometry.py` | 챔버 내 TX/RX/quiet-zone 배치 + RD 거리창 + **`floor_ghost()`**(표적 경유 바닥 유령) |",
         "| `benchmark/link_budget.py` | **물리 유도**: P_echo=EIRP·G_rx·λ²σ/[(4π)³R1²R2²], P_dir(Friis), P_n=kT₀FB |",
-        "| `benchmark/channel.py` | 채널 백엔드 스왑: `AnalyticChannel`(기하+PO) ↔ `SionnaRTChannel`(RT 멀티패스, GPU) |",
+        "| `benchmark/channel.py` | σ=**SBR**(GPU 캐시) + 환경 스왑: `AnalyticChannel`(닫힌형 기하) ↔ `SionnaRTChannel`(RT) |",
         "| `benchmark/scenarios.py` | 통제 모션 4종: radial / tangential / hover / waypoint |",
         "| `benchmark/run_min_cell.py` | 최소 셀 1개 + 고속 Monte-Carlo(`run_cell`) |",
-        "| `benchmark/run_matrix.py` | 본 실험 A~D → 그림·`outputs/bench_matrix.csv`·`outputs/report5_results.json` |",
+        "| `benchmark/run_matrix.py` | 본 실험 A~E → 그림·`outputs/bench_matrix.csv`·`bench_ghost.csv`·`report5_results.json` |",
+        "",
+        "> **왜 σ 를 미리 캐시하나**: SBR 은 GPU(Mitsuba/OptiX)를 쓴다. 매트릭스는 셀을 프로세스 풀로 뿌리므로",
+        "> 워커마다 CUDA 컨텍스트를 만들면 GPU 메모리가 워커 수만큼 곱해지고 fork 된 CUDA 가 깨질 수 있다.",
+        "> 그래서 **메인 프로세스가 필요한 시선각을 전부 모아 여러 GPU 에 나눠 SBR 로 계산**하고",
+        "> (`channel.sbr_sigma_prefill`), 워커는 표를 **조회만** 한다(캐시 미스는 조용히 PO 로 흐르지 않고 실패).",
         "",
         "**공정성 규약(전 셀 공통)** — ① 수신기는 **기준신호만** 안다(`wf.ref`; 데이터 복조 없음) ② ref 는 "
         "**송신 전체파형 전력 기준** 정규화 → 희소 파일럿(G1)의 에너지 핸디캡이 처리이득에 그대로 반영 "
@@ -117,7 +149,7 @@ def build_cells(R):
         "",
         f"5G NR 100MHz(G3) × mavic4pro × radial, EIRP {eirp:.0f} dBm. 링크버짓이 유도한 per-sample "
         f"에코 SNR 은 **{head.get('snr_echo_eff_db', head['snr_echo_db']):+.1f} dB**"
-        f"(σ={head['sigma_dbsm']:.1f} dBsm, PO 자세평균; 잡음대역 fs 보정 포함)로 잡음보다 "
+        f"(σ={head['sigma_dbsm']:.1f} dBsm, **SBR**·자세평균; 잡음대역 fs 보정 포함)로 잡음보다 "
         f"한참 아래지만, CPI 처리이득(거리압축×슬로타임 FFT)이 이를 SCR **{head['scr_db']:.0f} dB** 로 끌어올려 "
         f"Pd={head['pd']*100:.0f}% 가 **측정**된다. 직접파는 에코보다 {head['dnr_db']:.0f} dB 강하다(ECA 가 제거).",
         "",
@@ -208,38 +240,114 @@ def build_cells(R):
         "블레이드는 정지 호버 중에도 돌아 0-도플러 소거와 무관한 시그니처를 남긴다.",
     ))
 
-    rt_cell = D["cell"]
+    # ---- 5. 유령 매트릭스 (E) — 이번 판의 핵심 ----
+    def _gh(k, f):
+        return Eg[k][f] if k in Eg and Eg[k][f] is not None else float("nan")
     cells.append(md(
-        "## 5. Sionna RT 교차검증 (D) — 가정이 아니라 광선추적으로",
+        "## 5. 🆕 유령 매트릭스 (E) — 바닥이 표적을 복제한다, 그리고 광대역일수록 잘 복제된다",
         "",
-        "같은 셀을 `AnalyticChannel`(닫힌형 기하+가정 잔향) ↔ `SionnaRTChannel`(Sionna RT PathSolver, "
-        "챔버 메쉬+흡수체 재질) 로 스왑해 비교(GPU). 왼쪽 두 패널이 **같은 표적을 두 채널로 본 거리-도플러 맵**"
-        "(구조·표적 위치·SCR 이 일치해야 함), 오른쪽이 잔향 스펙트럼 비교:",
+        "챔버는 **anechoic 이 아니라 semi-anechoic** 이다: 흡수체는 벽 4면 + 천장에만 있고 **바닥은 반사성 "
+        "콘크리트**다. 그래서 방 안에 강한 반사면이 딱 하나 남는다 — 바닥.",
+        "",
+        "**두 종류의 바닥 경로를 구분해야 한다:**",
+        "",
+        "| 경로 | 도플러 | ECA | 결과 |",
+        "|---|---|---|---|",
+        "| TX → **바닥** → RX (정적 클러터) | 없음(0 Hz) | 지연복제 부분공간 → **정확히 소거** | 무해 — **죽은 파라미터** |",
+        "| TX → **표적** → 바닥 → RX (유령) | **표적과 같이 실림** | 영공간 **밖** → **안 지워짐** | **가짜 표적** |",
+        "",
+        "우리가 오랫동안 걱정한 건 위쪽(정적 클러터)이었고, 그건 ECA 가 진폭과 무관하게 지운다(§6에서 증명). "
+        "**진짜 위협은 아래쪽**이고 모델에 아예 없었다. 이제 켠다:",
+        "",
+        "![ghost](outputs/figures/report5_ghost.png)",
+        "",
+        f"- **유령의 물리**(닫힌형 거울상 유도, `geometry.floor_ghost`): 바닥 입사각 {gh['theta_i_deg']:.0f}°, "
+        f"콘크리트 프레넬 |Γ|={gh['gamma']:.3f} → 표적 에코보다 **{gh['amp_db']:.1f} dB** 약하고, "
+        f"바이스태틱 거리는 **{gh['sep_m']:+.2f} m** 더 길며, 도플러는 {gh['fd']:+.0f} Hz "
+        "(표적과 다르지만 **0 은 아니다** — 그래서 ECA 를 통과한다).",
+        "- **여기서 결론이 뒤집힌다 — 분해능이 곧 오검출이다**:",
+        f"  · **5G100 (ΔRb={_gh('nr100','delta_rb_m'):.1f} m < {abs(gh['sep_m']):.2f} m)** → 유령을 **분해**한다. "
+        f"그 별개 피크는 CFAR 임계보다 **{_gh('nr100','ghost_margin_db'):+.1f} dB** 위에 있고, 매 trial 마다 "
+        f"({_gh('nr100','p_ghost_det')*100:.0f}%) 검출된다 → RD 맵에 **'유령 드론' 한 대가 더** 뜬다.",
+        f"  · **WiFi80/LTE (ΔRb={_gh('wifi80','delta_rb_m'):.1f}~{_gh('lte10','delta_rb_m'):.0f} m > "
+        f"{abs(gh['sep_m']):.2f} m)** → 유령이 표적과 **같은 거리셀**에 묻힌다. 가짜 표적은 안 생기지만, "
+        "표적 셀 안에서 에코와 **코히어런트하게 합쳐진다**(진폭·위상 오염). 우리 기하에선 피크 거리오차 변화가 "
+        f"cm 수준(예: LTE10 {_gh('lte10','rb_err_m'):.2f} m)이라 **큰 편향으로 나타나지는 않았다** — "
+        "'유령이 없다'가 아니라 '분리해 낼 수단이 없다'가 정확한 서술이다.",
+        "  · **Pd 는 어느 쪽도 안 떨어진다**(패널 c). 무너지는 것은 탐지가 아니라 **신뢰**다.",
+        "",
+        "> ⚠ **정직한 단서 두 가지**",
+        "> 1. '가짜 표적(p_false)' 판정 = *표적셀 ±1 밖*의 CFAR 히트인데, 유령이 거리빈으로 "
+        f"{abs(gh['sep_m'])/2.44:.2f} 빈 떨어져 있어 **격자 모서리에 민감하다** — 표적이 몇 cm 움직이면 반올림이 "
+        "1↔2 빈을 오가고, 1빈이면 표적 히트 창에 흡수되어 p_false=0 으로 집계된다. 그래서 격자와 무관한 "
+        "**CFAR 임계 대비 여유(dB)** 를 함께 본다. 유령이 거기 있다는 사실 자체는 격자와 무관하다.",
+        "> 2. **merged 인 파형(WiFi/LTE)에서는 '유령 셀' = '표적 셀'** 이라, 그 셀의 CFAR 여유를 재는 것은 "
+        "표적을 다시 재는 것과 같다(그림 패널 b 에서 여유 수치를 5G 에만 표기한 이유). merged 의 손해는 "
+        "'오검출'이 아니라 **'구분 불가'** 다.",
+        "",
+        "**함의**: 챔버 안 5G 패시브 레이더는 드론 1대를 띄우면 **2대를 본다**. 해결책은 대역폭을 줄이는 게 "
+        "아니라(그러면 위치정보를 잃는다) — 바닥 유령을 **모델링해 지우는 것**이다: 유령의 (Rb, f_d) 는 표적 "
+        "위치의 결정론적 함수이므로(거울상 기하), 표적 가설마다 유령 셀을 예측해 연관(association)에서 배제할 수 있다. "
+        "그게 다음 리포트의 일이다.",
+    ))
+    cells.append(code(
+        "import pandas as pd",
+        "g = pd.read_csv('outputs/bench_ghost.csv')",
+        "g[g.ghost_on].groupby('wf')[['pd', 'p_ghost_det', 'ghost_margin_db', 'p_false', 'rb_err_m']].mean()",
+    ))
+
+    # ---- 6. RT 교차검증 (D) — 무엇을 증명하고, 무엇을 증명 못 하나 ----
+    rt_cell = D["cell"]
+    dead_txt = " · ".join(f"{x['tag']} → SCR {x['scr']:.6f} dB" for x in dead) if dead else "—"
+    cells.append(md(
+        "## 6. Sionna RT 교차검증 (D) — 무엇을 증명하고, 무엇을 **증명하지 못하나**",
+        "",
+        "같은 셀을 `AnalyticChannel`(닫힌형 기하) ↔ `SionnaRTChannel`(Sionna RT PathSolver, 챔버 메쉬+ITU 재질) "
+        "로 스왑해 비교한다(GPU). **두 백엔드의 σ 는 이제 둘 다 SBR** 이다 — 다른 것은 '환경 경로'뿐이다.",
         "",
         "![rt](outputs/figures/report5_rt_clutter.png)",
         "",
-        f"- **자유공간 RT: 클러터 {D['free']['n_clutter']}개** — 기하·직접파 처리의 교차검증 통과.",
-        f"- **흡수체 챔버 RT: 잔향 {len(D['chamber_clutter'])}개 실측** (직접파 대비 "
-        f"{', '.join(f'{db:.0f}dB' for _, db in D['chamber_clutter'][:3]) if D['chamber_clutter'] else '—'} …) — "
-        "Analytic 의 가정(−26/−29/−34 dB)과 같은 자리수의 약한 잔향. 무반사 챔버 전제(클러터 약함, DPI 지배) 유지.",
+        f"- **자유공간 RT: 클러터 {D['free']['n_clutter']}개** — 기하·직접파·지연 처리의 교차검증 통과. ✅",
+        f"- **챔버 RT: 잔향 {len(D['chamber_clutter'])}개 실측** (최강 "
+        f"{max(db for _, db in D['chamber_clutter']):.1f} dB) — 옛 가정치(−26/−29/−34 dB)보다 **11~16 dB 강하다.** "
+        "우리는 챔버를 과소가정하고 있었고, 그 실측치를 이제 매트릭스에 실제로 주입한다.",
+        "",
+        "### ❌ 무너진 결론 — \"RT ≈ Analytic 이므로 클러터 모델이 검증됐다\"",
+        "",
+        "이건 **항등식이었다.** ECA 는 정적 클러터를 *지연된 기준신호의 선형결합*으로 보고 그 부분공간을 "
+        "**진폭과 무관하게 정확히 사영 소거**한다. 그러니 어떤 클러터 모델을 넣어도 두 백엔드는 '일치'할 수밖에 "
+        "없었다. 이번 판은 그걸 **같은 자리에서 증명**한다 — 잔향을 0 / RT실측 / RT×10 으로 바꿔도:",
+        "",
+        f"> `{dead_txt}`",
+        "",
+        "소수점 여섯 자리까지 같다. **정적 클러터는 죽은 파라미터다.**",
         f"- **같은 셀 Pd**: RT {rt_cell['rt']['pd']*100:.0f}% vs Analytic {rt_cell['analytic']['pd']*100:.0f}%, "
-        f"SCR {rt_cell['rt']['scr']:.1f} vs {rt_cell['analytic']['scr']:.1f} dB (N={rt_cell['N']}) — 두 백엔드가 "
-        "일치하므로 이후 대규모 스윕은 빠른 Analytic 으로, 환경이 바뀔 때만 RT 재검증.",
+        f"SCR {rt_cell['rt']['scr']:.1f} vs {rt_cell['analytic']['scr']:.1f} dB (N={rt_cell['N']}) — 일치한다. "
+        "다만 위의 이유로 이 일치가 검증하는 것은 **기하·직접파·지연**이지 **클러터 모델이 아니다**.",
+        "- 실제 ECA 는 이렇게 완벽하지 않다(유한 동적범위·클러터 도플러퍼짐·양자화). 그 한계는 **아직 모델에 "
+        "없다** — 정적 클러터가 *정말로* 무해하다는 뜻이 아니라, **이 모델이 그걸 검증할 능력이 없다**는 뜻이다.",
     ))
 
     cells.append(md(
-        "## 6. 정리 & 다음 단계",
+        "## 7. 정리 — 살아남은 것 / 무너진 것 / 새로 알아낸 것",
         "",
-        "**한 일** — report4 의 'SNR 주입' 을 링크버짓 물리로 대체한 **공정 벤치마크**: "
-        "① 최소셀(물리→Pd 파이프라인) ② 점유 공정성(G1 이중고 정량화) ③ 신호×드론 매트릭스(CSV) "
-        "④ 0-도플러 블라인드 정량화 ⑤ RT 교차검증. 모든 수치는 `outputs/report5_results.json` 에 저장되고 "
-        "이 노트북은 그 값을 읽어 쓴다(수기 수치 없음).",
+        "| | 내용 | 근거 |",
+        "|---|---|---|",
+        "| ✅ **살아남음** | 대역폭이 가르는 건 **탐지가 아니라 위치정보**(거리축)와 다중표적 분리 | §3 — SCR 은 협대역이 높고(kTB↓) Pd 는 전부 성공. 갈리는 건 ΔRb |",
+        f"| ✅ **살아남음** | 점유의 대가 ≈ {gap_db:.0f} dB (G1 이중고), 0-도플러 블라인드는 hover 에서만 | §2, §4 |",
+        "| ❌ **무너짐** | \"무반사라 클러터가 약하다\" | 챔버는 **semi-anechoic** — 바닥은 콘크리트. RT 실측 잔향이 가정보다 11~16 dB 강했다 (§6) |",
+        "| ❌ **무너짐** | \"RT≈Analytic 이므로 클러터 모델이 검증됐다\" | **항등식**이었다 — ECA 가 진폭과 무관하게 사영 소거 (§6, SCR 소수점 6자리까지 불변) |",
+        f"| 🆕 **새로움** | 표적 σ 가 **평균 {occ_db:+.1f} dB** 내려갔다 — **가림(self-shadowing)** | 순수 PO 는 광선이 앞면에 막혀 안 보이는 뒷면·내부면까지 적분한다. SBR 은 '실제로 맞은 첫 지점'만 적분한다 (§3, `bench_matrix.csv` 의 `occlusion_db`) |",
+        "| 🆕 **새로움** | **표적 경유 바닥 유령** — 도플러가 실려 ECA 를 통과하고, 광대역일수록 별개 표적으로 분해된다 | §5 |",
+        "",
+        "**한 일** — report4 의 'SNR 주입'을 물리로 대체한 **공정 벤치마크**를, 이번엔 **RT(환경) + SBR(σ) + "
+        "링크버짓(절대전력)** 하이브리드로 구동했다. 모든 수치는 `outputs/report5_results.json` / "
+        "`bench_matrix.csv` / `bench_ghost.csv` 에 저장되고 이 노트북은 그 값을 읽어 쓴다(수기 수치 없음).",
         "",
         "**다음 후보** (모두 챔버 형태)",
-        "- 🌀 **마이크로도플러 결합 탐지**: hover/tangential 블라인드를 report3 블레이드 시그니처로 메우기 — "
-        "거리-도플러 셀별 스펙트로그램 분류.",
-        "- 📐 **AoA/다중정적**: 등Rb 타원 모호 해소 + Kalman/MTT 추적(report4 §4 연장).",
-        "- 🔁 **Rényi 적응적분**: G1↔G3 가 섞인 실제 트래픽에서 점유 높은 구간만 골라 적분 — §2 의 갭을 좁히기.",
+        "- 👻 **유령 억제**: 거울상 기하로 유령 셀을 예측해 연관에서 배제 → 광대역의 분해능을 '되찾는다'. §5의 직접 후속.",
+        "- 🌀 **마이크로도플러 결합 탐지**: hover 블라인드를 report3 블레이드 시그니처로 메우기.",
+        "- 🧱 **ECA 의 유한 동적범위**: 정적 클러터를 '죽은 파라미터'에서 살려내는 유일한 정직한 길.",
         "- 📶 **실측 캘리브레이션**: EIRP·G_rx·NF 를 실제 장비 값으로 치환하면 그대로 예측 Pd 가 된다.",
     ))
     return cells

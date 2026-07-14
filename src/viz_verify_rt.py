@@ -196,7 +196,7 @@ def fig_delay(outdir=FIG):
 def fig_hybrid(outdir=FIG):
     fig, ax = plt.subplots(figsize=(13.6, 5.8), constrained_layout=True)
     ax.set_xlim(0, 100); ax.set_ylim(0, 56); ax.axis("off")
-    fig.suptitle("The split: PO owns the target, RT owns the room", fontsize=16, fontweight="bold")
+    fig.suptitle("The split: SBR owns the target, RT owns the room", fontsize=16, fontweight="bold")
 
     def box(x, y, w, h, title, lines, fc, ec):
         ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.6,rounding_size=1.2",
@@ -205,9 +205,9 @@ def fig_hybrid(outdir=FIG):
         for i, ln in enumerate(lines):
             ax.text(x + w/2, y + h - 9.5 - i*3.9, ln, ha="center", fontsize=9.4, color="0.25")
 
-    box(2, 26, 27, 24, "Physical optics  (PO)",
-        [r"target scattering  $\sigma(\theta, f)$", "material-weighted, from the mesh",
-         "validated against the analytic PO", "of a sphere, within 0.015 dB"], "#e8f5e9", "#2e7d32")
+    box(2, 26, 27, 24, "SBR  (rays + PO integral)",
+        [r"target scattering  $\sigma(\theta, f)$", "Mitsuba rays find the lit surface",
+         "(occlusion included), then the PO", "surface integral gives sigma"], "#e8f5e9", "#2e7d32")
     box(36, 26, 27, 24, "Link budget",
         ["absolute power and noise", "EIRP  ·  kTB  ·  path loss",
          "sets the SNR scale", ""], "#fff8e1", "#ef6c00")
@@ -227,9 +227,10 @@ def fig_hybrid(outdir=FIG):
     ax.text(83.5, 22.6, "NEVER the target's amplitude", ha="center", fontsize=9.5,
             color="#c62828", fontweight="bold")
 
-    fig.supxlabel("Sionna RT's stock path solver has no scattering-integral stage, so the target's $\\sigma$ cannot\n"
-                  "emerge from it — but its geometry (delay, Doppler) is exact. So the target's amplitude comes from PO, "
-                  "the absolute scale from the link budget, and everything else from RT.",
+    fig.supxlabel("Sionna RT's stock path solver has no scattering-integral stage, so the target's $\\sigma$ cannot emerge from it\n"
+                  "(400 million rays do not change that) — but its geometry (delay, Doppler) is exact. So the target's amplitude comes\n"
+                  "from SBR, which puts that missing integral inside a ray tracer of its own; the absolute scale from the link budget;\n"
+                  "and everything else from RT.",
                   fontsize=9, color="0.4")
     fn = os.path.join(outdir, "report6_hybrid.png")
     fig.savefig(fn, dpi=130, bbox_inches="tight"); plt.close(fig)

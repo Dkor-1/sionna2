@@ -33,7 +33,7 @@ from waveforms import lte_downlink, nr_downlink, wifi_80211ac, PILOT_RATE_HZ  # 
 from passive_process import make_cpi, ECACanceller, range_doppler, ca_cfar_2d, peak_detection  # noqa: E402
 from bistatic_scene import C0                                   # noqa: E402
 from link_budget import LinkBudget, link_terms                  # noqa: E402
-from channel import AnalyticChannel                             # noqa: E402
+from channel import AnalyticChannel, rt_chamber_clutter        # noqa: E402
 from scenarios import radial                                    # noqa: E402
 from geometry import (TX, RX, CENTER, CH_CLUTTER_RATIO, chamber_window,  # noqa: E402
                       SPEED, SPAN, floor_ghost)
@@ -169,7 +169,9 @@ def run_cell(wf, drone, pos, vel, lb, channel=None, target_amp="po",
     nstd = np.sqrt(noise_var / 2.0)
 
     hits = 0
-    ghost_hits = 0                       # 유령 셀에 CFAR 가 찍은 횟수(= 가짜 표적)
+    ghost_hits = 0                       # 유령 셀 CFAR 히트 중 **표적셀과 분리된** 것(= 가짜 표적)
+    ghost_det = 0                        # 유령 셀 CFAR 히트 (분리 여부 무관) — 강건한 지표
+    ghost_margin = []                    # 유령 셀의 CFAR 임계 대비 여유 [dB] (물리, 격자 무관)
     scrs = []
     rb_errs = []
     example = None
@@ -179,16 +181,23 @@ def run_cell(wf, drone, pos, vel, lb, channel=None, target_amp="po",
         res = canceller.cancel(surv_det + noise)
         Rb, f_d, rd = range_doppler(res, ref_cpi, fs, M, n_range=n_range)
         scr, (ri, di) = measure_scr(Rb, f_d, rd, true_Rb, st.fd)
-        det, _, _ = ca_cfar_2d(rd, pfa=pfa)
+        det, thr, _ = ca_cfar_2d(rd, pfa=pfa)
         zd = int(np.argmin(np.abs(f_d)))
         det[zd, :] = False       # 0-도플러 능선 행 자체는 히트로 안 침(DPI/클러터 잔류 보호)
         hit = det[max(0, di - 1):di + 2, max(0, ri - 1):ri + 2].any()   # 참셀 ±1 에 CFAR 히트
         hits += int(hit)
-        if ghost:                # 유령 셀(진짜 표적 셀과 겹치지 않을 때만) 히트 집계
+        if ghost:
             gi = int(np.argmin(np.abs(Rb - ghost["rb_m"])))
             gd = int(np.argmin(np.abs(f_d - ghost["fd"])))
+            gdet = bool(det[max(0, gd - 1):gd + 2, max(0, gi - 1):gi + 2].any())
+            ghost_det += int(gdet)                      # 유령 셀이 CFAR 를 울렸나 (강건)
+            ghost_margin.append(float(20 * np.log10(rd[gd, gi] / (thr[gd, gi] + 1e-30))))
+            # **가짜 표적** = 유령 히트가 표적셀 ±1 밖에 있을 때. ⚠ 이 판정은 격자 모서리에
+            #   민감하다(유령이 1.45 빈 떨어져 있으면 반올림에 따라 1 또는 2 빈) — 그래서
+            #   위의 ghost_det/margin(격자 무관)을 함께 본다.
+            ghost["bins_apart"] = (int(gi - ri), int(gd - di))
             if abs(gi - ri) > 1 or abs(gd - di) > 1:
-                ghost_hits += int(det[max(0, gd - 1):gd + 2, max(0, gi - 1):gi + 2].any())
+                ghost_hits += int(gdet)
         scrs.append(scr)
         # 위치정보 유용성 측정: 0-도플러 능선 제외 후 최강 피크의 Rb 오차 —
         #   '탐지되지만(도플러축) 위치는 못 준다(거친 ΔRb)' 를 수치로 드러낸다.
@@ -200,7 +209,9 @@ def run_cell(wf, drone, pos, vel, lb, channel=None, target_amp="po",
             example = (Rb, f_d, rd, st, lt, (ri, di), true_Rb)
     lo, hi = wilson_ci(hits, N)
     if ghost:
-        ghost["p_false"] = ghost_hits / N            # 유령이 별개 표적으로 찍힐 확률
+        ghost["p_false"] = ghost_hits / N            # 유령이 **별개** 표적으로 찍힐 확률(격자 민감)
+        ghost["p_det"] = ghost_det / N               # 유령 셀이 CFAR 를 울릴 확률(격자 무관)
+        ghost["margin_db"] = float(np.mean(ghost_margin))   # 유령의 CFAR 임계 대비 여유 [dB]
     return dict(pd=hits / N, pd_lo=lo, pd_hi=hi,
                 scr_mean=float(np.mean(scrs)), scr_std=float(np.std(scrs)),
                 rb_err_m=(float(np.mean(rb_errs)) if rb_errs else None),
@@ -219,9 +230,10 @@ def main():
     lb = LinkBudget(eirp_dbm=EIRP_DBM)
     drone = "mavic4pro"
     pos, vel = radial(TX, RX, CENTER, speed=SPEED, span=SPAN, n=48)
-    # 기본 채널 = Analytic + 무반사 약한 잔향 클러터(직접파 대비 비율).
-    #   ※ ch = SionnaRTChannel(with_chamber=True) 로 바꾸면 클러터가 RT 실측 멀티패스로(GPU).
-    ch = AnalyticChannel(clutter=CH_CLUTTER_RATIO)
+    # 채널 = 닫힌형 기하 + **SBR σ**(가림 포함, GPU 캐시) + **RT 실측 챔버 잔향**.
+    #   잔향 캐시(outputs/rt_env_clutter.json)가 없으면 옛 가정치로 폴백한다
+    #   (run_matrix.py 가 반송파별로 한 번 뽑아 채워 둔다).
+    ch = AnalyticChannel(clutter=rt_chamber_clutter(3.5e9) or CH_CLUTTER_RATIO)
 
     # ---------- 최소 셀: 5G NR 100 MHz @ 3.5 GHz (챔버서 표적 분리 잘 되는 광대역) ----------
     wf = nr_downlink(bw_hz=100e6, carrier_hz=3.5e9, occupancy="G3")
@@ -229,11 +241,12 @@ def main():
     lt, st = res["link"], res["state"]
 
     print("=" * 72)
-    print(f"최소 셀 — {wf.name} {wf.bw_hz/1e6:.0f}MHz@{wf.carrier_hz/1e9:.2f}GHz  /  {drone}  /  radial  (무반사 챔버)")
+    print(f"최소 셀 — {wf.name} {wf.bw_hz/1e6:.0f}MHz@{wf.carrier_hz/1e9:.2f}GHz  /  {drone}  /  radial  "
+          f"(semi-anechoic 챔버, 잔향={'RT 실측' if rt_chamber_clutter(3.5e9) else '가정치'})")
     print("-" * 72)
     print(f"  기하   R1={st.R1:.1f}m  R2={st.R2:.1f}m  L={st.L:.1f}m  "
           f"Rb={st.tau*C0:.1f}m  fd={st.fd:+.0f}Hz  β={st.beta:.0f}°  (n_range={res['n_range']}, n_taps={res['n_taps']})")
-    print(f"  RCS    σ={10*np.log10(st.sigma_m2):.1f} dBsm  (반송파·자세평균, PO)")
+    print(f"  RCS    σ={10*np.log10(st.sigma_m2):.1f} dBsm  (반송파·자세평균, **SBR**: 광선+PO적분, 가림 포함)")
     print(f"  [물리 유도]  에코SNR={lt['snr_echo_db']:+.1f} dB   "
           f"직접파SNR={lt['snr_direct_db']:+.1f} dB   DNR(직접-에코)={lt['dnr_db']:.1f} dB")
     print(f"  [측정 결과]  SCR={res['scr_mean']:.1f} ± {res['scr_std']:.1f} dB   "

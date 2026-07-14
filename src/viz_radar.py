@@ -70,7 +70,10 @@ SMOOTH_DEG = 3.0       # 방위 스무딩 창(안테나 빔폭·표적 요 지�
 def fig_rcs_polar(outdir=FIG, fc=3.5e9):
     az = np.arange(0, 360, 1.0)
     fig = plt.figure(figsize=(13, 5.8), constrained_layout=True)
-    fig.suptitle("Drone RCS — physical optics", fontsize=14, fontweight="bold")
+    fig.suptitle("Drone RCS — SBR (rays + PO integral)", fontsize=14, fontweight="bold")
+    fig.supxlabel("Engine: rcs_po.drone_rcs_pattern(engine='sbr') -- Mitsuba rays find the first-hit "
+                  "surface, PO integrates it. Occlusion included.",
+                  fontsize=8.5, color="0.45")
     axp = fig.add_subplot(1, 2, 1, projection="polar")
     for k in DRONES:
         # **대역폭 평균**(5G 100MHz)으로 그린다 — 단일주파수 코히런트 PO 의 깊은 널은
@@ -100,7 +103,8 @@ def fig_rcs_polar(outdir=FIG, fc=3.5e9):
         axf.axvline(fb, color="0.6", ls="--", lw=1); axf.text(fb, axf.get_ylim()[1], lab, fontsize=8, ha="center", va="bottom")
     axf.set_xlabel("Frequency [GHz]"); axf.set_ylabel("Azimuth-avg RCS [dBsm]")
     axf.set_title("(b) RCS vs frequency", fontsize=11); axf.grid(alpha=0.3); axf.legend(fontsize=8)
-    fn = os.path.join(outdir, "report2_rcs_polar.png"); fig.savefig(fn, dpi=130); plt.close(fig)
+    fn = os.path.join(outdir, "report2_rcs_polar.png")
+    fig.savefig(fn, dpi=130, bbox_inches="tight"); plt.close(fig)
     print("[radar]", os.path.relpath(fn)); return fn
 
 
@@ -123,7 +127,10 @@ def fig_rcs_bands(outdir=FIG):
     for i in range(len(keys)):
         for j in range(len(bands)):
             ax.text(x[i]+(j-1)*w, data[i, j]+0.3, f"{data[i,j]:.0f}", ha="center", fontsize=7.5)
-    fn = os.path.join(outdir, "report2_rcs_bands.png"); fig.savefig(fn, dpi=130); plt.close(fig)
+    fig.supxlabel("Engine: SBR (Mitsuba rays + PO integral, occlusion included).",
+                  fontsize=8.5, color="0.45")
+    fn = os.path.join(outdir, "report2_rcs_bands.png")
+    fig.savefig(fn, dpi=130, bbox_inches="tight"); plt.close(fig)
     print("[radar]", os.path.relpath(fn)); return fn
 
 
@@ -265,53 +272,70 @@ def fig_summary(outdir=FIG, target="mavic4pro", R=10.0):
     print("[radar]", os.path.relpath(fn)); return fn
 
 
-def fig_rcs_materials(outdir=FIG, fc=3.5e9):
-    """재질 가중의 효과 — 구모델(전부 PEC·내부 산란체 없음) vs 신모델(재질 |Γ| + 내부 금속).
-    좌: mavic4pro 방위 패턴 비교 / 우: 5종 방위평균 막대 비교(감소량 표기)."""
-    from drones import build_drone, drone_gamma_map
-    from rcs_po import mesh_to_points, rcs_from_points
+def fig_rcs_materials(outdir=FIG, fc=3.5e9, el=15.0):
+    """재질 가중의 효과 — **SBR 로 측정**(가림 포함). 전부 PEC(고전 PO 가정) vs 재질 |Γ|.
+
+    ⚠ 2026-07-14 엔진 교체: 이 그림은 예전에 **순수 PO**(rcs_from_points, 가림 없음)로 그려서
+      같은 리포트의 polar/bands(SBR)와 σ 가 4~5 dB 어긋나 있었다. 이제 셋 다 SBR 이다.
+
+    ⚠ 그리고 **서사가 바뀌었다**: 1-bounce SBR 은 첫 충돌만 채택하므로 반투명 셸을 **투과**해
+      내부(배터리·PCB)를 때리는 경로가 없다 — 실측: 그 두 그룹의 광선 적중 수 = **0**.
+      그래서 여기서 재질 가중이 하는 일은 순수하게 **외피의 |Γ| 를 낮추는 것**이다
+      (플라스틱 0.28 · 프로펠러 0.25 · 카본 0.90 · 금속 1.0). 내부 산란체의 기여는
+      viz_report2.fig_po_vs_sbr 의 분해 패널에서 따로 정량화한다(+1.74 dB, PO 기준)."""
+    from drones import build_drone, DRONE_GROUP_MAT
+    from rcs_sbr import rcs_sbr_batch
     az = np.arange(0, 360, 2.0)
+    g_mat = {g: mat for g, (mat, _) in DRONE_GROUP_MAT.items()}
+    g_pec = {g: 1.0 for g in DRONE_GROUP_MAT}            # 전부 PEC = 고전 PO 가정
+
     fig, axes = plt.subplots(1, 2, figsize=(13.6, 5.4), constrained_layout=True,
                              gridspec_kw=dict(width_ratios=[1.15, 1.0]))
-    # (a) mavic4pro 패턴: 구모델 = 내부(battery/pcb) 기여 0 + 전 부위 |Γ|=1
+    # (a) mavic4pro 패턴
     spec = DRONES["mavic4pro"]; mesh = build_drone(spec)
-    spacing = (299792458.0 / fc) / 7.0
-    g_old = {"battery": 0.0, "pcb": 0.0}                 # 나머지 그룹은 기본 1.0(PEC)
-    P, N, dA, w_old = mesh_to_points(mesh, spacing, gamma=g_old)
-    _, _, _, w_new = mesh_to_points(mesh, spacing, gamma=drone_gamma_map(spec))
-    s_old = rcs_from_points(P, N, dA, fc, az, w=w_old)
-    s_new = rcs_from_points(P, N, dA, fc, az, w=w_new)
-    axes[0].plot(az, dbsm(s_old), color="0.55", lw=1.4, label="old: all-PEC, no internals")
+    s_old = rcs_sbr_batch(mesh, g_pec, fc, az_deg=az, el_deg=el, cache_key=("mavic4pro", "pec"))
+    s_new = rcs_sbr_batch(mesh, g_mat, fc, az_deg=az, el_deg=el, cache_key=("mavic4pro", "mat"))
+    axes[0].plot(az, dbsm(s_old), color="0.55", lw=1.4, label="all-PEC (classic PO assumption)")
     axes[0].plot(az, dbsm(s_new), color="#2e7d32", lw=1.8,
-                 label="new: material-weighted + internal metal (battery/PCB)")
+                 label=r"material-weighted $|\Gamma|$ (plastic 0.28, prop 0.25, carbon 0.90)")
+    axes[0].axhline(dbsm(s_old.mean()), color="0.55", ls="--", lw=1)
+    axes[0].axhline(dbsm(s_new.mean()), color="#2e7d32", ls="--", lw=1)
+    axes[0].set_xlim(0, 360); axes[0].set_xticks([0, 90, 180, 270, 360])
     axes[0].set_xlabel("Azimuth [deg]"); axes[0].set_ylabel("RCS [dBsm]")
-    axes[0].set_title(f"(a) Mavic 4 Pro azimuth pattern @ {fc/1e9:.1f} GHz", fontsize=11)
-    axes[0].grid(alpha=0.3); axes[0].legend(fontsize=9)
+    axes[0].set_title(f"(a) Mavic 4 Pro azimuth pattern @ {fc/1e9:.1f} GHz, "
+                      f"el = {el:.0f}" + r"$^\circ$" + "  (SBR)", fontsize=11)
+    axes[0].grid(alpha=0.3); axes[0].legend(fontsize=8.5, loc="lower right")
     # (b) 5종 방위평균 비교
     keys = list(DRONES.keys()); olds, news = [], []
     for k in keys:
-        sp2 = DRONES[k]; m2 = build_drone(sp2)
-        P2, N2, dA2, wo = mesh_to_points(m2, spacing, gamma=g_old)
-        _, _, _, wn = mesh_to_points(m2, spacing, gamma=drone_gamma_map(sp2))
-        olds.append(dbsm(rcs_from_points(P2, N2, dA2, fc, az, w=wo).mean()))
-        news.append(dbsm(rcs_from_points(P2, N2, dA2, fc, az, w=wn).mean()))
+        m2 = build_drone(DRONES[k])
+        olds.append(dbsm(rcs_sbr_batch(m2, g_pec, fc, az_deg=az, el_deg=el,
+                                       cache_key=(k, "pec")).mean()))
+        news.append(dbsm(rcs_sbr_batch(m2, g_mat, fc, az_deg=az, el_deg=el,
+                                       cache_key=(k, "mat")).mean()))
     x = np.arange(len(keys)); wbar = 0.38
-    # S1000+ 의 old 값이 ≈0 dBsm 이라 baseline=0 막대는 높이 0 → 안 보인다. 바닥을 내려 그린다.
+    # S1000+ 의 PEC 값이 ≈−5 dBsm 이라 baseline=0 막대는 높이가 음수 → 바닥을 내려 그린다.
     base = float(np.floor(min(olds + news))) - 3.0
-    axes[1].bar(x - wbar/2, np.array(olds) - base, wbar, bottom=base, color="0.6", label="old (all-PEC)")
+    axes[1].bar(x - wbar/2, np.array(olds) - base, wbar, bottom=base, color="0.6", label="all-PEC")
     axes[1].bar(x + wbar/2, np.array(news) - base, wbar, bottom=base, color="#2e7d32",
-                label="new (material-weighted)")
+                label="material-weighted")
     for xi, (o, n) in enumerate(zip(olds, news)):
         axes[1].text(xi - wbar/2, o + 0.4, f"{o:+.1f}", ha="center", fontsize=7.5, color="0.35")
         axes[1].text(xi + wbar/2, n + 0.4, f"{n-o:+.1f} dB", ha="center", fontsize=8.5)
-    axes[1].set_ylim(base, 3.5)
+    axes[1].set_ylim(base, max(olds) + 3.5)
     axes[1].set_xticks(x, [_NAME[k] for k in keys], fontsize=8.5)
     axes[1].set_ylabel("Azimuth-avg RCS [dBsm]")
     axes[1].set_title("(b) Azimuth-mean per drone", fontsize=10.5)
     axes[1].grid(axis="y", alpha=0.3); axes[1].legend(fontsize=9)
-    fig.suptitle("Material-weighted PO — the shell is semi-transparent to RF",
+    fig.suptitle("A drone is not a lump of metal — material weighting costs 4 to 10 dB",
                  fontsize=13, fontweight="bold")
-    fn = os.path.join(outdir, "report2_rcs_materials.png"); fig.savefig(fn, dpi=130); plt.close(fig)
+    fig.supxlabel("Engine: SBR (Mitsuba rays + PO integral, occlusion included) -- same engine as the "
+                  "polar and band figures.\n"
+                  "1-bounce SBR is opaque: no ray reaches the battery or the PCB through the shell "
+                  "(measured: 0 hits), so this is a pure exterior-" + r"$|\Gamma|$" + " effect.",
+                  fontsize=8.5, color="0.45")
+    fn = os.path.join(outdir, "report2_rcs_materials.png")
+    fig.savefig(fn, dpi=130, bbox_inches="tight"); plt.close(fig)
     print("[radar]", os.path.relpath(fn)); return fn
 
 
@@ -319,7 +343,14 @@ def fig_rcs_shape_ab(outdir=FIG):
     """형상 민감도 A/B — 파라메트릭 메쉬 vs **실기체 3D 스캔**(Phantom 4, CC-BY).
     두 모델 모두 PEC + 동일 부위구성(스캔에 없는 프로펠러·카메라 **및 내부 산란체(배터리/PCB)** 는
     파라메트릭에서도 제외)으로 맞춰 **순수 형상 차이만** 측정한다. λ=6~16cm 에선 λ/8 이하
-    디테일이 안 보인다는 주장을 데이터로 검증하는 그림."""
+    디테일이 안 보인다는 주장을 데이터로 검증하는 그림.
+
+    ⚠ **이 그림만 SBR 이 아니라 PO 다 — 그럴 수밖에 없다.**
+      SBR 은 광선을 쏠 **삼각형 메쉬**가 있어야 하는데, 스캔 자산은 `phantom4_scan_points.npz`
+      (P/N/dA **점구름**)뿐이고 원본 STL(154 MB)은 저장소에 없다(prep_cad_scan.py 참조).
+      → 두 모델 **모두 같은 PO 엔진**으로 재므로 가림 편향이 **양쪽에 똑같이** 걸려 상쇄된다.
+        이 그림이 주장하는 것은 절대 σ 가 아니라 **형상 A/B 의 차이(Δ dB)** 이므로 결론은 유효하다.
+      → 절대값을 인용하려면 SBR 값(§SBR 전환)을 쓸 것."""
     from drones import build_drone
     from rcs_po import mesh_to_points, rcs_from_points
     npz = os.path.join(os.path.dirname(__file__), "..", "assets", "meshes", "cad",
@@ -357,19 +388,28 @@ def fig_rcs_shape_ab(outdir=FIG):
         means_p.append(dbsm(rcs_from_points(Pp2, Np2, dAp2, f, az, w=wp2).mean()))
         means_s.append(dbsm(rcs_from_points(Ps, Ns, dAs, f, az).mean()))
     x = np.arange(len(bands)); wb = 0.38
-    axes[1].bar(x - wb/2, means_p, wb, color="0.6", label="parametric")
-    axes[1].bar(x + wb/2, means_s, wb, color="#1565c0", label="3D scan")
+    # 값이 전부 음수(dBsm)라 bottom=0 으로 그리면 막대가 0 에서 아래로 늘어져 '기둥'처럼 보인다.
+    # 바닥을 최저값 아래로 내려 **차이가 보이도록** 그린다(fig_rcs_materials 와 같은 규약).
+    base = float(np.floor(min(means_p + means_s))) - 2.0
+    axes[1].bar(x - wb/2, np.array(means_p) - base, wb, bottom=base, color="0.6", label="parametric")
+    axes[1].bar(x + wb/2, np.array(means_s) - base, wb, bottom=base, color="#1565c0", label="3D scan")
     for xi, (mp, ms) in enumerate(zip(means_p, means_s)):
-        axes[1].text(xi, max(mp, ms) + 0.4, f"{ms-mp:+.1f} dB", ha="center",
+        axes[1].text(xi, max(mp, ms) + 0.25, f"{ms-mp:+.1f} dB", ha="center",
                      fontsize=9.5, fontweight="bold")
+    axes[1].set_ylim(base, max(means_p + means_s) + 1.6)
     axes[1].set_xticks(x, [b[0] + " GHz" for b in bands], fontsize=9)
     axes[1].set_ylabel("Azimuth-avg RCS [dBsm]")
     axes[1].set_title("(b) Azimuth-mean per band", fontsize=11)
     axes[1].grid(axis="y", alpha=0.3); axes[1].legend(fontsize=9)
     fig.suptitle("Shape A/B — parametric mesh vs real-body 3D scan", fontsize=13, fontweight="bold")
-    fig.text(0.01, 0.005, "Scan: 'DJI PHANTOM 4 HI RES SCAN' by NeverDun, Thingiverse 1456295 (CC-BY)",
-             fontsize=7.5, color="0.45")
-    fn = os.path.join(outdir, "report2_rcs_shape_ab.png"); fig.savefig(fn, dpi=130); plt.close(fig)
+    fig.supxlabel("Engine: PO for BOTH sides -- the scan asset is a point cloud, not a mesh, so rays "
+                  "cannot be shot at it. The occlusion bias is therefore identical on both curves\n"
+                  "and cancels in the difference. Read the delta, not the absolute level "
+                  "(for absolute RCS use the SBR figures).\n"
+                  "Scan: 'DJI PHANTOM 4 HI RES SCAN' by NeverDun, Thingiverse 1456295 (CC-BY)",
+                  fontsize=8.5, color="0.45")
+    fn = os.path.join(outdir, "report2_rcs_shape_ab.png")
+    fig.savefig(fn, dpi=130, bbox_inches="tight"); plt.close(fig)
     print("[radar]", os.path.relpath(fn)); return fn
 
 

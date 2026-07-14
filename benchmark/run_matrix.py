@@ -54,9 +54,9 @@ for _p in (_SRC, _HERE):
         sys.path.insert(0, _p)
 
 from waveforms import lte_downlink, nr_downlink, wifi_80211ac   # noqa: E402
-from bistatic_scene import C0                                    # noqa: E402
+from bistatic_scene import C0, bistatic_params                   # noqa: E402
 from link_budget import LinkBudget                               # noqa: E402
-from channel import AnalyticChannel                              # noqa: E402
+from channel import AnalyticChannel, sbr_sigma_prefill, rt_chamber_clutter  # noqa: E402
 from scenarios import SCENARIOS                                  # noqa: E402
 from geometry import TX, RX, CENTER, CH_CLUTTER_RATIO, SPEED, SPAN  # noqa: E402
 from run_min_cell import run_cell, EIRP_DBM, frame_len           # noqa: E402
@@ -75,6 +75,7 @@ WAVEFORMS = {
     "LTE10":  ("lte",   10e6, 1.843e9),
 }
 DRONES5 = ["s1000plus", "phantom4", "matrice4e", "mavic4pro", "mini5pro"]  # 크기 내림차순
+SNAPS = [0, 4, 8, 13, 17, 22, 26, 31]     # C 섹션이 평가하는 궤적 스냅샷 (σ 프리필과 공유)
 
 # 점유 모드 색(report2/4 와 동일 규약), 시나리오 색(고정 배정)
 MODE_COL = {"G1": "#c62828", "G2": "#ef6c00", "G3": "#2e7d32"}
@@ -104,23 +105,65 @@ def _seed(*key):
     return zlib.crc32("|".join(str(k) for k in key).encode()) % (2 ** 31)
 
 
-def _cell_task(job):
-    """워커 프로세스에서 셀 1개 실행 → 직렬화 가능한 요약 dict.
-    job: (wf_spec(std,bw,carrier,occ), drone, scen_name, snap_idx|None, eirp_dbm, N, pref_occ)
-    pref_occ: 전력 정규화 기준 점유(예: 'G1' 셀에 'G3' — per-RE 전력 동일 가정). None=자기 자신."""
-    (std, bw, carrier, occ), drone, scen, snap, eirp, N, pref_occ = job
-    wf = make_wf(std, bw, carrier, occ)
-    pref_tx = make_wf(std, bw, carrier, pref_occ).tx if pref_occ else None
-    lb = LinkBudget(eirp_dbm=eirp)
-    ch = AnalyticChannel(clutter=CH_CLUTTER_RATIO)
+# --- 환경(정적 잔향) = **RT 실측** (캐시). 없으면 옛 가정치로 폴백 ------------------
+#  ※ 정적 클러터는 죽은 파라미터라 수치는 안 바뀐다 — 이건 **정직함**의 문제다(§D).
+_ENV_CACHE: dict = {}
+
+
+def env_clutter(fc):
+    c = _ENV_CACHE.get(fc)
+    if c is None:
+        c = rt_chamber_clutter(fc) or CH_CLUTTER_RATIO      # 캐시 히트 or 폴백
+        _ENV_CACHE[fc] = c
+    return c
+
+
+def _job_pos_vel(job):
+    """job → (pos, vel). **_cell_task 와 σ 프리필이 같은 궤적을 보도록** 단일 진리원."""
+    _, _, scen, snap = job[0], job[1], job[2], job[3]
     pos, vel = SCENARIOS[scen](TX, RX, CENTER, speed=SPEED, span=SPAN, n=32)
     if snap is not None:                       # 궤적 특정 스냅샷 1개만 평가
         pos, vel = pos[snap:snap + 1], vel[snap:snap + 1]
+    return pos, vel
+
+
+def prefill_sigma(jobs, verbose=True):
+    """모든 셀의 **대표 스냅샷 시선각**을 모아 SBR σ 를 GPU 로 미리 계산해 캐시에 넣는다.
+    (run_cell 은 궤적 중앙 스냅샷 1개에서 링크텀을 유도한다 → 셀당 시선 1개.)
+    ⚠ **mitsuba import 전에** 부를 것 — parallel_over_gpus 가 fork 로 GPU 를 나눠 잡는다."""
+    reqs = []
+    for job in jobs:
+        (std, bw, carrier, occ), drone = job[0], job[1]
+        pos, vel = _job_pos_vel(job)
+        mid = len(pos) // 2
+        p = bistatic_params(TX, RX, pos[mid], vel[mid], carrier)
+        reqs.append((drone, carrier, p["u1"], p["u2"], 8.0, 5))    # AnalyticChannel 기본 자세평균
+    return sbr_sigma_prefill(reqs, verbose=verbose)
+
+
+def _worker_init():
+    """워커는 **GPU 를 건드리지 않는다** — σ 는 캐시 조회만(미스는 큰 소리로 실패)."""
+    os.environ["SIONNA2_NO_GPU"] = "1"
+
+
+def _cell_task(job):
+    """워커 프로세스에서 셀 1개 실행 → 직렬화 가능한 요약 dict.
+    job: (wf_spec(std,bw,carrier,occ), drone, scen, snap|None, eirp_dbm, N, pref_occ, ghost)
+    pref_occ: 전력 정규화 기준 점유(예: 'G1' 셀에 'G3' — per-RE 전력 동일 가정). None=자기 자신.
+    ghost   : True 면 **표적 경유 바닥 유령**(도플러 실림 → ECA 통과)을 주입."""
+    (std, bw, carrier, occ), drone, scen, snap, eirp, N, pref_occ, ghost = job
+    wf = make_wf(std, bw, carrier, occ)
+    pref_tx = make_wf(std, bw, carrier, pref_occ).tx if pref_occ else None
+    lb = LinkBudget(eirp_dbm=eirp)
+    ch = AnalyticChannel(clutter=env_clutter(carrier))     # σ=SBR(캐시), 잔향=RT 실측
+    pos, vel = _job_pos_vel(job)
     res = run_cell(wf, drone, pos, vel, lb, channel=ch, power_ref_tx=pref_tx,
-                   M=m_for(wf), N=N, pfa=PFA, seed0=_seed(std, bw, occ, drone, scen, snap, eirp))
+                   M=m_for(wf), N=N, pfa=PFA, floor_ghost_on=ghost,
+                   seed0=_seed(std, bw, occ, drone, scen, snap, eirp))
     st, lt = res["state"], res["link"]
+    g = res.get("ghost")
     return dict(wf=f"{std}{bw/1e6:.0f}", occ=occ, drone=drone, scen=scen, snap=snap,
-                eirp_dbm=eirp, N=N, M=res["M"],
+                eirp_dbm=eirp, N=N, M=res["M"], ghost_on=bool(ghost),
                 pd=res["pd"], pd_lo=res["pd_lo"], pd_hi=res["pd_hi"],
                 scr_db=res["scr_mean"], scr_std=res["scr_std"],
                 rb_err_m=res["rb_err_m"],
@@ -128,15 +171,24 @@ def _cell_task(job):
                 snr_echo_db=lt["snr_echo_db"], dnr_db=lt["dnr_db"],
                 snr_echo_eff_db=res["snr_echo_eff_db"],   # 점유차+잡음대역 보정 반영(실주입)
                 fd_hz=st.fd, rb_m=st.tau * C0, delta_rb_m=C0 / wf.bw_hz,
-                ref_bw_mhz=wf.ref_bw_hz / 1e6, occupancy_frac=wf.occupancy_frac)
+                ref_bw_mhz=wf.ref_bw_hz / 1e6, occupancy_frac=wf.occupancy_frac,
+                n_clutter=len(st.clutter),
+                p_false=(g["p_false"] if g else None),
+                p_ghost_det=(g["p_det"] if g else None),
+                ghost_margin_db=(g["margin_db"] if g else None),
+                ghost_bins_apart=(str(g["bins_apart"]) if g else None),
+                ghost_sep_m=(g["sep_m"] if g else None),
+                ghost_amp_db=(g["amp_db"] if g else None),
+                ghost_fd_hz=(g["fd"] if g else None),
+                ghost_resolved=(g["resolved"] if g else None))
 
 
 def _run_jobs(jobs, workers, tag):
     t0 = time.time()
     if workers <= 1:
-        out = [_cell_task(j) for j in jobs]
+        out = [_cell_task(j) for j in jobs]     # 직렬 실행은 메인 프로세스(캐시 미스 시 SBR 가능)
     else:
-        with ProcessPoolExecutor(max_workers=workers) as ex:
+        with ProcessPoolExecutor(max_workers=workers, initializer=_worker_init) as ex:
             out = list(ex.map(_cell_task, jobs))
     print(f"  [{tag}] {len(jobs)}셀 완료 ({time.time()-t0:.0f}s)")
     return out
@@ -178,7 +230,8 @@ def fig_overview(R=None, outdir=FIGDIR):
     ax.text(tx[0], tx[1] - 1.5, tx[2] + 1.2, f"[1] Fixed (controlled)\nEIRP {EIRP_DBM:.0f} dBm\nG_rx·NF",
             color="#ef6c00", fontsize=9, ha="center", fontweight="bold")
     ax.text(tg[0] + 1.5, tg[1], tg[2] + 2.4,
-            f"[2] Derived (physics)\nRCS=PO (aspect-avg)\nR1={p['R1']:.0f}m R2={p['R2']:.0f}m\n→ echo SNR",
+            f"[2] Derived (physics)\nRCS = SBR (rays + PO integral,\nself-shadowing included)\n"
+            f"R1={p['R1']:.0f}m R2={p['R2']:.0f}m\n$\\rightarrow$ echo SNR",
             color="k", fontsize=9)
     ax.text(rx[0], rx[1] + 1.5, rx[2] + 1.2, "[3] Measured\nECA→CAF→CFAR\n→ SCR·Pd",
             color="#1565c0", fontsize=9, ha="center", fontweight="bold")
@@ -206,8 +259,8 @@ def fig_overview(R=None, outdir=FIGDIR):
     # 아래: report5
     axf.text(0.2, 6.55, "report5 — derive from link budget → measure (fair benchmark)",
              fontsize=10.5, fontweight="bold", color="#2e7d32")
-    for x, t in [(1.25, "Fixed budget\nEIRP·G_rx·NF"), (3.4, "Target RCS\n(PO, aspect-avg)"),
-                 (5.55, "Geometry\nR1·R2·L"), (7.7, "Noise\nkTFB")]:
+    for x, t in [(1.25, "Fixed budget\nEIRP·G_rx·NF"), (3.4, "Target RCS\n(SBR, occluded)"),
+                 (5.55, "Geometry\n(Sionna RT / closed-form)"), (7.7, "Noise\nkTFB")]:
         axf.text(x, 5.55, t, ha="center", fontsize=9, bbox=box_new)
     axf.annotate("", xy=(4.5, 4.35), xytext=(1.25, 5.0), arrowprops=ar)
     axf.annotate("", xy=(4.5, 4.35), xytext=(3.4, 5.0), arrowprops=ar)
@@ -219,8 +272,9 @@ def fig_overview(R=None, outdir=FIGDIR):
     axf.text(4.5, 2.4, "Same processing chain (ECA → CAF range-Doppler → CA-CFAR)",
              ha="center", fontsize=9.5, bbox=box_old)
     axf.annotate("", xy=(4.5, 1.4), xytext=(4.5, 1.95), arrowprops=ar)
-    axf.text(4.5, 0.95, "SCR·Pd·position error = measured  →  A occupancy · B signal×drone · C motion · D RT cross-check",
-             ha="center", fontsize=9.8, bbox=box_out, fontweight="bold")
+    axf.text(4.5, 0.95, "SCR·Pd·position error = measured  →  A occupancy · B signal×drone · C motion · "
+             "E floor ghost · D RT cross-check",
+             ha="center", fontsize=9.3, bbox=box_out, fontweight="bold")
     axf.text(5.0, 7.0,
              r"$P_{echo}=\frac{EIRP\,G_{rx}\lambda^2\sigma}{(4\pi)^3 R_1^2 R_2^2}$"
              r"$\;\;P_{dir}=\frac{EIRP\,G_{rx}\lambda^2}{(4\pi)^2 L^2}$"
@@ -240,7 +294,7 @@ def section_a(workers, quick=False):
             [-36.0, -30.0, -24.0, -18.0, -12.0, -6.0, 0.0, 12.0]
     N = 24 if quick else 60
     # 전력 기준 = G3 tx (per-RE 송신전력 동일 가정 → G1 의 낮은 평균 방사전력이 반영됨)
-    jobs = [(("nr", 100e6, 3.5e9, occ), "mavic4pro", "radial", None, e, N, "G3")
+    jobs = [(("nr", 100e6, 3.5e9, occ), "mavic4pro", "radial", None, e, N, "G3", False)
             for occ in ("G1", "G2", "G3") for e in eirps]
     rows = _run_jobs(jobs, workers, "A 점유×EIRP")
     return dict(eirps=eirps, N=N, rows=rows)
@@ -301,16 +355,34 @@ def fig_occupancy(a, outdir=FIGDIR):
 # --------------------------------------------------------------------------- #
 def section_b(workers, quick=False):
     N = 30 if quick else 100
-    jobs = [((std, bw, car, "G3"), d, "radial", None, EIRP_DBM, N, None)
+    jobs = [((std, bw, car, "G3"), d, "radial", None, EIRP_DBM, N, None, False)
             for wfk, (std, bw, car) in WAVEFORMS.items() for d in DRONES5]
     rows = _run_jobs(jobs, workers, "B 신호×드론")
-    return dict(N=N, rows=rows)
+    # **옛 엔진(순수 PO, 가림 없음) σ 를 같은 시선각에서 함께 재서 기록**한다 —
+    #   노트북이 "가림이 σ 를 얼마나 내렸나"를 수기 수치 없이 인용할 수 있도록.
+    po = AnalyticChannel(rcs_engine="po")
+    for job, r in zip(jobs, rows):
+        (std, bw, car, occ), drone = job[0], job[1]
+        pos, vel = _job_pos_vel(job)
+        mid = len(pos) // 2
+        st = po.state(TX, RX, pos[mid], vel[mid], car, drone)
+        r["sigma_po_dbsm"] = float(10 * np.log10(st.sigma_m2))
+        r["occlusion_db"] = r["sigma_dbsm"] - r["sigma_po_dbsm"]
+    d = [r["occlusion_db"] for r in rows]
+    print(f"  [B] 가림(SBR−PO) 효과: 평균 {np.mean(d):+.1f} dB  (중앙값 {np.median(d):+.1f}, "
+          f"범위 {min(d):+.1f}~{max(d):+.1f})")
+    return dict(N=N, rows=rows, occlusion_db_mean=float(np.mean(d)),
+                occlusion_db_median=float(np.median(d)))
 
 
-def write_csv(b, path=os.path.join(OUTDIR, "bench_matrix.csv")):
-    cols = ["wf", "occ", "drone", "scen", "eirp_dbm", "sigma_dbsm",
+def write_csv(b, path=os.path.join(OUTDIR, "bench_matrix.csv"), ghost=False):
+    cols = ["wf", "occ", "drone", "scen", "eirp_dbm", "sigma_dbsm", "sigma_po_dbsm",
+            "occlusion_db",
             "snr_echo_db", "snr_echo_eff_db", "dnr_db", "delta_rb_m", "rb_m", "fd_hz",
             "scr_db", "scr_std", "pd", "pd_lo", "pd_hi", "rb_err_m", "M", "N"]
+    if ghost:
+        cols += ["ghost_on", "p_ghost_det", "ghost_margin_db", "p_false", "ghost_bins_apart",
+                 "ghost_sep_m", "ghost_amp_db", "ghost_fd_hz", "ghost_resolved"]
     with open(path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
         w.writeheader()
@@ -369,7 +441,7 @@ def fig_matrix(b, outdir=FIGDIR):
     wf_lab = [f"{k}\nres {C0/make_wf(*WAVEFORMS[k]).bw_hz:.0f} m" for k in wfs]
     ax.set_xticks(range(len(wfs)), wf_lab, fontsize=9)
     ax.set_yticks(range(len(DRONES5)), dr_lab, fontsize=9)
-    ax.set_title("Signal × drone matrix — fixed budget (EIRP %.0f dBm) · radial · G3 (semi-anechoic chamber, all measured)\n"
+    ax.set_title("Signal × drone matrix — fixed budget (EIRP %.0f dBm) · radial · G3 · $\\sigma$ from SBR (rays + PO integral, self-shadowing included)\n"
                  "rows=drones (by size), cols=waveforms (by range resolution) · cell color=SCR margin · err=single-target peak accuracy (high SNR: accuracy≈resolution/√SNR)\n"
                  "narrowband=lower kTB noise→higher SCR · resolution is range-axis separability (direct-path residual, multi-target), not accuracy"
                  % EIRP_DBM, fontsize=11)
@@ -384,8 +456,8 @@ def fig_matrix(b, outdir=FIGDIR):
 # --------------------------------------------------------------------------- #
 def section_c(workers, quick=False):
     N = 16 if quick else 40
-    snaps = [0, 4, 8, 13, 17, 22, 26, 31]
-    jobs = [(("nr", 100e6, 3.5e9, "G3"), "mavic4pro", scen, s, EIRP_DBM, N, None)
+    snaps = SNAPS
+    jobs = [(("nr", 100e6, 3.5e9, "G3"), "mavic4pro", scen, s, EIRP_DBM, N, None, False)
             for scen in ("radial", "waypoint", "tangential", "hover") for s in snaps]
     rows = _run_jobs(jobs, workers, "C 시나리오×스냅샷")
     return dict(N=N, snaps=snaps, rows=rows)
@@ -447,6 +519,146 @@ def fig_scenarios(c, outdir=FIGDIR):
 
 
 # --------------------------------------------------------------------------- #
+#  E) **유령을 켠 매트릭스** — 표적 경유 바닥 유령(TX→표적→바닥→RX)
+# --------------------------------------------------------------------------- #
+#  이것이 report5 의 진짜 질문이다. 정적 클러터는 ECA 가 진폭과 무관하게 지운다(죽은 파라미터).
+#  그러나 **표적을 거쳐 바닥에 반사되는 경로는 표적과 함께 도플러가 실린다** → ECA 의 영공간
+#  밖 → 지워지지 않고 RD 맵에 **가짜 표적**으로 남는다. 그리고 **대역폭이 넓을수록 진짜와 잘
+#  분리되어 별개 표적으로 보인다** — §B 에서 광대역의 장점이었던 '거리축 분리'가 그대로
+#  오검출로 되돌아온다. Pd 는 안 떨어지는데 **P(가짜표적)** 이 올라간다.
+def _rdmap(res):
+    Rb, f_d, rd, st, lt, (ri, di), true_Rb = res["example"]
+    rdb = 20 * np.log10(rd / rd.max() + 1e-9)
+    return dict(rb=np.asarray(Rb).round(2).tolist(),
+                fd=np.asarray(f_d).round(1).tolist(),
+                rd_db=np.asarray(rdb).round(1).tolist(),
+                true_rb=float(true_Rb), true_fd=float(st.fd))
+
+
+def section_e(workers, quick=False):
+    N = 30 if quick else 100
+    jobs = [((std, bw, car, "G3"), d, "radial", None, EIRP_DBM, N, None, gh)
+            for std, bw, car in WAVEFORMS.values() for d in DRONES5
+            for gh in (False, True)]
+    rows = _run_jobs(jobs, workers, "E 유령 off/on")
+    # 예시 RD맵 1장(5G100 × mavic4pro, 유령 on) — 메인 프로세스에서 example 을 받는다
+    wf = make_wf("nr", 100e6, 3.5e9, "G3")
+    pos, vel = SCENARIOS["radial"](TX, RX, CENTER, speed=SPEED, span=SPAN, n=32)
+    ex = run_cell(wf, "mavic4pro", pos, vel, LinkBudget(eirp_dbm=EIRP_DBM),
+                  channel=AnalyticChannel(clutter=env_clutter(3.5e9)),
+                  M=m_for(wf), N=4, pfa=PFA, floor_ghost_on=True, seed0=_seed("ghost-ex"))
+    g = ex["ghost"]
+    return dict(N=N, rows=rows, map=_rdmap(ex),
+                ghost=dict(rb_m=g["rb_m"], fd=g["fd"], sep_m=g["sep_m"],
+                           amp_db=g["amp_db"], gamma=g["gamma"],
+                           theta_i_deg=g["theta_i_deg"], p_det=g["p_det"],
+                           p_false=g["p_false"], margin_db=g["margin_db"],
+                           bins_apart=list(g["bins_apart"]), d_rb_m=g["d_rb_m"],
+                           resolved=g["resolved"]))
+
+
+def fig_ghost(e, outdir=FIGDIR):
+    """좌: 유령이 보이는 RD맵. 중: P(가짜표적) — 대역폭이 넓을수록 유령이 '분리'된다.
+    우: Pd 는 그대로다(탐지는 안 죽는다 — 죽는 건 신뢰다)."""
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(1, 3, figsize=(16.8, 5.4), constrained_layout=True,
+                             gridspec_kw=dict(width_ratios=[1.2, 1.0, 1.0]))
+    g = e["ghost"]
+    wfs = list(WAVEFORMS.keys())
+
+    # (a) RD 맵 — 진짜 표적 옆에 유령
+    m = e["map"]
+    Rb = np.asarray(m["rb"]); fd = np.asarray(m["fd"]); rdb = np.asarray(m["rd_db"])
+    ax = axes[0]
+    im = ax.pcolormesh(Rb, fd, rdb, cmap="turbo", vmin=-50, vmax=0, shading="auto")
+    ax.plot(m["true_rb"], m["true_fd"], "o", mfc="none", mec="w", ms=15, mew=1.8,
+            label="True target")
+    ax.plot(g["rb_m"], g["fd"], "s", mfc="none", mec="#ff1744", ms=15, mew=1.8,
+            label="Floor ghost (via target)")
+    ax.annotate("", xy=(g["rb_m"], g["fd"]), xytext=(m["true_rb"], m["true_fd"]),
+                arrowprops=dict(arrowstyle="<->", color="w", lw=1.4))
+    ax.text((g["rb_m"] + m["true_rb"]) / 2, m["true_fd"] - 62,
+            f"$\\Delta$Rb = {g['sep_m']:+.2f} m", color="w", fontsize=9.5, ha="center")
+    # 유령이 보이도록 표적 근방으로 확대 (전체 축이면 유령이 표적 픽셀에 묻힌다)
+    ax.set_xlim(max(0.0, m["true_rb"] - 14), m["true_rb"] + 16)
+    ax.set_ylim(m["true_fd"] - 190, m["true_fd"] + 190)
+    ax.set_xlabel("Bistatic range Rb [m]  (zoomed on the target)")
+    ax.set_ylabel("Doppler f_d [Hz]")
+    ax.set_title(f"(a) 5G 100MHz — the ghost survives ECA\n"
+                 f"TX-target-floor-RX: {g['amp_db']:.1f} dB below the echo, "
+                 f"it carries Doppler ({g['fd']:+.0f} Hz)", fontsize=10.5)
+    ax.legend(loc="upper right", fontsize=8.5)
+    fig.colorbar(im, ax=ax, fraction=0.046, label="Normalized [dB]")
+
+    # (b) 분해능 vs 유령 분리거리 — 유령이 '별개 표적'이 되는가는 오직 ΔRb 가 정한다.
+    #     ※ merged 인 파형에서는 '유령 셀' = '표적 셀' 이라 CFAR 여유를 재봐야 표적을 다시
+    #        재는 것일 뿐이다(무의미). 그래서 여유(dB)는 **resolved 인 경우에만** 표기한다.
+    ax = axes[1]
+    sep = abs(g["sep_m"])
+    drb, marg, pdet, res_flag = [], [], [], []
+    for k in wfs:
+        std, bw, car = WAVEFORMS[k]
+        rr = [r for r in e["rows"] if r["ghost_on"] and r["wf"] == f"{std}{bw/1e6:.0f}"]
+        drb.append(C0 / make_wf(*WAVEFORMS[k]).bw_hz)
+        marg.append(float(np.mean([r["ghost_margin_db"] for r in rr])))
+        pdet.append(float(np.mean([r["p_ghost_det"] for r in rr])))
+        res_flag.append(bool(np.all([r["ghost_resolved"] for r in rr])))
+    cols = ["#c62828" if f else "#78909c" for f in res_flag]
+    ax.bar(range(len(wfs)), drb, color=cols, width=0.62)
+    ax.axhline(sep, color="#1a1a1a", lw=1.6, ls="--")
+    ax.text(len(wfs) - 0.42, sep + 1.0, f"ghost is {sep:.2f} m from the target",
+            ha="right", fontsize=8.5, color="#1a1a1a")
+    tr = ax.get_xaxis_transform()          # x=데이터, y=축비율 → 축 아래에 라벨
+    for i, k in enumerate(wfs):
+        ax.text(i, drb[i] + 1.0, f"$\\Delta$Rb = {drb[i]:.1f} m", ha="center", fontsize=9)
+        if res_flag[i]:
+            ax.text(i, -0.10, f"RESOLVED\n$\\rightarrow$ phantom drone\n"
+                    f"{marg[i]:+.1f} dB over CFAR\nP(det) = {pdet[i]*100:.0f}%",
+                    transform=tr, ha="center", va="top", fontsize=8.5,
+                    color="#c62828", fontweight="bold")
+        else:
+            ax.text(i, -0.10, "merged into\nthe target cell\n(no phantom, but\nthe echo is corrupted)",
+                    transform=tr, ha="center", va="top", fontsize=8.5, color="#546e7a")
+    ax.set_xticks(range(len(wfs)), wfs, fontsize=9.5)
+    ax.set_ylim(0, 42)
+    ax.set_ylabel("Range resolution $\\Delta$Rb = c/B [m]")
+    ax.set_title("(b) Only the bandwidth that resolves the ghost\nturns it into a second 'drone'", fontsize=10.5)
+    ax.grid(alpha=0.3, axis="y", which="both")
+
+    # (c) Pd 는 그대로 — 무너지는 건 신뢰(가짜 표적/거리 편향)
+    ax = axes[2]
+    x = np.arange(len(wfs))
+    err = {}
+    for j, (gh, col, lab) in enumerate([(False, "#2e7d32", "ghost off"),
+                                        (True, "#ef6c00", "ghost on")]):
+        y = []
+        for k in wfs:
+            std, bw, car = WAVEFORMS[k]
+            rr = [r for r in e["rows"] if r["ghost_on"] == gh and r["wf"] == f"{std}{bw/1e6:.0f}"]
+            y.append(float(np.mean([r["pd"] for r in rr])) * 100)
+            err[(k, gh)] = float(np.mean([r["rb_err_m"] for r in rr if r["rb_err_m"] is not None]))
+        ax.bar(x + (j - 0.5) * 0.34, y, width=0.32, color=col, label=lab)
+    for i, k in enumerate(wfs):
+        ax.text(i, 104, f"peak range err\n{err[(k, False)]:.2f} $\\rightarrow$ {err[(k, True)]:.2f} m",
+                ha="center", fontsize=8, color="#37474f")
+    ax.set_xticks(x, wfs, fontsize=9.5)
+    ax.set_ylim(0, 128); ax.set_ylabel("Detection probability Pd [%] (drone-averaged)")
+    ax.set_title("(c) Pd is untouched — what breaks is trust,\nnot detection", fontsize=10.5)
+    ax.legend(fontsize=9, loc="lower right"); ax.grid(alpha=0.3, axis="y")
+
+    fig.suptitle("Ghost matrix — the floor ghost goes via the target, so it carries Doppler and ECA cannot cancel it",
+                 fontsize=13, fontweight="bold")
+    fig.supxlabel(f"Static clutter is a dead parameter (ECA projects it out). The target-borne floor ghost is not: {g['amp_db']:.0f} dB below the echo, "
+                  f"it still stands {marg[0]:+.0f} dB above the CFAR threshold at 5G.\n"
+                  "The range resolution that made wideband attractive is exactly what turns the ghost into a second 'drone'; narrowband merely hides it inside the target cell. "
+                  "Pd never moves — what the ghost costs is trust in the detection.",
+                  fontsize=9.5, color="0.35")
+    fn = os.path.join(outdir, "report5_ghost.png")
+    fig.savefig(fn, dpi=130); plt.close(fig)
+    print("[matrix]", os.path.relpath(fn)); return fn
+
+
+# --------------------------------------------------------------------------- #
 #  D) Sionna RT 교차검증 (GPU) — 자유공간 ≈ Analytic, 챔버 잔향 실측
 # --------------------------------------------------------------------------- #
 def section_d(quick=False):
@@ -474,29 +686,41 @@ def section_d(quick=False):
                               for dt, r in CH_CLUTTER_RATIO]
     out["rt_echo_ratio_chamber"] = st_c.rt_echo_ratio
 
-    # 3) 같은 셀을 RT 채널(챔버 잔향 실측)로 재실행 vs Analytic(가정 잔향)
+    # 3) 같은 셀을 RT 채널(경로를 광선추적으로)로 재실행 vs Analytic(닫힌형 기하).
+    #    ⚠ **두 백엔드의 σ 는 이제 둘 다 SBR 이다** — 다른 것은 '환경 경로'뿐이다.
+    #    그리고 정적 클러터는 ECA 가 진폭과 무관하게 지운다(죽은 파라미터) → 일치는 **항등식**.
+    #    즉 이 비교는 클러터 모델을 검증하지 **못한다**. 검증하는 것은 기하·직접파·지연이다.
     res_rt = run_cell(wf, "mavic4pro", pos, vel, lb,
                       channel=SionnaRTChannel(with_chamber=True, spp=spp),
                       M=m_for(wf), N=N, pfa=PFA, seed0=_seed("rt-cell"))
     res_an = run_cell(wf, "mavic4pro", pos, vel, lb,
-                      channel=AnalyticChannel(clutter=CH_CLUTTER_RATIO),
+                      channel=AnalyticChannel(clutter=env_clutter(wf.carrier_hz)),
                       M=m_for(wf), N=N, pfa=PFA, seed0=_seed("rt-cell"))
-    def _rdmap(res):
-        Rb, f_d, rd, st, lt, (ri, di), true_Rb = res["example"]
-        rdb = 20 * np.log10(rd / rd.max() + 1e-9)
-        return dict(rb=np.asarray(Rb).round(2).tolist(),
-                    fd=np.asarray(f_d).round(1).tolist(),
-                    rd_db=np.asarray(rdb).round(1).tolist(),
-                    true_rb=float(true_Rb), true_fd=float(st.fd))
     out["cell"] = dict(
         rt=dict(pd=res_rt["pd"], scr=res_rt["scr_mean"], n_clutter=len(res_rt["state"].clutter),
-                map=_rdmap(res_rt)),
-        analytic=dict(pd=res_an["pd"], scr=res_an["scr_mean"], map=_rdmap(res_an)),
+                sigma_dbsm=float(10 * np.log10(res_rt["state"].sigma_m2)), map=_rdmap(res_rt)),
+        analytic=dict(pd=res_an["pd"], scr=res_an["scr_mean"],
+                      n_clutter=len(res_an["state"].clutter),
+                      sigma_dbsm=float(10 * np.log10(res_an["state"].sigma_m2)),
+                      map=_rdmap(res_an)),
         N=N)
+
+    # 4) **클러터가 죽은 파라미터임을 이 자리에서 증명한다** — 잔향 진폭을 ×0 / ×1 / ×10 로
+    #    바꿔도 SCR 이 소수점 아래까지 안 움직인다(ECA 사영이 지운다). "RT≈Analytic 이므로
+    #    클러터 모델이 검증됐다"는 옛 결론이 왜 공허했는지의 근거.
+    dead = []
+    for scale, tag in ((0.0, "none"), (1.0, "RT-measured"), (10.0, "RT x10")):
+        cl = tuple((dt, r * scale) for dt, r in st_c.clutter) if scale else ()
+        r = run_cell(wf, "mavic4pro", pos, vel, lb, channel=AnalyticChannel(clutter=cl),
+                     M=m_for(wf), N=4, pfa=PFA, seed0=_seed("dead"))
+        dead.append(dict(tag=tag, scale=scale, scr=r["scr_mean"], pd=r["pd"]))
+    out["clutter_dead"] = dead
     print(f"  [D RT] 자유공간 클러터={out['free']['n_clutter']}  "
           f"챔버 잔향 {len(out['chamber_clutter'])}개  "
           f"Pd RT={res_rt['pd']*100:.0f}% vs Analytic={res_an['pd']*100:.0f}%  "
           f"SCR RT={res_rt['scr_mean']:.1f} vs {res_an['scr_mean']:.1f} dB")
+    print("  [D RT] 클러터 죽은 파라미터 증명: " +
+          "  ".join(f"{d['tag']}→SCR {d['scr']:.6f}dB" for d in dead))
     return out
 
 
@@ -508,8 +732,8 @@ def fig_rt(d, outdir=FIGDIR):
     if have_maps:
         fig, axes = plt.subplots(1, 3, figsize=(16.5, 5.4), constrained_layout=True,
                                  gridspec_kw=dict(width_ratios=[1.15, 1.15, 1.0]))
-        for ax, key, tag in [(axes[0], "analytic", "Analytic channel (closed-form geometry + assumed clutter)"),
-                             (axes[1], "rt", "Sionna RT channel (ray-traced chamber mesh)")]:
+        for ax, key, tag in [(axes[0], "analytic", "Analytic paths (closed-form geometry) + SBR $\\sigma$"),
+                             (axes[1], "rt", "Sionna RT paths (ray-traced chamber) + SBR $\\sigma$")]:
             m = d["cell"][key]["map"]
             Rb = np.asarray(m["rb"]); fd = np.asarray(m["fd"]); rdb = np.asarray(m["rd_db"])
             im = ax.pcolormesh(Rb, fd, rdb, cmap="turbo", vmin=-50, vmax=0, shading="auto")
@@ -531,21 +755,57 @@ def fig_rt(d, outdir=FIGDIR):
             label="Analytic assumed (CH_CLUTTER_RATIO)")
     ax.set_xlabel("Delay relative to direct path [ns]")
     ax.set_ylabel("Amplitude relative to direct path [dB]")
-    ax.set_title(f"Chamber reverberation spectrum — RT-measured vs assumed\n"
-                 f"({d['free']['n_clutter']} free-space RT clutter paths → geometry cross-check passed)", fontsize=10.5)
-    ax.grid(alpha=0.3); ax.legend(fontsize=8.5)
-    fig.suptitle("Sionna RT cross-check — confirmed by ray tracing, not assumption (Analytic) (same cell, same processing chain)",
+    ax.set_title("Chamber reverberation\nRT-measured vs the old assumption", fontsize=10.5)
+    ax.set_ylim(-58, 4)
+    ax.grid(alpha=0.3); ax.legend(fontsize=8.5, loc="lower right")
+    dead = d.get("clutter_dead")
+    if dead:
+        txt = "\n".join(f"  clutter {x['tag']:<12s} SCR {x['scr']:.6f} dB" for x in dead)
+        ax.text(0.03, 0.97, "Static clutter is a DEAD parameter\n(ECA projects it out; SCR identical to 6 decimals)\n" + txt,
+                transform=ax.transAxes, va="top", ha="left", fontsize=8,
+                family="monospace", color="#37474f",
+                bbox=dict(boxstyle="round,pad=0.35", fc="#eceff1", ec="#90a4ae"))
+    fig.suptitle("Sionna RT cross-check — what it does and does NOT prove",
                  fontsize=12.5, fontweight="bold")
+    fig.supxlabel(f"It proves the geometry, the direct path and the delays (RT and closed-form agree; "
+                  f"{d['free']['n_clutter']} clutter paths in free space).\n"
+                  "It does NOT validate the clutter model: ECA cancels static clutter regardless of its amplitude, so any clutter model would have 'agreed'.",
+                  fontsize=9.5, color="0.35")
     fn = os.path.join(outdir, "report5_rt_clutter.png")
     fig.savefig(fn, dpi=130); plt.close(fig)
     print("[matrix]", os.path.relpath(fn)); return fn
 
 
 # --------------------------------------------------------------------------- #
+def _rt_env_worker(fcs):
+    """자식 프로세스에서 RT 실측 잔향을 뽑아 캐시에 쓴다 — **부모는 mitsuba 를 import 하지
+    않는다**(부모가 CUDA 컨텍스트를 만들면 이후 ProcessPool fork 가 위험해진다)."""
+    from channel import rt_chamber_clutter
+    for fc in fcs:
+        rt_chamber_clutter(fc, compute=True)
+    return True
+
+
+def prep_env(carriers, verbose=True):
+    """반송파별 RT 실측 챔버 잔향을 캐시에 채운다(이미 있으면 건너뜀)."""
+    need = [fc for fc in carriers if not rt_chamber_clutter(fc)]
+    if not need:
+        if verbose:
+            print("[RT] 챔버 잔향 캐시 적중 — 다시 광선추적하지 않음")
+        return
+    if verbose:
+        print(f"[RT] 챔버 잔향 실측 {len(need)}개 반송파 (Sionna RT, GPU)")
+    with ProcessPoolExecutor(max_workers=1) as ex:
+        ex.submit(_rt_env_worker, need).result()
+    _ENV_CACHE.clear()
+    import channel as _ch
+    _ch._RTC = None                       # 자식이 쓴 캐시를 부모가 다시 읽게 한다
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--quick", action="store_true", help="빠른 점검(셀·trial 축소)")
-    ap.add_argument("--only", default="a,b,c,d", help="실행 섹션 (예: a,b)")
+    ap.add_argument("--only", default="a,b,c,d,e", help="실행 섹션 (예: a,b)")
     ap.add_argument("--workers", type=int, default=min(12, os.cpu_count() or 4))
     ap.add_argument("--replot", action="store_true",
                     help="계산은 건너뛰고 캐시된 report5_results.json 으로 그림만 다시 그린다 "
@@ -580,15 +840,33 @@ def main():
     fig_overview(results)                       # '이 벤치마크가 무엇을 하는가' 한 장 (항상 갱신)
 
     if args.replot:                             # 캐시된 결과로 그림만 재생성
-        missing = [k for k in ("A_occupancy", "B_matrix", "C_scenarios", "D_rt") if k not in results]
-        if missing:
-            raise SystemExit(f"[matrix] --replot 불가: {out} 에 {missing} 없음 — 먼저 계산을 돌리세요.")
-        fig_occupancy(results["A_occupancy"])
-        fig_matrix(results["B_matrix"])
-        fig_scenarios(results["C_scenarios"])
-        fig_rt(results["D_rt"])
+        have = {"a": ("A_occupancy", fig_occupancy), "b": ("B_matrix", fig_matrix),
+                "c": ("C_scenarios", fig_scenarios), "d": ("D_rt", fig_rt),
+                "e": ("E_ghost", fig_ghost)}
+        for s in ("a", "b", "c", "d", "e"):
+            if s in only:
+                key, fn = have[s]
+                if key not in results:
+                    raise SystemExit(f"[matrix] --replot 불가: {out} 에 {key} 없음 — 먼저 계산을 돌리세요.")
+                fn(results[key])
         print(f"[matrix] replot 완료 ({time.time()-t0:.0f}s) — 계산은 건너뜀")
         return
+
+    # ---- 준비 1: 표적 σ 를 **SBR(가림 포함)** 로 미리 계산해 캐시 (GPU 여러 장에 분배) ----
+    #      ⚠ 반드시 mitsuba import 전에. 워커는 이 표를 조회만 한다(SIONNA2_NO_GPU).
+    pre = []
+    if "a" in only:
+        pre += [(("nr", 100e6, 3.5e9, "G3"), "mavic4pro", "radial", None)]
+    if {"b", "d", "e"} & only:
+        pre += [((std, bw, car, "G3"), d, "radial", None)
+                for std, bw, car in WAVEFORMS.values() for d in DRONES5]
+    if "c" in only:
+        pre += [(("nr", 100e6, 3.5e9, "G3"), "mavic4pro", scen, s)
+                for scen in ("radial", "waypoint", "tangential", "hover") for s in SNAPS]
+    prefill_sigma(pre)
+
+    # ---- 준비 2: 환경(정적 잔향) = **Sionna RT 실측** (반송파별 1회, 자식 프로세스) ----
+    prep_env(sorted({car for _, _, car in WAVEFORMS.values()}))
 
     if "a" in only:
         results["A_occupancy"] = section_a(args.workers, args.quick); _save()
@@ -600,8 +878,12 @@ def main():
     if "c" in only:
         results["C_scenarios"] = section_c(args.workers, args.quick); _save()
         fig_scenarios(results["C_scenarios"])
-    if "d" in only:
-        results["D_rt"] = section_d(args.quick); _save()
+    if "e" in only:
+        results["E_ghost"] = section_e(args.workers, args.quick); _save()
+        write_csv(results["E_ghost"], os.path.join(OUTDIR, "bench_ghost.csv"), ghost=True)
+        fig_ghost(results["E_ghost"])
+    if "d" in only:                             # RT 는 **맨 마지막** (부모가 mitsuba 를 물고 나면
+        results["D_rt"] = section_d(args.quick); _save()   # 이후 fork 가 위험하다)
         fig_rt(results["D_rt"])
 
     _save()

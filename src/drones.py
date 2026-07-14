@@ -216,8 +216,18 @@ def _drone_dims(spec: DroneSpec):
     return diag, r, prop_r, bh, body_l, body_w, body_z
 
 
-def _build_frame_raw(spec: DroneSpec) -> Mesh:
-    """(내부) 외형보정 **전** 프레임 — 파라메트릭 실루엣만. build_frame 을 쓸 것."""
+# --------------------------------------------------------------------------- #
+#  메쉬 엔진 — "cad"(기본) / "legacy"
+# --------------------------------------------------------------------------- #
+#  cad    : src/drone_cad.py — trimesh + manifold3d(불리언) + shapely + scipy 로 **실물 형상**에 맞춤.
+#           매끈한 로프트 동체, 익형 프로펠러, 기종별 짐벌(Mavic4 = 구형 Infinity 짐벌),
+#           착륙장치, RTK 돔. **불리언 합집합**으로 겹친 파트의 내부 면을 녹여 없앤다.
+#  legacy : 예전 프리미티브 스택(비교·회귀용).
+MESH_ENGINE = "cad"
+
+
+def _build_frame_legacy(spec: DroneSpec) -> Mesh:
+    """(내부) 예전 파라메트릭 실루엣 — 비교용. build_frame 을 쓸 것."""
     m = Mesh()
     diag, r, prop_r, bh, body_l, body_w, body_z = _drone_dims(spec)
     # 동체(둥근 hull) + 전방 코(테이퍼) + 캐노피(돔) — 박스 대신 곡면
@@ -261,6 +271,14 @@ def _build_frame_raw(spec: DroneSpec) -> Mesh:
     m.merge(box(body_l * 0.36, body_w * 0.52, body_z * 0.06,
                 center=(0.02 * body_l, 0, 0.24 * body_z), group="pcb"))
     return m
+
+
+def _build_frame_raw(spec: DroneSpec) -> Mesh:
+    """(내부) 외형보정 **전** 프레임. MESH_ENGINE 에 따라 CAD 또는 legacy."""
+    if MESH_ENGINE == "cad":
+        from drone_cad import build_frame_cad
+        return build_frame_cad(spec).to_geom()
+    return _build_frame_legacy(spec)
 
 
 # --------------------------------------------------------------------------- #
@@ -315,6 +333,14 @@ def build_frame(spec: DroneSpec) -> Mesh:
 
 
 def build_propeller(spec: DroneSpec, n: int = 10) -> Mesh:
+    """프로펠러 1개. MESH_ENGINE="cad" 면 **진짜 익형(NACA-4)** 로프트 블레이드 + 허브."""
+    if MESH_ENGINE == "cad":
+        from drone_cad import build_propeller_cad
+        return build_propeller_cad(spec, n_sec=max(12, n * 2)).to_geom()
+    return _build_propeller_legacy(spec, n)
+
+
+def _build_propeller_legacy(spec: DroneSpec, n: int = 10) -> Mesh:
     """**프로펠러 1개**(prop_blades 장)를 허브 원점 기준으로 생성(스핀 적용 전, z축 회전).
     pose_articulated/마이크로도플러에서 이 메쉬를 z회전(스핀)시켜 각 로터에 배치한다.
     n : 블레이드 스팬 분할(기본 10=시각화용; 마이크로도플러는 더 촘촘히 줘서 도플러 트랙을 매끈하게)."""
