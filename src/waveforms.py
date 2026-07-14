@@ -366,6 +366,13 @@ def nr_downlink(bw_hz=100e6, scs_hz=30e3, carrier_hz=3.5e9, occupancy="G3", n_id
         idx = np.arange(-n_used // 2, n_used // 2, 2)
         put(2, idx, qpsk_from_gold(2048 + n_id, len(idx)), "DMRS")
     # NR-PRS (G2/G3): comb-4 대각 전대역, l=4..9
+    #   ※ PDSCH 를 먼저 깐 뒤 PRS 로 덮어쓴다 → PRS 와 PDSCH 는 **같은 RE 를 절대 공유하지 않는다.**
+    #     이것이 표준의 'PDSCH rate matching around DL-PRS'(TS 38.214)다: PRS 심볼(4~9) 안에서도
+    #     PDSCH 는 PRS 가 안 쓰는 나머지 부반송파(comb-4 → 3/4)를 채운다.
+    #   ※ 참고로 3GPP 의 'PRS muting' 은 "다른 자원을 비운다"가 아니라, 셀이 자기 PRS 를 일부 occasion
+    #     에서 안 쏴서 **이웃 셀 PRS 의 hearability** 를 높이는 셀 간 패턴이다. 다만 실제 망은 측위
+    #     정확도를 위해 PRS occasion 에 데이터를 적게 싣는 경향이 있으므로, 여기의 G3(PRS+풀데이터)는
+    #     **송신에너지 상한**으로 읽는 게 안전하다. 패시브 결론(PDSCH 는 미지 → 기준 못 됨)은 불변.
     if "PRS" in on:
         for li in range(4, 10):
             sh = li % 4; idx = np.arange(-n_used // 2 + sh, n_used // 2, 4)
