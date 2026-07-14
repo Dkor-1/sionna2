@@ -70,7 +70,7 @@ def _airfoil(chord, thick_ratio=0.10, pts=40):
     return Polygon(P)
 
 
-def _blade(R, root_frac=0.14, chord_max=0.20, pitch_deg=20.0, twist_deg=13.0,
+def _blade(R, root_frac=0.14, chord_max=0.26, pitch_deg=20.0, twist_deg=13.0,
            sweep_frac=0.10, n_sec=22, n_pts=36):
     """**진짜 익형 프로펠러 블레이드 1장** — 로프트(테이퍼 + 워시아웃 트위스트 + 시미터 스윕).
     +x = 스팬. 익형 단면을 스팬을 따라 회전(피치)·축소(테이퍼)·후퇴(스윕)시키며 잇는다."""
@@ -329,7 +329,7 @@ def build_propeller_cad(spec, n_sec=22) -> Assembly:
     A = Assembly()
     A.add(_prop_hub(R * 0.085, R * 0.09), "prop")
     for b in range(spec.prop_blades):
-        bl = _blade(R, chord_max=0.20 * R, n_sec=n_sec)
+        bl = _blade(R, chord_max=0.26 * R, n_sec=n_sec)   # 실물 1345 는 0.30R — 소비자용 프롭은 더 슬림
         A.add(rot_z(bl, (360.0 / spec.prop_blades) * b), "prop")
     A.union_group("prop")
     return A

@@ -1,499 +1,607 @@
 # -*- coding: utf-8 -*-
 """
-viz_report3.py — report3 의 **SBR(가림 포함) 마이크로도플러** + **Sionna 렌더 분절 애니메이션**
-=================================================================================================
-왜 새로 만들었나 (헤드라인)
-  기존 report3 의 마이크로도플러는 순수 PO(microdoppler_series)였다 — **가림이 없다.**
-  블레이드가 동체·모터 뒤로 돌아가도, 동체 내부의 배터리·PCB 도, 언제나 산란체로 계상된다.
-  그 결과 **정적 성분(DC)이 부풀고**, 블레이드 변조(AC)는 가짜 뒷면 기여로 상쇄돼 얕아진다.
-  SBR(rcs_sbr.sbr_field, Mitsuba 광선 + PO 적분)은 **광선이 실제로 맞은 첫 지점만** 적분한다.
+viz_report3.py — report3 ("Sionna RT 광선 반사 실험") 의 그림
+==============================================================
+이 리포트는 **렌더가 주인공**이다. 그래서 이 파일의 절반은 그림을 "그리는" 게 아니라
+**Sionna 가 렌더한 PNG 를 판넬로 조립하고 영어 라벨을 붙이는** 일이다.
+(렌더 자체는 src/build_report3.py 의 render_all() → outputs/renders/report3/)
 
-    mavic4pro, az=0°, el=15°, 3.5 GHz, hover 5500 rpm(가정값)
-      |DC|          PO 1.089e-2  →  SBR 5.43e-3     (가려진 산란체가 빠지며 -6.0 dB)
-      std(AC)       PO 7.04e-5   →  SBR 2.62e-4     (블레이드가 동체를 가렸다 열며 변조가 깊어짐 +11.4 dB)
-      |DC|/std(AC)  PO 154.8 (+43.8 dB) → SBR 20.7 (+26.3 dB)   ⇒ **17.5 dB**
+숫자는 **전부** outputs/report3_rt.json 에서 읽는다 (benchmark/rt_experiments.py 가 만든다).
+→ 손으로 적은 숫자가 없다. 그림과 본문이 어긋날 수 없다.
 
-  ⇒ 정적 받침대(pedestal) 대비 블레이드 선(line)이 **17.5 dB 위로 올라온다**
-     = 마이크로도플러 검출이 기존 PO 추정보다 **17.5 dB 쉽다**.
-
-⚠ 수치 정정(측정 근거): 이 17.5 dB 는 **광선 격자 λ/32** 에서 잰 값이다.
-  microdoppler_sbr 의 기본 격자(λ/12)로 재면 SBR DC/AC = 12.3(+21.8 dB) 이 나와 차이가 22 dB 로 보이는데,
-  그 초과분은 **물리가 아니라 광선격자 이산화 잡음**이다(자세가 돌 때 hit 집합이 툭툭 바뀌며 생기는 광대역 잡음).
-  격자를 조이면 std(AC) 가 4.68e-4(λ/12) → 2.62e-4(λ/32) 로 내려가 수렴한다(λ/20~λ/48 에서 ±1 dB).
-  그래서 이 모듈은 **SBR_DIV=32** 를 쓴다.
-
-생성물 (outputs/figures/)
-  report3_microdoppler.png     PO vs SBR 스펙트로그램 나란히 + DC/AC 막대 (헤드라인)
-  report3_md_drones.png        5종 드론 SBR 스펙트로그램
-  report3_md_spectrum.png      정확한 선 스펙트럼(창 없음) + 창 길이 스터디 (누설 vs AM 측대역)
-  report3_rt_articulation.png  **Sionna 렌더**로 본 분절(몸체 자세 ⟂ 프로펠러 스핀)
-  report3_rt_spin.gif          **Sionna 렌더** 프로펠러 스핀 애니메이션
-  report3_anim_microdoppler.gif  Sionna 렌더 프레임 + SBR 스펙트로그램 시간커서
-  outputs/report3_microdoppler.json  본문이 인용하는 수치
-
-실행:  python src/viz_report3.py            (전체, ~10분)
+규약
+  · 그림 텍스트는 **전부 영어** (제목/축/범례/주석). 본문·주석·print 는 한국어.
+  · 그리스문자·U+2212 금지 (한글 폰트에 없다) → mathtext 와 ASCII 하이픈만.
+  · 제목 = 짧은 헤드라인, 회색 fig.supxlabel = 캡션(줄바꿈 넣어 잘리지 않게).
+  · 색: dataviz 스킬의 **검증된 기본 팔레트**를 슬롯 순서 그대로 사용(재정렬하지 않음).
+    (validate_palette.js 는 node v12 라 실행 불가 — 그래서 순서를 바꾸지 않았다.
+     밝은 배경에서 대비가 낮은 슬롯(aqua/yellow)은 **직접 라벨**로 보완한다 = relief rule.)
 """
 from __future__ import annotations
 
 import json
 import os
 import sys
-import tempfile
-import time
+
+import numpy as np
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-if _HERE not in sys.path:
-    sys.path.insert(0, _HERE)
-
-# ⚠ mitsuba 를 import 하는 모듈(rcs_sbr / scene_build)이 내부에서 gpu.pick() 을 먼저 부른다.
-import numpy as np                                             # noqa: E402
-from rcs_sbr import sbr_field                                  # noqa: E402  (Mitsuba 광선 + PO 적분)
-from scene_build import build_scene, Part                      # noqa: E402  (Sionna 씬)
-import sionna.rt as rt                                         # noqa: E402
-import mitsuba as mi                                           # noqa: E402
-
-import vizstyle                                                # noqa: E402
-vizstyle.use_korean()
-import matplotlib.pyplot as plt                                # noqa: E402
-import matplotlib.image as mpimg                              # noqa: E402
-import matplotlib.patheffects as pe                           # noqa: E402
-from matplotlib.animation import FuncAnimation, PillowWriter   # noqa: E402
-
-from drones import (DRONES, DRONE_GROUP_MAT, drone_colors, pose_articulated,   # noqa: E402
-                    rotor_layout, build_propeller)
-from microdoppler import microdoppler_series, spectrogram, _look, C0           # noqa: E402
-
 ROOT = os.path.abspath(os.path.join(_HERE, ".."))
+for _p in (_HERE, os.path.join(ROOT, "benchmark")):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+from vizstyle import use_korean                                   # noqa: E402
+import matplotlib.pyplot as plt                                   # noqa: E402
+import matplotlib.image as mpimg                                  # noqa: E402
+from matplotlib.patches import FancyArrowPatch, Rectangle, Circle  # noqa: E402
+
+use_korean()
+
 FIG = os.path.join(ROOT, "outputs", "figures")
-OUT = os.path.join(ROOT, "outputs")
-RTDIR = os.path.join(OUT, "renders", "report3")
+RDIR = os.path.join(ROOT, "outputs", "renders", "report3")
+RJSON = os.path.join(ROOT, "outputs", "report3_rt.json")
 
-FC = 3.5e9
-AZ, EL = 0.0, 15.0            # 시선(표적 → 레이더)
-PRF = 20_000.0                # 슬로타임 샘플률 [Hz] — f_tip 을 모호 없이 보려면 ≳2·f_tip
-N_T = 2400                    # 120 ms (플래시 약 22회)
-SBR_DIV = 32                  # 광선 격자 λ/32 (수렴 — 위 주석 참조)
-N_PHASE = 720                 # φ ∈ [0,180°) 를 0.25° 로 (GPU 를 아끼지 않는다)
+# --- dataviz 기본 팔레트 (슬롯 고정 순서) ---------------------------------- #
+BLUE, AQUA, YELLOW, GREEN, VIOLET, RED, MAGENTA, ORANGE = (
+    "#2a78d6", "#1baf7a", "#eda100", "#008300", "#4a3aa7", "#e34948", "#e87ba4", "#eb6834")
+GOOD, WARN, CRIT = "#0ca30c", "#fab219", "#d03b3b"
+INK, INK2, MUTED = "#0b0b0b", "#52514e", "#8a8880"
+GRID = "#e6e5e1"
 
-_NAME = {k: DRONES[k].name.replace("DJI ", "").split("  ")[0] for k in DRONES}
-GMAT = {g: mat for g, (mat, _) in DRONE_GROUP_MAT.items()}
-
-
-# --------------------------------------------------------------------------- #
-#  SBR 위상 테이블 — 드론 자세는 단일 각도 φ 의 함수다
-# --------------------------------------------------------------------------- #
-#  로터 k 의 스핀 = dir_k·φ (장착 오프셋 base_ang 은 rotor_layout 이 갖고 있다).
-#  n-블레이드 프로펠러는 360/n 회전에 불변 → φ 의 주기 = 360/n.  2엽이면 **180°**.
-#  ⇒ 한 주기를 n_phase 로 잘라 SBR 을 미리 계산해 두면, 시간축은 조회로 끝난다.
-#  ⇒ 그리고 이 테이블의 FFT 는 **창 없는 정확한 선 스펙트럼**이다(주기신호를 한 주기 균일샘플).
-def sbr_phase_table(spec, fc=FC, az=AZ, el=EL, n_phase=N_PHASE, div=SBR_DIV, verbose=True):
-    """φ 별 복소 산란장 테이블 tab[n_phase] (가림 포함). 반환 (tab, info)."""
-    lam = C0 / fc
-    u = _look(az, el)
-    dirs = [r["dir"] for r in rotor_layout(spec)]
-    period = 360.0 / max(1, spec.prop_blades)
-    phis = np.linspace(0.0, period, n_phase, endpoint=False)
-    t0 = time.time()
-    tab = np.empty(n_phase, complex)
-    for i, ph in enumerate(phis):
-        mesh = pose_articulated(spec, rotor_phase_deg=[d * ph for d in dirs])
-        tab[i] = sbr_field(mesh, GMAT, fc, u, spacing=lam / div)   # 자세마다 씬이 바뀐다(캐시 불가)
-    rpm = spec.hover_rpm
-    omega = 2 * np.pi * rpm / 60.0
-    prop_R = spec.prop_dia_mm / 2000.0
-    Vp = np.asarray(build_propeller(spec, n=10).v, float)
-    R_mesh = float(np.hypot(Vp[:, 0], Vp[:, 1]).max())            # 메쉬 실제 최대반경(운동학적 상한용)
-    info = dict(key=spec.key, rpm=rpm, fc=fc, lam=lam, az=az, el=el, n_phase=n_phase,
-                div=div, period_deg=period, n_rotors=len(dirs), blades=spec.prop_blades,
-                v_tip=omega * prop_R, prop_R=prop_R, R_mesh=R_mesh,
-                f_tip=2 * omega * prop_R / lam * np.cos(np.radians(el)),
-                f_kin=2 * omega * R_mesh / lam * np.cos(np.radians(el)),
-                flash_hz=spec.prop_blades * rpm / 60.0,
-                secs=time.time() - t0)
-    if verbose:
-        print(f"  [sbr-table] {spec.key:10s} n_phase={n_phase} λ/{div}  "
-              f"f_tip=±{info['f_tip']:.0f}Hz flash={info['flash_hz']:.0f}Hz  ({info['secs']:.0f}s)")
-    return tab, info
+#  물체 종류 → 색 (**개체(entity)에 색을 고정** — 순위가 아니라)
+OBJ_COLOR = {"LOS": INK, "floor": BLUE, "ceiling": ORANGE, "wall": AQUA,
+             "target": RED, "other": MUTED}
 
 
-def series_from_table(tab, info, prf=PRF, n_t=N_T):
-    """테이블 → 슬로타임 E(t). (microdoppler.microdoppler_sbr 과 동일한 조회+선형보간)"""
-    n_phase = len(tab); period = info["period_deg"]
-    t = np.arange(n_t) / prf
-    idx = np.mod((360.0 * info["rpm"] / 60.0) * t / period * n_phase, n_phase)
-    i0 = np.floor(idx).astype(int) % n_phase
-    i1 = (i0 + 1) % n_phase
-    fr = idx - np.floor(idx)
-    return t, tab[i0] * (1 - fr) + tab[i1] * fr
+def _load():
+    with open(RJSON) as f:
+        return json.load(f)
 
 
-def dc_ac(E):
-    """정적 받침대 |DC| 와 변조 std(AC), 그 비."""
-    dc = float(abs(np.mean(E))); ac = float(np.std(E))
-    return dc, ac, dc / ac
+def _classify(objs):
+    """경로가 맞은 물체 → 색 분류 키."""
+    if not objs:
+        return "LOS"
+    if any(o.startswith("mavic") for o in objs):
+        return "target"
+    if any(o.startswith("floor") for o in objs):
+        return "floor"
+    if any("ceiling" in o for o in objs):
+        return "ceiling"
+    if any(o.startswith(("absorber", "backing")) for o in objs):
+        return "wall"
+    return "other"
 
 
-def line_spectrum(tab, info):
-    """창 없는 **정확한 선 스펙트럼**: tab 은 주기 1/flash 를 균일샘플한 한 주기다.
-    반환 (f[Hz], H[복소], 하모닉 간격 f0)."""
-    n = len(tab); f0 = info["flash_hz"]
-    H = np.fft.fft(tab) / n
-    f = np.fft.fftfreq(n, d=1.0 / (n * f0))
-    o = np.argsort(f)
-    return f[o], H[o], f0
+def _cap(fig, text):
+    """회색 캡션 — 줄바꿈은 호출자가 넣는다(잘림 방지)."""
+    fig.supxlabel(text, fontsize=10.5, color=INK2, ha="center", linespacing=1.6)
 
 
-# --------------------------------------------------------------------------- #
-#  (1) 헤드라인 — PO vs SBR 스펙트로그램
-# --------------------------------------------------------------------------- #
-def fig_po_vs_sbr(outdir=FIG, target="mavic4pro", tab=None, info=None):
-    spec = DRONES[target]
-    if tab is None:
-        tab, info = sbr_phase_table(spec)
-    t, E_sbr = series_from_table(tab, info)
-    _, E_po, ipo = microdoppler_series(spec, fc=FC, az=AZ, el=EL, prf=PRF, n_t=N_T)
-
-    d_po, a_po, r_po = dc_ac(E_po)
-    d_sb, a_sb, r_sb = dc_ac(E_sbr)
-    gain = 20 * np.log10(r_po / r_sb)
-
-    fig = plt.figure(figsize=(16.2, 5.6), constrained_layout=True)
-    gs = fig.add_gridspec(1, 3, width_ratios=[1, 1, 0.52])
-    fig.suptitle(f"Occlusion makes micro-Doppler {gain:.1f} dB easier to see", fontsize=17, fontweight="bold")
-
-    for j, (E, nm, sub) in enumerate(
-            ((E_po, "PO (no occlusion)", f"|DC|/std(AC) = {r_po:.0f}  (+{20*np.log10(r_po):.1f} dB)"),
-             (E_sbr, "SBR (occlusion included)", f"|DC|/std(AC) = {r_sb:.1f}  (+{20*np.log10(r_sb):.1f} dB)"))):
-        ax = fig.add_subplot(gs[0, j])
-        f, tt, S = spectrogram(E, PRF, nperseg=64, noverlap=58, nfft=1024)
-        im = ax.pcolormesh(tt * 1e3, f, S, cmap="turbo", vmin=-45, vmax=0, shading="gouraud")
-        for sgn in (+1, -1):
-            ax.axhline(sgn * info["f_tip"], color="k", ls="--", lw=1.6, zorder=5)
-        ax.text(tt[-1] * 1e3 * 0.99, info["f_tip"], f" tip Doppler +{info['f_tip']:.0f} Hz ",
-                color="k", fontsize=8, ha="right", va="bottom", zorder=6)
-        ax.set_ylim(-2.2 * info["f_tip"], 2.2 * info["f_tip"])
-        ax.set_xlabel("Time [ms]"); ax.set_ylabel("Doppler frequency [Hz]")
-        ax.set_title(f"{nm}\n{sub}", fontsize=12,
-                     color=("#b3261e" if j == 0 else "#1b5e20"), fontweight="bold")
-        fig.colorbar(im, ax=ax, fraction=0.046, label="Normalized power [dB]")
-
-    # 막대: 정적 받침대 대비 블레이드 변조
-    ax = fig.add_subplot(gs[0, 2])
-    vals = [20 * np.log10(r_po), 20 * np.log10(r_sb)]
-    bars = ax.bar(["PO", "SBR"], vals, color=["#e57373", "#66bb6a"], width=0.55, edgecolor="k")
-    for b, v in zip(bars, vals):
-        ax.text(b.get_x() + b.get_width() / 2, v + 0.8, f"+{v:.1f} dB", ha="center", fontsize=11,
-                fontweight="bold")
-    ax.annotate("", xy=(1.36, vals[1]), xytext=(1.36, vals[0]),
-                arrowprops=dict(arrowstyle="<->", color="#1a237e", lw=2.2))
-    ax.text(1.44, (vals[0] + vals[1]) / 2, f"{gain:.1f} dB\neasier", color="#1a237e",
-            fontsize=12, fontweight="bold", va="center")
-    ax.set_xlim(-0.6, 2.1)
-    ax.set_ylim(0, vals[0] * 1.28); ax.set_ylabel("Static pedestal above blade AC  [dB]")
-    ax.set_title("Body pedestal |DC| / blade std(AC)", fontsize=11)
-    ax.grid(axis="y", alpha=0.3)
-
-    fig.supxlabel(
-        f"{_NAME[target]} hovering, az {AZ:.0f}° / el {EL:.0f}°, {FC/1e9:.1f} GHz, "
-        f"{info['rpm']:.0f} rpm (assumed - DJI does not publish it). Static 0-Doppler removed before the STFT.\n"
-        "PO counts scatterers the rays never reach (battery/PCB inside the shell, blade backsides), inflating |DC| and "
-        "cancelling part of the blade modulation.\n"
-        f"SBR integrates only the first ray hit: the pedestal drops {20*np.log10(d_sb/d_po):.1f} dB and the blade "
-        f"modulation deepens {20*np.log10(a_sb/a_po):+.1f} dB - the same blade lines now sit far above the body. "
-        "The speckle in the SBR panel is ray-grid discretisation noise ($\\lambda$/32 grid, 44 dB below the strongest blade line).",
-        fontsize=8.5, color="0.45")
-    fn = os.path.join(outdir, "report3_microdoppler.png")
-    fig.savefig(fn, dpi=130); plt.close(fig)
-    print("[fig] ", os.path.relpath(fn, ROOT))
-    return fn, dict(po=dict(dc=d_po, ac=a_po, ratio=r_po, ratio_db=20 * np.log10(r_po)),
-                    sbr=dict(dc=d_sb, ac=a_sb, ratio=r_sb, ratio_db=20 * np.log10(r_sb)),
-                    gain_db=gain, f_tip=info["f_tip"], flash_hz=info["flash_hz"],
-                    v_tip=info["v_tip"], rpm=info["rpm"], f_tip_po=ipo["f_tip"])
-
-
-# --------------------------------------------------------------------------- #
-#  (2) 5종 드론 — SBR 스펙트로그램
-# --------------------------------------------------------------------------- #
-def fig_drones(outdir=FIG, tables=None):
-    keys = list(DRONES.keys())
-    fig, axes = plt.subplots(1, len(keys), figsize=(21, 4.9), constrained_layout=True)
-    fig.suptitle("Blade micro-Doppler of five drones - SBR (occlusion included)",
-                 fontsize=17, fontweight="bold")
-    rows = {}
-    for ax, k in zip(axes, keys):
-        tab, info = (tables[k] if tables and k in tables else sbr_phase_table(DRONES[k]))
-        t, E = series_from_table(tab, info, n_t=1200)     # 60 ms — 플래시 줄무늬가 넓게 보이도록
-        dc, ac, r = dc_ac(E)
-        rows[k] = dict(rpm=info["rpm"], f_tip=info["f_tip"], flash=info["flash_hz"],
-                       v_tip=info["v_tip"], n_rotors=info["n_rotors"], ratio=r,
-                       ratio_db=20 * np.log10(r))
-        f, tt, S = spectrogram(E, PRF, nperseg=64, noverlap=58, nfft=1024)
-        im = ax.pcolormesh(tt * 1e3, f, S, cmap="turbo", vmin=-45, vmax=0, shading="gouraud")
-        for sgn in (+1, -1):
-            ax.axhline(sgn * info["f_tip"], color="k", ls="--", lw=1.4, zorder=5)
-        ax.set_ylim(-2200, 2200)
-        ax.set_xlabel("Time [ms]")
-        ax.set_title(f"{_NAME[k]}\n{info['n_rotors']} rotors, {info['rpm']:.0f} rpm (assumed)\n"
-                     f"tip {info['v_tip']:.0f} m/s $\\rightarrow$ $\\pm${info['f_tip']:.0f} Hz, "
-                     f"flash {info['flash_hz']:.0f} Hz", fontsize=10)
-        ax.text(0.03, 0.03, f"|DC|/AC {r:.1f}", transform=ax.transAxes, fontsize=9,
-                color="w", fontweight="bold",
-                bbox=dict(fc="k", alpha=0.45, ec="none", pad=2))
-    axes[0].set_ylabel("Doppler frequency [Hz]")
-    fig.colorbar(im, ax=axes[-1], fraction=0.046, label="Normalized power [dB]")
-    fig.supxlabel(
-        "Same look (az 0° / el 15°), 3.5 GHz, hover rpm assumed per propeller size. Dashed = $\\pm$tip Doppler. "
-        "Static 0-Doppler removed.\n"
-        "Big propellers turn slower: S1000+ (15 in, 3500 rpm) flashes at 117 Hz, Mini5Pro (6 in, 7500 rpm) at 250 Hz - "
-        "the flash rate alone separates the airframes.",
-        fontsize=8.5, color="0.45")
-    fn = os.path.join(outdir, "report3_md_drones.png")
-    fig.savefig(fn, dpi=125); plt.close(fig)
-    print("[fig] ", os.path.relpath(fn, ROOT))
-    return fn, rows
-
-
-# --------------------------------------------------------------------------- #
-#  (3) 선 스펙트럼 + 창 길이 — "점선 너머 에너지"의 정체
-# --------------------------------------------------------------------------- #
-def fig_spectrum(outdir=FIG, target="mavic4pro", tab=None, info=None):
-    from scipy.signal import welch
-    spec = DRONES[target]
-    if tab is None:
-        tab, info = sbr_phase_table(spec)
-    f, H, f0 = line_spectrum(tab, info)
-    ac = H.copy(); ac[np.argmin(abs(f))] = 0.0            # 0-도플러(몸체) 제거
-    pk = float(abs(ac).max())
-    L = 20 * np.log10(abs(ac) / pk + 1e-30)
-    floor_db = 20 * np.log10(float(np.median(abs(ac[abs(f) > 10_000]))) / pk)   # 광선격자 잡음 바닥
-    P = abs(ac) ** 2
-    inside = 100 * P[abs(f) <= info["f_tip"]].sum() / P.sum()
-
-    t, E = series_from_table(tab, info, n_t=16384)
-    E = E - E.mean()
-
-    fig, axes = plt.subplots(1, 2, figsize=(15.2, 5.4), constrained_layout=True)
-    fig.suptitle("What lies beyond the tip-Doppler line: window leakage vs real AM sidebands",
-                 fontsize=16, fontweight="bold")
-
-    ax = axes[0]
-    m = abs(f) <= 4000
-    ax.vlines(f[m], -60, L[m], color="#1565c0", lw=1.4)
-    ax.plot(f[m], L[m], "o", ms=2.6, color="#0d47a1")
-    for sgn in (+1, -1):
-        ax.axvline(sgn * info["f_tip"], color="k", ls="--", lw=1.6)
-        ax.axvline(sgn * info["f_kin"], color="#b71c1c", ls=":", lw=1.6)
-    ax.axhline(floor_db, color="0.5", ls="-.", lw=1.2)
-    ax.text(-3900, floor_db + 1.2, f"SBR ray-grid noise floor {floor_db:.1f} dB", fontsize=8, color="0.35")
-    ax.text(info["f_tip"] + 60, -3, f"$f_{{tip}}$ {info['f_tip']:.0f} Hz", fontsize=9, rotation=90, va="top")
-    ax.text(info["f_kin"] + 60, -30, f"kinematic bound {info['f_kin']:.0f} Hz", fontsize=8, rotation=90,
-            va="top", color="#b71c1c")
-    ax.set_xlim(-4000, 4000); ax.set_ylim(-60, 5)
-    ax.set_xlabel("Doppler frequency [Hz]"); ax.set_ylabel("Line level re strongest line [dB]")
-    ax.set_title(f"Exact line spectrum - no window\nharmonics of the {f0:.1f} Hz blade flash, "
-                 f"{inside:.1f}% of AC power inside $\\pm f_{{tip}}$", fontsize=11)
-    ax.grid(alpha=0.25)
-
-    ax = axes[1]
-    for nps, col in ((64, "#e53935"), (256, "#fb8c00"), (1024, "#1e88e5"), (4096, "#2e7d32")):
-        fw, Pw = welch(E, fs=PRF, nperseg=nps, noverlap=nps // 2, return_onesided=False,
-                       scaling="spectrum", detrend=False)
-        o = np.argsort(fw); fw, Pw = fw[o], Pw[o]
-        Pdb = 10 * np.log10(Pw / Pw.max())
-        ax.plot(fw, Pdb, color=col, lw=1.4,
-                label=f"window {nps/PRF*1e3:.1f} ms ({nps} pts)" + (" - used in the STFT" if nps == 64 else ""))
-    for sgn in (+1, -1):
-        ax.axvline(sgn * info["f_tip"], color="k", ls="--", lw=1.6)
-    ax.set_xlim(-4000, 4000); ax.set_ylim(-70, 3)
-    ax.set_xlabel("Doppler frequency [Hz]"); ax.set_ylabel("Power re peak [dB]")
-    ax.set_title("Same signal through windows of increasing length", fontsize=11)
-    ax.legend(fontsize=8, loc="lower right"); ax.grid(alpha=0.25)
-
-    fig.supxlabel(
-        "Left: the rotating drone is periodic in $\\varphi$, so its spectrum is a line spectrum - "
-        "sampling one period exactly gives it with zero leakage.\n"
-        f"{inside:.1f}% of the AC power sits inside $\\pm f_{{tip}}$; the lines past the kinematic bound "
-        f"({info['f_kin']:.0f} Hz = 2$\\omega R_{{mesh}}$/$\\lambda$ cos el) are 20-40 dB down and are AM sidebands of the blade "
-        "flash, not kinematic Doppler - no scatterer in the model moves faster.\n"
-        "Right: the same signal through longer windows. The smooth skirt of the 3.2 ms window (red - the one used in the "
-        "STFT) is window leakage: lengthen the window 64x and it collapses ~16 dB, resolving into the discrete lines. "
-        "So not all of the energy past the dashed line is leakage - the AM-sideband lines (25-40 dB down) survive any window.",
-        fontsize=8.5, color="0.45")
-    fn = os.path.join(outdir, "report3_md_spectrum.png")
-    fig.savefig(fn, dpi=130); plt.close(fig)
-    print("[fig] ", os.path.relpath(fn, ROOT))
-    return fn, dict(floor_db=floor_db, inside_pct=inside, f_kin=info["f_kin"], R_mesh=info["R_mesh"])
-
-
-# --------------------------------------------------------------------------- #
-#  (4) Sionna 렌더 — 분절 드론을 시뮬레이터가 직접 그린다
-# --------------------------------------------------------------------------- #
-def _render_pose(spec, tmpdir, tag, body_rpy=(0, 0, 0), phases=None, cam_key="iso",
-                 spp=384, res=(760, 570), fov=35.0):
-    """pose_articulated 메쉬 → 부위별 OBJ → Sionna 씬 → PNG. (drone_parts 는 정적 메쉬만 쓰므로 직접 조립)"""
-    m = pose_articulated(spec, body_rpy=body_rpy, rotor_phase_deg=phases)
-    d = os.path.join(tmpdir, tag)
-    paths = m.write_obj_per_group(d, "pose")
-    cols = drone_colors(spec)
-    parts = [Part(name=f"{spec.key}_{g}", obj=p, mat_key=DRONE_GROUP_MAT[g][0], color=cols[g])
-             for g, p in paths.items()]
-    scene = build_scene(parts, fc=FC)
-    V = np.asarray(m.v, float)
-    c = 0.5 * (V.max(0) + V.min(0))
-    r = float(np.linalg.norm(V.max(0) - V.min(0))) * 1.35        # fov 35° 에 꽉 차게
-    pos = {"iso": (c[0] + r * 0.72, c[1] - r * 0.60, c[2] + r * 0.42),
-           "top": (c[0] + 0.01 * r, c[1], c[2] + r)}[cam_key]
-    camera = rt.Camera(position=mi.Point3f(*[float(v) for v in pos]),
-                       look_at=mi.Point3f(*[float(v) for v in c]))
-    fn = os.path.join(RTDIR, f"{tag}.png")
-    os.makedirs(RTDIR, exist_ok=True)
-    scene.render_to_file(camera=camera, filename=fn, num_samples=spp, resolution=res, fov=fov)
-    return fn
-
-
-def fig_rt_articulation(outdir=FIG, target="mavic4pro", spp=512):
-    """Sionna 렌더판 분절 검증 — mpl 도해(report3_articulation.png)와 같은 실험, 렌더러만 Sionna."""
-    spec = DRONES[target]; n = spec.num_rotors
-    dirs = [(1 if k % 2 == 0 else -1) for k in range(n)]
-    tmp = tempfile.mkdtemp(prefix="rt3_artic_")
-    print("④ Sionna 렌더 — 분절 검증")
-    row1 = [("level", (0, 0, 0)), ("roll 30°", (30, 0, 0)), ("pitch 30°", (0, 30, 0)), ("yaw 45°", (0, 0, 45))]
-    imgs1 = [_render_pose(spec, tmp, f"rt3_body_{lab.split()[0]}", body_rpy=rpy, spp=spp) for lab, rpy in row1]
-    imgs2 = [_render_pose(spec, tmp, f"rt3_spin_{ph:03d}", phases=[d * ph for d in dirs],
-                          cam_key="top", spp=spp) for ph in (0, 45, 90, 135)]
-
-    fig, axes = plt.subplots(2, 4, figsize=(15, 8.0), constrained_layout=True)
-    fig.suptitle(f"Articulation, rendered by Sionna RT - {_NAME[target]}", fontsize=16, fontweight="bold")
-    for ax, (lab, _), p in zip(axes[0], row1, imgs1):
-        ax.imshow(mpimg.imread(p)); ax.set_axis_off(); ax.set_title(f"Body {lab}", fontsize=11)
-    for ax, ph, p in zip(axes[1], (0, 45, 90, 135), imgs2):
-        ax.imshow(mpimg.imread(p)); ax.set_axis_off()
-        ax.set_title(f"Propeller spin {ph}° (top view)", fontsize=11)
-    fig.supxlabel(
-        "Every frame is a Sionna RT render of the mesh that the SBR micro-Doppler actually integrates "
-        "(pose_articulated -> per-group OBJ -> Sionna scene).\n"
-        "Top: body tilt only, propellers frozen. Bottom: body level, propellers only - and neighbouring rotors "
-        "counter-rotate, so the diagonal pair stays in phase.",
-        fontsize=8.5, color="0.45")
-    fn = os.path.join(outdir, "report3_rt_articulation.png")
-    fig.savefig(fn, dpi=125); plt.close(fig)
-    print("[fig] ", os.path.relpath(fn, ROOT))
-    return fn
-
-
-def rt_spin_frames(target="mavic4pro", frames=36, spp=256, res=(640, 480)):
-    """프로펠러 위상 φ 를 한 플래시 주기(=180°)에 걸쳐 도는 Sionna 렌더 프레임."""
-    spec = DRONES[target]
-    dirs = [r["dir"] for r in rotor_layout(spec)]
-    tmp = tempfile.mkdtemp(prefix="rt3_spin_")
-    out = []
-    period = 360.0 / spec.prop_blades
-    for i in range(frames):
-        ph = period * i / frames
-        out.append(_render_pose(spec, tmp, f"rt3_frame_{i:03d}", phases=[d * ph for d in dirs],
-                                cam_key="iso", spp=spp, res=res))
-        if i % 12 == 0:
-            print(f"  frame {i:2d}/{frames}")
-    return out
-
-
-def gif_rt_spin(outdir=FIG, frames=None, fps=14):
-    """Sionna 렌더 프로펠러 스핀 GIF."""
-    from PIL import Image
-    frames = frames or rt_spin_frames()
-    imgs = [Image.open(p).convert("P", palette=Image.ADAPTIVE) for p in frames]
-    fn = os.path.join(outdir, "report3_rt_spin.gif")
-    imgs[0].save(fn, save_all=True, append_images=imgs[1:], duration=int(1000 / fps), loop=0, optimize=True)
-    print("[gif] ", os.path.relpath(fn, ROOT))
-    return fn
-
-
-# --------------------------------------------------------------------------- #
-#  (5) 애니메이션 — Sionna 렌더(왼쪽) + SBR 스펙트로그램 시간커서(오른쪽)
-# --------------------------------------------------------------------------- #
-def gif_anim_microdoppler(outdir=FIG, target="mavic4pro", tab=None, info=None,
-                          frames=None, n_flash=3, fps=12):
-    """왼쪽 = Sionna 가 렌더한 그 자세, 오른쪽 = 그 자세가 만든 SBR 스펙트로그램 위의 시간커서.
-    시간창 = 플래시 3주기. 프레임의 φ 와 스펙트로그램의 시간축은 **같은 φ(t)=360·rpm/60·t** 에서 온다."""
-    spec = DRONES[target]
-    if tab is None:
-        tab, info = sbr_phase_table(spec)
-    frames = frames or rt_spin_frames(target, frames=36)
-    n_fr = len(frames)
-    T = n_flash / info["flash_hz"]                       # 표시 구간 [s]
-    n_t = int(round(T * PRF))
-    t, E = series_from_table(tab, info, n_t=n_t)
-    f, tt, S = spectrogram(E, PRF, nperseg=64, noverlap=60, nfft=1024)
-
-    # 프레임 i 의 시각: φ 는 프레임당 (period/n_fr) 씩 증가 → 한 프레임 = period/(n_fr·360·rpm/60) 초
-    dt_frame = (info["period_deg"] / n_fr) / (360.0 * info["rpm"] / 60.0)
-    n_show = int(np.ceil(T / dt_frame))                  # 3플래시 = 프레임 3바퀴
-
-    fig, (axL, axR) = plt.subplots(1, 2, figsize=(12.4, 4.9), constrained_layout=True,
-                                   gridspec_kw=dict(width_ratios=[0.85, 1.15]))
-    fig.suptitle(f"{_NAME[target]} - Sionna render (left) and the SBR micro-Doppler it produces (right)",
-                 fontsize=13, fontweight="bold")
-    im0 = axL.imshow(mpimg.imread(frames[0])); axL.set_axis_off()
-    im = axR.pcolormesh(tt * 1e3, f, S, cmap="turbo", vmin=-45, vmax=0, shading="gouraud")
-    for sgn in (+1, -1):
-        axR.axhline(sgn * info["f_tip"], color="k", ls="--", lw=1.4)
-    axR.set_ylim(-2.2 * info["f_tip"], 2.2 * info["f_tip"])
-    axR.set_xlim(tt[0] * 1e3, tt[-1] * 1e3)          # 커서(axvline)가 축을 넓히지 않도록 고정
-    axR.set_xlabel("Time [ms]"); axR.set_ylabel("Doppler frequency [Hz]")
-    fig.colorbar(im, ax=axR, fraction=0.046, label="Normalized power [dB]")
-    cur = axR.axvline(tt[0] * 1e3, color="w", lw=2.2)
-    cur.set_path_effects([pe.Stroke(linewidth=4.0, foreground="k"), pe.Normal()])
-    txt = axL.set_title("", fontsize=10)
-
-    def update(i):
-        im0.set_data(mpimg.imread(frames[i % n_fr]))
-        tc = float(np.clip((i * dt_frame) * 1e3, tt[0] * 1e3, tt[-1] * 1e3))   # STFT 축 안으로
-        cur.set_xdata([tc, tc])
-        phi = (360.0 * info["rpm"] / 60.0) * (i * dt_frame)
-        txt.set_text(f"rotor phase $\\varphi$ = {phi % 360:5.0f}°   t = {tc:5.2f} ms")
-        return ()
-
-    anim = FuncAnimation(fig, update, frames=n_show, blit=False)
-    os.makedirs(outdir, exist_ok=True)
-    fn = os.path.join(outdir, "report3_anim_microdoppler.gif")
-    anim.save(fn, writer=PillowWriter(fps=fps), dpi=92)
+def _save(fig, name, dpi=125):
+    os.makedirs(FIG, exist_ok=True)
+    fn = os.path.join(FIG, f"{name}.png")
+    fig.savefig(fn, dpi=dpi, bbox_inches="tight", facecolor="white")
     plt.close(fig)
-    print("[gif] ", os.path.relpath(fn, ROOT))
+    print(f"  [fig] {os.path.relpath(fn, ROOT)}")
     return fn
 
 
-# --------------------------------------------------------------------------- #
-def build_all(outdir=FIG):
-    os.makedirs(outdir, exist_ok=True)
-    t0 = time.time()
-    print("① SBR 위상 테이블 (5종 × n_phase=%d, λ/%d)" % (N_PHASE, SBR_DIV))
-    tables = {k: sbr_phase_table(DRONES[k]) for k in DRONES}
+def _img(ax, name, title=None, sub=None, box=None):
+    """Sionna 렌더 PNG 를 판넬에 얹는다."""
+    p = os.path.join(RDIR, f"{name}.png")
+    if os.path.exists(p):
+        ax.imshow(mpimg.imread(p))
+    else:
+        ax.text(.5, .5, f"(missing: {name})", ha="center", va="center",
+                color=CRIT, fontsize=9, transform=ax.transAxes)
+    ax.set_xticks([]); ax.set_yticks([])
+    for s in ax.spines.values():
+        s.set_color(GRID)
+    if title:
+        ax.set_title(title, fontsize=12, fontweight="bold", color=INK, pad=5)
+    if sub:
+        ax.set_xlabel(sub, fontsize=9.5, color=INK2, labelpad=5)
+    if box:
+        ax.text(.015, .975, box, transform=ax.transAxes, va="top", ha="left",
+                fontsize=9.5, color=INK, fontweight="bold",
+                bbox=dict(boxstyle="round,pad=0.4", fc="white", ec=GRID, alpha=.92))
+    return ax
 
-    print("\n② 헤드라인 — PO vs SBR")
-    tab, info = tables["mavic4pro"]
-    _, head = fig_po_vs_sbr(outdir, tab=tab, info=info)
-    print(f"   PO  |DC|/std(AC) = {head['po']['ratio']:.1f} (+{head['po']['ratio_db']:.1f} dB)")
-    print(f"   SBR |DC|/std(AC) = {head['sbr']['ratio']:.1f} (+{head['sbr']['ratio_db']:.1f} dB)")
-    print(f"   ⇒ 가림이 주는 이득 {head['gain_db']:.1f} dB")
 
-    print("\n③ 5종 SBR 스펙트로그램 / 선 스펙트럼")
-    _, rows = fig_drones(outdir, tables={k: v for k, v in tables.items()})
-    _, spec_info = fig_spectrum(outdir, tab=tab, info=info)
+def _axstyle(ax):
+    ax.grid(True, color=GRID, lw=.8, zorder=0)
+    ax.set_axisbelow(True)
+    for s in ("top", "right"):
+        ax.spines[s].set_visible(False)
+    for s in ("left", "bottom"):
+        ax.spines[s].set_color(GRID)
+    ax.tick_params(colors=INK2, labelsize=9.5)
 
-    fig_rt_articulation(outdir)
-    print("\n⑤ Sionna 렌더 프레임 → GIF 2종")
-    frames = rt_spin_frames()
-    gif_rt_spin(outdir, frames=frames)
-    gif_anim_microdoppler(outdir, tab=tab, info=info, frames=frames)
 
-    js = dict(headline=head, drones=rows, spectrum=spec_info,
-              cfg=dict(fc=FC, az=AZ, el=EL, prf=PRF, n_t=N_T, n_phase=N_PHASE, sbr_div=SBR_DIV))
-    p = os.path.join(OUT, "report3_microdoppler.json")
-    with open(p, "w") as fh:
-        json.dump(js, fh, indent=1, ensure_ascii=False)
-    print(f"\n[json] {os.path.relpath(p, ROOT)}")
-    print(f"✅ report3 SBR/Sionna 그림 완료 ({time.time()-t0:.0f}s)")
-    return js
+# =========================================================================== #
+#  F1 — 광선추적이란 무엇인가: max_depth = 0/1/2/3  (이 리포트의 첫 그림)
+# =========================================================================== #
+def fig1_bounces(J):
+    sw = {s["max_depth"]: s for s in J["S1_depth"]["sweeps"]}
+    fig, axs = plt.subplots(2, 2, figsize=(17.5, 12.4), constrained_layout=True)
+    fig.suptitle("Ray tracing, one bounce at a time -- and the floor appears at depth 1",
+                 fontsize=20, fontweight="bold", color=INK)
+    notes = {
+        0: "Line of sight only.\n1 path.",
+        1: "+ ceiling, + left wall, + FLOOR.\n4 paths.",
+        2: "+ double bounces (absorber valleys).\n16 paths -- the picture starts to saturate.",
+        3: "+ triple bounces.\n40 paths -- read this one from the ledger, not the render.",
+    }
+    for ax, md in zip(axs.ravel(), (0, 1, 2, 3)):
+        s = sw[md]
+        _img(ax, f"r3_paths_d{md}_wide",
+             title=f"max_depth = {md}   ->   {s['n_paths']} path" + ("s" if s["n_paths"] > 1 else ""),
+             box=notes[md])
+    for ax in axs.ravel():
+        ax.set_xlabel("")
+    _cap(fig, "Rendered by Sionna itself (Scene.render_to_file with paths=Paths) -- these are the rays the solver actually traced, not our drawing.\n"
+               "TX = red, RX = green. The ceiling is clipped at z = 10.8 m so light can enter the closed room: a rendering trick only, it does not touch the propagation (the paths were solved on the intact scene).\n"
+               "HONEST LIMIT OF THIS PICTURE: Sionna draws each path as an emissive cylinder of radius min(0.20, 0.005*scene) = 0.20 m (renderer.py:398) and exposes no way to thin it. In a 30 m room, 16 and 40 such\n"
+               "tubes simply fill the frame. The path renderer is legible up to about ten paths; past that, read the ledger in the next figure. At depth 1 the ray that dives to the floor and back is the floor bounce -- section 2.")
+    return _save(fig, "report3_f1_bounces")
+
+
+# =========================================================================== #
+#  F2 — 경로 원장(ledger): 무엇을 언제 얼마나, 그리고 무엇을 맞고
+# =========================================================================== #
+def fig2_ledger(J):
+    sw = {s["max_depth"]: s for s in J["S1_depth"]["sweeps"]}
+    fig, axs = plt.subplots(1, 2, figsize=(17.5, 6.8), constrained_layout=True,
+                            gridspec_kw=dict(width_ratios=[1.05, 1]))
+    fig.suptitle("Every path Sionna found: when it arrives, how strong, and what it hit",
+                 fontsize=19, fontweight="bold", color=INK)
+
+    # (a) depth = 1 — 4개 경로를 이름표와 함께
+    ax = axs[0]; _axstyle(ax)
+    P = sw[1]["paths"]
+    for p in P:
+        k = _classify(p["objects"])
+        c = OBJ_COLOR[k]
+        ax.vlines(p["delay_ns"], -30, p["rel_db"], color=c, lw=2.4, zorder=3)
+        ax.plot(p["delay_ns"], p["rel_db"], "o", ms=11, color=c, mec="white", mew=2, zorder=4)
+        lbl = "LOS (direct)" if k == "LOS" else p["objects"][0]
+        ax.annotate(f"{lbl}\n{p['rel_db']:+.2f} dB @ {p['delay_ns']:.2f} ns",
+                    (p["delay_ns"], p["rel_db"]), textcoords="offset points",
+                    xytext=(0, 14), ha="center", fontsize=10, color=INK,
+                    fontweight="bold" if k == "floor" else "normal")
+    ax.axhline(0, color=MUTED, lw=1, ls=":")
+    ax.set_xlim(-2.5, 23); ax.set_ylim(-26, 9)
+    ax.set_xlabel("excess delay vs LOS  [ns]", fontsize=11.5, color=INK2)
+    ax.set_ylabel("amplitude vs LOS  [dB]", fontsize=11.5, color=INK2)
+    ax.set_title("max_depth = 1: four paths", fontsize=13, fontweight="bold", color=INK)
+    ax.text(.985, .03, "floor bounce is the one we hand-check", transform=ax.transAxes,
+            ha="right", fontsize=10, color=BLUE, fontweight="bold")
+
+    # (b) depth = 3 — 40개 경로, 반사횟수로 색
+    ax = axs[1]; _axstyle(ax)
+    P3 = sw[3]["paths"]
+    for p in P3:
+        k = _classify(p["objects"])
+        ax.vlines(p["delay_ns"], -60, p["rel_db"], color=OBJ_COLOR[k], lw=1.7, alpha=.85, zorder=3)
+        ax.plot(p["delay_ns"], p["rel_db"], "o", ms=5.5, color=OBJ_COLOR[k],
+                mec="white", mew=.8, zorder=4)
+    for k, lab in (("LOS", "line of sight"), ("floor", "floor (concrete)"),
+                   ("ceiling", "ceiling absorber"), ("wall", "wall absorber / shield")):
+        ax.plot([], [], "o", color=OBJ_COLOR[k], ms=8, label=lab)
+    ax.legend(frameon=False, fontsize=10.5, labelcolor=INK2, loc="upper right")
+    ax.axhline(0, color=MUTED, lw=1, ls=":")
+    ax.set_ylim(-58, 9)
+    ax.set_xlabel("excess delay vs LOS  [ns]", fontsize=11.5, color=INK2)
+    ax.set_ylabel("amplitude vs LOS  [dB]", fontsize=11.5, color=INK2)
+    ax.set_title(f"max_depth = 3: {len(P3)} paths", fontsize=13, fontweight="bold", color=INK)
+    n_t = sw[3]["n_target_paths"]
+    ax.text(.5, .06, f"paths that hit the DRONE: {n_t}", transform=ax.transAxes,
+            ha="center", fontsize=12, fontweight="bold", color=CRIT,
+            bbox=dict(boxstyle="round,pad=0.45", fc="#fdecec", ec=CRIT, lw=1.2))
+
+    _cap(fig, "Source: outputs/report3_rt.json (benchmark/rt_experiments.py). Path identity comes from paths.objects mapped through SceneObject.object_id.\n"
+               "CAUTION: paths.objects holds object_ids (they start at 1) -- mapping them by the enumeration order of scene.objects shifts every label by one and renames the ceiling 'front wall'.\n"
+               "The drone is IN the scene, is 0.35 m across, and the specular solver returns zero paths through it. That is section 3.")
+    return _save(fig, "report3_f2_ledger")
+
+
+# =========================================================================== #
+#  F3 — Sionna 렌더 갤러리
+# =========================================================================== #
+def fig3_gallery(J):
+    fig, axs = plt.subplots(2, 3, figsize=(18.5, 9.6), constrained_layout=True)
+    fig.suptitle("The chamber as Sionna renders it", fontsize=20, fontweight="bold", color=INK)
+    shots = [
+        ("r3_scene_outside", "Outside", "steel exoskeleton, shielded box"),
+        ("r3_scene_wide", "Inside (TX/RX wall facing us)", "TX red (4, 2.5, 8), RX green (4, 17.5, 6.5)"),
+        ("r3_scene_top", "Top-down (clip_at = 9 m)", "pyramid absorber on 4 walls, tiled floor"),
+        ("r3_scene_grazing", "Grazing the floor", "the floor is concrete -- the only reflective face"),
+        ("r3_scene_side", "Cutaway from outside", "front wall removed (CUTAWAY_OMIT)"),
+        ("r3_scene_target", "Over the target", "Mavic 4 Pro at (21, 10, 5.5), 0.35 m across"),
+    ]
+    for ax, (n, t, s) in zip(axs.ravel(), shots):
+        _img(ax, n, title=t, sub=s)
+    _cap(fig, "All six frames: Sionna RT's own renderer (Mitsuba 3 path tracer on GPU), num_samples = 640, 1760 x 1200. No matplotlib drawing here.\n"
+               "This is a SEMI-ANECHOIC chamber: absorber on the four walls and the ceiling, but the floor is reflective concrete (ITU 'concrete'). That asymmetry is the whole story of this report.")
+    return _save(fig, "report3_f3_gallery")
+
+
+# =========================================================================== #
+#  F4 — 바닥 반사: 손계산 vs RT
+# =========================================================================== #
+def fig4_floor(J):
+    F = J["S2_floor"]
+    p, m = F["pred"], F["rt_floor"]
+    fig = plt.figure(figsize=(18, 7.4), constrained_layout=True)
+    fig.suptitle("The floor bounce: image source + Fresnel, checked against Sionna",
+                 fontsize=20, fontweight="bold", color=INK)
+    gs = fig.add_gridspec(1, 3, width_ratios=[1.28, 1, 1])
+
+    # (a) 거울상 기하
+    ax = fig.add_subplot(gs[0, 0])
+    TX, RX = (2.5, 8.0), (17.5, 6.5)                    # (y, z) 평면 — 둘 다 x=4
+    RXI = (17.5, -6.5)
+    hit = (F["pred"]["hit_point"][1], 0.0)
+    ax.axhspan(-9, 0, color="#eceae4", zorder=0)
+    ax.axhline(0, color=INK, lw=2.5, zorder=2)
+    ax.plot([TX[0], RX[0]], [TX[1], RX[1]], color=MUTED, lw=2.2, ls="--", zorder=3)
+    ax.plot([TX[0], hit[0], RX[0]], [TX[1], hit[1], RX[1]], color=BLUE, lw=3, zorder=4)
+    ax.plot([TX[0], RXI[0]], [TX[1], RXI[1]], color=BLUE, lw=1.3, ls=":", alpha=.75, zorder=3)
+    ax.plot([RX[0], RXI[0]], [RX[1], RXI[1]], color=MUTED, lw=1, ls=":", zorder=3)
+    ax.plot(*TX, "o", ms=13, color=RED, mec="white", mew=2, zorder=6)
+    ax.plot(*RX, "o", ms=13, color=GREEN, mec="white", mew=2, zorder=6)
+    ax.plot(*RXI, "o", ms=11, color=GREEN, mec="white", mew=2, alpha=.45, zorder=6)
+    ax.plot(*hit, "o", ms=9, color=BLUE, mec="white", mew=1.6, zorder=6)
+    ax.annotate("TX", TX, xytext=(-4, 12), textcoords="offset points", fontsize=12,
+                fontweight="bold", color=INK, ha="center")
+    ax.annotate("RX", RX, xytext=(10, 10), textcoords="offset points", fontsize=12,
+                fontweight="bold", color=INK)
+    ax.annotate("RX' (image)", RXI, xytext=(8, -6), textcoords="offset points",
+                fontsize=11, color=INK2)
+    ax.annotate("direct  15.07 m", (10, 7.9), fontsize=10.5, color=INK2, ha="center")
+    ax.annotate(f"via floor  {p['L_floor_m']:.2f} m", (15.4, 3.4), fontsize=10.5,
+                color=BLUE, ha="left", fontweight="bold")
+    ax.annotate(f"incidence {p['theta_i_deg']:.1f} deg from normal\n"
+                f"(NOT grazing: {p['grazing_deg']:.1f} deg above floor)",
+                hit, xytext=(-42, -34), textcoords="offset points", fontsize=10,
+                color=INK, ha="center",
+                bbox=dict(boxstyle="round,pad=0.35", fc="white", ec=GRID))
+    ax.set_xlim(-1, 21); ax.set_ylim(-9, 11.5)
+    ax.set_aspect("equal")
+    ax.set_xlabel("y  [m]   (TX, RX and the bounce all lie in the plane x = 4 m)",
+                  fontsize=11, color=INK2)
+    ax.set_ylabel("z  [m]", fontsize=11, color=INK2)
+    ax.set_title("Hand calculation: mirror RX in the floor", fontsize=13,
+                 fontweight="bold", color=INK)
+    for s in ("top", "right"):
+        ax.spines[s].set_visible(False)
+    ax.tick_params(colors=INK2, labelsize=9.5)
+
+    # (b) 지연 비교
+    ax = fig.add_subplot(gs[0, 1]); _axstyle(ax)
+    vals = [p["delay_ns"], m["delay_ns"]]
+    bars = ax.bar(["image source\n+ Fresnel", "Sionna RT\n(independent)"], vals,
+                  color=[VIOLET, BLUE], width=.55, zorder=3)
+    for b, v in zip(bars, vals):
+        ax.text(b.get_x() + b.get_width() / 2, v + .35, f"{v:.2f} ns",
+                ha="center", fontsize=13, fontweight="bold", color=INK)
+    ax.set_ylim(0, 24)
+    ax.set_ylabel("excess delay  [ns]", fontsize=11.5, color=INK2)
+    ax.set_title(f"Delay agrees to {abs(F['agree_delay_ns']):.2f} ns",
+                 fontsize=13, fontweight="bold", color=INK)
+
+    # (c) 진폭 비교
+    ax = fig.add_subplot(gs[0, 2]); _axstyle(ax)
+    vals = [p["rel_db"], m["rel_db"]]
+    bars = ax.bar(["image source\n+ Fresnel", "Sionna RT\n(independent)"], vals,
+                  color=[VIOLET, BLUE], width=.55, zorder=3)
+    for b, v in zip(bars, vals):
+        ax.text(b.get_x() + b.get_width() / 2, v - 1.1, f"{v:+.2f} dB",
+                ha="center", fontsize=13, fontweight="bold", color=INK)
+    ax.set_ylim(-19, 0)
+    ax.set_ylabel("amplitude vs LOS  [dB]", fontsize=11.5, color=INK2)
+    ax.set_title(f"Amplitude agrees to {abs(F['agree_db']):.2f} dB",
+                 fontsize=13, fontweight="bold", color=INK)
+    ax.text(.5, .08, "THIS is why we trust RT\nfor the environment",
+            transform=ax.transAxes, ha="center", fontsize=12, fontweight="bold",
+            color=GOOD, bbox=dict(boxstyle="round,pad=0.45", fc="#eaf7ea", ec=GOOD, lw=1.2))
+
+    tw = F["twins"][0] if F["twins"] else None
+    twtxt = ("" if tw is None else
+             f"The second arrival at the same delay ({tw['delay_ns']:.2f} ns, {tw['rel_db']:+.2f} dB) is NOT the floor: paths.objects identifies it as a DOUBLE bounce inside the front-wall\n"
+             f"absorber, both vertices at y = 0.0 m -- a ray caught in the pyramid valley. Previously logged as 'unidentified' in benchmark/verify_floor_ghost.py; it is identified now.")
+    _cap(fig, "Hand calculation is independent of Sionna: mirror RX in z = 0, Fresnel TM (V-pol) on ITU concrete (eps_r = 5.24, sigma = 0.123 S/m at 3.5 GHz), spread loss 20log10(L/Lf).\n"
+              + twtxt)
+    return _save(fig, "report3_f4_floor")
+
+
+# =========================================================================== #
+#  F5 — 라디오맵
+# =========================================================================== #
+def fig5_radiomap(J):
+    fig, axs = plt.subplots(1, 2, figsize=(18, 6.6), constrained_layout=True)
+    fig.suptitle("RadioMapSolver: where the energy actually goes",
+                 fontsize=20, fontweight="bold", color=INK)
+    _img(axs[0], "r3_radiomap_floor_top", title="Floor plane (z = 0.05 m)",
+         sub="the reflective face -- brightest sheet in the room")
+    _img(axs[1], "r3_radiomap_droneplane_top", title="Drone plane (z = 5.5 m)",
+         sub="the drone sits here and casts a shadow away from TX")
+    _cap(fig, "Sionna RadioMapSolver, 8e6 samples/TX, max_depth = 3, cell 0.25 m; rendered by Sionna with radio_map= and clip_at = 9 m. Colour = path gain (viridis, Sionna's own scale).\n"
+               "TX is the red marker (bottom-left), RX the green one. Read the geometry, not absolute levels: the absorber here is a MODEL (see the caveats), not a measured -25 dB product.")
+    return _save(fig, "report3_f5_radiomap")
+
+
+# =========================================================================== #
+#  F6 — RT 는 표적을 못 본다 (A~E)
+# =========================================================================== #
+def fig6_no_sigma(J):
+    A, B, C, D, E = J["A_rays"], J["B_scatter"], J["C_metal"], J["D_plate"], J["E_sphere"]
+    fig = plt.figure(figsize=(19.5, 11.2), constrained_layout=True)
+    fig.suptitle("Shooting 400 million rays at the drone does not produce its RCS",
+                 fontsize=20.5, fontweight="bold", color=INK)
+    gs = fig.add_gridspec(2, 3)
+    truth = C["ratio_db_truth"]
+
+    # [A] 광선예산
+    ax = fig.add_subplot(gs[0, 0]); _axstyle(ax)
+    r = [x for x in A["rows"] if x["n_paths"]]
+    x = [v["spp"] / 1e6 for v in r]
+    ax.errorbar(x, [v["coh_db"] for v in r], yerr=[v["coh_sd"] for v in r],
+                marker="o", ms=9, lw=2.4, color=BLUE, capsize=4, zorder=4,
+                mec="white", mew=1.5)
+    ax.errorbar(x, [v["incoh_db"] for v in r], yerr=[v["incoh_sd"] for v in r],
+                marker="s", ms=8, lw=2.2, color=AQUA, capsize=4, zorder=4,
+                mec="white", mew=1.5)
+    ax.axhline(truth, color=CRIT, lw=2.2, ls="--", zorder=3)
+    ax.text(x[0], truth + 1.2, f"what the radar equation needs\n(SBR sigma) {truth:+.1f} dB",
+            fontsize=9.5, color=CRIT, fontweight="bold")
+    ax.annotate("coherent sum", (x[-1], r[-1]["coh_db"]), xytext=(-8, 8),
+                textcoords="offset points", ha="right", fontsize=10.5,
+                color=BLUE, fontweight="bold")
+    ax.annotate("incoherent sum", (x[-1], r[-1]["incoh_db"]), xytext=(-8, -18),
+                textcoords="offset points", ha="right", fontsize=10.5,
+                color=AQUA, fontweight="bold")
+    #  ⚠ 로그축의 **보조눈금**은 mathtext 로 10^-1 을 찍는다 → U+2212 (한글 폰트에 없는 글자,
+    #    두부글자로 렌더된다). 눈금을 명시하고 보조눈금을 끈다.
+    ax.set_xscale("log")
+    ax.set_xticks(x); ax.set_xticklabels([f"{v:.0f}" for v in x]); ax.minorticks_off()
+    ax.set_xlabel("rays shot  [millions]", fontsize=11.5, color=INK2)
+    ax.set_ylabel("target echo vs LOS  [dB]", fontsize=11.5, color=INK2)
+    d = r[-1]["coh_db"] - r[0]["coh_db"]
+    ax.set_title(f"[A] 25M -> 400M rays: coherent sum climbs {d:+.1f} dB",
+                 fontsize=12.5, fontweight="bold", color=INK)
+
+    # [B] 산란계수
+    ax = fig.add_subplot(gs[0, 1]); _axstyle(ax)
+    rb = [x for x in B["rows"] if x["n_paths"]]
+    xb = [v["mult"] for v in rb]
+    ax.errorbar(xb, [v["coh_db"] for v in rb], yerr=[v["coh_sd"] for v in rb],
+                marker="o", ms=10, lw=2.6, color=VIOLET, capsize=4,
+                mec="white", mew=1.5, zorder=4)
+    ax.axhline(truth, color=CRIT, lw=2.2, ls="--", zorder=3)
+    for v in rb:
+        ax.annotate(f"{v['coh_db']:+.1f}", (v["mult"], v["coh_db"]),
+                    xytext=(0, 11), textcoords="offset points", ha="center",
+                    fontsize=10, color=INK, fontweight="bold")
+    ax.set_xscale("log"); ax.set_xticks(xb); ax.set_xticklabels([f"{v}x" for v in xb])
+    ax.minorticks_off()                                   # ⚠ 보조눈금의 10^-1 (U+2212) 방지
+    ax.set_xlabel("scattering coefficient S  (multiplier on the material table)",
+                  fontsize=11.5, color=INK2)
+    ax.set_ylabel("target echo vs LOS  [dB]", fontsize=11.5, color=INK2)
+    db = rb[-1]["coh_db"] - rb[0]["coh_db"]
+    ax.set_title(f"[B] S x4 moves the echo {db:+.1f} dB -- a knob, not the drone",
+                 fontsize=12.5, fontweight="bold", color=INK)
+
+    # [C] 금속의 S = 0
+    ax = fig.add_subplot(gs[0, 2]); _axstyle(ax)
+    sg = C["sigma"]
+    names = ["all parts", "metal only\n(S = 0)", "dielectric only\n(S > 0)"]
+    vals = [sg["full_dbsm"], sg["metal_only_dbsm"], sg["dielectric_only_dbsm"]]
+    cols = [INK2, CRIT, AQUA]
+    bars = ax.bar(names, vals, color=cols, width=.6, zorder=3)
+    for b, v in zip(bars, vals):
+        ax.text(b.get_x() + b.get_width() / 2, v + .35, f"{v:+.1f}", ha="center",
+                fontsize=12, fontweight="bold", color=INK)
+    ax.set_ylim(min(vals) - 4, max(vals) + 3.4)
+    ax.set_ylabel("SBR sigma, azimuth mean  [dBsm]", fontsize=11.5, color=INK2)
+    ax.set_title(f"[C] {C['metal_share_pct']:.0f}% of sigma sits on parts RT cannot scatter from",
+                 fontsize=12.5, fontweight="bold", color=INK)
+    ax.text(.5, .06, f"ITU 'metal' scattering_coefficient = {C['itu_metal_S']:.1f}\n"
+                     "motors, battery, PCB, camera housing",
+            transform=ax.transAxes, ha="center", fontsize=10.5, color=CRIT,
+            fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.4", fc="#fdecec", ec=CRIT))
+
+    # [D] 평판 — 결정적 실험
+    ax = fig.add_subplot(gs[1, 0:2]); _axstyle(ax)
+    rd = [v for v in D["rows"] if v["rt_db"] is not None]
+    xd = [v["side_m"] for v in rd]
+    ax.plot(xd, [v["sigma_dbsm"] for v in rd], marker="o", ms=10, lw=2.8, color=ORANGE,
+            mec="white", mew=1.5, zorder=4)
+    ax.plot(xd, [v["rt_db"] for v in rd], marker="s", ms=10, lw=2.8, color=BLUE,
+            mec="white", mew=1.5, zorder=4)
+    ax.axhline(D["image_db"], color=MUTED, lw=1.6, ls=":", zorder=3)
+    ax.annotate(f"true sigma of the plate  (4*pi*A^2 / lambda^2):  {D['sigma_span_db']:+.0f} dB over this sweep",
+                (xd[-1], rd[-1]["sigma_dbsm"]), xytext=(-10, -6), textcoords="offset points",
+                ha="right", fontsize=11.5, color=ORANGE, fontweight="bold")
+    ax.annotate(f"what Sionna RT reports:  {D['rt_span_db']:.2f} dB  (flat at {D['rt_mean_db']:+.2f} dB, seed spread {D['rt_sd_db']:.2f} dB)",
+                (xd[-1], rd[-1]["rt_db"]), xytext=(-10, 14), textcoords="offset points",
+                ha="right", fontsize=11.5, color=BLUE, fontweight="bold")
+    ax.text(.015, .38, "The blue line is exactly 20*log10( L / (R1+R2) ),\n"
+                       "the image-source value for a mirror.\n"
+                       "The size of the target appears nowhere in it.",
+            transform=ax.transAxes, ha="left", va="top", fontsize=10.5, color=INK2,
+            bbox=dict(boxstyle="round,pad=0.4", fc="white", ec=GRID))
+    ax.set_xscale("log"); ax.set_xticks(xd); ax.set_xticklabels([f"{v}" for v in xd])
+    ax.minorticks_off()                                   # ⚠ 보조눈금의 10^-1 (U+2212) 방지
+    ax.set_xlabel("metal plate side  [m]   (specular-aligned, diffuse OFF -> zero Monte-Carlo noise)",
+                  fontsize=11.5, color=INK2)
+    ax.set_ylabel("[dB]  /  [dBsm]", fontsize=11.5, color=INK2)
+    ax.set_title("[D] The decisive one: grow the plate by 52 dB of RCS, RT does not move at all",
+                 fontsize=13.5, fontweight="bold", color=INK)
+
+    # [E] PEC 구
+    ax = fig.add_subplot(gs[1, 2]); _axstyle(ax)
+    rr = [v for v in E["rows"] if abs(v["radius_m"] - 0.30) < 1e-6]
+    xe = [v["spp"] / 1e6 for v in rr]
+    ax.bar([f"{v:.0f}M" for v in xe], [max(v, .02) for v in
+                                       [x["n_paths"] for x in rr]],
+           color=CRIT, width=.55, zorder=3)
+    ax.axhline(E["control_plate"]["n_paths"], color=GOOD, lw=2.2, ls="--", zorder=4)
+    ax.text(.02, E["control_plate"]["n_paths"] + .06,
+            f"control: flat metal plate, 1M rays -> {E['control_plate']['n_paths']} path "
+            f"({E['control_plate']['rt_db']:+.2f} dB)",
+            transform=ax.get_yaxis_transform(), fontsize=9.5, color=GOOD, fontweight="bold")
+    ax.set_ylim(0, 1.6)
+    ax.set_xlabel("rays shot at a PEC metal sphere (r = 0.30 m)", fontsize=11.5, color=INK2)
+    ax.set_ylabel("target paths found", fontsize=11.5, color=INK2)
+    ax.set_title("[E] Physically correct sphere: zero paths, ever",
+                 fontsize=12.5, fontweight="bold", color=INK)
+    for i in range(len(rr)):                      # 막대 바로 위에 0 을 찍는다
+        ax.text(i, .07, "0", ha="center", fontsize=16, fontweight="bold", color=CRIT)
+    ax.text(.5, .42, "sigma = pi*r^2 is known analytically.\nS = 0 means no diffuse channel, and the\n"
+                     "image method cannot find the specular\npoint on a curved surface.",
+            transform=ax.transAxes, ha="center", va="center", fontsize=9.5, color=INK2,
+            bbox=dict(boxstyle="round,pad=0.4", fc="white", ec=GRID))
+
+    _cap(fig, "All five panels: Sionna RT PathSolver, same chamber materials, drone at (21, 10, 5.5). Reproduce with `python benchmark/rt_experiments.py` -> outputs/report3_rt.json.\n"
+               "Sionna is not wrong -- it is a PROPAGATION tool. The narrow true statement: a path solver with NO scattering-integral stage cannot make sigma emerge. Sigma comes from the integral.\n"
+               "(Ray tracing as such computes RCS perfectly well: SBR = GO rays + PO surface integral is ray tracing, and it is what report2 uses.)")
+    return _save(fig, "report3_f6_no_sigma")
+
+
+# =========================================================================== #
+#  F7 — 하이브리드: 환경 = RT, 표적 = SBR
+# =========================================================================== #
+def fig7_hybrid(J):
+    fig, ax = plt.subplots(figsize=(16.5, 7.6), constrained_layout=True)
+    fig.suptitle("The split this report forces: environment = Sionna RT, target = SBR",
+                 fontsize=20, fontweight="bold", color=INK)
+    ax.set_xlim(0, 16); ax.set_ylim(0, 8.2); ax.axis("off")
+
+    ax.add_patch(Rectangle((.4, .5), 15.2, 6.4, fc="#f7f7f5", ec=GRID, lw=1.5, zorder=0))
+    ax.text(8, 6.55, "semi-anechoic chamber  30 x 20 x 11 m", ha="center",
+            fontsize=11.5, color=MUTED, style="italic")
+    ax.plot([.6, 15.4], [1.15, 1.15], color=INK, lw=3, zorder=2)
+    ax.text(8, .78, "reflective concrete floor  (the only mirror in the room)",
+            ha="center", fontsize=10.5, color=INK2)
+
+    tx, rx, tg = (2.0, 5.6), (13.6, 4.6), (7.9, 3.5)
+    for p, c, lab in ((tx, RED, "TX"), (rx, GREEN, "RX")):
+        ax.add_patch(Circle(p, .26, fc=c, ec="white", lw=2, zorder=6))
+        ax.text(p[0], p[1] + .62, lab, ha="center", fontsize=13, fontweight="bold", color=INK)
+    ax.add_patch(Circle(tg, .3, fc=INK, ec="white", lw=2, zorder=6))
+    ax.text(tg[0], tg[1] + .68, "drone", ha="center", fontsize=12.5,
+            fontweight="bold", color=INK)
+
+    def arrow(a, b, c, lw=2.6, ls="-", rad=0.0):
+        ax.add_patch(FancyArrowPatch(a, b, arrowstyle="-|>", mutation_scale=19,
+                                     color=c, lw=lw, linestyle=ls, zorder=5,
+                                     connectionstyle=f"arc3,rad={rad}",
+                                     shrinkA=9, shrinkB=9))
+
+    arrow(tx, rx, BLUE)                                    # 직접파
+    arrow(tx, (7.4, 1.15), BLUE); arrow((7.4, 1.15), rx, BLUE)      # 바닥 반사
+    ax.text(4.2, 6.05, "direct path, wall/ceiling/floor bounces\n"
+                       "delay, Doppler, amplitude, geometry", fontsize=11,
+            color=BLUE, fontweight="bold", ha="center")
+    ax.text(7.4, 1.45, "floor bounce\n19.31 ns / -14.68 dB\n(verified to 0.00 dB)",
+            fontsize=9.5, color=BLUE, ha="center", fontweight="bold")
+
+    arrow(tx, tg, ORANGE, rad=-.14)
+    arrow(tg, rx, ORANGE, rad=-.14)
+    ax.text(7.9, 2.35, "target scattering: sigma(az, el)\nMitsuba rays + PO surface integral\n(occlusion included)",
+            fontsize=11, color=ORANGE, fontweight="bold", ha="center")
+
+    arrow(tg, (10.6, 1.15), VIOLET, lw=2.2, ls="--")
+    arrow((10.6, 1.15), rx, VIOLET, lw=2.2, ls="--")
+    ax.text(11.6, 2.15, "target-via-floor GHOST\ncarries Doppler -> survives ECA",
+            fontsize=10.5, color=VIOLET, fontweight="bold", ha="center")
+
+    for c, t, y in ((BLUE, "Sionna RT  (PathSolver / RadioMapSolver)  -- GREEN light: we trust it", 7.75),
+                    (ORANGE, "SBR  (src/rcs_sbr.py: Mitsuba rays + PO integral)  -- because Sionna has no RCS solver", 7.35),
+                    (VIOLET, "image source + Fresnel  -- the ghost, derived by hand (section 4)", 6.95)):
+        ax.plot([.6, 1.5], [y, y], color=c, lw=3.2, solid_capstyle="round")
+        ax.text(1.75, y, t, va="center", fontsize=11.5, color=INK)
+
+    _cap(fig, "Neither engine is a fallback for the other. Sionna RT gives geometry, delay and Doppler exactly (section 2 verifies it to 0.00 dB) but carries no target sigma (section 3 proves it five ways).\n"
+               "SBR gives sigma (validated against analytic plate -0.01 dB and metal sphere +0.39 dB) but knows nothing about the room. The passive-radar chain needs both.")
+    return _save(fig, "report3_f7_hybrid")
+
+
+# =========================================================================== #
+#  F8 — 표적 경유 바닥 유령
+# =========================================================================== #
+def fig8_ghost(J):
+    G = J["S4_ghost"]
+    fig, axs = plt.subplots(1, 2, figsize=(17.5, 6.8), constrained_layout=True,
+                            gridspec_kw=dict(width_ratios=[1.05, 1]))
+    fig.suptitle("The ghost the floor makes -- and why bandwidth turns into false alarms",
+                 fontsize=19.5, fontweight="bold", color=INK)
+
+    # (a) 거리-도플러 평면에서 진짜 vs 유령
+    ax = axs[0]; _axstyle(ax)
+    t, g = G["true"], G["ghost"]
+    ax.plot(t["Rb"], t["fd"], "o", ms=17, color=GREEN, mec="white", mew=2, zorder=5)
+    ax.plot(g["Rb"], g["fd"], "X", ms=17, color=VIOLET, mec="white", mew=1.6, zorder=5)
+    ax.annotate(f"TRUE target\nRb = {t['Rb']:.2f} m\nf_d = {t['fd']:+.1f} Hz\n0 dB (reference)",
+                (t["Rb"], t["fd"]), xytext=(-14, -62), textcoords="offset points",
+                fontsize=10.5, color=INK, fontweight="bold", ha="center",
+                bbox=dict(boxstyle="round,pad=0.4", fc="#eaf7ea", ec=GREEN))
+    ax.annotate(f"GHOST (TX -> drone -> floor -> RX)\nRb = {g['Rb']:.2f} m ({G['sep_m']:+.2f} m)\n"
+                f"f_d = {g['fd']:+.1f} Hz ({G['d_fd_hz']:+.1f} Hz)\n{g['amp_db']:+.1f} dB",
+                (g["Rb"], g["fd"]), xytext=(16, 40), textcoords="offset points",
+                fontsize=10.5, color=INK, fontweight="bold", ha="left",
+                bbox=dict(boxstyle="round,pad=0.4", fc="#f1eefb", ec=VIOLET))
+    for w, c in zip(G["waveforms"], (BLUE, AQUA, ORANGE)):
+        ax.axvspan(t["Rb"] - w["d_rb_m"] / 2, t["Rb"] + w["d_rb_m"] / 2,
+                   color=c, alpha=.10, zorder=1)
+    ax.set_xlim(t["Rb"] - 12, g["Rb"] + 8)
+    ax.set_ylim(min(t["fd"], g["fd"]) - 26, max(t["fd"], g["fd"]) + 30)
+    ax.set_xlabel("bistatic range Rb  [m]", fontsize=11.5, color=INK2)
+    ax.set_ylabel("bistatic Doppler f_d  [Hz]", fontsize=11.5, color=INK2)
+    ax.set_title("Both carry Doppler -- ECA deletes neither", fontsize=13,
+                 fontweight="bold", color=INK)
+    ax.text(.5, .04, "shaded bands = one range cell (c/B) per waveform",
+            transform=ax.transAxes, ha="center", fontsize=9.5, color=MUTED)
+
+    # (b) 분리 / 분해능
+    ax = axs[1]; _axstyle(ax)
+    W = G["waveforms"]
+    names = [w["name"] for w in W]
+    ratio = [w["sep_over_drb"] for w in W]
+    cols = [CRIT if r > 1 else GOOD for r in ratio]
+    bars = ax.barh(names, ratio, color=cols, height=.5, zorder=3)
+    ax.axvline(1.0, color=INK, lw=2, ls="--", zorder=4)
+    ax.text(1.05, 2.52, "resolved ->\nseparate (false) target", fontsize=10.5,
+            color=CRIT, fontweight="bold", va="top")
+    for b, w in zip(bars, W):
+        ax.text(w["sep_over_drb"] + .04, b.get_y() + b.get_height() / 2,
+                f"{w['sep_over_drb']:.2f}x   (B = {w['bw_hz']/1e6:.0f} MHz, "
+                f"cell = {w['d_rb_m']:.2f} m)",
+                va="center", fontsize=10.5, color=INK, fontweight="bold")
+    ax.set_xlim(0, 2.05)
+    ax.set_xlabel("ghost separation / range cell   (>1 = resolved as its own target)",
+                  fontsize=11.5, color=INK2)
+    ax.set_title(f"The ghost sits {G['sep_m']:+.2f} m away -- who resolves it?",
+                 fontsize=13, fontweight="bold", color=INK)
+    ax.invert_yaxis()
+
+    _cap(fig, "Derived by image source + Fresnel (benchmark/geometry.py: floor_ghost), NOT by RT -- Sionna's specular solver returns no target path at all (section 3), so it cannot produce this ghost either.\n"
+               "Range cell here is the bistatic dRb = c/B with the FULL channel bandwidth (loaded cell, captured full-waveform reference). In the idle-cell regime, where the reference is only the always-on\n"
+               "signal (5G SSB = 7.2 MHz -> cell 41.6 m), the ghost merges into the target instead. Do not mix the two regimes. Handing this to the detection work as an open problem.")
+    return _save(fig, "report3_f8_ghost")
+
+
+# =========================================================================== #
+def build_all():
+    J = _load()
+    out = [fig1_bounces(J), fig2_ledger(J), fig3_gallery(J), fig4_floor(J),
+           fig5_radiomap(J), fig6_no_sigma(J), fig7_hybrid(J), fig8_ghost(J)]
+    print(f"  ✅ 그림 {len(out)}장")
+    return out
 
 
 if __name__ == "__main__":

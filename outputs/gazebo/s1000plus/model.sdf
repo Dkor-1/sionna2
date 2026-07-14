@@ -1,0 +1,333 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <model name="s1000plus">
+    <!-- 자동 생성: src/gazebo_export.py -->
+    <!-- 메쉬: src/drone_cad.py (trimesh + manifold3d + shapely + scipy) -->
+    <!-- 제원 출처: docs/drone_specs_2026.json (공식 DJI + 적대적 검증) -->
+    <!-- ⚠ 질량 분포/관성텐서는 **메쉬에서 계산한 추정치**다. DJI 는 공개하지 않는다. -->
+    <!--   총질량만 공식 TOW(9500 g)에 맞췄고, 분포는 부위별 밀도가 정했다. -->
+
+    <link name="base_link">
+      <pose>0 0 0 0 0 0</pose>
+      <inertial>
+        <mass>9.385785</mass>
+        <pose>0.000914 -0.000000 -0.001117 0 0 0</pose>
+        <inertia>
+          <ixx>0.41337642</ixx> <ixy>-0.00000000</ixy> <ixz>0.00071413</ixz>
+          <iyy>0.41456010</iyy> <iyz>0.00000000</iyz> <izz>0.77221232</izz>
+        </inertia>
+      </inertial>
+      <collision name="base_collision">
+        <geometry><mesh><uri>model://s1000plus/meshes/base_link_collision.stl</uri></mesh></geometry>
+      </collision>
+      <visual name="base_visual">
+        <geometry><mesh><uri>model://s1000plus/meshes/base_link.stl</uri></mesh></geometry>
+      </visual>
+    </link>
+
+    <link name="rotor_0">
+      <pose>0.482037 0.199666 0.063798 0 0 0.602139</pose>
+      <inertial>
+        <mass>0.014277</mass>
+        <inertia>
+          <ixx>0.0000012436</ixx> <ixy>0</ixy> <ixz>0</ixz>
+          <iyy>0.0000145918</iyy> <iyz>0</iyz> <izz>0.0000151754</izz>
+        </inertia>
+      </inertial>
+      <collision name="rotor_collision">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor_collision.stl</uri></mesh></geometry>
+      </collision>
+      <visual name="rotor_visual">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor.stl</uri></mesh></geometry>
+      </visual>
+    </link>
+    <joint name="rotor_0_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_0</child>
+      <axis><xyz>0 0 1</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+    </joint>
+    <plugin filename="gz-sim-multicopter-motor-model-system" name="gz::sim::systems::MulticopterMotorModel">
+      <jointName>rotor_0_joint</jointName>
+      <linkName>rotor_0</linkName>
+      <turningDirection>ccw</turningDirection>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>586.43</maxRotVelocity>
+      <motorConstant>8.193926e-05</motorConstant>
+      <momentConstant>0.0229</momentConstant>
+      <rotorDragCoefficient>8.064280e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1.0e-06</rollingMomentCoefficient>
+      <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+      <motorNumber>0</motorNumber>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <link name="rotor_1">
+      <pose>0.199666 0.482037 0.063798 0 0 1.387537</pose>
+      <inertial>
+        <mass>0.014277</mass>
+        <inertia>
+          <ixx>0.0000012436</ixx> <ixy>0</ixy> <ixz>0</ixz>
+          <iyy>0.0000145918</iyy> <iyz>0</iyz> <izz>0.0000151754</izz>
+        </inertia>
+      </inertial>
+      <collision name="rotor_collision">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor_collision.stl</uri></mesh></geometry>
+      </collision>
+      <visual name="rotor_visual">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor.stl</uri></mesh></geometry>
+      </visual>
+    </link>
+    <joint name="rotor_1_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_1</child>
+      <axis><xyz>0 0 1</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+    </joint>
+    <plugin filename="gz-sim-multicopter-motor-model-system" name="gz::sim::systems::MulticopterMotorModel">
+      <jointName>rotor_1_joint</jointName>
+      <linkName>rotor_1</linkName>
+      <turningDirection>cw</turningDirection>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>586.43</maxRotVelocity>
+      <motorConstant>8.193926e-05</motorConstant>
+      <momentConstant>0.0229</momentConstant>
+      <rotorDragCoefficient>8.064280e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1.0e-06</rollingMomentCoefficient>
+      <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+      <motorNumber>1</motorNumber>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <link name="rotor_2">
+      <pose>-0.199666 0.482037 0.063798 0 0 2.172935</pose>
+      <inertial>
+        <mass>0.014277</mass>
+        <inertia>
+          <ixx>0.0000012436</ixx> <ixy>0</ixy> <ixz>0</ixz>
+          <iyy>0.0000145918</iyy> <iyz>0</iyz> <izz>0.0000151754</izz>
+        </inertia>
+      </inertial>
+      <collision name="rotor_collision">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor_collision.stl</uri></mesh></geometry>
+      </collision>
+      <visual name="rotor_visual">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor.stl</uri></mesh></geometry>
+      </visual>
+    </link>
+    <joint name="rotor_2_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_2</child>
+      <axis><xyz>0 0 1</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+    </joint>
+    <plugin filename="gz-sim-multicopter-motor-model-system" name="gz::sim::systems::MulticopterMotorModel">
+      <jointName>rotor_2_joint</jointName>
+      <linkName>rotor_2</linkName>
+      <turningDirection>ccw</turningDirection>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>586.43</maxRotVelocity>
+      <motorConstant>8.193926e-05</motorConstant>
+      <momentConstant>0.0229</momentConstant>
+      <rotorDragCoefficient>8.064280e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1.0e-06</rollingMomentCoefficient>
+      <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+      <motorNumber>2</motorNumber>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <link name="rotor_3">
+      <pose>-0.482037 0.199666 0.063798 0 0 2.958333</pose>
+      <inertial>
+        <mass>0.014277</mass>
+        <inertia>
+          <ixx>0.0000012436</ixx> <ixy>0</ixy> <ixz>0</ixz>
+          <iyy>0.0000145918</iyy> <iyz>0</iyz> <izz>0.0000151754</izz>
+        </inertia>
+      </inertial>
+      <collision name="rotor_collision">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor_collision.stl</uri></mesh></geometry>
+      </collision>
+      <visual name="rotor_visual">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor.stl</uri></mesh></geometry>
+      </visual>
+    </link>
+    <joint name="rotor_3_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_3</child>
+      <axis><xyz>0 0 1</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+    </joint>
+    <plugin filename="gz-sim-multicopter-motor-model-system" name="gz::sim::systems::MulticopterMotorModel">
+      <jointName>rotor_3_joint</jointName>
+      <linkName>rotor_3</linkName>
+      <turningDirection>cw</turningDirection>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>586.43</maxRotVelocity>
+      <motorConstant>8.193926e-05</motorConstant>
+      <momentConstant>0.0229</momentConstant>
+      <rotorDragCoefficient>8.064280e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1.0e-06</rollingMomentCoefficient>
+      <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+      <motorNumber>3</motorNumber>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <link name="rotor_4">
+      <pose>-0.482037 -0.199666 0.063798 0 0 3.743731</pose>
+      <inertial>
+        <mass>0.014277</mass>
+        <inertia>
+          <ixx>0.0000012436</ixx> <ixy>0</ixy> <ixz>0</ixz>
+          <iyy>0.0000145918</iyy> <iyz>0</iyz> <izz>0.0000151754</izz>
+        </inertia>
+      </inertial>
+      <collision name="rotor_collision">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor_collision.stl</uri></mesh></geometry>
+      </collision>
+      <visual name="rotor_visual">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor.stl</uri></mesh></geometry>
+      </visual>
+    </link>
+    <joint name="rotor_4_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_4</child>
+      <axis><xyz>0 0 1</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+    </joint>
+    <plugin filename="gz-sim-multicopter-motor-model-system" name="gz::sim::systems::MulticopterMotorModel">
+      <jointName>rotor_4_joint</jointName>
+      <linkName>rotor_4</linkName>
+      <turningDirection>ccw</turningDirection>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>586.43</maxRotVelocity>
+      <motorConstant>8.193926e-05</motorConstant>
+      <momentConstant>0.0229</momentConstant>
+      <rotorDragCoefficient>8.064280e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1.0e-06</rollingMomentCoefficient>
+      <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+      <motorNumber>4</motorNumber>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <link name="rotor_5">
+      <pose>-0.199666 -0.482037 0.063798 0 0 4.529129</pose>
+      <inertial>
+        <mass>0.014277</mass>
+        <inertia>
+          <ixx>0.0000012436</ixx> <ixy>0</ixy> <ixz>0</ixz>
+          <iyy>0.0000145918</iyy> <iyz>0</iyz> <izz>0.0000151754</izz>
+        </inertia>
+      </inertial>
+      <collision name="rotor_collision">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor_collision.stl</uri></mesh></geometry>
+      </collision>
+      <visual name="rotor_visual">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor.stl</uri></mesh></geometry>
+      </visual>
+    </link>
+    <joint name="rotor_5_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_5</child>
+      <axis><xyz>0 0 1</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+    </joint>
+    <plugin filename="gz-sim-multicopter-motor-model-system" name="gz::sim::systems::MulticopterMotorModel">
+      <jointName>rotor_5_joint</jointName>
+      <linkName>rotor_5</linkName>
+      <turningDirection>cw</turningDirection>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>586.43</maxRotVelocity>
+      <motorConstant>8.193926e-05</motorConstant>
+      <momentConstant>0.0229</momentConstant>
+      <rotorDragCoefficient>8.064280e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1.0e-06</rollingMomentCoefficient>
+      <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+      <motorNumber>5</motorNumber>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <link name="rotor_6">
+      <pose>0.199666 -0.482037 0.063798 0 0 5.314528</pose>
+      <inertial>
+        <mass>0.014277</mass>
+        <inertia>
+          <ixx>0.0000012436</ixx> <ixy>0</ixy> <ixz>0</ixz>
+          <iyy>0.0000145918</iyy> <iyz>0</iyz> <izz>0.0000151754</izz>
+        </inertia>
+      </inertial>
+      <collision name="rotor_collision">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor_collision.stl</uri></mesh></geometry>
+      </collision>
+      <visual name="rotor_visual">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor.stl</uri></mesh></geometry>
+      </visual>
+    </link>
+    <joint name="rotor_6_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_6</child>
+      <axis><xyz>0 0 1</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+    </joint>
+    <plugin filename="gz-sim-multicopter-motor-model-system" name="gz::sim::systems::MulticopterMotorModel">
+      <jointName>rotor_6_joint</jointName>
+      <linkName>rotor_6</linkName>
+      <turningDirection>ccw</turningDirection>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>586.43</maxRotVelocity>
+      <motorConstant>8.193926e-05</motorConstant>
+      <momentConstant>0.0229</momentConstant>
+      <rotorDragCoefficient>8.064280e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1.0e-06</rollingMomentCoefficient>
+      <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+      <motorNumber>6</motorNumber>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorType>velocity</motorType>
+    </plugin>
+
+    <link name="rotor_7">
+      <pose>0.482037 -0.199666 0.063798 0 0 6.099926</pose>
+      <inertial>
+        <mass>0.014277</mass>
+        <inertia>
+          <ixx>0.0000012436</ixx> <ixy>0</ixy> <ixz>0</ixz>
+          <iyy>0.0000145918</iyy> <iyz>0</iyz> <izz>0.0000151754</izz>
+        </inertia>
+      </inertial>
+      <collision name="rotor_collision">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor_collision.stl</uri></mesh></geometry>
+      </collision>
+      <visual name="rotor_visual">
+        <geometry><mesh><uri>model://s1000plus/meshes/rotor.stl</uri></mesh></geometry>
+      </visual>
+    </link>
+    <joint name="rotor_7_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rotor_7</child>
+      <axis><xyz>0 0 1</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+    </joint>
+    <plugin filename="gz-sim-multicopter-motor-model-system" name="gz::sim::systems::MulticopterMotorModel">
+      <jointName>rotor_7_joint</jointName>
+      <linkName>rotor_7</linkName>
+      <turningDirection>cw</turningDirection>
+      <timeConstantUp>0.0125</timeConstantUp>
+      <timeConstantDown>0.025</timeConstantDown>
+      <maxRotVelocity>586.43</maxRotVelocity>
+      <motorConstant>8.193926e-05</motorConstant>
+      <momentConstant>0.0229</momentConstant>
+      <rotorDragCoefficient>8.064280e-05</rotorDragCoefficient>
+      <rollingMomentCoefficient>1.0e-06</rollingMomentCoefficient>
+      <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+      <motorNumber>7</motorNumber>
+      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <motorType>velocity</motorType>
+    </plugin>
+
+  </model>
+</sdf>

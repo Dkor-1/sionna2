@@ -1,0 +1,809 @@
+{
+ "figures": {
+  "materials": "outputs/figures/report1_materials.png",
+  "chamber_geometry": "outputs/figures/report1_chamber_geometry.png",
+  "envelope": "outputs/figures/report1_envelope.png",
+  "meshcheck": "outputs/figures/report1_meshcheck.png",
+  "cad_pipeline": "outputs/figures/report1_cad_pipeline.png"
+ },
+ "renders": {
+  "chamber_exterior": "outputs/renders/r1_10_chamber_exterior.png",
+  "chamber_wide": "outputs/renders/r1_11_chamber_wide.png",
+  "chamber_top": "outputs/renders/r1_12_chamber_top.png",
+  "chamber_grazing": "outputs/renders/r1_13_chamber_grazing.png",
+  "chamber_side": "outputs/renders/r1_14_chamber_side.png",
+  "chamber_over_target": "outputs/renders/r1_15_chamber_over_target.png"
+ },
+ "chamber": {
+  "dims": {
+   "W": 30.0,
+   "D": 20.0,
+   "H": 11.0,
+   "pitch": 0.6,
+   "ab_h": 0.4,
+   "tile": 1.0
+  },
+  "n_tris": 19988,
+  "groups": {
+   "floor_light": {
+    "mat": "concrete_light",
+    "n_tris": 600,
+    "desc": "바닥 밝은 타일"
+   },
+   "floor_dark": {
+    "mat": "concrete_dark",
+    "n_tris": 600,
+    "desc": "바닥 어두운 타일"
+   },
+   "absorber_front": {
+    "mat": "absorber",
+    "n_tris": 3600,
+    "desc": "전파흡수체(피라미드 폼)"
+   },
+   "absorber_back": {
+    "mat": "absorber",
+    "n_tris": 3440,
+    "desc": "전파흡수체(피라미드 폼)"
+   },
+   "absorber_left": {
+    "mat": "absorber",
+    "n_tris": 2376,
+    "desc": "전파흡수체(피라미드 폼)"
+   },
+   "absorber_right": {
+    "mat": "absorber",
+    "n_tris": 2376,
+    "desc": "전파흡수체(피라미드 폼)"
+   },
+   "absorber_ceiling": {
+    "mat": "absorber",
+    "n_tris": 6600,
+    "desc": "전파흡수체(피라미드 폼)"
+   },
+   "backing_front": {
+    "mat": "metal",
+    "n_tris": 12,
+    "desc": "금속 차폐 벽체"
+   },
+   "backing_back": {
+    "mat": "metal",
+    "n_tris": 12,
+    "desc": "금속 차폐 벽체"
+   },
+   "backing_left": {
+    "mat": "metal",
+    "n_tris": 12,
+    "desc": "금속 차폐 벽체"
+   },
+   "backing_right": {
+    "mat": "metal",
+    "n_tris": 12,
+    "desc": "금속 차폐 벽체"
+   },
+   "backing_ceiling": {
+    "mat": "metal",
+    "n_tris": 12,
+    "desc": "금속 차폐 천장"
+   },
+   "trim_blue": {
+    "mat": "plastic_blue",
+    "n_tris": 48,
+    "desc": "파란 모서리 트림"
+   },
+   "frame_front": {
+    "mat": "metal",
+    "n_tris": 72,
+    "desc": "강철 외골격 골조"
+   },
+   "frame_steel": {
+    "mat": "metal",
+    "n_tris": 192,
+    "desc": "강철 외골격 골조"
+   },
+   "door": {
+    "mat": "metal",
+    "n_tris": 24,
+    "desc": "출입문"
+   }
+  },
+  "materials": {
+   "metal": {
+    "source": "ITU",
+    "itu": "metal",
+    "eps_r": 1.0,
+    "sigma": 10000000.0,
+    "S": 0.0,
+    "gamma_bulk": 0.9998026802895116,
+    "gamma_po": 0.9998026802895116,
+    "note": "ITU 'metal' — PEC 근사(σ=1e7 S/m). 모터·배터리·차폐벽·골조."
+   },
+   "camera_assembly": {
+    "source": "ITU",
+    "itu": "metal",
+    "eps_r": 1.0,
+    "sigma": 10000000.0,
+    "S": 0.0,
+    "gamma_bulk": 0.9998026802895116,
+    "gamma_po": 0.85,
+    "note": "짐벌 카메라 = **금속 하우징 + 유리 렌즈 + 짐벌 모터**. 전파 반사면은 금속 하우징이 지배 → Sionna 는 ITU metal. PO 는 유리/틈새를 반영한 실효 0.85. ⚠ 2026-07-14 이전에는 Sionna 가 이걸 **plastic**(|Γ|=0.244)으로 보고 있었다 — PO(0.85)와 **10.9 dB** 어긋난 버그. 이 항목이 그 버그를 없앤다."
+   },
+   "pcb": {
+    "source": "ITU",
+    "itu": "metal",
+    "eps_r": 1.0,
+    "sigma": 10000000.0,
+    "S": 0.0,
+    "gamma_bulk": 0.9998026802895116,
+    "gamma_po": 0.8,
+    "note": "ESC/메인보드 = FR-4 유전체 + **구리 그라운드플레인**. 반사면은 구리면이 지배 → ITU metal. PO 는 부분 개구(커넥터·비도체 영역)를 반영한 실효 0.80."
+   },
+   "concrete_light": {
+    "source": "ITU",
+    "itu": "concrete",
+    "eps_r": 5.239999771118164,
+    "sigma": 0.12308694422245026,
+    "S": 0.0,
+    "gamma_bulk": 0.39457563257073863,
+    "gamma_po": 0.39457563257073863,
+    "note": "ITU 'concrete' — 챔버 바닥 타일(밝은). **반사성** → semi-anechoic 의 원인."
+   },
+   "concrete_dark": {
+    "source": "ITU",
+    "itu": "concrete",
+    "eps_r": 5.239999771118164,
+    "sigma": 0.12308694422245026,
+    "S": 0.0,
+    "gamma_bulk": 0.39457563257073863,
+    "gamma_po": 0.39457563257073863,
+    "note": "ITU 'concrete' — 챔버 바닥 타일(어두운). 전파물성은 light 와 동일."
+   },
+   "plastic": {
+    "source": "custom",
+    "itu": "",
+    "eps_r": 2.7,
+    "sigma": 0.02,
+    "S": 0.2,
+    "gamma_bulk": 0.24368705289517903,
+    "gamma_po": 0.28,
+    "note": "드론 셸(ABS/PC). ITU 에 plastic 없음 — 문헌값 εr≈2.6~3.0. 가장 가까운 ITU plasterboard(2.73)와 벌크 |Γ| 가 0.247 vs 0.244 로 사실상 동일. PO 실효 0.28: 셸이 1~3 mm **박막**이라 앞뒷면 간섭으로 |Γ| 가 0.1~0.45 를 오간다 (벌크 반무한 프레넬 0.244 는 그 하한 근처) → 대표값 0.28."
+   },
+   "plastic_blue": {
+    "source": "custom",
+    "itu": "",
+    "eps_r": 2.7,
+    "sigma": 0.02,
+    "S": 0.2,
+    "gamma_bulk": 0.24368705289517903,
+    "gamma_po": 0.28,
+    "note": "파란 모서리 트림 — 전파물성은 plastic 과 동일(색만 다름)."
+   },
+   "prop_plastic": {
+    "source": "custom",
+    "itu": "",
+    "eps_r": 2.7,
+    "sigma": 0.02,
+    "S": 0.2,
+    "gamma_bulk": 0.24368705289517903,
+    "gamma_po": 0.25,
+    "note": "프로펠러(얇은 플라스틱, 카본충전이면 ↑). 셸보다 더 얇아 실효 |Γ| 0.25."
+   },
+   "carbon": {
+    "source": "custom",
+    "itu": "",
+    "eps_r": 5.0,
+    "sigma": 3000.0,
+    "S": 0.3,
+    "gamma_bulk": 0.9886696922019683,
+    "gamma_po": 0.9,
+    "note": "탄소섬유(도전성) — ITU 에 없음. 벌크 |Γ|≈0.99(금속 근접). PO 실효 0.90: 직조 섬유 사이 유전체 개구·이방성을 반영."
+   },
+   "absorber": {
+    "source": "custom",
+    "itu": "",
+    "eps_r": 1.4,
+    "sigma": 1.2,
+    "S": 0.35,
+    "gamma_bulk": 0.5490013418970447,
+    "gamma_po": 0.5490013418970447,
+    "note": "⚠ **실측치 아님 — 모델값**. 이 재질의 **평평한 단일면** 수직입사 반사는 |Γ|=0.549 (≈−5.2 dB)로 전혀 낮지 않다. 무반사(−25~−30 dB)는 **피라미드 골짜기 다중반사**(4~5회 × 회당 −5.2 dB)로 달성되는 **기하 효과**이지 재질 자체의 성질이 아니다. 그리고 그 −25 dB 는 **설계 목표**이지 이 씬에서 측정한 값이 아니다."
+   }
+  },
+  "table": "재질               Sionna     eps_r  sigma[S/m]     S    |Γ|벌크   |Γ|PO  실효값 사유\nmetal            ITU         1.00       1e+07  0.00    1.000    1.00  \ncamera_assembly  ITU         1.00       1e+07  0.00    1.000    0.85  실효(-1.4 dB) — note 참조\npcb              ITU         1.00       1e+07  0.00    1.000    0.80  실효(-1.9 dB) — note 참조\nconcrete_light   ITU         5.24      0.1231  0.00    0.395    0.39  \nconcrete_dark    ITU         5.24      0.1231  0.00    0.395    0.39  \nplastic          custom      2.70        0.02  0.20    0.244    0.28  실효(+1.2 dB) — note 참조\nplastic_blue     custom      2.70        0.02  0.20    0.244    0.28  실효(+1.2 dB) — note 참조\nprop_plastic     custom      2.70        0.02  0.20    0.244    0.25  실효(+0.2 dB) — note 참조\ncarbon           custom      5.00        3000  0.30    0.989    0.90  실효(-0.8 dB) — note 참조\nabsorber         custom      1.40         1.2  0.35    0.549    0.55  "
+ },
+ "meta": {
+  "fc": 3500000000.0,
+  "az": 0.0,
+  "el": 15.0,
+  "res": [
+   1600,
+   1100
+  ],
+  "spp": 640,
+  "gpu": "1",
+  "stamp": "2026-07-14 13:00:13"
+ },
+ "meshes": {
+  "drones": {
+   "mini5pro": {
+    "name": "DJI Mini 5 Pro",
+    "n_tris": 24398,
+    "n_rotors": 4,
+    "official_mm": [
+     255.0,
+     181.0,
+     91.0
+    ],
+    "mesh_mm": [
+     255.0,
+     181.00000000000003,
+     91.0
+    ],
+    "err_pct": [
+     0.0,
+     1.5702601895250834e-14,
+     0.0
+    ],
+    "diagonal_spec_mm": 275.0,
+    "diagonal_mesh_mm": 255.27427747424093,
+    "fit_scale": [
+     1.2989188506672888,
+     0.7032202088650166,
+     1.759756296819624
+    ],
+    "prop_dia_mm": 152.4,
+    "prop_blades": 2,
+    "weight_g": 249.9,
+    "hover_rpm": 5500.0,
+    "max_rpm": 7800.0,
+    "confidence": "high",
+    "release": "released"
+   },
+   "mavic4pro": {
+    "name": "DJI Mavic 4 Pro",
+    "n_tris": 25676,
+    "n_rotors": 4,
+    "official_mm": [
+     328.7,
+     390.5,
+     135.2
+    ],
+    "mesh_mm": [
+     328.7,
+     390.5,
+     135.2
+    ],
+    "err_pct": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "diagonal_spec_mm": 441.0,
+    "diagonal_mesh_mm": 438.50636626966195,
+    "fit_scale": [
+     0.7828926677690756,
+     1.3968459307218875,
+     1.8632652596153818
+    ],
+    "prop_dia_mm": 267.0,
+    "prop_blades": 2,
+    "weight_g": 1063.0,
+    "hover_rpm": 3600.0,
+    "max_rpm": 6000.0,
+    "confidence": "high",
+    "release": "released"
+   },
+   "matrice4e": {
+    "name": "DJI Matrice 4E",
+    "n_tris": 28714,
+    "n_rotors": 4,
+    "official_mm": [
+     307.0,
+     387.5,
+     149.5
+    ],
+    "mesh_mm": [
+     307.0,
+     387.5,
+     149.5
+    ],
+    "err_pct": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "diagonal_spec_mm": 438.8,
+    "diagonal_mesh_mm": 430.9850632466272,
+    "fit_scale": [
+     0.8625687262135899,
+     1.088747170709336,
+     0.9217015990980905
+    ],
+    "prop_dia_mm": 274.0,
+    "prop_blades": 2,
+    "weight_g": 1219.0,
+    "hover_rpm": 3800.0,
+    "max_rpm": 7500.0,
+    "confidence": "high",
+    "release": "released"
+   },
+   "s1000plus": {
+    "name": "DJI S1000+",
+    "n_tris": 39158,
+    "n_rotors": 8,
+    "official_mm": [
+     1016.0,
+     1016.0,
+     380.0
+    ],
+    "mesh_mm": [
+     1016.0,
+     1016.0,
+     380.0
+    ],
+    "err_pct": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "diagonal_spec_mm": 1045.0,
+    "diagonal_mesh_mm": 1043.506484077842,
+    "fit_scale": [
+     0.9985707981606144,
+     0.9985707981606144,
+     0.8335537344704982
+    ],
+    "prop_dia_mm": 381.0,
+    "prop_blades": 2,
+    "weight_g": 9500.0,
+    "hover_rpm": 3600.0,
+    "max_rpm": 5600.0,
+    "confidence": "high",
+    "release": "discontinued"
+   },
+   "phantom4": {
+    "name": "DJI Phantom 4",
+    "n_tris": 27806,
+    "n_rotors": 4,
+    "official_mm": [
+     289.5,
+     289.5,
+     196.0
+    ],
+    "mesh_mm": [
+     289.5,
+     289.5,
+     196.0
+    ],
+    "err_pct": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "diagonal_spec_mm": 350.0,
+    "diagonal_mesh_mm": 356.91969732344563,
+    "fit_scale": [
+     1.0197705637812733,
+     1.0197705637812733,
+     1.0503357313247106
+    ],
+    "prop_dia_mm": 240.0,
+    "prop_blades": 2,
+    "weight_g": 1380.0,
+    "hover_rpm": 5500.0,
+    "max_rpm": 8500.0,
+    "confidence": "high",
+    "release": "released"
+   }
+  },
+  "check": {
+   "mini5pro": {
+    "ok": true,
+    "groups": {
+     "accent": {
+      "ok": true,
+      "watertight": "2/2",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 2,
+      "n_faces": 128
+     },
+     "battery": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 12
+     },
+     "body": {
+      "ok": true,
+      "watertight": "3/3",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 3,
+      "n_faces": 7608
+     },
+     "camera": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 190
+     },
+     "canopy": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 2240
+     },
+     "motor": {
+      "ok": true,
+      "watertight": "4/4",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 4,
+      "n_faces": 2016
+     },
+     "pcb": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 12
+     },
+     "prop": {
+      "ok": true,
+      "watertight": "12/12",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 12,
+      "n_faces": 12192
+     }
+    }
+   },
+   "mavic4pro": {
+    "ok": true,
+    "groups": {
+     "battery": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 12
+     },
+     "body": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 7356
+     },
+     "camera": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 1848
+     },
+     "canopy": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 2240
+     },
+     "motor": {
+      "ok": true,
+      "watertight": "4/4",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 4,
+      "n_faces": 2016
+     },
+     "pcb": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 12
+     },
+     "prop": {
+      "ok": true,
+      "watertight": "12/12",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 12,
+      "n_faces": 12192
+     }
+    }
+   },
+   "matrice4e": {
+    "ok": true,
+    "groups": {
+     "battery": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 12
+     },
+     "body": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 7444
+     },
+     "camera": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 322
+     },
+     "canopy": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 2452
+     },
+     "gear": {
+      "ok": true,
+      "watertight": "4/4",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 4,
+      "n_faces": 4224
+     },
+     "motor": {
+      "ok": true,
+      "watertight": "4/4",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 4,
+      "n_faces": 2016
+     },
+     "pcb": {
+      "ok": true,
+      "watertight": "2/2",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 2,
+      "n_faces": 52
+     },
+     "prop": {
+      "ok": true,
+      "watertight": "12/12",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 12,
+      "n_faces": 12192
+     }
+    }
+   },
+   "s1000plus": {
+    "ok": true,
+    "groups": {
+     "accent": {
+      "ok": true,
+      "watertight": "8/8",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 8,
+      "n_faces": 512
+     },
+     "arm": {
+      "ok": true,
+      "watertight": "8/8",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 8,
+      "n_faces": 6272
+     },
+     "battery": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 12
+     },
+     "body": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 928
+     },
+     "camera": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 190
+     },
+     "canopy": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 12
+     },
+     "gear": {
+      "ok": true,
+      "watertight": "2/2",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 2,
+      "n_faces": 2804
+     },
+     "motor": {
+      "ok": true,
+      "watertight": "8/8",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 8,
+      "n_faces": 4032
+     },
+     "pcb": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 12
+     },
+     "prop": {
+      "ok": true,
+      "watertight": "24/24",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 24,
+      "n_faces": 24384
+     }
+    }
+   },
+   "phantom4": {
+    "ok": true,
+    "groups": {
+     "battery": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 12
+     },
+     "body": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 7056
+     },
+     "camera": {
+      "ok": true,
+      "watertight": "3/3",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 3,
+      "n_faces": 286
+     },
+     "canopy": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 2240
+     },
+     "gear": {
+      "ok": true,
+      "watertight": "2/2",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 2,
+      "n_faces": 3992
+     },
+     "motor": {
+      "ok": true,
+      "watertight": "4/4",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 4,
+      "n_faces": 2016
+     },
+     "pcb": {
+      "ok": true,
+      "watertight": "1/1",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 1,
+      "n_faces": 12
+     },
+     "prop": {
+      "ok": true,
+      "watertight": "12/12",
+      "inward": 0,
+      "bad_winding": 0,
+      "degenerate": 0,
+      "n_parts": 12,
+      "n_faces": 12192
+     }
+    }
+   }
+  },
+  "boolean": {
+   "drone": "mavic4pro",
+   "n_faces_raw": 13432,
+   "n_faces_union": 13484,
+   "n_interior_faces": 1374,
+   "area_interior_m2": 0.03460862582671846,
+   "area_total_m2": 0.2680721744192489,
+   "area_interior_pct": 12.91018954193755,
+   "po_raw_dbsm": -18.58209778080154,
+   "po_union_dbsm": -19.348613075357857,
+   "po_bias_db": 0.7665152945563196,
+   "n_az": 60,
+   "el_deg": 15.0
+  }
+ }
+}
