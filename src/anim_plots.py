@@ -375,6 +375,42 @@ def drone_row_gif(name="drone_gallery_row", frames=48):
     return _save(a, name, fps=15)
 
 
+def spin_articulated(drone="mavic4pro", frames=40, name=None):
+    """단일 드론 — 몸체 회전 + **프로펠러 스핀**(분절 메쉬), 재질색. spin_<drone>.gif 덮어씀."""
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+    from drones import DRONES, pose_articulated, drone_colors
+    disp = {"mavic4pro": "Mavic 4 Pro", "matrice4e": "Matrice 4E", "mini5pro": "Mini 5 Pro",
+            "phantom4": "Phantom 4", "s1000plus": "S1000+"}.get(drone, drone)
+    name = name or f"spin_{drone}"
+    spec = DRONES[drone]; cmap = drone_colors(spec)
+    fig = plt.figure(figsize=(5.4, 5.4), dpi=140)
+    ax = fig.add_subplot(111, projection="3d")
+
+    def update(i):
+        yaw = 360.0 * i / frames
+        spin = (i * 50) % 360
+        dirs = [(-1) ** k for k in range(spec.num_rotors)]
+        m = pose_articulated(spec, body_rpy=(0, 0, yaw), rotor_phase_deg=[d * spin for d in dirs])
+        V = np.array(m.v)
+        tris = [[V[a], V[b], V[c]] for (a, b, c) in m.f]
+        cols = [cmap.get(g, (0.6, 0.6, 0.6)) for g in m.g]
+        ax.clear()
+        ax.add_collection3d(Poly3DCollection(tris, facecolors=cols, edgecolors=(0, 0, 0, 0.22),
+                                             linewidths=0.15))
+        b0, b1 = m.bounds(); c = (b0 + b1) / 2; r = (b1 - b0).max() * 1.02 / 2
+        ax.set_xlim(c[0]-r, c[0]+r); ax.set_ylim(c[1]-r, c[1]+r); ax.set_zlim(c[2]-r, c[2]+r)
+        try:
+            ax.set_box_aspect((1, 1, 1))
+        except Exception:
+            pass
+        ax.set_axis_off(); ax.view_init(elev=22, azim=-60)
+        ax.set_title(f"{disp} — body + propeller rotation (material-colored)", fontsize=12,
+                     fontweight="bold")
+
+    a = animation.FuncAnimation(fig, update, frames=frames, blit=False)
+    return _save(a, name, fps=14)
+
+
 def drone_size_compare(name="drone_size_compare"):
     """5종 드론을 **같은 축척**으로 위에서 본 실루엣 — 실제 크기 비교(재질색·명칭·대각 mm·스케일바)."""
     from matplotlib.collections import PolyCollection
