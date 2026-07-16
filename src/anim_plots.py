@@ -342,11 +342,23 @@ def drone_row_gif(name="drone_gallery_row", frames=48):
         cols = [cmap.get(g, (0.6, 0.6, 0.6)) for g in mesh.g]
         return Poly3DCollection(tris, facecolors=cols, edgecolors=(0, 0, 0, 0.25), linewidths=0.15)
 
-    def _equal(ax, mesh, pad=1.02):
-        b0, b1 = mesh.bounds(); c = (b0 + b1) / 2; r = (b1 - b0).max() * pad / 2
-        ax.set_xlim(c[0]-r, c[0]+r); ax.set_ylim(c[1]-r, c[1]+r); ax.set_zlim(c[2]-r, c[2]+r)
+    # ⚠ 축 범위는 드론마다 **한 번만** 정해 고정(프레임마다 bounds() 를 다시 잡으면 회전 중
+    #   바운딩박스가 변해 줌이 출렁이며 깜빡인다). 중심 기준 최대반경은 z회전에 불변.
+    LIM = {}
+    for d in drones:
+        s = DRONES[d]
+        m0 = pose_articulated(s, body_rpy=(0, 0, 0), rotor_phase_deg=[0] * s.num_rotors)
+        V0 = np.array(m0.v); c = (V0.min(0) + V0.max(0)) / 2
+        rxy = float(np.hypot(V0[:, 0] - c[0], V0[:, 1] - c[1]).max()) * 1.05
+        rz = max(float(np.abs(V0[:, 2] - c[2]).max()) * 1.15, rxy * 0.18)
+        LIM[d] = (c, rxy, rz)
+
+    def _fix(ax, d):
+        c, rxy, rz = LIM[d]
+        ax.set_xlim(c[0]-rxy, c[0]+rxy); ax.set_ylim(c[1]-rxy, c[1]+rxy)
+        ax.set_zlim(c[2]-rz, c[2]+rz)
         try:
-            ax.set_box_aspect((1, 1, 1))
+            ax.set_box_aspect((1, 1, float(rz / rxy)))
         except Exception:
             pass
         ax.set_axis_off()
@@ -363,7 +375,7 @@ def drone_row_gif(name="drone_gallery_row", frames=48):
             dirs = [(-1) ** k for k in range(spec.num_rotors)]   # 교대 회전방향(CW/CCW)
             phases = [dd * spin for dd in dirs]
             m = pose_articulated(spec, body_rpy=(0, 0, yaw), rotor_phase_deg=phases)
-            ax.add_collection3d(_polys(m, cmaps[d])); _equal(ax, m)
+            ax.add_collection3d(_polys(m, cmaps[d])); _fix(ax, d)
             ax.view_init(elev=24, azim=-60)
             ax.set_title(disp[d], fontsize=15, fontweight="bold", pad=2)
         fig.suptitle("Five drones — body rotating + propellers spinning (articulated mesh)   "
@@ -385,6 +397,14 @@ def spin_articulated(drone="mavic4pro", frames=40, name=None):
     spec = DRONES[drone]; cmap = drone_colors(spec)
     fig = plt.figure(figsize=(5.4, 5.4), dpi=140)
     ax = fig.add_subplot(111, projection="3d")
+    # ⚠ 축 범위는 **한 번만** 정하고 고정한다. 프레임마다 bounds() 로 다시 잡으면 몸체가 돌 때
+    #   바운딩박스가 커졌다 작아졌다 해서 드론이 **줌인/줌아웃 하듯 깜빡인다**(이전 버그).
+    #   중심에서의 **최대 반경**은 z축 회전에 불변이므로 이것으로 고정한다.
+    _m0 = pose_articulated(spec, body_rpy=(0, 0, 0), rotor_phase_deg=[0] * spec.num_rotors)
+    _V0 = np.array(_m0.v); _c = (_V0.min(0) + _V0.max(0)) / 2
+    _rxy = float(np.hypot(_V0[:, 0] - _c[0], _V0[:, 1] - _c[1]).max()) * 1.05   # z회전 불변
+    _rz = max(float(np.abs(_V0[:, 2] - _c[2]).max()) * 1.15, _rxy * 0.18)
+    _asp = (1.0, 1.0, float(_rz / _rxy))                 # 납작한 드론에 맞춘 박스 → 여백 최소
 
     def update(i):
         yaw = 360.0 * i / frames
@@ -397,10 +417,10 @@ def spin_articulated(drone="mavic4pro", frames=40, name=None):
         ax.clear()
         ax.add_collection3d(Poly3DCollection(tris, facecolors=cols, edgecolors=(0, 0, 0, 0.22),
                                              linewidths=0.15))
-        b0, b1 = m.bounds(); c = (b0 + b1) / 2; r = (b1 - b0).max() * 1.02 / 2
-        ax.set_xlim(c[0]-r, c[0]+r); ax.set_ylim(c[1]-r, c[1]+r); ax.set_zlim(c[2]-r, c[2]+r)
+        ax.set_xlim(_c[0]-_rxy, _c[0]+_rxy); ax.set_ylim(_c[1]-_rxy, _c[1]+_rxy)
+        ax.set_zlim(_c[2]-_rz, _c[2]+_rz)                   # 고정 → 깜빡임 없음
         try:
-            ax.set_box_aspect((1, 1, 1))
+            ax.set_box_aspect(_asp)                         # 실제 비율 → 드론이 프레임을 채움
         except Exception:
             pass
         ax.set_axis_off(); ax.view_init(elev=22, azim=-60)

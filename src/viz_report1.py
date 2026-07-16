@@ -286,12 +286,16 @@ def measure_meshes() -> dict:
         m = build_drone(s)
         env = frame_envelope_mm(s)
         off, lwh = env["official_mm"], env["lwh_mm"]
-        err = [100.0 * (lwh[i] - off[i]) / off[i] for i in range(3)]
+        # ⚠ 공식 치수가 없는 축이 있다(예: Mini 5 Pro 는 DJI 가 펼친 L/W 를 공개 안 함 → None).
+        #   그 축은 오차를 계산하지 않고 None 으로 남긴다(이전엔 여기서 TypeError 로 죽었다).
+        err = [(100.0 * (lwh[i] - off[i]) / off[i]) if off[i] is not None else None
+               for i in range(3)]
         chk = check_mesh(m, k)
         out["drones"][k] = dict(
             name=s.name, n_tris=int(m.n_tris()), n_rotors=int(s.num_rotors),
-            official_mm=[float(x) for x in off], mesh_mm=[float(x) for x in lwh],
-            err_pct=[float(e) for e in err],
+            official_mm=[(float(x) if x is not None else None) for x in off],
+            mesh_mm=[float(x) for x in lwh],
+            err_pct=[(float(e) if e is not None else None) for e in err],
             diagonal_spec_mm=float(s.diagonal_mm),
             diagonal_mesh_mm=float(env["diagonal_effective_mm"]),
             fit_scale=[float(x) for x in env["fit_scale"]],
@@ -303,8 +307,9 @@ def measure_meshes() -> dict:
                     bad_winding=int(v["bad_winding"]), degenerate=int(v["degenerate"]),
                     n_parts=int(v["n_parts"]), n_faces=int(v["n_faces"]))
             for g, v in chk["groups"].items()})
+        _e = "/".join(("n/a" if e is None else f"{e:+.2f}") for e in err)   # 공식치수 없는 축은 n/a
         print(f"  [mesh] {k:10s} tris={m.n_tris():6,d}  envelope err "
-              f"{err[0]:+.2f}/{err[1]:+.2f}/{err[2]:+.2f} %  diag {env['diagonal_effective_mm']:.0f} mm"
+              f"{_e} %  diag {env['diagonal_effective_mm']:.0f} mm"
               f"  check={'PASS' if chk['ok'] else 'FAIL'}")
 
     # --- 불리언이 실제로 무엇을 지웠나 (mavic4pro) -------------------------- #
@@ -452,13 +457,17 @@ def fig_envelope(mm: dict):
 
     x = np.arange(len(DKEYS))
     for i, (lab, c) in enumerate(zip(["L", "W", "H"], [CB, CO, CG])):
-        ax[0].bar(x + (i - 1) * 0.26, [D[k]["err_pct"][i] for k in DKEYS], 0.24, color=c, label=lab)
+        # 공식 치수가 없는 축(Mini 5 Pro L/W)은 None → NaN 으로 두어 막대를 그리지 않는다
+        vals = [(D[k]["err_pct"][i] if D[k]["err_pct"][i] is not None else np.nan) for k in DKEYS]
+        ax[0].bar(x + (i - 1) * 0.26, vals, 0.24, color=c, label=lab)
     ax[0].axhline(0, color="k", lw=0.8)
     ax[0].set_xticks(x); ax[0].set_xticklabels(DKEYS, rotation=18, fontsize=9)
     ax[0].set_ylabel("mesh vs DJI official  [%]"); ax[0].set_ylim(-1, 1.6)
     ax[0].set_title("Frame bounding box vs official L x W x H", fontsize=12, fontweight="bold")
     ax[0].legend(fontsize=9); ax[0].grid(axis="y", alpha=0.3)
-    ax[0].annotate("all five: 0.00 % on all three axes\n(bars are invisible because the error is zero;\nthis is enforced by drones.frame_fit_scale --\nit only proves we obeyed the spec sheet)",
+    ax[0].annotate("0.00 % on every axis that has an official number\n(bars are invisible because the error is zero;\n"
+                   "enforced by drones.frame_fit_scale -- it only proves\nwe obeyed the spec sheet)\n"
+                   "Mini 5 Pro L/W: DJI publishes no unfolded L/W -> not comparable",
                    (0.5, 0.80), xycoords="axes fraction", ha="center", va="top", fontsize=8.8, color=CG,
                    bbox=dict(fc="#eaf5ea", ec=CG, lw=0.8))
 

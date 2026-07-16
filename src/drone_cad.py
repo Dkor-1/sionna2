@@ -71,9 +71,13 @@ def _airfoil(chord, thick_ratio=0.10, pts=40):
 
 
 def _blade(R, root_frac=0.14, chord_max=0.26, pitch_deg=20.0, twist_deg=13.0,
-           sweep_frac=0.10, n_sec=22, n_pts=36):
+           sweep_frac=0.10, n_sec=22, n_pts=36, pitch_m=None):
     """**진짜 익형 프로펠러 블레이드 1장** — 로프트(테이퍼 + 워시아웃 트위스트 + 시미터 스윕).
-    +x = 스팬. 익형 단면을 스팬을 따라 회전(피치)·축소(테이퍼)·후퇴(스윕)시키며 잇는다."""
+    +x = 스팬. 익형 단면을 스팬을 따라 회전(피치)·축소(테이퍼)·후퇴(스윕)시키며 잇는다.
+      chord_max : **R 에 대한 비율**(0.26 = 최대시위 0.26·R). ⚠ 절대길이를 넣지 말 것.
+      pitch_m   : 프로펠러 **기하 피치**[m] (1회전 전진량). 주면 각 단면 피치각을
+                  θ(r)=atan(P/(2πr)) 로 **물리적으로** 준다(모델별로 다름). None 이면
+                  pitch_deg/twist_deg 의 선형 워시아웃(구버전)."""
     from shapely import affinity as aff
     r0 = root_frac * R
     xs = np.linspace(r0, R, n_sec)
@@ -82,7 +86,10 @@ def _blade(R, root_frac=0.14, chord_max=0.26, pitch_deg=20.0, twist_deg=13.0,
     # 시위 분포: 루트 좁 → 30% 최대 → 팁 둥글게 (실제 프로펠러)
     c = np.interp(tt, [0, .15, .35, .80, 1.0],
                   np.array([.10, .19, .21, .15, .035]) * chord_max / 0.21 * R)
-    th = np.radians(pitch_deg - twist_deg * tt)                     # 워시아웃
+    if pitch_m is not None:                                          # 모델별 실제 기하피치
+        th = np.arctan(float(pitch_m) / (2 * np.pi * xs))
+    else:
+        th = np.radians(pitch_deg - twist_deg * tt)                 # 워시아웃(선형 근사)
     yc = sweep_frac * R * np.sin(np.pi / 2 * tt)                    # 시미터 스윕
 
     rings = []
@@ -324,12 +331,22 @@ def build_frame_cad(spec) -> "trimesh.Trimesh":
 
 
 def build_propeller_cad(spec, n_sec=22) -> Assembly:
-    """프로펠러 1개 — **진짜 익형** 블레이드 + 허브."""
+    """프로펠러 1개 — **진짜 익형** 블레이드 + 허브. **모델별로 다르다**(반경·날개수·피치).
+
+    ⚠ 2026-07-16 버그 수정 2건:
+      1) chord_max 에 `0.26*R`(절대길이)를 넘겨 내부에서 R 이 한 번 더 곱해졌다 → 시위가 **R 배
+         (≈7.5배) 좁아** 블레이드가 실 없이 얇았다. chord_max 는 **비율**이므로 0.26 을 넘긴다.
+         (Mavic 최대시위 4.6mm → 34.7mm. 실물 DJI 프롭 ≈30mm 와 부합.)
+      2) 전 모델이 기본 pitch_deg=20°·twist=13° 로 **똑같은 형상**이었다. 스펙의 prop_pitch_in
+         (Mini 2.8" ~ Mavic 5.8")을 써서 θ(r)=atan(P/(2πr)) 로 **모델별 실제 피치**를 준다.
+    """
     R = spec.prop_dia_mm / 1000.0 / 2.0
+    P = float(spec.prop_pitch_in or 5.0) * 0.0254          # 피치[inch] → [m]
     A = Assembly()
     A.add(_prop_hub(R * 0.085, R * 0.09), "prop")
     for b in range(spec.prop_blades):
-        bl = _blade(R, chord_max=0.26 * R, n_sec=n_sec)   # 실물 1345 는 0.30R — 소비자용 프롭은 더 슬림
+        # chord_max 는 비율(0.26R). 실물 1345 는 0.30R — 소비자용 프롭은 더 슬림.
+        bl = _blade(R, chord_max=0.26, pitch_m=P, n_sec=n_sec)
         A.add(rot_z(bl, (360.0 / spec.prop_blades) * b), "prop")
     A.union_group("prop")
     return A
