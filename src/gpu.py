@@ -32,7 +32,7 @@ _BUDGET_MB: int | None = None
 #  → 여유 메모리의 FRACTION 만큼을 이 워크로드의 예산으로 잡는다. 찔끔 쓰지 않는다.
 MEM_FRACTION = 0.92                 # 여유 메모리의 92% 를 예산으로 (아끼지 않는다)
 MIN_TARGET_MB = 4_000               # 그래도 최소 4 GB 는 확보
-MIN_FREE_MB = 6_000                 # 이보다 적게 남은 GPU 는 후보에서 뺀다
+MIN_FREE_MB = 2_000                 # 사용자 영구방침(2026-07-14): 2GB 이상 여유면 침투해서 쓴다
 
 
 def gpu_status() -> list[dict]:

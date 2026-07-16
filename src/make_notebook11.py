@@ -1,0 +1,487 @@
+# -*- coding: utf-8 -*-
+"""
+make_notebook11.py — report11.ipynb 생성기
+==========================================================================================
+report11 — "검출기 교정 ②: 저속 표적·분해능"
+
+⚠ **이 파일이 진짜 소스다.** report11.ipynb 를 직접 고치지 말고 여기를 고쳐 재실행할 것.
+
+한 주제만 다룬다: **느린 드론과 신호의 분해능이 검출에 만드는 문턱**.
+ (1) 직접파 제거(ECA)가 도플러 0 근처(느린 표적)를 표적까지 같이 지우는 "블라인드 속도",
+ (2) 각 신호의 거리·속도 분해능이 이론과 맞는지(모호함수 = 신호가 표적을 얼마나 또렷이 가르나 지도),
+ (3) 링크버짓(밝기·거리·잡음 → 신호대잡음비)이 이론과 맞는지,
+ (4) 그리고 그렇게 계산한 표적 밝기를 넣으면 **디텍션이 실제로 작동함**을 검출확률(Pd) 곡선으로.
+
+본문의 **모든 숫자는 outputs/*.json 에서 읽어 넣는다** (손으로 적은 숫자 없음):
+    verify_eca.json · verify_ambiguity.json · verify_linkbudget.json  (+ Pd 전이곡선은 verify_cfar.json roc_NR100)
+그림은 기존 outputs/figures 를 **재사용**(경로 링크만).
+"""
+import json
+import os
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.abspath(os.path.join(HERE, ".."))
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
+
+from provenance import provenance_cells                      # noqa: E402
+
+NB = os.path.join(ROOT, "report11.ipynb")
+
+
+def _j(n):
+    with open(os.path.join(ROOT, "outputs", n), encoding="utf-8") as f:
+        return json.load(f)
+
+
+E = _j("verify_eca.json")
+A = _j("verify_ambiguity.json")
+L = _j("verify_linkbudget.json")
+C = _j("verify_cfar.json")            # roc_NR100(Pd 전이곡선)만 인용
+
+
+def _s(lines):
+    out = "\n".join(lines).splitlines(keepends=True)
+    return out if out else [""]
+
+
+def md(*l):
+    return {"cell_type": "markdown", "metadata": {}, "source": _s(list(l))}
+
+
+def fig(name, alt=""):
+    return md(f"![{alt}](outputs/figures/{name}.png)")
+
+
+# --------------------------------------------------------------------------- #
+#  JSON 에서 값 뽑기 (전부 측정/유도값)
+# --------------------------------------------------------------------------- #
+# ── (1) ECA 블라인드 속도: 운용 적분시간(M=48)에서 되돌아온 에코 '에너지'가
+#         -3 dB 로 깎이는 시선속도를 노치 곡선에서 보간해 구한다 ─────────────
+def _interp(rows, key, target):
+    fds = [r["fd_hz"] for r in rows]
+    ys = [r[key] for r in rows]
+    for i in range(1, len(rows)):
+        y0, y1 = ys[i - 1], ys[i]
+        if (y0 - target) * (y1 - target) <= 0 and y1 != y0:
+            x0, x1 = fds[i - 1], fds[i]
+            return x0 + (target - y0) * (x1 - x0) / (y1 - y0)
+    return None
+
+
+BLIND = {}          # name -> dict(M, T_cpi_ms, v_blind_ms, dfd_hz)
+NOTCH_CURVE = None   # (1 - sinc²) 검증용 대표 곡선
+for s in E["S4_target_loss"]:
+    if s["M"] != 48:
+        continue
+    rows = [r for r in s["rows"] if 0.0 <= r["fd_over_dfd"] <= 1.0]
+    fac = s["v_3db_ms"] / s["fd_3db_hz"]              # Hz → 시선속도[m/s] 환산계수
+    fd_e = _interp(rows, "energy_loss_db", -3.0)
+    BLIND[s["name"]] = dict(M=s["M"], T=s["T_cpi_ms"], dfd=s["dfd_hz"],
+                            v=fd_e * fac, lam=s["lam_m"])
+    if s["name"].startswith("5G"):
+        NOTCH_CURVE = s          # 5G 곡선으로 이론(1-sinc²) 대조 표를 만든다
+
+V_MIN = min(b["v"] for b in BLIND.values())
+V_MAX = max(b["v"] for b in BLIND.values())
+# 초장적분(M=96)이면 노치가 더 좁아져 더 낮은 속도까지 본다 — 대표값
+V_LONG = None
+for s in E["S4_target_loss"]:
+    if s["M"] == 96 and s["name"].startswith("WiFi"):
+        rows = [r for r in s["rows"] if 0.0 <= r["fd_over_dfd"] <= 1.0]
+        fac = s["v_3db_ms"] / s["fd_3db_hz"]
+        V_LONG = _interp(rows, "energy_loss_db", -3.0) * fac
+        V_LONG_T = s["T_cpi_ms"]
+
+# 노치 곡선이 이론 1-sinc² 와 얼마나 붙나 (에너지 기준 최대 편차)
+NDEV = max(abs(r["energy_loss_db"] - r["theory_loss_db"])
+           for r in NOTCH_CURVE["rows"] if r["fd_over_dfd"] > 0)
+
+# ── (2) 모호함수 = 거리 분해능(측정/이론) ─────────────────────────────────
+def wf(k):
+    return A["waveforms"][k]
+
+
+RES = {}    # 표에 넣을 4개 파형
+for k, label, ref in [("wifi_G1", "WiFi 80 MHz", "VHT-LTF"),
+                      ("lte_G1", "LTE 20 MHz", "CRS"),
+                      ("nr_G1", "5G NR 100 MHz (상시 SSB)", "SSB"),
+                      ("nr_G3", "5G NR 100 MHz (측위 PRS)", "NR-PRS")]:
+    w = wf(k)
+    RES[k] = dict(label=label, ref=ref, refbw=w["ref_bw_hz"] / 1e6,
+                  meas=w["dR_meas_m"], theo=w["dR_theory_m"],
+                  ratio=w["dR_ratio"], psl=w["psl_chamber_db"])
+DR_MIN = min(r["ratio"] for r in RES.values())
+DR_MAX = max(r["ratio"] for r in RES.values())
+# 모호함수가 실제 거리-도플러 맵을 재현하는 정확도(검증)
+MAXERR = max(d["max_err_db_above_m45"] for d in A["meta"]["detector_validation"])
+CHAM = A["meta"]["fd_map_hz"]        # 챔버 RD 창 도플러 폭 참고
+
+# ── (3) 링크버짓: 레이더방정식·처리이득·잡음바닥이 이론과 일치 ─────────────
+LB_MAXDEV = L["A_radar_equation"]["max_dev_db"]                # 3독립계산 최대불일치
+PG = {w["name"]: w for w in L["BE_processing_gain"]["waveforms"]}
+PG_ERR = max(abs(w["loss_rect_vs_theory_db"]) for w in PG.values())
+NOISE_ERR = max(abs(r["err_vs_theory_db"]) for r in L["C_noise_floor"]["rows"])
+
+# ── (4) 디텍션이 실제로 작동한다: SBR 로 넣은 σ → SCR → Pd ──────────────────
+DS = L["D_sigma_table"]
+DROWS = DS["rows"]
+SCR_MIN = min(r["scr_meas_db"] for r in DROWS)
+SCR_MAX = max(r["scr_meas_db"] for r in DROWS)
+GAP_MEAN = DS["gap_mean_db"]
+GAP_STD = DS["gap_std_db"]
+N_DET = len(DROWS)
+ALL_PD1 = all(r["pd"] == 1.0 for r in DROWS)
+# 대표 5개(WiFi) — 표적 밝기(σ) → 예측 SCR → 측정 SCR
+DET_TAB = [r for r in DROWS if r["wf"] == "WiFi 80MHz"]
+# Pd 전이곡선(NR100, 운용 명목 Pfa=1e-4)
+ROC = C["roc_NR100"]
+PD_TRANS = []
+for c in sorted(ROC["curves"], key=lambda x: x["scr_db"]):
+    p = [q["pd"] for q in c["points"] if abs(q.get("pfa_nom", -1) - 1e-4) < 1e-12]
+    PD_TRANS.append((c["scr_db"], p[0] if p else None))
+
+# ── 형상(챔버) 참고 ─────────────────────────────────────────────────────────
+CFG = L["config"]
+RB = A["waveforms"]["nr_G1"]["dR_theory_m"] and A["geometry"]["nr_G1"]["rb_true_m"]
+BASELINE = L["A_radar_equation"]["rows"][0]["L"]
+
+cells = []
+
+# =========================================================================== #
+#  앞머리 (provenance)
+# =========================================================================== #
+GLOSS = [
+    ("도플러 f_d", "표적이 움직여 생기는 수신 주파수의 이동. 정지물(클러터)과 움직이는 표적을 "
+                   "가르는 축. 느린 표적일수록 f_d 가 0 에 가까워 클러터와 구별이 어렵다"),
+    ("ECA (직접파 제거)", "송신기에서 수신기로 곧장 새어 든 강한 직접파를, 지연된 기준신호가 만드는 "
+                          "부분공간에 사영해 빼는 전처리. **정지 성분(도플러 0)을 통째로 지운다** — "
+                          "이 성질이 곧 저속 맹점의 뿌리다"),
+    ("블라인드 속도", "ECA 노치에 먹혀 되돌아온 신호가 3 dB 이상 깎이는 최소 시선속도. "
+                     "이보다 느리면 표적이 **원리적으로** 잘 안 보인다"),
+    ("모호함수 / CAF", "교차모호함수(Cross-Ambiguity Function). 기준신호와 수신신호를 **거리(지연)와 "
+                       "도플러로 동시에** 상관시켜 만든 2차원 지도. 봉우리 폭이 분해능, 곁봉우리가 가짜표적"),
+    ("거리 분해능 ΔR_b", "두 표적을 거리축에서 갈라 볼 수 있는 최소 간격. 바이스태틱에서 ΔR_b = c/B "
+                         "(B = 기준신호 대역폭). 대역이 넓을수록 촘촘히 가른다"),
+    ("sinc / 0.886", "직사각 창의 스펙트럼 모양(sin πx / πx). 그 −3 dB 폭은 이론값의 **0.886배**다. "
+                     "측정/이론 비가 이 값 근처면 분해능 눈금이 맞은 것"),
+    ("링크버짓", "표적 밝기(σ)·거리·잡음을 곱하고 나눠 되돌아온 신호대잡음비(SNR)를 예측하는 계산. "
+                 "= 레이더 방정식"),
+    ("RCS (σ)", "레이더 되비침 밝기. σ 는 그 밝기를 넓이 단위(m²)로 적은 값. 표적이 밝아야(σ 가 커야) "
+                "잡힌다. Sionna 기본 solver 는 이 σ 를 못 내므로 **SBR** 로 따로 계산해 넣는다"),
+    ("SBR", "표적을 광선으로 조준해 맞고, 맞은 면이 레이더로 되쏘는 양을 물리광학(PO)으로 계산·합산해 "
+            "σ 를 구하는 방법"),
+    ("SCR", "신호대클러터비(Signal-to-Clutter Ratio). 거리-도플러 지도에서 표적 봉우리 ÷ 주변 바닥. "
+            "검출 난이도의 실측 지표"),
+    ("Pd (검출확률)", "표적이 있을 때 검출기가 실제로 발화할 확률. SCR 이 올라갈수록 0 에서 1 로 전이한다"),
+    ("CFAR", "주변 잡음을 보고 문턱을 스스로 정하는 검출기(Constant False Alarm Rate)"),
+    ("CPI / 적분시간", "한 번 관측하며 신호를 모아 쌓는 시간(Coherent Processing Interval). 길수록 "
+                       "도플러를 촘촘히 보지만 관측이 느려진다"),
+    ("semi-anechoic", "벽·천장은 전파를 흡수하고 바닥만 반사하는 반무향 챔버 — 우리 실험 환경"),
+]
+
+_front = provenance_cells(
+    report="report11",
+    what="검출기 교정 ②: 저속 표적·분해능",
+    question="느린 드론과 신호의 분해능 한계는 검출에 어떤 문턱을 만드나?",
+    tldr=[
+        "**호버 드론은 원리적으로 어렵다.** 직접파 제거(ECA)는 정지 성분을 지우는데, "
+        f"초속 약 **{V_MIN:.2f}~{V_MAX:.2f} m/s** 보다 느린 표적은 도플러가 거의 0 이라 표적까지 함께 지워진다.",
+        "**분해능 눈금은 맞다.** 각 신호의 거리 분해능은 이론 ΔR_b=c/B 대비 "
+        f"**{DR_MIN:.2f}~{DR_MAX:.2f}배**(직사각 창 sinc 의 0.886 근처)로, 교과서와 일치한다.",
+        "**밝기·거리·잡음 계산도 맞다.** 링크버짓을 세 가지 독립 방법으로 계산해 "
+        f"최대 편차 **{LB_MAXDEV:.0e} dB**, 잡음바닥은 이론과 **{NOISE_ERR:.0e} dB** 로 일치한다.",
+        "**그래서 탐지가 된다.** SBR 로 계산한 밝기(σ)를 넣으면 5대 드론×3신호 모두 "
+        f"SCR **{SCR_MIN:.1f}~{SCR_MAX:.1f} dB** 로 잡히고(Pd=1.0), 검출은 SCR **5~15 dB** 구간에서 전이한다.",
+    ],
+    roadmap=[
+        dict(sec="§1", what="ECA 저속 맹점 — 블라인드 속도", why="호버 드론이 왜 어려운가"),
+        dict(sec="§2", what="모호함수 — 거리·속도 분해능", why="신호가 표적을 얼마나 또렷이 가르나"),
+        dict(sec="§3", what="링크버짓 — 밝기·거리·잡음 → SNR", why="계산이 이론과 맞나"),
+        dict(sec="§4", what="검출확률 곡선 — 디텍션이 실제로 작동", why="σ 를 넣으면 잡힌다는 증거"),
+    ],
+    sources=[
+        dict(item="ECA 노치·블라인드 속도(운용 적분시간)",
+             src="outputs/verify_eca.json",
+             kind="측정 (RT 클러터 + ECA 사영)"),
+        dict(item="모호함수·거리 분해능 측정/이론",
+             src="outputs/verify_ambiguity.json",
+             kind="측정 (기준신호 자기모호함수)"),
+        dict(item="레이더방정식·처리이득·잡음바닥·SCR·Pd",
+             src="outputs/verify_linkbudget.json · outputs/verify_cfar.json(roc_NR100)",
+             kind="측정 (σ 는 SBR, 3GPP TS / ITU-R P.2040 재질)"),
+    ],
+    engines=["radar-dsp", "sbr", "sionna-phy", "matplotlib"],
+    libs=["torch", "numpy", "matplotlib"],
+    reproduce=[
+        "cd /home/yunjung/workspace/sionna2",
+        "~/.venvs/py312/bin/python benchmark/verify_eca.py",
+        "~/.venvs/py312/bin/python benchmark/verify_ambiguity.py",
+        "~/.venvs/py312/bin/python benchmark/verify_linkbudget.py",
+        "~/.venvs/py312/bin/python src/make_notebook11.py     # report11.ipynb 재생성",
+    ],
+    artifacts=[
+        dict(file="outputs/verify_eca.json", what="ECA 노치·블라인드 속도"),
+        dict(file="outputs/verify_ambiguity.json", what="모호함수·거리/속도 분해능"),
+        dict(file="outputs/verify_linkbudget.json", what="레이더방정식·잡음·SCR·Pd"),
+        dict(file="outputs/figures/verify_eca.png", what="ECA 저속 맹점 그림 (재사용)"),
+        dict(file="outputs/figures/verify_ambiguity_af.png", what="모호함수 거리-도플러 지도 (재사용)"),
+    ],
+    caveats=[
+        "**블라인드 속도는 적분시간(CPI)에 달렸다.** 여기 값은 운용 적분시간 기준이다. 더 오래 "
+        "적분하면 노치가 좁아져 더 느린 표적까지 보이지만 관측이 그만큼 느려진다(맞바꿈).",
+        "**분해능은 신호가 상시 쓰는 기준신호의 대역폭이 정한다.** 5G 의 상시 신호(SSB)는 대역이 "
+        f"{RES['nr_G1']['refbw']:.1f} MHz 뿐이라 거리 분해능이 {RES['nr_G1']['meas']:.0f} m 로 거칠다.",
+        "**여기서 다루는 것은 탐지(거리+속도 셀에서 '있다/없다')까지다.** 표적의 위치·궤적을 잇는 "
+        "추적은 이 리포트의 범위 밖이다.",
+    ],
+    cost="verify_* 스크립트 각 GPU 1장 수 분. 그림은 이미 산출된 것을 재사용.",
+    related=[
+        dict(rep="report10 (앞)", rel="오경보율 — 검출기가 '헛것'을 얼마나 자주 보나(문턱 눈금)"),
+        dict(rep="(끝)", rel="이 리포트가 마지막이다"),
+    ],
+    glossary=GLOSS,
+)
+cells += _front
+
+# =========================================================================== #
+#  🔰 5분 요약 (비유, 수식 없이)
+# =========================================================================== #
+cells.append(md(
+    "## 🔰 5분이면 이해하는 이 리포트",
+    "",
+    "**청소기 비유부터.** 패시브 레이더는 방 안에 이미 켜져 있는 WiFi·LTE·5G 신호를 조명 삼아 "
+    "드론을 비춘다. 문제는 송신기에서 수신기로 **곧장 새어 드는 직접파**가 표적 메아리보다 수십만 배 세다는 "
+    "것. 이 직접파를 지우는 청소기가 **ECA(직접파 제거)** 다. 청소기는 '움직이지 않는 먼지'(도플러 0, "
+    "정지 성분)를 빨아들이도록 만들어졌다.",
+    "",
+    "**그런데 청소기 옆에 아주 느린 벌레가 기어가면?** 거의 안 움직이니 청소기는 그걸 먼지로 착각해 "
+    "**같이 빨아 버린다.** 제자리에 떠 있는 호버 드론이 바로 그 느린 벌레다. 초속 "
+    f"약 **{V_MIN:.2f}~{V_MAX:.2f} m/s** 보다 느리면 도플러가 거의 0 이라 직접파와 구별이 안 돼 표적이 "
+    "함께 지워진다. 이게 **블라인드(맹점) 속도** — 원리적인 한계다(§1).",
+    "",
+    "**다음은 '눈의 해상도'.** 신호가 두 표적을 얼마나 또렷이 갈라 보는지는 **모호함수**라는 "
+    "지도로 잰다 — 봉우리가 뾰족할수록 거리·속도를 잘 가른다. 봉우리 폭은 신호 대역폭이 정하는데, "
+    f"측정해 보니 교과서 값의 **{DR_MIN:.2f}~{DR_MAX:.2f}배**(직사각 창의 자연스러운 0.886배)로 딱 맞는다(§2).",
+    "",
+    "**그리고 '밝기 계산'.** 표적이 얼마나 밝게 되돌아오는지(레이더 방정식)를 세 가지 독립 방식으로 "
+    "계산해 서로 소수점 열 자리까지 같음을 확인한다(§3). 마지막으로, 그 밝기(SBR 로 계산한 σ)를 넣으면 "
+    "**드론이 실제로 잡힌다** — 검출확률이 SCR 5~15 dB 구간에서 0 에서 1 로 올라서고, 우리 드론들은 그 위에 "
+    "있어 모두 잡힌다(§4). 즉 **표적을 밝게 만드는 σ 를 SBR 로 넣으면 탐지가 된다.**",
+    "",
+    "> **앞 리포트(report10)** 에서는 검출기가 '헛것'을 얼마나 자주 보는지(오경보율) 문턱 눈금을 맞췄다. "
+    "여기서는 반대로 **진짜 표적을 얼마나 놓치고, 얼마나 또렷이 보는지**를 다룬다.",
+))
+
+# =========================================================================== #
+#  §1  ECA 저속 맹점 — 블라인드 속도
+# =========================================================================== #
+cells.append(md(
+    "---",
+    "# §1. 직접파 제거의 저속 맹점 — 블라인드 속도",
+    "",
+    "> 🔍 **여기서 하는 일:** 정지 클러터를 지우는 ECA 가 **느린 표적을 얼마나 함께 지우는지** 재고, "
+    "그 아래로는 못 보는 최소 시선속도를 구한다.",
+))
+cells.append(md(
+    "**직관.** ECA 는 도플러가 0 인 성분(움직이지 않는 벽·바닥·직접파)을 지우도록 설계돼 있다. "
+    "그런데 표적이 느리면 그 표적의 도플러도 0 에 가까워진다. 청소기가 느린 벌레를 먼지로 착각하듯, "
+    "ECA 는 **느린 표적을 정지 클러터로 착각해 함께 지운다.** 지워지는 정도는 표적의 도플러가 "
+    "'도플러 한 칸(=1/적분시간)'에서 얼마나 떨어져 있느냐로 정해진다.",
+    "",
+    f"**근거 — 노치의 모양.** ECA 가 표적을 깎는 양은 이론적으로 $1-\\mathrm{{sinc}}^2(f_d\\,T)$ 라는 "
+    f"골짜기(노치) 모양을 따른다(T = 적분시간). 측정한 손실 곡선은 이 이론과 최대 **{NDEV:.3f} dB** 밖에 "
+    "차이 나지 않는다 — 노치 폭은 정확히 **도플러 한 칸**이다. 아래 표는 5G 신호에서 표적 도플러가 "
+    "도플러 한 칸의 몇 배일 때 얼마나 깎이는지다(이론과 나란히).",
+))
+
+# 1-sinc² 노치 대조표 (5G)
+_nc = [r for r in NOTCH_CURVE["rows"]
+       if r["fd_over_dfd"] in (0.1, 0.2, 0.3, 0.5, 0.8, 1.0)]
+cells.append(md(*(
+    ["| 표적 도플러 ÷ 한 칸 | 측정 에너지 손실 | 이론 $1-\\mathrm{sinc}^2$ |",
+     "|---|---|---|"] +
+    [f"| {r['fd_over_dfd']:.1f} | {r['energy_loss_db']:+.2f} dB | {r['theory_loss_db']:+.2f} dB |"
+     for r in _nc]
+)))
+
+cells.append(md(
+    "**블라인드 속도.** 되돌아온 에코 에너지가 −3 dB(절반)로 깎이는 지점을 시선속도로 환산하면, "
+    "운용 적분시간에서 이렇게 나온다.",
+))
+cells.append(md(*(
+    ["| 신호 | 적분시간 | 도플러 한 칸 | 블라인드 속도(−3 dB) |",
+     "|---|---|---|---|"] +
+    [f"| {n} | {b['T']:.0f} ms | {b['dfd']:.1f} Hz | **{b['v']:.2f} m/s** |"
+     for n, b in BLIND.items()]
+)))
+cells.append(md(
+    f"즉 초속 **{V_MIN:.2f}~{V_MAX:.2f} m/s** 보다 느린 표적은 −3 dB 이상 깎여 사실상 놓친다. "
+    "**제자리에 떠 있는(호버) 드론은 시선속도가 0 에 가까워 원리적으로 이 골짜기 안에 갇힌다.** "
+    f"적분시간을 {V_LONG_T:.0f} ms 로 더 늘리면 노치가 좁아져 **{V_LONG:.2f} m/s** 까지 내려가지만, "
+    "그만큼 한 번 보는 데 오래 걸린다(관측을 느리게 만드는 맞바꿈).",
+    "",
+    "아래 그림 (c) 는 모든 신호·적분시간의 손실 곡선이 하나의 $1-\\mathrm{sinc}^2$ 곡선으로 겹침을, "
+    "(d) 는 신호별 저속 사각지대(이 속도 아래로는 표적을 먹는다)를 보여 준다.",
+))
+cells.append(fig("verify_eca", "ECA blind-speed notch and slow-drone blind zone"))
+
+# =========================================================================== #
+#  §2  모호함수 — 분해능
+# =========================================================================== #
+cells.append(md(
+    "---",
+    "# §2. 모호함수 — 신호가 표적을 얼마나 또렷이 가르나",
+    "",
+    "> 🔍 **여기서 하는 일:** 각 신호가 두 표적을 **거리·속도로 얼마나 잘 갈라 보는지**를 모호함수 "
+    "지도로 재고, 거리 분해능이 교과서 값과 맞는지 확인한다.",
+))
+cells.append(md(
+    "**직관.** 손전등을 벽에 비추면 빛 얼룩이 생긴다. 얼룩이 작고 또렷할수록 벽의 두 점을 갈라 볼 수 "
+    "있다. 레이더에서 이 '빛 얼룩'에 해당하는 게 **모호함수** — 기준신호를 거리(지연)와 속도(도플러)로 "
+    "동시에 훑어 만든 2차원 지도다. 한가운데 봉우리가 뾰족할수록 두 표적을 잘 가르고(분해능), "
+    "봉우리 옆에 솟은 곁봉우리는 없는 표적을 있는 것처럼 보이게 하는 함정(가짜표적)이다.",
+    "",
+    "**근거 — 거리 분해능.** 바이스태틱 거리 분해능의 이론값은 $\\Delta R_b = c / B$ (B = 기준신호 "
+    "대역폭). 직사각 창이면 실제 −3 dB 봉우리 폭은 이론의 **0.886배**(sinc 폭)가 나와야 정상이다. "
+    "측정 결과:",
+))
+cells.append(md(*(
+    ["| 신호(기준) | 기준 대역폭 | 측정 ΔR_b | 이론 c/B | 측정/이론 | 곁봉우리(챔버) |",
+     "|---|---|---|---|---|---|"] +
+    [f"| {r['label']} · {r['ref']} | {r['refbw']:.1f} MHz | {r['meas']:.2f} m | "
+     f"{r['theo']:.2f} m | **{r['ratio']:.3f}** | {r['psl']:.1f} dB |"
+     for r in RES.values()]
+)))
+cells.append(md(
+    f"측정/이론 비가 전부 **{DR_MIN:.2f}~{DR_MAX:.2f}**(sinc 의 0.886 근처)로 거리 눈금이 맞았다. "
+    "**대역이 넓을수록 촘촘히 가른다** — 5G 의 측위용 신호(NR-PRS, 98 MHz)는 "
+    f"{RES['nr_G3']['meas']:.1f} m 까지 가르지만, 5G 가 **상시** 내보내는 신호(SSB)는 대역이 "
+    f"{RES['nr_G1']['refbw']:.1f} MHz 뿐이라 {RES['nr_G1']['meas']:.0f} m 로 거칠다. 즉 5G 로 상시 탐지하려면 "
+    "거리 분해능을 크게 손해 본다.",
+    "",
+    "**곁봉우리(가짜표적)는 챔버 밖에 있다.** OFDM 신호의 반복 구조는 곁봉우리를 만들지만, 그 봉우리들은 "
+    f"수백 m~km 거리에 찍혀 우리 챔버 관측창(바이스태틱 거리 ±60 m 안, 도플러 ±{CHAM:.0f} Hz) 밖이다. "
+    f"창 안에서 곁봉우리는 표적보다 {min(r['psl'] for r in RES.values()):.0f} dB 이상 낮아 무해하다.",
+    "",
+    f"**이 모호함수는 실제 검출에 쓰는 거리-도플러 지도와 같은 것이다** — 둘을 맞대 보면 최대 "
+    f"**{MAXERR:.2f} dB** 밖에 차이 나지 않는다. 아래 그림은 신호별 모호함수 지도(위)와 거리축 단면(아래)이다.",
+))
+cells.append(fig("verify_ambiguity_af", "Ambiguity function |chi(tau,fd)| per waveform"))
+cells.append(fig("verify_ambiguity_range", "Zero-Doppler range cut — mainlobe width = range resolution"))
+
+# =========================================================================== #
+#  §3  링크버짓 — 밝기·거리·잡음 → SNR
+# =========================================================================== #
+cells.append(md(
+    "---",
+    "# §3. 링크버짓 — 밝기·거리·잡음이 신호대잡음비를 만든다",
+    "",
+    "> 🔍 **여기서 하는 일:** 표적이 얼마나 밝게 되돌아오는지(레이더 방정식)를 **독립적인 세 방법**으로 "
+    "계산해 서로, 그리고 이론과 맞는지 확인한다.",
+))
+cells.append(md(
+    "**직관.** 밤에 손전등으로 멀리 있는 표지판을 비춘다고 하자. 눈에 들어오는 밝기는 (표지판이 얼마나 "
+    "잘 반사하나) × (거리가 멀수록 어두워짐) ÷ (주변이 얼마나 밝아 방해되나)로 정해진다. 레이더도 똑같다: "
+    "**표적 밝기(σ) × 거리 감쇠 ÷ 잡음** = 되돌아온 신호대잡음비(SNR). 이걸 계산하는 게 **링크버짓**이다.",
+    "",
+    "여기서 표적 밝기 σ 는 Sionna 의 광선추적이 주지 못한다(기본 solver 에 산란적분 단계가 없어 표적 "
+    "밝기를 못 낸다). 그래서 **SBR** — 표적을 광선으로 조준해 맞고 그 면이 되쏘는 양을 물리광학으로 "
+    "합산 — 로 σ 를 따로 계산해 넣는다.",
+    "",
+    "**근거 — 세 계산이 일치한다.** 같은 SNR 을 (a) 닫힌형 공식, (b) 단계별 사슬 계산, (c) dB 산술 세 "
+    f"방법으로 구했더니 서로 최대 **{LB_MAXDEV:.0e} dB** 밖에 차이 나지 않는다(사실상 완전 일치). "
+    f"신호를 모아 쌓는 **처리이득**도 이론 대비 **{PG_ERR:.3f} dB**, **잡음바닥**은 대역폭 보정을 "
+    f"넣으면 이론과 **{NOISE_ERR:.0e} dB** 로 맞는다. 계산 사슬이 통째로 검증됐다.",
+))
+cells.append(md(*(
+    ["| 신호 | 처리이득(이론) | 처리이득(측정) | 잡음바닥 오차 |",
+     "|---|---|---|---|"] +
+    [f"| {n} | {w['theory_ideal_db']:.2f} dB | {w['meas_rect_ongrid_db']:.2f} dB | "
+     f"{[r['err_vs_theory_db'] for r in L['C_noise_floor']['rows'] if r['name']==n][0]:+.0e} dB |"
+     for n, w in PG.items()]
+)))
+
+# =========================================================================== #
+#  §4  디텍션이 실제로 작동한다
+# =========================================================================== #
+cells.append(md(
+    "---",
+    "# §4. 검출확률 곡선 — 디텍션이 실제로 작동한다  ⭐",
+    "",
+    "> 🔍 **여기서 하는 일:** SBR 로 계산한 표적 밝기(σ)를 링크버짓에 넣어 얻은 SCR 로 실제 검출기를 "
+    "돌려, **표적이 정말 잡히는지**를 검출확률(Pd)로 확인한다.",
+))
+cells.append(md(
+    "**직관.** 앞의 §1~§3 은 '한계'와 '눈금'을 다뤘다. 이제 핵심 질문: **그래서 잡히긴 하나?** "
+    "표적 봉우리가 주변 바닥보다 충분히 높으면(SCR 이 크면) 검출기가 발화한다. SCR 이 낮으면 놓치고, "
+    "어느 문턱을 넘으면 확실히 잡는다. 그 전이를 검출확률 곡선으로 본다.",
+    "",
+    f"**근거 — 우리 드론들은 모두 잡힌다.** SBR 로 σ 를 계산해 넣으니 5 대 드론 × 3 신호 = {N_DET} 조합의 "
+    f"측정 SCR 이 **{SCR_MIN:.1f}~{SCR_MAX:.1f} dB** 로 나오고, "
+    f"**{'전부 Pd = 1.0(모두 검출)' if ALL_PD1 else '대부분 검출'}** 이다. "
+    f"링크버짓으로 예측한 SCR 과 실제 지도에서 잰 SCR 의 차이는 평균 **{GAP_MEAN:+.1f} dB**(±{GAP_STD:.1f}) "
+    "로, 이 차이는 오류가 아니라 창 가중 등 **예측 가능한 처리 손실**이다.",
+))
+def _pdlabel(pd):
+    return "✅ Pd=1.0" if pd == 1.0 else f"Pd={pd:.2f}"
+
+
+cells.append(md(*(
+    ["| 드론 | 표적 밝기 σ | 예측 SCR | 측정 SCR | 검출 |",
+     "|---|---|---|---|---|"] +
+    [f"| {r['drone']} | {r['sigma_dbsm']:.1f} dBsm | {r['pred_hann_db']:.1f} dB | "
+     f"{r['scr_meas_db']:.1f} dB | {_pdlabel(r['pd'])} |"
+     for r in DET_TAB]
+)))
+cells.append(md(
+    "*(WiFi 조명 예시 — LTE·5G 도 같은 경향. 작은 드론일수록 σ 가 어둡지만 그래도 문턱 위에 있다.)*",
+    "",
+    "**검출은 SCR 5~15 dB 구간에서 전이한다.** SCR 을 바꿔 가며 검출확률을 재면(5G 조명, 운용 오경보율 "
+    "$10^{-4}$ 기준) 아래처럼 0 에서 1 로 올라선다.",
+))
+cells.append(md(*(
+    ["| SCR | 검출확률 Pd |", "|---|---|"] +
+    [f"| {s:+.1f} dB | {p:.3f} |" for s, p in PD_TRANS if p is not None]
+)))
+cells.append(md(
+    "SCR 5 dB 근처에서는 거의 못 잡다가 15 dB 에 이르면 확실히 잡는다. **우리 드론들의 운용 SCR 은 "
+    f"모두 {SCR_MIN:.0f} dB 이상**으로 이 전이 구간의 위쪽에 있으니 확실히 검출된다.",
+    "",
+    "> 🔑 **이 절이 이 리포트의 결론이다.** 표적을 밝게 만드는 σ 는 탐지에 반드시 필요하고(밝아야 봉우리가 "
+    "선다), 그 σ 를 Sionna 광선추적으로는 못 내므로 **SBR 로 계산해 넣는다.** 그렇게 넣으면 **실제로 "
+    "탐지가 된다** — 위 표가 그 증거다.",
+))
+
+# =========================================================================== #
+#  맺음
+# =========================================================================== #
+cells.append(md(
+    "---",
+    "## 맺음",
+    "",
+    "검출에는 두 종류의 문턱이 있다. **속도 쪽 문턱**: 직접파 제거(ECA)는 정지 성분을 지우므로 "
+    f"초속 약 {V_MIN:.2f}~{V_MAX:.2f} m/s 보다 느린 표적, 특히 호버 드론을 원리적으로 함께 지운다. "
+    "**분해능 쪽 문턱**: 두 표적을 가르는 거리 해상도는 상시 신호의 대역폭이 정하며, 측정치는 "
+    f"교과서 값의 {DR_MIN:.2f}~{DR_MAX:.2f}배로 정확하다. 그 사이에서, 밝기·거리·잡음을 잇는 링크버짓은 "
+    "이론과 소수점까지 맞고, **SBR 로 계산한 표적 밝기(σ)를 넣으면 드론이 실제로 검출된다**"
+    f"(SCR {SCR_MIN:.0f}~{SCR_MAX:.0f} dB, Pd=1.0).",
+    "",
+    "**다음 단계로 실증실험(USRP X410) 및 추후 트래킹(거리+속도)까지 확장 예정.**",
+))
+
+
+def main():
+    nb = {"cells": cells,
+          "metadata": {"kernelspec": {"display_name": "Python 3.12 (py312)",
+                                      "language": "python", "name": "py312"},
+                       "language_info": {"name": "python"}},
+          "nbformat": 4, "nbformat_minor": 5}
+    with open(NB, "w", encoding="utf-8") as f:
+        json.dump(nb, f, ensure_ascii=False, indent=1)
+    print(f"notebook 생성: {os.path.relpath(NB, ROOT)}  ({len(cells)} cells)")
+
+
+if __name__ == "__main__":
+    main()

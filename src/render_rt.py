@@ -83,7 +83,7 @@ def cam(pos, look=(W / 2, D / 2, H / 2)):
                      look_at=mi.Point3f(*[float(v) for v in look]))
 
 
-def shot(scene, name, camera, paths=None, radio_map=None, res=(1280, 900), spp=256,
+def shot(scene, name, camera, paths=None, radio_map=None, res=(1920, 1280), spp=512,
          clip=None, fov=70.0, **kw):
     p = os.path.join(OUT, f"{name}.png")
     t0 = time.time()
@@ -116,7 +116,7 @@ CAMS = {
 
 def render_scene_tour(quick=False):
     print("① 씬 투어 (챔버 + 배치)")
-    spp = 64 if quick else 384
+    spp = 96 if quick else 512
     sc_out = make_scene(cutaway=False)
     shot(sc_out, "rt_01_chamber_outside", cam((-26, -22, 18)), spp=spp)
     sc = make_scene(cutaway=True)
@@ -131,7 +131,7 @@ def render_scene_tour(quick=False):
 # --------------------------------------------------------------------------- #
 def render_paths(quick=False, max_depth=3, spp_rt=2_000_000):
     print("② 추적된 경로 (Sionna 가 그린다)")
-    spp = 64 if quick else 384
+    spp = 96 if quick else 512
     sc = make_scene(cutaway=True)
     solver = rt.PathSolver()
     for md, tag in ((0, "los"), (1, "1bounce"), (max_depth, f"{max_depth}bounce")):
@@ -151,8 +151,8 @@ def render_paths(quick=False, max_depth=3, spp_rt=2_000_000):
 # --------------------------------------------------------------------------- #
 def render_radio_map(quick=False):
     print("③ 라디오맵 (RadioMapSolver)")
-    spp = 64 if quick else 384
-    n_tx = 200_000 if quick else 3_000_000
+    spp = 96 if quick else 512
+    n_tx = 1_000_000 if quick else 20_000_000
     sc = make_scene(cutaway=True)
     rms = rt.RadioMapSolver()
     for z, tag in ((0.05, "floor"), (float(TGT[2]), "droneplane")):
@@ -173,7 +173,7 @@ def render_radio_map(quick=False):
 # --------------------------------------------------------------------------- #
 def render_drone_gallery(quick=False):
     print("④ 드론 5종 (공식 외형에 맞춘 수정 메쉬)")
-    spp = 96 if quick else 512
+    spp = 96 if quick else 768
     import numpy as _np
     from drones import build_drone
     for key in DRONES:
@@ -185,7 +185,7 @@ def render_drone_gallery(quick=False):
                        ("side", (0.0, -r, 0.03 * span)),         # 측면 — 높이(수정된 부분)가 보인다
                        ("top", (0.01 * span, 0.0, r))):
             shot(sc, f"rt_30_drone_{key}_{tag}", cam(p, look=(0, 0, 0)),
-                 res=(1000, 750), spp=spp, fov=35.0)
+                 res=(1400, 1050), spp=spp, fov=35.0)
 
 
 # --------------------------------------------------------------------------- #
@@ -193,7 +193,7 @@ def render_drone_gallery(quick=False):
 # --------------------------------------------------------------------------- #
 def render_flight(n_frames=24, quick=False):
     print(f"⑤ 비행 프레임 ×{n_frames}")
-    spp = 48 if quick else 256
+    spp = 64 if quick else 384
     sys.path.insert(0, _BENCH)
     from geometry import TX as gTX, RX as gRX, CENTER, SPEED, SPAN
     from scenarios import radial
@@ -208,7 +208,7 @@ def render_flight(n_frames=24, quick=False):
                        samples_per_src=500_000, seed=1)
         f = os.path.join(fdir, f"frame_{i:03d}.png")
         sc.render_to_file(camera=cam(*CAMS["wide"]), filename=f, num_samples=spp,
-                          resolution=(960, 700), paths=paths, fov=70.0)
+                          resolution=(1280, 940), paths=paths, fov=70.0)
         if i % 6 == 0:
             print(f"  frame {i:3d}/{n_frames}")
     make_gif(fdir, os.path.join(OUT, "rt_40_flight.gif"))
