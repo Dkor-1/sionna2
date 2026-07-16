@@ -509,21 +509,24 @@ def _add_antenna(m, spec, body_l, body_w, body_z):
                          center=(sx, 0, z0 + h / 2), group="body"))
 
 
+# 재질 → 표시색 (모든 드론 공통; 색만 보면 재질을 안다) — 2026-07-16 사용자 지시로 재질별 매핑
+MATERIAL_COLOR = {
+    "plastic":         (0.82, 0.82, 0.85),   # 밝은 회색 — 플라스틱 셸/캐노피/착륙장치/식별색
+    "carbon":          (0.09, 0.09, 0.10),   # 검정 — 탄소섬유 암
+    "metal":           (0.52, 0.60, 0.72),   # 강청(steel-blue) — 금속(모터·배터리 포일)
+    "prop_plastic":    (0.90, 0.55, 0.12),   # 주황 — 프로펠러(잘 보이게)
+    "camera_assembly": (0.20, 0.48, 0.58),   # 청록 — 카메라(금속하우징+유리렌즈)
+    "pcb":             (0.12, 0.48, 0.22),   # FR-4 초록 — ESC/메인보드
+}
+
+
 def drone_colors(spec: DroneSpec) -> dict:
-    """부위 그룹 → 표시색 RGB. (재질키는 DRONE_GROUP_MAT 사용)"""
-    body = spec.body_rgb
-    return {
-        "body":   body,
-        "canopy": tuple(0.85 * c for c in body),
-        "arm":    (0.10, 0.10, 0.11) if spec.arm_style == "carbon" else body,
-        "motor":  (0.20, 0.20, 0.22),
-        "prop":   (0.15, 0.15, 0.16),
-        "gear":   tuple(0.7 * c for c in body) if spec.fixed_arm else (0.12, 0.12, 0.13),
-        "camera": (0.08, 0.08, 0.09),
-        "accent": spec.accent_rgb or (0.85, 0.1, 0.1),
-        "battery": (0.16, 0.16, 0.19),               # 내부(렌더에선 셸에 가려 안 보임)
-        "pcb":    (0.10, 0.32, 0.16),
-    }
+    """부위 그룹 → **재질별** 표시색 RGB. **모든 드론이 같은 규칙**이라 색만 보면 재질을 안다:
+      metal=강청 · plastic=회색 · carbon=검정 · prop=주황 · camera=청록 · pcb=초록.
+    (색과 전파재질은 **같은 그룹**(DRONE_GROUP_MAT)에서 나온다 — 이제 렌더 색이 곧 재질이다.)
+    이전의 드론별 개성 색(body_rgb/accent_rgb 기반)은 재질이 헷갈려 폐기했다."""
+    return {grp: MATERIAL_COLOR.get(mat, (0.7, 0.7, 0.7))
+            for grp, (mat, _) in DRONE_GROUP_MAT.items()}
 
 
 if __name__ == "__main__":

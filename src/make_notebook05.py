@@ -372,6 +372,12 @@ cells.append(md(
     "![sionna waveforms](outputs/figures/report2_sionna_waveforms.png)",
 ))
 
+cells.append(md(
+    "![.](outputs/renders/anim/spectrum_wifi.gif)\n\n"
+    "<sub>WiFi 파형 스펙트럼(넓은 대역) — 시간파형·스펙트럼 모두 Sionna 와 상관 1.0000 로 "
+    "일치했다.</sub>"
+))
+
 cells.append(code(
     "# §3 재현 — 자작 파형과 Sionna 파형을 겹쳐 계산한 상관·NMSE 를 그대로 읽는다 (하드코딩 없음)",
     "import json",

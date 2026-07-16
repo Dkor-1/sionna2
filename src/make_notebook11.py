@@ -370,6 +370,11 @@ cells.append(md(
 ))
 cells.append(fig("verify_ambiguity_af", "Ambiguity function |chi(tau,fd)| per waveform"))
 cells.append(fig("verify_ambiguity_range", "Zero-Doppler range cut — mainlobe width = range resolution"))
+cells.append(md("![.](outputs/renders/anim/ambiguity_nr.gif)\n\n"
+                "<sub>5G 신호의 모호함수(거리-도플러) — 가운데 봉우리가 좁고 날카로울수록 "
+                "표적을 또렷이 가른다.</sub>"))
+cells.append(md("![.](outputs/renders/anim/ambiguity_lte.gif)\n\n"
+                "<sub>LTE 신호의 모호함수 — 대역이 좁아 거리축으로 더 퍼진다(분해능이 거칠다).</sub>"))
 
 # =========================================================================== #
 #  §3  링크버짓 — 밝기·거리·잡음 → SNR

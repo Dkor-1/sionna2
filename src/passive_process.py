@@ -88,13 +88,17 @@ class ECACanceller:
       n_taps : 제거할 지연(거리) 탭 수 — 가까운 클러터/직접파 영역 폭.
     (모듈 함수 eca() 는 이 클래스를 1회용으로 감싼 것 — 기존 호출부 호환.)"""
 
-    def __init__(self, ref, n_taps=40):
+    def __init__(self, ref, n_taps=40, ridge_rel=0.0):
+        """ridge_rel>0: **상대 대각로딩** — 대역제한(가드/DC 널) 기준신호의 자기상관 행렬이
+        준특이라 Cholesky 가 깨질 때 R[0](신호전력)의 ridge_rel 배를 더한다. 기본 0 이면
+        기존 동작(절대 1e-6)과 완전히 동일 — 다른 리포트 재현성 불변."""
         self.ref = np.asarray(ref)
         self.n_taps = int(n_taps)
         N = len(self.ref); n = self.n_taps
         R = np.array([np.vdot(self.ref[:N - d], self.ref[d:]) for d in range(n)])  # 자기상관 lag 0..n
         idx = np.arange(n); D = idx[None, :] - idx[:, None]                        # j−i
-        XhX = np.where(D <= 0, R[np.abs(D)], np.conj(R[np.abs(D)])) + 1e-6 * np.eye(n)
+        load = 1e-6 + float(ridge_rel) * abs(R[0])
+        XhX = np.where(D <= 0, R[np.abs(D)], np.conj(R[np.abs(D)])) + load * np.eye(n)
         self._cho = cho_factor(XhX)                    # Hermitian PD → Cholesky 1회
 
     def cancel(self, surv):

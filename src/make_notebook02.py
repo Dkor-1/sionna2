@@ -313,6 +313,18 @@ cells.append(md(
     "",
 ))
 
+# §4 갤러리 안에서 각 드론 3-뷰 렌더 바로 다음에 회전 GIF 한 컷을 곁들인다.
+SPIN_GIFS = {
+    "mavic4pro": ("outputs/renders/anim/spin_mavic4pro.gif",
+                  "Mavic 4 Pro 3D 모델 회전(실측 실험용 드론)."),
+    "mini5pro": ("outputs/renders/anim/spin_mini5pro.gif",
+                 "Mini 5 Pro 3D 모델 회전."),
+    "phantom4": ("outputs/renders/anim/spin_phantom4.gif",
+                 "Phantom 4 3D 모델 회전."),
+    "s1000plus": ("outputs/renders/anim/spin_s1000plus.gif",
+                  "S1000+ 3D 모델 회전(큰 헥사콥터)."),
+}
+
 for k in ORDER:
     v = DR[k]
     iso = R[f"drone_{k}_iso"]
@@ -325,6 +337,36 @@ for k in ORDER:
         "|---|---|---|",
         f"| ![{k} iso]({iso}) | ![{k} side]({side}) | ![{k} top]({top}) |",
     ))
+    if k in SPIN_GIFS:
+        gif, cap = SPIN_GIFS[k]
+        cells.append(md(f"![.]({gif})\n\n<sub>{cap}</sub>"))
+
+# ── §4 마무리: 재질색 규약 · 실제 크기 비교 · 부위별 회전(분절) 한눈에 ──
+cells.append(md(
+    "### 색은 곧 재질 — 그리고 실제 크기 비교",
+    "",
+    "위 렌더의 **색은 재질**입니다(모든 드론 공통 규약): "
+    "**강청=금속**(모터·배터리 포일) · **회색=플라스틱**(셸·착륙장치) · **검정=탄소섬유**(암) · "
+    "**주황=프로펠러** · **청록=카메라**(금속하우징+유리) · **초록=PCB**. 색만 보면 그 부위가 무슨 "
+    "재질인지 알 수 있고, 이 재질이 그대로 RCS(되쏘는 밝기) 계산에 쓰입니다(→ report06·07).",
+    "",
+    "**실제 크기 비교(같은 축척, 위에서 본 모습).** 5종은 크기가 크게 다릅니다 — Mini 5 Pro(275 mm)부터 "
+    "S1000+(1045 mm)까지 대각 길이가 약 4배:",
+    "",
+    "![drone size comparison](outputs/figures/drone_size_compare.png)",
+    "",
+    "<sub>같은 축척으로 나란히 둔 5종 실루엣(재질색·스케일바 0.5 m). 크기가 다르면 되쏘는 밝기(RCS)도 "
+    "달라진다 — 큰 S1000+ 가 작은 Mini 5 Pro 보다 훨씬 밝게 잡힌다.</sub>",
+    "",
+    "**부위별로 따로 움직인다 — 분절(articulated) 메쉬.** 몸체와 프로펠러가 **독립적으로** 회전합니다. "
+    "아래는 5종이 몸체를 돌리며 동시에 프로펠러를 스핀시키는 모습입니다(같은 메쉬로 마이크로도플러 "
+    "시뮬레이션을 할 수 있는 이유 → report08):",
+    "",
+    "![five drones spinning](outputs/renders/anim/drone_gallery_row.gif)",
+    "",
+    "<sub>5종 동시 회전 + 프로펠러 스핀(분절 메쉬). 몸체 자세와 블레이드 회전이 분리돼 있어, 실제 비행 중 "
+    "프로펠러만 빠르게 도는 상황을 그대로 만들 수 있다.</sub>",
+))
 
 # ============================================================================ #
 #  §5  속이 더 중요하다 — 내부 금속
