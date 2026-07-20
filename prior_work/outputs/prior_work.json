@@ -1,6 +1,6 @@
 {
  "meta": {
-  "compiled": "2026-07-20 (3차: LAMBDA·Temporal-GNN 직접선례 + 신뢰성등급 + 하이브리드 정식화)",
+  "compiled": "2026-07-20 (4차: 파일럿 13편 반영 + Sionna-센싱 결합표)",
   "method": "2× deep-research 워크플로(adversarial verify) + 직접 WebSearch/WebFetch 재확인. 검증 등급 표기.",
   "verify_grades": {
    "CONFIRMED": "적대적 검증 2-0/3-0 통과",
@@ -134,6 +134,68 @@
     "https://arxiv.org/abs/2303.11103"
    ],
    "credibility": "⭐ **Sionna 창설 논문(NVIDIA, Hoydis)** — 엔진 저자 = 최상위 권위"
+  },
+  {
+   "key": "costa_thoma",
+   "title": "Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC",
+   "authors": "H.C.A. Costa, S.J. Myint, C. Andrich, C. Schneider, R.S. Thomä (TU Ilmenau)",
+   "venue": "IEEE J-STEAP 2025 · arXiv:2504.05168",
+   "grade": "WEB",
+   "credibility": "⭐ **peer-reviewed IEEE 저널** · Thomä 그룹(채널·EM 권위) — 신뢰도 상",
+   "sensed": "다중 프로펠러 드론(바이스태틱 OFDM 분산 ISAC), 측정검증",
+   "target_scatter": "(d)+(c) thin-wire 점산란체(프로펠러)+PO/정적동체 RCS",
+   "detection": "마이크로도플러 모델(측정 대조)",
+   "vs_us": "⭐드론 멀티산란체 바이스태틱 모델의 최근접 선례 — 우리 SBR+PO(전체메쉬+내부산란체)와 방법 다르나 목표 동일",
+   "sources": [
+    "https://arxiv.org/abs/2504.05168",
+    "https://arxiv.org/abs/2401.14287"
+   ]
+  },
+  {
+   "key": "wypich",
+   "title": "Experimental Evaluation of 5G NR OFDM-Based Passive Radar Exploiting Reference, Control, and User Data",
+   "authors": "M. Wypich, T.P. Zielinski (AGH Krakow + Ericsson)",
+   "venue": "Sensors (MDPI) 2026 · DOI 10.3390/s26041317",
+   "grade": "WEB",
+   "credibility": "⭐ **peer-reviewed Sensors** · AGH 레이더랩+Ericsson · **실 하드웨어** — 신뢰도 상",
+   "sensed": "차량(실측 OTA), USRP X310, 5.8GHz 33.3MHz",
+   "target_scatter": "(e) 실측(모델 아님)",
+   "detection": "**ECA+ → CA-CFAR** — 우리 체인과 동일. PDSCH 사용자데이터 재구성 시 POD 24-32%→77-78%",
+   "vs_us": "⭐우리 ECA→CAF→CFAR 의 실 하드웨어 선례(USRP X-계열=우리 X410). '기준=풀웨이브폼' 실증=우리 G1/G3 서사",
+   "sources": [
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC12944637/"
+   ]
+  },
+  {
+   "key": "jopanya",
+   "title": "Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones",
+   "authors": "P. Jopanya, D.P.M. Osorio",
+   "venue": "IEEE SPAWC 2025 (accepted) · arXiv:2504.02641",
+   "grade": "WEB",
+   "credibility": "**peer-reviewed 학회(SPAWC) 채택** — 신뢰도 중상",
+   "sensed": "저고도 드론(5G NR SSB 패시브 바이스태틱), CRB",
+   "target_scatter": "(c/e) 점표적",
+   "detection": "거리·속도 CRB(이론/시뮬)",
+   "vs_us": "최근접 '패시브-5G SSB-드론' 선례 — 우리 G1(SSB 최악 상시모드)와 동일 조명원",
+   "sources": [
+    "https://arxiv.org/abs/2504.02641"
+   ]
+  },
+  {
+   "key": "gpp_sim",
+   "title": "Implementation and Calibration of 3GPP-Compliant ISAC Channel Simulator",
+   "authors": "C.-H. Wu, M.-C. Lee, T.-S. Lee",
+   "venue": "arXiv:2606.07328 · 오픈 MATLAB(GitHub Putirf)",
+   "grade": "WEB",
+   "credibility": "preprint + 공개 보정코드 — 신뢰도 중상(3GPP 레퍼런스 대조 보정)",
+   "sensed": "(표적 일반) 3GPP TR38.901 ISAC 채널",
+   "target_scatter": "(c) 점산란체(표준)",
+   "detection": "채널 생성(target/background 분리)",
+   "vs_us": "우리 h=h_dir+h_bg+h_target 주입구조의 **표준 오픈 구현** — 배경채널 교차검증 후보",
+   "sources": [
+    "https://arxiv.org/abs/2606.07328",
+    "https://github.com/Putirf/Implementation-and-Calibration-of-3GPP-Compliant-ISAC-Channel-Model-Simulator"
+   ]
   }
  ],
  "tools": [
@@ -157,13 +219,14 @@
    "repo": "github.com/radarsimx/radarsimpy",
    "grade": "WEB",
    "license": "GPLv3 (완전 오픈)",
-   "does": "Python+C++ 레이더 시뮬 — 점표적 + **3D STL 메쉬 RCS**, 마이크로도플러/터빈, Swerling, 거리도플러·DoA·CFAR",
+   "does": "Python+C++ 레이더 시뮬 — ⭐ **`sim_rcs()` 가 SBR(Shooting-Bouncing Rays) 방법으로 3D 메쉬 RCS 계산** (**우리 rcs_sbr.py 와 같은 방법**), **모노+바이스태틱 모두 지원**(입사/관측각 파라미터), 재질(PEC/유전체) 반영, 마이크로도플러/터빈, Swerling, 거리도플러·DoA·CFAR",
    "target_scatter": "3D 메쉬 RCS 직접 계산(광선추적 기반). 다만 5G/WiFi 통신 파형 스택은 없음",
    "detection": "✅ 거리도플러·CFAR·DoA",
-   "adopt": "HIGH(검증 오라클) — 우리 SBR+PO 드론 RCS·프로펠러 마이크로도플러를 **독립 도구로 교차검증**하는 데 이상적. GPLv3 라 자유 사용",
+   "adopt": "⭐⭐ HIGH(**우리 SBR+PO 의 직접 라이브러리 대체**) — sim_rcs 가 같은 SBR 방법·바이스태틱·재질 지원. '검증 후 대체': 우리 메쉬로 sim_rcs σ 재계산 → report08 값과 대조 → ±2 dB 일치 시 RCS 엔진을 RadarSimPy 로 이관. 단 내부 산란체(배터리/PCB) 다중재질·챔버 바이스태틱 기하 커버 여부는 확인 필요",
    "sources": [
     "https://github.com/radarsimx/radarsimpy",
-    "https://github.com/radarsimx/radarsimpy/blob/master/LICENSE"
+    "https://github.com/radarsimx/radarsimpy/blob/master/LICENSE",
+    "https://radarsimx.github.io/radarsimpy/api/sim.html"
    ]
   },
   {
@@ -259,7 +322,7 @@
    "repo": "github.com/thliebig/openEMS",
    "grade": "WEB",
    "license": "GPLv3",
-   "does": "완전 전자기장(full-wave) EC-FDTD 솔버 — Python/MATLAB 인터페이스, **RCS 계산 튜토리얼(RCS_Sphere)** 제공. 3D Maxwell 직접 풂",
+   "does": "완전 전자기장 EC-FDTD 솔버 — total-field/scattered-field + **nf2ff(근접장→원거리장)로 임의 θ/φ 각 RCS** (∴ 바이스태틱 가능), RCS_Sphere 튜토리얼 제공. Python/MATLAB",
    "target_scatter": "full-wave RCS(가장 정확) — σ(f,az,el,pol) 룩업테이블 오프라인 생성",
    "detection": "n/a (EM 솔버)",
    "adopt": "MEDIUM(RCS 상위검증) — RadarSimPy 보다 **더 정확한** σ 오라클(단 λ/10 메싱이라 드론 전체는 매우 무겁다). 오프라인 drone_rcs.h5 룩업 생성용. 우리 SBR+PO/RadarSimPy 를 한 번 더 앵커",
@@ -321,6 +384,168 @@
   "correction": "⚠ 이전 판(1차 조사) 정정: '패시브 바이스태틱 ECA 는 드롭인 오픈소스 없음'이라 했으나, **pyAPRiL 이 정확히 그 드롭인**이다(ECA/ECA-B/ECA-S·CAF·CA-CFAR·DoA, GPLv3). 사용자 심화 이미지가 이를 지목.",
   "hybrid_formalism": "외부 산란계수 s_q 를 Sionna 두 전파구간 사이에 주입: h_target(t,τ)=Σ_q Σ_p Σ_r h^(p)_{T→q}(t)·s_q(f,Ω_i,Ω_s,R_q(t))·h^(r)_{q→R}(t)·δ(τ−τ^(p)_Tq−τ^(r)_qR); h_surv=h_direct+h_background+h_target, h_ref=h_illuminator→reference. s_q 는 스칼라 σ_b 보다 **복소 바이스태틱 산란행렬 S_b=[[S_θθ,S_θφ],[S_φθ,S_φφ]]** 가 이상적(위상·편파·방향간섭 보존; α_b=√(σ_b/4π)e^{jφ_b}). ⭐우리 SBR+PO 는 이미 복소장 E 를 내므로 스칼라RCS 주입보다 앞섬.",
   "our_approach_is_leading": "⭐ 우리 '자작 RCS(SBR+PO) → Sionna 채널 주입' 하이브리드는 **최신 Sionna-ISAC 선도 연구가 쓰는 바로 그 방식**이다: LAMBDA(2607.03826)=Sionna+CADFEKO UAV RCS, Temporal-GNN(2604.08306)=Sionna+점산란체 RCS 주입, clutter-aware ISAC=산란체별 통계RCS 부여. 차이는 RCS 를 상용툴(CADFEKO)이 아니라 우리가 SBR+PO 로 계산하고, 능동 FMCW 가 아니라 패시브 바이스태틱 OFDM 이라는 것 — 오히려 노벨티가 여기서 생긴다.",
-  "credibility_ranking": "신뢰성 순(참고 가중): peer-reviewed[Deterministic-Modeling EuCAP2026, Ziganshin] > 권위원천[Sionna-RT 창설(NVIDIA), CISSIR NVIDIA공식] > 대규모 preprint[LAMBDA 2.04TB, Great-X] > 일반 preprint[Temporal-GNN, SimART]. arXiv preprint 는 게재 확정 아님 — 방법론 참고엔 좋으나 수치는 보수적으로."
+  "credibility_ranking": "신뢰성 순(참고 가중): peer-reviewed[Deterministic-Modeling EuCAP2026, Ziganshin] > 권위원천[Sionna-RT 창설(NVIDIA), CISSIR NVIDIA공식] > 대규모 preprint[LAMBDA 2.04TB, Great-X] > 일반 preprint[Temporal-GNN, SimART]. arXiv preprint 는 게재 확정 아님 — 방법론 참고엔 좋으나 수치는 보수적으로.",
+  "report06_library_replacement": "⭐ report06 의 SBR+PO(표적 RCS 계산)는 라이브러리로 대체 가능하다. 선행: LAMBDA=**CADFEKO**(상용 full-wave). 오픈소스: **RadarSimPy.sim_rcs()** 가 **우리와 같은 SBR 방법**·바이스태틱·재질 지원(GPLv3) — 가장 직접적 대체. **openEMS/Meep** 는 full-wave(nf2ff 로 바이스태틱)지만 λ/10 메싱이라 드론 전체엔 무겁다 → 오프라인 앵커 몇 점만. 권장: RadarSimPy 로 교차검증→일치 시 RCS 엔진 이관, openEMS 로 1점 full-wave 앵커, SBR+PO 는 내부산란체 등 특수케이스."
+ },
+ "sionna_sensing_table": {
+  "columns": [
+   "연도",
+   "연구(플랫폼)",
+   "게재처(신뢰성)",
+   "센싱 대상",
+   "Sionna 활용(무엇을)",
+   "결합 도구/라이브러리",
+   "결합 방식",
+   "표적 산란"
+  ],
+  "rows": [
+   [
+    "2026",
+    "LAMBDA (데이터셋)",
+    "arXiv:2607.03826 (preprint·2.04TB)",
+    "저고도 UAV",
+    "재질인식 RT: multipath CSI·지연·도플러·각도",
+    "CADFEKO + UE5·AirSim·Blender",
+    "Sionna CSI × CADFEKO 자세의존 RCS × virtual-array 조향 → FMCW radar cube",
+    "(c) 외부 RCS 주입"
+   ],
+   [
+    "2026",
+    "Temporal-GNN for ISAC",
+    "arXiv:2604.08306 (preprint)",
+    "이동 표적",
+    "바이스태틱 ISAC CIR 생성",
+    "자체 점산란체 RCS·안테나패턴",
+    "CIR 에 외부 점산란체 bistatic RCS 주입 → delay-Doppler → GNN 추적",
+    "(c) 점산란체 주입"
+   ],
+   [
+    "2025",
+    "Great-X (Unreal is all you need)",
+    "arXiv:2507.08716 (preprint)",
+    "저고도 UAV",
+    "**Sionna식 RT 를 Unreal 안에 재구현**",
+    "Unreal Engine",
+    "단일엔진에서 RT 채널 모델링(확산계수 S)",
+    "(b) 확산계수 S"
+   ],
+   [
+    "2026",
+    "Deterministic Modeling ISAC",
+    "arXiv:2603.28736 (**EuCAP 2026, peer-reviewed**)",
+    "차량(모노·바이스태틱)",
+    "RT 내장 확산 산란",
+    "(측정 79GHz 채널사운딩)",
+    "재질별 S 를 실측 보정(R²+S²=1)",
+    "(b) 확산계수 S"
+   ],
+   [
+    "2026",
+    "Ziganshin (Discretized Curved Bodies)",
+    "arXiv:2604.05991 (preprint·TU Ilmenau)",
+    "구·원통·차량",
+    "Sionna-RT v0.19 를 **기저 엔진**으로만",
+    "자체 UTD 회절 확장",
+    "경면 facet + UTD 회절 add-on",
+    "(d) 커스텀 산란"
+   ],
+   [
+    "2025",
+    "CISSIR (NVIDIA 공식)",
+    "arXiv:2502.10371 (**NVIDIA Made-with-Sionna**)",
+    "(물리표적 없음)",
+    "빔 코드북·자기간섭 저감",
+    "—",
+    "센싱 성능=SI 저감·양자화한계",
+    "— (표적 RCS 없음)"
+   ]
+  ],
+  "our_row": [
+   "2026",
+   "**우리(sionna2)**",
+   "(진행)",
+   "DJI 드론 5종",
+   "챔버 전파·직접파·바닥유령·지연커널·9모드 파형",
+   "**자작 SBR+PO**(복소장 E) · pyAPRiL(검출·검증) · OpenISAC(실측)",
+   "Sionna 채널에 SBR+PO σ(복소) 주입 h=h_dir+h_bg+h_target → pyAPRiL ECA/CAF/CFAR",
+   "(d)+(c) 자작 SBR+PO 계산→주입"
+  ],
+  "note": "우리와 같은 열(Sionna 전파 + 외부 RCS 주입)에 LAMBDA·Temporal-GNN 이 있고, 우리는 상용 CADFEKO 대신 자작 SBR+PO(복소장), 능동 FMCW 대신 패시브 바이스태틱 OFDM. 표적산란 (b)확산S/(c)점산란체/(d)커스텀 중 우리는 (d)로 계산해 (c)로 주입 = 3GPP Rel-19 표준(h_bg+h_target)과 정합."
+ },
+ "related_precedent_table": {
+  "columns": [
+   "연도",
+   "연구",
+   "게재처(신뢰성)",
+   "조명원/구조",
+   "방법",
+   "표적/드론",
+   "우리와의 관계"
+  ],
+  "rows": [
+   [
+    "2025",
+    "Costa & Thomä (multi-propeller μD)",
+    "**IEEE J-STEAP 2025(peer-reviewed)**·arXiv:2504.05168",
+    "분산 ISAC·바이스태틱 OFDM",
+    "thin-wire 점산란체+PO 로터 RCS+정적동체, 측정검증",
+    "다중 프로펠러 드론",
+    "⭐드론 멀티산란체 바이스태틱 모델의 최근접 선례(우리 SBR+PO 대응)"
+   ],
+   [
+    "2024",
+    "Costa & Thomä (RadarConf24)",
+    "IEEE RadarConf24·arXiv:2401.14287",
+    "분산 ISAC",
+    "프로펠러 μD 수학모델, 측정검증",
+    "드론 프로펠러",
+    "위 J-STEAP 의 학회판"
+   ],
+   [
+    "2026",
+    "Wypich & Zielinski",
+    "**Sensors 2026(peer-reviewed)**·AGH+Ericsson",
+    "5G NR 패시브 바이스태틱",
+    "**USRP X310, ECA+ → CA-CFAR**, PDSCH 사용자데이터 활용",
+    "차량(실측 OTA)",
+    "⭐우리 ECA→CFAR 실하드웨어 선례; '기준=풀웨이브폼' 실증(POD 24→78%)"
+   ],
+   [
+    "2025",
+    "Jopanya & Osorio",
+    "**IEEE SPAWC 2025(accepted)**·arXiv:2504.02641",
+    "5G NR **SSB** 패시브 바이스태틱",
+    "점표적 CRB(거리·속도)",
+    "저고도 드론",
+    "최근접 패시브-5G SSB-드론(우리 G1 최악모드)"
+   ],
+   [
+    "2026",
+    "3GPP Rel-19 ISAC Sim (Putirf)",
+    "arXiv:2606.07328 + **오픈 MATLAB**",
+    "3GPP TR38.901 채널",
+    "target/background 채널·점산란체 RCS",
+    "(표적 일반)",
+    "h=h_bg+h_target 표준 구현 — 우리 주입구조의 표준 근거·교차검증 후보"
+   ],
+   [
+    "2025",
+    "Zhang et al.(BUPT) Unified RCS",
+    "arXiv:2505.20673 (BUPT 3GPP 주도)",
+    "3GPP RCS 표준",
+    "**측정 UAV RCS 5밴드**(전력×각도×랜덤)",
+    "UAV·인체·차량",
+    "측정 UAV RCS 앵커 + 구조적 RCS 주입이 우리와 정합"
+   ],
+   [
+    "2025",
+    "NYU/Rappaport ISAC Imaging",
+    "arXiv:2509.06672 (NYU WIRELESS)",
+    "NYURay(비-Sionna) 바이스태틱",
+    "CSI 경면 멀티패스→3D 반사점 영상화",
+    "물체 표면",
+    "기하 광선추적은 경면만—RCS 크기는 외부공급 필요(우리 주장 재확인)"
+   ]
+  ]
  }
 }

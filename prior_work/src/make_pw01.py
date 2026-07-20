@@ -9,7 +9,18 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from pw_common import PAPERS, SYN, BADGE, md, code, srclinks, write_nb  # noqa: E402
+from pw_common import PAPERS, SYN, BADGE, J, md, code, srclinks, write_nb  # noqa: E402
+
+
+def render_table(tbl, our_row_key=None):
+    """팀미팅 형식 표(dict: columns·rows[·our_row]) → 마크다운."""
+    cols = tbl["columns"]
+    lines = ["| " + " | ".join(cols) + " |", "|" + "|".join(["---"] * len(cols)) + "|"]
+    for r in tbl["rows"]:
+        lines.append("| " + " | ".join(str(c) for c in r) + " |")
+    if our_row_key and tbl.get(our_row_key):
+        lines.append("| " + " | ".join(str(c) for c in tbl[our_row_key]) + " |")
+    return "\n".join(lines)
 
 
 def paper_block(k):
@@ -60,6 +71,37 @@ cells = [
         "선도 연구가 쓰는 방식이다** — LAMBDA 는 CADFEKO 로, Temporal-GNN 은 점산란체로 RCS 를 별도 계산해 "
         "Sionna 채널에 넣는다. 우리는 상용 CADFEKO 대신 자작 SBR+PO 를 쓰고, 능동 FMCW 대신 패시브 "
         "바이스태틱이라는 점이 다르다(자세히 §2·§4·pw03).",
+    ),
+    md(
+        "---",
+        "## §1b. ⭐ 한눈에 보는 표 — Sionna 를 센싱에 쓴 연구는 어떻게 결합했나",
+        "",
+        "질문(사용자 요청): *Sionna 로 센싱 시뮬레이션을 한 연구들은 Sionna 를 **어떻게 활용**했고, "
+        "**어떤 라이브러리**와 **어떤 방식**으로 결합했나?* — 팀미팅 문헌표 형식으로 정리한다. "
+        "**맨 아래 굵은 줄이 우리 위치**다.",
+        "",
+        render_table(J["sionna_sensing_table"], our_row_key="our_row"),
+        "",
+        f"> {J['sionna_sensing_table']['note']}",
+        "",
+        "**표적 산란 처리 3분류**(어느 칸이든 이 중 하나): **(b)** 확산계수 S 가정 · **(c)** 외부 RCS 를 "
+        "별도 계산/가정해 채널에 주입 · **(d)** 커스텀 산란 add-on. Sionna 자체는 소형 표적의 코히어런트 "
+        "RCS 를 메쉬에서 못 내므로(→§5), 센싱 연구는 전부 이 셋 중 하나로 **RCS 를 밖에서 넣는다**.",
+    ),
+    md(
+        "---",
+        "## §1c. 관련 선례 표 — 비-Sionna 이지만 우리 태스크에 직접 맞닿은 연구",
+        "",
+        "Sionna 를 안 썼어도 **패시브 바이스태틱·드론 RCS/마이크로도플러·5G 조명원·3GPP 표준**에서 우리와 "
+        "직접 겹치는 선례들. (드론 문헌 목록 자체는 팀미팅 덱 LTE/5G/WiFi 패시브 레이더 표 참고.)",
+        "",
+        render_table(J["related_precedent_table"]),
+        "",
+        "> 🔑 **핵심.** 우리 접근의 세 조각이 각각 강한 선례를 갖는다 — 드론 멀티산란체 바이스태틱 μD"
+        "(**Costa & Thomä, IEEE J-STEAP peer-reviewed**), ECA→CFAR 5G 패시브 레이더 실측"
+        "(**Wypich & Zielinski, Sensors, USRP X310**), 외부 RCS 주입 h=h_bg+h_target"
+        "(**3GPP Rel-19 표준 오픈 구현**). 우리 기여는 이 셋의 **결합**(패시브 바이스태틱 + 자작 SBR+PO "
+        "드론 RCS + 상시vs세션 9모드)이다.",
     ),
     md("---", "## §2. ⭐ 가장 직접적인 선례 — 'Sionna + 외부 RCS 주입' 하이브리드"),
     paper_block("lambda"),
