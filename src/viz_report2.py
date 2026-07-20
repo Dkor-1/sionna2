@@ -411,23 +411,23 @@ def fig_crosscheck(rows, nr, waves):
         #  '첫 CP 만' 막대는 **실제로 무너진 경우에만** 빨강. WiFi 는 CP 가 균일해 멀쩡하므로
         #  회색 — 빨강으로 칠하면 "WiFi 도 깨졌다"로 오독된다(요점은 그 반대다).
         bug_col = "#c62828" if not r["cp_uniform"] else "#9e9e9e"
-        bars = ax.bar(["CP array\n(correct)", "first CP only\n(the bug)"], vals,
+        bars = ax.bar(["CP array\n(correct)", "first CP only\n(rule missed)"], vals,
                       color=["#2e7d32", bug_col], width=0.55)
         for b, v in zip(bars, vals):
             ax.annotate(f"{v:.4f}", (b.get_x() + b.get_width() / 2, v), ha="center",
                         va="bottom", fontsize=11, fontweight="bold")
         ax.set_ylim(0, 1.30); ax.set_ylabel("correlation with our waveform")
         cph = ", ".join(str(v) for v in r["cp_head"])
-        ax.set_title(("CP is uniform -> bug invisible" if r["cp_uniform"]
-                      else "CP varies -> bug caught"),
+        ax.set_title(("CP uniform -> first-CP rule doesn't matter" if r["cp_uniform"]
+                      else "CP varies -> first-CP rule matters"),
                      fontsize=10, fontweight="bold",
                      color=("#777777" if r["cp_uniform"] else "#c62828"))
         ax.annotate(f"CP lengths = [{cph} ...]", (0.5, 1.10), xycoords="axes fraction",
                     ha="center", fontsize=8.5, color="#555")
         ax.grid(axis="y", alpha=0.3)
 
-    fig.suptitle("Cross-check: our OFDM modulator matches Sionna bit-for-bit - and that is how "
-                 "we caught the CP bug", fontsize=15, fontweight="bold")
+    fig.suptitle("Cross-check: our OFDM modulator matches Sionna to numerical precision - and is "
+                 "sensitive to the first-symbol CP rule", fontsize=15, fontweight="bold")
     fig.tight_layout(rect=(0, 0.08, 1, 0.95))
     return _save(fig, "report2_crosscheck.png",
                  "Same resource grid, two modulators: ours (src/waveforms.py) and Sionna "

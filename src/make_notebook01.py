@@ -134,7 +134,7 @@ cells += provenance_cells(
     ],
     artifacts=[
         {"file": "outputs/report1.json", "what": "챔버 치수·재질(단일 진리원)"},
-        {"file": "outputs/report3_rt.json", "what": "바닥 반사 손계산 vs Sionna RT"},
+        {"file": "outputs/report3_rt.json", "what": "바닥 반사 손계산 vs Sionna RT (레거시 report3_ 파일명 유지)"},
         {"file": "outputs/renders/r1_1x_chamber_*.png", "what": "Sionna 가 렌더한 챔버 사진"},
         {"file": "outputs/figures/report3_f4_floor.png", "what": "바닥 반사 일치 그래프"},
     ],
@@ -206,7 +206,7 @@ cells.append(md(
     f"- **네 벽 + 천장** = **피라미드 흡수체**로 덮여 있다. 전파가 여기 닿으면 되튕기지 않고 폼 속에서 열로 사라진다. "
     "(모델 안에서 흡수체 표면은 삼각형 약 {:,}개로 촘촘히 만들어져 있다.)".format(n_absorber),
     "- **바닥** = 콘크리트다. 유일하게 전파를 되튕기는 면이다. "
-    f"콘크리트의 유전율은 ε_r={eps_r:.2f}, 반사율은 |Γ|≈{gamma_floor:.2f} — "
+    f"콘크리트의 유전율은 ε_r={eps_r:.2f}, 반사율은 |Γ|≈{gamma_floor:.2f}(수직 입사 기준 — 실제 46° 입사에선 §4 의 Γ≈0.26) — "
     f"닿은 전파의 **진폭** 기준 약 {gamma_floor*100:.0f}%"
     f"(세기로는 약 {gamma_floor**2*100:.0f}%)를 되튕긴다.",
     "",
@@ -308,7 +308,7 @@ cells.append(md(
     f"② 콘크리트 바닥이 완벽한 거울이 아니라 일부만 되튕긴다. "
     f"바닥에 닿는 각도({theta_i:.0f}° — 수직 기준)와 콘크리트 물성으로 정해지는 **프레넬 반사계수 Γ≈{gamma_tm:.2f}** 가 "
     "그 감쇠를 준다. 둘을 합치면 바닥 메아리는 직접파보다 "
-    f"**{abs(rel_pred):.1f} dB**(약 {1/(10**(rel_pred/20)):.0f}배) 약하다.",
+    f"**{abs(rel_pred):.1f} dB**(진폭으로 약 {1/(10**(rel_pred/20)):.0f}배·세기로는 약 {1/(10**(rel_pred/10)):.0f}배) 약하다.",
     "",
     "### 라이브러리의 답과 맞댄다",
     "",

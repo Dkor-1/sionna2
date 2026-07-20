@@ -82,8 +82,8 @@ _prov = provenance_cells(
                "peer-reviewed), 셀룰러 하향링크 멀티스태틱 도플러 추적(arXiv:2509.25732), "
                "**5G SSB** 저고도 드론 검출·측위(Jopanya & Osorio, *IEEE SPAWC* 2025, "
                "arXiv:2504.02641) (§3)."),
-        lib=("**5G NR·LTE 뉴머롤로지는 Sionna PHY `nr.CarrierConfig` 에 물어**(중복 구현 회피), "
-             "**WiFi 와 상시 기준신호(CRS/SSB) 격자만 3GPP TS 36.211/38.211·IEEE 802.11ac 표에서 "
+        lib=("**5G NR 뉴머롤로지는 Sionna PHY `nr.CarrierConfig`(TS 38.211 구현) 에 물어**(중복 구현 회피), "
+             "**LTE·WiFi 파형과 상시 기준신호(CRS/SSB) 격자는 3GPP TS 36.211/38.211·IEEE 802.11ac 표에서 "
              "자작**(`src/waveforms.py`)한다. 점유대역·PRF 를 격자에서 읽어 "
              "ΔR=c/$B_{ref}$·$v_{max}$=PRF·λ/4 로 환산(§4)."),
         verify=(f"파형이 정말 규격대로인지는 **Sionna PHY 로 교차대조(report05)** — 대역폭·뉴머롤로지·"
@@ -123,9 +123,9 @@ _prov = provenance_cells(
         dict(file="outputs/figures/report2_ref_signal.png",
              what="§2 넓이→거리 · 반복→속도 예산 그림"),
         dict(file="outputs/figures/report2_resource_grid.png",
-             what="§3 자원격자 사진 (WiFi/LTE/5G × 유휴/풀로드)"),
+             what="§2 자원격자 사진 (WiFi/LTE/5G × 유휴/풀로드)"),
         dict(file="outputs/figures/report2_occupancy.png",
-             what="§3 점유율은 늘어도 거리분해능은 안 늘더라"),
+             what="§2 점유율은 늘어도 거리분해능은 안 늘더라"),
     ],
 
     caveats=[
@@ -408,8 +408,9 @@ cells.append(md(
     "우리는 선행이 고른 그 상시 기준신호들을 **한 챔버에서 같은 조건으로** 나란히 세워 장단점을 가린다. "
     "핵심은 **이미 있는 것은 다시 짜지 않는다**는 것이다:",
     "",
-    "- **5G NR·LTE 뉴머롤로지**(μ·SCS·슬롯·CP)는 🟢 **Sionna PHY `nr.CarrierConfig`** 에 물어 그대로 "
-    "받는다(TS 38.211 구현). 표를 손으로 짜지 않으니 규격과 어긋날 수 없고, OFDM 파형 생성도 Sionna 가 한다.",
+    "- **5G NR 뉴머롤로지**(μ·SCS·슬롯·CP)는 🟢 **Sionna PHY `nr.CarrierConfig`** 에 물어 그대로 "
+    "받는다(TS 38.211 구현) — 표를 손으로 짜지 않으니 규격과 어긋날 수 없고, 5G OFDM 파형 생성도 Sionna 가 한다. "
+    "**LTE 뉴머롤로지**(15 kHz SCS·normal CP)는 🔴 TS 36.211 로 자작한다(nr.CarrierConfig 는 5G NR 전용).",
     "- **WiFi(802.11) 파형과 상시 기준신호(CRS·SSB)의 자원격자 배치**만 🔴 3GPP TS 36.211/38.211·"
     "IEEE 802.11ac 표에서 자작한다(`src/waveforms.py`, 조사 근거 `docs/waveform_research.json`) — "
     "Sionna 가 이 부분을 기본 제공하지 않기 때문이다(§1).",

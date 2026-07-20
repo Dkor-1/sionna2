@@ -106,7 +106,7 @@ axB.set_ylabel("RMS of Δσ(az)  [dB]", fontsize=9)
 axB.set_ylim(0, max(rms) * 1.25)
 axB.grid(axis="y", alpha=0.25)
 axB.text(0.5, -0.30,
-         "5–12 dB pointwise → nulls & glints are NOT citable per-angle",
+         "6–12 dB pointwise → nulls & glints are NOT citable per-angle",
          transform=axB.transAxes, ha="center", fontsize=8.5, style="italic", color="0.3")
 
 # ── Row 2, panel C: projected-area difference bars ──────────────────────────
@@ -122,7 +122,7 @@ axC.set_title("C. Projected-area difference", fontsize=10.5, fontweight="bold")
 axC.set_ylabel("Δ mean projected area  [dB]", fontsize=9)
 axC.grid(axis="y", alpha=0.25)
 axC.text(0.5, -0.30,
-         "−3.5…−5.3 dB: ours is smaller (legs / masts under-modelled)",
+         "−3.0…−3.7 dB: ours is smaller (legs / masts under-modelled)",
          transform=axC.transAxes, ha="center", fontsize=8.5, style="italic", color="0.3")
 
 fig.savefig(OUT, dpi=130, bbox_inches="tight", facecolor="white")

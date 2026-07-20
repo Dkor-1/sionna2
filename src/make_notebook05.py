@@ -128,8 +128,6 @@ _prov = provenance_cells(
              what="`crosscheck` 블록 = **이 리포트의 모든 대조 숫자**(상관·NMSE·CP 길이)"),
         dict(file="outputs/figures/report2_crosscheck.png",
              what="§4·§5 교차검증 — 시간파형·스펙트럼 포갬 + 첫-심볼 CP 민감도"),
-        dict(file="outputs/figures/report2_sionna_waveforms.png",
-             what="§3·§4 Sionna = OFDM 엔진이자 채점자, 잔차 = float32 반올림"),
         dict(file="outputs/figures/report2_numerology.png",
              what="§3 5G 뉴머롤로지 — 우리가 안 짜고 CarrierConfig 에서 읽어온 표"),
     ],
@@ -320,9 +318,9 @@ cells.append(md(
     "소수를 딱 그만큼만 정밀하게 다룬다' 는 뜻입니다.",
     "",
     "아래 그림이 이걸 한눈에 보여줍니다. 시간파형(위)·스펙트럼(가운데)이 두 색으로 완전히 "
-    "포개지고, 잔차(오른쪽 아래 패널)는 -135 dB 언저리의 평평한 잡음 — 즉 **float32 반올림** 입니다.",
+    "포개지고, 각 패널 제목의 오차(NMSE)는 -135 dB 언저리 — 즉 **float32 반올림** 입니다.",
     "",
-    "![sionna waveforms](outputs/figures/report2_sionna_waveforms.png)",
+    "![crosscheck](outputs/figures/report2_crosscheck.png)",
 ))
 
 cells.append(md(
@@ -379,7 +377,7 @@ cells.append(md(
     "균일해서 이 조항이 없고, 그래서 값이 안 변합니다 — 한 신호만 봐서는 걸러낼 수 없을 종류의 "
     "미세한 차이가, **여러 표준을 함께 대조**하기에 드러납니다.)",
     "",
-    "![crosscheck](outputs/figures/report2_crosscheck.png)",
+    "이 CP 붕괴는 §4 교차검증 그림의 **맨 아래 줄**(막대: 'CP array' vs 'first CP only')에서 확인할 수 있습니다.",
     "",
     "> **정리 —** 상관 1.0000 은 '눈으로 봐서 비슷하다' 와는 차원이 다른 성적표입니다. 슬롯 첫 "
     "심볼의 CP 를 한 조각만 틀려도 0.05 로 무너지는 시험을, 세 신호가 전부 **만점**으로 "
