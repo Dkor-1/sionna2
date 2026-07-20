@@ -173,19 +173,22 @@ def render_radio_map(quick=False):
 # --------------------------------------------------------------------------- #
 def render_drone_gallery(quick=False):
     print("④ 드론 5종 (공식 외형에 맞춘 수정 메쉬)")
-    spp = 96 if quick else 768
+    spp = 96 if quick else 1536                                  # 최고품질(유휴 GPU 활용)
     import numpy as _np
     from drones import build_drone
-    for key in DRONES:
+    only = os.environ.get("SIONNA2_DRONE_ONLY")                  # 병렬용: 특정 드론만
+    keys = [only] if only and only in DRONES else list(DRONES)
+    for key in keys:
         sc = make_scene(drone=key, tgt=(0.0, 0.0, 0.0), with_chamber=False, vel=None)
         V = _np.asarray(build_drone(DRONES[key]).v, float)       # 실제 메쉬 크기로 프레이밍
         span = float(_np.linalg.norm(V.max(0) - V.min(0)))       # 대각 크기 [m]
-        r = span * 1.35                                          # fov 35° 에 꽉 차게
-        for tag, p in (("iso", (r * 0.75, -r * 0.62, r * 0.35)),
-                       ("side", (0.0, -r, 0.03 * span)),         # 측면 — 높이(수정된 부분)가 보인다
+        r = span * 1.12                                          # fov 35° 에 꽉 차게(여백 최소)
+        for tag, p in (("iso", (r * 0.72, -r * 0.60, r * 0.34)),
+                       ("front", (r * 0.98, -r * 0.14, r * 0.20)),  # 정면 — 실사진 각도 정합(기수=+x, 거의 정면·약간 위)
+                       ("side", (0.0, -r, 0.03 * span)),         # 측면 — 높이가 보인다
                        ("top", (0.01 * span, 0.0, r))):
             shot(sc, f"rt_30_drone_{key}_{tag}", cam(p, look=(0, 0, 0)),
-                 res=(1400, 1050), spp=spp, fov=35.0)
+                 res=(1600, 1200), spp=spp, fov=35.0)
 
 
 # --------------------------------------------------------------------------- #

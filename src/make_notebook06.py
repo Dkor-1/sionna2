@@ -126,7 +126,7 @@ _prov = provenance_cells(
         gap=(f"`PathSolver` 는 경로별 **지연 τ·도플러·복소이득·반사점**만 반환한다"
              f"(Sionna RT 창설논문 arXiv:2303.11103 이 'per-path gain' 으로 문서화). 표적 밝기 σ 는 "
              f"그 목록에 없다 — 평판을 {plate_sides[0]:.1f}→{plate_sides[-1]:.0f} m 로 키워 참 RCS 가 "
-             f"{plate_span:.0f} dB 넓어져도 RT 값은 {rt_flat:.2f} dBsm 에서 불변(§2)."),
+             f"{plate_span:.0f} dB 넓어져도 RT 값은 {rt_flat:.2f} dB 에서 불변(§2)."),
         prior=("소형 표적의 코히어런트 RCS 를 스톡 Sionna 로 낸 선행은 **없다**. 표준 우회 세 갈래 — "
                "**(b)** 재질 확산계수 S 가정[Great-X], **(c)** 외부에서 RCS 계산·주입 "
                "$h=h_{bg}+h_{target}$[LAMBDA=Sionna+CADFEKO, Temporal-GNN=점산란체, 3GPP Rel-19], "
@@ -177,13 +177,13 @@ _prov = provenance_cells(
         dict(file="outputs/report3_rt.json",
              what="**이 리포트의 그림 숫자 원장.** [A] 광선예산 [B] S스윕 [C] 재질 [D] 평판 [E] 구"),
         dict(file="outputs/rt_no_rcs_verify.json",
-             what="§3 평판 52 dB 스윕 · §2 PEC 구 0-경로 (독립 재현)"),
+             what="§2 평판 52 dB 스윕 · §2 PEC 구 0-경로 (독립 재현)"),
         dict(file="outputs/rt_ray_budget.json",
-             what="§2 광선 25M→400M · §4 S 스윕 (독립 재현)"),
+             what="§2 광선 25M→400M · §2 S 스윕 (독립 재현)"),
         dict(file="outputs/figures/report3_f6_no_sigma.png",
              what="**핵심 그림** — [A]~[E] 5 패널 (4억 발 그림)"),
         dict(file="outputs/figures/report3_f7_hybrid.png",
-             what="§5 역할 분담 그림 (환경=RT, 표적=SBR)"),
+             what="§4 역할 분담 그림 (환경=RT, 표적=SBR)"),
     ],
 
     caveats=[
@@ -199,10 +199,10 @@ _prov = provenance_cells(
 
         f"**RT 가 표적 위치에 내놓는 -7.9 dB 는 '표적 크기와 무관한 거울 경로 값'입니다** "
         f"(image-source, 20·log₁₀(L/(R₁+R₂)) = {img_formula:.2f} dB). 이것을 RCS 로 오해하면 안 "
-        f"됩니다 — §3 에서 평판을 {plate_span:.0f} dB 키워도 이 값이 안 움직이는 것으로 증명합니다.",
+        f"됩니다 — §2 에서 평판을 {plate_span:.0f} dB 키워도 이 값이 안 움직이는 것으로 증명합니다.",
 
         f"**산란계수 S 를 켜면 RT 도 어떤 '에코' 를 내놓지만, 그건 물리적 σ 가 아니라 재질 표의 "
-        f"손잡이입니다.** S 를 ×4 하면 값이 {S_x4_delta:+.1f} dB 움직이고(§4), 게다가 ITU 표에서 "
+        f"손잡이입니다.** S 를 ×4 하면 값이 {S_x4_delta:+.1f} dB 움직이고(§2), 게다가 ITU 표에서 "
         f"금속의 S=0 이라 드론 밝기의 {metal_share:.0f}% 를 차지하는 금속부(모터·배터리·PCB·카메라)는 "
         f"이 확산 채널에 **전혀 기여하지 못합니다.**",
 
@@ -372,7 +372,7 @@ cells.append(md(
 ))
 
 cells.append(code(
-    "# §3 재현 — 평판을 키워도 RT 값은 불변 (그림 [D])",
+    "# §2 재현 — 평판을 키워도 RT 값은 불변 (그림 [D])",
     "import json, math",
     "V = json.load(open('outputs/rt_no_rcs_verify.json'))",
     "g = V['geometry']; L, R1, R2 = g['L'], g['R1'], g['R2']",
@@ -415,7 +415,7 @@ cells.append(md(
 ))
 
 cells.append(code(
-    "# §4 재현 — S 는 손잡이: 돌리면 값이 따라 움직인다 (그림 [B])",
+    "# §2 재현 — S 는 손잡이: 돌리면 값이 따라 움직인다 (그림 [B])",
     "import json",
     "RB = json.load(open('outputs/rt_ray_budget.json'))",
     "print('산란계수 S   코히런트 에코[dB]')",
@@ -443,6 +443,7 @@ cells.append(md(
     "",
     "| 갈래 | 방식 | 대표 선행 |",
     "|---|---|---|",
+    "| **(a)** | 스톡 Sionna 직접 (산란적분 없음) | — **불가**(이 리포트의 출발점) |",
     "| **(b)** | 재질 **확산계수 S** 가정 | Great-X (arXiv:2507.08716) |",
     "| **(c)** | 외부에서 RCS 계산·가정 후 주입 $h=h_{bg}+h_{target}$ | LAMBDA=Sionna+CADFEKO(arXiv:2607.03826) · Temporal-GNN=점산란체(arXiv:2604.08306) · 3GPP Rel-19 |",
     "| **(d)** | 커스텀 **산란 add-on**(SBR+PO·UTD) | Ziganshin UTD · GPU BVH SBR+PO(arXiv:2604.09243) |",

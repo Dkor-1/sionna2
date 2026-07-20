@@ -281,7 +281,7 @@ cells.append(md(
 
 # 1-sinc² 노치 대조표 (5G)
 _nc = [r for r in NOTCH_CURVE["rows"]
-       if r["fd_over_dfd"] in (0.1, 0.2, 0.3, 0.5, 0.8, 1.0)]
+       if round(r["fd_over_dfd"], 2) in (0.1, 0.2, 0.3, 0.5, 0.8, 1.0)]
 cells.append(md(*(
     ["| 표적 도플러 ÷ 한 칸 | 측정 에너지 손실 | 이론 $1-\\mathrm{sinc}^2$ |",
      "|---|---|---|"] +
@@ -404,7 +404,7 @@ cells.append(md(
     "**검출체인은 검증된 표준이다.** ECA→CAF→CFAR 사슬 자체는 오픈소스 pyAPRiL(GPLv3)이 제공하는 그 체인이며, "
     f"그대로 돌려 NR·WiFi·LTE **{PY_OK}/{PY_N} 모드 모두** 표적을 정답 거리빈(오차 {PY_ERR} 빈)에 검출함을 "
     "확인했다(outputs/verify_pyapril.json). 아래 **대량 몬테카를로 Pd 곡선은 그 같은 표준 체인을 GPU 로 "
-    "(대량 시행) 돌려** 얻은 것이다 — 검증된 체인이고, 대량 통계만 GPU 로 낸다.",
+    "대량 반복해** 얻은 것이다 — 검증된 체인이고, 대량 통계만 GPU 로 낸다.",
     "",
     f"**근거 — 드론이 모두 잡힌다.** SBR 로 계산한 σ 를 넣으니 5 대 드론 × 3 신호 = {N_DET} 조합의 "
     f"측정 SCR 이 **{SCR_MIN:.1f}~{SCR_MAX:.1f} dB** 로 나오고, "

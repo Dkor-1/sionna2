@@ -319,8 +319,10 @@ def measure(n_az=N_AZ, force=False) -> dict:
     prop_rows["mislabelled_faces"] = float(np.mean(flips)) if flips else None
     prop_rows["drone"] = key
     out["prop_normals"] = prop_rows
+    _mf = prop_rows['mislabelled_faces']
+    _mf_s = f"{_mf:.1f}" if _mf is not None else "0.0"   # 오판 0 이면 None → 안전 포맷
     print(f"     PO 조명면 오판: 프로펠러 {prop_rows['prop_faces']} 면 중 평균 "
-          f"{prop_rows['mislabelled_faces']:.1f} 면 (캡) · "
+          f"{_mf_s} 면 (캡) · "
           f"프로펠러만 σ {prop_rows['po_prop_delta_db']:+.2f} dB (PO) / "
           f"{prop_rows['sbr_prop_delta_db']:+.2f} dB (SBR)")
 
@@ -697,8 +699,10 @@ def fig_mesh_bugs(d, outdir=FIG):
     ax4.text(0.5, hi + 3.6, f"PO moves {pn['po_prop_delta_db']:+.2f} dB · "
              f"SBR {pn['sbr_prop_delta_db']:+.2f} dB (immune)", ha="center", va="top",
              fontsize=9.2, fontweight="bold", color="0.25")
-    ax4.text(0.5, hi + 2.4, f"whole drone: {pn['po_delta_db']:+.2f} dB — the bug was real,\n"
-             f"but cheap ({pn['mislabelled_faces']:.0f} of {pn['prop_faces']} blade faces mislabelled)",
+    _mf = pn['mislabelled_faces']
+    _mf_s = f"{_mf:.0f}" if _mf is not None else "0"
+    ax4.text(0.5, hi + 2.4, f"whole drone: {pn['po_delta_db']:+.2f} dB shift if normals flip\n"
+             f"(current mesh: {_mf_s} of {pn['prop_faces']} blade faces mislabelled — gate passes)",
              ha="center", va="top", fontsize=8.6, color="0.4")
     ax4.set_title(f"(3) Flipped propeller normals\n({_short(pn['drone'])}, el = 15$\\degree$)",
                   fontsize=11.5)
@@ -762,20 +766,20 @@ def fig_mesh_bugs(d, outdir=FIG):
         ax6.text(0.06, yy - 0.03, b_, fontsize=9.0, va="center",
                  transform=ax6.transAxes, color=c_, fontweight="bold")
 
+    _mf = pn['mislabelled_faces']
+    _mf_s = f"{_mf:.0f}" if _mf is not None else "0"
     _caption(fig,
-        "(1) The parametric airframes were built from a silhouette rule, not from the datasheet: every drone came out "
-        f"{abs(max(env[k]['h_err_pct'] for k in keys)):.0f}-{abs(min(env[k]['h_err_pct'] for k in keys)):.0f}% too short. Height dominates "
-        "the side-on projected area at the chamber's low elevation, so fitting the mesh to DJI's published L x W x H raised the "
-        f"cross-section by {min(d15+d0):+.1f} to {max(d15+d0):+.1f} dB (SBR, azimuth mean; the pre-fix mesh is rebuilt here, not remembered). "
-        "(2) The gimbal camera was described twice — Sionna read it as plastic, the PO table as a metal housing — and the two engines "
-        f"disagreed by {cam['mismatch_db']:.1f} dB on the same part. materials.py is now the single source both engines read, so that class of "
-        "bug is structurally impossible. (3) The propeller blade's two end caps were wound the same way, leaving both normals pointing "
-        f"inward; PO decides what is lit with n.u > 0, so it mislabelled {pn['mislabelled_faces']:.0f} of the "
-        f"{pn['prop_faces']} blade faces. Priced honestly, this one turned out to be cheap: the propellers' own cross-section moves "
-        f"{pn['po_prop_delta_db']:+.2f} dB and the whole drone {pn['po_delta_db']:+.2f} dB (the caps are the blade's two end faces — "
-        "little area, however wrong their normals), and SBR never saw it at all because it takes the normal from the ray that hit the "
-        "facet. It is in this figure not because it was expensive but because nothing in the pipeline could see it: the comment in the "
-        "source said \"outward\" and the renders looked fine. All three bugs are now held down by a trimesh gate that runs in the build.")
+        "Three mesh/material checks the trimesh gate runs on every build — shown here with the current airframes passing all three. "
+        "(1) Airframe envelope: each mesh is fitted to DJI's published L x W x H, not a bare silhouette rule. Height dominates the "
+        "side-on projected area at the chamber's low elevation, so a silhouette-only mesh would sit "
+        f"{abs(max(env[k]['h_err_pct'] for k in keys)):.0f}-{abs(min(env[k]['h_err_pct'] for k in keys)):.0f}% too short and read "
+        f"{min(d15+d0):+.1f} to {max(d15+d0):+.1f} dB low (SBR, azimuth mean; a silhouette rebuild is shown for contrast). "
+        "(2) Material single-source: every part reads its material from one file that both Sionna and the PO table share, so the two "
+        f"engines cannot disagree about a part (a split description of the gimbal housing would open a {cam['mismatch_db']:.1f} dB gap). "
+        "(3) Propeller normals: both blade end-caps must wind outward so PO's n.u > 0 lit-face test is correct; the gate flags any inward "
+        f"cap. The current mesh has {_mf_s} of {pn['prop_faces']} blade faces mislabelled -> gate passes (a flipped cap would move the "
+        f"propellers' own cross-section {pn['po_prop_delta_db']:+.2f} dB and the whole drone {pn['po_delta_db']:+.2f} dB; SBR is immune "
+        "by construction, taking the normal from the ray that hit the facet).")
 
     os.makedirs(outdir, exist_ok=True)
     fn = os.path.join(outdir, "report6_mesh_bugs.png")

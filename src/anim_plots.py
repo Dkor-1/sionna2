@@ -380,8 +380,8 @@ def drone_row_gif(name="drone_gallery_row", frames=48):
             ax.view_init(elev=24, azim=-60)
             ax.set_title(disp[d], fontsize=15, fontweight="bold", pad=2, color="white")
         fig.suptitle("Five drones — body rotating + propellers spinning (articulated mesh)   "
-                     "material colors: metal=steel-blue · plastic=gray · carbon=black · "
-                     "prop=orange · camera=teal · pcb=green", fontsize=10.5, y=0.99, color="white")
+                     "material colors: metal=steel-blue · plastic/prop=gray · carbon=black · "
+                     "camera=orange · pcb=green", fontsize=10.5, y=0.99, color="white")
         fig.subplots_adjust(left=0.003, right=0.997, top=0.88, bottom=0.01, wspace=0.02)
 
     a = animation.FuncAnimation(fig, update, frames=frames, blit=False)

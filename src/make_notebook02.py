@@ -15,7 +15,7 @@
 ⚠ 노트북은 **생성물**이다. report02.ipynb 를 직접 고치지 말고 이 파일을 고쳐 다시 돌릴 것.
 
 본문 수치는 **손으로 적지 않는다** — outputs/report1.json 의 meshes 블록에서 읽어 주입한다.
-다루지 않는 것(다른 리포트 소관): 실물 사진 대조(→report03) · 표적 RCS(→report06~08).
+다루지 않는 것: 표적 RCS(→report06~08). 실물 제품 사진과의 눈 대조는 §4 에서 하고, 프록시 실기체 CAD 와의 치수·σ 분포 대조는 report03(본 RCS 계산은 06~08).
 """
 from __future__ import annotations
 
@@ -111,7 +111,7 @@ cells += provenance_cells(
              "만들고, 전파적으로 밝은 내부 금속(배터리·모터·PCB)까지 넣는다(§3)."),
         verify=(f"`trimesh` 내장 검사(watertight·법선방향·퇴화면)를 **빌드 게이트**로 — 5종 전체 불량 면 "
                 f"{GRAND_BAD}개; 외곽 상자를 공식 치수와 대조(오차 사실상 0), 입력하지 않은 모터 대각까지 "
-                f"자동 일치(§4). 실물 CAD·사진 정성 대조는 report03."),
+                f"자동 일치(§4). 실물 제품 사진과의 눈 대조도 §4, 프록시 실기체 CAD 와의 치수·σ 분포 대조는 report03(본 RCS 계산은 06~08)."),
     ),
 
     sources=[
@@ -139,14 +139,14 @@ cells += provenance_cells(
     caveats=[
         "이 모델은 **제원표의 치수와 눈에 보이는 형상**을 맞춘 것이다. 나사·배선·틈새 같은 "
         "밀리미터 이하 디테일은 없다 — 이 리포트는 '겉모양이 맞다'까지만 보장한다.",
-        "**실물 사진과의 정성 대조**(정말 그 기체처럼 보이는가)는 여기서 하지 않는다 → report03 소관.",
+        "실물 제품 사진과의 **눈 대조**는 §4 에서 한다. 서로 다른 프록시 실기체 CAD·스캔과의 **치수·σ 분포 대조**는 report03(본 RCS 계산은 06~08).",
         "**레이더 밝기(RCS, σ)** 는 이 리포트에서 계산하지 않는다. 여기서 만든 메쉬를 **재료**로 삼아 "
         "이후 리포트(06~08)가 광선+물리광학으로 밝기를 계산한다.",
     ],
     cost="CPU 만 사용(메쉬 생성·검사는 GPU 불필요). 5종 전체 생성+검사 수십 초 규모.",
     related=[
         dict(rep="report01 — 통제 환경: 반무향 챔버", rel="이 드론들을 **띄울 무대**. 앞 리포트."),
-        dict(rep="report03 — 모델을 믿어도 되나(실물 대조)", rel="여기서 만든 겉모양을 **실물과 대본다**. 다음 리포트."),
+        dict(rep="report03 — 모델을 믿어도 되나(분포 대조)", rel="겉모양을 프록시 실기체 CAD·스캔과 **치수·σ 분포로 대조**한다(본 RCS 계산은 06~08). 다음 리포트."),
         dict(rep="report06~08 — RCS · SBR", rel="이 메쉬를 재료로 표적의 **레이더 밝기 σ** 를 계산한다."),
     ],
     glossary=[
@@ -305,8 +305,8 @@ cells.append(md(
     "### 재현한 5종",
     "",
     "이렇게 해서 크기와 용도가 서로 다른 **5종**을 재현했습니다. 손바닥만 한 250 g 미니 드론부터, "
-    "8개 로터에 9.5 kg 나 나가는 산업용 대형 헥사콥터까지 폭이 넓습니다. 표적이 작고 크고, 프로펠러가 "
-    "많고 적음에 따라 레이더에 잡히는 양상이 달라지므로, 일부러 다양하게 갖췄습니다.",
+    "8개 로터에 9.5 kg 나 나가는 산업용 대형 옥토콥터까지 폭이 넓습니다. 표적의 **크기와 프로펠러 수**에 "
+    "따라 레이더에 잡히는 양상이 달라지므로, 일부러 다양하게 갖췄습니다.",
     "",
     *gal_rows,
     "",
@@ -321,12 +321,14 @@ cells.append(md(
 SPIN_GIFS = {
     "mavic4pro": ("outputs/renders/anim/spin_mavic4pro.gif",
                   "Mavic 4 Pro 3D 모델 회전(실측 실험용 드론)."),
+    "matrice4e": ("outputs/renders/anim/spin_matrice4e.gif",
+                  "Matrice 4E 3D 모델 회전(실측 실험용 드론)."),
     "mini5pro": ("outputs/renders/anim/spin_mini5pro.gif",
                  "Mini 5 Pro 3D 모델 회전."),
     "phantom4": ("outputs/renders/anim/spin_phantom4.gif",
                  "Phantom 4 3D 모델 회전."),
     "s1000plus": ("outputs/renders/anim/spin_s1000plus.gif",
-                  "S1000+ 3D 모델 회전(큰 헥사콥터)."),
+                  "S1000+ 3D 모델 회전(큰 옥토콥터)."),
 }
 
 for k in ORDER:
@@ -457,11 +459,11 @@ cells.append(md(
     "",
     "각 드론의 **실제 제품 사진**(왼쪽)과 우리가 **스펙시트에서 만든 메쉬**(오른쪽)를 나란히 놓았습니다. "
     "스펙 치수(대각·프롭·엔벨로프)는 공식값 그대로 두고, 실사진·웹조사를 참고해 **결정적 형상**을 담았습니다 "
-    "— Mavic 4 Pro 의 큰 전면 Hasselblad 3렌즈 짐벌·전방향 어안, Matrice 4E 의 전면 측량 짐벌·상단 RTK 돔·"
-    "레이저 거리계, Mini 5 Pro 의 전면 1인치 짐벌·전방 LiDAR, Phantom 4 의 아치형 착륙다리·벨리 짐벌, "
-    "S1000+ 의 8로터 방사형 접이암.",
+    "— Mavic 4 Pro 의 큰 전면 Hasselblad 3렌즈 짐벌·전방향 어안·전방 LiDAR, Matrice 4E 의 전면 측량 짐벌·상단 RTK 돔·"
+    "레이저 거리계, Mini 5 Pro 의 전면 1인치 짐벌·전방 LiDAR·전방향 어안, Phantom 4 의 아치형 착륙다리·벨리 짐벌·5방향 비전, "
+    "S1000+ 의 8로터 방사형 접이암·상단 GPS.",
     "",
-    "![real photo vs v2 mesh](outputs/figures/report2_photo_compare.png)",
+    "![real photo vs our mesh](outputs/figures/report2_photo_compare.png)",
     "",
     "<sub>색은 **재질 규약**(plastic=회색·metal=파랑·camera=주황…)이라 실제 도색(그레이/화이트)과 다르다 — "
     "우리가 맞추는 것은 **형상**이지 색이 아니다. 재질도 실제 구성을 반영했다(웹조사 확인): 동체 셸·암·프로펠러는 "

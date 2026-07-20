@@ -1,0 +1,322 @@
+{
+  "summary": "Deep primary-source verification of drone part materials: teardowns, FCC internal photos, RCS papers",
+  "agentCount": 5,
+  "logs": [],
+  "result": [
+    {
+      "drone": "DJI Mavic 4 Pro (aircraft model L3AB2410, FCC ID SS3-L3AB2410; released May 2025; 1063 g takeoff weight)",
+      "confirmed": [
+        "Propellers: 'Enhanced Nylon Composite Material', model 1158F, 26.7x14.7 cm — stated on DJI official support page (Aircraft Propeller Materials, Dimensions, and Models). PRIMARY/manufacturer CONFIRMED.",
+        "Battery: 4S LiPo, Lithium Nickel Manganese Cobalt Oxide (Li-NMC) chemistry, 6654 mAh / 95.3 Wh, 332 g, 14.32 V nominal — DJI Intelligent Flight Battery spec (repair.dji.com). PRIMARY/manufacturer CONFIRMED for chemistry/type. Battery = 332 g of 1063 g = single densest mass in airframe.",
+        "FCC certification: model L3AB2410 = Mavic 4 Pro, FCC ID SS3-L3AB2410, granted 2025 with External + Internal Photos on file at fccid.io (Internal Photos 1&2 of 2, dated 2025-06-02). PRIMARY document exists (image OCR not machine-readable in this pass, but filing confirmed).",
+        "Overall RCS class (family, not this exact model): measured DJI Mavic Pro mean RCS -8.1 to -19.1 dBsm at 24 GHz; DJI P4 Pro -15.0/-12.4 dBsm at 15/25 GHz (arXiv 1911.05926) — small consumer drones fall roughly -10 to -25 dBsm at mmWave. PRIMARY measurement papers."
+      ],
+      "conventional": [
+        "Body/central chassis: SECONDARY consensus = magnesium-alloy internal frame inside a polycarbonate outer shell (multiple reviews: mydeardrone, digitalcameraworld, engadget). One repair source (reboot-hub) instead calls the central chassis 'carbon-fiber-reinforced polyamide'. Conflicting secondary; NOT confirmed by a primary teardown material statement.",
+        "Arms: 'high-strength composite' / glass- or carbon-fiber-reinforced polyamide (reboot-hub repair guide, secondary). Arms double as folding landing structure. Convention.",
+        "Motors: brushless DC outrunner — copper windings, NdFeB (neodymium) permanent magnets, electrical-steel stator laminations, aluminum/steel bell housing. No DJI/teardown material statement found; universal for this motor class. CONVENTION.",
+        "PCB: FR-4 glass-epoxy laminate with copper traces + metal (nickel-silver/steel) RF shielding cans over the SDR/WLAN/BLE RF section. FCC filing confirms multi-band RF PCBs exist; specific shield metal inferred by convention.",
+        "Gimbal: magnesium-alloy 3-axis frame (reboot-hub repair guide + gimbal-repair sources, secondary/consistent) with plastic camera housing and small coreless/BLDC gimbal motors (copper + magnets). Frame material semi-corroborated but not primary-confirmed.",
+        "Landing gear: no separate landing legs — folded front arms/props serve as ground contact; feet are molded plastic (convention).",
+        "Battery casing detail: hard plastic (PC/ABS) outer shell over aluminum-laminate pouch cells (convention; DJI states chemistry, not casing material)."
+      ],
+      "part_materials": {
+        "body": "Polycarbonate outer shell over magnesium-alloy internal frame (convention/secondary; one source says carbon-fiber-reinforced polyamide chassis)",
+        "arms": "Glass/carbon-fiber-reinforced polyamide 'high-strength composite' (convention/secondary)",
+        "motors": "Brushless DC: copper windings + NdFeB magnets + electrical-steel laminations + aluminum bell (convention)",
+        "props": "Enhanced Nylon Composite Material, model 1158F (confirmed, DJI official)",
+        "battery": "4S LiPo Li-NMC pouch cells, 95.3 Wh, 332 g; aluminum-laminate pouches in plastic case (chemistry confirmed DJI; casing convention)",
+        "gimbal": "Magnesium-alloy 3-axis frame + plastic camera housing + coreless gimbal motors (convention/secondary)",
+        "pcb": "FR-4 glass-epoxy + copper + metal RF shielding cans (convention; RF PCB existence confirmed by FCC filing)",
+        "gear": "No dedicated landing gear; folded arms/molded plastic feet act as ground contact (convention)"
+      },
+      "rcs_dominant_metal": "\"No Mavic-4-Pro-specific component-level dBsm breakdown exists in the literature. Best-supported inference: the dominant metallic scatterers are (1) the 4 brushless motors (metal — copper/steel/magnet mass; measured stronger motor return under HH-pol) and (2) the central LiPo battery pack (largest dense conductive mass, 332 g of aluminum-laminate cells; in the F450 study the battery is the largest reflective object). Airframe body/arms/props are deliberately low-reflectivity nylon/composite (arXiv 1911.05926: 'body frames and propellers made of low-reflective materials like carbon fiber and plastic'). Ranking for this model: battery pack ≈ motors > gimbal-camera metal / RF-shield cans > (props/body negligible). Whole-drone Mavic-class RCS anchor: -8 to -19 dBsm @24 GHz.\"",
+      "sources": [
+        "https://support.dji.com/help/content?customId=en-us03400006559&spaceId=34&re=US&lang=en&documentType=artical&paperDocType=paper",
+        "https://fccid.io/SS3-L3AB2410",
+        "https://fccid.io/SS3-L3AB2410/Internal-Photos/",
+        "https://repair.dji.com/help/content?customId=en-us03400006564&spaceId=34&re=US&lang=en",
+        "https://arxiv.org/pdf/1911.05926",
+        "https://users.ece.utexas.edu/~ling/SmallDroneISAR_Li_Ling.pdf",
+        "https://reboot-hub.com/blogs/support-learning/dji-mavic-4-pro-repair-guide",
+        "https://mydeardrone.com/brands/dji/mavic-4-pro/",
+        "https://www.youtube.com/watch?v=D5i6fDwDFIk"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "drone": "DJI Matrice 4E / Mavic 3 Enterprise (shared Mavic-3-class platform). Matrice 4 series FCC ID SS3-PM4101703; takeoff weight ~1219 g; standard prop model 1157F (10.8 in). Mavic 3 series prop 9453F.",
+      "confirmed": [
+        "Propellers: DJI official support doc explicitly lists Mavic 3 Series (9453F) as 'Nylon + Rubber' and Matrice 4D/4TD (1364) as 'Composite material' — i.e. glass-fiber/nylon composite, NOT carbon fiber (carbon is reserved for M600/Agras) [CONFIRMED, DJI]",
+        "Matrice 4 series standard propeller = 1157F, 10.8 in; takeoff weight 1219 g (standard) / 1229 g (low-noise) [CONFIRMED, DJI specs]",
+        "DJI uses magnesium-alloy AZ91 for structural brackets/housings on its Mavic-line drones as documented practice: DJI Inspire 2 'has an AZ91 housing', DJI Mavic Air 'applies brackets based on AZ91', Phantom 4 Pro V2.0 uses a titanium-magnesium hybrid structure [CONFIRMED for those models, peer-reviewed Frontiers review]",
+        "Whole-drone RCS is very low because DJI body frames/propellers are low-reflective plastic/nylon composite, per compact-range measurements [CONFIRMED, arXiv 1911.05926]",
+        "Measured whole-drone RCS anchors: DJI Phantom 4 Pro -15.03 dBsm @15GHz / -12.40 @25GHz; Inspire 1 -14.24 / -11.09; Mavic Pro -17.06 / -16.20 dBsm (VV) [CONFIRMED, arXiv 1911.05926]"
+      ],
+      "conventional": [
+        "Body outer shell: high-strength composite plastic (PC/ABS-PC blend). Aggregator specs call Mavic 3 Classic 'high-strength composite plastics and magnesium alloy', but no M4E/Mavic-3-Enterprise-specific teardown confirms the exact polymer [convention]",
+        "Internal structural frame/brackets: magnesium alloy (AZ91-class Mg-Al-Zn) — strongly implied by DJI's documented Inspire2/Mavic Air AZ91 practice, but NOT primary-confirmed for the Mavic 3 / Matrice 4E specifically [convention]",
+        "Arms: glass-fiber-reinforced polymer / plastic composite housing internal wiring [convention]",
+        "Motors: brushless — copper windings, steel shaft, aluminum bell+stator, NdFeB (neodymium) magnets [convention, universal to this motor class]",
+        "Battery: Li-ion/Li-Po smart pack — pouch cells with aluminum & copper foil current collectors, graphite/NMC chemistry, in a plastic housing [convention]",
+        "Gimbal: aluminum-alloy frame + micro brushless motors + plastic covers [convention]",
+        "PCB: FR-4 fiberglass, copper traces, plus stamped-metal EMI shielding cans [convention, universal]",
+        "Landing gear: no dedicated gear — folding front-arm tips / small plastic feet serve as landing supports [convention]"
+      ],
+      "part_materials": {
+        "body": "Outer shell high-strength composite plastic (PC/ABS-PC) (convention); internal load-bearing structure magnesium alloy AZ91-class Mg-Al-Zn (convention, per DJI Inspire2/Mavic Air precedent, not M4E-specific)",
+        "arms": "Glass-fiber-reinforced polymer / plastic composite, foldable, houses wiring (convention)",
+        "motors": "Brushless: copper windings + steel shaft + aluminum bell/stator + NdFeB neodymium magnets (convention)",
+        "props": "Nylon composite (glass-fiber-reinforced nylon) + rubber tips; Mavic 3 = 9453F 'Nylon+Rubber', Matrice 4D/4TD 1364 'Composite'; NOT carbon fiber (confirmed, DJI official)",
+        "battery": "Li-ion/Li-Po smart pack: pouch cells (Al/Cu foil collectors, graphite/NMC) in plastic housing (convention)",
+        "gimbal": "Aluminum-alloy frame + micro brushless motors + plastic covers (convention)",
+        "pcb": "FR-4 fiberglass + copper traces + stamped-metal EMI shield cans (convention)",
+        "gear": "No dedicated landing gear; plastic front-arm feet serve as supports (convention)"
+      },
+      "rcs_dominant_metal": "Li-Po/Li-ion BATTERY PACK is the single largest reflective object in small DJI quads — RCS literature reports the DJI F450's RCS closely tracks that of its bare Li-Po battery (battery = dominant scatterer). Secondary metal scatterers: the four motors (copper/steel/aluminum, also the micro-Doppler source), the camera/gimbal metal assembly, and internal PCB EMI shielding. No Matrice-4E/Mavic-3-Enterprise-specific per-part RCS decomposition is published; the plastic/nylon shell and props contribute little (low-reflective). Anchor whole-drone values: Phantom 4 Pro -15.03 dBsm @15GHz / -12.40 @25GHz.",
+      "sources": [
+        "https://support.dji.com/help/content?customId=en-us03400006559&spaceId=34&re=US&lang=en&documentType=artical&paperDocType=paper",
+        "https://enterprise.dji.com/matrice-4-series/specs",
+        "https://fccid.io/SS3-PM4101703/Internal-Photos/Int-Photos-3430057",
+        "https://www.frontiersin.org/journals/materials/articles/10.3389/fmats.2021.575530/full",
+        "https://arxiv.org/pdf/1911.05926",
+        "https://www.researchgate.net/publication/285164289_Micro-drone_RCS_analysis"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "drone": "DJI Mini 4 Pro (FCC ID SS3-MT4MFVD23) 및 DJI Mini 5 Pro (sub-250g급). 두 기종은 프로펠러 재질이 동일(DJI 공식)하고 구조/재질 계열이 사실상 같음.",
+      "confirmed": [
+        "프로펠러: Nylon + Rubber(끝단 오렌지 팁) — DJI 공식 'Aircraft Propeller Materials' 지원문서에 Mini 4 Pro와 Mini 5 Pro 모두 'Nylon + Rubber'로 명시 (제조사 1차, 3형). Mini 3 계열은 'Nylon + Glass fiber'로 다름",
+        "모터: NdFeB(네오디뮴-철-붕소) 영구자석 + 구리(Cu) 권선 + 규소강(silicon-steel) 적층 스테이터 — DJI 공식 'Inside a Drone: Brushless Motors' 문서에서 DJI 모터 구성으로 명시(제조사 1차, 3형). Mini 전용 도면은 아니나 DJI 브러시리스 모터 공통 구성",
+        "배터리: 리튬이온(Li-ion) 화학, 7.32V 공칭(2S), 2590mAh, 18.96Wh — DJI/판매처 사양표 명시(제조사 사양, 3/5형). Mini 4 Pro Intelligent Flight Battery BWX140-2590-7.32",
+        "동체 상부/하부 셸: 플라스틱(폴리머) — OEM 교체부품 'Original Upper Shell/Body Cover for Mini 4 Pro'가 전부 플라스틱 성형품(5형 OEM 교체부품). 마그네슘합금 아님(마그네슘은 Mavic 3 프레임)"
+      ],
+      "conventional": [
+        "동체 셸/암의 정확한 폴리머 등급(PC/ABS/PA-GF 등)은 teardown이나 FCC 자료에 명시 없음 — 소형 드론 관례상 유리섬유강화 PC/PA(나일론) 계열로 추정. 249g 미달 목표상 경량 플라스틱",
+        "암(arm): 동체와 일체형 플라스틱 성형(별도 금속 암 없음) — 관례/구조 추정",
+        "짐벌 롤암 브래킷: 알루미늄합금(CNC/양극산화) 소형 금속 브래킷 + FPC + 고무 댐퍼 — 애프터마켓/OEM류 교체부품 설명이 aluminum alloy로 기술(부분 1차, 원부품 등급 미확정 → 관례)",
+        "배터리 셀 물리구조: 파우치형 알루미늄-라미네이트 포일 외피 + Cu/Al 집전체, 외부 플라스틱 배터리 하우징 — Li-ion 파우치 셀 관례",
+        "PCB/메인보드: FR4 유리섬유 기판 + 구리 배선 + EMI 실드캔(니켈실버/스틸) — FCC 내부사진 PDF를 이미지라 판독 못함, 전자기판 관례 추정",
+        "착륙장치: Mini 계열은 별도 랜딩기어 없음 — 암/동체 하부의 소형 플라스틱 발 일체형(관례)"
+      ],
+      "part_materials": {
+        "body": "플라스틱(폴리머, 유리섬유강화 PC/PA 추정) (convention; OEM 교체셸이 플라스틱인 점은 confirmed-보조)",
+        "arms": "동체 일체형 플라스틱 (convention)",
+        "motors": "NdFeB 네오디뮴 자석 + 구리 권선 + 규소강 적층 스테이터, 4개 (confirmed, DJI 공식 모터 구성)",
+        "props": "Nylon + Rubber(오렌지 팁) (confirmed, DJI 공식 프로펠러 재질표: Mini 4 Pro=Mini 5 Pro)",
+        "battery": "Li-ion 파우치 셀 2S 18.96Wh, Al-라미네이트 포일+Cu/Al 집전체, 플라스틱 외피 (화학=confirmed / 셀 물리구조=convention)",
+        "gimbal": "알루미늄합금 롤암 브래킷 + FPC + 고무 댐퍼 (부분 confirmed / 원부품 등급 convention)",
+        "pcb": "FR4 유리섬유 + 구리 + EMI 실드캔(스틸/니켈실버) (convention)",
+        "gear": "별도 랜딩기어 없음; 플라스틱 일체형 발 (convention)"
+      },
+      "rcs_dominant_metal": "부품별 분해 RCS(component-level decomposition) 측정 논문은 찾지 못함 — 확인된 소형드론 RCS 논문(compact-range 1911.05926)은 기체 전체 평균값만 보고(DJI Phantom4Pro -15.03dBsm@15GHz, -12.40dBsm@25GHz; Inspire1Pro 유사), 배터리/모터/PCB 기여를 분리하지 않음. 따라서 지배 금속은 '측정 인용'이 아니라 물리 추론: (1) 배터리 팩 = 단일 최대 연속 도전성 질량 → 정적/코히어런트 반사 지배 추정, (2) 4× 모터(네오디뮴+규소강, 조밀 금속) = 마이크로도플러 및 회전 반사 지배, (3) 카메라/짐벌 금속 브래킷 + PCB 실드캔 = 부차. 정직한 결론: Mini급의 부품별 dBsm 실측 근거는 없음, 지배 후보는 배터리·모터(공동 지배)이며 이는 미확정 추론.",
+      "sources": [
+        "https://support.dji.com/help/content?customId=en-us03400006559&spaceId=34&re=US&lang=en&documentType=artical&paperDocType=paper",
+        "https://www.dji.com/newsroom/news/inside-a-drone-brushless-motors",
+        "https://fccid.io/SS3-MT4MFVD23",
+        "https://fccid.io/SS3-MT4MFVD23/Internal-Photos/Internal-Photos-6782183",
+        "https://www.ifixit.com/Guide/Disassembling+DJI+Mini+4+Pro/173145",
+        "https://www.scrubmarter.com/blogs/news/dji-mini-5-pro-teardown-guide-complete-in-depth-disassembly",
+        "https://ar5iv.labs.arxiv.org/html/1911.05926",
+        "https://djioemparts.com/products/gimbal-roll-arm-lower-mount-bracket-of-dji-mini-4-pro-dji-mini-3",
+        "https://www.walmart.com/ip/DJI-Intelligent-Flight-Battery-for-Mini-4-Pro-Drone/5071283186",
+        "https://www.amazon.com/Jakoly-Original-Frame-Replacement-Repair/dp/B0DNPY9W3S"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "drone": "DJI Phantom 4 Pro V2.0 (model WM331, FCC ID SS3-WM331S1801)",
+      "confirmed": [
+        "Gimbal + camera housing = magnesium alloy + ceramics — stated verbatim on DJI official support/FAQ page ('it is made of a magnesium alloy and ceramics')",
+        "Internal load-bearing core/gimbal housing is a magnesium alloy (~90% Mg / 9% Al / 1% Zn, i.e. AZ91-type) — confirmed by hands-on teardown (droneflyers 'Under the Hood', boards screw into a magnesium core)",
+        "Airframe uses titanium-alloy + magnesium-alloy structural construction 'to increase rigidity and reduce weight' — DJI official marketing/spec copy (Phantom 4 Pro / P4P V2.0)",
+        "Outer fuselage shell is plastic (ABS-type); iFixit repair guide refers to it as the 'plastic shell' and droneflyers contrasts the Mg core against the ABS-plastic body",
+        "Landing gear / legs are plastic — droneflyers teardown ('plastic access hatches', plastic legs)",
+        "Propellers (9455S low-noise, quick-release) are plastic — DJI/OEM parts spec ('top-grade plastic', 11.7 g each, 9.4 in)",
+        "Intelligent Flight Battery is a 4S Li-polymer pack, 15.2 V / 5870 mAh / 89.2 Wh, in a plastic case — DJI spec",
+        "RCS measurements of the DJI Phantom / small consumer quadcopters show the non-plastic parts (battery pack + motors, plus copper wiring) dominate the radar return; plastic shell/props contribute little (Li & Ling UT-Austin ISAR; Phantom 2 FEM-MoM paper)"
+      ],
+      "conventional": [
+        "Propeller exact polymer = polycarbonate/glass-filled nylon — only 'plastic' is confirmed by sources; specific resin is industry-convention assumption, not stated by DJI",
+        "Brushless motor internals: copper stator windings + NdFeB permanent magnets + aluminum-alloy bell/rotor and steel shaft — standard BLDC construction; one third-party OEM replacement lists an 'aluminum alloy' motor joint, but DJI does not publish the OEM motor material",
+        "Main flight-controller/ESC PCB = FR-4 substrate with copper traces and tin-plated steel/copper RF shielding cans — standard practice; FCC internal-photo PDFs exist (SS3-WM331S1801) but images were not machine-readable to confirm directly",
+        "Battery cell internals: aluminum + copper current-collector foils inside the LiPo pouches — inherent to Li-polymer chemistry (convention, not separately documented for this pack)",
+        "Arms are non-removable and formed as part of the plastic upper/lower shell (fixed-arm Phantom design) — inferred from teardown geometry, not an explicit DJI material statement"
+      ],
+      "part_materials": {
+        "body": "Plastic outer shell (ABS-type) over an internal magnesium-alloy core; airframe reinforced with titanium+magnesium alloy (confirmed)",
+        "arms": "Plastic, integral with the fixed shell (fixed-arm design) (convention/teardown-inferred)",
+        "motors": "Brushless: copper windings + NdFeB magnets + aluminum-alloy bell + steel shaft (convention; 3rd-party OEM notes aluminum-alloy)",
+        "props": "Plastic (9455S), likely polycarbonate/glass-filled nylon (plastic=confirmed, resin=convention)",
+        "battery": "4S Li-polymer pouch cells, 15.2V/5870mAh, plastic case, Al/Cu internal foils (LiPo+case=confirmed; foils=convention)",
+        "gimbal": "Magnesium alloy + ceramics (confirmed, DJI official)",
+        "pcb": "FR-4 with copper traces + metal RF shielding cans (convention)",
+        "gear": "Plastic landing legs (confirmed, teardown)"
+      },
+      "rcs_dominant_metal": "Battery pack (Li-polymer) is the single largest / dominant scatterer, with the four brushless motors second; copper battery-to-ESC wiring also contributes. In HH-polarization motor returns can exceed the battery. Measured on small DJI/consumer quads at X-band ~10 GHz: peak RCS roughly -9 to -14 dBsm (mean ~0.01 m^2 / -20 dBsm), with plastic shell/props contributing negligibly. Sources: Li & Ling ISAR (peaks -3 to -27.5 dBsm, 'non-plastic portions dominate — motors, battery pack'); Schröder et al. DJI Phantom 2 FEM-MoM at 10 GHz (metallic scatterers = battery + engines + copper cables, plastic hull nearly transparent). NOTE: these are Phantom-2/generic small-quad measurements, not a Phantom 4 Pro V2-specific measurement.",
+      "sources": [
+        "https://www.droneflyers.com/under-the-hood-dji-phantom-4-part-1/",
+        "https://www.ifixit.com/Guide/DJI+Phantom+4+Shell+Replacement/95516",
+        "https://www.dji.com/support/product/phantom-4-pro",
+        "https://users.ece.utexas.edu/~ling/SmallDroneISAR_Li_Ling.pdf",
+        "https://people.computing.clemson.edu/~jmarty/projects/lowLatencyNetworking/papers/EmergingApplicationSystems/Drones-UAVs/DetectingMaliciousDrones/NumericalAndExpRadarCrossSectionAnalysisOnDJIDrones.pdf",
+        "https://fccid.io/SS3-WM331S1801/Internal-Photos/Internal-Photos-3785002",
+        "https://fccid.io/SS3-WM331A1609/Internal-Photos/Int-Photos-3178993",
+        "https://djinyc.com/products/p4p-part-137-9455s-low-noise-quick-release-propellers-pro-pro-v2-0"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "drone": "DJI Spreading Wings S1000+ (octocopter, 8 arms, 4114 pro motors, 1552 folding props, ~4.4kg empty / 11kg MTOW)",
+      "confirmed": [
+        "Frame arms: carbon fiber — stated verbatim on DJI official feature page ('All frame arms ... are made from carbon fiber')",
+        "Retractable landing gear: carbon fiber — DJI official feature page ('the retractable landing gear are made from carbon fiber')",
+        "OEM 1552 folding propeller: 'High strength performance engineered plastics' — DJI official S1000 spec page (NOT carbon fiber for the DJI-brand prop)",
+        "Each arm integrates a 40A ESC and a 4114 pro brushless motor; per-arm assembly (arm+motor+ESC+prop) ~325 g — DJI official"
+      ],
+      "conventional": [
+        "Center frame plates: carbon-fiber laminate top/bottom plates with aluminum standoffs/support pillars and aluminum arm-mount clamps — DJI does not quote the plate material on the pages checked; inferred from spare-parts (Part 09 'Center Frame Support Pillar', arm-mount hardware) and standard S-series construction",
+        "Motor 4114 internals: aluminum-alloy bell/housing, copper stator windings, sintered NdFeB permanent magnets, silicon-steel stator laminations — standard brushless-outrunner construction; DJI does not publish per-material breakdown",
+        "Battery: 6S LiPo (~10-20 Ah), aluminum-laminate soft pouch cells with Cu/Al foil electrodes and Ni/Cu tabs — battery not included in S1000+ kit; user-supplied, so material is generic LiPo convention",
+        "Gimbal (Zenmuse Z15 series, sold separately): CNC-machined aluminum-alloy structure — not officially quoted for Z15; inferred from DJI camera-gimbal practice",
+        "ESC / PCB / power-distribution board: FR4 fiberglass substrate with copper traces and planes — universal PCB convention, not DJI-stated",
+        "Third-party 1552 replacement props are often carbon-fiber/nylon composite; only the DJI OEM prop is confirmed engineered plastic"
+      ],
+      "part_materials": {
+        "body": "center frame: carbon-fiber laminate plates + aluminum standoffs/arm-mount clamps (convention; arms-CF confirmed, plate material inferred)",
+        "arms": "carbon fiber (confirmed - DJI official)",
+        "motors": "aluminum bell + copper windings + NdFeB magnets + silicon-steel laminations (convention)",
+        "props": "DJI OEM 1552: high-strength engineered plastic (confirmed - DJI spec); 3rd-party variants carbon/nylon (convention)",
+        "battery": "LiPo aluminum-laminate pouch, Cu/Al foils (convention; not in kit, user-supplied)",
+        "gimbal": "Zenmuse Z15 CNC aluminum alloy (convention; sold separately)",
+        "pcb": "FR4 fiberglass + copper (ESC 40A and power board) (convention)",
+        "gear": "carbon fiber retractable landing gear (confirmed - DJI official)"
+      },
+      "rcs_dominant_metal": "Motors are the dominant metallic scatterers. Small-drone RCS measurement literature reports that in HH polarization the motors give the strongest returns while the battery gives weaker returns (Li & Ling, 'Radar Signatures of Small Consumer Drones', UT-Austin; compact-range measurements at 15/25 GHz, arXiv:1911.05926). Overall small-quadcopter body RCS is low (~ -17 dBsm HH at X-band with up to 15 dB frequency trenches) precisely because the airframe is low-reflectivity plastic/carbon-fiber, leaving the metallic motor cluster (Cu windings + steel laminations + Al bell, ×8 on the S1000+) as the primary bright points; carbon fiber itself is conductive and contributes secondary edge/plate returns. No S1000-specific per-part dBsm teardown paper was found.",
+      "sources": [
+        "https://www-v1.dji.com/product/spreading-wings-s1000/feature.html",
+        "https://www-v1.dji.com/spreading-wings-s1000/spec.html",
+        "https://www.dji.com/newsroom/news/dji-released-its-new-spreading-wings-s1000-octocopter-platform",
+        "https://users.ece.utexas.edu/~ling/SmallDroneISAR_Li_Ling.pdf",
+        "https://arxiv.org/pdf/1911.05926",
+        "https://repair.dji.com/help/content?customId=01700006559&spaceId=17&re=US&lang=en"
+      ],
+      "confidence": "medium"
+    }
+  ],
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Verify"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "Mavic4Pro",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a0d46945d98d6164d",
+      "model": "claude-opus-4-8[1m]",
+      "state": "done",
+      "startedAt": 1784545150134,
+      "queuedAt": 1784545147168,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "DJI Mavic 4 Pro (aircraft model L3AB2410, FCC ID SS3-L3AB24…",
+      "promptPreview": "DJI Mavic 4 Pro 의 **부품별 재질을 1차 출처로 최대한 확실하게** 검증하라. 목적: RCS 계산 재질 배정의 신뢰도를 최대화.\n**우선 출처(순서대로 적극 탐색): (1) teardown/분해 리뷰(iFixit·YouTube 분해·수리사이트), (2) FCC 인증 내부사진(fccid.io), (3) 제조사 공식 재질 명시, (4) 드론 RCS 측정 논문(재질을 명시한 것), (5) OEM 교체부품 설명.**\n절차: ToolSearch 'select:WebSearch,WebFetch' → 위 출처들을 검색·확인. 각 부품(동체셸/암/모터/프로펠러/배터리/짐벌/PCB/착륙장치)이 무슨 재질인지 **CONFIRMED(1차출처)** 인지 **convention(관례추정)** 인지 구분해 태그.\nRC…",
+      "lastProgressAt": 1784545342425,
+      "tokens": 37175,
+      "toolCalls": 20,
+      "durationMs": 192291,
+      "resultPreview": "{\"drone\":\"DJI Mavic 4 Pro (aircraft model L3AB2410, FCC ID SS3-L3AB2410; released May 2025; 1063 g takeoff weight)\",\"confirmed\":[\"Propellers: 'Enhanced Nylon Composite Material', model 1158F, 26.7x14.7 cm — stated on DJI official support page (Aircraft Propeller Materials, Dimensions, and Models). PRIMARY/manufacturer CONFIRMED.\",\"Battery: 4S LiPo, Lithium Nickel Manganese Cobalt Oxide (Li-NMC) ch…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "Matrice4EMavic",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a98e84872a884cacf",
+      "model": "claude-opus-4-8[1m]",
+      "state": "done",
+      "startedAt": 1784545149983,
+      "queuedAt": 1784545147169,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "DJI Matrice 4E / Mavic 3 Enterprise (shared Mavic-3-class p…",
+      "promptPreview": "DJI Matrice 4E / Mavic 3 Enterprise (shared platform) 의 **부품별 재질을 1차 출처로 최대한 확실하게** 검증하라. 목적: RCS 계산 재질 배정의 신뢰도를 최대화.\n**우선 출처(순서대로 적극 탐색): (1) teardown/분해 리뷰(iFixit·YouTube 분해·수리사이트), (2) FCC 인증 내부사진(fccid.io), (3) 제조사 공식 재질 명시, (4) 드론 RCS 측정 논문(재질을 명시한 것), (5) OEM 교체부품 설명.**\n절차: ToolSearch 'select:WebSearch,WebFetch' → 위 출처들을 검색·확인. 각 부품(동체셸/암/모터/프로펠러/배터리/짐벌/PCB/착륙장치)이 무슨 재질인지 **CONFIRMED(1차출처)**…",
+      "lastProgressAt": 1784545376787,
+      "tokens": 34261,
+      "toolCalls": 19,
+      "durationMs": 226804,
+      "resultPreview": "{\"drone\":\"DJI Matrice 4E / Mavic 3 Enterprise (shared Mavic-3-class platform). Matrice 4 series FCC ID SS3-PM4101703; takeoff weight ~1219 g; standard prop model 1157F (10.8 in). Mavic 3 series prop 9453F.\",\"confirmed\":[\"Propellers: DJI official support doc explicitly lists Mavic 3 Series (9453F) as 'Nylon + Rubber' and Matrice 4D/4TD (1364) as 'Composite material' — i.e. glass-fiber/nylon composi…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "Mini5ProMini4P",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a4d30aa96b84dfa72",
+      "model": "claude-opus-4-8[1m]",
+      "state": "done",
+      "startedAt": 1784545150044,
+      "queuedAt": 1784545147169,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "DJI Mini 4 Pro (FCC ID SS3-MT4MFVD23) 및 DJI Mini 5 Pro (su…",
+      "promptPreview": "DJI Mini 5 Pro / Mini 4 Pro 의 **부품별 재질을 1차 출처로 최대한 확실하게** 검증하라. 목적: RCS 계산 재질 배정의 신뢰도를 최대화.\n**우선 출처(순서대로 적극 탐색): (1) teardown/분해 리뷰(iFixit·YouTube 분해·수리사이트), (2) FCC 인증 내부사진(fccid.io), (3) 제조사 공식 재질 명시, (4) 드론 RCS 측정 논문(재질을 명시한 것), (5) OEM 교체부품 설명.**\n절차: ToolSearch 'select:WebSearch,WebFetch' → 위 출처들을 검색·확인. 각 부품(동체셸/암/모터/프로펠러/배터리/짐벌/PCB/착륙장치)이 무슨 재질인지 **CONFIRMED(1차출처)** 인지 **convention(관례추정)** 인…",
+      "lastProgressAt": 1784545344952,
+      "tokens": 36145,
+      "toolCalls": 18,
+      "durationMs": 194907,
+      "resultPreview": "{\"drone\":\"DJI Mini 4 Pro (FCC ID SS3-MT4MFVD23) 및 DJI Mini 5 Pro (sub-250g급). 두 기종은 프로펠러 재질이 동일(DJI 공식)하고 구조/재질 계열이 사실상 같음.\",\"confirmed\":[\"프로펠러: Nylon + Rubber(끝단 오렌지 팁) — DJI 공식 'Aircraft Propeller Materials' 지원문서에 Mini 4 Pro와 Mini 5 Pro 모두 'Nylon + Rubber'로 명시 (제조사 1차, 3형). Mini 3 계열은 'Nylon + Glass fiber'로 다름\",\"모터: NdFeB(네오디뮴-철-붕소) 영구자석 + 구리(Cu) 권선 + 규소강(silicon-steel) 적층 스테이터 — DJI 공식 'Inside …"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "Phantom4ProV2",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a05f0e277ca296777",
+      "model": "claude-opus-4-8[1m]",
+      "state": "done",
+      "startedAt": 1784545150892,
+      "queuedAt": 1784545147169,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "DJI Phantom 4 Pro V2.0 (model WM331, FCC ID SS3-WM331S1801)",
+      "promptPreview": "DJI Phantom 4 Pro V2 의 **부품별 재질을 1차 출처로 최대한 확실하게** 검증하라. 목적: RCS 계산 재질 배정의 신뢰도를 최대화.\n**우선 출처(순서대로 적극 탐색): (1) teardown/분해 리뷰(iFixit·YouTube 분해·수리사이트), (2) FCC 인증 내부사진(fccid.io), (3) 제조사 공식 재질 명시, (4) 드론 RCS 측정 논문(재질을 명시한 것), (5) OEM 교체부품 설명.**\n절차: ToolSearch 'select:WebSearch,WebFetch' → 위 출처들을 검색·확인. 각 부품(동체셸/암/모터/프로펠러/배터리/짐벌/PCB/착륙장치)이 무슨 재질인지 **CONFIRMED(1차출처)** 인지 **convention(관례추정)** 인지 구분해 태…",
+      "lastProgressAt": 1784545337910,
+      "tokens": 35497,
+      "toolCalls": 20,
+      "durationMs": 187018,
+      "resultPreview": "{\"drone\":\"DJI Phantom 4 Pro V2.0 (model WM331, FCC ID SS3-WM331S1801)\",\"confirmed\":[\"Gimbal + camera housing = magnesium alloy + ceramics — stated verbatim on DJI official support/FAQ page ('it is made of a magnesium alloy and ceramics')\",\"Internal load-bearing core/gimbal housing is a magnesium alloy (~90% Mg / 9% Al / 1% Zn, i.e. AZ91-type) — confirmed by hands-on teardown (droneflyers 'Under th…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "S1000octocopte",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a312f86ded5f6015b",
+      "model": "claude-opus-4-8[1m]",
+      "state": "done",
+      "startedAt": 1784545151270,
+      "queuedAt": 1784545147169,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "DJI Spreading Wings S1000+ (octocopter, 8 arms, 4114 pro mo…",
+      "promptPreview": "DJI S1000+ octocopter 의 **부품별 재질을 1차 출처로 최대한 확실하게** 검증하라. 목적: RCS 계산 재질 배정의 신뢰도를 최대화.\n**우선 출처(순서대로 적극 탐색): (1) teardown/분해 리뷰(iFixit·YouTube 분해·수리사이트), (2) FCC 인증 내부사진(fccid.io), (3) 제조사 공식 재질 명시, (4) 드론 RCS 측정 논문(재질을 명시한 것), (5) OEM 교체부품 설명.**\n절차: ToolSearch 'select:WebSearch,WebFetch' → 위 출처들을 검색·확인. 각 부품(동체셸/암/모터/프로펠러/배터리/짐벌/PCB/착륙장치)이 무슨 재질인지 **CONFIRMED(1차출처)** 인지 **convention(관례추정)** 인지 구분해 …",
+      "lastProgressAt": 1784545311931,
+      "tokens": 30900,
+      "toolCalls": 13,
+      "durationMs": 160661,
+      "resultPreview": "{\"drone\":\"DJI Spreading Wings S1000+ (octocopter, 8 arms, 4114 pro motors, 1552 folding props, ~4.4kg empty / 11kg MTOW)\",\"confirmed\":[\"Frame arms: carbon fiber — stated verbatim on DJI official feature page ('All frame arms ... are made from carbon fiber')\",\"Retractable landing gear: carbon fiber — DJI official feature page ('the retractable landing gear are made from carbon fiber')\",\"OEM 1552 fo…"
+    }
+  ],
+  "totalTokens": 173978,
+  "totalToolCalls": 90
+}

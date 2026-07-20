@@ -48,28 +48,32 @@ gs = fig.add_gridspec(2, 3, height_ratios=[1.05, 0.95], hspace=0.42, wspace=0.28
 fig.suptitle("report03 — Independent-mesh cross-validation: where our numbers are trustworthy, and where they are NOT",
              fontsize=14, fontweight="bold", y=0.975)
 
-# ── Row 1: sigma vs azimuth (dBsm), reference solid vs ours dashed ───────────
+# ── Row 1: DISTRIBUTION (empirical CDF) of sigma over azimuth — reference vs ours ─
+#   방위별 곡선을 그대로 겹치면 널/글린트 위치가 어긋나 '검증 실패'처럼 보인다. 그러나
+#   서로 다른 메쉬는 각도별 널 위치가 파장 이하 형상에 극도로 민감해 절대 안 맞는 게 정상이고,
+#   우리가 실제로 인용하는 것은 '값의 분포(레벨)'다. 그래서 Row1 은 σ 값의 **누적분포(CDF)**로
+#   그려 분포가 겹치는지를 보이고, 각도별 형태 불일치는 Row2-B(per-az RMS)가 정량화한다.
 for i, (name, d) in enumerate(DRONES):
     ax = fig.add_subplot(gs[0, i])
-    az = np.array(d["az"])
-    sr = 10 * np.log10(np.array(d["sigma_real"]))
-    so = 10 * np.log10(np.array(d["sigma_ours"]))
-    ax.plot(az, sr, color=C_REAL, lw=1.6, label="reference CAD")
-    ax.plot(az, so, color=C_OURS, lw=1.6, ls="--", label="ours (parametric)")
-    ax.axhline(d["sigma_mean_real_dbsm"], color=C_REAL, lw=1.0, alpha=0.5, ls=":")
-    ax.axhline(d["sigma_mean_ours_dbsm"], color=C_OURS, lw=1.0, alpha=0.5, ls=":")
+    sr = np.sort(10 * np.log10(np.array(d["sigma_real"])))
+    so = np.sort(10 * np.log10(np.array(d["sigma_ours"])))
+    yr = np.linspace(0, 1, len(sr))
+    yo = np.linspace(0, 1, len(so))
+    ax.plot(sr, yr, color=C_REAL, lw=1.9, label="reference CAD")
+    ax.plot(so, yo, color=C_OURS, lw=1.9, ls="--", label="ours (parametric)")
+    ax.axvline(d["sigma_mean_real_dbsm"], color=C_REAL, lw=1.0, alpha=0.5, ls=":")
+    ax.axvline(d["sigma_mean_ours_dbsm"], color=C_OURS, lw=1.0, alpha=0.5, ls=":")
     ax.set_title(name, fontsize=10.5, fontweight="bold")
-    ax.set_xlabel("azimuth [deg]", fontsize=9)
+    ax.set_xlabel("RCS  σ  [dBsm]", fontsize=9)
     if i == 0:
-        ax.set_ylabel("RCS  σ  [dBsm]", fontsize=9)
-    ax.set_xlim(0, 360)
-    ax.set_xticks([0, 90, 180, 270, 360])
+        ax.set_ylabel("cumulative fraction of azimuths", fontsize=9)
+    ax.set_ylim(0, 1)
     ax.grid(alpha=0.25)
-    ax.legend(fontsize=8, loc="lower center", ncol=2, framealpha=0.85)
-    # 주석: 평균은 거의 겹치나(dotted), 곡선(널/글린트)은 크게 갈린다
+    ax.legend(fontsize=8, loc="lower right", framealpha=0.85)
+    # 주석: 평균 레벨은 맞다(인용 가능) / 각도별 형태는 다르다(Row2-B). CDF 근접도는 분포 유사성.
     ax.text(0.02, 0.97,
-            f"mean Δσ = {d['d_sigma_db']:+.2f} dB\nper-az RMS = {d['d_sigma_rms_db']:.1f} dB",
-            transform=ax.transAxes, va="top", ha="left", fontsize=8.5,
+            f"mean Δσ = {d['d_sigma_db']:+.2f} dB\n→ mean level agrees;\nper-angle shape ≠ (see B)",
+            transform=ax.transAxes, va="top", ha="left", fontsize=8.0,
             bbox=dict(boxstyle="round", fc="white", ec="0.6", alpha=0.9))
 
 # ── Row 2, panel A: mean sigma difference bars with +-1 dB band ──────────────

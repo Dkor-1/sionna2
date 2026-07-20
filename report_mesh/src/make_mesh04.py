@@ -28,6 +28,7 @@ worst_pct = C[worst_key]["worst_err_pct"]
 sym_p95 = {k: B[k]["frame_only"]["chamfer_mm"]["p95"] for k in KEYS}
 sym_worst_key = max(sym_p95, key=sym_p95.get)
 full_p95 = {k: B[k]["full"]["chamfer_mm"]["p95"] for k in KEYS}
+mav_fs = C["mavic4pro"]["fit_scale"]  # §3.1 본문에서 표와 같은 출처로 인용
 
 
 def _dim_cell(k, name):
@@ -395,7 +396,7 @@ f"{worst_pct:+.2f}% 인데, 이는 §3 의 규약대로 **대각이 배율에 �
 "(외형이 우선 ← src/drones.py:266-268 주석). 프로펠러 지름이 전 기종 일관되게 +0.84% 인 것은",
 "스케일 때문이 아니라 블레이드 로프트의 스팬 끝 처리(팁 라운딩)가 반경을 살짝 넘어서다 —",
 "프롭 편에서 다시 본다. fit_scale 을 보면 기종마다 실루엣이 공식 외형에서 얼마나 멀었는지도",
-f"보인다: Mavic 4 Pro 는 (0.783, 1.397, 1.863) 으로 가장 크게 교정됐고, S1000+ 는 수평",
+f"보인다: {NAME['mavic4pro']} 는 ({mav_fs[0]:.3f}, {mav_fs[1]:.3f}, {mav_fs[2]:.3f}) 으로 가장 크게 교정됐고, S1000+ 는 수평",
 "(0.999, 0.999) 로 거의 그대로였다.",
 ),
 

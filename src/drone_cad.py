@@ -313,6 +313,7 @@ def build_frame_cad(spec) -> "trimesh.Trimesh":
         A.add(box(0.16, 0.11, 0.055, center=(0, 0, 0.075)), "battery")      # 상단 배터리팩
         A.add(box(0.13, 0.10, 0.004, center=(0, 0, 0.010)), "pcb")
         A.add(box(0.14, 0.10, 0.030, center=(0, 0, -0.020)), "canopy")
+        A.add(cyl(0.018, 0.016, center=(0, 0, 0.075 + 0.028), seg=20), "accent")   # 상단 GPS 퍽(장애물센서 없는 2014 플랫폼)
 
     else:
         L = spec.body_l_mm / 1000.0
@@ -350,30 +351,39 @@ def build_frame_cad(spec) -> "trimesh.Trimesh":
         nose_x = 0.50 * bl
         v2 = getattr(spec, "cad_version", "v1") == "v2"
         if key == "mavic4pro":
-            if v2:   # 큰 전면 Hasselblad 3렌즈 짐벌 + 전방향 어안 비전센서(상3·하3)
-                for g, m in _gimbal_hasselblad(0.048, nose_x + 0.05, -0.02 * bh):
+            if v2:   # 전면 Hasselblad 3렌즈 짐벌 — 기수 홈에 박혀 앞·아래로 돌출(실물 배치)
+                gx = nose_x + 0.004               # 하우징 뒤가 기수 안으로 물리게 붙임
+                for g, m in _gimbal_hasselblad(0.038, gx, -0.07 * bh):
                     A.add(m, g)
-                for (dy, dz, rr) in [(-0.30, 0.44, 0.010), (0.30, 0.44, 0.010), (0.0, 0.52, 0.010),
-                                     (-0.30, -0.42, 0.009), (0.30, -0.42, 0.009), (0.0, -0.32, 0.009)]:
-                    for g, m in _fisheye(nose_x * (0.72 if dz > 0 else 0.62), dy * bw, dz * bh, rr):
+                A.add(box(0.030, 0.032, 0.032, center=(nose_x - 0.012, 0, -0.05 * bh)), "camera")  # 기수-짐벌 연결 마운트
+                # 어안 비전 — 전방 2(앞면)·하방 2(배)·상방 2(등판), 전부 본체 표면에 밀착(bh 절반=0.5 안쪽)
+                for (cxf, dy, dz, rr) in [(0.96, -0.24, 0.02, 0.009), (0.96, 0.24, 0.02, 0.009),    # 전방(앞면)
+                                          (0.30, -0.26, -0.40, 0.009), (0.30, 0.26, -0.40, 0.009),  # 하방(배)
+                                          (-0.10, -0.24, 0.40, 0.009), (-0.10, 0.24, 0.40, 0.009)]: # 후방-상방(등판)
+                    for g, m in _fisheye(nose_x * cxf, dy * bw, dz * bh, rr):
                         A.add(m, g)
+                for g, m in _lidar(nose_x * 0.99, 0.12 * bh, 0.010):    # 전방 LiDAR — 기수 정면 고정창(짐벌 위, 스펙 확인)
+                    A.add(m, g)
             else:
                 for g, m in _gimbal_infinity(0.032, nose_x + 0.006, -0.12 * bh):   # 볼 지름 64mm
                     A.add(m, g)
         elif key == "matrice4e":
             if v2:
                 # 큰 전방 돌출 3렌즈 측량 짐벌 + 레이저 거리계 (기수 앞으로 튀어나옴)
-                for g, m in _gimbal_sensor(0.062, 0.060, 0.075, nose_x + 0.045, -0.20 * bh):
+                for g, m in _gimbal_sensor(0.062, 0.060, 0.075, nose_x + 0.030, -0.20 * bh):  # 기수에 붙임
                     A.add(m, g)
-                A.add(cyl(0.008, 0.024, center=(nose_x + 0.085, 0.05, -0.20 * bh), axis="x", seg=14), "camera")  # 레이저 거리계
+                A.add(cyl(0.008, 0.024, center=(nose_x + 0.070, 0.05, -0.20 * bh), axis="x", seg=14), "camera")  # 레이저 거리계
                 # ★ 상단-후방 RTK 돔 bump — 이 기종의 결정적 특징(밋밋한 Mavic3 와의 차이)
                 dome = revolve(np.array([[0, 0], [0.036, 0], [0.034, 0.020], [0.022, 0.038],
                                          [0.010, 0.048], [0, 0.050]]), seg=36,
                                center=(-0.20 * bl, 0, 0.50 * bh))
                 A.add(dome, "canopy")
                 A.add(cyl(0.006, 0.028, center=(-0.20 * bl, 0, 0.50 * bh + 0.050), seg=12), "pcb")
-                for (cx, cy, cz) in [(nose_x * 0.82, -0.28 * bw, 0.30 * bh), (nose_x * 0.82, 0.28 * bw, 0.30 * bh),
-                                     (-0.32 * bl, 0, 0.34 * bh), (nose_x * 0.5, 0, 0.55 * bh)]:  # 어안 스테레오
+                A.add(sphere(0.010, center=(-0.02 * bl, 0.06 * bw, 0.50 * bh + 0.006), subdiv=2), "accent")  # 충돌방지 비콘(RTK 옆)
+                # 어안 6개 — 전방코 2 · 후방숄더 2 · 벨리하방 2 (스펙: 6 fisheye, 측/상 전용포트 없음)
+                for (cx, cy, cz) in [(nose_x * 0.90, -0.26 * bw, 0.26 * bh), (nose_x * 0.90, 0.26 * bw, 0.26 * bh),
+                                     (-0.34 * bl, -0.26 * bw, 0.28 * bh), (-0.34 * bl, 0.26 * bw, 0.28 * bh),
+                                     (0.10 * bl, -0.20 * bw, -0.42 * bh), (0.10 * bl, 0.20 * bw, -0.42 * bh)]:
                     for g, m in _fisheye(cx, cy, cz, 0.009):
                         A.add(m, g)
             else:
@@ -385,18 +395,29 @@ def build_frame_cad(spec) -> "trimesh.Trimesh":
         elif key == "phantom4":
             for g, m in _gimbal_hanging(0.052, 0.048, 0.056, nose_x * 0.62, -0.62 * bh, n_lens=1):
                 A.add(m, g)
-            for dy in (-0.22, 0.22):                                  # 기수 비전센서
+            for dy in (-0.22, 0.22):                                  # 전방 비전(스테레오)
                 A.add(cyl(0.006, 0.008, center=(nose_x * 0.96, dy * bw, -0.18 * bh),
                           axis="x", seg=12), "camera")
+            for dy in (-0.20, 0.20):                                  # 후방 비전(스테레오)
+                A.add(cyl(0.006, 0.008, center=(-0.42 * bl, dy * bw, -0.16 * bh),
+                          axis="x", seg=12), "camera")
+            for sy in (-1, 1):                                        # 측면 3D IR
+                A.add(box(0.008, 0.005, 0.012, center=(-0.02 * bl, sy * 0.52 * bw, -0.14 * bh)), "camera")
+            for dy in (-0.14, 0.14):                                  # 하방 비전
+                A.add(cyl(0.005, 0.006, center=(0.06 * bl, dy * bw, -0.46 * bh), axis="z", seg=10), "camera")
+            A.add(sphere(0.012, center=(0.12 * bl, 0, 0.46 * bh), subdiv=2), "canopy")  # 상단전방 GPS/컴퍼스 돔
         else:                                                          # mini5pro
-            if v2:   # 전면 단일 1인치 짐벌(더 큰 하우징) + 전방 LiDAR + 어안
-                for g, m in _gimbal_hanging(0.044, 0.042, 0.050, nose_x * 0.95, -0.24 * bh, n_lens=1):
+            if v2:   # 컴팩트 짐벌 + 전방향 비전(앞2·뒤2·하2) + 전방 LiDAR(Mini 5 Pro 는 Mini 최초 LiDAR 탑재, 스펙)
+                for g, m in _gimbal_hanging(0.020, 0.021, 0.024, nose_x * 0.96, -0.16 * bh, n_lens=1):
                     A.add(m, g)
-                for g, m in _lidar(nose_x * 1.04, 0.04 * bh, 0.016):     # 전방 LiDAR 모듈
-                    A.add(m, g)
-                for dy in (-0.26, 0.26):
-                    for g, m in _fisheye(nose_x * 0.98, dy * bw, 0.14 * bh, 0.008):
+                # 전방향 비전 어안 — 실물 배치(앞면 2·등판후방 2·배 2), 본체 표면 밀착, Mavic 만큼 크게
+                for (cxf, dy, dz) in [(0.92, -0.26, 0.06), (0.92, 0.26, 0.06),      # 전방(앞면, 짐벌 좌우)
+                                      (-0.60, -0.24, 0.30), (-0.60, 0.24, 0.30),    # 후방(등판)
+                                      (0.20, -0.24, -0.38), (0.20, 0.24, -0.38)]:   # 하방(배)
+                    for g, m in _fisheye(nose_x * cxf, dy * bw, dz * bh, 0.008):
                         A.add(m, g)
+                for g, m in _lidar(nose_x * 0.98, 0.14 * bh, 0.008):    # 전방 LiDAR — 기수 정면 짐벌 위(스펙 확인)
+                    A.add(m, g)
             else:
                 for g, m in _gimbal_hanging(0.036, 0.034, 0.040, nose_x * 0.92, -0.30 * bh, n_lens=1):
                     A.add(m, g)
@@ -410,9 +431,14 @@ def build_frame_cad(spec) -> "trimesh.Trimesh":
             for g, m in _gear_feet(bl, bw, -0.48 * bh, 0.22 * H):
                 A.add(m, g)
 
-        # 내부 금속 산란체 (RCS 지배) — 셸 안이라 렌더엔 안 보이지만 PO/SBR 이 센다
+        # 내부 금속 산란체 (RCS 지배) — 셸 안이라 렌더엔 안 보이지만 PO/SBR 이 센다.
+        #   배터리(Li-NMC 파우치, 최대 밀집 금속) + PCB(FR-4+구리) + 마그네슘합금 내부 구조프레임.
+        #   1차출처: 프롭=나일론복합(DJI공식), 배터리 Li-NMC, DJI Mavic계열 AZ91 마그네슘 섀시,
+        #   RCS 지배=배터리≈모터>짐벌/PCB (arXiv:1911.05926). → docs/drone_material_deepverify.json
         A.add(box(bl * 0.50, bw * 0.62, bh * 0.55, center=(-0.06 * bl, 0, 0.02 * bh)), "battery")
         A.add(box(bl * 0.38, bw * 0.54, bh * 0.06, center=(0.02 * bl, 0, 0.26 * bh)), "pcb")
+        if v2:  # 마그네슘합금 구조 프레임(얇은 판) — 확인된 재질 명시 반영
+            A.add(box(bl * 0.58, bw * 0.68, bh * 0.08, center=(-0.02 * bl, 0, -0.04 * bh)), "battery")
 
     # ---- 불리언: 겹친 파트의 **내부 면을 녹여 없앤다** ------------------------
     #   프리미티브를 겹쳐 놓으면 속에 파묻힌 면이 남아 PO/SBR 이 헛센다.

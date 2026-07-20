@@ -244,6 +244,24 @@ for mat, rgb in MATERIAL_COLOR.items():
     color_rows.append(f"| {chip(mat)} `{hexc(MATERIAL_COLOR[mat])}` | `{mat}` | "
                       f"RGB ({rgb[0]:.2f}, {rgb[1]:.2f}, {rgb[2]:.2f}) | {COLOR_STORY[mat]} |")
 cells.append(md(
+    "## 2.5 실제 재질 — 1차출처로 확인",
+    "",
+    "위 재질 배정은 상상이 아니라 **1차출처(제조사·teardown·FCC·RCS 측정논문)로 검증**했다:",
+    "",
+    "| 부위 | 실제 재질 | 확인 |",
+    "|---|---|---|",
+    "| 프로펠러 | **나일론 복합재**(Mavic 4 Pro 1158F · Matrice 4E 1157F) | ✅ DJI 공식 — 카본 아님 |",
+    "| 배터리 | **Li-NMC 파우치 332 g**(단일 최대 밀집 금속) | ✅ DJI 공식 |",
+    "| 동체 셸 | 폴리카보네이트(전파 투과) + **마그네슘합금 내부 프레임**(AZ91 계열) | 🔎 리뷰·DJI 계열 관례 |",
+    "| 모터·PCB·짐벌 마운트 | 금속(구리·NdFeB·알루미늄 · FR-4+구리) | 🔎 브러시리스·전자 관례 |",
+    "",
+    "**RCS 지배(측정논문 확인)** — 배터리 ≈ 모터 > 짐벌/PCB > 셸·프롭(사실상 무시). 되쏘는 밝기는 "
+    "**내부 금속**이 정하고, 플라스틱 셸·나일론 프롭은 거의 안 보인다(arXiv:1911.05926 — DJI 드론 실측에서 "
+    "몸체·프롭이 저반사 재질로 기술됨). 그래서 우리 메쉬도 셸 안에 배터리·PCB 를 금속 산란체로 "
+    "넣어 이 물리를 담는다. 근거: `docs/drone_material_deepverify.json`.",
+))
+
+cells.append(md(
     "## 3. 색 규칙 — 5색이면 재질이 다 보인다 (`MATERIAL_COLOR`)",
     "",
     "렌더 색은 `src/drones.py` 의 `MATERIAL_COLOR` 5색이 전부다 — 기종별 개성 색이",
@@ -436,7 +454,7 @@ cells.append(md(
     "",
     f"1. 부위→재질 배정은 `DRONE_GROUP_MAT`({len(DRONE_GROUP_MAT)}개 그룹) 한 곳, 재질→물성은",
     "   `materials.MATERIALS` 한 곳 — Sionna RT 와 PO 가 **같은 표**를 읽는다.",
-    "2. 렌더 **색 = 재질** (6색 규칙, 모든 기종 공통) — 그림이 곧 물성 문서다.",
+    "2. 렌더 **색 = 재질** (5색 규칙, 모든 기종 공통) — 그림이 곧 물성 문서다.",
     "3. 값의 출처가 계층적으로 기록돼 있다: ITU-R P.2040(표준) → 문헌 커스텀(εr·σ) →",
     "   실효 \\|Γ\\|(박막·조립품, note 에 근거).",
     f"4. 5개 기종 전부 재질 누락 0 (all_covered={ALL_COVERED}) — PEC 과대반사 경로 차단.",

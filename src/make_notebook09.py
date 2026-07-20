@@ -85,10 +85,11 @@ _front = provenance_cells(
                "설명되는 정지 신호 공간을 통째로 사영·제거(Colone et al., *IEEE TAES*). 5G NR 실측"
                "(Wypich & Zielinski, *Sensors* 2026, DOI 10.3390/s26041317)·상시-SSB 패시브 5G 드론"
                "(Jopanya & Osorio, SPAWC 2025, arXiv:2504.02641)이 같은 체인을 쓴다."),
-        lib=("검출 DSP 는 오픈소스 **pyAPRiL**(GPLv3 — ECA/ECA-B·CAF·CA-CFAR)을 쓰고, 그 입력 "
-             "경로·지연·도플러는 **Sionna RT** 가 준다 — 전파는 Sionna, 신호처리는 pyAPRiL 로 나눠 "
-             "**중복계산이 없다**. 결합 체인이 NR/WiFi/LTE 모두에서 표적을 정답 거리빈에 검출함을 "
-             "확인(`outputs/verify_pyapril.json`)."),
+        lib=("레이더 신호처리(ECA·거리-도플러·CFAR)는 `src/passive_process.py` 가 하고, 그 입력 "
+             "경로·지연·도플러는 **Sionna RT** 가 준다 — 전파는 Sionna, 신호처리는 우리 코드로 나눠 "
+             "**중복계산이 없다**. 이 검출 사슬은 표준 **ECA→CAF→CFAR** 그대로이며, 오픈소스 "
+             "**pyAPRiL**(GPLv3)로 교차검증해 NR/WiFi/LTE 모두에서 표적이 정답 거리빈에 검출됨을 "
+             "확인했다(`outputs/verify_pyapril.json`)."),
         verify=(f"유령 경로의 지연·기하를 **거울상법+프레넬 손계산**으로 독립 대조 — 바닥 반사 여분지연 "
                 f"{AP['delay_ns']:.1f} ns·세기 {AP['rel_db_tm']:.1f} dB 가 Sionna RT 잔향 탭과 눈금까지 "
                 f"겹치고, 유령이 진짜 뒤 +{G5['sep_m']:.2f} m 에 뜬다."),
@@ -284,17 +285,17 @@ cells.append(mdl([
 ]))
 
 # =========================================================================== #
-#  §4  우리가 쓴 방식 — pyAPRiL + Sionna RT, 그리고 대역폭의 대가
+#  §4  우리가 쓴 방식 — 표준 검출 사슬 + Sionna RT, 그리고 대역폭의 대가
 # =========================================================================== #
 cells.append(mdl([
     "---",
-    "# §4. 우리가 쓴 방식 — pyAPRiL(ECA) + Sionna RT(경로), 그리고 대역폭의 대가",
+    "# §4. 우리가 쓴 방식 — 표준 검출 사슬(pyAPRiL 로 교차검증) + Sionna RT(경로), 그리고 대역폭의 대가",
     "",
-    "우리는 이 표준 체인을 **직접 다시 짜지 않는다.** 검출 DSP 는 오픈소스 **pyAPRiL**(GPLv3 — "
-    "ECA/ECA-B·CAF·CA-CFAR·DoA)을 쓰고, 그 입력이 되는 경로·지연·도플러는 **Sionna RT** 가 준다. "
-    "역할이 겹치지 않아 **중복계산이 없다**: 전파(경로·지연)는 Sionna, 신호처리(직접파·클러터 제거·"
-    "검출)는 pyAPRiL. 이 결합 체인이 NR/WiFi/LTE 세 모드 모두에서 표적을 정답 거리빈에 검출함을 "
-    "확인했다(`outputs/verify_pyapril.json`).",
+    "이 표준 체인의 신호처리(ECA·거리-도플러·CFAR)는 `src/passive_process.py` 가 하고, 그 입력이 "
+    "되는 경로·지연·도플러는 **Sionna RT** 가 준다. 역할이 겹치지 않아 **중복계산이 없다**: "
+    "전파(경로·지연)는 Sionna, 신호처리(직접파·클러터 제거·검출)는 우리 코드다. 이 검출 사슬이 "
+    "표준 ECA→CAF→CFAR 그대로임은 오픈소스 **pyAPRiL**(GPLv3)로 교차검증했다 — NR/WiFi/LTE 세 모드 "
+    "모두에서 표적을 정답 거리빈에 검출함을 확인했다(`outputs/verify_pyapril.json`).",
     "",
     "이제 유령을 실제로 신호에 주입해 이 체인을 파형별로 돌린다. 레이더가 두 물체를 따로 볼 수 있는 "
     "최소 간격이 **거리분해능 ΔR_b = c / B** 다. 대역폭 B 가 넓을수록 ΔR_b 가 작아져 가까운 둘을 "
