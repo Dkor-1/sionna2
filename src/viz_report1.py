@@ -402,18 +402,29 @@ def fig_cad_pipeline(mm: dict):
         ax_.set_xlim(c[0] - r, c[0] + r); ax_.set_ylim(c[1] - r, c[1] + r)
         ax_.set_zlim(c[2] - r * 0.75, c[2] + r * 0.75)
 
+    # 각 단계의 라이브러리·함수를 뚜렷한 뱃지로 — 무슨 도구가 무슨 일을 했는지 한눈에.
+    LIB_COL = {"geom": "#6a3d9a", "mesh": "#1f7a8c", "cat": "#b15928", "csg": "#2e7d32"}
+
+    def _libtag(a, txt, col):
+        a.text2D(0.5, 0.985, txt, transform=a.transAxes, ha="center", va="top",
+                 fontsize=8.2, fontfamily="monospace", color="white", fontweight="bold",
+                 bbox=dict(boxstyle="round,pad=0.3", fc=col, ec="none", alpha=0.93), zorder=20)
+
     a = _ax(1)
     for x, poly in secs[::2]:
         xy = np.asarray(poly.exterior.coords)
         a.plot(np.full(len(xy), x), xy[:, 0], xy[:, 1], color=CB, lw=1.1)
-    a.set_title("1. cross-sections\nshapely + scipy spline", fontsize=10.5, fontweight="bold")
+    a.set_title("1. Cross-sections\n2D profile along the body", fontsize=10.5, fontweight="bold")
+    _libtag(a, "shapely  +  scipy.splprep", LIB_COL["geom"])
 
     a = _ax(2); _mesh3d(a, raw, "#b6cde4", "#33556f", 0.25)
-    a.set_title(f"2. loft -> shell\ntrimesh, {len(raw.faces)} tris", fontsize=10.5,
+    a.set_title(f"2. Loft to a shell\n{len(raw.faces)} triangles", fontsize=10.5,
                 fontweight="bold")
+    _libtag(a, "trimesh  (stitch sections)", LIB_COL["mesh"])
 
     a = _ax(3); _mesh3d(a, sm, "#9ec9e2", None)
-    a.set_title("3. Taubin smoothing\n(teardrop body)", fontsize=10.5, fontweight="bold")
+    a.set_title("3. Taubin smoothing\nrounded teardrop body", fontsize=10.5, fontweight="bold")
+    _libtag(a, "trimesh  filter_taubin", LIB_COL["mesh"])
 
     parts = [sm, _canopy(L, W, H, x0=-0.06, frac=0.62)]
     r = spec.diagonal_mm / 2000.0
@@ -427,20 +438,23 @@ def fig_cad_pipeline(mm: dict):
         parts.append(bell)
     merged = trimesh.util.concatenate(parts)
     a = _ax(4); _mesh3d(a, merged, "#f0b27a", "#8a5522", 0.12)
-    a.set_title(f"4. parts overlap\n{len(merged.faces)} tris, inner faces ALIVE",
+    a.set_title(f"4. Parts stacked\n{len(merged.faces)} tris, inner faces ALIVE",
                 fontsize=10.5, fontweight="bold", color=CR)
+    _libtag(a, "trimesh.util.concatenate", LIB_COL["cat"])
 
     try:
         uni = trimesh.boolean.union(parts, engine="manifold")
     except Exception:
         uni = merged
     a = _ax(5); _mesh3d(a, uni, "#a8d5a2", "#2e7d32", 0.12)
-    a.set_title(f"5. boolean union (manifold3d)\n{len(uni.faces)} tris, one closed shell",
+    a.set_title(f"5. Boolean union\n{len(uni.faces)} tris, one closed shell",
                 fontsize=10.5, fontweight="bold", color=CG)
+    _libtag(a, "manifold3d  (CSG union)", LIB_COL["csg"])
 
     B = mm["boolean"]
-    fig.suptitle("How the bodies are built: shapely sections -> trimesh loft -> smoothing -> manifold3d CSG union",
-                 fontsize=14, fontweight="bold")
+    fig.suptitle("How each body is built — the library at every step "
+                 "(shapely/scipy → trimesh → trimesh → trimesh → manifold3d)",
+                 fontsize=13.5, fontweight="bold")
     _cap(fig, f"Stage 4 is the failure the old hand-rolled geom.py could not even see. Where an arm enters the body both surfaces survive, so on the {B['drone']} frame "
               f"{B['n_interior_faces']} faces ({B['area_interior_pct']:.1f} % of the surface area) end up INSIDE the aircraft.\n"
               f"Physical Optics has no occlusion test, so it integrates them anyway: that inflates the mean PO RCS by {B['po_bias_db']:+.2f} dB "
