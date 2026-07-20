@@ -83,15 +83,22 @@ def _fit_axes(ax, V, pad=1.08):
 # --------------------------------------------------------------------------- #
 def fig_material_legend():
     gm = drone_gamma_map(DRONES["phantom4"], FC)          # 전 그룹 커버(gear 포함)
-    rows = []          # (material, color, groups, gamma, provenance)
-    prov = {"plastic": "custom ABS (er~2.8)", "carbon": "custom CFRP (conductive)",
-            "metal": "Sionna ITU-R P.2040 'metal'", "prop_plastic": "custom nylon/PC",
-            "camera_assembly": "custom: metal housing + glass lens (PO eff. 0.85)",
+    # 색 = 순수 재질 분류: 같은 색(같은 재질)은 한 행으로 합친다 (prop 은 plastic 과 동일 색/재질)
+    rows = []          # (label, color, groups, gamma_str, provenance)
+    prov = {"plastic": "custom ABS/PC er=2.7 (incl. propellers — same material)",
+            "carbon": "custom CFRP (conductive)",
+            "metal": "Sionna ITU-R P.2040 'metal'",
+            "camera_assembly": "metal housing + glass lens (PO eff. 0.85)",
             "pcb": "custom FR-4 + Cu ground plane"}
+    bycol = {}
     for mat, col in MATERIAL_COLOR.items():
-        grps = [g for g, (m, _) in DRONE_GROUP_MAT.items() if m == mat]
-        gam = np.mean([gm[g] for g in grps if g in gm])
-        rows.append((mat, col, grps, gam, prov.get(mat, "custom")))
+        bycol.setdefault(tuple(col), []).append(mat)
+    for col, mats in bycol.items():
+        grps = [g for g, (m, _) in DRONE_GROUP_MAT.items() if m in mats]
+        gams = sorted({round(gm[g], 2) for g in grps if g in gm})
+        gam = "/".join(f"{v:.2f}" for v in gams)
+        label = "plastic" if "plastic" in mats else mats[0]
+        rows.append((label, col, grps, gam, prov.get(label, "custom")))
     fig, ax = plt.subplots(figsize=(10.5, 3.6))
     ax.set_xlim(0, 10.5)
     ax.set_ylim(-0.4, len(rows))
@@ -99,16 +106,17 @@ def fig_material_legend():
         y = i
         ax.add_patch(plt.Rectangle((0.1, y + 0.08), 0.72, 0.72, color=col, ec="k", lw=0.6))
         ax.text(1.0, y + 0.44, mat, va="center", fontsize=11, fontweight="bold")
-        ax.text(3.15, y + 0.44, f"|Γ|@3.5GHz = {gam:.2f}", va="center", fontsize=10)
-        ax.text(5.1, y + 0.44, ", ".join(grps), va="center", fontsize=9, color="0.25")
-        ax.text(7.6, y + 0.44, pv, va="center", fontsize=8.5, color="0.4")
+        ax.text(3.15, y + 0.44, f"|Γ|@3.5GHz = {gam}", va="center", fontsize=10)
+        ax.text(5.1, y + 0.44, ", ".join(grps), va="center", fontsize=7.8, color="0.25")
+        ax.text(7.9, y + 0.44, pv, va="center", fontsize=7.8, color="0.4")
     ax.text(0.1, len(rows) - 0.1 + 0.55, "color", fontsize=9, color="0.4")
     ax.text(1.0, len(rows) - 0.1 + 0.55, "material", fontsize=9, color="0.4")
     ax.text(3.15, len(rows) - 0.1 + 0.55, "reflection (amplitude)", fontsize=9, color="0.4")
     ax.text(5.1, len(rows) - 0.1 + 0.55, "mesh groups", fontsize=9, color="0.4")
-    ax.text(7.6, len(rows) - 0.1 + 0.55, "radio-material source", fontsize=9, color="0.4")
+    ax.text(7.9, len(rows) - 0.1 + 0.55, "radio-material source", fontsize=9, color="0.4")
     ax.set_axis_off()
-    ax.set_title("Mesh color = material = radio property  (same rule for all 5 drones)",
+    ax.set_title("Mesh color = pure MATERIAL class (same rule for all 5 drones; "
+                 "same material = same color)",
                  fontsize=12)
     _save(fig, "material_legend")
 
@@ -203,7 +211,7 @@ def fig_airfoil():
         ax = fig.add_subplot(2, 2, 3 + j, projection="3d")
         pm = build_propeller(DRONES[key])
         V = np.asarray(pm.v, float)
-        cols = {g: MATERIAL_COLOR["prop_plastic"] for g in set(pm.g)}
+        cols = {g: MATERIAL_COLOR["plastic"] for g in set(pm.g)}
         _mesh_poly(ax, pm, cols, alpha=0.95, lw=0.15, edge="k")
         _fit_axes(ax, V)
         ax.view_init(elev=28, azim=-50)

@@ -93,8 +93,9 @@ def _blade(R, root_frac=0.14, chord_max=0.26, pitch_deg=20.0, twist_deg=13.0,
     yc = sweep_frac * R * np.sin(np.pi / 2 * tt)                    # 시미터 스윕
 
     rings = []
-    for x, ci, ti, yi in zip(xs, c, th, yc):
-        p = _airfoil(max(ci, 1e-4), thick_ratio=0.09 + 0.05 * (1 - tt[0]))
+    for x, ci, ti, yi, tti in zip(xs, c, th, yc, tt):
+        # 두께비 테이퍼: 루트 14% → 팁 9% (실물 프로펠러의 구조적 테이퍼)
+        p = _airfoil(max(ci, 1e-4), thick_ratio=0.09 + 0.05 * (1 - tti))
         p = aff.rotate(p, np.degrees(ti), origin=(0, 0), use_radians=False)
         p = aff.translate(p, yi, 0.0)
         rings.append((float(x), p))

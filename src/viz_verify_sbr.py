@@ -189,7 +189,7 @@ def measure(n_az=N_AZ, force=False) -> dict:
     g_old_sionna = float(gamma_bulk("plastic", FC))       # 수정 전 Sionna 가 camera 를 보던 값
     g_po = float(gamma_po("camera_assembly", FC))         # PO 손표가 쓰던 값 (지금은 재질 정의)
     mat_rows = []
-    for k in ("metal", "camera_assembly", "pcb", "carbon", "plastic", "prop_plastic"):
+    for k in ("metal", "camera_assembly", "pcb", "carbon", "plastic"):
         mat_rows.append(dict(key=k, bulk=float(gamma_bulk(k, FC)), po=float(gamma_po(k, FC))))
     # 드론 σ 에 미치는 영향: camera 그룹만 옛 Sionna 값(plastic 벌크)으로 보면?
     spec = DRONES["mavic4pro"]

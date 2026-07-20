@@ -27,7 +27,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from geom import Mesh, box, cylinder, uv_sphere, prop_blade, hull, rotate, translate
+from geom import Mesh, rotate, translate
 
 
 # --------------------------------------------------------------------------- #
@@ -181,7 +181,7 @@ DRONE_GROUP_MAT = {
     "canopy":  ("plastic",         "상단 캐노피/배터리"),
     "arm":     ("carbon",          "암"),
     "motor":   ("metal",           "모터"),
-    "prop":    ("prop_plastic",    "프로펠러"),
+    "prop":    ("plastic",         "프로펠러"),
     "gear":    ("plastic",         "착륙장치"),
     "camera":  ("camera_assembly", "짐벌 카메라(금속 하우징+유리렌즈)"),
     "accent":  ("plastic",         "전방 식별색"),
@@ -191,7 +191,6 @@ DRONE_GROUP_MAT = {
 #  ⚠ 2026-07-14 수정: camera 는 Sionna 에서 **plastic**(|Γ|=0.244)이었는데 PO 에선 0.85 였다
 #     — 같은 부품을 두 엔진이 **10.9 dB** 다르게 본 버그. 이제 'camera_assembly'(ITU metal +
 #     PO 실효 0.85)로 통합되어 그런 어긋남이 구조적으로 불가능하다.
-#     prop 도 'prop_plastic'(PO 실효 0.25)으로 분리 — 예전 손표의 값을 재질 정의로 옮겼다.
 
 
 def drone_gamma_map(spec: DroneSpec, fc: float = 3.5e9) -> dict:
@@ -240,62 +239,11 @@ def _drone_dims(spec: DroneSpec):
 #           매끈한 로프트 동체, 익형 프로펠러, 기종별 짐벌(Mavic4 = 구형 Infinity 짐벌),
 #           착륙장치, RTK 돔. **불리언 합집합**으로 겹친 파트의 내부 면을 녹여 없앤다.
 #  legacy : 예전 프리미티브 스택(비교·회귀용).
-MESH_ENGINE = "cad"
-
-
-def _build_frame_legacy(spec: DroneSpec) -> Mesh:
-    """(내부) 예전 파라메트릭 실루엣 — 비교용. build_frame 을 쓸 것."""
-    m = Mesh()
-    diag, r, prop_r, bh, body_l, body_w, body_z = _drone_dims(spec)
-    # 동체(둥근 hull) + 전방 코(테이퍼) + 캐노피(돔) — 박스 대신 곡면
-    m.merge(hull(body_l, body_w, body_z, sides=16, taper_top=0.80,
-                 center=(0, 0, 0), group="body"))
-    m.merge(hull(body_l * 0.34, body_w * 0.6, body_z * 0.72, sides=12, taper_top=0.45,
-                 center=(body_l * 0.44, 0, -body_z * 0.05), group="body"))     # 코(돌출·테이퍼)
-    m.merge(hull(body_l * 0.64, body_w * 0.74, body_z * 0.62, sides=16, taper_top=0.5,
-                 center=(-0.04 * body_l, 0, body_z * 0.42), group="canopy"))   # 캐노피(낮고 평평한 돔)
-    # 암(둥근 카본 튜브) + 모터(약간 벨형) — 프로펠러는 분리
-    hub_r = max(body_l, body_w) * 0.5 * 0.9
-    arm_rad = (0.050 if spec.fixed_arm else 0.028) * diag
-    arm_t = (0.08 if spec.fixed_arm else 0.045) * diag                          # 모터 안착 높이 기준(유지)
-    motor_r = 0.05 * diag; motor_h = 0.045 * diag
-    for ang in motor_angles(spec):
-        ca, sa = math.cos(math.radians(ang)), math.sin(math.radians(ang))
-        mx, my = r * ca, r * sa
-        L = r - hub_r; rc = (hub_r + r) / 2.0
-        arm_grp = "arm" if spec.arm_style == "carbon" else "body"
-        M = rotate("z", ang) @ translate(rc, 0, 0)
-        m.merge(cylinder(arm_rad, L, axis="x", seg=12, center=(0, 0, 0)).transformed(M),
-                group=arm_grp)
-        if spec.accent_rgb is not None and ca > 0.1:                            # 전방 암 식별 컬러밴드
-            Mc = rotate("z", ang) @ translate(r - L * 0.18, 0, 0)
-            m.merge(cylinder(arm_rad * 1.25, L * 0.28, axis="x", seg=12,
-                             center=(0, 0, 0)).transformed(Mc), group="accent")
-        m.merge(cylinder(motor_r, motor_h, axis="z", seg=16, r_top=motor_r * 0.82,
-                         center=(mx, my, motor_h / 2 + arm_t / 2), group="motor"))
-    _add_gear(m, spec, body_l, body_w, body_z, diag)
-    _add_camera(m, spec, body_l, body_z)
-    if spec.rtk:                                     # 엔터프라이즈 RTK 안테나(매트리스)
-        _add_antenna(m, spec, body_l, body_w, body_z)
-    # --- 내부 금속 산란체(RCS 용) ---------------------------------------------
-    # 플라스틱 셸은 RF 에 반투명(|Γ|≈0.3)이라 실물 드론의 후방산란은 셸이 아니라
-    # **배터리팩·ESC/PCB·모터·카메라 금속**이 지배한다. 렌더에선 셸 안이라 안 보이지만
-    # 재질 가중 PO(rcs_po + drone_gamma_map)가 이들을 주 산란체로 계상한다.
-    # 치수는 동체 대비 대표 비율(실물 배터리 ≈ 동체 부피의 40~60%; 기종별 정확 치수는
-    # 대부분 비공개라 파라메트릭). Sionna RT 전파에는 refraction OFF 라 영향 없음.
-    m.merge(box(body_l * 0.50, body_w * 0.60, body_z * 0.55,
-                center=(-0.08 * body_l, 0, -0.05 * body_z), group="battery"))
-    m.merge(box(body_l * 0.36, body_w * 0.52, body_z * 0.06,
-                center=(0.02 * body_l, 0, 0.24 * body_z), group="pcb"))
-    return m
-
-
 def _build_frame_raw(spec: DroneSpec) -> Mesh:
-    """(내부) 외형보정 **전** 프레임. MESH_ENGINE 에 따라 CAD 또는 legacy."""
-    if MESH_ENGINE == "cad":
-        from drone_cad import build_frame_cad
-        return build_frame_cad(spec).to_geom()
-    return _build_frame_legacy(spec)
+    """(내부) 외형보정 **전** 프레임 — CAD(trimesh+manifold3d 로프트/불리언) 단일 경로.
+    (예전 프리미티브 조립 legacy 경로는 2026-07-20 제거 — git 히스토리에만 남음.)"""
+    from drone_cad import build_frame_cad
+    return build_frame_cad(spec).to_geom()
 
 
 # --------------------------------------------------------------------------- #
@@ -350,23 +298,11 @@ def build_frame(spec: DroneSpec) -> Mesh:
 
 
 def build_propeller(spec: DroneSpec, n: int = 10) -> Mesh:
-    """프로펠러 1개. MESH_ENGINE="cad" 면 **진짜 익형(NACA-4)** 로프트 블레이드 + 허브."""
-    if MESH_ENGINE == "cad":
-        from drone_cad import build_propeller_cad
-        return build_propeller_cad(spec, n_sec=max(12, n * 2)).to_geom()
-    return _build_propeller_legacy(spec, n)
-
-
-def _build_propeller_legacy(spec: DroneSpec, n: int = 10) -> Mesh:
-    """**프로펠러 1개**(prop_blades 장)를 허브 원점 기준으로 생성(스핀 적용 전, z축 회전).
-    pose_articulated/마이크로도플러에서 이 메쉬를 z회전(스핀)시켜 각 로터에 배치한다.
-    n : 블레이드 스팬 분할(기본 10=시각화용; 마이크로도플러는 더 촘촘히 줘서 도플러 트랙을 매끈하게)."""
-    _, _, prop_r, *_ = _drone_dims(spec)
-    m = Mesh()
-    for b in range(spec.prop_blades):
-        bang = (360.0 / spec.prop_blades) * b
-        m.merge(prop_blade(prop_r, n=n).transformed(rotate("z", bang)), group="prop")
-    return m
+    """프로펠러 1개 — **진짜 익형(NACA-4)** 로프트 블레이드 + 허브 (CAD 단일 경로).
+    n 은 블레이드 스팬 분할 힌트(마이크로도플러는 크게 줘서 단면을 촘촘히).
+    pose_articulated 가 이 메쉬를 z회전(스핀)시켜 각 로터에 배치한다."""
+    from drone_cad import build_propeller_cad
+    return build_propeller_cad(spec, n_sec=max(12, n * 2)).to_geom()
 
 
 def rotor_layout(spec: DroneSpec) -> list[dict]:
@@ -433,96 +369,24 @@ def pose_articulated(spec: DroneSpec, body_rpy=(0., 0., 0.), body_pos=(0., 0., 0
     return out
 
 
-def _add_gear(m, spec, body_l, body_w, body_z, diag):
-    if spec.gear == "none":
-        return
-    if spec.gear == "feet":                          # 작은 발 4개(매트리스/소비자기)
-        fz = -0.06 * diag
-        for sx in (0.32, -0.32):
-            for sy in (0.32, -0.32):
-                m.merge(cylinder(0.012 * diag, abs(fz), axis="z",
-                                 center=(sx * body_l, sy * body_w, fz / 2),
-                                 group="gear"))
-        return
-    if spec.gear == "legs":                          # 팬텀: 아치형 다리 2개 + 스키드
-        leg_h = 0.16 * diag
-        for sy in (1, -1):
-            y = sy * body_w * 0.45
-            # 비스듬한 다리(박스) + 바닥 스키드
-            m.merge(box(0.05 * diag, 0.05 * diag, leg_h,
-                        center=(0, y * 1.1, -leg_h / 2 - body_z / 2), group="gear"))
-            m.merge(box(body_l * 0.7, 0.05 * diag, 0.04 * diag,
-                        center=(0, y * 1.15, -leg_h - body_z / 2), group="gear"))
-        return
-    if spec.gear == "tall":                          # S1000: 긴 격납형 다리 + 스키드
-        leg_h = 0.22 * diag
-        for sy in (1, -1):
-            y = sy * body_w * 0.55
-            m.merge(box(0.045 * diag, 0.045 * diag, leg_h,
-                        center=(body_l * 0.2, y, -leg_h / 2 - body_z / 2), group="gear"))
-            m.merge(box(0.045 * diag, 0.045 * diag, leg_h,
-                        center=(-body_l * 0.2, y, -leg_h / 2 - body_z / 2), group="gear"))
-            m.merge(box(body_l * 1.2, 0.06 * diag, 0.05 * diag,
-                        center=(0, y, -leg_h - body_z / 2), group="gear"))
 
 
-def _add_camera(m, spec, body_l, body_z):
-    """드론별 개성 짐벌. gimbal=='belly' 면 벨리, 아니면 gimbal_style 로 분기."""
-    if spec.gimbal == "belly" or spec.gimbal_style == "belly":   # S1000 중앙 하단 벨리
-        cz = -body_z * 1.2
-        m.merge(box(0.18 * body_l, 0.18 * body_l, 0.16 * body_l,
-                    center=(0, 0, cz), group="camera"))
-        m.merge(uv_sphere(0.07 * body_l, center=(0, 0, cz - 0.08 * body_l),
-                          seg=12, rings=7, group="camera"))
-        return
-    cx, cz = body_l * 0.42, -body_z * 0.55
-    st = spec.gimbal_style
-    if st == "triple":                               # Mavic 3-카메라(가로로 넓은 블록 + 렌즈 3)
-        m.merge(box(0.10 * body_l, 0.30 * body_l, 0.12 * body_l, center=(cx, 0, cz), group="camera"))
-        for dy in (-0.085 * body_l, 0.0, 0.085 * body_l):
-            m.merge(uv_sphere(0.038 * body_l, center=(cx + 0.05 * body_l, dy, cz),
-                              seg=10, rings=6, group="camera"))
-    elif st == "sensor":                             # Matrice 짐벌 + 측거센서 클러스터
-        m.merge(box(0.12 * body_l, 0.17 * body_l, 0.12 * body_l, center=(cx, 0, cz), group="camera"))
-        m.merge(uv_sphere(0.05 * body_l, center=(cx + 0.05 * body_l, 0.035 * body_l, cz),
-                          seg=12, rings=7, group="camera"))
-        m.merge(box(0.06 * body_l, 0.05 * body_l, 0.05 * body_l,
-                    center=(cx + 0.02 * body_l, -0.07 * body_l, cz), group="camera"))   # 레이저 측거
-    elif st == "recessed":                           # Phantom 함몰 짐벌(동체에 더 붙음)
-        cx2 = body_l * 0.32
-        m.merge(box(0.08 * body_l, 0.11 * body_l, 0.08 * body_l, center=(cx2, 0, cz * 0.8), group="camera"))
-        m.merge(uv_sphere(0.042 * body_l, center=(cx2 + 0.03 * body_l, 0, cz * 0.8),
-                          seg=12, rings=7, group="camera"))
-    else:                                            # single (Mini 등 소형 전방 짐벌)
-        m.merge(box(0.09 * body_l, 0.11 * body_l, 0.09 * body_l, center=(cx, 0, cz), group="camera"))
-        m.merge(uv_sphere(0.045 * body_l, center=(cx + 0.05 * body_l, 0, cz),
-                          seg=12, rings=7, group="camera"))
-
-
-def _add_antenna(m, spec, body_l, body_w, body_z):
-    """RTK GNSS 안테나 — 동체 위 **낮고 매끈한 듀얼 너브**(과한 마스트 돌출 없이, 사진처럼).
-    Matrice 등 rtk=True 기체의 식별 특징(짧은 GNSS 안테나 2개)."""
-    z0 = body_z * 0.78                                # 캐노피 바로 위(낮게)
-    h = 0.06 * body_l
-    for sx in (-0.16 * body_l, 0.02 * body_l):        # 전후로 작은 안테나 2개
-        m.merge(cylinder(0.05 * body_l, h, axis="z", seg=12, r_top=0.034 * body_l,
-                         center=(sx, 0, z0 + h / 2), group="body"))
-
-
-# 재질 → 표시색 (모든 드론 공통; 색만 보면 재질을 안다) — 2026-07-16 사용자 지시로 재질별 매핑
 MATERIAL_COLOR = {
-    "plastic":         (0.82, 0.82, 0.85),   # 밝은 회색 — 플라스틱 셸/캐노피/착륙장치/식별색
-    "carbon":          (0.09, 0.09, 0.10),   # 검정 — 탄소섬유 암
-    "metal":           (0.52, 0.60, 0.72),   # 강청(steel-blue) — 금속(모터·배터리 포일)
-    "prop_plastic":    (0.90, 0.55, 0.12),   # 주황 — 프로펠러(잘 보이게)
-    "camera_assembly": (0.20, 0.48, 0.58),   # 청록 — 카메라(금속하우징+유리렌즈)
-    "pcb":             (0.12, 0.48, 0.22),   # FR-4 초록 — ESC/메인보드
+    # 색 = 순수 재질 분류(2026-07-20 사용자 지시). 물리적으로 같은 재질이면 같은 색 —
+    # 프로펠러는 몸체와 같은 플라스틱이므로 같은 회색이다(별도 재질 아님).
+    # 5색 팔레트(2026-07-20 재선정): 재질 수가 적으니 상호 구분 최대화 —
+    # 무채색 2(회/흑) + 파랑/주황/초록. 같은 계열 색(강청 vs 청록) 혼동 제거.
+    "plastic":         (0.82, 0.82, 0.85),   # 밝은 회색 — 플라스틱(셸/캐노피/착륙장치/식별색/프로펠러)
+    "carbon":          (0.09, 0.09, 0.10),   # 검정 — 탄소섬유(CFRP) 암
+    "metal":           (0.30, 0.50, 0.85),   # 파랑 — 금속(모터·배터리 포일)
+    "camera_assembly": (0.90, 0.50, 0.10),   # 주황 — 금속하우징+유리렌즈 복합체(별개 재질)
+    "pcb":             (0.10, 0.60, 0.25),   # 초록 — FR-4+구리(별개 재질)
 }
 
 
 def drone_colors(spec: DroneSpec) -> dict:
     """부위 그룹 → **재질별** 표시색 RGB. **모든 드론이 같은 규칙**이라 색만 보면 재질을 안다:
-      metal=강청 · plastic=회색 · carbon=검정 · prop=주황 · camera=청록 · pcb=초록.
+      plastic=회색(프로펠러 포함) · carbon=검정 · metal=파랑 · camera=주황 · pcb=초록.
     (색과 전파재질은 **같은 그룹**(DRONE_GROUP_MAT)에서 나온다 — 이제 렌더 색이 곧 재질이다.)
     이전의 드론별 개성 색(body_rgb/accent_rgb 기반)은 재질이 헷갈려 폐기했다."""
     return {grp: MATERIAL_COLOR.get(mat, (0.7, 0.7, 0.7))

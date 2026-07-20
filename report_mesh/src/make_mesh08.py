@@ -87,7 +87,7 @@ md(
 "1. **실물과 다른 모양일 수 있다** — 삼각형이 아무리 깨끗해도 '팬텀 4 를 닮은 무언가'일 뿐 팬텀 4 가 아닐 수 있다.",
 "2. **계산이 격자 탓일 수 있다** — RCS 숫자가 물리가 아니라 \"점을 몇 개 찍었는가\"에 따라 변한다면 그 숫자는 의미가 없다.",
 "",
-"그래서 이 편은 다섯 개의 독립 잣대를 쓴다. 잣대마다 \"무엇과 비교하는가\"가 다르다는 점이 핵심이다 — 한 잣대의 약점을 다른 잣대가 메운다. ← 출처: 검사 설계는 `report_mesh/src/verify_mesh_suite.py` 모듈 docstring(9개 섹션 A–I 정의, 3–21행)",
+"그래서 이 편은 다섯 개의 독립 잣대를 쓴다. 잣대마다 \"무엇과 비교하는가\"가 다르다는 점이 핵심이다 — 한 잣대의 약점을 다른 잣대가 메운다. ← 출처: 검사 설계는 `report_mesh/src/verify_mesh_suite.py` 모듈 docstring(9개 섹션 A–I 정의)",
 "",
 "| § | 검사 | 비교 대상 | JSON 섹션 |",
 "|---|---|---|---|",
@@ -122,13 +122,13 @@ print("이번 편 섹션:", ", ".join(k for k in V if k.startswith(("C_", "D_", 
 md(
 "## 1. 치수 대조 — 공식 스펙시트와 몇 % 안에서 맞는가 (`C_dims`)",
 "",
-"옷을 다 만든 뒤 **줄자로 다시 재보는** 단계다. 설계에 넣은 숫자를 그대로 믿지 않고, **완성된 메쉬를 독립적으로 실측**해 공식 스펙과 비교한다: 외형 L×W×H 는 `frame_envelope_mm()`(빌드된 프레임의 바운딩박스를 실측 ← `src/drones.py:390`), 프로펠러 지름은 빌드된 프롭 메쉬의 xy 최대 반경×2, 대각(모터-모터 거리)은 실제 로터 배치 좌표에서 잰다. ← 출처: `report_mesh/src/verify_mesh_suite.py:159-183` `sec_C_dims()`",
+"옷을 다 만든 뒤 **줄자로 다시 재보는** 단계다. 설계에 넣은 숫자를 그대로 믿지 않고, **완성된 메쉬를 독립적으로 실측**해 공식 스펙과 비교한다: 외형 L×W×H 는 `frame_envelope_mm()`(빌드된 프레임의 바운딩박스를 실측 ← `src/drones.py:327`), 프로펠러 지름은 빌드된 프롭 메쉬의 xy 최대 반경×2, 대각(모터-모터 거리)은 실제 로터 배치 좌표에서 잰다. ← 출처: `report_mesh/src/verify_mesh_suite.py:159-183` `sec_C_dims()`",
 "",
-"**읽는 법 — 오차 0% 가 다 같은 0% 가 아니다.** 항목이 세 부류로 나뉜다는 것을 알아야 정직한 해석이 된다.",
+"**읽는 법 — 오차 0% 가 다 같은 0% 가 아니다.** 항목이 세 부류로 나뉜다는 것을 알아야 올바른 해석이 된다.",
 "",
-"1. **맞춰진 값 (L/W/H, 오차 0.0%)** — 빌드 파이프라인이 프레임을 공식 외형에 **맞추도록 스케일**하기 때문에(`frame_fit_scale`, `drones.py:343-349` `build_frame`) 0% 는 검증이 아니라 **구성상 보장**이다. \"자로 재서 0\" 이 아니라 \"자에 맞춰 잘라서 0\".",
+"1. **맞춰진 값 (외형 축, 오차 0.0%)** — 빌드 파이프라인이 프레임을 공식 외형에 **맞추도록 스케일**하기 때문에(`frame_fit_scale` `drones.py:272`, `build_frame` `:292`) 0% 는 검증이 아니라 **구성상 보장**이다. \"자로 재서 0\" 이 아니라 \"자에 맞춰 잘라서 0\". 단 Mini 5 Pro 는 공식으로 확실한 외형 축이 **높이뿐**이라 H 만 이 부류다 — L/W 는 강제하지 않고 로터 배치가 정한다 (← `drones.py:108-113` envelope_mm 주석).",
 "2. **직접 먹인 값 (프로펠러 지름)** — 스펙 지름을 파라메트릭 블레이드에 직접 넣는다. 그런데 5종 모두 오차가 약 "
-f"+{prop_err['mavic4pro']:.2f}% 로 **똑같다** — 5종이 같은 블레이드 함수(`drone_cad.py:333` `build_propeller_cad`, 스키미터 후퇴 + 팁 마감)를 반경만 바꿔 쓰므로, 팁 최외곽점이 명목 반경을 살짝 넘는 파라메트릭 형상 특성이 공통 비율로 나타난 것이다. 결함이 아니라 형상 선택의 흔적이다.",
+f"+{prop_err['mavic4pro']:.2f}% 로 **똑같다** — 5종이 같은 블레이드 함수(`drone_cad.py:334` `build_propeller_cad`, 스키미터 후퇴 + 팁 마감)를 반경만 바꿔 쓰므로, 팁 최외곽점이 명목 반경을 살짝 넘는 파라메트릭 형상 특성이 공통 비율로 나타난 것이다. 결함이 아니라 형상 선택의 흔적이다.",
 "3. **따라나온 값 (대각선)** — 외형을 공식값에 맞춘 **결과로 유도되는** 모터-모터 거리. 아무도 직접 맞추지 않았으므로 이것이 **진짜 교차검증**이다. 최대 "
 f"{max(abs(v) for v in diag_err.values()):+.2f}% ({NAME[max(diag_err, key=lambda k: abs(diag_err[k]))]}) 로, 두 공식값(외형 상자 vs 대각)이 동시에 정확히는 양립하지 않는 기종에서 외형을 우선한 대가다.",
 ),
@@ -155,19 +155,19 @@ md(
 "",
 f"왼쪽: 5종 × 전 항목의 공식(회색) vs 실측(파랑) 막대 — 눈으로 봐도 겹친다. 오른쪽: 드론별 최악 오차. 5종 모두 **2% 가이드선 아래**다: Mini {worst['mini5pro']:.2f}% · Mavic {worst['mavic4pro']:.2f}% · Matrice {worst['matrice4e']:.2f}% · S1000+ {worst['s1000plus']:.2f}% · Phantom {worst['phantom4']:.2f}%. ← 출처: mesh_verify.json `C_dims.*.worst_err_pct`, 그림 `report_mesh/src/viz_mesh_reports.py:269-295` `fig_dims()`",
 "",
-"### 공식값과 '추정'값의 정직한 구분",
+"### 공식값과 '추정'값의 구분 — 주의",
 "",
 "위 표의 '공식[mm]' 열이 전부 같은 무게의 진실은 아니다. 기준값 자체의 출처 등급을 밝혀 둔다 (**오차 0% 여도 기준이 추정이면 진실과 0% 라는 뜻이 아니다**):",
 "",
 "| 드론 | 대각 기준값 | 등급 | 근거 |",
 "|---|---|---|---|",
-f"| Mini 5 Pro | {C['mini5pro']['checks']['diagonal']['official']:.0f} mm | ⚠ **추정 (±20 mm)** | DJI 는 Mini 시리즈 대각을 공개하지 않는다. 언폴드 외형+프롭 지름에서 유도한 값으로, 독립 검증자도 \"±~20 mm 로 취급하고 실기체로 확인하라\" 고 명시 ← 출처: docs/SPECS.md 'Mini 5 Pro' 주의·검증 절(dji.com/mini-5-pro/specs), `src/drones.py:98-101` note |",
-f"| Mavic 4 Pro | {C['mavic4pro']['checks']['diagonal']['official']:.0f} mm | 공식 외형에서 **유도** | 원래 추정 400 mm 는 공식 외형 328.7×390.5 와 기하학적으로 **모순**(400 으로는 그 상자를 걸칠 수 없다) → 공식 외형에 맞추면 440.9 mm 가 함의된다 ← 출처: `src/drones.py:123-126` note, docs/SPECS.md 'Mavic 4 Pro' |",
+f"| Mini 5 Pro | {C['mini5pro']['checks']['diagonal']['official']:.0f} mm | ⚠ **추정 (±20 mm)** | DJI 는 Mini 시리즈 대각을 공개하지 않는다. 공개 치수·프롭 규격과 조사된 로터 배치 좌표에서 유도한 값으로, 독립 검증자도 \"±~20 mm 근사로 취급하고 실기체·삼면도로 확인하라\" 고 명시 ← 출처: docs/SPECS.md 'Mini 5 Pro' 주의·검증 절(dji.com/mini-5-pro/specs), `src/drones.py:98-113` note·로터좌표 주석 |",
+f"| Mavic 4 Pro | {C['mavic4pro']['checks']['diagonal']['official']:.0f} mm | 공식 외형에서 **유도** | DJI 는 대각을 공개하지 않고, 흔히 도는 추정 400 mm 는 공식 외형 328.7×390.5 와 기하학적으로 **모순**이다(400 으로는 그 상자를 걸칠 수 없다) → 공식 외형이 함의하는 440.9 mm 를 기준으로 쓴다 ← 출처: `src/drones.py:121-126` note, docs/SPECS.md 'Mavic 4 Pro' |",
 f"| Matrice 4E | {C['matrice4e']['checks']['diagonal']['official']:.1f} mm | **공식** | DJI 공식 스펙 438.8 mm ← 출처: docs/SPECS.md 'Matrice 4E'(dji.com 스펙페이지 확인) |",
 f"| S1000+ | {C['s1000plus']['checks']['diagonal']['official']:.0f} mm | **공식** | DJI 공식 1045 mm ← 출처: docs/SPECS.md 'S1000+' |",
 f"| Phantom 4 | {C['phantom4']['checks']['diagonal']['official']:.0f} mm | **공식** | DJI 공식 350 mm(모터-모터, 프롭 제외) ← 출처: docs/SPECS.md 'Phantom 4', DJI Quick Start Guide v1.2 |",
 "",
-f"Phantom 4 의 대각 {diag_err['phantom4']:+.2f}% 는 공식 외형 상자(289.5×289.5×196)와 공식 대각(350)을 **동시에** 정확히 만족시키기 어려워 외형을 우선한 타협이고, Matrice 4E 의 {diag_err['matrice4e']:+.2f}% 도 같은 종류다. 파장 {LAM35:.0f} mm 짜리 전파 입장에서 {abs(C['phantom4']['checks']['diagonal']['measured'] - C['phantom4']['checks']['diagonal']['official']):.0f} mm 어긋남은 파장의 {abs(C['phantom4']['checks']['diagonal']['measured'] - C['phantom4']['checks']['diagonal']['official']) / LAM35 * 100:.0f}% 수준이다. ← 출처: mesh_verify.json `C_dims.phantom4/matrice4e.checks.diagonal`, 외형 우선 원칙은 `src/drones.py:317-319` 주석",
+f"Phantom 4 의 대각 {diag_err['phantom4']:+.2f}% 는 공식 외형 상자(289.5×289.5×196)와 공식 대각(350)을 **동시에** 정확히 만족시키기 어려워 외형을 우선한 타협이고, Matrice 4E 의 {diag_err['matrice4e']:+.2f}% 도 같은 종류다. 파장 {LAM35:.0f} mm 짜리 전파 입장에서 {abs(C['phantom4']['checks']['diagonal']['measured'] - C['phantom4']['checks']['diagonal']['official']):.0f} mm 어긋남은 파장의 {abs(C['phantom4']['checks']['diagonal']['measured'] - C['phantom4']['checks']['diagonal']['official']) / LAM35 * 100:.0f}% 수준이다. ← 출처: mesh_verify.json `C_dims.phantom4/matrice4e.checks.diagonal`, 외형 우선 원칙은 `src/drones.py:251-268` envelope-fit 주석",
 ),
 
 # ── 6. §2 부피→밀도 설명 ─────────────────────────────────────────────────
@@ -176,7 +176,7 @@ md(
 "",
 "택배 상자를 들어보고 \"이 무게면 안에 뭐가 들었겠구나\" 가늠하는 것과 같은 스모크 테스트다. 무게는 DJI 공식값이고 부피는 우리 메쉬에서 나오므로, 둘을 나눈 **암시밀도 = 공식 무게 ÷ 메쉬 부피** 가 상식적인 범위에 있는지 보면 \"메쉬가 크게 잘못 만들어지진 않았는가\"를 빠르게 걸러낼 수 있다. 부피는 그룹(부위)별 watertight 컴포넌트의 닫힌 부피 합이다. ← 출처: `report_mesh/src/verify_mesh_suite.py:189-206` `sec_D_volume()`",
 "",
-"**솔리드 근사의 정직한 한계** — 실물 드론은 **속이 비어 있다**(플라스틱 셸 안에 공기·배선 공간). 우리 모델은 부위마다 **꽉 찬 덩어리**(솔리드)다. 그래서 모델 부피가 실물의 '재료 부피'보다 훨씬 크고, 암시밀도는 실제 재료 밀도(ABS 플라스틱 ≈1.05 g/cm³, 물=1.0 — 일반 물성 상식값)보다 **한참 낮게 나오는 것이 정상**이다. 속 빈 기체일수록 낮다: 0.2~0.8 g/cm³ 구간이면 \"셸+공기 구조를 솔리드로 근사한 물체\"로서 말이 된다. 반대로 1 을 크게 넘거나 0.05 아래로 떨어지면 스케일이나 단위가 틀렸다는 신호다.",
+"**솔리드 근사의 현재 한계** — 실물 드론은 **속이 비어 있다**(플라스틱 셸 안에 공기·배선 공간). 우리 모델은 부위마다 **꽉 찬 덩어리**(솔리드)다. 그래서 모델 부피가 실물의 '재료 부피'보다 훨씬 크고, 암시밀도는 실제 재료 밀도(ABS 플라스틱 ≈1.05 g/cm³, 물=1.0 — 일반 물성 상식값)보다 **한참 낮게 나오는 것이 정상**이다. 속 빈 기체일수록 낮다: 0.2~0.8 g/cm³ 구간이면 \"셸+공기 구조를 솔리드로 근사한 물체\"로서 말이 된다. 반대로 1 을 크게 넘거나 0.05 아래로 떨어지면 스케일이나 단위가 틀렸다는 신호다.",
 ),
 
 # ── 7. 밀도 표 코드 ──────────────────────────────────────────────────────
@@ -202,7 +202,7 @@ md(
 "",
 f"소비자 쿼드 4종은 {min(D[k]['implied_density_g_cm3'] for k in ['mini5pro','mavic4pro','phantom4']):.2f}~{D['matrice4e']['implied_density_g_cm3']:.2f} g/cm³ — \"플라스틱 셸 + 빈 속을 솔리드로 근사한 물체\"로 전부 타당한 범위다. Mini/Mavic 이 {D['mini5pro']['implied_density_g_cm3']:.2f} 수준으로 가장 낮은 것은 접이식 경량 기체(빈 공간 비율이 큼)와 일치하고, Matrice 4E({D['matrice4e']['implied_density_g_cm3']:.2f})는 같은 크기급에서 배터리·센서가 더 눌러 담긴 엔터프라이즈 기체라는 사실과 방향이 맞는다. ← 출처: mesh_verify.json `D_volume.*.implied_density_g_cm3`",
 "",
-f"**S1000+ 는 무게의 정의가 두 개다**: DroneSpec 의 `weight_g={DRONES['s1000plus'].weight_g:.0f}` 은 대표 **이륙중량(TOW, 페이로드 포함)** 이고, 기체 자중(airframe)은 4400 g 이다(권장 TOW 6.0~11.0 kg). ← 출처: docs/SPECS.md 'S1000+'(기체 자중 4400 g 절), `src/drones.py:41-42` weight_g 주석, `verify_mesh_suite.py:202-204`(병기 로직). 그래서:",
+f"**S1000+ 는 무게의 정의가 두 개다**: DroneSpec 의 `weight_g={DRONES['s1000plus'].weight_g:.0f}` 은 대표 **이륙중량(TOW, 페이로드 포함)** 이고, 기체 자중(airframe)은 4400 g 이다(권장 TOW 6.0~11.0 kg). ← 출처: docs/SPECS.md 'S1000+'(기체 자중 4400 g 절), `src/drones.py:42` weight_g 주석, `verify_mesh_suite.py:202-204`(병기 로직). 그래서:",
 "",
 f"- TOW 기준 {D['s1000plus']['implied_density_g_cm3']:.2f} g/cm³ — 카메라 짐벌 등 **페이로드까지 얹은 가상 밀도**라 높게 나온다(우연히 CFRP ~1.6 근처).",
 f"- 자중 기준 {D['s1000plus']['implied_density_airframe_g_cm3']:.2f} g/cm³ — 카본 프레임 옥토콥터의 솔리드 근사로 타당한 값. **모델 검증에는 이쪽이 맞는 잣대**다.",
@@ -304,7 +304,7 @@ md(
 "",
 "SBR(`src/rcs_sbr.py:117` `rcs_sbr_batch`)은 PO 와 독립인 두 번째 계산 엔진이라 자기만의 수렴 놉이 있다. 검사를 **두 겹**으로 설계한 이유가 중요하다 (← 출처: `report_mesh/src/verify_mesh_suite.py:363-406` `sec_I_sbr_subdiv()` docstring):",
 "",
-f"**① 세분화 ×4 불변** — 삼각형을 4배로 쪼개도(faces {SUB['faces_base']:,} → {SUB['faces_fine']:,}) **표면 자체는 동일**하다. 그러니 답이 같아야 '자명'하지만, 이를 실측하는 것은 파이프라인(BVH 교차, 법선 계산, 면적 적분)이 테셀레이션 밀도에 숨은 의존이 없음을 못박는 회귀 검사다. 결과: 방위평균 차이 {SUB['azavg_dbsm']['diff']:+.6f} dB, 개별 각도 최대 {SUB['per_angle_absdiff_db']['max']:.5f} dB — 사실상 **0.000 dB**. 버그가 있었다면 여기서 걸렸다.",
+f"**① 세분화 ×4 불변** — 삼각형을 4배로 쪼개도(faces {SUB['faces_base']:,} → {SUB['faces_fine']:,}) **표면 자체는 동일**하다. 그러니 답이 같아야 '자명'하지만, 이를 실측하는 것은 파이프라인(BVH 교차, 법선 계산, 면적 적분)이 테셀레이션 밀도에 숨은 의존이 없음을 못박는 회귀 검사다. 결과: 방위평균 차이 {SUB['azavg_dbsm']['diff']:+.6f} dB, 개별 각도 최대 {SUB['per_angle_absdiff_db']['max']:.5f} dB — 사실상 **0.000 dB**. 이런 숨은 의존이 있다면 여기서 걸린다.",
 "",
 f"**② 광선 간격 λ/12 → λ/24** — 이쪽이 SBR 의 **진짜 수치 놉**이다(광선을 몇 개 쏘는가). 2배 조밀하게 해도 방위평균 이동 {RAY['azavg_dbsm']['diff']:+.2f} dB, 개별 각도 평균 {RAY['per_angle_absdiff_db']['mean']:.1f} dB(최대 {RAY['per_angle_absdiff_db']['max']:.1f} dB, 역시 널) — PO 의 점간격 검사와 같은 등급으로 수렴한다.",
 "",
@@ -370,7 +370,7 @@ md(
 "",
 "---",
 "",
-"**다음 리포트** → `mesh09_*.ipynb` — mesh 가이드 시리즈의 다음 편 (이 저장소 `report_mesh/` 에서 이어진다).",
+"**시리즈 완결.** 메쉬가 실제 탐지에 쓰이는 모습은 본편 report01~12 에서 — 특히 report07(SBR)·report08(RCS 결과)이 이 검증 위에 서 있다.",
 ),
 ]
 
@@ -378,5 +378,8 @@ nb = {"cells": cells, "metadata": {"kernelspec": {"display_name": "py312",
       "language": "python", "name": "py312"}, "language_info": {"name": "python"}},
       "nbformat": 4, "nbformat_minor": 5}
 out = os.path.join(RM, "mesh08_verify_reality.ipynb")
+for _i, _c in enumerate(nb["cells"]):
+    _c["id"] = f"m08-{_i:02d}"
+
 json.dump(nb, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 print("wrote", out, len(cells), "cells")

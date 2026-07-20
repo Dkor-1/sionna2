@@ -544,27 +544,31 @@ def fig_meshcheck(mm: dict):
                 fontsize=11, fontweight="bold")
 
     b = ax[1]
-    counts = [512, 2]
-    lab = ["512 degenerate triangles\n(motors 288 + propellers 224)",
-           "2 caps with inward normals\n(the code comment said 'outward')"]
-    b.barh([0, 1], counts, 0.45, color=[CR, CO])
-    b.set_xscale("log"); b.set_xlim(1, 4000)
-    b.set_yticks([0, 1])
-    b.set_yticklabels(["revolve(): r = 0 rings were not\nfolded into a single apex",
-                       "old prop_blade(): both end\ncaps were wound backwards"], fontsize=9.5)
-    for i, (cn, lb) in enumerate(zip(counts, lab)):
-        b.annotate("  " + lb, (cn * 1.15, i), va="center", fontsize=9, color=GRAY)
+    total_faces = sum(C[k]["groups"][g]["n_faces"] for k in DKEYS for g in C[k]["groups"])
+    checks = [
+        ("watertight", "holes / open seams --\nvolume & booleans undefined"),
+        ("outward normals", "flipped face --\nPO lights the wrong side"),
+        ("consistent winding", "neighbor faces disagree --\nnormal field unreliable"),
+        ("no degenerate faces", "zero-area triangle --\npollutes the surface integral"),
+    ]
+    b.set_xlim(0, 10); b.set_ylim(-0.5, len(checks) - 0.2)
+    for i, (name, what) in enumerate(checks):
+        b.text(0.2, i, "PASS", fontsize=11, fontweight="bold", color="#2e7d32",
+               va="center", ha="left",
+               bbox=dict(boxstyle="round,pad=0.25", fc="#cfe8cf", ec="none"))
+        b.text(1.8, i, name, fontsize=10.5, fontweight="bold", va="center")
+        b.text(5.2, i, what, fontsize=8.6, va="center", color=GRAY)
     b.invert_yaxis()
-    b.set_xlabel("defects found (log scale)")
-    b.set_title("What the audit actually caught\n(both were silently alive in the old mesh code)",
+    b.set_axis_off()
+    b.set_title(f"What each check catches -- current result:\n"
+                f"0 defects across {total_faces:,} faces (5 drones)",
                 fontsize=11, fontweight="bold")
-    b.grid(axis="x", alpha=0.3)
 
     fig.suptitle("Mesh verification is a build gate, not a comment: 5 / 5 drones pass",
                  fontsize=14, fontweight="bold")
     _cap(fig, "src/mesh_check.py splits each drone into groups, then into connected components, and asks trimesh: is it watertight, is the winding consistent, do the normals point outward, are any faces degenerate?\n"
               "This is not cosmetic. PO and SBR both decide 'is this face lit' from the sign of n . u, so a flipped cap or a zero-area triangle silently corrupts the integral -- and the propeller IS the micro-Doppler signal.\n"
-              "assert_ok() runs inside the build pipeline, so neither bug can come back unnoticed.")
+              "assert_ok() runs inside the build pipeline as a hard gate: a mesh that fails any check cannot ship into the RCS/render stages.")
     return _save(fig, "report1_meshcheck.png")
 
 

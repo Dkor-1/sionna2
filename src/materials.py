@@ -75,9 +75,6 @@ MATERIALS: dict[str, dict] = {
     "plastic_blue": dict(
         eps_r=2.7, sigma=0.02, S=0.20, gamma_po=0.28,
         note="파란 모서리 트림 — 전파물성은 plastic 과 동일(색만 다름)."),
-    "prop_plastic": dict(
-        eps_r=2.7, sigma=0.02, S=0.20, gamma_po=0.25,
-        note="프로펠러(얇은 플라스틱, 카본충전이면 ↑). 셸보다 더 얇아 실효 |Γ| 0.25."),
     "carbon": dict(
         eps_r=5.0, sigma=3.0e3, S=0.30, gamma_po=0.90,
         note="탄소섬유(도전성) — ITU 에 없음. 벌크 |Γ|≈0.99(금속 근접). "

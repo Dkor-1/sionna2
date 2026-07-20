@@ -326,7 +326,7 @@ def cfar_sweep(std="nr"):
 # --------------------------------------------------------------------------- #
 def drone_row_gif(name="drone_gallery_row", frames=48):
     """5종 드론이 **가로로 나란히**, **몸체가 돌면서 프로펠러도 스핀**(분절 메쉬 시연), 위에 명칭.
-    재질색(metal=강청·plastic=회색·carbon=검정·prop=주황·camera=청록·pcb=초록). pose_articulated 로
+    재질색(plastic=회색(프롭 포함)·carbon=검정·metal=파랑·camera=주황·pcb=초록). pose_articulated 로
     프레임마다 몸체 yaw + 로터 위상을 바꿔 그린다(부위별 회전이 분리 가능함을 한눈에)."""
     from mpl_toolkits.mplot3d.art3d import Poly3DCollection
     from drones import DRONES, pose_articulated, drone_colors
