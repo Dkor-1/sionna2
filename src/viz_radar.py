@@ -256,7 +256,7 @@ def fig_summary(outdir=FIG, target="mavic4pro", R=10.0):
         rowkind.append(always)
     fig, ax = plt.subplots(figsize=(15, 3.4), constrained_layout=True); ax.axis("off")
     cols = ["Standard", "Carrier", "Channel BW", "Reference signal", "Reference BW",
-            "Range res.\nc/2B (theory)", "Measured\n-3 dB width", "Max speed\n" + r"PRF$\cdot\lambda$/4",
+            "Bistatic range res.\nc/B (theory)", "Measured\n-3 dB width", "Max speed\n" + r"PRF$\cdot\lambda$/4",
             "True RCS\n[dBsm]", "Estimated RCS\n[dBsm]"]
     t = ax.table(cellText=rows, colLabels=cols, loc="center", cellLoc="center")
     t.auto_set_font_size(False); t.set_fontsize(10.0); t.scale(1, 2.0)

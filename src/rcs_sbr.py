@@ -319,13 +319,18 @@ def rcs_sbr(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
             if b + 1 >= max_bounce:
                 break
             # ② 정반사 후 재추적 (오목부 다중반사)
+            #   ⚠ 2026-07-16 버그수정(적대적 감사): 이전엔 이 누적경로를 `* 0` 으로 죽여
+            #   2차+ 반사의 경로길이가 위상 e^{j2k(r·û − ½·path)} 에 안 들어갔다 → 오목부 다중반사가
+            #   물리적으로 틀렸고(이면반사체 ~34 dB), '다중반사는 사소하다'는 결론이 그 고장난
+            #   커널에서 나온 순환논법이었다. 이제 **직전 충돌점까지의 실제 이동거리를 누적**한다.
             Dh = Dcur[hit]
             Dref = Dh - 2.0 * np.einsum("ij,ij->i", Dh, Nh)[:, None] * Nh
+            seg = np.linalg.norm(Ph - Ocur[hit], axis=1)          # 이 bounce 에서 실제 이동한 거리
             newO = Ph + 1e-4 * Dref
             alive2 = np.zeros(O.shape[0], bool); alive2[hit] = True
             Ocur[hit] = newO; Dcur[hit] = Dref
             amp[hit] = amp[hit] * gh
-            path[hit] = path[hit] + np.linalg.norm(Ph - Ocur[hit], axis=1) * 0  # (1차근사: 위상은 r·û 로)
+            path[hit] = path[hit] + seg                           # 누적 경로길이(위상에 반영)
             alive = alive2
 
         sig[i] = (4.0 * np.pi / lam ** 2) * abs(E) ** 2

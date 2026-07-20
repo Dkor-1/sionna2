@@ -19,7 +19,7 @@ experiment_x410.py — **USRP X410 실증실험과 1:1 로 맞춘 시뮬레이�
 
 ■ USRP X410 하드웨어 (ni.com / ettus.com 스펙, 2024)
   · **TX 4채널 + RX 4채널** (ZBX 도터보드 2장, 채널당 2)
-  · 채널당 **순시대역폭 400 MHz**  → 거리분해능 c/2B ≈ 0.37 m (광대역이면)
+  · 채널당 **순시대역폭 400 MHz**  → 거리분해능(바이스태틱) c/B ≈ 0.75 m (광대역이면; 모노 등가 0.37 m)
   · **1 MHz ~ 7.2 GHz** (8 GHz 까지 튜닝) → 3.5 GHz(5G n78)·2.4/5 GHz(WiFi)·1.8 GHz(LTE) 전부 커버
   · ADC **12-bit** → 동적범위 ~72 dB (★ 이게 중요하다 — 아래)
 
@@ -200,7 +200,7 @@ def summary():
     for std, bw, fc in (("wifi", 80e6, 5.2e9), ("lte", 20e6, 1.8e9), ("nr", 100e6, 3.5e9),
                         ("nr_wide", 400e6, 3.5e9)):
         ok, msg = scn.hw.supports(fc, bw)
-        dr = C0 / (2 * bw)
+        dr = C0 / bw    # 바이스태틱 c/B (모노 등가는 절반)
         print(f"  {std:8s} {bw/1e6:5.0f} MHz @ {fc/1e9:.1f} GHz → ΔR {dr:5.2f} m  "
               f"[{'✅' if ok else '❌ '+msg}]")
     print(f"\n디텍션 vs 트래킹:")

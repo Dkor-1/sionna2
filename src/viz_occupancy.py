@@ -115,7 +115,7 @@ def fig_occupancy_experiment(outdir=FIG, target="mavic4pro", R=10.0, snr_db=18.0
                                          rng=np.random.default_rng(5))
         pdb = 20 * np.log10(prof / prof.max() + 1e-12)
         # 실측 -3dB 주엽폭 — 거리축을 8배 보간해서 잰다(원격자 c/2fs ≈ 1.2 m 에 양자화되면
-        # 이론 c/2B 와 어긋나 보인다). 보간하면 실측≈이론 이 되어 (d) 막대와 일관된다.
+        # 이론 c/B(바이스태틱) 와 어긋나 보인다). 보간하면 실측≈이론 이 되어 (d) 막대와 일관된다.
         res = mainlobe_width_m(rm, prof)
         short = {"G1": "G1 idle · SSB only", "G2": "G2 PRS on (positioning session)",
                  "G3": "G3 PRS on + user data"}[mode]

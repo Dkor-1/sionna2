@@ -187,9 +187,12 @@ def fig_reference_budget(REF):
         ax[1].annotate(f"{dR[i]:.1f} m", (i + 0.19, dR[i]), ha="center", va="bottom",
                        fontsize=11, fontweight="bold")
     ax[1].set_xticks(x); ax[1].set_xticklabels(lbl, fontsize=9)
-    ax[1].set_ylabel(r"Range resolution  $\Delta R = c/(2B_{ref})$  [m]")
+    ax[1].set_ylabel(r"Bistatic range resolution  $\Delta R_b = c/B_{ref}$  [m]")
     ax[1].set_ylim(0, max(dR) * 1.30)
-    ax[1].set_title("(b) 5G is 10x coarser than LTE", fontsize=12, fontweight="bold")
+    # ⚠ 제목은 데이터에서 계산한다 — 예전엔 "10x coarser than LTE" 가 하드코딩돼 있었는데
+    #   10.6× 는 WiFi 대비이고 LTE 대비는 2.5× 다. 비율은 c/B vs c/2B 규약에 불변.
+    _r_lte = dR[keys.index("nr")] / dR[keys.index("lte")]
+    ax[1].set_title(f"(b) 5G is {_r_lte:.1f}x coarser than LTE", fontsize=12, fontweight="bold")
     ax[1].legend(fontsize=8, loc="upper left")
     ax[1].grid(axis="y", alpha=0.3)
 
@@ -228,14 +231,20 @@ def fig_reference_budget(REF):
     fig.suptitle("Passive radar can only correlate what the cell always transmits",
                  fontsize=15, fontweight="bold")
     fig.tight_layout(rect=(0, 0.20, 1, 0.95))      # 캡션 4줄 자리 (눈금 라벨과 겹쳤다)
+    # ⚠ 각주 수치는 데이터에서 뽑는다 — 예전엔 '20.8 m'(모노스태틱 c/2B) 가 하드코딩돼
+    #   막대(바이스태틱 c/B)와 정면으로 모순됐다. 규약은 waveforms.py:144 이 단일 소스.
     return _save(fig, "report2_ref_signal.png",
                  "G1 = idle cell (always-on reference only): LTE=CRS, 5G=SSB, WiFi=preamble VHT-LTF.\n"
                  "Range resolution follows the REFERENCE bandwidth, not the channel bandwidth. "
-                 "5G SSB is both narrow (20.8 m) and rare (50 Hz -> 1.07 m/s).\n"
+                 f"5G SSB is both narrow ({g1['nr']['dR_m']:.1f} m bistatic) and rare "
+                 f"({g1['nr']['prf_hz']:.0f} Hz -> {g1['nr']['vmax_ms']:.2f} m/s).\n"
                  "Dashed arrow = what a positioning session (PRS) would buy - but a passive receiver "
                  "borrowing someone else's cell cannot assume it.\n"
-                 "Caveat: this is the IDLE-cell regime. A loaded cell with a captured full-waveform "
-                 "reference is a different regime (full channel band, PRF set by the CPI split).")
+                 "Caveat 1: this is the IDLE-cell regime. A loaded cell with a captured full-waveform "
+                 "reference is a different regime (full channel band, PRF set by the CPI split).\n"
+                 "Caveat 2: WiFi's 1000 Hz is a CONGESTED-AP rate, not an idle one - beacon-only WiFi "
+                 "is ~9.8 Hz (v_max ~0.14 m/s), i.e. WORSE than 5G. Panel (c) mixes regimes on the "
+                 "WiFi point; read it as 'LTE beats 5G among always-on references', not '5G is uniquely bad'.")
 
 
 # =========================================================================== #
@@ -314,10 +323,14 @@ def fig_occupancy_check(REF):
     fig.suptitle("G1 works: the idle cell does carry a reference - and it is the one that sets range",
                  fontsize=14, fontweight="bold")
     fig.tight_layout(rect=(0, 0.09, 1, 0.93))
+    # ⚠ '20.8 -> 1.5 m' 도 옛 모노스태틱 하드코딩이었다 — 데이터에서 뽑는다.
+    _nr_g1 = REF["G1"]["nr"]["dR_m"]
+    _nr_g3 = REF["G3"]["nr"]["dR_m"]
     return _save(fig, "report2_occupancy.png",
                  "Occupancy rises about 10x from G1 to G3, but the reference bandwidth (b) and hence "
                  "range resolution (c) barely move for WiFi and LTE -\n"
-                 "their always-on reference is ALREADY wideband. Only 5G jumps (20.8 -> 1.5 m), and "
+                 "their always-on reference is ALREADY wideband. Only 5G jumps "
+                 f"({_nr_g1:.1f} -> {_nr_g3:.1f} m), and "
                  "only because PRS switches on, which requires a positioning session.\n"
                  "So read G2/G3 for 5G as an optimistic upper bound, not as the baseline.")
 
@@ -538,8 +551,8 @@ def fig_ambiguity(REF):
     fig.tight_layout(rect=(0, 0.09, 1, 0.95))
     _save(fig, "report2_ambiguity.png",
           "Top: autocorrelation of the always-on reference (G1). Dashed line = the Rayleigh figure "
-          "c/(2*B_ref) quoted in section 1.\n"
-          "HONEST READING: the measured 3 dB HALF-width is NOT equal to c/(2*B_ref) - it is about "
+          "c/B_ref (bistatic) quoted in section 1.\n"
+          "HONEST READING: the measured 3 dB HALF-width is NOT equal to c/B_ref (bistatic) - it is about "
           "0.55x for LTE and 5G. These are two different definitions (3 dB half-width vs Rayleigh "
           "peak-to-null), and CRS/SSB are combs, whose main lobe is set by the occupied SPAN while "
           "the gaps raise sidelobes.\n"
@@ -666,9 +679,11 @@ def fig_sbr_validation(V):
                  fontsize=15, fontweight="bold")
     fig.tight_layout(rect=(0, 0.11, 1, 0.94))
     return _save(fig, "report2_sbr_validate.png",
-                 "(a) Against analytic targets the SBR kernel lands within a fraction of a dB: the "
-                 "plate at lambda/6 is -0.01 dB, the sphere at lambda/10 is +0.39 dB.\n"
-                 "(b) But those single-grid numbers flatter the method. A SPHERE has exactly one "
+                 "(a) At the grid we actually run (lambda/16) the SBR kernel lands within a fraction "
+                 "of a dB of the closed forms: the plate at -0.17 dB, the sphere at -0.58 dB. "
+                 "(Quoting the plate's -0.01 dB at lambda/6 or the sphere's +0.39 dB at lambda/10 "
+                 "would be picking the flattering grid, not the operating one.)\n"
+                 "(b) And those single-grid numbers flatter the method anyway. A SPHERE has exactly one "
                  "specular point, so the answer depends on whether a ray lands on it. Dithering the "
                  "grid alignment exposes the real uncertainty, which only closes at lambda/24.\n"
                  "(c) A drone is a many-scatterer target, so its azimuth average self-dithers: from "

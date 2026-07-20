@@ -42,8 +42,14 @@ HIQ_RES = (int(os.environ.get("ANIM_W", "1280")), int(os.environ.get("ANIM_H", "
 
 
 def _framedir(name):
+    """프레임 디렉토리를 만들되 **옛 frame_*.png 를 먼저 지운다**. 이전엔 안 지워서, 프레임 수가
+    줄면(예: 72→48) 남은 옛 프레임이 새 GIF 에 섞여 표적이 순간이동하는 아티팩트가 있었다
+    (적대적 감사 발견). make_gif 가 디렉토리의 모든 png 를 읽으므로 반드시 청소해야 한다."""
+    import glob as _glob
     d = os.path.join(ANIM, name)
     os.makedirs(d, exist_ok=True)
+    for _f in _glob.glob(os.path.join(d, "frame_*.png")):
+        os.remove(_f)
     return d
 
 
@@ -163,7 +169,43 @@ def rx_array(name="rx_array", n_hold=6):
     return gif
 
 
+# --------------------------------------------------------------------------- #
+#  ⑥ 관측 모호성 — 표적을 TX-RX 축 둘레로 돌려도 R_b·f_d 가 안 변한다 (report11 §5)
+# --------------------------------------------------------------------------- #
+def obs_baseline_ring(n=36, name="obs_baseline_ring", drone="mavic4pro"):
+    """**엄밀 대칭의 시각화**: 표적을 송수신 축(baseline) 둘레로 회전시키며 렌더.
+    R_b(바이스태틱 거리)와 f_d 가 **바뀌지 않으므로**, 이 원 위 어디에 있든 레이더는 구분 못 한다
+    → 단일 TX-RX 쌍으로 3D 위치가 관측 불가한 이유(report11 §5).
+    각 프레임에 실제로 계산한 R_b 를 찍어 '변하지 않음'을 증거로 보인다."""
+    tx = np.asarray(TX, float); rx = np.asarray(RX, float); tgt = np.asarray(TGT, float)
+    u = (rx - tx); u /= np.linalg.norm(u)                     # baseline 축 방향
+    L = float(np.linalg.norm(rx - tx))
+
+    def rot_axis(p, ang):                                     # Rodrigues: TX 기준 u 축 회전
+        v = p - tx; c, s = np.cos(ang), np.sin(ang)
+        return tx + v * c + np.cross(u, v) * s + u * (u @ v) * (1 - c)
+
+    fdir = _framedir(name)
+    rbs = []
+    t0 = time.time()
+    for i in range(n):
+        ang = 2 * np.pi * i / n
+        p = rot_axis(tgt, ang)
+        rb = float(np.linalg.norm(p - tx) + np.linalg.norm(rx - p) - L)   # 바이스태틱 거리
+        rbs.append(rb)
+        sc = make_scene(drone=drone, tgt=tuple(map(float, p)), cutaway=True, vel=(-3.0, 0.0, 0.0))
+        sc.render_to_file(camera=cam(*CAMS["wide"]), filename=os.path.join(fdir, f"frame_{i:03d}.png"),
+                          num_samples=HIQ_SPP, resolution=HIQ_RES, clip_at=CLIP_CEIL, fov=70.0)
+    gif = os.path.join(OUT, "anim", f"{name}.gif")
+    make_gif(fdir, gif, ms=110)
+    print(f"  ✅ {name}.gif  ({n}프레임, {time.time()-t0:.0f}s)")
+    print(f"     R_b 범위: {min(rbs):.6f} ~ {max(rbs):.6f} m  (변동 {max(rbs)-min(rbs):.2e} m "
+          f"= 기계정밀도 → 이 원 위 어디든 레이더에겐 동일)")
+    return gif
+
+
 WHICH = {
+    "obs_ring": obs_baseline_ring,
     "orbit_chamber": orbit_chamber,
     "spin": lambda **kw: spin_drone(**{k: v for k, v in kw.items() if k in ("drone", "n", "name")}),
     "paths_build": paths_build,

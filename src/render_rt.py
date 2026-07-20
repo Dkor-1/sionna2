@@ -201,6 +201,9 @@ def render_flight(n_frames=24, quick=False):
     solver = rt.PathSolver()
     fdir = os.path.join(OUT, "flight")
     os.makedirs(fdir, exist_ok=True)
+    import glob as _glob                                    # 옛 프레임 청소(감사: 프레임 섞임 방지)
+    for _f in _glob.glob(os.path.join(fdir, "frame_*.png")):
+        os.remove(_f)
     for i, (p, v) in enumerate(zip(pos, vel)):
         sc = make_scene(tgt=tuple(map(float, p)), cutaway=True, vel=tuple(map(float, v)))
         paths = solver(sc, max_depth=2, los=True, specular_reflection=True,

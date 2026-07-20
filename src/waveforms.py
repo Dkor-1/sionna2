@@ -8,13 +8,13 @@ waveforms.py — (report2) 실제 상용 OFDM 파형 + **점유 상태(occupancy
 믿을 수 있는 기준신호는 표준마다 딱 하나씩뿐이다:
 
   **상시(always-on) 기준신호 — 패시브 레이더의 기본선**
-    LTE   : **CRS** — 매 서브프레임(1 ms) · 채널 전대역(18 MHz) → ΔR≈8.3 m, PRF≈1 kHz
-    5G NR : **SSB** — SS 버스트 20 ms 주기 · 중앙 20 RB 협대역(7.2 MHz) → ΔR≈21 m, PRF≈50 Hz
-    WiFi  : **프리앰블 LTF** — 패킷마다 · 광대역(VHT-LTF, 76 MHz) → ΔR≈2.0 m, 단 반복률이 트래픽 의존
+    LTE   : **CRS** — 매 서브프레임(1 ms) · 채널 전대역(18 MHz) → ΔR_b≈16.7 m(바이스태틱; 모노 8.3), PRF≈1 kHz
+    5G NR : **SSB** — SS 버스트 20 ms 주기 · 중앙 20 RB 협대역(7.2 MHz) → ΔR_b≈41.6 m(바이스태틱; 모노 20.8), PRF≈50 Hz
+    WiFi  : **프리앰블 LTF** — 패킷마다 · 광대역(VHT-LTF, 76 MHz) → ΔR_b≈3.9 m(바이스태틱; 모노 2.0), 단 반복률이 트래픽 의존
 
   ※ **5G 에는 LTE 의 CRS 같은 상시 전대역 셀기준이 없다**(NR 은 스펙트럼 절약을 위해
     파일럿을 얇게 편다). 유휴 gNB 가 늘 내보내는 건 SSB 뿐이며, SSB 는 **협대역 + 저반복**
-    이라 거리(≈21 m)도 속도(≈1.1 m/s)도 나쁘다 = **5G 패시브 센싱의 이중고**.
+    이라 거리(ΔR_b≈41.6 m)도 속도(≈1.1 m/s)도 나쁘다 = **5G 패시브 센싱의 이중고**.
     이것이 Rényi/LaSen 계열 문헌이 '기준신호만으로는 부족하다'며 출발하는 지점이다.
 
   **PRS 는 상시 신호가 아니다 — 측위 세션이 설정됐을 때만 켜지는 옵션이다.**
@@ -35,7 +35,7 @@ waveforms.py — (report2) 실제 상용 OFDM 파형 + **점유 상태(occupancy
 (c)탐지 SNR 이 어떻게 달라지는지 비교합니다.
 
 두 축(독립)으로 성능이 갈립니다:
-  * **주파수축** — 기준신호가 점유한 *대역*  → 거리분해능 ΔR = c/2B  (range_resolution_m)
+  * **주파수축** — 기준신호가 점유한 *대역*  → 거리분해능 ΔR_b = c/B (바이스태틱; range_resolution_m). 모노 등가는 range_resolution_mono_m
   * **시간축**   — 기준신호의 *반복률(PRF)* → 최대속도 v_max = PRF·λ/4 (v_unambiguous_ms)
 상시 기준신호로 비교하면: **LTE CRS** 는 전대역(18 MHz)+매 서브프레임(1 kHz) → 두 축 다 좋고,
 **5G SSB** 는 협대역(7.2 MHz)+저반복(50 Hz) → 두 축 다 나쁘다. 이 대비가 report2 의 뼈대다.
@@ -141,11 +141,17 @@ class Waveform:
     notes: str = ""
 
     @property
-    def range_resolution_m(self):                       # 기준신호 대역 기준
-        return C0 / (2 * max(self.ref_bw_hz, 1.0))
+    def range_resolution_m(self):                       # 기준신호 대역 기준 — **바이스태틱** ΔR_b
+        # ⚠ 2026-07-16 규약 통일(정합성 검증): 이 프로젝트는 **바이스태틱** 패시브 레이더다.
+        #   RD 맵의 거리축은 바이스태틱 거리 R_b=R1+R2−L(왕복 아님) 이므로 분해능은 c/(2B) 가 아니라
+        #   **ΔR_b = c/B** 다(문헌 25_UAV Intrusion·report11 §2 동일). 모노스태틱 등가값은 이 절반.
+        return C0 / max(self.ref_bw_hz, 1.0)
     @property
-    def channel_res_m(self):                            # 채널 대역 기준(이상적)
-        return C0 / (2 * self.bw_hz)
+    def channel_res_m(self):                            # 채널 대역 기준(이상적) — 바이스태틱
+        return C0 / self.bw_hz
+    @property
+    def range_resolution_mono_m(self):                  # 모노스태틱 등가(참고용) — c/2B
+        return C0 / (2 * max(self.ref_bw_hz, 1.0))
     @property
     def pilot_rate_hz(self):
         """기준신호가 slow-time 으로 반복되는 최대 속도[Hz] (가장 촘촘한 기지 파일럿)."""

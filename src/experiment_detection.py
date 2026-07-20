@@ -200,6 +200,12 @@ class Precomputed:
         # 그림용 무잡음 RD (에코+DPI잔차 — 0-도플러 능선까지 보이게)
         self.Rb, self.f_d, self.rd0 = range_doppler(self.resid_echo + self.resid_dpi, can.ref,
                                                     wf.fs_hz, M, n_range=self.n_range)
+        # ⚠ 거리축 앵커 보정(적대적 감사): range_doppler 는 거리축을 lag·c/fs(lag0 기준)로 라벨하는데,
+        #   Sionna 커널의 l_min 오프셋 때문에 표적이 옛 lag 에 앉아 **축 숫자가 물리적으로 틀렸다**
+        #   (챔버 22 m 인데 그림·GIF 가 36~78 m 표시). Pd/SNR50 은 truth 셀 실측이라 옳지만 라벨만 어긋난다.
+        #   → 실측 표적빈 ri_true 를 참 R_b(meta['Rb'])에 앵커시켜 축 전체를 이동한다.
+        _dr = C0 / wf.fs_hz
+        self.Rb = (np.arange(self.n_range) - self.ri_true) * _dr + float(vel_meta["Rb"])
 
     def to_gpu(self):
         import torch
@@ -428,7 +434,7 @@ def make_static_figures(results):
         hatch = "//" if w["always_on"] else None
         ax.bar(i, v if v is not None else 0, color=SCOL[w["std"]], hatch=hatch,
                edgecolor="k", alpha=0.85)
-        ax.text(i, (v or 0) + 0.2, f"ΔR{w['range_res_m']:.0f}", ha="center", fontsize=7)
+        ax.text(i, (v or 0) + 0.2, f"ΔRb{w['range_res_m']:.0f}", ha="center", fontsize=7)
         labels.append(f"{code}\n{w['ref_name']}")
     ax.set_xticks(xs); ax.set_xticklabels(labels, fontsize=8)
     ax.set_ylabel("SNR for $P_d=0.5$ (single Rx) [dB]  ↓ better")
@@ -449,7 +455,7 @@ def make_static_figures(results):
         w = MD[code]; g = np.array(w["snr_grid"])
         for N in n_list:
             ax.plot(g, w["curves"][str(N)]["Pd"], "-o", ms=3, color=ncol[N], label=f"N={N} Rx")
-        ax.set_title(f"{code}  ({SNAME[w['std']]} {w['ref_name']})\nΔR={w['range_res_m']:.1f} m")
+        ax.set_title(f"{code}  ({SNAME[w['std']]} {w['ref_name']})\nΔRb={w['range_res_m']:.1f} m (bistatic)")
         ax.set_xlabel("single-Rx output SNR [dB]"); ax.set_ylabel("$P_d$")
         ax.set_ylim(-0.03, 1.03); ax.grid(alpha=0.3); ax.axhline(0.5, ls=":", c="gray")
         ax.legend(fontsize=8, loc="lower right")

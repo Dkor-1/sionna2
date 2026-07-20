@@ -65,11 +65,15 @@ MDCFG = J1["microdoppler"]["cfg"]
 # 표시 순서 (작은 → 큰 기체)
 ORDER = ["mini5pro", "mavic4pro", "matrice4e", "s1000plus", "phantom4"]
 
-# 밴드평균 밝기 헤드라인 — 가장 밝은/어두운
-_best = max(ORDER, key=lambda d: max(DR[d]["bands"][b]["mean_dbsm"] for b in BANDS))
-_dim = min(ORDER, key=lambda d: min(DR[d]["bands"][b]["mean_dbsm"] for b in BANDS))
-_best_v = max(DR[_best]["bands"][b]["mean_dbsm"] for b in BANDS)
-_dim_v = min(DR[_dim]["bands"][b]["mean_dbsm"] for b in BANDS)
+# 밴드평균 밝기 헤드라인 — 가장 밝은/어두운 (드론별 '밴드 평균'끼리 비교; 밴드 혼합 금지)
+def _band_avg(d):
+    return sum(DR[d]["bands"][b]["mean_dbsm"] for b in BANDS) / len(BANDS)
+
+
+_best = max(ORDER, key=_band_avg)
+_dim = min(ORDER, key=_band_avg)
+_best_v = _band_avg(_best)
+_dim_v = _band_avg(_dim)
 _span = _best_v - _dim_v
 
 # 밴드가 한 기체를 얼마나 흔드나 (드론별 밴드 최대-최소, 평균)
@@ -253,7 +257,7 @@ cells.append(md(
     "",
     "- **큰 금속판**이 **작은 플라스틱 조각**보다 훨씬 밝게 반짝입니다. 드론도 똑같습니다 — "
     f"**기체가 클수록 밝습니다.** 가장 큰 {DR[_best]['name']}는 가장 작은 {DR[_dim]['name']}보다 "
-    f"**{_span:.0f} dB**(수십 배) 밝습니다.",
+    f"**{_span:.0f} dB**(십 배 남짓) 밝습니다.",
     "- 놀라운 점: **손전등 색(=전파 주파수)을 바꿔도** 밝기는 별로 안 변합니다(몇 dB). 드론이 "
     "이미 파장보다 훨씬 크기 때문입니다.",
     "- 더 놀라운 점: **밝은 건 플라스틱 껍데기가 아니라 그 안의 금속**(모터·배터리·기판)입니다. "
@@ -304,7 +308,7 @@ cells.append(md(
     f"1. **크기가 밝기를 정합니다.** 가장 큰 {DR[_best]['name']}(대각 {DR[_best]['diagonal_mm']} mm, "
     f"{DR[_best]['weight_g']/1000:.1f} kg 8로터)가 가장 밝고, 가장 작은 {DR[_dim]['name']}"
     f"({DR[_dim]['diagonal_mm']} mm, {DR[_dim]['weight_g']:.0f} g)가 가장 어둡습니다. 둘 사이가 "
-    f"**{_span:.1f} dB** — 한 자릿수 배가 아니라 **수십 배** 차이입니다. 오른쪽 산점도가 대각↔밝기 "
+    f"**{_span:.1f} dB** — 퍼센트 수준이 아니라 **십 배 남짓** 차이입니다. 오른쪽 산점도가 대각↔밝기 "
     "추세를 그대로 보여줍니다.",
     "",
     f"2. **대역(주파수)은 별로 안 움직입니다.** 같은 드론을 1.8 → 5.2 GHz 로 옮겨도 밝기는 평균 "
@@ -528,9 +532,29 @@ cells.append(md(
     f"않아야 정지 몸통 신호가 부풀지 않고(순수 PO 는 **{_gmin:.0f}~{_gmax:.0f} dB** 부풀립니다), "
     "깜빡임이 그 위로 드러납니다.",
     "",
+    "### 🔬 문헌 실측과 대조 — 우리 절대값이 맞나",
+    "",
+    "우리가 쓰는 신형(Mavic 4 Pro·Matrice 4E)의 실측 RCS 는 아직 논문에 없습니다(2024~25 출시). "
+    "대신 **밴드가 겹치는 근접 기종 실측**과 대조하면 우리 값이 타당합니다:",
+    "",
+    "| 문헌 (실측) | 밴드 | 측정 RCS | 우리와의 관계 |",
+    "|---|---|---|---|",
+    "| **Li & Ling 2017** (IEEE AWPL, ~99인용) | **3–6 GHz** ★밴드일치 | Phantom 2 **−27.5**, 3DR Solo −24.2, Inspire 1 −13.7 dBsm (모두 **peak/특정자세**, 자세 스프레드 ~14 dB) | 우리 mavic4pro **방위평균 −19.7 dBsm → 이 범위 안** (봉우리 자세는 −12.4 dBsm 까지 밝아져 상한 −13.7 을 ~1.3 dB 넘음 — peak↔peak 비교에선 우리가 살짝 밝은 쪽) |",
+    "| Ezuma 2019 (compact-range) | 15 / 25 GHz | Phantom 4 Pro −15.0 / −12.4 dBsm | 15→25 GHz 에서 +2.6 dB — RCS 의 주파수 단조증가 방향이 우리 밴드 추세와 일치(절대값 외삽 비교는 밴드갭이 커서 참고 수준) |",
+    "| Semkin 2020 (IEEE Access) | 26–40 GHz | Mavic Pro −16.8, Phantom 4 Pro −16.4, **Matrice 100(카본) −10.5** dBsm | **카본이 플라스틱보다 ~7 dB 밝음** — 우리 재질 분해와 방향 일치 |",
+    "| Quevedo 2019 (IET RSN) | X-band 8.75 GHz | Phantom 4 −20~−4.6 dBsm(프롭 회전 의존) | 프로펠러가 RCS 를 크게 흔듦 — 우리 마이크로도플러 서사 |",
+    "",
+    "<sub>정리: (1) **같은 밴드(3–6 GHz)** 실측(Phantom 2 −27.5 ~ Inspire 1 −13.7 dBsm)이 우리 **방위평균** "
+    "−19.7 dBsm 를 감싼다. 단, 봉우리 자세(−12.4 dBsm @3.5 GHz)는 문헌 상한(−13.7)보다 ~1.3 dB 밝다 — "
+    "문헌 값도 peak 이므로 과대평가 가능성을 함께 적어 둔다. "
+    "(2) 고주파 실측들은 모두 더 밝고(RCS 는 주파수↑에 단조↑), 3.5 GHz 로 낮추면 우리 값에 수렴한다. "
+    "(3) **주의**: 우리 소형드론 값(−17~−26)은 문헌이 링크버짓에 흔히 쓰는 가정치(−10~−13 dBsm)보다 "
+    "**어두워, 탐지 SNR 을 오히려 보수적으로** 잡는다. 서지: `/data/public/jeong_drone_refs/`.</sub>",
+    "",
     "### ⚠️ 이 리포트가 **보장하지 않는** 것",
-    "- **절대 RCS 값** — 해석해로만 검증(→report07), 드론 실측 앵커링 없음. **상대 순서**와 "
-    "**대역 추세**만 주장합니다.",
+    "- **절대 RCS 값** — 해석해(구·평판)로만 검증(→report07), **이 대역(3.5 GHz)의 드론 실측 앵커는 문헌에도 "
+    "거의 없다**(위 대조는 근접 기종·다른 밴드). **상대 순서**와 **대역 추세**를 주장하고, 문헌 실측 범위와 "
+    "**정합**함을 보인다.",
     "- **플라스틱 셸의 정확한 기여** — 반투명이라 '통드론'과 '셸 제거' 사이의 불확실 구간입니다.",
     "- **방위 패턴의 널 깊이** · **절대 회전수** — 인용 금지(§3·§4).",
     "",

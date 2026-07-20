@@ -71,7 +71,7 @@ def ctrl_row(key, pfa=1e-4):
 
 
 # 자주 쓰는 파생값 — 전부 JSON 에서
-R_WIFI, R_LTE, R_NR = (ratio(s) for s in WFS)             # 1.45 / 2.47 / 1.56
+R_WIFI, R_LTE, R_NR = (ratio(s) for s in WFS)             # 1.45 / 2.66 / 1.52
 LTE_OVER_NR = R_LTE / R_NR                                # ≈ 1.58
 WHITE = C["white"]["48x24"]
 WHITE_ROWS = [r for r in WHITE["rows"] if r["gt"] == GT and r["zd_mask_width"] == ZD]
@@ -170,7 +170,7 @@ _front = provenance_cells(
         "cd benchmark && ~/.venvs/py312/bin/python verify_cfar.py   # → outputs/verify_cfar.json",
         "",
         "# 6패널 교정 그림 + 이 노트북",
-        "~/.venvs/py312/bin/python src/build_report4.py     # → outputs/figures/report4_e1_cfar.png",
+        "~/.venvs/py312/bin/python src/viz_report4.py       # → outputs/figures/report4_e1_cfar.png",
         "~/.venvs/py312/bin/python src/make_notebook10.py   # → report10.ipynb",
     ],
     artifacts=[
@@ -199,7 +199,11 @@ _front = provenance_cells(
         ("오경보율 Pfa", "빈 칸 하나가 발화할 확률. 'Pfa=$10^{-4}$' = 잡음 칸 만 개 중 하나꼴 오발화"),
         ("명목(nominal) Pfa", "우리가 검출기에 **요구한** 오경보율. 스톱워치의 눈금"),
         ("경험(empirical) Pfa", "실제로 재보니 **나온** 오경보율. 발화 수 ÷ 전체 빈 칸 수"),
-        ("배율(ratio)", "경험 Pfa ÷ 명목 Pfa. 1.0 이면 눈금이 정확, 2.47 이면 요구보다 2.47배 자주 발화"),
+        ("배율(ratio)", f"경험 Pfa ÷ 명목 Pfa. 1.0 이면 눈금이 정확, {R_LTE:.2f} 이면 요구보다 "
+                        f"{R_LTE:.2f}배 자주 발화"),
+        ("5G NR 100MHz (이 리포트)", "전대역(98 MHz) 기준신호 — NR-PRS/풀점유 — 를 뜻한다. 늘 켜진 "
+                                     "SSB(7.2 MHz)만 쓰는 5G 상시 모드는 대역이 훨씬 좁아 이 교정이 그대로 "
+                                     "적용되지 않는다(report12 의 G1 모드가 그 경우)"),
         ("CFAR", "Constant False Alarm Rate. 표적 후보 칸 주변의 잡음 수준을 보고 문턱을 **스스로** 정하는 "
                  "검출기. 잡음이 세지면 문턱도 같이 올려 오경보율을 일정하게 유지하려는 장치"),
         ("가드/트레이닝 셀", "후보 칸 둘레의 이웃 칸. 바깥쪽 **트레이닝** 칸으로 잡음을 추정하고, 사이의 "
@@ -366,6 +370,14 @@ cells.append(md(
     "> 위 6패널은 이 리포트 전체의 그림이다. **(a)** 명목↔경험 곡선(회색=이상적 백색 지도, 색선=실제 사슬), "
     "**(b)** 파형별 배율과 신뢰구간, **(c)~(d)** 원인 두 가지, **(e)** 도플러 마스크 민감도, "
     "**(f)** 진짜 오경보율로 다시 그린 검출곡선. 아래에서 하나씩 읽는다.",
+))
+cells.append(md(
+    "![CFAR threshold sweep on a real 5G range-Doppler map]"
+    "(outputs/renders/anim/cfar_sweep_nr.gif)",
+    "",
+    "> **움직이는 그림:** 실제 5G(NR100) 거리-도플러 지도 위에서 CFAR 문턱을 낮은 쪽부터 쓸어 올린다. "
+    "문턱이 내려갈수록 표적 봉우리가 먼저 살아나고, 더 내리면 잡음 바닥까지 발화(오경보)가 번진다 — "
+    "**명목 오경보율 한 점이 실제로는 어느 문턱에 대응하는지**를 눈으로 보여준다.",
 ))
 
 cells.append(mdl([

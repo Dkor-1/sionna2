@@ -1,0 +1,12 @@
+# Analyzing Radar Cross Section Signatures of Diverse Drone Models at mmWave Frequencies
+- **Authors**: Semkin, Haarla, Pairon, Slezak, Rangan, Viikari, Oestges
+- **Venue**: IEEE Access, vol.8, pp.48958-48969, 2020. DOI 10.1109/ACCESS.2020.2979339
+- **Band**: 26–40 GHz (anechoic, quasi-monostatic, R=5.8 m)
+- **Drones (DJI predecessors) & mean HH RCS**:
+  - DJI Mavic Pro (335 mm, plastic): −16.8(26GHz) ~ −15.0(40GHz) dBsm
+  - DJI Phantom 4 Pro (350 mm, plastic): −16.4 ~ −12.3 dBsm HH
+  - DJI Matrice M100 (650 mm, **carbon fiber**): −10.5 ~ −6.6 dBsm (max ~22.5)
+  - DJI F450
+- **Key**: **carbon-fiber 기체가 plastic보다 mean RCS ~7 dB 높음**, std ~6 dB. STATIC(로터 정지, 마이크로도플러 없음).
+- **우리 대조**: 재질별 차이(우리도 carbon 암 vs plastic) 방향 일치. 단 26-40 GHz라 우리 3.5 GHz보다 3~10 dB 높음.
+- URL: https://ieeexplore.ieee.org/document/9032332/

@@ -280,7 +280,7 @@ def anim_occupancy(outdir=FIG, target="mavic4pro", R=10.0, hold=10, fps=6):
         axr.plot(rm, pdb, color="#2e7d32", lw=1.6); axr.axvline(R, color="k", ls="--", lw=1)
         axr.set_xlim(0, 2*R+5); axr.set_ylim(-40, 2)
         axr.set_xlabel("Range [m]"); axr.set_ylabel("Matched filter [dB]")
-        # 범례/제목은 '실측 -3dB 폭'과 '이론 c/2B'를 구분해 표기(§3 표의 이론치와 충돌 방지)
+        # 범례/제목은 '실측 -3dB 폭'과 '이론 c/B(바이스태틱)'를 구분해 표기
         axr.set_title(f"Ref {wf.ref_name} {wf.ref_bw_hz/1e6:.0f}MHz -> theory {wf.range_resolution_m:.1f} m, "
                       f"measured -3dB {res:.1f} m", fontsize=10.5)
         return ()

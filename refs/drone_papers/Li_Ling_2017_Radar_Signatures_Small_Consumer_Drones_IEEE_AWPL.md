@@ -1,0 +1,13 @@
+# An Investigation on the Radar Signatures of Small Consumer Drones
+- **Authors**: Y. Li, H. Ling
+- **Venue**: IEEE Antennas and Wireless Propagation Letters (AWPL), 2017
+- **Citations**: ~99
+- **Band**: 3–6 GHz (VNA turntable, sphere-calibrated S11)  ← **우리 3.5 GHz 밴드 일치(BEST ANCHOR)**
+- **Drones & measured peak RCS**:
+  - DJI Phantom 2 (35 cm diag): **−27.5 dBsm** (AZ 194°)
+  - 3DR Solo (46 cm): −24.2 dBsm (AZ 90°)
+  - DJI Inspire 1 (56 cm): −13.7 dBsm (AZ 270°)
+  - + in-flight DJI Phantom 3 Advanced (PulsON 440 UWB)
+- **Key**: RCS at 3–6 GHz ~12 dB lower than 12–15 GHz. Aspect spread ~14 dB.
+- **우리 프로젝트 대조**: 시뮬 Mavic 4 Pro **방위평균 −19.7 dBsm @3.5GHz** → 3DR Solo(−24.2)~Inspire 1(−13.7) 사이 = **실측 범위 안**. (주의: −25.9 dBsm 는 Mavic 의 검출자세 az≈24° 특정자세값이며, Mini 5 Pro 의 1.8 GHz 밴드평균도 우연히 −25.9 — 밴드평균과 혼동 금지)
+- URL: https://www.semanticscholar.org/paper/9c6129ed653d2e8eb3cc321f3cd9365ed04494c0
