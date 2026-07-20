@@ -35,6 +35,17 @@ cells = [
         "",
         "즉 우리 뼈대(분리채널+주입+RT담보)는 NIST 5GNRad·3GPP·MATLAB 과 **같은 주류 구조**다. "
         "다른 점은 표적 밝기를 *가정*하지 않고 *계산*한다는 것 — 이건 약점이 아니라 강화다.",
+        "",
+        "**정식화(선행 방법론 반영).** 외부 산란계수 $s_q$ 를 Sionna 두 전파구간 사이에 끼운다:",
+        "$$h_{target}(t,\\tau)=\\sum_q\\sum_p\\sum_r h^{(p)}_{T\\to q}(t)\\,"
+        "s_q(f,\\Omega_i,\\Omega_s,\\mathbf{R}_q(t))\\,h^{(r)}_{q\\to R}(t)\\,"
+        "\\delta\\!\\left(\\tau-\\tau^{(p)}_{Tq}-\\tau^{(r)}_{qR}\\right),\\qquad "
+        "h_{surv}=h_{dir}+h_{bg}+h_{target}.$$",
+        "이게 LAMBDA(CADFEKO $s_q$)·Temporal-GNN(점산란체 $s_q$)·우리(SBR+PO $s_q$)가 공유하는 뼈대다. "
+        "⭐ **한 발 앞선 점:** $s_q$ 를 스칼라 $\\sigma_b$ 로 주면 위상을 잃지만(RD/CAF 에서 여러 반사가 복소 "
+        "위상으로 합쳐지므로 손해), **복소 바이스태틱 산란행렬** "
+        "$\\mathbf{S}_b=\\begin{bmatrix}S_{\\theta\\theta}&S_{\\theta\\phi}\\\\ S_{\\phi\\theta}&S_{\\phi\\phi}\\end{bmatrix}$ "
+        "가 이상적이다 — **우리 SBR 은 이미 복소장 $E$ 를 내므로** 스칼라-RCS 주입(대다수 선행)보다 앞선다.",
     ),
     md(
         "---",

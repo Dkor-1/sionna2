@@ -59,7 +59,7 @@ PRESENCE = {g: [k for k in ORDER if g in EM[k]["groups"]] for g in DRONE_GROUP_M
 SHORT = {"mini5pro": "Mini5", "mavic4pro": "Mavic4", "matrice4e": "M4E",
          "s1000plus": "S1000+", "phantom4": "P4"}
 
-MAT_KO = {"plastic": "플라스틱(ABS/PC)", "carbon": "탄소섬유(CFRP)", "metal": "금속(ITU)",
+MAT_KO = {"prop_plastic": "프로펠러 플라스틱(얇은 날개)", "plastic": "플라스틱(ABS/PC)", "carbon": "탄소섬유(CFRP)", "metal": "금속(ITU)",
           "camera_assembly": "카메라 조립품", "pcb": "PCB(FR-4+구리)"}
 
 A_M4E = V["A_geometry"]["matrice4e"]
@@ -233,17 +233,20 @@ color_rows = []
 COLOR_STORY = {
     "metal":           "파랑 — 금속(모터·배터리 포일)",
     "plastic":         "밝은 회색 — 플라스틱(동체 셸·캐노피·착륙장치·식별색·**프로펠러**). 같은 재질 = 같은 색",
+    # ⚠ 프롭은 얇아 실효 |Γ| 0.25(셸 0.28) — 색=재질(회색) 유지, |Γ|만 대표보정. 정밀 두께모델 아님(±2~3dB)
     "carbon":          "검정 — 탄소섬유(CFRP) 암",
     "camera_assembly": "주황 — 금속 하우징+유리 렌즈 **복합 조립품**(플라스틱도 금속도 아닌 별개 재질)",
     "pcb":             "초록 — FR-4+구리(별개 재질; 실물 솔더마스크 색이기도 하다)",
 }
 for mat, rgb in MATERIAL_COLOR.items():
+    if mat not in COLOR_STORY:           # prop_plastic 등 = plastic 과 같은 색(별도 행 불필요)
+        continue
     color_rows.append(f"| {chip(mat)} `{hexc(MATERIAL_COLOR[mat])}` | `{mat}` | "
                       f"RGB ({rgb[0]:.2f}, {rgb[1]:.2f}, {rgb[2]:.2f}) | {COLOR_STORY[mat]} |")
 cells.append(md(
-    "## 3. 색 규칙 — 6색이면 재질이 다 보인다 (`MATERIAL_COLOR`)",
+    "## 3. 색 규칙 — 5색이면 재질이 다 보인다 (`MATERIAL_COLOR`)",
     "",
-    "렌더 색은 `src/drones.py:375-382` 의 `MATERIAL_COLOR` 6색이 전부다 — 기종별 개성 색이",
+    "렌더 색은 `src/drones.py` 의 `MATERIAL_COLOR` 5색이 전부다 — 기종별 개성 색이",
     "아니라 **재질별 공통색**이다(모든 드론 공통; 색만 보면 재질을 안다).",
     "",
     "| 색 | 재질 키 | RGB (코드 값) | 왜 이 색인가 |",

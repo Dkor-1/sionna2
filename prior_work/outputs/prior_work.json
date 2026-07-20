@@ -1,6 +1,6 @@
 {
  "meta": {
-  "compiled": "2026-07-20 (2차: pyAPRiL·Stone Soup·openEMS·ISAC-PLM·GNU Radio·OAI 추가)",
+  "compiled": "2026-07-20 (3차: LAMBDA·Temporal-GNN 직접선례 + 신뢰성등급 + 하이브리드 정식화)",
   "method": "2× deep-research 워크플로(adversarial verify) + 직접 WebSearch/WebFetch 재확인. 검증 등급 표기.",
   "verify_grades": {
    "CONFIRMED": "적대적 검증 2-0/3-0 통과",
@@ -11,6 +11,37 @@
   "our_claim": "스톡 Sionna PathSolver 는 경로별 복소이득만 반환 — 표적 표면 위 산란적분(SBR+PO)이 없어 소형 드론의 코히어런트 RCS 를 메쉬에서 직접 못 낸다. 그래서 우리는 SBR+PO 모듈을 더했다(report06)."
  },
  "papers": [
+  {
+   "key": "lambda",
+   "title": "LAMBDA: A Low-Altitude Multimodal Base Dataset for UAV Sensing and Communication",
+   "authors": "(연구진 미확인 — arXiv 확인 필요)",
+   "venue": "arXiv:2607.03826 (2026-07)",
+   "grade": "WEB",
+   "credibility": "arXiv preprint(2026-07) · **2.04 TB·517,939 프레임 대규모 데이터셋**(상당한 공수) · 게재 예정 venue 미확인(preprint) — 규모는 크나 peer-review 상태 미확정, 참고 시 가중 유의",
+   "sensed": "소형 UAV(드론) — 도시/교외/캠퍼스, 다중UAV·다중BS, 야간·기상(맑음/비/눈/안개)",
+   "target_scatter": "⭐ **c) 외부 RCS 주입 하이브리드** — Sionna RT(재질인식 광선추적: multipath CSI·지연·도플러·각도) + **CADFEKO(상용 EM)로 UAV 자세의존 RCS** 를 별도 계산해 결합. radar synthesis 가 Sionna 복소 CSI 경로계수 × 왕복지연 × 도플러 × virtual-array 조향위상 × **UAV 자세의존 RCS** × 수신잡음",
+   "detection": "FMCW radar cube → Range-Doppler·Range-Angle (능동 FMCW, 77 GHz)",
+   "vs_us": "⭐⭐ **우리 하이브리드의 가장 직접적 선례** — 'Sionna multipath + 외부 UAV RCS'가 정확히 우리 구조다. 차이: LAMBDA=**상용 CADFEKO** RCS·**능동 FMCW 77GHz**·프로펠러 μD 미정밀 / 우리=**자작 SBR+PO** RCS(복소장까지)·**패시브 바이스태틱 WiFi/LTE/5G**·프로펠러 μD. → 우리 접근이 이상하지 않음의 결정적 근거",
+   "sources": [
+    "https://arxiv.org/pdf/2607.03826",
+    "https://arxiv.org/abs/2607.03826"
+   ]
+  },
+  {
+   "key": "tgnn",
+   "title": "Temporal Graph Neural Network for ISAC Target Detection and Tracking",
+   "authors": "(arXiv)",
+   "venue": "arXiv:2604.08306 (2026-04)",
+   "grade": "WEB",
+   "credibility": "arXiv preprint(2026-04) — peer-review 상태 미확정, 방법론 참고용",
+   "sensed": "이동 표적(다중), delay-Doppler 맵 기반",
+   "target_scatter": "⭐ **c) 외부 점산란체 바이스태틱 RCS 주입** — Sionna 광선추적으로 CIR 생성, RCS 는 안테나패턴·경로손실·표적RCS 포함하되 **표적은 점산란체 가정**(bistatic RCS externally prescribed)",
+   "detection": "delay-Doppler 맵 → TGNN 추적(node classification·데이터연관), Kalman 대비 NMSE↓",
+   "vs_us": "'Sionna 전파 + 외부 point-target RCS 주입'이 **검출/추적 알고리즘 연구의 표준 관행**임을 보임 (우리 h=h_bg+h_target 와 동일). 추적에 GNN 을 쓴 점은 우리 future work 후보",
+   "sources": [
+    "https://arxiv.org/abs/2604.08306"
+   ]
+  },
   {
    "key": "great_x",
    "title": "Unreal is all you need: Multimodal ISAC Data Simulation with Only One Engine",
@@ -24,7 +55,8 @@
    "sources": [
     "https://arxiv.org/abs/2507.08716",
     "https://arxiv.org/html/2507.08716v3"
-   ]
+   ],
+   "credibility": "arXiv preprint(2025-07) · Shanghai Univ·XJTLU · 데이터셋/플랫폼 논문(대규모)"
   },
   {
    "key": "det_isac",
@@ -38,7 +70,8 @@
    "vs_us": "⭐ **우리 주장 직접 지지** — 논문 스스로 '메쉬 위 순수 경면 광선추적은 mmWave 산란전력을 과소평가하고, 정확한 EM 산란에 필요한 λ/10 메싱은 계산상 불가능'이라고 명시. = report06 의 핵심 주장",
    "sources": [
     "https://arxiv.org/abs/2603.28736"
-   ]
+   ],
+   "credibility": "⭐ **EuCAP 2026 채택(peer-reviewed)** · iTEAM UPV(Narcis Cardona — 채널모델 저명그룹) — 신뢰도 상"
   },
   {
    "key": "ziganshin",
@@ -52,7 +85,8 @@
    "vs_us": "'Sionna 에 커스텀 산란을 더한다'는 우리와 같은 정신. 단 방법은 UTD(우리는 PO/SBR), 표적은 대형",
    "sources": [
     "https://arxiv.org/pdf/2604.05991"
-   ]
+   ],
+   "credibility": "arXiv + EuCAP 계열 · Degli-Esposti·Vitucci(Bologna, 전파전파 저명그룹) — 신뢰도 상"
   },
   {
    "key": "cissir",
@@ -67,7 +101,8 @@
    "sources": [
     "https://nvlabs.github.io/sionna/made_with_sionna.html",
     "https://arxiv.org/abs/2502.10371"
-   ]
+   ],
+   "credibility": "⭐ **NVIDIA 공식 Made-with-Sionna 등재** · Fraunhofer HHI(Stańczak) — 신뢰도 상"
   },
   {
    "key": "simart",
@@ -82,7 +117,8 @@
    "sources": [
     "https://arxiv.org/abs/2605.13309",
     "https://github.com/guchuanv-alt/SimART"
-   ]
+   ],
+   "credibility": "arXiv preprint(2026-05) · UESTC·Nanjing · GitHub 168★ — 신뢰도 중"
   },
   {
    "key": "sionna_rt",
@@ -96,7 +132,8 @@
    "vs_us": "⭐ **우리 주장의 1차 근거** — 스톡 솔버가 per-path gain 만 낸다는 것을 창설 논문이 문서화",
    "sources": [
     "https://arxiv.org/abs/2303.11103"
-   ]
+   ],
+   "credibility": "⭐ **Sionna 창설 논문(NVIDIA, Hoydis)** — 엔진 저자 = 최상위 권위"
   }
  ],
  "tools": [
@@ -280,7 +317,10 @@
   "support_for_our_claim": "우리 report06 주장은 선행에 의해 지지됨: Deterministic-Modeling(EuCAP)이 'λ/10 메싱 불가·경면만이면 산란 과소평가'를 명시, Sionna RT 창설논문이 'per-path gain 반환'을 문서화.",
   "adoption_plan": "⭐ 갱신(사용자 이미지 심화 서베이 반영): 우리 손으로 만든 조각을 오픈소스로 단계적 대체 — **검출체인 ECA/CAF/CFAR → pyAPRiL**(GPLv3, DVB-T/FM 실검증; 앞서 '드롭인 없음'이라 한 것 정정) · **RCS → RadarSimPy(빠름)+openEMS(full-wave 앵커)** · **추적 → Stone Soup**(바이스태틱 custom 측정모델) · **실측 → OpenISAC+GNU Radio+X410**(SigMF 로 sim↔real I/Q 통일) · **파형/채널 → Sionna PHY 유지**(검증됨). 5G 실파형은 OAI, WiFi 센싱은 NIST ISAC-PLM 참조(60GHz 대역 주의).",
   "recommended_stack": "Sionna RT+PHY(환경·파형·채널) → pyAPRiL 또는 PyTorch DSP(ECA·CAF·RD·CFAR) → Stone Soup(추적) → PyTorch(분류·sim-to-real) → OpenISAC+GNU Radio+X410(실측). 5단계 로드맵: ①최소동작(Sionna+pyAPRiL) ②추적(+Stone Soup) ③드론 물리(멀티산란체) ④AI/sim-to-real ⑤X410 OTA.",
-  "multiscatterer_model": "드론=멀티산란체: r_drone[n]=Σ α_i x[n−d_i] e^{j2π f_D,i n T_s}, α_i=√σ_i e^{jφ_i}. 1 body + 4 motor + 8~16 회전 blade-tip 산란체로 body Doppler ↔ rotor micro-Doppler 분리. domain randomization Θ={SNR,SCR,CFO,SFO,φ_noise,σ_RCS,p_Tx,p_Rx,p_drone,v_drone}.",
-  "correction": "⚠ 이전 판(1차 조사) 정정: '패시브 바이스태틱 ECA 는 드롭인 오픈소스 없음'이라 했으나, **pyAPRiL 이 정확히 그 드롭인**이다(ECA/ECA-B/ECA-S·CAF·CA-CFAR·DoA, GPLv3). 사용자 심화 이미지가 이를 지목."
+  "multiscatterer_model": "드론=멀티산란체: r_drone[n]=Σ α_i x[n−d_i] e^{j2π f_D,i n T_s}, α_i=√σ_i e^{jφ_i}. 1 body + 4 motor + 8~16 회전 blade-tip 산란체로 body Doppler ↔ rotor micro-Doppler 분리. domain randomization Θ={SNR,SCR,CFO,SFO,φ_noise,σ_RCS,p_Tx,p_Rx,p_drone,v_drone}. 정식: r_i(t)=r_hub+R(ωt+φ_i)r_{i,0}, v_i=ω×r_i, f_{D,i}=(û_T,i+û_R,i)·v_i/λ, h_drone=h_body+Σ_i h_blade,i. body RCS 는 LUT σ_body(f,Ω_i,Ω_s,roll,pitch,yaw); 소스 우선순위 실측>검증 상용EM>openEMS/Meep>문헌통계>임의상수.",
+  "correction": "⚠ 이전 판(1차 조사) 정정: '패시브 바이스태틱 ECA 는 드롭인 오픈소스 없음'이라 했으나, **pyAPRiL 이 정확히 그 드롭인**이다(ECA/ECA-B/ECA-S·CAF·CA-CFAR·DoA, GPLv3). 사용자 심화 이미지가 이를 지목.",
+  "hybrid_formalism": "외부 산란계수 s_q 를 Sionna 두 전파구간 사이에 주입: h_target(t,τ)=Σ_q Σ_p Σ_r h^(p)_{T→q}(t)·s_q(f,Ω_i,Ω_s,R_q(t))·h^(r)_{q→R}(t)·δ(τ−τ^(p)_Tq−τ^(r)_qR); h_surv=h_direct+h_background+h_target, h_ref=h_illuminator→reference. s_q 는 스칼라 σ_b 보다 **복소 바이스태틱 산란행렬 S_b=[[S_θθ,S_θφ],[S_φθ,S_φφ]]** 가 이상적(위상·편파·방향간섭 보존; α_b=√(σ_b/4π)e^{jφ_b}). ⭐우리 SBR+PO 는 이미 복소장 E 를 내므로 스칼라RCS 주입보다 앞섬.",
+  "our_approach_is_leading": "⭐ 우리 '자작 RCS(SBR+PO) → Sionna 채널 주입' 하이브리드는 **최신 Sionna-ISAC 선도 연구가 쓰는 바로 그 방식**이다: LAMBDA(2607.03826)=Sionna+CADFEKO UAV RCS, Temporal-GNN(2604.08306)=Sionna+점산란체 RCS 주입, clutter-aware ISAC=산란체별 통계RCS 부여. 차이는 RCS 를 상용툴(CADFEKO)이 아니라 우리가 SBR+PO 로 계산하고, 능동 FMCW 가 아니라 패시브 바이스태틱 OFDM 이라는 것 — 오히려 노벨티가 여기서 생긴다.",
+  "credibility_ranking": "신뢰성 순(참고 가중): peer-reviewed[Deterministic-Modeling EuCAP2026, Ziganshin] > 권위원천[Sionna-RT 창설(NVIDIA), CISSIR NVIDIA공식] > 대규모 preprint[LAMBDA 2.04TB, Great-X] > 일반 preprint[Temporal-GNN, SimART]. arXiv preprint 는 게재 확정 아님 — 방법론 참고엔 좋으나 수치는 보수적으로."
  }
 }
