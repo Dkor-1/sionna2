@@ -141,7 +141,7 @@ md(
 "2. **직접 먹인 값 (프로펠러 지름)** — 스펙 지름을 파라메트릭 블레이드에 직접 넣는다. 그런데 5종 모두 오차가 약 "
 f"+{prop_err['mavic4pro']:.2f}% 로 **똑같다** — 5종이 같은 블레이드 함수(`drone_cad.py:334` `build_propeller_cad`, 스키미터 후퇴 + 팁 마감)를 반경만 바꿔 쓰므로, 팁 최외곽점이 명목 반경을 살짝 넘는 파라메트릭 형상 특성이 공통 비율로 나타난 것이다. 결함이 아니라 형상 선택의 흔적이다.",
 "3. **따라나온 값 (대각선)** — 외형을 공식값에 맞춘 **결과로 유도되는** 모터-모터 거리. 아무도 직접 맞추지 않았으므로 이것이 **진짜 교차검증**이다. 최대 "
-f"{max(abs(v) for v in diag_err.values()):+.2f}% ({NAME[max(diag_err, key=lambda k: abs(diag_err[k]))]}) 로, 두 공식값(외형 상자 vs 대각)이 동시에 정확히는 양립하지 않는 기종에서 외형을 우선한 대가다.",
+f"{diag_err[max(diag_err, key=lambda k: abs(diag_err[k]))]:+.2f}% ({NAME[max(diag_err, key=lambda k: abs(diag_err[k]))]}) 로, 두 공식값(외형 상자 vs 대각)이 동시에 정확히는 양립하지 않는 기종에서 외형을 우선한 대가다.",
 ),
 
 # ── 4. 치수 표 코드 ──────────────────────────────────────────────────────
@@ -300,11 +300,11 @@ for key, h in H.items():
 md(
 "![convergence](outputs/figures/convergence.png)",
 "",
-f"(a) Mavic 4 Pro 의 방위 RCS 패턴 — λ/10(파랑)과 λ/20(빨강)이 로브(봉우리) 영역에서는 거의 포개진다. 방위평균 이동은 {hm['azavg_dbsm']['diff']:+.2f} dB(Phantom 4 는 {hp['azavg_dbsm']['diff']:+.2f} dB) — **±0.4 dB 이내**다. (b) 는 다음 절의 SBR 검사. ← 출처: 그림 `report_mesh/src/viz_mesh_reports.py:372-412` `fig_convergence()`",
+f"(a) Mavic 4 Pro 의 방위 RCS 패턴 — λ/10(파랑)과 λ/20(빨강)이 로브(봉우리) 영역에서는 거의 포개진다. 방위평균 이동은 {hm['azavg_dbsm']['diff']:+.2f} dB(Phantom 4 는 {hp['azavg_dbsm']['diff']:+.2f} dB) — **둘 다 ±{max(abs(hm['azavg_dbsm']['diff']), abs(hp['azavg_dbsm']['diff'])):.1f} dB 이내**다. (b) 는 다음 절의 SBR 검사. ← 출처: 그림 `report_mesh/src/viz_mesh_reports.py:372-412` `fig_convergence()`",
 "",
 "### 왜 개별 널은 " f"{hm['per_angle_absdiff_db']['max']:.0f} dB 씩 튀는데 괜찮다고 하는가",
 "",
-f"널은 여러 산란 기여가 **정확히 상쇄**되는 각도다. 노이즈캔슬링 이어폰이 위상이 조금만 어긋나도 '싹 사라짐'이 '조금 사라짐'으로 바뀌듯, 상쇄점 근처에서는 점 배치가 파장의 몇 % 만 달라져도 dB 눈금으로는 폭발적으로 변한다(0 에 가까운 값의 로그라 더 그렇다). 실제로 개별 각도 차이의 **평균은 {hm['per_angle_absdiff_db']['mean']:.1f}~{hp['per_angle_absdiff_db']['mean']:.1f} dB** 인데 최대만 {hm['per_angle_absdiff_db']['max']:.1f}~{hp['per_angle_absdiff_db']['max']:.1f} dB 다 — 흔들리는 것은 소수의 깊은 널뿐이다.",
+f"널은 여러 산란 기여가 **정확히 상쇄**되는 각도다. 노이즈캔슬링 이어폰이 위상이 조금만 어긋나도 '싹 사라짐'이 '조금 사라짐'으로 바뀌듯, 상쇄점 근처에서는 점 배치가 파장의 몇 % 만 달라져도 dB 눈금으로는 폭발적으로 변한다(0 에 가까운 값의 로그라 더 그렇다). 실제로 개별 각도 차이의 **평균은 {hm['per_angle_absdiff_db']['mean']:.1f}~{hp['per_angle_absdiff_db']['mean']:.1f} dB** 인데 최대만 {max(hm['per_angle_absdiff_db']['max'], hp['per_angle_absdiff_db']['max']):.1f} dB 안팎이다 — 흔들리는 것은 소수의 깊은 널뿐이다.",
 "",
 "**그리고 검출 문제에서 중요한 것은 평균이다.** 실제 드론은 자세가 계속 변하고 프로펠러가 돌아 널 위치가 쉼 없이 이동한다 — 수신기가 겪는 것은 특정 널 하나가 아니라 각도 분포의 **평균적 에너지**다. 그래서 이 시리즈의 RCS 결론(순서·규모)은 전부 방위평균 통계로 말하고, 개별 널 깊이는 애초에 주장하지 않는다. 이는 실측 문헌들의 RCS 도 세팅에 따라 ±수 dB 씩 흩어진다는 report08 의 스프레드 논거와 같은 이유다. ← 출처: `../report08.ipynb`(RCS 결과·문헌 대조 편)",
 ),

@@ -62,7 +62,7 @@ cells.append(md(
     "> ⚠ **이 노트북은 생성물이다.** 수정은 `src/make_mesh07.py` 에서 하라.",
     "> 본문의 모든 수치는 `outputs/mesh_verify.json` (생성기: `report_mesh/src/verify_mesh_suite.py`)에서 읽어 넣었다 — 손으로 적은 숫자는 없다.",
     "",
-    f"**한 줄 요약** — 드론 5종·삼각형 {tot_faces:,}장·닫힌 부품 {tot_parts}개를 전수 검사한 결과, "
+    f"**한 줄 요약** — 드론 5종·삼각형 {tot_faces:,}장·부위(그룹) {tot_groups}개·닫힌 부품 {tot_parts}개를 전수 검사한 결과, "
     f"watertight {n_wt}/{tot_parts} 통과, 안쪽 법선 {tot_inward}건, 퇴화면 {tot_degen}장, "
     f"중복/미사용 꼭짓점 {tot_dup}/{tot_unused}개 — **기하 결함 0**. "
     "좌우비대칭·부위겹침처럼 '결함처럼 보이는 것'은 왜 결함이 아닌지까지 수치로 공개한다. "
@@ -495,7 +495,7 @@ cells.append(md(
     "삼각형이 건강함을 확인했으니, 다음 질문은 \"그래서 **실물과 맞는가**\"다.",
     "",
     "**다음 리포트 → mesh08 — 검증 ② (공식 제원 치수 대조·부피/암시밀도·실기체 스캔·PO/SBR 수치 수렴,",
-    "mesh_verify.json §C/§D/§E)**",
+    "mesh_verify.json §C/§D/§G/§H/§I)**",
 ))
 
 nb = {"cells": cells, "metadata": {"kernelspec": {"display_name": "py312",

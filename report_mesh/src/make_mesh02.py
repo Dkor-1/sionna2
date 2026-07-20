@@ -352,7 +352,7 @@ md(
 "![build_stages](outputs/figures/build_stages.png)",
 "",
 "**그림 1 — Mavic 4 Pro 파라메트릭 CAD 의 조립 순서** (파트 1개 = OBJ 1개 = Sionna 재질 1개)",
-"← 출처: src/viz_mesh_reports.py:144-165 `fig_build_stages()` 가 생성. 각 단계가 곧 위 도감의",
+"← 출처: report_mesh/src/viz_mesh_reports.py:152-178 `fig_build_stages()` 가 생성. 각 단계가 곧 위 도감의",
 "함수들이다:",
 "",
 "| 그림 속 단계 | 만든 함수 (도구) | 소스 |",

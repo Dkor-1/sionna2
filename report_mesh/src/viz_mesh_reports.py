@@ -142,7 +142,7 @@ def fig_wireframes():
             ax.set_title(title, fontsize=10)
         ng = VJ["A_geometry"][key]
         fig.suptitle(f"{NAME[key]} — {ng['n_faces']:,} triangles / "
-                     f"{ng['n_groups']} parts (groups)", fontsize=13)
+                     f"{ng['n_groups']} material groups", fontsize=13)
         _save(fig, f"wireframe_{key}")
 
 

@@ -115,7 +115,7 @@ cells = [
 md(
 "# mesh01 — 우리 드론 3D 모델, 왜 이렇게 만들었나 (전체 지도)",
 "",
-"> ⚠ **이 노트북은 생성물이다.** 수정은 `src/make_mesh01.py` 에서 하고 재실행할 것",
+"> ⚠ **이 노트북은 생성물이다.** 수정은 `report_mesh/src/make_mesh01.py` 에서 하고 재실행할 것",
 "> (`.ipynb` 를 직접 고치면 다음 빌드에서 사라진다).",
 "",
 f"**한 줄 요약** — 인터넷의 DJI 3D 모델은 시각용 껍데기라 레이더 시뮬레이션에 못 쓴다.",
@@ -313,12 +313,11 @@ md(
 "",
 "**정직성 원칙** — 모르는 값은 모른다고 적는다. 예컨대 Mini 5 Pro 스펙의 `note` 필드:",
 "",
-"> \"Diagonal (250 mm) not published by DJI — was estimated from the unfolded shape.",
-"> ⚠ 2026-07-14: after fitting the frame to the OFFICIAL envelope, the implied",
-"> motor-to-motor diagonal is 274.6 mm, i.e. the old 250 mm estimate was ~9% low.\"",
+"> \"Mini 5 Pro 의 대각(모터-모터 휠베이스)은 DJI 가 공개하지 않는다 — 공식 외형 상자(L×W×H)에",
+"> 맞춰 **재유도한 추정값 ≈ 275 mm** 이며, 코드에 '추정'으로 표시돼 있다.\"",
 "",
-"← 출처: `src/drones.py:98~102` (그대로 인용). 추정값은 추정이라고 표시하고, 나중에 더 좋은",
-"근거가 나오면 정정 이력까지 코드에 남긴다 — 이 습관 덕에 mesh04 의 치수 검증이 의미를 갖는다."),
+"← 출처: `src/drones.py` Mini 대각 주석. DJI 미공개 값은 이렇게 **추정임을 명시**하고 공식 외형에서",
+"재유도한다 — 스펙시트 숫자에서 형상을 짓는 파라메트릭 원칙이 여기서도 그대로 적용돼, mesh04 의 치수 검증이 의미를 갖는다."),
 
 # ── 10. §2.3 인터넷 모델·스캔의 올바른 자리 ───────────────────────────────
 md(

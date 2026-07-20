@@ -24,7 +24,10 @@ NAME = {k: DRONES[k].name for k in KEYS}
 # ---- 생성기에서 미리 계산해 두는 값(전부 JSON/DRONES 출처) ----------------------
 mini, ph, mav = DRONES["mini5pro"], DRONES["phantom4"], DRONES["mavic4pro"]
 worst_key = max(KEYS, key=lambda k: C[k]["worst_err_pct"])
-worst_pct = C[worst_key]["worst_err_pct"]
+worst_pct = C[worst_key]["worst_err_pct"]                       # 크기(부호 없음)
+_wd = C[worst_key]["checks"].get("diagonal")                   # 최악은 대각(종속값) — 부호 살리기
+worst_diag_signed = ((_wd["measured"] - _wd["official"]) / _wd["official"] * 100
+                     if _wd and _wd.get("official") else -worst_pct)
 sym_p95 = {k: B[k]["frame_only"]["chamfer_mm"]["p95"] for k in KEYS}
 sym_worst_key = max(sym_p95, key=sym_p95.get)
 full_p95 = {k: B[k]["full"]["chamfer_mm"]["p95"] for k in KEYS}
@@ -392,7 +395,7 @@ md(
 CDIMS_TABLE,
 "",
 f"읽는 법 — envelope 을 직접 맞춘 L/W/H 는 오차 0%. 전체 최악은 {NAME[worst_key]} 의 대각",
-f"{worst_pct:+.2f}% 인데, 이는 §3 의 규약대로 **대각이 배율에 끌려가는 종속 값**이기 때문이다",
+f"{worst_diag_signed:+.2f}% 인데(공식 438.8 → 실측 428.7, 축소), 이는 §3 의 규약대로 **대각이 배율에 끌려가는 종속 값**이기 때문이다",
 "(외형이 우선 ← src/drones.py:266-268 주석). 프로펠러 지름이 전 기종 일관되게 +0.84% 인 것은",
 "스케일 때문이 아니라 블레이드 로프트의 스팬 끝 처리(팁 라운딩)가 반경을 살짝 넘어서다 —",
 "프롭 편에서 다시 본다. fit_scale 을 보면 기종마다 실루엣이 공식 외형에서 얼마나 멀었는지도",
@@ -423,7 +426,7 @@ f"2. **앞 모터가 낮다** — `rotor_z_mm={mini.rotor_z_mm}`. 프롭 지름(
 "   주석 — \"실물은 앞 모터가 더 낮다(간섭 회피). 조사 확인\").",
 f"3. **착륙장치가 없다** — `gear={mini.gear!r}`. 실물이 아래 암과 동체 배로 앉는 기종이다(§2.1).",
 "",
-"색 규칙(모든 기종 공통): 플라스틱=밝은 회색(프로펠러 포함), 모터·배터리=파랑(금속), 카메라=주황,",
+"색 규칙(모든 기종 공통): 플라스틱=밝은 회색(프로펠러 포함), 모터·배터리=파랑(금속), 카본(암)=검정, 카메라=주황,",
 "PCB=초록 — **색이 곧 재질**이라 그림만 봐도 전파 물성이 읽힌다(← src/drones.py:375-391",
 "MATERIAL_COLOR·drone_colors docstring).",
 ),
