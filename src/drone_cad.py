@@ -159,6 +159,29 @@ def _gimbal_infinity(R, cx, cz):
     return A
 
 
+def _gimbal_hasselblad(s, cx, cz):
+    """Mavic 4 Pro **v2** — 크고 뚜렷한 전면 Hasselblad 짐벌.
+    실물: 기수 앞에 큰 둥근 하우징 + 정면에 메인(큰)·중망원·망원 3렌즈, 좌우 롤축 요크.
+    좌표: +x=기수앞, y=좌우, z=상하. 짐벌은 기수 앞(cx>0)·중앙보다 약간 아래(cz<0)."""
+    A = []
+    # 롤축 요크(좌우 팔) — 하우징을 감싸 바디로 연결
+    A.append(("camera", cyl(s * 0.26, s * 2.0, center=(cx - 0.15 * s, 0, cz), axis="y", seg=20)))
+    # 짐벌 하우징 — 앞을 향한 둥근 통(살짝 눌린 구)
+    hous = sphere(s * 0.95, center=(cx, 0, cz), subdiv=3)
+    hous.apply_scale([1.05, 0.92, 1.0])
+    A.append(("camera", hous))
+    # 정면 3렌즈 (메인 Hasselblad 큰 것 + 위/아래 보조) — 앞(+x)으로 돌출
+    for (dy, dz, lr, ll) in [(0.0, 0.10, 0.50, 0.62),      # 메인(가장 큼)
+                             (-0.44, -0.42, 0.24, 0.42),   # 보조1
+                             (0.44, -0.42, 0.22, 0.40)]:   # 보조2
+        cxl = cx + s * 0.82
+        A.append(("camera", cyl(s * lr, s * ll, center=(cxl, dy * s, cz + dz * s), axis="x", seg=30)))
+        # 렌즈 앞 링(테)
+        A.append(("camera", cyl(s * lr * 0.72, s * 0.10,
+                                center=(cxl + s * ll * 0.55, dy * s, cz + dz * s), axis="x", seg=24)))
+    return A
+
+
 def _gimbal_hanging(w, h, d, cx, cz, n_lens=1):
     """매달린 짐벌(Mini/Phantom) — 방진판 + 요크 + 카메라 박스 + 렌즈."""
     A = []
@@ -182,8 +205,42 @@ def _gimbal_sensor(w, h, d, cx, cz):
 
 
 # --------------------------------------------------------------------------- #
+#  센서(어안 비전·LiDAR·레이저 거리계) — v2 상세
+# --------------------------------------------------------------------------- #
+def _fisheye(cx, cy, cz, r, axis="x"):
+    """어안 장애물감지 카메라 1개(작은 반구+렌즈)."""
+    return [("camera", sphere(r, center=(cx, cy, cz), subdiv=2)),
+            ("camera", cyl(r * 0.55, r * 0.7, center=(cx, cy, cz), axis=axis, seg=12))]
+
+
+def _lidar(cx, cz, w):
+    """전방 LiDAR 모듈(Mini 5 Pro) — 기수 앞 작은 직사각 창."""
+    return [("camera", box(w * 0.5, w * 1.4, w * 0.8, center=(cx, 0, cz))),
+            ("camera", cyl(w * 0.34, w * 0.3, center=(cx + w * 0.3, 0, cz), axis="x", seg=16))]
+
+
+# --------------------------------------------------------------------------- #
 #  착륙장치
 # --------------------------------------------------------------------------- #
+def _gear_arch(L, W, zbot, leg_h):
+    """Phantom v2 — 아치형(inverted-U) 착륙다리 2개(좌우), 안테나 내장 후방 다리."""
+    A = []
+    for sy in (1, -1):
+        top_f = np.array([0.34 * L, sy * 0.34 * W, zbot])
+        top_r = np.array([-0.30 * L, sy * 0.34 * W, zbot])
+        foot_f = np.array([0.30 * L, sy * 0.46 * W, zbot - leg_h])
+        foot_r = np.array([-0.26 * L, sy * 0.46 * W, zbot - leg_h])
+        # 앞다리·뒷다리(수직 봉) + 발 스키드(가로 봉)로 inverted-U
+        for a, b in ((top_f, foot_f), (top_r, foot_r)):
+            t = np.linspace(0, 1, 10)[:, None]
+            A.append(("gear", sweep((1 - t) * a + t * b,
+                                    lambda s: rounded_rect(leg_h * 0.08, leg_h * 0.08, leg_h * 0.03),
+                                    n_pts=14)))
+        A.append(("gear", capsule(leg_h * 0.09, L * 0.60,
+                                  center=(0.02 * L, sy * 0.46 * W, zbot - leg_h), axis="x")))
+    return A
+
+
 def _gear_skids(L, W, zbot, leg_h):
     """Phantom — 일체형 스키드(다리 4 + 좌우 스키드 바). 실물은 셸과 한 몸."""
     A = []
@@ -291,15 +348,40 @@ def build_frame_cad(spec) -> "trimesh.Trimesh":
 
         # 짐벌 — 기종별 실루엣
         nose_x = 0.50 * bl
+        v2 = getattr(spec, "cad_version", "v1") == "v2"
         if key == "mavic4pro":
-            for g, m in _gimbal_infinity(0.032, nose_x + 0.006, -0.12 * bh):   # 볼 지름 64mm (실물 60~70mm)
-                A.add(m, g)
+            if v2:   # 큰 전면 Hasselblad 3렌즈 짐벌 + 전방향 어안 비전센서(상3·하3)
+                for g, m in _gimbal_hasselblad(0.048, nose_x + 0.05, -0.02 * bh):
+                    A.add(m, g)
+                for (dy, dz, rr) in [(-0.30, 0.44, 0.010), (0.30, 0.44, 0.010), (0.0, 0.52, 0.010),
+                                     (-0.30, -0.42, 0.009), (0.30, -0.42, 0.009), (0.0, -0.32, 0.009)]:
+                    for g, m in _fisheye(nose_x * (0.72 if dz > 0 else 0.62), dy * bw, dz * bh, rr):
+                        A.add(m, g)
+            else:
+                for g, m in _gimbal_infinity(0.032, nose_x + 0.006, -0.12 * bh):   # 볼 지름 64mm
+                    A.add(m, g)
         elif key == "matrice4e":
-            for g, m in _gimbal_sensor(0.055, 0.052, 0.062, nose_x + 0.012, -0.34 * bh):
-                A.add(m, g)
-            A.add(revolve(np.array([[0, 0], [0.030, 0], [0.028, 0.012], [0.016, 0.024], [0, 0.028]]),
-                          seg=32, center=(-0.10 * bl, 0, 0.52 * bh)), "canopy")   # RTK 돔
-            A.add(cyl(0.004, 0.05, center=(-0.10 * bl, 0, 0.52 * bh + 0.04), seg=10), "pcb")
+            if v2:
+                # 큰 전방 돌출 3렌즈 측량 짐벌 + 레이저 거리계 (기수 앞으로 튀어나옴)
+                for g, m in _gimbal_sensor(0.062, 0.060, 0.075, nose_x + 0.045, -0.20 * bh):
+                    A.add(m, g)
+                A.add(cyl(0.008, 0.024, center=(nose_x + 0.085, 0.05, -0.20 * bh), axis="x", seg=14), "camera")  # 레이저 거리계
+                # ★ 상단-후방 RTK 돔 bump — 이 기종의 결정적 특징(밋밋한 Mavic3 와의 차이)
+                dome = revolve(np.array([[0, 0], [0.036, 0], [0.034, 0.020], [0.022, 0.038],
+                                         [0.010, 0.048], [0, 0.050]]), seg=36,
+                               center=(-0.20 * bl, 0, 0.50 * bh))
+                A.add(dome, "canopy")
+                A.add(cyl(0.006, 0.028, center=(-0.20 * bl, 0, 0.50 * bh + 0.050), seg=12), "pcb")
+                for (cx, cy, cz) in [(nose_x * 0.82, -0.28 * bw, 0.30 * bh), (nose_x * 0.82, 0.28 * bw, 0.30 * bh),
+                                     (-0.32 * bl, 0, 0.34 * bh), (nose_x * 0.5, 0, 0.55 * bh)]:  # 어안 스테레오
+                    for g, m in _fisheye(cx, cy, cz, 0.009):
+                        A.add(m, g)
+            else:
+                for g, m in _gimbal_sensor(0.055, 0.052, 0.062, nose_x + 0.012, -0.34 * bh):
+                    A.add(m, g)
+                A.add(revolve(np.array([[0, 0], [0.030, 0], [0.028, 0.012], [0.016, 0.024], [0, 0.028]]),
+                              seg=32, center=(-0.10 * bl, 0, 0.52 * bh)), "canopy")   # RTK 돔
+                A.add(cyl(0.004, 0.05, center=(-0.10 * bl, 0, 0.52 * bh + 0.04), seg=10), "pcb")
         elif key == "phantom4":
             for g, m in _gimbal_hanging(0.052, 0.048, 0.056, nose_x * 0.62, -0.62 * bh, n_lens=1):
                 A.add(m, g)
@@ -307,12 +389,22 @@ def build_frame_cad(spec) -> "trimesh.Trimesh":
                 A.add(cyl(0.006, 0.008, center=(nose_x * 0.96, dy * bw, -0.18 * bh),
                           axis="x", seg=12), "camera")
         else:                                                          # mini5pro
-            for g, m in _gimbal_hanging(0.036, 0.034, 0.040, nose_x * 0.92, -0.30 * bh, n_lens=1):
-                A.add(m, g)
+            if v2:   # 전면 단일 1인치 짐벌(더 큰 하우징) + 전방 LiDAR + 어안
+                for g, m in _gimbal_hanging(0.044, 0.042, 0.050, nose_x * 0.95, -0.24 * bh, n_lens=1):
+                    A.add(m, g)
+                for g, m in _lidar(nose_x * 1.04, 0.04 * bh, 0.016):     # 전방 LiDAR 모듈
+                    A.add(m, g)
+                for dy in (-0.26, 0.26):
+                    for g, m in _fisheye(nose_x * 0.98, dy * bw, 0.14 * bh, 0.008):
+                        A.add(m, g)
+            else:
+                for g, m in _gimbal_hanging(0.036, 0.034, 0.040, nose_x * 0.92, -0.30 * bh, n_lens=1):
+                    A.add(m, g)
 
         # 착륙장치
         if spec.gear == "legs":
-            for g, m in _gear_skids(bl, bw, -0.50 * bh, 0.42 * H):
+            gear_fn = _gear_arch if v2 else _gear_skids     # Phantom v2 = 아치형(inverted-U)
+            for g, m in gear_fn(bl, bw, -0.50 * bh, 0.42 * H):
                 A.add(m, g)
         elif spec.gear == "feet":
             for g, m in _gear_feet(bl, bw, -0.48 * bh, 0.22 * H):

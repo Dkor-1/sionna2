@@ -78,6 +78,7 @@ class DroneSpec:
                                      #   앞/뒤 모터 높이가 다르다. None = 전부 같은 높이.
     gimbal_style: str = "single"     # single / triple(마빅 3카메라) / sensor(매트리스+RTK)
                                      #   / recessed(팬텀 함몰) / belly(S1000 벨리)
+    cad_version: str = "v1"          # "v1"(기존) / "v2"(실사진 대조로 형상 개선; 스펙 치수는 그대로)
 
 
 # 화면표시 색(RGB)
@@ -102,7 +103,7 @@ DRONES: dict[str, DroneSpec] = {
              "Weight/prop/rotor count official.",
         body_rgb=_GRAY_D, arm_style="body", gear="none", gimbal="front",
         accent_rgb=(0.95, 0.45, 0.05), body_frac=0.46,
-        rotor_deg=(56.3, 123.7, 236.3, 303.7), body_lw=(1.42, 0.66), gimbal_style="single",
+        rotor_deg=(56.3, 123.7, 236.3, 303.7), body_lw=(1.42, 0.66), gimbal_style="single", cad_version="v2",
         rotor_z_mm=(-12.0, +2.0, +2.0, -12.0),   # ⚠ 프롭(152.4) > 앞뒤 모터간격(152) → 디스크가 겹친다.
                                                  #   실물은 **앞 모터가 더 낮다**(간섭 회피). 조사 확인.
         envelope_mm=(None, None, 91.0)),          # ⚠ **높이만** 공식이다.
@@ -126,7 +127,7 @@ DRONES: dict[str, DroneSpec] = {
              "diagonal_mm is kept only as an arm/motor thickness scale.",
         body_rgb=_SILVER, arm_style="body", gear="none", gimbal="front",
         accent_rgb=None, body_frac=0.42,
-        rotor_deg=(32, 148, 212, 328), body_lw=(1.52, 0.62), gimbal_style="triple",
+        rotor_deg=(32, 148, 212, 328), body_lw=(1.52, 0.62), gimbal_style="triple", cad_version="v2",
         envelope_mm=(328.7, 390.5, 135.2)),      # DJI 공식(언폴드·프롭제외),
     # 3) 엔터프라이즈 측량기 (RTK 탑재)
     "matrice4e": DroneSpec(
@@ -144,7 +145,7 @@ DRONES: dict[str, DroneSpec] = {
              "Needs telemetry or acoustic measurement to settle.",
         body_rgb=_OFFWHT, arm_style="body", gear="feet", gimbal="front",
         accent_rgb=None, body_frac=0.42,
-        rotor_deg=(45, 135, 225, 315), body_lw=(1.08, 0.98), gimbal_style="sensor",
+        rotor_deg=(45, 135, 225, 315), body_lw=(1.08, 0.98), gimbal_style="sensor", cad_version="v2",
         envelope_mm=(307.0, 387.5, 149.5)),      # DJI 공식(언폴드·프롭제외),
     # 4) 대형 산업용 옥토콥터 (8암) — 단종, 카본 프레임
     "s1000plus": DroneSpec(
@@ -157,7 +158,7 @@ DRONES: dict[str, DroneSpec] = {
              "4400 g is the AIRFRAME weight; recommended takeoff weight 6.0-11.0 kg.",
         body_rgb=_BLACK, arm_style="carbon", gear="tall", gimbal="belly",
         accent_rgb=(0.85, 0.10, 0.10), body_frac=0.30,
-        body_lw=(1.0, 1.0), gimbal_style="belly",
+        body_lw=(1.0, 1.0), gimbal_style="belly", cad_version="v2",
         envelope_mm=(1016.0, 1016.0, 380.0)),   # DJI 공식 — 센터프레임 337.5mm, 암 386mm, 랜딩기어 460x511x305,
     # 5) 고정암 쿼드 (클래식, 흰색 셸)
     "phantom4": DroneSpec(
@@ -169,7 +170,7 @@ DRONES: dict[str, DroneSpec] = {
         note="Fixed (non-folding) arms, one-piece white shell + integrated landing legs. Classic Phantom shape.",
         body_rgb=_WHITE, arm_style="body", fixed_arm=True, gear="legs", gimbal="front",
         accent_rgb=None, body_frac=0.52,
-        rotor_deg=(45, 135, 225, 315), body_lw=(1.06, 1.0), gimbal_style="recessed",
+        rotor_deg=(45, 135, 225, 315), body_lw=(1.06, 1.0), gimbal_style="recessed", cad_version="v2",
         envelope_mm=(289.5, 289.5, 196.0)),     # DJI 공식 Quick Start Guide v1.2 (프롭 제외),
 }
 

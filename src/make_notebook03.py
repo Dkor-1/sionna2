@@ -108,8 +108,9 @@ cells += provenance_cells(
         "# 커뮤니티 메쉬 대조 (M100 · M600) → outputs/community_compare.json",
         "~/.venvs/py312/bin/python benchmark/compare_community.py",
         "",
-        "# 신뢰 경계 종합 그림",
+        "# 신뢰 경계 종합 그림 + 인터넷 mesh vs 자작 mesh 시각 비교",
         "~/.venvs/py312/bin/python src/viz_report3_cad.py",
+        "~/.venvs/py312/bin/python src/viz_report3_overlay.py",
         "",
         "# Gazebo/PX4 SDF 내보내기",
         "~/.venvs/py312/bin/python src/gazebo_export.py",
@@ -121,6 +122,7 @@ cells += provenance_cells(
         dict(file="outputs/real_cad_compare.json", what="Typhoon H480·Holybro 프롭 대조의 모든 숫자 (방위별 σ·면적·평균차)"),
         dict(file="outputs/community_compare.json", what="Matrice 100·600 대조의 모든 숫자"),
         dict(file="outputs/figures/report03_confidence.png", what="신뢰 경계 종합 그림 (어디까지 믿나)"),
+        dict(file="outputs/figures/report03_mesh_overlay.png", what="인터넷 mesh vs 자작 mesh 시각 비교(형상+σ)"),
         dict(file="outputs/gazebo/<key>/model.sdf", what="드론 5종의 Gazebo/PX4 비행 시뮬 모델 (SDF)"),
     ],
     caveats=[
@@ -240,6 +242,21 @@ cells.append(md(
 # ─────────────────────────────────────────────────────────────────────────────
 cells.append(md(
     "## §3. 증거 — 세 외부 기준에 겹쳐 본 결과",
+    "",
+    "먼저 **눈으로** 겹쳐 본다. 왼쪽 = 인터넷에서 가져온 실물/커뮤니티 3D 모델, 오른쪽 = 우리가 그 "
+    "기체의 **스펙시트로 만든 것**(같은 축척·같은 시점).",
+    "",
+    "![internet mesh vs our spec-built mesh](outputs/figures/report03_mesh_overlay.png)",
+    "",
+    "> ⚠ **이 그림의 핵심은 '형상이 똑같다'가 아니다.** 이들은 우리 신형 타깃이 아니라 **공개 모델이 "
+    "존재하는 다른 기체**(Yuneec Typhoon·구형 DJI M100/M600)이고, 커뮤니티 모델은 프로펠러를 **스윕 "
+    "디스크**(회전면)로 그리는 등 제작 방식도 제각각이다. 그래서 세부 형상은 당연히 다르게 보인다. "
+    "우리가 확인하는 것은 하나 — **같은 로터 수·같은 크기의 기체를 우리 파이프라인으로 지었을 때 되쏘는 "
+    "평균 밝기(RCS)가 외부 모델과 ±1 dB 로 맞느냐**(각 기체 제목의 Δσ)이다.",
+    "",
+    "<sub>양쪽 모두 PEC(완전도체)로 통일해 형상만 본다(재질은 report08 에서 실측으로 앵커). 형상 세부가 "
+    "다르므로 **각도별** RCS 는 어긋나고(6~12 dB, 아래 결과②), 그래서 우리는 **평균만** 인용한다. "
+    "이 대조의 값어치는 '우리 방법을 우리와 무관한 외부 실기체 3개로 독립 검증했다'는 것 자체다.</sub>",
     "",
     "### 결과 ① 평균 밝기는 세 기체 모두 ~1 dB 이내로 맞는다",
     "",
