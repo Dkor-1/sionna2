@@ -106,18 +106,16 @@ def _result_panel(ax, d):
             transform=ax.transAxes, ha="center", fontsize=8, color="0.4")
 
 
-# (name, source_label, kind) — kind: 'real'|'comm'|'scan'
+# 두 골드스탠다드 원본만 — 둘 다 깨끗(원판-프롭 없는 프레임/스캔)·실물. (name, source_label, kind)
 ROWS = [
-    ("Yuneec Typhoon H480 (frame)", "manufacturer CAD · Apache-2.0", "typhoon"),
-    ("DJI Matrice 100 (2015 quad)", "community mesh", "m100"),
-    ("DJI Matrice 600 Pro (2016 hexa)", "community mesh", "m600"),
-    ("DJI Phantom 4 (real 0.4 mm scan)", "3D scan · Thingiverse CC-BY", "phantom"),
+    ("Yuneec Typhoon H480 (frame)", "real manufacturer CAD · Apache-2.0", "typhoon"),
+    ("DJI Phantom 4 (whole aircraft)", "real 0.4 mm 3D scan · Thingiverse CC-BY", "phantom"),
 ]
 
 nrow = len(ROWS)
-fig = plt.figure(figsize=(11.5, 2.9 * nrow), dpi=128)
-gs = fig.add_gridspec(nrow, 3, width_ratios=[1, 1, 0.95], hspace=0.30, wspace=0.05,
-                      left=0.02, right=0.98, top=0.93, bottom=0.03)
+fig = plt.figure(figsize=(11.5, 3.5 * nrow), dpi=128)
+gs = fig.add_gridspec(nrow, 3, width_ratios=[1, 1, 0.95], hspace=0.34, wspace=0.05,
+                      left=0.02, right=0.98, top=0.85, bottom=0.04)
 
 for r, (name, src, kind) in enumerate(ROWS):
     # 원본 + 우리 재현 준비
@@ -155,8 +153,8 @@ for r, (name, src, kind) in enumerate(ROWS):
     _result_panel(axR, d)
     axR.set_title("shape match (both PEC)", fontsize=9.5, fontweight="bold")
 
-fig.suptitle("Downloaded drones, rebuilt our way — mean σ matches to ~1 dB (per-angle nulls do not, not cited)",
-             fontsize=13, fontweight="bold", y=0.985)
+fig.suptitle("Rebuilt from spec vs a real manufacturer CAD and a real 0.4 mm scan — mean σ within ~1 dB",
+             fontsize=12.5, fontweight="bold", y=0.965)
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 fig.savefig(OUT, dpi=128, bbox_inches="tight", facecolor="white"); plt.close(fig)
 print(f"✅ {os.path.relpath(OUT)}")

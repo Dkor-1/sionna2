@@ -115,9 +115,8 @@ cells += provenance_cells(
         "# Phantom 4 실물 0.4mm 스캔 대조 (스캔 STL 필요 — prep_cad_scan.py 참조) → phantom4_scan_compare.json",
         "~/.venvs/py312/bin/python src/compare_phantom_scan.py",
         "",
-        "# 통일 비교 그림(4종 원본·재현·일치도) + 인용경계 상세(CDF)",
+        "# 통일 비교 그림 (실물 CAD·실물 스캔 원본 vs 우리 재현 vs 일치도)",
         "~/.venvs/py312/bin/python src/viz_report3_compare_all.py",
-        "~/.venvs/py312/bin/python src/viz_report3_cad.py",
         "",
         "# Gazebo/PX4 SDF 내보내기",
         "~/.venvs/py312/bin/python src/gazebo_export.py",
@@ -129,8 +128,7 @@ cells += provenance_cells(
         dict(file="outputs/real_cad_compare.json", what="Typhoon H480·Holybro 프롭 대조의 모든 숫자 (방위별 σ·면적·평균차)"),
         dict(file="outputs/community_compare.json", what="Matrice 100·600 대조의 모든 숫자"),
         dict(file="outputs/phantom4_scan_compare.json", what="Phantom 4 실물 0.4mm 스캔 vs 우리 메쉬 대조 숫자 (σ·면적·방위별)"),
-        dict(file="outputs/figures/report03_compare_all.png", what="다운로드 실기체 4종 통일 비교 — 원본·우리 재현·형상 일치도(결과)"),
-        dict(file="outputs/figures/report03_confidence.png", what="인용 경계 상세 — 분포(CDF) 일치·각도별 널 불일치"),
+        dict(file="outputs/figures/report03_compare_all.png", what="실물 CAD·실물 스캔 원본 vs 우리 재현 통일 비교 — 형상 일치도(결과)"),
         dict(file="outputs/gazebo/<key>/model.sdf", what="드론 5종의 Gazebo/PX4 비행 시뮬 모델 (SDF)"),
     ],
     caveats=[
@@ -221,7 +219,7 @@ cells.append(md(
     "방법 자체를 검증**한다. 이 대조가 확인하는 것은 **'스펙시트 → 형상 → 밝기' 파이프라인의 눈금이 맞나**이지, "
     "'이 특정 신형 기체가 정확하다'가 아니다. (같은 파이프라인이면 신형 타깃 메쉬도 그만큼 믿을 수 있다.)",
     "",
-    f"*(부품 단위 보조 점검으로 {PROP['name_real']} 도 NACA-4 익형 프롭과 대봤다 — 아래 종합 그림 맨 오른쪽 막대.)*",
+    f"*(부품 단위 보조 점검으로 {PROP['name_real']} 실물 프롭도 우리 NACA-4 익형 프롭과 대봤다 — 방향별 RMS {PROP['d_sigma_rms_db']:.1f} dB.)*",
 ))
 
 cells.append(md(
@@ -253,36 +251,36 @@ cells.append(md(
 cells.append(md(
     "## §3. 증거 — 다운로드한 실기체를 우리 방식으로 다시 만들어 겹쳐 본 결과",
     "",
-    "공개 3D 모델이 있는 실기체 **네 대** — 제조사 실물 CAD(Yuneec Typhoon H480)·커뮤니티 메쉬(구형 DJI "
-    "M100·M600)·**DJI Phantom 4 실물 0.4 mm 스캔**(Thingiverse thing:1456295, CC-BY) — 을 각각 우리 방식으로 "
-    "다시 만들어, 같은 조건(둘 다 PEC)으로 원본과 겹쳐 봤다:",
+    "가장 믿을 만한 **두 원본**으로 검증한다 — **Yuneec Typhoon H480 실물 제조사 CAD**(프레임)와 **DJI "
+    "Phantom 4 실물 0.4 mm 3D 스캔**(Thingiverse thing:1456295, CC-BY). 둘 다 실물에서 나온 정밀 자료라 원판으로 "
+    "대충 그린 프로펠러 같은 시각용 군더더기가 없다. 각 기체를 우리 방식으로 스펙시트에서 다시 만들어, 같은 "
+    "조건(둘 다 PEC)으로 원본과 겹쳐 봤다:",
     "",
-    "![downloaded drones rebuilt our way](outputs/figures/report03_compare_all.png)",
+    "![rebuilt vs real CAD and real scan](outputs/figures/report03_compare_all.png)",
     "",
-    f"각 행: **왼쪽** 다운로드 원본(Phantom 은 실물 스캔 점구름) · **가운데** 그 기체를 스펙시트로 다시 만든 우리 "
-    f"메쉬 · **오른쪽** 형상 일치도. 평균 밝기 σ 는 네 기체 모두 **약 ±1 dB**"
-    f"({TY['d_sigma_db']:+.2f}·{M100['d_sigma_db']:+.2f}·{M600['d_sigma_db']:+.2f}·{PH4['d_sigma_db']:+.2f} dB). "
-    f"특히 **Phantom 4 실측 스캔**은 투영면적이 **{PH4['d_area_db']:+.2f} dB** 로 거의 완벽히 겹쳐(몸통·아치형 "
-    f"착륙다리까지), 스펙시트 숫자만으로 지은 우리 메쉬가 실물 형상을 그대로 재현함을 보인다.",
+    f"각 행: **왼쪽** 다운로드 원본(Phantom 은 스캔 점구름) · **가운데** 스펙시트로 다시 만든 우리 메쉬 · "
+    f"**오른쪽** 형상 일치도. 평균 밝기 σ 는 둘 다 **약 ±1 dB**(Typhoon {TY['d_sigma_db']:+.2f}·Phantom {PH4['d_sigma_db']:+.2f} dB). "
+    f"특히 **Phantom 실측 스캔**은 투영면적이 **{PH4['d_area_db']:+.2f} dB** 로 거의 완벽히 겹쳐(몸통·아치형 착륙다리까지), "
+    f"스펙시트 숫자만으로 지은 우리 메쉬가 실물 형상을 그대로 재현함을 보인다.",
     "",
-    "> ⚠ **핵심은 '세부 형상이 똑같다'가 아니다.** 커뮤니티 모델은 프로펠러를 **스윕 디스크**(회전면)로 그리는 등 "
-    "제작 방식이 제각각이고(그래서 투영면적이 −3 dB 안팎 갈리기도 한다), 세부는 다르게 보인다. 우리가 확인하는 "
-    "것은 하나 — **같은 로터 수·크기의 기체를 우리 파이프라인으로 지으면 되쏘는 평균 밝기(RCS)가 원본과 ~1 dB 로 "
-    "맞느냐**이다(각 행 오른쪽 Δσ).",
+    f"> **거친 커뮤니티 시각모델도 평균은 맞다(보조 점검).** 구형 DJI M100·M600 커뮤니티 메쉬로도 같은 대조를 하면 "
+    f"평균 σ 차이가 {M100['d_sigma_db']:+.2f}·{M600['d_sigma_db']:+.2f} dB 로 역시 ±1 dB 안이다(결과① 표). "
+    f"다만 이들은 **프로펠러를 회전 원판으로 그린 시각용 껍데기**라 형상이 거칠다 — 바로 이 거칢이, 우리 신형 타깃의 "
+    f"공개 모델을 그대로 못 쓰고 **정밀 파라메트릭 메쉬를 직접 짓는 이유**다.",
     "",
-    "<sub>양쪽 모두 PEC(완전도체)로 통일해 형상만 본다(재질은 report08 에서 실측 앵커). 세부가 다르므로 "
-    "**각도별** RCS 는 어긋나고(6~12 dB, 결과②) **평균만** 인용한다. 값어치는 '우리 방법을 우리와 무관한 외부 "
-    "실기체 **4개(실물 스캔 포함)**로 독립 검증했다'는 것 자체다. 우리 타깃 DJI 신형은 공개 CAD 가 없어 이렇게 "
-    "**방법을 대리 검증**한다.</sub>",
+    "> ⚠ **핵심은 '세부 형상이 똑같다'가 아니다.** 우리가 확인하는 것은 하나 — **같은 로터 수·크기의 기체를 우리 "
+    "파이프라인으로 지으면 되쏘는 평균 밝기(RCS)가 원본과 ~1 dB 로 맞느냐**이다(각 행 오른쪽 Δσ). 양쪽 모두 PEC 로 "
+    "통일해 형상만 본다(재질은 report08 실측 앵커). 세부가 다르므로 **각도별** RCS 는 어긋나고(6~12 dB, 결과②) "
+    "**평균만** 인용한다. 우리 타깃 DJI 신형은 공개 CAD 가 없어 이렇게 **방법을 대리 검증**한다.",
     "",
     "### 결과 ① 평균 밝기는 네 기체 모두 ~1 dB 근방으로 맞는다",
     "",
-    "| 기체 | 진짜 모델 평균 σ | 우리 모형 평균 σ | 차이 (우리 − 진짜) |",
-    "|---|---|---|---|",
-    f"| {TY['name_real'].split('(')[0].strip()} | {TY['sigma_mean_real_dbsm']:.2f} dBsm | {TY['sigma_mean_ours_dbsm']:.2f} dBsm | **{TY['d_sigma_db']:+.2f} dB** |",
-    f"| Matrice 100 (2015 쿼드) | {M100['sigma_mean_real_dbsm']:.2f} dBsm | {M100['sigma_mean_ours_dbsm']:.2f} dBsm | **{M100['d_sigma_db']:+.2f} dB** |",
-    f"| Matrice 600 Pro (2016 헥사) | {M600['sigma_mean_real_dbsm']:.2f} dBsm | {M600['sigma_mean_ours_dbsm']:.2f} dBsm | **{M600['d_sigma_db']:+.2f} dB** |",
-    f"| **DJI Phantom 4 (실물 0.4mm 스캔)** | {PH4['sigma_mean_real_dbsm']:.2f} dBsm | {PH4['sigma_mean_ours_dbsm']:.2f} dBsm | **{PH4['d_sigma_db']:+.2f} dB** |",
+    "| drone | source | reference mean σ | our mesh mean σ | Δ (ours − ref) |",
+    "|---|---|---|---|---|",
+    f"| Yuneec Typhoon H480 | real CAD (frame) | {TY['sigma_mean_real_dbsm']:.2f} dBsm | {TY['sigma_mean_ours_dbsm']:.2f} dBsm | **{TY['d_sigma_db']:+.2f} dB** |",
+    f"| **DJI Phantom 4** | **real 0.4 mm scan** | {PH4['sigma_mean_real_dbsm']:.2f} dBsm | {PH4['sigma_mean_ours_dbsm']:.2f} dBsm | **{PH4['d_sigma_db']:+.2f} dB** |",
+    f"| DJI Matrice 100 | community mesh | {M100['sigma_mean_real_dbsm']:.2f} dBsm | {M100['sigma_mean_ours_dbsm']:.2f} dBsm | **{M100['d_sigma_db']:+.2f} dB** |",
+    f"| DJI Matrice 600 Pro | community mesh | {M600['sigma_mean_real_dbsm']:.2f} dBsm | {M600['sigma_mean_ours_dbsm']:.2f} dBsm | **{M600['d_sigma_db']:+.2f} dB** |",
     "",
     f"네 기체의 평균 밝기 차이가 모두 **±1 dB 근방**({TY['d_sigma_db']:+.2f} · {M100['d_sigma_db']:+.2f} · {M600['d_sigma_db']:+.2f} · {PH4['d_sigma_db']:+.2f} dB)이다. "
     "제조사 실물 CAD·커뮤니티 메쉬·실물 스캔, 쿼드와 헥사, 다른 크기·다른 회사 — 그런데도 평균은 일관되게 붙는다.",
@@ -301,16 +299,15 @@ cells.append(md(
     "",
     "평균은 붙었지만, **특정 각도에서의** 밝기는 얘기가 다르다:",
     "",
-    "| 기체 | 방향별 RMS 차이 |",
+    "| drone | per-azimuth RMS Δ |",
     "|---|---|",
-    f"| {TY['name_real'].split('(')[0].strip()} | **{TY['d_sigma_rms_db']:.1f} dB** |",
-    f"| Matrice 100 | **{M100['d_sigma_rms_db']:.1f} dB** |",
-    f"| Matrice 600 Pro | **{M600['d_sigma_rms_db']:.1f} dB** |",
-    f"| (참고) Holybro 1345 프롭 | {PROP['d_sigma_rms_db']:.1f} dB |",
+    f"| Yuneec Typhoon H480 | **{TY['d_sigma_rms_db']:.1f} dB** |",
+    f"| DJI Phantom 4 (scan) | **{PH4['d_sigma_rms_db']:.1f} dB** |",
+    f"| DJI Matrice 100 | **{M100['d_sigma_rms_db']:.1f} dB** |",
+    f"| DJI Matrice 600 Pro | **{M600['d_sigma_rms_db']:.1f} dB** |",
     "",
-    f"각도별로 보면 **{rms_lo:.0f}~{rms_hi:.0f} dB** 나 들쭉날쭉 어긋난다(종합 그림 아래 **B**). 반면 σ 값 자체의 **분포**는 서로 가깝다 — "
-    "종합 그림 맨 윗줄의 **누적분포(CDF)** 에서 실선(진짜 모델)과 점선(우리 모형)이 대체로 겹치고 평균선(세로 점선)이 거의 만난다. "
-    "**평균 레벨과 분포는 맞지만, 뾰족한 급락(널)·급등(글린트)이 어느 각도에 오는지는 서로 안 맞는다.**",
+    f"각도별로 보면 **{rms_lo:.0f}~{rms_hi:.0f} dB** 나 들쭉날쭉 어긋난다(위 통일 그림 각 행 아래의 per-az RMS). "
+    "**평균 레벨은 맞지만, 뾰족한 급락(널)·급등(글린트)이 어느 각도에 오는지는 서로 안 맞는다.**",
     "",
     "이 뾰족한 봉우리와 골짜기는 **간섭** 때문이다. 표면의 여러 조각이 되쏜 파동이 어떤 각도에선 마루끼리 겹쳐 확 밝아지고(글린트), "
     "어떤 각도에선 마루와 골이 만나 서로 지워진다(널). 이건 **잔잔한 호수에 돌 여러 개를 던졌을 때** 생기는 물결 무늬와 같아서 — "
@@ -328,12 +325,12 @@ cells.append(md(
 cells.append(md(
     "### 결과 ③ 모형은 가는 돌출부를 덜 그려 살짝 홀쭉하다",
     "",
-    "| 기체 | 투영면적 차이 (우리 − 진짜) | 방향 |",
+    "| drone | Δ projected area (ours − ref) | direction |",
     "|---|---|---|",
-    f"| Matrice 100 (커뮤니티) | **{M100['d_area_db']:+.2f} dB** | 우리가 작다 |",
-    f"| Matrice 600 Pro (커뮤니티) | **{M600['d_area_db']:+.2f} dB** | 우리가 작다 |",
-    f"| {TY['name_real'].split('(')[0].strip()} (실물 CAD) | {TY['d_area_db']:+.2f} dB | 우리가 살짝 크다 |",
-    f"| (참고) Holybro 1345 프롭 | {PROP['d_area_db']:+.2f} dB | 우리가 작다 |",
+    f"| **DJI Phantom 4** (real scan) | **{PH4['d_area_db']:+.2f} dB** | near-perfect |",
+    f"| Yuneec Typhoon H480 (real CAD) | {TY['d_area_db']:+.2f} dB | ours slightly larger |",
+    f"| DJI Matrice 100 (community) | **{M100['d_area_db']:+.2f} dB** | ours smaller |",
+    f"| DJI Matrice 600 Pro (community) | **{M600['d_area_db']:+.2f} dB** | ours smaller |",
     "",
     "커뮤니티 실측 메쉬 두 개에서 우리 모형의 그림자 넓이가 **3.0~3.7 dB 작다.** "
     "원인은 분명하다 — **착륙다리·GPS 안테나 마스트·튀어나온 센서** 같은 **가는 돌출부가 덜 그려져 있다.** "
@@ -348,25 +345,16 @@ cells.append(md(
 ))
 
 cells.append(md(
-    "### 한 장으로 보는 신뢰 경계 — 어디까지 믿고, 어디부터 못 믿나",
+    "### 요약 — 무엇을 인용하고, 무엇을 인용하지 않나",
     "",
-    f"![신뢰 경계]({FIG})",
-    "",
-    "<sub>이 종합 그림은 **서로게이트 3종**(Typhoon·M100·M600)의 교차검증이다 — Phantom 4 실물 스캔 대조는 §3 첫 그림에서 이미 봤다.</sub>",
-    "",
-    "**읽는 법:**",
-    "- **맨 윗줄 (누적분포 CDF 3개)**: 방위별 σ 값의 **분포**. **파란 실선 = 진짜 모델, 빨간 점선 = 우리 모형.** "
-    "두 분포가 서로 가깝고 평균선(세로 점선)이 거의 겹친다(결과 ①) → **레벨은 인용 가능.** 각도별 뾰족값의 위치 불일치(결과 ②)는 아래 B 가 정량화한다.",
-    "- **아래 A**: **평균 밝기 차이.** 초록 띠가 ±1 dB 안전 구간 — 세 서로게이트 막대가 모두 그 안(Phantom 은 위 스캔 그림).",
-    "- **아래 B**: **방향별 RMS 차이.** 6~12 dB — 방향별 뾰족값은 인용 불가.",
-    "- **아래 C**: **투영면적 차이.** 커뮤니티 메쉬에서 우리가 3.0~3.7 dB 작음 — 가는 돌출부 미모델링.",
-    "",
-    "| 무엇을 | 성적 | 인용해도 되나 |",
+    "| what | agreement | citable? |",
     "|---|---|---|",
-    "| 평균 밝기 σ (전방위 평균) | ±1 dB 일치 | ✅ **인용** |",
-    "| 밝기의 분포·통계 (널의 깊이·빈도) | 대체로 일치 | ✅ 통계로 인용 |",
-    "| **방향별 σ 뾰족값** (이 각도 = 몇 dBsm) | 6~12 dB 차이 | ❌ **인용 금지** |",
-    "| 투영면적 (겉모양 넓이) | 우리가 3.0~3.7 dB 작음 | ⚠️ 알려진 편향으로만 |",
+    "| mean σ (azimuth-averaged) | within ~1 dB | ✅ **cite** |",
+    "| σ distribution (null depth / frequency) | mostly agrees | ✅ cite as statistics |",
+    "| **per-angle σ peak** (this angle = ? dBsm) | 6–12 dB off | ❌ **do NOT cite** |",
+    "| projected area (silhouette) | community meshes −3 dB (ours smaller) | ⚠️ known bias only |",
+    "",
+    "평균 밝기 σ 는 인용하고(절대 눈금은 report08 실측 앵커), 방향별 뾰족값은 인용하지 않는다.",
 ))
 
 # ─────────────────────────────────────────────────────────────────────────────
