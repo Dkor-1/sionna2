@@ -28,6 +28,13 @@
 | [report11](report11.ipynb) | 검출기 교정 ② — 저속·분해능·관측가능성 | ECA 블라인드 속도, 모호함수, 링크버짓, 단일쌍 위치 불가(FIM 랭크) |
 | [report12](report12.ipynb) | 다중 수신기 디텍션 + 9-모드 벤치마크 | **결과편**: Rx 1→4(+10log10N), W/L/G×점유 9모드, X410 실측 설계 |
 
+### 부록 시리즈 — `report_mesh/` (메쉬 제작·신뢰성 심화 가이드 8편)
+
+파이썬 기초만 아는 독자가 따라올 수 있는 **드론 메쉬 심화 가이드**: mesh01(전체 지도) →
+mesh02(라이브러리 선택 이유) → mesh03(모든 숫자·모델의 출처와 라이선스) → mesh04(몸체 CAD) →
+mesh05(프로펠러 익형) → mesh06(색=재질) → mesh07(기하 검증) → mesh08(실물·물리 검증).
+증거는 `report_mesh/outputs/mesh_verify.json`(9섹션 검증 스위트), 생성기는 `report_mesh/src/`.
+
 > ⚠️ **`reportNN.ipynb` 는 전부 생성물이다.** 서술 수정은 `src/make_notebookNN.py` 에서 하고 재실행한다
 > (`.ipynb` 직접 수정은 다음 빌드에서 사라진다). 본문 수치는 전부 `outputs/*.json` 에서 f-string 으로
 > 주입한다 — **손으로 적은 숫자 금지** 가 하우스 규약.
