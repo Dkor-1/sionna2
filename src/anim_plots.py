@@ -445,6 +445,7 @@ def drone_size_compare(name="drone_size_compare"):
         b0, b1 = m.bounds(); return max(b1[0] - b0[0], b1[1] - b0[1])
     R = max(hspan(meshes[d]) for d in order) * 0.56
     fig, axes = plt.subplots(1, len(order), figsize=(3.6 * len(order), 4.3), dpi=140)
+    fig.patch.set_facecolor("black")   # 드론 렌더는 전부 검은 배경으로 통일(spin_*·r1_30·gallery 와 일치)
     for ax, d in zip(axes, order):
         m = meshes[d]; cmap = drone_colors(DRONES[d]); V = np.array(m.v)
         zmean = np.array([V[list(t)][:, 2].mean() for t in m.f])
@@ -453,21 +454,23 @@ def drone_size_compare(name="drone_size_compare"):
         cols = [cmap.get(m.g[k], (0.6, 0.6, 0.6)) for k in ordk]
         ax.add_collection(PolyCollection(polys, facecolors=cols, edgecolors=(0, 0, 0, 0.12),
                                          linewidths=0.1))
+        ax.set_facecolor("black")
         c = (m.bounds()[0] + m.bounds()[1]) / 2
         ax.set_xlim(c[0] - R, c[0] + R); ax.set_ylim(c[1] - R, c[1] + R)
         ax.set_aspect("equal"); ax.axis("off")
         ax.set_title(f"{disp[d]}\n{DRONES[d].diagonal_mm:.0f} mm diagonal", fontsize=12,
-                     fontweight="bold")
+                     fontweight="bold", color="white")
     # 스케일바 0.5 m (첫 패널 좌하단)
     ax0 = axes[0]; c0 = (meshes[order[0]].bounds()[0] + meshes[order[0]].bounds()[1]) / 2
     x0, y0 = c0[0] - R * 0.85, c0[1] - R * 0.85
-    ax0.plot([x0, x0 + 0.5], [y0, y0], "k-", lw=3)
-    ax0.text(x0 + 0.25, y0 + R * 0.06, "0.5 m", ha="center", fontsize=10)
-    fig.suptitle("Actual size comparison — same scale, top view (material-colored)", fontsize=13, y=0.99)
+    ax0.plot([x0, x0 + 0.5], [y0, y0], "w-", lw=3)
+    ax0.text(x0 + 0.25, y0 + R * 0.06, "0.5 m", ha="center", fontsize=10, color="white")
+    fig.suptitle("Actual size comparison — same scale, top view (material-colored)", fontsize=13,
+                 y=0.99, color="white")
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     os.makedirs(ANIM.replace("renders/anim", "figures"), exist_ok=True)
     p = os.path.join(ANIM.replace("renders/anim", "figures"), f"{name}.png")
-    fig.savefig(p, dpi=140); plt.close(fig)
+    fig.savefig(p, dpi=140, facecolor="black"); plt.close(fig)
     print(f"  ✅ {name}.png (figures)")
     return p
 
