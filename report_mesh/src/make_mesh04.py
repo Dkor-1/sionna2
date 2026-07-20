@@ -257,7 +257,7 @@ md(
 "좌표를 베끼는 데 쓰이지 않았다 | 관찰 기록: `docs/SPECS.md` 의 기체별 '착륙장치/짐벌/색상' 항목"
 "(출처 URL 병기) → `src/drone_cad.py` 기종별 분기 주석 |",
 "| **③ 검증층** | 실기체 스캔·외부 CAD 와 **사후 대조** | 만들고 나서 닮음을 측정으로 확인 — "
-"Phantom 4 스캔점의 절반이 CAD 표면 6.4 mm 이내(→ mesh08 §3), 커뮤니티/실물 CAD 와 RCS 순위 일치"
+"Phantom 4 스캔점의 절반이 CAD 표면 5.3 mm 이내(→ mesh08 §3), 커뮤니티/실물 CAD 와 RCS 순위 일치"
 "(→ 본편 report03) | `mesh_verify.json` G_scan · `outputs/real_cad_compare.json` |",
 "",
 "즉 **② 의 관찰이 '어떤 특징을 만들지'를 정하고, ① 의 숫자가 '그 특징의 크기'를 정하고, "
@@ -469,8 +469,8 @@ f"| 이륙중량 | {mini.weight_g:g} g | {ph.weight_g:g} g | src/drones.py DRONE
 f"| 암/착륙장치 | 접이식 · 없음 | 고정암 · 스키드 다리 | src/drones.py:103,170 |",
 f"| 로터 z 오프셋 | {mini.rotor_z_mm} mm | 없음 | src/drones.py:106 |",
 "",
-f"그룹 수는 둘 다 {A['mini5pro']['n_groups']}개지만 구성이 다르다 — Mini 는 accent(주황 프롭팁",
-"식별색) 그룹이 있고 gear 가 없으며, Phantom 은 반대다(위 코드 셀 출력 참조). 참고로 Mavic 4 Pro 는",
+f"그룹 수는 둘 다 {A['mini5pro']['n_groups']}개지만 구성이 다르다 — Mini 는 accent(전방 식별용 소형 파트 — 재질=플라스틱이라 셸과 같은 회색)",
+"그룹이 있고 gear 가 없으며, Phantom 은 반대다(위 코드 셀 출력 참조). 참고로 Mavic 4 Pro 는",
 f"accent 도 gear 도 없어 {A['mavic4pro']['n_groups']}개다(← mesh_verify.json §A_geometry).",
 ),
 

@@ -224,50 +224,49 @@ def fig_airfoil():
 #  5) 인터넷에서 가져온 원본 모델 갤러리 (출처·라이선스 라벨)
 # --------------------------------------------------------------------------- #
 def fig_originals():
-    import trimesh
-    from mesh_compare import load_reference, typhoon_h480_real
-    fig = plt.figure(figsize=(15, 4.8))
-    # (a) Phantom4 실기체 스캔 점구름
-    ax = fig.add_subplot(1, 3, 1, projection="3d")
+    """report03 이 실제로 대조하는 네 원본을 '가공 전' 상태로 — Phantom 스캔·Typhoon 실물
+    CAD·커뮤니티 M100·M600. M100/M600 은 프로펠러를 회전 원판으로 그린 시각용 껍데기다."""
+    import sys as _sys
+    _sys.path.insert(0, os.path.join(ROOT, "benchmark"))
+    from mesh_compare import typhoon_h480_real
+    from compare_community import load_community
+
+    def _mesh_panel(ax, V, F, color):
+        pc = Poly3DCollection(V[F], alpha=0.9, linewidths=0)
+        pc.set_facecolor(color); ax.add_collection3d(pc)
+        _fit_axes(ax, V); ax.view_init(elev=18, azim=-60)
+
+    fig = plt.figure(figsize=(16, 4.3))
+    # (a) Phantom 4 실기체 스캔 점구름
+    ax = fig.add_subplot(1, 4, 1, projection="3d")
     S = np.load(os.path.join(ROOT, "assets", "meshes", "cad", "phantom4_scan_points.npz"))
     P = np.asarray(S["P"], float)
     sel = np.random.default_rng(0).choice(len(P), min(9000, len(P)), replace=False)
     ax.scatter(P[sel, 0], P[sel, 1], P[sel, 2], s=0.8, c=P[sel, 2], cmap="viridis")
-    _fit_axes(ax, P)
-    ax.view_init(elev=18, azim=-60)
+    _fit_axes(ax, P); ax.view_init(elev=18, azim=-60)
     ax.set_title("DJI Phantom 4 — real-unit 3D scan (0.4 mm)\n"
                  "Thingiverse thing:1456295, CC-BY (NeverDun)", fontsize=9)
     # (b) Typhoon H480 실물 CAD 조립
-    ax = fig.add_subplot(1, 3, 2, projection="3d")
+    ax = fig.add_subplot(1, 4, 2, projection="3d")
     try:
-        tm = typhoon_h480_real()
-        V, F = tm.vertices, tm.faces
-        pc = Poly3DCollection(V[F], alpha=0.9, linewidths=0)
-        pc.set_facecolor((0.55, 0.6, 0.65))
-        ax.add_collection3d(pc)
-        _fit_axes(ax, V)
-        ax.view_init(elev=18, azim=-60)
+        tm = typhoon_h480_real(); _mesh_panel(ax, tm.vertices, tm.faces, (0.55, 0.6, 0.65))
     except BaseException as e:
         ax.text2D(0.1, 0.5, f"load error: {e}", transform=ax.transAxes)
     ax.set_title("Yuneec Typhoon H480 — real product CAD\n"
                  "ethz-asl/rotors_simulator, Apache-2.0", fontsize=9)
-    # (c) 3DR Solo
-    ax = fig.add_subplot(1, 3, 3, projection="3d")
-    try:
-        tm = load_reference("solo.stl")
-        V, F = tm.vertices, tm.faces
-        pc = Poly3DCollection(V[F], alpha=0.9, linewidths=0)
-        pc.set_facecolor((0.5, 0.52, 0.55))
-        ax.add_collection3d(pc)
-        _fit_axes(ax, V)
-        ax.view_init(elev=18, azim=-60)
-    except BaseException as e:
-        ax.text2D(0.1, 0.5, f"load error: {e}", transform=ax.transAxes)
-    ax.set_title("3DR Solo — real product CAD\n"
-                 "ethz-asl/rotors_simulator, Apache-2.0", fontsize=9)
-    fig.suptitle("Downloaded ORIGINALS used only for verification "
+    # (c) DJI Matrice 100 커뮤니티 메쉬 (프롭=회전 원판)
+    for i, (fn, nm) in enumerate((("dji_m100.dae", "DJI Matrice 100 (2015 quad)"),
+                                  ("dji_m600.dae", "DJI Matrice 600 Pro (2016 hexa)"))):
+        ax = fig.add_subplot(1, 4, 3 + i, projection="3d")
+        try:
+            tm = load_community(fn); _mesh_panel(ax, tm.vertices, tm.faces, (0.62, 0.63, 0.66))
+        except BaseException as e:
+            ax.text2D(0.1, 0.5, f"load error: {e}", transform=ax.transAxes)
+        ax.set_title(f"{nm}\ncommunity mesh · props as discs", fontsize=9)
+    fig.suptitle("Downloaded ORIGINALS — the same four report03 cross-checks against "
                  "(our 5 DJI targets are built from official spec sheets, not these)",
-                 fontsize=12)
+                 fontsize=11.5)
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.80, bottom=0.02, wspace=0.04)
     _save(fig, "originals_gallery")
 
 

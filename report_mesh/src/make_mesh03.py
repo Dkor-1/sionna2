@@ -198,7 +198,7 @@ md("## 0. 왜 출처만 다루는 리포트가 따로 있나",
    "| **표적 메쉬 생성의 입력** | `docs/SPECS.md` + `docs/drone_research.json` |",
    f"| B | Phantom 4 실기체 3D 스캔 ({RES_MM} mm 해상도) | 우리 메쉬 vs 실물 형상 검증(A/B) "
    "| `assets/meshes/cad/SOURCE.txt` |",
-   "| C | 실물 드론 CAD 3종 (Typhoon H480·3DR Solo·X500 부품) | 방법론 교차검증 전용 "
+   "| C | 실물 CAD·커뮤니티 메쉬 (Typhoon H480 실물 CAD · 커뮤니티 M100/M600) | 방법론 교차검증(report03) "
    "| `assets/meshes/reference/SOURCES.md` |",
    "",
    "핵심 원칙을 미리 말하면: **표적 메쉬 5종은 A(공식 스펙)에서만 생성**하고, B·C 는",
@@ -451,7 +451,7 @@ md("## 3.1 원칙: 다운로드 모델은 '검증 전용', 표적은 스펙에�
    "",
    f"그래서 표적 5종({', '.join(d[k].name for k in V['meta']['drones'])})은 전부",
    f"`src/drone_cad.py` 가 **공식 스펙시트 수치에서 생성**한다(엔진: {V['meta']['mesh_engine']}).",
-   "다운로드 모델 3종은 '우리 파라메트릭 방법이 실물 CAD 를 얼마나 재현하나'를 재는",
+   "다운로드한 실물 CAD·커뮤니티 메쉬는 '우리 파라메트릭 방법이 실물을 얼마나 재현하나'를 재는",
    "**잣대로만** 쓴다(→ 본편 report03.ipynb). ← 출처: `assets/meshes/reference/SOURCES.md` · `src/drone_cad.py`",
    ),
 
@@ -466,9 +466,10 @@ md("## 4. 원본 갤러리 — 다운로드한 그대로",
    f" 총 {G['n_scan']:,}점. 몸통·고정암·랜딩 다리가 보이고, **프로펠러·짐벌이 없는 것**(§2.2)도"
    " 그림에서 확인된다. 제목에 저작자·라이선스를 박아 두었다"
    f" ({SRC['thing']}, {SRC['license']}, {SRC['author'].split('/')[0]}).",
-   "- **(가운데) Yuneec Typhoon H480** — 실물 헥사콥터(로터 6개)의 CAD 조립:"
+   "- **Yuneec Typhoon H480** — 실물 헥사콥터(로터 6개)의 CAD 조립:"
    " 동체+다리+프롭+CGO3 짐벌. ethz-asl/rotors_simulator, Apache-2.0.",
-   "- **(오른쪽) 3DR Solo** — 실물 소비자 쿼드콥터 CAD. 같은 저장소, Apache-2.0.",
+   "- **DJI Matrice 100·600 Pro** — 커뮤니티 시각용 메쉬. 프로펠러를 **회전 원판**으로 그린"
+   " 껍데기(정밀 CAD 아님)라 형상이 거칠다 — report03 이 실물 CAD·스캔과 함께 대조하는 **네 원본**에 포함된다.",
    "",
    "그림 제목이 다시 한 번 원칙을 말한다 — *\"Downloaded ORIGINALS used only for verification",
    "(our 5 DJI targets are built from official spec sheets, not these)\"*.",
