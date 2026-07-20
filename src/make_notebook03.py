@@ -112,9 +112,12 @@ cells += provenance_cells(
         "# 커뮤니티 메쉬 대조 (M100 · M600) → outputs/community_compare.json",
         "~/.venvs/py312/bin/python benchmark/compare_community.py",
         "",
-        "# 신뢰 경계 종합 그림 + 인터넷 mesh vs 자작 mesh 시각 비교",
+        "# Phantom 4 실물 0.4mm 스캔 대조 (스캔 STL 필요 — prep_cad_scan.py 참조) → phantom4_scan_compare.json",
+        "~/.venvs/py312/bin/python src/compare_phantom_scan.py",
+        "",
+        "# 통일 비교 그림(4종 원본·재현·일치도) + 인용경계 상세(CDF)",
+        "~/.venvs/py312/bin/python src/viz_report3_compare_all.py",
         "~/.venvs/py312/bin/python src/viz_report3_cad.py",
-        "~/.venvs/py312/bin/python src/viz_report3_overlay.py",
         "",
         "# Gazebo/PX4 SDF 내보내기",
         "~/.venvs/py312/bin/python src/gazebo_export.py",
@@ -126,9 +129,8 @@ cells += provenance_cells(
         dict(file="outputs/real_cad_compare.json", what="Typhoon H480·Holybro 프롭 대조의 모든 숫자 (방위별 σ·면적·평균차)"),
         dict(file="outputs/community_compare.json", what="Matrice 100·600 대조의 모든 숫자"),
         dict(file="outputs/phantom4_scan_compare.json", what="Phantom 4 실물 0.4mm 스캔 vs 우리 메쉬 대조 숫자 (σ·면적·방위별)"),
-        dict(file="outputs/figures/report03_phantom_scan.png", what="Phantom 4 실물 스캔 vs 우리 메쉬 — 원본·재현·일치도(결과)"),
-        dict(file="outputs/figures/report03_confidence.png", what="신뢰 경계 종합 그림 (어디까지 믿나)"),
-        dict(file="outputs/figures/report03_mesh_overlay.png", what="인터넷 mesh vs 자작 mesh 시각 비교(형상+σ)"),
+        dict(file="outputs/figures/report03_compare_all.png", what="다운로드 실기체 4종 통일 비교 — 원본·우리 재현·형상 일치도(결과)"),
+        dict(file="outputs/figures/report03_confidence.png", what="인용 경계 상세 — 분포(CDF) 일치·각도별 널 불일치"),
         dict(file="outputs/gazebo/<key>/model.sdf", what="드론 5종의 Gazebo/PX4 비행 시뮬 모델 (SDF)"),
     ],
     caveats=[
@@ -251,32 +253,29 @@ cells.append(md(
 cells.append(md(
     "## §3. 증거 — 다운로드한 실기체를 우리 방식으로 다시 만들어 겹쳐 본 결과",
     "",
-    "**가장 깨끗한 검증부터.** DJI **Phantom 4** 는 실물 0.4 mm 3D 스캔이 공개돼 있다"
-    "(Thingiverse thing:1456295, CC-BY). 그 스캔에 **대응하는 파트만**(스캔엔 프로펠러·짐벌이 없어 우리도 뺀다) "
-    "우리 방식으로 만들어, 같은 조건(둘 다 PEC)으로 비교했다:",
+    "공개 3D 모델이 있는 실기체 **네 대** — 제조사 실물 CAD(Yuneec Typhoon H480)·커뮤니티 메쉬(구형 DJI "
+    "M100·M600)·**DJI Phantom 4 실물 0.4 mm 스캔**(Thingiverse thing:1456295, CC-BY) — 을 각각 우리 방식으로 "
+    "다시 만들어, 같은 조건(둘 다 PEC)으로 원본과 겹쳐 봤다:",
     "",
-    "![our Phantom 4 mesh vs real 0.4mm scan](outputs/figures/report03_phantom_scan.png)",
+    "![downloaded drones rebuilt our way](outputs/figures/report03_compare_all.png)",
     "",
-    f"투영면적 차이 **{PH4['d_area_db']:+.2f} dB**(거의 완벽 일치), 평균 밝기 σ 차이 **{PH4['d_sigma_db']:+.2f} dB** — "
-    f"스펙시트 숫자만으로 지은 우리 메쉬가 **실물 스캔의 형상을 그대로 재현**한다(몸통·아치형 착륙다리까지). "
-    f"방향별 뾰족값 {PH4['d_sigma_rms_db']:.1f} dB 차이는 널 위치라 인용하지 않는다.",
+    f"각 행: **왼쪽** 다운로드 원본(Phantom 은 실물 스캔 점구름) · **가운데** 그 기체를 스펙시트로 다시 만든 우리 "
+    f"메쉬 · **오른쪽** 형상 일치도. 평균 밝기 σ 는 네 기체 모두 **약 ±1 dB**"
+    f"({TY['d_sigma_db']:+.2f}·{M100['d_sigma_db']:+.2f}·{M600['d_sigma_db']:+.2f}·{PH4['d_sigma_db']:+.2f} dB). "
+    f"특히 **Phantom 4 실측 스캔**은 투영면적이 **{PH4['d_area_db']:+.2f} dB** 로 거의 완벽히 겹쳐(몸통·아치형 "
+    f"착륙다리까지), 스펙시트 숫자만으로 지은 우리 메쉬가 실물 형상을 그대로 재현함을 보인다.",
     "",
-    "**같은 방식을 실기체 3종에 더.** 아래는 공개 모델이 있는 또 다른 드론 3개 — 제조사 실물 CAD"
-    "(Yuneec Typhoon H480)·커뮤니티 메쉬(구형 DJI M100·M600) — 를 같은 방식으로 다시 만들어 겹친 것이다"
-    "(왼쪽 원본, 오른쪽 우리 제작·같은 축척·시점).",
-    "",
-    "![internet mesh vs our spec-built mesh](outputs/figures/report03_mesh_overlay.png)",
-    "",
-    "> ⚠ **핵심은 '세부 형상이 똑같다'가 아니다.** 커뮤니티 모델은 프로펠러를 **스윕 디스크**(회전면)로 그리는 "
-    "등 제작 방식이 제각각이라 세부는 다르게 보인다. 우리가 확인하는 것은 하나 — **같은 로터 수·크기의 기체를 "
-    "우리 파이프라인으로 지으면 되쏘는 평균 밝기(RCS)가 원본과 ±1 dB 로 맞느냐**(각 제목의 Δσ)이다.",
+    "> ⚠ **핵심은 '세부 형상이 똑같다'가 아니다.** 커뮤니티 모델은 프로펠러를 **스윕 디스크**(회전면)로 그리는 등 "
+    "제작 방식이 제각각이고(그래서 투영면적이 −3 dB 안팎 갈리기도 한다), 세부는 다르게 보인다. 우리가 확인하는 "
+    "것은 하나 — **같은 로터 수·크기의 기체를 우리 파이프라인으로 지으면 되쏘는 평균 밝기(RCS)가 원본과 ~1 dB 로 "
+    "맞느냐**이다(각 행 오른쪽 Δσ).",
     "",
     "<sub>양쪽 모두 PEC(완전도체)로 통일해 형상만 본다(재질은 report08 에서 실측 앵커). 세부가 다르므로 "
-    "**각도별** RCS 는 어긋나고(6~12 dB, 결과②) **평균만** 인용한다. 이 대조의 값어치는 '우리 방법을 우리와 "
-    "무관한 외부 실기체 **4개(실물 스캔 포함)**로 독립 검증했다'는 것 자체다. 우리 타깃 DJI 신형은 공개 CAD 가 "
-    "없어 이렇게 **방법을 대리 검증**한다.</sub>",
+    "**각도별** RCS 는 어긋나고(6~12 dB, 결과②) **평균만** 인용한다. 값어치는 '우리 방법을 우리와 무관한 외부 "
+    "실기체 **4개(실물 스캔 포함)**로 독립 검증했다'는 것 자체다. 우리 타깃 DJI 신형은 공개 CAD 가 없어 이렇게 "
+    "**방법을 대리 검증**한다.</sub>",
     "",
-    "### 결과 ① 평균 밝기는 네 기체 모두 ~1 dB 이내로 맞는다",
+    "### 결과 ① 평균 밝기는 네 기체 모두 ~1 dB 근방으로 맞는다",
     "",
     "| 기체 | 진짜 모델 평균 σ | 우리 모형 평균 σ | 차이 (우리 − 진짜) |",
     "|---|---|---|---|",

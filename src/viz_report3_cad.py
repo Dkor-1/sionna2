@@ -45,8 +45,8 @@ fig = plt.figure(figsize=(15, 9), dpi=130)
 gs = fig.add_gridspec(2, 3, height_ratios=[1.05, 0.95], hspace=0.42, wspace=0.28,
                       left=0.06, right=0.985, top=0.90, bottom=0.09)
 
-fig.suptitle("report03 — Independent-mesh cross-validation: where our numbers are trustworthy, and where they are NOT",
-             fontsize=14, fontweight="bold", y=0.975)
+fig.suptitle("Where the rebuilt-drone numbers are citable — distribution (top) agrees, per-angle nulls (B) do not",
+             fontsize=13.5, fontweight="bold", y=0.975)
 
 # ── Row 1: DISTRIBUTION (empirical CDF) of sigma over azimuth — reference vs ours ─
 #   방위별 곡선을 그대로 겹치면 널/글린트 위치가 어긋나 '검증 실패'처럼 보인다. 그러나
