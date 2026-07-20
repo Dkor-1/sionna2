@@ -20,7 +20,7 @@
 | [report03](report03.ipynb) | 표적 검증 | 실물 제원·실기체 스캔·커뮤니티 모델과 3중 대조 |
 | [report04](report04.ipynb) | 조명원 — WiFi/LTE/5G 파형 | 3GPP/IEEE 규격 OFDM 합성, 상시 기준신호 vs 세션 신호(5G 이중고) |
 | [report05](report05.ipynb) | 파형 검증 — Sionna 로 대조 | 우리 파형 ↔ Sionna PHY 모듈 NMSE −135 dB 급 일치 |
-| [report06](report06.ipynb) | 표적 밝기(RCS)와 Sionna 의 한계 | 기본 PathSolver 에는 산란적분이 없다 — 왜, 그리고 오해 5가지 Q&A |
+| [report06](report06.ipynb) | 표적 밝기(RCS)와 Sionna 의 한계 | 기본 PathSolver 에는 산란적분이 없다 — 왜, 그리고 오해 8가지 Q&A |
 | [report07](report07.ipynb) | SBR — 표적을 조준해 밝기를 계산 | Mitsuba 광선조준 + PO 적분, 평판/구 이론 대조(−0.01/+0.39 dB) |
 | [report08](report08.ipynb) | 드론 RCS·마이크로도플러 결과 | 5종×3밴드 RCS 지도 + 문헌 실측 대조(Li&Ling 등) + 블레이드 플래시 |
 | [report09](report09.ipynb) | 챔버 바닥의 함정 — 유령 표적 | 표적경유 바닥경로 +3.5 m 유령 → 광대역 5G(PRS)는 100% 별개 검출 |
