@@ -351,11 +351,15 @@ cells.append(md(
     "①상용 신호(WiFi/LTE/5G) **패시브 바이스태틱**(선행은 대개 능동/모노 또는 CSI기반), ②드론 RCS 를 "
     "**SBR+PO 로 산출**(확산 S 가정 아님), ③**상시 vs 세션 9모드** 벤치마크.",
     "",
-    "> 🔧 **오픈소스 채택 계획(신뢰성·반복작업 절감).** 직접 만든 조각을 검증된 오픈소스로 **단계적 "
-    "대체**한다(‘검증 후 대체’ 원칙, `OPENSOURCE.md`): **RadarSimPy**(GPLv3, 3D 메쉬 RCS·마이크로도플러)로 "
-    "SBR+PO σ 를 독립 교차검증 → 일치 시 권위 소스 이관 · **OpenISAC**(USRP X410·바이스태틱 OTA 동기)를 "
-    "실측 단계 골격으로 채택 · **NIST 5GNRad** 는 검출체인 설계의 표준 레퍼런스. 파형·지연채널은 이미 "
-    "**Sionna PHY** 로 검증(report05, NMSE −135 dB)돼 있어 유지한다.",
+    "> 🔧 **오픈소스 채택 계획(신뢰성·반복작업 절감 — 사용자 방침).** 직접 만든 조각을 검증된 오픈소스로 "
+    "**계층별 단계적 대체**한다(‘검증 후 대체’ 원칙, 전체 지도는 `OPENSOURCE.md`·`prior_work/pw02`):",
+    "> - **검출체인 ECA/CAF/CFAR → pyAPRiL**(GPLv3, DVB-T/FM 실측 검증된 패시브 레이더 라이브러리) — "
+    "Sionna 채널을 넣어 우리 결과와 대조 후 이관. 단 **대량 MC(K=" + f"{K:,}" + ")는 GPU 배치가 필요해 "
+    "우리 `detection_gpu.py` 유지**(pyAPRiL 로 정합성 검증).",
+    "> - **RCS → RadarSimPy(+openEMS full-wave 앵커)**, **추적 → Stone Soup**(바이스태틱 측정모델), "
+    "**실측 → OpenISAC+GNU Radio+X410**(SigMF 로 sim↔real I/Q 통일).",
+    "> - **파형·지연채널**은 이미 **Sionna PHY** 로 검증(report05, NMSE −135 dB)돼 유지. **아키텍처**는 "
+    "**NIST 5GNRad**(h=h_bg+h_target)와 동일함을 확인.",
 ))
 cells.append(gif("rd_rxbuildup_nr", "Rx 증설 RD 맵(5G 풀)",
                  "거리-도플러 지도. 수신기 1→4 로 표적(흰 네모)이 잡음 위로 떠오른다. 0-도플러 세로 능선은 "

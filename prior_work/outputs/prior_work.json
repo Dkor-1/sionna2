@@ -1,6 +1,6 @@
 {
  "meta": {
-  "compiled": "2026-07-20",
+  "compiled": "2026-07-20 (2차: pyAPRiL·Stone Soup·openEMS·ISAC-PLM·GNU Radio·OAI 추가)",
   "method": "2× deep-research 워크플로(adversarial verify) + 직접 WebSearch/WebFetch 재확인. 검증 등급 표기.",
   "verify_grades": {
    "CONFIRMED": "적대적 검증 2-0/3-0 통과",
@@ -21,7 +21,10 @@
    "target_scatter": "b) 확산 산란계수 S∈[0,1] (S² 확산 + 경면). Sionna 식 광선추적을 Unreal 안에 재구현, Sionna RT 로 교차검증",
    "detection": "없음 — CFAR/거리-도플러 아님. CSI 기반 UAV 3D 위치추정",
    "vs_us": "드론 RCS 를 메쉬에서 코히어런트 계산하지 않음(확산계수 사용) → 우리 주장과 모순 없음. 드론을 '산란 표적'이 아니라 '통신/센싱 플랫폼'으로 다룸",
-   "sources": ["https://arxiv.org/abs/2507.08716", "https://arxiv.org/html/2507.08716v3"]
+   "sources": [
+    "https://arxiv.org/abs/2507.08716",
+    "https://arxiv.org/html/2507.08716v3"
+   ]
   },
   {
    "key": "det_isac",
@@ -33,7 +36,9 @@
    "target_scatter": "b) Sionna 내장 확산 산란(R²+S²=1), 재질별 S 를 79GHz E-band 채널 사운딩 실측으로 보정",
    "detection": "채널 레벨(디지털 트윈 채널 생성)",
    "vs_us": "⭐ **우리 주장 직접 지지** — 논문 스스로 '메쉬 위 순수 경면 광선추적은 mmWave 산란전력을 과소평가하고, 정확한 EM 산란에 필요한 λ/10 메싱은 계산상 불가능'이라고 명시. = report06 의 핵심 주장",
-   "sources": ["https://arxiv.org/abs/2603.28736"]
+   "sources": [
+    "https://arxiv.org/abs/2603.28736"
+   ]
   },
   {
    "key": "ziganshin",
@@ -45,7 +50,9 @@
    "target_scatter": "d) **커스텀 add-on** — Sionna-RT v0.19 를 기저 엔진으로만 쓰고, 저자들이 UTD 회절(엣지·꼭짓점·이중엣지) 확장을 직접 구현. 경면 facet + UTD. **PO/SBR 은 관련연구로 인용만 하고 안 씀**",
    "detection": "해석해·FEKO MLFMM·BIRA 실측 대조 검증",
    "vs_us": "'Sionna 에 커스텀 산란을 더한다'는 우리와 같은 정신. 단 방법은 UTD(우리는 PO/SBR), 표적은 대형",
-   "sources": ["https://arxiv.org/pdf/2604.05991"]
+   "sources": [
+    "https://arxiv.org/pdf/2604.05991"
+   ]
   },
   {
    "key": "cissir",
@@ -57,7 +64,10 @@
    "target_scatter": "n/a",
    "detection": "n/a",
    "vs_us": "스톡 Sionna 를 표적 RCS 에 쓰지 않음 — 우리 주장과 정합. NVIDIA 공식 쇼케이스에도 소형표적 RCS ISAC 이 없다는 방증",
-   "sources": ["https://nvlabs.github.io/sionna/made_with_sionna.html", "https://arxiv.org/abs/2502.10371"]
+   "sources": [
+    "https://nvlabs.github.io/sionna/made_with_sionna.html",
+    "https://arxiv.org/abs/2502.10371"
+   ]
   },
   {
    "key": "simart",
@@ -69,7 +79,10 @@
    "target_scatter": "환경(건물)만 Sionna RT 경면+회절, 미세형상은 확산 미미 이유로 폐기. 표적 산란모델 없음",
    "detection": "레이더 검출 없음 — 'RCS/radar/CFAR' 문자열이 논문에 전무",
    "vs_us": "다른 AI 이미지가 'Sionna 차용 ISAC'으로 든 예시지만, 실제로는 통신+온보드 다중센서 플랫폼. 우리 패시브 레이더 조각(RCS/검출) 없음",
-   "sources": ["https://arxiv.org/abs/2605.13309", "https://github.com/guchuanv-alt/SimART"]
+   "sources": [
+    "https://arxiv.org/abs/2605.13309",
+    "https://github.com/guchuanv-alt/SimART"
+   ]
   },
   {
    "key": "sionna_rt",
@@ -81,7 +94,9 @@
    "target_scatter": "솔버 아키텍처를 문서화: 경면(이미지법 + Fibonacci 격자 광선탐색)·확산(계수 파라미터)·1차 회절. **경로별 복소이득을 반환하지, 표적 표면 위 SBR 장 적분이 아님**",
    "detection": "n/a — ISAC 은 동기부여 주제로만 언급",
    "vs_us": "⭐ **우리 주장의 1차 근거** — 스톡 솔버가 per-path gain 만 낸다는 것을 창설 논문이 문서화",
-   "sources": ["https://arxiv.org/abs/2303.11103"]
+   "sources": [
+    "https://arxiv.org/abs/2303.11103"
+   ]
   }
  ],
  "tools": [
@@ -95,7 +110,9 @@
    "target_scatter": "c) **RCS 점표적** 주입 + target/background 채널 분리(h=h_bg+h_target)",
    "detection": "✅ 풀 검출체인(range-Doppler·CFAR·clustering·위치/속도 추정·TP/FP/FN)",
    "adopt": "HIGH(아키텍처 참조) — h=h_bg+h_target 분리가 **우리와 동일**하다는 강력한 방증. 단 능동/PRS 기반이라 패시브 reference/surveillance 구조는 우리가 추가해야 함",
-   "sources": ["https://github.com/usnistgov/5GNRad"]
+   "sources": [
+    "https://github.com/usnistgov/5GNRad"
+   ]
   },
   {
    "key": "radarsimpy",
@@ -107,7 +124,10 @@
    "target_scatter": "3D 메쉬 RCS 직접 계산(광선추적 기반). 다만 5G/WiFi 통신 파형 스택은 없음",
    "detection": "✅ 거리도플러·CFAR·DoA",
    "adopt": "HIGH(검증 오라클) — 우리 SBR+PO 드론 RCS·프로펠러 마이크로도플러를 **독립 도구로 교차검증**하는 데 이상적. GPLv3 라 자유 사용",
-   "sources": ["https://github.com/radarsimx/radarsimpy", "https://github.com/radarsimx/radarsimpy/blob/master/LICENSE"]
+   "sources": [
+    "https://github.com/radarsimx/radarsimpy",
+    "https://github.com/radarsimx/radarsimpy/blob/master/LICENSE"
+   ]
   },
   {
    "key": "openisac",
@@ -119,7 +139,39 @@
    "target_scatter": "OTA 실측(시뮬 아님)",
    "detection": "✅ 지연도플러 검출, 마이크로도플러",
    "adopt": "⭐ HIGH(실측 단계) — **X410 지원 + 바이스태틱 OTA 동기**가 사용자 하드웨어 계획과 직결. sim→real 다리. 단 연속 커스텀 OFDM 이라 표준 WiFi/LTE/5G 파형은 별도",
-   "sources": ["https://arxiv.org/abs/2601.03535", "https://github.com/zhouzhiwen2000/OpenISAC"]
+   "sources": [
+    "https://arxiv.org/abs/2601.03535",
+    "https://github.com/zhouzhiwen2000/OpenISAC"
+   ]
+  },
+  {
+   "key": "pyapril",
+   "name": "pyAPRiL (Advanced Passive Radar Library)",
+   "repo": "github.com/petotamas/APRiL (pip: pyapril) · BME Radarlab",
+   "grade": "WEB",
+   "license": "GPLv3 (완전 오픈)",
+   "does": "⭐ **패시브 레이더 신호처리 전용** — 기준/감시 채널 준비, 기준신호 재생성, Wiener-SMI·**ECA/ECA-B/ECA-S** 클러터제거(공간·시간·공간시간), 상관·주파수영역·배치 overlap-save 검출기, **CAF(교차모호함수)**, 도플러 윈도잉, **CA-CFAR**, plot 추출, 다채널 **DoA**. DVB-T/FM 실측 검증됨",
+   "target_scatter": "n/a (신호처리 라이브러리 — 채널은 우리가 공급)",
+   "detection": "✅ **패시브 바이스태틱 검출체인 전체**(ECA→CAF→CFAR) — 우리 passive_process.py 와 1:1 대응",
+   "adopt": "⭐ HIGH(**드롭인 대체/검증**) — 우리 손으로 만든 ECA/CAF/CFAR 의 **직접 대체 후보**. Sionna 가 만든 r_ref/r_surv 를 넘겨 검출. '검증 후 대체' 원칙: 우리 결과와 대조→일치 시 권위 이관",
+   "sources": [
+    "https://github.com/petotamas/APRiL",
+    "https://github.com/pyapril/pyapril"
+   ]
+  },
+  {
+   "key": "stonesoup",
+   "name": "Stone Soup",
+   "repo": "github.com/dstl/Stone-Soup (英 Dstl)",
+   "grade": "WEB",
+   "license": "MIT (완전 오픈)",
+   "does": "표적 추적·상태추정 프레임워크 — 운동/측정 모델, EKF/UKF·파티클 필터, 데이터연관(JPDA), 다중표적 추적, track 개시/삭제, OSPA·CLEAR MOT 평가. radar/passive sensor/simulator 모듈 공식 제공",
+   "target_scatter": "n/a (추적 프레임워크)",
+   "detection": "검출 이후의 **추적**(우리는 future work 로 미룬 단계)",
+   "adopt": "MEDIUM(추적 단계) — 바이스태틱은 custom nonlinear 측정모델 필요(ρ_b=R_T+R_R−L, f_D=(û_T+û_R)·v/λ). 우리 트래킹 도입 시 EKF/UKF 를 직접 안 짜고 Stone Soup 로",
+   "sources": [
+    "https://github.com/dstl/Stone-Soup"
+   ]
   },
   {
    "key": "ns3sionna",
@@ -131,7 +183,10 @@
    "target_scatter": "Sionna 확산(채널만)",
    "detection": "없음 — CSI 내보내기만, 레이더/RCS/CFAR 전무",
    "adopt": "LOW — 네트워크/MAC 레벨. 우리 물리레이어 패시브 레이더와 층이 다름",
-   "sources": ["https://github.com/tkn-tub/ns3sionna", "https://arxiv.org/abs/2412.20524"]
+   "sources": [
+    "https://github.com/tkn-tub/ns3sionna",
+    "https://arxiv.org/abs/2412.20524"
+   ]
   },
   {
    "key": "msvan3t",
@@ -143,7 +198,9 @@
    "target_scatter": "Sionna 확산(채널만)",
    "detection": "없음 — ISAC/레이더/RCS/CFAR 전무",
    "adopt": "LOW — V2X 통신 전용",
-   "sources": ["https://arxiv.org/pdf/2501.00372"]
+   "sources": [
+    "https://arxiv.org/pdf/2501.00372"
+   ]
   },
   {
    "key": "matlab",
@@ -155,7 +212,65 @@
    "target_scatter": "c) RCS 상수 입력(phased.RadarTarget MeanRCS=)",
    "detection": "✅ 전부(CFAR·추적)",
    "adopt": "MEDIUM(참조·1차 baseline) — 구조가 우리와 동일함을 확인하는 표준 레퍼런스. 파이썬 프로젝트라 코드 이식은 안 함",
-   "sources": ["https://www.mathworks.com/help/5g/ug/integrated-sensing-and-communication-using-5g-waveform.html"]
+   "sources": [
+    "https://www.mathworks.com/help/5g/ug/integrated-sensing-and-communication-using-5g-waveform.html"
+   ]
+  },
+  {
+   "key": "openems",
+   "name": "openEMS",
+   "repo": "github.com/thliebig/openEMS",
+   "grade": "WEB",
+   "license": "GPLv3",
+   "does": "완전 전자기장(full-wave) EC-FDTD 솔버 — Python/MATLAB 인터페이스, **RCS 계산 튜토리얼(RCS_Sphere)** 제공. 3D Maxwell 직접 풂",
+   "target_scatter": "full-wave RCS(가장 정확) — σ(f,az,el,pol) 룩업테이블 오프라인 생성",
+   "detection": "n/a (EM 솔버)",
+   "adopt": "MEDIUM(RCS 상위검증) — RadarSimPy 보다 **더 정확한** σ 오라클(단 λ/10 메싱이라 드론 전체는 매우 무겁다). 오프라인 drone_rcs.h5 룩업 생성용. 우리 SBR+PO/RadarSimPy 를 한 번 더 앵커",
+   "sources": [
+    "https://github.com/thliebig/openEMS"
+   ]
+  },
+  {
+   "key": "isacplm",
+   "name": "NIST ISAC-PLM",
+   "repo": "github.com/wigig-tools/isac-plm (Steve Blandino, NIST)",
+   "grade": "WEB",
+   "license": "NIST(US Gov)",
+   "does": "IEEE **802.11ay/bf** ISAC PHY 모델(MATLAB) — SC/OFDM, MU-MIMO, 동기·채널추정·CFO, **클러터제거·2D-CFAR·도플러·active/passive 센싱**, 바이스태틱 거실 센싱",
+   "target_scatter": "c) 점표적",
+   "detection": "✅ 2D-CFAR·range/velocity",
+   "adopt": "LOW-MEDIUM(WiFi 센싱 참조) — WiFi 패시브 센싱 처리구조 참조에 좋음. ⚠ 802.11ay/bf 는 **60GHz DMG** 라 우리 2.4/5GHz WiFi 와 대역·전파특성 다름. MATLAB+WLAN Toolbox 필요(코드 이식 아님)",
+   "sources": [
+    "https://github.com/wigig-tools/isac-plm"
+   ]
+  },
+  {
+   "key": "gnuradio",
+   "name": "GNU Radio",
+   "repo": "github.com/gnuradio/gnuradio",
+   "grade": "WEB",
+   "license": "GPLv3",
+   "does": "SDR 신호처리 런타임 — Python flow graph + C++ 고속 블록. 오프라인 시뮬↔실측 **동일 I/Q 인터페이스**(SigMF/HDF5)",
+   "target_scatter": "n/a",
+   "detection": "n/a (런타임/I-O)",
+   "adopt": "MEDIUM(실측 I/O 표준화) — Sionna 시뮬 I/Q 와 X410 실측 I/Q 를 **같은 포맷(SigMF)**으로 통일해 동일 처리코드가 둘 다 먹게. OpenISAC 과 함께 실측단계",
+   "sources": [
+    "https://github.com/gnuradio/gnuradio"
+   ]
+  },
+  {
+   "key": "oai",
+   "name": "OpenAirInterface (OAI)",
+   "repo": "gitlab.eurecom.fr/oai/openairinterface5g",
+   "grade": "IMAGE_LEAD",
+   "license": "OAI Public License",
+   "does": "실제 5G NR RAN 스택(gNB/UE) — PDSCH·DM-RS·SRS·PRS, 실시간 IQ. 표준 완전호환 NR 파형",
+   "target_scatter": "n/a (실 파형)",
+   "detection": "n/a",
+   "adopt": "LOW(초기 제외) — 난이도 최고(실 5G RAN·RF 캘리브·실시간). 우리 G1/G2/G3 표준 NR 을 실측할 최종단계에서만. 초기엔 OpenISAC 공통 OFDM baseline 로 충분",
+   "sources": [
+    "https://gitlab.eurecom.fr/oai/openairinterface5g"
+   ]
   }
  ],
  "synthesis": {
@@ -163,6 +278,9 @@
   "q2_gap_workarounds": "소형표적 코히어런트 RCS-from-mesh 를 스톡 Sionna 로 푼 선행은 **없다**. 표준 우회 3가지: (b)확산계수 S[Great-X·Det-Modeling] (c)RCS 점표적 주입 h=h_bg+h_target[NIST 5GNRad·3GPP·MATLAB] (d)커스텀 산란 add-on[Ziganshin UTD, 우리 SBR+PO].",
   "our_position": "우리는 (d)로 값을 계산(SBR+PO)해 (c)로 채널에 주입 — h=h_bg+h_target 는 NIST 5GNRad·3GPP 와 같은 주류 아키텍처. 덜 점유된 틈새: ①기회신호(WiFi/LTE/5G) 패시브 바이스태틱(대개 능동/모노 또는 CSI기반) ②드론 RCS 를 확산S 가정 대신 SBR+PO 로 메쉬에서 산출 ③상시vs세션 9모드 벤치마크.",
   "support_for_our_claim": "우리 report06 주장은 선행에 의해 지지됨: Deterministic-Modeling(EuCAP)이 'λ/10 메싱 불가·경면만이면 산란 과소평가'를 명시, Sionna RT 창설논문이 'per-path gain 반환'을 문서화.",
-  "adoption_plan": "OpenISAC→X410 실측(바이스태틱 OTA 동기) · RadarSimPy(GPLv3)→SBR+PO RCS·마이크로도플러 독립 교차검증 오라클 · NIST 5GNRad→검출체인 아키텍처 참조 · ns3sionna/ms-van3t→불채택(네트워크층)."
+  "adoption_plan": "⭐ 갱신(사용자 이미지 심화 서베이 반영): 우리 손으로 만든 조각을 오픈소스로 단계적 대체 — **검출체인 ECA/CAF/CFAR → pyAPRiL**(GPLv3, DVB-T/FM 실검증; 앞서 '드롭인 없음'이라 한 것 정정) · **RCS → RadarSimPy(빠름)+openEMS(full-wave 앵커)** · **추적 → Stone Soup**(바이스태틱 custom 측정모델) · **실측 → OpenISAC+GNU Radio+X410**(SigMF 로 sim↔real I/Q 통일) · **파형/채널 → Sionna PHY 유지**(검증됨). 5G 실파형은 OAI, WiFi 센싱은 NIST ISAC-PLM 참조(60GHz 대역 주의).",
+  "recommended_stack": "Sionna RT+PHY(환경·파형·채널) → pyAPRiL 또는 PyTorch DSP(ECA·CAF·RD·CFAR) → Stone Soup(추적) → PyTorch(분류·sim-to-real) → OpenISAC+GNU Radio+X410(실측). 5단계 로드맵: ①최소동작(Sionna+pyAPRiL) ②추적(+Stone Soup) ③드론 물리(멀티산란체) ④AI/sim-to-real ⑤X410 OTA.",
+  "multiscatterer_model": "드론=멀티산란체: r_drone[n]=Σ α_i x[n−d_i] e^{j2π f_D,i n T_s}, α_i=√σ_i e^{jφ_i}. 1 body + 4 motor + 8~16 회전 blade-tip 산란체로 body Doppler ↔ rotor micro-Doppler 분리. domain randomization Θ={SNR,SCR,CFO,SFO,φ_noise,σ_RCS,p_Tx,p_Rx,p_drone,v_drone}.",
+  "correction": "⚠ 이전 판(1차 조사) 정정: '패시브 바이스태틱 ECA 는 드롭인 오픈소스 없음'이라 했으나, **pyAPRiL 이 정확히 그 드롭인**이다(ECA/ECA-B/ECA-S·CAF·CA-CFAR·DoA, GPLv3). 사용자 심화 이미지가 이를 지목."
  }
 }

@@ -56,20 +56,36 @@ cells = [
     ),
     md(
         "---",
-        "## §3. 선행 방법론 수용 — 우리 파이프라인에 무엇을 녹이나",
+        "## §3. 선행 방법론·오픈소스 수용 — 우리 파이프라인에 무엇을 녹이나",
         "",
-        "조사에서 배운 것을 **실제 작업으로** 옮긴다:",
+        "조사에서 배운 것을 **실제 작업으로** 옮긴다(사용자 방침: 직접 만든 것을 최대한 오픈소스로 대체):",
         "",
-        "| 선행에서 배운 것 | 우리 반영 | 상태 |",
+        "| 우리 조각 | 대체/검증 오픈소스 | 상태 |",
         "|---|---|---|",
-        "| **표적/배경 채널 분리**(NIST 5GNRad·3GPP) 를 명시적 구조로 | report12 §2b 층별표에 `h=h_bg+h_target` 로 정식화, 유령=별도 target 탭 | 반영됨 |",
-        "| **확산계수 S 우회의 한계**(Deterministic-Modeling: 경면만이면 산란 과소평가) | report06 에 '왜 확산S 가정 대신 SBR+PO 인가' 근거로 인용 | 반영 예정 |",
-        "| **RadarSimPy 메쉬 RCS**(GPLv3) 로 독립 교차검증 | report07/08 σ·마이크로도플러를 RadarSimPy 로 재계산해 대조 | future work(도구 도입) |",
-        "| **OpenISAC OTA 바이스태틱 동기**(X410) | 실측 단계 골격으로 채택 — sim→real | future work(실측) |",
-        "| **NIST 5GNRad 검출체인**(range-Doppler·CFAR·clustering) | 우리 ECA→CAF→CFAR 설계 대조·용어 정렬 | 반영됨(설계 확인) |",
+        "| 검출체인 **ECA/CAF/CFAR** (`passive_process.py`) | **pyAPRiL**(GPLv3, DVB-T/FM 실검증) — 드롭인 대체 | 도입 예정(검증 후 대체) |",
+        "| 대량 몬테카를로(K=6000) | 우리 **detation_gpu.py**(torch 배치) 유지, pyAPRiL 로 단일실현 정합성 검증 | 유지 |",
+        "| 드론 **RCS·마이크로도플러** (`rcs_sbr/po`) | **RadarSimPy**(메쉬RCS) + **openEMS**(full-wave 앵커) 교차검증 | 도입 예정 |",
+        "| **추적**(future work) | **Stone Soup**(EKF/UKF·바이스태틱 custom 측정모델) | future work |",
+        "| **실측**(X410) | **OpenISAC**(OTA 바이스태틱) + **GNU Radio**(SigMF I/Q 통일) | 실측 단계 |",
+        "| **파형/채널** | **Sionna PHY**(이미 NMSE −135 dB 검증) | 유지 |",
+        "| 표적/배경 분리 `h=h_bg+h_target` | NIST 5GNRad·3GPP 와 동일 구조임을 report12 §2c 로 명시 | 반영됨 |",
         "",
-        "이 표가 곧 **'선행 방법론을 프로젝트에 녹인다'**의 구체 목록이다. 반영된 것은 리포트 본문에, "
-        "future work 는 report12 맺음말과 이 pw03 에 남긴다.",
+        "**5단계 로드맵**(선행이 권한 순서, 우리 상황 맞춤):",
+        "",
+        "1. **최소 동작** — Sionna RT+PHY 채널 → **pyAPRiL** ECA/CAF/CFAR (점표적 드론). *← 지금 우리 위치*",
+        "2. **추적 추가** — +**Stone Soup**(바이스태틱 EKF/UKF, RMSE).",
+        "3. **드론 물리** — 멀티산란체 모델 $r_{drone}[n]=\\sum_i \\alpha_i x[n-d_i]e^{j2\\pi f_{D,i}nT_s}$, "
+        "$\\alpha_i=\\sqrt{\\sigma_i}e^{j\\phi_i}$ (1 body + 4 motor + 8~16 blade-tip) → body Doppler ↔ rotor μD 분리. "
+        "*← 우리는 SBR+PO 로 이미 여기(report07/08)*.",
+        "4. **AI·sim-to-real** — +PyTorch(분류·domain randomization "
+        "$\\Theta=\\{SNR,SCR,CFO,SFO,\\phi_{noise},\\sigma_{RCS},p_{Tx},p_{Rx},p_{drone},v_{drone}\\}$).",
+        "5. **실측** — +**OpenISAC**+**GNU Radio**+**USRP X410**: 시뮬과 **동일 I/Q 인터페이스**(SigMF)로 "
+        "같은 처리코드가 둘 다 먹게.",
+        "",
+        "> 💡 **핵심 판단(선행 종합).** *Sionna + pyAPRiL + Stone Soup + OpenISAC* 가 우리 드론 패시브 센싱에 "
+        "가장 직접적인 조합이다. 다만 pyAPRiL 을 그대로 끝내지 말고 **핵심 ECA/CAF/CFAR 를 검증한 뒤 우리 "
+        "GPU 커널과 정합**시켜, 같은 처리코드를 Sionna 데이터와 X410 데이터에 적용한다 — 그래야 연구 기여와 "
+        "재현성이 동시에 선다.",
     ),
     md(
         "---",
