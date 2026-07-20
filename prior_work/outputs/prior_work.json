@@ -1,0 +1,168 @@
+{
+ "meta": {
+  "compiled": "2026-07-20",
+  "method": "2× deep-research 워크플로(adversarial verify) + 직접 WebSearch/WebFetch 재확인. 검증 등급 표기.",
+  "verify_grades": {
+   "CONFIRMED": "적대적 검증 2-0/3-0 통과",
+   "WEB": "이 세션에서 직접 WebSearch/WebFetch 로 1차 출처 확인",
+   "SOURCE": "1차 출처 인용은 확보했으나 세션 한도로 적대적 재검증 미완(단일출처)",
+   "IMAGE_LEAD": "사용자 첨부 AI 서베이 이미지의 주장 — 독립 검증 안 됨, 조사 단서로만"
+  },
+  "our_claim": "스톡 Sionna PathSolver 는 경로별 복소이득만 반환 — 표적 표면 위 산란적분(SBR+PO)이 없어 소형 드론의 코히어런트 RCS 를 메쉬에서 직접 못 낸다. 그래서 우리는 SBR+PO 모듈을 더했다(report06)."
+ },
+ "papers": [
+  {
+   "key": "great_x",
+   "title": "Unreal is all you need: Multimodal ISAC Data Simulation with Only One Engine",
+   "authors": "Kongwu Huang, Shiyi Mu, Jun Jiang, Yuan Gao (Shanghai Univ) · Shugong Xu (XJTLU)",
+   "venue": "arXiv:2507.08716 (2025-07, cs.CV) · 플랫폼명 Great-X",
+   "grade": "CONFIRMED",
+   "sensed": "소형 저고도 UAV(드론) — 상하이 루자쭈이 상공 비행, Great-MSD 데이터셋(CSI+RGB+Radar+LiDAR)",
+   "target_scatter": "b) 확산 산란계수 S∈[0,1] (S² 확산 + 경면). Sionna 식 광선추적을 Unreal 안에 재구현, Sionna RT 로 교차검증",
+   "detection": "없음 — CFAR/거리-도플러 아님. CSI 기반 UAV 3D 위치추정",
+   "vs_us": "드론 RCS 를 메쉬에서 코히어런트 계산하지 않음(확산계수 사용) → 우리 주장과 모순 없음. 드론을 '산란 표적'이 아니라 '통신/센싱 플랫폼'으로 다룸",
+   "sources": ["https://arxiv.org/abs/2507.08716", "https://arxiv.org/html/2507.08716v3"]
+  },
+  {
+   "key": "det_isac",
+   "title": "Deterministic Modeling of Dynamic ISAC Channels in RF Digital Twin Environments",
+   "authors": "Cesar Montaner, Saúl Fenollosa, Andres Ortega, Hugo Beltrán, Narcis Cardona (iTEAM, U. Politècnica de València)",
+   "venue": "arXiv:2603.28736 · EuCAP 2026 채택",
+   "grade": "SOURCE",
+   "sensed": "실차량 — Nissan Micra(모노스태틱), KIA Xceed(바이스태틱, UE 탑재). 드론/소형 표적 없음",
+   "target_scatter": "b) Sionna 내장 확산 산란(R²+S²=1), 재질별 S 를 79GHz E-band 채널 사운딩 실측으로 보정",
+   "detection": "채널 레벨(디지털 트윈 채널 생성)",
+   "vs_us": "⭐ **우리 주장 직접 지지** — 논문 스스로 '메쉬 위 순수 경면 광선추적은 mmWave 산란전력을 과소평가하고, 정확한 EM 산란에 필요한 λ/10 메싱은 계산상 불가능'이라고 명시. = report06 의 핵심 주장",
+   "sources": ["https://arxiv.org/abs/2603.28736"]
+  },
+  {
+   "key": "ziganshin",
+   "title": "Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications",
+   "authors": "Ainur Ziganshin, Enrico M. Vitucci, Wim Kotterman, Reiner Thomä, Christian Schneider, Vittorio Degli-Esposti",
+   "venue": "arXiv:2604.05991 (eess.SP, 2026-04)",
+   "grade": "SOURCE",
+   "sensed": "정준 곡면체(구·반경 7λ 원통) + 실차량 i-MiEV(1496/220 facet) @2-3GHz. 소형/서브미터 표적 없음",
+   "target_scatter": "d) **커스텀 add-on** — Sionna-RT v0.19 를 기저 엔진으로만 쓰고, 저자들이 UTD 회절(엣지·꼭짓점·이중엣지) 확장을 직접 구현. 경면 facet + UTD. **PO/SBR 은 관련연구로 인용만 하고 안 씀**",
+   "detection": "해석해·FEKO MLFMM·BIRA 실측 대조 검증",
+   "vs_us": "'Sionna 에 커스텀 산란을 더한다'는 우리와 같은 정신. 단 방법은 UTD(우리는 PO/SBR), 표적은 대형",
+   "sources": ["https://arxiv.org/pdf/2604.05991"]
+  },
+  {
+   "key": "cissir",
+   "title": "CISSIR: Beam Codebooks with Self-Interference Reduction Guarantees for ISAC Beyond 5G",
+   "authors": "Rodrigo Hernangómez, Jochen Fink, Renato L. G. Cavalcante, Sławomir Stańczak",
+   "venue": "arXiv:2502.10371 (2025) · **NVIDIA 공식 'Made with Sionna' 유일 ISAC 등재** · Sionna v0.17 · code github.com/rodrihgh/cissir",
+   "grade": "SOURCE",
+   "sensed": "물리 표적 없음 — 자기간섭 저감·양자화잡음 한계로 센싱 성능만 다룸",
+   "target_scatter": "n/a",
+   "detection": "n/a",
+   "vs_us": "스톡 Sionna 를 표적 RCS 에 쓰지 않음 — 우리 주장과 정합. NVIDIA 공식 쇼케이스에도 소형표적 RCS ISAC 이 없다는 방증",
+   "sources": ["https://nvlabs.github.io/sionna/made_with_sionna.html", "https://arxiv.org/abs/2502.10371"]
+  },
+  {
+   "key": "simart",
+   "title": "SimART: A Unified and Open Real-world Multimodal Simulation Platform for 6G ISAC",
+   "authors": "Kang Yan, Yuqi Cao, Jiaqi Li, Luping Xiang, Kun Yang (UESTC, Nanjing Univ)",
+   "venue": "arXiv:2605.13309 (2026-05) · github.com/guchuanv-alt/SimART (~168★)",
+   "grade": "CONFIRMED",
+   "sensed": "UAV 를 **비전(YOLOv8 on RGB)+GPS** 로 센싱(빔예측용). 레이더 에코 아님",
+   "target_scatter": "환경(건물)만 Sionna RT 경면+회절, 미세형상은 확산 미미 이유로 폐기. 표적 산란모델 없음",
+   "detection": "레이더 검출 없음 — 'RCS/radar/CFAR' 문자열이 논문에 전무",
+   "vs_us": "다른 AI 이미지가 'Sionna 차용 ISAC'으로 든 예시지만, 실제로는 통신+온보드 다중센서 플랫폼. 우리 패시브 레이더 조각(RCS/검출) 없음",
+   "sources": ["https://arxiv.org/abs/2605.13309", "https://github.com/guchuanv-alt/SimART"]
+  },
+  {
+   "key": "sionna_rt",
+   "title": "Sionna RT: Differentiable Ray Tracing for Radio Propagation Modeling",
+   "authors": "Hoydis et al. (NVIDIA)",
+   "venue": "arXiv:2303.11103 (2023, v0.14~) — Sionna RT 창설 논문",
+   "grade": "SOURCE",
+   "sensed": "n/a (엔진 논문)",
+   "target_scatter": "솔버 아키텍처를 문서화: 경면(이미지법 + Fibonacci 격자 광선탐색)·확산(계수 파라미터)·1차 회절. **경로별 복소이득을 반환하지, 표적 표면 위 SBR 장 적분이 아님**",
+   "detection": "n/a — ISAC 은 동기부여 주제로만 언급",
+   "vs_us": "⭐ **우리 주장의 1차 근거** — 스톡 솔버가 per-path gain 만 낸다는 것을 창설 논문이 문서화",
+   "sources": ["https://arxiv.org/abs/2303.11103"]
+  }
+ ],
+ "tools": [
+  {
+   "key": "5gnrad",
+   "name": "NIST 5GNRad",
+   "repo": "github.com/usnistgov/5GNRad (Steve Blandino, NIST CTL)",
+   "grade": "WEB",
+   "license": "NIST-developed (US Gov, 사실상 퍼블릭 도메인)",
+   "does": "5G NR ISAC 링크레벨 시뮬레이터 — 표준호환 NR 파형·채널추정·거리도플러·**CFAR**·각도추정·3D 위치",
+   "target_scatter": "c) **RCS 점표적** 주입 + target/background 채널 분리(h=h_bg+h_target)",
+   "detection": "✅ 풀 검출체인(range-Doppler·CFAR·clustering·위치/속도 추정·TP/FP/FN)",
+   "adopt": "HIGH(아키텍처 참조) — h=h_bg+h_target 분리가 **우리와 동일**하다는 강력한 방증. 단 능동/PRS 기반이라 패시브 reference/surveillance 구조는 우리가 추가해야 함",
+   "sources": ["https://github.com/usnistgov/5GNRad"]
+  },
+  {
+   "key": "radarsimpy",
+   "name": "RadarSimPy",
+   "repo": "github.com/radarsimx/radarsimpy",
+   "grade": "WEB",
+   "license": "GPLv3 (완전 오픈)",
+   "does": "Python+C++ 레이더 시뮬 — 점표적 + **3D STL 메쉬 RCS**, 마이크로도플러/터빈, Swerling, 거리도플러·DoA·CFAR",
+   "target_scatter": "3D 메쉬 RCS 직접 계산(광선추적 기반). 다만 5G/WiFi 통신 파형 스택은 없음",
+   "detection": "✅ 거리도플러·CFAR·DoA",
+   "adopt": "HIGH(검증 오라클) — 우리 SBR+PO 드론 RCS·프로펠러 마이크로도플러를 **독립 도구로 교차검증**하는 데 이상적. GPLv3 라 자유 사용",
+   "sources": ["https://github.com/radarsimx/radarsimpy", "https://github.com/radarsimx/radarsimpy/blob/master/LICENSE"]
+  },
+  {
+   "key": "openisac",
+   "name": "OpenISAC",
+   "repo": "github.com/zhouzhiwen2000/OpenISAC · arXiv:2601.03535 (2026-01)",
+   "grade": "WEB",
+   "license": "오픈소스",
+   "does": "실시간 OFDM-ISAC 실험 플랫폼 — 모노+**바이스태틱** 지연도플러, **OTA 동기(유선없이 바이스태틱)**, USRP B200~**X400 계열**, C++PHY+Python센싱, 마이크로도플러 추출 검증",
+   "target_scatter": "OTA 실측(시뮬 아님)",
+   "detection": "✅ 지연도플러 검출, 마이크로도플러",
+   "adopt": "⭐ HIGH(실측 단계) — **X410 지원 + 바이스태틱 OTA 동기**가 사용자 하드웨어 계획과 직결. sim→real 다리. 단 연속 커스텀 OFDM 이라 표준 WiFi/LTE/5G 파형은 별도",
+   "sources": ["https://arxiv.org/abs/2601.03535", "https://github.com/zhouzhiwen2000/OpenISAC"]
+  },
+  {
+   "key": "ns3sionna",
+   "name": "ns3sionna",
+   "repo": "github.com/tkn-tub/ns3sionna (Zubow·Rösler·Dressler, TU Berlin) · arXiv:2412.20524",
+   "grade": "SOURCE",
+   "license": "오픈소스",
+   "does": "ns-3 + Sionna RT 채널결합(SionnaPropagationLoss/Delay/Mobility 모델). CFR 태그로 CSI 노출",
+   "target_scatter": "Sionna 확산(채널만)",
+   "detection": "없음 — CSI 내보내기만, 레이더/RCS/CFAR 전무",
+   "adopt": "LOW — 네트워크/MAC 레벨. 우리 물리레이어 패시브 레이더와 층이 다름",
+   "sources": ["https://github.com/tkn-tub/ns3sionna", "https://arxiv.org/abs/2412.20524"]
+  },
+  {
+   "key": "msvan3t",
+   "name": "ms-van3t-rt",
+   "repo": "github.com/robpegurri/ms-van3t-rt · arXiv:2501.00372 (PoliMi + NVIDIA J.Hoydis)",
+   "grade": "SOURCE",
+   "license": "오픈소스",
+   "does": "ns-3 V2X 풀스택 + Sionna RT 채널(디지털 네트워크 트윈)",
+   "target_scatter": "Sionna 확산(채널만)",
+   "detection": "없음 — ISAC/레이더/RCS/CFAR 전무",
+   "adopt": "LOW — V2X 통신 전용",
+   "sources": ["https://arxiv.org/pdf/2501.00372"]
+  },
+  {
+   "key": "matlab",
+   "name": "MATLAB 5G/Radar/Phased Array Toolboxes",
+   "repo": "MathWorks 공식 (유료)",
+   "grade": "IMAGE_LEAD",
+   "license": "상용(학교 라이선스 흔함)",
+   "does": "가장 완성형 ISAC 예제 — 5G NR PDSCH 전송→DM-RS 채널추정→이동 UAV range/angle→CFAR·추적. 바이스태틱 레이더 예제도 제공",
+   "target_scatter": "c) RCS 상수 입력(phased.RadarTarget MeanRCS=)",
+   "detection": "✅ 전부(CFAR·추적)",
+   "adopt": "MEDIUM(참조·1차 baseline) — 구조가 우리와 동일함을 확인하는 표준 레퍼런스. 파이썬 프로젝트라 코드 이식은 안 함",
+   "sources": ["https://www.mathworks.com/help/5g/ug/integrated-sensing-and-communication-using-5g-waveform.html"]
+  }
+ ],
+ "synthesis": {
+  "q1_prior_sionna_isac": "예 — 실재 확인. Great-X(드론·확산S), Deterministic-Modeling(차량·확산S·EuCAP), Ziganshin(차량·커스텀UTD), CISSIR(NVIDIA공식·표적없음), SimART(비전센싱). Sionna 를 ISAC 에 쓴 선행은 다수다.",
+  "q2_gap_workarounds": "소형표적 코히어런트 RCS-from-mesh 를 스톡 Sionna 로 푼 선행은 **없다**. 표준 우회 3가지: (b)확산계수 S[Great-X·Det-Modeling] (c)RCS 점표적 주입 h=h_bg+h_target[NIST 5GNRad·3GPP·MATLAB] (d)커스텀 산란 add-on[Ziganshin UTD, 우리 SBR+PO].",
+  "our_position": "우리는 (d)로 값을 계산(SBR+PO)해 (c)로 채널에 주입 — h=h_bg+h_target 는 NIST 5GNRad·3GPP 와 같은 주류 아키텍처. 덜 점유된 틈새: ①기회신호(WiFi/LTE/5G) 패시브 바이스태틱(대개 능동/모노 또는 CSI기반) ②드론 RCS 를 확산S 가정 대신 SBR+PO 로 메쉬에서 산출 ③상시vs세션 9모드 벤치마크.",
+  "support_for_our_claim": "우리 report06 주장은 선행에 의해 지지됨: Deterministic-Modeling(EuCAP)이 'λ/10 메싱 불가·경면만이면 산란 과소평가'를 명시, Sionna RT 창설논문이 'per-path gain 반환'을 문서화.",
+  "adoption_plan": "OpenISAC→X410 실측(바이스태틱 OTA 동기) · RadarSimPy(GPLv3)→SBR+PO RCS·마이크로도플러 독립 교차검증 오라클 · NIST 5GNRad→검출체인 아키텍처 참조 · ns3sionna/ms-van3t→불채택(네트워크층)."
+ }
+}

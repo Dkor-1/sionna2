@@ -35,6 +35,15 @@ mesh02(라이브러리 선택 이유) → mesh03(모든 숫자·모델의 출처
 mesh05(프로펠러 익형) → mesh06(색=재질) → mesh07(기하 검증) → mesh08(실물·물리 검증).
 증거는 `report_mesh/outputs/mesh_verify.json`(9섹션 검증 스위트), 생성기는 `report_mesh/src/`.
 
+### 부록 시리즈 — `prior_work/` (선행 연구·오픈소스 조사 3편)
+
+**Sionna 로 ISAC 센싱을 한 선행이 있나, 소형표적 RCS 간극을 어떻게 우회하나**를 검증된 사실로 정리:
+pw01(논문: Great-X·Deterministic-Modeling·Ziganshin·CISSIR·SimART, 표적산란 처리방식 분류) →
+pw02(오픈소스 도구: NIST 5GNRad·RadarSimPy(GPLv3)·OpenISAC·ns3sionna, 채택 판정) →
+pw03(우리 위치: h=h_bg+h_target 주류 아키텍처 + 덜 점유된 틈새 + 방법론 수용).
+근거·출처는 `prior_work/outputs/prior_work.json`(2× 딥리서치 + 직접 웹확인, 검증등급 표기).
+**오픈소스 대체 지도는 `OPENSOURCE.md`** — '검증 후 대체' 원칙(RadarSimPy로 RCS 교차검증, OpenISAC로 X410 실측).
+
 > ⚠️ **`reportNN.ipynb` 는 전부 생성물이다.** 서술 수정은 `src/make_notebookNN.py` 에서 하고 재실행한다
 > (`.ipynb` 직접 수정은 다음 빌드에서 사라진다). 본문 수치는 전부 `outputs/*.json` 에서 f-string 으로
 > 주입한다 — **손으로 적은 숫자 금지** 가 하우스 규약.
