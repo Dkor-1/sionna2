@@ -351,15 +351,15 @@ cells.append(md(
     "①상용 신호(WiFi/LTE/5G) **패시브 바이스태틱**(선행은 대개 능동/모노 또는 CSI기반), ②드론 RCS 를 "
     "**SBR+PO 로 산출**(확산 S 가정 아님), ③**상시 vs 세션 9모드** 벤치마크.",
     "",
-    "> 🔧 **오픈소스 채택 계획(신뢰성·반복작업 절감 — 사용자 방침).** 직접 만든 조각을 검증된 오픈소스로 "
-    "**계층별 단계적 대체**한다(‘검증 후 대체’ 원칙, 전체 지도는 `OPENSOURCE.md`·`prior_work/pw02`):",
-    "> - **검출체인 ECA/CAF/CFAR → pyAPRiL**(GPLv3, DVB-T/FM 실측 검증된 패시브 레이더 라이브러리) — "
-    "Sionna 채널을 넣어 우리 결과와 대조 후 이관. 단 **대량 MC(K=" + f"{K:,}" + ")는 GPU 배치가 필요해 "
-    "우리 `detection_gpu.py` 유지**(pyAPRiL 로 정합성 검증).",
-    "> - **RCS → RadarSimPy(+openEMS full-wave 앵커)**, **추적 → Stone Soup**(바이스태틱 측정모델), "
-    "**실측 → OpenISAC+GNU Radio+X410**(SigMF 로 sim↔real I/Q 통일).",
-    "> - **파형·지연채널**은 이미 **Sionna PHY** 로 검증(report05, NMSE −135 dB)돼 유지. **아키텍처**는 "
-    "**NIST 5GNRad**(h=h_bg+h_target)와 동일함을 확인.",
+    "> 🔧 **오픈소스·선행 방식 채택(계층별, 전체 지도 `OPENSOURCE.md`·`prior_work/pw02`):**",
+    "> - **검출체인 ECA/CAF/CFAR → pyAPRiL**(GPLv3, 실측 검증된 패시브 레이더 라이브러리). 실제로 돌려 "
+    f"NR/WiFi/LTE 3모드 모두 표적을 정답 거리빈에 검출함을 확인(`benchmark/verify_pyapril.py`). 대량 MC(K="
+    + f"{K:,}" + ")만 GPU 배치(`detection_gpu.py`)로 하되 pyAPRiL 로 정합 검증. ⚠ ECA/CAF/CFAR 는 파형 무관 "
+    "(reference I/Q 만 사용) — DVB-T/FM 뿐 아니라 WiFi/LTE/5G 에 적합.",
+    "> - **RCS → 자작 SBR+PO**(선행 BVH SBR+PO 와 같은 방법; 상용 CADFEKO·비공개 RadarSimPy 불채택), "
+    "절대값은 **실측 문헌 RCS 로 앵커**(report08). **추적 → Stone Soup**, **실측 → OpenISAC+GNU Radio+X410**.",
+    "> - **파형·지연채널**은 **Sionna PHY** 로 검증(report05, NMSE −135 dB) 유지. **아키텍처**(h=h_bg+h_target)는 "
+    "**NIST 5GNRad·3GPP Rel-19**(오픈 구현 Putirf)와 동일.",
 ))
 cells.append(gif("rd_rxbuildup_nr", "Rx 증설 RD 맵(5G 풀)",
                  "거리-도플러 지도. 수신기 1→4 로 표적(흰 네모)이 잡음 위로 떠오른다. 0-도플러 세로 능선은 "
