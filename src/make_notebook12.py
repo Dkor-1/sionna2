@@ -53,6 +53,13 @@ FULL = [c for c in ("W3", "L3", "G3") if c in MD]              # 제어/풀 (X41
 ON = [c for c in ("W1", "L1", "G1") if c in MD]                # 상시 (기회주의 하한)
 STD2FULL = {"nr": "G3", "wifi": "W3", "lte": "L3"}
 K = M["K"]
+
+# 다중 Rx 코히어런트 이득(1→4) 범위 — JSON 에서 주입(§6, 손으로 적지 않음)
+def _gain14(c):
+    cu = MD[c]["curves"]
+    return cu["1"]["snr50"] - cu["4"]["snr50"]
+GAIN_LO = min(_gain14(c) for c in CODES)     # ≈ 5.8 (G3)
+GAIN_HI = max(_gain14(c) for c in CODES)     # ≈ 6.4 (W1)
 CORR = np.mean([MD[c].get("corr_sionna", 1.0) for c in CODES])
 CRAT = np.mean([MD[c].get("combine_ratio", 1.0) for c in CODES])
 
@@ -292,12 +299,12 @@ def _mode_row(c):
     v = s50(c)
     drb = w["range_res_m"]                                # 바이스태틱 c/B (JSON 에 저장된 값)
     drm = drb / 2.0                                       # 모노스태틱 등가 c/2B
-    return (f"| {c} | {SNAME[w['std']]} | {w['ref_name']} | {w['ref_bw_mhz']:.1f} MHz | "
+    return (f"| {c} | {SNAME[w['std']]} | {w['ref_name']} | {w['ref_bw_mhz']:.2f} MHz | "
             f"{drb:.1f} m | {drm:.1f} m | {'상시' if w['always_on'] else '세션/제어'} | "
             f"{('%.1f' % v) if v is not None else '—'} dB |")
 
 
-tbl = ["# §3. 9-모드 벤치마크 — 어떤 신호가 드론을 잘 비추나 ⭐", "",
+tbl = ["# §3. 9-모드 벤치마크 — 어떤 신호가 드론을 잘 비추나", "",
        "3표준 × 3점유(상시→제어/풀) = 9모드. 필요한 SNR(단일 Rx, 낮을수록 좋음):", "",
        "| 모드 | 표준 | 기준신호 | 대역 $B_{ref}$ | $\\Delta R_b$ (바이스태틱, c/B) | "
        "$\\Delta R$ (모노 등가, c/2B) | 종류 | 필요 SNR |",
@@ -396,7 +403,7 @@ cells.append(md(
     "| **조명원 간 공정 비교** | 조사한 논문은 **모두 단일 조명원**(5G만/LTE만/WiFi만). 표준 간 head-to-head 없음 | 9모드 W/L/G 공통 프로토콜 |",
     "| **표적 RCS 를 실제로 모델** | 한 편도 드론 RCS 를 계산 안 함 — 외생 스칼라/Swerling 가정(−10~−13 dBsm) | SBR+PO, NACA-4 익형 프롭, 재질별 \\|Γ\\| |",
     "| **점유율→Pd (고정 Pfa)** | LaSen 이 최선이나 monostatic·RMSE 채점 | G1/G2/G3 = SSB/PRS/CRS, '5G 이중고' 정량화 |",
-    "| **다중 Rx 이득 정량화** | **전부 최대 2채널**; N-Rx 코히어런트 이득을 잰 논문 0 | 1→4, 측정 6.0~6.4 dB vs 10log10 N |",
+    f"| **다중 Rx 이득 정량화** | **전부 최대 2채널**; N-Rx 코히어런트 이득을 잰 논문 0 | 1→4, 측정 {GAIN_LO:.1f}~{GAIN_HI:.1f} dB vs 10log10 N |",
     f"| **통제·재현** | 전부 1회성 야외, 신뢰구간·공개데이터 없음 | 반무향 챔버 + K={K:,} MC + 재생성 파이프라인 |",
     "| **정직한 결함 기록** | 명목 Pfa 를 그대로 신뢰 | 경험적 Pfa 불균일을 **결함으로 기록**(§5) |",
     "",

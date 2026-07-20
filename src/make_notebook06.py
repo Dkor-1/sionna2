@@ -334,7 +334,7 @@ cells.append(code(
     "a = F['A_rays']['rows']",
     "print(f\"\\n코히런트 합 25M->400M: {a[-1]['coh_db']-a[0]['coh_db']:+.1f} dB  (수렴 안 함)\")",
     "",
-    "# PEC 구: 4억 발을 쏴도 경로 0개 (그림 [E])",
+    "# PEC 구: 16M 발까지 쏴도 경로 0개 (독립 재현; 그림 [E] 는 400M 까지 쏜다)",
     "V = json.load(open('outputs/rt_no_rcs_verify.json'))",
     "for row in V['C_pec_sphere']:",
     "    print(f\"구 r={row['r']}m  광선={row['spp']/1e6:.0f}M  ->  경로 {row['n_paths']}개\")",
@@ -396,7 +396,7 @@ cells.append(md(
     "경로로 어떤 값을 낸다. 하지만 S 는 표적의 성질이 아니라 우리가 표에 적어 넣는 손잡이다.",
     "",
     f"**[B]** 재질 표의 S 를 ×½→×2(4배)로 바꾸면 표적 에코가 **{S_x4_delta:+.1f} dB** 움직인다"
-    f"(코히런트 합 {S_half_coh:.1f}→{S_2x_coh:.1f} dB, ~{slope_dec:.0f} dB/decade). **표적은 하나도 "
+    f"(코히런트 합 {S_half_coh:.1f}→{S_2x_coh:.1f} dB). **표적은 하나도 "
     "안 바꿨는데** 재질 숫자 하나로 '에코' 를 원하는 만큼 끌 수 있다 — 물리적 σ 라면 이래서는 안 된다.",
     "",
     f"**[C]** 게다가 ITU-R P.2040 표에서 **금속의 S={itu_metal_S:.0f}**(금속은 흩뿌리지 않고 튕긴다). "
@@ -418,10 +418,10 @@ cells.append(code(
     "# §2 재현 — S 는 손잡이: 돌리면 값이 따라 움직인다 (그림 [B])",
     "import json",
     "RB = json.load(open('outputs/rt_ray_budget.json'))",
-    "print('산란계수 S   코히런트 에코[dB]')",
+    "print('산란계수 S   코히런트 에코[dB]   인코히런트 합[dB]')",
     "for blk in RB['B_S_sweep']:",
-    "    print(f\"   {blk['S']:.1f}       {blk['coh_db']:8.2f}\")",
-    "print(f\"\\n기울기 ~ {RB['B_fit']['slope_db_per_decade']:.0f} dB/decade  (표적은 그대로, 손잡이만 돌림)\")",
+    "    print(f\"   {blk['S']:.1f}       {blk['coh_db']:8.2f}        {blk['incoh_db']:8.2f}\")",
+    "print(f\"\\n인코히런트 합 로그기울기 ~ {RB['B_fit']['slope_db_per_decade']:.0f} dB/decade  (코히런트 합은 더 가파르다; 표적은 그대로, 손잡이만 돌림)\")",
     "",
     "# 금속의 산란계수 S=0 -> 밝기의 다수를 차지하는 금속이 확산 채널에서 빠진다 (그림 [C])",
     "F = json.load(open('outputs/report3_rt.json'))['C_metal']",

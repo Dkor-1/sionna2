@@ -97,17 +97,28 @@ def fig_cfar():
     ax.legend(loc="upper left", frameon=False)
 
     # (b) ratio at 1e-4 with correlation-corrected CI --------------------------
+    # bars = operational point estimate (verify_cfar dpi_eca op — same source as body §2.2),
+    # whiskers = correlation-corrected 95% CI (report4_fixups). Keeps figure and text consistent.
     ax = fig.add_subplot(gs[0, 1])
+    _GT, _ZD = C["meta"]["gt_default"], C["meta"]["zd_mask_operational"]
+
+    def _op_ratio(wf):
+        for rr in C["chain"][wf]["dpi_eca"]["op"]["rows"]:
+            if rr["gt"] == _GT and rr["zd_mask_width"] == _ZD and abs(rr["pfa_nom"] - 1e-4) < 1e-12:
+                return rr["ratio"]
+        return None
+
     ci = [r for r in F["corrected_ci"]["rows"] if abs(r["pfa_nom"] - 1e-4) < 1e-12]
     xs = np.arange(len(ci))
     for i, r in enumerate(ci):
         w = r["wf"]
         lo_, hi_ = r["ratio_ci_corrected"]
-        ax.bar(i, r["ratio"], color=CW[w], width=0.6, alpha=0.85)
+        op = _op_ratio(w)
+        ax.bar(i, op, color=CW[w], width=0.6, alpha=0.85)
         ax.plot([i, i], [lo_, hi_], color="#222222", lw=1.6)
         ax.plot([i - .12, i + .12], [lo_, lo_], color="#222222", lw=1.6)
         ax.plot([i - .12, i + .12], [hi_, hi_], color="#222222", lw=1.6)
-        ax.text(i, hi_ + 0.10, f"{r['ratio']:.2f}x", ha="center", fontsize=9.5,
+        ax.text(i, hi_ + 0.10, f"{op:.2f}x", ha="center", fontsize=9.5,
                 fontweight="bold")
     ax.axhline(1.0, color="k", ls="--", lw=1)
     ax.text(0.985, 1.09, "calibrated", fontsize=7.5, color="#444444", ha="right",
@@ -207,7 +218,7 @@ def fig_cfar():
                  "and the bias differs per waveform",
                  fontsize=13.5, fontweight="bold", x=0.055, ha="left", y=0.975)
     _cap(fig,
-         "The CA-CFAR implementation itself is exact: on ideal white maps (5.76e8 cells) the empirical Pfa equals "
+         "The CA-CFAR implementation itself is exact: on ideal white maps (5.64e8 tested cells) the empirical Pfa equals "
          "the nominal one to within 1-2% (grey line in a).\n"
          "The bias appears only in the real processing chain, and it is not a common scale factor - at a nominal "
          "1e-4 the detector fires 1.45x (WiFi) / 2.47x (LTE) / 1.56x (NR) too often.\n"

@@ -72,8 +72,9 @@ _prov = provenance_cells(
               f"결론: 넓고(ΔR {LT['dR_m']:.1f} m) 자주({LT['prf_hz']:.0f} Hz) 나오는 **LTE CRS 가 "
               f"좁고(ΔR {NR['dR_m']:.1f} m) 드문(20 ms) 5G SSB 보다 낫다** — 세대가 최신이라고 "
               f"조명 품질이 좋은 건 아니다."),
-        gap=(f"**Sionna PHY 는 5G NR·LTE OFDM 을 3GPP 규격대로 생성**한다(`nr.CarrierConfig` 가 "
-             f"μ·SCS·슬롯·CP 를 준다). 그러나 **WiFi(802.11) 파형은 기본 제공하지 않고**, 패시브가 "
+        gap=(f"**Sionna PHY 는 5G NR OFDM 을 3GPP 규격대로 생성**한다(`nr.CarrierConfig` 가 "
+             f"μ·SCS·슬롯·CP 를 준다). 그러나 **`nr.CarrierConfig` 는 5G NR 전용이라 LTE 파형·뉴머롤로지는 "
+             f"TS 36.211 로 자작**하고, **WiFi(802.11) 파형도 기본 제공하지 않으며**, 패시브가 "
              f"실제로 상관에 쓰는 **상시 기준신호(LTE CRS·5G SSB)의 자원격자 배치**도 없다 — "
              f"'채널 전대역'이 아니라 그 기준신호가 격자에서 실제로 켜는 **점유대역 $B_{{ref}}$** 가 "
              f"눈을 정한다(§2)."),
@@ -165,7 +166,7 @@ _prov = provenance_cells(
         ("패시브 레이더", "자기 송신기 없이 **남의 신호(방송·통신)의 반사**로 표적을 보는 레이더"),
         ("조명원(illuminator)", "패시브 레이더가 빌려 쓰는 '남의 송신기' — 기지국·와이파이 AP 등"),
         ("기준신호(reference signal)", "패시브가 상관을 걸 때 쓰는 '미리 아는 신호'. 표준마다 상시 하나"),
-        ("상시(always-on) 신호", "임의의 셀이 **언제나** 내보낸다고 믿을 수 있는 신호. LTE=CRS, 5G=SSB, WiFi=프리앰블"),
+        ("상시(always-on) 신호", "임의의 셀이 **언제나** 내보낸다고 믿을 수 있는 신호. LTE=CRS, 5G=SSB (WiFi 프리앰블은 트래픽이 있을 때만 반복돼 엄밀히는 상시 아님 — §8)"),
         ("CRS", "LTE Cell-specific Reference Signal — 매 서브프레임(1 ms)·채널 전대역에 상시 나오는 셀 기준신호"),
         ("SSB", "5G NR SS/PBCH Block — 유휴 gNB 가 늘 내보내는 유일한 신호. 좁고(중앙 20 RB) 드물다(20 ms 주기)"),
         ("VHT-LTF", "WiFi 802.11ac 패킷 앞머리(프리앰블)의 롱 트레이닝 필드. 어떤 패킷에도 붙지만 반복은 트래픽에 의존"),
@@ -208,9 +209,10 @@ cells.append(md(
     "유휴 기지국이 늘 내보내는 건 SSB 뿐 |",
     "| **WiFi** | **프리앰블 (VHT-LTF)** | 모든 패킷 앞머리에 붙는다 — 단 **반복 횟수가 트래픽에 의존** |",
     "",
-    "여기서 **Sionna PHY 의 공백**이 드러난다. Sionna PHY(`nr`/`ofdm`/`channel`)는 5G NR·LTE 의 OFDM "
-    "파형을 3GPP 규격대로 만들 수 있지만 — 뉴머롤로지(μ·SCS·슬롯·CP)는 `nr.CarrierConfig` 가 "
-    "TS 38.211 을 구현해 준다 — **① WiFi(802.11) 파형은 기본 제공하지 않고**, **② 패시브가 실제로 "
+    "여기서 **Sionna PHY 의 공백**이 드러난다. Sionna PHY(`nr`/`ofdm`/`channel`)는 **5G NR** 의 OFDM "
+    "파형을 3GPP 규격대로 만들고 뉴머롤로지(μ·SCS·슬롯·CP)도 `nr.CarrierConfig` 가 TS 38.211 을 "
+    "구현해 주지만 — **① `nr.CarrierConfig` 는 5G NR 전용이라 LTE 뉴머롤로지(15 kHz SCS)는 TS 36.211 로 "
+    "자작**하고, **② WiFi(802.11) 파형은 기본 제공하지 않으며**, **③ 패시브가 실제로 "
     "상관에 쓰는 상시 기준신호(CRS·SSB)의 자원격자 배치**(어느 칸을 켜는가)도 API 로 바로 주지 않는다. "
     "그런데 조명원의 성능을 정하는 것은 '채널 전대역'이 아니라 그 기준신호가 격자에서 **실제로 켜는 "
     "점유대역 $B_{ref}$** 다(§2). 그래서 우리는 세 표준의 상시 기준신호 격자를 규격표 위에 직접 세워 "
@@ -262,7 +264,10 @@ cells.append(md(
     "",
     "| 표준 | 기준신호 | 채널 대역 | **$B_{ref}$** | **ΔR** | **PRF** | **$v_{max}$** |",
     "|---|---|---|---|---|---|---|",
-    f"| WiFi 802.11ac | {W['ref']} | {W['chan_bw_mhz']:.0f} MHz | "
+    # 채널 대역은 802.11ac VHT80 의 명목 채널폭(80 MHz)으로 표기한다. JSON 의
+    # chan_bw_mhz(=75.6, 242 데이터톤 폭)는 VHT-LTF(245톤, 76.6 MHz)보다 좁아
+    # '채널 < B_ref' 처럼 보이는데, LTF 는 데이터톤 밖 가장자리까지 쓰므로 명목 80 MHz 채널 안에 들어간다.
+    f"| WiFi 802.11ac | {W['ref']} | 80 MHz | "
     f"**{W['ref_bw_mhz']:.1f} MHz** | **{W['dR_m']:.1f} m** | "
     f"{W['prf_hz']:.0f} Hz | {W['vmax_ms']:.1f} m/s |",
     f"| LTE Rel-9 | {LT['ref']} | {LT['chan_bw_mhz']:.0f} MHz | "
