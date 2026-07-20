@@ -333,15 +333,16 @@ SPIN_GIFS = {
 
 for k in ORDER:
     v = DR[k]
+    front = R.get(f"drone_{k}_front", R[f"drone_{k}_iso"])
     iso = R[f"drone_{k}_iso"]
     side = R[f"drone_{k}_side"]
     top = R[f"drone_{k}_top"]
     cells.append(md(
         f"**{v['name']}**",
         "",
-        "| 비스듬히 | 옆 | 위 |",
-        "|---|---|---|",
-        f"| ![{k} iso]({iso}) | ![{k} side]({side}) | ![{k} top]({top}) |",
+        "| 정면 | 비스듬히 | 옆 | 위 |",
+        "|---|---|---|---|",
+        f"| ![{k} front]({front}) | ![{k} iso]({iso}) | ![{k} side]({side}) | ![{k} top]({top}) |",
     ))
     if k in SPIN_GIFS:
         gif, cap = SPIN_GIFS[k]

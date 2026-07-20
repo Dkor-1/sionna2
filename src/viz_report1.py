@@ -572,8 +572,22 @@ def fig_meshcheck(mm: dict):
     return _save(fig, "report1_meshcheck.png")
 
 
+def _whiten(relpath):
+    """검정 배경 렌더를 흰 배경으로 제자리 합성(밝기 알파). 리포트(흰 배경)와 정합."""
+    from PIL import Image
+    p = os.path.join(ROOT, relpath)
+    im = np.asarray(Image.open(p).convert("RGB"), float) / 255.0
+    lum = 0.299 * im[..., 0] + 0.587 * im[..., 1] + 0.114 * im[..., 2]
+    if np.mean([lum[0, 0], lum[0, -1], lum[-1, 0], lum[-1, -1]]) > 0.6:
+        return relpath                                          # 이미 흰 배경
+    a = np.clip((lum - 0.025) / 0.14, 0, 1)
+    comp = im * a[..., None] + (1 - a[..., None])
+    Image.fromarray((np.clip(comp, 0, 1) * 255).astype("uint8")).save(p)
+    return relpath
+
+
 def render_gallery():
-    """Sionna 렌더 갤러리 — 5종 x (iso / side / top). side 뷰에 짐벌·다리·높이가 보인다."""
+    """Sionna 렌더 갤러리 — 5종 x (front / iso / side / top). front 는 실사진 각도 정합."""
     import render_rt as R
     from drones import DRONES, build_drone
     out = {}
@@ -581,12 +595,14 @@ def render_gallery():
         sc = R.make_scene(drone=key, tgt=(0.0, 0.0, 0.0), with_chamber=False, vel=None)
         V = np.asarray(build_drone(DRONES[key]).v, float)
         span = float(np.linalg.norm(V.max(0) - V.min(0)))
-        r = span * 1.45
-        for tag, p in (("iso", (r * 0.78, -r * 0.64, r * 0.36)),
+        r = span * 1.12                                          # 여백 최소(꽉 차게)
+        for tag, p in (("front", (r * 0.98, -r * 0.14, r * 0.20)),  # 정면 — 실사진 각도 정합(기수 짐벌/센서)
+                       ("iso", (r * 0.74, -r * 0.60, r * 0.34)),
                        ("side", (0.0, -r, 0.02 * span)),
                        ("top", (0.01 * span, 0.0, r))):
-            out[f"{key}_{tag}"] = _shot(sc, f"r1_30_drone_{key}_{tag}", R.cam(p, look=(0, 0, 0)),
-                                        res=RES, spp=SPP, fov=35.0)
+            rp = _shot(sc, f"r1_30_drone_{key}_{tag}", R.cam(p, look=(0, 0, 0)),
+                       res=RES, spp=SPP, fov=35.0)
+            out[f"{key}_{tag}"] = _whiten(rp)                   # 흰 배경 합성(리포트 정합)
     return out
 
 
