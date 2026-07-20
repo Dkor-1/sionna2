@@ -20,4 +20,5 @@
 - `pw01_sionna_isac_papers.ipynb` — Sionna-ISAC 선행 논문: 실재 검증·표적 산란 처리 방식 분류
 - `pw02_opensource_tools.ipynb` — 오픈소스 센싱/ISAC 도구 능력 매트릭스와 수용성 평가
 - `pw03_positioning.ipynb` — 우리 방법의 위치: 선행 방법론 대비 동일점·차이점·수용 계획
+- `pw04_rcs_solution_by_target.ipynb` — **Sionna 로 센싱한 연구는 RCS 문제를 어떻게 해결했나**: Sionna 사용 논문만 대상, A1(외부 EM solver)·A2(Sionna 확장)·B(외생/점산란체)·C(mesh 반사 우회)·D(구현 미보고) 5갈래 + 표3(외부 RCS 모델·설계근거) + 방식별 비교·이중계산 경고·복소 산란행렬·권장구조·연구공백. 3중 워크플로(60여 에이전트) + 타 LLM 조사 대조, 1차 출처 검증(오류 2건 제외·과장 3건 정정). 데이터: `src/pw04_data.py`
 생성기는 `src/make_pw0N.py` (하우스 규약: 노트북=생성물, 수치·인용=검증 JSON에서).

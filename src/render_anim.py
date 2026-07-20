@@ -76,13 +76,21 @@ def _render_frames(scene, name, cams, paths_list=None, radio_list=None, clip=Non
 # --------------------------------------------------------------------------- #
 #  ① 챔버 오빗 — 카메라가 표적 둘레를 돈다 (report01·09·12)
 # --------------------------------------------------------------------------- #
-def orbit_chamber(n=48, drone="mavic4pro", radius=13.0, height=8.5, name="orbit_chamber"):
+def orbit_chamber(n=48, drone="mavic4pro", height=10.2, name="orbit_chamber"):
+    # 카메라는 챔버 **내부**를 돈다. 원형 궤도(반지름 13)는 깊이 20 m 벽(±10)을 뚫고 밖으로
+    # 나가 프레임 절반이 검은 공허가 됐다 → 방 크기(30×20)에 맞춘 **타원 궤도**로 가둔다.
+    # 여백 rx=W/2−4·5, ry=D/2−4 로 사방 벽에서 최소 4 m 떨어져 항상 내부 벽이 화면을 채운다.
+    # 천장을 연(cutaway) 챔버를 **높은 곳에서 아래로 내려다보며** 한 바퀴 돈다. 원래 문제는
+    # 원형 반경 13 이 깊이 20 m 벽(±10)을 뚫어 th≈90°/270° 에서 카메라가 밖으로 나가 검은 공허가
+    # 생긴 것뿐 → **타원 궤도**(rx=10.5, ry=6.5)로 사방 footprint 안에 가둔다. 높은 시점 + 아래를
+    # 겨눈 look(z=2.0)으로 화면을 바닥·벽 아래쪽이 채워 열린 천장(검은 배경)이 프레임에 안 들어온다.
     scene = make_scene(drone=drone, cutaway=True, vel=(-3.0, 0.0, 0.0))
-    look = (W / 2, D / 2, 4.5)
+    look = (W / 2, D / 2, 0.8)
+    rx, ry = W / 2 - 5.0, D / 2 - 4.0
     cams = []
     for k in range(n):
         th = 2 * np.pi * k / n
-        pos = (W / 2 + radius * np.cos(th), D / 2 + radius * np.sin(th), height)
+        pos = (W / 2 + rx * np.cos(th), D / 2 + ry * np.sin(th), height)
         cams.append((pos, look))
     return _render_frames(scene, name, cams, clip=CLIP_CEIL, ms=90)
 

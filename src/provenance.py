@@ -142,13 +142,20 @@ DATA_FLOW_DEFAULT = (
 
 
 # --------------------------------------------------------------------------- #
-def provenance_cells(report: str, what: str, question: str,
+def provenance_cells(report: str, what: str, question: str = "",
                      tldr: list = None, roadmap: list = None,
                      sources: list = None, engines: list = None, libs: list = None,
                      reproduce: list = None, artifacts: list = None,
                      caveats: list = None, cost: str = "", related: list = None,
-                     glossary: list = None, data_flow: str = None) -> list:
-    """리포트 앞머리 markdown 셀들. 인자는 전부 선택 — 있는 것만 렌더한다."""
+                     glossary: list = None, data_flow: str = None,
+                     spine: dict = None) -> list:
+    """리포트 앞머리 markdown 셀들. 인자는 전부 선택 — 있는 것만 렌더한다.
+
+    spine 이 주어지면 상단을 **'라이브러리 척추'** 리드로 렌더한다(❓질문/⚡TL;DR/🗺️roadmap 대신):
+      spine = dict(core=..., gap=..., prior=..., lib=..., verify=...)
+    각 리포트가 '무엇이 부족했고(gap) 선행은 어떻게 했고(prior) 어떤 라이브러리로 결합해(lib)
+    어떻게 검증했나(verify)' 를 한 표로 못박는다.
+    """
     def md(*lines):
         s = "\n".join(lines).splitlines(keepends=True)
         return {"cell_type": "markdown", "metadata": {}, "source": s or [""]}
@@ -156,19 +163,35 @@ def provenance_cells(report: str, what: str, question: str,
     L, R = [], []
 
     # ── 헤드 ────────────────────────────────────────────────────────────────
-    L += [f"# {report} — {what}", "",
-          f"> ### ❓ 이 리포트가 답하는 질문", f"> **{question}**", ""]
+    if spine:
+        # 라이브러리 척추 리드 — 비유·Q&A 스캐폴딩 없이 '공백→선행→라이브러리→검증' 한눈에
+        L += [f"# {report} — {what}", ""]
+        if spine.get("core"):
+            L += [f"**핵심.** {spine['core']}", ""]
+        L += ["| 이 리포트의 척추 |  |", "|---|---|"]
+        if spine.get("gap"):
+            L += [f"| **① Sionna 의 공백** | {spine['gap']} |"]
+        if spine.get("prior"):
+            L += [f"| **② 선행 연구의 방식** | {spine['prior']} |"]
+        if spine.get("lib"):
+            L += [f"| **③ 쓴 라이브러리·결합** | {spine['lib']} |"]
+        if spine.get("verify"):
+            L += [f"| **④ 검증** | {spine['verify']} |"]
+        L += ["", "---", ""]
+    else:
+        L += [f"# {report} — {what}", "",
+              f"> ### ❓ 이 리포트가 답하는 질문", f"> **{question}**", ""]
 
-    if tldr:
-        L += ["### ⚡ 결론부터 (TL;DR)", ""]
-        L += [f"{i+1}. {t}" for i, t in enumerate(tldr)]
-        L += [""]
+        if tldr:
+            L += ["### ⚡ 결론부터 (TL;DR)", ""]
+            L += [f"{i+1}. {t}" for i, t in enumerate(tldr)]
+            L += [""]
 
-    if roadmap:
-        L += ["### 🗺️ 어디부터 읽나", "", "| 절 | 무엇을 |  |", "|---|---|---|"]
-        L += [f"| {r.get('sec','')} | {r.get('what','')} | {r.get('why','')} |" for r in roadmap]
-        L += [""]
-    L += ["---", ""]
+        if roadmap:
+            L += ["### 🗺️ 어디부터 읽나", "", "| 절 | 무엇을 |  |", "|---|---|---|"]
+            L += [f"| {r.get('sec','')} | {r.get('what','')} | {r.get('why','')} |" for r in roadmap]
+            L += [""]
+        L += ["---", ""]
     cells = [md(*L)]
 
     # ── 출처·도구·환경 ──────────────────────────────────────────────────────
