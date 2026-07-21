@@ -32,7 +32,9 @@
 > RCS 는 외부 경로 필요"라는 우리 report06/07 주장은 **Sionna 2.x 에서도 정확**하다(SBR 은 경로탐색용이지 RCS 적분 아님).
 > ⚠주의: "RT 가 RCS 못 낸다"가 아니라 "**Sionna 기본 PathSolver 에 PO 표면적분이 없다**"가 정확한 표현([[sionna2-rt-rcs-claim-scope]]).
 >
-> **⭐ (R13 보강) Sionna 는 확장을 설계로 지원**: Sionna RT 문서는 (i) **Custom Scattering Patterns API**(확산산란 각분포 함수를 등록·미분가능하게)와 (ii) **커스텀 PathSolver**("built-in solver 의 대안 구현을 쉽게")를 공식 제공한다. 즉 **RCS/표적 산란은 Sionna 가 사용자에게 얹으라고 열어둔 A2 경로**다 — 우리 SBR+PO(Mitsuba 광선 재사용 + PO 표면적분)가 바로 그 확장이다. 따라서 가장 정직한 프레이밍: *"Sionna 기본 solver 는 코히런트 PO/RCS 를 안 낸다(확산산란 S 계수·SBR 경로탐색만). 그러나 Sionna 는 커스텀 solver/산란패턴 확장을 명시 지원하며, 우리는 그 경로로 SBR+PO 를 얹었다."* (GitHub Discussion #844 = 대량 광선샘플링 RCS 커뮤니티 논의도 같은 A2/C 맥락.)
+> **⭐ (R13 보강) Sionna 는 확장을 설계로 지원**: Sionna RT 문서는 (i) **Custom Scattering Patterns API**(확산산란 각분포 함수를 등록·미분가능하게)와 (ii) 하부 **Mitsuba 광선엔진 노출**(그 위에 자작 solver 를 얹음). ⚠2026-07-21 실측 정정: `ScatteringPattern`/`RadioMaterialBase` 는 추상베이스라 **커스텀 산란패턴·재질이 공식 확장점**이 맞으나, **`PathSolver` 는 subclass 확장점이 아니다**(MRO=[PathSolver,object]) — 정확히는 Mitsuba 광선엔진 위에 직접 짠다(우리 rcs_sbr.py). 즉 **RCS/표적 산란은 Sionna 가 사용자에게 얹으라고 열어둔 A2 경로**이고 우리 SBR+PO 가 그 확장이다. 정직 프레이밍: *"Sionna 기본 solver 는 코히런트 PO/RCS 를 안 낸다(확산산란 S 계수·SBR 경로탐색만). 재질/산란패턴 확장점은 공식 제공하며, 우리는 광선엔진 위에 PO 를 얹었다."*
+>
+> ⭐**개발사 공식 확인 (GitHub Discussion #844, report06 핵심 인용):** 사용자가 "Sionna RT 로 금속체를 대량 광선 샘플링해 RCS 를 낼 수 있나" 묻자 메인테이너 **Jakob Hoydis 가 "This is currently not supported" 라고 답**했다 — 상세 mesh 표적 RCS 가 Sionna RT **기본 기능이 아니며 커스텀 구현이 필요**함을 NVIDIA 가 직접 확인. 2026-07-21 타깃 검색(별도 에이전트): **등재(비-arXiv) 논문 중 Sionna-내-mesh-표적-RCS 계산은 발견 못 함**(mesh 환경은 흔하나 표적 RCS 는 3GPP/실측/해석모델 주입이 표준). 감시대상 1건=Ziganshin(2604.05991, IEEE OJAP 심사정황·차량·UTD). ⚠Sagitta(2604.09243)는 실은 **Sionna 미사용** 독립 BVH SBR 로 재확인(과거 표기 정정).
 >
 > 규칙: 사이클마다 (1) 이 파일에서 이미 커버된 각도/논문 확인 → (2) 아직 안 본 각도/venue 로
 > 새 논문 검색 → (3) 중복 제거 → (4) 아래에 항목 추가 · 카운터 갱신. URL 은 실재만.

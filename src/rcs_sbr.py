@@ -32,7 +32,8 @@ rcs_sbr.py — **SBR (Shooting-and-Bouncing Rays)**: Mitsuba 광선 + PO 적분�
   즉 **û 방향에서 평행 광선을 균일 격자(간격 d)로 쏘면**, 맞은 지점마다
         E = Σ_hits |Γ_i| · e^{j2k p_i·û} · d²        (d² = 광선 1발의 투영면적)
         σ = (4π/λ²) · |E|²
-  격자 간격 d 는 λ/6 이하로 잡으면 위상이 잘 표현된다(수렴성은 validate() 로 확인).
+  격자 간격 d = λ/DEFAULT_DIV(현재 λ/12). ⚠ 곡면 수렴은 단조롭지 않다(실루엣 grazing 위상
+  에일리어싱으로 ±1.5 dB 진동) — 절대레벨엔 격자 불확실성이 있고 자세간 상대패턴만 안정하다(validate()).
 
 실행:  CUDA_VISIBLE_DEVICES=2 python src/rcs_sbr.py          (해석해 검증 + 기존 PO 대조)
 """
@@ -60,22 +61,33 @@ from materials import gamma_po                       # noqa: E402  (Sionna 와 �
 
 C0 = 299792458.0
 
-#  광선 격자 간격 = λ / DEFAULT_DIV.  촘촘할수록 정확하다(검증: λ/6 에서 평판 오차 −0.01 dB).
-#  GPU 메모리는 남아돌므로 **넉넉히 촘촘하게** 잡는다 — λ/12 면 드론 1방위당 ~15k 광선.
+#  광선 격자 간격 = λ / DEFAULT_DIV.
+#  ⚠ 수렴은 곡면에서 단조롭지 않다(구 r=0.5m 오차 실측: λ/6 +1.75 → λ/10 +0.40 → λ/12 +1.45 → λ/16 −0.58 dB,
+#    0 을 관통해 ±1.5 dB 진동 — 실루엣 grazing 광선의 위상 에일리어싱). 평판 정면(el=90°)은 위상항이
+#    상수라 이 진동을 진단 못 한다 → **절대레벨엔 ±1.5 dB 격자 불확실성**이 있다(자세간 상대패턴은 0.06 dB 로 안정).
 DEFAULT_DIV = 12
+
+#  유전체 셸(투과 대상) — 이 그룹은 광선을 통과시켜 내부 금속(배터리/PCB)을 본다.
+#  근거: SBR first-hit 은 셸을 불투명 처리해 내부 금속을 삭제하는데, 재질 모델(셸 |Γ|=0.28)의 전제가
+#  '반투명 셸 통과 → 내부 금속 지배' 이므로 투과를 넣지 않으면 엔진이 자기모순이다(직접 검증: battery/pcb 0 히트).
+_DIELECTRIC_SHELLS = frozenset({"body", "canopy"})
 
 
 # --------------------------------------------------------------------------- #
 #  geom.Mesh → Mitsuba 씬 (그룹당 shape 1개 → 그룹별 |Γ| 를 붙일 수 있다)
 # --------------------------------------------------------------------------- #
-def _mi_scene_from_mesh(mesh: Mesh, group_mat: dict):
-    """그룹당 mi.Mesh 하나. 반환: (mi_scene, [shape...], [gamma...])"""
+def _mi_scene_from_mesh(mesh: Mesh, group_mat: dict, fc: float = 3.5e9, exclude=()):
+    """그룹당 mi.Mesh 하나. 반환: (mi_scene, [shape...], [gamma...]).
+    fc: |Γ| 를 주파수에 맞춰 계산(override 재질은 상수라 무영향, 잠복버그 예방).
+    exclude: 이 그룹들을 씬에서 뺀다 — 유전체 셸을 빼고 쏘면 광선이 통과해 내부를 본다(투과 패스용)."""
     V = np.asarray(mesh.v, np.float32)
     F = np.asarray(mesh.f, np.uint32)
     G = np.asarray(mesh.g)
 
     shapes_d, gammas = {}, []
     for gi, grp in enumerate(sorted(set(G.tolist()))):
+        if grp in exclude:
+            continue
         f = F[G == grp]
         used = np.unique(f)
         remap = np.full(V.shape[0], -1, np.int64)
@@ -87,8 +99,8 @@ def _mi_scene_from_mesh(mesh: Mesh, group_mat: dict):
         p["faces"] = mi.UInt32(remap[f].astype(np.uint32).ravel())
         p.update()
         shapes_d[f"s_{gi}"] = m
-        mat = group_mat.get(grp, "plastic") if isinstance(group_mat.get(grp), str) else None
-        gammas.append(float(group_mat[grp]) if mat is None else gamma_po(mat))
+        val = group_mat.get(grp, "plastic")             # 누락 그룹은 안전 기본(plastic) — KeyError 방지
+        gammas.append(float(val) if not isinstance(val, str) else gamma_po(val, fc))
     scene = mi.load_dict({"type": "scene", **shapes_d})
     return scene, list(scene.shapes()), np.asarray(gammas, float)
 
@@ -104,32 +116,47 @@ def _look(az_deg, el_deg):
 _SCENE_CACHE: dict = {}
 
 
-def _scene_for(mesh: Mesh, group_mat: dict, key=None):
-    """씬 재사용 — 같은 메쉬로 방위각을 스윕할 때 매번 다시 만들지 않는다."""
-    if key is not None and key in _SCENE_CACHE:
-        return _SCENE_CACHE[key]
-    out = _mi_scene_from_mesh(mesh, group_mat)
-    if key is not None:
-        _SCENE_CACHE[key] = out
+def _scene_for(mesh: Mesh, group_mat: dict, key=None, fc: float = 3.5e9, exclude=()):
+    """씬 재사용 — 같은 메쉬로 방위각을 스윕할 때 매번 다시 만들지 않는다.
+    ⚠ gammas 는 fc 의존이므로 캐시키에 fc(MHz)·exclude 를 접어 넣는다(과거엔 stale 위험)."""
+    ck = (key, round(float(fc) / 1e6), tuple(sorted(exclude))) if key is not None else None
+    if ck is not None and ck in _SCENE_CACHE:
+        return _SCENE_CACHE[ck]
+    out = _mi_scene_from_mesh(mesh, group_mat, fc, exclude)
+    if ck is not None:
+        _SCENE_CACHE[ck] = out
     return out
 
 
 def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
-                  spacing=None, pad=1.15, cache_key=None, chunk_az=None):
+                  spacing=None, pad=1.15, cache_key=None, chunk_az=None, penetrate=True, jitter=2):
     """**방위각 전체를 한 배치로** GPU 에 올려 1-bounce SBR σ 를 낸다 (가림 포함).
 
     왜 배치인가: 방위각 하나당 Mitsuba 호출을 따로 하면 커널 실행 오버헤드가 지배한다.
-    광선 격자 여러 방위를 **하나의 큰 광선 다발**로 합쳐 쏘면 GPU 를 제대로 쓴다
-    (메모리 예산은 gpu.budget_mb() 를 따른다).
+    광선 격자 여러 방위를 **하나의 큰 광선 다발**로 합쳐 쏘면 GPU 를 제대로 쓴다.
+
+    penetrate=True 면 **유전체 셸(_DIELECTRIC_SHELLS)을 통과시켜 내부 금속(배터리/PCB)**을
+    왕복 투과 진폭 τ=1−|Γ_shell|² 로 가중해 외부 기여와 **코히런트 합산**한다 — first-hit 가
+    내부를 삭제하는 자기모순(직접 검증: battery/pcb 0 히트)을 없앤다. 셸 없는 표적(구·평판)엔 무영향.
+    ⚠ 근사: 얇은 셸의 굴절(광로 굴곡)·유전체 내 위상지연은 무시(1차 투과·기하위상만).
 
     다중반사가 필요하면 rcs_sbr(..., max_bounce≥2) 를 쓸 것 (배치 안 함)."""
     from gpu import budget_mb
     lam = C0 / float(fc)
     k = 2.0 * np.pi / lam
-    d = float(spacing) if spacing else lam / DEFAULT_DIV      # 촘촘하게 — GPU 는 남는다
+    d = float(spacing) if spacing else lam / DEFAULT_DIV
 
-    scene, shapes, gammas = _scene_for(mesh, group_mat, cache_key)
+    scene, shapes, gammas = _scene_for(mesh, group_mat, cache_key, fc)
     shape_ptrs = [mi.ShapePtr(s) for s in shapes]
+
+    # 유전체 셸 투과 준비 — 셸 shape 위치(=그룹 정렬순) + 셸 제거한 '내부 씬'
+    group_names = sorted(set(np.asarray(mesh.g).tolist()))
+    shell_pos = [i for i, gn in enumerate(group_names) if gn in _DIELECTRIC_SHELLS]
+    do_pen = penetrate and len(shell_pos) > 0
+    if do_pen:
+        ck_i = (cache_key, "noshell") if cache_key is not None else None
+        scene_i, shapes_i, gammas_i = _scene_for(mesh, group_mat, ck_i, fc, exclude=_DIELECTRIC_SHELLS)
+        shptr_i = [mi.ShapePtr(s) for s in shapes_i]
 
     V = np.asarray(mesh.v, float)
     ctr = 0.5 * (V.max(0) + V.min(0))
@@ -142,51 +169,166 @@ def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
     rays_per_az = A.size
 
     az = np.atleast_1d(np.asarray(az_deg, float))
-    # 한 배치에 몇 방위? — ray 1발당 대략 160 B (o,d,si) 로 잡고 예산의 50% 사용
     if chunk_az is None:
-        per_az_bytes = rays_per_az * 160
-        # 예산의 85% 를 채운다 — 찔끔 쓰지 않는다(사용자 지시)
+        per_az_bytes = rays_per_az * 160 * (2 if do_pen else 1)   # 투과 패스면 광선 2배
         chunk_az = int(max(1, min(len(az), budget_mb() * 1024 * 1024 * 0.85 / per_az_bytes)))
+
+    def _lit_g_phase(si, shptr, gam, D, U):
+        """히트 → (lit 마스크, g[|Γ|], 위상, valid). 외부/내부 패스 공통."""
+        valid = np.asarray(si.is_valid()).astype(bool)
+        P = np.asarray(mi.Point3f(si.p)).T
+        Nn = np.asarray(mi.Vector3f(si.n)).T
+        g = np.zeros(P.shape[0])
+        for sp, gm in zip(shptr, gam):
+            g = np.where(np.asarray(si.shape == sp).astype(bool), gm, g)
+        sgn = np.sign(np.einsum("ij,ij->i", Nn, -D)); sgn[sgn == 0] = 1.0
+        Nn = Nn * sgn[:, None]
+        lit = valid & (np.einsum("ij,ij->i", Nn, U) > 1e-6)      # 조명·수신 게이트
+        phase = np.exp(1j * 2.0 * k * np.einsum("ij,ij->i", P - ctr, U))  # 중심감산(float32 안정·σ 불변)
+        return lit, g, phase, valid, si
+
+    # jitter: 격자 위상 평균으로 절대 σ 안정화(단일격자 ±1.5 dB → J=2 ±0.15 dB). J² 오프셋.
+    J = max(1, int(jitter))
+    fr = (np.arange(J) + 0.5) / J - 0.5
+    offsets = [(ox * d, oy * d) for ox in fr for oy in fr]
 
     sig = np.zeros(len(az))
     for s0 in range(0, len(az), chunk_az):
         sub = az[s0:s0 + chunk_az]
-        O_all, D_all, U_all = [], [], []
+        bases = []
         for a in sub:
             u = _look(a, el_deg)
             tmp = np.array([0.0, 0.0, 1.0]) if abs(u[2]) < 0.9 else np.array([1.0, 0.0, 0.0])
             e1 = np.cross(u, tmp); e1 /= np.linalg.norm(e1)
             e2 = np.cross(u, e1)
-            O_all.append((ctr + Rout * u)[None, :] + A[:, None] * e1 + B[:, None] * e2)
-            D_all.append(np.tile(-u, (rays_per_az, 1)))
-            U_all.append(np.tile(u, (rays_per_az, 1)))
-        O = np.concatenate(O_all); D = np.concatenate(D_all); U = np.concatenate(U_all)
-
-        ray = mi.Ray3f(o=mi.Point3f(*O.T.astype(np.float32)),
-                       d=mi.Vector3f(*D.T.astype(np.float32)))
-        si = scene.ray_intersect(ray)
-        valid = np.asarray(si.is_valid()).astype(bool)
-        P = np.asarray(mi.Point3f(si.p)).T
-        Nn = np.asarray(mi.Vector3f(si.n)).T
-        g = np.zeros(P.shape[0])
-        for sp, gm in zip(shape_ptrs, gammas):
-            g = np.where(np.asarray(si.shape == sp).astype(bool), gm, g)
-
-        # 법선을 광선 반대쪽으로 정렬 → (n̂·û)>0 인 면만 레이더로 되돌아간다
-        sgn = np.sign(np.einsum("ij,ij->i", Nn, -D)); sgn[sgn == 0] = 1.0
-        Nn = Nn * sgn[:, None]
-        cosr = np.einsum("ij,ij->i", Nn, U)
-        lit = valid & (cosr > 1e-6)
-
-        # 방위각별로 코히어런트 합
+            bases.append((u, e1, e2))
         aidx = np.repeat(np.arange(len(sub)), rays_per_az)
-        phase = np.exp(1j * 2.0 * k * np.einsum("ij,ij->i", P, U))
-        contrib = np.where(lit, g * 1.0, 0.0) * phase
-        E = np.zeros(len(sub), complex)
-        np.add.at(E, aidx, contrib)
-        sig[s0:s0 + len(sub)] = (4.0 * np.pi / lam ** 2) * np.abs(E * d * d) ** 2
+        sig_acc = np.zeros(len(sub))
+        for ox, oy in offsets:                                    # 격자 위상 평균
+            O_all, D_all, U_all = [], [], []
+            for u, e1, e2 in bases:
+                O_all.append((ctr + Rout * u)[None, :] + (A + ox)[:, None] * e1 + (B + oy)[:, None] * e2)
+                D_all.append(np.tile(-u, (rays_per_az, 1)))
+                U_all.append(np.tile(u, (rays_per_az, 1)))
+            O = np.concatenate(O_all); D = np.concatenate(D_all); U = np.concatenate(U_all)
+
+            ray = mi.Ray3f(o=mi.Point3f(*O.T.astype(np.float32)),
+                           d=mi.Vector3f(*D.T.astype(np.float32)))
+            si = scene.ray_intersect(ray)
+            lit, g, phase, valid, si = _lit_g_phase(si, shape_ptrs, gammas, D, U)
+            contrib = np.where(lit, g, 0.0) * phase
+
+            # ── 유전체 셸 투과: 셸 맞은 광선만 내부 금속을 τ 가중 코히런트 가산 ──
+            if do_pen:
+                tau = np.zeros(valid.shape[0])                    # 왕복 투과 진폭(셸 아니면 0)
+                for i in shell_pos:
+                    tau = np.where(np.asarray(si.shape == shape_ptrs[i]).astype(bool),
+                                   1.0 - gammas[i] ** 2, tau)
+                si2 = scene_i.ray_intersect(ray)
+                lit2, g2, phase2, _, _ = _lit_g_phase(si2, shptr_i, gammas_i, D, U)
+                contrib = contrib + np.where(lit2 & (tau > 0), tau * g2, 0.0) * phase2
+
+            E = np.zeros(len(sub), complex)
+            np.add.at(E, aidx, contrib)
+            sig_acc += (4.0 * np.pi / lam ** 2) * np.abs(E * d * d) ** 2
+        sig[s0:s0 + len(sub)] = sig_acc / len(offsets)
 
     return sig if len(az) > 1 else float(sig[0])
+
+
+def rcs_sbr_multistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s_list,
+                        spacing=None, pad=1.15, cache_key=None, penetrate=True, jitter=2):
+    """**바이스태틱/멀티스태틱** RCS σ(û_i,û_s)[m²].
+
+    û_i = 표적→송신국, û_s = 표적→수신국 방향(둘 다 outward 단위벡터).
+    일반 PO:  E ∝ Σ_hit |Γ| · e^{jk(û_i+û_s)·p} · d²,   σ = 4π/λ²|E|².
+      · 조명면 판정 (n̂·û_i>0) — 광선을 û_i 로 쏘므로 dA_투영=d² 상쇄가 그대로 성립(추가 obliquity 없음).
+      · 수신 가시 판정 (n̂·û_s>0) — û_s 로 되돌아가는 면만.
+      · 모노스태틱은 û_s=û_i 특수해 → e^{j2k û·p} 로 rcs_sbr_batch 와 정확히 일치.
+
+    **멀티스태틱 효율**: 조명(광선추적)은 û_i 로만 결정 → **한 번만** 쏘고, 각 û_s(∈u_s_list)에 대해
+    싼 위상합만 반복한다(Rx 를 늘려도 비싼 광선추적 재사용). u_s_list = [û_i] 면 모노(rcs_sbr_batch 와 0dB 일치).
+
+    ⚠ **적용범위 한계(집중 적대검증으로 확인, 정직 표기):**
+      (1) **전방산란 무효**: β→180°(û_s≈−û_i)에서 조명게이트(n̂·û_i>0)와 수신게이트(n̂·û_s>0)가
+          상호배타 → σ≡0. lit-PO 는 그림자복사(Babinet 전방로브 σ_fwd=4πA²/λ²)를 못 낸다 →
+          **후방~중간 바이스태틱각(β≲90°급, 조명면 일부가 여전히 Rx 가시)에만 유효.**
+      (2) **상반성 부분성립**: σ(û_i,û_s)=σ(û_s,û_i)가 볼록·강반사에선 성립(구 ~0.2dB)하나
+          **비볼록 표적의 깊은 널에선 rms~5~9dB(최대 18dB) 깨진다**(û_i 단일조명격자 재사용의 구조적 대가,
+          격자세분으로 안 줄어듦). 상반성이 필요하면 σ_sym=√(σ(i,s)·σ(s,i)) 로 σ레벨 대칭화할 것.
+      (3) 투과 출사경로(û_s 로 셸 재통과)는 입사 τ 로 근사(1차 투과) → 바이스태틱 비대칭을 더 키움."""
+    lam = C0 / float(fc)
+    k = 2.0 * np.pi / lam
+    d = float(spacing) if spacing else lam / DEFAULT_DIV
+    u_i = np.asarray(u_i, float); u_i = u_i / np.linalg.norm(u_i)
+    U_s = np.atleast_2d(np.asarray(u_s_list, float))
+    U_s = U_s / np.linalg.norm(U_s, axis=1, keepdims=True)
+
+    scene, shapes, gammas = _scene_for(mesh, group_mat, cache_key, fc)
+    shape_ptrs = [mi.ShapePtr(s) for s in shapes]
+    group_names = sorted(set(np.asarray(mesh.g).tolist()))
+    shell_pos = [i for i, gn in enumerate(group_names) if gn in _DIELECTRIC_SHELLS]
+    do_pen = penetrate and len(shell_pos) > 0
+    if do_pen:
+        ck_i = (cache_key, "noshell") if cache_key is not None else None
+        scene_i, shapes_i, gammas_i = _scene_for(mesh, group_mat, ck_i, fc, exclude=_DIELECTRIC_SHELLS)
+        shptr_i = [mi.ShapePtr(s) for s in shapes_i]
+
+    V = np.asarray(mesh.v, float)
+    ctr = 0.5 * (V.max(0) + V.min(0))
+    Rout = float(np.linalg.norm(V - ctr, axis=1).max()) * pad + 3 * d
+
+    # 조명 격자(û_i 수직 평면) basis + jitter 오프셋(격자 위상 평균)
+    tmp = np.array([0.0, 0.0, 1.0]) if abs(u_i[2]) < 0.9 else np.array([1.0, 0.0, 0.0])
+    e1 = np.cross(u_i, tmp); e1 /= np.linalg.norm(e1)
+    e2 = np.cross(u_i, e1)
+    n = int(np.ceil(2 * Rout / d))
+    t = (np.arange(n) - (n - 1) / 2.0) * d
+    A, B = np.meshgrid(t, t, indexing="ij"); A, B = A.ravel(), B.ravel()
+    J = max(1, int(jitter))
+    fr = (np.arange(J) + 0.5) / J - 0.5
+    offsets = [(ox * d, oy * d) for ox in fr for oy in fr]
+
+    sig_acc = np.zeros(len(U_s))
+    for ox, oy in offsets:
+        O = (ctr + Rout * u_i)[None, :] + (A + ox)[:, None] * e1 + (B + oy)[:, None] * e2
+        D = np.tile(-u_i, (A.size, 1))
+        ray = mi.Ray3f(o=mi.Point3f(*O.T.astype(np.float32)), d=mi.Vector3f(*D.T.astype(np.float32)))
+
+        def _hits(sc, shptr, gam):
+            si = sc.ray_intersect(ray)
+            valid = np.asarray(si.is_valid()).astype(bool)
+            P = np.asarray(mi.Point3f(si.p)).T
+            Nn = np.asarray(mi.Vector3f(si.n)).T
+            g = np.zeros(P.shape[0])
+            for sp, gm in zip(shptr, gam):
+                g = np.where(np.asarray(si.shape == sp).astype(bool), gm, g)
+            sgn = np.sign(np.einsum("ij,ij->i", Nn, -D)); sgn[sgn == 0] = 1.0
+            return valid, P - ctr, Nn * sgn[:, None], g, si
+
+        valid, Pc, Nn, g, si = _hits(scene, shape_ptrs, gammas)      # 외부 조명 히트
+        lit_i = valid & ((Nn @ u_i) > 1e-6)      # û_i 조명 게이트
+        if do_pen:
+            tau = np.zeros(valid.shape[0])
+            for i in shell_pos:
+                tau = np.where(np.asarray(si.shape == shape_ptrs[i]).astype(bool),
+                               1.0 - gammas[i] ** 2, tau)
+            valid2, Pc2, Nn2, g2, _ = _hits(scene_i, shptr_i, gammas_i)   # 내부 금속 히트
+            lit2_i = valid2 & ((Nn2 @ u_i) > 1e-6)
+
+        # ⚠ obliquity 는 û_i 개구 샘플링에 내재한 (n̂·û_i) 를 그대로 쓴다(표준 PO). 대칭
+        #   √((n̂·û_i)(n̂·û_s)) 로 승격하면 이론상 상반성이 복원되나, grazing 조명면(n̂·û_i→0)에서
+        #   √(cosθ_s/cosθ_i) 가 이산 격자를 폭발시켜(단일광선 수백배 가중) 오히려 rms 오차가 커진다.
+        #   → 표준 (n̂·û_i) 유지. 상반성이 필요하면 σ_sym=√(σ(i,s)·σ(s,i)) 로 σ 레벨에서 대칭화할 것.
+        for j, u_s in enumerate(U_s):
+            lit = lit_i & ((Nn @ u_s) > 1e-6)   # + û_s 수신 게이트
+            E = np.sum(np.where(lit, g, 0.0) * np.exp(1j * k * (Pc @ (u_i + u_s))))
+            if do_pen:
+                litp = lit2_i & ((Nn2 @ u_s) > 1e-6) & (tau > 0)
+                E = E + np.sum(np.where(litp, tau * g2, 0.0) * np.exp(1j * k * (Pc2 @ (u_i + u_s))))
+            sig_acc[j] += (4.0 * np.pi / lam ** 2) * np.abs(E * d * d) ** 2
+    sig = sig_acc / len(offsets)
+    return sig if len(U_s) > 1 else float(sig[0])
 
 
 def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
@@ -231,7 +373,7 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
     sgn = np.sign(Nn @ u); sgn[sgn == 0] = 1.0
     Nn = Nn * sgn[:, None]
     lit = valid & ((Nn @ u) > 1e-6)
-    return complex(np.sum(np.where(lit, g, 0.0) * np.exp(1j * 2.0 * k * (P @ u)))) * d * d
+    return complex(np.sum(np.where(lit, g, 0.0) * np.exp(1j * 2.0 * k * ((P - ctr) @ u)))) * d * d
 
 
 def rcs_sbr(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
@@ -240,7 +382,7 @@ def rcs_sbr(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
 
       mesh      : geom.Mesh (표적)
       group_mat : 그룹 → 재질키(str, materials.MATERIALS) 또는 |Γ|(float)
-      spacing   : 광선 격자 간격 [m]. 기본 λ/6.
+      spacing   : 광선 격자 간격 [m]. 기본 λ/DEFAULT_DIV(현재 λ/12).
       max_bounce: 1 = 1차 PO(=기존 PO 와 동급, 단 가림 포함).
                   ≥2 = 반사 후 재추적 → **오목부(로터 아래·짐벌 그늘) 다중반사** 반영.
       pad       : 광선 격자를 표적 투영 bbox 대비 얼마나 넓게 (여유)
@@ -301,7 +443,6 @@ def rcs_sbr(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
                 break
             Ph, Nh, gh = P[valid], Nn[valid], g[valid]
             # 법선을 광선 반대쪽으로 정렬(면의 앞/뒤 무관하게)
-            flip = (Nh @ (-Dcur[hit][0] if False else np.zeros(3))) if False else None
             sgn = np.sign(np.einsum("ij,ij->i", Nh, -Dcur[hit]))
             sgn[sgn == 0] = 1.0
             Nh = Nh * sgn[:, None]
@@ -311,7 +452,7 @@ def rcs_sbr(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
             cosr = Nh @ u
             lit = cosr > 1e-6
             if lit.any():
-                r_dot = Ph[lit] @ u
+                r_dot = (Ph[lit] - ctr) @ u        # 중심감산(float32 안정·σ 불변)
                 phase = np.exp(1j * 2.0 * k * (r_dot - 0.5 * path[hit][lit]))
                 E += np.sum(amp[hit][lit] * gh[lit] * phase) * d * d
                 n_hit_total += int(lit.sum())
