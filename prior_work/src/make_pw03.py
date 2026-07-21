@@ -45,7 +45,7 @@ cells = [
         "⭐ **한 발 앞선 점:** $s_q$ 를 스칼라 $\\sigma_b$ 로 주면 위상을 잃지만(RD/CAF 에서 여러 반사가 복소 "
         "위상으로 합쳐지므로 손해), **복소 바이스태틱 산란행렬** "
         "$\\mathbf{S}_b=\\begin{bmatrix}S_{\\theta\\theta}&S_{\\theta\\phi}\\\\ S_{\\phi\\theta}&S_{\\phi\\phi}\\end{bmatrix}$ "
-        "가 이상적이다 — **우리 SBR 은 이미 복소장 $E$ 를 내므로** 스칼라-RCS 주입(대다수 선행)보다 앞선다.",
+        "가 이상적이다 — **우리 SBR+PO 는 이미 복소장 $E$ 를 내므로** 스칼라-RCS 주입(대다수 선행)보다 앞선다.",
     ),
     md(
         "---",
@@ -74,7 +74,7 @@ cells = [
         "| 우리 조각 | 대체/검증 오픈소스 | 상태 |",
         "|---|---|---|",
         "| 검출체인 **ECA/CAF/CFAR** (`passive_process.py`) | **pyAPRiL**(GPLv3, DVB-T/FM 실검증) — 드롭인 대체 | 도입 예정(검증 후 대체) |",
-        "| 대량 몬테카를로(K=6000) | 우리 **detation_gpu.py**(torch 배치) 유지, pyAPRiL 로 단일실현 정합성 검증 | 유지 |",
+        "| 대량 몬테카를로(K=6000) | 우리 **detection_gpu.py**(torch 배치) 유지, pyAPRiL 로 단일실현 정합성 검증 | 유지 |",
         "| 드론 **RCS·마이크로도플러** (`rcs_sbr/po`) | **RadarSimPy**(메쉬RCS) + **openEMS**(full-wave 앵커) 교차검증 | 도입 예정 |",
         "| **추적**(future work) | **Stone Soup**(EKF/UKF·바이스태틱 custom 측정모델) | future work |",
         "| **실측**(X410) | **OpenISAC**(OTA 바이스태틱) + **GNU Radio**(SigMF I/Q 통일) | 실측 단계 |",

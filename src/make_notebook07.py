@@ -102,7 +102,7 @@ cells += provenance_cells(
                "외부에서 구해 채널에 주입한다 — **(b)** 재질 확산계수 S 가정[Great-X, arXiv:2507.08716], "
                "**(c)** 상용 full-wave 로 계산·주입 $h=h_{bg}+h_{target}$[LAMBDA=Sionna+CADFEKO, "
                "arXiv:2607.03826; Temporal-GNN=점산란체, arXiv:2604.08306], **(d)** 자작 산란 add-on"
-               "[Ziganshin UTD, arXiv:2604.05991] (§2)."),
+               "[Ziganshin=Sionna-RT+UTD, arXiv:2604.05991] (§2)."),
         lib=("**(d)** 를 택했다 — 새 광선엔진을 만들지 않는다. Sionna 가 쓰는 **Mitsuba 3 / OptiX 광선을 "
              "그대로 재사용**(중복계산 회피)하고 그 위에 **자작 PO 표면적분**(`src/rcs_sbr.py`, 가림 포함)만 "
              "얹는다. GPU BVH SBR+PO(arXiv:2604.09243)와 **같은 방법**(§3)."),
@@ -241,7 +241,7 @@ cells.append(md(
     "|---|---|---|",
     "| **(b)** | 재질 **확산계수 S** 가정 | Great-X (arXiv:2507.08716) |",
     "| **(c)** | 상용 full-wave 로 계산·주입 $h=h_{bg}+h_{target}$ | LAMBDA=Sionna+CADFEKO(arXiv:2607.03826) · Temporal-GNN=점산란체(arXiv:2604.08306) |",
-    "| **(d)** | 자작 **산란 add-on**(SBR+PO·UTD) | Ziganshin UTD(arXiv:2604.05991) · GPU BVH SBR+PO(arXiv:2604.09243) |",
+    "| **(d)** | 자작 **산란 add-on**(SBR+PO·UTD) | Ziganshin=**Sionna-RT+UTD**(arXiv:2604.05991·우리와 최근접 계열) · GPU BVH SBR+PO(arXiv:2604.09243·독립엔진) |",
     "",
     "공통 아키텍처는 $h_{surv}=h_{direct}+h_{background}+h_{target}$ — 환경 전파는 Sionna 가 주고, "
     "표적 산란만 외부 물리로 계산해 두 전파 구간 사이에 끼운다. 이 중 **(d) SBR+PO** 는 FEKO·CST 같은 "
@@ -309,7 +309,7 @@ cells.append(md(
     "## §4. 검증 — 답을 아는 물건에 대고 재보기",
     "",
     "SBR+PO 계산이 옳게 도는지 확인하는 표준 절차는 **답이 이미 알려진 정준 표적(canonical target)에 "
-    "대고 재보는 것**이다 — 커스텀 산란 add-on 을 얹는 선행 연구(예: Ziganshin, arXiv:2604.05991)도 "
+    "대고 재보는 것**이다 — Sionna-RT 에 커스텀 산란(UTD) add-on 을 얹는 선행 연구(예: Ziganshin, arXiv:2604.05991 — 우리와 같은 'Sionna-RT 확장' 계열)도 "
     "구·원통 같은 정준체를 해석해·상용 솔버(FEKO)·실측과 대조해 검증한다. 레이더 교과서는 두 물건의 "
     "밝기를 폐형식(닫힌 공식)으로 준다: 정면으로 조사한 **금속 평판**은 σ = 4πA²/λ², **금속구**는 "
     "σ = πr².",
