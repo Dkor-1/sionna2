@@ -82,12 +82,24 @@ S_x4_delta = S_2x_coh - S_half_coh                            # +26.2 dB
 slope_dec = RB["B_fit"]["slope_db_per_decade"]                # 21.3 dB/decade
 S_match = RB["B_fit"]["S_to_match_truth"]                     # 0.444
 
-#  [C] 재질별 σ (report3_rt.json C_metal)
-Cm = F["C_metal"]
-sig_full = Cm["sigma"]["full_dbsm"]                           # -20.7
-sig_metal = Cm["sigma"]["metal_only_dbsm"]                    # -23.0
-sig_diel = Cm["sigma"]["dielectric_only_dbsm"]               # -25.6
-metal_share = Cm["metal_share_pct"]                          # 59.3 %
+#  [C] 재질별 σ — ⚠ **현행 엔진 산출물**(report2_waveform_rcs.json materials)에서 읽는다.
+#      구 report3_rt.json C_metal 은 엔진 대공사(유전체셸 투과·지터·바이스태틱, commit 9f26cee) 이전
+#      스냅샷이라 report08 과 부호까지 어긋났다(금속<전체 vs 금속>전체) — 같은 원장을 쓰게 통일.
+Cm = F["C_metal"]                                             # (metal_groups·itu_metal_S 등 설정값만 사용)
+_J2 = json.load(open(os.path.join(ROOT, "outputs", "report2_waveform_rcs.json"), encoding="utf-8"))
+
+
+def _mrow(key):
+    for r in _J2["materials"]["rows"]:
+        if key in r["label"]:
+            return float(r["mean_dbsm"])
+    raise KeyError(key)
+
+
+sig_full = _mrow("Full drone")                                # 현행: -18.4
+sig_metal = _mrow("metal core only")                          # 현행: -18.0 (금속이 전체를 지배)
+sig_diel = _mrow("dielectric only")
+metal_share = 100.0 * 10 ** ((sig_metal - sig_full) / 10.0)   # 선형 전력비 [%]
 metal_groups = Cm["metal_groups"]                            # battery,camera,motor,pcb
 itu_metal_S = Cm["itu_metal_S"]                              # 0.0
 

@@ -332,19 +332,27 @@ def rcs_sbr_multistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s_list,
 
 
 def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
-              cache_key=None):
+              cache_key=None, penetrate=True):
     """**복소 산란장 E(û)** 를 돌려준다 (σ 가 아니라 E — 마이크로도플러는 위상이 필요하다).
 
         E(û) = Σ_hits |Γ_i| · e^{j2k p_i·û} · d²          σ = (4π/λ²)|E|²
 
-    û 는 표적 → 레이더 방향 단위벡터."""
+    û 는 표적 → 레이더 방향 단위벡터. penetrate=True 면 rcs_sbr_batch 와 동일하게 유전체 셸을
+    투과시켜 내부 금속을 τ=1−|Γ|² 로 코히런트 가산(헤드라인과 일관)."""
     lam = C0 / float(fc)
     k = 2.0 * np.pi / lam
     d = float(spacing) if spacing else lam / DEFAULT_DIV
     u = np.asarray(u, float); u = u / np.linalg.norm(u)
 
-    scene, shapes, gammas = _scene_for(mesh, group_mat, cache_key)
+    scene, shapes, gammas = _scene_for(mesh, group_mat, cache_key, fc)
     shape_ptrs = [mi.ShapePtr(s) for s in shapes]
+    group_names = sorted(set(np.asarray(mesh.g).tolist()))
+    shell_pos = [i for i, gn in enumerate(group_names) if gn in _DIELECTRIC_SHELLS]
+    do_pen = penetrate and len(shell_pos) > 0
+    if do_pen:
+        ck_i = (cache_key, "noshell") if cache_key is not None else None
+        scene_i, shapes_i, gammas_i = _scene_for(mesh, group_mat, ck_i, fc, exclude=_DIELECTRIC_SHELLS)
+        shptr_i = [mi.ShapePtr(s) for s in shapes_i]
 
     V = np.asarray(mesh.v, float)
     ctr = 0.5 * (V.max(0) + V.min(0))
@@ -357,23 +365,32 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
     e2 = np.cross(u, e1)
     O = (ctr + Rout * u)[None, :] + A.ravel()[:, None] * e1 + B.ravel()[:, None] * e2
     D = np.tile(-u, (O.shape[0], 1))
-
     ray = mi.Ray3f(o=mi.Point3f(*O.T.astype(np.float32)),
                    d=mi.Vector3f(*D.T.astype(np.float32)))
-    si = scene.ray_intersect(ray)
-    valid = np.asarray(si.is_valid()).astype(bool)
-    P = np.asarray(mi.Point3f(si.p)).T
-    Nn = np.asarray(mi.Vector3f(si.n)).T
-    g = np.zeros(P.shape[0])
-    for sp, gm in zip(shape_ptrs, gammas):
-        g = np.where(np.asarray(si.shape == sp).astype(bool), gm, g)
-    # 법선을 **광선이 오는 쪽**(= 레이더 방향 û)으로 정렬한다.
-    #   광선 방향 D = −û 이므로 광선 반대쪽은 −D = +û.  ⚠ 여기서 부호를 틀리면 조명면이
-    #   0개가 되어 E ≡ 0 이 된다(실제로 한 번 그랬다).
-    sgn = np.sign(Nn @ u); sgn[sgn == 0] = 1.0
-    Nn = Nn * sgn[:, None]
-    lit = valid & ((Nn @ u) > 1e-6)
-    return complex(np.sum(np.where(lit, g, 0.0) * np.exp(1j * 2.0 * k * ((P - ctr) @ u)))) * d * d
+
+    def _field(sc, shptr, gam):
+        si = sc.ray_intersect(ray)
+        valid = np.asarray(si.is_valid()).astype(bool)
+        P = np.asarray(mi.Point3f(si.p)).T
+        Nn = np.asarray(mi.Vector3f(si.n)).T
+        g = np.zeros(P.shape[0])
+        for sp, gm in zip(shptr, gam):
+            g = np.where(np.asarray(si.shape == sp).astype(bool), gm, g)
+        sgn = np.sign(Nn @ u); sgn[sgn == 0] = 1.0        # 법선을 광선 오는 쪽(û)으로 정렬
+        Nn = Nn * sgn[:, None]
+        lit = valid & ((Nn @ u) > 1e-6)
+        return valid, lit, g, np.exp(1j * 2.0 * k * ((P - ctr) @ u)), si
+
+    valid, lit, g, phase, si = _field(scene, shape_ptrs, gammas)
+    E = np.sum(np.where(lit, g, 0.0) * phase)
+    if do_pen:
+        tau = np.zeros(valid.shape[0])
+        for i in shell_pos:
+            tau = np.where(np.asarray(si.shape == shape_ptrs[i]).astype(bool),
+                           1.0 - gammas[i] ** 2, tau)
+        _, lit2, g2, phase2, _ = _field(scene_i, shptr_i, gammas_i)
+        E = E + np.sum(np.where(lit2 & (tau > 0), tau * g2, 0.0) * phase2)
+    return complex(E) * d * d
 
 
 def rcs_sbr(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,

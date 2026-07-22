@@ -204,7 +204,8 @@ _front = provenance_cells(
         lib=("검출 사슬은 새로 짜지 않고 오픈소스 **pyAPRiL**(GPLv3, BME Radarlab)의 `cc_detector`(CAF)·"
              "`CA_CFAR` 를 그대로 쓴다(중복 구현 회피). 표적 밝기 σ 만 자작 SBR+PO 로 계산해 Sionna 채널에 "
              "주입한다 — 파형·전파는 Sionna PHY·RT."),
-        verify=(f"pyAPRiL 로 교차검증 — NR·WiFi·LTE **{PY_OK}/{PY_N} 모드 모두** 정답 거리빈(오차 {PY_ERR} 빈)에 "
+        verify=(f"pyAPRiL 로 교차검증 — NR·WiFi·LTE **{PY_OK}/{PY_N} 모드 모두 CAF 봉우리의 거리빈이 정답과 일치**(오차 {PY_ERR} 빈)한다. "
+                f"⚠ 이는 **CFAR 가 표적 셀에서 검출을 선언했다는 뜻이 아니다**(산출물 detected_at_truth=false) — 상관 피크 위치의 일치일 뿐이다. "
                 f"검출(verify_pyapril.json). 분해능은 이론 ΔR_b=c/B 대비 {DR_MIN:.2f}~{DR_MAX:.2f}배(sinc 0.886), "
                 f"링크버짓 3독립계산 최대 편차 {LB_MAXDEV:.0e} dB, 관측성 회전대칭은 기계정밀도까지 0."),
     ),
@@ -236,6 +237,11 @@ _front = provenance_cells(
         dict(file="outputs/figures/verify_ambiguity_af.png", what="모호함수 거리-도플러 지도 (재사용)"),
     ],
     caveats=[
+        "**σ·SCR·Pd 수치는 RCS 엔진 대공사 이전 스냅샷이다.** 이후 엔진에 유전체 셸 투과(+1.3 dB)·"
+        "격자 지터·바이스태틱 일반화가 들어가(commit 9f26cee) 표적 σ 가 더 밝아졌다. 즉 이 리포트의 "
+        "재현 지시대로 다시 돌리면 SCR·Pd 가 소폭 좋아지는 방향으로 바뀐다(여기 실린 값이 **현행 엔진보다 "
+        "~1.3 dB 어둡다**는 뜻 — ⚠ 실측 대비로는 여전히 밝은 상단이다, report08). 이 리포트의 결론"
+        "(블라인드 속도·분해능·관측성의 구조적 한계)은 σ 절대값에 의존하지 않아 그대로 유지된다.",
         "**블라인드 속도는 적분시간(CPI)에 달렸다.** 여기 값은 운용 적분시간 기준이다. 더 오래 "
         "적분하면 노치가 좁아져 더 느린 표적까지 보이지만 관측이 그만큼 느려진다(맞바꿈).",
         "**분해능은 신호가 상시 쓰는 기준신호의 대역폭이 정한다.** 5G 의 상시 신호(SSB)는 대역이 "
