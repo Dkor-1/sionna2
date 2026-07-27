@@ -14,7 +14,7 @@
 - 사실마다 출처 링크(arXiv/IEEE/GitHub)를 단다.
 - 각 선행 방법이 우리 리포트(report06 Q&A·report12 §2b)와 정합하는지/모순인지 명시한다.
 - 조사 원문 요약은 `/data/public/sionna_jeong/papers_isac_sionna/` 에도 저장(지속 확인용),
-  워크스페이스 미러는 이 폴더의 `refs/`.
+  워크스페이스 미러는 저장소 루트의 `refs/drone_papers/`.
 
 구성(조사 완료 후 생성):
 - `pw01_sionna_isac_papers.ipynb` — Sionna-ISAC 선행 논문: 실재 검증·표적 산란 처리 방식 분류

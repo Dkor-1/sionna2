@@ -285,7 +285,9 @@ def measure_meshes() -> dict:
         s = DRONES[k]
         m = build_drone(s)
         env = frame_envelope_mm(s)
-        off, lwh = env["official_mm"], env["lwh_mm"]
+        # ⚠ 공식 높이가 **프롭 포함**인 기체(Mini 5 Pro)는 프레임이 아니라 **전체 드론**과 견준다 —
+        #   프레임만 91 mm 에 맞추면 프롭이 위로 더 얹혀 실제 총높이가 106 mm 가 된다.
+        off, lwh = env["official_mm"], env["lwh_compare_mm"]
         # ⚠ 공식 치수가 없는 축이 있다(예: Mini 5 Pro 는 DJI 가 펼친 L/W 를 공개 안 함 → None).
         #   그 축은 오차를 계산하지 않고 None 으로 남긴다(이전엔 여기서 TypeError 로 죽었다).
         err = [(100.0 * (lwh[i] - off[i]) / off[i]) if off[i] is not None else None
@@ -298,6 +300,10 @@ def measure_meshes() -> dict:
             err_pct=[(float(e) if e is not None else None) for e in err],
             diagonal_spec_mm=float(s.diagonal_mm),
             diagonal_mesh_mm=float(env["diagonal_effective_mm"]),
+            lwh_frame_mm=[float(x) for x in env["lwh_mm"]],
+            lwh_full_mm=[float(x) for x in env["lwh_full_mm"]],
+            official_includes_props=bool(env["official_includes_props"]),
+            prop_disc_lw_mm=[float(x) for x in env["prop_disc_lw_mm"]],
             fit_scale=[float(x) for x in env["fit_scale"]],
             prop_dia_mm=float(s.prop_dia_mm), prop_blades=int(s.prop_blades),
             weight_g=float(s.weight_g), hover_rpm=float(s.hover_rpm), max_rpm=float(s.max_rpm),

@@ -113,7 +113,11 @@ mavic4pro, PO 예측 −64.87 dB. 순수 1-bounce + 지연게이트:
 
 > ⚠️ **"곡면에서 정반사는 원리적으로 불가능"이라고까지 말하면 안 된다.** 적대적 검증에서 반례가 나왔다 — 메쉬 자세를 무작위로 돌리면 유효 삼각형이 존재하는 자세가 수 % 확률로 나타나고, 그런 자세에선 Sionna 도 정반사 경로를 만든다. 다만 **잡혀도 진폭은 틀린다**(단일 패싯이 '평판'으로 반사 → 구 이론 대비 +15 dB). 정확한 표현은 **"저확률 + 잡혀도 진폭 무의미"** 다.
 
-**(3) 더 근본적으로 — Sionna RT 의 path solver 에 산란적분 단계가 없다.** SBR 로 RCS 를 계산하려면 **산란적분(PO) 단계**가 필요한데 Sionna RT 에는 그 단계가 없다. Sionna RT 2.0.1 패키지 전체에서 `rcs|radar_cross` grep → **0 hits**, 공개 심볼 161개 중 radar/sensing/RCS **0개**, 공식 튜토리얼에도 **0개**. 메인테이너(J. Hoydis)도 Discussion #844 에서 RCS 는 *"not supported out of the box"* 라고 답했다 — 다만 그는 곧이어 **custom PathSolver 로 직접 구현할 수 있다**고도 했다(§7-10).
+**(3) 더 근본적으로 — Sionna RT 의 path solver 에 산란적분 단계가 없다.** SBR 로 RCS 를 계산하려면 **산란적분(PO) 단계**가 필요한데 Sionna RT 에는 그 단계가 없다. Sionna RT 2.0.1 패키지 전체에서 `rcs|radar_cross` grep → **0 hits**, 공개 심볼 161개 중 radar/sensing/RCS **0개**, 공식 튜토리얼에도 **0개**. 메인테이너(J. Hoydis)도 Discussion #844 에서 RCS 는 *"not supported out of the box"* 라고 답했다 — 다만 그는 곧이어 **직접 구현할 수 있다**고도 했다(§7-10).
+> ⚠ 2026-07-21 실측 정정: 그 '직접 구현'을 **custom PathSolver** 로 적었던 것은 틀렸다 —
+> sionna-rt 2.0.1 에서 `PathSolver.__mro__ == (PathSolver, object)` 로 **subclass 확장점이 아니다**.
+> 공식 확장점은 **커스텀 산란패턴/재질**(`ScatteringPattern`·`RadioMaterialBase` 추상베이스)이고,
+> RCS solver 는 **노출된 Mitsuba 광선엔진 위에 직접** 얹는다(우리 `src/rcs_sbr.py` 가 그 길).
 
 ---
 
@@ -127,7 +131,7 @@ mavic4pro, PO 예측 −64.87 dB. 순수 1-bounce + 지연게이트:
 
 - ❌ *"3GPP 가 지지하는 표준 관행"* — 범주오류. 3GPP ISAC 의 RCS 파라미터화는 **통계적 채널모델(GSCM) 안**의 이야기다. "결정론적 RT 환경 + 외부 결정론적 PO σ 주입" 하이브리드를 3GPP 가 표준화한 바 없다.
 - ❌ *"RCS 는 레이트레이싱에서 창발하지 않는다"* — 거짓. **SBR(GO+PO)는 기하에서 RCS 를 계산해낸다.** 참인 명제는 훨씬 좁다: **"산란적분 단계가 없는 전파용 레이트레이서(Sionna RT 포함)에서는 창발하지 않는다."**
-- ❌ *"정공법이 아예 없다"* — 메인테이너가 지목한 in-Sionna 경로(custom PathSolver)가 존재한다. 우리가 안 하는 이유는 **비용/충실도**이지 부재가 아니다.
+- ❌ *"정공법이 아예 없다"* — in-Sionna 경로가 존재한다: **커스텀 산란패턴/재질**(공식 확장점) + **노출된 Mitsuba 광선엔진** 위의 자작 적분. 우리가 그 위에서 SBR+PO 를 돌린다. (⚠ `PathSolver` subclassing 은 그 경로가 아니다 — 위 정정 참고.)
 
 ### 유효 조건
 
@@ -158,11 +162,13 @@ mavic4pro, PO 예측 −64.87 dB. 순수 1-bounce + 지연게이트:
 
 **단기**
 4. PO 점간격 기본값을 λ/7 → λ/15 로 올릴지 결정(−0.28 dB 계통오차 제거 vs 전 그림 재생성 비용).
-5. **PO 절대 불확실도를 재유도.** 자기차폐를 켤 때 **불투명 depth-buffer 를 내부 산란체에 적용하면 안 된다**(재질 모델이 셸을 반투명으로 가정하는데 불투명 버퍼가 지배 산란체를 지운다).
+5. ~~**PO 절대 불확실도를 재유도.** 자기차폐를 켤 때 불투명 depth-buffer 를 내부 산란체에 적용하면 안 된다~~
+   → **2026-07-21 완료.** 유전체 셸을 τ=1−|Γ|² 로 투과시켜 내부 금속을 살린다(`penetrate=True`). 아래는 당시 서술:
+   원문: 자기차폐를 켤 때 **불투명 depth-buffer 를 내부 산란체에 적용하면 안 된다**(재질 모델이 셸을 반투명으로 가정하는데 불투명 버퍼가 지배 산란체를 지운다).
 6. `max_num_paths_per_src` 를 5e6 으로 올려 챔버 결과가 바뀌는지 1회 확인.
 
 **중기 (선택)**
-7. 메인테이너가 지목한 **custom PathSolver 기반 in-Sionna RCS**(TX=RX, 1-bounce 경로에서 σ = 4πr²·|E_s|²/|E_i|² 추출)를 시도할지 결정. **하이브리드가 이미 물리적으로 정당하므로 급하지 않다.**
+7. **노출된 Mitsuba 광선엔진 위의 in-Sionna RCS**(= 우리 SBR+PO)(TX=RX, 1-bounce 경로에서 σ = 4πr²·|E_s|²/|E_i|² 추출)를 시도할지 결정. **하이브리드가 이미 물리적으로 정당하므로 급하지 않다.**
 
 ---
 
@@ -170,7 +176,7 @@ mavic4pro, PO 예측 −64.87 dB. 순수 1-bounce + 지연게이트:
 
 ```bash
 cd /home/yunjung/workspace/sionna2
-CUDA_VISIBLE_DEVICES=2 /home/yunjung/.venvs/py312/bin/python benchmark/verify_rt_no_rcs.py
+SIONNA2_GPU=0 /home/yunjung/.venvs/py312/bin/python benchmark/verify_rt_no_rcs.py   # GPU 는 gpu.pick 자동선택, 고정하려면 SIONNA2_GPU
 #  → outputs/rt_no_rcs_verify.json
 #  [A] 평판 변 0.2~4 m: RT 진폭비 전부 -7.91 dB (σ 는 52 dB 변화)
 #  [B] 구 S 0.2~1.0   : -56.56 → -40.80 dB (S² 법칙)

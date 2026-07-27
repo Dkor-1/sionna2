@@ -161,7 +161,11 @@ class Waveform:
         return max(rates) if rates else 0.0
     @property
     def v_unambiguous_ms(self):
-        """최대 무모호(no-alias) 속도 v_max = PRF·λ/4 [m/s]. PRF=pilot_rate_hz."""
+        """최대 무모호(no-alias) 속도 v_max = PRF·λ/4 [m/s]. PRF=pilot_rate_hz.
+        ⚠ 모노스태틱 등가치다 — f_d=2v/λ 를 가정한다. 바이스태틱에서는 도플러가
+        f_d=(v/λ)·2cos(β/2)cosδ 이므로 같은 PRF 라도 실제 무모호 속도는 이 값을
+        기하인자 1/(cos(β/2)cosδ) 만큼 재배율해야 한다(report04 §도플러 참조).
+        여기서는 파형 간 비교용 공통 기준으로 모노 등가치를 반환한다."""
         lam = C0 / self.carrier_hz
         return self.pilot_rate_hz * lam / 4.0
     @property

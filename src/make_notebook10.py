@@ -22,6 +22,7 @@ report10 — "검출기 교정 ① : 오경보율(false alarm)"
 import json
 import math
 import os
+import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -71,30 +72,43 @@ def ctrl_row(key, pfa=1e-4):
 
 
 # 자주 쓰는 파생값 — 전부 JSON 에서
-R_WIFI, R_LTE, R_NR = (ratio(s) for s in WFS)             # 1.45 / 2.66 / 1.52
-LTE_OVER_NR = R_LTE / R_NR                                # ≈ 1.58
+R_WIFI, R_LTE, R_NR = (ratio(s) for s in WFS)             # 운영 지도(dpi_eca·op) @1e-4
+LTE_OVER_NR = R_LTE / R_NR
 WHITE = C["white"]["48x24"]
 WHITE_ROWS = [r for r in WHITE["rows"] if r["gt"] == GT and r["zd_mask_width"] == ZD]
-WHITE_R = next(r for r in WHITE_ROWS if abs(r["pfa_nom"] - 1e-4) < 1e-12)["ratio"]  # ≈ 0.997
+WHITE_R = next(r for r in WHITE_ROWS if abs(r["pfa_nom"] - 1e-4) < 1e-12)["ratio"]
+WHITE_MAXDEV = max(abs(r["ratio"] - 1.0) for r in WHITE_ROWS)   # 이상적 지도의 최대 이탈
 WHITE_N = WHITE["n_maps"]
+N_CHAIN = C["meta"]["n_maps_chain"]           # 파형별 잡음 지도 장수
 ALPHA = C["alpha_audit"][GT]
 
-# 도플러/거리 상관 (noise 지도의 whiteness)
+# 우리 구현의 내부 검산 — GPU 고속경로 동일성 · 거리도플러/ECA 연산 상대오차
+FAST_OK = C["fast_path_identical_to_ca_cfar_2d"]
+CHAIN_ERR = max(max(v["rd_rel_err"], v["eca_rel_err"]) for v in C["chain_verify"].values())
+
+# CFAR 거리축 훈련창이 요구하는 빈 수 (gt 문자열에서 파생: 가드+트레이닝 = 반경)
+_G, _T = (int(x) for x in re.findall(r"g(\d+)x\d+_t(\d+)x\d+", GT)[0])
+NEED_BINS = 2 * (_G + _T) + 1
+NR_OP = {s: C["chain"][s]["n_range_op"] for s in WFS}      # 운영 지도의 거리빈 수
+
+# 도플러/거리 상관 (noise 지도의 whiteness) + 같은 인구의 배율
 WH = {s: C["chain"][s]["noise"]["whiteness"] for s in WFS}
 RHO_DOPP = {s: WH[s]["rho_doppler"][0] for s in WFS}       # ≈ +0.46 세 신호 공통
 RHO_RANGE = {s: WH[s]["rho_range"][0] for s in WFS}        # WiFi≈0 / 5G≈0.07 / LTE≈0.28
 EFF2D = {s: WH[s]["eff_indep_frac_2d"] for s in WFS}
+NOISE_R = {s: crow(s, "noise", "op", 1e-4)["ratio"] for s in WFS}   # 잡음 전용 지도의 배율
+EFF2D_OP = {s: C["chain"][s]["dpi_eca"]["whiteness"]["eff_indep_frac_2d"] for s in WFS}
 
 # 대조 실험 (5G noise 지도)
-CB = crow("NR100", "noise", "op", 1e-4)["ratio"]                # 기준 1.22
-CR = ctrl_row("control_rect_window_NR100")["ratio"]            # Hann 제거 0.97
-CW = ctrl_row("control_whitened_mf_NR100")["ratio"]           # 거리 백색화 1.31
-CBOTH = ctrl_row("control_whitened_mf_rect_NR100")["ratio"]   # 둘 다 1.02
-RECT_DOPP = C["control_rect_window_NR100"]["whiteness"]["rho_doppler"][0]           # ≈ 0.0004
-RECT_EFFD = C["control_rect_window_NR100"]["whiteness"]["eff_indep_frac_doppler"]   # ≈ 0.986
+CB = crow("NR100", "noise", "op", 1e-4)["ratio"]              # 기준
+CR = ctrl_row("control_rect_window_NR100")["ratio"]           # Hann 제거
+CW = ctrl_row("control_whitened_mf_NR100")["ratio"]           # 거리 백색화
+CBOTH = ctrl_row("control_whitened_mf_rect_NR100")["ratio"]   # 둘 다
+RECT_DOPP = C["control_rect_window_NR100"]["whiteness"]["rho_doppler"][0]
+RECT_EFFD = C["control_rect_window_NR100"]["whiteness"]["eff_indep_frac_doppler"]
 
 # 깊은 오경보율에서 더 나빠진다
-R_DEEP = {s: ratio(s, 1e-6) for s in WFS}                      # WiFi 2.83 / LTE 4.43 / 5G 2.22
+R_DEEP = {s: ratio(s, 1e-6) for s in WFS}
 PFA_DEEP = 1e-6
 
 
@@ -132,22 +146,27 @@ _front = provenance_cells(
         gap=("Sionna 는 파형(PHY)·전파(RT)까지만 준다 — **표적 유무를 판정하는 검출기(레이더/센싱 "
              "모듈)가 없다.** 오경보율을 고정하는 CFAR 도, 그 전단의 직접파 제거(ECA)·교차모호함수(CAF)도 "
              "밖에서 가져와야 한다(§1)."),
-        prior=("하드웨어 패시브 레이더 선행이 공통으로 쓰는 표준 검출 사슬은 **ECA→CAF→CA-CFAR** 이다 — "
-               "5G NR OFDM 패시브 레이더(Sensors 2026, DOI 10.3390/s26041317), 5G SSB 저고도 표적 패시브 "
-               "검출(SPAWC 2025, arXiv:2504.02641), LTE450 패시브 레이더(IET RSN 2025, "
-               "DOI 10.1049/rsn2.70092). CA-CFAR 문턱 공식은 교과서 표준(Richards)이다(§3)."),
-        lib=("검출단을 새로 짜지 않고 오픈소스 **pyAPRiL**(GPLv3)의 ECA/CAF/**`caCfar.CA_CFAR`** 를 "
-             "그대로 쓴다(중복 구현 회피). Sionna 가 만든 기준·감시 신호를 그대로 넘겨 WiFi·LTE·5G 세 "
-             "모드 표적을 정답 거리빈에 검출함을 확인했다(`outputs/verify_pyapril.json`). 대규모 오경보율 "
-             "측정만 규모를 GPU 몬테카를로로 키우되 표준 α 식과 소수점 15자리까지 일치시킨다(§4)."),
+        prior=("하드웨어 패시브 레이더 선행이 공통으로 쓰는 검출 사슬은 **직접파 제거 → 거리-도플러(CAF) "
+               "→ 문턱 판정** 이다 — 5G NR OFDM 패시브 레이더(Wypich·Zieliński, Sensors 2026, "
+               "DOI 10.3390/s26041317; USRP X310 실측, **표적은 차량**)는 ECA+ 뒤 CA-CFAR 를, LTE450 "
+               "패시브 레이더 드론 탐지(Demissie 외, 2024 International Radar Conference (RADAR), "
+               "DOI 10.1109/RADAR58436.2024.10993905)는 Wiener 직접파 제거 뒤 **참조셀 99% 경험분위수** "
+               "문턱을 쓴다. CA-CFAR 문턱 공식은 교과서 표준(Richards)이다(§3)."),
+        lib=("검출 사슬은 발명이 아니라 표준(ECA → CAF → CA-CFAR)이고, 오픈소스 **pyAPRiL**(GPLv3)의 "
+             "ECA/CAF/**`caCfar.CA_CFAR`** 로 대조한다 — 같은 컴팩트 시나리오(광대역 QPSK 기준신호)에서 "
+             "pyAPRiL 체인도 표적 봉우리를 **정답 거리빈(오차 0빈)** 에 세운다"
+             "(`outputs/verify_pyapril.json`; ⚠ 봉우리 위치 일치 판정이지 CFAR 발화 판정이 아니다). "
+             "이 리포트의 오경보율 곡선 자체는 우리 GPU 몬테카를로 구현이 내며, 표준 α 식과 소수점 "
+             "15자리까지 일치한다(§4)."),
         verify=(f"명목 Pfa 대비 **경험 Pfa**. 이상적 백색 잡음 {WHITE_N:,}장에서 배율 **{WHITE_R:.3f}**"
-                f"(오차 1~2%)·α 공식 상대오차 {ALPHA['rel_err']:.0e} → 검출기 산수는 무죄(§2.1). 실제 "
-                f"지도에선 WiFi {R_WIFI:.2f}·LTE {R_LTE:.2f}·5G {R_NR:.2f}배로 어긋나고, 이웃 칸 상관을 "
-                f"끄면 1.0 으로 복구된다(§2.4)."),
+                f"(명목 대비 최대 이탈 {WHITE_MAXDEV * 100:.1f}%)·α 공식 상대오차 {ALPHA['rel_err']:.0e} → "
+                f"검출기 산수는 무죄(§2.1). 실제 지도에선 WiFi {R_WIFI:.2f}·LTE {R_LTE:.2f}·5G {R_NR:.2f}"
+                f"배로 어긋나고, 이웃 칸 상관을 끄면 1.0 으로 복구된다(§2.4)."),
     ),
 
     sources=[
-        dict(item="명목 vs 경험 오경보율 (파형별)", src="outputs/verify_cfar.json — 파형별 10,000장 잡음 지도",
+        dict(item="명목 vs 경험 오경보율 (파형별)",
+             src=f"outputs/verify_cfar.json — 파형별 {N_CHAIN:,}장 잡음 지도",
              kind="**우리 측정**"),
         dict(item="이상적 백색 지도 검증", src=f"outputs/verify_cfar.json — 이상적 잡음 {WHITE_N:,}장",
              kind="**우리 측정**"),
@@ -183,7 +202,7 @@ _front = provenance_cells(
         "**여기서 다루는 눈금은 잡음-only 지도 위의 것이다.** 실제 클러터·유령이 얹히면 오경보의 원천이 "
         "더 늘 수 있다(→ report09 의 유령). 그 위의 검출 눈금은 별개 문제다.",
     ],
-    cost="GPU 1장(자동선택). 파형당 10,000장 + 이상적 지도 50만 장의 몬테카를로. 수 분.",
+    cost=f"GPU 1장(자동선택). 파형당 {N_CHAIN:,}장 + 이상적 지도 {WHITE_N:,}장의 몬테카를로. 수 분.",
     related=[
         dict(rep="report09 (앞)", rel="바닥 유령이 '별개 표적'으로 물리적으로 분해되는 것을 봤다 — "
              "그 유령을 검출기가 실제로 몇 번 발화하는지는 검출기 눈금에 달려 있다"),
@@ -271,7 +290,7 @@ cells.append(md(
     "## 2.1 이상적 잡음에서는 눈금이 정확하다 — 검출기 산수는 무죄",
     "",
     f"판정: **확정** — 이상적 백색 잡음 {WHITE_N:,}장에서 경험 Pfa ÷ 명목 Pfa = **{WHITE_R:.3f}** "
-    "(오차 1~2%).",
+    f"(명목 $10^{{-2}}$~$10^{{-6}}$ 전 구간에서 최대 이탈 {WHITE_MAXDEV * 100:.1f}%).",
 ))
 
 cells.append(mdl([
@@ -289,7 +308,7 @@ cells.append(mdl([
     for r in WHITE_ROWS if r["pfa_nom"] in (1e-2, 1e-3, 1e-4, 1e-5, 1e-6)
 ] + [
     "",
-    f"> 명목이 만분의 1이든 백만분의 1이든, 실제 발화는 요구값의 **{WHITE_R:.2f}배 안쪽**에서 논다. "
+    f"> 명목이 만분의 1이든 백만분의 1이든, 실제 발화는 요구값의 **±{WHITE_MAXDEV * 100:.1f}% 안**에 든다. "
     "이상적 조건에서 검출기는 약속을 지킨다. **그래서 이제부터 나올 어긋남은 '검출기 버그'가 아니다** — "
     "산수는 무죄다. 문제는 입력으로 들어오는 지도가 이상적 잡음이 아니라는 데 있다.",
 ]))
@@ -299,7 +318,7 @@ cells.append(md(
     "## 2.2 실제 지도에서는 신호마다 다르게 어긋난다",
     "",
     "이상적 잡음이 아니라 **실제 처리사슬이 만든 거리-도플러 지도** 위에서 같은 검출기를 파형별로 "
-    "10,000장씩 다시 잰다.",
+    f"{N_CHAIN:,}장씩 다시 잰다.",
     "",
     f"판정: **확정** — 명목 $10^{{-4}}$ 에서 실제 발화는 "
     f"**WiFi {R_WIFI:.2f} · LTE {R_LTE:.2f} · 5G {R_NR:.2f}배**. 어긋남이 **파형마다 다르다.**",
@@ -411,9 +430,19 @@ cells.append(mdl([
     "이웃이 안 닮는다.",
     "",
     "**왜 LTE 가 제일 나쁜가:** 도플러축 손해는 셋 다 같지만, LTE 는 **거기에 거리축 손해까지 겹친다.** "
-    f"두 축의 상관이 곱해져 2D 유효 독립 표본이 WiFi {EFF2D['WiFi80']:.2f} · 5G {EFF2D['NR100']:.2f} 인데 "
-    f"LTE 는 {EFF2D['LTE20']:.2f} 까지 떨어진다 — 그래서 배율도 LTE 가 {R_LTE:.2f} 로 가장 크다. 그림 "
-    "(c)(d) 가 이 두 원인을 각각 떼어 보여준다.",
+    f"두 축의 상관이 곱해져 잡음 전용 지도의 2D 유효 독립 표본이 WiFi {EFF2D['WiFi80']:.2f} · "
+    f"5G {EFF2D['NR100']:.2f} 인데 LTE 는 {EFF2D['LTE20']:.2f} 까지 떨어지고, **같은 잡음 전용 지도의 "
+    f"배율**도 WiFi {NOISE_R['WiFi80']:.2f} · 5G {NOISE_R['NR100']:.2f} · LTE {NOISE_R['LTE20']:.2f} 로 "
+    "LTE 만 크다 — 순서가 일치한다. 그림 (c)(d) 가 이 두 원인을 각각 떼어 보여준다.",
+    "",
+    "> **단, 이것은 순서 관계이지 배율을 예측하는 식이 아니다.** 운영 지도(직접파+ECA 잔차가 얹힌 §2.2 의 "
+    f"지도)에서는 2D 유효 독립 표본이 WiFi {EFF2D_OP['WiFi80']:.3f} · 5G {EFF2D_OP['NR100']:.3f} · "
+    f"LTE {EFF2D_OP['LTE20']:.3f} 로 **세 파형이 사실상 같아지는데도** 배율은 {R_WIFI:.2f}/{R_NR:.2f}/"
+    f"{R_LTE:.2f} 로 갈린다. 상관 말고 **거리창의 폭**이 함께 작용하기 때문이다 — CFAR 훈련창은 거리축으로 "
+    f"{NEED_BINS}빈(`{GT}`, 반경 {_G + _T}빈)을 요구하는데 운영 지도의 거리빈 수는 "
+    f"WiFi {NR_OP['WiFi80']} · 5G {NR_OP['NR100']} · LTE {NR_OP['LTE20']} 이라, WiFi·LTE 는 **모든 셀이 "
+    "가장자리에서 잘린 훈련창**을 쓰고 5G 만 온전한 창을 가진 셀이 있다. 그림 (d) 가 이 축을 따로 "
+    "스윕한다 — 거리 상관이 거의 없는 WiFi 도 창이 좁아지면 배율이 오른다.",
 ]))
 
 cells.append(md(
@@ -460,20 +489,32 @@ cells.append(md(
     "",
     "이 검출기는 우리가 발명한 것이 아니다. 표적 유무 판정은 **패시브 레이더의 표준 처리사슬**로 밖에서 "
     "가져온다: 직접파를 지우는 **ECA**, 지연·도플러를 재는 **CAF(교차모호함수)**, 그 지도 위에서 문턱으로 "
-    "판정하는 **CFAR**. 실제 하드웨어 선행(USRP 로 셀룰러·WiFi 조명원 표적을 잡은 패시브 레이더)이 쓰는 "
-    "것도 정확히 이 ECA→CAF→CFAR 구성이다:",
+    "판정하는 **CFAR**. 실측 하드웨어 선행도 같은 골격 — 직접파 제거 → 거리-도플러 → 문턱 판정 — 을 쓴다. "
+    "다만 **문턱을 정하는 규칙은 논문마다 다르다:**",
     "",
-    "| 선행 | 조명원 | 검출 사슬 |",
-    "|---|---|---|",
-    "| 5G NR OFDM 패시브 레이더 (Sensors 2026, DOI 10.3390/s26041317) | 5G NR 하향 | ECA→CAF→CFAR |",
-    "| 5G SSB 저고도 표적 패시브 검출·측위 (SPAWC 2025, arXiv:2504.02641) | 5G SSB | 상관→CFAR |",
-    "| LTE450 기반 패시브 레이더 드론 탐지 (IET RSN 2025, DOI 10.1049/rsn2.70092) | LTE450 | ECA→CAF→CFAR |",
+    "| 선행 | 조명원 · 표적 | 검출 사슬 | 문턱 규칙 |",
+    "|---|---|---|---|",
+    "| 5G NR OFDM 패시브 레이더 (Wypich·Zieliński, Sensors 2026, DOI 10.3390/s26041317; USRP X310 실측) "
+    "| 5G NR 하향 · **표적은 차량** | ECA+ → CAF → CA-CFAR | 명목 Pfa 의 CA-CFAR |",
+    "| LTE450 패시브 레이더 드론 탐지 (Demissie 외, 2024 International Radar Conference (RADAR), "
+    "DOI 10.1109/RADAR58436.2024.10993905) | LTE450 · **드론(DJI M210)** | Wiener 직접파 제거 → FFT "
+    "거리-도플러 → CFAR | **참조셀의 99% 경험분위수**(Pfa $10^{-2}$; $10^{-3}$·$10^{-4}$ 는 배치 전체에서 "
+    "추정) |",
+    "",
+    "> **인용 범위.** Sensors 2026 은 워크스페이스 노트 기준이고 원문 PDF 는 보유하지 않는다"
+    "(표적이 드론이 아니라 차량이라는 점도 그 노트에 있다). LTE450 계열에서 **원문을 연** 것은 위 2024 "
+    "RadarConf 판이다 — 같은 그룹의 IET RSN 2025 판(DOI 10.1049/rsn2.70092)은 페이월이라 읽지 못했으므로 "
+    "처리사슬을 그쪽에 귀속하지 않는다. 5G SSB 저고도 드론 검출(Jopanya·Osorio, SPAWC 2025, "
+    "DOI 10.1109/SPAWC66079.2025.11143316)은 자주 같이 묶이지만 **CFAR 를 쓰지 않는 순수 시뮬레이션**"
+    "($f_c$ = 15 GHz, 2D-FFT 봉우리의 peak-to-average 인자를 문턱으로 사용)이라 하드웨어 검출사슬 "
+    "선례에서 뺀다.",
     "",
     "CA-CFAR 의 문턱 공식(α = N·(Pfa^(−1/N)−1))은 특정 논문의 것이 아니라 교과서 표준이다"
-    "(Richards, *Fundamentals of Radar Signal Processing*). 즉 우리가 쓰는 검출기는 **표준**이고, "
-    "선행이 실측으로 동작을 확인한 바로 그 구성이다. 이 리포트는 그 표준 검출기의 마지막 관문 — CFAR 의 "
-    "**오경보율 눈금** — 만 잰다(검출기 교정의 나머지 — 저속 표적·거리 분해능·위치 관측성 — 은 "
-    "report11 소관).",
+    "(Richards, *Fundamentals of Radar Signal Processing*). 즉 우리가 쓰는 사슬은 **표준**이고, 실측 "
+    "선행이 동작을 확인한 골격과 같다. **다른 것은 문턱 규칙이다** — 우리는 교과서 닫힌형 α 를 쓰고, "
+    "위 LTE450 실측은 참조셀의 경험분위수를 쓴다. 이 리포트가 재는 것이 정확히 그 지점이다: **닫힌형 "
+    "명목 문턱이 실제로 어떤 오경보율을 내는가.** (검출기 교정의 나머지 — 저속 표적·거리 분해능·위치 "
+    "관측성 — 은 report11 소관.)",
 ))
 
 # =========================================================================== #
@@ -481,22 +522,32 @@ cells.append(md(
 # =========================================================================== #
 cells.append(md(
     "---",
-    "# §4. 우리가 쓴 방식 — pyAPRiL 검출단과 신호별 교정표",
+    "# §4. 우리가 쓴 방식 — 표준 CA-CFAR 검출단(pyAPRiL 대조)과 신호별 교정표",
 ))
 
 cells.append(mdl([
-    "### 검출단은 오픈소스를 그대로 쓴다 (중복 구현 회피)",
+    "### 검출단은 표준 사슬 — 오픈소스 pyAPRiL 로 대조한다",
     "",
-    "검출 사슬을 새로 짜지 않는다. 오픈소스 **pyAPRiL**(GPLv3)이 ECA/ECA-S·CAF·**`caCfar.CA_CFAR`**·DoA 를 "
-    "그대로 제공한다 — 실제 하드웨어 패시브 레이더 연구가 쓰는 바로 그 구성이다. Sionna 가 만든 기준·감시 "
-    "신호를 pyAPRiL 에 그대로 넘겨 돌리면 WiFi·LTE·5G 세 모드 모두 표적을 정답 거리빈에 검출한다"
-    "(`outputs/verify_pyapril.json`). 즉 우리가 쓰는 검출기는 표준이고, 표준 구현으로 동작이 확인된 것이다.",
+    "검출 사슬을 새로 발명하지 않는다. 오픈소스 **pyAPRiL**(GPLv3)이 ECA/ECA-S·CAF·**`caCfar.CA_CFAR`**·DoA "
+    "를 제공한다 — 실제 하드웨어 패시브 레이더 연구가 쓰는 바로 그 구성이다. 같은 컴팩트 시나리오를 "
+    "pyAPRiL 체인(`Wiener_SMI` → `cc_detector_td` → `caCfar.CA_CFAR`)에 통째로 넘기면 세 모드 모두 표적 "
+    "봉우리가 **정답 거리빈에 오차 0빈**으로 선다(`outputs/verify_pyapril.json`).",
     "",
-    "다만 이 리포트의 **대규모 오경보율 측정**(파형당 10,000장 + 이상적 지도 수십만 장)은 규모를 "
-    f"**GPU 몬테카를로**로 키운다. 표준 CA-CFAR α 식과 소수점 15자리까지 같은 검출(§2.1, 상대오차 "
-    f"{ALPHA['rel_err']:.0e})을 규모만 GPU 로 키운 것이며, pyAPRiL 이 이 배율 곡선 자체를 계산한 것은 "
-    "아니다. 검증의 기준은 라이브러리 대조가 아니라 **명목 Pfa 대비 경험 Pfa** 다 — 이상적 잡음에서 "
-    f"배율 {WHITE_R:.3f}(§2.1), 실제 지도에서 신호별 어긋남과 상관 제거 시 복구(§2.2~§2.4).",
+    "**이 대조가 보증하는 범위는 좁다 — 그대로 적어 둔다.**",
+    "",
+    "- 판정 기준은 `correct = |봉우리 거리빈 − 정답| ≤ 1`, 즉 **봉우리 위치 일치**다. CFAR 가 정답셀에서 "
+    "발화했다는 판정이 아니며, 그 발화 여부는 이 기록으로 확정되지 않는다.",
+    "- 시나리오도 실제 WiFi/LTE/5G 파형이 아니라, 검출기 등가성만 보려고 만든 **광대역 QPSK 기준신호**"
+    "(모드별로 시드만 다름)다. 실제 파형의 Sionna 대조는 report05 소관이다.",
+    f"- §2 의 배율 곡선(파형당 {N_CHAIN:,}장 + 이상적 지도 {WHITE_N:,}장)을 낸 것은 pyAPRiL 이 아니라 **우리 GPU "
+    "구현**이다.",
+    "",
+    "그래서 이 리포트가 기대는 검증은 라이브러리 대조가 아니라 **우리 구현의 내부 검산 + 명목 Pfa 대비 "
+    f"경험 Pfa** 다: 문턱 배수 α 가 교과서 닫힌형과 상대오차 {ALPHA['rel_err']:.0e} 로 일치하고(§2.1), GPU "
+    f"고속경로가 참조 구현과 동일하며(`fast_path_identical_to_ca_cfar_2d` = {str(FAST_OK).lower()}), "
+    f"거리-도플러·ECA 연산이 참조식과 상대오차 {CHAIN_ERR:.0e} 안에서 일치한다(`chain_verify`). 그 위에서 "
+    f"이상적 잡음의 배율 {WHITE_R:.3f}(§2.1)과 실제 지도의 신호별 어긋남·상관 제거 시 복구(§2.2~§2.4)를 "
+    "잰다.",
 ]))
 
 cells.append(mdl([
@@ -531,8 +582,10 @@ cells.append(mdl([
     "",
     "- **검출기의 산수는 정확하다** — 이상적 잡음에서 눈금이 맞는다(§2.1).",
     f"- **실제 지도에서는 신호마다 다르게 어긋난다** — WiFi {R_WIFI:.2f} · LTE {R_LTE:.2f} · 5G {R_NR:.2f}배(§2.2).",
-    "- **원인은 이웃 칸 상관** — 도플러축 Hann(공통) × 거리축 과표본(대역이 좁을수록). 끄면 복구된다(§2.3·§2.4).",
-    "- **검출단은 pyAPRiL 표준 CA-CFAR, 처방은 신호별 교정표** — 그래야 공정한 벤치마크가 가능하다(§4).",
+    "- **원인은 이웃 칸 상관** — 도플러축 Hann(공통) × 거리축 과표본(대역이 좁을수록). 끄면 복구된다"
+    "(§2.3·§2.4). 운영 지도의 파형별 차이에는 **거리창 폭**도 함께 작용한다(§2.3).",
+    "- **검출단은 표준 CA-CFAR(오픈소스 pyAPRiL 로 대조), 처방은 신호별 교정표** — 그래야 공정한 "
+    "벤치마크가 가능하다(§4).",
     "",
     "> **다음 리포트: report11 — 검출기 교정 ②: 저속 표적·거리 분해능.** 오경보율은 검출기가 지켜야 "
     "할 여러 약속 중 하나일 뿐이다. 신호 대역폭과 송수신 기하가 정하는 원리적 문턱 — 저속 표적 맹점·"

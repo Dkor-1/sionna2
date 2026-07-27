@@ -41,7 +41,7 @@ ROOT = os.path.abspath(os.path.join(_HERE, ".."))
 FIG = os.path.join(ROOT, "outputs", "figures")
 OUT_JSON = os.path.join(ROOT, "outputs", "report6_sbr.json")
 RAY_JSON = os.path.join(ROOT, "outputs", "rt_ray_budget.json")
-MD_JSON = os.path.join(ROOT, "outputs", "report3_microdoppler.json")
+R1_JSON = os.path.join(ROOT, "outputs", "report1.json")   # 마이크로도플러 headline 의 살아있는 출처
 
 FC = 3.5e9
 C0 = 299792458.0
@@ -168,8 +168,14 @@ def measure(n_az=N_AZ, force=False) -> dict:
         h_new = float((fit.max(0) - fit.min(0))[2] * 1000)
         m_old = build_drone_prefix(spec)
         m_new = build_drone(spec)
-        row = dict(h_old_mm=h_old, h_new_mm=h_new,
+        # 공식 높이가 **프롭 포함**인 기체(mini5pro)는 프레임이 아니라 **전체 드론**을 공식값과 견준다.
+        h_full = float((np.asarray(m_new.v, float).max(0)
+                        - np.asarray(m_new.v, float).min(0))[2] * 1000)
+        props_inc = bool(getattr(spec, "env_props_included", False))
+        row = dict(h_old_mm=h_old, h_new_mm=h_new, h_full_mm=h_full,
                    official_h_mm=(spec.envelope_mm[2] if spec.envelope_mm else None),
+                   official_includes_props=props_inc,
+                   h_compare_mm=(h_full if props_inc else h_new),
                    fit_scale=[float(v) for v in frame_fit_scale(spec)],
                    h_err_pct=100.0 * (h_old - h_new) / h_new)
         for el in (0.0, 15.0):
@@ -179,7 +185,9 @@ def measure(n_az=N_AZ, force=False) -> dict:
             row[f"sbr_new_el{int(el)}"] = float(_dbsm(np.mean(s_new)))
             row[f"d_el{int(el)}"] = row[f"sbr_new_el{int(el)}"] - row[f"sbr_old_el{int(el)}"]
         env[key] = row
-        print(f"     {key:10s} 높이 {h_old:6.1f} → {h_new:6.1f} mm ({row['h_err_pct']:+5.1f}%) · "
+        print(f"     {key:10s} 프레임높이 {h_old:6.1f} → {h_new:6.1f} mm ({row['h_err_pct']:+5.1f}%) · "
+              f"전체 {h_full:6.1f} mm vs 공식 {row['official_h_mm']}"
+              f"{'(프롭포함)' if props_inc else '(프롭제외)'} · "
               f"σ(el15) {row['d_el15']:+.2f} dB · σ(el0) {row['d_el0']:+.2f} dB")
     out["envelope"] = env
 
@@ -465,10 +473,14 @@ def fig_sbr(d, outdir=FIG):
     divs = np.array(k["divs"], float)
     se = np.array(k["sphere_err"]); pe = np.array(k["plate_err"])
 
+    # 마이크로도플러 headline — **살아있는 생산자**(viz_report1 measure_microdoppler → report1.json)에서 읽는다.
+    # ⚠ 예전엔 outputs/report3_microdoppler.json 을 읽었는데 그 파일은 리포트 재편 때 생산자가 사라진
+    #   **고아 산출물**이라, 메쉬·엔진을 고쳐도 갱신되지 않는 값이 그림에 들어갔다.
     md = None
-    if os.path.exists(MD_JSON):
-        with open(MD_JSON) as f:
-            md = json.load(f)["headline"]
+    if os.path.exists(R1_JSON):
+        with open(R1_JSON) as f:
+            _r1 = json.load(f)
+        md = (_r1.get("microdoppler") or {}).get("drones", {}).get("mavic4pro")
 
     fig = plt.figure(figsize=(15.4, 8.6), constrained_layout=True)
     gs = fig.add_gridspec(2, 3, height_ratios=[1.0, 1.0])
@@ -627,8 +639,9 @@ def fig_mesh_bugs(d, outdir=FIG):
     # --- 버그 1: 외형(높이) ---
     x = np.arange(len(keys)); w = 0.38
     h_old = [env[k]["h_old_mm"] for k in keys]
-    h_new = [env[k]["h_new_mm"] for k in keys]
-    ax1.bar(x - w / 2, h_old, w, color="#90a4ae", ec="k", label="mesh as it was", zorder=3)
+    # 공식값과 견줄 높이 — 프롭포함 스펙(mini5pro)은 전체 드론, 나머지는 프레임
+    h_new = [env[k].get("h_compare_mm", env[k]["h_new_mm"]) for k in keys]
+    ax1.bar(x - w / 2, h_old, w, color="#90a4ae", ec="k", label="unconstrained mesh", zorder=3)
     ax1.bar(x + w / 2, h_new, w, color=C_OK, ec="k", label="official DJI envelope", zorder=3)
     for i, k in enumerate(keys):
         ax1.annotate(f"{env[k]['h_err_pct']:+.0f}%", (i - w / 2, h_old[i]), ha="center",

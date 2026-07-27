@@ -1,13 +1,14 @@
 # benchmark/ — 공정 벤치마크 레이어 (Wi-Fi / LTE / 5G 패시브레이더 드론 탐지)
 
-`report1~4`(설명용 튜토리얼) 위에 얹는 **공정 벤치마크** 하네스 — report5 의 실험 엔진.
+리포트 위에 얹는 **공정 벤치마크** 하네스 — 현재는 `report09`~`report12`(바닥유령·CFAR 교정·관측성·검출 결과)를 먹인다.
+⚠ `run_matrix.py` → `report5_results.json` 은 리포트 재편(4편→12편) **이전** 산물이라 레거시다.
 핵심 수정 한 가지: **표적 SNR/SCR 을 손잡이로 주입하지 않고, 고정 예산(EIRP·잡음) + RCS·기하·대역폭에서 물리로 유도**한다.
 (이전 `report4` 는 표적 SNR 을 직접 sweep → 공정성 위배. 여기서 바로잡음.)
 
 ## 환경·백엔드 분업  ← 중요
 
 환경은 리눅스 단일 env: `/home/yunjung/.venvs/py312/bin/python` (Sionna RT 2.0.1 설치됨 — 이 서버에서 Analytic/RT 모두 실행).
-GPU 는 sionna2 정책대로 `CUDA_VISIBLE_DEVICES=2`.
+GPU 는 `src/gpu.py` 가 여유 큰 카드를 자동 선택한다(고정하려면 `SIONNA2_GPU=N`).
 
 | | Analytic (개발·sanity) | Sionna RT (검증) |
 |---|---|---|
@@ -29,7 +30,7 @@ res = run_cell(wf, drone, pos, vel, lb, channel=SionnaRTChannel())
 | `link_budget.py` | **핵심**: 고정 EIRP·kTB(B) + RCS·기하 → 에코SNR·SCR·a_tgt·dpi_amp **물리 유도** |
 | `channel.py` | `AnalyticChannel`(CPU) + `SionnaRTChannel`(GPU). RT=환경 멀티패스 CIR, 표적σ=PO 하이브리드 |
 | `scenarios.py` | 통제 모션축: hover / radial / tangential / waypoint (한 번 정의·전 신호 재사용) |
-| `geometry.py` | 통제 기하: 30×20×11 m 무반사 챔버 TX/RX/CENTER + SPEED/SPAN + 챔버 Rb 창 |
+| `geometry.py` | 통제 기하: 30×20×11 m **반무향(semi-anechoic)** 챔버(흡수체 벽4면+천장, 바닥은 반사성 콘크리트) TX/RX/CENTER + SPEED/SPAN + 챔버 Rb 창 |
 | `run_min_cell.py` | 최소셀(5G NR 100MHz G3 · EIRP 12dBm): 1 config × 1 드론 × radial × N → 측정 SCR·Pd + RD맵 + 3신호 SNR 비교 |
 | `run_matrix.py` | **본 실험(report5)**: A 점유×EIRP · B 신호×드론(CSV) · C 시나리오/블라인드 · D RT 교차검증 → `report5_*.png`, `bench_matrix.csv`, `report5_results.json` |
 | `verify_server.py` | **RT 검증**: 환경진단 → RT CIR 추출 → RT↔Analytic 교차검증 → RT 최소셀 |

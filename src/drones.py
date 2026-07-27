@@ -79,6 +79,8 @@ class DroneSpec:
     gimbal_style: str = "single"     # single / triple(마빅 3카메라) / sensor(매트리스+RTK)
                                      #   / recessed(팬텀 함몰) / belly(S1000 벨리)
     cad_version: str = "v1"          # "v1"(기존) / "v2"(실사진 대조로 형상 개선; 스펙 치수는 그대로)
+    env_props_included: bool = False  # envelope_mm 의 높이가 **프롭 포함**값이면 True
+                                      #   (프레임만 맞추면 프롭이 위로 더 올라가 총높이 초과 — frame_fit_scale 참고)
 
 
 # 화면표시 색(RGB)
@@ -106,7 +108,7 @@ DRONES: dict[str, DroneSpec] = {
         rotor_deg=(56.3, 123.7, 236.3, 303.7), body_lw=(1.42, 0.66), gimbal_style="single", cad_version="v2",
         rotor_z_mm=(-12.0, +2.0, +2.0, -12.0),   # ⚠ 프롭(152.4) > 앞뒤 모터간격(152) → 디스크가 겹친다.
                                                  #   실물은 **앞 모터가 더 낮다**(간섭 회피). 조사 확인.
-        envelope_mm=(None, None, 91.0)),          # ⚠ **높이만** 공식이다.
+        envelope_mm=(None, None, 91.0), env_props_included=True),   # ⚠ **높이만** 공식이고, **프롭 포함**값이다.
         # DJI 는 Mini 5 Pro 의 **언폴드(프롭 제외) L×W 를 공개하지 않는다**(2026-07-14 심층조사 확인).
         # 공개된 것: 폴디드(프롭제외) 157×95×68,  언폴드(**프롭 포함**) 304×380×91.
         # 우리가 쓰던 (255, 181, 91) 은 x>y 인데 공식 언폴드는 380(y) > 304(x) 로 **방향이 반대**다
@@ -285,6 +287,26 @@ def frame_fit_scale(spec: DroneSpec) -> tuple[float, float, float]:
     for i in range(3):
         tgt = env[i]
         s.append(1.0 if (tgt is None or ext[i] <= 1e-9) else float(tgt) / float(ext[i]))
+
+    # ⚠ 공식 높이가 **프롭 포함**인 기체는 프레임만 맞추면 프롭이 위로 더 올라가 총높이가 초과된다
+    #   (mini5pro: 프레임을 91 mm 에 맞췄더니 전체 106 mm = +16.5%). 프롭 포함으로 다시 푼다:
+    #     total(sz) = (프롭 장착z_raw + |프레임 바닥z_raw|)·sz + 프롭 자체 반두께
+    #   → sz = (목표 − 프롭반두께) / (장착z_raw + |바닥z_raw|)
+    if getattr(spec, "env_props_included", False) and env[2] is not None:
+        diag, r, prop_r, bh, body_l, body_w, body_z = _drone_dims(spec)
+        arm_t = (0.08 if spec.fixed_arm else 0.045) * diag
+        motor_h = 0.045 * diag
+        prop_z = motor_h + arm_t / 2 + 0.006                       # rotor_layout 과 동일 식(raw)
+        zoff = spec.rotor_z_mm or ((0.0,) * spec.num_rotors)
+        pm_raw = max(prop_z + float(z) / 1000.0 for z in zoff)      # 최상단 장착 z [m]
+        Pv = _np.asarray(build_propeller(spec).v, float)
+        prop_half = float(Pv[:, 2].max()) * 1000.0                 # 프롭 최상단 − 장착중심 [mm]
+                                                                   #   (허브가 위로 비대칭이라 반두께가 아니다)
+        fbot = abs(float(V[:, 2].min())) * 1000.0                  # 프레임 바닥 |z| [mm]
+        denom = pm_raw * 1000.0 + fbot
+        if denom > 1e-9:
+            s[2] = max(1e-6, (float(env[2]) - prop_half) / denom)
+
     _FIT_CACHE[spec.key] = tuple(s)
     return _FIT_CACHE[spec.key]
 
@@ -329,9 +351,22 @@ def frame_envelope_mm(spec: DroneSpec) -> dict:
     import numpy as _np
     V = _np.asarray(build_frame(spec).v, float)
     ext = (V.max(0) - V.min(0)) * 1000.0
+    W = _np.asarray(build_drone(spec).v, float)
+    ext_full = (W.max(0) - W.min(0)) * 1000.0                  # 프롭 얹은 전체 드론
     C = _np.array([r["center"] for r in rotor_layout(spec)], float)
     diag_eff = 2.0 * float(_np.linalg.norm(C[:, :2], axis=1).mean()) * 1000.0
-    return dict(lwh_mm=tuple(map(float, ext)), official_mm=spec.envelope_mm,
+    # 프롭 디스크 엔벨로프 — 정적 메쉬 bbox 는 블레이드 방위에 따라 달라지므로(2날은 선이지 원반이 아니다)
+    # '프롭 포함' 공식 L/W 와 견줄 값은 회전 디스크 기준이다.
+    pr = spec.prop_dia_mm / 2.0
+    disc_mm = (2.0 * (float(_np.abs(C[:, 0]).max()) * 1000.0 + pr),
+               2.0 * (float(_np.abs(C[:, 1]).max()) * 1000.0 + pr))
+    # 공식 치수가 **프롭 포함**이면 전체 드론을, 아니면 프레임을 공식값과 견준다.
+    cmp_mm = ext_full if getattr(spec, "env_props_included", False) else ext
+    return dict(lwh_mm=tuple(map(float, ext)), lwh_full_mm=tuple(map(float, ext_full)),
+                lwh_compare_mm=tuple(map(float, cmp_mm)),
+                official_includes_props=bool(getattr(spec, "env_props_included", False)),
+                prop_disc_lw_mm=disc_mm,
+                official_mm=spec.envelope_mm,
                 diagonal_spec_mm=spec.diagonal_mm, diagonal_effective_mm=diag_eff,
                 fit_scale=frame_fit_scale(spec))
 

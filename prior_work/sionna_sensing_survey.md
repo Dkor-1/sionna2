@@ -70,7 +70,7 @@
 - **[R11] 미커버(다음 라운드 후보)**: 비영어(중국어) UAV ISAC+Sionna, 광학/라이다-RF 융합 센싱+Sionna, Sionna 기반 스푸핑/보안 센싱, EuCAP/EuRAD 2025 Sionna 세션, Sionna 로 OTFS 센싱, 특정 저널 IEEE TWC/TSP 본문, Sionna 튜토리얼/벤치마크 재현연구.
 - **[R12] OTFS ISAC + 멀티모달(카메라/라이다-RF) 융합 센싱** — (a) OTFS-ISAC(지연-도플러 추정·환경센싱, 2504.20659·2507.01427)은 대부분 커스텀/해석(Sionna 미확인) → dry. (b) 멀티모달에서 **Multimodal-Wireless 데이터셋(CARLA+Sionna)** genuine → 아래 등재. **카메라-협조 비협조 UAV 센싱(Wu 외, arXiv:2605.22090)**은 우리 도메인(비협조 드론)이나 **DeepSense 6G(실측)=비-Sionna** → 제외.
 - **[R12] 미커버(다음 라운드 후보)**: 비영어(중국어) UAV ISAC+Sionna, Sionna 스푸핑/보안·GNSS 센싱, EuRAD/RadarConf 2025 Sionna, Sionna 로 humanmesh/motion 센싱, 특정 저널 IEEE TSP/TAP 본문, DeepSense 6G/DeepVerse vs Sionna 대조, Sionna 벤치마크 재현.
-- **[R13] Sionna 로 표적 RCS 실제 계산 시도(A2 정면 탐색) + EuRAD/RadarConf** — **genuine 신규 논문 0**, 그러나 **능력점검 큰 보강**(위 ⭐R13): Sionna 는 커스텀 산란패턴 API + 커스텀 PathSolver 확장을 공식 제공 → RCS 는 사용자가 얹는 A2 경로로 설계됨(=우리 SBR+PO). GitHub Discussion #844(대량 광선샘플 RCS)는 미출판 커뮤니티. EuRAD/RadarConf 2024·25 에서 Sionna 표적센싱 특정 논문은 미발견(레이더 전용 venue 는 커스텀 EM 시뮬 위주).
+- **[R13] Sionna 로 표적 RCS 실제 계산 시도(A2 정면 탐색) + EuRAD/RadarConf** — **genuine 신규 논문 0**, 그러나 **능력점검 큰 보강**(위 ⭐R13): Sionna 는 **커스텀 산란패턴/재질**(`ScatteringPattern`·`RadioMaterialBase` 추상베이스)을 공식 확장점으로 제공 → RCS 는 사용자가 얹는 A2 경로로 설계됨(=우리 SBR+PO). ⚠ `PathSolver` 는 확장점이 **아니다**(MRO 실측 확인) — 자작 적분은 노출된 Mitsuba 광선엔진 위에 얹는다. GitHub Discussion #844(대량 광선샘플 RCS)는 미출판 커뮤니티. EuRAD/RadarConf 2024·25 에서 Sionna 표적센싱 특정 논문은 미발견(레이더 전용 venue 는 커스텀 EM 시뮬 위주).
 - **[R13] 미커버(다음 라운드 후보)**: 비영어(중국어/한국어) UAV ISAC+Sionna 학위·저널, Sionna GNSS 재밍/스푸핑, 해양/수중 센싱, Sionna 로 material-aware imaging, 특정 저널 IEEE TAP/GRS 본문, 2026 신규 arXiv 재점검(포화 확인용), Sionna 2.x 로 RCS 얹은 후속연구(우리 방식 유사) 탐색.
 - **[R14] 우리 방식 novelty 정면 탐색 + 비영어(중국어) UAV ISAC** — **genuine Sionna 신규 0**. (a) "Sionna+SBR/PO 드론 RCS 패시브 바이스태틱" 출판물 **없음**(위 🎯 novelty). 드론 RCS 는 MLFMA-PO·WIPL-D·측정·NATO STO 등 딴 툴. (b) 중국어권 UAV ISAC 도 대부분 비-Sionna(측정·해석): 저고도 UAV 추적(MDPI Electronics)·바이스태틱 UAV 스웜 RL(2501.06454)·모노스태틱 UAV 검출 540m 실측(2605.23561)·다중센서 ISAC 드론 사운딩(2402.16591, Thomä)은 아래 맥락.
 - **[R14] 미커버(다음 라운드 후보)**: Sionna GNSS 스푸핑/재밍, 해양/수중·NTN 센싱, Sionna 2.x custom-solver 로 RCS 얹은 **우리-유사 후속** 재탐색(반증용), DeepSense/DeepVerse vs Sionna, 특정 저널 IEEE TAP/GRS/TGRS, 2026 하반기 신규 arXiv, **서베이 종합(pw05 포지셔닝)** 검토.
@@ -260,7 +260,7 @@
 ### 2) 우리 니치 = 문헌상 미점유 (R14·R16 근거)
 **Sionna PHY 링크레벨 + 커스텀 SBR+PO 표적 RCS + 5종 드론(곡면·재질·회전) + 패시브 바이스태틱**. 이 조합의 출판물 없음.
 - 표적 RCS '값'을 내는 진영은 대부분 **Sionna 밖**: A1 SBR(Sagitta 2604.09243)·MLFMA-PO·정준 PO/SPM(rs17172999)·측정(DJI M350 2505.20673)·GBSM 주입(3GPP 2408.11295/2606.07328). **예외=Ziganshin(2604.05991)**: 유일하게 **Sionna-RT 안**에서(A2 확장) 커스텀 산란(UTD)을 얹은 사례 — 우리와 같은 계열(차이=SBR+PO vs UTD · 소형 드론 vs 대형 표적).
-- Sionna 는 **RCS 를 사용자가 얹으라고 확장(custom scattering pattern·custom PathSolver)을 설계로 제공**(⭐R13) — 우리 SBR+PO 가 정확히 그 A2 경로. 정직 프레이밍: *"기본 solver 는 코히런트 PO/RCS 안 냄; Sionna 가 연 확장에 우리가 SBR+PO 를 얹음."*
+- Sionna 는 **RCS 를 사용자가 얹으라고 확장(custom scattering pattern·custom radio material)을 설계로 제공**(⭐R13). ⚠ `PathSolver` subclassing 은 확장점이 아니다 — 자작 적분은 Mitsuba 광선엔진 위에 얹는다. — 우리 SBR+PO 가 정확히 그 A2 경로. 정직 프레이밍: *"기본 solver 는 코히런트 PO/RCS 안 냄; Sionna 가 연 확장에 우리가 SBR+PO 를 얹음."*
 
 ### 3) 비교군·검증 앵커 (report 인용 지도)
 - **가장 근접(방법)**: CellSense(Sionna PHY+USRP 패시브 셀룰러) — report12/실측 비교군.

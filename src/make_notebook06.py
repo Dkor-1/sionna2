@@ -73,35 +73,72 @@ incoh_mean = sum(r["incoh_db"] for r in A) / len(A)            # ~ -73.7
 np_lo, np_hi = A[0]["n_paths"], A[-1]["n_paths"]               # 5, 94
 
 #  SBR 표적이 필요로 하는 값 (레이더 방정식이 요구하는 σ 비) = C_metal.ratio_db_truth
-sbr_target = F["C_metal"]["ratio_db_truth"]                    # -59.0 dB
+sbr_target = F["C_metal"]["ratio_db_truth"]                    # 현재 -56.88 dB (그림 [A][B] 빨간 점선)
 
-#  [B] 산란계수 S 스윕 (report3_rt.json B_scatter)
+#  [B] 산란계수 S — ⚠ **두 원장은 서로 다른 스윕이다. 섞어 쓰지 않는다.**
+#    (1) 그림 [B] 원장 = report3_rt.json B_scatter — 재질 표의 S 에 **배수**를 곱한다
+#        (rt_experiments.py:225-230). ITU metal 은 0×배수 = 0 이라 그대로 0, 플라스틱만 움직인다. 시드 3개.
+#    (2) rt_ray_budget.json B_S_sweep — **전 부품의 S 를 한 값으로 덮어쓴다**(verify_rt_rays.py:93-100,
+#        "전 부품의 S 를 그 값으로 덮어쓴다"). 즉 금속도 S>0 이 된다. 시드 5개, S=0.1~0.8.
+#        기록된 B_fit(slope·S_to_match_truth)은 **인코히런트** 곡선의 최소제곱 적합이다
+#        (verify_rt_rays.py:239-244: ys = incoh_db). 코히런트 기울기는 같은 방식으로 여기서 따로 낸다.
 Bsc = F["B_scatter"]["rows"]
-S_half_coh, S_2x_coh = Bsc[0]["coh_db"], Bsc[-1]["coh_db"]     # -74.75, -48.58
-S_x4_delta = S_2x_coh - S_half_coh                            # +26.2 dB
-slope_dec = RB["B_fit"]["slope_db_per_decade"]                # 21.3 dB/decade
-S_match = RB["B_fit"]["S_to_match_truth"]                     # 0.444
+S_seeds_fig = F["B_scatter"]["seeds"]
+S_mult_lo, S_mult_hi = Bsc[0]["mult"], Bsc[-1]["mult"]         # 0.5, 2.0
+S_pl_lo, S_pl_hi = Bsc[0]["S_plastic"], Bsc[-1]["S_plastic"]   # 0.10, 0.40
+S_half_coh, S_2x_coh = Bsc[0]["coh_db"], Bsc[-1]["coh_db"]     # -74.84, -48.13
+S_x4_delta = S_2x_coh - S_half_coh                             # +26.7 dB (코히런트 합)
 
-#  [C] 재질별 σ — ⚠ **현행 엔진 산출물**(report2_waveform_rcs.json materials)에서 읽는다.
-#      구 report3_rt.json C_metal 은 엔진 대공사(유전체셸 투과·지터·바이스태틱, commit 9f26cee) 이전
-#      스냅샷이라 report08 과 부호까지 어긋났다(금속<전체 vs 금속>전체) — 같은 원장을 쓰게 통일.
-Cm = F["C_metal"]                                             # (metal_groups·itu_metal_S 등 설정값만 사용)
+_RBS = sorted([r for r in RB["B_S_sweep"] if r["n_paths"]], key=lambda r: r["S"])
+S_ov_lo, S_ov_hi = _RBS[0]["S"], _RBS[-1]["S"]                 # 0.1 -> 0.8
+S_ov_seeds = RB["seeds"]                                       # 5
+
+
+def _slope_db_per_dec(key):
+    """log10(S) 대비 최소제곱 기울기 — B_fit 과 같은 방식(np.polyfit 1차)."""
+    xs = [math.log10(r["S"]) for r in _RBS]
+    ys = [r[key] for r in _RBS]
+    mx, my = sum(xs) / len(xs), sum(ys) / len(ys)
+    return (sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+            / sum((x - mx) ** 2 for x in xs))
+
+
+slope_incoh = _slope_db_per_dec("incoh_db")                    # 20.34 == B_fit
+slope_coh = _slope_db_per_dec("coh_db")                        # 41.64
+slope_dec = RB["B_fit"]["slope_db_per_decade"]                 # 기록값(인코히런트)
+S_match = RB["B_fit"]["S_to_match_truth"]                      # 0.704 (인코히런트 보간)
+
+#  [C] 재질별 σ — **그림 [C] 와 같은 원장**(report3_rt.json C_metal)에서 읽는다.
+#      그림·본문·코드셀이 한 원장을 보게 통일한 것이다(el 15°, 방위 36점 평균).
+Cm = F["C_metal"]
+sig_full = Cm["sigma"]["full_dbsm"]                            # -18.60
+sig_metal = Cm["sigma"]["metal_only_dbsm"]                     # -19.12
+sig_diel = Cm["sigma"]["dielectric_only_dbsm"]                 # -25.79
+metal_share = Cm["metal_share_pct"]                            # 88.74 % = 10^((금속-전체)/10)
+diel_share = 100.0 * 10 ** ((sig_diel - sig_full) / 10.0)      # 19.11 %
+d_metal_db = sig_metal - sig_full                              # -0.52 dB
+d_diel_db = sig_diel - sig_full                                # -7.19 dB
+metal_groups = Cm["metal_groups"]                              # battery,camera,motor,pcb
+itu_metal_S = Cm["itu_metal_S"]                                # 0.0
+el_C, n_az_C = Cm["el_deg"], Cm["n_az"]                        # 15°, 36 방위
+
+#  report08 이 쓰는 조밀 원장(방위 121점) — **레벨 대조용으로만** 읽는다(캡션 각주).
 _J2 = json.load(open(os.path.join(ROOT, "outputs", "report2_waveform_rcs.json"), encoding="utf-8"))
 
 
 def _mrow(key):
     for r in _J2["materials"]["rows"]:
         if key in r["label"]:
-            return float(r["mean_dbsm"])
+            return r
     raise KeyError(key)
 
 
-sig_full = _mrow("Full drone")                                # 현행: -18.4
-sig_metal = _mrow("metal core only")                          # 현행: -18.0 (금속이 전체를 지배)
-sig_diel = _mrow("dielectric only")
-metal_share = 100.0 * 10 ** ((sig_metal - sig_full) / 10.0)   # 선형 전력비 [%]
-metal_groups = Cm["metal_groups"]                            # battery,camera,motor,pcb
-itu_metal_S = Cm["itu_metal_S"]                              # 0.0
+n_az_dense = _J2["materials"]["n_az"]                           # 121
+n_faces_full = _mrow("Full drone")["n_faces"]                   # 28,548 면
+d2_full = _mrow("Full drone")["mean_dbsm"]                      # -18.41
+d2_metal = _mrow("metal core only")["mean_dbsm"]                # -18.02
+d2_diel = _mrow("dielectric only")["mean_dbsm"]                 # -25.27
+d2_metal_delta = _mrow("metal core only")["delta_db"]           # +0.393 (전체보다 밝다 — 미해결)
 
 #  [D] 평판 스윕 (report3_rt.json D_plate == rt_no_rcs_verify A_plate)
 D = F["D_plate"]
@@ -121,6 +158,11 @@ sph_npaths = {r["n_paths"] for r in E["rows"]}              # {0}
 ctrl_paths = E["control_plate"]["n_paths"]                   # 1
 ctrl_db = E["control_plate"]["rt_db"]                        # -7.913
 
+#  §5-F 반례 판정용 문헌값 — 스톡 Sionna 로 UAV 표적 반환을 낸 선행이 실제로 보고한 것.
+#  재유도하지 않는다(PDF 렌더로 검증됨 → docs/DRONE_ISAC_PRIOR_READING.md §1·§5-F·§7-1).
+MD_RT_DOPPLER_HZ = 1562        # md-rt(Li 외, IEEE ICCT 2025) §IV-A Fig.4e 로터 마이크로도플러 주파수
+MD_RT_PERIOD_S = 0.04          #   같은 절 회전주기 T [s] — 검증한 것은 주파수(운동학)이지 진폭 σ 가 아니다
+
 cells = []
 
 # =========================================================================== #
@@ -132,22 +174,28 @@ _prov = provenance_cells(
     question="드론의 레이더 밝기(RCS)는 왜 Sionna 광선추적만으로 안 나오나?",
 
     spine=dict(
-        core=(f"탐지는 표적의 되비침 밝기(RCS)에서 출발하는데, **Sionna RT `PathSolver` 는 RCS 를 "
+        core=(f"탐지는 표적의 되비침 밝기(RCS)에서 출발하는데, **Sionna RT `PathSolver` 는 절대 σ 를 "
               f"주지 않는다** — 설계상 표면 산란적분 단계가 없기 때문이다. 우리 구현의 문제가 아니라 "
-              f"Sionna 의 범위다."),
+              f"**기본 경로 솔버(`PathSolver`)의 범위**다(산란패턴·재질 확장점은 별개로 존재)."),
         gap=(f"`PathSolver` 는 경로별 **지연 τ·도플러·복소이득·반사점**만 반환한다"
              f"(Sionna RT 창설논문 arXiv:2303.11103 이 'per-path gain' 으로 문서화). 표적 밝기 σ 는 "
              f"그 목록에 없다 — 평판을 {plate_sides[0]:.1f}→{plate_sides[-1]:.0f} m 로 키워 참 RCS 가 "
              f"{plate_span:.0f} dB 넓어져도 RT 값은 {rt_flat:.2f} dB 에서 불변(§2)."),
-        prior=("소형 표적의 코히어런트 RCS 를 스톡 Sionna 로 낸 선행은 **없다**. 표준 우회 세 갈래 — "
+        prior=("스톡 Sionna 로 UAV **표적 반환(에코·마이크로도플러)** 을 낸 선행은 있으나"
+               "(clutter·md-rt), **형상·기종·자세별 절대 σ(dBsm)** 를 낸 선행은 우리가 확인한 "
+               "범위에서 **없다** — 두 편 모두 σ 를 dBsm 으로 보고하지 않는다(§1). 표준 우회 세 갈래 — "
                "**(b)** 재질 확산계수 S 가정[Great-X], **(c)** 외부에서 RCS 계산·주입 "
                "$h=h_{bg}+h_{target}$[LAMBDA=Sionna+CADFEKO, Temporal-GNN=점산란체, 3GPP Rel-19], "
                "**(d)** 커스텀 산란 add-on[Ziganshin UTD] (§3)."),
         lib=("**(d)** 를 택했다 — Sionna 가 쓰는 **Mitsuba 3 / OptiX 광선엔진을 그대로** 얹고 그 위에 "
              "표준 PO 산란적분을 수행한다(새 광선엔진을 만들지 않아 중복계산이 없다). GPU BVH SBR+PO"
-             "(arXiv:2604.09243)와 **같은 방법** → 계산 절차는 report07."),
-        verify=("이론 해석해로 교정(평판 σ=4πA²/λ²·구 σ=πr²; report07 에서 평판 −0.01 dB·구 +0.39 dB) "
-                "+ **실측 문헌 드론 RCS 앵커**(report08). 절대값 결과는 report08."),
+             "(arXiv:2604.09243)와 **같은 계열**(GO 광선 전송 + 광선튜브 위 PO 표면적분)이되 적용범위가 "
+             "다르다 — 그들은 PEC·모노스태틱 후방산란 전용, 우리는 다중재질·바이스태틱(§4) → 계산 "
+             "절차는 report07."),
+        verify=("이론 해석해로 교정(평판 σ=4πA²/λ²·구 σ=πr²; report07 에서 평판 −0.01 dB@λ/12·구 "
+                "+0.39 dB@λ/10 — 값은 **격자마다 달라지고 단조수렴이 아니다**. 우리가 실제로 쓰는 λ/16 "
+                "에서는 평판 −0.17·구 −0.58 dB) + **문헌 실측 드론 RCS 와의 대조**(report08 — 크기 짝 "
+                "peak↔peak 로 보면 우리가 위로 치우친다). 절대값 결과는 report08."),
     ),
 
     sources=[
@@ -214,9 +262,10 @@ _prov = provenance_cells(
         f"됩니다 — §2 에서 평판을 {plate_span:.0f} dB 키워도 이 값이 안 움직이는 것으로 증명합니다.",
 
         f"**산란계수 S 를 켜면 RT 도 어떤 '에코' 를 내놓지만, 그건 물리적 σ 가 아니라 재질 표의 "
-        f"손잡이입니다.** S 를 ×4 하면 값이 {S_x4_delta:+.1f} dB 움직이고(§2), 게다가 ITU 표에서 "
-        f"금속의 S=0 이라 드론 밝기의 {metal_share:.0f}% 를 차지하는 금속부(모터·배터리·PCB·카메라)는 "
-        f"이 확산 채널에 **전혀 기여하지 못합니다.**",
+        f"손잡이입니다.** 표의 S 에 배수를 곱해 ×{S_mult_lo:g}→×{S_mult_hi:g} 로 바꾸면 코히런트 "
+        f"에코가 {S_x4_delta:+.1f} dB 움직이고(§2), 게다가 ITU 표에서 금속의 S=0 이라 "
+        f"**금속부만 남겨도 σ 가 전체의 {metal_share:.0f}% 로 유지될 만큼** 지배적인 금속부"
+        f"(모터·배터리·PCB·카메라)는 이 확산 채널에 **전혀 기여하지 못합니다.**",
 
         "**이 리포트는 '왜 못 계산하나' 만 다룹니다.** 그 밝기를 실제로 계산하는 SBR 의 방법(report07)과 "
         "밴드별·자세별 RCS 결과값(report08)은 다루지 않습니다 — 여기서 못을 박는 것은 도구의 성질뿐입니다.",
@@ -286,8 +335,43 @@ cells.append(md(
     "(arXiv:2303.11103)은 이 솔버가 경면(이미지법)·확산(계수)·1차 회절로 **경로별 복소이득(per-path "
     "gain)을 반환**한다고 문서화하고, 기술 보고서(arXiv:2504.21719, Sionna 1.0)는 솔버 내부의 'SBR' "
     "이 **경로 탐색용 광선 발사**(어느 면이 조명되나)일 뿐 PO 표면전류 적분이 아님을 분명히 한다. "
-    "그래서 소형 표적의 코히어런트 RCS 를 스톡 Sionna 로 메쉬에서 직접 낸 선행 연구도 **없다.** "
-    "아래 §2 는 이 문서화된 공백을 우리 챔버에서 다섯 방식으로 재확인한다.",
+    "그래서 소형 표적의 **절대 σ(dBsm)** 를 스톡 Sionna 로 메쉬에서 직접 낸 선행 연구는 우리가 "
+    "확인한 범위에서 **없다** — 스톡 Sionna 로 표적 반환·마이크로도플러를 만든 선행은 있지만(바로 "
+    "아래에서 그 경계를 정확히 긋는다) 어느 편도 σ 를 dBsm 으로 보고하지 않는다. 아래 §2 는 이 "
+    "문서화된 공백을 우리 챔버에서 다섯 방식으로 재확인한다.",
+))
+
+# =========================================================================== #
+#  §1-보 — §5-F: 주장의 경계를 정확히 (스톡 Sionna 로 표적을 다룬 선행 두 편)
+# =========================================================================== #
+cells.append(md(
+    "### 어디까지가 참인가 — 스톡 Sionna 로 '표적' 을 다룬 선행 두 편",
+    "",
+    "이 주장은 좁게 말해야 참이다. **스톡 Sionna RT 로 UAV 표적 반환을 만들어 낸 선행은 실재한다** — "
+    "다만 어느 편도 표적의 **절대 σ(dBsm)를 보고하지 않는다.** 두 사례로 경계를 긋는다:",
+    "",
+    "- **clutter** (Liu 외, *Proc. IEEE* 114:52–91, 2026) 는 드론 메쉬를 Sionna 씬에 그대로 넣는다: "
+    "*\"The ToI and UAVs are modeled as simplified 3-D mesh objects imported into Sionna ... for "
+    "monostatic sensing, the target echoes appear as reflected and scattered paths that interact "
+    "with the target object.\"* 그러나 이 튜토리얼이 필요로 하는 것은 **'강한 UAV 대 약한 관심표적' "
+    "이라는 상대적 세기**뿐이고, 표적 σ 를 dBsm 으로 한 번도 적지 않으며 Pd/Pfa 도 없다.",
+    "",
+    f"- **md-rt** (Li 외, *IEEE ICCT 2025*, pp.359–364) 는 스톡 Sionna RT + Blender 블레이드 메쉬로 "
+    f"로터 마이크로도플러를 만든다: *\"the minimum spatial resolution in Sionna is 0.01 m, the number "
+    f"of scattering centers can be regarded as approaching infinity ... conform to the theoretical "
+    f"expectation.\"* 그러나 이들이 검증한 것은 도플러 **주파수**"
+    f"({MD_RT_DOPPLER_HZ} Hz, T={MD_RT_PERIOD_S:.2f} s)이지 **진폭(σ)이 아니고**, 재질은 Sionna "
+    f"내장 기본값이다. 도플러 주파수는 표적의 **기하·운동학**(반경속도 2v/λ)에서 나오지 재질 산란의 "
+    f"세기와 무관하다 — §2 [B] 의 산란계수 S 손잡이는 에코 **전력**만 흔들 뿐 도플러 주파수는 건드리지 "
+    f"않는다 — 그래서 산란적분 없이도 옳게 나온다. 이 성공은 우리 주장과 충돌하지 않는다.",
+    "",
+    "두 편을 합치면 참으로 주장할 수 있는 좁은 명제는 하나다: **기본 경로 솔버는 형상·기종·자세별 "
+    "절대 σ(dBsm)를 못 낸다.** '스톡 Sionna 로는 표적을 아예 못 다룬다' 는 과장이고, 위 두 편이 실제로 "
+    "반증한다. 같은 맥락에서, 협력형 FWA 드론 감지를 다룬 최근 선행(arXiv:2605.07623)조차 표적을 "
+    "**금속 정육면체(metallic cube)** 로 두고 경면·확산 반사(*\"specular and diffuse\"*)만으로 링크를 "
+    "만들어 σ 를 우회한다(전문에 RCS·radar cross section 0회). 이는 *Sionna 로 σ 를 못 낸다*가 아니라 "
+    "**아무도 절대 σ 로 내지는 않았다**는 공백을 가리킨다 — 우리가 SBR+PO(§4)를 얹는 이유가 바로 이 "
+    "공백이다.",
 ))
 
 # =========================================================================== #
@@ -409,37 +493,72 @@ cells.append(md(
     "경로 솔버도 재질에 **산란계수 S**(입사파를 거울반사 대신 사방으로 흩뿌리는 비율)를 주면 확산 "
     "경로로 어떤 값을 낸다. 하지만 S 는 표적의 성질이 아니라 우리가 표에 적어 넣는 손잡이다.",
     "",
-    f"**[B]** 재질 표의 S 를 ×½→×2(4배)로 바꾸면 표적 에코가 **{S_x4_delta:+.1f} dB** 움직인다"
-    f"(코히런트 합 {S_half_coh:.1f}→{S_2x_coh:.1f} dB). **표적은 하나도 "
-    "안 바꿨는데** 재질 숫자 하나로 '에코' 를 원하는 만큼 끌 수 있다 — 물리적 σ 라면 이래서는 안 된다.",
+    f"**[B]** 재질 표의 S 에 배수를 곱해 **×{S_mult_lo:g}→×{S_mult_hi:g}"
+    f"({S_mult_hi / S_mult_lo:.0f}배)** 로 바꾸면 표적 에코가 **{S_x4_delta:+.1f} dB** 움직인다"
+    f"(코히런트 합 {S_half_coh:.1f}→{S_2x_coh:.1f} dB, 시드 {len(S_seeds_fig)}개 평균). 배수는 "
+    f"표의 값에 곱해지므로 ITU 금속(S=0)은 0 그대로이고 플라스틱만 {S_pl_lo:.2f}→{S_pl_hi:.2f} 로 "
+    "움직인다. **표적은 하나도 안 바꿨는데** 재질 숫자 하나로 '에코' 를 원하는 만큼 끌 수 있다 — "
+    "물리적 σ 라면 이래서는 안 된다.",
+    "",
+    f"별도 원장(`rt_ray_budget.json`, 시드 {len(S_ov_seeds)}개)은 같은 손잡이를 더 넓게, 이번엔 "
+    f"**전 부품의 S 를 한 값으로 덮어써서**(금속 포함) S={S_ov_lo:g}→{S_ov_hi:g} 로 훑는다. 로그 "
+    f"기울기는 **인코히런트 합 {slope_dec:.1f} dB/decade · 코히런트 합 {slope_coh:.1f} dB/decade** 로 "
+    "두 배 넘게 다르다 — 두 합은 정의가 다르므로(위상 맞춘 합 vs 전력 합) 한 문장에 섞어 인용하면 "
+    f"안 된다. 그리고 참 σ 비 {sbr_target:.1f} dB 를 재현하는 값은 S≈{S_match:.2f} 인데"
+    f"(인코히런트 곡선 보간), 그건 예측이 아니라 **피팅**이다.",
     "",
     f"**[C]** 게다가 ITU-R P.2040 표에서 **금속의 S={itu_metal_S:.0f}**(금속은 흩뿌리지 않고 튕긴다). "
-    f"그런데 드론에서 가장 밝은 금속부(모터·배터리·PCB·카메라)가 참 밝기의 **{metal_share:.0f}%**를 "
-    "차지한다:",
+    f"그런데 드론의 참 밝기를 만드는 것이 바로 그 금속부(모터·배터리·PCB·카메라)다 — "
+    f"금속만 남겨도 σ 가 전체의 **{metal_share:.1f}%**({d_metal_db:+.2f} dB)로 거의 그대로이고, "
+    f"거꾸로 금속을 빼면 **{diel_share:.1f}%**({d_diel_db:+.2f} dB)로 내려앉는다:",
     "",
-    "| 부분 | 참 RCS | 확산 채널(S>0) 기여 |",
-    "|---|---|---|",
-    f"| 전체 | {sig_full:.1f} dBsm | — |",
-    f"| **금속부** (모터·배터리·PCB·카메라) | {sig_metal:.1f} dBsm | **S=0 → 기여 0** |",
-    f"| 유전체부 (플라스틱 바디·프로펠러) | {sig_diel:.1f} dBsm | S>0 |",
+    "| 부분 | 참 RCS (SBR) | 전체 대비 | 확산 채널(S>0) 기여 |",
+    "|---|---|---|---|",
+    f"| 전체 | {sig_full:.2f} dBsm | — | — |",
+    f"| **금속부** (모터·배터리·PCB·카메라) | {sig_metal:.2f} dBsm | {d_metal_db:+.2f} dB "
+    f"({metal_share:.1f}%) | **S=0 → 기여 0** |",
+    f"| 유전체부 (플라스틱 바디·프로펠러) | {sig_diel:.2f} dBsm | {d_diel_db:+.2f} dB "
+    f"({diel_share:.1f}%) | S>0 |",
     "",
-    f"경로 솔버의 확산 '에코' 는 손잡이로 {S_x4_delta:+.0f} dB 움직이는 임의값이고, 정작 밝기의 "
-    f"{metal_share:.0f}%를 만드는 금속엔 S=0 이라 그 부분이 통째로 빠져 있다 — 어느 쪽으로 봐도 "
-    "물리적 RCS 가 아니다.",
+    f"<sub>이 σ 분해는 그림 [C] 와 같은 원장이다(`report3_rt.json C_metal`, el {el_C:.0f}°·방위 "
+    f"{n_az_C}점 평균). report08 이 쓰는 조밀 원장(같은 el, 방위 {n_az_dense}점, "
+    f"`report2_waveform_rcs.json`)에서는 같은 분해가 전체 {d2_full:.2f} / 금속 {d2_metal:.2f} / "
+    f"유전체 {d2_diel:.2f} dBsm 이고, 거기서는 금속만 남긴 값이 전체보다 오히려 "
+    f"{d2_metal_delta:+.2f} dB 높다. 부분들이 코히런트하게 간섭하고 유전체 셸 투과·가림이 겹치므로 "
+    "'전력 몇 %' 분해는 두 원장 모두에서 근사이며, 100% 를 넘는 이 초과분은 아직 닫히지 않은 항목이다. "
+    "어느 원장에서도 이 절의 결론(밝기를 만드는 것은 금속부인데 ITU 표의 금속 S=0)은 바뀌지 "
+    "않는다.</sub>",
+    "",
+    f"경로 솔버의 확산 '에코' 는 손잡이로 {S_x4_delta:+.0f} dB 움직이는 임의값이고, 정작 혼자서도 "
+    f"밝기의 {metal_share:.0f}% 를 내는 금속엔 S=0 이라 그 부분이 통째로 빠져 있다 — 어느 쪽으로 "
+    "봐도 물리적 RCS 가 아니다.",
 ))
 
 cells.append(code(
-    "# §2 재현 — S 는 손잡이: 돌리면 값이 따라 움직인다 (그림 [B])",
-    "import json",
-    "RB = json.load(open('outputs/rt_ray_budget.json'))",
-    "print('산란계수 S   코히런트 에코[dB]   인코히런트 합[dB]')",
-    "for blk in RB['B_S_sweep']:",
-    "    print(f\"   {blk['S']:.1f}       {blk['coh_db']:8.2f}        {blk['incoh_db']:8.2f}\")",
-    "print(f\"\\n인코히런트 합 로그기울기 ~ {RB['B_fit']['slope_db_per_decade']:.0f} dB/decade  (코히런트 합은 더 가파르다; 표적은 그대로, 손잡이만 돌림)\")",
+    "# §2 재현 — S 는 손잡이: 돌리면 값이 따라 움직인다",
+    "# (1) 그림 [B] 원장: 재질 표의 S 에 '배수' 를 곱한다 -> ITU 금속(S=0)은 0 그대로",
+    "import json, math",
+    "F = json.load(open('outputs/report3_rt.json'))",
+    "print('S 배수   플라스틱 S   코히런트 에코[dB]   인코히런트[dB]')",
+    "for r in F['B_scatter']['rows']:",
+    "    print(f\"  x{r['mult']:.1f}        {r['S_plastic']:.2f}      {r['coh_db']:8.2f}       {r['incoh_db']:8.2f}\")",
     "",
-    "# 금속의 산란계수 S=0 -> 밝기의 다수를 차지하는 금속이 확산 채널에서 빠진다 (그림 [C])",
-    "F = json.load(open('outputs/report3_rt.json'))['C_metal']",
-    "print(f\"\\n금속 S = {F['itu_metal_S']:.0f}  ->  금속이 참 밝기의 {F['metal_share_pct']:.0f}% 인데 확산 채널 기여 0\")",
+    "# (2) 별도 원장: 전 부품의 S 를 한 값으로 '덮어쓴' 스윕 (시드 5개, S = 0.1 ~ 0.8).",
+    "#     두 합은 정의가 다르므로 기울기를 따로 낸다.",
+    "RB = json.load(open('outputs/rt_ray_budget.json'))",
+    "rows = sorted([r for r in RB['B_S_sweep'] if r['n_paths']], key=lambda r: r['S'])",
+    "def slope(key):",
+    "    xs = [math.log10(r['S']) for r in rows]; ys = [r[key] for r in rows]",
+    "    mx, my = sum(xs)/len(xs), sum(ys)/len(ys)",
+    "    return sum((x-mx)*(y-my) for x, y in zip(xs, ys)) / sum((x-mx)**2 for x in xs)",
+    "print(f\"\\n인코히런트 {slope('incoh_db'):5.1f} dB/decade   (기록값 B_fit = {RB['B_fit']['slope_db_per_decade']:.1f})\")",
+    "print(f\"코히런트   {slope('coh_db'):5.1f} dB/decade   <- 같은 손잡이인데 기울기가 두 배 넘게 다르다\")",
+    "print(f\"참 σ 비 {RB['truth']['ratio_db_truth']:+.2f} dB 를 재현하는 S = {RB['B_fit']['S_to_match_truth']:.2f}  (인코히런트 곡선 보간 = 피팅)\")",
+    "",
+    "# (3) 금속의 산란계수 S=0 -> 밝기를 만드는 금속이 확산 채널에서 통째로 빠진다 (그림 [C])",
+    "C = F['C_metal']; s = C['sigma']",
+    "print(f\"\\n금속 S = {C['itu_metal_S']:.0f}   전체 {s['full_dbsm']:+.2f} / 금속만 {s['metal_only_dbsm']:+.2f} / 유전체만 {s['dielectric_only_dbsm']:+.2f} dBsm\")",
+    "print(f\"금속만 남겨도 σ 는 전체의 {C['metal_share_pct']:.1f}% — 그런데 그 금속의 확산 채널 기여는 0\")",
 ))
 
 # =========================================================================== #
@@ -449,25 +568,35 @@ cells.append(md(
     "---",
     "## §3. 선행 연구는 이 공백을 어떻게 채웠나 — 우회 세 갈래",
     "",
-    "이 한계는 우리만의 주장이 아니라 선행 문헌이 문서화한 사실이다. EuCAP 2026 의 "
-    "Deterministic-Modeling(arXiv:2603.28736)은 *'메쉬 위 순수 경면 광선추적은 산란전력을 과소평가 "
-    "하고, 정확한 EM 산란에 필요한 λ/10 메싱은 계산상 불가능'* 이라고 못박는다 — 우리 §2 의 진단과 "
-    "같다. 그래서 소형 표적의 코히어런트 RCS 를 스톡 Sionna 로 푸는 선행은 없고, Sionna 를 센싱에 "
+    "이 한계는 우리만의 주장이 아니라 §1 에서 인용한 Sionna 자체 문서가 규정한 **범위**다. 그래서 "
+    "소형 표적의 **절대 σ(dBsm)** 를 스톡 Sionna 로 메쉬에서 직접 낸 선행은 우리가 확인한 범위에서 "
+    "없고(§1 에서 본 대로 표적 반환·마이크로도플러 자체는 스톡 Sionna 로도 나온다), Sionna 를 센싱에 "
     "쓰는 연구들은 표적 밝기를 **외부에서 구해 채널에 주입**하되 그 '외부' 를 세 갈래로 채운다:",
     "",
     "| 갈래 | 방식 | 대표 선행 |",
     "|---|---|---|",
-    "| **(a)** | 스톡 Sionna 직접 (산란적분 없음) | — **불가**(이 리포트의 출발점) |",
-    "| **(b)** | 재질 **확산계수 S** 가정 | Great-X (arXiv:2507.08716) |",
+    "| **(a)** | 스톡 Sionna 직접 (산란적분 없음) | 표적 반환·마이크로도플러는 나오나 **절대 σ 는 안 나옴** — clutter·md-rt |",
+    "| **(b)** | 재질 **확산계수 S** 가정 | Great-X (arXiv:2507.08716) · Deterministic-Modeling ISAC (arXiv:2603.28736, 79 GHz 차량) |",
     "| **(c)** | 외부에서 RCS 계산·가정 후 주입 $h=h_{bg}+h_{target}$ | LAMBDA=Sionna+CADFEKO(arXiv:2607.03826) · Temporal-GNN=점산란체(arXiv:2604.08306) · 3GPP Rel-19 |",
-    "| **(d)** | 커스텀 **산란 add-on**(SBR+PO·UTD) | Ziganshin UTD · GPU BVH SBR+PO(arXiv:2604.09243) |",
+    "| **(d)** | 커스텀 **산란 add-on**(SBR+PO·UTD) | Ziganshin UTD(arXiv:2604.05991) · GPU BVH SBR+PO(arXiv:2604.09243) |",
+    "",
+    f"<sub>⚠ (b) 의 Deterministic-Modeling ISAC 이 확산 S 로 간 **이유는 우리와 다르다.** 원문은 "
+    f"*\"Purely specular RT on low-polygon meshes underestimates power **at mmWave/sub-THz** due to "
+    f"**electromagnetic roughness**; direct meshing at O(λ/10) is infeasible **at E-band**\"* 로, "
+    f"79 GHz 대역의 **표면 거칠기**를 이유로 들며 그 문장 자체도 자기 발견이 아니라 인용이다. "
+    f"우리 {fc / 1e9:.1f} GHz 에서 λ/10 = {lam * 100:.2f} mm 이고 우리 기체 메쉬는 "
+    f"{n_faces_full:,}면이라 그 메싱이 계산상 불가능한 영역이 아니다. 우리가 말하는 공백의 원인도 "
+    f"거칠기가 아니라 **PO 적분 단계의 부재**다 — 그래서 이 논문은 (b) 갈래의 사례로만 인용하고 "
+    f"§2 진단의 근거로는 쓰지 않는다.</sub>",
     "",
     "공통 아키텍처는 $h_{surv}=h_{direct}+h_{background}+h_{target}$ — 환경 전파는 Sionna 가 주고, "
     "표적 산란만 외부 물리로 계산해 두 전파 구간 사이에 끼워 넣는다. 우리는 **(d)로 값을 계산해 "
     "(c)로 주입**하는 길을 택한다(§4). "
-    "그 (d) 중에서도 **Ziganshin(arXiv:2604.05991)이 우리와 가장 가까운 선행**이다 — 우리처럼 "
-    "Sionna-RT(v0.19)를 그대로 확장해 표적 산란만 얹은 같은 계열이고, 차이는 물리다: 그들은 큰 물체"
-    "(차량·표준 구/원기둥)에 UTD(모서리·꼭짓점 회절)를, 우리는 작은 다중재질 드론에 PO(표면적분)를 얹는다.",
+    "그 (d) 중에서도 **Ziganshin(arXiv:2604.05991)이 우리와 가장 가까운 선행**이다 — 둘 다 Sionna "
+    "생태계 안에서 표적 산란만 얹지만 **붙이는 층이 다르다.** 그들은 Sionna-RT(v0.19) **솔버 자체를 "
+    "확장해** UTD 회절(모서리·꼭짓점)을 그 안에 넣고, 우리는 Sionna 가 쓰는 **Mitsuba 광선엔진 위에 "
+    "PO 표면적분을 따로 얹는다**(`PathSolver` 는 상속으로 확장하는 지점이 아니다 — MRO 실측). "
+    "표적도 다르다: 그들은 큰 물체(차량·표준 구/원기둥), 우리는 작은 다중재질 드론이다.",
 ))
 
 # =========================================================================== #
@@ -480,15 +609,24 @@ cells.append(md(
     "우리는 **(d)** 갈래를 택한다 — 표적 밝기를 자작 **SBR+PO** 로 계산해 **(c)** 방식으로 채널에 "
     "주입한다. 핵심은 **새 광선엔진을 만들지 않는다**는 것이다: SBR 의 광선추적은 Sionna 가 이미 쓰는 "
     "**Mitsuba 3 / OptiX 엔진을 그대로** 재사용하고(중복계산 없음), 그 위에 표준 PO 표면적분만 얹는다. "
-    "이는 GPU BVH SBR+PO(arXiv:2604.09243)가 하는 것과 같은 방법이다(기하광학 광선 전송 + 광선튜브 "
-    "위 물리광학 표면적분).",
+    "이는 GPU BVH SBR+PO(arXiv:2604.09243)와 **같은 계열**이다(기하광학 광선 전송 + 광선튜브 위 "
+    "물리광학 표면적분).",
+    "",
+    "다만 **동일하지는 않다.** 그들의 SBR 합(식 7)은 비스듬함 계수 $2(\\hat{n}_i\\cdot-\\hat{k}_{inc})$ "
+    "를 면적소 $\\Delta A$ 에 명시적으로 곱하고 적용범위를 **PEC·모노스태틱 후방산란 전용**으로 "
+    "선언한다. 우리는 조명 방향에 수직인 균일 광선격자를 써서 같은 계수를 투영면적 $d^2$ 안에 "
+    "흡수하고(변수변환), 거기에 다중재질 $|\\Gamma|$ · 유전체 셸 투과 · 바이스태틱을 얹는다. "
+    "바이스태틱에서는 조명면 가중 $(\\hat n\\cdot\\hat u_i)$ 만 유지하므로 대가가 따른다 — 전방산란"
+    "(β→180°)은 못 내고, 비볼록 표적의 깊은 널에서 상반성이 부분적으로만 성립한다"
+    "(`src/rcs_sbr.py` 독스트링에 적용범위로 기록).",
     "",
     "역할 분담은 선행(LAMBDA·Temporal-GNN·3GPP Rel-19)이 공통으로 쓰는 그 구조 그대로다:",
     "",
     "- **환경(τ·도플러·반사·바닥)** = 🟢 **Sionna RT** — 산란적분이 필요 없는(거울반사만으로 옳은) "
     "부분이라 그대로 신뢰. 파형·지연 채널도 **Sionna PHY** (report05 검증).",
     "- **표적 밝기 σ** = 🟡 **SBR+PO** — Mitsuba 광선으로 조명면을 찾고 그 위에서 PO 적분. 스칼라 σ "
-    "대신 **복소장 E** 를 직접 내 위상·편파를 보존한다(스칼라 RCS 주입보다 앞선다).",
+    "를 통째로 주입하는 대신 면 조각별 기여를 **복소장 E** 로 더해 **위상을 보존**한다"
+    "(⚠ 편파는 보존하지 않는다 — `src/rcs_sbr.py` 의 E 는 복소 **스칼라**이고 재질 반사도 스칼라 |Γ| 다).",
     "",
     "![hybrid](outputs/figures/report3_f7_hybrid.png)",
     "",
@@ -547,3 +685,6 @@ with open(NB, "w") as f:
     json.dump(nb, f, ensure_ascii=False, indent=1)
 
 print(f"✅ {NB}  ({len(cells)} cells)")
+#  자기검사 — 우리가 낸 인코히런트 기울기가 기록된 B_fit 과 같은지(같은 원장·같은 적합)
+print(f"   ↳ S 기울기 자기검사: 인코히런트 {slope_incoh:.3f} vs B_fit {slope_dec:.3f} "
+      f"(Δ={abs(slope_incoh - slope_dec):.2e}) · 코히런트 {slope_coh:.3f} dB/decade")

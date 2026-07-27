@@ -50,11 +50,34 @@ REF = J["reference"]
 G1 = REF["G1"]
 W, LT, NR = G1["wifi"], G1["lte"], G1["nr"]
 
+C0 = 299_792_458.0                                                   # [m/s]
+
+
+def _vb_max(x):
+    """거리합(바이스태틱) 좌표의 무모호 속도 $V_{b,max}$ = PRF·λ/2 [m/s].
+
+    RD 맵의 거리축은 두 경로의 **합** $R_b = R_1+R_2-L$ 이고, 같은 좌표에서 도플러는
+    $f_d = \\dot R_b/\\lambda$ 다 — 검출 체인이 실제로 쓰는 규약이 그것이다
+    (`benchmark/geometry.py:135` : ``fd = v @ (u1 + u2) / lam``, 계수 2 없음).
+    도플러 표본화 한계 $|f_d| \\le$ PRF/2 를 그대로 옮기면 $|\\dot R_b| \\le$ PRF·λ/2.
+
+    JSON 의 `vmax_ms` 는 **모노스태틱 등가**(PRF·λ/4) 쪽이라 좌표가 다르다. 이 리포트는
+    거리축이 $\\Delta R_b=c/B_{ref}$(거리합)이므로 속도축도 거리합 좌표로 맞춘다.
+    """
+    lam = C0 / (x["carrier_ghz"] * 1e9)
+    return x["prf_hz"] * lam / 2.0
+
+
+# 자기검사 — JSON 의 vmax_ms 가 정말 모노 등가(= 거리합의 절반)인지 확인하고 시작한다
+for _x in (W, LT, NR):
+    assert abs(_vb_max(_x) - 2.0 * _x["vmax_ms"]) < 1e-9, "vmax_ms 규약이 바뀌었다"
+
 # 파생 비율 (손으로 안 적음 — 측정값에서 계산)
 _nr_chan_frac = NR["ref_bw_mhz"] / NR["chan_bw_mhz"] * 100.0        # SSB 가 채널의 몇 %
 _dr_vs_lte = NR["dR_m"] / LT["dR_m"]                                 # SSB 가 LTE 보다 몇 배 거친가
 _dr_vs_wifi = NR["dR_m"] / W["dR_m"]                                 # SSB 가 WiFi 보다 몇 배 거친가
 _v_lte_vs_nr = LT["vmax_ms"] / NR["vmax_ms"]                         # LTE 가 SSB 보다 몇 배 빠른 표적을 보나
+W_VB, LT_VB, NR_VB = _vb_max(W), _vb_max(LT), _vb_max(NR)            # 거리합 좌표 무모호 속도
 
 cells = []
 
@@ -69,8 +92,9 @@ _prov = provenance_cells(
     spine=dict(
         core=(f"패시브 레이더는 자기 송신기가 없어 남의 **상시 신호**를 빌려 드론을 비춘다 — "
               f"어떤 상시 신호가 좋은 조명원인가를 WiFi·LTE·5G 세 후보로 한 챔버에서 가른다. "
-              f"결론: 넓고(ΔR {LT['dR_m']:.1f} m) 자주({LT['prf_hz']:.0f} Hz) 나오는 **LTE CRS 가 "
-              f"좁고(ΔR {NR['dR_m']:.1f} m) 드문(20 ms) 5G SSB 보다 낫다** — 세대가 최신이라고 "
+              f"결론: 넓고($\\Delta R_b$ {LT['dR_m']:.1f} m) 자주({LT['prf_hz']:.0f} Hz) 나오는 "
+              f"**LTE CRS 가 좁고($\\Delta R_b$ {NR['dR_m']:.1f} m) 드문(20 ms) 5G SSB 보다 낫다** — "
+              f"세대가 최신이라고 "
               f"조명 품질이 좋은 건 아니다."),
         gap=(f"**Sionna PHY 는 5G NR OFDM 을 3GPP 규격대로 생성**한다(`nr.CarrierConfig` 가 "
              f"μ·SCS·슬롯·CP 를 준다). 그러나 **`nr.CarrierConfig` 는 5G NR 전용이라 LTE 파형·뉴머롤로지는 "
@@ -79,14 +103,15 @@ _prov = provenance_cells(
              f"'채널 전대역'이 아니라 그 기준신호가 격자에서 실제로 켜는 **점유대역 $B_{{ref}}$** 가 "
              f"눈을 정한다(§2)."),
         prior=("기회신호(illuminator-of-opportunity) 패시브 레이더 문헌이 고르는 조명원이 정확히 이 "
-               "상시 기준신호들이다 — **LTE** 하향링크 드론 검출(Demissie, *IET RSN* 2025, "
-               "peer-reviewed), 셀룰러 하향링크 멀티스태틱 도플러 추적(arXiv:2509.25732), "
-               "**5G SSB** 저고도 드론 검출·측위(Jopanya & Osorio, *IEEE SPAWC* 2025, "
-               "arXiv:2504.02641) (§3)."),
+               "상시 기준신호들이다 — **LTE450** 하향링크 드론 검출(Demissie 외, *2024 International Radar "
+               "Conference (RADAR)*, DOI 10.1109/RADAR58436.2024.10993905 — 원문 확인), 셀룰러 하향링크 "
+               "멀티스태틱 도플러 추적(arXiv:2509.25732 — 프리프린트, 원문 미확인), **5G SSB** 저고도 드론 "
+               "검출·측위(Jopanya & Osorio, *IEEE SPAWC* 2025, DOI 10.1109/SPAWC66079.2025.11143316) (§3)."),
         lib=("**5G NR 뉴머롤로지는 Sionna PHY `nr.CarrierConfig`(TS 38.211 구현) 에 물어**(중복 구현 회피), "
              "**LTE·WiFi 파형과 상시 기준신호(CRS/SSB) 격자는 3GPP TS 36.211/38.211·IEEE 802.11ac 표에서 "
              "자작**(`src/waveforms.py`)한다. 점유대역·PRF 를 격자에서 읽어 "
-             "ΔR=c/$B_{ref}$·$v_{max}$=PRF·λ/4 로 환산(§4)."),
+             "$\\Delta R_b$=c/$B_{ref}$·$V_{b,max}$=PRF·λ/2 로 환산한다 — 거리축이 두 경로의 합 "
+             "$R_b$ 이므로 속도축도 같은 거리합 좌표에 둔다(모노스태틱 등가는 그 절반)(§4)."),
         verify=(f"파형이 정말 규격대로인지는 **Sionna PHY 로 교차대조(report05)** — 대역폭·뉴머롤로지·"
                 f"상시성을 규격 대비 확인. 본문 숫자는 유휴 셀 격자에서 실측한 값(WiFi "
                 f"{W['ref_bw_mhz']:.1f}·LTE {LT['ref_bw_mhz']:.1f}·SSB {NR['ref_bw_mhz']:.1f} MHz)."),
@@ -100,8 +125,9 @@ _prov = provenance_cells(
         dict(item="5G NR 뉴머롤로지 (μ·SCS·슬롯·CP)",
              src="**`sionna.phy.nr.CarrierConfig`** — Sionna 에게 물어본 값 (표를 손으로 안 짬)",
              kind="🟢 라이브러리 (3GPP TS 38.211 구현)"),
-        dict(item="ΔR · $v_{max}$ 폐형식",
-             src="$\\Delta R_b$ = c/$B_{ref}$ (바이스태틱; 모노 등가 c/2B) · $v_{max}$ = PRF·λ/4 — 교과서 레이더 공식",
+        dict(item="$\\Delta R_b$ · $V_{b,max}$ 폐형식",
+             src="$\\Delta R_b$ = c/$B_{ref}$ · $V_{b,max}$ = PRF·λ/2 — **둘 다 거리합(바이스태틱) 좌표**"
+                 "($f_d=\\dot R_b/\\lambda$). 모노스태틱 등가로 환산하면 각각 c/2B · PRF·λ/4 — 교과서 레이더 공식",
              kind="📐 해석식"),
     ],
 
@@ -137,9 +163,9 @@ _prov = provenance_cells(
 
         "**PRS 로 넓힌 5G 수치는 낙관적 상한이다.** PRS 는 상시 신호가 아니라 **측위 세션이 "
         "설정돼야** 켜지는 옵션이며, 남의 셀을 빌려 쓰는 패시브 수신기는 그것이 켜져 있다고 "
-        "가정할 수 없다. 그래서 §2 의 기본선은 SSB(7.2 MHz)이지 PRS(전대역)가 아니다.",
+        f"가정할 수 없다. 그래서 §2 의 기본선은 SSB({NR['ref_bw_mhz']:.1f} MHz)이지 PRS(전대역)가 아니다.",
 
-        "**WiFi 의 PRF 1 kHz 는 '혼잡한 AP' 대표값이다.** WiFi 는 LTE CRS·5G SSB 처럼 늘 나오는 상시 "
+        f"**WiFi 의 PRF {W['prf_hz']/1e3:.0f} kHz 는 '혼잡한 AP' 대표값이다.** WiFi 는 LTE CRS·5G SSB 처럼 늘 나오는 상시 "
         "신호가 아니라 **트래픽이 있을 때만** 촘촘하다 — 트래픽이 없으면 비콘(약 100 ms 주기)만 남아 "
         "반복이 훨씬 느려진다. 그래서 WiFi 패시브 센싱 연구들은 흔히 **의도적으로 트래픽을 유발**"
         "(예: 대상 AP 에 ping flood)해 조명 신호를 확보하는데, 이는 순수 '남의 상시 신호'라기보다 "
@@ -174,7 +200,9 @@ _prov = provenance_cells(
         ("거리분해능 ΔR", "두 표적을 거리로 가르는 최소 간격. **바이스태틱** $\\Delta R_b$=c/$B_{ref}$ "
                        "(우리 시스템), 모노스태틱 등가는 c/2B(절반). 넓은 신호일수록 촘촘"),
         ("PRF", "pulse repetition frequency — 기준신호가 **초당 몇 번** 반복되나. 자주일수록 빠른 표적을 봄"),
-        ("무모호 속도 $v_{max}$", "헷갈리지 않고 볼 수 있는 최대 속도. $v_{max}$ = PRF·λ/4"),
+        ("무모호 속도 $V_{b,max}$", "헷갈리지 않고 볼 수 있는 최대 **거리합 변화율** $\\dot R_b$. "
+                                "$V_{b,max}$ = PRF·λ/2 — 거리축 $\\Delta R_b$=c/$B_{ref}$ 와 **같은 좌표계**. "
+                                "모노스태틱 등가는 그 절반(PRF·λ/4)"),
         ("자원격자(resource grid)", "가로=시간·세로=주파수의 모눈종이. OFDM 신호는 이 칸을 채워 만든다"),
         ("RE (resource element)", "자원격자의 **한 칸** (한 부반송파 × 한 OFDM 심볼)"),
         ("OFDM", "부반송파 수백 개에 데이터를 잘게 나눠 싣는 변조 방식. 통신 신호의 기본 골격"),
@@ -249,47 +277,60 @@ cells.append(md(
     "### 2.2 자주 나올수록 빠른 표적을 본다",
     "",
     "표적이 움직이면 되돌아오는 신호의 주파수가 살짝 밀린다(도플러). 이 밀림으로 속도를 재는데, "
-    "기준신호가 **초당 몇 번 반복되나**(PRF)가 헷갈리지 않고 볼 수 있는 최고 속도 — **무모호 속도 "
-    "$v_{max}$** 를 정한다. 반복이 드물면($v_{max}$ 가 작으면) 그보다 빠른 표적은 "
-    "**도플러가 접혀(aliasing)** 엉뚱한 속도로 읽힌다.",
+    "기준신호가 **초당 몇 번 반복되나**(PRF)가 헷갈리지 않고 볼 수 있는 최고 속도 — **무모호 속도** 를 "
+    "정한다. 반복이 드물면 그보다 빠른 표적은 **도플러가 접혀(aliasing)** 엉뚱한 속도로 읽힌다.",
     "",
-    "$$v_{max} = \\frac{\\mathrm{PRF}\\cdot\\lambda}{4}$$",
+    "속도축은 **거리축과 같은 좌표계**여야 한다. 우리 RD 맵의 거리축은 두 경로의 합 $R_b$ 이고, 그 "
+    "좌표에서 도플러는 $f_d=\\dot R_b/\\lambda$ 다(검출 체인이 쓰는 규약도 같다 — "
+    "`benchmark/geometry.py:135` 의 `fd = v @ (u1+u2) / lam`, 계수 2 없음). 도플러 표본화 한계 "
+    "$|f_d|\\le \\mathrm{PRF}/2$ 를 그대로 옮기면:",
+    "",
+    "$$V_{b,max} = \\frac{\\mathrm{PRF}\\cdot\\lambda}{2}\\quad"
+    "(\\text{거리합 } \\dot R_b \\text{ 기준; 모노 등가 } \\mathrm{PRF}\\cdot\\lambda/4)$$",
+    "",
+    "$\\dot R_b = -\\,\\mathbf{v}\\cdot(\\hat u_1+\\hat u_2)$ 이므로 **표적 속력**으로 환산한 접힘 "
+    "문턱은 기하에 따라 달라진다 — 두 경로가 나란한 극한(모노스태틱 등가)에서 가장 엄격해 "
+    "PRF·λ/4 가 된다.",
     "",
     "### 2.3 유휴 셀에서 세 조명등을 나란히",
     "",
     "5G NR 뉴머롤로지(μ·SCS·슬롯·CP)는 손으로 짜지 않고 **Sionna PHY 의 `CarrierConfig`** 가 "
     "3GPP TS 38.211 을 구현한 값을 그대로 받는다. 각 표준의 상시 기준신호를 그 규격 격자 위에 올려 두고, "
-    "격자가 **실제로 켜는** $B_{ref}$·PRF 를 읽어 ΔR·$v_{max}$ 를 교과서 폐형식으로 구한다 (아래 숫자는 "
+    "격자가 **실제로 켜는** $B_{ref}$·PRF 를 읽어 $\\Delta R_b$·$V_{b,max}$ 를 교과서 폐형식으로 구한다 "
+    "(아래 숫자는 "
     "손으로 적은 게 아니라 **격자에서 읽은** 값이다):",
     "",
-    "| 표준 | 기준신호 | 채널 대역 | **$B_{ref}$** | **ΔR** | **PRF** | **$v_{max}$** |",
-    "|---|---|---|---|---|---|---|",
+    "| 표준 | 기준신호 | 채널 대역 | **$B_{ref}$** | **$\\Delta R_b$** | **PRF** | "
+    "**$V_{b,max}$** | 모노 등가 $v_{max}$ |",
+    "|---|---|---|---|---|---|---|---|",
     # 채널 대역은 802.11ac VHT80 의 명목 채널폭(80 MHz)으로 표기한다. JSON 의
     # chan_bw_mhz(=75.6, 242 데이터톤 폭)는 VHT-LTF(245톤, 76.6 MHz)보다 좁아
     # '채널 < B_ref' 처럼 보이는데, LTF 는 데이터톤 밖 가장자리까지 쓰므로 명목 80 MHz 채널 안에 들어간다.
     f"| WiFi 802.11ac | {W['ref']} | 80 MHz | "
     f"**{W['ref_bw_mhz']:.1f} MHz** | **{W['dR_m']:.1f} m** | "
-    f"{W['prf_hz']:.0f} Hz | {W['vmax_ms']:.1f} m/s |",
+    f"{W['prf_hz']:.0f} Hz | {W_VB:.1f} m/s | {W['vmax_ms']:.1f} m/s |",
     f"| LTE Rel-9 | {LT['ref']} | {LT['chan_bw_mhz']:.0f} MHz | "
     f"**{LT['ref_bw_mhz']:.1f} MHz** | **{LT['dR_m']:.1f} m** | "
-    f"{LT['prf_hz']:.0f} Hz | {LT['vmax_ms']:.0f} m/s |",
+    f"{LT['prf_hz']:.0f} Hz | {LT_VB:.0f} m/s | {LT['vmax_ms']:.0f} m/s |",
     f"| **5G NR Rel-16** | **{NR['ref']}** | {NR['chan_bw_mhz']:.0f} MHz | "
     f"**{NR['ref_bw_mhz']:.1f} MHz** | **{NR['dR_m']:.1f} m** | "
-    f"**{NR['prf_hz']:.0f} Hz** | **{NR['vmax_ms']:.2f} m/s** |",
+    f"**{NR['prf_hz']:.0f} Hz** | **{NR_VB:.2f} m/s** | {NR['vmax_ms']:.2f} m/s |",
     "",
     "![reference signal budget](outputs/figures/report2_ref_signal.png)",
     "",
     "*(그림 (a): 회색 = 채널 전체 대역, 색 = 패시브가 실제로 쓰는 기준신호 대역. 5G 만 둘이 크게 다르다. "
-    "(b): 그 대역이 정하는 거리분해능. (c): 거리(가로)·속도(세로)를 한 점으로 — 오른쪽·아래일수록 나쁨.)*",
+    "(b): 그 대역이 정하는 거리분해능. (c): 거리(가로)·속도(세로)를 한 점으로 — 오른쪽·아래일수록 나쁨. "
+    "그림 (c) 의 속도축은 라벨대로 **모노스태틱 등가 $v_{max}$**(표 마지막 열)이다 — 거리합 좌표로 "
+    "읽으려면 두 배 하면 된다.)*",
     "",
     "**세 줄로 읽는 법:**",
     f"- **WiFi** 는 기준신호가 이미 넓어(**{W['ref_bw_mhz']:.1f} MHz**) 거리를 가장 촘촘히 본다"
-    f"(**ΔR {W['dR_m']:.1f} m**). 다만 5 GHz 대라 도달 거리가 짧고, 반복이 트래픽에 의존한다.",
+    f"(**$\\Delta R_b$ {W['dR_m']:.1f} m**). 다만 5 GHz 대라 도달 거리가 짧고, 반복이 트래픽에 의존한다.",
     f"- **LTE** 는 CRS 가 채널 전대역(**{LT['ref_bw_mhz']:.1f} MHz**)에 매 1 ms 뿌려져 거리"
-    f"(**ΔR {LT['dR_m']:.1f} m**)·속도(**$v_{{max}}$ {LT['vmax_ms']:.0f} m/s**) 모두 균형이 좋다.",
+    f"(**$\\Delta R_b$ {LT['dR_m']:.1f} m**)·속도(**$V_{{b,max}}$ {LT_VB:.0f} m/s**) 모두 균형이 좋다.",
     f"- **5G SSB** 는 채널이 {NR['chan_bw_mhz']:.0f} MHz 나 되는데도 상시 켜는 건 중앙 20 RB "
-    f"**{NR['ref_bw_mhz']:.1f} MHz** 뿐 — 거리가 거칠고(**ΔR {NR['dR_m']:.1f} m**), 20 ms 마다 한 번만 "
-    f"나와 속도도 약하다(**$v_{{max}}$ {NR['vmax_ms']:.2f} m/s**).",
+    f"**{NR['ref_bw_mhz']:.1f} MHz** 뿐 — 거리가 거칠고(**$\\Delta R_b$ {NR['dR_m']:.1f} m**), "
+    f"20 ms 마다 한 번만 나와 속도도 약하다(**$V_{{b,max}}$ {NR_VB:.2f} m/s**).",
 ))
 
 cells.append(code(
@@ -297,11 +338,15 @@ cells.append(code(
     "import sys; sys.path.insert(0, 'src')",
     "from waveforms import always_on_waveforms",
     "",
-    "print(f\"{'표준':16s} {'기준신호':9s} {'B_ref':>10} {'ΔR':>8} {'PRF':>9} {'v_max':>9}\")",
+    "print(f\"{'표준':16s} {'기준신호':9s} {'B_ref':>10} {'ΔR_b':>8} {'PRF':>9} "
+    "{'V_b,max':>10} {'v_max(모노)':>11}\")",
     "for k, wf in always_on_waveforms().items():          # 유휴 셀 = 상시 기준신호만",
+    "    # waveforms.py 의 v_unambiguous_ms 는 **모노스태틱 등가**(PRF·λ/4).",
+    "    # 거리축이 거리합 ΔR_b=c/B_ref 이므로 속도축도 거리합 좌표(PRF·λ/2)로 맞춘다.",
+    "    vb = 2.0 * wf.v_unambiguous_ms",
     "    print(f'{wf.name:16s} {wf.ref_name:9s} {wf.ref_bw_hz/1e6:7.2f}MHz '",
     "          f'{wf.range_resolution_m:6.2f}m {wf.pilot_rate_hz:7.0f}Hz "
-    "{wf.v_unambiguous_ms:7.2f}m/s')",
+    "{vb:8.2f}m/s {wf.v_unambiguous_ms:9.2f}m/s')",
 ))
 
 cells.append(md(
@@ -328,20 +373,24 @@ cells.append(md(
     f"로 수십 배 뛰지만, **거리분해능(오른쪽)은 WiFi·LTE 는 거의 안 움직인다** — 상시 기준신호가 "
     f"**이미 넓기** 때문이다. 늘어난 건 상관에 못 쓰는 데이터 에너지뿐이다.",
     "",
-    "> ⚠️ 5G 만 오른쪽에서 41.6 m → 3.1 m 로 급전환하는데, 그건 **PRS(측위 기준신호)가 켜졌기 때문**"
-    "이다. PRS 는 상시 신호가 아니라 **측위 세션을 가정한 것**이므로, 이 급전환은 **낙관적 상한**이지 "
-    "패시브가 늘 기댈 수 있는 기본선이 아니다. 기본선은 어디까지나 SSB(7.2 MHz)다.",
+    f"> ⚠️ 5G 만 오른쪽에서 {NR['dR_m']:.1f} m → {REF['G3']['nr']['dR_m']:.1f} m 로 급전환하는데, "
+    f"그건 **PRS(측위 기준신호)가 켜졌기 때문**이다. PRS 는 상시 신호가 아니라 **측위 세션을 가정한 "
+    f"것**이므로, 이 급전환은 **낙관적 상한**이지 패시브가 늘 기댈 수 있는 기본선이 아니다. 기본선은 "
+    f"어디까지나 SSB({NR['ref_bw_mhz']:.1f} MHz)다.",
     "",
     "### 2.6 5G 가 불리한 이유 — 좁고, 드물다",
     "",
     f"**① 좁다 (거리가 거칠다).** SSB 는 채널 한가운데 20 RB = **{NR['ref_bw_mhz']:.1f} MHz** 만 켠다. "
-    f"그래서 ΔR = **{NR['dR_m']:.1f} m** — {NR['dR_m']:.0f} m 안쪽에 있는 두 물체는 **한 덩어리**로만 "
+    f"그래서 $\\Delta R_b$ = **{NR['dR_m']:.1f} m** — {NR['dR_m']:.0f} m 안쪽에 있는 두 물체는 "
+    f"**한 덩어리**로만 "
     f"보인다. 채널 자체는 **{NR['chan_bw_mhz']:.0f} MHz** 나 되는데 패시브가 상시로 쓸 수 있는 건 "
     f"그중 **{_nr_chan_frac:.1f}%** 뿐이다.",
     "",
     f"**② 드물다 (빠른 표적을 놓친다).** SSB 는 SS 버스트가 **20 ms 주기**로만 나온다 → PRF "
-    f"**{NR['prf_hz']:.0f} Hz** → $v_{{max}}$ **{NR['vmax_ms']:.2f} m/s**. 걷는 속도(약 1.4 m/s)만 "
-    f"넘어도 도플러가 접혀 속도를 헷갈린다.",
+    f"**{NR['prf_hz']:.0f} Hz** → $V_{{b,max}}$ **{NR_VB:.2f} m/s**(거리합 기준). 거리합 변화율 "
+    f"$\\dot R_b$ 는 송신·수신 두 경로 변화율의 **합**이라, 사람 걸음(약 1.4 m/s) 정도의 표적도 "
+    f"기하에 따라 이 한계를 넘어 도플러가 접힌다 — 두 경로가 나란한 극한에서는 표적 속력 "
+    f"**{NR['vmax_ms']:.2f} m/s** 만 넘어도 접힌다.",
     "",
     "### 2.7 대비 — 구세대 LTE 가 오히려 좋은 조명등",
     "",
@@ -350,10 +399,11 @@ cells.append(md(
     "",
     "| 축 | 무엇이 정하나 | LTE CRS | 5G SSB | LTE 가 유리한 정도 |",
     "|---|---|---|---|---|",
-    f"| **거리** ΔR | 점유대역 $B_{{ref}}$ | **{LT['dR_m']:.1f} m** ({LT['ref_bw_mhz']:.1f} MHz) | "
+    f"| **거리** $\\Delta R_b$ | 점유대역 $B_{{ref}}$ | **{LT['dR_m']:.1f} m** "
+    f"({LT['ref_bw_mhz']:.1f} MHz) | "
     f"{NR['dR_m']:.1f} m ({NR['ref_bw_mhz']:.1f} MHz) | 약 {_dr_vs_lte:.1f}× 촘촘 |",
-    f"| **속도** $v_{{max}}$ | PRF | **{LT['vmax_ms']:.0f} m/s** ({LT['prf_hz']:.0f} Hz) | "
-    f"{NR['vmax_ms']:.2f} m/s ({NR['prf_hz']:.0f} Hz) | 약 {_v_lte_vs_nr:.0f}× 빠름 |",
+    f"| **속도** $V_{{b,max}}$ | PRF | **{LT_VB:.0f} m/s** ({LT['prf_hz']:.0f} Hz) | "
+    f"{NR_VB:.2f} m/s ({NR['prf_hz']:.0f} Hz) | 약 {_v_lte_vs_nr:.0f}× 빠름 |",
     "",
     "통신 세대가 최신이라고 패시브 레이더에 좋은 조명등이 되는 건 아니다. 오히려 5G 는 늘 켜 두는 "
     "기준신호가 **좁고 드물어서** 옛 LTE 보다 못하다. 쓸 조명원을 고를 땐 통신 성능이 아니라 "
@@ -383,24 +433,43 @@ cells.append(md(
     "",
     "| 조명원 | 선행 연구 | 확립 정도 |",
     "|---|---|---|",
-    "| **LTE** 하향링크 | Demissie, *Drone Detection With a LTE450-Based Passive Radar* (*IET RSN* 2025) | "
-    "peer-reviewed 실측 |",
+    "| **LTE450** 하향링크 | Demissie 외, *Protection of Critical Infrastructure using LTE450-based "
+    "Passive Radar* (*2024 International Radar Conference (RADAR)*, DOI 10.1109/RADAR58436.2024.10993905) | "
+    "peer-reviewed 실측(표적 DJI M210) |",
     "| 셀룰러 하향링크(멀티스태틱) | *Doppler-Based Multistatic Drone Tracking via Cellular "
-    "Downlink Signals* (arXiv:2509.25732) | 멀티스태틱 도플러 |",
+    "Downlink Signals* (arXiv:2509.25732) | 멀티스태틱 도플러 — 프리프린트·원문 미확인 |",
     "| **5G SSB** | Jopanya & Osorio, *Utilizing 5G NR SSB Blocks for Passive Detection and "
-    "Localization* (*IEEE SPAWC* 2025, arXiv:2504.02641) | 이론(CRB) 단계 |",
-    "| **5G NR** (풀-웨이브폼) | Wypich & Zielinski, *Experimental Evaluation of 5G NR OFDM-Based "
-    "Passive Radar* (*Sensors* 2026) | 실측(USRP X310) |",
+    "Localization* (*IEEE SPAWC* 2025, DOI 10.1109/SPAWC66079.2025.11143316) | 이론(CRB) 단계 |",
     "",
     "**LTE 조명원**으로 드론을 잡는 패시브 레이더는 이미 peer-reviewed 실측으로 확립됐지만"
-    "(Demissie), **5G SSB 만으로** 드론을 보는 쪽은 아직 성능한계(CRB)를 따지는 이론 단계에 가깝다"
+    "(Demissie 외), **5G SSB 만으로** 드론을 보는 쪽은 아직 성능한계(CRB)를 따지는 이론 단계에 가깝다"
     "(Jopanya & Osorio) — §2 가 숫자로 보인 5G 의 불리함과 결이 같다.",
     "",
-    "Wypich & Zielinski 의 5G NR 패시브 레이더는 이 대비를 실측으로 못박는다: 상시 파일럿만 기준으로 "
-    "쓰면 검출확률(POD)이 24–32% 에 그치지만, 수신기가 사용자 데이터(PDSCH)까지 **재구성해 파형 "
-    "전체를 기준**으로 쓰면 77–78% 로 오른다(ECA+ → CA-CFAR). 즉 이 리포트가 재는 상시 신호의 좁은 "
-    "대역은 패시브가 늘 기댈 수 있는 **가장 정직한 기본선**이고, 파형 전체를 잡아 쓰는 것은 (수신기가 "
-    "그럴 수 있을 때의) **다른 전제**다 — 두 경우를 섞어 읽지 않는다.",
+    "<sub>서지 주의 — 같은 저자의 후속판 *Drone Detection With a LTE450-Based Passive Radar* "
+    "(*IET RSN* 2025, DOI 10.1049/rsn2.70092)는 **페이월이라 읽지 못했다**. 그래서 위 표에는 우리가 원문을 "
+    "연 2024 RADAR 판만 싣고, 처리사슬·수치를 IET 2025 판에 귀속하지 않는다(report10 §3 과 같은 규약). "
+    "Jopanya 의 식별자는 PDF 표지에 찍힌 DOI 를 1차로 쓴다(arXiv:2504.02641 은 2차 출처 ID).</sub>",
+    "",
+    "이 리포트가 재는 상시 신호의 좁은 대역은 패시브가 늘 기댈 수 있는 **가장 정직한 기본선**이고, "
+    "파형 전체를 잡아 쓰는 것은 (수신기가 그럴 수 있을 때의) **다른 전제**다 — 두 경우를 섞어 읽지 "
+    "않는다.",
+    "",
+    "> **각주 — '상시 파일럿만' vs '파형 전체'는 문헌이 한쪽으로 갈리지 않는다.**",
+    "> ",
+    "> · Wypich & Zielinski(*Sensors* 2026, AGH + Ericsson)는 5G NR 패시브 레이더에서 사용자 "
+    "데이터(PDSCH)까지 재구성해 파형 전체를 기준으로 쓰면 검출확률(POD)이 24–32% → 77–78% 로 "
+    "오른다고 보고한다(ECA+ → CA-CFAR, USRP X310). 다만 **표적이 드론이 아니라 차량**(5.8 GHz·"
+    "33.3 MHz OTA)이고, **우리는 원문 PDF 를 확보하지 못했다**(웹 메타데이터 기준) — 그래서 위 "
+    "선례표에 넣지 않고 방향성 근거로만 읽는다.",
+    "> ",
+    "> · 반대 부호의 실측도 있다. Taylor & Poullin(ONERA, *IEEE RADAR* 2023, "
+    "DOI 10.1109/RADAR54928.2023.10371153)은 **UAV 표적**의 LTE 패시브 레이더에서 원문 축자로 "
+    "*\"compressing the data using only symbols containing the CRS leads to significantly improved "
+    "detection capacities\"* 라고 적는다 — 대부분의 심볼이 비어 있어(부하가 낮아) 파일럿을 늘 담는 "
+    "CRS 심볼만 쓰는 쪽이 오히려 나았다는 것이다.",
+    "> ",
+    "> 두 결과는 표준·표적·셀 부하가 서로 달라 어느 쪽도 다른 쪽을 반증하지 않는다. 이 리포트는 "
+    "**상시 신호만 쓸 때의 기본선**을 재는 것으로 범위를 못박는다.",
 ))
 
 # =========================================================================== #
@@ -419,8 +488,9 @@ cells.append(md(
     "- **WiFi(802.11) 파형과 상시 기준신호(CRS·SSB)의 자원격자 배치**만 🔴 3GPP TS 36.211/38.211·"
     "IEEE 802.11ac 표에서 자작한다(`src/waveforms.py`, 조사 근거 `docs/waveform_research.json`) — "
     "Sionna 가 이 부분을 기본 제공하지 않기 때문이다(§1).",
-    "- 그 격자에서 **점유대역 $B_{ref}$·반복주기(PRF)** 를 읽어 ΔR=c/$B_{ref}$·$v_{max}$=PRF·λ/4 로 "
-    "환산한다(§2). 본문 숫자는 전부 이 측정에서 왔다.",
+    "- 그 격자에서 **점유대역 $B_{ref}$·반복주기(PRF)** 를 읽어 $\\Delta R_b$=c/$B_{ref}$·"
+    "$V_{b,max}$=PRF·λ/2 로 환산한다 — 거리·속도 두 축을 **같은 거리합 좌표**에 둔다(§2.2). "
+    "본문 숫자는 전부 이 측정에서 왔다.",
     "",
     "**검증**은 이 파형이 정말 3GPP·IEEE 규격대로 만들어졌는지를 **→ report05** 에서 **Sionna PHY 로 "
     "교차대조**하는 것으로 한다 — 대역폭·뉴머롤로지·상시성을 규격 대비 확인한다. 즉 뉴머롤로지는 "
@@ -428,8 +498,8 @@ cells.append(md(
     "",
     "> **정리** — 패시브가 빌릴 수 있는 조명은 '언제 봐도 똑같고(미리 앎), 늘 켜져 있는(상시)' 신호뿐이고, "
     "그건 표준마다 하나뿐이다(§1). 그 하나의 넓이와 반복이 눈을 정하는데(§2), 넓고 자주 나오는 **LTE CRS "
-    f"가 좁고 드문 5G SSB 보다 낫다**(ΔR {LT['dR_m']:.1f} vs {NR['dR_m']:.1f} m, "
-    f"$v_{{max}}$ {LT['vmax_ms']:.0f} vs {NR['vmax_ms']:.2f} m/s). 선행도 같은 선택을 한다(§3). "
+    f"가 좁고 드문 5G SSB 보다 낫다**($\\Delta R_b$ {LT['dR_m']:.1f} vs {NR['dR_m']:.1f} m, "
+    f"$V_{{b,max}}$ {LT_VB:.0f} vs {NR_VB:.2f} m/s). 선행도 같은 선택을 한다(§3). "
     "뉴머롤로지는 Sionna PHY 에 물었고, 없는 WiFi·기준신호 격자만 규격표로 자작해 report05 에서 되짚는다(§4).",
 ))
 

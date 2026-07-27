@@ -91,7 +91,12 @@ def pyapril_chain(sc, r_max, fd_max, K=64):
     # ③ CA-CFAR (pyAPRiL) — CA_CFAR(win,thr,size) 는 호출가능 객체를 돌려준다 → mag 로 호출
     win = [10, 10, 4, 4]                                       # [교육R, 교육D, 가드R, 가드D]
     cfar = pa_cfar.CA_CFAR(win, threshold=13.0, rd_size=mag.shape)
-    det = np.asarray(cfar(mag)) if callable(cfar) else np.asarray(cfar)
+    # ⚠ pyAPRiL 의 CA_CFAR.__call__ 은 (hit_matrix, rd_snr) **튜플**을 돌려준다.
+    #    통째로 asarray 하면 shape 가 (2, D, R) 이 되어 아래 거리축 슬라이스가 빈 배열이 되고
+    #    det.sum() 도 발화 수가 아니라 rd_snr 합이 된다 → 발화 판정이 구조적으로 항상 False 였다.
+    _out = cfar(mag) if callable(cfar) else cfar
+    hit, rd_snr = (_out if isinstance(_out, tuple) else (_out, None))
+    det = np.asarray(hit).astype(bool)
     # 표적 셀(0-도플러 능선 제외 최대) — 거리축은 mag.shape[1]
     zc = mag.shape[0] // 2
     ms = mag.copy(); ms[max(0, zc - 2):zc + 3, :] = 0.0
@@ -116,6 +121,9 @@ def main():
         # 정답 거리빈에 검출(발화)이 있나 + pyAPRiL 최대봉우리가 정답과 몇 빈 차이인가
         det = np.asarray(P["det"])
         # det shape (도플러, 거리); 정답 거리빈 ±1 열에 발화 존재?
+        # 슬라이스가 빈 배열이면 .any() 가 조용히 False 를 내므로 축 모양을 먼저 못박는다.
+        assert det.shape == tuple(P["shape"]), f"det shape {det.shape} != RD shape {P['shape']}"
+        assert det.shape[1] > rt, f"거리축({det.shape[1]})이 정답 빈 {rt} 보다 짧다"
         fired_at_truth = bool(det[:, max(0, rt - 1):rt + 2].any())
         dr = abs(P["peak_ri"] - rt)
         row = dict(std=std, r_bin_true=rt, dopp_bin_true=sc["dopp_bin_true"],

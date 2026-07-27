@@ -45,6 +45,21 @@ PY_N = len(PY["modes"])
 PY_OK = sum(1 for m in PY["modes"].values() if m["correct"])
 PY_ERR = max(abs(m["range_bin_error"]) for m in PY["modes"].values())
 
+# --------------------------------------------------------------------------- #
+#  선행 문헌값 (JSON 이 없으므로 상수 — 출처는 원문 PDF 직접 확인)
+# --------------------------------------------------------------------------- #
+# P. Jopanya, D. P. M. Osorio (Linköping Univ.),
+#   "Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones",
+#   IEEE SPAWC 2025 — PDF 표지에 찍힌 식별자는 DOI 10.1109/SPAWC66079.2025.11143316 이다
+#   (arXiv:2504.02641 은 prior_work.json 의 2차 출처 ID).
+#   원문 축자: "performs sensing in a passive bistatic setting" / "passive sensing of UAVs",
+#   "BsA and BsB are coordinated and synchronized in phase and frequency" → 협조·동기 기지국 쌍.
+#   Table I: M_V = M_H = 10(10×10 UPA), f_Δ = 60 kHz, f_c = 15 GHz, σ_RCS = −10 dBsm.
+#   ⚠ 그들 CRB 는 블록크기 (N, L) 축의 곡선이고 고정 기하가 없어 절대 미터로 우리 값과 정렬되지 않는다.
+PRIOR_JOPANYA = dict(cite="Jopanya·Osorio, IEEE SPAWC 2025",
+                     doi="10.1109/SPAWC66079.2025.11143316",
+                     fc_ghz=15.0, scs_khz=60.0, upa="10×10")
+
 
 def _s(lines):
     out = "\n".join(lines).splitlines(keepends=True)
@@ -100,8 +115,17 @@ for s in E["S4_target_loss"]:
         V_LONG_T = s["T_cpi_ms"]
 
 # 노치 곡선이 이론 1-sinc² 와 얼마나 붙나 (에너지 기준 최대 편차)
-NDEV = max(abs(r["energy_loss_db"] - r["theory_loss_db"])
-           for r in NOTCH_CURVE["rows"] if r["fd_over_dfd"] > 0)
+#   ⚠ 5G 곡선 하나만 보면 0.0015 dB 라 체리픽이 된다 — 운용 적분시간(M=48) **세 파형 전부**의
+#     최악값을 헤드라인으로 쓰고, 아래 표에 실리는 5G 곡선 값은 따로 병기한다.
+def _notch_dev(s):
+    return max(abs(r["energy_loss_db"] - r["theory_loss_db"])
+               for r in s["rows"] if r["fd_over_dfd"] > 0)
+
+
+NDEV_BY_WF = {s["name"]: _notch_dev(s) for s in E["S4_target_loss"] if s["M"] == 48}
+NDEV_WORST = max(NDEV_BY_WF, key=NDEV_BY_WF.get)
+NDEV = NDEV_BY_WF[NDEV_WORST]          # 세 파형 최악(= 정직한 상한)
+NDEV_5G = _notch_dev(NOTCH_CURVE)      # 아래 대조표에 싣는 곡선의 편차
 
 # ── (2) 모호함수 = 거리 분해능(측정/이론) ─────────────────────────────────
 def wf(k):
@@ -183,7 +207,8 @@ GLOSS = [
     ("CFAR", "주변 잡음을 보고 문턱을 스스로 정하는 검출기(Constant False Alarm Rate)"),
     ("CPI / 적분시간", "한 번 관측하며 신호를 모아 쌓는 시간(Coherent Processing Interval). 길수록 "
                        "도플러를 촘촘히 보지만 관측이 느려진다"),
-    ("semi-anechoic", "벽·천장은 전파를 흡수하고 바닥만 반사하는 반무향 챔버 — 우리 실험 환경"),
+    ("semi-anechoic", "벽·천장은 전파를 흡수하고 **설계상 바닥만 반사면으로 남긴** 반무향 챔버 — 우리 "
+                      "실험 환경(흡수체 잔여 반사는 0 이 아니다, report01 §2)"),
 ]
 
 _front = provenance_cells(
@@ -198,14 +223,17 @@ _front = provenance_cells(
              f"맹점과 위치 관측성은 **송수신 기하**로 못박혀 있어 시뮬레이터가 바꿀 수 없다. 게다가 스톡 "
              f"Sionna 는 파형·전파만 줄 뿐 이 문턱을 재는 **검출 신호처리(ECA·CAF·CFAR)가 아예 없다**."),
         prior=("패시브 레이더 검출은 ECA→CAF→CFAR 표준 사슬이며 하드웨어 선행이 그대로 썼다 — 5G NR OFDM "
-               "패시브 레이더(Wypich·Zielinski, Sensors 2026, DOI 10.3390/s26041317, ECA⁺→CA-CFAR) · "
-               "LTE450 드론 패시브 레이더(Demissie, IET RSN 2025, DOI 10.1049/rsn2.70092). 5G SSB 상시 신호의 "
-               "거리·속도 분해능/CRB 한계는 Jopanya·Osorio(SPAWC 2025, arXiv:2504.02641)가 분석했다."),
+               "패시브 레이더 OTA 실측(Wypich·Zielinski, Sensors 2026, DOI 10.3390/s26041317, ECA⁺→CA-CFAR; "
+               "⚠ 그 실험의 표적은 드론이 아니라 차량이다). LTE450 드론 패시브 레이더(Demissie, IET RSN 2025, "
+               "DOI 10.1049/rsn2.70092)는 조명원·표적이 우리와 가장 가깝지만 **원문이 paywall 이라 미확인**이라 "
+               "처리사슬 귀속에는 쓰지 않는다. 5G SSB 상시 신호를 조명원으로 한 거리·속도 **추정 정확도의 하한"
+               f"(CRB)** 은 {PRIOR_JOPANYA['cite']}(DOI {PRIOR_JOPANYA['doi']})가 유도했다."),
         lib=("검출 사슬은 새로 짜지 않고 오픈소스 **pyAPRiL**(GPLv3, BME Radarlab)의 `cc_detector`(CAF)·"
              "`CA_CFAR` 를 그대로 쓴다(중복 구현 회피). 표적 밝기 σ 만 자작 SBR+PO 로 계산해 Sionna 채널에 "
              "주입한다 — 파형·전파는 Sionna PHY·RT."),
         verify=(f"pyAPRiL 로 교차검증 — NR·WiFi·LTE **{PY_OK}/{PY_N} 모드 모두 CAF 봉우리의 거리빈이 정답과 일치**(오차 {PY_ERR} 빈)한다. "
-                f"⚠ 이는 **CFAR 가 표적 셀에서 검출을 선언했다는 뜻이 아니다**(산출물 detected_at_truth=false) — 상관 피크 위치의 일치일 뿐이다. "
+                f"⚠ 이는 **CFAR 가 표적 셀에서 검출을 선언했다는 뜻이 아니다** — 판정 기준이 봉우리 위치이고, "
+                f"CFAR 발화 여부는 이 기록으로 확정되지 않는다(report10 §4). "
                 f"검출(verify_pyapril.json). 분해능은 이론 ΔR_b=c/B 대비 {DR_MIN:.2f}~{DR_MAX:.2f}배(sinc 0.886), "
                 f"링크버짓 3독립계산 최대 편차 {LB_MAXDEV:.0e} dB, 관측성 회전대칭은 기계정밀도까지 0."),
     ),
@@ -272,17 +300,20 @@ cells.append(md(
     "(CFAR)의 **표준 처리 사슬**로 이뤄진다. 그러나 스톡 Sionna 는 파형·전파(경로·지연·도플러)만 줄 뿐 "
     "**이 레이더 신호처리를 아예 갖고 있지 않다.** 그래서 여기서는 표준 사슬을 그대로 따르되, 오픈소스 "
     "**pyAPRiL**(GPLv3, BME Radarlab)이 제공하는 그 ECA/CAF/CFAR 를 쓴다 — 실 하드웨어 선행이 쓴 체인과 같다"
-    "(5G NR 패시브 레이더 Wypich·Zielinski, Sensors 2026, ECA⁺→CA-CFAR; LTE450 드론 패시브 레이더 "
-    "Demissie, IET RSN 2025). 이 절은 그 첫 단계 ECA 가 **느린 표적에 만드는 원리적 맹점**을 본다.",
+    "(5G NR 패시브 레이더 OTA 실측 Wypich·Zielinski, Sensors 2026, ECA⁺→CA-CFAR — 단 그 실험의 표적은 "
+    "차량이다). 조명원과 표적이 우리와 더 가까운 LTE450 드론 패시브 레이더(Demissie, IET RSN 2025)도 있지만 "
+    "원문이 paywall 이라 여기서는 처리사슬 귀속에 쓰지 않는다. "
+    "이 절은 그 첫 단계 ECA 가 **느린 표적에 만드는 원리적 맹점**을 본다.",
     "",
     "ECA 는 도플러가 0 인 성분(움직이지 않는 벽·바닥·직접파)을 지우도록 설계돼 있다. 그런데 표적이 "
     "느리면 그 표적의 도플러도 0 에 가까워져 **ECA 가 표적을 정지 클러터로 착각해 함께 지운다.** 지워지는 "
     "정도는 표적의 도플러가 '도플러 한 칸(=1/적분시간)'에서 얼마나 떨어져 있느냐로 정해진다.",
     "",
     f"**근거 — 노치의 모양.** ECA 가 표적을 깎는 양은 이론적으로 $1-\\mathrm{{sinc}}^2(f_d\\,T)$ 라는 "
-    f"골짜기(노치) 모양을 따른다(T = 적분시간). 측정한 손실 곡선은 이 이론과 최대 **{NDEV:.3f} dB** 밖에 "
-    "차이 나지 않는다 — 노치 폭은 정확히 **도플러 한 칸**이다. 아래 표는 5G 신호에서 표적 도플러가 "
-    "도플러 한 칸의 몇 배일 때 얼마나 깎이는지다(이론과 나란히).",
+    f"골짜기(노치) 모양을 따른다(T = 적분시간). 측정한 손실 곡선은 운용 적분시간에서 **세 신호 전부** "
+    f"이 이론과 최대 **{NDEV:.3f} dB**(최악은 {NDEV_WORST}) 밖에 차이 나지 않는다 — 노치 폭은 정확히 "
+    f"**도플러 한 칸**이다. 아래 표는 5G 신호에서 표적 도플러가 도플러 한 칸의 몇 배일 때 얼마나 "
+    f"깎이는지다(이론과 나란히; 이 5G 곡선만 보면 편차는 {NDEV_5G:.4f} dB 로 더 작다).",
 ))
 
 # 1-sinc² 노치 대조표 (5G)
@@ -342,11 +373,11 @@ cells.append(md(*(
 )))
 cells.append(md(
     f"측정/이론 비가 전부 **{DR_MIN:.2f}~{DR_MAX:.2f}**(sinc 의 0.886 근처)로 거리 눈금이 맞았다. "
-    "**대역이 넓을수록 촘촘히 가른다** — 5G 의 측위용 신호(NR-PRS, 98 MHz)는 "
+    f"**대역이 넓을수록 촘촘히 가른다** — 5G 의 측위용 신호(NR-PRS, {RES['nr_G3']['refbw']:.1f} MHz)는 "
     f"{RES['nr_G3']['meas']:.1f} m 까지 가르지만, 5G 가 **상시** 내보내는 신호(SSB)는 대역이 "
     f"{RES['nr_G1']['refbw']:.1f} MHz 뿐이라 {RES['nr_G1']['meas']:.0f} m 로 거칠다. 즉 5G 로 상시 탐지하려면 "
-    "거리 분해능을 크게 손해 본다 — 이 SSB 상시모드의 한계는 5G NR SSB 패시브 바이스태틱 드론 검출을 "
-    "거리·속도 CRB 로 분석한 선행(Jopanya·Osorio, SPAWC 2025)이 겨냥한 바로 그 조명원이다.",
+    "거리 분해능을 크게 손해 본다 — 이 SSB 상시모드의 한계는 5G NR SSB 를 조명원으로 한 패시브 바이스태틱 "
+    f"드론 센싱의 거리·속도 CRB 를 유도한 선행({PRIOR_JOPANYA['cite']})이 겨냥한 바로 그 조명원이다.",
     "",
     "**곁봉우리(가짜표적)는 챔버 밖에 있다.** OFDM 신호의 반복 구조는 곁봉우리를 만들지만, 그 봉우리들은 "
     f"수백 m~km 거리에 찍혀 우리 챔버 관측창(바이스태틱 거리 ±60 m 안, 도플러 ±{CHAM:.0f} Hz) 밖이다. "
@@ -379,7 +410,8 @@ cells.append(md(
     "센싱하는 선행은 σ 를 **밖에서 계산해 채널에 주입**한다 — LAMBDA(arXiv:2607.03826)는 Sionna 전파에 상용 "
     "EM(CADFEKO) UAV RCS 를, Temporal-GNN(arXiv:2604.08306)은 점산란체 RCS 를 결합한다. 선행이 쓰는 세 갈래"
     "(상용 full-wave / 자작 SBR+PO / 점산란체) 중 여기서는 **자작 SBR+PO** 갈래를 따른다 — GPU SBR+PO"
-    "(BVH SBR+PO, arXiv:2604.09243)가 쓰는 것과 같은 방법(광선으로 조명면을 찾아 그 위에서 물리광학 적분)이며, "
+    "(BVH SBR+PO, arXiv:2604.09243)와 같은 계열이며(광선으로 조명면을 찾아 그 위에서 물리광학 적분; "
+    "적용범위 차이는 report06 §4), "
     "검증은 이론(평판·구)과 **실측 문헌 드론 RCS 앵커**(report08)로 한다.",
     "",
     "**근거 — 세 계산이 일치한다.** 같은 SNR 을 (a) 닫힌형 공식, (b) 단계별 사슬 계산, (c) dB 산술 세 "
@@ -408,8 +440,8 @@ cells.append(md(
     "확실히 잡는다. 그 전이를 검출확률 곡선으로 본다.",
     "",
     "**검출체인은 검증된 표준이다.** ECA→CAF→CFAR 사슬 자체는 오픈소스 pyAPRiL(GPLv3)이 제공하는 그 체인이며, "
-    f"그대로 돌려 NR·WiFi·LTE **{PY_OK}/{PY_N} 모드 모두** 표적을 정답 거리빈(오차 {PY_ERR} 빈)에 검출함을 "
-    "확인했다(outputs/verify_pyapril.json). 아래 **대량 몬테카를로 Pd 곡선은 그 같은 표준 체인을 GPU 로 "
+    f"그대로 돌려 NR·WiFi·LTE **{PY_OK}/{PY_N} 모드 모두** RD 맵 최강 봉우리의 거리빈이 정답과 일치함을"
+    f"(오차 {PY_ERR} 빈) 확인했다(outputs/verify_pyapril.json — 봉우리 위치 판정이지 CFAR 발화 판정이 아니다). 아래 **대량 몬테카를로 Pd 곡선은 그 같은 표준 체인을 GPU 로 "
     "대량 반복해** 얻은 것이다 — 검증된 체인이고, 대량 통계만 GPU 로 낸다.",
     "",
     f"**근거 — 드론이 모두 잡힌다.** SBR 로 계산한 σ 를 넣으니 5 대 드론 × 3 신호 = {N_DET} 조합의 "
@@ -479,7 +511,11 @@ cells.append(md(
     "**분해능(resolution)** 은 *두 표적을 가를 수 있나*(§2 의 거리 빈 폭)이고, **정확도(accuracy)** 는 "
     "*표적 하나의 위치를 얼마나 정밀히 찍나*(CRLB, 신호대잡음비에 좌우)입니다. **둘은 완전히 다른 축**인데 "
     "빈 폭을 정확도로 오해하기 쉽습니다. 이 거리·속도 정확도의 하한(CRB)은 선행에서 다뤄졌습니다 — "
-    "5G SSB 패시브 바이스태틱 드론 검출의 거리·속도 CRB 를 유도한 Jopanya·Osorio(SPAWC 2025)가 그 예입니다. "
+    f"5G SSB 패시브 바이스태틱 드론 센싱의 거리·속도 CRB 를 유도한 선행({PRIOR_JOPANYA['cite']})이 그 예입니다. "
+    f"⚠ 다만 그 CRB 는 블록크기 (N, L) 축의 곡선이고 조명원도 **협조·동기 기지국 쌍**"
+    f"(f_c {PRIOR_JOPANYA['fc_ghz']:.0f} GHz · SCS {PRIOR_JOPANYA['scs_khz']:.0f} kHz · "
+    f"{PRIOR_JOPANYA['upa']} UPA)이라, 아래 우리 챔버의 미터값과 나란히 놓을 수 있는 수치가 아닙니다 "
+    "— '정확도라는 축이 선행에도 있다' 까지가 이 인용의 범위입니다. "
     "실측하면 정확도가 분해능보다 **수십~수백 배 미세**합니다:",
     "",
     "| 신호 | 유효 셀 크기 (max[빈그리드, 주엽폭]) | 정확도 σ_R_b (CRLB) | 정확도가 더 미세한 배율 | SCR |",
@@ -509,6 +545,11 @@ cells.append(md(
     f"ΔR_b < {_S['exact_rotation_max_dRb_m']:.0e} m, Δf_d < {_S['exact_rotation_max_dfd_hz']:.0e} Hz "
     "— **기계 정밀도(부동소수점 오차) 수준**, 즉 정확히 0 입니다. 시간을 두고 여러 번 봐도(관측 그램행렬) "
     "이 축 방향은 끝내 채워지지 않습니다.",
+    "",
+    "<sub>이 대칭 자체는 새로 발견한 것이 아닙니다 — R_b 일정면이 기저선을 축으로 하는 **회전타원체**라는 "
+    "정의에서 곧바로 따라 나오는 바이스태틱 레이더의 교과서적 성질입니다. 여기서 한 것은 그 교과서 대칭을 "
+    f"우리 챔버 기하에서 **기계정밀도({_S['exact_rotation_max_dRb_m']:.2e} m)로 수치검증**하고, 그것이 "
+    "FIM 랭크 부족으로 어떻게 드러나는지와 처방별 위치 오차를 붙인 것입니다.</sub>",
 ))
 cells.append(md("![observability shell](outputs/figures/report4_obs_shell.png)",
                 "",
@@ -519,7 +560,7 @@ cells.append(md(
     "(outputs/renders/anim/obs_baseline_ring.gif)",
     "",
     "> **움직이는 그림:** 표적을 **TX-RX 기저선 축 둘레로 회전**시키면 위치는 계속 바뀌는데 "
-    "바이스태틱 거리 $R_b=R_1+R_2-L$ 은 **기계정밀도(≈1.4×10⁻¹⁴ m)까지 그대로**다. "
+    f"바이스태틱 거리 $R_b=R_1+R_2-L$ 은 **기계정밀도({_S['exact_rotation_max_dRb_m']:.2e} m)까지 그대로**다. "
     "즉 한 쌍의 관측만으로는 이 회전 방향을 원리적으로 구별할 수 없다 — 위 '껍질'이 왜 점으로 "
     "좁혀지지 않는지의 직접 증거.",
 ))
@@ -527,6 +568,22 @@ cells.append(md("![observability CRLB](outputs/figures/report4_obs_crlb.png)",
                 "",
                 "<sub>위치 정확도(CRLB). 단일 송수신 쌍에서는 baseline 축 방향으로 오차가 **발산**한다 "
                 "— 그 방향으로는 정보가 0 이기 때문.</sub>"))
+# 조건수 표기 — 랭크가 모자란 FIM 의 조건수는 **수치적으로 의미가 없다**(배정밀도 상대오차 ~2e-16
+# 이라 1e16 을 넘어가면 그 값 자체가 반올림 잡음이다). 실제로 1RX 는 1e290 대 값이 나오는데,
+# 그걸 그대로 찍으면 독자에겐 오류로 보이고 정밀도가 있는 척하는 셈이다. 문턱 넘으면 부등호로 쓴다.
+_COND_CAP = 1e12
+
+
+def _cond(v):
+    try:
+        v = float(v)
+    except (TypeError, ValueError):
+        return "n/a"
+    if not (v == v) or v > _COND_CAP:          # NaN 또는 문턱 초과
+        return f"> {_COND_CAP:.0e} (수치적 특이)"
+    return f"{v:.0e}"
+
+
 cells.append(md(
     "### 5.3 처방 — 수신기를 늘리거나, 각도를 재거나",
     "",
@@ -536,15 +593,16 @@ cells.append(md(
     "| 구성 | 실효 랭크 | 조건수 | **위치 RMS 오차** |",
     "|---|---|---|---|",
     f"| 수신기 1개 (기준) | {_FX['1RX (baseline)']['rank_practical']} / 6 | "
-    f"{_FX['1RX (baseline)']['cond']:.0e} | **{_FX['1RX (baseline)']['pos_rms_m']:.1f} m** (사실상 못 씀) |",
-    f"| **수신기 2개** | {_FX['2RX']['rank_practical']} / 6 | {_FX['2RX']['cond']:.0e} | "
+    f"{_cond(_FX['1RX (baseline)']['cond'])} | **{_FX['1RX (baseline)']['pos_rms_m']:.1f} m** (사실상 못 씀) |",
+    f"| **수신기 2개** | {_FX['2RX']['rank_practical']} / 6 | {_cond(_FX['2RX']['cond'])} | "
     f"**{_FX['2RX']['pos_rms_m']:.3f} m** |",
     f"| 수신기 1개 + 각도(AoA) 1° | {_FX['1RX + AoA(1deg)']['rank_practical']} / 6 | "
-    f"{_FX['1RX + AoA(1deg)']['cond']:.0e} | **{_FX['1RX + AoA(1deg)']['pos_rms_m']:.3f} m** |",
+    f"{_cond(_FX['1RX + AoA(1deg)']['cond'])} | **{_FX['1RX + AoA(1deg)']['pos_rms_m']:.3f} m** |",
     f"| 수신기 1개 + 각도(AoA) 5° | {_FX['1RX + AoA(5deg)']['rank_practical']} / 6 | "
-    f"{_FX['1RX + AoA(5deg)']['cond']:.0e} | **{_FX['1RX + AoA(5deg)']['pos_rms_m']:.3f} m** |",
+    f"{_cond(_FX['1RX + AoA(5deg)']['cond'])} | **{_FX['1RX + AoA(5deg)']['pos_rms_m']:.3f} m** |",
     "",
-    f"**읽는 법.** 수신기 하나면 랭크가 모자라(조건수 {_FX['1RX (baseline)']['cond']:.0e} — 사실상 특이) 위치 "
+    f"**읽는 법.** 수신기 하나면 랭크가 모자랍니다 — 조건수가 {_cond(_FX['1RX (baseline)']['cond'])} 로 "
+    f"배정밀도 한계를 넘어가, 조건수라는 지표 자체가 의미를 잃습니다(= 특이행렬). 그래서 위치 "
     f"오차가 **{_FX['1RX (baseline)']['pos_rms_m']:.0f} m** 로 터집니다. **두 번째 수신기를 놓거나**"
     f"(→ {_FX['2RX']['pos_rms_m']*100:.0f} cm) **각도를 1° 정밀도로 재면**(→ "
     f"{_FX['1RX + AoA(1deg)']['pos_rms_m']*100:.0f} cm) 랭크가 6/6 으로 차고 위치가 풀립니다.",
@@ -554,7 +612,8 @@ cells.append(md(
     "탐지에는 수신기 1개로 충분하지만, **추적(위치·궤적)에는 2개 이상 또는 각도 측정이 필수**입니다. "
     "이것이 이 프로젝트가 탐지를 먼저 하고 추적을 다음 일로 미룬 이유입니다. 추적 자체는 직접 짜지 않고 "
     "오픈소스 추적 프레임워크(Stone Soup, MIT)에 바이스태틱 측정모델만 얹어 붙일 계획이며, 셀룰러 조명·다중 "
-    "수신기로 패시브 드론을 추적한 실측 선행(Fan Liu 외, 도플러 다중스태틱, arXiv:2509.25732)이 이미 있습니다.",
+    "수신기로 패시브 드론을 추적한 선행(Fan Liu 외, 도플러 다중스태틱, arXiv:2509.25732 — **프리프린트, "
+    "원문 미확인**)이 이미 있습니다.",
 ))
 cells.append(md("![observability gramian](outputs/figures/report4_obs_gramian.png)",
                 "",

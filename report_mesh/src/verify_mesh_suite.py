@@ -166,10 +166,21 @@ def sec_C_dims(specs):
         dia_meas = 2.0 * float(np.hypot(pv[:, 0], pv[:, 1]).max()) * 1000.0
         errs = {}
         if spec.envelope_mm:
-            for ax, off, meas in zip("LWH", spec.envelope_mm, env["lwh_mm"]):
+            # ⚠ 공식 외형이 **프롭 포함**인 기체(Mini 5 Pro: 304×380×91)는 프레임이 아니라
+            #   **완성된 드론 전체**를 공식값과 견뎌야 한다. 프레임만 91 mm 에 맞추면 프롭이
+            #   그 위로 더 얹혀 실제 총높이가 106 mm 가 된다. frame_envelope_mm 이 축별로
+            #   올바른 비교대상(lwh_compare_mm)을 이미 골라 준다.
+            for ax, off, meas in zip("LWH", spec.envelope_mm, env["lwh_compare_mm"]):
                 if off is not None:
                     errs[ax] = dict(official=float(off), measured=float(meas),
-                                    err_pct=float((meas - off) / off * 100.0))
+                                    err_pct=float((meas - off) / off * 100.0),
+                                    basis=("full drone (official envelope includes propellers)"
+                                           if env["official_includes_props"] else "airframe"))
+        # 프롭 포함 공식 L/W 와 견줄 값은 **회전 디스크 외곽**이다 — 정적 메쉬 bbox 는
+        # 블레이드가 멈춘 방위에 따라 달라진다(2날 프롭은 원반이 아니라 선이다).
+        if env["official_includes_props"]:
+            errs["prop_disc_L"] = dict(measured=float(env["prop_disc_lw_mm"][0]))
+            errs["prop_disc_W"] = dict(measured=float(env["prop_disc_lw_mm"][1]))
         errs["diagonal"] = dict(official=float(spec.diagonal_mm),
                                 measured=float(env["diagonal_effective_mm"]),
                                 err_pct=float((env["diagonal_effective_mm"] - spec.diagonal_mm)
@@ -177,7 +188,7 @@ def sec_C_dims(specs):
         errs["prop_dia"] = dict(official=float(spec.prop_dia_mm), measured=dia_meas,
                                 err_pct=float((dia_meas - spec.prop_dia_mm)
                                               / spec.prop_dia_mm * 100.0))
-        worst = max(abs(v["err_pct"]) for v in errs.values())
+        worst = max(abs(v["err_pct"]) for v in errs.values() if "err_pct" in v)
         res[key] = dict(checks=errs, worst_err_pct=float(worst),
                         fit_scale=[float(x) for x in env["fit_scale"]])
     return res

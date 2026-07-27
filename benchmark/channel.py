@@ -26,6 +26,8 @@ channel.py — (benchmark) 채널/기하 모델: 바이스태틱 CIR 상태
 """
 from __future__ import annotations
 
+import functools
+import hashlib
 import json
 import os
 import sys
@@ -69,9 +71,22 @@ _SIG: dict | None = None          # 디스크 캐시 (문자열키 → σ[m²])
 _SIG_DIRTY = False
 
 
+@functools.lru_cache(maxsize=None)
+def _mesh_fp(drone_key: str) -> str:
+    """드론 메쉬 **지문**(8 hex). σ 캐시 키에 넣어 **메쉬가 바뀌면 캐시가 저절로 무효화**되게 한다.
+    ⚠ 없으면 (드론,fc,az,el) 만으로 키가 잡혀, CAD 를 고쳐도 옛 σ 를 조용히 재사용한다 —
+      링크버짓·SCR·Pd 가 전부 옛 형상 위에서 계산되는 사고가 된다."""
+    v = np.asarray(build_drone(DRONES[drone_key]).v, float)
+    h = hashlib.md5(np.round(v, 6).tobytes())
+    h.update(str(v.shape).encode())
+    return h.hexdigest()[:8]
+
+
 def _sig_key(drone_key, fc, az, el):
-    """캐시 키 — 각도는 밀리도(1e-3°)로 반올림해 부동소수 재현성 확보."""
-    return f"{drone_key}|{round(fc/1e6, 3)}|{round(float(az)*1000):d}|{round(float(el)*1000):d}"
+    """캐시 키 — 각도는 밀리도(1e-3°)로 반올림해 부동소수 재현성 확보.
+    메쉬 지문을 포함한다(위 _mesh_fp 참고)."""
+    return (f"{drone_key}@{_mesh_fp(drone_key)}|{round(fc/1e6, 3)}"
+            f"|{round(float(az)*1000):d}|{round(float(el)*1000):d}")
 
 
 def _sig_load():

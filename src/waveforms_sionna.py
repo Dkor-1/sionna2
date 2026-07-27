@@ -45,6 +45,14 @@ C0 = 299792458.0
 # --------------------------------------------------------------------------- #
 #  3GPP 5G NR — 뉴머롤로지는 **Sionna 에게 물어본다**
 # --------------------------------------------------------------------------- #
+def _fft_for(n_sub: int) -> int:
+    """부반송파 수를 담는 최소 2의 거듭제곱 FFT 크기 (fs = FFT × SCS 의 규격 관행)."""
+    n = 128
+    while n < int(n_sub):
+        n *= 2
+    return n
+
+
 def nr_numerology(scs_khz: int = 30, n_size_grid: int = 273):
     """CarrierConfig 로 진짜 3GPP 뉴머롤로지를 얻는다.
       scs 15/30/60/120 kHz → μ = 0/1/2/3.  n_size_grid = 자원블록 수(RB, 12 부반송파/RB)."""
@@ -58,7 +66,17 @@ def nr_numerology(scs_khz: int = 30, n_size_grid: int = 273):
         num_slots_per_frame=int(cc.num_slots_per_frame),
         slot_duration_s=float(cc.frame_duration) / float(cc.num_slots_per_frame),
         cyclic_prefix=str(cc.cyclic_prefix),
-        cp_length_samples=int(np.asarray(cc.cyclic_prefix_length).reshape(-1)[0])
+        # ⚠ CarrierConfig.cyclic_prefix_length 는 **초 단위 스칼라**다(15 kHz → 5.208e-6 s).
+        #    예전 필드 cp_length_samples 는 이 값을 int() 로 잘라 항상 0 을 기록했다.
+        #    초 값을 그대로 두고, 샘플 수는 기준 샘플레이트를 곱해 따로 낸다.
+        cp_length_s=float(np.asarray(cc.cyclic_prefix_length).reshape(-1)[0])
+        if np.asarray(cc.cyclic_prefix_length).size else 0.0,
+        # 샘플 수는 fs 에 의존하므로 fs 를 함께 기록한다. fs = FFT × SCS 이고 FFT 는 부반송파 수를
+        # 2 의 거듭제곱으로 올린 값이다(예: 273 RB → 3276 → 4096 → 122.88 MHz).
+        fs_ref_hz=_fft_for(int(n_size_grid) * 12) * float(scs_khz) * 1e3,
+        cp_length_samples=int(round(
+            float(np.asarray(cc.cyclic_prefix_length).reshape(-1)[0])
+            * _fft_for(int(n_size_grid) * 12) * float(scs_khz) * 1e3))
         if np.asarray(cc.cyclic_prefix_length).size else 0,
     )
 

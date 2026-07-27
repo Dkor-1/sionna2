@@ -7,9 +7,13 @@
 
 - **출시상태**: released (2025) · 신뢰도 high
 - **구성**: folding quadcopter (sub-250g mini) · 로터 4 · 암 4 · 동축 False
-- **대각거리(휠베이스)**: 250 mm
+- **대각거리(휠베이스)**: 250 mm (⚠ DJI 미공개 — 추정치. CAD 는 로터좌표 ±76·±114 mm → 대각 275 mm 를 씀)
 - **이륙중량**: 249.9 g
-- **언폴드 L×W×H**: 255 × 181 × 91 mm
+- **언폴드 L×W×H**: **304 × 380 × 91 mm (프롭 포함, 공식)**
+  - 아래 '주의'의 255×181×91 은 **공식값이 아니다**(검증에서 확인). 세 축 모두 프롭 포함 공식값을 쓴다.
+  - CAD 대조: 프롭 디스크 엔벨로프 **305.0 × 381.2 mm**, 전체 높이 **91.0 mm** (모두 +0.3% 이내)
+  - ⚠ 91 mm 는 **프롭 포함** 높이다 — 프레임에만 맞추면 프롭이 위로 더 얹혀 총 106 mm 가 된다
+    (`DroneSpec.env_props_included=True` 가 이 구분을 담당; `drones.frame_fit_scale` 참고)
 - **프로펠러**: Ø152 mm × 2날
 - **착륙장치**: none (rests on lower front arms / body underside; no dedicated legs)
 - **짐벌/색상**: front-bottom (nose, 3-axis gimbal mounted at front underside) · dark gray

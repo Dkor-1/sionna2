@@ -462,10 +462,14 @@ def build_propeller_cad(spec, n_sec=22) -> Assembly:
     R = spec.prop_dia_mm / 1000.0 / 2.0
     P = float(spec.prop_pitch_in or 5.0) * 0.0254          # 피치[inch] → [m]
     A = Assembly()
-    A.add(_prop_hub(R * 0.085, R * 0.09), "prop")
+    hub_r = R * 0.085
+    A.add(_prop_hub(hub_r, R * 0.09), "prop")
     for b in range(spec.prop_blades):
         # chord_max 는 비율(0.26R). 실물 1345 는 0.30R — 소비자용 프롭은 더 슬림.
-        bl = _blade(R, chord_max=0.26, pitch_m=P, n_sec=n_sec)
+        # 루트는 허브 반경(0.085R)보다 **안쪽**에서 시작해 허브와 겹치게 둔다 — 실물 프롭은
+        # 블레이드 생크가 허브에 물려 하나의 솔리드다. 떨어뜨리면 공중에 뜬 루트 모서리가
+        # 생겨 산란에 가짜로 기여한다(간극이 λ/20~λ/8 수준이라 무시할 크기가 아니다).
+        bl = _blade(R, root_frac=0.070, chord_max=0.26, pitch_m=P, n_sec=n_sec)
         A.add(rot_z(bl, (360.0 / spec.prop_blades) * b), "prop")
     A.union_group("prop")
     return A
