@@ -255,14 +255,14 @@ exclusion neighborhood·8/13 dB·"21편 전부 명목 신뢰"(report10)·physica
 
 | # | 항목 | 상태 (2026-07-24) |
 |---|---|---|
-| C-1 | `numerology[*].cp_length_samples` = 0 (3행) | 코드는 고쳤다(D-1). ⏳ **GPU 재생성 대기**(원장 `report2_waveform_rcs.json` 은 `viz_report2.py` 가 SBR/GPU 로 생성 → report13 이후 재생성 라운드) |
-| C-2 | 재질 분해 원장 이원화(36 az ↔ 121 az, 금속 > 전체 +0.39 dB) | ⏳ **GPU 재생성 대기**(그림 [C] 제목 36 az 구움 → RCS 재계산+그림 재생성 라운드) |
+| C-1 | `numerology[*].cp_length_samples` = 0 (3행) | ✅ **해소(2026-07-27)** — viz_report2 재실행으로 `report2_waveform_rcs.json` 재생성 → cp_length_samples 0→**160/352/208** |
+| C-2 | 재질 분해 원장 이원화(36 az ↔ 121 az) | ✅ **해소(2026-07-27)** — 재질기여도 그림 n_az=121 로 재생성, report02 에 36-az 모순 없음 |
 | C-3 | `verify_pyapril.json` 의 `detected_at_truth`·`n_fired` | ✅ **해소(2026-07-24)** — `verify_pyapril.py` 재실행. 반전 결과: 3모드 전부 `detected_at_truth=True`, `n_fired=5`(옛 False 는 튜플언팩 버그 산물). report12 서술을 "CFAR 정답셀 발화" 로 정정·재빌드 |
 | C-4 | report05 §2 의 "전샘플 대조 보고 관행은 드물다" (n=3 일반화) | ✅ **해소(2026-07-24)** — "이 세 예 모두 …대조해 보고하지는 않았다" 사실진술로 좁힘, 재빌드 |
 | C-5 | `prior_work.json` `measured_rcs_anchor.verdict` 낡음 | ✅ **해소(2026-07-24)** — verdict 를 현재 σ(el0 평균 −16.6·중앙값 −19.7·봉우리 −8.4)로 갱신, `_verdict_source` 추가. make_notebook08 의 "낡음" 주석도 갱신. 두 리포트(08·11) 모두 이 필드를 본문 인용 안 함 확인 |
 | C-6 | `src/waveforms.py:166` `v_unambiguous_ms` 모노 등가 | ✅ **해소(2026-07-24)** — 반환값 불변(호출부 보존), docstring 에 모노 등가·바이스태틱 기하인자 1/(cos(β/2)cosδ) 재배율 명시 |
-| C-7 | 그림에 구워진 문구 3건(report03 suptitle, report05 supxlabel, report04 (c) 속도축) | ⏳ **그림 재생성 대기**(본문 ⚠ 봉합 유지 → 재생성 라운드에 문구 수정) |
-| C-8 | report09 스냅샷(M=32) vs 궤적(M=48) | 🔶 **부분 해소(2026-07-24)** — 클러터 라벨 하드코딩 "M=48" 을 JSON `meta.M_default` 에서 읽도록 바꾸고 "궤적 실행과 동일 설정" 명시. **진짜 해소**(스냅샷을 M=48 로 재실행)는 GPU 라운드 대기 |
+| C-7 | 그림에 구워진 문구 3건 | ✅ **해소(2026-07-27)** — report03 "Floor-bounce amplitude agrees to.." 스코프 명시 · report04 v_max·report05 supxlabel 에 (mono-equiv) 표기 → 그림 재생성 |
+| C-8 | report09 스냅샷(M=32) vs 궤적(M=48) | ✅ **전면 해소(2026-07-27)** — cd_ghost/b_clutter M=32→48 재실행 → _M_SNAP=48=_M_TRAJ. "적분시간 다른 별도 실행" caveat 을 _M_DIFFER 조건부로(동일설정→순수 위치효과) |
 
 ### D. 코드 버그 수정 (산출물 재생성 필요 — 이번 라운드에서는 재생성하지 않음)
 
