@@ -376,7 +376,7 @@ def fig_ambiguity():
     ax.axhline(3.0, color="#111111", ls="--", lw=1)
     ax.text(3.45, 3.35, "our drone: 3 m/s", fontsize=7.4, ha="right")
     ax.set(xticks=x, xticklabels=nm, yscale="log",
-           ylabel="unambiguous speed $v_{max}$ [m/s]", ylim=(0.5, 3000))
+           ylabel=r"unambiguous speed $v_{max}$ [m/s] (mono-equiv)", ylim=(0.5, 3000))
     _head(ax, "(b) 5G's Doppler axis is 40x optimistic", FAILC)
     ax.legend(loc="upper left", frameon=False, fontsize=7.2)
     p = W["nr_G1"]["physical"]

@@ -94,6 +94,9 @@ _SNAP_SRC = os.path.join(ROOT, "benchmark", "verify_floor_ghost.py")
 _M_SNAP = int(re.search(r"def cd_ghost\([^)]*\bM=(\d+)", open(_SNAP_SRC, encoding="utf-8").read()).group(1))
 _M_TRAJ = int(GI["config"]["M"])
 _M_DIFFER = _M_SNAP != _M_TRAJ
+# 스냅샷 M 을 궤적 M 과 맞추면(C-8-full) 두 실행은 같은 처리 설정 → caveat 자동 소거.
+_M_NOTE = (f"⚠ 두 수치는 적분시간이 다른 별도 실행 — M={_M_SNAP} vs M={_M_TRAJ}"
+           if _M_DIFFER else f"두 실행 모두 동일 처리 설정(M={_M_TRAJ})")
 
 # 스윕 폭(전력 dB) — 기준(×1) 대비 최강 클러터가 얼마나 커졌나
 _CL_SWEEP_DB = B["rows"][-1]["strongest_db"] - B["rows"][1]["strongest_db"]
@@ -146,8 +149,7 @@ _front = provenance_cells(
               f"도플러가 실려 직접파 제거(ECA)를 통과한다 — 진짜 드론 **+{G5['sep_m']:.2f} m** 뒤에 "
               f"**유령 표적**으로 남아, 대역이 넓을수록(5G) 가짜 표적이 된다: 궤적 중앙 스냅샷에서 "
               f"**{G5['p_false']*100:.0f}%**, 궤적 전체 {T5['n']}개 지점 평균 "
-              f"**{T5['p_false']*100:.0f}%**(⚠ 두 수치는 적분시간이 다른 별도 실행 — "
-              f"M={_M_SNAP} vs M={_M_TRAJ})."),
+              f"**{T5['p_false']*100:.0f}%**({_M_NOTE})."),
         gap=(f"Sionna RT `PathSolver` 는 방의 경로(직접파·바닥반사·표적경유)를 **열거**해 주지만, "
              f"그 뒤에 필요한 **레이더 신호처리(직접파·클러터 제거·검출)가 없다** — 정지 클러터와 "
              f"움직이는 표적을 갈라낼 수단이 스톡 파이프라인에 없다."),
@@ -207,10 +209,13 @@ _front = provenance_cells(
         f"{T5['sep_lo']:.2f}~{T5['sep_hi']:.2f} m 로 변해 5G 의 가짜표적 확률이 평균 "
         f"**{T5['p_false']*100:.0f}%**, 유령의 CFAR 임계 여유가 평균 **{T5['margin_db']:+.2f} dB**"
         f"(= 평균적으로 임계 아래)가 된다 — 유령은 궤적 위치에 따라 임계를 오르내린다. "
-        f"⚠ 두 수치는 **같은 처리 설정의 비교가 아니다** — 스냅샷 실행의 CPI 는 M={_M_SNAP}"
-        f"(`benchmark/verify_floor_ghost.py` 의 `cd_ghost()` 기본값), 궤적 실행은 M={_M_TRAJ} 라 "
-        f"도플러 빈 폭이 다르다. 그래서 '{G5['p_false']*100:.0f}% → {T5['p_false']*100:.0f}%' 를 "
-        f"위치 효과만의 감소로 읽어서는 안 된다.",
+        + (f"⚠ 두 수치는 **같은 처리 설정의 비교가 아니다** — 스냅샷 실행의 CPI 는 M={_M_SNAP}"
+           f"(`benchmark/verify_floor_ghost.py` 의 `cd_ghost()` 기본값), 궤적 실행은 M={_M_TRAJ} 라 "
+           f"도플러 빈 폭이 다르다. 그래서 '{G5['p_false']*100:.0f}% → {T5['p_false']*100:.0f}%' 를 "
+           f"위치 효과만의 감소로 읽어서는 안 된다."
+           if _M_DIFFER else
+           f"두 실행 모두 M={_M_TRAJ} 로 **같은 처리 설정**(도플러 빈 폭 동일)이라, "
+           f"'{G5['p_false']*100:.0f}% → {T5['p_false']*100:.0f}%' 변화는 순수 위치(자세) 효과로 읽을 수 있다."),
         "**§3 의 정지 클러터 스윕은 물리 발견이 아니라 구현 정합성 검사다** — 세기와 무관한 소거는 "
         "0-도플러 노치의 **구성상 귀결**이다(주입 정지 클러터의 잔류가 RD 맵 0-도플러 능선에 앉아 "
         "노치+표적셀-측정에 배제된다). 그 한계 하나(**클러터 도플러 퍼짐**)를 실제로 넣어 시험한 것이 "
@@ -697,7 +702,7 @@ cells.append(md(
     f"경로라는 점이다. 그리고 대역이 넓을수록(5G) 이 유령을 진짜와 별개로 분해해 가짜 표적을 만든다 "
     f"— 궤적 중앙 스냅샷에서 **{G5['p_false']*100:.0f}%**, 궤적 전체 {T5['n']}개 지점 평균 "
     f"**{T5['p_false']*100:.0f}%**(유령의 CFAR 임계 여유 평균 {T5['margin_db']:+.2f} dB; "
-    f"⚠ 적분시간이 다른 별도 실행 M={_M_SNAP} vs M={_M_TRAJ}). 광대역의 "
+    f"{_M_NOTE}). 광대역의 "
     "정밀함이 그대로 오검출로 되돌아온다. 이 유령을 걸러내는 것은 앞으로의 탐지 설계가 반드시 안고 "
     "가야 할 문제다.",
     "",

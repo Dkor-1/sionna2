@@ -354,6 +354,9 @@ cells.append(md(
     f"상시 3인방 중 꼴찌다.",
 ))
 cells.append(fig("report13_detector", "측정한 Pd(SNR) + 경험 Pfa + 도플러 오프셋 의존"))
+cells.append(gif("r13_rd_recede", "거리-도플러 맵의 표적 봉우리 소멸 — d 200 m → 5 km",
+                 "실 MC RD맵(`passive_process.range_doppler`): 표적이 멀어질수록 거리빈이 밀려나가고 "
+                 "봉우리가 잡음바닥으로 가라앉는다 — 검지거리가 '거리 문제'로 보이는 물리."))
 
 
 # ── §4 몇 m 인가 ────────────────────────────────────────────────────────────

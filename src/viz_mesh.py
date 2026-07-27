@@ -279,7 +279,7 @@ def fig_doppler_mesh(outdir=FIG, target="matrice4e"):
     fig.suptitle("Fast drones need fast sampling", fontsize=16, fontweight="bold")
     # 두 공식은 제목에서 빼고 캡션 한 줄로(패널 제목·축라벨이 각각의 물리량을 이미 말한다)
     fig.supxlabel("Doppler " r"$f_d=2v/\lambda$" " · max unambiguous "
-                  r"$v_{\max}=\mathrm{PRF}\cdot\lambda/4$"
+                  r"$v_{\max}=\mathrm{PRF}\cdot\lambda/4$ (mono-equiv)"
                   " — only the LTE CRS rate clears typical drone speeds",
                   fontsize=8.5, color="0.45")
 

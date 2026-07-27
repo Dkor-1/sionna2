@@ -302,7 +302,7 @@ def fig4_floor(J):
                 ha="center", fontsize=13, fontweight="bold", color=INK)
     ax.set_ylim(-19, 0)
     ax.set_ylabel("amplitude vs LOS  [dB]", fontsize=11.5, color=INK2)
-    ax.set_title(f"Amplitude agrees to {abs(F['agree_db']):.2f} dB",
+    ax.set_title(f"Floor-bounce amplitude agrees to {abs(F['agree_db']):.2f} dB",
                  fontsize=13, fontweight="bold", color=INK)
     ax.text(.5, .08, "THIS is why we trust RT\nfor the environment",
             transform=ax.transAxes, ha="center", fontsize=12, fontweight="bold",
