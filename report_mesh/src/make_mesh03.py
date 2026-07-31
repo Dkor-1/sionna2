@@ -25,6 +25,8 @@ V = json.load(open(os.path.join(RM, "outputs", "mesh_verify.json"), encoding="ut
 
 # ---- 스펙: 코드가 실제로 쓰는 값 (src/drones.py) --------------------------------
 from drones import DRONES                       # noqa: E402
+from mesh_ledger import ledger_order            # noqa: E402  (원장↔레지스트리 일치 강제)
+ORDER = ledger_order(V)                         # = DRONES 레지스트리 전수
 import prep_cad_scan                            # noqa: E402  (docstring·상수 인용용)
 
 # ---- 원문 문서 로드 -------------------------------------------------------------
@@ -52,7 +54,11 @@ def specs_sections():
     return out
 
 SEC = specs_sections()
-SEC_KEY = {  # DroneSpec key → SPECS.md 헤더
+#  ⚠ 2026-07-30 (Phase 3): `docs/SPECS.md` 는 **DJI 5종 전용 문서**다(그 문서 머리말이 명시).
+#     비-DJI 표적(Yuneec·Holybro)은 여기 절이 **없고, 만들지도 않는다** — 그 제원의 단일
+#     출처는 `src/drones.py` 의 note + `docs/RESUME_0729.md` §5 다(제원 3갈래 분산 방지).
+#     그래서 아래 조회는 전부 **없을 수 있다는 전제**로 쓴다. 예전엔 KeyError 로 죽었다.
+SEC_KEY = {  # DroneSpec key → SPECS.md 헤더 (DJI 5종만 존재)
     "mini5pro": "DJI Mini 5 Pro",
     "mavic4pro": "DJI Mavic 4 Pro",
     "matrice4e": "DJI Matrice 4E (M4E)",
@@ -60,14 +66,22 @@ SEC_KEY = {  # DroneSpec key → SPECS.md 헤더
     "phantom4": "DJI Phantom 4 (original, 2016)",
 }
 
+def _sec_of(key):
+    """SPECS.md 의 해당 절 본문 — 없으면 None(비-DJI 표적)."""
+    return SEC.get(SEC_KEY.get(key, "\x00"))
+
 def research_diag(key):
-    """SPECS.md 의 '- **대각거리(휠베이스)**: NNN mm' 값(1차 조사값)."""
-    m = re.search(r"\*\*대각거리\(휠베이스\)\*\*: ([\d.]+) mm", SEC[SEC_KEY[key]])
+    """SPECS.md 의 '- **대각거리(휠베이스)**: NNN mm' 값(1차 조사값). 절이 없으면 None."""
+    sec = _sec_of(key)
+    if sec is None:
+        return None
+    m = re.search(r"\*\*대각거리\(휠베이스\)\*\*: ([\d.]+) mm", sec)
     assert m, key
     return float(m.group(1))
 
 def urls_of(key, n=3):
-    return re.findall(r"^  - (https?://\S+)", SEC[SEC_KEY[key]], flags=re.M)[:n]
+    sec = _sec_of(key)
+    return [] if sec is None else re.findall(r"^  - (https?://\S+)", sec, flags=re.M)[:n]
 
 def quote(text, start, end):
     """원문에서 start~end 마커 사이(마커 포함)를 발췌. 실패하면 즉시 에러."""
@@ -114,6 +128,8 @@ Q_SOURCES_RULE = quote(SOURCES_MD, "**이 파일들은 비교·검증 전용입�
                        "생성합니다.")
 
 # 대각값의 성격(공식/추정) — 근거는 §1.2·§1.3 의 SPECS.md 원문 인용
+#  ⚠ 폴백은 등급을 **주장하지 않는다** — 어디를 보라고만 말한다(비-DJI 2종).
+_DIAG_KIND_FALLBACK = "← `src/drones.py` note (`docs/RESUME_0729.md` §5)"
 DIAG_KIND = {
     "mini5pro": "추정(비공개) → envelope 재유도",
     "mavic4pro": "추정(비공개) → envelope 재유도",
@@ -131,21 +147,24 @@ d = DRONES  # 짧은 별칭
 
 # 스펙 표 행
 spec_rows = []
-for k in V["meta"]["drones"]:
+for k in ORDER:
     s = d[k]
     rd = research_diag(k)
-    arrow = f"{rd:g} → **{s.diagonal_mm:g}**" if rd != s.diagonal_mm else f"**{s.diagonal_mm:g}**"
+    arrow = (f"**{s.diagonal_mm:g}**" if rd is None or rd == s.diagonal_mm
+             else f"{rd:g} → **{s.diagonal_mm:g}**")
     w = f"{s.weight_g:g}"
     if k == "s1000plus":
         w = f"{s.weight_g:g}†"
     spec_rows.append(f"| {s.name} | {arrow} | {w} | {s.prop_dia_mm:g} | "
-                     f"{s.num_rotors} | {s.release} | {DIAG_KIND[k]} |")
+                     f"{s.num_rotors} | {s.release} | {DIAG_KIND.get(k, _DIAG_KIND_FALLBACK)} |")
 SPEC_TABLE = "\n".join(spec_rows)
 
 url_lines = []
-for k in V["meta"]["drones"]:
+for k in ORDER:
     us = urls_of(k, 2)
-    url_lines.append(f"- **{d[k].name}**: " + " · ".join(f"<{u}>" for u in us))
+    url_lines.append(f"- **{d[k].name}**: " + (" · ".join(f"<{u}>" for u in us) if us else
+                     "`docs/SPECS.md` 에 절이 없다(그 문서는 DJI 5종 전용) — 출처는 "
+                     "`src/drones.py` 의 `note` 와 `docs/RESUME_0729.md` §5"))
 URL_LIST = "\n".join(url_lines)
 
 cells = [
@@ -157,7 +176,7 @@ md("# mesh03 — 자료 수집: 모든 숫자와 모델은 어디서 왔나",
    ">   본문 수치는 전부 `outputs/mesh_verify.json`(측정)·`src/drones.py`(스펙)·원문 문서에서",
    ">   생성 시점에 읽어 넣은 것이다 — 손으로 옮겨 적은 숫자가 없다.",
    "",
-   "**한 줄 요약** — 우리 드론 메쉬 5종에 들어간 **모든 입력 자료의 출처 장부**다:",
+   f"**한 줄 요약** — 우리 드론 메쉬 {len(ORDER)}종에 들어간 **모든 입력 자료의 출처 장부**다:",
    "① DJI 공식 제원(웹 조사→독립 검증 2단계), ② Phantom 4 **실기체 3D 스캔**(Thingiverse,"
    f" {SRC['license']}), ③ **실물 드론 CAD** 3종(오픈소스 로보틱스 저장소) — 그리고 각각을"
    " **어떤 라이선스로, 왜, 어디까지** 쓰는지 밝힌다.",
@@ -194,14 +213,14 @@ md("## 0. 왜 출처만 다루는 리포트가 따로 있나",
    "",
    "| 층 | 자료 | 용도 | 출처 문서 |",
    "|---|---|---|---|",
-   f"| A | DJI 공식 제원 (5기체: {', '.join(d[k].name for k in V['meta']['drones'])}) "
+   f"| A | 제조사 공식 제원 ({len(ORDER)}기체: {', '.join(d[k].name for k in ORDER)}) "
    "| **표적 메쉬 생성의 입력** | `docs/SPECS.md` + `docs/drone_research.json` |",
    f"| B | Phantom 4 실기체 3D 스캔 ({RES_MM} mm 해상도) | 우리 메쉬 vs 실물 형상 검증(A/B) "
    "| `assets/meshes/cad/SOURCE.txt` |",
    "| C | 실물 CAD·커뮤니티 메쉬 (Typhoon H480 실물 CAD · 커뮤니티 M100/M600) | 방법론 교차검증(report03) "
    "| `assets/meshes/reference/SOURCES.md` |",
    "",
-   "핵심 원칙을 미리 말하면: **표적 메쉬 5종은 A(공식 스펙)에서만 생성**하고, B·C 는",
+   f"핵심 원칙을 미리 말하면: **표적 메쉬 {len(ORDER)}종은 A(공식 스펙)에서만 생성**하고, B·C 는",
    "**검증에만** 쓴다. 이유는 §3.1 에서. ← 출처: `assets/meshes/reference/SOURCES.md` 마지막 문단",
    ),
 
@@ -231,7 +250,7 @@ md("## 1. DJI 공식 제원 — 조사 → 독립검증의 2단계",
    ),
 
 # 4 ── §1.1 스펙 표 ---------------------------------------------------------------
-md("## 1.1 다섯 기체 핵심 제원 (코드가 실제로 쓰는 값)",
+md(f"## 1.1 표적 {len(ORDER)}기체 핵심 제원 (코드가 실제로 쓰는 값)",
    "",
    "아래 표는 이 노트북 생성 시점에 `src/drones.py` 의 `DroneSpec` 에서 **import 해 읽은** 값이다.",
    "'조사 → 채택' 표기는 1차 조사값(`docs/SPECS.md`)과 최종 채택값이 다른 경우다.",
@@ -244,7 +263,7 @@ md("## 1.1 다섯 기체 핵심 제원 (코드가 실제로 쓰는 값)",
    " 4.4 kg, 권장 이륙중량 6.0~11.0 kg. ← 출처: `docs/SPECS.md` S1000+ 절"
    f" (\"{NOTE_S1000.split('. ')[-1].rstrip('.')}\" — `src/drones.py` note)",
    "",
-   "- 무게·프로펠러·로터 수·출시상태는 5기체 모두 **공식값**(검증 통과). ← 출처: `docs/SPECS.md` 각 절 '검증' 항목",
+   "- 무게·프로펠러·로터 수·출시상태는 전 기체 **공식값**(검증 통과). ← 출처: `docs/SPECS.md` 각 절 '검증' 항목",
    "- **대각거리는 두 기체(Mini 5 Pro·Mavic 4 Pro)가 추정**이다 — DJI 가 Mini/Mavic 시리즈의",
    "  대각을 공개하지 않기 때문. 어떻게 추정했고 왜 조사값과 다른 값을 채택했는지가 다음 절이다.",
    ),
@@ -347,7 +366,7 @@ md("## 2. 실기체 3D 스캔 — DJI Phantom 4 (Thingiverse thing:1456295)",
    "",
    "← 출처: `assets/meshes/cad/SOURCE.txt` (전문 그대로)",
    "",
-   "다섯 기체 중 왜 Phantom 4 만 스캔이 있나 — **공개된 실기체 고해상도 스캔이 사실상 이것뿐**",
+   "표적 기체 중 왜 Phantom 4 만 스캔이 있나 — **공개된 실기체 고해상도 스캔이 사실상 이것뿐**",
    "이기 때문이다. 2016년 인기 기종이라 3D 프린팅 커뮤니티(Thingiverse)에 실물 스캔이 올라온",
    "드문 경우다. 최신 기종(Mini 5 Pro·Mavic 4 Pro·Matrice 4E)은 공개 스캔이 없어, 형상 검증은",
    "Phantom 4 한 기체로 방법을 확립하고(→ mesh08 스캔 대조) 나머지는 공식 외형 치수로 검증한다.",
@@ -449,7 +468,7 @@ md("## 3.1 원칙: 다운로드 모델은 '검증 전용', 표적은 스펙에�
    "   치수를 강제할 수 있어야 한다.",
    "3. **라이선스 제약** — 다수가 개인용/비상업 조건이거나 라이선스 불명이다.",
    "",
-   f"그래서 표적 5종({', '.join(d[k].name for k in V['meta']['drones'])})은 전부",
+   f"그래서 표적 {len(ORDER)}종({', '.join(d[k].name for k in ORDER)})은 전부",
    f"`src/drone_cad.py` 가 **공식 스펙시트 수치에서 생성**한다(엔진: {V['meta']['mesh_engine']}).",
    "다운로드한 실물 CAD·커뮤니티 메쉬는 '우리 파라메트릭 방법이 실물을 얼마나 재현하나'를 재는",
    "**잣대로만** 쓴다(→ 본편 report03.ipynb). ← 출처: `assets/meshes/reference/SOURCES.md` · `src/drone_cad.py`",
@@ -511,7 +530,7 @@ md("## 6. 정리 — 무엇의 진리원(source of truth)이 어디인가",
    "| 알고 싶은 것 | 이 파일을 보라 | 성격 |",
    "|---|---|---|",
    "| 기체 제원의 근거·공식/추정 구분·URL | `docs/SPECS.md` | 사람용 요약(조사+검증) |",
-   "| 조사·검증의 원자료(JSON) | `docs/drone_research.json` | research/verify 두 블록 × 5기체 |",
+   f"| 조사·검증의 원자료(JSON) | `docs/drone_research.json` | research/verify 두 블록 × {len(ORDER)}기체 |",
    "| **코드가 실제 쓰는 스펙값**과 채택 이유 | `src/drones.py` (`DroneSpec.note`) | 최종 채택 |",
    "| 실기체 스캔의 출처·라이선스·전처리 | `assets/meshes/cad/SOURCE.txt` + `src/prep_cad_scan.py` | 파생물 기록 |",
    "| 실물 CAD 3종의 출처·라이선스 | `assets/meshes/reference/SOURCES.md` | 검증 전용 |",
@@ -519,7 +538,7 @@ md("## 6. 정리 — 무엇의 진리원(source of truth)이 어디인가",
    "",
    "이번 편의 요점 세 가지:",
    "",
-   f"1. 표적 5종의 치수는 **조사→독립검증 2단계**를 거친 스펙에서 왔고, 추정값(Mini"
+   f"1. 표적 {len(ORDER)}종의 치수는 **조사→독립검증 2단계**를 거친 스펙에서 왔고, 추정값(Mini"
    f" {research_diag('mini5pro'):g}→{d['mini5pro'].diagonal_mm:g}, Mavic"
    f" {research_diag('mavic4pro'):g}→{d['mavic4pro'].diagonal_mm:g} mm)은 추정임을 명시한 채",
    "   공식 외형과의 일관성으로 재유도했다.",

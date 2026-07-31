@@ -20,9 +20,11 @@ C = V["C_dims"]; D = V["D_volume"]; G = V["G_scan"]
 H = V["H_po_convergence"]; I = V["I_sbr_subdiv"]
 META = V["meta"]
 
-NAME = {"mini5pro": "Mini 5 Pro", "mavic4pro": "Mavic 4 Pro", "matrice4e": "Matrice 4E",
-        "s1000plus": "S1000+", "phantom4": "Phantom 4"}
-ORDER = ["mini5pro", "mavic4pro", "matrice4e", "s1000plus", "phantom4"]
+#  ⭐ 2026-07-30 (Phase 3): 5종 하드코딩 → 원장 meta.drones(= DRONES 레지스트리 전수) 유도.
+from drones import drone_label            # noqa: E402
+from mesh_ledger import ledger_order   # noqa: E402  (원장↔레지스트리 일치 강제)
+ORDER = ledger_order(V)
+NAME = {k: drone_label(k) for k in ORDER}
 
 C0 = 299_792_458.0
 LAM35 = C0 / (META["fc_ghz"] * 1e9) * 1e3          # 검증 주파수 파장 [mm] ← meta.fc_ghz
@@ -55,7 +57,7 @@ md(
 "",
 "> ⚠ **이 노트북은 생성물이다.** 수정은 `src/make_mesh08.py` 에서 하라 (직접 고치면 재생성 때 사라진다).",
 "",
-f"**한 줄 요약** — 우리가 만든 드론 메쉬 5종을 (1) 공식 치수, (2) 무게·부피 물리, (3) 실기체 3D 스캔, (4) PO 수치 수렴, (5) SBR 이중 검사의 다섯 잣대로 재봤다. 치수는 최악 {max(worst.values()):.1f}% 이내, 실기체 스캔과는 표면 중앙값 {s2c['p50']:.1f} mm, 수치 해상도를 두 배로 올려도 방위평균 RCS 는 ±{max(abs(hm['azavg_dbsm']['diff']), abs(hp['azavg_dbsm']['diff']), abs(RAY['azavg_dbsm']['diff'])):.1f} dB 안에서 버틴다 — 단, 개별 널(null) 각도는 최대 {hm['per_angle_absdiff_db']['max']:.0f} dB 까지 흔들리므로 믿을 것과 조심할 것을 끝에 명확히 가른다. ← 출처: 본문 전 수치 `report_mesh/outputs/mesh_verify.json` C/D/G/H/I 섹션",
+f"**한 줄 요약** — 우리가 만든 드론 메쉬 {len(ORDER)}종을 (1) 공식 치수, (2) 무게·부피 물리, (3) 실기체 3D 스캔, (4) PO 수치 수렴, (5) SBR 이중 검사의 다섯 잣대로 재봤다. 치수는 최악 {max(worst.values()):.1f}% 이내, 실기체 스캔과는 표면 중앙값 {s2c['p50']:.1f} mm, 수치 해상도를 두 배로 올려도 방위평균 RCS 는 ±{max(abs(hm['azavg_dbsm']['diff']), abs(hp['azavg_dbsm']['diff']), abs(RAY['azavg_dbsm']['diff'])):.1f} dB 안에서 버틴다 — 단, 개별 널(null) 각도는 최대 {hm['per_angle_absdiff_db']['max']:.0f} dB 까지 흔들리므로 믿을 것과 조심할 것을 끝에 명확히 가른다. ← 출처: 본문 전 수치 `report_mesh/outputs/mesh_verify.json` C/D/G/H/I 섹션",
 "",
 "앞 편(mesh07)이 \"삼각형이 **기하학적으로** 건강한가\"(watertight·법선·대칭·겹침)를 물었다면, 이번 편은 한 단계 위의 질문이다 — **\"그래서 이게 진짜 DJI 드론과, 그리고 전자기 물리와 얼마나 가까운가?\"**",
 "",
@@ -109,11 +111,11 @@ sys.path.insert(0, os.path.abspath("../src"))          # sionna2/src (DroneSpec 
 with open("outputs/mesh_verify.json", encoding="utf-8") as f:
     V = json.load(f)
 
-NAME = {"mini5pro": "Mini 5 Pro", "mavic4pro": "Mavic 4 Pro", "matrice4e": "Matrice 4E",
-        "s1000plus": "S1000+", "phantom4": "Phantom 4"}
-ORDER = ["mini5pro", "mavic4pro", "matrice4e", "s1000plus", "phantom4"]
+from drones import drone_label            # 표적 목록·표시명의 단일 출처
+ORDER = list(V["meta"]["drones"])          # = DRONES 레지스트리 전수(개수 하드코딩 없음)
+NAME = {k: drone_label(k) for k in ORDER}
 
-print("검증 대상 :", ", ".join(NAME[k] for k in V["meta"]["drones"]))
+print("검증 대상 :", ", ".join(NAME[k] for k in ORDER))
 print(f"기준 주파수: {V['meta']['fc_ghz']:.1f} GHz  |  메쉬 엔진: {V['meta']['mesh_engine']}")
 print("이번 편 섹션:", ", ".join(k for k in V if k.startswith(("C_", "D_", "G_", "H_", "I_"))))"""
 ),
@@ -138,15 +140,15 @@ md(
 "**읽는 법 — 오차 0% 가 다 같은 0% 가 아니다.** 항목이 세 부류로 나뉜다는 것을 알아야 올바른 해석이 된다.",
 "",
 "1. **맞춰진 값 (외형 축, 오차 0.0%)** — 빌드 파이프라인이 프레임을 공식 외형에 **맞추도록 스케일**하기 때문에(`frame_fit_scale` `drones.py:272`, `build_frame` `:292`) 0% 는 검증이 아니라 **구성상 보장**이다. \"자로 재서 0\" 이 아니라 \"자에 맞춰 잘라서 0\". 단 Mini 5 Pro 는 공식으로 확실한 외형 축이 **높이뿐**이라 H 만 이 부류다 — L/W 는 강제하지 않고 로터 배치가 정한다 (← `drones.py:108-113` envelope_mm 주석).",
-"2. **직접 먹인 값 (프로펠러 지름)** — 스펙 지름을 파라메트릭 블레이드에 직접 넣는다. 그런데 5종 모두 오차가 약 "
-f"+{prop_err['mavic4pro']:.2f}% 로 **똑같다** — 5종이 같은 블레이드 함수(`drone_cad.py:334` `build_propeller_cad`, 스키미터 후퇴 + 팁 마감)를 반경만 바꿔 쓰므로, 팁 최외곽점이 명목 반경을 살짝 넘는 파라메트릭 형상 특성이 공통 비율로 나타난 것이다. 결함이 아니라 형상 선택의 흔적이다.",
+f"2. **직접 먹인 값 (프로펠러 지름)** — 스펙 지름을 파라메트릭 블레이드에 직접 넣는다. 그런데 {len(ORDER)}종 모두 오차가 약 "
+f"+{prop_err['mavic4pro']:.2f}% 로 **똑같다** — 전 기종이 같은 블레이드 함수(`drone_cad.build_propeller_cad`, 스키미터 후퇴 + 팁 마감)를 반경만 바꿔 쓰므로, 팁 최외곽점이 명목 반경을 살짝 넘는 파라메트릭 형상 특성이 공통 비율로 나타난 것이다. 결함이 아니라 형상 선택의 흔적이다.",
 "3. **따라나온 값 (대각선)** — 외형을 공식값에 맞춘 **결과로 유도되는** 모터-모터 거리. 아무도 직접 맞추지 않았으므로 이것이 **진짜 교차검증**이다. 최대 "
 f"{diag_err[max(diag_err, key=lambda k: abs(diag_err[k]))]:+.2f}% ({NAME[max(diag_err, key=lambda k: abs(diag_err[k]))]}) 로, 두 공식값(외형 상자 vs 대각)이 동시에 정확히는 양립하지 않는 기종에서 외형을 우선한 대가다.",
 ),
 
 # ── 4. 치수 표 코드 ──────────────────────────────────────────────────────
 code(
-"""# §1 치수 대조 — 5종 전 항목 (공식 vs 메쉬 실측)  ← mesh_verify.json C_dims
+"""# §1 치수 대조 — 전 기종 전 항목 (공식 vs 메쉬 실측)  ← mesh_verify.json C_dims
 C = V["C_dims"]
 print(f"{'드론':<12} {'항목':<9} {'공식[mm]':>9} {'실측[mm]':>9} {'오차[%]':>8}")
 print("-" * 52)
@@ -164,7 +166,11 @@ print(f"전체 최악: {NAME[worst_key]} {C[worst_key]['worst_err_pct']:.2f}% (�
 md(
 "![dims_check](outputs/figures/dims_check.png)",
 "",
-f"왼쪽: 5종 × 전 항목의 공식(회색) vs 실측(파랑) 막대 — 눈으로 봐도 겹친다. 오른쪽: 드론별 최악 오차. 5종 모두 **2% 가이드선 아래**다: Mini {worst['mini5pro']:.2f}% · Mavic {worst['mavic4pro']:.2f}% · Matrice {worst['matrice4e']:.2f}% · S1000+ {worst['s1000plus']:.2f}% · Phantom {worst['phantom4']:.2f}%. ← 출처: mesh_verify.json `C_dims.*.worst_err_pct`, 그림 `report_mesh/src/viz_mesh_reports.py:269-295` `fig_dims()`",
+# ⚠ 기종 열거는 **ORDER 에서 조립**한다 — 예전엔 다섯 기종을 손으로 나열해
+#   기종이 늘면 문장이 조용히 일부만 말했다.
+f"왼쪽: {len(ORDER)}종 × 전 항목의 공식(회색) vs 실측(파랑) 막대 — 눈으로 봐도 겹친다. 오른쪽: 드론별 최악 오차. "
+f"{len(ORDER)}종 모두 **2% 가이드선 아래**다: " + " · ".join(f"{NAME[k]} {worst[k]:.2f}%" for k in ORDER) + ". "
+"← 출처: mesh_verify.json `C_dims.*.worst_err_pct`, 그림 `report_mesh/src/viz_mesh_reports.py` `fig_dims()`",
 "",
 "### 공식값과 '추정'값의 구분 — 주의",
 "",
@@ -192,7 +198,7 @@ md(
 
 # ── 7. 밀도 표 코드 ──────────────────────────────────────────────────────
 code(
-"""# §2 부피·암시밀도 — 5종  ← mesh_verify.json D_volume
+"""# §2 부피·암시밀도 — 전 기종  ← mesh_verify.json D_volume
 D = V["D_volume"]
 print(f"{'드론':<12} {'부피[cm3]':>10} {'공식무게[g]':>11} {'암시밀도[g/cm3]':>15}")
 print("-" * 52)
@@ -225,7 +231,7 @@ f"- 자중 기준 {D['s1000plus']['implied_density_airframe_g_cm3']:.2f} g/cm³ 
 md(
 "## 3. 실기체 스캔 대조 — 진짜 팬텀 4 표면과 몇 mm 인가 (`G_scan`)",
 "",
-"치수 대조는 '자로 잰 몇 개의 길이'만 본다. 이번엔 **실제 팬텀 4 한 대를 0.4 mm 해상도로 3D 스캔한 데이터**와 우리 파라메트릭 CAD 의 **표면 전체**를 점 대 점으로 비교한다. 5종 중 팬텀 4 만 가능한 이유는 간단하다 — 라이선스가 확인된 실기체 스캔이 공개된 기종이 팬텀 4 뿐이었다.",
+"치수 대조는 '자로 잰 몇 개의 길이'만 본다. 이번엔 **실제 팬텀 4 한 대를 0.4 mm 해상도로 3D 스캔한 데이터**와 우리 파라메트릭 CAD 의 **표면 전체**를 점 대 점으로 비교한다. 표적 중 팬텀 4 만 가능한 이유는 간단하다 — 라이선스가 확인된 실기체 스캔이 공개된 기종이 팬텀 4 뿐이었다.",
 "",
 f"**스캔 출처** — \"DJI PHANTOM 4 HI RES SCAN\", Thingiverse thing:1456295, 작성자 NeverDun(Eamon McQuaide), 라이선스 **CC-BY**(저작자표시 필수, 여기서 표시함). 원본 STL 은 154 MB·3.09M 삼각형이라 저장소에 넣지 않고 archive.org 미러에서 내려받아 전처리한다. ← 출처: mesh_verify.json `G_scan.source`, `src/prep_cad_scan.py` docstring(7-19행, 다운로드 URL 포함), `assets/meshes/cad/SOURCE.txt`",
 "",

@@ -8,7 +8,7 @@ viz_verify_sbr.py — (report6) **오늘 새로 알아낸 것 3가지**를 그�
   §C  report6_mesh_bugs.png   : 메쉬·재질 버그 3건 + trimesh 회귀방지
 
 모든 수치는 **이 모듈이 직접 측정**하거나 측정 JSON 에서 읽는다(하드코딩 없음).
-§B·§C 의 측정은 outputs/report6_sbr.json 에 캐시된다 — make_notebook6.py 가 그걸 읽어
+§B·§C 의 측정은 outputs/report6_sbr.json 에 캐시된다 — 리포트 생성기가 그걸 읽어
 본문 표를 채우므로 **그림과 글이 어긋날 수 없다.**
 
 ⚠ 금지 표현: "레이트레이싱은 RCS 를 못 낸다" (거짓 — SBR 은 광선추적이고 σ 를 계산한다).
@@ -43,6 +43,11 @@ OUT_JSON = os.path.join(ROOT, "outputs", "report6_sbr.json")
 RAY_JSON = os.path.join(ROOT, "outputs", "rt_ray_budget.json")
 R1_JSON = os.path.join(ROOT, "outputs", "report1.json")   # 마이크로도플러 headline 의 살아있는 출처
 
+#  기준해(Mie·해석 PO)는 benchmark/mie_pec_sphere 한 곳에서만 온다 — path 에 넣어둔다.
+_BENCH = os.path.join(ROOT, "benchmark")
+if _BENCH not in sys.path:
+    sys.path.insert(0, _BENCH)
+
 FC = 3.5e9
 C0 = 299792458.0
 LAM = C0 / FC
@@ -75,7 +80,15 @@ def measure(n_az=N_AZ, force=False) -> dict:
     """§B·§C 에 필요한 모든 수치를 **직접 측정**하고 캐시한다."""
     if os.path.exists(OUT_JSON) and not force:
         with open(OUT_JSON) as f:
-            return json.load(f)
+            cached = json.load(f)
+        #  ⚠ 기준해 정정(2026-07-30) 이전 캐시는 구 잔차를 πr² 기준으로만 갖고 있다.
+        #    그대로 그리면 새 라벨('vs analytic PO')에 옛 숫자가 들어간다 → 즉시 멈춘다.
+        if "sphere_ref" not in cached.get("kernel", {}):
+            raise RuntimeError(
+                f"{os.path.relpath(OUT_JSON, ROOT)} 가 기준해 정정 이전 판이다(kernel.sphere_ref 없음). "
+                f"구 잔차의 과녁이 πr²(광학 점근) → 해석 PO + 정확 Mie 로 바뀌었으므로 "
+                f"`python src/viz_verify_sbr.py --force` 로 다시 측정할 것(GPU 필요).")
+        return cached
 
     from drones import (DRONES, DRONE_GROUP_MAT, build_drone, build_frame, build_propeller,
                         rotor_layout, frame_fit_scale, _build_frame_raw, _drone_dims,
@@ -92,23 +105,43 @@ def measure(n_az=N_AZ, force=False) -> dict:
     out: dict = {"fc": FC, "n_az": n_az}
 
     # ---------------------------------------------------------------- §B-1
-    #  커널 검증 — 해석해가 있는 표적 (격자 수렴)
-    print("[B1] SBR 커널 검증 (금속구 πr² · 평판 4πA²/λ²) …")
+    #  커널 검증 — 기준해가 있는 표적 (격자 수렴)
+    #  ⚠ 2026-07-30 정정 — 구의 과녁은 **πr² 이 아니다**. πr² 은 ka→∞ 광학 점근값일 뿐이라
+    #    kr=36.677 에서 해석 PO 는 그보다 +0.107 dB, 정확 Mie 는 0.045 dB 아래에 있다(간극
+    #    0.152 dB > 생산 커널의 구 잔차). 그래서 잔차를 **해석 PO(커널의 과녁)와 정확 Mie(참값)
+    #    둘 다**에 적고, πr² 은 `sphere_err_go` 로 라벨된 점근 참고값만 남긴다.
+    #    평판 4πA²/λ² 는 정면입사에서 **PO 의 정확한 답**이라 그대로 둔다.
+    print("[B1] SBR 커널 검증 (금속구: 해석 PO + 정확 Mie · 평판: 정확 PO 4πA²/λ²) …")
     from geom import uv_sphere, box
+    from mie_pec_sphere import sphere_reference_set     # benchmark/ — 기준해의 단일 출처
     divs = [4, 6, 8, 10, 12, 16, 20, 24]
     r_s, a_p = 0.5, 0.4
     sph = uv_sphere(r_s, seg=180, rings=90, group="metal")
     plate = box(a_p, a_p, 0.002, group="metal")
-    ex_s = np.pi * r_s ** 2
+    REF_S = sphere_reference_set(r_s, FC)
     ex_p = 4 * np.pi * (a_p * a_p) ** 2 / LAM ** 2
-    kern = {"divs": divs, "sphere_exact_dbsm": float(_dbsm(ex_s)),
-            "plate_exact_dbsm": float(_dbsm(ex_p)), "sphere_err": [], "plate_err": []}
+    kern = {"divs": divs, "sphere_ref": REF_S,
+            "plate_exact_dbsm": float(_dbsm(ex_p)),
+            "sphere_dbsm": [], "sphere_err_po": [], "sphere_err_mie": [], "sphere_err_go": [],
+            "plate_err": []}
+    #  ⚠ 2026-07-29: viz_report2.measure_sbr_validation 과 **같은 호출**을 유지한다
+    #    (report07 이 이 블록을 '같은 커널·같은 인자 재호출 = 회귀 확인'으로 인용한다).
+    #    둘 다 생산 커널 rcs_sbr_batch(jitter=3, penetrate=False)·|Γ|=1.0(PEC) 로 잰다 —
+    #    옛 단일격자 rcs_sbr() 은 어떤 결과도 쓰지 않는 경로였다. 구·평판은 볼록이라 1-bounce 가 정확.
+    PEC = {"metal": 1.0}                       # 키는 그룹 이름, 값은 |Γ|. 문자열 'pec' 는 없다.
     for d in divs:
-        s = rcs_sbr(sph, {"metal": "metal"}, FC, az_deg=0.0, el_deg=0.0, spacing=LAM / d)
-        p = rcs_sbr(plate, {"metal": "metal"}, FC, az_deg=0.0, el_deg=90.0, spacing=LAM / d)
-        kern["sphere_err"].append(float(_dbsm(s) - _dbsm(ex_s)))
+        s = rcs_sbr_batch(sph, PEC, FC, az_deg=0.0, el_deg=0.0, spacing=LAM / d,
+                          jitter=3, penetrate=False)
+        p = rcs_sbr_batch(plate, PEC, FC, az_deg=0.0, el_deg=90.0, spacing=LAM / d,
+                          jitter=3, penetrate=False)
+        kern["sphere_dbsm"].append(float(_dbsm(s)))
+        kern["sphere_err_po"].append(float(_dbsm(s) - REF_S["po_dbsm"]))
+        kern["sphere_err_mie"].append(float(_dbsm(s) - REF_S["mie_dbsm"]))
+        kern["sphere_err_go"].append(float(_dbsm(s) - REF_S["go_dbsm"]))
         kern["plate_err"].append(float(_dbsm(p) - _dbsm(ex_p)))
-        print(f"     λ/{d:<3d} 구 {kern['sphere_err'][-1]:+6.2f} dB · 평판 {kern['plate_err'][-1]:+6.2f} dB")
+        print(f"     λ/{d:<3d} 구 vs PO {kern['sphere_err_po'][-1]:+6.2f} dB / vs Mie "
+              f"{kern['sphere_err_mie'][-1]:+6.2f} dB (πr² 대비 {kern['sphere_err_go'][-1]:+6.2f}) "
+              f"· 평판 {kern['plate_err'][-1]:+6.2f} dB")
     out["kernel"] = kern
 
     # ---------------------------------------------------------------- §B-2
@@ -471,7 +504,9 @@ def fig_sbr(d, outdir=FIG):
     from drones import DRONES                                   # noqa: F401
     k = d["kernel"]; comp = d["compare"]
     divs = np.array(k["divs"], float)
-    se = np.array(k["sphere_err"]); pe = np.array(k["plate_err"])
+    #  구는 기준해가 둘이다 — se = 해석 PO(커널의 과녁), se_m = 정확 Mie(참값).
+    se = np.array(k["sphere_err_po"]); se_m = np.array(k["sphere_err_mie"])
+    pe = np.array(k["plate_err"]); refs = k["sphere_ref"]
 
     # 마이크로도플러 headline — **살아있는 생산자**(viz_report1 measure_microdoppler → report1.json)에서 읽는다.
     # ⚠ 예전엔 outputs/report3_microdoppler.json 을 읽었는데 그 파일은 리포트 재편 때 생산자가 사라진
@@ -496,25 +531,36 @@ def fig_sbr(d, outdir=FIG):
     fine = [i for i, v in enumerate(k["divs"]) if v >= 16]
     axk.axhspan(-0.6, 0.6, color="0.88", zorder=0)
     axk.axhline(0, color="0.35", lw=1.0, zorder=1)
-    axk.plot(divs, se, "o-", color=C_SBR, lw=2.0, ms=7, label=r"metal sphere ($\pi r^2$, r = 0.5 m)")
-    axk.plot(divs, pe, "s--", color=C_OK, lw=2.0, ms=7, label=r"metal plate ($4\pi A^2/\lambda^2$, 0.4 m)")
+    axk.plot(divs, se, "o-", color=C_SBR, lw=2.0, ms=7,
+             label=f"sphere r = 0.5 m  vs analytic PO (kr = {refs['kr']:.1f})")
+    axk.plot(divs, se_m, "^:", color="#ad1457", lw=1.7, ms=6, alpha=0.9,
+             label="sphere r = 0.5 m  vs exact Mie")
+    axk.plot(divs, pe, "s--", color=C_OK, lw=2.0, ms=7,
+             label=r"plate 0.4 m  vs exact PO ($4\pi A^2/\lambda^2$)")
     i12 = k["divs"].index(12)
     axk.plot([12], [se[i12]], "*", color=C_TRUTH, ms=16, zorder=6)
     axk.annotate(f"default $\\lambda$/12:  plate {pe[i12]:+.2f} dB,\n"
                  f"but sphere {se[i12]:+.2f} dB — grid noise,\n"
-                 f"not bias  (|err| < {max(abs(se[fine]).max(), abs(pe[fine]).max()):.1f} dB "
+                 f"not bias  (|residual| < "
+                 f"{max(abs(se[fine]).max(), abs(pe[fine]).max()):.1f} dB "
                  r"for $\lambda$/16+)",
                  xy=(12, se[i12]), xytext=(4.4, max(se.max(), pe.max()) + 0.7), fontsize=8.6,
                  color=C_TRUTH, fontweight="bold",
                  arrowprops=dict(arrowstyle="->", color=C_TRUTH, lw=1.2))
+    #  πr² 은 과녁이 아니라 라벨된 점근값이다 — 두 기준해에서 얼마나 떨어져 있는지만 적는다.
+    axk.annotate(f"optical asymptote $\\pi r^2$ is not a target:\nPO "
+                 f"{refs['po_minus_go_db']:+.3f} dB, Mie {refs['mie_minus_go_db']:+.3f} dB from it",
+                 xy=(0.98, 0.98), xycoords="axes fraction", fontsize=7.6, color="0.42",
+                 ha="right", va="top")
     axk.set_xscale("log"); axk.set_xticks(k["divs"])
     axk.set_xticklabels([f"$\\lambda$/{v}" for v in k["divs"]], fontsize=8.5)
     axk.minorticks_off()
     axk.set_xlabel("Ray grid spacing")
-    axk.set_ylabel(r"$\sigma$ error vs. closed form  [dB]")
-    axk.set_ylim(min(se.min(), pe.min()) - 0.6, max(se.max(), pe.max()) + 2.6)
+    axk.set_ylabel(r"$\sigma$ residual vs. reference solution  [dB]")
+    axk.set_ylim(min(se.min(), se_m.min(), pe.min()) - 0.9,
+                 max(se.max(), se_m.max(), pe.max()) + 2.6)
     axk.set_title("(a) The kernel is right — the grid is noisy", fontsize=12)
-    axk.legend(fontsize=8.4, loc="lower left"); axk.grid(alpha=0.28)
+    axk.legend(fontsize=7.6, loc="lower left"); axk.grid(alpha=0.28)
 
     # (b) PO vs SBR — 5종 × el
     keys = _ORDER
@@ -597,9 +643,14 @@ def fig_sbr(d, outdir=FIG):
     fine_err = max(abs(se[fine]).max(), abs(pe[fine]).max())
     _caption(fig,
         "This is what FEKO / CST / HFSS call SBR+: shoot geometric-optics rays to find the lit surface, then run the physical-optics "
-        f"surface integral over the points the rays actually hit. (a) Against closed forms the plate is exact at every spacing tested "
-        f"(|err| <= {abs(pe).max():.2f} dB), and the sphere converges to |err| <= {fine_err:.2f} dB once the grid reaches lambda/16. At the "
-        f"default lambda/12 the sphere reads {se[i12]:+.2f} dB — that is ray-grid discretisation noise on a curved surface (the error "
+        f"surface integral over the points the rays actually hit. (a) The plate is scored against 4*pi*A^2/lambda^2, which at normal "
+        f"incidence is the EXACT physical-optics answer, and it lands within {abs(pe).max():.2f} dB at every spacing tested. The sphere "
+        f"needs two rulers, because the kernel is PO: analytic PO is what it can converge to, exact Mie also carries the price of the PO "
+        f"approximation itself. Against analytic PO it converges to |residual| <= {fine_err:.2f} dB once the grid reaches lambda/16, and "
+        f"against Mie it reads {se_m[k['divs'].index(16)]:+.2f} dB there. The optical asymptote pi*r^2 is only labelled, never a target: "
+        f"at kr = {refs['kr']:.1f} analytic PO sits {refs['po_minus_go_db']:+.3f} dB and exact Mie {refs['mie_minus_go_db']:+.3f} dB away "
+        f"from it, a spread wider than the residual being reported. At the "
+        f"default lambda/12 the sphere reads {se[i12]:+.2f} dB vs analytic PO — that is ray-grid discretisation noise on a curved surface (the error "
         "changes sign as the grid moves), not a systematic bias, and it is the same effect that forced report3's micro-Doppler onto a "
         "lambda/32 grid. Treat ~1 dB as the kernel's noise floor at the working spacing. (b) Switching the reports from the old point-cloud PO "
         f"to SBR lowers every drone's cross-section by {abs(max(dd)):.1f} to {abs(min(dd)):.1f} dB, because the old kernel summed facets that "

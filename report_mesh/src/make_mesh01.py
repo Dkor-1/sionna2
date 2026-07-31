@@ -24,14 +24,15 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 
 V = json.load(open(os.path.join(RM, "outputs", "mesh_verify.json"), encoding="utf-8"))
 
-from drones import DRONES  # noqa: E402  (스펙 원본: src/drones.py DroneSpec)
+from drones import DRONES, drone_label  # noqa: E402  (스펙 원본: src/drones.py DroneSpec)
 
 # --------------------------------------------------------------------------- #
 #  수치 준비 — 본문의 모든 숫자는 여기서 계산해 주입한다
 # --------------------------------------------------------------------------- #
 META = V["meta"]
 A = V["A_geometry"]
-ORDER = META["drones"]                     # mini5pro, mavic4pro, matrice4e, s1000plus, phantom4
+from mesh_ledger import ledger_order   # noqa: E402  (원장↔레지스트리 일치 강제)
+ORDER = ledger_order(V)                    # = DRONES 레지스트리 전수(개수 하드코딩 없음)
 
 def _parts(s):                             # "12/12" → (12, 12)
     a, b = s.split("/")
@@ -61,13 +62,13 @@ lam_hi = META["lam_hi_mm"]                 # 최고 대역(WiFi 5.21 GHz) 파장
 mv_p95 = MV["edge_mm"]["p95"]
 mv_ratio = MV["edge_vs_lam52"]["p95_over_lam"]
 
-# 재질 반사계수(|Γ| 진폭) — E_materials 는 5종 공통 gamma_map
+# 재질 반사계수(|Γ| 진폭) — E_materials 는 전 기종 공통 gamma_map
 GM = V["E_materials"]["mavic4pro"]["gamma_map"]
 g_body, g_prop, g_batt, g_cam = GM["body"], GM["prop"], GM["battery"], GM["camera"]
 db_batt_vs_body = 20.0 * math.log10(g_batt / g_body)     # 전력비 [dB]
 db_batt_vs_prop = 20.0 * math.log10(g_batt / g_prop)
 
-# 치수 검증(C) 최악 오차 — 5종 중 최댓값
+# 치수 검증(C) 최악 오차 — 전 기종 중 최댓값
 worst_dim = max(V["C_dims"][k]["worst_err_pct"] for k in ORDER)
 
 # 실기체 스캔 대조(G)
@@ -75,7 +76,7 @@ G = V["G_scan"]
 g_p50 = G["scan_to_cad_mm"]["p50"]
 g_p90 = G["scan_to_cad_mm"]["p90"]
 
-# 드론 5종 표(스펙은 DroneSpec, 측정은 JSON)
+# 드론 전 기종 표(스펙은 DroneSpec, 측정은 JSON) — 개수는 len(ORDER)
 _diag_est = {"mini5pro", "mavic4pro"}       # DJI 대각 비공개 → 추정 (src/drones.py note)
 rows = []
 for k in ORDER:
@@ -118,8 +119,8 @@ md(
 "> ⚠ **이 노트북은 생성물이다.** 수정은 `report_mesh/src/make_mesh01.py` 에서 하고 재실행할 것",
 "> (`.ipynb` 를 직접 고치면 다음 빌드에서 사라진다).",
 "",
-f"**한 줄 요약** — 인터넷의 DJI 3D 모델은 시각용 껍데기라 레이더 시뮬레이션에 못 쓴다.",
-f"그래서 우리는 DJI **공식 제원표의 숫자**로부터 코드가 드론 {len(ORDER)}종을 직접 깎아 만들고",
+f"**한 줄 요약** — 인터넷의 드론 3D 모델은 시각용 껍데기라 레이더 시뮬레이션에 못 쓴다.",
+f"그래서 우리는 **제조사 공식 제원표의 숫자**로부터 코드가 드론 {len(ORDER)}종을 직접 깎아 만들고",
 f"(총 {tot_faces:,}개 삼각형), 9가지 독립 검사로 품질을 증명한다. 이 편은 그 **전체 지도**다.",
 "",
 "이 시리즈(mesh01~08)는 **파이썬 기초만 아는 독자**를 위한 3D 모델 제작 가이드다.",
@@ -155,7 +156,9 @@ md(
 "",
 "우리 프로젝트는 30×20×11 m 반무향 챔버 안에서 WiFi/LTE/5G 신호로 드론을 탐지하는",
 "패시브 레이더 시뮬레이션이다 ← 출처: `README.md` 1~10행. 그 시뮬레이션의 **표적**이 되는",
-f"DJI 드론 {len(ORDER)}종({', '.join(DRONES[k].name.replace('DJI ', '') for k in ORDER)})의",
+#  ⚠ 2026-07-30 (Phase 3): 'DJI 드론 N종' 이라고 쓰면 안 된다 — 표적에 Yuneec·Holybro 가
+#     들어왔다. 제조사 접두어를 떼는 규약도 drones.drone_label 한 군데로 모았다.
+f"드론 {len(ORDER)}종({', '.join(drone_label(k) for k in ORDER)})의",
 "3D 모델을 어떻게 만들었는지가 이 시리즈의 주제다.",
 "",
 "이 편(mesh01)은 네 가지 질문에 답한다:",
@@ -224,9 +227,9 @@ f"- 안쪽을 보는 법선 **{tot_inward}개**, 퇴화 삼각형(넓이 0) **{t
 "뒤 리포트들이 쓰는 물리 계산(PO 적분·SBR 광선추적, mesh08·report07)은 이",
 "기하학적 건강함을 **전제**로 한다. 그래서 시리즈 첫 편에서 이 성적표부터 보여 준다."),
 
-# ── 6. §1.3 5종 규모 표 ───────────────────────────────────────────────────
+# ── 6. §1.3 전 기종 규모 표 ────────────────────────────────────────────────
 md(
-"### 1.3 우리 드론 5종 — 한 표로",
+f"### 1.3 우리 드론 {len(ORDER)}종 — 한 표로",
 "",
 "| 드론 | 대각[mm] | 프롭Ø[mm]×수 | 꼭짓점 | 삼각형 | 부위 수 | watertight |",
 "|---|---|---|---|---|---|---|",
@@ -238,7 +241,7 @@ f"| **합계** | | | **{tot_verts:,}** | **{tot_faces:,}** | | **{tot_wt}/{tot_p
 "대각·프롭 지름·로터 수는 `src/drones.py:37` `DroneSpec` dataclass 에서 import 했고(손숫자 아님),",
 "꼭짓점·삼각형·watertight 는 `outputs/mesh_verify.json` `A_geometry` 측정값이다.",
 "",
-f"공식 외형치수와의 오차는 5종 최악이 **{worst_dim:.1f}%** (자세한 검증은 mesh04·mesh08)",
+f"공식 외형치수와의 오차는 {len(ORDER)}종 최악이 **{worst_dim:.1f}%** (자세한 검증은 mesh04·mesh08)",
 "← 출처: `mesh_verify.json` `C_dims.*.worst_err_pct`."),
 
 # ── 7. 그림: wireframe ────────────────────────────────────────────────────
@@ -289,7 +292,7 @@ f"   (\\|Γ\\|≈{g_batt:.2f})이 전력비로 **약 {db_batt_vs_body:.0f} dB**(
 "   세부 형상에 민감해서(∝A²/λ² 까지 가능, report06) 치수가 몇 % 틀리면 답이 몇 dB 틀어진다.",
 "3. **라이선스 제약** — 연구 산출물에 재배포 불가/상업 불가 모델을 섞으면 재현 패키지를 공개할 수 없다.",
 "",
-"**대안은 없었나?** 상용 스캔 서비스(수백만 원)나 직접 3D 스캔도 검토 대상이지만, 5종 전부를",
+f"**대안은 없었나?** 상용 스캔 서비스(수백만 원)나 직접 3D 스캔도 검토 대상이지만, {len(ORDER)}종 전부를",
 "검증 가능한 품질로 확보할 방법이 아니었다. 대신 **공짜이면서 가장 신뢰할 수 있는 원천** —",
 "DJI 공식 제원표(외형 L×W×H·프로펠러 지름·무게) — 에서 출발하기로 했다",
 "← 출처: `docs/SPECS.md` (기종별 dji.com/specs URL 목록·독립 교차검증 기록)."),

@@ -16,14 +16,15 @@ V = json.load(open(os.path.join(RM, "outputs", "mesh_verify.json"), encoding="ut
 
 # drones.py 는 numpy/geom 만 필요(가벼움). materials.py 는 sionna 를 import 하므로 여기선 안 부른다
 # — 대신 벌크 프레넬은 materials.gamma_bulk 와 **같은 공식**(materials.py:127-132)을 그대로 재현해 계산.
-from drones import DRONES, DRONE_GROUP_MAT, MATERIAL_COLOR
+from drones import DRONES, DRONE_GROUP_MAT, MATERIAL_COLOR, drone_label
 
 EM = V["E_materials"]
-ORDER = V["meta"]["drones"]                       # mini5pro, mavic4pro, matrice4e, s1000plus, phantom4
+from mesh_ledger import ledger_order   # noqa: E402  (원장↔레지스트리 일치 강제)
+ORDER = ledger_order(V)                           # = DRONES 레지스트리 전수
 FC_GHZ = V["meta"]["fc_ghz"]
 LAM_MM = V["meta"]["lam_hi_mm"]
 
-# --- gamma_map 은 5종 모두 동일해야 한다(재질 규칙이 드론 공통이므로) — 생성 시점에 검증 ---
+# --- gamma_map 은 전 기종 동일해야 한다(재질 규칙이 드론 공통이므로) — 생성 시점에 검증 ---
 GM = EM[ORDER[0]]["gamma_map"]
 for k in ORDER[1:]:
     assert EM[k]["gamma_map"] == GM, f"gamma_map differs for {k}"
@@ -56,8 +57,12 @@ def chip(mat):
 
 # --- 그룹이 어느 드론 메쉬에 실재하나 (E_materials.groups 에서) -------------------------
 PRESENCE = {g: [k for k in ORDER if g in EM[k]["groups"]] for g in DRONE_GROUP_MAT}
-SHORT = {"mini5pro": "Mini5", "mavic4pro": "Mavic4", "matrice4e": "M4E",
-         "s1000plus": "S1000+", "phantom4": "P4"}
+#  ⭐ 2026-07-30 (Phase 3): 5종 하드코딩 사전이라 원장에 기종이 늘면 `SHORT[k]` 가 **KeyError**
+#     로 죽었다. 짧은 약칭은 손으로 고른 것이라 이름에서 유도할 수 없으므로 **override + 폴백**
+#     구조로 둔다(폴백 = `drones.drone_label`). 기존 5종의 표 문자열은 그대로다.
+_SHORT_OVERRIDE = {"mini5pro": "Mini5", "mavic4pro": "Mavic4", "matrice4e": "M4E",
+                   "s1000plus": "S1000+", "phantom4": "P4"}
+SHORT = {k: _SHORT_OVERRIDE.get(k, drone_label(k)) for k in ORDER}
 
 MAT_KO = {"prop_plastic": "프로펠러 플라스틱(얇은 날개)", "plastic": "플라스틱(ABS/PC)", "carbon": "탄소섬유(CFRP)", "metal": "금속(ITU)",
           "camera_assembly": "카메라 조립품", "pcb": "PCB(FR-4+구리)"}
@@ -85,7 +90,7 @@ cells.append(md(
     "",
     f"**한 줄 요약** — 드론 3D 메쉬의 부위 그룹 {len(DRONE_GROUP_MAT)}개마다 전파 재질과",
     f"진폭 반사계수 |Γ|@{FC_GHZ:g} GHz 를 배정하고, **렌더 색을 재질과 1:1 로 묶어**",
-    "\"그림만 봐도 전파 물성이 보이게\" 만들었다. 5개 기종 전부에서 재질이 빠진 그룹은",
+    f"\"그림만 봐도 전파 물성이 보이게\" 만들었다. {len(ORDER)}종 전부에서 재질이 빠진 그룹은",
     f"**0개**(all_covered={ALL_COVERED}) ← 출처: `outputs/mesh_verify.json` §E_materials.",
     "",
     "이 편은 형상(mesh01~05)이 아니라 **표면 물성** 이야기다. 같은 모양이라도 표면이",
@@ -143,7 +148,7 @@ cells.append(md(
     "## 2. 재질 지도 한 장 — 색 = 재질 = 전파 물성",
     "",
     "아래 범례가 이 편의 핵심 요약이다. 왼쪽부터 **색 → 재질 → \\|Γ\\| → 이 재질을 쓰는",
-    "메쉬 그룹 → 물성의 출처** 순서로 읽는다. 이 규칙은 **5개 기종 전부에 동일**하게 적용된다.",
+    f"메쉬 그룹 → 물성의 출처** 순서로 읽는다. 이 규칙은 **{len(ORDER)}종 전부에 동일**하게 적용된다.",
     "",
     "![material legend](outputs/figures/material_legend.png)",
     "",
@@ -163,7 +168,7 @@ cells.append(md(
     "",
     "부위→재질 배정은 `src/drones.py:179-190` 의 `DRONE_GROUP_MAT` **한 곳**에서만 한다.",
     "표의 한글 설명은 그 딕셔너리의 문자열을 그대로 가져온 것이고, \\|Γ\\| 는",
-    "`outputs/mesh_verify.json` §E_materials 의 gamma_map(5개 기종 모두 동일함을 생성 시",
+    f"`outputs/mesh_verify.json` §E_materials 의 gamma_map({len(ORDER)}종 모두 동일함을 생성 시",
     "검증했다)에서 읽었다.",
     "",
     f"| 그룹 | 부위(코드 원문) | 재질 | 색 | \\|Γ\\|@{FC_GHZ:g} GHz | 전력[dB] | 실재하는 기종* |",
@@ -217,7 +222,7 @@ cells.append(code(
     "V = json.load(open('outputs/mesh_verify.json', encoding='utf-8'))\n"
     "EM = V['E_materials']\n"
     "gm0 = EM['" + ORDER[0] + "']['gamma_map']\n"
-    "print(f\"gamma_map 이 5개 기종에서 동일한가: \"\n"
+    "print(f\"gamma_map 이 전 기종({len(EM)}종)에서 동일한가: \"\n"
     "      f\"{all(EM[k]['gamma_map'] == gm0 for k in EM)}\")\n"
     "print(f\"{'group':10s} {'|Gamma|':>8s} {'power dB':>9s}\")\n"
     "for g, gam in gm0.items():\n"
@@ -435,14 +440,14 @@ cells.append(md(
     "",
     f"즉 누락된 그룹은 기본값(완전도체)으로 굴러떨어져 플라스틱 부위(\\|Γ\\|={GM['body']:.2f},",
     f"{db(GM['body']):.1f} dB)가 금속(0 dB)으로 계산되는 — §5 가 경고하는 종류의 — 조용한 과대평가를",
-    "만든다. 검사는 5개 기종 메쉬의 **실제 그룹 라벨**을 모두 모아 gamma_map 키와 대조한다",
+    f"만든다. 검사는 {len(ORDER)}종 메쉬의 **실제 그룹 라벨**을 모두 모아 gamma_map 키와 대조한다",
     "(`verify_mesh_suite.py:212-227`). 결과 전체:",
     "",
     "| 기종 | 그룹 수 | 실재 그룹 | 누락(uncovered) | all_covered |",
     "|---|---|---|---|---|",
     *cov_rows,
     "",
-    f"**5종 모두 누락 0개, all_covered=True** ← 출처: `outputs/mesh_verify.json` §E_materials",
+    f"**{len(ORDER)}종 모두 누락 0개, all_covered=True** ← 출처: `outputs/mesh_verify.json` §E_materials",
     "(uncovered·all_covered 필드). 기종마다 그룹 구성이 다른 것(예: S1000+ 만 10개 전부,",
     "Mavic 4 Pro 는 7개)은 §2.1 에서 본 대로 기체 구조의 차이 — 검사는 '있는 그룹'만 따진다.",
 ))
@@ -458,7 +463,7 @@ cells.append(md(
     "2. 렌더 **색 = 재질** (5색 규칙, 모든 기종 공통) — 그림이 곧 물성 문서다.",
     "3. 값의 출처가 계층적으로 기록돼 있다: ITU-R P.2040(표준) → 문헌 커스텀(εr·σ) →",
     "   실효 \\|Γ\\|(박막·조립품, note 에 근거).",
-    f"4. 5개 기종 전부 재질 누락 0 (all_covered={ALL_COVERED}) — PEC 과대반사 경로 차단.",
+    f"4. {len(ORDER)}종 전부 재질 누락 0 (all_covered={ALL_COVERED}) — PEC 과대반사 경로 차단.",
     "",
     "**한계(반증 가능성을 위해 기록):**",
     "",

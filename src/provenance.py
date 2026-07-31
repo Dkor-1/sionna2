@@ -61,8 +61,13 @@ def env_summary() -> dict:
     return dict(python=platform.python_version(),
                 os=f"{platform.system()} {platform.release()}",
                 gpus=gpu_info(),
-                cuda_visible=os.environ.get("CUDA_VISIBLE_DEVICES",
-                                            "(고정 안 함 — src/gpu.py 가 여유 메모리 보고 자동 선택)"))
+                # ⚠ `.get(k, default)` 는 **빈 문자열도 '설정된 값'** 으로 본다.
+                #   CPU 강제 규약이 `CUDA_VISIBLE_DEVICES=""` 를 쓰기 때문에, 그 아래서 리포트를
+                #   다시 만들면 provenance 줄이 `- CUDA_VISIBLE_DEVICES = ` 로 **비어버렸다**
+                #   (2026-07-29 실제 발생). `or` 를 써서 빈 값도 설명문으로 떨어지게 한다.
+                cuda_visible=(os.environ.get("CUDA_VISIBLE_DEVICES")
+                              or "(고정 안 함 — src/gpu.py 가 여유 메모리 보고 자동 선택, "
+                                 "또는 CPU 강제로 빈 값)"))
 
 
 # --------------------------------------------------------------------------- #
@@ -136,7 +141,7 @@ GLOSSARY_DEFAULT = [
 
 DATA_FLOW_DEFAULT = (
     "이 노트북의 **숫자는 손으로 적지 않았습니다.** 측정 스크립트가 JSON 을 남기고, "
-    "노트북 생성기(`src/make_notebook*.py`)가 그 JSON 을 읽어 본문에 주입합니다. "
+    "리포트 생성기(`src/make_report*.py`)가 그 JSON 을 읽어 본문에 주입합니다. "
     "→ **그림과 글이 어긋날 수 없습니다.** 숫자가 이상하면 JSON 을 보세요."
 )
 

@@ -28,7 +28,7 @@ for p in (SRC, HERE):
         sys.path.insert(0, p)
 
 from drones import (DRONES, MATERIAL_COLOR, DRONE_GROUP_MAT, build_drone,   # noqa: E402
-                    build_propeller, drone_colors, drone_gamma_map)
+                    build_propeller, drone_colors, drone_gamma_map, drone_label)
 
 C0 = 299_792_458.0
 FC = 3.5e9
@@ -36,9 +36,19 @@ FC = 3.5e9
 with open(os.path.join(OUT, "mesh_verify.json"), encoding="utf-8") as f:
     VJ = json.load(f)
 
-NAME = {"mini5pro": "Mini 5 Pro", "mavic4pro": "Mavic 4 Pro", "matrice4e": "Matrice 4E",
-        "s1000plus": "S1000+", "phantom4": "Phantom 4"}
-ORDER = ["mini5pro", "mavic4pro", "matrice4e", "s1000plus", "phantom4"]
+#  ⭐ 2026-07-30 (Phase 3): 5종 하드코딩이던 자리. 표시명은 `drones.drone_label` 에서,
+#     순서·개수는 **검증 원장 mesh_verify.json 의 meta.drones**(= DRONES 레지스트리 전수)에서
+#     유도한다. 목록에 없는 기종은 예전엔 그림에서 **에러 없이 빠졌다**.
+#     ⚠ 원장이 레지스트리보다 낡으면 아래 가드가 멈춘다(무음 실패 차단).
+ORDER = list(VJ["meta"]["drones"])
+NAME = {k: drone_label(k) for k in ORDER}
+_unknown = [k for k in ORDER if k not in DRONES]
+if _unknown:
+    raise RuntimeError(f"mesh_verify.json 의 meta.drones 에 레지스트리에 없는 기종 {_unknown} — "
+                       f"drones.DRONES 와 원장이 어긋났다")
+if len(ORDER) != len(DRONES):
+    raise RuntimeError(f"mesh_verify.json 이 낡았다 — 원장 {len(ORDER)}종 vs 레지스트리 {len(DRONES)}종. "
+                       f"report_mesh/src/verify_mesh_suite.py 를 먼저 다시 돌릴 것")
 
 
 def _save(fig, name):
@@ -115,7 +125,7 @@ def fig_material_legend():
     ax.text(5.1, len(rows) - 0.1 + 0.55, "mesh groups", fontsize=9, color="0.4")
     ax.text(7.9, len(rows) - 0.1 + 0.55, "radio-material source", fontsize=9, color="0.4")
     ax.set_axis_off()
-    ax.set_title("Mesh color = pure MATERIAL class (same rule for all 5 drones; "
+    ax.set_title(f"Mesh color = pure MATERIAL class (same rule for all {len(ORDER)} drones; "
                  "same material = same color)",
                  fontsize=12)
     _save(fig, "material_legend")
@@ -424,7 +434,8 @@ def fig_convergence():
 # --------------------------------------------------------------------------- #
 def fig_overlap():
     F = VJ["F_overlap"]
-    fig, axes = plt.subplots(1, len(ORDER), figsize=(16, 3.4))
+    # 폭은 **기종 수에서 유도** — 고정 16 이면 기종이 늘 때 패널이 짜부라진다.
+    fig, axes = plt.subplots(1, len(ORDER), figsize=(3.2 * len(ORDER), 3.4))
     for ax, key in zip(axes, ORDER):
         pairs = F[key]["pairs"]
         grps = sorted({p["a"] for p in pairs} | {p["b"] for p in pairs})

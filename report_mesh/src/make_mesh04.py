@@ -17,9 +17,28 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 V = json.load(open(os.path.join(RM, "outputs", "mesh_verify.json"), encoding="utf-8"))
 from drones import DRONES  # noqa: E402  (스펙의 단일 진리원)
 
-KEYS = V["meta"]["drones"]
+from mesh_ledger import ledger_order   # noqa: E402  (원장↔레지스트리 일치 강제)
+KEYS = ledger_order(V)                     # = DRONES 레지스트리 전수
 A, B, C = V["A_geometry"], V["B_symmetry"], V["C_dims"]
 NAME = {k: DRONES[k].name for k in KEYS}
+
+#  ⭐ 2026-07-30 (Phase 3): 아래 §2.1 표의 '쓰는 기종' 열이 손으로 적힌 5종 목록이었다.
+#     착륙장치는 스펙 필드(`DroneSpec.gear`)가 분기를 정하므로 **유도할 수 있다** —
+#     기종이 늘면 표가 자동으로 따라온다. 짐벌은 아직 `drone_cad` 의 **키 분기**라
+#     유도 불가여서 그 열만 손으로 유지하고, 그 사실을 표 아래에 밝힌다.
+from drones import drone_label  # noqa: E402
+
+
+def _gear_users(*kinds):
+    """`DroneSpec.gear` 가 kinds 중 하나인 기종의 표시명 — 없으면 '(없음)'."""
+    who = [drone_label(k) for k in KEYS if DRONES[k].gear in kinds]
+    return "·".join(who) if who else "(해당 기종 없음)"
+
+
+def _gimbal_none_users():
+    """카메라를 선언적으로 안 붙이는 기종(`gimbal_style='none'`)."""
+    who = [drone_label(k) for k in KEYS if DRONES[k].gimbal_style in (None, "none")]
+    return "·".join(who) if who else "(해당 기종 없음)"
 
 # ---- 생성기에서 미리 계산해 두는 값(전부 JSON/DRONES 출처) ----------------------
 mini, ph, mav = DRONES["mini5pro"], DRONES["phantom4"], DRONES["mavic4pro"]
@@ -28,6 +47,14 @@ worst_pct = C[worst_key]["worst_err_pct"]                       # 크기(부호 
 _wd = C[worst_key]["checks"].get("diagonal")                   # 최악은 대각(종속값) — 부호 살리기
 worst_diag_signed = ((_wd["measured"] - _wd["official"]) / _wd["official"] * 100
                      if _wd and _wd.get("official") else -worst_pct)
+
+#  ⚠ 2026-07-30 (Phase 3): 아래 두 값이 산문에 **손타이핑**돼 있었다 — 프롭 오차 "+0.84%"
+#     (블레이드 대공사로 스윕디스크 정규화가 들어간 뒤 낡았다)와 s1000plus 면내 배율
+#     "(0.999, 0.999)". 원장에서 읽는다.
+_prop_errs = [C[k]["checks"]["prop_dia"]["err_pct"] for k in KEYS
+              if "prop_dia" in C[k]["checks"]]
+_prop_err_txt = (f"{min(_prop_errs):+.2f}~{max(_prop_errs):+.2f}%" if _prop_errs else "(원장에 없음)")
+_s1000_fs = C["s1000plus"]["fit_scale"]
 sym_p95 = {k: B[k]["frame_only"]["chamfer_mm"]["p95"] for k in KEYS}
 sym_worst_key = max(sym_p95, key=sym_p95.get)
 full_p95 = {k: B[k]["full"]["chamfer_mm"]["p95"] for k in KEYS}
@@ -82,7 +109,7 @@ md(
 "> ⚠ **이 노트북은 생성물이다. 수정은 `src/make_mesh04.py` 에서** 할 것.",
 "",
 f"**한 줄 요약** — DJI 공식 제원 숫자(대각거리·외형 L×W×H·프로펠러 지름)를 담은 `DroneSpec`",
-f"데이터클래스에서 출발해, 로프트·스윕·회전체·불리언으로 5종 드론의 몸체(프레임)를 조립하고,",
+f"데이터클래스에서 출발해, 로프트·스윕·회전체·불리언으로 드론 {len(KEYS)}종의 몸체(프레임)를 조립하고,",
 f"마지막에 공식 외형에 자동 스케일(envelope fit)해서 **치수 최악 오차 {worst_pct:.2f}%**",
 f"({NAME[worst_key]}), **좌우대칭 p95 ≤ 2 mm**(전 기종)를 달성하는 과정을 소스코드를 따라가며 설명한다.",
 "",
@@ -225,9 +252,9 @@ f"{ph.envelope_mm[0]:g}×{ph.envelope_mm[1]:g}×{ph.envelope_mm[2]:g} mm 는 DJI
 "**무엇을 기준으로 삼아야 하는지**(공식 외형 > 추정 대각)가 코드에서 결정 가능해진다.",
 ),
 
-# ── 6. code: 5종 스펙 표 ──────────────────────────────────────────────────────
+# ── 6. code: 전 기종 스펙 표 ──────────────────────────────────────────────────
 code(
-"# 5종 전체의 '공식 숫자' 필드 — 값은 전부 src/drones.py 의 DRONES 에서 읽는다",
+"# 전 기종의 '공식 숫자' 필드 — 값은 전부 src/drones.py 의 DRONES 에서 읽는다",
 "print(f\"{'key':10s} {'이름':16s} {'대각[mm]':>8s} {'외형 L×W×H [mm]':>22s} {'프롭[mm]':>8s} {'로터':>4s} {'신뢰도':>6s}\")",
 "for k in V['meta']['drones']:",
 "    s = DRONES[k]",
@@ -273,7 +300,7 @@ md(
 "## §2. 조립 순서 — build_frame_cad 를 소스코드 따라 걷기",
 "",
 "프레임 조립은 `build_frame_cad(spec)`(src/drone_cad.py:227-331) 한 함수가 담당한다.",
-"S1000+(옥토콥터, 원형 카본 센터프레임)만 별도 분기이고, 나머지 4종은 공통 순서를 따른다.",
+f"S1000+(옥토콥터, 원형 카본 센터프레임)만 별도 분기이고, 나머지 {len(KEYS) - 1}종은 공통 순서를 따른다.",
 "",
 "**1단계. 동체 — 초타원 단면의 로프트** (`_body_folding`, src/drone_cad.py:108-116)",
 "",
@@ -311,7 +338,7 @@ md(
 
 # ── 8. §2 계속 (짐벌·착륙장치·내부 산란체·불리언) ─────────────────────────────
 md(
-"### §2.1 짐벌 3종, 착륙장치 3종 — 드론마다 왜 다르게 만들었나",
+"### §2.1 짐벌·착륙장치 분기 — 드론마다 왜 다르게 만들었나",
 "",
 "짐벌과 착륙장치는 **드론 실루엣의 핵심 식별 특징**이라(← src/drone_cad.py:147 절 주석) 기종별로",
 "함수를 나눴다. 스펙의 `gimbal_style`/`gear` 필드가 어느 함수를 쓸지 정한다:",
@@ -319,12 +346,18 @@ md(
 "| 함수 | 형태 | 쓰는 기종 | 왜 |",
 "|---|---|---|---|",
 "| `_gimbal_infinity` (drone_cad.py:149-159) | 구(볼) + 전면 렌즈 3개 + 롤 요크 | Mavic 4 Pro | 실물이 기수와 일직선인 **구형 Infinity 짐벌**(360° 회전, 3렌즈)이라서 — 매달린 상자로 만들면 실루엣이 틀린다 (← drone_cad.py:16-17 주석, docs/SPECS.md Mavic 4 Pro) |",
-"| `_gimbal_hanging` (drone_cad.py:162-171) | 방진판 + 요크 + 카메라 상자 + 렌즈 | Mini 5 Pro·Phantom 4·S1000+ | 코 아래 **매달린** 전통 짐벌. Phantom 은 함몰(recessed)이라 동체에 더 붙여 배치 (← drone_cad.py:304) |",
+"| `_gimbal_hanging` (drone_cad.py:162-171) | 방진판 + 요크 + 카메라 상자 + 렌즈 | Mini 5 Pro·Phantom 4·S1000+·Typhoon H480 | 코 아래 **매달린** 전통 짐벌. Phantom 은 함몰(recessed)이라 동체에 더 붙여 배치 (← drone_cad.py:304) |",
 "| `_gimbal_sensor` (drone_cad.py:174-181) | 3축 마운트 + 렌즈 3 + 레이저 측거 | Matrice 4E | 측량 페이로드(카메라 클러스터 + 레이저 거리계)가 공식 구성이라서 (← docs/SPECS.md Matrice 4E) — RTK 돔도 캐노피 위에 추가된다 (← drone_cad.py:300-302) |",
-"| `_gear_skids` (drone_cad.py:187-197) | 다리 4 + 좌우 스키드 바 | Phantom 4 | 일체형 흰 셸에 붙은 고정 착륙다리가 Phantom 정체성 (← docs/SPECS.md) |",
-"| `_gear_tall` (drone_cad.py:200-212) | 길게 벌어지는 카본 봉 + 발 바 | S1000+ | 벨리 짐벌 공간을 확보하는 긴 접이식 다리 (← docs/SPECS.md S1000+, 랜딩기어 460×511×305 mm) |",
-"| `_gear_feet` (drone_cad.py:215-221) | 작은 발 4개 | Matrice 4E | 전용 스키드 없이 낮은 발로 앉는 기종 |",
-"| (없음) | — | Mini 5 Pro·Mavic 4 Pro | 실물이 **아래 암/동체로 그냥 앉는다** (← docs/SPECS.md Mini 5 Pro — \"no dedicated landing gear\") |",
+f"| `_gear_skids`/`_gear_arch` (drone_cad.py:187-197) | 다리 4 + 좌우 스키드 바 | {_gear_users('legs')} | 일체형 흰 셸에 붙은 고정 착륙다리가 Phantom 정체성 (← docs/SPECS.md) |",
+f"| `_gear_tall`/`_gear_tall_tube` (drone_cad.py:200-212) | 길게 벌어지는 카본 봉 + 발 바 | {_gear_users('tall')} | 벨리 짐벌 공간을 확보하는 긴 접이식 다리 (← docs/SPECS.md S1000+, 랜딩기어 460×511×305 mm) |",
+f"| `_gear_feet` (drone_cad.py:215-221) | 작은 발 4개 | {_gear_users('feet')} | 전용 스키드 없이 낮은 발로 앉는 기종 |",
+f"| (없음) | — | {_gear_users('none')} | 실물이 **아래 암/동체로 그냥 앉는다** (← docs/SPECS.md Mini 5 Pro — \"no dedicated landing gear\") |",
+f"| (짐벌 없음) | — | {_gimbal_none_users()} | 카메라가 아예 없는 개발 프레임. `gimbal_style='none'` 으로 **선언**한다 — 예전엔 이 선언 수단이 없어 catch-all 분기가 조용히 Mini 5 Pro 짐벌을 붙였다 (← drone_cad.py 짐벌 분기 말미) |",
+"",
+"⚠ **'쓰는 기종' 열의 출처가 두 갈래다.** 착륙장치·짐벌없음 행은 스펙 필드(`DroneSpec.gear`·",
+"`gimbal_style`)에서 **유도**하므로 기종이 늘면 자동으로 따라온다. 반면 짐벌 형상 행은",
+"`drone_cad` 가 아직 **기종 키로 분기**하기 때문에 유도할 수 없어 손으로 유지한다 —",
+"기종을 추가하면 이 세 행도 같이 고쳐야 한다.",
 "",
 "### §2.2 보이지 않는 부품 — 내부 battery/pcb 를 왜 넣나",
 "",
@@ -395,12 +428,15 @@ md(
 CDIMS_TABLE,
 "",
 f"읽는 법 — envelope 을 직접 맞춘 L/W/H 는 오차 0%. 전체 최악은 {NAME[worst_key]} 의 대각",
-f"{worst_diag_signed:+.2f}% 인데(공식 438.8 → 실측 428.7, 축소), 이는 §3 의 규약대로 **대각이 배율에 끌려가는 종속 값**이기 때문이다",
-"(외형이 우선 ← src/drones.py:266-268 주석). 프로펠러 지름이 전 기종 일관되게 +0.84% 인 것은",
+#  ⚠ 2026-07-30 (Phase 3): 여기 (공식 438.8 → 실측 428.7) 이 **손타이핑**이었고, matrice4e
+#     로터 배치 정정(2026-07-28) 뒤에는 **낡은 값**이 됐다. 이제 원장에서 읽는다.
+f"{worst_diag_signed:+.2f}% 인데(공식 {_wd['official']:.1f} → 실측 {_wd['measured']:.1f}), 이는 §3 의 규약대로 **대각이 배율에 끌려가는 종속 값**이기 때문이다"
+    if _wd else f"{worst_diag_signed:+.2f}% 인데, 이는 §3 의 규약대로 **대각이 배율에 끌려가는 종속 값**이기 때문이다",
+f"(외형이 우선 ← src/drones.py:266-268 주석). 프로펠러 지름 오차가 전 기종 {_prop_err_txt} 로 좁게 모이는 것은",
 "스케일 때문이 아니라 블레이드 로프트의 스팬 끝 처리(팁 라운딩)가 반경을 살짝 넘어서다 —",
 "프롭 편에서 다시 본다. fit_scale 을 보면 기종마다 실루엣이 공식 외형에서 얼마나 멀었는지도",
 f"보인다: {NAME['mavic4pro']} 는 ({mav_fs[0]:.3f}, {mav_fs[1]:.3f}, {mav_fs[2]:.3f}) 으로 가장 크게 교정됐고, S1000+ 는 수평",
-"(0.999, 0.999) 로 거의 그대로였다.",
+f"({_s1000_fs[0]:.3f}, {_s1000_fs[1]:.3f}) 로 거의 그대로였다.",
 ),
 
 # ── 11. §4 개성 대비 intro + Mini 그림 ───────────────────────────────────────
@@ -446,7 +482,7 @@ f"1. **고정암 X자** — `fixed_arm={ph.fixed_arm}`, `rotor_deg={ph.rotor_deg
 "   src/drone_cad.py:282). 암 그룹도 카본이 아니라 동체와 같은 흰 셸(plastic)이다 —",
 "   `arm_style='body'` 면 암을 body 그룹에 넣는다(← src/drone_cad.py:280).",
 f"2. **일체형 착륙다리** — `gear={ph.gear!r}` → `_gear_skids`. 다리 4개 + 좌우 스키드 바가 아래로",
-"   뻗어, 다른 기종엔 없는 수직 구조물이 생긴다. 이게 높이 " + f"{ph.envelope_mm[2]:g} mm (5종 중 대각 대비",
+"   뻗어, 다른 기종엔 없는 수직 구조물이 생긴다. 이게 높이 " + f"{ph.envelope_mm[2]:g} mm ({len(KEYS)}종 중 대각 대비",
 "   가장 키가 큰 비율)의 이유다.",
 f"3. **함몰 짐벌** — `gimbal_style={ph.gimbal_style!r}`. 같은 `_gimbal_hanging` 을 쓰되 동체에 바짝",
 "   붙인다(cx 를 0.62 배로 ← src/drone_cad.py:303-305). 기수 아래 작은 비전센서 2개도 붙는다",

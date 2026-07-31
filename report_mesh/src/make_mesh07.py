@@ -16,9 +16,12 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 V = json.load(open(os.path.join(RM, "outputs", "mesh_verify.json"), encoding="utf-8"))
 
 # ---------------------------------------------------------------- 수치 준비
-ORDER = ["mini5pro", "mavic4pro", "matrice4e", "s1000plus", "phantom4"]
-NAME = {"mini5pro": "Mini 5 Pro", "mavic4pro": "Mavic 4 Pro",
-        "matrice4e": "Matrice 4E", "s1000plus": "S1000+", "phantom4": "Phantom 4"}
+#  ⭐ 2026-07-30 (Phase 3): 5종 하드코딩 → **원장 meta.drones**(= DRONES 레지스트리 전수)에서
+#     유도. 표시명은 drones.drone_label. 예전엔 목록에 없는 기종이 표에서 조용히 빠졌다.
+from drones import drone_label            # noqa: E402
+from mesh_ledger import ledger_order   # noqa: E402  (원장↔레지스트리 일치 강제)
+ORDER = ledger_order(V)
+NAME = {k: drone_label(k) for k in ORDER}
 A = V["A_geometry"]; B = V["B_symmetry"]; Fo = V["F_overlap"]
 D = V["D_volume"]; META = V["meta"]
 LAM = META["lam_hi_mm"]                                   # 57.5 mm @5.21 GHz
@@ -62,7 +65,7 @@ cells.append(md(
     "> ⚠ **이 노트북은 생성물이다.** 수정은 `src/make_mesh07.py` 에서 하라.",
     "> 본문의 모든 수치는 `outputs/mesh_verify.json` (생성기: `report_mesh/src/verify_mesh_suite.py`)에서 읽어 넣었다 — 손으로 적은 숫자는 없다.",
     "",
-    f"**한 줄 요약** — 드론 5종·삼각형 {tot_faces:,}장·부위(그룹) {tot_groups}개·닫힌 부품 {tot_parts}개를 전수 검사한 결과, "
+    f"**한 줄 요약** — 드론 {len(ORDER)}종·삼각형 {tot_faces:,}장·부위(그룹) {tot_groups}개·닫힌 부품 {tot_parts}개를 전수 검사한 결과, "
     f"watertight {n_wt}/{tot_parts} 통과, 안쪽 법선 {tot_inward}건, 퇴화면 {tot_degen}장, "
     f"중복/미사용 꼭짓점 {tot_dup}/{tot_unused}개 — **기하 결함 0**. "
     "좌우비대칭·부위겹침처럼 '결함처럼 보이는 것'은 왜 결함이 아닌지까지 수치로 공개한다. "
@@ -109,13 +112,13 @@ cells.append(md(
 
 # ---------------------------------------------------------------- 3. 검사 대상
 cells.append(md(
-    "## 1. 검사 대상 — 삼각형으로 지은 드론 5종",
+    f"## 1. 검사 대상 — 삼각형으로 지은 드론 {len(ORDER)}종",
     "",
-    f"검사 대상은 파라메트릭 CAD 로 지은 드론 5종({', '.join(NAME[k] for k in ORDER)}),",
+    f"검사 대상은 파라메트릭 CAD 로 지은 드론 {len(ORDER)}종({', '.join(NAME[k] for k in ORDER)}),",
     f"합계 **삼각형 {tot_faces:,}장, 부위(그룹) {tot_groups}개, 닫힌 부품 {tot_parts}개**다",
     "← 출처: mesh_verify.json §A_geometry (n_faces·n_groups·groups.n_parts 합산).",
     "",
-    "아래는 5종 중 가장 큰 **S1000+** (8로터 옥토콥터)다. 가운데 wireframe 패널이 바로 이 리포트의",
+    f"아래는 {len(ORDER)}종 중 가장 큰 **S1000+** (8로터 옥토콥터)다. 가운데 wireframe 패널이 바로 이 리포트의",
     "주인공인 '삼각형'들이다 — 매끈해 보이는 몸체가 실은 작은 삼각형의 모자이크임을 볼 수 있다.",
     "",
     "![wireframe s1000plus](outputs/figures/wireframe_s1000plus.png)",
@@ -190,15 +193,15 @@ cells.append(md(
     "3. **법선 방향 판정의 전제** — \"바깥을 향한다\"는 말은 안/밖이 있어야 성립한다. 닫힌 부품이라야",
     "   부호있는 부피의 부호로 안팎 뒤집힘을 기계적으로 잡을 수 있다 ← 출처: mesh_check.py 55행.",
     "",
-    f"**결과: 5종 전 기체, 전 부위, {n_wt}/{tot_parts} 부품 watertight 통과** ← 출처: mesh_verify.json",
+    f"**결과: {len(ORDER)}종 전 기체, 전 부위, {n_wt}/{tot_parts} 부품 watertight 통과** ← 출처: mesh_verify.json",
     "§A_geometry 각 드론 groups.watertight (아래 코드 셀이 그대로 집계한다).",
 ))
 
 cells.append(cc(
     "# watertight/법선/winding/퇴화면 — 부위(그룹)별 전수 집계",
-    'ORDER = ["mini5pro", "mavic4pro", "matrice4e", "s1000plus", "phantom4"]',
-    'NAME = {"mini5pro": "Mini 5 Pro", "mavic4pro": "Mavic 4 Pro", "matrice4e": "Matrice 4E",',
-    '        "s1000plus": "S1000+", "phantom4": "Phantom 4"}',
+    'from drones import drone_label            # 표적 목록·표시명의 단일 출처',
+    'ORDER = list(V["meta"]["drones"])          # = DRONES 레지스트리 전수(개수 하드코딩 없음)',
+    'NAME = {k: drone_label(k) for k in ORDER}',
     'A = V["A_geometry"]',
     'hdr = f"{\'드론\':12s} {\'삼각형\':>7} {\'부위\':>4} {\'부품\':>4} {\'watertight\':>10} {\'법선안쪽\':>6} {\'winding깨짐\':>8} {\'퇴화면\':>5}  판정"',
     "print(hdr); print('-' * len(hdr))",
@@ -239,7 +242,7 @@ cells.append(md(
     "부피가 음수면(=안팎 뒤집힘) `mesh_check.assert_ok()` 가 예외를 던져 **빌드 자체가 실패**한다",
     "← 출처: src/mesh_check.py check_mesh() 55행(부호부피 판정)·assert_ok() 90~98행.",
     "",
-    f"**현재 결과: 5종 {tot_parts}개 부품 중 안쪽 법선 {tot_inward}건, winding 불일치 {tot_badwind}건**",
+    f"**현재 결과: {len(ORDER)}종 {tot_parts}개 부품 중 안쪽 법선 {tot_inward}건, winding 불일치 {tot_badwind}건**",
     "← 출처: mesh_verify.json §A_geometry groups.inward_normals·bad_winding (위 코드 셀 합계 행).",
 ))
 
@@ -257,7 +260,7 @@ cells.append(md(
     "- **미사용 꼭짓점**(어떤 삼각형도 참조 안 함): 무해하지만 지저분함의 지표 — 생성 코드가 헛손질을",
     "  했다는 뜻이다 ← 출처: 같은 함수 103행.",
     "",
-    f"**결과: 5종 합계 퇴화면 {tot_degen}장, 중복 {tot_dup}개, 미사용 {tot_unused}개** ← 출처:",
+    f"**결과: {len(ORDER)}종 합계 퇴화면 {tot_degen}장, 중복 {tot_dup}개, 미사용 {tot_unused}개** ← 출처:",
     "mesh_verify.json §A_geometry (degenerate·dup_vertices·unused_vertices, 아래 셀에서 확인).",
     "",
     "0 이 당연해 보이지만, 자동 생성 CAD 에서 셋 다 0 은 생성기가 꼭짓점을 **한 치 낭비 없이**",
@@ -279,7 +282,7 @@ cells.append(md(
     "",
     "![triangle quality](outputs/figures/triangle_quality.png)",
     "",
-    "*그림 2 — (좌) 5종의 엣지(삼각형 변) 길이 분포와 최고대역 파장 λ, (우) 삼각형 최소각의",
+    f"*그림 2 — (좌) {len(ORDER)}종의 엣지(삼각형 변) 길이 분포와 최고대역 파장 λ, (우) 삼각형 최소각의",
     "1퍼센타일/중앙값. ← 출처: 그림 report_mesh/src/viz_mesh_reports.py fig_tri_quality() 446행,",
     "수치 mesh_verify.json §A_geometry edge_mm·tri_min_angle_deg*",
     "",
@@ -353,7 +356,7 @@ cells.append(md(
     "",
     "← 출처: mesh_verify.json §B_symmetry chamfer_mm.p95 (full/frame_only).",
     "",
-    f"**기체만 보면 5종 전부 p95 ≤ {max(fr95.values()):.1f} mm ≤ 2 mm** — 즉 샘플링 해상도 안이다.",
+    f"**기체만 보면 {len(ORDER)}종 전부 p95 ≤ {max(fr95.values()):.1f} mm ≤ 2 mm** — 즉 샘플링 해상도 안이다.",
     "기하학적으로는 사실상 완전 대칭이라는 뜻이다.",
     "",
     f"**그런데 프로펠러를 포함하면 {min(fu95.values()):.0f}~{max(fu95.values()):.0f} mm 로 뛴다.",

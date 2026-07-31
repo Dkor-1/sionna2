@@ -18,7 +18,8 @@ V = json.load(open(os.path.join(RM, "outputs", "mesh_verify.json"), encoding="ut
 VER = {p: _im.version(p) for p in ["numpy", "trimesh", "manifold3d", "shapely", "scipy"]}
 
 # ---- JSON 수치 꺼내기 (전부 mesh_verify.json) -------------------------------------
-DR = V["meta"]["drones"]
+from mesh_ledger import ledger_order   # noqa: E402  (원장↔레지스트리 일치 강제)
+DR = ledger_order(V)                       # = DRONES 레지스트리 전수
 A = V["A_geometry"]
 mav = A["mavic4pro"]
 n_faces_total = sum(A[k]["n_faces"] for k in DR)
@@ -54,7 +55,7 @@ md(
 "",
 "> ⚠ **이 노트북은 생성물이다. 수정은 `src/make_mesh02.py` 에서 하라.**",
 "",
-f"**한 줄 요약** — 드론 5기의 CAD 메쉬(총 삼각형 {n_faces_total:,}개)는 딱 5개 라이브러리",
+f"**한 줄 요약** — 드론 {len(DR)}기의 CAD 메쉬(총 삼각형 {n_faces_total:,}개)는 딱 5개 라이브러리",
 "(numpy · shapely · trimesh · manifold3d · scipy) 위에서 만들어지고, 결과는 경량 컨테이너",
 "(`src/geom.py` 의 `Mesh`)에 담겨 뒷단 파이프라인으로 흘러간다.",
 "이 편에서는 **각 도구가 무엇을 하고, 왜 그것을 골랐고, 어떤 방식으로 쓰는지**를 하나씩 뜯어본다.",
@@ -387,7 +388,8 @@ md(
 "   winding(감김 일관)을 파트마다 검사한다 ← 출처: src/cadkit.py:124-135. 안쪽 법선처럼",
 "   렌더링으로는 멀쩡해 보이는 결함도 부피 부호 하나로 드러난다.",
 "",
-"최종 산출물 전체가 이 검증을 통과한 상태다: 드론 5기 모두 검사 통과(ok=True), 중복 정점",
+#  ⚠ 2026-07-30 (Phase 3): "드론 5기" 리터럴이었다 — 기종이 늘면 조용히 거짓이 된다.
+f"최종 산출물 전체가 이 검증을 통과한 상태다: 드론 {len(DR)}기 모두 검사 통과(ok=True), 중복 정점",
 f"{dup_total}개, 미사용 정점 {unused_total}개",
 "← 출처: mesh_verify.json `A_geometry.*.ok / dup_vertices / unused_vertices`.",
 "또한 면을 4배로 잘게 쪼개도(서브디비전) RCS 계산 결과가 사실상 불변",
@@ -396,7 +398,7 @@ f"(면 {sub['faces_base']:,}→{sub['faces_fine']:,}개, 방위 평균 차이 {a
 "`I_sbr_subdiv.subdivision_invariance` (수렴 이야기는 해당 편에서 자세히).",
 ),
 code(
-"# mesh_verify.json 에서 5기 전체의 기하 검증 요약 읽기 — 본문 수치의 원천",
+"# mesh_verify.json 에서 전 기종의 기하 검증 요약 읽기 — 본문 수치의 원천",
 "import json, os",
 "V = json.load(open(os.path.join(\"outputs\", \"mesh_verify.json\"), encoding=\"utf-8\"))",
 "print(f\"{'드론':12s} {'정점':>8s} {'삼각형':>8s} {'그룹':>4s}  검증\")",
@@ -421,7 +423,7 @@ md(
 "",
 "1. **스펙 → 모양이 자동이다.** 목표 치수는 DJI 공식 제원(`src/drones.py` 의 `DroneSpec` —",
 "   대각선·프로펠러 지름·공식 외형 `envelope_mm` 등 ← 출처: docs/SPECS.md 의 제원+URL)에서",
-"   **변수로** 들어간다. 제원이 바뀌면 숫자 하나 고치고 재실행하면 5기 전부가 다시 나온다.",
+"   **변수로** 들어간다. 제원이 바뀌면 숫자 하나 고치고 재실행하면 전 기종이 다시 나온다.",
 "   GUI 모델은 치수 변경이 곧 수작업 재모델링이다.",
 "2. **부위 = 재질이 자동으로 붙는다.** 파트마다 그룹 이름이 코드로 붙어, Sionna RadioMaterial",
 "   과 PO 반사계수가 **한 곳(materials.py)** 에서 일관되게 연결된다 ← 출처: src/cadkit.py:22-23.",
@@ -450,7 +452,7 @@ md(
 "",
 "(버전 ← 출처: 실제 설치 환경 ~/.venvs/py312 을 importlib.metadata 로 조회)",
 "",
-f"이 도구 상자로 만든 결과물: 드론 5기, 정점 {n_verts_total:,}개 · 삼각형 {n_faces_total:,}개,",
+f"이 도구 상자로 만든 결과물: 드론 {len(DR)}기, 정점 {n_verts_total:,}개 · 삼각형 {n_faces_total:,}개,",
 f"전 기체 기하 검증 통과({'모두 PASS' if all_ok else '일부 FAIL'})",
 "← 출처: mesh_verify.json `A_geometry`.",
 "",
