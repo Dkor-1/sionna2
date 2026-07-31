@@ -9,7 +9,11 @@ report07 — **SBR: 표적을 조준해 밝기를 계산하다**
    · outputs/report2_waveform_rcs.json 의 sbr_validation / occlusion
      (그림 report2_sbr_validate.png · report2_occlusion.png 과 같은 소스)
    · outputs/report6_sbr.json 의 kernel — **같은 커널을 같은 인자로 다시 부른 값**
-     (viz_report2.py:588-589 ↔ viz_verify_sbr.py:107-108 이 동일 호출) → 독립 검증이 아니라 회귀 확인
+     (viz_report2.measure_sbr_validation() ↔ viz_verify_sbr.measure() 이 동일 호출)
+     → 독립 검증이 아니라 회귀 확인. ⚠ 본문 좌표는 **함수명으로만** 적는다 — 줄번호는 호출이 옮겨가면
+       그 자리에서 확인할 수 없게 썩는다(588-589/107-108 로 굳어 있던 전례).
+     ⚠ 2026-07-29: 두 곳 모두 **생산 커널** rcs_sbr_batch(jitter=3, penetrate=False, |Γ|=1.0) 로 옮겼다
+       (옛 rcs_sbr() 단일격자 경로는 어떤 결과도 쓰지 않는다). → 두 JSON 을 **함께** 재생성해야 한다.
    · report_mesh/outputs/mesh_verify.json 의 I_sbr_subdiv (광선격자·삼각형 세분 민감도)
 """
 from __future__ import annotations
@@ -17,6 +21,18 @@ from __future__ import annotations
 import json
 import os
 import sys
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ⚠ 이 파일은 **스크립트**다 (main() 없이 최상위에서 전부 실행된다).
+#   임포트하면 그 자리에서 리포트 노트북을 **덮어쓴다**. 2026-07-29 실제로 검증 에이전트가
+#   "임포트 되는지" 점검하다가 report07/08/13 을 덮어썼고 복구해야 했다. linter·문서도구·
+#   테스트수집기도 같은 사고를 낸다 — 게다가 계산이 도는 중이면 **중간 숫자**가 박힌다.
+#   → 실행은 `python src/make_notebook07.py` 로만.
+if __name__ != "__main__":
+    raise RuntimeError(
+        "make_notebook07.py 는 스크립트다 — 임포트하면 리포트를 덮어쓴다. "
+        "`python src/make_notebook07.py` 로 실행할 것. (2026-07-29 실사고)")
+# ─────────────────────────────────────────────────────────────────────────────
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
@@ -56,7 +72,7 @@ with open(JSM) as f:
     JM = json.load(f)
 
 M = J["meta"]
-V = J["sbr_validation"]      # 커널 해석해 검증 + 격자수렴 + 디더 + 드론수렴
+V = J["sbr_validation"]      # 커널 기준해 검증 + 격자수렴 + 디더 + 드론수렴
 OCC = J["occlusion"]         # 가림의 대가 (한 표적, 한 실험)
 K6 = J6["kernel"]            # report6 이 **같은 커널을 같은 인자로** 다시 부른 값 (회귀 확인)
 
@@ -69,18 +85,41 @@ SBR_DIV = M["sbr_div"]       # 실제 드론 측정에 쓰는 격자밀도 (λ/1
 FC = V["fc"]
 LAM = V["lam"]
 
-# 대표 격자에서의 오차 (검증 헤드라인)
-_plate_err = V["plate_err"][V["divs"].index(6)]         # 평판 @ λ/6
-_sphere_err = V["sphere_err"][V["divs"].index(10)]      # 금속구 @ λ/10
+
+
+def _need(d, key, where):
+    """⚠ 기준해 정정(2026-07-30) 이전 판 JSON 을 **조용히 싣지 않는다**.
+
+    구의 잔차 과녁이 πr²(광학 점근) → **정확 Mie + 해석 PO** 로 바뀌었다(πr² 은 두 기준해
+    사이에 있고, 그 간극 0.152 dB 가 생산 커널의 구 잔차보다 크다). 옛 JSON 에는 새 키가
+    없으므로 여기서 멈추고 재생성을 요구한다 — 옛 숫자를 새 라벨로 싣는 것이 최악이다."""
+    if key not in d:
+        raise RuntimeError(
+            f"{where}: '{key}' 가 없다 — 기준해 정정(πr² → Mie/해석 PO) 이전 판 JSON 이다. "
+            f"viz_report2.py(report2_waveform_rcs.json) / viz_verify_sbr.py(report6_sbr.json) 를 "
+            f"다시 돌린 뒤 이 노트북을 빌드할 것.")
+    return d[key]
+
+
+# 구의 기준해 — 커널이 PO 라 **해석 PO** 가 수치 수렴의 과녁이고, **정확 Mie** 는 PO 근사의
+# 대가까지 포함한 절대 정확도의 자다. πr² 은 라벨된 점근값으로만 인용한다.
+SREF = _need(V, "sphere_ref", "report2_waveform_rcs.json sbr_validation")
+_need(K6, "sphere_ref", "report6_sbr.json kernel")
+
+# 대표 격자에서의 잔차 (검증 헤드라인)
+_plate_err = V["plate_err"][V["divs"].index(6)]             # 평판 @ λ/6 (정확 PO 기준)
+_sphere_err = V["sphere_err_po"][V["divs"].index(10)]       # 금속구 @ λ/10, 해석 PO 기준
+_sphere_err_mie = V["sphere_err_mie"][V["divs"].index(10)]  # 같은 격자, 정확 Mie 기준
 # 우리가 실제로 드론에 쓰는 격자(λ/16)에서의 값 — 체리픽 방지용으로 함께 싣는다
 _plate_ours = V["plate_err"][V["divs"].index(SBR_DIV)]
-_sphere_ours = V["sphere_err"][V["divs"].index(SBR_DIV)]
-# λ/8 이상(실사용 후보 격자)에서 구 오차가 가장 큰 지점 — 단조수렴이 아님을 정직히 보인다
+_sphere_ours = V["sphere_err_po"][V["divs"].index(SBR_DIV)]
+_sphere_ours_mie = V["sphere_err_mie"][V["divs"].index(SBR_DIV)]
+# λ/8 이상(실사용 후보 격자)에서 구 잔차가 가장 큰 지점 — 단조수렴이 아님을 정직히 보인다
 _sphere_worst_div, _sphere_worst = max(
-    [(d, e) for d, e in zip(V["divs"], V["sphere_err"]) if d >= 8], key=lambda t: abs(t[1]))
+    [(d, e) for d, e in zip(V["divs"], V["sphere_err_po"]) if d >= 8], key=lambda t: abs(t[1]))
 # report6 이 같은 커널을 같은 인자로 다시 부른 값 (독립 구현이 아니다 → 회귀 확인)
 _p6_plate = K6["plate_err"][K6["divs"].index(6)]
-_p6_sphere = K6["sphere_err"][K6["divs"].index(10)]
+_p6_sphere = K6["sphere_err_po"][K6["divs"].index(10)]
 
 # 평판 오차가 격자밀도에 대해 **비트 단위로 반복**되는 짝 — 위상항이 상수라는 지문
 def _plate_twin(div, tol=1e-9):
@@ -99,6 +138,27 @@ NAZ6 = J6["n_az"]
 _dith = {d["div"]: d for d in V["dither"]}
 _lam8, _lam24 = _dith[8], _dith[24]
 _lam_ours = _dith[SBR_DIV]
+
+# 지터평균이 남기는 잔차 — **JSON 에 있는 것만** 말한다.
+#   · spread / avg_err_po        = 단일격자(J=1) arm — 항상 있다
+#   · spread_prod/avg_err_prod_po = 생산 커널(J≥2) arm — viz_report2 가 두 arm 을 같은 pad 집합에서
+#     나란히 재기 시작한 뒤의 JSON 에만 있다.
+#   ⚠ 접미사 `_po` = **해석 PO 기준**(커널이 PO 라 이것이 과녁). Mie 기준값은 `_mie` 로 나란히 있다.
+#   ⚠ 예전 §3 은 커널 주석에서 베껴온 '단일격자 ±1.5 dB → J=2 ±0.15 dB' 를 손으로 적어 두었는데,
+#     그 짝은 어떤 측정에도 대응하지 않는다(같은 리포트 §4 가 JSON 에서 주입한 값과도 어긋났다).
+#     → J≥2 arm 이 JSON 에 없으면 숫자를 만들지 않고 §4·그림 (b) 로 넘긴다.
+if "spread_prod" in _lam_ours:
+    _dith_j = (f"J={V['jitter']} 오프셋을 평균하면 잔차가 "
+               f"{_lam_ours['spread_prod']:.2f} dB 로 닫힌다(§4 · 그림 b)")
+else:
+    _dith_j = "평균이 그 진동을 어디까지 닫는지는 §4 디더 표 · 그림 (b) 가 잰다"
+
+# 「두 스크립트가 같은 커널을 같은 인자로 부른다」 는 주장의 좌표.
+#   ⚠ 줄번호로 적으면 썩는다(실제로 588-589/107-108 로 굳어 있다가 호출이 옮겨가며 어긋났다).
+#     함수명은 안 썩으므로 함수로 가리키고, 인자는 JSON 이 기록한 커널 문자열로 못박는다.
+_REGRESS = "`viz_report2.py` 의 `measure_sbr_validation()` ↔ `viz_verify_sbr.py` 의 `measure()`"
+if V.get("kernel"):
+    _REGRESS += f", 둘 다 `{V['kernel']}`"
 
 # 드론 방위평균의 격자수렴
 _dc_dev = 0.0
@@ -133,7 +193,7 @@ cells += provenance_cells(
     spine=dict(
         core=("report06 이 '경로 솔버로는 못 만든다' 고 못박은 표적 밝기(RCS)를, **Sionna 가 쓰는 "
               "Mitsuba 광선 위에 표준 PO 표면적분을 얹은 SBR+PO 로 계산한다** — 답을 아는 평판·금속구 "
-              "해석해로 교정하면서."),
+              "기준해로 교정하면서."),
         gap=("Sionna RT `PathSolver` 에는 표면 산란적분 단계가 없어 표적 밝기 σ 를 주지 못한다"
              "(report06 이 다섯 측정으로 확인). 밝기는 표면 조각들의 되쏨을 위상까지 맞춰 다 더한 값인데, "
              "표적을 거울로만 튕기는(GO) 경로 솔버에는 그 ∫ 단계가 없다."),
@@ -146,26 +206,34 @@ cells += provenance_cells(
              "그대로 재사용**(중복계산 회피)하고 그 위에 **자작 PO 표면적분**(`src/rcs_sbr.py`, 가림 포함)만 "
              "얹는다. GPU BVH SBR+PO(arXiv:2604.09243)와 **같은 계열**이다(적용범위는 다르다 — 그들은 PEC·"
              "모노스태틱 후방산란 전용, 우리는 다중재질·바이스태틱; report06 §4)(§3)."),
-        verify=(f"답을 아는 정준 표적에 **단일 입사방향 후방산란**으로 대고 재본다 — 금속 평판 "
-                f"σ=4πA²/λ² 오차 **{_plate_err:+.2f} dB**(정면입사라 위상항이 상수 → 이건 *면적 구적* "
-                f"확인이지 위상·파장 검증이 아니다), 곡면인 금속구 σ=πr² 오차 **{_sphere_err:+.2f} dB** "
-                f"@λ/10 이지만 격자밀도에 **단조롭지 않아** λ/{_sphere_worst_div} 에서 "
+        verify=(f"답을 아는 정준 표적에 **단일 입사방향 후방산란**으로 대고 재본다 — 금속 평판은 "
+                f"σ=4πA²/λ²(정면입사에서 **PO 의 정확한 답**) 대비 **{_plate_err:+.2f} dB**(위상항이 "
+                f"상수라 이건 *면적 구적* 확인이지 위상·파장 검증이 아니다), 곡면인 금속구는 기준해가 "
+                f"**둘**이라 둘 다 적는다 — **해석 PO 대비 {_sphere_err:+.2f} dB · 정확 Mie 대비 "
+                f"{_sphere_err_mie:+.2f} dB** @λ/10(커널이 PO 라 수치 수렴의 과녁은 해석 PO, Mie 잔차는 "
+                f"PO 근사를 쓴 대가). 격자밀도에 **단조롭지 않아** λ/{_sphere_worst_div} 에서 "
                 f"{_sphere_worst:+.2f} dB, 우리 설정 λ/{SBR_DIV} 에서 {_sphere_ours:+.2f} dB "
-                f"(@{FC/1e9:.1f} GHz). report6 원장의 {_p6_plate:+.2f}/{_p6_sphere:+.2f} dB 는 **같은 "
+                f"(@{FC/1e9:.1f} GHz, 전부 해석 PO 기준). report6 원장의 "
+                f"{_p6_plate:+.2f}/{_p6_sphere:+.2f} dB 는 **같은 "
                 f"커널을 같은 인자로 다시 부른 회귀 확인**이지 독립 재현이 아니다(§4). 절대값 앵커는 report08."),
     ),
 
     sources=[
         dict(item="검증 기준 (정답)",
-             src="교과서 폐형식 — 금속구 σ = πr² (광학영역) · 금속평판 σ = 4πA²/λ² (정면 조사)",
-             kind="📐 해석해"),
+             src=(f"금속구 = **정확 Mie 급수**(σ/(πr²)={SREF['mie_sigma_m2']/SREF['go_sigma_m2']:.5f} "
+                  f"@kr={SREF['kr']:.3f}) + **해석적 PO**(1−sin2kr/kr+(1−cos2kr)/2(kr)²) 두 기준해 "
+                  f"(`benchmark/mie_pec_sphere.py`, 자기검증 통과분) · 금속평판 = σ=4πA²/λ² "
+                  f"(정면입사에서 PO 의 정확한 답). ⚠ 광학 점근 πr² 은 **과녁이 아니다** — 이 kr 에서 "
+                  f"해석 PO 가 {SREF['po_minus_go_db']:+.3f} dB, 정확 Mie 가 "
+                  f"{SREF['mie_minus_go_db']:+.3f} dB 떨어져 있어 잔차보다 간극이 크다"),
+             kind="📐 기준해 (Mie=정확 · PO=커널의 과녁)"),
         dict(item="SBR 검증·격자수렴·가림 측정값",
              src="**`outputs/report2_waveform_rcs.json`** 의 `sbr_validation` / `occlusion` "
                  "(그림 `report2_sbr_validate.png` · `report2_occlusion.png` 과 같은 소스)",
              kind="🟡 측정 (SBR = 우리 구현, Mitsuba 광선)"),
         dict(item="같은 커널의 회귀(재현) 확인",
              src="**`outputs/report6_sbr.json`** 의 `kernel` — 다른 스크립트에서 **같은 함수를 같은 "
-                 "인자로** 다시 부른 값(`viz_report2.py:588-589` ↔ `viz_verify_sbr.py:107-108`). "
+                 f"인자로** 다시 부른 값({_REGRESS}). "
                  "결정론적 동일 코드경로라 값이 같은 것이 당연하다 — **독립 구현 대조가 아니다**",
              kind="🟡 회귀 확인 (독립 검증 아님)"),
         dict(item="광선격자·삼각형 세분 민감도",
@@ -184,7 +252,7 @@ cells += provenance_cells(
     reproduce=[
         "cd /home/yunjung/workspace/sionna2",
         "",
-        "# 커널 해석해 검증(구 πr² / 평판 4πA²/λ²) + 격자 수렴",
+        "# 커널 기준해 검증(구: 해석 PO + 정확 Mie / 평판: 정확 PO 4pi A^2/lambda^2) + 격자 수렴",
         "~/.venvs/py312/bin/python src/rcs_sbr.py",
         "",
         "# 측정 + 그림 + JSON (sbr_validation / occlusion 을 남긴다)",
@@ -214,7 +282,7 @@ cells += provenance_cells(
 
     caveats=[
         "**절대 RCS 는 문헌 실측보다 밝은 쪽으로 치우친다 — 신뢰의 중심에 두지 않는다.** SBR 은 "
-        "해석해(구·평판)로 교정되지만, 절대 dBsm 을 문헌과 견주면 **크기가 맞는 짝끼리 aspect-peak ↔ "
+        "기준해(구·평판)로 교정되지만, 절대 dBsm 을 문헌과 견주면 **크기가 맞는 짝끼리 aspect-peak ↔ "
         "aspect-peak** 으로 보아 우리 쪽이 위로 치우친다(정량치와 짝짓기 규약은 report08 §6). "
         "few-λ(공진영역)에서 PO 가 절대레벨을 밝은 쪽으로 잡는 경향이 유력한 설명이다. "
         "이 리포트가 지지하는 것은 방법의 정합성·상대 패턴이지 절대 dBsm 의 정밀값이 "
@@ -225,9 +293,10 @@ cells += provenance_cells(
         "**격자 위상 진동은 지터평균으로 잡되, 완전히 없어지지는 않는다.** 곡면은 광선격자를 어디에 "
         f"맞추느냐에 절대레벨이 흔들린다 — 정렬만 흔든 산포가 λ/8 {_lam8['spread']:.2f} dB, "
         f"우리 설정 λ/{SBR_DIV} {_lam_ours['spread']:.2f} dB, λ/24 {_lam24['spread']:.2f} dB. "
-        f"서브셀 오프셋 격자를 평균하면 잔차가 λ/8 {_lam8['avg_err']:+.2f} → "
-        f"λ/{SBR_DIV} {_lam_ours['avg_err']:+.2f} → λ/24 {_lam24['avg_err']:+.2f} dB 로 줄지만, "
-        f"**우리 격자에서는 아직 {abs(_lam_ours['avg_err']):.2f} dB 남아 있다.** 절대 dBsm 은 측정 "
+        f"그 정렬들을 평균한 잔차는 λ/8 {_lam8['avg_err_po']:+.2f} → "
+        f"λ/{SBR_DIV} {_lam_ours['avg_err_po']:+.2f} → λ/24 {_lam24['avg_err_po']:+.2f} dB(해석 PO "
+        f"기준)로 줄지만, **우리 격자에서는 아직 {abs(_lam_ours['avg_err_po']):.2f} dB 남아 있다.** "
+        "절대 dBsm 은 측정 "
         "앵커에 맡긴다 — §4.",
 
         "**오목한 곳의 다중반사(2·3차) 값은 규모(작다)만 신뢰한다.** SBR 이 실제로 고치는 것은 "
@@ -340,7 +409,28 @@ cells.append(md(
     "",
     "**① 사방에 뿌리지 않고 표적을 정면 조준한다.** 광선을 아무 방향으로나 흩뿌리면 작은 표적은 "
     "대부분 빗나간다. 대신 시선 방향 $\\hat u$ 에서 **간격이 촘촘한 평행 광선 격자**를 표적에 곧장 "
-    "쏜다. 그러면 거의 모든 광선이 표적의 어딘가에 맞는다.",
+    "쏜다. 그러면 거의 모든 광선이 표적의 어딘가에 맞는다. **이 조준 격자는 SBR 의 표준 구성이지 "
+    "우리 것이 아니다** — 최근 GPU 구현(arXiv:2604.09243 §4)이 입사방향에 직교하는 가상 개구면에서 "
+    "간격 $\\Delta s$ 의 직교 격자를 쏘는 **같은 정사영 광선다발**을 쓰고, 그 논문은 이 구성을 SBR "
+    "원논문 **Ling·Chou·Lee 1986** 으로 소급한다(그 논문 참고문헌 [10]). 이 엔진에서 "
+    "우리 몫은 격자 자체가 아니라 그 위에 얹은 네 가지다 — **부위별 유전체 재질**(PEC 단일재질이 아니라 "
+    "부품마다 $|\\Gamma|$), **준투명 셸 투과 2차 패스**(③), **first-hit 가림**(§5), **격자 지터 "
+    "위상평균**(`rcs_sbr.py` 의 `rcs_sbr_batch()` — 격자 오프셋을 $J^2$ 개로 흩어 평균한다. "
+    f"단일격자 하나는 정렬만 흔들어도 우리 격자 λ/{SBR_DIV} 에서 {_lam_ours['spread']:.2f} dB"
+    f"(peak-to-peak) 움직이고, {_dith_j}). "
+    "⚠ 이 중 가림의 **물리**(그림자 영역의 유도전류를 0 으로)는 선행과 공유하고, 우리 쪽 "
+    "고유는 그 대가를 dB 로 계량한 것이다(§5).",
+    "",
+    "<sub>**이 선행권은 2차 인용이다.** 우리가 원문에서 직접 확인한 것은 arXiv:2604.09243 §4 의 정사영 "
+    "격자 구성과 그 논문의 서지 [10] — *\"Shooting and bouncing rays: Calculating RCS of an arbitrary "
+    "cavity\"*, 1986 IEEE APS Int. Symp., vol. 24, pp. 293–296, DOI 10.1109/APS.1986.1149823 — 까지이고, "
+    "**1986 다이제스트 원문은 읽지 않았다**(디스크 부재). 그래서 위 문장은 *\"1986 논문이 이 격자를 "
+    "구성한다\"* 가 아니라 **\"arXiv:2604.09243 이 이 구성을 Ling·Chou·Lee 1986 으로 소급한다\"** 로 "
+    "읽어야 한다. 또 SBR 의 **정본 인용은 통상 저널판** Ling, Chou & Lee, *\"Shooting and bouncing "
+    "rays: calculating the RCS of an arbitrarily shaped cavity\"*, IEEE Trans. Antennas Propag., "
+    "vol. 37, no. 2, pp. 194–205, 1989 이고, 1986 항목은 그보다 앞선 **학회 다이제스트**다 — 같은 "
+    "연구의 두 판은 구별해 적는다. 저널판 서지는 디스크의 2차 인용 두 건(arXiv:2604.05991 · "
+    "arXiv:2502.10324)에서 확인했고, 저널판 원문도 디스크에 없어 **DOI 는 적지 않는다**.</sub>",
     "",
     "**② 물리적으로 되튕겨 오길 기다리지 않고, 되쏘는 양을 그 자리에서 계산한다.** 광선이 맞은 점 "
     "$\\vec p_i$ 마다, 그 면이 레이더 쪽으로 되쏘는 양을 PO(물리광학)로 — **위상까지 맞춰** — 셈해 "
@@ -407,9 +497,25 @@ cells.append(md(
     "SBR+PO 계산이 옳게 도는지 확인하는 표준 절차는 **답이 이미 알려진 정준 표적(canonical target)에 "
     "대고 재보는 것**이다 — Sionna-RT 에 커스텀 산란(UTD) add-on 을 얹는 선행 연구(예: Ziganshin, "
     "arXiv:2604.05991)도 "
-    "구·원통 같은 정준체를 해석해·상용 솔버(FEKO)·실측과 대조해 검증한다. 레이더 교과서는 두 물건의 "
-    "밝기를 폐형식(닫힌 공식)으로 준다: 정면으로 조사한 **금속 평판**은 σ = 4πA²/λ², **금속구**는 "
-    "σ = πr².",
+    "구·원통 같은 정준체를 기준해·상용 솔버(FEKO)·실측과 대조해 검증한다.",
+    "",
+    "**기준해를 먼저 고른다 — 이게 숫자를 지배한다.** 정면으로 조사한 **금속 평판**은 "
+    "σ = 4πA²/λ² 이고, 이 식은 점근이 아니라 **PO 의 정확한 답**이라 그대로 과녁이 된다. "
+    "**금속구**는 다르다. 교과서가 흔히 적는 σ = πr² 은 **ka → ∞ 광학 점근값**일 뿐이고, 우리 "
+    f"검증구(r = {V['r']} m @ {FC/1e9:.1f} GHz, kr = {SREF['kr']:.3f})에서는 두 기준해가 그 점근값을 "
+    f"**사이에 두고 양쪽에** 있다 — **해석적 PO** 가 {SREF['po_minus_go_db']:+.3f} dB, **정확 Mie "
+    f"급수**가 {SREF['mie_minus_go_db']:+.3f} dB(둘 사이 {SREF['po_minus_mie_db']:.3f} dB). 아래 표의 "
+    "구 잔차가 그 간극보다 작으므로, **어느 자를 골랐는지가 숫자를 지배한다.** 그래서 둘 다 싣는다:",
+    "",
+    "- **해석적 PO** = 우리 커널이 SBR+**PO** 이므로 격자를 촘촘히 할 때 **수렴할 수 있는 유일한 "
+    "과녁**이다. 여기 대한 잔차가 곧 우리 **수치오차**다.",
+    "- **정확 Mie** = 물리적 참값. 여기 대한 잔차는 수치오차 + **PO 근사를 쓴 대가**이고, 뒤쪽 항은 "
+    "격자를 아무리 촘촘히 해도 줄지 않는다.",
+    f"- **πr²** 은 라벨된 **점근 참고값**으로만 인용한다(구 {SREF['go_dbsm']:+.3f} dBsm). 판정에 쓰지 "
+    "않는다.",
+    "",
+    "기준해 구현과 그 자기검증(Rayleigh·광학 극한·첫 공진·PO 닫힌형↔수치구적)은 "
+    "`benchmark/mie_pec_sphere.py` 한 곳에만 있다.",
     "",
     "**검증 조건을 먼저 못박는다.** 이 대조는 **단일 입사방향의 후방산란 한 점**이다 — 구는 "
     "az = 0°·el = 0°, 평판은 정면(el = 90°)으로 한 방향만 쏜다"
@@ -421,14 +527,20 @@ cells.append(md(
     "",
     f"**@ {FC/1e9:.1f} GHz (λ = {LAM*100:.2f} cm) 대조:**",
     "",
-    f"| 표적 | 교과서 값 | SBR 오차 | 우리 설정 λ/{SBR_DIV} | report6 재호출 |",
-    "|---|---|---|---|---|",
-    f"| 금속 평판 {V['a']} × {V['a']} m (정면) | {V['plate_exact_dbsm']:+.2f} dBsm | "
-    f"**{_plate_err:+.2f} dB** (λ/6) | {_plate_ours:+.2f} dB | {_p6_plate:+.2f} dB |",
-    f"| 금속구 r = {V['r']} m | {V['sphere_exact_dbsm']:+.2f} dBsm | "
+    f"| 표적 | 기준해 | 기준값 | SBR 잔차 | 우리 설정 λ/{SBR_DIV} | report6 재호출 |",
+    "|---|---|---|---|---|---|",
+    f"| 금속 평판 {V['a']} × {V['a']} m (정면) | 정확 PO $4\\pi A^2/\\lambda^2$ | "
+    f"{V['plate_exact_dbsm']:+.2f} dBsm | **{_plate_err:+.2f} dB** (λ/6) | {_plate_ours:+.2f} dB | "
+    f"{_p6_plate:+.2f} dB |",
+    f"| 금속구 r = {V['r']} m | **해석적 PO** (커널의 과녁) | {SREF['po_dbsm']:+.2f} dBsm | "
     f"**{_sphere_err:+.2f} dB** (λ/10) | {_sphere_ours:+.2f} dB | {_p6_sphere:+.2f} dB |",
+    f"| 금속구 r = {V['r']} m | **정확 Mie** (참값) | {SREF['mie_dbsm']:+.2f} dBsm | "
+    f"{_sphere_err_mie:+.2f} dB (λ/10) | {_sphere_ours_mie:+.2f} dB | — |",
+    f"| 금속구 r = {V['r']} m | 광학 점근 $\\pi r^2$ (참고, 과녁 아님) | {SREF['go_dbsm']:+.2f} dBsm | "
+    f"{V['sphere_err_go'][V['divs'].index(10)]:+.2f} dB (λ/10) | "
+    f"{V['sphere_err_go'][V['divs'].index(SBR_DIV)]:+.2f} dB | — |",
     "",
-    "**이 표를 읽는 법 — 두 줄의 무게가 다르다.**",
+    "**이 표를 읽는 법 — 줄마다 무게가 다르다.**",
     "",
     "**① 평판은 '엔진 검증' 이 아니라 '면적 구적(quadrature) 확인' 이다.** 정면입사(el = 90°)에서는 "
     "모든 히트의 위상항 $e^{j2k\\vec p\\cdot\\hat u}$ 가 **상수**가 되어 $E = |\\Gamma|Nd^2$, "
@@ -441,14 +553,20 @@ cells.append(md(
     "우리 커널 주석도 같은 말을 한다(`rcs_sbr.py`: *평판 정면은 위상항이 상수라 이 진동을 진단 못 "
     "한다*). **위상항이 살아 있는 비스듬한 입사로 다시 재는 것은 남은 과제다.**",
     "",
-    f"**② 위상까지 검증하는 줄은 곡면인 구뿐이고, 그 값은 격자밀도에 단조롭지 않다.** λ/10 에서 "
-    f"{_sphere_err:+.2f} dB 로 잘 맞지만 λ/{_sphere_worst_div} 에서는 {_sphere_worst:+.2f} dB, "
-    f"실제로 드론에 쓰는 λ/{SBR_DIV} 에서는 {_sphere_ours:+.2f} dB 다. 즉 **'1 dB 이내' 는 특정 "
-    "격자에서의 값이지 방법의 보증이 아니다** — 실루엣 근처 grazing 광선의 위상 에일리어싱이 남긴 "
-    "진동이며, 아래 디더 표가 그 정체를 직접 보인다.",
+    f"**② 위상까지 검증하는 줄은 곡면인 구뿐이고, 그 값은 격자밀도에 단조롭지 않다.** 해석 PO 기준으로 "
+    f"λ/10 에서 {_sphere_err:+.2f} dB 로 잘 맞지만 λ/{_sphere_worst_div} 에서는 "
+    f"{_sphere_worst:+.2f} dB, 실제로 드론에 쓰는 λ/{SBR_DIV} 에서는 {_sphere_ours:+.2f} dB 다. 즉 "
+    "**'1 dB 이내' 는 특정 격자에서의 값이지 방법의 보증이 아니다** — 실루엣 근처 grazing 광선의 위상 "
+    "에일리어싱이 남긴 진동이며, 아래 디더 표가 그 정체를 직접 보인다.",
     "",
-    f"**③ report6 원장의 {_p6_plate:+.2f}/{_p6_sphere:+.2f} dB 는 독립 재현이 아니다.** 두 스크립트가 "
-    "**같은 함수를 같은 인자로** 부른다(`viz_report2.py:588-589` ↔ `viz_verify_sbr.py:107-108`). "
+    f"**③ 구의 Mie 잔차는 우리 수치오차가 아니다.** 같은 λ/{SBR_DIV} 출력이 해석 PO 대비 "
+    f"{_sphere_ours:+.2f} dB, 정확 Mie 대비 {_sphere_ours_mie:+.2f} dB 다. 차이 "
+    f"{SREF['po_minus_mie_db']:+.3f} dB 는 격자를 촘촘히 해도 줄지 않는 **PO 근사 자체의 간극**이다"
+    "(구는 모서리가 없으므로 주로 그림자면 크리핑파 누락). 격자를 고쳐 없앨 수 있는 항과 방법이 원래 "
+    "가진 항을 한 숫자에 섞지 않는다.",
+    "",
+    f"**④ report6 원장의 {_p6_plate:+.2f}/{_p6_sphere:+.2f} dB 는 독립 재현이 아니다.** 두 스크립트가 "
+    f"**같은 함수를 같은 인자로** 부른다({_REGRESS}). "
     "결정론적 동일 코드경로라 값이 같은 것은 당연하고, 이것이 보증하는 것은 **다른 실행·다른 "
     "파이프라인에서도 같은 값이 나온다는 회귀 재현성**뿐이다. 독립 구현 대조로 읽으면 안 된다.",
     "",
@@ -463,11 +581,11 @@ cells.append(md(
     "",
     f"→ 거친 λ/8 에서는 격자 위치만으로 **{_lam8['spread']:.2f} dB** 가 움직이고, 우리 설정 "
     f"λ/{SBR_DIV} 에서도 {_lam_ours['spread']:.2f} dB 가 남으며, 촘촘한 λ/24 에서 "
-    f"{_lam24['spread']:.2f} dB 로 닫힌다. 여러 오프셋 격자를 평균한 잔차도 같은 방향이다 — "
-    f"λ/8 {_lam8['avg_err']:+.2f} → λ/{SBR_DIV} {_lam_ours['avg_err']:+.2f} → "
-    f"λ/24 {_lam24['avg_err']:+.2f} dB. 즉 **매끈한 곡면의 단일 격자 값은 λ/24 급에서만 안정되고, "
-    f"우리 격자에서는 정렬 산포 {_lam_ours['spread']:.2f} dB · 디더평균 잔차 "
-    f"{_lam_ours['avg_err']:+.2f} dB 가 절대레벨에 남아 있다.**",
+    f"{_lam24['spread']:.2f} dB 로 닫힌다. 그 정렬들을 평균한 잔차도 같은 방향이다 — "
+    f"λ/8 {_lam8['avg_err_po']:+.2f} → λ/{SBR_DIV} {_lam_ours['avg_err_po']:+.2f} → "
+    f"λ/24 {_lam24['avg_err_po']:+.2f} dB(해석 PO 기준). 즉 **매끈한 곡면의 단일 격자 값은 λ/24 급에서만 "
+    f"안정되고, 우리 격자에서는 정렬 산포 {_lam_ours['spread']:.2f} dB · 디더평균 잔차 "
+    f"{_lam_ours['avg_err_po']:+.2f} dB 가 절대레벨에 남아 있다.**",
     "",
     "**하지만 드론은 성질이 다릅니다** — 되쏘는 점이 몸통·팔·모터·프로펠러에 잔뜩 흩어져 있어, "
     "방위(각도)를 돌려가며 평균을 내면 **저절로 안정**된다(그림 c):",
@@ -497,7 +615,8 @@ cells.append(md(
     "**광선격자 수렴의 증거로 읽어서는 안 된다** — PO 합의 구적점은 삼각형이 아니라 **광선 히트**라서, "
     "면을 중점분할해도 같은 표면·같은 히트가 남는다. 값이 같은 것은 표면이 같으므로 그렇고, 이 검사가 "
     "실제로 지키는 것은 **구현이 면 수에 의존하지 않는다**는 것이다(면별 가중이나 면별 지터가 섞여 "
-    "들어갔다면 깨진다 — `report_mesh/src/verify_mesh_suite.py:376` 이 이 검사를 그 목적으로 적어 둔다). "
+    "들어갔다면 깨진다 — `report_mesh/src/verify_mesh_suite.py` 의 `sec_I_sbr_subdiv()` 가 이 검사를 "
+    "그 목적으로 적어 둔다). "
     "수치 놉은 삼각형 수가 아니라 위의 광선격자다.",
     "",
     "> 정리하면, 정반사점이 하나뿐인 매끈한 구가 이 방법에게 가장 까다로운 표적이고, 되쏘는 점이 "
@@ -656,7 +775,7 @@ cells.append(md(
 cells.append(code(
     "# §4·§5 재현 — SBR 커널 검증(교과서 값) + 가림 대조",
     "import rcs_sbr",
-    "rcs_sbr.validate(3.5e9)        # 금속구 πr² / 평판 4πA²/λ² 대조 + 격자 수렴",
+    "rcs_sbr.validate(3.5e9)        # 금속구: 해석 PO + 정확 Mie / 평판: 정확 PO 대조 + 격자 수렴",
     "rcs_sbr.compare_with_po()      # 순수 PO vs SBR (가림의 대가)",
 ))
 
@@ -686,8 +805,9 @@ cells.append(md(
     "위상까지 맞춰 더한다(§3). 광선추적은 **Sionna 가 쓰는 Mitsuba 엔진을 그대로 재사용**하고 그 위에 "
     "자작 PO 표면적분만 얹는다 — GPU BVH SBR+PO(arXiv:2604.09243)와 같은 계열이다"
     "(적용범위 차이는 report06 §4).",
-    f"3. **옳은가?** 단일 입사방향에서 금속 평판({_plate_err:+.2f} dB @λ/6)·금속구"
-    f"({_sphere_err:+.2f} dB @λ/10)이 교과서 값과 1 dB 이내였다(§4). 단 **평판 정면은 위상항이 상수라 "
+    f"3. **옳은가?** 단일 입사방향에서 금속 평판({_plate_err:+.2f} dB @λ/6, 기준=정확 PO)·금속구"
+    f"({_sphere_err:+.2f} dB @λ/10, 기준=해석 PO / 정확 Mie 대비 {_sphere_err_mie:+.2f} dB)이 기준해와 "
+    f"1 dB 이내였다(§4). 단 **평판 정면은 위상항이 상수라 "
     "면적 구적 확인**이고, 위상까지 거는 구는 격자밀도에 단조롭지 않다"
     f"(λ/{_sphere_worst_div} 에서 {_sphere_worst:+.2f} dB, 우리 λ/{SBR_DIV} 에서 "
     f"{_sphere_ours:+.2f} dB). report6 원장의 같은 값은 **같은 함수·같은 인자 재호출**이라 회귀 "
@@ -697,7 +817,7 @@ cells.append(md(
     f"**{OCC['po_dbsm']:+.2f} → {OCC['sbr1_dbsm']:+.2f} dBsm** 으로 내려갔다 — 다중반사가 아니라 "
     "**가림이 진짜 이득**이었다(§5).",
     "",
-    "**이 리포트가 보장하지 않는 것:** **절대 RCS 값**(정준 표적 해석해로만 검증·드론 실측 앵커 "
+    "**이 리포트가 보장하지 않는 것:** **절대 RCS 값**(정준 표적 기준해로만 검증·드론 실측 앵커 "
     "없음 → report08 — 방법의 정합성과 가림의 방향·규모만 주장), **매끈한 구의 단일 격자 값**·"
     "**다중반사의 정확한 dB**(인용 금지), **위상·파장에 대한 평판 검증**(정면입사라 λ 가 소거된다 — "
     "비스듬한 입사 재측정은 남은 과제), **바이스태틱 σ**(여기 값은 모노스태틱 등가이고 전방산란·"

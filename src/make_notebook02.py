@@ -52,10 +52,45 @@ CK = M["check"]
 F = J1["figures"]
 R = J1["renders"]
 
-# 표시 순서: 작은 것 → 큰 것
-ORDER = ["mini5pro", "mavic4pro", "matrice4e", "phantom4", "s1000plus"]
+# 표시 순서: 작은 것 → 큰 것.
+#  ⭐ 2026-07-30 (Phase 3): 5종 하드코딩이던 자리. 목록에 없는 기종은 표·갤러리에서
+#     **에러 없이 빠졌다** → 레지스트리에서 유도한다(앞머리는 옛 표시 순서 유지).
+from drones import DRONES, drone_order, drone_label   # noqa: E402
+ORDER = drone_order(("mini5pro", "mavic4pro", "matrice4e", "phantom4", "s1000plus"))
+
+#  ⛔ **무음 실패 차단**: report1.json 이 레지스트리보다 낡으면(기종을 추가하고 재생성을
+#     돌리지 않은 상태) 여기서 멈춘다. 예전 구조라면 리포트가 "표적은 5종" 이라고
+#     **아무 예외 없이** 써 버렸다. 해소는 재생성 파이프라인 stage 3(`viz_report1.py`)이다.
+_missing = [k for k in ORDER if k not in DR]
+_missing_ren = [k for k in ORDER if f"drone_{k}_iso" not in R]
+if _missing or _missing_ren:
+    raise RuntimeError(
+        f"report1.json 이 DRONES 레지스트리({len(DRONES)}종)보다 낡았다 — "
+        f"meshes 누락 {_missing} · 렌더 누락 {_missing_ren}. 먼저 재생성할 것: "
+        f"benchmark/regen_mesh_dependents.py (또는 src/viz_report1.py --only mesh,cad,gallery,art,md)")
 
 total_tris = sum(DR[k]["n_tris"] for k in DR)
+
+# 프로펠러 기하 표 — **손으로 적지 않는다**(하우스 규약). 스펙(prop_dia_mm·prop_pitch_in) +
+#   drone_cad.CHORD_MAX_OVER_R 에서 유도한다. θ(R) = arctan(P / 2πR).
+#   ⚠ 2026-07-30: 예전에는 5행 손타이핑이었고 '최대 시위' 열이 **낡아 있었다** —
+#     CHORD_MAX_OVER_R 이 0.26→0.25 로 정정(B2)된 뒤에도 옛 0.26 기준 값이 남아 있었다.
+#     손으로 적은 숫자는 상수를 따라오지 않는다. 그리고 기종이 늘면 행이 조용히 빠졌다.
+import math                                       # noqa: E402
+from drone_cad import CHORD_MAX_OVER_R            # noqa: E402
+
+PROP_TBL = ["| 드론 | 프로펠러 지름 | 피치 | 최대 시위 | 팁 각도 θ(R) |",
+            "|---|---|---|---|---|"]
+for _k in ORDER:
+    _s = DRONES[_k]
+    _R = _s.prop_dia_mm / 2000.0                                   # 프롭 반경 [m]
+    _pitch = "미공표" if _s.prop_pitch_in is None else f"{_s.prop_pitch_in:g}\""
+    if _s.prop_pitch_in is None:
+        _th = "—"
+    else:
+        _th = f"{math.degrees(math.atan2(_s.prop_pitch_in * 0.0254, 2 * math.pi * _R)):.1f}°"
+    PROP_TBL.append(f"| {drone_label(_k)} | {_s.prop_dia_mm:.0f} mm | "
+                    f"{_pitch} | {CHORD_MAX_OVER_R * _R * 1000:.1f} mm | {_th} |")
 
 
 def metal_faces(k):
@@ -78,7 +113,7 @@ def _mm(x):
     return f"{x:.0f}" if x is not None else "미공개"
 
 
-# 5종 전체에서 나쁜 면(안쪽법선·역와인딩·퇴화)의 총합 — 본문 문장에 쓸 사실
+# 전 기종에서 나쁜 면(안쪽법선·역와인딩·퇴화)의 총합 — 본문 문장에 쓸 사실
 GRAND_BAD = sum(
     v["inward"] + v["bad_winding"] + v["degenerate"]
     for k in DR for v in CK[k]["groups"].values()
@@ -98,8 +133,13 @@ def diag_err_pct(k):
 #                441 mm 자체가 **우리가 외곽에서 역산한 값**이다(src/drones.py:120-129).
 #  · mini5pro  — DJI 가 대각을 공개하지 않고(src/drones.py:101-105), 면내 피팅 배율이
 #                (1.0, 1.0) 이라 모델 대각 = 입력 대각이 **대수 항등식**이다.
-DIAG_INDEP = ["matrice4e", "s1000plus", "phantom4"]
+#  ⭐ 2026-07-30 (Phase 3): 두 목록이 **둘 다** 5종 하드코딩이었다 — 신규 기종은 어느 쪽에도
+#     없어서 표·최댓값에서 **조용히 빠졌다**(에러 없음). 손으로 유지해야 하는 것은 '자기참조'
+#     쪽뿐이다(그 판정은 스펙의 출처 이야기라 코드로 유도할 수 없다). 나머지는 **레지스트리
+#     차집합**으로 둔다 → 기종이 늘면 자동으로 표에 들어오고, 등방/비등방 분류(아래)가
+#     그 기체가 진짜 독립 증거인지 다시 걸러 준다.
 DIAG_SELFREF = ["mavic4pro", "mini5pro"]
+DIAG_INDEP = [k for k in ORDER if k not in DIAG_SELFREF]
 diag_max_pct = max(abs(diag_err_pct(k)) for k in DIAG_INDEP)
 
 
@@ -115,6 +155,27 @@ DIAG_ISO = [k for k in DIAG_INDEP if _inplane_aniso(k) <= 1.001]
 _aniso_txt = "·".join(
     "{}(×{:.3f}, ×{:.3f})".format(DR[k]["name"], DR[k]["fit_scale"][0], DR[k]["fit_scale"][1])
     for k in DIAG_ANISO)
+_iso_names = "·".join(DR[k]["name"] for k in DIAG_ISO)
+
+#  ⚠ 2026-07-30: 이 문단은 "비등방 행이 존재한다"는 **전제** 위에 쓰여 있었다. 그런데 정본에
+#     비등방 기체가 없을 수 있다(matrice4e 가 2026-07-28 에 등방 (1.0, 1.0) 으로 정정된 뒤
+#     실제로 0개가 됐고, Phase 3 이 표에 등방 기체를 더 넣었다). 전제가 깨지면 문장이
+#     "교란되는 것은  뿐이고" 처럼 **빈칸을 남긴 채 출력된다** — 에러 없이 틀린 산문.
+#     → 두 갈래를 다 쓴다. 약화가 아니라, 그때그때 참인 진술을 고른다.
+if DIAG_ANISO:
+    _aniso_clause = (
+        f"실제로 교란되는 것은 {_aniso_txt} 뿐이고, {_iso_names} 는 면내 배율이 등방이라 "
+        "모델 대각 = 입력 대각 × 그 배율이 되어 <b>오차가 곧 배율 편차</b>입니다. 그리고 실제로 가장 크게 "
+        "어긋나는 행이 비등방 쪽입니다("
+        + "·".join(f"{diag_err_pct(k):+.2f}%" for k in DIAG_ANISO)
+        + f") — 위의 ±{diag_max_pct:.1f}% 는 그 값입니다.")
+else:
+    _aniso_clause = (
+        "이번 빌드에서는 <b>비등방 행이 하나도 없습니다</b> — 표의 전 기종이 면내 배율 등방이라 "
+        "모델 대각 = 입력 대각 × 그 배율이 되어 <b>오차가 곧 배율 편차</b>입니다. 따라서 위의 "
+        f"±{diag_max_pct:.1f}% 는 '대각이 교란된 뒤에도 남은 일관성'이 아니라 <b>피팅 배율 편차 그 자체</b>로 "
+        "읽어야 합니다("
+        + "·".join(f"{DR[k]['name']} {diag_err_pct(k):+.2f}%" for k in DIAG_ISO) + ").")
 
 # DJI 공식 Mini 5 Pro 언폴드(**프롭 포함**) L×W [mm] — 제원표 상수(출처: DJI 공식 스펙,
 # src/drones.py:112-116 주석에 조사 근거 기록). 나머지는 JSON 에서 계산한다.
@@ -147,7 +208,7 @@ MAT_PROPS = [
 
 # --------------------------------------------------------------------------- #
 #  곡면 이산화 품질 E²/(Rλ) — 선행(zig-journal, arXiv:2604.05991)의 기준을 소개만 한다.
-#  ⚠ 우리 5기종 드론 메쉬의 per-mesh E²/(Rλ) 는 **아직 산출하지 않았다** — 이 지표는 facet 별
+#  ⚠ 우리 드론 메쉬 전 기종의 per-mesh E²/(Rλ) 는 **아직 산출하지 않았다** — 이 지표는 facet 별
 #     국소 곡률반경 R 을 요구하는데(zig-journal §III-C: s∼E²/R), 원곡면을 모르는 임의 메쉬에서
 #     R 추정은 열려 있는 문제다(PRIOR_WORK_COMPARISON.md:151 "곡률 R 산출이 필요하고 현재 없다").
 #     → report07 과 동일하게 **다음 단계 계산(P1)** 으로 남긴다. 여기서는 문헌 기준을 소개하고,
@@ -174,7 +235,7 @@ cells += provenance_cells(
     spine=dict(
         core=(f"탐지에는 표적이 있어야 하는데 **Sionna 에는 드론 메쉬가 없다** — Sionna RT 는 씬 형상을 "
               f"입력으로 받을 뿐 표적 형상을 만들어 주지 않는다. 그래서 **공개 공식 제원표의 숫자만으로** "
-              f"오픈소스 CAD 라이브러리가 5종 드론(총 삼각형 {total_tris:,}개)의 메쉬를 짓는다."),
+              f"오픈소스 CAD 라이브러리가 드론 {len(ORDER)}종(총 삼각형 {total_tris:,}개)의 메쉬를 짓는다."),
         gap=("Sionna RT `PathSolver` 는 씬 지오메트리(삼각형 메쉬)를 **입력으로 소비**할 뿐 표적 형상을 "
              "생성하지 않는다(Sionna RT 창설논문 arXiv:2303.11103 의 설계 범위). 게다가 DJI 는 설계 "
              "CAD 를 공개하지 않아, 실물 드론을 시뮬레이션하려면 형상을 따로 마련해야 한다(§1)."),
@@ -187,7 +248,7 @@ cells += provenance_cells(
              "`shapely`(2D 단면) · `scipy`(스플라인 보간) · `trimesh`(로프트/스윕/회전체) · "
              "`manifold3d`(CSG 불리언). 자작 메쉬 엔진 없이 표준 연산만 조합해 **스펙→메쉬** 파이프라인을 "
              "만들고, 전파적으로 밝은 내부 금속(배터리·모터·PCB)까지 넣는다(§3)."),
-        verify=(f"`trimesh` 내장 검사(watertight·법선방향·퇴화면)를 **빌드 게이트**로 — 5종 전체 불량 면 "
+        verify=(f"`trimesh` 내장 검사(watertight·법선방향·퇴화면)를 **빌드 게이트**로 — {len(ORDER)}종 전체 불량 면 "
                 f"{GRAND_BAD}개. 외곽 상자가 공식 치수와 0% 로 맞는 것은 **구속조건 충족 확인**이고"
                 f"(`frame_fit_scale()` 이 바운딩박스를 공식 외곽에 강제로 맞춘다), 형상 일관성의 축은 **모터 대각**이다 — "
                 f"대각은 모터 반경 입력으로 쓰이고, 외곽 피팅 배율이 그것을 흔든 뒤에도 공개 휠베이스와 "
@@ -214,7 +275,7 @@ cells += provenance_cells(
         dict(file="outputs/figures/report1_cad_pipeline.png", what="형상을 깎는 순서 도식"),
         dict(file="outputs/figures/report1_envelope.png", what="외곽 상자 치수 대조 그림"),
         dict(file="outputs/figures/report1_meshcheck.png", what="메쉬 품질 검사 결과 그림"),
-        dict(file="outputs/renders/r1_30_drone_*.png", what="5종 드론 3-뷰 렌더"),
+        dict(file="outputs/renders/r1_30_drone_*.png", what="드론 전 기종 3-뷰 렌더"),
     ],
     caveats=[
         "이 모델은 **제원표의 치수와 눈에 보이는 형상**을 맞춘 것이다. 나사·배선·틈새 같은 "
@@ -223,7 +284,7 @@ cells += provenance_cells(
         "**레이더 밝기(RCS, σ)** 는 이 리포트에서 계산하지 않는다. 여기서 만든 메쉬를 **재료**로 삼아 "
         "이후 리포트(06~08)가 광선+물리광학으로 밝기를 계산한다.",
     ],
-    cost="CPU 만 사용(메쉬 생성·검사는 GPU 불필요). 5종 전체 생성+검사 수십 초 규모.",
+    cost="CPU 만 사용(메쉬 생성·검사는 GPU 불필요). 전 기종 생성+검사 수십 초 규모.",
     related=[
         dict(rep="report01 — 통제 환경: 반무향 챔버", rel="이 드론들을 **띄울 무대**. 앞 리포트."),
         dict(rep="report03 — 모델을 믿어도 되나(분포 대조)", rel="겉모양을 프록시 실기체 CAD·커뮤니티 메쉬와 **치수·σ 분포로 대조**한다(본 RCS 계산은 06~08). 다음 리포트."),
@@ -371,7 +432,7 @@ cells.append(md(
     "충분합니다(파장 86 mm 앞에서 mm 디테일은 안 보인다, report06).",
 ))
 
-# ── §3-3  재현한 5종 갤러리 ───────────────────────────────────────────────── #
+# ── §3-3  재현한 전 기종 갤러리 ─────────────────────────────────────────────── #
 gal_rows = ["| 드론 | 로터 | 프로펠러 | 무게 | 삼각형 수 | 부위 수 |",
             "|---|---|---|---|---|---|"]
 for k in ORDER:
@@ -382,15 +443,15 @@ for k in ORDER:
         f"{v['weight_g']:.0f} g | {v['n_tris']:,} | {n_parts(k)} |")
 
 cells.append(md(
-    "### 재현한 5종",
+    f"### 재현한 {len(ORDER)}종",
     "",
-    "이렇게 해서 크기와 용도가 서로 다른 **5종**을 재현했습니다. 손바닥만 한 250 g 미니 드론부터, "
+    f"이렇게 해서 크기와 용도가 서로 다른 **{len(ORDER)}종**을 재현했습니다. 손바닥만 한 250 g 미니 드론부터, "
     "8개 로터에 9.5 kg 나 나가는 산업용 대형 옥토콥터까지 폭이 넓습니다. 표적의 **크기와 프로펠러 수**에 "
     "따라 레이더에 잡히는 양상이 달라지므로, 일부러 다양하게 갖췄습니다.",
     "",
     *gal_rows,
     "",
-    f"5종을 합치면 삼각형이 총 **{total_tris:,}개**입니다. 삼각형이 많을수록 곡면이 매끈해 전파 되쏘기를 "
+    f"{len(ORDER)}종을 합치면 삼각형이 총 **{total_tris:,}개**입니다. 삼각형이 많을수록 곡면이 매끈해 전파 되쏘기를 "
     "정밀하게 계산할 수 있지만, 그만큼 계산이 무거워집니다 — 이 정도가 형상 충실도와 계산 부담의 균형점입니다.",
     "",
     "아래는 각 드론을 세 방향(비스듬히 · 옆 · 위)에서 렌더한 모습입니다.",
@@ -398,18 +459,27 @@ cells.append(md(
 ))
 
 # §3 갤러리 안에서 각 드론 3-뷰 렌더 바로 다음에 회전 GIF 한 컷을 곁들인다.
-SPIN_GIFS = {
-    "mavic4pro": ("outputs/renders/anim/spin_mavic4pro.gif",
-                  "Mavic 4 Pro 3D 모델 회전(실측 실험용 드론)."),
-    "matrice4e": ("outputs/renders/anim/spin_matrice4e.gif",
-                  "Matrice 4E 3D 모델 회전(실측 실험용 드론)."),
-    "mini5pro": ("outputs/renders/anim/spin_mini5pro.gif",
-                 "Mini 5 Pro 3D 모델 회전."),
-    "phantom4": ("outputs/renders/anim/spin_phantom4.gif",
-                 "Phantom 4 3D 모델 회전."),
-    "s1000plus": ("outputs/renders/anim/spin_s1000plus.gif",
-                  "S1000+ 3D 모델 회전(큰 옥토콥터)."),
+#  ⭐ 2026-07-30 (Phase 3): 5종 하드코딩 사전이던 자리. 경로는 `spin_<key>.gif` 규약이라
+#     **키에서 유도**하고, 기종별 곁말만 남긴다(없으면 표시명만 쓴다).
+#     ⚠ 파일이 아직 없는 기종은 넣지 않는다 — 리포트에 깨진 이미지를 박는 것이 더 나쁘다.
+#       대신 어느 기종이 빠졌는지 **stdout 에 남긴다**(침묵 금지). GIF 는 anim_plots 가 만든다:
+#       `src/anim_plots.py --which drone_row` / `spin_articulated(<key>)`.
+SPIN_ASIDE = {
+    "mavic4pro": "(실측 실험용 드론)",
+    "matrice4e": "(실측 실험용 드론)",
+    "s1000plus": "(큰 옥토콥터)",
 }
+SPIN_GIFS = {}
+_no_gif = []
+for _k in ORDER:
+    _rel = f"outputs/renders/anim/spin_{_k}.gif"
+    if os.path.exists(os.path.join(ROOT, _rel)):
+        SPIN_GIFS[_k] = (_rel, f"{drone_label(_k)} 3D 모델 회전{SPIN_ASIDE.get(_k, '')}.")
+    else:
+        _no_gif.append(_k)
+if _no_gif:
+    print(f"⚠ 회전 GIF 가 없어 §3 갤러리에서 뺀 기종: {_no_gif} "
+          f"— src/anim_plots.py 로 spin_<key>.gif 를 먼저 만들 것")
 
 for k in ORDER:
     v = DR[k]
@@ -450,32 +520,26 @@ cells.append(md(
     "그리고 **모델마다 다릅니다** — 스펙에서 **반경·날개 수·피치**를 받습니다. 피치는 1회전당 전진량이며, "
     "각 반경에서의 날개 각도는 **θ(r) = arctan(P / 2πr)** 로 정해집니다(루트는 가파르고 팁은 완만):",
     "",
-    "| 드론 | 프로펠러 지름 | 피치 | 최대 시위 | 팁 각도 θ(R) |",
-    "|---|---|---|---|---|",
-    "| Mini 5 Pro | 152 mm | 2.8\" | 19.8 mm | 8.4° |",
-    "| Phantom 4 | 240 mm | 5.0\" | 31.2 mm | 9.6° |",
-    "| Mavic 4 Pro | 267 mm | 5.8\" | 34.7 mm | 10.0° |",
-    "| Matrice 4E | 274 mm | 5.7\" | 35.6 mm | 9.5° |",
-    "| S1000+ | 381 mm | 5.2\" | 49.5 mm | 6.3° |",
+    *PROP_TBL,
     "",
     "<sub>피치가 다르면 같은 회전수에서도 날개가 전파를 되쏘는 각도가 달라집니다 — 마이크로도플러 서명이 "
     "모델마다 다른 이유 중 하나입니다.</sub>",
     "",
-    "**실제 크기 비교(같은 축척, 위에서 본 모습).** 5종은 크기가 크게 다릅니다 — Mini 5 Pro(275 mm)부터 "
+    f"**실제 크기 비교(같은 축척, 위에서 본 모습).** {len(ORDER)}종은 크기가 크게 다릅니다 — Mini 5 Pro(275 mm)부터 "
     "S1000+(1045 mm)까지 대각 길이가 약 4배:",
     "",
     "![drone size comparison](outputs/figures/drone_size_compare.png)",
     "",
-    "<sub>같은 축척으로 나란히 둔 5종 실루엣(재질색·스케일바 0.5 m). 크기가 다르면 되쏘는 밝기(RCS)도 "
+    f"<sub>같은 축척으로 나란히 둔 {len(ORDER)}종 실루엣(재질색·스케일바 0.5 m). 크기가 다르면 되쏘는 밝기(RCS)도 "
     "달라진다 — 큰 S1000+ 가 작은 Mini 5 Pro 보다 훨씬 밝게 잡힌다.</sub>",
     "",
     "**부위별로 따로 움직인다 — 분절(articulated) 메쉬.** 몸체와 프로펠러가 **독립적으로** 회전합니다. "
-    "아래는 5종이 몸체를 돌리며 동시에 프로펠러를 스핀시키는 모습입니다(같은 메쉬로 마이크로도플러 "
+    f"아래는 {len(ORDER)}종이 몸체를 돌리며 동시에 프로펠러를 스핀시키는 모습입니다(같은 메쉬로 마이크로도플러 "
     "시뮬레이션을 할 수 있는 이유 → report08):",
     "",
-    "![five drones spinning](outputs/renders/anim/drone_gallery_row.gif)",
+    "![all target drones spinning](outputs/renders/anim/drone_gallery_row.gif)",
     "",
-    "<sub>5종 동시 회전 + 프로펠러 스핀(분절 메쉬). 몸체 자세와 블레이드 회전이 분리돼 있어, 실제 비행 중 "
+    f"<sub>{len(ORDER)}종 동시 회전 + 프로펠러 스핀(분절 메쉬). 몸체 자세와 블레이드 회전이 분리돼 있어, 실제 비행 중 "
     "프로펠러만 빠르게 도는 상황을 그대로 만들 수 있다.</sub>",
 ))
 
@@ -585,13 +649,8 @@ cells.append(md(
     "외곽을 강제로 맞추느라 프레임을 비등방으로 늘렸는데도 내부 비율이 공개 휠베이스에서 몇 % 이상 "
     "벗어나지 않았다는 뜻입니다.",
     "",
-    f"<sub>⚠ 다만 <b>세 행이 같은 강도의 증거는 아닙니다</b>. 면내(X·Y) 피팅 배율이 <b>비등방</b>이라 대각이 "
-    f"실제로 교란되는 것은 "
-    f"{_aniso_txt} 뿐이고, "
-    f"{'·'.join(DR[k]['name'] for k in DIAG_ISO)} 는 면내 배율이 등방이라 "
-    "모델 대각 = 입력 대각 × 그 배율이 되어 <b>오차가 곧 배율 편차</b>입니다. 그리고 실제로 가장 크게 "
-    f"어긋나는 행이 비등방 쪽입니다({'·'.join(f'{diag_err_pct(k):+.2f}%' for k in DIAG_ANISO)}) — "
-    f"위의 ±{diag_max_pct:.1f}% 는 그 값입니다.</sub>",
+    f"<sub>⚠ 다만 <b>{len(DIAG_INDEP)}개 행이 같은 강도의 증거는 아닙니다</b>. 면내(X·Y) 피팅 배율이 "
+    f"<b>비등방</b>이면 대각이 실제로 교란됩니다 — {_aniso_clause}</sub>",
     "",
     f"<sub>이 표에서 <b>{DR['mavic4pro']['name']}·{DR['mini5pro']['name']} 는 뺐습니다</b> — 자기참조라 증거가 "
     "되지 않는다. Mavic 4 Pro 는 DJI 공개 대각(400 mm)이 공식 외곽 "
@@ -642,7 +701,7 @@ cells.append(md(
     "부위별로 닫혀 있는지, 안쪽을 향한 법선이 몇 개인지, 와인딩이 뒤집힌 면·찌부러진 면이 몇 개인지를 세어 "
     "**하나라도 있으면 빌드를 통과시키지 않습니다.**",
     "",
-    f"결과는 깔끔합니다 — **5종 전체에서 안쪽 법선·역와인딩·퇴화면이 모두 {GRAND_BAD}개**입니다. "
+    f"결과는 깔끔합니다 — **{len(ORDER)}종 전체에서 안쪽 법선·역와인딩·퇴화면이 모두 {GRAND_BAD}개**입니다. "
     "모든 부위가 닫힌 껍데기이고, 모든 삼각형이 바깥을 봅니다. 즉 이후 리포트가 이 메쉬 위에서 하는 "
     "전파·밝기 계산이 형상 결함 때문에 틀어질 걱정은 없습니다.",
     "",
@@ -663,7 +722,7 @@ cells.append(md(
     "은 E > 1.5λ). ⚠ 원문은 최적 구간이 **응용·산란기구에 따라 달라 경험적으로 정해야 한다**고 명시하므로, "
     "≈0.5 는 보편 임계값이 아니라 그들의 후방산란 수렴 무릎으로 읽습니다.",
     "",
-    "**우리 5기종 드론 메쉬의 per-mesh E²/(Rλ) 값은 아직 산출하지 않았습니다.** 이 지표는 facet 별 국소 "
+    f"**우리 드론 메쉬 {len(ORDER)}기종의 per-mesh E²/(Rλ) 값은 아직 산출하지 않았습니다.** 이 지표는 facet 별 국소 "
     "곡률반경 R 을 요구하는데(원문 §III-C: s∼E²/R), 원곡면을 모르는 임의 메쉬에서 R 추정은 열린 문제라 "
     "다음 단계(P1) 계산으로 남깁니다 — report07 §6 도 같은 이유로 보류합니다. 지금 정량적으로 말할 수 있는 "
     "것은 **R 이 정확히 알려진 정준 구 앵커** 하나입니다:",
@@ -680,7 +739,7 @@ cells.append(md(
     "",
     f"<sub>문헌 상수 ≈{E2RL_KNEE:g}·{E2RL_VEH}·1.5λ 는 Ziganshin arXiv:2604.05991 원문 PDF(§V-B/§V-C)로 직접 "
     "확인했습니다. 정준 구 0.0071 은 PRIOR_WORK_COMPARISON.md:441 에 이미 산출·문서화된 값이며, 여기 표의 "
-    "숫자는 손으로 적은 것이 아니라 그 문서 상수를 f-string 으로 주입한 것입니다. 5기종 per-mesh 원장은 "
+    f"숫자는 손으로 적은 것이 아니라 그 문서 상수를 f-string 으로 주입한 것입니다. {len(ORDER)}기종 per-mesh 원장은 "
     "국소 곡률 R 산출 패스가 나오면 채웁니다(P1).</sub>",
     "",
     "---",

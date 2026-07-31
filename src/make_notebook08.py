@@ -19,6 +19,18 @@ import math
 import os
 import sys
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ⚠ 이 파일은 **스크립트**다 (main() 없이 최상위에서 전부 실행된다).
+#   임포트하면 그 자리에서 리포트 노트북을 **덮어쓴다**. 2026-07-29 실제로 검증 에이전트가
+#   "임포트 되는지" 점검하다가 report07/08/13 을 덮어썼고 복구해야 했다. linter·문서도구·
+#   테스트수집기도 같은 사고를 낸다 — 게다가 계산이 도는 중이면 **중간 숫자**가 박힌다.
+#   → 실행은 `python src/make_notebook08.py` 로만.
+if __name__ != "__main__":
+    raise RuntimeError(
+        "make_notebook08.py 는 스크립트다 — 임포트하면 리포트를 덮어쓴다. "
+        "`python src/make_notebook08.py` 로 실행할 것. (2026-07-29 실사고)")
+# ─────────────────────────────────────────────────────────────────────────────
+
 _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
@@ -34,6 +46,18 @@ JS1 = os.path.join(ROOT, "outputs", "report1.json")                # 호버 rpm 
 def _m(x, fmt="+.2f"):
     """음수를 표에서 문헌값(−, U+2212)과 같은 글리프로 찍는다."""
     return format(x, fmt).replace("-", "−")
+
+
+def _need(d, key, where):
+    """⚠ 기준해 정정(2026-07-30) 이전 판 JSON 을 **조용히 싣지 않는다**.
+
+    구 검증의 과녁이 πr²(광학 점근) → 정확 Mie + 해석 PO 로 바뀌었다. 옛 JSON 에는 새 키가
+    없으므로, 없으면 여기서 멈추고 재생성을 요구한다(옛 숫자를 새 라벨로 싣는 것이 최악)."""
+    if key not in d:
+        raise RuntimeError(
+            f"{where}: '{key}' 가 없다 — 기준해 정정(πr² → Mie/해석 PO) 이전 판 JSON 이다. "
+            f"해당 산출물을 다시 생성한 뒤 이 노트북을 빌드할 것.")
+    return d[key]
 
 
 def _s(lines):
@@ -244,6 +268,10 @@ def _sector_dev(d, c, half=15):
     return sum(sel) / len(sel) - m
 
 
+# 검사 방위 0/90/180/270° 는 우리가 고른 집합이 아니라 선행 규약이다 —
+#   Zhang 외 arXiv:2505.20673 Fig.7(d): DJI M350 무향실 모노스태틱에서 "higher RCS values around
+#   0°, 90°, 180°, and 270°, forming a four-leaf shape"(사각 동체 탓). 우리는 그 축만 빌려 쓴다.
+#   ⚠ 그들의 four-leaf 는 방위 **포락선** 모델이라 로브 '개수' 판정에 쓰면 범주 오류다(잔차 리플).
 _CARD = (0, 90, 180, 270)
 _P4_DEV = [_sector_dev("phantom4", c) for c in _CARD]
 _M5_DEV = [_sector_dev("mini5pro", c) for c in _CARD]
@@ -355,21 +383,36 @@ def _anchor_cells():
            f"| **mono3d 평균 (CvM)** | — | **{m3c['rician']:.2f} / {m3c['gamma']:.2f} / "
            f"{m3c['lognormal']:.2f}** | Rician<Gamma<LogN |"]
 
-    # ── (3) 금속구 절대교정 (PEC 구, SBR+PO ↔ 이론 πr²) ───────────────────── #
-    t3 = ["| 밴드 | 이론 πr² (0.25 / 0.178 m) | 우리 SBR | 편차 [dB] | 합격 <2 dB |",
-          "|---|---|---|---|---|"]
-    sph_devs = []
+    # ── (3) 금속구 절대교정 — 기준해는 **정확 Mie**(판정)와 **해석 PO**(커널의 과녁) 둘이고,
+    #        πr² 은 문헌 관례를 맞추기 위한 **라벨된 점근값**일 뿐이다(참값 아님).
+    t3 = ["| 밴드 | 정확 Mie (0.25 / 0.178 m) | 우리 SBR | 편차 vs Mie | 편차 vs 해석 PO | "
+          "편차 vs πr² 점근 | 합격 <2 dB |",
+          "|---|---|---|---|---|---|---|"]
+    sph_dev_mie, sph_dev_po = [], []
+    _asym = []                                          # πr² 점근 자체가 Mie 에서 벗어난 양
+    _kas = []                                           # 교정구의 ka 범위(밴드·반지름 순서에 의존하지 않게)
     for bk in AB:
         sp = A["sphere_calibration"][bk]["spheres"]
         s0, s1 = sp[0], sp[1]
-        sph_devs += [abs(s0["dev_db"]), abs(s1["dev_db"])]
+        for s in sp:
+            _need(s, "dev_db_vs_mie", "rcs_anchor.json sphere_calibration")
+        sph_dev_mie += [abs(s0["dev_db_vs_mie"]), abs(s1["dev_db_vs_mie"])]
+        sph_dev_po += [abs(s0["dev_db_vs_po"]), abs(s1["dev_db_vs_po"])]
+        _asym += [abs(s0["asymptote_err_db"]), abs(s1["asymptote_err_db"])]
+        _kas += [s0["ka"], s1["ka"]]
         ok = "✅" if all(s["pass_lt2db"] for s in sp) else "⚠"
-        t3.append(f"| {LAB[bk]} GHz | {_m(s0['theory_dbsm'])} / {_m(s1['theory_dbsm'])} | "
+        t3.append(f"| {LAB[bk]} GHz | {_m(s0['mie_dbsm'])} / {_m(s1['mie_dbsm'])} | "
                   f"{_m(s0['sbr_dbsm'])} / {_m(s1['sbr_dbsm'])} | "
-                  f"{_m(s0['dev_db'])} / {_m(s1['dev_db'])} | {ok} |")
-    t3.append(f"| **unified-rcs 실측 (28 GHz)** | {_m(slit['theory_dbsm'])} (0.25 m) | "
-              f"{_m(slit['measured_dbsm'])} | **{slit['dev_db']:.2f}** | ✅ (합격선 {sth:.0f}) |")
-    sph_max = max(sph_devs)
+                  f"**{_m(s0['dev_db_vs_mie'])} / {_m(s1['dev_db_vs_mie'])}** | "
+                  f"{_m(s0['dev_db_vs_po'])} / {_m(s1['dev_db_vs_po'])} | "
+                  f"{_m(s0['dev_db_vs_go'])} / {_m(s1['dev_db_vs_go'])} | {ok} |")
+    t3.append(f"| **unified-rcs 실측 (28 GHz)** | — | {_m(slit['measured_dbsm'])} | — | — | "
+              f"**{slit['dev_db']:.2f}** (πr² {_m(slit['theory_dbsm'])}, 0.25 m) | "
+              f"✅ (합격선 {sth:.0f}) |")
+    sph_max = max(sph_dev_mie)
+    sph_max_po = max(sph_dev_po)
+    sph_asym_max = max(_asym)
+    ka_lo, ka_hi = min(_kas), max(_kas)
 
     # ── (4) el=0° vs el=15° 컷 (원시 방위 선형평균) — 앙각 편향 정량 ───────── #
     t4 = ["| 기체 | LTE el0−el15 | 5G el0−el15 | WiFi el0−el15 |",
@@ -438,16 +481,25 @@ def _anchor_cells():
         "또 전력 σ 도메인에서는 변량 불일치로 Gamma/LogNormal 이 이기므로, 분포 선택 결론은 "
         "**진폭 도메인 한정**이다.</sub>",
         "",
-        f"**(3) 금속구 절대교정.** 지름 0.5 m(r=0.25, 이론 πr²=−7.07 dBsm)·r=17.8 cm(−10.02 dBsm) PEC 구를 "
-        f"우리 SBR+PO(`group_mat={{'metal':'metal'}}`)로 돌려 편차를 낸다. 합격선 **< {sth:.0f} dB** "
-        f"(unified-rcs 실측 편차 {slit['dev_db']:.2f} dB):",
+        f"**(3) 금속구 절대교정.** 지름 0.5 m(r=0.25)·r=17.8 cm PEC 구를 우리 "
+        f"SBR+PO(`group_mat={{'metal':'metal'}}`)로 돌려 편차를 낸다. 합격선 **< {sth:.0f} dB** "
+        f"(unified-rcs 실측 편차 {slit['dev_db']:.2f} dB). **기준해를 두 개 놓는다** — 커널이 "
+        "SBR+**PO** 이므로 수치 수렴의 과녁은 **해석 PO** 이고, 절대 정확도의 자는 **정확 Mie** 다. "
+        f"이 교정구들은 ka={ka_lo:.1f}~{ka_hi:.1f} 로 작아서 광학 점근 πr² 자체가 "
+        f"Mie 에서 최대 {sph_asym_max:.2f} dB 어긋난다 → πr² 은 **문헌 관례 비교용 점근값**으로만 "
+        "싣고 판정에는 쓰지 않는다:",
         "",
         *t3,
         "",
-        f"<sub>세 밴드·두 반지름 전부 편차 **≤ {sph_max:.2f} dB** 로 unified-rcs 실측 편차 "
-        f"{slit['dev_db']:.2f} dB 보다도 작아 **합격선 {sth:.0f} dB 를 통과**한다. 즉 우리 SBR+PO 는 "
-        "**해석해가 있는 정준 표적(구)에서는 절대 dBsm 을 <0.1 dB 로 재현**한다 — 절대 스케일 자체는 "
-        "옳다. 드론 절대값의 불확실성은 교정이 아니라 **few-λ 유전체 형상·편파·자세**에서 온다.</sub>",
+        f"<sub>세 밴드·두 반지름 전부 정확 Mie 대비 편차 **≤ {sph_max:.2f} dB** 로 **합격선 "
+        f"{sth:.0f} dB 를 통과**한다(unified-rcs 실측 편차 {slit['dev_db']:.2f} dB 와 같은 자릿수). "
+        f"해석 PO 대비로는 **≤ {sph_max_po:.2f} dB** 로 더 작다 — 그 차이가 곧 **PO 근사를 쓴 대가**이고 "
+        "우리 수치오차가 아니다. 즉 절대 스케일 자체는 옳고, 남는 편차의 성분이 두 갈래(격자 수치오차 + "
+        "PO 모델오차)로 분리된다. ⚠ 옛 판은 이 편차를 πr² 하나에 적었는데, 그러면 점근 오차가 우리 "
+        "편차를 상쇄해 **실제보다 좋아 보인다**(5G·r=0.178 m: πr² 기준 "
+        f"{_m(A['sphere_calibration'][AB[1]]['spheres'][1]['dev_db_vs_go'], '+.3f')} dB ↔ Mie 기준 "
+        f"{_m(A['sphere_calibration'][AB[1]]['spheres'][1]['dev_db_vs_mie'], '+.3f')} dB). 드론 절대값의 "
+        "불확실성은 교정이 아니라 **few-λ 유전체 형상·편파·자세**에서 온다.</sub>",
         "",
         "**(4) el=0° 문헌 대조컷** (원시 방위 선형평균, 5기종×3밴드). 문헌은 전부 **수평면(el=0°)**인데 우리 "
         f"기본 자세는 el={EL:.0f}° 라, 그 앙각 편향을 el0−el15 로 정량화한다(§2-3 이 2기종만 냈던 것을 5기종으로 확장):",
@@ -512,7 +564,8 @@ cells += provenance_cells(
               f"{max(abs(v) for v in _AA_DMB.values()):.1f} dB 안**에서 맞는다. 그래서 검출은 σ 밴드로 제시하고 "
               "**상대 결론(모드·파형 비교)만** 주장한다."),
         gap=(f"스톡 Sionna `PathSolver` 는 표적 σ 를 아예 주지 않고(→report06), 그 위에 얹은 SBR+PO 도 "
-             f"해석해(평판 σ=4πA²/λ²·구 σ=πr²)로는 **방법이 옳음만** 검증될 뿐 — 파이프라인 안에 드론의 "
+             f"기준해(평판 정확 PO σ=4πA²/λ²·구 해석 PO/정확 Mie)로는 **방법이 옳음만** 검증될 뿐 — "
+             f"파이프라인 안에 드론의 "
              f"**절대 σ 를 대조할 자체 기준이 없다.** 밝기 차이는 크게는 {_span:.0f} dB 에 이른다."),
         prior=("소형 멀티로터의 RCS 는 **실측 문헌**이 기준이다. S밴드(3–6 GHz) 실측 aspect-peak 은 "
                "Li & Ling 2017(IEEE AWPL): Phantom 2(350 mm) "
@@ -589,7 +642,7 @@ cells += provenance_cells(
     ],
 
     caveats=[
-        f"**절대 RCS 를 보장하지 않는다.** SBR 은 해석해(구·평판)로 검증되고(방법 검증은 report07), 드론 절대값은 "
+        f"**절대 RCS 를 보장하지 않는다.** SBR 은 기준해(구·평판)로 검증되고(방법 검증은 report07), 드론 절대값은 "
         f"§6 에서 **실측 문헌에 대조**했다 — 사과-대-사과 앵커(multiband Phantom 3 방위 선형평균)와는 "
         f"**{min(abs(v) for v in _AA_DMB.values()):.1f}~{max(abs(v) for v in _AA_DMB.values()):.1f} dB 안**에서 "
         f"맞지만, 문헌 앵커 자체가 **{_ANCHOR_SPREAD:.0f} dB 넘게 산포**해 절대 dBsm 은 **판정 보류**다. 이 리포트가 "
@@ -655,7 +708,7 @@ cells.append(md(
     "→[report07](report07.ipynb)).",
     "",
     "이 리포트는 그 **결과**다 — 5종의 밝기(§2), 밝기가 어디서 나오나(§3), 방위 패턴(§4), 프로펠러 "
-    "마이크로도플러 지문(§5). 다만 SBR+PO 의 해석해 검증(평판·구, report07)은 방법이 옳음만 보일 뿐 "
+    "마이크로도플러 지문(§5). 다만 SBR+PO 의 기준해 검증(평판·구, report07)은 방법이 옳음만 보일 뿐 "
     "드론의 **절대 σ** 를 대조할 자체 기준이 파이프라인 안에 없다. 그래서 절대 스케일은 리포트 끝에서 "
     "**공개 실측 문헌 드론 RCS 로 앵커**한다(§6).",
 ))
@@ -760,8 +813,15 @@ cells.append(md(
     "드론을 한 바퀴 돌리면 밝기는 방위에 따라 **꽃잎 모양**으로 오르내립니다. 넓은 금속면이 정면으로 "
     "보이는 방위에서 **봉우리(로브)** 가 서고, 그 사이에서 **골(널)** 로 떨어집니다.",
     "",
-    "**봉우리가 어디에 서는지는 기체 대칭성이 정합니다 — 5종 공통이 아닙니다.** 코(0°)·꼬리(180°)·"
-    "측면(90°/270°) 네 방향에서 고르게 서는 것은 직사각 대칭 쿼드"
+    "**검사 방위 네 개는 선행 규약입니다.** 코(0°)·꼬리(180°)·측면(90°/270°) 라는 집합은 우리가 고른 "
+    "것이 아니라 Zhang 외(arXiv:2505.20673)가 DJI M350 을 무향실 모노스태틱으로 재고 사각 동체 때문에 "
+    "0°·90°·180°·270° 에서 RCS 가 솟는 **four-leaf** 형태를 보고한 그 축입니다(Fig. 7(d)). ⚠ 밴드"
+    f"(우리 {DR[_AA]['bands'][_BAND_35]['fc_ghz']:.1f} GHz vs 그들 10–36 GHz)와 앙각 규약(그들 수평면 "
+    f"vs 우리 el = {EL:.0f}°)이 달라 **수치 대조가 아니라 검사축 차용**이고, 그들의 four-leaf 는 방위 "
+    "**포락선** 모델이라 로브 **개수**로 판정하는 데는 쓸 수 없습니다.",
+    "",
+    "**봉우리가 어디에 서는지는 기체 대칭성이 정합니다 — 5종 공통이 아닙니다.** 그 네 방향에서 고르게 "
+    "서는 것은 직사각 대칭 쿼드"
     f"({DR['phantom4']['name']})뿐입니다: 네 방위 ±15° 구간 평균이 방위평균보다 각각 "
     f"{' / '.join(_m(v, '+.1f') for v in _P4_DEV)} dB 로, 서로 "
     f"{max(_P4_DEV) - min(_P4_DEV):.2f} dB 안에 모입니다. 반면 {DR['mini5pro']['name']}는 코·꼬리가 "
@@ -803,6 +863,18 @@ for d in ORDER:
         f"| {DR[d]['name']} | {v['n_rotors']} | {ART[d]['hover_rpm']:.0f} | "
         f"{v['flash_hz']:.0f} | ±{v['f_tip_hz']/1e3:.2f} | {v['gain_db']:.0f} |")
 
+# 선행(OpenISAC Fig. 13)의 '능선 간격'과 우리 flash 를 나란히 놓기 위한 환산.
+#   flash = 날개수 × 회전율이므로, 비교 전에 날개수로 나눠 로터 회전율 f_rot 로 되돌린다.
+#   ⚠ 반증 기록: 예전 원고는 "선행은 능선 간격을 회전수/60 으로 읽으므로 우리와 규약이 2배
+#     어긋난다"고 단언했다. 2026-07-30 원문(PDF p.14, Fig. 13 서술) 확인 결과 선행 본문은
+#     "The spacing between these ridges reflects the rotor angular velocity" 한 문장뿐이고
+#     **식도 등호도 각속도의 단위(rad/s vs 회전/s)도 없다.** 논문 전체에 날개수 언급도 없다.
+#     따라서 '선행이 충돌하는 규약을 명시한다'는 주장은 근거가 없어 철회했고, 환산을 밝히는
+#     신중함만 남겼다(선행이 식을 주지 않으므로 환산 명시는 우리 몫).
+_BLADE_SET = sorted({ART[d]["blades"] for d in ORDER})
+_FROT_STR = " · ".join(
+    f"{DR[d]['name']} {ART[d]['f_rot_hz']:.0f} Hz" for d in ORDER)
+
 cells.append(md(
     "## §5. 프로펠러 지문 — 마이크로도플러",
     "",
@@ -823,7 +895,15 @@ cells.append(md(
     "",
     "- **flash rate(번쩍임 주기)** = 날개수 × 회전수/60. 2엽 프로펠러는 한 바퀴에 정면을 **두 번** "
     "보이므로 flash = 회전수/30. → 프로펠러가 **크고 느린** 기체는 드물게, **작고 빠른** 기체는 "
-    "자주 번쩍입니다.",
+    f"자주 번쩍입니다. ⚠ **선행 수치와 나란히 놓으려면 눈금을 먼저 되돌려야 합니다.** "
+    f"OpenISAC(arXiv:2601.03535)은 스펙트로그램의 등간격 능선 간격이 **로터 각속도를 반영한다**고 "
+    f"서술할 뿐(Fig. 13), **식도 등호도 각속도의 단위(rad/s 인지 회전/s 인지)도 밝히지 않습니다.** "
+    f"그러므로 선행이 우리와 다른 규약을 명시했다고 말할 수는 없고, 두 수를 비교 가능하게 만드는 "
+    f"**환산을 명시하는 일이 우리 몫**입니다. 우리 flash 는 회전율에 날개수를 곱한 값이므로, 능선 "
+    f"간격에 대기 전에 **날개수로 나눠 로터 회전율로 되돌립니다** — 5종 모두 "
+    f"{'/'.join(str(b) for b in _BLADE_SET)}엽이라 f_rot = flash/"
+    f"{'/'.join(str(b) for b in _BLADE_SET)} 이고, 값은 {_FROT_STR} 입니다. 이 환산 없이 flash 를 "
+    f"그대로 능선 간격에 대면 날개수만큼 어긋난 양을 비교하게 됩니다.",
     "- **f_tip(날개끝 도플러 폭)** = 2·v_tip/λ·cos(el). 날개 끝 속도 v_tip = ω·R 가 만드는 "
     "**최대** 도플러입니다. 모델 안에서 이보다 빨리 움직이는 산란체는 없으므로, 진짜 마이크로도플러는 "
     "**±f_tip 안에** 갇힙니다.",
@@ -859,6 +939,18 @@ cells.append(md(
     "위 그림의 각 판은 시간(가로) × 도플러(세로)로 그린 **슬로타임 반사장**입니다. 프레임마다 "
     "블레이드 자세를 다시 놓고 SBR 로 산란장을 새로 계산합니다 — 세로 줄무늬가 바로 블레이드 번쩍임, "
     "파란 점선이 ±f_tip 경계입니다.",
+    "",
+    "**판독 규약은 선행을 그대로 씁니다.** OpenISAC(arXiv:2601.03535)은 스펙트로그램을 "
+    "$|\\mathrm{STFT}|^2$ 로 정의하고(식 (24)), **0-도플러 = 준정적 동체 산란**, **대칭·등간격 능선 = "
+    "회전 블레이드**, **능선 간격 ↔ 로터 각속도를 반영**, **전체 도플러 폭 = 날개끝 최대 시선속도**로 "
+    "읽습니다. 우리 판의 dB 눈금은 $20\\log_{10}|\\mathrm{STFT}|$ 라 $|\\mathrm{STFT}|^2$ 의 dB 와 같은 "
+    "축이고, 파란 점선 ±f_tip 이 바로 그 '전체 도플러 폭' 경계입니다. ⚠ 두 군데는 우리가 따로 밝혀 "
+    "둡니다 — (i) **능선 간격**은 선행이 식으로 못 박지 않았으므로, 우리 flash 와 견주려면 날개수로 "
+    "나눠 로터 회전율로 되돌리는 **환산이 필요하고 그 환산은 우리 규약**입니다(§5.1), "
+    "(ii) OpenISAC 은 STFT 앞에 **MTI(0-도플러 노치)** 를 겁니다. 위 스펙트로그램 판도 DC 를 빼고 "
+    "그리므로(`src/microdoppler.py:103-104`, `remove_dc` 기본 True) 그림끼리는 같은 규약이지만, "
+    "**오른쪽 아래 막대의 |DC|/std(AC) 는 노치 전 원신호에서 잰 값**이라 그들의 0-도플러 잔차와 같은 "
+    "양이 아닙니다.",
     "",
     "여기서 **가림이 왜 필수인지**가 오른쪽 아래 막대에 있습니다. 블레이드가 몸통 뒤로 돌아가면 "
     "**안 보여야** 하는데, 가림을 안 하는 순수 PO 는 **몸통에 가려 안 보이는 날개까지 다 세어** 0 Hz "
@@ -940,7 +1032,7 @@ cells.append(md(
     "---",
     "## §6. 선행 연구의 방식과 실측 대조 — 절대값 검증",
     "",
-    "해석해(평판·구, report07)는 SBR+PO 라는 **방법**이 옳음을 보이지만 드론의 **절대 σ** 는 보장하지 "
+    "기준해(평판·구, report07)는 SBR+PO 라는 **방법**이 옳음을 보이지만 드론의 **절대 σ** 는 보장하지 "
     "못한다. 절대 스케일의 기준은 선행 연구가 남긴 **실측 문헌 드론 RCS** 다.",
     "",
     "ISAC 문헌에서 표적 밝기는 세 갈래로 처리된다 — **(b) 확산계수 S 가정**(Great-X arXiv:2507.08716 · "

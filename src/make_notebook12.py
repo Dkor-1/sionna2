@@ -17,6 +17,18 @@ import sys
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# ─────────────────────────────────────────────────────────────────────────────
+# ⚠ 이 파일은 **스크립트**다 (main() 없이 최상위에서 전부 실행된다).
+#   임포트하면 그 자리에서 리포트 노트북을 **덮어쓴다**. 2026-07-29 실제로 검증 에이전트가
+#   "임포트 되는지" 점검하다가 report07/08/13 을 덮어썼고 복구해야 했다. linter·문서도구·
+#   테스트수집기도 같은 사고를 낸다 — 게다가 계산이 도는 중이면 **중간 숫자**가 박힌다.
+#   → 실행은 `python src/make_notebook12.py` 로만.
+if __name__ != "__main__":
+    raise RuntimeError(
+        "make_notebook12.py 는 스크립트다 — 임포트하면 리포트를 덮어쓴다. "
+        "`python src/make_notebook12.py` 로 실행할 것. (2026-07-29 실사고)")
+# ─────────────────────────────────────────────────────────────────────────────
+
 ROOT = os.path.abspath(os.path.join(HERE, ".."))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)

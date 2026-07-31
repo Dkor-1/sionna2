@@ -22,6 +22,18 @@ import math
 import os
 import sys
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ⚠ 이 파일은 **스크립트**다 (main() 없이 최상위에서 전부 실행된다).
+#   임포트하면 그 자리에서 리포트 노트북을 **덮어쓴다**. 2026-07-29 실제로 검증 에이전트가
+#   "임포트 되는지" 점검하다가 report07/08/13 을 덮어썼고 복구해야 했다. linter·문서도구·
+#   테스트수집기도 같은 사고를 낸다 — 게다가 계산이 도는 중이면 **중간 숫자**가 박힌다.
+#   → 실행은 `python src/make_notebook06.py` 로만.
+if __name__ != "__main__":
+    raise RuntimeError(
+        "make_notebook06.py 는 스크립트다 — 임포트하면 리포트를 덮어쓴다. "
+        "`python src/make_notebook06.py` 로 실행할 것. (2026-07-29 실사고)")
+# ─────────────────────────────────────────────────────────────────────────────
+
 _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
@@ -133,6 +145,18 @@ def _mrow(key):
     raise KeyError(key)
 
 
+#  구 검증의 기준해 — ⚠ πr² 은 ka→∞ **점근값**이라 과녁이 아니다(report07 §4 · benchmark/mie_pec_sphere).
+#  예전엔 여기에 report07 의 πr² 기준 구 잔차(+0.39/−0.58 dB)를 **손으로 적어** 두었다 → 이제 주입한다.
+_SV = _J2["sbr_validation"]
+if "sphere_err_po" not in _SV:
+    raise RuntimeError(
+        "outputs/report2_waveform_rcs.json 이 기준해 정정(πr² → 정확 Mie + 해석 PO) 이전 판이다 "
+        "— `python src/viz_report2.py` 로 재생성한 뒤 이 노트북을 빌드할 것.")
+_sv_i16 = _SV["divs"].index(16)                                 # 우리가 실제로 쓰는 격자 λ/16
+_sph_po_16 = _SV["sphere_err_po"][_sv_i16]                      # 구, 해석 PO 기준(커널의 과녁)
+_sph_mie_16 = _SV["sphere_err_mie"][_sv_i16]                    # 구, 정확 Mie 기준(참값)
+_plate_16 = _SV["plate_err"][_sv_i16]                           # 평판, 정확 PO 기준
+
 n_az_dense = _J2["materials"]["n_az"]                           # 121
 n_faces_full = _mrow("Full drone")["n_faces"]                   # 28,548 면
 d2_full = _mrow("Full drone")["mean_dbsm"]                      # -18.41
@@ -192,9 +216,12 @@ _prov = provenance_cells(
              "(arXiv:2604.09243)와 **같은 계열**(GO 광선 전송 + 광선튜브 위 PO 표면적분)이되 적용범위가 "
              "다르다 — 그들은 PEC·모노스태틱 후방산란 전용, 우리는 다중재질·바이스태틱(§4) → 계산 "
              "절차는 report07."),
-        verify=("이론 해석해로 교정(평판 σ=4πA²/λ²·구 σ=πr²; report07 에서 평판 −0.01 dB@λ/12·구 "
-                "+0.39 dB@λ/10 — 값은 **격자마다 달라지고 단조수렴이 아니다**. 우리가 실제로 쓰는 λ/16 "
-                "에서는 평판 −0.17·구 −0.58 dB) + **문헌 실측 드론 RCS 와의 대조**(report08 — 크기 짝 "
+        verify=(f"정준 표적 **기준해**로 교정한다 — 평판은 정면입사 σ=4πA²/λ²(점근이 아니라 PO 의 "
+                f"**정확한** 답) 대비 {_plate_16:+.2f} dB, 구는 기준해가 **둘**이라 둘 다 적는다: "
+                f"**해석 PO 대비 {_sph_po_16:+.2f} dB · 정확 Mie 대비 {_sph_mie_16:+.2f} dB**"
+                f"(우리가 쓰는 λ/16. 값은 **격자마다 달라지고 단조수렴이 아니다**). ⚠ πr² 은 ka→∞ "
+                "점근값이라 과녁이 아니다 — 커널이 PO 라 수치 수렴의 과녁은 해석 PO 이고, Mie 잔차는 "
+                "PO 근사를 쓴 대가다(report07 §4) + **문헌 실측 드론 RCS 와의 대조**(report08 — 크기 짝 "
                 "peak↔peak 로 보면 우리가 위로 치우친다). 절대값 결과는 report08."),
     ),
 
@@ -205,9 +232,10 @@ _prov = provenance_cells(
         dict(item="재질 산란계수 S (금속=0 등)",
              src="ITU-R P.2040 재질 표 → `src/materials.py`",
              kind="🟢 표준 (ITU-R)"),
-        dict(item="평판·구의 **참 RCS** (해석해)",
-             src="4πA²/λ² (평판) · πr² (구) — 교과서 폐형식",
-             kind="🟢 해석해 (검증 기준)"),
+        dict(item="평판·구의 **참 RCS** (기준해)",
+             src="4πA²/λ² (평판 — 정면입사에서 PO 의 정확한 답) · **정확 Mie 급수 + 해석적 PO** (구) "
+                 "— `benchmark/mie_pec_sphere.py`. ⚠ πr² 은 ka→∞ 점근값이라 과녁이 아니다",
+             kind="🟢 기준해 (검증 기준)"),
         dict(item="[A]~[E] 다섯 측정 원장",
              src="`benchmark/rt_experiments.py` → `outputs/report3_rt.json`; "
                  "`benchmark/verify_rt_no_rcs.py` · `verify_rt_rays.py`",
@@ -296,7 +324,7 @@ _prov = provenance_cells(
         ("인코히런트 합", "경로들의 세기(전력)만 더한 값. 위상 정보를 버린 거친 요약"),
         ("산란계수 S", "재질이 입사파를 **거울반사 대신 사방으로 흩뿌리는 비율**. 재질 표의 손잡이 — σ 자체가 아니다"),
         ("image-source (거울상)", "평평한 면의 거울 반사를 '반대편에 놓인 가상의 송신원' 으로 계산하는 방법. 값이 **표적 크기와 무관**하다"),
-        ("PEC", "완전도체(Perfect Electric Conductor). 모든 전파를 되쏘는 이상적 금속 — 구의 σ=πr² 로 해석해가 알려져 있다"),
+        ("PEC", "완전도체(Perfect Electric Conductor). 모든 전파를 되쏘는 이상적 금속 — 구의 σ 는 Mie 급수로 정확히 알려져 있다(πr² 은 그 ka→∞ 점근값)"),
         ("dBsm", "10·log₁₀(σ / 1 m²). RCS 를 dB 로 적은 것. 0 dBsm = 1 m²"),
     ],
 )
@@ -357,13 +385,25 @@ cells.append(md(
     "이라는 상대적 세기**뿐이고, 표적 σ 를 dBsm 으로 한 번도 적지 않으며 Pd/Pfa 도 없다.",
     "",
     f"- **md-rt** (Li 외, *IEEE ICCT 2025*, pp.359–364) 는 스톡 Sionna RT + Blender 블레이드 메쉬로 "
-    f"로터 마이크로도플러를 만든다: *\"the minimum spatial resolution in Sionna is 0.01 m, the number "
-    f"of scattering centers can be regarded as approaching infinity ... conform to the theoretical "
-    f"expectation.\"* 그러나 이들이 검증한 것은 도플러 **주파수**"
-    f"({MD_RT_DOPPLER_HZ} Hz, T={MD_RT_PERIOD_S:.2f} s)이지 **진폭(σ)이 아니고**, 재질은 Sionna "
-    f"내장 기본값이다. 도플러 주파수는 표적의 **기하·운동학**(반경속도 2v/λ)에서 나오지 재질 산란의 "
-    f"세기와 무관하다 — §2 [B] 의 산란계수 S 손잡이는 에코 **전력**만 흔들 뿐 도플러 주파수는 건드리지 "
-    f"않는다 — 그래서 산란적분 없이도 옳게 나온다. 이 성공은 우리 주장과 충돌하지 않는다.",
+    f"로터 마이크로도플러를 만든다. 회전은 `Paths.doppler` 가 아니라 **타임스텝마다 표적을 갱신하고 "
+    f"RT 를 재실행**하는 방식이다: *\"(4) Emit rays toward the target and calculate the channel "
+    f"frequency response; (5) Update the target's velocity and position, then repeat step 4.\"* "
+    f"그러나 이들이 검증한 것은 도플러 **주파수**({MD_RT_DOPPLER_HZ} Hz, T={MD_RT_PERIOD_S:.2f} s)이지 "
+    f"**진폭(σ)이 아니고**, 재질은 Sionna 내장 기본값이다. 도플러 주파수는 표적의 **기하·운동학**"
+    f"(반경속도 2v/λ)에서 나오지 재질 산란의 세기와 무관하다 — §2 [B] 의 산란계수 S 손잡이는 에코 "
+    f"**전력**만 흔들 뿐 도플러 주파수는 건드리지 않는다 — 그래서 산란적분 없이도 옳게 나온다. "
+    f"이 성공은 우리 주장과 충돌하지 않는다.",
+    "",
+    f"> ⚠️ **md-rt 를 정량 앵커로 쓰지 않는다 (2026-07-29 원문 재검증).** 이 논문의 수치 보고는 "
+    f"자체 모순이다. (a) 프로펠러 반경이 Table I 은 `10.55 cm`, §IV-B 본문은 *\"blade length of "
+    f"1.055 meters\"* 로 **10배 어긋난다**. (b) 우리가 재계산하면 T={MD_RT_PERIOD_S:.2f} s → "
+    f"ω=2π/T=157.08 rad/s 이고 5 GHz(λ=59.96 mm)에서 f=2ωr/λ 이므로 r=0.1055 m → **553 Hz**, "
+    f"r=1.055 m → **5527 Hz** 다. 논문이 *\"matches perfectly\"* 라 적은 {MD_RT_DOPPLER_HZ} Hz 는 "
+    f"**어느 반경과도 맞지 않는다**(그 값이 나오려면 r=0.298 m). (c) 같은 절의 "
+    f"*\"the minimum spatial resolution in Sionna is 0.01 m\"* 는 **Sionna 문서·소스 어디에도 근거가 "
+    f"없다** — Sionna RT 는 부동소수 삼각망 위의 기하광학 솔버이고 그런 파라미터가 없다. "
+    f"따라서 위 인용은 **'스톡 Sionna 로 마이크로도플러를 낸 선행이 있다'는 사실**의 근거로만 쓰고, "
+    f"주파수 값·해상도 주장은 인용하지 않는다.",
     "",
     "두 편을 합치면 참으로 주장할 수 있는 좁은 명제는 하나다: **기본 경로 솔버는 형상·기종·자세별 "
     "절대 σ(dBsm)를 못 낸다.** '스톡 Sionna 로는 표적을 아예 못 다룬다' 는 과장이고, 위 두 편이 실제로 "
@@ -415,7 +455,8 @@ cells.append(md(
     f"신호**다(진짜 σ 라면 광선을 늘릴수록 안착해야 한다). 참 RCS 비 {sbr_target:.1f} dB(빨간 점선)를 "
     "가로질러 올라갈 뿐 그 값을 '재는' 게 아니다.",
     "",
-    f"**[E] 정확한 금속 구 — 경로 0개, 영원히.** 완전도체(PEC) 구는 σ=πr² 로 답을 안다. 반지름 "
+    f"**[E] 정확한 금속 구 — 경로 0개, 영원히.** 완전도체(PEC) 구는 σ 를 정확히 안다(Mie 급수. "
+    f"ka≫1 에서 πr² 로 수렴). 반지름 "
     f"{sph_radii[0]}·{sph_radii[-1]:.0f} m 구에 광선을 **{sph_maxspp:.0f}M 발**까지 쏴도 되돌아온 "
     f"경로는 **{sorted(sph_npaths)[0]}개**다(곡면은 이미지법이 반사점을 못 찾고, 금속 S=0 이라 확산 "
     f"채널도 안 열린다). 대조군인 평평한 금속판은 광선 1M 발에 경로 {ctrl_paths}개({ctrl_db:.2f} dB)를 "
@@ -641,7 +682,7 @@ cells.append(md(
     "",
     "상용 툴(CADFEKO)로 대체하지 않은 이유는 **재현성**이다 — 유료라 재현이 막히고, 비공개 바이너리"
     "(RadarSimPy)나 모노스태틱·PEC 전용(RaytrAMP) 오픈 도구도 바이스태틱+다중재질 요구를 못 채운다. "
-    "검증은 라이브러리 대조가 아니라 **이론 해석해(평판 σ=4πA²/λ²·구 σ=πr²)와 실측 문헌 드론 RCS "
+    "검증은 라이브러리 대조가 아니라 **기준해(평판 σ=4πA²/λ² · 구 정확 Mie + 해석 PO)와 실측 문헌 드론 RCS "
     "앵커**로 세운다 — 계산 절차는 **report07**, 절대값 결과는 **report08**.",
 ))
 

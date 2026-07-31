@@ -361,7 +361,10 @@ cells.append(md(
     "여기서는 각 신호가 그 지도에서 두 표적을 얼마나 촘촘히 가르는지(거리 분해능)를 이론과 대조한다.",
     "",
     "**근거 — 거리 분해능.** 바이스태틱 거리 분해능의 이론값은 $\\Delta R_b = c / B$ (B = 기준신호 "
-    "대역폭; 모노스태틱 등가는 $c/2B$). 직사각 창이면 실제 −3 dB 봉우리 폭은 이론의 **0.886배**(sinc 폭)가 "
+    "대역폭; 모노스태틱 등가는 $c/2B$). 바이스태틱 거리는 왕복이 아니라 거리합 $R_b = R_1 + R_2 - L$ "
+    "이라 $c/2B$ 가 아니라 $c/B$ 이며, 이는 Maksymiuk 외(Warsaw Univ. of Technology), *UAV Intrusion "
+    "Detection with Passive Radar Based on the 5G Network* **식 (5) $\\Delta R_b = c/B$** 와 같은 규약이다"
+    "(report12 §3 이 같은 근거를 쓴다). 직사각 창이면 실제 −3 dB 봉우리 폭은 이론의 **0.886배**(sinc 폭)가 "
     "나와야 정상이다. 측정 결과:",
 ))
 cells.append(md(*(

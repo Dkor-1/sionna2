@@ -25,6 +25,7 @@ ROOT = os.path.abspath(os.path.join(HERE, ".."))
 NB = os.path.join(ROOT, "report03.ipynb")
 
 from provenance import provenance_cells   # noqa: E402
+from drones import DRONES                 # noqa: E402  ← 표적 개수의 유일한 출처(len(DRONES))
 
 
 def md(*l):
@@ -148,11 +149,15 @@ cells += provenance_cells(
         dict(file="outputs/community_compare.json", what="Matrice 100·600 대조의 모든 숫자"),
         dict(file="outputs/phantom4_scan_compare.json", what="Phantom 4 실물 0.4mm 스캔 vs 우리 메쉬 대조 숫자 (σ·면적·방위별)"),
         dict(file="outputs/figures/report03_compare_all.png", what="실물 CAD·실물 스캔 원본 vs 우리 재현 통일 비교 — 형상 일치도(결과)"),
-        dict(file="outputs/gazebo/<key>/model.sdf", what="드론 5종의 Gazebo/PX4 비행 시뮬 모델 (SDF)"),
+        dict(file="outputs/gazebo/<key>/model.sdf", what="드론 전 기종의 Gazebo/PX4 비행 시뮬 모델 (SDF)"),
     ],
     caveats=[
-        "**대조 기체는 대부분 우리 신형 타깃이 아니다.** Typhoon H480 은 Yuneec(DJI 아님) 헥사, M100·M600 은 DJI 이지만 "
-        "2015~2016 **구형**, Phantom 4 는 우리 타깃이자 실물 스캔이 있는 유일한 경우(단 스캔엔 프롭·짐벌이 없어 그 부분은 못 본다). "
+        "**대조 기체는 대부분 우리 신형 타깃이 아니다.** M100·M600 은 DJI 이지만 2015~2016 **구형**이고, "
+        "Phantom 4·Typhoon H480 은 우리 타깃이자 실물 자료가 있는 두 경우다 "
+        "(Phantom 4 = 실물 0.4 mm 스캔이지만 프롭·짐벌이 없어 그 부분은 못 본다; "
+        "Typhoon H480 = 제조사 실물 CAD. **2026-07-30 부터 표적 레지스트리에 등록**되어 대조 기체이면서 타깃이다). "
+        "⚠ 단 **여기서 비교하는 Typhoon 메쉬는 레지스트리 표적 메쉬가 아니다** — 아래 경고대로 외곽을 실물 CAD "
+        "바운딩박스에 맞춘 변형이고, 레지스트리 표적은 공표 제원에서 파라메트릭으로 짓는다(`src/drones.py` note). "
         "우리 신형 타깃(Mavic 4 Pro·Matrice 4E·Mini 5 Pro)은 2025 신형이라 공개 실물 3D 모델이 아직 없다. "
         "→ 이 대조가 검증하는 것은 **'우리 방법이 대략 맞나'이지 '이 특정 신형 기체가 정확하다'가 아니다.**",
         f"**방향별(각도별) σ 뾰족값은 인용 금지.** 평균은 ±{worst_mean:.2f} dB 안으로 맞지만 각도별 RMS 는 "
@@ -198,7 +203,7 @@ cells += provenance_cells(
 cells.append(md(
     "---",
     "",
-    "**앞 리포트**에서 드론 5종의 3D 모형을 세웠고, 그 외형은 DJI 공식 L×W×H 에 맞춰져 있다. "
+    f"**앞 리포트**에서 드론 {len(DRONES)}종의 3D 모형을 세웠고, 그 외형은 제조사 공식 L×W×H 에 맞춰져 있다. "
     "이 모형이 그대로 Sionna RT 의 표적 메쉬로 들어간다. 다만 **치수표 준수는 필요조건일 뿐, 표적 충실도의 증명은 아니다** — "
     "시뮬레이터는 넣은 메쉬가 실물을 닮았는지 검증하지 않기 때문이다. "
     "그래서 이 리포트는 표적을 **시뮬레이터 밖의 독립 기준(외부 실물 CAD·커뮤니티 3D 모델·측정 RCS 문헌)** 과 대봄으로써 검증한다 — "
@@ -497,7 +502,7 @@ cells.append(md(
     "",
     "표적 모형은 앞 리포트에서 **몸통과 프로펠러를 따로 움직이는 관절 구조**로 세워졌다. "
     "그 구조는 비행 시뮬레이터 Gazebo 가 원하는 '동체 링크 하나 + 로터마다 회전 관절 하나'와 **같은 형태**라, "
-    "드론 5종을 그대로 표준 모델 파일 **SDF**(Gazebo/PX4 가 읽는 형식)로 내보낼 수 있다 (→ `outputs/gazebo/<key>/model.sdf`).",
+    f"드론 {len(DRONES)}종을 그대로 표준 모델 파일 **SDF**(Gazebo/PX4 가 읽는 형식)로 내보낼 수 있다 (→ `outputs/gazebo/<key>/model.sdf`).",
     "",
     "조사 결과(`docs/GAZEBO_PX4_MODELS.md`):",
     "- 공식 PX4/Gazebo 에 **완제품 DJI 드론은 없다.** DJI 는 PX4 가 아니라 자체 비행스택을 쓰기 때문이다.",
