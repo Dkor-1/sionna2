@@ -1,0 +1,568 @@
+{
+  "meta": {
+    "generated": "2026-07-30",
+    "phase": "MAP ONLY - read-only survey, no code edited",
+    "directive": "2026-07-30 user: remove everything produced by the OLD PURE-PO point-cloud engine, from code and from reports. All future experiments must use SBR+PO or a method taken from prior-work papers.",
+    "scope_note": "The production engine (Mitsuba ray occlusion + PO surface integral, src/rcs_sbr.py) is NOT pure PO and stays. The analytic PO sphere/plate reference solutions are NOT the pure-PO engine either - they are the convergence target of the SBR kernel (see open_questions.analytic_po_reference).",
+    "how_engine_provenance_was_determined": "By reading each producing script's sigma call chain (not by filename). Producer discovery = grep of the output basename across src/, benchmark/, report_mesh/src/, then reading the sigma-bearing call in that script."
+  },
+
+  "ground_truth_verification": {
+    "G1_production_default_is_sbr": {
+      "verdict": "CONFIRMED",
+      "evidence": [
+        "src/rcs_po.py:143  RCS_ENGINE_DEFAULT = \"sbr\"",
+        "src/rcs_po.py:161-170  engine==\"sbr\" branch calls rcs_sbr.rcs_sbr_batch",
+        "runtime check: `import rcs_po; rcs_po.RCS_ENGINE_DEFAULT` -> 'sbr'",
+        "src/experiment_detection.py:338/344 calls drone_rcs_pattern(drone, FC, ...) with no engine kwarg -> SBR",
+        "benchmark/channel.py:150 RCS_ENGINE = os.environ.get(\"SIONNA2_BENCH_RCS\", \"sbr\"); runtime check -> 'sbr'"
+      ],
+      "new_risk_found": {
+        "id": "ENV_SWITCH",
+        "where": "benchmark/channel.py:150",
+        "problem": "RCS_ENGINE is read from env var SIONNA2_BENCH_RCS. Setting SIONNA2_BENCH_RCS=po silently switches every benchmark sigma to the pure-PO kernel with no marker in any output file. This is a silent-fallback hazard and violates the house rule 'guards must fail loudly'.",
+        "action": "delete the env hook together with the po branch"
+      }
+    },
+    "G2_mesh_to_points_is_a_geometric_sampler": {
+      "verdict": "CONFIRMED and stronger than stated",
+      "evidence": "mesh_to_points (src/rcs_po.py:66-94) only tessellates triangles into barycentric sample points and returns (P, N, dA[, w]). It contains no wavenumber, no phase, no field. Three call sites use it with no PO physics attached at all.",
+      "pure_geometric_callers_that_must_survive": [
+        "report_mesh/src/verify_mesh_suite.py:69,86 (_sample_points) -> used at :145 (B_symmetry) and :296 (G_scan) -> report_mesh/outputs/mesh_verify.json",
+        "benchmark/verify_md_nearfield.py:250-254 (g9_period_assumption) - cKDTree nearest-neighbour test of propeller point-cloud 180-degree self-symmetry. Pure geometry.",
+        "src/prep_cad_scan.py - docstring reference only (line 17), no call; it reimplements the same quantity for the STL scan"
+      ],
+      "recommendation": "move mesh_to_points (and _look_dirs if wanted) to a neutral module src/mesh_sample.py so its survival is structural, exactly as briefed"
+    },
+    "G3_file_list_is_INCOMPLETE": {
+      "verdict": "G3 lists 12 files; the actual touch set is 20 code files",
+      "missing_from_G3": [
+        "src/viz_verify_po.py IS in G3, but G3 does not record that it holds a LOCAL CLONE of the PO kernel (_po_field:104, _po_sigma:119, _rcs_az:137) that does not import rcs_from_points. Deleting rcs_from_points alone leaves this alive.",
+        "src/microdoppler_nearfield.py IS in G3, but it too has its OWN PO kernel (spherical-wave) and imports only mesh_to_points - same trap.",
+        "benchmark/verify_md_nearfield.py - NOT in G3. Imports mesh_to_points (geometric only) but its whole result set is produced by the pure-PO nearfield module.",
+        "report_mesh/src/verify_mesh_suite.py - NOT in G3. mesh_to_points (geometric) + drone_rcs_pattern (dispatcher).",
+        "report_mesh/src/viz_mesh_reports.py:390 - NOT in G3. drone_rcs_pattern (dispatcher).",
+        "src/experiment_md_range.py - NOT in G3 as a kernel toucher, but it is the top-level driver of the pure-PO micro-Doppler sweep and stamps engine=\"pure PO point cloud, NO occlusion\" into outputs/md_range_sweep.json.",
+        "src/viz_md_range.py - NOT in G3. Sole consumer of md_range_sweep.json; draws 8 pure-PO figures.",
+        "src/anim_plots.py:195, src/viz_animations.py:24, src/viz_occupancy.py:24, src/radar_process.py:125, src/experiment_ghost.py:53, src/experiment_freespace_sigma.py:142, src/experiment_detection.py:338 - import from rcs_po but ONLY the dispatcher / utility helpers (drone_rcs_pattern, drone_rcs_pattern_bw, angular_smooth, dbsm, C0). No PO physics. They break only if the module is deleted rather than gutted.",
+        "src/materials.py, src/drones.py, src/geom.py, src/provenance.py - prose/naming only (see naming_traps)"
+      ]
+    },
+    "G4_md_range_sweep_is_pure_po": {
+      "verdict": "CONFIRMED",
+      "evidence": "outputs/md_range_sweep.json meta.engine == 'pure PO point cloud, NO occlusion (deliberate: occlusion would break A/B attribution)'; producer src/experiment_md_range.py:240 writes that string; the physics is src/microdoppler_nearfield.py's own kernel over rcs_po.mesh_to_points clouds.",
+      "report_exposure": "ZERO. grep across src/make_notebook*.py and all 13 report ipynb finds no reference to md_range_sweep.json nor to outputs/figures/md_range_*.png (8 figures exist on disk, unreferenced). Deleting it has no report fallout - it independently confirms demoting micro-Doppler."
+    },
+    "G5_provenance_gap": {
+      "verdict": "CONFIRMED and quantified below in outputs_provenance",
+      "counts": {
+        "output_files_surveyed": 44,
+        "explicitly_record_engine_or_kernel": 6,
+        "record_producer_but_not_engine": 9,
+        "record_nothing": 29
+      },
+      "worst_cases": [
+        "outputs/rt_target_verify.json - the 'sphere' block is a PURE-PO number (benchmark/verify_target_rt.py:120-123) sitting in a file whose name says RT. No provenance at all.",
+        "outputs/verify_md_nearfield.json - meta.module names the file but never says 'pure PO / no occlusion'. Every number in it is pure PO.",
+        "outputs/bench_matrix.csv + bench_ghost.csv - the sigma_po_dbsm column is pure PO and the header is the only clue.",
+        "outputs/report1.json meshes.boolean.po_* and microdoppler.*.po - pure PO nested inside an otherwise SBR file."
+      ]
+    }
+  },
+
+  "classification_legend": {
+    "A_PO_PHYSICS": "computes a field or sigma from the point cloud. DELETE.",
+    "B_GEOMETRIC_ONLY": "calls mesh_to_points for vertices/normals/areas and never computes a field. PRESERVE, repoint at src/mesh_sample.py.",
+    "C_COMPARISON": "deliberately contrasts PO against SBR. Per the directive it leaves the reports; judged individually below.",
+    "D_DISPATCHER_OR_UTILITY": "touches rcs_po only for drone_rcs_pattern / drone_rcs_pattern_bw / angular_smooth / dbsm / C0. No PO physics. PRESERVE.",
+    "E_PROSE_ONLY": "docstring / comment / label mentions PO. No code path."
+  },
+
+  "files": [
+    {
+      "path": "src/rcs_po.py",
+      "owner": "free",
+      "role": "holds BOTH the dead pure-PO kernel and the live SBR dispatcher - this is why the module name alarms everyone",
+      "references": [
+        {"lines": "66-94", "symbol": "mesh_to_points", "class": "B_GEOMETRIC_ONLY", "action": "MOVE to src/mesh_sample.py", "note": "no wavenumber, no phase - pure tessellation + area/normal/|Gamma| bookkeeping"},
+        {"lines": "97-101", "symbol": "_look_dirs", "class": "B_GEOMETRIC_ONLY", "action": "MOVE with mesh_to_points or inline", "note": "az/el -> unit vector; used by rcs_from_points only, but generically useful"},
+        {"lines": "104-115", "symbol": "rcs_from_points", "class": "A_PO_PHYSICS", "action": "DELETE"},
+        {"lines": "118-124", "symbol": "po_field_dir", "class": "A_PO_PHYSICS", "action": "DELETE"},
+        {"lines": "130-142", "symbol": "engine comment block", "class": "E_PROSE_ONLY", "action": "REWRITE - it is the origin of the '+5.3 dB / +4~5 dB overestimate' claim (see occlusion_claim)"},
+        {"lines": "143", "symbol": "RCS_ENGINE_DEFAULT", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP as constant or drop once there is only one engine; if dropped, drone_rcs_pattern(engine=...) must raise, never silently fall back"},
+        {"lines": "146-178", "symbol": "drone_rcs_pattern", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP, delete lines 172-178 (the engine!=sbr fallthrough)", "note": "lines 161-170 are the live SBR path used by the detection headline"},
+        {"lines": "181-205", "symbol": "drone_rcs_pattern_bw", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP"},
+        {"lines": "208-219", "symbol": "angular_smooth", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP (or move with dbsm to a neutral home)"},
+        {"lines": "222-224", "symbol": "dbsm", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP"},
+        {"lines": "230-241", "symbol": "_sphere_mesh / _plate_mesh", "class": "B_GEOMETRIC_ONLY", "action": "KEEP or move - _plate_mesh is imported by src/viz_verify_po.py:40"},
+        {"lines": "244-269", "symbol": "validate()", "class": "A_PO_PHYSICS", "action": "DELETE", "what_is_lost": "the +/-0.015 dB discrete-PO-vs-analytic-PO sphere check, which was the only real evidence the pure-PO kernel was correct. Irrelevant once the kernel is gone; the SBR kernel has its own sphere check (benchmark/verify_sbr_kr_sweep.py, src/viz_verify_sbr.py B1)."},
+        {"lines": "272-283", "symbol": "__main__ block", "class": "A_PO_PHYSICS", "action": "DELETE (calls validate + engine-default pattern)"}
+      ]
+    },
+    {
+      "path": "src/rcs_sbr.py",
+      "owner": "ANOTHER AGENT - HANDOFF, do not edit",
+      "references": [
+        {"lines": "838-864", "symbol": "compare_with_po", "class": "C_COMPARISON", "action": "HANDOFF: delete function", "note": "imports rcs_po.mesh_to_points + rcs_from_points at :842. Only caller is the module __main__ at :870. Not on any production path - no outputs/*.json depends on it."},
+        {"lines": "9-10", "symbol": "docstring 'rcs_po.py (기존) vs rcs_sbr.py' table", "class": "E_PROSE_ONLY", "action": "HANDOFF: rewrite so the module stops defining itself against a deleted engine"},
+        {"lines": "870", "symbol": "__main__ calls compare_with_po()", "class": "C_COMPARISON", "action": "HANDOFF: remove call"}
+      ]
+    },
+    {
+      "path": "src/viz_report1.py",
+      "owner": "free",
+      "references": [
+        {"lines": "288, 363-380", "symbol": "measure_meshes -> boolean CSG bias", "class": "A_PO_PHYSICS", "action": "DELETE the sigma part, KEEP the face/area counting", "feeds": "outputs/report1.json  meshes.boolean.po_raw_dbsm / po_union_dbsm / po_bias_db (currently -17.665 / -19.125 / +1.460 dB)", "what_is_lost": "the number '+1.46 dB: boolean CSG removes interior faces that a no-occlusion PO would keep counting'. The geometric half (n_interior_faces=2283, area_interior_pct=25.46%) is engine-independent and survives. The dB figure is meaningless under SBR because rays never reach interior faces at all - so this is a claim that DIES WITH the engine, not one that needs re-measuring."},
+        {"lines": "476", "symbol": "fig_meshcheck caption quoting B['po_bias_db']", "class": "A_PO_PHYSICS", "action": "DELETE caption clause"},
+        {"lines": "790-836", "symbol": "measure_microdoppler", "class": "C_COMPARISON", "action": "DELETE the PO arm (line 803 microdoppler_series, and po/gain_db fields at 810-813)", "feeds": "outputs/report1.json microdoppler.drones.*.po and .gain_db", "note": "SBR arm (line 802 microdoppler_sbr) is the canonical one and stays; outputs/report1_microdoppler.npz stores ONLY the SBR E(t), so the npz needs no change"},
+        {"lines": "838-890", "symbol": "fig_microdoppler bar panel + caption", "class": "C_COMPARISON", "action": "DELETE the PO bars (line 869) and the closing caption paragraph 'the price of the old pure-PO model'", "feeds": "outputs/figures/report1_microdoppler.png, cited by src/make_notebook08.py:641,937 as '§5 블레이드 지문 + 가림 대가'"}
+      ]
+    },
+    {
+      "path": "src/viz_report2.py",
+      "owner": "free",
+      "references": [
+        {"lines": "839-895", "symbol": "measure_occlusion", "class": "C_COMPARISON", "action": "DELETE (see occlusion_claim before acting)", "feeds": "outputs/report2_waveform_rcs.json['occlusion'] - the single most-cited PO-vs-SBR number in the repo (occlusion_db = -4.2356)"},
+        {"lines": "897-960", "symbol": "fig_occlusion", "class": "C_COMPARISON", "action": "DELETE", "feeds": "outputs/figures/report2_occlusion.png (cited by src/make_notebook07.py:277,638)"},
+        {"lines": "1277-1282, 1306", "symbol": "main() wiring of OCC", "class": "C_COMPARISON", "action": "DELETE"},
+        {"lines": "708", "symbol": "measure_drone_convergence -> drone_rcs_pattern", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP"},
+        {"lines": "965", "symbol": "measure_rcs_patterns -> drone_rcs_pattern_bw + angular_smooth", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP - this is the report-02 headline RCS pattern, SBR"},
+        {"lines": "640-660", "symbol": "measure_sbr_validation -> rcs_sbr_batch + analytic PO/Mie", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP - analytic PO here is a reference solution, not the engine"}
+      ]
+    },
+    {
+      "path": "src/viz_verify_sbr.py",
+      "owner": "free",
+      "references": [
+        {"lines": "99, 151-175", "symbol": "section B2 'PO vs SBR'", "class": "C_COMPARISON", "action": "DELETE the po_* columns, KEEP sbr_* and the multibounce (mb1/mb3) comparison", "feeds": "outputs/report6_sbr.json['compare'] - po_el0, po_el15, occl_el0, occl_el15 for all 5 drones", "what_is_lost": "the per-drone occlusion table. See occlusion_claim - this table CONTRADICTS the headline: occl_el15 spans -2.79 dB (matrice4e) to +0.39 dB (s1000plus, i.e. SBR HIGHER than PO)."},
+        {"lines": "324-340", "symbol": "prop_normals PO arms", "class": "C_COMPARISON", "action": "DELETE po_dbsm / po_prop_dbsm / po_delta_db / po_prop_delta_db, KEEP the sbr_* twins", "feeds": "outputs/report6_sbr.json['prop_normals']", "what_is_lost": "nothing unique - the same bugged-vs-fixed propeller-normal delta is measured with SBR in the same loop"},
+        {"lines": "560-600", "symbol": "figure panels (b) PO-vs-SBR bars and (c) micro-Doppler PO-vs-SBR bars", "class": "C_COMPARISON", "action": "DELETE panels", "feeds": "outputs/figures/report6_sbr.png"},
+        {"lines": "115-150", "symbol": "section B1 kernel validation", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP - rcs_sbr_batch against analytic PO + exact Mie"}
+      ],
+      "extra_finding": "outputs/report6_sbr.json on disk is SCHEMA-STALE relative to this code: file has kernel.sphere_exact_dbsm / sphere_err, code writes kernel.sphere_ref / sphere_err_po / sphere_err_mie / sphere_err_go. viz_verify_sbr.py:86-92 already carries a loud staleness guard for exactly this."
+    },
+    {
+      "path": "src/viz_verify_po.py",
+      "owner": "free",
+      "references": [
+        {"lines": "104-116", "symbol": "_po_field (LOCAL CLONE with injected bugs)", "class": "A_PO_PHYSICS", "action": "DELETE - does NOT import rcs_from_points, so a kernel-only purge would miss it"},
+        {"lines": "119-121", "symbol": "_po_sigma", "class": "A_PO_PHYSICS", "action": "DELETE"},
+        {"lines": "124-130", "symbol": "_phase_slope_ratio", "class": "A_PO_PHYSICS", "action": "DELETE"},
+        {"lines": "137-155", "symbol": "_rcs_az (chunked clone of rcs_from_points)", "class": "A_PO_PHYSICS", "action": "DELETE"},
+        {"lines": "164-179, 292-302, 430-438", "symbol": "cloud builders feeding the clone", "class": "A_PO_PHYSICS", "action": "DELETE"},
+        {"lines": "170-274, 287-394, 419-588", "symbol": "fig_po_diagnostic / fig_po_convergence / fig_nulls", "class": "A_PO_PHYSICS", "action": "DELETE - whole module", "what_is_lost": "(a) 'the flat plate is a zero-diagnostic identity' - this insight is preserved independently in src/rcs_po.py:42-44 docstring, docs/VERIFY_RT_VS_PO.md AND docs/PRIOR_WORK_COMPARISON.md:449-460 where it is restated for the SBR kernel with a bit-identical plate_err table. (b) 'quote null positions, never null depths' - preserved in src/viz_report2.py:1015-1021 fig_rcs_polar caption, which is SBR. Nothing unique dies."}
+      ],
+      "report_exposure": "ZERO. Its three figures (report6_po_diagnostic.png, report6_po_convergence.png, report6_nulls.png) do NOT exist in outputs/figures/ and are referenced by no builder and no notebook. This module is already dead code.",
+      "recommendation": "delete the whole file - this is the cleanest single removal in the set"
+    },
+    {
+      "path": "src/viz_mesh.py",
+      "owner": "free",
+      "references": [
+        {"lines": "29, 136-143", "symbol": "_rcs_grid -> fig_rcs_balloon", "class": "A_PO_PHYSICS", "action": "DELETE or PORT to rcs_sbr_batch", "feeds": "outputs/figures/report2_mesh_rcs_balloon.png (exists on disk)", "what_is_lost": "the az x el RCS 'balloon' around the mesh. Portable: rcs_sbr_batch takes az as an array and el as a scalar, so the el loop already matches its signature. GPU cost only."},
+        {"lines": "225-275", "symbol": "fig_rcs_facets", "class": "B_GEOMETRIC_ONLY", "action": "KEEP", "note": "computes per-facet |Gamma|(n.u)dA as a COLOUR, never a field or a sigma. It is a diagram of what an obliquity-weighted surface integral weights, not a PO result. Colour bar text says 'PO facet contribution' - relabel to avoid reading as a pure-PO result, and note it has no occlusion test so the picture overstates lit area."},
+        {"lines": "71-128, 280-325", "symbol": "fig_setup_3d, fig_doppler_mesh", "class": "E_PROSE_ONLY", "action": "KEEP"}
+      ],
+      "report_exposure": "report2_mesh_*.png are referenced by no builder - orphan figures"
+    },
+    {
+      "path": "src/viz_radar.py",
+      "owner": "free",
+      "references": [
+        {"lines": "22, 74-112", "symbol": "fig_rcs_polar", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP (SBR)", "collision_warning": "writes outputs/figures/report2_rcs_polar.png - the SAME filename src/viz_report2.py:1015 writes. Whichever runs last wins. Unrelated to PO but it means the report-02 polar figure has two producers."},
+        {"lines": "280-300", "symbol": "fig_rcs_materials", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP (SBR)", "note": "docstring lines 282-283 narrate the old PO-to-SBR switch; house rule forbids process narrative - rewrite. Line 289 cites 'viz_report2.fig_po_vs_sbr (+1.74 dB)' which NO LONGER EXISTS."},
+        {"lines": "359-400", "symbol": "fig_rcs_shape_ab", "class": "C_COMPARISON", "action": "DECIDE - see below", "feeds": "outputs/figures/report2_rcs_shape_ab.png", "what_is_lost": "the parametric-mesh vs real-3D-scan shape A/B (+0.7~2.8 dB per memory). This one is NOT a PO-vs-SBR contrast - it is PO on BOTH arms, by necessity: the scan asset is assets/meshes/cad/phantom4_scan_points.npz, a point cloud with no triangles, so no ray can be shot at it (src/prep_cad_scan.py). Under the directive this result must leave the reports. To keep the claim, the scan point cloud has to be re-meshed (e.g. Poisson/ball-pivot from the 3.09M-tri STL, which is NOT in the repo) so SBR can run on it - a real work item, not a relabel. NOTE the separate SBR-based scan comparison in src/compare_phantom_scan.py -> outputs/phantom4_scan_compare.json ALREADY exists and uses rcs_sbr_batch on a decimated MESH, so the claim may already be covered by an SBR artifact. Verify apples-to-apples before deleting."}
+      ]
+    },
+    {
+      "path": "src/microdoppler.py",
+      "owner": "free",
+      "references": [
+        {"lines": "28", "symbol": "from rcs_po import mesh_to_points, po_field_dir, C0", "class": "A_PO_PHYSICS", "action": "DELETE import of po_field_dir"},
+        {"lines": "36-108", "symbol": "microdoppler_series", "class": "A_PO_PHYSICS", "action": "DELETE", "feeds": "outputs/report1.json microdoppler.*.po (via viz_report1.py:803); benchmark/verify_md_nearfield.py imports this module as md_old"},
+        {"lines": "117", "symbol": "__main__ demo", "class": "A_PO_PHYSICS", "action": "DELETE"},
+        {"lines": "127-133", "symbol": "'why SBR' comment block", "class": "E_PROSE_ONLY", "action": "REWRITE (it defines microdoppler_sbr against the deleted arm)"},
+        {"lines": "135-190", "symbol": "microdoppler_sbr", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP - canonical micro-Doppler, uses rcs_sbr.sbr_field", "caveat": "benchmark/verify_md_nearfield.py:246 records that microdoppler_sbr uses the half-period table (360/n_blades) which the nearfield module measured to be wrong by ~0.6% of AC power. That defect note is independent of the PO purge but is currently only written down inside the pure-PO verification file that is slated for deletion - preserve it in microdoppler.py's docstring."}
+      ]
+    },
+    {
+      "path": "src/microdoppler_nearfield.py",
+      "owner": "free",
+      "references": [
+        {"lines": "98", "symbol": "from rcs_po import mesh_to_points, C0", "class": "B_GEOMETRIC_ONLY (import) but the module around it is A", "action": "n/a"},
+        {"lines": "133", "symbol": "docstring 'matches po_field_dir exactly for monostatic'", "class": "E_PROSE_ONLY", "action": "REWRITE"},
+        {"lines": "189-200+", "symbol": "own spherical/plane-wave PO kernel over mesh_to_points clouds", "class": "A_PO_PHYSICS", "action": "DELETE MODULE (or rebuild on SBR per the user's 4th instruction: 'micro-Doppler at range should be done by putting the mesh into Sionna and observing with SBR')", "note": "does NOT import rcs_from_points/po_field_dir - a kernel-only purge misses it entirely"},
+        {"lines": "83-90", "symbol": "'no occlusion is deliberate; absolute level is +4~5 dB high per report07' limitation block", "class": "E_PROSE_ONLY", "action": "this is a CONSUMER of the occlusion claim - see occlusion_claim.claim_consumers"}
+      ],
+      "docstring_to_preserve": "lines 33-47 record a REFUTED design hypothesis ('near field smears the blade flash' - the data does not support it; pose-averaged delta = -1.32 +/- 2.36 dB, i.e. not significant). House rules say preserve refuted hypotheses. If the module is deleted, this must be carried into whatever replaces it."
+    },
+    {
+      "path": "src/experiment_md_range.py",
+      "owner": "free",
+      "references": [
+        {"lines": "20-21", "symbol": "'both arms are occlusion-free pure PO - deliberate'", "class": "E_PROSE_ONLY", "action": "n/a"},
+        {"lines": "50", "symbol": "import microdoppler_nearfield as nf", "class": "A_PO_PHYSICS", "action": "DELETE module or rebuild on SBR"},
+        {"lines": "240", "symbol": "meta.engine = 'pure PO point cloud, NO occlusion'", "class": "A_PO_PHYSICS", "action": "DELETE", "feeds": "outputs/md_range_sweep.json (219 KB)"},
+        {"lines": "246-252", "symbol": "point_spacing note", "class": "E_PROSE_ONLY", "action": "note worth keeping: it records that mesh_to_points floors at ONE POINT PER TRIANGLE, so the spacing knob is inert below the CAD facet size (~2.9 mm on propellers -> realised ~lambda/127). This is a property of the SAMPLER, which survives, so the note belongs with mesh_sample.py."}
+      ]
+    },
+    {
+      "path": "src/viz_md_range.py",
+      "owner": "free",
+      "note": "NOT in G3. Sole consumer of md_range_sweep.json. Produces outputs/figures/md_range_f1..f8 (8 files on disk, referenced by no builder).",
+      "references": [{"lines": "40", "symbol": "SRC = outputs/md_range_sweep.json", "class": "A_PO_PHYSICS", "action": "DELETE MODULE with the sweep"}]
+    },
+    {
+      "path": "benchmark/channel.py",
+      "owner": "free",
+      "references": [
+        {"lines": "43", "symbol": "from rcs_po import mesh_to_points, rcs_from_points", "class": "A_PO_PHYSICS", "action": "DELETE import"},
+        {"lines": "54-56", "symbol": "'benchmark sigma was pure PO and overstated RCS by +4~5 dB' comment", "class": "E_PROSE_ONLY", "action": "REWRITE - process narrative, forbidden by house rules"},
+        {"lines": "150", "symbol": "RCS_ENGINE env hook SIONNA2_BENCH_RCS", "class": "A_PO_PHYSICS", "action": "DELETE - silent-switch hazard, see G1.new_risk_found"},
+        {"lines": "218-231", "symbol": "_PTS_CACHE / _drone_points", "class": "A_PO_PHYSICS", "action": "DELETE"},
+        {"lines": "233-252", "symbol": "bistatic_rcs_m2 engine branch", "class": "A_PO_PHYSICS", "action": "DELETE the else-branch (lines 247-249); the sbr branch (line 246) is the live path", "note": "line 237 docstring is a claim consumer ('+4~5 dB over')"},
+        {"lines": "281-285", "symbol": "AnalyticChannel.__init__(rcs_engine=...)", "class": "A_PO_PHYSICS", "action": "DELETE the parameter", "callers": "benchmark/run_matrix.py:369 (rcs_engine='po'), benchmark/verify_linkbudget.py:497 (rcs_engine='sbr' - harmless, becomes redundant), benchmark/channel.py:467 keep-list, benchmark/channel.py:478 self-test"},
+        {"lines": "467", "symbol": "keep-tuple containing 'rcs_engine'", "class": "A_PO_PHYSICS", "action": "DELETE entry"},
+        {"lines": "478", "symbol": "module self-test AnalyticChannel(rcs_engine='po')", "class": "C_COMPARISON", "action": "DELETE"},
+        {"lines": "271", "symbol": "ChannelState.sigma_m2 docstring says '(PO, ...)'", "class": "E_PROSE_ONLY", "action": "RELABEL to SBR"}
+      ]
+    },
+    {
+      "path": "benchmark/run_matrix.py",
+      "owner": "free",
+      "references": [
+        {"lines": "367-381", "symbol": "section_b PO comparison arm", "class": "C_COMPARISON", "action": "DELETE", "feeds": "outputs/report5_results.json B_matrix.rows[].sigma_po_dbsm / occlusion_db and B_matrix.occlusion_db_mean/median; outputs/bench_matrix.csv + bench_ghost.csv columns sigma_po_dbsm, occlusion_db", "what_is_lost": "the 20-row occlusion spread. This is the WIDEST-sample occlusion evidence in the repo and it is the one that most undermines the headline: mean -1.26 dB, median -1.71, range -6.45 to +3.73 dB. See occlusion_claim."},
+        {"lines": "384-387", "symbol": "write_csv column list", "class": "C_COMPARISON", "action": "DELETE sigma_po_dbsm and occlusion_db columns"}
+      ]
+    },
+    {
+      "path": "benchmark/verify_target_rt.py",
+      "owner": "free",
+      "references": [
+        {"lines": "117-124", "symbol": "po_sphere_sigma", "class": "A_PO_PHYSICS", "action": "DELETE or REPLACE with rcs_sbr_batch on the same uv_sphere", "feeds": "outputs/rt_target_verify.json ['sphere'] block", "what_is_lost": "the reference sigma that the RT-vs-analytic sphere check is compared against. Easy replacement: benchmark/mie_pec_sphere.sphere_reference_set(r, fc) already provides analytic PO + exact Mie + pi r^2, and is what every other verification now uses. Prefer that over any ray engine here."},
+        {"lines": "37, 109-115", "symbol": "channel.bistatic_rcs_m2 for the drone arm", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP (defaults to SBR)"}
+      ]
+    },
+    {
+      "path": "benchmark/verify_md_nearfield.py",
+      "owner": "free",
+      "note": "NOT in G3",
+      "references": [
+        {"lines": "58-59", "symbol": "import microdoppler as md_old, microdoppler_nearfield as nf", "class": "A_PO_PHYSICS", "action": "DELETE MODULE with the nearfield path", "feeds": "outputs/verify_md_nearfield.json - ALL of it is pure PO"},
+        {"lines": "250-254", "symbol": "g9 mesh_to_points + cKDTree symmetry test", "class": "B_GEOMETRIC_ONLY", "action": "PRESERVE the measurement", "what_is_lost_if_deleted": "the only measured evidence that the propeller point cloud is NOT 180-degree self-symmetric (p95 1.23 mm, max 2.84 mm) - which is why microdoppler_sbr's half-period table drops odd rotor harmonics. This is a live defect note about a SURVIVING SBR function. Do not let it die with the PO module."}
+      ]
+    },
+    {
+      "path": "report_mesh/src/verify_mesh_suite.py",
+      "owner": "free (appendix report_mesh - growth frozen per project policy)",
+      "note": "NOT in G3",
+      "references": [
+        {"lines": "67-88", "symbol": "_sample_points -> mesh_to_points", "class": "B_GEOMETRIC_ONLY", "action": "REPOINT at src/mesh_sample.py", "feeds": "report_mesh/outputs/mesh_verify.json B_symmetry (line 145) and G_scan (line 296)"},
+        {"lines": "322-335", "symbol": "sec_H_po_convergence -> drone_rcs_pattern", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP but RENAME", "trap": "the function is called sec_H_po_convergence and writes mesh_verify.json['H_po_convergence'], but it calls the DISPATCHER, so those numbers are SBR, not PO. A reader purging 'PO' by name would delete a valid SBR result. Rename to sec_H_grid_convergence and restamp the JSON key."}
+      ]
+    },
+    {
+      "path": "report_mesh/src/viz_mesh_reports.py",
+      "owner": "free",
+      "note": "NOT in G3",
+      "references": [{"lines": "390", "symbol": "drone_rcs_pattern", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP"}]
+    },
+    {
+      "path": "src/experiment_detection.py",
+      "owner": "free",
+      "references": [{"lines": "338, 344", "symbol": "drone_rcs_pattern (no engine kwarg)", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP - PRODUCTION HEADLINE PATH", "feeds": "outputs/detection_rx_sweep.json, outputs/detection_arrays.npz"}]
+    },
+    {
+      "path": "src/experiment_ghost.py",
+      "owner": "free",
+      "references": [{"lines": "53, 146", "symbol": "drone_rcs_pattern", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP (report excluded per REBUILD ch.3, code preserved)"}]
+    },
+    {
+      "path": "src/experiment_freespace_sigma.py",
+      "owner": "free",
+      "references": [{"lines": "142", "symbol": "from rcs_po import angular_smooth", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP - utility only; will break if rcs_po.py is deleted outright rather than gutted", "feeds": "outputs/report13_sigma_grid*.json - a PRODUCTION path for new report 05"}]
+    },
+    {
+      "path": "src/anim_plots.py",
+      "owner": "free",
+      "references": [{"lines": "195", "symbol": "drone_rcs_pattern", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP"}]
+    },
+    {
+      "path": "src/viz_animations.py",
+      "owner": "free",
+      "references": [{"lines": "24, 72-74", "symbol": "drone_rcs_pattern_bw / angular_smooth / dbsm", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP - already uses rcs_sbr._mi_scene_from_mesh for its occlusion test"}]
+    },
+    {
+      "path": "src/viz_occupancy.py",
+      "owner": "free",
+      "references": [{"lines": "24", "symbol": "drone_rcs_pattern", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP"}]
+    },
+    {
+      "path": "src/radar_process.py",
+      "owner": "free",
+      "references": [
+        {"lines": "7", "symbol": "docstring 'RCS sigma <- rcs_po (physical optics, verified)'", "class": "E_PROSE_ONLY", "action": "RELABEL to SBR"},
+        {"lines": "125", "symbol": "__main__ drone_rcs_pattern", "class": "D_DISPATCHER_OR_UTILITY", "action": "KEEP"}
+      ]
+    },
+    {
+      "path": "src/provenance.py",
+      "owner": "free",
+      "references": [{"lines": "94-96", "symbol": "ENGINES['po'] entry", "class": "E_PROSE_ONLY", "action": "DELETE the entry", "trap": "src/make_notebook08.py:616 declares engines=[\"sbr\",\"microdoppler\",\"sionna-render\",\"po\",\"matplotlib\"]. If the 'po' key is removed and provenance.py raises on unknown keys (it should - fail loudly), that builder breaks. Old builders are being retired, but check the NEW six do not carry 'po' forward."}]
+    },
+    {
+      "path": "src/materials.py",
+      "owner": "free",
+      "references": [{"lines": "10, 131, 172", "symbol": "gamma_po()", "class": "E_PROSE_ONLY", "action": "DO NOT DELETE - RENAME AT MOST", "trap": "the name says PO but src/rcs_sbr.py:72,108,116,156 imports and uses gamma_po as its |Gamma| table. It is the SHARED material reflection coefficient, not PO physics. Deleting it breaks the SBR engine. Same for drones.drone_gamma_map (src/drones.py:536-541), used by rcs_sbr's callers."}]
+    },
+    {
+      "path": "src/geom.py",
+      "owner": "free",
+      "references": [{"lines": "290", "symbol": "comment 'PO(rcs_po) picks lit faces by n.u>0 so normals must be right'", "class": "E_PROSE_ONLY", "action": "REWRITE to cite rcs_sbr - the normal-direction requirement is still true for SBR"}]
+    },
+    {
+      "path": "src/prep_cad_scan.py",
+      "owner": "free",
+      "references": [{"lines": "17", "symbol": "docstring 'same physical quantity as mesh_to_points'", "class": "E_PROSE_ONLY", "action": "REPOINT at mesh_sample.py"}],
+      "note": "no code call; but the ASSET it produces (assets/meshes/cad/phantom4_scan_points.npz, a point cloud) is what forces viz_radar.fig_rcs_shape_ab to be PO-only"
+    }
+  ],
+
+  "breakage_analysis": {
+    "functions_proposed_for_deletion": [
+      {
+        "symbol": "rcs_po.rcs_from_points",
+        "direct_callers": [
+          {"site": "src/rcs_po.py:178", "path": "drone_rcs_pattern engine=='po'", "production": false},
+          {"site": "src/rcs_po.py:250,264", "path": "validate()", "production": false},
+          {"site": "src/viz_report1.py:370", "path": "measure_meshes boolean bias", "production": true, "artifact": "outputs/report1.json meshes.boolean.po_*"},
+          {"site": "src/viz_report2.py:853", "path": "measure_occlusion", "production": true, "artifact": "outputs/report2_waveform_rcs.json occlusion.*"},
+          {"site": "src/viz_mesh.py:143", "path": "_rcs_grid/fig_rcs_balloon", "production": "figure only, orphan"},
+          {"site": "src/viz_radar.py:374,375,392,393", "path": "fig_rcs_shape_ab", "production": "figure only (report2_rcs_shape_ab.png), orphan in builders"},
+          {"site": "src/viz_verify_sbr.py:158,325,327", "path": "B2 compare + prop_normals", "production": true, "artifact": "outputs/report6_sbr.json compare.*, prop_normals.po_*"},
+          {"site": "src/rcs_sbr.py:852", "path": "compare_with_po (module __main__ only)", "production": false, "owner": "HANDOFF"},
+          {"site": "benchmark/channel.py:249", "path": "bistatic_rcs_m2 po branch", "production": true, "artifact": "outputs/report5_results.json B_matrix sigma_po_dbsm, bench_*.csv"},
+          {"site": "benchmark/verify_target_rt.py:123", "path": "po_sphere_sigma", "production": true, "artifact": "outputs/rt_target_verify.json sphere.*"}
+        ]
+      },
+      {
+        "symbol": "rcs_po.po_field_dir",
+        "direct_callers": [{"site": "src/microdoppler.py:51", "path": "microdoppler_series", "production": true, "artifact": "outputs/report1.json microdoppler.*.po (via viz_report1.py:803)"}],
+        "transitive": ["src/viz_report1.py:803 -> report1.json + report1_microdoppler.png", "benchmark/verify_md_nearfield.py:58 imports microdoppler as md_old"]
+      },
+      {
+        "symbol": "rcs_po.validate + __main__",
+        "direct_callers": [],
+        "note": "no importers - safe"
+      },
+      {
+        "symbol": "channel.AnalyticChannel(rcs_engine=...)",
+        "direct_callers": [
+          {"site": "benchmark/run_matrix.py:369", "value": "po", "production": true},
+          {"site": "benchmark/verify_linkbudget.py:497", "value": "sbr", "production": true, "impact": "becomes a removed kwarg -> TypeError. Must be edited in the same commit."},
+          {"site": "benchmark/channel.py:467,478", "production": false}
+        ]
+      },
+      {
+        "symbol": "LOCAL CLONES that a kernel-only purge would MISS",
+        "sites": ["src/viz_verify_po.py:104,119,124,137 (bug-injection PO variants)", "src/microdoppler_nearfield.py (spherical-wave PO kernel, own implementation)"],
+        "action": "must be deleted explicitly by file, not by symbol"
+      }
+    ],
+    "production_paths_that_are_SAFE_and_must_not_be_touched": [
+      "src/experiment_detection.py -> outputs/detection_rx_sweep.json, detection_arrays.npz  (SBR, detection headline)",
+      "src/experiment_freespace_sigma.py -> outputs/report13_sigma_grid*.json (SBR, records its own engine)",
+      "src/experiment_freespace_range.py -> outputs/report13_freespace.json (consumes the SBR grid)",
+      "benchmark/rcs_anchor.py -> outputs/rcs_anchor.json (SBR; OWNED BY ANOTHER AGENT)",
+      "benchmark/verify_sbr_kr_sweep.py -> outputs/sbr_kr_sweep.json (SBR vs analytic PO/Mie references)",
+      "benchmark/verify_cfar.py / verify_eca.py / verify_ambiguity.py -> sigma-independent or SBR-cache only",
+      "src/mesh_compare.py sigma_pec -> rcs_sbr_batch, feeding community_compare.json / real_cad_compare.json / phantom4_scan_compare.json"
+    ],
+    "rebuild_required_after_deletion": [
+      {"artifact": "outputs/report1.json", "reason": "meshes.boolean.po_* and microdoppler.*.po/gain_db must disappear", "cost": "high - measure_microdoppler is ~257 s/drone on GPU (report1.json records seconds=256.9 for mavic4pro)"},
+      {"artifact": "outputs/report2_waveform_rcs.json", "reason": "occlusion block removed", "cost": "high - also already blocked by a schema mismatch (dither keys) and an OOM regression, see docs/RESUME_0730.md ch.2"},
+      {"artifact": "outputs/report6_sbr.json", "reason": "compare.po_* / prop_normals.po_* removed", "cost": "medium, GPU; file is ALREADY schema-stale"},
+      {"artifact": "outputs/report5_results.json + bench_matrix.csv + bench_ghost.csv", "reason": "sigma_po_dbsm / occlusion_db columns removed", "cost": "high, but REBUILD_2026-07-30 ch.4 already drops run_matrix from the pipeline (chamber excluded) - deleting the artifacts may be correct instead of rebuilding"},
+      {"artifact": "outputs/rt_target_verify.json", "reason": "sphere block was pure PO", "cost": "low - replace with benchmark/mie_pec_sphere.sphere_reference_set"},
+      {"artifact": "outputs/md_range_sweep.json + 8 md_range_*.png + outputs/verify_md_nearfield.json", "reason": "wholly pure PO", "cost": "zero - DELETE, nothing cites them"}
+    ]
+  },
+
+  "comparison_validation_verdicts": [
+    {"id": "C1", "site": "src/viz_report2.py measure_occlusion/fig_occlusion", "keep": false, "lost": "occlusion_db = -4.24 dB at el=15, plus the 3D 'which points are hidden' panel (37.8% of PO-lit points blocked; projected area 958 vs 481 cm^2). Persuasive but single-drone, single-elevation.", "flag": "PRIMARY EVIDENCE for the headline claim - do not delete before reading occlusion_claim"},
+    {"id": "C2", "site": "src/viz_verify_sbr.py B2 compare", "keep": false, "lost": "the only 5-drone occlusion table. It CONTRADICTS the headline (see occlusion_claim.contradiction).", "flag": "if any occlusion number survives anywhere, it should be this one, because it is the only per-drone spread"},
+    {"id": "C3", "site": "benchmark/run_matrix.py section_b PO arm", "keep": false, "lost": "20-row benchmark occlusion spread, mean -1.26 dB, range -6.45..+3.73 dB", "flag": "run_matrix is already dropped from the new pipeline for unrelated reasons (chamber excluded)"},
+    {"id": "C4", "site": "src/viz_report1.py measure_microdoppler PO arm + bar panel", "keep": false, "lost": "|DC|/std(AC) pedestal PO vs SBR, mavic4pro gain_db = +39.85 dB", "flag": "docs/ARCHIVE.md:37,50 record this as '22 dB'. The live JSON says 39.85 dB for mavic4pro. The archived number is stale by a factor of ~1.8x in dB. Another reason the claim ledger needs reconciling before the evidence goes."},
+    {"id": "C5", "site": "src/viz_report1.py measure_meshes boolean bias", "keep": false, "lost": "+1.46 dB 'boolean CSG removes interior faces that no-occlusion PO would count'", "flag": "docs/ARCHIVE.md:128 records this as '+0.77 dB' and explicitly warns not to confuse it with the +4~5 dB occlusion figure. Live JSON says +1.46 dB. Stale again. The claim is intrinsically about a no-occlusion engine, so it dies WITH the engine rather than needing replacement."},
+    {"id": "C6", "site": "src/viz_verify_po.py (3 figures)", "keep": false, "lost": "nothing unique - both insights are independently restated for the SBR kernel elsewhere; the figures do not exist on disk and no builder cites them", "flag": "cleanest deletion in the set"},
+    {"id": "C7", "site": "src/viz_radar.py fig_rcs_shape_ab", "keep": "UNDECIDED - not a PO-vs-SBR contrast", "lost": "parametric-mesh vs real-3D-scan shape realism delta", "flag": "PO is used on BOTH arms because the scan asset is a point cloud with no triangles. Under the directive the result leaves the reports, but an SBR-based substitute may already exist in outputs/phantom4_scan_compare.json (mesh_compare.sigma_pec -> rcs_sbr_batch on a decimated scan mesh). CHECK apples-to-apples (that one is PEC, all-metal, and excludes props) before concluding the claim is covered."},
+    {"id": "C8", "site": "src/viz_mesh.py fig_rcs_balloon", "keep": "PORTABLE", "lost": "az x el RCS balloon figure", "flag": "rcs_sbr_batch already takes array az + scalar el, matching the existing loop. Pure cost question."},
+    {"id": "C9", "site": "src/rcs_sbr.py compare_with_po", "keep": false, "lost": "console-only PO/SBR1/SBR3 table, no artifact", "flag": "HANDOFF - owned by another agent"}
+  ],
+
+  "occlusion_claim": {
+    "statement_as_written_in_code": "the old pure PO overestimates drone RCS by +4~5 dB (src/rcs_po.py:133 says +5.3 dB) because it has no self-occlusion",
+    "flag": "DO NOT RESOLVE HERE - raised for the owner. The claim is load-bearing in prior-work positioning, and its evidence is both about to be deleted AND internally inconsistent.",
+    "evidence_inventory": [
+      {"source": "outputs/report2_waveform_rcs.json occlusion.occlusion_db", "value_db": -4.2356, "sample": "mavic4pro only, el=15, 72 az, 3.5 GHz", "producer": "src/viz_report2.py:835"},
+      {"source": "outputs/report6_sbr.json compare.*.occl_el15", "value_db": {"mini5pro": -2.543, "mavic4pro": -2.685, "matrice4e": -2.790, "phantom4": -1.808, "s1000plus": 0.390}, "sample": "5 drones, el 0 and 15", "producer": "src/viz_verify_sbr.py:151"},
+      {"source": "outputs/report5_results.json B_matrix", "value_db": {"mean": -1.262, "median": -1.710, "min": -6.449, "max": 3.728}, "sample": "20 benchmark rows", "producer": "benchmark/run_matrix.py:367"},
+      {"source": "src/rcs_po.py:133-134 docstring", "value_db": -5.3, "sample": "mavic4pro el=15 az-mean, quoted as PO -16.83 -> SBR -22.11", "note": "does not match the -15.23 -> -19.46 pair currently in report2_waveform_rcs.json"}
+    ],
+    "contradiction": "The four sources give -5.3, -4.24, -2.69 and -1.26 dB for overlapping conditions, and TWO of them (report6 s1000plus +0.39 dB, report5 max +3.73 dB) have the OPPOSITE SIGN - i.e. cases where SBR is LOUDER than pure PO. '+4~5 dB overestimate' is therefore a best-case single-drone figure presented as a general property. docs/RESUME_0729.md:564-570 already logged this ledger split and did not close it. docs/PRIOR_WORK_COMPARISON.md:447-449 additionally records a note that report6_sbr.json's compare block was EMPTY on 2026-07-23 so the -4.35 vs -2.71 dB internal disagreement 'is not reproducible in the current file' - it is reproducible now (the block is populated).",
+    "claim_consumers": [
+      {"site": "docs/PRIOR_WORK_COMPARISON.md:445-449", "role": "LOAD-BEARING", "why": "listed under '대응 선행 없음' (no corresponding prior work) - it is one of the differentiators against Sagitta/Ziganshin. New report 01 (prior work) and report 02 (target model, whose stated raison d'etre is 'per-part materials + ray occlusion') both lean on it."},
+      {"site": "docs/ARCHIVE.md:37,50,128", "role": "ledger", "why": "records +4~5 dB RCS and 22 dB micro-Doppler; both figures are stale vs the live JSONs"},
+      {"site": "src/microdoppler_nearfield.py:88 and src/experiment_md_range.py:21", "role": "justification", "why": "used to argue that a no-occlusion arm is acceptable because the bias is common-mode. Both modules are themselves slated for deletion."},
+      {"site": "benchmark/channel.py:55-56,237", "role": "history comment", "why": "explains why the benchmark switched engines"},
+      {"site": "src/rcs_po.py:130-142", "role": "origin"},
+      {"site": "report07.ipynb:309 + src/make_notebook07.py:658-674", "role": "report text", "why": "being retired anyway"}
+    ],
+    "options_for_the_owner": [
+      "(a) Keep the differentiator but restate it without the deleted engine: 'rays find the first-hit surface, so hidden faces do not contribute' is a METHOD statement that needs no PO baseline. The measurable substitute already exists and is engine-internal: report2_waveform_rcs.json occlusion.hidden_frac = 0.378 and area_ratio_db = 5.99 dB are computed from ray visibility vs the n.u>0 test on the SAME SBR mesh - they quantify occlusion WITHOUT quoting a pure-PO sigma.",
+      "(b) Keep one occlusion number as an explicitly-labelled ablation of the SBR kernel (disable the visibility test inside rcs_sbr rather than calling the old engine). That is 'SBR+PO with a switch', not the removed engine.",
+      "(c) Drop the claim from the reports entirely and note it as a method property with no number.",
+      "In all three cases the ARCHIVE.md figures (+4~5 dB, 22 dB, +0.77 dB) should be reconciled against the live JSONs (-4.24/-2.69/-1.26 dB, 39.85 dB, +1.46 dB) or marked superseded - they are wrong today, before any deletion."
+    ]
+  },
+
+  "outputs_provenance": [
+    {"file": "audit_outputs.json", "producer": "benchmark/audit_outputs.py", "engine": "none (static analysis)", "kernel": "-", "records_engine": "n/a", "stale": "yes - dated 07-22, predates the 7-drone registry and current producers; its own verdicts are unreliable"},
+    {"file": "bench_matrix.csv", "producer": "benchmark/run_matrix.py section_b", "engine": "MIXED", "kernel": "sigma_dbsm <- channel._sbr_sigma -> rcs_sbr.rcs_sbr_batch ; sigma_po_dbsm <- channel.bistatic_rcs_m2(engine='po') -> rcs_po.rcs_from_points", "records_engine": "column names only", "verdict": "CONTAMINATED - drop the two PO columns"},
+    {"file": "bench_ghost.csv", "producer": "benchmark/run_matrix.py (write_csv ghost=True)", "engine": "MIXED", "kernel": "same as bench_matrix", "records_engine": "column names only", "verdict": "CONTAMINATED"},
+    {"file": "community_compare.json", "producer": "benchmark/compare_community.py -> src/mesh_compare.compare", "engine": "SBR", "kernel": "mesh_compare.sigma_pec:158 -> rcs_sbr_batch (all-PEC, div=12)", "records_engine": "no"},
+    {"file": "detection_arrays.npz", "producer": "src/experiment_detection.py", "engine": "SBR", "kernel": "rcs_po.drone_rcs_pattern (default) -> rcs_sbr_batch", "records_engine": "no (npz)"},
+    {"file": "detection_ghost.json", "producer": "src/experiment_ghost.py", "engine": "SBR", "kernel": "rcs_po.drone_rcs_pattern:146 (default) -> rcs_sbr_batch", "records_engine": "partial - meta.source names floor_ghost_verify.json but not the engine"},
+    {"file": "detection_rx_sweep.json", "producer": "src/experiment_detection.py", "engine": "SBR", "kernel": "rcs_po.drone_rcs_pattern:344 (default) -> rcs_sbr_batch", "records_engine": "NO - meta carries sigma_dbsm=-27.578 with no engine field. This is the DETECTION HEADLINE file."},
+    {"file": "floor_ghost_verify.json", "producer": "benchmark/verify_floor_ghost.py", "engine": "SBR", "kernel": "channel.AnalyticChannel() default -> _sbr_sigma -> rcs_sbr_batch (via sigma_sbr_cache.json)", "records_engine": "no"},
+    {"file": "md_range_sweep.json", "producer": "src/experiment_md_range.py", "engine": "PURE PO", "kernel": "microdoppler_nearfield own plane/spherical-wave PO over rcs_po.mesh_to_points", "records_engine": "YES - meta.engine='pure PO point cloud, NO occlusion'", "verdict": "DELETE - zero report exposure"},
+    {"file": "obs_scr_cache.json", "producer": "benchmark/verify_observability.py", "engine": "SBR", "kernel": "AnalyticChannel -> rcs_sbr_batch cache", "records_engine": "no", "stale": "07-14, pre-engine-overhaul per audit"},
+    {"file": "phantom4_scan_compare.json", "producer": "src/compare_phantom_scan.py -> mesh_compare.compare", "engine": "SBR", "kernel": "sigma_pec -> rcs_sbr_batch (PEC)", "records_engine": "no", "note": "possible SBR substitute for the PO-only viz_radar.fig_rcs_shape_ab claim - verify apples-to-apples"},
+    {"file": "rcs_anchor.json", "producer": "benchmark/rcs_anchor.py [OWNED BY ANOTHER AGENT]", "engine": "SBR", "kernel": "rcs_sbr_batch:127 (div=16, el 0/15) + benchmark/mie_pec_sphere for the sphere calibration", "records_engine": "partial - meta has div, sbr_default_div, raw_only, caveats but no explicit engine string", "verdict": "CLEAN - stamp only"},
+    {"file": "real_cad_compare.json", "producer": "benchmark/compare_real_cad.py -> mesh_compare.compare", "engine": "SBR", "kernel": "sigma_pec -> rcs_sbr_batch (PEC)", "records_engine": "no"},
+    {"file": "reference_props.json", "producer": "benchmark/measure_reference_props.py", "engine": "none (trimesh sectioning)", "kernel": "-", "records_engine": "meta.method describes the geometric procedure"},
+    {"file": "report13_freespace.json", "producer": "src/experiment_freespace_range.py", "engine": "SBR (inherited)", "kernel": "reads sigma from report13_sigma_grid.json; own chain is link budget + detector", "records_engine": "partial - rich meta (producer, git_rev, assumption_ladder) but no engine key"},
+    {"file": "report13_sigma_grid.json (+ .mavic4pro/.matrice4e/.mini5pro/.phantom4/.s1000plus variants)", "producer": "src/experiment_freespace_sigma.py", "engine": "SBR", "kernel": "rcs_sbr_batch, 1-bounce, penetrate=True, jitter=2, div=16", "records_engine": "YES - meta.engine='sbr (rcs_sbr_batch, 1-bounce, penetrate=True)'", "verdict": "MODEL FOR THE STAMPING FORMAT"},
+    {"file": "report1.json", "producer": "src/viz_report1.py", "engine": "MIXED", "kernel": "meshes.drones/check = trimesh+mesh_check (geometry) ; meshes.boolean.po_* = rcs_po.rcs_from_points (PURE PO) ; microdoppler.*.sbr = microdoppler_sbr -> rcs_sbr.sbr_field ; microdoppler.*.po and .gain_db = microdoppler_series -> rcs_po.po_field_dir (PURE PO) ; chamber/renders = Sionna RT", "records_engine": "no", "verdict": "CONTAMINATED in two nested places"},
+    {"file": "report1_microdoppler.npz", "producer": "src/viz_report1.py:819", "engine": "SBR", "kernel": "stores only the microdoppler_sbr complex field E(t); the PO arm Ep is computed and discarded", "records_engine": "no", "verdict": "CLEAN"},
+    {"file": "report2_waveform_rcs.json", "producer": "src/viz_report2.py", "engine": "MIXED", "kernel": "sbr_validation = rcs_sbr_batch(jitter=3, penetrate=False) vs analytic PO/Mie ; rcs = drone_rcs_pattern_bw (SBR, div=16) ; materials = SBR ; occlusion.po_dbsm/po_peak = rcs_po.rcs_from_points (PURE PO), occlusion.sbr1/sbr3 = rcs_sbr ; reference/crosscheck/numerology/ambiguity = waveform only", "records_engine": "no engine key; meta has sbr_div/az_step/n_freq_band", "verdict": "CONTAMINATED in the occlusion block only"},
+    {"file": "report3_rt.json", "producer": "benchmark/rt_experiments.py", "engine": "Sionna RT + SBR", "kernel": "sionna.rt path solver ; rcs_sbr_batch:302 for target sigma", "records_engine": "partial - meta.sionna='2.0.1'"},
+    {"file": "report4_fixups.json", "producer": "benchmark/report4_fixups.py", "engine": "SBR (via AnalyticChannel) + DSP re-derivations", "kernel": "channel.AnalyticChannel default -> rcs_sbr_batch cache", "records_engine": "no - _meta describes MEASURED/DERIVED/RETRACTED kinds but not the engine"},
+    {"file": "report5_results.json", "producer": "benchmark/run_matrix.py", "engine": "MIXED", "kernel": "headline sigma = SBR cache ; B_matrix.rows[].sigma_po_dbsm and .occlusion_db = PURE PO", "records_engine": "no", "verdict": "CONTAMINATED; also dropped from the new pipeline for chamber exclusion"},
+    {"file": "report6_sbr.json", "producer": "src/viz_verify_sbr.py", "engine": "MIXED", "kernel": "kernel = rcs_sbr_batch vs analytic PO/Mie ; compare.po_el0/po_el15/occl_* = PURE PO vs SBR ; prop_normals.po_*/po_prop_* = PURE PO ; envelope/camera/mesh_gate = SBR/materials/geometry", "records_engine": "no", "verdict": "CONTAMINATED; ALSO SCHEMA-STALE (kernel has sphere_exact_dbsm/sphere_err, code now writes sphere_ref/sphere_err_po/_mie/_go)"},
+    {"file": "rt_env_clutter.json", "producer": "benchmark/channel.py rt_chamber_clutter", "engine": "Sionna RT", "kernel": "chamber reverberation only, no target sigma", "records_engine": "no"},
+    {"file": "rt_no_rcs_verify.json", "producer": "benchmark/verify_rt_no_rcs.py", "engine": "Sionna RT only", "kernel": "sionna.rt path solver - the experiment that PROVES no sigma emerges from the stock solver", "records_engine": "no", "verdict": "CLEAN - and load-bearing for new report 02"},
+    {"file": "rt_ray_budget.json", "producer": "benchmark/verify_rt_rays.py", "engine": "Sionna RT + SBR", "kernel": "rcs_sbr_batch:163 supplies the truth value", "records_engine": "no"},
+    {"file": "rt_target_verify.json", "producer": "benchmark/verify_target_rt.py", "engine": "MIXED", "kernel": "'sphere' block = rcs_po.rcs_from_points via po_sphere_sigma:117 (PURE PO) ; 'drone' block = channel.bistatic_rcs_m2 default (SBR)", "records_engine": "NO", "verdict": "CONTAMINATED - the worst provenance case: a pure-PO number in a file whose name says RT"},
+    {"file": "sbr_defect_fixes.json", "producer": "benchmark/verify_sbr_defect_fixes.py", "engine": "SBR", "kernel": "rcs_sbr.rcs_sbr_multistatic / rcs_sbr internals", "records_engine": "partial - meta.generated_by names the script"},
+    {"file": "sbr_kr_sweep.json", "producer": "benchmark/verify_sbr_kr_sweep.py", "engine": "SBR", "kernel": "rcs_sbr_batch:111,155 vs mie_pec_sphere analytic PO + exact Mie", "records_engine": "partial - meta has divs/jitter/facet_per_lambda but no engine string", "verdict": "CLEAN - reference solution only"},
+    {"file": "sigma_sbr_cache.json", "producer": "benchmark/channel.py sigma_cache_save", "engine": "SBR", "kernel": "rcs_sbr_batch", "records_engine": "filename only; keys are 'drone|fc|az|el'", "verdict": "CLEAN"},
+    {"file": "verify_ambiguity.json", "producer": "benchmark/verify_ambiguity.py", "engine": "none (no sigma - no channel/drones import)", "kernel": "waveform ambiguity functions", "records_engine": "n/a", "verdict": "CLEAN"},
+    {"file": "verify_cfar.json", "producer": "benchmark/verify_cfar.py", "engine": "none (no channel import; LinkBudget + synthetic maps only)", "kernel": "CA-CFAR statistics", "records_engine": "n/a", "verdict": "CLEAN - and load-bearing for new report 04"},
+    {"file": "verify_clutter_doppler.json", "producer": "benchmark/verify_clutter_doppler.py", "engine": "SBR", "kernel": "AnalyticChannel:589 -> rcs_sbr_batch cache", "records_engine": "no"},
+    {"file": "verify_eca.json", "producer": "benchmark/verify_eca.py", "engine": "SBR", "kernel": "AnalyticChannel:82,399 -> rcs_sbr_batch cache", "records_engine": "no"},
+    {"file": "verify_freespace.json", "producer": "benchmark/verify_freespace.py", "engine": "none (audits report13 JSONs)", "kernel": "-", "records_engine": "partial - meta.tool + report13_path"},
+    {"file": "verify_ghost_impact.json", "producer": "benchmark/verify_ghost_impact.py", "engine": "SBR", "kernel": "AnalyticChannel:169 + channel.sbr_sigma_prefill:558 -> rcs_sbr_batch", "records_engine": "no"},
+    {"file": "verify_linkbudget.json", "producer": "benchmark/verify_linkbudget.py", "engine": "SBR", "kernel": "AnalyticChannel:491 + explicit rcs_engine='sbr' at :497", "records_engine": "YES - config.rcs_engine='sbr'", "verdict": "CLEAN; note the recorded key disappears if the kwarg is removed - keep an equivalent stamp"},
+    {"file": "verify_md_nearfield.json", "producer": "benchmark/verify_md_nearfield.py", "engine": "PURE PO", "kernel": "microdoppler_nearfield own kernel + microdoppler.microdoppler_series (po_field_dir)", "records_engine": "NO - meta.module names src/microdoppler_nearfield.py but never says pure PO / no occlusion", "verdict": "DELETE with the module; but first extract the g9 propeller-symmetry measurement, which is geometric and documents a defect in the SURVIVING microdoppler_sbr"},
+    {"file": "verify_observability.json", "producer": "benchmark/verify_observability.py", "engine": "SBR", "kernel": "AnalyticChannel:213 -> rcs_sbr_batch cache", "records_engine": "no"},
+    {"file": "verify_pyapril.json", "producer": "benchmark/verify_pyapril.py", "engine": "none (third-party DSP cross-check)", "kernel": "pyAPRiL", "records_engine": "partial - meta.lib/license/purpose", "verdict": "CLEAN"},
+    {"file": "x500v2_cad.json", "producer": "benchmark/measure_x500v2_cad.py", "engine": "none (CAD geometry)", "kernel": "-", "records_engine": "no", "verdict": "CLEAN"},
+    {"file": "report_mesh/outputs/mesh_verify.json", "producer": "report_mesh/src/verify_mesh_suite.py", "engine": "MIXED but no pure PO", "kernel": "A/B/C/D/E/F/G = trimesh + mesh_to_points GEOMETRIC sampling ; H_po_convergence = rcs_po.drone_rcs_pattern DEFAULT -> SBR (misnamed!) ; I_sbr_subdiv = SBR", "records_engine": "no", "verdict": "CLEAN - but the key name H_po_convergence is a purge trap: those numbers are SBR"},
+    {"file": "outputs/rcs_anchor.json.pre_merge.bak / report13_sigma_grid.json.pre_blade.bak", "producer": "manual backups", "engine": "SBR", "records_engine": "inherits", "verdict": "backup files - decide separately"},
+    {"file": "outputs/phantom4_ours_noprops.ply / phantom4_scan_decim.ply", "producer": "src/compare_phantom_scan.py", "engine": "none (mesh assets)", "records_engine": "n/a"}
+  ],
+
+  "handoffs": [
+    {
+      "file": "src/rcs_sbr.py",
+      "owner": "another workflow",
+      "requested_change": "delete compare_with_po() (lines 838-864) and its __main__ call (line 870); rewrite the docstring table at lines 9-10 that defines this module against rcs_po.py",
+      "risk_if_not_done": "src/rcs_sbr.py keeps importing rcs_po.mesh_to_points and rcs_po.rcs_from_points at line 842. Once rcs_from_points is deleted, `python src/rcs_sbr.py` raises ImportError. The import is inside the function, so ordinary use of rcs_sbr is unaffected - this is a broken self-test, not a broken engine.",
+      "blocking": false
+    },
+    {
+      "file": "benchmark/rcs_anchor.py",
+      "owner": "another workflow",
+      "requested_change": "none for PO removal (it is clean SBR). For the stamping phase: add an explicit engine string to meta, and fix the stale comment at line 11 that cites 'rcs_po.py:191-193' and line 124 that cites 'rcs_po.drone_rcs_pattern 과 동일 규약' - both will point at deleted/renamed code.",
+      "blocking": false
+    },
+    {
+      "file": "src/sigma_anchor.py",
+      "owner": "another workflow",
+      "requested_change": "none - verified free of PO physics (reads outputs/rcs_anchor.json + report13_sigma_grid.json only). Line 415 mentions materials.gamma_po, which survives.",
+      "blocking": false
+    },
+    {
+      "file": "src/drones.py",
+      "owner": "another workflow",
+      "requested_change": "none - drone_gamma_map (line 536) must be PRESERVED, it feeds the SBR engine. Only the rcs_po.py cross-reference in comments would go stale.",
+      "blocking": false
+    },
+    {
+      "file": "src/report_style.py, src/make_report*.py, src/drone_cad.py",
+      "owner": "another workflow",
+      "requested_change": "none found - no PO kernel references",
+      "blocking": false
+    },
+    {
+      "file": "src/make_notebook01..13.py + report01..13.ipynb",
+      "owner": "the rebuild workflow (retiring them to src/_legacy_builders/)",
+      "requested_change": "no edits needed per the brief. For the record, the report-side pure-PO exposure that the NEW six must not inherit: make_notebook07.py:277,279,638,658-674,664 (report2_occlusion.png, report2_po_vs_sbr.png, the occlusion table) ; make_notebook08.py:616 engines list contains 'po', :641,937 report1_microdoppler.png with its PO bars ; report07.ipynb:44,309 and report08.ipynb:46 carry the provenance table row for the 'po' engine.",
+      "blocking": false
+    }
+  ],
+
+  "orphans_found": [
+    {"path": "outputs/figures/report2_po_vs_sbr.png", "issue": "exists on disk, has NO producer - grep for 'po_vs_sbr' finds only src/make_notebook07.py:279,664 (consumer) and src/viz_radar.py:289 (a docstring citing 'viz_report2.fig_po_vs_sbr' which does not exist). Delete."},
+    {"path": "outputs/figures/report2_mesh_rcs_balloon.png, report2_mesh_rcs_facets.png", "issue": "produced by src/viz_mesh.py, referenced by no builder"},
+    {"path": "outputs/figures/md_range_f1..f8.png (8 files)", "issue": "pure PO, referenced by no builder"},
+    {"path": "outputs/figures/report6_po_diagnostic.png, report6_po_convergence.png, report6_nulls.png", "issue": "declared by src/viz_verify_po.py but ABSENT from outputs/figures/ - the module has not been run into the current figure set"},
+    {"path": "outputs/figures/report2_rcs_shape_ab.png", "issue": "pure PO on both arms; referenced by no builder"}
+  ],
+
+  "naming_traps": [
+    {"name": "src/rcs_po.py", "trap": "module name says PO but it hosts the live SBR dispatcher used by the detection headline. Renaming it (e.g. to rcs.py) would be honest, but 20 files import from it."},
+    {"name": "materials.gamma_po()", "trap": "name says PO, used by rcs_sbr.py:72,108,116,156. DELETING IT BREAKS THE SBR ENGINE."},
+    {"name": "mesh_verify.json['H_po_convergence'] / verify_mesh_suite.sec_H_po_convergence", "trap": "calls the DISPATCHER, so its numbers are SBR. A name-based purge would delete a valid result."},
+    {"name": "'analytic PO' sphere/plate reference (mie_pec_sphere.po_sphere_norm, sphere_reference_set)", "trap": "this is the SBR kernel's convergence TARGET, not the removed engine. Preserve - see open_questions."},
+    {"name": "viz_mesh.fig_rcs_facets colour label 'PO facet contribution'", "trap": "a diagram of the integrand weighting, not a PO result. Relabel, do not delete."},
+    {"name": "SBR itself is 'ray tracing + PO surface integral'", "trap": "the word PO is correct and must stay in the SBR description. The directive targets the POINT-CLOUD, NO-OCCLUSION engine only."}
+  ],
+
+  "open_questions_for_the_owner": [
+    {
+      "id": "Q1",
+      "question": "Does the analytic PO sphere/plate reference solution stay?",
+      "status": "ASKED BUT NEVER ANSWERED - docs/RESUME_0730.md:37-41 raised exactly this and marked it '사용자 확인 대기 중'.",
+      "map_position": "It is NOT the removed engine. The SBR kernel is a PO-over-ray-tubes integrator, so analytic PO is its correct target and exact Mie is the truth; the gap between them (0.152 dB at 3.5 GHz, r=0.5 m) is the price of the PO approximation itself. Deleting it removes the only way to separate 'our numerical error' from 'the PO approximation's error'. docs/REBUILD_2026-07-30.md:73 already resolves it in writing: '단 해석 PO 구는 기준해로 유지·명시' (keep the analytic PO sphere as a reference solution, explicitly labelled). Recommend proceeding on that line.",
+      "affected": ["benchmark/mie_pec_sphere.py", "outputs/sbr_kr_sweep.json", "outputs/report6_sbr.json kernel", "outputs/report2_waveform_rcs.json sbr_validation", "outputs/rcs_anchor.json sphere_calibration"]
+    },
+    {
+      "id": "Q2",
+      "question": "Does the occlusion differentiator survive, and in what form?",
+      "status": "FLAGGED, NOT RESOLVED - see occlusion_claim"
+    },
+    {
+      "id": "Q3",
+      "question": "Does the parametric-vs-3D-scan shape A/B survive, given the scan asset has no triangles?",
+      "status": "FLAGGED - see comparison_validation_verdicts C7. Needs a decision: re-mesh the scan (real work), fall back to the existing SBR phantom4_scan_compare.json (check equivalence), or drop the claim."
+    },
+    {
+      "id": "Q4",
+      "question": "Micro-Doppler at range: the user asked for it to be rebuilt on SBR (mesh into Sionna). REBUILD_2026-07-30.md:70 demotes micro-Doppler to future work instead. These two instructions point opposite ways.",
+      "status": "FLAGGED - affects whether microdoppler_nearfield.py is deleted or rewritten"
+    }
+  ],
+
+  "recommended_order_when_the_edit_phase_starts": [
+    "1. Create src/mesh_sample.py with mesh_to_points (+ _look_dirs) and repoint the 3 geometric callers (verify_mesh_suite, verify_md_nearfield g9, and the surviving PO-physics callers before they are deleted). Do this FIRST so the sampler is never in the same file as the doomed kernel.",
+    "2. Extract the two facts that currently live only inside doomed files: (a) benchmark/verify_md_nearfield.py g9 propeller 180-degree asymmetry -> microdoppler.py docstring; (b) experiment_md_range.py's 'mesh_to_points floors at one point per triangle' note -> mesh_sample.py docstring.",
+    "3. Reconcile or mark-superseded the ARCHIVE.md occlusion figures BEFORE deleting their evidence (occlusion_claim.options).",
+    "4. Delete src/viz_verify_po.py and src/viz_md_range.py wholesale (zero exposure, zero dependents).",
+    "5. Gut src/rcs_po.py: remove rcs_from_points, po_field_dir, validate, __main__, the engine!='sbr' branch and the env hook in channel.py. Make drone_rcs_pattern(engine=...) RAISE on anything but 'sbr' - never silently fall back.",
+    "6. Remove the comparison arms in viz_report1, viz_report2, viz_verify_sbr, run_matrix, channel, verify_target_rt, and fix benchmark/verify_linkbudget.py:497 in the same commit (it passes the kwarg being removed).",
+    "7. Delete outputs/md_range_sweep.json, outputs/verify_md_nearfield.json, the 8 md_range_*.png, report2_po_vs_sbr.png, and the orphan report2_mesh_rcs_balloon.png / report2_rcs_shape_ab.png unless Q3 keeps them.",
+    "8. Stamp engine provenance on every surviving outputs/*.json using outputs/report13_sigma_grid.json meta.engine as the template. Use THIS map's outputs_provenance as the source - do not re-derive by filename."
+  ]
+}

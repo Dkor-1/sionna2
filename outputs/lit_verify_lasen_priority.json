@@ -1,0 +1,207 @@
+{
+  "meta": {
+    "agent": "LITERATURE lens - adversarial verification",
+    "date": "2026-07-31",
+    "question": "LaSen 주장을 원문 대조 검증하고, 패시브-대-모노스태틱 반복률 논증의 선행 우선권을 확정한다",
+    "sources_opened_at_full_text": [
+      "/data/public/jeong/papers/5G/26_LaSen.pdf (14 p, fitz)",
+      "chen.pdf = Appl. Sci. 14(10):4282 (20 p, mdpi-res.com 직접 내려받음)",
+      "/data/public/jeong/papers/5G/25_Utilizing 5G NR SSB Blocks... .pdf (5 p)",
+      "/data/public/jeong/papers/LTE/25_An Experimental Study of Passive UAV Tracking... .pdf (16 p)",
+      "arXiv:2511.14529v1 (15 p), arXiv:2606.21677v1 (10 p)"
+    ],
+    "sources_still_unread_full_text": [
+      "Abratkiewicz JSTARS 2023 (IEEE stamp 502; 초록·제3자 요약만)",
+      "Golzadeh VTC2023-Spring (SIB1-assisted SSB)",
+      "Barneto TMTT 2019 (>100 dB 주장의 원출처)"
+    ]
+  },
+
+  "verdict": "메모 'LaSen 은 모노스태틱' 은 원문에서 확증. 그러나 두 가지가 무너진다. ① 과제 브리프의 '모노스태틱은 PRF 를 자유롭게 고른다' 는 LaSen §3.1.1 이 직접 반증한다 - LaSen 은 바로 그 제약을 **모노스태틱 문장으로** 쓴다. ② 우리 헤드라인 숫자 1.0707 m/s 는 이미 게재된 숫자다. Chen et al., Appl. Sci. 14(10):4282, 2024 (MDPI, 게재, OA) 가 같은 바이스태틱 기하·같은 기호(β, δ)·같은 50 Hz 로 1.0556 m/s(=0.56 rps @ r=0.3 m)를 실측까지 붙여 냈다. 우리 값과 1.43% 차이이고 그 차이는 반송파(3.5 vs 3.55 GHz) 뿐이다. 원문 대조로 전부 축자 확인했다. 게다가 Chen 은 그 도플러 식조차 자기 것이라 하지 않고 [16] Samczynski et al., IEEE TGRS 2021/2022 에 돌린다 - 즉 식은 교과서 바이스태틱 도플러이고 누구의 것도 아니다. 살아남는 기여는 '사실'도 '숫자'도 '식'도 아니라, 규격근거 교차표준 표 · 실기체 속도 겹치기 · 설계역산 · 인프라이전 서사 · 검출결과 연결 · 그리고 이번 라운드에서 확인한 대로 **아직 아무도 그리지 않은 패시브↔모노스태틱 경계** 다.",
+
+  "A_lasen_claims_checked_at_source": {
+    "identity_and_venue": {
+      "prior_claim": "SenSys '26, Saint Malo, May 11-14 2026, ACM pp.732-745, DOI 10.1145/3774906.3800504, 게재 확정",
+      "status": "CONFIRMED, 단 학회 정식명칭이 프라이어 JSON 에 없다",
+      "verbatim_acm_reference_format": "Qian Yang, Yongtao Dai, Mingrui Li, Qianyi Huang, Xu Chen, Jin Zhang, Guochao Song, Qian Zhang, Xiaofeng Tao. 2026. LaSen: Low-Altitude Drone Sensing with 5G-NR Signals. In ACM/IEEE International Conference on Embedded Artificial Intelligence and Sensing Systems (SenSys '26), May 11-14, 2026, Saint Malo, France. ACM, New York, NY, USA, 14 pages. https://doi.org/10.1145/3774906.3800504",
+      "isbn": "979-8-4007-2309-4/26/05",
+      "license": "Creative Commons Attribution 4.0 International",
+      "pages_verified": "PDF 페이지 헤더 실측 732..745 (14 p) - pp.732-745 정확",
+      "publication_status": "게재 확정 + 학회 개최 완료(2026-05-14 < 오늘 2026-07-31). 프리프린트 아님",
+      "correction": "⚠ SenSys '26 의 정식명은 'ACM/IEEE International Conference on Embedded Artificial Intelligence and Sensing Systems' 이다. 관행적인 'ACM Conference on Embedded Networked Sensor Systems' 로 적으면 틀린다(그 옛 이름은 이 논문의 참고문헌 [17][18][39] 에서 2021/2022/2024 판을 가리킬 때만 쓰인다). 하우스 규칙(venue+status+year)상 정식명으로 적을 것."
+    },
+    "geometry_monostatic": {
+      "prior_claim": "monostatic 6 / mono-static 1 / bistatic 1(그 1건은 참고문헌 [37] 안)",
+      "status": "CONFIRMED - 카운트 4/4 일치, 재현함",
+      "counts_reproduced": {"monostatic": 6, "mono-static": 1, "bistatic": 1, "passive": 6, "TDD": 0, "full-duplex": 2, "self-interference": 1},
+      "verbatim_2_2_1": "A practical ISAC implementation involves configuring the gNB with an additional receive chain to capture reflections of its own transmitted signals [32], similar to a monostatic radar. In monostatic configurations, since all of X[m,n] are known, it enables the gNB to achieve channel estimates across all non-empty REs (both reference and data-carrying) within the scheduled bandwidth.",
+      "bistatic_single_hit": "참고문헌 [37] Nataraja, Sharma, Ali, Bai, Wang, Molisch, 'Integrated Sensing and Communication (ISAC) for Vehicles: Bistatic Radar With 5G-NR Signals', IEEE Trans. Veh. Technol. 74(4):6121-6137, 2025, DOI 10.1109/TVT.2024.3514573 - 본문 아님. 확증."
+    },
+    "scoping_caveat": {
+      "prior_claim": "상용 gNB 를 통해 드론을 잰 적이 없다; 드론 반사는 자기 USRP 가 5.8 GHz 에서 만재 송신한 파형, 상용 gNB 2대는 RE 점유 마스크만",
+      "status": "CONFIRMED 축자",
+      "verbatim": "...demodulate 2200 data frames from two China Mobile N41 band gNBs in our campus... The final channel frequency response was obtained by performing element-wise multiplication between the full-band drone measurements and the derived occupancy masks, generating 12079 channel samples for further analysis.",
+      "implication": "LaSen 을 인용할 때 '상용 5G 망으로 드론을 20.2 m/s 까지 쟀다' 로 적으면 원문 초과다. 조명·반사는 자기 SDR, 상용망은 점유 패턴만."
+    },
+    "velocity_numbers": {
+      "prior_claim": "20.2 m/s 는 무모호 상한이 아니라 기체 상한; 베이스라인 2.6 m/s",
+      "status": "CONFIRMED 축자",
+      "verbatim": "At the same 5.8 GHz frequency setting, the method based on CSI-RS estimation has an unambiguous velocity range of up to 2.6 m/s, while LaSen extends this range to 20.2 m/s. We did not measure the maximum speed sensing range of LaSen, since the upper speed limit of the drone is 21 m/s.",
+      "drone_spec_verbatim": "DJI Matrice 4E [12] with a size of 307 mm x 388 mm x 150 mm and a maximum speed of 21 m/s and DJI Mini 4 Pro [13] ... maximum speed of 14 m/s",
+      "our_law_reproduces_their_baseline": {"fc_hz": 5.8e9, "prf_hz": 200.0, "lambda_prf_over_4_ms": 2.5844177413793103, "paper_states_ms": 2.6, "rel_err_pct": 0.5993176392572027, "convention": "반쪽 구간 - 그들도 'range of up to 2.6' 로 ±규약"},
+      "our_law_reproduces_their_nyquist": {"v_ms": 44.7, "fc_hz": 3.5e9, "fd_2v_over_lambda_hz": 1043.6786937666666, "paper_states_hz": 1044, "nyquist_paper_states_hz": 2087}
+    },
+    "always_on_narrative_support": {
+      "status": "CONFIRMED 축자 - 우리 [[sionna2-passive-ref-narrative]] 를 외부에서 지지",
+      "verbatim": "LTE utilizes a cell-specific reference signal (CRS) that broadcasts continuously at 1000 Hz, which is widely exploited in existing pervasive sensing studies [11, 17]. While in NR, the design principle is to avoid always-on, mandatory signals such as CRS, reducing spectrum waste and unwanted interference. ... In addition to CSI-RS, 5G NR incorporates downlink synchronization signals such as the Synchronization Signal Block (SSB), which spans up to 7.2 MHz and is typically repeated at 50 Hz. These relatively low repetition rates (200 Hz for CSI-RS and 50 Hz for SSB) inherently limit Doppler tracking for high-speed targets."
+    },
+    "traffic_dependence": {
+      "status": "CONFIRMED 축자 2건",
+      "verbatim_1": "our measurements reveal that, for a given gNB, less than 5% of total time duration exhibits a resource-utilization density above 7.1% (Figure 5(b))",
+      "verbatim_2": "LaSen only increases approximately twice the full-band error under an average channel occupancy of just 3%"
+    },
+    "self_interference": {
+      "status": "PARTIALLY CONFIRMED - ⚠ 프라이어 JSON 의 '>100 dB' 는 LaSen 문장이 아니다",
+      "lasen_verbatim": "...a conductive shielding plate between the transmitter and receiver antennas to mitigate near-field coupling, and a static background removal algorithm to suppress residual self-interference. While this approach suffices for proof-of-concept validation under controlled conditions, practical deployments would benefit from advanced active cancellation techniques, such as analog or digital domain interference subtraction [8], which can achieve >50 dB suppression in full-duplex OFDM systems.",
+      "lasen_ref_8": "Carlos Baquero Barneto, Taneli Riihonen, Matias Turunen, Lauri Anttila, Marko Fleischer, Kari Stadius, Jussi Ryynanen, Mikko Valkama. 2019. Full-duplex OFDM radar with LTE and 5G NR waveforms: Challenges, solutions, and measurements. IEEE Transactions on Microwave Theory and Techniques 67, 10 (2019), 4042-4054.",
+      "note": "LaSen 은 >50 dB 만 말한다. '>140 dB above thermal / >100 dB total' 은 Barneto 원문에서 직접 확인해야 하며 이번 라운드에 열지 못했다."
+    },
+    "internal_inconsistencies_reassessed": [
+      {"prior": "(a) CSI-RS 500 Hz vs 200 Hz 병치", "reassessed": "DOWNGRADE - 모순 아님. §1 은 'The maximum configurable repetition frequency for Sub-6 GHz CSI-RS is 500 Hz [3]'(규격 상한), §3.1.1 의 200 Hz 는 자기들이 실측한 N41 gNB 배치값. 두 층을 구별하지 않고 쓴 느슨함이지 오류가 아니다. 다만 §3.1.1 끝문장 'These relatively low repetition rates (200 Hz for CSI-RS...)' 는 배치값을 일반값처럼 말한다."},
+      {"prior": "(b) 'a period of 100 Hz and a 5 ms offset' 단위 오류", "reassessed": "CONFIRMED - 축자 'two sets of periodic CSI-RS with a period of 100 Hz and a 5 ms offset, achieving a maximum sampling rate of 200 Hz'. §6.4 는 'a period of 10 ms and an offset of 5 ms, achieving a maximum sampling rate of 200 Hz' 로 옳게 쓴다. 밑숫자(각 세트 10 ms, 2세트 인터리브 -> 200 Hz)는 두 곳이 일치하므로 표기 슬립이다."},
+      {"prior": "(c) SDR §5 USRP-2954R vs §8 USRP X310", "reassessed": "CONFIRMED - §5 'We implement LaSen on an NI USRP-2954R software-defined radio [38]', §8 'our SDR prototype (NI USRP X310) has only two receiving channels'. 참고문헌 [38] 은 USRP-2954 제품페이지. 실제 하드웨어가 뭔지 원문만으로 확정 불가."}
+    ]
+  },
+
+  "B_memory_claim_test": {
+    "memory": "[[sionna2-lasen-monostatic]] 'PDSCH 재활용은 패시브 바이스태틱에 이전 불가; 아카이브 최대 미검토 구멍'",
+    "verdict": "SPLIT - 좁은 형태는 참, 넓은 형태는 거짓",
+    "true_part": "LaSen 의 기제는 X[m,n] 을 **안다**는 전제 위에 있다(§2.2.1 축자 'since all of X[m,n] are known'). 패시브 수신기가 그걸 얻으려면 PDSCH 를 복조해야 하고(스크램블링·MCS·HARQ·빔), 그건 LaSen 이 공짜로 갖는 것을 유료로 사는 일이다. 그 의미에서 '그대로 이전 불가' 는 참이다.",
+    "false_part": "⚠ 그러나 '패시브는 데이터 심볼을 못 쓴다' 로 넓히면 거짓이다. 고전 PCL 은 언제나 **원시 기준채널**로 전 파형을 쓴다 - 복조가 필요 없다. Sun, Yu, Luo, Han, Tan, Wang, Lau, 'An Experimental Study of Passive UAV Tracking With Digital Arrays and Cellular Downlink Signals', IEEE Open Journal of the Communications Society, vol. 6, 2025 (게재, DOI 10.1109/OJCOMS.2025.3558430, 온라인 2025-04-07) 가 정확히 그것이다: LTE 조명, 기준배열 + 감시배열 2채널, CAF 로 바이스태틱 거리·도플러·AoA. 전문에서 'unambiguous' 0회, 'Nyquist' 0회, 'CRS' 0회, 'SSB' 0회, 'PRF' 0회 - 기준신호 반복률 제약이 **아예 등장하지 않는다**. 게재된 패시브 바이스태틱 드론 추적 시스템이 우리 법칙의 사정거리 밖에 있다는 실물 증거다.",
+    "consequence": "메모는 'LaSen 의 압축센싱 파이프라인은 이전 불가' 로 좁혀 다시 쓸 것. 그리고 우리 헤드라인은 '패시브 수신기' 가 아니라 '**상시 기준신호 심볼에만 정합하는** 패시브 수신기' 로 스코핑해야 한다. 우리 자신의 refrate_law.json nr_recon 행(ambient=False)이 이미 같은 말을 하고 있다."
+  },
+
+  "C_priority": {
+    "question": "패시브(또는 어떤) 수신기의 무모호 속도가 기준신호 반복률로 정해진다는 논증을 누가 먼저 했는가",
+    "answer": "최소 3편이 먼저 했고, 그중 Chen 2024 는 우리 헤드라인 숫자까지 같다. 그리고 그 식은 셋 다 남의 것으로 돌린다.",
+    "hit_1_chen": {
+      "citation": "P. Chen, L. Tian, Y. Bai, J. Wang, 'Rotating Target Detection Using Commercial 5G Signal', Applied Sciences (MDPI) 14(10):4282, 2024, DOI 10.3390/app14104282 - 게재, 오픈액세스(CC BY)",
+      "verification": "⭐ 이번 라운드에 PDF 원문 20 p 확보(mdpi-res.com)하고 축자 대조 완료. 이전 라운드는 검색 요약이었다. 또한 LaSen 참고문헌 [10] 이 같은 서지를 독립적으로 확인해 준다.",
+      "geometry": "순수 패시브 바이스태틱 - 전문에서 'passive' 41회, 'bistatic' 8회, 'monostatic' 0회",
+      "verbatim_equation_context": "Where v is the velocity of the target, L is the distance between the receiving and transmitting antennas, L_T is the distance between the target and the transmitting antenna, L_R is the distance between the target and the receiving antenna, beta is the double base angle, and delta is the angle of the target at the velocity direction relative to the bisector of the double base angle. ... Assuming the wavelength of the signal is lambda, the Doppler frequency shift generated by the moving target can be expressed as [16]  f_d = (v/lambda)[cos(delta+beta/2) + cos(delta-beta/2)] = (2v/lambda) cos(beta/2) cos(delta)   (4)",
+      "verbatim_ambiguity": "In experiments, the CSI-RS signal period is 20 ms, and the maximum unambiguous Doppler frequency is 50 Hz. The measurable Doppler frequency shift range is [-25 Hz, 25 Hz]. For a unilateral rotation target, when the signal carrier frequency is 3.55 GHz, the rotation radius is 0.3 m, and the double base angle is 0, the maximum measurable speed is 0.56 rps. The presence of the double base angle makes the maximum measurable speed slightly greater than 0.56 rps.",
+      "numeric_collision": {
+        "our_headline_nr_ssb_v_max_ms": 1.07068735,
+        "our_headline_source": "outputs/refrate_law.json illuminators.headline.nr_ssb_v_max_ms",
+        "chen_published_rps": 0.56,
+        "chen_linear_ms": 1.0555751316,
+        "chen_reproduced_by_our_law_ms": 1.0556069014084507,
+        "chen_reproduced_rps": 0.5600168564,
+        "rel_err_vs_paper_pct": 0.003009,
+        "gap_ours_vs_chen_pct": 1.4290,
+        "reason_for_gap": "반송파만 다르다 (우리 3.5 GHz vs Chen 3.55 GHz). 반복률 50 Hz, 규약(반쪽구간), 기하(beta=0) 전부 동일.",
+        "verdict": "우리 헤드라인 1.07 m/s 는 2024년에 이미 게재된 1.056 m/s 와 같은 숫자다. '우리가 처음 계산했다' 는 어떤 문장도 즉시 반박당한다."
+      },
+      "what_chen_does_NOT_have": [
+        "닫힌형 v_max = lambda*PRF_ref/(4 cos(beta/2) cos delta) 를 기호로 쓰지 않는다 - 수치로만 조립한다(전문 확인: 'maximum measurable speed' 를 정의하는 식이 없다)",
+        "교차표준 표 없음 - 5G CSI-RS 한 종뿐(LTE/WiFi/DVB-T/DTMB/FM 행 전무)",
+        "실기체 없음 - 표적은 스텝모터에 달린 반경 0.3 m 회전팔(로터 대용)",
+        "설계 역산(PRF_req = 4v/lambda 등) 없음",
+        "인프라 이전 서사(LTE CRS 1 kHz -> NR SSB 50 Hz) 없음",
+        "검출성능 귀결(Pd, 블라인드 비율, CPI 독립성) 없음"
+      ],
+      "⭐_formula_is_nobody_s": "Chen 은 식 (4) 를 자기 것이라 하지 않고 [16] 에 돌린다: 'Samczynski, P.; Abratkiewicz, K.; Plotka, M.; Zielinski, T.P.; Wszolek, J.; Hausman, S.; Korbel, P.; Ksiezyk, A. 5G network-based passive radar. IEEE Trans. Geosci. 2021, 60, 1-9.' 즉 f_d = (2v/lambda)cos(beta/2)cos(delta) 는 교과서 바이스태틱 도플러이고 Chen 도 우리도 소유권이 없다. 우리 논문은 이 식을 **인용**해야 하며(Willis 계열 또는 Samczynski TGRS), 'Chen 이 선점했다' 도 정확히는 과한 말이다."
+    },
+    "hit_2_abratkiewicz": {
+      "citation": "K. Abratkiewicz, A. Ksiezyk, M. Plotka, P. Samczynski, J. Wszolek, T. P. Zielinski, 'SSB-Based Signal Processing for Passive Radar Using a 5G Network', IEEE J. Sel. Topics Appl. Earth Obs. Remote Sens., vol. 16, pp. 3469-3484, 2023, DOI 10.1109/JSTARS.2023.3262291 - 게재",
+      "status": "원문 PDF 여전히 미확보(IEEE stamp 502). 이번 라운드에 제3자 요약의 **출처는 확정**했다: Wu et al. arXiv:2511.14529v1 (2025-11-18, 프리프린트, 게재지 미상) 참고문헌 [21] 이 정확히 이 논문이며, 본문 축자는 'Similarly, [21] exploited the periodicity of the SSB for passive coherent location (PCL). However, the study also highlighted that the maximum unambiguous velocity of PCL is severely constrained by the SSB's long transmission periodicity (e.g., 10 ms minimum).'",
+      "abstract_level_verbatim": "'Although SSB periodicity limits the velocity ambiguity, a solution to tackle this problem in a single target scenario has been described.' (초록)",
+      "warning": "본문 수치·그림은 여전히 인용 불가. 제3자 요약 문장을 원문 인용부호 안에 넣지 말 것."
+    },
+    "hit_3_lasen": {
+      "citation": "LaSen, SenSys '26 (게재)",
+      "status": "⭐ 논문 전체의 존재 이유가 우리 명제다. 그리고 §7 에서 그 명제의 우선권을 명시적으로 Chen 에게 돌린다.",
+      "verbatim_attribution": "Leveraging commodity gNB CSI-RS, Chen et al. [10] demonstrate rotational motion detection using commercial gNB CSI-RS. It also reveals that the unambiguous velocity is bounded by the CSI-RS repetition period.",
+      "implication": "게재된 SenSys 논문이 '무모호 속도는 CSI-RS 반복주기가 정한다' 를 Chen 2024 의 발견으로 기록해 두었다. 우리가 그 명제의 최초 제기자라고 쓸 자리는 문헌상 남아 있지 않다."
+    },
+    "hit_4_jopanya": {
+      "citation": "⭐ 서지 정정 - P. Jopanya and D. P. M. Osorio, 'Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones', in Proc. IEEE 26th Int. Workshop on Signal Processing Advances in Wireless Communications (SPAWC), Surrey, UK, Jul. 2025, pp. 1-5, DOI 10.1109/SPAWC66079.2025.11143316 - **게재**. (arXiv:2504.02641 은 프리프린트판)",
+      "our_current_record": "refrate_law.json novelty_guard 는 arXiv 번호만 적어 하우스 규칙(venue+status+year)을 어기고 있다",
+      "relation_to_us": "그들의 무모호 속도는 |v_u| <= lambda_c * f_Delta / 2 로 **버스트 내부** OFDM 심볼축이다(원문 축자 확인). 우리 법칙과 다른 축이고, refrate_law.json scope.intra_burst_alternative 가 이미 이 교환관계를 수치로 잡아 뒀다(무모호 1284.82 m/s vs 분해능 300.11 m/s). 이 부분은 방어된다.",
+      "note": "⚠ 규약 주의: 그들의 lambda*f_Delta/2 는 우리 반쪽구간 규약의 lambda*PRF/4 대비 2배다. 나란히 적을 때 환산 필요."
+    },
+    "hit_5_counterexample_sun": {
+      "citation": "Y. Sun, C. Yu, Y. Luo, T. X. Han, H. Tan, R. Wang, F. C. M. Lau, 'An Experimental Study of Passive UAV Tracking With Digital Arrays and Cellular Downlink Signals', IEEE Open Journal of the Communications Society, vol. 6, pp. ~3775-3790, 2025, DOI 10.1109/OJCOMS.2025.3558430 - 게재(2025-04-07 온라인)",
+      "why_it_matters": "⚠ 우선권이 아니라 **반례**다. 게재된 패시브 바이스태틱 드론 추적기가 원시 기준안테나 + CAF 로 LTE 전 파형을 쓰며, 기준신호 반복률 개념 자체를 쓰지 않는다(unambiguous/Nyquist/CRS/SSB/PRF 각 0회). 우리 헤드라인의 스코프 문장이 없으면 이 한 편으로 반박된다."
+    },
+    "adjacent_2026_work_not_priority": [
+      "A. Peloso, M. Rossi, J. Pegoraro, 'Zero-Overhead Unambiguous Velocity Estimation in Multiband ISAC Systems Under Random Traffic', arXiv:2604.06790, 2026-04-08 (프리프린트, 게재지 미확인) - 불규칙 패킷 도착에서 오는 도플러 모호를 **다중대역 주파수 다이버시티**로 푼다. 우리 X5(광폭 멀티스태틱이 해모호)의 주파수축 사촌.",
+      "Y. Geng, P. Cao, T. Zeng, Y. Deng, 'Multi-Periodogram Velocity Estimation with Irregular Reference Signals for Robot-Aided ISAC', arXiv:2604.25974, 2026-04-28, **IEEE ICC 2026 채택**(저자 표기) - 불규칙 RS 패턴의 속도 프로파일을 주기피크+가중 성분으로 분해.",
+      "C. Dickerson, W. Khawaja, I. Guvenc, 'Adaptive 5G Resource Allocation for Multistatic ISAC-Based UAV Detection and Tracking', arXiv:2606.21677v1, 2026-06-23 (프리프린트, 게재지 미확인) - monostatic 22 / bistatic 11 / multistatic 26 회로 기하 비교가 핵심이나, 전문에서 'unambiguous' 0회 · 'periodicity' 0회. 우리 법칙과 충돌하지 않는다.",
+      "종합: 2026년 들어 '기회적/불규칙 기준신호 -> 도플러 모호' 가 활발한 연구 전선이 됐다. 우리가 이 전선을 모르는 채로 쓰면 안 되고, 우리 기여를 '해법' 이 아니라 '조명원 선택 기준' 으로 세워야 차별화된다."
+    ]
+  },
+
+  "D_the_brief_s_framing_is_refuted_at_source": {
+    "brief_claim": "In monostatic ISAC the sensor IS the transmitter, so it CHOOSES its own reference repetition rate. PRF becomes a DESIGN VARIABLE rather than a constraint. That is why the finding is specific to PASSIVE sensing.",
+    "verdict": "⭐ REFUTED - 문헌이 정면으로 부정한다",
+    "evidence_1_lasen_states_it_for_monostatic": {
+      "verbatim": "3.1.1 Why 5G Reference Signals Fall Short in UAV Sensing? The Federal Aviation Administration (FAA) mandates a maximum permissible speed of 100 mph (44.7 m/s) for UAVs in the United States [16]. In monostatic wireless sensing systems, the Doppler frequency shift (f_d) is proportional to the target velocity (v), governed by the relationship f_d = 2 v / lambda. (3) For a 3.5 GHz carrier, this results in a maximum Doppler shift of 1044 Hz. To avoid aliasing and ensure reliable velocity estimation, the Nyquist-Shannon sampling theorem requires that the measurement signal should be at least twice the frequency of the maximum Doppler shift, i.e., 2087 Hz.",
+      "reading": "SenSys 2026 게재 논문이 **모노스태틱 문장으로** 우리 제약을 쓰고, 그것을 논문 전체의 문제제기로 삼는다. '모노스태틱은 이 문제가 없다' 는 문장은 이 한 문단으로 끝난다."
+    },
+    "evidence_2_spec_ceiling": {
+      "verbatim": "The maximum configurable repetition frequency for Sub-6 GHz Channel State Information Reference Signals (CSI-RS) is 500 Hz [3], falling short of the Nyquist sampling requirements for resolving high-speed targets like drones.",
+      "ref_3": "3rd Generation Partnership Project. 2025. Radio Resource Control (RRC) protocol specification. TS 38.331, Release 19.",
+      "our_independent_check": "TS 38.331 IE CSI-ResourcePeriodicityAndOffset 의 최소값이 slots4 임을 웹에서 확인(값 목록 4..640 슬롯). 30 kHz SCS 에서 4 슬롯 = 2 ms = 500 Hz 로 일치.",
+      "⚠_caveat_we_must_state": "500 Hz 는 **SCS 의존**이다. FR1 은 15/30/60 kHz SCS 를 허용하므로 4 슬롯은 각각 4 ms(250 Hz) / 2 ms(500 Hz) / 1 ms(1000 Hz) 다. LaSen 의 '500 Hz' 는 30 kHz SCS 암묵 가정이다. 우리가 이를 절대적 3GPP 천장으로 옮겨 적으면 틀린다. 규격 원문 조항을 직접 확인하기 전에는 'LaSen(SenSys 2026)이 TS 38.331 을 근거로 sub-6 CSI-RS 최대 500 Hz 라고 적는다' 형태의 **인용**으로만 쓸 것.",
+      "arithmetic_if_500Hz_holds": {"fc_hz": 3.5e9, "prf_hz": 500.0, "v_max_ms": 10.7068735, "ratio_to_our_headline": 10.0}
+    },
+    "evidence_3_measured_deployments_are_far_below_the_ceiling": {
+      "chen_2024_beijing": "CSI-RS 주기 40 슬롯 = 20 ms = 50 Hz (실험실 gNB Table 4 축자 'Period 40 slots', 상용 gNB 도 동일)",
+      "lasen_2026_china_mobile_N41": "자원세트 2개 x 주기 10 ms, 오프셋 5 ms -> 200 Hz",
+      "ladder": "실측 50 Hz -> 실측 200 Hz -> 규격상한 500 Hz(30 kHz SCS 가정). 3.5 GHz 에서 1.07 -> 4.28 -> 10.71 m/s. 무한대가 아니고, 사다리 위로 갈수록 통신 오버헤드를 문다."
+    },
+    "evidence_4_the_real_escape_is_data_symbols_and_it_is_traffic_bound": {
+      "lasen_verbatim": "we observe that a monostatic ISAC gNB can exploit all non-empty resource elements for channel measurements, including both reference and data-bearing symbols, thereby complementing the reference signals to mitigate undersampling-induced ambiguity without incurring additional resource consumption.",
+      "but": "그 탈출구는 트래픽에 종속된다 - LaSen 자신의 실측이 상용 gNB 는 시간의 95% 를 RE 점유율 7.1% 아래에서 보낸다고 말한다.",
+      "and": "그 탈출구가 모노스태틱 전용도 아니다 - Sun et al. OJ-COMS 2025 가 원시 기준채널로 같은 일을 패시브에서 한다."
+    },
+    "corrected_framing": "경계는 '모노 vs 패시브' 가 아니라 '**아는 심볼에만 정합하느냐 vs 받은 파형 전부를 쓰느냐**' 다. 모노스태틱은 전 파형이 공짜(자기가 보냄)이고, 패시브는 깨끗한 기준채널을 확보할 수 있으면 역시 전 파형을 쓸 수 있다(고전 PCL). 5G 에서 패시브가 진짜로 갇히는 이유는 반복률이 아니라 **빔포밍**일 가능성이 크다 - PDSCH 는 특정 UE 로 조향되지만 SSB 는 전방향 스윕 브로드캐스트라, 임의 위치의 패시브 수신기와 임의 방위의 표적이 항상 함께 받는 것은 SSB 뿐이다. 이 논거는 우리 표에 아직 없고, 선행 중에서도 정면으로 다룬 편을 못 찾았다."
+  },
+
+  "E_what_survives_of_our_contribution": {
+    "dead": [
+      "무모호 속도가 상시 기준신호 반복률로 정해진다는 **사실** - Abratkiewicz 2023, Chen 2024, LaSen 2026 이 먼저",
+      "f_d = (2v/lambda)cos(beta/2)cos(delta) 라는 **식** - 교과서. Chen 도 Samczynski TGRS 2021/2022 에 돌린다",
+      "5G SSB/CSI-RS 50 Hz 에서 약 1 m/s 라는 **숫자** - Chen 2024 가 1.0556 m/s 를 실측과 함께 게재. 우리 1.0707 과 1.43% 차이"
+    ],
+    "alive": [
+      "닫힌형 v_max = lambda*PRF_ref/(4 cos(beta/2) cos delta) 를 **기호로** 세우고 저장소 함수로 검증한 것(Chen 은 수치조립만)",
+      "규격조항·게재측정으로 근거를 댄 **교차표준** 표 8종(셀룰러/WLAN/방송 한 축) - 선행 어디에도 없다",
+      "실기체 게재 최고속도 7기종 겹치기",
+      "설계 역산(PRF_req, T_ref,max, f_c,max)",
+      "인프라 이전 서사(LTE CRS 1 kHz -> NR SSB 50 Hz, 40.7 -> 1.07 m/s; 파장 기여는 1.90배뿐)",
+      "⭐ WiFi 비콘 행(9.77 Hz, 0.14 m/s) - 법칙이 반-5G 주장이 아님을 증명하는 행. 선행 중 이 비교를 한 편 없음",
+      "검출 귀결 정량화(X1~X6: 접힘 != 미검출, CPI 독립성, 멀티스태틱 해모호)",
+      "⭐ **패시브↔모노스태틱 경계를 숫자로 그은 것** - 이번 두 라운드 조사에서 이 비교를 한 선행을 못 찾았다. 다만 '모노가 자유롭다' 가 아니라 '둘 다 갇히고, 사다리 높이와 지불 항목이 다르다' 로 세워야 한다"
+    ],
+    "must_write_this_way": "'우리가 처음 지적한다' 대신 '선행(Abratkiewicz JSTARS 2023 게재; Chen Appl. Sci. 2024 게재; LaSen SenSys 2026 게재)이 5G 내부에서 개별적으로 보고한 이 제약을, 우리는 조명원 선택 축으로 일반화하고 규격근거·실기체·검출성능까지 붙인다.'"
+  },
+
+  "F_actions": [
+    {"target": "outputs/refrate_law.json novelty_guard", "action": "Chen et al. Appl. Sci. 14(10):4282 2024 항목 추가 - '숫자까지 겹친다(1.0556 vs 1.0707 m/s)' 를 명시. LaSen SenSys 2026 항목 추가.", "owner": "refrate_law 소유 워크플로(이 에이전트는 손대지 않음)"},
+    {"target": "outputs/refrate_law.json novelty_guard[1].prior", "action": "Jopanya 서지를 arXiv:2504.02641 -> 'Proc. IEEE SPAWC 2025, Surrey UK, Jul. 2025, DOI 10.1109/SPAWC66079.2025.11143316 (published)' 로 승격", "owner": "동상"},
+    {"target": "outputs/refrate_law.json law.statement_*", "action": "'passive bistatic receiver whose matched filter locks onto an ambient reference signal' 은 이미 스코핑돼 있어 방어된다. 다만 Sun OJ-COMS 2025 반례를 scope 에 한 줄 넣어 '원시 기준채널 전 파형 PCL 은 이 법칙 밖' 을 못박을 것", "owner": "동상"},
+    {"target": "outputs/monostatic_prior.json", "action": "① SenSys 정식명 정정 ② 내부모순 (a) 를 DOWNGRADE ③ '>100 dB SI' 는 LaSen 문장 아님(LaSen 은 >50 dB) 표기 ④ Chen 항목에 '식은 Chen 것도 아니고 [16] Samczynski TGRS 에 돌린다' 추가 ⑤ 500 Hz 는 SCS 의존임을 추가", "owner": "monostatic_prior 소유 워크플로"},
+    {"target": "memory [[sionna2-lasen-monostatic]]", "action": "'PDSCH 재활용 이전 불가' -> 'LaSen 의 known-symbol 압축센싱 파이프라인은 이전 불가. 단 원시 기준채널 PCL 은 패시브에서도 전 파형을 쓴다(Sun OJ-COMS 2025 게재)' 로 정정", "owner": "메모 관리 주체"},
+    {"target": "report12 LaSen 비판 문장", "action": "이번 라운드에도 열지 못했다. R20_main_verdicts.json 경고대로 과일반화 점검 필요 - 특히 'LaSen 은 모노스태틱이라 우리와 무관' 류 문장은 §3.1.1 이 우리 제약을 모노로 쓰고 있으므로 위험", "owner": "report12 소유 워크플로"}
+  ],
+
+  "G_still_open": [
+    "Abratkiewicz JSTARS 2023 원문 - IEEE stamp 502. JSTARS 는 OA 이므로 다른 미러(PW/ResearchGate 승인)로 재시도 가치 있음. 우리 최근접 선행인데 초록 + 제3자 요약뿐",
+    "Golzadeh VTC2023-Spring (SIB1-assisted SSB) 본문 - 여전히 미확보",
+    "Barneto TMTT 2019 원문 - '>100 dB' 근거. LaSen 은 >50 dB 만 인용한다",
+    "3GPP TS 38.331 CSI-RS 주기 최소값의 **원 규격 조항** - slots4 는 간접 확인했으나 SCS 별 환산은 우리 계산",
+    "Wei et al. IEEE TVT 72(3):3250-3263 의 연도 - Wu 참고문헌은 2022, 우리 기록은 2023. IEEE 권/호(72권 3호 = 2023-03) 기준으로 못박을 것"
+  ]
+}

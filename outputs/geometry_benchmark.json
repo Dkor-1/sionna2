@@ -1,0 +1,1585 @@
+{
+ "meta": {
+  "script": "benchmark/geometry_benchmark.py",
+  "generated": "2026-07-31T09:07:56",
+  "question": "2×3 지도에서 각 칸은 무엇을 보고, 기존 주장은 어느 기하에서 서는가",
+  "contract": [
+   "docs/PAPER_SPEC.md §0 · §5",
+   "docs/REBUILD_2026-07-30.md §5",
+   "outputs/geometry_grid.json",
+   "outputs/mono_link.json"
+  ],
+  "reads": [
+   "geometry_grid.json",
+   "mono_link.json",
+   "refrate_law.json",
+   "vmax_hardening.json",
+   "sigma_sensitivity.json",
+   "monostatic_prior.json",
+   "report13_sigma_grid.json",
+   "verify_cfar.json"
+  ],
+  "repo_functions_used": [
+   "freespace_scene.fs_params",
+   "freespace_scene.target_pos",
+   "freespace_scene.heading_velocity",
+   "freespace_scene.FS_RX",
+   "freespace_scene.folded_doppler",
+   "freespace_scene.doppler_bin_hz",
+   "freespace_scene.nyquist_gate",
+   "freespace_scene.M_from_prf",
+   "freespace_scene.blind_fractions",
+   "freespace_link.duty_db_from_cpi"
+  ],
+  "house_rules": "산문·print 한국어 · 그림 텍스트 영어 · 수치는 저장소에서만 · 마크다운 표도 이 스크립트가 찍는다",
+  "runtime_s": 2.39
+ },
+ "headline": "지도가 채워졌다. 6칸을 가르는 것은 확산항이 아니라 **간섭항과 통제권**이다 — 검지 한계에서 기하 0.441 dB · 조명원 4.97 dB · 상호작용 0.11 dB · 간섭 47.1 dB. 무모호 속도의 바닥은 기하와 무관하고(차이 0 m/s), 속도창의 동적범위 M/(2·bins) 에서도 기하가 소거된다 — 기하는 창을 통째로 밀고 CPI 가 폭을 정한다. 주장 18개 + 신규 4개 중 both 13 · monostatic only 3 · passive only 1 · bistatic only 1 · neither 4 이고, C16(자세분해 σ)이 바이에서 drop 이면서 모노에서 서는 유일한 승격 항목이다.",
+ "map": {
+  "shape": "2 기하행(모노/바이) × 3 조명원 = 6 칸. 모노 행에는 통제가 다른 두 주체 A(능동)·B(패시브 준모노)가 함께 살고, 지도는 둘을 각각의 줄로 적는다.",
+  "conventions": {
+   "drone": "mavic4pro",
+   "phi_deg": 90.0,
+   "T_cpi_s": 0.1,
+   "occupancy": "G1",
+   "eirp_dbm": 63.0,
+   "grx_dbi": 10.0,
+   "nf_db": 5.0,
+   "regime": "broadband(잔류가 백색으로 퍼진다) — zero_doppler 뷰 병기",
+   "passive_depth_db": 90.0,
+   "active_depth_db": 100.0,
+   "normalisation": "R90 은 N3(장면 수평거리, 중점기준) · N1(R_eq) 은 mono_link.json 병기",
+   "sigma": "자세평균 · 앵커 미적용 · 듀티 미적용(§5 정정지도 참조)"
+  },
+  "drone_band": {
+   "scene_speeds_ms": [
+    5.0,
+    15.0
+   ],
+   "source_scene": "src/freespace_scene.py : FS_SPEED",
+   "published_max_ms": {
+    "mini5pro": 19.0,
+    "mavic4pro": 25.0,
+    "matrice4e": 21.0,
+    "s1000plus": null,
+    "phantom4": 20.0,
+    "typhoonh480": 13.5,
+    "x500v2": null
+   },
+   "band_used_ms": [
+    5.0,
+    15.0
+   ],
+   "note": "커버리지 판정은 저장소 장면속도 5~15 m/s 로 한다. 기체 게재 최고속도는 14~25 m/s 다."
+  },
+  "cells": [
+   {
+    "cell_id": "A-wifi",
+    "configuration": "A",
+    "configuration_name": "능동 모노스태틱",
+    "geometry_row": "monostatic",
+    "illuminator": "wifi",
+    "illuminator_label": "WiFi 5.21 GHz",
+    "who_transmits": "우리(센서가 곧 송신기)",
+    "prf_control": "설계변수(규격/거리모호 천장 안에서)",
+    "R90_m": 357.6572201615733,
+    "R90_phi_span_m": [
+     186.37979266588331,
+     686.3909687307096
+    ],
+    "R90_no_interference_m": 5306.173759882249,
+    "R90_interference_factor_x": 0.06740397814818454,
+    "v_max_ms": null,
+    "v_max_basis": "설계변수. 천장 두 단 — ⑴ 3GPP 기준신호 재활용 미확정 · ⑵ 자체 파형 설계 시 거리모호 맞바꿈 v·R = 2.156e+06 m²/s",
+    "v_max_tiers": {
+     "spec_reference_signal_ms": null,
+     "free_waveform_at_own_R90_ms": 6029.019642954162,
+     "prf_spec_ceiling_hz": null
+    },
+    "v_guard_ms": 0.43156303934740886,
+    "usable_window_ms": [
+     0.43156303934740886,
+     null
+    ],
+    "usable_dynamic_range_x": null,
+    "covers_drone_band_frac": null,
+    "covers_5ms": null,
+    "covers_15ms": null,
+    "cost": {
+     "kind": "self-interference (SI)",
+     "required_total_suppression_db": 152.94428732430868,
+     "measured_best_db": 100.0,
+     "deficit_db": 52.944287324308675,
+     "noise_rise_db": 42.94450779179751,
+     "adc_saturates": true,
+     "adc_headroom_db": -43.93708732430868,
+     "source": "Barneto 2019 IEEE TMTT (실측 100 dB)"
+    },
+    "sigma_path": "직접계산(모노 후방산란, Δσ=0)"
+   },
+   {
+    "cell_id": "A-lte",
+    "configuration": "A",
+    "configuration_name": "능동 모노스태틱",
+    "geometry_row": "monostatic",
+    "illuminator": "lte",
+    "illuminator_label": "LTE 1.84 GHz",
+    "who_transmits": "우리(센서가 곧 송신기)",
+    "prf_control": "설계변수(규격/거리모호 천장 안에서)",
+    "R90_m": 383.7823362475772,
+    "R90_phi_span_m": [
+     208.03659807166147,
+     708.0567181378691
+    ],
+    "R90_no_interference_m": 6958.412064697094,
+    "R90_interference_factor_x": 0.055153723677082,
+    "v_max_ms": null,
+    "v_max_basis": "설계변수. 천장 두 단 — ⑴ 3GPP 기준신호 재활용 미확정 · ⑵ 자체 파형 설계 시 거리모호 맞바꿈 v·R = 6.096e+06 m²/s",
+    "v_max_tiers": {
+     "spec_reference_signal_ms": null,
+     "free_waveform_at_own_R90_ms": 15883.313259566725,
+     "prf_spec_ceiling_hz": null
+    },
+    "v_guard_ms": 1.2199910119370592,
+    "usable_window_ms": [
+     1.2199910119370592,
+     null
+    ],
+    "usable_dynamic_range_x": null,
+    "covers_drone_band_frac": null,
+    "covers_5ms": null,
+    "covers_15ms": null,
+    "cost": {
+     "kind": "self-interference (SI)",
+     "required_total_suppression_db": 157.10097508063336,
+     "measured_best_db": 100.0,
+     "deficit_db": 57.10097508063336,
+     "noise_rise_db": 47.10105974147277,
+     "adc_saturates": true,
+     "adc_headroom_db": -48.093775080633364,
+     "source": "Barneto 2019 IEEE TMTT (실측 100 dB)"
+    },
+    "sigma_path": "직접계산(모노 후방산란, Δσ=0)"
+   },
+   {
+    "cell_id": "A-nr",
+    "configuration": "A",
+    "configuration_name": "능동 모노스태틱",
+    "geometry_row": "monostatic",
+    "illuminator": "nr",
+    "illuminator_label": "5G NR 3.5 GHz",
+    "who_transmits": "우리(센서가 곧 송신기)",
+    "prf_control": "설계변수(규격/거리모호 천장 안에서)",
+    "R90_m": 421.64907967929634,
+    "R90_phi_span_m": [
+     240.18798275404134,
+     740.2142424341788
+    ],
+    "R90_no_interference_m": 5319.967814295086,
+    "R90_interference_factor_x": 0.07925782530982592,
+    "v_max_ms": 10.7068735,
+    "v_max_basis": "설계변수. 천장 두 단 — ⑴ 3GPP 기준신호 재활용 500.0 Hz → 10.71 m/s · ⑵ 자체 파형 설계 시 거리모호 맞바꿈 v·R = 3.21e+06 m²/s",
+    "v_max_tiers": {
+     "spec_reference_signal_ms": 10.7068735,
+     "free_waveform_at_own_R90_ms": 7612.586102408778,
+     "prf_spec_ceiling_hz": 500.0
+    },
+    "v_guard_ms": 0.64241241,
+    "usable_window_ms": [
+     0.64241241,
+     10.7068735
+    ],
+    "usable_dynamic_range_x": 16.666666666666668,
+    "covers_drone_band_frac": 0.57068735,
+    "covers_5ms": true,
+    "covers_15ms": false,
+    "cost": {
+     "kind": "self-interference (SI)",
+     "required_total_suppression_db": 151.08037516735374,
+     "measured_best_db": 100.0,
+     "deficit_db": 51.080375167353736,
+     "noise_rise_db": 41.08071380080963,
+     "adc_saturates": true,
+     "adc_headroom_db": -42.07317516735374,
+     "source": "Barneto 2019 IEEE TMTT (실측 100 dB)"
+    },
+    "sigma_path": "직접계산(모노 후방산란, Δσ=0)"
+   },
+   {
+    "cell_id": "B-wifi",
+    "configuration": "B",
+    "configuration_name": "패시브 준모노스태틱",
+    "geometry_row": "monostatic",
+    "illuminator": "wifi",
+    "illuminator_label": "WiFi 5.21 GHz",
+    "who_transmits": "남(사업자/AP)",
+    "prf_control": "없음 — 망이 정한 상시 반복률",
+    "R90_m": 3512.3613354724357,
+    "R90_phi_span_m": [
+     3272.380111326905,
+     3769.291501409384
+    ],
+    "R90_no_interference_m": 5306.309275953751,
+    "R90_interference_factor_x": 0.6619217148516333,
+    "v_max_ms": 14.385434644913628,
+    "v_max_basis": "상시 기준신호 1000 Hz 가 정한다 — 선택 불가",
+    "v_max_tiers": null,
+    "v_guard_ms": 0.43156303934740886,
+    "usable_window_ms": [
+     0.43156303934740886,
+     14.385434644913628
+    ],
+    "usable_dynamic_range_x": 33.333333333333336,
+    "covers_drone_band_frac": 0.9385434644913628,
+    "covers_5ms": true,
+    "covers_15ms": false,
+    "cost": {
+     "kind": "direct-path interference (DPI)",
+     "baseline_m": 10.0,
+     "dnr_db": 96.15974963643481,
+     "required_cancellation_db": 106.15974963643481,
+     "granted_depth_db": 90.0,
+     "deficit_vs_granted_db": 16.15974963643481,
+     "noise_rise_db": 7.101374210731911,
+     "adc_saturates": true,
+     "adc_headroom_db": -22.152549636434813,
+     "source": "freespace_link.dnr_db · 달성깊이 40/60/90 dB 는 선언값"
+    },
+    "sigma_path": "직접계산(모노 후방산란, Δσ=0)"
+   },
+   {
+    "cell_id": "B-lte",
+    "configuration": "B",
+    "configuration_name": "패시브 준모노스태틱",
+    "geometry_row": "monostatic",
+    "illuminator": "lte",
+    "illuminator_label": "LTE 1.84 GHz",
+    "who_transmits": "남(사업자/AP)",
+    "prf_control": "없음 — 망이 정한 상시 반복률",
+    "R90_m": 2261.020706826255,
+    "R90_phi_span_m": [
+     2029.2597498603955,
+     2519.2871550063883
+    ],
+    "R90_no_interference_m": 6958.515416543707,
+    "R90_interference_factor_x": 0.3249286049508105,
+    "v_max_ms": 40.66636706456864,
+    "v_max_basis": "상시 기준신호 1000 Hz 가 정한다 — 선택 불가",
+    "v_max_tiers": null,
+    "v_guard_ms": 1.2199910119370592,
+    "usable_window_ms": [
+     1.2199910119370592,
+     40.66636706456864
+    ],
+    "usable_dynamic_range_x": 33.333333333333336,
+    "covers_drone_band_frac": 1.0,
+    "covers_5ms": true,
+    "covers_15ms": true,
+    "cost": {
+     "kind": "direct-path interference (DPI)",
+     "baseline_m": 10.0,
+     "dnr_db": 109.3426851543685,
+     "required_cancellation_db": 119.3426851543685,
+     "granted_depth_db": 90.0,
+     "deficit_vs_granted_db": 29.342685154368496,
+     "noise_rise_db": 19.392919604439342,
+     "adc_saturates": true,
+     "adc_headroom_db": -35.33548515436851,
+     "source": "freespace_link.dnr_db · 달성깊이 40/60/90 dB 는 선언값"
+    },
+    "sigma_path": "직접계산(모노 후방산란, Δσ=0)"
+   },
+   {
+    "cell_id": "B-nr",
+    "configuration": "B",
+    "configuration_name": "패시브 준모노스태틱",
+    "geometry_row": "monostatic",
+    "illuminator": "nr",
+    "illuminator_label": "5G NR 3.5 GHz",
+    "who_transmits": "남(사업자/AP)",
+    "prf_control": "없음 — 망이 정한 상시 반복률",
+    "R90_m": 3263.239267118365,
+    "R90_phi_span_m": [
+     3027.424435236516,
+     3517.4486133138666
+    ],
+    "R90_no_interference_m": 5320.102989619389,
+    "R90_interference_factor_x": 0.6133789653105615,
+    "v_max_ms": 1.07068735,
+    "v_max_basis": "상시 기준신호 50 Hz 가 정한다 — 선택 불가",
+    "v_max_tiers": null,
+    "v_guard_ms": 0.64241241,
+    "usable_window_ms": [
+     0.64241241,
+     1.07068735
+    ],
+    "usable_dynamic_range_x": 1.6666666666666665,
+    "covers_drone_band_frac": 0.0,
+    "covers_5ms": false,
+    "covers_15ms": false,
+    "cost": {
+     "kind": "direct-path interference (DPI)",
+     "baseline_m": 10.0,
+     "dnr_db": 97.75123105846484,
+     "required_cancellation_db": 107.75123105846484,
+     "granted_depth_db": 90.0,
+     "deficit_vs_granted_db": 17.75123105846484,
+     "noise_rise_db": 8.42503782390293,
+     "adc_saturates": true,
+     "adc_headroom_db": -23.744031058464856,
+     "source": "freespace_link.dnr_db · 달성깊이 40/60/90 dB 는 선언값"
+    },
+    "sigma_path": "직접계산(모노 후방산란, Δσ=0)"
+   },
+   {
+    "cell_id": "C-wifi",
+    "configuration": "C",
+    "configuration_name": "패시브 바이스태틱",
+    "geometry_row": "bistatic",
+    "illuminator": "wifi",
+    "illuminator_label": "WiFi 5.21 GHz",
+    "who_transmits": "남(사업자/AP)",
+    "prf_control": "없음 — 망이 정한 상시 반복률",
+    "R90_m": 5303.884160999702,
+    "R90_phi_span_m": [
+     5303.884160999702,
+     5315.664591039218
+    ],
+    "R90_no_interference_m": 5306.078391945501,
+    "R90_interference_factor_x": 0.9995864684266388,
+    "v_max_ms": 14.393456045807671,
+    "v_max_basis": "상시 기준신호 1000 Hz 가 정한다 — 선택 불가",
+    "v_max_tiers": null,
+    "v_guard_ms": 0.43180368137423014,
+    "usable_window_ms": [
+     0.43180368137423014,
+     14.393456045807671
+    ],
+    "usable_dynamic_range_x": 33.333333333333336,
+    "covers_drone_band_frac": 0.9393456045807671,
+    "covers_5ms": true,
+    "covers_15ms": false,
+    "cost": {
+     "kind": "direct-path interference (DPI)",
+     "baseline_m": 500.0,
+     "dnr_db": 62.18034954971443,
+     "required_cancellation_db": 72.18034954971444,
+     "granted_depth_db": 90.0,
+     "deficit_vs_granted_db": -17.819650450285565,
+     "noise_rise_db": 0.007169036064658912,
+     "adc_saturates": false,
+     "adc_headroom_db": 11.826850450285562,
+     "source": "freespace_link.dnr_db · 달성깊이 40/60/90 dB 는 선언값"
+    },
+    "sigma_path": "이등분선 근사 + Δσ(β) 오차막대"
+   },
+   {
+    "cell_id": "C-lte",
+    "configuration": "C",
+    "configuration_name": "패시브 바이스태틱",
+    "geometry_row": "bistatic",
+    "illuminator": "lte",
+    "illuminator_label": "LTE 1.84 GHz",
+    "who_transmits": "남(사업자/AP)",
+    "prf_control": "없음 — 망이 정한 상시 반복률",
+    "R90_m": 6899.704679907597,
+    "R90_phi_span_m": [
+     6899.704679907597,
+     6908.7622254104635
+    ],
+    "R90_no_interference_m": 6958.339331238738,
+    "R90_interference_factor_x": 0.9915734705452052,
+    "v_max_ms": 40.67954528654602,
+    "v_max_basis": "상시 기준신호 1000 Hz 가 정한다 — 선택 불가",
+    "v_max_tiers": null,
+    "v_guard_ms": 1.2203863585963806,
+    "usable_window_ms": [
+     1.2203863585963806,
+     40.67954528654602
+    ],
+    "usable_dynamic_range_x": 33.333333333333336,
+    "covers_drone_band_frac": 1.0,
+    "covers_5ms": true,
+    "covers_15ms": true,
+    "cost": {
+     "kind": "direct-path interference (DPI)",
+     "baseline_m": 500.0,
+     "dnr_db": 75.36328506764814,
+     "required_cancellation_db": 85.36328506764814,
+     "granted_depth_db": 90.0,
+     "deficit_vs_granted_db": -4.636714932351865,
+     "noise_rise_db": 0.14680867085202404,
+     "adc_saturates": true,
+     "adc_headroom_db": -1.356085067648138,
+     "source": "freespace_link.dnr_db · 달성깊이 40/60/90 dB 는 선언값"
+    },
+    "sigma_path": "이등분선 근사 + Δσ(β) 오차막대"
+   },
+   {
+    "cell_id": "C-nr",
+    "configuration": "C",
+    "configuration_name": "패시브 바이스태틱",
+    "geometry_row": "bistatic",
+    "illuminator": "nr",
+    "illuminator_label": "5G NR 3.5 GHz",
+    "who_transmits": "남(사업자/AP)",
+    "prf_control": "없음 — 망이 정한 상시 반복률",
+    "R90_m": 5316.700491408625,
+    "R90_phi_span_m": [
+     5316.700491408625,
+     5328.453246772931
+    ],
+    "R90_no_interference_m": 5319.872686103818,
+    "R90_interference_factor_x": 0.9994037085316949,
+    "v_max_ms": 1.0712812749875273,
+    "v_max_basis": "상시 기준신호 50 Hz 가 정한다 — 선택 불가",
+    "v_max_tiers": null,
+    "v_guard_ms": 0.6427687649925165,
+    "usable_window_ms": [
+     0.6427687649925165,
+     1.0712812749875273
+    ],
+    "usable_dynamic_range_x": 1.6666666666666665,
+    "covers_drone_band_frac": 0.0,
+    "covers_5ms": false,
+    "covers_15ms": false,
+    "cost": {
+     "kind": "direct-path interference (DPI)",
+     "baseline_m": 500.0,
+     "dnr_db": 63.77183097174448,
+     "required_cancellation_db": 73.77183097174448,
+     "granted_depth_db": 90.0,
+     "deficit_vs_granted_db": -16.22816902825552,
+     "noise_rise_db": 0.010338329968569891,
+     "adc_saturates": false,
+     "adc_headroom_db": 10.235369028255526,
+     "source": "freespace_link.dnr_db · 달성깊이 40/60/90 dB 는 선언값"
+    },
+    "sigma_path": "이등분선 근사 + Δσ(β) 오차막대"
+   }
+  ],
+  "by_geometry_row": {
+   "monostatic": {
+    "occupants": [
+     "A",
+     "B"
+    ],
+    "R90_span_m": [
+     357.6572201615733,
+     3512.3613354724357
+    ],
+    "n_cells_covering_5ms": 3,
+    "n_cells": 6
+   },
+   "bistatic": {
+    "occupants": [
+     "C"
+    ],
+    "R90_span_m": [
+     5303.884160999702,
+     6899.704679907597
+    ],
+    "n_cells_covering_5ms": 2,
+    "n_cells": 3
+   }
+  },
+  "headline": "모노 행과 바이 행을 가르는 것은 확산항이 아니라 **간섭항과 통제권**이다 — 링크버짓 차이는 검지 한계에서 0.44 dB 로 죽고, 그 자리를 SI 47.1 dB 와 PRF 통제권 10배가 채운다."
+ },
+ "usable_speed_window": {
+  "form": "v_max/v_guard = PRF/(2·bins·Δf_d) = M/(2·bins) — β·δ 가 분자·분모에서 똑같이 소거된다",
+  "guard_bins_hard": 1.5,
+  "by_band": {
+   "wifi": {
+    "prf_hz": 1000.0,
+    "lam_m": 0.057541738579654514,
+    "M": 100,
+    "doppler_bin_hz": 10.0,
+    "guard_half_width_hz": 15.0,
+    "v_guard_mono_ms": 0.43156303934740886,
+    "v_max_mono_ms": 14.385434644913628,
+    "v_guard_bistatic_at_edge_ms": 0.43180368137423014,
+    "v_max_bistatic_at_edge_ms": 14.393456045807671,
+    "v_guard_bistatic_half_baseline_ms": 0.6037070992322948,
+    "v_max_bistatic_half_baseline_ms": 20.123569974409826,
+    "relief_at_edge_x": 1.0005576057374728,
+    "relief_at_half_baseline_x": 1.3988850855837767,
+    "dynamic_range_numeric": 33.333333333333336,
+    "dynamic_range_closed_form": 33.333333333333336
+   },
+   "lte": {
+    "prf_hz": 1000.0,
+    "lam_m": 0.16266546825827455,
+    "M": 100,
+    "doppler_bin_hz": 10.0,
+    "guard_half_width_hz": 15.0,
+    "v_guard_mono_ms": 1.2199910119370592,
+    "v_max_mono_ms": 40.66636706456864,
+    "v_guard_bistatic_at_edge_ms": 1.2203863585963806,
+    "v_max_bistatic_at_edge_ms": 40.67954528654602,
+    "v_guard_bistatic_half_baseline_ms": 1.7066272311450112,
+    "v_max_bistatic_half_baseline_ms": 56.88757437150038,
+    "relief_at_edge_x": 1.000324057026202,
+    "relief_at_half_baseline_x": 1.3988850855837767,
+    "dynamic_range_numeric": 33.333333333333336,
+    "dynamic_range_closed_form": 33.333333333333336
+   },
+   "nr": {
+    "prf_hz": 50.0,
+    "lam_m": 0.085654988,
+    "M": 5,
+    "doppler_bin_hz": 10.0,
+    "guard_half_width_hz": 15.0,
+    "v_guard_mono_ms": 0.64241241,
+    "v_max_mono_ms": 1.07068735,
+    "v_guard_bistatic_at_edge_ms": 0.6427687649925165,
+    "v_max_bistatic_at_edge_ms": 1.0712812749875273,
+    "v_guard_bistatic_half_baseline_ms": 0.8986611391429303,
+    "v_max_bistatic_half_baseline_ms": 1.497768565238217,
+    "relief_at_edge_x": 1.0005547137430244,
+    "relief_at_half_baseline_x": 1.3988850855837767,
+    "dynamic_range_numeric": 1.6666666666666665,
+    "dynamic_range_closed_form": 1.6666666666666667
+   }
+  },
+  "identity_max_abs_diff": 2.220446049250313e-16,
+  "finding": "⭐ 기하는 속도창을 **통째로 민다**. 완화 1/cos(β/2) 가 상한과 하한에 똑같이 곱해지므로 폭은 M/(2·bins) 로 고정이다 — WiFi·LTE 33.33배, 5G 1.667배 — 기하는 창을 밀고 CPI 가 폭을 정한다.",
+  "why_it_matters": "5G 의 창은 상한이 하한의 1.67배다. 같은 CPI 에서 WiFi·LTE 는 33.3배다 — 이 비가 곧 '한 CPI 안에 도플러 셀이 몇 개 있나'(M) 다."
+ },
+ "blind_and_fold": {
+  "convention": "ψ 격자 720점 · φ=90° · alt=60 m · T_CPI=0.1 s · 정본 가드 1.5빈 · M=PRF·T_CPI 실현 빈폭",
+  "regression_vs_repo_max_abs": 0.0,
+  "regression_note": "바이 팔을 `freespace_scene.blind_fractions` 와 대조 — 0 이어야 한다",
+  "by_band": {
+   "wifi": {
+    "speed_5": {
+     "bistatic_L500_at_its_R90": {
+      "blind_hard": 0.05277777777777778,
+      "blind_declared": 0.09166666666666666,
+      "alias_frac": 0.0,
+      "bin_hz": 10.0,
+      "beta_deg": 5.402320209544492,
+      "el_deg": -0.49690561429870456
+     },
+     "monostatic_at_the_same_scene_point": {
+      "blind_hard": 0.05277777777777778,
+      "blind_declared": 0.09166666666666666,
+      "alias_frac": 0.0,
+      "bin_hz": 10.0,
+      "beta_deg": 1.2074182697257333e-06,
+      "el_deg": -0.3780857791207259
+     },
+     "monostatic_at_its_own_R90": {
+      "blind_hard": 0.05277777777777778,
+      "blind_declared": 0.09166666666666666,
+      "alias_frac": 0.0,
+      "bin_hz": 10.0,
+      "beta_deg": 0.0,
+      "el_deg": -5.589115366550604
+     },
+     "delta_blind_hard": 0.0,
+     "delta_alias_frac": 0.0,
+     "d_bistatic_m": 5303.884160999702,
+     "d_monostatic_m": 357.6572201615733
+    },
+    "speed_15": {
+     "bistatic_L500_at_its_R90": {
+      "blind_hard": 0.019444444444444445,
+      "blind_declared": 0.030555555555555555,
+      "alias_frac": 0.18055555555555555,
+      "bin_hz": 10.0,
+      "beta_deg": 5.402320209544492,
+      "el_deg": -0.49690561429870456
+     },
+     "monostatic_at_the_same_scene_point": {
+      "blind_hard": 0.019444444444444445,
+      "blind_declared": 0.030555555555555555,
+      "alias_frac": 0.18055555555555555,
+      "bin_hz": 10.0,
+      "beta_deg": 1.2074182697257333e-06,
+      "el_deg": -0.3780857791207259
+     },
+     "monostatic_at_its_own_R90": {
+      "blind_hard": 0.019444444444444445,
+      "blind_declared": 0.030555555555555555,
+      "alias_frac": 0.175,
+      "bin_hz": 10.0,
+      "beta_deg": 0.0,
+      "el_deg": -5.589115366550604
+     },
+     "delta_blind_hard": 0.0,
+     "delta_alias_frac": 0.0,
+     "d_bistatic_m": 5303.884160999702,
+     "d_monostatic_m": 357.6572201615733
+    }
+   },
+   "lte": {
+    "speed_5": {
+     "bistatic_L500_at_its_R90": {
+      "blind_hard": 0.15833333333333333,
+      "blind_declared": 0.26944444444444443,
+      "alias_frac": 0.0,
+      "bin_hz": 10.0,
+      "beta_deg": 4.154149781315022,
+      "el_deg": -0.3819816991926794
+     },
+     "monostatic_at_the_same_scene_point": {
+      "blind_hard": 0.15833333333333333,
+      "blind_declared": 0.2638888888888889,
+      "alias_frac": 0.0,
+      "bin_hz": 10.0,
+      "beta_deg": 8.537736462515939e-07,
+      "el_deg": -0.29064071226513527
+     },
+     "monostatic_at_its_own_R90": {
+      "blind_hard": 0.15833333333333333,
+      "blind_declared": 0.26944444444444443,
+      "alias_frac": 0.0,
+      "bin_hz": 10.0,
+      "beta_deg": 0.0,
+      "el_deg": -5.21081919542289
+     },
+     "delta_blind_hard": 0.0,
+     "delta_alias_frac": 0.0,
+     "d_bistatic_m": 6899.704679907597,
+     "d_monostatic_m": 383.7823362475772
+    },
+    "speed_15": {
+     "bistatic_L500_at_its_R90": {
+      "blind_hard": 0.05277777777777778,
+      "blind_declared": 0.08611111111111111,
+      "alias_frac": 0.0,
+      "bin_hz": 10.0,
+      "beta_deg": 4.154149781315022,
+      "el_deg": -0.3819816991926794
+     },
+     "monostatic_at_the_same_scene_point": {
+      "blind_hard": 0.05277777777777778,
+      "blind_declared": 0.08611111111111111,
+      "alias_frac": 0.0,
+      "bin_hz": 10.0,
+      "beta_deg": 8.537736462515939e-07,
+      "el_deg": -0.29064071226513527
+     },
+     "monostatic_at_its_own_R90": {
+      "blind_hard": 0.05277777777777778,
+      "blind_declared": 0.08611111111111111,
+      "alias_frac": 0.0,
+      "bin_hz": 10.0,
+      "beta_deg": 0.0,
+      "el_deg": -5.21081919542289
+     },
+     "delta_blind_hard": 0.0,
+     "delta_alias_frac": 0.0,
+     "d_bistatic_m": 6899.704679907597,
+     "d_monostatic_m": 383.7823362475772
+    }
+   },
+   "nr": {
+    "speed_5": {
+     "bistatic_L500_at_its_R90": {
+      "blind_hard": 0.6361111111111111,
+      "blind_declared": 1.0,
+      "alias_frac": 0.8638888888888889,
+      "bin_hz": 10.0,
+      "beta_deg": 5.389317679765485,
+      "el_deg": -0.49570785254569244
+     },
+     "monostatic_at_the_same_scene_point": {
+      "blind_hard": 0.6361111111111111,
+      "blind_declared": 1.0,
+      "alias_frac": 0.8638888888888889,
+      "bin_hz": 10.0,
+      "beta_deg": 0.0,
+      "el_deg": -0.3771743995693563
+     },
+     "monostatic_at_its_own_R90": {
+      "blind_hard": 0.6416666666666667,
+      "blind_declared": 1.0,
+      "alias_frac": 0.8638888888888889,
+      "bin_hz": 10.0,
+      "beta_deg": 0.0,
+      "el_deg": -4.7450962115673825
+     },
+     "delta_blind_hard": 0.0,
+     "delta_alias_frac": 0.0,
+     "d_bistatic_m": 5316.700491408625,
+     "d_monostatic_m": 421.64907967929634
+    },
+    "speed_15": {
+     "bistatic_L500_at_its_R90": {
+      "blind_hard": 0.6333333333333333,
+      "blind_declared": 1.0,
+      "alias_frac": 0.9527777777777777,
+      "bin_hz": 10.0,
+      "beta_deg": 5.389317679765485,
+      "el_deg": -0.49570785254569244
+     },
+     "monostatic_at_the_same_scene_point": {
+      "blind_hard": 0.6388888888888888,
+      "blind_declared": 1.0,
+      "alias_frac": 0.9527777777777777,
+      "bin_hz": 10.0,
+      "beta_deg": 0.0,
+      "el_deg": -0.3771743995693563
+     },
+     "monostatic_at_its_own_R90": {
+      "blind_hard": 0.6277777777777778,
+      "blind_declared": 1.0,
+      "alias_frac": 0.9527777777777777,
+      "bin_hz": 10.0,
+      "beta_deg": 0.0,
+      "el_deg": -4.7450962115673825
+     },
+     "delta_blind_hard": 0.005555555555555536,
+     "delta_alias_frac": 0.0,
+     "d_bistatic_m": 5316.700491408625,
+     "d_monostatic_m": 421.64907967929634
+    }
+   }
+  },
+  "max_abs_delta_blind_hard": 0.005555555555555536,
+  "max_abs_delta_alias_frac": 0.0,
+  "finding": "같은 장면점에서 두 기하의 블라인드·접힘 비율 차이가 각각 0.00556 · 0 다 — 검지 한계에서 β 가 3° 안이라 접힘 격자가 사실상 같은 자리에 선다.",
+  "consequence": "블라인드·접힘 비율은 조명원(PRF·λ)과 CPI 가 정하고 기하는 정하지 않는다 — C2(접힘≠블라인드)가 두 기하에 그대로 전이한다."
+ },
+ "axis_sizes": {
+  "one_line": "기하 0.44 dB · 조명원 4.97 dB · 상호작용 0.11 dB · 간섭 47.1 dB (전부 LTE·검지 한계 기준)",
+  "geometry_db": 0.4413016041739133,
+  "geometry_absmax_db": 23.168839470105702,
+  "geometry_at_2L_db": 3.007267546582553,
+  "illuminator_db": 4.969902693885196,
+  "interaction_db": 0.11329724991048806,
+  "interference_db": 47.10105974147277,
+  "control_x": 10.0,
+  "ordering": "간섭(47.1 dB) ≫ 조명원(4.97 dB) > 기하(0.44 dB) > 상호작용(0.11 dB). 속도축에서는 통제권이 10배를 낸다.",
+  "where_geometry_lives": "기하 축은 근거리(d ≲ 2L)에서만 산다 — 추적·다중표적 구간이지 검지 한계 구간이 아니다."
+ },
+ "readjudication": {
+  "rule": "판정 기준: 이 주장을 두 기하 행 모두에서 인용할 수 있는가. 'neither' 는 틀렸다는 뜻이 아니라 이 논문에서 주장하지 않는다는 뜻이다.",
+  "claims": [
+   {
+    "id": "C0",
+    "claim": "v_max = λ·PRF_ref/4 — 상시 기준신호의 반복률이 무모호 속도를 정한다",
+    "geometry_verdict": "both",
+    "why": "모노는 바이의 β=0 특수해다. 세 밴드 전부 차이 0 m/s 이고, 바이는 β↑ 에서 관대해진다",
+    "evidence": {
+     "abs_diff_ms": {
+      "wifi": 0.0,
+      "lte": 0.0,
+      "nr": 0.0
+     },
+     "relief_at_beta45_x": 1.082392200292394,
+     "relief_at_beta90_x": 1.414213562373095
+    },
+    "action": "⭐ 문장에 '두 기하의 최악값' 한 줄을 넣는다. 검지 한계에서는 β 중앙 2.92° 라 그 최악값이 곧 실제값이다",
+    "previous_status": "defensible"
+   },
+   {
+    "id": "C0b",
+    "claim": "속도 동적범위 v_max/v_guard 는 기하와 무관하다 (신규)",
+    "geometry_verdict": "both",
+    "why": "완화 1/cos(β/2)cosδ 가 상한과 하한에 똑같이 곱해져 소거된다 → M/(2·bins)",
+    "evidence": {
+     "closed_form": "M/(2·guard_bins)",
+     "wifi_lte_x": 33.333333333333336,
+     "nr_x": 1.6666666666666665,
+     "identity_max_abs_diff": 2.220446049250313e-16
+    },
+    "action": "지도의 '사용가능 속도창' 열이 이 항등식 위에 선다",
+    "previous_status": "new"
+   },
+   {
+    "id": "C1",
+    "claim": "탈출구 6판정 — (a)(b)(c) 폐쇄 · (d)(e)(f) 부분완화",
+    "geometry_verdict": "both, 재배치 2건",
+    "why": "판정은 조명원·처리 축이라 기하를 옮겨도 그대로다. (e) 멀티스태틱은 기하 축의 확장이고, 능동 모노의 PRF 통제권은 7번째 탈출구로 **A 칸에서만** 열린다",
+    "evidence": {
+     "escapes": [
+      "a_unfolding_stagger",
+      "b_more_of_the_frame",
+      "c_beam_sweep",
+      "d_long_cpi_motion_comp",
+      "e_multistatic",
+      "f_band_carrier_aggregation"
+     ],
+     "active_prf_gain_x": 10.0
+    },
+    "action": "(e) 를 기하 축으로 옮기고, 7번째 항 'PRF 통제권(구성 A 전용)' 을 추가한다",
+    "previous_status": "defensible"
+   },
+   {
+    "id": "C2",
+    "claim": "접힘과 블라인드는 다른 양이다 — CPI 는 검출을 되살리고 모호는 못 고친다",
+    "geometry_verdict": "both",
+    "why": "두 기하의 블라인드·접힘 비율 차이를 직접 쟀다",
+    "evidence": {
+     "max_abs_delta_blind_hard": 0.005555555555555536,
+     "max_abs_delta_alias_frac": 0.0,
+     "regression_vs_repo_max_abs": 0.0
+    },
+    "action": "없음 — 두 행에 같은 표를 쓴다",
+    "previous_status": "defensible"
+   },
+   {
+    "id": "C3",
+    "claim": "인프라 서사 — LTE CRS → 5G SSB 로 v_max 가 38.0배 준다",
+    "geometry_verdict": "both",
+    "why": "반복률·파장 분해에 기하 변수가 없다",
+    "evidence": {
+     "v_max_ratio": 37.981551817688555,
+     "prf_ratio": 20.0,
+     "lambda_ratio": 1.8990775908844275
+    },
+    "action": "없음 (TS 원문 대조는 별건으로 남는다)",
+    "previous_status": "defensible"
+   },
+   {
+    "id": "C4",
+    "claim": "CFAR 를 경험 Pfa 로 교정",
+    "geometry_verdict": "both",
+    "why": "검출기 규약은 기하 함수가 아니다. 두 팔이 같은 문턱·같은 배율을 쓴다",
+    "evidence": {
+     "runtime_s": 2716.746778488159,
+     "snr90_db": 11.86143572621035,
+     "pfa_ratio_by_mode": {
+      "W1": 1.1625866487169492,
+      "L1": 1.3625169953125071,
+      "G1": 0.05433859362356496
+     }
+    },
+    "action": "없음 — 두 팔이 같은 교정을 그대로 공유한다",
+    "previous_status": "method"
+   },
+   {
+    "id": "C5",
+    "claim": "공통모드 σ 불변성 — dR_dB/dσ_dB = 1/4",
+    "geometry_verdict": "both",
+    "why": "σ 사슬이 두 팔에서 동일하다(모노는 같은 격자의 β=0 조회)",
+    "evidence": {
+     "slope_mean": 0.24621813638904827,
+     "monostatic_dsigma_db": 0.0
+    },
+    "action": "없음",
+    "previous_status": "defensible"
+   },
+   {
+    "id": "C6",
+    "claim": "조명원 대가 원장 — 점유 · λ² · ΔR_b · 듀티",
+    "geometry_verdict": "both",
+    "why": "자원격자에서 결정되므로 기하 무관. 듀티는 두 행에 같은 값이 들어간다",
+    "evidence": {
+     "duty_db": {
+      "wifi": {
+       "prf_hz": 1000.0,
+       "M": 100,
+       "t_ref_s": 5.2e-05,
+       "duty_db": -12.839966563652007
+      },
+      "lte": {
+       "prf_hz": 1000.0,
+       "M": 100,
+       "t_ref_s": 0.001,
+       "duty_db": 0.0
+      },
+      "nr": {
+       "prf_hz": 50.0,
+       "M": 5,
+       "t_ref_s": 0.0005,
+       "duty_db": -16.020599913279625
+      }
+     },
+     "duty_pair_gaps_db": {
+      "wifi-lte": -12.839966563652007,
+      "wifi-nr": 3.180633349627618,
+      "lte-nr": 16.020599913279625
+     }
+    },
+    "action": "⚠ 듀티는 여전히 R90 경로에서 호출되지 않는다 — §5 결함 D2",
+    "previous_status": "defensible"
+   },
+   {
+    "id": "C7",
+    "claim": "승자 주장 — LTE CRS 가 최선의 상시 조명원",
+    "geometry_verdict": "both (강화됨)",
+    "why": "v_max 축은 기하 무관이고, σ·R90 축도 네 배치 전부에서 조명원 순위가 같다 — 기하를 바꿔도 답이 안 바뀐다는 직접 증거를 얻었다",
+    "evidence": {
+     "ranking_same_across_placements": "σ 격자를 가진 7 기체 전부에서 조명원 순위가 네 배치에 걸쳐 동일하다(True). 기하를 바꿔도 조명원 축의 답이 안 바뀐다 — 두 축이 독립이라는 직접 증거다.",
+     "winner_margin_db_aspect_avg_anchored": 8.313102722167969,
+     "R90_span_m": [
+      5306.078391945501,
+      6958.339331238738
+     ]
+    },
+    "action": "σ 축 문장에 '네 배치에서 순위 동일' 을 근거로 추가한다",
+    "previous_status": "defensible"
+   },
+   {
+    "id": "C8",
+    "claim": "같은 CPI 12.05배 벌점",
+    "geometry_verdict": "both (조건부)",
+    "why": "조명원 축이라 기하 무관. WiFi 1 kHz 트래픽 가정 조건은 그대로 남는다",
+    "evidence": {
+     "condition": "WiFi VHT-LTF 1 kHz 트래픽 가정",
+     "spec_guaranteed_ambient_hz": 9.765625
+    },
+    "action": "없음 — 조건절과 함께 지지 수치로만 쓴다",
+    "previous_status": "defensible (조건부)"
+   },
+   {
+    "id": "C9",
+    "claim": "5G 커버리지 = 0, 전 헤딩 블라인드",
+    "geometry_verdict": "neither",
+    "why": "철회 상태 유지. 두 기하 어디에서도 쓰지 않는다",
+    "evidence": {},
+    "action": "PAPER_SPEC §2 지시대로 유지",
+    "previous_status": "retracted"
+   },
+   {
+    "id": "C10",
+    "claim": "버스트 내부 ↔ 버스트 간 교환관계",
+    "geometry_verdict": "both",
+    "why": "OFDM 축과 slow-time 축의 관계이고 기하가 들어가지 않는다",
+    "evidence": {
+     "intra_burst": {
+      "symbol_s": 3.5677083333333334e-05,
+      "symbols_per_ssb": 4,
+      "burst_s": 0.00014270833333333334,
+      "scs_hz": 30000.0,
+      "lambda_m": 0.085654988,
+      "intra_burst": {
+       "v_unambiguous_ms": 1284.82482,
+       "velocity_resolution_ms": 300.1050674452555,
+       "resolvable_cells_up_to_25ms": 0.08330415814974683
+      },
+      "inter_burst": {
+       "prf_hz": 50.0,
+       "v_unambiguous_ms": 1.07068735,
+       "T_cpi_s": 0.1,
+       "M": 5,
+       "velocity_resolution_ms": 0.42827494
+      },
+      "verdict": "버스트 내부 처리는 무모호 속도 1285 m/s 를 주지만 속도 분해능이 300 m/s 라 드론 속도대(0~25 m/s)를 한 셀로 뭉갠다. 버스트 간 처리는 분해능 0.43 m/s 를 주지만 무모호 속도가 1.07 m/s 다. 두 축은 교환관계이고, 우리 법칙은 **버스트 간** 축의 상한이다."
+     }
+    },
+    "action": "없음 — 신규성 문단 필수 부품",
+    "previous_status": "defensible"
+   },
+   {
+    "id": "C11",
+    "claim": "설정 의존성 — SSB 주기 {5..160} ms → 4.28 ~ 0.134 m/s",
+    "geometry_verdict": "passive only (B·C)",
+    "why": "구성 A 는 반복률을 스스로 고르므로 이 명제의 **대상이 아니다**. 통제 축의 명제이지 기하 축의 명제가 아니다",
+    "evidence": {
+     "passive_cells": [
+      "B-*",
+      "C-*"
+     ],
+     "active_ceiling_prf_hz": 500.0
+    },
+    "action": "'패시브 셀에서' 라는 조건절을 붙인다",
+    "previous_status": "defensible"
+   },
+   {
+    "id": "C12",
+    "claim": "부위별 재질 + 광선 가림 (방법)",
+    "geometry_verdict": "both, 모노에서 더 직접적",
+    "why": "커널 검증은 후방산란 기준이라 모노 조회에 그대로 적용된다",
+    "evidence": {
+     "kernel_vs_analytic_po_db": 0.2005726178588444,
+     "monostatic_dsigma_db": 0.0
+    },
+    "action": "모노 행에 '근사 없음(Δσ=0)' 을 표기한다",
+    "previous_status": "method"
+   },
+   {
+    "id": "C13",
+    "claim": "3자 순위(1·2·3위)",
+    "geometry_verdict": "neither",
+    "why": "단일자세에서 5기체가 3개 순위를 낸다 — 기하와 무관한 σ 축의 문제다",
+    "evidence": {
+     "n_distinct_orders": 3
+    },
+    "action": "drop 유지. 자세평균 순위(C7)로 대체한다",
+    "previous_status": "drop"
+   },
+   {
+    "id": "C14",
+    "claim": "절대 검출거리 (R90 km 급)",
+    "geometry_verdict": "neither, 모노에서 조건이 하나 늘었다",
+    "why": "σ ±10 dB 가 거리를 옮기는 데 더해, 모노 행의 절대값은 **선언 SI 깊이**에 매달린다 — 100 dB 에서 384 m, 141 dB 에서 4632 m 로 12.1배 벌어진다",
+    "evidence": {
+     "R90_at_100dB_m": 383.7823362475772,
+     "R90_at_141dB_m": 4632.323938847769
+    },
+    "action": "drop 유지. 지도에는 상대비(배율)만 싣는다",
+    "previous_status": "drop"
+   },
+   {
+    "id": "C15",
+    "claim": "드론 RCS 정확도",
+    "geometry_verdict": "neither",
+    "why": "앵커 1기체·1실험실·편파 미통제 — 기하와 무관",
+    "evidence": {},
+    "action": "drop 유지",
+    "previous_status": "drop"
+   },
+   {
+    "id": "C16",
+    "claim": "자세분해 바이스태틱 σ",
+    "geometry_verdict": "monostatic only ⭐",
+    "why": "바이 팔은 이등분선 근사이고 β=45° 에서 rms 중앙 7.47 dB · p95 최대 20.04 dB 다. 모노 팔은 β=0 이라 근사가 항등이 되고 상반성 오차도 정확히 0 이다",
+    "evidence": {
+     "bisector_rms_median_at_beta45_db": 7.472692132512693,
+     "bisector_p95_max_at_beta45_db": 20.03858904752335,
+     "reciprocity_rms_max_at_beta45_db": 5.796675598335295,
+     "at_beta0_all_zero": {
+      "n_cells": 15,
+      "dsigma_rms_median_db": 0.0,
+      "dsigma_rms_max_db": 0.0,
+      "dsigma_p95_max_db": 0.0,
+      "reciprocity_rms_max_db": 0.0
+     }
+    },
+    "action": "⭐ 모노 행에서는 **자세분해 σ 를 주장한다**(커널 0.201 dB). 바이 행은 drop 유지",
+    "previous_status": "drop (바이스태틱 기준)"
+   }
+  ],
+  "new_claims": [
+   {
+    "id": "N1",
+    "claim": "기하의 링크버짓 기여는 닫힌형 20log10(R_조명원/R_센서) 이고 검지 한계에서 죽는다",
+    "geometry_verdict": "both (기하 축 그 자체)",
+    "evidence": {
+     "at_edge_median_db": 0.4413016041739133,
+     "absmax_over_scene_db": 23.168839470105702,
+     "R90_spread_across_four_placements_m": 0.23088400825054123
+    },
+    "action": "지도 캡션에 '기하 축은 d ≲ 2L 에 산다' 를 적는다"
+   },
+   {
+    "id": "N2",
+    "claim": "모노스태틱이 실제로 사는 것은 PRF 통제권 하나다 — 5G 에서 10배",
+    "geometry_verdict": "monostatic only",
+    "evidence": {
+     "passive_v_max_ms": 1.07068735,
+     "active_spec_ceiling_ms": 10.7068735,
+     "gain_x": 10.0
+    },
+    "action": "⚠ 500 Hz CSI-RS 는 **망이 설정하면 패시브도 받는다** — 모노 전용 레인은 데이터 심볼(X[m,n] 기지)이다. 경계는 '기준신호만 vs 전 파형' 이다"
+   },
+   {
+    "id": "N3",
+    "claim": "자기간섭이 모노 행의 검지거리를 정한다 — 실측 최선 100 dB 에서 47.1 dB 잡음상승",
+    "geometry_verdict": "monostatic only",
+    "evidence": {
+     "noise_rise_db": 47.10105974147277,
+     "range_factor_x": 0.07873661157428465,
+     "break_even_db": 147.10734477375385
+    },
+    "action": "A 행에 SI 열을 상설한다"
+   },
+   {
+    "id": "N4",
+    "claim": "이격거리는 공짜 격리다 — L=500 m 패시브는 소거 28.3 dB 로 능동 100 dB 전단과 같은 잔류",
+    "geometry_verdict": "bistatic only",
+    "evidence": {
+     "eca_depth_to_match_active_db": 28.262309987014774,
+     "passive_minus_active_db": 61.73769001298524
+    },
+    "action": "원장을 '등가 베이스라인 L_equiv' 로 한 자에 놓는다"
+   }
+  ],
+  "tally": {
+   "both": 13,
+   "neither": 4,
+   "passive only": 1,
+   "monostatic only": 3,
+   "bistatic only": 1
+  },
+  "headline": "18개 + 신규 4개 중 both 13 · neither 4 · monostatic only 3 · passive only 1 · bistatic only 1. ⭐ 지위가 오른 것이 하나 있다 — C16 자세분해 σ 는 바이에서 drop 이고 모노에서 선다."
+ },
+ "contribution": {
+  "title": "Geometry × Illuminator: A Controlled Benchmark of Monostatic and Bistatic Drone Sensing on WiFi, LTE and 5G NR",
+  "one_sentence": "드론 센싱을 기하(모노/바이) × 조명원(WiFi/LTE/5G) 2×3 으로 통제 비교하고, 그 지도 위에서 무모호 속도가 상시 기준신호의 반복률로 결정된다는 것 — v_max = λ·PRF_ref/4 — 그리고 그 한계가 **PRF 를 고르지 못하는 쪽에만** 구속으로 작용한다는 것을 보인다.",
+  "paragraph": [
+   "우리는 기하와 조명원을 **서로 독립인 두 축**으로 세우고, 그 위에 통제 축(PRF 가 설계변수인가 주어진 값인가)을 세 번째로 얹는다. 세 축을 분리하면 각 축이 무엇을 정하는지가 수치로 갈린다 — 검지 한계에서 기하 0.44 dB · 조명원 4.97 dB · 상호작용 0.11 dB · 간섭 47.1 dB 다.",
+   "⭐ **무모호 속도의 바닥은 기하와 무관하다.** 모노스태틱은 바이스태틱의 β=0 특수해이고 두 값의 차이는 0 m/s 다. 바이스태틱은 β 가 커질수록 관대해진다(β=90° 에서 1.414배). 그래서 우리가 발표해온 1.07 / 14.39 / 40.67 m/s 는 **두 기하의 최악값**이며, 검지 한계(β 중앙 2.92°)에서는 그 최악값이 곧 실제값이다.",
+   "⭐ **링크버짓은 다르다.** 기하의 링크버짓 기여는 20log10(R_조명원/R_센서) 한 줄이고 장면 방위에 따라 부호가 뒤집히며 최대 23.2 dB 까지 벌어진다. 같은 항이 검지 한계(d ≈ 14L)에서는 0.44 dB 로 죽는다 — 기하 축은 근거리에 산다.",
+   "**통제 축이 왜 같은 법칙을 한쪽에만 구속으로 만드는가.** 능동 모노스태틱은 반복률을 고른다 — 3GPP sub-6 CSI-RS 천장 500 Hz 에서 v_max = 10.71 m/s 로 패시브 SSB 1.071 m/s 의 10배다. 패시브는 망이 정한 값을 받는다. 같은 식이 한쪽에서는 설계 여유이고 다른 쪽에서는 벽이다.",
+   "**LaSen(SenSys '26 게재)이 능동 모노스태틱 5G 칸을 차지한다.** 그 칸이 작동한다는 것을 실측으로 보였고, 탈출구로 반복률이 아니라 데이터 심볼(X[m,n] 기지)을 썼다. 그 칸이 서 있기 때문에 패시브 칸의 속도 한계가 실패가 아니라 **설계공간의 경계**가 된다.",
+   "⚠ **경계선을 정확히 긋는다.** 통제 축의 진짜 경계는 '모노 vs 패시브' 가 아니라 '기준신호만 쓰기 vs 전 파형 쓰기' 다. 500 Hz CSI-RS 는 망이 설정하면 패시브도 받고, 패시브도 복조·재변조로 전 파형 레인(1 kHz → 21.4 m/s)에 들어갈 수 있다. 모노스태틱이 공짜로 갖는 것은 그 레인의 **입장료**다."
+  ],
+  "contributions": [
+   "⑴ 기하 × 조명원 2×3 통제 격자 — 무엇을 고정하고 무엇을 변하게 두는지를 함정 10개와 함께 못박는다",
+   "⑵ 축 분리 정량 — 기하 0.44 · 조명원 4.97 · 상호작용 0.11 · 간섭 47.1 dB",
+   "⑶ 상시 기준신호 12종 교차표준 표와 v_max 법칙, 그리고 그 바닥이 기하와 무관하다는 증명",
+   "⑷ 탈출구 6 전수 판정 + 7번째(PRF 통제권)가 구성 A 에서만 열린다는 판정",
+   "⑸ 간섭 원장을 한 축으로 — 등가 베이스라인 L_equiv 로 DPI 와 SI 를 한 자에 놓는다"
+  ],
+  "novelty_guard": [
+   "Rzewuski(NATO STO 2021)가 드론 바이스태틱 RCS → 커버리지 → 50 m 실외 검출을 이미 닫았다 — '최초' 류를 쓰지 않는다",
+   "v_max = λ·PRF/(4cos(β/2)cosδ) 는 Chen et al. Applied Sciences 2024 가 먼저 냈다 · Abratkiewicz 2023 이 5G SSB 에 적용했다",
+   "v·R = c·λ/8 은 Skolnik 의 고전 결과다"
+  ]
+ },
+ "lasen_positioning": {
+  "cell": "A-nr (능동 모노스태틱 × 5G NR)",
+  "identity": "Q. Yang, Y. Dai, M. Li, Q. Huang, X. Chen, J. Zhang, G. Song, Q. Zhang, X. Tao, 'LaSen: Low-Altitude Drone Sensing with 5G-NR Signals', in Proc. ACM/IEEE SenSys '26, Saint Malo, France, May 2026, pp. 732-745. DOI 10.1145/3774906.3800504. (published)",
+  "geometry": "MONOSTATIC",
+  "measured_detection_range_m": 108.0,
+  "measured_velocity_top_bin_ms": [
+   14.6,
+   20.2
+  ],
+  "eirp_dbm": 36.9,
+  "our_cell_R90_at_63dBm_m": 421.64907967929634,
+  "our_cell_R90_scaled_to_lasen_eirp_m": 93.8536477521764,
+  "ratio_measured_over_ours": 1.1507277829539189,
+  "gap_db": 2.4389039497693723,
+  "mismatches": [
+   "반송파 — LaSen 5.8 GHz 비면허 · 우리 A-nr 3.5 GHz",
+   "표적 — LaSen Matrice 4E / Mini 4 Pro · 우리 mavic4pro",
+   "SI 처리 — LaSen 차폐판 + 정적배경 제거(격리 수치 미보고) · 우리 Barneto 실측 100 dB",
+   "처리 — LaSen 2D-OMP 부표본 압축센싱 · 우리 정합필터 + 교정 CFAR"
+  ],
+  "what_it_is": "자릿수 확인이다. 네 규약이 다른데도 두 값이 링크버짓 2.44 dB 안에 든다.",
+  "why_it_matters": "⭐ LaSen 은 A-nr 칸이 **작동한다는 게재 증거**다. 그 칸이 서기 때문에 B·C 칸의 속도 한계가 '실패' 가 아니라 **설계공간의 경계**가 된다.",
+  "precise_positioning": [
+   "LaSen 의 탈출구는 반복률이 아니라 **데이터 심볼**이다 — X[m,n] 를 알아야 쓴다",
+   "그 대가는 트래픽이다 — 상용 gNB 실측에서 밀집구간이 전체의 5 % ⟨monostatic_prior.json : lasen.traffic_statistics_measured.dense_segment_fraction⟩",
+   "⭐ 경계는 '모노 vs 패시브' 가 아니라 '기준신호만 쓰기 vs 전 파형 쓰기' 다 — 패시브도 복조·재변조로 전 파형 레인에 들어간다(nr_recon 행 1000 Hz → 21.41 m/s)",
+   "LaSen 은 상용 gNB 로 드론을 잰 적이 없다 — 드론 반사는 자체 USRP 만재 송신, 상용 gNB 는 RE 점유 마스크 추출에만 썼다"
+  ],
+  "scoping_caveat": "⭐ LaSen 은 상용 gNB 를 통해 드론을 잰 적이 없다. 드론 반사는 자기 USRP 가 5.8 GHz 비면허대역에서 **만재 송신**한 파형으로 측정했고, 상용 gNB(China Mobile N41 2대, 2200 프레임) 는 오직 **RE 점유 마스크**를 뽑는 데만 쓰였다. 그 마스크를 만재 측정치에 원소별 곱해서 12,079 개 채널 샘플을 합성했다. 따라서 이것은 '실측 트래픽 패턴 × 실측 드론 반사'의 합성 실험이지 상용망 실험이 아니다. verbatim: 'The final channel frequency response was obtained by performing element-wise multiplication between the full-band drone measurements and the derived occupancy masks, generating 12079 channel samples for further analysis.'"
+ },
+ "live_defects": {
+  "D1": {
+   "name": "앵커가 리포트 계층에만 있고 생산 σ 사슬 밖에 있다",
+   "evidence": "src/experiment_freespace_sigma.py 에 `sigma_anchor` 참조 0회 ⟨sigma_sensitivity.json : scenario_apply_measured_slope.finding⟩",
+   "grep_count": 0,
+   "measured_slope_db_per_ghz": 0.21,
+   "our_production_slope_db_per_ghz": 1.2884017636859721,
+   "R90_factor_x": {
+    "wifi": 0.9000316040231489,
+    "lte": 1.1096950156399699,
+    "nr": 1.0010997947284943
+   },
+   "cells_affected": "6칸 전부 — σ 사슬은 두 기하가 공유한다",
+   "geometry_axis_impact": "0 — 밴드별 공통모드라 두 행에 같은 배율이 곱해진다. 기하 비교는 불변, 조명원 비교는 바뀐다",
+   "worth": "자세평균 승자 여유가 3.48 dB → 8.313 dB 로 오르고, 그때 비로소 현실 오차범위 5.013 dB 밖으로 나간다"
+  },
+  "D2": {
+   "name": "듀티 축이 정의만 되고 R90 생산경로 밖에 있다",
+   "evidence": "`freespace_link.duty_db_from_cpi` 정의됨 · src/experiment_freespace_range.py 호출 0회 ⟨sigma_sensitivity.json : unapplied_duty_axis.finding⟩",
+   "duty_db": {
+    "W1": -12.839966563652007,
+    "L1": 0.0,
+    "G1": -16.020599913279625
+   },
+   "R90_factor_x": {
+    "wifi": 0.4727405306375256,
+    "lte": 1.0,
+    "nr": 0.3944216954480569
+   },
+   "cells_affected": "6칸 전부 — 자원격자가 정하는 값이라 기하와 무관하다",
+   "geometry_axis_impact": "0 — mono_link.views.duty_axis.check 에서 φ·기하 기여 0 확인",
+   "worth": "조명원 축의 LTE−5G 간격이 16.02 dB 늘고, 승자 여유가 21.15 dB 가 된다"
+  },
+  "corrected_map": [
+   {
+    "cell_id": "A-wifi",
+    "illuminator": "wifi",
+    "R90_m": 357.6572201615733,
+    "R90_anchored_m": 321.9028015524813,
+    "R90_anchored_duty_m": 152.17650121962612,
+    "factor_anchor_x": 0.9000316040231489,
+    "factor_duty_x": 0.4727405306375256,
+    "factor_total_x": 0.4254814180764467
+   },
+   {
+    "cell_id": "A-lte",
+    "illuminator": "lte",
+    "R90_m": 383.7823362475772,
+    "R90_anchored_m": 425.8813456245993,
+    "R90_anchored_duty_m": 425.8813456245993,
+    "factor_anchor_x": 1.1096950156399699,
+    "factor_duty_x": 1.0,
+    "factor_total_x": 1.1096950156399699
+   },
+   {
+    "cell_id": "A-nr",
+    "illuminator": "nr",
+    "R90_m": 421.64907967929634,
+    "R90_anchored_m": 422.1128071144021,
+    "R90_anchored_duty_m": 166.4904490524011,
+    "factor_anchor_x": 1.0010997947284943,
+    "factor_duty_x": 0.3944216954480569,
+    "factor_total_x": 0.39485547834951445
+   },
+   {
+    "cell_id": "B-wifi",
+    "illuminator": "wifi",
+    "R90_m": 3512.3613354724357,
+    "R90_anchored_m": 3161.2362066741457,
+    "R90_anchored_duty_m": 1494.444481813694,
+    "factor_anchor_x": 0.9000316040231489,
+    "factor_duty_x": 0.4727405306375256,
+    "factor_total_x": 0.4254814180764467
+   },
+   {
+    "cell_id": "B-lte",
+    "illuminator": "lte",
+    "R90_m": 2261.020706826255,
+    "R90_anchored_m": 2509.0434086238565,
+    "R90_anchored_duty_m": 2509.0434086238565,
+    "factor_anchor_x": 1.1096950156399699,
+    "factor_duty_x": 1.0,
+    "factor_total_x": 1.1096950156399699
+   },
+   {
+    "cell_id": "B-nr",
+    "illuminator": "nr",
+    "R90_m": 3263.239267118365,
+    "R90_anchored_m": 3266.8281604621575,
+    "R90_anchored_duty_m": 1288.5079017869411,
+    "factor_anchor_x": 1.0010997947284943,
+    "factor_duty_x": 0.3944216954480569,
+    "factor_total_x": 0.39485547834951445
+   },
+   {
+    "cell_id": "C-wifi",
+    "illuminator": "wifi",
+    "R90_m": 5303.884160999702,
+    "R90_anchored_m": 4773.663368977534,
+    "R90_anchored_duty_m": 2256.704154135358,
+    "factor_anchor_x": 0.9000316040231489,
+    "factor_duty_x": 0.4727405306375256,
+    "factor_total_x": 0.4254814180764467
+   },
+   {
+    "cell_id": "C-lte",
+    "illuminator": "lte",
+    "R90_m": 6899.704679907597,
+    "R90_anchored_m": 7656.567892681234,
+    "R90_anchored_duty_m": 7656.567892681234,
+    "factor_anchor_x": 1.1096950156399699,
+    "factor_duty_x": 1.0,
+    "factor_total_x": 1.1096950156399699
+   },
+   {
+    "cell_id": "C-nr",
+    "illuminator": "nr",
+    "R90_m": 5316.700491408625,
+    "R90_anchored_m": 5322.547770582059,
+    "R90_anchored_duty_m": 2099.328315776251,
+    "factor_anchor_x": 1.0010997947284943,
+    "factor_duty_x": 0.3944216954480569,
+    "factor_total_x": 0.39485547834951445
+   }
+  ],
+  "illuminator_order_base": [
+   "lte",
+   "nr",
+   "wifi"
+  ],
+  "illuminator_order_corrected": [
+   "lte",
+   "wifi",
+   "nr"
+  ],
+  "order_changes": true,
+  "headline": "두 결함은 **둘 다 조명원 축**이다. 기하 축은 그대로 서고, 조명원 축은 WiFi ×0.425 · LTE ×1.11 · 5G ×0.395 로 움직인다 — LTE 의 우위가 커진다.",
+  "fix_cost": {
+   "D1": "src/experiment_freespace_sigma.py 에 sigma_anchor 를 배선 + 격자 재생성 (GPU ~10 분)",
+   "D2": "src/experiment_freespace_range.py stage_solve 의 snr_rd_db 에 duty_db 인자 추가 (패치 1줄 · GPU 0 · mono_link.json : handoff.patch_requests[1] 에 정확한 패치가 있다)"
+  }
+ },
+ "gaps": {
+  "rule": "비용 순. 위에서부터 친다.",
+  "items": [
+   {
+    "rank": 1,
+    "item": "듀티 축 배선 (결함 D2)",
+    "cost": "패치 1줄 · GPU 0 · ~15 분",
+    "decides": "조명원 축이 16.02 dB 움직이고 승자 여유가 21.15 dB 가 된다",
+    "geometry_doubles": false,
+    "where": "src/experiment_freespace_range.py — 패치는 mono_link.json : handoff.patch_requests[1]"
+   },
+   {
+    "rank": 2,
+    "item": "SI 기준면·장면원점 규약 합치기",
+    "cost": "GPU 0 · ~30 분",
+    "decides": "mono_link.json 과 monostatic_scene.py 를 한 표에 인용할 수 있게 된다 (현재 SI 10.0 dB · 원점 250 m 차이)",
+    "geometry_doubles": false,
+    "where": "mono_link.json : handoff.two_conventions_to_settle"
+   },
+   {
+    "rank": 3,
+    "item": "앵커를 생산 σ 사슬에 배선 (결함 D1)",
+    "cost": "GPU ~10 분 + 격자 재생성",
+    "decides": "R90 이 밴드별 ×0.900~×1.110 움직이고 승자 주장이 현실 오차범위 밖으로 나간다",
+    "geometry_doubles": false,
+    "where": "src/experiment_freespace_sigma.py"
+   },
+   {
+    "rank": 4,
+    "item": "능동 EIRP 규제 상한 확정 (함정 T3)",
+    "cost": "문헌 ~2 시간",
+    "decides": "A 행 절대 R90 이 확정되고 등-EIRP 규약의 편향 방향이 닫힌다",
+    "geometry_doubles": false,
+    "where": "FCC 15.407 / ETSI EN 301 893"
+   },
+   {
+    "rank": 5,
+    "item": "송신기 위상잡음 스펙트럼 확정",
+    "cost": "문헌 ~2 시간",
+    "decides": "⭐ A 행 최대 변수 — 광대역 레짐이면 R90 384 m, 0-도플러 레짐이면 5306 m (13.8배)",
+    "geometry_doubles": false,
+    "where": "Barneto 2019 후속 · 상용 gNB PN 마스크"
+   },
+   {
+    "rank": 6,
+    "item": "φ 스윕을 σ·커버리지 산출물로 확장",
+    "cost": "GPU ~1 시간 (φ 3점) ~ 4 시간 (φ 13점)",
+    "decides": "'기하는 링크버짓에 영향 없다' 가 φ=90° 의 산물인지 아닌지 (함정 T1b, 최대 23.2 dB)",
+    "geometry_doubles": true,
+    "where": "src/experiment_freespace_sigma.py · experiment_freespace_range.py"
+   },
+   {
+    "rank": 7,
+    "item": "σ 격자 el 을 −75° 까지 확장",
+    "cost": "GPU ~570 s × el 배수 ≈ 1 시간",
+    "decides": "d ≲ 2L 근거리대(기하 축이 사는 곳)의 R90 을 신뢰할 수 있게 된다",
+    "geometry_doubles": true,
+    "where": "src/experiment_freespace_sigma.py el 목록 (현재 0~−20°)"
+   },
+   {
+    "rank": 8,
+    "item": "실장 ECA 소거깊이 실측",
+    "cost": "X410 캠페인 (1~2일)",
+    "decides": "C·B 행의 90 dB 가 선언값에서 실측으로 바뀐다. 40 dB 면 C 의 R90 이 6900 → 867 m 로 무너진다",
+    "geometry_doubles": false,
+    "where": "docs/MEASUREMENT_PLAN.md · outputs/measurement_plan.json"
+   },
+   {
+    "rank": 9,
+    "item": "능동 모노 실측 격리 100 dB 위 문헌",
+    "cost": "문헌 ~2 시간",
+    "decides": "break-even 147.1 dB 까지의 41 dB 격차가 좁혀지는지",
+    "geometry_doubles": false,
+    "where": "Barneto 2019 이후 전이중 레이더 문헌"
+   },
+   {
+    "rank": 10,
+    "item": "E-ALIAS 실측 (접힘 시연)",
+    "cost": "캠페인 1~2일",
+    "decides": "법칙의 실측 증거. 기하와 무관하므로 한 캠페인이 두 행을 함께 산다",
+    "geometry_doubles": false,
+    "where": "PAPER_POSITION.md §5"
+   }
+  ],
+  "gpu_free_top": [
+   "듀티 축 배선 (결함 D2)",
+   "SI 기준면·장면원점 규약 합치기"
+  ],
+  "headline": "1~5 는 합쳐 GPU 10분 + 문헌 4시간이고 그 안에 A 행의 최대 변수 두 개(위상잡음 레짐·EIRP 상한)가 닫힌다."
+ },
+ "verification_burden": {
+  "artifacts": [
+   {
+    "artifact": "Pfa 교정 (2717 s MC)",
+    "geometry_dependent": false,
+    "reason": "검출기 규약은 β 를 안 탄다 — 두 팔이 같은 문턱·같은 배율",
+    "extra_cost": "0"
+   },
+   {
+    "artifact": "SBR 커널 ↔ 해석 PO (0.201 dB)",
+    "geometry_dependent": false,
+    "reason": "후방산란 기준 검증이라 모노에 더 직접 적용된다",
+    "extra_cost": "0"
+   },
+   {
+    "artifact": "σ 격자 (570 s GPU)",
+    "geometry_dependent": false,
+    "reason": "⭐ 모노 팔이 **같은 격자**를 β=0 으로 조회한다 — 새 RCS 계산 0",
+    "extra_cost": "0"
+   },
+   {
+    "artifact": "링크버짓 → R90",
+    "geometry_dependent": true,
+    "reason": "fs_params 를 TX=RX 로 다시 부른다",
+    "extra_cost": "16.82 s CPU (완료)"
+   },
+   {
+    "artifact": "블라인드·접힘 비율",
+    "geometry_dependent": true,
+    "reason": "같은 함수를 두 기하로 부른다",
+    "extra_cost": "이 파일에서 완료"
+   },
+   {
+    "artifact": "간섭 원장",
+    "geometry_dependent": false,
+    "reason": "⚠ 두 배가 아니라 **다른 물리** — DPI 와 SI 는 별개 항이고 각각 근거가 필요하다",
+    "extra_cost": "문헌 1건 신규 (Barneto 2019)"
+   },
+   {
+    "artifact": "φ 스윕",
+    "geometry_dependent": true,
+    "reason": "기하 비교는 φ 를 반드시 쓸어야 한다 (함정 T1b)",
+    "extra_cost": "산출물마다 ×3 ~ ×13"
+   },
+   {
+    "artifact": "기하 항등식 회귀",
+    "geometry_dependent": true,
+    "reason": "모노 = 바이 β=0 · 간섭 끈 R90 재현",
+    "extra_cost": "완료 (0 m · 0 m/s)"
+   }
+  ],
+  "n_doubled": 4,
+  "n_unchanged": 4,
+  "cpu_spent_s": 17.61,
+  "gpu_spent": "0",
+  "headline": "⭐ 기하 축을 두 배로 만든 검증은 8개 중 4개이고, 그 4개의 실제 비용은 CPU 17.61 s · GPU 0 이다. 가장 비싼 검증(σ 격자 570 s GPU · Pfa 2717 s MC)은 정확히 두 배가 되지 않는다 — σ 는 원래 모노고 Pfa 는 기하 무관이기 때문이다.",
+  "real_new_cost": "남는 진짜 비용은 두 가지다 — φ 스윕(산출물마다 ×3~13)과 간섭 원장의 두 번째 물리(SI). 앞의 것은 GPU, 뒤의 것은 문헌이다."
+ },
+ "narrowing": {
+  "contract": "docs/PAPER_SPEC.md §5 — 막히면 위쪽부터 버린다",
+  "recommendation": "⭐ §5 의 3번(모노+바이 → 바이 단독)을 **가장 나중에** 친다. 모노 팔의 한계비용이 CPU 17.6 s · GPU 0 이고, 그 대가로 게재 대조군(LaSen)과 통제 축을 얻기 때문이다.",
+  "order_to_cut": [
+   {
+    "rank": 1,
+    "cut": "σ 격자 5기체 → 1기체 (mavic4pro)",
+    "saves": "GPU 570 s → 114 s",
+    "costs": "기체 일반화 문장을 뺀다",
+    "spec_item": "§5-5"
+   },
+   {
+    "rank": 2,
+    "cut": "φ 13점 → 3점 {0°, 90°, 180°}",
+    "saves": "φ 의존 산출물 ×13 → ×3",
+    "costs": "φ 중앙값 통계가 3점 평균으로 거칠어진다. absmax 23.2 dB 는 그대로 잡힌다(φ=180° 가 극값)",
+    "spec_item": "이번 라운드 신규 축"
+   },
+   {
+    "rank": 3,
+    "cut": "근거리대(d ≲ 2L) 를 범위에서 뺀다",
+    "saves": "σ 격자 el 확장(−75°) 이 통째로 빠진다",
+    "costs": "기하 축의 링크버짓 항이 0.61 dB 로 고정된다 — 그러면 기하 행의 내용은 간섭항과 통제권 둘로 좁혀진다",
+    "spec_item": "§5-2 (실측이 닿는 거리대)"
+   },
+   {
+    "rank": 4,
+    "cut": "기체 7종 → 실측 2종 + 대조군 2종",
+    "saves": "메쉬·격자 작업",
+    "costs": "크기 전이 문장이 약해진다",
+    "spec_item": "§5-1"
+   },
+   {
+    "rank": 5,
+    "cut": "모노+바이 → 바이 단독",
+    "saves": "CPU 17.6 s",
+    "costs": "⛔ LaSen 대조군과 통제 축을 통째로 잃는다 — 재프레이밍의 목적이 사라진다",
+    "spec_item": "§5-3"
+   }
+  ],
+  "never_cut": [
+   "v_max 법칙과 12종 교차표준 표",
+   "탈출구 6판정",
+   "Pfa 교정",
+   "⭐ 신규: 통제 축(A 는 PRF 를 고르고 B·C 는 망이 준 값을 받는다)"
+  ],
+  "if_only_one_row": "⭐ 한 행만 남겨야 하면 **바이스태틱(C)** 을 남긴다 — 실측 장비(X410 4RX)와 논문 헤드라인이 거기 서 있고, 모노 행은 A 의 절대 R90 이 선언 SI 깊이에 매달려 있다."
+ },
+ "figure": {
+  "path_png": "outputs/figures/geometry_benchmark_map.png",
+  "path_pdf": "outputs/figures/geometry_benchmark_map.pdf",
+  "question": "Which geometry x illuminator combination measures the drone speed band unambiguously, and out to what range?",
+  "encoding": "x = usable speed window (log) · y = R90 (log) · color+marker+linestyle = configuration A/B/C · text = cost in dB",
+  "palette_check": "dataviz validator (OKLab ΔE, Machado severity 1.0, light surface): all pairs PASS — worst min(protan,deutan) ΔE = 11.0",
+  "text_language": "English (house rule)"
+ },
+ "handoff": {
+  "files_not_edited": [
+   "docs/PAPER_SPEC.md",
+   "docs/PAPER_POSITION.md",
+   "src/monostatic_scene.py",
+   "benchmark/mono_vs_passive.py",
+   "benchmark/verify_monostatic.py",
+   "src/rcs_sbr.py",
+   "src/sigma_anchor.py",
+   "src/make_report*.py",
+   "src/drones.py",
+   "src/drone_cad.py"
+  ],
+  "patch_PAPER_POSITION": {
+   "file": "docs/PAPER_POSITION.md",
+   "where": "§1.0 · §1.2 주장 사다리 표",
+   "what": "표에 **기하 판정** 열을 하나 추가한다(마지막 열 앞).",
+   "column_header": "| 기하 판정 |",
+   "column_values": "C0=both|C0b=both|C1=both, 재배치 2건|C2=both|C3=both|C4=both|C5=both|C6=both|C7=both (강화됨)|C8=both (조건부)|C9=neither|C10=both|C11=passive only (B·C)|C12=both, 모노에서 더 직접적|C13=neither|C14=neither, 모노에서 조건이 하나 늘었다|C15=neither|C16=monostatic only ⭐",
+   "extra_rows": [
+    "| C0b | 속도 동적범위 v_max/v_guard = M/(2·bins) 는 기하와 무관하다 | 닫힌형 ↔ 수치 차 2.2e-16 ⟨geometry_benchmark.json : usable_speed_window⟩ | 없다 (항등식) | **defensible** | both |",
+    "| N3 | 자기간섭이 능동 모노 행의 검지거리를 정한다 | 잡음상승 47.1 dB · 거리배율 0.079× ⟨mono_link.json : verdict.headline_numbers⟩ | SI 깊이 100 dB 는 2.44 GHz·40 MHz 실측을 우리 대역으로 옮긴 값 | **defensible (조건절 필수)** | monostatic only |"
+   ],
+   "edits": [
+    "C11 의 판정에 '패시브 셀(B·C)에서' 조건절을 붙인다 — 구성 A 는 PRF 를 고르므로 이 명제의 대상 밖이다",
+    "C16 을 두 줄로 쪼갠다 — 바이스태틱 자세분해 σ 는 drop 유지, **모노스태틱 자세분해 σ 는 defensible**(Δσ=0 · 커널 0.201 dB)",
+    "C7 의 근거에 '네 배치에서 조명원 순위 동일' 을 추가한다 ⟨mono_link.json : verdict.axis_independence_evidence⟩",
+    "§2 탈출구 표에 7번째 행을 추가한다 — '(g) PRF 통제권 | 구성 A 에서만 열림 | 3GPP sub-6 CSI-RS 천장 500 Hz → 10.71 m/s, 패시브 대비 10배'"
+   ]
+  },
+  "patch_PAPER_SPEC": {
+   "file": "docs/PAPER_SPEC.md",
+   "where": "§5 좁히기 판단 기준",
+   "what": "3번 항목(모노+바이 → 바이 단독)을 **목록 맨 아래로 내린다**.",
+   "reason": "모노 팔의 한계비용이 CPU 17.6 s · GPU 0 이고, 그 대가로 게재 대조군(LaSen)과 통제 축을 얻는다 ⟨geometry_benchmark.json : verification_burden⟩.",
+   "replacement_list": [
+    "1. σ 격자 5기체 → **1기체(mavic4pro)**",
+    "2. φ 13점 → **3점 {0°, 90°, 180°}**",
+    "3. 근/원거리 전 범위 → **검지 한계대(d ≳ 10L)** — 기하 축의 링크버짓 항이 0.61 dB 로 고정되고, 기하 행의 내용이 간섭항과 통제권 둘로 좁혀진다",
+    "4. 기체 7종 → **실측 2종 + 대조군 2종**",
+    "5. 다중 Rx → **단일 Rx**",
+    "6. 모노+바이 → **바이스태틱 β ≤ 45° 단독** (⛔ 마지막에 친다 — LaSen 대조군과 통제 축을 통째로 잃는다)"
+   ],
+   "add_to_never_cut": "⭐ 통제 축(A 는 PRF 를 고르고 B·C 는 망이 준 값을 받는다)"
+  },
+  "patch_experiment_freespace_range": {
+   "file": "src/experiment_freespace_range.py",
+   "why": "결함 D2 — `freespace_link.duty_db_from_cpi` 가 R90 생산경로에서 호출되지 않는다",
+   "patch": "stage_solve 의 snr_rd_db 호출에 `duty_db=fsl.duty_db_from_cpi(M_from_prf(T_cpi, prf), len(wf.tx)/wf.fs_hz, T_cpi)` 를 넘기고 meta.cpi 에 (M, t_ref, duty_db) 를 기록한다",
+   "effect": "기하 비교 영향 0(두 팔 동일) · 조명원 축 LTE−5G 간격 +16.02 dB",
+   "note": "mono_link.json : handoff.patch_requests[1] 과 동일 — 두 워크플로가 같은 패치를 요청한다"
+  },
+  "patch_experiment_freespace_sigma": {
+   "file": "src/experiment_freespace_sigma.py",
+   "why": "결함 D1 — `sigma_anchor` 참조 0회, 앵커가 리포트 계층에만 있다",
+   "patch": "σ 격자 생산 시 sigma_anchor 의 측정 기울기(0.210 dB/GHz)를 밴드축에 적용하고, meta 에 적용 여부와 기울기를 기록한다",
+   "effect": "R90 밴드별 ×0.900 / ×1.110 / ×1.001 · 승자 여유 3.48 → 8.31 dB"
+  },
+  "note": "이 파일은 정의·판정·문서화만 한다 — 금지파일과 생산 파이프라인은 읽기만 했다."
+ },
+ "provenance": {
+  "R90 by cell": "mono_link.json : detection_range.broadband.cells",
+  "v_max floor": "geometry_grid.json : axis_independence.P1 · refrate_law.json : illuminators.rows",
+  "usable window": "본 파일 usable_speed_window (freespace_scene.M_from_prf · DOPPLER_GUARD_HARD_BINS)",
+  "blind/alias by geometry": "본 파일 blind_and_fold (freespace_scene 함수, 저장소 회귀 대조)",
+  "axis sizes": "mono_link.json : axis_effects_headline",
+  "DPI required depth": "geometry_grid.json : interference_ledger.passive_dpi",
+  "SI required/measured": "mono_link.json : self_interference (Barneto 2019 IEEE TMTT)",
+  "active PRF ceiling": "geometry_grid.json : control_axis.by_band",
+  "bisector error": "geometry_grid.json : sigma_transfer",
+  "anchor defect": "sigma_sensitivity.json : scenario_apply_measured_slope.finding",
+  "duty defect": "sigma_sensitivity.json : unapplied_duty_axis.finding",
+  "LaSen": "monostatic_prior.json : lasen · mono_link.json : views.lasen_side_by_side",
+  "narrowing ladder": "docs/PAPER_SPEC.md §5"
+ },
+ "self_check": {
+  "negatives": 0,
+  "negatives_cap": 3,
+  "negatives_ok": true,
+  "negative_sentences": [],
+  "hedges": 0,
+  "hedges_ok": true,
+  "hedge_hits": []
+ }
+}

@@ -1,0 +1,260 @@
+{
+ "_meta": {
+  "producer": "src/make_report05_results.py",
+  "generated": "2026-07-31T06:22:13",
+  "reads": [
+   "outputs/report13_freespace.json",
+   "outputs/report13_sigma_grid.json",
+   "outputs/detection_rx_sweep.json",
+   "outputs/verify_freespace.json",
+   "outputs/verify_linkbudget.json",
+   "outputs/sigma_anchor.json",
+   "outputs/sbr_defect_fixes.json",
+   "outputs/sigma_sensitivity.json",
+   "outputs/cpi_guard_sweep.json"
+  ],
+  "paper_section": "V. Results",
+  "runtime_s": 0.5
+ },
+ "r90": {
+  "definition": "공칭 헤딩 ψ=0 에서 출력 SNR(d) 가 교정 문턱 SNR90 을 마지막으로 하강교차하는 수평거리 d [m] (src/freespace_link.py:448 solve_range). 유효 게이트 β≤90°·원거리장을 통과한 칸에서만 해를 찾는다.",
+  "key": "ranges.{d}.{m}.equal_psd.full_waveform_capture.by_N.1.R90_C50_m",
+  "key_note": "키의 `C50` 은 스펙 §2.3 의 커버리지 백분위(P_ψ[Pd≥0.9]≥0.50) 이름이고, 이 실행이 그 자리에 적은 값은 단일 헤딩 solve 의 R_m 이다 — 같은 리프의 `note` 가 그렇게 적고 있다. 헤딩 축은 coverage_ceiling·E_psi_Pd_at_R90 열이 따로 든다.",
+  "n_local_mean": 3.992299451720064,
+  "anchored_km": {
+   "mini5pro": {
+    "W1": 3.6885966095171328,
+    "L1": 7.443600259370602,
+    "G1": 5.100615977377073
+   },
+   "mavic4pro": {
+    "W1": 5.8061235433945635,
+    "L1": 4.649869596382514,
+    "G1": 6.612665058196629
+   },
+   "matrice4e": {
+    "W1": 4.3807487505035585,
+    "L1": 6.3428725045610745,
+    "G1": 5.930289894505008
+   },
+   "phantom4": {
+    "W1": 5.929753976655388,
+    "L1": 5.763088047035575,
+    "G1": 5.653265110499421
+   },
+   "s1000plus": {
+    "W1": 8.463630112659922,
+    "L1": 11.104997926318141,
+    "G1": 10.113036180788653
+   }
+  },
+  "verdict": {
+   "mini5pro": "scaled",
+   "mavic4pro": "scaled",
+   "matrice4e": "scaled",
+   "phantom4": "direct",
+   "s1000plus": "not_comparable"
+  },
+  "comparable": [
+   "mini5pro",
+   "mavic4pro",
+   "matrice4e",
+   "phantom4"
+  ],
+  "excluded": [
+   "s1000plus"
+  ],
+  "n_cells_comparable": 12,
+  "span_comparable_min_km": 3.6885966095171328,
+  "span_comparable_min_cell": "mini5pro · WiFi",
+  "span_comparable_max_km": 7.443600259370602,
+  "span_comparable_max_cell": "mini5pro · LTE",
+  "excluded_min_km": 8.463630112659922,
+  "excluded_max_km": 11.104997926318141,
+  "excluded_size_law_spread_db": 9.500964921935944,
+  "coverage_ceiling_by_mode": {
+   "WiFi": 0.9166666666666666,
+   "LTE": 0.75,
+   "5G": 0.0
+  },
+  "blind_heading_frac_by_mode": {
+   "WiFi": 0.08333333333333333,
+   "LTE": 0.25,
+   "5G": 1.0
+  },
+  "doppler": {
+   "WiFi": {
+    "prf": 1000.0,
+    "M": 100,
+    "lam": 0.057541738579654514,
+    "guard_hz": 25.0,
+    "fold_hz": 500.0
+   },
+   "LTE": {
+    "prf": 1000.0,
+    "M": 100,
+    "lam": 0.16266546825827455,
+    "guard_hz": 25.0,
+    "fold_hz": 500.0
+   },
+   "5G": {
+    "prf": 50.0,
+    "M": 5,
+    "lam": 0.085654988,
+    "guard_hz": 25.0,
+    "fold_hz": 25.0
+   }
+  },
+  "doppler_note": "가드 반폭 = 2.5빈 × Δf_d(=PRF/M), 선언값 (src/freespace_scene.py:82 · :222). 접힘 후 도플러 축 = ±PRF/2. CPI 의존성은 outputs/cpi_guard_sweep.json 이 스윕으로 든다."
+ },
+ "threshold": {
+  "snr90_shared_db": 11.86143572621035,
+  "snr90_source_mode": "W1",
+  "note": "stage_threshold 는 --mode 목록의 첫 모드에서 SNR90 을 뽑아 세 밴드 solve 전부에 넘긴다 (src/experiment_freespace_range.py:856).",
+  "l1_own_snr90_db": 11.908326967150497,
+  "l1_delta_db": 0.04689124094014652,
+  "l1_range_shift_pct": -0.2700829490247969,
+  "g1_skipped_cells": 5,
+  "g1_total_cells": 5,
+  "g1_M": 5
+ },
+ "anchor_scope": {
+  "from_measurement": "A(f) 의 주파수 기울기 [dB/GHz]",
+  "from_ours": "절대 레벨 A(f)|_mean · 자세 패턴 B₁(φ,θ)",
+  "production_mode": "slope_only",
+  "level_shift_abs_max_db": 4.736951571734001e-15,
+  "size_law_spread_max_db": 9.500964921935944,
+  "why": "레벨까지 앵커에 맞추려면 크기전이 법칙을 하나 골라야 하고, 그 선택이 기체에 따라 최대 9.50 dB 를 정한다. 측정이 그 대가 없이 제약하는 양은 기울기뿐이므로 기울기만 받는다 (02 §4.1 과 같은 문장)."
+ },
+ "gap_1km": {
+  "d_ref_m": 1000.0,
+  "drone": "mavic4pro",
+  "by_mode": {
+   "W1": {
+    "common": 78.45404827251934,
+    "lambda2": -24.80034040743194,
+    "sigma_anch": -11.33349348325332,
+    "total_anch": 42.3202143818341
+   },
+   "L1": {
+    "common": 78.45404827251934,
+    "lambda2": -15.774092645822925,
+    "sigma_anch": -23.903903795630292,
+    "total_anch": 38.77605183106612
+   },
+   "G1": {
+    "common": 78.45404827251934,
+    "lambda2": -21.34494682844696,
+    "sigma_anch": -12.745250113209597,
+    "total_anch": 44.363851330862786
+   }
+  },
+  "by_pair": {
+   "W1-L1": {
+    "d_total": 3.544162550767979,
+    "d_lambda2": -9.026247761609014,
+    "d_sigma": 12.570410312376971,
+    "d_common": 0.0
+   },
+   "W1-G1": {
+    "d_total": -2.043636949028688,
+    "d_lambda2": -3.455393578984978,
+    "d_sigma": 1.411756629956276,
+    "d_common": 0.0
+   },
+   "L1-G1": {
+    "d_total": -5.587799499796667,
+    "d_lambda2": 5.570854182624036,
+    "d_sigma": -11.158653682420695,
+    "d_common": 0.0
+   }
+  },
+  "note": "세 밴드에서 값이 다른 항은 λ² 와 σ 둘뿐이다 — 나머지(EIRP·수신이득·확산·1/N₀·CPI·듀티·손실·모드보정)는 세 밴드가 같은 값을 쓴다."
+ },
+ "ranking": {
+  "consensus_order_aspect_avg": "LTE > 5G > WiFi",
+  "mc_p_order_preserved_at_2db_min": 0.28018,
+  "mc_p_order_preserved_at_2db_max": 0.820335,
+  "note": "설정별 순위·뒤집힘 문턱의 원장은 outputs/sigma_sensitivity.json 이다 (configurations.by_config)."
+ },
+ "always_on_cost": {
+  "W": {
+   "snr50_g1": 11.869275929549904,
+   "snr50_g3": 11.657084488545165,
+   "cost_db": 0.2121914410047392,
+   "bw_g1_mhz": 76.5625,
+   "bw_g3_mhz": 76.5625,
+   "dr_g1_m": 3.915656594285714,
+   "dr_g3_m": 3.915656594285714
+  },
+  "L": {
+   "snr50_g1": 13.755984555984558,
+   "snr50_g3": 13.680633955709945,
+   "cost_db": 0.07535060027461249,
+   "bw_g1_mhz": 17.985,
+   "bw_g3_mhz": 18.015,
+   "dr_g1_m": 16.669027411732,
+   "dr_g3_m": 16.64126883152928
+  },
+  "G": {
+   "snr50_g1": 15.02983725135624,
+   "snr50_g3": 11.212393566698204,
+   "cost_db": 3.817443684658036,
+   "bw_g1_mhz": 7.2,
+   "bw_g3_mhz": 98.28,
+   "dr_g1_m": 41.63784138888889,
+   "dr_g3_m": 3.0503913105413107
+  },
+  "note": "9모드 벤치(단일 반송파·단일 σ)에서 상시 기준신호(등급 1) 대비 세션 기준신호(등급 3)의 Pd=0.5 요구 SNR 차이."
+ },
+ "bench": {
+  "fc_ghz": 3.5,
+  "Rb_m": 22.281313893499735,
+  "sigma_dbsm": -27.5779568443798,
+  "drone": "mavic4pro",
+  "note": "9모드 전부 단일 반송파·단일 기하·단일 σ 다 — 이 스윕이 여는 축은 파형 하나다 (src/experiment_detection.py:342)."
+ },
+ "rx_gain": {
+  "reference_line": "10log10(N) — 열잡음만 상대할 때의 코히어런트 배열이득",
+  "measured": "SNR50(1) − SNR50(N), x 축 SNR 은 잡음 기준 정의",
+  "why_above": "surv = √N·echo + dpi + noise 에서 ECA 잔차 dpi 가 N 에 무관하게 고정이라 √N 이 잔차 대비로도 표적을 올린다 (src/experiment_detection.py:284 · 238).",
+  "idealisation": "조향벡터는 참 표적 방향에 정확히 맞고, 소자 간 결합·교정오차·위치오차는 0 이다 — 상한이 '이상적'인 이유가 이것이다.",
+  "K": 6000,
+  "n_list": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "excess_min_db": -0.10612590275340406,
+  "excess_max_db": 0.469703112719559,
+  "excess_fit_min_db": -0.069694737681127,
+  "excess_fit_max_db": 0.4874594999010906,
+  "snr50_mc_sigma_db": 0.042788122291745036,
+  "excess_in_sigma": 10.977418207720165
+ },
+ "runtime": {
+  "sigma_grid_s": 570.0,
+  "range_per_drone_s": 564.9,
+  "n_drones": 5,
+  "verify_freespace_s": 0.34,
+  "cpi_guard_sweep_s": 3.71551775932312,
+  "sigma_sensitivity_s": 15.2,
+  "declared_s": 5100.0,
+  "declared_breakdown_s": {
+   "verify_sbr_defect_fixes": 900.0,
+   "verify_linkbudget": 2400.0,
+   "experiment_detection": 1800.0
+  },
+  "declared_source": "benchmark/regen_mesh_dependents.py:77 · :101 · :113",
+  "derive_s": 0.5,
+  "total_s": 8514.255517759324,
+  "total_h": 2.365070977155368
+ },
+ "legacy_numbering": {
+  "report13_freespace.json": "05편 자유공간 검지거리 (옛 13편 번호)",
+  "report13_sigma_grid.json": "05편 σ 격자 (옛 13편 번호)",
+  "report2_waveform_rcs.json": "02편 RCS 스윕 (옛 2편 번호)",
+  "report5_results.json": "옛 5편 잔재 — 이 편은 읽지 않는다"
+ }
+}

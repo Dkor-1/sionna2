@@ -1,0 +1,280 @@
+{
+ "meta": {
+  "auditor": "adversarial FAIRNESS lens on outputs/geometry_grid.json",
+  "generated": "2026-07-31T09:18:32",
+  "target": "/home/yunjung/workspace/sionna2/outputs/geometry_grid.json",
+  "question": "2×3 격자의 공유 규약 중 어느 기하·어느 조명원을 부당하게 편드는 것이 있는가",
+  "method": "저장소 함수·산출물로 재계산해 반증 시도. 손으로 친 수치 없음.",
+  "verdict": "ISSUES_FOUND — 격자의 뼈대(N1·PRF 비대칭 선언·모노 이점 열)는 방어된다. 그러나 ⑴ 조명원 축이 등-EIRP 규약 하나로 뒤집히고 ⑵ 기하 축에 도플러 완화만 있고 거리분해능 벌점이 없으며 ⑶ 기하 축의 링크버짓 크기가 바이 팔 자신의 σ 오차보다 작다."
+ },
+ "F1_equal_eirp_inverts_the_illuminator_axis": {
+  "severity": "high",
+  "claim_attacked": "fairness_audit.traps[T3].bias_direction = '등-EIRP 는 능동 WiFi 셀을 크게 봐준다'",
+  "defect": "범위가 틀렸다. EIRP 63 dBm 은 A-wifi 한 셀이 아니라 **WiFi 세 셀 전부**(A/B/C)에 걸리고, 그중 B·C 는 우리가 이미 발표한 패시브 행이다. 등-EIRP 는 조명원 축의 **순위를 뒤집는다** — 격자 두 축 중 하나가 규약의 산물이 된다.",
+  "evidence": {
+   "eirp_is_single_valued": "report13_freespace.json : meta.link_budget.eirp_dbm = 63.0 (전 밴드 공통, provenance='DECLARED — no source doc')",
+   "r90_as_published_m": {
+    "wifi_W1": 6616.305133983892,
+    "nr_G1": 6301.062944411723,
+    "lte_L1": 4281.51715212014
+   },
+   "ranking_as_published": "WiFi > 5G > LTE  (WiFi 1위)",
+   "scaling_law": "R_eq⁴ ∝ EIRP → ΔR_dB = ΔEIRP_dB/4",
+   "r90_if_wifi_at_regulatory_eirp": {
+    "23dBm_ETSI_EN301893_5p25_5p35": {
+     "wifi_m": 661.6305133983892,
+     "delta_eirp_db": -40.0,
+     "range_factor": 0.1
+    },
+    "30dBm_FCC_15p407_UNII2A": {
+     "wifi_m": 989.9955,
+     "delta_eirp_db": -33.0,
+     "range_factor": 0.14962
+    },
+    "36dBm_FCC_UNII3_fixed": {
+     "wifi_m": 1398.29,
+     "delta_eirp_db": -27.0,
+     "range_factor": 0.21135
+    }
+   },
+   "ranking_if_realizable": "5G > LTE > WiFi  (WiFi 꼴찌, 1위와 4.3~9.5배 차)",
+   "compounding_defect": "E3 의 미적용 듀티항을 켜면 WiFi 가 −12.84 dB 를 더 문다. 두 보정 합계 45.84 dB → WiFi R90 6616 m → 472.7 m (14.0배)",
+   "regulatory_values_are_UNVERIFIED": "⚠ 23/30/36 dBm 은 감사자가 제시한 후보값이다. 조항 확인은 readjudication.needs_recomputation 의 'FCC 15.407 / ETSI EN 301 893' 항목이 이미 예약해 두었다"
+  },
+  "why_a_reviewer_bites": "논문 제목이 'Geometry × Illuminator' 다. 조명원 축의 순위가 규제상한 무시에서 나오면 축 하나가 통째로 무효가 된다. 지금 T3 는 이 파급을 능동 셀 하나로 축소해 적었다.",
+  "direction_of_bias": "등-EIRP 는 WiFi 를 27~40 dB 봐준다. 따라서 'LTE 가 WiFi 보다 낫다' 는 결론은 보수적이고, **'WiFi 가 5G 보다 낫다' 는 결론은 보수적이지 않다** — 이 방향 구분이 파일에 없다.",
+  "fix": "T3.bias_direction 을 세 WiFi 셀 전부로 확대하고, 조명원 축 순위를 인용할 때마다 '등-EIRP 규약 아래' 를 붙인다. work_plan_order 6번(실현가능 EIRP 뷰)을 4번(9셀 표 채우기) **앞**으로 당긴다 — 표를 먼저 채우면 뒤집힐 순위를 발표하게 된다."
+ },
+ "F2_doppler_relief_credited_range_resolution_penalty_not_charged": {
+  "severity": "high",
+  "claim_attacked": "axis_independence.P2 — '완화계수 = 1/(cos(β/2)·cos δ_el). β 가 커질수록 바이스태틱이 관대해진다'",
+  "defect": "같은 cos(β/2) 가 **거리분해능을 정확히 같은 배수로 악화시킨다**. 파일에 resolution/ΔR 문자열이 0회 나온다 — 바이 팔에 보너스만 주고 정확히 상쇄되는 벌점을 안 걷었다.",
+  "arithmetic": {
+   "doppler_relief": "v_max ∝ 1/cos(β/2)",
+   "range_resolution_along_bisector": "ΔR = c/(2·B·cos(β/2))",
+   "product": "(1/cos)·(cos) = 1.000000 — RD 분해셀 **면적은 기하 불변**",
+   "by_beta": {
+    "0": 1.0,
+    "15": 1.00857,
+    "30": 1.03528,
+    "45": 1.08239,
+    "60": 1.1547,
+    "90": 1.41421
+   },
+   "reading": "β=90° 에서 바이는 속도를 1.414배 벌고 거리분해능을 1.414배 잃는다. 순이득 0."
+  },
+  "second_and_worse_layer": {
+   "what": "저장소 규약이 이 문제를 **자동으로 모노에 유리하게** 만든다",
+   "waveforms_py": "range_resolution_m = c/B  (바이스태틱 **거리합** 좌표) · range_resolution_mono_m = c/(2B)  (모노 **표적거리** 좌표) — src/waveforms.py:144·153",
+   "the_trap": "두 행을 이 두 속성으로 채우면 모노가 공짜로 2배 좋아 보인다. 그러나 모노의 거리합 분해능도 c/B 다 — 좌표계가 다른 두 양을 비교하는 것이고, T1(1/R⁴ vs 1/(R₁²R₂²) 정규화)과 **같은 종류의 함정**이다.",
+   "correct_comparable": "ΔR_bisector = c/(2B·cos(β/2)) 하나로 두 행을 낸다. β=0 에서 c/(2B) 로 모노와 항등이 된다.",
+   "was_fine_before": "바이스태틱 전용 프로젝트에서는 c/B 규약이 내부적으로 일관됐다. 기하가 **축**이 되는 순간 규약이 rig 로 바뀐다 — 이번 재프레이밍이 새로 연 구멍이다."
+  },
+  "fix": "⑴ traps 에 T1c(분해능 정규화)를 추가하고 N1 옆에 **분해능 정규화 규약**을 못박는다. ⑵ P2 문장을 '완화는 공짜가 아니다 — RD 셀 면적은 기하 불변' 으로 고친다. ⑶ 9셀 표에 ΔR_bisector 열을 넣고 c/B 와 c/(2B) 를 나란히 쓰지 않는다."
+ },
+ "F3_geometry_axis_is_smaller_than_the_bistatic_arms_own_sigma_error": {
+  "severity": "high",
+  "claim_attacked": "headline ⑵ '링크버짓은 N1 아래서 기하 기여가 정확히 0' + T1b 'φ 를 쓸면 23.2 dB'",
+  "defect": "T1b 는 옳지만 **역방향 검사를 안 했다**. φ 를 쓸어서 얻는 기하 링크버짓 차이는 어느 방위에서도 바이 팔 자신의 σ 이등분선 근사오차보다 **작다**. 즉 우리 도구로는 기하 축의 링크버짓 성분을 분해할 수 없다.",
+  "comparison": {
+   "unit": "σ 와 spread 는 SNR 에 dB 대 dB 로 똑같이 들어간다 — 직접 비교 가능",
+   "bistatic_sigma_bisector_error_at_beta45_db": {
+    "rms_median": 7.472692132512693,
+    "p95_max": 20.03858904752335
+   },
+   "geometry_spread_delta_db_by_phi": {
+    "phi_0": {
+     "median": 3.0952540692963995,
+     "absmax": 18.928789122399884,
+     "ratio_to_rms": 0.4142
+    },
+    "phi_30": {
+     "median": 2.6513971038704662,
+     "absmax": 10.699453779362983,
+     "ratio_to_rms": 0.3548
+    },
+    "phi_60": {
+     "median": 1.497808094152648,
+     "absmax": 4.582492232134116,
+     "ratio_to_rms": 0.2004
+    },
+    "phi_90": {
+     "median": 0.004258209208075394,
+     "absmax": 0.11762122652176134,
+     "ratio_to_rms": 0.00057
+    },
+    "phi_120": {
+     "median": 1.5065819415173163,
+     "absmax": 4.761299634736732,
+     "ratio_to_rms": 0.2016
+    },
+    "phi_150": {
+     "median": 2.6607355274557416,
+     "absmax": 11.192846322459605,
+     "ratio_to_rms": 0.356
+    },
+    "phi_180": {
+     "median": 3.1049029492053872,
+     "absmax": 23.168839470105702,
+     "ratio_to_rms": 0.4155
+    }
+   },
+   "finding": "중앙값 기준 **7개 방위 전부에서 비율 < 1**. 최대 0.416 (φ=0·180). absmax 만이 오차막대를 넘고, 그것도 φ≤30 또는 φ≥150 의 d 격자 근거리 끝에서만이다."
+  },
+  "consequence": "'기하가 링크버짓에 얼마나 기여하는가' 를 이 격자로 발표하면, 그 값은 자기 오차막대 안에 있다. T1b 의 처방('φ 를 반드시 쓴다')만으로는 부족하다 — φ 를 쓸어도 못 잰다.",
+  "fix": "⑴ 기하 링크버짓 비교에 Δσ(β) 오차막대를 **반드시 겹쳐 그린다**(그림에서 띠로). ⑵ '기하 축은 링크버짓이 아니라 DPI·기준채널·PRF 통제권·커버리지에서 드러난다' 로 서사를 바꾼다 — 이 넷은 σ 오차와 무관하고 크기가 20~119 dB 다. ⑶ 모노 팔은 Δσ=0 이므로 이 오차막대가 비대칭이다: **바이 행에만** 붙는다는 점을 캡션에 적는다."
+ },
+ "F4_dpi_vs_si_is_not_apples_to_apples": {
+  "severity": "high",
+  "claim_attacked": "interference_ledger.passive_dpi.headline + T9 — '구성 B 는 DPI 로 막힌다(LTE L=10 m 119.3 dB > 90 dB)'",
+  "defects": [
+   {
+    "id": "F4a",
+    "name": "안테나 차별을 패시브에만 안 준다",
+    "detail": "P_dir 이 grx=10.0 dBi, 즉 **수신 주로브를 조명원 쪽으로 향한** 값으로 계산된다(benchmark/geometry_grid.py:324 FL.direct_power_w(EIRP_DBM, GRX_DBI, lam, L)). 비교 대상인 능동 SI 100 dB 는 같은 파일이 '25 dB circulator+antenna' 를 **포함**한다고 인용한다. 즉 능동에는 안테나 격리를 주고 패시브에는 안 준다.",
+    "quantified_flip": {
+     "lte_L10_m": {
+      "as_computed": 119.34,
+      "minus15": 104.34,
+      "minus20": 99.34,
+      "minus25": 94.34,
+      "minus30": 89.34
+     },
+     "lte_L30_m": {
+      "as_computed": 109.8,
+      "minus15": 94.8,
+      "minus20": 89.8,
+      "minus25": 84.8,
+      "minus30": 79.8
+     }
+    },
+    "headline_flips_at": "RX 안테나가 조명원 방향으로 20 dB 만 차별해도 L=30 m 요구치가 89.8 dB 로 90 dB 스윕 **안**으로 들어온다. 30 dB 면 L=10 m 도 89.3 dB 로 들어온다. 'B 는 병설거리에서 막힌다' 는 헤드라인이 뒤집힌다.",
+    "note": "저장소에 공간억압 모형이 이미 있다 — freespace_link 의 supp_eff/angular_sep_tx_target_deg (빔폭 밖이면 억압 회복). 격자는 그걸 호출하지 않았다."
+   },
+   {
+    "id": "F4b",
+    "name": "증거 등급이 비대칭이다",
+    "detail": "패시브 달성깊이 40~90 dB 는 achievable_source 가 '선언값, 근거문서 없음' 이라고 스스로 적었다. 능동 SI 100 dB 는 Barneto IEEE TMTT 2019 인용이다. **출처 있는 값 vs 출처 없는 값**을 맞대 'B 는 막혔다' 를 낸다.",
+    "fix": "패시브 ECA 달성깊이의 문헌값을 확보하기 전에는 B-blocked 를 결론이 아니라 '규약 의존 관찰' 로 적는다."
+   },
+   {
+    "id": "F4c",
+    "name": "여유(margin)가 한쪽에만 붙는다",
+    "detail": "패시브 요구깊이 = DNR + **10 dB 여유**. 능동 SI 는 100 dB 평이고 여유가 없다. 10 dB 가 그대로 B 의 불리로 들어간다."
+   },
+   {
+    "id": "F4d",
+    "name": "부호 규약이 어긋난다",
+    "detail": "required_total_suppression_db = **−100.0** (음수) vs eca_depth_required_db = +119.3 (양수). 두 값은 같은 표에서 비교되라고 놓였는데 부호 규약이 반대다. 인용자가 그대로 옮기면 틀린다."
+   }
+  ],
+  "net": "F4a~F4c 가 전부 같은 방향(구성 B 를 불리하게)으로 작동한다. 세 가지를 다 고치면 B 의 결론이 바뀔 수 있다.",
+  "fix": "구성 B 의 DPI 열을 ⑴ 안테나 차별 dB 를 **명시 인자**로 받고 ⑵ 능동 SI 와 같은 항목분해(안테나/RF/디지털)로 쪼개 ⑶ 여유를 양쪽에 같게 주고 ⑷ 부호를 통일해 다시 낸다."
+ },
+ "F5_occupancy_is_filed_on_the_wrong_axis": {
+  "severity": "medium",
+  "claim_attacked": "fairness_audit.held_constant['점유 모드'].why = '점유는 조명원 축이지 기하 축이 아니다' + axis_independence.P3 '듀티는 기하 무관'",
+  "defect": "두 문장 다 참이지만 **묻는 축이 틀렸다**. 점유·듀티는 기하 축이 아닌 게 아니라 **통제 축**의 양이다. 능동 ISAC 송신기는 자기 자원을 자기가 고른다 — G1(상시) 을 A 행에 물리면 능동이 **남의 트래픽 값을 문다**.",
+  "quantified": {
+   "radiated_power_G1_vs_G3_db": {
+    "wifi": -9.892975630836094,
+    "lte": -12.59637310505756,
+    "nr": -17.411610950522054
+   },
+   "propagation": "A-nr 의 유일한 인용 수치(tier-2 자유파형 v_max)가 G1 R90 을 상속한다",
+   "nr_r90_G1_m": 6301.062944411723,
+   "nr_r90_if_G3_m": 17167.0,
+   "tier2_v_at_G1_ms": 509.41245189540615,
+   "tier2_v_at_G3_ms": 187.0,
+   "direction": "이 경우엔 **능동을 봐준다**(짧은 R90 → 큰 v). 배수 2.72"
+  },
+  "also": "control_axis 의 세 축 표(브리핑 §AXIS INDEPENDENCE)에 통제 축의 내용이 'PRF 가 설계변수인가' 하나뿐이다. 통제 축은 최소 셋이다 — PRF · 점유/듀티 · 파형선택. 셋 중 하나만 축으로 올리면 나머지 둘이 조용히 섞인다.",
+  "fix": "held_constant 의 '점유' 항목 why 를 '조명원 축' → '**통제 축** — A 행에는 G3(또는 설계자 선택)를 병기한다' 로 고치고, tier-2 를 G1/G3 두 값으로 낸다."
+ },
+ "F6_declared_conventions_that_are_never_executed": {
+  "severity": "medium",
+  "items": [
+   {
+    "id": "F6a",
+    "what": "등-PRF 뷰",
+    "declared": "control_axis.convention_reported_both.rule = '두 규약이 답을 바꾸는 셀에서는 **둘 다** 보고한다'",
+    "reality": "cells[] 에 등-PRF 열이 없다. 9셀 전부 고유-PRF 한 값뿐이다. 규약이 산문에만 있다.",
+    "bite": "렌즈가 묻는 '비대칭이 선언됐는가' 는 통과하지만, '선언대로 실행됐는가' 는 통과 못 한다."
+   },
+   {
+    "id": "F6b",
+    "what": "능동 행의 두 구멍",
+    "reality": "A-wifi·A-lte 의 prf_ref_hz·v_max_ms 가 **null** 이다. 채워진 능동 셀은 A-nr 하나뿐.",
+    "argument": "능동은 최소한 상시 반복률을 **재현할 수 있다** — 자기가 송신하니까. 따라서 A-wifi ≥ 14.385434644913628 m/s, A-lte ≥ 40.66636706456864 m/s 라는 자명한 하한이 있고 이건 보수적(하한)이라 안전하다.",
+    "bite": "지금 표는 능동 행 3칸 중 2칸이 비어 있어 2×3 격자로 **발표할 수 없다**.",
+    "fix": "두 칸을 '≥ 패시브 값(하한)' 으로 채우고 출처를 refrate_law.json 으로 단다."
+   },
+   {
+    "id": "F6c",
+    "what": "실현가능 EIRP 뷰",
+    "declared": "T3.fix = '실현가능 EIRP 값은 규격 조항으로 다음 라운드에 못박는다'",
+    "reality": "work_plan_order 의 **마지막(6번)** 이다. 그런데 4번 '9셀 표 채우기' 가 그 앞이다 — F1 대로면 표를 먼저 채우면 뒤집힐 순위를 싣게 된다.",
+    "fix": "순서를 4↔6 으로 바꾼다"
+   }
+  ]
+ },
+ "F7_monostatic_full_scene_coverage_is_a_tool_property": {
+  "severity": "medium",
+  "claim_attacked": "sigma_transfer.scene_fraction_lost_to_beta_window.meaning — '모노 팔은 β≡0 이라 0 % 를 잃는다 — 모노 행이 장면 전체를 인용할 수 있는 유일한 행이다'",
+  "defect": "산술은 맞다. 그러나 이 이점의 원인은 **물리가 아니라 우리 엔진**이다. rcs_sbr_batch 가 모노스태틱 후방산란이라서 모노 팔의 모형오차가 정의상 0 이고, β 창(45°/90°)도 그 엔진의 유효범위다. 문장을 그대로 논문에 옮기면 '모노가 장면을 더 잘 덮는다' 는 **물리 주장**으로 읽힌다.",
+  "what_is_true": "모노 행은 σ **모형 유효범위**를 100 % 덮는다(모형 주장). 모노 행이 물리적 장면을 더 잘 덮는지는 이 격자가 답하지 않는다 — 실제로는 모노가 1/R⁴ 를 혼자 물고, N1 정규화가 그 대가를 지웠다.",
+  "also": "같은 구조가 sigma_transfer.correction_to_the_brief 에도 있다. 브리핑 정정('모노 이점이 브리핑보다 크다')이 옳지만, 그 '이점' 역시 우리 엔진이 모노라서 생긴 모형오차 비대칭이다. 물리적 우위로 승격하면 안 된다.",
+  "fix": "'모노 행은 근사 없음(Δσ=0)' 은 유지하되 라벨을 **model-validity advantage** 로 못박고, coverage 절의 meaning 에 '이는 σ 엔진의 유효범위이지 물리적 커버리지가 아니다' 한 줄을 넣는다."
+ },
+ "F8_headline_overclaims_completeness": {
+  "severity": "low",
+  "claim_attacked": "headline ⑵ — '두 기하의 차이는 DPI·기준채널·σ 경로·PRF 통제권 넷으로 **완전히 분해된다**'",
+  "defect": "'완전히' 가 지탱되지 않는다. 최소 두 열이 빠졌다: ⑴ 거리분해능/RD 셀(F2) ⑵ β 창 커버리지(파일이 sigma_transfer 에서 이미 계산해 놓고 헤드라인 목록에는 안 넣었다 — L=500 m 에서 34.2 %). 덧붙여 CAF 모호함수 형상·클러터 도플러 분포도 기하 의존인데 목록 밖이다.",
+  "fix": "'넷' → '다음 여섯 열' 로 고치고 resolution·coverage 를 추가한다. 목록이 닫혔다는 주장은 하지 않는다."
+ },
+ "F9_cross_configuration_import": {
+  "severity": "low",
+  "what": "control_axis.by_band.*.active_ceiling_2_free_waveform_design.r90_reference_m 이 report13_freespace.json 의 **패시브 바이스태틱 G1** R90 이다(6616 / 4281 / 6301 m).",
+  "why_it_matters": "능동 모노의 거리모호 천장을 패시브 배치의 검출거리로 정한다. 능동은 EIRP·듀티·개구가 다르므로 자기 R90 이 따로 있다.",
+  "direction": "F5 계산대로 G1 상속은 능동을 2.72배 봐준다. r90_source 키로 출처는 밝혀져 있으나 **다른 구성에서 왔다는 사실**은 안 적혀 있다.",
+  "fix": "키 이름을 r90_reference_m → r90_from_passive_bistatic_G1_m 으로 바꾸고 caveat 을 단다."
+ },
+ "confirmed_defenses": [
+  {
+   "id": "D1",
+   "item": "PRF 비대칭이 숨겨지지 않고 선언됐고, 방향이 우리에게 불리하게 잡혀 있다",
+   "evidence": "control_axis.active_is_not_unbounded 가 능동을 3GPP CSI-RS 500 Hz 로 **막고**, T8 이 '모노는 PRF 자유' 를 명시적 함정으로 적는다. 능동 5G 의 이득이 무한이 아니라 10.0배(1.07→10.71 m/s)로 계산된다. 자체 파형 tier-2 는 '3GPP 재활용에는 못 쓴다' 로 격리됐다.",
+   "verdict": "렌즈의 '선언됐는가' 질문에 통과"
+  },
+  {
+   "id": "D2",
+   "item": "모노의 DPI 면제·기준채널 면제가 이점으로 **명시**되고 편향 방향까지 적혔다",
+   "evidence": "T5 + interference_ledger.reference_channel.bias_direction — 정본 η_ref=0 dB(full_waveform_capture)가 이상적 기준이라 패시브를 봐주고, 따라서 모노가 이기는 결론은 보수적이다. ledger_rule 이 '정규화로 지우지 않는다' 를 못박는다.",
+   "verdict": "통과. 이 편향 방향 진술은 감사에서 재검토했고 옳다"
+  },
+  {
+   "id": "D3",
+   "item": "거리 정규화 N1 이 규약임을 스스로 밝히고 대안 두 개를 병기한다",
+   "evidence": "N1 검증 max|Δspread| = 5.684341886080802e-14 dB (120 쌍, R1/R2 25배 흔듦) · N1_equal_R_eq.honesty = '발견이 아니라 규약' · N2/N3 를 φ 7점으로 병기 · reporting_rule 이 '같은 거리에서' 라는 프로즈를 금지",
+   "verdict": "렌즈가 지목한 '가장 쉽게 답을 조작하는 자리' 는 방어됐다 — **거리축에 한해서만**(F2 참조)"
+  },
+  {
+   "id": "D4",
+   "item": "개구 재사용이라는 모노의 고전적 공짜점심을 닫았다",
+   "evidence": "T4 — G_rx 를 전 셀 10.0 dBi 로 고정하고 재사용 이득을 별도 표(10~25 dBi, 거리 1.0~2.37배)로 뺐다",
+   "verdict": "통과"
+  },
+  {
+   "id": "D5",
+   "item": "무모호 속도 바닥의 기하 무관성이 주장이 아니라 계산으로 확인된다",
+   "evidence": "감사자 독립 재실행: freespace_scene.fs_params(TX=RX) → β=0.000e+00, R1=R2=R_eq=501.22 m, Rb=2R. 바닥 14.3854 / 40.6664 / 1.0707 m/s 가 발표값과 일치. '두 기하의 최악값' 승격은 정당하다.",
+   "verdict": "통과"
+  },
+  {
+   "id": "D6",
+   "item": "브리핑의 '13.7 dB 상반성 위반' 을 역검증해 정정했다",
+   "evidence": "sigma_transfer.correction_to_the_brief — 13.719 dB 는 matrice4e·5G·β=45 의 이등분선 근사오차 p95 한 셀 값이고, 15셀 참값은 p95 최대 20.04 dB / rms 중앙 7.47 dB, 상반성 rms 최대 5.80 dB.",
+   "verdict": "통과. 다만 결론('모노 이점이 더 크다')은 F7 대로 model-validity 로 라벨해야 한다"
+  }
+ ]
+}

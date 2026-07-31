@@ -1,0 +1,1037 @@
+{
+ "meta": {
+  "generated": "2026-07-31 08:53",
+  "task_ko": "⭐ 교집합 전담: Sionna(또는 Sionna급 GPU 광선엔진) 시뮬레이션 논문 AND 드론/UAV 센싱 논문 - 둘 다인 것만 골라 정독하고, 각 편에 대해 (1) 드론이 Sionna 안에서 어떻게 표현됐나 (2) 스톡 Fresnel 을 넘는 산란계산이 있었나 (3) 기하 (4) 무엇을 검증했나 (5) 표적 시그니처에 대해 무엇을 주장하나 를 확정하고, outputs/prior_settled_h8.json 의 4-프롱(P1 게재/P2 드론 표면메시/P3 Sionna급 엔진 내부계산/P4 진폭검증)으로 채점한다.",
+  "headline_answer_ko": "⭐ H8 은 살아남았다. 교집합 8편(+경계 6편)을 이번 세션에 원문으로 다시 열어 프롱 채점한 결과, 네 프롱을 동시에 만족하는 논문은 0편이다. 우리 포지셔닝을 바꿀 필요는 없다. 다만 프롱별 최대치는 P1·P2·P3 를 동시에 만족하는 Clutter-Aware ISAC(Proc. IEEE 114(1))이며, 그 논문은 P4(진폭 검증)가 통째로 없다 - 본문 41쪽에 'validat' 0회, 'dBsm' 0회를 이번에 직접 세었다.",
+  "method": [
+   "1) 아카이브 전수 재스캔: papers_isac_sionna + sionna_papers_by_task + jeong/papers + reference_library + sionna2_archive 를 PyMuPDF 로 전부 열어 고유 PDF 278편을 term-count. (중복은 파일 앞 200 kB MD5+크기로 제거)",
+   "2) 교집합 후보 = sionna>=1 AND drone|uav|aav|quadcopter|multirotor>=3 -> 23편. 추가로 sionna>=1 AND drone 1~2회 16편도 손으로 확인.",
+   "3) 후보 전편을 문장 단위로 열어 Sionna 사용 문장·표적 표현 문장·기하 문장을 원문 추출. 이 파일의 모든 quote 는 이번 세션에 해당 PDF 에서 직접 읽은 것이다.",
+   "4) 누락 점검(교집합이 아카이브 밖에 있을 가능성): arXiv API all:\"sionna\" 전량(총 99건) 수확 후 UAV/드론 필터 -> 10건, 전부 통신 플랫폼용이거나 이미 아카이브에 있음. OpenAlex 9질의(고유 74건) 교차 -> 신규 후보 3건 확인, 그중 RadarTwin 1편만 회수 가치가 있어 내려받음.",
+   "5) 프롱 채점은 outputs/prior_settled_h8.json 의 정의를 그대로 적용."
+  ],
+  "rule_applied": "모든 항목은 (a) 절대 PDF 경로 또는 해석 가능한 URL, (b) 판본, (c) 게재처+게재상태+연도 를 갖는다. 논문에 대한 주장은 그 주장이 딛고 선 문장을 그대로 인용한다. 확인 못한 것은 UNVERIFIED 로 적었다.",
+  "archives_scanned": [
+   "/data/public/sionna_jeong/papers_isac_sionna/",
+   "/data/public/sionna_jeong/sionna_papers_by_task/",
+   "/data/public/jeong/papers",
+   "/data/public/sionna_jeong/reference_library/",
+   "/data/public/sionna_jeong/sionna2_archive"
+  ],
+  "known_limits_ko": [
+   "ACM DL·IEEE Xplore 는 봇 차단이라 RF Genesis(SenSys'23) 원문은 못 열었다 - 서지만 OpenAlex 로 확정하고 grade B 로 남겼다.",
+   "Ziganshin 회의판 PDF 안에는 EuCAP 게재처 문자열도 DOI 도 없다. 이번 세션에 직접 확인한 것은 'IEEE Xplore' 워터마크와 Fig.6 의 dBsm 축뿐이다. 게재처·DOI 는 outputs/reflib_sweep_sionna.json 경유 2차 정보로 표기했다.",
+   "DMSNet 은 UAV 를 Sionna 씬 안에서 어떻게 표현했는지 5쪽 전체에 한 문장도 없다. '표현 미기재' 자체가 발견이며, 추정으로 채우지 않았다."
+  ]
+ },
+ "prong_definitions": {
+  "P1": "동료심사 게재(저널/학회 프로시딩/표준화기구 프로시딩). arXiv 단독은 불가. 단, 원고 안에 '명시된 동료심사 게재처에 accepted' 라고 적혀 있으면 인정.",
+  "P2": "UAV 가 기체의 3-D 표면 메시로 표현됨. 금속 정육면체·점산란체·단일 로터 블레이드·추상 복소계수는 불가.",
+  "P3": "산란장이 Sionna급 미분가능 GPU 광선엔진 '내부'에서 계산됨(Sionna RT, 그 in-place 확장, 또는 동급 GPU path-tracing EM 엔진). FEKO/CST/FDTD 에서 RCS 를 구해 광선경로에 곱하는 것은 주입이며 불가.",
+  "P4": "계산된 산란 '진폭'(RCS·반사도·에코전력)을 측정 또는 기준 full-wave/해석해와 대조. 도플러 주파수 위치·회전주기·스펙트로그램 리지 모양 일치는 운동학적 일치이므로 불가."
+ },
+ "h8_recheck": {
+  "claim": "ZERO published papers compute a validated scattering signature from a drone mesh in a Sionna-class engine.",
+  "verdict_this_session": "VERIFIED (survives). 네 프롱을 동시에 만족하는 논문 0편.",
+  "prong_max_this_session": {
+   "P1+P2+P3 동시 만족": "X02 Clutter-Aware ISAC (Proc. IEEE 114(1)) - 유일. P4 만 결여.",
+   "P1+P3 만족, P2 부분": "X01 md-rt (ICCT 2025) - 프로펠러 1개.",
+   "P1+P3+P4 만족, P2 실패": "B01 Ziganshin 회의판 - 표적이 차량.",
+   "P2+P3 만족, P1/P4 실패": "X07 CAVIAR(단말), X03(정육면체라 P2 도 실패)",
+   "P3+P4 근접, P1/P2 실패": "B04 RadarTwin - Mitsuba3 + 실측 짝비교."
+  },
+  "load_bearing_word": "⭐ H8 의 무게는 이제 사실상 P4('validated') 한 단어에 실린다. P2(드론 메시)와 P3(Sionna 내부)는 X02 가 이미 게재판으로 만족시켰다. 따라서 우리 문장은 반드시 'a validated scattering amplitude' 를 명시해야 하며, '드론 메시를 Sionna 에 넣은 최초' 같은 표현은 즉시 반증된다.",
+  "recommended_wording_ko": "권장 문장: '드론 표면메시를 Sionna급 GPU 광선엔진 안에 두고, 거기서 나온 산란 진폭을 기준해/실측에 대조한 뒤, 그 위에 경험적 Pfa 로 교정한 검출을 세운 게재 논문은 아직 없다.' (메시 삽입은 이미 있었음을 앞 절에서 인정한 뒤에 쓸 것)",
+  "what_would_change_our_position": "X02 저자군이 후속으로 그 UAV 메시의 RCS 를 FEKO/측정과 대조하거나, B01 저자군이 표적을 드론으로 바꾸면 H8 은 즉시 무너진다. 두 그룹 다 능력과 코드가 이미 있다. 이 리스크는 리포트에 명시할 것."
+ },
+ "taxonomy_gap": {
+  "finding_ko": "⭐ 우리 3분류(A 능동모노 / B 패시브 준모노 / C 패시브 바이)로는 교집합 논문 8편 중 2편을 담을 칸이 없다.",
+  "missing_cell": "D: 네트워크-네이티브 바이스태틱(cooperative bistatic) - 조명원이 '남'이 아니라 자기 사업자망이고, 송신기와 수신기가 물리적으로 떨어져 있으며, 파형은 통제 가능하지만 기하는 바이스태틱.",
+  "examples": [
+   "X03 FWA cooperative sensing - CPE 상향링크 송신, BS 수신, UAV 는 그 사이의 산란체",
+   "X04 DMSNet 은 반대로 순수 A 이지만 다중대역이라 '대역' 축이 하나 더 필요"
+  ],
+  "why_it_matters_ko": "우리 2x3 격자(기하 2 x 조명원 3)에 이 칸이 없으면, 심사자가 'FWA/셀룰러 협조형 바이스태틱은 왜 뺐나' 라고 물었을 때 답이 없다. 격자 설명 각주 한 줄로 '조명원 통제권'과 '기하'를 분리된 축으로 명시할 것.",
+  "our_position_ko": "우리 C 는 '조명원 비통제 + 기하 바이스태틱'이고, X03 은 '조명원 통제 + 기하 바이스태틱'이다. 두 축을 분리해 적으면 격자는 그대로 두고 서술만 정밀해진다."
+ },
+ "intersection_entries": [
+  {
+   "id": "X01",
+   "rank": 1,
+   "class": "INTERSECTION (Sionna 실행 + 드론이 센싱 표적)",
+   "bib": {
+    "title": "Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing",
+    "authors": [
+     "Changjun Li",
+     "Shiyi Mu",
+     "Jun Jiang",
+     "Lei Feng",
+     "Yuan Gao",
+     "Shugong Xu"
+    ],
+    "affil": "Shanghai University; Xi'an Jiaotong-Liverpool University",
+    "venue": "2025 IEEE 25th International Conference on Communication Technology (ICCT)",
+    "year": 2025,
+    "pages": "359-364",
+    "doi": "10.1109/ICCT67417.2025.11374154",
+    "version": "IEEE Xplore camera-ready, 6 pages (PDF 본문 페이지번호 359-364)"
+   },
+   "status": "PUBLISHED - 근거 2겹: (a) PDF p1 에 'DOI: 10.1109/ICCT67417.2025.11374154' 와 ISBN 979-8-3315-8578-5/25/$31.00 (c)2025 IEEE, (b) OpenAlex 독립조회에서 동일 DOI 반환",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+   "pages_pdf": 6,
+   "sionna": {
+    "used": true,
+    "component": "Sionna RT",
+    "version_stated": null,
+    "version_note": "버전 미기재. 인용문 [16] 은 Sionna RT GLOBECOM Wkshps 2023 논문."
+   },
+   "drone_representation": "프로펠러 1개(블레이드 2장)만. 기체 없음. Blender 로 만든 프로펠러 물리모델 또는 Sionna 내장 reflector. 재질 'Wood', 전자기 파라미터는 Sionna 내장값.",
+   "beyond_stock_fresnel": "산란물리는 스톡. 다만 '엔진 개조'가 있다 - 광선 방출 샘플링을 구면->원뿔로 바꿔 표적 방향 광선밀도를 높였다. 이는 표본화 개선이지 산란모델 변경이 아니다.",
+   "geometry": {
+    "config": "A (능동 모노스태틱)",
+    "evidence": "p2: 'the transmitter and receiver remain stationary at origin Q'. Fig.5 캡션은 Tx/Rx 를 (10,0,-10),(5,0,-5),(7.071,7.071,-10) 등 '한 좌표'로 표기 - 동일위치 = 모노스태틱.",
+    "carrier_GHz": [
+     2.4,
+     5,
+     6,
+     24,
+     60,
+     77
+    ],
+    "waveform": "OFDM, 2048 심볼, 심볼길이 50 us"
+   },
+   "what_was_validated": "운동학만. p4(인쇄 362쪽): 'According to Eq. (7), the calculated maximum Micro-Doppler frequency shift is 1562 Hz. The rotation period derived from the angular velocity, T = 2 pi / omega = 0.04 s, matches perfectly with the simulation results.' 비교대상은 측정이 아니라 자기 논문 II장의 해석식.",
+   "target_signature_claims": [
+    "산란중심 1->2->3->6->블레이드모델로 늘리면 시간-주파수 도면이 최대 도플러 정현 포락선 안을 점점 채운다(Fig.4a-e).",
+    "거리분해능이 표적 물리크기보다 작아지는 HRR 영역에서는 표적이 단일 거리셀 점산란체가 아니라 거리축으로 퍼진 확장응답이 된다.",
+    "반송주파수를 올리면 마이크로도플러 스펙트럼이 넓어지고 에너지가 분산된다(초록·Fig.6, 2.4/5/6/24/60/77 GHz).",
+    "⚠ dBsm 0회, RCS 절대값 0회. 진폭에 대한 주장은 한 줄도 없다."
+   ],
+   "prongs": {
+    "P1": "YES",
+    "P2": "PARTIAL - 프로펠러 1개뿐, 기체 표면메시 아님",
+    "P3": "YES",
+    "P4": "NO - 자기 해석식과의 운동학 일치뿐",
+    "verdict": "H8 미반증. 다만 '게재된 Sionna + 드론형상' 조합으로는 가장 가까운 논문."
+   },
+   "quotes": [
+    {
+     "page": 1,
+     "text": "To date, no research has systematically employed ray tracing to model and analyze signal spectrum variations caused by rotational motions of multirotor UAVs."
+    },
+    {
+     "page": 1,
+     "text": "We propose an improved directional ray-tracing strategy based on Sionna RT, which replaces spherical sampling with conical sampling to enhance path density and distribution accuracy in critical regions."
+    },
+    {
+     "page": 3,
+     "text": "The target consists of either Sionna's built-in reflector model or a physical model of a propeller modeled using Blender. The model's coordinates are located at its geometric center, and electromagnetic parameters such as conductivity are based on Sionna's built-in settings."
+    },
+    {
+     "page": 3,
+     "text": "Table I. Parameters Setup ... Rotating propellers 1 / Blades per propeller 2 / Propeller radius 10.55cm / Propeller material Wood"
+    },
+    {
+     "page": 2,
+     "text": "As shown in Fig. 1, the transmitter and receiver remain stationary at origin Q of the transmitter coordinate system (U, V, W)."
+    },
+    {
+     "page": 4,
+     "text": "According to Eq. (7), the calculated maximum Micro-Doppler frequency shift is 1562 Hz. The rotation period derived from the angular velocity, T = 2 pi / omega = 0.04 s, matches perfectly with the simulation results."
+    }
+   ],
+   "internal_defect": "⚠ 논문 안에서 숫자가 10배 어긋난다. Table I(p3) 'Propeller radius 10.55cm' vs 본문(p4, 인쇄 362쪽) 'Under the conditions of a blade length of 1.055 meters'. 이번 세션에 두 문장 모두 직접 확인했다. 우리가 어느 쪽이든 인용하면 다른 쪽도 같이 적을 것.",
+   "use_for_us_ko": "⭐ 우리 report07/08 의 직접 선행. (1) 'ray tracing 으로 멀티로터 회전 스펙트럼을 체계적으로 다룬 연구가 아직 없다'는 저자들 자신의 gap 문장이 우리 서론의 외부 근거가 된다. (2) 그들이 검증한 것은 리지 '위치'뿐이고 진폭은 손도 안 댔다 - 우리가 σ(dBsm)를 앵커링한다는 주장의 대비축이 정확히 여기다. (3) 기하는 모노스태틱 1종뿐 - 우리 2x3 격자(모노/바이 x WiFi/LTE/5G)의 필요성을 그대로 뒷받침한다. (4) 재질 'Wood' 단일 - 우리 재질가중 PO(prop/body/battery/PCB)와 대비.",
+   "cautions_ko": "⚠ 기체가 없다. '드론을 Sionna 에 넣었다'로 요약하면 과장이다. 정확히는 '로터 1개'다. ⚠ 저자군은 Great-X(X06)와 같은 연구실이다 - 두 편을 독립 증거처럼 나란히 세우지 말 것.",
+   "citation_draft": "C. Li, S. Mu, J. Jiang, L. Feng, Y. Gao, and S. Xu, \"Micro-Doppler signature simulation of multirotor UAVs using ray tracing,\" in Proc. IEEE 25th Int. Conf. Commun. Technol. (ICCT), 2025, pp. 359-364, doi: 10.1109/ICCT67417.2025.11374154.",
+   "related_work_sentence_ko": "레이트레이싱으로 멀티로터의 회전 마이크로도플러를 다룬 유일한 게재 논문은 Sionna RT 의 광선 샘플링을 구면에서 원뿔로 바꾼 Li 외[ICCT'25]이지만, 표적은 목재 프로펠러 1개이고 검증은 최대 도플러 1562 Hz 와 회전주기 0.04 s 라는 운동학적 일치에 그친다 - 산란 진폭은 논문 전체에 한 번도 등장하지 않는다."
+  },
+  {
+   "id": "X02",
+   "rank": 2,
+   "class": "INTERSECTION (Sionna 실행 + 드론 메시가 씬 안, 단 역할은 강한 클러터)",
+   "bib": {
+    "title": "Clutter-Aware Integrated Sensing and Communication: Models, Methods, and Future Directions",
+    "authors": [
+     "Rang Liu",
+     "Peishi Li",
+     "Ming Li",
+     "A. Lee Swindlehurst"
+    ],
+    "venue": "Proceedings of the IEEE",
+    "year": 2026,
+    "volume": "114",
+    "number": "1",
+    "pages": "52-92 (본문 마지막 러닝풋 92; 41쪽 분량에서 역산 - 시작쪽 52 는 우리 산출)",
+    "doi": "10.1109/JPROC.2026.3675476",
+    "version": "게재판(Xplore) 41쪽 + arXiv:2602.10537v2 (18 Mar 2026) 36쪽 - 서로 다른 문서"
+   },
+   "status": "PUBLISHED - PDF 러닝풋 'PROCEEDINGS OF THE IEEE | Vol. 114, No. 1, January 2026' 및 'Digital Object Identifier 10.1109/JPROC.2026.3675476' 직접 확인",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf",
+   "pdf_arxiv": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+   "pages_pdf": 41,
+   "sionna": {
+    "used": true,
+    "component": "Sionna RT (스톡)",
+    "version_stated": null,
+    "version_note": "버전 미기재. 참고문헌 [72] 는 Sionna RT technical report arXiv:2504.21719."
+   },
+   "drone_representation": "⭐ UAV 가 '단순화된 3-D 메시'로 Sionna 씬 안에 실제로 들어간다. 공개 3D 모델을 Blender 로 단순화해 Sionna XML 로 내보냄. 재질은 자유 배정.",
+   "beyond_stock_fresnel": "없음. 스톡 Sionna, max interaction depth = 3. 표적 산란은 Sionna 기본 반사/산란 경로로만 나온다.",
+   "geometry": {
+    "config": "A + 외부 방사원 혼합",
+    "detail": "모노스태틱 ISAC BS(높이 13.5 m), 표적 10-15 m, 외부 emitter 5 m. emitter 가 만드는 hot clutter 는 우리 '패시브' 상황과 기하가 같지만 여기서는 간섭으로 취급된다.",
+    "waveform": "MIMO-OFDM, fc=28 GHz, Nt=Nr=16, df=120 kHz, N=512, L=256, 64-QAM (Table III)"
+   },
+   "what_was_validated": "⭐ 아무것도. 게재판 41쪽 전체에서 'validat' 0회, 'dBsm' 0회 (이번 세션 정규식 재계수). Sionna 씬은 클러터 억제 알고리즘의 예시 케이스이며, 표적 RCS 값이 제시되지도 검증되지도 않는다.",
+   "target_signature_claims": [
+    "UAV 는 '표적'이 아니라 약한 ToI 를 가리는 '강한 이동 클러터'로 배치된다. UAV-1 은 방위각이 ToI 에 가깝고 도플러가 분리, UAV-2 는 방위각 분리·도플러 중첩.",
+    "표적/클러터 진폭은 복소계수로 추상화된다: 'the frequency-dependent complex coefficients {alpha, beta} capture the combined effects of RCS, path loss, and multipath-induced phase variations'.",
+    "Sionna RT 씬의 SCNR 은 확률모형 예제보다 훨씬 낮아 검출이 더 어렵다고 서술(정성)."
+   ],
+   "prongs": {
+    "P1": "YES",
+    "P2": "YES - 단순화 UAV 표면메시",
+    "P3": "YES - Sionna RT 내부",
+    "P4": "NO - 진폭 검증 전무(validat 0회)",
+    "verdict": "H8 미반증. ⭐ 그러나 P1+P2+P3 를 동시에 만족하는 유일한 논문이므로, H8 을 지탱하는 무게 전부가 P4 한 프롱에 실린다. 우리 문장은 반드시 '검증된(validated)' 을 명시해야 한다."
+   },
+   "quotes": [
+    {
+     "page": 23,
+     "text": "The ToI and UAVs are modeled as simplified 3-D mesh objects imported into Sionna. These meshes are obtained by simplifying publicly available 3-D models in Blender and exporting them in Sionna's XML format, which keeps the ray-tracing scene lightweight while enabling flexible material assignment."
+    },
+    {
+     "page": 23,
+     "text": "The scenario includes a monostatic ISAC BS, a weak ToI, two stronger mobile UAV targets, and an external emitter. The BS is deployed at a height of 13.5 m, the targets are placed at heights between 10 and 15 m, and the emitter is at 5 m."
+    },
+    {
+     "page": 23,
+     "text": "The maximum interaction depth for Sionna is set to three, so each ray undergoes at most three interactions with scene objects."
+    },
+    {
+     "page": 23,
+     "text": "Sionna defines the LoS as a direct Tx-Rx path, so for monostatic sensing, the target echoes appear as reflected and scattered paths that interact with the target object, even when a geometric LoS exists."
+    },
+    {
+     "page": 6,
+     "text": "the frequency-dependent complex coefficients {alpha_{m,n}, beta_{c,n}} capture the combined effects of RCS, path loss, and multipath-induced phase variations"
+    }
+   ],
+   "version_trap": "⚠ 같은 문장이 arXiv v2 에서는 p20, 게재판에서는 p23 이다. 쪽수를 인용할 때 어느 판인지 반드시 밝힐 것(E2). 게재판에만 있는 문장 예: 'The BS is deployed at a height of 13.5 m...'(게재판 p23) - arXiv v2 p19 말미에도 같은 취지가 있으나 문단 분할이 다르다.",
+   "use_for_us_ko": "⭐⭐ 우리 novelty 문장의 가장 위험한 이웃이자 최고의 지렛대. (1) '드론 메시를 Sionna 에 넣은 게 처음' 이라고 쓰면 즉시 반증된다 - Proc. IEEE 가 이미 했다. (2) 그러나 그들은 씬을 'lightweight' 하게 유지하려고 메시를 단순화했고 표적 RCS 를 한 번도 말하지 않는다. 우리 주장은 '메시를 넣었다'가 아니라 '넣은 표적의 산란 진폭을 계산하고 검증했다'여야 한다. (3) 그들의 hot clutter(외부 방사원) 취급은 우리 패시브 서사의 거울상 - 그들에게 간섭인 것이 우리에게는 조명원이다. 이 대비 한 문장이 우리 report09/12 의 좋은 프레임이 된다.",
+   "cautions_ko": "⚠ UAV 는 표적이 아니라 방해물이다. '드론 검출 논문'으로 인용하면 오인용. ⚠ 게재판 Table/그림 쪽수와 arXiv v2 쪽수가 다르다.",
+   "citation_draft": "R. Liu, P. Li, M. Li, and A. L. Swindlehurst, \"Clutter-aware integrated sensing and communication: Models, methods, and future directions,\" Proc. IEEE, vol. 114, no. 1, pp. 52-92, Jan. 2026, doi: 10.1109/JPROC.2026.3675476.",
+   "related_work_sentence_ko": "단순화한 UAV 표면메시를 Sionna RT 씬에 실제로 올린 게재 논문은 Liu 외[Proc. IEEE'26]가 있으나, 그 메시는 '씬을 가볍게 유지하기 위해' 단순화된 것이고 표적의 RCS 값은 제시되지도 검증되지도 않는다 - 논문 41쪽 전체에 dBsm 은 한 번도 나오지 않는다."
+  },
+  {
+   "id": "X03",
+   "rank": 3,
+   "class": "INTERSECTION (Sionna 실행 + UAV 검출 성능수치, 단 표적은 정육면체)",
+   "bib": {
+    "title": "AI-Empowered Low-Altitude Economy: Cooperative Sensing With Fixed Wireless Access",
+    "authors": [
+     "Jinya Zhang",
+     "Jiajia Guo",
+     "Xiangyi Li",
+     "Chao-Kai Wen",
+     "Shi Jin"
+    ],
+    "affil": "Southeast University / National Sun Yat-sen University",
+    "venue": "arXiv preprint",
+    "year": 2026,
+    "pages": "13 pages",
+    "arxiv": "2605.07623v1 (8 May 2026)",
+    "doi": null
+   },
+   "status": "⚠ PREPRINT. ⭐ 종전 기록 정정: 아카이브가 이 파일을 published_by_venue/IEEE_ICC_Workshops_2026/ 아래 복사해 두었고 outputs/prior_settled_h8.json 은 P1 을 'likely YES' 로 적었으나, PDF p1 각주는 'This work has been partly accepted by IEEE ICC Workshops 2026 [1]' 이고 [1] 은 제목이 다른 별개 논문(J. Zhang, J. Guo, X. Li, C.-K. Wen, S. Jin, 'Deep learning-based cooperative UAV detection with CPE-assisted sensing,' Proc. IEEE ICC Workshops, 2026)이다. 즉 이 13쪽 원고 자체는 미게재이고, 게재된 것은 부분·별제목 논문이다. 이 원고를 ICC Wkshps 게재물로 인용하면 E4.",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+   "pages_pdf": 13,
+   "sionna": {
+    "used": true,
+    "component": "Sionna RT (PathSolver)",
+    "version_stated": null,
+    "version_note": "버전 미기재"
+   },
+   "drone_representation": "⭐ 금속 정육면체. 형상·재질·회전날개 전부 없음. 위치 (x,y,60) m, x,y ~ U[-75,75].",
+   "beyond_stock_fresnel": "없음. 표적 라벨조차 Sionna 가 붙여주는 path type(diffuse reflection)에서 파생한다.",
+   "geometry": {
+    "config": "바이스태틱(단, 조명원이 자기 네트워크) - 우리 A/B/C 어디에도 정확히 안 들어감",
+    "detail": "CPE(Nt=4)가 상향링크 송신, BS(Nr=64)가 수신. UAV 는 그 사이를 지나며 'acts as a scatterer whose presence affects the wireless propagation'. BS 100 m, CPE 18 m, UAV 60 m, 200x200 m 동남대 캠퍼스 OSM 씬.",
+    "waveform": "MIMO-OFDM 상향링크 CSI"
+   },
+   "what_was_validated": "EM 검증 없음. 검증되는 것은 검출/측위 성능이다: MDP 0.63%, 95% 신뢰 측위오차 6.50 m, 3GPP 요구조건 대비.",
+   "target_signature_claims": [
+    "표적 시그니처 자체를 주장하지 않는다. 검출은 '표적이 만드는 CSI 교란'을 신경망이 학습하는 방식이며, 에코 SNR 이나 RCS 는 등장하지 않는다.",
+    "UAV 로 인한 경로는 대개 diffuse reflection 으로 나타난다고 가정하고 그것을 pair label 로 쓴다."
+   ],
+   "prongs": {
+    "P1": "NO (이 원고는 preprint; 부분만 별제목으로 게재)",
+    "P2": "NO - 금속 정육면체",
+    "P3": "YES - Sionna RT",
+    "P4": "NO",
+    "verdict": "H8 미반증. 다만 '드론을 Sionna 안에 넣고 정량적 검출 성능을 낸' 가장 완성도 높은 사례."
+   },
+   "quotes": [
+    {
+     "page": 8,
+     "text": "The dataset is generated through ray-tracing, using OpenStreetMap (OSM), Blender, and Sionna RT [39]."
+    },
+    {
+     "page": 8,
+     "text": "The UAV is modeled as a metallic cube located at p = (x, y, 60), where x, y ~ U[-75, 75]."
+    },
+    {
+     "page": 2,
+     "text": "The UAV hovers at p = (x, y, z) and acts as a scatterer whose presence affects the wireless propagation."
+    },
+    {
+     "page": 9,
+     "text": "the pair labels y(m,n) is derived from the path type provided by Sionna RT. As described in Sec. V-A1, UAV-affected paths are typically caused by diffuse reflections."
+    },
+    {
+     "page": 1,
+     "text": "This work has been partly accepted by IEEE ICC Workshops 2026 [1]."
+    },
+    {
+     "page": 1,
+     "text": "Simulations show that cooperative schemes significantly reduce the missed detection probability to 0.63% and realize a 95%-confidence positioning error of 6.50 m, satisfying 3GPP requirements"
+    }
+   ],
+   "use_for_us_ko": "⭐ 우리 검출편(report12)의 최적 대조군. 같은 질문(드론이 있나 없나)을 같은 도구(Sionna)로 풀되, 표적을 정육면체로 놓고 검출을 학습에 맡긴다. 우리는 표적을 메시로 놓고 검출을 CFAR+경험적 Pfa 로 교정한다. 두 축(표적 충실도 / 검출 규약의 통제가능성)에서 정확히 반대편이라 표 한 줄로 대비된다. 또 하나: 그들의 기하는 '자기 네트워크가 조명원인 바이스태틱'이라 우리 A/B/C 3분류에 네 번째 칸이 필요함을 드러낸다.",
+   "cautions_ko": "⚠ 게재상태 오인용 위험 최고. 아카이브 폴더 위치를 믿지 말 것. ⚠ 'MDP 0.63%' 는 정육면체 표적·학습기반 수치라서 우리 Pd/Pfa 와 직접 비교 불가.",
+   "citation_draft": "J. Zhang, J. Guo, X. Li, C.-K. Wen, and S. Jin, \"AI-empowered low-altitude economy: Cooperative sensing with fixed wireless access,\" arXiv:2605.07623v1, May 2026. (부분 게재판: Proc. IEEE ICC Workshops, 2026, 제목 상이)",
+   "related_work_sentence_ko": "Sionna RT 로 만든 데이터셋 위에서 UAV 검출률을 정량화한 사례로 Zhang 외[arXiv'26]가 있는데, 그 UAV 는 고도 60 m 에 놓인 금속 정육면체이고 검출 근거는 에코가 아니라 CSI 교란의 학습이다."
+  },
+  {
+   "id": "X04",
+   "rank": 4,
+   "class": "INTERSECTION (Sionna 로 UAV 센싱 데이터셋 + CFAR 대조군, 표적 표현 미기재)",
+   "bib": {
+    "title": "DMSNet: Cross-Band Learning for Multi-Target Sensing in Multi-Band ISAC",
+    "authors": [
+     "Haotian Liu",
+     "Zhiqing Wei",
+     "Quanjiang Zhao",
+     "Lin Wang",
+     "Yunxin Geng",
+     "Xingwang Li",
+     "Zhiyong Feng"
+    ],
+    "affil": "Beijing University of Posts and Telecommunications; Henan Polytechnic University",
+    "venue": "arXiv preprint",
+    "year": 2026,
+    "pages": "5 pages",
+    "arxiv": "2607.17655v1 (20 Jul 2026)",
+    "doi": null
+   },
+   "status": "⚠ PREPRINT (arXiv 스탬프 'arXiv:2607.17655v1 [eess.SP] 20 Jul 2026' 직접 확인). 게재처 문자열 없음.",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.17655__dmsnet-crossband-multiband-isac.pdf",
+   "pages_pdf": 5,
+   "sionna": {
+    "used": true,
+    "component": "Sionna RT",
+    "version_stated": null,
+    "version_note": "버전 미기재"
+   },
+   "drone_representation": "⭐ 미기재. 5쪽 전체에서 Sionna 를 언급하는 문장은 단 하나이고, UAV 를 씬 안에서 어떻게 표현했는지(메시/입방체/점) 한 마디도 없다. 신호모형 쪽에서는 표적이 (r, v, theta) 3-파라미터 + 복소 산란계수 rho 로만 존재하며 RCS 는 xi = |rho|^2 로 정의된다.",
+   "beyond_stock_fresnel": "없음(그리고 있었는지조차 서술되지 않음).",
+   "geometry": {
+    "config": "A (능동 모노스태틱, 다중대역 ISAC 기지국)",
+    "detail": "BUPT 캠퍼스 1:1 디지털트윈. 저대역 3.5 GHz(df=30 kHz, Ms=14, Nr=4), 고대역 28 GHz(df=240 kHz, Ms=112, Nr=32). 장면당 UAV 0~5대, r in [50,300] m, v in [-30,30] m/s, theta in [-60,60] deg.",
+    "evidence_monostatic": "신호모형이 왕복 지연 tau=2r/c0, 왕복 도플러 fd=2 fc v/c0, 거리 4승 감쇠 lambda^2/((4pi)^3 r^4) - 모노스태틱 레이더 방정식."
+   },
+   "what_was_validated": "EM 검증 없음. 검증은 검출/추정 성능 벤치마크다. SNR 0 dB 표적개수추정: CA-CFAR 0.7119 / ADVI-CFAR 0.6546 / CFARNet 0.7848 / Eigenvalue-1D-CNN 0.8597 / CSIYOLO 0.8901 / DMSNet 0.9174 (Count Acc.).",
+   "target_signature_claims": [
+    "'a target weakly visible in one band may still be detectable in another band, which provides a key motivation for multi-band target detection' - 주파수 선택적 RCS 를 검출 논거로 쓰지만 값을 제시하지 않는다.",
+    "고/저 대역이 분해능·전파·표적 산란응답에서 상보적이라는 정성 주장."
+   ],
+   "prongs": {
+    "P1": "NO",
+    "P2": "NO - 표현 자체가 미기재",
+    "P3": "YES - Sionna RT 로 데이터셋 생성",
+    "P4": "NO",
+    "verdict": "H8 미반증. ⭐ 그러나 우리 벤치마크와 '문항'이 가장 겹치는 논문: Sionna 트윈 + UAV + CFAR 대조군 + 다중대역."
+   },
+   "quotes": [
+    {
+     "page": 3,
+     "text": "As shown in Fig. 2, a dual-band UAV sensing dataset is generated in a 1:1 3D digital twin of the Beijing University of Posts and Telecommunications (BUPT) campus using Sionna RT [13]."
+    },
+    {
+     "page": 4,
+     "text": "Each scene contains L in {0, ..., 5} UAVs with r in [50, 300] m, v in [-30, 30] m/s, and theta in [-pi/3, pi/3]."
+    },
+    {
+     "page": 2,
+     "text": "rho_{b,l} is the frequency-selective complex scattering coefficient, and the corresponding radar cross section (RCS) is denoted by xi_{b,l} = |rho_{b,l}|^2 [9]. This indicates that a target weakly visible in one band may still be detectable in another band, which provides a key motivation for multi-band target detection [9]"
+    },
+    {
+     "page": 4,
+     "text": "in addition to the traditional cell-averaging constant false alarm rate (CA-CFAR) scheme used in an existing dual-band sensing method [5], we further compare DMSNet with advanced signal-processing and learning-based methods"
+    }
+   ],
+   "use_for_us_ko": "⭐⭐ 우리 다중대역 서사(WiFi/LTE/5G 를 나란히 놓는 2x3 격자)의 가장 가까운 이웃. 그들은 3.5 vs 28 GHz 를 상보적이라 주장하면서 정작 표적의 주파수 의존 산란을 '가정'만 하고 계산하지 않는다 - 우리가 대역별 sigma 를 실제로 계산해 넣는 이유를 이 한 문장으로 세울 수 있다. 또 CA-CFAR 을 baseline 으로 쓰되 Pfa 교정 얘기가 없다(우리 report10 의 대비축).",
+   "cautions_ko": "⚠ 프리프린트. ⚠ '표적 표현 미기재' 를 '메시를 안 썼다'로 단정하지 말 것 - 우리가 아는 것은 '적혀 있지 않다'뿐이다. 인용할 때 그대로 그렇게 쓸 것.",
+   "citation_draft": "H. Liu, Z. Wei, Q. Zhao, L. Wang, Y. Geng, X. Li, and Z. Feng, \"DMSNet: Cross-band learning for multi-target sensing in multi-band ISAC,\" arXiv:2607.17655v1, Jul. 2026.",
+   "related_work_sentence_ko": "Sionna RT 로 만든 캠퍼스 디지털트윈에서 다중대역 UAV 센싱을 학습으로 푸는 Liu 외[arXiv'26]는 고·저 대역의 표적 산란응답이 상보적이라는 전제 위에 서 있지만, UAV 가 광선추적 씬에서 어떤 형상으로 표현되었는지는 논문에 기술되어 있지 않다."
+  },
+  {
+   "id": "X05",
+   "rank": 5,
+   "class": "INTERSECTION 인접 - Sionna 는 전파만, 드론 시그니처는 외부 솔버 주입(우리 분류 route c 의 표준형)",
+   "bib": {
+    "title": "LAMBDA: A Low-Altitude Multimodal Base Dataset for UAV Sensing and Communication",
+    "authors": [
+     "Lin Zhou",
+     "Peichuan Rao",
+     "Chenshuo Zhang",
+     "Jianhua Mo",
+     "Shu Sun",
+     "Zhiyong Chen",
+     "Meixia Tao"
+    ],
+    "affil": "Shanghai Jiao Tong University",
+    "venue": "arXiv preprint",
+    "year": 2026,
+    "pages": "20 pages",
+    "arxiv": "2607.03826v1 (4 Jul 2026)",
+    "doi": null
+   },
+   "status": "⚠ PREPRINT (arXiv 스탬프 직접 확인). 데이터 논문 형식(Competing Interests / Author contributions 절 존재)이나 게재처 표기 없음.",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+   "pages_pdf": 20,
+   "sionna": {
+    "used": true,
+    "component": "Sionna RT (경로/CSI)",
+    "version_stated": null,
+    "version_note": "버전 미기재"
+   },
+   "drone_representation": "Cosys-AirSim 의 UAV 모델(3-D). 단, 그 형상의 산란은 Sionna 가 아니라 CADFEKO 가 계산하고, 자세(attitude)로 조회해 CSI 계수에 곱해진다.",
+   "beyond_stock_fresnel": "⭐ 엔진 밖에서. Sionna 는 재질인지 광선추적으로 다중경로 기하만 주고, UAV RCS 는 CADFEKO 결과를 룩업으로 주입한다.",
+   "geometry": {
+    "config": "A (기지국/노변장치가 UAV 를 관측; FMCW 레이더 합성은 왕복지연 기반 모노스태틱)",
+    "detail": "BS/RSU 가 수십~수백 m 거리에서 UAV 관측. 레이더 큐브는 4x4 배열·64 chirp/frame 으로 합성.",
+    "note": "'monostatic'/'bistatic' 문자열은 20쪽 전체에 0회 - 기하를 그 용어로 규정하지 않는다(우리 판단은 왕복지연 서술 근거)."
+   },
+   "what_was_validated": "진폭 검증 아님. 'quality control' 이 확인하는 것은 아카이브 무결성·모달리티 존재·타임스탬프 정렬·포즈 연속성·'CSI/radar plausibility' 이고, 하류 검증은 RGB 보조 빔예측과 RGB-LiDAR UAV 측위 두 use case 다.",
+   "target_signature_claims": [
+    "UAV 자세에 따라 RCS 가 달라진다는 것을 데이터 생성에 반영했다는 주장(값·검증은 없음).",
+    "'The complex-valued CSI coefficient captures the propagation effects computed by the ray-tracing channel generator, whereas the RCS term is obtained from CADFEKO simulations of the AirSim UAV model and queried according to the UAV attitude.'"
+   ],
+   "prongs": {
+    "P1": "NO",
+    "P2": "YES - AirSim UAV 3-D 모델",
+    "P3": "NO - 산란은 CADFEKO(주입)",
+    "P4": "NO",
+    "verdict": "H8 미반증. 커뮤니티가 실제로 쓰는 '주입 아키텍처'의 가장 깨끗한 표본."
+   },
+   "quotes": [
+    {
+     "page": 3,
+     "text": "Blender [26] for scene-mesh conversion; Sionna RT [27] for material-aware ray tracing; and CADFEKO [28] for UAV radar cross-section (RCS) modeling."
+    },
+    {
+     "page": 4,
+     "text": "The radar synthesis module further combines the Sionna RT multipath geometry with CADFEKO-derived UAV RCS information to generate radar data."
+    },
+    {
+     "page": 7,
+     "text": "The complex-valued CSI coefficient captures the propagation effects computed by the ray-tracing channel generator, whereas the RCS term is obtained from CADFEKO simulations of the AirSim UAV model and queried according to the UAV attitude."
+    }
+   ],
+   "use_for_us_ko": "⭐ 우리 report06/07 의 '왜 엔진 안에서 계산해야 하나' 를 정당화하는 반례. 주입 방식은 (i) 표적-환경 결합(다중반사·바닥유령)을 원천적으로 못 만들고 (ii) 정적 RCS 테이블이라 관측각·바이스태틱각 조합이 씬 기하와 어긋날 수 있다. 우리 바닥유령 결과(report09)가 왜 주입식으로는 안 나오는지 설명할 때 이 논문을 지목하면 된다.",
+   "cautions_ko": "⚠ 프리프린트. ⚠ '2.04 TB / 517,939 프레임' 같은 규모 수치는 데이터셋 규모지 정확도 근거가 아니다.",
+   "citation_draft": "L. Zhou, P. Rao, C. Zhang, J. Mo, S. Sun, Z. Chen, and M. Tao, \"LAMBDA: A low-altitude multimodal base dataset for UAV sensing and communication,\" arXiv:2607.03826v1, Jul. 2026.",
+   "related_work_sentence_ko": "저고도 ISAC 데이터셋의 표준 아키텍처는 산란과 전파를 분리하는 것이다 - LAMBDA[arXiv'26]는 Sionna RT 로 다중경로 기하를 만들고 UAV RCS 는 CADFEKO 에서 따로 계산해 자세로 조회하여 곱한다."
+  },
+  {
+   "id": "X06",
+   "rank": 6,
+   "class": "INTERSECTION 인접 - Sionna 를 다른 엔진에 이식/대조, 드론은 3-D 모델",
+   "bib": {
+    "title": "Unreal is all you need: Multimodal ISAC Data Simulation with Only One Engine (Great-X / Great-MSD)",
+    "authors": [
+     "Kongwu Huang",
+     "Shiyi Mu",
+     "Jun Jiang",
+     "Yuan Gao",
+     "Shugong Xu"
+    ],
+    "affil": "Shanghai University; Xi'an Jiaotong-Liverpool University",
+    "venue": "arXiv preprint",
+    "year": 2025,
+    "pages": "6 pages",
+    "arxiv": "2507.08716v3 (26 Jul 2025)",
+    "doi": null
+   },
+   "status": "⚠ PREPRINT (arXiv 스탬프 'arXiv:2507.08716v3 [cs.CV] 26 Jul 2025').",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2507.08716__great-x_unreal-isac.pdf",
+   "pages_pdf": 6,
+   "sionna": {
+    "used": "부분 - Sionna 의 RT 수식을 Unreal Engine 안에 재구현하고, Sionna RT 는 교차검증 baseline 으로 사용",
+    "component": "Sionna RT (수식 출처 + 비교대상)",
+    "version_stated": null,
+    "version_note": "버전 미기재"
+   },
+   "drone_representation": "'Realistic 3D UAV models in Great-X' (Fig.1a). Unreal 자산 기반 3-D 모델.",
+   "beyond_stock_fresnel": "없음 - 오히려 Sionna 의 반사/굴절/산란 공식을 그대로 옮긴다('The following formulas are referenced from SionnaRT [13]'), 산란은 스칼라 계수 S 기반 확산모델.",
+   "geometry": {
+    "config": "기지국-UAV 링크(측위). 레이더 에코 생성을 표방하나 검출 실험은 없음.",
+    "detail": "상하이 루자쭈이 도심 씬."
+   },
+   "what_was_validated": "플랫폼 간 일반화 오차(측위 m 단위)로만. Sionna RT 학습/Sionna RT 시험 0.309 m, Great-MSD/Great-MSD 0.647 m, Sionna->Great-MSD 11.082 m, Great-MSD->Sionna 8.107 m.",
+   "target_signature_claims": [
+    "RCS 0회, dBsm 0회. 표적 산란 진폭에 대한 주장 없음."
+   ],
+   "prongs": {
+    "P1": "NO",
+    "P2": "YES - 현실적 3D UAV 모델",
+    "P3": "PARTIAL - Sionna 가 아니라 Unreal 단일엔진 재구현이지만 'GPU 광선추적 EM 엔진'이라는 P3 취지에는 걸친다",
+    "P4": "NO",
+    "verdict": "H8 미반증."
+   },
+   "quotes": [
+    {
+     "page": 1,
+     "text": "This single-engine multimodal data twin platform reconstructs the ray-tracing computation of Sionna within Unreal Engine"
+    },
+    {
+     "page": 2,
+     "text": "The following formulas are referenced from SionnaRT [13]."
+    },
+    {
+     "page": 4,
+     "text": "To assess the effectiveness of the simulation platform, we conducted a bidirectional cross-platform evaluation between Great-X and SionnaRT. Both platforms used identical map configurations and consistent parameters."
+    },
+    {
+     "page": 5,
+     "text": "Great-X employs an Unreal Engine-based renderer, which provides higher geometric precision and more detailed texture information than Sionna RT's Mitsuba renderer implementation."
+    }
+   ],
+   "use_for_us_ko": "⭐ '엔진을 바꾸면 결과가 얼마나 달라지나' 에 대한 유일한 정량 자료(8.1 m vs 11.1 m 교차 일반화 오차). 우리 SBR 구현이 Sionna 스톡과 다른 답을 낼 때, '엔진 차이는 이 정도 규모' 라는 외부 눈금으로 쓸 수 있다. 단 그 수치는 측위 오차이지 산란 진폭 오차가 아니다.",
+   "cautions_ko": "⚠ X01(md-rt)과 동일 연구실. ⚠ 프리프린트. ⚠ 'Sionna 보다 정밀' 주장은 렌더러 기하/텍스처에 대한 것이지 EM 정확도 비교가 아니다.",
+   "citation_draft": "K. Huang, S. Mu, J. Jiang, Y. Gao, and S. Xu, \"Unreal is all you need: Multimodal ISAC data simulation with only one engine,\" arXiv:2507.08716v3, Jul. 2025.",
+   "related_work_sentence_ko": "Sionna RT 의 전파 수식을 Unreal Engine 으로 옮겨 UAV 다중모달 ISAC 데이터를 만드는 Great-X[arXiv'25]는 두 엔진 간 교차 일반화 측위오차를 8.1~11.1 m 로 보고하지만, 표적의 산란 진폭은 다루지 않는다."
+  },
+  {
+   "id": "X07",
+   "rank": 7,
+   "class": "INTERSECTION 경계 - 드론 메시가 Sionna 씬 안에 있으나 역할은 무선 종단(수신기)",
+   "bib": {
+    "title": "CAVIAR: Co-simulation of 6G Communications, 3D Scenarios and AI for Digital Twins",
+    "authors": [
+     "Joao Borges",
+     "Felipe Bastos",
+     "Ilan Correa",
+     "Pedro Batista",
+     "Aldebaro Klautau"
+    ],
+    "affil": "UFPA (LASSE); Ericsson Research",
+    "venue": "arXiv preprint",
+    "year": 2024,
+    "pages": "14 pages",
+    "arxiv": "2401.03310v1 (6 Jan 2024)",
+    "doi": null
+   },
+   "status": "⚠ PREPRINT - PDF 첫 줄이 'This work has been submitted to the IEEE for possible publication.'",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+   "pages_pdf": 14,
+   "sionna": {
+    "used": true,
+    "component": "Sionna (link/PHY + RT)",
+    "version_stated": null,
+    "version_note": "버전 미기재"
+   },
+   "drone_representation": "⭐ Sionna 씬 안의 드론에 재질이 배정된다 - Table V: 'Radio material (drone) ITU metal', 반송파 40 GHz. 메시는 Blender decimation 으로 단순화하고 텍스처는 제거.",
+   "beyond_stock_fresnel": "없음. 드론은 표적이 아니라 Sionna 의 수신기(Rx)로 인스턴스화된다.",
+   "geometry": {
+    "config": "통신 링크(빔 선택). 센싱은 RF 가 아니라 YOLOv8 영상으로 수행 - RF 표적검출 아님.",
+    "detail": "AirSim+Unreal 이동, Sionna 통신, UAV 최대 10대"
+   },
+   "what_was_validated": "빔 선택 정확도/검색-구조 임무 성능. 산란 진폭 검증 없음(RCS 0회).",
+   "target_signature_claims": [
+    "없음."
+   ],
+   "prongs": {
+    "P1": "NO",
+    "P2": "PARTIAL - 드론 메시에 ITU metal 이 배정되나 표적이 아니라 종단",
+    "P3": "YES",
+    "P4": "NO",
+    "verdict": "H8 미반증."
+   },
+   "quotes": [
+    {
+     "page": "Table V",
+     "text": "Sionna scene parameters ... Carrier frequency 40 GHz / Radio material (building and ground) ITU concrete / Radio material (drone) ITU metal / Synthetic array True"
+    },
+    {
+     "page": "Sec.V",
+     "text": "Each UAV is instantiated as a smart vehicle in AirSim, the 3D module, and as a receiver in Sionna, the Communications module."
+    },
+    {
+     "page": "Sec.V",
+     "text": "The version used in Sionna does not use textures and underwent a slight simplification using the decimation modifier in Blender."
+    }
+   ],
+   "use_for_us_ko": "드론 메시 + 재질을 Sionna 씬에 넣는 관행이 2024년부터 있었다는 근거. 단 '표적으로서'가 아니라 '단말로서'다. 우리 report02(드론 3D)에서 '메시를 넣는 것 자체는 새롭지 않다' 를 정직하게 인정할 때 인용.",
+   "cautions_ko": "⚠ 드론 검출 논문 아님. ⚠ 프리프린트.",
+   "citation_draft": "J. Borges, F. Bastos, I. Correa, P. Batista, and A. Klautau, \"CAVIAR: Co-simulation of 6G communications, 3D scenarios and AI for digital twins,\" arXiv:2401.03310v1, Jan. 2024.",
+   "related_work_sentence_ko": "드론 메시에 전자기 재질을 배정해 Sionna 씬에 올리는 것 자체는 CAVIAR[arXiv'24]에서 이미 이루어졌으나(ITU metal, 40 GHz), 거기서 드론은 산란 표적이 아니라 수신 단말이다."
+  },
+  {
+   "id": "X08",
+   "rank": 8,
+   "class": "INTERSECTION 경계 - 드론 마이크로도플러 + 바이스태틱을 다루지만 Sionna 는 인용만",
+   "bib": {
+    "title": "OpenISAC: An Open-Source Real-Time Experimentation Platform for OFDM-ISAC",
+    "authors": [
+     "(OpenISAC authors - PDF 저자행 미확정)"
+    ],
+    "venue": "arXiv preprint",
+    "year": 2026,
+    "pages": "16 pages",
+    "arxiv": "2601.03535v2 (6 Jul 2026)",
+    "doi": null
+   },
+   "status": "⚠ PREPRINT. 저자·게재처 미확정(UNVERIFIED) - 이 세션에서 저자행을 확정하지 않았다.",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2601.03535__openisac.pdf",
+   "pages_pdf": 16,
+   "sionna": {
+    "used": false,
+    "component": "인용만 - 'NVIDIA Sionna and the Sionna Research Kit are also important open-source tools'; 참고문헌에 version 2.0.1 명시",
+    "version_stated": "2.0.1 (참고문헌 문자열)",
+    "version_note": "⭐ 아카이브 전체에서 Sionna 2.0.1 을 명시적으로 적은 몇 안 되는 문서"
+   },
+   "drone_representation": "해당 없음(Sionna 씬 없음).",
+   "beyond_stock_fresnel": "해당 없음.",
+   "geometry": {
+    "config": "바이스태틱 중심 실증 플랫폼(bistatic 52회, monostatic 29회, micro-Doppler 21회)",
+    "detail": "OFDM-ISAC 실시간 실험 플랫폼"
+   },
+   "what_was_validated": "플랫폼 실증. CFAR/Pfa/Pd 는 0회(이전 세션 H9 확인, 이번 세션 term-count 재확인).",
+   "target_signature_claims": [
+    "레이더 방정식 안의 추상 sigma_RCS."
+   ],
+   "prongs": {
+    "P1": "NO",
+    "P2": "NO",
+    "P3": "NO - Sionna 미사용",
+    "P4": "NO",
+    "verdict": "H8 미반증. 교집합 아님(인용만)."
+   },
+   "quotes": [
+    {
+     "page": 4,
+     "text": "For a specific reflection p with radar cross section (RCS) sigma_{RCS,p}, range d_{s,p}, and radial velocity v_{s,p}, the complex scattering coefficient, round-trip delay, and two-way Doppler shift are modeled as"
+    }
+   ],
+   "use_for_us_ko": "우리 그룹미팅 덱의 주제이기도 함. 교집합 목록에는 '인용만' 사례로 남겨 둔다 - 자동 계수(sionna>=1)가 교집합으로 오분류하기 쉬운 대표 함정.",
+   "cautions_ko": "⚠ Sionna 를 '쓰지' 않는다. 기계 계수만 보고 교집합에 넣으면 오분류.",
+   "citation_draft": "OpenISAC, arXiv:2601.03535v2, Jul. 2026. (저자·게재처 UNVERIFIED)",
+   "related_work_sentence_ko": null
+  }
+ ],
+ "boundary_and_method_precedents": [
+  {
+   "id": "B01",
+   "why_here": "방법상 최근접 - 메시 산란을 Sionna 내부에서 계산하고 진폭까지 검증. 표적만 드론이 아님(차량).",
+   "bib": {
+    "title": "Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC",
+    "authors": [
+     "A. Ziganshin",
+     "E. M. Vitucci",
+     "S. J. Myint",
+     "W. Kotterman",
+     "C. Schneider",
+     "V. Degli-Esposti",
+     "R. Thoma"
+    ],
+    "venue": "EuCAP 2025 (⚠ 2차정보: outputs/reflib_sweep_sionna.json, DOI 10.23919/EuCAP63536.2025.10999367)",
+    "year": 2025
+   },
+   "status": "PUBLISHED - 단, 이 PDF 안에서 이번 세션에 직접 확인한 것은 'IEEE Xplore' 워터마크뿐. 게재처 문자열과 DOI 는 PDF 에 없다 -> 게재처는 grade B(2차).",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+   "prongs": {
+    "P1": "YES",
+    "P2": "NO - 차량(3.3x2.1x1.7 m)",
+    "P3": "YES",
+    "P4": "YES - FEKO MLFMM/PO 와 대조",
+    "verdict": "H8 미반증(표적 클래스). ⭐ 그러나 '이 방법이 이 형태로 게재 가능하다'를 증명한다."
+   },
+   "quotes": [
+    {
+     "page": 5,
+     "text": "Fig. 6: RCS of the simplified car - 축 라벨 'RCS (dBsm)', 범례 'EM (PO)' vs 'RT+UTD+VD'"
+    }
+   ],
+   "use_for_us_ko": "우리가 하려는 것(메시->엔진 내부 산란->dBsm->기준해와 대조)의 완성된 선례. 표적만 드론으로 바꾸면 우리 기여가 된다는 뜻이며, 동시에 '방법 자체는 새롭지 않다' 는 정직한 한계 표기이기도 하다.",
+   "cautions_ko": "⚠ F8 - 회의판(게재)과 저널판(arXiv:2604.05991v2, 프리프린트)은 별개 문서다. 절대 섞지 말 것."
+  },
+  {
+   "id": "B02",
+   "why_here": "같은 저자군의 저널판. Sionna-RT v0.19 를 in-place 확장하고 BIRA 바이스태틱 측정과 대조.",
+   "bib": {
+    "title": "Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications",
+    "authors": [
+     "Ainur Ziganshin",
+     "Enrico M. Vitucci",
+     "Wim Kotterman",
+     "Reiner Thoma",
+     "Christian Schneider",
+     "Vittorio Degli-Esposti"
+    ],
+    "venue": "arXiv preprint",
+    "year": 2026,
+    "arxiv": "2604.05991v2 (2 Jul 2026)"
+   },
+   "status": "⚠ PREPRINT. 이 PDF 안에 IEEE OJAP 등 게재처 DOI 문자열 없음.",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+   "prongs": {
+    "P1": "NO",
+    "P2": "NO - 차량",
+    "P3": "YES - Sionna-RT v0.19 확장(포크 공개)",
+    "P4": "YES(단 저자들이 'qualitative validation' 이라 자평)",
+    "verdict": "H8 미반증."
+   },
+   "quotes": [
+    {
+     "page": 3,
+     "text": "Sionna-RT (v0.19) [19] was used as a basic RT framework, which is open-source, parallelizable, differentiable, and provides efficient path tracing and electromagnetic field computation on triangulized geometries."
+    },
+    {
+     "page": 9,
+     "text": "Ziganshin, \"Sionna-RT Reflectivity,\" https://github.com/AinurZiga/sionna-RT-reflectivity, 2026"
+    }
+   ],
+   "use_for_us_ko": "Sionna RT 를 확장하는 방식(포크 공개 포함)의 선례. 우리 확장 서술의 형식 모델.",
+   "cautions_ko": "⚠ 프리프린트를 게재물처럼 인용하면 E4. 회의판과 단위·주장이 다르다."
+  },
+  {
+   "id": "B03",
+   "why_here": "⭐ 사용자가 지목한 최상위 학회(SenSys)에서, 사람 메시를 광선추적기에 넣어 mmWave 레이더 원신호를 합성한 선례. 드론도 Sionna 도 아니지만 '메시->레이더 에코' 파이프라인의 최상위 게재 기준선.",
+   "bib": {
+    "title": "RF Genesis: Zero-Shot Generalization of mmWave Sensing through Simulation-Based Data Synthesis and Generative Diffusion Models",
+    "venue": "ACM SenSys 2023",
+    "year": 2023,
+    "doi": "10.1145/3625687.3625798",
+    "authors": [
+     "(OpenAlex 서지; 저자행 원문 미확인)"
+    ]
+   },
+   "status": "PUBLISHED (ACM SenSys 2023) - ⚠ 서지는 OpenAlex 조회 결과이며 원문 PDF 는 이번 세션에 열지 못했다(ACM DL 차단). grade B.",
+   "pdf": null,
+   "prongs": {
+    "P1": "YES",
+    "P2": "NO - 사람 메시",
+    "P3": "YES(추정 - 원문 미확인이므로 UNVERIFIED)",
+    "P4": "UNVERIFIED",
+    "verdict": "H8 미반증(표적 클래스). 원문 확보 전에는 프롱 채점을 확정하지 말 것."
+   },
+   "use_for_us_ko": "RadarTwin(B04)이 자기 파이프라인의 기반으로 삼는 논문. 우리 방법을 SenSys/MobiSys 계열에 제출한다면 이 논문이 직접 비교 기준이 된다.",
+   "cautions_ko": "⚠ 원문 미확보. 수치·주장은 인용하지 말고 존재와 게재처만 인용할 것."
+  },
+  {
+   "id": "B04",
+   "why_here": "메시 -> Mitsuba 3 (Sionna RT 와 같은 렌더러) -> FMCW 원신호 -> 실측과 짝지어 검증. 표적이 실내 물체라 P2 실패.",
+   "bib": {
+    "title": "RadarTwin: Scene-Specific mmWave Radar Simulation and Learning for Mobile Indoor Perception",
+    "authors": [
+     "Emily Bejerano",
+     "Federico Tondolo",
+     "Devang Gupta",
+     "Aaron Mano Cherian",
+     "Taeyoo Kim",
+     "Ayaan Qayyum",
+     "Xiaofan Yu",
+     "et al."
+    ],
+    "affil": "Columbia University; UC Merced",
+    "venue": "arXiv preprint",
+    "year": 2026,
+    "arxiv": "2606.28396v1 (24 Jun 2026)"
+   },
+   "status": "⚠ PREPRINT (arXiv 스탬프 직접 확인). 이번 세션에 회수해 /data/public/sionna_jeong/reference_library/ 에 저장.",
+   "pdf": "/data/public/sionna_jeong/reference_library/2606.28396__radartwin.pdf",
+   "prongs": {
+    "P1": "NO",
+    "P2": "NO - 실내 물체(캔·머그 등)",
+    "P3": "YES - Mitsuba 3 cuda_ad_rgb + RF-Genesis 파이프라인(우리 P3 정의의 '동급 GPU path-tracing EM 엔진')",
+    "P4": "PARTIAL - 코너리플렉터 교정 + 실측/시뮬 짝비교, 단 dBsm 절대값 대조는 아님",
+    "verdict": "H8 미반증. ⭐ P3+P4 를 프리프린트 수준에서 가장 근접하게 채운 문서."
+   },
+   "quotes": [
+    {
+     "page": 5,
+     "text": "The simulator builds on Mitsuba 3 [16] (cuda_ad_rgb variant, CUDA backend) and the RF-Genesis ray-tracing pipeline [6], with material physics replaced to follow ITU-R P.2040-4 [15] on a per-surface basis."
+    },
+    {
+     "page": 8,
+     "text": "Real radar cross section (RCS) does not increase consistently with can size. ... The simulator sees the full mesh and can introduce a size-brightness trend that the real system cannot resolve."
+    },
+    {
+     "page": 5,
+     "text": "Rays are cast once from the sensor position and Fresnel reflection is evaluated at every ray-surface intersection, recursing up to four bounces. The four-bounce limit is validated empirically"
+    }
+   ],
+   "use_for_us_ko": "⭐ 우리 SBR 설계의 외부 정당화 3종: (1) Fresnel 을 ITU-R P.2040-4 로 갈아끼우는 것이 표준 관행이라는 근거, (2) 반사 차수(4-bounce) 를 '경험적으로' 정하는 것이 허용된다는 근거, (3) 시뮬이 메시 전체를 보는 반면 실제 레이더는 못 푸는 차원이 있어 sim-real 불일치가 생긴다는 정직한 경고 - 우리 mesh vs 실측 대조 서술에 그대로 쓸 수 있다.",
+   "cautions_ko": "⚠ 드론 아님, Sionna 아님(인용만). 교집합이 아니라 방법 경계선."
+  },
+  {
+   "id": "B05",
+   "why_here": "H8-Q1 의 반례 - 드론 바이스태틱 RCS + 패시브 레이더 예산 + OTA 검출을 이미 다 한 논문. 엔진만 FDTD.",
+   "bib": {
+    "title": "Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band",
+    "authors": [
+     "S. Rzewuski",
+     "K. Kulpa",
+     "P. Pachwicewicz",
+     "M. Malanowski",
+     "B. Salski"
+    ],
+    "venue": "NATO STO-MP-MSG-SET-183, paper 13",
+    "year": 2021
+   },
+   "status": "PUBLISHED (NATO STO proceedings) - 이전 세션 원문 확인 기록(outputs/prior_settled_h8.json).",
+   "pdf": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+   "prongs": {
+    "P1": "YES",
+    "P2": "YES - Parrot AR.Drone 2.0",
+    "P3": "NO - FDTD(QuickWave-3D)",
+    "P4": "PARTIAL",
+    "verdict": "H8 미반증(엔진). 우리 novelty 문장을 가장 강하게 제약한다."
+   },
+   "use_for_us_ko": "'아무도 WiFi 대역 드론 바이스태틱 RCS 를 낸 적 없다' 는 문장은 이 논문 때문에 거짓이다. 우리 기여는 '양(量)의 존재'가 아니라 '엔진과 파이프라인 통합'이다.",
+   "cautions_ko": "⚠ 이번 세션에 재확인하지 않았다 - 이전 세션 확정 기록을 그대로 인용(grade S->P 재확인 권장)."
+  }
+ ],
+ "excluded_sionna_plus_uav_platform": [
+  {
+   "id": "T01",
+   "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2502.10324__lee-coverage-channelrank-prediction.pdf",
+   "title": "Analysis and Prediction of Coverage and Channel Rank for UAV Networks in Rural Scenarios with Foliage",
+   "status": "PREPRINT arXiv:2502.10324v1 (14 Feb 2025); OpenAlex 는 IEEE Open J. Veh. Technol. 2025 로 표기(2차)",
+   "role": "PROPAGATION_ONLY - UAV 는 AERPAW 실측 플랫폼/통신 단말. 커스텀 나무 메시를 Sionna 에 넣지만 표적은 없다.",
+   "why_excluded_ko": "UAV 가 센싱 '표적'이 아니라 통신 노드. 기계 계수로는 교집합 1위(uav 143회)라 자동 분류가 가장 크게 헛짚는 표본.",
+   "quote": "Custom-modeled trees are integrated into the RT simulations using NVIDIA Sionna, Blender, and Open Street Map (OSM) database to capture realistic blockage effects."
+  },
+  {
+   "id": "T02",
+   "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2603.00795__sari-titan-twin-topology-lawn.pdf",
+   "title": "TITAN: Twin-Informed Topology Adaptation for LAWN-enabled D2C Communication",
+   "status": "PREPRINT arXiv:2603.00795v1 (28 Feb 2026), 'Submitted for journal publication'",
+   "role": "PROPAGATION_ONLY - UAV 기지국 배치 최적화.",
+   "why_excluded_ko": "센싱 없음. 다만 ⭐ Sionna 버전을 명시하는 드문 논문(v1.2) - 버전 기재 관행 통계에 유용.",
+   "quote": "Our experiments are conducted using a simulation platform built on open source Sionna (v1.2), a library for link and system level simulations based on TensorFlow and the Mitsuba renderer"
+  },
+  {
+   "id": "T03",
+   "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2606.14114__dt-channel-gen-toolchain-xlmimo.pdf",
+   "title": "Digital Twin-Based Channel Generation Toolchain and Foundation Model for Low-Altitude XL-MIMO",
+   "status": "PREPRINT arXiv:2606.14114v2 (15 Jun 2026)",
+   "role": "PROPAGATION_ONLY - UAV 는 이동 단말(근거리장 채널).",
+   "why_excluded_ko": "표적 산란 없음. UAV 는 Rx.",
+   "quote": "We import the constructed 3D environments into Sionna RT, anchoring the receiver UPA at oR and extracting UAV positions from the generated trajectories."
+  },
+  {
+   "id": "T04",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2605.13309__simart.pdf",
+   "title": "SimART: A Unified and Open Real-world Multimodal Simulation Platform for 6G ISAC",
+   "status": "PREPRINT arXiv:2605.13309v1 (13 May 2026)",
+   "role": "TOOLING - Sionna RT + Sionna SYS 를 로보틱스 시뮬과 묶는 플랫폼.",
+   "why_excluded_ko": "드론 표적 없음. ⭐ 단 Sionna SYS 까지 쓰는 드문 사례이며 도구 비교표(Table I)가 우리 report04 도구 지형도에 유용.",
+   "quote": "The ray tracing module built on Sionna RT loads a geometrically simplified version of the scene rendered by the physics and sensing module."
+  },
+  {
+   "id": "T05",
+   "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/semantic_goaloriented_comms/2605.16547__wang-world-model-causal-dt-semantic.pdf",
+   "title": "World Model-Enabled Causal Digital Twins for Semantic Communications in Physical AI Systems",
+   "status": "PREPRINT arXiv:2605.16547v1 (15 May 2026)",
+   "role": "PROPAGATION_ONLY - AirSim-Sionna UAV 항법",
+   "why_excluded_ko": "센싱 표적 없음.",
+   "quote": "we develop a novel AirSim-Sionna-based simulator that jointly models physical ... The Sionna-based channel module simulates the uplink transmission from the physical agent to the edge server."
+  },
+  {
+   "id": "T06",
+   "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/beamforming_precoding/2605.26928__lu-nf-trackllm-uav-beam.pdf",
+   "title": "NF-TrackLLM: Joint Prediction of UAV Trajectory and Near-Field Beam for LAE XL-MIMO Systems",
+   "status": "PREPRINT arXiv:2605.26928v1",
+   "role": "PROPAGATION_ONLY",
+   "why_excluded_ko": "UAV=단말, 빔예측.",
+   "quote": "The time-varying near-field channel dataset is generated using the NVIDIA Sionna simulation platform [14], following the 3GPP-compliant channel modeling framework."
+  },
+  {
+   "id": "T07",
+   "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/beamforming_precoding/2504.00825__benzaghta-datadriven-opt-transfer-cellular.pdf",
+   "title": "Data-driven Optimization and Transfer Learning for Cellular Network Design (UAV corridors)",
+   "status": "PREPRINT arXiv:2504.00825v1",
+   "role": "PROPAGATION_ONLY",
+   "why_excluded_ko": "UAV 회랑 커버리지 최적화.",
+   "quote": null
+  },
+  {
+   "id": "T08",
+   "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2505.21249__benzaghta-cellular-mobility-bayesian-opt.pdf",
+   "title": "Data-Driven Cellular Mobility Management via Bayesian Optimization and Reinforcement Learning",
+   "status": "PREPRINT arXiv:2505.21249v1; OpenAlex 는 IEEE TMLCN 2025 표기(2차)",
+   "role": "PROPAGATION_ONLY",
+   "why_excluded_ko": "UAV 이동성 관리.",
+   "quote": null
+  },
+  {
+   "id": "T09",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.08306__temporal-gnn-isac.pdf",
+   "title": "Temporal Graph Neural Network for ISAC Target Detection and Tracking",
+   "status": "PREPRINT arXiv:2604.08306v1 (9 Apr 2026)",
+   "role": "PROPAGATION_ONLY_PLUS_ANALYTIC_TARGET",
+   "why_excluded_ko": "⭐ 드론 아님(drone/uav 총 1회). 표적은 점산란체. Sionna 로 Ilmenau 캠퍼스 CIR 만 생성. 검출/추적 논문이라 이름만 보고 교집합에 넣기 쉬우니 주의.",
+   "quote": "In this work, the CIR is generated using the Sionna ray-tracing tool."
+  },
+  {
+   "id": "T10",
+   "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2601.03216__zhang-onetwin-online-digital-network-twin.pdf",
+   "title": "oneTwin: Online Digital Network Twin via Neural Radio Radiance Field",
+   "status": "PREPRINT",
+   "role": "PROPAGATION_ONLY",
+   "why_excluded_ko": "드론 언급 2회, 표적 아님.",
+   "quote": null
+  },
+  {
+   "id": "T11",
+   "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2511.07789__zhu-invehicular-channel-dt.pdf",
+   "title": "Digital Twin Empowered In-Vehicular Channel Modeling ... THz",
+   "status": "PREPRINT",
+   "role": "PROPAGATION_ONLY",
+   "why_excluded_ko": "차량 실내, 드론 아님.",
+   "quote": null
+  },
+  {
+   "id": "T12",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.19599__pan-active-inference-agentic-isac.pdf",
+   "title": "Active Inference-Enabled Agentic Closed-Loop ISAC with Long-Horizon Planning",
+   "status": "PREPRINT",
+   "role": "PROPAGATION_ONLY",
+   "why_excluded_ko": "드론 4회, 표적 아님.",
+   "quote": null
+  }
+ ],
+ "hazards": [
+  {
+   "id": "HZ1",
+   "severity": "high",
+   "file": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Sionna RT 드론 ISAC 연구.pdf",
+   "what_ko": "⭐⭐ 이것은 논문이 아니다. PDF 메타데이터 producer 가 'Skia/PDF m152 Google Docs Renderer' 이고 제목이 한국어('Sionna RT 드론 ISAC 연구'), 저자 없음, 게재처 없음, DOI 없음. 내용은 '독립 최신 Sionna RT 환경 기반 소형 UAV 의 3D 메쉬 및 전자기 재질 반영 고정밀 ISAC 채널 에뮬레이션 기술 분석 보고서' - 즉 우리 연구주제 그 자체를 요약한 AI 리서치 보고서다.",
+   "why_dangerous_ko": "본문에 sionna 42회, RCS 11회, UAV 28회가 들어 있어 어떤 자동 term-count 교집합에도 상위로 올라온다. outputs/reflib_sweep_venues.json 의 교집합 17행에도 실제로 들어가 있다. 여기에 적힌 어떤 문장·수치도 문헌 근거가 아니며, 이것을 선행연구로 인용하면 E1(있지도 않은 결과를 서베이 헤드라인으로 주장)과 E6(아카이브에 없는 논문에 수치 귀속)을 한꺼번에 재발시킨다.",
+   "action_ko": "교집합/센서스 스크립트에 파일명 화이트리스트가 아니라 '저자행+게재처 문자열 없으면 non_paper' 규칙을 넣을 것. 이 파일은 어떤 리포트에도 인용 금지."
+  }
+ ],
+ "corrections_to_prior_files": [
+  {
+   "id": "C1",
+   "target_file": "outputs/prior_settled_h8.json",
+   "field": "h8_candidates[FWA cooperative sensing].P1",
+   "was": "'likely YES (the archive files it under IEEE ICC Workshops 2026; the venue string was NOT verified inside the PDF)'",
+   "now": "NO - 이 13쪽 원고는 프리프린트다. PDF p1 각주 'This work has been partly accepted by IEEE ICC Workshops 2026 [1]' 이고 [1] 은 제목이 다른 별개 게재 논문('Deep learning-based cooperative UAV detection with CPE-assisted sensing').",
+   "evidence": "PDF p1 각주 및 참고문헌 [1], 이번 세션 직접 확인",
+   "severity": "high (E4 재발 방지)"
+  },
+  {
+   "id": "C2",
+   "target_file": "outputs/prior_settled_h8.json",
+   "field": "Clutter-Aware 서지",
+   "was": "venue/DOI 미기재(러닝풋만)",
+   "now": "Proc. IEEE, vol. 114, no. 1, Jan. 2026, DOI 10.1109/JPROC.2026.3675476. 마지막 러닝풋 페이지 92. 41쪽 분량. arXiv 판은 2602.10537v2(36쪽)로 별개 문서이며 같은 문장이 v2 p20 / 게재판 p23 에 있다.",
+   "evidence": "게재판 PDF 에서 'Digital Object Identifier 10.1109/JPROC.2026.3675476' 직접 확인",
+   "severity": "medium"
+  },
+  {
+   "id": "C3",
+   "target_file": "outputs/prior_settled_h8.json",
+   "field": "md-rt 내부 불일치",
+   "was": "'Table I (p3) states Propeller radius 10.55cm while p4 states a blade length of 1.055 meters' (이전 세션 주장)",
+   "now": "이번 세션에 두 문장 모두 원문에서 직접 재확인. 확정 사실. p4 는 인쇄쪽 362.",
+   "evidence": "PDF 정규식 재추출",
+   "severity": "low (확증)"
+  },
+  {
+   "id": "C4",
+   "target_file": "outputs/reflib_sweep_sionna.json / prior 기록",
+   "field": "Ziganshin 회의판 게재처·DOI 의 근거등급",
+   "was": "EuCAP 2025, DOI 10.23919/EuCAP63536.2025.10999367 (게재확정)로 서술",
+   "now": "⚠ 그 문자열은 회의판 PDF 안에 없다. 이번 세션 확인 결과 PDF 에서 읽히는 것은 'IEEE Xplore' 워터마크와 Fig.6 의 'RCS (dBsm)' 축뿐. 게재처·DOI 는 2차정보(grade B)로 표기해야 한다.",
+   "evidence": "회의판 PDF 전문 정규식 검색: 'EuCAP' 은 참고문헌 [2] 안에서만 등장, DOI 문자열 0건",
+   "severity": "medium (E6 예방)"
+  },
+  {
+   "id": "C5",
+   "target_file": "outputs/prior_census.json 등 자동 센서스 일반",
+   "field": "교집합 판정 규칙",
+   "was": "sionna>=N AND uav+drone>=M 의 순수 term-count",
+   "now": "⭐ 이 규칙은 (a) 비논문(HZ1), (b) Sionna 를 인용만 하는 논문(X08 OpenISAC), (c) 드론이 통신단말인 논문(T01~T12) 을 전부 교집합으로 올린다. 실제 교집합은 12편 중 5편뿐이었다. 규칙에 '드론이 표적인가' 와 'Sionna 를 실행하는가' 두 개의 사람 판정을 반드시 끼울 것.",
+   "evidence": "이번 세션 23개 후보 전수 정독 결과",
+   "severity": "medium"
+  }
+ ],
+ "completeness_check": {
+  "archive_full_text": {
+   "unique_pdfs": 278,
+   "sionna_ge1_and_drone_ge3": 23,
+   "sionna_ge1_and_drone_1to2": 16
+  },
+  "arxiv_api": {
+   "query": "all:\"sionna\"",
+   "total_results": 99,
+   "uav_drone_in_title_or_abstract": 10,
+   "outcome_ko": "10건 중 7건은 이미 아카이브에 있고(2401.03310, 2502.10324, 2505.21249, 2603.00795, 2605.16547, 2605.26928, 2606.14114), 신규 3건(2503.06494 UAV 커버리지홀, 2506.09195 UAV 군집제어, 2508.15816 공중기지국)은 전부 통신 플랫폼용이라 교집합 아님.",
+   "limit_ko": "⚠ arXiv API 의 all: 은 전문(full text)이 아니라 메타데이터만 검색한다. 본문에서만 Sionna 를 쓰는 논문은 이 경로로 안 잡힌다 - 그래서 아카이브 전문 스캔이 주 경로이고 이건 보조다."
+  },
+  "openalex": {
+   "queries": 9,
+   "unique_works": 74,
+   "uav_related": 25,
+   "new_leads_checked": [
+    "Multimodal-NF (arXiv:2603.28280) - 근거리장 저고도 데이터셋, UAV=단말 -> 교집합 아님",
+    "RadarTwin (arXiv:2606.28396) - 회수함, B04",
+    "RF Genesis (ACM SenSys 2023, 10.1145/3625687.3625798) - 서지만, B03"
+   ]
+  },
+  "venues_named_by_user": {
+   "ICASSP": 0,
+   "INFOCOM": 0,
+   "MobiCom": 0,
+   "SenSys": "0 (드론+Sionna 교집합 기준). SenSys 에는 LaSen(드론, Sionna 없음)과 RF Genesis/HiSAC(Sionna 없음)가 있다.",
+   "MobiSys": 0,
+   "reading_ko": "⭐ 사용자가 지목한 5개 최상위 학회 중 'Sionna 로 드론을 센싱한' 논문은 0편이다. 교집합은 전부 IEEE 계열(ICCT, Proc. IEEE)과 arXiv 에 있다. 이는 우리가 노릴 자리가 비어 있다는 뜻이기도 하고, 그 학회들이 시뮬레이션 단독 논문을 잘 안 받는다는 뜻이기도 하다 - 실측(X410) 없이 SenSys/MobiSys 를 노리는 것은 위험하다."
+  }
+ },
+ "gaps_and_next_steps": [
+  "RF Genesis(SenSys'23) 원문 미확보 - ACM DL 차단. 프롱 채점 UNVERIFIED 로 남음. 우리 방법의 최상위 학회 기준선이므로 확보 우선순위 1위.",
+  "OpenISAC(X08) 저자행을 이번 세션에 확정하지 않았다.",
+  "Ziganshin 회의판의 게재처·DOI 가 PDF 밖 2차정보다. EuCAP 2025 프로시딩 원문 확인 필요.",
+  "DMSNet 의 UAV 표현 미기재 - 저자 문의 외에는 확정 불가. '미기재' 자체로 인용할 것.",
+  "Clutter-Aware 게재판 시작쪽(52)은 마지막 쪽 92 에서 41쪽 역산한 우리 계산이다. Xplore 서지에서 확인 필요.",
+  "이번 교집합 판정은 '본문에 Sionna 문자열이 있는가'에 의존한다. Mitsuba/Dr.Jit 만 쓰고 Sionna 를 안 적는 논문은 B04 처럼 별도로 잡아야 하며, 그 스윕은 아직 전수가 아니다."
+ ],
+ "counts": {
+  "archive_unique_pdfs_scanned": 278,
+  "intersection_candidates_screened": 39,
+  "intersection_entries": 8,
+  "true_intersection_sionna_run_and_drone_is_target": 4,
+  "boundary_and_method_precedents": 5,
+  "excluded_uav_as_platform": 12,
+  "hazards": 1,
+  "corrections_to_prior_files": 5,
+  "papers_deep_read_this_session": 18,
+  "verbatim_quotes": 38,
+  "entries_published": 5,
+  "entries_preprint": 8,
+  "P1_yes": 5,
+  "P2_yes": 4,
+  "P3_yes": 9,
+  "P4_yes": 2,
+  "papers_satisfying_all_four_prongs": 0,
+  "pdfs_downloaded_this_session": 1,
+  "arxiv_records_harvested": 99,
+  "openalex_unique_works": 74
+ }
+}

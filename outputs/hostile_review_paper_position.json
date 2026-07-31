@@ -1,0 +1,302 @@
+{
+ "_meta": {
+  "lens": "HOSTILE REVIEWER (reject-seeking) on docs/PAPER_POSITION.md",
+  "reads": [
+   "docs/PAPER_POSITION.md",
+   "outputs/sigma_sensitivity.json",
+   "outputs/cpi_guard_sweep.json",
+   "outputs/verify_cfar.json",
+   "outputs/sigma_anchor.json",
+   "outputs/report13_freespace.json",
+   "src/freespace_link.py",
+   "src/waveforms.py",
+   "benchmark/sigma_sensitivity.py",
+   "benchmark/verify_cfar.py"
+  ],
+  "verdict": "REJECT",
+  "one_line": "살아남는 유일한 주장(LTE 승자 8.31 dB)이 표적모형과 무관한 항등에 가깝다 — λ²(9.026) − 앵커기울기×스팬(0.707) = 8.319 dB, 5기체 산포 0.019 dB. 파형 벤치마크의 순위 사슬에 파형 의존량이 하나도 없다."
+ },
+ "A_sensitivity_covers_the_plausible_error": {
+  "A1_winner_margin_is_model_independent_by_construction": {
+   "W1_L1_lead_db_by_drone": {
+    "mini5pro": -8.313102722167969,
+    "mavic4pro": -8.331947326660156,
+    "matrice4e": -8.330039978027344,
+    "phantom4": -8.314170837402344,
+    "s1000plus": -8.323326110839844
+   },
+   "spread_db": 0.0188446044921875,
+   "lambda2_gap_db": 9.026247761609014,
+   "anchor_slope_db_per_ghz": 0.21,
+   "span_ghz": 3.367,
+   "lambda2_minus_anchor_db": 8.319177761609014,
+   "mean_abs_lead_db": 8.322517395019531,
+   "why_structural": "앵커는 우리 3밴드 μ 에 직선을 다시 맞춰 기울기를 0.210 으로 바꾼다. 3점 최소자승에서 양 끝점(W1·L1)의 잔차는 부호·크기가 같아 차분에서 상쇄된다. 따라서 앵커 후 W1-L1 격차는 정의상 λ² − 0.210×span 이고 우리 σ 기여는 0.02 dB 다. 재실행으로 못 고치는 항등이다.",
+   "consequence": "논문의 신규성(메쉬 산란 엔진)이 유일한 생존 주장에서 하중을 전혀 안 받는다."
+  },
+  "A2_margin_unit_mismatch": {
+   "L1_G1_lead_db_by_drone": {
+    "mini5pro": 4.639549255371094,
+    "mavic4pro": 6.442832946777344,
+    "matrice4e": 6.266059875488281,
+    "phantom4": 4.741477966308594,
+    "s1000plus": 5.622291564941406
+   },
+   "W1_G1_lead_db_by_drone": {
+    "mini5pro": -3.6735153198242188,
+    "mavic4pro": -1.8890762329101562,
+    "matrice4e": -2.0640182495117188,
+    "phantom4": -3.5727310180664062,
+    "s1000plus": -2.7009963989257812
+   },
+   "worst_winner_margin_in_lead_db": 4.639549255371094,
+   "published_worst_margin_span_db": 8.313102722167969,
+   "realistic_envelope_span_db": 5.013463000000001,
+   "span_inflation_factor": {
+    "W1_L1": 1.0,
+    "W1_G1": 1.9690058479532164,
+    "L1_G1": 2.031985515992758
+   },
+   "note": "span_flip_db = |lead/Δf|×SPAN 이라 밴드 양끝이 아닌 쌍은 ×1.97~2.03 부풀려진다. 논문이 함께 쓰는 밴드독립 오차모형(MC i.i.d.)의 단위는 lead 다. 그 단위에서 승자 여유는 4.64 dB 로 논문 자신의 5.013 dB 봉투 안이다."
+  },
+  "A3_no_uq_for_the_claimed_configuration": {
+   "mc_base_orders": {
+    "mini5pro": [
+     "L1",
+     "G1",
+     "W1"
+    ],
+    "mavic4pro": [
+     "W1",
+     "G1",
+     "L1"
+    ],
+    "matrice4e": [
+     "L1",
+     "G1",
+     "W1"
+    ],
+    "phantom4": [
+     "W1",
+     "G1",
+     "L1"
+    ],
+    "s1000plus": [
+     "G1",
+     "W1",
+     "L1"
+    ]
+   },
+   "mc_ran_on": "as_published cells only (single aspect, no anchor)",
+   "doc_uses_them_in": "PAPER_POSITION.md §3 Q1 (승자 보존확률 0.614~0.995)",
+   "problem": "3/5 기체에서 그 '보존되는 승자'는 LTE 가 아니라 WiFi(2)·5G(1) 다. 논문이 실제로 주장하는 설정(aspect_avg_anchored)은 일반(밴드독립) 오차모형으로 한 번도 시험되지 않았다."
+  },
+  "A4_envelope_is_the_correction_itself": {
+   "envelope_def": "(production slope 1.699 − measured 0.210) × 3.367 = 5.013 dB",
+   "anchor_slope_provenance": {
+    "fit_band_ghz": [
+     1.8,
+     18.2
+    ],
+    "our_band_ghz": [
+     1.843,
+     5.21
+    ],
+    "das_phantom3_slope_by_aspect": {
+     "0": 0.21,
+     "15": 0.21,
+     "30": 0.21,
+     "45": 0.21,
+     "60": 0.21,
+     "75": 0.21,
+     "90": 0.21
+    },
+    "aspect_independent_by_construction": true,
+    "census_overlapping_our_band": {
+     "das_phantom3_mono": 0.21,
+     "yuan_phantom3_az": 0.315,
+     "yuan_phantom3_top": 0.231,
+     "yuan_phantom3_bot": 0.175
+    },
+    "single_platform_single_lab": true,
+    "polarisation": "VV 측정 vs 무편파 스칼라 커널",
+    "statistic_ambiguity_db": 2.507,
+    "elevation_mismatch_db": 0.7266992186514827,
+    "size_transfer_ambiguity_db": 9.500964921935944
+   },
+   "uncontrolled_terms_not_in_the_envelope": [
+    "polarisation",
+    "statistic convention (Das mu)",
+    "size transfer law",
+    "single platform / single lab",
+    "elevation matching"
+   ],
+   "observed_error_not_in_the_basis": {
+    "blade_mesh_update_orders_changed": 1,
+    "note": "관측된 실제 오차모드(자세별 로브 재편)는 상수 offset 도 선형 기울기도 아니다. 앵커는 그 축을 못 만진다."
+   },
+   "few_lambda": {
+    "mini5pro_D_over_lambda_lte": 2.3220173105761477,
+    "note": "PO 자체의 유효성은 kr 스윕(커널 vs 해석 PO 0.201 dB)으로 검증되지 않는다 — 그것은 자기일치성이다."
+   }
+  }
+ },
+ "B_is_the_comparison_fair": {
+  "B1_no_waveform_dependent_term_in_the_ranking": {
+   "axes_db_by_mode": {
+    "W1": 42.01790212022228,
+    "L1": 51.0441498818313,
+    "G1": 45.47329569920727
+   },
+   "active_axes": "lambda2 only",
+   "eta_ref_db_all_bands": 0.0,
+   "duty_applied": false,
+   "k_mode": 0.0,
+   "losses": 0.0,
+   "snr90_db": 11.86143572621035,
+   "snr90_source": "report13_freespace.threshold.S_G.W1.1.dopoff.3",
+   "g1_own_threshold_in_report13": null,
+   "eirp_dbm_all_bands": 63.0,
+   "lean_solver_reproduces_canonical": "worst_abs_err_m 0.0 in 15/15 → 정본 사슬도 같은 항만 쓴다는 증거",
+   "consequence": "합의순위 L1>G1>W1 은 λ² 순위(51.04>45.47>42.02) 그 자체다. 자세평균은 σ 를 씻어 λ² 를 드러내는 연산이다."
+  },
+  "B2_unapplied_per_band_terms_exceed_the_whole_axis": {
+   "duty_db": {
+    "W1": -12.839966563652007,
+    "L1": 0.0,
+    "G1": -16.020599913279625
+   },
+   "lambda2_span_db": 9.026247761609014,
+   "lte_crs_energy_fraction_note": "CRS 는 서브프레임 14심볼 중 4심볼 · comb-6 · 진폭 √2 → 풀그리드 대비 (4/14)(1/6)(2) = 0.0952 ≈ −10.2 dB. 시간희소성(듀티)은 WiFi·5G 에만 물리고 LTE 의 주파수희소성은 η_ref=0 dB 때문에 어디에서도 안 물린다.",
+   "applying_duty_breaks_consensus": {
+    "aspect_avg_anchored_duty_n_distinct_orders": 2,
+    "as_published_duty_winner_margin_span_db": 1.7219161987304685,
+    "as_published_duty_survives": false
+   }
+  },
+  "B3_shared_cfar_convention_unrealisable_for_5G": {
+   "calibrated_guard_train": "g2x2_t6x6 → 17×17 창 (N_interior 264 = 17²−5²)",
+   "M_in_calibration": 48,
+   "M_for_G1_at_benchmark_cpi": 5,
+   "note": "CPI 0.1 s 에서 SSB 도플러축은 5빈이라 교정에 쓴 CFAR 창이 성립하지 않는다."
+  },
+  "B4_published_headline_overcredits_two_of_three_bands": {
+   "r90_config_in_production": "as_published (single aspect, no duty, no anchor)",
+   "overcredit_db": {
+    "W1": 12.839966563652007,
+    "L1": 0.0,
+    "G1": 16.020599913279625
+   },
+   "single_aspect_orders": {
+    "mini5pro": [
+     "L1",
+     "G1",
+     "W1"
+    ],
+    "mavic4pro": [
+     "W1",
+     "G1",
+     "L1"
+    ],
+    "matrice4e": [
+     "L1",
+     "G1",
+     "W1"
+    ],
+    "phantom4": [
+     "W1",
+     "G1",
+     "L1"
+    ],
+    "s1000plus": [
+     "G1",
+     "W1",
+     "L1"
+    ]
+   }
+  }
+ },
+ "C_is_the_pfa_contribution_unique": {
+  "C1_calibrated_on_the_wrong_modes": {
+   "verify_cfar_builders": [
+    "wifi_80211ac(bw=80e6)",
+    "lte_downlink(bw=20e6)",
+    "nr_downlink(bw=100e6)"
+   ],
+   "default_occupancy": "G3 (full load)",
+   "resolved_reference": {
+    "WiFi80": "VHT-LTF 76.5625 MHz",
+    "LTE20": "PRS 18.015 MHz",
+    "NR100": "NR-PRS 98.28 MHz"
+   },
+   "ranked_reference": {
+    "W1": "VHT-LTF 76.5625 MHz",
+    "L1": "CRS 17.985 MHz",
+    "G1": "SSB 7.2 MHz"
+   },
+   "prf_mismatch": {
+    "NR100_chain_hz": 2000.0,
+    "G1_ranked_hz": 50.0
+   },
+   "consequence": "'같은 검출기 · 경험 교정 Pfa 위에서 세 조명원 비교' 는 3밴드 중 2밴드에서 사실이 아니다."
+  },
+  "C2_band_dependence_is_immaterial_to_every_claim": {
+   "measured_ratio_at_1e4": {
+    "WiFi80": 1.5305851063829785,
+    "LTE20": 2.6631205673758864,
+    "NR100": 1.521276595744681
+   },
+   "implied_ca_cfar_threshold_shift_db": {
+    "WiFi80": 0.2185944985926616,
+    "LTE20": 0.5572352237082769,
+    "NR100": 0.20488549325694877
+   },
+   "worst_band_differential_db": 0.35234973045132817,
+   "effect_on_R90_db": 0.08808743261283204,
+   "binding_margin_db": 4.639549255371094,
+   "verdict": "교정이 순위결정량을 0.085 dB 움직인다 — '벤치마크에서 교정이 필수' 의 근거가 자기 수치에 없다."
+  },
+  "C3_confounds_not_excluded": {
+   "per_band_dnr_db": {
+    "WiFi80": 41.594710717494756,
+    "LTE20": 54.77764623542846,
+    "NR100": 43.1861921395248
+   },
+   "note": "밴드의존이 파형 상관구조 때문인지 DNR(41.6/54.8/43.2 dB) 때문인지 분리 안 됨 — 파형 고정 DNR 스윕 없음.",
+   "loglog_slope_not_unity": {
+    "WiFi80": 0.9185205791265973,
+    "LTE20": 0.8375990567522088,
+    "NR100": 0.9329985641994993
+   },
+   "note2": "배율이 상수가 아니라 Pfa 의존(기울기 0.84~0.93) — 운용점마다 재측정 필요.",
+   "wide_window_uncalibrable": "calib_wide_mask1 은 1e-3 이하에서 NaN/extrapolated."
+  },
+  "C4_edge_confound_TESTED_AND_REFUTED": {
+   "hypothesis": "LTE 의 2.66 이 n_range_op=6 때문에 edge 셀 지배로 생긴 인공물인가",
+   "lte_pfa_interior": 0.0002629032258064516,
+   "lte_pfa_edge": 0.00026727272727272727,
+   "cells_interior": 620000,
+   "verdict": "REFUTED — interior 와 edge 가 사실상 같다. 이 방어는 견고하다."
+  },
+  "C5_novelty_scope": {
+   "census_claim": "16편 중 13편이 CFAR/false alarm/detection probability 0회",
+   "attack": "그 코퍼스는 Sionna 인접 코퍼스다. RD 맵 셀간 상관에 의한 CA-CFAR Pfa 열화는 패시브레이더 문헌의 표준 주제다 — '통제 시뮬만 할 수 있는 일' 이 아니라 '이 코퍼스에 없는 일' 이다."
+  }
+ },
+ "survived_my_attack": [
+  "공통모드 σ 불변성: ±10 dB 15/15 셀 순위 불변, 기울기 0.2227~0.2561 — 항등에 가깝고 정확하다.",
+  "경량 솔버가 정본 R90 을 15/15 셀에서 오차 0.000 m 로 재현 — 재현 사슬은 정직하다.",
+  "alpha_audit 상대오차 7.6e-16, fast path = CA-CFAR 동일, 백색 50만맵 Pfa 프로파일 평탄.",
+  "백색화+rect 대조군이 eff_indep_frac_2d 0.092 → 0.986 로 되돌림 — 인과 규명은 진짜다.",
+  "LTE 2.66 의 edge-cell 인공물 가설은 반증됨(interior 2.63e-4 ≈ edge 2.67e-4).",
+  "5G '커버리지 0' 철회와 등M 역전 귀속(반복률이 주인)은 옳고 방어 가능하다.",
+  "문서의 자기비판 수준이 높다 — 3자 순위 drop, 듀티 미적용, 앵커 미배선을 스스로 적어 두었다."
+ ],
+ "reject_grounds_ranked": [
+  "1) 유일한 생존 주장이 표적모형 무관 항등: 8.319 dB = λ²(9.026) − 0.210×3.367, 5기체 산포 0.019 dB.",
+  "2) 순위 사슬에 파형 의존량이 0 개(η_ref=0 · duty=0 · k_mode=0 · SNR90 은 W1 것 하나 · EIRP 공통).",
+  "3) 주장하는 설정(aspect_avg_anchored)이 생산 사슬에 없고, 일반 오차모형으로 시험된 적도 없다.",
+  "4) 승자 여유를 밴드단위(lead)로 환산하면 4.64 dB 로 자기 봉투 5.013 dB 안이다.",
+  "5) 경험 Pfa 교정이 순위 대상 모드(CRS·SSB)가 아니라 PRS·NR-PRS 로 측정되었다."
+ ]
+}

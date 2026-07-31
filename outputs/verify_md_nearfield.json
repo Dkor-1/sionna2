@@ -1,0 +1,239 @@
+{
+ "meta": {
+  "generated": "2026-07-29T10:40:22",
+  "module": "src/microdoppler_nearfield.py",
+  "ref_drone": "mavic4pro",
+  "fc_hz": 3500000000.0,
+  "az_deg": 0.0,
+  "el_deg": 15.0,
+  "prf_hz": 20000.0,
+  "n_t": 6144,
+  "r_ff_m": 6.648078412057956,
+  "runtime_s": 214.7
+ },
+ "checks": {
+  "PLANE_EQ_REPO": {
+   "name": "PLANE_EQ_REPO",
+   "ok": true,
+   "ac_corr": 0.9999999844783566,
+   "level_delta_db": -1.1172364442036119e-07,
+   "tol": {
+    "ac_corr": 0.9999,
+    "level_db": 0.5
+   },
+   "note": "신규 평면파 팔 ↔ microdoppler.microdoppler_series 회귀 잠금",
+   "f_tip_old": 1135.0983689616266,
+   "f_tip_new": 1135.0983689616266,
+   "seconds": 22.67
+  },
+  "CONVERGE": {
+   "name": "CONVERGE",
+   "ok": true,
+   "R_m": 10000.0,
+   "d_sigma_db": 0.0006436210179174934,
+   "ac_corr": 0.9999999360506668,
+   "tol": {
+    "d_sigma_db": 0.05,
+    "ac_corr": 0.9999
+   },
+   "note": "구면파 정규화가 옳다면 원거리장에서 평면파와 같아야 한다",
+   "seconds": 9.1
+  },
+  "ROT_EXACT": {
+   "name": "ROT_EXACT",
+   "ok": true,
+   "max_dist_err_m": 5.684341886080802e-14,
+   "max_ndotu_err": 3.3306690738754696e-16,
+   "tol": 1e-12,
+   "n_trials": 2000,
+   "note": "블레이드 회전 ≡ 안테나 역회전 (근거리장에서도 엄밀)",
+   "seconds": 0.08
+  },
+  "FRESNEL_RATE": {
+   "name": "FRESNEL_RATE",
+   "ok": true,
+   "monotone_dev": true,
+   "monotone_corr_measured": false,
+   "corr_dip_delta": -0.2815471041587249,
+   "rows": [
+    {
+     "R_m": 1.0,
+     "d_sigma_db": 2.9778976864295883,
+     "ac_corr": 0.5373590691689816
+    },
+    {
+     "R_m": 3.0,
+     "d_sigma_db": 2.13675807073301,
+     "ac_corr": 0.25581196501025666
+    },
+    {
+     "R_m": 10.0,
+     "d_sigma_db": 0.673706503786027,
+     "ac_corr": 0.8828712223030935
+    },
+    {
+     "R_m": 30.0,
+     "d_sigma_db": 0.21923374024475706,
+     "ac_corr": 0.991191721617429
+    },
+    {
+     "R_m": 100.0,
+     "d_sigma_db": 0.06483068797117503,
+     "ac_corr": 0.9993183161695322
+    },
+    {
+     "R_m": 1000.0,
+     "d_sigma_db": 0.006440573330248806,
+     "ac_corr": 0.9999935678650312
+    },
+    {
+     "R_m": 10000.0,
+     "d_sigma_db": 0.0006436210179165291,
+     "ac_corr": 0.9999999360506673
+    }
+   ],
+   "r_ff_m": 6.648078412057956,
+   "note": "판정 = **레벨** 편차 |Δσ| 가 R 과 함께 단조 감소(프레넬 항 ~1/R 소멸). 단일자세 패턴상관 단조는 **판정에서 제외**했다 — 잡음변수 MC 에서 결합 prior 단조율 65.7%, 지터·주파수 단독은 0.0% 로, 참이 아닌 진술이었다. 패턴상관의 참인 진술은 자세평균이며 experiment_md_range 가 검증한다.",
+   "seconds": 37.36
+  },
+  "FTIP_FF_INVAR": {
+   "name": "FTIP_FF_INVAR",
+   "ok": true,
+   "r_ff_m": 6.648078412057956,
+   "farfield_edge_spread_frac": 0.0,
+   "tol": 0.05,
+   "rows": [
+    {
+     "R_m": 1.0,
+     "in_farfield": false,
+     "fd_edge_hz": 1015.6249999999999,
+     "flash_contrast_db": 15.960559817574744,
+     "f_tip_theory_hz": 1135.0983689616266
+    },
+    {
+     "R_m": 2.0,
+     "in_farfield": false,
+     "fd_edge_hz": 1132.8125,
+     "flash_contrast_db": 17.276097623226416,
+     "f_tip_theory_hz": 1135.0983689616266
+    },
+    {
+     "R_m": 5.0,
+     "in_farfield": false,
+     "fd_edge_hz": 1132.8125,
+     "flash_contrast_db": 11.80110746501999,
+     "f_tip_theory_hz": 1135.0983689616266
+    },
+    {
+     "R_m": 10.0,
+     "in_farfield": true,
+     "fd_edge_hz": 1132.8125,
+     "flash_contrast_db": 13.58056743836192,
+     "f_tip_theory_hz": 1135.0983689616266
+    },
+    {
+     "R_m": 20.0,
+     "in_farfield": true,
+     "fd_edge_hz": 1132.8125,
+     "flash_contrast_db": 14.78245450893695,
+     "f_tip_theory_hz": 1135.0983689616266
+    },
+    {
+     "R_m": 50.0,
+     "in_farfield": true,
+     "fd_edge_hz": 1132.8125,
+     "flash_contrast_db": 15.375665700374148,
+     "f_tip_theory_hz": 1135.0983689616266
+    },
+    {
+     "R_m": 1000.0,
+     "in_farfield": true,
+     "fd_edge_hz": 1132.8125,
+     "flash_contrast_db": 15.754138691870123,
+     "f_tip_theory_hz": 1135.0983689616266
+    }
+   ],
+   "nearfield_rows": [
+    {
+     "R_m": 1.0,
+     "fd_edge_hz": 1015.6249999999999,
+     "edge_shrink_frac": 0.10344827586206906
+    },
+    {
+     "R_m": 2.0,
+     "fd_edge_hz": 1132.8125,
+     "edge_shrink_frac": 0.0
+    },
+    {
+     "R_m": 5.0,
+     "fd_edge_hz": 1132.8125,
+     "edge_shrink_frac": 0.0
+    }
+   ],
+   "note": "원거리장에서 f_edge 불변을 강제. 근거리장 축소는 결과로 기록(게이트 아님)",
+   "seconds": 34.27
+  },
+  "NPHASE_CONV": {
+   "name": "NPHASE_CONV",
+   "ok": true,
+   "rows": [
+    {
+     "R_m": 1.0,
+     "ac_corr": 0.9999992623078632
+    },
+    {
+     "R_m": 20.0,
+     "ac_corr": 0.9999992068593307
+    }
+   ],
+   "tol": 0.999,
+   "note": "위상테이블 480 ↔ 960 (1회전 기준, 선형보간 아티팩트 점검)",
+   "seconds": 16.85
+  },
+  "SPACING_CONV": {
+   "name": "SPACING_CONV",
+   "ok": true,
+   "rows": [
+    {
+     "R_m": 1.0,
+     "ac_corr": 0.9996997848173526
+    },
+    {
+     "R_m": 20.0,
+     "ac_corr": 0.9980706323844502
+    }
+   ],
+   "tol": 0.99,
+   "note": "근거리장은 표면 위상변화가 빨라 간격 규칙이 부족할 수 있다 — R=1 m 가 관건",
+   "seconds": 25.93
+  },
+  "FINITE": {
+   "name": "FINITE",
+   "ok": true,
+   "bad": [],
+   "seconds": 53.24
+  },
+  "PERIOD_ASSUMP": {
+   "name": "PERIOD_ASSUMP",
+   "ok": true,
+   "module_period_deg": 360.0,
+   "legacy_period_deg": 180.0,
+   "pointcloud_symmetry": {
+    "p50_mm": 1.3877787807814457e-14,
+    "p95_mm": 1.2151022981284767,
+    "max_mm": 2.8368750686798743,
+    "max_over_lam": 0.03311978829160392,
+    "roundtrip_phase_deg": 23.846247569954823
+   },
+   "ac_corr_half_vs_full": 0.9796976546126792,
+   "ac_power_lost_frac": 0.04019250554641551,
+   "note": "이 모듈은 1회전 테이블(근사 없음). 위 수치는 옛 반주기 규약의 오차 측정치.",
+   "seconds": 13.23
+  }
+ },
+ "summary": {
+  "n_checks": 9,
+  "n_fail": 0,
+  "gates_pass": true
+ }
+}

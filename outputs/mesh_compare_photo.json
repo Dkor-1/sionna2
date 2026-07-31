@@ -1,0 +1,4201 @@
+{
+ "_meta": {
+  "generated": "2026-07-31 05:18:16",
+  "generator": "src/viz_mesh_photo.py :: build_all()",
+  "purpose": "사진과 현재 메쉬의 실루엣 일치도를 숫자로 남긴다(IoU·경계오차·차이 덩어리).",
+  "mesh_sources": {
+   "src/drone_cad.py": "2026-07-30 11:04:44",
+   "src/drones.py": "2026-07-31 02:42:16",
+   "src/cadkit.py": "2026-07-14 12:04:37",
+   "src/geom.py": "2026-07-20 00:53:43"
+  },
+  "mesh_source_newest": "2026-07-31 02:42:16",
+  "n_airframes": 7,
+  "n_pairs": 21,
+  "iou_range": [
+   0.4781253837651971,
+   0.8747763621577663
+  ],
+  "method": {
+   "silhouette": "photo: alpha channel where present, else colour distance from the border-median background; mesh: area-weighted surface point sampling rasterised into the same pixel grid. Identical cleanup on both (1 px closing, holes below 0.4 % of area filled, fragments below 2 % of the largest component dropped).",
+   "fitted_dof": "camera azimuth, elevation, image roll (together all of SO(3)), perspective strength q = span / camera distance, isotropic scale, translation, and one propeller phase per rotor.",
+   "why_scale_is_fitted": "the silhouette test grades shape. Absolute size is graded separately against the published envelope, in outputs/mesh_gallery.json.",
+   "why_prop_phase_is_fitted": "blade azimuth in a photograph is whatever the photographer left it at; holding it fixed would grade coincidence instead of geometry.",
+   "iou": "intersection over union of the two silhouettes at the fitted pose.",
+   "contour_error": "symmetric distance between the two outlines, mean and 95th percentile, converted to mm by the fitted scale.",
+   "blobs": "connected components of the disagreement larger than 0.6 % of the union, attributed to the mesh part that occupies (mesh-only) or lies nearest (photo-only) that area.",
+   "search": "two branches. The headline fit keeps the viewing direction within 20 deg of the aspect declared by eye for that photograph, so the mesh is graded at the angle the photograph was actually taken from. A second, unconstrained fit sweeps azimuth over the full circle and elevation -36 to +90 deg; free_iou_gain is how much IoU the camera buys by leaving the declared aspect, and a large gain is a shape difference, not a pose ambiguity.",
+   "calibration": "every airframe is also fitted against an exact copy of its own mesh, so each one has its own ceiling: matrice4e 0.883, mavic4pro 0.917, mini5pro 0.956, phantom4 0.920, s1000plus 0.864, typhoonh480 0.933, x500v2 0.957. The ceiling is not 1.0 because arms and blades are a few pixels wide, which makes IoU steep. _meta.metric_calibration holds the sensitivity table per airframe.",
+   "limits": "orthographic-plus-single-q camera, no lens distortion, no articulation other than propeller phase (gimbal pitch, arm fold and landing-gear state stay as built).",
+   "free_branch": "the unconstrained fit is re-measured at the same point density as the headline, so the two IoUs are on one scale. free_fit.iou_search_grid keeps the coarser search value."
+  },
+  "summary_note": "Best match X500 V2 at IoU 0.875, weakest Mini 5 Pro at 0.478. Outline error runs 2 to 19 mm.",
+  "metric_calibration": {
+   "mini5pro": {
+    "airframe": "mini5pro",
+    "purpose": "같은 파이프라인에 **자기 자신**을 넣었을 때의 상한과 민감도",
+    "truth": {
+     "azim": 25.0,
+     "elev": 18.0,
+     "roll": -4.0,
+     "q": 0.3,
+     "phases": [
+      40.0,
+      110.0,
+      20.0,
+      150.0
+     ],
+     "scale_px_per_m": 903.350742037372
+    },
+    "recovered": {
+     "azim": 24.0,
+     "elev": 17.75,
+     "roll": -3.6875,
+     "q": 0.29250000000000004,
+     "phases": [
+      40.0,
+      109.5,
+      22.0,
+      149.0
+     ],
+     "scale_px_per_m": 900.3861810886956
+    },
+    "recovered_iou": 0.9557820833052049,
+    "recovered_contour_mean_mm": 0.36377056632047516,
+    "pose_error_deg": 0.9840136885008912,
+    "scale_error_pct": -0.3281738543758017,
+    "sensitivity": {
+     "same_pose_other_sample": 0.9960271251455579,
+     "pose_off_deg": {
+      "0.5": 0.9531218563476628,
+      "1.0": 0.90707877676642,
+      "2.0": 0.8267879548306148,
+      "3.0": 0.7647736226437966,
+      "5.0": 0.6754017162932673
+     },
+     "scale_off_pct": {
+      "0.5": 0.9746374367622259,
+      "1.0": 0.9500099449711595,
+      "2.0": 0.9017937219730942,
+      "4.0": 0.8191163210099188
+     },
+     "one_prop_phase_off_deg": {
+      "5.0": 0.9672639094705645,
+      "10.0": 0.9569870894374206,
+      "20.0": 0.9499833721316927
+     }
+    },
+    "reading": "An exact copy of the mesh scores 0.956 here. One degree of pose error takes it to 0.907 and one percent of scale error to 0.950: arms and blades a few pixels wide make this metric steep.",
+    "runtime_s": 37.5
+   },
+   "mavic4pro": {
+    "airframe": "mavic4pro",
+    "purpose": "같은 파이프라인에 **자기 자신**을 넣었을 때의 상한과 민감도",
+    "truth": {
+     "azim": 25.0,
+     "elev": 18.0,
+     "roll": -4.0,
+     "q": 0.3,
+     "phases": [
+      40.0,
+      110.0,
+      20.0,
+      150.0
+     ],
+     "scale_px_per_m": 535.5997411071155
+    },
+    "recovered": {
+     "azim": 24.25,
+     "elev": 18.25,
+     "roll": -3.28125,
+     "q": 0.28875000000000006,
+     "phases": [
+      40.0,
+      115.0,
+      20.0,
+      154.5
+     ],
+     "scale_px_per_m": 533.4977579353223
+    },
+    "recovered_iou": 0.9165018677213799,
+    "recovered_contour_mean_mm": 1.033278027551519,
+    "pose_error_deg": 0.7553547363215695,
+    "scale_error_pct": -0.39245410527053437,
+    "sensitivity": {
+     "same_pose_other_sample": 0.9972648533657499,
+     "pose_off_deg": {
+      "0.5": 0.9483320978502594,
+      "1.0": 0.8991548074839268,
+      "2.0": 0.8104089219330854,
+      "3.0": 0.7450720116811574,
+      "5.0": 0.648342004638626
+     },
+     "scale_off_pct": {
+      "0.5": 0.9708448288718217,
+      "1.0": 0.9437856829161178,
+      "2.0": 0.8950757039762275,
+      "4.0": 0.8079163357161768
+     },
+     "one_prop_phase_off_deg": {
+      "5.0": 0.9631254181845216,
+      "10.0": 0.9382914867140034,
+      "20.0": 0.9152897034418068
+     }
+    },
+    "reading": "An exact copy of the mesh scores 0.917 here. One degree of pose error takes it to 0.899 and one percent of scale error to 0.944: arms and blades a few pixels wide make this metric steep.",
+    "runtime_s": 23.3
+   },
+   "matrice4e": {
+    "airframe": "matrice4e",
+    "purpose": "같은 파이프라인에 **자기 자신**을 넣었을 때의 상한과 민감도",
+    "truth": {
+     "azim": 25.0,
+     "elev": 18.0,
+     "roll": -4.0,
+     "q": 0.3,
+     "phases": [
+      40.0,
+      110.0,
+      20.0,
+      150.0
+     ],
+     "scale_px_per_m": 535.78976202195
+    },
+    "recovered": {
+     "azim": 24.5,
+     "elev": 18.5,
+     "roll": -3.5625,
+     "q": 0.2737500000000001,
+     "phases": [
+      40.0,
+      114.0,
+      20.0,
+      37.5
+     ],
+     "scale_px_per_m": 536.1996713298003
+    },
+    "recovered_iou": 0.8828147930730849,
+    "recovered_contour_mean_mm": 18.928747656464875,
+    "pose_error_deg": 0.6895506286658604,
+    "scale_error_pct": 0.07650562532277583,
+    "sensitivity": {
+     "same_pose_other_sample": 0.9958578099111312,
+     "pose_off_deg": {
+      "0.5": 0.9485120801414261,
+      "1.0": 0.8971969316796903,
+      "2.0": 0.8084655361050328,
+      "3.0": 0.7361275088547816,
+      "5.0": 0.63671826625387
+     },
+     "scale_off_pct": {
+      "0.5": 0.9740529320186819,
+      "1.0": 0.9480037815431605,
+      "2.0": 0.9026897620053513,
+      "4.0": 0.8191967234773417
+     },
+     "one_prop_phase_off_deg": {
+      "5.0": 0.9664101805267831,
+      "10.0": 0.9457624644134608,
+      "20.0": 0.9324577861163227
+     }
+    },
+    "reading": "An exact copy of the mesh scores 0.883 here. One degree of pose error takes it to 0.897 and one percent of scale error to 0.948: arms and blades a few pixels wide make this metric steep.",
+    "runtime_s": 20.9
+   },
+   "s1000plus": {
+    "airframe": "s1000plus",
+    "purpose": "같은 파이프라인에 **자기 자신**을 넣었을 때의 상한과 민감도",
+    "truth": {
+     "azim": 25.0,
+     "elev": 18.0,
+     "roll": -4.0,
+     "q": 0.3,
+     "phases": [
+      40.0,
+      110.0,
+      20.0,
+      150.0,
+      40.0,
+      110.0,
+      20.0,
+      150.0
+     ],
+     "scale_px_per_m": 270.864389188489
+    },
+    "recovered": {
+     "azim": 26.0,
+     "elev": 18.0,
+     "roll": -4.4375,
+     "q": 0.320625,
+     "phases": [
+      40.0,
+      -16.0,
+      -2.0,
+      150.0,
+      40.0,
+      -11.0,
+      21.5,
+      150.0
+     ],
+     "scale_px_per_m": 270.1873877370746
+    },
+    "recovered_iou": 0.8636613523914238,
+    "recovered_contour_mean_mm": 7.142733675230953,
+    "pose_error_deg": 0.9510553635691181,
+    "scale_error_pct": -0.24994110648606238,
+    "sensitivity": {
+     "same_pose_other_sample": 0.9941067247921208,
+     "pose_off_deg": {
+      "0.5": 0.9194062329991451,
+      "1.0": 0.8547649396415986,
+      "2.0": 0.7387608878898567,
+      "3.0": 0.6528473195807464,
+      "5.0": 0.5244496516001727
+     },
+     "scale_off_pct": {
+      "0.5": 0.950533082470994,
+      "1.0": 0.9064171122994652,
+      "2.0": 0.8319725907566701,
+      "4.0": 0.7110917732110583
+     },
+     "one_prop_phase_off_deg": {
+      "5.0": 0.9608371650547012,
+      "10.0": 0.9525386313465783,
+      "20.0": 0.9563840734584026
+     }
+    },
+    "reading": "An exact copy of the mesh scores 0.864 here. One degree of pose error takes it to 0.855 and one percent of scale error to 0.906: arms and blades a few pixels wide make this metric steep.",
+    "runtime_s": 24.0
+   },
+   "phantom4": {
+    "airframe": "phantom4",
+    "purpose": "같은 파이프라인에 **자기 자신**을 넣었을 때의 상한과 민감도",
+    "truth": {
+     "azim": 25.0,
+     "elev": 18.0,
+     "roll": -4.0,
+     "q": 0.3,
+     "phases": [
+      40.0,
+      110.0,
+      20.0,
+      150.0
+     ],
+     "scale_px_per_m": 619.1233982208403
+    },
+    "recovered": {
+     "azim": 25.5,
+     "elev": 18.0,
+     "roll": -4.8125,
+     "q": 0.3168750000000001,
+     "phases": [
+      38.5,
+      104.0,
+      -9.5,
+      143.5
+     ],
+     "scale_px_per_m": 619.9768083275568
+    },
+    "recovered_iou": 0.919975301018833,
+    "recovered_contour_mean_mm": 1.0035434438954247,
+    "pose_error_deg": 0.4755281140608939,
+    "scale_error_pct": 0.13784168215398296,
+    "sensitivity": {
+     "same_pose_other_sample": 0.9960151680699274,
+     "pose_off_deg": {
+      "0.5": 0.963358392823299,
+      "1.0": 0.9296473067625364,
+      "2.0": 0.8695756413330137,
+      "3.0": 0.8177222545031958,
+      "5.0": 0.735647456125782
+     },
+     "scale_off_pct": {
+      "0.5": 0.9724805465932814,
+      "1.0": 0.9470087593961608,
+      "2.0": 0.9000600240096038,
+      "4.0": 0.816
+     },
+     "one_prop_phase_off_deg": {
+      "5.0": 0.9854795567443638,
+      "10.0": 0.9767706097714935,
+      "20.0": 0.9506188118811881
+     }
+    },
+    "reading": "An exact copy of the mesh scores 0.920 here. One degree of pose error takes it to 0.930 and one percent of scale error to 0.947: arms and blades a few pixels wide make this metric steep.",
+    "runtime_s": 21.1
+   },
+   "typhoonh480": {
+    "airframe": "typhoonh480",
+    "purpose": "같은 파이프라인에 **자기 자신**을 넣었을 때의 상한과 민감도",
+    "truth": {
+     "azim": 25.0,
+     "elev": 18.0,
+     "roll": -4.0,
+     "q": 0.3,
+     "phases": [
+      40.0,
+      110.0,
+      20.0,
+      150.0,
+      40.0,
+      110.0
+     ],
+     "scale_px_per_m": 644.0827965425742
+    },
+    "recovered": {
+     "azim": 24.5,
+     "elev": 18.125,
+     "roll": -3.75,
+     "q": 0.30000000000000004,
+     "phases": [
+      40.0,
+      24.0,
+      20.0,
+      149.5,
+      40.0,
+      110.5
+     ],
+     "scale_px_per_m": 643.4682763696475
+    },
+    "recovered_iou": 0.9333754446623891,
+    "recovered_contour_mean_mm": 4.592663260570007,
+    "pose_error_deg": 0.4915194137716044,
+    "scale_error_pct": -0.09541012059715026,
+    "sensitivity": {
+     "same_pose_other_sample": 0.9956447452175953,
+     "pose_off_deg": {
+      "0.5": 0.9587876001576251,
+      "1.0": 0.9232280927835051,
+      "2.0": 0.8535469107551488,
+      "3.0": 0.7937928351240535,
+      "5.0": 0.7023789198110523
+     },
+     "scale_off_pct": {
+      "0.5": 0.9686862706400895,
+      "1.0": 0.939853505856539,
+      "2.0": 0.8846977076030648,
+      "4.0": 0.7929374927519425
+     },
+     "one_prop_phase_off_deg": {
+      "5.0": 0.9732255285307178,
+      "10.0": 0.964911700509293,
+      "20.0": 0.967741935483871
+     }
+    },
+    "reading": "An exact copy of the mesh scores 0.933 here. One degree of pose error takes it to 0.923 and one percent of scale error to 0.940: arms and blades a few pixels wide make this metric steep.",
+    "runtime_s": 22.9
+   },
+   "x500v2": {
+    "airframe": "x500v2",
+    "purpose": "같은 파이프라인에 **자기 자신**을 넣었을 때의 상한과 민감도",
+    "truth": {
+     "azim": 25.0,
+     "elev": 18.0,
+     "roll": -4.0,
+     "q": 0.3,
+     "phases": [
+      40.0,
+      110.0,
+      20.0,
+      150.0
+     ],
+     "scale_px_per_m": 477.94090926977117
+    },
+    "recovered": {
+     "azim": 25.0,
+     "elev": 18.0,
+     "roll": -4.25,
+     "q": 0.30187500000000006,
+     "phases": [
+      40.0,
+      108.0,
+      20.0,
+      147.5
+     ],
+     "scale_px_per_m": 479.0358273733409
+    },
+    "recovered_iou": 0.957419250384522,
+    "recovered_contour_mean_mm": 0.47565950628408626,
+    "pose_error_deg": 1.2074182697257333e-06,
+    "scale_error_pct": 0.22909068513148334,
+    "sensitivity": {
+     "same_pose_other_sample": 0.9950306443597814,
+     "pose_off_deg": {
+      "0.5": 0.9499716668015866,
+      "1.0": 0.9062153163152054,
+      "2.0": 0.8224547039648245,
+      "3.0": 0.7587597126521038,
+      "5.0": 0.6585974890753971
+     },
+     "scale_off_pct": {
+      "0.5": 0.965492042871062,
+      "1.0": 0.9351579282361365,
+      "2.0": 0.8725930436106248,
+      "4.0": 0.7705740950226244
+     },
+     "one_prop_phase_off_deg": {
+      "5.0": 0.9633034987794955,
+      "10.0": 0.93719961550785,
+      "20.0": 0.9124901806755695
+     }
+    },
+    "reading": "An exact copy of the mesh scores 0.957 here. One degree of pose error takes it to 0.906 and one percent of scale error to 0.935: arms and blades a few pixels wide make this metric steep.",
+    "runtime_s": 26.3
+   }
+  },
+  "excluded": [
+   {
+    "key": "typhoonh480",
+    "file": "typhoonh480_c04_skylarkcoder.jpg",
+    "reason": "disputed provenance: uploaded as own work but is a manufacturer render, badge reads CYCLONE and the gimbal is not a CGO3+ (SOURCES.md)"
+   },
+   {
+    "key": "typhoonh480",
+    "file": "typhoonh480_y01_official_gear_down.png",
+    "reason": "animation composite: ghost copies of the arms would enter the silhouette"
+   },
+   {
+    "key": "typhoonh480",
+    "file": "typhoonh480_y02_official_gear_up.png",
+    "reason": "animation composite: ghost copies of the arms would enter the silhouette"
+   },
+   {
+    "key": "typhoonh480",
+    "file": "typhoonh480_c01_cebit2017_iso34.jpg",
+    "reason": "exhibition background: no background/foreground separation by colour"
+   },
+   {
+    "key": "typhoonh480",
+    "file": "typhoonh480_c02_field_2025_02.jpg",
+    "reason": "in flight: propellers are motion blurred, silhouette is a smear"
+   },
+   {
+    "key": "typhoonh480",
+    "file": "typhoonh480_c03_field_2025_10.jpg",
+    "reason": "in flight: propellers are motion blurred"
+   },
+   {
+    "key": "typhoonh480",
+    "file": "typhoonh480_c05_uasconf_a.jpg",
+    "reason": "grass background, aircraft is a small part of the frame"
+   },
+   {
+    "key": "typhoonh480",
+    "file": "typhoonh480_c06_uasconf_b.jpg",
+    "reason": "grass background, aircraft is a small part of the frame"
+   },
+   {
+    "key": "typhoonh480",
+    "file": "typhoonh480_y05_official_header.png",
+    "reason": "propellers motion blurred"
+   },
+   {
+    "key": "x500v2",
+    "file": "x500v2_15_built_aircraft_field.jpg",
+    "reason": "outdoor background, no colour separation"
+   },
+   {
+    "key": "x500v2",
+    "file": "x500v2_04_dimensioned_drawing.jpg",
+    "reason": "dimension arrows and text are part of the image, they enter the silhouette"
+   },
+   {
+    "key": "matrice4e",
+    "file": "matrice 4E_2.png",
+    "reason": "near-side view: which end is the nose cannot be read off the photograph, and a wrong declared aspect would be measured as a shape error"
+   }
+  ],
+  "figures": {
+   "per_airframe": "outputs/figures/mesh_photo_<key>.png",
+   "summary": "outputs/figures/mesh_photo_summary.png"
+  },
+  "runtime_s": 3038.4
+ },
+ "airframes": {
+  "mini5pro": {
+   "key": "mini5pro",
+   "name": "DJI Mini 5 Pro",
+   "label": "Mini 5 Pro",
+   "span_m": 0.2573061012736965,
+   "centre_m": [
+    0.003970243579284355,
+    -1.365120285776178e-05,
+    -0.01132788596722813
+   ],
+   "measured_airframe": true,
+   "n_photos_available": 3,
+   "photos": [
+    {
+     "file": "mini 5 pro_1.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록",
+     "note": "front, camera slightly above",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      0,
+      12
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 19.942542851008177,
+     "fit_at_window_edge": true,
+     "free_delta_deg": 42.62499999999999,
+     "free_fit": {
+      "iou": 0.5454417878506148,
+      "azim": 0.0,
+      "elev": 54.625,
+      "roll": 0.0,
+      "q": 0.8737500000000002,
+      "scale_px_per_m": 1328.5330213666232,
+      "tx": 422.24072013878117,
+      "ty": 322.66364007128936,
+      "phases": [
+       10.0,
+       -17.5,
+       18.5,
+       41.5
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9260,
+      "iou_search_grid": 0.4831416104720349,
+      "contour_mean_mm": 13.255028564076419,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": 0.11542934366644086,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        1.06,
+        0.0,
+        -0.81,
+        -1.79
+       ],
+       "spread_pct": 2.85,
+       "fragile": false,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       0.976,
+       0.976,
+       0.976
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       395
+      ],
+      "mask_area_px": 46231,
+      "mask_area_frac": 0.0867
+     },
+     "fit": {
+      "iou": 0.4071730294094206,
+      "azim": 348.0,
+      "elev": 28.5,
+      "roll": -1.625,
+      "q": 0.42000000000000004,
+      "scale_px_per_m": 1664.4488183595745,
+      "tx": 420.8029066475996,
+      "ty": 329.93857294070006,
+      "phases": [
+       16.0,
+       21.5,
+       95.5,
+       17.5
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 17,
+      "n_eval": 3384
+     },
+     "metrics": {
+      "iou": 0.43001244418417395,
+      "mesh_only_frac": 0.32316814288851475,
+      "photo_only_frac": 0.24681941292731133,
+      "contour_mean_mm": 9.389885424614045,
+      "contour_p95_mm": 30.670209075553835,
+      "contour_mean_pct_span": 3.648669515413427,
+      "mm_per_px": 0.6007994892781184,
+      "silhouette_px": {
+       "photo": [
+        548.0,
+        303.0
+       ],
+       "mesh": [
+        486.0,
+        291.0
+       ]
+      },
+      "aspect_photo": 1.8085808580858085,
+      "aspect_mesh": 1.6701030927835052,
+      "aspect_err_pct": -7.65670855594852,
+      "fill_ratio": 1.112803097488698,
+      "implied_span_mm": 257.3509435411304,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 0.990479726797124,
+       "p10": 0.4030298503821925,
+       "p90": 1.4477046448214308,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.08205841446453407,
+        "area_mm2": 2023.1809475059326,
+        "centroid": [
+         326.45245316681536,
+         569.970740410348
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "gear",
+        "area_frac": 0.0704780030744455,
+        "area_mm2": 1737.661566689306,
+        "centroid": [
+         409.68196925633566,
+         604.0758205234732
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "camera",
+        "area_frac": 0.06913110314032647,
+        "area_mm2": 1704.453244268156,
+        "centroid": [
+         416.36975857687423,
+         457.38712409995765
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.06397774687065369,
+        "area_mm2": 1577.3953150046254,
+        "centroid": [
+         283.15194508009154,
+         287.3192219679634
+        ]
+       }
+      ]
+     },
+     "runtime_s": 130.8,
+     "headline": "Silhouette IoU 0.430, mean outline error 9.4 mm (3.65 % of span).  The largest single disagreement is the body, 8 % of the union, mesh only.  A camera free to move anywhere reaches 0.545 by swinging 43 deg off the declared aspect."
+    },
+    {
+     "file": "mini 5 pro_3.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록",
+     "note": "from above (azimuth unconstrained at this elevation)",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      0,
+      85
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 19.99985611130391,
+     "fit_at_window_edge": true,
+     "free_delta_deg": 26.87500000000001,
+     "free_fit": {
+      "iou": 0.4499005316219527,
+      "azim": 180.0,
+      "elev": 68.125,
+      "roll": 0.0,
+      "q": 0.369375,
+      "scale_px_per_m": 1661.4514044811442,
+      "tx": 420.31973635031756,
+      "ty": 361.65033279727646,
+      "phases": [
+       11.0,
+       16.5,
+       60.0,
+       30.0
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9390,
+      "iou_search_grid": 0.4175138979315871,
+      "contour_mean_mm": 11.620805117862725,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": -0.0009803317499076925,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        0.7,
+        0.0,
+        -0.58,
+        -1.32
+       ],
+       "spread_pct": 2.02,
+       "fragile": false,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       0.976,
+       0.976,
+       0.976
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       505
+      ],
+      "mask_area_px": 64028,
+      "mask_area_frac": 0.1023
+     },
+     "fit": {
+      "iou": 0.4139009776095869,
+      "azim": 180.5,
+      "elev": 75.0,
+      "roll": 0.0,
+      "q": 0.3037499999999999,
+      "scale_px_per_m": 1631.5035953913407,
+      "tx": 418.65846593797147,
+      "ty": 363.0063025450007,
+      "phases": [
+       11.5,
+       16.5,
+       60.0,
+       34.0
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 85,
+      "n_eval": 3701
+     },
+     "metrics": {
+      "iou": 0.4508808633718604,
+      "mesh_only_frac": 0.26800882578225926,
+      "photo_only_frac": 0.28111031084588034,
+      "contour_mean_mm": 11.97544530428902,
+      "contour_p95_mm": 43.34123771132616,
+      "contour_mean_pct_span": 4.65335201010253,
+      "mm_per_px": 0.6129315331114149,
+      "silhouette_px": {
+       "photo": [
+        559.0,
+        452.0
+       ],
+       "mesh": [
+        444.0,
+        449.0
+       ]
+      },
+      "aspect_photo": 1.2367256637168142,
+      "aspect_mesh": 0.9888641425389755,
+      "aspect_err_pct": -20.041754485220594,
+      "fill_ratio": 0.9821015805585056,
+      "implied_span_mm": 257.3509435411304,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 0.9546918300254594,
+       "p10": 0.2639575069398309,
+       "p90": 1.2991292789184705,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.08333047524322347,
+        "area_mm2": 2738.368433553754,
+        "centroid": [
+         413.89559610371793,
+         515.3222664288654
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.06005418938848304,
+        "area_mm2": 1973.4736426749719,
+        "centroid": [
+         412.8029697315819,
+         320.4346087949743
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "prop",
+        "area_frac": 0.05104548936218861,
+        "area_mm2": 1677.433812020512,
+        "centroid": [
+         500.83404255319147,
+         301.5930571108623
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.045134959014987826,
+        "area_mm2": 1483.204633786558,
+        "centroid": [
+         305.03242147923,
+         199.54229989868287
+        ]
+       }
+      ]
+     },
+     "runtime_s": 170.1,
+     "headline": "Silhouette IoU 0.451, mean outline error 12.0 mm (4.65 % of span).  The largest single disagreement is the body, 8 % of the union, mesh only."
+    },
+    {
+     "file": "mini 5 pro_2.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록",
+     "note": "three-quarter, nose toward the camera and to the left",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      35,
+      30
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 7.545795170864531,
+     "fit_at_window_edge": false,
+     "free_delta_deg": 109.2585400870071,
+     "free_fit": {
+      "iou": 0.5161457657891324,
+      "azim": 204.0,
+      "elev": 40.0,
+      "roll": -8.5,
+      "q": 0.38,
+      "scale_px_per_m": 1545.7346831415741,
+      "tx": 413.7533915420454,
+      "ty": 323.1818922741099,
+      "phases": [
+       11.5,
+       26.5,
+       21.5,
+       41.5
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9284,
+      "iou_search_grid": 0.4721090059516704,
+      "contour_mean_mm": 11.244094183143028,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": 0.03802038202393532,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        0.93,
+        0.0,
+        -0.78,
+        -1.8
+       ],
+       "spread_pct": 2.73,
+       "fragile": false,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       0.976,
+       0.976,
+       0.976
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       430
+      ],
+      "mask_area_px": 48020,
+      "mask_area_frac": 0.0853
+     },
+     "fit": {
+      "iou": 0.4357177774156754,
+      "azim": 34.0,
+      "elev": 37.5,
+      "roll": -6.5,
+      "q": 0.63875,
+      "scale_px_per_m": 1487.016033137819,
+      "tx": 414.1301986370482,
+      "ty": 305.82689026931286,
+      "phases": [
+       24.5,
+       43.0,
+       24.0,
+       41.5
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 18,
+      "n_eval": 3506
+     },
+     "metrics": {
+      "iou": 0.4781253837651971,
+      "mesh_only_frac": 0.2628638094068525,
+      "photo_only_frac": 0.2590108068279504,
+      "contour_mean_mm": 13.005998966252177,
+      "contour_p95_mm": 41.06444613767345,
+      "contour_mean_pct_span": 5.053798827115444,
+      "mm_per_px": 0.6724877053879879,
+      "silhouette_px": {
+       "photo": [
+        521.0,
+        325.0
+       ],
+       "mesh": [
+        468.0,
+        326.0
+       ]
+      },
+      "aspect_photo": 1.603076923076923,
+      "aspect_mesh": 1.4355828220858895,
+      "aspect_err_pct": -10.448288449536644,
+      "fill_ratio": 1.0052269887546856,
+      "implied_span_mm": 257.3509435411304,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 0.7822475737282557,
+       "p10": 0.33909886325634203,
+       "p90": 1.3059246154368689,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "photo only",
+        "part": "gear",
+        "area_frac": 0.06533218715461132,
+        "area_mm2": 1924.732222349893,
+        "centroid": [
+         357.1656484962406,
+         225.90695488721803
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.060189733513447134,
+        "area_mm2": 1773.2319181940625,
+        "centroid": [
+         398.2290232083652,
+         605.1114511604183
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.050948667567235664,
+        "area_mm2": 1500.983610427466,
+        "centroid": [
+         302.9828261524556,
+         250.57667972280808
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.04694215890949282,
+        "area_mm2": 1382.9490451000875,
+        "centroid": [
+         226.39960758665794,
+         450.93492478744275
+        ]
+       }
+      ]
+     },
+     "runtime_s": 124.3,
+     "headline": "Silhouette IoU 0.478, mean outline error 13.0 mm (5.05 % of span).  The largest single disagreement is the gear, 7 % of the union, photo only.  A camera free to move anywhere reaches 0.516 by swinging 109 deg off the declared aspect."
+    }
+   ],
+   "best_index": 2,
+   "best_file": "mini 5 pro_2.png",
+   "best_iou": 0.4781253837651971,
+   "runtime_s": 425.2
+  },
+  "mavic4pro": {
+   "key": "mavic4pro",
+   "name": "DJI Mavic 4 Pro",
+   "label": "Mavic 4 Pro",
+   "span_m": 0.3903002166019098,
+   "centre_m": [
+    -5.190657879072802e-06,
+    1.6143940656437872e-05,
+    -0.02186395172775522
+   ],
+   "measured_airframe": false,
+   "n_photos_available": 4,
+   "photos": [
+    {
+     "file": "mavic 4 pro_1.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록",
+     "note": "front, slightly above",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      0,
+      14
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 19.499999999999996,
+     "fit_at_window_edge": true,
+     "free_delta_deg": 136.0,
+     "free_fit": {
+      "iou": 0.5058859906795945,
+      "azim": 180.0,
+      "elev": 30.0,
+      "roll": 0.0,
+      "q": 0.30937499999999996,
+      "scale_px_per_m": 974.7286445117223,
+      "tx": 412.6672030634512,
+      "ty": 317.85658546455034,
+      "phases": [
+       10.0,
+       -12.0,
+       11.5,
+       -10.5
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 8976,
+      "iou_search_grid": 0.45859110876014814,
+      "contour_mean_mm": 18.82114438314204,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": 0.0335716819258986,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        1.19,
+        0.0,
+        -1.06,
+        -2.39
+       ],
+       "spread_pct": 3.58,
+       "fragile": false,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       0.976,
+       0.976,
+       0.976
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       317
+      ],
+      "mask_area_px": 33669,
+      "mask_area_frac": 0.072
+     },
+     "fit": {
+      "iou": 0.45153839046475097,
+      "azim": 0.0,
+      "elev": 33.5,
+      "roll": 0.0,
+      "q": 0.13312500000000002,
+      "scale_px_per_m": 875.9974398605654,
+      "tx": 412.7302670211541,
+      "ty": 315.0872415481907,
+      "phases": [
+       30.0,
+       -9.5,
+       10.0,
+       -5.5
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 15,
+      "n_eval": 3375
+     },
+     "metrics": {
+      "iou": 0.4723143087536959,
+      "mesh_only_frac": 0.24583370665710957,
+      "photo_only_frac": 0.2818519845891945,
+      "contour_mean_mm": 23.13576812115053,
+      "contour_p95_mm": 87.46731134307996,
+      "contour_mean_pct_span": 5.925218759024393,
+      "mm_per_px": 1.1415558476508476,
+      "silhouette_px": {
+       "photo": [
+        529.0,
+        238.0
+       ],
+       "mesh": [
+        360.0,
+        225.0
+       ]
+      },
+      "aspect_photo": 2.222689075630252,
+      "aspect_mesh": 1.6,
+      "aspect_err_pct": -28.015122873345934,
+      "fill_ratio": 0.9522409337966675,
+      "implied_span_mm": 390.4626826800892,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 0.8671009208017686,
+       "p10": 0.32138902732799074,
+       "p90": 1.42004038089453,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.07261894095511155,
+        "area_mm2": 4224.81150021755,
+        "centroid": [
+         330.6937075879087,
+         206.23195558297348
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.07237254726279008,
+        "area_mm2": 4210.476852931186,
+        "centroid": [
+         330.69266480965643,
+         619.9730733519034
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.053265836394588296,
+        "area_mm2": 3098.8901133613,
+        "centroid": [
+         289.3906644238856,
+         329.24474348191757
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.04520204282770361,
+        "area_mm2": 2629.7562021711956,
+        "centroid": [
+         286.9717542120912,
+         494.46283448959366
+        ]
+       }
+      ]
+     },
+     "runtime_s": 142.3,
+     "headline": "Silhouette IoU 0.472, mean outline error 23.1 mm (5.93 % of span).  The largest single disagreement is the motor, 7 % of the union, photo only.  A camera free to move anywhere reaches 0.506 by swinging 136 deg off the declared aspect."
+    },
+    {
+     "file": "mavic 4 pro_3.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록",
+     "note": "head-on, near eye level",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      0,
+      3
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 18.02630894164781,
+     "fit_at_window_edge": false,
+     "free_delta_deg": 132.63687791280347,
+     "free_fit": {
+      "iou": 0.4396181246574947,
+      "azim": 190.0,
+      "elev": 43.5,
+      "roll": -0.1875,
+      "q": 0.001875,
+      "scale_px_per_m": 1150.1023580021495,
+      "tx": 414.8966260271175,
+      "ty": 417.2233873836965,
+      "phases": [
+       11.5,
+       10.0,
+       -8.0,
+       -6.5
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9168,
+      "iou_search_grid": 0.40174521713200556,
+      "contour_mean_mm": 14.241787133046156,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": 0.021858633087858237,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        0.8,
+        0.0,
+        -0.77,
+        -1.76
+       ],
+       "spread_pct": 2.57,
+       "fragile": false,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       0.976,
+       0.976,
+       0.976
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       478
+      ],
+      "mask_area_px": 47491,
+      "mask_area_frac": 0.0787
+     },
+     "fit": {
+      "iou": 0.3758574721581915,
+      "azim": 1.0,
+      "elev": 21.0,
+      "roll": -12.25,
+      "q": 0.41937499999999994,
+      "scale_px_per_m": 1228.5380109036166,
+      "tx": 429.0650111009211,
+      "ty": 375.20489976478984,
+      "phases": [
+       70.0,
+       58.5,
+       134.5,
+       50.0
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 17,
+      "n_eval": 3455
+     },
+     "metrics": {
+      "iou": 0.4177594915696365,
+      "mesh_only_frac": 0.43689677251061204,
+      "photo_only_frac": 0.14534373591975147,
+      "contour_mean_mm": 13.842817065419645,
+      "contour_p95_mm": 40.796341586291184,
+      "contour_mean_pct_span": 3.5452343282600536,
+      "mm_per_px": 0.8139756288570006,
+      "silhouette_px": {
+       "photo": [
+        550.0,
+        322.0
+       ],
+       "mesh": [
+        698.0,
+        349.0
+       ]
+      },
+      "aspect_photo": 1.7080745341614907,
+      "aspect_mesh": 2.0,
+      "aspect_err_pct": 17.09090909090909,
+      "fill_ratio": 1.5177612600282158,
+      "implied_span_mm": 390.4626826800892,
+      "clipped_frac": 0.0020400034000056665,
+      "radial_ratio": {
+       "median": 1.0114796261968946,
+       "p10": 0.8056031238553718,
+       "p90": 1.448569974794282,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.13809907752140196,
+        "area_mm2": 7716.7935099740735,
+        "centroid": [
+         406.2839357774534,
+         269.25680432729456
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.06183452299082264,
+        "area_mm2": 3455.231231605975,
+        "centroid": [
+         375.7587727708533,
+         547.6897411313519
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.059249685788138204,
+        "area_mm2": 3310.7939528926286,
+        "centroid": [
+         297.87072243346006,
+         522.791675005003
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "prop",
+        "area_frac": 0.0475704901705044,
+        "area_mm2": 2658.1759733850763,
+        "centroid": [
+         480.0805084745763,
+         311.6804586241276
+        ]
+       }
+      ]
+     },
+     "runtime_s": 175.2,
+     "headline": "Silhouette IoU 0.418, mean outline error 13.8 mm (3.55 % of span).  The largest single disagreement is the body, 14 % of the union, mesh only.  A camera free to move anywhere reaches 0.440 by swinging 133 deg off the declared aspect."
+    },
+    {
+     "file": "mavic 4 pro_2.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록",
+     "note": "front from well above, symmetric",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      0,
+      40
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 19.999999999999993,
+     "fit_at_window_edge": true,
+     "free_delta_deg": 19.999999999999993,
+     "free_fit": {
+      "iou": 0.44682471674759594,
+      "azim": 0.0,
+      "elev": 60.0,
+      "roll": 0.0,
+      "q": 0.18,
+      "scale_px_per_m": 965.7073809088032,
+      "tx": 417.15044252190825,
+      "ty": 365.5919207025503,
+      "phases": [
+       2.5,
+       10.0,
+       60.0,
+       -5.5
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9113,
+      "iou_search_grid": 0.4181894736842105,
+      "contour_mean_mm": 18.128844092451192,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": 0.0,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        1.11,
+        0.0,
+        -0.88,
+        -2.02
+       ],
+       "spread_pct": 3.14,
+       "fragile": false,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       0.976,
+       0.976,
+       0.976
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       473
+      ],
+      "mask_area_px": 45011,
+      "mask_area_frac": 0.0752
+     },
+     "fit": {
+      "iou": 0.4181894736842105,
+      "azim": 0.0,
+      "elev": 60.0,
+      "roll": 0.0,
+      "q": 0.18,
+      "scale_px_per_m": 965.7073809088032,
+      "tx": 417.15044252190825,
+      "ty": 365.5919207025503,
+      "phases": [
+       2.5,
+       10.0,
+       60.0,
+       -5.5
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 19,
+      "n_eval": 3375
+     },
+     "metrics": {
+      "iou": 0.44682471674759594,
+      "mesh_only_frac": 0.28574375575232475,
+      "photo_only_frac": 0.26743152750007937,
+      "contour_mean_mm": 18.128844092451192,
+      "contour_p95_mm": 78.93414372969752,
+      "contour_mean_pct_span": 4.6429133683190855,
+      "mm_per_px": 1.0355103624235789,
+      "silhouette_px": {
+       "photo": [
+        535.0,
+        366.0
+       ],
+       "mesh": [
+        398.0,
+        381.0
+       ]
+      },
+      "aspect_photo": 1.4617486338797814,
+      "aspect_mesh": 1.0446194225721785,
+      "aspect_err_pct": -28.536316138052833,
+      "fill_ratio": 1.0256381773344294,
+      "implied_span_mm": 390.4626826800892,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 0.9710923788312663,
+       "p10": 0.2279596550520631,
+       "p90": 1.2173429012332202,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.0688057380430988,
+        "area_mm2": 4649.413497537148,
+        "centroid": [
+         344.80235239852396,
+         337.0583487084871
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.0686629217049097,
+        "area_mm2": 4639.762962140969,
+        "centroid": [
+         344.832909637162,
+         497.1492951236422
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.06006220444952236,
+        "area_mm2": 4058.586274948825,
+        "centroid": [
+         275.6882430647292,
+         417.1373844121532
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.05017614015043321,
+        "area_mm2": 3390.554769191066,
+        "centroid": [
+         403.6148007590133,
+         204.6593927893738
+        ]
+       }
+      ]
+     },
+     "runtime_s": 174.5,
+     "headline": "Silhouette IoU 0.447, mean outline error 18.1 mm (4.64 % of span).  The largest single disagreement is the body, 7 % of the union, mesh only."
+    },
+    {
+     "file": "mavic 4 pro_4.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록",
+     "note": "three-quarter, gimbal facing the camera and to the left",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      40,
+      15
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 12.563836303836393,
+     "fit_at_window_edge": false,
+     "free_delta_deg": 133.7484017263018,
+     "free_fit": {
+      "iou": 0.522409918947115,
+      "azim": 198.0,
+      "elev": 26.0,
+      "roll": 0.0,
+      "q": 0.174375,
+      "scale_px_per_m": 1015.5625741190416,
+      "tx": 390.75189271729874,
+      "ty": 323.4849529612041,
+      "phases": [
+       -10.5,
+       -16.0,
+       31.5,
+       25.5
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9073,
+      "iou_search_grid": 0.4837659610215054,
+      "contour_mean_mm": 16.530613996511626,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": -0.0025029209771803007,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        1.06,
+        0.0,
+        -0.99,
+        -2.18
+       ],
+       "spread_pct": 3.25,
+       "fragile": false,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       0.976,
+       0.976,
+       0.976
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       347
+      ],
+      "mask_area_px": 37761,
+      "mask_area_frac": 0.0766
+     },
+     "fit": {
+      "iou": 0.49763524726186525,
+      "azim": 37.0,
+      "elev": 27.25,
+      "roll": -8.75,
+      "q": 0.041249999999999995,
+      "scale_px_per_m": 956.4427687538462,
+      "tx": 393.4959402012606,
+      "ty": 316.65090948943487,
+      "phases": [
+       28.5,
+       60.0,
+       -5.5,
+       0.0
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 17,
+      "n_eval": 3445
+     },
+     "metrics": {
+      "iou": 0.5249128399242953,
+      "mesh_only_frac": 0.24771391572865822,
+      "photo_only_frac": 0.2273732443470465,
+      "contour_mean_mm": 18.991797456184862,
+      "contour_p95_mm": 72.41455583791056,
+      "contour_mean_pct_span": 4.863921265363295,
+      "mm_per_px": 1.0455408652447702,
+      "silhouette_px": {
+       "photo": [
+        558.0,
+        272.0
+       ],
+       "mesh": [
+        462.0,
+        274.0
+       ]
+      },
+      "aspect_photo": 2.051470588235294,
+      "aspect_mesh": 1.686131386861314,
+      "aspect_err_pct": -17.80864924260261,
+      "fill_ratio": 1.0270384788538438,
+      "implied_span_mm": 390.4626826800892,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 0.83527406892724,
+       "p10": 0.41993209773488793,
+       "p90": 1.4705984741227733,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.06777567486801474,
+        "area_mm2": 3718.915694450855,
+        "centroid": [
+         243.99676660787773,
+         460.47501469723693
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.04042235282398645,
+        "area_mm2": 2218.012917119572,
+        "centroid": [
+         264.18925579103006,
+         653.2119270576638
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "camera",
+        "area_frac": 0.03980476143042136,
+        "area_mm2": 2184.1250903917717,
+        "centroid": [
+         390.484984984985,
+         352.53103103103103
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "prop",
+        "area_frac": 0.03831058870405419,
+        "area_mm2": 2102.138412824513,
+        "centroid": [
+         349.66926677067084,
+         567.8403536141445
+        ]
+       }
+      ]
+     },
+     "runtime_s": 123.5,
+     "headline": "Silhouette IoU 0.525, mean outline error 19.0 mm (4.86 % of span).  The largest single disagreement is the body, 7 % of the union, mesh only."
+    }
+   ],
+   "best_index": 3,
+   "best_file": "mavic 4 pro_4.png",
+   "best_iou": 0.5249128399242953,
+   "runtime_s": 615.4
+  },
+  "matrice4e": {
+   "key": "matrice4e",
+   "name": "DJI Matrice 4E",
+   "label": "Matrice 4E",
+   "span_m": 0.3875280515702073,
+   "centre_m": [
+    2.7028547004412373e-05,
+    -1.1868727817429536e-05,
+    -0.0022273132590722375
+   ],
+   "measured_airframe": true,
+   "n_photos_available": 5,
+   "photos": [
+    {
+     "file": "matrice 4E_5.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록",
+     "note": "from above, X rotor layout",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      0,
+      85
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 11.955449628595545,
+     "fit_at_window_edge": false,
+     "free_delta_deg": 11.955449628595545,
+     "free_fit": {
+      "iou": 0.40593679492885976,
+      "azim": 350.0,
+      "elev": 97.0,
+      "roll": 5.0,
+      "q": 0.21000000000000002,
+      "scale_px_per_m": 978.072410271101,
+      "tx": 397.70724484043456,
+      "ty": 395.4644260639019,
+      "phases": [
+       8.0,
+       6.0,
+       -5.5,
+       -9.5
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9770,
+      "iou_search_grid": 0.38138876228921154,
+      "contour_mean_mm": 27.026427043630374,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": -0.01127269675428555,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        1.36,
+        0.0,
+        -0.96,
+        -2.17
+       ],
+       "spread_pct": 3.53,
+       "fragile": false,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       529
+      ],
+      "mask_area_px": 49294,
+      "mask_area_frac": 0.0763
+     },
+     "fit": {
+      "iou": 0.38719114200783256,
+      "azim": 10.0,
+      "elev": 97.0,
+      "roll": -4.25,
+      "q": 0.19875,
+      "scale_px_per_m": 977.0708103536037,
+      "tx": 417.41620020967883,
+      "ty": 393.90953126152306,
+      "phases": [
+       9.5,
+       5.5,
+       60.0,
+       -8.0
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 85,
+      "n_eval": 3916
+     },
+     "metrics": {
+      "iou": 0.4172094916831453,
+      "mesh_only_frac": 0.28326741886704665,
+      "photo_only_frac": 0.2995230894498081,
+      "contour_mean_mm": 21.240729833211365,
+      "contour_p95_mm": 88.38752347421266,
+      "contour_mean_pct_span": 5.480945366641048,
+      "mm_per_px": 1.0234672752511131,
+      "silhouette_px": {
+       "photo": [
+        519.0,
+        470.0
+       ],
+       "mesh": [
+        409.0,
+        452.0
+       ]
+      },
+      "aspect_photo": 1.1042553191489362,
+      "aspect_mesh": 0.9048672566371682,
+      "aspect_err_pct": -18.056337067539683,
+      "fill_ratio": 0.9773197549397492,
+      "implied_span_mm": 387.53770403350273,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 0.9452460295669362,
+       "p10": 0.18636171080445046,
+       "p90": 1.0985646671917961,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.09054030475747353,
+        "area_mm2": 6522.690735876383,
+        "centroid": [
+         353.20073871848405,
+         501.16781756865265
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.0591776201000349,
+        "area_mm2": 4263.265022485447,
+        "centroid": [
+         469.5776412776413,
+         603.7808353808354
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "prop",
+        "area_frac": 0.049494009538211,
+        "area_mm2": 3565.6398369878284,
+        "centroid": [
+         164.2247356051704,
+         425.30816686251467
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.03810922414795859,
+        "area_mm2": 2745.458875659547,
+        "centroid": [
+         452.47539107210986,
+         190.46394505913773
+        ]
+       }
+      ]
+     },
+     "runtime_s": 140.8,
+     "headline": "Silhouette IoU 0.417, mean outline error 21.2 mm (5.48 % of span).  The largest single disagreement is the body, 9 % of the union, mesh only."
+    },
+    {
+     "file": "matrice 4E_1.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록",
+     "note": "front, slightly above",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      0,
+      16
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 6.01857326904155,
+     "fit_at_window_edge": false,
+     "free_delta_deg": 36.87499999999999,
+     "free_fit": {
+      "iou": 0.5348702131068739,
+      "azim": 0.0,
+      "elev": -20.875,
+      "roll": 0.0,
+      "q": 0.0075,
+      "scale_px_per_m": 1157.3330301014028,
+      "tx": 410.33190535225896,
+      "ty": 304.6374506018145,
+      "phases": [
+       4.0,
+       -10.0,
+       -9.0,
+       10.0
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9118,
+      "iou_search_grid": 0.48368258330470626,
+      "contour_mean_mm": 10.677604562361623,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": -0.021098954790514268,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        1.25,
+        0.0,
+        -0.94,
+        -2.25
+       ],
+       "spread_pct": 3.51,
+       "fragile": false,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       0.996,
+       0.996,
+       0.996
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       360
+      ],
+      "mask_area_px": 37740,
+      "mask_area_frac": 0.0749
+     },
+     "fit": {
+      "iou": 0.5085930486084391,
+      "azim": 0.5,
+      "elev": 22.0,
+      "roll": 0.0,
+      "q": 0.27562500000000006,
+      "scale_px_per_m": 1005.0797061515908,
+      "tx": 409.33603675274657,
+      "ty": 303.1147567741122,
+      "phases": [
+       8.5,
+       12.0,
+       -10.5,
+       47.0
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 17,
+      "n_eval": 3459
+     },
+     "metrics": {
+      "iou": 0.5559691678973882,
+      "mesh_only_frac": 0.23648060854963684,
+      "photo_only_frac": 0.20755022355297498,
+      "contour_mean_mm": 12.792849833767136,
+      "contour_p95_mm": 48.532050411257686,
+      "contour_mean_pct_span": 3.3010594067670875,
+      "mm_per_px": 0.994945966851683,
+      "silhouette_px": {
+       "photo": [
+        561.0,
+        220.0
+       ],
+       "mesh": [
+        434.0,
+        230.0
+       ]
+      },
+      "aspect_photo": 2.55,
+      "aspect_mesh": 1.8869565217391304,
+      "aspect_err_pct": -26.001705029838018,
+      "fill_ratio": 1.037890832008479,
+      "implied_span_mm": 387.53770403350273,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 0.9240682241062481,
+       "p10": 0.49745083011198843,
+       "p90": 1.4219366646098355,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "mesh only",
+        "part": "camera",
+        "area_frac": 0.09277954237391005,
+        "area_mm2": 4539.761549313018,
+        "centroid": [
+         394.4020933275185,
+         416.510030527693
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.042626798033543065,
+        "area_mm2": 2085.7561239429847,
+        "centroid": [
+         339.4670147128619,
+         629.0849549121974
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.03967306641849926,
+        "area_mm2": 1941.2281723076378,
+        "centroid": [
+         339.83222845486995,
+         190.67006629270782
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.02603734649699569,
+        "area_mm2": 1274.023792840352,
+        "centroid": [
+         253.7031857031857,
+         625.5967365967366
+        ]
+       }
+      ]
+     },
+     "runtime_s": 112.1,
+     "headline": "Silhouette IoU 0.556, mean outline error 12.8 mm (3.30 % of span).  The largest single disagreement is the camera, 9 % of the union, mesh only."
+    },
+    {
+     "file": "matrice 4E_3.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록",
+     "note": "head-on, eye level",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      0,
+      4
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 19.489617826925496,
+     "fit_at_window_edge": true,
+     "free_delta_deg": 77.41082059060457,
+     "free_fit": {
+      "iou": 0.7389129857484288,
+      "azim": 282.0,
+      "elev": 13.5,
+      "roll": -4.625,
+      "q": 0.5075,
+      "scale_px_per_m": 1017.6906871280908,
+      "tx": 437.1444207443904,
+      "ty": 296.95632814673786,
+      "phases": [
+       40.0,
+       95.5,
+       38.0,
+       16.0
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 8985,
+      "iou_search_grid": 0.6844409980385896,
+      "contour_mean_mm": 9.096685502357714,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": 0.18032763387799733,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        0.84,
+        0.0,
+        -0.67,
+        -3.1
+       ],
+       "spread_pct": 3.93,
+       "fragile": false,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       381
+      ],
+      "mask_area_px": 39878,
+      "mask_area_frac": 0.0764
+     },
+     "fit": {
+      "iou": 0.528261473166475,
+      "azim": 340.5,
+      "elev": 5.5,
+      "roll": -5.0,
+      "q": 0.1425,
+      "scale_px_per_m": 1218.9755664411696,
+      "tx": 413.42663355958234,
+      "ty": 305.6143442476768,
+      "phases": [
+       55.5,
+       17.0,
+       47.0,
+       32.5
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 17,
+      "n_eval": 3303
+     },
+     "metrics": {
+      "iou": 0.5585853518704315,
+      "mesh_only_frac": 0.2855453633366777,
+      "photo_only_frac": 0.15586928479289092,
+      "contour_mean_mm": 12.611216327669792,
+      "contour_p95_mm": 44.28885265169504,
+      "contour_mean_pct_span": 3.2541908042525716,
+      "mm_per_px": 0.8203609879724871,
+      "silhouette_px": {
+       "photo": [
+        573.0,
+        183.0
+       ],
+       "mesh": [
+        561.0,
+        229.0
+       ]
+      },
+      "aspect_photo": 3.1311475409836067,
+      "aspect_mesh": 2.449781659388646,
+      "aspect_err_pct": -21.76089988339926,
+      "fill_ratio": 1.1815035859371081,
+      "implied_span_mm": 387.53770403350273,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 1.0837327207322458,
+       "p10": 0.7737479833772574,
+       "p90": 2.228024331255347,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "mesh only",
+        "part": "camera",
+        "area_frac": 0.12761573742296115,
+        "area_mm2": 4793.7230886325915,
+        "centroid": [
+         372.7110767934859,
+         463.91183490102486
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.045040848502221585,
+        "area_mm2": 1691.9022665762086,
+        "centroid": [
+         349.98926014319807,
+         229.17541766109784
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "gear",
+        "area_frac": 0.04138598251397449,
+        "area_mm2": 1554.611867856421,
+        "centroid": [
+         346.8770562770563,
+         571.6744588744589
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "gear",
+        "area_frac": 0.03984520567579189,
+        "area_mm2": 1496.7345429059221,
+        "centroid": [
+         333.6488309352518,
+         180.17940647482015
+        ]
+       }
+      ]
+     },
+     "runtime_s": 120.5,
+     "headline": "Silhouette IoU 0.559, mean outline error 12.6 mm (3.25 % of span).  The largest single disagreement is the camera, 13 % of the union, mesh only.  A camera free to move anywhere reaches 0.739 by swinging 77 deg off the declared aspect."
+    }
+   ],
+   "best_index": 2,
+   "best_file": "matrice 4E_3.png",
+   "best_iou": 0.5585853518704315,
+   "runtime_s": 373.4
+  },
+  "s1000plus": {
+   "key": "s1000plus",
+   "name": "DJI S1000+",
+   "label": "S1000+",
+   "span_m": 1.0159530974812259,
+   "centre_m": [
+    1.0427543387259153e-05,
+    -1.8427966784917427e-05,
+    -0.11799510893312982
+   ],
+   "measured_airframe": false,
+   "n_photos_available": 2,
+   "photos": [
+    {
+     "file": "s1000+_1.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "SOURCES.md 없음. 이미지에 판매점 워터마크가 있다",
+     "note": "from above, 8 arms deployed",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      0,
+      85
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 5.9999999999999645,
+     "fit_at_window_edge": false,
+     "free_delta_deg": 5.9999999999999645,
+     "free_fit": {
+      "iou": 0.7536929220997931,
+      "azim": 180.0,
+      "elev": 89.0,
+      "roll": 0.0,
+      "q": 0.12937500000000002,
+      "scale_px_per_m": 403.00819592706,
+      "tx": 402.47588371710077,
+      "ty": 437.1506611407918,
+      "phases": [
+       4.0,
+       0.0,
+       0.0,
+       8.0,
+       0.0,
+       0.0,
+       10.0,
+       8.5
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 10832,
+      "iou_search_grid": 0.6903615914862741,
+      "contour_mean_mm": 10.951177920338719,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": 0.0,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        3.86,
+        0.0,
+        -2.2,
+        -5.16
+       ],
+       "spread_pct": 9.02,
+       "fragile": false,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       595,
+       600
+      ],
+      "mask_area_px": 40208,
+      "mask_area_frac": 0.0573
+     },
+     "fit": {
+      "iou": 0.6903615914862741,
+      "azim": 180.0,
+      "elev": 89.0,
+      "roll": 0.0,
+      "q": 0.12937500000000002,
+      "scale_px_per_m": 403.00819592706,
+      "tx": 402.47588371710077,
+      "ty": 437.1506611407918,
+      "phases": [
+       4.0,
+       0.0,
+       0.0,
+       8.0,
+       0.0,
+       0.0,
+       10.0,
+       8.5
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 85,
+      "n_eval": 4434
+     },
+     "metrics": {
+      "iou": 0.7536929220997931,
+      "mesh_only_frac": 0.03267093297406534,
+      "photo_only_frac": 0.21363614492614155,
+      "contour_mean_mm": 10.951177920338719,
+      "contour_p95_mm": 72.3428450559432,
+      "contour_mean_pct_span": 1.0778761694721786,
+      "mm_per_px": 2.4813391144556,
+      "silhouette_px": {
+       "photo": [
+        516.0,
+        515.0
+       ],
+       "mesh": [
+        418.0,
+        418.0
+       ]
+      },
+      "aspect_photo": 1.0019417475728156,
+      "aspect_mesh": 1.0,
+      "aspect_err_pct": -0.19379844961241185,
+      "fill_ratio": 0.8129228014325507,
+      "implied_span_mm": 1015.9959214704006,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 1.0,
+       "p10": 0.8102606995072549,
+       "p90": 1.0686112539869668,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.014098060915171053,
+        "area_mm2": 3608.0276673433978,
+        "centroid": [
+         208.16894197952217,
+         499.4249146757679
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.014025886541885194,
+        "area_mm2": 3589.556535940616,
+        "centroid": [
+         207.73241852487135,
+         306.54716981132077
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.014025886541885194,
+        "area_mm2": 3589.556535940616,
+        "centroid": [
+         340.2641509433962,
+         631.2418524871355
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.013977770293027955,
+        "area_mm2": 3577.2424483387613,
+        "centroid": [
+         533.2323580034423,
+         630.8055077452668
+        ]
+       }
+      ]
+     },
+     "runtime_s": 187.0,
+     "headline": "Silhouette IoU 0.754, mean outline error 11.0 mm (1.08 % of span).  The largest single disagreement is the motor, 1 % of the union, photo only."
+    },
+    {
+     "file": "s1000+_2.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "SOURCES.md 없음",
+     "note": "front, slightly above; eight-fold symmetry leaves azimuth ambiguous",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      0,
+      18
+     ],
+     "window_deg": 34.0,
+     "fit_delta_deg": 33.271986471578174,
+     "fit_at_window_edge": true,
+     "free_delta_deg": 43.90092715158418,
+     "free_fit": {
+      "iou": 0.45258640904187963,
+      "azim": 328.0,
+      "elev": -12.5,
+      "roll": -0.75,
+      "q": 0.16499999999999998,
+      "scale_px_per_m": 446.7567974485001,
+      "tx": 420.1824188225418,
+      "ty": 293.93067654958065,
+      "phases": [
+       30.0,
+       51.5,
+       57.5,
+       24.0,
+       71.5,
+       36.0,
+       23.5,
+       60.0
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 10685,
+      "iou_search_grid": 0.42524748898041764,
+      "contour_mean_mm": 20.79709050149478,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": -0.0107828012616637,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        6.21,
+        0.0,
+        -3.89,
+        -8.79
+       ],
+       "spread_pct": 15.0,
+       "fragile": true,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       367
+      ],
+      "mask_area_px": 32218,
+      "mask_area_frac": 0.0632
+     },
+     "fit": {
+      "iou": 0.4384955093534461,
+      "azim": 34.0,
+      "elev": 12.25,
+      "roll": -2.625,
+      "q": 0.01875,
+      "scale_px_per_m": 451.66481735344195,
+      "tx": 419.2607639103372,
+      "ty": 295.0535603249247,
+      "phases": [
+       31.5,
+       -12.0,
+       44.0,
+       29.0,
+       51.5,
+       66.0,
+       90.0,
+       60.0
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 49,
+      "n_eval": 4297
+     },
+     "metrics": {
+      "iou": 0.46336921030354333,
+      "mesh_only_frac": 0.22075220703833595,
+      "photo_only_frac": 0.3158785826581207,
+      "contour_mean_mm": 21.95498544795167,
+      "contour_p95_mm": 88.56124821583954,
+      "contour_mean_pct_span": 2.1609324391949634,
+      "mm_per_px": 2.2140312053959885,
+      "silhouette_px": {
+       "photo": [
+        594.0,
+        305.0
+       ],
+       "mesh": [
+        504.0,
+        236.0
+       ]
+      },
+      "aspect_photo": 1.9475409836065574,
+      "aspect_mesh": 2.135593220338983,
+      "aspect_err_pct": 9.655880842321524,
+      "fill_ratio": 0.877925383326091,
+      "implied_span_mm": 1015.9959214704006,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 1.0150800484962392,
+       "p10": 0.6967708951851885,
+       "p90": 1.9402823066839008,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "photo only",
+        "part": "camera",
+        "area_frac": 0.055194098439956464,
+        "area_mm2": 11186.213795262183,
+        "centroid": [
+         319.2589833479404,
+         429.14548641542507
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "prop",
+        "area_frac": 0.04053694521707583,
+        "area_mm2": 8215.641683111051,
+        "centroid": [
+         210.49582338902147,
+         224.4892601431981
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "gear_cf",
+        "area_frac": 0.03207159269561011,
+        "area_mm2": 6499.964720647526,
+        "centroid": [
+         408.1221719457014,
+         316.1365007541478
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "battery",
+        "area_frac": 0.030838069899625106,
+        "area_mm2": 6249.966077545698,
+        "centroid": [
+         200.09725490196078,
+         441.9301960784314
+        ]
+       }
+      ]
+     },
+     "runtime_s": 121.9,
+     "headline": "Silhouette IoU 0.463, mean outline error 22.0 mm (2.16 % of span).  The largest single disagreement is the camera, 6 % of the union, photo only."
+    }
+   ],
+   "best_index": 0,
+   "best_file": "s1000+_1.png",
+   "best_iou": 0.7536929220997931,
+   "runtime_s": 309.0
+  },
+  "phantom4": {
+   "key": "phantom4",
+   "name": "DJI Phantom 4",
+   "label": "Phantom 4",
+   "span_m": 0.2893961259726653,
+   "centre_m": [
+    -5.493255478175585e-05,
+    -7.307634879119562e-06,
+    -0.05538162549713077
+   ],
+   "measured_airframe": false,
+   "n_photos_available": 5,
+   "photos": [
+    {
+     "file": "Phantom 4 Pro+ V2.0_5.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록",
+     "note": "from above",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      0,
+      85
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 5.153497015279483,
+     "fit_at_window_edge": false,
+     "free_delta_deg": 46.93055040669018,
+     "free_fit": {
+      "iou": 0.2841583706274546,
+      "azim": 190.0,
+      "elev": 48.0,
+      "roll": 0.375,
+      "q": 0.23625,
+      "scale_px_per_m": 1319.3657317444479,
+      "tx": 366.3367206882069,
+      "ty": 466.868566178926,
+      "phases": [
+       62.5,
+       176.5,
+       -17.5,
+       28.5
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9364,
+      "iou_search_grid": 0.24629584318842943,
+      "contour_mean_mm": 16.510877433360793,
+      "clipped_frac": 0.028590809507658743
+     },
+     "free_iou_gain": -0.07864903890469416,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        135.19,
+        0.0,
+        -51.66,
+        -82.67
+       ],
+       "spread_pct": 217.86,
+       "fragile": true,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       554,
+       600
+      ],
+      "mask_area_px": 35642,
+      "mask_area_frac": 0.0534
+     },
+     "fit": {
+      "iou": 0.29277148020371285,
+      "azim": 270.0,
+      "elev": 91.25,
+      "roll": -0.75,
+      "q": 0.9325,
+      "scale_px_per_m": 854.8332625103171,
+      "tx": 377.4886202311875,
+      "ty": 409.9818901710689,
+      "phases": [
+       -1.5,
+       27.5,
+       63.0,
+       27.5
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 85,
+      "n_eval": 3669
+     },
+     "metrics": {
+      "iou": 0.36280740953214874,
+      "mesh_only_frac": 0.4619182052869156,
+      "photo_only_frac": 0.17527438518093572,
+      "contour_mean_mm": 24.22375068700124,
+      "contour_p95_mm": 93.131094029018,
+      "contour_mean_pct_span": 8.369710227752991,
+      "mm_per_px": 1.1698187750244813,
+      "silhouette_px": {
+       "photo": [
+        476.0,
+        481.0
+       ],
+       "mesh": [
+        396.0,
+        326.0
+       ]
+      },
+      "aspect_photo": 0.9896049896049897,
+      "aspect_mesh": 1.2147239263803682,
+      "aspect_err_pct": 22.74836314894056,
+      "fill_ratio": 1.532714213568262,
+      "implied_span_mm": 289.4216170910922,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 0.8991517156741335,
+       "p10": 0.3657514608529889,
+       "p90": 1.083253477073966,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.24941499720708343,
+        "area_mm2": 22608.59144089073,
+        "centroid": [
+         421.93783669269413,
+         387.7951697839114
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.04885339452588354,
+        "area_mm2": 4428.388227269681,
+        "centroid": [
+         593.9536464771322,
+         492.78337453646475
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.04446021226165854,
+        "area_mm2": 4030.161721047346,
+        "centroid": [
+         406.5283531409168,
+         272.5460101867572
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.04364498256314256,
+        "area_mm2": 3956.264018861758,
+        "centroid": [
+         611.6015219647181,
+         277.5039778623314
+        ]
+       }
+      ]
+     },
+     "runtime_s": 143.9,
+     "headline": "Silhouette IoU 0.363, mean outline error 24.2 mm (8.37 % of span).  The largest single disagreement is the body, 25 % of the union, mesh only."
+    },
+    {
+     "file": "Phantom 4 Pro+ V2.0_4.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록",
+     "note": "front, above",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      0,
+      22
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 1.9999999999999472,
+     "fit_at_window_edge": false,
+     "free_delta_deg": 175.10689506643445,
+     "free_fit": {
+      "iou": 0.5090498707161326,
+      "azim": 183.0,
+      "elev": -18.0,
+      "roll": -0.375,
+      "q": 0.14999999999999997,
+      "scale_px_per_m": 1224.1984723197615,
+      "tx": 422.45146095745986,
+      "ty": 424.1443528013678,
+      "phases": [
+       36.0,
+       47.5,
+       -22.0,
+       38.5
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9116,
+      "iou_search_grid": 0.45988140809127076,
+      "contour_mean_mm": 15.164524372931377,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": -0.014726545512375955,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        19.55,
+        0.0,
+        -39.41,
+        -72.44
+       ],
+       "spread_pct": 91.98,
+       "fragile": true,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       524
+      ],
+      "mask_area_px": 54173,
+      "mask_area_frac": 0.0844
+     },
+     "fit": {
+      "iou": 0.4701970741143755,
+      "azim": 0.0,
+      "elev": 20.0,
+      "roll": -0.75,
+      "q": 0.00375,
+      "scale_px_per_m": 1216.2596903443211,
+      "tx": 421.9118256280188,
+      "ty": 430.201473951134,
+      "phases": [
+       31.5,
+       43.0,
+       130.0,
+       21.5
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 17,
+      "n_eval": 3287
+     },
+     "metrics": {
+      "iou": 0.5237764162285086,
+      "mesh_only_frac": 0.21532756847578904,
+      "photo_only_frac": 0.26089601529570244,
+      "contour_mean_mm": 13.733128927255985,
+      "contour_p95_mm": 51.79292686688606,
+      "contour_mean_pct_span": 4.745025290537865,
+      "mm_per_px": 0.8221928326152959,
+      "silhouette_px": {
+       "photo": [
+        549.0,
+        369.0
+       ],
+       "mesh": [
+        474.0,
+        373.0
+       ]
+      },
+      "aspect_photo": 1.4878048780487805,
+      "aspect_mesh": 1.2707774798927614,
+      "aspect_err_pct": -14.587087417043909,
+      "fill_ratio": 0.9419267900983885,
+      "implied_span_mm": 289.4216170910922,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 0.9904629331718359,
+       "p10": 0.44945667612384826,
+       "p90": 1.1726285806023196,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.08873245556859166,
+        "area_mm2": 4141.182456828283,
+        "centroid": [
+         271.68609206660136,
+         600.9090760692131
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "camera",
+        "area_frac": 0.06255884355219514,
+        "area_mm2": 2919.6485522431203,
+        "centroid": [
+         508.3417457744848,
+         426.8298217179903
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "prop",
+        "area_frac": 0.05208650183229769,
+        "area_mm2": 2430.8997901982543,
+        "centroid": [
+         286.7755839822024,
+         221.53670745272524
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.027564130419038515,
+        "area_mm2": 1286.4300057695434,
+        "centroid": [
+         362.83026799789803,
+         506.8045191802417
+        ]
+       }
+      ]
+     },
+     "runtime_s": 134.7,
+     "headline": "Silhouette IoU 0.524, mean outline error 13.7 mm (4.75 % of span).  The largest single disagreement is the motor, 9 % of the union, photo only."
+    },
+    {
+     "file": "Phantom 4 pro + V2_1.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록",
+     "note": "three-quarter, gimbal toward the camera and to the left",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      32,
+      20
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 13.279153574993629,
+     "fit_at_window_edge": false,
+     "free_delta_deg": 101.04149238268278,
+     "free_fit": {
+      "iou": 0.5460063073963147,
+      "azim": 132.125,
+      "elev": -4.5,
+      "roll": 0.75,
+      "q": 0.045,
+      "scale_px_per_m": 1077.6246913493362,
+      "tx": 436.78747340424036,
+      "ty": 351.0031398757614,
+      "phases": [
+       74.5,
+       36.0,
+       74.5,
+       140.0
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9069,
+      "iou_search_grid": 0.4814115078615362,
+      "contour_mean_mm": 10.268283919341433,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": 0.00040855454467580987,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        30.8,
+        0.0,
+        -23.87,
+        -54.5
+       ],
+       "spread_pct": 85.3,
+       "fragile": true,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       417
+      ],
+      "mask_area_px": 37405,
+      "mask_area_frac": 0.0678
+     },
+     "fit": {
+      "iou": 0.4880773920169495,
+      "azim": 45.125,
+      "elev": 15.5,
+      "roll": -1.5,
+      "q": 0.005625,
+      "scale_px_per_m": 1083.3128187722125,
+      "tx": 436.0037780642998,
+      "ty": 348.32219216379565,
+      "phases": [
+       33.5,
+       61.5,
+       36.0,
+       -11.0
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 18,
+      "n_eval": 3404
+     },
+     "metrics": {
+      "iou": 0.5455977528516389,
+      "mesh_only_frac": 0.290079523240145,
+      "photo_only_frac": 0.16432272390821615,
+      "contour_mean_mm": 10.716968871923251,
+      "contour_p95_mm": 36.15241246820885,
+      "contour_mean_pct_span": 3.702891642869305,
+      "mm_per_px": 0.9230944032706673,
+      "silhouette_px": {
+       "photo": [
+        504.0,
+        277.0
+       ],
+       "mesh": [
+        427.0,
+        269.0
+       ]
+      },
+      "aspect_photo": 1.8194945848375452,
+      "aspect_mesh": 1.587360594795539,
+      "aspect_err_pct": -12.758157786038838,
+      "fill_ratio": 1.1771420933030343,
+      "implied_span_mm": 289.4216170910922,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 0.9850584267541528,
+       "p10": 0.7234491396978334,
+       "p90": 1.0826163598812857,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.1320389455104481,
+        "area_mm2": 5928.082500521371,
+        "centroid": [
+         265.4714675866034,
+         431.50395285324134
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "camera",
+        "area_frac": 0.07456964451783105,
+        "area_mm2": 3347.9137767066936,
+        "centroid": [
+         365.2481547467549,
+         363.6889793840672
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "gear",
+        "area_frac": 0.042077093890565395,
+        "area_mm2": 1889.1129658841282,
+        "centroid": [
+         443.6441136671177,
+         406.8448353631033
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "gear",
+        "area_frac": 0.03718043614416672,
+        "area_mm2": 1669.2703203279239,
+        "centroid": [
+         380.85911179173047,
+         533.4053088310362
+        ]
+       }
+      ]
+     },
+     "runtime_s": 122.8,
+     "headline": "Silhouette IoU 0.546, mean outline error 10.7 mm (3.70 % of span).  The largest single disagreement is the body, 13 % of the union, mesh only."
+    },
+    {
+     "file": "Phantom 4 Pro+ V2.0_2.png",
+     "credit": "DJI product image",
+     "licence": null,
+     "provenance": "assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록",
+     "note": "front, slightly above",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      0,
+      15
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 15.736987864237177,
+     "fit_at_window_edge": false,
+     "free_delta_deg": 96.00100202586323,
+     "free_fit": {
+      "iou": 0.5655836141041465,
+      "azim": 92.5,
+      "elev": -14.25,
+      "roll": 0.0,
+      "q": 0.001875,
+      "scale_px_per_m": 1104.511285650617,
+      "tx": 418.3779859102654,
+      "ty": 354.63822569926657,
+      "phases": [
+       28.5,
+       33.0,
+       58.5,
+       100.0
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9108,
+      "iou_search_grid": 0.491920634647485,
+      "contour_mean_mm": 10.388560324275176,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": 0.0859059211440108,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        31.98,
+        0.0,
+        -26.31,
+        -59.85
+       ],
+       "spread_pct": 91.83,
+       "fragile": true,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       441
+      ],
+      "mask_area_px": 48941,
+      "mask_area_frac": 0.0856
+     },
+     "fit": {
+      "iou": 0.43866099409983017,
+      "azim": 16.0,
+      "elev": 12.5,
+      "roll": -1.5,
+      "q": 0.046875,
+      "scale_px_per_m": 1040.2566040566612,
+      "tx": 410.5943132179294,
+      "ty": 367.18434395888255,
+      "phases": [
+       25.5,
+       58.5,
+       70.0,
+       54.0
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 17,
+      "n_eval": 3319
+     },
+     "metrics": {
+      "iou": 0.4796776929601357,
+      "mesh_only_frac": 0.16978795589482612,
+      "photo_only_frac": 0.35053435114503817,
+      "contour_mean_mm": 14.826440556666748,
+      "contour_p95_mm": 55.861854011742125,
+      "contour_mean_pct_span": 5.122782709074663,
+      "mm_per_px": 0.9613012751856863,
+      "silhouette_px": {
+       "photo": [
+        549.0,
+        288.0
+       ],
+       "mesh": [
+        441.0,
+        232.0
+       ]
+      },
+      "aspect_photo": 1.90625,
+      "aspect_mesh": 1.9008620689655173,
+      "aspect_err_pct": -0.28264556246466366,
+      "fill_ratio": 0.7822888784454751,
+      "implied_span_mm": 289.4216170910922,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 0.9523666860236104,
+       "p10": 0.44258481917936543,
+       "p90": 1.1679949283290156,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "photo only",
+        "part": "gear",
+        "area_frac": 0.14276505513146734,
+        "area_mm2": 7777.226792325242,
+        "centroid": [
+         444.9982176806084,
+         405.8239068441065
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.06303647158608991,
+        "area_mm2": 3433.9561264591966,
+        "centroid": [
+         238.32427341227125,
+         270.56270182992466
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "prop",
+        "area_frac": 0.04441051738761662,
+        "area_mm2": 2419.2941709015545,
+        "centroid": [
+         235.05194805194805,
+         537.7864782276547
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "gear",
+        "area_frac": 0.03355385920271416,
+        "area_mm2": 1827.8700802304336,
+        "centroid": [
+         395.0131445904955,
+         508.8190091001011
+        ]
+       }
+      ]
+     },
+     "runtime_s": 139.4,
+     "headline": "Silhouette IoU 0.480, mean outline error 14.8 mm (5.12 % of span).  The largest single disagreement is the gear, 14 % of the union, photo only.  A camera free to move anywhere reaches 0.566 by swinging 96 deg off the declared aspect."
+    }
+   ],
+   "best_index": 2,
+   "best_file": "Phantom 4 pro + V2_1.png",
+   "best_iou": 0.5455977528516389,
+   "runtime_s": 540.7
+  },
+  "typhoonh480": {
+   "key": "typhoonh480",
+   "name": "Yuneec Typhoon H (H480)",
+   "label": "Typhoon H (H480)",
+   "span_m": 0.5167193998580994,
+   "centre_m": [
+    1.301715454098129e-05,
+    1.3778745483555843e-05,
+    -0.11597329640331114
+   ],
+   "measured_airframe": false,
+   "n_photos_available": 13,
+   "photos": [
+    {
+     "file": "typhoonh480_y04_official_pursuit.png",
+     "credit": "Yuneec International (official product image, via Wayback Machine)",
+     "licence": "Copyright Yuneec — attribution required when published",
+     "provenance": "assets/photos/typhoonh480/SOURCES.md",
+     "note": "from above, landing gear retracted (the mesh has it down)",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      0,
+      72
+     ],
+     "window_deg": 26.0,
+     "fit_delta_deg": 16.2822510444224,
+     "fit_at_window_edge": false,
+     "free_delta_deg": 53.939646014848506,
+     "free_fit": {
+      "iou": 0.4587897815824543,
+      "azim": 122.625,
+      "elev": 47.5,
+      "roll": 4.6875,
+      "q": 0.091875,
+      "scale_px_per_m": 1029.6874499270923,
+      "tx": 385.670616899672,
+      "ty": 454.05923873357455,
+      "phases": [
+       60.0,
+       136.5,
+       30.0,
+       24.5,
+       14.0,
+       2.5
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 10501,
+      "iou_search_grid": 0.41858111527173364,
+      "contour_mean_mm": 15.614168929998435,
+      "clipped_frac": 0.01958663402227663
+     },
+     "free_iou_gain": -0.08805827876237327,
+     "segmentation": {
+      "source": "alpha channel",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": null,
+      "max_side": 600,
+      "background_rgb": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "threshold": null,
+      "image_px": [
+       446,
+       600
+      ],
+      "mask_area_px": 56252,
+      "mask_area_frac": 0.0976
+     },
+     "fit": {
+      "iou": 0.4627322967671735,
+      "azim": 296.5,
+      "elev": 79.0,
+      "roll": 2.75,
+      "q": 0.42187500000000017,
+      "scale_px_per_m": 912.5486508600285,
+      "tx": 411.98527964690714,
+      "ty": 442.01606786047273,
+      "phases": [
+       22.0,
+       95.0,
+       -0.5,
+       64.0,
+       0.0,
+       3.5
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 94,
+      "n_eval": 4317
+     },
+     "metrics": {
+      "iou": 0.5468480603448276,
+      "mesh_only_frac": 0.24229525862068965,
+      "photo_only_frac": 0.21085668103448277,
+      "contour_mean_mm": 15.925758523872995,
+      "contour_p95_mm": 75.85500341056009,
+      "contour_mean_pct_span": 3.0806116136378003,
+      "mm_per_px": 1.0958319855687182,
+      "silhouette_px": {
+       "photo": [
+        415.0,
+        567.0
+       ],
+       "mesh": [
+        529.0,
+        488.0
+       ]
+      },
+      "aspect_photo": 0.7319223985890653,
+      "aspect_mesh": 1.084016393442623,
+      "aspect_err_pct": 48.10537230890777,
+      "fill_ratio": 1.0414918580672687,
+      "implied_span_mm": 516.9674246948239,
+      "clipped_frac": 0.019983300027833287,
+      "radial_ratio": {
+       "median": 0.964983051496345,
+       "p10": 0.34686536053376815,
+       "p90": 1.2361539994669242,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.048046875,
+        "area_mm2": 4283.423890704075,
+        "centroid": [
+         414.9615923745444,
+         597.5873282870759
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "gear_cf",
+        "area_frac": 0.03892780172413793,
+        "area_mm2": 3470.4499703209353,
+        "centroid": [
+         579.7484429065744,
+         392.80207612456746
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "gear",
+        "area_frac": 0.03135775862068965,
+        "area_mm2": 2795.573540106276,
+        "centroid": [
+         534.9596219931271,
+         300.8939003436426
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "body",
+        "area_frac": 0.026791487068965517,
+        "area_mm2": 2388.4861560444083,
+        "centroid": [
+         482.59074912016087,
+         487.7430869783811
+        ]
+       }
+      ]
+     },
+     "runtime_s": 151.1,
+     "headline": "Silhouette IoU 0.547, mean outline error 15.9 mm (3.08 % of span).  The largest single disagreement is the body, 5 % of the union, mesh only."
+    },
+    {
+     "file": "typhoonh480_y03_official_hero.png",
+     "credit": "Yuneec International (official product image, via Wayback Machine)",
+     "licence": "Copyright Yuneec — attribution required when published",
+     "provenance": "assets/photos/typhoonh480/SOURCES.md",
+     "note": "front three-quarter from above, gear down",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      25,
+      28
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 19.99148072518021,
+     "fit_at_window_edge": true,
+     "free_delta_deg": 78.7968415550877,
+     "free_fit": {
+      "iou": 0.5443561747900789,
+      "azim": 71.0,
+      "elev": -38.0,
+      "roll": 3.0,
+      "q": 0.16312499999999996,
+      "scale_px_per_m": 1164.57459750451,
+      "tx": 342.57054197431944,
+      "ty": 460.8903675505107,
+      "phases": [
+       34.5,
+       0.0,
+       4.5,
+       70.0,
+       71.5,
+       80.0
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9767,
+      "iou_search_grid": 0.4299526335397115,
+      "contour_mean_mm": 14.753793909973007,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": 0.012070606443059129,
+     "segmentation": {
+      "source": "alpha channel",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": null,
+      "max_side": 600,
+      "background_rgb": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "threshold": null,
+      "image_px": [
+       593,
+       600
+      ],
+      "mask_area_px": 92986,
+      "mask_area_frac": 0.1329
+     },
+     "fit": {
+      "iou": 0.40972794009308455,
+      "azim": 46.25,
+      "elev": 37.0,
+      "roll": 4.90625,
+      "q": 0.0225,
+      "scale_px_per_m": 1166.1621965116367,
+      "tx": 344.2588231201025,
+      "ty": 460.78523289485736,
+      "phases": [
+       24.5,
+       24.0,
+       48.0,
+       70.0,
+       64.0,
+       12.5
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 16,
+      "n_eval": 3626
+     },
+     "metrics": {
+      "iou": 0.5322855683470198,
+      "mesh_only_frac": 0.26929393736984797,
+      "photo_only_frac": 0.1984204942831323,
+      "contour_mean_mm": 15.960051028417581,
+      "contour_p95_mm": 59.441223107596926,
+      "contour_mean_pct_span": 3.0872450111995193,
+      "mm_per_px": 0.8575136486085033,
+      "silhouette_px": {
+       "photo": [
+        570.0,
+        547.0
+       ],
+       "mesh": [
+        643.0,
+        636.0
+       ]
+      },
+      "aspect_photo": 1.0420475319926874,
+      "aspect_mesh": 1.0110062893081762,
+      "aspect_err_pct": -2.978870131303097,
+      "fill_ratio": 1.0969930957348417,
+      "implied_span_mm": 516.9674246948239,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 0.9853520560802527,
+       "p10": 0.4857596202573995,
+       "p90": 1.7328731845081786,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "photo only",
+        "part": "gear_cf",
+        "area_frac": 0.044878393776275984,
+        "area_mm2": 4199.467674267295,
+        "centroid": [
+         537.8129924706707,
+         439.0140080546314
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "gear_cf",
+        "area_frac": 0.04429688420887195,
+        "area_mm2": 4145.0532796086045,
+        "centroid": [
+         663.1204541422743,
+         391.89923718289873
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "battery",
+        "area_frac": 0.042976700326116855,
+        "area_mm2": 4021.5178971402265,
+        "centroid": [
+         431.3558237337722,
+         453.1588955933443
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "gear",
+        "area_frac": 0.027252367294015954,
+        "area_mm2": 2550.1232523829412,
+        "centroid": [
+         607.9224336793541,
+         172.32900807381776
+        ]
+       }
+      ]
+     },
+     "runtime_s": 156.7,
+     "headline": "Silhouette IoU 0.532, mean outline error 16.0 mm (3.09 % of span).  The largest single disagreement is the gear_cf, 4 % of the union, photo only."
+    }
+   ],
+   "best_index": 0,
+   "best_file": "typhoonh480_y04_official_pursuit.png",
+   "best_iou": 0.5468480603448276,
+   "runtime_s": 307.7
+  },
+  "x500v2": {
+   "key": "x500v2",
+   "name": "Holybro X500 V2",
+   "label": "X500 V2",
+   "span_m": 0.3966787957271249,
+   "centre_m": [
+    6.194363523379098e-06,
+    -3.5091867719994063e-07,
+    -0.0638899989426136
+   ],
+   "measured_airframe": false,
+   "n_photos_available": 16,
+   "photos": [
+    {
+     "file": "x500v2_09_arf_iso34_props.jpg",
+     "credit": "Holybro product photo",
+     "licence": "Manufacturer product image — attribution required when published",
+     "provenance": "assets/photos/x500v2/SOURCES.md",
+     "note": "ARF build, three-quarter from behind-left (top-plate arrow points away); no GPS mast and no battery, the mesh is the full kit",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      150,
+      28
+     ],
+     "window_deg": 30.0,
+     "fit_delta_deg": 24.109894630815965,
+     "fit_at_window_edge": false,
+     "free_delta_deg": 112.29663494870637,
+     "free_fit": {
+      "iou": 0.7051692743458322,
+      "azim": 303.75,
+      "elev": 35.0,
+      "roll": 1.1875,
+      "q": 0.5225000000000001,
+      "scale_px_per_m": 893.415972132406,
+      "tx": 412.50521787609955,
+      "ty": 406.2553192688349,
+      "phases": [
+       48.5,
+       -1.5,
+       6.0,
+       14.0
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9622,
+      "iou_search_grid": 0.6316630100921456,
+      "contour_mean_mm": 9.333015864766574,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": -0.0040526726058838225,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        6.44,
+        0.0,
+        -2.92,
+        -5.32
+       ],
+       "spread_pct": 11.76,
+       "fragile": false,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       600
+      ],
+      "mask_area_px": 52077,
+      "mask_area_frac": 0.0738
+     },
+     "fit": {
+      "iou": 0.6288083197827136,
+      "azim": 123.0,
+      "elev": 35.75,
+      "roll": 2.0,
+      "q": 0.5,
+      "scale_px_per_m": 900.128385723228,
+      "tx": 412.96931560547137,
+      "ty": 406.9350815459105,
+      "phases": [
+       148.5,
+       6.0,
+       46.0,
+       -2.5
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 41,
+      "n_eval": 3679
+     },
+     "metrics": {
+      "iou": 0.709221946951716,
+      "mesh_only_frac": 0.0977807037300116,
+      "photo_only_frac": 0.19299734931827237,
+      "contour_mean_mm": 7.7374823940126145,
+      "contour_p95_mm": 35.41044466838437,
+      "contour_mean_pct_span": 1.950545882793735,
+      "mm_per_px": 1.1109526328252919,
+      "silhouette_px": {
+       "photo": [
+        557.0,
+        403.0
+       ],
+       "mesh": [
+        519.0,
+        398.0
+       ]
+      },
+      "aspect_photo": 1.382133995037221,
+      "aspect_mesh": 1.3040201005025125,
+      "aspect_err_pct": -5.6516875219905724,
+      "fill_ratio": 0.8944639668183652,
+      "implied_span_mm": 396.6829215486254,
+      "clipped_frac": 0.025700833333333332,
+      "radial_ratio": {
+       "median": 0.9946256642987248,
+       "p10": 0.5298726759465805,
+       "p90": 1.056880934136429,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.034597460196462294,
+        "area_mm2": 2464.7288575057514,
+        "centroid": [
+         304.7270906359539,
+         636.4646970455683
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "accent",
+        "area_frac": 0.02759827445816947,
+        "area_mm2": 1966.1056935436466,
+        "centroid": [
+         259.0087884494664,
+         338.56497175141243
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "prop",
+        "area_frac": 0.026766688033817848,
+        "area_mm2": 1906.863337429337,
+        "centroid": [
+         473.2576051779935,
+         407.00129449838187
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "deck",
+        "area_frac": 0.02638554425599002,
+        "area_mm2": 1879.7105908769452,
+        "centroid": [
+         439.1582403151674,
+         491.2107682206172
+        ]
+       }
+      ]
+     },
+     "runtime_s": 166.6,
+     "headline": "Silhouette IoU 0.709, mean outline error 7.7 mm (1.95 % of span).  The largest single disagreement is the motor, 3 % of the union, photo only."
+    },
+    {
+     "file": "x500v2_03_top_ortho.jpg",
+     "credit": "Holybro product photo",
+     "licence": "Manufacturer product image — attribution required when published",
+     "provenance": "assets/photos/x500v2/SOURCES.md",
+     "note": "frame kit from above: no propellers, no motors, no battery",
+     "props_in_photo": false,
+     "compared_against": "frame only (photo has no propellers)",
+     "expect": [
+      0,
+      85
+     ],
+     "window_deg": 20.0,
+     "fit_delta_deg": 8.250000000000034,
+     "fit_at_window_edge": false,
+     "free_delta_deg": 8.250000000000034,
+     "free_fit": {
+      "iou": 0.8747763621577663,
+      "azim": 180.0,
+      "elev": 86.75,
+      "roll": 0.375,
+      "q": 0.48312499999999997,
+      "scale_px_per_m": 1081.7795291567209,
+      "tx": 419.14268567757773,
+      "ty": 423.0085621501468,
+      "phases": [],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 8186,
+      "iou_search_grid": 0.7017670593465215,
+      "contour_mean_mm": 2.1802686169231045,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": 0.0,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        0.51,
+        0.0,
+        -0.48,
+        -1.1
+       ],
+       "spread_pct": 1.62,
+       "fragile": false,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       600
+      ],
+      "mask_area_px": 68409,
+      "mask_area_frac": 0.097
+     },
+     "fit": {
+      "iou": 0.7017670593465215,
+      "azim": 180.0,
+      "elev": 86.75,
+      "roll": 0.375,
+      "q": 0.48312499999999997,
+      "scale_px_per_m": 1081.7795291567209,
+      "tx": 419.14268567757773,
+      "ty": 423.0085621501468,
+      "phases": [],
+      "branch": "declared",
+      "n_pose_evaluated": 85,
+      "n_eval": 3111
+     },
+     "metrics": {
+      "iou": 0.8747763621577663,
+      "mesh_only_frac": 0.07279750609921389,
+      "photo_only_frac": 0.052426131743019785,
+      "contour_mean_mm": 2.1802686169231045,
+      "contour_p95_mm": 6.7918113946235685,
+      "contour_mean_pct_span": 0.549620431477116,
+      "mm_per_px": 0.9244027762103518,
+      "silhouette_px": {
+       "photo": [
+        478.0,
+        478.0
+       ],
+       "mesh": [
+        476.0,
+        473.0
+       ]
+      },
+      "aspect_photo": 1.0,
+      "aspect_mesh": 1.0063424947145878,
+      "aspect_err_pct": 0.634249471458781,
+      "fill_ratio": 1.0219707933166688,
+      "implied_span_mm": 396.686238730898,
+      "clipped_frac": 0.0,
+      "radial_ratio": {
+       "median": 1.0,
+       "p10": 0.943641934056138,
+       "p90": 1.070258602728384,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "mesh only",
+        "part": "gear",
+        "area_frac": 0.010734616427216048,
+        "area_mm2": 676.7802301910014,
+        "centroid": [
+         466.864898989899,
+         320.0441919191919
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "gear",
+        "area_frac": 0.010653293575494714,
+        "area_mm2": 671.653107235009,
+        "centroid": [
+         441.74045801526717,
+         536.1412213740458
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "accent",
+        "area_frac": 0.007888316616969369,
+        "area_mm2": 497.3309267312662,
+        "centroid": [
+         263.8264604810997,
+         463.2182130584192
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "accent",
+        "area_frac": 0.00712930333423692,
+        "area_mm2": 449.47777914200344,
+        "centroid": [
+         263.40304182509504,
+         377.91634980988596
+        ]
+       }
+      ]
+     },
+     "runtime_s": 143.0,
+     "headline": "Silhouette IoU 0.875, mean outline error 2.2 mm (0.55 % of span).  The largest single disagreement is the gear, 1 % of the union, mesh only."
+    },
+    {
+     "file": "x500v2_01_arf_front34_props.jpg",
+     "credit": "Holybro product photo",
+     "licence": "Manufacturer product image — attribution required when published",
+     "provenance": "assets/photos/x500v2/SOURCES.md",
+     "note": "ARF build seen from behind and above (top-plate arrow points away)",
+     "props_in_photo": true,
+     "compared_against": "full drone",
+     "expect": [
+      180,
+      25
+     ],
+     "window_deg": 26.0,
+     "fit_delta_deg": 4.880041118379721,
+     "fit_at_window_edge": false,
+     "free_delta_deg": 124.74948030701493,
+     "free_fit": {
+      "iou": 0.6933033385498174,
+      "azim": 359.75,
+      "elev": 30.25,
+      "roll": -0.1875,
+      "q": 0.5075,
+      "scale_px_per_m": 980.0909762279185,
+      "tx": 429.3948452963938,
+      "ty": 414.16900496420726,
+      "phases": [
+       -8.0,
+       -4.0,
+       2.5,
+       -12.0
+      ],
+      "branch": "free",
+      "n_pose_evaluated": 576,
+      "n_eval": 9531,
+      "iou_search_grid": 0.6072221474703983,
+      "contour_mean_mm": 9.08282510766931,
+      "clipped_frac": 0.0
+     },
+     "free_iou_gain": -0.009971036054626126,
+     "segmentation": {
+      "source": "background colour distance",
+      "pad_px": 120,
+      "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+      "sensitivity": {
+       "thresholds": [
+        0.03,
+        0.055,
+        0.09,
+        0.14
+       ],
+       "area_change_pct": [
+        6.56,
+        0.0,
+        -3.78,
+        -5.82
+       ],
+       "spread_pct": 12.39,
+       "fragile": true,
+       "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+      },
+      "max_side": 600,
+      "background_rgb": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "threshold": 0.055,
+      "image_px": [
+       600,
+       600
+      ],
+      "mask_area_px": 55580,
+      "mask_area_frac": 0.0788
+     },
+     "fit": {
+      "iou": 0.6065844884319642,
+      "azim": 179.75,
+      "elev": 29.875,
+      "roll": 0.0,
+      "q": 0.48874999999999996,
+      "scale_px_per_m": 991.3404750022229,
+      "tx": 429.5781490088683,
+      "ty": 415.31080962657126,
+      "phases": [
+       -8.0,
+       155.0,
+       4.5,
+       4.0
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 28,
+      "n_eval": 3629
+     },
+     "metrics": {
+      "iou": 0.7032743746044435,
+      "mesh_only_frac": 0.07431464641417675,
+      "photo_only_frac": 0.2224109789813797,
+      "contour_mean_mm": 9.78379997380958,
+      "contour_p95_mm": 55.701457076604896,
+      "contour_mean_pct_span": 2.466403125099068,
+      "mm_per_px": 1.0087351673982219,
+      "silhouette_px": {
+       "photo": [
+        565.0,
+        391.0
+       ],
+       "mesh": [
+        517.0,
+        409.0
+       ]
+      },
+      "aspect_photo": 1.4450127877237853,
+      "aspect_mesh": 1.2640586797066016,
+      "aspect_err_pct": -12.522664820304216,
+      "fill_ratio": 0.8400143936667867,
+      "implied_span_mm": 396.6829215486254,
+      "clipped_frac": 0.025701666666666668,
+      "radial_ratio": {
+       "median": 0.9529423472684713,
+       "p10": 0.43148119903626436,
+       "p90": 1.0789894892508913,
+       "n_directions": 180,
+       "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+      },
+      "blobs": [
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.0358082675460511,
+        "area_mm2": 2187.7252715837253,
+        "centroid": [
+         384.38976744186044,
+         175.70511627906976
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "motor",
+        "area_frac": 0.03464241697478432,
+        "area_mm2": 2116.497006927511,
+        "centroid": [
+         380.1004807692308,
+         675.1927884615385
+        ]
+       },
+       {
+        "side": "mesh only",
+        "part": "accent",
+        "area_frac": 0.029296159355118083,
+        "area_mm2": 1789.8645361468712,
+        "centroid": [
+         245.00227401932918,
+         429.2217168845935
+        ]
+       },
+       {
+        "side": "photo only",
+        "part": "accent",
+        "area_frac": 0.0285300289797142,
+        "area_mm2": 1743.057390801359,
+        "centroid": [
+         475.3771161704612,
+         228.88149445417397
+        ]
+       }
+      ]
+     },
+     "runtime_s": 157.3,
+     "headline": "Silhouette IoU 0.703, mean outline error 9.8 mm (2.47 % of span).  The largest single disagreement is the motor, 4 % of the union, photo only."
+    }
+   ],
+   "best_index": 1,
+   "best_file": "x500v2_03_top_ortho.jpg",
+   "best_iou": 0.8747763621577663,
+   "runtime_s": 467.0
+  }
+ }
+}

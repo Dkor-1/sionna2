@@ -1,0 +1,816 @@
+{
+ "meta": {
+  "generated": "2026-07-31 03:08",
+  "phase": "2 of 2 - PRIMARY-SOURCE SETTLEMENT. Every factual line below was read out of a PDF in this session with PyMuPDF; page numbers are 1-indexed PDF pages.",
+  "assignment": "H8 (headline, attack it) + H3 + H4 + X-C17; bonus items settled opportunistically while reading.",
+  "rule_applied": "A claim is VERIFIED only with (a) exact PDF path, (b) which version, (c) the quoted sentence or extracted table cell. Anything missing one of the three is UNVERIFIED. No number was reconstructed from memory or from a sibling paper.",
+  "corpus_swept": {
+   "papers_isac_sionna": "42 unique PDFs (55 files, 13 duplicate copies) - all term-counted, 16 read in depth",
+   "sionna_papers_by_task": "115 unique PDFs - all term-counted; ZERO of them mention RCS more than twice, so none can host a drone-RCS result",
+   "passive_radar_corpus /data/public/jeong/papers/{5G,LTE,Wifi}": "21 PDFs - all term-counted; ZERO mention Sionna or Mitsuba, and ray-tracing appears once incidentally",
+   "not_papers": "the 56 remaining PDFs under sionna_jeong/sionna2_archive are Austin-RCS benchmark problem descriptions and matplotlib icons - no literature",
+   "total_paper_pdfs_examined": 178
+  },
+  "counts": {
+   "settled": 14,
+   "refuted": 5,
+   "unverified": 3
+  }
+ },
+ "how_to_read": {
+  "verdict": {
+   "VERIFIED": "the assertion is present in the named PDF at the named page, quoted",
+   "REFUTED": "the PDF says something materially different, or the asserted string/number is absent from the document it is attributed to",
+   "UNVERIFIED": "no primary source available in this session; the claim may still be true"
+  },
+  "prong": "H8 is decomposed into four prongs P1 published / P2 drone mesh / P3 Sionna-class engine / P4 validated scattering amplitude. A paper refutes H8 only by satisfying all four at once."
+ },
+ "H8": {
+  "claim_as_stated": "ZERO published papers compute a validated scattering signature from a drone mesh in a Sionna-class engine.",
+  "verdict": "VERIFIED (survives), but only in its literal four-prong form. The two qualifications below are mandatory at every use, because the natural paraphrases of H8 are FALSE.",
+  "what_would_refute_it": {
+   "statement": "A single paper that simultaneously satisfies all four prongs.",
+   "P1_published": "Appears in a peer-reviewed venue (journal, conference proceedings, standards-body proceedings). An arXiv-only manuscript does not count; an arXiv manuscript whose base version is stated in the manuscript to be accepted at a named peer-reviewed venue does count (see Sagitta).",
+   "P2_drone_mesh": "The UAV is represented by a 3-D surface mesh of the airframe. A metallic cube, a point scatterer, a single rotor blade, or an abstract complex coefficient does not count.",
+   "P3_sionna_class_engine": "The scattered field is computed INSIDE a Sionna-class differentiable GPU ray engine (Sionna RT, an in-place extension of it, or an equivalent GPU path-tracing EM engine). An RCS computed in FEKO / CST / FDTD and then multiplied into ray-traced paths does NOT count - that is injection, and it is precisely the alternative route our report catalogues.",
+   "P4_validated_amplitude": "The computed scattering AMPLITUDE (RCS, reflectivity, or echo power) is compared against measurement or against a reference full-wave / analytic solution. Agreement in Doppler-frequency position, rotation period, or spectrogram ridge shape is kinematic and does NOT satisfy P4, because those quantities are insensitive to scattering-amplitude error.",
+   "does_it_exist": "No. Across 178 paper PDFs in both archives plus the 21-paper passive-radar corpus, no document satisfies all four. The prong-by-prong adjudication of every candidate is in h8_candidates below."
+  },
+  "mandatory_qualification_1": {
+   "id": "H8-Q1",
+   "text": "H8 must never be paraphrased as 'nobody has computed a drone's bistatic RCS for passive WiFi detection'. That paraphrase is FALSE and we can prove it false from our own corpus.",
+   "counter_paper": "Rzewuski, Kulpa, Pachwicewicz, Malanowski, Salski, 'Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band', NATO STO-MP-MSG-SET-183, paper 13 (PDF metadata author 'Stanislaw Rzewuski', subject 'MSG-SET-183')",
+   "pdf": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+   "quotes": [
+    {
+     "page": 4,
+     "text": "Mono- and bi-static radar cross-sections (RCS) of the Parrot AR.Drone 2.0 were computed with a finite-difference time-domain (FDTD) method implemented in the commercial software package, QuickWave-3D [2,3]."
+    },
+    {
+     "page": 5,
+     "text": "It is clearly visible that Parrot drone (bistatic) RCS characteristics is not symmetrical (confirmed by the measurements [3]) and it varies with the illuminating signal frequency. The most important is that the RCS range for WIFI band is between -40dBsm and 0dBsm (and average around -20dBsm). For DVB-T frequencies the RCS characteristics varies from -60dBsm to -20dBsm"
+    }
+   ],
+   "why_it_matters": "This 2021 paper delivers the same end-product we aim at - a drone's bistatic RCS at the WiFi band, fed into a passive-radar coverage budget, closed with an OTA detection experiment (successful detection at 50 m bistatic range, p9). It fails only P3: the engine is FDTD, not a ray engine. Our novelty is therefore about the ENGINE and the pipeline integration, not about the existence of the quantity.",
+   "prong_scorecard": {
+    "P1": "yes (NATO STO proceedings)",
+    "P2": "yes (Parrot AR.Drone 2.0 geometry in an FDTD grid)",
+    "P3": "NO - FDTD full-wave",
+    "P4": "partial - the asymmetry is 'confirmed by the measurements [3]' and RCS estimation/measurement detail is deferred to reference [4]; no in-paper amplitude overlay"
+   }
+  },
+  "mandatory_qualification_2": {
+   "id": "H8-Q2",
+   "text": "The word 'published' is carrying the whole claim. If preprints are admitted, the gap closes to a seam: LAMBDA (preprint) already ships UAV RCS alongside Sionna RT paths in one pipeline, and Ziganshin (preprint journal) already validates mesh scattering inside Sionna against measurement. Neither does both at once and neither is peer-reviewed, but the report must say this out loud rather than let 'zero published' imply 'nobody is close'."
+  },
+  "sionna_engine_premise_now_first_hand": {
+   "note": "H8 presumes the stock Sionna engine produces no scattering signature. That premise was graded second-hand (X-C13). Both primary documents are on disk and were read this session.",
+   "founding_paper": {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__sionna-rt-founding.pdf",
+    "term_counts": {
+     "physical optics": 0,
+     "radar cross section / RCS": 0,
+     "dBsm": 0,
+     "SBR": 0
+    }
+   },
+   "technical_report": {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "term_counts": {
+     "physical optics": 0,
+     "radar cross section / RCS": 0,
+     "dBsm": 0,
+     "SBR": 48
+    }
+   },
+   "precise_wording_required": "Sionna RT DOES use shooting-and-bouncing of rays - p1: 'For CIRs, Sionna RT integrates shooting and bouncing of rays (SBR) with the image method and uses a hashing-based mechanism to efficiently eliminate duplicate paths. Radio maps are computed using a purely SBR-based approach.' What it lacks is a physical-optics surface-current integral and any RCS output. Its rough-surface model is an empirical normalized scattering pattern (p51: 'f_s(k_i, k_s, n) is the scattering pattern, which has similarities with the BSDF in computer graphics') driven by a scalar scattering coefficient S (p50). So write 'no PO surface integral, no RCS output', never 'no SBR'.",
+   "verdict": "VERIFIED first-hand. X-C13 can be closed and both documents re-graded from [W] to [P]."
+  }
+ },
+ "h8_candidates": [
+  {
+   "paper": "md-rt - 'Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing'",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+   "status": "published (IEEE Xplore footer on every page, body pages numbered 359-364)",
+   "P1": "YES",
+   "P2": "PARTIAL - a single two-blade PROPELLER, not an airframe",
+   "P3": "YES - Sionna RT",
+   "P4": "NO - validated against its own analytical formula, and only kinematically",
+   "verdict": "does NOT refute H8; the closest published Sionna + drone-geometry paper",
+   "quotes": [
+    {
+     "page": 3,
+     "text": "The target consists of either Sionna's built-in reflector model or a physical model of a propeller modeled using Blender. The model's coordinates are located at its geometric center, and electromagnetic parameters such as conductivity are based on Sionna's built-in settings."
+    },
+    {
+     "page": 3,
+     "text": "In this section, we validate the accuracy of the Sionna RT framework for simulating rotational micro-Doppler effects. The simulated results are compared with the analytical formulas derived in Section II using identical target models and micromotion parameters."
+    },
+    {
+     "page": 3,
+     "text": "Table I. Parameters Setup ... Rotating propellers 1 / Blades per propeller 2 / Propeller radius 10.55cm / Propeller material Wood"
+    },
+    {
+     "page": 4,
+     "text": "According to Eq. (7), the calculated maximum Micro-Doppler frequency shift is 1562 Hz. The rotation period derived from the angular velocity, T = 2 pi / omega = 0.04 s, matches perfectly with the simulation results."
+    }
+   ],
+   "independent_gap_statement_supporting_us": {
+    "page": 1,
+    "text": "To date, no research has systematically employed ray tracing to model and analyze signal spectrum variations caused by rotational motions of multirotor UAVs."
+   },
+   "internal_inconsistency_observed": "Table I (p3) states 'Propeller radius 10.55cm' while p4 states 'a blade length of 1.055 meters' - a factor of 10 inside one paper. Quote both if we cite either; do not silently pick one.",
+   "dbsm_count": 0
+  },
+  {
+   "paper": "Clutter-Aware ISAC (Liu et al.), Proc. IEEE vol.114 no.1, Jan 2026",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf",
+   "status": "published (running footer at PDF p29: 'PROCEEDINGS OF THE IEEE | Vol. 114, No. 1, January 2026')",
+   "P1": "YES",
+   "P2": "YES - simplified UAV meshes",
+   "P3": "YES - Sionna RT, stock",
+   "P4": "NO - no RCS value, no dBsm, no comparison to measurement or reference solver; the Sionna scene is an illustrative case study",
+   "verdict": "does NOT refute H8; together with md-rt it is one of only two published papers putting UAV geometry into Sionna",
+   "quotes": [
+    {
+     "page": 23,
+     "text": "The ToI and UAVs are modeled as simplified 3-D mesh objects imported into Sionna. These meshes are obtained by simplifying publicly available 3-D models in Blender and exporting them in Sionna's XML format, which keeps the ray-tracing scene lightweight while enabling flexible material assignment."
+    },
+    {
+     "page": 23,
+     "text": "The maximum interaction depth for Sionna is set to three, so each ray undergoes at most three interactions with scene objects."
+    },
+    {
+     "page": 6,
+     "text": "the frequency-dependent complex coefficients {alpha_{m,n}, beta_{c,n}} capture the combined effects of RCS, path loss, and multipath-induced phase variations"
+    }
+   ],
+   "bonus_settles": "X-C1"
+  },
+  {
+   "paper": "Ziganshin et al., journal version, arXiv:2604.05991",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+   "status": "preprint on disk; no IEEE OJAP DOI string found anywhere in this PDF",
+   "P1": "NO",
+   "P2": "NO - Mitsubishi i-MiEV vehicle mesh, not a drone",
+   "P3": "YES - in-place Sionna-RT extension",
+   "P4": "YES but self-described as qualitative",
+   "verdict": "does NOT refute H8; the closest paper in METHOD, and the strongest structural precedent for what we are doing",
+   "quotes": [
+    {
+     "page": 3,
+     "text": "Sionna-RT (v0.19) [19] was used as a basic RT framework, which is open-source, parallelizable, differentiable, and provides efficient path tracing and electromagnetic field computation on triangulized geometries."
+    },
+    {
+     "page": 7,
+     "text": "The measurements were performed using the BIRA bistatic reflectivity setup [4] with frequency range 2-18 GHz. A small vehicle, Mitsubishi i-MiEV, depicted in Fig. 6a, was illuminated from the"
+    },
+    {
+     "page": 7,
+     "text": "The comparison should be interpreted as a qualitative validation rather than an attempt to exactly reproduce the measurements."
+    },
+    {
+     "page": 7,
+     "text": "The detailed mesh with 1496 facets (6b) is employed for validation against measurement in backscattering."
+    }
+   ],
+   "drone_string_count_in_journal_pdf": 0
+  },
+  {
+   "paper": "Ziganshin et al., conference version, 'Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC'",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+   "status": "published (IEEE Xplore watermark on p5)",
+   "P1": "YES",
+   "P2": "NO - car model 3.3 x 2.1 x 1.7 m",
+   "P3": "YES - Sionna RT",
+   "P4": "YES - vs FEKO MLFMM and PO solvers",
+   "verdict": "does NOT refute H8 (wrong target class), but proves the method is publishable in exactly this form",
+   "quotes": [
+    {
+     "page": 2,
+     "text": "The average facet size is around 2 lambda at a frequency of 10 GHz. The dimensions of this car model are around 3.3x2.1x1.7 (LxWxH) meters. An open-source parallelizable framework, Sionna RT [11], is utilized to conduct simulations."
+    },
+    {
+     "page": 3,
+     "text": "EM simulation is performed with the commercial FEKO package [15] in order to validate the accuracy of the RT tool."
+    }
+   ],
+   "bonus_settles": "X-C6"
+  },
+  {
+   "paper": "LAMBDA UAV dataset, arXiv:2607.03826v1 (4 Jul 2026)",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+   "status": "preprint (arXiv stamp on p1)",
+   "P1": "NO",
+   "P2": "YES - AirSim UAV model",
+   "P3": "NO - the drone RCS comes from CADFEKO; Sionna RT only supplies the propagation paths",
+   "P4": "NO - quality control checks 'CSI/radar plausibility', not amplitude against a reference",
+   "verdict": "does NOT refute H8; it is the cleanest example of the RCS-INJECTION route (our taxonomy route c)",
+   "quotes": [
+    {
+     "page": 3,
+     "text": "Blender [26] for scene-mesh conversion; Sionna RT [27] for material-aware ray tracing; and CADFEKO [28] for UAV radar cross-section (RCS) modeling."
+    },
+    {
+     "page": 4,
+     "text": "The radar synthesis module further combines the Sionna RT multipath geometry with CADFEKO-derived UAV RCS information to generate radar data."
+    },
+    {
+     "page": 7,
+     "text": "The complex-valued CSI coefficient captures the propagation effects computed by the ray-tracing channel generator, whereas the RCS term is obtained from CADFEKO simulations of the AirSim UAV model and queried according to the UAV attitude."
+    }
+   ],
+   "note_for_X-C4": "Three verbatim CADFEKO strings are now on record with pages (p3, p4, p7). Any of our files quoting a fourth variant is wrong."
+  },
+  {
+   "paper": "SagittaSBR, arXiv:2604.09243v1",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+   "status": "arXiv extended version of an ACCEPTED conference paper - p1 Note: 'This manuscript is an extended version of the paper accepted at the 26th International Conference on Computational Science (ICCS 2026).'",
+   "P1": "PARTIAL - base version accepted at ICCS 2026",
+   "P2": "NO - the target is an AIRBUS A380 AIRLINER",
+   "P3": "NO - own C++/CUDA SBR code (SagittaSBR), not Sionna",
+   "P4": "YES - vs analytical Mie for a PEC sphere",
+   "verdict": "does NOT refute H8. IMPORTANT CORRECTION: 'Sagitta' here is the SOFTWARE name, not a UAV. The DLR Sagitta demonstrator is a real UAV, which makes this an easy confusion to make.",
+   "quotes": [
+    {
+     "page": 9,
+     "text": "To evaluate the solver performance on electrically large, complex geometries, an A380 aircraft was selected as a primary benchmark. The aircraft is modeled as a PEC object, a standard approximation for metallic structures in microwave regime."
+    },
+    {
+     "page": 10,
+     "text": "Simulated A380 aircraft model with approximate dimensions of 80 x 73 x 21 m, discretized using 162,000 triangular elements, 12.2 MB."
+    },
+    {
+     "page": 8,
+     "text": "To validate our implementation, we analyzed the computed RCS of a PEC sphere against analytical Mie scattering theory."
+    }
+   ],
+   "drone_string_count": 0,
+   "affects": "H7 - Sagitta is not preprint-only"
+  },
+  {
+   "paper": "Great-X, arXiv:2507.08716",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2507.08716__great-x_unreal-isac.pdf",
+   "status": "preprint (6 pages)",
+   "P1": "NO",
+   "P2": "YES - 'Realistic 3D UAV models in Great-X' (Fig.1a caption, p1)",
+   "P3": "NO - Unreal Engine single-engine ray tracer; Sionna RT is the COMPARISON baseline",
+   "P4": "NO - no RCS, no dBsm; the reported metric is positioning error in metres",
+   "verdict": "does NOT refute H8; a genuine near-miss on the mesh-in-a-GPU-ray-engine axis",
+   "quotes": [
+    {
+     "page": 4,
+     "text": "we utilized the Great-X to import a 3D model of a UAV, simulate its flight trajectory, and record multimodal data including CSI, RGB images, depth maps, and positional metadata."
+    },
+    {
+     "page": 5,
+     "text": "Great-X employs an Unreal Engine-based renderer, which provides higher geometric precision and more detailed texture information than Sionna RT's Mitsuba renderer implementation."
+    }
+   ],
+   "rcs_string_count": 0
+  },
+  {
+   "paper": "FWA cooperative sensing (Zhang, Guo, Li, Wen, Jin), arXiv:2605.07623, archive-filed under published_by_venue/IEEE_ICC_Workshops_2026",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+   "P1": "likely YES (the archive files it under IEEE ICC Workshops 2026; the venue string was NOT verified inside the PDF - treat as UNVERIFIED until it is)",
+   "P2": "NO - 'The UAV is modeled as a metallic cube'",
+   "P3": "YES - Sionna RT",
+   "P4": "NO - no RCS anywhere",
+   "verdict": "does NOT refute H8, and is the single most useful catalogue entry: a Sionna-based UAV DETECTION paper that reaches 0.63% missed detection with a CUBE for a target",
+   "quotes": [
+    {
+     "page": 8,
+     "text": "The dataset is generated through ray-tracing, using OpenStreetMap (OSM), Blender, and Sionna RT [39]."
+    },
+    {
+     "page": 8,
+     "text": "The UAV is modeled as a metallic cube located at p = (x, y, 60), where x, y ~ U[-75, 75]."
+    },
+    {
+     "page": 9,
+     "text": "UAV-affected paths are typically caused by diffuse reflections. Therefore, y(m,n) is set to 1 only when the channel between a BS-CPE pair contains such reflections."
+    },
+    {
+     "page": 2,
+     "text": "The UAV hovers at p = (x, y, z) and acts as a scatterer whose presence affects the wireless propagation."
+    }
+   ],
+   "rcs_string_count": 0
+  },
+  {
+   "paper": "CellSense, arXiv:2606.07900",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2606.07900__cellsense.pdf",
+   "P1": "not established from the PDF",
+   "P2": "NO - no drone at all (drone/UAV string count 0)",
+   "P3": "YES - Sionna RT scenes built in Blender",
+   "P4": "NO",
+   "verdict": "does NOT refute H8. The ledger flagged CellSense (CE01) as an H8 risk because it reaches detection rates with Sionna; the risk is real on the DETECTION prong but the target is not a drone and no scattering signature is computed.",
+   "quotes": [
+    {
+     "page": 1,
+     "text": "We validate the system via Sionna-based orthogonal frequency-division multiplexing (OFDM) link-level simulations and an experimental USRP hardware prototype using the OpenAirInterface (OAI) stack."
+    },
+    {
+     "page": 4,
+     "text": "Site-specific Sionna ray-tracing environments generated in Blender: indoor warehouse (top) and NCSU Centennial Campus outdoor Oval (bottom)."
+    }
+   ]
+  },
+  {
+   "paper": "Temporal-GNN ISAC, arXiv:2604.08306",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.08306__temporal-gnn-isac.pdf",
+   "P1": "NO (preprint)",
+   "P2": "NO - point scatterer",
+   "P3": "YES - Sionna ray tracing",
+   "P4": "NO",
+   "verdict": "does NOT refute H8; catalogue entry for the point-scatterer-RCS-into-Sionna route",
+   "quotes": [
+    {
+     "page": 1,
+     "text": "In this work, the CIR is generated using the Sionna ray-tracing tool."
+    },
+    {
+     "page": 2,
+     "text": "The bi-static RCS relies on the assumption that the target is a point scatterer [13]."
+    }
+   ]
+  },
+  {
+   "paper": "OpenISAC, arXiv:2601.03535",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2601.03535__openisac.pdf",
+   "P1": "NO on this PDF",
+   "P2": "NO",
+   "P3": "NO - Sionna is only cited as a related tool, not used",
+   "P4": "NO",
+   "verdict": "does NOT refute H8; abstract sigma_RCS in the radar equation",
+   "quotes": [
+    {
+     "page": 4,
+     "text": "For a specific reflection p with radar cross section (RCS) sigma_{RCS,p}, range d_{s,p}, and radial velocity v_{s,p}, the complex scattering coefficient, round-trip delay, and two-way Doppler shift are modeled as"
+    }
+   ],
+   "H9_corroboration": "Independent regex pass this session over the whole PDF: CFAR = 0, false alarm / P_fa = 0, detection probability / probability of detection = 0. H9 holds."
+  },
+  {
+   "paper": "CAVIAR (arXiv:2401.03310) and SimART (arXiv:2605.13309)",
+   "pdf": [
+    "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+    "/data/public/sionna_jeong/papers_isac_sionna/2605.13309__simart.pdf"
+   ],
+   "verdict": "do NOT refute H8. Both were UNCITED by our census and are now read: they place a UAV inside a Sionna scene as a MOBILE COMMUNICATION PLATFORM (beam selection, search-and-rescue, CKM generation), never as a scattering target. RCS string count 0 in both.",
+   "note": "Correct disposition of two of the ledger's uncited-paper holes: irrelevant to H8, not a gap."
+  },
+  {
+   "paper": "Remaining archive papers: RayLoc 2501.17881, multimodal-wireless 2511.03220, S-ICDF 2607.03411, Ji cellular-UAV-bistatic 2602.08203, Beuster 2402.16591, Wei rotor micro-Doppler testbed, Das, Yuan, Zhang, Costa, Colone RIS low-RCS 2601.10846, He CAF 2512.24889, DMSNet 2607.17655, Wu 3GPP ISAC simulator 2606.07328, Luo 3GPP bistatic 2408.11295, Montaner, Hoydis, BostonTwin, CISSIR, Khan, Kang, Saribekyan, Morais",
+   "verdict": "do NOT refute H8, each failing at least one prong outright",
+   "reason": "Either no Sionna-class engine at all (Das, Yuan, Zhang, Costa, Wei, Beuster, Ji, Colone, He, Luo are measurement / analytic / abstract-coefficient works - Sionna and ray-tracing string counts are 0 in each), or no drone and no scattering signature (RayLoc, multimodal-wireless, S-ICDF, BostonTwin, CISSIR, Khan, Kang, Saribekyan, Morais, Hoydis, Montaner, Wu, DMSNet)."
+  },
+  {
+   "paper": "sionna_papers_by_task archive, 115 unique PDFs",
+   "verdict": "NONE can refute H8",
+   "machine_evidence": "Across all 115, the maximum count of 'RCS|radar cross-section' in any single PDF is 1. No paper in that archive computes or reports a radar cross section at all. The archive is comms-side (neural receivers, channel estimation, digital twins, link adaptation, beamforming)."
+  },
+  {
+   "paper": "passive-radar corpus /data/public/jeong/papers/{5G,LTE,Wifi}, 21 PDFs",
+   "verdict": "NONE refutes H8 on the engine prong - Sionna count 0 and Mitsuba count 0 across all 21",
+   "but": "See H8-Q1: the WiFi/DVB-T Rzewuski paper computes a drone bistatic RCS in FDTD and is the strongest constraint on how we phrase our novelty."
+  }
+ ],
+ "h8_near_miss_ranking": [
+  {
+   "rank": 1,
+   "paper": "Rzewuski et al. (NATO STO, 2021)",
+   "gap_remaining": "engine only (FDTD, not a ray engine)",
+   "why": "same end-product: drone bistatic RCS at WiFi -> passive-radar coverage -> OTA detection at 50 m"
+  },
+  {
+   "rank": 2,
+   "paper": "Ziganshin conference (published) + journal (preprint)",
+   "gap_remaining": "target class only (vehicle, not drone)",
+   "why": "mesh scattering computed inside Sionna and validated against bistatic measurement and FEKO MLFMM"
+  },
+  {
+   "rank": 3,
+   "paper": "Clutter-Aware ISAC (Proc. IEEE 2026)",
+   "gap_remaining": "validation entirely absent",
+   "why": "published, and UAV meshes really are inside Sionna"
+  },
+  {
+   "rank": 4,
+   "paper": "md-rt (IEEE ICCT 2025)",
+   "gap_remaining": "propeller only, and validation is kinematic",
+   "why": "published, Sionna, drone geometry, explicitly claims to validate Sionna RT"
+  },
+  {
+   "rank": 5,
+   "paper": "LAMBDA (preprint)",
+   "gap_remaining": "engine split - RCS in CADFEKO, paths in Sionna",
+   "why": "shows the injection architecture the community actually uses"
+  },
+  {
+   "rank": 6,
+   "paper": "Great-X (preprint)",
+   "gap_remaining": "no scattering amplitude, no validation, non-Sionna engine",
+   "why": "a real 3-D UAV model in a GPU ray-tracing pipeline producing radar echoes"
+  },
+  {
+   "rank": 7,
+   "paper": "FWA cooperative sensing (ICC Wkshps 2026)",
+   "gap_remaining": "target is a metallic cube",
+   "why": "Sionna-based UAV detection with quantitative detection performance"
+  }
+ ],
+ "q2_catalogue_how_they_got_a_target_signature": [
+  {
+   "route": "a. geometric primitive proxy",
+   "papers": [
+    "FWA cooperative sensing - metallic cube in Sionna"
+   ],
+   "what_it_bought": "detection and localisation statistics without any EM fidelity claim"
+  },
+  {
+   "route": "b. point scatterer or abstract complex coefficient",
+   "papers": [
+    "Temporal-GNN - 'the target is a point scatterer'",
+    "OpenISAC - sigma_RCS in the radar equation",
+    "Clutter-Aware ISAC stochastic model - alpha, beta 'capture the combined effects of RCS, path loss'"
+   ],
+   "what_it_bought": "closed-form signal models, STAP and CFAR analysis"
+  },
+  {
+   "route": "c. external EM solver injected into ray-traced paths",
+   "papers": [
+    "LAMBDA - CADFEKO RCS x Sionna RT paths",
+    "Costa journal - measured-reflectivity body model as an alternative to the Gaussian body"
+   ],
+   "what_it_bought": "attitude-dependent amplitude without touching the propagation engine"
+  },
+  {
+   "route": "d. analytic target model (thin wire)",
+   "papers": [
+    "Costa conference and journal - thin-wire blades plus Gaussian or measured body"
+   ],
+   "what_it_bought": "micro-Doppler signatures validated in SHAPE against measurement, with no absolute level"
+  },
+  {
+   "route": "e. full-wave solver or chamber measurement on the drone itself",
+   "papers": [
+    "Rzewuski - FDTD QuickWave-3D on Parrot AR.Drone 2.0",
+    "Zhang JSAC - anechoic-chamber measurement of a DJI M350, then a fitted 3-term model"
+   ],
+   "what_it_bought": "absolute dBsm usable in a link or coverage budget"
+  },
+  {
+   "route": "f. mesh scattering computed inside the ray engine (ours)",
+   "papers": [
+    "Ziganshin - Sionna-RT extension with vertex and higher-order diffraction, vehicle target",
+    "SagittaSBR - standalone GPU SBR+PO, A380 target"
+   ],
+   "what_it_bought": "geometry-consistent, multistatic-capable signatures; nobody has yet done it for a drone in a published paper"
+  }
+ ],
+ "H3": {
+  "claim": "Zhang et al., IEEE JSAC 44:702, 2026: measurement-fitted sigma = A(f) B1(phi) B2.",
+  "verdict": "VERIFIED - every element confirmed against the published PDF, plus one provenance defect found (table_v_provenance_defect).",
+  "published_pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+  "arxiv_pdf": "/data/public/sionna_jeong/papers_isac_sionna/2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf",
+  "version_note": "The 15-page PDF is the published JSAC version; the 13-page PDF is arXiv:2505.20673. Same work. Terminology differs: the published version says AAV where the arXiv version says UAV. Quote the version you actually read.",
+  "verified_items": [
+   {
+    "item": "venue and first page",
+    "verdict": "VERIFIED",
+    "page": 1,
+    "quote": "702 IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 44, 2026",
+    "note": "DOI on p1: 'Digital Object Identifier 10.1109/JSAC.2025.3608732'. The 702-716 page range follows from 15 pages starting at 702; running heads verified at 702, 704, 706, 708, 710, 712, 713, 714."
+   },
+   {
+    "item": "three-term decomposition",
+    "verdict": "VERIFIED",
+    "page": 6,
+    "quote": "To address this, we introduce a third component, B2, to account for these fluctuations sigma(f, phi) = A(f) x B1(f, phi) x B2. (13)",
+    "note": "B1(f,phi) is later reduced: 'Based on measured results, we assume that B1 remains relatively stable with frequency, so we parameterize it as B1(f, phi) = B1(phi)'. Writing 'A(f) B1(phi) B2' is faithful only after that step."
+   },
+   {
+    "item": "A(f) is a LINEAR angular average",
+    "verdict": "VERIFIED",
+    "page": 8,
+    "quote": "This component is angle-independent and is typically obtained by calculating the linear average of the RCS values measured at all angles, as defined below A(f) = sum_{i=1}^{N} sigma_i(f, phi_i) / N, (15)",
+    "why_it_matters": "This is the same statistic definition the brief attributes to Das (H2, section III-1). Two anchors sharing a statistic definition is the precondition for any apples-to-apples slope comparison, and it makes Zhang's 0.31 dB/GHz directly comparable with Das's 0.21 and Yuan's 0.315."
+   },
+   {
+    "item": "target and chamber",
+    "verdict": "VERIFIED",
+    "page": 7,
+    "quote": "The AAV used is the DJI M350, with four symmetrically deployed rotor arms and approximate dimensions of 430 x 420 x 430 mm. The human model represents an individual with a height of 180 cm and weight of 70 kg. The vehicle is a Volkswagen T-Cross model, measuring 4.218 x 1.76 x 1.599 m, and the metallic sphere has a diameter of 0.5 meters.",
+    "settles": "ZH06"
+   },
+   {
+    "item": "measurement geometry - elevation fixed",
+    "verdict": "VERIFIED",
+    "page": 7,
+    "quote": "RCS measurements in the horizontal plane, with the elevation angle fixed at 90 degrees",
+    "settles": "ZH09"
+   },
+   {
+    "item": "fit frequency list",
+    "verdict": "VERIFIED",
+    "page": 7,
+    "quote": "RCS measurements are conducted for AAVs, humans, and vehicles across five carrier frequencies (10 GHz, 15 GHz, 20 GHz, 28 GHz, and 36 GHz)",
+    "settles": "ZH07 - extrapolation to our 1.8-5.2 GHz is indeed outside the fitted range"
+   },
+   {
+    "item": "A(f) fitted slopes",
+    "verdict": "VERIFIED",
+    "page": 10,
+    "quote": "A_AAV = 0.31 . f - 9.26, A_vehicle = 0.08 . f + 8.21, A_human = 0.16 . f - 4.68, (17)",
+    "settles": "ZH07 - 0.31 dB/GHz is the A-factor slope, i.e. the slope of the linear-azimuth-average RCS expressed in dBsm, not an azimuth mean of slopes"
+   },
+   {
+    "item": "model fit RMSE",
+    "verdict": "VERIFIED",
+    "page": 10,
+    "quote": "The RMSE values for the AAV, vehicle, and human are 2.414, 1.8309, and 2.2451, respectively.",
+    "settles": "ZH08"
+   },
+   {
+    "item": "sphere calibration",
+    "verdict": "VERIFIED (quoted from the arXiv version, where the sentence is contiguous)",
+    "pdf_used": "arXiv 2505.20673",
+    "page": 7,
+    "quote": "RCS is -7.07 dBsm, while the measured average is -8.96 dBsm, with a discrepancy of less than 2 dBsm, confirming the high accuracy of the measurements.",
+    "note": "The paper says 'less than 2 dBsm'. Our 1.89 dB is OUR subtraction, not the paper's wording - label it as a derivation. Published p8 confirms the 28 GHz framing: 'With its size much larger than the 28 GHz wavelength, it operates in the geometric optical region.'",
+    "settles": "ZH05"
+   },
+   {
+    "item": "3GPP adoption",
+    "verdict": "VERIFIED",
+    "page": 7,
+    "quote": "The proposed unified RCS modeling approach has been adopted by the 3GPP Technical Specification Group Radio Access Network Working Group 1 (TSG RAN1) during meeting #120 [41], and is now part of the official standard.",
+    "settles": "ZH10"
+   }
+  ],
+  "table_v_provenance_defect": {
+   "id": "NEW-1",
+   "severity": "high",
+   "finding": "Table V in the PUBLISHED JSAC PDF has NO extractable text layer. PDF page 12 yields only the caption 'TABLE V FITTING PARAMETER RESULTS FOR AAVS, VEHICLES, AND HUMANS' and then jumps straight to body text; the page also contains zero embedded images, so the cells are neither extractable text nor a bitmap.",
+   "consequence": "Every Table V number we have ever quoted - the 2.31, the c_k values, the 3 dB widths, Y_max - is verifiable ONLY from the arXiv 13-page version, where the same table extracts cleanly at page 11.",
+   "arxiv_table_v_extract": "TABLE V: The fitting parameter results for UAV, vehicle and human. Columns: Target | A [dBsm] | B1 [dBsm] (phi in phi_k ; phi_3dB,k ; c_k) | B2 [dBsm]. UAV: A = -9.26 + 0.31 * f ; [315,360) u [0,45] -> 0 deg, 20.84 deg, 0.68 ; [45,135] -> 90 deg, 10.47 deg, -6.52 ; [135,225] -> 180 deg, 15.41 deg, -5.61 ; [225,315] -> 270 deg, 14.51 deg, -12.30 ; Ymax = 4.47 ; B2 ~ N(-0.52, 2.31^2). Vehicle: A = 8.21 + 0.08 * f ; [315,360) u [0,45] -> 0 deg, 12.59 deg, -9.61 ; [45,135] -> 90 deg, 30.42 deg, -1.67 ; B2 ~ N(-0.53, 2.64^2).",
+   "action": "Cite Table V as arXiv:2505.20673 p.11, not as JSAC Table V, until the published table is extracted by another means. Cross-version numerical equality is UNVERIFIED.",
+   "settles": "ZH03 (VERIFIED against arXiv only) and ZH04"
+  },
+  "wording_correction": {
+   "id": "NEW-2",
+   "finding": "2.31 dB is the standard deviation of the log-normal fluctuation term B2 for the UAV - B2 ~ N(-0.52, 2.31^2) - it is NOT the model's fitting residual. The UAV fitting residual the paper reports is RMSE = 2.414.",
+   "action": "Wherever we place 2.31 dB beside our own residual spread, say 'B2 log-normal sigma' explicitly, or use 2.414 if what we mean is fit residual."
+  }
+ },
+ "H4": {
+  "claim": "Costa (IEEE JSTEAP): analytic thin-wire blade micro-Doppler validated against bistatic OFDM measurement, Pearson r = 0.98, kr 12.8-24.3, declines to state an absolute level.",
+  "verdict": "MOSTLY VERIFIED, one component REFUTED (the kr range), one component needs narrowing (the absolute level).",
+  "journal_pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modeling_Micro-Doppler_Signature_of_Multi-Propeller_Drones_in_Distributed_ISAC.pdf",
+  "conference_pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modelling_Micro-Doppler_Signature_of_Drone_Propellers_in_Distributed_ISAC.pdf",
+  "items": [
+   {
+    "item": "thin-wire blade model",
+    "verdict": "VERIFIED",
+    "version": "journal",
+    "page": 2,
+    "quote": "the most used method for modeling rotating propellers is the thin wire model, which considers a propeller as a homogeneous, linear, rigid antenna, that can be replaced by an infinite set of point scatterers"
+   },
+   {
+    "item": "validated against bistatic OFDM measurement",
+    "verdict": "VERIFIED",
+    "version": "journal",
+    "page": 12,
+    "quote": "The reflectivity of Ironman Drone is measured with wide bandwidth (5.78GHz:10MHz:8.22GHz) for multiple bistatic angle constellations (10:5:180) in HH polarization. The measurement is performed with and without the drone.",
+    "settles": "CO12 - HH polarisation VERIFIED and located in the journal appendix"
+   },
+   {
+    "item": "Pearson r = 0.98",
+    "verdict": "VERIFIED IN BOTH VERSIONS - no E2 risk on this number",
+    "journal": {
+     "page": 6,
+     "quote": "Finally, the Pearson correlation coefficient was used to check the similarity between the frequency domain micro-Doppler signatures produced by the proposed model and by measurement. This produces a cross-correlation coefficient of 0.98 across the bistatic angles from 30 to 180."
+    },
+    "conference": {
+     "page": 5,
+     "quote": "returns a cross-correlation coefficient of approximately 0.98 across the bistatic angles from 30 to 180"
+    },
+    "settles": "CO03"
+   },
+   {
+    "item": "kr = 12.8 - 24.3",
+    "verdict": "REFUTED as a claim of the paper",
+    "evidence": "Regex search for 'kr', '12.8' and '24.3' over BOTH Costa PDFs returns zero matches. Neither PDF states an electrical size anywhere.",
+    "where_it_actually_comes_from": "It is reproducible as OUR derivation from Costa journal Table I (p12): 'Propeller radius 16.55 cm' and 'Central frequency 3.7 GHz / 7 GHz'. kr = 2 pi (0.1655) / lambda gives 12.83 at 3.7 GHz and 24.27 at 7 GHz. The inputs are verified; the output is ours.",
+    "action": "Never attribute 'kr 12.8-24.3' to Costa. Label it 'our derivation from Costa journal Table I, p.12'. This is exactly the E3 failure mode."
+   },
+   {
+    "item": "declines to state an absolute level",
+    "verdict": "VERIFIED IN THE NARROW FORM ONLY",
+    "supported_by": "dBsm string count = 0 in both PDFs (independent count this session). Comparison metrics are computed on normalised signatures - journal p9: 'we used, at the left-hand side and right-hand side of the figure, respectively, the complex and the magnitude values of the frequency-domain micro-Doppler signature, normalized between 0 and 1, what gives a scale between 0 and 1 for both metrics'.",
+    "over_claim_to_avoid": "The paper is NOT free of scattering amplitude. Eq.(3) on p3 carries 'r_P is the RCS of the point scatterer P', and the body has an explicit alternative model fed by measured reflectivity - p8: 'The Gaussian body model assumes a smoothly distributed RCS centered on the drone's mass center. This is clearly a simplification, as real drone bodies exhibit intricate reflectivity patterns that depend on the shape, material and aspect angle.' The defensible sentence is 'never prints an absolute RCS in dBsm; all model-vs-measurement comparisons are on normalised signatures'.",
+    "settles": "CO04 (keep it scoped to the string count) and refines CO16 - physical optics plays no role in the Costa target model; the body is Gaussian or measurement-driven, so 'PO rotor RCS' should not be repeated"
+   },
+   {
+    "item": "measurement setups, Table I",
+    "verdict": "VERIFIED (text-extractable)",
+    "version": "journal",
+    "page": 12,
+    "extract": "Setup 1 / Setup 2 - Waveform OFDM-based / OFDM-based; Central frequency 3.7 GHz / 7 GHz; Bandwidth 200 MHz / 2.46 GHz; Total number of carriers 1600 / 2500; Carriers with energy 1280 / 2048; Symbol duration 8 us / 1.02 us; Rotating propellers 1 / 2; Blades per propeller 2 / 2; Propeller radius 16.55 cm / 16.55 cm; Rotation speed 1500 rpm / 1500 and 2000 rpm"
+   },
+   {
+    "item": "venue",
+    "verdict": "VERIFIED",
+    "version": "journal",
+    "page": 4,
+    "quote": "IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation VOLUME 1, 2025 211",
+    "note": "Running heads confirm volume 1, 2025, with printed page numbers 211 (PDF p4) and 219 (PDF p12), consistent with the 208-222 range in CO02. The Ziganshin journal preprint independently cites it as 'IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation, 2025' (ref [34], p11)."
+   }
+  ]
+ },
+ "X-C17": {
+  "topic": "Wypich & Zielinski as our ECA -> CFAR precedent",
+  "verdict": "UNVERIFIED - and the E6 pattern is confirmed, not merely suspected.",
+  "search_performed": "find over /data/public (entire tree, 268 PDFs) and over /home/yunjung/workspace/sionna2 for any filename containing wypich / zielinski / zielin: ZERO hits. Full-text grep of our repo returns only our own citations.",
+  "what_is_ours_not_theirs": "Every element is traceable only to our notes, with no PDF anywhere: the POD figures (24-32% -> 77-78%), the DOI 10.3390/s26041317, the USRP X310 hardware, the ECA+ / CA-CFAR chain, and the 'target is a VEHICLE at 5.8 GHz' caveat. The caveat itself comes from our own pilot_findings.md, so it is not independent corroboration - it is one unverified note qualifying another.",
+  "where_it_is_still_asserted": [
+   "prior_work/outputs/prior_work.json - papers[9] and related_precedent_table row 3, still STARRED as our hardware precedent",
+   "prior_work/src/make_pw01.py L102",
+   "src/_legacy_builders/make_notebook04.py L459",
+   "src/_legacy_builders/make_notebook09.py L108 and L110",
+   "src/_legacy_builders/make_notebook10.py L150 and L497",
+   "src/_legacy_builders/make_notebook11.py L226 and L303",
+   "src/_legacy_builders/make_notebook12.py L200 and L537"
+  ],
+  "already_correct_in_our_files": "docs/PRIOR_WORK_COMPARISON.md L246-248 and L1077 (F11) already grade it [W], state the vehicle / 5.8 GHz mismatch, and note that a readable corpus PDF (LTE_23) reports the opposite sign. The JSON and the builders never got the memo.",
+  "resolution": "Do not re-derive anything from memory. Either (a) fetch the open-access Sensors PDF and re-verify every number, or (b) demote prior_work.json row 3 to a footnote, strip the POD numbers from all builder text, and carry '원문 미확보 - 표적은 차량(5.8 GHz)' at every remaining mention.",
+  "severity_if_left": "It is currently the only starred precedent in prior_work.json with no primary source, and it feeds pw01, which feeds the report."
+ },
+ "bonus_settled": [
+  {
+   "id": "X-C1",
+   "verdict": "REFUTED - pw04_data.py is wrong",
+   "finding": "The Proc. IEEE 'Clutter-Aware ISAC' PDF DOES use Sionna, with imported meshes. pw04_data.py's EXCLUDED entry (Sionna, ray tracing and mesh not used at all; target as an abstract complex coefficient) is false for this document.",
+   "proof": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf",
+    "page": 23,
+    "quote": "The ToI and UAVs are modeled as simplified 3-D mesh objects imported into Sionna. These meshes are obtained by simplifying publicly available 3-D models in Blender and exporting them in Sionna's XML format, which keeps the ray-tracing scene lightweight while enabling flexible material assignment."
+   },
+   "why_both_files_felt_right": "pw04's description is accurate for the paper's STOCHASTIC signal model (eq.(11), p6: complex coefficients capturing 'the combined effects of RCS, path loss, and multipath-induced phase variations'), which occupies most of the 41 pages. The Sionna work is one site-specific case study on pp.23-26 and p29. The two files were describing different sections and pw04 generalised.",
+   "action": "Delete or rewrite the pw04 EXCLUDED entry. H1 stands: meshes imported, stock Fresnel accepted, motivation explicitly 'keeps the ray-tracing scene lightweight', no scattering audit."
+  },
+  {
+   "id": "X-C6",
+   "verdict": "SETTLED - the sentence is in the CONFERENCE version only",
+   "conference": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "page": 5,
+    "quote": "The proposed solution can also be applied to compute scattering from other objects, such as drones, humans, and micro-Doppler effects, making it an important area for further investigation."
+   },
+   "journal": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "evidence": "Regex search for 'drone' over the whole journal PDF returns ZERO matches. The sentence is absent."
+   },
+   "action": "report01's positioning sentence must cite the CONFERENCE paper, page 5 - which is also the peer-reviewed one, so this is the stronger citation anyway. Any file attributing it to arXiv:2604.05991 is wrong."
+  },
+  {
+   "id": "X-C13",
+   "verdict": "CLOSED - free upgrade taken",
+   "finding": "Both Sionna RT primary documents were read this session. 'physical optics' = 0, 'radar cross section' / 'RCS' = 0, 'dBsm' = 0 in BOTH. The path solver is SBR plus the image method; rough-surface scattering is an empirical normalised scattering pattern with a scalar coefficient S.",
+   "quotes": [
+    {
+     "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+     "page": 1,
+     "quote": "For CIRs, Sionna RT integrates shooting and bouncing of rays (SBR) with the image method and uses a hashing-based mechanism to efficiently eliminate duplicate paths. Radio maps are computed using a purely SBR-based approach."
+    },
+    {
+     "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+     "page": 51,
+     "quote": "f_s(k_i, k_s, n) is the scattering pattern, which has similarities with the BSDF in computer graphics [7, Ch. 4.3.1]. The scattering pattern must be normalized to satisfy the condition"
+    },
+    {
+     "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+     "page": 50,
+     "quote": "we denote by S^2 the fraction of the reflected energy that is diffusely scattered, where S in [0, 1] is the so-called scattering coefficient [41]"
+    }
+   ],
+   "action": "Re-grade arXiv:2303.11103 and arXiv:2504.21719 from [W] to [P] primary. Keep the wording discipline: 'no PO surface integral and no RCS output', never 'no SBR'."
+  },
+  {
+   "id": "H7-correction",
+   "verdict": "PARTIALLY REFUTED for Sagitta",
+   "finding": "Sagitta is not preprint-only. Its own p1 carries: 'Note. This manuscript is an extended version of the paper accepted at the 26th International Conference on Computational Science (ICCS 2026).'",
+   "second_finding": "Separately, Sagitta's target is an A380 airliner, not a UAV. 'Sagitta' is the software name (SagittaSBR); the DLR Sagitta demonstrator is a different thing entirely.",
+   "action": "Split H7: Ziganshin-journal, LAMBDA and OpenISAC remain preprint on the PDFs we hold; Sagitta must be cited as 'arXiv extended version of a paper accepted at ICCS 2026'. Following the X-C9 rule, say where the acceptance statement lives - here it is in the manuscript body, page 1, not in an arXiv comment field."
+  },
+  {
+   "id": "H9-corroboration",
+   "verdict": "CONSISTENT",
+   "finding": "An independent regex set over the OpenISAC PDF this session (patterns \\bCFAR\\b ; false alarm|P_?\\{?fa\\}?|P\\s?FA ; detection probability|probability of detection|P_?\\{?d\\}?\\b) returns 0, 0, 0.",
+   "action": "H9 may be stated, scoped as a string count."
+  },
+  {
+   "id": "P05-Rzewuski",
+   "verdict": "VERIFIED WITH PAGES - previously flagged number_without_page",
+   "pdf": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+   "authors_from_p1": "Stanislaw Rzewuski, Krzysztof Kulpa, Marek Pachwicewicz, Mateusz Malanowski, Bartek Salski (RS Technologies / Warsaw University of Technology). Report code on every page: STO-MP-MSG-SET-183, paper 13. PDF metadata subject field: 'MSG-SET-183'.",
+   "items": [
+    {
+     "claim": "duty factor F_u in eq.(4)",
+     "page": 6,
+     "quote": "Where Lsys - system losses (wires, plugs), Fu - duty factor (WIFI transmission is packet transmission and signal is not present during whole integration time interval, for FM, DVB-T and DAB it is equal 1)"
+    },
+    {
+     "claim": "WiFi measured duty 18%",
+     "page": 9,
+     "quote": "Fig. 7. Crossambiguity function (WIFI signal - duty factor 18%) with drone present during flight. Normalized scale in [dB]"
+    },
+    {
+     "claim": "D0 = 8 dB",
+     "page": 6,
+     "quote": "D0 - minimal Signal to Noise ratio required to have successful target detection (8dB in our coverage simulation)"
+    },
+    {
+     "claim": "Pfa ~ 1e-4 and the 13 dB comparison is at TRACK level",
+     "page": 6,
+     "quote": "The threshold is related to the probability of false alarm, which in our case is closed to 10-4 - much higher than in classical radar. But continues illumination and high update rate allows for bistatic tracking, which after proper selection of initiation algorithms can lead to very low probability of false track initiation (below 1 over hour) - similar to active radar with classical 13 dB threshold."
+    },
+    {
+     "claim": "FDTD sigma range",
+     "page": 5,
+     "quote": "the RCS range for WIFI band is between -40dBsm and 0dBsm (and average around -20dBsm). For DVB-T frequencies the RCS characteristics varies from -60dBsm to -20dBsm"
+    },
+    {
+     "claim": "coverage map assumes a fixed RCS",
+     "page": 6,
+     "quote": "Fig. 4. RCSmin [dBsm] distribution for a drone with RCS 735cm2."
+    },
+    {
+     "claim": "detection range achieved",
+     "page": 9,
+     "quote": "Experiment shows that it is possible to detect small size Parrot AR. Drone on bistatic distance equal to 50m."
+    },
+    {
+     "claim": "airframe materials",
+     "page": 4,
+     "quote": "The airframe is made of polypropylene, that is not which makes it potentially difficult target to detect by the radar. However, cross tubes and propellers are made of well-conducting carbon fiber, which is mainly responsible for RCS signatures."
+    }
+   ],
+   "action": "Upgrade P05 from medium risk to VERIFIED. Also promote this paper into the census: it is our closest prior work by end-product and currently sits outside it."
+  }
+ ],
+ "uncited_papers_read_this_session": [
+  {
+   "pdf": "2605.13309__simart.pdf",
+   "disposition": "irrelevant to H8 - ROS / Unreal / ray-tracing co-simulation platform, UAV is a platform, RCS count 0"
+  },
+  {
+   "pdf": "2401.03310__caviar-digital-twin.pdf",
+   "disposition": "irrelevant to H8 - Sionna + AirSim UAV search-and-rescue with beam selection, RCS count 0"
+  },
+  {
+   "pdf": "2605.07623__lowalt-cooperative-cube-csi.pdf",
+   "disposition": "HOLE, now filled - Sionna UAV detection with a metallic-cube target; belongs in the Q2 catalogue and in the report"
+  },
+  {
+   "pdf": "2606.07900__cellsense.pdf",
+   "disposition": "partial hole - Sionna plus OAI/USRP cellular sensing with detection probability; no drone, no scattering signature"
+  },
+  {
+   "pdf": "2507.08716__great-x_unreal-isac.pdf",
+   "disposition": "HOLE, now filled - 3-D UAV model in a non-Sionna GPU ray engine; near-miss rank 6"
+  },
+  {
+   "pdf": "2604.08306__temporal-gnn-isac.pdf",
+   "disposition": "Q2 catalogue entry - point-scatterer RCS inside Sionna paths"
+  },
+  {
+   "pdf": "2607.03411__s-icdf.pdf",
+   "disposition": "irrelevant - Sionna GNSS interference dataset, no target scattering"
+  },
+  {
+   "pdf": "2501.17881__rayloc.pdf",
+   "disposition": "irrelevant - SBR for indoor localisation, no drone, no RCS"
+  },
+  {
+   "pdf": "2511.03220__multimodal-wireless.pdf",
+   "disposition": "irrelevant - dataset tooling"
+  },
+  {
+   "pdf": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+   "disposition": "CRITICAL - outside the ISAC archive and outside the census; the strongest single constraint on how we word our novelty"
+  }
+ ],
+ "actions_for_our_documents": [
+  "1. Rewrite H8 in the four-prong form and attach H8-Q1 (Rzewuski FDTD) and H8-Q2 (published is load-bearing) wherever the headline appears. The report gains credibility from stating them.",
+  "2. Delete or rewrite the pw04_data.py EXCLUDED entry for Clutter-Aware ISAC (X-C1 refuted).",
+  "3. Re-point the 'drones, humans, micro-Doppler' future-work citation to the Ziganshin CONFERENCE paper, page 5 (X-C6).",
+  "4. Re-grade the two Sionna RT documents from [W] to [P] and fix the engine wording to 'no PO surface integral, no RCS output' (X-C13).",
+  "5. Cite Zhang Table V as arXiv:2505.20673 p.11, and relabel 2.31 dB as the B2 log-normal sigma, not a residual (NEW-1, NEW-2).",
+  "6. Label 'kr 12.8-24.3' as our derivation from Costa journal Table I p.12, never as a Costa claim (H4).",
+  "7. Demote or verify Wypich & Zielinski in prior_work.json and strip its numbers from the eight builder locations that still carry them (X-C17).",
+  "8. Correct any note treating Sagitta as a drone paper (it is an A380) or as preprint-only (accepted at ICCS 2026).",
+  "9. Add Rzewuski, the FWA cube paper and Great-X to the census - it currently adjudicates 16 papers and misses all three."
+ ]
+}

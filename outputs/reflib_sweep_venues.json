@@ -1,0 +1,6181 @@
+{
+ "meta": {
+  "file": "/home/yunjung/workspace/sionna2/outputs/reflib_sweep_venues.json",
+  "built": "2026-07-31 08:31",
+  "task": "TOP-VENUE SWEEP for ISAC / RF drone sensing, subcategorised by geometry; plus the Sionna simulation corpus and their intersection.",
+  "builder": "/data/public/sionna_jeong/reference_library/_build/build_reflib_sweep.py",
+  "inputs": {
+   "dblp_sweep": [
+    "dblp_raw2.json",
+    "dblp_raw3.json"
+   ],
+   "pdf_scans": [
+    "passive_corpus_scan.json (21 PDFs)",
+    "arch_scan.json (199 PDFs)"
+   ],
+   "already_settled": [
+    "outputs/prior_work_claims.json",
+    "outputs/prior_census.json",
+    "outputs/prior_settled_sionna.json",
+    "outputs/prior_settled_anchor.json",
+    "outputs/prior_settled_ziganshin.json",
+    "outputs/prior_settled_h8.json",
+    "outputs/monostatic_prior.json"
+   ]
+  },
+  "house_rules": "Korean prose; English figure text; every bibliographic number pulled from a JSON on disk (dblp sweep or PDF scan), never hand-typed.",
+  "grades": {
+   "P": "primary - the PDF is on disk and was opened and read in this session",
+   "B": "bibliographic - authors/title/venue/vol/pages/DOI from the dblp record; the content line is title/abstract level only",
+   "S": "secondhand - from another paper's reference list or a web record; PDF not read",
+   "U": "unverified - flagged; do not cite until checked"
+  },
+  "error_rules_applied": [
+   "E1 no headline the paper does not contain",
+   "E2 never conflate two versions",
+   "E3 never attribute an equation the paper does not have",
+   "E4 never cite a preprint as published",
+   "E6 never cite a number to a PDF not in the archive"
+  ],
+  "reproduce": {
+   "inputs_preserved_at": "/data/public/sionna_jeong/reference_library/_build/",
+   "files": [
+    "dblp_raw2.json (86 venue-scoped queries)",
+    "dblp_raw3.json (26 targeted follow-ups)",
+    "passive_corpus_scan.json (21 passive-radar PDFs)",
+    "arch_scan.json (199 archive PDFs)",
+    "lasen_refs.txt (LaSen's full 52-item reference list, extracted with PyMuPDF)",
+    "dblp2.py / dblp3.py / pdfscan.py / archscan.py (the harvesters)"
+   ],
+   "run": "cd /home/yunjung/workspace/sionna2 && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python /data/public/sionna_jeong/reference_library/_build/build_reflib_sweep.py  (edit SCR at the top to point at _build/)"
+  }
+ },
+ "taxonomy": {
+  "why": "우리 벤치마크는 geometry {monostatic, bistatic} x illuminator {WiFi, LTE, 5G NR} 의 2x3 격자다. 선행연구를 그 격자에 얹으려면 '누가 송신하는가' 와 '수신기가 송신기 옆인가' 를 분리해야 한다.",
+  "A_active_monostatic": "우리가 송신한다. PRF 가 설계변수. 예: LaSen, Barneto full-duplex OFDM radar, 전용 mmWave 레이더.",
+  "B_passive_quasi_monostatic": "남이 송신하고 수신기는 조명원 옆(beta ~ 0). ⭐ 이번 스윕에서 순수 사례를 찾지 못했다 — gaps 참조.",
+  "C_passive_bistatic": "남이 송신하고 기저선이 크다(beta 큼). 패시브 레이더 문헌의 주류이며 우리 항목의 최대 다수.",
+  "extra_classes_the_literature_forces_on_us": {
+   "emission_based": "표적 자신이 방사원이다(드론의 통신·모터 신호). DroneScale, Matthan, RF fingerprinting. 반사 기반이 아니므로 A/B/C 밖.",
+   "fusion_radar_vision": "RF 와 영상의 융합. MIROS.",
+   "event_camera": "RF 아님. Count Every Rotation, Eventradar.",
+   "RCS_ANCHOR": "기하가 아니라 표적 산란량 자체를 재거나 계산하는 문헌.",
+   "SIM": "시뮬레이션·파형 설계로 기하가 자유변수인 문헌."
+  },
+  "TERMINOLOGY_TRAP": "⚠ 'passive' 가 문헌마다 세 가지 뜻으로 쓰인다. (1) 조명원이 남의 것 [패시브 레이더 주류: Maksymiuk, Taylor, Colone], (2) 표적이 협조하지 않는다 [mmHawkeye, ACM 계열], (3) 우리가 아무것도 송신하지 않고 표적의 방사를 듣는다 [DroneScale, Matthan]. related-work 문장마다 어느 뜻인지 붙일 것."
+ },
+ "venue_sweep": {
+  "method": "dblp publication API, streamid-scoped queries; keywords {drone, UAV, passive radar, integrated sensing communication} plus 26 targeted follow-ups; records from 2017 retained; then a title-level RF filter and manual triage against the PDFs.",
+  "queries_run": 112,
+  "records_harvested": 2217,
+  "records_per_venue_group": {
+   "ICASSP": 100,
+   "INFOCOM": 161,
+   "MobiCom": 174,
+   "SenSys": 33,
+   "MobiSys": 43,
+   "TWC": 207,
+   "JSAC": 164,
+   "WCL": 211,
+   "TVT": 286,
+   "IoT-J": 302,
+   "JSTARS": 128,
+   "JSTSP": 26,
+   "TAES": 185,
+   "SECON": 25,
+   "TMC": 152,
+   "GLOBAL": 21
+  },
+  "query_log": [
+   [
+    "OK",
+    "ICASSP",
+    "drone",
+    15
+   ],
+   [
+    "OK",
+    "ICASSP",
+    "UAV",
+    62
+   ],
+   [
+    "OK",
+    "ICASSP",
+    "passive radar",
+    12
+   ],
+   [
+    "OK",
+    "ICASSP",
+    "integrated sensing communication",
+    24
+   ],
+   [
+    "OK",
+    "INFOCOM",
+    "drone",
+    47
+   ],
+   [
+    "OK",
+    "INFOCOM",
+    "UAV",
+    135
+   ],
+   [
+    "OK",
+    "INFOCOM",
+    "passive radar",
+    0
+   ],
+   [
+    "OK",
+    "INFOCOM",
+    "integrated sensing communication",
+    16
+   ],
+   [
+    "OK",
+    "MobiCom",
+    "drone",
+    19
+   ],
+   [
+    "OK",
+    "MobiCom",
+    "UAV",
+    14
+   ],
+   [
+    "OK",
+    "MobiCom",
+    "passive radar",
+    2
+   ],
+   [
+    "OK",
+    "MobiCom",
+    "integrated sensing communication",
+    3
+   ],
+   [
+    "OK",
+    "SenSys",
+    "drone",
+    16
+   ],
+   [
+    "OK",
+    "SenSys",
+    "UAV",
+    11
+   ],
+   [
+    "OK",
+    "SenSys",
+    "passive radar",
+    1
+   ],
+   [
+    "OK",
+    "SenSys",
+    "integrated sensing communication",
+    1
+   ],
+   [
+    "OK",
+    "MobiSys",
+    "drone",
+    22
+   ],
+   [
+    "OK",
+    "MobiSys",
+    "UAV",
+    6
+   ],
+   [
+    "OK",
+    "MobiSys",
+    "passive radar",
+    0
+   ],
+   [
+    "OK",
+    "MobiSys",
+    "integrated sensing communication",
+    3
+   ],
+   [
+    "OK",
+    "TAP",
+    "drone",
+    0
+   ],
+   [
+    "OK",
+    "TAP",
+    "UAV",
+    0
+   ],
+   [
+    "OK",
+    "TAP",
+    "passive radar",
+    0
+   ],
+   [
+    "OK",
+    "TAP",
+    "integrated sensing communication",
+    0
+   ],
+   [
+    "OK",
+    "AWPL",
+    "drone",
+    0
+   ],
+   [
+    "OK",
+    "AWPL",
+    "UAV",
+    0
+   ],
+   [
+    "OK",
+    "AWPL",
+    "passive radar",
+    0
+   ],
+   [
+    "OK",
+    "AWPL",
+    "integrated sensing communication",
+    0
+   ],
+   [
+    "OK",
+    "TWC",
+    "drone",
+    10
+   ],
+   [
+    "OK",
+    "TWC",
+    "UAV",
+    418
+   ],
+   [
+    "OK",
+    "TWC",
+    "passive radar",
+    3
+   ],
+   [
+    "OK",
+    "TWC",
+    "integrated sensing communication",
+    169
+   ],
+   [
+    "OK",
+    "JSAC",
+    "drone",
+    3
+   ],
+   [
+    "OK",
+    "JSAC",
+    "UAV",
+    135
+   ],
+   [
+    "OK",
+    "JSAC",
+    "passive radar",
+    0
+   ],
+   [
+    "OK",
+    "JSAC",
+    "integrated sensing communication",
+    67
+   ],
+   [
+    "OK",
+    "WCL",
+    "drone",
+    12
+   ],
+   [
+    "OK",
+    "WCL",
+    "UAV",
+    312
+   ],
+   [
+    "OK",
+    "WCL",
+    "passive radar",
+    0
+   ],
+   [
+    "OK",
+    "WCL",
+    "integrated sensing communication",
+    82
+   ],
+   [
+    "OK",
+    "TVT",
+    "drone",
+    86
+   ],
+   [
+    "OK",
+    "TVT",
+    "UAV",
+    843
+   ],
+   [
+    "OK",
+    "TVT",
+    "passive radar",
+    6
+   ],
+   [
+    "OK",
+    "TVT",
+    "integrated sensing communication",
+    126
+   ],
+   [
+    "OK",
+    "IoT-J",
+    "drone",
+    105
+   ],
+   [
+    "OK",
+    "IoT-J",
+    "UAV",
+    914
+   ],
+   [
+    "OK",
+    "IoT-J",
+    "passive radar",
+    5
+   ],
+   [
+    "OK",
+    "IoT-J",
+    "integrated sensing communication",
+    97
+   ],
+   [
+    "OK",
+    "JSTARS",
+    "drone",
+    18
+   ],
+   [
+    "OK",
+    "JSTARS",
+    "UAV",
+    173
+   ],
+   [
+    "OK",
+    "JSTARS",
+    "passive radar",
+    11
+   ],
+   [
+    "OK",
+    "JSTARS",
+    "integrated sensing communication",
+    0
+   ],
+   [
+    "OK",
+    "JSTSP",
+    "drone",
+    2
+   ],
+   [
+    "OK",
+    "JSTSP",
+    "UAV",
+    13
+   ],
+   [
+    "OK",
+    "JSTSP",
+    "passive radar",
+    5
+   ],
+   [
+    "OK",
+    "JSTSP",
+    "integrated sensing communication",
+    11
+   ],
+   [
+    "OK",
+    "EuCAP",
+    "drone",
+    0
+   ],
+   [
+    "OK",
+    "EuCAP",
+    "UAV",
+    0
+   ],
+   [
+    "OK",
+    "EuCAP",
+    "passive radar",
+    0
+   ],
+   [
+    "OK",
+    "EuCAP",
+    "integrated sensing communication",
+    0
+   ],
+   [
+    "OK",
+    "IET-RSN",
+    "drone",
+    0
+   ],
+   [
+    "OK",
+    "IET-RSN",
+    "UAV",
+    0
+   ],
+   [
+    "OK",
+    "IET-RSN",
+    "passive radar",
+    0
+   ],
+   [
+    "OK",
+    "IET-RSN",
+    "integrated sensing communication",
+    0
+   ],
+   [
+    "OK",
+    "TAES",
+    "drone",
+    24
+   ],
+   [
+    "OK",
+    "TAES",
+    "UAV",
+    307
+   ],
+   [
+    "OK",
+    "TAES",
+    "passive radar",
+    84
+   ],
+   [
+    "OK",
+    "TAES",
+    "integrated sensing communication",
+    2
+   ],
+   [
+    "OK",
+    "TMTT",
+    "drone",
+    0
+   ],
+   [
+    "OK",
+    "TMTT",
+    "UAV",
+    0
+   ],
+   [
+    "OK",
+    "TMTT",
+    "passive radar",
+    0
+   ],
+   [
+    "OK",
+    "TMTT",
+    "integrated sensing communication",
+    0
+   ],
+   [
+    "OK",
+    "SECON",
+    "drone",
+    5
+   ],
+   [
+    "OK",
+    "SECON",
+    "UAV",
+    21
+   ],
+   [
+    "OK",
+    "SECON",
+    "passive radar",
+    1
+   ],
+   [
+    "OK",
+    "SECON",
+    "integrated sensing communication",
+    0
+   ],
+   [
+    "OK",
+    "TMC",
+    "drone",
+    38
+   ],
+   [
+    "OK",
+    "TMC",
+    "UAV",
+    210
+   ],
+   [
+    "OK",
+    "TMC",
+    "passive radar",
+    1
+   ],
+   [
+    "OK",
+    "TMC",
+    "integrated sensing communication",
+    15
+   ],
+   [
+    "OK",
+    "GLOBAL",
+    "Sionna",
+    16
+   ],
+   [
+    "OK",
+    "GLOBAL",
+    "Sionna ray tracing",
+    2
+   ],
+   [
+    "OK",
+    "GLOBAL",
+    "drone passive radar 5G",
+    1
+   ],
+   [
+    "OK",
+    "GLOBAL",
+    "UAV radar cross section measurement",
+    2
+   ],
+   [
+    "OK",
+    "GLOBAL",
+    "micro-Doppler drone propeller",
+    0
+   ],
+   [
+    "OK",
+    "GLOBAL",
+    "shooting bouncing rays scattering",
+    0
+   ],
+   [
+    "OK",
+    "ICASSP",
+    "micro-Doppler",
+    11
+   ],
+   [
+    "OK",
+    "ICASSP",
+    "passive bistatic",
+    3
+   ],
+   [
+    "OK",
+    "ICASSP",
+    "5G sensing",
+    2
+   ],
+   [
+    "OK",
+    "INFOCOM",
+    "AAV",
+    1
+   ],
+   [
+    "OK",
+    "INFOCOM",
+    "aerial sensing radar",
+    0
+   ],
+   [
+    "OK",
+    "MobiCom",
+    "sensing",
+    130
+   ],
+   [
+    "OK",
+    "SenSys",
+    "sensing radar",
+    3
+   ],
+   [
+    "OK",
+    "SenSys",
+    "LTE",
+    4
+   ],
+   [
+    "OK",
+    "MobiSys",
+    "sensing radar",
+    5
+   ],
+   [
+    "OK",
+    "MobiCom",
+    "5G",
+    49
+   ],
+   [
+    "OK",
+    "MobiSys",
+    "5G",
+    13
+   ],
+   [
+    "OK",
+    "SenSys",
+    "5G",
+    5
+   ],
+   [
+    "OK",
+    "TAP",
+    "unmanned aerial",
+    0
+   ],
+   [
+    "OK",
+    "TAP",
+    "radar cross section measurement",
+    0
+   ],
+   [
+    "OK",
+    "AWPL",
+    "radar cross section",
+    0
+   ],
+   [
+    "OK",
+    "WCL",
+    "AAV",
+    20
+   ],
+   [
+    "OK",
+    "WCL",
+    "RCS",
+    4
+   ],
+   [
+    "OK",
+    "EuCAP",
+    "RCS",
+    0
+   ],
+   [
+    "OK",
+    "EuCAP",
+    "unmanned",
+    0
+   ],
+   [
+    "OK",
+    "GLOBAL",
+    "Multiband Monostatic and Bistatic RCS Characterization AAV",
+    1
+   ],
+   [
+    "OK",
+    "GLOBAL",
+    "micro-Doppler propeller ISAC distributed",
+    0
+   ],
+   [
+    "OK",
+    "GLOBAL",
+    "SSB passive radar 5G network",
+    1
+   ],
+   [
+    "OK",
+    "GLOBAL",
+    "unambiguous velocity reference signal sensing",
+    0
+   ],
+   [
+    "OK",
+    "GLOBAL",
+    "Needle in a Haystack Tracking UAVs 5G-A Base Station",
+    2
+   ],
+   [
+    "FAIL",
+    "GLOBAL",
+    "bistatic sensing UAV trajectory cellular downlink"
+   ],
+   [
+    "OK",
+    "GLOBAL",
+    "drone RCS measurement anechoic chamber",
+    0
+   ]
+  ],
+  "COVERAGE_GAP": {
+   "venues_dblp_does_not_index": [
+    "AWPL",
+    "EuCAP",
+    "IET-RSN",
+    "TAP",
+    "TMTT"
+   ],
+   "meaning": "⭐ IEEE TAP, AWPL, EuCAP, IET RSN, TMTT 는 dblp 색인 대상이 아니어서 모든 질의가 0건을 반환했다. 이 5개 게재처 항목은 전부 우리 아카이브 PDF 또는 웹 서지에서 왔고, 자동 스윕 결과로 '없다' 고 말할 수 없다.",
+   "how_it_was_filled": "Yuan(EuCAP 2025), Das(WCL 2026 -- WCL 은 색인됨), Di Seglio(IET RSN 2024), Geng(IET RSN 2020), Barneto(TMTT 2019) 는 아카이브 PDF 또는 확인된 서지로 채웠다."
+  },
+  "top_venue_yield": {
+   "SenSys": "LaSen(2026)이 중심. 그 밖에 DroneScale(2020), HiSAC(2024), Count Every Rotation(2026), Eventradar demo(2026), GreenScatter(2026), 2025 poster(mmWave UAV tracking).",
+   "MobiSys": "⭐ Needle in a Haystack(2026, 실망 5G-A BS 데이터로 UAV 추적)이 최대 수확. Matthan(2017), ISAC over Open RAN(2026), Practical ISAC on commodity Wi-Fi(2026), Abir LiDAR drone swarms(2025).",
+   "MobiCom": "SenCom(2023), ChirpEye(2025), Horus / UAV-ISAC rescue(2024), ISACom 워크숍(2023, LaSen 의 [32]), MilliSign·RF-Search(2023).",
+   "INFOCOM": "6D self-localization(2025), MIROS(2026), Exploring LoRa for Drone Detection(2022 W), VersaBeam(2025), 2026 ISAC 세션 다수.",
+   "ICASSP": "드론 히트의 대부분이 영상/음향이다. RF 계열은 micro-Doppler simulation(2023 W), CSI 기반 UAV 검출(2025), 802.11ad UAV swarm 5-D sensing(2025), 5G NR ISAC 성능해석(2022), coherent passive MIMO radar(2021), coprime OFDM sensing waveform(2024 W)."
+  },
+  "highest_yield_starting_point": "LaSen 참고문헌 52편을 전부 뽑아 최상위 학회 항목을 회수했다(scratchpad/lasen_refs.txt). 그 목록이 이 스윕의 뼈대다."
+ },
+ "entries": [
+  {
+   "id": "A01",
+   "config": "A_active_monostatic",
+   "grade": "P",
+   "bib": {
+    "dblp_key": "conf/sensys/YangDLHCZSZT26",
+    "title": "LaSen: Low-Altitude Drone Sensing with 5G-NR Signals",
+    "authors": [
+     "Qian Yang",
+     "Yongtao Dai",
+     "Mingrui Li",
+     "Qianyi Huang",
+     "Xu Chen",
+     "Jin Zhang",
+     "Guochao Song",
+     "Qian Zhang",
+     "Xiaofeng Tao"
+    ],
+    "venue": "SenSys",
+    "year": 2026,
+    "volume": null,
+    "number": null,
+    "pages": "732-745",
+    "doi": "10.1145/3774906.3800504",
+    "url": "https://doi.org/10.1145/3774906.3800504",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "pdf": "/data/public/jeong/papers/5G/26_LaSen.pdf",
+   "status": "PUBLISHED (ACM DL camera-ready, CC BY 4.0; ISBN 979-8-4007-2309-4/26/05)",
+   "senses": "gNB emulator transmits 5G-NR downlink and receives its own echo; merges CSI-RS/SSB/DM-RS reference REs with PDSCH data REs into one non-uniform slow-time measurement matrix and solves a 2D sparse-recovery (2D-OMP) problem for range-Doppler.",
+   "key_numbers": {
+    "carrier_GHz": 5.8,
+    "bandwidth_MHz": 78.12,
+    "scs_kHz": 30,
+    "csirs_measured_Hz": 200,
+    "csirs_max_configurable_Hz": 500,
+    "ssb_Hz": 50,
+    "lte_crs_Hz": 1000,
+    "baseline_unambig_v_ms": 2.6,
+    "lasen_top_bin_ms": 20.2,
+    "range_rmse_m_top_bin": 2.2,
+    "velocity_rmse_ms_top_bin": 1.3,
+    "detection_range_m": 108
+   },
+   "quotes": [
+    {
+     "where": "sec.2.2.1 p.733",
+     "text": "A practical ISAC implementation involves configuring the gNB with an additional receive chain to capture reflections of its own transmitted signals [32], similar to a monostatic radar."
+    },
+    {
+     "where": "Related Work p.742",
+     "text": "Leveraging commodity gNB CSI-RS, Chen et al. [10] demonstrate rotational motion detection using commercial gNB CSI-RS. It also reveals that the unambiguous velocity is bounded by the CSI-RS repetition period."
+    },
+    {
+     "where": "Introduction",
+     "text": "The maximum configurable repetition frequency for Sub-6 GHz Channel State Information Reference Signals (CSI-RS) is 500 Hz [3], falling short of the Nyquist sampling requirements for resolving high-speed targets like drones."
+    },
+    {
+     "where": "sec.2.2",
+     "text": "These relatively low repetition rates (200 Hz for CSI-RS and 50 Hz for SSB) inherently limit Doppler tracking for high-speed targets."
+    },
+    {
+     "where": "sec.6 evaluation",
+     "text": "At the same 5.8 GHz frequency setting, the method based on CSI-RS estimation has an unambiguous velocity range of up to 2.6 m/s, while LaSen extends this range to 20.2 m/s."
+    }
+   ],
+   "use_for_us": "우리의 최근접 비교대상이자 헤드라인 법칙의 1급 외부 근거. LaSen 은 법칙을 반증하지 않고 그 전제(균일 표본화·푸리에 처리)를 바꾼다. 통행료는 (a) 송신기여야 X[m,n] 를 알고 (b) 셀에 트래픽이 있어야 하며 (c) 장면이 희소해야 한다는 것. 패시브 바이스태틱에 그대로 이전 불가.",
+   "caution": "본문 내부 불일치: 구현부는 NI USRP-2954R, 8절은 USRP X310. 하드웨어 인용 시 둘 다 명시. 20.2 m/s 는 무모호 상한이 아니라 기체(DJI Matrice 4E, 최고 21 m/s)가 정한 실험 상한이다."
+  },
+  {
+   "id": "A02",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "title": "Full-Duplex OFDM Radar With LTE and 5G NR Waveforms: Challenges, Solutions, and Measurements",
+    "authors": [
+     "C. Baquero Barneto",
+     "T. Riihonen",
+     "M. Turunen",
+     "L. Anttila",
+     "M. Fleischer",
+     "K. Stadius",
+     "J. Ryynanen",
+     "M. Valkama"
+    ],
+    "venue": "IEEE Trans. Microw. Theory Tech.",
+    "year": 2019,
+    "volume": "67",
+    "number": "10",
+    "pages": "4042-4054",
+    "url": "https://arxiv.org/abs/1908.03418"
+   },
+   "status": "PUBLISHED (journal); preprint arXiv:1908.03418",
+   "senses": "Monostatic full-duplex OFDM radar on LTE/5G-NR waveforms; measures the self-interference budget and images a static airborne drone at 40 m at 2.44 GHz with 40 MHz instantaneous bandwidth.",
+   "key_numbers": {
+    "tx_above_thermal_noise_dB": 140,
+    "total_SI_suppression_required_dB": 100,
+    "circulator_plus_active_RF_dB": 75,
+    "measured_isolation_dB": 100,
+    "carrier_GHz": 2.44,
+    "bandwidth_MHz": 40,
+    "drone_range_m": 40
+   },
+   "quotes": [
+    {
+     "where": "body",
+     "text": "since the eNB/gNB transmit power can be even more than 140 dB larger than the receiver thermal noise floor, facilitating sufficient TX-RX isolation as a whole is technically very challenging, particularly in the monostatic shared-antenna OFDM radar case"
+    },
+    {
+     "where": "body",
+     "text": "from the OFDM radar processing perspective, limited TX-RX isolation is primarily a concern in detection of static targets while moving targets are inherently more robust to transmitter self-interference"
+    }
+   ],
+   "use_for_us": "모노스태틱 ISAC 의 물리적 통행료(자기간섭)를 실측 숫자로 주는 유일한 앵커. 비교표의 self-interference 행이 전부 여기서 나온다.",
+   "caution": "⚠ 두 번째 인용은 우리에게 불리하다 — 이동표적은 SI 에 강하다고 저자들이 직접 말한다. 100 dB 를 드론 검출의 관문처럼 쓰면 과장. 출처 기록: outputs/monostatic_prior.json"
+  },
+  {
+   "id": "A03",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "title": "Fundamental Trade-Offs in Monostatic ISAC: A Holistic Investigation Towards 6G",
+    "authors": [
+     "M. F. Keskin",
+     "M. M. Mojahedian",
+     "J. O. Lacruz",
+     "C. Marcus",
+     "O. Eriksson",
+     "A. Giorgetti",
+     "J. Widmer",
+     "H. Wymeersch"
+    ],
+    "venue": "IEEE Trans. Wirel. Commun.",
+    "year": 2025,
+    "volume": "24",
+    "number": "9",
+    "pages": "7856-7873",
+    "url": "https://arxiv.org/abs/2401.18011"
+   },
+   "status": "PUBLISHED (TWC); preprint arXiv:2401.18011",
+   "senses": "Formalises the monostatic-ISAC trade-off space; the deterministic-random trade-off says reusing high-order-QAM data symbols for sensing raises ambiguity sidelobes.",
+   "use_for_us": "LaSen 식 데이터심볼 재활용의 이론적 대가. 우리 축과 직교하므로 보완으로 인용.",
+   "caution": "반복률/무모호 속도를 다루지 않는다('unambiguous velocity' 0회, 'periodicity' 0회). 우리 법칙의 근거로 쓰면 E3."
+  },
+  {
+   "id": "A04",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "title": "Downlink Sensing in 5G-Advanced and 6G: SIB1-assisted SSB Approach",
+    "authors": [
+     "M. Golzadeh",
+     "E. Tiirola",
+     "L. Anttila",
+     "J. Talvitie",
+     "K. Hooli",
+     "O. Tervo",
+     "I. Peruga",
+     "S. Hakola",
+     "M. Valkama"
+    ],
+    "venue": "IEEE VTC2023-Spring, Florence",
+    "year": 2023,
+    "doi": "10.1109/VTC2023-Spring57618.2023.10200933"
+   },
+   "status": "PUBLISHED (conference)",
+   "senses": "Network-side (monostatic) downlink sensing; shows SSB-only sensing suffers radar ambiguity and limited range/velocity resolution, and fixes it by adding DCI and SIB1 symbols.",
+   "key_numbers": {
+    "psl_suppression_dB": 25,
+    "resolution_improvement_pct_range": [
+     120,
+     190
+    ],
+    "carriers_GHz": [
+     3.5,
+     28
+    ]
+   },
+   "quotes": [
+    {
+     "where": "abstract (verified verbatim via the Tampere University research portal record)",
+     "text": "In general, the synchronization signal block (SSB) is a suitable candidate for always-on downlink sensing, due to its frequent periodical availability and because of its beam-sweeping nature. However, as this work demonstrates, using only the SSB has challenges related to radar ambiguity while being also limited in both distance and velocity resolution due to limited bandwidth and per-beam time duration, respectively."
+    }
+   ],
+   "use_for_us": "⭐ 모노스태틱도 SSB 반복률 문제에서 자유롭지 않다는 직접 증거. 우리 G1(SSB 최악) 서사의 네트워크측 대응물.",
+   "caution": "본문 미독(리포지터리 PDF 는 anti-bot). 초록 외 문장 인용 금지."
+  },
+  {
+   "id": "A05",
+   "config": "A_active_monostatic",
+   "grade": "S",
+   "bib": {
+    "title": "5G NR monostatic positioning with array impairments: Data-and-model-driven framework and experiment results",
+    "authors": [
+     "S. Liu",
+     "H. Wang",
+     "M. Pan",
+     "P. Liu",
+     "Y. Ma",
+     "Y. Huang"
+    ],
+    "venue": "Proc. 3rd ACM MobiCom Workshop on Integrated Sensing and Communications Systems (ISACom)",
+    "year": 2023,
+    "pages": "1-6"
+   },
+   "status": "PUBLISHED (ACM MobiCom workshop)",
+   "senses": "5G NR monostatic positioning with array-impairment calibration, data+model driven, with experiments.",
+   "use_for_us": "LaSen 이 '모노스태틱 = gNB 에 수신 체인 하나 더' 라고 말할 때 다는 근거 [32]. 그 아키텍처 주장의 출처.",
+   "caution": "LaSen 참고문헌에서만 확인. PDF 미독 → 서지 이상 인용 금지 (E6)."
+  },
+  {
+   "id": "A06",
+   "config": "A_active_monostatic",
+   "grade": "P",
+   "bib": {
+    "title": "Leveraging PRS and PDSCH for Integrated Sensing and Communication Systems",
+    "authors": [
+     "K. Khosroshahi",
+     "P. Sehier",
+     "S. Mekki"
+    ],
+    "venue": "IEEE GLOBECOM 2024",
+    "year": 2024,
+    "pages": "4702-4707",
+    "url": "https://arxiv.org/abs/2408.00667",
+    "version": "arXiv:2408.00667v2 (2 Aug 2024), 6 pages"
+   },
+   "pdf": "/data/public/sionna_jeong/reference_library/2408.00667v2.pdf",
+   "status": "PUBLISHED (GLOBECOM 2024); the local file is the author preprint v2",
+   "senses": "Uses 3GPP PRS for sensing and PDSCH for communication in the same 5G-NR frame; the PRS comb structure creates ghost targets and two mitigation schemes are proposed.",
+   "use_for_us": "우리 G3(PRS 최고) 모드의 표준측 대응물. PRS comb 이 만드는 유령표적을 명시한다 — 우리 바닥유령과는 다른 종류이므로 구분해 인용.",
+   "caution": "LaSen 은 이 계열([25,37,45,49])을 '트래픽 불확실성 미처리' 로 비판한다."
+  },
+  {
+   "id": "A07",
+   "config": "A_active_monostatic",
+   "grade": "P",
+   "bib": {
+    "dblp_key": "conf/secon/ZhangNXSH23",
+    "title": "mmHawkeye: Passive UAV Detection with a COTS mmWave Radar",
+    "authors": [
+     "Jia Zhang",
+     "Xin Na",
+     "Rui Xi",
+     "Yimiao Sun",
+     "Yuan He"
+    ],
+    "venue": "SECON",
+    "year": 2023,
+    "volume": null,
+    "number": null,
+    "pages": "267-275",
+    "doi": "10.1109/SECON58729.2023.10287526",
+    "url": "https://doi.org/10.1109/SECON58729.2023.10287526",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "pdf": "/data/public/sionna_jeong/reference_library/2308.06479v1.pdf",
+   "status": "PUBLISHED (IEEE SECON 2023, pp.267-275); local file is arXiv:2308.06479v1, 9 pages, comment line 'IEEE SECON2023'",
+   "senses": "COTS mmWave radar (the radar transmits) detects a non-cooperative UAV via its periodic micro-motion signature, tracks with dynamic programming + particle filtering, identifies with an LSTM.",
+   "use_for_us": "'passive' 가 우리와 정반대 뜻으로 쓰인 대표 사례. 분류체계 주의문의 근거이자, 마이크로모션(프로펠러)이 검출의 열쇠라는 명제의 최상위 학회 선례.",
+   "caution": "⚠ 용어 함정: 제목의 Passive 는 조명원이 아니라 표적을 가리킨다. 기하는 능동 모노스태틱. 본문에 'monostatic'/'bistatic' 0회(기계 계수)."
+  },
+  {
+   "id": "A08",
+   "config": "A_active_monostatic",
+   "grade": "S",
+   "bib": {
+    "title": "Detection and identification of non-cooperative UAV using a COTS mmWave radar",
+    "authors": [
+     "Y. He",
+     "J. Zhang",
+     "R. Xi",
+     "X. Na",
+     "Y. Sun",
+     "B. Li"
+    ],
+    "venue": "ACM Trans. Sensor Networks",
+    "year": 2024,
+    "volume": "20",
+    "number": "2",
+    "pages": "1-22"
+   },
+   "status": "PUBLISHED (journal extension of mmHawkeye)",
+   "senses": "Journal version of the COTS-mmWave non-cooperative UAV detection/identification line.",
+   "use_for_us": "A07 의 확장판.",
+   "caution": "⚠ 회의판(A07)과 저널판을 반드시 구별할 것 (E2). LaSen 참고문헌 [23] 에서 확인, PDF 미독."
+  },
+  {
+   "id": "A09",
+   "config": "A_active_monostatic",
+   "grade": "P",
+   "bib": {
+    "title": "UAV's Rotor Micro-Doppler Feature Extraction Using Integrated Sensing and Communication Signal: Algorithm Design and Testbed Evaluation",
+    "authors": [
+     "Z. Wei et al."
+    ],
+    "venue": "IEEE Trans. Wirel. Commun.",
+    "year": 2025,
+    "volume": "24",
+    "pages": "10166-10182",
+    "doi": "10.1109/TWC.2025.3578033",
+    "url": "https://arxiv.org/abs/2408.16415"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+    "pages": 17,
+    "term_counts": {
+     "monostatic": 1,
+     "RCS": 18,
+     "micro-Doppler": 142,
+     "drone": 2,
+     "UAV": 168,
+     "passive radar": 1,
+     "PDSCH": 7,
+     "802.11": 1,
+     "LTE": 3
+    }
+   },
+   "status": "PUBLISHED (IEEE TWC 2025, 24:10166-10182; DOI read from the arXiv metadata of 2408.16415)",
+   "senses": "ISAC-waveform testbed extracts rotor micro-Doppler from a real multirotor; algorithm design plus measured spectrograms.",
+   "use_for_us": "우리 마이크로도플러 대조의 실측 앵커 계열(flash-rate 규약 확인에 이미 사용).",
+   "caution": "⚠ arXiv 판(2408.16415, 2024)과 TWC 판(2025, 17 p)은 다른 문서다 (E2)."
+  },
+  {
+   "id": "A10",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "journals/taes/YaziciB24",
+    "title": "Detection and Localization of Drones in MIMO CW Radar",
+    "authors": [
+     "Ayhan Yazici",
+     "Buyurman Baykal"
+    ],
+    "venue": "IEEE Trans. Aerosp. Electron. Syst.",
+    "year": 2024,
+    "volume": "60",
+    "number": "1",
+    "pages": "226-238",
+    "doi": "10.1109/TAES.2023.3321586",
+    "url": "https://doi.org/10.1109/TAES.2023.3321586",
+    "dblp_type": "Journal Articles"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Detection and Localization of Drones in MIMO CW Radar",
+   "use_for_us": "전용 MIMO CW 레이더 베이스라인 — 통신신호 재활용의 대가를 재는 기준선."
+  },
+  {
+   "id": "A11",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "journals/taes/SunOGL19",
+    "title": "Improving the Doppler Resolution of Ground-Based Surveillance Radar for Drone Detection",
+    "authors": [
+     "Hongbo Sun",
+     "Beom-Seok Oh",
+     "Xin Guo",
+     "Zhiping Lin"
+    ],
+    "venue": "IEEE Trans. Aerosp. Electron. Syst.",
+    "year": 2019,
+    "volume": "55",
+    "number": "6",
+    "pages": "3667-3673",
+    "doi": "10.1109/TAES.2019.2895585",
+    "url": "https://doi.org/10.1109/TAES.2019.2895585",
+    "dblp_type": "Journal Articles"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Improving the Doppler Resolution of Ground-Based Surveillance Radar for Drone Detection",
+   "use_for_us": "⭐ 도플러 분해능이 드론 검출의 병목이라는 명제의 능동레이더측 선례. 우리 report11(저속·분해능)의 대조군."
+  },
+  {
+   "id": "A12",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "journals/taes/ZhangWMLCLWSC26",
+    "title": "Robust FMCW Radar Clutter Suppression for UAV Detection via Learning Physics-Informed Priors",
+    "authors": [
+     "Hao Zhang",
+     "Shunjun Wei",
+     "Rui Min",
+     "Shuangqiao Li",
+     "Yinghao Cheng",
+     "Jin Li",
+     "Mou Wang",
+     "Jun Shi",
+     "Guolong Cui"
+    ],
+    "venue": "IEEE Trans. Aerosp. Electron. Syst.",
+    "year": 2026,
+    "volume": "62",
+    "number": null,
+    "pages": "6180-6195",
+    "doi": "10.1109/TAES.2026.3664357",
+    "url": "https://doi.org/10.1109/TAES.2026.3664357",
+    "dblp_type": "Journal Articles"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Robust FMCW Radar Clutter Suppression for UAV Detection",
+   "use_for_us": "클러터 억제 대조군(능동). 우리 ECA/MTI 노치 대가 계상과 나란히."
+  },
+  {
+   "id": "A13",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "journals/taes/KearneyG26",
+    "title": "Physics-Guided Deep Neural Networks for Radar-Based UAV Recognition in Different Environments With No Prior In Situ Data",
+    "authors": [
+     "Sean Kearney",
+     "Sevgi Zubeyde Gurbuz"
+    ],
+    "venue": "IEEE Trans. Aerosp. Electron. Syst.",
+    "year": 2026,
+    "volume": "62",
+    "number": null,
+    "pages": "9875-9891",
+    "doi": "10.1109/TAES.2026.3685229",
+    "url": "https://doi.org/10.1109/TAES.2026.3685229",
+    "dblp_type": "Journal Articles"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Physics-Guided Deep Neural Networks for Radar-Based UAV Recognition",
+   "use_for_us": "'물리 유도' 프레이밍의 최신 사례 — 우리 SBR+PO 물리모델 서사와 나란히 인용 가능."
+  },
+  {
+   "id": "A14",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "journals/taes/YeHYX23",
+    "title": "GAF Representation of Millimeter Wave Drone RCS and Drone Classification Method Based on Deep Fusion Network Using ResNet",
+    "authors": [
+     "Lv Ye",
+     "Shengbo Hu",
+     "Tingting Yan",
+     "Yike Xie"
+    ],
+    "venue": "IEEE Trans. Aerosp. Electron. Syst.",
+    "year": 2023,
+    "volume": "59",
+    "number": "1",
+    "pages": "336-346",
+    "doi": "10.1109/TAES.2022.3182303",
+    "url": "https://doi.org/10.1109/TAES.2022.3182303",
+    "dblp_type": "Journal Articles"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "GAF Representation of Millimeter Wave Drone RCS",
+   "use_for_us": "⭐ mmWave 드론 RCS 를 분류 특징으로 쓰는 TAES 사례 — RCS 를 '값' 이 아니라 '시계열' 로 보는 관점."
+  },
+  {
+   "id": "B01",
+   "config": "B_passive_quasi_monostatic",
+   "grade": "P",
+   "bib": {
+    "title": "Human and Drone Surveillance via RpF-based WiFi Passive Radar: Experimental Validation",
+    "authors": [
+     "M. Di Seglio",
+     "F. Filippini",
+     "C. Bongioanni",
+     "F. Colone"
+    ],
+    "venue": "conference proceedings (string NOT read off the PDF)",
+    "year": 2022
+   },
+   "pdf": "/data/public/jeong/papers/Wifi/22_Human_and_Drone_Surveillance_via_RpF-based_WiFi_Passive_Radar_Experimental_Validation.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/Wifi/22_Human_and_Drone_Surveillance_via_RpF-based_WiFi_Passive_Radar_Experimental_Validation.pdf",
+    "pages": 6,
+    "term_counts": {
+     "bistatic": 9,
+     "multistatic": 1,
+     "passive radar": 13,
+     "illuminator": 1,
+     "RCS": 4,
+     "radar cross section": 3,
+     "drone": 10,
+     "CPI": 10,
+     "ECA": 21
+    }
+   },
+   "status": "PUBLISHED (conference); ⚠ venue string UNVERIFIED",
+   "senses": "Short-range WiFi passive radar with Reciprocal-Filter range compression; tested at 2.4 and 5 GHz against humans and a small drone; better sidelobe control and cheap clutter cancellation.",
+   "use_for_us": "WiFi 조명원 + 소형 RCS 표적 + 짧은 기저선의 실측 계열. 우리 WiFi 모드의 실측 대조.",
+   "caution": "게재처 미확인. β 도 명시되지 않아 config B 배정은 우리 판단이다."
+  },
+  {
+   "id": "B02",
+   "config": "B_passive_quasi_monostatic",
+   "grade": "P",
+   "bib": {
+    "title": "Reference-Free Amplitude-Based WiFi Passive Sensing",
+    "authors": [
+     "F. Colone",
+     "F. Filippini",
+     "M. Di Seglio",
+     "P. V. Brennan",
+     "R. Du",
+     "T. X. Han"
+    ],
+    "venue": "IEEE Trans. Aerosp. Electron. Syst.",
+    "year": 2023,
+    "doi": "10.1109/TAES.2023.3276738"
+   },
+   "pdf": "/data/public/jeong/papers/Wifi/23_Reference-Free_Amplitude-Based_WiFi_Passive_Sensing.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/Wifi/23_Reference-Free_Amplitude-Based_WiFi_Passive_Sensing.pdf",
+    "pages": 20,
+    "term_counts": {
+     "bistatic": 11,
+     "passive radar": 8,
+     "RCS": 2,
+     "micro-Doppler": 1,
+     "drone": 2,
+     "UAV": 3,
+     "repetition": 2,
+     "ECA": 16,
+     "batch": 3
+    }
+   },
+   "status": "PUBLISHED (IEEE TAES); DOI read verbatim from the PDF front matter",
+   "senses": "Non-coherent, reference-free WiFi sensing: the target echo is detected as an amplitude modulation on the direct AP signal, so no clean reference channel is required.",
+   "use_for_us": "⭐ 우리 보류질문 [[sionna2-passive-caf-open]] 의 정면 선행연구 — 레퍼런스를 못 얻으면 무엇을 포기하는지 이론+실측으로 답한다. 우리 '이상적 레퍼런스 정합필터' 가정의 정직한 대조군.",
+   "caution": "RX 가 AP 근처(직접신호 지배)라 β 는 작지만 기하각 명시 없음. config B 배정은 우리 판단."
+  },
+  {
+   "id": "B03",
+   "config": "B_passive_quasi_monostatic",
+   "grade": "P",
+   "bib": {
+    "title": "OFDM based WiFi Passive Sensing: a reference-free non-coherent approach",
+    "authors": [
+     "F. Filippini",
+     "M. Di Seglio",
+     "C. Bongioanni",
+     "P. V. Brennan",
+     "F. Colone"
+    ],
+    "venue": "conference proceedings (string NOT read off the PDF)",
+    "year": 2023
+   },
+   "pdf": "/data/public/jeong/papers/Wifi/23_OFDM_based_WiFi_Passive_Sensing_a_reference-free_non-coherent_approach.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/Wifi/23_OFDM_based_WiFi_Passive_Sensing_a_reference-free_non-coherent_approach.pdf",
+    "pages": 6,
+    "term_counts": {
+     "bistatic": 6,
+     "multistatic": 1,
+     "passive radar": 4,
+     "RCS": 3,
+     "radar cross section": 1,
+     "drone": 5,
+     "UAV": 3,
+     "repetition": 1,
+     "ECA": 1,
+     "batch": 3
+    }
+   },
+   "status": "PUBLISHED (conference); ⚠ venue string UNVERIFIED",
+   "senses": "Reference-free non-coherent WiFi sensing, validated on simulation then outdoor data with a small cooperative drone; the keyword list explicitly names ISAC and UAV detection.",
+   "use_for_us": "B02 의 회의판 선행. 소형 드론을 실제 표적으로 삼은 몇 안 되는 reference-free 실험."
+  },
+  {
+   "id": "B04",
+   "config": "B_passive_quasi_monostatic",
+   "grade": "P",
+   "bib": {
+    "title": "Comparing reference-free WiFi radar sensing approaches for monitoring people and drones",
+    "authors": [
+     "M. Di Seglio",
+     "F. Filippini",
+     "C. Bongioanni",
+     "F. Colone"
+    ],
+    "venue": "IET Radar, Sonar & Navigation",
+    "year": 2024,
+    "doi": "10.1049/rsn2.12506"
+   },
+   "pdf": "/data/public/jeong/papers/Wifi/24_Comparing reference-free WiFi radar sensing approaches for monitoring people and drones.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/Wifi/24_Comparing reference-free WiFi radar sensing approaches for monitoring people and drones.pdf",
+    "pages": 18,
+    "term_counts": {
+     "monostatic": 2,
+     "bistatic": 16,
+     "multistatic": 2,
+     "passive radar": 17,
+     "CFAR": 2,
+     "Pfa": 2,
+     "false alarm": 1,
+     "RCS": 1,
+     "radar cross section": 1,
+     "drone": 12,
+     "CPI": 10,
+     "ECA": 5,
+     "batch": 3
+    }
+   },
+   "status": "PUBLISHED (IET RSN); DOI read verbatim from the PDF header",
+   "senses": "Head-to-head comparison of PHY-preamble-only passive-radar processing versus a forward-scatter amplitude approach, for people and drones.",
+   "use_for_us": "⭐ '레퍼런스를 어디까지 포기할 수 있는가' 의 사과-대-사과 비교표. 우리 벤치마크 규약(듀티·tx 정규화)과 같은 정신."
+  },
+  {
+   "id": "C01",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "Renyi Entropy-Based Adaptive Integration Method for 5G-Based Passive Radar Drone Detection",
+    "authors": [
+     "R. Maksymiuk",
+     "K. Abratkiewicz",
+     "P. Samczynski",
+     "M. Plotka"
+    ],
+    "venue": "Remote Sensing (MDPI) 14(23):6146",
+    "year": 2022
+   },
+   "pdf": null,
+   "scan": null,
+   "illuminator": "5G NR",
+   "status": "PUBLISHED, open access CC BY; DOI 10.3390/rs14236146 read verbatim from the PDF citation block",
+   "senses": "First reported drone detection with a 5G network as illuminator of opportunity; a Renyi-entropy criterion selects the time frames whose downlink resource grid is densely allocated and integrates only those.",
+   "quotes": [
+    {
+     "where": "abstract",
+     "text": "This paper presents the first successful drone detection results using a 5G network as a source of illumination in a passive radar system."
+    }
+   ],
+   "use_for_us": "⭐ 우리 '점유 대가 18 dB' 와 G1..G3 점유 모드 서사의 직계 선행. 자원 점유가 검출을 지배한다는 명제의 최초 실증.",
+   "caution": "LaSen 은 이 계열을 '자원이 꽉 찬 드문 구간에만 센싱하면 잦고 긴 센싱 공백이 생긴다' 고 비판한다 — 우리도 같은 비판을 받는다."
+  },
+  {
+   "id": "C02",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "5G Network-Based Passive Radar for Drone Detection",
+    "authors": [
+     "R. Maksymiuk",
+     "M. Plotka",
+     "K. Abratkiewicz",
+     "P. Samczynski"
+    ],
+    "venue": "conference proceedings (string NOT read off the PDF)",
+    "year": 2023
+   },
+   "pdf": "/data/public/jeong/papers/5G/23_5G Network-Based Passive Radar for Drone Detection.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/5G/23_5G Network-Based Passive Radar for Drone Detection.pdf",
+    "pages": 10,
+    "term_counts": {
+     "bistatic": 10,
+     "multistatic": 1,
+     "passive radar": 23,
+     "illuminator": 4,
+     "ambiguity function": 2,
+     "CAF": 10,
+     "CFAR": 2,
+     "false alarm": 1,
+     "RCS": 2,
+     "radar cross section": 1,
+     "drone": 36,
+     "UAV": 2,
+     "integration time": 4
+    }
+   },
+   "illuminator": "5G NR",
+   "status": "PUBLISHED (conference); ⚠ venue string UNVERIFIED",
+   "senses": "Real experiment with a low-RCS drone and a cooperative 5G base station; the algorithm first identifies sufficiently loaded resource blocks, then detects.",
+   "use_for_us": "C01 의 실험 확장. 저 RCS 표적이 통신 점유에 얼마나 민감한지의 실측."
+  },
+  {
+   "id": "C03",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "UAV Intrusion Detection with Passive Radar Based on the 5G Network",
+    "authors": [
+     "R. Maksymiuk",
+     "K. Abratkiewicz",
+     "P. Samczynski"
+    ],
+    "venue": "conference proceedings (string NOT read off the PDF)",
+    "year": 2025
+   },
+   "pdf": "/data/public/jeong/papers/5G/25_UAV Intrusion Detection with Passive Radar Based on the 5G Network.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/5G/25_UAV Intrusion Detection with Passive Radar Based on the 5G Network.pdf",
+    "pages": 5,
+    "term_counts": {
+     "bistatic": 14,
+     "multistatic": 1,
+     "passive radar": 22,
+     "illuminator": 5,
+     "ambiguity function": 1,
+     "CAF": 5,
+     "micro-Doppler": 6,
+     "drone": 34,
+     "UAV": 27,
+     "integration time": 4,
+     "ECA": 2
+    }
+   },
+   "illuminator": "5G NR",
+   "status": "PUBLISHED (conference); ⚠ venue string UNVERIFIED",
+   "senses": "5G passive-radar UAV intrusion detection: architecture, processing, predicted detection range per 5G band, and experimental micro-Doppler characterisation of the intruder.",
+   "use_for_us": "⭐ 밴드별 검출거리 예측 + 마이크로도플러를 한 논문에서 다룬다 — 우리 밴드 비교표와 report11 관측가능성 절의 직접 대조."
+  },
+  {
+   "id": "C04",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones",
+    "authors": [
+     "P. Jopanya",
+     "D. P. M. Osorio"
+    ],
+    "venue": "IEEE SPAWC 2025 (per archive filename); arXiv:2504.02641v2",
+    "year": 2025
+   },
+   "pdf": "/data/public/jeong/papers/5G/25_Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/5G/25_Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones.pdf",
+    "pages": 5,
+    "term_counts": {
+     "bistatic": 9,
+     "passive radar": 1,
+     "illuminator": 3,
+     "SSB": 48,
+     "PRS": 2,
+     "unambiguous velocity": 1,
+     "false alarm": 2,
+     "RCS": 8,
+     "radar cross section": 1,
+     "drone": 5,
+     "UAV": 5,
+     "periodicity": 1,
+     "ECA": 1
+    }
+   },
+   "illuminator": "5G NR SSB",
+   "status": "PUBLISHED (conference, per archive naming) + arXiv preprint v2 (12 Apr 2025). ⚠ venue string NOT read off this PDF.",
+   "senses": "Passive BISTATIC sensing on the 5G SSB beam sweep with planar arrays; derives the CRB for range and velocity and studies Pd/Pfa with a peak-to-average threshold under a power-saving scheme.",
+   "quotes": [
+    {
+     "where": "sec.II, right after eq.(6)",
+     "text": "The unambiguous range is a detectable distance given by the propagated distance of one symbol duration as d_u <= c*T_s. The unambiguous velocity is the range of maximum and minimum relative radial velocities, which can be defined as |v_u| <= lambda_c*f_Delta/2."
+    }
+   ],
+   "use_for_us": "⭐⭐ config C 에서 무모호 속도를 명시적으로 닫아 주는 문헌. 우리 법칙과 나란히 놓을 1순위.",
+   "caution": "⚠ 규약 위험: |v_u| <= lambda*f_Delta/2 는 심볼축(f_Delta = subcarrier spacing) 전폭 규약. 우리 반쪽폭 규약 lambda*PRF_ref/4 와 (i) 계수 2배, (ii) 축(심볼축 vs 상시 기준신호 반복축)이 모두 다르다. 환산 없이 나란히 적으면 E3."
+  },
+  {
+   "id": "C05",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "Passive Detection Experiment of UAV Based on 5G New Radio Signal",
+    "authors": [
+     "X. Ai",
+     "L. Zhang",
+     "Y. Zheng",
+     "F. Zhao"
+    ],
+    "venue": "PhotonIcs & Electromagnetics Research Symposium (PIERS), Hangzhou, 22 Nov 2021",
+    "year": 2021
+   },
+   "pdf": "/data/public/jeong/papers/5G/21_Passive Detection Experiment of UAV Based on 5G New Radio Signal.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/5G/21_Passive Detection Experiment of UAV Based on 5G New Radio Signal.pdf",
+    "pages": 6,
+    "term_counts": {
+     "bistatic": 3,
+     "passive radar": 9,
+     "SSB": 1,
+     "PDSCH": 1,
+     "ambiguity function": 3,
+     "RCS": 1,
+     "micro-Doppler": 1,
+     "drone": 5,
+     "UAV": 25
+    }
+   },
+   "illuminator": "5G NR",
+   "status": "PUBLISHED (PIERS 2021); venue line read verbatim from the PDF running head",
+   "senses": "Multichannel passive receiver on 5G NR downlink; range-Doppler detection and tracking chain validated by an outfield UAV flight.",
+   "use_for_us": "5G 패시브 드론 검출의 초기 실외 실증. 연대 서술의 시작점."
+  },
+  {
+   "id": "C06",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "5G Spectrum Learning-Based Passive UAV Detection in Urban Scenario",
+    "authors": [
+     "L. Lin",
+     "N. Yu",
+     "Y. Wang",
+     "Z. Shi"
+    ],
+    "venue": "conference proceedings (string NOT read off the PDF)",
+    "year": 2023
+   },
+   "pdf": "/data/public/jeong/papers/5G/23_5G_Spectrum_Learning-Based_Passive_UAV_Detection_in_Urban_Scenario.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/5G/23_5G_Spectrum_Learning-Based_Passive_UAV_Detection_in_Urban_Scenario.pdf",
+    "pages": 5,
+    "term_counts": {
+     "multistatic": 1,
+     "passive radar": 6,
+     "illuminator": 1,
+     "SSB": 24,
+     "drone": 9,
+     "UAV": 70,
+     "periodicity": 1,
+     "ECA": 1,
+     "batch": 3
+    }
+   },
+   "illuminator": "5G NR SSB",
+   "status": "PUBLISHED (conference); ⚠ venue string UNVERIFIED",
+   "senses": "Extracts SSBs from captured 5G I/Q to escape payload dependence and the flexible frame structure, then frames UAV presence as CNN multi-class classification of the spectral disturbance -- no range-Doppler map at all.",
+   "use_for_us": "⭐ '상시 신호만 쓴다' 는 우리 서사의 학습기반 변종. SSB 를 고른 이유가 우리와 같다."
+  },
+  {
+   "id": "C07",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "LTE-based passive radar for drone detection and its experimental results",
+    "authors": [
+     "Y. Dan",
+     "J. Yi",
+     "X. Wan",
+     "Y. Rao",
+     "B. Wang"
+    ],
+    "venue": "The Journal of Engineering (IET IRC 2018)",
+    "year": 2019
+   },
+   "pdf": "/data/public/jeong/papers/LTE/19_LTE-based passive radar for drone detection and its experimental results.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/LTE/19_LTE-based passive radar for drone detection and its experimental results.pdf",
+    "pages": 4,
+    "term_counts": {
+     "bistatic": 4,
+     "passive radar": 19,
+     "illuminator": 2,
+     "CFAR": 3,
+     "false alarm": 2,
+     "drone": 10,
+     "UAV": 18,
+     "batch": 1
+    }
+   },
+   "illuminator": "LTE",
+   "status": "PUBLISHED; DOI 10.1049/joe.2019.0583 read verbatim from the PDF header",
+   "senses": "SDR LTE-downlink passive radar built at Wuhan University; preliminary drone detections agree with ground truth.",
+   "use_for_us": "LTE 패시브 드론 검출 계보의 초기 실증."
+  },
+  {
+   "id": "C08",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "LTE-based multistatic passive radar system for UAV detection",
+    "authors": [
+     "Z. Geng",
+     "R. Xu",
+     "H. Deng"
+    ],
+    "venue": "IET Radar, Sonar & Navigation",
+    "year": 2020
+   },
+   "pdf": "/data/public/jeong/papers/LTE/20_LTE-based multistatic passive radar system for UAV detection.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/LTE/20_LTE-based multistatic passive radar system for UAV detection.pdf",
+    "pages": 10,
+    "term_counts": {
+     "monostatic": 8,
+     "bistatic": 24,
+     "multistatic": 12,
+     "passive radar": 35,
+     "illuminator": 6,
+     "CRS": 20,
+     "PDSCH": 6,
+     "unambiguous velocity": 1,
+     "ambiguity function": 5,
+     "CAF": 1,
+     "radar cross section": 1,
+     "drone": 1,
+     "UAV": 14,
+     "repetition": 1,
+     "Doppler resolution": 1,
+     "CPI": 10,
+     "ECA": 4
+    }
+   },
+   "illuminator": "LTE",
+   "status": "PUBLISHED; DOI 10.1049/iet-rsn.2019.0452 read verbatim from the PDF header",
+   "senses": "FDD-LTE multistatic passive radar: bistatic ranges from several eNodeBs, hyperbolic positioning, plus a purpose-designed target-localisation reference signal (Costas + P4) to beat CRS ambiguity properties.",
+   "quotes": [
+    {
+     "where": "intro",
+     "text": "when the CRS are used for the passive radar application, the maximum unambiguous range (MUR) and the velocity resolution are merely 1.67 km and 20.59 m/s, respectively [13]. Moreover, since the CRS are sparsely scheduled in the LTE downlink signal, the AF peaks associated with CRS are 12.56 dB lower than those associated with the LTE downlink signal [13]."
+    },
+    {
+     "where": "system parameters",
+     "text": "Since the CPI is one radio frame (i.e. 10 ms), the maximum unambiguous velocity (MUV) is 2647 m/s and the velocity resolution is 18 m/s (i.e. 64.8 km/h) for fc = 850 MHz."
+    }
+   ],
+   "cross_check_we_computed": {
+    "note": "이번 세션에서 계산해 대조한 값(JSON 미수록 재계산 필요 시 재현 가능).",
+    "lambda_m_at_850MHz": 0.3527,
+    "Ts_s_assumed_1_over_15kHz": 6.667e-05,
+    "lambda_over_2Ts_ms": 2645.0,
+    "their_MUV_ms": 2647,
+    "lambda_over_2CPI_ms": 17.6,
+    "their_velocity_resolution_ms": 18,
+    "verdict": "일치. 즉 Geng 은 심볼축 전폭 규약(lambda/(2*Ts))을 쓴다."
+   },
+   "use_for_us": "⭐⭐ 우리 법칙과 사과-대-사과 비교가 가능한 완전 수치 세트. 결론: 그들은 **심볼축 전폭** 규약, 우리는 **상시 기준신호 반복축 반쪽폭** 규약. 두 축이 다르다는 것을 이 한 편으로 보일 수 있다.",
+   "caution": "⚠ CRS 기반 수치(1.67 km / 20.59 m/s)는 그들이 [13] 에서 재인용한 2차 수치다. 우리 문서에 옮기려면 [13] 원문을 열 것 (E6)."
+  },
+  {
+   "id": "C09",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "POSTER: Passive Drone Localization Using LTE Signals",
+    "authors": [
+     "M. Sun",
+     "Z. Guo",
+     "M. Li",
+     "R. Gerdes"
+    ],
+    "venue": "Proc. 15th ACM Conference on Security and Privacy in Wireless and Mobile Networks (WiSec) - poster",
+    "year": 2022
+   },
+   "pdf": "/data/public/jeong/papers/LTE/22_Passive Drone Localization Using LTE Signals.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/LTE/22_Passive Drone Localization Using LTE Signals.pdf",
+    "pages": 3,
+    "term_counts": {
+     "bistatic": 1,
+     "bi-static": 3,
+     "multistatic": 1,
+     "multi-static": 1,
+     "passive radar": 2,
+     "RCS": 4,
+     "radar cross section": 2,
+     "drone": 62
+    }
+   },
+   "illuminator": "LTE / WiFi",
+   "status": "PUBLISHED (ACM poster, 3 pages); the ACM Reference Format line in the PDF names the 15th ACM conference",
+   "senses": "Single low-cost receiver exploiting opportunistic ambient LTE/WiFi reflections off a non-emitting drone; USRP testbed on a campus rooftop plus a detection-range extrapolation.",
+   "use_for_us": "'단일 수신기 + 기회적 조명원' 이라는 우리와 같은 저비용 설정. 최상위 보안 학회에 드론 패시브가 등장한 사례."
+  },
+  {
+   "id": "C10",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "Experimental UAV detection using 4G-LTE-based passive Radar",
+    "authors": [
+     "A. Taylor",
+     "D. Poullin"
+    ],
+    "venue": "conference proceedings (ONERA; string NOT read off the PDF)",
+    "year": 2023
+   },
+   "pdf": "/data/public/jeong/papers/LTE/23_Experimental UAV detection using 4G-LTE-based passive Radar.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/LTE/23_Experimental UAV detection using 4G-LTE-based passive Radar.pdf",
+    "pages": 6,
+    "term_counts": {
+     "passive radar": 9,
+     "illuminator": 2,
+     "CRS": 22,
+     "ambiguity function": 2,
+     "CFAR": 1,
+     "false alarm": 1,
+     "micro-Doppler": 1,
+     "drone": 8,
+     "UAV": 17,
+     "periodicity": 2,
+     "CPI": 1,
+     "integration time": 1,
+     "ECA": 4
+    }
+   },
+   "illuminator": "LTE",
+   "status": "PUBLISHED (conference); ⚠ venue string UNVERIFIED",
+   "senses": "Non-cooperative LTE transmitter, ONERA experiment; shows how a generic passive-radar chain must be adjusted for LTE (CRS handling).",
+   "use_for_us": "C11 저널판의 회의 선행.",
+   "caution": "⚠ C11(TAES 2025)과 반드시 구별 (E2)."
+  },
+  {
+   "id": "C11",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "Drone Detection Using 4G-LTE-Based Passive Radar",
+    "authors": [
+     "A. Taylor",
+     "D. Poullin"
+    ],
+    "venue": "IEEE Trans. Aerosp. Electron. Syst.",
+    "year": 2025
+   },
+   "pdf": "/data/public/jeong/papers/LTE/25_Drone_Detection_Using_4G-LTE-Based_Passive_Radar.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/LTE/25_Drone_Detection_Using_4G-LTE-Based_Passive_Radar.pdf",
+    "pages": 17,
+    "term_counts": {
+     "bistatic": 7,
+     "multistatic": 2,
+     "passive radar": 44,
+     "illuminator": 5,
+     "CRS": 30,
+     "SSB": 1,
+     "PDSCH": 1,
+     "ambiguity function": 4,
+     "CFAR": 4,
+     "false alarm": 4,
+     "radar cross section": 1,
+     "micro-Doppler": 1,
+     "drone": 43,
+     "UAV": 6,
+     "periodicity": 3,
+     "Doppler resolution": 1,
+     "integration time": 6,
+     "ECA": 13
+    }
+   },
+   "illuminator": "LTE",
+   "status": "PUBLISHED; DOI line 10.1109/TAES read from the PDF front matter",
+   "dblp": {
+    "dblp_key": "journals/taes/TaylorP25",
+    "title": "Drone Detection Using 4G-LTE-Based Passive Radar",
+    "authors": [
+     "Abigaël Taylor",
+     "Dominique Poullin"
+    ],
+    "venue": "IEEE Trans. Aerosp. Electron. Syst.",
+    "year": 2025,
+    "volume": "61",
+    "number": "4",
+    "pages": "8804-8820",
+    "doi": "10.1109/TAES.2025.3545000",
+    "url": "https://doi.org/10.1109/TAES.2025.3545000",
+    "dblp_type": "Journal Articles"
+   },
+   "senses": "Journal version: uses only the pilot-bearing symbols for range-Doppler to stabilise the ambiguity function, and compares an angular-frequency clutter rejection against ECA on real data.",
+   "quotes": [
+    {
+     "where": "abstract",
+     "text": "it is shown that the fluctuations of the ambiguity function can be mitigated by using the symbols containing pilots for range-Doppler, thus guaranteeing a more stable time-frequency content. This results in improved detection performance."
+    }
+   ],
+   "use_for_us": "⭐ '상시 파일럿만 쓴다' 가 성능을 올린다는 실측 근거 — 우리 상시-기준신호 서사에 유리한 드문 문헌. ECA 대안(각도-주파수 제거)은 우리 ECA 삼중차단 논의의 대조군.",
+   "caution": "ECA 를 버린 이유가 '레퍼런스 복호가 어렵다' 는 것 — 우리 이상적 레퍼런스 가정에 대한 반례이기도 하다."
+  },
+  {
+   "id": "C12",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "Protection of Critical Infrastructure using LTE450-based Passive Radar: Range Measurements for Drone Detection",
+    "authors": [
+     "B. Demissie",
+     "M. Boswetter",
+     "M. Mandt",
+     "C. Steffes"
+    ],
+    "venue": "conference proceedings (Fraunhofer FKIE; string NOT read off the PDF)",
+    "year": 2024
+   },
+   "pdf": "/data/public/jeong/papers/LTE/24_Protection_of_Critical_Infrastructure_using_LTE450-based_Passive_Radar_Range_Measurements_for_Drone_Detection.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/LTE/24_Protection_of_Critical_Infrastructure_using_LTE450-based_Passive_Radar_Range_Measurements_for_Drone_Detection.pdf",
+    "pages": 6,
+    "term_counts": {
+     "monostatic": 1,
+     "bistatic": 10,
+     "passive radar": 28,
+     "illuminator": 11,
+     "CFAR": 1,
+     "Pfa": 5,
+     "false alarm": 8,
+     "drone": 27,
+     "UAV": 20,
+     "ECA": 6,
+     "batch": 3
+    }
+   },
+   "illuminator": "LTE450",
+   "status": "PUBLISHED (conference); ⚠ venue string UNVERIFIED",
+   "senses": "LTE in the 450 MHz critical-infrastructure band as illuminator; experimental range measurements on drones, comparing horizontal vs vertical RX polarisation and several direct-path cancellation algorithms.",
+   "use_for_us": "⭐ 편파를 실측으로 비교한 드문 패시브 드론 논문 — 우리 '편파는 해소 불가, 명시만 가능' 항목의 외부 근거. 'Pfa' 5회로 임계 설정도 기술한다."
+  },
+  {
+   "id": "C13",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "An Experimental Study of Passive UAV Tracking With Digital Arrays and Cellular Downlink Signals",
+    "authors": [
+     "Y. Sun",
+     "C. Yu",
+     "Y. Luo",
+     "T. X. Han",
+     "H. Tan",
+     "R. Wang",
+     "F. C. M. Lau"
+    ],
+    "venue": "IEEE Open Journal of the Communications Society",
+    "year": 2025
+   },
+   "pdf": "/data/public/jeong/papers/LTE/25_An Experimental Study of Passive UAV Tracking With Digital Arrays and Cellular Downlink Signals.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/LTE/25_An Experimental Study of Passive UAV Tracking With Digital Arrays and Cellular Downlink Signals.pdf",
+    "pages": 16,
+    "term_counts": {
+     "bistatic": 56,
+     "multistatic": 1,
+     "multi-static": 10,
+     "passive radar": 17,
+     "illuminator": 9,
+     "ambiguity function": 2,
+     "CAF": 6,
+     "CFAR": 6,
+     "false alarm": 11,
+     "RCS": 1,
+     "drone": 9,
+     "UAV": 74,
+     "Doppler resolution": 1,
+     "ECA": 5
+    }
+   },
+   "illuminator": "LTE/5G cellular downlink",
+   "status": "PUBLISHED, open access; DOI 10.1109/OJCOMS.2025.3558430 read verbatim from the PDF front matter (special issue on cooperative ISAC in the 6G era)",
+   "senses": "Digital receive arrays plus cellular downlink of opportunity; multistatic bistatic geometry, CAF processing, CFAR, and an end-to-end passive UAV tracking experiment.",
+   "use_for_us": "⭐ 우리와 가장 가까운 실측 config C 시스템(다중 Rx + 셀룰러 조명원 + CFAR). 기계 계수로 'bistatic' 56회, 'multi-static' 10회 — 기하가 명시적이다.",
+   "caution": "LaSen 은 이 계열([45])을 '트래픽 불확실성 미처리' 로 비판한다."
+  },
+  {
+   "id": "C14",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "Detection and 3D localization of ultralight aircrafts and drones with a WiFi-based Passive Radar",
+    "authors": [
+     "T. Martelli",
+     "F. Murgia",
+     "F. Colone",
+     "C. Bongioanni",
+     "P. Lombardo"
+    ],
+    "venue": "conference proceedings (Sapienza demonstrator; string NOT read off the PDF)",
+    "year": 2017
+   },
+   "pdf": "/data/public/jeong/papers/Wifi/17_Detection_and_3D_localization_of_ultralight_aircrafts_and_drones_with_a_WiFi-based_passive_radar.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/Wifi/17_Detection_and_3D_localization_of_ultralight_aircrafts_and_drones_with_a_WiFi-based_passive_radar.pdf",
+    "pages": 6,
+    "term_counts": {
+     "monostatic": 1,
+     "bistatic": 9,
+     "passive radar": 10,
+     "illuminator": 2,
+     "ambiguity function": 1,
+     "CFAR": 3,
+     "Pfa": 5,
+     "false alarm": 3,
+     "RCS": 3,
+     "drone": 30,
+     "UAV": 7,
+     "repetition": 1,
+     "CPI": 3,
+     "ECA": 4,
+     "batch": 2
+    }
+   },
+   "illuminator": "WiFi",
+   "status": "PUBLISHED (conference); ⚠ venue string UNVERIFIED",
+   "senses": "WiFi-based passive bistatic radar demonstrator extended to height estimation, giving 3D localisation of small aircraft and commercial drones.",
+   "use_for_us": "WiFi 조명원 + 드론 실증의 초기 사례. 'Pfa' 5회(임계 설계 기술)."
+  },
+  {
+   "id": "C15",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band",
+    "authors": [
+     "S. Rzewuski",
+     "K. Kulpa",
+     "M. Pachwicewicz",
+     "M. Malanowski",
+     "B. Salski"
+    ],
+    "venue": "NATO STO-MP-MSG-SET-183, paper 13",
+    "year": 2021
+   },
+   "pdf": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+    "pages": 14,
+    "term_counts": {
+     "monostatic": 1,
+     "bistatic": 13,
+     "bi-static": 1,
+     "multistatic": 2,
+     "passive radar": 36,
+     "illuminator": 16,
+     "ambiguity function": 7,
+     "CAF": 7,
+     "false alarm": 1,
+     "RCS": 18,
+     "radar cross section": 1,
+     "micro-Doppler": 1,
+     "drone": 61,
+     "UAV": 7,
+     "Doppler resolution": 2,
+     "integration time": 8,
+     "ECA": 6
+    }
+   },
+   "illuminator": "WiFi + DVB-T",
+   "status": "PUBLISHED (NATO STO meeting proceedings); the report/paper number 'STO-MP-MSG-SET-183 13 - 1' is read verbatim from the PDF running head",
+   "senses": "Parrot AR.Drone monostatic AND bistatic RCS by FDTD (QuickWave-3D), a passive-radar coverage budget derived from that RCS, and over-the-air detection at ~50 m on both WiFi and DVB-T illumination.",
+   "use_for_us": "⭐⭐ 우리 파이프라인 전체(메쉬 → 전자기 산란 → RCS → 패시브 검출 예산 → 실측)를 한 문서에서 수행하는 유일한 선행. 기계 계수 RCS 18회, illuminator 16회. 우리 방법론의 직계 선례이자 우리가 더 하는 것(SBR+PO, 2x3 격자, 경험적 Pfa 로 교정한 CFAR)의 대비점.",
+   "caution": "FDTD 는 우리 SBR+PO 와 다른 solver 다. RCS 값을 직접 비교할 때 반드시 명시."
+  },
+  {
+   "id": "C16",
+   "config": "C_passive_bistatic",
+   "grade": "P",
+   "bib": {
+    "title": "Fusing Measurements from Wi-Fi Emission-Based and Passive Radar Sensors for Short-Range Surveillance",
+    "authors": [
+     "I. Milani",
+     "C. Bongioanni",
+     "F. Colone",
+     "P. Lombardo"
+    ],
+    "venue": "Remote Sensing (MDPI) 13(18):3556",
+    "year": 2021
+   },
+   "pdf": "/data/public/jeong/papers/Wifi/21_Fusing Measurements from Wi-Fi Emission-Based and Passive Radar Sensors for Short-Range Surveillance.pdf",
+   "scan": {
+    "pdf": "/data/public/jeong/papers/Wifi/21_Fusing Measurements from Wi-Fi Emission-Based and Passive Radar Sensors for Short-Range Surveillance.pdf",
+    "pages": 29,
+    "term_counts": {
+     "bistatic": 19,
+     "multistatic": 1,
+     "multi-static": 1,
+     "passive radar": 10,
+     "illuminator": 3,
+     "ambiguity function": 1,
+     "CFAR": 1,
+     "false alarm": 3,
+     "drone": 32,
+     "UAV": 5,
+     "repetition": 1,
+     "Doppler resolution": 1,
+     "CPI": 1,
+     "ECA": 5
+    }
+   },
+   "illuminator": "WiFi",
+   "status": "PUBLISHED, open access CC BY; DOI 10.3390/rs13183556 read verbatim from the PDF citation block",
+   "senses": "Joint use of a WiFi passive bistatic radar (AP as illuminator) and an emission-based sensor, fused for short-range localisation and tracking of humans and small drones.",
+   "use_for_us": "센서 융합 대조군. 우리 다중 Rx 코히어런트 상한(10log10 N)과는 다른 종류의 이득(측정치 융합)이라는 점을 구별해 쓸 것."
+  },
+  {
+   "id": "C17",
+   "config": "C_passive_bistatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "journals/wcl/JiLLSYW26",
+    "title": "An Experimental Study on Fine-Grained Bistatic Sensing of UAV Trajectory via Cellular Downlink Signals",
+    "authors": [
+     "Chenqing Ji",
+     "Jiahong Liu",
+     "Qionghui Liu",
+     "Yifei Sun",
+     "Chao Yu",
+     "Rui Wang"
+    ],
+    "venue": "IEEE Wirel. Commun. Lett.",
+    "year": 2026,
+    "volume": "15",
+    "number": null,
+    "pages": "1807-1811",
+    "doi": "10.1109/LWC.2026.3663501",
+    "url": "https://doi.org/10.1109/LWC.2026.3663501",
+    "dblp_type": "Journal Articles"
+   },
+   "illuminator": "cellular downlink",
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "An Experimental Study on Fine-Grained Bistatic Sensing of UAV Trajectory",
+   "use_for_us": "⭐ 2026 년 config C 실측 최신판. WCL 은 우리 타깃 저널 목록에도 있다 — 우리 결과를 나란히 놓을 최우선 후보.",
+   "caution": "PDF 미확보. 서지만 dblp 확인."
+  },
+  {
+   "id": "C18",
+   "config": "C_passive_bistatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "journals/twc/BaiZXZHLLJ26",
+    "title": "Passive UAV Detection Based on Channel Estimation and Temporal Variation Network",
+    "authors": [
+     "Jing Bai",
+     "Zhuo Zhang",
+     "Zhu Xiao",
+     "Huaji Zhou",
+     "Yong Qiang Hei",
+     "Xiaohui Liu",
+     "Tong Li",
+     "Licheng Jiao"
+    ],
+    "venue": "IEEE Trans. Wirel. Commun.",
+    "year": 2026,
+    "volume": "25",
+    "number": null,
+    "pages": "14351-14366",
+    "doi": "10.1109/TWC.2026.3676229",
+    "url": "https://doi.org/10.1109/TWC.2026.3676229",
+    "dblp_type": "Journal Articles"
+   },
+   "illuminator": "cellular downlink (channel estimates)",
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Passive UAV Detection Based on Channel Estimation",
+   "use_for_us": "채널추정 시계열 기반 패시브 검출(레이더맵 없이). 우리 검출 통계와 다른 계열의 베이스라인.",
+   "caution": null
+  },
+  {
+   "id": "C19",
+   "config": "C_passive_bistatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "journals/taes/PangPWWX25",
+    "title": "MFS: A Motion Feature Separation Model for UAV Detection Under Passive Radar",
+    "authors": [
+     "Xu Pang",
+     "Yuexing Peng",
+     "Peng Wang",
+     "Wenbo Wang",
+     "Wei Xiang"
+    ],
+    "venue": "IEEE Trans. Aerosp. Electron. Syst.",
+    "year": 2025,
+    "volume": "61",
+    "number": "5",
+    "pages": "11450-11468",
+    "doi": "10.1109/TAES.2025.3567368",
+    "url": "https://doi.org/10.1109/TAES.2025.3567368",
+    "dblp_type": "Journal Articles"
+   },
+   "illuminator": "passive radar",
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "MFS: A Motion Feature Separation Model",
+   "use_for_us": "패시브 드론 검출의 최신 신호처리 베이스라인.",
+   "caution": null
+  },
+  {
+   "id": "C20",
+   "config": "C_passive_bistatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "journals/taes/ZhangXLYC26",
+    "title": "Weak Cyclostationary Target Echo Detection for Multi-UAV Enabled Passive Radar Network",
+    "authors": [
+     "Long Zhang",
+     "Kui Xiong",
+     "Maosen Liao",
+     "Xianxiang Yu",
+     "Guolong Cui"
+    ],
+    "venue": "IEEE Trans. Aerosp. Electron. Syst.",
+    "year": 2026,
+    "volume": "62",
+    "number": null,
+    "pages": "11636-11656",
+    "doi": "10.1109/TAES.2026.3695875",
+    "url": "https://doi.org/10.1109/TAES.2026.3695875",
+    "dblp_type": "Journal Articles"
+   },
+   "illuminator": "passive radar network",
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Weak Cyclostationary Target Echo Detection",
+   "use_for_us": "약신호 검출 통계의 대안(순환정상성) — 우리 CFAR 교정과 나란히.",
+   "caution": null
+  },
+  {
+   "id": "C23",
+   "config": "C_passive_bistatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/infocom/FangZJWLQ22",
+    "title": "Exploring LoRa for Drone Detection",
+    "authors": [
+     "Jian Fang",
+     "Zhiyi Zhou",
+     "Sunhaoran Jin",
+     "Lei Wang",
+     "Bingxian Lu",
+     "Zhenquan Qin"
+    ],
+    "venue": "INFOCOM Workshops",
+    "year": 2022,
+    "volume": null,
+    "number": null,
+    "pages": "1-2",
+    "doi": "10.1109/INFOCOMWKSHPS54753.2022.9798069",
+    "url": "https://doi.org/10.1109/INFOCOMWKSHPS54753.2022.9798069",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "illuminator": "LoRa",
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Exploring LoRa for Drone Detection",
+   "use_for_us": "조명원 축을 WiFi/LTE/5G 밖으로 확장한 사례. LaSen 은 LoRa 의 '낮은 pulse repetition frequency' 때문에 속도 추정이 안 된다고 명시한다 — 우리 법칙의 또 다른 실사례.",
+   "caution": "INFOCOM 2022 Workshops, 2쪽 짜리다. 분량을 감안해 인용할 것."
+  },
+  {
+   "id": "C25",
+   "config": "C_passive_bistatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "journals/tvt/SunWYLY23",
+    "title": "Performance Analysis and System Implementation for Energy-Efficient Passive UAV Radar Imaging System",
+    "authors": [
+     "Zhichao Sun",
+     "Junjie Wu",
+     "Gary G. Yen",
+     "Zheng Lu",
+     "Jianyu Yang"
+    ],
+    "venue": "IEEE Trans. Veh. Technol.",
+    "year": 2023,
+    "volume": "72",
+    "number": "8",
+    "pages": "9938-9955",
+    "doi": "10.1109/TVT.2023.3260876",
+    "url": "https://doi.org/10.1109/TVT.2023.3260876",
+    "dblp_type": "Journal Articles"
+   },
+   "illuminator": "passive (illuminator not verified)",
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Performance Analysis and System Implementation for Energy-Efficient Passive UAV Radar Imaging",
+   "use_for_us": "패시브 UAV 레이더 이미징의 시스템 구현 — '패시브로 어디까지 가나' 의 상한 사례.",
+   "caution": "⚠ 제목만으로는 UAV 가 **표적**인지 **탑재 플랫폼**인지 판별되지 않는다. 원문 미독 — 드론 검출 문헌으로 인용하기 전에 반드시 확인할 것. config C 배정은 잠정이다."
+  },
+  {
+   "id": "C21",
+   "config": "C_passive_bistatic",
+   "grade": "B",
+   "bib": {
+    "title": "Integrated Sensing and Communication (ISAC) for Vehicles: Bistatic Radar With 5G-NR Signals",
+    "authors": [
+     "N. K. Nataraja",
+     "S. Sharma",
+     "K. Ali",
+     "F. Bai",
+     "R. Wang",
+     "A. F. Molisch"
+    ],
+    "venue": "IEEE Trans. Veh. Technol.",
+    "year": 2025,
+    "volume": "74",
+    "number": "4",
+    "pages": "6121-6137",
+    "doi": "10.1109/TVT.2024.3514573"
+   },
+   "status": "PUBLISHED",
+   "illuminator": "5G NR",
+   "senses": "Bistatic radar on 5G-NR signals for vehicular targets.",
+   "use_for_us": "LaSen 본문에서 'bistatic' 이라는 단어가 나오는 유일한 자리가 이 참고문헌 [37] 이다(LaSen 자신은 모노스태틱). 5G-NR 바이스태틱의 표준 참조.",
+   "caution": "⚠ 표적이 차량이지 드론이 아니다. 드론 결과로 인용 금지."
+  },
+  {
+   "id": "C22",
+   "config": "C_passive_bistatic",
+   "grade": "S",
+   "bib": {
+    "title": "SSB-based signal processing for passive radar using a 5G network",
+    "authors": [
+     "K. Abratkiewicz",
+     "A. Ksiezyk",
+     "M. Plotka",
+     "P. Samczynski",
+     "J. Wszolek",
+     "T. P. Zielinski"
+    ],
+    "venue": "IEEE J. Sel. Top. Appl. Earth Obs. Remote Sens. (JSTARS)",
+    "year": 2023,
+    "volume": "16",
+    "pages": "3469-3484",
+    "url": "https://ieeexplore.ieee.org/document/10083170/"
+   },
+   "status": "PUBLISHED (JSTARS, open access)",
+   "illuminator": "5G NR SSB",
+   "senses": "Treats the periodically transmitted 5G SSB as a pulse train and builds a PCL processing chain around it.",
+   "use_for_us": "⭐ SSB 를 '펄스' 로 보는 관점의 표준 참조 — 우리 v_max = lambda*PRF_ref/4 서사와 정확히 같은 물리. JSTARS 는 우리 타깃 저널 목록에도 있다.",
+   "caution": "LaSen 참고문헌 [5] + 웹 서지로만 확인. 원문 미독 → 본문 문장 인용 금지 (E4/E6)."
+  },
+  {
+   "id": "C24",
+   "config": "C_passive_bistatic",
+   "grade": "U",
+   "bib": {
+    "title": "(archive filename: 2601.15821__separable-delay-doppler-passive-radar_ICASSP2026)",
+    "venue": "IEEE ICASSP 2026 -- ASSERTED BY THE ARCHIVE FILENAME ONLY",
+    "year": 2026,
+    "url": "https://arxiv.org/abs/2601.15821"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2601.15821__separable-delay-doppler-passive-radar_ICASSP2026.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2601.15821__separable-delay-doppler-passive-radar_ICASSP2026.pdf",
+    "pages": 5,
+    "term_counts": {
+     "bistatic": 4,
+     "multistatic": 2,
+     "passive radar": 11,
+     "illuminator": 2,
+     "LTE": 3
+    }
+   },
+   "status": "⚠ UNVERIFIED: title, authors and venue have NOT been read off the PDF in this session.",
+   "senses": "Separable delay-Doppler processing for passive radar (per the filename).",
+   "use_for_us": "ICASSP 계열 패시브 레이더 신호처리의 최신판 후보. 우리 CAF 구현의 효율 대조군.",
+   "caution": "⚠ 인용 전 반드시 PDF 를 열어 제목·저자·게재처를 확정할 것."
+  },
+  {
+   "id": "D01",
+   "config": "emission_based",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/sensys/NguyenKBUPTGBHF20",
+    "title": "DroneScale: drone load estimation via remote passive RF sensing",
+    "authors": [
+     "Phuc Nguyen",
+     "Vimal Kakaraparthi",
+     "Nam Bui",
+     "Nikshep Umamahesh",
+     "Nhat Pham",
+     "Hoang Truong",
+     "Yeswanth Guddeti",
+     "Dinesh Bharadia",
+     "Richard Han",
+     "Eric W. Frew",
+     "Daniel Massey",
+     "Tam Vu"
+    ],
+    "venue": "SenSys",
+    "year": 2020,
+    "volume": null,
+    "number": null,
+    "pages": "326-339",
+    "doi": "10.1145/3384419.3430778",
+    "url": "https://doi.org/10.1145/3384419.3430778",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (ACM SenSys 2020, pp.326-339)",
+   "senses": "Estimates the payload a drone carries from the RF signature its own motors/controller emit ('remote passive RF sensing'): the drone itself is the emitter.",
+   "use_for_us": "SenSys 계보에서 드론 RF 센싱의 출발점.",
+   "caution": "⚠ 여기 'passive' 는 '우리가 송신하지 않는다' 이지 '남의 조명원의 반사' 가 아니다. 표적 자신이 방사원이므로 A/B/C 어디에도 안 들어간다."
+  },
+  {
+   "id": "D02",
+   "config": "emission_based",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/mobisys/NguyenTRNHV17",
+    "title": "Matthan: Drone Presence Detection by Identifying Physical Signatures in the Drone's RF Communication",
+    "authors": [
+     "Phuc Nguyen",
+     "Hoang Truong",
+     "Mahesh Ravindranathan",
+     "Anh Nguyen",
+     "Richard Han",
+     "Tam Vu"
+    ],
+    "venue": "MobiSys",
+    "year": 2017,
+    "volume": null,
+    "number": null,
+    "pages": "211-224",
+    "doi": "10.1145/3081333.3081354",
+    "url": "https://doi.org/10.1145/3081333.3081354",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (ACM MobiSys 2017, pp.211-224)",
+   "senses": "Detects drone presence from physical signatures (body/motor vibration sidebands) inside the drone's own RF communication.",
+   "use_for_us": "emission-based 부류의 대표. LaSen 도 [43] 을 들어 '통신이 없으면 무력' 이라 지적한다 — 우리 반사 기반 접근의 존재 이유를 한 문장으로 정당화해 준다."
+  },
+  {
+   "id": "D03",
+   "config": "C_passive_bistatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/mobisys/MengHJFWWJZ26",
+    "title": "Needle in a Haystack: Tracking UAVs from Massive Noise in Real-World 5G-A Base Station Data",
+    "authors": [
+     "Chengzhen Meng",
+     "Chenming He",
+     "Yidong Jiang",
+     "Xiaoran Fan",
+     "Dequan Wang",
+     "Lingyu Wang",
+     "Jianmin Ji",
+     "Yanyong Zhang"
+    ],
+    "venue": "MobiSys",
+    "year": 2026,
+    "volume": null,
+    "number": null,
+    "pages": "14-27",
+    "doi": "10.1145/3745756.3809186",
+    "url": "https://doi.org/10.1145/3745756.3809186",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "illuminator": "5G-A base station (live network)",
+   "status": "PUBLISHED (ACM MobiSys 2026, pp.14-27); preprint arXiv:2603.29187",
+   "senses": "Tracks UAVs out of massive noise in REAL-WORLD 5G-Advanced base-station data.",
+   "use_for_us": "⭐⭐ 2026 최상위 시스템 학회가 실망(live network) 5G-A 데이터로 UAV 를 추적한다 — 우리 챔버 시뮬레이션의 정반대 극. 우리 한계(무향실·시뮬)를 정직하게 대비시킬 최적의 문헌.",
+   "caution": "⚠ 회의판(MobiSys 2026)과 arXiv 판(2603.29187)이 둘 다 dblp 에 있다. 반드시 구별 (E2)."
+  },
+  {
+   "id": "D04",
+   "config": "A_active_monostatic",
+   "grade": "P",
+   "bib": {
+    "title": "HiSAC: High-Resolution Sensing with Multiband Communication Signals",
+    "authors": [
+     "Jacopo Pegoraro",
+     "Jesus O. Lacruz",
+     "Michele Rossi",
+     "Joerg Widmer"
+    ],
+    "venue": "Proc. 22nd ACM Conference on Embedded Networked Sensor Systems (SenSys '24), Hangzhou, China",
+    "year": 2024,
+    "pages": "549-563 (per LaSen's reference list [39]); the PDF's own ACM Reference Format gives '15 pages'",
+    "doi": "10.1145/3666025.3699357",
+    "url": "https://arxiv.org/abs/2407.07023",
+    "source_of_fields": "ACM Reference Format block read verbatim from the local PDF; arXiv DOI field confirms 10.1145/3666025.3699357"
+   },
+   "pdf": "/data/public/sionna_jeong/reference_library/2407.07023v2.pdf",
+   "status": "PUBLISHED (ACM SenSys '24, Hangzhou, 4-7 Nov 2024; ISBN 979-8-4007-0697-4/24/11, DOI 10.1145/3666025.3699357 read verbatim from the PDF); local file is arXiv:2407.07023v2, 15 pages",
+   "senses": "First multiband ISAC system: aggregates sparse, non-contiguous, mutually incoherent communication subbands (5G-NR OFDM + IEEE 802.11ay SC at 60.48 and 62.64 GHz) into one high-resolution delay estimate. The testbed can run mono-static or bi-static.",
+   "quotes": [
+    {
+     "where": "sec.2",
+     "text": "The corresponding ranging resolution for passive sensing also depends on the angle between the segments connecting the TX to the target and the target to the RX (bi-static angle), beta, as Delta_r = c/[2 B cos(beta/2)]. A mono-static system, with co-located TX and RX, gives Delta_r = c/(2B) which minimizes Delta_r with respect to beta."
+    },
+    {
+     "where": "sec.2",
+     "text": "The SSBs used for synchronization with UEs, for example, occupy 240 OFDM subcarriers with at most 240 kHz subcarrier spacing. This leads to a very coarse ranging resolution of Delta_r = c/(2 * 240 * 240 kHz) = 2.6 m."
+    }
+   ],
+   "use_for_us": "⭐⭐ (1) 바이스태틱 거리분해능 규약의 1급 근거. 우리 규약 Delta R_b = c/B 는 **바이스태틱 거리합** 축이고 HiSAC 의 c/[2B cos(beta/2)] 는 그것을 이등분선 방향으로 투영한 값이다 — 모순이 아니라 축이 다르다. 나란히 적을 때 이 문장을 붙일 것. (2) SSB 대역폭이 만드는 2.6 m 분해능은 우리 G1(SSB 최악) 서사의 외부 수치 앵커. (3) LaSen 이 자기 baseline 으로 쓰는 시스템이다.",
+   "caution": "⚠ 표적이 드론이 아니다(60 GHz 실내). 드론 결과로 인용 금지."
+  },
+  {
+   "id": "D05",
+   "config": "A_active_monostatic",
+   "grade": "S",
+   "bib": {
+    "title": "LTE-based pervasive sensing across indoor and outdoor",
+    "authors": [
+     "Y. Feng",
+     "Y. Xie",
+     "D. Ganesan",
+     "J. Xiong"
+    ],
+    "venue": "Proc. 19th ACM Conference on Embedded Networked Sensor Systems (SenSys)",
+    "year": 2021,
+    "pages": "138-151"
+   },
+   "status": "PUBLISHED (ACM SenSys 2021)",
+   "illuminator": "LTE CRS",
+   "senses": "Pervasive sensing riding on the always-on LTE 1 kHz CRS, indoors and outdoors.",
+   "use_for_us": "⭐ LaSen 이 'LTE 는 1 kHz CRS 를 쓴다' 고 할 때 다는 근거 [17]. 우리 '5G 이중고(CRS 없음)' 서사의 LTE 쪽 기준선 — 반복률이 곧 센싱 능력이라는 명제를 최상위 학회가 이미 채택했다는 증거.",
+   "caution": "LaSen 참고문헌에서만 확인, PDF 미독."
+  },
+  {
+   "id": "D06",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/mobicom/He0LYH023",
+    "title": "SenCom: Integrated Sensing and Communication with Practical WiFi",
+    "authors": [
+     "Yinghui He",
+     "Jianwei Liu",
+     "Mo Li",
+     "Guanding Yu",
+     "Jinsong Han",
+     "Kui Ren"
+    ],
+    "venue": "MobiCom",
+    "year": 2023,
+    "volume": null,
+    "number": null,
+    "pages": "60:1-60:16",
+    "doi": "10.1145/3570361.3613274",
+    "url": "https://doi.org/10.1145/3570361.3613274",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "SenCom",
+   "use_for_us": "WiFi 조명원 축의 최상위 학회 기준선(MobiCom 2023, article 60).",
+   "caution": null
+  },
+  {
+   "id": "D07",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/infocom/LamDEHA25",
+    "title": "6D Self-Localization of Drones Using a Single Millimeter-Wave Backscatter Anchor",
+    "authors": [
+     "Maisy Lam",
+     "Laura Dodds",
+     "Aline Eid",
+     "Jimmy G. Hester",
+     "Fadel Adib"
+    ],
+    "venue": "INFOCOM",
+    "year": 2025,
+    "volume": null,
+    "number": null,
+    "pages": "1-10",
+    "doi": "10.1109/INFOCOM55648.2025.11044655",
+    "url": "https://doi.org/10.1109/INFOCOM55648.2025.11044655",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "6D Self-Localization of Drones",
+   "use_for_us": "INFOCOM 계보에서 드론+mmWave 의 대표. 문제 방향이 반대(자기위치 vs 침입자 검출) — related-work 에서 '협조적 vs 비협조적' 축을 가를 때 쓴다.",
+   "caution": null
+  },
+  {
+   "id": "D08",
+   "config": "fusion_radar_vision",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/infocom/WuZZQM26",
+    "title": "MIROS: Elusive Unauthorized AAV Positioning by Multi-View Radar-Vision Cognitive Fusion",
+    "authors": [
+     "Guangyu Wu",
+     "Yuxin Zhao",
+     "Haibo Zhou",
+     "Yuben Qu",
+     "Kai-Kuang Ma"
+    ],
+    "venue": "INFOCOM",
+    "year": 2026,
+    "volume": null,
+    "number": null,
+    "pages": "1-10",
+    "doi": "10.1109/INFOCOM59046.2026.11571625",
+    "url": "https://doi.org/10.1109/INFOCOM59046.2026.11571625",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "MIROS",
+   "use_for_us": "2026 INFOCOM 의 비인가 AAV 측위(레이더-비전 융합). 우리 RF-only 접근의 대비점.",
+   "caution": null
+  },
+  {
+   "id": "D09",
+   "config": "event_camera",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/sensys/ChenXDWLDCWLC26",
+    "title": "Count Every Rotation and Every Rotation Counts: Exploring Drone Dynamics via Propeller Sensing",
+    "authors": [
+     "Xuecheng Chen",
+     "Jingao Xu",
+     "Wenhua Ding",
+     "Haoyang Wang",
+     "Xinyu Luo",
+     "Ruiyang Duan",
+     "Jialong Chen",
+     "Xueqian Wang",
+     "Yunhao Liu",
+     "Xinlei Chen"
+    ],
+    "venue": "SenSys",
+    "year": 2026,
+    "volume": null,
+    "number": null,
+    "pages": "746-760",
+    "doi": "10.1145/3774906.3800477",
+    "url": "https://doi.org/10.1145/3774906.3800477",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Count Every Rotation",
+   "use_for_us": "⭐ LaSen 과 같은 프로시딩(DOI prefix 10.1145/3774906)에 실린 프로펠러 중심 논문. '프로펠러가 드론 센싱의 정보원' 이라는 명제가 2026 SenSys 에서 RF/이벤트카메라 두 갈래로 동시에 등장했다고 쓸 수 있다.",
+   "caution": "⚠ RF 가 아니라 이벤트 카메라다. RF 결과로 인용 금지."
+  },
+  {
+   "id": "D11",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/mobicom/TangHOPS25",
+    "title": "ChirpEye: Passive Sensing and Profiling of FMCW Radars with a Resource-constrained Tag",
+    "authors": [
+     "Mingyue Tang",
+     "Jizheng He",
+     "Ryu Okubo",
+     "Dhruv Panchmia",
+     "Elahe Soltanaghai"
+    ],
+    "venue": "MobiCom",
+    "year": 2025,
+    "volume": null,
+    "number": null,
+    "pages": "360-374",
+    "doi": "10.1145/3680207.3723479",
+    "url": "https://doi.org/10.1145/3680207.3723479",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "ChirpEye",
+   "use_for_us": "주변부 — 'passive' 가 또 다른 뜻(레이더 신호 자체를 관측)으로 쓰인 사례. 용어 주의문 보강용.",
+   "caution": null
+  },
+  {
+   "id": "D12",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/mobisys/Wang26a",
+    "title": "Integrated Sensing and Communication with Open RAN Infrastructure",
+    "authors": [
+     "Tianxin Wang"
+    ],
+    "venue": "MobiSys Companion",
+    "year": 2026,
+    "volume": null,
+    "number": null,
+    "pages": "132-133",
+    "doi": "10.1145/3812835.3814831",
+    "url": "https://doi.org/10.1145/3812835.3814831",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Integrated Sensing and Communication with Open RAN Infrastructure",
+   "use_for_us": "MobiSys 2026 — 실제 RAN 인프라 위 ISAC. 우리 시뮬의 배치 현실성 대비점.",
+   "caution": "⚠ MobiSys Companion(pp.132-133) = 2쪽 포스터/데모다. 본논문처럼 인용하지 말 것."
+  },
+  {
+   "id": "D13",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/mobisys/He26a",
+    "title": "Toward Practical Integrated Sensing and Communication upon Commodity Wi-Fi",
+    "authors": [
+     "Yinghui He"
+    ],
+    "venue": "MobiSys Companion",
+    "year": 2026,
+    "volume": null,
+    "number": null,
+    "pages": "116-117",
+    "doi": "10.1145/3812835.3814823",
+    "url": "https://doi.org/10.1145/3812835.3814823",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Toward Practical Integrated Sensing and Communication upon Commodity Wi-Fi",
+   "use_for_us": "MobiSys 2026 — 상용 WiFi ISAC 실전화. 우리 WiFi 모드의 최신 시스템 대비점.",
+   "caution": "⚠ MobiSys Companion(pp.116-117) = 2쪽 포스터/데모다. 본논문처럼 인용하지 말 것."
+  },
+  {
+   "id": "D14",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/sensys/JacobsALTAS26",
+    "title": "GreenScatter: Through-Canopy Soil Moisture Sensing with UAV-Mounted Radar",
+    "authors": [
+     "Luke Jacobs",
+     "Ishfaq Aziz",
+     "Benhao Lu",
+     "Alireza Tabatabaeenejad",
+     "Mohamad Alipour",
+     "Elahe Soltanaghai"
+    ],
+    "venue": "SenSys",
+    "year": 2026,
+    "volume": null,
+    "number": null,
+    "pages": "761-774",
+    "doi": "10.1145/3774906.3802792",
+    "url": "https://doi.org/10.1145/3774906.3802792",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "GreenScatter",
+   "use_for_us": "SenSys 2026 — UAV 탑재 레이더(드론이 센서). 드론이 표적이 아니라 플랫폼인 반대 방향의 사례.",
+   "caution": null
+  },
+  {
+   "id": "D15",
+   "config": "event_camera",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/sensys/ZhouDGYLWXZC26",
+    "title": "Demo Abstract: Eventradar: Wide-Area Kilometric UAV Detection Via Propeller-Aware Sensing",
+    "authors": [
+     "Zhiting Zhou",
+     "Wenhua Ding",
+     "Julia Gersey",
+     "Xinglin Yu",
+     "Xingchen Liu",
+     "Haoyang Wang",
+     "Jingao Xu",
+     "Pei Zhang",
+     "Xinlei Chen"
+    ],
+    "venue": "SenSys-Adjunct",
+    "year": 2026,
+    "volume": null,
+    "number": null,
+    "pages": "13-14",
+    "doi": "10.1109/SENSYS-ADJUNCT71932.2026.00016",
+    "url": "https://doi.org/10.1109/SenSys-Adjunct71932.2026.00016",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Eventradar",
+   "use_for_us": "SenSys 2026 Adjunct 데모 — 프로펠러 인지 기반 광역 UAV 검출. D09 와 같은 흐름.",
+   "caution": null
+  },
+  {
+   "id": "D10",
+   "config": "A_active_monostatic",
+   "grade": "P",
+   "bib": {
+    "title": "BatStation: Toward In-Situ Radar Sensing on 5G Base Stations with Zero-Shot Template Generation",
+    "authors": [
+     "Z. Gao",
+     "Z. Liu",
+     "T. Chen"
+    ],
+    "venue": "arXiv preprint",
+    "year": 2025,
+    "url": "https://arxiv.org/abs/2509.06898"
+   },
+   "pdf": "/data/public/sionna_jeong/reference_library/2509.06898.pdf",
+   "status": "⚠ PREPRINT (arXiv:2509.06898, 14 pages). No venue is stated in the PDF -- do NOT cite as published (E4).",
+   "senses": "Extracts incumbent RADAR waveforms out of a 5G base station's uplink resource grid for spectrum sharing in CBRS 3.55-3.70 GHz. The sensed object is another radar's signal, not a drone.",
+   "key_numbers": {
+    "Pd_PUCCH_pct": 97.02,
+    "Pd_PUSCH_pct": 79.23,
+    "band_GHz": [
+     3.55,
+     3.7
+    ]
+   },
+   "use_for_us": "주변부. '기지국을 센서로 쓴다' 는 아키텍처 근거로만.",
+   "caution": "⚠ 드론이 표적이 아니다 — 기계 계수로 drone 0, UAV 0. 드론 문헌으로 쓰지 말 것."
+  },
+  {
+   "id": "E01",
+   "config": "SIM",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/icassp/KatariaL23",
+    "title": "Simulation of Micro-Doppler Signatures of Drones",
+    "authors": [
+     "Megha Kataria",
+     "Brejesh Lall"
+    ],
+    "venue": "ICASSP Workshops",
+    "year": 2023,
+    "volume": null,
+    "number": null,
+    "pages": "1-5",
+    "doi": "10.1109/ICASSPW59220.2023.10193632",
+    "url": "https://doi.org/10.1109/ICASSPW59220.2023.10193632",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Simulation of Micro-Doppler Signatures of Drones",
+   "use_for_us": "⭐ ICASSP 계보에서 드론 마이크로도플러 **시뮬레이션**의 직접 선행. 우리 시뮬 파이프라인의 신호처리학회 쪽 대조군.",
+   "caution": "워크숍 논문(5쪽). PDF 미확보 — 방법(해석적/RT/전자기)이 무엇인지 미확인이므로 방법 비교에 쓰기 전에 열 것."
+  },
+  {
+   "id": "E02",
+   "config": "C_passive_bistatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/icassp/GaoXZY25",
+    "title": "A Self-supervised UAV Detection Method Based on Channel State Information",
+    "authors": [
+     "Pengxuan Gao",
+     "Disheng Xiao",
+     "Ruiheng Zou",
+     "Kai Ying"
+    ],
+    "venue": "ICASSP",
+    "year": 2025,
+    "volume": null,
+    "number": null,
+    "pages": "1-5",
+    "doi": "10.1109/ICASSP49660.2025.10888562",
+    "url": "https://doi.org/10.1109/ICASSP49660.2025.10888562",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "A Self-supervised UAV Detection Method Based on Channel State Information",
+   "use_for_us": "⭐ CSI(통신 부산물)만으로 UAV 를 검출하는 ICASSP 2025 판. 우리 '이상적 정합필터' 대비 '실전 CSI' 축의 대조군.",
+   "caution": null
+  },
+  {
+   "id": "E03",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/icassp/SnehRM25",
+    "title": "IEEE 802.11ad-Aided 5-D Sensing With a UAV Swarm in Urban Environment",
+    "authors": [
+     "Akanksha Sneh",
+     "Shobha Sundar Ram",
+     "Kumar Vijay Mishra"
+    ],
+    "venue": "ICASSP",
+    "year": 2025,
+    "volume": null,
+    "number": null,
+    "pages": "1-5",
+    "doi": "10.1109/ICASSP49660.2025.10889552",
+    "url": "https://doi.org/10.1109/ICASSP49660.2025.10889552",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "802.11ad-Aided",
+   "use_for_us": "⭐ WiFi 규격 신호로 UAV 를 센싱하는 ICASSP 사례 — 우리 WiFi 모드의 신호처리학회 대응물. 저자에 S. S. Ram / K. V. Mishra(마이크로도플러·레이더 시뮬 계보).",
+   "caution": null
+  },
+  {
+   "id": "E04",
+   "config": "A_active_monostatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/icassp/CuiJM22",
+    "title": "Integrated Sensing and Communications Via 5G NR Waveform: Performance Analysis",
+    "authors": [
+     "Yuanhao Cui",
+     "Xiaojun Jing",
+     "Junsheng Mu"
+    ],
+    "venue": "ICASSP",
+    "year": 2022,
+    "volume": null,
+    "number": null,
+    "pages": "8747-8751",
+    "doi": "10.1109/ICASSP43922.2022.9746355",
+    "url": "https://doi.org/10.1109/ICASSP43922.2022.9746355",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Integrated Sensing and Communications Via 5G NR Waveform",
+   "use_for_us": "5G NR 파형의 센싱 성능 해석 — 우리 파형 검증편(report05)의 신호처리 쪽 참조.",
+   "caution": null
+  },
+  {
+   "id": "E05",
+   "config": "C_passive_bistatic",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/icassp/Wang021a",
+    "title": "Parameter Estimation for Coherent Passive MIMO Radar with Unknown Signals under Direct Path Influence",
+    "authors": [
+     "Zhen Wang",
+     "Qian He"
+    ],
+    "venue": "ICASSP",
+    "year": 2021,
+    "volume": null,
+    "number": null,
+    "pages": "4425-4429",
+    "doi": "10.1109/ICASSP39728.2021.9414746",
+    "url": "https://doi.org/10.1109/ICASSP39728.2021.9414746",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Parameter Estimation for Coherent Passive MIMO Radar",
+   "use_for_us": "⭐ '레퍼런스를 모른다 + 직접경로가 지배한다' 는 config C 의 두 난제를 정식으로 다룬 ICASSP 논문. 우리 보류질문(2채널 CAF 승격)의 이론 근거 후보.",
+   "caution": null
+  },
+  {
+   "id": "E06",
+   "config": "SIM",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/icassp/WangLZ24a",
+    "title": "Low-Overhead OFDM Sensing Waveform Design for 5G NR: A Coprime-Based Subcarrier Allocation Approach",
+    "authors": [
+     "Xiaoye Wang",
+     "Fan Liu",
+     "Le Zheng"
+    ],
+    "venue": "ICASSP Workshops",
+    "year": 2024,
+    "volume": null,
+    "number": null,
+    "pages": "224-228",
+    "doi": "10.1109/ICASSPW62465.2024.10626507",
+    "url": "https://doi.org/10.1109/ICASSPW62465.2024.10626507",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Low-Overhead OFDM Sensing Waveform Design for 5G NR",
+   "use_for_us": "희소 자원으로 모호를 푸는 또 하나의 길(coprime). LaSen 의 압축센싱, 우리의 반복률 법칙과 3파전으로 놓을 수 있다.",
+   "caution": null
+  },
+  {
+   "id": "E07",
+   "config": "SIM",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/icassp/XiongLL24a",
+    "title": "Generalized Deterministic-Random Tradeoff of Integrated Sensing and Communications: The Sensing-Optimal Operating Point",
+    "authors": [
+     "Yifeng Xiong",
+     "Fan Liu",
+     "Marco Lops"
+    ],
+    "venue": "ICASSP",
+    "year": 2024,
+    "volume": null,
+    "number": null,
+    "pages": "8481-8485",
+    "doi": "10.1109/ICASSP48485.2024.10447614",
+    "url": "https://doi.org/10.1109/ICASSP48485.2024.10447614",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Generalized Deterministic-Random Tradeoff of Integrated Sensing and Communications",
+   "use_for_us": "데이터 심볼을 센싱에 쓸 때의 이론적 대가(A03 의 ICASSP 판).",
+   "caution": null
+  },
+  {
+   "id": "E08",
+   "config": "emission_based",
+   "grade": "B",
+   "bib": {
+    "dblp_key": "conf/icassp/XuHCJS21",
+    "title": "Adaptive RF Fingerprint Decomposition in Micro UAV Detection based on Machine Learning",
+    "authors": [
+     "Chengtao Xu",
+     "Fengyu He",
+     "Bowen Chen",
+     "Yushan Jiang",
+     "Houbing Song"
+    ],
+    "venue": "ICASSP",
+    "year": 2021,
+    "volume": null,
+    "number": null,
+    "pages": "7968-7972",
+    "doi": "10.1109/ICASSP39728.2021.9414985",
+    "url": "https://doi.org/10.1109/ICASSP39728.2021.9414985",
+    "dblp_type": "Conference and Workshop Papers"
+   },
+   "status": "PUBLISHED (per dblp record)",
+   "senses": "Adaptive RF Fingerprint Decomposition in Micro UAV Detection",
+   "use_for_us": "RF 지문 기반 마이크로 UAV 검출 — emission-based 부류의 ICASSP 사례.",
+   "caution": null
+  },
+  {
+   "id": "F01",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+    "pages": 5,
+    "term_counts": {
+     "monostatic": 22,
+     "bistatic": 41,
+     "RCS": 95,
+     "radar cross section": 1,
+     "micro-Doppler": 4,
+     "drone": 1,
+     "UAV": 1,
+     "SSB": 1,
+     "LTE": 2
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "F3 앵커: multiband monostatic AND bistatic AAV RCS 실측 (Das, IEEE WCL 2026, 15:3731-3735). ⭐ 우리 모노/바이 일반형 요구의 실측 앵커."
+  },
+  {
+   "id": "F02",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+    "pages": 15,
+    "term_counts": {
+     "monostatic": 8,
+     "mono-static": 3,
+     "bistatic": 3,
+     "ray tracing": 1,
+     "SBR": 1,
+     "physical optics": 1,
+     "RCS": 209,
+     "radar cross section": 4,
+     "UAV": 2
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "F4 앵커: 측정 적합 sigma = A(f) B1(phi) B2 (Zhang, IEEE JSAC 44:702, 2026), DJI M350 측정."
+  },
+  {
+   "id": "F03",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "Modeling_Micro-Doppler_Signature_of_Multi-Propeller_Drones_in_Distributed_ISAC.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modeling_Micro-Doppler_Signature_of_Multi-Propeller_Drones_in_Distributed_ISAC.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modeling_Micro-Doppler_Signature_of_Multi-Propeller_Drones_in_Distributed_ISAC.pdf",
+    "pages": 15,
+    "term_counts": {
+     "monostatic": 12,
+     "bistatic": 70,
+     "multistatic": 5,
+     "SBR": 1,
+     "physical optics": 1,
+     "RCS": 5,
+     "micro-Doppler": 81,
+     "drone": 75,
+     "UAV": 3,
+     "passive radar": 2,
+     "LTE": 3
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "F5 앵커(저널판): 해석적 thin-wire 블레이드 마이크로도플러 vs 바이스태틱 OFDM 실측, r=0.98 (Costa, IEEE JSTEAP)."
+  },
+  {
+   "id": "F04",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "Modelling_Micro-Doppler_Signature_of_Drone_Propellers_in_Distributed_ISAC.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modelling_Micro-Doppler_Signature_of_Drone_Propellers_in_Distributed_ISAC.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modelling_Micro-Doppler_Signature_of_Drone_Propellers_in_Distributed_ISAC.pdf",
+    "pages": 6,
+    "term_counts": {
+     "monostatic": 8,
+     "bistatic": 48,
+     "multistatic": 1,
+     "ray tracing": 1,
+     "RCS": 2,
+     "radar cross section": 1,
+     "micro-Doppler": 38,
+     "drone": 18,
+     "passive radar": 1
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "F5 회의판 — ⚠ 저널판과 반드시 구별 (E2)."
+  },
+  {
+   "id": "F05",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+    "pages": 5,
+    "term_counts": {
+     "monostatic": 1,
+     "mono-static": 7,
+     "RCS": 96,
+     "radar cross section": 1,
+     "micro-Doppler": 2,
+     "drone": 1,
+     "UAV": 62
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "F6 앵커: monostatic 3D UAV RCS 실측 (Yuan, EuCAP 2025)."
+  },
+  {
+   "id": "F06",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+    "pages": 6,
+    "term_counts": {
+     "monostatic": 1,
+     "bistatic": 2,
+     "Sionna": 18,
+     "ray tracing": 12,
+     "RCS": 2,
+     "micro-Doppler": 40,
+     "drone": 3,
+     "UAV": 29
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "F7 md-rt (IEEE ICCT 2025): **수정된** ray launcher(구면 아닌 원뿔 샘플링)를 쓴 Sionna, 프로펠러 재질 'Wood'; 주장은 스펙트로그램 ridge 위치뿐이고 동적 RCS 는 계산하지 않으며 rotor-only(airframe 없음). ⚠ 'Sionna stock' 이라고 쓰면 안 된다 (prior_settled_sionna S17/S19/S20)."
+  },
+  {
+   "id": "F07",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "2604.05991__ziganshin_curved-body-scattering.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pages": 11,
+    "term_counts": {
+     "bistatic": 10,
+     "multistatic": 2,
+     "Sionna": 10,
+     "ray tracing": 9,
+     "shooting and bouncing": 2,
+     "SBR": 3,
+     "physical optics": 1,
+     "RCS": 8,
+     "radar cross section": 3,
+     "micro-Doppler": 2,
+     "drone": 1
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "F8 Ziganshin **저널판 = arXiv:2604.05991v2 PREPRINT**. ⚠ 회의판만 게재됨. 두 판은 단위도 주장도 다르다 (E2)."
+  },
+  {
+   "id": "F08",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "pages": 5,
+    "term_counts": {
+     "bistatic": 2,
+     "multistatic": 1,
+     "Sionna": 2,
+     "ray tracing": 4,
+     "physical optics": 1,
+     "RCS": 6,
+     "micro-Doppler": 1,
+     "drone": 1,
+     "LTE": 2
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "F8 Ziganshin **회의판 = PUBLISHED**. 인용은 이쪽으로."
+  },
+  {
+   "id": "F09",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+    "pages": 36,
+    "term_counts": {
+     "monostatic": 10,
+     "bistatic": 16,
+     "multistatic": 12,
+     "Sionna": 13,
+     "ray tracing": 2,
+     "RCS": 9,
+     "radar cross section": 1,
+     "micro-Doppler": 2,
+     "UAV": 40,
+     "passive radar": 1,
+     "illuminator": 8,
+     "CFAR": 4,
+     "LTE": 77
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "F2 Clutter-Aware ISAC (Proc. IEEE 2026, 114(1)): Blender 로 단순화한 드론 메쉬를 Sionna XML 로 넣는 site-specific 사례 연구. ⚠ 'accepts stock Fresnel' 이라고 쓰지 말 것 — 논문은 표면 모델을 명시도 감사도 하지 않는다 (prior_settled_sionna S14). 41쪽, 'validat*' 0회."
+  },
+  {
+   "id": "F10",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf",
+    "pages": 13,
+    "term_counts": {
+     "monostatic": 7,
+     "mono-static": 4,
+     "ray tracing": 1,
+     "SBR": 1,
+     "physical optics": 1,
+     "RCS": 184,
+     "radar cross section": 4,
+     "UAV": 41,
+     "PRS": 1
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "DJI M350 측정 RCS(B류 앵커). F02 와 같은 계열의 다른 판본(13 p vs 15 p) — 반드시 구별."
+  },
+  {
+   "id": "F11",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "2604.09243__sagitta-sbr.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+    "pages": 14,
+    "term_counts": {
+     "monostatic": 12,
+     "bistatic": 1,
+     "ray tracing": 16,
+     "shooting and bouncing": 9,
+     "SBR": 32,
+     "physical optics": 5,
+     "RCS": 20,
+     "radar cross section": 4,
+     "LTE": 3
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "Sagitta SBR: A1 교차검증 후보(우리 SBR 구현의 외부 대조)."
+  },
+  {
+   "id": "F12",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "2607.03826__lambda-uav-dataset.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+    "pages": 20,
+    "term_counts": {
+     "Sionna": 9,
+     "ray tracing": 2,
+     "RCS": 12,
+     "drone": 4,
+     "UAV": 113
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "LAMBDA UAV dataset: CADFEKO 가 두 곳에서 명시된다 (prior_settled S26). 기계 계수 UAV 113회, RCS 12회."
+  },
+  {
+   "id": "F13",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "1911.05926__ezuma_compact-range-rcs-small-drones-15-25ghz.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/1911.05926__ezuma_compact-range-rcs-small-drones-15-25ghz.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/1911.05926__ezuma_compact-range-rcs-small-drones-15-25ghz.pdf",
+    "pages": 4,
+    "term_counts": {
+     "monostatic": 1,
+     "bistatic": 2,
+     "RCS": 92,
+     "radar cross section": 1,
+     "drone": 83,
+     "UAV": 4,
+     "LTE": 1
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "Ezuma: compact-range 소형 드론 RCS 실측 15-25 GHz — 절대 sigma 앵커 후보."
+  },
+  {
+   "id": "F14",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "2112.09774__semkin_comparative-rcs-uav-classification.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2112.09774__semkin_comparative-rcs-uav-classification.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2112.09774__semkin_comparative-rcs-uav-classification.pdf",
+    "pages": 16,
+    "term_counts": {
+     "monostatic": 1,
+     "RCS": 180,
+     "radar cross section": 4,
+     "micro-Doppler": 12,
+     "drone": 14,
+     "UAV": 202,
+     "CFAR": 1
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "Semkin: UAV RCS 비교 실측 + 분류 — 절대 sigma 앵커 후보."
+  },
+  {
+   "id": "F15",
+   "config": "RCS_ANCHOR",
+   "grade": "P",
+   "bib": {
+    "archive_basename": "2511.07586__monte-carlo-sbr-farfield-scattering.pdf",
+    "note": "identity already adjudicated in outputs/prior_settled_*.json / outputs/monostatic_prior.json / outputs/prior_work_claims.json -- deliberately NOT re-litigated in this sweep"
+   },
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2511.07586__monte-carlo-sbr-farfield-scattering.pdf",
+   "scan": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2511.07586__monte-carlo-sbr-farfield-scattering.pdf",
+    "pages": 14,
+    "term_counts": {
+     "monostatic": 1,
+     "ray tracing": 4,
+     "shooting and bouncing": 8,
+     "SBR": 55,
+     "physical optics": 3,
+     "RCS": 6,
+     "radar cross section": 1,
+     "LTE": 2
+    }
+   },
+   "status": "see the settled JSONs for version/venue adjudication",
+   "use_for_us": "Monte-Carlo SBR far-field scattering — 우리 SBR 샘플링 규약의 방법론 대조."
+  }
+ ],
+ "counts": {
+  "entries_total": 81,
+  "by_config": {
+   "A_active_monostatic": 25,
+   "B_passive_quasi_monostatic": 4,
+   "C_passive_bistatic": 28,
+   "emission_based": 3,
+   "fusion_radar_vision": 1,
+   "event_camera": 2,
+   "SIM": 3,
+   "RCS_ANCHOR": 15
+  },
+  "by_grade": {
+   "P": 41,
+   "B": 35,
+   "S": 4,
+   "U": 1
+  },
+  "entries_with_pdf_on_disk": 41,
+  "entries_with_verbatim_quote": 8
+ },
+ "sionna_corpus": {
+  "what": "우리 아카이브에서 본문에 'Sionna' 가 등장하는 모든 PDF 의 기계 census. 이 목록 자체가 'Sionna 시뮬레이션 논문' 레퍼런스 풀이다.",
+  "archive_roots": [
+   "/data/public/sionna_jeong/papers_isac_sionna",
+   "/data/public/sionna_jeong/papers_isac_sionna/new_0731",
+   "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723",
+   "/data/public/sionna_jeong/sionna_papers_by_task"
+  ],
+  "pdfs_scanned": 199,
+  "pdfs_mentioning_sionna": 143,
+  "primary_docs": {
+   "founding_paper": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__sionna-rt-founding.pdf (arXiv:2303.11103v2, 19 Jul 2023, 5 p) -- describes v0.14; cite only for provenance",
+   "technical_report": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf -- ⚠ the filename says v1 but the contents are arXiv v2 / document Version 1.2 (2025-11-24), 59 p. Cite THIS for solver behaviour (our stack is Sionna 2.0.1).",
+   "library_paper": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2203.11854__sionna-library-founding.pdf",
+   "settled_facts": "Technical report: 'SBR' 45 hits in this scan -> Sionna DOES shoot and bounce rays. 'physical optics' 0, 'induced current' 0, 'RCS' 0, 'dBsm' 0 -> no surface-current integral and no RCS output. Four interaction types only: {R, S, T, D}. Source: outputs/prior_settled_sionna.json S03-S06.",
+   "claim_scope": "'Sionna has no SBR' is FALSE. The true statement is 'the stock Sionna path solver contains no physical-optics surface-current integral and emits no RCS'."
+  },
+  "rows": [
+   {
+    "basename": "2504.21719__sionna-rt-technical-report-v1.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "pages": 59,
+    "arxiv_stamp": "arXiv:2504.21719v2  [cs.IT]  21 Nov 2025",
+    "sionna": 113,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 45,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2412.20524__ns3-meets-sionna.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2412.20524__ns3-meets-sionna.pdf",
+    "pages": 9,
+    "arxiv_stamp": null,
+    "sionna": 112,
+    "uav": 1,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2203.11854__sionna-library-founding.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2203.11854__sionna-library-founding.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 50,
+    "uav": 2,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "Sionna RT 드론 ISAC 연구.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Sionna RT 드론 ISAC 연구.pdf",
+    "pages": 10,
+    "arxiv_stamp": null,
+    "sionna": 43,
+    "uav": 28,
+    "drone": 2,
+    "rcs": 11,
+    "sbr": 1,
+    "physical_optics": 0,
+    "monostatic": 2,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 2,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2303.11103__sionna-rt-founding.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__sionna-rt-founding.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 37,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2607.11429__tarazonalevano-setgan-multipath.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2607.11429__tarazonalevano-setgan-multipath.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 30,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2503.12177__open-wireless-dt-oai-sionna-rt.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2503.12177__open-wireless-dt-oai-sionna-rt.pdf",
+    "pages": 14,
+    "arxiv_stamp": null,
+    "sionna": 30,
+    "uav": 1,
+    "drone": 0,
+    "rcs": 1,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2312.14303__geo2sigmap-rf-signal-mapping.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2312.14303__geo2sigmap-rf-signal-mapping.pdf",
+    "pages": 9,
+    "arxiv_stamp": null,
+    "sionna": 29,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.29772__ariadne-airan-link-adaptation-dt.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2605.29772__ariadne-airan-link-adaptation-dt.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 29,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2511.03220__multimodal-wireless.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2511.03220__multimodal-wireless.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 28,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2603.14661__barker-atlasran-timing-5g-eval.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2603.14661__barker-atlasran-timing-5g-eval.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 28,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2505.14184__pegurri-van3twin-v2x-digital-twin.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2505.14184__pegurri-van3twin-v2x-digital-twin.pdf",
+    "pages": 16,
+    "arxiv_stamp": null,
+    "sionna": 28,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 1,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2511.05522__airmap-ai-radio-maps-dt.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2511.05522__airmap-ai-radio-maps-dt.pdf",
+    "pages": 15,
+    "arxiv_stamp": null,
+    "sionna": 28,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.02149__marl-prb-power-allocation-5g.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2605.02149__marl-prb-power-allocation-5g.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 28,
+    "uav": 0,
+    "drone": 2,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.10352__sionna-rt-kpi-deviations-oai-testbed.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2605.10352__sionna-rt-kpi-deviations-oai-testbed.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 25,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2504.09849__ckmimagenet-channel-knowledge-map.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2504.09849__ckmimagenet-channel-knowledge-map.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 25,
+    "uav": 1,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2508.04004__ropitault-sitespecific-cellular-ns3.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2508.04004__ropitault-sitespecific-cellular-ns3.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 24,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2607.03411__s-icdf.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.03411__s-icdf.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 23,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2507.19173__cazzella-hifi-rf-mapping-6g-dt.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2507.19173__cazzella-hifi-rf-mapping-6g-dt.pdf",
+    "pages": 31,
+    "arxiv_stamp": "arXiv:2507.19173v1  [eess.SP]  25 Jul 2025",
+    "sionna": 22,
+    "uav": 0,
+    "drone": 1,
+    "rcs": 0,
+    "sbr": 3,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2501.00372__pegurri-sionna-rt-ns3-digital-twin.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2501.00372__pegurri-sionna-rt-ns3-digital-twin.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 21,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2301.03201__safehaul-mmwave-selfbackhaul.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2301.03201__safehaul-mmwave-selfbackhaul.pdf",
+    "pages": 10,
+    "arxiv_stamp": null,
+    "sionna": 21,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2604.17929__karakelle-rt-digital-twin-ris-phase.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2604.17929__karakelle-rt-digital-twin-ris-phase.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 21,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2507.19653__manukyan-rt-limitations-urban.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2507.19653__manukyan-rt-limitations-urban.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 20,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2601.20795__iudice-stacked-intelligent-metasurfaces-sdr.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2601.20795__iudice-stacked-intelligent-metasurfaces-sdr.pdf",
+    "pages": 8,
+    "arxiv_stamp": null,
+    "sionna": 20,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2601.03216__zhang-onetwin-online-digital-network-twin.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2601.03216__zhang-onetwin-online-digital-network-twin.pdf",
+    "pages": 10,
+    "arxiv_stamp": null,
+    "sionna": 19,
+    "uav": 4,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2501.05817__guneser-ris-optimization-sionna-rt.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2501.05817__guneser-ris-optimization-sionna-rt.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 19,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 18,
+    "uav": 29,
+    "drone": 3,
+    "rcs": 2,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 1,
+    "bistatic": 2,
+    "multistatic": 0,
+    "micro_doppler": 40,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2411.12284__amatare-dt-radar-robot-navigation.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2411.12284__amatare-dt-radar-robot-navigation.pdf",
+    "pages": 15,
+    "arxiv_stamp": null,
+    "sionna": 17,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2407.15473__pyjama-differentiable-jamming.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/security_jamming/2407.15473__pyjama-differentiable-jamming.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 17,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2607.11743__deeprt-engine-sbr-im-hybrid.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2607.11743__deeprt-engine-sbr-im-hybrid.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 16,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 1,
+    "sbr": 37,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2606.01261__yao-rfdt-channel-rgb-lidar-28ghz.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2606.01261__yao-rfdt-channel-rgb-lidar-28ghz.pdf",
+    "pages": 9,
+    "arxiv_stamp": null,
+    "sionna": 16,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2403.12289__bostontwin.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2403.12289__bostontwin.pdf",
+    "pages": 7,
+    "arxiv_stamp": "arXiv:2403.12289v1  [cs.NI]  18 Mar 2024",
+    "sionna": 15,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2507.08716__great-x_unreal-isac.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2507.08716__great-x_unreal-isac.pdf",
+    "pages": 6,
+    "arxiv_stamp": "arXiv:2507.08716v3  [cs.CV]  26 Jul 2025",
+    "sionna": 15,
+    "uav": 11,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2401.03310__caviar-digital-twin.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+    "pages": 14,
+    "arxiv_stamp": null,
+    "sionna": 14,
+    "uav": 43,
+    "drone": 7,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2603.15093__mao-beam-prediction-mllm.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/beamforming_precoding/2603.15093__mao-beam-prediction-mllm.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 14,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 1,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2502.10324__lee-coverage-channelrank-prediction.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2502.10324__lee-coverage-channelrank-prediction.pdf",
+    "pages": 19,
+    "arxiv_stamp": null,
+    "sionna": 14,
+    "uav": 143,
+    "drone": 3,
+    "rcs": 1,
+    "sbr": 2,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2606.04770__qiao-wiser-wireless-scene-encoder.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2606.04770__qiao-wiser-wireless-scene-encoder.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 14,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2604.14869__schepens-subthz-radiostripe-simulator.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2604.14869__schepens-subthz-radiostripe-simulator.pdf",
+    "pages": 8,
+    "arxiv_stamp": null,
+    "sionna": 14,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2509.21118__wang-neural-isac-mimo-ofdm.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/isac_sensing_radar/2509.21118__wang-neural-isac-mimo-ofdm.pdf",
+    "pages": 18,
+    "arxiv_stamp": null,
+    "sionna": 14,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 1,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.16547__wang-world-model-causal-dt-semantic.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/semantic_goaloriented_comms/2605.16547__wang-world-model-causal-dt-semantic.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 14,
+    "uav": 22,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+    "pages": 36,
+    "arxiv_stamp": null,
+    "sionna": 13,
+    "uav": 40,
+    "drone": 0,
+    "rcs": 10,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 10,
+    "bistatic": 16,
+    "multistatic": 12,
+    "micro_doppler": 2,
+    "passive_radar": 1
+   },
+   {
+    "basename": "Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf",
+    "pages": 41,
+    "arxiv_stamp": null,
+    "sionna": 13,
+    "uav": 35,
+    "drone": 0,
+    "rcs": 10,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 11,
+    "bistatic": 16,
+    "multistatic": 12,
+    "micro_doppler": 1,
+    "passive_radar": 2
+   },
+   {
+    "basename": "2312.02239__yassine-mbdl-beam-prediction-cc.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/beamforming_precoding/2312.02239__yassine-mbdl-beam-prediction-cc.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 13,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2602.04652__barker-gpu-accel-5g-linklevel.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2602.04652__barker-gpu-accel-5g-linklevel.pdf",
+    "pages": 7,
+    "arxiv_stamp": null,
+    "sionna": 13,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2606.12293__mefgouda-llm-dt-network-intelligence.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2606.12293__mefgouda-llm-dt-network-intelligence.pdf",
+    "pages": 17,
+    "arxiv_stamp": null,
+    "sionna": 13,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2606.14114__dt-channel-gen-toolchain-xlmimo.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2606.14114__dt-channel-gen-toolchain-xlmimo.pdf",
+    "pages": 16,
+    "arxiv_stamp": null,
+    "sionna": 13,
+    "uav": 33,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.13309__simart.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2605.13309__simart.pdf",
+    "pages": 7,
+    "arxiv_stamp": null,
+    "sionna": 12,
+    "uav": 17,
+    "drone": 1,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2501.14102__hernandez-5g-ldpc-linear-transformer.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_coding_decoding/2501.14102__hernandez-5g-ldpc-linear-transformer.pdf",
+    "pages": 8,
+    "arxiv_stamp": "arXiv:2501.14102v1  [cs.LG]  23 Jan 2025",
+    "sionna": 12,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2601.18242__kang_vlm-material-estimation.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2601.18242__kang_vlm-material-estimation.pdf",
+    "pages": 11,
+    "arxiv_stamp": null,
+    "sionna": 11,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2512.12449__morais-stochastic-vs-raytracing-datasets.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2512.12449__morais-stochastic-vs-raytracing-datasets.pdf",
+    "pages": 8,
+    "arxiv_stamp": null,
+    "sionna": 11,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2603.00795__sari-titan-twin-topology-lawn.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2603.00795__sari-titan-twin-topology-lawn.pdf",
+    "pages": 12,
+    "arxiv_stamp": null,
+    "sionna": 11,
+    "uav": 81,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2604.12888__stenhammar-network-dt-framework.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2604.12888__stenhammar-network-dt-framework.pdf",
+    "pages": 7,
+    "arxiv_stamp": null,
+    "sionna": 11,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2505.15848__sionna-research-kit-airan.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2505.15848__sionna-research-kit-airan.pdf",
+    "pages": 2,
+    "arxiv_stamp": "arXiv:2505.15848v1  [cs.NI]  19 May 2025",
+    "sionna": 11,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pages": 11,
+    "arxiv_stamp": null,
+    "sionna": 10,
+    "uav": 0,
+    "drone": 1,
+    "rcs": 11,
+    "sbr": 3,
+    "physical_optics": 1,
+    "monostatic": 0,
+    "bistatic": 10,
+    "multistatic": 2,
+    "micro_doppler": 2,
+    "passive_radar": 0
+   },
+   {
+    "basename": "Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications .pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications .pdf",
+    "pages": 11,
+    "arxiv_stamp": null,
+    "sionna": 10,
+    "uav": 0,
+    "drone": 1,
+    "rcs": 11,
+    "sbr": 3,
+    "physical_optics": 1,
+    "monostatic": 0,
+    "bistatic": 10,
+    "multistatic": 2,
+    "micro_doppler": 2,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2606.25714__jiang-csi-clip-channel-foundation-model.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2606.25714__jiang-csi-clip-channel-foundation-model.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 10,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 2,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2510.17342__ceresoli-aoa-services-5g.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/positioning_localization/2510.17342__ceresoli-aoa-services-5g.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 10,
+    "uav": 0,
+    "drone": 1,
+    "rcs": 2,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2507.08611__beyraghi-reconfig-intelligent-base-stations.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2507.08611__beyraghi-reconfig-intelligent-base-stations.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 10,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2510.10190__beyraghi-datadriven-ris-deployment.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2510.10190__beyraghi-datadriven-ris-deployment.pdf",
+    "pages": 14,
+    "arxiv_stamp": null,
+    "sionna": 10,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2607.03826__lambda-uav-dataset.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+    "pages": 20,
+    "arxiv_stamp": "arXiv:2607.03826v1  [eess.SP]  4 Jul 2026",
+    "sionna": 9,
+    "uav": 113,
+    "drone": 4,
+    "rcs": 12,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2607.04400__saribekyan_sim2real-positioning.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.04400__saribekyan_sim2real-positioning.pdf",
+    "pages": 8,
+    "arxiv_stamp": null,
+    "sionna": 9,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2501.06945__tadik-opengert-geometry-extraction.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2501.06945__tadik-opengert-geometry-extraction.pdf",
+    "pages": 9,
+    "arxiv_stamp": null,
+    "sionna": 9,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2312.11245__wisegrt-indoor-propagation-dataset.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2312.11245__wisegrt-indoor-propagation-dataset.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 9,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2603.16126__luo-wireless-dt-calibration-dft.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2603.16126__luo-wireless-dt-calibration-dft.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 9,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.21897__makvandi-adaptwin-multifidelity-dt.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2605.21897__makvandi-adaptwin-multifidelity-dt.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 8,
+    "uav": 1,
+    "drone": 1,
+    "rcs": 0,
+    "sbr": 2,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2607.08141__ali-genai-dt-interference-mgmt.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2607.08141__ali-genai-dt-interference-mgmt.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 8,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 2,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2212.07816__duidd-mimo-detection-decoding.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2212.07816__duidd-mimo-detection-decoding.pdf",
+    "pages": 8,
+    "arxiv_stamp": null,
+    "sionna": 8,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2508.12204__belgiovine-atlas-ainative-receiver-tnm.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2508.12204__belgiovine-atlas-ainative-receiver-tnm.pdf",
+    "pages": 7,
+    "arxiv_stamp": null,
+    "sionna": 8,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2507.11064__ryu-dmrs-allocation-temporal-channel-prediction.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_estimation/2507.11064__ryu-dmrs-allocation-temporal-channel-prediction.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 7,
+    "uav": 1,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2508.14507__deeptelecom-digital-twin-dataset.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2508.14507__deeptelecom-digital-twin-dataset.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 7,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.08772__zhou-fidelity-site-specific-dt.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2605.08772__zhou-fidelity-site-specific-dt.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 7,
+    "uav": 1,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2503.04860__hieu-human-pose-6g-xr.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/other/2503.04860__hieu-human-pose-6g-xr.pdf",
+    "pages": 12,
+    "arxiv_stamp": null,
+    "sionna": 7,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2409.17738__shabanpour-physically-consistent-ris.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2409.17738__shabanpour-physically-consistent-ris.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 7,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.12569__khan_active-sensing-metarl.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2605.12569__khan_active-sensing-metarl.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 6,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2504.05035__chege-position-aided-beam-selection.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/beamforming_precoding/2504.05035__chege-position-aided-beam-selection.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 6,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2604.13500__aboushehada-autoencoder-csi-compression-wifi8.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/beamforming_precoding/2604.13500__aboushehada-autoencoder-csi-compression-wifi8.pdf",
+    "pages": 7,
+    "arxiv_stamp": null,
+    "sionna": 6,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2512.04966__liang-env-aware-channel-inference-crossmodal.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2512.04966__liang-env-aware-channel-inference-crossmodal.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 6,
+    "uav": 1,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2607.13692__giovannini-proactive-urllc-vehicles.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2607.13692__giovannini-proactive-urllc-vehicles.pdf",
+    "pages": 7,
+    "arxiv_stamp": null,
+    "sionna": 6,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2503.20500__karakoca-neural-ofdm-llr.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2503.20500__karakoca-neural-ofdm-llr.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 6,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2508.06275__yellapragada-ptq-neural-receiver.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2508.06275__yellapragada-ptq-neural-receiver.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 6,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.07623__lowalt-cooperative-cube-csi.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 5,
+    "uav": 134,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 3,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2504.00825__benzaghta-datadriven-opt-transfer-cellular.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/beamforming_precoding/2504.00825__benzaghta-datadriven-opt-transfer-cellular.pdf",
+    "pages": 6,
+    "arxiv_stamp": "arXiv:2504.00825v1  [cs.IT]  1 Apr 2025",
+    "sionna": 5,
+    "uav": 31,
+    "drone": 1,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2604.09039__zhou-diffusion-inpainting-mimo-ofdm.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_estimation/2604.09039__zhou-diffusion-inpainting-mimo-ofdm.pdf",
+    "pages": 14,
+    "arxiv_stamp": null,
+    "sionna": 5,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2510.05784__wiesmayr-salad-selfadaptive-link-adaptation.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2510.05784__wiesmayr-salad-selfadaptive-link-adaptation.pdf",
+    "pages": 12,
+    "arxiv_stamp": null,
+    "sionna": 5,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2210.14103__wiesmayr-ber-bler-training-ml.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2210.14103__wiesmayr-ber-bler-training-ml.pdf",
+    "pages": 8,
+    "arxiv_stamp": null,
+    "sionna": 5,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2312.02601__cammerer-neural-receiver-5g-mumimo.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2312.02601__cammerer-neural-receiver-5g-mumimo.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 5,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2409.02912__wiesmayr-realtime-neural-receiver-5gnr.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2409.02912__wiesmayr-realtime-neural-receiver-5gnr.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 5,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2402.11656__lee-llm-physical-layer-comm.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/other/2402.11656__lee-llm-physical-layer-comm.pdf",
+    "pages": 13,
+    "arxiv_stamp": "arXiv:2402.11656v2  [cs.IT]  28 Jun 2024",
+    "sionna": 5,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2509.01197__xu-fingerprint-positioning-imperfections.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/positioning_localization/2509.01197__xu-fingerprint-positioning-imperfections.pdf",
+    "pages": 7,
+    "arxiv_stamp": null,
+    "sionna": 5,
+    "uav": 2,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2510.09478__beyraghi-site-specific-ris-deployment.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2510.09478__beyraghi-site-specific-ris-deployment.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 5,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2606.02102__schosser-spectrum-anomaly-ofdma-dataset.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/security_jamming/2606.02102__schosser-spectrum-anomaly-ofdma-dataset.pdf",
+    "pages": 12,
+    "arxiv_stamp": null,
+    "sionna": 5,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2311.18558__hoydis_learning-radio-env.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2311.18558__hoydis_learning-radio-env.pdf",
+    "pages": 11,
+    "arxiv_stamp": null,
+    "sionna": 4,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 2,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2501.17881__rayloc.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2501.17881__rayloc.pdf",
+    "pages": 14,
+    "arxiv_stamp": null,
+    "sionna": 4,
+    "uav": 1,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 5,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2601.03535__openisac.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2601.03535__openisac.pdf",
+    "pages": 16,
+    "arxiv_stamp": null,
+    "sionna": 4,
+    "uav": 7,
+    "drone": 2,
+    "rcs": 4,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 29,
+    "bistatic": 52,
+    "multistatic": 1,
+    "micro_doppler": 21,
+    "passive_radar": 0
+   },
+   {
+    "basename": "Learning_Radio_Environments_by_Differentiable_Ray_.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Learning_Radio_Environments_by_Differentiable_Ray_.pdf",
+    "pages": 12,
+    "arxiv_stamp": null,
+    "sionna": 4,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 2,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2505.16132__wang-codebook-aware-ckm.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/beamforming_precoding/2505.16132__wang-codebook-aware-ckm.pdf",
+    "pages": 6,
+    "arxiv_stamp": "arXiv:2505.16132v1  [eess.SP]  22 May 2025",
+    "sionna": 4,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.26928__lu-nf-trackllm-uav-beam.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/beamforming_precoding/2605.26928__lu-nf-trackllm-uav-beam.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 4,
+    "uav": 21,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2511.07789__zhu-invehicular-channel-dt.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2511.07789__zhu-invehicular-channel-dt.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 4,
+    "uav": 2,
+    "drone": 1,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 1,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2604.19599__pan-active-inference-agentic-isac.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/isac_sensing_radar/2604.19599__pan-active-inference-agentic-isac.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 4,
+    "uav": 4,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2303.14637__wang-ntscc-improved-nonlinear-transform.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/jscc_source_channel_coding/2303.14637__wang-ntscc-improved-nonlinear-transform.pdf",
+    "pages": 16,
+    "arxiv_stamp": null,
+    "sionna": 4,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2601.15557__jia-distributed-uplink-antijamming-leo.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/security_jamming/2601.15557__jia-distributed-uplink-antijamming-leo.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 4,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2502.10371__cissir.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2502.10371__cissir.pdf",
+    "pages": 15,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 1,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 4,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2606.07900__cellsense.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2606.07900__cellsense.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 2,
+    "multistatic": 1,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2603.28736__deterministic-modeling-isac-dt.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/deck_teammeeting_0721/2603.28736__deterministic-modeling-isac-dt.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 13,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "Deterministic Modeling of Dynamic ISAC Channels in RF Digital Twin Environments.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Deterministic Modeling of Dynamic ISAC Channels in RF Digital Twin Environments.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 13,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2606.20098__beyraghi-sitespecific-mimo-diffusion-flow.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2606.20098__beyraghi-sitespecific-mimo-diffusion-flow.pdf",
+    "pages": 12,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 1,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2607.09334__delmoro-site-geometry-calibration-dt-ce.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2607.09334__delmoro-site-geometry-calibration-dt-ce.pdf",
+    "pages": 16,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 2,
+    "sbr": 2,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2505.21249__benzaghta-cellular-mobility-bayesian-opt.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2505.21249__benzaghta-cellular-mobility-bayesian-opt.pdf",
+    "pages": 15,
+    "arxiv_stamp": "arXiv:2505.21249v1  [cs.IT]  27 May 2025",
+    "sionna": 3,
+    "uav": 34,
+    "drone": 4,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2408.16401__uyoata-transfer-learning-fcn-receiver.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2408.16401__uyoata-transfer-learning-fcn-receiver.pdf",
+    "pages": 7,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2409.16768__tuononen-interpreting-nrx-snr.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2409.16768__tuononen-interpreting-nrx-snr.pdf",
+    "pages": 8,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2509.13786__yellapragada-quant-aware-nrx.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2509.13786__yellapragada-quant-aware-nrx.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2510.12941__yellapragada-axial-selfattn-nrx.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2510.12941__yellapragada-axial-selfattn-nrx.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2607.12555__zheng-fm-receiver-foundation-model.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2607.12555__zheng-fm-receiver-foundation-model.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2205.10805__aitaoudia-dl-sync-nbiot.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/other/2205.10805__aitaoudia-dl-sync-nbiot.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2503.06376__pradhan-ota-federated-learning-demo.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/over_the_air_computation/2503.06376__pradhan-ota-federated-learning-demo.pdf",
+    "pages": 7,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2505.15478__zhu-realtime-los-identification-dt.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/positioning_localization/2505.15478__zhu-realtime-los-identification-dt.pdf",
+    "pages": 6,
+    "arxiv_stamp": "arXiv:2505.15478v1  [eess.SP]  21 May 2025",
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2606.01899__pan-ra-lwlm-retrieval-localization.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/positioning_localization/2606.01899__pan-ra-lwlm-retrieval-localization.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2603.13094__amorosa-goaloriented-edge-gnn.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/semantic_goaloriented_comms/2603.13094__amorosa-goaloriented-edge-gnn.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.19397__huang-perception-aware-video-semantic.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/semantic_goaloriented_comms/2605.19397__huang-perception-aware-video-semantic.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 3,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2604.08306__temporal-gnn-isac.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.08306__temporal-gnn-isac.pdf",
+    "pages": 4,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 1,
+    "drone": 0,
+    "rcs": 5,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 1,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 1
+   },
+   {
+    "basename": "2607.17655__dmsnet-crossband-multiband-isac.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.17655__dmsnet-crossband-multiband-isac.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 4,
+    "drone": 0,
+    "rcs": 3,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.31267__effective-roughness-diffuse-scattering-polarimetric.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2605.31267__effective-roughness-diffuse-scattering-polarimetric.pdf",
+    "pages": 14,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 1,
+    "drone": 0,
+    "rcs": 2,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 5,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 1,
+    "rcs": 6,
+    "sbr": 0,
+    "physical_optics": 1,
+    "monostatic": 0,
+    "bistatic": 2,
+    "multistatic": 1,
+    "micro_doppler": 1,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2403.03053__dreifuerst-neural-codebook-beam-mgmt.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/beamforming_precoding/2403.03053__dreifuerst-neural-codebook-beam-mgmt.pdf",
+    "pages": 33,
+    "arxiv_stamp": "arXiv:2403.03053v1  [eess.SP]  5 Mar 2024",
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 6,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2207.14742__cammerer-gnn-channel-decoding.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_coding_decoding/2207.14742__cammerer-gnn-channel-decoding.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2607.15127__abdollahpour-leo-ntn-ce.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_estimation/2607.15127__abdollahpour-leo-ntn-ce.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2312.05158__korpi-pilotless-spatial-multiplexing.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/e2e_autoencoder_waveform/2312.05158__korpi-pilotless-spatial-multiplexing.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2501.15935__kanazawa-superimposed-pilot-otfs.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/e2e_autoencoder_waveform/2501.15935__kanazawa-superimposed-pilot-otfs.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2506.17530__ankireddy-deep-ofdm-neural-modulation.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/e2e_autoencoder_waveform/2506.17530__ankireddy-deep-ofdm-neural-modulation.pdf",
+    "pages": 16,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2506.20248__rezaie-superimposed-dmrs-6g-uplink.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/e2e_autoencoder_waveform/2506.20248__rezaie-superimposed-dmrs-6g-uplink.pdf",
+    "pages": 13,
+    "arxiv_stamp": "arXiv:2506.20248v1  [eess.SP]  25 Jun 2025",
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2510.25416__cheng-adaptive-e2e-transceiver-pilot.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/e2e_autoencoder_waveform/2510.25416__cheng-adaptive-e2e-transceiver-pilot.pdf",
+    "pages": 15,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.29995__li-lowoverhead-superimposed-pilot-rx.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/e2e_autoencoder_waveform/2605.29995__li-lowoverhead-superimposed-pilot-rx.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2408.01145__saleem-transrx-6g-v2x.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2408.01145__saleem-transrx-6g-v2x.pdf",
+    "pages": 7,
+    "arxiv_stamp": "arXiv:2408.01145v1  [eess.SP]  2 Aug 2024",
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2508.12892__abdollahpour-model-driven-5g-edge.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2508.12892__abdollahpour-model-driven-5g-edge.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2509.18574__obeed-hybrid-neural-traditional-ofdm.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2509.18574__obeed-hybrid-neural-traditional-ofdm.pdf",
+    "pages": 7,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2512.05246__gupta-neuromorphicrx-spiking.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2512.05246__gupta-neuromorphicrx-spiking.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2602.11834__honkala-eqdeeprx-scalable-mimo.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2602.11834__honkala-eqdeeprx-scalable-mimo.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2602.20361__obeed-continual-learning-neural-ofdm-dmrs.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/neural_receiver_demapping/2602.20361__obeed-continual-learning-neural-ofdm-dmrs.pdf",
+    "pages": 8,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2508.02856__secure-mmwave-bf-beam-stealing.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/security_jamming/2508.02856__secure-mmwave-bf-beam-stealing.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2501.12988__ribouh-llm-semantic-comm.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/semantic_goaloriented_comms/2501.12988__ribouh-llm-semantic-comm.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2511.02478__xie-video-semantic-decoupled-diffusion.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/semantic_goaloriented_comms/2511.02478__xie-video-semantic-decoupled-diffusion.pdf",
+    "pages": 15,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.14940__shaju-importance-aware-constellation.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/semantic_goaloriented_comms/2605.14940__shaju-importance-aware-constellation.pdf",
+    "pages": 7,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2606.31426__ribouh-joint-taskoriented-generative-semantic.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/semantic_goaloriented_comms/2606.31426__ribouh-joint-taskoriented-generative-semantic.pdf",
+    "pages": 11,
+    "arxiv_stamp": null,
+    "sionna": 2,
+    "uav": 0,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   }
+  ]
+ },
+ "intersection_sionna_and_drone_isac": {
+  "rule": "본문에 Sionna >= 2회 AND (UAV + drone) >= 5회. ⭐ 사용자가 가장 값지다고 한 교집합.",
+  "count": 17,
+  "rows": [
+   {
+    "basename": "2502.10324__lee-coverage-channelrank-prediction.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2502.10324__lee-coverage-channelrank-prediction.pdf",
+    "pages": 19,
+    "arxiv_stamp": null,
+    "sionna": 14,
+    "uav": 143,
+    "drone": 3,
+    "rcs": 1,
+    "sbr": 2,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.07623__lowalt-cooperative-cube-csi.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 5,
+    "uav": 134,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 3,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2607.03826__lambda-uav-dataset.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+    "pages": 20,
+    "arxiv_stamp": "arXiv:2607.03826v1  [eess.SP]  4 Jul 2026",
+    "sionna": 9,
+    "uav": 113,
+    "drone": 4,
+    "rcs": 12,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2603.00795__sari-titan-twin-topology-lawn.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2603.00795__sari-titan-twin-topology-lawn.pdf",
+    "pages": 12,
+    "arxiv_stamp": null,
+    "sionna": 11,
+    "uav": 81,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2401.03310__caviar-digital-twin.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+    "pages": 14,
+    "arxiv_stamp": null,
+    "sionna": 14,
+    "uav": 43,
+    "drone": 7,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+    "pages": 36,
+    "arxiv_stamp": null,
+    "sionna": 13,
+    "uav": 40,
+    "drone": 0,
+    "rcs": 10,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 10,
+    "bistatic": 16,
+    "multistatic": 12,
+    "micro_doppler": 2,
+    "passive_radar": 1
+   },
+   {
+    "basename": "2505.21249__benzaghta-cellular-mobility-bayesian-opt.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2505.21249__benzaghta-cellular-mobility-bayesian-opt.pdf",
+    "pages": 15,
+    "arxiv_stamp": "arXiv:2505.21249v1  [cs.IT]  27 May 2025",
+    "sionna": 3,
+    "uav": 34,
+    "drone": 4,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf",
+    "pages": 41,
+    "arxiv_stamp": null,
+    "sionna": 13,
+    "uav": 35,
+    "drone": 0,
+    "rcs": 10,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 11,
+    "bistatic": 16,
+    "multistatic": 12,
+    "micro_doppler": 1,
+    "passive_radar": 2
+   },
+   {
+    "basename": "2606.14114__dt-channel-gen-toolchain-xlmimo.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2606.14114__dt-channel-gen-toolchain-xlmimo.pdf",
+    "pages": 16,
+    "arxiv_stamp": null,
+    "sionna": 13,
+    "uav": 33,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+    "pages": 6,
+    "arxiv_stamp": null,
+    "sionna": 18,
+    "uav": 29,
+    "drone": 3,
+    "rcs": 2,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 1,
+    "bistatic": 2,
+    "multistatic": 0,
+    "micro_doppler": 40,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2504.00825__benzaghta-datadriven-opt-transfer-cellular.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/beamforming_precoding/2504.00825__benzaghta-datadriven-opt-transfer-cellular.pdf",
+    "pages": 6,
+    "arxiv_stamp": "arXiv:2504.00825v1  [cs.IT]  1 Apr 2025",
+    "sionna": 5,
+    "uav": 31,
+    "drone": 1,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "Sionna RT 드론 ISAC 연구.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Sionna RT 드론 ISAC 연구.pdf",
+    "pages": 10,
+    "arxiv_stamp": null,
+    "sionna": 43,
+    "uav": 28,
+    "drone": 2,
+    "rcs": 11,
+    "sbr": 1,
+    "physical_optics": 0,
+    "monostatic": 2,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 2,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.16547__wang-world-model-causal-dt-semantic.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/semantic_goaloriented_comms/2605.16547__wang-world-model-causal-dt-semantic.pdf",
+    "pages": 13,
+    "arxiv_stamp": null,
+    "sionna": 14,
+    "uav": 22,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.26928__lu-nf-trackllm-uav-beam.pdf",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/beamforming_precoding/2605.26928__lu-nf-trackllm-uav-beam.pdf",
+    "pages": 5,
+    "arxiv_stamp": null,
+    "sionna": 4,
+    "uav": 21,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2605.13309__simart.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2605.13309__simart.pdf",
+    "pages": 7,
+    "arxiv_stamp": null,
+    "sionna": 12,
+    "uav": 17,
+    "drone": 1,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2507.08716__great-x_unreal-isac.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2507.08716__great-x_unreal-isac.pdf",
+    "pages": 6,
+    "arxiv_stamp": "arXiv:2507.08716v3  [cs.CV]  26 Jul 2025",
+    "sionna": 15,
+    "uav": 11,
+    "drone": 0,
+    "rcs": 0,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "multistatic": 0,
+    "micro_doppler": 0,
+    "passive_radar": 0
+   },
+   {
+    "basename": "2601.03535__openisac.pdf",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2601.03535__openisac.pdf",
+    "pages": 16,
+    "arxiv_stamp": null,
+    "sionna": 4,
+    "uav": 7,
+    "drone": 2,
+    "rcs": 4,
+    "sbr": 0,
+    "physical_optics": 0,
+    "monostatic": 29,
+    "bistatic": 52,
+    "multistatic": 1,
+    "micro_doppler": 21,
+    "passive_radar": 0
+   }
+  ],
+  "reading": "이 교집합이 우리 자리를 정의한다 — Sionna 를 쓰면서 드론/UAV 를 다루는 논문은 있으나, 그중 표적 산란을 스스로 계산하고 그 위에 검출을 세운 것은 없다(F06 md-rt 는 rotor-only 리지 위치만, F09 Clutter-Aware 는 표적 RCS 를 진술도 검증도 하지 않는다)."
+ },
+ "downloads_this_session": {
+  "dir": "/data/public/sionna_jeong/reference_library",
+  "files": [
+   "2308.06479v1.pdf",
+   "2407.07023v2.pdf",
+   "2408.00667v2.pdf",
+   "2509.06898.pdf"
+  ],
+  "sources_md": "/data/public/sionna_jeong/reference_library/SOURCES.md"
+ },
+ "not_downloaded_and_why": [
+  {
+   "paper": "Chen, Tian, Bai, Wang, 'Rotating Target Detection Using Commercial 5G Signal', Applied Sciences 14(10):4282, 2024, DOI 10.3390/app14104282",
+   "why": "MDPI 가 자동 요청을 403 으로 막는다(PDF 와 HTML 모두).",
+   "importance": "⭐⭐ LaSen 의 '무모호 속도는 CSI-RS 반복주기에 묶인다' 문장의 출처([10])이므로 우리 헤드라인 법칙에 가장 가까운 외부 근거다.",
+   "status": "서지는 확인(LaSen 참고문헌 + 웹 서지 일치). 내용 주장은 LaSen 의 요약 문장으로만 전달 — 원문 UNVERIFIED. 반드시 'LaSen 이 그렇게 요약한다' 로 쓸 것 (E1/E6)."
+  },
+  {
+   "paper": "Abratkiewicz et al., JSTARS 16:3469-3484, 2023 (C22)",
+   "why": "IEEE Xplore 가 자동 다운로드를 차단.",
+   "status": "서지 확인, 원문 미독."
+  },
+  {
+   "paper": "Nataraja et al., IEEE TVT 74(4):6121-6137, 2025 (C21)",
+   "why": "arXiv 판 없음, Xplore 차단.",
+   "status": "서지 확인, 원문 미독."
+  },
+  {
+   "paper": "Kutuzov, Veremyev, Nguyen Van Tuan, Vorobev, 'Feasibility Study of Using 5G Signals for Illumination Purposes in Passive Radar', Journal of the Russian Universities: Radioelectronics 27(1):67-78, 2024, DOI 10.32603/1993-8985-2024-27-1-67-78",
+   "why": "타깃 게재처가 아니며 원문 접근 불가.",
+   "status": "⚠ 검색 중 이 논문을 Abratkiewicz/Samczynski 것으로 오귀속할 뻔했다 — 실제 저자는 위와 같다. 기록해 재발을 막는다."
+  }
+ ],
+ "gaps_and_next_steps": [
+  "⭐ config B(패시브 준-모노스태틱, beta~0)의 **순수 사례를 찾지 못했다**. B01-B04 는 전부 Sapienza 의 reference-free WiFi 계열이고 기하각을 명시하지 않아 우리가 배정한 것이다. 이것이 사실이라면 우리 2x3 격자의 B 열은 문헌 공백이고 그 자체가 기여다 — 다만 '공백' 이라고 쓰기 전에 EuRAD/EuCAP/IET RSN 을 손으로 더 뒤져야 한다(dblp 미색인).",
+  "C24(ICASSP 2026, 2601.15821)의 제목·저자·게재처는 아카이브 파일명 주장일 뿐이다. PDF 헤더를 읽어 확정할 것.",
+  "게재처 문자열을 PDF 에서 읽지 못한 항목 8건(B01, B03, C02, C03, C06, C10, C12, C14)은 인용 전 확인 필요.",
+  "LaSen 참고문헌 52편 중 PDF 를 실제로 읽은 것은 mmHawkeye / HiSAC / PRS-PDSCH 3편뿐이다. D05(Feng SenSys 2021)와 A05(ISACom 2023)는 서지만 확인했다.",
+  "IEEE TAP / AWPL / EuCAP / IET RSN / TMTT 는 dblp 미색인이라 자동 스윕이 구조적으로 못 본다. 이 5곳은 손 스윕이 필요하다.",
+  "Chen(Appl. Sci. 2024) 원문 확보가 남은 최대 구멍 — 헤드라인 법칙의 가장 가까운 외부 근거인데 2차 인용 상태다."
+ ]
+}

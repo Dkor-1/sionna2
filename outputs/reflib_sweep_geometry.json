@@ -1,0 +1,2327 @@
+{
+ "meta": {
+  "file": "outputs/reflib_sweep_geometry.json",
+  "generated": "2026-07-31T08:22:08",
+  "round": "GEOMETRY-FOCUSED SWEEP - how the sensing geometry is realised, across both archives and the web",
+  "question": "각 논문이 A(액티브 모노) / B(패시브 준-모노) / C(패시브 바이) 중 무엇이며 그것을 어떻게 아는가(문장 인용), 그리고 무모호 속도·도플러 모호를 보고하는가",
+  "house_rules": "figure text English; prose Korean; 모든 항목이 (a) PDF 경로 또는 해결 가능한 URL, (b) 판(version), (c) 게재처+게재상태+연도를 갖는다. 주장은 그것이 딛고 선 문장을 함께 싣는다. 확인 못한 것은 UNVERIFIED 로 명시.",
+  "builds_on_do_not_redo": [
+   "outputs/monostatic_prior.json  (LaSen 전면 판정 + 모노스태틱 문헌 + priority_check)",
+   "outputs/prior_settled_sionna.json  (Sionna RT 단어수, SBR=48)",
+   "outputs/prior_work_claims.json, outputs/prior_census.json",
+   "/data/public/sionna_jeong/papers_isac_sionna/new_0731/SOURCES.md  (43편 게재상태 증거 + Crossref DOI 해결 목록)",
+   "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/README.md  (13편 판정, Ziganshin 두 판 함정 포함)"
+  ],
+  "machine_scan": {
+   "pdfs_text_extracted": 150,
+   "roots": [
+    "/data/public/jeong/papers/{5G,LTE,Wifi}",
+    "/data/public/sionna_jeong/papers_isac_sionna (+new_0731, +paper_sionna_Ray_0723)",
+    "/data/public/sionna_jeong/sionna_papers_by_task/{isac_sensing_radar,channel_modeling_raytracing,digital_twin,positioning_localization,dataset_tooling}"
+   ],
+   "keys_scanned": [
+    "monostatic",
+    "bistatic",
+    "multistatic",
+    "quasi_monostatic",
+    "colocated",
+    "passive_radar",
+    "illuminator",
+    "reference_channel",
+    "self_interference",
+    "distributed",
+    "unambiguous",
+    "max_velocity",
+    "aliasing",
+    "prf",
+    "nyquist",
+    "blind_speed",
+    "cpi",
+    "vmax_formula",
+    "sionna",
+    "cfar",
+    "drone",
+    "rcs"
+   ],
+   "web_fetches_this_round": [
+    "arxiv.org/abs/2606.21677",
+    "arxiv.org/abs/2604.02205",
+    "pmc.ncbi.nlm.nih.gov/articles/PMC12944637 (Sensors 26:1317)"
+   ],
+   "web_searches_this_round": [
+    "SenSys/MobiCom/MobiSys drone 5G bistatic monostatic",
+    "ICASSP 2026 passive bistatic drone unambiguous velocity",
+    "INFOCOM UAV passive bistatic ISAC",
+    "quasi-monostatic passive radar WiFi co-located",
+    "Martelli Radar 2017 venue",
+    "Sionna RT GLOBECOM Wkshps 2023 pages"
+   ]
+  }
+ },
+ "taxonomy": {
+  "A": "active monostatic - we transmit, PRF is a design variable, self-interference is the price",
+  "B": "passive quasi-monostatic - someone else transmits, RX beside the illuminator, beta ~ 0",
+  "C": "passive bistatic - someone else transmits, beta large",
+  "D": "multistatic / distributed - more than one illuminator or more than one receiver (used as a modifier: C+D, A+D)",
+  "E": "scattering / RCS characterisation only - the geometry is a measurement or simulation parameter, not a deployed sensing system",
+  "UNCLEAR": "the paper never states its own Tx-Rx geometry - a legitimate and useful classification",
+  "⭐ two orthogonal axes this sweep forced us to add": {
+   "cooperative_tx": "does the illuminator cooperate? In the literature 'passive' often means ONLY 'bistatic geometry', not 'non-cooperative source' - see sun2022wisec (their own USRPs) and jopanya2025spawc (both nodes are BSs of the same network).",
+   "waveform_access": "full-waveform / reconstructed / reference-signal-only / reference-free. ⭐ THIS, not geometry, is what actually sets the slow-time rate. wypich2026sensors is passive AND full-waveform; lasen2026 is monostatic AND full-waveform; the two land in the same place on v_max."
+  }
+ },
+ "counts": {
+  "entries_total": 55,
+  "config_A": 12,
+  "config_B": 2,
+  "config_B_or_C_compared": 1,
+  "config_C": 28,
+  "with_multistatic_D": 13,
+  "config_E_rcs": 4,
+  "config_UNCLEAR": 2,
+  "config_covers_multiple": 5,
+  "config_not_applicable": 4,
+  "published": 41,
+  "preprint": 10,
+  "accepted_self_asserted": 1,
+  "status_flagged_unverified_or_mixed": 3,
+  "pdf_held_in_archive": 47,
+  "url_only_no_pdf": 8,
+  "sionna_used": 6,
+  "reports_velocity_ambiguity": 14,
+  "reports_partial_or_other_ambiguity": 9,
+  "no_ambiguity_treatment": 30,
+  "ambiguity_unverified": 1,
+  "target_venue_hits": 2,
+  "passive_radar_corpus_entries": 21
+ },
+ "entries": [
+  {
+   "id": "dan2019",
+   "short": "Dan LTE PR (Wuhan)",
+   "citation": "Y. Dan, J. Yi, X. Wan, Y. Zhang, 'LTE-based passive radar for drone detection and its experimental results', The Journal of Engineering (IET IRC 2018), 2019.",
+   "venue": "IET International Radar Conference 2018 / J. Eng.",
+   "year": 2019,
+   "status": "PUBLISHED",
+   "status_evidence": "DOI 10.1049/joe.2019.0583 printed on p.1 of the held PDF; 'Accepted on 8th May 2019'.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/LTE/19_LTE-based passive radar for drone detection and its experimental results.pdf",
+    "version": "publisher PDF"
+   },
+   "config": "C",
+   "config_evidence": "'Passive radar always equips with two types of channels: one called reference channel collects replica from non-cooperative IO for matched filtering and the other called surveillance channel collects targets echo.' + 'Two Yagi antennas at the top of another 20 m-high building are chosen as reference and surveillance channel, respectively.'",
+   "cooperative_tx": "no",
+   "waveform_access": "reference channel (non-cooperative IO replica)",
+   "illuminator": "LTE FDD eNB downlink",
+   "band_note": "~1.8 GHz (lambda ~0.16 m stated in text)",
+   "target": "small UAV",
+   "ambiguity": {
+    "reports": "no",
+    "quote": "Since UAV's maximum velocity is 20 m/s and wave length of adopted LTE is around 0.16 m, maximum Doppler caused by target manoeuvring is 250 Hz.",
+    "note": "표적이 만드는 최대 도플러만 계산하고, 시스템이 그 도플러를 접을 수 있는지(무모호 상한)는 묻지 않는다. 코퍼스 전형."
+   },
+   "use_for_us": "LTE 패시브 드론 검출의 초창기 실험 레퍼런스. 우리 LTE 레인의 '이미 됐다' 근거.",
+   "citable_ko": "LTE 다운링크를 조명원으로 쓴 패시브 레이더 드론 검출은 Dan 외(IET IRC 2018)에서 이미 실험적으로 보고되었다.",
+   "sionna": "no",
+   "caveats": [],
+   "config_confidence": "high"
+  },
+  {
+   "id": "geng2020",
+   "short": "Geng LTE multistatic PR - the one paper with the ambiguity column filled",
+   "citation": "Z. Geng, R. Xu, H. Deng, 'LTE-based multistatic passive radar system for UAV detection', IET Radar, Sonar & Navigation, 14(7):1088-1097, 2020.",
+   "venue": "IET Radar, Sonar & Navigation",
+   "year": 2020,
+   "status": "PUBLISHED",
+   "status_evidence": "DOI 10.1049/iet-rsn.2019.0452 on p.1; volume/pages independently confirmed by the reference list of the held Taylor & Poullin TAES PDF.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/LTE/20_LTE-based multistatic passive radar system for UAV detection.pdf",
+    "version": "publisher PDF"
+   },
+   "config": "C+D",
+   "config_evidence": "'Using the frequency-division duplex long-term evolution (LTE)-based multistatic passive radar system for unmanned aerial vehicle (UAV) detection is considered.' / 'The bistatic range measurements are obtained from multiple eNodeBs, and the hyperbolic positioning technique is used for target localisation.'",
+   "cooperative_tx": "no",
+   "waveform_access": "reference channel + CRS + a newly designed pilot (TLRS)",
+   "illuminator": "multiple LTE FDD eNodeBs",
+   "band_note": "fc = 850 MHz assumed throughout",
+   "target": "UAV (AF analysis + simulated detection)",
+   "ambiguity": {
+    "reports": "yes - the richest treatment in the whole passive corpus",
+    "quote": "Since the CPI is one radio frame (i.e. 10 ms), the maximum unambiguous velocity (MUV) is 2647 m/s and the velocity resolution is 18 m/s (i.e. 64.8 km/h) for fc = 850 MHz.",
+    "quote2": "the additional velocity peaks (i.e. blind speed) occur at the intervals of c*nu_i/f_c = 1410 m/s for tau_i = 0 under the assumption of fc = 850 MHz ... which indicates an MUR of 1.67 km and a MUV of 705 m/s",
+    "quote3": "an MUR of 150 km with a range resolution of 29.4 m and an MUV of 176.5 m/s (635.4 km/h) with a velocity resolution of 12.2 m/s are obtained  [TLRS; Table 4 lists PRI 1 ms]",
+    "numbers": {
+     "MUV_full_waveform_ms": 2647.0,
+     "MUV_CRS_ms": 705.0,
+     "blind_speed_spacing_ms": 1410.0,
+     "MUV_TLRS_ms": 176.5,
+     "TLRS_PRI_s": 0.001,
+     "fc_Hz": 850000000.0
+    },
+    "convention": "FULL-WIDTH: v = lambda*PRF/2, i.e. twice our half-window value.",
+    "our_law_check": {
+     "TLRS_prf_Hz": 1000.0,
+     "our_half_window_ms": 88.17425235294117,
+     "full_width_from_our_law_ms": 176.34850470588233,
+     "paper_states_ms": 176.5,
+     "abs_err_vs_full_width_ms": 0.15149529411766594,
+     "verdict": "우리 법칙이 이 논문의 TLRS 행(PRI 1 ms)을 전체폭 규약으로 환산하면 그대로 재현한다."
+    },
+    "note": "⚠ 본문은 MUV 를 CPI 탓으로 돌려 적었으나(CPI 는 분해능을 정하지 상한을 정하지 않는다), 숫자는 슬로타임 표본화율(LTE 심볼률 ~15 kHz)에서 나온다. 그 문장을 그대로 옮기면 물리적으로 틀린 진술을 옮기게 된다."
+   },
+   "use_for_us": "⭐ 우리 v_max 표와 나란히 놓을 수 있는 사실상 유일한 패시브 선행. 규약 환산(2배)만 밝히면 검증 사례가 된다. 동시에 '전 파형을 쓰면 상한이 kHz 급으로 올라간다'는 정정의 문헌 근거.",
+   "citable_ko": "Geng 외(IET RSN 2020)는 LTE 멀티스태틱 패시브 레이더의 무모호 속도를 조명 파형별로 계산했고(전 다운링크 2647 m/s, CRS 705 m/s, 자체 설계 파일럿 176.5 m/s), 이는 반복률이 상한을 정한다는 법칙과 규약 환산 후 일치한다.",
+   "caveats": [
+    "MUV 를 CPI 탓으로 적은 문장은 인용 금지 - 숫자만 인용하고 메커니즘은 다시 쓴다.",
+    "전체폭 규약. 우리 반쪽구간 값과 나란히 적으려면 2로 나눈다."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "sun2022wisec",
+   "short": "Sun POSTER LTE drone localisation (emulated illuminators)",
+   "citation": "M. Sun, Z. Guo, M. Li, R. Gerdes, 'POSTER: Passive Drone Localization Using LTE Signals', Proc. ACM WiSec, 2022.",
+   "venue": "ACM WiSec 2022 (poster)",
+   "year": 2022,
+   "status": "PUBLISHED (poster / extended abstract)",
+   "status_evidence": "DOI 10.1145/3507657.3529658 and ISBN 978-1-4503-9216-7 on p.1 of the held PDF.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/LTE/22_Passive Drone Localization Using LTE Signals.pdf",
+    "version": "ACM DL PDF"
+   },
+   "config": "C+D",
+   "config_confidence": "medium",
+   "config_evidence": "'In general, we consider a multi-static passive localization setting in a 3-D Cartesian coordinate system.' / 'bi-static range estimations from at least 3 transmitters are used to estimate the position of the drone'",
+   "cooperative_tx": "⭐ effectively YES - 'a testbed consisting of multiple USRP N210 (as LTE transmitters) and 1 USRP-2921 (as LTE receiver)'",
+   "waveform_access": "known-by-construction (the illuminators are their own SDRs)",
+   "illuminator": "USRP N210 emulating LTE eNBs",
+   "band_note": "not stated in the poster",
+   "target": "drone",
+   "ambiguity": {
+    "reports": "no",
+    "note": "2페이지 포스터. 속도 모호 진술 없음."
+   },
+   "use_for_us": "'패시브'라 부르지만 조명원이 자기 SDR 인 사례 - 우리 분류에 협력/비협력 축이 왜 따로 필요한지 보여주는 표본.",
+   "citable_ko": "'패시브'로 소개되는 실험 다수는 조명원을 자기 SDR 로 대체해 파형을 이미 알고 있으며(Sun 외, WiSec 2022), 상용망 상시 신호만 쓰는 경우와 구분해야 한다.",
+   "caveats": [
+    "'passive' 가 지오메트리(바이스태틱)만 뜻하고 비협력성을 뜻하지 않는 대표 사례."
+   ],
+   "sionna": "no"
+  },
+  {
+   "id": "taylor2023radar",
+   "short": "Taylor & Poullin RADAR 2023",
+   "citation": "A. Taylor, D. Poullin, 'Experimental UAV detection using 4G-LTE-based passive Radar', in Proc. 2023 IEEE International Radar Conference (RADAR), 2023.",
+   "venue": "IEEE International Radar Conference (RADAR 2023)",
+   "year": 2023,
+   "status": "PUBLISHED",
+   "status_evidence": "Xplore banner on p.1: '2023 IEEE International Radar Conference (RADAR) | 978-1-6654-8278-3/23'; DOI 10.1109/RADAR54928.2023.10371153.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/LTE/23_Experimental UAV detection using 4G-LTE-based passive Radar.pdf",
+    "version": "Xplore PDF"
+   },
+   "config": "C",
+   "config_evidence": "'Passive radar exploits non-cooperative external transmitters to achieve the usual tasks one can expect from a radar system.' They also describe a contrasting prior setup: 'Work in [2] can be mentioned, where the reference antenna pointing towards the transmitter and surveillance antenna were placed on a top of a building, with a drone evolving above the surveillance antenna, making the environment friendlier that the one that we will consider here.'",
+   "cooperative_tx": "no",
+   "waveform_access": "reference channel; a pilot-symbol-restricted variant is analysed",
+   "illuminator": "commercial LTE eNB (non-cooperative)",
+   "band_note": "LTE",
+   "target": "UAV",
+   "ambiguity": {
+    "reports": "no",
+    "quote": "In particular, ambiguities linked to synchronization signals and the aforementioned pilots have been studied in depth.",
+    "note": "'ambiguity' 는 전부 AF 사이드로브/거리 모호다. 속도 무모호 상한은 없다."
+   },
+   "use_for_us": "ONERA 계열 LTE 패시브 실측. 파일럿만 쓰는 처리(=우리 기준신호 레인)를 명시적으로 다룬다.",
+   "citable_ko": "ONERA 그룹(Taylor & Poullin)은 LTE 파일럿만으로 UAV 를 검출하는 처리 사슬을 실측으로 보였다.",
+   "sionna": "no",
+   "caveats": [],
+   "config_confidence": "high"
+  },
+  {
+   "id": "demissie2024",
+   "short": "Demissie LTE450 - Config B in the field",
+   "citation": "B. Demissie, M. Boswetter, M. Mandt, C. Steffes, 'Protection of Critical Infrastructure using LTE450-based Passive Radar: Range Measurements for Drone Detection', in Proc. IEEE RADAR 2024.",
+   "venue": "IEEE RADAR 2024",
+   "year": 2024,
+   "status": "PUBLISHED",
+   "status_evidence": "DOI 10.1109/RADAR58436.2024.10993905 and ISBN 979-8-3503-6238-1 on p.1.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/LTE/24_Protection_of_Critical_Infrastructure_using_LTE450-based_Passive_Radar_Range_Measurements_for_Drone_Detection.pdf",
+    "version": "Xplore PDF"
+   },
+   "config": "B",
+   "config_confidence": "medium",
+   "config_evidence": "'For our first experiments, the goal was to get as close as possible to a monostatic setup.' ... 'Fig. 1a shows the setup on a parking area close to an agricultural holding. In the back, the base station that is used as illuminator can be seen. Two antennas are used for the reference as well as the surveillance signal acquisition.'",
+   "cooperative_tx": "no",
+   "waveform_access": "reference channel (single reference + single surveillance channel)",
+   "illuminator": "LTE450 base station, bands 31/72 (461.0-467.5 MHz)",
+   "band_note": "~464 MHz - the lowest carrier in this library",
+   "target": "DJI Matrice M210 (approx. 88 x 88 x 39 cm, < 5 kg), GPS logger ground truth",
+   "ambiguity": {
+    "reports": "no",
+    "note": "바이스태틱 거리 500 m / 2690 m 결과는 있으나 속도 모호 논의 없음."
+   },
+   "use_for_us": "⭐ Config B(패시브 준-모노스태틱)의 드문 필드 사례이자, 조명원 옆 수신 배치가 실제로 채택된 근거. 저주파(464 MHz)라 lambda 가 커서 v_max 가 유리한 쪽 극단이기도 하다.",
+   "citable_ko": "Demissie 외(RADAR 2024)는 LTE450 조명원 바로 옆에 수신기를 두어 준-모노스태틱에 가깝게 배치한 패시브 드론 검출을 보고했다.",
+   "caveats": [
+    "논문이 '준-모노스태틱'이라는 용어를 쓰지 않는다. 우리가 그 배치를 그렇게 부르는 것이며 근거는 위 인용문이다."
+   ],
+   "sionna": "no"
+  },
+  {
+   "id": "sun2025ojcoms",
+   "short": "Sun OJ-COMS passive UAV tracking (digital arrays)",
+   "citation": "Y. Sun, C. Yu, Y. Luo, T. X. Han, H. Tan, R. Wang, F. C. M. Lau, 'An Experimental Study of Passive UAV Tracking With Digital Arrays and Cellular Downlink Signals', IEEE Open Journal of the Communications Society, 2025.",
+   "venue": "IEEE Open J. Communications Society",
+   "year": 2025,
+   "status": "PUBLISHED",
+   "status_evidence": "'Date of publication 7 April 2025 ... Digital Object Identifier 10.1109/OJCOMS.2025.3558430' on p.1.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/LTE/25_An Experimental Study of Passive UAV Tracking With Digital Arrays and Cellular Downlink Signals.pdf",
+    "version": "publisher OA PDF"
+   },
+   "arxiv_twin": {
+    "id": "arXiv:2412.20788v1",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2412.20788__passive-uav-tracking-digital-arrays-cellular-dl.pdf",
+    "warning": "⚠ E2/E4 hazard: the archives hold BOTH the preprint and the published version of this same paper. Cite the OJ-COMS record; quote only from the version actually read."
+   },
+   "config": "C",
+   "config_evidence": "'In this work, the widely deployed long-term evolution (LTE) base station (BS) is exploited to illuminate UAVs in bistatic trajectory tracking.' Their own taxonomy: 'Passive sensing with one illuminator and one receiver is referred to as bistatic sensing, and sensing with more than one illuminator or receiver is referred to as multi-static sensing.'",
+   "cooperative_tx": "no",
+   "waveform_access": "reference array beamformed onto the LoS + surveillance array",
+   "illuminator": "commercial LTE eNB",
+   "band_note": "LTE",
+   "target": "UAV; CAF -> CFAR -> tracking",
+   "ambiguity": {
+    "reports": "no",
+    "note": "CAF·CFAR·추적 전 사슬이 있는데도 속도 무모호 상한 문장이 없다."
+   },
+   "use_for_us": "우리 다중Rx 코히어런트 이득 논의의 실측 상대.",
+   "citable_ko": "Sun 외(IEEE OJ-COMS 2025)는 디지털 배열 두 대로 LTE 바이스태틱 UAV 궤적 추적을 실측했다.",
+   "caveats": [
+    "⚠ 'Since the reference and surveillance arrays of the system are co-located' 는 **수신 배열 두 개가 서로 붙어 있다**는 뜻이다. TX-RX 동일지점(Config B)이 아니다. 준-모노스태틱 근거로 쓰면 오독."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "taylor2025taes",
+   "short": "Taylor & Poullin TAES 2025 - measured drone bistatic speeds",
+   "citation": "A. Taylor, D. Poullin, 'Drone Detection Using 4G-LTE-Based Passive Radar', IEEE Transactions on Aerospace and Electronic Systems, 2025.",
+   "venue": "IEEE Trans. Aerospace and Electronic Systems",
+   "year": 2025,
+   "status": "PUBLISHED",
+   "status_evidence": "DOI 10.1109/TAES.2025.3545000 on p.1 of the held PDF.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/LTE/25_Drone_Detection_Using_4G-LTE-Based_Passive_Radar.pdf",
+    "version": "publisher PDF"
+   },
+   "config": "C",
+   "config_evidence": "'This article presents results on drone detection in a passive radar framework, which exploits 4G long-term evolution signals. The results are based on an experiment using a noncooperative transmitter.'",
+   "cooperative_tx": "no",
+   "waveform_access": "reference channel; pilot-restricted range-Doppler",
+   "illuminator": "commercial LTE eNB (Tx1 dominant)",
+   "band_note": "LTE",
+   "target": "drone, several flights",
+   "ambiguity": {
+    "reports": "no",
+    "quote": "For all the flights of the measurement campaign, the maximum range (with respect to the receiver) is comprised between 145 and 241 m, and the maximum bistatic speed (also with respect to the receiver) is close to 13 m/s, except for flight 2 where the drone speed does not exceed 8.2 m/s.",
+    "numbers": {
+     "max_bistatic_speed_ms": 13.0,
+     "flight2_max_ms": 8.2,
+     "range_span_m": [
+      145,
+      241
+     ]
+    },
+    "note": "⭐ 실측 드론 바이스태틱 속도 상한값. 우리 v_max 상한이 물리적으로 문제가 되는 구간인지 판정하는 기준."
+   },
+   "use_for_us": "⭐ 실측 드론 바이스태틱 속도 분포(<=13 m/s). 우리 5G SSB 상한과 나란히 놓으면 대비가 선명하다.",
+   "citable_ko": "LTE 패시브 실측에서 관측된 드론의 바이스태틱 속도는 13 m/s 안팎이며(Taylor & Poullin, TAES 2025), 5G 상시 신호만으로 얻는 무모호 속도는 이보다 한 자릿수 작다.",
+   "caveats": [
+    "'active system is studied, with colocated transmitter and receiver' 문장은 **인용문헌 소개**이지 이 논문의 배치가 아니다."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "martelli2017",
+   "short": "Martelli WiFi PR - ⭐ the Config B anchor",
+   "citation": "T. Martelli, F. Murgia, F. Colone, C. Bongioanni, P. Lombardo, 'Detection and 3D localization of ultralight aircrafts and drones with a WiFi-based Passive Radar', in Proc. International Conference on Radar Systems (Radar 2017), Belfast, UK, 2017.",
+   "venue": "IET International Conference on Radar Systems (Radar 2017)",
+   "year": 2017,
+   "status": "PUBLISHED",
+   "status_evidence": "⚠ The held PDF's first page carries NO venue string. Venue and DOI 10.1049/cp.2017.0423 come from the IET digital library record resolved by web search this round - external, not from the file.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/Wifi/17_Detection_and_3D_localization_of_ultralight_aircrafts_and_drones_with_a_WiFi-based_passive_radar.pdf",
+    "version": "Xplore PDF, no venue header"
+   },
+   "config": "B",
+   "config_evidence": "'Specifically, the first surveillance antenna (RX1) was mounted above the second and third ones (RX2 and RX3) in a quasi-monostatic configuration with respect the TX.' ... 'Depending on the considered test campaign, the TX was mounted either just above or on the right of the surveillance antennas'",
+   "cooperative_tx": "no (commercial WiFi AP)",
+   "waveform_access": "reference channel taken by a dedicated receive channel",
+   "illuminator": "commercial WiFi AP",
+   "band_note": "2.4 GHz WiFi",
+   "target": "ultralight aircraft and small commercial drones; 3D localisation from 3 RX",
+   "ambiguity": {
+    "reports": "no",
+    "note": "CA-CFAR 와 CPI 0.5 s 까지 있으나 속도 무모호 언급 없음."
+   },
+   "use_for_us": "⭐⭐ Config B 의 교과서 앵커. '조명원 바로 옆 수신'이 실제로 배치되고 'quasi-monostatic' 이라는 용어로 불린 사례. 우리 B 정의의 인용 근거.",
+   "citable_ko": "수신기를 조명원 바로 옆에 두는 준-모노스태틱 패시브 배치는 Martelli 외(Radar 2017)의 WiFi 패시브 레이더에서 명시적으로 채택되었다.",
+   "sionna": "no",
+   "caveats": [],
+   "config_confidence": "high"
+  },
+  {
+   "id": "rzewuski2021",
+   "short": "Rzewuski NATO WiFi/DVB-T drone PCL + FDTD mono/bi RCS",
+   "citation": "S. Rzewuski, K. Kulpa, M. Pachwicewicz, M. Malanowski, B. Salski, 'Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band', NATO STO-MP-MSG-SET-183, paper 13, 2021.",
+   "venue": "NATO STO Meeting Proceedings MSG-SET-183",
+   "year": 2021,
+   "status": "PUBLISHED (NATO STO proceedings, open PDF)",
+   "status_evidence": "Page header 'STO-MP-MSG-SET-183 13 - 1' on every page of the held PDF.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+    "version": "NATO STO PDF"
+   },
+   "config": "C",
+   "config_evidence": "'Passive radar is a radar that does not emit any energy. It utilizes signals from existing illuminators of opportunity.' + 'One of the beams (reference beam) is directed towards transmitter (illuminator) in order to receive the reference signal.'",
+   "cooperative_tx": "no",
+   "waveform_access": "reference beam + surveillance beam",
+   "illuminator": "WiFi AP and DVB-T",
+   "band_note": "2.4 GHz and UHF DVB-T",
+   "target": "Parrot AR.Drone; FDTD (QuickWave-3D) mono AND bistatic RCS; OTA detection at 50 m",
+   "ambiguity": {
+    "reports": "no"
+   },
+   "rcs_geometry_finding": "⭐ 'It should be noted that the in case of Passive radar system the Radar Cross-section is different than in case of typical monostatic system, because illuminated signal is reflected in various directions and the receiver is receives reflection from different angle than Illuminator illuminates the target.'",
+   "use_for_us": "⭐ 우리 anchor F9. 산란 계산을 바이스태틱으로 일반화해야 하는 이유의 문헌 근거이자, FDTD 로 드론 mono/bi RCS 를 낸 선행.",
+   "citable_ko": "패시브 배치에서 표적 RCS 는 모노스태틱 값과 다르며(Rzewuski 외, NATO STO 2021), 이는 산란 계산을 바이스태틱으로 일반화해야 함을 뜻한다.",
+   "sionna": "no",
+   "caveats": [],
+   "config_confidence": "high"
+  },
+  {
+   "id": "milani2021",
+   "short": "Milani WiFi PBR + emission-based fusion",
+   "citation": "I. Milani, C. Bongioanni, F. Colone, P. Lombardo, 'Fusing Measurements from Wi-Fi Emission-Based and Passive Radar Sensors for Short-Range Surveillance', Remote Sensing, 13(18):3556, 2021.",
+   "venue": "Remote Sensing (MDPI)",
+   "year": 2021,
+   "status": "PUBLISHED, open access",
+   "status_evidence": "'Remote Sens. 2021, 13, 3556' running header; DOI 10.3390/rs13183556.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/Wifi/21_Fusing Measurements from Wi-Fi Emission-Based and Passive Radar Sensors for Short-Range Surveillance.pdf",
+    "version": "MDPI PDF"
+   },
+   "config": "C",
+   "config_evidence": "'(i) Passive Bistatic Radar (PBR) that exploits the Wi-Fi Access Point (AP) as an illuminator of opportunity to perform uncooperative target detection and localization'",
+   "cooperative_tx": "no",
+   "waveform_access": "reference channel; a reference-free variant is discussed",
+   "illuminator": "commercial WiFi AP (D-Link DAP 1160)",
+   "band_note": "2.4 GHz",
+   "target": "short-range surveillance targets incl. drones",
+   "ambiguity": {
+    "reports": "no",
+    "note": "AF 사이드로브 제어만."
+   },
+   "use_for_us": "PBR + 방출원 위치추정(PSL) 융합. 우리 통신-센싱 이중용도 서사의 인접 사례.",
+   "citable_ko": "WiFi 패시브 바이스태틱 레이더와 방출 기반 측위의 융합은 Milani 외(Remote Sensing 2021)에서 다뤄졌다.",
+   "sionna": "no",
+   "caveats": [],
+   "config_confidence": "high"
+  },
+  {
+   "id": "diseglio2022irs",
+   "short": "Di Seglio RpF WiFi PR",
+   "citation": "M. Di Seglio, F. Filippini, C. Bongioanni, F. Colone, 'Human and Drone Surveillance via RpF-based WiFi Passive Radar: Experimental Validation', in Proc. International Radar Symposium (IRS-2022), Gdansk, Poland, 2022, pp. 402-407.",
+   "venue": "International Radar Symposium (IRS 2022)",
+   "year": 2022,
+   "status": "PUBLISHED",
+   "status_evidence": "Footer of p.1: '978-83-956020-5-4 (c)2022 Warsaw University of Technology IRS-2022, Gdansk, Poland 402'; last page numbered 407.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/Wifi/22_Human_and_Drone_Surveillance_via_RpF-based_WiFi_Passive_Radar_Experimental_Validation.pdf",
+    "version": "Xplore PDF"
+   },
+   "config": "C",
+   "config_evidence": "'A moderate bistatic acquisition geometry was employed (see Fig. 2), featuring a commercial wireless AP (TP-Link Archer VR600 AC1600) used as illuminator of opportunity (IO) and connected to a transmitting directive antenna'",
+   "cooperative_tx": "no",
+   "waveform_access": "reciprocal filter (RpF) range compression",
+   "illuminator": "commercial WiFi AP",
+   "band_note": "WiFi",
+   "target": "humans and a drone",
+   "ambiguity": {
+    "reports": "partial - RANGE ambiguity only",
+    "quote": "the reduced range SLC capability and the presence of range ambiguities is evident, specifically for the strongest target (target #1) and this might yield masking effects on target with lower RCS",
+    "note": "거리 모호는 다루고 속도 모호는 다루지 않는다."
+   },
+   "use_for_us": "Reciprocal filter 계열 처리. 우리 정합필터 규약과 비교할 대안 압축.",
+   "citable_ko": "WiFi 패시브 레이더의 표준-무관 처리로 reciprocal filter 계열이 제안되었다(Di Seglio 외, IRS 2022).",
+   "sionna": "no",
+   "caveats": [],
+   "config_confidence": "high"
+  },
+  {
+   "id": "filippini2023",
+   "short": "Filippini reference-free non-coherent WiFi",
+   "citation": "F. Filippini, M. Di Seglio, C. Bongioanni, P. V. Brennan, F. Colone, 'OFDM based WiFi Passive Sensing: a reference-free non-coherent approach', in Proc. 2023 IEEE Radar Conference (RadarConf23), 2023.",
+   "venue": "IEEE RadarConf23",
+   "year": 2023,
+   "status": "PUBLISHED",
+   "status_evidence": "Xplore banner p.1: '2023 IEEE Radar Conference (RadarConf23) | 978-1-6654-3669-4/23'; DOI 10.1109/RADARCONF2351548.2023.10149694.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/Wifi/23_OFDM_based_WiFi_Passive_Sensing_a_reference-free_non-coherent_approach.pdf",
+    "version": "Xplore PDF"
+   },
+   "config": "C",
+   "config_confidence": "medium",
+   "config_evidence": "'Figure 3 reports the output of the IDP strategy in the absolute bistatic velocity - time plane.' The geometry is bistatic; the paper's point is that no reference CHANNEL is needed.",
+   "cooperative_tx": "no",
+   "waveform_access": "⭐ NONE - reference-free, non-coherent (no reference channel, no waveform reconstruction)",
+   "illuminator": "commercial WiFi AP",
+   "band_note": "20 MHz WiFi channels",
+   "target": "drone / human",
+   "ambiguity": {
+    "reports": "partial - sign ambiguity by construction",
+    "note": "'absolute bistatic velocity' 축을 쓴다 = 속도 부호를 잃는다. 원리적 모호이며 반복률 접힘과는 다른 종류."
+   },
+   "use_for_us": "⭐ '기준신호 없이도 된다'는 세 번째 레인. 우리 이상적 레퍼런스 정합필터 가정의 반대편 극단.",
+   "citable_ko": "기준 채널 자체를 없애는 reference-free 비동기 처리도 존재하며(Filippini 외, RadarConf23), 대신 속도 부호를 잃는다.",
+   "sionna": "no",
+   "caveats": []
+  },
+  {
+   "id": "colone2023taes",
+   "short": "Colone reference-free amplitude-based WiFi",
+   "citation": "F. Colone, F. Filippini, M. Di Seglio, P. V. Brennan, R. Du, T. X. Han, 'Reference-Free Amplitude-Based WiFi Passive Sensing', IEEE Transactions on Aerospace and Electronic Systems, 59(5):6432-6451, Oct. 2023.",
+   "venue": "IEEE Trans. Aerospace and Electronic Systems",
+   "year": 2023,
+   "status": "PUBLISHED, open access (CRUI-CARE)",
+   "status_evidence": "Page footer of the held PDF: 'IEEE TRANSACTIONS ON AEROSPACE AND ELECTRONIC SYSTEMS VOL. 59, NO. 5 OCTOBER 2023', pp. 6432-6451; DOI 10.1109/TAES.2023.3276738.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/Wifi/23_Reference-Free_Amplitude-Based_WiFi_Passive_Sensing.pdf",
+    "version": "publisher PDF"
+   },
+   "config": "C",
+   "config_confidence": "medium",
+   "config_evidence": "'Fig. 3 shows the result obtained with the IDP in the bistatic velocity-time plane.' The processing assumes the direct signal dominates the received sum - a near-forward-scatter (large beta) premise.",
+   "cooperative_tx": "no",
+   "waveform_access": "NONE - amplitude only",
+   "illuminator": "commercial WiFi AP",
+   "band_note": "WiFi 20 MHz",
+   "target": "human / drone",
+   "ambiguity": {
+    "reports": "partial - sign ambiguity by construction"
+   },
+   "use_for_us": "우리 '기준신호 접근도' 축(full-waveform / reference-only / reference-free)의 가장 낮은 계단.",
+   "citable_ko": "기준신호 접근도를 축으로 보면 문헌은 전 파형·기준신호만·기준신호 없음의 세 계단으로 나뉜다(예: Colone 외, TAES 2023).",
+   "sionna": "no",
+   "caveats": []
+  },
+  {
+   "id": "diseglio2024ietrsn",
+   "short": "⭐ Di Seglio IET RSN - B vs C head-to-head, and a Doppler-ambiguity homonym",
+   "citation": "M. Di Seglio, F. Filippini, C. Bongioanni, F. Colone, 'Comparing reference-free WiFi radar sensing approaches for monitoring people and drones', IET Radar, Sonar & Navigation, 2024.",
+   "venue": "IET Radar, Sonar & Navigation",
+   "year": 2024,
+   "status": "PUBLISHED",
+   "status_evidence": "'Received: 1 May 2023 - Revised: 11 October 2023 - Accepted: 29 October 2023 - IET Radar, Sonar & Navigation DOI: 10.1049/rsn2.12506' on p.1.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/Wifi/24_Comparing reference-free WiFi radar sensing approaches for monitoring people and drones.pdf",
+    "version": "publisher OA PDF"
+   },
+   "config": "B and C, compared head-to-head in one paper",
+   "config_evidence": "'signals of a commercial WiFi AP in either the 2.4 and 5 GHz bands were exploited to detect cooperative human targets and a commercial drone that were observed under moderate or extreme bistatic geometries.' AND 'it relies on a reasonable stability of the amplitude of the target return that is typically guaranteed under extreme bistatic geometries while it might be weaker in quasi-monostatic configurations.' AND 'After 12 s the target signature is completely buried below the background since the target is observed in a quasi-monostatic configuration'",
+   "cooperative_tx": "no",
+   "waveform_access": "four strategies compared: preamble-only PR, IDP (reference-free), synthetic reference, amplitude-only",
+   "illuminator": "commercial WiFi AP",
+   "band_note": "2.4 and 5 GHz",
+   "target": "humans and a commercial drone",
+   "ambiguity": {
+    "reports": "YES - the only WiFi-corpus paper that says 'Doppler ambiguity' about its own data",
+    "quote": "However, note that there is a Doppler ambiguity in the time interval between 0 and 5 s, when the target is in the first range cell.",
+    "quote2": "it suffers from an inherent sign ambiguity in the target velocity measure and it is expected to be effective when extreme bistatic geometries are considered",
+    "note": "⚠⚠ 이 '도플러 모호'는 **반복률 접힘이 아니다** - 직접파가 가장 세다는 가정이 깨져 위상 동기가 표적 반사에 오염된 결과다. 우리 v_max 서사에 그대로 끌어오면 E3(주장을 논문에 잘못 귀속)."
+   },
+   "use_for_us": "⭐⭐ Config B 대 C 의 성능 차이를 한 논문 안에서 실측 비교한 유일 사례. 우리 2x3 격자 geometry 축 서술에 그대로 인용된다. 동시에 '도플러 모호'라는 말이 문헌에서 다른 뜻으로도 쓰인다는 경고 사례.",
+   "citable_ko": "Di Seglio 외(IET RSN 2024)는 준-모노스태틱과 극단 바이스태틱 배치를 같은 WiFi 시스템으로 비교해, 처리 방식별로 어느 지오메트리가 유리한지가 뒤바뀜을 보였다.",
+   "caveats": [
+    "⭐ 'Doppler ambiguity' 가 반복률 접힘과 무관한 위상동기 실패를 가리킨다. 인용 시 반드시 메커니즘을 밝힌다."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "ai2021piers",
+   "short": "Ai 5G NR passive UAV experiment",
+   "citation": "X. Ai, L. Zhang, Y. Zheng, F. Zhao, 'Passive Detection Experiment of UAV Based on 5G New Radio Signal', in Proc. 2021 PhotonIcs & Electromagnetics Research Symposium (PIERS), Hangzhou, China, 2021.",
+   "venue": "PIERS 2021",
+   "year": 2021,
+   "status": "PUBLISHED",
+   "status_evidence": "DOI 10.1109/PIERS53385.2021.9695141 and ISBN 978-1-7281-7247-7 on p.1.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/5G/21_Passive Detection Experiment of UAV Based on 5G New Radio Signal.pdf",
+    "version": "Xplore PDF"
+   },
+   "config": "C",
+   "config_confidence": "medium",
+   "config_evidence": "The paper places itself in the PBR lineage ('Abdulrazaq Aldowesh introduced the use of a passive bistatic radar system (PBR) to detect low RCS targets and given the real test results of small UAVs detection'); its own geometry section is thin and never names beta.",
+   "cooperative_tx": "no",
+   "waveform_access": "reference + surveillance channel",
+   "illuminator": "5G NR",
+   "band_note": "5G NR",
+   "target": "UAV",
+   "ambiguity": {
+    "reports": "no",
+    "note": "AF 그림에서 ±66.7 us 지연 모호만 언급."
+   },
+   "use_for_us": "5G NR 패시브 UAV 검출의 초기 실험 보고. 연도 우선권용.",
+   "citable_ko": "5G NR 을 조명원으로 한 패시브 UAV 검출 실험은 2021년부터 보고된다(Ai 외, PIERS 2021).",
+   "sionna": "no",
+   "caveats": []
+  },
+  {
+   "id": "maksymiuk2022rs",
+   "short": "⭐ Maksymiuk Renyi 5G PBR - names the repetition-rate limit, does not convert it",
+   "citation": "R. Maksymiuk, K. Abratkiewicz, P. Samczynski, M. Plotka, 'Renyi Entropy-Based Adaptive Integration Method for 5G-Based Passive Radar Drone Detection', Remote Sensing, 14(23):6146, 2022.",
+   "venue": "Remote Sensing (MDPI)",
+   "year": 2022,
+   "status": "PUBLISHED, open access",
+   "status_evidence": "'Remote Sens. 2022, 14, 6146' running header; DOI 10.3390/rs14236146; 'Accepted: 1 December 2022'.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/5G/22_Rényi Entropy-Based Adaptive Integration Method for 5G-Based Passive Radar Drone Detection.pdf",
+    "version": "MDPI PDF"
+   },
+   "config": "C",
+   "config_evidence": "'Passive bistatic radar (PBR) or Passive Coherent Location (PCL), unlike active radar, does not have its own source of illumination... Typically, the transmitter is in a different location to the receiver, which leads to bistatic geometry, depicted in Figure 1.' + 'The reference antenna was pointed towards the 5G base station. The surveillance antenna was hidden behind the wall to minimize the influence of the reference signal in the surveillance channel (DPI leakage).'",
+   "cooperative_tx": "no",
+   "waveform_access": "reference channel; the whole method is about WHEN the downlink has content",
+   "illuminator": "commercial 5G gNB",
+   "band_note": "5G NR",
+   "target": "drone - 'the first successful drone detection results using a 5G network as a source of illumination in a passive radar system'",
+   "ambiguity": {
+    "reports": "⭐ names the repetition-rate constraint but does NOT convert it to a velocity bound",
+    "quote": "However, the proposed approach is functional as long as the content is present in the downlink transmission. Otherwise, the 5G network only generates synchronization pulses with a relatively low repetition rate (from 5 to 160 ms), which entails significant limitations [35].",
+    "numbers": {
+     "ssb_period_range_ms": [
+      5,
+      160
+     ]
+    },
+    "our_law_check": {
+     "fc_Hz": 3500000000.0,
+     "period_20ms_prf_Hz": 50.0,
+     "our_half_window_ms_at_20ms": 1.07068735,
+     "period_5ms_prf_Hz": 200.0,
+     "our_half_window_ms_best_case": 4.2827494,
+     "period_160ms_prf_Hz": 6.25,
+     "our_half_window_ms_worst_case": 0.13383591875,
+     "verdict": "⭐ 우리 기여의 정확한 위치: 이 논문은 제약에 **이름을 붙였고**(5-160 ms, 'significant limitations') 속도 상한으로 **환산하지 않았다**. 우리는 환산하고, 3대역 교차표로 만들고, 검출률 결과까지 잇는다."
+    },
+    "note": "⚠ 문장 끝의 [35] 는 3자 인용이다. 저자들이 유도한 결과가 아니다."
+   },
+   "use_for_us": "⭐⭐ 우리 헤드라인의 novelty 경계를 정하는 문장. '아무도 몰랐다'가 아니라 '이름은 붙었으나 속도로 환산되지 않았다'가 정확한 서술.",
+   "citable_ko": "5G 패시브 레이더에서 다운링크 콘텐츠가 없으면 상시 동기 신호의 낮은 반복률(5-160 ms)만 남아 '심각한 제약'이 된다는 지적은 이미 있었으나(Maksymiuk 외, Remote Sensing 2022), 그 제약을 무모호 속도로 환산한 표는 제시되지 않았다.",
+   "caveats": [
+    "[35] 인용 문장이므로 이 논문의 1차 주장으로 쓰지 않는다."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "maksymiuk2023irs",
+   "short": "Maksymiuk 5G PBR drone (IRS 2023)",
+   "citation": "R. Maksymiuk, M. Plotka, K. Abratkiewicz, P. Samczynski, '5G Network-Based Passive Radar for Drone Detection', in Proc. International Radar Symposium (IRS 2023), Berlin, 24-26 May 2023.",
+   "venue": "International Radar Symposium (IRS 2023)",
+   "year": 2023,
+   "status": "PUBLISHED",
+   "status_evidence": "Footer p.1: 'The International Radar Symposium IRS 2023, May 24-26, 2023, Berlin 978-3-944976-34-1 (c)2022 DGON'.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/5G/23_5G Network-Based Passive Radar for Drone Detection.pdf",
+    "version": "Xplore PDF"
+   },
+   "config": "C",
+   "config_evidence": "'A typical passive bistatic radar (PBR) measurement geometry is shown in Figure 1.'",
+   "cooperative_tx": "no",
+   "waveform_access": "reference channel",
+   "illuminator": "commercial 5G gNB",
+   "band_note": "3.44 GHz carrier, 38.16 MHz max bandwidth -> 'maximum bistatic range resolution of approximately 7.8 m'",
+   "target": "drone",
+   "ambiguity": {
+    "reports": "no",
+    "note": "Tint 100 ms CAF. 무모호 속도 없음."
+   },
+   "use_for_us": "우리 5G 대역/대역폭 설정의 실측 대조군.",
+   "citable_ko": "상용 5G gNB(3.44 GHz, 38 MHz)를 조명원으로 한 패시브 드론 검출은 Maksymiuk 외(IRS 2023)에서 실측되었다.",
+   "sionna": "no",
+   "caveats": [],
+   "config_confidence": "high"
+  },
+  {
+   "id": "lin2023iccc",
+   "short": "Lin 5G spectrum-learning - geometry UNCLEAR",
+   "citation": "L. Lin, N. Yu, Y. Wang, Z. Shi, '5G Spectrum Learning-Based Passive UAV Detection in Urban Scenario', in Proc. IEEE/CIC International Conference on Communications in China (ICCC), 2023.",
+   "venue": "IEEE/CIC ICCC 2023",
+   "year": 2023,
+   "status": "PUBLISHED",
+   "status_evidence": "DOI 10.1109/ICCC57788.2023.10233342, ISBN 979-8-3503-4538-4 on p.1.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/5G/23_5G_Spectrum_Learning-Based_Passive_UAV_Detection_in_Urban_Scenario.pdf",
+    "version": "Xplore PDF"
+   },
+   "config": "UNCLEAR",
+   "config_confidence": "high (that it is unclear)",
+   "config_evidence": "Only a generic third-party sentence: 'By utilizing the existing communication signals as the illuminators, passive radar can be implemented for UAV detection, where the signals are separated as reference signals and surveillance signals for cross correlation calculation [21-23].' The paper's own method is spectrum learning and it never states its own Tx-Rx geometry. Geometry-term scan: monostatic 0, bistatic 0, multistatic 1 (a reference title).",
+   "cooperative_tx": "unclear",
+   "waveform_access": "spectrum features, not matched filtering",
+   "illuminator": "5G downlink in an urban scenario",
+   "band_note": "not stated clearly",
+   "target": "UAV",
+   "ambiguity": {
+    "reports": "no"
+   },
+   "use_for_us": "'unclear from the text' 판정의 정직한 예. 학습 기반 검출은 지오메트리를 명시하지 않는 경향이 있다.",
+   "citable_ko": "학습 기반 5G 패시브 UAV 검출 연구 다수는 송수신 지오메트리를 명시하지 않는다(예: Lin 외, ICCC 2023).",
+   "caveats": [
+    "지오메트리 미상 - A/B/C 어디에도 못 넣는다. 이 칸 자체가 분류표의 유용한 결과다."
+   ],
+   "sionna": "no"
+  },
+  {
+   "id": "maksymiuk2025asilomar",
+   "short": "Maksymiuk 5G PBR intrusion (Asilomar 2025)",
+   "citation": "R. Maksymiuk, K. Abratkiewicz, P. Samczynski, 'UAV Intrusion Detection with Passive Radar Based on the 5G Network', in Proc. 59th Asilomar Conference on Signals, Systems, and Computers, 2025, p. 1639 ff.",
+   "venue": "Asilomar Conference on Signals, Systems and Computers 2025",
+   "year": 2025,
+   "status": "PUBLISHED",
+   "status_evidence": "Xplore banner: '2025 59th Asilomar Conference on Signals, Systems, and Computers | 979-8-3315-8745-1/25 | DOI: 10.1109/IEEECONF67917.2025.11443758'; page number 1639.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/5G/25_UAV Intrusion Detection with Passive Radar Based on the 5G Network.pdf",
+    "version": "Xplore PDF"
+   },
+   "config": "C",
+   "config_evidence": "'The fundamental operating principle of passive radar relies on exploiting non-cooperative transmitters of opportunity, which typically results in bistatic system geometry (see Figure 1).' Fig.1 caption: 'L - baseline distance between transmitter and receiver, R1 - distance from the transmitter to target, R2 - distance from receiver to target, Tx - transmitter, beta - bistatic angle'",
+   "cooperative_tx": "no",
+   "waveform_access": "reference + surveillance channel, CAF",
+   "illuminator": "5G base station",
+   "band_note": "5G NR",
+   "target": "UAV intrusion",
+   "ambiguity": {
+    "reports": "no",
+    "quote": "The bistatic Doppler frequency, resulting from the target's motion, is given by fb = (1/lambda)(dR1/dt + dR2/dt).",
+    "note": "바이스태틱 도플러 정의식은 있으나 그 도플러가 언제 접히는지는 없다."
+   },
+   "use_for_us": "바이스태틱 기호 규약(L, beta, R1, R2)이 우리와 같은 최신 논문. 표기 정합 근거.",
+   "citable_ko": "바이스태틱 도플러 f_b = (1/lambda)(dR1/dt + dR2/dt) 는 5G 패시브 레이더 문헌의 표준 정의다(Maksymiuk 외, Asilomar 2025).",
+   "sionna": "no",
+   "caveats": [],
+   "config_confidence": "high"
+  },
+  {
+   "id": "jopanya2025spawc",
+   "short": "⭐ Jopanya SSB bistatic - states an unambiguous-velocity formula",
+   "citation": "P. Jopanya, D. P. M. Osorio, 'Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones', in Proc. IEEE SPAWC 2025.",
+   "venue": "IEEE SPAWC 2025",
+   "year": 2025,
+   "status": "PUBLISHED",
+   "status_evidence": "⭐ The held Xplore PDF carries DOI 10.1109/SPAWC66079.2025.11143316 and ISBN 978-1-6654-7776-5 on p.1 - this UPGRADES the archive note that called it 'ACCEPTED_SELF_ASSERTED' from the arXiv comment field alone.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/5G/25_Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones.pdf",
+    "version": "Xplore PDF"
+   },
+   "arxiv_twin": {
+    "id": "arXiv:2504.02641v3",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.02641__5gnr-ssb-passive-detection-lowalt-drones_SPAWC2025.pdf",
+    "warning": "⚠ duplicate pair in the archives; identical geometry-scan counts confirm the same content."
+   },
+   "config": "C",
+   "config_evidence": "'We propose a sensing mechanism based on the synchronization signal block (SSB) in the fifth-generation (5G) standard that performs sensing in a passive bistatic setting.' 'We consider a pair of MIMO ISAC base stations (BSs) that jointly form a bistatic sensing pair consisting of base station A (BsA), which functions as the sensing transmitter, and base station B (BsB), which functions as the sensing receiver'",
+   "cooperative_tx": "⭐ YES in effect - both nodes are BSs of the same network, so the 'passive' label describes the geometry, not non-cooperation",
+   "waveform_access": "SSB (a known standardised sequence)",
+   "illuminator": "5G NR SSB from a peer BS",
+   "band_note": "5G NR",
+   "target": "low-altitude drone; 2D-FFT estimator compared against the CRB",
+   "ambiguity": {
+    "reports": "YES - a closed-form unambiguous velocity",
+    "quote": "The unambiguous range is a detectable distance given by the propagated distance of one symbol duration as d_u <= c*T_s. The unambiguous velocity is the range of maximum and minimum relative radial velocities, which can be defined as |v_u| <= lambda_c*f_Delta/2.",
+    "slow_time_axis": "⭐ Their Eq. (6) carries exp(j*4*pi*v_k*l*T_s/lambda_c): the slow-time index l steps by ONE OFDM SYMBOL T_s, i.e. INSIDE the SSB burst. It is NOT the SSB repetition period.",
+    "convention": "as written it is the full-width form; the alias-free half-window implied by their own Eq. (6) is lambda/(4*T_s) = lambda*f_Delta/4",
+    "note": "⭐⭐ 축이 다르다. 이들은 버스트 **안쪽** 심볼축을, 우리는 버스트 **사이** 반복축을 잰다. 이 구별이 우리 novelty 의 전부이며 리뷰어가 가장 먼저 찌를 지점."
+   },
+   "use_for_us": "⭐⭐ 우리 헤드라인이 실제로 겨루는 상대. 차별화 문장: '기존 SSB 논문은 버스트 내부 심볼축의 무모호 속도를 적었고, 버스트 사이 반복률이 정하는 상한은 적지 않았다.'",
+   "citable_ko": "SSB 기반 패시브 바이스태틱 센싱에서 무모호 속도를 명시한 선행이 있으나(Jopanya & Osorio, SPAWC 2025), 그 식은 SSB 버스트 내부 심볼 간격을 슬로타임으로 삼은 것이며 SSB 반복 주기가 정하는 상한과는 다른 축이다.",
+   "caveats": [
+    "⭐ intra-burst symbol axis != inter-burst repetition axis. 절대 뭉치지 않는다.",
+    "아카이브 SOURCES.md 의 ACCEPTED_SELF_ASSERTED 표기를 PUBLISHED 로 정정한다."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "lasen2026",
+   "short": "⭐ LaSen (SenSys '26) - our closest comparator, Config A",
+   "citation": "Q. Yang, Y. Dai, M. Li, Q. Huang, X. Chen, J. Zhang, G. Song, Q. Zhang, X. Tao, 'LaSen: Low-Altitude Drone Sensing with 5G-NR Signals', in Proc. ACM/IEEE SenSys '26, Saint Malo, France, 11-14 May 2026, pp. 732-745.",
+   "venue": "ACM/IEEE SenSys 2026  [⭐ target venue]",
+   "year": 2026,
+   "status": "PUBLISHED (ACM DL camera-ready, CC BY 4.0)",
+   "status_evidence": "DOI 10.1145/3774906.3800504, ISBN 979-8-4007-2309-4/26/05, pp. 732-745 printed on the held PDF. Fully adjudicated in outputs/monostatic_prior.json.",
+   "source": {
+    "pdf": "/data/public/jeong/papers/5G/26_LaSen.pdf",
+    "version": "ACM camera-ready, 14 pp"
+   },
+   "config": "A",
+   "config_evidence": "'A practical ISAC implementation involves configuring the gNB with an additional receive chain to capture reflections of its own transmitted signals [32], similar to a monostatic radar.' AND 'In monostatic configurations, since all of X[m,n] are known, it enables the gNB to achieve channel estimates across all non-empty REs (both reference and data-carrying) within the scheduled bandwidth.'",
+   "cooperative_tx": "YES - it is its own transmitter",
+   "waveform_access": "⭐ FULL WAVEFORM (reference signals + PDSCH data symbols)",
+   "illuminator": "its own NI USRP-2954R transmitting a MATLAB 5G Toolbox waveform at 5.8 GHz (NOT a commercial gNB)",
+   "band_note": "5.8 GHz unlicensed, 30 kHz SCS, 92.16 MHz sampling (emulating N41 gNBs at 3.5 GHz)",
+   "target": "DJI Matrice 4E and a second drone; detection range 108 m; RTK ground truth",
+   "ambiguity": {
+    "reports": "YES - the paper exists because of it",
+    "quote": "The maximum configurable repetition frequency for Sub-6 GHz Channel State Information Reference Signals (CSI-RS) is 500 Hz [3], falling short of the Nyquist sampling requirements for resolving high-speed targets like drones.",
+    "quote2": "At the same 5.8 GHz frequency setting, the method based on CSI-RS estimation has an unambiguous velocity range of up to 2.6 m/s, while LaSen extends this range to 20.2 m/s.",
+    "quote3": "For a 3.5 GHz carrier, this results in a maximum Doppler shift of 1044 Hz. To avoid aliasing and ensure reliable velocity estimation, the Nyquist-Shannon sampling theorem requires that the measurement signal should be at least twice the frequency of the maximum Doppler shift, i.e., 2087 Hz.",
+    "numbers": {
+     "csirs_measured_prf_Hz": 200.0,
+     "csirs_max_configurable_prf_Hz": 500.0,
+     "paper_unambiguous_v_ms": 2.6,
+     "lasen_reached_ms": 20.2,
+     "fc_Hz": 5800000000.0
+    },
+    "convention": "half-window (same as ours)",
+    "our_law_check": {
+     "our_half_window_ms": 2.58441774137931,
+     "paper_states_ms": 2.6,
+     "abs_err_ms": 0.01558225862068996,
+     "rel_err": 0.005993176392573061,
+     "verdict": "우리 법칙(반쪽 구간)이 LaSen 의 2.6 m/s 를 소수 첫째 자리까지 재현한다. 규약도 같다."
+    },
+    "note": "LaSen 은 우리 법칙을 반증하지 않는다. 균일 표본화를 버리고 비균일 sub-Nyquist 2D-OMP 로 우회한다."
+   },
+   "use_for_us": "⭐⭐ 최근접 비교대상이자 Config A 의 정본. 반드시 인용하고 '아무도 안 다뤘다'는 문장은 절대 쓰지 않는다.",
+   "citable_ko": "모노스태틱 gNB 는 자기 데이터 심볼까지 슬로타임 표본으로 쓸 수 있어 기준신호 반복률 한계를 우회할 수 있고(LaSen, SenSys 2026), 그 우회는 송신 주체가 아닌 패시브 수신자에게는 열려 있지 않다.",
+   "caveats": [
+    "⭐ LaSen 은 상용 gNB 로 드론을 잰 적이 없다. 자기 USRP 가 5.8 GHz 비면허대에서 만재 송신한 파형이다.",
+    "§8 은 SDR 을 USRP X310 이라 적고 §6 은 USRP-2954R 이라 적는다(원문 내부 불일치).",
+    "'20.2 m/s' 는 무모호 상한이 아니라 기체(Matrice 4E) 최고속도로 정해진 실험 도달점이다."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "wei2025twc",
+   "short": "⭐⭐ Wei TWC 2025 - PUBLISHED PRF law for drone micro-Doppler, monostatic",
+   "citation": "J. Wei, D. Ma, F. He, Q. Zhang, Z. Feng, Z. Liu, T. Liang, \"UAV's Rotor Micro-Doppler Feature Extraction Using Integrated Sensing and Communication Signal: Algorithm Design and Testbed Evaluation\", IEEE Transactions on Wireless Communications, 24(12), Dec. 2025, p. 10166 ff.",
+   "venue": "IEEE Trans. Wireless Communications",
+   "year": 2025,
+   "status": "PUBLISHED",
+   "status_evidence": "Page header of the held PDF: '10166 IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 24, NO. 12, DECEMBER 2025'.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+    "version": "publisher PDF"
+   },
+   "config": "A",
+   "config_evidence": "'A new mathematical model for UAV micro-Doppler in monostatic ISAC systems is proposed.'",
+   "cooperative_tx": "YES",
+   "waveform_access": "⭐ FULL WAVEFORM - 'During DL slots, the BS utilizes all physical downlink shared channel (PDSCH) signals as sensing symbols, resulting in the shortest pulse repetition interval (PRI) of 33.3 us.'",
+   "illuminator": "its own 5G-style BS testbed",
+   "band_note": "see derived fields",
+   "target": "UAV rotor micro-Doppler; testbed evaluation",
+   "ambiguity": {
+    "reports": "⭐⭐ YES - states the sampling law explicitly, and PRE-DATES LaSen",
+    "quote": "To ensure that these features are preserved, the pulse repetition frequency (PRF) must be at least twice the maximum micro-Doppler frequency, i.e., PRF >= 2*f_mD_max, where the maximum micro-Doppler frequency is given by f_mD_max = 2*pi*f_r*L/lambda.",
+    "quote2": "For example, using our hardware test parameters (f_r = 80 r/s and L = 0.5 m), we obtain fmD = 2934 Hz, which requires a PRF of at least 5868 Hz (corresponding to a PRI of less than 1.7e-4 s).",
+    "quote3": "In this sensing mode, the extracted micro-Doppler features are unambiguous.",
+    "numbers": {
+     "PRI_full_load_s": 3.33e-05,
+     "f_r_rps": 80.0,
+     "blade_L_m": 0.5,
+     "f_mD_Hz": 2934.0,
+     "required_PRF_Hz": 5868.0
+    },
+    "derived": {
+     "full_load_PRF_Hz": 30030.030030030026,
+     "blade_tip_speed_ms": 251.32741228718345,
+     "implied_lambda_m": 0.08566033138622477,
+     "implied_fc_GHz": 3.4997816743002974,
+     "note": "f_mD = v_tip/lambda 를 역산하면 lambda 와 fc 가 나온다 - 논문이 명시하지 않은 값이라 derived 로만 둔다."
+    },
+    "convention": "Nyquist form (PRF >= 2*f_max), equivalent to our half-window statement",
+    "note": "⭐ 마이크로도플러(회전) 판의 우리 법칙. 본체 병진 v_max 가 아니라 블레이드 팁 속도를 다루지만, 논증 구조(슬로타임 표본화율이 상한을 정한다)는 완전히 같고 PUBLISHED 다."
+   },
+   "use_for_us": "⭐⭐ 우선권 지도에 반드시 들어간다. LaSen(2026)보다 앞서 published TWC 에서 PRF-도플러 상한을 드론 ISAC 맥락에 적었다.",
+   "citable_ko": "드론 회전자 마이크로도플러를 접히지 않게 담으려면 슬로타임 반복률이 최대 마이크로도플러의 두 배 이상이어야 하며(Wei 외, IEEE TWC 2025), 모노스태틱 ISAC 은 PDSCH 전 심볼을 써서 PRI 33.3 us 를 확보한다.",
+   "caveats": [
+    "회전(마이크로도플러) 축이다. 본체 병진 v_max 와 같은 문장으로 뭉뚱그리면 E3 위험."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "barneto2019tmtt",
+   "short": "Barneto full-duplex OFDM radar - the self-interference number",
+   "citation": "C. B. Barneto, T. Riihonen, M. Turunen, L. Anttila, M. Fleischer, K. Stadius, J. Ryynanen, M. Valkama, 'Full-Duplex OFDM Radar With LTE and 5G NR Waveforms: Challenges, Solutions, and Measurements', IEEE Transactions on Microwave Theory and Techniques, 67(10):4042-4054, Oct. 2019.",
+   "venue": "IEEE Trans. Microwave Theory and Techniques",
+   "year": 2019,
+   "status": "PUBLISHED",
+   "status_evidence": "Adjudicated in outputs/monostatic_prior.json (key barneto2019); preprint arXiv:1908.03418. ⚠ PDF NOT in our archives - numbers are inherited from that earlier adjudication, not re-read this round.",
+   "source": {
+    "pdf": null,
+    "url": "https://doi.org/10.1109/TMTT.2019.2930510",
+    "version": "published; preprint arXiv:1908.03418"
+   },
+   "config": "A",
+   "config_evidence": "'since the eNB/gNB transmit power can be even more than 140 dB larger than the receiver thermal noise floor, facilitating sufficient TX-RX isolation as a whole is technically very challenging, particularly in the monostatic shared-antenna OFDM radar case'",
+   "cooperative_tx": "YES",
+   "waveform_access": "FULL WAVEFORM",
+   "illuminator": "its own LTE/5G NR waveform",
+   "band_note": "2.44 GHz, 40 MHz instantaneous bandwidth",
+   "target": "⭐ a measured radar image of a static airborne drone at 40 m",
+   "ambiguity": {
+    "reports": "no",
+    "note": "자기간섭 축이지 도플러 모호 축이 아니다."
+   },
+   "self_interference": {
+    "total_required_dB": 100,
+    "passive_isolation_circulator_plus_antenna_dB": 25,
+    "active_RF_dB": 50,
+    "circulator_plus_activeRF_dB": 75,
+    "measured_total_dB": 100,
+    "tx_above_thermal_noise_dB": 140,
+    "quote": "more than 100 dB of total SI suppression is required, which calls for multiple complementary methods as no single technique can facilitate such high isolation",
+    "honest_counter": "⭐ 'from the OFDM radar processing perspective, limited TX-RX isolation is primarily a concern in detection of static targets while moving targets are inherently more robust to transmitter self-interference' - 우리에게 불리한 문장이므로 반드시 같이 적는다."
+   },
+   "use_for_us": "⭐ Config A 가 지불하는 대가(자기간섭 100 dB)의 유일한 실측 출처. 우리 격자의 monostatic 행이 왜 하드웨어적으로 비싼지의 근거.",
+   "citable_ko": "모노스태틱 통신-레이더는 100 dB 급 자기간섭 억제를 요구하며(Barneto 외, TMTT 2019), 이는 패시브 배치가 애초에 지불하지 않는 비용이다.",
+   "caveats": [
+    "PDF 미보유. 이 라운드에서 원문 재확인 없음 - 숫자는 outputs/monostatic_prior.json 판정 승계."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "blandino2025airborne",
+   "short": "Blandino 5G NR monostatic radar - 'PRS periodicity = PRI'",
+   "citation": "S. Blandino, N. Golmie, A. Sahoo, T. Nguyen, T. Ropitault, D. Griffith, A. Sonny, 'Detecting Airborne Objects with 5G NR Radars', arXiv:2505.24763v1, 30 May 2025 (NIST).",
+   "venue": "arXiv",
+   "year": 2025,
+   "status": "PREPRINT",
+   "status_evidence": "new_0731/SOURCES.md: '2505.24763 - PREPRINT: no journal_ref, no DOI, no comment'.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2505.24763__detecting-airborne-objects-5gnr-radars.pdf",
+    "version": "arXiv:2505.24763v1"
+   },
+   "config": "A",
+   "config_evidence": "'In this work, we focus on a monostatic sensing configuration, where a single 5G NR BS operates as both transmitter and receiver to detect and localize STs in its surrounding environment.' + 'The BS is equipped with N co-located transmit and receive antennas, arranged in a uniform rectangular array'",
+   "cooperative_tx": "YES",
+   "waveform_access": "PRS (a scheduled reference signal)",
+   "illuminator": "its own gNB PRS",
+   "band_note": "5G NR",
+   "target": "small airborne targets / UAV, with 3GPP RCS and monostatic background clutter models",
+   "ambiguity": {
+    "reports": "⭐ names PRS periodicity as the PRI and stops there",
+    "quote": "NPRS PRS occasions are scheduled periodically with repetition interval TPRS, functionally equivalent to the Pulse Repetition Interval (PRI) in classical radar systems.",
+    "note": "'PRS 주기 = PRI' 등식을 명시한다. 그 PRI 가 정하는 무모호 속도는 적지 않는다. Maksymiuk 2022 와 같은 '이름은 붙었으나 환산되지 않음' 형태."
+   },
+   "use_for_us": "⭐ 모노스태틱 쪽에서도 '기준신호 주기 = PRI' 인식은 이미 있다. 우리 기여가 그 다음 칸(속도 환산 + 조명원/대역 교차표)임을 확정해 준다.",
+   "citable_ko": "기준신호 주기를 고전 레이더의 PRI 와 동일시하는 서술은 모노스태틱 5G NR 레이더 문헌에도 있다(Blandino 외, arXiv:2505.24763).",
+   "caveats": [
+    "PREPRINT. 정착된 결과처럼 인용하지 않는다(E4)."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "blandino2026gnb",
+   "short": "Blandino gNB monostatic UAV evaluation + 5GNRad simulator",
+   "citation": "S. Blandino, N. Varshney, J. Wang, J. Chuang, C. Gentile, N. Golmie, 'Evaluation of gNB Monostatic Sensing for UAV Use Case', arXiv:2604.02205v1, 2 Apr 2026 (NIST).",
+   "venue": "arXiv",
+   "year": 2026,
+   "status": "PREPRINT",
+   "status_evidence": "arXiv abs page fetched this round: v1, 2 Apr 2026, no journal_ref, no DOI beyond the arXiv DOI, no acceptance comment.",
+   "source": {
+    "pdf": null,
+    "url": "https://arxiv.org/abs/2604.02205",
+    "version": "arXiv:2604.02205v1"
+   },
+   "config": "A",
+   "config_evidence": "'This paper evaluates 5G New Radio (NR) base station (gNB)-based monostatic sensing for the Unmanned Aerial Vehicle (UAV) use case using a 5G NR downlink CP-OFDM waveform and positioning reference signals (PRS), following 3GPP Urban Macro-Aerial Vehicle (UMa-AV) scenario assumptions.'",
+   "cooperative_tx": "YES",
+   "waveform_access": "PRS",
+   "illuminator": "its own gNB",
+   "band_note": "3GPP UMa-AV",
+   "target": "UAV; multi-target detection + 3D localisation",
+   "ambiguity": {
+    "reports": "UNVERIFIED - abstract read only, body not read this round"
+   },
+   "detection_numbers": {
+    "Pd_pct_gt": 70,
+    "Pfa_pct_lt": 5,
+    "loc_err_90pct_vertical_m": 4,
+    "loc_err_90pct_horizontal_m": 6,
+    "quote": "achieving more than 70% detection probability with less than 5% false alarm rate, in the considered scenario. For correctly detected targets, localization errors are on the order of a few meters, with a 90th-percentile error of 4m and 6m in the vertical and horizontal directions",
+    "released_tool": "5GNRad simulator released for reproducibility"
+   },
+   "use_for_us": "⭐ 우리 검출률/오경보 표와 사과-대-사과로 겨룰 수 있는 모노스태틱 UAV 수치, 그리고 공개 시뮬레이터. 우리 CFAR 경험적 Pfa 교정의 대조군.",
+   "citable_ko": "3GPP UMa-AV 가정 아래 모노스태틱 gNB PRS 센싱은 Pd>70%, Pfa<5% 수준으로 보고된다(Blandino 외, arXiv:2604.02205).",
+   "caveats": [
+    "PREPRINT.",
+    "본문 미독 - 초록만 읽었다. 도플러 모호 칸 UNVERIFIED."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "golzadeh2023",
+   "short": "Golzadeh SSB downlink sensing ambiguity (monostatic side)",
+   "citation": "M. Golzadeh, E. Tiirola, L. Anttila, J. Talvitie, K. Hooli, O. Tervo, I. Peruga, S. Hakola, M. Valkama, 'Downlink Sensing in 5G-Advanced and 6G: SIB1-assisted SSB Approach', in Proc. IEEE VTC2023-Spring, Florence, Italy, June 2023.",
+   "venue": "IEEE VTC2023-Spring",
+   "year": 2023,
+   "status": "PUBLISHED",
+   "status_evidence": "DOI 10.1109/VTC2023-Spring57618.2023.10200933; adjudicated in outputs/monostatic_prior.json. Abstract verified verbatim via the Tampere University research portal; ⚠ full text NOT read (repository PDF behind an anti-bot challenge).",
+   "source": {
+    "pdf": null,
+    "url": "https://doi.org/10.1109/VTC2023-Spring57618.2023.10200933",
+    "version": "published"
+   },
+   "config": "A",
+   "config_confidence": "medium",
+   "config_evidence": "Abstract: 'the synchronization signal block (SSB) is a suitable candidate for always-on downlink sensing, due to its frequent periodical availability and because of its beam-sweeping nature. However, as this work demonstrates, using only the SSB has challenges related to radar ambiguity while being also limited in both distance and velocity resolution'",
+   "cooperative_tx": "YES",
+   "waveform_access": "SSB, then SSB + DCI + SIB1",
+   "illuminator": "its own gNB",
+   "band_note": "3.5 and 28 GHz",
+   "target": "downlink sensing generally (not drone-specific)",
+   "ambiguity": {
+    "reports": "YES (abstract level only)",
+    "quote": "using only the SSB has challenges related to radar ambiguity",
+    "note": "본문 미독. 이 문장 이상으로 인용하면 안 된다."
+   },
+   "use_for_us": "⭐ '모노스태틱이면 SSB 문제에서 자유롭다'는 프레임의 직접 반례. 모노스태틱도 SSB 만 쓰면 모호를 만난다.",
+   "citable_ko": "SSB 만으로 센싱하면 모노스태틱 다운링크에서도 레이더 모호가 생긴다(Golzadeh 외, VTC2023-Spring).",
+   "caveats": [
+    "초록만 검증됨. 본문 문장 인용 금지."
+   ],
+   "sionna": "no"
+  },
+  {
+   "id": "chen2024appliedsci",
+   "short": "⭐⭐ Chen 5G rotating target - priority holder for our formula",
+   "citation": "P. Chen, L. Tian, Y. Bai, J. Wang, 'Rotating Target Detection Using Commercial 5G Signal', Applied Sciences (MDPI), 14(10):4282, 2024.",
+   "venue": "Applied Sciences (MDPI)",
+   "year": 2024,
+   "status": "PUBLISHED, open access",
+   "status_evidence": "DOI 10.3390/app14104282; adjudicated in outputs/monostatic_prior.json priority_check rank 1. ⚠ PDF NOT held - quotes inherited from that adjudication.",
+   "source": {
+    "pdf": null,
+    "url": "https://doi.org/10.3390/app14104282",
+    "version": "published"
+   },
+   "config": "C",
+   "config_evidence": "'a passive radar target detection method based on 5G signals'; 'Utilizing 5G signals for rotating target detection essentially employs bistatic radar principles'",
+   "cooperative_tx": "no (a commercial gNB; a laboratory gNB in one experiment)",
+   "waveform_access": "CSI-RS",
+   "illuminator": "commercial 5G gNB CSI-RS (period 40 slots in both testbeds)",
+   "band_note": "3.55 GHz",
+   "target": "a 0.3 m rotating arm on a stepper motor, framed as a rotor surrogate",
+   "ambiguity": {
+    "reports": "⭐⭐ YES - our equation, our symbols, two years earlier",
+    "quote": "the CSI-RS signal period is 20 ms, and the maximum unambiguous Doppler frequency is 50 Hz. The measurable Doppler frequency shift range is [-25 Hz, 25 Hz].",
+    "quote2": "when the signal carrier frequency is 3.55 GHz, the rotation radius is 0.3 m, and the double base angle is 0, the maximum measurable speed is 0.56 rps.",
+    "quote3": "The presence of the double base angle makes the maximum measurable speed slightly greater than 0.56 rps.",
+    "their_equation": "f_d = (2v/lambda)*cos(beta/2)*cos(delta), with beta 'double base angle' and delta the angle between the velocity and the bisector",
+    "convention": "half-window ([-25, 25] Hz from a 50 Hz sampling rate)",
+    "our_law_check": {
+     "csirs_period_s": 0.02,
+     "prf_Hz": 50.0,
+     "fc_Hz": 3550000000.0,
+     "rotation_radius_m": 0.3,
+     "our_half_window_ms": 1.0556072464788733,
+     "our_law_rps": 0.5600170374691247,
+     "paper_states_rps": 0.56,
+     "rel_err": 3.0424052008259924e-05,
+     "verdict": "우리 반쪽 구간 값을 회전속도로 환산하면 논문의 0.56 rps 와 일치한다."
+    },
+    "note": "⭐ 식을 기호적으로 닫지 않고 수치로 조립하지만, 성분(반복률 x cos(beta/2) x cos delta)이 우리와 완전히 같다."
+   },
+   "use_for_us": "⭐⭐ '이 식을 처음 제기했다'고 쓸 수 없게 만드는 논문. LaSen 이 우선권을 명시적으로 이 논문에 돌린다: 'It also reveals that the unambiguous velocity is bounded by the CSI-RS repetition period.'",
+   "citable_ko": "무모호 속도가 기준신호 반복 주기로 묶인다는 명제는 Chen 외(Applied Sciences 2024)가 상용 5G CSI-RS 실측으로 이미 보였고, LaSen(SenSys 2026)이 그 우선권을 명시적으로 인정한다.",
+   "caveats": [
+    "⭐ PDF 미보유. 인용문은 outputs/monostatic_prior.json 판정 승계이며 이 라운드에서 원문 재확인 없음.",
+    "우리가 주장할 수 있는 것은 식이 아니라 (i) 조명원 x 지오메트리 교차표, (ii) 설계 역산, (iii) 검출률 귀결이다."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "wei2022prs",
+   "short": "Wei PRS-based sensing v_max (full-width convention)",
+   "citation": "Z. Wei, Y. Wang, L. Ma, S. Yang, Z. Feng, C. Pan, Q. Zhang, Y. Wang, H. Wu, P. Zhang, '5G PRS-Based Sensing: A Sensing Reference Signal Approach for Joint Sensing and Communication System', IEEE Transactions on Vehicular Technology, 72(3):3250-3263, 2023.",
+   "venue": "IEEE Trans. Vehicular Technology",
+   "year": 2023,
+   "status": "PUBLISHED",
+   "status_evidence": "Adjudicated in outputs/monostatic_prior.json (key wei2022prs); preprint arXiv:2211.11488. ⚠ PDF NOT held.",
+   "source": {
+    "pdf": null,
+    "url": "https://doi.org/10.1109/TVT.2022.3215971",
+    "version": "published; preprint arXiv:2211.11488"
+   },
+   "config": "A",
+   "config_confidence": "medium",
+   "config_evidence": "⚠ 원문 지오메트리 문장 미확보. PRS 를 센싱 기준신호로 삼는 네트워크측 처리라는 판정은 monostatic_prior.json 승계.",
+   "cooperative_tx": "YES",
+   "waveform_access": "PRS with a comb structure",
+   "illuminator": "its own gNB",
+   "band_note": "5G NR",
+   "target": "generic",
+   "ambiguity": {
+    "reports": "YES",
+    "their_formula": "v_max = M_J*c/(2*M*Ts*fc) = c/(2*K_comb_PRS*Ts*fc)",
+    "convention": "⚠ FULL-WIDTH - twice our half-window value",
+    "constraint_they_name": "sensing refresh time rho = N_f * T_f with T_f = 10 ms (radio frame)",
+    "note": "프레임 **안쪽** 심볼축이다. 프레임 **사이** 축이 아니다."
+   },
+   "use_for_us": "규약 환산표의 근거. '기준신호 축'이 두 종류(버스트 내부 / 버스트 사이)라는 우리 구분의 문헌 뒷받침.",
+   "citable_ko": "PRS 기반 센싱의 무모호 속도 식은 comb 크기와 심볼 길이로 닫히며(Wei 외, TVT 2023) 전체폭 규약을 쓴다.",
+   "caveats": [
+    "PDF 미보유. 판정 승계."
+   ],
+   "sionna": "no"
+  },
+  {
+   "id": "viberg2026icassp",
+   "short": "⭐ Viberg ICASSP 2026 - separable delay-Doppler (target venue)",
+   "citation": "M. Viberg, D. Gerosa, T. McKelvey, T. Eriksson (author list from the arXiv twin), separable delay-Doppler estimation for passive radar, in Proc. IEEE ICASSP 2026, pp. 111-115.",
+   "venue": "IEEE ICASSP 2026  [⭐ target venue]",
+   "year": 2026,
+   "status": "PUBLISHED",
+   "status_evidence": "new_0731/SOURCES.md: 'PUBLISHED: Crossref DOI 10.1109/ICASSP55912.2026.11463498 resolves to ICASSP 2026 pp.111-115'. ⚠ The held file is the arXiv preprint of that paper.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2601.15821__separable-delay-doppler-passive-radar_ICASSP2026.pdf",
+    "version": "arXiv:2601.15821v1 (preprint of the ICASSP record)"
+   },
+   "config": "C+D",
+   "config_evidence": "The estimator is written per receiver node k and fused centrally: 'collecting data Pk(tau_k) from all K RNs at the CN, we can determine the target position'. Each node carries a reference channel on the illuminator of opportunity.",
+   "cooperative_tx": "no",
+   "waveform_access": "reference channel (explicitly imperfect)",
+   "illuminator": "illuminator of opportunity",
+   "band_note": "not target-specific",
+   "target": "generic moving target (not drone-specific)",
+   "ambiguity": {
+    "reports": "⭐ indirect - it REMOVES the Doppler search entirely",
+    "quote": "the interference-cleaned 2-D delay-Doppler ambiguity function (10) becomes ... i.e. a function of tau only since the omega^2 factor cancels. This means that we can perform a 1-D search over tau, instead of a 2-D search over (tau, omega)",
+    "note": "⭐ 도플러 축을 **소거**한다. 반복률이 정하는 속도 상한이 검출 성능을 정하지 않는 처리 계열이 존재한다는 뜻 - 우리 헤드라인의 적용 범위를 좁히는 반례 후보."
+   },
+   "use_for_us": "⭐ 타깃 학회(ICASSP) 실적이자, 우리 v_max 서사가 '균일 슬로타임 푸리에 처리' 전제 위에서만 성립함을 상기시키는 반례.",
+   "citable_ko": "도플러 축을 소거하고 지연만으로 표적을 찾는 패시브 추정기도 있으며(ICASSP 2026), 이 경우 반복률이 정하는 속도 상한은 검출 성능을 직접 정하지 않는다.",
+   "caveats": [
+    "보유 파일은 arXiv 프리프린트다. 출판본 페이지(111-115)를 인용하되 문장은 프리프린트에서 읽었음을 밝힌다."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "viberg2026eca",
+   "short": "Viberg ECA with an imperfect reference (multistatic)",
+   "citation": "M. Viberg, D. Gerosa, T. McKelvey, T. Eriksson, 'Statistical Analysis of the Extensive Cancellation Algorithm for Passive Radar Using an Imperfect Reference Signal', arXiv:2601.20817v2.",
+   "venue": "arXiv",
+   "year": 2026,
+   "status": "PREPRINT",
+   "status_evidence": "new_0731/SOURCES.md: 'PREPRINT: arXiv comment v2: v2 significantly revised, including title change. Submitted for publication'.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2601.20817__eca-passive-radar-imperfect-reference.pdf",
+    "version": "arXiv:2601.20817v2"
+   },
+   "config": "C+D",
+   "config_evidence": "'Each receiver is equipped with a Reference Channel (RC), with a line-of-sight connection with the illuminator of opportunity, and a Surveillance Channel (SC) that captures reflections from the target of interest.' + 'The RC and SC receivers at each node are considered co-located and they share the same oscillator and thus experience the same phase noise'",
+   "cooperative_tx": "no",
+   "waveform_access": "⭐ imperfect reference channel - that is the whole point",
+   "illuminator": "IO (a commercial TV station is the running example)",
+   "band_note": "n/a",
+   "target": "generic",
+   "ambiguity": {
+    "reports": "indirect",
+    "quote": "The main difference with the single bi-static setup lies in an ambiguity reduction, that makes it meaningful to estimate the full suite of parameters theta = (x, y, vx, vy)",
+    "note": "멀티스태틱이 모호를 줄인다는 진술이지만, 속도 접힘이 아니라 파라미터 식별성 얘기다."
+   },
+   "use_for_us": "⭐ 우리 ECA 클러터 차단 서사의 통계적 근거이자, 'ideal reference' 가정을 깨는 최신 이론. report12 의 이상적 레퍼런스 가정에 대한 정직한 한계 인용.",
+   "citable_ko": "실제 패시브 시스템의 기준 채널은 불완전하며 그 통계적 대가가 최근 정식화되었다(arXiv:2601.20817).",
+   "caveats": [
+    "PREPRINT.",
+    "'co-located' 는 한 노드 안 RC/SC 수신기끼리다. TX-RX 가 아니다."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "camsap2025",
+   "short": "CAMSAP 2025 distributed passive-radar parameter estimation",
+   "citation": "(same Chalmers/BTH lineage as the ICASSP and ECA entries) passive radar target parameter estimation, in Proc. IEEE CAMSAP 2025.",
+   "venue": "IEEE CAMSAP 2025",
+   "year": 2025,
+   "status": "PUBLISHED (DOI present in arXiv metadata, not independently Crossref-resolved)",
+   "status_evidence": "new_0731/SOURCES.md: 'PUBLISHED_DOI_NOT_CROSSREF_CHECKED: arXiv DOI field 10.1109/CAMSAP66162.2025.11423989 + comment Accepted to 2025 IEEE CAMSAP. DOI not independently resolved by me.'",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2510.07948__passive-radar-target-param-estimation_CAMSAP2025.pdf",
+    "version": "arXiv:2510.07948v1"
+   },
+   "config": "C+D",
+   "config_evidence": "Per-receiver criterion l(d_k, tau_k, omega_k) indexed by receiver node k: 'the k:th receiver node can only evaluate the criterion' - a distributed passive network.",
+   "cooperative_tx": "no",
+   "waveform_access": "reference channel",
+   "illuminator": "IO",
+   "band_note": "n/a",
+   "target": "generic",
+   "ambiguity": {
+    "reports": "indirect",
+    "note": "2D 지연-도플러 AF 를 쓰되 모호 상한 진술 없음."
+   },
+   "use_for_us": "멀티스태틱 패시브 추정 이론 계보. 우리 다중Rx 융합의 이론 인접군.",
+   "citable_ko": "분산 패시브 수신망의 표적 파라미터 추정은 노드별 사영 후 중앙 융합 형태로 정식화된다(CAMSAP 2025).",
+   "caveats": [
+    "⚠ 저자 목록을 파일에서 직접 확인하지 않았다. 인용 전 1차 확인 필요(UNVERIFIED author list)."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "sriranga2025",
+   "short": "Sriranga two-channel distributed passive radars",
+   "citation": "N. Sriranga, H. Yang, V. Gandikota, P. K. Varshney, 'Target Detection in Two-Channel Passive Radars with Inter-Receiver Collaboration', arXiv:2509.13287v2 (Syracuse University).",
+   "venue": "arXiv",
+   "year": 2025,
+   "status": "PREPRINT",
+   "status_evidence": "new_0731/SOURCES.md: 'PREPRINT: no journal_ref, no DOI, no comment in arXiv metadata'.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2509.13287__two-channel-passive-radar-inter-receiver.pdf",
+    "version": "arXiv:2509.13287v2"
+   },
+   "config": "C+D",
+   "config_evidence": "'We address the problem of target detection using spatially distributed two-channel passive radars.' '(i) a surveillance channel that captures target echoes and (ii) a reference channel that records the direct-path signal from the IO'",
+   "cooperative_tx": "no",
+   "waveform_access": "⭐ intermediate: 'The transmitter is assumed to be an unknown illuminator-of-opportunity (IO), which transmits a waveform lying in a known low-dimensional subspace (e.g., OFDM).'",
+   "illuminator": "unknown IO with a known waveform subspace",
+   "band_note": "n/a",
+   "target": "generic",
+   "ambiguity": {
+    "reports": "no"
+   },
+   "use_for_us": "⭐ '레퍼런스를 모르지만 부분공간은 안다'는 중간 지대의 정식화. 우리 '기준신호 접근도' 축에 새 계단을 준다.",
+   "citable_ko": "조명 파형을 정확히 모르더라도 그 부분공간을 알면 분산 패시브 검출이 성립한다(Sriranga 외, arXiv:2509.13287).",
+   "caveats": [
+    "PREPRINT."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "huang2026uplink",
+   "short": "⭐ Huang fuse-then-detect UPLINK passive UAV - a fourth geometry",
+   "citation": "W. Huang, N. Gonzalez-Prelcic, V. Ratnam, M. Bayraktar, C. J. Zhang, 'Fuse-then-Detect for Passive UAV Localization Using Multi-UE 5G Uplink Signals', arXiv:2607.11955v1 (UC San Diego + Samsung Research America).",
+   "venue": "arXiv",
+   "year": 2026,
+   "status": "PREPRINT",
+   "status_evidence": "new_0731/SOURCES.md: 'PREPRINT: arXiv comment: This work has been submitted to IEEE for possible publication'.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2607.11955__fuse-then-detect-passive-uav-5g-uplink.pdf",
+    "version": "arXiv:2607.11955v1"
+   },
+   "config": "C+D (uplink variant: the UEs illuminate, the BS receives)",
+   "config_evidence": "'In this way, the BS obtains multiple bistatic views of the target from different UE-UAV-BS paths.' + their own positioning sentence: 'Most prior work exploits monostatic sensing or bistatic/multistatic configurations based on downlink measurements.'",
+   "cooperative_tx": "partially - the UEs are network-attached, so their uplink pilots are known at the BS",
+   "waveform_access": "uplink pilots known at the BS",
+   "illuminator": "⭐ pedestrian UEs (uplink), not the BS",
+   "band_note": "5G NR",
+   "target": "UAV localisation",
+   "ambiguity": {
+    "reports": "no",
+    "quote": "This ambiguity cannot be resolved alone, since clutter near the UAV is indistinguishable from the UAV under delay and angle constraints.",
+    "note": "여기서 'ambiguity' 는 클러터-표적 구분 불능이지 도플러 접힘이 아니다. 또 하나의 동명이인."
+   },
+   "self_interference_note": "'Monostatic solutions require full-duplex hardware and careful self-interference management [5].' - Config A 의 대가를 이 논문도 같은 이유로 든다.",
+   "use_for_us": "⭐ 우리 2x3 격자가 놓친 네 번째 지오메트리(업링크 조명). future work 절에 정직하게 적을 칸.",
+   "citable_ko": "다운링크가 아니라 업링크 UE 신호를 조명원으로 삼는 패시브 UAV 측위도 제안되었고(Huang 외, arXiv:2607.11955), 이는 본 연구의 격자가 다루지 않는 네 번째 지오메트리다.",
+   "caveats": [
+    "PREPRINT."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "ji2026dualbistatic",
+   "short": "⭐ Ji dual-bistatic LTE UAV - the accuracy/ambiguity conflation quote",
+   "citation": "C. Ji, J. Liu, Q. Liu, Y. Sun, C. Yu, R. Wang, 'An Experimental Study on Fine-Grained Bistatic Sensing of UAV Trajectory via Cellular Downlink Signals', arXiv:2602.08203.",
+   "venue": "arXiv (letter format)",
+   "year": 2026,
+   "status": "⚠ UNVERIFIED - status not established this round",
+   "status_evidence": "The file sits in the papers_isac_sionna archive with no SOURCES.md entry and no DOI on p.1. Verify arXiv metadata before citing as published.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2602.08203__ji_cellular-uav-bistatic.pdf",
+    "version": "arXiv:2602.08203 (version not confirmed)"
+   },
+   "config": "C+D",
+   "config_evidence": "'a dual-bistatic unmanned aerial vehicles (UAVs) tracking system utilizing downlink Long-Term Evolution (LTE) signals is proposed' + 'Two passive sensing receivers are deployed at different locations to detect the bistatic Doppler frequencies of the target UAV at different directions according to downlink signals transmitted from their corresponding BSs'",
+   "cooperative_tx": "no",
+   "waveform_access": "LTE pilot symbols",
+   "illuminator": "two commercial LTE BSs",
+   "band_note": "LTE",
+   "target": "UAV trajectory",
+   "ambiguity": {
+    "reports": "no - but carries the single most useful conflation quote in the library",
+    "quote": "In contrast to range and AoA measurements, improving the detection accuracy of the bistatic Doppler frequency is much easier, as it only requires longer signal duration in cross ambiguity function (CAF) calculation [17], [18].",
+    "note": "⭐⭐ 이 문장은 도플러 **정확도**가 CPI 로 싸게 좋아진다는 뜻이고 옳다. 그러나 도플러 **모호 상한**은 CPI 로 전혀 좋아지지 않는다. 문헌이 이 둘을 자주 뭉치며, 우리 논문의 한 문단이 정확히 이 구분을 세워야 한다."
+   },
+   "use_for_us": "⭐ 우리 헤드라인이 어떤 통념과 부딪히는지 보여주는 최적 인용문: '도플러는 적분만 늘리면 된다' 대 '상한은 적분으로 안 움직인다'.",
+   "citable_ko": "바이스태틱 도플러는 적분 시간을 늘리면 정확해진다고 흔히 서술되지만(예: arXiv:2602.08203), 무모호 상한은 적분 시간과 무관하며 슬로타임 반복률만으로 정해진다.",
+   "caveats": [
+    "⚠ 게재 상태 미검증. 인용 전 arXiv 메타데이터 확인 필요."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "dickerson2026dasc",
+   "short": "⭐ Dickerson adaptive multistatic ISAC + signals of opportunity",
+   "citation": "C. Dickerson, W. Khawaja, I. Guvenc, 'Adaptive 5G Resource Allocation for Multistatic ISAC-Based UAV Detection and Tracking', arXiv:2606.21677v1; accepted to the IEEE/AIAA 45th Digital Avionics Systems Conference (DASC 2026).",
+   "venue": "IEEE/AIAA DASC 2026",
+   "year": 2026,
+   "status": "ACCEPTED_SELF_ASSERTED",
+   "status_evidence": "arXiv abs page fetched this round: 'Accepted for publication in the Proceedings of the IEEE/AIAA 45th Digital Avionics Systems Conference (DASC 2026)'. No DOI yet.",
+   "source": {
+    "pdf": null,
+    "url": "https://arxiv.org/abs/2606.21677",
+    "version": "arXiv:2606.21677v1, 19 Jun 2026"
+   },
+   "config": "A+D with a C fallback",
+   "config_evidence": "'This paper investigates adaptive multistatic ISAC for load-aware UAV detection and tracking in 5G wireless networks.' + 'software-defined sensor (SDS) nodes exploit external signals of opportunity (SoO) to provide supplemental passive sensing opportunities when network resources become limited.' + 'multistatic sensing geometries improve localization accuracy and provide more uniform spatial coverage than monostatic sensing alone'",
+   "cooperative_tx": "YES for the ISAC lane, NO for the SoO lane",
+   "waveform_access": "Zadoff-Chu sensing waveforms; plus external SoO",
+   "illuminator": "its own 5G network + external signals of opportunity",
+   "band_note": "5G NR",
+   "target": "UAV, low RCS, highly manoeuvrable",
+   "ambiguity": {
+    "reports": "⭐ treats the sensing transmission RATE as an allocated resource",
+    "quote": "A shared-resource framework is developed to quantify how sensing waveform length, sensing transmission rate, and beam allocation affect communication throughput in a 5G new radio (NR) system.",
+    "note": "⭐⭐ 'sensing transmission rate' 가 통신 처리량과 저울질되는 자원이라는 것 - 우리 '모노스태틱도 반복률을 공짜로 못 올린다'는 논지의 최신·직접 근거. 다만 무모호 속도로 환산하지는 않는다."
+   },
+   "use_for_us": "⭐⭐ 우리 논지의 두 축(반복률은 자원이다 / 패시브 SoO 는 그 자원을 못 산다)을 한 논문에서 동시에 지지한다.",
+   "citable_ko": "센싱 전송률은 통신 처리량과 맞바꾸는 자원이며(Dickerson 외, DASC 2026), 조명원을 소유하지 않는 패시브 노드는 그 거래 자체에 참여할 수 없다.",
+   "caveats": [
+    "ACCEPTED_SELF_ASSERTED - DOI 없음. 초록만 읽었다."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "wypich2026sensors",
+   "short": "⭐⭐ Wypich - a PASSIVE receiver using reference + control + user data",
+   "citation": "M. Wypich, T. P. Zielinski, 'Experimental Evaluation of 5G NR OFDM-Based Passive Radar Exploiting Reference, Control, and User Data', Sensors (Basel), 26(4):1317, 2026.",
+   "venue": "Sensors (MDPI)",
+   "year": 2026,
+   "status": "PUBLISHED, open access",
+   "status_evidence": "PMC record fetched this round: Sensors 26(4):1317, 2026, DOI 10.3390/s26041317, open access.",
+   "source": {
+    "pdf": null,
+    "url": "https://doi.org/10.3390/s26041317",
+    "version": "published OA (read via the PMC HTML this round, not the PDF)"
+   },
+   "config": "C",
+   "config_evidence": "'The ISAC receiver, located in the parking lot near the high-speed road, acquired the signal... The distance between the vehicles and the receiver was approximately 110 m, while the distance between the vehicles and the transmitter was about 180 m.' Transmitter approx. 20 m above ground, receiver separate - a genuine baseline.",
+   "cooperative_tx": "no",
+   "waveform_access": "⭐⭐ SSB (PSS/SSS/PBCH) + PDCCH with DM-RS + PDSCH with DM-RS + CSI-RS - a PASSIVE receiver reaching for the full waveform, the thing LaSen frames as a monostatic-only privilege",
+   "illuminator": "commercial 5G gNB",
+   "band_note": "SDR sampling rate 33.33 MHz",
+   "target": "⚠ vehicles on a highway, NOT drones",
+   "ambiguity": {
+    "reports": "YES - a max-velocity figure is tabulated",
+    "quote": "Max velocity [m/s]: 392 (at the SDR sampling rate of 33.33 MHz used in the experiments); Velocity resolution [m/s]: 0.028",
+    "numbers": {
+     "max_velocity_ms": 392.0,
+     "velocity_resolution_ms": 0.028,
+     "sdr_sampling_MHz": 33.33
+    },
+    "convention": "⚠ UNVERIFIED - the fetched summary attributes the limit to OFDM symbol duration; we did not read the derivation.",
+    "note": "⭐ 숫자가 크다는 사실 자체가 결론이다: 패시브라도 **제어+사용자 데이터**까지 복원해 쓰면 슬로타임이 심볼률이 되어 상한이 수백 m/s 로 올라간다."
+   },
+   "use_for_us": "⭐⭐ 우리 서사의 가장 큰 위험이자 가장 유용한 정직성 장치. '패시브 = 기준신호만'이 아니다. 경계는 지오메트리가 아니라 **파형 접근도**다.",
+   "citable_ko": "패시브 수신기도 제어·사용자 데이터를 복원해 쓰면 슬로타임 표본화율을 심볼률까지 올릴 수 있으며(Wypich & Zielinski, Sensors 2026), 따라서 반복률 상한은 '지오메트리'가 아니라 '상시 기준신호만 쓰는 운용'의 성질이다.",
+   "caveats": [
+    "⚠ 표적이 차량이다. 드론 결과가 아니다.",
+    "392 m/s 의 규약(반쪽/전체 폭)을 확인하지 않았다 - 표에 옮길 때 UNVERIFIED 표시.",
+    "PDF 미보유. PMC HTML 요약을 통해 읽었다."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "abratkiewicz2023jstars",
+   "short": "⭐⭐ Abratkiewicz SSB passive radar - HIGHEST-PRIORITY MISSING PDF",
+   "citation": "K. Abratkiewicz, A. Ksiezyk, M. Plotka, P. Samczynski, J. Wszolek, T. P. Zielinski, 'SSB-Based Signal Processing for Passive Radar Using a 5G Network', IEEE J. Sel. Topics Appl. Earth Obs. Remote Sens. (JSTARS), 16:3469-3484, 2023.",
+   "venue": "IEEE JSTARS",
+   "year": 2023,
+   "status": "PUBLISHED",
+   "status_evidence": "DOI 10.1109/JSTARS.2023.3262291; recorded in outputs/monostatic_prior.json priority_check rank 2. ⚠⚠ PDF NOT held; NOT read.",
+   "source": {
+    "pdf": null,
+    "url": "https://doi.org/10.1109/JSTARS.2023.3262291",
+    "version": "published"
+   },
+   "config": "C",
+   "config_evidence": "⚠ From the title and the survey's description only: an SSB-based passive radar node that decodes and resynthesises the SSB and uses it as a matched-filter reference.",
+   "cooperative_tx": "no",
+   "waveform_access": "⭐ reconstructed SSB (decode-and-resynthesise; no dedicated reference channel)",
+   "illuminator": "5G gNB SSB",
+   "band_note": "5G NR",
+   "target": "vehicular targets in the reported experiments",
+   "ambiguity": {
+    "reports": "⭐ YES per a SECOND-HAND account",
+    "secondhand_quote": "[from the survey arXiv:2604.02680] 'In this regard, the authors further propose a simple two-snapshot method to resolve Doppler ambiguity in single-target cases.'",
+    "secondhand_quote2": "[from Wu et al. arXiv:2511.14529, quoted in outputs/monostatic_prior.json] 'the study also highlighted that the maximum unambiguous velocity of PCL is severely constrained by the SSB's long transmission periodicity (e.g., 10 ms minimum)'",
+    "note": "⚠⚠ UNVERIFIED_SECONDHAND. 두 인용 모두 제3자의 요약이다. 원문 확인 전에는 어떤 주장도 이 논문에 귀속하지 않는다 - 우리 오류기록 E1/E3 의 재발 위험."
+   },
+   "use_for_us": "⭐⭐ 우리 헤드라인과 가장 정면으로 겹칠 수 있는 미확보 논문. **최우선 확보 대상**. SSB 반복률이 만드는 도플러 모호를 이미 다뤘다면 우리 novelty 서술이 바뀐다.",
+   "citable_ko": "(확보 전까지 인용 금지)",
+   "caveats": [
+    "⭐⭐ ACTION: PDF 확보 후 재판정. 그 전에는 이 논문에 어떤 주장도 귀속하지 않는다."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "das2026wcl",
+   "short": "⭐ Das multiband mono AND bistatic AAV RCS (anchor F3)",
+   "citation": "S. Das, P. Zhang, V. Hovinen, M. E. Leinonen, A. Parssinen, P. Kyosti, 'Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling', IEEE Wireless Communications Letters, 15:3731-3735, 2026.",
+   "venue": "IEEE Wireless Communications Letters",
+   "year": 2026,
+   "status": "PUBLISHED",
+   "status_evidence": "Page header of the held PDF: 'IEEE WIRELESS COMMUNICATIONS LETTERS, VOL. 15, 2026 3731'; DOI 10.1109/LWC.2026.3705634 resolved against Crossref per new_0731/SOURCES.md.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+    "version": "publisher PDF"
+   },
+   "config": "E (measurement geometry, not a deployed sensing system)",
+   "config_evidence": "'This letter develops 3GPP-compliant statistical RCS models for autonomous aerial vehicles (AAVs) using monostatic and bistatic measurements acquired across multiple frequency bands (1.8 GHz-27 GHz) and bistatic angles (0deg:15deg:90deg) in both anechoic far-field and controlled indoor near-field environments.' + 'It is commonly described in monostatic and bistatic configurations, where the transmitter and receiver are co-located or spatially separated, respectively'",
+   "cooperative_tx": "n/a",
+   "waveform_access": "n/a",
+   "illuminator": "n/a (VNA / chamber measurement)",
+   "band_note": "1.8-27 GHz; bistatic angles 0 to 90 deg in 15 deg steps",
+   "target": "AAV / drone",
+   "ambiguity": {
+    "reports": "no"
+   },
+   "rcs_geometry_finding": "⭐ 'The monostatic mean RCS is consistently higher than its bistatic counterparts, reflecting stronger backscatter when TX and RX are co-located.'",
+   "use_for_us": "⭐⭐ 우리 anchor F3. 바이스태틱 각도별 실측 RCS - 우리 SBR+PO 를 바이스태틱으로 일반화할 때의 검증 대상이자, mono 대 bi 의 dB 차이를 가진 유일한 실측 앵커.",
+   "citable_ko": "드론의 바이스태틱 RCS 는 각도가 커질수록 모노스태틱 값보다 체계적으로 낮으며(Das 외, IEEE WCL 2026), 따라서 패시브 배치의 링크 예산을 모노스태틱 값으로 대체할 수 없다.",
+   "sionna": "no",
+   "caveats": [],
+   "config_confidence": "high"
+  },
+  {
+   "id": "yuan2025eucap",
+   "short": "Yuan monostatic 3D UAV RCS (anchor F6)",
+   "citation": "Z. Yuan, L. Yu, C. Li, W. Fan, 'On Experimental Analysis of Mono-Static 3D UAV RCS for ISAC Channel Modeling', in Proc. EuCAP 2025.",
+   "venue": "EuCAP 2025",
+   "year": 2025,
+   "status": "PUBLISHED",
+   "status_evidence": "paper_sionna_Ray_0723/README.md: '#1 mono3d, EuCAP 2025, DJI Phantom 3 CATR'. ⚠ No DOI printed on the held PDF p.1.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+    "version": "conference PDF"
+   },
+   "config": "E",
+   "config_evidence": "'First, we conduct monostatic UAV RCS measurements in an anechoic chamber, recording RCS covering frequency band of 1.8 ~ 18.2 GHz and azimuth angles of -90deg ~ 90deg (given the symmetry of the UAV) at three UAV elevation sides'",
+   "cooperative_tx": "n/a",
+   "waveform_access": "n/a",
+   "illuminator": "n/a (CATR)",
+   "band_note": "1.8-18.2 GHz, 2801 frequency points per azimuth",
+   "target": "DJI Phantom 3",
+   "ambiguity": {
+    "reports": "range only",
+    "quote": "The frequency sweep ranges from 1.8 GHz to 18.2 GHz, with 2801 frequency points recorded at each azimuth angle, yielding an ambiguity bound of 170.7 ns and a delay resolution of 0.06 ns (equating to 25.6 m and 0.009 m in range, respectively)."
+   },
+   "cross_link": "⭐ 'In addition, the monostatic RCS behavior will introduce interference in full-duplex ISAC configurations [10], necessitating its detailed analysis.' - RCS 논문이 스스로 Config A 의 자기간섭 문제를 지목한다.",
+   "use_for_us": "⭐ 우리 anchor F6. 무향실 모노스태틱 3D RCS 앵커.",
+   "citable_ko": "드론 모노스태틱 RCS 의 각도·주파수 의존성은 무향실 실측으로 특성화되어 있다(Yuan 외, EuCAP 2025).",
+   "sionna": "no",
+   "caveats": [],
+   "config_confidence": "high"
+  },
+  {
+   "id": "zhang2026jsac",
+   "short": "Zhang unified RCS for 3GPP ISAC, DJI M350 (anchor F4)",
+   "citation": "Y. Zhang, J. Zhang, H. Gong, X. Hu, J. Zhang, H. Xing, S. Luo, Y. Xiong, L. Yu et al., 'A Unified RCS Modeling of Typical Targets for 3GPP ISAC Channel Standardization and Experimental Analysis', IEEE Journal on Selected Areas in Communications, 44, 2026, p. 702 ff.",
+   "venue": "IEEE JSAC",
+   "year": 2026,
+   "status": "PUBLISHED",
+   "status_evidence": "Page header of the held PDF: '702 IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 44, 2026'; 'Digital Object Identifier 10.1109/JSAC.2025.3608732'.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+    "version": "publisher PDF"
+   },
+   "config": "E (monostatic only)",
+   "config_evidence": "'We validate the model through mono-static RCS measurements for autonomous aerial vehicle (AAV), human, and vehicle targets across five frequency bands.' Index Terms: '... mono-static measurement.'",
+   "cooperative_tx": "n/a",
+   "waveform_access": "n/a",
+   "illuminator": "n/a",
+   "band_note": "five frequency bands",
+   "target": "DJI M350 AAV, human, vehicle",
+   "ambiguity": {
+    "reports": "no"
+   },
+   "rcs_geometry_finding": "⭐ 'While prior studies have shown that bistatic RCS can be approximately converted from monostatic RCS within small bistatic angles, more extensive measurement efforts are required to validate and model bistatic RCS across broader angular ranges.'",
+   "use_for_us": "⭐⭐ 우리 anchor F4. 위 문장은 '모노 결과를 바이스태틱에 그대로 못 쓴다'는 우리 주장의 표준화 측 근거다.",
+   "citable_ko": "모노스태틱-바이스태틱 등가는 작은 바이스태틱 각에서만 근사적으로 성립하며 넓은 각도 범위 검증은 아직 부족하다는 것이 3GPP ISAC 채널 표준화 측 인식이다(Zhang 외, JSAC 2026).",
+   "sionna": "no",
+   "caveats": [],
+   "config_confidence": "high"
+  },
+  {
+   "id": "costa2024radarconf",
+   "short": "⭐ Costa - Doppler spread vs bistatic angle (the geometry factor of our law)",
+   "citation": "H. C. A. Costa, S. J. Myint, C. Andrich, C. Schneider, R. S. Thoma, 'Modelling Micro-Doppler Signature of Drone Propellers in Distributed ISAC', in Proc. 2024 IEEE Radar Conference (RadarConf24), pp. 1-6.",
+   "venue": "IEEE RadarConf24",
+   "year": 2024,
+   "status": "PUBLISHED",
+   "status_evidence": "new_0731/SOURCES.md: 'PUBLISHED: Crossref DOI 10.1109/RadarConf2458775.2024.10548468 resolves to this title/venue'.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2401.14287__costa_microdoppler-drone-propellers_RadarConf24-conf.pdf",
+    "duplicate_in_archive": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modelling_Micro-Doppler_Signature_of_Drone_Propellers_in_Distributed_ISAC.pdf",
+    "version": "arXiv:2401.14287v3"
+   },
+   "config": "C, analysed as a function of beta, inside a distributed-ISAC frame",
+   "config_evidence": "Fig. 7 caption: 'Comparison of frequency-domain micro-Doppler signatures of a rotating propeller from simulated data, with different bistatic angles (16384 symbols, subsampling = 8). The legend indicates the bistatic angle in each simulation.'",
+   "cooperative_tx": "n/a (analytic model + BiRa measurement)",
+   "waveform_access": "OFDM",
+   "illuminator": "OFDM ISAC link",
+   "band_note": "not restated in the extracted text",
+   "target": "drone propeller (thin-wire analytic model)",
+   "ambiguity": {
+    "reports": "⭐ Doppler SPREAD vs beta - the geometric factor of our v_max(beta)",
+    "quote": "As expected, the maximum Doppler spread is observed in the monostatic case, while in forward configuration almost no Doppler spread is present. We can also notice, that distance among impulses does not change with respect to bistatic angles, since they depend only on the rotation frequency and the number of blades.",
+    "note": "⭐⭐ 우리 v_max(beta) = lambda*PRF/(4*cos(beta/2)*cos delta) 의 분모 cos(beta/2) 와 같은 물리다. 바이스태틱 각이 커질수록 도플러가 압축되고, 따라서 같은 반복률로 더 빠른 표적을 담을 수 있다 - 바이스태틱은 v_max 에 **유리**하다.",
+    "second_finding": "펄스 간격(HERM 선 간격)은 beta 에 무관하다 - 회전수와 블레이드 수만으로 정해진다. 분류 특징의 지오메트리 불변성."
+   },
+   "use_for_us": "⭐⭐ 우리 바이스태틱 완화계수 정정의 독립적 뒷받침이자, 마이크로도플러 특징의 지오메트리 불변성 근거.",
+   "citable_ko": "바이스태틱 각이 커지면 도플러 확산이 줄어들며(Costa 외, RadarConf24), 이는 같은 슬로타임 반복률에서 바이스태틱 배치가 더 넓은 무모호 속도를 갖는다는 뜻이다.",
+   "sionna": "no",
+   "caveats": [],
+   "config_confidence": "high"
+  },
+  {
+   "id": "costa2025jsteap",
+   "short": "Costa multi-propeller micro-Doppler, journal version (anchor F5)",
+   "citation": "H. C. A. Costa, S. J. Myint, C. Andrich, S. W. Giehl, M. Engelhardt, C. Schneider, R. S. Thoma, 'Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC', IEEE J. Sel. Topics in Electromagnetics, Antennas and Propagation, 1(1):208-222, Sept. 2025.",
+   "venue": "IEEE JSTEAP",
+   "year": 2025,
+   "status": "PUBLISHED",
+   "status_evidence": "'Digital Object Identifier 10.1109/JSTEAP.2025.3604407' on p.1 of the held PDF; new_0731/SOURCES.md resolved the same DOI to vol.1 no.1 pp.208-222, Sept. 2025.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.05168__costa_microdoppler-multiprop-drones_JSTEAP-journal.pdf",
+    "duplicate_in_archive": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modeling_Micro-Doppler_Signature_of_Multi-Propeller_Drones_in_Distributed_ISAC.pdf",
+    "version": "arXiv:2504.05168v2 (held) / publisher twin also held"
+   },
+   "config": "C inside distributed ISAC; validated against BiRa bistatic measurements",
+   "config_evidence": "Title: '... in Distributed ISAC'. The survey (arXiv:2604.02680) describes it as 'a bistatic OFDM-based model to simulate UAV propeller micro-Doppler signatures in distributed ISAC systems'.",
+   "cooperative_tx": "n/a",
+   "waveform_access": "OFDM",
+   "illuminator": "OFDM ISAC",
+   "band_note": "not restated",
+   "target": "multi-propeller drone; correlation r=0.98 with measurement (our anchor F5)",
+   "ambiguity": {
+    "reports": "same beta-dependence as the conference version"
+   },
+   "use_for_us": "⭐ 우리 anchor F5. 해석 모델 + BiRa 바이스태틱 실측 대조. 우리 마이크로도플러 절의 정본 비교대상.",
+   "citable_ko": "다중 프로펠러 드론의 바이스태틱 마이크로도플러 해석 모델은 실측과 r=0.98 로 일치한다(Costa 외, JSTEAP 2025).",
+   "caveats": [
+    "⚠ 회의판(RadarConf24)과 저널판(JSTEAP 2025)은 별개 기록이다. 문장을 읽은 판을 밝힌다 - 우리 오류기록 E2 의 형태."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "cudetnet2026",
+   "short": "⭐⭐⭐ C-UDetNet - Sionna RT + UAV detection + distributed bistatic",
+   "citation": "'Low-altitude cooperative UAV detection and localization with cube-shaped CPEs and CSI' (title per the file), arXiv:2605.07623v1, 8 May 2026; archived under IEEE ICC Workshops 2026.",
+   "venue": "IEEE ICC Workshops 2026 (per the archive's published_by_venue folder)",
+   "year": 2026,
+   "status": "⚠ MIXED - the archive files it under IEEE_ICC_Workshops_2026, but the held file is the arXiv preprint with no DOI. Verify before citing the workshop record.",
+   "status_evidence": "The same file is duplicated into /data/public/sionna_jeong/papers_isac_sionna/published_by_venue/IEEE_ICC_Workshops_2026/. The PDF itself shows 'arXiv:2605.07623v1 [eess.SP] 8 May 2026'.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+    "version": "arXiv:2605.07623v1"
+   },
+   "config": "C+D",
+   "config_evidence": "Sensing links are BS -> CPE pairs ('The scenario includes M = 2 BSs and N = 16 CPEs'), i.e. distributed bistatic. They position themselves against the monostatic literature: '[25] has integrated multiple monostatic BSs into a two-stage cooperative UAV sensing pipeline.'",
+   "cooperative_tx": "YES (the network's own BSs and CPEs)",
+   "waveform_access": "CSI between BS-CPE pairs",
+   "illuminator": "its own 5G BSs",
+   "band_note": "Southeast University Sipailou campus, 200 m x 200 m OSM scene",
+   "target": "UAV presence detection + localisation",
+   "ambiguity": {
+    "reports": "no",
+    "note": "CSI 특징 학습이라 슬로타임 도플러 축 자체가 없다."
+   },
+   "sionna": "⭐ USED",
+   "sionna_evidence": "'The dataset is generated through ray-tracing, using OpenStreetMap (OSM), Blender, and Sionna RT [39].' + 'The channel parameters in (2) are obtained from path instances computed by the PathSolver function in Sionna RT.' + ⭐ 'y(m,n) is derived from the path type provided by Sionna RT. As described in Sec. V-A1, UAV-affected paths are typically caused by diffuse reflections. Therefore, y(m,n) is set to 1 only when the channel between a BS-CPE pair contains such reflections.'",
+   "use_for_us": "⭐⭐⭐ 사용자가 요청한 '둘 다 섞인 논문'의 최우수 사례: Sionna RT + 드론 검출 + 분산 바이스태틱. **그리고 우리 차별화의 결정적 증거**: 이들은 드론을 산란적분으로 다루지 않고 Sionna 의 확산반사 경로 타입 라벨로 대신한다 - 스톡 Sionna 로 드론 표적을 다룰 때 실제로 쓰이는 우회가 무엇인지 보여준다.",
+   "citable_ko": "스톡 Sionna RT 로 드론 검출 데이터셋을 만든 선행은 표적 산란을 직접 계산하지 않고 확산반사 경로 라벨로 대체하며(arXiv:2605.07623), 본 연구는 그 자리에 메쉬 기반 SBR+PO 산란 계산을 넣는다.",
+   "caveats": [
+    "게재 기록과 보유 파일의 판이 다르다. 인용 전 확인."
+   ],
+   "config_confidence": "high"
+  },
+  {
+   "id": "clutteraware2026",
+   "short": "⭐⭐ Clutter-Aware ISAC (Proc. IEEE) - drone meshes into Sionna with stock Fresnel",
+   "citation": "'Clutter-Aware Integrated Sensing and Communication: Models, Methods and Future Directions', Proceedings of the IEEE, 114(1), 2026.",
+   "venue": "Proceedings of the IEEE",
+   "year": 2026,
+   "status": "PUBLISHED",
+   "status_evidence": "new_0731/SOURCES.md: 'PUBLISHED: arXiv comment field v2: 36 pages, 12 figures. Accepted by Proceedings of the IEEE'; the archive holds the typeset Proc. IEEE PDF (41 pp).",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf",
+    "arxiv_twin": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+    "version": "typeset Proc. IEEE (41 pp) + arXiv:2602.10537v2"
+   },
+   "config": "covers A, C and D",
+   "config_evidence": "Geometry-term scan over the typeset version: monostatic 11, bistatic 16, multistatic 13 - it surveys all three.",
+   "cooperative_tx": "varies",
+   "waveform_access": "varies",
+   "illuminator": "varies",
+   "band_note": "varies",
+   "target": "incl. drones",
+   "ambiguity": {
+    "reports": "no explicit unambiguous-velocity treatment (2 generic 'ambiguity' hits in the whole document)"
+   },
+   "sionna": "⭐ USED (13 mentions)",
+   "sionna_evidence": "Our anchor F2: it imports simplified drone meshes into Sionna and accepts STOCK Fresnel reflection to keep the scene 'lightweight'; 'validat*' appears 0 times in the 41-page typeset version.",
+   "use_for_us": "⭐⭐ 우리 report06 의 정면 대상. 'Sionna 에 드론 메쉬를 넣은 선행은 있으나 산란 정확도를 검증하지 않았다'는 우리 문장의 근거.",
+   "citable_ko": "드론 메쉬를 Sionna 장면에 넣은 선행은 존재하나 기본 Fresnel 반사를 그대로 받아들이며 산란 정확도 검증을 수행하지 않는다(Proc. IEEE 114(1), 2026).",
+   "caveats": [
+    "R20 판정: Sionna 그림 4장(Fig.6/7/9/11)이 공개 코드에 없어 재현 불가."
+   ],
+   "config_confidence": "high"
+  },
+  {
+   "id": "ziganshin_conf",
+   "short": "Ziganshin EuCAP 2025 (CONFERENCE) - multistatic, the dBsm version",
+   "citation": "A. Ziganshin, E. M. Vitucci, S. J. Myint, W. Kotterman, C. Schneider, V. Degli-Esposti, R. Thoma, 'Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC', in Proc. EuCAP 2025.",
+   "venue": "EuCAP 2025",
+   "year": 2025,
+   "status": "PUBLISHED (conference version)",
+   "status_evidence": "paper_sionna_Ray_0723/README.md: '#10 Ziganshin 회의판(EuCAP 2025)'. ⚠ See caveats - two versions exist and have been conflated here before (our error E2).",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "version": "conference PDF, 5 pp"
+   },
+   "config": "D (multistatic scattering simulation)",
+   "config_evidence": "Title. Body: 'The reflectivity function describes the bistatic complex-valued polarimetric input/output transfer function (conversion of an incident wave into a scattered wave) for an extended target at an arbitrary distance.'",
+   "cooperative_tx": "n/a",
+   "waveform_access": "n/a",
+   "illuminator": "n/a",
+   "band_note": "vehicular / ISAC",
+   "target": "complex-shaped curved bodies (vehicles) - NOT drones",
+   "ambiguity": {
+    "reports": "no"
+   },
+   "sionna": "⭐ USED (extended)",
+   "use_for_us": "⭐ 멀티스태틱 산란을 RT 로 내는 선행. 우리 SBR+PO 의 바이스태틱 일반화가 새롭지 않음을 정직히 인정할 근거이자 교차검증 대상.",
+   "citable_ko": "RT 기반 멀티스태틱 산란 시뮬레이션은 이미 제안되어 있다(Ziganshin 외, EuCAP 2025).",
+   "caveats": [
+    "⭐⭐ E2: 이 **회의판** Fig.6 만이 RCS 를 dBsm 으로 낸다. 저널판에는 dBsm 이 0회다. '어느 판인지' 밝히지 않으면 둘 다 틀린 문장이 된다."
+   ],
+   "config_confidence": "high"
+  },
+  {
+   "id": "ziganshin_journal",
+   "short": "Ziganshin IEEE OJAP (JOURNAL) - bistatic curved bodies",
+   "citation": "A. Ziganshin et al., 'Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications', IEEE Open Journal of Antennas and Propagation, 2026 (early access).",
+   "venue": "IEEE Open J. Antennas and Propagation",
+   "year": 2026,
+   "status": "PUBLISHED, early access",
+   "status_evidence": "new_0731/SOURCES.md: 'Crossref 10.1109/OJAP.2026.3717211 - Ziganshin, IEEE OJAP, 2026, early access (page 1-1)'. The held PDF is arXiv:2604.05991v2.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications .pdf",
+    "arxiv_twin": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "version": "arXiv:2604.05991v2 = the file we hold; the OJAP record is early access"
+   },
+   "config": "E (bistatic scattering method)",
+   "config_evidence": "Geometry-term scan: bistatic 10, monostatic 0, multistatic 3. The method computes bistatic reflectivity of discretized curved bodies.",
+   "cooperative_tx": "n/a",
+   "waveform_access": "n/a",
+   "illuminator": "n/a",
+   "band_note": "vehicular / ISAC",
+   "target": "curved bodies (vehicles)",
+   "ambiguity": {
+    "reports": "no"
+   },
+   "sionna": "⭐ USED (Sionna RT extended, v0.19)",
+   "use_for_us": "우리 SBR+PO 곡면 처리의 방법론 이웃. 그리고 '스톡 Sionna 를 확장해야 산란이 나온다'는 우리 주장의 독립 사례.",
+   "citable_ko": "Sionna RT 를 확장해 곡면 표적의 바이스태틱 산란을 계산한 선행이 있다(Ziganshin 외, IEEE OJAP 2026).",
+   "caveats": [
+    "⭐ 저널판/회의판 절대 혼동 금지(E2)."
+   ],
+   "config_confidence": "high"
+  },
+  {
+   "id": "mdrt2025",
+   "short": "⭐ md-rt: Sionna + UAV micro-Doppler, geometry UNCLEAR",
+   "citation": "C. Li, S. Mu, J. Jiang, L. Feng, Y. Gao, S. Xu, 'Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing', in Proc. IEEE ICCT 2025.",
+   "venue": "IEEE ICCT 2025",
+   "year": 2025,
+   "status": "PUBLISHED",
+   "status_evidence": "paper_sionna_Ray_0723/README.md: '#7 md-rt, Li 외, IEEE ICCT 2025'.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+    "version": "conference PDF, 6 pp"
+   },
+   "config": "⭐ UNCLEAR from the text",
+   "config_confidence": "high (that it is unclear)",
+   "config_evidence": "The words 'monostatic' and 'bistatic' appear ONLY inside a reference title ('Torvik, Monostatic and bistatic radar measurements of birds and micro-drone, RadarConf 2016'). The paper never states its own Tx-Rx geometry. Scan: monostatic 1, bistatic 2, both in the bibliography.",
+   "cooperative_tx": "unclear",
+   "waveform_access": "n/a (RT simulation)",
+   "illuminator": "n/a",
+   "band_note": "not stated cleanly",
+   "target": "multirotor UAV micro-Doppler",
+   "ambiguity": {
+    "reports": "no"
+   },
+   "sionna": "⭐ USED (16 mentions) - with a MODIFIED launcher (conical rather than spherical sampling); propeller material declared 'Wood'; claims only spectrogram ridge POSITIONS",
+   "use_for_us": "⭐ 우리와 가장 가까운 '드론 + Sionna' 선행이면서 지오메트리를 밝히지 않은 사례. 'unclear from the text' 칸이 실재한다는 증거.",
+   "citable_ko": "Sionna 기반 UAV 마이크로도플러 시뮬레이션 선행이 존재하나(Li 외, ICCT 2025) 송수신 지오메트리를 명시하지 않는다.",
+   "caveats": [
+    "⭐⭐ 정량 앵커 금지(R20 판정): 프로펠러 반경 10배 내부모순(Table I 10.55 cm vs 본문 1.055 m), 주장 f_mD=1562 Hz 가 어느 반경과도 불일치(재계산 553 / 5527 Hz), 'minimum spatial resolution in Sionna is 0.01 m' 는 근거 없는 주장. **'선행이 존재한다'는 사실의 근거로만 쓴다.**"
+   ]
+  },
+  {
+   "id": "montaner_eucap",
+   "short": "Montaner RF digital twin - mono AND bistatic calibration",
+   "citation": "C. Montaner, S. Fenollosa, A. Ortega, H. Beltran, N. Cardona, 'Deterministic Modeling of Dynamic ISAC Channels in RF Digital Twin Environments', EuCAP (per the archive README).",
+   "venue": "EuCAP",
+   "year": null,
+   "status": "⚠ year and DOI NOT established this round",
+   "status_evidence": "paper_sionna_Ray_0723/README.md lists it as '#11 Montaner 외, EuCAP'. No DOI or year visible on the held p.1.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Deterministic Modeling of Dynamic ISAC Channels in RF Digital Twin Environments.pdf",
+    "version": "conference PDF, 5 pp"
+   },
+   "config": "A and C, both",
+   "config_evidence": "'The methodology is validated in urban scenarios featuring both mono-static and bi-static configurations, as well as moving [targets]'",
+   "cooperative_tx": "n/a",
+   "waveform_access": "wideband channel sounding",
+   "illuminator": "n/a",
+   "band_note": "urban scenarios",
+   "target": "dynamic ISAC targets",
+   "ambiguity": {
+    "reports": "no"
+   },
+   "sionna": "USED (3 mentions)",
+   "use_for_us": "⭐ RT 디지털트윈을 mono/bi 양쪽에서 실측 교정한 선행. 우리 챔버 교정 서사의 방법론 이웃.",
+   "citable_ko": "RT 기반 RF 디지털트윈을 모노스태틱·바이스태틱 양 구성에서 광대역 채널 사운딩으로 교정한 선행이 있다(Montaner 외, EuCAP).",
+   "caveats": [
+    "연도·DOI 미확인. 인용 전 확인 필요."
+   ],
+   "config_confidence": "high"
+  },
+  {
+   "id": "openisac2026",
+   "short": "OpenISAC platform - mono AND bistatic on one SDR testbed; Sionna only cited",
+   "citation": "Z. Zhou, C. Zhang, X. Xu, Y. Zeng, 'OpenISAC: An Open-Source Real-Time Experimentation Platform for OFDM-ISAC', arXiv:2601.03535.",
+   "venue": "arXiv",
+   "year": 2026,
+   "status": "PREPRINT",
+   "status_evidence": "No DOI/journal_ref seen on the file; recorded as arXiv:2601.03535 (2026-01) in the archive's prior_work.json.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2601.03535__openisac.pdf",
+    "version": "arXiv:2601.03535"
+   },
+   "config": "A and C, both implemented on the same platform",
+   "config_evidence": "'OpenISAC utilizes orthogonal frequency division multiplexing (OFDM) waveform and implements crucial sensing functionalities, including both monostatic and bistatic delay-Doppler sensing.' + 'In addition, most existing systems are predominantly monostatic, assuming co-located transmit and receive nodes and providing limited support for bistatic or multistatic operation.' + 'in bistatic sensing a wired synchronization link is often unavailable, so OTA synchronization is required instead'",
+   "cooperative_tx": "YES",
+   "waveform_access": "full waveform (ZC + QPSK, constant modulus, known)",
+   "illuminator": "its own USRP (B200 through X400 class)",
+   "band_note": "flexible OFDM parameterisation",
+   "target": "micro-Doppler extraction validated OTA",
+   "ambiguity": {
+    "reports": "CFO ambiguity only - NOT target velocity",
+    "quote": "The modulo CFO estimate has an unambiguous range of +/-1/(2*Ns*Ts).",
+    "note": "⚠ 이 'unambiguous range' 는 반송파 주파수 오프셋 추정 얘기다. 표적 속도 모호가 아니다. 또 하나의 동명이인 함정."
+   },
+   "sionna": "MENTIONED ONLY - not used",
+   "sionna_evidence": "'NVIDIA Sionna and the Sionna Research Kit are also important open-source tools for wireless communication research, including raytracing-based channel modeling and SDR-enabled communication prototyping [19]. However, they primarily target communica[tions]...' - cited as related work (ref [19], version 2.0.1), not used.",
+   "use_for_us": "⭐ 모노/바이를 같은 플랫폼에서 실측한 우리 2x3 격자의 하드웨어 대응물. 그리고 '바이스태틱은 OTA 동기가 추가 비용'이라는 실무 근거.",
+   "citable_ko": "같은 플랫폼에서 모노스태틱과 바이스태틱 센싱을 모두 구현한 오픈소스 실험대가 공개되었으며, 바이스태틱 쪽은 무선 동기가 추가로 필요하다(OpenISAC, arXiv:2601.03535).",
+   "caveats": [
+    "PREPRINT.",
+    "⭐ Sionna 를 '사용'한 논문으로 분류하면 오분류다. 인용만 한다."
+   ],
+   "config_confidence": "high"
+  },
+  {
+   "id": "liu2025monobg",
+   "short": "Liu multi-reference-point monostatic background channel (3GPP)",
+   "citation": "Y. Liu, J. Zhang, Y. Zhang, Z. Yuan, C. Jiang, J. Liu, W. Hong, Y. Li, Y. Li, G. Liu, 'A Novel Multi-Reference-Point Modeling Framework for Monostatic Background Channel: Toward 3GPP ISAC Standardization', arXiv:2511.03487v1.",
+   "venue": "arXiv",
+   "year": 2025,
+   "status": "PREPRINT",
+   "status_evidence": "new_0731/SOURCES.md: 'PREPRINT: no journal_ref, no DOI, no comment'.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2511.03487__multi-reference-point-monostatic-background-channel.pdf",
+    "version": "arXiv:2511.03487v1"
+   },
+   "config": "A (background-channel modelling for the monostatic mode)",
+   "config_evidence": "'However, modeling background channels in the ISAC monostatic mode, where the Tx and Rx are co-located, remains a pressing challenge.' + 'ISAC background signals exhibit two propagation modes [14]: bistatic and monostatic' + 'using two co-located horn antennas with 5deg rotational steps'",
+   "cooperative_tx": "YES",
+   "waveform_access": "n/a (channel measurement)",
+   "illuminator": "n/a",
+   "band_note": "28 GHz indoor",
+   "target": "background / clutter, not a drone",
+   "ambiguity": {
+    "reports": "no"
+   },
+   "use_for_us": "⭐ 우리 챔버 클러터 모델링의 표준화 측 대응물. '모노스태틱 배경 채널은 바이스태틱 GBSM 으로 대체할 수 없다'는 문제제기는 우리 지오메트리 분리 주장과 같은 형태.",
+   "citable_ko": "모노스태틱 배경(클러터) 채널은 바이스태틱 GBSM 으로 곧바로 대체되지 않는다는 것이 3GPP ISAC 표준화 논의의 문제제기다(Liu 외, arXiv:2511.03487).",
+   "caveats": [
+    "PREPRINT.",
+    "드론 표적이 아니다."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "survey2026mimoofdm",
+   "short": "Bai survey: MIMO-OFDM ISAC for low-altitude UAV surveillance",
+   "citation": "S. Bai, S. Li, C. Yin, W. Qu, L.-T. Hsu, Y. Liu, W.-H. Chen, 'MIMO OFDM-Enabled ISAC for Low-Altitude Non-Cooperative UAV Surveillance: A Survey', arXiv:2604.02680v1.",
+   "venue": "arXiv (submitted to IEEE Communications Surveys & Tutorials)",
+   "year": 2026,
+   "status": "PREPRINT",
+   "status_evidence": "new_0731/SOURCES.md: 'PREPRINT: arXiv comment: 24 pages, 5 figures, submitted to IEEE Communications Surveys & Tutorials'.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2604.02680__survey-mimo-ofdm-isac-lowalt-uav-surveillance.pdf",
+    "version": "arXiv:2604.02680v1"
+   },
+   "config": "survey covering A, C and D",
+   "config_evidence": "'For downlink sensing in monostatic scenarios, the synchronization signal block (SSB) ... has been investigated as a sensing waveform [36]-[38].' + 'Xie et al. investigated bistatic target detection in ISAC systems that exploit both deterministic pilots and unknown random data payloads in a hybrid transmit signal [45].'",
+   "cooperative_tx": "varies",
+   "waveform_access": "⭐ the survey's own organising axis is pilot-only vs pilot+data - the same axis this sweep found to be decisive",
+   "illuminator": "varies",
+   "band_note": "varies",
+   "target": "non-cooperative low-altitude UAV",
+   "ambiguity": {
+    "reports": "⭐ reports one, SECOND-HAND",
+    "quote": "In this regard, the authors further propose a simple two-snapshot method to resolve Doppler ambiguity in single-target cases.",
+    "attributed_to": "Abratkiewicz et al. [38], IEEE JSTARS 2023 - PDF NOT held by us",
+    "note": "⚠ 서베이의 요약이다. 원문 확인 전에는 어떤 주장도 [38] 에 귀속하지 않는다(E1)."
+   },
+   "use_for_us": "⭐ 최신 UAV ISAC 지형도이자 우리 related-work 절의 뼈대. 그리고 미확보 논문(Abratkiewicz JSTARS)을 가리키는 포인터.",
+   "citable_ko": "저고도 비협력 UAV 감시를 위한 MIMO-OFDM ISAC 문헌은 모노스태틱·바이스태틱·분산 구성으로 정리되어 있다(Bai 외, arXiv:2604.02680).",
+   "caveats": [
+    "PREPRINT.",
+    "서베이 요약을 1차 문장으로 쓰지 않는다(E1)."
+   ],
+   "sionna": "no",
+   "config_confidence": "high"
+  },
+  {
+   "id": "airguard2026jsac",
+   "short": "AirGuard UAV/bird recognition (co-located UPAs = monostatic in effect)",
+   "citation": "H. Luo, Z. Chu, T. Zhang, C. Zhao, B. Lin, F. Gao, 'AirGuard: UAV and Bird Recognition Scheme for Integrated Sensing and Communications System', IEEE Journal on Selected Areas in Communications, 44:835-848, 2026.",
+   "venue": "IEEE JSAC",
+   "year": 2026,
+   "status": "PUBLISHED",
+   "status_evidence": "new_0731/SOURCES.md: 'PUBLISHED: Crossref bibliographic query returns exact title -> JSAC 44:835-848 (2026), DOI 10.1109/jsac.2025.3608760'.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2603.13112__airguard-uav-bird-recognition-isac.pdf",
+    "version": "author version held; no arXiv id in the SOURCES table"
+   },
+   "config": "A",
+   "config_confidence": "medium",
+   "config_evidence": "'Without loss of generality, we assume that HU-UPA and RU-UPA are co-located at the origin of the coordinate system and are parallel to each other, such that they can see the low-altitude targets at the same propagation directions.' ⚠ The paper never applies the word 'monostatic' to itself (1 hit, in a reference title).",
+   "cooperative_tx": "YES",
+   "waveform_access": "ISAC waveform",
+   "illuminator": "its own BS",
+   "band_note": "not restated",
+   "target": "⭐ UAV vs bird discrimination",
+   "ambiguity": {
+    "reports": "no",
+    "note": "유일한 'ambiguity' 히트는 참고문헌 제목(timing ambiguity)."
+   },
+   "use_for_us": "⭐ 우리 검출 결과편의 인접 문제(오검출 원천: 새). 그리고 '스스로 monostatic 이라 말하지 않지만 co-located 로 그 뜻인' 분류 사례.",
+   "citable_ko": "ISAC 로 UAV 와 조류를 구분하는 문제는 이미 JSAC 급에서 다뤄지고 있다(Luo 외, JSAC 2026).",
+   "caveats": [
+    "논문이 'monostatic' 을 자기 시스템에 쓰지 않는다. 우리 분류는 co-located 문장에 근거한 해석이다."
+   ],
+   "sionna": "no"
+  },
+  {
+   "id": "sionna_rt_founding",
+   "short": "Sionna RT founding paper",
+   "citation": "J. Hoydis, F. Ait Aoudia, S. Cammerer, M. Nimier-David, N. Binder, G. Marcus, A. Keller, 'Sionna RT: Differentiable Ray Tracing for Radio Propagation Modeling', in Proc. IEEE GLOBECOM Workshops, Dec. 2023, pp. 317-321.",
+   "venue": "IEEE GLOBECOM Workshops 2023",
+   "year": 2023,
+   "status": "PUBLISHED - but the version WE HOLD is the preprint",
+   "status_evidence": "⭐ Our held PDF is arXiv:2303.11103v2 (19 Jul 2023) and per outputs/prior_settled_sionna.json it carries 'no venue header, no DOI'. The published record (GLOBECOM Wkshps 2023, pp. 317-321) is confirmed by third-party citation (ref [39] of arXiv:2605.07623) and the IEEE Xplore record found this round. Do NOT cite the published pages for a sentence read in the preprint.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__sionna-rt-founding.pdf",
+    "version": "arXiv:2303.11103v2"
+   },
+   "config": "n/a - a propagation tool, no sensing geometry",
+   "config_confidence": "high",
+   "config_evidence": "Geometry-term scan over the full text: monostatic 0, bistatic 0, multistatic 0.",
+   "cooperative_tx": "n/a",
+   "waveform_access": "n/a",
+   "illuminator": "n/a",
+   "band_note": "n/a",
+   "target": "n/a",
+   "ambiguity": {
+    "reports": "no"
+   },
+   "sionna": "⭐ THE tool itself",
+   "use_for_us": "우리 도구의 1차 출처. 그리고 '스톡 Sionna 에는 센싱 지오메트리 개념이 없다'는 사실의 기계적 근거(mono/bi/multi 0회).",
+   "citable_ko": "Sionna RT 는 미분가능 전파 광선추적 도구이며(Hoydis 외, GLOBECOM Wkshps 2023) 센싱 지오메트리나 RCS 출력을 정의하지 않는다.",
+   "caveats": [
+    "⭐ E4: 우리가 읽은 문장은 프리프린트의 것이다. 출판본 페이지로 인용할 때 그 사실을 밝힌다."
+   ]
+  },
+  {
+   "id": "sionna_rt_techreport",
+   "short": "⭐ Sionna RT technical report - the SBR=48 fact (anchor F10)",
+   "citation": "'Sionna RT Technical Report' (NVIDIA), arXiv:2504.21719.",
+   "venue": "arXiv technical report",
+   "year": 2025,
+   "status": "PREPRINT / GREY (technical report)",
+   "status_evidence": "Opened and word-counted in outputs/prior_settled_sionna.json; no venue, no DOI.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "version": "arXiv:2504.21719v1 held; v2 word counts also recorded in prior_settled_sionna.json"
+   },
+   "config": "n/a",
+   "config_confidence": "high",
+   "config_evidence": "Geometry-term scan: monostatic 0, bistatic 0, multistatic 0.",
+   "cooperative_tx": "n/a",
+   "waveform_access": "n/a",
+   "illuminator": "n/a",
+   "band_note": "n/a",
+   "target": "n/a",
+   "ambiguity": {
+    "reports": "no"
+   },
+   "sionna": "⭐ THE tool's own documentation",
+   "word_counts_inherited": {
+    "source": "outputs/prior_settled_sionna.json (v2, 59 pp)",
+    "physical optics": 0,
+    "PO standalone": 0,
+    "surface integral": 1,
+    "induced current": 0,
+    "surface current": 0,
+    "Kirchhoff": 0,
+    "radar cross section": 0,
+    "SBR_mentions_in_technical_report": 48,
+    "note": "⭐ anchor F10: Sionna 는 광선을 쏘고 튕긴다(SBR 48회). 없는 것은 표면전류 물리광학 적분과 RCS 출력이다. 'Sionna has no SBR' 은 거짓."
+   },
+   "use_for_us": "⭐⭐ 우리 report06 의 핵심 주장(확장점의 정확한 위치)의 1차 근거.",
+   "citable_ko": "Sionna RT 는 shooting-and-bouncing 광선 자체는 수행하지만 표적 표면의 물리광학 적분과 RCS 출력을 제공하지 않는다(Sionna RT technical report).",
+   "caveats": []
+  },
+  {
+   "id": "sionna_library",
+   "short": "Sionna library founding paper",
+   "citation": "J. Hoydis et al., 'Sionna: An Open-Source Library for Next-Generation Physical Layer Research', arXiv:2203.11854.",
+   "venue": "arXiv",
+   "year": 2022,
+   "status": "PREPRINT",
+   "status_evidence": "The held file is the arXiv version; no venue header.",
+   "source": {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2203.11854__sionna-library-founding.pdf",
+    "version": "arXiv:2203.11854"
+   },
+   "config": "n/a",
+   "config_confidence": "high",
+   "config_evidence": "Geometry-term scan: 0 hits for monostatic/bistatic/multistatic.",
+   "cooperative_tx": "n/a",
+   "waveform_access": "n/a",
+   "illuminator": "n/a",
+   "band_note": "n/a",
+   "target": "n/a",
+   "ambiguity": {
+    "reports": "no"
+   },
+   "sionna": "⭐ THE tool itself",
+   "use_for_us": "Sionna PHY(우리 파형/링크 계층)의 1차 출처.",
+   "citable_ko": "Sionna 는 물리계층 연구용 오픈소스 라이브러리다(Hoydis 외, arXiv:2203.11854).",
+   "caveats": []
+  }
+ ],
+ "the_ambiguity_column": {
+  "headline": "⭐ 이 스윕에서 가장 큰 발견은 무모호 속도 칸이 대부분 비어 있다는 것, 그리고 비어 있지 **않은** 몇 칸이 우리 헤드라인과 정면으로 겹친다는 것이다.",
+  "who_reports_a_velocity_bound": [
+   "geng2020",
+   "diseglio2024ietrsn",
+   "maksymiuk2022rs",
+   "jopanya2025spawc",
+   "lasen2026",
+   "wei2025twc",
+   "blandino2025airborne",
+   "golzadeh2023",
+   "chen2024appliedsci",
+   "wei2022prs",
+   "dickerson2026dasc",
+   "wypich2026sensors",
+   "abratkiewicz2023jstars",
+   "survey2026mimoofdm"
+  ],
+  "who_reports_a_different_kind_of_ambiguity": [
+   "diseglio2022irs",
+   "filippini2023",
+   "colone2023taes",
+   "viberg2026icassp",
+   "viberg2026eca",
+   "camsap2025",
+   "yuan2025eucap",
+   "costa2025jsteap",
+   "openisac2026"
+  ],
+  "who_is_silent": [
+   "dan2019",
+   "sun2022wisec",
+   "taylor2023radar",
+   "demissie2024",
+   "sun2025ojcoms",
+   "taylor2025taes",
+   "martelli2017",
+   "rzewuski2021",
+   "milani2021",
+   "ai2021piers",
+   "maksymiuk2023irs",
+   "lin2023iccc",
+   "maksymiuk2025asilomar",
+   "barneto2019tmtt",
+   "sriranga2025",
+   "huang2026uplink",
+   "ji2026dualbistatic",
+   "das2026wcl",
+   "zhang2026jsac",
+   "cudetnet2026",
+   "clutteraware2026",
+   "ziganshin_conf",
+   "ziganshin_journal",
+   "mdrt2025",
+   "montaner_eucap",
+   "liu2025monobg",
+   "airguard2026jsac",
+   "sionna_rt_founding",
+   "sionna_rt_techreport",
+   "sionna_library"
+  ],
+  "unverified": [
+   "blandino2026gnb"
+  ],
+  "passive_drone_corpus_verdict": "우리가 보유한 패시브 드론 코퍼스(/data/public/jeong/papers, 21편) 중 무모호 **속도** 상한을 계산한 논문은 Geng(IET RSN 2020) 하나뿐이다. 나머지는 CAF·CFAR·CPI 를 다 갖추고도 그 칸이 비어 있다.",
+  "⭐ nasty_surprises_ranked": [
+   {
+    "rank": 1,
+    "id": "wei2025twc",
+    "what": "IEEE TWC 24(12), Dec 2025, PUBLISHED - 'PRF >= 2*f_mD_max' 를 드론 ISAC 맥락에 명시하고 숫자까지 넣는다(f_mD=2934 Hz -> PRF>=5868 Hz).",
+    "impact": "우리 법칙의 마이크로도플러 판은 선행이 있고, LaSen(2026)보다 앞선다. '아무도 안 했다'는 문장은 불가능."
+   },
+   {
+    "rank": 2,
+    "id": "chen2024appliedsci",
+    "what": "Applied Sciences 2024 - 우리 식의 성분(반복률 x cos(beta/2) x cos delta)을 기호까지 같게 쓴다. LaSen 이 우선권을 명시적으로 이 논문에 돌린다.",
+    "impact": "식 자체의 우선권은 우리 것이 아니다. novelty 는 교차표·설계역산·검출률 귀결로 재정의해야 한다."
+   },
+   {
+    "rank": 3,
+    "id": "wypich2026sensors",
+    "what": "Sensors 2026, PUBLISHED - **패시브** 수신기가 SSB+PDCCH+PDSCH+CSI-RS 를 전부 복원해 쓴다. 표에 최대 속도 392 m/s.",
+    "impact": "⭐⭐ '패시브라서 기준신호만 쓴다'는 전제가 깨진다. 헤드라인의 조건절을 '상시 기준신호만 쓰는 운용에서'로 명시하지 않으면 반증당한다. 경계는 지오메트리가 아니라 파형 접근도다."
+   },
+   {
+    "rank": 4,
+    "id": "jopanya2025spawc",
+    "what": "SPAWC 2025 - SSB 패시브 바이스태틱에서 |v_u| <= lambda*f_Delta/2 를 이미 적는다.",
+    "impact": "다만 그 슬로타임은 버스트 **안쪽** 심볼 간격이지 SSB **반복 주기**가 아니다. 이 축 구별이 우리 novelty 의 전부이며 리뷰어가 가장 먼저 찌를 지점."
+   },
+   {
+    "rank": 5,
+    "id": "viberg2026icassp",
+    "what": "ICASSP 2026 - 도플러 축을 소거하고 지연만 1D 탐색하는 패시브 추정기.",
+    "impact": "우리 법칙은 '균일 슬로타임 푸리에 처리' 전제 위에서만 성능을 정한다. 그 전제를 본문에 명시해야 한다."
+   },
+   {
+    "rank": 6,
+    "id": "diseglio2024ietrsn",
+    "what": "IET RSN 2024 - 'Doppler ambiguity' 라는 표현을 쓰지만 메커니즘이 반복률 접힘이 아니라 위상동기 실패다.",
+    "impact": "동명이인 함정. 우리 표에 그대로 옮기면 E3(주장을 논문에 잘못 귀속)."
+   },
+   {
+    "rank": 7,
+    "id": "ji2026dualbistatic",
+    "what": "'도플러 정확도는 적분만 늘리면 쉽다'는 통념 문장이 그대로 적혀 있다.",
+    "impact": "우리에게 **유리**한 반례. 정확도와 모호 상한의 혼동이 문헌에 실재함을 그대로 인용할 수 있다."
+   },
+   {
+    "rank": 8,
+    "id": "abratkiewicz2023jstars",
+    "what": "미확보 JSTARS 2023 논문이 SSB 도플러 모호를 이미 다뤘다는 **2건의 제3자 요약**이 있다.",
+    "impact": "⭐ 확보 전까지 우리 novelty 문장을 확정할 수 없다. 최우선 조치."
+   }
+  ],
+  "⭐ homonyms_of_the_word_ambiguity_found_in_this_sweep": [
+   {
+    "paper": "diseglio2024ietrsn",
+    "means": "직접파 우세 가정이 깨져 위상 동기가 오염된 결과"
+   },
+   {
+    "paper": "openisac2026",
+    "means": "반송파 주파수 오프셋(CFO) 추정의 무모호 구간"
+   },
+   {
+    "paper": "huang2026uplink",
+    "means": "클러터와 표적을 구분할 수 없음"
+   },
+   {
+    "paper": "filippini2023 / colone2023taes",
+    "means": "진폭만 쓰므로 속도 **부호**를 잃음"
+   },
+   {
+    "paper": "diseglio2022irs / yuan2025eucap",
+    "means": "거리(지연) 모호"
+   },
+   {
+    "paper": "taylor2023radar / ai2021piers",
+    "means": "AF 사이드로브 구조"
+   },
+   {
+    "note": "⭐ 'ambiguity' 문자열 검색만으로 이 칸을 채우면 여섯 가지 다른 현상이 뒤섞인다. 반드시 메커니즘을 확인한다."
+   }
+  ],
+  "convention_ledger": {
+   "our_convention": "half-window: v_max = lambda*PRF/4",
+   "full_width_users": [
+    "geng2020 (MUV 176.5 m/s at PRI 1 ms, fc 850 MHz)",
+    "wei2022prs",
+    "jopanya2025spawc (as written)"
+   ],
+   "half_window_users": [
+    "lasen2026 (2.6 m/s at 200 Hz, 5.8 GHz)",
+    "chen2024appliedsci ([-25,25] Hz from a 20 ms period)"
+   ],
+   "nyquist_form": [
+    "wei2025twc (PRF >= 2*f_max)"
+   ],
+   "unverified": [
+    "wypich2026sensors (392 m/s - convention not read)"
+   ],
+   "rule": "⭐ 나란히 적을 때 규약을 반드시 열로 표시한다. 2배 오차가 그대로 결론을 바꾼다.",
+   "worked_checks": {
+    "lasen_csirs": {
+     "fc_Hz": 5800000000.0,
+     "prf_Hz": 200.0,
+     "our_half_window_ms": 2.58441774137931,
+     "paper_ms": 2.6
+    },
+    "geng_tlrs": {
+     "fc_Hz": 850000000.0,
+     "prf_Hz": 1000.0,
+     "our_full_width_ms": 176.34850470588233,
+     "paper_ms": 176.5
+    },
+    "chen_csirs": {
+     "fc_Hz": 3550000000.0,
+     "prf_Hz": 50.0,
+     "our_half_window_ms": 1.0556072464788733,
+     "our_rps_at_r0p3": 0.5600170374691247,
+     "paper_rps": 0.56
+    },
+    "ssb_default_5G": {
+     "fc_Hz": 3500000000.0,
+     "prf_Hz": 50.0,
+     "our_half_window_ms": 1.07068735
+    },
+    "lte_crs": {
+     "fc_Hz": 1800000000.0,
+     "prf_Hz": 1000.0,
+     "our_half_window_ms": 41.63784138888889
+    }
+   }
+  },
+  "law_reproduces_three_independent_papers": {
+   "note": "⭐ 우리 v_max = lambda*PRF_ref/4 를 세 편의 서로 다른 논문(다른 대역·다른 기준신호·다른 규약)이 적은 숫자에 대입한 결과. 전부 규약만 맞추면 재현된다.",
+   "checks": [
+    {
+     "paper": 2.6,
+     "fc_Hz": 5800000000.0,
+     "prf_Hz": 200.0,
+     "convention": "half-window",
+     "ours": 2.58441774137931,
+     "rel_err": 0.005993176392573061
+    },
+    {
+     "paper": 176.5,
+     "fc_Hz": 850000000.0,
+     "prf_Hz": 1000.0,
+     "convention": "full-width",
+     "ours": 176.34850470588233,
+     "rel_err": 0.0008583302782870591
+    },
+    {
+     "paper": "chen2024appliedsci (Applied Sciences, passive bistatic, CSI-RS 20 ms, r=0.3 m)",
+     "fc_Hz": 3550000000.0,
+     "prf_Hz": 50.0,
+     "convention": "half-window, expressed in rps",
+     "ours_rps": 0.5600170374691247,
+     "paper_rps": 0.56,
+     "rel_err": 3.0424052008259924e-05
+    }
+   ],
+   "bonus_consistency_check_wei2025twc": {
+    "what": "Wei(TWC 2025)는 반송파를 그 문단에 적지 않는다. f_mD = 2*pi*f_r*L/lambda 와 그들이 적은 f_mD=2934 Hz, f_r=80 r/s, L=0.5 m 로 lambda 를 역산하면",
+    "implied_lambda_m": 0.08566033138622477,
+    "implied_fc_GHz": 3.4997816743002974,
+    "verdict": "3.4998 GHz - 즉 정확히 3.5 GHz 대역이다. 그들의 숫자는 내부 정합적이고, 우리 5G 레인과 같은 반송파다."
+   }
+  }
+ },
+ "sionna_x_geometry_x_drone": {
+  "headline": "⭐ 아카이브의 Sionna 사용 논문 약 75편 중 센싱 지오메트리를 한 번이라도 명명한 것은 소수이고, 드론 표적까지 겹치는 것은 손에 꼽는다.",
+  "machine_evidence": "geoscan 150편 중 sionna>=2 인 파일에서 monostatic+bistatic+multistatic 언급 합이 0 인 파일이 압도적 다수다 - 디지털트윈·뉴럴리시버·데이터셋·CKM 계열은 전부 0.",
+  "sionna_used_entries": [
+   "cudetnet2026",
+   "clutteraware2026",
+   "ziganshin_conf",
+   "ziganshin_journal",
+   "mdrt2025",
+   "montaner_eucap"
+  ],
+  "the_intersection_ranked": [
+   {
+    "rank": 1,
+    "id": "cudetnet2026",
+    "why": "⭐⭐⭐ Sionna RT(PathSolver) + UAV 검출 + 분산 바이스태틱. 사용자가 요청한 '둘 다 섞인 논문'의 정본. 그리고 표적 산란을 확산반사 경로 라벨로 대체한다는 결정적 증거."
+   },
+   {
+    "rank": 2,
+    "id": "clutteraware2026",
+    "why": "⭐⭐ Proc. IEEE. Sionna 에 드론 메쉬를 넣고 스톡 Fresnel 을 받아들인다. mono/bi/multi 전부 언급. 우리 report06 의 정면 대상."
+   },
+   {
+    "rank": 3,
+    "id": "mdrt2025",
+    "why": "⭐ Sionna + UAV 마이크로도플러. 단, 지오메트리 UNCLEAR 이고 내부모순 때문에 정량 앵커 불가."
+   },
+   {
+    "rank": 4,
+    "id": "ziganshin_conf",
+    "why": "Sionna 확장 + 멀티스태틱 산란 + 유일하게 dBsm 을 내는 판. 표적은 드론이 아니라 차량."
+   },
+   {
+    "rank": 5,
+    "id": "ziganshin_journal",
+    "why": "Sionna 확장 + 바이스태틱 곡면 산란. 드론 아님."
+   },
+   {
+    "rank": 6,
+    "id": "montaner_eucap",
+    "why": "Sionna 계열 RF-DT 를 mono/bi 양쪽에서 실측 교정. 드론 아님."
+   }
+  ],
+  "⭐ the_empty_cell_we_fill": "Sionna 를 쓰면서 (i) 드론 메쉬에 산란적분을 돌리고 (ii) 지오메트리를 mono/bi 두 축으로 명시하고 (iii) 조명원 3종을 교차하고 (iv) CFAR 를 경험적 Pfa 로 교정한 논문은 이 스윕에서 하나도 나오지 않았다. 네 조건 중 최대 두 개까지만 겹친다.",
+  "sionna_capability_fact": "Sionna RT technical report 에서 SBR 48회, physical optics 0회, radar cross section 0회(outputs/prior_settled_sionna.json). 'Sionna 는 SBR 이 없다'는 거짓이고, 없는 것은 표면전류 PO 적분과 RCS 출력이다.",
+  "misclassification_guard": "OpenISAC(2601.03535)은 Sionna 를 **인용만** 한다. sionna>=2 라는 기계적 기준만으로 '사용'으로 분류하면 오분류한다."
+ },
+ "geometry_findings": [
+  "⭐ Config B(패시브 준-모노스태틱)는 문헌에서 가장 희소하다. 이 스윕에서 명시적 B 는 Martelli(Radar 2017, 'in a quasi-monostatic configuration with respect the TX')와 Demissie(RADAR 2024, 'as close as possible to a monostatic setup') 둘뿐이고, Di Seglio(IET RSN 2024)가 B 와 C 를 한 논문에서 비교한 유일 사례다.",
+  "⭐ 'co-located' 가 세 가지 다른 뜻으로 쓰인다: (1) TX-RX 동일지점 = 진짜 모노스태틱(liu2025monobg, airguard2026jsac, das2026wcl), (2) 수신 배열 두 개가 서로 붙음(sun2025ojcoms), (3) 한 노드 안의 RC/SC 수신기(viberg2026eca). 이 단어만 보고 분류하면 셋 다 틀린다.",
+  "⭐ 'passive' 도 두 가지 뜻으로 쓰인다: 지오메트리(바이스태틱)만 뜻하는 경우(jopanya2025spawc - 두 노드 다 같은 망의 BS; sun2022wisec - 조명원이 자기 USRP)와 비협력 조명원을 뜻하는 경우(maksymiuk 계열, taylor 계열). 그래서 cooperative_tx 축을 따로 둔다.",
+  "자기간섭 상쇄는 Config A 의 정의적 비용이고, 그 유일한 실측 수치 출처는 Barneto(TMTT 2019, 총 100 dB). 2026년 논문들(huang2026uplink 등)도 같은 이유로 A 를 피한다고 명시한다.",
+  "멀티스태틱(D)은 패시브 쪽에서 이미 성숙해 있다: Geng(2020) 이래 Viberg 계열(ICASSP 2026, CAMSAP 2025, ECA 프리프린트), Sriranga(2025), Huang 업링크(2026)로 이어진다. 우리 다중Rx 절은 이 계보 안에 놓여야 한다.",
+  "⭐ 업링크 조명(UE 가 조명원, BS 가 수신)은 우리 2x3 격자가 아예 다루지 않는 네 번째 지오메트리다(huang2026uplink). future work 에 정직하게 적는다.",
+  "RCS 측정 문헌은 지오메트리를 mono/bi 로 명확히 나누지만(das2026wcl, yuan2025eucap, zhang2026jsac), 센싱 시스템 문헌은 자기 지오메트리를 안 밝히는 경우가 흔하다(lin2023iccc, mdrt2025).",
+  "⭐ 바이스태틱은 v_max 에 **유리**하다: Costa(RadarConf24)의 실측/해석은 beta 가 커질수록 도플러 확산이 줄어듦을 보이고, 이는 우리 완화계수 1/cos(beta/2) 와 같은 물리다. 즉 '패시브 바이스태틱은 속도 상한에서 불리하다'가 아니라 '상시 기준신호만 쓰는 것이 불리하고, 바이스태틱 각은 그것을 조금 완화한다'가 정확한 문장이다."
+ ],
+ "actions_ranked": [
+  {
+   "rank": 1,
+   "action": "⭐⭐ Abratkiewicz et al., IEEE JSTARS 16:3469-3484, 2023 (SSB-based passive radar) PDF 확보. 서베이와 Wu 외 2건이 'SSB 반복 주기가 무모호 속도를 심하게 제약한다'와 'two-snapshot 으로 도플러 모호를 푼다'를 이 논문에 귀속한다. 확보 전까지 우리 novelty 문장 확정 불가. DOI 10.1109/JSTARS.2023.3262291."
+  },
+  {
+   "rank": 2,
+   "action": "⭐ Wypich & Zielinski, Sensors 26(4):1317, 2026 (DOI 10.3390/s26041317, open access) 원문 확보 후 392 m/s 의 규약과 슬로타임 정의 확인. 우리 조건절('상시 기준신호만 쓰는 운용에서')을 정확히 쓰기 위해 필수."
+  },
+  {
+   "rank": 3,
+   "action": "Chen et al., Applied Sciences 14(10):4282, 2024 PDF 확보. 현재 인용문 전부가 이전 라운드 판정 승계이며 원문 재확인이 없다."
+  },
+  {
+   "rank": 4,
+   "action": "Ji et al. arXiv:2602.08203 게재 상태 확인(현재 미검증). 우리가 가장 쓰고 싶은 '통념 인용문'의 출처이므로 상태가 중요하다."
+  },
+  {
+   "rank": 5,
+   "action": "Montaner EuCAP 연도·DOI 확인, CAMSAP 2025 저자 목록 확인, Manukyan arXiv:2507.19653 서지 확인."
+  },
+  {
+   "rank": 6,
+   "action": "Blandino arXiv:2604.02205 본문 정독 - Pd>70%/Pfa<5% 가 우리 표와 사과-대-사과인지, 공개된 5GNRad 시뮬레이터가 우리 벤치마크와 비교 가능한지."
+  },
+  {
+   "rank": 7,
+   "action": "Barneto TMTT 2019 PDF 확보 - Config A 행 전체가 이 한 편(그것도 미보유)에 걸려 있다."
+  }
+ ],
+ "corrections_to_earlier_records": [
+  {
+   "target": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/SOURCES.md, row 2504.02641",
+   "was": "ACCEPTED_SELF_ASSERTED (SPAWC 2025) - acceptance appears only in the arXiv comment field",
+   "now": "PUBLISHED - the archives ALSO hold the Xplore PDF at /data/public/jeong/papers/5G/25_Utilizing 5G NR SSB Blocks....pdf carrying DOI 10.1109/SPAWC66079.2025.11143316 and ISBN 978-1-6654-7776-5",
+   "why_it_matters": "E4 의 반대 방향 오류 - 실제로 출판된 논문을 프리프린트로 낮춰 적고 있었다. 아카이브 두 곳이 서로를 모르는 것이 원인."
+  },
+  {
+   "target": "duplicate version pairs discovered across the archives (E2 hazard)",
+   "pairs": [
+    [
+     "/data/public/jeong/papers/LTE/25_An Experimental Study of Passive UAV Tracking....pdf  (IEEE OJ-COMS 2025, published)",
+     "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2412.20788__passive-uav-tracking-digital-arrays-cellular-dl.pdf  (arXiv preprint)"
+    ],
+    [
+     "/data/public/jeong/papers/5G/25_Utilizing 5G NR SSB Blocks....pdf  (Xplore SPAWC 2025)",
+     "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.02641__5gnr-ssb-passive-detection-lowalt-drones_SPAWC2025.pdf  (arXiv v3)"
+    ],
+    [
+     "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modelling_Micro-Doppler_Signature_of_Drone_Propellers_in_Distributed_ISAC.pdf",
+     "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2401.14287__costa_microdoppler-drone-propellers_RadarConf24-conf.pdf"
+    ],
+    [
+     "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modeling_Micro-Doppler_Signature_of_Multi-Propeller_Drones_in_Distributed_ISAC.pdf  (JSTEAP typeset)",
+     "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.05168__costa_microdoppler-multiprop-drones_JSTEAP-journal.pdf  (arXiv v2)"
+    ],
+    [
+     "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Clutter-Aware_Integrated_Sensing_and_Communication_....pdf  (typeset Proc. IEEE, 41 pp)",
+     "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf"
+    ],
+    [
+     "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based Simulation of Scattering from Discretized Curved Bodies....pdf",
+     "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf"
+    ]
+   ],
+   "why_it_matters": "⭐ 우리 오류기록 E2(판 혼동)의 구조적 원인. 인용할 때 어느 판을 읽었는지 반드시 밝힌다."
+  },
+  {
+   "target": "Sionna RT founding paper publication status",
+   "was": "outputs/prior_settled_sionna.json: 'preprint (no venue header, no DOI)' - true of the FILE we hold",
+   "now": "the paper itself is PUBLISHED: IEEE GLOBECOM Workshops 2023, pp. 317-321. Both statements are true of different objects; record them separately.",
+   "why_it_matters": "E4. 우리가 읽은 문장은 프리프린트의 것이므로 출판본 페이지로 인용할 때 그 사실을 밝힌다."
+  }
+ ],
+ "gaps_not_closed": [
+  "사용자가 지목한 5개 학회 중 3개가 아직 비어 있다: SenSys 1편(LaSen), ICASSP 1편(Viberg) 확정. MobiCom / MobiSys / INFOCOM 본회의의 드론 ISAC 논문은 이번 스윕에서 확정된 것이 없다.",
+  "IEEE TAP / AWPL / TVT / IoT-J / JSTARS / EuRAD / IET RSN 의 드론 패시브 문헌을 웹으로 체계적으로 훑지 못했다. 이번 라운드는 아카이브 우선이었다.",
+  "DVB-T / DAB / FM 조명원 계열은 Rzewuski 한 편만 들어왔다. 이 계열은 fc 가 낮아 v_max 가 유리한 쪽 극단이라 우리 표의 대조군으로 가치가 크다.",
+  "self-interference cancellation 계열은 Barneto 한 편(PDF 미보유)에 의존한다. Config A 행의 근거가 얇다.",
+  "도플러 모호를 '푸는' 방법론(비균일 표본화, 압축센싱, two-snapshot, 다중 반복률)의 체계적 조사는 하지 않았다. LaSen 과 Abratkiewicz 두 점만 안다.",
+  "웹 검색에서 나온 미조사 후보: arXiv:2512.14608(cellular ISAC + passive RF fusion for UAV), arXiv:2509.25732(Doppler-based multistatic drone tracking via cellular downlink), arXiv:2509.19119(SWARM repeater-assisted MIMO ISAC), arXiv:2511.15416(NLOS imaging at 6G initial access), bladeRAD(UCL, quasi-monostatic WiFi PR, HERM lines +/-400 Hz - Config B 후보)."
+ ]
+}

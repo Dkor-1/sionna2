@@ -1,0 +1,163 @@
+{
+ "_meta": {
+  "purpose": "리포트 03 의 파생 원장 — 상위 JSON 에 스칼라로 없는 값만. 손으로 적은 값 0개.",
+  "made_by": "src/make_report03_illuminators.py:build_ledger",
+  "paper_section": "III-B. Illuminators",
+  "upstream": [
+   "outputs/report2_waveform_rcs.json",
+   "outputs/verify_ambiguity.json",
+   "outputs/report4_fixups.json",
+   "outputs/report5_results.json"
+  ],
+  "note": "모든 항목은 두 양의 비이거나 격자에서 잰 에너지다 — 표적 σ 가 상쇄된다.",
+  "closed_form_note": "`closed_form: true` 인 항목은 자원격자·반송파·관측시간에서 닫히므로 유효숫자가 계산 정밀도까지 간다. `false` 인 항목은 몬테카를로 격자에서 읽은 값이고, 그 옆의 구간·격자 눈금이 유효숫자를 정한다."
+ },
+ "grids": {
+  "G1": {
+   "wifi": {
+    "name": "WiFi 802.11ac",
+    "ref_name": "VHT-LTF",
+    "carrier_hz": 5210000000.0,
+    "bw_hz": 75625000.0,
+    "ref_bw_hz": 76562500.0,
+    "drb_m": 3.915656594285714,
+    "prf_hz": 1000.0,
+    "occupancy_frac": 0.09134615384615384,
+    "e_ref_db": 24.76429043980723,
+    "e_tx_db": 28.03016829290683,
+    "e_ref_over_tx_db": -3.265877853099599
+   },
+   "lte": {
+    "name": "LTE Rel-9",
+    "ref_name": "CRS",
+    "carrier_hz": 1843000000.0,
+    "bw_hz": 18000000.0,
+    "ref_bw_hz": 17985000.0,
+    "drb_m": 16.669027411732,
+    "prf_hz": 1000.0,
+    "occupancy_frac": 0.0322265625,
+    "e_ref_db": 32.648730637278625,
+    "e_tx_db": 32.648730637278625,
+    "e_ref_over_tx_db": 0.0
+   },
+   "nr": {
+    "name": "5G NR Rel-16",
+    "ref_name": "SSB",
+    "carrier_hz": 3500000000.0,
+    "bw_hz": 98280000.0,
+    "ref_bw_hz": 7200000.0,
+    "drb_m": 41.63784138888889,
+    "prf_hz": 50.0,
+    "occupancy_frac": 0.014474051339285714,
+    "e_ref_db": 29.488453278167185,
+    "e_tx_db": 29.488453278167185,
+    "e_ref_over_tx_db": 0.0
+   }
+  },
+  "G3": {
+   "wifi": {
+    "name": "WiFi 802.11ac",
+    "ref_name": "VHT-LTF",
+    "carrier_hz": 5210000000.0,
+    "bw_hz": 75625000.0,
+    "ref_bw_hz": 76562500.0,
+    "drb_m": 3.915656594285714,
+    "prf_hz": 1000.0,
+    "occupancy_frac": 0.8912259615384616,
+    "e_ref_db": 24.76429043980723,
+    "e_tx_db": 36.03031658122098,
+    "e_ref_over_tx_db": -11.266026141413757
+   },
+   "lte": {
+    "name": "LTE Rel-9",
+    "ref_name": "PRS",
+    "carrier_hz": 1843000000.0,
+    "bw_hz": 18000000.0,
+    "ref_bw_hz": 18015000.0,
+    "drb_m": 16.64126883152928,
+    "prf_hz": 1000.0,
+    "occupancy_frac": 0.5859375,
+    "e_ref_db": 37.182804212404754,
+    "e_tx_db": 42.98669471792749,
+    "e_ref_over_tx_db": -5.803890505522739
+   },
+   "nr": {
+    "name": "5G NR Rel-16",
+    "ref_name": "NR-PRS",
+    "carrier_hz": 3500000000.0,
+    "bw_hz": 98280000.0,
+    "ref_bw_hz": 98280000.0,
+    "drb_m": 3.0503913105413107,
+    "prf_hz": 200.0,
+    "occupancy_frac": 0.7975376674107143,
+    "e_ref_db": 42.18634683795625,
+    "e_tx_db": 47.673163529137234,
+    "e_ref_over_tx_db": -5.486816691180977
+   }
+  }
+ },
+ "lambda2": {
+  "lte_to_nr_db": -5.5708541826240365,
+  "lte_to_wifi_db": -9.026247761609014,
+  "closed_form": true,
+  "defn": "20log10(lam/lam_ref) — EIRP 고정 · 수신 안테나 이득 고정 전제. 코드: src/freespace_link.py:371 (snr_rd_terms_db 의 lambda2 항)",
+  "span_db": -9.026247761609014
+ },
+ "ref_energy_gap_G1_to_G3_db": {
+  "wifi": 0.0,
+  "lte": 4.534073575126129,
+  "nr": 12.697893559789065,
+  "closed_form": true,
+  "defn": "10log10(E_ref(G3)/E_ref(G1)) — 상관에 쓸 수 있는 기준신호 에너지만",
+  "from_": "src/waveforms.py 격자 재생성 (all_waveforms)"
+ },
+ "ratios": {
+  "drb_nr_over_lte": 2.4979166666666663,
+  "vmax_lte_over_nr": 37.981551817688555,
+  "defn": "상시 기준신호(LTE CRS · 5G SSB) 기준의 거리눈금 비와 무모호 속도 비",
+  "from_": "outputs/report2_waveform_rcs.json:reference.G1"
+ },
+ "occupancy_cost": {
+  "value_db": 18.0,
+  "pd_threshold": 0.5,
+  "eirp_G1_dbm": -12.0,
+  "eirp_G3_dbm": -30.0,
+  "eirp_grid_step_db": 6.0,
+  "bracket_lo_db": 12.0,
+  "bracket_hi_db": 24.0,
+  "interp_db": 16.408033826638476,
+  "bracket_G1_dbm": [
+   -18.0,
+   -12.0
+  ],
+  "bracket_G3_dbm": [
+   -36.0,
+   -30.0
+  ],
+  "pd_G1": [
+   0.26666666666666666,
+   0.9833333333333333
+  ],
+  "pd_G3": [
+   0.06666666666666667,
+   0.8
+  ],
+  "closed_form": false,
+  "ref_bw_G1_mhz": 7.2,
+  "ref_bw_G3_mhz": 98.28,
+  "occ_frac_G1": 0.014474051339285714,
+  "occ_frac_G3": 0.7975376674107143,
+  "n_trials": 60,
+  "drone": "mavic4pro",
+  "scen": "radial",
+  "defn": "5G 100 MHz, 상시(G1=SSB) 가 풀로드(G3=NR-PRS) 와 같은 Pd 를 내려면 EIRP 를 얼마나 더 써야 하나. 같은 표적·같은 기하의 차라서 σ 가 상쇄된다. ⚠ 이 격차에는 기준신호 대역(7.2→98.28 MHz)과 점유율이 함께 들어 있다 — '점유만'의 값이 아니다.",
+  "precision": "검출 몬테카를로의 EIRP 격자에서 읽은 값이다 — value_db 는 격자점 차이이고 참값은 [bracket_lo_db, bracket_hi_db] 안에 있다. interp_db 는 그 구간 안의 Pd 선형보간. 시행 n_trials 회가 각 격자점의 Pd 를 정한다.",
+  "from_": "outputs/report5_results.json:A_occupancy.rows"
+ },
+ "detector_af_max_err_db": {
+  "value": 0.14387619143575847,
+  "n_cases": 6,
+  "defn": "해석 모호함수 |chi| 와 검출기 거리도플러 출력의 최대 편차(−45 dB 이상 셀)",
+  "from_": "outputs/verify_ambiguity.json:meta.detector_validation"
+ }
+}

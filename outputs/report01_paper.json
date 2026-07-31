@@ -1,0 +1,835 @@
+{
+ "meta": {
+  "generated": "2026-07-31 06:10",
+  "producer": "src/report01_paper_facts.py",
+  "purpose": "리포트 01 → 논문 I. Introduction / II. Related Work 파생 원장",
+  "inputs": [
+   "outputs/prior_work_survey.json",
+   "outputs/prior_settled_h8.json",
+   "outputs/report01_citation_audit.json"
+  ],
+  "rule": "값은 입력 JSON 과 PDF 원문에서만 온다. 이 파일이 새로 정하는 것은 규약뿐이다.",
+  "audit_fixes_applied": [
+   "zhang: 감사 P08: survey 는 'P. Zhang'(Das 편의 공저자)을 적었다. JSAC 1쪽 저자줄은 Yuxiang Zhang",
+   "hoydis: 감사 P01: 게재본(12쪽 · PDF subject 가 IEEE TMLCN)을 인용 대상으로 삼는다",
+   "lambda: 감사 P08: PDF 1쪽 저자줄 Lin Zhou 외 6인",
+   "openisac: 감사 P08: PDF 1쪽 저자줄 Zhiwen Zhou 외 3인",
+   "sagitta: 감사 P08: PDF 1쪽 저자줄 Marco Pasquale 외 4인 (SagittaSBR 은 소프트웨어 이름)"
+  ],
+  "audit_items_consumed": [
+   "P01 Hoydis 판",
+   "P02 관문 집계",
+   "P03 P1 규칙",
+   "P04 Rzewuski 를 같은 모집단에",
+   "P08 저자명"
+  ]
+ },
+ "corpus": {
+  "documents": 21,
+  "distinct_works": 19,
+  "version_pairs": [
+   [
+    "costa_c",
+    "costa_j"
+   ],
+   [
+    "zig_c",
+    "zig_j"
+   ]
+  ],
+  "version_pairs_ko": "Costa 와 Ziganshin 은 회의판·저널판을 따로 센다 — 판마다 게재상태와 보고량이 다르다",
+  "corpus_swept_pdfs": 178
+ },
+ "h8": {
+  "claim_ko": "ZERO published papers compute a validated scattering signature from a drone mesh in a Sionna-class engine.",
+  "prongs": [
+   {
+    "prong": "P1 게재",
+    "test_ko": "지면 기록이 있는 프로시딩·저널에 실렸다. 본문에 지면 채택을 적은 arXiv 원고는 `일부` 로 세고 프리프린트로 남긴다"
+   },
+   {
+    "prong": "P2 드론 메쉬",
+    "test_ko": "표적이 기체의 3-D 표면 메쉬다. 큐브·점산란체·블레이드 1장·추상 복소계수는 제외한다"
+   },
+   {
+    "prong": "P3 Sionna 계열 엔진",
+    "test_ko": "산란전계를 미분가능 GPU 광선엔진 **안에서** 계산한다. FEKO·FDTD 로 낸 σ 를 경로에 곱하는 것은 주입이다"
+   },
+   {
+    "prong": "P4 진폭 검증",
+    "test_ko": "계산한 산란 **진폭**을 측정 또는 기준해와 맞댄다. 도플러 위치·회전주기·능선 모양 일치는 운동학이라 여기 못 든다"
+   }
+  ],
+  "p1_rule_ko": "지면 기록이 있는 프로시딩·저널에 실렸다. 본문에 지면 채택을 적은 arXiv 원고는 `일부` 로 세고 프리프린트로 남긴다",
+  "n_adjudicated": 12,
+  "n_passing_all_prongs": 0,
+  "blocked_at_counts": {
+   "P1": 8,
+   "P4": 1,
+   "P2": 2,
+   "P3": 1
+  },
+  "scorecard": [
+   {
+    "label": "CellSense",
+    "paper": "CellSense, arXiv:2606.07900",
+    "verdict_en": "does NOT refute H8. The ledger flagged CellSense (CE01) as an H8 risk because it reaches detection rates with Sionna; the risk is real on the DETECTION prong but the target is not a drone and no scattering signature is computed.",
+    "P1": "no",
+    "P2": "no",
+    "P3": "yes",
+    "P4": "no",
+    "raw": {
+     "P1": "not established from the PDF",
+     "P2": "NO - no drone at all (drone/UAV string count 0)",
+     "P3": "YES - Sionna RT scenes built in Blender",
+     "P4": "NO"
+    },
+    "blocked_at": [
+     "P1",
+     "P2",
+     "P4"
+    ],
+    "first_block": "P1",
+    "passes_all": false
+   },
+   {
+    "label": "Clutter-Aware",
+    "paper": "Clutter-Aware ISAC (Liu et al.), Proc. IEEE vol.114 no.1, Jan 2026",
+    "verdict_en": "does NOT refute H8; together with md-rt it is one of only two published papers putting UAV geometry into Sionna",
+    "P1": "yes",
+    "P2": "yes",
+    "P3": "yes",
+    "P4": "no",
+    "raw": {
+     "P1": "YES",
+     "P2": "YES - simplified UAV meshes",
+     "P3": "YES - Sionna RT, stock",
+     "P4": "NO - no RCS value, no dBsm, no comparison to measurement or reference solver; the Sionna scene is an illustrative case study"
+    },
+    "blocked_at": [
+     "P4"
+    ],
+    "first_block": "P4",
+    "passes_all": false
+   },
+   {
+    "label": "FWA cube",
+    "paper": "FWA cooperative sensing (Zhang, Guo, Li, Wen, Jin), arXiv:2605.07623, archive-filed under published_by_venue/IEEE_ICC_Workshops_2026",
+    "verdict_en": "does NOT refute H8, and is the single most useful catalogue entry: a Sionna-based UAV DETECTION paper that reaches 0.63% missed detection with a CUBE for a target",
+    "P1": "partial",
+    "P2": "no",
+    "P3": "yes",
+    "P4": "no",
+    "raw": {
+     "P1": "likely YES (the archive files it under IEEE ICC Workshops 2026; the venue string was NOT verified inside the PDF - treat as UNVERIFIED until it is)",
+     "P2": "NO - 'The UAV is modeled as a metallic cube'",
+     "P3": "YES - Sionna RT",
+     "P4": "NO - no RCS anywhere"
+    },
+    "blocked_at": [
+     "P1",
+     "P2",
+     "P4"
+    ],
+    "first_block": "P1",
+    "passes_all": false
+   },
+   {
+    "label": "Great-X",
+    "paper": "Great-X, arXiv:2507.08716",
+    "verdict_en": "does NOT refute H8; a genuine near-miss on the mesh-in-a-GPU-ray-engine axis",
+    "P1": "no",
+    "P2": "yes",
+    "P3": "no",
+    "P4": "no",
+    "raw": {
+     "P1": "NO",
+     "P2": "YES - 'Realistic 3D UAV models in Great-X' (Fig.1a caption, p1)",
+     "P3": "NO - Unreal Engine single-engine ray tracer; Sionna RT is the COMPARISON baseline",
+     "P4": "NO - no RCS, no dBsm; the reported metric is positioning error in metres"
+    },
+    "blocked_at": [
+     "P1",
+     "P3",
+     "P4"
+    ],
+    "first_block": "P1",
+    "passes_all": false
+   },
+   {
+    "label": "LAMBDA",
+    "paper": "LAMBDA UAV dataset, arXiv:2607.03826v1 (4 Jul 2026)",
+    "verdict_en": "does NOT refute H8; it is the cleanest example of the RCS-INJECTION route (our taxonomy route c)",
+    "P1": "no",
+    "P2": "yes",
+    "P3": "no",
+    "P4": "no",
+    "raw": {
+     "P1": "NO",
+     "P2": "YES - AirSim UAV model",
+     "P3": "NO - the drone RCS comes from CADFEKO; Sionna RT only supplies the propagation paths",
+     "P4": "NO - quality control checks 'CSI/radar plausibility', not amplitude against a reference"
+    },
+    "blocked_at": [
+     "P1",
+     "P3",
+     "P4"
+    ],
+    "first_block": "P1",
+    "passes_all": false
+   },
+   {
+    "label": "md-rt",
+    "paper": "md-rt - 'Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing'",
+    "verdict_en": "does NOT refute H8; the closest published Sionna + drone-geometry paper",
+    "P1": "yes",
+    "P2": "partial",
+    "P3": "yes",
+    "P4": "no",
+    "raw": {
+     "P1": "YES",
+     "P2": "PARTIAL - a single two-blade PROPELLER, not an airframe",
+     "P3": "YES - Sionna RT",
+     "P4": "NO - validated against its own analytical formula, and only kinematically"
+    },
+    "blocked_at": [
+     "P2",
+     "P4"
+    ],
+    "first_block": "P2",
+    "passes_all": false
+   },
+   {
+    "label": "OpenISAC",
+    "paper": "OpenISAC, arXiv:2601.03535",
+    "verdict_en": "does NOT refute H8; abstract sigma_RCS in the radar equation",
+    "P1": "no",
+    "P2": "no",
+    "P3": "no",
+    "P4": "no",
+    "raw": {
+     "P1": "NO on this PDF",
+     "P2": "NO",
+     "P3": "NO - Sionna is only cited as a related tool, not used",
+     "P4": "NO"
+    },
+    "blocked_at": [
+     "P1",
+     "P2",
+     "P3",
+     "P4"
+    ],
+    "first_block": "P1",
+    "passes_all": false
+   },
+   {
+    "label": "Rzewuski",
+    "paper": "Rzewuski, Kulpa, Pachwicewicz, Malanowski, Salski, 'Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band', NATO STO-MP-MSG-SET-183, paper 13 (PDF metadata author 'Stanislaw Rzewuski', subject 'MSG-SET-183')",
+    "verdict_en": "does NOT refute H8; the engine prong is the whole gap",
+    "P1": "yes",
+    "P2": "yes",
+    "P3": "no",
+    "P4": "partial",
+    "raw": {
+     "P1": "yes (NATO STO proceedings)",
+     "P2": "yes (Parrot AR.Drone 2.0 geometry in an FDTD grid)",
+     "P3": "NO - FDTD full-wave",
+     "P4": "partial - the asymmetry is 'confirmed by the measurements [3]' and RCS estimation/measurement detail is deferred to reference [4]; no in-paper amplitude overlay"
+    },
+    "blocked_at": [
+     "P3",
+     "P4"
+    ],
+    "first_block": "P3",
+    "passes_all": false
+   },
+   {
+    "label": "SagittaSBR",
+    "paper": "SagittaSBR, arXiv:2604.09243v1",
+    "verdict_en": "does NOT refute H8. IMPORTANT CORRECTION: 'Sagitta' here is the SOFTWARE name, not a UAV. The DLR Sagitta demonstrator is a real UAV, which makes this an easy confusion to make.",
+    "P1": "partial",
+    "P2": "no",
+    "P3": "no",
+    "P4": "yes",
+    "raw": {
+     "P1": "PARTIAL - base version accepted at ICCS 2026",
+     "P2": "NO - the target is an AIRBUS A380 AIRLINER",
+     "P3": "NO - own C++/CUDA SBR code (SagittaSBR), not Sionna",
+     "P4": "YES - vs analytical Mie for a PEC sphere"
+    },
+    "blocked_at": [
+     "P1",
+     "P2",
+     "P3"
+    ],
+    "first_block": "P1",
+    "passes_all": false
+   },
+   {
+    "label": "Temporal-GNN",
+    "paper": "Temporal-GNN ISAC, arXiv:2604.08306",
+    "verdict_en": "does NOT refute H8; catalogue entry for the point-scatterer-RCS-into-Sionna route",
+    "P1": "no",
+    "P2": "no",
+    "P3": "yes",
+    "P4": "no",
+    "raw": {
+     "P1": "NO (preprint)",
+     "P2": "NO - point scatterer",
+     "P3": "YES - Sionna ray tracing",
+     "P4": "NO"
+    },
+    "blocked_at": [
+     "P1",
+     "P2",
+     "P4"
+    ],
+    "first_block": "P1",
+    "passes_all": false
+   },
+   {
+    "label": "Ziganshin conf.",
+    "paper": "Ziganshin et al., conference version, 'Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC'",
+    "verdict_en": "does NOT refute H8 (wrong target class), but proves the method is publishable in exactly this form",
+    "P1": "yes",
+    "P2": "no",
+    "P3": "yes",
+    "P4": "yes",
+    "raw": {
+     "P1": "YES",
+     "P2": "NO - car model 3.3 x 2.1 x 1.7 m",
+     "P3": "YES - Sionna RT",
+     "P4": "YES - vs FEKO MLFMM and PO solvers"
+    },
+    "blocked_at": [
+     "P2"
+    ],
+    "first_block": "P2",
+    "passes_all": false
+   },
+   {
+    "label": "Ziganshin jour.",
+    "paper": "Ziganshin et al., journal version, arXiv:2604.05991",
+    "verdict_en": "does NOT refute H8; the closest paper in METHOD, and the strongest structural precedent for what we are doing",
+    "P1": "no",
+    "P2": "no",
+    "P3": "yes",
+    "P4": "yes",
+    "raw": {
+     "P1": "NO",
+     "P2": "NO - Mitsubishi i-MiEV vehicle mesh, not a drone",
+     "P3": "YES - in-place Sionna-RT extension",
+     "P4": "YES but self-described as qualitative"
+    },
+    "blocked_at": [
+     "P1",
+     "P2"
+    ],
+    "first_block": "P1",
+    "passes_all": false
+   }
+  ],
+  "q1_counter_paper": "Rzewuski, Kulpa, Pachwicewicz, Malanowski, Salski, 'Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band', NATO STO-MP-MSG-SET-183, paper 13 (PDF metadata author 'Stanislaw Rzewuski', subject 'MSG-SET-183')",
+  "q1_why_ko": "'WiFi 패시브용 드론 바이스태틱 RCS 를 아무도 낸 적 없다' 로 바꿔 말하면 거짓이다. Rzewuski 등(NATO STO, 2021)이 FDTD 로 그 값을 냈고 실측 검출까지 닫았다. 우리 새로움은 **엔진과 파이프라인**에 있다.",
+  "q2_why_ko": "'게재' 가 이 주장을 떠받친다. 프리프린트를 넣으면 간격이 이음매로 좁아진다 — LAMBDA 는 UAV RCS 를 Sionna RT 경로와 한 파이프라인에 이미 태웠고, Ziganshin 저널판은 메쉬 산란을 Sionna 안에서 실측과 맞댔다.",
+  "rzewuski_venue_note_ko": "NATO STO 회의 프로시딩 수록본이다. 이 처분은 우리 신규성을 좁히는 쪽이라 보수적이다"
+ },
+ "route_status": {
+  "R1": {
+   "papers": 3,
+   "published": 3,
+   "label_ko": "그 기체를 직접 잰다 (무향실·CATR)",
+   "bought_ko": "그 기체 그 대역의 절대 σ 와 계수표"
+  },
+  "R2": {
+   "papers": 1,
+   "published": 1,
+   "label_ko": "full-wave 솔버로 그 기체를 푼다 (광선엔진 밖)",
+   "bought_ko": "바이스태틱 절대 σ 와 그것을 먹는 커버리지 예산"
+  },
+  "R3": {
+   "papers": 1,
+   "published": 0,
+   "label_ko": "외부 σ 를 광선경로에 주입한다",
+   "bought_ko": "엔진을 건드리지 않고 얻는 자세의존 진폭"
+  },
+  "R4": {
+   "papers": 2,
+   "published": 2,
+   "label_ko": "해석 표적 모델 (thin-wire · 점산란체 연속체)",
+   "bought_ko": "마이크로도플러 서명의 모양과 상관계수"
+  },
+  "R5": {
+   "papers": 5,
+   "published": 1,
+   "label_ko": "추상 계수 · 점산란체 · 기하 프리미티브",
+   "bought_ko": "폐형식 신호모델과 검출·추정 통계"
+  },
+  "R6": {
+   "papers": 6,
+   "published": 3,
+   "label_ko": "엔진 기본 상호작용에 맡긴다 (스톡 재질·확산계수)",
+   "bought_ko": "운동학 서명 · 지연-도플러 구조 · 데이터셋"
+  },
+  "R7": {
+   "papers": 3,
+   "published": 1,
+   "label_ko": "엔진 안에서 메쉬 산란을 계산한다",
+   "bought_ko": "기하와 일관된 서명, 멀티스태틱 확장 가능"
+  }
+ },
+ "citations": [
+  {
+   "n": 1,
+   "key": "yuan",
+   "short_ko": "Yuan (모노 3D)",
+   "authors": "Z. Yuan et al.",
+   "title": "On Experimental Analysis of Mono-Static 3D UAV RCS for ISAC Channel Modeling",
+   "venue": "Proc. European Conf. Antennas and Propagation (EuCAP)",
+   "year": 2025,
+   "volume": null,
+   "pages": null,
+   "doi": "10.23919/EuCAP63536.2025.10999912",
+   "arxiv": null,
+   "status": "published",
+   "status_ko": "게재",
+   "route": "R1",
+   "route_tag": "R1 · 무향실 측정",
+   "venue_evidence": "PDF 메타데이터 subject",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  },
+  {
+   "n": 2,
+   "key": "das",
+   "short_ko": "Das (멀티밴드)",
+   "authors": "S. Das et al.",
+   "title": "Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling",
+   "venue": "IEEE Wireless Communications Letters",
+   "year": 2026,
+   "volume": "15",
+   "pages": "3731-3735",
+   "doi": "10.1109/LWC.2026.3705634",
+   "arxiv": null,
+   "status": "published",
+   "status_ko": "게재",
+   "route": "R1",
+   "route_tag": "R1 · 무향실 측정",
+   "venue_evidence": "PDF 메타데이터 subject + 본문 러닝헤드",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  },
+  {
+   "n": 3,
+   "key": "zhang",
+   "short_ko": "Zhang (통합 RCS)",
+   "authors": "Y. Zhang et al.",
+   "title": "A Unified RCS Modeling of Typical Targets for 3GPP ISAC Channel Standardization and Experimental Analysis",
+   "venue": "IEEE Journal on Selected Areas in Communications",
+   "year": 2026,
+   "volume": "44",
+   "pages": "702-716",
+   "doi": "10.1109/JSAC.2025.3608732",
+   "arxiv": null,
+   "status": "published",
+   "status_ko": "게재",
+   "route": "R1",
+   "route_tag": "R1 · 무향실 측정",
+   "venue_evidence": "PDF 메타데이터 subject + p1 러닝헤드",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": "감사 P08: survey 는 'P. Zhang'(Das 편의 공저자)을 적었다. JSAC 1쪽 저자줄은 Yuxiang Zhang"
+  },
+  {
+   "n": 4,
+   "key": "rzewuski",
+   "short_ko": "Rzewuski (WiFi 패시브)",
+   "authors": "S. Rzewuski et al.",
+   "title": "Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band",
+   "venue": "NATO STO Meeting Proceedings STO-MP-MSG-SET-183, paper 13",
+   "year": 2021,
+   "volume": null,
+   "pages": null,
+   "doi": null,
+   "arxiv": null,
+   "status": "published",
+   "status_ko": "게재",
+   "route": "R2",
+   "route_tag": "R2 · full-wave 솔버",
+   "venue_evidence": "전 쪽 보고서 코드 + PDF 메타데이터 subject 'MSG-SET-183'",
+   "pdf": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  },
+  {
+   "n": 5,
+   "key": "costa_c",
+   "short_ko": "Costa (회의판)",
+   "authors": "H. C. A. Costa et al.",
+   "title": "Modelling Micro-Doppler Signature of Drone Propellers in Distributed ISAC",
+   "venue": "Proc. IEEE Radar Conference (RadarConf)",
+   "year": 2024,
+   "volume": null,
+   "pages": null,
+   "doi": null,
+   "arxiv": null,
+   "status": "published",
+   "status_ko": "게재",
+   "route": "R4",
+   "route_tag": "R4 · 해석 표적 모델",
+   "venue_evidence": "본문 · Xplore 스탬프",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modelling_Micro-Doppler_Signature_of_Drone_Propellers_in_Distributed_ISAC.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  },
+  {
+   "n": 6,
+   "key": "costa_j",
+   "short_ko": "Costa (저널판)",
+   "authors": "H. C. A. Costa et al.",
+   "title": "Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC",
+   "venue": "IEEE Journal on Sensing, Telecommunication and Emerging Applied Physics",
+   "year": 2025,
+   "volume": "1",
+   "pages": "208-222",
+   "doi": "10.1109/JSTEAP.2025.3604407",
+   "arxiv": null,
+   "status": "published",
+   "status_ko": "게재",
+   "route": "R4",
+   "route_tag": "R4 · 해석 표적 모델",
+   "venue_evidence": "PDF 메타데이터 subject",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modeling_Micro-Doppler_Signature_of_Multi-Propeller_Drones_in_Distributed_ISAC.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  },
+  {
+   "n": 7,
+   "key": "wei",
+   "short_ko": "Wei (테스트베드)",
+   "authors": "J. Wei et al.",
+   "title": "UAV's Rotor Micro-Doppler Feature Extraction Using Integrated Sensing and Communication Signal: Algorithm Design and Testbed Evaluation",
+   "venue": "IEEE Transactions on Wireless Communications",
+   "year": 2025,
+   "volume": "24",
+   "pages": "10166-10182",
+   "doi": "10.1109/TWC.2025.3578033",
+   "arxiv": null,
+   "status": "published",
+   "status_ko": "게재",
+   "route": "R5",
+   "route_tag": "R5 · 추상 계수·프리미티브",
+   "venue_evidence": "PDF 메타데이터 subject + p1 러닝헤드",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  },
+  {
+   "n": 8,
+   "key": "mdrt",
+   "short_ko": "Li (md-rt)",
+   "authors": "C. Li et al.",
+   "title": "Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing",
+   "venue": "Proc. IEEE Int. Conf. Communication Technology (ICCT)",
+   "year": 2025,
+   "volume": null,
+   "pages": "359-364",
+   "doi": "10.1109/ICCT67417.2025.11374154",
+   "arxiv": null,
+   "status": "published",
+   "status_ko": "게재",
+   "route": "R6",
+   "route_tag": "R6 · 엔진 기본 상호작용",
+   "venue_evidence": "PDF 메타데이터 subject + 본문 쪽번호",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  },
+  {
+   "n": 9,
+   "key": "clutter",
+   "short_ko": "Liu (Clutter-Aware ISAC)",
+   "authors": "F. Liu et al.",
+   "title": "Clutter-Aware Integrated Sensing and Communication: Models, Methods, and Future Directions",
+   "venue": "Proceedings of the IEEE",
+   "year": 2026,
+   "volume": "114",
+   "pages": null,
+   "doi": "10.1109/JPROC.2026.3675476",
+   "arxiv": null,
+   "status": "published",
+   "status_ko": "게재",
+   "route": "R6",
+   "route_tag": "R6 · 엔진 기본 상호작용",
+   "venue_evidence": "PDF 메타데이터 subject + p29 러닝풋터",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  },
+  {
+   "n": 10,
+   "key": "zig_c",
+   "short_ko": "Ziganshin (학회판)",
+   "authors": "A. Ziganshin et al.",
+   "title": "Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC",
+   "venue": "Proc. European Conf. Antennas and Propagation (EuCAP)",
+   "year": 2025,
+   "volume": null,
+   "pages": null,
+   "doi": "10.23919/EuCAP63536.2025.10999367",
+   "arxiv": null,
+   "status": "published",
+   "status_ko": "게재",
+   "route": "R7",
+   "route_tag": "R7 · 엔진 안 메쉬 산란",
+   "venue_evidence": "PDF 메타데이터 subject + 전 쪽 Xplore 스탬프",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  },
+  {
+   "n": 11,
+   "key": "hoydis",
+   "short_ko": "Hoydis (미분가능 RT)",
+   "authors": "J. Hoydis et al.",
+   "title": "Learning Radio Environments by Differentiable Ray Tracing",
+   "venue": "IEEE Transactions on Machine Learning in Communications and Networking",
+   "year": 2024,
+   "volume": null,
+   "pages": null,
+   "doi": "10.1109/TMLCN.2024.3474639",
+   "arxiv": null,
+   "status": "published",
+   "status_ko": "게재",
+   "route": "R6",
+   "route_tag": "R6 · 엔진 기본 상호작용",
+   "venue_evidence": "PDF 메타데이터 + 본문",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Learning_Radio_Environments_by_Differentiable_Ray_.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": "감사 P01: 게재본(12쪽 · PDF subject 가 IEEE TMLCN)을 인용 대상으로 삼는다"
+  },
+  {
+   "n": 12,
+   "key": "zig_j",
+   "short_ko": "Ziganshin (저널판)",
+   "authors": "A. Ziganshin et al.",
+   "title": "Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications",
+   "venue": "arXiv preprint",
+   "year": 2026,
+   "volume": null,
+   "pages": null,
+   "doi": null,
+   "arxiv": "2604.05991v2",
+   "status": "preprint",
+   "status_ko": "프리프린트",
+   "route": "R7",
+   "route_tag": "R7 · 엔진 안 메쉬 산란",
+   "venue_evidence": "p1 교신저자 각주 'submitted' + arXiv 스탬프",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  },
+  {
+   "n": 13,
+   "key": "montaner",
+   "short_ko": "Montaner (결정론 ISAC)",
+   "authors": "J. Montaner et al.",
+   "title": "Deterministic Modeling of Dynamic ISAC Channels in RF Digital Twin Environments",
+   "venue": "arXiv preprint",
+   "year": 2026,
+   "volume": null,
+   "pages": null,
+   "doi": null,
+   "arxiv": "2603.28736v1",
+   "status": "preprint",
+   "status_ko": "프리프린트 (EuCAP 2026 채택 주장은 PDF 밖 · 미검증)",
+   "route": "R6",
+   "route_tag": "R6 · 엔진 기본 상호작용",
+   "venue_evidence": "p1 arXiv 스탬프 · 'accepted' 0회",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Deterministic Modeling of Dynamic ISAC Channels in RF Digital Twin Environments.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  },
+  {
+   "n": 14,
+   "key": "lambda",
+   "short_ko": "LAMBDA (데이터셋)",
+   "authors": "L. Zhou et al.",
+   "title": "LAMBDA: A Low-Altitude Multimodal Base Dataset for UAV Sensing and Communication",
+   "venue": "arXiv preprint",
+   "year": 2026,
+   "volume": null,
+   "pages": null,
+   "doi": null,
+   "arxiv": "2607.03826v1",
+   "status": "preprint",
+   "status_ko": "프리프린트",
+   "route": "R3",
+   "route_tag": "R3 · 외부 σ 주입",
+   "venue_evidence": "p1 arXiv 스탬프",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": "감사 P08: PDF 1쪽 저자줄 Lin Zhou 외 6인"
+  },
+  {
+   "n": 15,
+   "key": "dmsnet",
+   "short_ko": "DMSNet (다중밴드)",
+   "authors": "H. Liu et al.",
+   "title": "DMSNet: Cross-Band Learning for Multi-Target Sensing in Multi-Band ISAC",
+   "venue": "arXiv preprint",
+   "year": 2026,
+   "volume": null,
+   "pages": null,
+   "doi": null,
+   "arxiv": "2607.17655v1",
+   "status": "preprint",
+   "status_ko": "프리프린트",
+   "route": "R5",
+   "route_tag": "R5 · 추상 계수·프리미티브",
+   "venue_evidence": "p1 arXiv 스탬프",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.17655__dmsnet-crossband-multiband-isac.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  },
+  {
+   "n": 16,
+   "key": "openisac",
+   "short_ko": "OpenISAC (플랫폼)",
+   "authors": "Z. Zhou et al.",
+   "title": "OpenISAC: An Open-Source Real-Time Experimentation Platform for OFDM-ISAC",
+   "venue": "arXiv preprint",
+   "year": 2026,
+   "volume": null,
+   "pages": null,
+   "doi": null,
+   "arxiv": "2601.03535v2",
+   "status": "preprint",
+   "status_ko": "프리프린트",
+   "route": "R5",
+   "route_tag": "R5 · 추상 계수·프리미티브",
+   "venue_evidence": "p1 arXiv 스탬프 · 'IoT-J' 0회",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2601.03535__openisac.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": "감사 P08: PDF 1쪽 저자줄 Zhiwen Zhou 외 3인"
+  },
+  {
+   "n": 17,
+   "key": "sagitta",
+   "short_ko": "Sagitta (자체 SBR)",
+   "authors": "M. Pasquale et al.",
+   "title": "BVH-Accelerated Ray Tracing for High-Frequency Electromagnetic Backscattering",
+   "venue": "arXiv preprint",
+   "year": 2026,
+   "volume": null,
+   "pages": null,
+   "doi": null,
+   "arxiv": "2604.09243v1",
+   "status": "preprint",
+   "status_ko": "프리프린트 확장판 · 기반판 ICCS 2026 채택 (본문 p1 명시)",
+   "route": "R7",
+   "route_tag": "R7 · 엔진 안 메쉬 산란",
+   "venue_evidence": "p1 Note 문장",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": "본문 p.1 에 ICCS 2026 채택 문장 · 좁힌 P1 아래서 프리프린트 · 감사 P08: PDF 1쪽 저자줄 Marco Pasquale 외 4인 (SagittaSBR 은 소프트웨어 이름)"
+  },
+  {
+   "n": 18,
+   "key": "fwa_cube",
+   "short_ko": "Zhang (FWA 협동센싱)",
+   "authors": "J. Zhang et al.",
+   "title": "AI-Empowered Low-Altitude Economy: Cooperative Sensing With Fixed Wireless Access",
+   "venue": "arXiv preprint",
+   "year": 2026,
+   "volume": null,
+   "pages": null,
+   "doi": null,
+   "arxiv": "2605.07623",
+   "status": "preprint",
+   "status_ko": "프리프린트 — 본문 p.1 이 부분 채택을 명시 (IEEE ICC Workshops 2026)",
+   "route": "R5",
+   "route_tag": "R5 · 추상 계수·프리미티브",
+   "venue_evidence": "p.1 본문 문장 'partly accepted by IEEE ICC Workshops 2026'",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": "본문 p.1 에 IEEE ICC Workshops 2026 부분 채택 문장 · 좁힌 P1 아래서 프리프린트"
+  },
+  {
+   "n": 19,
+   "key": "greatx",
+   "short_ko": "Great-X (Unreal ISAC)",
+   "authors": "K. Huang et al.",
+   "title": "Unreal is all you need: Multimodal ISAC Data Simulation with Only One Engine",
+   "venue": "arXiv preprint",
+   "year": 2025,
+   "volume": null,
+   "pages": null,
+   "doi": null,
+   "arxiv": "2507.08716",
+   "status": "preprint",
+   "status_ko": "프리프린트",
+   "route": "R6",
+   "route_tag": "R6 · 엔진 기본 상호작용",
+   "venue_evidence": "p1 arXiv",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2507.08716__great-x_unreal-isac.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  },
+  {
+   "n": 20,
+   "key": "cellsense",
+   "short_ko": "CellSense (셀룰러 패시브)",
+   "authors": "B. Kumar et al.",
+   "title": "CellSense : A Sub-6 GHz Cellular ISAC System for Clutter-Robust Passive Sensing",
+   "venue": "arXiv preprint",
+   "year": 2026,
+   "volume": null,
+   "pages": null,
+   "doi": null,
+   "arxiv": "2606.07900",
+   "status": "preprint",
+   "status_ko": "프리프린트",
+   "route": "R6",
+   "route_tag": "R6 · 엔진 기본 상호작용",
+   "venue_evidence": "p1 arXiv",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2606.07900__cellsense.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  },
+  {
+   "n": 21,
+   "key": "tgnn",
+   "short_ko": "Temporal-GNN (검출·추적)",
+   "authors": "S. M. Sanaie et al.",
+   "title": "Temporal Graph Neural Network for ISAC Target Detection and Tracking",
+   "venue": "arXiv preprint",
+   "year": 2026,
+   "volume": null,
+   "pages": null,
+   "doi": null,
+   "arxiv": "2604.08306",
+   "status": "preprint",
+   "status_ko": "프리프린트",
+   "route": "R5",
+   "route_tag": "R5 · 추상 계수·프리미티브",
+   "venue_evidence": "p1 arXiv",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.08306__temporal-gnn-isac.pdf",
+   "title_source": "PDF 1쪽 최대 글자 (PyMuPDF)",
+   "note": null
+  }
+ ],
+ "anchor_provenance": {
+  "das_slope_db_per_ghz": 0.21,
+  "das_data_origin_ko": "Das 는 Phantom 3 를 직접 재지 않았다 — 원 측정은 참고문헌 [7](Wang 외, China Commun., 2025)이고 Das 는 그것을 다시 적합했다",
+  "das_data_origin_evidence": "outputs/report01_citation_audit.json : problems[4] (P05)",
+  "what_we_use_ko": "기울기 하나. 절대 레벨은 세 밴드 공통이라 파형 순위에서 상쇄된다"
+ },
+ "audit_summary": {
+  "pdfs_opened": 14,
+  "quote_records_re_verified": 54,
+  "quote_records_failing": 0
+ }
+}

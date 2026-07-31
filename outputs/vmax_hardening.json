@@ -1,0 +1,3252 @@
+{
+ "meta": {
+  "script": "benchmark/vmax_hardening.py",
+  "generated": "2026-07-31T06:31:01",
+  "question": "v_max = lam*PRF/4 를 깨뜨릴 수 있는가 — 탈출구 (a)~(f) 전수 공격",
+  "smoke": false,
+  "geometry": {
+   "L_m": 500.0,
+   "alt_m": 60.0,
+   "phi_deg": 90.0,
+   "d_m": 1000.0,
+   "T_cpi_ref_s": 0.1,
+   "speed_slow_ms": 5.0,
+   "speed_fast_ms": 15.0
+  },
+  "waveform_constants": {
+   "W1": {
+    "fc_hz": 5210000000.0,
+    "lam_m": 0.057541738579654514,
+    "prf_hz": 1000.0
+   },
+   "L1": {
+    "fc_hz": 1843000000.0,
+    "lam_m": 0.16266546825827455,
+    "prf_hz": 1000.0
+   },
+   "G1": {
+    "fc_hz": 3500000000.0,
+    "lam_m": 0.085654988,
+    "prf_hz": 50.0
+   }
+  },
+  "repo_functions_used": [
+   "freespace_scene.fs_params",
+   "target_pos",
+   "heading_velocity",
+   "folded_doppler",
+   "nyquist_gate",
+   "blind_fractions",
+   "M_from_prf",
+   "prf_hz",
+   "waveforms.PILOT_RATE_HZ"
+  ],
+  "new_physics_introduced": [
+   "NUDFT Doppler point-spread (nudft_psd)",
+   "multistatic fold-lattice ghost search (section_F)",
+   "single-burst frequency CRLB (section_D.D3)"
+  ],
+  "drone_speed_reference": {
+   "mini5pro_cruise": 6.0,
+   "mini5pro_max_S": 19.0,
+   "mavic4pro_max_S": 25.0,
+   "matrice4e_cruise": 15.0,
+   "typical_survey_transit": 12.0,
+   "hover": 0.0
+  },
+  "runtime_s": 11.386108875274658
+ },
+ "A_formula": {
+  "headline_form": "v_max = lam*PRF/4",
+  "general_form": "v_max = lam*PRF / (2*|(u1+u2)_h|) = lam*PRF / (4*cos(beta/2)*cos(delta_el))",
+  "special_case_of": "|(u1+u2)_h| = 2, i.e. monostatic (beta=0) and in-plane (target at zero elevation)",
+  "headline_is": "a LOWER BOUND on v_max; the geometric relief factor G = 2/|(u1+u2)_h| >= 1",
+  "relief_factor_G": {
+   "all_geometries": {
+    "min": 1.0000430414896817,
+    "p50": 1.0247986770759923,
+    "p90": 2.105111231645697,
+    "max": 43.34579555172346
+   },
+   "beta_le_90_only": {
+    "min": 1.0000430414896817,
+    "p50": 1.0107776906159416,
+    "p90": 1.2642382526135245,
+    "max": 1.4509798564501666
+   }
+  },
+  "v_max_G1_ms": {
+   "headline": 1.07068735,
+   "median_over_scene": 1.0822268870047025,
+   "best_in_scene": 1.5535457774060093,
+   "best_geometry": {
+    "d_m": 300.0,
+    "phi_deg": 0.0,
+    "alt_m": 120.0,
+    "beta_deg": 57.06068956792067,
+    "bisector_h": 1.378378887280362,
+    "G": 1.4509798564501666
+   }
+  },
+  "at_reference_cell": {
+   "d_m": 1000.0,
+   "phi_deg": 90.0,
+   "alt_m": 60.0,
+   "bisector_h": 1.9382463408182975,
+   "beta_deg": 28.070016762933903,
+   "G": 1.0318605833950039,
+   "v_max_G1_ms": 1.1048000736046508
+  },
+  "coupling_warning": "G 가 커지는 곳은 이등분선이 수직에 가까워지는 곳이다. 같은 곳에서 |f_d| 자체가 줄어 0-도플러 가드에 더 잘 걸린다 — 완화와 블라인드가 같은 방향으로 움직인다(공짜가 아니다).",
+  "rescues_5g": false,
+  "verdict": "식은 고쳐야 한다(하한임을 명시). 그러나 β≤90° 장면 전체에서 G 중앙값 1.011, 최대 1.451 라 v_max 는 최대 1.55 m/s 로만 오른다 — 구제 아님."
+ },
+ "B_unfolding": {
+  "question": "Can a passive receiver stagger or unfold, given it does not control the TX?",
+  "receiver_control": {
+   "can_stagger_prf": false,
+   "why": "스태거 PRF 는 송신 타이밍을 바꾸는 기법이다. 패시브 수신기는 gNB 의 ssb-periodicityServingCell 을 바꿀 수 없다. 남는 것은 '송신기가 이미 비균일하게 보내고 있는가' 뿐이다.",
+   "can_choose_which_occasions_to_use": true,
+   "note": "occasion 을 버리는 것은 표본을 줄일 뿐 알리아스 간격을 넓히지 못한다."
+  },
+  "geometry": {
+   "d_m": 1000.0,
+   "phi_deg": 90.0,
+   "alt_m": 60.0,
+   "L_m": 500.0,
+   "fd_hz_per_ms": 22.628528543116456
+  },
+  "grids": {
+   "ssb_20ms_uniform": {
+    "desc": "SSB only, ssb-periodicityServingCell = 20 ms (default)",
+    "legal_3gpp": true,
+    "always_on": true,
+    "n_samples": 50,
+    "span_s": 0.98,
+    "mean_rate_hz": 51.02040816326531,
+    "v_max_from_mean_rate_ms": 1.1273470138822967,
+    "by_speed": {
+     "v_1.5": {
+      "v_ms": 1.5,
+      "fd_hz": 33.94279281467468,
+      "alias_rejection_db": 3.961979897184167e-09,
+      "strongest_ghost_hz": -216.0571905296759,
+      "ghost_v_ms": -9.547999999999998,
+      "tier": "fails"
+     },
+     "v_2": {
+      "v_ms": 2.0,
+      "fd_hz": 45.25705708623291,
+      "alias_rejection_db": 3.961979897184167e-09,
+      "strongest_ghost_hz": 295.2570404305835,
+      "ghost_v_ms": 13.048,
+      "tier": "fails"
+     },
+     "v_5": {
+      "v_ms": 5.0,
+      "fd_hz": 113.14264271558228,
+      "alias_rejection_db": 3.961979897184167e-09,
+      "strongest_ghost_hz": 363.1426260599329,
+      "ghost_v_ms": 16.048000000000002,
+      "tier": "fails"
+     },
+     "v_10": {
+      "v_ms": 10.0,
+      "fd_hz": 226.28528543116457,
+      "alias_rejection_db": 3.961979897184167e-09,
+      "strongest_ghost_hz": 476.2852687755152,
+      "ghost_v_ms": 21.048000000000002,
+      "tier": "fails"
+     },
+     "v_15": {
+      "v_ms": 15.0,
+      "fd_hz": 339.42792814674686,
+      "alias_rejection_db": 3.961979897184167e-09,
+      "strongest_ghost_hz": 89.42794480239627,
+      "ghost_v_ms": 3.9520000000000017,
+      "tier": "fails"
+     },
+     "v_20": {
+      "v_ms": 20.0,
+      "fd_hz": 452.57057086232913,
+      "alias_rejection_db": 3.961979897184167e-09,
+      "strongest_ghost_hz": 202.57058751797854,
+      "ghost_v_ms": 8.952000000000002,
+      "tier": "fails"
+     }
+    }
+   },
+   "ssb_5ms_uniform_best_legal": {
+    "desc": "SSB at the shortest legal period, 5 ms -> uniform 200 Hz",
+    "legal_3gpp": true,
+    "always_on": true,
+    "n_samples": 200,
+    "span_s": 0.995,
+    "mean_rate_hz": 201.00502512562815,
+    "v_max_from_mean_rate_ms": 4.441407331073973,
+    "by_speed": {
+     "v_1.5": {
+      "v_ms": 1.5,
+      "fd_hz": 33.94279281467468,
+      "alias_rejection_db": 0.0011740159571586237,
+      "strongest_ghost_hz": 233.933728078738,
+      "ghost_v_ms": 10.338000000000003,
+      "tier": "fails"
+     },
+     "v_2": {
+      "v_ms": 2.0,
+      "fd_hz": 45.25705708623291,
+      "alias_rejection_db": 0.0011740159571779077,
+      "strongest_ghost_hz": 245.24799235029616,
+      "ghost_v_ms": 10.838000000000001,
+      "tier": "fails"
+     },
+     "v_5": {
+      "v_ms": 5.0,
+      "fd_hz": 113.14264271558228,
+      "alias_rejection_db": 0.001174015957170194,
+      "strongest_ghost_hz": 313.13357797964557,
+      "ghost_v_ms": 13.838000000000003,
+      "tier": "fails"
+     },
+     "v_10": {
+      "v_ms": 10.0,
+      "fd_hz": 226.28528543116457,
+      "alias_rejection_db": 0.0011740159571682657,
+      "strongest_ghost_hz": 426.27622069522783,
+      "ghost_v_ms": 18.838,
+      "tier": "fails"
+     },
+     "v_15": {
+      "v_ms": 15.0,
+      "fd_hz": 339.42792814674686,
+      "alias_rejection_db": 0.0011568217136014194,
+      "strongest_ghost_hz": -460.5810699665923,
+      "ghost_v_ms": -20.353999999999996,
+      "tier": "fails"
+     },
+     "v_20": {
+      "v_ms": 20.0,
+      "fd_hz": 452.57057086232913,
+      "alias_rejection_db": 0.0011568217136014194,
+      "strongest_ghost_hz": -347.43842725101,
+      "ghost_v_ms": -15.353999999999997,
+      "tier": "fails"
+     }
+    }
+   },
+   "ssb_160ms_uniform_worst_legal": {
+    "desc": "SSB at the longest legal period, 160 ms -> uniform 6.25 Hz",
+    "legal_3gpp": true,
+    "always_on": true,
+    "n_samples": 6,
+    "span_s": 0.8,
+    "mean_rate_hz": 7.5,
+    "v_max_from_mean_rate_ms": 0.1657200110406976,
+    "by_speed": {
+     "v_1.5": {
+      "v_ms": 1.5,
+      "fd_hz": 33.94279281467468,
+      "alias_rejection_db": 2.2195925297373412e-10,
+      "strongest_ghost_hz": -28.557203021412874,
+      "ghost_v_ms": -1.2619999999999958,
+      "tier": "fails"
+     },
+     "v_2": {
+      "v_ms": 2.0,
+      "fd_hz": 45.25705708623291,
+      "alias_rejection_db": 2.2195925297373412e-10,
+      "strongest_ghost_hz": -17.242938749854716,
+      "ghost_v_ms": -0.7619999999999989,
+      "tier": "fails"
+     },
+     "v_5": {
+      "v_ms": 5.0,
+      "fd_hz": 113.14264271558228,
+      "alias_rejection_db": 2.2195925297373412e-10,
+      "strongest_ghost_hz": 50.64264687949469,
+      "ghost_v_ms": 2.2380000000000027,
+      "tier": "fails"
+     },
+     "v_10": {
+      "v_ms": 10.0,
+      "fd_hz": 226.28528543116457,
+      "alias_rejection_db": 2.2195925297373412e-10,
+      "strongest_ghost_hz": 163.78528959507696,
+      "ghost_v_ms": 7.238000000000002,
+      "tier": "fails"
+     },
+     "v_15": {
+      "v_ms": 15.0,
+      "fd_hz": 339.42792814674686,
+      "alias_rejection_db": 2.2195925297373412e-10,
+      "strongest_ghost_hz": 276.92793231065923,
+      "ghost_v_ms": 12.238000000000001,
+      "tier": "fails"
+     },
+     "v_20": {
+      "v_ms": 20.0,
+      "fd_hz": 452.57057086232913,
+      "alias_rejection_db": 2.2195925297373412e-10,
+      "strongest_ghost_hz": 390.0705750262415,
+      "ghost_v_ms": 17.238000000000003,
+      "tier": "fails"
+     }
+    }
+   },
+   "ssb20_plus_trs20_offset10": {
+    "desc": "SSB 20 ms + Rel-17 idle/inactive TRS 20 ms offset 10 ms -> UNIFORM 100 Hz",
+    "legal_3gpp": true,
+    "always_on": false,
+    "n_samples": 100,
+    "span_s": 0.99,
+    "mean_rate_hz": 101.01010101010101,
+    "v_max_from_mean_rate_ms": 2.231919340615456,
+    "by_speed": {
+     "v_1.5": {
+      "v_ms": 1.5,
+      "fd_hz": 33.94279281467468,
+      "alias_rejection_db": 1.585267178363987e-08,
+      "strongest_ghost_hz": 533.9427595033759,
+      "ghost_v_ms": 23.596,
+      "tier": "fails"
+     },
+     "v_2": {
+      "v_ms": 2.0,
+      "fd_hz": 45.25705708623291,
+      "alias_rejection_db": 1.58526737122948e-08,
+      "strongest_ghost_hz": -454.7429096024683,
+      "ghost_v_ms": -20.096,
+      "tier": "fails"
+     },
+     "v_5": {
+      "v_ms": 5.0,
+      "fd_hz": 113.14264271558228,
+      "alias_rejection_db": 1.585267178363987e-08,
+      "strongest_ghost_hz": -386.8573239731189,
+      "ghost_v_ms": -17.096,
+      "tier": "fails"
+     },
+     "v_10": {
+      "v_ms": 10.0,
+      "fd_hz": 226.28528543116457,
+      "alias_rejection_db": 1.58526737122948e-08,
+      "strongest_ghost_hz": -273.7146812575366,
+      "ghost_v_ms": -12.095999999999998,
+      "tier": "fails"
+     },
+     "v_15": {
+      "v_ms": 15.0,
+      "fd_hz": 339.42792814674686,
+      "alias_rejection_db": 1.58526737122948e-08,
+      "strongest_ghost_hz": -160.57203854195433,
+      "ghost_v_ms": -7.095999999999998,
+      "tier": "fails"
+     },
+     "v_20": {
+      "v_ms": 20.0,
+      "fd_hz": 452.57057086232913,
+      "alias_rejection_db": 1.585267178363987e-08,
+      "strongest_ghost_hz": -47.42939582637206,
+      "ghost_v_ms": -2.0959999999999983,
+      "tier": "fails"
+     }
+    }
+   },
+   "ssb20_plus_trs40_offset7": {
+    "desc": "SSB 20 ms + TRS 40 ms offset 7 ms -> NON-uniform, period 40 ms",
+    "legal_3gpp": true,
+    "always_on": false,
+    "n_samples": 75,
+    "span_s": 0.98,
+    "mean_rate_hz": 76.53061224489797,
+    "v_max_from_mean_rate_ms": 1.6910205208234452,
+    "by_speed": {
+     "v_1.5": {
+      "v_ms": 1.5,
+      "fd_hz": 33.94279281467468,
+      "alias_rejection_db": 0.1004057339376832,
+      "strongest_ghost_hz": 183.92467999845064,
+      "ghost_v_ms": 8.128000000000004,
+      "tier": "fails"
+     },
+     "v_2": {
+      "v_ms": 2.0,
+      "fd_hz": 45.25705708623291,
+      "alias_rejection_db": 0.1004057339377118,
+      "strongest_ghost_hz": 195.2389442700088,
+      "ghost_v_ms": 8.628,
+      "tier": "fails"
+     },
+     "v_5": {
+      "v_ms": 5.0,
+      "fd_hz": 113.14264271558228,
+      "alias_rejection_db": 0.10040573393767176,
+      "strongest_ghost_hz": 263.1245298993582,
+      "ghost_v_ms": 11.628000000000002,
+      "tier": "fails"
+     },
+     "v_10": {
+      "v_ms": 10.0,
+      "fd_hz": 226.28528543116457,
+      "alias_rejection_db": 0.1004057339377118,
+      "strongest_ghost_hz": 376.2671726149405,
+      "ghost_v_ms": 16.628000000000004,
+      "tier": "fails"
+     },
+     "v_15": {
+      "v_ms": 15.0,
+      "fd_hz": 339.42792814674686,
+      "alias_rejection_db": 0.10037056816611033,
+      "strongest_ghost_hz": -510.5901180468797,
+      "ghost_v_ms": -22.564,
+      "tier": "fails"
+     },
+     "v_20": {
+      "v_ms": 20.0,
+      "fd_hz": 452.57057086232913,
+      "alias_rejection_db": 0.1003705681661008,
+      "strongest_ghost_hz": -397.44747533129737,
+      "ghost_v_ms": -17.563999999999997,
+      "tier": "fails"
+     }
+    }
+   },
+   "ssb20_plus_sib1_160ms": {
+    "desc": "SSB 20 ms + SIB1 window 160 ms -> nearly uniform, period 160 ms",
+    "legal_3gpp": true,
+    "always_on": true,
+    "n_samples": 56,
+    "span_s": 0.98,
+    "mean_rate_hz": 57.142857142857146,
+    "v_max_from_mean_rate_ms": 1.2626286555481723,
+    "by_speed": {
+     "v_1.5": {
+      "v_ms": 1.5,
+      "fd_hz": 33.94279281467468,
+      "alias_rejection_db": 0.04325536537621528,
+      "strongest_ghost_hz": 183.92467999845064,
+      "ghost_v_ms": 8.128000000000004,
+      "tier": "fails"
+     },
+     "v_2": {
+      "v_ms": 2.0,
+      "fd_hz": 45.25705708623291,
+      "alias_rejection_db": 0.0432553653762479,
+      "strongest_ghost_hz": 195.2389442700088,
+      "ghost_v_ms": 8.628,
+      "tier": "fails"
+     },
+     "v_5": {
+      "v_ms": 5.0,
+      "fd_hz": 113.14264271558228,
+      "alias_rejection_db": 0.043255365376236386,
+      "strongest_ghost_hz": 263.1245298993582,
+      "ghost_v_ms": 11.628000000000002,
+      "tier": "fails"
+     },
+     "v_10": {
+      "v_ms": 10.0,
+      "fd_hz": 226.28528543116457,
+      "alias_rejection_db": 0.043255365376236386,
+      "strongest_ghost_hz": 376.2671726149405,
+      "ghost_v_ms": 16.628000000000004,
+      "tier": "fails"
+     },
+     "v_15": {
+      "v_ms": 15.0,
+      "fd_hz": 339.42792814674686,
+      "alias_rejection_db": 0.04322944764620011,
+      "strongest_ghost_hz": -510.5901180468797,
+      "ghost_v_ms": -22.564,
+      "tier": "fails"
+     },
+     "v_20": {
+      "v_ms": 20.0,
+      "fd_hz": 452.57057086232913,
+      "alias_rejection_db": 0.04322944764617132,
+      "strongest_ghost_hz": -397.44747533129737,
+      "ghost_v_ms": -17.563999999999997,
+      "tier": "fails"
+     }
+    }
+   },
+   "random_jitter_20ms_pm5ms": {
+    "desc": "HYPOTHETICAL non-3GPP control experiment: 20 ms mean rate with +-5 ms random jitter. Shows the CEILING of what non-uniformity alone could buy.",
+    "legal_3gpp": false,
+    "always_on": false,
+    "n_samples": 50,
+    "span_s": 0.9819568246033193,
+    "mean_rate_hz": 50.91873567883036,
+    "v_max_from_mean_rate_ms": 1.1251004585165507,
+    "by_speed": {
+     "v_1.5": {
+      "v_ms": 1.5,
+      "fd_hz": 33.94279281467468,
+      "alias_rejection_db": 3.946044000085509,
+      "strongest_ghost_hz": 83.95184089496206,
+      "ghost_v_ms": 3.7100000000000004,
+      "tier": "marginal"
+     },
+     "v_2": {
+      "v_ms": 2.0,
+      "fd_hz": 45.25705708623291,
+      "alias_rejection_db": 3.94604400008552,
+      "strongest_ghost_hz": -4.751990994054381,
+      "ghost_v_ms": -0.20999999999999672,
+      "tier": "marginal"
+     },
+     "v_5": {
+      "v_ms": 5.0,
+      "fd_hz": 113.14264271558228,
+      "alias_rejection_db": 3.9460440000855384,
+      "strongest_ghost_hz": 63.13359463529491,
+      "ghost_v_ms": 2.79,
+      "tier": "marginal"
+     },
+     "v_10": {
+      "v_ms": 10.0,
+      "fd_hz": 226.28528543116457,
+      "alias_rejection_db": 3.946044000085558,
+      "strongest_ghost_hz": 176.27623735087718,
+      "ghost_v_ms": 7.789999999999999,
+      "tier": "marginal"
+     },
+     "v_15": {
+      "v_ms": 15.0,
+      "fd_hz": 339.42792814674686,
+      "alias_rejection_db": 3.9460440000855517,
+      "strongest_ghost_hz": 389.4369762270343,
+      "ghost_v_ms": 17.210000000000004,
+      "tier": "marginal"
+     },
+     "v_20": {
+      "v_ms": 20.0,
+      "fd_hz": 452.57057086232913,
+      "alias_rejection_db": 3.9460440000854464,
+      "strongest_ghost_hz": 402.56152278204183,
+      "ghost_v_ms": 17.790000000000003,
+      "tier": "marginal"
+     }
+    }
+   }
+  },
+  "mechanism": "한 주기 T_p 안의 개구 T_a 가 격자로브 억압을 정한다. SSB+TRS(40 ms) 조합은 T_p=40 ms·T_a=20 ms 라 1/T_a=50 Hz 안쪽의 알리아스를 거의 못 누른다. 게다가 부분격자들이 서로 정수배로 정렬되는 주파수(예 150 Hz = 3×50 Hz)에서는 억압이 사실상 0 이 된다 — 오프셋이 두세 개뿐이면 그런 정렬을 피할 수 없다.",
+  "criterion": {
+   "strong_db": 10.0,
+   "marginal_db": 3.0,
+   "basis": "detection threshold SNR90 = 11.86 dB ⟨outputs/report13_freespace.json : solve.G1.snr90_db⟩"
+  },
+  "rescues_5g": false,
+  "best_alias_rejection_db_at_v_ge_5": {
+   "legal_3gpp": 0.1004057339377118,
+   "legal_and_always_on": 0.043255365376236386,
+   "hypothetical_jitter_ceiling": 3.946044000085558
+  },
+  "verdict": "패시브는 스태거를 만들 수 없다 — ssb-periodicityServingCell 은 gNB 가 정한다. 송신기가 이미 만들어 준 비균일(SSB+TRS·SIB1 합집합)에서도 v ≥ 5 m/s 의 최대 알리아스 억압은 0.10 dB(상시 신호만 쓰면 0.04 dB)로 판정 기준 10 dB 에 한참 못 미친다. 3GPP 밖의 ±5 ms 랜덤 지터를 가정한 통제실험조차 3.95 dB 에서 멈춘다 — 비균일성만으로는 못 푼다. 실제로 v_max 를 올리는 것은 언폴딩이 아니라 **반복률 자체**다(SSB 5 ms 설정 = 200 Hz = 4.28 m/s, Rel-17 유휴 TRS 병용 = 균일 100 Hz = 2.14 m/s)."
+ },
+ "C_frame": {
+  "question": "Can a passive receiver use more of the 5G frame than SSB?",
+  "provenance_flag": "spec_source 필드는 3GPP 규격 지식으로 적었고 이 실행에서 원문 대조를 하지 않았다. 논문 인용 전 TS 38.211/213/214/331 원문 확인 필요.",
+  "inventory": [
+   {
+    "signal": "SSB (PSS+SSS+PBCH+PBCH-DMRS)",
+    "always_on": true,
+    "configured_by": "gNB cell config",
+    "period_ms_range": [
+     5,
+     160
+    ],
+    "period_ms_typical": 20,
+    "prf_hz_range": [
+     6.25,
+     200.0
+    ],
+    "prf_hz_typical": 50.0,
+    "ref_bw_mhz": 7.2,
+    "v_max_ms_typical": 1.07068735,
+    "v_max_ms_best": 4.2827494,
+    "passive_usable_without_cooperation": "yes",
+    "spec_source": "TS 38.331 ssb-periodicityServingCell; TS 38.213 §4.1 (UE assumes 20 ms for initial access)",
+    "note": "셀 정의 신호. 유휴 셀이 반드시 내보내는 유일한 하향 기준. 20 RB = 7.2 MHz @30 kHz SCS."
+   },
+   {
+    "signal": "PBCH-DMRS",
+    "always_on": true,
+    "configured_by": "gNB cell config",
+    "period_ms_range": [
+     5,
+     160
+    ],
+    "period_ms_typical": 20,
+    "prf_hz_range": [
+     6.25,
+     200.0
+    ],
+    "prf_hz_typical": 50.0,
+    "ref_bw_mhz": 7.2,
+    "v_max_ms_typical": 1.07068735,
+    "v_max_ms_best": 4.2827494,
+    "passive_usable_without_cooperation": "yes",
+    "spec_source": "TS 38.211 §7.4.1.4",
+    "note": "SSB 안에 있다. 독립 반복률이 없다 — 같은 occasion 에 실린다. 대역폭도 SSB 와 같다. 버스트 안 심볼 수를 늘려줄 뿐 PRF 를 올리지 못한다."
+   },
+   {
+    "signal": "SIB1 (CORESET#0 PDCCH + PDSCH)",
+    "always_on": true,
+    "configured_by": "gNB cell config",
+    "period_ms_range": [
+     20,
+     160
+    ],
+    "period_ms_typical": 20,
+    "prf_hz_range": [
+     6.25,
+     50.0
+    ],
+    "prf_hz_typical": 50.0,
+    "ref_bw_mhz": 34.6,
+    "v_max_ms_typical": 1.07068735,
+    "v_max_ms_best": 1.07068735,
+    "passive_usable_without_cooperation": "yes-after-decode",
+    "spec_source": "TS 38.331 §5.2.1 (SIB1 periodicity 160 ms, repetitions within a 20 ms window)",
+    "note": "⭐ 대역폭은 SSB 의 4.8배(CORESET#0 최대 96 RB)지만 반복률은 SSB 와 같은 창(20 ms)에 묶인다. 즉 ΔR_b 는 개선하고 v_max 는 개선하지 못한다. 내용은 복호 후 재생성 가능. ⚠ non-cell-defining SSB 를 쓰는 셀은 SIB1 을 보내지 않는다 — '항상'에 예외가 있다."
+   },
+   {
+    "signal": "TRS (NZP-CSI-RS with trs-Info), connected UE",
+    "always_on": false,
+    "configured_by": "gNB RRC, per UE",
+    "period_ms_range": [
+     10,
+     80
+    ],
+    "period_ms_typical": 20,
+    "prf_hz_range": [
+     12.5,
+     100.0
+    ],
+    "prf_hz_typical": 50.0,
+    "ref_bw_mhz": 52.0,
+    "v_max_ms_typical": 1.07068735,
+    "v_max_ms_best": 2.1413747,
+    "passive_usable_without_cooperation": "no",
+    "spec_source": "TS 38.214 §5.1.6.1.1 (trs periodicities {10,20,40,80} ms)",
+    "note": "연결 UE 전용 RRC 설정이다. 셀에 연결 UE 가 없으면 존재하지 않는다."
+   },
+   {
+    "signal": "TRS occasions for idle/inactive UEs (Rel-17)",
+    "always_on": false,
+    "configured_by": "gNB, optional, SIB17",
+    "period_ms_range": [
+     10,
+     80
+    ],
+    "period_ms_typical": 20,
+    "prf_hz_range": [
+     12.5,
+     100.0
+    ],
+    "prf_hz_typical": 50.0,
+    "ref_bw_mhz": 52.0,
+    "v_max_ms_typical": 1.07068735,
+    "v_max_ms_best": 2.1413747,
+    "passive_usable_without_cooperation": "conditional",
+    "spec_source": "TS 38.331 SIB17 / TS 38.214 Rel-17 available TRS",
+    "note": "⭐ 셀 고유·브로드캐스트라 패시브가 쓸 수 있는 유일한 SSB 외 후보. 그러나 **선택 기능**이라 켜져 있다는 보장이 없고, 최선 10 ms 라도 100 Hz 다."
+   },
+   {
+    "signal": "NZP-CSI-RS (non-TRS)",
+    "always_on": false,
+    "configured_by": "gNB RRC, per UE",
+    "period_ms_range": [
+     2,
+     320
+    ],
+    "period_ms_typical": 20,
+    "prf_hz_range": [
+     3.125,
+     500.0
+    ],
+    "prf_hz_typical": 50.0,
+    "ref_bw_mhz": 100.0,
+    "v_max_ms_typical": 1.07068735,
+    "v_max_ms_best": 10.7068735,
+    "passive_usable_without_cooperation": "no",
+    "spec_source": "TS 38.331 CSI-ResourcePeriodicityAndOffset (4..640 slots)",
+    "note": "UE 전용. 4 슬롯 @μ=1 = 2 ms 가 하한이라 최대 500 Hz 지만 협조 없이는 존재도 위치도 모른다."
+   },
+   {
+    "signal": "DL-PRS",
+    "always_on": false,
+    "configured_by": "LMF positioning session",
+    "period_ms_range": [
+     2,
+     10240
+    ],
+    "period_ms_typical": 5,
+    "prf_hz_range": [
+     0.09765625,
+     500.0
+    ],
+    "prf_hz_typical": 200.0,
+    "ref_bw_mhz": 98.28,
+    "v_max_ms_typical": 4.2827494,
+    "v_max_ms_best": 10.7068735,
+    "passive_usable_without_cooperation": "no",
+    "spec_source": "TS 38.331 DL-PRS-Periodicity (4..10240 slots)",
+    "note": "측위 세션 옵션. 우리 G2/G3 가 쓰는 200 Hz 가 여기다. 상시가 아니다."
+   },
+   {
+    "signal": "PDCCH (Type0 CSS, tied to SSB)",
+    "always_on": true,
+    "configured_by": "gNB cell config",
+    "period_ms_range": [
+     20,
+     160
+    ],
+    "period_ms_typical": 20,
+    "prf_hz_range": [
+     6.25,
+     50.0
+    ],
+    "prf_hz_typical": 50.0,
+    "ref_bw_mhz": 34.6,
+    "v_max_ms_typical": 1.07068735,
+    "v_max_ms_best": 1.07068735,
+    "passive_usable_without_cooperation": "yes-after-decode",
+    "spec_source": "TS 38.213 §13 (Type0-PDCCH CSS monitoring occasions)",
+    "note": "SSB 와 같은 occasion 에 묶인다. 새 반복률 없음."
+   },
+   {
+    "signal": "PDCCH/PDSCH user traffic",
+    "always_on": false,
+    "configured_by": "scheduler, load-dependent",
+    "period_ms_range": [
+     null,
+     null
+    ],
+    "period_ms_typical": null,
+    "prf_hz_range": [
+     null,
+     null
+    ],
+    "prf_hz_typical": null,
+    "ref_bw_mhz": 100.0,
+    "v_max_ms_typical": null,
+    "v_max_ms_best": null,
+    "passive_usable_without_cooperation": "conditional-on-load",
+    "spec_source": "TS 38.214",
+    "note": "⭐ 복조-재변조(demod-remod) 로 재생성하면 사실상 연속 기준이 된다. 그러나 (i) 트래픽이 있어야 하고 (ii) UE 별 검색공간·C-RNTI 를 눈먼 복호로 뚫어야 하며 (iii) 유휴 셀에서는 0 이다. 센서가 통제하지 못하는 양이다."
+   },
+   {
+    "signal": "SRS / PRACH (uplink)",
+    "always_on": false,
+    "configured_by": "UE",
+    "period_ms_range": [
+     null,
+     null
+    ],
+    "period_ms_typical": null,
+    "prf_hz_range": [
+     null,
+     null
+    ],
+    "prf_hz_typical": null,
+    "ref_bw_mhz": 100.0,
+    "v_max_ms_typical": null,
+    "v_max_ms_best": null,
+    "passive_usable_without_cooperation": "no",
+    "spec_source": "TS 38.211 §6.4.1.4 / §6.3.3",
+    "note": "상향링크다. 송신점이 UE 라 조명 기하가 매 순간 바뀌고 위치를 모른다."
+   }
+  ],
+  "always_on_set": [
+   "SSB (PSS+SSS+PBCH+PBCH-DMRS)",
+   "PBCH-DMRS",
+   "SIB1 (CORESET#0 PDCCH + PDSCH)",
+   "PDCCH (Type0 CSS, tied to SSB)"
+  ],
+  "highest_always_on_prf_hz": 50.0,
+  "highest_always_on_v_max_ms": 1.07068735,
+  "bandwidth_vs_rate": {
+   "text": "SIB1/CORESET#0 은 기준 대역을 7.2 → 최대 34.6 MHz 로 넓혀 ΔR_b 를 41.6 → 8.7 m 로 줄인다. 반복률은 SSB 와 같은 창에 묶여 그대로다. **대역과 반복률은 독립 축이고 헤드라인은 반복률 축의 명제다.**",
+   "ssb_dRb_m": 41.63784138888889,
+   "sib1_dRb_m": 8.664521907514452
+  },
+  "requirement": {
+   "prf_hz_needed_for_15ms": 700.4845999161192,
+   "prf_hz_needed_for_20ms": 933.9794665548258,
+   "text": "3.5 GHz 에서 15 m/s 를 무모호로 재려면 PRF ≥ 700 Hz, 20 m/s 면 ≥ 934 Hz 가 필요하다. 상시 집합의 최고치는 50 Hz 다."
+  },
+  "deep_cause": {
+   "text": "NR 은 설계상 **셀 고유 상시 광대역 기준신호를 없앴다**(lean / ultra-lean carrier). LTE 의 CRS 는 모든 하향 서브프레임에 있었고, NR 은 에너지 절감을 위해 그것을 제거하고 필요할 때만 켜는 UE 전용 기준신호로 대체했다. 패시브 레이더가 겪는 반복률 손실은 그 설계 선택의 직접 귀결이다.",
+   "spec_source": "3GPP lean carrier design principle; TS 38.211 has no cell-specific RS analogue of LTE CRS",
+   "why_this_matters": "'5G 가 나쁘다'가 아니라 '상시 기준을 없앤 설계가 패시브 센싱의 전제를 깬다'가 명제다."
+  },
+  "neighbour_cells": {
+   "text": "이웃 gNB 의 SSB 는 시간 오프셋이 달라 합치면 표본이 늘어 보인다. 그러나 그것은 **다른 위치의 송신기**라 바이스태틱 기하가 달라진다 — 한 slow-time 수열이 아니라 멀티스태틱 송신 다이버시티다. 처리 구조와 대가는 §F 와 같다(연관 필요).",
+   "counts_as_higher_prf": false
+  },
+  "rescues_5g": false,
+  "verdict": "SSB 밖으로 나가도 **상시**인 것은 SIB1/CORESET#0 뿐이고 그것은 같은 20 ms 창에 묶인다. 반복률을 올리는 후보(TRS·CSI-RS·PRS·트래픽)는 전부 설정 또는 부하에 의존한다. Rel-17 유휴 TRS 가 켜진 최선의 셀에서도 100 Hz = 2.14 m/s 다. 구제 아님."
+ },
+ "D_beamsweep": {
+  "question": "Does SSB beam sweeping raise the effective PRF for a receiver at one location?",
+  "model": {
+   "case": "Case C, 30 kHz SCS, f>3 GHz, L=8",
+   "ssb_offsets_s": [
+    7.142857142857143e-05,
+    0.00028571428571428574,
+    0.0005714285714285715,
+    0.0007857142857142857,
+    0.0010714285714285715,
+    0.0012857142857142859,
+    0.0015714285714285715,
+    0.0017857142857142859
+   ],
+   "burst_span_s": 0.0017142857142857144,
+   "array": "8-element half-wavelength ULA, 8 beams over a 120 deg sector",
+   "spec_source": "TS 38.213 §4.1 Case C (SSB candidate first symbols {2,8}+14n)",
+   "provenance_flag": "규격 원문 대조 미실시"
+  },
+  "D1_geometry": {
+   "text": "패시브 바이스태틱은 **기준 채널과 표적 에코가 같은 송신 빔에서 나와야** 그 빔을 slow-time 표본으로 쓸 수 있다. 표적과 RX 가 다른 방위에 있으면 그 곱이득이 빔마다 급락한다 — 빔 스위핑은 PRF 를 올리기는커녕 사용 가능한 조명을 쪼갠다.",
+   "worst_illumination_budget_db": -19.693268534270093,
+   "worst_case_key": "target_20_ref_-40",
+   "tradeoff": "표적과 기준이 벌어진 기하에서 실효 빔 수는 2.63 로 늘어 보이지만 조명 예산은 -19.7 dB 깎인다. 그리고 그 '실효 빔 수' 조차 무모호 속도를 올리지 못한다 — §D2.",
+   "cases": {
+    "aligned_on_beam_7.5deg": {
+     "theta_target_deg": 7.5,
+     "theta_ref_deg": 7.5,
+     "n_beams_within_10dB": 1,
+     "effective_beams": 1.0007950138355262,
+     "naive_effective_prf_hz": 50.039750691776305,
+     "naive_v_max_ms_REFUTED_BY_D2": 1.0715385612567727,
+     "illumination_budget_db_rel_one_aligned_beam": 0.001725856432948367,
+     "gains_target": [
+      0.10288618560627476,
+      0.018288470049643287,
+      0.02862213441100752,
+      0.043408139615508726,
+      1.0,
+      0.008781922251386227,
+      0.04946841349505976,
+      0.12878601874445247
+     ],
+     "gains_ref": [
+      0.10288618560627476,
+      0.018288470049643287,
+      0.02862213441100752,
+      0.043408139615508726,
+      1.0,
+      0.008781922251386227,
+      0.04946841349505976,
+      0.12878601874445247
+     ]
+    },
+    "aligned_between_beams_0deg": {
+     "theta_target_deg": 0.0,
+     "theta_ref_deg": 0.0,
+     "n_beams_within_10dB": 2,
+     "effective_beams": 2.0817406921233097,
+     "naive_effective_prf_hz": 104.08703460616549,
+     "naive_v_max_ms_REFUTED_BY_D2": 2.2288934250366723,
+     "illumination_budget_db_rel_one_aligned_beam": -5.4184287269898626,
+     "gains_target": [
+      0.06834957754824118,
+      0.14981894137927196,
+      0.2199886522039197,
+      0.6124793790474561,
+      0.6124793790474561,
+      0.2199886522039197,
+      0.14981894137927196,
+      0.06834957754824118
+     ],
+     "gains_ref": [
+      0.06834957754824118,
+      0.14981894137927196,
+      0.2199886522039197,
+      0.6124793790474561,
+      0.6124793790474561,
+      0.2199886522039197,
+      0.14981894137927196,
+      0.06834957754824118
+     ]
+    },
+    "target_0_ref_30": {
+     "theta_target_deg": 0.0,
+     "theta_ref_deg": 30.0,
+     "n_beams_within_10dB": 4,
+     "effective_beams": 3.6676920081846225,
+     "naive_effective_prf_hz": 183.38460040923113,
+     "naive_v_max_ms_REFUTED_BY_D2": 3.9269514368593716,
+     "illumination_budget_db_rel_one_aligned_beam": -12.01115189213925,
+     "gains_target": [
+      0.06834957754824118,
+      0.14981894137927196,
+      0.2199886522039197,
+      0.6124793790474561,
+      0.6124793790474561,
+      0.2199886522039197,
+      0.14981894137927196,
+      0.06834957754824118
+     ],
+     "gains_ref": [
+      0.07232378657654168,
+      0.12421481525854541,
+      0.12656067922177638,
+      0.149114612869029,
+      0.22741470557359375,
+      0.6789911791150003,
+      0.7199864945687653,
+      0.14568382729412505
+     ]
+    },
+    "target_20_ref_-40": {
+     "theta_target_deg": 20.0,
+     "theta_ref_deg": -40.0,
+     "n_beams_within_10dB": 3,
+     "effective_beams": 2.6315358867599596,
+     "naive_effective_prf_hz": 131.576794337998,
+     "naive_v_max_ms_REFUTED_BY_D2": 2.8175521850249217,
+     "illumination_budget_db_rel_one_aligned_beam": -19.693268534270093,
+     "gains_target": [
+      0.12679534446488894,
+      0.07269354845708728,
+      0.043030748884559364,
+      0.06253832974475655,
+      0.17830650886842617,
+      0.9576972590072172,
+      0.0641612458962702,
+      0.11023716145862013
+     ],
+     "gains_ref": [
+      0.5061874292780583,
+      0.9702676680036393,
+      0.039841602552387514,
+      0.026622585660787856,
+      0.038515639246126575,
+      0.0393616413502948,
+      0.002636201434631635,
+      0.11607593719286631
+     ]
+    },
+    "target_45_ref_-45": {
+     "theta_target_deg": 45.0,
+     "theta_ref_deg": -45.0,
+     "n_beams_within_10dB": 2,
+     "effective_beams": 2.491409675995977,
+     "naive_effective_prf_hz": 124.57048379979885,
+     "naive_v_max_ms_REFUTED_BY_D2": 2.667520823756491,
+     "illumination_budget_db_rel_one_aligned_beam": -18.39887068835637,
+     "gains_target": [
+      0.0010228667875714593,
+      0.1046709709426123,
+      0.11409564661950516,
+      0.11519689797997691,
+      0.1303504073375105,
+      0.20620278770639525,
+      0.767243063890886,
+      0.8179086867513895
+     ],
+     "gains_ref": [
+      0.8179086867513895,
+      0.767243063890886,
+      0.20620278770639525,
+      0.1303504073375105,
+      0.11519689797997691,
+      0.11409564661950516,
+      0.1046709709426123,
+      0.0010228667875714593
+     ]
+    }
+   }
+  },
+  "D2_waveform": {
+   "text": "버스트가 주기 20 ms 로 되풀이되므로 격자로브 간격은 50 Hz 로 고정된다. 그것을 눌러주는 것은 버스트 안 개구 1.71 ms 뿐이고 1/개구 = 583 Hz 라 50 Hz 알리아스는 주엽 안쪽이다.",
+   "burst_aperture_s": 0.0017142857142857144,
+   "aperture_null_hz": 583.3333333333333,
+   "ideal_alias_suppression_db": {
+    "50Hz": -0.13933995675558195,
+    "100Hz": -0.5631718896097471,
+    "150Hz": -1.2901120987202108,
+    "250Hz": -3.821591039800742,
+    "500Hz": -258.0617997398389
+   },
+   "by_speed": {
+    "v_2": {
+     "v_ms": 2.0,
+     "fd_hz": 45.25705708623291,
+     "cases": {
+      "single_beam_only": {
+       "alias_rejection_db": 3.961977968529235e-09,
+       "strongest_ghost_hz": -204.74292625811768,
+       "ghost_v_ms": -9.048,
+       "unfolds": false
+      },
+      "all8_coherent_equal_gain_IDEAL": {
+       "alias_rejection_db": 0.14055983057500485,
+       "strongest_ghost_hz": -4.751990994054381,
+       "ghost_v_ms": -0.20999999999999672,
+       "unfolds": false
+      },
+      "all8_realistic_gain_known_phase": {
+       "alias_rejection_db": 0.029636582545665605,
+       "strongest_ghost_hz": -4.751990994054381,
+       "ghost_v_ms": -0.20999999999999672,
+       "unfolds": false
+      },
+      "all8_realistic_gain_unknown_phase": {
+       "alias_rejection_db": -3.6935414702489835,
+       "strongest_ghost_hz": -454.7429096024683,
+       "ghost_v_ms": -20.096,
+       "unfolds": false
+      }
+     }
+    },
+    "v_5": {
+     "v_ms": 5.0,
+     "fd_hz": 113.14264271558228,
+     "cases": {
+      "single_beam_only": {
+       "alias_rejection_db": 3.961977968529235e-09,
+       "strongest_ghost_hz": -136.85734062876827,
+       "ghost_v_ms": -6.047999999999997,
+       "unfolds": false
+      },
+      "all8_coherent_equal_gain_IDEAL": {
+       "alias_rejection_db": 0.14055983057502572,
+       "strongest_ghost_hz": 63.13359463529491,
+       "ghost_v_ms": 2.79,
+       "unfolds": false
+      },
+      "all8_realistic_gain_known_phase": {
+       "alias_rejection_db": 0.029636582545684825,
+       "strongest_ghost_hz": 63.13359463529491,
+       "ghost_v_ms": 2.79,
+       "unfolds": false
+      },
+      "all8_realistic_gain_unknown_phase": {
+       "alias_rejection_db": -3.6935414702489195,
+       "strongest_ghost_hz": -386.8573239731189,
+       "ghost_v_ms": -17.096,
+       "unfolds": false
+      }
+     }
+    },
+    "v_10": {
+     "v_ms": 10.0,
+     "fd_hz": 226.28528543116457,
+     "cases": {
+      "single_beam_only": {
+       "alias_rejection_db": 3.961977968529235e-09,
+       "strongest_ghost_hz": 476.2852687755152,
+       "ghost_v_ms": 21.048000000000002,
+       "unfolds": false
+      },
+      "all8_coherent_equal_gain_IDEAL": {
+       "alias_rejection_db": 0.14055983057502763,
+       "strongest_ghost_hz": 176.27623735087718,
+       "ghost_v_ms": 7.789999999999999,
+       "unfolds": false
+      },
+      "all8_realistic_gain_known_phase": {
+       "alias_rejection_db": 0.029636582545690595,
+       "strongest_ghost_hz": 176.27623735087718,
+       "ghost_v_ms": 7.789999999999999,
+       "unfolds": false
+      },
+      "all8_realistic_gain_unknown_phase": {
+       "alias_rejection_db": -3.6935414702489933,
+       "strongest_ghost_hz": -273.7146812575366,
+       "ghost_v_ms": -12.095999999999998,
+       "unfolds": false
+      }
+     }
+    },
+    "v_15": {
+     "v_ms": 15.0,
+     "fd_hz": 339.42792814674686,
+     "cases": {
+      "single_beam_only": {
+       "alias_rejection_db": 3.961977968529235e-09,
+       "strongest_ghost_hz": 89.42794480239627,
+       "ghost_v_ms": 3.9520000000000017,
+       "unfolds": false
+      },
+      "all8_coherent_equal_gain_IDEAL": {
+       "alias_rejection_db": 0.14055983057500673,
+       "strongest_ghost_hz": 289.41888006645956,
+       "ghost_v_ms": 12.790000000000004,
+       "unfolds": false
+      },
+      "all8_realistic_gain_known_phase": {
+       "alias_rejection_db": 0.029636582545667527,
+       "strongest_ghost_hz": 289.41888006645956,
+       "ghost_v_ms": 12.790000000000004,
+       "unfolds": false
+      },
+      "all8_realistic_gain_unknown_phase": {
+       "alias_rejection_db": -3.6935414702488294,
+       "strongest_ghost_hz": -160.57203854195433,
+       "ghost_v_ms": -7.095999999999998,
+       "unfolds": false
+      }
+     }
+    },
+    "v_20": {
+     "v_ms": 20.0,
+     "fd_hz": 452.57057086232913,
+     "cases": {
+      "single_beam_only": {
+       "alias_rejection_db": 3.961977968529235e-09,
+       "strongest_ghost_hz": 202.57058751797854,
+       "ghost_v_ms": 8.952000000000002,
+       "unfolds": false
+      },
+      "all8_coherent_equal_gain_IDEAL": {
+       "alias_rejection_db": 0.14055983057500485,
+       "strongest_ghost_hz": 402.56152278204183,
+       "ghost_v_ms": 17.790000000000003,
+       "unfolds": false
+      },
+      "all8_realistic_gain_known_phase": {
+       "alias_rejection_db": 0.029636582545671374,
+       "strongest_ghost_hz": 402.56152278204183,
+       "ghost_v_ms": 17.790000000000003,
+       "unfolds": false
+      },
+      "all8_realistic_gain_unknown_phase": {
+       "alias_rejection_db": -3.693541470249116,
+       "strongest_ghost_hz": -47.42939582637206,
+       "ghost_v_ms": -2.0959999999999983,
+       "unfolds": false
+      }
+     }
+    }
+   }
+  },
+  "D3_single_burst_estimation": {
+   "one_SSB_4symbols": {
+    "n_samples": 4,
+    "span_s": 0.0007142857142857143,
+    "sigma_t_s": 0.0002719918966379968,
+    "sigma_f_needed_hz": 8.333333333333334,
+    "snr_per_sample_needed_db": 27.898008375085766,
+    "sigma_f_at_0dB_hz": 206.8803168599926,
+    "sigma_f_at_10dB_hz": 65.42130043349103,
+    "sigma_f_at_20dB_hz": 46.25984517056393,
+    "at_detection_threshold": {
+     "T_0.1s": {
+      "M_bursts": 5,
+      "snr_per_sample_db": 4.871735682850162,
+      "sigma_f_one_burst_hz": 118.068049464167,
+      "sigma_f_combined_over_bursts_hz": 52.801636914537006,
+      "resolves_alias_index": false,
+      "snr_shortfall_db": 16.036572648875417
+     },
+     "T_0.5s": {
+      "M_bursts": 25,
+      "snr_per_sample_db": -2.117964360510026,
+      "sigma_f_one_burst_hz": 264.008184572685,
+      "sigma_f_combined_over_bursts_hz": 52.801636914537006,
+      "resolves_alias_index": false,
+      "snr_shortfall_db": 16.036572648875417
+     },
+     "T_1s": {
+      "M_bursts": 50,
+      "snr_per_sample_db": -5.128264317149837,
+      "sigma_f_one_burst_hz": 373.3639552001904,
+      "sigma_f_combined_over_bursts_hz": 52.80163691453699,
+      "resolves_alias_index": false,
+      "snr_shortfall_db": 16.036572648875417
+     }
+    },
+    "assumptions": "모든 빔이 등이득·동위상이라는 물리적으로 성립하지 않는 상한 (D1·D2 가 이 가정을 깬다). 표본당 SNR 은 총 검출문턱 11.86 dB 를 M 표본에 나눈 값이다."
+   },
+   "one_burst_all8": {
+    "n_samples": 8,
+    "span_s": 0.0017142857142857144,
+    "sigma_t_s": 0.000569192051803901,
+    "sigma_f_needed_hz": 8.333333333333334,
+    "snr_per_sample_needed_db": 18.47365118787595,
+    "sigma_f_at_0dB_hz": 69.9038850716101,
+    "sigma_f_at_10dB_hz": 22.10554941209305,
+    "sigma_f_at_20dB_hz": 15.630983891145291,
+    "at_detection_threshold": {
+     "T_0.1s": {
+      "M_bursts": 5,
+      "snr_per_sample_db": 4.871735682850162,
+      "sigma_f_one_burst_hz": 39.894638047938855,
+      "sigma_f_combined_over_bursts_hz": 17.84142452258816,
+      "resolves_alias_index": false,
+      "snr_shortfall_db": 6.612215461665602
+     },
+     "T_0.5s": {
+      "M_bursts": 25,
+      "snr_per_sample_db": -2.117964360510026,
+      "sigma_f_one_burst_hz": 89.20712261294078,
+      "sigma_f_combined_over_bursts_hz": 17.841424522588156,
+      "resolves_alias_index": false,
+      "snr_shortfall_db": 6.612215461665602
+     },
+     "T_1s": {
+      "M_bursts": 50,
+      "snr_per_sample_db": -5.128264317149837,
+      "sigma_f_one_burst_hz": 126.15792265950046,
+      "sigma_f_combined_over_bursts_hz": 17.841424522588156,
+      "resolves_alias_index": false,
+      "snr_shortfall_db": 6.612215461665602
+     }
+    },
+    "assumptions": "모든 빔이 등이득·동위상이라는 물리적으로 성립하지 않는 상한 (D1·D2 가 이 가정을 깬다). 표본당 SNR 은 총 검출문턱 11.86 dB 를 M 표본에 나눈 값이다."
+   }
+  },
+  "D3_text": "버스트 안 표본만 쓰면 모호는 없다(간격 214 µs → 무모호 ±2333 Hz). 대신 분해능이 1/개구 = 583 Hz 로 거칠어져 알리아스 번호를 가르려면 SNR 이 필요하다. 검출 문턱 11.86 dB 에서 8빔 이상상한 추정기는 6.6 dB 부족하다 — 즉 문턱보다 그만큼 위인 표적(≈R90 의 0.68배 거리 안)에서만 성립하고, 그것도 8빔 등이득·동위상 가정 위에서다.",
+  "rescues_5g": false,
+  "verdict": "빔 스위핑은 구제하지 않는다. (1) 표적과 기준이 같은 빔에 있어야 해서 벌어진 기하에서 조명 예산이 -19.7 dB 깎이며, (2) 등이득·동위상이라는 물리적으로 불가능한 상한을 줘도 버스트 개구가 50 Hz 알리아스를 -0.14 dB 밖에 못 누르고, (3) 빔 가중은 수신기가 모르는 위상을 실어 코히런트 결합 자체를 깬다(억압 -3.7 dB → 가짜가 이긴다). ⭐ 핵심은 (2) 다 — 버스트 안 표본은 뭉쳐 있어 무모호 구간을 넓히지 못한다. 알리아스 간격은 빔 수가 아니라 **버스트 주기 20 ms** 가 정한다."
+ },
+ "E_long_cpi": {
+  "question": "Does a longer CPI with motion compensation, or track-before-detect, rescue 5G?",
+  "E1_blindness_falls_with_cpi": {
+   "W1": [
+    {
+     "T_cpi_s": 0.05,
+     "M": 50,
+     "blind_hard": 0.11388888888888889,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.06
+    },
+    {
+     "T_cpi_s": 0.1,
+     "M": 100,
+     "blind_hard": 0.058333333333333334,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.03
+    },
+    {
+     "T_cpi_s": 0.2,
+     "M": 200,
+     "blind_hard": 0.030555555555555555,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.015
+    },
+    {
+     "T_cpi_s": 0.5,
+     "M": 500,
+     "blind_hard": 0.013888888888888888,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.006
+    },
+    {
+     "T_cpi_s": 1.0,
+     "M": 1000,
+     "blind_hard": 0.008333333333333333,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.003
+    },
+    {
+     "T_cpi_s": 2.0,
+     "M": 2000,
+     "blind_hard": 0.002777777777777778,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.0015
+    },
+    {
+     "T_cpi_s": 5.0,
+     "M": 5000,
+     "blind_hard": 0.002777777777777778,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.0006
+    },
+    {
+     "T_cpi_s": 10.0,
+     "M": 10000,
+     "blind_hard": 0.002777777777777778,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.0003
+    }
+   ],
+   "L1": [
+    {
+     "T_cpi_s": 0.05,
+     "M": 50,
+     "blind_hard": 0.33611111111111114,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.06
+    },
+    {
+     "T_cpi_s": 0.1,
+     "M": 100,
+     "blind_hard": 0.1638888888888889,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.03
+    },
+    {
+     "T_cpi_s": 0.2,
+     "M": 200,
+     "blind_hard": 0.08055555555555556,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.015
+    },
+    {
+     "T_cpi_s": 0.5,
+     "M": 500,
+     "blind_hard": 0.030555555555555555,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.006
+    },
+    {
+     "T_cpi_s": 1.0,
+     "M": 1000,
+     "blind_hard": 0.013888888888888888,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.003
+    },
+    {
+     "T_cpi_s": 2.0,
+     "M": 2000,
+     "blind_hard": 0.008333333333333333,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.0015
+    },
+    {
+     "T_cpi_s": 5.0,
+     "M": 5000,
+     "blind_hard": 0.002777777777777778,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.0006
+    },
+    {
+     "T_cpi_s": 10.0,
+     "M": 10000,
+     "blind_hard": 0.002777777777777778,
+     "alias_frac": 0.0,
+     "asymptote_2g_over_M": 0.0003
+    }
+   ],
+   "G1": [
+    {
+     "T_cpi_s": 0.05,
+     "M": 2,
+     "blind_hard": 1.0,
+     "alias_frac": 0.8583333333333333,
+     "asymptote_2g_over_M": 1.0
+    },
+    {
+     "T_cpi_s": 0.1,
+     "M": 5,
+     "blind_hard": 0.7333333333333333,
+     "alias_frac": 0.8583333333333333,
+     "asymptote_2g_over_M": 0.6
+    },
+    {
+     "T_cpi_s": 0.2,
+     "M": 10,
+     "blind_hard": 0.325,
+     "alias_frac": 0.8583333333333333,
+     "asymptote_2g_over_M": 0.3
+    },
+    {
+     "T_cpi_s": 0.5,
+     "M": 25,
+     "blind_hard": 0.125,
+     "alias_frac": 0.8583333333333333,
+     "asymptote_2g_over_M": 0.12
+    },
+    {
+     "T_cpi_s": 1.0,
+     "M": 50,
+     "blind_hard": 0.06388888888888888,
+     "alias_frac": 0.8583333333333333,
+     "asymptote_2g_over_M": 0.06
+    },
+    {
+     "T_cpi_s": 2.0,
+     "M": 100,
+     "blind_hard": 0.030555555555555555,
+     "alias_frac": 0.8583333333333333,
+     "asymptote_2g_over_M": 0.03
+    },
+    {
+     "T_cpi_s": 5.0,
+     "M": 250,
+     "blind_hard": 0.008333333333333333,
+     "alias_frac": 0.8583333333333333,
+     "asymptote_2g_over_M": 0.012
+    },
+    {
+     "T_cpi_s": 10.0,
+     "M": 500,
+     "blind_hard": 0.008333333333333333,
+     "alias_frac": 0.8583333333333333,
+     "asymptote_2g_over_M": 0.006
+    }
+   ]
+  },
+  "E1b_range_spread": {
+   "W1": {
+    "by_range": [
+     {
+      "d_m": 500.0,
+      "blind_hard": 0.06388888888888888,
+      "alias_frac": 0.0
+     },
+     {
+      "d_m": 1000.0,
+      "blind_hard": 0.058333333333333334,
+      "alias_frac": 0.0
+     },
+     {
+      "d_m": 2000.0,
+      "blind_hard": 0.05277777777777778,
+      "alias_frac": 0.0
+     },
+     {
+      "d_m": 4000.0,
+      "blind_hard": 0.05277777777777778,
+      "alias_frac": 0.0
+     },
+     {
+      "d_m": 6301.062944411723,
+      "blind_hard": 0.05277777777777778,
+      "alias_frac": 0.0
+     }
+    ],
+    "blind_hard_min": 0.05277777777777778,
+    "blind_hard_max": 0.06388888888888888
+   },
+   "L1": {
+    "by_range": [
+     {
+      "d_m": 500.0,
+      "blind_hard": 0.175,
+      "alias_frac": 0.0
+     },
+     {
+      "d_m": 1000.0,
+      "blind_hard": 0.1638888888888889,
+      "alias_frac": 0.0
+     },
+     {
+      "d_m": 2000.0,
+      "blind_hard": 0.15833333333333333,
+      "alias_frac": 0.0
+     },
+     {
+      "d_m": 4000.0,
+      "blind_hard": 0.15833333333333333,
+      "alias_frac": 0.0
+     },
+     {
+      "d_m": 6301.062944411723,
+      "blind_hard": 0.15833333333333333,
+      "alias_frac": 0.0
+     }
+    ],
+    "blind_hard_min": 0.15833333333333333,
+    "blind_hard_max": 0.175
+   },
+   "G1": {
+    "by_range": [
+     {
+      "d_m": 500.0,
+      "blind_hard": 0.6944444444444444,
+      "alias_frac": 0.8472222222222222
+     },
+     {
+      "d_m": 1000.0,
+      "blind_hard": 0.7333333333333333,
+      "alias_frac": 0.8583333333333333
+     },
+     {
+      "d_m": 2000.0,
+      "blind_hard": 0.6638888888888889,
+      "alias_frac": 0.8638888888888889
+     },
+     {
+      "d_m": 4000.0,
+      "blind_hard": 0.6416666666666667,
+      "alias_frac": 0.8638888888888889
+     },
+     {
+      "d_m": 6301.062944411723,
+      "blind_hard": 0.6361111111111111,
+      "alias_frac": 0.8638888888888889
+     }
+    ],
+    "blind_hard_min": 0.6361111111111111,
+    "blind_hard_max": 0.7333333333333333
+   }
+  },
+  "E1b_reconciliation": "cpi_guard_sweep 가 인용한 blind_hard(G1, T=0.1 s) = 0.636 은 d = R90 = 6301 m 셀의 값이다. 같은 규약을 d = 1000 m 에 적용하면 0.733 이 나온다 — 접힘이 헤딩축을 여러 번 감기 때문에 정확한 비율이 기하에 민감하다(G1 산포 0.636~0.733). 논문에는 점근식 2·g/M 과 산포를 함께 써야 한다.",
+  "E5_usable_heading_fraction": {
+   "W1_T0.1": {
+    "mode": "W1",
+    "T_cpi_s": 0.1,
+    "M": 100,
+    "by_speed": [
+     {
+      "v_ms": 0.0,
+      "detectable_frac": 0.0,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.0
+     },
+     {
+      "v_ms": 0.5,
+      "detectable_frac": 0.30277777777777776,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.30277777777777776
+     },
+     {
+      "v_ms": 1.0,
+      "detectable_frac": 0.7083333333333334,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.7083333333333334
+     },
+     {
+      "v_ms": 2.0,
+      "detectable_frac": 0.8583333333333333,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.8583333333333333
+     },
+     {
+      "v_ms": 5.0,
+      "detectable_frac": 0.9416666666666667,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9416666666666667
+     },
+     {
+      "v_ms": 10.0,
+      "detectable_frac": 0.9694444444444444,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9694444444444444
+     },
+     {
+      "v_ms": 15.0,
+      "detectable_frac": 0.9805555555555555,
+      "unambiguous_frac": 0.9083333333333333,
+      "detectable_and_unambiguous_frac": 0.8888888888888888
+     },
+     {
+      "v_ms": 20.0,
+      "detectable_frac": 0.9861111111111112,
+      "unambiguous_frac": 0.5305555555555556,
+      "detectable_and_unambiguous_frac": 0.5166666666666667
+     },
+     {
+      "v_ms": 25.0,
+      "detectable_frac": 0.9861111111111112,
+      "unambiguous_frac": 0.4027777777777778,
+      "detectable_and_unambiguous_frac": 0.3888888888888889
+     }
+    ]
+   },
+   "W1_T1": {
+    "mode": "W1",
+    "T_cpi_s": 1.0,
+    "M": 1000,
+    "by_speed": [
+     {
+      "v_ms": 0.0,
+      "detectable_frac": 0.0,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.0
+     },
+     {
+      "v_ms": 0.5,
+      "detectable_frac": 0.9416666666666667,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9416666666666667
+     },
+     {
+      "v_ms": 1.0,
+      "detectable_frac": 0.9694444444444444,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9694444444444444
+     },
+     {
+      "v_ms": 2.0,
+      "detectable_frac": 0.9861111111111112,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9861111111111112
+     },
+     {
+      "v_ms": 5.0,
+      "detectable_frac": 0.9916666666666667,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9916666666666667
+     },
+     {
+      "v_ms": 10.0,
+      "detectable_frac": 0.9972222222222222,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9972222222222222
+     },
+     {
+      "v_ms": 15.0,
+      "detectable_frac": 0.9972222222222222,
+      "unambiguous_frac": 0.9083333333333333,
+      "detectable_and_unambiguous_frac": 0.9055555555555556
+     },
+     {
+      "v_ms": 20.0,
+      "detectable_frac": 0.9972222222222222,
+      "unambiguous_frac": 0.5305555555555556,
+      "detectable_and_unambiguous_frac": 0.5277777777777778
+     },
+     {
+      "v_ms": 25.0,
+      "detectable_frac": 0.9972222222222222,
+      "unambiguous_frac": 0.4027777777777778,
+      "detectable_and_unambiguous_frac": 0.4
+     }
+    ]
+   },
+   "L1_T0.1": {
+    "mode": "L1",
+    "T_cpi_s": 0.1,
+    "M": 100,
+    "by_speed": [
+     {
+      "v_ms": 0.0,
+      "detectable_frac": 0.0,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.0
+     },
+     {
+      "v_ms": 0.5,
+      "detectable_frac": 0.0,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.0
+     },
+     {
+      "v_ms": 1.0,
+      "detectable_frac": 0.0,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.0
+     },
+     {
+      "v_ms": 2.0,
+      "detectable_frac": 0.5638888888888889,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.5638888888888889
+     },
+     {
+      "v_ms": 5.0,
+      "detectable_frac": 0.8361111111111111,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.8361111111111111
+     },
+     {
+      "v_ms": 10.0,
+      "detectable_frac": 0.9194444444444444,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9194444444444444
+     },
+     {
+      "v_ms": 15.0,
+      "detectable_frac": 0.9472222222222222,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9472222222222222
+     },
+     {
+      "v_ms": 20.0,
+      "detectable_frac": 0.9583333333333334,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9583333333333334
+     },
+     {
+      "v_ms": 25.0,
+      "detectable_frac": 0.9694444444444444,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9694444444444444
+     }
+    ]
+   },
+   "L1_T1": {
+    "mode": "L1",
+    "T_cpi_s": 1.0,
+    "M": 1000,
+    "by_speed": [
+     {
+      "v_ms": 0.0,
+      "detectable_frac": 0.0,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.0
+     },
+     {
+      "v_ms": 0.5,
+      "detectable_frac": 0.8361111111111111,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.8361111111111111
+     },
+     {
+      "v_ms": 1.0,
+      "detectable_frac": 0.9194444444444444,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9194444444444444
+     },
+     {
+      "v_ms": 2.0,
+      "detectable_frac": 0.9583333333333334,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9583333333333334
+     },
+     {
+      "v_ms": 5.0,
+      "detectable_frac": 0.9861111111111112,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9861111111111112
+     },
+     {
+      "v_ms": 10.0,
+      "detectable_frac": 0.9916666666666667,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9916666666666667
+     },
+     {
+      "v_ms": 15.0,
+      "detectable_frac": 0.9972222222222222,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9972222222222222
+     },
+     {
+      "v_ms": 20.0,
+      "detectable_frac": 0.9972222222222222,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9972222222222222
+     },
+     {
+      "v_ms": 25.0,
+      "detectable_frac": 0.9972222222222222,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9972222222222222
+     }
+    ]
+   },
+   "G1_T0.1": {
+    "mode": "G1",
+    "T_cpi_s": 0.1,
+    "M": 5,
+    "by_speed": [
+     {
+      "v_ms": 0.0,
+      "detectable_frac": 0.0,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.0
+     },
+     {
+      "v_ms": 0.5,
+      "detectable_frac": 0.0,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.0
+     },
+     {
+      "v_ms": 1.0,
+      "detectable_frac": 0.5361111111111111,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.5361111111111111
+     },
+     {
+      "v_ms": 2.0,
+      "detectable_frac": 0.35,
+      "unambiguous_frac": 0.375,
+      "detectable_and_unambiguous_frac": 0.16111111111111112
+     },
+     {
+      "v_ms": 5.0,
+      "detectable_frac": 0.26666666666666666,
+      "unambiguous_frac": 0.14166666666666666,
+      "detectable_and_unambiguous_frac": 0.05555555555555555
+     },
+     {
+      "v_ms": 10.0,
+      "detectable_frac": 0.475,
+      "unambiguous_frac": 0.06944444444444445,
+      "detectable_and_unambiguous_frac": 0.027777777777777776
+     },
+     {
+      "v_ms": 15.0,
+      "detectable_frac": 0.4083333333333333,
+      "unambiguous_frac": 0.04722222222222222,
+      "detectable_and_unambiguous_frac": 0.016666666666666666
+     },
+     {
+      "v_ms": 20.0,
+      "detectable_frac": 0.3611111111111111,
+      "unambiguous_frac": 0.03611111111111111,
+      "detectable_and_unambiguous_frac": 0.016666666666666666
+     },
+     {
+      "v_ms": 25.0,
+      "detectable_frac": 0.375,
+      "unambiguous_frac": 0.030555555555555555,
+      "detectable_and_unambiguous_frac": 0.011111111111111112
+     }
+    ]
+   },
+   "G1_T1": {
+    "mode": "G1",
+    "T_cpi_s": 1.0,
+    "M": 50,
+    "by_speed": [
+     {
+      "v_ms": 0.0,
+      "detectable_frac": 0.0,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.0
+     },
+     {
+      "v_ms": 0.5,
+      "detectable_frac": 0.9138888888888889,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9138888888888889
+     },
+     {
+      "v_ms": 1.0,
+      "detectable_frac": 0.9583333333333334,
+      "unambiguous_frac": 1.0,
+      "detectable_and_unambiguous_frac": 0.9583333333333334
+     },
+     {
+      "v_ms": 2.0,
+      "detectable_frac": 0.9805555555555555,
+      "unambiguous_frac": 0.375,
+      "detectable_and_unambiguous_frac": 0.35555555555555557
+     },
+     {
+      "v_ms": 5.0,
+      "detectable_frac": 0.9361111111111111,
+      "unambiguous_frac": 0.14166666666666666,
+      "detectable_and_unambiguous_frac": 0.13333333333333333
+     },
+     {
+      "v_ms": 10.0,
+      "detectable_frac": 0.9472222222222222,
+      "unambiguous_frac": 0.06944444444444445,
+      "detectable_and_unambiguous_frac": 0.06666666666666667
+     },
+     {
+      "v_ms": 15.0,
+      "detectable_frac": 0.9527777777777777,
+      "unambiguous_frac": 0.04722222222222222,
+      "detectable_and_unambiguous_frac": 0.044444444444444446
+     },
+     {
+      "v_ms": 20.0,
+      "detectable_frac": 0.9138888888888889,
+      "unambiguous_frac": 0.03611111111111111,
+      "detectable_and_unambiguous_frac": 0.03333333333333333
+     },
+     {
+      "v_ms": 25.0,
+      "detectable_frac": 0.9472222222222222,
+      "unambiguous_frac": 0.030555555555555555,
+      "detectable_and_unambiguous_frac": 0.027777777777777776
+     }
+    ]
+   }
+  },
+  "E5_text": "검출 가능(가드 밖) **그리고** 무모호(|f_d| < PRF/2)인 헤딩 비율. 5G SSB 는 v 가 v_max 를 넘는 순간 이 값이 0 으로 떨어진다 — 검출은 되지만 속도가 못 믿을 값이 된다. 호버(v=0)는 세 파형 모두 0 이다(0-도플러 가드).",
+  "E1_law": "blind_hard → 2·g_bins/M = 2·g_bins/(T·PRF) — **접힘이 도플러를 무작위화하는 모드**의 점근값. 즉 검출 블라인드는 T·PRF 의 곱만 보므로 CPI 로 되살 수 있다.",
+  "E2_ambiguity_constant": "alias_frac 는 T 와 무관하다 — |f_d| ≥ PRF/2 는 표본화율 조건이다. 빈폭을 좁혀도 무모호 구간은 넓어지지 않는다.",
+  "E3_motion_compensation": {
+   "W1_v5": {
+    "mode": "W1",
+    "v_ms": 5.0,
+    "dRb_res_m": 3.915656594285714,
+    "T_cpi_for_one_range_cell_walk_s": 0.4040411843971243,
+    "T_cpi_doppler_coherence_limit_s": 1.1233816683871796,
+    "ratio_required_over_coherent": 0.3596651038263776,
+    "keystone_feasible": true
+   },
+   "W1_v15": {
+    "mode": "W1",
+    "v_ms": 15.0,
+    "dRb_res_m": 3.915656594285714,
+    "T_cpi_for_one_range_cell_walk_s": 0.13468039479904143,
+    "T_cpi_doppler_coherence_limit_s": 0.37450000000000006,
+    "ratio_required_over_coherent": 0.3596272224273469,
+    "keystone_feasible": true
+   },
+   "L1_v5": {
+    "mode": "L1",
+    "v_ms": 5.0,
+    "dRb_res_m": 16.669027411732,
+    "T_cpi_for_one_range_cell_walk_s": 1.720012155148402,
+    "T_cpi_doppler_coherence_limit_s": 1.8885,
+    "ratio_required_over_coherent": 0.9107821843518147,
+    "keystone_feasible": true
+   },
+   "L1_v15": {
+    "mode": "L1",
+    "v_ms": 15.0,
+    "dRb_res_m": 16.669027411732,
+    "T_cpi_for_one_range_cell_walk_s": 0.5733373850494672,
+    "T_cpi_doppler_coherence_limit_s": 0.6295,
+    "ratio_required_over_coherent": 0.9107821843518145,
+    "keystone_feasible": true
+   },
+   "G1_v5": {
+    "mode": "G1",
+    "v_ms": 5.0,
+    "dRb_res_m": 41.63784138888889,
+    "T_cpi_for_one_range_cell_walk_s": 4.296458914948903,
+    "T_cpi_doppler_coherence_limit_s": 1.3700000000000003,
+    "ratio_required_over_coherent": 3.136101397772921,
+    "keystone_feasible": false
+   },
+   "G1_v15": {
+    "mode": "G1",
+    "v_ms": 15.0,
+    "dRb_res_m": 41.63784138888889,
+    "T_cpi_for_one_range_cell_walk_s": 1.4321529716496344,
+    "T_cpi_doppler_coherence_limit_s": 0.4536040859604157,
+    "ratio_required_over_coherent": 3.1572752891265026,
+    "keystone_feasible": false
+   }
+  },
+  "E3_text": "Keystone/RFT 로 알리아스 번호를 푸는 방법은 **거리 워크**를 단서로 쓴다. 5G SSB 는 기준대역 7.2 MHz → ΔR_b = 41.6 m 라 한 거리셀을 걸으려면 CPI 가 코히런스 한계보다 훨씬 길어야 한다. 두 수를 나란히 놓으면 실현 불가가 읽힌다.",
+  "E4_track_before_detect": {
+   "W1_v5": {
+    "mode": "W1",
+    "v_ms": 5.0,
+    "alias_index_range": [
+     0,
+     0
+    ],
+    "n_distinct_alias_indices": 1,
+    "n_transitions_per_360deg_turn": 0,
+    "fd_max_hz": 168.42090411080764
+   },
+   "W1_v15": {
+    "mode": "W1",
+    "v_ms": 15.0,
+    "alias_index_range": [
+     -1,
+     1
+    ],
+    "n_distinct_alias_indices": 3,
+    "n_transitions_per_360deg_turn": 4,
+    "fd_max_hz": 505.26271233242284
+   },
+   "L1_v5": {
+    "mode": "L1",
+    "v_ms": 5.0,
+    "alias_index_range": [
+     0,
+     0
+    ],
+    "n_distinct_alias_indices": 1,
+    "n_transitions_per_360deg_turn": 0,
+    "fd_max_hz": 59.57768258660624
+   },
+   "L1_v15": {
+    "mode": "L1",
+    "v_ms": 15.0,
+    "alias_index_range": [
+     0,
+     0
+    ],
+    "n_distinct_alias_indices": 1,
+    "n_transitions_per_360deg_turn": 0,
+    "fd_max_hz": 178.7330477598187
+   },
+   "G1_v5": {
+    "mode": "G1",
+    "v_ms": 5.0,
+    "alias_index_range": [
+     -2,
+     2
+    ],
+    "n_distinct_alias_indices": 5,
+    "n_transitions_per_360deg_turn": 8,
+    "fd_max_hz": 113.14264191704927
+   },
+   "G1_v15": {
+    "mode": "G1",
+    "v_ms": 15.0,
+    "alias_index_range": [
+     -7,
+     7
+    ],
+    "n_distinct_alias_indices": 15,
+    "n_transitions_per_360deg_turn": 28,
+    "fd_max_hz": 339.4279257511478
+   }
+  },
+  "E4_text": "TBD 는 알리아스 번호가 트랙 위에서 일정해야 성립한다. 360° 선회 한 번에 번호가 여러 번 바뀌므로 5G 에서는 트랙 연속성 자체가 번호 전이로 끊긴다.",
+  "rescues_5g": "partially — 검출 블라인드는 되살리지만 속도 모호는 못 푼다",
+  "verdict": "⭐ 헤드라인은 여기서 **정밀화되어야 한다**. 긴 CPI 는 blind_hard(G1) 를 0.733(0.1 s) → 0.064(1 s) 로 줄여 **검출을 되살린다**. 그러나 alias_frac 은 0.858 로 고정이다. 즉 CPI 로 못 고치는 것은 '검출'이 아니라 '무모호 속도'다. Keystone/RFT 로 알리아스 번호를 푸는 길도 5G 에서는 막힌다 — 한 거리셀을 걷는 데 필요한 CPI 가 도플러 코히런스 한계의 3.16배다."
+ },
+ "F_multistatic": {
+  "question": "Do several receivers resolve the alias?",
+  "setup": {
+   "T_cpi_s": 0.1,
+   "M": 5,
+   "guard_hz": 15.0,
+   "prf_hz": 50.0,
+   "speed_ms": 5.0,
+   "note": "PRF is common to all receivers (single transmitter); only the geometric coefficient a_i differs. This is a SPATIAL stagger."
+  },
+  "by_set": {
+   "N1": {
+    "n_rx": 1,
+    "rx_positions": [
+     [
+      500.0,
+      0.0,
+      3.0
+     ]
+    ],
+    "coeff_hz_per_ms": [
+     [
+      -0.0026884662475284925,
+      -22.628528383409854
+     ]
+    ],
+    "min_pairwise_angle_deg": null,
+    "blind_frac_each": [
+     0.7333333333333333
+    ],
+    "blind_frac_all_simultaneously": 0.7333333333333333,
+    "product_of_individual": 0.7333333333333333,
+    "radial_ambiguity_per_rx": [
+     {
+      "rx_index": 0,
+      "fd_hz_per_ms": 22.628528543116456,
+      "radial_alias_period_ms": 2.209600147209301,
+      "v_max_ms": 1.1048000736046506
+     }
+    ],
+    "ambiguity": [
+     {
+      "v_true_ms": [
+       15.0,
+       0.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 15750,
+        "n_ghost_grid_points": 15733,
+        "ambiguity_volume_frac": 0.09794715206994982,
+        "n_distinct_ghost_clusters": 24,
+        "nearest_ghost_speed_error_ms": 1.125,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 33612,
+        "n_ghost_grid_points": 33565,
+        "ambiguity_volume_frac": 0.20902855081747004,
+        "n_distinct_ghost_clusters": 24,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 64715,
+        "n_ghost_grid_points": 64608,
+        "ambiguity_volume_frac": 0.40245396483852713,
+        "n_distinct_ghost_clusters": 24,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     },
+     {
+      "v_true_ms": [
+       0.0,
+       15.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 16286,
+        "n_ghost_grid_points": 16269,
+        "ambiguity_volume_frac": 0.10128046467372716,
+        "n_distinct_ghost_clusters": 24,
+        "nearest_ghost_speed_error_ms": 1.125,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 32679,
+        "n_ghost_grid_points": 32632,
+        "ambiguity_volume_frac": 0.20322634809485016,
+        "n_distinct_ghost_clusters": 24,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 64885,
+        "n_ghost_grid_points": 64778,
+        "ambiguity_volume_frac": 0.4035111721942028,
+        "n_distinct_ghost_clusters": 24,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     },
+     {
+      "v_true_ms": [
+       10.0,
+       10.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 15003,
+        "n_ghost_grid_points": 14986,
+        "ambiguity_volume_frac": 0.09330165857177505,
+        "n_distinct_ghost_clusters": 23,
+        "nearest_ghost_speed_error_ms": 1.125,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 31578,
+        "n_ghost_grid_points": 31531,
+        "ambiguity_volume_frac": 0.1963793757501508,
+        "n_distinct_ghost_clusters": 23,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 62365,
+        "n_ghost_grid_points": 62258,
+        "ambiguity_volume_frac": 0.3878396278630108,
+        "n_distinct_ghost_clusters": 24,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     }
+    ]
+   },
+   "N2": {
+    "n_rx": 2,
+    "rx_positions": [
+     [
+      500.0,
+      0.0,
+      3.0
+     ],
+     [
+      0.0,
+      500.0,
+      3.0
+     ]
+    ],
+    "coeff_hz_per_ms": [
+     [
+      -0.0026884662475284925,
+      -22.628528383409854
+     ],
+     [
+      -8.024082656906408,
+      -21.707985875912808
+     ]
+    ],
+    "min_pairwise_angle_deg": 20.279388684669684,
+    "blind_frac_each": [
+     0.7333333333333333,
+     0.6722222222222223
+    ],
+    "blind_frac_all_simultaneously": 0.4722222222222222,
+    "product_of_individual": 0.492962962962963,
+    "radial_ambiguity_per_rx": [
+     {
+      "rx_index": 0,
+      "fd_hz_per_ms": 22.628528543116456,
+      "radial_alias_period_ms": 2.209600147209301,
+      "v_max_ms": 1.1048000736046506
+     },
+     {
+      "rx_index": 1,
+      "fd_hz_per_ms": 23.143520762271592,
+      "radial_alias_period_ms": 2.160431876964444,
+      "v_max_ms": 1.080215938482222
+     }
+    ],
+    "ambiguity": [
+     {
+      "v_true_ms": [
+       15.0,
+       0.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 1570,
+        "n_ghost_grid_points": 1565,
+        "ambiguity_volume_frac": 0.009763620873004522,
+        "n_distinct_ghost_clusters": 187,
+        "nearest_ghost_speed_error_ms": 2.1396553460779613,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 6726,
+        "n_ghost_grid_points": 6697,
+        "ambiguity_volume_frac": 0.04182809808396714,
+        "n_distinct_ghost_clusters": 190,
+        "nearest_ghost_speed_error_ms": 2.0155644370746373,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 25885,
+        "n_ghost_grid_points": 25796,
+        "ambiguity_volume_frac": 0.16097536706861276,
+        "n_distinct_ghost_clusters": 202,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     },
+     {
+      "v_true_ms": [
+       0.0,
+       15.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 1629,
+        "n_ghost_grid_points": 1624,
+        "ambiguity_volume_frac": 0.010130534014091952,
+        "n_distinct_ghost_clusters": 188,
+        "nearest_ghost_speed_error_ms": 2.1396553460779613,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 6533,
+        "n_ghost_grid_points": 6504,
+        "ambiguity_volume_frac": 0.040627856791935375,
+        "n_distinct_ghost_clusters": 192,
+        "nearest_ghost_speed_error_ms": 2.0155644370746373,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 25961,
+        "n_ghost_grid_points": 25872,
+        "ambiguity_volume_frac": 0.16144800094526776,
+        "n_distinct_ghost_clusters": 202,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     },
+     {
+      "v_true_ms": [
+       10.0,
+       10.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 1498,
+        "n_ghost_grid_points": 1493,
+        "ambiguity_volume_frac": 0.009315862463541894,
+        "n_distinct_ghost_clusters": 178,
+        "nearest_ghost_speed_error_ms": 2.1396553460779613,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 6312,
+        "n_ghost_grid_points": 6283,
+        "ambiguity_volume_frac": 0.03925348722955703,
+        "n_distinct_ghost_clusters": 181,
+        "nearest_ghost_speed_error_ms": 2.0155644370746373,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 24939,
+        "n_ghost_grid_points": 24850,
+        "ambiguity_volume_frac": 0.15509231907761767,
+        "n_distinct_ghost_clusters": 202,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     }
+    ]
+   },
+   "N3": {
+    "n_rx": 3,
+    "rx_positions": [
+     [
+      500.0,
+      0.0,
+      3.0
+     ],
+     [
+      0.0,
+      500.0,
+      3.0
+     ],
+     [
+      -500.0,
+      0.0,
+      3.0
+     ]
+    ],
+    "coeff_hz_per_ms": [
+     [
+      -0.0026884662475284925,
+      -22.628528383409854
+     ],
+     [
+      -8.024082656906408,
+      -21.707985875912808
+     ],
+     [
+      -9.827484819947538,
+      -20.649740509396704
+     ]
+    ],
+    "min_pairwise_angle_deg": 5.164199206735297,
+    "blind_frac_each": [
+     0.7333333333333333,
+     0.6722222222222223,
+     0.7388888888888889
+    ],
+    "blind_frac_all_simultaneously": 0.4388888888888889,
+    "product_of_individual": 0.36424485596707823,
+    "radial_ambiguity_per_rx": [
+     {
+      "rx_index": 0,
+      "fd_hz_per_ms": 22.628528543116456,
+      "radial_alias_period_ms": 2.209600147209301,
+      "v_max_ms": 1.1048000736046506
+     },
+     {
+      "rx_index": 1,
+      "fd_hz_per_ms": 23.143520762271592,
+      "radial_alias_period_ms": 2.160431876964444,
+      "v_max_ms": 1.080215938482222
+     },
+     {
+      "rx_index": 2,
+      "fd_hz_per_ms": 22.86900174891153,
+      "radial_alias_period_ms": 2.186365655526691,
+      "v_max_ms": 1.0931828277633455
+     }
+    ],
+    "ambiguity": [
+     {
+      "v_true_ms": [
+       15.0,
+       0.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 159,
+        "n_ghost_grid_points": 154,
+        "ambiguity_volume_frac": 0.0009887998208966363,
+        "n_distinct_ghost_clusters": 47,
+        "nearest_ghost_speed_error_ms": 2.1578345627040085,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 1373,
+        "n_ghost_grid_points": 1348,
+        "ambiguity_volume_frac": 0.008538504113780387,
+        "n_distinct_ghost_clusters": 107,
+        "nearest_ghost_speed_error_ms": 2.0615528128088303,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 10331,
+        "n_ghost_grid_points": 10246,
+        "ambiguity_volume_frac": 0.06424711289108899,
+        "n_distinct_ghost_clusters": 247,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     },
+     {
+      "v_true_ms": [
+       0.0,
+       15.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 174,
+        "n_ghost_grid_points": 169,
+        "ambiguity_volume_frac": 0.001082082822868017,
+        "n_distinct_ghost_clusters": 51,
+        "nearest_ghost_speed_error_ms": 2.1578345627040085,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 1365,
+        "n_ghost_grid_points": 1340,
+        "ambiguity_volume_frac": 0.008488753179395651,
+        "n_distinct_ghost_clusters": 113,
+        "nearest_ghost_speed_error_ms": 2.0615528128088303,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 10420,
+        "n_ghost_grid_points": 10335,
+        "ambiguity_volume_frac": 0.06480059203611918,
+        "n_distinct_ghost_clusters": 242,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     },
+     {
+      "v_true_ms": [
+       10.0,
+       10.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 147,
+        "n_ghost_grid_points": 142,
+        "ambiguity_volume_frac": 0.0009141734193195316,
+        "n_distinct_ghost_clusters": 42,
+        "nearest_ghost_speed_error_ms": 2.1578345627040085,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 1243,
+        "n_ghost_grid_points": 1218,
+        "ambiguity_volume_frac": 0.00773005143002842,
+        "n_distinct_ghost_clusters": 105,
+        "nearest_ghost_speed_error_ms": 2.0615528128088303,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 10006,
+        "n_ghost_grid_points": 9921,
+        "ambiguity_volume_frac": 0.06222598118170907,
+        "n_distinct_ghost_clusters": 240,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     }
+    ]
+   },
+   "N4": {
+    "n_rx": 4,
+    "rx_positions": [
+     [
+      500.0,
+      0.0,
+      3.0
+     ],
+     [
+      0.0,
+      500.0,
+      3.0
+     ],
+     [
+      -500.0,
+      0.0,
+      3.0
+     ],
+     [
+      0.0,
+      -500.0,
+      3.0
+     ]
+    ],
+    "coeff_hz_per_ms": [
+     [
+      -0.0026884662475284925,
+      -22.628528383409854
+     ],
+     [
+      -8.024082656906408,
+      -21.707985875912808
+     ],
+     [
+      -9.827484819947538,
+      -20.649740509396704
+     ],
+     [
+      -4.747879387405928,
+      -22.82745576233557
+     ]
+    ],
+    "min_pairwise_angle_deg": 5.164199206735297,
+    "blind_frac_each": [
+     0.7333333333333333,
+     0.6722222222222223,
+     0.7388888888888889,
+     0.6388888888888888
+    ],
+    "blind_frac_all_simultaneously": 0.20555555555555555,
+    "product_of_individual": 0.23271199131229997,
+    "radial_ambiguity_per_rx": [
+     {
+      "rx_index": 0,
+      "fd_hz_per_ms": 22.628528543116456,
+      "radial_alias_period_ms": 2.209600147209301,
+      "v_max_ms": 1.1048000736046506
+     },
+     {
+      "rx_index": 1,
+      "fd_hz_per_ms": 23.143520762271592,
+      "radial_alias_period_ms": 2.160431876964444,
+      "v_max_ms": 1.080215938482222
+     },
+     {
+      "rx_index": 2,
+      "fd_hz_per_ms": 22.86900174891153,
+      "radial_alias_period_ms": 2.186365655526691,
+      "v_max_ms": 1.0931828277633455
+     },
+     {
+      "rx_index": 3,
+      "fd_hz_per_ms": 23.315983686277136,
+      "radial_alias_period_ms": 2.144451663406679,
+      "v_max_ms": 1.0722258317033395
+     }
+    ],
+    "ambiguity": [
+     {
+      "v_true_ms": [
+       15.0,
+       0.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 25,
+        "n_ghost_grid_points": 20,
+        "ambiguity_volume_frac": 0.00015547166995230128,
+        "n_distinct_ghost_clusters": 7,
+        "nearest_ghost_speed_error_ms": 2.1578345627040085,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 332,
+        "n_ghost_grid_points": 307,
+        "ambiguity_volume_frac": 0.002064663776966561,
+        "n_distinct_ghost_clusters": 47,
+        "nearest_ghost_speed_error_ms": 2.0615528128088303,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 4305,
+        "n_ghost_grid_points": 4220,
+        "ambiguity_volume_frac": 0.02677222156578628,
+        "n_distinct_ghost_clusters": 141,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     },
+     {
+      "v_true_ms": [
+       0.0,
+       15.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 17,
+        "n_ghost_grid_points": 12,
+        "ambiguity_volume_frac": 0.00010572073556756488,
+        "n_distinct_ghost_clusters": 6,
+        "nearest_ghost_speed_error_ms": 2.1578345627040085,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 202,
+        "n_ghost_grid_points": 177,
+        "ambiguity_volume_frac": 0.0012562110932145944,
+        "n_distinct_ghost_clusters": 30,
+        "nearest_ghost_speed_error_ms": 2.0615528128088303,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 4096,
+        "n_ghost_grid_points": 4011,
+        "ambiguity_volume_frac": 0.025472478404985045,
+        "n_distinct_ghost_clusters": 192,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     },
+     {
+      "v_true_ms": [
+       10.0,
+       10.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 25,
+        "n_ghost_grid_points": 20,
+        "ambiguity_volume_frac": 0.00015547166995230128,
+        "n_distinct_ghost_clusters": 7,
+        "nearest_ghost_speed_error_ms": 2.1578345627040085,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 275,
+        "n_ghost_grid_points": 250,
+        "ambiguity_volume_frac": 0.0017101883694753141,
+        "n_distinct_ghost_clusters": 31,
+        "nearest_ghost_speed_error_ms": 2.0615528128088303,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 4135,
+        "n_ghost_grid_points": 4050,
+        "ambiguity_volume_frac": 0.025715014210110635,
+        "n_distinct_ghost_clusters": 170,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     }
+    ]
+   },
+   "N3_clustered_30m": {
+    "n_rx": 3,
+    "rx_positions": [
+     [
+      500.0,
+      0.0,
+      3.0
+     ],
+     [
+      500.0,
+      30.0,
+      3.0
+     ],
+     [
+      500.0,
+      -30.0,
+      3.0
+     ]
+    ],
+    "coeff_hz_per_ms": [
+     [
+      -0.0026884662475284925,
+      -22.628528383409854
+     ],
+     [
+      0.0791205016149507,
+      -22.606680560939978
+     ],
+     [
+      -0.08016141062948495,
+      -22.648606470332492
+     ]
+    ],
+    "min_pairwise_angle_deg": 0.19598189810954456,
+    "blind_frac_each": [
+     0.7333333333333333,
+     0.7333333333333333,
+     0.7333333333333333
+    ],
+    "blind_frac_all_simultaneously": 0.7222222222222222,
+    "product_of_individual": 0.39437037037037026,
+    "radial_ambiguity_per_rx": [
+     {
+      "rx_index": 0,
+      "fd_hz_per_ms": 22.628528543116456,
+      "radial_alias_period_ms": 2.209600147209301,
+      "v_max_ms": 1.1048000736046506
+     },
+     {
+      "rx_index": 1,
+      "fd_hz_per_ms": 22.60681901635339,
+      "radial_alias_period_ms": 2.211722045628394,
+      "v_max_ms": 1.105861022814197
+     },
+     {
+      "rx_index": 2,
+      "fd_hz_per_ms": 22.64874832964817,
+      "radial_alias_period_ms": 2.207627515316062,
+      "v_max_ms": 1.103813757658031
+     }
+    ],
+    "ambiguity": [
+     {
+      "v_true_ms": [
+       15.0,
+       0.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 7856,
+        "n_ghost_grid_points": 7839,
+        "ambiguity_volume_frac": 0.04885541756581116,
+        "n_distinct_ghost_clusters": 24,
+        "nearest_ghost_speed_error_ms": 1.125,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 23647,
+        "n_ghost_grid_points": 23600,
+        "ambiguity_volume_frac": 0.14705754317448275,
+        "n_distinct_ghost_clusters": 24,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 56198,
+        "n_ghost_grid_points": 56091,
+        "ambiguity_volume_frac": 0.3494878763191771,
+        "n_distinct_ghost_clusters": 24,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     },
+     {
+      "v_true_ms": [
+       0.0,
+       15.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 9437,
+        "n_ghost_grid_points": 9420,
+        "ambiguity_volume_frac": 0.05868744597359469,
+        "n_distinct_ghost_clusters": 24,
+        "nearest_ghost_speed_error_ms": 1.125,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 25803,
+        "n_ghost_grid_points": 25756,
+        "ambiguity_volume_frac": 0.1604654199911692,
+        "n_distinct_ghost_clusters": 24,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 58027,
+        "n_ghost_grid_points": 57920,
+        "ambiguity_volume_frac": 0.3608621836928875,
+        "n_distinct_ghost_clusters": 24,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     },
+     {
+      "v_true_ms": [
+       10.0,
+       10.0
+      ],
+      "by_tolerance": {
+       "tol_0.25bin": {
+        "n_grid_solutions": 7926,
+        "n_ghost_grid_points": 7909,
+        "ambiguity_volume_frac": 0.0492907382416776,
+        "n_distinct_ghost_clusters": 23,
+        "nearest_ghost_speed_error_ms": 1.125,
+        "unique": false
+       },
+       "tol_0.5bin": {
+        "n_grid_solutions": 23295,
+        "n_ghost_grid_points": 23248,
+        "ambiguity_volume_frac": 0.14486850206155436,
+        "n_distinct_ghost_clusters": 23,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       },
+       "tol_1bin": {
+        "n_grid_solutions": 54687,
+        "n_ghost_grid_points": 54580,
+        "ambiguity_volume_frac": 0.34009116858726,
+        "n_distinct_ghost_clusters": 24,
+        "nearest_ghost_speed_error_ms": 1.0077822185373186,
+        "unique": false
+       }
+      },
+      "grid_step_ms": 0.125,
+      "unique_at_quarter_bin": false
+     }
+    ]
+   }
+  },
+  "canonical_metric": "ambiguity_volume_frac (속도탐색 상자에서 살아남은 부피 비율, N 에 단조감소)",
+  "ambiguity_volume_frac_by_set": {
+   "0.25": {
+    "N1": 0.10128046467372716,
+    "N2": 0.010130534014091952,
+    "N3": 0.001082082822868017,
+    "N4": 0.00015547166995230128,
+    "N3_clustered_30m": 0.05868744597359469
+   },
+   "1": {
+    "N1": 0.4035111721942028,
+    "N2": 0.16144800094526776,
+    "N3": 0.06480059203611918,
+    "N4": 0.02677222156578628,
+    "N3_clustered_30m": 0.3608621836928875
+   }
+  },
+  "distinct_ghost_clusters_by_set": {
+   "at_quarter_bin": {
+    "N1": 24,
+    "N2": 188,
+    "N3": 51,
+    "N4": 7
+   },
+   "at_one_bin": {
+    "N1": 24,
+    "N2": 202,
+    "N3": 247,
+    "N4": 192
+   }
+  },
+  "cluster_count_caveat": "N=1 의 해집합은 **직선 다발**(1차원)이라 '덩어리 24개'는 직선 24개를 뜻한다. N≥2 부터 해집합이 이산점이 되므로 덩어리 수는 N=1 과 직접 비교하면 안 된다. 단조 비교는 ambiguity_volume_frac 으로 한다.",
+  "blind_all_by_set": {
+   "N1": 0.7333333333333333,
+   "N2": 0.4722222222222222,
+   "N3": 0.4388888888888889,
+   "N4": 0.20555555555555555,
+   "N3_clustered_30m": 0.7222222222222222
+  },
+  "tolerance_sensitivity": "허용오차를 1/4빈 → 1빈으로 넓히면(잡음 있는 실제 도플러 추정에 해당) 모호 부피가 1.55e-04 → 2.68e-02 (N4) 로 커진다. 무잡음 판정의 유일성은 실제 유일성이 아니다.",
+  "rescues_5g": "partially — 모호 부피를 1.01e-01(N1) → 1.55e-04(N4) 로 줄이지만 1빈 허용오차에서는 2.68e-02 로 되돌아가고 유령 덩어리 192개가 남는다",
+  "cost": "(i) 표적이 N 개 수신기 전부에서 검출되어야 하고, (ii) 연관(association)이 선행해야 하며, (iii) 계수벡터가 각으로 벌어져야 한다 — 30 m 간격으로 뭉친 3대는 각분리 0.20° 라 유령을 못 가른다(N1 과 같은 수준). 즉 '멀티스태틱'이 아니라 '넓게 벌린 멀티스태틱'이 조건이다.",
+  "verdict": "⭐ 실질적 효과가 있는 유일한 탈출구다. 넓게 벌린 수신기를 1→4대로 늘리면 |v| ≤ 25 m/s 안의 모호 부피가 1.01e-01 → 1.55e-04 로 줄고, 전 수신기 동시 블라인드는 0.733 → 0.206 로 떨어진다. 그러나 (a) 무잡음 1/4빈 판정에서도 유령이 0 이 되지 않으며(덩어리 7개), 도플러 추정오차 1빈을 허용하면 모호 부피가 2.68e-02 로 되돌아가고, (b) 30 m 간격으로 뭉친 3대는 아무 도움이 안 된다(동시 블라인드 0.722 — N1 과 같다), (c) 이것은 5G 를 구제하는 게 아니라 **모호를 푸는 데 수신기 인프라를 더 요구한다**는 사실을 정량화한다 — LTE CRS 는 수신기 한 대로 40.7 m/s 를 무모호로 낸다. 수신기 한 대의 시선속도 접힘주기는 여전히 2.21 m/s 다."
+ },
+ "G_band": {
+  "question": "Does carrier aggregation or a different 5G band change lambda enough?",
+  "by_band": {
+   "n28 (700 MHz)": {
+    "fc_hz": 700000000.0,
+    "lam_m": 0.42827494,
+    "v_max_at_50Hz_ms": 5.35343675,
+    "v_max_at_200Hz_ms": 21.413747,
+    "v_max_at_6p25Hz_ms": 0.66917959375,
+    "beats_lte_crs": false
+   },
+   "n8 (900 MHz)": {
+    "fc_hz": 900000000.0,
+    "lam_m": 0.3331027311111111,
+    "v_max_at_50Hz_ms": 4.1637841388888885,
+    "v_max_at_200Hz_ms": 16.655136555555554,
+    "v_max_at_6p25Hz_ms": 0.5204730173611111,
+    "beats_lte_crs": false
+   },
+   "n5 (850 MHz)": {
+    "fc_hz": 850000000.0,
+    "lam_m": 0.3526970094117647,
+    "v_max_at_50Hz_ms": 4.408712617647058,
+    "v_max_at_200Hz_ms": 17.634850470588233,
+    "v_max_at_6p25Hz_ms": 0.5510890772058823,
+    "beats_lte_crs": false
+   },
+   "n3 (1800 MHz)": {
+    "fc_hz": 1800000000.0,
+    "lam_m": 0.16655136555555555,
+    "v_max_at_50Hz_ms": 2.0818920694444443,
+    "v_max_at_200Hz_ms": 8.327568277777777,
+    "v_max_at_6p25Hz_ms": 0.26023650868055553,
+    "beats_lte_crs": false
+   },
+   "n1 (2100 MHz)": {
+    "fc_hz": 2100000000.0,
+    "lam_m": 0.14275831333333333,
+    "v_max_at_50Hz_ms": 1.7844789166666666,
+    "v_max_at_200Hz_ms": 7.137915666666666,
+    "v_max_at_6p25Hz_ms": 0.22305986458333332,
+    "beats_lte_crs": false
+   },
+   "n41 (2500 MHz)": {
+    "fc_hz": 2500000000.0,
+    "lam_m": 0.1199169832,
+    "v_max_at_50Hz_ms": 1.49896229,
+    "v_max_at_200Hz_ms": 5.99584916,
+    "v_max_at_6p25Hz_ms": 0.18737028625,
+    "beats_lte_crs": false
+   },
+   "n78 (3500 MHz)": {
+    "fc_hz": 3500000000.0,
+    "lam_m": 0.085654988,
+    "v_max_at_50Hz_ms": 1.07068735,
+    "v_max_at_200Hz_ms": 4.2827494,
+    "v_max_at_6p25Hz_ms": 0.13383591875,
+    "beats_lte_crs": false
+   },
+   "n79 (4700 MHz)": {
+    "fc_hz": 4700000000.0,
+    "lam_m": 0.06378562936170212,
+    "v_max_at_50Hz_ms": 0.7973203670212765,
+    "v_max_at_200Hz_ms": 3.189281468085106,
+    "v_max_at_6p25Hz_ms": 0.09966504587765956,
+    "beats_lte_crs": false
+   },
+   "n257 (28 GHz)": {
+    "fc_hz": 28000000000.0,
+    "lam_m": 0.0107068735,
+    "v_max_at_50Hz_ms": 0.13383591875,
+    "v_max_at_200Hz_ms": 0.535343675,
+    "v_max_at_6p25Hz_ms": 0.01672948984375,
+    "beats_lte_crs": false
+   }
+  },
+  "lam_needed_for_15ms_at_50Hz": 1.2,
+  "fc_needed_for_15ms_at_50Hz_hz": 249827048.33333334,
+  "text": "50 Hz 에서 15 m/s 를 무모호로 내려면 λ = 1.20 m, 즉 반송파 250 MHz 가 필요하다 — 5G 배치 밴드 어디에도 없다. 최저 밴드 n28(700 MHz)이 5.35 m/s 로 6.25배 올려주지만 LTE CRS 의 40.7 m/s 에는 여전히 못 미친다.",
+  "carrier_aggregation_crt": {
+   "n78 (3500 MHz)+n28 (700 MHz)": {
+    "lam1_m": 0.085654988,
+    "lam2_m": 0.42827494,
+    "v_amb_period_1_ms": 2.1413747,
+    "v_amb_period_2_ms": 10.7068735,
+    "by_speed": {
+     "v_5": {
+      "n_solutions": 343,
+      "n_ghosts": 258,
+      "nearest_ghost_ms": -5.599999999999998,
+      "unambiguous_interval_ms": 10.599999999999998
+     },
+     "v_15": {
+      "n_solutions": 343,
+      "n_ghosts": 258,
+      "nearest_ghost_ms": 4.400000000000002,
+      "unambiguous_interval_ms": 10.599999999999998
+     }
+    }
+   },
+   "n78 (3500 MHz)+n3 (1800 MHz)": {
+    "lam1_m": 0.085654988,
+    "lam2_m": 0.16655136555555555,
+    "v_amb_period_1_ms": 2.1413747,
+    "v_amb_period_2_ms": 4.1637841388888885,
+    "by_speed": {
+     "v_5": {
+      "n_solutions": 303,
+      "n_ghosts": 218,
+      "nearest_ghost_ms": 0.8225000000000016,
+      "unambiguous_interval_ms": 4.177499999999998
+     },
+     "v_15": {
+      "n_solutions": 303,
+      "n_ghosts": 218,
+      "nearest_ghost_ms": 10.822499999999998,
+      "unambiguous_interval_ms": 4.177500000000002
+     }
+    }
+   },
+   "n78 (3500 MHz)+n79 (4700 MHz)": {
+    "lam1_m": 0.085654988,
+    "lam2_m": 0.06378562936170212,
+    "v_amb_period_1_ms": 2.1413747,
+    "v_amb_period_2_ms": 1.594640734042553,
+    "by_speed": {
+     "v_5": {
+      "n_solutions": 295,
+      "n_ghosts": 232,
+      "nearest_ghost_ms": -1.317499999999999,
+      "unambiguous_interval_ms": 6.317499999999999
+     },
+     "v_15": {
+      "n_solutions": 237,
+      "n_ghosts": 174,
+      "nearest_ghost_ms": 8.682499999999997,
+      "unambiguous_interval_ms": 6.317500000000003
+     }
+    }
+   }
+  },
+  "ca_note": "두 성분반송파는 λ 가 달라 속도 접힘 주기가 다르다 → CRT 로 무모호 구간이 넓어진다. 조건: 같은 gNB(공통 클럭)·두 SSB 모두 검출·연관 성립·두 개의 RF 프론트엔드 (n28 과 n78 은 한 400 MHz 창에 안 들어간다).",
+  "rescues_5g": "partially — 저밴드는 6.25배, CA-CRT 는 더 넓히지만 하드웨어를 더 요구한다",
+  "verdict": "λ 는 5G 의 PRF 결손 20배를 되사지 못한다. n28 로 6.25배까지 오르고 거기서 멈춘다. CA-CRT 는 원리적으로 작동하지만 두 밴드 프론트엔드와 연관 문제를 새로 만든다."
+ },
+ "H_symmetry": {
+  "question": "Does the 'ambient only' standard, applied symmetrically, still favour WiFi?",
+  "guaranteed_floor": {
+   "wifi_beacon_100TU": {
+    "prf_hz": 9.765625,
+    "lam_m": 0.057541738579654514,
+    "v_max_ms": 0.14048276020423464,
+    "guaranteed": true,
+    "basis": "IEEE 802.11 default beacon interval 100 TU = 102.4 ms"
+   },
+   "wifi_congested_ap_assumed": {
+    "prf_hz": 1000.0,
+    "lam_m": 0.057541738579654514,
+    "v_max_ms": 14.385434644913628,
+    "guaranteed": false,
+    "basis": "repo assumption (waveforms.PILOT_RATE_HZ wifi=1000, traffic-dependent free parameter, spec F9)"
+   },
+   "lte_crs_per_subframe": {
+    "prf_hz": 1000.0,
+    "lam_m": 0.16266546825827455,
+    "v_max_ms": 40.66636706456864,
+    "guaranteed": true,
+    "basis": "CRS in every non-MBSFN downlink subframe (TS 36.211 §6.10.1); 1 kHz counts one subframe as one slow-time sample — conservative, CRS occupies 4 OFDM symbols per subframe"
+   },
+   "nr_ssb_20ms": {
+    "prf_hz": 50.0,
+    "lam_m": 0.085654988,
+    "v_max_ms": 1.07068735,
+    "guaranteed": true,
+    "basis": "SSB burst set period 20 ms (default, TS 38.213 §4.1)"
+   }
+  },
+  "ranking_under_guaranteed_floor": [
+   [
+    "lte_crs_per_subframe",
+    40.66636706456864
+   ],
+   [
+    "nr_ssb_20ms",
+    1.07068735
+   ],
+   [
+    "wifi_beacon_100TU",
+    0.14048276020423464
+   ]
+  ],
+  "wifi_packet_rate_crossover_hz": 74.42857142857143,
+  "crossover_text": "WiFi 가 5G SSB 의 v_max 를 넘으려면 패킷률 > 74.4 Hz 가 필요하다. 기본 비콘만 있는 유휴 AP 는 9.77 Hz 라 **5G 보다 나쁘다**.",
+  "sensitivity": [
+   {
+    "wifi_packet_rate_hz": 9.766,
+    "wifi_v_max_ms": 0.1404881547422265,
+    "wifi_blind_hard": 1.0,
+    "wifi_alias_frac": 0.9805555555555555,
+    "g1_blind_hard": 0.7333333333333333,
+    "ratio_G1_over_W1": 0.7333333333333333,
+    "wifi_beats_5g": false
+   },
+   {
+    "wifi_packet_rate_hz": 10.0,
+    "wifi_v_max_ms": 0.14385434644913628,
+    "wifi_blind_hard": 1.0,
+    "wifi_alias_frac": 0.9805555555555555,
+    "g1_blind_hard": 0.7333333333333333,
+    "ratio_G1_over_W1": 0.7333333333333333,
+    "wifi_beats_5g": false
+   },
+   {
+    "wifi_packet_rate_hz": 30.0,
+    "wifi_v_max_ms": 0.43156303934740886,
+    "wifi_blind_hard": 1.0,
+    "wifi_alias_frac": 0.9416666666666667,
+    "g1_blind_hard": 0.7333333333333333,
+    "ratio_G1_over_W1": 0.7333333333333333,
+    "wifi_beats_5g": false
+   },
+   {
+    "wifi_packet_rate_hz": 74.42,
+    "wifi_v_max_ms": 1.0705640462744723,
+    "wifi_blind_hard": 0.48055555555555557,
+    "wifi_alias_frac": 0.8583333333333333,
+    "g1_blind_hard": 0.7333333333333333,
+    "ratio_G1_over_W1": 1.5260115606936415,
+    "wifi_beats_5g": false
+   },
+   {
+    "wifi_packet_rate_hz": 100.0,
+    "wifi_v_max_ms": 1.4385434644913628,
+    "wifi_blind_hard": 0.20277777777777778,
+    "wifi_alias_frac": 0.8083333333333333,
+    "g1_blind_hard": 0.7333333333333333,
+    "ratio_G1_over_W1": 3.6164383561643834,
+    "wifi_beats_5g": true
+   },
+   {
+    "wifi_packet_rate_hz": 300.0,
+    "wifi_v_max_ms": 4.3156303934740885,
+    "wifi_blind_hard": 0.058333333333333334,
+    "wifi_alias_frac": 0.30277777777777776,
+    "g1_blind_hard": 0.7333333333333333,
+    "ratio_G1_over_W1": 12.571428571428571,
+    "wifi_beats_5g": true
+   },
+   {
+    "wifi_packet_rate_hz": 1000.0,
+    "wifi_v_max_ms": 14.385434644913628,
+    "wifi_blind_hard": 0.058333333333333334,
+    "wifi_alias_frac": 0.0,
+    "g1_blind_hard": 0.7333333333333333,
+    "ratio_G1_over_W1": 12.571428571428571,
+    "wifi_beats_5g": true
+   },
+   {
+    "wifi_packet_rate_hz": 5000.0,
+    "wifi_v_max_ms": 71.92717322456814,
+    "wifi_blind_hard": 0.058333333333333334,
+    "wifi_alias_frac": 0.0,
+    "g1_blind_hard": 0.7333333333333333,
+    "ratio_G1_over_W1": 12.571428571428571,
+    "wifi_beats_5g": true
+   }
+  ],
+  "multi_bssid_and_multi_ap": {
+   "text": "한 AP 가 BSSID 를 N 개 광고하면 비콘이 N 배로 나가고, 채널에 AP 가 여러 대면 비콘이 더 잦아 보인다. 그러나 다른 AP 는 **다른 위치의 송신기**라 하나의 slow-time 수열이 아니다(§F 의 멀티스태틱 문제로 넘어간다). 같은 AP 의 다중 BSSID 만 PRF 를 진짜로 배수한다.",
+   "same_ap_multi_bssid_multiplies_prf": true,
+   "other_aps_multiply_prf": false
+  },
+  "headline_ratio_is_contingent": "'5G 블라인드율은 WiFi 의 12.05배' 는 WiFi 패킷률 1000 Hz 가정 위에서만 성립한다. 같은 '보장된 상시' 잣대를 대면 순위가 뒤집힌다.",
+  "implication": "⭐ 방어 가능한 명제는 '5G 가 나쁘다'가 아니라 **'상시 기준신호의 반복률이 무모호 속도를 정하고, 그 반복률을 규격이 보장하는 조명원은 LTE CRS 뿐이다'** 다. WiFi 는 트래픽이 있을 때만 좋고, 5G 는 측위 세션이 있을 때만 좋다."
+ },
+ "verdict": {
+  "headline_under_test": "v_max = lam * PRF / 4  (5G SSB: 1.07 m/s)",
+  "survives": true,
+  "survives_as": "a statement about UNAMBIGUOUS VELOCITY, not about DETECTION",
+  "corrections_required": [
+   {
+    "id": "X1",
+    "what": "식의 일반형",
+    "text": "v_max = lam*PRF/(4*cos(beta/2)*cos(delta_el)) 이고 lam*PRF/4 는 그 하한이다. 장면 격자(beta<=90 deg)에서 완화계수 중앙값 1.011, 최대 1.451.",
+    "source": "§A"
+   },
+   {
+    "id": "X2",
+    "what": "'CPI 로 못 고친다'의 범위",
+    "text": "⭐ 검출 블라인드는 CPI 로 고쳐진다 — blind_hard(G1) 0.733 @0.1 s → 0.064 @1 s, 반면 alias_frac 은 0.858 로 고정. 고쳐지지 않는 것은 무모호 속도뿐이다. 두 양을 분리해 써야 한다.",
+    "source": "§E"
+   },
+   {
+    "id": "X3",
+    "what": "'모든 드론이 접힌다'",
+    "text": "접힘 ≠ 미검출이다. 접힌 표적도 잘못된 도플러 셀에서 검출된다 — 잃는 것은 그 셀이 0-도플러 가드에 떨어질 때뿐이고 그 확률은 2*g/M 이다.",
+    "source": "§E"
+   },
+   {
+    "id": "X4",
+    "what": "⭐ WiFi 비교의 대칭성",
+    "text": "WiFi 1000 Hz 는 트래픽 가정이다. 규격이 보장하는 상시 신호는 비콘(9.77 Hz)이고 그 경우 WiFi v_max = 0.140 m/s 로 5G 보다 나쁘다. 교차 패킷률은 74.4 Hz.",
+    "source": "§H"
+   },
+   {
+    "id": "X5",
+    "what": "멀티스태틱",
+    "text": "넓게 벌린 다중 수신기는 접힘 격자를 어긋나게 해 모호를 크게 줄인다(모호 부피 1.01e-01 → 1.55e-04, N=1→4). '절대 못 푼다'로 쓰면 반박당한다 — 참인 문장은 **'수신기 한 대로는 못 푼다'** 이고, 여러 대로도 도플러 추정오차 1빈에서는 유령이 192개 남는다.",
+    "source": "§F"
+   },
+   {
+    "id": "X6",
+    "what": "⭐ '5G 만의 문제'가 아니다",
+    "text": "WiFi 도 v_max=14.4 m/s 를 넘으면 접힌다 — 20 m/s 표적의 무모호 헤딩 비율은 0.531 다. 참인 명제는 파형 이름이 아니라 **λ·PRF 곱**에 대한 것이다.",
+    "source": "§E5"
+   }
+  ],
+  "escapes": {
+   "a_unfolding_stagger": {
+    "rescues": false,
+    "one_line": "패시브는 스태거를 만들 수 없다 — ssb-periodicityServingCell 은 gNB 가 정한다. 송신기가 이미 만들어 준 비균일(SSB+TRS·SIB1 합집합)에서도 v ≥ 5 m/s 의 최대 알리아스 억압은 0.10 dB(상시 신호만 쓰면 0.04 dB)로 판정 기준 10 dB 에 한참 못 미친다. 3GPP 밖의 ±5 ms 랜덤 지터를 가정한 통제실험조차 3.95 dB 에서 멈춘다 — 비균일성만으로는 못 푼다. 실제로 v_max 를 올리는 것은 언폴딩이 아니라 **반복률 자체**다(SSB 5 ms 설정 = 200 Hz = 4.28 m/s, Rel-17 유휴 TRS 병용 = 균일 100 Hz = 2.14 m/s)."
+   },
+   "b_more_of_the_frame": {
+    "rescues": false,
+    "one_line": "SSB 밖으로 나가도 **상시**인 것은 SIB1/CORESET#0 뿐이고 그것은 같은 20 ms 창에 묶인다. 반복률을 올리는 후보(TRS·CSI-RS·PRS·트래픽)는 전부 설정 또는 부하에 의존한다. Rel-17 유휴 TRS 가 켜진 최선의 셀에서도 100 Hz = 2.14 m/s 다. 구제 아님."
+   },
+   "c_beam_sweep": {
+    "rescues": false,
+    "one_line": "빔 스위핑은 구제하지 않는다. (1) 표적과 기준이 같은 빔에 있어야 해서 벌어진 기하에서 조명 예산이 -19.7 dB 깎이며, (2) 등이득·동위상이라는 물리적으로 불가능한 상한을 줘도 버스트 개구가 50 Hz 알리아스를 -0.14 dB 밖에 못 누르고, (3) 빔 가중은 수신기가 모르는 위상을 실어 코히런트 결합 자체를 깬다(억압 -3.7 dB → 가짜가 이긴다). ⭐ 핵심은 (2) 다 — 버스트 안 표본은 뭉쳐 있어 무모호 구간을 넓히지 못한다. 알리아스 간격은 빔 수가 아니라 **버스트 주기 20 ms** 가 정한다."
+   },
+   "d_long_cpi_motion_comp": {
+    "rescues": "partially — 검출 블라인드는 되살리지만 속도 모호는 못 푼다",
+    "one_line": "⭐ 헤드라인은 여기서 **정밀화되어야 한다**. 긴 CPI 는 blind_hard(G1) 를 0.733(0.1 s) → 0.064(1 s) 로 줄여 **검출을 되살린다**. 그러나 alias_frac 은 0.858 로 고정이다. 즉 CPI 로 못 고치는 것은 '검출'이 아니라 '무모호 속도'다. Keystone/RFT 로 알리아스 번호를 푸는 길도 5G 에서는 막힌다 — 한 거리셀을 걷는 데 필요한 CPI 가 도플러 코히런스 한계의 3.16배다."
+   },
+   "e_multistatic": {
+    "rescues": "partially — 모호 부피를 1.01e-01(N1) → 1.55e-04(N4) 로 줄이지만 1빈 허용오차에서는 2.68e-02 로 되돌아가고 유령 덩어리 192개가 남는다",
+    "one_line": "⭐ 실질적 효과가 있는 유일한 탈출구다. 넓게 벌린 수신기를 1→4대로 늘리면 |v| ≤ 25 m/s 안의 모호 부피가 1.01e-01 → 1.55e-04 로 줄고, 전 수신기 동시 블라인드는 0.733 → 0.206 로 떨어진다. 그러나 (a) 무잡음 1/4빈 판정에서도 유령이 0 이 되지 않으며(덩어리 7개), 도플러 추정오차 1빈을 허용하면 모호 부피가 2.68e-02 로 되돌아가고, (b) 30 m 간격으로 뭉친 3대는 아무 도움이 안 된다(동시 블라인드 0.722 — N1 과 같다), (c) 이것은 5G 를 구제하는 게 아니라 **모호를 푸는 데 수신기 인프라를 더 요구한다**는 사실을 정량화한다 — LTE CRS 는 수신기 한 대로 40.7 m/s 를 무모호로 낸다. 수신기 한 대의 시선속도 접힘주기는 여전히 2.21 m/s 다."
+   },
+   "f_band_carrier_aggregation": {
+    "rescues": "partially — 저밴드는 6.25배, CA-CRT 는 더 넓히지만 하드웨어를 더 요구한다",
+    "one_line": "λ 는 5G 의 PRF 결손 20배를 되사지 못한다. n28 로 6.25배까지 오르고 거기서 멈춘다. CA-CRT 는 원리적으로 작동하지만 두 밴드 프론트엔드와 연관 문제를 새로 만든다."
+   }
+  },
+  "configuration_dependence": {
+   "why_this_is_the_sharpest_attack": "⭐ 1.07 m/s 는 **규격 상수가 아니라 설정 기본값**(SSB 20 ms)의 귀결이다. ssb-periodicityServingCell 은 {5,10,20,40,80,160} ms 를 갖고, 셀이 5 ms 로 설정되어 있으면 200 Hz = 4.28 m/s 다. 헤드라인 문장은 반드시 '기본 20 ms 주기에서' 라는 조건절을 달아야 한다.",
+   "v_max_by_ssb_period": {
+    "5ms": {
+     "prf_hz": 200.0,
+     "v_max_ms": 4.2827494,
+     "covers_5ms_slow_flight": false,
+     "covers_15ms_transit": false
+    },
+    "10ms": {
+     "prf_hz": 100.0,
+     "v_max_ms": 2.1413747,
+     "covers_5ms_slow_flight": false,
+     "covers_15ms_transit": false
+    },
+    "20ms": {
+     "prf_hz": 50.0,
+     "v_max_ms": 1.07068735,
+     "covers_5ms_slow_flight": false,
+     "covers_15ms_transit": false
+    },
+    "40ms": {
+     "prf_hz": 25.0,
+     "v_max_ms": 0.535343675,
+     "covers_5ms_slow_flight": false,
+     "covers_15ms_transit": false
+    },
+    "80ms": {
+     "prf_hz": 12.5,
+     "v_max_ms": 0.2676718375,
+     "covers_5ms_slow_flight": false,
+     "covers_15ms_transit": false
+    },
+    "160ms": {
+     "prf_hz": 6.25,
+     "v_max_ms": 0.13383591875,
+     "covers_5ms_slow_flight": false,
+     "covers_15ms_transit": false
+    }
+   },
+   "even_best_legal_config_fails": "가장 짧은 합법 주기 5 ms 에서도 v_max = 4.28 m/s 로 저속비행 5 m/s 를 못 덮는다. 즉 설정을 최선으로 가정해도 결론의 방향은 바뀌지 않고, 크기만 4배 완화된다.",
+   "unknown": "상용 셀의 SSB 주기 분포는 우리가 측정하지 않았다 — X410 실측의 1순위 관측 항목."
+  },
+  "strongest_true_statement": "패시브 바이스태틱 수신기가 **수신기 한 대로** 얻는 무모호 시선속도는 상시 기준신호의 반복률과 반송파가 함께 정한다: v_max = lam*PRF/(4 cos(beta/2) cos(delta_el)). 규격이 상시를 보장하는 하향 기준신호로 계산하면 LTE CRS 40.7 m/s · 5G SSB 1.07 m/s · WiFi 비콘 0.14 m/s 다. 즉 드론 속도대(5~20 m/s)를 모호 없이 덮는 상시 조명원은 LTE CRS 뿐이고, LTE 를 5G 로 갈아타는 인프라 전환이 그것을 없앤다.",
+  "infrastructure_framing": "LTE CRS → 5G SSB 로 상시 기준의 반복률이 20배 떨어지고, 무모호 속도는 40.7 → 1.07 m/s 로 38배 줄어든다(반송파 차이까지 포함). 이것은 파형 품질이 아니라 **lean carrier 설계** 의 귀결이며, 사업자의 LTE 종료 일정이 곧 패시브 드론 감시의 관측성 일정이 된다.",
+  "what_would_falsify_this": [
+   "SSB 를 5 ms 주기로 설정한 셀이 흔하다는 배치 통계 (그러면 4.28 m/s 로 오른다)",
+   "Rel-17 유휴 TRS 가 상용 셀에서 기본 활성이라는 관측",
+   "3.5 GHz 대에서 상시로 존재하는, SSB 보다 반복률 높은 브로드캐스트 신호의 발견",
+   "넓게 벌린 다중 수신기를 논문의 기본 구성으로 채택 (그러면 모호는 해결되고 명제가 좁아진다)"
+  ]
+ },
+ "figure_specs": [
+  {
+   "id": "F1",
+   "question": "Which ambient illuminator can measure drone speed without ambiguity?",
+   "plot": "v_max = lam*PRF/4 as a bar/scatter over (WiFi beacon, WiFi busy, 5G SSB, 5G idle-TRS, 5G PRS, LTE CRS), with a shaded band for drone speeds 5-20 m/s",
+   "source": "outputs/vmax_hardening.json : H_symmetry.guaranteed_floor, C_frame.inventory"
+  },
+  {
+   "id": "F2",
+   "question": "Does a longer CPI fix it?",
+   "plot": "two curves vs CPI: blind_hard (falls) and alias_frac (flat) for W1/L1/G1",
+   "source": "outputs/vmax_hardening.json : E_long_cpi.E1_blindness_falls_with_cpi"
+  },
+  {
+   "id": "F3",
+   "question": "Does beam sweeping raise the effective PRF?",
+   "plot": "alias rejection (dB) vs target speed for single beam / ideal 8-beam / realistic 8-beam",
+   "source": "outputs/vmax_hardening.json : D_beamsweep.D2_waveform.by_speed"
+  }
+ ]
+}

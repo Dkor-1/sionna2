@@ -1,0 +1,964 @@
+{
+ "_meta": {
+  "generated": "2026-07-31 06:42:37",
+  "generator": "src/make_report02_target.py :: derive()",
+  "purpose": "리포트 02 가 인용하는 파생값. 원본 JSON 에 값으로 없는 것만 담는다.",
+  "mesh_source_newest": "2026-07-31 06:07:35",
+  "mesh_source_newest_file": "src/drones.py",
+  "inputs": [
+   "outputs/mesh_gallery.json",
+   "outputs/mesh_compare_photo.json",
+   "outputs/mesh_compare_cad.json",
+   "outputs/mesh_compare_material.json",
+   "outputs/sigma_sensitivity.json",
+   "outputs/rcs_anchor.json",
+   "outputs/sigma_anchor.json",
+   "outputs/report3_rt.json",
+   "src/drones.py (메쉬 정의)",
+   "benchmark/mie_pec_sphere.py (기준해 두 개)"
+  ],
+  "definitions": {
+   "r_encl_m": "외접구 반경 = bbox 중심에서 가장 먼 메쉬 정점까지의 거리 [m]",
+   "kr_*": "2*pi*r_encl/lambda — 밴드 중심주파수 기준 전기적 크기",
+   "po_floor": "해석 PO 기준해 / 정확 Mie 기준해 의 dB 차가 임계 아래로 내려가는 kr. 둘 다 우리 결과가 아니라 기준해다.",
+   "band_slope": "세 밴드(1.843/3.5/5.21 GHz)의 방위평균 sigma(el=0deg)를 주파수[GHz]에 1차 적합한 기울기 [dB/GHz]",
+   "anchor": "outputs/sigma_anchor.json 의 재보정 원장 집계. 앵커 계산 자체는 src/sigma_anchor.py 가 한다.",
+   "anchor_modes": "세 재보정 모드의 기체별 평균 레벨이동 [dB]. 생산 모드 slope_only 는 0 이다 — 절대 레벨은 우리 PO 출력 그대로다.",
+   "mesh": "outputs/mesh_gallery.json 집계 (§1 기하 표)",
+   "photo": "IoU = 두 실루엣의 교집합/합집합. 카메라 자세·원근·배율·위치와 로터별 프로펠러 위상을 맞춘 뒤 잰다. 상한 = 같은 파이프라인에 자기 메쉬로 만든 가짜 사진을 넣었을 때의 IoU — 암·블레이드가 몇 px 이라 1.0 이 아니다.",
+   "material": "면적 비중 = 그 재질이 차지하는 메쉬 표면적 / 7기체 합계. Σ|Γ|A 비중은 같은 면적을 |Γ| 로 가중한 것 — PO 적분 E = Σ|Γ| e^{j2k p·û} d² 에 들어가는 양이다(위상 없는 장부이므로 σ 자체는 아니다).",
+   "occlusion": "가림 [dB] = 가림 없는 PO 방위평균 σ − 불투명 SBR σ. 셸 투과 [dB] 는 거기서 유전체 셸을 통과시켜 내부 금속을 코히런트 합산했을 때의 차이. 합 = 생산 커널과 순수 PO 의 차이. 이산화 바닥은 PO 를 λ/7↔λ/12 로 돌렸을 때의 폭이다.",
+   "sigma_sens": "공통모드 = 한 기체의 세 밴드를 같은 dB 로 옮긴 뒤 R90 순위를 다시 매긴 것. 차분 = 밴드에 따라 다르게 옮긴 것(기울기 오차 모양). 뒤집힘 문턱 = 순위가 처음 바뀌는 차분 폭 [dB]. 현실 폭 = 우리 생산 기울기와 측정 기울기의 차이가 밴드 스팬 3.367 GHz 위에서 만드는 dB 폭. MC = 밴드별 독립 N(0, σ_e) 오차에서의 순위 보존 확률.",
+   "provenance": "판정 = JSON 의 생성 시각 ≥ 메쉬 소스 넷의 최신 편집 시각. 옛것으로 나온 원장의 수치는 그 시각의 기하로 계산된 값이고, 재실행은 §6 표에 있다."
+  },
+  "runtime_s": 19.6
+ },
+ "mesh": {
+  "rows": [
+   {
+    "airframe": "Mini 5 Pro ⭐",
+    "lwh_mm": "251 × 376 × 91",
+    "weight_g": 249.9,
+    "n_parts": 25,
+    "n_groups": 9,
+    "n_tris": 29044,
+    "r_encl_m": 0.2169839545743954,
+    "kr_5g": 15.916765936334775
+   },
+   {
+    "airframe": "Phantom 4",
+    "lwh_mm": "440 × 468 × 198",
+    "weight_g": 1380.0,
+    "n_parts": 23,
+    "n_groups": 8,
+    "n_tris": 28402,
+    "r_encl_m": 0.31095306298910996,
+    "kr_5g": 22.809830019422385
+   },
+   {
+    "airframe": "X500 V2",
+    "lwh_mm": "552 × 581 × 335",
+    "weight_g": 1650.0,
+    "n_parts": 48,
+    "n_groups": 10,
+    "n_tris": 18816,
+    "r_encl_m": 0.3902375356858902,
+    "kr_5g": 28.625708879108764
+   },
+   {
+    "airframe": "Mavic 4 Pro",
+    "lwh_mm": "464 × 596 × 150",
+    "weight_g": 1063.0,
+    "n_parts": 20,
+    "n_groups": 8,
+    "n_tris": 29932,
+    "r_encl_m": 0.359243890068522,
+    "kr_5g": 26.352183153333414
+   },
+   {
+    "airframe": "Matrice 4E ⭐",
+    "lwh_mm": "470 × 599 × 150",
+    "weight_g": 1219.0,
+    "n_parts": 25,
+    "n_groups": 9,
+    "n_tris": 30714,
+    "r_encl_m": 0.3579115377882882,
+    "kr_5g": 26.254449017042926
+   },
+   {
+    "airframe": "Typhoon H (H480)",
+    "lwh_mm": "634 × 704 × 319",
+    "weight_g": 1950.0,
+    "n_parts": 29,
+    "n_groups": 9,
+    "n_tris": 34732,
+    "r_encl_m": 0.38896426745451007,
+    "kr_5g": 28.53230882815661
+   },
+   {
+    "airframe": "S1000+",
+    "lwh_mm": "1330 × 1330 × 380",
+    "weight_g": 9500.0,
+    "n_parts": 49,
+    "n_groups": 10,
+    "n_tris": 35370,
+    "r_encl_m": 0.7301558159624352,
+    "kr_5g": 53.56027012468783
+   }
+  ],
+  "n": 7,
+  "r_crosscheck_max_pct": 0.0,
+  "span_ratio": 3.5367680038571967,
+  "smallest": "Mini 5 Pro",
+  "smallest_span_mm": 375.98334435940023,
+  "largest": "S1000+",
+  "largest_span_mm": 1329.765862313549,
+  "n_parts_total": 219,
+  "n_tris_total": 207010
+ },
+ "photo": {
+  "rows": [
+   {
+    "airframe": "X500 V2",
+    "n_photo": "3 / 16",
+    "iou": 0.8747763621577663,
+    "ceiling": 0.957419250384522,
+    "pct_of_ceiling": 91.36816100223967,
+    "contour_mm": 2.1802686169231045,
+    "worst": "gear 1% 메쉬쪽",
+    "key": "x500v2",
+    "file": "x500v2_03_top_ortho.jpg",
+    "credit": "Holybro product photo",
+    "free_gain": 0.0,
+    "free_delta_deg": 8.250000000000034
+   },
+   {
+    "airframe": "S1000+",
+    "n_photo": "2 / 2",
+    "iou": 0.7536929220997931,
+    "ceiling": 0.8636613523914238,
+    "pct_of_ceiling": 87.26718175044708,
+    "contour_mm": 10.951177920338719,
+    "worst": "motor 1% 사진쪽",
+    "key": "s1000plus",
+    "file": "s1000+_1.png",
+    "credit": "DJI product image",
+    "free_gain": 0.0,
+    "free_delta_deg": 5.9999999999999645
+   },
+   {
+    "airframe": "Matrice 4E ⭐",
+    "n_photo": "3 / 5",
+    "iou": 0.5585853518704315,
+    "ceiling": 0.8828147930730849,
+    "pct_of_ceiling": 63.273220640763356,
+    "contour_mm": 12.611216327669792,
+    "worst": "camera 13% 메쉬쪽",
+    "key": "matrice4e",
+    "file": "matrice 4E_3.png",
+    "credit": "DJI product image",
+    "free_gain": 0.18032763387799733,
+    "free_delta_deg": 77.41082059060457
+   },
+   {
+    "airframe": "Typhoon H (H480)",
+    "n_photo": "2 / 13",
+    "iou": 0.5468480603448276,
+    "ceiling": 0.9333754446623891,
+    "pct_of_ceiling": 58.58822014999846,
+    "contour_mm": 15.925758523872995,
+    "worst": "body 5% 메쉬쪽",
+    "key": "typhoonh480",
+    "file": "typhoonh480_y04_official_pursuit.png",
+    "credit": "Yuneec International (official product image, via Wayback Machine)",
+    "free_gain": -0.08805827876237327,
+    "free_delta_deg": 53.939646014848506
+   },
+   {
+    "airframe": "Phantom 4",
+    "n_photo": "4 / 5",
+    "iou": 0.5455977528516389,
+    "ceiling": 0.919975301018833,
+    "pct_of_ceiling": 59.30569573415862,
+    "contour_mm": 10.716968871923251,
+    "worst": "body 13% 메쉬쪽",
+    "key": "phantom4",
+    "file": "Phantom 4 pro + V2_1.png",
+    "credit": "DJI product image",
+    "free_gain": 0.00040855454467580987,
+    "free_delta_deg": 101.04149238268278
+   },
+   {
+    "airframe": "Mavic 4 Pro",
+    "n_photo": "4 / 4",
+    "iou": 0.5249128399242953,
+    "ceiling": 0.9165018677213799,
+    "pct_of_ceiling": 57.27351557169667,
+    "contour_mm": 18.991797456184862,
+    "worst": "body 7% 메쉬쪽",
+    "key": "mavic4pro",
+    "file": "mavic 4 pro_4.png",
+    "credit": "DJI product image",
+    "free_gain": -0.0025029209771803007,
+    "free_delta_deg": 133.7484017263018
+   },
+   {
+    "airframe": "Mini 5 Pro ⭐",
+    "n_photo": "3 / 3",
+    "iou": 0.4781253837651971,
+    "ceiling": 0.9557820833052049,
+    "pct_of_ceiling": 50.024518362154716,
+    "contour_mm": 13.005998966252177,
+    "worst": "gear 7% 사진쪽",
+    "key": "mini5pro",
+    "file": "mini 5 pro_2.png",
+    "credit": "DJI product image",
+    "free_gain": 0.03802038202393532,
+    "free_delta_deg": 109.2585400870071
+   }
+  ],
+  "n_airframes": 7,
+  "n_pairs": 21,
+  "n_excluded": 12,
+  "best": "X500 V2",
+  "best_iou": 0.8747763621577663,
+  "best_pct": 91.36816100223967,
+  "worst": "Mini 5 Pro ⭐",
+  "worst_iou": 0.4781253837651971,
+  "worst_pct": 50.024518362154716,
+  "contour_min_mm": 2.1802686169231045,
+  "contour_max_mm": 18.991797456184862,
+  "ceiling_min": 0.8636613523914238,
+  "ceiling_max": 0.957419250384522,
+  "iou_at_1deg_pose_error": 0.9062153163152054,
+  "iou_at_2deg_pose_error": 0.8224547039648245,
+  "definition": "IoU = 두 실루엣의 교집합/합집합. 카메라 자세·원근·배율·위치와 로터별 프로펠러 위상을 맞춘 뒤 잰다. 상한 = 같은 파이프라인에 자기 메쉬로 만든 가짜 사진을 넣었을 때의 IoU — 암·블레이드가 몇 px 이라 1.0 이 아니다."
+ },
+ "cad": {
+  "assemblies": [
+   {
+    "cad": "Holybro X500 V2",
+    "vendor": "Holybro",
+    "n_instances": 244,
+    "n_part_types": 51,
+    "maps_to": "x500v2",
+    "note": "우리 x500v2 와 **같은 기체**. 244 인스턴스 어셈블리(나사까지 들어 있다)."
+   },
+   {
+    "cad": "ModalAI Sentinel",
+    "vendor": "ModalAI",
+    "n_instances": 104,
+    "n_part_types": 32,
+    "maps_to": "—",
+    "note": "다른 기체. 부품명이 재질을 자백하는 유일한 공식 어셈블리(McMaster 품번까지 남아 있다)."
+   },
+   {
+    "cad": "Freefly Astro (Max)",
+    "vendor": "Freefly",
+    "n_instances": 1,
+    "n_part_types": 1,
+    "maps_to": "—",
+    "note": "다른 기체이고 파일명이 [Shelled] — **외피뿐, 내부 산란체 없음**. 외형 치수만 값어치가 있다."
+   }
+  ],
+  "n_assemblies": 3,
+  "n_dims": 20,
+  "n_vs_cad": 19,
+  "n_vs_published": 10,
+  "worst_vs_cad_pct": 0.5568814638027071,
+  "worst_vs_cad_dim": "Propeller ring radius",
+  "worst_vs_cad_mm": 1.4000000000000057,
+  "worst_vs_published_pct": 0.5600000657977489,
+  "worst_vs_published_dim": "Wheelbase (motor-to-motor)",
+  "worst_vs_published_mm": 2.8000003289887445,
+  "floor_pct": 6.8961617667414705,
+  "floor_dim": "Motor-axis diagonal",
+  "floor_aircraft": "Astro",
+  "floor_caveat": "917 is likely mount-edge to mount-edge, not axis to axis",
+  "floor_second_pct": 1.0692228357168665,
+  "floor_second_dim": "Motor-to-motor square side",
+  "floor_second_aircraft": "Sentinel",
+  "lambda_5g_mm": 85.654988,
+  "licence": "Manufacturer CAD (Holybro / ModalAI / Freefly) states no licence. Measured for dimension comparison only. Their geometry is NOT copied into our assets and their meshes are NOT rendered in our reports.",
+  "note": "x500v2 메쉬는 이 CAD 에서 뽑은 치수표로 지었다 — CAD 열과의 일치는 설계 의도가 메쉬로 실현됐는지의 검사이고, 독립 검증은 발행 제원 열과 제조사 CAD↔제원 간극(floor_pct)이다."
+ },
+ "material": {
+  "rows": [
+   {
+    "material": "carbon",
+    "groups": "arm, deck, gear_cf",
+    "gamma_bulk": 0.9886696922019683,
+    "gamma_po": 0.9,
+    "area_m2": 0.55784801853306,
+    "area_pct": 17.238891732760138,
+    "gamma_pct": 27.55694754853008
+   },
+   {
+    "material": "metal",
+    "groups": "battery, motor",
+    "gamma_bulk": 0.9998026802895116,
+    "gamma_po": 0.9998026802895116,
+    "area_m2": 0.48012246694445104,
+    "area_pct": 14.836978802732071,
+    "gamma_pct": 26.347476810079403
+   },
+   {
+    "material": "plastic",
+    "groups": "accent, body, canopy, gear",
+    "gamma_bulk": 0.24368705289517903,
+    "gamma_po": 0.28,
+    "area_m2": 1.3184828391615466,
+    "area_pct": 40.74440019627154,
+    "gamma_pct": 20.26306876483338
+   },
+   {
+    "material": "camera_assembly",
+    "groups": "camera",
+    "gamma_bulk": 0.9998026802895116,
+    "gamma_po": 0.85,
+    "area_m2": 0.31096431622360987,
+    "area_pct": 9.609571069602904,
+    "gamma_pct": 14.507820941478833
+   },
+   {
+    "material": "prop_plastic",
+    "groups": "prop",
+    "gamma_bulk": 0.24368705289517903,
+    "gamma_po": 0.25,
+    "area_m2": 0.4518698885040578,
+    "area_pct": 13.963903834775746,
+    "gamma_pct": 6.200491493190383
+   },
+   {
+    "material": "pcb",
+    "groups": "fc, pcb",
+    "gamma_bulk": 0.9998026802895116,
+    "gamma_po": 0.8,
+    "area_m2": 0.11669786447936957,
+    "area_pct": 3.6062543638576074,
+    "gamma_pct": 5.124194441887923
+   }
+  ],
+  "n_materials": 6,
+  "total_area_m2": 3.2359853938460947,
+  "conducting_area_pct": 45.29169596895272,
+  "conducting_gamma_pct": 73.53643974197624,
+  "conducting": "carbon, metal, camera_assembly, pcb",
+  "shell_tau_db": 0.7091506784172636,
+  "gamma_shell": 0.28,
+  "definition": "면적 비중 = 그 재질이 차지하는 메쉬 표면적 / 7기체 합계. Σ|Γ|A 비중은 같은 면적을 |Γ| 로 가중한 것 — PO 적분 E = Σ|Γ| e^{j2k p·û} d² 에 들어가는 양이다(위상 없는 장부이므로 σ 자체는 아니다)."
+ },
+ "occlusion": {
+  "rows": [
+   {
+    "airframe": "Mini 5 Pro ⭐",
+    "shadow_pct": 40.53822717240981,
+    "d_occlusion_db": 5.983108938801038,
+    "d_shell_db": 3.658787177648655,
+    "d_total_db": 2.324321761152383,
+    "floor_db": 0.01368492905069374,
+    "sigma_dbsm": -21.9690044369978
+   },
+   {
+    "airframe": "Mavic 4 Pro",
+    "shadow_pct": 29.057674973158733,
+    "d_occlusion_db": 3.7491602860529163,
+    "d_shell_db": 2.5478882808048198,
+    "d_total_db": 1.2012720052480965,
+    "floor_db": 0.021213259966572195,
+    "sigma_dbsm": -18.225134635915246
+   },
+   {
+    "airframe": "Matrice 4E ⭐",
+    "shadow_pct": 34.79669544620412,
+    "d_occlusion_db": 6.626363269606506,
+    "d_shell_db": 3.7234204565072204,
+    "d_total_db": 2.902942813099285,
+    "floor_db": 0.02059448379249318,
+    "sigma_dbsm": -18.89462952495429
+   },
+   {
+    "airframe": "Phantom 4",
+    "shadow_pct": 35.56794818387431,
+    "d_occlusion_db": 5.902685511620373,
+    "d_shell_db": 4.0642271279502005,
+    "d_total_db": 1.8384583836701722,
+    "floor_db": 0.05583615231816452,
+    "sigma_dbsm": -19.941091866097445
+   },
+   {
+    "airframe": "X500 V2",
+    "shadow_pct": 46.537759524453804,
+    "d_occlusion_db": 1.0733011468230504,
+    "d_shell_db": 0.0,
+    "d_total_db": 1.0733011468230504,
+    "floor_db": 0.03680760868763855,
+    "sigma_dbsm": -16.79245774033506
+   },
+   {
+    "airframe": "Typhoon H (H480)",
+    "shadow_pct": 39.02738385059874,
+    "d_occlusion_db": 2.9102130410718026,
+    "d_shell_db": 1.510756432166966,
+    "d_total_db": 1.3994566089048366,
+    "floor_db": 0.014237072262599071,
+    "sigma_dbsm": -15.84064547641425
+   },
+   {
+    "airframe": "S1000+",
+    "shadow_pct": 41.52729319883473,
+    "d_occlusion_db": 0.11108993654682209,
+    "d_shell_db": -0.19273157534553143,
+    "d_total_db": 0.3038215118923535,
+    "floor_db": 0.07060860505525746,
+    "sigma_dbsm": -12.27491988483408
+   }
+  ],
+  "n": 7,
+  "az_deg": 280.0,
+  "el_deg": 15.0,
+  "n_az_sweep": 72,
+  "fc_ghz": 3.5,
+  "max_db": 6.626363269606506,
+  "max_drone": "Matrice 4E ⭐",
+  "min_db": 0.11108993654682209,
+  "min_drone": "S1000+",
+  "floor_max_db": 0.07060860505525746,
+  "shadow_min_pct": 29.057674973158733,
+  "shadow_max_pct": 46.537759524453804,
+  "n_above_floor": 7,
+  "engine": "rcs_sbr._exit_visible() — 생산 SBR 이 쓰는 그림자광선 그대로",
+  "definition": "가림 [dB] = 가림 없는 PO 방위평균 σ − 불투명 SBR σ. 셸 투과 [dB] 는 거기서 유전체 셸을 통과시켜 내부 금속을 코히런트 합산했을 때의 차이. 합 = 생산 커널과 순수 PO 의 차이. 이산화 바닥은 PO 를 λ/7↔λ/12 로 돌렸을 때의 폭이다."
+ },
+ "sigma_sens": {
+  "rows": [
+   {
+    "airframe": "DJI Mini 5 Pro ⭐",
+    "key": "mini5pro",
+    "extent_m": 0.3777120331286884,
+    "d_over_lambda_lte": 2.3220173105761477,
+    "flip_single_db": 7.417556380534934,
+    "flip_aspect_avg_db": 2.946102766962776,
+    "band_sigma_spread_db": 2.2280679890417936,
+    "p_order_1db": 0.992455,
+    "p_order_2db": 0.820335
+   },
+   {
+    "airframe": "DJI Phantom 4",
+    "key": "phantom4",
+    "extent_m": 0.47064053134626926,
+    "d_over_lambda_lte": 2.893303270728626,
+    "flip_single_db": 5.034205587286698,
+    "flip_aspect_avg_db": 2.2008453502989656,
+    "band_sigma_spread_db": 14.754494629630953,
+    "p_order_1db": 0.94738,
+    "p_order_2db": 0.67488
+   },
+   {
+    "airframe": "DJI Mavic 4 Pro",
+    "key": "mavic4pro",
+    "extent_m": 0.5555501320433451,
+    "d_over_lambda_lte": 3.41529236654741,
+    "flip_single_db": 1.837755816721777,
+    "flip_aspect_avg_db": 0.088556590833162,
+    "band_sigma_spread_db": 18.71361149445036,
+    "p_order_1db": 0.74509,
+    "p_order_2db": 0.62807
+   },
+   {
+    "airframe": "DJI Matrice 4E ⭐",
+    "key": "matrice4e",
+    "extent_m": 0.5869953547472244,
+    "d_over_lambda_lte": 3.6086045860404354,
+    "flip_single_db": 0.6144880997507195,
+    "flip_aspect_avg_db": 1.297853547927232,
+    "band_sigma_spread_db": 5.505679981978405,
+    "p_order_1db": 0.58278,
+    "p_order_2db": 0.46683
+   },
+   {
+    "airframe": "DJI S1000+",
+    "key": "s1000plus",
+    "extent_m": 1.3477300727417156,
+    "d_over_lambda_lte": 8.285286896920475,
+    "flip_single_db": 0.7880783081054688,
+    "flip_aspect_avg_db": 0.8007648981105514,
+    "band_sigma_spread_db": 10.363439910566848,
+    "p_order_1db": 0.419465,
+    "p_order_2db": 0.28018
+   }
+  ],
+  "cfg_rows": [
+   {
+    "config": "단일자세 (현 헤드라인)",
+    "n_orders": 3,
+    "worst_flip_db": 0.6144880997507195,
+    "median_flip_db": 1.837755816721777,
+    "n_flip_inside": 3
+   },
+   {
+    "config": "자세평균 σ 로 인용",
+    "n_orders": 1,
+    "worst_flip_db": 0.088556590833162,
+    "median_flip_db": 1.297853547927232,
+    "n_flip_inside": 5
+   },
+   {
+    "config": "자세평균 + 측정 기울기 앵커",
+    "n_orders": 1,
+    "worst_flip_db": 3.7196021498295297,
+    "median_flip_db": 5.318277704785442,
+    "n_flip_inside": 2
+   }
+  ],
+  "n_airframes": 5,
+  "n_bands": 3,
+  "n_cells": 15,
+  "offset_min_db": -10.0,
+  "offset_max_db": 10.0,
+  "order_invariant_everywhere": true,
+  "slope_mean_db_per_db": 0.24621813638904827,
+  "slope_min_db_per_db": 0.22267200065056844,
+  "slope_max_db_per_db": 0.25608292130314086,
+  "range_at_minus10_pct": -43.31202671878066,
+  "range_at_plus10_pct": 76.39025560588652,
+  "realistic_span_db": 5.013463000000001,
+  "flip_single_min_db": 0.6144880997507195,
+  "flip_single_min_name": "DJI Matrice 4E ⭐",
+  "flip_single_max_db": 7.417556380534934,
+  "flip_single_max_name": "DJI Mini 5 Pro ⭐",
+  "n_flip_inside_realistic": 3,
+  "single_aspect_n_orders": 3,
+  "aspect_avg_n_orders": 1,
+  "aspect_avg_agree": true,
+  "aspect_avg_order": "LTE > 5G > WiFi",
+  "worst_flip_as_published_db": 0.6144880997507195,
+  "worst_flip_aspect_avg_db": 0.088556590833162,
+  "worst_flip_anchored_db": 3.7196021498295297,
+  "anchor_gain_db": 3.6310455589963677,
+  "mc_K": 200000,
+  "mc_p_min_1db": 0.419465,
+  "mc_p_min_1db_name": "DJI S1000+",
+  "sigma_grid_used": "outputs/report13_sigma_grid.json.pre_blade.bak",
+  "blade_update_max_range_pct": 17.944361445836716,
+  "blade_update_n_orders_changed": 1,
+  "anchor_not_applied_n_order_changed": 2,
+  "lambda2_gap_db": 9.02624776160902,
+  "duty_gap_db": 16.020599913279625,
+  "snr90_db": 11.86143572621035,
+  "definition": "공통모드 = 한 기체의 세 밴드를 같은 dB 로 옮긴 뒤 R90 순위를 다시 매긴 것. 차분 = 밴드에 따라 다르게 옮긴 것(기울기 오차 모양). 뒤집힘 문턱 = 순위가 처음 바뀌는 차분 폭 [dB]. 현실 폭 = 우리 생산 기울기와 측정 기울기의 차이가 밴드 스팬 3.367 GHz 위에서 만드는 dB 폭. MC = 밴드별 독립 N(0, σ_e) 오차에서의 순위 보존 확률.",
+  "reads": [
+   "outputs/report13_sigma_grid.json",
+   "outputs/report13_sigma_grid.json.pre_blade.bak",
+   "outputs/report13_freespace.json"
+  ]
+ },
+ "provenance": {
+  "mesh_source_newest": "2026-07-31 06:07:35",
+  "rows": [
+   {
+    "source": "mesh_gallery.json",
+    "stamp": "2026-07-31 02:50:47",
+    "stamp_from": "_meta.generated",
+    "fresh": false,
+    "used_in": "§1 기하 표·갤러리 그림"
+   },
+   {
+    "source": "mesh_compare_photo.json",
+    "stamp": "2026-07-31 05:18:16",
+    "stamp_from": "_meta.generated",
+    "fresh": false,
+    "used_in": "§1.1 사진 대조"
+   },
+   {
+    "source": "mesh_compare_cad.json",
+    "stamp": "2026-07-31 03:58:03",
+    "stamp_from": "meta.stamp",
+    "fresh": false,
+    "used_in": "§1.2 공식 CAD 치수"
+   },
+   {
+    "source": "mesh_compare_material.json",
+    "stamp": "2026-07-31 03:53:02",
+    "stamp_from": "_meta.generated",
+    "fresh": false,
+    "used_in": "§1.3 재질 · §2 조명/그늘"
+   },
+   {
+    "source": "phantom4_scan_compare.json",
+    "stamp": "2026-07-31 02:44:48",
+    "stamp_from": "파일 mtime",
+    "fresh": false,
+    "used_in": "§1.4 실물 스캔"
+   },
+   {
+    "source": "real_cad_compare.json",
+    "stamp": "2026-07-31 02:46:06",
+    "stamp_from": "파일 mtime",
+    "fresh": false,
+    "used_in": "§1.4 실물 CAD"
+   },
+   {
+    "source": "community_compare.json",
+    "stamp": "2026-07-31 02:45:39",
+    "stamp_from": "파일 mtime",
+    "fresh": false,
+    "used_in": "§1.4 커뮤니티 메쉬"
+   },
+   {
+    "source": "report6_sbr.json",
+    "stamp": "2026-07-31 03:38:11",
+    "stamp_from": "파일 mtime",
+    "fresh": false,
+    "used_in": "§2 커널 게이트"
+   },
+   {
+    "source": "sbr_kr_sweep.json",
+    "stamp": "2026-07-31 04:28:31",
+    "stamp_from": "meta.generated",
+    "fresh": false,
+    "used_in": "§3 기준해 대조 (구 — 기하 무관)"
+   },
+   {
+    "source": "sbr_defect_fixes.json",
+    "stamp": "2026-07-31 03:42:22",
+    "stamp_from": "파일 mtime",
+    "fresh": false,
+    "used_in": "§3.2 이면각 · §2.1 상반성"
+   },
+   {
+    "source": "report3_rt.json",
+    "stamp": "2026-07-31 03:40:27",
+    "stamp_from": "파일 mtime",
+    "fresh": false,
+    "used_in": "§2 금속 비중"
+   },
+   {
+    "source": "rcs_anchor.json",
+    "stamp": "2026-07-30 07:16:08",
+    "stamp_from": "meta.generated",
+    "fresh": false,
+    "used_in": "§4 밴드 기울기"
+   },
+   {
+    "source": "sigma_anchor.json",
+    "stamp": "2026-07-31 01:34:18",
+    "stamp_from": "파일 mtime",
+    "fresh": false,
+    "used_in": "§4 앵커 원장"
+   },
+   {
+    "source": "sigma_sensitivity.json",
+    "stamp": "2026-07-31 05:41:36",
+    "stamp_from": "_meta.generated",
+    "fresh": false,
+    "used_in": "§5 σ 민감도 · 순위 강건성"
+   },
+   {
+    "source": "report2_waveform_rcs.json",
+    "stamp": "2026-07-29 04:00:31",
+    "stamp_from": "meta.generated",
+    "fresh": false,
+    "used_in": "§5 자세 패턴 · 부품 스트립"
+   }
+  ],
+  "n_sources": 15,
+  "n_fresh": 0,
+  "n_stale": 15,
+  "stale_sources": [
+   "mesh_gallery.json",
+   "mesh_compare_photo.json",
+   "mesh_compare_cad.json",
+   "mesh_compare_material.json",
+   "phantom4_scan_compare.json",
+   "real_cad_compare.json",
+   "community_compare.json",
+   "report6_sbr.json",
+   "sbr_kr_sweep.json",
+   "sbr_defect_fixes.json",
+   "report3_rt.json",
+   "rcs_anchor.json",
+   "sigma_anchor.json",
+   "sigma_sensitivity.json",
+   "report2_waveform_rcs.json"
+  ],
+  "oldest_stale": "2026-07-29 04:00:31",
+  "rule": "판정 = JSON 의 생성 시각 ≥ 메쉬 소스 넷의 최신 편집 시각. 옛것으로 나온 원장의 수치는 그 시각의 기하로 계산된 값이고, 재실행은 §6 표에 있다."
+ },
+ "airframes": {
+  "mini5pro": {
+   "name": "DJI Mini 5 Pro",
+   "n_rotors": 4,
+   "diagonal_mm": 275.0,
+   "weight_g": 249.9,
+   "prop_dia_mm": 152.4,
+   "n_tris": 29044,
+   "n_groups": 9,
+   "r_encl_m": 0.2169839545743954,
+   "release": "released",
+   "kr_LTE": 8.381314177332854,
+   "kr_5G": 15.916765936334775,
+   "kr_WiFi": 23.693243008086906
+  },
+  "phantom4": {
+   "name": "DJI Phantom 4",
+   "n_rotors": 4,
+   "diagonal_mm": 350.0,
+   "weight_g": 1380.0,
+   "prop_dia_mm": 240.0,
+   "n_tris": 28402,
+   "n_groups": 8,
+   "r_encl_m": 0.31095306298910996,
+   "release": "released",
+   "kr_LTE": 12.011004778798702,
+   "kr_5G": 22.809830019422385,
+   "kr_WiFi": 33.95406125748303
+  },
+  "mavic4pro": {
+   "name": "DJI Mavic 4 Pro",
+   "n_rotors": 4,
+   "diagonal_mm": 441.0,
+   "weight_g": 1063.0,
+   "prop_dia_mm": 267.0,
+   "n_tris": 29932,
+   "n_groups": 8,
+   "r_encl_m": 0.359243890068522,
+   "release": "released",
+   "kr_LTE": 13.87630672902671,
+   "kr_5G": 26.352183153333414,
+   "kr_WiFi": 39.22710692253345
+  },
+  "matrice4e": {
+   "name": "DJI Matrice 4E",
+   "n_rotors": 4,
+   "diagonal_mm": 438.8,
+   "weight_g": 1219.0,
+   "prop_dia_mm": 274.0,
+   "n_tris": 30714,
+   "n_groups": 9,
+   "r_encl_m": 0.3579115377882882,
+   "release": "released",
+   "kr_LTE": 13.824842725260034,
+   "kr_5G": 26.254449017042926,
+   "kr_WiFi": 39.081622679655325
+  },
+  "typhoonh480": {
+   "name": "Yuneec Typhoon H (H480)",
+   "n_rotors": 6,
+   "diagonal_mm": 480.0,
+   "weight_g": 1950.0,
+   "prop_dia_mm": 230.2,
+   "n_tris": 34732,
+   "n_groups": 9,
+   "r_encl_m": 0.38896426745451007,
+   "release": "discontinued",
+   "kr_LTE": 15.02429862008361,
+   "kr_5G": 28.53230882815661,
+   "kr_WiFi": 42.47237971277026
+  },
+  "x500v2": {
+   "name": "Holybro X500 V2",
+   "n_rotors": 4,
+   "diagonal_mm": 500.0,
+   "weight_g": 1650.0,
+   "prop_dia_mm": 254.0,
+   "n_tris": 18816,
+   "n_groups": 10,
+   "r_encl_m": 0.3902375356858902,
+   "release": "released",
+   "kr_LTE": 15.07348041834213,
+   "kr_5G": 28.625708879108764,
+   "kr_WiFi": 42.61141236004476
+  },
+  "s1000plus": {
+   "name": "DJI S1000+",
+   "n_rotors": 8,
+   "diagonal_mm": 1045.0,
+   "weight_g": 9500.0,
+   "prop_dia_mm": 381.0,
+   "n_tris": 35370,
+   "n_groups": 10,
+   "r_encl_m": 0.7301558159624352,
+   "release": "discontinued",
+   "kr_LTE": 28.20330795422848,
+   "kr_5G": 53.56027012468783,
+   "kr_WiFi": 79.72828781417817
+  }
+ },
+ "bands_ghz": {
+  "LTE": 1.843,
+  "5G": 3.5,
+  "WiFi": 5.21
+ },
+ "electrical": {
+  "n_airframe_band": 21,
+  "kr_min": 8.381314177332854,
+  "kr_min_drone": "mini5pro",
+  "kr_min_band": "LTE",
+  "kr_min_name": "DJI Mini 5 Pro",
+  "kr_max": 79.72828781417817,
+  "kr_max_drone": "s1000plus",
+  "kr_max_band": "WiFi",
+  "kr_max_name": "DJI S1000+",
+  "n_below_po_1db": 1,
+  "below_po_1db": [
+   "mini5pro @ LTE"
+  ]
+ },
+ "po_floor": {
+  "kr_below_1p0_db": 9.060000000000008,
+  "kr_below_0p5_db": 15.160000000000013,
+  "kr_below_0p2_db": 30.870000000000026,
+  "max_abs_db_kr1_to_3": 7.250031672722537,
+  "grid_step": 0.01,
+  "kr_scan_max": 60.0
+ },
+ "band_slope": {
+  "fit_bands_ghz": [
+   1.843,
+   3.5,
+   5.21
+  ],
+  "n_fit": 3,
+  "el_deg": 0.0,
+  "ours_db_per_ghz": {
+   "matrice4e": 0.9358698306274642,
+   "mavic4pro": 1.3110883410656062,
+   "mini5pro": 1.5170442793984567,
+   "phantom4": 1.6994008126771427,
+   "s1000plus": 1.6037946605260234,
+   "typhoonh480": 1.1932246730776375,
+   "x500v2": 0.7419970017631432
+  },
+  "ours_min": 0.7419970017631432,
+  "ours_min_drone": "x500v2",
+  "ours_max": 1.6994008126771427,
+  "ours_max_drone": "phantom4",
+  "lit_das_db_per_ghz": 0.21,
+  "lit_mono3d_db_per_ghz": 0.315,
+  "ratio_vs_das": {
+   "matrice4e": 4.456523002987925,
+   "mavic4pro": 6.243277814598125,
+   "mini5pro": 7.224020378087889,
+   "phantom4": 8.092384822272109,
+   "s1000plus": 7.637117431076302,
+   "typhoonh480": 5.682022252750655,
+   "x500v2": 3.533319056014968
+  },
+  "ratio_min": 3.533319056014968,
+  "ratio_max": 8.092384822272109
+ },
+ "anchor": {
+  "mode": "slope_only",
+  "mode_note": "레벨 보존 축(pivot) = 밴드 비가중 평균 -22.07 dBsm (= f̄ 3.518 GHz 에서 회전). 크기 가정 없음",
+  "anchor_id": "das_phantom3_mono",
+  "anchor_platform": "DJI Phantom 3",
+  "correction_max_db": 2.6978628575759664,
+  "correction_max_drone": "phantom4",
+  "correction_max_band": "LTE 1.843 GHz",
+  "correction_min_db": -2.4100080628452805,
+  "correction_min_drone": "s1000plus",
+  "correction_min_band": "WiFi 5.21 GHz",
+  "correction_abs_max_db": 2.6978628575759664,
+  "slope_after_db_per_ghz": 0.2099999999999988,
+  "slope_after_spread_db_per_ghz": 1.887379141862766e-15,
+  "shape_invariance_max_abs_db": 1.928654933106574e-15,
+  "verdicts": {
+   "matrice4e": "scaled",
+   "mavic4pro": "scaled",
+   "mini5pro": "scaled",
+   "phantom4": "direct",
+   "s1000plus": "not_comparable",
+   "typhoonh480": "scaled",
+   "x500v2": "scaled"
+  },
+  "n_direct": 1,
+  "n_scaled": 5,
+  "n_not_comparable": 1,
+  "largest_uncontrolled_term": "size transfer law",
+  "largest_uncontrolled_db": 9.500964921935944,
+  "applied_to_kernel": false,
+  "applied_note": "커널(`src/rcs_sbr.py`)은 그대로다. 재보정은 σ 원장(ledger)이고, 밴드 간 비교는 이 원장 위에서 읽는다(05편).",
+  "from_measurement": "A(f) 의 주파수 기울기 [dB/GHz]",
+  "from_ours": "절대 레벨 A(f)|_mean · 자세 패턴 B₁(φ,θ) · 잔차 분포 B₂",
+  "level_shift_mean_abs_max_db": 4.736951571734001e-15
+ },
+ "anchor_modes": {
+  "rows": [
+   {
+    "mode": "slope_only (기본)",
+    "moves": "주파수 의존성 A(f) 의 기울기만",
+    "mean_shift_range_db": "0.00",
+    "cost": "없음 — 크기 가정 0개",
+    "mean_shift_min_db": -4.736951571734001e-15,
+    "mean_shift_min_drone": "matrice4e",
+    "mean_shift_max_db": 2.3684757858670005e-15,
+    "mean_shift_max_drone": "x500v2",
+    "mean_shift_abs_max_db": 4.736951571734001e-15,
+    "by_drone_db": {
+     "mini5pro": -1.1842378929335002e-15,
+     "phantom4": -5.921189464667501e-16,
+     "mavic4pro": -1.7763568394002505e-15,
+     "matrice4e": -4.736951571734001e-15,
+     "typhoonh480": 0.0,
+     "x500v2": 2.3684757858670005e-15,
+     "s1000plus": -2.960594732333751e-15
+    }
+   },
+   {
+    "mode": "level_and_slope_L2",
+    "moves": "레벨 + 기울기",
+    "mean_shift_range_db": "-0.82 ~ +7.42",
+    "cost": "크기전이 L² 가정 (σ ∝ 투영면적)",
+    "mean_shift_min_db": -0.8176867046922993,
+    "mean_shift_min_drone": "typhoonh480",
+    "mean_shift_max_db": 7.421161954466442,
+    "mean_shift_max_drone": "s1000plus",
+    "mean_shift_abs_max_db": 7.421161954466442,
+    "by_drone_db": {
+     "mini5pro": 4.029038229862642,
+     "phantom4": 2.139822895154061,
+     "mavic4pro": 1.9635153088685122,
+     "matrice4e": 6.473224395638503,
+     "typhoonh480": -0.8176867046922993,
+     "x500v2": 4.741163764862642,
+     "s1000plus": 7.421161954466442
+    }
+   },
+   {
+    "mode": "level_and_slope_L4",
+    "moves": "레벨 + 기울기",
+    "mean_shift_range_db": "+1.93 ~ +16.92",
+    "cost": "크기전이 L⁴ 가정 (σ ∝ A²/λ²) · L² 와 최대 9.50 dB 차 (DJI S1000+)",
+    "mean_shift_min_db": 1.9257771558139325,
+    "mean_shift_min_drone": "typhoonh480",
+    "mean_shift_max_db": 16.922126876402388,
+    "mean_shift_max_drone": "s1000plus",
+    "mean_shift_abs_max_db": 16.922126876402388,
+    "by_drone_db": {
+     "mini5pro": 1.9343312194623852,
+     "phantom4": 2.139822895154061,
+     "mavic4pro": 3.970926211219771,
+     "matrice4e": 8.437195886686462,
+     "typhoonh480": 1.9257771558139325,
+     "x500v2": 7.839202964577505,
+     "s1000plus": 16.922126876402388
+    }
+   }
+  ],
+  "n_airframes": 7,
+  "production_mode": "slope_only",
+  "level_shift_abs_max_db": 4.736951571734001e-15,
+  "size_law_spread_max_db": 9.500964921935944,
+  "size_law_spread_max_drone": "s1000plus",
+  "size_law_spread_max_name": "DJI S1000+",
+  "definition": "평균 레벨이동 = 세 밴드 delta_db 의 산술평균 [dB], 기체 7종에 대한 최소~최대. slope_only 는 밴드 비가중 평균 레벨을 축으로 회전만 시키므로 이 값이 0 이다 — 절대 레벨은 우리 PO 출력 그대로 남는다.",
+  "why_production": "레벨까지 앵커에 맞추려면 크기전이 법칙을 하나 골라야 하고, 그 선택이 기체에 따라 최대 9.50 dB 를 정한다. 측정이 그 대가 없이 제약하는 양은 기울기뿐이므로 기울기만 받는다."
+ },
+ "stock_rt": {
+  "coh_climb_db": 17.938722526898687,
+  "spp_lo": 25000000,
+  "spp_hi": 400000000,
+  "note": "광선을 16배 쏘면 코히런트 합이 이만큼 더 커진다 = 수렴하지 않는다"
+ }
+}

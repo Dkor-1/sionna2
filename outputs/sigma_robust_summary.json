@@ -1,0 +1,2883 @@
+{
+ "_meta": {
+  "producer": "benchmark/sigma_robust_summary.py",
+  "generated": "2026-07-31T06:16:44",
+  "purpose": "σ 강건성 논증을 논문 절 형태로 압축 + 문턱을 직접 재평가로 검증",
+  "reads": [
+   "outputs/sigma_sensitivity.json",
+   "outputs/sigma_anchor.json",
+   "outputs/report13_sigma_grid.json.pre_blade.bak",
+   "outputs/report13_sigma_grid.json"
+  ],
+  "snr90_db": 11.86143572621035,
+  "band_fc_ghz": {
+   "W1": 5.21,
+   "L1": 1.843,
+   "G1": 3.5
+  },
+  "f_pivot_ghz": 3.517666666666667,
+  "span_ghz": 3.367,
+  "verification_epsilon_db": 0.05
+ },
+ "common_mode": {
+  "claim": "공통모드 σ 오차 X dB 는 세 밴드를 함께 옮긴다 — 순위는 불변, 절대거리만 X/4 dB 움직인다.",
+  "verified_by": "직접 R90 재해 (해석식 대입 아님)",
+  "distance_grid": {
+   "d_min_m": 100.0,
+   "d_max_m": 20000.0,
+   "n": 240,
+   "interior_window_used_m": [
+    105.0,
+    19000.0
+   ],
+   "common_interior_offset_window_db": [
+    -20.0,
+    11.5
+   ],
+   "why": "+오프셋을 크게 주면 R90 이 20 km 격자 천장에 닿아 포화한다. 그 구간의 '법칙 위반'은 물리가 아니라 격자 인공물이라 검정에서 제외하고 아래 grid_ceiling_artifact 에 따로 적는다."
+  },
+  "quarter_law": {
+   "predicted_slope_db_range_per_db_sigma": 0.25,
+   "measured_slope_mean": 0.24692831139479482,
+   "measured_slope_min": 0.23012372270182396,
+   "measured_slope_max": 0.2540556839525422,
+   "max_abs_deviation_db": 0.6404452264630134,
+   "median_abs_deviation_db": 0.10127708590763307,
+   "holds": true,
+   "why_not_exactly_quarter": "R90 은 단일 R^-4 가 아니라 바이스태틱 κ=R1·R2 위에서 풀리고, σ(d) 는 거리에 따라 관측 자세가 바뀌므로 상수가 아니다. 국소 지수 n_local 이 4 근방에서 흔들려 기울기가 셀마다 0.25 를 살짝 벗어난다.",
+   "range_factor_at_pm10db": {
+    "minus10": 0.5623413251903491,
+    "plus10": 1.7782794100389228,
+    "minus10_pct": -43.76586748096509,
+    "plus10_pct": 77.82794100389228
+   }
+  },
+  "order_invariance": {
+   "grid": "[-20.0, +11.5] dB (15 셀 공통 격자내부), 0.25 dB 간격",
+   "by_drone": {
+    "mini5pro": {
+     "base_order": [
+      "L1",
+      "G1",
+      "W1"
+     ],
+     "offsets_with_changed_order": [],
+     "order_invariant": true
+    },
+    "mavic4pro": {
+     "base_order": [
+      "W1",
+      "G1",
+      "L1"
+     ],
+     "offsets_with_changed_order": [],
+     "order_invariant": true
+    },
+    "matrice4e": {
+     "base_order": [
+      "L1",
+      "G1",
+      "W1"
+     ],
+     "offsets_with_changed_order": [],
+     "order_invariant": true
+    },
+    "phantom4": {
+     "base_order": [
+      "W1",
+      "G1",
+      "L1"
+     ],
+     "offsets_with_changed_order": [],
+     "order_invariant": true
+    },
+    "s1000plus": {
+     "base_order": [
+      "G1",
+      "W1",
+      "L1"
+     ],
+     "offsets_with_changed_order": [
+      -20.0,
+      -19.75,
+      -19.5,
+      -19.25,
+      -19.0,
+      -18.75,
+      -18.5,
+      -18.25
+     ],
+     "order_invariant": false
+    }
+   },
+   "invariant_everywhere": false,
+   "first_flip": {
+    "s1000plus": -18.25
+   },
+   "verified_invariant_interval_db": [
+    -18.0,
+    11.5
+   ],
+   "lower_limit_cause": "실제 순위 뒤집힘 (s1000plus, −18.25 dB 이하)",
+   "upper_limit_cause": "격자 천장 — R90 이 20 km 를 넘어 검정 불가. 뒤집힘이 관측된 것이 아니다.",
+   "largest_symmetric_invariant_window_db": 11.25,
+   "interpretation": "논문이 필요로 하는 ±10 dB 는 전부 이 안에 든다. 다섯 기체 어디에서도 순위가 바뀌지 않는다. 유일한 뒤집힘은 s1000plus 가 −18.25 dB 에서 일으키는 것이고, 그건 어떤 σ 오차 시나리오보다도 크다."
+  },
+  "grid_ceiling_artifact": {
+   "by_drone": {
+    "mini5pro": {
+     "offsets_with_changed_order_full_pm20": [],
+     "first_change_db": null
+    },
+    "mavic4pro": {
+     "offsets_with_changed_order_full_pm20": [],
+     "first_change_db": null
+    },
+    "matrice4e": {
+     "offsets_with_changed_order_full_pm20": [],
+     "first_change_db": null
+    },
+    "phantom4": {
+     "offsets_with_changed_order_full_pm20": [],
+     "first_change_db": null
+    },
+    "s1000plus": {
+     "offsets_with_changed_order_full_pm20": [
+      -20.0,
+      -19.75,
+      -19.5,
+      -19.25,
+      -19.0,
+      -18.75,
+      -18.5,
+      -18.25,
+      13.0,
+      13.25,
+      13.5,
+      13.75,
+      14.0,
+      14.25,
+      14.5,
+      14.75,
+      15.0,
+      15.25,
+      15.5,
+      15.75,
+      16.0,
+      16.25,
+      16.5,
+      16.75,
+      17.0,
+      17.25,
+      17.5,
+      17.75,
+      18.0,
+      18.25,
+      18.5,
+      18.75,
+      19.0,
+      19.25,
+      19.5,
+      19.75,
+      20.0
+     ],
+     "first_change_db": 13.0
+    }
+   },
+   "note": "±20 dB 까지 억지로 밀면 순위가 바뀌는 지점이 나오지만, 그건 R90 이 20 km 천장에 눌려 셋이 같은 값으로 포화하기 때문이다. 물리적 결론이 아니다."
+  },
+  "pair_gap_invariance": {
+   "common_mode_test_db": 10.0,
+   "max_lead_drift_db": 1.4306640625,
+   "median_lead_drift_db": 0.2201080322265625,
+   "exact": false,
+   "by_cell": {
+    "mini5pro.W1-L1": {
+     "lead_db": -7.574348449707031,
+     "lead_at_plus_db": -7.497367858886719,
+     "lead_at_minus_db": -7.574348449707031,
+     "max_drift_db": 0.0769805908203125
+    },
+    "mini5pro.W1-G1": {
+     "lead_db": -3.9239883422851562,
+     "lead_at_plus_db": -3.9239883422851562,
+     "lead_at_minus_db": -4.423866271972656,
+     "max_drift_db": 0.4998779296875
+    },
+    "mini5pro.L1-G1": {
+     "lead_db": 3.6503982543945312,
+     "lead_at_plus_db": 3.6503982543945312,
+     "lead_at_minus_db": 3.3427810668945312,
+     "max_drift_db": 0.3076171875
+    },
+    "mavic4pro.W1-L1": {
+     "lead_db": 11.118049621582031,
+     "lead_at_plus_db": 11.344566345214844,
+     "lead_at_minus_db": 9.687385559082031,
+     "max_drift_db": 1.4306640625
+    },
+    "mavic4pro.W1-G1": {
+     "lead_db": 0.9333419799804688,
+     "lead_at_plus_db": 0.9998703002929688,
+     "lead_at_minus_db": 0.9333419799804688,
+     "max_drift_db": 0.0665283203125
+    },
+    "mavic4pro.L1-G1": {
+     "lead_db": -10.411186218261719,
+     "lead_at_plus_db": -11.802558898925781,
+     "lead_at_minus_db": -10.411186218261719,
+     "max_drift_db": 1.3913726806640625
+    },
+    "matrice4e.W1-L1": {
+     "lead_db": -4.085350036621094,
+     "lead_at_plus_db": -4.579505920410156,
+     "lead_at_minus_db": -4.085350036621094,
+     "max_drift_db": 0.4941558837890625
+    },
+    "matrice4e.W1-G1": {
+     "lead_db": -0.31208038330078125,
+     "lead_at_plus_db": -0.31208038330078125,
+     "lead_at_minus_db": -0.23456573486328125,
+     "max_drift_db": 0.0775146484375
+    },
+    "matrice4e.L1-G1": {
+     "lead_db": 3.7733078002929688,
+     "lead_at_plus_db": 3.7733078002929688,
+     "lead_at_minus_db": 3.2860183715820312,
+     "max_drift_db": 0.4872894287109375
+    },
+    "phantom4.W1-L1": {
+     "lead_db": 5.534782409667969,
+     "lead_at_plus_db": 5.534782409667969,
+     "lead_at_minus_db": 5.728263854980469,
+     "max_drift_db": 0.1934814453125
+    },
+    "phantom4.W1-G1": {
+     "lead_db": 2.5567245483398438,
+     "lead_at_plus_db": 2.5567245483398438,
+     "lead_at_minus_db": 2.6072311401367188,
+     "max_drift_db": 0.050506591796875
+    },
+    "phantom4.L1-G1": {
+     "lead_db": -2.9780197143554688,
+     "lead_at_plus_db": -2.9780197143554688,
+     "lead_at_minus_db": -3.1210708618164062,
+     "max_drift_db": 0.1430511474609375
+    },
+    "s1000plus.W1-L1": {
+     "lead_db": 0.7880783081054688,
+     "lead_at_plus_db": 0.7290267944335938,
+     "lead_at_minus_db": 0.7880783081054688,
+     "max_drift_db": 0.059051513671875
+    },
+    "s1000plus.W1-G1": {
+     "lead_db": -0.6193923950195312,
+     "lead_at_plus_db": -0.39928436279296875,
+     "lead_at_minus_db": -0.6193923950195312,
+     "max_drift_db": 0.2201080322265625
+    },
+    "s1000plus.L1-G1": {
+     "lead_db": -1.4075088500976562,
+     "lead_at_plus_db": -1.1282730102539062,
+     "lead_at_minus_db": -1.4075088500976562,
+     "max_drift_db": 0.27923583984375
+    }
+   },
+   "interpretation": "⭐ 쌍 격차는 **정확히는** 상쇄되지 않는다. 공통모드 오프셋이 해 거리를 옮기면 표적이 다른 자세로 보이고, σ(d) 로브 구조가 밴드마다 달라서 격차가 조금 흔들린다. 이 표류는 위 order_invariance 를 깨지 못할 만큼 작지만, '격차가 정확히 불변'이라는 서술은 과하다 — '순위가 불변'이 정확한 서술이다."
+  },
+  "by_cell": {
+   "mini5pro.W1": {
+    "R90_base_m": 4205.834620885038,
+    "interior_offset_window_db": [
+     -20.0,
+     20.0
+    ],
+    "slope_db_range_per_db_sigma": 0.2540556839525422,
+    "max_abs_dev_from_quarter_law_db": 0.14428115434983457,
+    "R90_at_minus10_m": 2315.4238463507995,
+    "R90_at_plus10_m": 7488.503313726018,
+    "plus10_inside_grid": true
+   },
+   "mini5pro.L1": {
+    "R90_base_m": 6511.38549716404,
+    "interior_offset_window_db": [
+     -20.0,
+     18.5
+    ],
+    "slope_db_range_per_db_sigma": 0.2505650555321947,
+    "max_abs_dev_from_quarter_law_db": 0.05646831191926349,
+    "R90_at_minus10_m": 3655.570367442574,
+    "R90_at_plus10_m": 11508.952707556944,
+    "plus10_inside_grid": true
+   },
+   "mini5pro.G1": {
+    "R90_base_m": 5275.215948933997,
+    "interior_offset_window_db": [
+     -20.0,
+     20.0
+    ],
+    "slope_db_range_per_db_sigma": 0.24587676622669352,
+    "max_abs_dev_from_quarter_law_db": 0.14426240486765884,
+    "R90_at_minus10_m": 2994.1330029104006,
+    "R90_at_plus10_m": 9388.266651420461,
+    "plus10_inside_grid": true
+   },
+   "mavic4pro.W1": {
+    "R90_base_m": 6726.718173484434,
+    "interior_offset_window_db": [
+     -20.0,
+     18.0
+    ],
+    "slope_db_range_per_db_sigma": 0.2509485437798111,
+    "max_abs_dev_from_quarter_law_db": 0.04981782633395326,
+    "R90_at_minus10_m": 3776.855124826399,
+    "R90_at_plus10_m": 11941.476138454005,
+    "plus10_inside_grid": true
+   },
+   "mavic4pro.L1": {
+    "R90_base_m": 3537.938831669595,
+    "interior_offset_window_db": [
+     -20.0,
+     20.0
+    ],
+    "slope_db_range_per_db_sigma": 0.23012372270182396,
+    "max_abs_dev_from_quarter_law_db": 0.6404452264630134,
+    "R90_at_minus10_m": 2141.657100428852,
+    "R90_at_plus10_m": 6224.972299655756,
+    "plus10_inside_grid": true
+   },
+   "mavic4pro.G1": {
+    "R90_base_m": 6374.329562901768,
+    "interior_offset_window_db": [
+     -20.0,
+     19.0
+    ],
+    "slope_db_range_per_db_sigma": 0.24955807044908804,
+    "max_abs_dev_from_quarter_law_db": 0.023916405872672186,
+    "R90_at_minus10_m": 3578.367758502485,
+    "R90_at_plus10_m": 11273.257572548766,
+    "plus10_inside_grid": true
+   },
+   "matrice4e.W1": {
+    "R90_base_m": 5659.550397676081,
+    "interior_offset_window_db": [
+     -20.0,
+     20.0
+    ],
+    "slope_db_range_per_db_sigma": 0.24418278257553544,
+    "max_abs_dev_from_quarter_law_db": 0.12116758992928212,
+    "R90_at_minus10_m": 3271.5659944379677,
+    "R90_at_plus10_m": 10071.214175828709,
+    "plus10_inside_grid": true
+   },
+   "matrice4e.L1": {
+    "R90_base_m": 7162.754186416079,
+    "interior_offset_window_db": [
+     -20.0,
+     16.5
+    ],
+    "slope_db_range_per_db_sigma": 0.2515634781932888,
+    "max_abs_dev_from_quarter_law_db": 0.03771284873771652,
+    "R90_at_minus10_m": 4022.412856465971,
+    "R90_at_plus10_m": 12799.542524932622,
+    "plus10_inside_grid": true
+   },
+   "matrice4e.G1": {
+    "R90_base_m": 5762.3381907790035,
+    "interior_offset_window_db": [
+     -20.0,
+     20.0
+    ],
+    "slope_db_range_per_db_sigma": 0.24611508404377733,
+    "max_abs_dev_from_quarter_law_db": 0.10127708590763307,
+    "R90_at_minus10_m": 3316.3099753702163,
+    "R90_at_plus10_m": 10253.876081876908,
+    "plus10_inside_grid": true
+   },
+   "phantom4.W1": {
+    "R90_base_m": 6783.7878201391295,
+    "interior_offset_window_db": [
+     -20.0,
+     18.0
+    ],
+    "slope_db_range_per_db_sigma": 0.24683528318664583,
+    "max_abs_dev_from_quarter_law_db": 0.06447904992350262,
+    "R90_at_minus10_m": 3808.99720748667,
+    "R90_at_plus10_m": 11908.73165241081,
+    "plus10_inside_grid": true
+   },
+   "phantom4.L1": {
+    "R90_base_m": 4929.818298460245,
+    "interior_offset_window_db": [
+     -20.0,
+     20.0
+    ],
+    "slope_db_range_per_db_sigma": 0.2496914997189274,
+    "max_abs_dev_from_quarter_law_db": 0.06029435513454562,
+    "R90_at_minus10_m": 2780.228169800687,
+    "R90_at_plus10_m": 8774.575559559265,
+    "plus10_inside_grid": true
+   },
+   "phantom4.G1": {
+    "R90_base_m": 5853.9603962413585,
+    "interior_offset_window_db": [
+     -20.0,
+     20.0
+    ],
+    "slope_db_range_per_db_sigma": 0.2504396569045905,
+    "max_abs_dev_from_quarter_law_db": 0.057216819439407374,
+    "R90_at_minus10_m": 3331.612483436492,
+    "R90_at_plus10_m": 10416.700003203552,
+    "plus10_inside_grid": true
+   },
+   "s1000plus.W1": {
+    "R90_base_m": 9758.404077100975,
+    "interior_offset_window_db": [
+     -20.0,
+     12.0
+    ],
+    "slope_db_range_per_db_sigma": 0.2435044543434272,
+    "max_abs_dev_from_quarter_law_db": 0.13703288352187837,
+    "R90_at_minus10_m": 5483.518222124445,
+    "R90_at_plus10_m": 16858.30426817783,
+    "plus10_inside_grid": true
+   },
+   "s1000plus.L1": {
+    "R90_base_m": 9325.307643228549,
+    "interior_offset_window_db": [
+     -20.0,
+     12.5
+    ],
+    "slope_db_range_per_db_sigma": 0.24587456239844527,
+    "max_abs_dev_from_quarter_law_db": 0.11145263338189704,
+    "R90_at_minus10_m": 5239.782579939299,
+    "R90_at_plus10_m": 16165.329396628169,
+    "plus10_inside_grid": true
+   },
+   "s1000plus.G1": {
+    "R90_base_m": 10112.873311491881,
+    "interior_offset_window_db": [
+     -20.0,
+     11.5
+    ],
+    "slope_db_range_per_db_sigma": 0.24459002691513146,
+    "max_abs_dev_from_quarter_law_db": 0.18147569624369936,
+    "R90_at_minus10_m": 5682.992670815611,
+    "R90_at_plus10_m": 17250.37136817982,
+    "plus10_inside_grid": true
+   }
+  },
+  "paper_sentence": "→ paper_ready.sentences.common_mode (문장은 한 곳에서만 유지한다)",
+  "correction_to_paper_spec": "docs/PAPER_SPEC.md §1 은 '순위와 격차는 불변'이라고 적었다. 순위는 확인됐지만 '격차 불변'은 정확하지 않다 — pair_gap_invariance 참조. 논문 문장에서 'gap' 을 빼고 '순위'와 '절대거리 X/4 dB' 만 주장해야 한다."
+ },
+ "flip_threshold": {
+  "claim": "파형 순위는 밴드 스팬 전체에 걸친 차분 σ 오차 X dB 까지 살아남는다. X 는 설정·기체·쌍마다 다르며 아래 표가 전부다.",
+  "method": "⭐ 문턱 X 를 **실제 차분 스윕 위에서 직접 이분법**으로 구한다 — 두 밴드를 동시에 s·(f−f̄) 만큼 반대로 밀며 R90_a−R90_b 의 부호가 바뀌는 span 을 찾는다. 그 X 에서 ±0.05 dB 떨어진 두 점에서 R90 을 다시 풀어 X−ε 에서 순위가 유지되고 X+ε 에서 실제로 뒤집히는지 확인했다 (보간·해석식 아님).",
+  "by_config": {
+   "as_published": {
+    "description": "single aspect, no anchor, no duty — the current headline R90",
+    "by_drone": {
+     "mini5pro": {
+      "base_order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "R90_m": {
+       "W1": 4205.834620885038,
+       "L1": 6511.38549716404,
+       "G1": 5275.215948933997
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -7.574348449707031,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 7.57434844970703,
+        "span_flip_db": 7.574365234374999,
+        "analytic_minus_direct_db": -1.678466796839473e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         5232.155685708506,
+         5247.273024441202
+        ],
+        "R90_pair_at_plus_eps_m": [
+         5247.351905191431,
+         5232.235440403283
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -3.9239883422851562,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 7.726355993259721,
+        "span_flip_db": 7.726318359375,
+        "analytic_minus_direct_db": 3.7633884720555955e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         5255.264229348396,
+         5262.970284812548
+        ],
+        "R90_pair_at_plus_eps_m": [
+         5270.527565049214,
+         5262.8109473007635
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 3.6503982543945312,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 7.417556380534934,
+        "span_flip_db": 7.417529296875,
+        "analytic_minus_direct_db": 2.7083659933424542e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         5270.9444520047455,
+         5263.462332069391
+        ],
+        "R90_pair_at_plus_eps_m": [
+         5255.83903061976,
+         5263.302979660774
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "L1-G1",
+      "flip_threshold_span_db": 7.417529296875,
+      "flip_threshold_analytic_db": 7.417556380534934,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "G1",
+       "L1",
+       "W1"
+      ],
+      "direct_verification_passed": true
+     },
+     "mavic4pro": {
+      "base_order": [
+       "W1",
+       "G1",
+       "L1"
+      ],
+      "R90_m": {
+       "W1": 6726.718173484434,
+       "L1": 3537.938831669595,
+       "G1": 6374.329562901768
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": 11.118049621582031,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 11.118049621582031,
+        "span_flip_db": 11.344580078125002,
+        "analytic_minus_direct_db": -0.22653045654297088,
+        "flip_direction_sign": -1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         4848.344168443545,
+         4834.379664129836
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4834.298049160455,
+         4848.279174147462
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": 0.9333419799804688,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 1.837755816721777,
+        "span_flip_db": 1.8377441406250001,
+        "analytic_minus_direct_db": 1.1676096776769285e-05,
+        "flip_direction_sign": -1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         6387.122847920827,
+         6377.777930271124
+        ],
+        "R90_pair_at_plus_eps_m": [
+         6368.640223304544,
+         6377.970874666347
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": -10.411186218261719,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 21.155379599811226,
+        "span_flip_db": 21.155419921875,
+        "analytic_minus_direct_db": -4.032206377502234e-05,
+        "flip_direction_sign": -1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         6406.061588357533,
+         6415.158860104977
+        ],
+        "R90_pair_at_plus_eps_m": [
+         6424.458458053441,
+         6415.352935370698
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 1.8377441406250001,
+      "flip_threshold_analytic_db": 1.837755816721777,
+      "order_at_threshold_minus_eps": [
+       "W1",
+       "G1",
+       "L1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "G1",
+       "W1",
+       "L1"
+      ],
+      "direct_verification_passed": true
+     },
+     "matrice4e": {
+      "base_order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "R90_m": {
+       "W1": 5659.550397676081,
+       "L1": 7162.754186416079,
+       "G1": 5762.3381907790035
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -4.085350036621094,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 4.085350036621094,
+        "span_flip_db": 4.0853027343749995,
+        "analytic_minus_direct_db": 4.730224609428291e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         6361.788187812436,
+         6380.16875666957
+        ],
+        "R90_pair_at_plus_eps_m": [
+         6380.250926927981,
+         6361.898713517961
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -0.31208038330078125,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 0.6144880997507195,
+        "span_flip_db": 0.6144042968750001,
+        "analytic_minus_direct_db": 8.380287571940759e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         5752.916338785378,
+         5761.35400066512
+        ],
+        "R90_pair_at_plus_eps_m": [
+         5769.618630437858,
+         5761.179641402652
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 3.7733078002929688,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 7.667306797577806,
+        "span_flip_db": 7.667236328125001,
+        "analytic_minus_direct_db": 7.046945280553274e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         5757.239769156756,
+         5749.0696636229395
+        ],
+        "R90_pair_at_plus_eps_m": [
+         5740.747048311438,
+         5748.895676128626
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 0.6144042968750001,
+      "flip_threshold_analytic_db": 0.6144880997507195,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "direct_verification_passed": true
+     },
+     "phantom4": {
+      "base_order": [
+       "W1",
+       "G1",
+       "L1"
+      ],
+      "R90_m": {
+       "W1": 6783.7878201391295,
+       "L1": 4929.818298460245,
+       "G1": 5853.9603962413585
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": 5.534782409667969,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 5.534782409667969,
+        "span_flip_db": 5.534716796875,
+        "analytic_minus_direct_db": 6.561279296857236e-05,
+        "flip_direction_sign": -1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         5786.813247037239,
+         5770.135922204859
+        ],
+        "R90_pair_at_plus_eps_m": [
+         5770.0618208378955,
+         5786.712440180481
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": 2.5567245483398438,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 5.034205587286698,
+        "span_flip_db": 5.034228515625,
+        "analytic_minus_direct_db": -2.2928338301753115e-05,
+        "flip_direction_sign": -1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         5871.381758859163,
+         5862.796586718852
+        ],
+        "R90_pair_at_plus_eps_m": [
+         5854.386332114568,
+         5862.9740061477205
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": -2.9780197143554688,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 6.051292925911203,
+        "span_flip_db": 6.051318359374999,
+        "analytic_minus_direct_db": -2.5433463796353806e-05,
+        "flip_direction_sign": -1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         5856.281146748395,
+         5864.601352133873
+        ],
+        "R90_pair_at_plus_eps_m": [
+         5873.10434282496,
+         5864.778826178391
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 5.034228515625,
+      "flip_threshold_analytic_db": 5.034205587286698,
+      "order_at_threshold_minus_eps": [
+       "W1",
+       "G1",
+       "L1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "G1",
+       "W1",
+       "L1"
+      ],
+      "direct_verification_passed": true
+     },
+     "s1000plus": {
+      "base_order": [
+       "G1",
+       "W1",
+       "L1"
+      ],
+      "R90_m": {
+       "W1": 9758.404077100975,
+       "L1": 9325.307643228549,
+       "G1": 10112.873311491881
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": 0.7880783081054688,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 0.7880783081054688,
+        "span_flip_db": 0.788037109375,
+        "analytic_minus_direct_db": 4.119873046870559e-05,
+        "flip_direction_sign": -1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         9552.09177435049,
+         9524.603732066727
+        ],
+        "R90_pair_at_plus_eps_m": [
+         9524.474632946392,
+         9551.932528829633
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -0.6193923950195312,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 1.2195872479712055,
+        "span_flip_db": 1.219677734375,
+        "analytic_minus_direct_db": -9.048640379449857e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         10094.531382514037,
+         10109.298913476896
+        ],
+        "R90_pair_at_plus_eps_m": [
+         10123.798851263486,
+         10108.993383830166
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": -1.4075088500976562,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 2.8600375970300593,
+        "span_flip_db": 2.8600097656250014,
+        "analytic_minus_direct_db": 2.783140505790982e-05,
+        "flip_direction_sign": -1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         10107.134141518763,
+         10121.4655378288
+        ],
+        "R90_pair_at_plus_eps_m": [
+         10136.13180007321,
+         10121.771444428296
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "W1-L1",
+      "flip_threshold_span_db": 0.788037109375,
+      "flip_threshold_analytic_db": 0.7880783081054688,
+      "order_at_threshold_minus_eps": [
+       "G1",
+       "W1",
+       "L1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "G1",
+       "L1",
+       "W1"
+      ],
+      "direct_verification_passed": true
+     }
+    },
+    "by_pair": {
+     "W1-L1": {
+      "worst_flip_span_db": 0.788037109375,
+      "median_flip_span_db": 5.534716796875,
+      "per_drone_flip_span_db": {
+       "mini5pro": 7.574365234374999,
+       "mavic4pro": 11.344580078125002,
+       "matrice4e": 4.0853027343749995,
+       "phantom4": 5.534716796875,
+       "s1000plus": 0.788037109375
+      },
+      "lead_sign_consistent": false,
+      "winner": null
+     },
+     "W1-G1": {
+      "worst_flip_span_db": 0.6144042968750001,
+      "median_flip_span_db": 1.8377441406250001,
+      "per_drone_flip_span_db": {
+       "mini5pro": 7.726318359375,
+       "mavic4pro": 1.8377441406250001,
+       "matrice4e": 0.6144042968750001,
+       "phantom4": 5.034228515625,
+       "s1000plus": 1.219677734375
+      },
+      "lead_sign_consistent": false,
+      "winner": null
+     },
+     "L1-G1": {
+      "worst_flip_span_db": 2.8600097656250014,
+      "median_flip_span_db": 7.417529296875,
+      "per_drone_flip_span_db": {
+       "mini5pro": 7.417529296875,
+       "mavic4pro": 21.155419921875,
+       "matrice4e": 7.667236328125001,
+       "phantom4": 6.051318359374999,
+       "s1000plus": 2.8600097656250014
+      },
+      "lead_sign_consistent": false,
+      "winner": null
+     }
+    },
+    "n_distinct_orders": 3,
+    "all_drones_agree": false,
+    "consensus_order": null,
+    "worst_flip_span_db": 0.6144042968750001,
+    "median_flip_span_db": 1.8377441406250001,
+    "winner": null,
+    "winner_worst_margin_span_db": null,
+    "all_direct_verifications_passed": true
+   },
+   "aspect_avg": {
+    "description": "aspect-averaged sigma",
+    "by_drone": {
+     "mini5pro": {
+      "base_order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "R90_m": {
+       "W1": 3684.1286936925503,
+       "L1": 4649.084948839847,
+       "G1": 4017.024501769652
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -4.025917053222656,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 4.025917053222656,
+        "span_flip_db": 4.025927734375,
+        "analytic_minus_direct_db": -1.0681152343927636e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         4135.305177328971,
+         4147.2754133883645
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4147.333073823413,
+         4135.373059604433
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -1.4962387084960938,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 2.946102766962776,
+        "span_flip_db": 2.946044921875,
+        "analytic_minus_direct_db": 5.784508777617603e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         4007.606274803289,
+         4013.498095528067
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4019.2652550727266,
+         4013.3763845538892
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 2.5297164916992188,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 5.140347270700826,
+        "span_flip_db": 5.140380859375,
+        "analytic_minus_direct_db": -3.3588674173579136e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         4016.5322636879714,
+         4010.82819582807
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4005.002664555718,
+         4010.7065658196943
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 2.946044921875,
+      "flip_threshold_analytic_db": 2.946102766962776,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "direct_verification_passed": true
+     },
+     "mavic4pro": {
+      "base_order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "R90_m": {
+       "W1": 5306.078391945501,
+       "L1": 6958.339331238738,
+       "G1": 5319.872686103818
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -4.700965881347656,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 4.700965881347656,
+        "span_flip_db": 4.700927734375,
+        "analytic_minus_direct_db": 3.814697265625e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         6072.0183928201795,
+         6089.553020357058
+        ],
+        "R90_pair_at_plus_eps_m": [
+         6089.642776212122,
+         6072.112615399563
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -0.04497528076171875,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 0.088556590833162,
+        "span_flip_db": 0.08862304687500001,
+        "analytic_minus_direct_db": -6.645604183801168e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         5312.024652556785,
+         5319.81048552142
+        ],
+        "R90_pair_at_plus_eps_m": [
+         5327.451260747397,
+         5319.649443650498
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 4.655952453613281,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 9.460827948893131,
+        "span_flip_db": 9.460791015624999,
+        "analytic_minus_direct_db": 3.693326813269948e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         5312.274546806357,
+         5304.738533572309
+        ],
+        "R90_pair_at_plus_eps_m": [
+         5297.052238493843,
+         5304.5779479611265
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 0.08862304687500001,
+      "flip_threshold_analytic_db": 0.088556590833162,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "direct_verification_passed": true
+     },
+     "matrice4e": {
+      "base_order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "R90_m": {
+       "W1": 3985.634009506297,
+       "L1": 5495.5738345851205,
+       "G1": 4140.383141977975
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -5.563926696777344,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 5.563926696777344,
+        "span_flip_db": 5.563916015625001,
+        "analytic_minus_direct_db": 1.0681152343039457e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         4677.616572776795,
+         4691.133566739741
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4691.210165928396,
+         4677.6818963054475
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -0.6591415405273438,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 1.297853547927232,
+        "span_flip_db": 1.2978027343750003,
+        "analytic_minus_direct_db": 5.081355223168771e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         4132.743894002737,
+         4138.816960820905
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4144.764768329481,
+         4138.691471341026
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 4.904747009277344,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 9.966374882460359,
+        "span_flip_db": 9.966357421875,
+        "analytic_minus_direct_db": 1.746058535978534e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         4133.832431567614,
+         4127.952955211644
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4121.968180042751,
+         4127.827795129858
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 1.2978027343750003,
+      "flip_threshold_analytic_db": 1.297853547927232,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "direct_verification_passed": true
+     },
+     "phantom4": {
+      "base_order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "R90_m": {
+       "W1": 4653.075731365084,
+       "L1": 5688.041522379556,
+       "G1": 4963.203943880405
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -3.4803390502929688,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 3.4803390502929688,
+        "span_flip_db": 3.4803222656250012,
+        "analytic_minus_direct_db": 1.678466796750655e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         5139.974937225838,
+         5154.830693452353
+        ],
+        "R90_pair_at_plus_eps_m": [
+         5154.9050279456505,
+         5140.056450951546
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -1.1177444458007812,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 2.2008453502989656,
+        "span_flip_db": 2.2008300781250005,
+        "analytic_minus_direct_db": 1.5272173965019675e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         4952.706853356361,
+         4959.972359178064
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4967.094597932393,
+         4959.822162119866
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 2.3625564575195312,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 4.800680502394847,
+        "span_flip_db": 4.800732421875,
+        "analytic_minus_direct_db": -5.191948015248471e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         4963.114937590069,
+         4956.068860049232
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4948.888581966044,
+         4955.91878119614
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 2.2008300781250005,
+      "flip_threshold_analytic_db": 2.2008453502989656,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "direct_verification_passed": true
+     },
+     "s1000plus": {
+      "base_order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "R90_m": {
+       "W1": 6222.222913131309,
+       "L1": 7748.544181824077,
+       "G1": 6369.861986332972
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -3.8058090209960938,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 3.8058090209960938,
+        "span_flip_db": 3.8058105468750005,
+        "analytic_minus_direct_db": -1.525878906782907e-06,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         6937.619446149948,
+         6957.650402657325
+        ],
+        "R90_pair_at_plus_eps_m": [
+         6957.748128225703,
+         6937.731827341762
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -0.40668487548828125,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 0.8007648981105514,
+        "span_flip_db": 0.800830078125,
+        "analytic_minus_direct_db": -6.518001444855148e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         6359.099636907728,
+         6368.415286047043
+        ],
+        "R90_pair_at_plus_eps_m": [
+         6377.554573497869,
+         6368.222630724521
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 3.3990859985351562,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 6.9068935166372185,
+        "span_flip_db": 6.906982421875,
+        "analytic_minus_direct_db": -8.890523778148918e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         6365.681478895006,
+         6356.662139410376
+        ],
+        "R90_pair_at_plus_eps_m": [
+         6347.452921039506,
+         6356.4698396403965
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 0.800830078125,
+      "flip_threshold_analytic_db": 0.8007648981105514,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "direct_verification_passed": true
+     }
+    },
+    "by_pair": {
+     "W1-L1": {
+      "worst_flip_span_db": 3.4803222656250012,
+      "median_flip_span_db": 4.025927734375,
+      "per_drone_flip_span_db": {
+       "mini5pro": 4.025927734375,
+       "mavic4pro": 4.700927734375,
+       "matrice4e": 5.563916015625001,
+       "phantom4": 3.4803222656250012,
+       "s1000plus": 3.8058105468750005
+      },
+      "lead_sign_consistent": true,
+      "winner": "b"
+     },
+     "W1-G1": {
+      "worst_flip_span_db": 0.08862304687500001,
+      "median_flip_span_db": 1.2978027343750003,
+      "per_drone_flip_span_db": {
+       "mini5pro": 2.946044921875,
+       "mavic4pro": 0.08862304687500001,
+       "matrice4e": 1.2978027343750003,
+       "phantom4": 2.2008300781250005,
+       "s1000plus": 0.800830078125
+      },
+      "lead_sign_consistent": true,
+      "winner": "b"
+     },
+     "L1-G1": {
+      "worst_flip_span_db": 4.800732421875,
+      "median_flip_span_db": 6.906982421875,
+      "per_drone_flip_span_db": {
+       "mini5pro": 5.140380859375,
+       "mavic4pro": 9.460791015624999,
+       "matrice4e": 9.966357421875,
+       "phantom4": 4.800732421875,
+       "s1000plus": 6.906982421875
+      },
+      "lead_sign_consistent": true,
+      "winner": "a"
+     }
+    },
+    "n_distinct_orders": 1,
+    "all_drones_agree": true,
+    "consensus_order": [
+     "L1",
+     "G1",
+     "W1"
+    ],
+    "worst_flip_span_db": 0.08862304687500001,
+    "median_flip_span_db": 1.2978027343750003,
+    "winner": "L1",
+    "winner_worst_margin_span_db": 3.4803222656250012,
+    "all_direct_verifications_passed": true
+   },
+   "aspect_avg_anchored": {
+    "description": "aspect-averaged + measured 0.210 dB/GHz slope",
+    "by_drone": {
+     "mini5pro": {
+      "base_order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "R90_m": {
+       "W1": 3243.7098762386468,
+       "L1": 5257.957359174345,
+       "G1": 4022.250480300024
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -8.313102722167969,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 8.313102722167969,
+        "span_flip_db": 8.313134765624998,
+        "analytic_minus_direct_db": -3.204345702911837e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         4135.3133876388065,
+         4147.267266642774
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4147.341306642698,
+         4135.364934886635
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -3.6735153198242188,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 7.233173147279617,
+        "span_flip_db": 7.2332519531249995,
+        "analytic_minus_direct_db": -7.880584538266788e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         4007.6142329622335,
+         4013.4980123289174
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4019.2732363836462,
+         4013.3763013572625
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 4.639549255371094,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 9.427496887649049,
+        "span_flip_db": 9.427490234375004,
+        "analytic_minus_direct_db": 6.65327404547611e-06,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         4016.5356466408775,
+         4010.8282314653716
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4005.0060377977375,
+         4010.706601455915
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 7.2332519531249995,
+      "flip_threshold_analytic_db": 7.233173147279617,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "direct_verification_passed": true
+     },
+     "mavic4pro": {
+      "base_order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "R90_m": {
+       "W1": 4775.638246175279,
+       "L1": 7721.634473007189,
+       "G1": 5325.723454040255
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -8.331947326660156,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 8.331947326660156,
+        "span_flip_db": 8.331884765624999,
+        "analytic_minus_direct_db": 6.256103515767109e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         6072.014572623753,
+         6089.556811592632
+        ],
+        "R90_pair_at_plus_eps_m": [
+         6089.638944927362,
+         6072.116395777084
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -1.8890762329101562,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 3.7196021498295297,
+        "span_flip_db": 3.7195800781250004,
+        "analytic_minus_direct_db": 2.2071704529391667e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         5312.021308744582,
+         5319.810520479442
+        ],
+        "R90_pair_at_plus_eps_m": [
+         5327.447907224449,
+         5319.649478607462
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 6.442832946777344,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 13.0917432298125,
+        "span_flip_db": 13.091748046875,
+        "analytic_minus_direct_db": -4.8170624999954725e-06,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         5312.277855869451,
+         5304.738568431289
+        ],
+        "R90_pair_at_plus_eps_m": [
+         5297.055538074832,
+         5304.577982819051
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 3.7195800781250004,
+      "flip_threshold_analytic_db": 3.7196021498295297,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "direct_verification_passed": true
+     },
+     "matrice4e": {
+      "base_order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "R90_m": {
+       "W1": 3677.774327141679,
+       "L1": 5949.451895270717,
+       "G1": 4143.85722017184
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -8.330039978027344,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 8.330039978027344,
+        "span_flip_db": 8.330029296875,
+        "analytic_minus_direct_db": 1.0681152343039457e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         4677.608554753565,
+         4691.141524002461
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4691.2021246040385,
+         4677.689830750975
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -2.0640182495117188,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 4.064064003570735,
+        "span_flip_db": 4.064013671875,
+        "analytic_minus_direct_db": 5.033169573476215e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         4132.748525754658,
+         4138.81691239793
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4144.7694127803325,
+         4138.6914229195145
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 6.266059875488281,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 12.73254290933557,
+        "span_flip_db": 12.732568359375001,
+        "analytic_minus_direct_db": -2.545003943055235e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         4133.827846965516,
+         4127.952906915774
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4121.963608598626,
+         4127.827746835453
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 4.064013671875,
+      "flip_threshold_analytic_db": 4.064064003570735,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "direct_verification_passed": true
+     },
+     "phantom4": {
+      "base_order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "R90_m": {
+       "W1": 4043.80995105755,
+       "L1": 6533.914873757333,
+       "G1": 4970.4743554240285
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -8.314170837402344,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 8.314170837402344,
+        "span_flip_db": 8.314111328125001,
+        "analytic_minus_direct_db": 5.9509277342328915e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         5139.970728887268,
+         5154.834869898622
+        ],
+        "R90_pair_at_plus_eps_m": [
+         5154.900807383114,
+         5140.060615427711
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -3.5727310180664062,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 7.034728267736603,
+        "span_flip_db": 7.034619140625,
+        "analytic_minus_direct_db": 0.0001091271116031578,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         4952.702797889336,
+         4959.97240157616
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4967.09053068413,
+         4959.8222045166785
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 4.741477966308594,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 9.63461455193786,
+        "span_flip_db": 9.634521484375,
+        "analytic_minus_direct_db": 9.306756285987206e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         4963.118959157963,
+         4956.06890241396
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4948.892592006454,
+         4955.918823559591
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 7.034619140625,
+      "flip_threshold_analytic_db": 7.034728267736603,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "direct_verification_passed": true
+     },
+     "s1000plus": {
+      "base_order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "R90_m": {
+       "W1": 5458.480377292535,
+       "L1": 8819.545186181651,
+       "G1": 6378.573285902982
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -8.323326110839844,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 8.323326110839844,
+        "span_flip_db": 8.323388671875001,
+        "analytic_minus_direct_db": -6.256103515767109e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         6937.631463587839,
+         6957.638476357183
+        ],
+        "R90_pair_at_plus_eps_m": [
+         6957.760180530768,
+         6937.719935184592
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -2.7009963989257812,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 5.318277704785442,
+        "span_flip_db": 5.318310546875,
+        "analytic_minus_direct_db": -3.284208955811607e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         6359.092658760798,
+         6368.41535900032
+        ],
+        "R90_pair_at_plus_eps_m": [
+         6377.5475750994465,
+         6368.22270367559
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 5.622291564941406,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 11.424415026649195,
+        "span_flip_db": 11.424462890625001,
+        "analytic_minus_direct_db": -4.786397580680557e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         6365.688391350136,
+         6356.662212229014
+        ],
+        "R90_pair_at_plus_eps_m": [
+         6347.459813700354,
+         6356.469912456832
+        ],
+        "direct_verification_passed": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 5.318310546875,
+      "flip_threshold_analytic_db": 5.318277704785442,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "direct_verification_passed": true
+     }
+    },
+    "by_pair": {
+     "W1-L1": {
+      "worst_flip_span_db": 8.313134765624998,
+      "median_flip_span_db": 8.323388671875001,
+      "per_drone_flip_span_db": {
+       "mini5pro": 8.313134765624998,
+       "mavic4pro": 8.331884765624999,
+       "matrice4e": 8.330029296875,
+       "phantom4": 8.314111328125001,
+       "s1000plus": 8.323388671875001
+      },
+      "lead_sign_consistent": true,
+      "winner": "b"
+     },
+     "W1-G1": {
+      "worst_flip_span_db": 3.7195800781250004,
+      "median_flip_span_db": 5.318310546875,
+      "per_drone_flip_span_db": {
+       "mini5pro": 7.2332519531249995,
+       "mavic4pro": 3.7195800781250004,
+       "matrice4e": 4.064013671875,
+       "phantom4": 7.034619140625,
+       "s1000plus": 5.318310546875
+      },
+      "lead_sign_consistent": true,
+      "winner": "b"
+     },
+     "L1-G1": {
+      "worst_flip_span_db": 9.427490234375004,
+      "median_flip_span_db": 11.424462890625001,
+      "per_drone_flip_span_db": {
+       "mini5pro": 9.427490234375004,
+       "mavic4pro": 13.091748046875,
+       "matrice4e": 12.732568359375001,
+       "phantom4": 9.634521484375,
+       "s1000plus": 11.424462890625001
+      },
+      "lead_sign_consistent": true,
+      "winner": "a"
+     }
+    },
+    "n_distinct_orders": 1,
+    "all_drones_agree": true,
+    "consensus_order": [
+     "L1",
+     "G1",
+     "W1"
+    ],
+    "worst_flip_span_db": 3.7195800781250004,
+    "median_flip_span_db": 5.318310546875,
+    "winner": "L1",
+    "winner_worst_margin_span_db": 8.313134765624998,
+    "all_direct_verifications_passed": true
+   },
+   "aspect_avg_anchored_duty": {
+    "description": "aspect-averaged + anchored + duty axis applied",
+    "by_drone": {
+     "mini5pro": {
+      "base_order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "R90_m": {
+       "W1": 1540.073518122005,
+       "L1": 5257.957359174345,
+       "G1": 1593.1590977132928
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -21.15306854248047,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 21.15306854248047,
+        "span_flip_db": 21.203759765625,
+        "analytic_minus_direct_db": -0.05069122314453267,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         2854.073297516015,
+         2862.370553836057
+        ],
+        "R90_pair_at_plus_eps_m": [
+         2862.4079204286927,
+         2854.1229202127865
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -0.5735397338867188,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 1.1293030900564807,
+        "span_flip_db": 1.129345703125,
+        "analytic_minus_direct_db": -4.2613068519381514e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         1590.241247883894,
+         1592.6263349305764
+        ],
+        "R90_pair_at_plus_eps_m": [
+         1594.9686857561985,
+         1592.5769841582955
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 20.25257110595703,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 41.152931148918114,
+        "span_flip_db": null,
+        "flip_direction_sign": 0.0,
+        "sign_at_zero": 1.0,
+        "no_flip_within_db": 40.0,
+        "direct_verification_passed": true,
+        "note": "±40 dB 차분 안에서 뒤집히지 않는다",
+        "span_flip_db_no_flip_within_40db": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 1.129345703125,
+      "flip_threshold_analytic_db": 1.1293030900564807,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "direct_verification_passed": true
+     },
+     "mavic4pro": {
+      "base_order": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "R90_m": {
+       "W1": 2257.6377586297635,
+       "L1": 7721.634473007189,
+       "G1": 2100.580874230039
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -21.171913146972656,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 21.171913146972656,
+        "span_flip_db": 21.171923828125003,
+        "analytic_minus_direct_db": -1.0681152346592171e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         4200.119957178695,
+         4212.260266130052
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4212.334834387437,
+         4200.172933751778
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": 1.2356948852539062,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 2.43309045535082,
+        "span_flip_db": 2.433154296875,
+        "analytic_minus_direct_db": -6.384152418004163e-05,
+        "flip_direction_sign": -1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         2105.2332041690056,
+         2102.115493941907
+        ],
+        "R90_pair_at_plus_eps_m": [
+         2099.0623563474574,
+         2102.179912921112
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 22.45616912841797,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 45.63061041362903,
+        "span_flip_db": null,
+        "flip_direction_sign": 0.0,
+        "sign_at_zero": 1.0,
+        "no_flip_within_db": 40.0,
+        "direct_verification_passed": true,
+        "note": "±40 dB 차분 안에서 뒤집히지 않는다",
+        "span_flip_db_no_flip_within_40db": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 2.433154296875,
+      "flip_threshold_analytic_db": 2.43309045535082,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "direct_verification_passed": true
+     },
+     "matrice4e": {
+      "base_order": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "R90_m": {
+       "W1": 1777.0274044877974,
+       "L1": 5949.451895270717,
+       "G1": 1651.1035950519567
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -21.170005798339844,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 21.170005798339844,
+        "span_flip_db": 21.200634765625,
+        "analytic_minus_direct_db": -0.03062896728515696,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         3288.811602909064,
+         3298.342298029843
+        ],
+        "R90_pair_at_plus_eps_m": [
+         3298.398309741666,
+         3288.8556861299307
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": 1.4971542358398438,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 2.947905445656581,
+        "span_flip_db": 2.9479003906250005,
+        "analytic_minus_direct_db": 5.05503158043652e-06,
+        "flip_direction_sign": -1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         1655.0606311305423,
+         1652.5837479133188
+        ],
+        "R90_pair_at_plus_eps_m": [
+         1650.1655897112914,
+         1652.6348483242716
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 22.550086975097656,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 45.82145011777538,
+        "span_flip_db": null,
+        "flip_direction_sign": 0.0,
+        "sign_at_zero": 1.0,
+        "no_flip_within_db": 40.0,
+        "direct_verification_passed": true,
+        "note": "±40 dB 차분 안에서 뒤집히지 않는다",
+        "span_flip_db_no_flip_within_40db": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 2.9479003906250005,
+      "flip_threshold_analytic_db": 2.947905445656581,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "direct_verification_passed": true
+     },
+     "phantom4": {
+      "base_order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "R90_m": {
+       "W1": 1932.820650374345,
+       "L1": 6533.914873757333,
+       "G1": 1980.7455296079027
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -21.154136657714844,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 21.154136657714844,
+        "span_flip_db": 21.154150390625002,
+        "analytic_minus_direct_db": -1.3732910158381628e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         3554.0664169449187,
+         3564.3556045815635
+        ],
+        "R90_pair_at_plus_eps_m": [
+         3564.4162642152673,
+         3554.113820729169
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": -0.41843414306640625,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 0.8238992746810467,
+        "span_flip_db": 0.8238769531250001,
+        "analytic_minus_direct_db": 2.2321556046644986e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         1977.3364025593903,
+         1980.2748925026995
+        ],
+        "R90_pair_at_plus_eps_m": [
+         1983.161295094391,
+         1980.2140851662396
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 20.68561553955078,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 42.03287116576191,
+        "span_flip_db": null,
+        "flip_direction_sign": 0.0,
+        "sign_at_zero": 1.0,
+        "no_flip_within_db": 40.0,
+        "direct_verification_passed": true,
+        "note": "±40 dB 차분 안에서 뒤집히지 않는다",
+        "span_flip_db_no_flip_within_40db": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 0.8238769531250001,
+      "flip_threshold_analytic_db": 0.8238992746810467,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "direct_verification_passed": true
+     },
+     "s1000plus": {
+      "base_order": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "R90_m": {
+       "W1": 2633.7187666396508,
+       "L1": 8819.545186181651,
+       "G1": 2456.8449378617925
+      },
+      "pairs": {
+       "W1-L1": {
+        "lead_db": -21.163291931152344,
+        "delta_f_ghz": 3.367,
+        "span_flip_analytic_db": 21.163291931152344,
+        "span_flip_db": 21.163330078125,
+        "analytic_minus_direct_db": -3.814697265625e-05,
+        "flip_direction_sign": 1.0,
+        "sign_at_zero": -1.0,
+        "sign_at_threshold_minus_eps": -1.0,
+        "sign_at_threshold_plus_eps": 1.0,
+        "R90_pair_at_minus_eps_m": [
+         4799.941687952048,
+         4813.811646496848
+        ],
+        "R90_pair_at_plus_eps_m": [
+         4813.888985219427,
+         4800.009961167406
+        ],
+        "direct_verification_passed": true
+       },
+       "W1-G1": {
+        "lead_db": 1.1957168579101562,
+        "delta_f_ghz": 1.71,
+        "span_flip_analytic_db": 2.3543734857213425,
+        "span_flip_db": 2.3543457031250004,
+        "analytic_minus_direct_db": 2.778259634217406e-05,
+        "flip_direction_sign": -1.0,
+        "sign_at_zero": 1.0,
+        "sign_at_threshold_minus_eps": 1.0,
+        "sign_at_threshold_plus_eps": -1.0,
+        "R90_pair_at_minus_eps_m": [
+         2462.207176292478,
+         2458.573802936463
+        ],
+        "R90_pair_at_plus_eps_m": [
+         2455.0175882056765,
+         2458.648856762936
+        ],
+        "direct_verification_passed": true
+       },
+       "L1-G1": {
+        "lead_db": 22.237205505371094,
+        "delta_f_ghz": -1.657,
+        "span_flip_analytic_db": 45.185679503068485,
+        "span_flip_db": null,
+        "flip_direction_sign": 0.0,
+        "sign_at_zero": 1.0,
+        "no_flip_within_db": 40.0,
+        "direct_verification_passed": true,
+        "note": "±40 dB 차분 안에서 뒤집히지 않는다",
+        "span_flip_db_no_flip_within_40db": true
+       }
+      },
+      "weakest_pair": "W1-G1",
+      "flip_threshold_span_db": 2.3543457031250004,
+      "flip_threshold_analytic_db": 2.3543734857213425,
+      "order_at_threshold_minus_eps": [
+       "L1",
+       "W1",
+       "G1"
+      ],
+      "order_at_threshold_plus_eps": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "direct_verification_passed": true
+     }
+    },
+    "by_pair": {
+     "W1-L1": {
+      "worst_flip_span_db": 21.154150390625002,
+      "median_flip_span_db": 21.171923828125003,
+      "per_drone_flip_span_db": {
+       "mini5pro": 21.203759765625,
+       "mavic4pro": 21.171923828125003,
+       "matrice4e": 21.200634765625,
+       "phantom4": 21.154150390625002,
+       "s1000plus": 21.163330078125
+      },
+      "lead_sign_consistent": true,
+      "winner": "b"
+     },
+     "W1-G1": {
+      "worst_flip_span_db": 0.8238769531250001,
+      "median_flip_span_db": 2.3543457031250004,
+      "per_drone_flip_span_db": {
+       "mini5pro": 1.129345703125,
+       "mavic4pro": 2.433154296875,
+       "matrice4e": 2.9479003906250005,
+       "phantom4": 0.8238769531250001,
+       "s1000plus": 2.3543457031250004
+      },
+      "lead_sign_consistent": false,
+      "winner": null
+     },
+     "L1-G1": {
+      "worst_flip_span_db": null,
+      "median_flip_span_db": null,
+      "per_drone_flip_span_db": {
+       "mini5pro": null,
+       "mavic4pro": null,
+       "matrice4e": null,
+       "phantom4": null,
+       "s1000plus": null
+      },
+      "lead_sign_consistent": true,
+      "winner": "a",
+      "worst_flip_span_db_no_flip_within_40db": true,
+      "median_flip_span_db_no_flip_within_40db": true
+     }
+    },
+    "n_distinct_orders": 2,
+    "all_drones_agree": false,
+    "consensus_order": null,
+    "worst_flip_span_db": 0.8238769531250001,
+    "median_flip_span_db": 2.3543457031250004,
+    "winner": "L1",
+    "winner_worst_margin_span_db": 21.154150390625002,
+    "all_direct_verifications_passed": true
+   }
+  },
+  "direct_verification": {
+   "pair_checks": 60,
+   "pair_checks_passed": 60,
+   "all_passed": true
+  },
+  "analytic_approximation_error": {
+   "definition": "|lead/Δf|·span (해석 근사) − 직접 이분법 문턱, dB",
+   "max_abs_db": 0.22653045654297088,
+   "median_abs_db": 3.814697265625e-05,
+   "worst_cases": [
+    {
+     "case": "as_published/mavic4pro/W1-L1",
+     "err_db": 0.22653045654297088,
+     "threshold_db": 11.344580078125002
+    },
+    {
+     "case": "aspect_avg_anchored_duty/mini5pro/W1-L1",
+     "err_db": 0.05069122314453267,
+     "threshold_db": 21.203759765625
+    },
+    {
+     "case": "aspect_avg_anchored_duty/matrice4e/W1-L1",
+     "err_db": 0.03062896728515696,
+     "threshold_db": 21.200634765625
+    },
+    {
+     "case": "aspect_avg_anchored/phantom4/W1-G1",
+     "err_db": 0.0001091271116031578,
+     "threshold_db": 7.034619140625
+    },
+    {
+     "case": "aspect_avg_anchored/phantom4/L1-G1",
+     "err_db": 9.306756285987206e-05,
+     "threshold_db": 9.634521484375
+    }
+   ],
+   "why": "해석 근사는 '한 밴드만 밀어도 두 밴드를 반대로 미는 것과 같다'고 가정한다. 1/4 법칙이 정확하고 σ 가 거리무관일 때만 참이다. 실제로는 해 거리가 움직이며 자세가 바뀌므로, 문턱이 클수록 근사가 벌어진다. 논문에는 직접 이분법 값을 쓴다."
+  },
+  "cross_check_vs_sigma_sensitivity": {
+   "mini5pro": {
+    "here": 7.417529296875,
+    "there": 7.417556380534934,
+    "abs_diff": 2.7083659933424542e-05
+   },
+   "mavic4pro": {
+    "here": 1.8377441406250001,
+    "there": 1.837755816721777,
+    "abs_diff": 1.1676096776769285e-05
+   },
+   "matrice4e": {
+    "here": 0.6144042968750001,
+    "there": 0.6144880997507195,
+    "abs_diff": 8.380287571940759e-05
+   },
+   "phantom4": {
+    "here": 5.034228515625,
+    "there": 5.034205587286698,
+    "abs_diff": 2.2928338301753115e-05
+   },
+   "s1000plus": {
+    "here": 0.788037109375,
+    "there": 0.7880783081054688,
+    "abs_diff": 4.119873046870559e-05
+   }
+  },
+  "sigma_grid_version_sensitivity": {
+   "by_drone": {
+    "mini5pro": {
+     "live": {
+      "order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "flip_threshold_span_db": 7.417556380534934,
+      "pair_flip_span_db": {
+       "W1-L1": 7.57434844970703,
+       "W1-G1": 7.726355993259721,
+       "L1-G1": 7.417556380534934
+      }
+     },
+     "pre_blade": {
+      "order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "flip_threshold_span_db": 7.589953305428488,
+      "pair_flip_span_db": {
+       "W1-L1": 7.760429382324218,
+       "W1-G1": 7.589953305428488,
+       "L1-G1": 7.9362807104079645
+      }
+     },
+     "order_changed": false,
+     "threshold_change_db": -0.17239692489355463
+    },
+    "mavic4pro": {
+     "live": {
+      "order": [
+       "W1",
+       "G1",
+       "L1"
+      ],
+      "flip_threshold_span_db": 1.837755816721777,
+      "pair_flip_span_db": {
+       "W1-L1": 11.118049621582031,
+       "W1-G1": 1.837755816721777,
+       "L1-G1": 21.155379599811226
+      }
+     },
+     "pre_blade": {
+      "order": [
+       "W1",
+       "G1",
+       "L1"
+      ],
+      "flip_threshold_span_db": 1.6672524569327372,
+      "pair_flip_span_db": {
+       "W1-L1": 7.54291534423828,
+       "W1-G1": 1.6672524569327372,
+       "L1-G1": 13.60659185488971
+      }
+     },
+     "order_changed": false,
+     "threshold_change_db": 0.17050335978903974
+    },
+    "matrice4e": {
+     "live": {
+      "order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "flip_threshold_span_db": 0.6144880997507195,
+      "pair_flip_span_db": {
+       "W1-L1": 4.085350036621094,
+       "W1-G1": 0.6144880997507195,
+       "L1-G1": 7.667306797577806
+      }
+     },
+     "pre_blade": {
+      "order": [
+       "L1",
+       "G1",
+       "W1"
+      ],
+      "flip_threshold_span_db": 2.710900476486768,
+      "pair_flip_span_db": {
+       "W1-L1": 3.9849472045898438,
+       "W1-G1": 5.219430823075144,
+       "L1-G1": 2.710900476486768
+      }
+     },
+     "order_changed": false,
+     "threshold_change_db": -2.0964123767360485
+    },
+    "phantom4": {
+     "live": {
+      "order": [
+       "W1",
+       "G1",
+       "L1"
+      ],
+      "flip_threshold_span_db": 5.034205587286698,
+      "pair_flip_span_db": {
+       "W1-L1": 5.534782409667969,
+       "W1-G1": 5.034205587286698,
+       "L1-G1": 6.051292925911203
+      }
+     },
+     "pre_blade": {
+      "order": [
+       "W1",
+       "G1",
+       "L1"
+      ],
+      "flip_threshold_span_db": 5.466097357677437,
+      "pair_flip_span_db": {
+       "W1-L1": 5.516014099121094,
+       "W1-G1": 5.466097357677437,
+       "L1-G1": 5.5674499392005865
+      }
+     },
+     "order_changed": false,
+     "threshold_change_db": -0.431891770390739
+    },
+    "s1000plus": {
+     "live": {
+      "order": [
+       "G1",
+       "W1",
+       "L1"
+      ],
+      "flip_threshold_span_db": 0.7880783081054688,
+      "pair_flip_span_db": {
+       "W1-L1": 0.7880783081054688,
+       "W1-G1": 1.2195872479712055,
+       "L1-G1": 2.8600375970300593
+      }
+     },
+     "pre_blade": {
+      "order": [
+       "G1",
+       "L1",
+       "W1"
+      ],
+      "flip_threshold_span_db": 0.02399444580078125,
+      "pair_flip_span_db": {
+       "W1-L1": 0.02399444580078125,
+       "W1-G1": 1.0870903639765512,
+       "L1-G1": 1.073182657963552
+      }
+     },
+     "order_changed": true,
+     "threshold_change_db": 0.7640838623046875
+    }
+   },
+   "n_orders_changed": 1,
+   "max_abs_threshold_change_db": 2.0964123767360485,
+   "finding": "⭐ 2026-07-29 블레이드 메쉬 갱신 하나만으로 뒤집힘 문턱이 최대 몇 dB 씩 움직인다. 이건 σ '오차 모델'이 아니라 관측된 사실이며, 차분 강건성이 얼마나 얇은지를 독립적으로 보여준다.",
+   "caveat": "정본 outputs/report13_freespace.json 의 R90 은 pre_blade 격자로 계산됐다. 논문에 쓸 숫자는 live 격자로 재생성해야 한다."
+  }
+ },
+ "realistic_error": {
+  "pre_anchor": {
+   "our_raw_slope_range_db_per_ghz": [
+    0.742,
+    1.699
+   ],
+   "measured_slope_db_per_ghz": 0.21,
+   "span_ghz": 3.367,
+   "differential_error_span_db_min": 1.791244,
+   "differential_error_span_db_max": 5.013463000000001,
+   "per_drone_production_slope_range_db_per_ghz": [
+    1.031554009743222,
+    1.645645170890482
+   ],
+   "per_drone_differential_error_span_db_range": [
+    2.766172350805429,
+    4.833817290388253
+   ]
+  },
+  "post_anchor_residual": {
+   "method": "같은 대역을 덮는 측정 기울기 센서스의 산포 (Das Phantom3 + Yuan Phantom3 3 컷)",
+   "slopes_db_per_ghz": {
+    "das_phantom3_mono": 0.21,
+    "yuan_phantom3_az": 0.315,
+    "yuan_phantom3_top": 0.231,
+    "yuan_phantom3_bot": 0.175
+   },
+   "lo": 0.175,
+   "hi": 0.315,
+   "residual_span_db": 0.47138,
+   "full_census_slopes_db_per_ghz": {
+    "das_phantom3_mono": 0.21,
+    "das_phantom2_mono": 0.21,
+    "das_mini2_mono": 0.07,
+    "das_m350rtk_mono": 0.17,
+    "yuan_phantom3_az": 0.315,
+    "yuan_phantom3_top": 0.231,
+    "yuan_phantom3_bot": 0.175
+   },
+   "note": "앵커 후 남는 차분 불확도. 밴드가 겹치는 4 건만 센다."
+  },
+  "by_drone": {
+   "mini5pro": {
+    "our_production_slope_db_per_ghz": 1.4832814595533932,
+    "measured_slope_db_per_ghz": 0.21,
+    "differential_error_span_db": 4.287138674316275,
+    "flip_threshold_as_published_db": 7.417529296875,
+    "margin_db": 3.130390622558725,
+    "survives_its_own_error": true,
+    "flip_threshold_anchored_db": 7.2332519531249995,
+    "margin_vs_post_anchor_residual_db": 6.761871953125,
+    "survives_post_anchor_residual": true
+   },
+   "mavic4pro": {
+    "our_production_slope_db_per_ghz": 1.2884017636859721,
+    "measured_slope_db_per_ghz": 0.21,
+    "differential_error_span_db": 3.6309787383306684,
+    "flip_threshold_as_published_db": 1.8377441406250001,
+    "margin_db": -1.7932345977056683,
+    "survives_its_own_error": false,
+    "flip_threshold_anchored_db": 3.7195800781250004,
+    "margin_vs_post_anchor_residual_db": 3.2482000781250004,
+    "survives_post_anchor_residual": true
+   },
+   "matrice4e": {
+    "our_production_slope_db_per_ghz": 1.031554009743222,
+    "measured_slope_db_per_ghz": 0.21,
+    "differential_error_span_db": 2.766172350805429,
+    "flip_threshold_as_published_db": 0.6144042968750001,
+    "margin_db": -2.1517680539304287,
+    "survives_its_own_error": false,
+    "flip_threshold_anchored_db": 4.064013671875,
+    "margin_vs_post_anchor_residual_db": 3.5926336718750003,
+    "survives_post_anchor_residual": true
+   },
+   "phantom4": {
+    "our_production_slope_db_per_ghz": 1.645645170890482,
+    "measured_slope_db_per_ghz": 0.21,
+    "differential_error_span_db": 4.833817290388253,
+    "flip_threshold_as_published_db": 5.034228515625,
+    "margin_db": 0.20041122523674737,
+    "survives_its_own_error": true,
+    "flip_threshold_anchored_db": 7.034619140625,
+    "margin_vs_post_anchor_residual_db": 6.563239140625,
+    "survives_post_anchor_residual": true
+   },
+   "s1000plus": {
+    "our_production_slope_db_per_ghz": 1.5517042873267357,
+    "measured_slope_db_per_ghz": 0.21,
+    "differential_error_span_db": 4.517518335429119,
+    "flip_threshold_as_published_db": 0.788037109375,
+    "margin_db": -3.7294812260541192,
+    "survives_its_own_error": false,
+    "flip_threshold_anchored_db": 5.318310546875,
+    "margin_vs_post_anchor_residual_db": 4.846930546875,
+    "survives_post_anchor_residual": true
+   }
+  },
+  "n_drones_surviving_own_pre_anchor_error": 2,
+  "n_drones": 5,
+  "n_drones_surviving_post_anchor_residual": 5,
+  "thinnest_surviving_margin": {
+   "drone": "phantom4",
+   "margin_db": 0.20041122523674737
+  },
+  "verdict": "ANCHOR_IS_LOAD_BEARING",
+  "finding": "⭐ 앵커는 하중을 받는다. 앵커 없이는 다섯 기체 중 2 대만 자기 차분오차를 견디고 3 대가 뒤집힌다. 살아남은 2 대 중에서도 가장 얇은 여유가 +0.20 dB 라 실질적으로는 한 대만 안전하다. 앵커를 걸고 자세평균으로 인용하면 다섯 기체가 모두 같은 순위에 합의하고 전부 앵커 후 잔여 불확도(0.471 dB)를 넘긴다. 논문은 앵커를 방법의 일부로 명시해야 하며, '앵커 없이도 비교가 선다'고 말할 수 없다.",
+  "caveat": "⚠ 생산 σ 격자는 앵커를 갖고 있지 않다 (sigma_sensitivity.scenario_apply_measured_slope.finding: experiment_freespace_sigma.py 에 sigma_anchor 참조 0 회). 즉 앵커가 지웠어야 할 차분오차가 현재 R90 사슬에 아직 들어 있다. 논문에 쓰기 전에 앵커를 R90 경로에 실제로 걸어야 한다."
+ },
+ "fragility_declaration": {
+  "rule": "논문에 쓰려면 (1) 다섯 기체에서 lead 부호 일치 (2) 최악 문턱 > 해당 설정의 현실 오차범위. 앵커 전은 5.013 dB, 앵커 후는 0.471 dB 를 넘겨야 한다.",
+  "realistic_span_db": 5.013463000000001,
+  "post_anchor_residual_span_db": 0.47138,
+  "fragile_claims": [
+   {
+    "config": "as_published",
+    "pair": "W1-L1",
+    "worst_flip_span_db": 0.788037109375,
+    "lead_sign_consistent": false,
+    "weakest_drone": "s1000plus",
+    "why": "부호가 기체마다 뒤집힌다 — 이 쌍은 순위 자체가 없다"
+   },
+   {
+    "config": "as_published",
+    "pair": "W1-G1",
+    "worst_flip_span_db": 0.6144042968750001,
+    "lead_sign_consistent": false,
+    "weakest_drone": "matrice4e",
+    "why": "부호가 기체마다 뒤집힌다 — 이 쌍은 순위 자체가 없다"
+   },
+   {
+    "config": "as_published",
+    "pair": "L1-G1",
+    "worst_flip_span_db": 2.8600097656250014,
+    "lead_sign_consistent": false,
+    "weakest_drone": "s1000plus",
+    "why": "부호가 기체마다 뒤집힌다 — 이 쌍은 순위 자체가 없다"
+   },
+   {
+    "config": "aspect_avg",
+    "pair": "W1-G1",
+    "worst_flip_span_db": 0.08862304687500001,
+    "lead_sign_consistent": true,
+    "weakest_drone": "mavic4pro",
+    "why": "문턱이 앵커 후 잔여 불확도보다 작다"
+   },
+   {
+    "config": "aspect_avg_anchored_duty",
+    "pair": "W1-G1",
+    "worst_flip_span_db": 0.8238769531250001,
+    "lead_sign_consistent": false,
+    "weakest_drone": "phantom4",
+    "why": "부호가 기체마다 뒤집힌다 — 이 쌍은 순위 자체가 없다"
+   }
+  ],
+  "safe_claims": [
+   {
+    "config": "aspect_avg_anchored",
+    "pair": "W1-L1",
+    "worst_flip_span_db": 8.313134765624998,
+    "winner": "L1"
+   },
+   {
+    "config": "aspect_avg_anchored",
+    "pair": "L1-G1",
+    "worst_flip_span_db": 9.427490234375004,
+    "winner": "L1"
+   },
+   {
+    "config": "aspect_avg_anchored_duty",
+    "pair": "W1-L1",
+    "worst_flip_span_db": 21.154150390625002,
+    "winner": "L1"
+   },
+   {
+    "config": "aspect_avg_anchored_duty",
+    "pair": "L1-G1",
+    "worst_flip_span_db": null,
+    "winner": "L1",
+    "worst_flip_span_db_no_flip_within_40db": true
+   }
+  ],
+  "n_fragile": 5,
+  "n_safe": 4,
+  "pair_worst_over_all_configs_db": {
+   "W1-L1": 0.788037109375,
+   "W1-G1": 0.08862304687500001,
+   "L1-G1": 2.8600097656250014
+  },
+  "lambda2_pair_gap_db": {
+   "W1-L1": -9.02624776160902,
+   "W1-G1": -3.455393578984989,
+   "L1-G1": 5.570854182624032
+  },
+  "weakest_pair_overall": "W1-G1",
+  "must_be_declared": "⭐ W1-G1 (WiFi vs 5G NR) 가 전 설정에서 가장 약하다 — 최악 문턱 0.089 dB. 이유는 σ 가 아니라 기하다: 이 쌍의 σ-무관 λ² 축 격차가 -3.46 dB 로 세 쌍 중 가장 좁아서(W1-L1 -9.03, L1-G1 +5.57) 버틸 마진 자체가 없다. 논문은 이 쌍의 순위를 주장하지 말고 '분리 불가'로 신고해야 한다.",
+  "also_declare": [
+   "as_published(단일자세·무앵커) 설정에서는 세 쌍 전부 lead 부호가 기체마다 뒤집힌다 — 다섯 기체가 서로 다른 순위 3 종을 낸다. 이 설정으로는 어떤 파형 순위도 주장할 수 없다.",
+   "취약성의 주원인은 σ 의 '오차'가 아니라 '단일자세 인용'이다 (sigma_sensitivity.aspect_averaged.interpretation).",
+   "듀티 축을 걸면 L1 승리는 거의 깨지지 않지만(최악 여유 21.2 dB) W1-G1 하위순위는 오히려 더 나빠진다 — 그 축은 아직 R90 경로에 없다."
+  ]
+ },
+ "paper_ready": {
+  "recommended_configuration": "aspect_avg_anchored",
+  "why_this_one": "다섯 기체가 같은 순위에 합의하는 유일한 설정이면서, 두 쌍(W1-L1, L1-G1)이 앵커 전 오차범위마저 넘긴다.",
+  "consensus_order": [
+   "L1",
+   "G1",
+   "W1"
+  ],
+  "sentences": {
+   "common_mode": "The absolute σ level is the weakest quantity in the model, and it enters the three-waveform comparison only as a common-mode offset. Sweeping it directly from -18.0 to +11.5 dB leaves the waveform ranking unchanged for all five airframes; it moves absolute detection range by σ_err/4 dB (-44% at −10 dB, +78% at +10 dB).",
+   "differential": "A differential (frequency-slope) σ error does not cancel. Evaluated directly, the ordering L1 > G1 > W1 survives a differential error of 3.72 dB across the 3.367 GHz band span in the worst airframe, and 5.32 dB in the median one.",
+   "safe_pairs": "The two claims LTE > WiFi and LTE > 5G NR hold for every airframe out to 8.31 dB and 9.43 dB of differential error respectively — beyond the 5.01 dB that our pre-anchor slopes would have introduced.",
+   "fragile_pair": "We do not claim an ordering between WiFi and 5G NR. Their σ-independent λ² separation is only 3.46 dB, and the pair inverts under 3.72 dB of differential error — inside the uncertainty we can defend.",
+   "anchor_is_method": "The measured-slope anchor is part of the method, not a cosmetic correction: without it only 2 of 5 airframes retain their ordering under their own slope error, and the five do not agree on a common ordering at all."
+  },
+  "numbers_to_cite": {
+   "common_mode_invariant_window_db": 11.25,
+   "range_shift_per_db_sigma": 0.25,
+   "measured_range_slope_mean": 0.24692831139479482,
+   "worst_flip_span_db": 3.7195800781250004,
+   "median_flip_span_db": 5.318310546875,
+   "W1-L1_worst_db": 8.313134765624998,
+   "L1-G1_worst_db": 9.427490234375004,
+   "W1-G1_worst_db": 3.7195800781250004,
+   "pre_anchor_differential_error_db": 5.013463000000001,
+   "post_anchor_residual_db": 0.47138
+  },
+  "blockers_before_use": [
+   "앵커가 R90 경로에 실제로 걸려 있지 않다 — experiment_freespace_sigma.py 에 sigma_anchor 참조 0 회. 걸고 재생성해야 이 숫자를 쓸 수 있다.",
+   "정본 outputs/report13_freespace.json 은 pre_blade σ 격자 산출물이다. live 격자로 재생성 필요.",
+   "듀티 축(freespace_link.duty_db_from_cpi)이 한 번도 호출되지 않는다. 크기가 λ² 축보다 커서 넣고 빼는 선택을 논문이 명시해야 한다."
+  ]
+ }
+}

@@ -1,0 +1,184 @@
+{
+  "meta": {
+    "generated": "2026-07-31",
+    "reviewer_role": "ACM MobiCom PC member (wireless sensing / RF systems)",
+    "manuscript_under_review": "The Ambient Reference Repetition Rate Sets Drone Velocity Observability in Passive Bistatic Sensing",
+    "sources_read": [
+      "docs/PAPER_SPEC.md",
+      "docs/PAPER_POSITION.md",
+      "docs/REBUILD_2026-07-30.md §5",
+      "docs/MEASUREMENT_PLAN.md",
+      "outputs/refrate_law.json",
+      "outputs/vmax_hardening.json",
+      "outputs/cpi_guard_sweep.json",
+      "outputs/report06_measurement.json",
+      "src/experiment_x410.py"
+    ],
+    "note": "이 파일은 심사 의견이다. 논문 문서(PAPER_SPEC/PAPER_POSITION)는 건드리지 않았다."
+  },
+
+  "verdict": {
+    "decision": "reject",
+    "decision_scope": "MobiCom 에 지금 형태(시뮬레이션 전용)로 제출했을 때",
+    "one_line": "결과는 참이고 잘 굳혀져 있으나 MobiCom 이 사는 물건이 아니다 — 이 학회의 통화는 '규격에서 유도되지 않는 사실'이고 이 논문의 헤드라인은 규격 조항 한 줄에서 산술로 나온다.",
+    "modal_outcome": "전체 심사 전 summary reject",
+    "would_be_accepted_at": "ICASSP / JSTARS / TAES 쪽 판단은 유효하다. 이 심사는 그 판단을 뒤집지 않는다."
+  },
+
+  "q1_can_simulation_be_accepted_at_mobicom": {
+    "answer": "원칙적으로 드물게 가능하나 이 논문 형태로는 불가능하다.",
+    "detail": [
+      "MobiCom 무선센싱 트랙은 사실상 하드웨어 요구조건이 있다 — 최근 몇 년 RF 센싱 채택작 중 실측 없는 논문은 예외적이다.",
+      "예외가 열리는 경우는 둘뿐이다: (i) 이론이 기존 시스템의 실측 이상현상을 설명할 때, (ii) 대규모 실측 데이터셋 위의 분석일 때. 둘 다 실측이 논문 안에 있다.",
+      "⭐ 결정적: 이 논문을 ICASSP 에 제출 가능하게 만드는 성질 — 유도 사슬이 규격 → 산술 → 나이퀴스트 → 운동학 4단계뿐이라는 것 — 이 MobiCom 에서는 정확히 약점이 된다. 심사자가 냅킨 위에서 헤드라인을 재현할 수 있으면 시스템 학회에서는 기여로 안 센다.",
+      "σ 비의존성도 같은 반전을 겪는다. SP 학회에서 그것은 '가장 약한 양이 헤드라인에 없다'는 강점이고, MobiCom 에서는 '측정이 필요 없었다'는 자백으로 읽힌다.",
+      "게다가 이 논문은 순수 한계(negative) 논문이다. MobiCom 은 구성적 학회다 — 한계를 발견했으면 그 한계를 우회하는 물건을 만들어 필드에서 평가한 것이 기대치다."
+    ],
+    "what_a_mobicom_reviewer_writes": "\"The central result is Nyquist applied to a published 20 ms SSB period. Abratkiewicz et al. (JSTARS 2023) already state that SSB periodicity limits velocity ambiguity. No hardware, no deployment, no measurement of the real world. The paper's own Table (nr_recon) shows reference reconstruction restores 21.4 m/s, so the stated limit is a design choice of the receiver, not a property of the infrastructure.\""
+  },
+
+  "q2_what_the_x410_campaign_must_demonstrate": {
+    "framing": "지금 설계된 E-ALIAS 는 '예측된 효과의 시연'이다. MobiCom 은 '세상에 대한 놀라운 경험적 사실'을 산다. 캠페인을 정리(theorem) 확인에서 관측(observation)으로 뒤집어야 한다.",
+    "required": [
+      {
+        "id": "M1",
+        "title": "상용 셀의 SSB 주기 실측 분포 — 배치 관측",
+        "why": "논문이 스스로 인정한 유일한 미지수다 ⟨vmax_hardening.json : verdict.configuration_dependence.unknown⟩. 규격에서 유도 불가능하고 오직 측정으로만 나온다. 이것 하나가 논문을 산술에서 관측으로 바꾼다.",
+        "scale_required": "사업자 ≥ 2, 밴드 ≥ 2, 사이트 ≥ 5, 셀(PCI) ≥ 100. 단일 사이트 수 개 셀로는 MobiCom 규모가 아니다.",
+        "record": "PCI · 밴드 · SCS · SSB Case · 실측 버스트셋 주기 · 반절프레임 오프셋 · SIB1/CORESET#0 존재 · Rel-17 유휴 TRS 설정 여부"
+      },
+      {
+        "id": "M2",
+        "title": "다중 셀 합성 표본격자의 실측 — 논문 최대의 기술적 위험",
+        "why": "⭐ 지금 헤드라인은 '수신기 한 대는 못 푼다'인데, 도시 매크로에서 수신기 한 대는 보통 PCI 를 5~10개 본다. 각 gNB 는 위치가 달라 기하계수 (u1+u2) 가 다르므로, 논문 자신의 §F 멀티스태틱 기계장치가 **수신기 증설 없이** 그대로 적용된다 — 모호 부피 1.01e-01 → 1.55e-04 ⟨vmax_hardening.json : F_multistatic⟩. 현재 이 반론은 '연관이 필요하고 기하가 다르다'는 한 문장으로 닫혀 있다 ⟨vmax_hardening.json : C_frame.neighbour_cells⟩ — 계산이 아니라 서술이다.",
+        "measure": "가시 PCI 수 · 각 PCI 의 직접파 SNR · 각 PCI 의 SSB 도착시각 격자 · 셀 위치(사업자 DB/AoA) 획득 가능성 · 실제 교차 후 남는 모호 부피",
+        "outcome_if_unfavourable": "이웃 셀만으로 15 m/s 가 풀리면 헤드라인은 '단일 수신기'가 아니라 '단일 조명원' 명제로 축소된다. 그 축소는 논문의 크기를 크게 깎는다."
+      },
+      {
+        "id": "M3",
+        "title": "기준신호 재구성의 실측 수율 — 논문 자신의 탈출구를 닫는 유일한 방법",
+        "why": "⭐ 논문 자신의 표에 nr_recon = 1000 Hz → 21.41 m/s 가 있다 ⟨refrate_law.json : illuminators.rows.nr_recon⟩. PCL 에서 복조-재변조 기준채널 재구성은 표준 기법이다. 한계 논문이 자기 표 안에 해법을 적어두면 시스템 심사자는 거기서 멈춘다.",
+        "measure": "상용 gNB 하향에서 UE 자격 없이 실제로 재구성 가능한 비율 — SSB/PBCH-DMRS/SIB1/Type0-CSS 는 가능, C-RNTI 스크램블된 타 UE PDSCH 는 불가. 그 경계를 셀·시간대·부하별로 실측한 값이 곧 실효 PRF 분포다.",
+        "value": "이 측정 자체가 MobiCom 급 결과다 — '상용 5G 를 패시브 조명원으로 쓸 때 실제로 얼마가 쓸 수 있는가'는 아무도 규격에서 못 읽는다."
+      },
+      {
+        "id": "M4",
+        "title": "동작하는 수신기 — 직접파 제거가 실제로 되는가",
+        "why": "시뮬 ECA 는 동적범위가 무한하다. 실측은 12-bit ADC 다. 자체 계산 여유는 LTE20 에서 19.23 dB 가 최소다 ⟨report06_measurement.json : adc.per_waveform.LTE20.headroom_db⟩ — 그런데 그 DNR 은 자유공간 시뮬 기하에서 나온 값이고, 실제 도시 사이트의 직접파는 훨씬 세다. 캠페인이 아무것도 못 잡을 실질 위험이 여기 있다.",
+        "measure": "실측 DNR · ECA 후 잔여 직접파 · 실측 Pd, 그리고 그 값들이 시뮬 예측과 어디서 갈라지는지"
+      },
+      {
+        "id": "M5",
+        "title": "만든 것 — 한계를 우회하는 시스템",
+        "why": "MobiCom 은 구성적이다. 발견은 실측으로, 해결은 시스템으로, 평가는 필드에서. 이 논문에는 지금 세 번째가 없고 두 번째도 없다.",
+        "candidate": "이웃 셀(M2)을 조명 다이버시티로 쓰는 단일 수신기 해모호기 — CRT/격자교차로 알리아스 번호를 풀고, 상용 5G 만으로 15 m/s 표적의 속도를 복원하는 것을 필드에서 보인다. 논문의 §F 수치가 이미 그 설계의 씨앗이다.",
+        "alternative": "재구성 수율(M3)을 기회적으로 쓰는 적응형 기준채널 — 부하가 있을 때 실효 PRF 를 올리고 없을 때 SSB 로 떨어지는 수신기"
+      },
+      {
+        "id": "M6",
+        "title": "ambient WiFi 를 실제로 ambient 로 잰다",
+        "why": "지금 설계는 AP 를 우리가 통제한다 ⟨PAPER_POSITION.md §5.2⟩. 통제 송신기는 ambient 가 아니다 — X4 대칭성 통제가 심사에서 힘을 잃는다.",
+        "measure": "캠퍼스/건물의 실제 AP 패킷률 분포를 교차점 74.4 Hz ⟨vmax_hardening.json : H_symmetry.wifi_packet_rate_crossover_hz⟩ 에 대고 재는 것. '실제 AP 의 몇 %가 5G 보다 나쁜가'가 답이 나온다."
+      }
+    ],
+    "scale_bar": "MobiCom 에서 '캠페인'은 한 사이트 두 기체 며칠이 아니라, 여러 사이트·여러 사업자·여러 시간대에서 반복 관측이 통계로 서는 것이다. 지금 §5 설계는 검증 실험 규모이지 관측 논문 규모가 아니다."
+  },
+
+  "q3_is_the_alias_demo_enough": {
+    "answer": "아니다 — 필요하지만 충분하지 않다.",
+    "detail": [
+      "톱니 7주기 그림은 좋은 그림이고 F1·F2 반증 조건도 정직하게 잡혀 있다. 그러나 심사자의 반응은 '나이퀴스트가 시키는 대로 접혔다. 무엇을 배웠나'이다.",
+      "A/B 인과 통제(같은 캡처, SSB-only 50 Hz vs 풀웨이브폼 1000 Hz)는 방법론적으로 우아하다. 그러나 ⑴ 의심받지 않던 기제를 시연하고 ⑵ 성공하면 그 자체가 M3 의 절반을 해버려서 '재구성이 고친다'는 결론을 강화한다.",
+      "⭐ 역설: A/B 통제의 B 가지를 상용 gNB 에서 실제로 성공시키는 것이 alias 시연보다 훨씬 큰 기여다. 상용 5G 하향의 기준채널 재구성을 필드에서 돌렸다면 그것이 논문의 시스템이다. 캠페인의 무게중심을 A 가지(예측 확인)에서 B 가지(재구성 수율 실측)로 옮기는 것을 권한다.",
+      "MobiCom 을 여는 최소 조합: M1(주기 분포) + M2(다중 셀 실측) + M5(만든 해모호기). alias 시연은 그 논문의 그림 3장 중 한 장이 된다 — 헤드라인이 아니라."
+    ]
+  },
+
+  "odds": {
+    "simulation_only_as_submitted_today": {
+      "p_accept": 0.02,
+      "range": "1~3 %",
+      "basis": "MobiCom 채택률 ≈ 16 %. 실측 없는 무선센싱 논문은 base rate 아래로 크게 떨어지고, 다수는 전체 심사 전에 걸린다."
+    },
+    "campaign_as_currently_specified_E_ALIAS_only": {
+      "p_accept": 0.08,
+      "range": "5~12 %",
+      "basis": "'검증된 분석 논문'이 된다. base rate 의 절반. 시연은 있으나 발견도 시스템도 없다."
+    },
+    "campaign_rescoped_M1_M2_M3_M4": {
+      "p_accept": 0.18,
+      "range": "12~25 %",
+      "basis": "배치 관측 논문. base rate 근처. 규격에서 유도 불가능한 사실이 논문의 중심이 된다."
+    },
+    "full_version_M1_to_M6_with_built_system": {
+      "p_accept": 0.28,
+      "range": "20~35 %",
+      "basis": "발견(실측)+해결(시스템)+평가(필드) 삼박자. MobiCom 이 사는 형태. 실행 위험은 M4(직접파 제거 실패)와 사이트 접근성."
+    },
+    "cost_note": "M1~M6 은 수 개월 + 하드웨어 브링업 + 사이트 섭외다. PAPER_SPEC §3.2 의 '수개월' 추정은 정확하다."
+  },
+
+  "blockers": [
+    {
+      "id": "B1",
+      "severity": "high",
+      "issue": "하드웨어·실측·배치가 0 이다. 저장소에 IQ 캡처가 한 건도 없고 src/experiment_x410.py 는 스펙시트 모델이다.",
+      "fix": "캠페인을 논문의 부록이 아니라 척추로 만든다. MobiCom 에는 캠페인이 논문 자체가 되기 전에는 제출하지 않는다."
+    },
+    {
+      "id": "B2",
+      "severity": "high",
+      "issue": "헤드라인이 규격 조항에서 산술로 유도된다. MobiCom 의 통화는 만들거나 재야만 얻는 사실이다. σ 비의존성은 SP 학회의 강점이지만 시스템 학회에서는 '측정이 불필요했다'는 신호다.",
+      "fix": "기여를 법칙에서 **상용 셀의 실측 SSB 주기 분포와 실효 반복률 분포**로 옮긴다 (M1). 법칙은 그 관측을 해석하는 도구로 내린다."
+    },
+    {
+      "id": "B3",
+      "severity": "high",
+      "issue": "단일 수신기가 이웃 셀을 여러 개 본다는 사실이 계산이 아니라 한 문장으로 닫혀 있다 ⟨vmax_hardening.json : C_frame.neighbour_cells⟩. 각 gNB 는 위치가 달라 기하계수가 다르므로 논문 자신의 §F 교차가 수신기 증설 없이 적용된다 — 4개면 모호 부피 1.01e-01 → 1.55e-04.",
+      "fix": "가시 PCI 수·각 PCI 직접파 SNR·SSB 도착 격자를 실측하고, 실제 교차 후 남는 모호 부피를 계산한다. 풀리면 헤드라인을 '단일 조명원' 명제로 축소하고, 안 풀리면 그 이유(SNR·연관·기하)를 수치로 닫는다."
+    },
+    {
+      "id": "B4",
+      "severity": "high",
+      "issue": "논문 자신의 표가 해법을 담고 있다 — nr_recon 1000 Hz → 21.41 m/s. 시스템 심사자는 '그러면 한계가 아니라 수신기 설계 선택 아닌가'에서 멈춘다.",
+      "fix": "UE 자격 없이 상용 하향에서 실제로 재구성 가능한 비율을 셀·시간대·부하별로 실측한다 (M3). 이 측정이 탈출구를 닫는 유일한 방법이고, 그 자체가 MobiCom 급 결과다."
+    },
+    {
+      "id": "B5",
+      "severity": "medium",
+      "issue": "만든 것이 없다. 한계를 우회하는 시스템도, 필드 평가도 없다. MobiCom 은 구성적 학회다.",
+      "fix": "§F 수치를 설계로 바꾼다 — 이웃 셀 조명 다이버시티로 알리아스 번호를 푸는 단일 수신기 해모호기를 만들어, 상용 5G 만으로 15 m/s 표적 속도를 필드에서 복원한다 (M5)."
+    },
+    {
+      "id": "B6",
+      "severity": "medium",
+      "issue": "E-ALIAS 는 정리를 확인하는 실험이다. F1~F5 반증조건은 정직하지만, 모두 '예측이 맞았다'로 끝날 가능성이 압도적이고 그때 얻는 것이 얇다.",
+      "fix": "캠페인 무게중심을 미지수 쪽으로 옮긴다 — 셀 인벤토리·재구성 수율·실측 DNR. alias 톱니 그림은 헤드라인이 아니라 그림 한 장으로 배치한다."
+    },
+    {
+      "id": "B7",
+      "severity": "medium",
+      "issue": "실행 위험이 평가되지 않았다. 시뮬 ECA 는 동적범위가 무한하고 실측은 12-bit 다. 자체 최소 여유 19.23 dB 는 자유공간 시뮬 기하 값이라 도시 사이트 직접파에 그대로 적용되지 않는다 — 캠페인이 아무것도 못 잡을 수 있다.",
+      "fix": "드론 비행 전에 정지 표적(교정구·차량)으로 직접파 제거 예산을 먼저 실측한다. ECA 후 잔여 직접파가 열잡음 위 몇 dB 인지가 캠페인 진행 여부의 게이트다."
+    },
+    {
+      "id": "B8",
+      "severity": "medium",
+      "issue": "규모와 일반성이 부족하다 — AP 는 우리가 통제하고(ambient 아님), 기체 2종·사이트 1곳·기하 1개다.",
+      "fix": "WiFi 팔을 실제 캠퍼스/건물 AP 패킷률 분포 관측으로 바꾸고(교차점 74.4 Hz 기준), 사이트·기하·시간대를 늘려 결과가 배치를 가로질러 성립함을 보인다."
+    }
+  ],
+
+  "what_would_change_my_mind": [
+    "상용 셀 100+ 개의 SSB 주기 실측 분포가 나오고, 그 분포가 예상과 다르면(예: 상당수가 5/10 ms) 그 자체로 놀라운 사실이 된다 — 방향이 유지되든 뒤집히든 MobiCom 결과다.",
+    "이웃 셀 교차로도 15 m/s 가 안 풀린다는 것을 실측 기하·SNR 위에서 보이면 '단일 수신기로는 못 푼다'가 측정 위에 서고 헤드라인이 커진다.",
+    "상용 gNB 하향 재구성 수율이 실측으로 낮게 나오면(예: 유휴 셀에서 실효 PRF 중앙값 < 100 Hz) B4 가 닫히고 한계 주장이 인프라 사실이 된다.",
+    "이웃 셀 해모호기가 필드에서 동작하면 논문이 한계 논문에서 시스템 논문으로 바뀐다 — 그때 MobiCom 이 정상 경로가 된다."
+  ],
+
+  "advice_to_authors": {
+    "sequencing_agreement": "PAPER_SPEC §3.4 의 순서(ICASSP 먼저, 캠페인 병행, 저널 폴백)는 이 심사와 충돌하지 않는다. 동의한다.",
+    "one_change": "⭐ 단 하나 바꿀 것: 캠페인의 1순위를 'alias 시연'에서 '셀 인벤토리 + 재구성 수율 실측'으로 옮긴다. 시연은 ICASSP 카메라레디 한 문단에 충분하고, 인벤토리는 MobiCom/INFOCOM 두 문을 동시에 연다.",
+    "infocom_note": "M1+M2 는 INFOCOM 이 요구한 '네트워크 층 실체'와 같은 데이터다. 한 번의 캠페인이 두 학회의 공백을 동시에 메운다."
+  }
+}

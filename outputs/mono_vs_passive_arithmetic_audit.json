@@ -1,0 +1,294 @@
+{
+ "meta": {
+  "auditor": "adversarial verification subagent, ARITHMETIC lens",
+  "generated": "2026-07-31T08:48:38",
+  "target": [
+   "outputs/mono_vs_passive.json",
+   "outputs/monostatic_prior.json"
+  ],
+  "method": "저장소 식을 믿지 않고 (a) 경로길이 시간미분으로 f_d 를 독립 재유도, (b) 교과서 모노스태틱 레이더방정식을 따로 코딩해 대조, (c) 닫힌형을 손으로 다시 풀어 대입, (d) 기하 실현가능성(삼각부등식) 검사",
+  "scripts_run": [
+   "v1_doppler.py (도플러 재유도)",
+   "v2_link.py (링크버짓)",
+   "v3_geom.py (기하·규약)"
+  ],
+  "edited_nothing": true,
+  "lambda_m": 0.085654988,
+  "carrier_hz": 3500000000.0
+ },
+ "confirmed": [
+  {
+   "id": "A1",
+   "claim": "f_d = (2v/λ)cos(β/2)cosδ 가 바이스태틱 도플러의 정확한 닫힌형이다",
+   "method": "무작위 기하 400개에서 f_d = -(1/λ)d(R1+R2)/dt 를 중심차분으로 계산해 닫힌형과 대조",
+   "max_rel_err": 8.135e-09,
+   "verdict": "CONFIRMED — 근사가 아니라 항등식"
+  },
+  {
+   "id": "A2",
+   "claim": "TX=RX 이면 f_d = 2 v·û/λ 로 정확히 붕괴한다(모노스태틱은 β=0 절편)",
+   "method": "TX=RX 로 놓고 같은 유한차분 vs 교과서 모노스태틱 식, 무작위 400개",
+   "max_rel_err": 7.112e-08,
+   "verdict": "CONFIRMED — 잔차는 차분 잡음 수준"
+  },
+  {
+   "id": "A3",
+   "claim": "v_max = λ·PRF/4 (반쪽구간 규약) 의 발표 수치",
+   "recomputed": {
+    "50 Hz": 1.07068735,
+    "200 Hz": 4.2827494,
+    "500 Hz": 10.7068735,
+    "1000 Hz": 21.413747,
+    "6.25 Hz": 0.13383591875
+   },
+   "verdict": "CONFIRMED — 소수 10자리까지 JSON 과 동일. λ(3.5 GHz)=0.085654988 m"
+  },
+  {
+   "id": "A4",
+   "claim": "완화계수 1/cos(β/2) 와 그 값들(45° 1.0824, 90° 1.4142)",
+   "verdict": "CONFIRMED — 10개 β 전부 일치. relief = 1/(cos(β/2)|cosδ|) ≥ 1 이므로 λPRF/4 는 **모든 기하에 대한 하한**이고, 발표 헤드라인은 기하로 깎인 보수적 끝이 맞다"
+  },
+  {
+   "id": "A5",
+   "claim": "M1 공선 항등식의 잔차 3.80e-7 은 물리 불일치가 아니다",
+   "predicted_grid_residual": 3.807717505743824e-07,
+   "json_value": 3.804747016948109e-07,
+   "verdict": "CONFIRMED — 1-cos(Δψ/2)=3.8077e-7 과 일치. 순수 방위각 격자 양자화"
+  },
+  {
+   "id": "A6",
+   "claim": "M2 접힘시작속도가 모노/β→0 바이 양쪽에서 λPRF/4",
+   "verdict": "CONFIRMED — M2 기하(공고도 표적, D=3e6 m)가 실제로 β=0·δ=0 을 만든다. rel_err_bi 1.34e-11 은 RX 높이 3 m vs TX 25 m 의 잔여 앙각으로 설명된다"
+  },
+  {
+   "id": "A7",
+   "claim": "⭐ 모노스태틱 링크버짓이 정말 1/R^4 이다",
+   "method": "EIRP·G_rx·λ²σ/((4π)³R⁴) 를 따로 코딩해 lb.echo_power_w(λ,σ,R,R) 와 대조",
+   "delta_db": 0.0,
+   "slope_per_octave_db": -12.0412,
+   "verdict": "CONFIRMED — 옥타브당 정확히 -12.0412 dB, 이론값과 일치"
+  },
+  {
+   "id": "A8",
+   "claim": "⭐ 기준채널(직접파)항이 모노스태틱 예산에서 제거되었다 — 바이스태틱 코드에서 조용히 딸려오지 않았다",
+   "evidence": [
+    "monostatic 분기는 lb.echo_power_w(λ,σ,R,R) 만 호출한다",
+    "echo_below_eirp 가 G_rx λ²σ/((4π)³R⁴) 순수형과 소수 6자리까지 동일 → 1/L² 항 없음",
+    "D5 구간의 direct_power_w 2회·link_terms 1회는 전부 명시적 패시브/교차비교 코드"
+   ],
+   "verdict": "CONFIRMED — 렌즈가 의심한 조용한 이월은 없다"
+  },
+  {
+   "id": "A9",
+   "claim": "offset 닫힌형 20log10(4πL/λ)−G_rx = 87.3169 dB 와 표적거리 무관성",
+   "verdict": "CONFIRMED — 손으로 다시 유도하면 10log10(EIRP/P_direct) 이고 P_echo 가 약분되므로 표적거리에 무관한 것이 맞다. 단 L 의존이라는 점에서 **기하 의존**이다(문제 P1 참조)"
+  },
+  {
+   "id": "A10",
+   "claim": "잔여 SI 63.402 dB / ADC 10.532 비트 / D1 사다리 / D3 f_c,max=c·PRF/(4v)",
+   "verdict": "CONFIRMED — 전부 독립 재계산과 일치(4슬롯×0.5 ms=2 ms=500 Hz, c·500/(4·25)=1.4990 GHz, 600 MHz·50 Hz=6.2457 m/s)"
+  }
+ ],
+ "problems": [
+  {
+   "id": "P1",
+   "severity": "high",
+   "where": "L2_design_freedom.D5_self_interference.interference_axis.continuity_ko  +  L3_cost_ledger.interference_axis_finding_ko",
+   "issue": "⭐ 렌즈가 겨냥한 바로 그 혼동. 도플러 하한(기하 무관·정확)과 링크버짓(기하 의존)을 '정확히 같은 이야기' 로 묶는다: \"L 을 줄이면 패시브의 문제가 모노스태틱의 문제로 연속 수렴한다 — 도플러 축의 β=0 절편과 정확히 같은 이야기다(간섭 축에서는 L→0 극한)\". 도플러 쪽은 β=0 에서 극한 없이 성립하는 항등식이고(A2, 7e-8), 간섭 쪽은 극한이 존재하지 않는다.",
+   "arithmetic_disproof": {
+    "offset_L": [
+     {
+      "L_m": 500.484,
+      "offset_db": 87.31694806995962
+     },
+     {
+      "L_m": 10,
+      "offset_db": 53.32914410888889
+     },
+     {
+      "L_m": 1,
+      "offset_db": 33.32914410888889
+     },
+     {
+      "L_m": 0.1,
+      "offset_db": 13.32914410888889
+     },
+     {
+      "L_m": 0.02155474029429646,
+      "offset_db": 0.0
+     },
+     {
+      "L_m": 0.01,
+      "offset_db": -6.670855891111114
+     },
+     {
+      "L_m": 0.001,
+      "offset_db": -26.67085589111111
+     }
+    ],
+    "crossover_L_m": 0.02155474029429646,
+    "crossover_in_wavelengths": "λ/3.97",
+    "note": "offset(L)→−∞ : 패시브 직접파 문제는 모노 요구치로 수렴하는 게 아니라 L*=0.0216 m (=λ/3.97, 반응근접장)에서 통과한 뒤 무한히 더 나빠진다. L<L* 에서 Friis 는 P_direct > EIRP (수신전력>송신전력)를 내놓는다 — 모형 무효 구간이다. 게다가 모노 SI 는 자유공간 전파가 아니라 안테나단 결합(서큘레이터 25 dB)이라 물리 범주가 다르다."
+   },
+   "fix": "continuity_ko / interference_axis_finding_ko 에서 '정확히 같은 이야기'·'L→0 극한' 을 삭제하고 검증된 문장만 남길 것: (a) 차이는 표적거리에 무관한 닫힌형 20log10(4πL/λ)−G_rx 이다, (b) 이 식은 L 이 원거리장일 때만 유효하며 L*≈λ/4 에서 부호가 뒤집힌 뒤 발산한다, (c) 도플러 축의 β=0 항등식과 달리 간섭 축에는 모노스태틱으로 가는 연속 극한이 없다."
+  },
+  {
+   "id": "P2",
+   "severity": "high",
+   "where": "D5.interference_axis.range_independence_check + D5.verdict_ko + L3.interference_axis_finding_ko",
+   "issue": "'같은 100 m 표적' 비교의 패시브 값 56.7 dB 는 **배치 불가능한 점**이다. 코드는 R1=R2=R 로 에코를 계산하는데 베이스라인이 L=500.48 m 라 삼각부등식 R1+R2 ≥ L 이 R=50·100·200 m 전부에서 깨진다(200 < 500.5). 실현가능한 행은 R=1000 뿐이다.",
+   "arithmetic_disproof": {
+    "rows": [
+     {
+      "R_m": 50.0,
+      "R1_plus_R2": 100.0,
+      "L_m": 500.4837659704858,
+      "feasible": false,
+      "passive_dnr_db": 44.70602276447568
+     },
+     {
+      "R_m": 100.0,
+      "R1_plus_R2": 200.0,
+      "L_m": 500.4837659704858,
+      "feasible": false,
+      "passive_dnr_db": 56.74722259103493
+     },
+     {
+      "R_m": 200.0,
+      "R1_plus_R2": 400.0,
+      "L_m": 500.4837659704858,
+      "feasible": false,
+      "passive_dnr_db": 68.78842241759416
+     },
+     {
+      "R_m": 1000.0,
+      "R1_plus_R2": 2000.0,
+      "L_m": 500.4837659704858,
+      "feasible": true,
+      "passive_dnr_db": 96.74722259103491
+     }
+    ],
+    "min_feasible_symmetric_R_m": 250.2418829852429,
+    "passive_dnr_at_min_feasible_db": 72.68162256346034,
+    "mono_required_iso_at_min_feasible_db": 159.99856657184156
+   },
+   "fix": "① 표본점을 R ≥ L/2 = 250.2 m 로 옮기면 그대로 성립한다(패시브 72.68 dB · 모노 160.00 dB · 차이 87.32 dB 불변). ② 또는 표본행을 지우고 닫힌형 항등식만 남길 것 — 결론(87.3 dB 차이의 정체)은 표본점 없이도 증명된다. ③ 짧은 베이스라인 장면을 따로 쓰려면 L 을 명시할 것."
+  },
+  {
+   "id": "P3",
+   "severity": "medium",
+   "where": "D5.monostatic.* / D5.barneto / L3 rows / L4 the_reviewer_question",
+   "issue": "격리 기준면이 EIRP 다(P_SI = EIRP/격리). 문헌의 Barneto >100 dB 는 송신전력 P_t 기준이다. 두 기준면 차이는 정확히 TX 안테나 이득 G_t 이므로 'shortfall 44.1 dB' 는 G_t 만큼 부풀려져 있다. 매크로 gNB G_t 15~25 dBi 면 실제 부족분은 29.1~19.1 dB 다. 같은 G_t 가 잔여 SI 63.4 dB·ADC 10.53 비트에도 그대로 걸린다. 결론의 **방향**은 살아남지만 **크기**는 아니다.",
+   "arithmetic_disproof": {
+    "required_iso_EIRP_ref_db": 144.06416659941615,
+    "by_Gt_dBi": {
+     "0": {
+      "required_iso_Pt_ref_db": 144.06416659941615,
+      "shortfall_vs_barneto_db": 44.064166599416154,
+      "residual_SI_above_noise_db": 63.401862229915416
+     },
+     "10": {
+      "required_iso_Pt_ref_db": 134.06416659941615,
+      "shortfall_vs_barneto_db": 34.064166599416154,
+      "residual_SI_above_noise_db": 53.401862229915416
+     },
+     "15": {
+      "required_iso_Pt_ref_db": 129.06416659941615,
+      "shortfall_vs_barneto_db": 29.064166599416154,
+      "residual_SI_above_noise_db": 48.401862229915416
+     },
+     "18": {
+      "required_iso_Pt_ref_db": 126.06416659941615,
+      "shortfall_vs_barneto_db": 26.064166599416154,
+      "residual_SI_above_noise_db": 45.401862229915416
+     },
+     "21": {
+      "required_iso_Pt_ref_db": 123.06416659941615,
+      "shortfall_vs_barneto_db": 23.064166599416154,
+      "residual_SI_above_noise_db": 42.401862229915416
+     },
+     "25": {
+      "required_iso_Pt_ref_db": 119.06416659941615,
+      "shortfall_vs_barneto_db": 19.064166599416154,
+      "residual_SI_above_noise_db": 38.401862229915416
+     }
+    }
+   },
+   "fix": "open_questions[5] 에 있는 경고를 **숫자에 붙일 것**: D5.monostatic 각 행에 reference_plane='EIRP' 키를 추가하고, shortfall 을 '44.1 dB (EIRP 기준; P_t 기준이면 44.1 − G_t, 매크로 G_t 15~25 dBi 면 29~19 dB)' 로 재서술. L3 원장 행과 L4 '144 dB급' 문장도 같이 고칠 것 — verification:'computed' 라 그대로 인용된다."
+  },
+  {
+   "id": "P4",
+   "severity": "medium",
+   "where": "D6_data_symbol_lane.passive_toll ↔ outputs/refrate_law.json illuminators.rows.nr_recon",
+   "issue": "D6 는 nr_recon 을 '그 레인이다' 라고 동일시하면서 v_max 를 599.58 m/s 로 쓴다. nr_recon 행의 v_max 는 21.41 m/s 다 — 28배. 차이는 모노/패시브가 아니라 순전히 '1 ms 배치' 라는 처리 규약에서 온다. 그대로 두면 L4 의 '탈출구는 전 파형' 서사가 28배 규약 인공물을 경계선인 것처럼 나른다.",
+   "arithmetic_disproof": {
+    "D6_symbol_rate_hz": 27999.999999999996,
+    "D6_v_max_ms": 599.5849159999999,
+    "nr_recon_prf_hz": 1000.0,
+    "nr_recon_v_max_ms": 21.413747,
+    "ratio": 27.999999999999996
+   },
+   "fix": "D6.passive_toll 에 한 줄 추가: 'nr_recon 의 21.4 m/s 는 1 ms 배치 규약값이고, 심볼단위로 처리하면 패시브도 같은 28 kHz·599.6 m/s 에 도달한다 — 두 레인의 차이는 v_max 가 아니라 복조/재변조 비용과 트래픽 의존성이다.' 또는 refrate_law 에 nr_recon_symbol 행을 추가."
+  },
+  {
+   "id": "P5",
+   "severity": "medium",
+   "where": "L1.treated_case_statement_ko / L4.novelty_position.what_this_file_adds / open_questions",
+   "issue": "'모노스태틱은 이제 각주가 아니다 — 다뤄진 경우다' 라고 선언하지만 다뤄진 축은 도플러·거리·RCS·간섭 4개뿐이고 **검출(Pd/CFAR/ROC)** 축이 없다. grep 결과 src/experiment_detection.py 와 src/experiment_freespace_range.py 의 monostatic 언급은 0건이다. 그런데 open_questions 6개 어디에도 이 사실이 없다 — 사용자가 물은 바로 그 구멍이다.",
+   "arithmetic_disproof": {
+    "grep_monostatic_hits": {
+     "src/experiment_detection.py": 0,
+     "src/experiment_freespace_range.py": 0
+    },
+    "axes_treated": [
+     "Doppler (this file's axis)",
+     "range/delay",
+     "RCS",
+     "interference"
+    ]
+   },
+   "fix": "open_questions 에 추가: '⚠ 검출 층은 여전히 바이스태틱 전용이다 — experiment_detection.py / experiment_freespace_range.py 에 모노스태틱 시나리오가 없다. 이 파일이 올린 것은 도플러·간섭 축이지 Pd 곡선이 아니다.' 그리고 treated_case_statement_ko 를 '도플러·간섭 축에서' 로 스코핑할 것."
+  },
+  {
+   "id": "P6",
+   "severity": "low",
+   "where": "D4_duplexing.ofdm_symbol_us ↔ D6.full_buffer_symbol_rate_hz ↔ outputs/monostatic_prior.json",
+   "issue": "같은 물리량(NR 30 kHz SCS OFDM 심볼길이)에 파일 안팎으로 세 값이 돈다: D4 33.333 µs (=1/SCS, CP 제외), D6 함의 35.714 µs (=0.5 ms/14, CP 포함), monostatic_prior 36 µs. D4 의 논증('송신 중에 에코가 돌아온다')에 맞는 것은 CP 포함값이다.",
+   "arithmetic_disproof": {
+    "D4_symbol_us": 33.333333333333336,
+    "D6_implied_symbol_us": 35.71428571428572,
+    "prior_symbol_us": 36.0,
+    "D4_range_m": 4996.5409666666665,
+    "range_with_CP_m": 5353.436750000001,
+    "prior_range_m": 5396.264244,
+    "D4_pct": 2.0013845711889124,
+    "pct_with_CP": 1.867958933109651
+   },
+   "fix": "D4 를 0.5 ms/14 = 35.714 µs 로 통일하면 '5.0 km'→5.35 km, '2.0%'→1.87% 가 되고 monostatic_prior 의 5396 m 와도 7% 안에서 맞는다. 결론은 안 바뀐다(오히려 논증이 강해진다)."
+  },
+  {
+   "id": "P7",
+   "severity": "low",
+   "where": "D5.link_budget.bw_hz / D5.monostatic.*.echo_snr_db",
+   "issue": "모노스태틱 에코 SNR(50 m 31.4 · 100 m 19.3 · 200 m 7.3 dB)이 패시브 기준신호의 대역폭 7.2 MHz(SSB 20 RB)로 계산돼 있다. 논의 중인 모노 레인은 500 Hz 천장의 CSI-RS 이고 n78 BWP 는 최대 100 MHz 다. 좁은 대역은 잡음을 낮춰 모노 SNR 을 **유리하게** 만든다. link_budget.source 에 대역 출처는 적혀 있으나 SNR 숫자 옆에는 없다.",
+   "arithmetic_disproof": {
+    "bw_hz": 7200000.0,
+    "bw_source": "refrate_law law.repo_parity.nr_ssb.repo_ref_bw_hz (SSB 20 RB × 12 × 30 kHz)",
+    "snr_penalty_if_100MHz_db": 11.426675035687314
+   },
+   "fix": "echo_snr_db 옆에 bandwidth_note 를 달거나, 모노 레인을 CSI-RS 대역으로 다시 계산해 두 값을 병기할 것. 통제비교로 7.2 MHz 를 유지하는 것 자체는 정당하다 — 라벨만 붙이면 된다."
+  },
+  {
+   "id": "P8",
+   "severity": "low",
+   "where": "D7_verdict.freedom_ratio_v_max",
+   "issue": "키 이름이 '모노스태틱 내부의 자유도' 로 읽히지만 값 10.0 은 '모노 천장 / 패시브 기본값' 이다. 모노 내부 자유도는 사다리 폭 3.125→500 Hz = 160배다(같은 dict 의 ladder_span_hz).",
+   "arithmetic_disproof": {
+    "ceiling_over_passive_default": 10.0,
+    "ladder_span_ratio": 160.0
+   },
+   "fix": "키를 freedom_ratio_vs_passive_default 로 바꾸고 ladder_internal_ratio=160 을 함께 적을 것."
+  }
+ ],
+ "bottom_line": "도플러 산술은 전부 통과했다 — 닫힌형·β=0 붕괴·완화계수·1.07 m/s·1/R^4·기준채널 제거까지 독립 재유도로 확인했고, 헤드라인이 보수적이라는 판정도 옳다. 깨진 것은 **두 축을 잇는 수사(P1)** 와 그 수사를 뒷받침하려고 고른 **불가능한 표본점(P2)**, 그리고 문헌과 기준면이 다른 격리 숫자(P3)다. 세 건 다 결론의 방향이 아니라 문장과 표본을 고치면 된다."
+}

@@ -1,0 +1,114 @@
+{
+  "meta": {
+    "generated": "2026-07-31",
+    "reviewer_role": "ACM MobiSys PC member (mobile systems / RF sensing artefacts)",
+    "manuscript_under_review": "The Ambient Reference Repetition Rate Sets Drone Velocity Observability in Passive Bistatic Sensing",
+    "versions_judged": {
+      "A": "SIMULATION ONLY, as the work stands today",
+      "B": "WITH the X410 campaign (E-ALIAS): fly above 1.07 m/s and show ambient-5G velocity folding while WiFi and LTE track"
+    },
+    "sources_read": [
+      "docs/PAPER_SPEC.md",
+      "docs/REBUILD_2026-07-30.md",
+      "docs/RESUME_0731.md",
+      "docs/PAPER_POSITION.md (sections 5-6)",
+      "docs/MEASUREMENT_PLAN.md",
+      "outputs/refrate_law.json",
+      "outputs/vmax_hardening.json",
+      "outputs/cpi_guard_sweep.json",
+      "outputs/monostatic_prior.json",
+      "outputs/report06_measurement.json",
+      "outputs/review_mobicom.json",
+      "src/experiment_x410.py"
+    ],
+    "note": "이 파일은 심사 의견이다. 논문 문서(PAPER_SPEC/PAPER_POSITION)는 건드리지 않았다."
+  },
+  "verdict": {
+    "decision": "reject",
+    "decision_scope": "MobiSys 에 버전 A 또는 버전 B 로 제출했을 때 둘 다",
+    "one_line": "MobiSys 는 틀린 방이다 — 이 논문에는 mobile 한 것이 표적뿐이고 시스템은 삼각대 위 고정 수신기다. 학회를 정중히 채점할 문제가 아니라 방을 잘못 찾은 문제다.",
+    "is_this_mobisys_material": false,
+    "which_room": "둘 중에서는 SenSys 다. 단 SenSys 도 '법칙'으로는 못 들어간다 — 시스템을 지어야 들어간다.",
+    "modal_outcome": "버전 A 는 summary reject, 버전 B 는 1라운드에서 scope 로 탈락"
+  },
+  "q_mobisys_vs_sensys": {
+    "the_distinction_that_matters": "SenSys 는 '무엇을 어떻게 감지하는가'(센싱 양식·물리·배치 관측)를 사고, MobiSys 는 '모바일 플랫폼 위에서 무엇이 돌아가는가'(이동하는 장치·앱·서비스·자원예산)를 산다. 이 논문에서 이동하는 것은 표적 드론뿐이고, 우리 시스템은 전원·삼각대·고정 기저선의 지상 수신기다. 드론은 우리 플랫폼이 아니라 우리 피사체다.",
+    "mobisys_currency_this_paper_lacks": [
+      "동작하는 아티팩트 — src/experiment_x410.py 는 스펙시트 모델이다(X410Scenario / adc_quantize / steering_vector / detection_config / summary, 12 KB). UHD 도 IQ 캡처도 없다",
+      "모바일 플랫폼 — 폰·웨어러블·차량·온보드 컴퓨트 어느 것도 없다",
+      "서비스·사용자 — 누가 이 출력을 쓰는지, 어떤 앱/UTM/대응 루프에 붙는지 정의가 없다",
+      "자원 예산 — 지연·연산량·전력·비용·노드당 커버리지 숫자가 0개다",
+      "end-to-end 평가 — 파이프라인 전체가 도는 시연이 아니라 JSON 산출물 모음이다"
+    ],
+    "why_sensys_not_mobisys": "LaSen(SenSys '26, DOI 10.1145/3774906.3800504)이 같은 주제를 그 방에 실었다. 그것이 방 배정의 실측 증거다. 반대로 MobiSys 의 드론 논문은 대체로 '드론이 우리 플랫폼'인 논문(온보드 오프로딩·비행제어·항법)이고, 지상에서 드론을 탐지하는 논문은 SenSys/MobiCom/IMWUT 계열로 간다.",
+    "blunt_sentence_for_the_author": "MobiSys 에 내면 심사자는 '왜 이게 여기 왔지'를 먼저 쓰고 그 다음에 기술을 본다. 1년을 MobiSys 에 걸지 마라."
+  },
+  "version_A_simulation_only": {
+    "decision": "reject",
+    "p_accept": 0.01,
+    "range": "0.5~2 %",
+    "why": [
+      "MobiSys 는 시스템 학회다. 실측 0건·아티팩트 0건인 순수 해석 논문은 base rate(~16 %) 아래로 크게 떨어진다",
+      "헤드라인이 3GPP 규격 한 줄(SSB 20 ms)에서 나이퀴스트로 유도된다. 시스템 학회의 통화는 '지어야만 알 수 있는 사실'이고 이것은 계산하면 아는 사실이다",
+      "게다가 그 식은 선행이다 — Chen et al., Applied Sci. 14(10):4282, 2024 가 패시브 바이스태틱 5G 로 같은 기호(β 이중기저각, δ)로 먼저 냈고 상용 gNB 실측까지 붙였다. 우리 저장소가 스스로 그것을 확인한다 ⟨outputs/monostatic_prior.json : priority_check.hits[0]⟩ 및 우리 법칙이 그들 숫자를 rel_err 3.0e-05 로 재현한다 ⟨…: verification_of_our_law_against_prior_measurements.chen2024_rotation⟩"
+    ]
+  },
+  "version_B_with_E_ALIAS_campaign": {
+    "decision": "reject",
+    "p_accept": 0.05,
+    "range": "3~7 %",
+    "why": [
+      "E-ALIAS 는 시스템이 아니라 시연이다. 예측된 톱니를 보이는 실험은 정리(theorem) 확인이고, MobiSys 는 '지어서 돌린 것'을 산다",
+      "⭐ 치명적 — 같은 문제를 이미 푼 논문이 우리가 겨냥한 방(SenSys)에 실렸다. LaSen 은 '5G 기준신호 반복률이 나이퀴스트를 못 맞춘다'를 자기 problem statement 로 쓰고(원문: 'These relatively low repetition rates (200 Hz for CSI-RS and 50 Hz for SSB) inherently limit Doppler tracking for high-speed targets'), 무모호 속도를 2.6 → 20.2 m/s 로 넓혔다. 시스템 학회는 벽이 아니라 벽을 넘은 쪽에 지불한다",
+      "우리 버전 B 의 결론은 '패시브에는 탈출구가 없다'는 음성 결과다 ⟨outputs/vmax_hardening.json : verdict.escapes⟩. 음성 결과가 시스템 학회에 실리려면 그 벽을 안고 사는 배치물이 함께 있어야 한다",
+      "규모가 n=1 이다 — 한 사이트, 두 기체, 이등분선 정렬 비행, 우리가 통제하는 AP. MobiSys 심사자는 이것을 '통제된 데모 한 번'으로 읽는다"
+    ]
+  },
+  "what_would_make_it_mobisys": {
+    "principle": "MobiSys 가 되려면 mobile 한 것이 표적이 아니라 시스템이어야 한다. 두 경로가 있고 둘 다 v_max 법칙을 '제약조건'으로 강등시켜 시스템의 설계 근거로 쓴다.",
+    "path_1_mobile_sensing_node": {
+      "what": "이동하는 패시브 노드 — 차량 탑재 또는 동반 드론 탑재 수신기. 노드가 움직이면 가시 조명원이 바뀌고, 매 순간 '지금 어느 앰비언트 조명원에 정합할 것인가'가 시스템 문제가 된다",
+      "why_it_is_mobisys": "조명원 선택·핸드오버·온보드 연산·전력 예산·시야 확보 기동이 전부 모바일 시스템 문제다. v_max 법칙이 선택 정책의 목적함수가 된다 — LTE 40.7 / WiFi(포화) 14.4 / 5G 1.07 m/s 가 그대로 policy table 이다",
+      "cost": "노드 SW 스택 + 플랫폼 통합 6~9개월. 이동 중 직접경로 제거가 최대 위험"
+    },
+    "path_2_multistatic_deployment": {
+      "what": "우리 자신의 F_multistatic 이 시스템 논문을 가리킨다 — 넓게 벌린 수신기 4대면 모호 부피가 1.01e-01 → 1.55e-04, 동시 블라인드가 0.733 → 0.206 으로 떨어지고, 30 m 로 뭉친 3대는 아무 효과가 없다(0.722) ⟨outputs/vmax_hardening.json : F_multistatic⟩",
+      "why_it_is_mobisys_or_mobicom": "노드 배치·시간동기·데이터플레인 대역·연관(association) 이 전부 시스템 문제다. '어디에 몇 대를 놓아야 앨리어스가 풀리는가'는 배치 논문의 형태다",
+      "the_honest_risk": "1빈 도플러 오차만 허용해도 모호 부피가 2.68e-02 로 되돌아가고 유령 덩어리 192개가 남는다. 즉 현장에서 진짜로 풀리는지는 지어봐야 안다 — 그래서 시스템 논문이 된다",
+      "cost": "노드 4대 + 시간동기 + 사이트 섭외. 9~12개월"
+    },
+    "either_way": "논문의 문장이 '한계가 존재한다'에서 '이 한계를 안고 도는 것을 지었고 그 비용은 이만큼이다'로 바뀌어야 한다."
+  },
+  "novelty_reality_check": {
+    "the_brief_says": "LaSen 은 위협이 아니라 우리 경계 논증의 가장 강한 인용이 될 수 있다",
+    "my_finding": "절반만 맞다. 시스템 학회의 심사 심리에서는 지지 인용이 아니라 대조군이다. LaSen §7 이 Chen 을 인용하며 바로 그 경계를 적고, LaSen 의 존재 이유가 그 경계를 넘는 것이다. 우리가 같은 경계를 다시 적고 넘지 못하면, 심사자는 '문제제기는 같고 해법이 없다'로 읽는다",
+    "the_formula_is_not_ours": "⭐ outputs/monostatic_prior.json : priority_check.hits[0] 이 명시한다 — 'v_max = λ·PRF_ref/(4 cos(β/2) cos δ) 라는 식 자체는 우리 것이 아니다'. novelty_guard 에 Chen 2024 를 즉시 추가해야 한다",
+    "our_framing_error_found_in_repo": "'모노스태틱은 반복률을 자유롭게 고른다'는 프레이밍은 틀렸다 — 3GPP 가 sub-6 CSI-RS 에 500 Hz 천장을 걸었고 상용 gNB 는 50~200 Hz 로 돈다. 3.5 GHz 에서 그 천장의 v_max 는 10.7 m/s 로 우리 1.07 m/s 의 10배이지 무한대가 아니다 ⟨…: side_by_side.the_answer_to_the_reviewer⟩. 모노의 진짜 탈출구는 반복률이 아니라 데이터 심볼이고 그것은 트래픽 종속이다",
+    "what_still_is_ours": [
+      "근거 붙은 교차표준 표 12행(셀룰러·WLAN·방송을 한 축에)",
+      "설계규칙 역산 PRF_req = 4v/λ · f_c,max = c·PRF/4v",
+      "탈출구 6개의 수치 판정 — 특히 빔스위핑 −0.14 dB, 스태거 0.10 dB 같은 닫힘 증명",
+      "검출 블라인드 ↔ 속도 접힘의 분리와 CPI 독립성",
+      "Pfa 교정(2717 s MC) — 실외 실측이 못 하는 통제 시뮬 전용 능력"
+    ],
+    "verdict": "이 다섯은 좋은 분석 논문의 재료이지 시스템 논문의 기여가 아니다."
+  },
+  "odds_table": {
+    "mobisys_version_A": 0.01,
+    "mobisys_version_B": 0.05,
+    "mobisys_with_path_1_or_2_built": 0.15,
+    "note": "path 를 지어도 MobiSys 는 base rate 근처에 겨우 닿는다. 같은 노력으로 SenSys 가 더 높다 — 주제 적합도가 이미 증명됐기 때문이다(LaSen)."
+  },
+  "advice_to_authors": {
+    "venue_recommendation": "MobiSys 를 후보에서 내려라. 두 방을 비교할 문제가 아니다 — 이 일에는 모바일 플랫폼이 없다.",
+    "split_question_implication": "⭐ ICASSP 에 v_max 를 먼저 내면 SenSys 펀치가 빠진다는 걱정은 과대평가다. SenSys 급 기여는 애초에 법칙이 아니라 시스템이 될 것이고, 법칙은 이미 Chen 2024·Abratkiewicz 2023 이 절반을 갖고 있다. 즉 분리의 비용이 생각보다 훨씬 싸다 — 분석은 지금 ICASSP/JSTARS 로 내보내고, 1년은 시스템(path 1 또는 2)에 쓰는 것이 옳다.",
+    "one_experiment_that_raises_the_ceiling": "E-ALIAS 가 아니라 **셀 인벤토리** — 여러 사업자·여러 사이트·여러 시간대에서 실제 ssb-PeriodicityServingCell 분포와 앰비언트 재구성 수율을 재는 것. 이유: 1.07 m/s 는 규격 상수가 아니라 기본값의 귀결이고(합법 범위 {5..160} ms → 4.28~0.134 m/s), 그 분포는 계산으로 알 수 없다. 규격에서 유도 불가능한 사실이 곧 시스템 학회의 통화다. review_mobicom.json 의 결론과 독립적으로 같은 지점에 도달했다.",
+    "if_you_insist_on_one_astar_room": "SenSys. 단 제출 조건은 '지어서 돌린 노드'다."
+  },
+  "what_would_change_my_mind": [
+    "이동하는 플랫폼(차량·동반 드론) 위에서 조명원 선택이 실시간으로 도는 노드를 지어 오면 MobiSys 가 성립한다",
+    "다중 노드가 현장에서 실제로 앨리어스를 푸는 것을 보이면(유령 클러스터 포함) 시스템 기여가 선다",
+    "지연·전력·비용·노드당 커버리지 숫자가 붙고 그것이 배치 결정을 바꾸면 방이 맞아진다",
+    "앰비언트 5G 만으로 실제 침입 드론을 운영 중에 잡은 로그가 있으면 판정을 뒤집는다"
+  ]
+}

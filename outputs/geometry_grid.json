@@ -1,0 +1,1642 @@
+{
+ "meta": {
+  "script": "benchmark/geometry_grid.py",
+  "generated": "2026-07-31T08:05:01",
+  "question": "기하(모노/바이) × 조명원(WiFi/LTE/5G) 격자에서 무엇이 비교 가능한가",
+  "house_rules": "산문·print 한국어 · 그림 텍스트 영어 · 수치는 저장소에서만",
+  "repo_functions_used": [
+   "freespace_scene.fs_params",
+   "freespace_scene.target_pos",
+   "freespace_scene.heading_velocity",
+   "freespace_scene.FS_RX",
+   "freespace_scene.prf_hz",
+   "freespace_scene.M_from_prf",
+   "freespace_link.snr_rd_terms_db",
+   "freespace_link.duty_db_from_cpi",
+   "freespace_link.direct_power_w",
+   "freespace_link.n0_thermal",
+   "freespace_link.dnr_db",
+   "freespace_link.eca_depth_required_db",
+   "waveforms.wifi_80211ac",
+   "waveforms.lte_downlink",
+   "waveforms.nr_downlink"
+  ],
+  "reads": [
+   "outputs/refrate_law.json",
+   "outputs/vmax_hardening.json",
+   "outputs/sigma_sensitivity.json",
+   "outputs/monostatic_prior.json",
+   "outputs/report13_freespace.json",
+   "outputs/report13_sigma_grid.json",
+   "outputs/sbr_defect_fixes.json",
+   "outputs/sbr_kr_sweep.json"
+  ],
+  "canonical_scene": {
+   "L_ref_m": 500.0,
+   "phi_deg": 90.0,
+   "alt_m": 60.0,
+   "T_cpi_s": 0.1,
+   "eirp_dbm": 63.0,
+   "grx_dbi": 10.0,
+   "nf_db": 5.0,
+   "mono_node": [
+    0.0,
+    0.0,
+    25.0
+   ],
+   "tx_node": [
+    0.0,
+    0.0,
+    25.0
+   ],
+   "occupancy": "G1"
+  },
+  "runtime_s": 0.79
+ },
+ "headline": "격자는 성립한다. ⑴ 무모호 속도의 바닥은 기하와 완전히 무관해(모노 = 바이 β=0, 차이 0) 기존 헤드라인이 두 기하의 최악값으로 그대로 승격된다. ⑵ 링크버짓은 N1(R_eq=√(R₁R₂)) 정규화 아래서 기하 기여가 정확히 0 이 되므로, 두 기하의 차이는 DPI·기준채널·σ 경로·PRF 통제권 넷으로 **완전히 분해된다**. ⑶ 모노 팔은 새 RCS 계산이 0 이다 — 우리 σ 격자가 이미 모노스태틱 후방산란이고 바이 팔이 그것의 이등분선 근사였기 때문이다. ⑷ ⚠ 기하 축의 링크버짓 크기는 장면방위 φ 에 강하게 매달린다 — 헤드라인 φ=90° 에서 0.118 dB, φ 를 쓸면 23.2 dB. 지금까지의 결과가 전부 φ=90° 단일 방위였다는 것이 이 단계가 찾아낸 가장 큰 재계산 항목이다.",
+ "configurations_and_grid": {
+  "configuration_definitions": {
+   "A": {
+    "name": "능동 모노스태틱",
+    "transmitter": "우리(센서가 곧 송신기)",
+    "receiver": "송신기와 같은 노드",
+    "geometry": "β ≈ 0",
+    "prf_control": "설계변수(규격/거리모호 천장 안에서)",
+    "reference_channel": "불필요 — 송신 심볼을 안다",
+    "interference": "자기간섭(SI)"
+   },
+   "B": {
+    "name": "패시브 준모노스태틱",
+    "transmitter": "남(사업자/AP)",
+    "receiver": "송신기 옆(짧은 베이스라인 L)",
+    "geometry": "β ≈ 0",
+    "prf_control": "없음 — 망이 정한 상시 반복률",
+    "reference_channel": "필요(다만 직접파가 매우 강해 품질은 최상)",
+    "interference": "직접파 간섭(DPI) — L 이 짧아 **최악**"
+   },
+   "C": {
+    "name": "패시브 바이스태틱",
+    "transmitter": "남(사업자/AP)",
+    "receiver": "독립 사이트(L 큼)",
+    "geometry": "β 큼(장면 의존)",
+    "prf_control": "없음 — 망이 정한 상시 반복률",
+    "reference_channel": "필요",
+    "interference": "직접파 간섭(DPI)"
+   }
+  },
+  "cells": [
+   {
+    "cell_id": "A-wifi",
+    "configuration": "A",
+    "configuration_name": "능동 모노스태틱",
+    "illuminator": "WiFi 802.11ac",
+    "band": "wifi",
+    "carrier_hz": 5210000000.0,
+    "lam_m": 0.057541738579654514,
+    "bandwidth_hz": 75625000.0,
+    "transmitter": "우리(센서가 곧 송신기)",
+    "receiver": "송신기와 같은 노드",
+    "geometry": "β ≈ 0",
+    "reference_signal": "VHT-LTF(패킷당 1회) · 규격보장 상시는 비콘 9.77 Hz 또는 자체 파형/데이터 심볼",
+    "control_assumption": "설계변수(규격/거리모호 천장 안에서)",
+    "reference_channel": "불필요 — 송신 심볼을 안다",
+    "interference_cost": "자기간섭(SI)",
+    "prf_ref_hz": null,
+    "v_max_ms": null,
+    "v_max_basis": "설계변수 — 천장 두 단: ⑴ 규격 기준신호 재활용 이 표준은 아직 못박지 않았다 · ⑵ 자체 파형 설계 시 거리모호 맞바꿈 v·R = 2.156e+06 m²/s",
+    "v_max_tiers_active": {
+     "spec_reference_signal_ms": null,
+     "free_waveform_design_at_r90_ms": 325.9103626770181
+    },
+    "scene_relief": {
+     "baseline_m": 0.0,
+     "beta_deg_med": 0.0,
+     "relief_med": 1.0,
+     "relief_max": 1.0000000000000002,
+     "v_max_with_median_relief_ms": null,
+     "note": "v_max_ms 는 β=0 바닥값이다. 장면 완화를 곱한 값이 실제 상한이고, 완화는 바이스태틱에서만 1 을 넘는다."
+    },
+    "sigma_path": "직접계산(모노 후방산란, Δσ=0)",
+    "actor": "우리(또는 임의의 WiFi 센싱 노드)",
+    "realizable_by_us": true,
+    "prior_occupant": "WiFi 센싱 문헌 다수(모노/준모노 CSI). 드론 표적은 드물다.",
+    "note": "5 GHz 비면허대역이라 우리가 직접 송신할 수 있다. 대신 EIRP 규제 상한이 매크로 기지국(63 dBm)보다 훨씬 낮다 — 등-EIRP 규약이 이 셀을 크게 봐준다."
+   },
+   {
+    "cell_id": "A-lte",
+    "configuration": "A",
+    "configuration_name": "능동 모노스태틱",
+    "illuminator": "LTE Rel-9",
+    "band": "lte",
+    "carrier_hz": 1843000000.0,
+    "lam_m": 0.16266546825827455,
+    "bandwidth_hz": 18000000.0,
+    "transmitter": "우리(센서가 곧 송신기)",
+    "receiver": "송신기와 같은 노드",
+    "geometry": "β ≈ 0",
+    "reference_signal": "CRS(서브프레임당) 1000 Hz 또는 자체 파형/데이터 심볼",
+    "control_assumption": "설계변수(규격/거리모호 천장 안에서)",
+    "reference_channel": "불필요 — 송신 심볼을 안다",
+    "interference_cost": "자기간섭(SI)",
+    "prf_ref_hz": null,
+    "v_max_ms": null,
+    "v_max_basis": "설계변수 — 천장 두 단: ⑴ 규격 기준신호 재활용 이 표준은 아직 못박지 않았다 · ⑵ 자체 파형 설계 시 거리모호 맞바꿈 v·R = 6.096e+06 m²/s",
+    "v_max_tiers_active": {
+     "spec_reference_signal_ms": null,
+     "free_waveform_design_at_r90_ms": 1423.7324886320089
+    },
+    "scene_relief": {
+     "baseline_m": 0.0,
+     "beta_deg_med": 0.0,
+     "relief_med": 1.0,
+     "relief_max": 1.0000000000000002,
+     "v_max_with_median_relief_ms": null,
+     "note": "v_max_ms 는 β=0 바닥값이다. 장면 완화를 곱한 값이 실제 상한이고, 완화는 바이스태틱에서만 1 을 넘는다."
+    },
+    "sigma_path": "직접계산(모노 후방산란, Δσ=0)",
+    "actor": "가상의 ISAC eNB",
+    "realizable_by_us": false,
+    "prior_occupant": "없음(조사 범위 안)",
+    "note": "물리는 성립하지만 실행 주체가 없다 — LTE 는 면허대역이고 3GPP ISAC 작업은 NR 전용이다. **격자의 λ 팔로만** 의미가 있다(1.8 GHz 능동 모노의 상한)."
+   },
+   {
+    "cell_id": "A-nr",
+    "configuration": "A",
+    "configuration_name": "능동 모노스태틱",
+    "illuminator": "5G NR Rel-16",
+    "band": "nr",
+    "carrier_hz": 3500000000.0,
+    "lam_m": 0.085654988,
+    "bandwidth_hz": 98280000.0,
+    "transmitter": "우리(센서가 곧 송신기)",
+    "receiver": "송신기와 같은 노드",
+    "geometry": "β ≈ 0",
+    "reference_signal": "SSB(기본 20 ms) 50 Hz 또는 자체 파형/데이터 심볼",
+    "control_assumption": "설계변수(규격/거리모호 천장 안에서)",
+    "reference_channel": "불필요 — 송신 심볼을 안다",
+    "interference_cost": "자기간섭(SI)",
+    "prf_ref_hz": 500.0,
+    "v_max_ms": 10.7068735,
+    "v_max_basis": "설계변수 — 천장 두 단: ⑴ 규격 기준신호 재활용 10.71 m/s (PRF 500 Hz) · ⑵ 자체 파형 설계 시 거리모호 맞바꿈 v·R = 3.21e+06 m²/s",
+    "v_max_tiers_active": {
+     "spec_reference_signal_ms": 10.7068735,
+     "free_waveform_design_at_r90_ms": 509.41245189540615
+    },
+    "scene_relief": {
+     "baseline_m": 0.0,
+     "beta_deg_med": 0.0,
+     "relief_med": 1.0,
+     "relief_max": 1.0000000000000002,
+     "v_max_with_median_relief_ms": 10.7068735,
+     "note": "v_max_ms 는 β=0 바닥값이다. 장면 완화를 곱한 값이 실제 상한이고, 완화는 바이스태틱에서만 1 을 넘는다."
+    },
+    "sigma_path": "직접계산(모노 후방산란, Δσ=0)",
+    "actor": "ISAC gNB(사업자)",
+    "realizable_by_us": false,
+    "prior_occupant": "LaSen, SenSys '26, pp.732-745, DOI 10.1145/3774906.3800504 (게재)",
+    "note": "⭐ 게재 대조군이 정확히 여기 있다 — LaSen(SenSys '26)이 모노스태틱 gNB 에서 PDSCH 를 재활용한다. 우리는 이 셀을 '남이 이미 한 자리'로 명시한다."
+   },
+   {
+    "cell_id": "B-wifi",
+    "configuration": "B",
+    "configuration_name": "패시브 준모노스태틱",
+    "illuminator": "WiFi 802.11ac",
+    "band": "wifi",
+    "carrier_hz": 5210000000.0,
+    "lam_m": 0.057541738579654514,
+    "bandwidth_hz": 75625000.0,
+    "transmitter": "남(사업자/AP)",
+    "receiver": "송신기 옆(짧은 베이스라인 L)",
+    "geometry": "β ≈ 0",
+    "reference_signal": "VHT-LTF(패킷당 1회) · 규격보장 상시는 비콘 9.77 Hz",
+    "control_assumption": "없음 — 망이 정한 상시 반복률",
+    "reference_channel": "필요(다만 직접파가 매우 강해 품질은 최상)",
+    "interference_cost": "직접파 간섭(DPI) — L 이 짧아 **최악**",
+    "prf_ref_hz": 1000.0,
+    "v_max_ms": 14.385434644913628,
+    "v_max_basis": "망이 준 반복률로 고정",
+    "v_max_tiers_active": null,
+    "scene_relief": {
+     "baseline_m": 10.0,
+     "beta_deg_med": 0.9634071904174757,
+     "relief_med": 1.000035346573533,
+     "relief_max": 1.000961968880788,
+     "v_max_with_median_relief_ms": 14.385943120737108,
+     "note": "v_max_ms 는 β=0 바닥값이다. 장면 완화를 곱한 값이 실제 상한이고, 완화는 바이스태틱에서만 1 을 넘는다."
+    },
+    "sigma_path": "직접계산(모노 후방산란, Δσ=0)",
+    "actor": "남의 AP 옆 수신노드",
+    "realizable_by_us": true,
+    "prior_occupant": "없음(조사 범위 안)",
+    "note": "⚠ 퇴화 경고 — AP 바로 옆에서는 프레임을 사실상 완전복조할 수 있어 기준채널이 정확지식으로 수렴한다. 남는 차이는 **PRF 통제권 하나뿐**이고, 그것이 A↔B 의 정의다. DPI 는 최악이다."
+   },
+   {
+    "cell_id": "B-lte",
+    "configuration": "B",
+    "configuration_name": "패시브 준모노스태틱",
+    "illuminator": "LTE Rel-9",
+    "band": "lte",
+    "carrier_hz": 1843000000.0,
+    "lam_m": 0.16266546825827455,
+    "bandwidth_hz": 18000000.0,
+    "transmitter": "남(사업자/AP)",
+    "receiver": "송신기 옆(짧은 베이스라인 L)",
+    "geometry": "β ≈ 0",
+    "reference_signal": "CRS(서브프레임당) 1000 Hz",
+    "control_assumption": "없음 — 망이 정한 상시 반복률",
+    "reference_channel": "필요(다만 직접파가 매우 강해 품질은 최상)",
+    "interference_cost": "직접파 간섭(DPI) — L 이 짧아 **최악**",
+    "prf_ref_hz": 1000.0,
+    "v_max_ms": 40.66636706456864,
+    "v_max_basis": "망이 준 반복률로 고정",
+    "v_max_tiers_active": null,
+    "scene_relief": {
+     "baseline_m": 10.0,
+     "beta_deg_med": 0.9634071904174757,
+     "relief_med": 1.000035346573533,
+     "relief_max": 1.000961968880788,
+     "v_max_with_median_relief_ms": 40.667804481302404,
+     "note": "v_max_ms 는 β=0 바닥값이다. 장면 완화를 곱한 값이 실제 상한이고, 완화는 바이스태틱에서만 1 을 넘는다."
+    },
+    "sigma_path": "직접계산(모노 후방산란, Δσ=0)",
+    "actor": "기지국 병설 패시브 수신기",
+    "realizable_by_us": true,
+    "prior_occupant": "패시브 레이더 문헌의 'co-sited receiver' 배치",
+    "note": "기지국 사이트 공용 배치. DPI 가 최악이고 기준채널은 최상이다."
+   },
+   {
+    "cell_id": "B-nr",
+    "configuration": "B",
+    "configuration_name": "패시브 준모노스태틱",
+    "illuminator": "5G NR Rel-16",
+    "band": "nr",
+    "carrier_hz": 3500000000.0,
+    "lam_m": 0.085654988,
+    "bandwidth_hz": 98280000.0,
+    "transmitter": "남(사업자/AP)",
+    "receiver": "송신기 옆(짧은 베이스라인 L)",
+    "geometry": "β ≈ 0",
+    "reference_signal": "SSB(기본 20 ms) 50 Hz",
+    "control_assumption": "없음 — 망이 정한 상시 반복률",
+    "reference_channel": "필요(다만 직접파가 매우 강해 품질은 최상)",
+    "interference_cost": "직접파 간섭(DPI) — L 이 짧아 **최악**",
+    "prf_ref_hz": 50.0,
+    "v_max_ms": 1.07068735,
+    "v_max_basis": "망이 준 반복률로 고정",
+    "v_max_tiers_active": null,
+    "scene_relief": {
+     "baseline_m": 10.0,
+     "beta_deg_med": 0.9634071904174757,
+     "relief_med": 1.000035346573533,
+     "relief_max": 1.000961968880788,
+     "v_max_with_median_relief_ms": 1.0707251951291477,
+     "note": "v_max_ms 는 β=0 바닥값이다. 장면 완화를 곱한 값이 실제 상한이고, 완화는 바이스태틱에서만 1 을 넘는다."
+    },
+    "sigma_path": "직접계산(모노 후방산란, Δσ=0)",
+    "actor": "gNB 병설 패시브 수신기",
+    "realizable_by_us": true,
+    "prior_occupant": "없음(조사 범위 안)",
+    "note": "같은 배치의 5G 판. 기하는 A 와 같지만 SSB 50 Hz 를 그대로 물려받는다 — A 와 B 를 가르는 수치가 여기서 가장 크게 벌어진다."
+   },
+   {
+    "cell_id": "C-wifi",
+    "configuration": "C",
+    "configuration_name": "패시브 바이스태틱",
+    "illuminator": "WiFi 802.11ac",
+    "band": "wifi",
+    "carrier_hz": 5210000000.0,
+    "lam_m": 0.057541738579654514,
+    "bandwidth_hz": 75625000.0,
+    "transmitter": "남(사업자/AP)",
+    "receiver": "독립 사이트(L 큼)",
+    "geometry": "β 큼(장면 의존)",
+    "reference_signal": "VHT-LTF(패킷당 1회) · 규격보장 상시는 비콘 9.77 Hz",
+    "control_assumption": "없음 — 망이 정한 상시 반복률",
+    "reference_channel": "필요",
+    "interference_cost": "직접파 간섭(DPI)",
+    "prf_ref_hz": 1000.0,
+    "v_max_ms": 14.385434644913628,
+    "v_max_basis": "망이 준 반복률로 고정",
+    "v_max_tiers_active": null,
+    "scene_relief": {
+     "baseline_m": 500.0,
+     "beta_deg_med": 20.059698185180523,
+     "relief_med": 1.0155219809253722,
+     "relief_max": 2.483874788140295,
+     "v_max_with_median_relief_ms": 14.608725087075165,
+     "note": "v_max_ms 는 β=0 바닥값이다. 장면 완화를 곱한 값이 실제 상한이고, 완화는 바이스태틱에서만 1 을 넘는다."
+    },
+    "sigma_path": "이등분선 근사 + Δσ(β) 오차막대",
+    "actor": "독립 수신 사이트",
+    "realizable_by_us": true,
+    "prior_occupant": "WiFi 패시브 레이더 문헌",
+    "note": "우리 기존 작업."
+   },
+   {
+    "cell_id": "C-lte",
+    "configuration": "C",
+    "configuration_name": "패시브 바이스태틱",
+    "illuminator": "LTE Rel-9",
+    "band": "lte",
+    "carrier_hz": 1843000000.0,
+    "lam_m": 0.16266546825827455,
+    "bandwidth_hz": 18000000.0,
+    "transmitter": "남(사업자/AP)",
+    "receiver": "독립 사이트(L 큼)",
+    "geometry": "β 큼(장면 의존)",
+    "reference_signal": "CRS(서브프레임당) 1000 Hz",
+    "control_assumption": "없음 — 망이 정한 상시 반복률",
+    "reference_channel": "필요",
+    "interference_cost": "직접파 간섭(DPI)",
+    "prf_ref_hz": 1000.0,
+    "v_max_ms": 40.66636706456864,
+    "v_max_basis": "망이 준 반복률로 고정",
+    "v_max_tiers_active": null,
+    "scene_relief": {
+     "baseline_m": 500.0,
+     "beta_deg_med": 20.059698185180523,
+     "relief_med": 1.0155219809253722,
+     "relief_max": 2.483874788140295,
+     "v_max_with_median_relief_ms": 41.297589638449054,
+     "note": "v_max_ms 는 β=0 바닥값이다. 장면 완화를 곱한 값이 실제 상한이고, 완화는 바이스태틱에서만 1 을 넘는다."
+    },
+    "sigma_path": "이등분선 근사 + Δσ(β) 오차막대",
+    "actor": "독립 수신 사이트",
+    "realizable_by_us": true,
+    "prior_occupant": "LTE PCL 문헌 다수",
+    "note": "우리 기존 작업. 헤드라인 행."
+   },
+   {
+    "cell_id": "C-nr",
+    "configuration": "C",
+    "configuration_name": "패시브 바이스태틱",
+    "illuminator": "5G NR Rel-16",
+    "band": "nr",
+    "carrier_hz": 3500000000.0,
+    "lam_m": 0.085654988,
+    "bandwidth_hz": 98280000.0,
+    "transmitter": "남(사업자/AP)",
+    "receiver": "독립 사이트(L 큼)",
+    "geometry": "β 큼(장면 의존)",
+    "reference_signal": "SSB(기본 20 ms) 50 Hz",
+    "control_assumption": "없음 — 망이 정한 상시 반복률",
+    "reference_channel": "필요",
+    "interference_cost": "직접파 간섭(DPI)",
+    "prf_ref_hz": 50.0,
+    "v_max_ms": 1.07068735,
+    "v_max_basis": "망이 준 반복률로 고정",
+    "v_max_tiers_active": null,
+    "scene_relief": {
+     "baseline_m": 500.0,
+     "beta_deg_med": 20.059698185180523,
+     "relief_med": 1.0155219809253722,
+     "relief_max": 2.483874788140295,
+     "v_max_with_median_relief_ms": 1.0873065386237373,
+     "note": "v_max_ms 는 β=0 바닥값이다. 장면 완화를 곱한 값이 실제 상한이고, 완화는 바이스태틱에서만 1 을 넘는다."
+    },
+    "sigma_path": "이등분선 근사 + Δσ(β) 오차막대",
+    "actor": "독립 수신 사이트",
+    "realizable_by_us": true,
+    "prior_occupant": "Abratkiewicz 외, IEEE JSTARS 16:3469-3484, 2023",
+    "note": "우리 기존 작업. 헤드라인 행."
+   }
+  ],
+  "shape": "3 구성행(A/B/C) × 3 조명원 = 9 셀. 사용자 지시의 2×3 은 '모노 행 / 바이 행'이고, 모노 행이 A·B 로 쪼개져 9 가 된다."
+ },
+ "axis_independence": {
+  "P1_floor_is_geometry_independent": {
+   "statement": "모노스태틱 v_max 는 바이스태틱 β=0 의 특수경우다. 두 값의 차이는 0 이다.",
+   "by_band": {
+    "wifi": {
+     "v_max_mono_ms": 14.385434644913628,
+     "v_max_bi_beta0_ms": 14.385434644913628,
+     "abs_diff_ms": 0.0
+    },
+    "lte": {
+     "v_max_mono_ms": 40.66636706456864,
+     "v_max_bi_beta0_ms": 40.66636706456864,
+     "abs_diff_ms": 0.0
+    },
+    "nr": {
+     "v_max_mono_ms": 1.07068735,
+     "v_max_bi_beta0_ms": 1.07068735,
+     "abs_diff_ms": 0.0
+    }
+   },
+   "v_floor_ms": {
+    "wifi": 14.385434644913628,
+    "lte": 40.66636706456864,
+    "nr": 1.07068735
+   },
+   "lam_m": {
+    "wifi": 0.057541738579654514,
+    "lte": 0.16266546825827455,
+    "nr": 0.085654988
+   },
+   "prf_ambient_hz": {
+    "wifi": 1000.0,
+    "lte": 1000.0,
+    "nr": 50.0
+   },
+   "verdict": "바닥은 기하와 무관하다 — 우리가 발표해온 값은 두 기하의 최악값이다."
+  },
+  "P2_bistatic_relief": {
+   "statement": "완화계수 = 1/(cos(β/2)·cos δ_el). β 가 커질수록 바이스태틱이 관대해진다.",
+   "relief_by_beta": {
+    "beta_0_deg": 1.0,
+    "beta_15_deg": 1.0086289605801528,
+    "beta_30_deg": 1.035276180410083,
+    "beta_45_deg": 1.082392200292394,
+    "beta_60_deg": 1.1547005383792515,
+    "beta_90_deg": 1.414213562373095,
+    "beta_120_deg": 1.9999999999999996,
+    "beta_150_deg": 3.8637033051562737
+   },
+   "relief_by_configuration_baseline": {
+    "A_L0": {
+     "baseline_m": 0.0,
+     "beta_deg_med": 0.0,
+     "beta_deg_max": 1.4787793334710982e-06,
+     "relief_med": 1.0,
+     "relief_max": 1.0000000000000002,
+     "frac_beta_gt_45deg": 0.0,
+     "frac_beta_gt_90deg": 0.0,
+     "gate_note": "45° = 바이스태틱 자세패턴 성립창(PAPER_SPEC §3) · 90° = SBR 엔진 유효범위(freespace_scene.BETA_VALID_MAX_DEG)"
+    },
+    "B_L10": {
+     "baseline_m": 10.0,
+     "beta_deg_med": 0.9634071904174757,
+     "beta_deg_max": 5.024283494640496,
+     "relief_med": 1.000035346573533,
+     "relief_max": 1.000961968880788,
+     "frac_beta_gt_45deg": 0.0,
+     "frac_beta_gt_90deg": 0.0,
+     "gate_note": "45° = 바이스태틱 자세패턴 성립창(PAPER_SPEC §3) · 90° = SBR 엔진 유효범위(freespace_scene.BETA_VALID_MAX_DEG)"
+    },
+    "C_L500": {
+     "baseline_m": 500.0,
+     "beta_deg_med": 20.059698185180523,
+     "beta_deg_max": 132.51876672561454,
+     "relief_med": 1.0155219809253722,
+     "relief_max": 2.483874788140295,
+     "frac_beta_gt_45deg": 0.3416666666666667,
+     "frac_beta_gt_90deg": 0.17083333333333334,
+     "gate_note": "45° = 바이스태틱 자세패턴 성립창(PAPER_SPEC §3) · 90° = SBR 엔진 유효범위(freespace_scene.BETA_VALID_MAX_DEG)"
+    },
+    "C_L2000": {
+     "baseline_m": 2000.0,
+     "beta_deg_med": 61.06190199020164,
+     "beta_deg_max": 153.32356545318396,
+     "relief_med": 1.1609748412586864,
+     "relief_max": 4.334656025010371,
+     "frac_beta_gt_45deg": 0.5833333333333334,
+     "frac_beta_gt_90deg": 0.35833333333333334,
+     "gate_note": "45° = 바이스태틱 자세패턴 성립창(PAPER_SPEC §3) · 90° = SBR 엔진 유효범위(freespace_scene.BETA_VALID_MAX_DEG)"
+    }
+   },
+   "canonical_scene_mono": [
+    {
+     "band": "wifi",
+     "beta_deg_med": 0.0,
+     "beta_deg_max": 1.4787793334710982e-06,
+     "el_deg_med": -1.3961472265933224,
+     "fd_closed_vs_numeric_max_rel_err": 9.41482455079254e-06,
+     "relief_beta_med": 1.0,
+     "relief_beta_max": 1.0000000000000002,
+     "relief_el_med": 1.000296992049346
+    },
+    {
+     "band": "lte",
+     "beta_deg_med": 0.0,
+     "beta_deg_max": 1.4787793334710982e-06,
+     "el_deg_med": -1.3961472265933224,
+     "fd_closed_vs_numeric_max_rel_err": 9.414824550955287e-06,
+     "relief_beta_med": 1.0,
+     "relief_beta_max": 1.0000000000000002,
+     "relief_el_med": 1.000296992049346
+    },
+    {
+     "band": "nr",
+     "beta_deg_med": 0.0,
+     "beta_deg_max": 1.4787793334710982e-06,
+     "el_deg_med": -1.3961472265933224,
+     "fd_closed_vs_numeric_max_rel_err": 9.414824550930541e-06,
+     "relief_beta_med": 1.0,
+     "relief_beta_max": 1.0000000000000002,
+     "relief_el_med": 1.000296992049346
+    }
+   ],
+   "canonical_scene_bistatic": [
+    {
+     "band": "wifi",
+     "beta_deg_med": 20.059698185180523,
+     "beta_deg_max": 132.51876672561454,
+     "el_deg_med": -1.8630029084870525,
+     "fd_closed_vs_numeric_max_rel_err": 9.358660185807835e-06,
+     "relief_beta_med": 1.0155219809253722,
+     "relief_beta_max": 2.483874788140295,
+     "relief_el_med": 1.000528927983153
+    },
+    {
+     "band": "lte",
+     "beta_deg_med": 20.059698185180523,
+     "beta_deg_max": 132.51876672561454,
+     "el_deg_med": -1.8630029084870525,
+     "fd_closed_vs_numeric_max_rel_err": 9.35866018604556e-06,
+     "relief_beta_med": 1.0155219809253722,
+     "relief_beta_max": 2.483874788140295,
+     "relief_el_med": 1.000528927983153
+    },
+    {
+     "band": "nr",
+     "beta_deg_med": 20.059698185180523,
+     "beta_deg_max": 132.51876672561454,
+     "el_deg_med": -1.8630029084870525,
+     "fd_closed_vs_numeric_max_rel_err": 9.358660185856008e-06,
+     "relief_beta_med": 1.0155219809253722,
+     "relief_beta_max": 2.483874788140295,
+     "relief_el_med": 1.000528927983153
+    }
+   ],
+   "elevation_relief_note": "cos δ_el 완화는 두 기하 모두 갖는다. 앙각을 맞추면 두 기하의 차이는 정확히 1/cos(β/2) 뿐이다.",
+   "closed_form_check": "fd_closed_vs_numeric_max_rel_err 는 헤딩 격자(720점) 양자화 잔차다."
+  },
+  "P3_illuminator_and_duty_are_geometry_free": {
+   "statement": "λ·PRF(조명원)와 듀티(점유)의 정의에 기하 변수가 들어가지 않는다.",
+   "duty_by_band": {
+    "wifi": {
+     "prf_hz": 1000.0,
+     "M": 100,
+     "t_ref_s": 5.2e-05,
+     "duty_db": -12.839966563652007
+    },
+    "lte": {
+     "prf_hz": 1000.0,
+     "M": 100,
+     "t_ref_s": 0.001,
+     "duty_db": 0.0
+    },
+    "nr": {
+     "prf_hz": 50.0,
+     "M": 5,
+     "t_ref_s": 0.0005,
+     "duty_db": -16.020599913279625
+    }
+   },
+   "duty_pair_gaps_db": {
+    "wifi-lte": -12.839966563652007,
+    "wifi-nr": 3.180633349627618,
+    "lte-nr": 16.020599913279625
+   },
+   "verdict": "두 기하 행에 같은 값이 들어간다 — 조명원 순위의 이 부분은 기하를 옮겨도 불변이다."
+  }
+ },
+ "range_normalisation": {
+  "canonical": "N1",
+  "why_canonical": "바이스태틱 레이더 방정식이 R_eq⁴ 로 정확히 접히므로, N1 아래서 기하 축의 링크버짓 기여가 0 이 되어 나머지 항을 분리할 수 있다. N2·N3 은 배치 관점의 보조 뷰로 함께 낸다.",
+  "N1_equal_R_eq": {
+   "convention": "R_eq = sqrt(R1*R2) 고정",
+   "max_abs_spread_diff_db": 5.684341886080802e-14,
+   "r1_over_r2_span": [
+    0.28101063246798963,
+    4.994251940635529
+   ],
+   "n_pairs": 120,
+   "meaning": "R1/R2 를 25배 흔들어도 확산항 차이가 부동소수 수준이다 — N1 아래서 기하 축의 링크버짓 기여는 정확히 0 이다.",
+   "honesty": "이것은 발견이 아니라 **규약**이다. 바이스태틱 레이더 방정식이 R_eq 로 접히도록 축을 고른 결과이고, 그렇게 고른 이유는 남는 항(σ·DPI·기준채널·완화)을 분리해 보려는 것이다."
+  },
+  "N2_equal_R2": {
+   "convention": "R2(수신기-표적) 고정 · 모노 노드를 **수신기 자리**에 둔 비교",
+   "formula": "Δspread_db = 20*log10(R2/R1)",
+   "by_phi": {
+    "phi_0": {
+     "delta_db_median": -3.0952540692963995,
+     "delta_db_absmax": 18.928789122399884,
+     "delta_db_at_d_min": -6.816970952386065,
+     "delta_db_at_d_max": -0.21713535151551944
+    },
+    "phi_30": {
+     "delta_db_median": -2.6513971038704662,
+     "delta_db_absmax": 10.699453779362983,
+     "delta_db_at_d_min": -5.570990466031235,
+     "delta_db_at_d_max": -0.18803199220691863
+    },
+    "phi_60": {
+     "delta_db_median": -1.497808094152648,
+     "delta_db_absmax": 4.582492232134116,
+     "delta_db_at_d_min": -2.889996534343801,
+     "delta_db_at_d_max": -0.1085397289775452
+    },
+    "phi_90": {
+     "delta_db_median": 0.004258209208075394,
+     "delta_db_absmax": 0.11762122652176134,
+     "delta_db_at_d_min": 0.11762122652176134,
+     "delta_db_at_d_max": 2.197174482264312e-05
+    },
+    "phi_120": {
+     "delta_db_median": 1.5065819415173163,
+     "delta_db_absmax": 4.761299634736732,
+     "delta_db_at_d_min": 3.1548889638689017,
+     "delta_db_at_d_max": 0.10858367933220898
+    },
+    "phi_150": {
+     "delta_db_median": 2.6607355274557416,
+     "delta_db_absmax": 11.192846322459605,
+     "delta_db_at_d_min": 5.925179298828959,
+     "delta_db_at_d_max": 0.18807595629806312
+    },
+    "phi_180": {
+     "delta_db_median": 3.1049029492053872,
+     "delta_db_absmax": 23.168839470105702,
+     "delta_db_at_d_min": 7.242983189808516,
+     "delta_db_at_d_max": 0.217179322478124
+    }
+   },
+   "headline_phi": "phi_90",
+   "absmax_over_phi_db": 23.168839470105702,
+   "meaning": "φ=90°(수직이등분선)에서는 R1≈R2 라 두 기하가 거의 겹친다. φ 가 베이스라인 축에 가까워지면 벌어진다 — ⭐ 헤드라인 φ 하나로만 재면 기하 차이를 놓친다."
+  },
+  "N3_equal_scene_range": {
+   "convention": "장면 지상거리 d 고정(중점기준, L=500 m) · 모노 노드를 **조명원 자리**에 둔 비교",
+   "formula": "Δspread_db = 40*log10(R_mono / R_eq_bistatic)",
+   "by_phi": {
+    "phi_0": {
+     "delta_db_median": 3.0952540692963977,
+     "delta_db_absmax": 18.928789122399884,
+     "delta_db_at_d_min": 6.816970952386065,
+     "delta_db_at_d_max": 0.2171353515155196
+    },
+    "phi_30": {
+     "delta_db_median": 2.6513971038704676,
+     "delta_db_absmax": 10.69945377936298,
+     "delta_db_at_d_min": 5.570990466031235,
+     "delta_db_at_d_max": 0.18803199220692168
+    },
+    "phi_60": {
+     "delta_db_median": 1.4978080941526515,
+     "delta_db_absmax": 4.582492232134116,
+     "delta_db_at_d_min": 2.8899965343437968,
+     "delta_db_at_d_max": 0.10853972897754449
+    },
+    "phi_90": {
+     "delta_db_median": -0.004258209208075136,
+     "delta_db_absmax": 0.11762122652176421,
+     "delta_db_at_d_min": -0.11762122652176421,
+     "delta_db_at_d_max": -2.1971744823281078e-05
+    },
+    "phi_120": {
+     "delta_db_median": -1.5065819415173154,
+     "delta_db_absmax": 4.76129963473673,
+     "delta_db_at_d_min": -3.1548889638689,
+     "delta_db_at_d_max": -0.10858367933220882
+    },
+    "phi_150": {
+     "delta_db_median": -2.6607355274557407,
+     "delta_db_absmax": 11.192846322459605,
+     "delta_db_at_d_min": -5.925179298828959,
+     "delta_db_at_d_max": -0.18807595629806156
+    },
+    "phi_180": {
+     "delta_db_median": -3.1049029492053863,
+     "delta_db_absmax": 23.168839470105706,
+     "delta_db_at_d_min": -7.242983189808516,
+     "delta_db_at_d_max": -0.2171793224781227
+    }
+   },
+   "headline_phi": "phi_90",
+   "absmax_over_phi_db": 23.168839470105706,
+   "meaning": "같은 하늘 위치에 표적을 두고 두 기하를 돌린 값. 배치 비교에 맞는 뷰다."
+  },
+  "reporting_rule": "헤드라인은 N1 로 낸다. 그림·표 캡션에 정규화 이름을 반드시 적는다. '같은 거리에서' 라는 표현만 쓰는 문장은 금지한다."
+ },
+ "interference_ledger": {
+  "passive_dpi": {
+   "model": "P_dir = EIRP·G_rx·λ²/((4π)²L²) (link_budget.LinkBudget.direct_power_w); DNR = P_dir / (kT₀F·B_noise); 요구깊이 = DNR + 10 dB 여유",
+   "b_noise_convention": "B_noise = 파형 fs (freespace_link.n0_effective 규약)",
+   "by_band": [
+    {
+     "band": "wifi",
+     "lam_m": 0.057541738579654514,
+     "b_noise_hz": 80000000.0,
+     "by_L": [
+      {
+       "L_m": 1.0,
+       "dnr_vs_noise_db": 116.15974963643481,
+       "eca_depth_required_db": 126.15974963643481
+      },
+      {
+       "L_m": 3.0,
+       "dnr_vs_noise_db": 106.61732454204156,
+       "eca_depth_required_db": 116.61732454204156
+      },
+      {
+       "L_m": 10.0,
+       "dnr_vs_noise_db": 96.15974963643481,
+       "eca_depth_required_db": 106.15974963643481
+      },
+      {
+       "L_m": 30.0,
+       "dnr_vs_noise_db": 86.61732454204156,
+       "eca_depth_required_db": 96.61732454204156
+      },
+      {
+       "L_m": 100.0,
+       "dnr_vs_noise_db": 76.1597496364348,
+       "eca_depth_required_db": 86.1597496364348
+      },
+      {
+       "L_m": 300.0,
+       "dnr_vs_noise_db": 66.61732454204156,
+       "eca_depth_required_db": 76.61732454204156
+      },
+      {
+       "L_m": 500.0,
+       "dnr_vs_noise_db": 62.18034954971443,
+       "eca_depth_required_db": 72.18034954971444
+      },
+      {
+       "L_m": 1000.0,
+       "dnr_vs_noise_db": 56.1597496364348,
+       "eca_depth_required_db": 66.15974963643481
+      },
+      {
+       "L_m": 2000.0,
+       "dnr_vs_noise_db": 50.139149723155185,
+       "eca_depth_required_db": 60.139149723155185
+      },
+      {
+       "L_m": 5000.0,
+       "dnr_vs_noise_db": 42.18034954971443,
+       "eca_depth_required_db": 52.18034954971443
+      }
+     ]
+    },
+    {
+     "band": "lte",
+     "lam_m": 0.16266546825827455,
+     "b_noise_hz": 30720000.0,
+     "by_L": [
+      {
+       "L_m": 1.0,
+       "dnr_vs_noise_db": 129.34268515436852,
+       "eca_depth_required_db": 139.34268515436852
+      },
+      {
+       "L_m": 3.0,
+       "dnr_vs_noise_db": 119.80026005997527,
+       "eca_depth_required_db": 129.80026005997527
+      },
+      {
+       "L_m": 10.0,
+       "dnr_vs_noise_db": 109.3426851543685,
+       "eca_depth_required_db": 119.3426851543685
+      },
+      {
+       "L_m": 30.0,
+       "dnr_vs_noise_db": 99.80026005997527,
+       "eca_depth_required_db": 109.80026005997527
+      },
+      {
+       "L_m": 100.0,
+       "dnr_vs_noise_db": 89.34268515436852,
+       "eca_depth_required_db": 99.34268515436852
+      },
+      {
+       "L_m": 300.0,
+       "dnr_vs_noise_db": 79.80026005997526,
+       "eca_depth_required_db": 89.80026005997526
+      },
+      {
+       "L_m": 500.0,
+       "dnr_vs_noise_db": 75.36328506764814,
+       "eca_depth_required_db": 85.36328506764814
+      },
+      {
+       "L_m": 1000.0,
+       "dnr_vs_noise_db": 69.34268515436851,
+       "eca_depth_required_db": 79.34268515436851
+      },
+      {
+       "L_m": 2000.0,
+       "dnr_vs_noise_db": 63.322085241088885,
+       "eca_depth_required_db": 73.32208524108889
+      },
+      {
+       "L_m": 5000.0,
+       "dnr_vs_noise_db": 55.363285067648135,
+       "eca_depth_required_db": 65.36328506764814
+      }
+     ]
+    },
+    {
+     "band": "nr",
+     "lam_m": 0.085654988,
+     "b_noise_hz": 122880000.0,
+     "by_L": [
+      {
+       "L_m": 1.0,
+       "dnr_vs_noise_db": 117.75123105846484,
+       "eca_depth_required_db": 127.75123105846484
+      },
+      {
+       "L_m": 3.0,
+       "dnr_vs_noise_db": 108.20880596407162,
+       "eca_depth_required_db": 118.20880596407162
+      },
+      {
+       "L_m": 10.0,
+       "dnr_vs_noise_db": 97.75123105846484,
+       "eca_depth_required_db": 107.75123105846484
+      },
+      {
+       "L_m": 30.0,
+       "dnr_vs_noise_db": 88.20880596407162,
+       "eca_depth_required_db": 98.20880596407162
+      },
+      {
+       "L_m": 100.0,
+       "dnr_vs_noise_db": 77.75123105846485,
+       "eca_depth_required_db": 87.75123105846485
+      },
+      {
+       "L_m": 300.0,
+       "dnr_vs_noise_db": 68.2088059640716,
+       "eca_depth_required_db": 78.2088059640716
+      },
+      {
+       "L_m": 500.0,
+       "dnr_vs_noise_db": 63.77183097174448,
+       "eca_depth_required_db": 73.77183097174448
+      },
+      {
+       "L_m": 1000.0,
+       "dnr_vs_noise_db": 57.75123105846485,
+       "eca_depth_required_db": 67.75123105846485
+      },
+      {
+       "L_m": 2000.0,
+       "dnr_vs_noise_db": 51.73063114518523,
+       "eca_depth_required_db": 61.73063114518523
+      },
+      {
+       "L_m": 5000.0,
+       "dnr_vs_noise_db": 43.77183097174448,
+       "eca_depth_required_db": 53.77183097174448
+      }
+     ]
+    }
+   ],
+   "min_baseline_m_for_achievable_depth": {
+    "wifi": {
+     "depth_40dB": 20322.984307751798,
+     "depth_60dB": 2032.29843077518,
+     "depth_90dB": 64.26691926435605,
+     "depth_120dB": 2.03229843077518
+    },
+    "lte": {
+     "depth_40dB": 92711.6387677043,
+     "depth_60dB": 9271.16387677043,
+     "depth_90dB": 293.179944112712,
+     "depth_120dB": 9.27116387677043
+    },
+    "nr": {
+     "depth_40dB": 24409.650035554154,
+     "depth_60dB": 2440.9650035554164,
+     "depth_90dB": 77.19009099996121,
+     "depth_120dB": 2.4409650035554153
+    }
+   },
+   "config_B_cositing_feasibility": {
+    "by_band": {
+     "wifi": {
+      "L_5m": {
+       "required_depth_db": 112.18034954971444,
+       "deficit_vs_60dB": 52.180349549714435,
+       "deficit_vs_90dB": 22.180349549714435
+      },
+      "L_10m": {
+       "required_depth_db": 106.15974963643481,
+       "deficit_vs_60dB": 46.15974963643481,
+       "deficit_vs_90dB": 16.15974963643481
+      },
+      "L_30m": {
+       "required_depth_db": 96.61732454204156,
+       "deficit_vs_60dB": 36.61732454204156,
+       "deficit_vs_90dB": 6.617324542041558
+      },
+      "L_100m": {
+       "required_depth_db": 86.1597496364348,
+       "deficit_vs_60dB": 26.159749636434796,
+       "deficit_vs_90dB": -3.840250363565204
+      }
+     },
+     "lte": {
+      "L_5m": {
+       "required_depth_db": 125.36328506764812,
+       "deficit_vs_60dB": 65.36328506764812,
+       "deficit_vs_90dB": 35.36328506764812
+      },
+      "L_10m": {
+       "required_depth_db": 119.3426851543685,
+       "deficit_vs_60dB": 59.342685154368496,
+       "deficit_vs_90dB": 29.342685154368496
+      },
+      "L_30m": {
+       "required_depth_db": 109.80026005997527,
+       "deficit_vs_60dB": 49.80026005997527,
+       "deficit_vs_90dB": 19.800260059975272
+      },
+      "L_100m": {
+       "required_depth_db": 99.34268515436852,
+       "deficit_vs_60dB": 39.342685154368525,
+       "deficit_vs_90dB": 9.342685154368525
+      }
+     },
+     "nr": {
+      "L_5m": {
+       "required_depth_db": 113.77183097174446,
+       "deficit_vs_60dB": 53.771830971744464,
+       "deficit_vs_90dB": 23.771830971744464
+      },
+      "L_10m": {
+       "required_depth_db": 107.75123105846484,
+       "deficit_vs_60dB": 47.75123105846484,
+       "deficit_vs_90dB": 17.75123105846484
+      },
+      "L_30m": {
+       "required_depth_db": 98.20880596407162,
+       "deficit_vs_60dB": 38.208805964071615,
+       "deficit_vs_90dB": 8.208805964071615
+      },
+      "L_100m": {
+       "required_depth_db": 87.75123105846485,
+       "deficit_vs_60dB": 27.751231058464853,
+       "deficit_vs_90dB": -2.248768941535147
+      }
+     }
+    },
+    "achievable_depth_sweep_in_repo": [
+     40.0,
+     60.0,
+     90.0
+    ],
+    "achievable_source": "freespace_link.n0_dpi docstring — 실장 ECA·아날로그 소거는 통상 40~90 dB 에서 멈춘다(선언값, 근거문서 없음)",
+    "verdict": "⭐ 구성 B 는 병설 거리에서 DPI 로 막힌다. LTE 기준 L=10 m 요구깊이가 우리가 스윕하는 최선값 90 dB 를 넘는다 — 기하만 모노로 옮기고 패시브를 유지하면 소거 요구가 수십 dB 늘어난다."
+   },
+   "self_check": {
+    "dnr_lte_L500_db": 75.36328506764814,
+    "documented_value_db": 75.36,
+    "source": "freespace_link.dnr_db docstring ★75.36 dB",
+    "abs_diff_db": 0.003285067648135964
+   },
+   "headline_L_scaling_db": 33.979400086720375,
+   "headline": "⭐ 구성 B(수신기를 조명원 옆에)는 기하로는 모노를 얻지만 DPI 는 최악이 된다 — P_dir ∝ 1/L² 이라 베이스라인을 500 m 에서 10 m 로 줄이면 DNR 이 headline_L_scaling_db 만큼 오른다."
+  },
+  "active_self_interference": {
+   "required_total_suppression_db": -100.0,
+   "source": "Barneto et al., IEEE TMTT 67(10):4042-4054, 2019: 'more than 100 dB of total SI suppression is required'; measured ~100 dB total (25 dB circulator+antenna, >50 dB active RF, remainder digital)",
+   "note": "능동 모노는 DPI 대신 자기간섭을 낸다. 이 값은 하드웨어 사양이지 기하 함수가 아니다."
+  },
+  "passive_dpi_literature": {
+   "echo_below_los_db": -47.0,
+   "source": "Sharma/Gonzalez-Prelcic et al. arXiv:2607.11955 (2026): 'the UAV echo is about 44 to 49 dB weaker than the LOS in the considered geometry' (outdoor urban 30-200 m; NOT our chamber geometry)"
+  },
+  "reference_channel": {
+   "monostatic": "송신 심볼을 정확히 안다 → 기준채널 불필요, η_ref 열화 0.",
+   "passive": "기준 수신계통이 별도로 필요하다. 우리 정본은 `full_waveform_capture`(η_ref = 0 dB)로 **이상적 기준**을 가정한다.",
+   "canonical_reference": "full_waveform_capture",
+   "bias_direction": "정본 규약은 패시브에 유리하다 → 이 격자는 모노의 이점을 **과소평가**한다. 즉 모노가 이기는 결론이 나오면 그 결론은 보수적이다."
+  },
+  "ledger_rule": "DPI·SI·기준채널은 정규화로 지우지 않는다. 셀마다 별도 열로 남긴다."
+ },
+ "control_axis": {
+  "convention_reported_both": {
+   "equal_prf": "같은 PRF 를 양쪽에 넣어 **기하 축만** 남긴다. 능동을 벌하고 패시브를 봐준다.",
+   "native_prf": "각 셀의 실제 반복률을 쓴다. 능동을 봐주고 패시브를 벌한다.",
+   "rule": "⭐ 두 규약이 답을 바꾸는 셀에서는 **둘 다** 보고한다. 하나만 쓰면 결론이 규약의 산물이다."
+  },
+  "active_is_not_unbounded": {
+   "spec_ceiling_row": {
+    "key": "csirs_spec_max",
+    "label": "CSI-RS, maximum configurable (sub-6)",
+    "prf_hz": 500.0,
+    "kind": "reference-signal",
+    "who_can_use": "passive + monostatic",
+    "fc_hz": 3500000000.0,
+    "lambda_m": 0.085654988,
+    "v_max_ms": 10.7068735,
+    "v_max_kmh": 38.5447446,
+    "source": {
+     "doc": "LaSen p.732 §1 citing 3GPP TS 38.331 (RRC, Rel-19); Chen 2024 §3.3 lists the slot-period set",
+     "quote": "The maximum configurable repetition frequency for Sub-6 GHz Channel State Information Reference Signals (CSI-RS) is 500 Hz [3]",
+     "verification": "pdf_quote (spec value quoted second-hand; 4-slot minimum at 30 kHz SCS = 2 ms = 500 Hz is arithmetically consistent with Chen's period list {4,5,8,...,640 slots})"
+    },
+    "note": "표준이 허용하는 천장. 모노스태틱 gNB 도 이 위로는 못 간다 — 규격이 정한 값이지 설계자가 정하는 값이 아니다.",
+    "caveat": "이 천장을 쓰면 통신 오버헤드를 계속 문다. LaSen: 'these benefits come at the cost of increased resource overhead'."
+   },
+   "physical_ceiling": "거리모호 — PRF ≤ c/(2R_unamb)",
+   "identity": "v_unamb · R_unamb = c·λ/8 (Skolnik 의 고전 결과, 신규성 주장 없음)"
+  },
+  "by_band": {
+   "wifi": {
+    "lam_m": 0.057541738579654514,
+    "passive_prf_hz": 1000.0,
+    "passive_v_max_ms": 14.385434644913628,
+    "active_ceiling_1_spec_reference_signal": {
+     "prf_hz": null,
+     "v_max_ms": null,
+     "gain_over_passive_x": null,
+     "source": "해당 표준의 능동 ISAC 기준신호 반복률 천장을 우리는 아직 못박지 않았다",
+     "scope": "3GPP 기준신호를 재활용하는 능동 모노(=우리가 파형을 새로 설계하지 않는 경우)"
+    },
+    "active_ceiling_2_free_waveform_design": {
+     "identity": "v_unamb * R_unamb = c*lam/8  (거리모호와의 맞바꿈, Skolnik)",
+     "v_times_R_m2_per_s": 2156322.405798507,
+     "r90_reference_m": 6616.305133983892,
+     "v_max_at_r90_ms": 325.9103626770181,
+     "prf_at_r90_hz": 22655.579808445535,
+     "gain_over_passive_x": 22.655579808445538,
+     "scope": "자체 파형을 설계하는 능동 레이더. ⚠ 이 값은 3GPP 신호 재활용에는 쓸 수 없다",
+     "r90_source": "report13_freespace.json : ranges.mavic4pro.<mode>.equal_psd.full_waveform_capture.by_N.1.R90_C50_m"
+    }
+   },
+   "lte": {
+    "lam_m": 0.16266546825827455,
+    "passive_prf_hz": 1000.0,
+    "passive_v_max_ms": 40.66636706456864,
+    "active_ceiling_1_spec_reference_signal": {
+     "prf_hz": null,
+     "v_max_ms": null,
+     "gain_over_passive_x": null,
+     "source": "해당 표준의 능동 ISAC 기준신호 반복률 천장을 우리는 아직 못박지 않았다",
+     "scope": "3GPP 기준신호를 재활용하는 능동 모노(=우리가 파형을 새로 설계하지 않는 경우)"
+    },
+    "active_ceiling_2_free_waveform_design": {
+     "identity": "v_unamb * R_unamb = c*lam/8  (거리모호와의 맞바꿈, Skolnik)",
+     "v_times_R_m2_per_s": 6095735.070108638,
+     "r90_reference_m": 4281.51715212014,
+     "v_max_at_r90_ms": 1423.7324886320089,
+     "prf_at_r90_hz": 35010.073222706524,
+     "gain_over_passive_x": 35.010073222706524,
+     "scope": "자체 파형을 설계하는 능동 레이더. ⚠ 이 값은 3GPP 신호 재활용에는 쓸 수 없다",
+     "r90_source": "report13_freespace.json : ranges.mavic4pro.<mode>.equal_psd.full_waveform_capture.by_N.1.R90_C50_m"
+    }
+   },
+   "nr": {
+    "lam_m": 0.085654988,
+    "passive_prf_hz": 50.0,
+    "passive_v_max_ms": 1.07068735,
+    "active_ceiling_1_spec_reference_signal": {
+     "prf_hz": 500.0,
+     "v_max_ms": 10.7068735,
+     "gain_over_passive_x": 10.0,
+     "source": "monostatic_prior.json : prf_ladder_at_3p5GHz[csirs_spec_max]",
+     "scope": "3GPP 기준신호를 재활용하는 능동 모노(=우리가 파형을 새로 설계하지 않는 경우)"
+    },
+    "active_ceiling_2_free_waveform_design": {
+     "identity": "v_unamb * R_unamb = c*lam/8  (거리모호와의 맞바꿈, Skolnik)",
+     "v_times_R_m2_per_s": 3209839.924060063,
+     "r90_reference_m": 6301.062944411723,
+     "v_max_at_r90_ms": 509.41245189540615,
+     "prf_at_r90_hz": 23789.03850388286,
+     "gain_over_passive_x": 475.7807700776572,
+     "scope": "자체 파형을 설계하는 능동 레이더. ⚠ 이 값은 3GPP 신호 재활용에는 쓸 수 없다",
+     "r90_source": "report13_freespace.json : ranges.mavic4pro.<mode>.equal_psd.full_waveform_capture.by_N.1.R90_C50_m"
+    }
+   }
+  },
+  "why_this_matters": "'모노스태틱이면 PRF 를 마음대로 고른다' 는 틀렸다. 3GPP 가 sub-6 CSI-RS 에 500 Hz 천장을 걸었고, 실측 상용 gNB 는 50~200 Hz 로 돈다 ⟨monostatic_prior.json : headline_of_this_file⟩. 진짜 탈출구는 반복률이 아니라 데이터 심볼이고 그것은 트래픽에 종속된다."
+ },
+ "sigma_transfer": {
+  "fact": "σ 격자 엔진 = rcs_sbr_batch (모노스태틱 후방산란), 조회방향 = 바이스태틱 이등분선",
+  "engine": "sbr (rcs_sbr_batch, 1-bounce, penetrate=True)",
+  "bisector_approximation_error_by_beta": {
+   "0": {
+    "n_cells": 15,
+    "dsigma_rms_median_db": 0.0,
+    "dsigma_rms_max_db": 0.0,
+    "dsigma_p95_max_db": 0.0,
+    "reciprocity_rms_max_db": 0.0
+   },
+   "15": {
+    "n_cells": 15,
+    "dsigma_rms_median_db": 6.393821693675937,
+    "dsigma_rms_max_db": 12.13325207028778,
+    "dsigma_p95_max_db": 18.87225017595681,
+    "reciprocity_rms_max_db": 4.61231492311251
+   },
+   "30": {
+    "n_cells": 15,
+    "dsigma_rms_median_db": 6.844363699966521,
+    "dsigma_rms_max_db": 14.314077902131165,
+    "dsigma_p95_max_db": 24.953068169252145,
+    "reciprocity_rms_max_db": 8.010235824038702
+   },
+   "45": {
+    "n_cells": 15,
+    "dsigma_rms_median_db": 7.472692132512693,
+    "dsigma_rms_max_db": 10.542700402959255,
+    "dsigma_p95_max_db": 20.03858904752335,
+    "reciprocity_rms_max_db": 5.796675598335295
+   },
+   "60": {
+    "n_cells": 15,
+    "dsigma_rms_median_db": 7.5109748172753585,
+    "dsigma_rms_max_db": 12.079581134534756,
+    "dsigma_p95_max_db": 24.957179986421444,
+    "reciprocity_rms_max_db": 7.508723452996574
+   },
+   "75": {
+    "n_cells": 15,
+    "dsigma_rms_median_db": 8.060416011339221,
+    "dsigma_rms_max_db": 12.281972748768554,
+    "dsigma_p95_max_db": 20.939203088534494,
+    "reciprocity_rms_max_db": 10.60178990407829
+   },
+   "90": {
+    "n_cells": 15,
+    "dsigma_rms_median_db": 8.80597226563441,
+    "dsigma_rms_max_db": 10.276740455008191,
+    "dsigma_p95_max_db": 21.92079703060922,
+    "reciprocity_rms_max_db": 7.032387455393946
+   }
+  },
+  "monostatic_arm": {
+   "dsigma_db": 0.0,
+   "why": "β=0 이면 이등분선 = 시선 = 후방산란. 근사가 항등이 된다.",
+   "new_rcs_computation_required": false
+  },
+  "kernel_accuracy_db_vs_analytic_po": 0.2005726178588444,
+  "reciprocity_worst_db_drone": 8.237310530822135,
+  "scene_fraction_lost_to_beta_window": {
+   "by_baseline": {
+    "A_L0": {
+     "baseline_m": 0.0,
+     "frac_outside_beta45": 0.0,
+     "frac_outside_beta90": 0.0
+    },
+    "B_L10": {
+     "baseline_m": 10.0,
+     "frac_outside_beta45": 0.0,
+     "frac_outside_beta90": 0.0
+    },
+    "C_L500": {
+     "baseline_m": 500.0,
+     "frac_outside_beta45": 0.3416666666666667,
+     "frac_outside_beta90": 0.17083333333333334
+    },
+    "C_L2000": {
+     "baseline_m": 2000.0,
+     "frac_outside_beta45": 0.5833333333333334,
+     "frac_outside_beta90": 0.35833333333333334
+    }
+   },
+   "monostatic": 0.0,
+   "grid_caveat": "비율은 d 격자 240점(geomspace 100~20000 m) 위의 **점 비율**이다. 로그격자라 근거리에 가중돼 있고, 면적비·확률비가 아니다.",
+   "meaning": "⭐ 바이스태틱 팔은 헤드라인 장면(L=500 m)의 일부를 β 창 밖으로 잃는다. 모노 팔은 β≡0 이라 0 % 를 잃는다 — 같은 격자에서 모노 행이 장면 전체를 인용할 수 있는 유일한 행이다."
+  },
+  "correction_to_the_brief": {
+   "claim_in_brief": "bistatic is restricted to beta<=45 deg by a reciprocity violation of up to 13.7 dB",
+   "what_13p7_actually_is": "matrice4e · 5G NR 3.5 GHz · β=45° 의 **이등분선 근사오차 p95** (dsigma_p95_db = 13.719) 이지 상반성 위반이 아니다",
+   "true_numbers": {
+    "bisector_p95_max_at_beta45_db": 20.03858904752335,
+    "bisector_rms_median_at_beta45_db": 7.472692132512693,
+    "reciprocity_rms_max_at_beta45_db": 5.796675598335295,
+    "reciprocity_worst_db_drone_beta90": 8.237310530822135
+   },
+   "why_it_matters": "두 양은 크기도 뜻도 다르다. β 창을 정당화하는 근거는 **근사오차** 쪽이고, 그 값은 13.7 dB 보다 크다 — 즉 모노 팔의 이점이 브리핑보다 더 크다."
+  },
+  "ledger_rule": "σ 는 셀마다 '어느 기하에서 계산했나'를 반드시 적는다. 모노 = 직접계산, 바이 = 이등분선 근사 + Δσ(β) 오차막대."
+ },
+ "fairness_audit": {
+  "held_constant": [
+   {
+    "item": "표적 모델",
+    "hold": "같은 메쉬·재질·SBR 엔진·div=16·jitter=2·대역평균 n_f=3",
+    "provenance": "report13_sigma_grid.json : meta",
+    "why": "σ 절대값이 아니라 **같은 σ 사슬**을 두 기하에 쓰는 것이 공정성의 최소조건"
+   },
+   {
+    "item": "자세 처리",
+    "hold": "자세평균 σ 를 쓴다(단일자세 금지)",
+    "provenance": "sigma_sensitivity.json : aspect_averaged.finding",
+    "why": "단일자세면 5기체가 3가지 순위를 내지만 자세평균이면 순위가 하나로 모인다. 모노와 바이는 같은 장면 위치에서 **다른 자세각**을 보므로, 자세평균 없이는 기하 차이와 자세 우연이 구분되지 않는다"
+   },
+   {
+    "item": "CPI",
+    "hold": "T_CPI = 0.1 s 정본 · 1.0 s 를 제2 규약으로 병기",
+    "provenance": "freespace_scene.T_CPI_REF_S",
+    "why": "긴 CPI 는 블라인드를 고치고 접힘을 못 고친다 — 두 값을 함께 내야 그 분리가 보인다 ⟨vmax_hardening.json : E_long_cpi⟩"
+   },
+   {
+    "item": "검출 규약",
+    "hold": "Pd=0.9 · 교정 CFAR · 0-도플러 가드 hard 1.5 bin(정본)·declared 2.5 bin(병기)",
+    "provenance": "freespace_scene.DOPPLER_GUARD_HARD_BINS · verify_cfar.json",
+    "why": "가드폭 규약 하나가 '5G 커버리지 0' 같은 문장을 만들었다 — 두 규약 병기가 방어책"
+   },
+   {
+    "item": "수신기",
+    "hold": "G_rx=10.0 dBi · NF=5.0 dB · N_rx=1",
+    "provenance": "report13_freespace.json : meta.link_budget",
+    "why": "선언값, 전 셀 동일"
+   },
+   {
+    "item": "거리 정규화",
+    "hold": "N1 (R_eq=√(R₁R₂))",
+    "provenance": "본 파일 §2",
+    "why": "N1 아래서 기하 축의 링크버짓 기여가 정확히 0 이 된다"
+   },
+   {
+    "item": "점유 모드",
+    "hold": "G1(상시) 정본 · G2/G3 는 뷰",
+    "provenance": "waveforms.MODES",
+    "why": "점유는 조명원 축이지 기하 축이 아니다"
+   },
+   {
+    "item": "편파",
+    "hold": "VV 단일",
+    "provenance": "REBUILD §5.0",
+    "why": "두 기하에 같은 편파"
+   }
+  ],
+  "must_vary": [
+   {
+    "item": "β",
+    "vary": "모노 0 · 바이 장면 의존",
+    "axis": "기하"
+   },
+   {
+    "item": "λ·B·PRF_ref·듀티",
+    "vary": "조명원마다",
+    "axis": "조명원"
+   },
+   {
+    "item": "PRF 통제권",
+    "vary": "A 는 설계변수 · B/C 는 주어짐",
+    "axis": "통제"
+   },
+   {
+    "item": "간섭 항",
+    "vary": "A 는 SI · B/C 는 DPI(그리고 L 로 크게 달라짐)",
+    "axis": "기하+통제"
+   },
+   {
+    "item": "σ 조회 경로",
+    "vary": "모노 직접 · 바이 이등분선 근사",
+    "axis": "기하"
+   }
+  ],
+  "traps": [
+   {
+    "id": "T1",
+    "name": "1/R⁴ ↔ 1/(R₁²R₂²) 를 '같은 거리'로 비교",
+    "bite": "정규화를 안 밝히면 같은 데이터로 반대 결론이 나온다",
+    "fix": "N1(R_eq) 정본 · N2/N3 병기. N1 검증 max|Δspread| = 5.68e-14 dB",
+    "bias_direction": "정규화 선택에 따라 양방향"
+   },
+   {
+    "id": "T1b",
+    "name": "⭐ 헤드라인 장면방위 φ=90° 하나로만 재기",
+    "bite": "φ=90° 는 베이스라인의 수직이등분선이라 R₁≈R₂ 가 구조적으로 성립한다. 거기서 두 기하의 확산항 차는 0.118 dB 뿐이라 '기하는 링크버짓에 거의 영향이 없다'는 착시가 생긴다. φ 를 쓸면 최대 23.2 dB 로 벌어진다",
+    "fix": "기하 비교는 φ 를 반드시 쓴다. 한 φ 의 값을 격자 결론으로 쓰지 않는다",
+    "bias_direction": "φ=90° 만 쓰면 기하 축의 크기를 200배 넘게 과소평가한다"
+   },
+   {
+    "id": "T2",
+    "name": "PRF 를 양쪽에 같게 주기",
+    "bite": "등-PRF 는 패시브를 봐주고, 고유-PRF 는 능동을 봐준다",
+    "fix": "⭐ 둘 다 보고한다. 능동의 천장은 규격 500 Hz 와 거리모호 v·R=c·λ/8 이다",
+    "bias_direction": "규약이 답을 정한다 — 그래서 둘 다 낸다"
+   },
+   {
+    "id": "T3",
+    "name": "EIRP 를 양쪽에 같게 주기",
+    "bite": "63 dBm 은 매크로 기지국 값이다. 능동 WiFi 노드에 이걸 주면 규제상한을 수십 dB 넘긴다. 반대로 능동에 낮은 EIRP 를 주면 기하 축이 아니라 전력 축을 재게 된다",
+    "fix": "정본 = 등-EIRP(기하 분리) · 뷰 = 실현가능 EIRP(주체별). 실현가능 EIRP 값은 규격 조항으로 다음 라운드에 못박는다",
+    "bias_direction": "등-EIRP 는 능동 WiFi 셀을 크게 봐준다"
+   },
+   {
+    "id": "T4",
+    "name": "개구 재사용 이득을 조용히 먹기",
+    "bite": "능동 모노가 송신 개구를 수신에도 쓰면 G_rx 가 G_tx 로 올라간다. 규약에 안 적으면 기하 이득으로 오독된다",
+    "fix": "G_rx 는 전 셀 10 dBi 고정(정본). 개구 재사용은 아래 표로 별도 보고",
+    "aperture_reuse_table": [
+     {
+      "g_tx_dbi": 10.0,
+      "delta_grx_db": 0.0,
+      "range_factor_x": 1.0
+     },
+     {
+      "g_tx_dbi": 15.0,
+      "delta_grx_db": 5.0,
+      "range_factor_x": 1.333521432163324
+     },
+     {
+      "g_tx_dbi": 17.15,
+      "delta_grx_db": 7.149999999999999,
+      "range_factor_x": 1.509211132299693
+     },
+     {
+      "g_tx_dbi": 20.0,
+      "delta_grx_db": 10.0,
+      "range_factor_x": 1.7782794100389228
+     },
+     {
+      "g_tx_dbi": 25.0,
+      "delta_grx_db": 15.0,
+      "range_factor_x": 2.371373705661655
+     }
+    ],
+    "bias_direction": "적지 않으면 모노가 부당하게 이긴다"
+   },
+   {
+    "id": "T5",
+    "name": "DPI·SI·기준채널을 정규화로 지우기",
+    "bite": "모노가 기준채널도 DPI 도 안 내는 것은 **진짜 이점**이다. 지우면 격자가 거짓말을 한다",
+    "fix": "셀마다 별도 열. 정본 규약(full_waveform_capture)이 패시브에 유리하므로 지금 격자는 모노 이점을 과소평가한다 — 그 방향을 명시한다",
+    "bias_direction": "현재 규약은 패시브 유리(=모노 결론이 나오면 보수적)"
+   },
+   {
+    "id": "T6",
+    "name": "같은 장면 위치 = 같은 자세라고 착각",
+    "bite": "모노 노드와 바이 이등분선은 같은 표적 위치에서 다른 방향을 본다",
+    "fix": "자세평균 σ 를 정본으로. 단일자세 인용 금지",
+    "bias_direction": "단일자세면 기하 차이와 자세 우연이 섞인다"
+   },
+   {
+    "id": "T7",
+    "name": "바이스태틱 σ 를 '계산했다'고 말하기",
+    "bite": "지금 바이스태틱 σ 는 이등분선 근사다. 근사오차가 β=45° 에서 p95 로 두 자릿수 dB 다",
+    "fix": "모노 팔은 Δσ=0 으로 표기. 바이 팔은 Δσ(β) 오차막대를 반드시 붙인다",
+    "bias_direction": "적지 않으면 바이 팔이 실제보다 정밀해 보인다"
+   },
+   {
+    "id": "T8",
+    "name": "'모노는 PRF 자유' 라고 쓰기",
+    "bite": "3GPP sub-6 CSI-RS 천장 500 Hz · 실측 상용 gNB 50~200 Hz. 규격 기준신호를 재활용하는 능동 모노의 5G v_max 는 10.71 m/s 로 패시브의 10배일 뿐이다(무한이 아니다)",
+    "fix": "천장 두 단(규격 재활용 / 자체 파형 설계)을 구분해 적는다 — control_axis.by_band",
+    "bias_direction": "쓰면 모노를 과대평가"
+   },
+   {
+    "id": "T9",
+    "name": "구성 B 를 '모노의 장점을 공짜로' 로 읽기",
+    "bite": "B 는 기하만 모노다. PRF 통제권은 없고 DPI 는 최악이다 — LTE 기준 병설 L=10 m 의 요구 소거깊이가 119.3 dB 로, 우리가 스윕하는 최선값 90 dB 를 29.3 dB 초과한다",
+    "fix": "ledger.passive_dpi 의 L 사다리·최소 베이스라인·병설 실행가능성을 함께 낸다",
+    "bias_direction": "쓰면 B 를 과대평가"
+   }
+  ],
+  "repo_link_budget": {
+   "eirp_dbm": 63.0,
+   "eirp_definition": "in-burst peak",
+   "rx_gain_dbi": 10.0,
+   "noise_figure_db": 5.0,
+   "provenance": "DECLARED — no source doc (spec §15-1)",
+   "power_normalization": {
+    "canonical_occupancy": "equal_psd",
+    "canonical_reference": "full_waveform_capture",
+    "views": [
+     "equal_total",
+     "equal_psd",
+     "deploy"
+    ],
+    "occupancy_frac": {
+     "wifi": {
+      "G1": 0.09134615384615384,
+      "G2": 0.1640625,
+      "G3": 0.8912259615384616
+     },
+     "lte": {
+      "G1": 0.0322265625,
+      "G2": 0.20584542410714285,
+      "G3": 0.5859375
+     },
+     "nr": {
+      "G1": 0.014474051339285714,
+      "G2": 0.177490234375,
+      "G3": 0.7975376674107143
+     }
+    },
+    "radiated_power_frac_db_vs_g3": {
+     "wifi": {
+      "G1": -9.892975630836094,
+      "G2": -7.349785039876259,
+      "G3": 0.0
+     },
+     "lte": {
+      "G1": -12.59637310505756,
+      "G2": -4.543100765619222,
+      "G3": 0.0
+     },
+     "nr": {
+      "G1": -17.411610950522054,
+      "G2": -6.525767408910034,
+      "G3": 0.0
+     }
+    },
+    "definition": "radiated_power_frac_db_vs_g3 = 10log10(occupancy_frac(occ) / occupancy_frac(G3)) = average radiated power difference at equal per-RE power (equal_psd -> deploy); NOT multiplied with a duty factor F_u (same loss, alternative parameterisation)",
+    "provenance": "DERIVED from waveforms.occupancy_frac (3GPP/IEEE resource grids)"
+   }
+  },
+  "one_line": "공정성의 핵심은 '무엇을 같게 했나'가 아니라 **'다르게 둔 것이 축인가 함정인가'** 를 셀마다 밝히는 것이다."
+ },
+ "not_meaningful": {
+  "void_cells": [
+   {
+    "cell": "B(패시브 준모노) at L → 0",
+    "verdict": "물리적으로 성립하지 않는다",
+    "why": "수신 안테나가 남의 송신 안테나 자리를 차지할 수 없고, 남의 송신기에는 송신단 자기간섭 제거를 걸 수 없다. 구성 B 는 L>0 에서만 정의된다.",
+    "quantified": {
+     "min_baseline_m_by_achievable_eca_depth": {
+      "wifi": {
+       "depth_40dB": 20322.984307751798,
+       "depth_60dB": 2032.29843077518,
+       "depth_90dB": 64.26691926435605,
+       "depth_120dB": 2.03229843077518
+      },
+      "lte": {
+       "depth_40dB": 92711.6387677043,
+       "depth_60dB": 9271.16387677043,
+       "depth_90dB": 293.179944112712,
+       "depth_120dB": 9.27116387677043
+      },
+      "nr": {
+       "depth_40dB": 24409.650035554154,
+       "depth_60dB": 2440.9650035554164,
+       "depth_90dB": 77.19009099996121,
+       "depth_120dB": 2.4409650035554153
+      }
+     },
+     "rule": "요구깊이 = DNR(L)+10 dB ≤ 달성깊이"
+    }
+   },
+   {
+    "cell": "C(패시브 바이스태틱) × 'PRF 설계'",
+    "verdict": "통제 축의 빈 칸",
+    "why": "패시브는 반복률을 고르지 못한다. 이 칸을 채우면 축이 뒤섞인다."
+   },
+   {
+    "cell": "바이스태틱 β → 180° (전방산란)",
+    "verdict": "현재 σ 엔진의 유효범위 밖",
+    "why": "SBR 은 β→180° 에서 σ≡0 을 낸다 (freespace_scene.BETA_VALID_MAX_DEG=90, rcs_sbr 전방산란 미지원). 도플러도 0 으로 죽어 속도정보가 사라진다.",
+    "note": "실제 패시브 레이더가 이 영역에서 유리할 수 있다는 점은 별도 축이다."
+   }
+  ],
+  "weak_but_kept": [
+   {
+    "cell": "A-lte",
+    "verdict": "물리는 성립, 실행 주체 없음",
+    "keep_because": "격자의 1.8 GHz 능동 상한을 주는 λ 팔. '가상 셀'로 명시하고 배치 주장을 하지 않는다."
+   },
+   {
+    "cell": "B-wifi",
+    "verdict": "성립하지만 A 로 퇴화",
+    "keep_because": "A↔B 의 유일한 차이(PRF 통제권)를 가장 순수하게 보여주는 셀이다."
+   }
+  ]
+ },
+ "readjudication": {
+  "transfers_unchanged": [
+   {
+    "conclusion": "v_max = λ·PRF_ref/4 (12종 교차표준 표 포함)",
+    "status": "전이한다 — 기하 무관",
+    "evidence": "P1: 모노 = 바이 β=0, 차이 0. 바이는 β↑ 에서 관대해진다",
+    "action": "문장에 '두 기하의 최악값' 이라는 한 줄만 추가한다",
+    "source": "refrate_law.json : law.forms · 본 파일 axis_independence.P1"
+   },
+   {
+    "conclusion": "탈출구 6판정(언폴딩·프레임·빔스위핑·긴CPI·멀티스태틱·밴드)",
+    "status": "대부분 전이 — 단 (e) 멀티스태틱은 기하 축과 직접 겹친다",
+    "action": "(e) 를 '기하 축의 확장'으로 재배치한다. 나머지는 그대로",
+    "source": "vmax_hardening.json : verdict.escapes"
+   },
+   {
+    "conclusion": "Pfa 교정(2717 s MC · 밴드별 배율)",
+    "status": "전이한다 — 검출기 규약은 기하와 무관",
+    "action": "없음",
+    "source": "verify_cfar.json"
+   },
+   {
+    "conclusion": "커널 검증 0.201 dB vs 해석 PO",
+    "status": "전이한다 — 오히려 모노에서 더 직접적으로 적용된다",
+    "action": "없음",
+    "source": "sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po"
+   },
+   {
+    "conclusion": "듀티 항(WiFi −12.84 / LTE 0 / 5G −16.02 dB)",
+    "status": "전이한다 — 자원격자에서 결정되므로 기하 무관",
+    "action": "⚠ 다만 여전히 R90 경로에서 **호출되지 않는다**. 기하 축과 무관한 별건 결함",
+    "source": "sigma_sensitivity.json : unapplied_duty_axis"
+   }
+  ],
+  "established_for_one_geometry_only": [
+   {
+    "conclusion": "바이스태틱 σ 자세 패턴 (β ≤ 45° 창)",
+    "status": "바이스태틱 전용. 모노 팔에서는 창 자체가 필요 없다",
+    "evidence": "이등분선 근사오차 β=45°: rms 중앙 7.472692132512693 dB · p95 최대 20.03858904752335 dB · β=0 에서 정확히 0",
+    "action": "모노 행은 '근사 없음'으로 표기. 바이 행은 Δσ(β) 오차막대 필수",
+    "source": "report13_sigma_grid.json : multistatic"
+   },
+   {
+    "conclusion": "R90 검출거리 · 커버리지 · 블라인드 비율 (report13/05 전부)",
+    "status": "바이스태틱 L=500 m · **φ=90° 단일 방위** 전용",
+    "action": "⭐ 모노 팔에서 **재계산 필요**. N1 정규화로 다시 풀고, DPI 항을 빼고, SI 항을 넣는다. ⚠ 그리고 φ 를 쓸어야 한다 — φ=90° 는 R₁≈R₂ 인 특이 방위라 기하 축이 거기서만 사라진다(함정 T1b)",
+    "source": "report13_freespace.json : ranges · 본 파일 range_normalisation"
+   },
+   {
+    "conclusion": "DPI/ECA 소거깊이 요구치",
+    "status": "패시브 전용. 능동 모노에는 SI 가 대신 들어간다",
+    "action": "A 행에 SI 열을 새로 만든다(하드웨어 사양, 기하 함수 아님)",
+    "source": "본 파일 interference_ledger"
+   },
+   {
+    "conclusion": "바닥유령·클러터 도플러(챔버)",
+    "status": "리포트 제외 상태 유지 — 기하 축과 별개",
+    "action": "없음",
+    "source": "REBUILD_2026-07-30.md §3"
+   }
+  ],
+  "needs_recomputation": [
+   {
+    "item": "모노 팔 링크버짓·R90",
+    "why": "N1 정규화 + DPI 제거 + SI 도입",
+    "depends_on": "src/monostatic_scene.py (다른 워크플로가 만드는 중)",
+    "estimated": "가벼움 — σ 는 이미 모노다, 새 RCS 계산 0"
+   },
+   {
+    "item": "모노 팔 블라인드/접힘 비율",
+    "why": "β=0 이라 완화계수가 앙각만 남는다",
+    "depends_on": "freespace_scene.blind_fractions 를 L=0 으로 호출",
+    "estimated": "가벼움"
+   },
+   {
+    "item": "구성 B 의 DPI 한계 곡선",
+    "why": "짧은 베이스라인에서 요구깊이가 폭발한다",
+    "depends_on": "본 파일 interference_ledger 확장(달성깊이 실측치 필요)",
+    "estimated": "중간 — 달성 ECA 깊이의 근거문서가 아직 없다"
+   },
+   {
+    "item": "등-EIRP vs 실현가능 EIRP 두 뷰",
+    "why": "T3 함정을 닫으려면 규제 상한을 못박아야",
+    "depends_on": "FCC 15.407 / ETSI EN 301 893 조항 확인",
+    "estimated": "가벼움 — 문헌 확인 작업"
+   },
+   {
+    "item": "LaSen 과의 나란한 비교(A-nr 셀)",
+    "why": "게재 대조군을 같은 축에 올린다",
+    "depends_on": "monostatic_prior.json (이미 있음) + 모노 팔 결과",
+    "estimated": "가벼움"
+   }
+  ],
+  "work_plan_order": [
+   "1. src/monostatic_scene.py 계약 확정(본 파일 handoff)",
+   "2. 모노 팔 링크버짓·R90 을 N1 로 계산",
+   "3. 구성 B 의 DPI 한계 곡선(최소 베이스라인)",
+   "4. 9셀 표 채우기 — 등-PRF/고유-PRF 두 뷰",
+   "5. LaSen 나란히 놓기",
+   "6. 등-EIRP/실현가능 EIRP 두 뷰(규제 조항 확인 후)"
+  ]
+ },
+ "handoff": {
+  "files_i_must_not_edit": [
+   "src/monostatic_scene.py",
+   "benchmark/mono_vs_passive.py",
+   "benchmark/verify_monostatic.py",
+   "src/rcs_sbr.py",
+   "src/sigma_anchor.py",
+   "docs/PAPER_SPEC.md"
+  ],
+  "contract_for_monostatic_scene": {
+   "file": "src/monostatic_scene.py",
+   "status": "이 워크플로 시점에 아직 존재하지 않는다 — 아래는 격자 규약이 성립하기 위한 요건",
+   "requirements": [
+    "R1 기하는 freespace_scene.fs_params 를 **재구현하지 말고** TX=RX 로 호출한다. L=0 에서 R1=R2=R, Rb=2R, β=0, R_eq=R 이 그대로 나온다(본 파일에서 확인).",
+    "R2 노드 위치는 조명원 자리 FS_TX=(0,0,25) 를 기본으로 한다. 구성 A/B 가 둘 다 여기서 출발하기 때문이다.",
+    "R3 거리축 정본은 R_eq 다. R90 을 낼 때 키 이름에 정규화를 적는다(예 `R90_C50_m@N1_Req`).",
+    "R4 DPI 항을 **넣지 않는다**. 대신 self_interference_db 를 명시 인자로 받는다(기본값 주지 말 것 — 선언값임이 드러나야 한다).",
+    "R5 η_ref 는 모노에서 0 dB 로 고정하고 그 이유(송신 심볼 기지)를 meta 에 적는다.",
+    "R6 σ 조회는 rcs_sbr_batch 후방산란 그대로. Δσ 보정 0, meta 에 `bisector_approximation=False` 를 남긴다.",
+    "R7 PRF 는 인자로 받고, 기본값으로 상시 반복률(prf_hz)을 쓰되 `prf_is_design_variable` 플래그로 구성 A/B 를 구분한다."
+   ],
+   "json_keys_the_grid_expects": [
+    "meta.normalisation = 'N1_Req'",
+    "meta.configuration in {'A','B'}",
+    "meta.self_interference_db (구성 A) / meta.baseline_m (구성 B)",
+    "ranges.<drone>.<mode>.by_N.1.R90_C50_m"
+   ]
+  },
+  "no_patch_needed": "이번 단계는 정의·감사만 하므로 금지 파일에 대한 코드 패치는 없다."
+ },
+ "provenance": {
+  "v_max floor is geometry-independent": "본 파일 axis_independence.P1 (freespace_scene.fs_params 로 계산) · refrate_law.json : law.forms.relation",
+  "relief 1/cos(beta/2) ladder": "본 파일 axis_independence.P2.relief_by_beta",
+  "N1 spread identity": "본 파일 range_normalisation.N1_equal_R_eq (freespace_link.snr_rd_terms_db)",
+  "duty −12.84/0/−16.02 dB": "본 파일 axis_independence.P3 (freespace_link.duty_db_from_cpi) · 교차확인 sigma_sensitivity.json : unapplied_duty_axis.duty_db",
+  "DNR vs baseline": "본 파일 interference_ledger (freespace_link.dnr_db)",
+  "active PRF ceiling 500 Hz": "monostatic_prior.json : prf_ladder_at_3p5GHz[csirs_spec_max]",
+  "self-interference 100 dB": "monostatic_prior.json : side_by_side.lanes[1]",
+  "bisector approximation error": "report13_sigma_grid.json : multistatic",
+  "kernel 0.201 dB": "sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po",
+  "aspect averaging required": "sigma_sensitivity.json : aspect_averaged",
+  "LaSen identity": "monostatic_prior.json : lasen.identity"
+ }
+}

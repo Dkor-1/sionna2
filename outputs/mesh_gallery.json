@@ -1,0 +1,1778 @@
+{
+ "_meta": {
+  "generated": "2026-07-31 02:50:47",
+  "generator": "src/viz_mesh_gallery.py :: measure()",
+  "purpose": "현재 메쉬 소스에서 다시 잰 기체별 기하 원장. 리포트는 이 값을 주입해서 쓴다.",
+  "n_airframes": 7,
+  "bands_ghz": {
+   "LTE": 1.843,
+   "5G": 3.5,
+   "WiFi": 5.21
+  },
+  "mesh_sources": {
+   "src/drone_cad.py": "2026-07-30 11:04:44",
+   "src/drones.py": "2026-07-31 02:42:16",
+   "src/cadkit.py": "2026-07-14 12:04:37",
+   "src/geom.py": "2026-07-20 00:53:43"
+  },
+  "mesh_source_newest": "2026-07-31 02:42:16",
+  "report1": {
+   "path": "outputs/report1.json",
+   "mtime": "2026-07-31 02:44:21",
+   "mesh_block_stamp": "2026-07-31 02:43:27",
+   "fresher_than_mesh": true,
+   "airframes_present": [
+    "matrice4e",
+    "mavic4pro",
+    "mini5pro",
+    "phantom4",
+    "s1000plus",
+    "typhoonh480",
+    "x500v2"
+   ],
+   "airframes_missing": [],
+   "freshness_rule": "mtime 이 아니라 _provenance.mesh.stamp(없으면 meta.stamp)로 판정",
+   "note": "report1.json 의 메쉬 블록이 메쉬보다 새롭다."
+  },
+  "crosscheck": {
+   "definition": "r_encl = bbox 중심에서 가장 먼 정점까지의 거리 [m] (src/make_report02_target.py 와 동일 정의)",
+   "report02_derived_mtime": "2026-07-31 02:25:10",
+   "drifted_airframes": [],
+   "note": "report02_derived.json 의 r_encl 과 0.5% 이내로 일치한다."
+  },
+  "definitions": {
+   "lwh_full_mm": "프로펠러 포함 전체 바운딩박스 [mm]",
+   "lwh_frame_mm": "프로펠러 제외 프레임 바운딩박스 [mm]",
+   "n_parts": "그룹별 연결성분(=실제 부품) 수의 합 — 모터 4개는 4로 센다",
+   "n_groups": "재질 그룹 수 (= OBJ 파트 수 = Sionna 재질 수)",
+   "kr": "2*pi*r_encl/lambda — 밴드 중심주파수 기준 전기적 크기",
+   "span_max_m": "프로펠러 포함 바운딩박스의 최대 변 [m] — 갤러리 정렬·카메라 기준"
+  },
+  "figures": {
+   "per_airframe": "outputs/figures/mesh_gallery_<key>.png",
+   "gallery": "outputs/figures/mesh_gallery_all.png"
+  },
+  "runtime_s": 33.0
+ },
+ "order_by_size": [
+  "mini5pro",
+  "phantom4",
+  "x500v2",
+  "mavic4pro",
+  "matrice4e",
+  "typhoonh480",
+  "s1000plus"
+ ],
+ "size_spread": {
+  "smallest": "mini5pro",
+  "largest": "s1000plus",
+  "smallest_span_m": 0.37598334435940023,
+  "largest_span_m": 1.3297658623135489,
+  "span_ratio": 3.5367680038571967,
+  "kr_5g_min": 15.916765936334775,
+  "kr_5g_max": 53.56027012468783
+ },
+ "airframes": {
+  "mini5pro": {
+   "name": "DJI Mini 5 Pro",
+   "label": "Mini 5 Pro",
+   "release": "released",
+   "confidence": "high",
+   "num_rotors": 4,
+   "coaxial": false,
+   "prop_dia_mm": 152.4,
+   "prop_blades": 2,
+   "weight_g": 249.9,
+   "body_style": "shell",
+   "arm_shape": "folding",
+   "n_tris": 29044,
+   "n_groups": 9,
+   "n_parts": 25,
+   "mesh_ok": true,
+   "surface_area_m2": 0.14657001158314129,
+   "lwh_full_mm": [
+    251.12925948006193,
+    375.98334435940023,
+    91.00000000000001
+   ],
+   "lwh_frame_mm": [
+    189.0787109732628,
+    257.3873698711395,
+    79.37279942282392
+   ],
+   "official_mm": [
+    null,
+    null,
+    91.0
+   ],
+   "lwh_compare_mm": [
+    251.12925948006193,
+    375.98334435940023,
+    91.00000000000001
+   ],
+   "err_pct": [
+    null,
+    null,
+    1.5616323862859346e-14
+   ],
+   "official_includes_props": true,
+   "diagonal_spec_mm": 275.0,
+   "diagonal_mesh_mm": 275.0,
+   "span_max_m": 0.37598334435940023,
+   "r_encl_m": 0.2169839545743954,
+   "kr": {
+    "LTE": 8.381314177332854,
+    "5G": 15.916765936334775,
+    "WiFi": 23.693243008086906
+   },
+   "kr_crosscheck": {
+    "r_encl_m": 0.2169839545743954,
+    "delta_pct": 0.0,
+    "source": "outputs/report02_derived.json",
+    "source_mtime": "2026-07-31 02:25:10"
+   },
+   "groups": {
+    "accent": {
+     "material": "plastic",
+     "desc_ko": "전방 식별색",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 128,
+     "n_parts": 2,
+     "area_m2": 0.0027543033348002245,
+     "bbox_mm": [
+      16.50000363588333,
+      198.68990778923035,
+      19.530780821945356
+     ],
+     "mean_z_mm": 2.0578408309485
+    },
+    "battery": {
+     "material": "metal",
+     "desc_ko": "배터리팩(내부) — GHz 에서 파우치 포일은 사실상 금속",
+     "gamma_po_5g": 0.9998026802895116,
+     "color_rgb": [
+      0.3,
+      0.5,
+      0.85
+     ],
+     "n_faces": 24,
+     "n_parts": 2,
+     "area_m2": 0.027639885972690376,
+     "bbox_mm": [
+      90.51480000000001,
+      56.616800000000005,
+      30.898481833726755
+     ],
+     "mean_z_mm": -0.5617905787950325
+    },
+    "body": {
+     "material": "plastic",
+     "desc_ko": "동체 셸",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 8374,
+     "n_parts": 3,
+     "area_m2": 0.052305869987322284,
+     "bbox_mm": [
+      162.25916147232056,
+      235.26298999786377,
+      57.62150223639056
+     ],
+     "mean_z_mm": 0.3361335106668785
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "desc_ko": "짐벌 카메라(금속 하우징+유리렌즈)",
+     "gamma_po_5g": 0.85,
+     "color_rgb": [
+      0.9,
+      0.5,
+      0.1
+     ],
+     "n_faces": 2306,
+     "n_parts": 6,
+     "area_m2": 0.01711317793126458,
+     "bbox_mm": [
+      153.30560132861137,
+      59.29519981145859,
+      77.84500578445225
+     ],
+     "mean_z_mm": -2.5985955793022004
+    },
+    "canopy": {
+     "material": "plastic",
+     "desc_ko": "상단 캐노피/배터리",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 2240,
+     "n_parts": 1,
+     "area_m2": 0.013752167840445986,
+     "bbox_mm": [
+      100.71422450526319,
+      75.14757097182023,
+      15.305281590418081
+     ],
+     "mean_z_mm": 9.269544550118265
+    },
+    "gear": {
+     "material": "plastic",
+     "desc_ko": "착륙장치",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 1192,
+     "n_parts": 2,
+     "area_m2": 0.0024300847915840603,
+     "bbox_mm": [
+      18.46863329410553,
+      254.54005599021912,
+      37.333800070027735
+     ],
+     "mean_z_mm": -17.101687861597018
+    },
+    "motor": {
+     "material": "metal",
+     "desc_ko": "모터",
+     "gamma_po_5g": 0.9998026802895116,
+     "color_rgb": [
+      0.3,
+      0.5,
+      0.85
+     ],
+     "n_faces": 2016,
+     "n_parts": 4,
+     "area_m2": 0.008673188298713871,
+     "bbox_mm": [
+      181.18222057819366,
+      257.3873698711395,
+      16.462727494532196
+     ],
+     "mean_z_mm": 13.362247252606425
+    },
+    "pcb": {
+     "material": "pcb",
+     "desc_ko": "ESC/메인보드(내부) — FR-4 + 구리 그라운드플레인",
+     "gamma_po_5g": 0.8,
+     "color_rgb": [
+      0.1,
+      0.6,
+      0.25
+     ],
+     "n_faces": 12,
+     "n_parts": 1,
+     "area_m2": 0.0060354442199402674,
+     "bbox_mm": [
+      59.302800000000005,
+      44.96040000000001,
+      3.37074347277019
+     ],
+     "mean_z_mm": 14.60655504867083
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "desc_ko": "프로펠러",
+     "gamma_po_5g": 0.25,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 12752,
+     "n_parts": 4,
+     "area_m2": 0.015865889206379623,
+     "bbox_mm": [
+      251.12925948006193,
+      375.98334435940023,
+      26.007988332324814
+     ],
+     "mean_z_mm": 25.539859889752513
+    }
+   },
+   "report1": {
+    "present": true,
+    "n_tris": 29044,
+    "err_pct": [
+     null,
+     null,
+     1.5616323862859346e-14
+    ],
+    "note": null
+   },
+   "figure": "outputs/figures/mesh_gallery_mini5pro.png"
+  },
+  "mavic4pro": {
+   "name": "DJI Mavic 4 Pro",
+   "label": "Mavic 4 Pro",
+   "release": "released",
+   "confidence": "high",
+   "num_rotors": 4,
+   "coaxial": false,
+   "prop_dia_mm": 267.0,
+   "prop_blades": 2,
+   "weight_g": 1063.0,
+   "body_style": "shell",
+   "arm_shape": "folding",
+   "n_tris": 29932,
+   "n_groups": 8,
+   "n_parts": 20,
+   "mesh_ok": true,
+   "surface_area_m2": 0.32897577147912016,
+   "lwh_full_mm": [
+    464.46953683377444,
+    595.6781913163061,
+    149.82176121516278
+   ],
+   "lwh_frame_mm": [
+    320.99491357803345,
+    390.5145227909088,
+    135.2
+   ],
+   "official_mm": [
+    null,
+    null,
+    135.2
+   ],
+   "lwh_compare_mm": [
+    320.99491357803345,
+    390.5145227909088,
+    135.2
+   ],
+   "err_pct": [
+    null,
+    null,
+    0.0
+   ],
+   "official_includes_props": false,
+   "diagonal_spec_mm": 441.0,
+   "diagonal_mesh_mm": 441.0,
+   "span_max_m": 0.5956781913163061,
+   "r_encl_m": 0.359243890068522,
+   "kr": {
+    "LTE": 13.87630672902671,
+    "5G": 26.352183153333414,
+    "WiFi": 39.22710692253345
+   },
+   "kr_crosscheck": {
+    "r_encl_m": 0.359243890068522,
+    "delta_pct": 0.0,
+    "source": "outputs/report02_derived.json",
+    "source_mtime": "2026-07-31 02:25:10"
+   },
+   "groups": {
+    "battery": {
+     "material": "metal",
+     "desc_ko": "배터리팩(내부) — GHz 에서 파우치 포일은 사실상 금속",
+     "gamma_po_5g": 0.9998026802895116,
+     "color_rgb": [
+      0.3,
+      0.5,
+      0.85
+     ],
+     "n_faces": 24,
+     "n_parts": 2,
+     "area_m2": 0.05278716761781821,
+     "bbox_mm": [
+      118.30839999999998,
+      80.29576,
+      46.191418348384886
+     ],
+     "mean_z_mm": -0.8398439699706354
+    },
+    "body": {
+     "material": "plastic",
+     "desc_ko": "동체 셸",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 7758,
+     "n_parts": 1,
+     "area_m2": 0.1164662614571803,
+     "bbox_mm": [
+      289.6381616592407,
+      356.25383257865906,
+      87.69515297129635
+     ],
+     "mean_z_mm": 1.805330067139047
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "desc_ko": "짐벌 카메라(금속 하우징+유리렌즈)",
+     "gamma_po_5g": 0.85,
+     "color_rgb": [
+      0.9,
+      0.5,
+      0.1
+     ],
+     "n_faces": 3934,
+     "n_parts": 5,
+     "area_m2": 0.043706101255787104,
+     "bbox_mm": [
+      145.81999368965626,
+      100.00000149011612,
+      135.2
+     ],
+     "mean_z_mm": -14.671710696062082
+    },
+    "canopy": {
+     "material": "plastic",
+     "desc_ko": "상단 캐노피/배터리",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 2240,
+     "n_parts": 1,
+     "area_m2": 0.025658844389020434,
+     "bbox_mm": [
+      124.11740685473686,
+      106.9431927072932,
+      29.12035272027835
+     ],
+     "mean_z_mm": 17.636723369383695
+    },
+    "gear": {
+     "material": "plastic",
+     "desc_ko": "착륙장치",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 1196,
+     "n_parts": 2,
+     "area_m2": 0.007055005581081332,
+     "bbox_mm": [
+      32.58167207241058,
+      383.86039435863495,
+      68.86622388761309
+     ],
+     "mean_z_mm": -31.464953061513942
+    },
+    "motor": {
+     "material": "metal",
+     "desc_ko": "모터",
+     "gamma_po_5g": 0.9998026802895116,
+     "color_rgb": [
+      0.3,
+      0.5,
+      0.85
+     ],
+     "n_faces": 2016,
+     "n_parts": 4,
+     "area_m2": 0.0232727945660827,
+     "bbox_mm": [
+      320.99491357803345,
+      390.5145227909088,
+      28.6277237175305
+     ],
+     "mean_z_mm": 23.236169715624573
+    },
+    "pcb": {
+     "material": "pcb",
+     "desc_ko": "ESC/메인보드(내부) — FR-4 + 구리 그라운드플레인",
+     "gamma_po_5g": 0.8,
+     "color_rgb": [
+      0.1,
+      0.6,
+      0.25
+     ],
+     "n_faces": 12,
+     "n_parts": 1,
+     "area_m2": 0.011308849167689651,
+     "bbox_mm": [
+      77.5124,
+      63.76428000000001,
+      5.039063819823806
+     ],
+     "mean_z_mm": 21.8359432192365
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "desc_ko": "프로펠러",
+     "gamma_po_5g": 0.25,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 12752,
+     "n_parts": 4,
+     "area_m2": 0.04872074744446046,
+     "bbox_mm": [
+      464.46953683377444,
+      595.6781913163061,
+      15.450844541192055
+     ],
+     "mean_z_mm": 50.52585774725371
+    }
+   },
+   "report1": {
+    "present": true,
+    "n_tris": 29932,
+    "err_pct": [
+     null,
+     null,
+     0.0
+    ],
+    "note": null
+   },
+   "figure": "outputs/figures/mesh_gallery_mavic4pro.png"
+  },
+  "matrice4e": {
+   "name": "DJI Matrice 4E",
+   "label": "Matrice 4E",
+   "release": "released",
+   "confidence": "high",
+   "num_rotors": 4,
+   "coaxial": false,
+   "prop_dia_mm": 274.0,
+   "prop_blades": 2,
+   "weight_g": 1219.0,
+   "body_style": "shell",
+   "arm_shape": "folding",
+   "n_tris": 30714,
+   "n_groups": 9,
+   "n_parts": 25,
+   "mesh_ok": true,
+   "surface_area_m2": 0.340009117593816,
+   "lwh_full_mm": [
+    469.9266144472452,
+    599.2560859063226,
+    149.5
+   ],
+   "lwh_frame_mm": [
+    320.58894634246826,
+    387.60870695114136,
+    149.5
+   ],
+   "official_mm": [
+    null,
+    null,
+    149.5
+   ],
+   "lwh_compare_mm": [
+    320.58894634246826,
+    387.60870695114136,
+    149.5
+   ],
+   "err_pct": [
+    null,
+    null,
+    0.0
+   ],
+   "official_includes_props": false,
+   "diagonal_spec_mm": 438.8,
+   "diagonal_mesh_mm": 438.8,
+   "span_max_m": 0.5992560859063226,
+   "r_encl_m": 0.3579115377882882,
+   "kr": {
+    "LTE": 13.824842725260034,
+    "5G": 26.254449017042926,
+    "WiFi": 39.081622679655325
+   },
+   "kr_crosscheck": {
+    "r_encl_m": 0.3579115377882882,
+    "delta_pct": 0.0,
+    "source": "outputs/report02_derived.json",
+    "source_mtime": "2026-07-31 02:25:10"
+   },
+   "groups": {
+    "accent": {
+     "material": "plastic",
+     "desc_ko": "전방 식별색",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 64,
+     "n_parts": 1,
+     "area_m2": 0.0005079904109516332,
+     "bbox_mm": [
+      14.000000000000012,
+      14.0,
+      4.7589358187175375
+     ],
+     "mean_z_mm": 34.38426307739788
+    },
+    "battery": {
+     "material": "metal",
+     "desc_ko": "배터리팩(내부) — GHz 에서 파우치 포일은 사실상 금속",
+     "gamma_po_5g": 0.9998026802895116,
+     "color_rgb": [
+      0.3,
+      0.5,
+      0.85
+     ],
+     "n_faces": 24,
+     "n_parts": 2,
+     "area_m2": 0.057967465968949396,
+     "bbox_mm": [
+      142.09188,
+      69.38992,
+      52.53151303491345
+     ],
+     "mean_z_mm": -0.9551184188166087
+    },
+    "body": {
+     "material": "plastic",
+     "desc_ko": "동체 셸",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 7770,
+     "n_parts": 1,
+     "area_m2": 0.11179957947204233,
+     "bbox_mm": [
+      290.5604839324951,
+      354.5304238796234,
+      96.2755005200652
+     ],
+     "mean_z_mm": 3.0919875242339585
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "desc_ko": "짐벌 카메라(금속 하우징+유리렌즈)",
+     "gamma_po_5g": 0.85,
+     "color_rgb": [
+      0.9,
+      0.5,
+      0.1
+     ],
+     "n_faces": 2634,
+     "n_parts": 7,
+     "area_m2": 0.044604345650161255,
+     "bbox_mm": [
+      250.48796087503433,
+      93.1600034236908,
+      99.68066679791625
+     ],
+     "mean_z_mm": -10.720792196554273
+    },
+    "canopy": {
+     "material": "plastic",
+     "desc_ko": "상단 캐노피/배터리",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 2538,
+     "n_parts": 1,
+     "area_m2": 0.031944788606337565,
+     "bbox_mm": [
+      140.03420434892178,
+      92.78717637062073,
+      67.48213466314964
+     ],
+     "mean_z_mm": 32.54266731903185
+    },
+    "gear": {
+     "material": "plastic",
+     "desc_ko": "착륙장치",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 2904,
+     "n_parts": 4,
+     "area_m2": 0.010459205086703106,
+     "bbox_mm": [
+      279.05115485191345,
+      345.3633785247803,
+      74.13864594014854
+     ],
+     "mean_z_mm": -58.558630695383954
+    },
+    "motor": {
+     "material": "metal",
+     "desc_ko": "모터",
+     "gamma_po_5g": 0.9998026802895116,
+     "color_rgb": [
+      0.3,
+      0.5,
+      0.85
+     ],
+     "n_faces": 2016,
+     "n_parts": 4,
+     "area_m2": 0.019464919488079192,
+     "bbox_mm": [
+      320.58894634246826,
+      387.60870695114136,
+      20.046921253974723
+     ],
+     "mean_z_mm": 16.271418339768484
+    },
+    "pcb": {
+     "material": "pcb",
+     "desc_ko": "ESC/메인보드(내부) — FR-4 + 구리 그라운드플레인",
+     "gamma_po_5g": 0.8,
+     "color_rgb": [
+      0.1,
+      0.6,
+      0.25
+     ],
+     "n_faces": 12,
+     "n_parts": 1,
+     "area_m2": 0.011958298524200257,
+     "bbox_mm": [
+      93.09468,
+      55.10376000000001,
+      5.7307105128996465
+     ],
+     "mean_z_mm": 24.833078889231807
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "desc_ko": "프로펠러",
+     "gamma_po_5g": 0.25,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 12752,
+     "n_parts": 4,
+     "area_m2": 0.05130252438639127,
+     "bbox_mm": [
+      469.9266144472452,
+      599.2560859063226,
+      15.724532306194305
+     ],
+     "mean_z_mm": 36.19038776240584
+    }
+   },
+   "report1": {
+    "present": true,
+    "n_tris": 30714,
+    "err_pct": [
+     null,
+     null,
+     0.0
+    ],
+    "note": null
+   },
+   "figure": "outputs/figures/mesh_gallery_matrice4e.png"
+  },
+  "s1000plus": {
+   "name": "DJI S1000+",
+   "label": "S1000+",
+   "release": "discontinued",
+   "confidence": "high",
+   "num_rotors": 8,
+   "coaxial": false,
+   "prop_dia_mm": 381.0,
+   "prop_blades": 2,
+   "weight_g": 9500.0,
+   "body_style": "shell",
+   "arm_shape": "folding",
+   "n_tris": 35370,
+   "n_groups": 10,
+   "n_parts": 49,
+   "mesh_ok": true,
+   "surface_area_m2": 1.1944563209029166,
+   "lwh_full_mm": [
+    1329.765862313549,
+    1329.765862313549,
+    380.0
+   ],
+   "lwh_frame_mm": [
+    1016.0,
+    1016.0,
+    380.0
+   ],
+   "official_mm": [
+    1016.0,
+    1016.0,
+    380.0
+   ],
+   "lwh_compare_mm": [
+    1016.0,
+    1016.0,
+    380.0
+   ],
+   "err_pct": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "official_includes_props": false,
+   "diagonal_spec_mm": 1045.0,
+   "diagonal_mesh_mm": 1043.506484077842,
+   "span_max_m": 1.3297658623135489,
+   "r_encl_m": 0.7301558159624352,
+   "kr": {
+    "LTE": 28.20330795422848,
+    "5G": 53.56027012468783,
+    "WiFi": 79.72828781417817
+   },
+   "kr_crosscheck": {
+    "r_encl_m": 0.7301558159624352,
+    "delta_pct": 0.0,
+    "source": "outputs/report02_derived.json",
+    "source_mtime": "2026-07-31 02:25:10"
+   },
+   "groups": {
+    "accent": {
+     "material": "plastic",
+     "desc_ko": "전방 식별색",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 176,
+     "n_parts": 9,
+     "area_m2": 0.02481767342246971,
+     "bbox_mm": [
+      332.1170265016243,
+      321.7242744718702,
+      24.15648008212978
+     ],
+     "mean_z_mm": 33.91198139961873
+    },
+    "arm": {
+     "material": "carbon",
+     "desc_ko": "암",
+     "gamma_po_5g": 0.9,
+     "color_rgb": [
+      0.09,
+      0.09,
+      0.1
+     ],
+     "n_faces": 2304,
+     "n_parts": 8,
+     "area_m2": 0.24326364168672088,
+     "bbox_mm": [
+      973.6276814218683,
+      973.6276814218683,
+      23.227384561234405
+     ],
+     "mean_z_mm": 6.424901762877063e-16
+    },
+    "battery": {
+     "material": "metal",
+     "desc_ko": "배터리팩(내부) — GHz 에서 파우치 포일은 사실상 금속",
+     "gamma_po_5g": 0.9998026802895116,
+     "color_rgb": [
+      0.3,
+      0.5,
+      0.85
+     ],
+     "n_faces": 12,
+     "n_parts": 1,
+     "area_m2": 0.051688626876514605,
+     "bbox_mm": [
+      174.7498896781075,
+      74.89280986204608,
+      51.10024527326269
+     ],
+     "mean_z_mm": 46.45476843023882
+    },
+    "body": {
+     "material": "plastic",
+     "desc_ko": "동체 셸",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 816,
+     "n_parts": 1,
+     "area_m2": 0.3555442733485937,
+     "bbox_mm": [
+      346.00931432647405,
+      346.00931432647405,
+      60.39120020532446
+     ],
+     "mean_z_mm": 2.1993904359997676
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "desc_ko": "짐벌 카메라(금속 하우징+유리렌즈)",
+     "gamma_po_5g": 0.85,
+     "color_rgb": [
+      0.9,
+      0.5,
+      0.1
+     ],
+     "n_faces": 190,
+     "n_parts": 1,
+     "area_m2": 0.10151034904309031,
+     "bbox_mm": [
+      157.27490695983983,
+      149.78562567603794,
+      82.2249406199283
+     ],
+     "mean_z_mm": -55.594133176807944
+    },
+    "gear": {
+     "material": "plastic",
+     "desc_ko": "착륙장치",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 704,
+     "n_parts": 10,
+     "area_m2": 0.04034910465024172,
+     "bbox_mm": [
+      459.34257548660673,
+      540.7881383813332,
+      289.39180514730094
+     ],
+     "mean_z_mm": -191.19832431880818
+    },
+    "gear_cf": {
+     "material": "carbon",
+     "desc_ko": "카본 튜브 착륙장치 — 'gear'(플라스틱)와 재질이 다르다",
+     "gamma_po_5g": 0.9,
+     "color_rgb": [
+      0.09,
+      0.09,
+      0.1
+     ],
+     "n_faces": 772,
+     "n_parts": 2,
+     "area_m2": 0.07469786543300054,
+     "bbox_mm": [
+      459.34257548660673,
+      526.8081486355516,
+      268.6091986707133
+     ],
+     "mean_z_mm": -214.76621740203908
+    },
+    "motor": {
+     "material": "metal",
+     "desc_ko": "모터",
+     "gamma_po_5g": 0.9998026802895116,
+     "color_rgb": [
+      0.3,
+      0.5,
+      0.85
+     ],
+     "n_faces": 4784,
+     "n_parts": 8,
+     "area_m2": 0.06698894783938701,
+     "bbox_mm": [
+      1016.0,
+      1016.0,
+      27.87286130042379
+     ],
+     "mean_z_mm": 25.29469898122926
+    },
+    "pcb": {
+     "material": "pcb",
+     "desc_ko": "ESC/메인보드(내부) — FR-4 + 구리 그라운드플레인",
+     "gamma_po_5g": 0.8,
+     "color_rgb": [
+      0.1,
+      0.6,
+      0.25
+     ],
+     "n_faces": 12,
+     "n_parts": 1,
+     "area_m2": 0.03740015435795646,
+     "bbox_mm": [
+      149.78561972409216,
+      119.82849577927374,
+      2.7872861058143292
+     ],
+     "mean_z_mm": 0.0
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "desc_ko": "프로펠러",
+     "gamma_po_5g": 0.25,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 25600,
+     "n_parts": 8,
+     "area_m2": 0.19819568424494163,
+     "bbox_mm": [
+      1329.765862313549,
+      1329.765862313549,
+      20.478342659771442
+     ],
+     "mean_z_mm": 47.586252828507824
+    }
+   },
+   "report1": {
+    "present": true,
+    "n_tris": 35370,
+    "err_pct": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "note": null
+   },
+   "figure": "outputs/figures/mesh_gallery_s1000plus.png"
+  },
+  "phantom4": {
+   "name": "DJI Phantom 4",
+   "label": "Phantom 4",
+   "release": "released",
+   "confidence": "high",
+   "num_rotors": 4,
+   "coaxial": false,
+   "prop_dia_mm": 240.0,
+   "prop_blades": 2,
+   "weight_g": 1380.0,
+   "body_style": "shell",
+   "arm_shape": "folding",
+   "n_tris": 28402,
+   "n_groups": 8,
+   "n_parts": 23,
+   "mesh_ok": true,
+   "surface_area_m2": 0.3439725818072286,
+   "lwh_full_mm": [
+    440.2778666012047,
+    467.50404236979637,
+    197.6940103540518
+   ],
+   "lwh_frame_mm": [
+    289.5,
+    289.5,
+    196.0
+   ],
+   "official_mm": [
+    289.5,
+    289.5,
+    196.0
+   ],
+   "lwh_compare_mm": [
+    289.5,
+    289.5,
+    196.0
+   ],
+   "err_pct": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "official_includes_props": false,
+   "diagonal_spec_mm": 350.0,
+   "diagonal_mesh_mm": 356.91969732344563,
+   "span_max_m": 0.46750404236979637,
+   "r_encl_m": 0.31095306298910996,
+   "kr": {
+    "LTE": 12.011004778798702,
+    "5G": 22.809830019422385,
+    "WiFi": 33.95406125748303
+   },
+   "kr_crosscheck": {
+    "r_encl_m": 0.31095306298910996,
+    "delta_pct": 0.0,
+    "source": "outputs/report02_derived.json",
+    "source_mtime": "2026-07-31 02:25:10"
+   },
+   "groups": {
+    "battery": {
+     "material": "metal",
+     "desc_ko": "배터리팩(내부) — GHz 에서 파우치 포일은 사실상 금속",
+     "gamma_po_5g": 0.9998026802895116,
+     "color_rgb": [
+      0.3,
+      0.5,
+      0.85
+     ],
+     "n_faces": 24,
+     "n_parts": 2,
+     "area_m2": 0.0590751382744262,
+     "bbox_mm": [
+      103.59395359553072,
+      109.40985808635989,
+      42.24001246156327
+     ],
+     "mean_z_mm": -0.7680002265738768
+    },
+    "body": {
+     "material": "plastic",
+     "desc_ko": "동체 셸",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 7064,
+     "n_parts": 1,
+     "area_m2": 0.10372430988945973,
+     "bbox_mm": [
+      274.01809818301683,
+      274.01809818301683,
+      77.62727074635329
+     ],
+     "mean_z_mm": 0.01968776261871179
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "desc_ko": "짐벌 카메라(금속 하우징+유리렌즈)",
+     "gamma_po_5g": 0.85,
+     "color_rgb": [
+      0.9,
+      0.5,
+      0.1
+     ],
+     "n_faces": 494,
+     "n_parts": 7,
+     "area_m2": 0.03494639650727452,
+     "bbox_mm": [
+      181.57797872435353,
+      146.68808313422244,
+      64.9862707671991
+     ],
+     "mean_z_mm": -25.90221376183164
+    },
+    "canopy": {
+     "material": "plastic",
+     "desc_ko": "상단 캐노피/배터리",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 2336,
+     "n_parts": 2,
+     "area_m2": 0.035215874925334484,
+     "bbox_mm": [
+      164.69776256130794,
+      144.87650474821746,
+      40.60894347434192
+     ],
+     "mean_z_mm": 12.62466126585124
+    },
+    "gear": {
+     "material": "plastic",
+     "desc_ko": "착륙장치",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 3704,
+     "n_parts": 2,
+     "area_m2": 0.045737376992815215,
+     "bbox_mm": [
+      170.17459758778375,
+      179.26081442479696,
+      115.44295610067068
+     ],
+     "mean_z_mm": -125.91581991997319
+    },
+    "motor": {
+     "material": "metal",
+     "desc_ko": "모터",
+     "gamma_po_5g": 0.9998026802895116,
+     "color_rgb": [
+      0.3,
+      0.5,
+      0.85
+     ],
+     "n_faces": 2016,
+     "n_parts": 4,
+     "area_m2": 0.012692631329424095,
+     "bbox_mm": [
+      289.5,
+      289.5,
+      15.748467021829489
+     ],
+     "mean_z_mm": 12.782505406994964
+    },
+    "pcb": {
+     "material": "pcb",
+     "desc_ko": "ESC/메인보드(내부) — FR-4 + 구리 그라운드플레인",
+     "gamma_po_5g": 0.8,
+     "color_rgb": [
+      0.1,
+      0.6,
+      0.25
+     ],
+     "n_faces": 12,
+     "n_parts": 1,
+     "area_m2": 0.01322023858285084,
+     "bbox_mm": [
+      67.8719006315546,
+      86.8842990685799,
+      4.608001359443263
+     ],
+     "mean_z_mm": 19.968005890920814
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "desc_ko": "프로펠러",
+     "gamma_po_5g": 0.25,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 12752,
+     "n_parts": 4,
+     "area_m2": 0.03936061530564349,
+     "bbox_mm": [
+      440.2778666012047,
+      467.50404236979637,
+      13.77714704722166
+     ],
+     "mean_z_mm": 35.41240306901341
+    }
+   },
+   "report1": {
+    "present": true,
+    "n_tris": 28402,
+    "err_pct": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "note": null
+   },
+   "figure": "outputs/figures/mesh_gallery_phantom4.png"
+  },
+  "typhoonh480": {
+   "name": "Yuneec Typhoon H (H480)",
+   "label": "Typhoon H (H480)",
+   "release": "discontinued",
+   "confidence": "high",
+   "num_rotors": 6,
+   "coaxial": false,
+   "prop_dia_mm": 230.2,
+   "prop_blades": 2,
+   "weight_g": 1950.0,
+   "body_style": "shell",
+   "arm_shape": "folding",
+   "n_tris": 34732,
+   "n_groups": 9,
+   "n_parts": 29,
+   "mesh_ok": true,
+   "surface_area_m2": 0.45335307230705135,
+   "lwh_full_mm": [
+    634.005399065091,
+    704.2240872453801,
+    318.5249219861828
+   ],
+   "lwh_frame_mm": [
+    452.1685242652893,
+    517.0000195503235,
+    310.0
+   ],
+   "official_mm": [
+    null,
+    null,
+    310.0
+   ],
+   "lwh_compare_mm": [
+    452.1685242652893,
+    517.0000195503235,
+    310.0
+   ],
+   "err_pct": [
+    null,
+    null,
+    0.0
+   ],
+   "official_includes_props": false,
+   "diagonal_spec_mm": 480.0,
+   "diagonal_mesh_mm": 480.0,
+   "span_max_m": 0.7042240872453801,
+   "r_encl_m": 0.38896426745451007,
+   "kr": {
+    "LTE": 15.02429862008361,
+    "5G": 28.53230882815661,
+    "WiFi": 42.47237971277026
+   },
+   "kr_crosscheck": {
+    "r_encl_m": 0.38896426745451007,
+    "delta_pct": 0.0,
+    "source": "outputs/report02_derived.json",
+    "source_mtime": "2026-07-31 02:25:10"
+   },
+   "groups": {
+    "battery": {
+     "material": "metal",
+     "desc_ko": "배터리팩(내부) — GHz 에서 파우치 포일은 사실상 금속",
+     "gamma_po_5g": 0.9998026802895116,
+     "color_rgb": [
+      0.3,
+      0.5,
+      0.85
+     ],
+     "n_faces": 12,
+     "n_parts": 1,
+     "area_m2": 0.043876925304479175,
+     "bbox_mm": [
+      110.00000000000001,
+      95.0,
+      56.041281230437
+     ],
+     "mean_z_mm": -102.60649127100011
+    },
+    "body": {
+     "material": "plastic",
+     "desc_ko": "동체 셸",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 10708,
+     "n_parts": 3,
+     "area_m2": 0.16786210683562913,
+     "bbox_mm": [
+      452.1685242652893,
+      517.0000195503235,
+      161.94106866212783
+     ],
+     "mean_z_mm": -36.98437471915789
+    },
+    "camera": {
+     "material": "camera_assembly",
+     "desc_ko": "짐벌 카메라(금속 하우징+유리렌즈)",
+     "gamma_po_5g": 0.85,
+     "color_rgb": [
+      0.9,
+      0.5,
+      0.1
+     ],
+     "n_faces": 1340,
+     "n_parts": 3,
+     "area_m2": 0.06908394583603211,
+     "bbox_mm": [
+      133.50000232458115,
+      80.48000186681747,
+      172.98924757146565
+     ],
+     "mean_z_mm": -188.52587809663498
+    },
+    "canopy": {
+     "material": "plastic",
+     "desc_ko": "상단 캐노피/배터리",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 1344,
+     "n_parts": 1,
+     "area_m2": 0.019186458412967997,
+     "bbox_mm": [
+      122.80742251219444,
+      97.61360578449688,
+      13.687658385373352
+     ],
+     "mean_z_mm": -15.487772267320775
+    },
+    "gear": {
+     "material": "plastic",
+     "desc_ko": "착륙장치",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 344,
+     "n_parts": 6,
+     "area_m2": 0.031680687824272476,
+     "bbox_mm": [
+      275.0000059604645,
+      312.84359097480774,
+      24.963856089680075
+     ],
+     "mean_z_mm": -258.49295973079563
+    },
+    "gear_cf": {
+     "material": "carbon",
+     "desc_ko": "카본 튜브 착륙장치 — 'gear'(플라스틱)와 재질이 다르다",
+     "gamma_po_5g": 0.9,
+     "color_rgb": [
+      0.09,
+      0.09,
+      0.1
+     ],
+     "n_faces": 764,
+     "n_parts": 2,
+     "area_m2": 0.03252222655675616,
+     "bbox_mm": [
+      275.0000059604645,
+      298.52017760276794,
+      179.50482391036792
+     ],
+     "mean_z_mm": -203.6061677562246
+    },
+    "motor": {
+     "material": "metal",
+     "desc_ko": "모터",
+     "gamma_po_5g": 0.9998026802895116,
+     "color_rgb": [
+      0.3,
+      0.5,
+      0.85
+     ],
+     "n_faces": 1056,
+     "n_parts": 6,
+     "area_m2": 0.015235491964811993,
+     "bbox_mm": [
+      442.69219040870667,
+      507.00002908706665,
+      18.850249384079405
+     ],
+     "mean_z_mm": 28.627368561237223
+    },
+    "pcb": {
+     "material": "pcb",
+     "desc_ko": "ESC/메인보드(내부) — FR-4 + 구리 그라운드플레인",
+     "gamma_po_5g": 0.8,
+     "color_rgb": [
+      0.1,
+      0.6,
+      0.25
+     ],
+     "n_faces": 12,
+     "n_parts": 1,
+     "area_m2": 0.019548777226732077,
+     "bbox_mm": [
+      100.0,
+      90.0,
+      4.075729544031778
+     ],
+     "mean_z_mm": -26.186562320404203
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "desc_ko": "프로펠러",
+     "gamma_po_5g": 0.25,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 19152,
+     "n_parts": 6,
+     "area_m2": 0.05435645234537019,
+     "bbox_mm": [
+      634.005399065091,
+      704.2240872453801,
+      13.818020699545741
+     ],
+     "mean_z_mm": 39.205177780951075
+    }
+   },
+   "report1": {
+    "present": true,
+    "n_tris": 34732,
+    "err_pct": [
+     null,
+     null,
+     0.0
+    ],
+    "note": null
+   },
+   "figure": "outputs/figures/mesh_gallery_typhoonh480.png"
+  },
+  "x500v2": {
+   "name": "Holybro X500 V2",
+   "label": "X500 V2",
+   "release": "released",
+   "confidence": "medium",
+   "num_rotors": 4,
+   "coaxial": false,
+   "prop_dia_mm": 254.0,
+   "prop_blades": 2,
+   "weight_g": 1650.0,
+   "body_style": "plate_stack",
+   "arm_shape": "tube",
+   "n_tris": 18816,
+   "n_groups": 10,
+   "n_parts": 48,
+   "mesh_ok": true,
+   "surface_area_m2": 0.42864851817282085,
+   "lwh_full_mm": [
+    552.4128780752831,
+    581.2300348199212,
+    334.7800001502037
+   ],
+   "lwh_frame_mm": [
+    396.6869115829468,
+    396.6869115829468,
+    334.7800001502037
+   ],
+   "official_mm": [
+    null,
+    null,
+    null
+   ],
+   "lwh_compare_mm": [
+    396.6869115829468,
+    396.6869115829468,
+    334.7800001502037
+   ],
+   "err_pct": [
+    null,
+    null,
+    null
+   ],
+   "official_includes_props": false,
+   "diagonal_spec_mm": 500.0,
+   "diagonal_mesh_mm": 500.0,
+   "span_max_m": 0.5812300348199212,
+   "r_encl_m": 0.3902375356858902,
+   "kr": {
+    "LTE": 15.07348041834213,
+    "5G": 28.625708879108764,
+    "WiFi": 42.61141236004476
+   },
+   "kr_crosscheck": {
+    "r_encl_m": 0.3902375356858902,
+    "delta_pct": 0.0,
+    "source": "outputs/report02_derived.json",
+    "source_mtime": "2026-07-31 02:25:10"
+   },
+   "groups": {
+    "accent": {
+     "material": "plastic",
+     "desc_ko": "전방 식별색",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 612,
+     "n_parts": 16,
+     "area_m2": 0.06971019561029643,
+     "bbox_mm": [
+      391.89979434013367,
+      391.89979434013367,
+      174.80000108480453
+     ],
+     "mean_z_mm": 8.963181166493683
+    },
+    "arm": {
+     "material": "carbon",
+     "desc_ko": "암",
+     "gamma_po_5g": 0.9,
+     "color_rgb": [
+      0.09,
+      0.09,
+      0.1
+     ],
+     "n_faces": 1540,
+     "n_parts": 4,
+     "area_m2": 0.04899146712763002,
+     "bbox_mm": [
+      396.6869115829468,
+      396.6869115829468,
+      16.00000075995922
+     ],
+     "mean_z_mm": 1.287370412791898
+    },
+    "battery": {
+     "material": "metal",
+     "desc_ko": "배터리팩(내부) — GHz 에서 파우치 포일은 사실상 금속",
+     "gamma_po_5g": 0.9998026802895116,
+     "color_rgb": [
+      0.3,
+      0.5,
+      0.85
+     ],
+     "n_faces": 12,
+     "n_parts": 1,
+     "area_m2": 0.022549999999999997,
+     "bbox_mm": [
+      145.0,
+      45.0,
+      24.999999999999993
+     ],
+     "mean_z_mm": -57.80000000000001
+    },
+    "deck": {
+     "material": "carbon",
+     "desc_ko": "카본 데크(상·하판 + 스탠드오프) — 셸 없는 열린 프레임",
+     "gamma_po_5g": 0.9,
+     "color_rgb": [
+      0.09,
+      0.09,
+      0.1
+     ],
+     "n_faces": 280,
+     "n_parts": 7,
+     "area_m2": 0.12179799526645593,
+     "bbox_mm": [
+      251.50000303983688,
+      143.99999380111694,
+      161.80000454187393
+     ],
+     "mean_z_mm": -13.162142739054703
+    },
+    "fc": {
+     "material": "pcb",
+     "desc_ko": "비행제어기(Pixhawk 류) — 상판 위 노출",
+     "gamma_po_5g": 0.8,
+     "color_rgb": [
+      0.1,
+      0.6,
+      0.25
+     ],
+     "n_faces": 12,
+     "n_parts": 1,
+     "area_m2": 0.011216102399999999,
+     "bbox_mm": [
+      84.96,
+      43.199999999999996,
+      15.120000000000001
+     ],
+     "mean_z_mm": 23.560000000000006
+    },
+    "gear": {
+     "material": "plastic",
+     "desc_ko": "착륙장치",
+     "gamma_po_5g": 0.28,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 368,
+     "n_parts": 8,
+     "area_m2": 0.04952067629199673,
+     "bbox_mm": [
+      228.0000001192093,
+      265.8824324607849,
+      245.27999944984913
+     ],
+     "mean_z_mm": -207.70739328683072
+    },
+    "gear_cf": {
+     "material": "carbon",
+     "desc_ko": "카본 튜브 착륙장치 — 'gear'(플라스틱)와 재질이 다르다",
+     "gamma_po_5g": 0.9,
+     "color_rgb": [
+      0.09,
+      0.09,
+      0.1
+     ],
+     "n_faces": 780,
+     "n_parts": 2,
+     "area_m2": 0.036574822462496395,
+     "bbox_mm": [
+      247.99999594688416,
+      255.13431429862976,
+      206.64762519299984
+     ],
+     "mean_z_mm": -159.30103621421716
+    },
+    "motor": {
+     "material": "metal",
+     "desc_ko": "모터",
+     "gamma_po_5g": 0.9998026802895116,
+     "color_rgb": [
+      0.3,
+      0.5,
+      0.85
+     ],
+     "n_faces": 2464,
+     "n_parts": 4,
+     "area_m2": 0.018209283443074195,
+     "bbox_mm": [
+      387.83329725265503,
+      387.83329725265503,
+      31.20000008493662
+     ],
+     "mean_z_mm": 22.514545878806672
+    },
+    "pcb": {
+     "material": "pcb",
+     "desc_ko": "ESC/메인보드(내부) — FR-4 + 구리 그라운드플레인",
+     "gamma_po_5g": 0.8,
+     "color_rgb": [
+      0.1,
+      0.6,
+      0.25
+     ],
+     "n_faces": 12,
+     "n_parts": 1,
+     "area_m2": 0.0060100000000000015,
+     "bbox_mm": [
+      55.0,
+      35.0,
+      12.0
+     ],
+     "mean_z_mm": -3.000000000000001
+    },
+    "prop": {
+     "material": "prop_plastic",
+     "desc_ko": "프로펠러",
+     "gamma_po_5g": 0.25,
+     "color_rgb": [
+      0.82,
+      0.82,
+      0.85
+     ],
+     "n_faces": 12736,
+     "n_parts": 4,
+     "area_m2": 0.04406797557087118,
+     "bbox_mm": [
+      552.4128780752831,
+      581.2300348199212,
+      14.154325937852263
+     ],
+     "mean_z_mm": 39.87323816981372
+    }
+   },
+   "report1": {
+    "present": true,
+    "n_tris": 18816,
+    "err_pct": [
+     null,
+     null,
+     null
+    ],
+    "note": null
+   },
+   "figure": "outputs/figures/mesh_gallery_x500v2.png"
+  }
+ }
+}

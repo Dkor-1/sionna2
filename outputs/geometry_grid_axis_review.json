@@ -1,0 +1,152 @@
+{
+ "meta": {
+  "reviewer": "adversarial subagent — AXIS-CONFUSION lens",
+  "target": "outputs/geometry_grid.json (benchmark/geometry_grid.py, 1033 lines)",
+  "date": "2026-07-31",
+  "lens": "세 축(기하 · 조명원 · 통제)이 정말 독립으로 유지됐는가. 기하무관한 무모호속도 바닥이 기하의존 링크버짓과 어디선가 섞였는가. 구성 A 와 B 가 '패시브 모노스태틱' 한 단어로 붕괴됐는가.",
+  "method": "저장소 함수 재호출로 독립 재유도(freespace_scene.fs_params / freespace_link.*), JSON 값 대조, 격자 재계산",
+  "verify_script": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/verify_axes.py",
+  "verdict": "ISSUES_FOUND — 핵심 결론(바닥은 기하무관, 모노가 두 기하의 최악값)은 독립 재계산으로 참임을 확인했다. 그러나 그 결론을 뒷받침한다고 제시된 증거가 항등식 타이핑이고, 구성 A/B 붕괴가 원장(ledger)과 σ 경로와 부모 보고 하이라이트 3곳에 남아 있으며, 헤드라인 23.17 dB 는 기하 축이 아니라 노드 배치 효과다.",
+  "counts": {"high": 4, "medium": 10, "low": 2, "confirmed": 9}
+ },
+
+ "confirmed": [
+  {"id": "OK1",
+   "claim": "무모호 속도 바닥은 기하와 무관하고, 발표해온 값은 두 기하의 최악값이다",
+   "independent_check": "헤드라인 장면(L=500, φ=90°, alt=60, d 격자 240점, 5G NR)에서 fs_params 로 모노(TX=RX)와 바이의 실제 β·el 을 뽑아 v_max 를 각각 계산: 모노 v_max ≤ 바이 v_max 가 240/240 = 100.0 % 성립. 모노 v_max 최소 1.0707 m/s = λ·PRF/4 정확히. 비(바이/모노) 중앙 1.0158 · 최대 2.7104.",
+   "status": "결론 참 — 다만 JSON 이 제시한 증거로는 성립하지 않는다(H1 참조)"},
+  {"id": "OK2",
+   "claim": "완화계수의 폐형 f_d = (2v/λ)cos(β/2)cos(el) 이 저장소 기하와 일치",
+   "independent_check": "|u1+u2| = 2cos(β/2), 수평속도의 이등분선 투영 = cos(el_bisector). rows_mono/rows_bis 의 fd_closed_vs_numeric_max_rel_err = 9.415e-06 / 9.359e-06 (헤딩격자 720점 양자화 잔차). 물리·부호 모두 맞다.",
+   "status": "이건 진짜 검증이다"},
+  {"id": "OK3",
+   "claim": "듀티는 기하와 무관하다",
+   "independent_check": "duty = 10log10(M·t_ref/T), M = round(T·PRF). 기하변수 0개. 값 −12.839966563652007 / 0.0 / −16.020599913279625 이 sigma_sensitivity.json 과 비트 단위 일치.",
+   "status": "참"},
+  {"id": "OK4",
+   "claim": "DNR 자체검사 75.363 dB vs 문서값 75.36 dB",
+   "independent_check": "FL.dnr_db(FL.direct_power_w(63,10,λ_lte,500), FL.n0_thermal(5, fs_lte)) = 75.363 dB 재현.",
+   "status": "참"},
+  {"id": "OK5",
+   "claim": "N1(R_eq) 아래 확산항 항등",
+   "independent_check": "max|Δspread| = 5.7e-14 dB. 그리고 JSON 이 스스로 '발견이 아니라 규약'이라고 적었다(n1.honesty).",
+   "status": "참 · 정직하게 라벨됨"},
+  {"id": "OK6",
+   "claim": "'패시브 모노스태틱' 한 단어 금지 준수",
+   "independent_check": "68 KB 전문 문자열 검색: '패시브 모노스태틱' 0회 · 'passive monostatic' 0회 · 'passive-monostatic' 0회. cfg_def 에서 A/B/C 가 transmitter·receiver·prf_control·reference_channel·interference 5필드로 각각 구분됨.",
+   "status": "용어 자체는 지켰다 — 그러나 의미 붕괴는 남아 있다(H2)"},
+  {"id": "OK7",
+   "claim": "브리핑 정정(13.7 dB 는 상반성 위반이 아니다)",
+   "independent_check": "report13_sigma_grid.json 대조: β=45° 15셀 p95 최대 20.0386 dB · rms 중앙 7.4727 dB · 상반성 rms 최대 5.7967 dB · 상반성 최악(드론, β=90) 8.2373 dB. 13.719 는 matrice4e·5G·β45 단일셀의 이등분선 근사오차 p95.",
+   "status": "정정 정확 — 브리핑을 고쳐 잡은 것이 맞다"},
+  {"id": "OK8",
+   "claim": "능동 천장을 두 단으로 분리하고 475배를 셀 값으로 인용하지 않음",
+   "independent_check": "cells[A-nr].v_max_ms = 10.7068735 (=규격 500 Hz 단), tier2 509.41 m/s 는 별도 필드로만. A-wifi/A-lte 는 prf/v_max 를 null 로 두고 '아직 못박지 않았다'로 표기 — 날조하지 않았다.",
+   "status": "참 · 보수적"},
+  {"id": "OK9",
+   "claim": "성립하지 않는 칸(B at L→0 · 패시브×PRF설계 · β→180)을 채우지 않음",
+   "independent_check": "void_cells 3건 논거 타당. B at L→0 은 '남의 송신 안테나 자리를 차지할 수 없다'로 물리·제도 양쪽에서 배제.",
+   "status": "참"}
+ ],
+
+ "findings": [
+  {"id": "H1", "severity": "high", "axis": "기하 ↔ 증거",
+   "issue": "P1 '바닥 동일성' 의 증거가 항등식을 두 번 타이핑한 것이다. floor_identity 는 v_mono = λ·PRF/(4·cos(0)·cos(0)) 와 v_bi0 = λ·PRF/(4·cos(0/2)·cos(0)) 를 비교한다 — cos(0)=cos(0/2)=1 이므로 같은 식이고, abs_diff_ms=0 은 산술 항등이지 증거가 아니다. floor_identity 계산에는 fs_params 가 한 번도 등장하지 않는다(fs_params 는 rows_mono/rows_bi 라는 다른 양을 만드는 데만 쓰인다). 부모 보고 하이라이트 1번은 'verified not asserted ... (fs_params called with TX=RX)' 로 그 호출을 이 항등성에 귀속시켰다 — 실제로는 그렇지 않다.",
+   "why_it_matters": "이 문장이 재프레임 전체의 주춧돌이다(‘우리 발표값이 두 기하의 최악값’). 주춧돌의 증거가 공허하면 적대적 심사에서 첫 타깃이 된다.",
+   "evidence": "benchmark/geometry_grid.py:151-156. 세 밴드 모두 v_mono=v_bi0 (wifi 14.385435 / lte 40.666367 / nr 1.070687).",
+   "true_but_unproven": "결론은 참이다 — 내가 대신 증명했다: 같은 장면위치에서 모노 v_max ≤ 바이 v_max 가 240/240 (100.0%), 모노 최소 = 1.0707 m/s = λ·PRF/4 정확히, 비 중앙 1.0158 / 최대 2.7104.",
+   "fix": "floor_identity 를 폐기하고 위 장면 비교로 대체한다: `frac_mono_le_bi`, `min_v_mono_ms`, `ratio_bi_over_mono_median/max`. 세 줄이면 되고 진짜 증명이 된다."},
+
+  {"id": "H2", "severity": "high", "axis": "통제(A↔B)",
+   "issue": "구성 A 와 B 가 원장(ledger)·σ 경로·부모 하이라이트 세 곳에서 '모노' 한 단어로 붕괴한다. interference_ledger.reference_channel.monostatic = '송신 심볼을 정확히 안다 → 기준채널 불필요' 이고 bias_direction 은 '이 격자는 **모노**의 이점을 과소평가한다' 인데, 구성 B 는 기하가 모노이면서 기준채널도 DPI 도 **둘 다** 낸다 — 그것도 격자 전체에서 DPI 최악이다(같은 JSON 의 config_B_cositing_feasibility 가 그렇게 말한다). 부모 보고 하이라이트 11번은 아예 'monostatic pays no reference channel and no DPI' 라고 썼다.",
+   "why_it_matters": "A 와 B 의 차이가 헤드라인 법칙의 전부라고 스스로 선언해 놓고, 원장에서 그 둘을 '모노' 로 합쳤다. 금칙어(‘패시브 모노스태틱’)는 0회지만 의미는 정확히 그 붕괴다.",
+   "evidence": "interference_ledger.reference_channel.{monostatic,bias_direction} · ledger_rule · 부모 하이라이트 #11 vs 하이라이트 #6(‘CONFIG B IS DPI-BLOCKED’).",
+   "fix": "원장에서 '모노' 라는 맨 단어를 금지한다. 세 열로 쓴다 — A: SI만 · B: DPI(최악)+기준채널 · C: DPI+기준채널. bias_direction 도 'A 의 이점을 과소평가' 로 좁힌다(B 에는 반대로 과대평가다 — M4 참조)."},
+
+  {"id": "H3", "severity": "high", "axis": "기하 ↔ σ 사슬",
+   "issue": "구성 B 가 Δσ=0 을 **주장으로** 물려받는다. sigma_transfer.monostatic_arm 은 'β=0 이면 이등분선 = 시선 = 후방산란' 이라 Δσ≡0 이라고 하고 cells[B-*].sigma_path = '직접계산(모노 후방산란, Δσ=0)' 으로 적힌다. 그런데 B 의 β 는 0 이 아니다 — L=10 m 에서 β 중앙 0.963° · **최대 5.024°** 다. 그리고 측정된 Δσ 격자는 β∈{0,15,30,...} 이라 0 과 15 사이에 측정점이 하나도 없고, 그 구간에서 rms 중앙이 0.000 → 6.394 dB 로 튄다.",
+   "why_it_matters": "‘모노 팔은 새 RCS 계산이 0’ 이 재프레임의 세 번째 헤드라인이다. 구성 A(β≡0)는 항등이 맞지만, 구성 B 는 미측정 구간에서의 외삽이다. B 는 이번 재프레임이 새로 추가한 칸이라 하필 가장 검증이 얇은 자리가 새 칸이다.",
+   "evidence": "P2.relief_by_configuration_baseline.B_L10.beta_deg_max = 5.0243 · sigma_transfer.bisector_approximation_error_by_beta['0'|'15'] = 0.0 | 6.3938(rms 중앙).",
+   "side_note": "같은 표가 45° 창의 근거도 흔든다 — β=15 의 rms 중앙 6.394 dB 가 β=45 의 7.473 dB 와 거의 같고, p95 최대는 β=30 에서 24.95 로 β=45 의 20.04 보다 크다(단조가 아니다).",
+   "fix": "β∈{1,2,5}° 에서 Δσ 를 실제로 재거나, 재기 전까지 B 의 σ 경로를 '미측정 — 상한은 β=15° 값' 으로 표기한다. Δσ=0 은 구성 A 에만 쓴다."},
+
+  {"id": "H4", "severity": "high", "axis": "조명원",
+   "issue": "WiFi 셀의 반복률 1000 Hz 는 저장소가 스스로 '1급 감도축' 이라 부르는 미스윕 트래픽 파라미터다. freespace_scene.prf_hz 는 wifi 분기에서 PILOT_RATE_HZ 를 읽지 않고 인자 wifi_packet_rate(기본 1000, 문서상 감도축 {10,100,1000,5000})를 그대로 돌려준다. 격자는 기본값 하나만 쓴다. E2 의 필수 정정 X4 는 규격이 보장하는 상시 신호가 비콘 9.77 Hz 이고 그때 WiFi v_max = 0.140 m/s 로 5G 보다 나쁘다고 이미 판정했다.",
+   "why_it_matters": "조명원 축은 기하와 무관하다는 것이 P3 의 결론인데(맞다), 그 축의 값 자체가 100배(0.14 ↔ 14.39 m/s, 감도축 끝까지면 500배) 흔들리고 **조명원 순위를 뒤집는다**. 2×3 설계공간 지도의 열 하나가 미선언 가정 위에 서 있다.",
+   "evidence": "src/freespace_scene.py:233-262 · outputs/vmax_hardening.json verdict.corrections_required[X4] · cells[B-wifi|C-wifi].v_max_ms = 14.3854 (대안 수치 없음, ref_sig 문자열에만 '9.77 Hz' 언급).",
+   "numbers": {"9.77Hz": 0.1405, "74.4Hz(교차)": 1.0703, "1000Hz": 14.3854, "5000Hz": 71.9272},
+   "fix": "WiFi 가 들어가는 모든 셀에 v_max 를 두 값(비콘 보장 / 혼잡 트래픽)으로 싣는다. 듀티 항도 PRF 를 통해 같이 움직이므로 함께 두 값으로."},
+
+  {"id": "M1", "severity": "medium", "axis": "정규화 ↔ 노드 배치",
+   "issue": "N2 와 N3 는 부호만 다른 같은 측정이다. MONO_NODE = TX_NODE 이므로 R_mono = R1 이고 40log10(R1/√(R1R2)) = 20log10(R1/R2) = −[20log10(R2/R1)]. 전 φ 에서 max|Δ2+Δ3| = 7.1e-15 dB, absmax_over_phi 가 15자리까지 같다(23.168839470105702 vs 23.168839470105706).",
+   "why_it_matters": "'세 가지 거리 정규화 규약' 은 사실 두 개다. 그리고 라벨이 축을 섞는다 — N2 는 'R₂ 고정' 이라 이름 붙었지만 계산은 장면위치를 고정하고 모노 노드를 수신기 자리에 둔 것이다. 즉 N2↔N3 의 차이는 정규화 축이 아니라 **노드 배치 축**이다.",
+   "fix": "N1(정규화) 과 '모노 노드 배치 ∈ {TX 자리, RX 자리}'(별도 축) 로 다시 자른다. φ 스윕 결과는 한 번만 싣는다."},
+
+  {"id": "M2", "severity": "medium", "axis": "기하 ↔ 배치",
+   "issue": "헤드라인 ⑷ 의 23.17 dB 는 기하 축의 크기가 아니라 노드 배치 효과이고, 그것도 마스트 바로 위 격자점 하나가 만든다. φ=180° 의 absmax 는 d=253.7 m 에서 나오고 그 점의 R1 = 35.2 m · R2 = 506.9 m — 표적이 사실상 조명원 마스트 위에 있다. 모노 노드를 RX 자리로 옮기면 같은 크기로 **부호가 뒤집힌다**(−23.17 dB). 중앙값으로 보면 φ=180 에서 3.105 dB 이고 |Δ|>6 dB 인 격자점은 37.9 % 다.",
+   "why_it_matters": "함정 T1b 의 문구 'φ=90° 만 쓰면 기하 축의 크기를 200배 넘게 과소평가한다'(=23.169/0.118) 는 absmax 끼리의 비다. 전형값으로는 몇 dB 이고, 부호는 기하가 아니라 '어느 사이트에 센서를 두나' 가 정한다.",
+   "fix": "T1b 와 헤드라인 ⑷ 를 중앙값 기준으로 다시 쓴다(φ=180 에서 |Δ| 중앙 3.10 dB). 그리고 이 양은 '기하 축' 이 아니라 '모노 노드 배치 축' 으로 이름을 바꾼다. 최대값을 인용하려면 그 점의 R1/R2 를 같이 적는다."},
+
+  {"id": "M3", "severity": "medium", "axis": "정규화(자기모순)",
+   "issue": "헤드라인이 이 파일 자신의 함정 T1 을 어긴다. ⑵ 는 'N1 아래서 기하 기여가 정확히 0' 이라 하고 ⑷ 는 '기하 축의 링크버짓 크기는 0.118 → 23.2 dB' 라 하는데 ⑷ 가 N3 규약이라는 말이 없다. T1 의 fix 는 '\"같은 거리에서\" 라는 표현만 쓰는 문장은 금지' 라고 스스로 적어 놨다.",
+   "why_it_matters": "⑵ 와 ⑷ 를 이어 읽으면 '0 이면서 23 dB' 로 읽힌다. 규약 이름 한 단어가 빠져서 생긴 모순이다.",
+   "fix": "⑷ 를 '장면위치 고정(N3) · 모노 노드를 조명원 자리에 둔 뷰에서' 로 시작한다."},
+
+  {"id": "M4", "severity": "medium", "axis": "통제(원장 대칭성)",
+   "issue": "짧은 베이스라인의 강한 직접파가 벌점(DPI)으로만 계산되고 이점(기준채널 품질)으로는 계산되지 않는다. 정본 η_ref = 0 dB(full_waveform_capture, 이상적 기준)이라 C 는 500 m 에서도 이미 완벽한 기준을 공짜로 받는다. 따라서 B 는 병설의 대가만 치르고 대가에 해당하는 이득을 되받을 자리가 없다.",
+   "why_it_matters": "JSON 의 bias_direction 은 '정본 규약은 패시브에 유리 → 모노 이점을 과소평가' 라고 단일 방향을 선언했다. B 행에 대해서는 방향이 반대다 — 규약이 B 를 **과대 벌점** 준다. 재프레임이 새로 세운 행이 하필 규약상 불리하다.",
+   "fix": "bias_direction 을 행별로 쪼갠다(A: 과소평가 · B: 과대벌점 · C: 유리). 또는 η_ref 를 기준 SNR 의 함수로 두는 감도 뷰를 하나 낸다."},
+
+  {"id": "M5", "severity": "medium", "axis": "간섭 원장(단위·부호)",
+   "issue": "A 행과 B/C 행의 간섭 열이 서로 비교 불가한 양인데 같은 원장에 나란히 놓인다. B/C 는 실제 장면에서 계산한 DNR+10 dB(양수, 예 +119.34 dB)이고, A 는 2019 TMTT 전이중 논문에서 가져온 스칼라 하나다. 게다가 부호가 뒤집혀 실린다 — required_total_suppression_db = **−100.0**. 원본(monostatic_prior.json lanes[1].interference_number_dB)이 lanes[0] 의 'echo below LOS = −47' 과 같은 음수 규약을 쓰는데, 필드 이름과 인용문('more than 100 dB of total SI suppression is required')은 양수 요구량이다.",
+   "why_it_matters": "ledger_rule 이 '셀마다 별도 열로 남긴다' 이므로 이 두 값은 반드시 한 표에서 만난다. A 열 −100, B 열 +119 는 정반대로 읽힌다.",
+   "fix": "부호를 요구량(양수) 규약으로 통일하고, A 의 값에 '문헌 인용 스칼라 — 이 장면에서 계산한 값이 아님' 을 명시한다. 가능하면 A 의 SI 도 같은 장면·같은 EIRP 에서 격리도 가정으로 계산해 B/C 와 통약가능하게 만든다."},
+
+  {"id": "M6", "severity": "medium", "axis": "기하(모형 유효범위)",
+   "issue": "이 단계의 '가장 날카로운 새 수치'(구성 B, LTE, L=10 m, 요구깊이 119.3 dB)가 모형 유효범위 밖에서 나온다. P_dir = EIRP·G_rx·λ²/((4π)²L²) 는 원거리장·주빔 식이다. LTE λ=0.1627 m 에서 개구 1.5 m 매크로 패널의 원거리장 거리는 2D²/λ = 27.7 m(2.6 m 패널이면 83.1 m)이라 L=5·10·30 m 행은 전부 그 안쪽이다. 그리고 63 dBm EIRP 는 보어사이트 값인데 마스트 옆 10 m 수신기는 측/후엽에 있다(통상 20~30 dB 아래).",
+   "why_it_matters": "두 오차가 같은 방향으로 P_dir 을 부풀린다 → 구성 B 가 실제보다 나쁘게 나온다. 결론('B 는 병설에서 DPI 로 막힌다')은 살아남을 가능성이 크지만, 0.1 dB 단위로 인용하면서 편향 방향을 안 적었다.",
+   "fix": "L < 원거리장 거리인 행에 유효범위 플래그를 달고, 'EIRP 는 보어사이트 · 실제 병설 수신기는 측후엽' 을 편향 방향과 함께 적는다. 사이드로브 −20 dB 가정 뷰를 하나 병기."},
+
+  {"id": "M7", "severity": "medium", "axis": "기하(비대칭 서술)",
+   "issue": "구성 C 자신도 헤드라인 베이스라인에서 같은 벽에 붙어 있다는 사실이 빠졌다. LTE·L=500 m 요구깊이는 85.36 dB 로 우리가 스윕하는 최선값 90 dB 의 4.64 dB 안쪽이고, 달성깊이가 60 dB 면 LTE 는 L ≥ 9.27 km 를 요구한다(JSON 의 min_baseline 표에 이미 있다).",
+   "why_it_matters": "'B 는 막히고 C 는 된다' 로 읽히지만 정직한 문장은 'B 가 C 보다 34 dB 더 나쁘다 · C 도 90 dB 가정에 4.6 dB 여유뿐' 이다. DPI 를 기하 축의 판별자로 쓰는 순간 C 의 여유도 같이 밝혀야 한다.",
+   "fix": "config_B_cositing_feasibility 옆에 config_C_at_headline_baseline 을 같은 형식으로 넣는다."},
+
+  {"id": "M8", "severity": "medium", "axis": "기하 ↔ 방법 유효성 + 격자 인공물",
+   "issue": "'장면의 34.2 % 를 β 창 밖으로 잃는다' 는 (a) 기하의 비용이 아니라 우리 σ 근사의 유효성 비율이고, (b) 격자 선택이 12배를 좌우한다. 같은 계산을 선형 d 격자로 하면 L=500 m 에서 2.92 %(로그격자 34.17 %), L=2000 m 에서 11.67 %(로그 58.33 %) 다.",
+   "why_it_matters": "JSON 안에는 grid_caveat 가 있지만 헤드라인·부모 하이라이트는 34.2 % / 58.3 % 를 'a geometry cost we had not counted' 로 인용한다. 물리적 비용으로 읽히면 바이스태틱 행이 부당하게 깎인다.",
+   "fix": "이름을 'σ 근사 유효 장면 비율' 로 바꾸고 선형·로그 두 격자를 병기한다. 물리적 손실은 β>90(전방산란)만 따로 센다."},
+
+  {"id": "M9", "severity": "medium", "axis": "기하(유효범위 밖 크레딧)",
+   "issue": "완화계수 최대값을 σ 엔진이 죽는 영역에서 인용한다. cells[C-*].scene_relief.relief_max = 2.4839 는 β 최대 132.5° 에서 나오는데 그 영역은 rcs_sbr 가 σ≡0 을 내는 무효범위다(BETA_VALID_MAX_DEG=90). β≤90 으로 게이트하면 relief_max = 1.4082, β≤45 로 게이트하면 1.0790. 중앙값도 게이트하면 1.0155 → 1.0063 이다.",
+   "why_it_matters": "도플러 완화(바이스태틱의 이점)를 표적이 존재하지 않는 자리에서 받아 온다. E2 의 X1 이 이미 'β≤90 장면격자에서 중앙 1.011 최대 1.451' 이라고 게이트된 값을 적어 놨다 — 격자 JSON 만 게이트를 안 했다.",
+   "fix": "relief 통계를 β ≤ BETA_VALID_MAX_DEG 로 게이트하고, 게이트 전/후를 둘 다 적는다."},
+
+  {"id": "M10", "severity": "medium", "axis": "기하 ↔ 수신기 수",
+   "issue": "탈출구 (e) 멀티스태틱을 '기하 축의 확장' 으로 재배치하겠다는 계획이 축을 병합한다. X5 의 완화는 β 가 커져서가 아니라 **독립 수신기 N 대**가 접힘 격자를 어긋나게 해서 온다(모호 부피 1.01e-01 → 1.55e-04, N=1→4). 같은 파일의 held_constant 는 N_rx = 1 을 고정으로 선언한다.",
+   "why_it_matters": "기하 축에 넣으면 '모노↔바이 로 움직이면 모호가 풀린다' 로 읽힌다. 실제로 그 축이 주는 완화는 1/cos(β/2) 뿐이고 게이트하면 중앙 1.006 · 최대 1.408 이다.",
+   "fix": "'수신기 수 N_rx' 를 네 번째 축으로 명시하고 멀티스태틱을 거기에 둔다. held_constant 의 N_rx=1 과 모순되지 않게."},
+
+  {"id": "M11", "severity": "medium", "axis": "통제 ↔ 기하(셀 간 수입)",
+   "issue": "능동 tier-2 천장이 **다른 셀의 거리**에 걸려 있다. r90_reference_m = 6301.06 m 는 report13_freespace 의 R90_C50_m 인데 이것은 (1) 패시브 바이스태틱 풀이의 **장면 지상거리 d** 축이고(같은 항목의 R_eq_at_R90_m = 6306.48 m 가 따로 있다), (2) 그 셀의 limit 필드가 'dpi_residual' 이며, (3) blind_heading_frac = 1.0 이다. 이 값을 가상의 능동 모노 레이더의 R_unamb 로 써서 509.41 m/s 를 낸다.",
+   "why_it_matters": "능동 모노에는 DPI 가 없다(이 파일이 스스로 그렇게 적었다). DPI 로 제한되고 전헤딩 블라인드인 패시브 거리를 능동 셀의 거리모호 기준으로 수입하면 통제 축과 기하 축이 한 숫자 안에서 섞인다.",
+   "fix": "tier-2 를 R_unamb 스윕(예 1·3·10 km)으로 내고 특정 셀의 R90 에 걸지 않는다. 걸어야 한다면 능동 모노 자신의 R90 이 나온 뒤에."},
+
+  {"id": "L1", "severity": "low", "axis": "기하(앙각)",
+   "issue": "'앙각을 맞추면 두 기하의 차이는 정확히 1/cos(β/2) 뿐' 은 정본 장면이 만족하지 않는 조건부다. 같은 장면위치에서 el_mono 중앙 1.396°/최대 7.406°, el_bi 중앙 1.863°/최대 24.664° 로 다르다. cells[*].scene_relief.v_max_with_median_relief_ms 는 β 완화만 곱하고 앙각 항을 조용히 버린다.",
+   "why_it_matters": "이 장면에서는 무시할 만하다(실제 비/β만의 비 = 1.0002 중앙). 그러나 '정확히' 라는 단어가 조건 없이 셀 산술로 흘러갔다.",
+   "fix": "조건절을 셀 note 에 남기거나 relief 를 (β,el) 둘 다에서 계산한다."},
+
+  {"id": "L2", "severity": "low", "axis": "서술 강도",
+   "issue": "부모 보고의 problems 항목 'φ=90 restriction is a live defect in every existing detection result' 는 과하다. φ=90° 는 freespace_scene.PHI_HEADLINE_DEG 로 선언되고 '전 캡션에 명시' 라고 문서화된 장면 규약이지 숨은 버그가 아니다. 결함이 되는 것은 **두 기하를 비교할 때뿐**이고, 기존 결과는 바이스태틱 단독 결과다.",
+   "fix": "'기존 결과의 결함' → '기하 비교를 하려면 φ 를 쓸어야 한다(기존 바이스태틱 단독 결과는 선언된 규약 안에서 유효)' 로 완화."}
+ ],
+
+ "axis_scorecard": {
+  "floor_vs_link_budget_conflation": "발견되지 않음 — 두 양은 서로 다른 절에 있고 섞이지 않았다. 다만 헤드라인 ⑵/⑷ 가 규약 이름 없이 이어져 '0 이면서 23 dB' 로 읽힌다(M3), 그리고 23 dB 자체가 기하가 아니라 노드 배치다(M2).",
+  "illuminator_axis_geometry_free": "참 — 듀티·λ·PRF 정의에 기하변수 0. 단 WiFi PRF 값 자체가 미스윕(H4).",
+  "control_axis_geometry_free": "참 — PRF 통제권은 기하와 무관하게 정의됨. 단 tier-2 가 다른 셀의 거리를 수입(M11).",
+  "A_B_never_collapsed": "용어는 지켰으나(0회) 의미는 세 곳에서 붕괴(H2·H3·M4).",
+  "numbers_moving_between_geometries_for_the_right_reason": "σ Δ(H3) · 간섭(M5) · 완화(M9) · 장면손실(M8) 넷이 잘못된 이유로 움직인다."
+ }
+}

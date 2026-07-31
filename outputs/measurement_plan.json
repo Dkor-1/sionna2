@@ -1,0 +1,343 @@
+{
+  "note": "설계값 계산만 — 측정 아님. D 정의 두 가지를 **모두** 싣는다: bbox(프로펠러 포함) = 우리 관례(radar_scene.target_extent), diagonal(모터-모터) = 앵커 문헌 관례(Das Table I / Yuan §II-A).",
+  "airframes": {
+    "matrice4e": {
+      "name": "DJI Matrice 4E",
+      "D_bbox_m": 0.5992560859063226,
+      "D_diagonal_m": 0.4388,
+      "prop_dia_mm": 274.0,
+      "num_rotors": 4,
+      "comparability": {
+        "drone": "matrice4e",
+        "name": "DJI Matrice 4E",
+        "anchor": "das_phantom3_mono",
+        "anchor_platform": "DJI Phantom 3",
+        "D_m": 0.4388,
+        "D_ref_m": 0.35,
+        "D_def": "motor-to-motor diagonal",
+        "size_ratio": 1.2537142857142858,
+        "size_corr_L2_db": 1.9639714910479582,
+        "size_corr_L4_db": 3.9279429820959164,
+        "size_law_spread_db": 1.9639714910479582,
+        "num_rotors": 4,
+        "anchor_num_rotors": 4,
+        "verdict": "scaled",
+        "why": "같은 4로터 위상, 대각만 1.25배 — 크기법칙으로 전이",
+        "measured_analogue": "none — 측정 대응물 없음"
+      },
+      "by_band": {
+        "LTE 1.843 GHz": {
+          "lambda_mm": 162.66546825827456,
+          "D_over_lambda_bbox": 3.683978488629466,
+          "D_over_lambda_diag": 2.6975608572514527,
+          "farfield_m_bbox": 4.415293059318368,
+          "farfield_m_diag": 2.367379408323875,
+          "az_step_nyquist_deg": 7.776345558195403,
+          "az_step_recommended_deg": 3.8881727790977014
+        },
+        "5G 3.5 GHz": {
+          "lambda_mm": 85.654988,
+          "D_over_lambda_bbox": 6.9961609930565,
+          "D_over_lambda_diag": 5.122877374053219,
+          "farfield_m_bbox": 8.38498410613906,
+          "farfield_m_diag": 4.4958371834691055,
+          "az_step_nyquist_deg": 4.094801389644037,
+          "az_step_recommended_deg": 2.0474006948220187
+        },
+        "WiFi 5.21 GHz": {
+          "lambda_mm": 57.54173857965451,
+          "D_over_lambda_bbox": 10.41428536394982,
+          "D_over_lambda_diag": 7.625768891090649,
+          "farfield_m_bbox": 12.481647769424143,
+          "farfield_m_diag": 6.692374778821153,
+          "az_step_nyquist_deg": 2.7508262694345738,
+          "az_step_recommended_deg": 1.3754131347172869
+        }
+      }
+    },
+    "mini5pro": {
+      "name": "DJI Mini 5 Pro",
+      "D_bbox_m": 0.37598334435940023,
+      "D_diagonal_m": 0.275,
+      "prop_dia_mm": 152.4,
+      "num_rotors": 4,
+      "comparability": {
+        "drone": "mini5pro",
+        "name": "DJI Mini 5 Pro",
+        "anchor": "das_phantom3_mono",
+        "anchor_platform": "DJI Phantom 3",
+        "D_m": 0.275,
+        "D_ref_m": 0.35,
+        "D_def": "motor-to-motor diagonal",
+        "size_ratio": 0.7857142857142858,
+        "size_corr_L2_db": -2.0947070104002585,
+        "size_corr_L4_db": -4.189414020800517,
+        "size_law_spread_db": 2.0947070104002585,
+        "num_rotors": 4,
+        "anchor_num_rotors": 4,
+        "verdict": "scaled",
+        "why": "같은 4로터 위상, 대각만 0.79배 — 크기법칙으로 전이",
+        "measured_analogue": "none — 측정 대응물 없음"
+      },
+      "by_band": {
+        "LTE 1.843 GHz": {
+          "lambda_mm": 162.66546825827456,
+          "D_over_lambda_bbox": 2.3113900472251863,
+          "D_over_lambda_diag": 1.6905862254880344,
+          "farfield_m_bbox": 1.738088320149515,
+          "farfield_m_diag": 0.929822424018419,
+          "az_step_nyquist_deg": 12.394225626666875,
+          "az_step_recommended_deg": 6.197112813333438
+        },
+        "5G 3.5 GHz": {
+          "lambda_mm": 85.654988,
+          "D_over_lambda_bbox": 4.389509042478649,
+          "D_over_lambda_diag": 3.2105544162822137,
+          "farfield_m_bbox": 3.3007645797739023,
+          "farfield_m_diag": 1.7658049289552176,
+          "az_step_nyquist_deg": 6.526445094270587,
+          "az_step_recommended_deg": 3.2632225471352934
+        },
+        "WiFi 5.21 GHz": {
+          "lambda_mm": 57.54173857965451,
+          "D_over_lambda_bbox": 6.534097746089647,
+          "D_over_lambda_diag": 4.7791395739515234,
+          "farfield_m_bbox": 4.913423845892009,
+          "farfield_m_diag": 2.628526765673338,
+          "az_step_nyquist_deg": 4.384368105556057,
+          "az_step_recommended_deg": 2.1921840527780283
+        }
+      }
+    }
+  },
+  "calibration_spheres": {
+    "r=0.100m": {
+      "LTE 1.843 GHz": {
+        "ka": 3.8626423754569497,
+        "mie_dbsm": -14.6610684678415,
+        "go_dbsm": -15.02850127305866,
+        "mie_minus_go_db": 0.3674328052171596
+      },
+      "5G 3.5 GHz": {
+        "ka": 7.335457576830886,
+        "mie_dbsm": -14.36746304907912,
+        "go_dbsm": -15.02850127305866,
+        "mie_minus_go_db": 0.6610382239795403
+      },
+      "WiFi 5.21 GHz": {
+        "ka": 10.91935256436826,
+        "mie_dbsm": -14.592137896376368,
+        "go_dbsm": -15.02850127305866,
+        "mie_minus_go_db": 0.4363633766822925
+      }
+    },
+    "r=0.150m": {
+      "LTE 1.843 GHz": {
+        "ka": 5.793963563185424,
+        "mie_dbsm": -10.71984193761051,
+        "go_dbsm": -11.506676091945035,
+        "mie_minus_go_db": 0.7868341543345245
+      },
+      "5G 3.5 GHz": {
+        "ka": 11.003186365246329,
+        "mie_dbsm": -11.241599588704494,
+        "go_dbsm": -11.506676091945035,
+        "mie_minus_go_db": 0.26507650324054133
+      },
+      "WiFi 5.21 GHz": {
+        "ka": 16.37902884655239,
+        "mie_dbsm": -11.707183998613985,
+        "go_dbsm": -11.506676091945035,
+        "mie_minus_go_db": -0.2005079066689497
+      }
+    },
+    "r=0.178m": {
+      "LTE 1.843 GHz": {
+        "ka": 6.87550342831337,
+        "mie_dbsm": -9.947801906565351,
+        "go_dbsm": -10.020101226880783,
+        "mie_minus_go_db": 0.07229932031543207
+      },
+      "5G 3.5 GHz": {
+        "ka": 13.057114486758977,
+        "mie_dbsm": -9.714981483167634,
+        "go_dbsm": -10.020101226880783,
+        "mie_minus_go_db": 0.3051197437131492
+      },
+      "WiFi 5.21 GHz": {
+        "ka": 19.436447564575502,
+        "mie_dbsm": -9.892896717770148,
+        "go_dbsm": -10.020101226880783,
+        "mie_minus_go_db": 0.1272045091106353
+      }
+    },
+    "r=0.200m": {
+      "LTE 1.843 GHz": {
+        "ka": 7.725284750913899,
+        "mie_dbsm": -9.868837288377764,
+        "go_dbsm": -9.007901359779037,
+        "mie_minus_go_db": -0.8609359285987264
+      },
+      "5G 3.5 GHz": {
+        "ka": 14.670915153661772,
+        "mie_dbsm": -8.915986641340968,
+        "go_dbsm": -9.007901359779037,
+        "mie_minus_go_db": 0.09191471843806909
+      },
+      "WiFi 5.21 GHz": {
+        "ka": 21.83870512873652,
+        "mie_dbsm": -8.891640565883094,
+        "go_dbsm": -9.007901359779037,
+        "mie_minus_go_db": 0.11626079389594324
+      }
+    },
+    "r=0.250m": {
+      "LTE 1.843 GHz": {
+        "ka": 9.656605938642373,
+        "mie_dbsm": -6.467611225947078,
+        "go_dbsm": -7.06970109961791,
+        "mie_minus_go_db": 0.602089873670832
+      },
+      "5G 3.5 GHz": {
+        "ka": 18.338643942077216,
+        "mie_dbsm": -7.058602548380858,
+        "go_dbsm": -7.06970109961791,
+        "mie_minus_go_db": 0.011098551237052057
+      },
+      "WiFi 5.21 GHz": {
+        "ka": 27.29838141092065,
+        "mie_dbsm": -7.138483089600843,
+        "go_dbsm": -7.06970109961791,
+        "mie_minus_go_db": -0.06878198998293339
+      }
+    },
+    "r=0.300m": {
+      "LTE 1.843 GHz": {
+        "ka": 11.587927126370849,
+        "mie_dbsm": -5.741708986487719,
+        "go_dbsm": -5.486076178665412,
+        "mie_minus_go_db": -0.25563280782230713
+      },
+      "5G 3.5 GHz": {
+        "ka": 22.006372730492657,
+        "mie_dbsm": -5.512657227332496,
+        "go_dbsm": -5.486076178665412,
+        "mie_minus_go_db": -0.026581048667083884
+      },
+      "WiFi 5.21 GHz": {
+        "ka": 32.75805769310478,
+        "mie_dbsm": -5.437422581862283,
+        "go_dbsm": -5.486076178665412,
+        "mie_minus_go_db": 0.04865359680312853
+      }
+    },
+    "_rule": "교정표적 σ 는 πr²(광학 점근) 이 아니라 **정확 Mie** 로 쓴다 — 우리 대역에서 πr² 는 구 반경에 따라 0.0~0.9 dB 틀린다(mie_minus_go_db 참조). benchmark/mie_pec_sphere.py 가 자체검증(selfcheck)을 가진 단일 출처다."
+  },
+  "point_target_condition": {
+    "matrice4e": {
+      "B=400MHz": {
+        "range_res_m": 0.3747405725,
+        "point_like": false,
+        "margin_m": -0.22451551340632264
+      },
+      "B=200MHz": {
+        "range_res_m": 0.749481145,
+        "point_like": true,
+        "margin_m": 0.15022505909367734
+      },
+      "B=100MHz": {
+        "range_res_m": 1.49896229,
+        "point_like": true,
+        "margin_m": 0.8997062040936773
+      },
+      "B=50MHz": {
+        "range_res_m": 2.99792458,
+        "point_like": true,
+        "margin_m": 2.3986684940936773
+      }
+    },
+    "mini5pro": {
+      "B=400MHz": {
+        "range_res_m": 0.3747405725,
+        "point_like": false,
+        "margin_m": -0.001242771859400249
+      },
+      "B=200MHz": {
+        "range_res_m": 0.749481145,
+        "point_like": true,
+        "margin_m": 0.37349780064059973
+      },
+      "B=100MHz": {
+        "range_res_m": 1.49896229,
+        "point_like": true,
+        "margin_m": 1.1229789456405996
+      },
+      "B=50MHz": {
+        "range_res_m": 2.99792458,
+        "point_like": true,
+        "margin_m": 2.6219412356405996
+      }
+    },
+    "_rule": "Das §II-3c 가 쓴 조건: 서브밴드 거리분해능이 표적 최대치수보다 커야 표적이 **점표적**이 되고 그때만 peak |s|² 를 σ 로 쓸 수 있다. 넓은 대역을 통째로 쓰면 표적이 여러 거리빈으로 퍼져 peak 법이 σ 를 과소평가한다 → 서브밴드로 쪼갤 것."
+  },
+  "ground_bounce": {
+    "h=1.5m,H=5.0m,R=20.0m": 0.75,
+    "h=1.5m,H=5.0m,R=30.0m": 0.5,
+    "h=1.5m,H=5.0m,R=50.0m": 0.3,
+    "h=1.5m,H=10.0m,R=20.0m": 1.5,
+    "h=1.5m,H=10.0m,R=30.0m": 1.0,
+    "h=1.5m,H=10.0m,R=50.0m": 0.6,
+    "h=1.5m,H=20.0m,R=20.0m": 3.0,
+    "h=1.5m,H=20.0m,R=30.0m": 2.0,
+    "h=1.5m,H=20.0m,R=50.0m": 1.2,
+    "h=2.0m,H=5.0m,R=20.0m": 1.0,
+    "h=2.0m,H=5.0m,R=30.0m": 0.6666666666666666,
+    "h=2.0m,H=5.0m,R=50.0m": 0.4,
+    "h=2.0m,H=10.0m,R=20.0m": 2.0,
+    "h=2.0m,H=10.0m,R=30.0m": 1.3333333333333333,
+    "h=2.0m,H=10.0m,R=50.0m": 0.8,
+    "h=2.0m,H=20.0m,R=20.0m": 4.0,
+    "h=2.0m,H=20.0m,R=30.0m": 2.6666666666666665,
+    "h=2.0m,H=20.0m,R=50.0m": 1.6,
+    "h=3.0m,H=5.0m,R=20.0m": 1.5,
+    "h=3.0m,H=5.0m,R=30.0m": 1.0,
+    "h=3.0m,H=5.0m,R=50.0m": 0.6,
+    "h=3.0m,H=10.0m,R=20.0m": 3.0,
+    "h=3.0m,H=10.0m,R=30.0m": 2.0,
+    "h=3.0m,H=10.0m,R=50.0m": 1.2,
+    "h=3.0m,H=20.0m,R=20.0m": 6.0,
+    "h=3.0m,H=20.0m,R=30.0m": 4.0,
+    "h=3.0m,H=20.0m,R=50.0m": 2.4,
+    "_rule": "야외 실측은 무향실이 아니다 — 지면반사 유령이 표적 리턴과 겹치면 σ 가 오염된다. 경로차 2hH/R 이 서브밴드 거리분해능보다 커야 레인지게이팅으로 분리된다."
+  },
+  "expected_sigma_dbsm_from_anchor": {
+    "by_drone": {
+      "matrice4e": {
+        "L2": {
+          "LTE 1.843 GHz": -14.332182727603522,
+          "5G 3.5 GHz": -13.984212727603522,
+          "WiFi 5.21 GHz": -13.62511272760352
+        },
+        "L4": {
+          "LTE 1.843 GHz": -12.368211236555563,
+          "5G 3.5 GHz": -12.020241236555563,
+          "WiFi 5.21 GHz": -11.661141236555562
+        }
+      },
+      "mini5pro": {
+        "L2": {
+          "LTE 1.843 GHz": -18.39086122905174,
+          "5G 3.5 GHz": -18.04289122905174,
+          "WiFi 5.21 GHz": -17.68379122905174
+        },
+        "L4": {
+          "LTE 1.843 GHz": -20.485568239451997,
+          "5G 3.5 GHz": -20.137598239451997,
+          "WiFi 5.21 GHz": -19.778498239451995
+        }
+      }
+    },
+    "anchor": "das_phantom3_mono",
+    "note": "앵커+크기보정으로 **예상**한 레벨. 측정 전 동적범위 설계용이지 예측 주장 아님."
+  }
+}

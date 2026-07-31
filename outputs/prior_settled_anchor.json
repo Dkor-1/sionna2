@@ -1,0 +1,751 @@
+{
+ "meta": {
+  "generated": "2026-07-31",
+  "phase": "2 of 2 - SETTLEMENT from primary sources. Every item was read in the PDF named in that item.",
+  "scope": "H2 (Das), H5 (Yuan), the measurement anchors src/sigma_anchor.py depends on, X-C18 (Ezuma/Guvenc), plus the Zhang decomposition our anchor docstring borrows.",
+  "rule": "A claim needs (a) exact PDF path, (b) which version, (c) the quoted sentence or table cell. Missing any one -> UNVERIFIED.",
+  "verdict_vocabulary": {
+   "VERIFIED": "the quoted sentence or table cell is in the named PDF at the named page",
+   "VERIFIED_BY_RENDER": "the value lives in a table with NO text layer; the page was rendered at 650-750 dpi and the cell read visually. Weaker than a text extraction - flagged here, not hidden.",
+   "VERIFIED_AS_EVIDENCE": "records evidence bearing on an open question, not a settled fact",
+   "REFUTED": "the paper, or the filesystem, says something different from what we assert",
+   "PARTIAL": "part of our assertion holds, part must be re-scoped",
+   "UNVERIFIED": "no sentence in the primary source supports it, in either direction"
+  },
+  "pdfs_opened": [
+   "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf"
+  ],
+  "pdfs_sought_and_absent": [
+   "arXiv:1911.05926 (Ezuma/Guvenc, compact-range RCS)",
+   "arXiv:2402.05909 (Guvenc/NCSU survey)",
+   "arXiv:2102.11954",
+   "Das reference [7]: Z. Wang et al., China Communications 2026 - the actual source of the Phantom 3 / Mini 2 / M350 data",
+   "Das reference [8] = Yuan reference [15]: Z. Yuan et al., IEEE AWPL 24:222-226, 2025"
+  ],
+  "counts": {
+   "VERIFIED": 23,
+   "VERIFIED_BY_RENDER": 5,
+   "REFUTED": 7,
+   "PARTIAL": 4,
+   "UNVERIFIED": 3,
+   "VERIFIED_AS_EVIDENCE": 2
+  },
+  "n_items": 44
+ },
+ "settlement": {
+  "H2_Das": {
+   "verdict": "VERIFIED, with three scoping corrections and three open questions",
+   "confirmed": [
+    "IEEE WCL vol.15, pp.3731-3735, 2026, DOI 10.1109/LWC.2026.3705634 - published and peer-reviewed, not a preprint (A1).",
+    "Multiband monostatic AND bistatic, 1.8-27 GHz, seven bistatic angles 0:15:90 deg (A3, A6).",
+    "mu(f) = 0.21 f - 19.19 dBsm, DJI Phantom 3, theta_b = 0 - the exact coefficient src/sigma_anchor.py uses, read off the rendered Table III (A2).",
+    "Platform DJI Phantom 3, Table I 'Dimension' 35 cm x 20 cm, band 1.8-18.2 GHz which strictly contains our 1.843-5.21 GHz (A5).",
+    "The mean IS defined as a LINEAR azimuth average in section III-1, verbatim (A7)."
+   ],
+   "corrections": [
+    "POLARISATION: Das does not state it for the Phantom 3. Its one 'vertically polarized' sentence is scoped to the Phantom-2 setup, the only data Das measured. Cite Yuan section II-A instead (A9).",
+    "PROVENANCE: Das attributes the Phantom 3 data to its reference [7] (Wang et al., China Communications), not to our Yuan PDF (A10).",
+    "BISTATIC CONTENT: for the Phantom 3 the seven bistatic columns share one slope and one eps and differ by 0.63 dB of intercept in total (A18)."
+   ],
+   "open": [
+    "Das contradicts its own section III-1 in section III-2 (A8); the convention is NOT settled by the primary sources (C3 vs C4) and our +2.5068 dB conversion is a bet (C5).",
+    "Whether the Phantom 3 fit pools elevation cuts: unstated, the word is absent from the paper (A12).",
+    "What K the Phantom 3 fit used: the stated K = 360 fits only the Phantom 2 (A13)."
+   ]
+  },
+  "H5_Yuan": {
+   "verdict": "VERIFIED in full, including the two slopes the ledger said we had never asserted",
+   "confirmed": [
+    "EuCAP 2025, DOI 10.23919/EuCAP63536.2025.10999912, IEEE Xplore - published conference paper (B1).",
+    "Monostatic 3D UAV RCS in an anechoic chamber, CATR far-field (B4, B11).",
+    "{a,b,c,d} = {0.315,-16.15,0.0045,0.07} / {0.231,-17.92,0.0024,0.06} / {0.175,-17.12,0.0019,0.07} at theta = 90/0/180, verbatim in the section IV text layer (B2).",
+    "Same airframe as Das: DJI Phantom 3, horizontal diagonal 35 cm, height 20 cm (B3).",
+    "VV polarisation, stated, with the paper's own caveat that all polarisation states should ideally have been measured (B5)."
+   ],
+   "corrections": [
+    "The elevation-sides sentence is in section II-A, pdf page 2 - the ledger's Y03 cites section III-A (B4).",
+    "Bistatic is explicitly Yuan's future work; Yuan gives us no bistatic anchor (B11)."
+   ],
+   "open": [
+    "Yuan never defines its mean statistic beyond 'the mean value in dBsm'; our 'linear azimuth mean' label is OUR inference (B7)."
+   ]
+  },
+  "Das_vs_Yuan_statistic_mismatch": {
+   "brief_framing": "eps about 0.08 dB (Yuan) vs about 5.2 dB (Das) for a comparable platform cannot be the same quantity.",
+   "settlement": "Right conclusion, wrong premises on all three counts. (1) The platform is not 'comparable' - it is the SAME DJI Phantom 3, same laboratory, near-certainly the same raw sweep (C1). (2) Yuan's eps is not in dB at all: the paper prints no unit and Fig. 5's right axis is an unlabelled 'Standard deviation' running 0 to 0.25; Das's eps is captioned '[DB]' (B8). (3) They are different quantities because Yuan's eps is the spread parameter of a Rician fit on a linear amplitude scale while Das's is a dB-domain standard deviation whose magnitude matches the 5.570 dB theoretical value for a Rayleigh-amplitude target (C3).",
+   "the_real_mismatch_is_in_mu_not_eps": {
+    "yuan_theta90_minus_das_db": {
+     "LTE 1.843 GHz": 3.2335,
+     "5G 3.5 GHz": 3.4075,
+     "WiFi 5.21 GHz": 3.5871
+    },
+    "note": "The two papers summarise one measurement 3.23-3.59 dB apart at our three bands. That gap - not the eps difference - is what our anchor level depends on, and no sentence in either paper explains it."
+   }
+  },
+  "X_C18_Ezuma_Guvenc": {
+   "verdict": "REFUTED - downgrade required, and one row worse than the ledger recorded",
+   "detail": "No PDF on disk for arXiv:1911.05926, 2402.05909 or 2102.11954 (E1). prior_work.json still labels three rows VERIFIED (E2). Of those three, only the Phantom 4 Pro numbers appear in any local note; the two Mavic Pro rows have neither PDF nor note (E3)."
+  },
+  "anchor_health_today": {
+   "slope": "SOUND. 0.21 dB/GHz is the correct Das Table III cell for the Phantom 3 at theta_b = 0; its measured band 1.8-18.2 GHz strictly contains our 1.843-5.21 GHz; the platform is a 350 mm quadrotor. Verified from the primary PDF by render (A2, A5).",
+   "level": "AT RISK. outputs/sigma_anchor.json carries [-16.2962, -15.9482, -15.5891] dBsm at our three bands; Das as published is [-18.803, -18.455, -18.0959] dBsm. The 2.5068 dB difference is a convention conversion that the paper's own defining sentence does not support, that rests on two unstated structural assumptions, and that outputs/rcs_anchor.json flatly contradicts (C5, C6).",
+   "metadata": "Two provenance strings on the anchor are wrong or unsupported: polarisation cited to Das (A9) and D_ref_def 'motor-to-motor diagonal' (A19).",
+   "coverage": "One airframe, one laboratory, monostatic only, VV only, one elevation cut - for a passive BISTATIC study of seven airframes (C1, B11, A18)."
+  }
+ },
+ "items": [
+  {
+   "id": "A1",
+   "target": "H2 / ledger D01",
+   "topic": "Das venue, page range, DOI",
+   "verdict": "VERIFIED",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL published version (PDF subject = 'IEEE Wireless Communications Letters;2026;15; ;10.1109/LWC.2026.3705634')",
+   "page": "running heads pdf p.1-5 = journal 3731-3735; DOI line pdf p.1",
+   "quote": "IEEE WIRELESS COMMUNICATIONS LETTERS, VOL. 15, 2026 / 3731 ... DAS et al.: MULTIBAND MONOSTATIC AND BISTATIC RCS CHARACTERIZATION OF AAVs 3735 ... Digital Object Identifier 10.1109/LWC.2026.3705634",
+   "note": "Received 3 March 2026, accepted 13 June 2026, published 22 June 2026, CC-BY. Peer-reviewed and published - not a preprint. Page range and DOI, previously unverified in ledger D01, now both confirmed."
+  },
+  {
+   "id": "A2",
+   "target": "H2 headline / ledger D02",
+   "verdict": "VERIFIED_BY_RENDER",
+   "topic": "mu(f) = 0.21 f - 19.19 dBsm for DJI Phantom 3 at theta_b = 0 deg",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL Table III",
+   "page": "journal p.3734 (pdf p.4)",
+   "quote": "TABLE III, row 'Phantom 3', column 'theta_b = 0 deg':  mu = 0.21 f - 19.19  ;  eps = 0.03 f + 5.16",
+   "method": "Table III has NO text layer - fitz extracts only the caption. Page 4 rendered at 650 dpi, clip Rect(45,55,570,240), cells read visually. The CAPTION is text and reads: 'LINEAR FITS OF MEAN mu [DBSM] AND STANDARD DEVIATION eps [DB] OF MEASURED RCS VERSUS FREQUENCY f [GHZ] ACROSS BISTATIC ANGLES theta_b'.",
+   "derived": {
+    "mu_dbsm_at_our_bands_as_published": {
+     "LTE 1.843 GHz": -18.803,
+     "5G 3.5 GHz": -18.455,
+     "WiFi 5.21 GHz": -18.0959
+    }
+   },
+   "note": "The coefficient src/sigma_anchor.py hard-codes is correct, and so are the -18.80 / -18.46 / -18.10 dBsm band values in outputs/rcs_anchor.json. The digits were never the risk."
+  },
+  {
+   "id": "A3",
+   "target": "ledger D02 / D08",
+   "verdict": "VERIFIED_BY_RENDER",
+   "topic": "The whole of Table III (4 platforms x 7 bistatic angles) vs our DAS['table3'] dict",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL Table III",
+   "page": "journal p.3734",
+   "quote": "Phantom 2 mu: 0.21f-12.10 | 0.50f-19.31 | 0.22f-13.30 | 0.21f-14.76 | 0.12f-14.18 | -0.13f-7.85 | 0.08f-10.40 ;; Phantom 2 eps: 0.10f+1.81 | 0.07f+2.73 | 0.06f+3.06 | 0.07f+2.87 | 0.02f+3.85 | 0.08f+2.80 | 0.05f+3.16 ;; Phantom 3 mu: 0.21f-19.19 | -19.23 | -19.33 | -19.48 | -19.64 | -19.77 | -19.82, eps = 0.03f+5.16 in all seven ;; Mini 2 mu: 0.07f-25.85 | -25.89 | -25.99 | -26.14 | -26.30 | -26.43 | -26.47, eps = 0.01f+5.47 in all seven ;; M350 RTK mu: 0.17f-18.85 | -18.89 | -18.99 | -19.15 | -19.31 | -19.43 | -19.48, eps = 0.01f+6.61 in all seven",
+   "note": "All 56 cells match src/sigma_anchor.py DAS['table3'] exactly, eps rows included."
+  },
+  {
+   "id": "A4",
+   "target": "ledger D03",
+   "verdict": "VERIFIED_BY_RENDER",
+   "topic": "eps(f) = 0.03 f + 5.16 dB for the Phantom 3",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL Table III",
+   "page": "journal p.3734",
+   "derived": {
+    "eps_db_at_our_bands": {
+     "LTE 1.843 GHz": 5.2153,
+     "5G 3.5 GHz": 5.265,
+     "WiFi 5.21 GHz": 5.3163
+    },
+    "theoretical_std_of_10log10sigma_for_exponential_sigma_db": 5.57
+   },
+   "note": "Identical in all seven bistatic columns. Magnitude 5.21-5.32 dB over our bands, within 6 percent of the theoretical dB-domain std for exponential sigma (5.5708 dB). See C3."
+  },
+  {
+   "id": "A5",
+   "target": "ledger D06",
+   "verdict": "VERIFIED_BY_RENDER",
+   "topic": "Table I, Phantom 3 column",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL Table I",
+   "page": "journal p.3732 (pdf p.2)",
+   "quote": "Dimension 35 cm x 20 cm | Frequency Band 1.8 GHz-18.2 GHz | Frequency points 2801 | Azimuth resolution -90 deg <= phi(= 2 deg) <= 90 deg | TX-RX distance Far-field | Environment Anechoic",
+   "method": "rendered 700-750 dpi in two clips covering the left and right halves of the table.",
+   "note": "Matches DAS['table1']['phantom3'] field for field."
+  },
+  {
+   "id": "A6",
+   "target": "ledger D06 / D07",
+   "verdict": "VERIFIED_BY_RENDER",
+   "topic": "Table I, remaining three platforms",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL Table I",
+   "page": "journal p.3732",
+   "quote": "Mini 2: 15.9 cm x 20.3 cm | 21-27 GHz | 501 | 0 <= phi(=0.5) <= 360 | Far-field | Anechoic ;; M350 RTK: 81 cm x 67 cm | 21-27 GHz | 501 | 0 <= phi(=0.5) <= 360 | Far-field | Anechoic ;; Phantom 2: 35 cm x 20 cm | 11-26 GHz | 2001 | 0 <= phi(=1) <= 360 | Near-field, 2.6 m | Controlled non-anechoic, indoor",
+   "note": "Row labels: Parameters / Dimension / Frequency Band / Frequency points / Azimuth resolution / TX-RX distance / Environment. There is NO polarisation row and NO elevation row."
+  },
+  {
+   "id": "A7",
+   "target": "H2 'defining sentence for the statistic' / ledger D04",
+   "verdict": "VERIFIED",
+   "topic": "Das defines the mean as a LINEAR azimuth average",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL section III-1",
+   "page": "journal p.3732 -> p.3733 (the sentence crosses the page break)",
+   "quote": "The mean RCS is defined as sigma^AAV_m(theta_b, f_i) = (1/K) sum_{k=1}^{K} sigma^AAV(theta_b, f_i, phi_k), where K is the number of azimuth scans for each theta_b and f_i.",
+   "note": "The brief's premise is exactly right. This is the paper's ONLY explicit definition of the mean, and it is unambiguous."
+  },
+  {
+   "id": "A8",
+   "target": "STAT_AMBIGUITY",
+   "verdict": "VERIFIED",
+   "topic": "Das contradicts A7 one page later, in its 3GPP log-normal remark",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL section III-2, 'Remark on 3GPP alignment and interpretation'",
+   "page": "journal p.3733",
+   "quote": "ln( sigma^AAV(f) ) ~ N( (ln(10)/10) mu , ( (ln(10)/10) eps )^2 ).",
+   "note": "This says mu = E[10 log10 sigma] and eps = std(10 log10 sigma) - a dB-DOMAIN mean, not the III-1 quantity. Both sentences are verbatim in the published PDF. Das is internally inconsistent about its own mu; our STAT_AMBIGUITY block records a real defect of the source, not our misreading."
+  },
+  {
+   "id": "A9",
+   "target": "H2 'polarisation' / sigma_anchor DAS['polarisation'] and ANCHORS['das_phantom3_mono']",
+   "verdict": "REFUTED",
+   "topic": "Das does NOT state the polarisation of the Phantom 3 data",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL section II-1",
+   "page": "journal p.3732",
+   "quote": "Phantom 2 is the only platform measured in a controlled indoor non-anechoic near-field setting, with the corresponding measurement environment illustrated in Fig. 1. This setting is comparable to the scenario described in [6]. The setup uses vertically polarized directional antennas at both the transmitter (TX) and receiver (RX), while a Keysight PNA-X Network Analyzer (N5242B) records the channel frequency response S21(f).",
+   "machine_check": "the substring 'polariz' occurs exactly ONCE in the entire Das PDF, and it is the sentence above.",
+   "we_said": "DAS['polarisation'] = 'VV (TX/RX both vertically polarised directional antennas, section II-1)', carried onto ANCHORS['das_phantom3_mono']['polarisation'] = 'VV' with Das as the source.",
+   "paper_says": "The single polarisation sentence sits inside the paragraph describing the Phantom-2 setup, which is the only dataset Das measured (A10). Table I has no polarisation row. Das never states a polarisation for the Phantom 3 dataset.",
+   "action": "Re-cite the anchor's VV to YUAN section II-A (B5), which states it for this exact airframe and campaign. Do not cite Das section II-1."
+  },
+  {
+   "id": "A10",
+   "target": "ledger D05 / SOURCE_RELATION",
+   "verdict": "PARTIAL",
+   "topic": "Provenance of the Phantom 3 numbers: Das reference [7], not our Yuan PDF",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL section I + acknowledgment + reference list",
+   "page": "journal p.3731 (body); p.3735 (acknowledgment and references)",
+   "quote": "The DJI Phantom 2 dataset is newly measured in this work, whereas the RCS data for the DJI Mini 2, Phantom 3, and M350 RTK were obtained from [7] and are further processed and analyzed here || [7] Z. Wang, Y. Zhang, Y. Ren, W. Fan, Z. Yuan, and W. Wang, 'A comprehensive study on target RCS measurement for integrated sensing and communication channel,' China Commun., vol. 2026, pp. 1-10, Jun. 2025. || ACKNOWLEDGMENT: The authors would like to thank Prof. Wei Fan from Southeast University for providing the measured RCS data for the DJI Mini 2, DJI Phantom 3, and DJI M350 RTK.",
+   "we_said": "SOURCE_RELATION: 'Das's Phantom 3 row is a re-analysis of YUAN's raw data.'",
+   "paper_says": "Das credits reference [7] = Wang et al., China Communications - not the Yuan EuCAP paper we hold. Das reference [8] is yet a THIRD paper by the same group (Z. Yuan, L. Yu, Z. Wang, C. Li, T. Dallmann, W. Fan, IEEE AWPL 24:222-226, 2025), which Yuan's own reference [15] also cites. Neither [7] nor [8] is on disk.",
+   "action": "Re-scope to the provable statement: same airframe, same laboratory (Southeast University, Wei Fan), routed through Wang et al. [7]. 'Same raw dataset as our Yuan PDF' stays an inference (a strong one - C1) and must be labelled as one."
+  },
+  {
+   "id": "A11",
+   "target": "ledger D05",
+   "verdict": "VERIFIED",
+   "topic": "Acknowledgment sentence, verbatim with page",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL",
+   "page": "journal p.3735",
+   "quote": "The authors would like to thank Prof. Wei Fan from Southeast University for providing the measured RCS data for the DJI Mini 2, DJI Phantom 3, and DJI M350 RTK."
+  },
+  {
+   "id": "A12",
+   "target": "ANCHORS['das_phantom3_mono']['elevation'] and reconcile_das_yuan()",
+   "verdict": "UNVERIFIED",
+   "topic": "Whether Das's Phantom 3 fit pools three elevation cuts",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL, whole document",
+   "machine_check": "the substring 'elevation' occurs ZERO times in the entire Das PDF.",
+   "we_said": "elevation = 'Table I azimuth -90:2:90; Yuan data, three elevation sides fitted together (estimated)'.",
+   "paper_says": "Das never mentions elevation at all and Table I has no elevation row. There is no textual support in either direction.",
+   "why_it_matters": "yuan_pooled_linear_mean_db() pools Yuan's three elevation cuts precisely because of this assumption, and reconcile_das_yuan() then uses that pooled curve to select the +2.5068 dB conversion that is live in outputs/sigma_anchor.json. A guess with zero textual support is load-bearing for our anchor LEVEL.",
+   "action": "Keep the '(estimated)' tag but promote it to a first-class term in outputs/sigma_anchor.json:uncontrolled, and stop calling the statistic question RESOLVED_EMPIRICALLY (C5)."
+  },
+  {
+   "id": "A13",
+   "target": "new finding",
+   "verdict": "VERIFIED",
+   "topic": "Das's stated sample count K = 360 is incompatible with its own Table I for three of four platforms",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL section III-2",
+   "page": "journal p.3733",
+   "quote": "The measured RCS vector is sigma^AAV(theta_b, f_i) = [ sigma^AAV(theta_b,f_i,phi_1), ..., sigma^AAV(theta_b,f_i,phi_K) ]^T in R^K, with K = 360 corresponding to the number of azimuth measurements.",
+   "note": "Table I gives Phantom 3 azimuth -90:2:90 = 91 points, Mini 2 and M350 RTK 0:0.5:360 = 721 points, Phantom 2 0:1:360 = 361 points. K = 360 fits only the Phantom 2 - the one dataset Das measured. The K behind the Phantom 3 fit is therefore unstated. Same pattern as the polarisation sentence (A9): Das's method text is written for the Phantom 2 and applied to the re-used datasets without re-scoping."
+  },
+  {
+   "id": "A14",
+   "target": "ledger D11",
+   "verdict": "REFUTED",
+   "topic": "'The Phantom 2 measurement violates the far-field condition and the paper admits it'",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL section II-3c",
+   "page": "journal p.3732",
+   "machine_check": "'violat' 0 hits; 'Fraunhofer' 0 hits; '9.1' 0 hits. '2D^2/lambda' appears once, on p.3734, as the condition L >= 2D^2/lambda on the RX range inside the Gaussian-cluster model - not as a critique of the measurement.",
+   "we_said": "docs/DRONE_ISAC_PRIOR_READING.md L388: D = 0.35 m at 2.6 m range needs 9.1 m at 11 GHz, and the paper admits it.",
+   "paper_says": "Das labels the Phantom 2 range 'Near-field, 2.6 m' in Table I and then argues the OPPOSITE of an admission: 'Since the sub-band range resolution exceeds the maximum dimension of the Phantom 2 (approx 0.35 m), the target is effectively point-like within each sub-band. Hence, the sub-band responses can be treated as equivalent far-field responses.'",
+   "action": "Delete the 'the paper admits it' wording. Correct statement: Das declares the Phantom 2 geometry near-field and claims sub-band equivalence to far-field; the 9.1 m figure is OUR computation. Nothing downstream changes - we do not anchor on the Phantom 2 row."
+  },
+  {
+   "id": "A15",
+   "target": "ledger D12",
+   "verdict": "PARTIAL",
+   "topic": "'Both papers cite a 3GPP isotropic constant of -20 dBsm at 4.9 GHz'",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf  ||  /data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "version": "Das section I ; Yuan section I",
+   "page": "Das journal p.3731 ; Yuan pdf p.1",
+   "quote": "Das: 'In addition, [1], [2] presented RCS measurements in an anechoic chamber and proposed an omnidirectional model assuming a constant RCS of -20 dBsm at 4.9 GHz across all incident angles.' || Yuan: 'UAV RCS measurements in an anechoic chamber were reported in [10], proposing an omnidirectional model that indicates consistent RCS values across all azimuth angles (-20 dBsm at 4.9 GHz, specifically).'",
+   "paper_says": "The VALUE is in both papers. The ATTRIBUTION differs: Das credits [1] = Y. Zhang et al., IEEE JSAC 44:702-716, 2026 and [2] = W. Hong et al., IEEE JSAC 44:3459-3472, 2026 - journal papers. Yuan credits [10] = 3GPP TSG-RAN WG1 Meeting 117, R1-2403921, May 2024 - a 3GPP contribution. Only Yuan's citation is to 3GPP. Das writes 'all incident angles', Yuan writes 'all azimuth angles'.",
+   "action": "Write 'both papers report the -20 dBsm at 4.9 GHz omnidirectional model; Yuan traces it to 3GPP R1-2403921, Das to the two JSAC papers'. Do not write 'both cite 3GPP'."
+  },
+  {
+   "id": "A16",
+   "target": "ledger D09",
+   "verdict": "VERIFIED",
+   "topic": "Anderson-Darling formula and the Phantom 3 goodness-of-fit",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL eq.(5) and section III-2",
+   "page": "eq.(5) journal p.3733 ; the 0.436 on p.3734",
+   "quote": "d_AD( sigma^AAV(theta_b,f_i), F_xi(x) ) = -K - (1/K) sum_{k=1}^{K} (2k-1) x [ ln( F_xi(sigma^AAV(theta_b,f_i,phi_k)) ) + ln( F_xi(sigma^AAV(theta_b,f_i,phi_{K+1-k})) ) ] || For these platforms, the Rician distribution achieves the lowest mean dAD, namely 0.532 and 0.436, respectively.",
+   "note": "0.532 is the Mini 2, 0.436 the Phantom 3. Log-normal is best for the M350 RTK (4.11) and the Phantom 2 (1.04). Das reports only the winner per platform, so rcs_anchor.json's 'Gamma/LogNormal individual values not in the note' remains true of the paper itself."
+  },
+  {
+   "id": "A17",
+   "target": "ledger D10",
+   "verdict": "VERIFIED",
+   "topic": "Kaiser window and the calibration constant",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL sections II-2 and II-3b",
+   "page": "journal p.3732",
+   "quote": "A metallic cylinder with radius 5.5 cm, height 30 cm, and known RCS sigma_Cal = 2.8 dBsm is placed at the center of the turntable || range gating is applied to the background-free range profiles using a sixth-order Kaiser window",
+   "note": "sigma_Cal enters eq.(3) as a bare scalar with no frequency or bistatic-angle argument, so 'constant across all frequencies and bistatic angles' is a correct reading of the equation."
+  },
+  {
+   "id": "A18",
+   "target": "ledger D08 / how we cite Das as bistatic support",
+   "verdict": "VERIFIED",
+   "topic": "Das's Phantom 3 / Mini 2 / M350 bistatic columns carry almost no information",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "version": "IEEE WCL Table III and section IV-4",
+   "page": "journal p.3734 (table), p.3735 (summary sentence)",
+   "quote": "Changing from monostatic to bistatic (90 deg) geometry increases the mean path-loss by only about 1-2 dB, indicating that frequency- and platform-dependent RCS variations dominate over bistatic-angle effects in this setting.",
+   "derived": {
+    "phantom3_mu_span_over_theta_b_db": 0.63,
+    "mini2_mu_span_db": 0.62,
+    "m350rtk_mu_span_db": 0.63,
+    "phantom2_mu_span_at_15GHz_db": 3.43
+   },
+   "note": "For the three re-used platforms the slope is bit-identical across all seven theta_b and eps does not move at all; only the intercept slides monotonically, 0.62-0.63 dB in total. The one platform with genuine bistatic structure - non-monotonic, slope-varying, 3.43 dB span at 15 GHz - is the Phantom 2, the dataset Das actually measured. CONSEQUENCE: Das is titled mono AND bistatic, but for OUR anchor airframe the bistatic content is 0.63 dB of intercept. Citing Das as bistatic support for a passive-bistatic study overstates it."
+  },
+  {
+   "id": "A19",
+   "target": "ANCHORS['das_phantom3_mono']['D_ref_def'] and size_correction_db()",
+   "verdict": "UNVERIFIED",
+   "topic": "Das Table I's 'Dimension' row has no stated convention and cannot be one convention across rows",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf  ||  /data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "version": "Das Table I ; Yuan section II-A",
+   "page": "Das journal p.3732 ; Yuan pdf p.2",
+   "we_said": "D_ref_def = 'motor-to-motor diagonal (Table I 35 cm)'.",
+   "paper_says": "Das's row is labelled only 'Dimension' and gives pairs: Mini 2 15.9 x 20.3 cm, M350 RTK 81 x 67 cm, Phantom 2 35 x 20 cm, Phantom 3 35 x 20 cm. Das never says what the two numbers are. Yuan independently defines the Phantom 3 pair as 'a horizontal diagonal of 35 cm and a height of 20 cm'. The Mini 2 pair has its SECOND number larger than the first, so that row cannot be (diagonal, height) in Yuan's sense - the rows are not one convention. Neither paper says 'motor-to-motor'.",
+   "why_it_matters": "size_correction_db() transfers the anchor level to our airframes as (D/D_ref)^2 or ^4 with D_ref = 0.350 m. If D_ref's definition differs from the D we measure on our meshes, the L2/L4 correction (already spanning up to 9.50 dB between the two laws) inherits a further definitional error.",
+   "action": "Set D_ref_def to what is quotable: 'horizontal diagonal 35 cm (YUAN section II-A); Das Table I states 35 cm x 20 cm with no stated convention'. Drop 'motor-to-motor'."
+  },
+  {
+   "id": "A20",
+   "target": "ledger D07",
+   "verdict": "VERIFIED",
+   "topic": "M350 dimensions: Das 81 x 67 cm vs Zhang 430 x 420 x 430 mm",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf  ||  /data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+   "version": "Das Table I ; Zhang IEEE JSAC section III",
+   "page": "Das journal p.3732 ; Zhang journal p.708",
+   "quote": "Das Table I, DJI M350 RTK: '81 cm x 67 cm' || Zhang: 'The AAV used is the DJI M350, with four symmetrically deployed rotor arms and approximate dimensions of 430 x 420 x 430 mm.'",
+   "derived": {
+    "ratio_of_max_dimension_squared_db": 5.5,
+    "ratio_of_stated_area_products_db": 4.78
+   },
+   "note": "Both strings verified verbatim. Our '5.5 dB optical-area difference' reproduces only under the convention (81/43)^2; using the stated pairs as areas it is 4.78 dB. Neither paper says which airframe state (folded / unfolded / with or without props) its numbers describe, so this is a definitional gap between two papers, not a measurement disagreement.",
+   "action": "Quote the convention alongside the number, or use 4.78 dB with the area convention."
+  },
+  {
+   "id": "B1",
+   "target": "H5 / ledger Y01",
+   "verdict": "VERIFIED",
+   "topic": "Yuan venue and DOI",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "version": "EuCAP 2025 IEEE Xplore version (PDF subject = '2025 19th European Conference on Antennas and Propagation (EuCAP);2025; ; ;10.23919/EuCAP63536.2025.10999912')",
+   "page": "metadata + per-page footer",
+   "quote": "Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:51:19 UTC from IEEE Xplore.  Restrictions apply.",
+   "note": "Published, peer-reviewed conference paper, 5 pages, no journal page numbers. PDF creator string: 'Certified by IEEE PDFExpress at December 20, 2024'. Not a preprint - relevant to H7's preprint list, which does not include Yuan."
+  },
+  {
+   "id": "B2",
+   "target": "H5 headline / ledger Y02",
+   "verdict": "VERIFIED",
+   "topic": "slopes 0.315 / 0.231 / 0.175 dB/GHz at theta = 90 / 0 / 180 deg, with intercepts",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "version": "EuCAP 2025 section IV",
+   "page": "pdf p.4 (running text layer, not a table)",
+   "quote": "the regression parameters mean values {a, b, c, d} are calculated as {0.315, -16.15, 0.0045, 0.07}, {0.231, -17.92, 0.0024, 0.06}, and {0.175, -17.12, 0.0019, 0.07} for theta = 90 deg, theta = 0 deg, and theta = 180 deg, respectively.",
+   "derived": {
+    "mu_dbsm_at_our_bands_theta90": {
+     "LTE 1.843 GHz": -15.5695,
+     "5G 3.5 GHz": -15.0475,
+     "WiFi 5.21 GHz": -14.5088
+    }
+   },
+   "note": "The brief's H5 numbers are exactly right, intercepts included. LEDGER CORRECTION: prior_work_claims.json Y02 says 0.231 and 0.175 'appear NOWHERE in our documents'. They do - src/sigma_anchor.py YUAN['abcd'] carries all three triples. The ledger's document scan missed sigma_anchor.py."
+  },
+  {
+   "id": "B3",
+   "target": "H5 platform",
+   "verdict": "VERIFIED",
+   "topic": "Yuan's target and dimensions",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "version": "EuCAP 2025 section II-A",
+   "page": "pdf p.2",
+   "quote": "The sensing target, referred to as the device-under-test (DUT), is the DJI Phantom 3, featuring four symmetrical rotors with a horizontal diagonal of 35 cm and a height of 20 cm.",
+   "note": "Identical airframe to Das's Phantom 3 row. This is the only place either paper defines what the '35 cm' is."
+  },
+  {
+   "id": "B4",
+   "target": "H5 geometry / ledger Y03",
+   "verdict": "VERIFIED",
+   "topic": "monostatic, anechoic CATR far-field, band, azimuth grid, elevation cuts, sample count",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "version": "EuCAP 2025 sections II-A and IV",
+   "page": "pdf p.2 (setup), pdf p.3 (N = 91)",
+   "quote": "The rotation spans from -90 deg to 90 deg (given the UAV's symmetry) in increments of 2 deg, i.e., phi = [-90 : 2 : 90]. Three UAV elevation sides including the azimuth plane, top, and bottom, were considered in the measurements, i.e, theta = {90, 0, 180}. || A compact antenna test range (CATR) scheme was utilized to assess the far-field RCS of the UAV. || The frequency sweep ranges from 1.8 GHz to 18.2 GHz, with 2801 frequency points recorded at each azimuth angle || where N = 91 denotes the number of angles",
+   "note": "LEDGER CORRECTION: Y03 cites this as 'section III-A'. It is section II-A (Measurement setup), pdf page 2. Note also that Yuan's N = 91 is the honest count for a -90:2:90 grid, where Das's K = 360 (A13) is not."
+  },
+  {
+   "id": "B5",
+   "target": "H5 polarisation / ledger Y04",
+   "verdict": "VERIFIED",
+   "topic": "VV, and the paper's own caveat",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "version": "EuCAP 2025 section II-A",
+   "page": "pdf p.2",
+   "quote": "Both the transmitter and receiver (TX and RX) were equipped with vertically polarized directional antennas. Note that although the chosen step size may be too large at higher frequencies, and RCS measurements should be ideally taken across all polarization states, this configuration was set due to time constraints.",
+   "note": "This - not Das - is the citable source of VV for the Phantom 3 anchor (A9). Our paraphrase in sigma_anchor.py YUAN['polarisation'] is accurate."
+  },
+  {
+   "id": "B6",
+   "target": "ledger Y08",
+   "verdict": "VERIFIED",
+   "topic": "calibration sphere",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "version": "EuCAP 2025 section II-B",
+   "page": "pdf p.2",
+   "quote": "A metallic sphere with a radius of 17.8 cm (RCS as sigma_Cal = -10 dBsm) is positioned at the center of the turntable",
+   "derived": {
+    "pi_r_squared_dbsm_our_computation": -10.02
+   },
+   "note": "The -10.02 dBsm optical asymptote is OUR computation; the paper states -10 dBsm."
+  },
+  {
+   "id": "B7",
+   "target": "H5 statistic / ANCHORS['yuan_phantom3_*']['statistic']",
+   "verdict": "UNVERIFIED",
+   "topic": "Yuan never defines its mean statistic",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "version": "EuCAP 2025 section IV",
+   "page": "pdf p.4",
+   "quote": "We also conduct a linear regression analysis on the mean and standard deviation values against frequency, i.e., mu = a.f + b for mean fitting (the mean value in dBsm and the frequency in GHz) and epsilon = c.f + d for variance fitting",
+   "we_said": "statistic = 'linear azimuth mean (10 log10 E[sigma])' with to_linear_kind = 'none'.",
+   "paper_says": "'the mean value in dBsm' is the entire definition. There is no averaging equation anywhere in the paper. Fig. 5's left axis is 'Mean RCS [dBsm]' with series 'Measured / Rician-fitted / Mean-fre. fit'. Whether the average is taken in the linear or the dB domain is not stated.",
+   "why_it_matters": "Das has an explicit definition and contradicts itself (A7 vs A8); Yuan has NO definition. Our 'linear azimuth mean' label rests on verify_eps_units(), which is OUR back-calculation under a Rayleigh-amplitude assumption, not on any sentence.",
+   "action": "Change stat_evidence to 'OUR inference from verify_eps_units(); the paper gives no definition' and carry the label as an assumption."
+  },
+  {
+   "id": "B8",
+   "target": "the brief's H5 framing and the Das-vs-Yuan epsilon mismatch",
+   "verdict": "REFUTED",
+   "topic": "Yuan's epsilon is NOT in dB - the '0.08 dB vs 5.2 dB' comparison is between incommensurable quantities",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "version": "EuCAP 2025 section IV and Fig. 5",
+   "page": "pdf p.4",
+   "quote": "Fig. 5 caption: 'Rician fitting results, including (a) the mean and standard deviation of the measured and Rician-fitted RCS and (b) the distribution parameters.' Right-hand axis label on all three panels: 'Standard deviation', with unitless tick ranges 0-0.25 (theta=90), 0-0.15 (theta=0), 0.04-0.14 (theta=180).",
+   "brief_said": "'their eps is about 0.08 dB against Das's about 5.2 dB for a comparable platform, which cannot be the same quantity.'",
+   "settlement": "Right conclusion, wrong premises. (1) Not 'comparable' - it is the SAME airframe, DJI Phantom 3, 35 x 20 cm, in both papers, and near-certainly the same measurement (C1). (2) Yuan's epsilon carries NO unit; the paper never writes dB for it and the figure axis is unlabelled. Das's epsilon is captioned '[DB]' in the Table III caption. So Yuan's epsilon is not 0.08 dB - it is 0.08, dimensionless as printed. Calling it dB is itself an error. (3) They differ because Yuan's epsilon is the spread parameter of a RICIAN fit on a linear amplitude scale (Yuan measures that fit's K factor at -8.9 to -62.8 dB, i.e. nearly Rayleigh), while Das's epsilon is a dB-domain standard deviation whose 5.21-5.71 dB magnitude matches the theoretical value for a Rayleigh-amplitude target within 6 percent (C3).",
+   "action": "Never place Das epsilon and Yuan epsilon in one column. sigma_anchor.py's EPS_UNITS block already says this - keep it and cite this item."
+  },
+  {
+   "id": "B9",
+   "target": "ledger Y05",
+   "verdict": "VERIFIED",
+   "topic": "CvM distances and normalised percentiles",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "version": "EuCAP 2025 section IV",
+   "page": "pdf p.4",
+   "quote": "The average CVM distances for the Rician, Gamma, and LogNormal distributions are 0.28, 0.31, and 0.48, respectively. || the normalized RCS power shows probabilities of 10% and 1% below -8.5 dBsm and -18.5 dBsm under favorable conditions (i.e., with dominant scattered components), respectively. In contrast, for poor-sensing conditions (i.e., lacking dominant components), the corresponding power thresholds are -10 dBsm and -20 dBsm."
+  },
+  {
+   "id": "B10",
+   "target": "ledger Y06",
+   "verdict": "VERIFIED",
+   "topic": "Yuan's Swerling labelling",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "version": "EuCAP 2025 section IV",
+   "page": "pdf p.3",
+   "quote": "this paper illustrates how the Rayleigh distribution (Swerling III/IV) inadequately models UAV RCS, as depicted in Fig. 6.",
+   "note": "Our characterisation of the quote is exact, so the criticism (a Rayleigh amplitude corresponds to Swerling I/II) is safe to state - but state it as our reading of a parenthetical, and note that two sentences later the same paper writes the ungrouped and correct form: 'the exponential and Rayleigh distributions (the foundational distributions for Swerling I-IV) are specific instances of the Gamma and Rician distributions'."
+  },
+  {
+   "id": "B11",
+   "target": "H5 mono vs bistatic",
+   "verdict": "VERIFIED",
+   "topic": "Yuan is monostatic only; bistatic is future work",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "version": "EuCAP 2025 title, abstract, section V",
+   "page": "pdf p.1 and p.4",
+   "quote": "On Experimental Analysis of Mono-Static 3D UAV RCS for ISAC Channel Modeling || Additionally, we plan to broaden our analysis to include a variety of representative objects such as motorcycles, cars, traffic signs, and pedestrians, with a focus on RCS measurements and modeling across mono-static, bi-static, and multi-static configurations.",
+   "note": "Bistatic is explicitly Yuan's future work. Combined with A18, our passive-bistatic study has NO usable bistatic measured anchor for this airframe."
+  },
+  {
+   "id": "C1",
+   "target": "SOURCE_RELATION",
+   "verdict": "PARTIAL",
+   "topic": "Are Das's Phantom 3 numbers the same measurement as Yuan's?",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf  ||  /data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "version": "Das Table I + acknowledgment ; Yuan section II-A",
+   "evidence_for": [
+    "Das Table I's Phantom 3 column and Yuan section II-A agree on every field both state: 35 x 20 cm, 1.8-18.2 GHz, 2801 frequency points, azimuth -90:2:90, far-field, anechoic.",
+    "Das's acknowledgment credits Prof. Wei Fan of Southeast University for the Phantom 3 data; Wei Fan is Yuan's corresponding author and Yuan's affiliation is Southeast University."
+   ],
+   "evidence_against": [
+    "Das cites reference [7] (Wang et al., China Communications 2026) as the source, not Yuan's EuCAP paper.",
+    "A third paper by the same group exists (Das [8] = Yuan et al., IEEE AWPL 24:222-226, 2025 = Yuan's own [15]). We hold neither [7] nor [8]."
+   ],
+   "settlement": "Same airframe and same laboratory: proven. Same raw dataset: highly likely, stated by neither paper. Independent replication: definitively NOT - our anchor rests on one airframe measured by one laboratory.",
+   "action": "Keep the 'single platform / single lab' uncontrolled term; reword it per A10."
+  },
+  {
+   "id": "C2",
+   "target": "ledger Y07",
+   "verdict": "VERIFIED",
+   "topic": "The Das-Yuan level gap, recomputed from verified coefficients",
+   "pdf": "derived from A2 + B2",
+   "version": "arithmetic on verified coefficients",
+   "derived": {
+    "das_mu_dbsm": {
+     "LTE 1.843 GHz": -18.803,
+     "5G 3.5 GHz": -18.455,
+     "WiFi 5.21 GHz": -18.0959
+    },
+    "yuan_theta90_mu_dbsm": {
+     "LTE 1.843 GHz": -15.5695,
+     "5G 3.5 GHz": -15.0475,
+     "WiFi 5.21 GHz": -14.5088
+    },
+    "yuan_minus_das_db": {
+     "LTE 1.843 GHz": 3.2335,
+     "5G 3.5 GHz": 3.4075,
+     "WiFi 5.21 GHz": 3.5871
+    },
+    "lognormal_offset_(ln10/20)*eps^2_db": {
+     "LTE 1.843 GHz": 3.1314,
+     "5G 3.5 GHz": 3.1914,
+     "WiFi 5.21 GHz": 3.2539
+    },
+    "exponential_offset_10/ln10*euler_db": 2.5068
+   },
+   "note": "Our stated 3.23 / 3.41 / 3.59 dB gap and the 3.13 / 3.19 / 3.25 dB log-normal conversion both reproduce exactly. This is OUR derivation across two papers, not a statement either paper makes - it must always be labelled so."
+  },
+  {
+   "id": "C3",
+   "target": "STAT_AMBIGUITY",
+   "verdict": "VERIFIED_AS_EVIDENCE",
+   "topic": "Evidence that Das's mu is a dB-DOMAIN mean, despite section III-1",
+   "lines": [
+    "Das section III-2's log-normal remark states mu = E[10log10 sigma] and eps = std(10log10 sigma) outright (A8).",
+    "Table III's eps is captioned '[DB]'. For the Phantom 3 it runs 5.21-5.71 dB over the measured band and for the Mini 2 5.49-5.74 dB. The theoretical std of 10log10(sigma) for exponential sigma is 5.5700 dB. A dB-domain standard deviation is the only reading under which the eps column has a natural meaning - a LINEAR azimuth mean has no companion 'standard deviation in dB'.",
+    "reconcile_das_yuan() over 1.8-18.2 GHz: the exponential offset +2.5068 dB leaves residual RMS 0.238 dB and absmax 0.489 dB against Yuan's elevation-pooled linear mean; the log-normal offset +3.4322 dB leaves RMS 0.853 dB and absmax 1.177 dB.",
+    "Das's own best fit for the Phantom 3 is Rician (A16) and Yuan measures that fit's K factor at -8.9 to -62.8 dB, i.e. essentially Rayleigh amplitude - exactly the regime in which +2.5068 dB (10/ln10 times Euler's gamma) is the correct constant."
+   ],
+   "note": "Three independent lines favour the dB-domain reading."
+  },
+  {
+   "id": "C4",
+   "target": "STAT_AMBIGUITY",
+   "verdict": "VERIFIED_AS_EVIDENCE",
+   "topic": "Evidence that Das's mu is a LINEAR azimuth mean",
+   "lines": [
+    "Section III-1 defines it that way in an equation, verbatim (A7). It is the paper's only explicit definition and it is unambiguous.",
+    "Fig. 3's caption calls the fitted quantity 'the mean and standard deviation of the measured monostatic RCS' - i.e. the III-1 quantity is what was fitted.",
+    "Fig. 2(a)'s caption calls the plotted quantity the 'Angle-averaged mean RCS'."
+   ],
+   "note": "One line of argument, but of the strongest kind: the authors' own defining equation."
+  },
+  {
+   "id": "C5",
+   "target": "outputs/sigma_anchor.json uncontrolled['statistic convention (Das mu)'].status",
+   "verdict": "REFUTED",
+   "topic": "'RESOLVED_EMPIRICALLY' overstates what the primary sources support",
+   "we_said": "status = 'RESOLVED_EMPIRICALLY', with 0.925 dB (the gap between the two candidate conversion constants) carried as the only leftover uncertainty.",
+   "settlement": "The residual minimisation that 'resolves' it rests on two assumptions that neither paper states: (i) Yuan's mu is a linear azimuth mean - the paper gives no definition at all (B7); (ii) Das's Phantom 3 fit pools Yuan's three elevation cuts - the word 'elevation' does not occur anywhere in Das (A12). Drop (ii) and compare Das against Yuan theta=90 alone and the gap is 3.23-3.59 dB, which NEITHER candidate constant explains. The reconciliation is therefore not a measurement of Das's convention; it is a fit with two free structural choices, weighed against the paper's own defining equation (C4).",
+   "why_it_matters": "Taking Das at its section III-1 word would remove 2.5068 dB from the anchor level for EVERY airframe.",
+   "action": "Downgrade the status to UNRESOLVED / EVIDENCE_SPLIT and enlarge the carried uncertainty from 0.925 dB (constant-vs-constant) to the full 2.507 dB (convert-vs-do-not-convert). The +2.5068 dB may still be the better bet - C3 gives three reasons - but it is a bet."
+  },
+  {
+   "id": "C6",
+   "target": "new internal contradiction (not among the ledger's 23)",
+   "verdict": "REFUTED",
+   "topic": "outputs/rcs_anchor.json and src/sigma_anchor.py assert OPPOSITE conventions for the same Das anchor",
+   "file_a": {
+    "path": "/home/yunjung/workspace/sionna2/outputs/rcs_anchor.json",
+    "loc": "literature.mu_eps.multiband_phantom3",
+    "says": "note = '본문 명시 linear average -> 우리 mean_dbsm 과 사과-대-사과', with mu_at_bands = -18.80 / -18.46 / -18.10 dBsm, i.e. no conversion applied"
+   },
+   "file_b": {
+    "path": "/home/yunjung/workspace/sionna2/src/sigma_anchor.py",
+    "loc": "ANCHORS['das_phantom3_mono'] (approx line 259)",
+    "says": "statistic = 'dB azimuth mean (E[10log10 sigma])', to_linear_kind = 'exponential', which adds +2.5068 dB"
+   },
+   "live_effect": {
+    "mu_anchor_dbsm_live_in_outputs_sigma_anchor_json": {
+     "LTE 1.843 GHz": -16.2962,
+     "5G 3.5 GHz": -15.9482,
+     "WiFi 5.21 GHz": -15.5891
+    },
+    "das_as_published_dbsm": {
+     "LTE 1.843 GHz": -18.803,
+     "5G 3.5 GHz": -18.455,
+     "WiFi 5.21 GHz": -18.0959
+    },
+    "difference_db": 2.5068
+   },
+   "note": "src/sigma_anchor.py knows about the disagreement - its docstring notes that the old comment called Das a linear average and was superseded - but outputs/rcs_anchor.json was never updated, and rcs_anchor.json is exactly the file ledger claims D02/D03 point at. Whichever way C5 is settled, two files must not keep saying opposite things about one anchor.",
+   "action": "Rewrite the rcs_anchor.json note to point at STAT_AMBIGUITY and to state which of the two levels is the published one."
+  },
+  {
+   "id": "C7",
+   "target": "the brief's premise about sigma_anchor.py",
+   "verdict": "VERIFIED",
+   "topic": "Is 0.210 dB/GHz really re-levelling every airframe?",
+   "evidence": "outputs/sigma_anchor.json: all seven airframes (matrice4e, mavic4pro, mini5pro, phantom4, s1000plus, typhoonh480, x500v2) x all three modes (level_and_slope_L2, level_and_slope_L4, slope_only) report slope_after_db_per_ghz = 0.21 and mu_anchor_dbsm['5G 3.5 GHz'] = -15.948.",
+   "note": "The premise holds. Our own kernel slopes (0.94-1.54 dB/GHz on the 22-point regression) are all replaced by Das's 0.21. The SLOPE digit is verified from the primary PDF (A2). What is not settled is the LEVEL (C5, C6) and two provenance strings on the anchor (A9, A19)."
+  },
+  {
+   "id": "E1",
+   "target": "X-C18",
+   "verdict": "VERIFIED",
+   "topic": "No Ezuma / Guvenc PDF exists anywhere on disk",
+   "method": "find over /data/public and /home/yunjung/workspace for *1911.05926*, *2402.05909*, *2102.11954* -> zero hits. The 55-PDF archive contains no Ezuma or Guvenc paper.",
+   "note": "E6 pattern confirmed for the whole Ezuma/Guvenc anchor block."
+  },
+  {
+   "id": "E2",
+   "target": "X-C18",
+   "verdict": "REFUTED",
+   "topic": "prior_work.json still labels three rows VERIFIED",
+   "file": {
+    "path": "/home/yunjung/workspace/sionna2/prior_work/outputs/prior_work.json",
+    "loc": "measured_rcs_anchor.rows"
+   },
+   "says": "['DJI Mavic Pro', '2.4 GHz', 'about -15.2 dBsm (0.03 m^2)', 'VERIFIED', 'Guvenc/NCSU survey arXiv:2402.05909'] ; ['DJI Mavic Pro', '15/25 GHz', '-17.1 / -16.2 dBsm', 'VERIFIED', 'Ezuma/Guvenc arXiv:1911.05926'] ; ['DJI Phantom 4 Pro', '15/25 GHz', '-15.0 / -12.4 dBsm', 'VERIFIED', 'ditto']",
+   "settlement": "No PDF exists (E1), so nothing here can be VERIFIED under our own rule. docs/PRIOR_WORK_COMPARISON.md already grades the family [N] (H4: 'Li&Ling / Ezuma / Semkin / Quevedo / DTMB - no PDF anywhere on disk'). The two files contradict each other and prior_work.json is the one that is wrong.",
+   "action": "Downgrade all three rows. The fourth row (Frankford/Bjorklund) is already honestly labelled 'SOURCE(paywall)'."
+  },
+  {
+   "id": "E3",
+   "target": "X-C18, worse than the ledger recorded",
+   "verdict": "REFUTED",
+   "topic": "Two of the three VERIFIED rows have no local source at all - not even a note",
+   "evidence": "refs/drone_papers/Ezuma_2019_Compact_Range_RCS_Small_Drones_15_25GHz.md is the only Ezuma artefact on disk (1133 bytes). It lists DJI Phantom 4 Pro (-15.03 / -12.40 dBsm), DJI Inspire 1 (-14.24 / -11.09 dBsm) and Trimble zx5. It does NOT contain the string 'Mavic Pro' - grep over refs/ finds 'Mavic Pro' only in the Semkin note. There is no note file for arXiv:2402.05909 anywhere.",
+   "settlement": "The Phantom 4 Pro row is note-backed but PDF-less ([N]). The 'Mavic Pro -17.1 / -16.2 dBsm at 15/25 GHz' row and the 'Mavic Pro about -15.2 dBsm at 2.4 GHz' row have NO local backing of any kind - E6 in its pure form: numbers with no openable source and no note.",
+   "extra": "The Ezuma note itself carries the instruction 'do not hard-code numbers here', which prior_work.json and src/_legacy_builders/make_notebook08.py:170 (PRIOR_GUVENC_MAVICPRO_24G_DBSM = -15.2) both violate.",
+   "action": "Delete the two Mavic Pro rows or mark them 'UNSOURCED - no PDF, no note'. Keep the Phantom 4 Pro row as [N]. PRIOR_WORK_COMPARISON K20 already records that this same -15.2 dBsm row is disqualified by make_notebook08 section 6 while prior_work.json reads it as in-range - that verdict conflict dissolves once the row is downgraded."
+  },
+  {
+   "id": "F1",
+   "target": "H3 / sigma_anchor.py docstring",
+   "verdict": "VERIFIED",
+   "topic": "Zhang venue",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+   "version": "IEEE JSAC published version (PDF subject = 'IEEE Journal on Selected Areas in Communications;2026;44; ;10.1109/JSAC.2025.3608732')",
+   "page": "journal p.702 running head",
+   "quote": "702 IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 44, 2026",
+   "note": "15 pdf pages; journal page = pdf page + 701. Published and peer-reviewed. Das's reference [1] is this paper, cited as 'vol. 44, pp. 702-716, 2026'."
+  },
+  {
+   "id": "F2",
+   "target": "sigma_anchor.py module docstring 'sigma(f, phi, theta) = A(f) . B1(phi, theta) . B2'",
+   "verdict": "PARTIAL",
+   "topic": "Zhang's decomposition has no elevation argument and keeps f inside B1",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+   "version": "IEEE JSAC eq.(11) and eq.(13)",
+   "page": "journal p.707 (equations), p.708 (elevation scope)",
+   "quote": "sigma(f, phi) = A(f) x B(f, phi), (11) ... we introduce a third component, B2, to account for these fluctuations  sigma(f, phi) = A(f) x B1(f, phi) x B2. (13) || It should be noted that this study focuses on two-dimensional RCS measurements in the horizontal plane, with the elevation angle fixed at 90 deg.",
+   "we_said": "sigma(f, phi, theta) = A(f) . B1(phi, theta) . B2, with B1 described as the angular pattern.",
+   "paper_says": "Zhang's B1 is a function of (f, phi), not (phi, theta), and Zhang scopes the entire study to one elevation.",
+   "action": "Write Zhang's form as Zhang writes it, then state separately that WE extend B1 to elevation with our SBR+PO kernel. Do not silently drop B1's frequency argument."
+  },
+  {
+   "id": "F3",
+   "target": "ledger D07 / rcs_anchor.json sphere_calibration",
+   "verdict": "VERIFIED",
+   "topic": "Zhang M350 dimensions and the sphere calibration check",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+   "version": "IEEE JSAC section III",
+   "page": "journal p.708 (M350, elevation), p.709 (sphere)",
+   "quote": "The AAV used is the DJI M350, with four symmetrically deployed rotor arms and approximate dimensions of 430 x 420 x 430 mm. || The theoretical RCS is -7.07 dBsm, while the measured average is -8.96 dBsm, with a discrepancy of less than 2 dBsm, confirming the high accuracy of the measurements.",
+   "note": "rcs_anchor.json's page attribution 'unified-rcs section III-B p.709' for the sphere check is correct."
+  }
+ ],
+ "actions": [
+  {
+   "priority": 1,
+   "file": "src/sigma_anchor.py",
+   "change": "ANCHORS['das_phantom3_mono']: move the polarisation citation from Das section II-1 to YUAN section II-A; change D_ref_def to 'horizontal diagonal 35 cm (YUAN section II-A); Das Table I states 35 cm x 20 cm with no stated convention'.",
+   "because": "A9, A19"
+  },
+  {
+   "priority": 1,
+   "file": "src/sigma_anchor.py -> outputs/sigma_anchor.json uncontrolled[]",
+   "change": "statistic convention term: status RESOLVED_EMPIRICALLY -> UNRESOLVED / EVIDENCE_SPLIT; size_db 0.925 -> 2.5068 (the convert-vs-do-not-convert size).",
+   "because": "C5"
+  },
+  {
+   "priority": 1,
+   "file": "outputs/rcs_anchor.json",
+   "change": "literature.mu_eps.multiband_phantom3.note asserts the linear-average reading as settled while the live pipeline applies the opposite. Make the two files agree and record which level is the published one.",
+   "because": "C6"
+  },
+  {
+   "priority": 1,
+   "file": "prior_work/outputs/prior_work.json",
+   "change": "measured_rcs_anchor.rows: drop 'VERIFIED' on all three Ezuma/Guvenc rows; mark the two Mavic Pro rows UNSOURCED and the Phantom 4 Pro row [N].",
+   "because": "E1, E2, E3"
+  },
+  {
+   "priority": 2,
+   "file": "docs/DRONE_ISAC_PRIOR_READING.md",
+   "change": "L388: delete the claim that Das admits a far-field violation and replace it with Das's actual sub-band equivalence argument. L102/L315: the Yuan elevation sentence is section II-A, not III-A. L64: split the -20 dBsm attribution (Yuan -> 3GPP R1-2403921; Das -> the two JSAC papers).",
+   "because": "A14, B4, A15"
+  },
+  {
+   "priority": 2,
+   "file": "src/sigma_anchor.py SOURCE_RELATION",
+   "change": "Replace 'Das's Phantom 3 row is a re-analysis of Yuan's raw data' with the provable version: same airframe, same laboratory, routed through Das reference [7] (Wang et al., China Communications), which is not on disk.",
+   "because": "A10, C1"
+  },
+  {
+   "priority": 2,
+   "file": "src/sigma_anchor.py module docstring",
+   "change": "Write Zhang's decomposition as Zhang writes it - sigma(f,phi) = A(f) x B1(f,phi) x B2 with elevation fixed at 90 deg - then state our elevation extension separately.",
+   "because": "F2"
+  },
+  {
+   "priority": 2,
+   "file": "any report that cites Das as bistatic support",
+   "change": "State that for the anchor airframe Das's bistatic columns move only the intercept, 0.63 dB in total, with identical slope and identical eps; the genuine bistatic evidence is the Phantom 2 row.",
+   "because": "A18"
+  },
+  {
+   "priority": 3,
+   "file": "outputs/prior_work_claims.json",
+   "change": "Y02's risk note says Yuan's 0.231 / 0.175 appear nowhere in our documents; they are in src/sigma_anchor.py YUAN['abcd']. The ledger's document scan missed that file.",
+   "because": "B2"
+  },
+  {
+   "priority": 3,
+   "file": "docs / reports quoting the M350 size gap",
+   "change": "Quote the convention with the number: 5.5 dB holds only for (81/43)^2; the stated area products give 4.78 dB.",
+   "because": "A20"
+  }
+ ],
+ "reproduce": {
+  "pdf_text": "~/.venvs/py312/bin/python -c \"import fitz,sys; d=fitz.open(sys.argv[1]); print(''.join(p.get_text() for p in d))\" <pdf>",
+  "das_table3_render": "fitz: d[3].get_pixmap(dpi=650, clip=fitz.Rect(45,55,570,240)) and clip=Rect(45,230,570,390)",
+  "das_table1_render": "fitz: d[1].get_pixmap(dpi=750, clip=fitz.Rect(35,80,300,160)) and dpi=700, clip=fitz.Rect(230,55,600,200)",
+  "reconcile": "cd /home/yunjung/workspace/sionna2 && PYTHONPATH=src:benchmark SIONNA2_CPU=1 ~/.venvs/py312/bin/python -c \"import sigma_anchor as S; print(S.reconcile_das_yuan()); print(S.verify_eps_units())\""
+ }
+}

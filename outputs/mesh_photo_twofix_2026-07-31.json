@@ -1,0 +1,646 @@
+{
+ "_meta": {
+  "generated": "2026-07-31 07:16:07",
+  "generator": "scratchpad harness calling src/viz_mesh_photo.run_key()+calibrate() for two keys only",
+  "purpose": "matrice4e·mini5pro 형상 수정의 BEFORE/AFTER 를 같은 파이프라인으로 잰 기록. 부분 실행이라 outputs/mesh_compare_photo.json 은 덮어쓰지 않았다 — 그 원장의 matrice4e·mini5pro 행은 이제 낡았고, 여기 값이 현재 메쉬의 값이다.",
+  "what_changed": [
+   "drones.DroneSpec.rotor_r_mm 신설(로터별 반경) + drones.motor_radii()",
+   "matrice4e: 사다리꼴 로터배치 + motor_dia_mm 27.0 + 짐벌 68x74x60->59x47x52 + 셸 fh 0.669->0.594 + 다리 72->79 mm + RTK 밑동 0.44->0.42 bh",
+   "mini5pro: 사다리꼴 로터배치(뒷쌍 안쪽으로) + 셸 fl 0.612->0.541 / fw 0.460->0.4095 + gear_h 28->31 mm + 짐벌 요축 원통 -> 얕은 바닥 캡",
+   "7종 전부 shape_source 명시(x500v2=manufacturer_cad, 나머지=spec_photo)"
+  ],
+  "caveat_ceiling": "자기복제 상한(ceiling)은 메쉬가 바뀌면 함께 바뀐다 — matrice4e 0.8828->0.8304, mini5pro 0.9558->0.8966. 상한 대비 % 는 두 수가 같이 움직인 결과이므로 raw IoU 를 먼저 볼 것.",
+  "sources_before": {
+   "src/drone_cad.py": "2026-07-30 11:04:44",
+   "src/drones.py": "2026-07-31 06:07:35",
+   "src/cadkit.py": "2026-07-14 12:04:37",
+   "src/geom.py": "2026-07-20 00:53:43"
+  },
+  "sources_after": {
+   "src/drone_cad.py": "2026-07-31 06:55:06",
+   "src/drones.py": "2026-07-31 06:49:04",
+   "src/cadkit.py": "2026-07-14 12:04:37",
+   "src/geom.py": "2026-07-20 00:53:43"
+  }
+ },
+ "airframes": {
+  "matrice4e": {
+   "ceiling_before": 0.8828147930730849,
+   "ceiling_after": 0.83036044704315,
+   "best_iou_before": 0.5585853518704315,
+   "best_iou_after": 0.5772611229123225,
+   "best_file_before": "matrice 4E_3.png",
+   "best_file_after": "matrice 4E_3.png",
+   "pct_of_ceiling_before": 63.273220640763356,
+   "pct_of_ceiling_after": 69.51934246963535,
+   "photos": [
+    {
+     "file": "matrice 4E_5.png",
+     "declared_aspect": [
+      0,
+      85
+     ],
+     "iou_before": 0.4172094916831453,
+     "iou_after": 0.39529255158225934,
+     "contour_mm_before": 21.240729833211365,
+     "contour_mm_after": 23.6387990910789,
+     "free_gain_before": -0.00580237971862102,
+     "free_gain_after": 0.0,
+     "fit_at_window_edge_before": false,
+     "fit_at_window_edge_after": false,
+     "blobs_before": [
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.09054030475747353,
+       "area_mm2": 6522.690735876383,
+       "centroid": [
+        353.20073871848405,
+        501.16781756865265
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.0591776201000349,
+       "area_mm2": 4263.265022485447,
+       "centroid": [
+        469.5776412776413,
+        603.7808353808354
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "prop",
+       "area_frac": 0.049494009538211,
+       "area_mm2": 3565.6398369878284,
+       "centroid": [
+        164.2247356051704,
+        425.30816686251467
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.03810922414795859,
+       "area_mm2": 2745.458875659547,
+       "centroid": [
+        452.47539107210986,
+        190.46394505913773
+       ]
+      }
+     ],
+     "blobs_after": [
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.06761662733708478,
+       "area_mm2": 4678.34601513871,
+       "centroid": [
+        400.98434004474274,
+        318.27069351230426
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.06748048647667454,
+       "area_mm2": 4668.9265265176255,
+       "centroid": [
+        397.18426361802284,
+        497.02622730329523
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "canopy",
+       "area_frac": 0.05634718944757064,
+       "area_mm2": 3898.621679282258,
+       "centroid": [
+        283.0869798657718,
+        408.0875167785235
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "prop",
+       "area_frac": 0.05480425969625461,
+       "area_mm2": 3791.8674749099655,
+       "centroid": [
+        164.13717913331493,
+        410.0242892630417
+       ]
+      }
+     ]
+    },
+    {
+     "file": "matrice 4E_1.png",
+     "declared_aspect": [
+      0,
+      16
+     ],
+     "iou_before": 0.5559691678973882,
+     "iou_after": 0.551327631391829,
+     "contour_mm_before": 12.792849833767136,
+     "contour_mm_after": 12.933868389010534,
+     "free_gain_before": -0.024910465303732865,
+     "free_gain_after": -0.02990004919738054,
+     "fit_at_window_edge_before": false,
+     "fit_at_window_edge_after": false,
+     "blobs_before": [
+      {
+       "side": "mesh only",
+       "part": "camera",
+       "area_frac": 0.09277954237391005,
+       "area_mm2": 4539.761549313018,
+       "centroid": [
+        394.4020933275185,
+        416.510030527693
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.042626798033543065,
+       "area_mm2": 2085.7561239429847,
+       "centroid": [
+        339.4670147128619,
+        629.0849549121974
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.03967306641849926,
+       "area_mm2": 1941.2281723076378,
+       "centroid": [
+        339.83222845486995,
+        190.67006629270782
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.02603734649699569,
+       "area_mm2": 1274.023792840352,
+       "centroid": [
+        253.7031857031857,
+        625.5967365967366
+       ]
+      }
+     ],
+     "blobs_after": [
+      {
+       "side": "mesh only",
+       "part": "camera",
+       "area_frac": 0.07543221664668956,
+       "area_mm2": 3226.438030637186,
+       "centroid": [
+        412.13654726636145,
+        409.33907891193104
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.02923430103813258,
+       "area_mm2": 1250.4293902738784,
+       "centroid": [
+        252.4412786657401,
+        621.3314801945795
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.028990512565264207,
+       "area_mm2": 1240.0019040450484,
+       "centroid": [
+        252.47231955150664,
+        198.96636299929924
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.028502935619527457,
+       "area_mm2": 1219.146931587388,
+       "centroid": [
+        314.97220242337846,
+        635.9736279401283
+       ]
+      }
+     ]
+    },
+    {
+     "file": "matrice 4E_3.png",
+     "declared_aspect": [
+      0,
+      4
+     ],
+     "iou_before": 0.5585853518704315,
+     "iou_after": 0.5772611229123225,
+     "contour_mm_before": 12.611216327669792,
+     "contour_mm_after": 11.235928499098222,
+     "free_gain_before": 0.15617952487211462,
+     "free_gain_after": 0.13600146609300712,
+     "fit_at_window_edge_before": true,
+     "fit_at_window_edge_after": false,
+     "blobs_before": [
+      {
+       "side": "mesh only",
+       "part": "camera",
+       "area_frac": 0.12761573742296115,
+       "area_mm2": 4793.7230886325915,
+       "centroid": [
+        372.7110767934859,
+        463.91183490102486
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.045040848502221585,
+       "area_mm2": 1691.9022665762086,
+       "centroid": [
+        349.98926014319807,
+        229.17541766109784
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "gear",
+       "area_frac": 0.04138598251397449,
+       "area_mm2": 1554.611867856421,
+       "centroid": [
+        346.8770562770563,
+        571.6744588744589
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "gear",
+       "area_frac": 0.03984520567579189,
+       "area_mm2": 1496.7345429059221,
+       "centroid": [
+        333.6488309352518,
+        180.17940647482015
+       ]
+      }
+     ],
+     "blobs_after": [
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.07514664899733012,
+       "area_mm2": 2420.725474651352,
+       "centroid": [
+        238.236255186722,
+        626.7525933609959
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "gear",
+       "area_frac": 0.07193108958743398,
+       "area_mm2": 2317.141526695576,
+       "centroid": [
+        330.06637767542674,
+        527.1238146843674
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "gear",
+       "area_frac": 0.06070586401106932,
+       "area_mm2": 1955.5393811045028,
+       "centroid": [
+        308.65232744783304,
+        587.4908507223114
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "camera",
+       "area_frac": 0.05135150936409877,
+       "area_mm2": 1654.2042597786083,
+       "centroid": [
+        360.4436432637571,
+        432.55445920303606
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "mini5pro": {
+   "ceiling_before": 0.9557820833052049,
+   "ceiling_after": 0.8966347565631057,
+   "best_iou_before": 0.4781253837651971,
+   "best_iou_after": 0.5050824346101401,
+   "best_file_before": "mini 5 pro_2.png",
+   "best_file_after": "mini 5 pro_2.png",
+   "pct_of_ceiling_before": 50.024518362154716,
+   "pct_of_ceiling_after": 56.33090072775828,
+   "photos": [
+    {
+     "file": "mini 5 pro_1.png",
+     "declared_aspect": [
+      0,
+      12
+     ],
+     "iou_before": 0.43001244418417395,
+     "iou_after": 0.4645189720023292,
+     "contour_mm_before": 9.389885424614045,
+     "contour_mm_after": 9.213645938879539,
+     "free_gain_before": 0.07596858106261434,
+     "free_gain_after": 0.04715637623938124,
+     "fit_at_window_edge_before": true,
+     "fit_at_window_edge_after": true,
+     "blobs_before": [
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.08205841446453407,
+       "area_mm2": 2023.1809475059326,
+       "centroid": [
+        326.45245316681536,
+        569.970740410348
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "gear",
+       "area_frac": 0.0704780030744455,
+       "area_mm2": 1737.661566689306,
+       "centroid": [
+        409.68196925633566,
+        604.0758205234732
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "camera",
+       "area_frac": 0.06913110314032647,
+       "area_mm2": 1704.453244268156,
+       "centroid": [
+        416.36975857687423,
+        457.38712409995765
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.06397774687065369,
+       "area_mm2": 1577.3953150046254,
+       "centroid": [
+        283.15194508009154,
+        287.3192219679634
+       ]
+      }
+     ],
+     "blobs_after": [
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.09593805574353567,
+       "area_mm2": 2408.4879724792117,
+       "centroid": [
+        334.4685039370079,
+        554.5777559055118
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "camera",
+       "area_frac": 0.06518625769188398,
+       "area_mm2": 1636.475915683874,
+       "centroid": [
+        422.4167069048769,
+        438.325205214872
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.05637305047134921,
+       "area_mm2": 1415.2237397343401,
+       "centroid": [
+        219.4751535455053,
+        570.1677833612507
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.048409688232794575,
+       "area_mm2": 1215.3065950370826,
+       "centroid": [
+        367.38524057217165,
+        192.83289986996098
+       ]
+      }
+     ]
+    },
+    {
+     "file": "mini 5 pro_3.png",
+     "declared_aspect": [
+      0,
+      85
+     ],
+     "iou_before": 0.4508808633718604,
+     "iou_after": 0.4846442038386459,
+     "contour_mm_before": 11.97544530428902,
+     "contour_mm_after": 11.52661830871282,
+     "free_gain_before": 0.0036129203220002237,
+     "free_gain_after": 0.0,
+     "fit_at_window_edge_before": true,
+     "fit_at_window_edge_after": false,
+     "blobs_before": [
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.08333047524322347,
+       "area_mm2": 2738.368433553754,
+       "centroid": [
+        413.89559610371793,
+        515.3222664288654
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.06005418938848304,
+       "area_mm2": 1973.4736426749719,
+       "centroid": [
+        412.8029697315819,
+        320.4346087949743
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "prop",
+       "area_frac": 0.05104548936218861,
+       "area_mm2": 1677.433812020512,
+       "centroid": [
+        500.83404255319147,
+        301.5930571108623
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.045134959014987826,
+       "area_mm2": 1483.204633786558,
+       "centroid": [
+        305.03242147923,
+        199.54229989868287
+       ]
+      }
+     ],
+     "blobs_after": [
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.056051990251827784,
+       "area_mm2": 1539.3038057472377,
+       "centroid": [
+        388.26844040666236,
+        511.39087172831495
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.051638638650775365,
+       "area_mm2": 1418.1040252384785,
+       "centroid": [
+        388.3651091805588,
+        328.42991312514675
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "prop",
+       "area_frac": 0.04244819767935303,
+       "area_mm2": 1165.715471321886,
+       "centroid": [
+        591.0031419594402,
+        423.10654098828905
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.04036276780193266,
+       "area_mm2": 1108.4452453671977,
+       "centroid": [
+        311.43226194052266,
+        191.78792430159206
+       ]
+      }
+     ]
+    },
+    {
+     "file": "mini 5 pro_2.png",
+     "declared_aspect": [
+      35,
+      30
+     ],
+     "iou_before": 0.4781253837651971,
+     "iou_after": 0.5050824346101401,
+     "contour_mm_before": 13.005998966252177,
+     "contour_mm_after": 11.423781678773915,
+     "free_gain_before": 0.03639122853599497,
+     "free_gain_after": -0.007653462227553087,
+     "fit_at_window_edge_before": false,
+     "fit_at_window_edge_after": false,
+     "blobs_before": [
+      {
+       "side": "photo only",
+       "part": "gear",
+       "area_frac": 0.06533218715461132,
+       "area_mm2": 1924.732222349893,
+       "centroid": [
+        357.1656484962406,
+        225.90695488721803
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.060189733513447134,
+       "area_mm2": 1773.2319181940625,
+       "centroid": [
+        398.2290232083652,
+        605.1114511604183
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.050948667567235664,
+       "area_mm2": 1500.983610427466,
+       "centroid": [
+        302.9828261524556,
+        250.57667972280808
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.04694215890949282,
+       "area_mm2": 1382.9490451000875,
+       "centroid": [
+        226.39960758665794,
+        450.93492478744275
+       ]
+      }
+     ],
+     "blobs_after": [
+      {
+       "side": "mesh only",
+       "part": "camera",
+       "area_frac": 0.10482521383413909,
+       "area_mm2": 2565.230678780511,
+       "centroid": [
+        417.9909830007391,
+        402.22542498152256
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.05895934052311888,
+       "area_mm2": 1442.8237594619134,
+       "centroid": [
+        234.21971090670172,
+        615.0943495400788
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "accent",
+       "area_frac": 0.036661708193876284,
+       "area_mm2": 897.1671524012844,
+       "centroid": [
+        447.5067624683009,
+        493.4311073541843
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.03331473906036941,
+       "area_mm2": 815.2617826131706,
+       "centroid": [
+        364.86511627906975,
+        625.6818604651163
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

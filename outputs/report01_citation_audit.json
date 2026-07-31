@@ -1,0 +1,310 @@
+{
+  "meta": {
+    "generated": "2026-07-31",
+    "lens": "CITATION AUDIT of report01_prior.ipynb (built by src/make_report01_prior.py from outputs/prior_work_survey.json)",
+    "method": "PyMuPDF text extraction + 500-750 dpi page renders for text-less tables. Every claim re-checked against the PDF the survey names. Page numbers are 1-based PDF page indices.",
+    "rule": "a fact needs (a) exact PDF path, (b) which version, (c) the quoted sentence or table cell",
+    "pdfs_opened": 14,
+    "quote_records_re_verified": 54,
+    "quote_records_failing": 0,
+    "term_count_rows_recomputed": 21,
+    "confirmed_items": 12,
+    "problem_items": 11
+  },
+
+  "confirmed": [
+    {
+      "id": "V01",
+      "topic": "Sionna RT engine facts (report01 §1)",
+      "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+      "version": "document 'Version 1.2' dated 2025-11-24; 59 pages (file is named -v1 but is not v1)",
+      "recomputed_by_me": {"physical optics": 0, "radar cross[- ]section": 0, "\\bRCS\\b": 0, "dBsm": 0, "\\bSBR\\b": 44, "surface integral": 1, "Fresnel": 8},
+      "page_cites_checked": {
+        "p.9 four interactions": "VERBATIM: 'Sionna RT currently supports four types of interactions with scene objects:' followed by Specular reflection / Diffuse reflection / Refraction / Diffraction",
+        "eq 127-130 on p.46": "CORRECT - 'The Fresnel equations provide relationships between the incident, reflected, and refracted field components' then (127),(128),(129),(130) all on PDF p.46",
+        "p.50-52 scattering coefficient S": "CORRECT - p.50 'we denote by S^2 the fraction of the reflected energy that is diffusely scattered, where S in [0,1] is the so-called scattering coefficient'; f_s and the example patterns on p.51-52",
+        "p.16 first-order diffraction": "CORRECT - 'Sionna RT currently supports only first-order diffraction' occurs on p.16 (also 29,33,35)"
+      },
+      "verdict": "every §1 number and page cite reproduces exactly. X-C13 is properly closed from primary sources."
+    },
+    {
+      "id": "V02",
+      "topic": "X-C6 - the 'drones, humans, and micro-Doppler' future-work sentence (report01 §2.5)",
+      "conference_pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+      "found_on": "conference version, PDF p.5, conclusion, VERBATIM: 'The proposed solution can also be applied to compute scattering from other objects, such as drones, humans, and micro-Doppler effects, making it an important area for further investigation.' - 1 occurrence in the whole file",
+      "journal_pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+      "journal_result": "ABSENT. 'drone' occurs only inside reference [34] (a Costa title); 'micro-Doppler' occurs once as future-work item 4 with different wording",
+      "verdict": "report01 §2.5 attributes it to 학회판 p.5 결론 - CORRECT. The positioning sentence stands behind a peer-reviewed sentence."
+    },
+    {
+      "id": "V03",
+      "topic": "X-C5 - Ziganshin two versions stay distinct at every occurrence (report01 §2.5, §3.2, §4.1)",
+      "conference": {
+        "status": "PUBLISHED",
+        "evidence": "PDF /Subject = '2025 19th European Conference on Antennas and Propagation (EuCAP);2025; ; ;10.23919/EuCAP63536.2025.10999367'; /Creator = 'Certified by IEEE PDFExpress at January 23, 2025'; Xplore footer on all 5 pages",
+        "reported_quantity": "Fig. 6 caption VERBATIM 'Fig. 6: RCS of the simplified car', y-axis 'RCS (dBsm)' - matches the report's '패싯 차량 RCS 를 dBsm 으로 (Fig.6)'",
+        "target": "'The dimensions of this car model are around 3.3x2.1x1.7 (LxWxH) meters' p.2 - matches the census cell verbatim",
+        "reference_solvers": "MLFMM for the discretised spheres, PO for the car (p.3, explicit) - the conference version has NO measurement"
+      },
+      "journal": {
+        "status": "PREPRINT",
+        "evidence": "p.1 VERBATIM 'This is a preprint version of a manuscript submitted to the IEEE Open Journal of Antennas and Propagation'; arXiv stamp 'arXiv:2604.05991v2 [eess.SP] 2 Jul 2026'; the string '10.1109/OJAP' occurs 0 times",
+        "different_title": "'Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications' - a distinct document, not a version of the same title",
+        "reported_quantity": "|E_sc| in dB and the discretisation figure of merit E^2/(R lambda); dBsm 0 times",
+        "engine": "p.3 VERBATIM 'Sionna-RT (v0.19) [19] was used as a basic RT framework'"
+      },
+      "verdict": "the two versions are kept apart in every occurrence in report01. §2.5's table is correct on both rows."
+    },
+    {
+      "id": "V04",
+      "topic": "Das anchor 0.21 dB/GHz (report01 headline result 5, §4.2, §4.3)",
+      "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+      "version": "IEEE WCL published version, /Subject = 'IEEE Wireless Communications Letters;2026;15; ;10.1109/LWC.2026.3705634'; running heads 3731-3735",
+      "table_III_read_independently": "I rendered PDF p.4 at 500 dpi myself. Phantom 3 row, theta_b = 0 deg: 'mu = 0.21 f - 19.19'; eps = 0.03 f + 5.16 identical in all seven bistatic columns; slope 0.21 identical in all seven columns, intercept moves -19.19 -> -19.82",
+      "table_I_read_independently": "rendered p.2 at 500 dpi. DJI Phantom 3 column: Dimension 35 cm x 20 cm | Frequency Band 1.8 GHz-18.2 GHz | Frequency points 2801 | Azimuth resolution -90 deg <= phi(=2 deg) <= 90 deg | TX-RX distance Far-field | Environment Anechoic",
+      "statistic": "§III-1 VERBATIM 'The mean RCS is defined as sigma^AAV_m(theta_b, f_i) = (1/K) sum_k sigma^AAV(theta_b, f_i, phi_k)' - a LINEAR azimuth average, exactly as the brief's H2 said",
+      "arithmetic_check": "0.21*3.5 - 19.19 = -18.455 dBsm, which is the value report01 §4.3 prints for 5G 3.5 GHz",
+      "verdict": "the coefficient, the platform, the band cell and the statistic definition all check out from the primary PDF. The Das row's '1.8-18.2 GHz' in §4.3 is the Phantom 3 cell, not the paper-wide 1.8-27 GHz - correctly scoped."
+    },
+    {
+      "id": "V05",
+      "topic": "Yuan slopes (report01 §4.3)",
+      "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+      "venue": "PDF /Subject = '2025 19th European Conference on Antennas and Propagation (EuCAP);2025; ; ;10.23919/EuCAP63536.2025.10999912' - published",
+      "quote": "p.4 VERBATIM 'the regression parameters mean values {a, b, c, d} are calculated as {0.315, -16.15, 0.0045, 0.07}, {0.231, -17.92, 0.0024, 0.06}, and {0.175, -17.12, 0.0019, 0.07} for theta = 90, theta = 0, and theta = 180, respectively'",
+      "polarisation": "p.2 VERBATIM 'Both the transmitter and receiver (TX and RX) were equipped with vertically polarized directional antennas' - Yuan, not Das, is the correct source for VV, as the report's §4.3 row says",
+      "statistic_hedge": "Yuan only writes 'mu = a*f + b for mean fitting (the mean value in dBsm and the frequency in GHz)' and never says how the mean is formed. report01's sentence '표의 Yuan 행을 같은 축으로 읽는 것은 우리 추론이다' is exactly right and is the correct hedge."
+    },
+    {
+      "id": "V06",
+      "topic": "Zhang decomposition and 3GPP adoption (report01 §3.1, §4.2, §4.3)",
+      "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+      "venue": "/Subject = 'IEEE Journal on Selected Areas in Communications;2026;44; ;10.1109/JSAC.2025.3608732'; p.1 running head '702 ... VOL. 44, 2026'; last page '716' - vol.44 pp.702-716 CONFIRMED",
+      "decomposition": "p.6 eq (13) VERBATIM 'sigma(f, phi) = A(f) x B1(f, phi) x B2'; p.9 'we parameterize it as B1(f, phi) = B1(phi)' - so the report's shorthand A(f)*B1(phi)*B2 is the paper's own",
+      "eq15": "p.9 VERBATIM 'This component is angle-independent and is typically obtained by calculating the linear average of the RCS values measured at all angles, as defined below A(f) = sum_i sigma_i(f, phi_i) / N, (15)' - report01's '(Zhang 식 (15))' cite is CORRECT",
+      "adoption": "p.7 VERBATIM 'The proposed unified RCS modeling approach has been adopted by the 3GPP Technical Specification Group Radio Access Network Working Group 1 (TSG RAN1) during meeting #120 [41], and is now part of the official standard'",
+      "slope": "p.10 eq (17) VERBATIM 'A_AAV = 0.31 * f - 9.26' - the 0.31 dB/GHz in §4.3 is in the PUBLISHED text layer, NOT only in the arXiv Table V. No version conflation here.",
+      "band": "p.7 'five carrier frequencies (10 GHz, 15 GHz, 20 GHz, 28 GHz, and 36 GHz)' - the '10-36 GHz' cell is correct",
+      "platform": "p.7 'The AAV used is the DJI M350, with four symmetrically deployed rotor arms and approximate dimensions of 430 x 420 x 430 mm'"
+    },
+    {
+      "id": "V07",
+      "topic": "Rzewuski, the whole of H8-Q1 (report01 §4.1.1, §3.1, §5)",
+      "pdf": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+      "venue": "p.1 header 'STO-MP-MSG-SET-183 / 13 - 1'; PDF /Subject = 'MSG-SET-183'; /Author = 'Stanislaw Rzewuski'; creationDate 2021-06-30 - venue, paper number and year all confirmed",
+      "fdtd": "p.4 VERBATIM 'Mono- and bi-static radar cross-sections (RCS) of the Parrot AR.Drone 2.0 were computed with a finite-difference time-domain (FDTD) method implemented in the commercial software package, QuickWave-3D [2,3].'",
+      "dbsm_and_page": "report01 cites (p.5). CORRECT: p.5 VERBATIM 'It is clearly visible that Parrot drone (bistatic) RCS characteristics is not symmetrical ... The most important is that the RCS range for WIFI band is between -40dBsm and 0dBsm (and average around -20dBsm).' The word 'bistatic' is in the same sentence, so the report's 'WiFi 대역 드론 바이스태틱 sigma' is properly scoped.",
+      "detection_and_page": "report01 cites (p.9). CORRECT: p.9 VERBATIM 'Experiment shows that it is possible to detect small size Parrot AR. Drone on bistatic distance equal to 50m.' The figure on the same page is captioned 'Crossambiguity function (WIFI signal - duty factor 18%) with drone present during flight.'",
+      "verdict": "the single most consequential new claim in the report - that the finished product already exists in published prior art - is fully sourced, with both page cites exact."
+    },
+    {
+      "id": "V08",
+      "topic": "All verbatim quotes machine-re-verified against the named page",
+      "method": "I re-ran the check independently of the builder, normalising ligatures (fi/fl/ff), Unicode math italics, en/em/minus dashes and soft hyphens, then requiring the whitespace-stripped quote to appear on the named page",
+      "records": 54,
+      "papers_quotes": 46,
+      "engine_quotes": 7,
+      "anchor_quote": 1,
+      "failures": 0,
+      "verdict": "zero fabricated attributions. The three apparent misses in my first pass were my own normalisation bug (S vs the Unicode italic S in the tech report; 'coefficient' with the fi ligature in Costa; 'finite-difference' broken across a line in Rzewuski) and all three resolve to exact hits."
+    },
+    {
+      "id": "V09",
+      "topic": "X-C2 - Clutter-Aware CFAR vocabulary, the E1-shaped negative",
+      "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf",
+      "version": "Proceedings of the IEEE 114(1), /Subject = 'Proceedings of the IEEE;2026;114;1;10.1109/JPROC.2026.3675476', 41 pages",
+      "my_independent_counts": {"CFAR": 4, "false alarm": 3, "validat*": 0, "dBsm": 0, "Sionna": 13, "ray-trac": 7, "RCS": 11, "mesh": 2},
+      "verdict": "the survey's machine counts are right and the prose negative was correctly retracted. The only negative report01 still prints about this paper - near-miss row 3, '41쪽에 validat* 0회, dBsm 0회' - is TRUE. X-C1 also holds: p.23 VERBATIM 'The ToI and UAVs are modeled as simplified 3-D mesh objects imported into Sionna'."
+    },
+    {
+      "id": "V10",
+      "topic": "Derived counts in the report body recomputed from the papers array",
+      "checks": {
+        "counts.zero_cfar_and_false_alarm = 14": "recomputed 14 (das, zhang, costa_c, costa_j, wei, mdrt, zig_c, hoydis, zig_j, montaner, lambda, openisac, sagitta, greatx)",
+        "counts.prints_dbsm = 6": "recomputed 6 (yuan, das, zhang, rzewuski, zig_c, sagitta)",
+        "counts.prints_dbsm_and_runs_engine = 1": "recomputed 1 - zig_c only, and its target is the simplified car, exactly as headline result 4 says",
+        "funnel.all g1/g2/g3 = 10/3/0": "recomputed 10/3/0 as a cumulative G1 and G2 and G3 gate",
+        "counts.published/preprint = 11/10": "recomputed 11/10 from the status fields",
+        "21 = 16 census + 5 added": "consistent"
+      },
+      "term_counts": "I recomputed all 11 term columns for all 21 papers with my own regexes. 10 cells of 231 differ, all by 1-2 and all explainable by regex variant (hyphenated 'ray-tracing', 'validation' vs 'validated', 'UAVs' plural). No cell is materially wrong."
+    },
+    {
+      "id": "V11",
+      "topic": "Preprint-vs-published status of the four H7 papers and the two 'accepted in body' papers",
+      "checks": {
+        "Ziganshin journal": "PREPRINT - see V03",
+        "OpenISAC": "PREPRINT - arXiv:2601.03535v2 stamp; 'IoT-J' 0 occurrences; census row says 프리프린트",
+        "LAMBDA": "PREPRINT - arXiv:2607.03826v1 stamp",
+        "Montaner": "PREPRINT - arXiv:2603.28736v1 [eess.SP] 30 Mar 2026; the string 'accepted' occurs 0 times in the whole PDF, so the census cell '프리프린트 (EuCAP 2026 채택 주장은 PDF 밖 · 미검증)' is exactly the right hedge and satisfies X-C9",
+        "Sagitta": "p.1 VERBATIM 'Note. This manuscript is an extended version of the paper accepted at the 26th International Conference on Computational Science (ICCS 2026).' - the census cell quotes this correctly",
+        "FWA cube": "p.1 VERBATIM 'This work has been partly accepted by IEEE ICC Workshops 2026' - the census cell quotes this correctly"
+      },
+      "note": "X-C10 also holds: Montaner p.2 VERBATIM 'Purely specular RT on low-polygon meshes underestimates power at mmWave/sub-THz due to electromagnetic roughness; direct meshing at O(lambda/10) is infeasible at E-band [12].' Both band qualifiers are in the sentence. report01 does not cite this sentence at all, so the inverted-argument trap is not reproduced in the report."
+    },
+    {
+      "id": "V12",
+      "topic": "Remaining census / catalogue cells spot-checked against their PDFs",
+      "checks": {
+        "Costa conference venue": "the census says 'IEEE RadarConf 2024'. The PDF /Subject is EMPTY but p.1 carries the full sidebar VERBATIM '2024 IEEE Radar Conference (RadarConf24) | 979-8-3503-2920-9/24/$31.00 (c)2024 IEEE | DOI: 10.1109/RADARCONF2458775.2024.10548468' - venue CONFIRMED, and the survey's locator understates the evidence it actually has",
+        "Costa journal": "/Subject = 'IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation;2025;1;1;10.1109/JSTEAP.2025.3604407'. p.6 VERBATIM 'the Pearson correlation coefficient was used to check the similarity ... This produces a cross-correlation coefficient of 0.98 across the bistatic angles from 30 to 180' - so §3.1's 'Pearson 상관 0.98' and the 30-180 deg range are both the paper's own words",
+        "Wei": "/Subject = 'IEEE Transactions on Wireless Communications;2025;24;12;10.1109/TWC.2025.3578033'; p.1 running head '10166 ... VOL. 24, NO. 12, DECEMBER 2025' - vol/no/pages confirmed",
+        "md-rt": "/Subject = '2025 IEEE 25th International Conference on Communication Technology (ICCT);2025; ; ;10.1109/ICCT67417.2025.11374154'; p.1 carries '359' and the venue sidebar; Table I p.3 VERBATIM 'Propeller material Wood'",
+        "Sagitta A380 size": "the census prints 'PEC A380 여객기 (80x73x21 m)'. p.10 Fig. 6 caption VERBATIM 'Simulated A380 aircraft model with approximate dimensions of 80 x 73 x 21 m, discretized using 162,000 triangular elements' - not reconstructed from memory",
+        "LAMBDA CADFEKO p.3 and p.7": "both quotes verified on their named pages - X-C4 settled, both competing citations are real"
+      }
+    }
+  ],
+
+  "problems": [
+    {
+      "id": "P01",
+      "severity": "high",
+      "where": "report01_prior.ipynb §2.2 census row 'Hoydis (미분가능 RT) | IEEE TMLCN 2024 | 게재'; outputs/prior_work_survey.json papers[10]; the printed 방법 row '게재상태 | PDF 메타데이터 subject · 지면 스탬프 · arXiv 스탬프로 논문마다 확정했다'",
+      "issue": "The report cites an arXiv PREPRINT file and attaches a published venue, year and DOI to it that appear nowhere in that file - while the published version sits on disk, unused. This is E2 (version conflation) and E6 (claim traced to a document that does not contain it) in one row.",
+      "evidence": {
+        "cited_pdf": "/data/public/sionna_jeong/papers_isac_sionna/2311.18558__hoydis_learning-radio-env.pdf",
+        "what_it_actually_is": "arXiv:2311.18558v1 [cs.IT] 30 Nov 2023, 11 pages, PDF /Subject is EMPTY, no journal running head",
+        "asserted_by_survey": "venue_ko 'IEEE TMLCN', status 'published', status_ko '게재', locator 'DOI 10.1109/TMLCN.2024.3474639', venue_evidence 'PDF 메타데이터 + 본문'",
+        "machine_check": "in the cited PDF the strings 'TMLCN', '10.1109', 'Transactions on Machine Learning' and 'Digital Object Identifier' each occur 0 times; the only arXiv-family hit is the paper's own stamp",
+        "the_published_pdf_is_on_disk": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Learning_Radio_Environments_by_Differentiable_Ray_.pdf - 12 pages, md5 fd11c20d188239b49f57a47bbe1f01c8, /Subject = 'IEEE Transactions on Machine Learning in Communications and Networking; ;PP;99;10.1109/TMLCN.2024.3474639'",
+        "scope_of_the_defect": "I ran this test over all 21 rows. Hoydis is the ONLY published-status row whose PDF has both an empty /Subject and no venue string in the body. Costa conference also has an empty /Subject but carries the venue line and DOI printed on p.1, so its evidence is real.",
+        "collateral": "papers[hoydis].pages = 11 and all its term counts were measured on the preprint, so they describe a different document from the one the row names. Also note the published /Subject says volume PP issue 99 (early access), so the real volume and page range are NOT obtainable from either file - do not fill them in from memory.",
+        "misfiling_that_probably_caused_it": "a copy of the same preprint is filed at .../papers_isac_sionna/published_by_venue/IEEE_TMLCN/2311.18558__hoydis_learning-radio-env.pdf (byte-identical, md5 61f394f3f4d96b165f4264419406be3b) - the directory name asserts the venue, the file does not"
+      },
+      "fix": "In prior_work/src/build_prior_survey.py repoint the hoydis PDF to paper_sionna_Ray_0723/Learning_Radio_Environments_by_Differentiable_Ray_.pdf, rerun so pages and term counts are remeasured on the published document, set venue_evidence to the actual /Subject string, and leave volume/pages out (record 'PP/99 early-access, vol/pages not in either PDF'). Until then the 방법 row's claim that publication status was fixed per-paper from metadata or stamps is falsified by this one row."
+    },
+    {
+      "id": "P02",
+      "severity": "high",
+      "where": "report01_prior.ipynb §4.1, the sentence '후보 8편을 관문별로 판정했고, 넷을 동시에 통과한 편은 0 ⟨outputs/prior_work_survey.json : funnel.all.g3_mesh_scattering⟩편이다'",
+      "issue": "The count of papers passing all FOUR H8 prongs is injected from funnel.all.g3_mesh_scattering, which measures a DIFFERENT test on a DIFFERENT population. The headline claim of the report is therefore backed by a number that does not mean what the sentence says.",
+      "evidence": {
+        "what_g3_is": "gates G1 and G2 and G3 applied cumulatively to all 21 papers. It has no published component and no validation component.",
+        "what_the_sentence_claims": "papers passing P1 published AND P2 drone mesh AND P3 Sionna-class engine AND P4 validated amplitude, over the 8 adjudicated candidates",
+        "proof_they_differ": "Ziganshin conference scores yes on P3 and yes on P4 in the printed scorecard (figure 4) but contributes 0 to the G3 funnel because it is eliminated one gate earlier at G2. Clutter-Aware scores yes/yes/yes on P1-P3 and is eliminated at P4, but is eliminated at G3 in the funnel. The two tests agree at 0 today by coincidence of the current population, not by construction.",
+        "json_gap": "outputs/prior_work_survey.json h8 has claim/verdict/prongs/n_candidates_adjudicated/near_miss but NO field counting papers that pass all four prongs"
+      },
+      "fix": "Add h8.n_passing_all_prongs = 0 (computed from the prongs dict: a paper passes only if all four are '예') to build_prior_survey.py and inject THAT key in §4.1. Keep the funnel number where it belongs, in §2 and headline result 2."
+    },
+    {
+      "id": "P03",
+      "severity": "medium",
+      "where": "report01_prior.ipynb §4.1 P1 prong text vs §2.3/§2.4 status cells vs figure 4",
+      "issue": "The report prints a P1 rule it does not apply. P1 says '동료심사 지면에 실렸다. arXiv 전용 원고는 제외하고, 본문에 명명된 지면 채택을 적은 원고는 포함한다' - manuscripts that state a named venue acceptance in the body are INCLUDED as published.",
+      "evidence": {
+        "sagitta": "p.1 states acceptance at ICCS 2026 verbatim, yet the census status cell reads 프리프린트 and figure 4 scores its P1 'partial', not 'yes'",
+        "fwa_cube": "p.1 states partial acceptance at IEEE ICC Workshops 2026 verbatim, same treatment",
+        "numeric_consequence": "applying the printed rule would move counts.published/preprint from 11/10 to 13/8 and funnel.published.g1_engine from 4 to 5 (FWA cube runs Sionna RT). None of it changes the H8 verdict - Sagitta fails P2 and P3, FWA cube fails P2 - but the report currently states a rule and prints numbers computed under a different one."
+      },
+      "fix": "Either narrow the P1 sentence to what was actually applied (peer-reviewed venue of record only; an in-body acceptance statement scores 'partial' and is counted as preprint), or promote the two rows and re-derive the counts. The first is safer and matches figure 4."
+    },
+    {
+      "id": "P04",
+      "severity": "medium",
+      "where": "report01_prior.ipynb §4.1, near-miss table row 1",
+      "issue": "'후보 8편을 관문별로 판정했고 … 가장 가까운 셋은 각각 다른 관문에서 걸린다' is immediately followed by a table whose top row, Rzewuski, is not one of the 8 and does not appear in figure 4's scorecard. The reader cannot check the report's most load-bearing near-miss against the rubric printed three lines above it.",
+      "evidence": {
+        "papers_with_prongs": "mdrt, clutter, zig_c, zig_j, lambda, sagitta, fwa_cube, greatx - exactly 8, no rzewuski",
+        "near_miss_rank1": "'Rzewuski (NATO STO 2021)' with gap '엔진 한 칸 — 광선엔진 대신 FDTD 로 풀었다'",
+        "figure4_rows": "Clutter-Aware, FWA cube, Great-X, LAMBDA, SagittaSBR, Ziganshin conf., Ziganshin jour., md-rt"
+      },
+      "fix": "Give Rzewuski a prongs entry (from its own PDF it reads P1 yes / P2 yes, a full FDTD airframe / P3 no, FDTD not a ray engine / P4 yes, p.5 says the asymmetry is 'confirmed by the measurements [3]') and add it to figure 4, so 'candidates' and 'near misses' come from one population."
+    },
+    {
+      "id": "P05",
+      "severity": "medium",
+      "where": "report01_prior.ipynb headline result 5 ('Das 측정 0.21 dB/GHz 에 맞춘다'), §4.2 table row 2 ('Das 측정에 정렬'), §4.3 table row 1",
+      "issue": "Das did not measure the Phantom 3. The report attributes the anchor measurement to Das three times and never surfaces the provenance, even though our own survey JSON records it in anchors.das.provenance_ko.",
+      "evidence": {
+        "das_section_I_verbatim": "'The DJI Phantom 2 dataset is newly measured in this work, whereas the RCS data for the DJI Mini 2, Phantom 3, and M350 RTK were obtained from [7] and are further processed and analyzed here'",
+        "das_acknowledgment_verbatim": "'The authors would like to thank Prof. Wei Fan from Southeast University for providing the measured RCS data for the DJI Mini 2, DJI Phantom 3, and DJI M350 RTK.'",
+        "reference_7": "'Z. Wang, Y. Zhang, Y. Ren, W. Fan, Z. Yuan, and W. Wang, \"A comprehensive study on target RCS measurement for integrated sensing and communication channel,\" China Commun., vol. 2026, pp. 1-10, Jun. 2025' - NOT on disk",
+        "why_it_matters": "the level and slope of our whole sigma calibration hang on this row, and the chain to the actual measurement report is unobtainable. It also explains the Yuan/Das gap the report calls '고도 3측면 대조' - they are near-certainly the same raw sweep summarised twice."
+      },
+      "fix": "Say 'Das 의 적합계수' rather than 'Das 측정', and add one sentence to §4.3: the Phantom 3 rows are a re-analysis of data supplied by the Southeast University group and routed through Das reference [7] (China Communications), which is not on disk."
+    },
+    {
+      "id": "P06",
+      "severity": "medium",
+      "where": "report01_prior.ipynb §4.3 opening paragraph",
+      "issue": "Two over-claims in one sentence: 'Das 와 Zhang 은 평균 통계를 전 각도 sigma 의 선형평균으로 정의한다 … 그래서 두 기울기는 같은 축 위에 있다.'",
+      "evidence": {
+        "a_scope": "Zhang eq (15) really is over all angles (-180 to 180 at 5 deg). Das's Phantom 3 is not: Table I gives azimuth '-90 deg <= phi(= 2 deg) <= 90 deg', a half plane. '전 각도' is wrong for the anchor platform.",
+        "b_das_contradicts_itself": "Das §III-2 'Remark on 3GPP alignment' writes VERBATIM 'ln(sigma^AAV(f)) ~ N( (ln(10)/10) mu , ((ln(10)/10) eps)^2 )', which makes mu a dB-DOMAIN mean - the opposite convention from §III-1. Our own outputs/prior_settled_anchor.json item A8 records this as VERIFIED and marks the convention UNSETTLED.",
+        "c_misattributed_cause": "§4.3's closing paragraph does disclose the 2.51 dB split but blames it on '두 파일이 서로 다른 쪽을 쓰고 있으며' - our own two files - when the ambiguity originates in the source paper."
+      },
+      "fix": "Rewrite as: Das §III-1 defines the mean as a linear average over its measured azimuth span (half plane for the Phantom 3) and Zhang eq (15) over all angles; Das §III-2 then writes a log-normal relation that implies a dB-domain mean, so the source is internally inconsistent and the 2.51 dB conversion is a bet, not a derivation."
+    },
+    {
+      "id": "P07",
+      "severity": "medium",
+      "where": "report01_prior.ipynb §5 next-steps row 4",
+      "issue": "'Wypich & Zielinski 원문(Sensors, open access)를 받아 …' names a venue and an access model for a document that exists nowhere on disk, and omits the qualifier our own settlement says must accompany every citation of it. This is the E6 pattern reproduced inside the report that fixes E6 elsewhere.",
+      "evidence": {
+        "search": "no PDF matching wypich or zielin anywhere under /data/public",
+        "survey_own_verdict": "outputs/prior_work_survey.json contradictions X-C17: verdict 'UNVERIFIED — 원문 부재', settled_ko '/data/public 전체 268 PDF 에 파일이 없다. 별표를 떼고 인용마다 \"원문 미확보 · 표적은 차량(5.8 GHz)\" 을 붙인다'",
+        "report_carries_neither": "report01 §5 attaches neither the '원문 미확보' flag nor the vehicle-target mismatch"
+      },
+      "fix": "Rewrite the cell as 'Wypich & Zielinski (원문 미확보 · 표적은 차량 5.8 GHz · 게재처 미검증) 를 입수해 …' - or drop the venue string until a PDF exists."
+    },
+    {
+      "id": "P08",
+      "severity": "low",
+      "where": "outputs/prior_work_survey.json papers[].first_author (not printed in report01 body, but this JSON is the bibliography source of record)",
+      "issue": "Four first_author fields are wrong; one of them collides with a different paper in the same survey.",
+      "evidence": {
+        "zhang": "field says 'P. Zhang'. The JSAC paper's first author is Yuxiang Zhang (p.1 author line). 'P. Zhang' is Peize Zhang, a CO-AUTHOR of the DAS letter - i.e. the field names a person from a different row of the same survey.",
+        "lambda": "field says 'LAMBDA'. p.1 author line: Lin Zhou, Peichuan Rao, Chenshuo Zhang, Jianhua Mo, Shu Sun, Zhiyong Chen, Meixia Tao.",
+        "openisac": "field says 'OpenISAC'. p.1: Zhiwen Zhou, Chaoyue Zhang, Xiaoli Xu, Yong Zeng.",
+        "sagitta": "field says 'SagittaSBR'. p.1: Marco Pasquale, Andong Hu, Luca Pennati, Ivy Peng, Stefano Markidis (KTH); the paper's own title is 'BVH-Accelerated Ray Tracing for High-Frequency Electromagnetic Backscattering' and SagittaSBR is the software name."
+      },
+      "fix": "Set first_author from the PDF author line for these four. The report's visible short_ko labels are fine (Zhang / LAMBDA / OpenISAC / Sagitta all read correctly to a reader), so this is a JSON hygiene fix, not a body edit."
+    },
+    {
+      "id": "P09",
+      "severity": "low",
+      "where": "report01_prior.ipynb §3 paragraph under figure 2, and §3.2 catalogue row 'Li (md-rt)'",
+      "issue": "The report shrinks md-rt's own claim in our favour, and the one line of our evidence that records the paper's larger claim is not printed.",
+      "evidence": {
+        "report_says": "'md-rt 는 스펙트로그램 능선의 위치를 주장한다 … 조달처와 주장의 크기가 맞는 선택이다'",
+        "paper_says_p2": "VERBATIM 'We validate the effectiveness of Sionna RT in simulating Micro-Doppler effects induced by UAVs rotor motion.'",
+        "paper_says_p3": "VERBATIM 'In this section, we validate the accuracy of the Sionna RT framework for simulating rotational micro-Doppler effects. The simulated results are compared with the analytical formulas derived in Section II'",
+        "our_own_record": "outputs/prior_work_survey.json h8.near_miss rank 4 says 'Sionna RT 정확도 검증을 명시적으로 주장' - but §4.1 prints only near_miss rows 0-2, so this qualifier never reaches the reader",
+        "also": "the paper never uses the word 'ridge'; '능선' is our vocabulary, and the survey's own ledger lists ridge convention as an unsettled item"
+      },
+      "fix": "One clause: md-rt itself claims to validate Sionna RT's accuracy for rotational micro-Doppler, but its reference is its own closed-form kinematic formula, not an amplitude measurement - which is why it scores no on P4. Or print near_miss rows 0-3 instead of 0-2."
+    },
+    {
+      "id": "P10",
+      "severity": "low",
+      "where": "report01_prior.ipynb §4.1.1 Q2",
+      "issue": "'Ziganshin 저널판은 메쉬 산란을 Sionna 안에서 실측과 맞댔다' drops the authors' own limitation, which our JSON already records.",
+      "evidence": {
+        "paper_p7_verbatim": "'The comparison should be interpreted as a qualitative validation rather than an attempt to exactly reproduce the measurements'",
+        "our_json": "papers[zig_j].prongs.P4 = '예, 단 저자가 정성적 검증이라 명시' - the caveat is in the evidence file and absent from the body",
+        "direction": "this over-states the prior work and under-states our gap, so it is conservative rather than self-serving - hence low"
+      },
+      "fix": "Add '저자 스스로 정성적 검증이라 적는다' to the Q2 sentence."
+    },
+    {
+      "id": "P11",
+      "severity": "low",
+      "where": "report01_prior.ipynb headline result 1 and §2 ('논문 21편 · 게재 11편'), and §2.1 Rzewuski status cell",
+      "issue": "Two counting caveats that a reviewer will raise.",
+      "evidence": {
+        "documents_not_works": "21 files = 19 distinct works. Costa and Ziganshin each appear twice (conference + journal). §2.5 discloses this for Ziganshin and justifies it; nothing discloses it for Costa, whose two versions report the SAME statistic - conference p.5 'a cross-correlation coefficient of approximately 0.98 across the bistatic angles from 30 to 180' and journal p.6 'a cross-correlation coefficient of 0.98 across the bistatic angles from 30 to 180'.",
+        "rzewuski_peer_review": "Rzewuski is counted 게재 and is the entire basis of H8-Q1, but NATO STO Meeting Proceedings are not peer-reviewed in the sense P1 states ('동료심사 지면에 실렸다'). The direction is conservative - it weakens our own novelty - but the rubric and the row disagree."
+      },
+      "fix": "Say '문서 21건 · 저작 19편' once in §2, and add a half-sentence to §4.1.1 that Rzewuski is NATO STO meeting proceedings rather than a peer-reviewed journal or conference, which if anything makes H8-Q1 easier to state."
+    }
+  ],
+
+  "not_findings_checked_and_cleared": [
+    "Zhang's 0.31 dB/GHz - I suspected it might have come from the arXiv Table V (the survey warns Table V has no text layer in the published version). It does not: eq (17) 'A_AAV = 0.31 * f - 9.26' is in the PUBLISHED text layer on p.10. No version conflation.",
+    "Das's band - §4.3 prints '1.8-18.2 GHz' for Das while the census prints '1.8-27 GHz'. Both are right: 1.8-18.2 is the Phantom 3 Table I cell, 1.8-27 is the paper-wide span across four airframes.",
+    "The 46 verbatim quotes - all present on their named pages. The builder's die-on-miss guard works.",
+    "sionna_api.rcs_api_names = 0 - I scanned the installed sionna/rt package statically (no GPU touched): zero public names matching rcs|radar_cross|cross_section, and the scattering family resolves to BackscatteringPattern / ScatteringPattern / register_scattering_pattern / scattering_pattern_registry. The 161 total comes from dir(rt) at runtime in benchmark/prior_census.py:538 and was not re-derivable statically, but nothing load-bearing rests on it.",
+    "Rzewuski page cites p.5 and p.9 - the document's own pagination is '13 - n' so the ordinal matches the PDF page index; no off-by-one."
+  ]
+}

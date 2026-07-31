@@ -1,0 +1,628 @@
+{
+ "_meta": {
+  "generated": "2026-07-31 06:17:45",
+  "generator": "src/make_report06_measurement.py :: derive()",
+  "purpose": "리포트 06 이 인용하는 **설계값**. 측정값은 하나도 없다.",
+  "inputs": [
+   "outputs/report06_measurement.json",
+   "outputs/measurement_plan.json",
+   "outputs/sigma_anchor.json",
+   "outputs/sigma_sensitivity.json"
+  ],
+  "paper_section": "VI. Validation",
+  "definitions": {
+   "R_ff": "2*D^2/lambda. D 정의 3종: env(로터 디스크 포함 외접상자 3D 대각) · bbox(프로펠러 포함 수평 최대치수) · diag(모터-모터, 앵커 문헌 관례). 채택은 가장 보수적인 env.",
+   "margin_*_db": "교정구 정확 Mie sigma - 기체 예상 sigma(L2 크기보정) [dB]. 양수면 교정구가 표적보다 밝다.",
+   "dR_m": "c/(2B) — 모노스태틱 거리분해능. 점표적 조건은 dR > D_bbox.",
+   "az_recommended_deg": "lambda/(4*D_bbox) [deg] — 방위 각도표본 권장 간격.",
+   "gap_db": "ours = sigma_anchor.json:drones.<k>.slope_ours_3band_db_per_ghz (세 밴드 방위평균 mu 를 f[GHz] 에 1차 적합, el=0). gap = (ours - anchor) * span — 대역 끝에서 두 가설이 벌리는 간격 [dB]. 세션간 진폭 재현성이 이보다 나빠야 기울기 판정이 성립한다.",
+   "differential_db": "(L4-L2)_matrice4e - (L4-L2)_mini5pro [dB]. 두 기체가 앵커보다 각각 크고 작으므로 두 법칙의 예측이 **반대 방향**으로 갈린다.",
+   "modes": "평균 레벨이동 = 세 밴드 delta_db 의 산술평균 [dB]. slope_only 는 밴드 비가중 평균 레벨을 축으로 회전만 시키므로 0 이고, 절대 레벨은 우리 PO 출력 그대로다. 나머지 두 모드는 크기전이 법칙으로 축까지 옮긴다.",
+   "path_diff_m": "2hH/R — 표적경유 지면반사와 직접 표적경로의 경로차 [m].",
+   "ranking_validation": "flip_span = 자세평균 σ 에서 두 파형의 R90 순서를 뒤집는 데 필요한 밴드별 σ 이동폭 [dB] ⟨sigma_sensitivity.json : aspect_averaged.by_drone.<k>.smallest_flip_span_db⟩. margin = flip_span − drift_budget. common_mode_slope_db_per_db = σ 를 세 밴드 공통으로 1 dB 옮길 때 절대거리가 움직이는 dB — 순위는 그 이동에서 불변이다."
+  },
+  "runtime_s": 0.0
+ },
+ "farfield": [
+  {
+   "airframe": "matrice4e",
+   "band": "LTE",
+   "lam_mm": 162.66546825827456,
+   "D_env_m": 0.8385247902050266,
+   "R_ff_env_m": 8.64502873679358,
+   "D_bbox_m": 0.5992560859063226,
+   "R_ff_bbox_m": 4.415293059318368,
+   "D_diag_m": 0.4388,
+   "R_ff_diag_m": 2.367379408323875,
+   "spread_ratio": 3.6517292945934408
+  },
+  {
+   "airframe": "matrice4e",
+   "band": "5G",
+   "lam_mm": 85.654988,
+   "D_env_m": 0.8385247902050266,
+   "R_ff_env_m": 16.417580346596598,
+   "D_bbox_m": 0.5992560859063226,
+   "R_ff_bbox_m": 8.38498410613906,
+   "D_diag_m": 0.4388,
+   "R_ff_diag_m": 4.4958371834691055,
+   "spread_ratio": 3.6517292945934408
+  },
+  {
+   "airframe": "matrice4e",
+   "band": "WiFi",
+   "lam_mm": 57.54173857965451,
+   "D_env_m": 0.8385247902050266,
+   "R_ff_env_m": 24.438741030219507,
+   "D_bbox_m": 0.5992560859063226,
+   "R_ff_bbox_m": 12.481647769424143,
+   "D_diag_m": 0.4388,
+   "R_ff_diag_m": 6.692374778821153,
+   "spread_ratio": 3.651729294593441
+  },
+  {
+   "airframe": "mini5pro",
+   "band": "LTE",
+   "lam_mm": 162.66546825827456,
+   "D_env_m": 0.4965873280961451,
+   "R_ff_env_m": 3.03197694097099,
+   "D_bbox_m": 0.37598334435940023,
+   "R_ff_bbox_m": 1.738088320149515,
+   "D_diag_m": 0.275,
+   "R_ff_diag_m": 0.929822424018419,
+   "spread_ratio": 3.260812884967516
+  },
+  {
+   "airframe": "mini5pro",
+   "band": "5G",
+   "lam_mm": 85.654988,
+   "D_env_m": 0.4965873280961451,
+   "R_ff_env_m": 5.757959464676323,
+   "D_bbox_m": 0.37598334435940023,
+   "R_ff_bbox_m": 3.3007645797739023,
+   "D_diag_m": 0.275,
+   "R_ff_diag_m": 1.7658049289552176,
+   "spread_ratio": 3.260812884967516
+  },
+  {
+   "airframe": "mini5pro",
+   "band": "WiFi",
+   "lam_mm": 57.54173857965451,
+   "D_env_m": 0.4965873280961451,
+   "R_ff_env_m": 8.571133945989612,
+   "D_bbox_m": 0.37598334435940023,
+   "R_ff_bbox_m": 4.913423845892009,
+   "D_diag_m": 0.275,
+   "R_ff_diag_m": 2.628526765673338,
+   "spread_ratio": 3.260812884967516
+  }
+ ],
+ "farfield_adopted": {
+  "D_def": "env — 회전 로터 디스크를 포함한 외접상자의 3D 대각",
+  "R_ff_max_m": 24.438741030219507,
+  "airframe": "matrice4e",
+  "band": "WiFi",
+  "spread_ratio_max": 3.651729294593441,
+  "why": "D 정의를 모터대각으로 잡으면 요구거리가 절반 이하로 내려간다. 로터는 전기적 산란체이므로 포함한다."
+ },
+ "calibration": [
+  {
+   "sphere": "r=17.8 cm",
+   "band": "LTE",
+   "ka": 6.87550342831337,
+   "mie_dbsm": -9.947801906565351,
+   "mie_minus_go_db": 0.07229932031543207,
+   "R_ff_m": 1.5582409881705561,
+   "margin_matrice4e_db": 4.384380821038171,
+   "margin_mini5pro_db": 8.44305932248639
+  },
+  {
+   "sphere": "r=17.8 cm",
+   "band": "5G",
+   "ka": 13.057114486758977,
+   "mie_dbsm": -9.714981483167634,
+   "mie_minus_go_db": 0.3051197437131492,
+   "R_ff_m": 2.9592205418323094,
+   "margin_matrice4e_db": 4.269231244435888,
+   "margin_mini5pro_db": 8.327909745884106
+  },
+  {
+   "sphere": "r=17.8 cm",
+   "band": "WiFi",
+   "ka": 19.436447564575502,
+   "mie_dbsm": -9.892896717770148,
+   "mie_minus_go_db": 0.1272045091106353,
+   "R_ff_m": 4.405011149413237,
+   "margin_matrice4e_db": 3.7322160098333725,
+   "margin_mini5pro_db": 7.790894511281591
+  },
+  {
+   "sphere": "r=25.0 cm",
+   "band": "LTE",
+   "ka": 9.656605938642373,
+   "mie_dbsm": -6.467611225947078,
+   "mie_minus_go_db": 0.602089873670832,
+   "R_ff_m": 3.0737931372509713,
+   "margin_matrice4e_db": 7.864571501656444,
+   "margin_mini5pro_db": 11.923250003104663
+  },
+  {
+   "sphere": "r=25.0 cm",
+   "band": "5G",
+   "ka": 18.338643942077216,
+   "mie_dbsm": -7.058602548380858,
+   "mie_minus_go_db": 0.011098551237052057,
+   "R_ff_m": 5.837371665967661,
+   "margin_matrice4e_db": 6.925610179222664,
+   "margin_mini5pro_db": 10.984288680670883
+  },
+  {
+   "sphere": "r=25.0 cm",
+   "band": "WiFi",
+   "ka": 27.29838141092065,
+   "mie_dbsm": -7.138483089600843,
+   "mie_minus_go_db": -0.06878198998293339,
+   "R_ff_m": 8.68934467991186,
+   "margin_matrice4e_db": 6.486629638002677,
+   "margin_mini5pro_db": 10.545308139450896
+  }
+ ],
+ "calibration_margin_min_db": 3.7322160098333725,
+ "calibration_pick": {
+  "radius_m": 0.178,
+  "radius_cm": 17.8,
+  "why": "세 밴드 모두 Mie−πr² 편차가 작고 앵커 문헌(Yuan)이 쓴 것과 같은 크기다."
+ },
+ "hw_span": {
+  "f_lo_mhz": 1.0,
+  "f_hi_ghz": 7.2
+ },
+ "point_target": [
+  {
+   "B_MHz": 400,
+   "dR_m": 0.3747405725,
+   "matrice4e_margin_m": -0.22451551340632264,
+   "matrice4e_ok": "⚠ 퍼짐",
+   "mini5pro_margin_m": -0.001242771859400249,
+   "mini5pro_ok": "⚠ 퍼짐"
+  },
+  {
+   "B_MHz": 200,
+   "dR_m": 0.749481145,
+   "matrice4e_margin_m": 0.15022505909367734,
+   "matrice4e_ok": "점표적",
+   "mini5pro_margin_m": 0.37349780064059973,
+   "mini5pro_ok": "점표적"
+  },
+  {
+   "B_MHz": 100,
+   "dR_m": 1.49896229,
+   "matrice4e_margin_m": 0.8997062040936773,
+   "matrice4e_ok": "점표적",
+   "mini5pro_margin_m": 1.1229789456405996,
+   "mini5pro_ok": "점표적"
+  },
+  {
+   "B_MHz": 50,
+   "dR_m": 2.99792458,
+   "matrice4e_margin_m": 2.3986684940936773,
+   "matrice4e_ok": "점표적",
+   "mini5pro_margin_m": 2.6219412356405996,
+   "mini5pro_ok": "점표적"
+  }
+ ],
+ "point_target_max_bw_MHz": 200,
+ "aspect": [
+  {
+   "airframe": "matrice4e",
+   "band": "LTE",
+   "az_nyquist_deg": 7.776345558195403,
+   "az_recommended_deg": 3.8881727790977014,
+   "n_az_per_turn": 92.58847804688928,
+   "finer_than_anchor_2deg": false
+  },
+  {
+   "airframe": "matrice4e",
+   "band": "5G",
+   "az_nyquist_deg": 4.094801389644037,
+   "az_recommended_deg": 2.0474006948220187,
+   "n_az_per_turn": 175.83270383294214,
+   "finer_than_anchor_2deg": false
+  },
+  {
+   "airframe": "matrice4e",
+   "band": "WiFi",
+   "az_nyquist_deg": 2.7508262694345738,
+   "az_recommended_deg": 1.3754131347172869,
+   "n_az_per_turn": 261.73953913417967,
+   "finer_than_anchor_2deg": true
+  },
+  {
+   "airframe": "mini5pro",
+   "band": "LTE",
+   "az_nyquist_deg": 12.394225626666875,
+   "az_recommended_deg": 6.197112813333438,
+   "n_az_per_turn": 58.091567935545676,
+   "finer_than_anchor_2deg": false
+  },
+  {
+   "airframe": "mini5pro",
+   "band": "5G",
+   "az_nyquist_deg": 6.526445094270587,
+   "az_recommended_deg": 3.2632225471352934,
+   "n_az_per_turn": 110.32039488573514,
+   "finer_than_anchor_2deg": false
+  },
+  {
+   "airframe": "mini5pro",
+   "band": "WiFi",
+   "az_nyquist_deg": 4.384368105556057,
+   "az_recommended_deg": 2.1921840527780283,
+   "n_az_per_turn": 164.21978781562285,
+   "finer_than_anchor_2deg": false
+  }
+ ],
+ "aspect_finest_deg": 1.3754131347172869,
+ "aspect_finest_airframe": "matrice4e",
+ "aspect_finest_band": "WiFi",
+ "aspect_n_az_max": 261.73953913417967,
+ "size_law": {
+  "by_airframe": {
+   "matrice4e": {
+    "size_ratio": 1.2537142857142858,
+    "corr_L2_db": 1.9639714910479582,
+    "corr_L4_db": 3.9279429820959164,
+    "spread_db": 1.9639714910479582,
+    "verdict": "scaled",
+    "mu_L2_dbsm": {
+     "LTE": -14.332182727603522,
+     "5G": -13.984212727603522,
+     "WiFi": -13.62511272760352
+    },
+    "mu_L4_dbsm": {
+     "LTE": -12.368211236555563,
+     "5G": -12.020241236555563,
+     "WiFi": -11.661141236555562
+    }
+   },
+   "mini5pro": {
+    "size_ratio": 0.7857142857142858,
+    "corr_L2_db": -2.0947070104002585,
+    "corr_L4_db": -4.189414020800517,
+    "spread_db": -2.0947070104002585,
+    "verdict": "scaled",
+    "mu_L2_dbsm": {
+     "LTE": -18.39086122905174,
+     "5G": -18.04289122905174,
+     "WiFi": -17.68379122905174
+    },
+    "mu_L4_dbsm": {
+     "LTE": -20.485568239451997,
+     "5G": -20.137598239451997,
+     "WiFi": -19.778498239451995
+    }
+   }
+  },
+  "differential_db": 4.058678501448217,
+  "definition": "(L4-L2)_matrice4e - (L4-L2)_mini5pro [dB]. 두 기체가 앵커보다 각각 크고 작으므로 두 법칙의 예측이 **반대 방향**으로 갈린다.",
+  "uncontrolled_size_db": 9.500964921935944
+ },
+ "modes": {
+  "rows": [
+   {
+    "mode": "slope_only (생산 기본)",
+    "moves": "주파수 기울기만",
+    "used_in": "생산 σ 원장 (02편 §4) · §4 결정표",
+    "matrice4e_db": 0.0,
+    "mini5pro_db": 0.0
+   },
+   {
+    "mode": "level_and_slope_L2",
+    "moves": "레벨 + 기울기 (L²)",
+    "used_in": "§2-2 예상 σ — 교정구 반경·동적범위 설계",
+    "matrice4e_db": 6.473224395638503,
+    "mini5pro_db": 4.029038229862642
+   },
+   {
+    "mode": "level_and_slope_L4",
+    "moves": "레벨 + 기울기 (L⁴)",
+    "used_in": "§4-2 크기법칙 차등신호",
+    "matrice4e_db": 8.437195886686462,
+    "mini5pro_db": 1.9343312194623852
+   }
+  ],
+  "production_mode": "slope_only",
+  "level_shift_production_abs_max_db": 0.0,
+  "definition": "평균 레벨이동 = 세 밴드 delta_db 의 산술평균 [dB]. slope_only 는 밴드 비가중 평균 레벨을 축으로 회전만 시키므로 0 이고, 절대 레벨은 우리 PO 출력 그대로다. 나머지 두 모드는 크기전이 법칙으로 축까지 옮긴다."
+ },
+ "slope": {
+  "rows": [
+   {
+    "airframe": "matrice4e",
+    "ours_db_per_ghz": 0.9358698306274642,
+    "anchor_db_per_ghz": 0.21,
+    "ratio_over_anchor": 4.456523002987925,
+    "gap_db": 2.444003719722672
+   },
+   {
+    "airframe": "mini5pro",
+    "ours_db_per_ghz": 1.5170442793984567,
+    "anchor_db_per_ghz": 0.21,
+    "ratio_over_anchor": 7.224020378087889,
+    "gap_db": 4.400818088734604
+   }
+  ],
+  "span_ghz": 3.367,
+  "anchor_db_per_ghz": 0.21,
+  "gap_db_min": 2.444003719722672,
+  "fit_note_short": "세 밴드 방위평균 μ 를 f[GHz] 에 1차 적합(el=0)",
+  "definition": "ours = sigma_anchor.json:drones.<k>.slope_ours_3band_db_per_ghz (세 밴드 방위평균 mu 를 f[GHz] 에 1차 적합, el=0). gap = (ours - anchor) * span — 대역 끝에서 두 가설이 벌리는 간격 [dB]. 세션간 진폭 재현성이 이보다 나빠야 기울기 판정이 성립한다."
+ },
+ "ranking_validation": {
+  "consensus_order": [
+   "L1",
+   "G1",
+   "W1"
+  ],
+  "all_drones_agree": true,
+  "n_drones": 5,
+  "flip_span_db": {
+   "matrice4e": 1.297853547927232,
+   "mini5pro": 2.946102766962776
+  },
+  "flip_span_min_db": 1.297853547927232,
+  "flip_span_min_airframe": "matrice4e",
+  "single_aspect_flip_span_min_db": 0.6144880997507195,
+  "drift_budget_db": 1.0,
+  "drift_margin_db": 0.29785354792723195,
+  "az_step_deg": 1.3754131347172869,
+  "p_order_preserved_at_1db": {
+   "matrice4e": 0.58278,
+   "mini5pro": 0.992455
+  },
+  "common_mode_slope_db_per_db": 0.24621813638904827,
+  "rows": [
+   {
+    "airframe": "matrice4e",
+    "flip_span_aspect_avg_db": 1.297853547927232,
+    "flip_span_single_aspect_db": 0.6144880997507195,
+    "drift_budget_db": 1.0,
+    "margin_db": 0.29785354792723195,
+    "p_order_at_1db": 0.58278
+   },
+   {
+    "airframe": "mini5pro",
+    "flip_span_aspect_avg_db": 2.946102766962776,
+    "flip_span_single_aspect_db": 7.417556380534934,
+    "drift_budget_db": 1.0,
+    "margin_db": 1.9461027669627762,
+    "p_order_at_1db": 0.992455
+   }
+  ],
+  "mc_basis": "단일자세 lead 위의 몬테카를로 (benchmark/sigma_sensitivity.py:430)",
+  "definition": "flip_span = 자세평균 σ 에서 두 파형의 R90 순서를 뒤집는 데 필요한 밴드별 σ 이동폭 [dB] ⟨sigma_sensitivity.json : aspect_averaged.by_drone.<k>.smallest_flip_span_db⟩. margin = flip_span − drift_budget. common_mode_slope_db_per_db = σ 를 세 밴드 공통으로 1 dB 옮길 때 절대거리가 움직이는 dB — 순위는 그 이동에서 불변이다."
+ },
+ "ground_bounce": [
+  {
+   "h_m": 1.5,
+   "H_m": 5.0,
+   "R_m": 20.0,
+   "path_diff_m": 0.75,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": false
+  },
+  {
+   "h_m": 1.5,
+   "H_m": 5.0,
+   "R_m": 30.0,
+   "path_diff_m": 0.5,
+   "sep_at_200MHz": false,
+   "sep_at_100MHz": false
+  },
+  {
+   "h_m": 1.5,
+   "H_m": 5.0,
+   "R_m": 50.0,
+   "path_diff_m": 0.3,
+   "sep_at_200MHz": false,
+   "sep_at_100MHz": false
+  },
+  {
+   "h_m": 1.5,
+   "H_m": 10.0,
+   "R_m": 20.0,
+   "path_diff_m": 1.5,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": true
+  },
+  {
+   "h_m": 1.5,
+   "H_m": 10.0,
+   "R_m": 30.0,
+   "path_diff_m": 1.0,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": false
+  },
+  {
+   "h_m": 1.5,
+   "H_m": 10.0,
+   "R_m": 50.0,
+   "path_diff_m": 0.6,
+   "sep_at_200MHz": false,
+   "sep_at_100MHz": false
+  },
+  {
+   "h_m": 1.5,
+   "H_m": 20.0,
+   "R_m": 20.0,
+   "path_diff_m": 3.0,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": true
+  },
+  {
+   "h_m": 1.5,
+   "H_m": 20.0,
+   "R_m": 30.0,
+   "path_diff_m": 2.0,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": true
+  },
+  {
+   "h_m": 1.5,
+   "H_m": 20.0,
+   "R_m": 50.0,
+   "path_diff_m": 1.2,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": false
+  },
+  {
+   "h_m": 2.0,
+   "H_m": 5.0,
+   "R_m": 20.0,
+   "path_diff_m": 1.0,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": false
+  },
+  {
+   "h_m": 2.0,
+   "H_m": 5.0,
+   "R_m": 30.0,
+   "path_diff_m": 0.6666666666666666,
+   "sep_at_200MHz": false,
+   "sep_at_100MHz": false
+  },
+  {
+   "h_m": 2.0,
+   "H_m": 5.0,
+   "R_m": 50.0,
+   "path_diff_m": 0.4,
+   "sep_at_200MHz": false,
+   "sep_at_100MHz": false
+  },
+  {
+   "h_m": 2.0,
+   "H_m": 10.0,
+   "R_m": 20.0,
+   "path_diff_m": 2.0,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": true
+  },
+  {
+   "h_m": 2.0,
+   "H_m": 10.0,
+   "R_m": 30.0,
+   "path_diff_m": 1.3333333333333333,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": false
+  },
+  {
+   "h_m": 2.0,
+   "H_m": 10.0,
+   "R_m": 50.0,
+   "path_diff_m": 0.8,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": false
+  },
+  {
+   "h_m": 2.0,
+   "H_m": 20.0,
+   "R_m": 20.0,
+   "path_diff_m": 4.0,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": true
+  },
+  {
+   "h_m": 2.0,
+   "H_m": 20.0,
+   "R_m": 30.0,
+   "path_diff_m": 2.6666666666666665,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": true
+  },
+  {
+   "h_m": 2.0,
+   "H_m": 20.0,
+   "R_m": 50.0,
+   "path_diff_m": 1.6,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": true
+  },
+  {
+   "h_m": 3.0,
+   "H_m": 5.0,
+   "R_m": 20.0,
+   "path_diff_m": 1.5,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": true
+  },
+  {
+   "h_m": 3.0,
+   "H_m": 5.0,
+   "R_m": 30.0,
+   "path_diff_m": 1.0,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": false
+  },
+  {
+   "h_m": 3.0,
+   "H_m": 5.0,
+   "R_m": 50.0,
+   "path_diff_m": 0.6,
+   "sep_at_200MHz": false,
+   "sep_at_100MHz": false
+  },
+  {
+   "h_m": 3.0,
+   "H_m": 10.0,
+   "R_m": 20.0,
+   "path_diff_m": 3.0,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": true
+  },
+  {
+   "h_m": 3.0,
+   "H_m": 10.0,
+   "R_m": 30.0,
+   "path_diff_m": 2.0,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": true
+  },
+  {
+   "h_m": 3.0,
+   "H_m": 10.0,
+   "R_m": 50.0,
+   "path_diff_m": 1.2,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": false
+  },
+  {
+   "h_m": 3.0,
+   "H_m": 20.0,
+   "R_m": 20.0,
+   "path_diff_m": 6.0,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": true
+  },
+  {
+   "h_m": 3.0,
+   "H_m": 20.0,
+   "R_m": 30.0,
+   "path_diff_m": 4.0,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": true
+  },
+  {
+   "h_m": 3.0,
+   "H_m": 20.0,
+   "R_m": 50.0,
+   "path_diff_m": 2.4,
+   "sep_at_200MHz": true,
+   "sep_at_100MHz": true
+  }
+ ],
+ "ground_bounce_ref_bw_MHz": 200,
+ "ground_bounce_n_geom": 27,
+ "ground_bounce_sep_frac_200MHz": 0.7777777777777778,
+ "ground_bounce_min_m": 0.3,
+ "ground_bounce_max_m": 6.0
+}
