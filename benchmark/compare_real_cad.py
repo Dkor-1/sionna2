@@ -17,6 +17,9 @@ compare_real_cad.py — **우리 파라메트릭 방법 vs 실물 3D CAD** (repo
   [A] **Yuneec Typhoon H480** (Apache-2.0, ethz-asl/rotors_simulator)
       실제 상용 헥사콥터의 CAD. 동체 + 다리 + 프롭 6 + CGO3 짐벌.
       → 같은 기체를 **우리 방식으로 스펙시트에서 생성**하고 σ 를 비교한다.
+      ⭐ 2026-07-30: 이 기체는 이제 **정식 표적**(`DRONES['typhoonh480']`)이다. 그래서 비교는
+        "외부 기체로 방법을 시험" 이 아니라 **우리가 실제로 쏘는 표적 메쉬 자체의 검증**이 됐다.
+        아래 `TYPHOON` 은 레지스트리에서 파생한다 — 스펙을 두 벌 적지 않는다.
   [B] **Holybro 1345 프로펠러** (BSD-3, PX4/PX4-gazebo-models)
       실제 13.45인치 프롭의 CAD.
       → 같은 지름의 **우리 NACA-4 익형 프롭**과 비교. 마이크로도플러에 직결된다.
@@ -44,7 +47,7 @@ import trimesh                                        # noqa: E402
 from dataclasses import replace                       # noqa: E402
 
 from mesh_compare import (load_reference, typhoon_h480_real, compare)   # noqa: E402
-from drones import DroneSpec                          # noqa: E402
+from drones import DRONES                             # noqa: E402
 import drone_cad                                      # noqa: E402
 import cadkit                                         # noqa: E402
 
@@ -54,20 +57,22 @@ OUT = os.path.abspath(os.path.join(_HERE, "..", "outputs", "real_cad_compare.jso
 # --------------------------------------------------------------------------- #
 #  Typhoon H480 을 **우리 방식으로** (스펙시트 → 파라메트릭)
 # --------------------------------------------------------------------------- #
-#  Yuneec Typhoon H 공식 제원:
-#    헥사콥터(6로터), 모터-모터 대각 520 mm, 프로펠러 9.5인치(241 mm) 2엽,
-#    이륙중량 ~1.7 kg, 접이식 암, **접이식 착륙다리**, CGO3+ 3축 짐벌(코 아래 매달림)
-TYPHOON = DroneSpec(
-    key="typhoon_h480_ours", name="Yuneec Typhoon H480 (우리 파라메트릭)",
-    diagonal_mm=520, weight_g=1700,
-    body_l_mm=455, body_w_mm=520, body_h_mm=158,
-    prop_dia_mm=241, prop_blades=2, num_rotors=6,
-    hover_rpm=4200, max_rpm=6500, prop_pitch_in=4.5,
-    body_rgb=(0.25, 0.26, 0.28), arm_style="body", gear="legs", gimbal="front",
-    accent_rgb=None, body_frac=0.42,
-    rotor_deg=(30, 90, 150, 210, 270, 330),      # 헥사 — 60° 간격
-    body_lw=(1.05, 0.95), gimbal_style="single",
-    envelope_mm=None,     # 실물 CAD 와 **같은 조건**으로 비교하려면 강제 정합을 끈다
+#  ⭐ 2026-07-30 (Phase 3): 여기에 **손으로 적은 두 번째 Typhoon 스펙**이 있었다. 이제
+#     `typhoonh480` 이 정식 표적(`DRONES`)이라 같은 기체의 제원이 두 벌 존재했고, 그건
+#     저장소가 이미 값을 치른 실패 유형이다(제원 3갈래 분산). → **레지스트리에서 파생**한다.
+#  ⚠ 옛 리터럴은 값 자체가 틀려 있었다 — diag **520** · 프롭 **241** · TOW **1700 g** 은
+#     Typhoon **H Plus**(다른 변종)의 수치다. `docs/RESUME_0729.md` §5 가 변종을 5중으로
+#     확정했고(상류 디렉터리명·cgo3_* 메쉬명·측정 대각 485.4·bbox 455×520·프롭 230),
+#     이 저장소의 실물 CAD 는 **H480**이다. 즉 여태 §2.5 는 서로 다른 변종을 견주고 있었다.
+#  ⚠ 옛 리터럴은 `key='typhoon_h480_ours'` 여서, Phase 1 이 `build_frame_cad` 에 넣은
+#     "모르는 기종 키" 가드에 걸려 **이 스크립트 전체가 NotImplementedError 로 죽고 있었다**
+#     (재생성 파이프라인 stage 1). 레지스트리 key 를 쓰면 CGO3+ 짐벌 분기가 정상 적용된다.
+#  · 비교 목적상 딱 하나만 덮는다: `envelope_mm=None` — 실물 CAD 와 **같은 조건**으로 견주려면
+#    공식 외형 강제 정합을 끈다(정본 typhoonh480 은 높이만 강제한다).
+TYPHOON = replace(
+    DRONES["typhoonh480"],
+    name="Yuneec Typhoon H480 (우리 파라메트릭)",
+    envelope_mm=None,
 )
 
 
@@ -99,8 +104,9 @@ def ours_body_only() -> trimesh.Trimesh:
     real = load_reference("main_body_remeshed_v3.stl")
     e = (real.bounds[1] - real.bounds[0]) * 1000.0                 # mm
     spec = replace(TYPHOON, envelope_mm=(float(e[0]), float(e[1]), float(e[2])))
-    import drones as _d
-    _d._FIT_CACHE.pop(spec.key, None)
+    #  ⭐ 옛 코드는 여기서 `drones._FIT_CACHE.pop(spec.key)` 를 손수 불렀다 — 캐시가 `spec.key`
+    #     하나로만 색인돼 있어서, 같은 key 의 **다른 외형** 변종이 앞서 계산된 배율을 조용히
+    #     물려받았기 때문이다. 이제 캐시 키가 spec 전체(`drones._fit_cache_key`)라 불필요하다.
     A = drone_cad.build_frame_cad(spec)
     # 공식 외형 정합(우리 규약)과 동일하게 실물 바운딩박스에 맞춘다
     V = np.vstack([np.asarray(m.vertices) for ms in A.parts.values() for m in ms])

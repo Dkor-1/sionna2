@@ -50,8 +50,14 @@ def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None,
     Pf, Nf, dAf, wf = mesh_to_points(build_frame(spec), lam / 6.0, gamma=gm)
     Ef = po_field_dir(Pf, Nf, dAf, fc, u, w=wf)
 
-    # 프로펠러 1개(허브 로컬, 촘촘) → 모든 로터가 공유, 회전만 다름
+    # 프로펠러 — **CW/CCW 두 벌**. 실물 멀티로터는 반대회전 로터에 거울상 프롭을 단다.
+    # ⚠ 2026-07-28: 옛 코드는 한 벌을 전 로터가 공유해 네 로터가 **같은 손잡이**였다.
+    #   `drones.build_drone`/`pose_articulated` 가 거울상을 쓰도록 바뀌었으므로(같은 날짜),
+    #   여기 순수-PO 판도 맞춰야 한다. 안 맞추면 같은 파일 안에서 PO판(카이럴 없음)과
+    #   SBR판(pose_articulated 경유 → 카이럴 있음)이 서로 어긋난다.
     Pp, Np_, dAp, wp = mesh_to_points(build_propeller(spec, n=blade_n), spacing, gamma=gm)
+    Pm, Nm_, dAm, wm = mesh_to_points(build_propeller(spec, n=blade_n, mirror=True),
+                                      spacing, gamma=gm)
     rl = rotor_layout(spec)
 
     t = np.arange(n_t) / prf
@@ -59,15 +65,17 @@ def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None,
     E = np.full(n_t, Ef, complex)
     for rot in rl:
         cx, cy, cz = rot["center"]; base = np.radians(rot["base_ang"]); d = rot["dir"]
+        # dir=+1 은 CCW → 기준(비거울) 형상, dir=−1 은 CW → 거울상 (rotor_layout 규약)
+        Pb, Nb, wb = ((Pp, Np_, dAp * wp) if d > 0 else (Pm, Nm_, dAm * wm))
         th = base + d * omega * t                                   # (n_t,)
         # v(t) = Rz(-θ)·û  (블레이드 회전 ≡ 시선 반대회전)
         vx = ux * np.cos(th) + uy * np.sin(th)
         vy = -ux * np.sin(th) + uy * np.cos(th)
         vz = np.full_like(th, uz)
         V = np.stack([vx, vy, vz], axis=1)                          # (n_t,3)
-        NU = Np_ @ V.T                                              # (Npts, n_t)
-        PU = Pp @ V.T
-        integ = np.where(NU > 0, NU, 0.0) * (dAp * wp)[:, None] * np.exp(1j * 2 * k * PU)
+        NU = Nb @ V.T                                               # (Npts, n_t)
+        PU = Pb @ V.T
+        integ = np.where(NU > 0, NU, 0.0) * wb[:, None] * np.exp(1j * 2 * k * PU)
         Eb = integ.sum(axis=0) * np.exp(1j * 2 * k * (cx * ux + cy * uy + cz * uz))
         E += Eb
 

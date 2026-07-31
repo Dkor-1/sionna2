@@ -39,7 +39,7 @@ plt.rcParams["font.family"] = list(plt.rcParams["font.family"]) + ["DejaVu Sans"
 
 from rcs_po import mesh_to_points, dbsm, angular_smooth, C0, _plate_mesh
 from geom import uv_sphere
-from drones import DRONES, build_drone, drone_gamma_map
+from drones import DRONES, build_drone, drone_gamma_map, drone_label
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
 
@@ -48,9 +48,13 @@ LAM = C0 / FC
 R_SPH = 0.30                     # 검증 구 반지름 [m]  (ka ≈ 22)
 A_PLATE = 0.30                   # 검증 평판 변 [m]
 
-_COL = {"mini5pro": "#1565c0", "mavic4pro": "#2e7d32", "matrice4e": "#ef6c00",
-        "s1000plus": "#000000", "phantom4": "#c62828"}
-_NAME = {k: DRONES[k].name.split("  ")[0].replace("DJI ", "") for k in DRONES}
+#  기종색 — **재질 팔레트(drones.MATERIAL_COLOR, '5색=순수재질')와 무관한 별개 팔레트**다.
+#  ⭐ 2026-07-30: 5종 하드코딩 사전이라 신규 기종에서 `_COL[key]` 가 KeyError 로 죽었다.
+#     이제 레지스트리 등록 순서에 색 순환을 씌운다 — 앞 5색이 옛 사전과 같아 기존 그림 색은 보존.
+from drones import drone_keys as _drone_keys, drone_cycle_map as _cycle_map   # noqa: E402
+_COL = _cycle_map(("#1565c0", "#2e7d32", "#ef6c00", "#000000", "#c62828",
+                   "#6a1b9a", "#00838f"), _drone_keys())
+_NAME = {k: drone_label(k) for k in DRONES}
 
 _CAP_FS = 8.5                                    # 하단 회색 캡션 폰트크기(규약)
 
@@ -281,7 +285,7 @@ DIVS = [4, 5, 7, 10, 15, 20, 30]                     # spacing = λ/DIV
 
 
 def fig_po_convergence(outdir=FIG, az_step=3.0):
-    """(a) 구의 σ 오차 vs 해석적 PO, (b) 드론 5종 방위평균 σ 편차(λ/30 기준)."""
+    """(a) 구의 σ 오차 vs 해석적 PO, (b) 드론 전 기종 방위평균 σ 편차(λ/30 기준)."""
     # ---- (a) 구 ----
     ref_s = dbsm(sphere_po_sigma(R_SPH, FC))
     us = np.array([1.0, 0.0, 0.0])
@@ -302,7 +306,7 @@ def fig_po_convergence(outdir=FIG, az_step=3.0):
     print(f"  [conv] sphere err, fixed mesh = {np.array2string(err_fix, precision=3)}")
     print(f"  [conv] sphere err, tied mesh  = {np.array2string(err_tie, precision=3)}")
 
-    # ---- (b) 드론 5종 방위평균 ----
+    # ---- (b) 드론 전 기종 방위평균 (DRONES 레지스트리 전수) ----
     az = np.arange(0.0, 360.0, az_step)
     dev = {}
     for key in DRONES:

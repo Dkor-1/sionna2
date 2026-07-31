@@ -10,7 +10,8 @@ report2 가 답하는 질문:
   §3 **Sionna PHY 교차검증** — sionna.phy.nr.CarrierConfig(뉴머롤로지) +
      sionna.phy.ofdm.OFDMModulator 로 **같은 격자를 재변조**해 자작 구현과 대조.
      CP 배열 버그(슬롯 첫 심볼이 더 김)를 **일부러 재현**해 교차검증의 진단력을 보인다.
-  §4 **SBR RCS** — Mitsuba 광선 + PO 표면적분(가림 포함). 해석해 검증 → 격자 수렴 →
+  §4 **SBR RCS** — Mitsuba 광선 + PO 표면적분(가림 포함). 기준해 검증(구=해석 PO+정확 Mie,
+     평판=정확 PO) → 격자 수렴 →
      가림의 대가(PO vs SBR) → 5종×3대역 패턴 → 재질 기여도 → Sionna 렌더.
 
 산출: outputs/figures/report2_*.png,  outputs/report2_waveform_rcs.json (노트북이 읽는다)
@@ -41,7 +42,35 @@ for _v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
 #  모자라 Mitsuba 가 **트레이스백 없이 죽는다**(실측: §4.4 진입 직후 사망).
 #  ※ 이건 **정밀도 타협이 아니다** — 광선 격자(λ/16) · 방위 361점 · 렌더 512 spp 는 그대로고,
 #    한 번에 GPU 에 올리는 **덩어리 크기**만 정한다. 총 광선 수는 동일하다.
-os.environ.setdefault("SIONNA2_GPU_MEM", "4000")     # MiB
+#  ⭐ 2026-07-30 정정 — 이 값이 **하드코딩 4000 MiB** 였다. 여유 24.5 GB 인 카드에서도 4 GB 만
+#     쓰고 **20 GB 를 놀렸다**. 방어 목적은 정당했지만(위 문단) 상한이 여유를 안 따라간 게 문제다.
+#     → **여유에 비례**하게 잡고, 남이 갑자기 잡을 몫(`_RESERVE`)만 떼어 둔다.
+#       · 여유가 많을 때: 화끈하게 쓴다 (24.5 GB → ~17 GB)
+#       · 여유가 적을 때: 자동으로 작아진다 (6 GB → ~2 GB)
+#       · `SIONNA2_GPU_MEM` 을 직접 주면 그 값이 이긴다(gpu.py 가 여유로 다시 상한 처리).
+def _adaptive_gpu_mem() -> str:
+    """이 워크로드가 한 번에 GPU 에 올릴 덩어리 상한[MiB] — 여유에 비례, 예비 확보."""
+    _FRAC = float(os.environ.get("SIONNA2_R2_MEM_FRAC", "0.70"))   # 여유의 70% 까지
+    _RESERVE = int(os.environ.get("SIONNA2_R2_RESERVE_MB", "3000"))  # 남에게 남길 몫
+    _FLOOR = 1500                                                   # 이보다 작으면 의미 없다
+    try:
+        import subprocess
+        idx = os.environ.get("SIONNA2_GPU")
+        q = subprocess.run(["nvidia-smi", "--query-gpu=index,memory.used,memory.total",
+                            "--format=csv,noheader,nounits"], capture_output=True, text=True, timeout=10)
+        best = 0
+        for line in q.stdout.strip().splitlines():
+            i, used, total = [int(x) for x in line.split(",")]
+            if idx is not None and str(i) != str(idx).split(",")[0]:
+                continue
+            best = max(best, total - used)
+        cap = int(max(_FLOOR, min(best * _FRAC, best - _RESERVE)))
+        return str(cap)
+    except Exception:
+        return "4000"                                               # 못 재면 옛 보수값
+
+
+os.environ.setdefault("SIONNA2_GPU_MEM", _adaptive_gpu_mem())
 
 # ⚠ mitsuba/torch import 전에 GPU 를 잡는다 (여유 메모리 최대인 것 자동선택)
 from gpu import pick as _pick_gpu, budget_mb, gpu_status   # noqa: E402
@@ -569,45 +598,108 @@ def fig_ambiguity(REF):
 # =========================================================================== #
 #  §4  RCS — SBR (Mitsuba 광선 + PO 표면적분, 가림 포함)
 # =========================================================================== #
+def _sphere_refs(radius_m, fc):
+    """PEC 구의 기준해 3종(광학점근 πr² · 해석 PO · 정확 Mie) — 구현은 **한 곳뿐**이다.
+
+    `benchmark/mie_pec_sphere.sphere_reference_set` 를 쓴다(자기검증 6게이트 통과분).
+    여기서 다시 구현하면 생산자마다 장부가 어긋난다."""
+    _b = os.path.join(ROOT, "benchmark")
+    if _b not in sys.path:
+        sys.path.insert(0, _b)
+    from mie_pec_sphere import sphere_reference_set
+    return sphere_reference_set(radius_m, fc)
+
+
 def measure_sbr_validation(fc=3.5e9):
-    """해석해 대조 + **격자 수렴** + 격자위상 디더 산포."""
-    from rcs_sbr import rcs_sbr
+    """기준해 대조 + **격자 수렴** + 격자위상 디더 산포.
+
+    ⚠ 2026-07-30 정정 — **구의 과녁은 πr² 이 아니다**. 예전엔 πr²(=ka→∞ 광학 점근값)을
+      "해석해" 라 부르고 그것 하나에 잔차를 적었다. kr=36.677 에서 πr² 은 두 기준해 **사이**에
+      있다(해석 PO +0.1065 dB 위, 정확 Mie 0.0451 dB 아래 = 둘 사이 0.152 dB). 그리고 생산 커널의
+      구 잔차는 그 간극보다 **작다** — `outputs/sbr_kr_sweep.json`(입사 32방향 평균, λ/16)에서
+      광학영역 kr=30/60/100 잔차가 해석 PO 대비 −0.035/−0.009/+0.015 dB 다. 즉 **어느 자를
+      골랐는지가 숫자를 지배**했다. 이제
+      셋을 모두 남긴다: `sphere_err_po`(커널이 PO 라 **수치 수렴의 과녁**),
+      `sphere_err_mie`(PO 근사의 대가까지 포함한 절대 정확도), `sphere_err_go`(점근값 참고).
+      ⚠ **평판은 바뀌지 않는다** — 정면입사 4πA²/λ² 는 점근값이 아니라 PO 의 정확한 답이다.
+
+    ⚠ 2026-07-29 정정 — **생산 커널로 검증한다**: `rcs_sbr_batch(jitter=3, penetrate=False)`.
+      예전엔 `rcs_sbr()`(단일격자·jitter 인자 자체가 없다)을 불렀는데, 리포트의 드론 σ 는 **전부**
+      `rcs_sbr_batch(..., jitter≥2)` 에서 나온다 → 유일한 정확도 검증이 **아무 결과도 쓰지 않는
+      경로**를 재고 있었고, 생산 경로가 서브셀 오프셋 평균으로 지우는 격자위상 편향을 그대로 안았다.
+      · 구·평판은 **볼록**이라 배치 커널의 max_bounce=1 제한이 **정확**하다(오목부가 없어 표적으로
+        되돌아오는 2차 반사 경로 자체가 없다).
+      · penetrate=False: 유전체 셸 그룹이 없어 무영향이지만 검증은 명시한다.
+      · 재질은 **float 1.0(=|Γ|, PEC)**. 'pec' 라는 재질 키는 없고(materials._spec 이 예외),
+        문자열 "metal" 은 ITU 라 |Γ|=0.99980 이라 해석해(PEC 전제)와 0.0017 dB 어긋난다.
+      · 드론 생산 호출은 jitter=2(기본), 여기선 3 — **같은 코드경로, 더 촘촘한 오프셋 평균**.
+
+    디더 블록은 **두 팔**을 남긴다: `spread/avg_err/lo/hi` = 단일격자(J=1, 옛 의미 그대로 보존),
+    `*_prod` = 생산 설정(J=3). 전자는 '왜 지터가 필요한가'의 증거, 후자는 '생산 숫자에 남은
+    격자정렬 불확실도'다. 둘을 한 표에 두어야 서로를 대체하지 않는다."""
+    from rcs_sbr import rcs_sbr_batch
     from geom import uv_sphere, box
     lam = C0 / fc
     r, a = 0.5, 0.4
-    sph = uv_sphere(r, seg=180, rings=90, group="metal")
+    sph = uv_sphere(r, seg=180, rings=90, group="metal")     # "metal" 은 **그룹 이름**
     plate = box(a, a, 0.002, group="metal")
-    ex_s = np.pi * r ** 2
-    ex_p = 4 * np.pi * (a * a) ** 2 / lam ** 2
+    PEC = {"metal": 1.0}                                     # 그룹 → |Γ| (float). 문자열 금지.
+    JIT = 3                                                  # 생산 커널의 서브셀 오프셋 평균(J²=9점)
+    REF = _sphere_refs(r, fc)                                # 구: 점근 πr² · 해석 PO · 정확 Mie
+    po_s, mie_s, go_s = REF["po_sigma_m2"], REF["mie_sigma_m2"], REF["go_sigma_m2"]
+    ex_p = 4 * np.pi * (a * a) ** 2 / lam ** 2               # 평판: PO 의 **정확한** 답(점근 아님)
+
+    def _sig(mesh, el, d, pad=1.15, jitter=JIT):
+        return float(rcs_sbr_batch(mesh, PEC, fc, az_deg=0.0, el_deg=el, spacing=d,
+                                   pad=pad, jitter=jitter, penetrate=False))
 
     divs = [4, 6, 8, 10, 12, 16, 20, 24, 30]
-    out = dict(fc=fc, lam=lam, sphere_exact_dbsm=float(10 * np.log10(ex_s)),
+    out = dict(fc=fc, lam=lam, sphere_ref=REF,
                plate_exact_dbsm=float(10 * np.log10(ex_p)), r=r, a=a, divs=divs,
-               sphere_err=[], plate_err=[], dither=[])
+               kernel="rcs_sbr_batch(jitter=%d, penetrate=False, |Γ|=1.0)" % JIT, jitter=JIT,
+               sphere_dbsm=[], sphere_err_po=[], sphere_err_mie=[], sphere_err_go=[],
+               plate_err=[], dither=[])
     for d in divs:
-        s = rcs_sbr(sph, {"metal": "metal"}, fc, az_deg=0.0, el_deg=0.0, spacing=lam / d)
-        p = rcs_sbr(plate, {"metal": "metal"}, fc, az_deg=0.0, el_deg=90.0, spacing=lam / d)
-        out["sphere_err"].append(float(10 * np.log10(s / ex_s)))
+        s = _sig(sph, 0.0, lam / d)
+        p = _sig(plate, 90.0, lam / d)
+        out["sphere_dbsm"].append(float(10 * np.log10(s)))
+        out["sphere_err_po"].append(float(10 * np.log10(s / po_s)))
+        out["sphere_err_mie"].append(float(10 * np.log10(s / mie_s)))
+        out["sphere_err_go"].append(float(10 * np.log10(s / go_s)))
         out["plate_err"].append(float(10 * np.log10(p / ex_p)))
-        print(f"    λ/{d:<3d}  sphere {out['sphere_err'][-1]:+6.2f} dB   "
-              f"plate {out['plate_err'][-1]:+6.2f} dB")
+        print(f"    λ/{d:<3d}  sphere vs PO {out['sphere_err_po'][-1]:+6.2f} dB / "
+              f"vs Mie {out['sphere_err_mie'][-1]:+6.2f} dB (πr² 대비 "
+              f"{out['sphere_err_go'][-1]:+6.2f})   plate {out['plate_err'][-1]:+6.2f} dB")
 
     #  격자 위상 디더 — 같은 d 에서 격자 정렬만 흔든다(pad 로 격자 개수 n 의 패리티가 바뀐다).
     #  구는 정반사점이 **하나뿐**이라 격자가 그 점 위에 떨어지는지가 값을 흔든다.
     #  이것이 '단일 격자 오차'의 정체다 — 수렴한 숫자가 아니다.
-    print("    격자위상 디더(pad 9점):")
+    #  → J=1(단일격자)과 J=3(생산)을 **같은 pad 집합**에서 나란히 잰다.
+    #  ⚠ 잔차의 과녁은 **해석 PO** 다(키 접미사 `_po`). 산포(spread)는 기준을 바꿔도 불변이지만
+    #    평균 잔차는 기준에 따라 상수만큼 밀리므로 Mie 기준값도 같이 남긴다
+    #    (변환량은 out["sphere_ref"]["po_minus_mie_db"]).
+    print("    격자위상 디더(pad 9점) — J=1 단일격자 vs J=3 생산 (과녁 = 해석 PO):")
     for d in (8, 12, 16, 24):
-        es = []
+        es1, esp = [], []
         for pad in np.linspace(1.02, 1.30, 9):
-            s = rcs_sbr(sph, {"metal": "metal"}, fc, az_deg=0.0, el_deg=0.0,
-                        spacing=lam / d, pad=float(pad))
-            es.append(10 * np.log10(s / ex_s))
-        es = np.asarray(es)
-        rec = dict(div=d, lo=float(es.min()), hi=float(es.max()),
-                   spread=float(es.max() - es.min()),
-                   avg_err=float(10 * np.log10(np.mean(10 ** (es / 10)))))
+            es1.append(10 * np.log10(_sig(sph, 0.0, lam / d, pad=float(pad), jitter=1) / po_s))
+            esp.append(10 * np.log10(_sig(sph, 0.0, lam / d, pad=float(pad)) / po_s))
+        es1, esp = np.asarray(es1), np.asarray(esp)
+        _g2m = REF["po_minus_mie_db"]            # PO 기준 → Mie 기준 오프셋
+        rec = dict(div=d,
+                   lo_po=float(es1.min()), hi_po=float(es1.max()),
+                   spread=float(es1.max() - es1.min()),
+                   avg_err_po=float(10 * np.log10(np.mean(10 ** (es1 / 10)))),
+                   lo_prod_po=float(esp.min()), hi_prod_po=float(esp.max()),
+                   spread_prod=float(esp.max() - esp.min()),
+                   avg_err_prod_po=float(10 * np.log10(np.mean(10 ** (esp / 10)))))
+        rec["avg_err_mie"] = float(rec["avg_err_po"] + _g2m)
+        rec["avg_err_prod_mie"] = float(rec["avg_err_prod_po"] + _g2m)
         out["dither"].append(rec)
-        print(f"      λ/{d:<3d} 산포 {rec['spread']:5.2f} dB  디더평균 오차 {rec['avg_err']:+6.3f} dB")
+        print(f"      λ/{d:<3d} J=1 산포 {rec['spread']:5.2f} dB (평균 {rec['avg_err_po']:+6.3f} "
+              f"vs PO / {rec['avg_err_mie']:+6.3f} vs Mie) | J={JIT} 산포 "
+              f"{rec['spread_prod']:5.2f} dB (평균 {rec['avg_err_prod_po']:+6.3f} vs PO / "
+              f"{rec['avg_err_prod_mie']:+6.3f} vs Mie)")
     return out
 
 
@@ -633,34 +725,53 @@ def fig_sbr_validation(V):
     d = V["divs"]
     ax[0].axhline(0, color="#333", lw=1.2)
     ax[0].axhspan(-0.5, 0.5, color="#c8e6c9", alpha=0.6, label=r"$\pm$0.5 dB")
+    REF = V["sphere_ref"]
     ax[0].plot(d, V["plate_err"], "o-", color="#1565c0", lw=2.2, ms=7,
-               label=f"flat plate {V['a']}x{V['a']} m   ($4\\pi A^2/\\lambda^2$)")
-    ax[0].plot(d, V["sphere_err"], "s-", color="#c62828", lw=2.2, ms=7,
-               label=f"metal sphere r={V['r']} m   ($\\pi r^2$)")
+               label=f"PEC plate {V['a']}x{V['a']} m  vs exact PO $4\\pi A^2/\\lambda^2$")
+    ax[0].plot(d, V["sphere_err_po"], "s-", color="#c62828", lw=2.2, ms=7,
+               label=f"PEC sphere r={V['r']} m  vs analytic PO (kernel's target)")
+    ax[0].plot(d, V["sphere_err_mie"], "^--", color="#ad1457", lw=1.8, ms=6, alpha=0.85,
+               label=f"PEC sphere r={V['r']} m  vs exact Mie (kr={REF['kr']:.1f})")
     ax[0].axvline(SBR_DIV, color="#777", ls=":", lw=1.5)
     #  주석은 **아래쪽**에 (위엔 범례가 있다 — 예전엔 겹쳤다)
     ax[0].annotate(f"our setting\n$\\lambda$/{SBR_DIV}", (SBR_DIV + 0.6, -1.9), fontsize=9,
                    color="#555", ha="left")
+    #  πr² 은 과녁이 아니라 **라벨된 점근값**이다 — 두 기준해에서 얼마나 떨어졌는지만 적는다.
+    #  ⚠ 자유 주석으로 두면 범례('our setting' 주석 포함)와 겹친다(실측) → **범례 항목**으로 넣어
+    #    matplotlib 이 배치를 맡게 한다(빈 핸들 = 텍스트 전용 항목).
+    ax[0].plot([], [], " ", label=f"($\\pi r^2$ = optical asymptote only, not a target: "
+                                 f"PO {REF['po_minus_go_db']:+.3f} / "
+                                 f"Mie {REF['mie_minus_go_db']:+.3f} dB away)")
     ax[0].set_xlabel(r"ray grid density  $\lambda/d$")
-    ax[0].set_ylabel("error vs analytic [dB]")
-    ax[0].set_title("(a) SBR vs closed form", fontsize=12, fontweight="bold")
-    ax[0].legend(fontsize=8.5); ax[0].grid(alpha=0.3); ax[0].set_ylim(-2.5, 4.6)
+    ax[0].set_ylabel("residual vs reference solution [dB]")
+    ax[0].set_title("(a) SBR vs two reference solutions", fontsize=12, fontweight="bold")
+    ax[0].legend(fontsize=7.8); ax[0].grid(alpha=0.3); ax[0].set_ylim(-2.5, 4.6)
 
     dv = [x["div"] for x in V["dither"]]
-    lo = [x["lo"] for x in V["dither"]]
-    hi = [x["hi"] for x in V["dither"]]
-    av = [x["avg_err"] for x in V["dither"]]
+    lo = [x["lo_po"] for x in V["dither"]]
+    hi = [x["hi_po"] for x in V["dither"]]
+    av = [x["avg_err_po"] for x in V["dither"]]
+    lo_p = [x["lo_prod_po"] for x in V["dither"]]
+    hi_p = [x["hi_prod_po"] for x in V["dither"]]
+    av_p = [x["avg_err_prod_po"] for x in V["dither"]]
     ax[1].fill_between(dv, lo, hi, color="#ffcc80", alpha=0.75,
-                       label="spread over grid alignment")
-    ax[1].plot(dv, av, "o-", color="#e65100", lw=2.4, ms=8, label="dither-averaged error")
+                       label="single grid (J=1): spread over grid alignment")
+    ax[1].plot(dv, av, "o-", color="#e65100", lw=2.4, ms=8, label="J=1 alignment-averaged error")
+    ax[1].fill_between(dv, lo_p, hi_p, color="#80cbc4", alpha=0.8,
+                       label=f"production kernel (J={V['jitter']}): residual spread")
+    ax[1].plot(dv, av_p, "s-", color="#00695c", lw=2.4, ms=7,
+               label=f"J={V['jitter']} alignment-averaged error")
     ax[1].axhline(0, color="#333", lw=1.2)
     ax[1].set_xlabel(r"ray grid density  $\lambda/d$")
-    ax[1].set_ylabel("sphere error [dB]")
-    ax[1].set_title("(b) A single grid is not a converged number", fontsize=12, fontweight="bold")
+    ax[1].set_ylabel("sphere residual vs analytic PO [dB]")
+    ax[1].set_title("(b) One grid alignment is not a converged number", fontsize=12,
+                    fontweight="bold")
     for x in V["dither"]:
-        ax[1].annotate(f"{x['spread']:.1f} dB", (x["div"], x["hi"]), fontsize=8.5,
+        ax[1].annotate(f"{x['spread']:.1f} dB", (x["div"], x["hi_po"]), fontsize=8.5,
                        ha="center", va="bottom", color="#e65100")
-    ax[1].legend(fontsize=8.5); ax[1].grid(alpha=0.3)
+        ax[1].annotate(f"{x['spread_prod']:.1f} dB", (x["div"], x["lo_prod_po"]), fontsize=8.5,
+                       ha="center", va="top", color="#00695c")
+    ax[1].legend(fontsize=7.8); ax[1].grid(alpha=0.3)
 
     D = V["drone_conv"]
     for (fck, series), cc in zip(D.items(), ("#00897b", "#1565c0")):
@@ -675,21 +786,50 @@ def fig_sbr_validation(V):
     ax[2].set_title("(c) The drone number IS converged", fontsize=12, fontweight="bold")
     ax[2].legend(fontsize=8.5); ax[2].grid(alpha=0.3)
 
-    fig.suptitle("SBR is validated against closed forms - and we show where it is NOT converged",
-                 fontsize=15, fontweight="bold")
+    fig.suptitle("SBR vs two reference solutions (analytic PO and exact Mie) - and where it is "
+                 "NOT converged", fontsize=15, fontweight="bold")
     fig.tight_layout(rect=(0, 0.11, 1, 0.94))
+
+    #  캡션 숫자는 **전부 V 에서 주입**한다 — 손으로 적으면 재생성 때 그림과 글이 어긋난다.
+    i_ours = V["divs"].index(SBR_DIV)
+    _bp = min(zip(V["divs"], V["plate_err"]), key=lambda t: abs(t[1]))   # 가장 예뻐 보이는 격자
+    _bs = min(zip(V["divs"], V["sphere_err_po"]), key=lambda t: abs(t[1]))
+    _dt = {x["div"]: x for x in V["dither"]}
+    _dlo, _dhi = min(_dt), max(_dt)
+    _dev8 = _dev6 = 0.0                       # 드론 방위평균의 λ/24 대비 편차
+    for _ser in V["drone_conv"].values():
+        _base = _ser["mean_dbsm"][-1]
+        for _dd, _mm in zip(_ser["divs"], _ser["mean_dbsm"]):
+            if _dd >= 8:
+                _dev8 = max(_dev8, abs(_mm - _base))
+            else:
+                _dev6 = max(_dev6, abs(_mm - _base))
     return _save(fig, "report2_sbr_validate.png",
-                 "(a) At the grid we actually run (lambda/16) the SBR kernel lands within a fraction "
-                 "of a dB of the closed forms: the plate at -0.17 dB, the sphere at -0.58 dB. "
-                 "(Quoting the plate's -0.01 dB at lambda/6 or the sphere's +0.39 dB at lambda/10 "
-                 "would be picking the flattering grid, not the operating one.)\n"
-                 "(b) And those single-grid numbers flatter the method anyway. A SPHERE has exactly one "
-                 "specular point, so the answer depends on whether a ray lands on it. Dithering the "
-                 "grid alignment exposes the real uncertainty, which only closes at lambda/24.\n"
-                 "(c) A drone is a many-scatterer target, so its azimuth average self-dithers: from "
-                 "lambda/8 on it stays within about 0.35 dB of the lambda/24 value (the coarse "
-                 "lambda/6 grid is off by ~1 dB). We run lambda/16, so the headline drone numbers "
-                 "are converged - even though a single-look sphere number is not.")
+                 f"(a) The kernel measured here is the PRODUCTION one, rcs_sbr_batch with "
+                 f"J={V['jitter']} sub-cell offsets and |Gamma| = 1.0 (PEC), which is the same call "
+                 f"that makes every drone number. At the grid we actually run (lambda/{SBR_DIV}) it "
+                 f"lands at {V['plate_err'][i_ours]:+.2f} dB on the plate and "
+                 f"{V['sphere_err_po'][i_ours]:+.2f} dB on the sphere against analytic PO "
+                 f"({V['sphere_err_mie'][i_ours]:+.2f} dB against exact Mie). The sphere needs BOTH "
+                 f"rulers: the kernel is PO, so analytic PO is what it converges to, while the Mie "
+                 f"residual also carries the price of the PO approximation itself. The optical "
+                 f"asymptote pi*r^2 is only an asymptote here - at kr={REF['kr']:.1f} analytic PO "
+                 f"sits {REF['po_minus_go_db']:+.3f} dB and exact Mie {REF['mie_minus_go_db']:+.3f} "
+                 f"dB away from it, a gap wider than the residual itself. (The plate is different: "
+                 f"at normal incidence 4*pi*A^2/lambda^2 IS the exact PO answer, not an asymptote.) "
+                 f"(Quoting the plate's {_bp[1]:+.2f} dB at lambda/{_bp[0]} or the sphere's "
+                 f"{_bs[1]:+.2f} dB at lambda/{_bs[0]} would be picking the flattering grid, not the "
+                 f"operating one.)\n"
+                 f"(b) A SPHERE has exactly one specular point, so a single grid alignment (J=1) is a "
+                 f"lottery: moving the grid alone swings it by {_dt[_dlo]['spread']:.2f} dB at "
+                 f"lambda/{_dlo} and still {_dt[SBR_DIV]['spread']:.2f} dB at our lambda/{SBR_DIV}. "
+                 f"Averaging J={V['jitter']} offsets, which is what the production kernel does, leaves "
+                 f"a residual of {_dt[SBR_DIV]['spread_prod']:.2f} dB at lambda/{SBR_DIV} and "
+                 f"{_dt[_dhi]['spread_prod']:.2f} dB at lambda/{_dhi}.\n"
+                 f"(c) A drone is a many-scatterer target, so its azimuth average self-dithers: from "
+                 f"lambda/8 on it stays within {_dev8:.2f} dB of the lambda/24 value, while the "
+                 f"coarse lambda/6 grid is off by {_dev6:.2f} dB. We run lambda/{SBR_DIV}, so the "
+                 f"headline drone numbers are converged even where a single-look sphere number is not.")
 
 
 def measure_occlusion(fc=3.5e9, drone="mavic4pro", n_az=72):
@@ -1127,7 +1267,7 @@ def build_all():
     AMB = fig_ambiguity(REF)
 
     print("\n" + "=" * 78 + "\n§4 SBR RCS — 검증 → 수렴 → 가림 → 패턴 → 재질\n" + "=" * 78)
-    print("  [4.1] 해석해 검증 + 격자 수렴 + 격자위상 디더")
+    print("  [4.1] 기준해 검증(구: 해석 PO + 정확 Mie · 평판: 정확 PO) + 격자 수렴 + 격자위상 디더")
     V = measure_sbr_validation()
     print("  [4.2] 드론 방위평균의 격자 수렴")
     V["drone_conv"] = measure_drone_convergence()

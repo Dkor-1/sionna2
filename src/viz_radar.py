@@ -4,8 +4,8 @@ viz_radar.py — (report2) 레이더/RCS/파형 비교 시각화 (matplotlib)
 ==================================================================
 생성물 (outputs/figures/, report2_ 접두어)
   report2_setup.png        : 모노스태틱 구성 + 원거리장 도식
-  report2_rcs_polar.png    : 드론 5종 RCS(방위각) 극좌표 + RCS(주파수)
-  report2_rcs_bands.png    : LTE/5G/WiFi 반송파에서의 5종 RCS 비교(막대)
+  report2_rcs_polar.png    : 드론 전 기종 RCS(방위각) 극좌표 + RCS(주파수)
+  report2_rcs_bands.png    : LTE/5G/WiFi 반송파에서의 전 기종 RCS 비교(막대)
   report2_wave_spectra.png : 세 파형의 스펙트럼(점유대역) + 시간파형
   report2_range_profiles.png : 같은 표적, 세 파형 거리프로파일(분해능 비교)
   report2_summary.png      : 표준별 요약표 + RCS 추정 비교
@@ -18,16 +18,20 @@ import vizstyle
 vizstyle.use_korean()
 import matplotlib.pyplot as plt
 
-from drones import DRONES
+from drones import DRONES, drone_label, drone_keys, drone_cycle_map
 from rcs_po import drone_rcs_pattern, drone_rcs_pattern_bw, angular_smooth, dbsm
 from waveforms import all_waveforms, always_on_waveforms
 from radar_process import range_profile, mainlobe_width_m, sphere_calib, estimate_rcs_dbsm
 from radar_scene import ANT_POS, TGT_POS, farfield_distance, target_extent  # sionna 지연 import 라 가벼움
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
-_COL = {"mini5pro": "#1565c0", "mavic4pro": "#2e7d32", "matrice4e": "#ef6c00",
-        "s1000plus": "#000000", "phantom4": "#c62828"}
-_NAME = {k: DRONES[k].name.split("  ")[0].replace("DJI ", "") for k in DRONES}
+#  기종색 — **재질 팔레트(`materials.MATERIAL_COLOR`, '5색=순수재질')와 무관한 별개 팔레트**다.
+#  ⭐ 2026-07-30 (Phase 3): 5종 하드코딩 사전이라, 아래 그림들이 `for k in DRONES` 로 도는데
+#     신규 기종에서 `_COL[k]` 가 **KeyError** 로 죽었다. 이제 레지스트리 등록 순서에 색 순환을
+#     씌운다 — 앞 5색이 옛 사전과 같아 기존 그림 색은 그대로다(viz_verify_po 와 동일 팔레트).
+_COL = drone_cycle_map(("#1565c0", "#2e7d32", "#ef6c00", "#000000", "#c62828",
+                        "#6a1b9a", "#00838f"), drone_keys())
+_NAME = {k: drone_label(k) for k in DRONES}      # 제조사 접두어 제거는 drones 가 담당
 
 
 def fig_setup(outdir=FIG):
@@ -305,7 +309,7 @@ def fig_rcs_materials(outdir=FIG, fc=3.5e9, el=15.0):
     axes[0].set_title(f"(a) Mavic 4 Pro azimuth pattern @ {fc/1e9:.1f} GHz, "
                       f"el = {el:.0f}" + r"$^\circ$" + "  (SBR)", fontsize=11)
     axes[0].grid(alpha=0.3); axes[0].legend(fontsize=8.5, loc="lower right")
-    # (b) 5종 방위평균 비교
+    # (b) 전 기종 방위평균 비교
     keys = list(DRONES.keys()); olds, news = [], []
     for k in keys:
         m2 = build_drone(DRONES[k])

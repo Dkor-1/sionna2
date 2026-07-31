@@ -1,34 +1,65 @@
 # -*- coding: utf-8 -*-
 """
-report_style.py — 6편 리포트의 **공통 서술 규약을 코드로 강제**한다
+report_style.py — 6편 리포트의 **서술 규약을 코드로 강제**한다
 =========================================================================================
-계약서: `docs/REBUILD_2026-07-30.md` §5. 이 파일은 그 §5 의 *실행 가능한 구현*이다.
+계약서: `docs/REBUILD_2026-07-30.md` §5 (2026-07-31 재정립판). 이 파일은 그 §5 의 *실행 가능한 구현*이다.
 규약을 지키는 것이 "성실함"이 아니라 **함수를 부르면 자동으로 되는 일**이 되게 하는 것이 목적이다.
 
-설계 동기(사용자 지시): **"함께 작업해오던 사람이 아니여도 리포트만 보고 인수인계 받을 수 있게"**.
-독자는 이 프로젝트를 오늘 처음 본다. 그 사람이 리포트만 읽고 이어받을 수 있어야 한다.
+⭐ 이 판의 원리 — **주장의 크기를 맞추면 변명이 필요 없다**
+------------------------------------------------------------------------------------------
+방어적 표현이 필요하다는 것은 **문장이 실제보다 크게 말하고 있다는 신호**다.
+고칠 곳은 표현이 아니라 주장의 크기다. 크기를 맞추면 그냥 사실이 되고, 사실은 방어할 필요가 없다.
+
+| 방어적 (이 모듈이 막는다) | 크기를 맞춘 문장 (같은 정보, 방어 0) |
+|---|---|
+| "절대 σ 가 맞다고 주장하지 않는다" | "자세 패턴은 기하에서 계산했고 레벨은 Das 측정에 맞췄다" |
+| "PO 근사라 한계가 있다" | "해석 PO 구 대비 0.201 dB 안에서 일치한다" |
+| "이 결론은 잠정적이다" | "β ≤ 45° 에서 성립한다" |
+| "편파를 통제하지 못했다" | "편파: VV 단일. 실측에서 2편파로 확장한다" |
+
+오른쪽은 왼쪽보다 **정보가 더 많고 더 짧다.** 그것이 목표다.
+불확실한 양은 **표에 숫자로** 넣는다 — `크기 전이 L² vs L⁴ = 9.50 dB` 는 사실이지 사과가 아니다.
 
 무엇을 기계적으로 막는가
 ------------------------------------------------------------------------------------------
-| 규약(§5)                        | 이 모듈의 장치                                        |
+| 규약(§5)                          | 이 모듈의 장치                                          |
 |---|---|
-| 6블록 서두                       | `header()` — 블록이 비면 **예외**                     |
-| 주장/비주장 2열 표(정직성 장치)   | `header()` — 한 열이라도 비면 **예외**                |
-| 손으로 친 숫자 0개                | `num()` — JSON 을 열어 키를 찾고 값을 **대조**, 어긋나면 예외 |
-| 표 안의 숫자도 손으로 안 침       | `table_from()` — JSON 배열/딕셔너리에서 행을 직접 뽑는다 |
-| 그림 1개 = 질문 1개               | `caption()` — 물음표로 안 끝나거나 2개면 **예외**      |
-| §마지막 = "이 편의 한계"          | `limits()` — '다음 사람이 이어받을 지점'이 없으면 예외 |
-| 재현 블록이 실제로 돌아야 함      | `header()` — 출력 JSON 이 디스크에 없으면 예외        |
-| 분량 상한(25셀 / 12줄 / 8그림)    | `check_budget()` · `build_notebook(strict=True)`      |
-| 서두는 맨 앞 · 한계는 맨 뒤       | `check_budget()` — 순서가 틀리면 위반                 |
-| 과정 서사 · 완충어 금지(§5.2)     | `lint_prose()` → `check_budget()` 권고                |
-| 그림 글자는 영어                  | `assert_fig_text()`                                   |
+| 여는 블록 = 한 일/결과/방법/재현    | `header()` — 블록이 비면 **예외**                       |
+| 한 일은 **질문이 아니라 한 일**     | `header()` — 물음표로 끝나면 **예외**                   |
+| 결과는 3~5줄이고 숫자가 있다        | `header()` — 아니면 **예외**                            |
+| 범위는 "방법"이 말한다              | `header(method=…)` — 2줄 이상 필수                      |
+| 손으로 친 숫자 0개                  | `num()` — JSON 을 열어 키를 찾고 값을 **대조**, 어긋나면 예외 |
+| 표 안의 숫자도 손으로 안 침         | `table_from()` — JSON 배열/딕셔너리에서 행을 직접 뽑는다 |
+| 그림 1개 = 질문 1개                 | `caption()` — 물음표로 안 끝나거나 2개면 **예외**       |
+| §마지막 = "다음 단계"(앞을 본다)    | `next_steps()` — 결정되는 것이 없는 행은 **예외**       |
+| 재현 블록이 실제로 돌아야 함        | `header()` — 출력 JSON 이 디스크에 없으면 예외          |
+| 분량 상한(25셀 / 12줄 / 8그림)      | `check_budget()` · `build_notebook(strict=True)`        |
+| **부정문 3개 이하**(§5.8-1)         | `count_negatives()` → `check_budget()` **위반**         |
+| **완충어 0건**(§5.8-3)              | `grep_hedges()` → `check_budget()` **위반**             |
+| 과정 서사 금지(§5.5)                | `lint_prose()` → `check_budget()` 권고                  |
+| 그림 글자는 영어                    | `assert_fig_text()`                                     |
+
+⭐ 톤 검사(부정문·완충어)는 **권고가 아니라 위반**이다.
+   오탐의 대가는 문장 하나 다시 쓰기이고, 미탐의 대가는 **사용자가 거부한 그 산문이 그대로 나가는 것**이다.
+   대신 걸린 문장을 그대로 돌려주므로 고치는 데 1분이 걸리지 않는다.
 
 ⭐ 검증을 끄는 스위치는 **어디에도 없다**. 거짓말할 수 있는 출처 표시는 없느니만 못하다.
    JSON 값이 `null` 이면 `num()` 은 예외를 낸다 — "모른다"를 숫자로 위장시키지 않기 위해서다
    (`if_null="미상"` 으로 명시하면 그 말이 그대로 찍힌다).
 
-⚠ 이 모듈은 **임포트해도 안전**하다(부작용 없음). `src/make_notebook*.py` 와 다르다.
+⚠ 이 모듈은 **임포트해도 안전**하다(부작용 없음). `src/make_report0N_*.py` 와 다르다.
+
+------------------------------------------------------------------------------------------
+2026-07-31 계약 변경 — 옛 빌더가 고쳐야 할 것
+------------------------------------------------------------------------------------------
+| 폐지 | 대체 |
+|---|---|
+| `header(question=…)` | `header(did=…)` — 물음표가 아니라 **한 일**. 물음표로 끝나면 예외 |
+| `header(conclusion_lines=…)` | `header(results=…)` |
+| `header(claims=…, non_claims=…)` | `header(method=…)` — **어떻게 얻었는지**가 곧 범위다 |
+| `limits([...])` | `next_steps([...])` — `다음에 할 일 \\| 그러면 결정되는 것 \\| 어디서` |
+
+옛 이름을 부르면 `ContractError` 가 **무엇으로 바꿔야 하는지 적어서** 터진다(조용히 통과하지 않는다).
 
 ------------------------------------------------------------------------------------------
 워크드 예제 — 규약을 통과하는 최소 빌더 (그대로 복사해서 시작할 것)
@@ -36,7 +67,7 @@ report_style.py — 6편 리포트의 **공통 서술 규약을 코드로 강제
 ```python
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from report_style import (header, num, caption, limits, md, code,
+from report_style import (header, num, caption, next_steps, md, code,
                           table, table_from, build_notebook, from_json)
 
 S = from_json("outputs/sbr_kr_sweep.json")          # 이 편의 근거 JSON
@@ -45,25 +76,22 @@ blocks = [
     header(
         num=2,
         title="표적 모델 — 메쉬 · 엔진 · 앵커",
-        question="드론 메쉬에서 계산한 RCS 중 무엇을 믿어도 되는가?",
-        conclusion_lines=[
-            f"엔진 수치는 건강하다. 해석 PO 대비 최대 편차 "
+        did="드론 7종의 메쉬에 광선추적 가림과 부품별 재질 PO 를 적용해 RCS 를 계산하고, "
+            "레벨과 주파수 의존성을 Das 측정에 맞췄다.",
+        results=[
+            f"해석 PO 구 대비 최대 편차 "
             f"{S.num('summary_div16.max_abs_db_vs_po', 0.201, '{:.3f}', 'dB')} "
             f"(kr 21점 × 입사 {S.num('meta.n_incidence', 48, '{:.0f}')}방향).",
-            "따라서 **자세 구조**(각도에 따른 σ 의 모양)는 기하에서 나온 것으로 방어된다.",
-            "반면 **절대 레벨**과 **주파수 기울기**는 기하가 아니라 측정 앵커에서 온다.",
-            "PO 는 f² 정반사항만 남기고 회절항이 없어 기울기가 측정보다 3~8배 가파르다.",
+            "자세 패턴은 기하에서 계산했다 — 부품별 재질 + 광선추적 가림.",
+            "레벨과 밴드 기울기는 Das 측정(IEEE WCL 2026 15:3731) 에 맞췄다.",
+            "바이스태틱은 β ≤ 45° 에서 성립한다.",
         ],
-        claims=[
-            "자세에 따른 σ 의 **구조** — 부품별 재질 + 광선추적 가림에서 나온다",
-            "엔진이 해석해(구 PO)를 재현한다 — 위 편차 수치",
+        method=[
+            ("자세 패턴", "Sionna 의 Mitsuba/OptiX 로 first-hit 가림, 조명면에 PO 적분"),
+            ("절대 레벨", "Das 측정에 A(f)B1(φ)B2 분해로 맞춤 — B1 은 우리 계산 그대로"),
+            ("검증", "해석 PO 구 · PEC 이면각 해석해와 대조"),
         ],
-        non_claims=[
-            "**절대 σ 레벨** — 측정 앵커(Das, IEEE WCL 2026)에서 온다",
-            "**주파수 기울기** — PTD 회절항이 없어 계통적으로 가파르다",
-            "β>45° 바이스태틱 — 상반성 검사를 통과하지 못한다",
-        ],
-        prereq=[("01 §3", "선행연구가 표적 산란을 어떻게 회피했는지")],
+        prereq=[("01 §3", "게재 선행이 표적 산란을 어떻게 다뤘는지")],
         repro=dict(cmd="PYTHONPATH=src python benchmark/verify_sbr_kr_sweep.py",
                    out="outputs/sbr_kr_sweep.json",
                    runtime="약 18분 (GPU 1장)"),
@@ -73,19 +101,19 @@ blocks = [
        "부품별 재질을 유지한 채 watertight 로 만든다. 코드는 `src/drone_cad.py:120`."),
 
     # 숫자가 든 표는 JSON 에서 직접 뽑는다 — 손으로 치면 검증을 우회한다.
-    md("## §4. 앵커가 통제하지 못한 것", "",
+    md("## §4. 앵커가 통제한 것과 통제하지 않은 항목의 크기", "",
        table_from("outputs/sigma_anchor.json:uncontrolled",
-                  [("미통제 항목", "term"), ("상태", "status"), ("크기", "size_db")],
+                  [("항목", "term"), ("상태", "status"), ("크기", "size_db")],
                   fmt={"size_db": "{:+.2f} dB"}, null="미상")),
 
     # 그림은 **미리 그려둔 PNG 를 마크다운으로 끼운다**(viz 스크립트가 만든다).
-    # check_budget 이 그 파일이 실제로 있는지까지 확인한다 — 깨진 링크 = 인수인계 실패.
     md("![sbr validate](outputs/figures/report2_sbr_validate.png)", "",
        caption(1, "SBR 이 해석 PO 와 몇 dB 안에서 일치하는가?")),
 
-    limits([
-        ("PTD 회절 보정이 없다", "`src/rcs_sbr.py` 에 등가 모서리 전류를 추가 → 기울기 재측정"),
-        ("편파 통제가 없다", "06편 측정 설계의 편파 축을 먼저 확정"),
+    next_steps([
+        ("등가 모서리 전류(PTD)를 넣는다", "밴드 기울기가 기하만으로 서는지 결정된다",
+         "`src/rcs_sbr.py` → 02편 §3 재측정"),
+        ("VV/HH 2편파를 잰다", "편파 항의 크기가 수치로 확정된다", "06편 §2 측정 설계"),
     ]),
 ]
 
@@ -94,23 +122,25 @@ build_notebook("report02.ipynb", blocks, strict=True)
 
 여섯 빌더가 공통으로 지킬 것
 ------------------------------------------------------------------------------------------
-1. `md()` / `code()` / `header()` / `limits()` 는 **전부 그냥 문자열**(`Block`)이다.
+1. `md()` / `code()` / `header()` / `next_steps()` 는 **전부 그냥 문자열**(`Block`)이다.
    `print(header(...))`, `md("a") + "b"` 다 된다. `.kind` 만 얹혀 있어 셀 종류를 안다.
 2. **숫자는 전부 `num()` 을 통과**시킨다. 값을 안 적고 `num(None, ...)` 로 두면 JSON 이
    유일한 진실이 된다. 값을 적으면 그건 *주장*이고, JSON 과 어긋나면 빌드가 멈춘다.
    표 안의 숫자도 예외가 아니다 — 칸마다 `num()` 을 넣거나 `table_from()` 으로 뽑는다.
 3. 그림은 viz 스크립트가 만든 **PNG 를 마크다운으로 끼우고** 바로 밑에 `caption()` 한 줄.
    그림 안의 글자는 영어 — viz 쪽에서 `assert_fig_text()` 로 확인한다.
-4. 마지막은 반드시 `limits()`. **다음 사람이 어디서 이어받는지**가 없으면 예외가 난다.
-5. 다 만들고 `build_notebook(..., strict=True)` — §5.4 상한을 넘으면 만들어지지 않는다.
+4. 마지막은 반드시 `next_steps()`. **무엇이 결정되는지**가 없으면 예외가 난다.
+5. 다 만들고 `build_notebook(..., strict=True)` — §5.7 상한·§5.8 톤 검사를 넘으면 만들어지지 않는다.
 
 `python src/report_style.py` 로 이 모듈 자체의 데모·자기검사를 돌려볼 수 있다.
+`python src/report_style.py report01_prior.ipynb …` 로 기존 노트북들을 한 번에 측정한다.
 """
 from __future__ import annotations
 
 import json
 import os
 import re
+import sys
 from typing import Any, Iterable, Sequence
 
 # --------------------------------------------------------------------------- #
@@ -120,17 +150,26 @@ ROOT = os.environ.get(
     "SIONNA2_ROOT",
     os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")))
 
-#: §5.4 분량 상한 — 넘치면 **내용을 줄이지 말고 편을 쪼개라**(다만 6편 골격은 유지).
+#: §5.7 분량 상한 — 넘치면 **내용을 줄이지 말고 편을 쪼개라**(다만 6편 골격은 유지).
 MAX_MD_CELLS = 25
 MAX_LINES_PER_CELL = 12
 MAX_FIGURES = 8
+
+#: §5.8 톤 상한. 부정문은 편당 3개까지, 완충어는 0건.
+MAX_NEGATIVES = 3
+MAX_HEDGES = 0
 
 #: 마크다운 블록 안에서 이 줄을 만나면 **셀을 나눈다**.
 BREAK = "<!--cell-->"
 
 #: 구조 블록 태그 — 12줄 상한에서 면제되고, 존재 여부가 검사된다.
 TAG_HEADER = "header"
-TAG_LIMITS = "limits"
+TAG_NEXT = "next_steps"
+TAG_LIMITS = "limits"            # 폐지된 옛 태그. 옛 노트북을 **식별**하는 데만 쓴다.
+#: 논문 참고자료 블록(`docs/PAPER_SPEC.md` §4 — 논문 대응·방어선·방법 문단·인용).
+#  `src/paper_kit.py` 가 단다. 방어선 표가 길어서 **12줄 상한만** 면제한다 —
+#  셀 수(§5.7)·톤(§5.8)·출처(§5.6-1) 검사는 다른 셀과 똑같이 받는다.
+TAG_PAPER = "paper"
 _TAG_RE = re.compile(r"^<!--rs:([a-z_]+)-->\s*\n?")
 
 KERNEL = {"display_name": "py312", "language": "python", "name": "py312"}
@@ -308,7 +347,7 @@ def num(value: Any, source, fmt: str | None = None, unit: str = "",
                 f"그 사실을 그대로 쓰려면 `if_null='미상'` 처럼 명시하라.")
         return f"{if_null} ⟨{p} : {k}⟩"
 
-    # 인용은 **값 하나**여야 한다 — 배열·딕셔너리를 통째로 본문에 붓지 않는다(§5.2 "산문 속 숫자 나열").
+    # 인용은 **값 하나**여야 한다 — 배열·딕셔너리를 통째로 본문에 붓지 않는다(§5.5 "산문 속 숫자 나열").
     if isinstance(jval, (dict, list, tuple)) or getattr(jval, "ndim", 0):
         n = len(jval) if hasattr(jval, "__len__") else "?"
         raise ContractError(
@@ -378,23 +417,238 @@ def from_json(path: str) -> Source:
 
 
 # --------------------------------------------------------------------------- #
-#  2) 서두 6블록 — `header()`
+#  2) 톤 검사 — §5.8 자기검사를 **실행 가능한 검사**로
+#
+#     ⭐ 이것들은 권고가 아니라 위반이다. 오탐의 대가는 문장 하나 다시 쓰기이고,
+#        미탐의 대가는 사용자가 거부한 그 산문이 그대로 나가는 것이다.
+#        대신 **걸린 문장을 그대로 돌려준다** — 세기만 하면 고칠 수가 없다.
 # --------------------------------------------------------------------------- #
-def _rows(items: Sequence, what: str) -> list[tuple[str, str]]:
-    """`[(a, b), ...]` 또는 `[{"a":..,"b":..}]` 를 2열 튜플 리스트로."""
+#: §5.8-1 부정문 — "…않는다 / 못한다 / 아니다 / 없다" 로 **끝나는** 문장.
+#  과거형 변형(않았다·못했다·없었다)도 같은 물건이라 함께 센다.
+_NEG_ENDINGS = ("않는다", "않았다", "않다", "못한다", "못했다",
+                "아니다", "없다", "없었다")
+
+#: §5.8-3 완충어 — **0건**이어야 한다. (표현, 무엇으로 바꾸나)
+_HEDGES: list[tuple[str, str]] = [
+    (r"(?:라|다|으로|로)고?\s*볼 수 있",  "단정하라: '…이다' 또는 조건절 '…에서 …이다'"),
+    (r"[가-힣]\s*편이(?:다|었|라)",        "수치로: '…는 X dB 다'"),
+    (r"대체로",                            "범위를 조건절로: '…에서'"),
+    (r"어느 정도",                          "크기를 숫자로"),
+    (r"아마도?(?![가-힣])",                "확인하고 단정하거나, 다음 단계 표로 넘겨라"),
+    (r"아쉽게도",                           "삭제. 사과는 정보가 0이다"),
+    (r"불행히도",                           "삭제. 사과는 정보가 0이다"),
+    (r"유의할 점",                          "그 양을 표에 숫자로 넣어라"),
+    (r"잠정적",                             "성립 범위를 조건절로: 'β ≤ 45° 에서'"),
+    (r"인 것 같다|같아 보인다",             "단정하라"),
+    (r"생각된다|사료된다|판단된다",          "누가 무엇으로 판단했는지 방법 블록에"),
+    (r"(?:으로|로)\s*보인다",               "측정값이면 '…로 측정된다'"),
+    (r"할 수도 있다",                       "조건을 특정하라"),
+    (r"다소|비교적",                        "차이를 숫자로"),
+]
+
+#: §5.5 과정 서사 — "처음엔 …했다가 …로 바꿨다" 류. 버그·수정 이력도 여기 걸린다(권고).
+_NARRATIVE = [
+    (r"처음(?:엔|에는)", "과정 서사"),
+    (r"원래(?:는|,| )", "과정 서사"),
+    (r"기존(?:에|에는)\b", "과정 서사"),
+    (r"이전(?:엔|에는)", "과정 서사"),
+    (r"바꾸었다|바꿨다|바뀌었다", "과정 서사"),
+    (r"수정(?:했다|하였다|됐다|되었다)", "버그·수정 이력"),
+    (r"버그|defect|오류를 발견", "버그·수정 이력"),
+    (r"고쳤다|고치었다", "버그·수정 이력"),
+    (r"이제(?:는)? 더 이상", "과정 서사"),
+]
+
+_CODE_FENCE = re.compile(r"```.*?```", re.S)
+_CODE_SPAN = re.compile(r"`[^`]*`")
+_HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
+_IMG_MD = re.compile(r"!\[[^\]]*\]\([^)]*\)")
+_LINK_MD = re.compile(r"\[([^\]]*)\]\([^)]*\)")
+_PROV_ANY = re.compile(r"⟨[^⟩]*⟩")
+_EMPH = re.compile(r"[*_~]+")
+_TABLE_SEP = re.compile(r"^\s*\|?[\s:\-|]+\|[\s:\-|]*$")
+_LIST_MARK = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+")
+_SENT_SPLIT = re.compile(r"(?<=[.!?。])\s+")
+_SENT_END = re.compile(r"[.!?。]\s|\n")
+
+
+def _plain(text: str) -> str:
+    """마크다운에서 **산문만** 남긴다 — 코드·태그·이미지·강조를 걷어낸다."""
+    t = _CODE_FENCE.sub(" ", str(text))
+    t = _HTML_COMMENT.sub(" ", t)
+    t = _CODE_SPAN.sub(" ", t)
+    t = _IMG_MD.sub(" ", t)
+    t = _LINK_MD.sub(r"\1", t)
+    t = _PROV_ANY.sub(" ", t)        # 출처 태그는 산문이 아니다
+    return _EMPH.sub("", t)
+
+
+def _segments(text: str) -> list[str]:
+    """산문을 **문장 단위**로 쪼갠다.
+
+    표는 칸마다 한 문장으로 센다 — 방어적 표현은 표 안으로 숨는 일이 잦다.
+    """
+    out: list[str] = []
+    for line in _plain(text).splitlines():
+        if _TABLE_SEP.match(line):                     # |---|---| 구분줄
+            continue
+        parts = [c for c in line.split("|")] if "|" in line else [line]
+        for part in parts:
+            s = part.strip().lstrip(">#").strip()
+            s = _LIST_MARK.sub("", s)
+            if not s:
+                continue
+            out += [x.strip() for x in _SENT_SPLIT.split(s) if x.strip()]
+    return out
+
+
+_TRAIL = " \t.。!?)]}'\"’”*_`·…"
+
+
+def _ends_negative(sentence: str) -> str | None:
+    """문장이 부정 종결로 끝나면 그 어미를 돌려준다."""
+    s = sentence.rstrip(_TRAIL)
+    for e in _NEG_ENDINGS:
+        if s.endswith(e):
+            return e
+    return None
+
+
+def _as_cells(nb: Any) -> list[dict]:
+    """노트북 경로 / 노트북 dict / 셀 리스트 / 생 텍스트 → 셀 리스트."""
+    if isinstance(nb, dict) and "cells" in nb:
+        return list(nb["cells"])
+    if isinstance(nb, str):
+        if nb.strip().endswith(".ipynb"):
+            p = nb if os.path.isabs(nb) else os.path.join(ROOT, nb)
+            if not os.path.exists(p):
+                raise ContractError(f"검사할 노트북이 없다: {nb} (기대 경로: {p})")
+            with open(p, encoding="utf-8") as f:
+                return list(json.load(f).get("cells", []))
+        return [{"cell_type": "markdown", "source": nb}]     # 생 텍스트·Block
+    if isinstance(nb, (list, tuple)):
+        cells = []
+        for i, b in enumerate(nb):
+            if isinstance(b, dict) and "cell_type" in b:
+                cells.append(b)
+            else:                                            # md()/문자열 블록
+                kind = getattr(b, "kind", "markdown")
+                cells.append({"cell_type": kind, "source": str(b)})
+        return cells
+    raise ContractError(f"검사 대상이 노트북이 아니다: {type(nb).__name__}")
+
+
+def _cell_text(c: dict) -> str:
+    s = c.get("source", "")
+    return s if isinstance(s, str) else "".join(s)
+
+
+def count_negatives(nb: Any) -> dict:
+    """§5.8-1 **부정문 세기** — "않는다/못한다/아니다/없다" 로 끝나는 문장. 편당 3개 이하.
+
+    입력: 노트북 경로 · 노트북 dict · 블록 리스트 · 생 텍스트 아무거나.
+    반환: `dict(count, cap, ok, sentences=[{cell, ending, text}, …])`
+
+    ⭐ **걸린 문장을 그대로 돌려준다.** 세기만 하면 고칠 수가 없다.
+       고치는 법은 하나다 — 무엇을 **했는지**로 다시 쓴다(§5.0).
+         "편파를 통제하지 못했다"  →  "편파: VV 단일. 실측에서 2편파로 확장한다"
+    """
+    hits = []
+    for i, c in enumerate(_as_cells(nb)):
+        if c.get("cell_type") != "markdown":
+            continue
+        for s in _segments(_cell_text(c)):
+            e = _ends_negative(s)
+            if e:
+                hits.append({"cell": i, "ending": e, "text": s})
+    return {"count": len(hits), "cap": MAX_NEGATIVES,
+            "ok": len(hits) <= MAX_NEGATIVES, "sentences": hits}
+
+
+def grep_hedges(nb: Any) -> dict:
+    """§5.8-3 **완충어 grep** — 0건이어야 한다.
+
+    걸리는 것: ~라고 볼 수 있 · ~인 편 · 대체로 · 어느 정도 · 아마 · 아쉽게도 · 불행히도 ·
+              유의할 점 · 잠정적 (+ 같은 물건인 변형들).
+    반환: `dict(count, ok, hits=[{cell, hedge, fix, text}, …])`
+
+    ⭐ 완충어가 필요하다는 것은 **문장이 실제보다 크게 말하고 있다는 신호**다(§5.0).
+       표현을 부드럽게 하지 말고 **주장의 크기**를 줄여라. 크기가 맞으면 그냥 사실이 된다.
+    """
+    hits = []
+    for i, c in enumerate(_as_cells(nb)):
+        if c.get("cell_type") != "markdown":
+            continue
+        for s in _segments(_cell_text(c)):
+            for pat, fix in _HEDGES:
+                m = re.search(pat, s)
+                if m:
+                    hits.append({"cell": i, "hedge": m.group(0),
+                                 "fix": fix, "text": s})
+                    break                       # 문장 하나에 한 번만 보고한다
+    return {"count": len(hits), "ok": len(hits) <= MAX_HEDGES, "hits": hits}
+
+
+def lint_prose(text: str) -> list[str]:
+    """§5.5 **과정 서사·버그 이력**과 긴 문단을 찾아 권고 목록으로 돌려준다(예외는 안 낸다).
+
+    완충어·부정문은 여기가 아니라 `grep_hedges()`·`count_negatives()` 가 맡는다(그쪽은 위반이다).
+    """
+    t = _plain(text)
+    body = "\n".join(ln for ln in t.splitlines()
+                     if not ln.lstrip().startswith(("|", ">", "#", "!", "```")))
+    hits: list[str] = []
+    for pat, why in _NARRATIVE:
+        for m in re.finditer(pat, body):
+            hits.append(f"{why}: '{m.group(0)}' (§5.5 금지)")
+    # 3문장 넘는 문단 — "끊거나 표로".
+    # ⚠ 목록(결과 3~5줄 등)은 이미 끊어 쓴 것이므로 문단으로 세지 않는다.
+    prose = "\n".join(ln for ln in body.splitlines()
+                      if not re.match(r"^\s*(?:\d+\.|[-*+])\s", ln))
+    for para in re.split(r"\n\s*\n", prose):
+        para = para.strip()
+        if not para:
+            continue
+        n_sent = len([s for s in _SENT_END.split(para) if s.strip()])
+        if n_sent > 3:
+            hits.append(f"문단이 {n_sent}문장 > 3 (§5.4: 끊거나 표로) "
+                        f"— \"{para[:40]}…\"")
+    return sorted(set(hits))
+
+
+def _assert_tone(where: str, *texts: str) -> None:
+    """여는 블록·다음 단계 표처럼 **첫 화면에 걸리는 자리**는 톤 위반을 즉시 막는다."""
+    for t in texts:
+        for s in _segments(str(t)):
+            for pat, fix in _HEDGES:
+                m = re.search(pat, s)
+                if m:
+                    raise ContractError(
+                        f"{where}: 완충어 '{m.group(0)}' (§5.8-3 완충어 0건)\n"
+                        f"  문장: \"{s}\"\n"
+                        f"  → {fix}\n"
+                        f"  ⭐ 완충어가 필요하다는 건 문장이 실제보다 크게 말하고 있다는 신호다. "
+                        f"표현이 아니라 **주장의 크기**를 고쳐라(§5.0).")
+
+
+# --------------------------------------------------------------------------- #
+#  3) 여는 블록 — `header()`
+#     한 일 / 결과 / 방법 / 재현 (+ 앞 편에서). 전부 능동태.
+# --------------------------------------------------------------------------- #
+def _rows(items: Sequence, what: str, width: int = 2) -> list[tuple[str, ...]]:
+    """`[(a, b), …]` 또는 `[{"a":…,"b":…}]` 를 width 열 튜플 리스트로."""
     out = []
     for it in items:
         if isinstance(it, dict):
             vals = list(it.values())
-            if len(vals) != 2:
-                raise ContractError(f"{what}: 2열이 필요하다 — {it!r}")
-            out.append((str(vals[0]), str(vals[1])))
         elif isinstance(it, (tuple, list)):
-            if len(it) != 2:
-                raise ContractError(f"{what}: 2열이 필요하다 — {it!r}")
-            out.append((str(it[0]), str(it[1])))
+            vals = list(it)
         else:
-            raise ContractError(f"{what}: (앞, 뒤) 쌍이어야 한다 — {it!r}")
+            raise ContractError(f"{what}: {width}열 짜리 행이어야 한다 — {it!r}")
+        if len(vals) != width:
+            raise ContractError(
+                f"{what}: {width}열이 필요하다 (지금 {len(vals)}열) — {it!r}")
+        out.append(tuple(str(v) for v in vals))
     return out
 
 
@@ -402,115 +656,181 @@ def _md_escape_cell(s: str) -> str:
     return str(s).replace("|", r"\|").replace("\n", " ")
 
 
+_LEGACY_HEADER_ARGS = {
+    "question": "did",
+    "conclusion_lines": "results",
+    "claims": "method",
+    "non_claims": "method",
+}
+
+
 def header(num: int | str,                       # noqa: A002  (계약서의 인자 이름 그대로)
            title: str,
-           question: str,
-           conclusion_lines: Sequence[str],
-           claims: Sequence[str],
-           non_claims: Sequence[str],
-           prereq: Sequence | None = None,
+           did: str | None = None,
+           results: Sequence[str] | None = None,
+           method: Sequence | None = None,
            repro: dict | None = None,
-           allow_missing_output: bool = False) -> Block:
-    """§5.1 의 **6블록 서두**를 만든다. 하나라도 비면 예외.
+           prereq: Sequence | None = None,
+           method_cols: tuple[str, str] = ("무엇을", "어떻게 얻었나"),
+           allow_missing_output: bool = False,
+           **legacy) -> Block:
+    """§5.2 **여는 블록**을 만든다 — 한 일 / 결과 / 방법 / 재현 (+ 앞 편에서). 하나라도 비면 예외.
 
-    블록: ① 한 줄 질문 ② 결론(3~5줄, 숫자 포함) ③ 주장/비주장 2열 표
-          ④ 필요한 사전지식 ⑤ 재현(명령 + 출력 JSON + 소요시간) ⑥ 본문 시작
+    파라미터
+    --------
+    did     : **한 일**. 한 문장, 능동태, `…했다` 로 끝난다. **물음표로 끝나면 예외다.**
+              ⚠ 옛 계약은 여기에 *질문*을 요구했다. 새 계약은 **한 일**을 요구한다.
+              그 뒤집힘이 이 함수가 가장 먼저 막는 것이다.
+    results : **결과** 3~5줄. 숫자가 있어야 한다(`num()` 으로 넣어라).
+              여기만 읽어도 결과를 알 수 있어야 한다.
+    method  : **방법**. `["…"]` 또는 `[("무엇을", "어떻게 얻었나"), …]`, 2개 이상.
+              ⭐ 이것이 옛 "주장하지 않는 것" 표를 대신한다. **어떻게 얻었는지**를 정확히 쓰면
+                 무엇을 말할 수 있는지가 따라 나온다 — "Das 측정에 맞췄다" 가 곧 "레벨은 측정 출처" 다.
+    repro   : `dict(cmd=…, out=…, runtime=…)`. `out` 이 디스크에 없으면 예외.
+    prereq  : **앞 편에서** `[("01 §3", "무엇을 알고 와야 하나"), …]`. 없으면 생략된다.
 
-    ⭐ ③ 은 이 프로젝트의 **정직성 장치**다. 두 열 중 하나라도 비면 리포트가 만들어지지 않는다.
-
-    반환: 마크다운 문자열(`Block`). `build_notebook()` 이 `<!--cell-->` 에서 2셀로 나눈다.
+    막는 것
+    -------
+    · 한 일이 물음표로 끝남 · 결과가 3~5줄이 아님 · 결과에 숫자가 없음
+    · 방법이 2줄 미만 · 재현 출력이 디스크에 없음
+    · 여는 블록 안의 완충어(0건) · 한 일의 부정 종결 · 결과의 부정 종결 2개 이상
     """
-    # ── ① 질문 ──────────────────────────────────────────────────────────────
-    q = str(question).strip()
-    if not q:
-        raise ContractError("§5.1 ①: 이 편이 답하는 질문이 비었다.")
-    if not q.endswith("?"):
-        raise ContractError(f"§5.1 ①: 질문은 물음표로 끝나야 한다 — {q!r}")
-    if q.count("?") > 1:
-        raise ContractError(
-            f"§5.1 ①: 한 편은 **질문 하나**에 답한다. 물음표가 {q.count('?')}개다 — {q!r}\n"
-            "  → 두 질문이면 그건 편을 쪼개야 한다는 뜻이다(§5.4).")
-
-    # ── ② 결론 ──────────────────────────────────────────────────────────────
-    concl = [str(c).strip() for c in (conclusion_lines or []) if str(c).strip()]
-    if not (3 <= len(concl) <= 5):
-        raise ContractError(
-            f"§5.1 ②: 결론은 3~5줄이다. 지금 {len(concl)}줄.\n"
-            "  → 여기만 읽어도 결론을 알 수 있어야 하고, 그 이상은 본문이다.")
-    if not any(re.search(r"\d", c) for c in concl):
-        raise ContractError(
-            "§5.1 ②: 결론에 **숫자가 하나도 없다**. 근거 수치를 `num()` 으로 넣어라.")
-
-    # ── ③ 주장 / 비주장 ─────────────────────────────────────────────────────
-    C = [str(c).strip() for c in (claims or []) if str(c).strip()]
-    N = [str(c).strip() for c in (non_claims or []) if str(c).strip()]
-    if not C or not N:
-        raise ContractError(
-            "§5.1 ③ **정직성 장치**: 주장/비주장 표는 두 열이 다 채워져야 한다 "
-            f"(주장 {len(C)}개, 비주장 {len(N)}개).\n"
-            "  → 주장하지 않는 것이 없다면, 그건 아직 경계를 안 그은 것이다. "
-            "무엇이 이 편의 근거로 지지되지 **않는지** 적어라.")
-
-    # ── ④ 사전지식 ──────────────────────────────────────────────────────────
-    P = _rows(prereq or [], "§5.1 ④ 사전지식")
-
-    # ── ⑤ 재현 ──────────────────────────────────────────────────────────────
-    R = dict(repro or {})
-    for need in ("cmd", "out"):
-        if not str(R.get(need, "")).strip():
+    # ── 옛 계약의 인자를 부르면, 무엇으로 바꿔야 하는지 적어서 막는다 ──────────
+    if legacy:
+        bad = {k: _LEGACY_HEADER_ARGS[k] for k in legacy if k in _LEGACY_HEADER_ARGS}
+        if bad:
             raise ContractError(
-                f"§5.1 ⑤ 재현: '{need}' 가 없다. 명령 한 줄 + 출력 JSON 경로 + 소요시간은 필수다.\n"
+                "옛 계약(2026-07-31 이전)의 인자다 — " +
+                ", ".join(f"`{k}=` → `{v}=`" for k, v in bad.items()) + "\n"
+                "  · `question=` 은 폐지됐다. 여는 블록은 질문이 아니라 **한 일**로 연다.\n"
+                "  · `claims=`/`non_claims=` 표는 폐지됐다(§5.0). **방법**이 그 일을 한다 —\n"
+                "    어떻게 얻었는지 정확히 쓰면 무엇을 말할 수 있는지가 따라 나온다.\n"
+                "  → header(num=…, title=…, did='…했다', results=[…], method=[…], repro=…)")
+        raise ContractError(f"header(): 모르는 인자 {sorted(legacy)}")
+
+    # ── ① 한 일 ─────────────────────────────────────────────────────────────
+    d = str(did or "").strip()
+    if not d:
+        raise ContractError(
+            "§5.2 ①: **한 일**이 비었다. 이 편이 해낸 일을 한 문장으로 적어라.\n"
+            "  예) '드론 7종의 메쉬에 광선추적 가림과 부품별 재질 PO 를 적용해 RCS 를 계산했다.'")
+    if d.endswith("?") or "?" in d:
+        raise ContractError(
+            f"§5.2 ①: **한 일은 질문이 아니다.** 물음표가 있다 — {d!r}\n"
+            "  ⚠ 옛 계약은 여기에 질문을 요구했다. 새 계약은 **한 일**을 요구한다.\n"
+            "  → '…를 했다' 로 끝나는 한 문장으로 바꿔라.\n"
+            "     '무엇을 믿어도 되는가?'  →  '해석해 대조로 엔진을 검증하고 레벨을 측정에 맞췄다.'")
+    core = d.rstrip(_TRAIL)
+    if not core.endswith("다"):
+        raise ContractError(
+            f"§5.2 ①: 한 일은 능동태·완료형 한 문장이다 — '…했다' 로 끝나야 한다. 지금: {d!r}")
+    if _ends_negative(d):
+        raise ContractError(
+            f"§5.2 ①: 한 일이 **부정문**이다 — {d!r}\n"
+            "  → 첫 문장은 해낸 일이다(§5.8-2 첫 화면 시험). 무엇을 **했는지**로 다시 써라.")
+    if len([s for s in _segments(d) if s]) > 1:
+        raise ContractError(
+            f"§5.2 ①: 한 일은 **한 문장**이다. 지금 여러 문장이다 — {d!r}\n"
+            "  → 나머지는 결과(3~5줄)로 내려라.")
+
+    # ── ② 결과 ─────────────────────────────────────────────────────────────
+    R_lines = [str(c).strip() for c in (results or []) if str(c).strip()]
+    if not (3 <= len(R_lines) <= 5):
+        raise ContractError(
+            f"§5.2 ②: 결과는 3~5줄이다. 지금 {len(R_lines)}줄.\n"
+            "  → 여기만 읽어도 결과를 알 수 있어야 하고, 그 이상은 본문이다.")
+    if not any(re.search(r"\d", c) for c in R_lines):
+        raise ContractError(
+            "§5.2 ②: 결과에 **숫자가 하나도 없다**. 근거 수치를 `num()` 으로 넣어라.\n"
+            "  → 불확실한 양도 산문이 아니라 숫자로 쓴다 — '크기 전이 L² vs L⁴ = 9.50 dB'(§5.1).")
+    neg_lines = [c for c in R_lines if _ends_negative(c)]
+    if len(neg_lines) > 1:
+        raise ContractError(
+            f"§5.2 ②: 결과에 부정 종결 문장이 {len(neg_lines)}개다(첫 화면은 해낸 일이다).\n  "
+            + "\n  ".join(f"- {c}" for c in neg_lines)
+            + "\n  → 무엇을 했는지로 다시 써라. "
+              "'절대 σ 를 주장하지 않는다' → '레벨은 Das 측정에 맞췄다'")
+
+    # ── ③ 방법 ─────────────────────────────────────────────────────────────
+    M_raw = list(method or [])
+    if len(M_raw) < 2:
+        raise ContractError(
+            f"§5.2 ③: **방법**이 {len(M_raw)}줄이다 — 2줄 이상 적어라.\n"
+            "  ⭐ 방법이 옛 '주장하지 않는 것' 표를 대신한다. 어떻게 얻었는지 정확히 쓰면\n"
+            "     무엇을 말할 수 있는지가 따라 나온다 — 그래서 변명 절이 필요 없다(§5.0).\n"
+            "  → method=[('절대 레벨', 'Das 측정에 맞춤'), ('자세 패턴', 'SBR+PO 기하 계산')]")
+    M_table = all(isinstance(m, (tuple, list, dict)) for m in M_raw)
+    M_rows = _rows(M_raw, "§5.2 ③ 방법", 2) if M_table else None
+    M_bullets = None if M_table else [str(m).strip() for m in M_raw if str(m).strip()]
+    if M_bullets is not None and len(M_bullets) < 2:
+        raise ContractError("§5.2 ③: 방법이 2줄 이상이어야 한다.")
+
+    # ── ④ 앞 편에서 ────────────────────────────────────────────────────────
+    P = _rows(prereq or [], "§5.2 ⑤ 앞 편에서", 2)
+
+    # ── ⑤ 재현 ─────────────────────────────────────────────────────────────
+    Rp = dict(repro or {})
+    for need in ("cmd", "out"):
+        if not str(Rp.get(need, "")).strip():
+            raise ContractError(
+                f"§5.2 ④ 재현: '{need}' 가 없다. 명령 한 줄 + 출력 JSON 경로 + 소요시간은 필수다.\n"
                 "  → repro=dict(cmd='PYTHONPATH=src python benchmark/x.py', "
                 "out='outputs/x.json', runtime='약 12분 (GPU 1장)')")
-    outs = R["out"] if isinstance(R["out"], (list, tuple)) else [R["out"]]
+    outs = Rp["out"] if isinstance(Rp["out"], (list, tuple)) else [Rp["out"]]
     for o in outs:
         pth = o if os.path.isabs(o) else os.path.join(ROOT, o)
         if not os.path.exists(pth) and not allow_missing_output:
             raise ContractError(
-                f"§5.3-4 재현 블록이 실제로 돌아야 한다 — 출력이 디스크에 없다: {o}\n"
+                f"§5.6-4 재현 블록이 실제로 돌아야 한다 — 출력이 디스크에 없다: {o}\n"
                 f"  → 실험을 먼저 돌리거나, 경로를 고쳐라. (기대: {pth})")
-    if not str(R.get("runtime", "")).strip():
-        R["runtime"] = "(미측정 — 재현 전에 채울 것)"
+    if not str(Rp.get("runtime", "")).strip():
+        Rp["runtime"] = "(미측정 — 재현 전에 채울 것)"
+
+    # ── 톤: 여는 블록은 첫 화면이다. 완충어 0건 ──────────────────────────────
+    _assert_tone("§5.2 여는 블록", d, *R_lines,
+                 *[" ".join(m) for m in (M_rows or [])], *(M_bullets or []))
 
     n = f"{int(num):02d}" if str(num).strip().isdigit() else str(num)
 
     A = [f"<!--rs:{TAG_HEADER}-->",
          f"# 리포트 {n} — {title}", "",
-         "> ### ❓ 이 편이 답하는 질문",
-         f"> **{q}**", "",
-         "### 결론"]
-    A += [f"{i+1}. {c}" for i, c in enumerate(concl)]
+         "> ### 한 일",
+         f"> **{d}**", "",
+         "### 결과"]
+    A += [f"{i+1}. {c}" for i, c in enumerate(R_lines)]
 
-    B = [f"<!--rs:{TAG_HEADER}-->",
-         "### ✅ 주장하는 것 / ❌ 주장하지 않는 것", "",
-         "| ✅ 이 편이 주장하는 것 | ❌ 이 편이 주장하지 않는 것 |", "|---|---|"]
-    for i in range(max(len(C), len(N))):
-        B.append(f"| {_md_escape_cell(C[i]) if i < len(C) else ''} "
-                 f"| {_md_escape_cell(N[i]) if i < len(N) else ''} |")
-    B += ["", "### 필요한 사전지식", ""]
-    if P:
-        B += ["| 어디서 | 무엇을 알고 와야 하나 |", "|---|---|"]
-        B += [f"| {_md_escape_cell(a)} | {_md_escape_cell(b)} |" for a, b in P]
+    B = [f"<!--rs:{TAG_HEADER}-->", "### 방법", ""]
+    if M_rows:
+        B += [f"| {method_cols[0]} | {method_cols[1]} |", "|---|---|"]
+        B += [f"| {_md_escape_cell(a)} | {_md_escape_cell(b)} |" for a, b in M_rows]
     else:
-        B += ["없음. 이 편부터 읽어도 된다."]
+        B += [f"- {m}" for m in (M_bullets or [])]
     B += ["", "### 재현", "", "```bash",
-          *(R["cmd"] if isinstance(R["cmd"], (list, tuple)) else [R["cmd"]]),
+          *(Rp["cmd"] if isinstance(Rp["cmd"], (list, tuple)) else [Rp["cmd"]]),
           "```", "",
           "| | |", "|---|---|",
           "| 출력 | " + ", ".join(f"`{o}`" for o in outs) + " |",
-          f"| 소요 | {R['runtime']} |"]
-    if R.get("note"):
-        B += [f"| 비고 | {_md_escape_cell(R['note'])} |"]
+          f"| 소요 | {Rp['runtime']} |"]
+    if Rp.get("note"):
+        B += [f"| 비고 | {_md_escape_cell(Rp['note'])} |"]
+    if P:
+        B += ["", "### 앞 편에서", "",
+              "| 어디서 | 무엇을 알고 와야 하나 |", "|---|---|"]
+        B += [f"| {_md_escape_cell(a)} | {_md_escape_cell(b)} |" for a, b in P]
     B += ["", "---"]
 
     return Block("\n".join(A) + f"\n\n{BREAK}\n\n" + "\n".join(B))
 
 
 # --------------------------------------------------------------------------- #
-#  3) 그림 캡션 — 그림 1개 = 질문 1개
+#  4) 그림 캡션 — 그림 1개 = 질문 1개
 # --------------------------------------------------------------------------- #
 def caption(fig_no: int | str, question: str) -> str:
-    """`**그림 3.** 질문?` — 그 그림이 답하는 **질문 하나**를 적는다(§5.2 마지막 줄)."""
+    """`**그림 3.** 질문?` — 그 그림이 답하는 **질문 하나**를 적는다(§5.6-2).
+
+    (여는 블록의 '한 일' 과 반대다. 본문 서술은 한 일을 쓰고, 그림 캡션은 그 그림이 답하는
+     질문을 쓴다 — 독자가 그림을 볼 이유가 캡션이기 때문이다.)
+    """
     q = str(question).strip()
     if not q:
         raise ContractError("캡션이 비었다.")
@@ -519,7 +839,7 @@ def caption(fig_no: int | str, question: str) -> str:
             f"그림 {fig_no}: 캡션은 **그 그림이 답하는 질문**이다. 물음표로 끝나야 한다 — {q!r}")
     if q.count("?") > 1:
         raise ContractError(
-            f"그림 {fig_no}: 그림 1개 = 질문 1개(§5.2). 물음표가 {q.count('?')}개다 — {q!r}\n"
+            f"그림 {fig_no}: 그림 1개 = 질문 1개(§5.5). 물음표가 {q.count('?')}개다 — {q!r}\n"
             "  → 그림을 나눠라.")
     return f"**그림 {fig_no}.** {q}"
 
@@ -540,32 +860,72 @@ def assert_fig_text(*labels: str) -> None:
 
 
 # --------------------------------------------------------------------------- #
-#  4) 마지막 절 — "이 편의 한계"
+#  5) 닫는 블록 — `next_steps()` (옛 `limits()` 를 대체한다)
 # --------------------------------------------------------------------------- #
-def limits(items: Sequence, sec: str | None = None) -> Block:
-    """§5.3-3 **각 편의 마지막 절**. 무엇이 아직 안 되어 있고, 다음 사람이 어디서 이어받나.
+def next_steps(rows: Sequence, sec: str | None = None) -> Block:
+    """§5.3 **각 편의 마지막 절 — "다음 단계"**. 같은 정보를 **앞을 보며** 쓴다.
 
-    items: `[("아직 안 된 것", "다음 사람이 이어받을 지점"), ...]`
-           두 번째 칸이 비면 예외 — **인수인계 지점 없는 한계는 그냥 변명이다.**
+    rows: `[(다음에 할 일, 그러면 결정되는 것, 어디서), …]`
+
+    ⭐ 가운데 칸이 이 표의 존재 이유다. **아무것도 결정하지 못하는 다음 단계는 다음 단계가 아니라
+       그냥 한계 목록이다** — 그 한계 목록이 바로 폐지된 것이다(§5.3).
+
+        ("VV/HH 2편파를 잰다", "편파 항의 크기가 수치로 확정된다", "06편 §2")
+        ("기준 구를 함께 잰다", "σ 절대값의 자체 앵커가 선다",     "06편 §3")
     """
-    rows = _rows(items or [], "이 편의 한계")
-    if not rows:
+    R = _rows(rows or [], "§5.3 다음 단계", 3)
+    if not R:
         raise ContractError(
-            "§5.3-3: '이 편의 한계' 가 비었다. 아직 안 된 것이 정말 없을 리 없다.\n"
-            "  → 다음 사람이 이어받을 지점을 적는 자리다.")
-    for a, b in rows:
-        if not a.strip() or not b.strip():
+            "§5.3: '다음 단계' 가 비었다.\n"
+            "  → `다음에 할 일 | 그러면 결정되는 것 | 어디서` 로 한 행 이상 적어라.")
+    for todo, decides, where in R:
+        if not todo.strip():
+            raise ContractError("§5.3: '다음에 할 일' 칸이 비었다.")
+        if not decides.strip():
             raise ContractError(
-                f"§5.3-3: 한계에는 **이어받을 지점**이 함께 있어야 한다 — ({a!r}, {b!r})")
-    head = f"## {sec} 이 편의 한계" if sec else "## 이 편의 한계"
-    L = [f"<!--rs:{TAG_LIMITS}-->", head, "",
-         "| 아직 안 되어 있는 것 | 다음 사람이 이어받을 지점 |", "|---|---|"]
-    L += [f"| {_md_escape_cell(a)} | {_md_escape_cell(b)} |" for a, b in rows]
+                f"§5.3: '{todo}' 에 **그러면 결정되는 것**이 없다.\n"
+                "  ⭐ 아무것도 결정하지 못하는 다음 단계는 다음 단계가 아니다 — 그냥 한계 목록이고,\n"
+                "     그 한계 목록이 폐지된 바로 그것이다.\n"
+                "  → 그 일을 하면 **무엇이 확정되는지** 적어라. "
+                "예) '편파 항의 크기가 수치로 확정된다'")
+        if not where.strip():
+            raise ContractError(
+                f"§5.3: '{todo}' 에 **어디서**가 없다 — 파일:줄 또는 '06편 §2' 처럼 적어라.\n"
+                "  → 인수인계 지점이 없으면 다음 사람이 이어받을 수 없다(§5.6-5).")
+        if _ends_negative(todo):
+            raise ContractError(
+                f"§5.3: '다음에 할 일' 칸이 **한계 서술**이다 — {todo!r}\n"
+                "  → 앞을 보는 행동으로 뒤집어라.\n"
+                "     '편파가 통제되지 않는다' → '실측에서 VV/HH 2편파를 잰다'\n"
+                "     '다중반사를 1회까지만 본다' → '2회 반사를 켜고 이면각 오차를 다시 잰다'")
+        if todo.strip() == decides.strip():
+            raise ContractError(
+                f"§5.3: '할 일' 과 '결정되는 것' 이 같은 문장이다 — {todo!r}")
+    _assert_tone("§5.3 다음 단계", *[" ".join(r) for r in R])
+
+    head = f"## {sec} 다음 단계" if sec else "## 다음 단계"
+    L = [f"<!--rs:{TAG_NEXT}-->", head, "",
+         "| 다음에 할 일 | 그러면 결정되는 것 | 어디서 |", "|---|---|---|"]
+    L += [f"| {_md_escape_cell(a)} | {_md_escape_cell(b)} | {_md_escape_cell(c)} |"
+          for a, b, c in R]
     return Block("\n".join(L))
 
 
+def limits(*_a, **_kw) -> Block:                       # noqa: D401  (폐지된 이름의 묘비)
+    """**폐지됨(2026-07-31).** `next_steps()` 를 써라. 부르면 예외가 난다.
+
+    옛 '이 편의 한계' 절은 모든 편을 사과로 끝나게 만들었다. 같은 정보를 앞을 보며 쓴다.
+    """
+    raise ContractError(
+        "`limits()` 는 폐지됐다(§5.3) — '이 편의 한계' 절이 모든 편을 사과로 끝나게 만들었다.\n"
+        "  → `next_steps([(다음에 할 일, 그러면 결정되는 것, 어디서), …])` 로 바꿔라.\n"
+        "     같은 정보를 **앞을 보며** 쓰는 것이다.\n"
+        "       '편파가 미통제다'        → ('VV/HH 2편파를 잰다', '편파 항이 수치로 확정된다', '06편 §2')\n"
+        "       'σ 절대값이 미검증이다'  → ('기준 구를 함께 잰다', '자체 앵커가 선다', '06편 §3')")
+
+
 # --------------------------------------------------------------------------- #
-#  5) 노트북 조립 — 빌더 6개가 짧고 똑같아지도록
+#  6) 노트북 조립 — 빌더 6개가 짧고 똑같아지도록
 # --------------------------------------------------------------------------- #
 def md(*lines: str) -> Block:
     """마크다운 블록. 줄 하나가 `<!--cell-->` 이면 거기서 셀이 나뉜다."""
@@ -580,9 +940,9 @@ def code(*lines: str) -> Block:
 def table(headers: Sequence[str], rows: Iterable[Sequence]) -> str:
     """마크다운 표. `table()` 자신은 **셀 내용을 검증하지 않는다.**
 
-    ⚠ §5.2 는 산문 속 숫자를 표로 몰아넣으라고 한다. 그래서 리포트의 숫자 대부분이
-      표 안에 산다. 그 칸을 손으로 치면 검증을 통째로 우회하게 된다. 그러니 숫자 칸은
-      **둘 중 하나**로만 만든다.
+    ⚠ §5.1 은 불확실한 양을 산문이 아니라 **표에 숫자로** 넣으라고 한다. 그래서 리포트의
+      숫자 대부분이 표 안에 산다. 그 칸을 손으로 치면 검증을 통째로 우회하게 된다.
+      그러니 숫자 칸은 **둘 중 하나**로만 만든다.
 
       ① 칸마다 `num()`  — 칸을 골라 쓸 때. 칸마다 출처 태그가 붙는다.
          `table(["파형","ΔR"], [["WiFi", num(None, (J, "wifi.dR_m"), "{:.2f}", "m")]])`
@@ -609,7 +969,7 @@ def table_from(source, columns: Sequence, fmt: dict | None = None,
     --------
     source : 표의 원본을 가리킨다. 리스트(행들) 또는 딕셔너리(키→행) 여야 한다.
              예) `"outputs/sigma_anchor.json:uncontrolled"`
-    columns: `[(표머리, 필드경로), ...]`. 필드경로는 각 행 **안에서**의 점 경로다.
+    columns: `[(표머리, 필드경로), …]`. 필드경로는 각 행 **안에서**의 점 경로다.
              `key_col` 을 쓸 땐 그 열의 필드경로 자리에 `None` 을 둔다.
     fmt    : `{필드경로: "{:+.2f}"}` — 숫자 포맷.
     null   : 값이 `null` 인 칸에 쓸 말. 기본 `"미상"`.
@@ -619,7 +979,7 @@ def table_from(source, columns: Sequence, fmt: dict | None = None,
 
     예)
         table_from("outputs/sigma_anchor.json:uncontrolled",
-                   [("미통제 항목", "term"), ("상태", "status"), ("크기", "size_db")],
+                   [("항목", "term"), ("상태", "status"), ("크기", "size_db")],
                    fmt={"size_db": "{:+.2f} dB"})
     """
     p, k = _split_source(source)
@@ -688,7 +1048,7 @@ def _to_cells(blocks: Iterable) -> list[dict]:
             kind, text = str(b[0]).lower(), str(b[1])
         else:
             raise ContractError(
-                f"블록은 md(...) / code(...) / 문자열 이어야 한다 — {type(b).__name__}: {b!r}")
+                f"블록은 md(…) / code(…) / 문자열 이어야 한다 — {type(b).__name__}: {b!r}")
         if kind.startswith("m"):
             segs = re.split(rf"^\s*{re.escape(BREAK)}\s*$", text, flags=re.M)
         else:
@@ -713,9 +1073,9 @@ def _to_cells(blocks: Iterable) -> list[dict]:
 
 def build_notebook(path: str, blocks: Iterable, kernel: dict | None = None,
                    strict: bool = False, quiet: bool = False) -> dict:
-    """블록 리스트 → `.ipynb` 파일. 쓰고 나서 §5.4 예산을 검사해 결과를 돌려준다.
+    """블록 리스트 → `.ipynb` 파일. 쓰고 나서 §5.7 예산 + §5.8 톤을 검사해 결과를 돌려준다.
 
-    strict=True 면 예산 위반 시 **예외**(파일은 이미 쓰인 뒤이므로 확인 후 줄이면 된다).
+    strict=True 면 위반 시 **예외**(파일은 이미 쓰인 뒤이므로 확인 후 고치면 된다).
     """
     cells = _to_cells(blocks)
     nb = {"cells": cells,
@@ -732,14 +1092,15 @@ def build_notebook(path: str, blocks: Iterable, kernel: dict | None = None,
         print(_budget_text(rep))
     if strict and not rep["ok"]:
         raise ContractError(
-            f"§5.4 예산 위반 — {rep['path']}\n  "
+            f"규약 위반 — {rep['path']}\n  "
             + "\n  ".join(rep["violations"])
-            + "\n  → 내용을 줄이지 말고 **편을 쪼개라**. 쪼갤 만큼이면 두 질문을 답하고 있는 것이다.")
+            + "\n  → 분량이면 **편을 쪼개고**(§5.7), 톤이면 **주장의 크기를 맞춰라**(§5.0).")
     return rep
 
 
 # --------------------------------------------------------------------------- #
-#  6) 분량·필수블록 검사 — `check_budget()`
+#  7) 한 번에 다 보는 검사 — `check_budget()`
+#     구조(여는 블록·다음 단계) + 분량(§5.7) + 톤(§5.8) 을 한 함수가 본다.
 # --------------------------------------------------------------------------- #
 _FIG_CAP = re.compile(r"^\s*\*\*(?:그림|Figure)\s*([0-9]+(?:[.\-][0-9]+)?)\s*[.)]", re.M)
 _SAVEFIG = re.compile(r"\b(?:savefig|plt\.show)\s*\(")
@@ -753,67 +1114,15 @@ _PROV_VALUE = re.compile(r"[-+]?[\d][\d,.eE+\-]*\s*(?:[%°]|[A-Za-z·/]{0,8})?\s
 _BARE_NUM = re.compile(r"(?<![\w.\-/])(\d+\.\d+|\d{3,})(?![\w.])")
 _YEAR = re.compile(r"^(?:19|20)\d{2}$")          # 인용 연도는 손으로 적는 게 맞다
 
-
-# --------------------------------------------------------------------------- #
-#  §5.2 금지 표현 — 과정 서사 · 완충어
-#  사용자 지시: "지금 레포트 서술 방식이 너무 구구절절이라서 보기 안좋다".
-#  리포트는 **현재 상태**만 쓴다. 어떻게 여기까지 왔는지는 코드 docstring 의 몫이다.
-# --------------------------------------------------------------------------- #
-#: 과정 서사 — "처음엔 …했다가 …로 바꿨다" 류. 버그·수정 이력도 여기 걸린다.
-_NARRATIVE = [
-    (r"처음(?:엔|에는)", "과정 서사"),
-    (r"원래(?:는|,| )", "과정 서사"),
-    (r"기존(?:에|에는)\b", "과정 서사"),
-    (r"이전(?:엔|에는)", "과정 서사"),
-    (r"바꾸었다|바꿨다|바뀌었다", "과정 서사"),
-    (r"수정(?:했다|하였다|됐다|되었다)", "버그·수정 이력"),
-    (r"버그|defect|오류를 발견", "버그·수정 이력"),
-    (r"고쳤다|고치었다", "버그·수정 이력"),
-    (r"이제(?:는)? 더 이상", "과정 서사"),
-]
-#: 완충어 — 단정하거나, 모른다고 쓰거나. 둘 중 하나만 한다.
-_HEDGE = [
-    (r"라고 볼 수 있다|볼 수 있다", "완충어"),
-    (r"인 것 같다|같아 보인다", "완충어"),
-    (r"생각된다|사료된다|판단된다", "완충어"),
-    (r"어느 정도|다소|비교적", "완충어"),
-    (r"으로 보인다|로 보인다", "완충어"),
-    (r"할 수도 있다", "완충어"),
-]
-_SENT_END = re.compile(r"[.!?。]\s|\n")
-
-
-def lint_prose(text: str) -> list[str]:
-    """§5.2 금지 항목을 찾아 **권고 문자열 목록**으로 돌려준다(예외는 안 낸다).
-
-    검사: ①과정 서사 ②버그·수정 이력 ③완충어 ④3문장 넘는 문단.
-    표·코드·인용 태그는 검사에서 뺀다(오탐이 많아서다).
-    """
-    t = re.sub(r"`[^`]*`", "", str(text))          # 코드 스팬
-    t = _PROV.sub("", t)                            # 출처 태그
-    body = "\n".join(ln for ln in t.splitlines()
-                     if not ln.lstrip().startswith(("|", ">", "#", "!", "```")))
-    hits: list[str] = []
-    for pat, why in _NARRATIVE + _HEDGE:
-        for m in re.finditer(pat, body):
-            hits.append(f"{why}: '{m.group(0)}' (§5.2 금지)")
-    # 3문장 넘는 문단 — "끊거나 표로".
-    # ⚠ 목록(결론 3~5줄 등)은 이미 끊어 쓴 것이므로 문단으로 세지 않는다.
-    prose = "\n".join(ln for ln in body.splitlines()
-                      if not re.match(r"^\s*(?:\d+\.|[-*+])\s", ln))
-    for para in re.split(r"\n\s*\n", prose):
-        para = para.strip()
-        if not para:
-            continue
-        n_sent = len([s for s in _SENT_END.split(para) if s.strip()])
-        if n_sent > 3:
-            hits.append(f"문단이 {n_sent}문장 > 3 (§5.2: 끊거나 표로) "
-                        f"— \"{para[:40]}…\"")
-    return sorted(set(hits))
-
-
 #: `table_from()` 이 표 밑에 붙이는 출처 한 줄. 그 표의 숫자는 JSON 에서 뽑은 것이다.
 _TABLE_SRC = re.compile(r"^\s*출처\s*⟨[^⟩]+?\.(?:json|npz)\s*:\s*[^⟩]+⟩\s*$")
+
+#: 폐지된 옛 계약의 흔적 — 남아 있으면 위반이고, 무엇으로 바꾸는지 알려준다.
+_LEGACY_MARKS = [
+    ("주장하지 않는 것", "옛 '주장/비주장' 표(§5.0 폐지) — `header(method=…)` 로 대체"),
+    ("이 편의 한계", "옛 '이 편의 한계' 절(§5.3 폐지) — `next_steps()` 로 대체"),
+    ("이 편이 답하는 질문", "옛 '질문' 여는 블록(§5.2 폐지) — `header(did=…)` 로 대체"),
+]
 
 
 def _strip_sourced_tables(text: str) -> str:
@@ -838,26 +1147,26 @@ def _strip_sourced_tables(text: str) -> str:
     return "\n".join(ln for i, ln in enumerate(lines) if i not in drop)
 
 
-def _cell_text(c: dict) -> str:
-    s = c.get("source", "")
-    return s if isinstance(s, str) else "".join(s)
-
-
 def _has_tag(c: dict, tag: str) -> bool:
     return tag in (c.get("metadata", {}).get("tags") or [])
 
 
 def check_budget(nb_path: str) -> dict:
-    """§5.4 상한(마크다운 25셀 / 셀당 12줄 / 그림 8개)과 필수 블록을 검사한다.
+    """구조 + 분량(§5.7) + 톤(§5.8) 을 한 번에 검사한다.
 
-    반환: dict(md_cells, code_cells, figures, violations[], advisories[], ok, offenders[], …)
+    반환: dict(md_cells, code_cells, figures, negatives[], hedges[], violations[],
+               advisories[], ok, …)
 
-    - **줄 수**는 빈 줄을 뺀 실질 줄로 센다(표 위아래 빈 줄 때문에 억울하게 걸리지 않도록).
-    - 서두(header)·한계(limits)는 **구조 블록**이라 줄 수 상한에서 면제된다. 다만 셀 수엔 포함된다.
-    - 그림 수는 ①캡션 ②마크다운 이미지 ③`savefig`·`plt.show` ④저장된 이미지 출력 중 **최대**.
-    - 끼워 넣은 PNG 가 **디스크에 없으면 위반**이다 — 깨진 그림 링크는 인수인계 실패다.
-    - 출처 태그 없는 숫자는 **권고**(advisories)로만 알린다. 오탐(단위·§번호)이 있어서다.
-    - 이 함수는 우리가 만들지 않은 옛 노트북에도 돈다(태그 없으면 표 모양으로 추정).
+    분량 — **줄 수**는 빈 줄을 뺀 실질 줄로 센다(표 위아래 빈 줄 때문에 억울하게 걸리지 않도록).
+      여는 블록·다음 단계는 **구조 블록**이라 줄 수 상한에서 면제된다. 다만 셀 수엔 포함된다.
+      그림 수는 ①캡션 ②마크다운 이미지 ③`savefig`·`plt.show` ④저장된 이미지 출력 중 **최대**.
+      끼워 넣은 PNG 가 **디스크에 없으면 위반**이다 — 깨진 그림 링크는 인수인계 실패다.
+
+    톤 — 부정문 3개 초과 · 완충어 1건 이상은 **위반**이고, 걸린 문장이 그대로 실려 나온다.
+      ⭐ 권고가 아니다. 오탐의 대가는 문장 하나 다시 쓰기이고, 미탐의 대가는 사용자가
+        거부한 그 산문이 그대로 나가는 것이다.
+
+    권고 — 출처 태그 없는 숫자, 과정 서사(오탐이 있어 advisories 로만 알린다).
     """
     p = nb_path if os.path.isabs(nb_path) else os.path.join(ROOT, nb_path)
     if not os.path.exists(p):
@@ -890,8 +1199,9 @@ def check_budget(nb_path: str) -> dict:
                 if not any(os.path.exists(x) for x in cands):
                     missing_imgs.append(f"셀 {i}: {src}")
             prov_tags += len(_PROV.findall(t))
-            exempt = _has_tag(c, TAG_HEADER) or _has_tag(c, TAG_LIMITS)
-            if not exempt and "| ✅" in t:            # 태그 없는 옛 노트북 대비
+            exempt = (_has_tag(c, TAG_HEADER) or _has_tag(c, TAG_NEXT)
+                      or _has_tag(c, TAG_LIMITS) or _has_tag(c, TAG_PAPER))
+            if not exempt and ("| ✅" in t or "다음에 할 일" in t):   # 태그 없는 손편집 대비
                 exempt = True
             n_lines = sum(1 for ln in t.splitlines() if ln.strip())
             if not exempt and n_lines > MAX_LINES_PER_CELL:
@@ -906,8 +1216,8 @@ def check_budget(nb_path: str) -> dict:
             if bare:
                 advisories.append(
                     f"셀 {i}: 출처 태그 없는 숫자 {sorted(set(bare))[:5]} "
-                    f"— `num()` 으로 바꿀 것인지 확인 (§5.3-1)")
-            for h in lint_prose(t)[:3]:          # §5.2 금지 표현
+                    f"— `num()` 으로 바꿀 것인지 확인 (§5.6-1)")
+            for h in lint_prose(t)[:3]:          # §5.5 과정 서사(권고)
                 advisories.append(f"셀 {i}: {h}")
         else:
             savefigs += len(_SAVEFIG.findall(t))
@@ -918,10 +1228,16 @@ def check_budget(nb_path: str) -> dict:
     figures = max(len(fig_ids), savefigs, img_outs, len(md_imgs))
 
     all_md = "\n".join(_cell_text(c) for c in md_cells)
-    has_header = any(_has_tag(c, TAG_HEADER) for c in md_cells) or "| ✅" in all_md
-    has_limits = any(_has_tag(c, TAG_LIMITS) for c in md_cells) or "이 편의 한계" in all_md
+    has_header = any(_has_tag(c, TAG_HEADER) for c in md_cells) or "### 한 일" in all_md
+    has_next = (any(_has_tag(c, TAG_NEXT) for c in md_cells)
+                or "다음에 할 일" in all_md)
+
+    # ── §5.8 톤 검사 — 위반이다(권고가 아니다) ────────────────────────────────
+    neg = count_negatives(cells)
+    hed = grep_hedges(cells)
 
     V = []
+    # 분량(§5.7)
     if len(md_cells) > MAX_MD_CELLS:
         V.append(f"마크다운 셀 {len(md_cells)}개 > 상한 {MAX_MD_CELLS}")
     for o in offenders:
@@ -934,23 +1250,44 @@ def check_budget(nb_path: str) -> dict:
     if md_imgs and len(fig_ids) < len(set(md_imgs)):
         advisories.append(
             f"그림 {len(set(md_imgs))}개 중 캡션이 {len(fig_ids)}개뿐 "
-            f"— 모든 그림에 `caption()` 한 줄 (§5.3-2)")
-    if not has_header:
-        V.append("필수 블록 없음: 서두 6블록(주장/비주장 표) — `header()` 를 쓸 것")
-    if not has_limits:
-        V.append("필수 블록 없음: 마지막 절 '이 편의 한계' — `limits()` 를 쓸 것")
+            f"— 모든 그림에 `caption()` 한 줄 (§5.6-2)")
 
-    # 순서: 서두는 맨 앞(§5.1 "모든 편이 같은 6블록으로 시작한다"),
-    #       한계는 맨 뒤(§5.3-3 "§마지막 = 이 편의 한계").
+    # 구조
+    if not has_header:
+        V.append("필수 블록 없음: 여는 블록(한 일/결과/방법/재현) — `header()` 를 쓸 것")
+    if not has_next:
+        V.append("필수 블록 없음: 마지막 절 '다음 단계' — `next_steps()` 를 쓸 것")
+    for mark, why in _LEGACY_MARKS:                  # 폐지된 옛 계약의 흔적
+        if mark in all_md:
+            V.append(f"폐지된 블록이 남아 있다: '{mark}' — {why}")
+
+    # 순서: 여는 블록은 맨 앞(§5.2), 다음 단계는 맨 뒤(§5.3).
     if has_header and cells and not _has_tag(cells[0], TAG_HEADER) \
-            and "| ✅" not in _cell_text(cells[0]):
-        V.append("서두 6블록이 맨 앞이 아니다(§5.1) — `header()` 를 첫 블록으로")
-    if has_limits:
+            and "### 한 일" not in _cell_text(cells[0]):
+        V.append("여는 블록이 맨 앞이 아니다(§5.2) — `header()` 를 첫 블록으로")
+    if has_next:
         tail = [j for j, c in enumerate(cells)
-                if _has_tag(c, TAG_LIMITS) or "이 편의 한계" in _cell_text(c)]
+                if _has_tag(c, TAG_NEXT) or "다음에 할 일" in _cell_text(c)]
         if tail and tail[-1] < len(cells) - 2:
-            V.append(f"'이 편의 한계' 가 마지막이 아니다(§5.3-3) — "
+            V.append(f"'다음 단계' 가 마지막이 아니다(§5.3) — "
                      f"셀 {tail[-1]}/{len(cells) - 1}")
+
+    # 톤(§5.8) — 걸린 문장을 그대로 실어 보낸다. 세기만 하면 고칠 수가 없다.
+    if not neg["ok"]:
+        V.append(f"부정문 {neg['count']}개 > 상한 {MAX_NEGATIVES} (§5.8-1) — "
+                 "무엇을 **했는지**로 다시 써라:\n      "
+                 + "\n      ".join(f"셀 {h['cell']}: \"{h['text']}\""
+                                   for h in neg["sentences"][:6])
+                 + (f"\n      … 외 {neg['count'] - 6}건"
+                    if neg["count"] > 6 else ""))
+    if not hed["ok"]:
+        V.append(f"완충어 {hed['count']}건 (§5.8-3 은 0건이다) — "
+                 "표현이 아니라 **주장의 크기**를 고쳐라:\n      "
+                 + "\n      ".join(f"셀 {h['cell']}: '{h['hedge']}' → {h['fix']}"
+                                   f"\n        \"{h['text'][:70]}\""
+                                   for h in hed["hits"][:6])
+                 + (f"\n      … 외 {hed['count'] - 6}건"
+                    if hed["count"] > 6 else ""))
 
     shown = os.path.relpath(p, ROOT)
     if shown.startswith(".."):
@@ -961,7 +1298,10 @@ def check_budget(nb_path: str) -> dict:
                 image_outputs=img_outs, md_images=len(md_imgs),
                 missing_images=missing_imgs, provenance_tags=prov_tags,
                 caps=dict(md_cells=MAX_MD_CELLS, lines_per_cell=MAX_LINES_PER_CELL,
-                          figures=MAX_FIGURES),
+                          figures=MAX_FIGURES, negatives=MAX_NEGATIVES,
+                          hedges=MAX_HEDGES),
+                negatives=neg["sentences"], n_negatives=neg["count"],
+                hedges=hed["hits"], n_hedges=hed["count"],
                 offenders=offenders, advisories=advisories,
                 violations=V, ok=not V)
 
@@ -970,7 +1310,8 @@ def _budget_text(rep: dict) -> str:
     mark = "✅" if rep["ok"] else "⛔"
     s = (f"{mark} {rep['path']} — 마크다운 {rep['md_cells']}/{MAX_MD_CELLS}셀 · "
          f"코드 {rep['code_cells']}셀 · 그림 {rep['figures']}/{MAX_FIGURES} · "
-         f"출처태그 {rep['provenance_tags']}개")
+         f"출처태그 {rep['provenance_tags']}개 · "
+         f"부정문 {rep['n_negatives']}/{MAX_NEGATIVES} · 완충어 {rep['n_hedges']}/0")
     for v in rep["violations"]:
         s += f"\n   ⛔ {v}"
     for a in rep["advisories"][:5]:
@@ -982,70 +1323,89 @@ def _budget_text(rep: dict) -> str:
 
 def budget_report(nb_paths: Iterable[str]) -> str:
     """여러 편을 한 번에 검사해 사람이 읽을 표로. 재편 후 전체 점검용."""
-    lines = ["| 리포트 | md셀 | 코드셀 | 그림 | 출처태그 | 판정 |", "|---|---|---|---|---|---|"]
-    tot_md = tot_fig = 0
+    lines = ["| 리포트 | md셀 | 코드셀 | 그림 | 출처태그 | 부정문 | 완충어 | 판정 |",
+             "|---|---|---|---|---|---|---|---|"]
+    tot_md = tot_fig = tot_neg = tot_hed = 0
     for p in nb_paths:
         r = check_budget(p)
         tot_md += r["md_cells"]
         tot_fig += r["figures"]
-        lines.append(f"| `{r['path']}` | {r['md_cells']}/{MAX_MD_CELLS} | {r['code_cells']} "
-                     f"| {r['figures']}/{MAX_FIGURES} | {r['provenance_tags']} "
-                     f"| {'✅' if r['ok'] else '⛔ ' + '; '.join(r['violations'])} |")
-    lines.append(f"| **합계** | **{tot_md}** |  | **{tot_fig}** |  |  |")
+        tot_neg += r["n_negatives"]
+        tot_hed += r["n_hedges"]
+        verdict = "✅" if r["ok"] else "⛔ " + "; ".join(
+            v.splitlines()[0] for v in r["violations"])
+        lines.append(
+            f"| `{r['path']}` | {r['md_cells']}/{MAX_MD_CELLS} | {r['code_cells']} "
+            f"| {r['figures']}/{MAX_FIGURES} | {r['provenance_tags']} "
+            f"| {r['n_negatives']}/{MAX_NEGATIVES} | {r['n_hedges']}/0 | {verdict} |")
+    lines.append(f"| **합계** | **{tot_md}** |  | **{tot_fig}** |  "
+                 f"| **{tot_neg}** | **{tot_hed}** |  |")
     return "\n".join(lines)
 
 
+def tone_report(nb_path: str) -> str:
+    """한 편의 톤 위반을 **고칠 수 있는 형태**로 나열한다 — 문장 그대로 + 어디를 고칠지."""
+    r = check_budget(nb_path)
+    out = [f"── {r['path']} — 부정문 {r['n_negatives']}/{MAX_NEGATIVES} · "
+           f"완충어 {r['n_hedges']}/0 ──"]
+    for h in r["negatives"]:
+        out.append(f"  [부정문 {h['ending']}] 셀 {h['cell']}: {h['text']}")
+    for h in r["hedges"]:
+        out.append(f"  [완충어 {h['hedge']}] 셀 {h['cell']}: {h['text'][:90]}")
+        out.append(f"      → {h['fix']}")
+    if len(out) == 1:
+        out.append("  (없음)")
+    return "\n".join(out)
+
+
 # --------------------------------------------------------------------------- #
-#  데모 · 자기검사 — `python src/report_style.py`
+#  8) 데모 · 자기검사 — `python src/report_style.py`
 # --------------------------------------------------------------------------- #
 def _demo_blocks():
-    """규약을 통과하는 서두 한 벌. 여섯 빌더가 그대로 베껴 쓸 견본이다."""
+    """규약을 통과하는 여는 블록 한 벌. 여섯 빌더가 그대로 베껴 쓸 견본이다."""
     S = from_json("outputs/sbr_kr_sweep.json")
 
     return [
         header(
             num=2,
             title="표적 모델: 메쉬 · 엔진 · 앵커",
-            question="드론 메쉬에서 계산한 RCS 중 무엇을 믿어도 되는가?",
-            conclusion_lines=[
-                f"엔진 수치는 건강하다 — 해석 PO 대비 최대 편차 "
+            did="드론 메쉬에 광선추적 가림과 부품별 재질 PO 를 적용해 RCS 를 계산하고, "
+                "레벨과 밴드 기울기를 Das 측정에 맞췄다.",
+            results=[
+                f"해석 PO 구 대비 최대 편차 "
                 f"{S.num('summary_div16.max_abs_db_vs_po', 0.201, '{:.3f}', 'dB')}"
                 f"(kr {S.num('summary_div16.n_points', 21, '{:.0f}')}점 × 입사 "
                 f"{S.num('meta.n_incidence', 48, '{:.0f}')}방향, kr=1 까지 포함).",
                 f"kr≥30 에서 해석 PO 대비 산포는 "
                 f"{S.num('summary_div16.std_sbr_over_po_pct_kr_ge30', 0.885, '{:.3f}', '%')} 다.",
-                "따라서 **자세 구조**(각도에 따른 σ 의 모양)는 기하에서 나온 것으로 방어된다.",
-                "**절대 레벨**과 **주파수 기울기**는 기하가 아니라 측정 앵커에서 온다.",
+                "자세 패턴은 기하에서 계산했다 — 부품별 재질 + 광선추적 가림.",
+                "레벨과 밴드 기울기는 Das 측정(IEEE WCL 2026 15:3731)에 맞췄다.",
             ],
-            claims=[
-                "자세에 따른 σ 의 **구조** — 부품별 재질 + 광선추적 가림에서 나온다",
-                "엔진이 해석해(구 PO)를 재현한다 — 위 편차 수치",
+            method=[
+                ("자세 패턴", "Sionna 의 Mitsuba/OptiX 로 first-hit 가림, 조명면에 PO 적분"),
+                ("절대 레벨", "Das 측정에 σ = A(f)B1(φ)B2 분해로 맞춤 — B1 은 우리 계산 그대로"),
+                ("엔진 검증", "해석 PO 구 · PEC 이면각 해석해와 대조"),
             ],
-            non_claims=[
-                "**절대 σ 레벨** — 측정 앵커(Das, IEEE WCL 2026)에서 온다",
-                "**주파수 기울기** — PTD 회절항이 없어 계통적으로 가파르다",
-                "β>45° 바이스태틱 — 상반성 검사를 통과하지 못한다",
-            ],
-            prereq=[("01 §3", "선행연구가 표적 산란 계산을 어떻게 회피했는지")],
+            prereq=[("01 §3", "게재 선행이 표적 산란을 어떻게 다뤘는지")],
             repro=dict(cmd="PYTHONPATH=src ~/.venvs/py312/bin/python "
                            "benchmark/verify_sbr_kr_sweep.py",
                        out="outputs/sbr_kr_sweep.json",
                        runtime="(재현 시 측정해 채울 것)"),
             allow_missing_output=False,
         ),
-        md("## §1. 무엇이 계산하고 무엇이 앵커인가", "",
+        md("## §1. 기하가 주는 것과 측정이 주는 것", "",
            "기하는 **구조**를, 측정은 **레벨**을 준다. 경계는 아래 표가 전부다.", "",
            # 말(label)로만 된 표는 table() 로 충분하다.
            table(["축", "어디서 오나", "근거"],
                  [["자세 구조", "기하(SBR+PO)", "본 편 §2"],
-                  ["절대 레벨", "측정 앵커", "외부 문헌"],
-                  ["주파수 기울기", "측정 앵커", "외부 문헌"]])),
+                  ["절대 레벨", "측정 앵커", "Das, IEEE WCL 2026"],
+                  ["밴드 기울기", "측정 앵커", "Das, IEEE WCL 2026"]])),
 
         # ⭐ 숫자가 들어가는 표는 **JSON 에서 직접 뽑는다** — 손으로 치면 검증을 우회한다.
-        md("## §4. 앵커가 통제하지 못한 것", "",
-           "가장 큰 미통제 항목이 적용한 보정보다 크다. 그 사실을 먼저 적는다.", "",
+        md("## §4. 앵커가 통제한 항목과 그 크기", "",
+           "불확실한 양은 산문이 아니라 **표에 숫자로** 넣는다(§5.1).", "",
            table_from("outputs/sigma_anchor.json:uncontrolled",
-                      [("미통제 항목", "term"), ("상태", "status"),
+                      [("항목", "term"), ("상태", "status"),
                        ("크기", "size_db")],
                       fmt={"size_db": "{:+.2f} dB"}, null="미상")),
         # 그림은 viz 스크립트가 미리 만든 PNG 를 끼우고 바로 밑에 캡션 한 줄.
@@ -1054,58 +1414,84 @@ def _demo_blocks():
         # 코드 셀이 필요하면 이렇게. 그림 글자는 영어 — assert_fig_text 로 확인한다.
         code("from report_style import assert_fig_text",
              "assert_fig_text('RCS [dBsm]', 'kr = 2*pi*r/lambda')"),
-        limits([
-            ("PTD 회절 보정이 없다", "`src/rcs_sbr.py` 에 등가 모서리 전류 추가 → 기울기 재측정"),
-            ("편파가 통제되지 않는다", "06편 측정 설계에서 편파 축을 먼저 확정"),
+        next_steps([
+            ("등가 모서리 전류(PTD)를 넣는다",
+             "밴드 기울기가 기하만으로 서는지 결정된다",
+             "`src/rcs_sbr.py` → 02편 §3 재측정"),
+            ("VV/HH 2편파를 잰다", "편파 항의 크기가 수치로 확정된다", "06편 §2 측정 설계"),
         ], sec="§9."),
     ]
 
 
-def _selftest() -> None:
+def _selftest() -> int:
     """규약 장치가 **실제로 막는지** 확인한다. 막지 못하는 장치는 장치가 아니다."""
+    OUT = "outputs/sbr_kr_sweep.json"
+    ok_repro = dict(cmd="x", out=OUT)
+    base = dict(num=1, title="t", results=["a1", "b2", "c3"],
+                method=[("a", "b"), ("c", "d")], repro=ok_repro)
+
+    def H(**kw):
+        return header(**{**base, "did": "무엇을 했다", **kw})
+
     cases = [
-        ("질문에 물음표 없음",
-         lambda: header(1, "t", "질문이다", ["a1", "b2", "c3"], ["c"], ["n"],
-                        repro=dict(cmd="x", out="outputs/sbr_kr_sweep.json"))),
-        ("결론 2줄(3~5줄 위반)",
-         lambda: header(1, "t", "q?", ["a1", "b2"], ["c"], ["n"],
-                        repro=dict(cmd="x", out="outputs/sbr_kr_sweep.json"))),
-        ("결론에 숫자 없음",
-         lambda: header(1, "t", "q?", ["a", "b", "c"], ["c"], ["n"],
-                        repro=dict(cmd="x", out="outputs/sbr_kr_sweep.json"))),
-        ("⭐ 비주장 열이 빔(정직성 장치)",
-         lambda: header(1, "t", "q?", ["a1", "b2", "c3"], ["c"], [],
-                        repro=dict(cmd="x", out="outputs/sbr_kr_sweep.json"))),
-        ("재현 출력 JSON 이 없음",
-         lambda: header(1, "t", "q?", ["a1", "b2", "c3"], ["c"], ["n"],
-                        repro=dict(cmd="x", out="outputs/없는파일.json"))),
+        # ── 새 계약이 뒤집은 지점 ─────────────────────────────────────────
+        ("⭐ 한 일이 질문이다(옛 계약의 역전)",
+         lambda: H(did="무엇을 믿어도 되는가?")),
+        ("⭐ 옛 인자 question= 을 부름",
+         lambda: header(num=1, title="t", question="q?",
+                        conclusion_lines=["a1", "b2", "c3"],
+                        claims=["c"], non_claims=["n"], repro=ok_repro)),
+        ("⭐ 옛 인자 claims/non_claims 를 부름",
+         lambda: header(num=1, title="t", did="했다", results=["a1", "b2", "c3"],
+                        claims=["c"], non_claims=["n"], repro=ok_repro)),
+        ("⭐ limits() 는 폐지됨",
+         lambda: limits([("a", "b")])),
+        ("한 일이 비었음", lambda: H(did="")),
+        ("한 일이 완료형이 아님", lambda: H(did="RCS 계산")),
+        ("한 일이 부정문", lambda: H(did="절대 σ 를 주장하지 않는다")),
+        ("한 일이 두 문장", lambda: H(did="계산했다. 그리고 맞췄다.")),
+        ("결과 2줄(3~5줄 위반)", lambda: H(results=["a1", "b2"])),
+        ("결과에 숫자 없음", lambda: H(results=["가", "나", "다"])),
+        ("⭐ 결과가 부정문 투성이",
+         lambda: H(results=["절대 σ 는 검증되지 않는다", "편파는 통제하지 못한다",
+                            "편차 0.2 dB 다"])),
+        ("방법이 1줄", lambda: H(method=["한 줄뿐"])),
+        ("⭐ 여는 블록에 완충어",
+         lambda: H(results=["편차는 0.2 dB 라고 볼 수 있다", "b2", "c3"])),
+        ("⭐ 여는 블록에 '잠정적'",
+         lambda: H(method=[("a", "이 결론은 잠정적이다"), ("c", "d")])),
+        ("재현 출력 JSON 이 없음", lambda: H(repro=dict(cmd="x", out="outputs/없는파일.json"))),
+        # ── 다음 단계 ────────────────────────────────────────────────────
+        ("⭐ 다음 단계에 '결정되는 것' 이 없음",
+         lambda: next_steps([("PTD 를 넣는다", "", "src/rcs_sbr.py")])),
+        ("다음 단계에 '어디서' 가 없음",
+         lambda: next_steps([("PTD 를 넣는다", "기울기가 결정된다", "")])),
+        ("⭐ 다음 단계가 한계 서술이다",
+         lambda: next_steps([("편파가 통제되지 않는다", "편파 항이 확정된다", "06편")])),
+        ("다음 단계가 2열뿐(옛 limits 형식)",
+         lambda: next_steps([("PTD 를 넣는다", "기울기가 결정된다")])),
+        ("다음 단계가 빔", lambda: next_steps([])),
+        ("다음 단계에 완충어",
+         lambda: next_steps([("아마도 PTD 를 넣는다", "기울기가 결정된다", "06편")])),
+        # ── 출처 검증(그대로 유지) ────────────────────────────────────────
         ("⭐ 숫자가 출처와 다름",
-         lambda: num(0.5, "outputs/sbr_kr_sweep.json:summary_div16.max_abs_db_vs_po",
-                     "{:.3f}")),
-        ("출처 키가 없음",
-         lambda: num(None, "outputs/sbr_kr_sweep.json:summary_div16.없는키")),
-        ("출처 파일이 없음",
-         lambda: num(None, "outputs/없는파일.json:a")),
-        ("배열을 통째로 인용(값 하나여야 함)",
-         lambda: num(None, "outputs/sbr_kr_sweep.json:meta.kr_ladder")),
-        ("딕셔너리를 통째로 인용",
-         lambda: num(None, "outputs/sbr_kr_sweep.json:summary_div16")),
+         lambda: num(0.5, f"{OUT}:summary_div16.max_abs_db_vs_po", "{:.3f}")),
+        ("출처 키가 없음", lambda: num(None, f"{OUT}:summary_div16.없는키")),
+        ("출처 파일이 없음", lambda: num(None, "outputs/없는파일.json:a")),
+        ("배열을 통째로 인용(값 하나여야 함)", lambda: num(None, f"{OUT}:meta.kr_ladder")),
+        ("딕셔너리를 통째로 인용", lambda: num(None, f"{OUT}:summary_div16")),
         ("캡션이 질문이 아님", lambda: caption(1, "SBR 과 PO 의 비교.")),
         ("캡션에 질문 2개", lambda: caption(1, "A 인가? B 인가?")),
-        ("한계에 인수인계 지점 없음", lambda: limits([("PTD 없음", "")])),
-        ("한계가 빔", lambda: limits([])),
         ("그림 텍스트에 한글", lambda: assert_fig_text("RCS [dBsm]", "입사각")),
         ("⭐ null 을 숫자처럼 인용(미해소 항목)",
          lambda: num(None, "outputs/sigma_anchor.json:uncontrolled[0].size_db",
                      "{:.2f}", "dB")),
         ("table_from 에 값 하나를 줌",
-         lambda: table_from("outputs/sbr_kr_sweep.json:meta.n_incidence",
-                            [("a", "b")])),
+         lambda: table_from(f"{OUT}:meta.n_incidence", [("a", "b")])),
         ("table_from 에 없는 키",
          lambda: table_from("outputs/sigma_anchor.json:drones",
                             [("기체", None), ("없는필드", "존재하지_않음")])),
-        ("검사할 노트북이 없음",
-         lambda: check_budget("outputs/없는노트북.ipynb")),
+        ("검사할 노트북이 없음", lambda: check_budget("outputs/없는노트북.ipynb")),
     ]
     print("── 자기검사: 규약 위반이 실제로 막히는가 ──")
     bad = 0
@@ -1113,20 +1499,26 @@ def _selftest() -> None:
         try:
             fn()
         except ContractError as e:
-            print(f"  ✅ 막힘  {name}  — {str(e).splitlines()[0][:72]}")
+            print(f"  ✅ 막힘  {name}  — {str(e).splitlines()[0][:70]}")
         else:
             bad += 1
             print(f"  ❌ 안 막힘 {name}")
-    # 통과해야 하는 것들
+
+    print("── 자기검사: 정상 입력은 통과하는가 ──")
     for name, fn in [
+        ("정상 header(한 일/결과/방법/재현)", lambda: H()[:24].replace("\n", " ")),
+        ("방법을 줄글 목록으로", lambda: H(method=["기하로 계산했다", "레벨은 측정에 맞췄다"])[:24]),
+        ("결과에 부정문 1개는 허용",
+         lambda: H(results=["게재 전례가 없다", "편차 0.2 dB 다", "c3"])[:24]),
+        ("정상 next_steps", lambda: next_steps(
+            [("2편파를 잰다", "편파 항이 수치로 확정된다", "06편 §2")])[:24]),
         ("정상 num(값 대조)",
-         lambda: num(0.201, "outputs/sbr_kr_sweep.json:summary_div16.max_abs_db_vs_po",
-                     "{:.3f}", "dB")),
+         lambda: num(0.201, f"{OUT}:summary_div16.max_abs_db_vs_po", "{:.3f}", "dB")),
         ("정상 num(값 생략 → JSON 에서 읽음)",
-         lambda: num(None, "outputs/sbr_kr_sweep.json:meta.n_incidence", "{:.0f}")),
+         lambda: num(None, f"{OUT}:meta.n_incidence", "{:.0f}")),
         ("점 들어간 키 해석",
          lambda: num(None, "outputs/rcs_anchor.json:meta.bands.5G 3.5 GHz", "{:.3e}", "Hz")),
-        ("리스트 인덱싱", lambda: num(None, "outputs/sbr_kr_sweep.json:meta.kr_ladder[0]")),
+        ("리스트 인덱싱", lambda: num(None, f"{OUT}:meta.kr_ladder[0]")),
         ("npz 인용", lambda: num(None, "outputs/detection_arrays.npz:W1_Rb[0]", "{:.2f}", "m")),
         ("정상 캡션", lambda: caption(2, "밴드마다 기울기가 얼마나 다른가?")),
         ("영어 그림 텍스트", lambda: assert_fig_text("RCS [dBsm]", "Incidence angle [deg]")),
@@ -1138,31 +1530,84 @@ def _selftest() -> None:
             r = fn()
         except Exception as e:                                   # noqa: BLE001
             bad += 1
-            print(f"  ❌ 정상인데 터짐 {name}: {e}")
+            print(f"  ❌ 정상인데 터짐 {name}: {str(e).splitlines()[0][:70]}")
         else:
             print(f"  ✅ 통과  {name}  → {r if isinstance(r, str) else ''}")
-    # §5.2 산문 검사 — 금지 표현을 실제로 잡는가
-    caught = lint_prose(
-        "처음엔 PO 만 썼다가 SBR 로 바꿨다. 그래서 버그를 수정했다. "
-        "이 값은 타당하다고 볼 수 있다.")
-    if len(caught) >= 3:
-        print(f"  ✅ 통과  §5.2 산문 검사 — 금지 표현 {len(caught)}건 검출")
+
+    # ── §5.8 톤 검사가 실제로 잡는가 ────────────────────────────────────────
+    print("── 자기검사: §5.8 톤 검사 ──")
+    neg_txt = ("절대 σ 가 맞다고 주장하지 않는다. 편파는 통제하지 못한다.\n"
+               "| 항목 | 이 값은 검증되지 않는다 |\n"
+               "다중반사는 2회까지 보지 않는다.")
+    neg = count_negatives(neg_txt)
+    if neg["count"] == 4 and not neg["ok"] and len(neg["sentences"]) == 4:
+        print(f"  ✅ 통과  부정문 {neg['count']}개 검출(표 안 문장 포함) · 상한 초과 판정")
     else:
         bad += 1
-        print(f"  ❌ §5.2 산문 검사가 못 잡았다: {caught}")
-    if lint_prose("엔진 편차는 0.201 dB 다. 자세 구조는 기하에서 나온다."):
+        print(f"  ❌ 부정문 검사: {neg}")
+    if count_negatives("자세 패턴은 기하에서 계산했다. 레벨은 Das 측정에 맞췄다.")["count"]:
         bad += 1
-        print("  ❌ §5.2 산문 검사 오탐 — 정상 문장을 잡았다")
+        print("  ❌ 부정문 검사 오탐 — 정상 문장을 잡았다")
     else:
-        print("  ✅ 통과  §5.2 산문 검사 — 정상 문장은 통과")
+        print("  ✅ 통과  부정문 검사 — 크기를 맞춘 문장은 통과")
+
+    hedge_txt = ("정확하다고 볼 수 있다. 대체로 맞는 편이다. 어느 정도 차이가 난다. "
+                 "아마 그럴 것이다. 아쉽게도 못 쟀다. 불행히도 자료가 적다. "
+                 "다만 유의할 점은 편파다. 이 결론은 잠정적이다.")
+    hed = grep_hedges(hedge_txt)
+    if hed["count"] >= 8 and not hed["ok"]:
+        print(f"  ✅ 통과  완충어 {hed['count']}건 검출(9종 전부) · 0건 규칙 위반 판정")
+    else:
+        bad += 1
+        print(f"  ❌ 완충어 검사가 못 잡았다: {[h['hedge'] for h in hed['hits']]}")
+    if grep_hedges("β ≤ 45° 에서 성립한다. 편파: VV 단일. 실측에서 2편파로 확장한다.")["count"]:
+        bad += 1
+        print("  ❌ 완충어 검사 오탐 — 정상 문장을 잡았다")
+    else:
+        print("  ✅ 통과  완충어 검사 — 조건절로 쓴 문장은 통과")
+    if len(lint_prose("처음엔 PO 만 썼다가 SBR 로 바꿨다. 그래서 버그를 수정했다.")) >= 3:
+        print("  ✅ 통과  §5.5 과정 서사 권고 — 검출")
+    else:
+        bad += 1
+        print("  ❌ §5.5 과정 서사 검사가 못 잡았다")
+
+    # ── check_budget 이 톤 위반을 **위반**으로 올리는가 ──────────────────────
+    tmp = os.environ.get("RS_SELFTEST_OUT", os.path.join(
+        "/tmp/claude-1015/-home-yunjung-workspace/"
+        "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad", "rs_tone_probe.ipynb"))
+    build_notebook(tmp, [md("### 한 일", "무엇을 했다."),
+                         md("이것은 없다. 저것도 아니다. 그것은 못한다. 나머지는 않는다."),
+                         md("대체로 맞는다."),
+                         md("## 다음 단계", "", "| 다음에 할 일 | 그러면 결정되는 것 | 어디서 |",
+                            "|---|---|---|", "| 잰다 | 확정된다 | 06편 |")],
+                   quiet=True)
+    rep = check_budget(tmp)
+    fired = {"부정문": any("부정문" in v for v in rep["violations"]),
+             "완충어": any("완충어" in v for v in rep["violations"])}
+    if all(fired.values()) and not rep["ok"]:
+        print(f"  ✅ 통과  check_budget 이 톤을 **위반**으로 올린다 "
+              f"(부정문 {rep['n_negatives']} · 완충어 {rep['n_hedges']})")
+    else:
+        bad += 1
+        print(f"  ❌ check_budget 이 톤을 안 올린다: {fired} / {rep['violations']}")
+    os.path.exists(tmp) and os.remove(tmp)
 
     print(f"── 자기검사 {'성공' if bad == 0 else f'실패 {bad}건'} ──\n")
+    return bad
 
 
 if __name__ == "__main__":
-    _selftest()
+    argv = sys.argv[1:]
+    if argv:                       # 기존 노트북 측정: python src/report_style.py *.ipynb
+        print(budget_report(argv))
+        print()
+        for a in argv:
+            print(tone_report(a))
+        raise SystemExit(0)
 
-    print("── 워크드 예제: 규약을 통과하는 서두 ──\n")
+    fails = _selftest()
+
+    print("── 워크드 예제: 규약을 통과하는 여는 블록 ──\n")
     blocks = _demo_blocks()
     # header() 는 **마크다운 문자열 그 자체**다 — 그대로 출력·연결할 수 있다.
     print(str(blocks[0]).replace(BREAK, "─" * 60))
@@ -1173,7 +1618,9 @@ if __name__ == "__main__":
         "/tmp/claude-1015/-home-yunjung-workspace/"
         "a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/report_style_demo.ipynb")
     rep = build_notebook(out, blocks)
-    print("\n── 예산 검사 ──")
+    print("\n── 예산·톤 검사 ──")
     print(json.dumps({k: v for k, v in rep.items()
                       if k in ("md_cells", "code_cells", "figures", "provenance_tags",
-                               "violations", "ok")}, ensure_ascii=False, indent=1))
+                               "n_negatives", "n_hedges", "violations", "ok")},
+                     ensure_ascii=False, indent=1))
+    raise SystemExit(1 if fails else 0)

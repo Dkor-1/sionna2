@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-drones.py — DJI 드론 5종의 '실측 제원' + 파라메트릭 3D 모델 생성기
+drones.py — 표적 드론의 '실측 제원' + 파라메트릭 3D 모델 생성기
 ==================================================================
+
+표적 목록은 아래 `DRONES` 레지스트리 **하나**가 정한다 — 저장소의 개수 출처는 `len(DRONES)` 뿐이다.
+  현재 **7종**: DJI 5종(Mini 5 Pro · Mavic 4 Pro · Matrice 4E · S1000+ · Phantom 4)
+  + 비-DJI 2종(Yuneec Typhoon H480 · Holybro X500 V2, 2026-07-30 추가).
+  ⚠ 이 문장이 저장소에서 개수를 산문으로 적는 **유일한 자리**다. 코드·다른 문서는 개수를
+    하드코딩하지 말고 `len(DRONES)` / `drone_keys()` / `drone_order()` 를 쓴다(그 함수들 주석 참조).
 
 목표
   사진처럼 보이는 '대충 만든 드론'이 아니라, **실제 제원(대각거리/무게/프로펠러
@@ -25,7 +31,7 @@ drones.py — DJI 드론 5종의 '실측 제원' + 파라메트릭 3D 모델 생
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, fields as _dc_fields
 
 from geom import Mesh, rotate, translate
 
@@ -49,20 +55,40 @@ class DroneSpec:
     num_rotors: int             # 로터 수 (=암 수, 비동축)
     coaxial: bool = False       # 동축(2개/암) 여부
     max_speed_ms: float | None = None
-    max_rpm: float | None = None       # 최대 프로펠러 회전수[rpm] — DJI 인증표(C0/C1/C2)에 공식값이 있다
-    prop_pitch_in: float | None = None # 프로펠러 피치[inch]
-    hover_rpm: float = 6000.0    # 대표 호버 회전수[rpm] — 프로펠러 크기에 맞춘 현실값(마이크로도플러용).
-                                 #   큰 프로펠러는 느리게(예: S1000 15in ~3500), 작은건 빠르게 돈다.
+    max_rpm: float | None = None       # 최대 프로펠러 회전수[rpm]
+    #   ⚠ **물리적 최대치가 아니라 인증 등급(C0/C1/C2)·펌웨어 상한이다.** DJI Mini 5 Pro 매뉴얼은
+    #     동일 기체·동일 6028F 프롭·동일 배터리에 대해 C0 모델 7800 RPM, C1 모델 11200 RPM 을
+    #     선언한다(43% 차이). 따라서 (n_max/n_hover)² 를 추력비로 쓰면 안 된다.
+    #     matrice4e 는 코드 7500 vs docs/drone_specs_2026.json 6130 으로 충돌 상태 — 미해결.
+    prop_pitch_in: float | None = None # 프로펠러 기하피치[inch] — 제조사 공표값(출처는 기종별 note)
+    hover_rpm: float = 6000.0    # 대표 호버 회전수[rpm] — 마이크로도플러 flash_hz·f_tip 이 여기 **선형**으로 걸린다.
+    #   ⚠ **provenance 정정(2026-07-28)**: docs/DRONE_SPECS.md·ARCHIVE.md 는 이 값이 추력균형
+    #     T = C_T·ρ·n²·D⁴ 에서 "유도된다" 고 적어 왔지만 **거짓이다** — 기종별 하드코딩 리터럴이고,
+    #     추력균형은 src/viz_report1.py 의 **사후 표시용 역산**(이미 정한 rpm 에서 C_T 를 되푼다)일
+    #     뿐이다. 따라서 weight_g·prop_dia_mm 를 고쳐도 hover_rpm 은 **따라오지 않는다**.
+    #     값의 근거는 기종별 note 를 볼 것(s1000plus·matrice4e 는 NASA 실측 C_T 앵커).
     rtk: bool = False
     release: str = "released"   # released / rumored_unreleased / discontinued
+    # ⚠ 2026-07-31 — `confidence` 는 **제원(스펙 숫자)의 신뢰도**지 **형상 충실도가 아니다**.
+    #   둘을 같은 이름으로 읽다가 정반대로 해석한 적이 있다. 실측한 사진↔메쉬 실루엣 일치도
+    #   (`outputs/mesh_compare_photo.json`, 자기복제 상한으로 정규화)는 이 플래그와 **역순**이다:
+    #     x500v2  confidence=medium → 상한대비 91 %  (제조사 STEP 기반)
+    #     mini5pro confidence=high  → 상한대비 50 %  (스펙시트+사진 기반)
+    #   즉 제원은 잘 알려져 있어도(high) 형상은 추정이다. 형상 충실도는 `shape_fidelity` 를 보라.
     confidence: str = "high"
+    # 형상 충실도의 **출처**. 사진 일치도가 이것을 따라간다 — 지표가 아니라 근거를 적는다.
+    #   'manufacturer_cad' : 제조사 STEP/CAD 실측 기반
+    #   'spec_photo'       : 공개 제원 + 사진 대조 기반(추정 구간 있음)
+    shape_source: str = "spec_photo"
     note: str = ""
     # --- 외형 스타일(렌더용) ---
     body_rgb: tuple = (0.5, 0.5, 0.5)
     arm_style: str = "carbon"   # 'carbon'(어두운 암) / 'body'(동체색 암; 고정형)
     fixed_arm: bool = False     # True 면 굵은 고정암(팬텀류)
     gear: str = "none"          # 'none' / 'legs'(팬텀) / 'tall'(S1000) / 'feet'
-    gimbal: str = "front"       # 'front'(전방하단) / 'belly'(중앙하단)
+    gimbal: str = "front"       # 'front'(전방하단) / 'belly'(중앙하단) / 'none'(카메라 없음)
+                                #   ⚠ 이 필드는 **아무도 읽지 않는다**(2026-07-30 확인) — 형상을 정하는 것은
+                                #     gimbal_style 이다. 라벨용으로만 남아 있으니 둘을 어긋나게 적지 말 것.
     accent_rgb: tuple | None = None   # 전방 암/프롭팁 식별색 (없으면 None)
     body_frac: float = 0.42     # 동체 크기/대각 비율(외형 튜닝)
     # --- 공식 외형(암 펼침·**프로펠러 제외**) L×W×H [mm] — build_frame 이 여기에 맞춰진다 ---
@@ -73,6 +99,15 @@ class DroneSpec:
     # --- 드론별 개성(실루엣) — 스펙·대각·좌우대칭(비행안정) 유지하며 외형만 ---
     rotor_deg: tuple | None = None   # 모터 각도[deg] 목록. None=기본 X(쿼드)/옥토.
                                      #   접이형은 전방스윕(좌우대칭+마주보는 쌍 180°→대각 보존)
+    rotor_r_mm: tuple | None = None  # ⭐ 2026-07-31 추가 — **로터별 중심반경**[mm].
+    #   None 이면 전 로터가 한 원(diagonal_mm/2) 위에 있다(기존 동작, 기존 메쉬 비트동일).
+    #   값을 주면 `rotor_deg` 와 **같은 순서·같은 길이**여야 하고, 로터 k 는
+    #   (r_k·cos θ_k, r_k·sin θ_k) 에 놓인다 → **사다리꼴(trapezoid) 배치**를 표현할 수 있다.
+    #   왜 필요한가: DJI 접이식 기체의 앞 암은 뒤 암보다 길고 더 벌어져 있다. 한 원 위의
+    #   각도만으로는 그 형상을 표현할 수 없어서, 폭을 맞추려면 모터 지름을 실물의 1.7배로
+    #   부풀리는 수밖에 없었다(matrice4e note 의 '매듭'). 반경을 열면 그 매듭이 풀린다.
+    #   ⚠ diagonal_mm 은 이 필드가 있으면 **로터 위치를 정하지 않는다** — 암 두께·모터 크기
+    #     같은 비례식 기본값의 스케일로만 남는다(x500v2 가 이미 쓰는 규약과 같다).
     body_lw: tuple = (1.15, 0.85)    # 동체 (길이,폭)/hub 비 — 접이 슬림기는 길쭉·좁게
     rotor_z_mm: tuple | None = None  # 로터별 z 오프셋[mm] — 프롭 디스크가 겹치는 기체(Mini)는
                                      #   앞/뒤 모터 높이가 다르다. None = 전부 같은 높이.
@@ -81,6 +116,38 @@ class DroneSpec:
     cad_version: str = "v1"          # "v1"(기존) / "v2"(실사진 대조로 형상 개선; 스펙 치수는 그대로)
     env_props_included: bool = False  # envelope_mm 의 높이가 **프롭 포함**값이면 True
                                       #   (프레임만 맞추면 프롭이 위로 더 올라가 총높이 초과 — frame_fit_scale 참고)
+    # ----------------------------------------------------------------------- #
+    #  열린 프레임(open-frame) + **실물 부품치수 오버라이드** (2026-07-30 추가)
+    # ----------------------------------------------------------------------- #
+    #  ⚠ 전부 기본값이 None/기존값이다 → 기존 5종의 메쉬는 **비트단위로 동일**하다(증거는 아래 참조).
+    body_style: str = "shell"        # "shell"  = 성형 셸 동체(눈물방울 로프트 + 캐노피). 현재 기본값이므로
+                                     #   레지스트리에서 몇 종이 셸형인지는 세지 말고 body_style 로 판정할 것
+                                     # "plate_stack" = **셸이 없는 열린 프레임**(카본 판 2장 + 간격).
+                                     #   개발용 프레임(Holybro X500 류)은 몰드 셸이 아예 없어서
+                                     #   'body' 그룹으로 표현하면 존재하지 않는 유전체 셸을 만든다.
+    plate_mm: tuple | None = None    # plate_stack 전용 (L, W, t_bottom, gap, t_top) [mm].
+                                     #   gap 은 두 판의 **마주보는 면 사이 빈 간격**(총높이=t_bot+gap+t_top).
+    arm_shape: str = "folding"       # "folding" = 테이퍼 + 벤드(접이식/고정암). 기본값 — 개수를 적지 않는다
+                                     # "tube"    = **직선 등단면 원형 튜브**(카본 파이프, bend=0)
+    #  ⭐ 아래 3개는 **대각비례 기본값을 덮는다**. drone_cad 는 암 반경·모터 크기를 대각의 비율
+    #     (0.055·diag 등)로 잡는데, 그 법칙은 접이식 소비자기에서 역산된 것이라 500 mm 개발
+    #     프레임에 쓰면 **반경 27.5 mm(폭 55 mm) 암**이 나온다 — 실물은 16 mm 파이프다.
+    #     실측 부품치수가 있으면 비율을 쓰지 않는다. None 이면 기존 비례식 그대로.
+    arm_od_mm: float | None = None      # 암 외경[mm] (튜브면 그대로 지름, 테이퍼암이면 등단면화)
+    motor_dia_mm: float | None = None   # 모터 벨 지름[mm]
+    motor_h_mm: float | None = None     # 모터 벨 높이[mm]
+    gear_h_mm: float | None = None      # 착륙장치 높이[mm]. None 이면 0.30·body_h (기존 규약)
+    gear_tube_mm: tuple | None = None   # 카본 튜브 착륙장치 (다리 OD, 스키드 OD) [mm]
+    gear_splay_deg: float = 20.0        # 튜브 다리 벌림각[deg] (수직 기준 바깥쪽)
+    #  rcs_sbr 에 넘길 '유전체 셸' 그룹. **열린 프레임은 () — 셸이 아예 없다.**
+    #  ⚠ 현재 소비자는 없다(각 호출부가 rcs_sbr 기본 규약 _DIELECTRIC_SHELLS={body,canopy} 를 쓴다).
+    #    열린 프레임에는 body·canopy 그룹이 **존재하지 않으므로** 기본값도 결과적으로 안전하다
+    #    (셸 후보가 0개 → 투과 패스 없음). 배선은 Phase 3(저장소 전체 5종→7종)에서 한다.
+    shell_groups: tuple | None = None
+
+
+#  DroneSpec 의 전체 필드 이름 — 필드를 추가하면 자동으로 따라온다(캐시 키가 낡지 않는다).
+_SPEC_FIELDS = tuple(f.name for f in _dc_fields(DroneSpec))
 
 
 # 화면표시 색(RGB)
@@ -102,12 +169,56 @@ DRONES: dict[str, DroneSpec] = {
              "⚠ 2026-07-14: after fitting the frame to the OFFICIAL envelope (255×181×91 mm), the "
              "implied motor-to-motor diagonal is 274.6 mm, i.e. the old 250 mm estimate was ~9% low. "
              "diagonal_mm is kept as-is (it only sizes arm/motor thickness); the envelope now rules. "
-             "Weight/prop/rotor count official.",
-        body_rgb=_GRAY_D, arm_style="body", gear="none", gimbal="front",
-        accent_rgb=(0.95, 0.45, 0.05), body_frac=0.46,
-        rotor_deg=(56.3, 123.7, 236.3, 303.7), body_lw=(1.42, 0.66), gimbal_style="single", cad_version="v2",
-        rotor_z_mm=(-12.0, +2.0, +2.0, -12.0),   # ⚠ 프롭(152.4) > 앞뒤 모터간격(152) → 디스크가 겹친다.
-                                                 #   실물은 **앞 모터가 더 낮다**(간섭 회피). 조사 확인.
+             "Weight/prop/rotor count official. "
+             "⭐ 2026-07-30 PHOTO-AUDIT ROUND (assets/photos/mini5pro/, 3 official product shots). "
+             "LANDING GEAR EXISTS AND WAS MISSING: gear was 'none', but _1.png (head-on) shows a "
+             "grey TWO-PRONGED leg hanging under EACH OF THE TWO FRONT motor pods, and the same "
+             "photo's rear motor, enlarged, has none. gear='motor_legs' + gear_h_mm now builds them. "
+             "*** LEG LENGTH RE-MEASURED 2026-07-31, 28.0 -> 31.0 mm. The old 28 mm came from a "
+             "plan-view scale anchor (body width 79 mm) that this round replaced: the shell is "
+             "70.4 mm wide, not 79. Re-measuring on _1.png with the scale anchored on the FRONT "
+             "rotor pair (641.55 px = 227.6 mm from the official 380 mm props-included width) gives "
+             "a projected leg of 85 px = 30.2 mm; removing the fore-aft component at the fitted "
+             "elevation (~40 deg, read off the fore-aft hub offset 262.7 px) leaves 31.1 mm. "
+             "Band +/-15% - DJI publishes no leg dimension. *** "
+             "The legs are the aircraft's LOWEST point, so their absence also inflated "
+             "frame_fit_scale's sz to 1.68 (the props-included 91 mm height was being met by "
+             "stretching the shell vertically by 68%). "
+             "Shell proportions, arm width and arm section are now photo-measured too - the numbers "
+             "and their pixel provenance live in drone_cad._SHELL_SHAPE / _ARM_WIDTH / _ARM_SECTION. "
+             "REFUTED HYPOTHESIS (kept on purpose): the plan shot _3.png measures the FRONT motor "
+             "pair ~25% wider in track than the REAR pair, i.e. a trapezoid rather than our "
+             "symmetric 56.3 deg rectangle. It was NOT adopted, because the two official "
+             "props-included figures each independently imply a SYMMETRIC layout - 380 mm width "
+             "gives 55.8 deg and 304 mm length gives 56.6 deg - which a trapezoid cannot satisfy "
+             "at both ends. The photo reading is most likely perspective in a marketing render.",
+        body_rgb=_GRAY_D, arm_style="body", gear="motor_legs", gear_h_mm=31.0, gimbal="front",
+        accent_rgb=(0.95, 0.45, 0.05), body_frac=0.46, shape_source="spec_photo",
+        rotor_deg=(56.33, 132.47, 227.53, 303.67), rotor_r_mm=(136.73, 112.26, 112.26, 136.73),
+        body_lw=(1.42, 0.66), gimbal_style="single", cad_version="v2",
+        # ⭐⭐ 2026-07-31 — **사다리꼴 채택**, 그리고 그 부산물로 프롭 디스크 겹침이 사라졌다.
+        #   [옛 상태] 대칭 56.3° 한 원(r=137.5) → 앞뒤 모터간격 152.6 mm 인데 프롭이 152.4 라
+        #     여유가 사실상 0(−0.8 mm 계산에 따라 음수)이라 rotor_z_mm 으로 피하고 있었다.
+        #   [측정] 평면컷 `_3.png` 의 주황 프롭팁 8개 → 허브 (부분픽셀):
+        #     앞 (174.36, 243.84)/(867.10, 243.20) · 뒤 (261.70, 690.41)/(779.12, 691.12) px.
+        #   [원근 배제] 같은 사진의 팁-투-팁이 그 행의 배율이다 — 앞 434.0, 뒤 445.4 px → 배율비
+        #     0.974. 좌우 span 비는 692.7/517.4 = **1.339**. 배율 2.6% 로 34% 를 만들 수 없다.
+        #   [앞/뒤 판정] 정면컷 `_1.png` 에서 앞쌍 641.55 px, 뒷쌍 424.75 px (비 1.5104). 넓은 쪽이
+        #     **앞**이면 원근계수 1.128(카메라 1.6 m)로 설명되고, 넓은 쪽이 뒤라면 2.02(카메라
+        #     0.15 m)를 요구한다 ⇒ **넓은 쪽이 앞**. 두 사진이 서로를 지지한다.
+        #   [축척은 공식값으로] 공식 언폴드(**프롭 포함**) 380 폭 · 304 길이 →
+        #     앞 y = 380/2 − 76.2 = **113.8** · x = 304/2 − 76.2 = **75.8**.
+        #     사진의 뒤/앞 span 비(배율보정 0.7278)를 걸어 뒤 y = **82.8**.
+        #   ⛔ 옛 주석의 반증("380 은 55.8°, 304 는 56.6° 를 주므로 사다리꼴은 둘을 동시에 못
+        #     만족한다")은 **틀린 추론**이었다: 그 두 공식값은 **앞 로터의 y 와 x** 만 묶는다(가장
+        #     바깥에 닿는 것이 앞 프롭이므로). 뒤 로터의 y 에는 아무 제약도 걸지 않는다.
+        #   [프롭 여유] 앞쌍 227.6−152.4 = +75.2 · 뒷쌍 165.6−152.4 = +13.2 ·
+        #     같은쪽 앞뒤 √(151.6²+31.0²)−152.4 = **+2.3 mm** → 전부 양수(옛 배치는 0 이하).
+        #   ⚠ 휠베이스는 그래서 274.6 → **248.3 mm** 가 된다. `diagonal_mm=275` 는 그대로 두되
+        #     이제 **로터 위치를 정하지 않는다**(암 두께·모터 비례식의 스케일로만 남는다) —
+        #     275 자체가 '대칭 가정 위에서 공식 외형으로부터 역산한 값' 이었기 때문이다.
+        rotor_z_mm=(-12.0, +2.0, +2.0, -12.0),   # 실물은 **앞 모터가 더 낮다**(조사 확인). 사다리꼴로
+                                                 #   디스크 겹침은 사라졌지만 관측된 사실이라 유지한다.
         envelope_mm=(None, None, 91.0), env_props_included=True),   # ⚠ **높이만** 공식이고, **프롭 포함**값이다.
         # DJI 는 Mini 5 Pro 의 **언폴드(프롭 제외) L×W 를 공개하지 않는다**(2026-07-14 심층조사 확인).
         # 공개된 것: 폴디드(프롭제외) 157×95×68,  언폴드(**프롭 포함**) 304×380×91.
@@ -120,17 +231,46 @@ DRONES: dict[str, DroneSpec] = {
         diagonal_mm=441, weight_g=1063,
         body_l_mm=329, body_w_mm=391, body_h_mm=135,
         prop_dia_mm=267, prop_blades=2, num_rotors=4,
-        max_speed_ms=25, hover_rpm=3600, max_rpm=6000, prop_pitch_in=5.8, rtk=False, release="released", confidence="high",
+        max_speed_ms=25, hover_rpm=3600, max_rpm=8400, prop_pitch_in=5.8, rtk=False, release="released", confidence="high",
         note="Large consumer flagship (2025); front triple-camera gimbal (360° infinity). "
-             "Weight/dimensions/propeller official (prop 266.7 mm, shown rounded to 267 mm). "
+             "Weight/dimensions/propeller official (DJI part 1158F, 26.7x14.7 cm => 267 mm dia, 5.787 in pitch; "
+             "prop_pitch_in=5.8 is therefore MANUFACTURER-PUBLISHED, not an estimate - corrected 2026-07-28). "
+             "⭐ MAX RPM CORRECTED 2026-07-28: 6000 -> 8400. DJI Mavic 4 Pro User Manual v1.0 (2025.05) p.88, "
+             "UAS Class C2 certification table: MTOM 1085 g / 83 dB / Maximum Propeller Speed 8400 RPM. "
+             "⚠ max_rpm is a CLASS/FIRMWARE CEILING, not a measured full-throttle rpm - see the note in "
+             "matrice4e. It does NOT touch flash_hz or f_tip (those use hover_rpm). "
              "⚠ diagonal was ESTIMATED (400 mm) and is geometrically INCONSISTENT with the official "
              "envelope: 328.7×390.5 mm cannot be spanned by a 400 mm motor diagonal. Fitting the frame "
              "to the official envelope implies a diagonal of 440.9 mm. The envelope (official) wins; "
-             "diagonal_mm is kept only as an arm/motor thickness scale.",
-        body_rgb=_SILVER, arm_style="body", gear="none", gimbal="front",
-        accent_rgb=None, body_frac=0.42,
-        rotor_deg=(32, 148, 212, 328), body_lw=(1.52, 0.62), gimbal_style="triple", cad_version="v2",
-        envelope_mm=(328.7, 390.5, 135.2)),      # DJI 공식(언폴드·프롭제외),
+             "diagonal_mm is kept only as an arm/motor thickness scale. "
+             "⭐⭐ 2026-07-30 PHOTO-AUDIT ROUND - ROTOR LAYOUT CORRECTED 32 deg -> 51.4 deg and the "
+             "L/W envelope forcing RELEASED. This is the same defect, and the same fix, as the "
+             "matrice4e round of 2026-07-28. Forcing the frame bbox to 328.7 x 390.5 made "
+             "frame_fit_scale squash x by 0.783 and stretch y by 1.397, which turns the rotor CIRCLE "
+             "into an ELLIPSE: the coded 32 deg arms came out at an effective 48.1 deg, and every "
+             "part of the airframe - shell, arms, motors, gimbal - was distorted by the same "
+             "anisotropic factors (z was stretched 1.836 on top of that). The photos show it plainly: "
+             "the mesh read as a fat round blob where mavic 4 pro_2.png shows a slim fore-aft body. "
+             "SOLVING INSTEAD OF FORCING: put the rotors on the diagonal/2 = 220.5 mm circle and let "
+             "the lateral span set the angle - 441*sin(a) + motor_dia 45.9 = official width 390.5 "
+             "gives a = 51.40 deg. Cross-check from the OTHER official figure (length): "
+             "441*cos(a) + 45.9 = 328.7 gives a = 50.1 deg, so both official dimensions agree on "
+             "roughly 51 deg and neither is anywhere near 32 deg. Prop-disc clearance (house rule, "
+             "must stay positive): front-to-front 441*sin(a) = 344.6 vs prop 267 -> +77.6 mm; "
+             "front-to-rear 441*cos(a) = 275.1 vs 267 -> +8.1 mm. Both positive, and far safer than "
+             "the +1.09 mm the matrice4e solution leaves. NOTE the released forcing means the frame "
+             "length is now built, not asserted (~321 mm from the rotors + the gimbal's forward "
+             "overhang, vs the official 328.7); as report02 already records, a 0% envelope match was "
+             "a CONSTRAINT that frame_fit_scale manufactured, not evidence. "
+             "LANDING GEAR EXISTS AND WAS MISSING: gear was 'none', but mavic 4 pro_2.png and _4.png "
+             "show a two-pronged leg under each of the TWO FRONT motor pods (the rear pods, enlarged "
+             "in _3.png, are smooth). gear='motor_legs' + gear_h_mm=48.0 (MEASURED off _2.png, "
+             "+/-15%). Gimbal, shell proportions and arm width are photo-measured too - provenance "
+             "in drone_cad._gimbal_hasselblad / _SHELL_SHAPE / _ARM_WIDTH.",
+        body_rgb=_SILVER, arm_style="body", gear="motor_legs", gear_h_mm=48.0, gimbal="front",
+        accent_rgb=None, body_frac=0.42, shape_source="spec_photo",
+        rotor_deg=(51.4, 128.6, 231.4, 308.6), body_lw=(1.52, 0.62), gimbal_style="triple", cad_version="v2",
+        envelope_mm=(None, None, 135.2)),        # DJI 공식(언폴드·프롭제외) 중 **높이만** 강제 — 위 note 참조,
     # 3) 엔터프라이즈 측량기 (RTK 탑재)
     "matrice4e": DroneSpec(
         key="matrice4e", name="DJI Matrice 4E",
@@ -138,29 +278,107 @@ DRONES: dict[str, DroneSpec] = {
         body_l_mm=307, body_w_mm=388, body_h_mm=150,
         prop_dia_mm=274, prop_blades=2, num_rotors=4,
         max_speed_ms=21, hover_rpm=3800, max_rpm=7500, prop_pitch_in=5.7, rtk=True, release="released", confidence="high",
-        note="Prop diameter confirmed 274 mm by verification (292->274). Onboard RTK. "
-             "Max propeller speed 7500 RPM / 82 dB — DJI manual C2 certification (official). "
-             "⚠ HOVER RPM UNRESOLVED: the C_T method (C_T 0.08-0.10) gives 3950-4410 rpm, but "
-             "anchoring on the official max (7500 rpm) with a typical T/W of 2.0-2.5 gives 4740-5300 rpm. "
-             "We currently use 3800 (C_T=0.108), which implies T/W(max)=3.9 — higher than the typical 2-2.5. "
-             "**We do not know which is right.** Micro-Doppler flash/tip scale linearly with this. "
-             "Needs telemetry or acoustic measurement to settle.",
+        note="Prop diameter confirmed 274 mm by verification (292->274); DJI part 1157F (std) / 1154F (low-noise), "
+             "M4 series manual p.101 lists 1154F as 27.4x13.7 cm. Onboard RTK. "
+             "⭐ HOVER RPM RESOLVED 2026-07-28 (was 'UNRESOLVED'): the C_T method wins at essentially the coded "
+             "value. NASA/US Army measured full-vehicle hover C_T = T/(rho A (Omega R)^2) = 0.0132 at 3500 rpm "
+             "rising to 0.0142 at 7500 rpm for the DJI Phantom 3 + 9450 prop (Russell/Jung/Willink/Glasner, "
+             "AHS Forum 72, 2016, Fig.38). The 1157F pitch ratio is 0.53 vs the 9450's 0.532, so the transfer needs "
+             "no extrapolation. Solving T = 2.989 N/rotor at D = 0.274 m with C_T = 0.0140 gives 3789 rpm; the coded "
+             "3800 is +0.3%. The old ARCHIVE range C_T 0.08-0.10 (Renard) was simply too low - the measured 9450 "
+             "value converts to Renard C_T = 0.0140*pi^3/4 = 0.1085, i.e. exactly the 0.108 this code implies. "
+             "Residual uncertainty band +/-5% (3613-3994 rpm => flash 120-133 Hz, f_tip 1169-1292 Hz @3.5 GHz). "
+             "⚠ MAX RPM IS AMBIGUOUS AND IS NOT A PHYSICAL LIMIT: this code says 7500 RPM / 82 dB while "
+             "docs/drone_specs_2026.json records 6130 RPM / 85 dB from User Manual v1.2 8.10 - both labelled "
+             "'official C2 certification'. Unresolved. More importantly the declared maximum is a CLASS/FIRMWARE "
+             "ceiling, not a loaded full-throttle speed: the DJI Mini 5 Pro manual declares 7800 RPM for its C0 "
+             "model and 11200 RPM for its C1 model with the SAME airframe, SAME 6028F prop and SAME battery - "
+             "43% apart. Therefore (n_max/n_hover)^2 is NOT a thrust ratio, which removes the entire 4740-5300 rpm "
+             "branch of the old dispute and explains the 'anomalous' T/W(max)=3.9 flagged here previously.",
         body_rgb=_OFFWHT, arm_style="body", gear="feet", gimbal="front",
-        accent_rgb=None, body_frac=0.42,
-        rotor_deg=(45, 135, 225, 315), body_lw=(1.08, 0.98), gimbal_style="sensor", cad_version="v2",
-        envelope_mm=(307.0, 387.5, 149.5)),      # DJI 공식(언폴드·프롭제외),
+        accent_rgb=None, body_frac=0.42, shape_source="spec_photo",
+        rotor_deg=(52.45, 131.53, 228.47, 307.55), rotor_r_mm=(228.77, 210.36, 210.36, 228.77),
+        body_lw=(1.08, 0.98), gimbal_style="sensor", cad_version="v2",
+        envelope_mm=(None, None, 149.5),
+        arm_od_mm=20.0, motor_dia_mm=27.0),      # ⭐ 2026-07-30 사진대조 — 아래 [암 굵기] 주석 참조
+        # ⭐ 2026-07-30 사진대조 라운드 (assets/photos/matrice4e/ 5장)
+        #   [암 굵기] `arm_od_mm=20.0` 으로 대각비례(0.055·diag=반경 24.1 → 폭 48.3 mm)를 덮는다.
+        #     근거: 상면사진 _5 에서 암 폭 **16.6 mm**(축척 0.6249 mm/px, 프롭이 가리지 않는
+        #     모터 근처 스테이션), docs/drone_specs_2026.json 은 18~22 mm. 옛 값은 실물의 2.4배라
+        #     상면 실루엣에서 암이 '쐐기'로 보였다. 단면도 원형으로 바꿨다(drone_cad._ARM_SECTION).
+        # ⭐⭐ 2026-07-31 로터 배치 — **사다리꼴 채택, 매듭 해소**. (rotor_r_mm 신설)
+        #   [측정] `assets/photos/matrice4e/matrice 4E_5.png`(상면)에서 **주황 프롭팁 8개**의
+        #     무게중심을 찾고 2날 프롭의 두 팁의 중점을 허브로 삼았다(부분픽셀).
+        #       앞좌 (180.62, 632.22) · 앞우 (753.12, 632.22) · 뒤좌 (218.21, 192.05) · 뒤우 (715.40, 191.96) px
+        #     자기검사: 앞쌍 중심선 466.87, 뒷쌍 466.81 — **0.06 px** 일치. 앞뒤 행의 y 도 각각 동일.
+        #   [원근 배제 — 이번엔 대조군이 있다] 같은 사진에서 프롭 **팁-투-팁 픽셀**이 곧 그 로터
+        #     평면의 배율이다: 앞 407.13/407.16, 뒤 405.13/404.81 → 배율비 **1.0054**. 그런데
+        #     좌우 span 픽셀비는 572.50/497.19 = **1.1514** 다. 배율 0.5% 로는 15% 를 만들 수 없다
+        #     ⇒ 실물이 사다리꼴이다. (옛 주석의 "정투영이니 원근 아님" 을 정량 대조군으로 승격.)
+        #   [축척] 공식 대각 438.8 mm ↔ 앞좌↔뒤우 692.66 px → **0.63351 mm/px**.
+        #     ⚠ 대각을 앵커로 썼으므로 대각 일치는 **순환**이다. 독립 검사는 아래 둘이다.
+        #   [결과] 앞 (x=+139.45, y=±181.35) · 뒤 (x=−139.45, y=±157.50) mm
+        #     → rotor_deg/rotor_r_mm 이 그 좌표를 그대로 낸다(각 52.45°/131.53°, 반경 228.77/210.36).
+        #   [독립 검사 2건] 모터벨 27 mm 로 두면
+        #       폭 2·181.35 + 27 = 389.7  ↔ 공식 387.5  (**+0.57 %**)
+        #       길이 2·139.45 + 27 = 305.9 ↔ 공식 307    (**−0.36 %**)
+        #     옛 대칭 X(51.2°)는 같은 검사에서 길이 320.4(**+4.4 %**)였고, 폭을 맞추려고
+        #     모터벨을 **45.6 mm**(실물 27~32 의 1.7배)로 부풀려야만 성립했다 — 그 매듭이 풀렸다.
+        #   [3번째 사진의 독립 확인] 정면컷 _1 에서도 같은 방법으로 허브를 재면 앞쌍 641.55 px,
+        #     뒷쌍 424.75 px 로 비 **1.3106** 이다. 대칭 X 라면 이 비가 통째로 원근이어야 해서
+        #     카메라 거리 1.04 m 를 요구하는데, 사다리꼴이면 1.1514 를 뺀 나머지 **1.138** 만
+        #     원근이면 되고 그건 카메라 2.16 m 다 — 제품컷으로 후자가 자연스럽다.
+        #   [프롭 여유(집안 규칙: 항상 양수)] 앞쌍 362.7−274 = **+88.7** · 뒷쌍 315.0−274 = **+41.0** ·
+        #     같은쪽 앞뒤 √(278.89²+23.85²)−274 = **+5.9 mm**. 전부 양수 —
+        #     옛 주석이 사다리꼴을 접었던 이유(−0.5 mm)는 그때의 뒷쌍 읽기(±155.2)에서 나온 것이고,
+        #     팁-중점법으로 다시 재면 ±157.5 라 여유가 양수로 돌아선다.
+        #   ⚠ 남는 것: 사진은 **제품 렌더**다. 렌더 자체가 실물과 다를 가능성은 사진으로 못 지운다.
+        #     지운 것은 '원근 때문에 사다리꼴로 보였다' 는 대안설명뿐이다.
+        # ⭐ 2026-07-28 로터 배치 정정 — 45° X → 51.2° (그 뒤 2026-07-31 사다리꼴로 대체됨),
+        #   그리고 envelope 은 **높이만** 강제(이 결정은 그대로 유효하다).
+        #   [문제] 예전 조합(45° X + L/W 를 307×387.5 로 강제)은 `frame_fit_scale` 이 로터 원을
+        #     (0.8507, 1.0887) 로 **타원으로 찌그러뜨려** 두 가지를 동시에 만들고 있었다:
+        #       · 인접 로터 간격 264.0 mm < 프롭 274.0 mm → **−10.04 mm 물리적 상호침투**(z차 0),
+        #       · 실효 대각 428.7 mm → **−2.30% 오차**, 저장소 전 기종 **최악 치수오차**(mesh_verify worst_err_pct).
+        #     즉 한 원인이 두 증상을 만들고 있었다.
+        #   [진단] 공식 대각 438.8 과 공식 외형 307×387.5 는 **평면 4로터로 동시 만족 불가능**이다.
+        #     둘 다 참이라면 코너 반경이 √(153.5²+193.75²)=247.2 → 대각 494.4 여서 438.8 과 어긋난다.
+        #     ⇒ 실물 M4E 의 로터는 45° 가 아니고, 공식 L 은 로터가 아니라 **동체**가 정한다.
+        #   [해] 로터를 대각/2 원 위에 두고 각을 푼다:
+        #       · 좌우 span + 모터지름 = 공식 폭 387.5  →  a = 51.18°
+        #       · 겹침 없는 상한 a ≤ arccos(프롭/대각) = 51.36°  →  해가 **유효**(여유 +1.09 mm)
+        #       · 대각은 정의상 438.8 **정확**
+        #     ⇒ rotor_deg = 51.2°. envelope 의 L/W 강제는 **해제**한다(mini5pro 와 같은 처리) —
+        #       report02 가 이미 적어둔 대로 0% 외형일치는 `frame_fit_scale` 이 만든 **제약이지 증거가 아니고**,
+        #       프롭 상호침투는 **물리적 불가능**이라 후자를 우선한다.
+        #   ⚠ 여유 +1.09 mm 는 빠듯하다 — 실물도 그렇다(Mini 5 Pro 는 아예 겹쳐서 rotor_z 로 피한다).
     # 4) 대형 산업용 옥토콥터 (8암) — 단종, 카본 프레임
     "s1000plus": DroneSpec(
         key="s1000plus", name="DJI S1000+",
         diagonal_mm=1045, weight_g=9500,
         body_l_mm=1016, body_w_mm=1016, body_h_mm=380,
         prop_dia_mm=381, prop_blades=2, num_rotors=8,
-        max_speed_ms=None, hover_rpm=3600, max_rpm=5600, prop_pitch_in=5.2, rtk=False, release="discontinued", confidence="high",
+        max_speed_ms=None, hover_rpm=4467, max_rpm=5600, prop_pitch_in=5.2, rtk=False, release="discontinued", confidence="high",
         note="Octocopter: 8 arms, 1 rotor per arm (non-coaxial). Carbon frame, retractable landing gear, belly gimbal. "
-             "4400 g is the AIRFRAME weight; recommended takeoff weight 6.0-11.0 kg.",
+             "4400 g is the AIRFRAME weight; recommended takeoff weight 6.0-11.0 kg. "
+             "⭐ HOVER RPM CORRECTED 2026-07-28: 3600 -> 4467. The old value implied C_T = 0.01617 "
+             "(T/rho/A/(Omega R)^2 at TOW 9.5 kg over 8 rotors), which EXCEEDS the highest value NASA/US Army "
+             "ever measured on a small multirotor (0.0142, the high-pitch DJI 9450; Russell et al., AHS Forum 72, "
+             "2016). The 1552 prop is 15x5.2 in, pitch ratio 0.347 - LOWER than any prop in that campaign - so its "
+             "C_T should sit BELOW 0.0105, not above 0.0142. C_T 0.0085-0.0140 gives 3868-4996 rpm; central 4467. "
+             "Independent cross-check: DJI publishes max thrust 2.5 kg per arm, and hover/max = sqrt(11.645/24.5) "
+             "= 0.689 regardless of C_T, so the old (3600 hover / 5600 max) pair implied 2.87 kg per arm = 15% above "
+             "DJI's own figure. Micro-Doppler consequence: flash 120.0 -> 148.9 Hz, f_tip 1620 -> 2010 Hz @3.5 GHz.",
         body_rgb=_BLACK, arm_style="carbon", gear="tall", gimbal="belly",
-        accent_rgb=(0.85, 0.10, 0.10), body_frac=0.30,
+        accent_rgb=(0.85, 0.10, 0.10), body_frac=0.30, shape_source="spec_photo",
         body_lw=(1.0, 1.0), gimbal_style="belly", cad_version="v2",
+        arm_od_mm=25.0, motor_dia_mm=52.0, motor_h_mm=30.0,
+        #  ⭐ 2026-07-30 외형감사에서 추가. 이 셋이 **없을 때** `_arm_motor_dims` 는 대각비례
+        #    (0.045·1045 = 47 mm)로 되돌아가 prop_z = 76.5 mm 를 내놓았는데, drone_cad 의
+        #    s1000plus 분기는 모터 벨을 z=21..53 mm 에 그리고 있었다 → **프롭이 벨 위 23 mm 허공에
+        #    떠 있었다**(에러 없음). 이제 벨(12.5~42.5)과 프롭(48.5)이 같은 수치에서 나온다.
+        #    arm_od 25.0 = MEASURED(탑뷰 사진 24.8, 스케일 앵커는 note 참조) · 널리 알려진 25 mm 튜브와 일치.
+        #    motor 52 × 30 = DERIVED(DJI 4114 급 아웃러너 벨).
         envelope_mm=(1016.0, 1016.0, 380.0)),   # DJI 공식 — 센터프레임 337.5mm, 암 386mm, 랜딩기어 460x511x305,
     # 5) 고정암 쿼드 (클래식, 흰색 셸)
     "phantom4": DroneSpec(
@@ -169,12 +387,234 @@ DRONES: dict[str, DroneSpec] = {
         body_l_mm=289.5, body_w_mm=289.5, body_h_mm=196,
         prop_dia_mm=240, prop_blades=2, num_rotors=4,
         max_speed_ms=20, hover_rpm=5500, max_rpm=8500, prop_pitch_in=5.0, rtk=False, release="released", confidence="high",
-        note="Fixed (non-folding) arms, one-piece white shell + integrated landing legs. Classic Phantom shape.",
+        note="Fixed (non-folding) arms, one-piece white shell + integrated landing legs. Classic Phantom shape. "
+             "Propeller is DJI part 9450; DJI's own propeller-dimensions table gives 24 x 12.7 cm, hence "
+             "prop_dia_mm=240. (The part number literally reads 9.4 in = 238.8 mm, 0.5% smaller - we follow "
+             "DJI's published table, and the 0.5% is inside the mesh tolerance.)",
         body_rgb=_WHITE, arm_style="body", fixed_arm=True, gear="legs", gimbal="front",
-        accent_rgb=None, body_frac=0.52,
+        accent_rgb=None, body_frac=0.52, shape_source="spec_photo",
         rotor_deg=(45, 135, 225, 315), body_lw=(1.06, 1.0), gimbal_style="recessed", cad_version="v2",
         envelope_mm=(289.5, 289.5, 196.0)),     # DJI 공식 Quick Start Guide v1.2 (프롭 제외),
+    # ----------------------------------------------------------------------- #
+    #  비-DJI 2기종 (2026-07-30 추가). 제원은 docs/RESUME_0729.md §5 가 단일 출처이고
+    #  등급(VERIFIED / MEASURED / DERIVED / UNKNOWN)은 아래 note 에 그대로 옮겼다 — **올리지 않았다.**
+    # ----------------------------------------------------------------------- #
+    # 6) 헥사콥터 (2016) — 이 저장소가 **실물 3D CAD 를 가진** 유일한 표적
+    "typhoonh480": DroneSpec(
+        key="typhoonh480", name="Yuneec Typhoon H (H480)",
+        diagonal_mm=480, weight_g=1950,
+        body_l_mm=457, body_w_mm=520, body_h_mm=310,
+        prop_dia_mm=230.2, prop_blades=2, num_rotors=6,
+        max_speed_ms=13.5, hover_rpm=5600, max_rpm=None, prop_pitch_in=6.0,
+        rtk=False, release="discontinued", confidence="high",
+        note="Hexacopter, and the only target in this repo whose REAL 3D CAD we hold "
+             "(ethz-asl/rotors_simulator, Apache-2.0 - assets/meshes/reference/SOURCES.md). "
+             "VARIANT: this is the H480 (2016), NOT the Typhoon H Plus (2018). Five independent "
+             "checks agree: upstream directory typhoon_h480, cgo3_* mesh names, CAD diagonal 485.4 vs "
+             "H Plus 520, body bbox 455x520 vs H Plus 556x485, prop 230 vs H Plus 248. "
+             "diagonal_mm 480 VERIFIED (user manual V1.2 p.3); our own CAD measures 485.4 (+1.1%). "
+             "weight_g 1950 VERIFIED and self-consistent (1695 g airframe+battery + 255 g CGO3+). "
+             "body L/W/H 457/520/310 VERIFIED - but Yuneec PUBLISHES WIDTH FIRST ('520 x 457 x 310 mm') "
+             "and the real CAD confirms 520 = LEFT-RIGHT (body STL bbox 455.41 x 520.35 x 158.25 mm), "
+             "so the published triple must be RE-ORDERED before it lands in (l, w, h). Do not swap it "
+             "back. Those official L/W exclude propellers (the CAD bbox reproduces them to 0.4%). "
+             "prop_dia_mm 230.2 MEASURED from that CAD (our ledger 230.098 mm agrees to 0.1 mm, and "
+             "480 + 230 = 710 also reproduces Yuneec's published 711 mm tip envelope). "
+             "prop_pitch_in 6.0 DERIVED - Yuneec never published a pitch; the CAD ensemble gives "
+             "5.84 +/- 0.20. rotor_deg 30/90/150/210/270/330 VERIFIED (exact extraction from the "
+             "PX4/RotorS SDF, rotor radius 242.8 mm). "
+             "hover_rpm 5600 DERIVED, band +/-4.5% (PX4 motorConstant implies 5831 rpm, the C_T method "
+             "5544-5753). Like all five DJI entries this is a HARDCODED LITERAL, not solved from thrust "
+             "balance - changing weight_g or prop_dia_mm does NOT move it (see the field note above). "
+             "Consistency check done at registration: 5600 rpm implies full-vehicle "
+             "C_T = T/(rho A (Omega R)^2) = 0.0137, and this prop's pitch ratio 6.0/9.06 = 0.662 is "
+             "HIGHER than the DJI 9450's 0.532 whose measured C_T is 0.0140 - so 0.0137 is where a "
+             "high-pitch prop belongs, no anomaly. "
+             "max_rpm None = UNKNOWN: Yuneec publishes no certification/firmware propeller-speed "
+             "ceiling. An electrical no-load figure (KV x pack voltage) must NOT be substituted - "
+             "max_rpm here means a CLASS/FIRMWARE ceiling (see the mavic4pro and matrice4e notes) and "
+             "mixing the two is exactly the error those notes warn about. "
+             "max_speed_ms 13.5 VERIFIED (Angle mode). "
+             "*** arm_style IS THE SINGLE LARGEST UNKNOWN ON THIS AIRFRAME. Yuneec never stated the arm "
+             "material and we have no teardown. carbon vs plastic is |Gamma| 0.90 vs 0.28 = 10.14 dB on "
+             "the arms - the biggest single-parameter RCS lever here. We DEFAULT TO PLASTIC "
+             "(arm_style='body', so the arms join the plastic shell group). CARBON IS A LABELLED "
+             "SENSITIVITY CASE, not a second spec: run it by overriding arm_style='carbon' and report "
+             "both numbers. *** "
+             "arm/motor PART dimensions are UNKNOWN (unpublished, and not extractable from one fused "
+             "body STL), so the mesh falls back to the diagonal-proportional rule - arm root half-width "
+             "0.055*diag = 26.4 mm (a 52.8 mm wide profile) and a motor bell 0.104*diag = 49.9 mm in "
+             "diameter. That bell is what pushes the frame bbox to 465.6 x 529.9 mm, +1.9% over the "
+             "official 457 x 520: the official width leaves only 520 - 2*240 = 40.0 mm for the bell on "
+             "our 480 mm diagonal (34.4 mm if the CAD's measured 242.8 mm rotor radius is used instead). "
+             "arm_od_mm / motor_dia_mm / motor_h_mm exist to fix this the moment a graded figure lands. "
+             "envelope_mm forces HEIGHT ONLY (310 mm), like mini5pro and matrice4e: forcing L/W too "
+             "would shrink the effective motor diagonal below the VERIFIED 480 mm and eat the "
+             "adjacent-prop clearance, and the 2026-07-28 matrice4e round settled that the diagonal and "
+             "prop non-interpenetration beat a 0% envelope match. "
+             "gear 'tall' = retractable legs VERIFIED, but the leg LENGTH is not published, so it stays "
+             "on the shell convention 0.30*body_h (DERIVED) and the official 310 mm total height is "
+             "reached by the envelope fit. gimbal = CGO3+ front-hanging single lens VERIFIED (no "
+             "fisheye array, no LiDAR - a 2016 platform); the gimbal box is MEASURED from "
+             "cgo3_camera_remeshed_v1.stl (69.30 x 55.00 x 72.31 mm).",
+        body_rgb=_BLACK, arm_style="body", gear="tall", gimbal="front",
+        accent_rgb=None, body_frac=0.42, shape_source="spec_photo",
+        rotor_deg=(30, 90, 150, 210, 270, 330), body_lw=(1.15, 0.85),
+        gimbal_style="single", cad_version="v2",
+        arm_od_mm=12.0, motor_dia_mm=35.4, motor_h_mm=24.5,
+        #  ⭐ 2026-07-30 외형감사. 앞의 note 가 "arm_od_mm / motor_dia_mm / motor_h_mm 는
+        #    graded 수치가 나오는 순간 여기를 고치려고 있다" 고 적어둔 그 순간이 왔다.
+        #    arm_od 12.00 = MEASURED(실물 CAD, 암 3방향 12.002/12.005/12.005 ±0.004).
+        #      ⚠ 다리 스트럿도 정확히 12.00 이다 — 파라메트릭 제도의 흔적일 수 있어
+        #        reference/SOURCES.md 가 '12 mm 급'으로 취급하라고 기록해 두었다. 유효숫자 4자리로 읽지 말 것.
+        #    motor_dia 35.4 = MEASURED(모터 포드 폭 35.4 × 높이 47.8, s=225~262).
+        #    motor_h 24.5 = **DERIVED, 그리고 이 값의 목적은 벨 높이가 아니라 `prop_z` 다**:
+        #      prop_z = motor_h + arm_od/2 + 6 = 36.5 mm 여야 실물 로터면(base_link up 82.22)이
+        #      우리 z=0(= 모터 스테이션 암 축, base_link up 45.7)에서 정확히 +36.5 mm 에 온다.
+        #      이 셋을 안 주면 대각비례로 되돌아가 prop_z = 26.4 mm 가 되고 프롭이 포드 속에 박힌다.
+        envelope_mm=(None, None, 310.0)),
+        # ⚠ 라이선스: 이 기종의 형상 근거는 Apache-2.0 CAD 다(SOURCES.md) — 표적 모델이 배포되면
+        #   의무가 따라온다. 우리 메쉬는 그 CAD 를 복사하지 않고 공표 제원에서 파라메트릭으로 짓는다.
+    # 7) 열린 프레임 개발용 쿼드 — 셸이 아예 없고 카메라도 없다(우리 첫 open-frame 표적)
+    "x500v2": DroneSpec(
+        key="x500v2", name="Holybro X500 V2",
+        diagonal_mm=500, weight_g=1650,
+        body_l_mm=144, body_w_mm=144, body_h_mm=32,
+        prop_dia_mm=254.0, prop_blades=2, num_rotors=4,
+        max_speed_ms=None, hover_rpm=5450, max_rpm=None, prop_pitch_in=4.5,
+        rtk=False, release="released", confidence="medium",
+        note="Development frame: our first OPEN-FRAME target - no moulded shell at all "
+             "(body_style='plate_stack', shell_groups=()) and no camera (gimbal_style='none'). "
+             "diagonal_mm 500 VERIFIED (docs.holybro.com X500 V2, 'Wheelbase: 500mm'). "
+             "plate_mm 144 x 144 x (2 + 28 + 2) mm VERIFIED for plate size / thickness / spacing; "
+             "body_h_mm 32 is therefore DERIVED (2+28+2), not a published overall height. "
+             "prop 254.0 mm / 4.5 in VERIFIED - the kit ships 1045 propellers (10 x 4.5 in). The 1345 "
+             "prop in the community CAD is NOT the X500 prop (13 in nominal, 346.9 mm measured); "
+             "assets/meshes/reference/SOURCES.md records that correction - do not re-adopt it. "
+             "arm_od_mm 16.0 VERIFIED (16 mm carbon tube; Holybro's own STEP has the clamp bores at "
+             "15.90 root / 16.00 tip, and its tube solid is drawn 15.4 = clearance, not the real size). "
+             "Our arm mesh is SOLID, not hollow - reasoning and price (Gazebo mass "
+             "DISTRIBUTION, not total mass) in drone_cad._arm_tube. "
+             "gear 'tall' 215 mm and tubes 16/14 (legs) / 10/8 (skids) VERIFIED. "
+             "*** gear_splay_deg CORRECTED 2026-07-30, 20.0 -> 17.59 VERIFIED. The old 20.0 was "
+             "carried over from NXP-HGD-CF.dae, which is a DIFFERENT AIRCRAFT (see the last paragraph); "
+             "17.59 deg is read off the leg cylinder axes in Holybro's own STEP. The leg count, leg "
+             "positions and skid length are no longer DERIVED ratios either - see drone_cad.X500V2, "
+             "which carries the whole measured table (leg top |y| 56.78, skid track 239.91, skid length "
+             "248.0, EVA foam sleeves 19.0 OD x 93.0, four of them). The mesh used to build FOUR legs; "
+             "the real aircraft has TWO (BOM: GUAN-CHENG x2). *** "
+             "*** motor_dia_mm / motor_h_mm FILLED 2026-07-30, both VERIFIED, replacing the "
+             "diagonal-proportional fallback that this note used to warn about (52.0 mm dia x 24.0 mm, "
+             "~1.9x a real 22xx bell, overstating motor projected area by ~3.5x). Holybro's "
+             "AIR2216II_Motor_3D.STEP gives can OD 27.7 mm (their store says 28), and the frame STEP "
+             "puts the can at 12.7..37.2 mm above the arm axis, i.e. 24.5 mm tall, on a 32.3 mm base "
+             "flange at 6.0..12.7 mm. The mesh now builds both stages. *** "
+             "weight_g 1650 DERIVED - Holybro does not publish a TOW, this is a PX4 Full-Kit build-up "
+             "(610 g frame + electronics + 4S 5000 mAh pack). "
+             "hover_rpm 5450 DERIVED. Working, using the same C_T anchors as the matrice4e and "
+             "s1000plus notes: T_hover = m g / N = 1.650 * 9.80665 / 4 = 4.045 N per rotor, D = 0.254 m, "
+             "R = 0.127 m, A = pi R^2. The 1045's pitch ratio 4.5/10 = 0.450 sits BETWEEN the two "
+             "measured anchors - the DJI 9450 (ratio 0.532, NASA/US Army full-vehicle hover "
+             "C_T = T/(rho A (Omega R)^2) = 0.0140; Russell/Jung/Willink/Glasner, AHS Forum 72, 2016) "
+             "and the DJI 1552 (ratio 0.347, bounded BELOW 0.0105 in the s1000plus note). Linear "
+             "interpolation in pitch ratio gives C_T = 0.01245, and T = C_T rho A (Omega R)^2 then "
+             "gives 5440 rpm -> adopted 5450 (rounded to the nearest 50; the implied C_T is then "
+             "0.01240). Band: C_T 0.0105-0.0140 spans 5130-5924 rpm, i.e. +8.7%/-5.9% about the adopted "
+             "value. CROSS-CHECK, NOT ADOPTED: the PX4/RotorS iris default "
+             "motorConstant k_T = 8.54858e-06 N s^2/rad^2 (recorded in docs/drone_specs_2026.json) with "
+             "T = k_T omega^2 gives 6569 rpm, +20.7% above the C_T central value. iris is the same class "
+             "(10-inch quad, ~1.5 kg) but that constant is a SIMULATOR DEFAULT, not a measurement, so it "
+             "bounds the estimate instead of setting it. Like every entry here hover_rpm is a HARDCODED "
+             "LITERAL (see the field note above) - it does not re-solve if weight_g or prop_dia_mm "
+             "change, and since weight_g is itself DERIVED this rpm inherits that grade. "
+             "max_rpm None = UNKNOWN - a development frame carries no C-class certification or firmware "
+             "ceiling, and an electrical no-load figure is a different quantity (matrice4e note). "
+             "max_speed_ms None = UNKNOWN (airframe kit; speed depends on the build). "
+             "SHAPE SOURCE (2026-07-30): the manufacturer's own STEP assembly is in-repo at "
+             "assets/meshes/reference/x500v2-frame.step (57 parts / 244 placed instances), measured by "
+             "benchmark/measure_x500v2_cad.py into outputs/x500v2_cad.json (51 entries, all VERIFIED). "
+             "It independently reproduces four published values (plate 2.000 thick, 28.000 gap, 143.72 "
+             "across flats vs published 144, gear 215.28 vs published 215); only the wheelbase differs, "
+             "502.8 vs a rounded 500. drone_cad.X500V2 is the table the mesh builds from, and it is the "
+             "reason this airframe now has an octagonal (45 deg chamfered) plate, carbon teardrop motor "
+             "mount plates, nylon corner/tip clamps, two legs with foam sleeves, payload rails, a slung "
+             "battery tray and a GPS mast. diagonal_mm stays at the published 500 (it only scales "
+             "arm/motor fallbacks that this airframe no longer uses); the motor ring itself is built at "
+             "the measured 251.4 mm radius. "
+             "NOT a BOM or geometry source: assets/meshes/reference/NXP-HGD-CF.dae is the ReadytoSky "
+             "LJI X4 500 from the NXP HoverGames kit - proven by the FMUK66 flight-controller mesh "
+             "inside it - and NOT a Holybro X500. Cousin-class LAYOUT reference only; every number "
+             "above is a published value, not a measurement off that DAE.",
+        body_rgb=_BLACK, arm_style="carbon", gear="tall", gimbal="none",
+        accent_rgb=None, body_frac=0.288,        # = 144/500 → _drone_dims 의 동체치수가 실제 판과 같아진다
+        shape_source="manufacturer_cad",         # ⭐ 저장소에서 유일 — 제조사 STEP 실측(위 note 의 SHAPE SOURCE 절)
+        body_lw=(1.0, 1.0), gimbal_style="none", cad_version="v2",
+        envelope_mm=None,                        # Holybro 는 전체 외형(L×W×H)을 공표하지 않는다 → 맞출 대상이 없다
+        body_style="plate_stack", plate_mm=(144.0, 144.0, 2.0, 28.0, 2.0),
+        arm_shape="tube", arm_od_mm=16.0,
+        motor_dia_mm=27.7, motor_h_mm=24.5,      # ⭐ VERIFIED (제조사 STEP) — 아래 note 참조
+        gear_h_mm=215.0, gear_tube_mm=(16.0, 10.0), gear_splay_deg=17.59,
+        shell_groups=()),                        # ⭐ 셸이 없다 — body·canopy 그룹이 존재하지 않는다
 }
+
+
+# --------------------------------------------------------------------------- #
+#  표적 목록·표시명·기종색 — **전부 DRONES 레지스트리에서 유도한다**
+# --------------------------------------------------------------------------- #
+#  ⭐ 2026-07-30 (Phase 3, 저장소 전체 5종→7종). 저장소 20여 곳에
+#     `["mini5pro", "mavic4pro", "matrice4e", "s1000plus", "phantom4"]` 가 하드코딩돼 있었다.
+#     그 목록의 결함은 **에러가 아니라 침묵**이다 — 기종을 추가해도 예외 하나 없이 새 기체가
+#     그림·검증·벤치마크에서 그냥 빠진다(오늘 신규 2종이 실제로 전부 빠졌다).
+#     ⇒ **개수를 세는 코드는 상수를 쓰지 않는다.** 소비자는 아래 세 함수를 쓴다.
+#  ⚠ `len(DRONES)` 가 유일한 개수 출처다. 산문에 개수를 적어야 하면 한 번만 적고 여기를 가리킨다.
+
+def drone_keys() -> list[str]:
+    """레지스트리 등록 순서 그대로의 전체 표적 키. 기종 추가/삭제가 자동 반영된다."""
+    return list(DRONES)
+
+
+def drone_order(preferred=()) -> list[str]:
+    """`preferred` 로 **앞머리 순서만** 고정하고, 레지스트리의 나머지는 등록 순서로 뒤에 붙인다.
+
+    왜 이 형태인가: 파일마다 기존 정렬 근거(크기순·target_extent 순·그림 배치)가 서로 달라
+    한 정렬로 통일하면 기존 그림 순서가 전부 바뀐다. `preferred` 에 그 파일의 기존 5종 순서를
+    그대로 주면 **기존 배치는 보존되고 신규 기종만 뒤에 자동 추가**된다 — 목록이 낡지 않는다.
+    preferred 에 레지스트리에 없는 키가 있으면 조용히 무시한다(기종을 지워도 안 죽는다)."""
+    head = [k for k in preferred if k in DRONES]
+    return head + [k for k in DRONES if k not in head]
+
+
+#  표시명에서 떼는 제조사 접두어. 기존 5종은 `name.replace("DJI ", "")` 규약으로 만든 라벨
+#  ("Mini 5 Pro" · "Mavic 4 Pro" · "Matrice 4E" · "S1000+" · "Phantom 4")을 쓰고 있었고,
+#  비-DJI 기종이 들어오면서 그 규약이 제조사별로 갈라졌다 → 한 군데로 모은다.
+_VENDOR_PREFIXES = ("DJI ", "Yuneec ", "Holybro ")
+
+
+def drone_label(key: str) -> str:
+    """그림·표용 짧은 표시명. **손으로 적은 이름 사전 금지** — DroneSpec.name 에서 유도한다.
+    (기존 5종의 결과 문자열은 옛 `_NAME`/`DRONE_LABEL` 사전과 **완전히 같다**.)"""
+    nm = DRONES[key].name.split("  ")[0]
+    for p in _VENDOR_PREFIXES:
+        if nm.startswith(p):
+            return nm[len(p):]
+    return nm
+
+
+#  ⚠⚠ **기종색은 재질색과 다른 팔레트다.** 저장소 규약의 "5색 = 순수 재질"은 아래
+#     `MATERIAL_COLOR`(plastic/carbon/metal/camera_assembly/pcb) 이야기이고, 기종별 선 색은
+#     그것과 **무관한 별개 팔레트**다. 둘을 섞으면 재질 그림의 '색=재질' 규약이 깨진다.
+#     그래서 기종색은 여기서 **개수만** 유도하고, 색상 자체는 각 그림 모듈이 자기 팔레트를 준다.
+#  Okabe-Ito 색맹안전 8색(기본 순환) — 앞 5색은 viz_report13 이 이미 쓰던 순서와 같다.
+DRONE_CYCLE_OKABE_ITO = ("#0072B2", "#E69F00", "#009E73", "#CC79A7", "#D55E00",
+                         "#56B4E9", "#F0E442", "#000000")
+
+
+def drone_cycle_map(cycle, order=None) -> dict:
+    """기종 → 순환 팔레트 원소. `order` 는 `drone_order(...)` 결과(없으면 등록 순서).
+    팔레트가 기종 수보다 짧으면 **되감는다**(색이 겹칠 수는 있어도 KeyError 로 죽지 않는다)."""
+    keys = list(order) if order is not None else drone_keys()
+    return {k: cycle[i % len(cycle)] for i, k in enumerate(keys)}
+
 
 # 부위(그룹) → (재질키, 한글설명).  **재질 정의는 materials.MATERIALS 가 유일한 진리원**이고,
 #   Sionna RT(전파)와 PO(RCS)가 **둘 다 거기서 읽는다**. 여기선 '어느 부위가 어느 재질인가'만 정한다.
@@ -190,7 +630,16 @@ DRONE_GROUP_MAT = {
     "accent":  ("plastic",         "전방 식별색"),
     "battery": ("metal",           "배터리팩(내부) — GHz 에서 파우치 포일은 사실상 금속"),
     "pcb":     ("pcb",             "ESC/메인보드(내부) — FR-4 + 구리 그라운드플레인"),
+    # --- 열린 프레임(open-frame) 전용 그룹 (2026-07-30) ---
+    #  ⚠ 새 그룹은 **세 곳에 다 등록해야** 한다: 여기 · drone_cad 의 union 목록 ·
+    #    gazebo_export.DENSITY. 하나만 빠지면 조용히(또는 이제는 요란하게) 틀린다.
+    "deck":    ("carbon",          "카본 데크(상·하판 + 스탠드오프) — 셸 없는 열린 프레임"),
+    "gear_cf": ("carbon",          "카본 튜브 착륙장치 — 'gear'(플라스틱)와 재질이 다르다"),
+    "fc":      ("pcb",             "비행제어기(Pixhawk 류) — 상판 위 노출"),
 }
+#  ⛔ deck·gear_cf 를 rcs_sbr 의 '유전체 셸'로 선언하면 안 된다 — carbon |Γ|=0.90 은 **불투명**이고
+#     rcs_sbr._resolve_shells 가 SHELL_GAMMA_MAX=0.5 로 즉시 예외를 던진다(의도된 가드).
+#     열린 프레임은 shell_groups=() 로 넘긴다.
 #  ⚠ 2026-07-14 수정: camera 는 Sionna 에서 **plastic**(|Γ|=0.244)이었는데 PO 에선 0.85 였다
 #     — 같은 부품을 두 엔진이 **10.9 dB** 다르게 본 버그. 이제 'camera_assembly'(ITU metal +
 #     PO 실효 0.85)로 통합되어 그런 어긋남이 구조적으로 불가능하다.
@@ -221,6 +670,56 @@ def motor_angles(spec: DroneSpec) -> list[float]:
 
 
 _motor_angles = motor_angles    # 하위호환 별칭(viz_diagram 등 구버전 import 용)
+
+
+def motor_radii(spec: DroneSpec) -> list[float]:
+    """모터(=암) **중심반경**[m] 목록 — `motor_angles` 와 같은 순서·같은 길이.
+
+    `spec.rotor_r_mm` 이 있으면 그대로(사다리꼴 배치), 없으면 전 로터가 `diagonal_mm/2` 원 위에
+    있다(기존 규약). 이 함수가 로터 반경의 **유일한 출처**다 — `rotor_layout`(프롭 위치)과
+    `drone_cad.build_frame_cad`(암·모터·다리)가 둘 다 여기서 읽는다.
+    ⚠ 예전에는 `r = diagonal_mm/2` 가 두 파일에 따로 적혀 있었다. 한쪽만 사다리꼴을 알면
+      프롭이 모터 위가 아니라 허공에 앉는데 **예외는 나지 않는다** — 그래서 한 군데로 모은다."""
+    angs = motor_angles(spec)
+    rr = getattr(spec, "rotor_r_mm", None)
+    if rr is None:
+        return [spec.diagonal_mm / 2000.0] * len(angs)
+    if len(rr) != len(angs):
+        raise ValueError(
+            f"motor_radii: rotor_r_mm 길이 {len(rr)} 가 로터 수 {len(angs)} 와 다르다 "
+            f"(key={spec.key!r}). rotor_deg 와 **같은 순서·같은 길이**여야 한다.")
+    return [float(v) / 1000.0 for v in rr]
+
+
+#  열린 프레임(튜브 암)에서 **모터 캔(벨)이 시작하는 z** [m] — 암 중심선 기준.
+#  Holybro X500 V2 제조사 STEP 실측: 암 축 y_step 16.0, 모터 밑판 22.0~28.7, 캔 28.7~53.2
+#  → 캔 바닥 = 28.7 − 16.0 = +12.7 mm. VERIFIED.
+#  ⚠ drone_cad.X500V2["motor_bell_z_mm"][0] 과 **같은 값**이어야 한다 — 어긋나면 프롭이
+#    모터 위가 아니라 공중에 뜨는데 예외는 안 난다. drone_cad._x500v2_arm_tip 이 대조 검사한다.
+OPEN_MOTOR_BASE_M = 0.0127
+
+
+def _arm_motor_dims(spec: DroneSpec, diag: float) -> tuple[float, float, float]:
+    """(arm_t, motor_h, prop_z) [m] — 암 두께 · 모터 벨 높이 · **프롭 장착 z**.
+
+    기본은 **대각 비례**(접이식 소비자기 5종에서 역산한 옛 법칙)이고, 스펙에 실측 부품치수
+    (`arm_od_mm` / `motor_h_mm`)가 있으면 그쪽이 이긴다 — drone_cad 의 오버라이드와 **같은 규약**.
+    ⚠ 이 식은 예전에 `rotor_layout` 과 `frame_fit_scale` 두 곳에 따로 적혀 있었다. 한쪽만
+      오버라이드를 받으면 프롭 장착 높이가 모터 벨 높이와 따로 놀아 **프롭이 공중에 뜬 메쉬**가
+      에러 없이 나온다 → 식을 여기 하나로 모은다.
+
+    ⭐ 2026-07-30: 튜브 암(열린 프레임)은 **다른 식**을 쓴다. 셸형은 모터가 암 중심선에서
+      시작하지만, 열린 프레임의 모터는 암 위에 얹힌 **모터마운트 판** 위에 앉는다. 옛 식을
+      그대로 쓰면 X500 V2 의 프롭이 모터 캔 꼭대기보다 7 mm 위에 떠 있었다(렌더로 확인)."""
+    arm_t = (0.08 if spec.fixed_arm else 0.045) * diag
+    motor_h = 0.045 * diag
+    if getattr(spec, "arm_od_mm", None) is not None:
+        arm_t = float(spec.arm_od_mm) / 1000.0
+    if getattr(spec, "motor_h_mm", None) is not None:
+        motor_h = float(spec.motor_h_mm) / 1000.0
+    if getattr(spec, "arm_shape", "folding") == "tube":
+        return arm_t, motor_h, OPEN_MOTOR_BASE_M + motor_h + 0.0008
+    return arm_t, motor_h, motor_h + arm_t / 2 + 0.006
 
 
 def _drone_dims(spec: DroneSpec):
@@ -271,15 +770,30 @@ def _build_frame_raw(spec: DroneSpec) -> Mesh:
 _FIT_CACHE: dict = {}
 
 
+def _fit_cache_key(spec: DroneSpec):
+    """`_FIT_CACHE` 의 캐시 키 — **spec 전체**(모든 필드)다. `spec.key` 만 쓰면 안 된다.
+
+    ⚠ 2026-07-30 (Phase 3) 정정: 예전엔 `spec.key` 하나가 캐시 키였다. 그런데
+      `dataclasses.replace(spec, envelope_mm=...)` 로 만든 **같은 key·다른 외형**의 변종을
+      쓰는 호출부가 실재한다(`benchmark/compare_real_cad.ours_body_only` — 실물 CAD 바운딩박스로
+      외형을 갈아끼운다). 그러면 먼저 계산된 쪽 배율이 뒤쪽에 **조용히 재사용**돼 엉뚱한
+      크기의 메쉬가 나오고 **예외는 안 난다**. 그 호출부가 `_FIT_CACHE.pop(key)` 로 손수
+      막고 있었는데, 그건 순서를 아는 사람만 지킬 수 있는 규약이다.
+      → 캐시 키를 spec 전체로 바꿔 **구조적으로 불가능**하게 만든다. 레지스트리 7종은
+        key ↔ spec 이 1:1 이므로 결과·성능 모두 그대로다(빌드 지문으로 확인)."""
+    return tuple(getattr(spec, f) for f in _SPEC_FIELDS)
+
+
 def frame_fit_scale(spec: DroneSpec) -> tuple[float, float, float]:
     """프레임을 공식 외형(spec.envelope_mm)에 맞추는 축별 배율 (sx, sy, sz).
     envelope_mm 이 없거나 해당 축이 None 이면 그 축 배율은 1.0."""
-    if spec.key in _FIT_CACHE:
-        return _FIT_CACHE[spec.key]
+    _ck = _fit_cache_key(spec)
+    if _ck in _FIT_CACHE:
+        return _FIT_CACHE[_ck]
     env = spec.envelope_mm
     if not env:
-        _FIT_CACHE[spec.key] = (1.0, 1.0, 1.0)
-        return _FIT_CACHE[spec.key]
+        _FIT_CACHE[_ck] = (1.0, 1.0, 1.0)
+        return _FIT_CACHE[_ck]
     import numpy as _np
     V = _np.asarray(_build_frame_raw(spec).v, float)
     ext = (V.max(0) - V.min(0)) * 1000.0                  # 현재 바운딩박스 [mm]
@@ -294,9 +808,7 @@ def frame_fit_scale(spec: DroneSpec) -> tuple[float, float, float]:
     #   → sz = (목표 − 프롭반두께) / (장착z_raw + |바닥z_raw|)
     if getattr(spec, "env_props_included", False) and env[2] is not None:
         diag, r, prop_r, bh, body_l, body_w, body_z = _drone_dims(spec)
-        arm_t = (0.08 if spec.fixed_arm else 0.045) * diag
-        motor_h = 0.045 * diag
-        prop_z = motor_h + arm_t / 2 + 0.006                       # rotor_layout 과 동일 식(raw)
+        arm_t, motor_h, prop_z = _arm_motor_dims(spec, diag)        # rotor_layout 과 **같은 함수**(raw)
         zoff = spec.rotor_z_mm or ((0.0,) * spec.num_rotors)
         pm_raw = max(prop_z + float(z) / 1000.0 for z in zoff)      # 최상단 장착 z [m]
         Pv = _np.asarray(build_propeller(spec).v, float)
@@ -307,8 +819,8 @@ def frame_fit_scale(spec: DroneSpec) -> tuple[float, float, float]:
         if denom > 1e-9:
             s[2] = max(1e-6, (float(env[2]) - prop_half) / denom)
 
-    _FIT_CACHE[spec.key] = tuple(s)
-    return _FIT_CACHE[spec.key]
+    _FIT_CACHE[_ck] = tuple(s)
+    return _FIT_CACHE[_ck]
 
 
 def build_frame(spec: DroneSpec) -> Mesh:
@@ -320,26 +832,43 @@ def build_frame(spec: DroneSpec) -> Mesh:
     return m if (sx, sy, sz) == (1.0, 1.0, 1.0) else m.scaled(sx, sy, sz)
 
 
-def build_propeller(spec: DroneSpec, n: int = 10) -> Mesh:
-    """프로펠러 1개 — **진짜 익형(NACA-4)** 로프트 블레이드 + 허브 (CAD 단일 경로).
+def _mirror_y(m: Mesh) -> Mesh:
+    """y→−y 거울상. 반사는 행렬식이 −1 이라 **면 winding 을 뒤집어야** 법선이 바깥을 유지한다.
+    (PO·SBR 은 조명면 판정을 n̂·û>0 으로 하므로 법선이 뒤집히면 산란이 통째로 틀린다.)"""
+    out = Mesh(m._group)
+    out.v = [(x, -y, z) for (x, y, z) in m.v]
+    out.f = [(a, c, b) for (a, b, c) in m.f]         # winding 반전
+    out.g = list(m.g)
+    return out
+
+
+def build_propeller(spec: DroneSpec, n: int = 10, mirror: bool = False) -> Mesh:
+    """프로펠러 1개 — **진짜 익형(NACA-4, 캠버 포함)** 로프트 블레이드 + 허브 (CAD 단일 경로).
     n 은 블레이드 스팬 분할 힌트(마이크로도플러는 크게 줘서 단면을 촘촘히).
-    pose_articulated 가 이 메쉬를 z회전(스핀)시켜 각 로터에 배치한다."""
+    pose_articulated 가 이 메쉬를 z회전(스핀)시켜 각 로터에 배치한다.
+
+    mirror : **반대 회전방향(CCW) 프롭**. 실물 멀티로터는 CW/CCW 프롭이 서로 **거울상**이다
+             — 스윕 방향과 피치 부호가 함께 뒤집힌다. 옛 코드는 한 메쉬를 z회전으로만 복제해
+             네 로터가 전부 같은 손잡이였다(2026-07-28 수정). 산란 패턴 지표에 유의미하다.
+             ⚠ DJI 는 기종별 절대 회전방향을 공개하지 않는다(docs/drone_specs_2026.json
+               rotor_directions '미확인'). 여기서는 `rotor_layout` 의 dir(대각쌍 동일) 관례를 따른다."""
     from drone_cad import build_propeller_cad
-    return build_propeller_cad(spec, n_sec=max(12, n * 2)).to_geom()
+    m = build_propeller_cad(spec, n_sec=max(12, n * 2)).to_geom()
+    return _mirror_y(m) if mirror else m
 
 
 def rotor_layout(spec: DroneSpec) -> list[dict]:
     """로터별 배치: {center:(x,y,z), base_ang:deg(장착 오프셋), dir:+1/-1(CCW/CW)}.
     dir 은 인접 로터가 반대로 도는 멀티로터 관례(대각쌍 동일). build_drone 과 동일 좌표."""
     diag, r, prop_r, bh, body_l, body_w, body_z = _drone_dims(spec)
-    arm_t = (0.08 if spec.fixed_arm else 0.045) * diag
-    motor_h = 0.045 * diag
-    prop_z = motor_h + arm_t / 2 + 0.006
+    arm_t, motor_h, prop_z = _arm_motor_dims(spec, diag)   # 실측 부품치수가 있으면 대각비례를 덮는다
     sx, sy, sz = frame_fit_scale(spec)            # 프레임과 **같은** 외형보정 배율
     zoff = spec.rotor_z_mm or ((0.0,) * spec.num_rotors)
+    radii = motor_radii(spec)                     # 로터별 반경(사다리꼴 기체) — 단일 출처
     out = []
     for k, ang in enumerate(motor_angles(spec)):
         ca, sa = math.cos(math.radians(ang)), math.sin(math.radians(ang))
+        r = radii[k]
         dz = float(zoff[k]) / 1000.0 if k < len(zoff) else 0.0   # 로터별 z 오프셋(프롭 디스크 겹침 회피)
         out.append(dict(center=(r * ca * sx, r * sa * sy, (prop_z + dz) * sz),
                         base_ang=ang + 12.0, dir=(1 if k % 2 == 0 else -1)))
@@ -355,6 +884,13 @@ def frame_envelope_mm(spec: DroneSpec) -> dict:
     ext_full = (W.max(0) - W.min(0)) * 1000.0                  # 프롭 얹은 전체 드론
     C = _np.array([r["center"] for r in rotor_layout(spec)], float)
     diag_eff = 2.0 * float(_np.linalg.norm(C[:, :2], axis=1).mean()) * 1000.0
+    #  ⭐ 2026-07-31 — 사다리꼴 배치(rotor_r_mm)에서는 위의 `2·평균반경` 이 **휠베이스가 아니다**.
+    #    휠베이스의 정의는 '마주보는 로터 사이 거리' 이므로 그대로 잰 값을 따로 낸다.
+    #    (한 원 위 배치에서는 둘이 같으므로 기존 기종의 숫자는 변하지 않는다.)
+    n = len(C)
+    opp = [float(_np.linalg.norm(C[k, :2] - C[(k + n // 2) % n, :2])) * 1000.0
+           for k in range(n)] if n >= 2 else [0.0]
+    wheelbase_mm = float(_np.mean(opp))
     # 프롭 디스크 엔벨로프 — 정적 메쉬 bbox 는 블레이드 방위에 따라 달라지므로(2날은 선이지 원반이 아니다)
     # '프롭 포함' 공식 L/W 와 견줄 값은 회전 디스크 기준이다.
     pr = spec.prop_dia_mm / 2.0
@@ -366,8 +902,16 @@ def frame_envelope_mm(spec: DroneSpec) -> dict:
                 lwh_compare_mm=tuple(map(float, cmp_mm)),
                 official_includes_props=bool(getattr(spec, "env_props_included", False)),
                 prop_disc_lw_mm=disc_mm,
-                official_mm=spec.envelope_mm,
+                # ⚠ 2026-07-31 — 공식 외형치수는 **축별로 없을 수도, 통째로 없을 수도** 있다.
+                #   x500v2 는 Holybro 가 대각선(500 mm)만 내고 L/W/H 를 안 내서 통째로 None 이다.
+                #   소비자들은 `off[i] is not None` 만 검사하고 있어서 x500v2 에서 TypeError 로 죽었다
+                #   (원소는 검사하고 그릇은 안 봤다). 여기서 **항상 3-튜플**로 정규화해 소비자 쪽
+                #   분기를 없앤다 — 없는 축은 None 이고, 그건 "미공개" 라는 사실이지 결함이 아니다.
+                official_mm=tuple(spec.envelope_mm) if spec.envelope_mm is not None
+                            else (None, None, None),
                 diagonal_spec_mm=spec.diagonal_mm, diagonal_effective_mm=diag_eff,
+                wheelbase_opposite_mm=wheelbase_mm,
+                rotor_radii_mm=[float(v) * 1000.0 for v in motor_radii(spec)],
                 fit_scale=frame_fit_scale(spec))
 
 
@@ -375,10 +919,16 @@ def build_drone(spec: DroneSpec) -> Mesh:
     """정적 멀티로터 메쉬(프레임 + 프로펠러 초기위상). **기존과 동일 출력**(report1/2 RCS 호환).
     = build_frame + 각 로터에 build_propeller 를 초기위상(스핀 0)으로 배치."""
     m = build_frame(spec)
-    prop = build_propeller(spec)
+    # ⚠ 명명 규약: rotor_layout 의 dir 은 **+1 = CCW / −1 = CW** 다(그 docstring 참조).
+    #   2026-07-28 최초 판은 dir>0 에 prop_cw 를 줘서 **이름이 반대**였다(적대검증 지적).
+    #   물리적으로는 기체 전체가 거울상이 될 뿐이고 DJI 는 절대 회전방향을 공개하지 않지만,
+    #   우리 문서 규약과 코드가 어긋나면 안 되므로 바로잡는다.
+    prop_ccw = build_propeller(spec)                    # 기준 형상을 CCW 로 둔다
+    prop_cw = build_propeller(spec, mirror=True)        # 반대 회전 로터는 거울상
     for rot in rotor_layout(spec):
         cx, cy, cz = rot["center"]
         M = translate(cx, cy, cz) @ rotate("z", rot["base_ang"])
+        prop = prop_ccw if rot["dir"] > 0 else prop_cw
         m.merge(prop.transformed(M), group="prop")
     return m
 
@@ -394,14 +944,15 @@ def pose_articulated(spec: DroneSpec, body_rpy=(0., 0., 0.), body_pos=(0., 0., 0
     B = (translate(*[float(v) for v in body_pos])
          @ rotate("z", yaw) @ rotate("y", pitch) @ rotate("x", roll))
     out = build_frame(spec).transformed(B)               # 그룹 보존됨
-    prop = build_propeller(spec)
+    prop_ccw = build_propeller(spec)                     # dir=+1(CCW) 기준 형상
+    prop_cw = build_propeller(spec, mirror=True)         # dir=−1(CW) 는 거울상
     rl = rotor_layout(spec)
     if rotor_phase_deg is None:
         rotor_phase_deg = [0.0] * len(rl)
     for rot, ph in zip(rl, rotor_phase_deg):
         cx, cy, cz = rot["center"]
         M = B @ translate(cx, cy, cz) @ rotate("z", rot["base_ang"] + ph)
-        out.merge(prop.transformed(M), group="prop")
+        out.merge((prop_ccw if rot["dir"] > 0 else prop_cw).transformed(M), group="prop")
     return out
 
 

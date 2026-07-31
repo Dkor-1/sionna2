@@ -3,7 +3,18 @@
 passive_process.py — (report4) 바이스태틱 패시브 레이더 처리 체인
 ==================================================================
 
-문헌(LTE/5G/WiFi 패시브레이더)의 보편 파이프라인을 그대로 구현:
+문헌 표준 파이프라인 — Martelli·Murgia·Colone·Bongioanni·Lombardo(Sapienza),
+"Detection and 3D localization of ultralight aircrafts and drones with a WiFi-based Passive Radar"
+가 정리한 체인(방해 제거 → 바이스태틱 거리-속도 맵 → CA-CFAR → 다중프레임 판정 → Kalman)의
+**앞 세 단계**를 구현한다. LTE/5G 패시브레이더 문헌(예: Maksymiuk 외, "5G Network-Based Passive
+Radar for Drone Detection", IRS 2023)도 같은 골격이다.
+⚠ 단, 우리 제거단은 **standard ECA** 다 — 아래 ECACanceller 는 CPI 전체에 대한 1회 최소제곱 사영
+(지연 부분공간만, 배치·슬라이딩 없음)이다. 위 Sapienza 논문이 쓰는 것은 sliding 판 **ECA-S**
+(Colone·Palmarini·Martelli·Tilli, IEEE TAES 52(3):1309-1326, 2016)이고, ECA-S 의 장점으로 인용되는
+'low-Doppler 표적 보존'은 standard ECA 에 그대로 주장할 수 없다(챔버 드론이 수 m/s 대 저도플러라
+이 구분이 특히 중요하다). 다중프레임 판정·Kalman 은 미구현 = 범위 밖.
+
+구현하는 체인:
 
   감시신호 s_surv = 표적에코(지연 τ, 도플러 f_d) + 직접파누설(DPI) + 정적 클러터 + 잡음
   기준신호 s_ref  = 송신기가 보내는 '기지(known)' 파형(=직접파)
@@ -250,12 +261,78 @@ if __name__ == "__main__":
 #  백색화 정합필터 → 1.19, 둘 다 → **1.00**.
 #
 #  재현: python benchmark/verify_cfar.py  → outputs/verify_cfar.json
-PFA_CALIBRATION = {
-    # 파형 -> {목표 경험적 Pfa : 줘야 할 명목 Pfa}   (운용 형상: DPI+ECA, 챔버 거리창, guard 2x2 / train 6x6)
-    "wifi": {1e-3: 7.62e-4, 1e-4: 6.79e-5, 1e-5: 5.13e-6},
-    "lte":  {1e-3: 5.04e-4, 1e-4: 3.28e-5, 1e-5: 2.16e-6},   # ← 2배 이상 조여야 한다
-    "nr":   {1e-3: 7.59e-4, 1e-4: 6.30e-5, 1e-5: 5.29e-6},
+# ⚠ **이 표는 측정값의 사본이다 — 원본은 outputs/verify_cfar.json 이다.**
+#   2026-07-29: 사본이 원본과 어긋난 것을 발견했다. 새 CFAR 측정(15919 s) 대비
+#     LTE 1e-4  3.28e-5 → 2.9046e-5  (**-11.4 %**)
+#     LTE 1e-5  2.16e-6 → 1.8772e-6  (**-13.1 %**)
+#   나머지 밴드는 5 % 안. 그런데 report12 가 이 표를 소비하므로, 사본이 낡으면 **문턱이 명목과
+#   다른 지점에 찍히고 Pd 비교의 공정성이 깨진다** — 이 표가 존재하는 이유 자체가 무력화된다.
+#   → 값을 갱신하는 것만으로는 또 낡는다. **원본 JSON 을 우선 읽고, 리터럴은 폴백**으로 둔다.
+#     JSON 이 있으면 자동으로 최신이 되고, 어긋나면 경고한다.
+_PFA_FALLBACK = {
+    # 파형 -> {목표 경험적 Pfa : 줘야 할 명목 Pfa}   (운용 형상: DPI+ECA, op 창, 0-도플러 마스킹 width=1,
+    #  guard 2x2 / train 6x6). 값 출처: outputs/verify_cfar.json 2026-07-29 실측(외삽 없음).
+    "wifi": {1e-3: 7.726e-4, 1e-4: 6.518e-5, 1e-5: 4.885e-6},
+    "lte":  {1e-3: 4.868e-4, 1e-4: 2.905e-5, 1e-5: 1.877e-6},   # ← 가장 많이 조여야 한다
+    "nr":   {1e-3: 7.602e-4, 1e-4: 6.460e-5, 1e-5: 5.533e-6},
 }
+_PFA_JSON_MAP = {"wifi": "WiFi80", "lte": "LTE20", "nr": "NR100"}
+_PFA_CACHE = None
+
+
+def _load_pfa_calibration(warn=True):
+    """`outputs/verify_cfar.json` 의 **측정 원본**에서 교정표를 읽는다. 없으면 폴백.
+
+    운용 형상 규약: `chain[밴드]['dpi_eca']['calib_op_mask1']['points']`
+      — DPI+ECA, op(운용) 거리창, 0-도플러 마스킹 width=1. 이 세 가지가 report4/5/12 의 형상이다.
+    `extrapolated=True` 인 점은 **버린다**(측정 구간 밖은 근거가 없다)."""
+    global _PFA_CACHE
+    if _PFA_CACHE is not None:
+        return _PFA_CACHE
+    import json as _json
+    import os as _os
+    p = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+                      "outputs", "verify_cfar.json")
+    out = {k: dict(v) for k, v in _PFA_FALLBACK.items()}
+    try:
+        with open(p, encoding="utf-8") as f:
+            d = _json.load(f)
+        for std, band in _PFA_JSON_MAP.items():
+            pts = d["chain"][band]["dpi_eca"]["calib_op_mask1"]["points"]
+            meas = {float(q["pfa_target_emp"]): float(q["pfa_nominal_needed"])
+                    for q in pts if not q.get("extrapolated")}
+            if not meas:
+                continue
+            if warn:
+                for t, v in out[std].items():
+                    m = next((mv for mt, mv in meas.items() if abs(mt - t) / t < 1e-6), None)
+                    if m is not None and abs(m / v - 1.0) > 0.02:
+                        print(f"[pfa] ⚠ 사본이 낡았다: {std} Pfa={t:.0e} 리터럴 {v:.4e} vs "
+                              f"측정 {m:.4e} ({(m/v-1)*100:+.1f}%). _PFA_FALLBACK 을 갱신할 것.",
+                              flush=True)
+            out[std] = meas
+        out["_source"] = "outputs/verify_cfar.json"
+        out["_generated"] = d.get("meta", {}).get("generated")
+    except Exception as e:                                    # JSON 없음/형식 변경 → 폴백
+        out["_source"] = f"_PFA_FALLBACK (원본 못 읽음: {type(e).__name__})"
+    _PFA_CACHE = out
+    return out
+
+
+class _PfaCalibration(dict):
+    """`PFA_CALIBRATION[std]` 처럼 쓰이던 기존 코드를 그대로 두기 위한 지연 로딩 dict."""
+
+    def __missing__(self, key):
+        return _load_pfa_calibration().get(key)
+
+    def get(self, key, default=None):
+        return _load_pfa_calibration().get(key, default)
+
+    def __contains__(self, key):
+        return key in _load_pfa_calibration()
+
+
+PFA_CALIBRATION = _PfaCalibration()
 
 
 def pfa_nominal_for(std: str, pfa_target: float) -> float:

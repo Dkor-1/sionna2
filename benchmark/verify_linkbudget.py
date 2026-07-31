@@ -14,7 +14,7 @@ verify_linkbudget.py — [E4] 링크버짓 · 처리이득 · 잡음바닥 교�
   B. 처리이득 — 정합필터(B·T)와 CPI 코히어런트 적분(M) 이 시뮬에서 실제로 나오는가
        이론 상한:  SNR_RD = a² · Σ|ref_frame|² · M / σ_n²   (직사각창·격자정합·ECA 없음)
   C. 잡음바닥 — bw_corr = √(B/fs) 가 옳은가, 협대역/광대역 사이 계통편향이 없는가
-  D. σ(SBR) × 5드론 × 3파형 — 유도 SNR vs 측정 SCR, 차이 = 처리손실
+  D. σ(SBR) × 드론 전 기종 × 3파형 — 유도 SNR vs 측정 SCR, 차이 = 처리손실
   E. 손실 분해 — Hann 창손실 / 도플러·거리 straddle / 프레임내 도플러 / ECA / CFAR
 
 측정값은 outputs/verify_linkbudget.json 으로 남긴다(노트북이 읽는다 — 손으로 숫자 적지 말 것).
@@ -59,7 +59,21 @@ from scenarios import radial                                       # noqa: E402
 from run_min_cell import EIRP_DBM, run_cell, frame_len, measure_scr  # noqa: E402
 
 OUT_JSON = os.path.join(_ROOT, "outputs", "verify_linkbudget.json")
-DRONES5 = ["mini5pro", "mavic4pro", "matrice4e", "s1000plus", "phantom4"]
+#  ⭐ 2026-07-30 (Phase 3): 5종 하드코딩이던 자리(이름도 개수를 박고 있었다) →
+#     레지스트리 유도. 앞머리 순서만 옛 목록을 유지하고 신규 기종이 뒤에 자동으로 붙는다.
+from drones import drone_order as _drone_order                     # noqa: E402
+LB_DRONES = _drone_order(("mini5pro", "mavic4pro", "matrice4e", "s1000plus", "phantom4"))
+#  ⭐ 2026-07-30 (Phase 3): D2 는 "최약/최강 표적" 두 종만 본다. 그 두 종이 (mini5pro,
+#     s1000plus) 로 **손으로 적혀** 있었다 — 오늘은 맞지만 더 작은/큰 기체가 등록되면
+#     라벨과 내용이 조용히 어긋난다. 크기 대리변수는 `target_extent`(프롭 포함 최대 수평
+#     span)로, 저장소가 이미 σ·원거리장 판정에 쓰는 것과 같은 양이다.
+def _extreme_drones():
+    from radar_scene import target_extent            # 지연 import (sionna 안 끌어옴)
+    ext = {k: float(target_extent(k)) for k in LB_DRONES}
+    return (min(ext, key=ext.get), max(ext, key=ext.get))
+
+
+_EXTREME_DRONES = _extreme_drones()
 
 
 def db(x):
@@ -349,12 +363,12 @@ def section_C(lb, ch, M=48):
 
 
 # =========================================================================== #
-#  D. σ(SBR) 5드론 × 3파형 — 유도 SNR vs 측정 SCR
+#  D. σ(SBR) 드론 전 기종 × 3파형 — 유도 SNR vs 측정 SCR
 # =========================================================================== #
 def section_D(lb, ch, be, M=48, N=40):
     print()
     print("=" * 96)
-    print("D. 5드론 × 3파형 — 유도 SNR(링크버짓+처리이득) vs 측정 SCR(RD맵). 차이 = 처리손실")
+    print(f"D. {len(LB_DRONES)}드론 × 3파형 — 유도 SNR(링크버짓+처리이득) vs 측정 SCR(RD맵). 차이 = 처리손실")
     print("=" * 96)
     be_by_name = {r["name"]: r for r in be["waveforms"]}
     pos, vel = radial(TX, RX, np.array(CENTER, float), speed=SPEED, span=SPAN, n=3)
@@ -362,7 +376,7 @@ def section_D(lb, ch, be, M=48, N=40):
     rows = []
     for nm, wf in waveforms3():
         rec = be_by_name[nm]
-        for drone in DRONES5:
+        for drone in LB_DRONES:
             res = run_cell(wf, drone, pos, vel, lb, channel=ch, M=M, N=N, pfa=1e-4)
             st, lt = res["state"], res["link"]
             # --- 유도(예측) RD SNR: 물리 → 주입 → 처리이득 → Hann
@@ -408,7 +422,7 @@ def section_D2(lb, ch, M=48):
     print("=" * 96)
     out = []
     for nm, wf in waveforms3():
-        for drone in ("mini5pro", "s1000plus"):       # 최약/최강 표적
+        for drone in _EXTREME_DRONES:               # 최약/최강 표적(레지스트리에서 유도)
             fs = wf.fs_hz
             n_range, n_taps = chamber_window(wf)
             txp = np.sqrt(np.mean(np.abs(wf.tx) ** 2))

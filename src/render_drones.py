@@ -5,7 +5,7 @@ render_drones.py — 드론 & 전체 장면의 Sionna RT 사진풍 렌더(PNG)
 
 생성물 (outputs/renders/)
   studio_<key>.png : 드론 1대 단독, 스튜디오 바닥 위 3/4 시점 (카탈로그용)
-  lineup_floor.png : 5종을 차폐시설 바닥에 '실제 축척'으로 나란히 (앞벽 cutaway)
+  lineup_floor.png : 전 기종을 차폐시설 바닥에 '실제 축척'으로 나란히 (앞벽 cutaway)
   flight_scene.png : 여러 드론이 시설 안 여러 높이에서 비행하는 모습 (사진 같은 시점)
 
 실행:
@@ -18,7 +18,7 @@ import os
 import argparse
 import numpy as np
 
-from drones import DRONES, build_drone
+from drones import DRONES, build_drone, drone_order
 from scene_build import (build_scene, render_views, drone_parts, ground_part,
                          chamber_parts)
 
@@ -68,10 +68,12 @@ def render_facility(spp=160, res=(1280, 960)):
 
 
 def render_lineup(spp=160, res=(1280, 960)):
-    """5종을 차폐시설 바닥에 실제 축척으로 나란히 — '30m 방에서 얼마나 작은지' 스케일감."""
+    """**전 기종**을 차폐시설 바닥에 실제 축척으로 나란히 — '30m 방에서 얼마나 작은지' 스케일감."""
     cparts, info = chamber_parts(CMESH, cutaway=True)
     W, D, H = info["W"], info["D"], info["H"]
-    order = ["s1000plus", "phantom4", "matrice4e", "mavic4pro", "mini5pro"]
+    #  ⭐ 2026-07-30 (Phase 3): 5종 하드코딩 → 레지스트리 유도(앞머리는 옛 크기 내림차순 유지).
+    #     x 간격은 `len(order)` 로 나뉘므로 기종이 늘면 자동으로 좁혀진다.
+    order = drone_order(("s1000plus", "phantom4", "matrice4e", "mavic4pro", "mini5pro"))
     xs = np.linspace(W * 0.22, W * 0.55, len(order))   # 밝은 -x 쪽에 모음
     y = D * 0.42
     parts = list(cparts)
@@ -92,16 +94,23 @@ def render_flight(spp=160, res=(1280, 960)):
     """여러 드론이 시설 안 여러 높이에서 비행하는 모습 (시설 활용 장면)."""
     cparts, info = chamber_parts(CMESH, cutaway=True)
     W, D, H = info["W"], info["D"], info["H"]
-    # (key, x, y, z) — 밝은 -x 절반에 모으고 높이를 다양하게
+    # (key, x, y, z) — 밝은 -x 절반에 모으고 높이를 다양하게. **손으로 고른 좌표**다:
     # ※ matrice4e 는 (5, 11, 1.6) 이면 카메라 축에서 42° — 화각(반각 ~25°) **밖**이라 프레임에서
     #   잘려 나갔다("Matrice 는 어디 있죠?"). (9, 8, 1.6) 이면 축에서 9°로 확실히 들어온다.
-    placement = [
-        ("mini5pro",  7,  7,  3.2),
-        ("mavic4pro", 13, 9,  2.4),
-        ("matrice4e", 9,  8,  1.6),
-        ("phantom4",  15, 7,  2.8),
-        ("s1000plus", 10, 10, 0.0),     # 바닥에 착륙
-    ]
+    # ⭐ 2026-07-30 (Phase 3): 좌표가 없는 기종(신규 등록분)은 **조용히 빠지지 않는다** —
+    #   화각 안쪽 여유 지점에 자동 배치한다. 프레임 안에 드는지는 좌표를 손으로 고를 때만
+    #   보장되므로, 렌더 결과를 보고 위 표에 정식 좌표를 넣는 것이 옳다(자동배치는 안전망).
+    POSED = {
+        "mini5pro":  (7,  7,  3.2),
+        "mavic4pro": (13, 9,  2.4),
+        "matrice4e": (9,  8,  1.6),
+        "phantom4":  (15, 7,  2.8),
+        "s1000plus": (10, 10, 0.0),     # 바닥에 착륙
+    }
+    placement = [(k, *POSED[k]) for k in drone_order(tuple(POSED)) if k in POSED]
+    extra = [k for k in drone_order() if k not in POSED]
+    for i, k in enumerate(extra):
+        placement.append((k, 11.0 + 2.2 * i, 6.0, 1.1 + 0.9 * (i % 2)))
     parts = list(cparts)
     for key, x, y, z in placement:
         spec = DRONES[key]

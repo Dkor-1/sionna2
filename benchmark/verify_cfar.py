@@ -79,10 +79,50 @@ ZD_MASK_W = (0, 1, 3, 5)
 ZD_MASK_OP = 1                     # 현재 코드베이스가 실제로 쓰는 값(det[zd,:]=False)
 
 
-def batch_for(chain, budget_bytes=6e9):
-    """CPI 길이에 맞춰 GPU 메모리를 채우는 배치 크기 (complex128, FFT 임시버퍼 ~5배 여유)."""
+def _gpu_budget_bytes(default=2e9):
+    """지금 이 카드의 실제 예산 [bytes]. gpu.py 를 못 쓰면 보수적 기본값."""
+    try:
+        from gpu import budget_mb, refresh_budget
+        refresh_budget()                           # 타 사용자가 방금 잡았을 수도 있다
+        return float(budget_mb()) * 1024 * 1024
+    except Exception:
+        return float(default)
+
+
+def batch_for(chain, budget_bytes=None):
+    """CPI 길이에 맞춰 GPU 메모리를 채우는 배치 크기 (complex128, FFT 임시버퍼 ~5배 여유).
+
+    ⚠ 2026-07-29: 예전에는 `budget_bytes=6e9` **하드코딩**이라 실제 여유와 무관하게 6 GB 를
+    가정했다. 공용 카드에서 여유가 3.9 GB 일 때 그대로 6 GB 짜리 배치를 잡아 **19분을 계산하고
+    막판에 OOM 으로 전부 날렸다**(`exp_roc` → `chain.rd`, 1.10 GiB 할당 실패).
+    이제 `gpu.budget_mb()` 로 **지금 이 카드의 실제 예산**을 묻는다."""
+    if budget_bytes is None:
+        budget_bytes = _gpu_budget_bytes()
     per = chain.N * 16 * 5
     return int(max(1, min(64, budget_bytes // per)))
+
+
+def _oom_retry(fn, batch, min_batch=1, tries=10):
+    """`fn(B)` 를 부르되 CUDA OOM 이면 **배치를 반으로 줄여** 다시 부른다.
+    반환 (결과, 실제로 쓴 배치). 호출부는 반환된 배치만큼만 `done` 을 늘려야 한다.
+
+    ⚠ 2026-07-29: verify_cfar 가 19분을 계산하고 막판 `exp_roc`→`chain.rd` 에서 1.10 GiB
+      할당 실패로 **전부 날렸다**. 근본원인은 `batch_for` 의 6e9 하드코딩 예산이었고 그건
+      따로 고쳤지만, 공용 카드에서는 **실행 도중에도** 여유가 줄어든다. 그래서 재시도가 필요하다.
+    ⚠ 재현성: 배치가 줄면 난수 소비 순서가 바뀌어 비트단위로는 달라진다(통계는 유효).
+      배치가 안 줄면 종전과 완전히 동일하다."""
+    import torch
+    B = int(batch)
+    for k in range(tries):
+        try:
+            return fn(B), B
+        except torch.OutOfMemoryError:
+            torch.cuda.empty_cache()
+            if B <= min_batch:
+                raise
+            B = max(min_batch, B // 2)
+            print(f"[cfar] OOM → 배치 {B} 로 줄여 재시도 ({k+1}/{tries})", flush=True)
+    raise RuntimeError("_oom_retry: 재시도 소진")
 
 
 def gt_key(g, t):
@@ -454,11 +494,15 @@ def exp_chain(chain, n_maps, batch, mode, dpi_amp=0.0, clutter=(), n_range_op=16
     done = 0
     while done < n_maps:
         B = min(batch, n_maps - done)
-        s = chain.noise(B, gen)
-        if det_sig is not None:
-            s = s + det_sig
-            s = chain.cancel(s)
-        rd = chain.rd(s, nw)
+
+        def _mk(bb):
+            s = chain.noise(bb, gen)
+            if det_sig is not None:
+                s = s + det_sig
+                s = chain.cancel(s)
+            return chain.rd(s, nw)
+        rd, B = _oom_retry(_mk, B)      # OOM 이면 배치 반감 재시도 (아래 카운터 갱신 전에 끝난다)
+        batch = min(batch, B)
         c_wd.add(rd, PFA_NOM, GT)
         c_op.add(rd[:, :, :n_range_op].contiguous(), PFA_NOM, GT)
         if diag is None:
@@ -514,8 +558,13 @@ def exp_roc(chain, amps, n_trials, batch, dpi_amp, clutter, tau, fd, n_range_op,
         done = 0
         while done < n_trials:
             B = min(batch, n_trials - done)
-            s = chain.noise(B, gen) + det_sig + tg
-            rd = chain.rd(chain.cancel(s), n_range_op).cpu().numpy()
+            # ⭐ 여기가 2026-07-29 에 19분치를 날린 자리다. OOM 이면 배치를 줄여 재시도하고,
+            #   줄어든 배치를 **이후 반복에도 유지**한다(매 반복 다시 터지며 시간 버리지 않게).
+            def _mk(bb, _tg=tg):
+                s = chain.noise(bb, gen) + det_sig + _tg
+                return chain.rd(chain.cancel(s), n_range_op).cpu().numpy()
+            rd, B = _oom_retry(_mk, B)
+            batch = min(batch, B)
             P, noise, ntr = cfar_stats(rd, g, t)
             valid = ntr > 0
             valid[chain.zd, :] = False                        # 0-도플러 마스킹(운용 그대로)
@@ -557,7 +606,10 @@ def main():
         a.maps, a.white, a.roc = 200, 20_000, 100
 
     t0 = time.time()
-    res = dict(meta=dict(M_cpi=M_CPI, pfa_nominal=PFA_NOM,
+    # ⚠ 2026-07-29: meta 에 **생성 시각이 없었다**. `passive_process` 가 이 파일에서 Pfa 교정표를
+    #   읽어 쓰는데, 시각이 없으면 "그 사본이 어느 측정에서 왔나" 를 추적할 수 없다(provenance 단절).
+    res = dict(meta=dict(generated=time.strftime("%Y-%m-%d %H:%M:%S"),
+                         M_cpi=M_CPI, pfa_nominal=PFA_NOM,
                          guard_train=[gt_key(g, t) for (g, t) in GT],
                          gt_default=gt_key(*GT[GT_DEFAULT]),
                          n_range_wide=N_RANGE_WIDE,
@@ -602,7 +654,10 @@ def main():
         dpi = float(np.sqrt(lb.direct_power_w(C0 / wf.carrier_hz, L)
                             / lb.noise_power_w(wf.bw_hz))) * bw_corr
         clut = tuple((dt, dpi * r) for (dt, r) in CH_CLUTTER_RATIO)
-        batch = max(1, int(3.0e6 / (M_CPI * ch.Lf) * 12))    # 메모리 예산 내 최대 배치
+        # ⚠ 2026-07-29: 이 3.0e6 도 하드코딩 예산이었다(batch_for 의 6e9 와 같은 병).
+        #   실제 카드 예산에 비례해 깎는다 — 기준 6 GB 에서 옛 값과 같아지도록 맞췄다.
+        _scale = min(1.0, max(0.05, (_gpu_budget_bytes() / 6.0e9)))
+        batch = max(1, int(3.0e6 / (M_CPI * ch.Lf) * 12 * _scale))
         entry = dict(fs_hz=wf.fs_hz, Lf=ch.Lf, prf_hz=ch.prf, n_range_op=n_range,
                      n_taps=n_taps, ref_bw_hz=wf.ref_bw_hz, dpi_amp=dpi,
                      dnr_db=float(20 * np.log10(dpi + 1e-30)), batch=batch)

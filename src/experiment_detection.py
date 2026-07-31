@@ -44,7 +44,11 @@ for _p in (_HERE, _BENCH):
 import numpy as np                                                    # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(_HERE, ".."))
-OUT = os.path.join(ROOT, "outputs")
+# ⚠ 2026-07-28: 출력 디렉터리를 **환경변수로 분리**할 수 있게 했다 (SIONNA2_DET_OUT).
+#    이유: DPI_AMP=0 같은 **대조군**을 돌리면 예전에는 정본 outputs/detection_rx_sweep.json 을
+#    그대로 덮어써 report12 헤드라인 데이터가 소리 없이 오염된다(실제로 이번에 그럴 뻔했다).
+#    대조군은 반드시 별도 경로로 뺄 것:  SIONNA2_DET_OUT=/tmp/... SIONNA2_DPI_AMP=0 python ...
+OUT = os.environ.get("SIONNA2_DET_OUT") or os.path.join(ROOT, "outputs")
 FIG = os.path.join(OUT, "figures")
 ANIM = os.path.join(OUT, "anim")
 C0 = 299792458.0
@@ -98,7 +102,17 @@ CPI_CFG = {
 }
 N_RANGE = 32       # RD 거리빈 (CFAR 훈련창이 성립하도록 넉넉히; ECA 탭이 이 창을 덮는다)
 N_TAPS = 40        # ECA 제거 탭 — n_range 를 덮어 DPI 누설이 거리창 밖으로 안 새게
-DPI_AMP = 40.0     # 직접파 누설 진폭(표적보다 수십 dB 큼)
+# 직접파 누설 진폭(표적보다 수십 dB 큼).
+#  ⭐ 2026-07-28: **환경변수로 끌 수 있게 했다** — `SIONNA2_DPI_AMP=0`.
+#     이유: report12 §4 의 Rx 1→4 배열이득이 9모드 중 5개에서 코히런트 상한
+#     10log10(4)=6.02 dB 를 **넘는다**(최대 W1 +6.798 dB, σ(snr50)≈0.043 dB 이라 ~18σ).
+#     물리적으로 불가능하므로 축이나 검출기에 결함이 있다는 뜻이고,
+#     `docs/PRIOR_WORK_COMPARISON.md` §15-3 이 **결정적 대조군**으로 지목한 것이 바로
+#     "DPI 를 끄고 다시 돌려 이득이 6.02 dB 로 내려오는가" 다.
+#     유력 가설: surv = √N·echo + dpi + noise 에서 dpi 가 **N 에 무관하게 고정**이라,
+#     √N 이 표적을 잡음뿐 아니라 DPI 잔류 대비로도 끌어올린다(x축 SNR 은 잡음 기준 정의).
+#     이 대조군이 6.02 dB 를 재현하면 가설 확정, 아니면 검출기 쪽을 봐야 한다.
+DPI_AMP = float(os.environ.get("SIONNA2_DPI_AMP", "40.0"))
 
 # --------------------------------------------------------------------------- #
 #  9-모드 벤치마크 — 3표준 × 3점유레벨 (사용자 지시 2026-07-16)

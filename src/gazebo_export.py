@@ -31,7 +31,7 @@ gazebo_export.py — **드론 메쉬를 Gazebo / PX4 SITL 모델로 내보낸다
     => k_T = m·g / (N · omega_hover^2)
   검산: omega_max 에서 T/W 가 2 근처면 타당하다(소형 멀티로터 전형).
 
-실행:  python src/gazebo_export.py              (5종 전부 models/ 아래로)
+실행:  python src/gazebo_export.py              (레지스트리 전 기종을 models/ 아래로)
        python src/gazebo_export.py mavic4pro    (1종만)
 출력:  outputs/gazebo/<key>/model.sdf, model.config, meshes/*.stl
 """
@@ -68,7 +68,15 @@ DENSITY = {
     "gear": 1150.0,
     "accent": 1150.0,
     "prop": 1300.0,      # 유리섬유 강화 나일론
+    # --- 열린 프레임 전용 그룹 (2026-07-30) — 새 그룹 등록 3곳 중 세 번째 ---
+    #   (나머지 둘: drones.DRONE_GROUP_MAT · drone_cad 의 union 목록)
+    "deck": 1550.0,      # 카본 데크(상·하판) — arm 과 같은 CFRP
+    "gear_cf": 1550.0,   # 카본 튜브 착륙장치
+    "fc": 1900.0,        # 비행제어기 = FR-4 + 구리 + 알루미늄 케이스 (pcb 와 같은 급)
 }
+#  ⚠ 열린 프레임의 암은 **솔리드 튜브 메쉬**다(실물은 16/14 중공). 부피가 1/(1−(14/16)²)≈4.3 배
+#    과대하므로 arm 의 질량 **배분 비중**이 커진다. 총질량은 공식 TOW 로 정규화되니 절대질량은
+#    맞고 분포만 치우친다 — drone_cad._arm_tube 의 근거 참조.
 
 
 def _mass_props(m: trimesh.Trimesh, density: float):
@@ -114,7 +122,15 @@ def inertia_from_mesh(spec, target_mass_kg=None):
     # 1) 부위별 질량·CoM·관성
     rows = []
     for g, m in parts:
-        d = DENSITY.get(g, 1200.0)
+        #  ⚠ 예전엔 `DENSITY.get(g, 1200.0)` 이라 등록을 빼먹은 새 그룹이 **조용히 1200** 이 됐다
+        #    (카본 데크 1550 을 1200 으로 보는 식 — 질량 배분과 관성텐서가 말없이 틀린다).
+        #    이 저장소는 조용한 폴백에 반복해 물렸으므로 여기서도 막는다.
+        d = DENSITY.get(g)
+        if d is None:
+            raise KeyError(
+                f"gazebo_export: 그룹 {g!r} 의 밀도가 DENSITY 에 없다(key={spec.key!r}). "
+                f"새 그룹은 **세 곳**에 등록해야 한다 — drones.DRONE_GROUP_MAT · "
+                f"drone_cad 의 union 목록 · 이 DENSITY. 아는 그룹 = {sorted(DENSITY)}")
         try:
             mass, com, I = _mass_props(m, d)
         except Exception:

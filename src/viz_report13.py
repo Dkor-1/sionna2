@@ -16,7 +16,9 @@
     viz_report2 는 import 시점에 `gpu.pick()` 을 부르는 부작용이 있는데(모듈 최상단),
     이 모듈은 순수 matplotlib(CPU)이라 GPU 를 잡으면 안 된다(스펙: SIONNA2_GPU 불필요).
     복제한 것은 4줄짜리 저장 헬퍼·로그축 포매터뿐이고 물리·렌더 커널이 아니다(규칙 3 무위반).
-  · 5드론 축 순서는 **target_extent 순**(F17): mini5pro<phantom4<mavic4pro<matrice4e<s1000plus.
+  · 기종 축 순서는 **target_extent 순**(F17): mini5pro<phantom4<mavic4pro<matrice4e<s1000plus.
+    그 뒤로 `DRONES` 레지스트리의 나머지 기종이 등록 순서로 붙는다(`DRONE_ORDER` 주석 참조) —
+    새 기체의 target_extent 를 재서 앞머리 순서에 끼워 넣는 일은 자료가 생겼을 때 한다.
   · 모든 캡션은 6항 반복(스펙 §11): (a) which SNR (b) 거리축 (c) 기준채널모델
     (d) EIRP·T_CPI (e) φ=90° (f) 소거깊이. `_cap6()` 가 meta 에서 뽑아 한국어로 조립한다.
 
@@ -70,15 +72,18 @@ JSON_FS = os.path.join(_ROOT, "outputs", "report13_freespace.json")
 JSON_SG = os.path.join(_ROOT, "outputs", "report13_sigma_grid.json")
 JSON_VF = os.path.join(_ROOT, "outputs", "verify_freespace.json")
 
-# ── 5드론 팔레트(target_extent 순, Okabe-Ito 색맹안전) ────────────────────────
-DRONE_ORDER = ("mini5pro", "phantom4", "mavic4pro", "matrice4e", "s1000plus")
-DRONE_COLOR = {
-    "mini5pro": "#0072B2", "phantom4": "#E69F00", "mavic4pro": "#009E73",
-    "matrice4e": "#CC79A7", "s1000plus": "#D55E00",
-}
-DRONE_LABEL = {"mini5pro": "Mini 5 Pro", "phantom4": "Phantom 4",
-               "mavic4pro": "Mavic 4 Pro", "matrice4e": "Matrice 4E",
-               "s1000plus": "S1000+"}
+# ── 기종 팔레트(target_extent 순 + 레지스트리 잔여, Okabe-Ito 색맹안전) ──────────
+#  ⭐ 2026-07-30 (Phase 3): 세 사전이 5종 하드코딩이었다. 목록에 없는 기종은 축 루프에서
+#     `if d in DRONE_ORDER` 로 걸러져 **에러 없이 그림에서 사라지고**, 걸러지지 않는 경로에서는
+#     `DRONE_LABEL[d]` 가 KeyError 로 죽었다. 이제 전부 레지스트리에서 유도한다.
+#     drone_order 인자는 옛 target_extent 순서(F17)이므로 기존 5종의 축 순서·색은 그대로다.
+#  ⚠ 이 팔레트는 **기종색**이고 재질 팔레트(drones.MATERIAL_COLOR, '5색=순수재질')와 별개다.
+from drones import (drone_order as _drone_order, drone_label as _drone_label,   # noqa: E402
+                    drone_cycle_map as _cycle_map, DRONE_CYCLE_OKABE_ITO)
+DRONE_ORDER = tuple(_drone_order(("mini5pro", "phantom4", "mavic4pro",
+                                 "matrice4e", "s1000plus")))
+DRONE_COLOR = _cycle_map(DRONE_CYCLE_OKABE_ITO, DRONE_ORDER)
+DRONE_LABEL = {k: _drone_label(k) for k in DRONE_ORDER}
 
 # ── 밴드/모드 색(WiFi 주황·LTE 청록·NR 파랑, 점유 G1/G2/G3 = 밝→진) ───────────
 _BAND_BASE = {"W": "#ef6c00", "L": "#00897b", "G": "#1565c0"}
@@ -372,7 +377,8 @@ class R13Viz:
         drones = [d for d in DRONE_ORDER if d in grid]
         if not drones:
             return _skip("F5_sigma_grid", "grid 에 알려진 드론 없음")
-        fig, axes = plt.subplots(1, 5, figsize=(15.5, 3.6), sharey=True)
+        # ⚠ 패널 수 = **기종 수**. 예전엔 5 가 박혀 있어 6번째 기종부터 zip 이 조용히 잘랐다.
+        fig, axes = plt.subplots(1, len(drones), figsize=(3.1 * len(drones), 3.6), sharey=True)
         dol = _get(self.sg, "sigma_confidence", "D_over_lambda") or {}
         im = None
         for ax, d in zip(np.atleast_1d(axes), drones):
@@ -604,9 +610,9 @@ class R13Viz:
             ax.set_title(vn)
         if im is not None:
             fig.colorbar(im, ax=list(axes), shrink=0.85, label="R90_C50 [m]")
-        fig.suptitle("R90 matrix — 5 airframes × 9 modes (equal-PSD | deploy-EIRP)", y=1.01)
+        fig.suptitle(f"R90 matrix - {len(drones)} airframes x {len(MODE_ORDER)} modes (equal-PSD | deploy-EIRP)", y=1.01)
         return self.save(fig, "report13_matrix.png",
-                         _cap6(self.ctx, "히트맵 셀=R90_C50 [m], 5기종×9모드",
+                         _cap6(self.ctx, f"히트맵 셀=R90_C50 [m], {len(drones)}기종×{len(MODE_ORDER)}모드",
                                "점유·배치 규약(F1/F2) — 유휴 5G G1 이 배치 EIRP 에서 무너진다."))
 
     # ---- F13 detector ----------------------------------------------------- #

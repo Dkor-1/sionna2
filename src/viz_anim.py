@@ -8,7 +8,7 @@ viz_anim.py — 드론 회전(turntable) 애니메이션 GIF (matplotlib, Sionna
 
 생성물 (outputs/figures/)
   turntable_<key>.gif : 드론 1종 360° 회전
-  turntable_all.gif    : 5종을 한 화면에서 동시에 회전
+  turntable_all.gif    : 전 기종을 한 화면에서 동시에 회전
 """
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-from drones import DRONES, build_drone, drone_colors
+from drones import DRONES, build_drone, drone_colors, drone_label
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
 
@@ -67,14 +67,16 @@ def turntable_all(outdir=FIG, frames=36, fps=18):
     keys = list(DRONES.keys())
     meshes = {k: build_drone(DRONES[k]) for k in keys}
     cmaps = {k: drone_colors(DRONES[k]) for k in keys}
-    fig = plt.figure(figsize=(15, 3.4))
+    # ⚠ 열 수는 **기종 수**다. 예전엔 `add_subplot(1, 5, ...)` 로 5 가 박혀 있어 기종이 6개가
+    #   되는 순간 ValueError(num must be 1 <= num <= 5) 로 죽었다.
+    fig = plt.figure(figsize=(3.0 * len(keys), 3.4))
     axes = {}
     for j, k in enumerate(keys):
-        ax = fig.add_subplot(1, 5, j+1, projection="3d")
+        ax = fig.add_subplot(1, len(keys), j + 1, projection="3d")
         ax.add_collection3d(_polys(meshes[k], cmaps[k])); _equal(ax, meshes[k])
-        ax.set_title(DRONES[k].name.split("  ")[0].replace("DJI ", ""), fontsize=10)
+        ax.set_title(drone_label(k), fontsize=10)
         axes[k] = ax
-    fig.suptitle("Five DJI drones — turntable (not to scale)", fontsize=13, fontweight="bold")
+    fig.suptitle(f"{len(keys)} target drones - turntable (not to scale)", fontsize=13, fontweight="bold")
 
     def update(i):
         for ax in axes.values():

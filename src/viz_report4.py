@@ -454,7 +454,11 @@ def fig_linkbudget():
            ylabel="SCR measured in the RD map [dB]")
     _head(ax, "(a) The link-budget chain is calibrated", PASS)
     ax.legend(loc="upper left", frameon=False, fontsize=7.2)
-    ax.text(0.97, 0.06, "5 drones x 3 waveforms, sigma from SBR\n"
+    # ⚠ 개수는 **표에서 센다**. 예전엔 "5 drones x 3 waveforms" 리터럴이라 기종이 늘면
+    #   그림이 자기 데이터와 다른 개수를 주장했다(에러 없이 틀린 캡션).
+    _nd = len({r["drone"] for r in L["D_sigma_table"]["rows"]})
+    _nw = len({r["wf"] for r in L["D_sigma_table"]["rows"]})
+    ax.text(0.97, 0.06, f"{_nd} drones x {_nw} waveforms, sigma from SBR\n"
                         f"N={L['D_sigma_table']['N']} trials, M={L['D_sigma_table']['M']}\n"
                         "the gap is processing loss, not an error",
             transform=ax.transAxes, fontsize=7.2, color="#555555", ha="right")

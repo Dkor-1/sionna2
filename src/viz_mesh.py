@@ -25,14 +25,14 @@ from matplotlib import cm
 from matplotlib.colors import Normalize
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Line3DCollection
 
-from drones import DRONES, build_drone, drone_colors, drone_gamma_map
+from drones import DRONES, build_drone, drone_colors, drone_gamma_map, drone_label
 from rcs_po import mesh_to_points, rcs_from_points, dbsm, C0
 from waveforms import PILOT_RATE_HZ
 from radar_scene import ANT_POS, TGT_POS    # 모노스태틱 기하 단일 출처(sionna 는 지연 import 라 가벼움)
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
 
-_NAME = {k: DRONES[k].name.replace("DJI ", "") for k in DRONES}
+_NAME = {k: drone_label(k) for k in DRONES}   # 제조사 접두어 제거는 drones.drone_label 이 담당
 
 
 # --------------------------------------------------------------------------- #
@@ -160,14 +160,18 @@ def fig_rcs_balloon(outdir=FIG, fc=3.5e9):
     az = np.arange(0, 361, 5.0)                              # 닫힌 둘레(360 포함)
     el = np.arange(-80, 81, 8.0)
     keys = list(DRONES.keys())
-    fig = plt.figure(figsize=(15, 9.2), constrained_layout=True)
+    # ⚠ 격자는 **기종 수 + 범례칸 1** 에서 유도한다. 예전엔 2×3(=6칸)이 박혀 있어
+    #   기종이 6종이 되는 순간 add_subplot 이 ValueError 로 죽었다(범례가 6번째 칸을 쓴다).
+    _ncol = 3
+    _nrow = -(-(len(keys) + 1) // _ncol)                 # ceil((n+1)/ncol)
+    fig = plt.figure(figsize=(5.0 * _ncol, 4.6 * _nrow), constrained_layout=True)
     # 상세(반경·색 의미, 글린트, +x 화살표)는 오른쪽 아래 'How to read' 패널과 컬러바가 이미 설명한다.
     fig.suptitle(f"RCS balloon — azimuth × elevation pattern @ {fc/1e9:.1f} GHz",
                  fontsize=16, fontweight="bold")
     cmap = cm.turbo
     norm = None
     for j, key in enumerate(keys):
-        ax = fig.add_subplot(2, 3, j+1, projection="3d")
+        ax = fig.add_subplot(_nrow, _ncol, j + 1, projection="3d")
         S, mesh = _rcs_grid(key, fc, az, el)
         Sdb = dbsm(S)
         floor = Sdb.max() - 25.0                             # 상위 25 dB 동적범위
@@ -188,7 +192,7 @@ def fig_rcs_balloon(outdir=FIG, fc=3.5e9):
         _equal_3d(ax, [-1,-1,-1], [1,1,1], pad=1.0)
         ax.set_axis_off(); ax.view_init(elev=22, azim=-60)
     # 마지막 칸: 설명 + 컬러바
-    axL = fig.add_subplot(2, 3, 6); axL.axis("off")
+    axL = fig.add_subplot(_nrow, _ncol, len(keys) + 1); axL.axis("off")   # 범례 = 기종 다음 칸
     sm = cm.ScalarMappable(cmap=cmap, norm=Normalize(0, 1)); sm.set_array([])
     cb = fig.colorbar(sm, ax=axL, fraction=0.5, aspect=12)
     cb.set_label("Normalized RCS (per-drone max=1.0, floor -25 dB)", fontsize=9)

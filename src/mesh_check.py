@@ -18,7 +18,7 @@ mesh_check.py — **trimesh 로 메쉬를 검증한다** (자작 geom.py 가 못
   3. 법선 방향    : 바깥을 향하는가 (닫힌 부품의 부호있는 부피 > 0)
   4. 퇴화면·중복정점
 
-실행:  python src/mesh_check.py          (드론 5종 + 챔버 전수 검사)
+실행:  python src/mesh_check.py          (DRONES 레지스트리 전 기종 + 챔버 전수 검사)
        assert_ok() 를 빌드 파이프라인에서 부르면 회귀를 막는다.
 """
 from __future__ import annotations
@@ -75,7 +75,7 @@ def report(res: dict) -> str:
 
 
 def check_all(verbose=True) -> dict:
-    """드론 5종 + 챔버 전수 검사."""
+    """DRONES 레지스트리 **전 기종** + 챔버 전수 검사(기종 수는 len(DRONES))."""
     from drones import DRONES, build_drone
     out = {}
     for k, s in DRONES.items():

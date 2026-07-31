@@ -22,6 +22,11 @@ materials.py — **재질의 단일 진리원(single source of truth)**
     carbon   : 탄소섬유(도전성). ITU 에 없다. σ 를 크게 줘서 금속에 가깝게(|Γ|≈0.99). 이방성 무시.
     absorber : 전파흡수체. ITU 에 없다. **아래 주의 참고 — 실측치가 아니라 모델값.**
 
+■ **모르는 재질 키는 예외**다 (조용한 폴백 금지, 2026-07-29)
+  표에 없는 키는 예전에 조용히 plastic 으로 흘렀다 — `gamma_po('pec')` 가 아무 말 없이
+  0.2437 을 돌려주는 식이다(의도한 PEC 1.0 대비 **−12.26 dB**). 이제 `_spec()` 이 즉시 예외를 던진다.
+  **PEC 는 재질이 아니라 경계조건**이므로 'pec' 항목을 만들지 않는다 — group_mat 에 **float 1.0** 을 넣어라.
+
 ■ ITU 재질의 산란계수(S)는 전부 **0** 이다 (순수 정반사).
   확산 산란이 필요한 곳(흡수체·플라스틱·카본)은 커스텀 재질에서 S 를 준다.
   ※ 이것이 report6 [C] 의 "PEC 금속구에서 RT 가 경로를 아예 못 만든다"의 원인이다.
@@ -108,14 +113,39 @@ def _probe_scene(fc: float):
     return _PROBE_SCENE
 
 
+def _spec(mat_key: str) -> dict:
+    """재질 키 → MATERIALS 항목. **모르는 키는 조용히 넘어가지 않는다 — 즉시 예외.**
+
+    ■ 왜 예외인가 (2026-07-29)
+      예전엔 표에 없는 키가 조용히 **plastic 기본값**으로 흘렀다. 그래서
+      `gamma_po('pec')` 가 경고 한 줄 없이 **0.2437**(plastic 벌크)을 돌려줬다 —
+      의도한 PEC(|Γ|=1.0)와 **−12.26 dB** 어긋난 값이 그대로 σ 에 들어간다.
+      (참고: `gamma_po('metal')`=0.99980. 즉 'pec' 오타는 '거의 맞는 값'이 아니라 완전히 다른 값이다.)
+      이 저장소는 조용한 폴백에 반복해서 물렸다 → **|Γ|·(εr,σ) 를 내는 경로는 전부 여기서 막는다.**
+
+    ■ 왜 MATERIALS 에 'pec' 항목을 만들지 않았나
+      PEC 는 재질이 아니라 **경계조건**이다. 게다가 MATERIALS 를 **순회해서 리포트 원장/표**를
+      만드는 곳이 여럿이라(viz_report1.materials 원장, viz_report2.fig_materials,
+      viz_verify_sbr 의 재질표) 항목을 하나 늘리면 리포트 표가 같이 바뀐다.
+      → PEC 가 필요하면 재질 문자열이 아니라 **float 1.0** 을 group_mat 에 직접 넣을 것
+        (rcs_sbr/rcs_po 는 float 를 |Γ| 로 그대로 쓴다 — 예: rcs_po.py `{g: 1.0 for g in ...}`).
+    """
+    spec = MATERIALS.get(mat_key)
+    if spec is None:
+        raise KeyError(
+            f"materials: 모르는 재질 키 {mat_key!r}. 아는 키 = {sorted(MATERIALS)}. "
+            f"'pec' 는 재질 이름이 아니다 — 완전도체를 원하면 group_mat 에 **float 1.0**(=|Γ|)을 "
+            f"넣을 것. (예전엔 이 자리에서 조용히 plastic 으로 흘러 |Γ|=0.2437, 즉 −12.26 dB 를 줬다.)")
+    return spec
+
+
 def material_params(mat_key: str, fc: float = 3.5e9) -> tuple[float, float, float]:
-    """재질 키 → (εr, σ[S/m], S).  **ITU 재질은 Sionna 에서 직접 읽는다**(주파수 반영)."""
+    """재질 키 → (εr, σ[S/m], S).  **ITU 재질은 Sionna 에서 직접 읽는다**(주파수 반영).
+    ⚠ 모르는 키는 _spec() 이 예외를 던진다(옛 plastic 조용한 폴백 제거)."""
     ck = (mat_key, round(float(fc)))
     if ck in _PARAM_CACHE:
         return _PARAM_CACHE[ck]
-    spec = MATERIALS.get(mat_key)
-    if spec is None:
-        spec = MATERIALS["plastic"]                     # 알 수 없는 키 → 안전한 기본
+    spec = _spec(mat_key)
     if "itu" in spec:
         m = rt.ITURadioMaterial(name=f"_probe_{mat_key}_{ck[1]}", itu_type=spec["itu"],
                                 thickness=spec.get("thickness", 0.02))
@@ -131,7 +161,8 @@ def material_params(mat_key: str, fc: float = 3.5e9) -> tuple[float, float, floa
 
 def gamma_bulk(mat_key: str, fc: float = 3.5e9) -> float:
     """**벌크(반무한) 수직입사 프레넬 |Γ|** — Sionna 가 쓰는 (εr, σ) 에서 직접 유도.
-        Γ = (1 − √εc) / (1 + √εc),   εc = εr − j·σ/(ω·ε0)"""
+        Γ = (1 − √εc) / (1 + √εc),   εc = εr − j·σ/(ω·ε0)
+    ⚠ 모르는 키는 예외(_spec) — 조용히 plastic 으로 흐르지 않는다."""
     er, sg, _ = material_params(mat_key, fc)
     eps_c = er - 1j * sg / (2 * np.pi * float(fc) * EPS0)
     return float(abs((1.0 - np.sqrt(eps_c)) / (1.0 + np.sqrt(eps_c))))
@@ -142,9 +173,12 @@ def gamma_po(mat_key: str, fc: float = 3.5e9) -> float:
     기본은 벌크 프레넬(gamma_bulk). 단, 벌크로 담을 수 없는 물리(박막 간섭·복합 조립품)가
     있는 재질은 MATERIALS[...]['gamma_po'] 의 실효값을 쓴다 — 근거는 각 note 에 있다.
 
-    핵심: **어느 쪽이든 Sionna 와 같은 표에서 나온다.** 두 엔진이 조용히 어긋날 수 없다."""
-    spec = MATERIALS.get(mat_key)
-    if spec is not None and "gamma_po" in spec:
+    핵심: **어느 쪽이든 Sionna 와 같은 표에서 나온다.** 두 엔진이 조용히 어긋날 수 없다.
+
+    ⚠ **모르는 키는 예외**다(_spec 참조). 특히 `gamma_po('pec')` 는 이제 죽는다 —
+      예전엔 0.2437 을 조용히 돌려줬다(의도 1.0 대비 −12.26 dB). PEC 는 float 1.0 로 넘길 것."""
+    spec = _spec(mat_key)
+    if "gamma_po" in spec:
         return float(spec["gamma_po"])
     return gamma_bulk(mat_key, fc)
 

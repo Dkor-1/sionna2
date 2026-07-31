@@ -34,6 +34,7 @@ res = run_cell(wf, drone, pos, vel, lb, channel=SionnaRTChannel())
 | `run_min_cell.py` | 최소셀(5G NR 100MHz G3 · EIRP 12dBm): 1 config × 1 드론 × radial × N → 측정 SCR·Pd + RD맵 + 3신호 SNR 비교 |
 | `run_matrix.py` | **본 실험(report5)**: A 점유×EIRP · B 신호×드론(CSV) · C 시나리오/블라인드 · D RT 교차검증 → `report5_*.png`, `bench_matrix.csv`, `report5_results.json` |
 | `verify_server.py` | **RT 검증**: 환경진단 → RT CIR 추출 → RT↔Analytic 교차검증 → RT 최소셀 |
+| `rename_outputs.py` | 은퇴한 13편 번호 산출물 이름 이전. **예행이 기본** — 옮길 파일과 바꿀 참조를 찍기만 한다. 지도는 `docs/OUTPUT_NAMING.md` |
 
 ## 실행
 

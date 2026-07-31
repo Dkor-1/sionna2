@@ -5,8 +5,8 @@ viz_report1.py — report1 (Sionna 환경 + 실물 3D 메쉬 + 분절 드론) �
 이 파일이 하는 일 (전부 측정 → JSON 저장 → 그림/렌더):
   A. 챔버        : materials 표, 챔버 기하 도해, **Sionna 자체 렌더** 6장 + **라디오맵** 4장
   B. 드론 메쉬   : cadkit 단계별(단면→로프트→스무딩→불리언) 그림, 불리언이 지운 **내부 면 측정**,
-                   공식 외형 정합, mesh_check(trimesh) 전수검사, **Sionna 렌더 갤러리** 5종×3뷰
-  C. 분절        : 호버 RPM **물리 유도**, flash/f_tip, **SBR 마이크로도플러**(가림 포함) 5종,
+                   공식 외형 정합, mesh_check(trimesh) 전수검사, **Sionna 렌더 갤러리** 전 기종×3뷰
+  C. 분절        : 호버 RPM **물리 유도**, flash/f_tip, **SBR 마이크로도플러**(가림 포함) 전 기종,
                    PO vs SBR |DC|/std(AC), **분절 애니메이션 GIF**(Sionna 렌더)
 
 규약
@@ -61,7 +61,14 @@ G = 9.80665
 CB = "#1f4e79"; CO = "#d95f02"; CG = "#2e7d32"; CR = "#c62828"; CP = "#7b3294"
 GRAY = "#555555"
 
-DKEYS = ["mini5pro", "mavic4pro", "matrice4e", "s1000plus", "phantom4"]
+#  ⭐ 표적 목록은 **레지스트리에서 유도**한다(2026-07-30 Phase 3). 예전엔 5종 하드코딩이라
+#     기종을 추가해도 예외 없이 새 기체가 이 리포트 전체에서 조용히 빠졌다.
+#     drone_order 의 인자는 **옛 5종 순서**여서 기존 그림 배치는 그대로고 신규 기종만 뒤에 붙는다.
+from drones import drone_order as _drone_order, drone_cycle_map as _cycle_map   # noqa: E402
+DKEYS = _drone_order(("mini5pro", "mavic4pro", "matrice4e", "s1000plus", "phantom4"))
+#  기종별 선 색 — **재질 팔레트(drones.MATERIAL_COLOR, '5색=순수재질')와 다른 별개 팔레트**다.
+#  앞 5색은 옛 하드코딩 zip(DKEYS, [CB, CO, CG, CP, CR]) 와 동일해 기존 그림 색이 보존된다.
+DCOL = _cycle_map((CB, CO, CG, CP, CR, "#00838f", "#8d6e63"), DKEYS)
 
 
 def _cap(fig, text, bottom=None, top=0.90):
@@ -306,7 +313,10 @@ def measure_meshes() -> dict:
             prop_disc_lw_mm=[float(x) for x in env["prop_disc_lw_mm"]],
             fit_scale=[float(x) for x in env["fit_scale"]],
             prop_dia_mm=float(s.prop_dia_mm), prop_blades=int(s.prop_blades),
-            weight_g=float(s.weight_g), hover_rpm=float(s.hover_rpm), max_rpm=float(s.max_rpm),
+            weight_g=float(s.weight_g), hover_rpm=float(s.hover_rpm),
+            # ⚠ max_rpm 은 **None 이 정상값**이다(UNKNOWN). 인증/펌웨어 상한을 공표하지 않은
+            #   기체(typhoonh480·x500v2)가 있어 float() 를 무조건 걸면 TypeError 로 죽는다.
+            max_rpm=(float(s.max_rpm) if s.max_rpm is not None else None),
             confidence=s.confidence, release=s.release)
         out["check"][k] = dict(ok=bool(chk["ok"]), groups={
             g: dict(ok=bool(v["ok"]), watertight=v["watertight"], inward=int(v["inward_normals"]),
@@ -581,10 +591,14 @@ def fig_meshcheck(mm: dict):
     b.invert_yaxis()
     b.set_axis_off()
     b.set_title(f"What each check catches -- current result:\n"
-                f"0 defects across {total_faces:,} faces (5 drones)",
+                f"0 defects across {total_faces:,} faces ({len(DKEYS)} drones)",
                 fontsize=11, fontweight="bold")
 
-    fig.suptitle("Mesh verification is a build gate, not a comment: 5 / 5 drones pass",
+    # ⚠ 통과 수는 **세서** 쓴다. 예전엔 "5 / 5 drones pass" 가 리터럴이라, 실패해도·기종이 늘어도
+    #   그림은 통과라고 우겼다(그림이 자기 데이터와 모순될 수 있었다).
+    n_pass = sum(1 for k in DKEYS if C[k]["ok"])
+    fig.suptitle(f"Mesh verification is a build gate, not a comment: "
+                 f"{n_pass} / {len(DKEYS)} drones pass",
                  fontsize=14, fontweight="bold")
     _cap(fig, "src/mesh_check.py splits each drone into groups, then into connected components, and asks trimesh: is it watertight, is the winding consistent, do the normals point outward, are any faces degenerate?\n"
               "This is not cosmetic. PO and SBR both decide 'is this face lit' from the sign of n . u, so a flipped cap or a zero-area triangle silently corrupts the integral -- and the propeller IS the micro-Doppler signal.\n"
@@ -607,7 +621,7 @@ def _whiten(relpath):
 
 
 def render_gallery():
-    """Sionna 렌더 갤러리 — 5종 x (front / iso / side / top). front 는 실사진 각도 정합."""
+    """Sionna 렌더 갤러리 — DKEYS 전 기종 x (front / iso / side / top). front 는 실사진 각도 정합."""
     import render_rt as R
     from drones import DRONES, build_drone
     out = {}
@@ -660,12 +674,16 @@ def measure_articulation() -> dict:
         v_tip = omega * Dm / 2
         rows[k] = dict(mass_kg=float(m_kg), thrust_per_rotor_N=float(T), D_m=float(Dm),
                        rpm_ct=rpm_ct, ct_implied=ct_used,
-                       hover_rpm=float(s.hover_rpm), max_rpm=float(s.max_rpm),
+                       hover_rpm=float(s.hover_rpm),
+                       # ⚠ max_rpm=None(UNKNOWN)이 정상값 — 파생량도 함께 None 으로 둔다.
+                       #   0 이나 hover 로 대체하면 T/W 가 조용히 틀린 값이 되어 표에 들어간다.
+                       max_rpm=(float(s.max_rpm) if s.max_rpm is not None else None),
                        f_rot_hz=float(s.hover_rpm / 60.0),
                        flash_hz=float(s.prop_blades * s.hover_rpm / 60.0),
                        v_tip=float(v_tip), mach=float(v_tip / 343.0),
                        f_tip_hz=float(2 * v_tip / lam * np.cos(np.radians(EL))),
-                       tw_at_max=float((s.max_rpm / s.hover_rpm) ** 2),
+                       tw_at_max=(float((s.max_rpm / s.hover_rpm) ** 2)
+                                  if s.max_rpm is not None else None),
                        blades=int(s.prop_blades), n_rotors=int(s.num_rotors))
         print(f"  [hover] {k:10s} T/rotor {T:5.2f} N   C_T 0.10/0.11/0.12 -> "
               f"{rpm_ct['0.10']:.0f}/{rpm_ct['0.11']:.0f}/{rpm_ct['0.12']:.0f} rpm   "
@@ -680,7 +698,8 @@ def measure_articulation() -> dict:
                 old_flash=float(s.prop_blades * old / 60),
                 new_flash=rows["mavic4pro"]["flash_hz"],
                 old_f_tip=float(2 * v_old / lam * np.cos(np.radians(EL))),
-                new_f_tip=rows["mavic4pro"]["f_tip_hz"], max_rpm=float(s.max_rpm))
+                new_f_tip=rows["mavic4pro"]["f_tip_hz"],
+                max_rpm=(float(s.max_rpm) if s.max_rpm is not None else None))
     print(f"  [정정] mavic4pro 옛 5500 rpm 은 추력 {corr['thrust_ratio']:.1f}x중량 = **최대추력** "
           f"회전수였다 (DJI max {s.max_rpm:.0f}) → 호버는 {s.hover_rpm:.0f} rpm")
 
@@ -699,7 +718,8 @@ def fig_hover(art: dict):
 
     a = ax[0]
     rpm = np.linspace(1500, 9000, 300)
-    for k, c in zip(DKEYS, [CB, CO, CG, CP, CR]):
+    for k in DKEYS:
+        c = DCOL[k]
         h = H[k]
         a.plot(rpm, 0.11 * RHO * (rpm / 60) ** 2 * h["D_m"] ** 4, color=c, lw=1.6,
                label=f"{k}  (D = {h['D_m']*1000:.0f} mm)")
@@ -725,7 +745,9 @@ def fig_hover(art: dict):
         b.annotate(f"{H[k]['hover_rpm']:.0f} rpm\n$C_T$ {H[k]['ct_implied']:.3f}",
                    (i, hi[i]), xytext=(0, 10), textcoords="offset points",
                    ha="center", va="bottom", fontsize=8.2)
-    b.plot([1], [K["old_rpm"]], "X", ms=14, color=CR, mec="k", mew=0.6,
+    # ⚠ x 좌표는 **DKEYS 안에서 mavic4pro 가 앉은 자리**여야 한다. 예전엔 리터럴 1 이라
+    #   DKEYS 순서가 바뀌면 X 표시가 엉뚱한 기종 위에 얹혔다(에러 없이 틀린 그림).
+    b.plot([DKEYS.index("mavic4pro")], [K["old_rpm"]], "X", ms=14, color=CR, mec="k", mew=0.6,
            label="the OLD mavic4pro number (5500)")
     b.annotate(f"the old 5500 rpm gives {K['thrust_ratio']:.1f} x weight:\nthat is MAX THRUST, not hover\n(DJI max {K['max_rpm']:.0f} rpm)",
                (0.50, 0.97), xycoords="axes fraction", ha="center", va="top", fontsize=8.5,
@@ -766,7 +788,7 @@ NPZ = os.path.join(ROOT, "outputs", "report1_microdoppler.npz")
 
 
 def measure_microdoppler(n_phase=144, n_t=6144, prf=20000.0):
-    """5종 SBR 마이크로도플러(가림 포함) + 순수 PO 대조. 무겁다 — GPU.
+    """DKEYS 전 기종 SBR 마이크로도플러(가림 포함) + 순수 PO 대조. 무겁다 — GPU.
     복소장 E(t) 를 outputs/report1_microdoppler.npz 에 저장한다 → 그림만 다시 그릴 수 있다."""
     from drones import DRONES
     from microdoppler import microdoppler_sbr, microdoppler_series, spectrogram
@@ -815,10 +837,13 @@ def spectro_store(md, nperseg=128, nfft=2048):
 
 def fig_microdoppler(md: dict, store: dict):
     D = md["drones"]; C = md["cfg"]
-    fig = plt.figure(figsize=(17.0, 10.4))
-    gs = fig.add_gridspec(2, 3, hspace=0.45, wspace=0.30, top=0.90, bottom=0.20)
-    axes = [fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1]), fig.add_subplot(gs[0, 2]),
-            fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])]
+    # ⚠ 격자는 **기종 수 + 막대패널 1** 에서 유도한다. 예전엔 2×3 에 패널 5개를 손으로 나열해
+    #   두었고, 기종을 추가하면 zip 이 조용히 잘라 새 기체의 스펙트로그램이 사라졌다.
+    n_d, ncol = len(DKEYS), 3
+    nrow = -(-(n_d + 1) // ncol)                       # ceil((n+1)/ncol)
+    fig = plt.figure(figsize=(17.0, 5.2 * nrow))
+    gs = fig.add_gridspec(nrow, ncol, hspace=0.45, wspace=0.30, top=0.90, bottom=0.20)
+    axes = [fig.add_subplot(gs[i // ncol, i % ncol]) for i in range(n_d)]
     m = None
     for ax_, k in zip(axes, DKEYS):
         f, tt, Sdb = store[k]
@@ -835,9 +860,9 @@ def fig_microdoppler(md: dict, store: dict):
         ax_.annotate(f"$f_{{tip}}$ = {d['f_tip_hz']:.0f} Hz", (0.98, 0.03),
                      xycoords="axes fraction", ha="right", va="bottom", fontsize=8.5,
                      color="white", bbox=dict(fc="#0d47a1", ec="none", alpha=0.65, pad=1.6))
-    fig.colorbar(m, ax=axes[2], fraction=0.046, label="dB  (peak = 0)")
+    fig.colorbar(m, ax=axes[min(ncol - 1, n_d - 1)], fraction=0.046, label="dB  (peak = 0)")
 
-    a = fig.add_subplot(gs[1, 2])
+    a = fig.add_subplot(gs[n_d // ncol, n_d % ncol])     # 막대패널 = 스펙트로그램 바로 다음 칸
     x = np.arange(len(DKEYS))
     rp = [D[k]["po"]["ratio_db"] for k in DKEYS]
     rs = [D[k]["sbr"]["ratio_db"] for k in DKEYS]
@@ -863,23 +888,44 @@ def fig_microdoppler(md: dict, store: dict):
     return _save(fig, "report1_microdoppler.png")
 
 
+#  기체별 **동역학** 항목(관성텐서·k_T·k_M/k_T·모터 시정수) — 조사 원장에서 온 문자열이라
+#  코드로 유도할 수 없다. 그래서 **기종 키로 색인**한다: 등록되지 않은 기종은 자동으로
+#  "not published"(빨강 = 측정해야 함) 로 떨어진다.
+#  ⛔ 앞 3열(질량·프롭·max rpm)은 여기 적지 않는다 — DroneSpec 에서 읽는다.
+#     예전엔 그 3열도 손타이핑이어서 mavic4pro max rpm 이 6000 으로 **낡은 채** 그림에 남아 있었다
+#     (스펙은 2026-07-28 에 8400 으로 정정됨). 손으로 적은 숫자는 스펙을 따라오지 않는다.
+_GAZEBO_DYN = {
+    # key: (inertia, k_T, k_M/k_T, motor tau, status(관성,k_T,k_M,tau))
+    "mini5pro":  ("9.6e-4 / 5.5e-4 / 1.4e-3", "1.85e-6", "0.016", "0.03", (2, 1, 2, 2)),
+    "mavic4pro": ("not published", "1.83e-5", "0.010 - 0.020", "0.02 - 0.05", (2, 1, 2, 2)),
+    "matrice4e": ("0.0076 / 0.0096 / 0.0155", "1.9e-5  (high)", "0.016", "0.02 - 0.05", (2, 1, 2, 2)),
+    "s1000plus": ("0.37 / 0.37 / 0.63", "8.2e-5", "0.015 - 0.018", "estimate", (2, 1, 2, 2)),
+    "phantom4":  ("0.013-0.017 / same / ~0.028", "1.02e-5", "0.015", "0.02 - 0.05", (2, 1, 2, 2)),
+}
+_GAZEBO_DYN_NONE = ("not published", "not published", "not published", "not published", (2, 2, 2, 2))
+
+
 def fig_gazebo(_j=None):
-    """Gazebo/PX4 로 가려면 무엇이 더 필요한가 — 공개 vs 유도 vs 순수 추정."""
+    """Gazebo/PX4 로 가려면 무엇이 더 필요한가 — 공개 vs 유도 vs 순수 추정.
+    행은 `DKEYS`(레지스트리 유도)이고 앞 3열은 `DroneSpec` 에서 읽는다."""
+    from drones import DRONES
     fields = ["mass", "prop D / blades", "max rpm", "inertia Ixx / Iyy / Izz [kg m2]",
               "thrust k_T [N s2/rad2]", "moment k_M / k_T [m]", "motor time constant [s]"]
-    status = np.array([[0, 0, 0, 2, 1, 2, 2],
-                       [0, 0, 1, 2, 1, 2, 2],
-                       [0, 0, 0, 2, 1, 2, 2],
-                       [0, 0, 1, 2, 1, 2, 2],
-                       [0, 0, 0, 2, 1, 2, 2]], float)
-    val = [
-        ["0.2499 kg", "152.4 / 2", "7800", "9.6e-4 / 5.5e-4 / 1.4e-3", "1.85e-6", "0.016", "0.03"],
-        ["1.063 kg", "267 / 2", "6000 *", "not published", "1.83e-5", "0.010 - 0.020", "0.02 - 0.05"],
-        ["1.219 kg", "274 / 2", "7500", "0.0076 / 0.0096 / 0.0155", "1.9e-5  (high)", "0.016", "0.02 - 0.05"],
-        ["9.5 kg TOW", "381 / 2", "5600 *", "0.37 / 0.37 / 0.63", "8.2e-5", "0.015 - 0.018", "estimate"],
-        ["1.380 kg", "240 / 2", "8500", "0.013-0.017 / same / ~0.028", "1.02e-5", "0.015", "0.02 - 0.05"],
-    ]
-    fig, ax = plt.subplots(figsize=(16.2, 5.0))
+    status, val = [], []
+    for k in DKEYS:
+        s = DRONES[k]
+        inert, ktv, kmv, tau, st = _GAZEBO_DYN.get(k, _GAZEBO_DYN_NONE)
+        # max_rpm=None = 공표 없음(UNKNOWN) → 빨강. 있으면 등급 상한이므로 초록(공표됨).
+        rpm_txt = "not published" if s.max_rpm is None else f"{s.max_rpm:.0f}"
+        rpm_st = 2 if s.max_rpm is None else 0
+        # weight_g 가 TOW 인지 기체자중인지는 기종 note 가 갈린다 — s1000plus 만 TOW 표기를 유지.
+        mass_txt = (f"{s.weight_g/1000.0:.4g} kg TOW" if s.key == "s1000plus"
+                    else f"{s.weight_g/1000.0:.4g} kg")
+        val.append([mass_txt, f"{s.prop_dia_mm:g} / {s.prop_blades}", rpm_txt,
+                    inert, ktv, kmv, tau])
+        status.append([0, 0, rpm_st, st[0], st[1], st[2], st[3]])
+    status = np.array(status, float)
+    fig, ax = plt.subplots(figsize=(16.2, 1.0 * len(DKEYS)))
     ax.imshow(status, cmap=matplotlib.colors.ListedColormap(["#cfe8cf", "#fdf0c8", "#f6cfcb"]),
               vmin=0, vmax=2, aspect="auto")
     for i in range(len(DKEYS)):
@@ -891,14 +937,15 @@ def fig_gazebo(_j=None):
     ax.set_yticks(np.arange(-.5, len(DKEYS), 1), minor=True)
     ax.grid(which="minor", color="w", lw=2)
     h = [Rectangle((0, 0), 1, 1, fc=c) for c in ["#cfe8cf", "#fdf0c8", "#f6cfcb"]]
-    ax.legend(h, ["published by DJI", "derived from published values",
+    ax.legend(h, ["published by the manufacturer", "derived from published values",
                   "pure estimate -- must be measured"],
               ncol=3, fontsize=9.5, loc="upper center", bbox_to_anchor=(0.5, -0.14))
     ax.set_title("What a Gazebo / PX4 flight model still needs -- and how much of it is a guess",
                  fontsize=13.5, fontweight="bold", pad=12)
     _cap(fig, "Geometrically the articulated model already gives Gazebo what it wants: one link plus one revolute joint per rotor -- exactly the decomposition micro-Doppler needs. The two use cases share a single model.\n"
-              "What is missing is dynamics. Mass and propeller geometry are published; k_T follows from hover thrust and hover rpm; but the inertia tensor, the moment coefficient and the motor time constant are published by DJI for NONE of the five.\n"
-              "* max rpm not published, back-derived from thrust margin. The Matrice 4E k_T is flagged 'high' because it was originally anchored on a max rpm that turned out to be fabricated (see the sourcing section); an adversarial re-check puts it nearer 1.4-1.6e-5.")
+              f"What is missing is dynamics. Mass and propeller geometry are published; k_T follows from hover thrust and hover rpm; but the inertia tensor, the moment coefficient and the motor time constant are published for NONE of the {len(DKEYS)} airframes.\n"
+              "Mass / propeller / max rpm are read straight from the DroneSpec registry, so they cannot drift from the spec sheet; a red 'not published' max rpm means the manufacturer declares no class or firmware ceiling at all. "
+              "The Matrice 4E k_T is flagged 'high' because it was originally anchored on a max rpm that turned out to be fabricated (see the sourcing section); an adversarial re-check puts it nearer 1.4-1.6e-5.")
     return _save(fig, "report1_gazebo.png")
 
 
@@ -968,7 +1015,7 @@ def build_all(only=None, n_phase=144, n_frames=36):
         print("\n▶ CAD 파이프라인 그림")
         J["figures"]["cad_pipeline"] = fig_cad_pipeline(J["meshes"])
     if "gallery" in only:
-        print("\n▶ 드론 갤러리 — Sionna 렌더 5종 x 3뷰")
+        print(f"\n▶ 드론 갤러리 — Sionna 렌더 {len(DKEYS)}종 x 3뷰")
         J["renders"].update({f"drone_{k}": v for k, v in render_gallery().items()})
     if "art" in only:
         print("\n▶ 분절 + 호버 RPM 물리 유도")
@@ -985,9 +1032,33 @@ def build_all(only=None, n_phase=144, n_frames=36):
         print("\n▶ 분절 애니메이션 — Sionna 렌더 → GIF")
         J["renders"]["articulation_gif"] = render_articulation(n_frames=n_frames)
 
+    # ── 블록별 provenance ─────────────────────────────────────────────────────
+    # ⚠ 2026-07-29 발견: `--only` 로 일부 블록만 다시 쓰면서 `meta.stamp` 는 **항상 현재 시각**으로
+    #   갱신했다 → 파일이 통째로 최신인 척했다. 실제로 report1.json 안에서
+    #   `.meshes.drones.mavic4pro.max_rpm = 8400`(새) vs `.articulation.hover.…= 6000`(옛) 처럼
+    #   **한 파일에 두 소스 버전**이 공존했다. mtime 으로는 절대 못 잡는다.
+    #   → 이제 **블록마다** 언제·어떤 소스로 만들어졌는지 남긴다. 소비자·검사기가 부분 낡음을 본다.
+    def _src_fingerprint():
+        out = {}
+        for rel in ("src/drones.py", "src/drone_cad.py", "src/materials.py"):
+            p = os.path.join(ROOT, rel)
+            if os.path.exists(p):
+                out[rel] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(os.path.getmtime(p)))
+        return out
+
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    src_fp = _src_fingerprint()
+    prov = J.setdefault("_provenance", {})
+    for _blk in sorted(only):
+        prov[_blk] = dict(stamp=now, sources=src_fp)
+
     J["meta"] = dict(fc=FC, az=AZ, el=EL, res=list(RES), spp=SPP,
                      gpu=os.environ.get("CUDA_VISIBLE_DEVICES", "?"),
-                     stamp=time.strftime("%Y-%m-%d %H:%M:%S"))
+                     stamp=now,
+                     blocks_written=sorted(only),
+                     stamp_note=("stamp 은 **이번 실행 시각**일 뿐 파일 전체의 신선도가 아니다. "
+                                 "블록별 신선도는 _provenance 를 볼 것 — `--only` 로 일부만 다시 쓰면 "
+                                 "나머지 블록은 이전 실행 값 그대로 남는다."))
     with open(JSON_OUT, "w") as f:
         json.dump(J, f, ensure_ascii=False, indent=1)
     print(f"\n✅ 측정값 저장 → {os.path.relpath(JSON_OUT, ROOT)}")

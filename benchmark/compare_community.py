@@ -22,7 +22,10 @@ compare_community.py — **커뮤니티 구형 DJI 메쉬 vs 우리 파라메트
     공식 스펙을 받으면 독립 커뮤니티 메쉬를 재현하는가" 라는 **방법 점검**이다.
 
 ■ 공식 스펙시트 (dji.com / dronespec datasheet, 2026-07-14 확인)
-  M100     : 대각 650 mm · 프롭 DJI 1345(13.45"=342 mm) · 모터 3510 · 4로터 · 2431 g(TB47S 6셀)
+  M100     : 대각 650 mm · 프롭 DJI 1345(**13×4.5"** = 330.2 mm) · 모터 3510 · 4로터 · 2431 g(TB47S 6셀)
+             ⚠ 정정 2026-07-28: "1345" 를 13.45 인치로 읽어 342 mm 로 쓰고 있었다. 부품번호 관례는
+               **직경 13 in × 피치 4.5 in** 이다(assets/meshes/reference/SOURCES.md:16 도 그렇게 적혀 있다).
+               +3.6% 직경 오차라 프롭 투영면적 +0.3 dB, 팁속도·f_tip +3.6% 만큼 틀어져 있었다.
   M600 Pro : 대각 1133 mm · 프롭 DJI 2170R(21"=533 mm) · 모터 6010 · 6로터 · 9.5 kg
   Mavic2Pro: 대각 354 mm · 프롭 8.7"(≈221 mm) · 907 g · 언폴드 322×242×84 mm
 
@@ -55,7 +58,7 @@ M100 = DroneSpec(
     key="dji_m100", name="DJI Matrice 100 (2015 quad)",
     diagonal_mm=650, weight_g=2431,
     body_l_mm=280, body_w_mm=280, body_h_mm=230,      # 중앙 프레임 + GPS 마스트(대략)
-    prop_dia_mm=342, prop_blades=2, num_rotors=4,     # DJI 1345 = 13.45"
+    prop_dia_mm=330.2, prop_blades=2, num_rotors=4,   # DJI 1345 = 13 in 직경 × 4.5 in 피치 (2026-07-28 정정, 옛 342)
     hover_rpm=4500, max_rpm=7000, prop_pitch_in=4.5,
     arm_style="body", gear="legs", gimbal="belly",
     rotor_deg=(45, 135, 225, 315), body_lw=(1.0, 1.0), gimbal_style="belly",

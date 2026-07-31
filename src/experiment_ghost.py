@@ -54,6 +54,9 @@ from rcs_po import drone_rcs_pattern                              # noqa: E402
 
 C0 = 299_792_458.0
 K = int(os.environ.get("SIONNA2_DET_K", "4000"))
+# ⭐ K(시행수=통계)와 배치(=순간 메모리)를 **분리**한다. 예전에는 배치가 하드코딩 64 라
+#   메모리가 모자라면 K 를 줄이는 수밖에 없었는데, 그건 결과의 통계를 훼손하는 짓이다.
+GHOST_BATCH = int(os.environ.get("SIONNA2_GHOST_BATCH", "64"))
 SNR_OP = 35.0   # 운용 SNR[dB] — 링크버짓 실측 SCR 14.8~55.3 dB(verify_linkbudget D_sigma_table)의
                 # 대표값. 유령(에코−18 dB)이 ~17 dB 로 보이는 현실적 지점.
 # 유령 파라미터 (RT, report09) — 파형 표준별
@@ -95,26 +98,42 @@ def fire_rate(pre, extra, cell, K, pfa_nom, seed, nscale=1.0):
     """몬테카를로: (에코[+extra]+DPI+잡음) → CFAR → cell ±1빈 발화율과 truth 발화율."""
     import torch
     from detection_gpu import rd_batch, cfar_batch
+    from gpu import oom_backoff
     t = pre._t; dev = t["dev"]
     echo = t["echo"] + (torch.tensor(extra, device=dev) if extra is not None else 0)
-    g = torch.Generator(device=dev).manual_seed(seed)
-    B = 64
     hits_c = 0; hits_t = 0; done = 0; pow_c = 0.0
     dg, rg = cell
-    while done < K:
-        b = min(B, K - done)
-        nz = ((torch.randn(b, pre.Ns, generator=g, device=dev)
-               + 1j * torch.randn(b, pre.Ns, generator=g, device=dev)) / np.sqrt(2)) * nscale
+
+    def _chunk(batch, n0):
+        """시행 [n0, n0+batch) 를 계산한다. 난수 씨앗을 **청크 시작번호 n0 로** 잡는다.
+
+        재현성 (정확히):
+          · `GHOST_BATCH` 를 고정하면 결과는 **완전히 재현된다**.
+          · 배치를 바꾸면 청크 경계가 바뀌므로 **비트단위로는 달라진다** — 다만 청크마다
+            독립적으로 씨를 뿌리므로 각 추출은 여전히 정당한 독립표본이고, 차이는 MC 오차 안이다.
+          · 옛 판(생성기 하나를 순차 소비)도 배치에 의존하기는 마찬가지였다. 바뀐 점은
+            **OOM 백오프로 배치가 중간에 줄어도** 이어지는 청크가 오염되지 않는다는 것이다."""
+        g = torch.Generator(device=dev).manual_seed(seed * 1000003 + n0)
+        nz = ((torch.randn(batch, pre.Ns, generator=g, device=dev)
+               + 1j * torch.randn(batch, pre.Ns, generator=g, device=dev)) / np.sqrt(2)) * nscale
         surv = echo[None, :] + t["dpi"][None, :] + nz
         rd = rd_batch(surv, t["ref"], pre.M, pre.n_range)
         det, _ = cfar_batch(rd, pfa=pfa_nom)
-        hits_c += int(det[:, max(0, dg - 1):dg + 2, max(0, rg - 1):rg + 2]
-                      .any(dim=(1, 2)).sum().item())
-        hits_t += int(det[:, max(0, pre.di_true - 1):pre.di_true + 2,
-                          max(0, pre.ri_true - 1):pre.ri_true + 2]
-                      .any(dim=(1, 2)).sum().item())
-        pow_c += float((rd[:, max(0, dg - 1):dg + 2, max(0, rg - 1):rg + 2] ** 2)
-                       .amax(dim=(1, 2)).sum().item())
+        hc = int(det[:, max(0, dg - 1):dg + 2, max(0, rg - 1):rg + 2]
+                 .any(dim=(1, 2)).sum().item())
+        ht = int(det[:, max(0, pre.di_true - 1):pre.di_true + 2,
+                     max(0, pre.ri_true - 1):pre.ri_true + 2]
+                 .any(dim=(1, 2)).sum().item())
+        pc = float((rd[:, max(0, dg - 1):dg + 2, max(0, rg - 1):rg + 2] ** 2)
+                   .amax(dim=(1, 2)).sum().item())
+        return hc, ht, pc
+
+    while done < K:
+        b = min(GHOST_BATCH, K - done)
+        # ⭐ 공용 GPU 에서 타 사용자가 갑자기 메모리를 잡아도 **죽지 말고 줄여서 계속** (gpu.oom_backoff).
+        #   2026-07-29: 이 고리가 실제로 OOM 으로 죽어(3.28 GiB) stage4 가 통째로 멎었다.
+        hc, ht, pc = oom_backoff(lambda batch: _chunk(batch, done), batch=b, min_batch=1)
+        hits_c += hc; hits_t += ht; pow_c += pc
         done += b
     return hits_c / K, hits_t / K, pow_c / K
 

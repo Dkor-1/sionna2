@@ -12,7 +12,7 @@ SYN = J["synthesis"]
 GRADE = J["meta"]["verify_grades"]
 
 # 검증등급 → 배지(그림 텍스트 아님, 본문 인라인이라 한글 OK)
-BADGE = {"CONFIRMED": "✅검증", "WEB": "🔎직접확인", "SOURCE": "📄단일출처",
+BADGE = {"PRIMARY": "📕원문대조", "CONFIRMED": "✅검증", "WEB": "🔎직접확인", "SOURCE": "📄단일출처",
          "IMAGE_LEAD": "⚠미검증단서"}
 
 

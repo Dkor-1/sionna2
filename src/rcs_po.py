@@ -134,7 +134,9 @@ def po_field_dir(P, N, dA, fc, u, w=None):
 #  과대평가**했다(mavic4pro, el=15°, 방위평균: PO −16.83 → SBR −22.11 dBsm).
 #
 #  SBR(`engine="sbr"`, 기본)은 Mitsuba 광선이 "실제로 맞은 첫 지점"만 적분하므로 가림이 공짜다.
-#  해석해 검증: 평판 −0.01 dB, 금속구 +0.39 dB (rcs_sbr.validate()).
+#  기준해 검증: 평판 −0.01 dB(정확 PO 4πA²/λ² 대비), 금속구 +0.39 dB — ⚠ 이 구 값은
+#  **πr² 점근 기준으로 잰 옛 숫자**다. 지금 rcs_sbr.validate() 는 해석 PO(커널의 과녁)와
+#  정확 Mie 두 기준으로 나란히 적는다(3.5 GHz·r=0.5 m 에서 둘은 0.152 dB 떨어져 있다).
 #  → 오목부 다중반사가 필요하면 rcs_sbr.rcs_sbr(max_bounce=3) 을 직접 부를 것(−0.23 dB 추가).
 #
 #  engine="po" 는 **비교·검증용으로만** 남긴다 (report6 이 두 엔진을 대조한다).
@@ -242,18 +244,29 @@ def _plate_mesh(a):
 def validate(fc=3.5e9):
     lam = C0/fc
     print(f"== PO 검증 @ {fc/1e9:.1f} GHz (λ={lam*100:.1f} cm) ==")
-    # 평판: 수직입사 이론 4πA²/λ²  (법선 +z → 시선 el=90°)
+    # 평판: 수직입사 4πA²/λ² — 점근이 아니라 **PO 의 정확한 답**이다 (법선 +z → 시선 el=90°)
     a = 0.30; A = a*a
     mp = _plate_mesh(a); P,N,dA = mesh_to_points(mp, lam/10)
     s = rcs_from_points(P,N,dA, fc, az_deg=[0.0], el_deg=90.0)[0]
     th = 4*np.pi*A**2/lam**2
-    print(f"  평판 {a}m: PO={dbsm(s):6.2f} dBsm  이론={dbsm(th):6.2f} dBsm  Δ={dbsm(s)-dbsm(th):+.2f}")
-    # 구: 큰 구 σ=πr²  (정점 많이)
+    print(f"  평판 {a}m: PO={dbsm(s):6.2f} dBsm  정확PO={dbsm(th):6.2f} dBsm  Δ={dbsm(s)-dbsm(th):+.2f}")
+    #  구: 기준해가 **둘**이다 — 이 커널은 PO 이므로 과녁은 해석적 PO 이고, 정확 Mie 와의
+    #  잔차는 PO 근사를 쓴 대가다. πr² 은 ka→∞ 점근값이라 **과녁이 아니다**(라벨만 남긴다).
+    import os
+    import sys
+    _bench = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                          "..", "benchmark"))
+    if _bench not in sys.path:
+        sys.path.insert(0, _bench)
+    from mie_pec_sphere import sphere_reference_set
     for r in (0.30, 0.50):
         ms = _sphere_mesh(r, seg=90, rings=46); P,N,dA = mesh_to_points(ms, lam/8)
         s = rcs_from_points(P,N,dA, fc, az_deg=[0.0], el_deg=0.0)[0]
-        th = np.pi*r*r
-        print(f"  구 r={r}m ({r/lam:.1f}λ): PO={dbsm(s):6.2f} dBsm  이론(πr²)={dbsm(th):6.2f} dBsm  Δ={dbsm(s)-dbsm(th):+.2f}")
+        ref = sphere_reference_set(r, fc)
+        print(f"  구 r={r}m ({r/lam:.1f}λ, kr={ref['kr']:.2f}): PO={dbsm(s):6.2f} dBsm  "
+              f"해석PO={ref['po_dbsm']:6.2f} Δ={dbsm(s)-ref['po_dbsm']:+.2f}  "
+              f"정확Mie={ref['mie_dbsm']:6.2f} Δ={dbsm(s)-ref['mie_dbsm']:+.2f}  "
+              f"(점근 πr²={ref['go_dbsm']:6.2f}, 과녁 아님)")
 
 
 if __name__ == "__main__":

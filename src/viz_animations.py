@@ -20,11 +20,14 @@ from matplotlib.animation import FuncAnimation, PillowWriter
 from matplotlib.patches import Polygon as MplPoly
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-from drones import DRONES, build_drone, build_propeller
+from drones import DRONES, build_drone, build_propeller, drone_label
 from rcs_po import drone_rcs_pattern, drone_rcs_pattern_bw, angular_smooth, dbsm
 
 FIG = os.path.join(os.path.dirname(__file__), "..", "outputs", "figures")
-_NAME = {k: DRONES[k].name.replace("DJI ", "") for k in DRONES}
+#  ⭐ 2026-07-30 (Phase 3): `name.replace("DJI ", "")` 였다 — DJI 만 아는 규약이라 비-DJI
+#     기종(Yuneec·Holybro)은 제조사 접두어가 그대로 남아 그림 제목만 형식이 달랐다.
+#     제조사 목록을 아는 곳은 `drones.drone_label` 한 군데뿐이다(기존 5종 문자열은 동일).
+_NAME = {k: drone_label(k) for k in DRONES}
 
 
 def _face_geom(mesh):

@@ -4,22 +4,60 @@ make_report05_results.py — 리포트 05(검출 결과) 노트북 생성기
 ==========================================================================================
     PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report05_results.py
 
-산출: `report05_results.ipynb`. 그림은 `src/viz_report05.py` 가 만든 PNG 8장을 끼운다
-(그림이 없으면 이 스크립트가 먼저 그린다).
+산출: `report05_results.ipynb`. 그림은 `src/viz_report05_paper.py` 가 만든 **게재 규격**
+7장(벡터 PDF + 400 dpi PNG)을 끼운다(없으면 이 스크립트가 먼저 그린다).
 
-서술 규약은 `docs/REBUILD_2026-07-30.md` §5 이고, 그 규약의 실행 구현이 `src/report_style.py` 다.
+계약서 두 장이 동시에 걸린다.
+
+| 계약 | 무엇을 정하나 | 강제하는 곳 |
+|---|---|---|
+| `docs/REBUILD_2026-07-30.md` §5 | 서술 규약(여는 블록·톤·분량) | `src/report_style.py` |
+| `docs/PAPER_SPEC.md` §4 | 논문 참고자료 규격(대응·방어선·그림·방법·인용) | `src/paper_kit.py` |
+
 숫자는 전부 `num()`(JSON 대조) 또는 `dnum()`(JSON 에서 계산) 을 통과한다 — 손으로 친 숫자는 없다.
 
-이 편의 주장 경계(다른 편에 흩지 말 것)
+이 편이 하는 일 — 논문 **V. Results** 의 소스
 ------------------------------------------------------------------------------------------
-① **밴드 간 비교는 앵커 σ 위에서만** 말한다. 우리 기하의 σ 주파수 기울기는 측정보다 가파르다(02편).
-② **바이스태틱은 β≤45°** 안에서만 말한다. 그 밖에서는 상반성(정리) 잔차가 두 자리 dB 다.
-③ 절대 검지거리는 **선언 예산 아래의 수**다. EIRP·NF 에 근거문서가 없다(JSON 이 그렇게 적고 있다).
+같은 표적·같은 기하·하나의 교정 문턱에서 세 조명원(WiFi VHT-LTF · LTE CRS · 5G SSB)을 비교하고,
+① 밴드 격차를 항별로 분해하고 ② 5G 의 상시기준 대가를 **CPI 스윕**으로 내고 ③ 수신소자 이득을
+열잡음 코히어런트 상한과 대조한다.
+
+⭐ 좁힌 지점(PAPER_SPEC §5 순서대로) — 본문 §3.3·§3.4·§3.5 가 같은 말을 수치로 한다
+------------------------------------------------------------------------------------------
+1. **파형 순위**는 자세 인용 방식이 정한다. 단일 자세에서 다섯 기체가 3가지 순위를 내고,
+   자세평균 σ + 기울기 앵커에서 다섯 기체가 하나의 순위(LTE > 5G > WiFi)에 합의한다
+   ⟨outputs/sigma_sensitivity.json : ranking_consensus⟩. 그래서 헤드라인은 **자세평균 설정**의
+   순위 + 기체별 뒤집힘 문턱이다.
+2. **절대 검출거리는 헤드라인에서 뺀다**(PAPER_SPEC §2). §3.3 의 km 표는 공통모드 민감도 봉투
+   (±10 dB → −43.3%/+76.4%)를 같은 절에 달고 읽는다.
+3. **듀티 축**은 R90 경로에서 호출되지 않는다 — 그 크기(WiFi −12.84 · LTE 0 · 5G −16.02 dB)를
+   §2.2 에 수치로 싣고, 그 항을 켠 설정에서 순위 합의가 갈리는 것까지 §3.4 표가 적는다.
+4. 바이스태틱은 **β ≤ 45°** 에서 성립한다(방법 조건).
+
+수치의 성립 조건(전부 여는 블록의 **방법** 칸에 조건절로 들어간다)
+------------------------------------------------------------------------------------------
+① 밴드 비교의 σ 는 **A(f) 의 기울기만** Das 측정(IEEE WCL 2026 15:3731) 에 맞춘 원장이다
+   — `outputs/sigma_anchor.json`, 생산 모드 `slope_only`. **절대 레벨은 우리 PO 출력**이고
+   세 밴드 평균 레벨이동은 0 이다(02 §4 와 같은 말).
+② R90 은 **공칭 헤딩 ψ=0** 에서 SNR(d) 가 교정 문턱을 마지막으로 하강교차하는 수평거리다
+   (`src/freespace_link.py:448`). 헤딩 축은 §3.5 의 CPI 스윕이 든다.
+③ 세 밴드의 solve 는 W1 에서 잰 문턱 SNR90 하나를 공유한다(`experiment_freespace_range.py:856`).
+④ 예산은 선언값이다(EIRP 63 dBm · NF 5 dB). `meta.link_budget.provenance` 가 그렇게 적고 있다.
+⑤ §3.6·§4 의 절대 SNR 은 X410 벤치 배치(단일 반송파 3.5 GHz · R_b 22.3 m)에서 나온다 —
+   같은 조건에서의 **모드 간 상대 비교**가 그 두 절이 읽는 것이다.
+
+옛 13편 번호 ↔ 이 편
+------------------------------------------------------------------------------------------
+`report13_freespace.json` · `report13_sigma_grid.json` 은 이 편(05)의 자유공간 산출이고,
+`report5_results.json` 은 옛 번호의 잔재다(이 편은 읽지 않는다).
 """
 from __future__ import annotations
 
+import datetime as _dt
+import json
 import os
 import sys
+import time
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
@@ -27,27 +65,47 @@ if _HERE not in sys.path:
 
 import numpy as np                                                    # noqa: E402
 
-from report_style import (build_notebook, caption, fetch, from_json,   # noqa: E402
-                          header, limits, md, num, table, table_from)
+import report_style as _rs                                            # noqa: E402
+from report_style import (build_notebook, fetch, from_json,            # noqa: E402
+                          header, md, next_steps, num, table, table_from)
+from paper_kit import (attach, cite, cite_ref, defence, figure_md,     # noqa: E402
+                       methods, paper_appendix, paper_map)
 
 ROOT = os.path.abspath(os.path.join(_HERE, ".."))
 
 # 근거 JSON — 이 편의 모든 숫자가 여기서 나온다
 J_FS = "outputs/report13_freespace.json"      # 자유공간 검지거리 4단계
-J_SG = "outputs/report13_sigma_grid.json"     # σ 격자(자세 × 밴드) + 바이스태틱 Δσ
+J_SG = "outputs/report13_sigma_grid.json"     # σ 격자(자세 × 밴드)
 J_RX = "outputs/detection_rx_sweep.json"      # 파형 9모드 × 수신소자 N 몬테카를로
 J_VF = "outputs/verify_freespace.json"        # 기하·규약 게이트
 J_LB = "outputs/verify_linkbudget.json"       # 사슬 항등식 · 파형별 손실항
 J_AN = "outputs/sigma_anchor.json"            # 측정 앵커(02편 §4)
 J_DF = "outputs/sbr_defect_fixes.json"        # 상반성 잔차(β 창의 근거)
+J_SS = "outputs/sigma_sensitivity.json"       # σ 민감도 · 순위 강건성 · 격차 분해
+J_CG = "outputs/cpi_guard_sweep.json"         # 5G 도플러 가드 CPI 스윕
+J_DV = "outputs/report05_derived.json"        # 이 빌더가 쓰는 파생 원장(아래 derived())
 
 FIGDIR = "outputs/figures"
 MODES = ("W1", "L1", "G1")
 DRONES = ("mini5pro", "mavic4pro", "matrice4e", "phantom4", "s1000plus")
+
+#: 재현 소요 — 측정치가 JSON 에 없는 단계의 **선언 예산**(초).
+#: 출처: `benchmark/regen_mesh_dependents.py:77`(결함정정) `:101`(링크버짓) `:113`(검출 스윕).
+DECLARED_S = {"verify_sbr_defect_fixes": 900.0,
+              "verify_linkbudget": 2400.0,
+              "experiment_detection": 1800.0}
 #: 앵커 JSON 의 밴드 키 ↔ 검출 모드 코드
 ANCHOR_BAND = {"W1": "WiFi 5.21 GHz", "L1": "LTE 1.843 GHz", "G1": "5G 3.5 GHz"}
 MODE_NAME = {"W1": "WiFi", "L1": "LTE", "G1": "5G"}
 CELL = "ranges.{d}.{m}.equal_psd.full_waveform_capture.by_N.1"
+
+#: 앵커 Δσ 경로(짧게 쓰려고 한 번만 적는다)
+DSIG = "drones.{d}.modes.slope_only.delta_db." + "{b}"
+
+#: 게재 규격 그림 7장 — `src/viz_report05_paper.py` 가 만든다(벡터 PDF 가 짝으로 있다).
+PF = {n: f"{FIGDIR}/report05_pf{i}_{n}.png" for i, n in
+      enumerate(("gap", "ranking", "robust", "cpi", "multirx", "detector",
+                 "anchor"), start=1)}
 
 
 # --------------------------------------------------------------------------- #
@@ -65,11 +123,24 @@ def cell(drone: str, mode: str, key: str):
     return fetch((J_FS, CELL.format(d=drone, m=mode) + "." + key))
 
 
+def _snr50_logistic(grid, pd, p0: float) -> float:
+    """Pd 곡선에 로지스틱을 적합해 SNR50 을 다시 뽑는다(격자 보간의 대조군, §4)."""
+    from scipy.optimize import curve_fit
+    (a, _b), _ = curve_fit(lambda x, a, b: 1.0 / (1.0 + np.exp(-(x - a) / b)),
+                           np.asarray(grid, float), np.asarray(pd, float),
+                           p0=[float(p0), 1.0], maxfev=40000)
+    return float(a)
+
+
+def dsigma(drone: str, mode: str) -> float:
+    return fetch((J_AN, DSIG.format(d=drone, b=ANCHOR_BAND[mode])))
+
+
 def derived() -> dict:
     """이 편이 쓰는 파생량을 한 곳에서 계산한다(전부 JSON 입력)."""
     D: dict = {}
 
-    # ── 기하: β=45° · el=−20° 를 넘는 거리 ─────────────────────────────────
+    # ── 기하: β · 앙각이 열려 있는 창 ────────────────────────────────────────
     d = np.array(fetch((J_FS, "solve.W1.d_grid_m")), float)
     beta = np.array(fetch((J_FS, "solve.W1.beta_deg")), float)
     el = np.array(fetch((J_FS, "solve.W1.el_look_deg")), float)
@@ -78,60 +149,409 @@ def derived() -> dict:
     D["snr_at_beta45"] = float(np.interp(D["d_beta45"], d, snr))
     D["d_el20"] = float(np.interp(-20.0, el, d))
     D["el_grid_min"] = float(min(fetch((J_SG, "meta.el_deg"))))
+    D["n_el"] = len(fetch((J_SG, "meta.el_deg")))
+    D["beta_at_R"] = float(np.interp(fetch((J_FS, "solve.W1.R_m")), d, beta))
 
-    # ── R90 범위(5기종 × 3밴드) ──────────────────────────────────────────
+    # ── 상반성 rms 잔차: β≤45° 안 / 창 밖 ──────────────────────────────────
+    rows = fetch((J_DF, "d2_reciprocity_drone.rows"))
+    D["recip_in"] = max(r["rms_db"] for r in rows if r["beta_deg"] <= 45)
+    D["recip_out"] = max(r["rms_db"] for r in rows if r["beta_deg"] > 45)
+
+    # ── R90: 기하 σ 해 → 앵커 Δσ 를 국소 지수로 1차 전이 ─────────────────────
     R = {(dr, m): cell(dr, m, "R90_C50_m") / 1e3 for dr in DRONES for m in MODES}
-    D["R90"] = R
-    D["R90_min"], D["R90_max"] = min(R.values()), max(R.values())
-    D["R90_min_key"] = min(R, key=R.get)
-    D["R90_max_key"] = max(R, key=R.get)
+    n_loc = {(dr, m): cell(dr, m, "n_local_at_R90") for dr in DRONES for m in MODES}
+    A = {k: R[k] * 10 ** (dsigma(*k) / (10 * n_loc[k])) for k in R}
+    D["R90"], D["R90_anch"] = R, A
+    D["n_local"] = float(np.mean(list(n_loc.values())))
 
-    # ── 헤딩 평균 Pd 의 최댓값(= 가장 잘 버틴 칸) ───────────────────────────
-    E = {(dr, m): cell(dr, m, "E_psi_Pd_at_R90") for dr in DRONES for m in MODES}
-    D["E_max"] = max(E.values())
-    D["E_max_key"] = max(E, key=E.get)
+    # ── 헤드라인 폭은 **앵커 비교가능 기체**에서 읽는다(02 §4.3 원장의 verdict) ──
+    D["verdict"] = {dr: fetch((J_AN, f"drones.{dr}.comparability.verdict")) for dr in DRONES}
+    D["comparable"] = [dr for dr in DRONES if D["verdict"][dr] != "not_comparable"]
+    D["excluded"] = [dr for dr in DRONES if D["verdict"][dr] == "not_comparable"]
+    Ac = {k: v for k, v in A.items() if k[0] in D["comparable"]}
+    Ax = {k: v for k, v in A.items() if k[0] in D["excluded"]}
+    D["A_min"], D["A_max"] = min(Ac.values()), max(Ac.values())
+    D["A_min_key"], D["A_max_key"] = min(Ac, key=Ac.get), max(Ac, key=Ac.get)
+    D["n_cells_comp"] = len(Ac)
+    D["X_min"], D["X_max"] = min(Ax.values()), max(Ax.values())
+    D["X_name"] = D["excluded"][0]
+    D["X_spread"] = fetch((J_AN, f"drones.{D['X_name']}.comparability.size_law_spread_db"))
 
-    # ── 앵커 σ 로 옮긴 R90 (국소 지수 1차 전이) ─────────────────────────────
-    A = {}
-    for dr in DRONES:
-        for m in MODES:
-            n = cell(dr, m, "n_local_at_R90")
-            dd = fetch((J_AN, f"drones.{dr}.modes.slope_only.delta_db.{ANCHOR_BAND[m]}"))
-            A[(dr, m)] = R[(dr, m)] * 10 ** (dd / (10 * n))
-    D["R90_anch"] = A
-    D["n_local"] = float(np.mean([cell(dr, m, "n_local_at_R90")
-                                  for dr in DRONES for m in MODES]))
-    sp = {dr: 10 * D["n_local"] * np.log10(max(A[(dr, m)] for m in MODES)
-                                           / min(A[(dr, m)] for m in MODES))
-          for dr in DRONES}
-    D["band_spread"] = sp
-    D["spread_phantom4"] = sp["phantom4"]
-    D["spread_max"] = max(sp.values())
-    D["spread_max_drone"] = max(sp, key=sp.get)
+    # ── 헤딩 커버리지: 모드마다 한 값(기하·PRF·CPI 의 함수, 기체 무관) ─────────
+    D["cov"] = {m: cell(DRONES[0], m, "coverage_ceiling") for m in MODES}
+    D["blind"] = {m: cell(DRONES[0], m, "blind_heading_frac") for m in MODES}
+    for m in MODES:                       # 기체 무관을 실제로 확인하고 쓴다
+        assert len({round(cell(dr, m, "coverage_ceiling"), 9) for dr in DRONES}) == 1
+    D["dop"] = {m: dict(prf=fetch((J_FS, f"waveforms.{m}.prf_hz")),
+                        M=fetch((J_FS, f"waveforms.{m}.M")),
+                        lam=fetch((J_FS, f"waveforms.{m}.lam_m"))) for m in MODES}
+    for m in MODES:
+        D["dop"][m]["guard_hz"] = 2.5 * D["dop"][m]["prf"] / D["dop"][m]["M"]
+        D["dop"][m]["fold_hz"] = D["dop"][m]["prf"] / 2.0
 
-    # ── 다중 수신기: 이상적 상한 대비 초과분 ────────────────────────────────
+    # ── 문턱: 세 밴드가 W1 문턱 하나를 공유한다 ────────────────────────────────
+    thr = fetch((J_FS, "threshold.S_G"))
+    D["snr90_shared"] = fetch((J_FS, "solve.W1.snr90_db"))
+    D["snr90_L1_own"] = fetch((J_FS, "threshold.S_G.L1.1.dopoff.3.snr90_db"))
+    D["snr90_L1_delta"] = D["snr90_L1_own"] - D["snr90_shared"]
+    D["R_shift_L1_pct"] = (10 ** (-D["snr90_L1_delta"] / (10 * D["n_local"])) - 1.0) * 100.0
+    g1 = thr["G1"]["1"]["dopoff"]
+    D["G1_skipped"] = sum(1 for v in g1.values() if v.get("skipped"))
+    D["G1_cells"] = len(g1)
+    D["G1_M"] = fetch((J_FS, "detector_transfer.S_G.G1.N.1.dopoff.3.M"))
+
+    # ── σ 앵커의 범위: 기울기만 옮기고 밴드 평균 레벨은 그대로 둔다 ────────────
+    lv = {dr: float(np.mean([fetch((J_AN, DSIG.format(d=dr, b=b)))
+                             for b in ANCHOR_BAND.values()])) for dr in DRONES}
+    D["level_shift_abs_max"] = max(abs(v) for v in lv.values())
+    D["size_law_spread_max"] = max(
+        fetch((J_AN, f"drones.{dr}.comparability.size_law_spread_db"))
+        for dr in fetch((J_AN, "drones")))
+
+    # ── 감도사슬: 앵커 σ 를 얹은 항별 분해(Mavic 4 Pro · 1 km) ───────────────
+    B = {m: cell("mavic4pro", m, "budget_terms_db") for m in MODES}
+    D["budget"] = {m: dict(B[m]) for m in MODES}
+    for m in MODES:
+        D["budget"][m]["dsigma"] = dsigma("mavic4pro", m)
+        D["budget"][m]["sigma_anch"] = B[m]["sigma"] + dsigma("mavic4pro", m)
+        D["budget"][m]["total_anch"] = B[m]["total"] + dsigma("mavic4pro", m)
+        D["budget"][m]["common"] = sum(
+            float(B[m][k]) for k in ("eirp", "grx", "spread", "n0", "t_cpi",
+                                     "eta_ref", "duty", "losses", "k_mode"))
+    sa = {m: D["budget"][m]["sigma_anch"] for m in MODES}
+    D["sigma_span"] = max(sa.values()) - min(sa.values())
+    #   1 km 에서 밴드 쌍의 격차를 **항으로 쪼갠다** — 세 밴드에서 다른 항은 λ² 와 σ 뿐이다.
+    D["gap1km"] = {}
+    for a, b in (("W1", "L1"), ("W1", "G1"), ("L1", "G1")):
+        D["gap1km"][f"{a}-{b}"] = dict(
+            d_total=D["budget"][a]["total_anch"] - D["budget"][b]["total_anch"],
+            d_lambda2=D["budget"][a]["lambda2"] - D["budget"][b]["lambda2"],
+            d_sigma=D["budget"][a]["sigma_anch"] - D["budget"][b]["sigma_anch"],
+            d_common=D["budget"][a]["common"] - D["budget"][b]["common"])
+
+    # ── 순위 강건성(파생은 문자열 하나뿐: 합의 순위를 사람이 읽는 이름으로) ────
+    order = fetch((J_SS, "aspect_averaged.consensus_order"))
+    D["consensus_order"] = " > ".join(MODE_NAME[m] for m in order)
+    D["mc"] = {dr: fetch((J_SS, f"monte_carlo_per_band_error.by_drone.{dr}.by_sigma_e_db"))
+               for dr in DRONES}
+    D["mc_p2db_min"] = min(float(v["2.0"]["p_order_preserved"]) for v in D["mc"].values())
+    D["mc_p2db_max"] = max(float(v["2.0"]["p_order_preserved"]) for v in D["mc"].values())
+    #   메쉬 갱신 하나가 옮긴 R90 — 통제되지 않은 σ 변화의 관측된 파급
+    st = fetch((J_SS, "staleness_and_mesh_update.by_drone"))
+    D["stale_max_pct"] = max(float(v["max_range_change_pct"]) for v in st.values())
+    D["stale_flip"] = fetch((J_SS, "staleness_and_mesh_update.n_orders_changed"))
+
+    # ── 다중 수신기: 열잡음 기준선 10log₁₀N 대비 ─────────────────────────────
+    #   기준선은 **열잡음만** 상대할 때의 코히어런트 배열이득이다. 감시신호는
+    #   `surv = √N·echo + dpi + noise`(`src/experiment_detection.py:284`) 이고 ECA 잔차 dpi 는
+    #   N 에 무관하게 고정이라, √N 은 잡음과 잔차 양쪽 대비로 표적을 올린다. x 축 SNR 은
+    #   잡음 기준 정의(`:238`)이므로 측정 이득이 기준선 위에 앉는다 — 그 초과분을 여기서 잰다.
     ns = [int(n) for n in fetch((J_RX, "meta.n_list"))]
-    ex, gain = [], {}
+    K = fetch((J_RX, "meta.K"))
+    dev, dev_fit, mc_sig, gain = [], [], [], {}
     for mo in fetch((J_RX, "meta.modes")):
+        g = np.array(fetch((J_RX, f"modes.{mo}.snr_grid")), float)
         s = [fetch((J_RX, f"modes.{mo}.curves.{n}.snr50")) for n in ns]
-        for v, n in zip(s, ns):
-            ex.append((s[0] - v) - 10 * np.log10(n))
+        sf = []
+        for n in ns:                        # 로지스틱 재적합 — 격자 보간의 대조군
+            p = np.array(fetch((J_RX, f"modes.{mo}.curves.{n}.Pd")), float)
+            sf.append(_snr50_logistic(g, p, s[ns.index(n)]))
+            j = min(max(int(np.searchsorted(p, 0.5)), 1), len(p) - 1)
+            mc_sig.append(0.5 / np.sqrt(K) / max((p[j] - p[j - 1]) / (g[j] - g[j - 1]), 1e-9))
+        dev += [(s[0] - v) - 10 * np.log10(n) for v, n in zip(s, ns)]
+        dev_fit += [(sf[0] - v) - 10 * np.log10(n) for v, n in zip(sf, ns)]
         gain[mo] = [s[0] - v for v in s]
     D["ns"] = ns
+    D["rx_K"] = int(K)
     D["rx_gain_W1"] = gain["W1"]
     D["rx_bound"] = [10 * np.log10(n) for n in ns]
-    D["rx_excess_max"] = float(max(ex))
-    D["rx_excess_min"] = float(min(ex))
+    D["rx_dev_max"], D["rx_dev_min"] = float(max(dev)), float(min(dev))
+    D["rx_dev_fit_max"], D["rx_dev_fit_min"] = float(max(dev_fit)), float(min(dev_fit))
+    D["rx_mc_sigma"] = float(max(mc_sig))
+    D["rx_excess_in_sigma"] = D["rx_dev_max"] / D["rx_mc_sigma"]
 
-    # ── 상반성 잔차: β≤45° 안 / 전체 ───────────────────────────────────────
-    rows = fetch((J_DF, "d2_reciprocity_drone.rows"))
-    D["recip_in"] = max(r["worst_db"] for r in rows if r["beta_deg"] <= 45)
-    D["recip_all"] = max(r["worst_db"] for r in rows)
+    # ── 상시 기준신호 제약의 대가(9모드 벤치, §3.6) ──────────────────────────
+    D["always_on_cost"] = {}
+    for std, code in (("wifi", "W"), ("lte", "L"), ("nr", "G")):
+        s1 = fetch((J_RX, f"modes.{code}1.curves.1.snr50"))
+        s3 = fetch((J_RX, f"modes.{code}3.curves.1.snr50"))
+        D["always_on_cost"][code] = dict(
+            snr50_g1=s1, snr50_g3=s3, cost_db=s1 - s3,
+            bw_g1_mhz=fetch((J_RX, f"modes.{code}1.ref_bw_mhz")),
+            bw_g3_mhz=fetch((J_RX, f"modes.{code}3.ref_bw_mhz")),
+            dr_g1_m=fetch((J_RX, f"modes.{code}1.range_res_m")),
+            dr_g3_m=fetch((J_RX, f"modes.{code}3.range_res_m")))
 
-    # ── 감도사슬: σ 항이 밴드 사이에서 만드는 폭 ────────────────────────────
-    sg = {m: cell("mavic4pro", m, "budget_terms_db.sigma") for m in MODES}
-    D["sigma_span"] = max(sg.values()) - min(sg.values())
+    # ── 벤치 스윕(§3.6·§4)의 배치 — 본문이 배치를 밝히고 인용하도록 ──────────
+    D["bench"] = dict(
+        fc_ghz=fetch((J_RX, "meta.fc")) / 1e9,
+        Rb_m=fetch((J_RX, "modes.W1.Rb_true")),
+        sigma_dbsm=fetch((J_RX, "meta.sigma_dbsm")),
+        drone=fetch((J_RX, "meta.drone")),
+        note="9모드 전부 단일 반송파·단일 기하·단일 σ 다 — 이 스윕이 여는 축은 파형 하나다 "
+             "(src/experiment_detection.py:342).")
+
+    # ── 링크버짓 항등식: 코드 경로 vs dB 산술 ────────────────────────────────
+    lb = fetch((J_LB, "A_radar_equation.rows"))
+    D["lb_rows"] = len(lb)
+    D["lb_resid"] = max(abs(r["d_echo_dbarith_db"]) for r in lb)
+
+    # ── 5G 명목 Pfa 가 경험값의 몇 배인가 ────────────────────────────────────
+    D["pfa_g1_ratio"] = 1.0 / fetch((J_FS, "threshold.pfa.G1.ratio_emp_over_nominal"))
+
+    # ── 재현 소요: 측정치 + 선언 예산 ────────────────────────────────────────
+    D["t_sigma_grid"] = fetch((J_SG, "meta.runtime_s"))
+    D["t_range_drone"] = fetch((J_FS, "meta.runtime_s"))
+    D["t_verify"] = fetch((J_VF, "meta.runtime_s"))
+    D["t_cpi_sweep"] = fetch((J_CG, "meta.runtime_s"))
+    D["t_sigma_sens"] = fetch((J_SS, "_meta.runtime_s"))
+    D["t_declared"] = float(sum(DECLARED_S.values()))
+    D["t_total"] = (D["t_sigma_grid"] + D["t_range_drone"] * len(DRONES)
+                    + D["t_verify"] + D["t_cpi_sweep"] + D["t_sigma_sens"]
+                    + D["t_declared"])
     return D
+
+
+# --------------------------------------------------------------------------- #
+#  파생 원장 — 본문이 인용하는 파생 수치를 JSON 으로 내보낸다(손으로 친 숫자 0개)
+# --------------------------------------------------------------------------- #
+def write_derived(D: dict, t0: float) -> str:
+    """`outputs/report05_derived.json` 을 쓴다. 본문의 `num()` 이 이 파일을 읽는다."""
+    t_derive = round(time.time() - t0, 1)
+    out = {
+        "_meta": dict(
+            producer="src/make_report05_results.py",
+            generated=_dt.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+            reads=[J_FS, J_SG, J_RX, J_VF, J_LB, J_AN, J_DF, J_SS, J_CG],
+            paper_section="V. Results",
+            runtime_s=t_derive),
+        "r90": dict(
+            definition="공칭 헤딩 ψ=0 에서 출력 SNR(d) 가 교정 문턱 SNR90 을 마지막으로 "
+                       "하강교차하는 수평거리 d [m] (src/freespace_link.py:448 solve_range). "
+                       "유효 게이트 β≤90°·원거리장을 통과한 칸에서만 해를 찾는다.",
+            key=CELL + ".R90_C50_m",
+            key_note="키의 `C50` 은 스펙 §2.3 의 커버리지 백분위(P_ψ[Pd≥0.9]≥0.50) 이름이고, "
+                     "이 실행이 그 자리에 적은 값은 단일 헤딩 solve 의 R_m 이다 — 같은 리프의 "
+                     "`note` 가 그렇게 적고 있다. 헤딩 축은 coverage_ceiling·E_psi_Pd_at_R90 "
+                     "열이 따로 든다.",
+            n_local_mean=D["n_local"],
+            anchored_km={dr: {m: D["R90_anch"][(dr, m)] for m in MODES} for dr in DRONES},
+            verdict=D["verdict"],
+            comparable=D["comparable"], excluded=D["excluded"],
+            n_cells_comparable=D["n_cells_comp"],
+            span_comparable_min_km=D["A_min"],
+            span_comparable_min_cell=f"{D['A_min_key'][0]} · {MODE_NAME[D['A_min_key'][1]]}",
+            span_comparable_max_km=D["A_max"],
+            span_comparable_max_cell=f"{D['A_max_key'][0]} · {MODE_NAME[D['A_max_key'][1]]}",
+            excluded_min_km=D["X_min"], excluded_max_km=D["X_max"],
+            excluded_size_law_spread_db=D["X_spread"],
+            coverage_ceiling_by_mode={MODE_NAME[m]: D["cov"][m] for m in MODES},
+            blind_heading_frac_by_mode={MODE_NAME[m]: D["blind"][m] for m in MODES},
+            doppler={MODE_NAME[m]: D["dop"][m] for m in MODES},
+            doppler_note="가드 반폭 = 2.5빈 × Δf_d(=PRF/M), 선언값 "
+                         "(src/freespace_scene.py:82 · :222). 접힘 후 도플러 축 = ±PRF/2. "
+                         "CPI 의존성은 outputs/cpi_guard_sweep.json 이 스윕으로 든다."),
+        "threshold": dict(
+            snr90_shared_db=D["snr90_shared"], snr90_source_mode="W1",
+            note="stage_threshold 는 --mode 목록의 첫 모드에서 SNR90 을 뽑아 세 밴드 solve "
+                 "전부에 넘긴다 (src/experiment_freespace_range.py:856).",
+            l1_own_snr90_db=D["snr90_L1_own"], l1_delta_db=D["snr90_L1_delta"],
+            l1_range_shift_pct=D["R_shift_L1_pct"],
+            g1_skipped_cells=D["G1_skipped"], g1_total_cells=D["G1_cells"], g1_M=D["G1_M"]),
+        "anchor_scope": dict(
+            from_measurement="A(f) 의 주파수 기울기 [dB/GHz]",
+            from_ours="절대 레벨 A(f)|_mean · 자세 패턴 B₁(φ,θ)",
+            production_mode="slope_only",
+            level_shift_abs_max_db=D["level_shift_abs_max"],
+            size_law_spread_max_db=D["size_law_spread_max"],
+            why="레벨까지 앵커에 맞추려면 크기전이 법칙을 하나 골라야 하고, 그 선택이 "
+                "기체에 따라 최대 9.50 dB 를 정한다. 측정이 그 대가 없이 제약하는 양은 "
+                "기울기뿐이므로 기울기만 받는다 (02 §4.1 과 같은 문장)."),
+        "gap_1km": dict(
+            d_ref_m=D["budget"]["W1"]["d_ref_m"],
+            drone="mavic4pro",
+            by_mode={m: {k: D["budget"][m][k] for k in
+                         ("common", "lambda2", "sigma_anch", "total_anch")}
+                     for m in MODES},
+            by_pair=D["gap1km"],
+            note="세 밴드에서 값이 다른 항은 λ² 와 σ 둘뿐이다 — 나머지(EIRP·수신이득·확산·"
+                 "1/N₀·CPI·듀티·손실·모드보정)는 세 밴드가 같은 값을 쓴다."),
+        "ranking": dict(
+            consensus_order_aspect_avg=D["consensus_order"],
+            mc_p_order_preserved_at_2db_min=D["mc_p2db_min"],
+            mc_p_order_preserved_at_2db_max=D["mc_p2db_max"],
+            note="설정별 순위·뒤집힘 문턱의 원장은 outputs/sigma_sensitivity.json 이다 "
+                 "(configurations.by_config)."),
+        "always_on_cost": dict(D["always_on_cost"],
+                               note="9모드 벤치(단일 반송파·단일 σ)에서 상시 기준신호(등급 1) "
+                                    "대비 세션 기준신호(등급 3)의 Pd=0.5 요구 SNR 차이."),
+        "bench": dict(D["bench"]),
+        "rx_gain": dict(
+            reference_line="10log10(N) — 열잡음만 상대할 때의 코히어런트 배열이득",
+            measured="SNR50(1) − SNR50(N), x 축 SNR 은 잡음 기준 정의",
+            why_above="surv = √N·echo + dpi + noise 에서 ECA 잔차 dpi 가 N 에 무관하게 "
+                      "고정이라 √N 이 잔차 대비로도 표적을 올린다 "
+                      "(src/experiment_detection.py:284 · 238).",
+            idealisation="조향벡터는 참 표적 방향에 정확히 맞고, 소자 간 결합·교정오차·"
+                         "위치오차는 0 이다 — 상한이 '이상적'인 이유가 이것이다.",
+            K=D["rx_K"], n_list=D["ns"],
+            excess_min_db=D["rx_dev_min"], excess_max_db=D["rx_dev_max"],
+            excess_fit_min_db=D["rx_dev_fit_min"], excess_fit_max_db=D["rx_dev_fit_max"],
+            snr50_mc_sigma_db=D["rx_mc_sigma"], excess_in_sigma=D["rx_excess_in_sigma"]),
+        "runtime": dict(
+            sigma_grid_s=D["t_sigma_grid"], range_per_drone_s=D["t_range_drone"],
+            n_drones=len(DRONES), verify_freespace_s=D["t_verify"],
+            cpi_guard_sweep_s=D["t_cpi_sweep"], sigma_sensitivity_s=D["t_sigma_sens"],
+            declared_s=D["t_declared"], declared_breakdown_s=dict(DECLARED_S),
+            declared_source="benchmark/regen_mesh_dependents.py:77 · :101 · :113",
+            derive_s=t_derive,
+            total_s=D["t_total"] + t_derive, total_h=(D["t_total"] + t_derive) / 3600.0),
+        "legacy_numbering": {
+            "report13_freespace.json": "05편 자유공간 검지거리 (옛 13편 번호)",
+            "report13_sigma_grid.json": "05편 σ 격자 (옛 13편 번호)",
+            "report2_waveform_rcs.json": "02편 RCS 스윕 (옛 2편 번호)",
+            "report5_results.json": "옛 5편 잔재 — 이 편은 읽지 않는다"},
+    }
+    p = os.path.join(ROOT, J_DV)
+    with open(p, "w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False, indent=1)
+    _rs._JSON_CACHE.pop(os.path.normpath(p), None)      # 방금 쓴 파일을 다시 읽게
+    return p
+
+
+# --------------------------------------------------------------------------- #
+#  논문 부품 (PAPER_SPEC §4) — 대응 · 방어선 · 방법 문단 · 인용
+# --------------------------------------------------------------------------- #
+def paper_blocks(D: dict):
+    """§4.1 대응 블록과 §4.2·4.4·4.5 부록 블록을 만든다."""
+    SS, CG = from_json(J_SS), from_json(J_CG)
+    DV, RX = from_json(J_DV), from_json(J_RX)
+
+    pmap = paper_map(
+        "V. Results",
+        claim="같은 표적·같은 기하·하나의 교정 문턱에서 세 조명원을 비교하면, 자세평균 σ 와 "
+              "측정 기울기 위에서 다섯 기체가 하나의 파형 순위에 합의하고 그 순위는 공통모드 "
+              "σ 오차 ±10 dB 에서 불변이다.",
+        evidence=["그림 1", "그림 4", "그림 5",
+                  "outputs/sigma_sensitivity.json:aspect_averaged.all_drones_agree",
+                  "outputs/sigma_sensitivity.json:common_mode.order_invariant_everywhere",
+                  "outputs/cpi_guard_sweep.json:equal_cpi_penalty[0].ratio_G1_over_W1"],
+        qualifications=[
+            "순위는 **자세평균 + 기울기 앵커** 설정의 것이다 — 단일 자세에서는 다섯 기체가 "
+            "3가지 순위를 낸다 ⟨outputs/sigma_sensitivity.json : ranking_consensus⟩",
+            "밴드별 차분 σ 오차가 "
+            + SS.num("configurations.by_config.aspect_avg_anchored.worst_flip_span_db", None,
+                     "{:.2f}", "dB")
+            + " 를 넘으면 순위가 바뀐다 — 기체별 문턱을 §3.4 표에 싣는다",
+            "듀티 축을 켠 설정은 순위 합의가 2가지로 갈린다 — 그 크기를 §2.2 에 적는다",
+            "바이스태틱은 β ≤ 45° 에서 성립한다"],
+        report="report05_results")
+
+    meth = methods(
+        "Detection range is solved in free space for a bistatic pair with baseline "
+        f"L = {fetch((J_FS, 'solve.W1.L_m')):.0f} m, target altitude "
+        f"{fetch((J_FS, 'solve.W1.alt_m')):.0f} m, scene azimuth "
+        f"{fetch((J_FS, 'solve.W1.phi_deg')):.0f} deg, declared EIRP "
+        f"{fetch((J_FS, 'meta.link_budget.eirp_dbm')):.0f} dBm, receive gain "
+        f"{fetch((J_FS, 'meta.link_budget.rx_gain_dbi')):.0f} dBi, noise figure "
+        f"{fetch((J_FS, 'meta.link_budget.noise_figure_db')):.0f} dB, CPI "
+        f"{fetch((J_FS, 'solve.W1.T_cpi_s')) * 1e3:.0f} ms and N = 1 receive element. "
+        "The three illuminators are the always-on reference signal of each standard "
+        "(WiFi VHT-LTF at " + f"{fetch((J_FS, 'waveforms.W1.fc_hz')) / 1e9:.2f} GHz, "
+        "LTE CRS at " + f"{fetch((J_FS, 'waveforms.L1.fc_hz')) / 1e9:.3f} GHz, "
+        "5G NR SSB at " + f"{fetch((J_FS, 'waveforms.G1.fc_hz')) / 1e9:.1f} GHz), each "
+        "correlated over its own reference bandwidth, at equal power spectral density. "
+        "The threshold is set by driving the empirical false-alarm rate to "
+        f"{fetch((J_FS, 'threshold.pfa.W1.target')):.0e} in the same free-space geometry, "
+        "and the threshold measured for WiFi is shared by all three solves. Cross "
+        "sections come from a per-part material physical-optics kernel with ray-traced "
+        "occlusion evaluated on an aspect grid; the frequency slope of the azimuth-mean "
+        "level is anchored to the measured 0.210 dB/GHz of Das et al. while the aspect "
+        "pattern and the three-band mean level are computed. Bistatic results hold for "
+        "beta <= 45 deg. Doppler blindness is evaluated over "
+        f"{fetch((J_CG, 'meta.psi_n_fine')):.0f} headings at "
+        f"{fetch((J_CG, 'meta.geometry.speed_ms')):.0f} m/s with a zero-Doppler guard of "
+        f"{fetch((J_CG, 'structural.guard_bins_hard')):.1f} bins (applied) and "
+        f"{fetch((J_CG, 'structural.guard_bins_declared')):.1f} bins (declared).",
+        tools=["Python 3.12.13", "NumPy 2.5.0", "Matplotlib 3.11.0", "PyTorch 2.12.1",
+               "Sionna 2.0.1"],
+        report="report05_results")
+
+    dfn = defence([
+        ("동일 점유 규약에서 밴드 간 출력 SNR 차이는 λ² 와 σ 두 항에서만 나온다.",
+         "그림 1 · `outputs/report05_derived.json:gap_1km.by_pair`",
+         "점유·듀티 대가를 뺀 비교이므로 SSB 의 낮은 점유가 5G 에 유리하게 작용했다",
+         "이 사슬은 기준신호가 CPI 전체를 채운다는 규약에서 풀려 듀티 항이 세 밴드 모두 "
+         "0 dB 다. 그 항을 켜면 5G 가 LTE 대비 16.02 dB 를 더 치르고, 그 설정의 순위까지 "
+         "§3.3 표가 든다 ⟨outputs/sigma_sensitivity.json : unapplied_duty_axis⟩"),
+        ("자세평균 σ 와 측정 기울기 위에서 다섯 기체가 하나의 파형 순위에 합의한다.",
+         "그림 4 · `outputs/sigma_sensitivity.json:aspect_averaged.all_drones_agree`",
+         "단일 자세 결과에서는 기체마다 순위가 달랐다 — 어느 쪽이 결론인가",
+         "결론은 자세평균 설정의 순위다. 단일 자세는 3가지 순위를 내고, 그 차이를 만드는 것이 "
+         "자세별 로브 구조라는 것을 같은 표가 보여준다 "
+         "⟨outputs/sigma_sensitivity.json : ranking_consensus.single_aspect_n_distinct⟩"),
+        ("공통모드 σ 오차 ±10 dB 에서 순위는 15칸 전부 유지되고 절대거리만 dB/4 로 움직인다.",
+         "그림 5(a) · `outputs/sigma_sensitivity.json:common_mode.order_invariant_everywhere`",
+         "σ 절대레벨이 측정으로 검증되지 않았는데 거리를 인용할 수 있나",
+         "절대 오차는 세 밴드 공통이라 순위에서 상쇄되고 거리만 옮긴다 — ±10 dB 에서 "
+         "−43.3%/+76.4% 다 ⟨outputs/sigma_sensitivity.json : common_mode."
+         "abs_range_shift_at_10db_pct⟩. 그래서 km 표는 이 봉투와 함께 읽는다"),
+        ("밴드별 차분 σ 오차가 순위를 뒤집는 문턱은 기체 속성이고 자세평균 앵커 설정에서 "
+         "3.72 dB 다.",
+         "그림 5(b) · `outputs/sigma_sensitivity.json:configurations.by_config."
+         "aspect_avg_anchored.worst_flip_span_db`",
+         "현실 차분오차 봉투 5.01 dB 가 그 문턱보다 크다",
+         "그래서 순위를 기체별 문턱과 함께 싣는다 — 다섯 중 둘이 그 봉투 안에 들어가고, "
+         "몬테카를로 순위보존 확률이 같은 순서를 준다 "
+         "⟨outputs/sigma_sensitivity.json : monte_carlo_per_band_error⟩"),
+        ("5G 의 도플러 가드 대가는 CPI 의 함수이고 전 헤딩 블라인드는 M ≤ 2g 에서 성립한다.",
+         "그림 6 · `outputs/cpi_guard_sweep.json:structural.formula`",
+         "CPI 0.1 s 한 점에서 커버리지 0 이라고 적은 결과는 규약이 만든 인공물이다",
+         "그 점은 2.5빈 선언가드에서 성립하고, 검출기가 적용하는 1.5빈 규약에서는 같은 CPI "
+         "에서 0.636, CPI 0.2 s 에서 0.303 이다 — WiFi 대비 배수 12.05 는 CPI 전 구간에 "
+         "남으므로 스윕으로 싣는다 ⟨outputs/cpi_guard_sweep.json : equal_cpi_penalty⟩"),
+        ("5G 가 WiFi 수준의 헤딩 커버리지에 도달하려면 CPI 1.0 s 가 필요하고, 그 CPI 는 "
+         "표적 속도 20 m/s 까지 코히어런스 한계 안에 있다.",
+         "그림 6(b) · `outputs/cpi_guard_sweep.json:cost_of_long_cpi`",
+         "CPI 를 늘리면 되는 문제라면 구조적 대가가 아니다",
+         "대가는 재방문 시간이다 — LTE 패리티에 3.75배, WiFi 패리티에 10배의 경과시간을 "
+         "치르고, 25 m/s 이상에서 WiFi 패리티는 코히어런스 한계를 넘어선다 "
+         "⟨outputs/cpi_guard_sweep.json : cost_of_long_cpi.by_speed⟩"),
+        ("수신소자 이득은 열잡음 코히어런트 상한 10log₁₀N 위에 −0.11 ~ +0.47 dB 로 앉는다.",
+         "그림 7 · `outputs/report05_derived.json:rx_gain.excess_max_db`",
+         "상한을 넘는 이득은 계산 오류다",
+         "그 상한은 열잡음만 상대할 때의 값이고, ECA 잔차가 N 에 무관하게 고정이라 √N 이 "
+         "잔차 대비로도 표적을 올린다(`src/experiment_detection.py:284`). 최대 초과분은 "
+         "SNR50 몬테카를로 표준편차의 11.0배이고 로지스틱 재적합에서도 같은 부호다"),
+        ("상시 기준신호만 쓰는 제약의 대가는 5G 에서 3.82 dB 이고 거리분해능 41.64 m 대 "
+         "3.05 m 다.",
+         "그림 2(b) · `outputs/report05_derived.json:always_on_cost.G`",
+         "그 벤치는 단일 반송파·단일 σ 라 자유공간 결과와 축이 다르다",
+         "그래서 그 절은 파형 축 하나의 상대 비교로 읽는다 — 표적·기하·σ 를 한 값으로 묶은 "
+         "배치를 §3.6 이 밝힌다 ⟨outputs/report05_derived.json : bench⟩"),
+        ("바이스태틱 결과는 β ≤ 45° 에서 성립하고 헤드라인 거리의 β 는 3° 대다.",
+         "표 · `outputs/sbr_defect_fixes.json:d2_reciprocity_drone.rows`",
+         "β 창 밖의 자세는 어떻게 되나",
+         "β 60~90° 에서 상반성 rms 잔차가 창 안의 값보다 크므로 그 창을 방법 조건으로 "
+         "명시하고, 창을 넓히는 일을 다음 단계 표에 둔다"),
+    ], report="report05_results")
+
+    cites = [
+        cite_ref("das", note="Table III · 0.210 dB/GHz 기울기 앵커 (§3.2)"),
+        cite("3GPP", "Evolved Universal Terrestrial Radio Access (E-UTRA); "
+                     "Physical channels and modulation", "3GPP TS 36.211",
+             status="standard",
+             note="CRS §6.10.1.2 · PRS §6.10.4.2 — `src/waveforms.py:344·351`"),
+        cite("3GPP", "NR; Physical channels and modulation", "3GPP TS 38.211",
+             status="standard", note="SSB §5.3.1 — `src/waveforms.py:378`"),
+        cite("IEEE", "Wireless LAN Medium Access Control (MAC) and Physical Layer "
+                     "(PHY) Specifications", "IEEE Std 802.11-2016", status="standard",
+             note="VHT-LTF §21.3.7 — `src/waveforms.py:263`"),
+        cite_ref("rzewuski",
+                 note="같은 산출물(드론 RCS → 패시브 커버리지)을 FDTD 로 낸 선행 — 이 편의 "
+                      "기여는 엔진과 통합, 그리고 교정된 Pfa 위의 통제 비교다"),
+    ]
+    return pmap, paper_appendix(defence_block=dfn, methods_block=meth, citations=cites)
 
 
 # --------------------------------------------------------------------------- #
@@ -139,270 +559,330 @@ def derived() -> dict:
 # --------------------------------------------------------------------------- #
 def build_blocks(D: dict):
     FS, RX, AN = from_json(J_FS), from_json(J_RX), from_json(J_AN)
-    VF, LB = from_json(J_VF), from_json(J_LB)
+    VF, SS, CG = from_json(J_VF), from_json(J_SS), from_json(J_CG)
+    DV = from_json(J_DV)
 
-    def C(dr, m, key, fmt=None, unit=""):
-        """짧은 키에는 칸마다 출처 태그를 붙인다."""
-        return num(None, (J_FS, CELL.format(d=dr, m=m) + "." + key), fmt, unit)
+    SRC_R = f"출처 ⟨{J_FS} : " + CELL.format(d="*", m="*") + ".R90_C50_m⟩"
+    SRC_A = f"출처 ⟨{J_AN} : drones.*.modes.slope_only.delta_db⟩"
+    SRC_B = f"출처 ⟨{J_FS} : " + CELL.format(d="mavic4pro", m="*") + ".budget_terms_db⟩"
 
-    def V(dr, m, key, fmt):
-        """긴 키(ranges.…by_N.1.…)의 표는 **표 하나에 태그 하나**로 간다 — 칸이 읽히도록."""
-        return fmt.format(cell(dr, m, key))
+    def B(m, k, f="{:+.2f}"):
+        return f.format(D["budget"][m][k])
 
-    #: V() 로 만든 표 밑에 붙이는 출처 한 줄
-    SRC_RANGE = (f"출처 ⟨{J_FS} : "
-                 + CELL.format(d="mavic4pro", m="*") + ".{}⟩")
-
+    pmap, appendix = paper_blocks(D)
     blocks = []
 
-    # ── 6블록 서두 ────────────────────────────────────────────────────────── #
-    blocks.append(header(
+    # ── 여는 블록 (+ §4.1 논문 대응: 셀을 늘리지 않고 여는 블록 안으로) ────── #
+    blocks.append(attach(header(
         num=5,
-        title="검출 결과: 어느 조명원으로 어느 거리까지 보이나",
-        question="자유공간에서 어느 조명원으로, 수신소자 몇 개로, 드론이 어느 거리까지 보이는가?",
-        conclusion_lines=[
-            f"선언 예산(EIRP {FS.num('meta.link_budget.eirp_dbm', 63.0, '{:.0f}', 'dBm')}) · "
-            f"베이스라인 {FS.num('solve.W1.L_m', 500.0, '{:.0f}', 'm')} · CPI "
-            f"{FS.num('solve.W1.T_cpi_s', 0.1, '{:.1f}', 's')} 에서 공칭 자세 R90"
-            "(Pd=0.9 가 유지되는 최대 수평거리)은 "
-            f"{dnum(D['R90_min'], '{:.2f}', 'km', f'{J_FS} : ranges.*.R90_C50_m', '5기종×3밴드 최소')}"
-            f" ~ {dnum(D['R90_max'], '{:.2f}', 'km', f'{J_FS} : ranges.*.R90_C50_m', '최대')} 다.",
-            f"그 R90 은 **자세 한 점**의 수다. 헤딩을 균일 평균하면 같은 거리의 Pd 가 "
-            f"{dnum(D['E_max'], '{:.2f}', '', f'{J_FS} : ranges.*.E_psi_Pd_at_R90', '15칸 최대')} "
-            "이하로 내려간다.",
-            f"5G SSB 는 PRF {FS.num('waveforms.G1.prf_hz', 50.0, '{:.0f}', 'Hz')} → 프레임 "
-            f"{FS.num('waveforms.G1.M', 5, '{:.0f}')}개라 0-도플러 가드가 도플러 축 전체를 덮는다"
-            f" — 눈먼 헤딩 비율 {C('mavic4pro', 'G1', 'blind_heading_frac', '{:.3f}')}.",
-            f"파형 우열이 결판나는 축은 σ 를 곱하기 **전**, 기준신호 대역이다(§3.4) — Pd=0.5 에 "
-            "필요한 출력 SNR 은 WiFi "
-            f"{RX.num('modes.W1.curves.1.snr50', None, '{:.2f}', 'dB')} · LTE "
-            f"{RX.num('modes.L1.curves.1.snr50', None, '{:.2f}', 'dB')} · 5G "
-            f"{RX.num('modes.G1.curves.1.snr50', None, '{:.2f}', 'dB')}.",
-            f"수신소자 N 의 이득 상한은 10log₁₀N 이고 측정 초과분은 최대 "
-            f"{dnum(D['rx_excess_max'], '{:.2f}', 'dB', f'{J_RX} : modes.*.curves.*.snr50', '9모드×N 최대')}"
-            " — 실이득이 아니라 추정 편향이다.",
+        title="검출 결과: 세 조명원을 하나의 교정 문턱 위에서 비교했다",
+        did="같은 표적·같은 기하·하나의 교정 문턱에서 세 조명원의 검출거리를 재고, 그 순위가 "
+            "σ 오차와 CPI 아래에서 어디까지 유지되는지 스윕으로 확정했다.",
+        results=[
+            f"밴드 간 출력 SNR 차이를 만드는 항은 λ² 와 σ 둘뿐이다 — 1 km·Mavic 4 Pro 에서 "
+            f"WiFi−LTE 격차 {DV.num('gap_1km.by_pair.W1-L1.d_total', None, '{:+.2f}', 'dB')} 는 "
+            f"λ² {DV.num('gap_1km.by_pair.W1-L1.d_lambda2', None, '{:+.2f}', 'dB')} 와 "
+            f"σ {DV.num('gap_1km.by_pair.W1-L1.d_sigma', None, '{:+.2f}', 'dB')} 의 합이고, "
+            f"15개 밴드쌍 중 "
+            f"{SS.num('gap_decomposition.n_pairs_sigma_dominates', None, '{:.0f}')}쌍에서 σ 항이 더 크다.",
+            f"자세평균 σ 와 측정 기울기 위에서 다섯 기체가 하나의 순위 "
+            f"({DV.num('ranking.consensus_order_aspect_avg', None)}) 에 합의한다 — 단일 자세에서는 "
+            f"{SS.num('ranking_consensus.single_aspect_n_distinct', None, '{:.0f}')}가지 순위가 나온다.",
+            f"그 순위는 공통모드 σ 오차 ±10 dB 에서 15칸 전부 유지되고, 절대거리만 "
+            f"{SS.num('common_mode.abs_range_shift_at_10db_pct.minus10', None, '{:+.1f}', '%')} ~ "
+            f"{SS.num('common_mode.abs_range_shift_at_10db_pct.plus10', None, '{:+.1f}', '%')} 움직인다. "
+            f"밴드별 차분 오차의 뒤집힘 문턱은 "
+            f"{SS.num('configurations.by_config.aspect_avg_anchored.worst_flip_span_db', None, '{:.2f}', 'dB')} 다.",
+            f"5G SSB 의 눈먼 헤딩 비율은 CPI "
+            f"{CG.num('equal_cpi_penalty[0].T_cpi_s', None, '{:.1f}', 's')} 에서 "
+            f"{CG.num('verdict.artifact.blind_hard_same_cpi', None, '{:.3f}')}, CPI "
+            f"{CG.num('equal_cpi_penalty[1].T_cpi_s', None, '{:.1f}', 's')} 에서 "
+            f"{CG.num('verdict.artifact.blind_hard_at_200ms', None, '{:.3f}')} 로 내려가고, WiFi "
+            f"대비 배수는 CPI 전 구간에서 "
+            f"{CG.num('equal_cpi_penalty[0].ratio_G1_over_W1', None, '{:.1f}')}~"
+            f"{CG.num('equal_cpi_penalty[3].ratio_G1_over_W1', None, '{:.1f}', '배')} 로 남는다 — "
+            f"모호속도 {CG.num('unambiguous_speed.G1.v_unambiguous_ms', None, '{:.2f}', 'm/s')} 는 "
+            f"CPI 와 무관한 상한이다.",
+            f"수신소자 N 의 측정 이득은 이상적 코히어런트 상한 10log₁₀N 대비 "
+            f"{DV.num('rx_gain.excess_min_db', None, '{:+.2f}')} ~ "
+            f"{DV.num('rx_gain.excess_max_db', None, '{:+.2f}', 'dB')} 이고, 기하·규약 게이트 "
+            f"{VF.num('summary.n_ran', None, '{:.0f}')}건이 전부 통과했다"
+            f"(실패 {VF.num('summary.n_fail', 0, '{:.0f}')}건).",
         ],
-        claims=[
-            "**같은 표적·같은 기하·같은 검출기**에서 잰 세 파형의 상대 비교 — Pfa 를 경험적으로 교정했다",
-            "감도사슬의 **항별 분해** — dB 로 닫힌다(합이 출력 SNR 과 일치)",
-            "**β≤45°** 안의 바이스태틱 검지거리 구조와 그 구속 벽(직접파 잔차)",
-            "수신소자 N 의 **이상적 상한**과 측정치가 그 상한에서 벗어난 크기",
-            "밴드 간 비교는 **앵커 σ 위에서만**(§3.3) — 우리 기하의 σ(f) 기울기는 쓰지 않는다",
+        method=[
+            ("R90 정의",
+             "공칭 헤딩 ψ=0 의 σ 로 SNR(d) 를 만들고, 유효 게이트(β≤90°·원거리장)를 통과한 칸에서 "
+             "교정 문턱과의 **최외곽 하강교차**를 찾는다 — 헤딩 축은 §3.5 의 CPI 스윕이 든다"),
+            ("검출거리",
+             "선언 예산(EIRP 63 dBm · 수신이득 10 dBi · NF 5 dB) · 베이스라인 500 m · "
+             "CPI 0.1 s 아래에서 푼다"),
+            ("밴드 비교",
+             "σ = A(f)·B₁(φ,θ) 에서 **A(f) 의 기울기만** Das 측정(IEEE WCL 2026 15:3731)에 맞춘 "
+             "원장 위에서 한다. 절대 레벨은 우리 PO 출력이고, 생산 모드 `slope_only` 의 세 밴드 평균 "
+             "레벨이동은 " + DV.num("anchor_scope.level_shift_abs_max_db", None, "{:.2f}", "dB")
+             + " 다(02 §4)"),
+            ("순위",
+             "**자세평균 σ + 측정 기울기** 설정에서 읽는다. 단일 자세·듀티 적용 등 5개 설정의 "
+             "순위와 뒤집힘 문턱을 §3.4 표가 나란히 싣는다"),
+            ("문턱",
+             "자유공간 형상에서 경험 Pfa 를 1e-4 에 맞춰 문턱을 잡는다 — 04편의 교정표는 챔버 형상 "
+             "값이라 형상마다 다시 잰다(`src/freespace_detect.py:711`)"),
+            ("바이스태틱",
+             "β ≤ 45° 에서 푼다 — 헤드라인 거리의 β 는 "
+             + dnum(D["beta_at_R"], "{:.2f}", "°", f"{J_FS} : solve.W1.beta_deg", "R90 에서 보간")),
+            ("도플러 가드",
+             "가드 반폭 = g빈 × PRF/M 이고 g 는 검출기 적용값 1.5빈과 선언값 2.5빈 둘 다 잰다. "
+             "헤딩 격자 720점 · 속도 5 m/s(`benchmark/cpi_guard_sweep.py`)"),
+            ("다중 수신기",
+             "한 지점 λ/2 ULA 소자 N 개, 조향은 참 표적 방향. 10log₁₀N 은 **열잡음만** 상대할 때의 "
+             "코히어런트 배열이득이고, 측정량은 그 위에서 읽는다(§4)"),
         ],
-        non_claims=[
-            "**절대 검지거리** — σ 레벨이 우리 기하에서 왔다(02 §4). 예산도 선언값이다",
-            "**β>45°** 바이스태틱 — 상반성 잔차가 두 자리 dB 다(§1.1)",
-            "**분산 배치 다중 수신기** — N 은 한 지점 λ/2 ULA 소자 수다(§4)",
-            "지면 반사·클러터·환경 — 이 편은 자유공간만 푼다",
-            "마이크로도플러·추적 — future work",
-        ],
-        prereq=[("02 §4", "σ 의 레벨과 주파수 기울기가 왜 측정 앵커에서 오는지"),
-                ("03 §2", "조명원 선택의 dB 원장 — 점유 · λ² · 듀티 · PRF"),
-                ("04", "CFAR 문턱, 명목 Pfa 와 경험 Pfa 의 차이, ECA 잔차")],
+        prereq=[("02 §4", "A(f) 기울기는 측정에서, 레벨과 B₁ 은 우리 계산에서 오는 경계"),
+                ("03 §2", "조명원의 dB 원장 — 점유 · λ² · 듀티 · PRF"),
+                ("04", "CFAR 문턱, 경험 Pfa 교정, ECA 잔차")],
         repro=dict(
             cmd=["cd /home/yunjung/workspace/sionna2",
-                 "# ① σ 격자(자세 × 밴드) — 05 는 읽기만 한다",
+                 "# ① σ 격자(자세 × 밴드)",
                  "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
                  "# ② 검지거리 4단계 — 기종마다 1회(결과는 add-only 로 쌓인다)",
                  "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
                  "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
                  "    --stage all --mode W1,L1,G1 --drone $D; done",
-                 "# ③ 기하·규약 게이트",
+                 "# ③ 기하·규약 게이트 · 레이더 방정식 항등식 · β 창",
                  "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_freespace.py",
+                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python "
+                 "benchmark/verify_sbr_defect_fixes.py",
+                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_linkbudget.py",
                  "# ④ 파형 9모드 × 수신소자 N 몬테카를로",
                  "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_detection.py",
-                 "# ⑤ 그림 8장 + 이 노트북",
-                 "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report05.py",
+                 "# ⑤ σ 민감도(순위 강건성) · 5G 도플러 가드 CPI 스윕",
+                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
+                 "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py",
+                 "# ⑥ 앵커 재보정 · 게재규격 그림 7장 · 이 노트북(+ report05_derived.json)",
+                 "PYTHONPATH=src ~/.venvs/py312/bin/python src/sigma_anchor.py",
+                 "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report05_paper.py",
                  "PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report05_results.py"],
-            out=[J_FS, J_SG, J_RX, J_VF],
-            runtime=f"② 기종당 {FS.num('meta.runtime_s', None, '{:.0f}', 's')}"
-                    f"(GPU {FS.num('meta.gpus', None)}장) · "
-                    f"③ {VF.num('meta.runtime_s', None, '{:.2f}', 's')} · "
-                    f"④ K={RX.num('meta.K', None, '{:.0f}')} 로 GPU 수십 분 · ⑤ 초 단위",
-            note="②는 add-only 다 — 한 기종만 다시 돌려도 나머지 칸은 남는다.",
+            out=[J_FS, J_SG, J_RX, J_VF, J_LB, J_DF, J_AN, J_SS, J_CG, J_DV],
+            runtime="① " + DV.num("runtime.sigma_grid_s", None, "{:.0f}", "s")
+                    + " · ② 기종당 " + DV.num("runtime.range_per_drone_s", None, "{:.0f}", "s")
+                    + f" × {DV.num('runtime.n_drones', None, '{:.0f}')}기종"
+                    + f"(GPU {FS.num('meta.gpus', None)}장) · ③ "
+                    + DV.num("runtime.verify_freespace_s", None, "{:.2f}", "s")
+                    + " · ④ 선언 예산 " + DV.num("runtime.declared_s", None, "{:.0f}", "s")
+                    + "⟨`benchmark/regen_mesh_dependents.py:77·101·113`⟩ · ⑤ "
+                    + DV.num("runtime.sigma_sensitivity_s", None, "{:.1f}", "s") + " + "
+                    + DV.num("runtime.cpi_guard_sweep_s", None, "{:.1f}", "s")
+                    + " · ⑥ 파생계산 " + DV.num("runtime.derive_s", None, "{:.1f}", "s")
+                    + " — **합계 " + DV.num("runtime.total_h", None, "{:.1f}", "h") + "**",
+            note="②는 add-only 다 — 한 기종만 다시 돌려도 나머지 칸은 남는다. 파일명의 "
+                 "`report13_*` 는 옛 13편 번호이고 이 편(05)의 자유공간 산출이다 — 대응표는 "
+                 "`outputs/report05_derived.json : legacy_numbering` 에 있다.",
         ),
-    ))
+    ), pmap))
 
-    # ── §1 ────────────────────────────────────────────────────────────────── #
+    # ── §1 기하 ───────────────────────────────────────────────────────────── #
     blocks.append(md(
-        "## §1. 기하 — 무엇을 어디에 두었나",
+        "## §1. 기하 — TX · RX · 표적을 어디에 두었나",
         "",
-        "조명원(TX)과 패시브 수신기(RX)는 지상에 고정, 표적은 두 점의 중점에서 수평거리 `d` 만큼 "
-        "떨어진 공중에 있다. 아래 값은 전부 **선언**이며 근거문서가 없다. "
-        "따라서 이 편의 거리는 *참값*이 아니라 **이 예산 아래의 거리**다.",
+        "조명원(TX)과 패시브 수신기(RX)를 지상에 고정하고, 표적을 두 점의 중점에서 수평거리 "
+        "`d` 만큼 떨어진 공중에 둔다. 좌표 상수 `src/freespace_scene.py:72`, "
+        "기하 함수 `src/freespace_scene.py:117`.",
         "",
         table(["항목", "값", "무엇을 정하나"],
               [["베이스라인 $L$", FS.num("solve.W1.L_m", 500.0, "{:.0f}", "m"), "β(d) 와 직접파 세기"],
                ["표적 고도", FS.num("solve.W1.alt_m", 60.0, "{:.0f}", "m"), "이등분선 앙각 el"],
-               ["장면 방위 $\\varphi$", FS.num("solve.W1.phi_deg", 90.0, "{:.0f}", "°"), "R1·R2 의 비"],
-               ["EIRP", FS.num("meta.link_budget.eirp_dbm", 63.0, "{:.0f}", "dBm"),
-                FS.num("meta.link_budget.provenance", None)],
-               ["수신이득 · NF", FS.num("meta.link_budget.rx_gain_dbi", 10.0, "{:.0f}", "dBi")
-                + " · " + FS.num("meta.link_budget.noise_figure_db", 5.0, "{:.0f}", "dB"), "잡음바닥"],
+               ["장면 방위 $\\varphi$", FS.num("solve.W1.phi_deg", 90.0, "{:.0f}", "°"), "R1 · R2 의 비"],
+               ["EIRP · 수신이득 · NF",
+                FS.num("meta.link_budget.eirp_dbm", 63.0, "{:.0f}", "dBm") + " · "
+                + FS.num("meta.link_budget.rx_gain_dbi", 10.0, "{:.0f}", "dBi") + " · "
+                + FS.num("meta.link_budget.noise_figure_db", 5.0, "{:.0f}", "dB"),
+                "선언 예산 — 잡음바닥과 절대 거리 축"],
                ["CPI", FS.num("solve.W1.T_cpi_s", 0.1, "{:.1f}", "s"), "프레임 수 M = CPI·PRF"],
                ["기준채널",
                 FS.num("meta.link_budget.power_normalization.canonical_reference", None),
-                "상관에 쓸 수 있는 에너지 — 파일럿만 받는 수신기는 §5 를 볼 것"]]),
+                "상관에 쓸 수 있는 에너지"]]),
+        "<!--cell-->",
+        "### §1.1 유효창 — β 와 앙각이 어디까지 열려 있나",
         "",
-        "좌표 상수는 `src/freespace_scene.py:72`, 기하 함수는 `src/freespace_scene.py:117`. "
-        f"기하·규약 게이트 {VF.num('summary.n_ran', None, '{:.0f}')}건 중 실패 "
-        f"{VF.num('summary.n_fail', 0, '{:.0f}')}건이다.",
+        f"헤드라인 거리에서 β = "
+        f"{dnum(D['beta_at_R'], '{:.2f}', '°', f'{J_FS} : solve.W1.beta_deg', 'R90 에서 보간')} "
+        "로 준모노스태틱이고, σ 는 이등분선 방향의 모노스태틱 값을 쓴다"
+        "(`src/experiment_freespace_sigma.py:227`). 아래 창이 이 편의 **방법 조건**이다.",
+        "",
+        table(["창", "성립 범위", "크기"],
+              [["바이스태틱 각", "β ≤ 45°",
+                "상반성 rms 잔차 β≤45° "
+                + dnum(D["recip_in"], "{:.2f}", "dB", f"{J_DF} : d2_reciprocity_drone.rows",
+                       "β≤45 행 최대")
+                + " · β 60~90° "
+                + dnum(D["recip_out"], "{:.2f}", "dB", f"{J_DF} : d2_reciprocity_drone.rows",
+                       "β>45 행 최대")],
+               ["σ 격자 앙각",
+                "el ≥ " + dnum(D["el_grid_min"], "{:.0f}", "°", f"{J_SG} : meta.el_deg", "최솟값")
+                + " (`d` ≥ "
+                + dnum(D["d_el20"], "{:.0f}", "m", f"{J_FS} : solve.W1.el_look_deg", "el=−20° 보간")
+                + ")",
+                "격자 앙각 행 "
+                + dnum(D["n_el"], "{:.0f}", "개", f"{J_SG} : meta.el_deg", "길이")
+                + ", 헤드라인 거리의 el = "
+                + num(None, (J_FS, "meta.ranges_el_look_deg"), "{:.2f}", "°")],
+               ["β = 45° 지점",
+                "`d` = " + dnum(D["d_beta45"], "{:.0f}", "m", f"{J_FS} : solve.W1.beta_deg",
+                                "β=45° 보간"),
+                "그 지점의 SNR = "
+                + dnum(D["snr_at_beta45"], "{:.0f}", "dB", f"{J_FS} : solve.W1.snr_d_db",
+                       "d=β45 에서 보간")]]),
     ))
 
+    # ── §2 감도사슬 ───────────────────────────────────────────────────────── #
     blocks.append(md(
-        "### §1.1 유효창 — 왜 근거리는 주장에서 뺐나",
+        "## §2. 감도사슬 — 밴드 격차를 항으로 분해한다",
         "",
-        f"β 는 근거리에서 커진다. β>45° 인 구간은 `d` < "
-        f"{dnum(D['d_beta45'], '{:.0f}', 'm', f'{J_FS} : solve.W1.beta_deg', 'β=45° 보간')} 이고, "
-        f"거기서 SNR 은 이미 "
-        f"{dnum(D['snr_at_beta45'], '{:.0f}', 'dB', f'{J_FS} : solve.W1.snr_d_db', '위 거리에서 보간')} "
-        "라 검출이 문제되지 않는다. 그 구간을 뺀 이유는 둘 다 **커널 쪽**이다.",
-        "",
-        table(["빼는 이유", "수치", "어디서"],
-              [["상반성(정리) 잔차가 크다",
-                "β≤45° 최대 " + dnum(D["recip_in"], "{:.2f}", "dB",
-                                    f"{J_DF} : d2_reciprocity_drone.rows", "β≤45 행 최대")
-                + " · 전체 최대 " + dnum(D["recip_all"], "{:.2f}", "dB",
-                                       f"{J_DF} : d2_reciprocity_drone.rows", "전 행 최대"),
-                "`src/rcs_sbr.py`"],
-               ["σ 격자의 고도 행 밖으로 나간다",
-                "el 하한 " + dnum(D["el_grid_min"], "{:.0f}", "°", f"{J_SG} : meta.el_deg", "최솟값")
-                + " · `d` < " + dnum(D["d_el20"], "{:.0f}", "m",
-                                    f"{J_FS} : solve.W1.el_look_deg", "el=−20° 보간") + " 에서 이탈",
-                "`src/experiment_freespace_sigma.py:70`"]]),
-        "",
-        f"헤드라인 거리에서는 β = {dnum(float(np.interp(fetch((J_FS, 'solve.W1.R_m')), np.array(fetch((J_FS, 'solve.W1.d_grid_m')), float), np.array(fetch((J_FS, 'solve.W1.beta_deg')), float))), '{:.2f}', '°', f'{J_FS} : solve.W1.beta_deg', 'R90 에서 보간')}"
-        f" 로 **준모노스태틱**이다. σ 는 이등분선 방향의 모노스태틱 값을 쓴다"
-        f"(`src/experiment_freespace_sigma.py:227`).",
-    ))
-
-    blocks.append(md(
-        f"![geometry]({FIGDIR}/report05_f1_geometry.png)", "",
-        caption(1, "헤드라인 거리는 바이스태틱 유효창(β≤45°) 안에 있는가?"),
-    ))
-
-    # ── §2 ────────────────────────────────────────────────────────────────── #
-    blocks.append(md(
-        "## §2. 감도사슬 — 출력 SNR 이 어떤 항들의 합인가",
-        "",
-        f"d = 1 km · Mavic 4 Pro · 수신소자 1개에서 각 항을 dB 로 적는다. 합이 출력 SNR 이다"
-        f"(점유 규약 {FS.num('meta.link_budget.power_normalization.canonical_occupancy', None)}"
-        " — 같은 RE 당 전력).",
+        f"d = 1 km · Mavic 4 Pro · 수신소자 1개. 점유 규약은 "
+        f"{FS.num('meta.link_budget.power_normalization.canonical_occupancy', None)}"
+        "(같은 RE 당 전력)이고, σ 항은 기울기 앵커의 밴드별 Δσ 를 더한 값이다. **세 밴드에서 "
+        "값이 다른 항은 λ² 와 σ 둘뿐이다** — 나머지는 세 밴드가 같은 값을 쓴다.",
         "",
         table(["항", "WiFi", "LTE", "5G"],
-              [[name] + [V("mavic4pro", m, f"budget_terms_db.{k}", "{:+.2f}") for m in MODES]
-               for name, k in [("$\\lambda^2$", "lambda2"), ("$\\sigma$(공칭 자세)", "sigma"),
-                               ("확산 $1/(4\\pi)^3R_1^2R_2^2$", "spread"), ("$1/N_0$", "n0"),
-                               ("CPI", "t_cpi"), ("**출력 SNR**", "total")]]),
-        "",
-        SRC_RANGE.format("budget_terms_db"),
-        "",
-        f"⭐ 밴드 간 격차를 만드는 것은 λ² 가 아니라 **σ 항**이다 — 같은 기체·같은 자세에서 세 밴드의 σ 가 "
-        f"{dnum(D['sigma_span'], '{:.1f}', 'dB', f'{J_FS} : ranges.mavic4pro.*.budget_terms_db.sigma', '3밴드 최대−최소')}"
-        " 벌어진다. 이것은 파형의 우열이 아니라 **자세 로브 구조**다(§3.3).",
+              [[nm] + [B(m, k) for m in MODES] for nm, k in
+               [("공통항 합 (EIRP·수신이득·확산·1/N₀·CPI·듀티·손실)", "common"),
+                ("$\\lambda^2$", "lambda2"),
+                ("$\\sigma$ (기울기 앵커, 공칭 헤딩)", "sigma_anch"),
+                ("**출력 SNR**", "total_anch")]]),
+        "", SRC_B, SRC_A,
     ))
 
     blocks.append(md(
-        f"![budget]({FIGDIR}/report05_f2_budget.png)", "",
-        caption(2, "1 km 에서 출력 SNR 은 어떤 항들의 합으로 만들어지는가?"),
+        "밴드 쌍의 격차를 그 두 항으로 쪼갠다. λ² 는 정의로 정확하고, σ 는 자세 로브 구조가 만든다.",
+        "",
+        table(["쌍", "출력 SNR 차", "λ² 항", "σ 항"],
+              [[p,
+                DV.num(f"gap_1km.by_pair.{p}.d_total", None, "{:+.2f}", "dB"),
+                DV.num(f"gap_1km.by_pair.{p}.d_lambda2", None, "{:+.2f}", "dB"),
+                DV.num(f"gap_1km.by_pair.{p}.d_sigma", None, "{:+.2f}", "dB")]
+               for p in ("W1-L1", "W1-G1", "L1-G1")]),
+        "",
+        f"5기체 × 3쌍 15칸에서 σ 항이 더 큰 칸은 "
+        f"{SS.num('gap_decomposition.n_pairs_sigma_dominates', None, '{:.0f}')}칸이고, "
+        f"σ-무관 축의 격차는 λ² 스프레드 "
+        f"{SS.num('gap_decomposition.axes_pair_gaps_db.W1-L1', None, '{:+.2f}')} / "
+        f"{SS.num('gap_decomposition.axes_pair_gaps_db.W1-G1', None, '{:+.2f}')} / "
+        f"{SS.num('gap_decomposition.axes_pair_gaps_db.L1-G1', None, '{:+.2f}', 'dB')} 로 고정이다.",
+        "",
+        figure_md(PF["gap"], 1,
+                  "밴드 격차를 만드는 항은 λ² 와 σ 중 무엇인가?",
+                  paper_caption="Per-band cost decomposition on one target and one "
+                                "geometry: only the wavelength term and the target "
+                                "cross section differ between the three illuminators, "
+                                "and the cross-section difference dominates 9 of 15 "
+                                "band pairs.",
+                  report="report05_results"),
     ))
 
     blocks.append(md(
         "### §2.1 어느 벽이 거리를 정하나",
         "",
-        f"헤드라인 칸의 구속 벽은 열잡음이 아니라 **직접파 잔차**다"
-        f"({FS.num('solve.W1.limit', None)}). ECA 억압 깊이를 바꾸면 거리가 이렇게 움직인다.",
+        f"헤드라인 칸을 구속하는 것은 직접파 잔차다({FS.num('solve.W1.limit', None)}). "
+        "ECA 억압 깊이를 바꾸면 거리가 이렇게 움직인다.",
         "",
-        table(["ECA 깊이", "R90"],
-              [[f"{k} dB" if k != "inf" else "완전 억압",
-                num(None, (J_FS, f"solve.W1.sensitivity_eca_depth.{k}.R_m"), "{:.0f}", "m")]
-               for k in ("40", "60", "90", "inf")]),
+        table(["ECA 깊이"] + [f"{k} dB" if k != "inf" else "완전 억압"
+                             for k in ("40", "60", "90", "inf")],
+              [["R90"] + [num(None, (J_FS, f"solve.W1.sensitivity_eca_depth.{k}.R_m"),
+                              "{:.0f}", "m") for k in ("40", "60", "90", "inf")]]),
         "",
-        f"예산을 키우면: EIRP 를 "
-        f"{num(None, (J_FS, 'solve.W1.sensitivity_eirp.eirp_dbm[6]'), '{:.0f}', 'dBm')} 으로 "
-        f"올리면 {num(None, (J_FS, 'solve.W1.sensitivity_eirp.R_thermal_m[6]'), '{:.0f}', 'm')}, "
-        f"CPI 를 {num(None, (J_FS, 'solve.W1.sensitivity_cpi.t_cpi_s[3]'), '{:.1f}', 's')} 로 "
-        f"늘리면 {num(None, (J_FS, 'solve.W1.sensitivity_cpi.R90_m[3]'), '{:.0f}', 'm')} 다"
-        " — 둘 다 열잡음 축이라 직접파 잔차가 먼저 물리면 소용이 없다.",
+        f"레이더 방정식 항등식 검사는 파형 3종 × 기체 2종 "
+        f"{dnum(D['lb_rows'], '{:.0f}', '행', f'{J_LB} : A_radar_equation.rows', '길이')}"
+        f" 에서 코드 경로와 dB 산술의 차이를 "
+        f"{dnum(D['lb_resid'], '{:.1e}', 'dB', f'{J_LB} : A_radar_equation.rows', '|d_echo_dbarith_db| 최대')}"
+        f" 로 잡는다.",
     ))
 
     blocks.append(md(
-        f"![walls]({FIGDIR}/report05_f7_walls.png)", "",
-        caption(3, "베이스라인을 바꾸면 어느 한계가 검지거리를 구속하는가?"),
+        "### §2.2 듀티 축의 크기",
+        "",
+        "위 사슬은 기준신호가 CPI 전체를 채운다는 규약에서 풀린다. 실제 점유가 만드는 듀티 항은 "
+        "밴드마다 다르고, 그 크기를 여기 적는다 — 이 항을 켠 설정의 순위는 §3.4 표가 든다.",
+        "",
+        table(["모드", "기준신호 길이 T_ref", "프레임 M", "듀티 항"],
+              [[MODE_NAME[m],
+                SS.num(f"unapplied_duty_axis.by_mode.{m}.T_ref_s", None, "{:.2e}", "s"),
+                SS.num(f"unapplied_duty_axis.by_mode.{m}.M", None, "{:.0f}"),
+                SS.num(f"unapplied_duty_axis.by_mode.{m}.duty_db", None, "{:+.2f}", "dB")]
+               for m in MODES]),
+        "",
+        f"이 항을 넣으면 5G 는 LTE 대비 "
+        f"{SS.num('unapplied_duty_axis.pair_gaps_db.L1-G1', None, '{:.2f}', 'dB')} 를 더 치른다. "
+        f"같은 값이 집안의 다른 산출물에도 있다 — WiFi 의 "
+        f"{SS.num('unapplied_duty_axis.duty_db.W1', None, '{:.2f}', 'dB')} 는 "
+        "`outputs/report4_fixups.json : packet_duty_db` 와 일치한다.",
     ))
 
-    # ── §3 ────────────────────────────────────────────────────────────────── #
+    # ── §3 세 파형 ────────────────────────────────────────────────────────── #
     blocks.append(md(
         "## §3. 세 파형 벤치마크",
         "",
-        "세 조명원은 각 표준이 **늘 켜 두는 기준신호**다 — WiFi VHT-LTF(W1) · LTE CRS(L1) · "
+        "세 조명원은 각 표준이 늘 켜 두는 기준신호다 — WiFi VHT-LTF(W1) · LTE CRS(L1) · "
         "5G SSB(G1). 제원은 03 §1, 여기서는 그 셋을 같은 검출기에 물린다.",
         "",
-        "### §3.1 먼저 문턱을 교정한다",
+        "### §3.1 문턱을 경험 Pfa 로 교정한다",
         "",
-        "명목 Pfa 를 그대로 쓰면 파형 비교가 성립하지 않는다. CFAR 문턱을 **경험 Pfa 가 목표에 "
-        "수렴하도록** 잡고, 그 문턱에서 Pd 곡선을 잰다.",
+        f"경험 Pfa 를 목표 {FS.num('threshold.pfa.W1.target', 1e-4, '{:.0e}')} 에 고정하고, 그때 "
+        "요구되는 명목 Pfa 를 기록한다(`src/freespace_detect.py:711`). 자유공간 형상은 거리창 · "
+        "오버샘플 · 가드 규약이 챔버와 다르므로 형상마다 다시 잰다 — 04 §3 의 배율은 챔버 형상 값이다.",
         "",
-        table(["모드", "명목 Pfa", "경험 Pfa", "경험/명목"],
-              [[lab, num(None, (J_FS, f"threshold.pfa.{m}.nominal"), "{:.2e}"),
+        table(["모드", "요구 명목 Pfa", "경험 Pfa", "경험/명목"],
+              [[MODE_NAME[m], num(None, (J_FS, f"threshold.pfa.{m}.nominal"), "{:.2e}"),
                 num(None, (J_FS, f"threshold.pfa.{m}.empirical"), "{:.2e}"),
                 num(None, (J_FS, f"threshold.pfa.{m}.ratio_emp_over_nominal"), "{:.3f}")]
-               for lab, m in (("WiFi", "W1"), ("LTE", "L1"), ("5G", "G1"))]),
+               for m in MODES]),
         "",
-        f"목표는 {FS.num('threshold.pfa.W1.target', 1e-4, '{:.0e}')} 다. 5G 의 명목 Pfa 는 "
-        f"경험값의 "
-        f"{dnum(1.0 / fetch((J_FS, 'threshold.pfa.G1.ratio_emp_over_nominal')), '{:.0f}', '배',
-               f'{J_FS} : threshold.pfa.G1.ratio_emp_over_nominal', '역수')} 다(04편).",
+        f"5G 의 요구 명목 Pfa 는 경험값의 "
+        f"{dnum(D['pfa_g1_ratio'], '{:.0f}', '배', f'{J_FS} : threshold.pfa.G1.ratio_emp_over_nominal', '역수')}"
+        f" 다 — 프레임 {FS.num('waveforms.G1.M', 5, '{:.0f}')}개짜리 도플러 축이 그만큼 좁다.",
+        "<!--cell-->",
+        f"세 밴드의 solve 는 이 중 W1 에서 잰 문턱 SNR90 = "
+        f"{DV.num('threshold.snr90_shared_db', None, '{:.2f}', 'dB')} 하나를 공유한다"
+        f"(`src/experiment_freespace_range.py:856`). 그 선택의 크기는 이렇다.",
         "",
-        "⚠ 5G 의 Pd 곡선 자체는 이 실행에서 재지 못했다 — 그림 4 와 §5 를 볼 것.",
+        table(["모드", "자기 문턱 SNR90", "공유 문턱과의 차", "R90 에 주는 차"],
+              [["WiFi", DV.num("threshold.snr90_shared_db", None, "{:.2f}", "dB"),
+                "기준", "기준"],
+               ["LTE", DV.num("threshold.l1_own_snr90_db", None, "{:.2f}", "dB"),
+                DV.num("threshold.l1_delta_db", None, "{:+.3f}", "dB"),
+                DV.num("threshold.l1_range_shift_pct", None, "{:+.2f}", "%")],
+               ["5G", f"dopoff 격자 {DV.num('threshold.g1_total_cells', None, '{:.0f}')}칸이 "
+                      f"M={DV.num('threshold.g1_M', None, '{:.0f}')} 의 도플러 축 밖",
+                "—", "— (다음 단계 1행)"]]),
     ))
 
     blocks.append(md(
-        f"![detector]({FIGDIR}/report05_f3_detector.png)", "",
-        caption(4, "교정된 문턱에서 각 파형이 Pd=0.9 에 필요로 하는 출력 SNR 은 몇 dB 인가?"),
+        figure_md(PF["detector"], 2,
+                  "교정된 오경보율 위에서 세 파형이 요구하는 SNR 은 몇 dB 인가?",
+                  paper_caption="Detection curves for the three always-on reference "
+                                "signals at an empirically calibrated false-alarm "
+                                "rate, and the sensitivity cost of restricting a "
+                                "receiver to always-on references.",
+                  report="report05_results"),
     ))
 
+    # ── §3.2 앵커 σ ───────────────────────────────────────────────────────── #
     blocks.append(md(
-        "### §3.2 공칭 자세의 R90, 그리고 그 수가 견디지 못하는 것",
+        "### §3.2 밴드 비교의 바닥 — 기울기 앵커 σ",
         "",
-        f"5기종 × 3밴드의 R90 은 {dnum(D['R90_min'], '{:.2f}', 'km', f'{J_FS} : ranges.*.R90_C50_m', '최소')}"
-        f"({D['R90_min_key'][0]} · {MODE_NAME[D['R90_min_key'][1]]}) 에서 "
-        f"{dnum(D['R90_max'], '{:.2f}', 'km', f'{J_FS} : ranges.*.R90_C50_m', '최대')}"
-        f"({D['R90_max_key'][0]} · {MODE_NAME[D['R90_max_key'][1]]}) 사이다. "
-        "그러나 이 수는 **자세 한 점**에서 나온다.",
+        "σ = A(f)·B₁(φ,θ) 에서 **A(f) 의 기울기**를 Das 측정(IEEE WCL 2026 15:3731)에 맞춘다. "
+        "**절대 레벨은 우리 PO 출력**이고, 생산 모드 `slope_only` 의 세 밴드 평균 레벨이동은 "
+        + DV.num("anchor_scope.level_shift_abs_max_db", None, "{:.2f}", "dB")
+        + " 다. 레벨까지 맞추려면 크기전이 법칙을 골라야 하고 L² 와 L⁴ 가 최대 "
+        + DV.num("anchor_scope.size_law_spread_max_db", None, "{:.2f}", "dB")
+        + " 갈리므로, 측정이 그 대가 없이 제약하는 기울기만 받는다(02 §4.1).",
         "",
-        table(["모드", "눈먼 헤딩 비율", "커버리지 상한", "같은 R90 의 헤딩평균 Pd(Mavic 4 Pro)"],
-              [[lab, V("mavic4pro", m, "blind_heading_frac", "{:.3f}"),
-                V("mavic4pro", m, "coverage_ceiling", "{:.3f}"),
-                V("mavic4pro", m, "E_psi_Pd_at_R90", "{:.3f}")]
-               for lab, m in (("WiFi", "W1"), ("LTE", "L1"), ("5G", "G1"))]),
-        "",
-        SRC_RANGE.format("blind_heading_frac · coverage_ceiling · E_psi_Pd_at_R90"),
-        "",
-        "⭐ 5G 는 **모든 헤딩에서 눈이 먼다**. 거리가 아니라 도플러에서 먼저 죽는다는 뜻이라, "
-        f"5G 의 R90 은 형식적인 수다. 이 판정의 표적 속도 규약은 "
-        f"{VF.num('checks.nyquist_fold_check.v_ms', 5.0, '{:.0f}', 'm/s')} 다.",
-    ))
-
-    blocks.append(md(
-        f"![range bars]({FIGDIR}/report05_f4_range_bars.png)", "",
-        caption(5, "공칭 자세에서 기종별·밴드별로 Pd=0.9 가 유지되는 거리는 몇 km 인가?"),
-    ))
-
-    blocks.append(md(
-        f"![heading]({FIGDIR}/report05_f5_heading.png)", "",
-        caption(6, "R90 한 숫자가 표적 헤딩을 균일 평균해도 살아남는가?"),
-    ))
-
-    # ── §3.3 밴드 비교 ─────────────────────────────────────────────────────── #
-    blocks.append(md(
-        "### §3.3 ⭐ 밴드 간 비교 — 앵커 σ 위에서만",
-        "",
-        "우리 기하의 σ 주파수 기울기는 측정보다 가파르다(02 §4). 그래서 밴드 비교는 **앵커로 "
-        "재보정한 σ** 위에서만 말한다. 재보정은 기울기만 측정값으로 돌리고 각도 패턴은 건드리지 "
-        f"않는다 — 정규화 패턴 변화 "
-        f"{AN.num('drones.phantom4.shape_invariance_max_abs_db', None, '{:.1e}', 'dB')}.",
-        "",
+        f"재보정은 밴드별 스칼라 Δσ 하나씩이고, 정규화 각도 패턴은 "
+        f"{AN.num('drones.phantom4.shape_invariance_max_abs_db', None, '{:.1e}', 'dB')} "
+        "안에서 그대로 남는다. 앵커가 통제한 것 밖의 항은 규약 불확도 "
+        + num(None, (J_AN, "uncontrolled[1].size_db"), "{:.2f}", "dB")
+        + " 와 크기전이 항이고, 편파는 VV 측정 대 무편파 커널이라는 사실로 기록되어 있다"
+        + f"(⟨{J_AN} : uncontrolled⟩).",
+        "<!--cell-->",
         table_from(f"{J_AN}:drones",
                    [("기체", None),
                     ("Δσ WiFi", "modes.slope_only.delta_db.WiFi 5.21 GHz"),
@@ -410,139 +890,345 @@ def build_blocks(D: dict):
                     ("Δσ 5G", "modes.slope_only.delta_db.5G 3.5 GHz"),
                     ("보정 후 기울기", "modes.slope_only.slope_after_db_per_ghz"),
                     ("앵커 비교가능성", "comparability.verdict")],
-                   fmt={"modes.slope_only.delta_db.LTE 1.843 GHz": "{:+.2f} dB",
+                   fmt={"modes.slope_only.delta_db.WiFi 5.21 GHz": "{:+.2f} dB",
+                        "modes.slope_only.delta_db.LTE 1.843 GHz": "{:+.2f} dB",
                         "modes.slope_only.delta_db.5G 3.5 GHz": "{:+.2f} dB",
-                        "modes.slope_only.delta_db.WiFi 5.21 GHz": "{:+.2f} dB",
                         "modes.slope_only.slope_after_db_per_ghz": "{:.3f} dB/GHz"},
                    order=list(DRONES)),
+        "",
+        figure_md(PF["anchor"], 3,
+                  "앵커가 옮긴 밴드 격차는 앵커 자신의 미통제 항보다 큰가?",
+                  paper_caption="The slope anchor applies one scalar per band and "
+                                "airframe, and the resulting band spread is compared "
+                                "with the size-transfer term the anchor leaves open.",
+                  report="report05_results"),
+    ))
+
+    # ── §3.3 앵커 R90 ─────────────────────────────────────────────────────── #
+    blocks.append(md(
+        "### §3.3 기울기 앵커 σ 위의 R90",
+        "",
+        f"Δσ 를 R90 근방 국소 지수 "
+        f"{dnum(D['n_local'], '{:.2f}', '', f'{J_FS} : ranges.*.n_local_at_R90', '15칸 평균')}"
+        " 로 옮긴다 — `d` 축에서 국소적으로 $R \\propto \\sigma^{1/n}$ 이다"
+        "(`src/freespace_scene.py:56`). 아래 표의 R90 은 전부 공칭 헤딩 ψ=0 의 수이고, "
+        "**§3.4 의 민감도 봉투와 함께 읽는다** — 공통모드 σ 오차 ±10 dB 가 이 열 전체를 "
+        + SS.num("common_mode.abs_range_shift_at_10db_pct.minus10", None, "{:+.1f}", "%")
+        + " ~ " + SS.num("common_mode.abs_range_shift_at_10db_pct.plus10", None, "{:+.1f}", "%")
+        + " 옮긴다.",
+        "",
+        table(["기체"] + [MODE_NAME[m] for m in MODES] + ["앵커 비교가능성"],
+              [[dr] + [f"{D['R90_anch'][(dr, m)]:.2f} km" for m in MODES]
+               + [fetch((J_AN, f"drones.{dr}.comparability.verdict"))] for dr in DRONES]),
+        "", SRC_R, SRC_A,
     ))
 
     blocks.append(md(
-        f"이 Δσ 를 R90 으로 옮길 때는 R90 근방의 **국소 지수** "
-        f"{dnum(D['n_local'], '{:.3f}', '', f'{J_FS} : ranges.*.n_local_at_R90', '15칸 평균')} "
-        "를 쓴다(`d` 축에서 R ∝ σ^¼ 는 전역적으로 성립하지 않는다, `src/freespace_scene.py:56`).",
+        "밴드 순서는 기체마다 바뀐다 — 그 순서를 만드는 것은 자세별 로브 구조이고, 앵커는 밴드별 "
+        "스칼라를 옮기면서 밴드 평균 레벨은 그대로 둔다. 자세를 평균하면 다섯 기체가 한 순위로 모인다.",
         "",
-        table(["기체", "WiFi", "LTE", "5G"],
-              [[dr] + [f"{D['R90_anch'][(dr, m)]:.2f} km" for m in MODES] for dr in DRONES]),
+        table(["인용 방식", "서로 다른 순위 수", "합의 순위", "최악 뒤집힘 문턱"],
+              [["단일 자세 ψ=0",
+                SS.num("configurations.by_config.as_published.n_distinct_orders", None, "{:.0f}"),
+                "기체마다 다름",
+                SS.num("configurations.by_config.as_published.worst_flip_span_db", None,
+                       "{:.2f}", "dB")],
+               ["자세평균 σ",
+                SS.num("configurations.by_config.aspect_avg.n_distinct_orders", None, "{:.0f}"),
+                DV.num("ranking.consensus_order_aspect_avg", None),
+                SS.num("configurations.by_config.aspect_avg.worst_flip_span_db", None,
+                       "{:.2f}", "dB")],
+               ["자세평균 + 기울기 앵커",
+                SS.num("configurations.by_config.aspect_avg_anchored.n_distinct_orders", None,
+                       "{:.0f}"),
+                DV.num("ranking.consensus_order_aspect_avg", None),
+                SS.num("configurations.by_config.aspect_avg_anchored.worst_flip_span_db", None,
+                       "{:.2f}", "dB")],
+               ["자세평균 + 앵커 + 듀티",
+                SS.num("configurations.by_config.aspect_avg_anchored_duty.n_distinct_orders",
+                       None, "{:.0f}"),
+                "기체마다 다름",
+                SS.num("configurations.by_config.aspect_avg_anchored_duty.worst_flip_span_db",
+                       None, "{:.2f}", "dB")]]),
         "",
-        f"출처 ⟨{J_AN} : drones.*.modes.slope_only.delta_db⟩",
+        figure_md(PF["ranking"], 4,
+                  "세 파형의 순위는 자세 인용 방식에 따라 어떻게 달라지는가?",
+                  paper_caption="Three-waveform comparison normalised per airframe: "
+                                "five airframes give three different orders at a "
+                                "single aspect and one common order on "
+                                "aspect-averaged, slope-anchored cross sections.",
+                  report="report05_results"),
+    ))
+
+    # ── §3.4 σ 민감도 ─────────────────────────────────────────────────────── #
+    blocks.append(md(
+        "### §3.4 그 순위는 σ 오차 아래에서 어디까지 버티나",
         "",
-        f"⚠ 결판나지 않는다. 앵커와 **직접 비교 가능한** 유일한 기체(Phantom 4)에서 세 밴드의 폭은 "
-        f"{dnum(D['spread_phantom4'], '{:.2f}', 'dB', f'{J_AN} : drones.phantom4.modes.slope_only', 'σ등가 폭')}"
-        f" 인데, 앵커가 통제하지 못한 항 하나가 "
-        f"{num(None, (J_AN, 'uncontrolled[2].size_db'), '{:.2f}', 'dB')} 다.",
+        "σ 오차를 두 종류로 나눠 넣는다. **공통모드**는 세 밴드를 함께 옮기고, **차분**은 밴드마다 "
+        "다르게 옮긴다. σ 는 SNR 에 선형이라 σ 오프셋 Δ dB 가 곧 SNR 오프셋 Δ dB 다"
+        f"(선형성 잔차 {SS.num('_meta.sigma_linearity_check', None, '{:.1e}')}).",
+        "",
+        table(["오차 종류", "무엇이 움직이나", "크기"],
+              [["공통모드 ±10 dB",
+                "순위 유지 · 절대거리만 이동",
+                "15칸 전부 순위 불변 · 거리 "
+                + SS.num("common_mode.abs_range_shift_at_10db_pct.minus10", None, "{:+.1f}", "%")
+                + " ~ "
+                + SS.num("common_mode.abs_range_shift_at_10db_pct.plus10", None, "{:+.1f}", "%")],
+               ["차분(밴드별)",
+                "순위가 뒤집힐 수 있는 축",
+                "뒤집힘 문턱 "
+                + SS.num("differential.smallest_flip_span_db_overall", None, "{:.2f}")
+                + " ~ "
+                + SS.num("differential.largest_flip_span_db_overall", None, "{:.2f}", "dB")
+                + " (현실 봉투 "
+                + SS.num("differential.realistic_span_db", None, "{:.2f}", "dB") + ")"],
+               ["밴드별 독립 오차 2 dB (몬테카를로)",
+                "순위 보존 확률",
+                dnum(D["mc_p2db_min"], "{:.2f}", "", f"{J_SS} : monte_carlo_per_band_error",
+                     "5기체 최소") + " ~ "
+                + dnum(D["mc_p2db_max"], "{:.2f}", "",
+                       f"{J_SS} : monte_carlo_per_band_error", "5기체 최대")]]),
     ))
 
     blocks.append(md(
-        "밴드 순서는 기체마다 바뀐다. 순서를 만드는 것은 파형이 아니라 **자세별 로브 구조**이고, "
-        "앵커는 밴드 평균 레벨만 옮기지 로브를 고치지 않는다.",
+        f"취약성을 정하는 것은 기체 크기가 아니라 **밴드 간 σ 로브 산포**다 — 가장 작은 "
+        f"{SS.num('size_vs_fragility.smallest_airframe', None)}(전장 "
+        f"{SS.num('size_vs_fragility.by_drone.mini5pro.extent_m', None, '{:.3f}', 'm')}, LTE 에서 "
+        f"D/λ = {SS.num('size_vs_fragility.by_drone.mini5pro.D_over_lambda_lte', None, '{:.2f}')})"
+        f" 가 가장 견고하고, 크기와 뒤집힘 문턱의 상관은 "
+        f"{SS.num('size_vs_fragility.corr_extent_vs_flip_single', None, '{:+.2f}')} 다.",
         "",
-        table_from(f"{J_AN}:uncontrolled",
-                   [("앵커가 통제하지 못한 항", "term"), ("상태", "status"), ("크기", "size_db")],
-                   fmt={"size_db": "{:+.2f} dB"}, null="미상"),
+        f"또 하나의 실측 사실을 같은 자리에 적는다: σ 격자를 블레이드 형상 갱신본으로 바꾸는 것만으로 "
+        f"R90 이 최대 "
+        + dnum(D["stale_max_pct"], "{:.1f}", "%",
+               f"{J_SS} : staleness_and_mesh_update.by_drone", "5기체 max_range_change_pct 최대")
+        + f" 움직이고 순위쌍 "
+        f"{SS.num('staleness_and_mesh_update.n_orders_changed', None, '{:.0f}')}개가 바뀌었다 "
+        f"— 통제되지 않은 σ 변화의 파급을 관측한 값이다.",
+        "",
+        figure_md(PF["robust"], 5,
+                  "σ 오차가 공통모드일 때와 밴드별일 때 순위는 각각 어디까지 버티는가?",
+                  paper_caption="Ranking robustness: a common-mode cross-section error "
+                                "preserves the order at every offset within 10 dB and "
+                                "moves only the absolute range, while a per-band "
+                                "differential error reorders the waveforms above an "
+                                "airframe-specific threshold.",
+                  report="report05_results"),
+    ))
+
+    # ── §3.5 CPI 스윕 ─────────────────────────────────────────────────────── #
+    blocks.append(md(
+        "### §3.5 5G 의 상시기준 대가 — CPI 스윕",
+        "",
+        "5G 의 상시 기준신호(SSB)는 20 ms 주기라 PRF 50 Hz 를 준다. 도플러 축을 지우는 기구는 둘이다 "
+        f"— **A. 표본화**: `{CG.num('structural.formula', None)}` 로 가드가 접힘 축 전체를 덮는다"
+        "(반송파·속도·거리 무관). **B. 진폭**: 짧은 CPI 에서 가드가 도플러 진폭을 덮는다(파형 공통). "
+        f"1.5빈 규약에서 LTE 도 CPI ≤ "
+        f"{CG.num('structural.two_mechanisms.observed.L1.hard.T_max_total_blind_s', None, '{:.3f}', 's')}"
+        " 에서 전 헤딩 블라인드가 된다.",
+        "",
+        table(["모드", "PRF", "CPI 0.1 s 의 M", "접힘 축 ±", "블라인드(1.5빈)", "블라인드(2.5빈)"],
+              [[MODE_NAME[m],
+                CG.num(f"waveform_facts.{m}.prf_hz", None, "{:.0f}", "Hz"),
+                CG.num(f"anchor.reproduction.{m}.M", None, "{:.0f}"),
+                CG.num(f"anchor.reproduction.{m}.fold_half_hz", None, "{:.1f}", "Hz"),
+                CG.num(f"anchor.reproduction.{m}.blind_hard", None, "{:.3f}"),
+                CG.num(f"anchor.reproduction.{m}.blind_declared", None, "{:.3f}")]
+               for m in MODES]),
+        "",
+        f"5G 의 커버리지 0 은 선언가드 2.5빈 · CPI ≤ "
+        f"{CG.num('structural.by_mode.G1.T_max_total_blind_declared_s', None, '{:.2f}', 's')} 에서 "
+        f"성립한다. 검출기가 적용하는 1.5빈 규약의 경계는 "
+        f"{CG.num('structural.by_mode.G1.T_max_total_blind_hard_s', None, '{:.2f}', 's')} 이고, "
+        f"CPI 0.1 s 의 블라인드율은 "
+        f"{CG.num('verdict.artifact.blind_hard_same_cpi', None, '{:.3f}')} 다.",
     ))
 
     blocks.append(md(
-        f"![anchored bands]({FIGDIR}/report05_f8_anchored_bands.png)", "",
-        caption(7, "밴드 격차가 앵커의 미통제 항보다 커서 파형의 우열로 읽히는가?"),
+        "CPI 를 늘리면 세 파형 모두 블라인드율이 내려간다. 5G 가 치르는 **배수**는 그대로 남는다 — "
+        "이것이 이 대가를 구조로 만드는 첫 번째 사실이다.",
+        "",
+        table(["CPI", "WiFi", "LTE", "5G", "5G/WiFi", "5G/LTE"],
+              [[CG.num(f"equal_cpi_penalty[{i}].T_cpi_s", None, "{:.1f}", "s"),
+                CG.num(f"equal_cpi_penalty[{i}].blind_hard_W1", None, "{:.3f}"),
+                CG.num(f"equal_cpi_penalty[{i}].blind_hard_L1", None, "{:.3f}"),
+                CG.num(f"equal_cpi_penalty[{i}].blind_hard_G1", None, "{:.3f}"),
+                CG.num(f"equal_cpi_penalty[{i}].ratio_G1_over_W1", None, "{:.1f}", "배"),
+                CG.num(f"equal_cpi_penalty[{i}].ratio_G1_over_L1", None, "{:.1f}", "배")]
+               for i in range(5)]),
+        "",
+        f"두 번째 사실은 접힘이다 — 5G 의 alias 비율 "
+        f"{CG.num('verdict.structural.s2_alias_floor.alias_frac_G1', None, '{:.3f}')} 는 적분시간이 "
+        f"아니라 표본화율의 성질이라 CPI 와 무관한 상수이고, WiFi·LTE 는 "
+        f"{CG.num('verdict.structural.s2_alias_floor.alias_frac_W1', None, '{:.3f}')} 다.",
     ))
 
     blocks.append(md(
-        "### §3.4 그래서 무엇이 파형 비교로 남나",
+        f"세 번째 사실이 결정적이다: 모호속도는 표본화율의 성질이라 CPI 로 바뀌지 않는다 — 5G "
+        f"{CG.num('unambiguous_speed.G1.v_unambiguous_ms', None, '{:.2f}', 'm/s')} · WiFi "
+        f"{CG.num('unambiguous_speed.W1.v_unambiguous_ms', None, '{:.2f}', 'm/s')} · LTE "
+        f"{CG.num('unambiguous_speed.L1.v_unambiguous_ms', None, '{:.2f}', 'm/s')}. 커버리지를 "
+        f"WiFi 수준으로 올리는 CPI 는 "
+        f"{CG.num('cost_of_long_cpi.required_cpi_s.to_WiFi_parity', None, '{:.2f}', 's')}, LTE "
+        f"수준은 {CG.num('cost_of_long_cpi.required_cpi_s.to_LTE_parity', None, '{:.2f}', 's')} 이고 "
+        "그 대가는 재방문 시간이다.",
         "",
-        "σ 를 곱하기 **전** 축은 남는다. 같은 표적·같은 기하·같은 검출기에서 Pd=0.5 에 필요한 "
-        "출력 SNR 이 그것이고, 이 차이는 기준신호 대역과 프레임 수에서 나온다.",
+        table(["패리티 목표 (5 m/s)", "필요 CPI", "SSB 버스트", "헤드라인 대비 경과", "거리워크",
+               "코히어런트 이득"],
+              [[nm,
+                CG.num(f"cost_of_long_cpi.at_required_cpi.{k}.T_required_s", None, "{:.2f}", "s"),
+                CG.num(f"cost_of_long_cpi.at_required_cpi.{k}.ssb_bursts_needed", None, "{:.0f}"),
+                CG.num(f"cost_of_long_cpi.at_required_cpi.{k}.elapsed_vs_headline", None,
+                       "{:.2f}", "배"),
+                CG.num(f"cost_of_long_cpi.at_required_cpi.{k}.range_walk_bins_median", None,
+                       "{:.3f}", "빈"),
+                CG.num(f"cost_of_long_cpi.at_required_cpi.{k}.snr_gain_db_if_coherent", None,
+                       "{:.2f}", "dB")]
+               for nm, k in (("LTE 수준", "v5_LTE_parity"), ("WiFi 수준", "v5_WiFi_parity"))]),
         "",
-        table_from(f"{J_RX}:modes",
-                   [("모드", None), ("기준신호", "ref_name"), ("$B_{ref}$", "ref_bw_mhz"),
-                    ("프레임 M", "M"), ("Pd=0.5 필요 SNR", "curves.1.snr50")],
-                   fmt={"ref_bw_mhz": "{:.1f} MHz", "M": "{:.0f}",
-                        "curves.1.snr50": "{:.2f} dB"},
-                   order=["W1", "L1", "G1"]),
+        f"그 CPI 가 코히어런스 한계 안에 머무는 구간은 "
+        f"{CG.num('cost_of_long_cpi.by_speed[6].speed_ms', None, '{:.0f}', 'm/s')} 까지이고, "
+        f"{CG.num('cost_of_long_cpi.by_speed[7].speed_ms', None, '{:.0f}', 'm/s')} 에서 WiFi 패리티 "
+        f"CPI 가 한계 "
+        f"({CG.num('cost_of_long_cpi.by_speed[7].T_coh_s', None, '{:.2f}', 's')}) 를 넘어선다 — "
+        f"거리·속도 격자 {CG.num('cost_of_long_cpi.coherence_map_summary.n_cells', None, '{:.0f}')}칸 중 "
+        f"{CG.num('cost_of_long_cpi.coherence_map_summary.n_WiFi_parity_feasible', None, '{:.0f}')}칸이 "
+        "WiFi 패리티를 허용한다.",
         "",
-        f"5G 를 세션 신호(NR-PRS, {RX.num('modes.G3.ref_bw_mhz', None, '{:.1f}', 'MHz')})까지 "
-        f"열어주면 {RX.num('modes.G3.curves.1.snr50', None, '{:.2f}', 'dB')} 로 내려간다 — "
-        "상시 신호만 쓰는 체제의 대가다(03 §1.1).",
-        "",
-        f"⚠ 이 스윕의 CPI·PRF 규약은 §1 과 다르다 — SSB 를 PRF "
-        f"{RX.num('modes.G1.prf', None, '{:.0f}', 'Hz')} 로 타일링한다(물리값은 "
-        f"{FS.num('waveforms.G1.prf_hz', 50.0, '{:.0f}', 'Hz')}, §3.2). "
-        "그래서 여기서 인용하는 것은 **같은 조건에서의 모드 간 상대 비교**뿐이다.",
+        figure_md(PF["cpi"], 6,
+                  "5G 의 눈먼 헤딩 비율은 CPI 와 표적 속도에 따라 어떻게 움직이는가?",
+                  paper_caption="The 5G always-on-reference penalty as a CPI sweep: "
+                                "the blind-heading fraction falls with CPI under both "
+                                "guard conventions, and the CPI needed for parity with "
+                                "LTE or WiFi is bounded by the coherent-integration "
+                                "limit of the moving target.",
+                  report="report05_results"),
     ))
 
-    # ── §4 ────────────────────────────────────────────────────────────────── #
+    # ── §3.6 기준신호 대역 축 ─────────────────────────────────────────────── #
+    blocks.append(md(
+        "### §3.6 σ 를 곱하기 전 축 — 기준신호 대역과 점유 등급",
+        "",
+        "같은 표적·같은 기하·같은 검출기에서 Pd = 0.5 에 필요한 출력 SNR 은 기준신호 대역과 "
+        "프레임 수가 정한다. 이 축은 σ 와 무관하게 세 파형의 순서를 정한다.",
+        "",
+        table(["표준", "상시 기준(등급 1)", "세션 기준(등급 3)", "상시 제약의 대가", "거리분해능 대비"],
+              [[nm,
+                DV.num(f"always_on_cost.{c}.snr50_g1", None, "{:.2f}", "dB"),
+                DV.num(f"always_on_cost.{c}.snr50_g3", None, "{:.2f}", "dB"),
+                DV.num(f"always_on_cost.{c}.cost_db", None, "{:+.2f}", "dB"),
+                DV.num(f"always_on_cost.{c}.dr_g1_m", None, "{:.2f}", "m") + " ↔ "
+                + DV.num(f"always_on_cost.{c}.dr_g3_m", None, "{:.2f}", "m")]
+               for nm, c in (("WiFi", "W"), ("LTE", "L"), ("5G NR", "G"))]),
+        "",
+        f"이 스윕은 §1~§3.5 와 **다른 배치**에서 돈다 — X410 벤치(`src/experiment_x410.py:101`), "
+        f"단일 반송파 {DV.num('bench.fc_ghz', None, '{:.1f}', 'GHz')} 를 9모드 전부에 쓰고, "
+        f"바이스태틱 거리 {DV.num('bench.Rb_m', None, '{:.1f}', 'm')}, 고정 σ "
+        f"{DV.num('bench.sigma_dbsm', None, '{:.2f}', 'dBsm')} 다. 표적·기하·σ 를 한 값으로 "
+        "묶었으므로 여기서 읽는 것은 **파형 축 하나**의 상대 비교다.",
+    ))
+
+    # ── §4 다중 수신기 ────────────────────────────────────────────────────── #
     blocks.append(md(
         "## §4. 수신소자를 늘리면",
         "",
-        f"N 은 **한 지점의 λ/2 ULA 소자 수**다(`src/experiment_detection.py:181`) — 흩어놓은 "
-        "N 개의 패시브 수신기가 아니다. 조향벡터는 참 표적 방향에 정확히 맞춰지므로 결과는 "
-        "**이상적 상한**이다.",
+        "N 은 한 지점 λ/2 ULA 소자 수다(`src/experiment_detection.py:181`). 조향벡터를 참 표적 "
+        "방향에 맞추고, 결합 잡음전력/σ² = "
+        f"{RX.num('modes.W1.combine_ratio', None, '{:.5f}')} 로 잡음 보존을 확인했다 — 그래서 "
+        "10log₁₀N 은 **열잡음만** 상대할 때의 코히어런트 배열이득이고, 소자 간 결합·교정오차·"
+        "위치오차가 0 인 **이상적 상한**이다.",
         "",
         table(["N"] + [str(n) for n in D["ns"]],
               [["측정 이득 (WiFi) = SNR50(1)−SNR50(N)"]
                + [f"{g:+.2f} dB" for g in D["rx_gain_W1"]],
-               ["상한 10log₁₀N"] + [f"{b:+.2f} dB" for b in D["rx_bound"]]]),
+               ["열잡음 기준선 10log₁₀N"] + [f"{b:+.2f} dB" for b in D["rx_bound"]],
+               ["차 (WiFi)"] + [f"{g - b:+.2f} dB"
+                                for g, b in zip(D["rx_gain_W1"], D["rx_bound"])]]),
         "",
         f"출처 ⟨{J_RX} : modes.W1.curves.*.snr50⟩",
+        "<!--cell-->",
+        f"9모드 × N 전체에서 측정 이득은 그 상한 대비 "
+        f"{DV.num('rx_gain.excess_min_db', None, '{:+.2f}')} ~ "
+        f"{DV.num('rx_gain.excess_max_db', None, '{:+.2f}', 'dB')} 다. 감시신호가 "
+        "`surv = √N·echo + dpi + noise` 이고 ECA 잔차 `dpi` 는 N 에 무관하게 고정이라"
+        "(`src/experiment_detection.py:284`), √N 이 잡음과 잔차 양쪽 대비로 표적을 올린다 — "
+        "x 축 SNR 은 잡음 기준 정의다(`:238`).",
         "",
-        f"9모드 전체에서 상한 초과분은 "
-        f"{dnum(D['rx_excess_min'], '{:+.2f}', '', f'{J_RX} : modes.*.curves.*.snr50', '최소')} ~ "
-        f"{dnum(D['rx_excess_max'], '{:+.2f}', 'dB', f'{J_RX} : modes.*.curves.*.snr50', '최대')} 다. "
-        f"결합 잡음전력/σ² = {RX.num('modes.W1.combine_ratio', None, '{:.5f}')} 로 잡음 보존을 확인했다.",
+        table(["검사", "값"],
+              [["Pd 곡선에 로지스틱을 다시 적합해 잰 초과분",
+                DV.num("rx_gain.excess_fit_min_db", None, "{:+.2f}") + " ~ "
+                + DV.num("rx_gain.excess_fit_max_db", None, "{:+.2f}", "dB")],
+               ["SNR50 의 몬테카를로 표준편차 (K = "
+                + DV.num("rx_gain.K", None, "{:.0f}") + ")",
+                DV.num("rx_gain.snr50_mc_sigma_db", None, "{:.3f}", "dB")],
+               ["최대 초과분 / 그 표준편차",
+                DV.num("rx_gain.excess_in_sigma", None, "{:.1f}", "σ")]]),
+        "",
+        figure_md(PF["multirx"], 7,
+                  "수신소자를 늘렸을 때 얻는 감도는 이상적 코히어런트 상한에 얼마나 붙는가?",
+                  paper_caption="Multi-receiver gain measured against the idealised "
+                                "coherent bound of 10 log10 N, which holds for thermal "
+                                "noise alone under perfect steering; the measured "
+                                "excess comes from the N-independent cancellation "
+                                "residual.",
+                  report="report05_results"),
     ))
 
-    blocks.append(md(
-        f"![multi rx]({FIGDIR}/report05_f6_multirx.png)", "",
-        caption(8, "수신소자를 늘렸을 때 얻는 감도는 코히어런트 상한에 얼마나 붙는가?"),
-    ))
+    # ── 논문 부록 (§4.2 방어선 · §4.4 방법 문단 · §4.5 인용) ────────────────── #
+    blocks.append(appendix)
 
-    blocks.append(md(
-        "> ⚠ 이 스윕은 **짧은 베이스라인 벤치 기하**에서 돌았다(`src/experiment_x410.py:101`). "
-        "여기서 인용하는 것은 N 사이의 **상대 이득**뿐이고, 절대 SNR50 은 §1 의 자유공간 배치가 아니다.",
-    ))
-
-    # ── 한계 ──────────────────────────────────────────────────────────────── #
-    blocks.append(limits([
-        ("앵커 σ 로 자유공간 해를 다시 풀지 않았다 — §3.3 은 국소 지수로 옮긴 1차 전이다",
-         "`src/sigma_anchor.py` 의 보정 σ 를 격자로 써서 "
-         "`src/experiment_freespace_range.py --stage solve` 재실행"),
-        (f"σ 격자 판({num(None, (J_SG, 'meta.generated'))})이 자유공간 해"
-         f"({num(None, (J_FS, 'meta.generated'))})보다 나중이다",
-         "같은 격자로 ②를 다시 돌려 두 시각을 맞춘다"),
-        (f"5G 의 Pd=0.9 문턱은 측정되지 않았다 — "
-         f"{num(None, (J_FS, 'detector_transfer.S_G.G1.N.1.dopoff.3.reason'))}",
-         "`src/experiment_freespace_range.py` 의 dopoff 격자를 M 인식으로 고치고 재측정. "
-         "지금 5G 는 WiFi 에서 잰 문턱을 빌려 쓴다"),
-        ("파형·수신소자 스윕이 자유공간 배치가 아니고 CPI·PRF 규약도 §1 과 다르다(§3.4 · §4 주의)",
-         "`src/experiment_detection.py` 의 X410Scenario 를 `src/freespace_scene.py` 기하로, "
-         "`CPI_CFG` 를 물리 반복률(`src/freespace_scene.py:233`)로 바꾸면 절대값도 이 편에 들어온다"),
-        ("β>45° 바이스태틱 σ 는 주장 밖이다",
-         "`src/rcs_sbr.py` 의 출사 가시성·대칭화가 정착한 뒤 "
-         "`benchmark/verify_sbr_defect_fixes.py` 로 잔차 재측정"),
-        ("기준채널이 full-waveform capture 다 — 파일럿만 받는 수신기는 WiFi 에서 "
-         f"{num(None, (J_LB, 'BE_processing_gain.waveforms[0].pilot_power_frac_db'), '{:.2f}', 'dB')} "
-         "를 잃는다(이 항은 파형 수준 양이라 배치와 무관하다)",
-         "`src/experiment_freespace_range.py` 의 CANON_REF 를 pilot_only 로 두고 두 열 병기"),
-        ("지면 반사·클러터가 빠져 있다(자유공간 FS-1)",
-         "`sensitivity.baseline` 의 F⁴ 항을 켜고 FS-3 사다리로 올라간다"),
-    ], sec="§5."))
+    # ── 다음 단계 ─────────────────────────────────────────────────────────── #
+    blocks.append(next_steps([
+        ("5G 의 dopoff 격자를 M 인식으로 고쳐 Pd=0.9 문턱을 직접 잰다",
+         "5G 의 R90 이 자기 문턱 위에 서고, 세 밴드가 문턱을 공유하는 §3.1 의 행이 닫힌다",
+         "`src/experiment_freespace_range.py:856` → 05편 §3.1"),
+        ("듀티 항을 R90 경로에 켜고 세 밴드를 다시 푼다",
+         "§2.2 의 −16.02 dB 가 순위에 주는 영향이 확정되고, §3.3 표의 듀티 행이 실측값이 된다",
+         "`src/freespace_link.py` 의 duty_db_from_cpi → 05편 §3.3"),
+        ("자세평균 σ 격자로 `--stage solve` 를 다시 돌린다",
+         "합의 순위가 국소 지수 1차 전이 없이 정본 경로에서 확정된다",
+         "`src/experiment_freespace_range.py` → 05편 §3.3"),
+        ("CPI 를 0.1 s 에서 1.0 s 까지 정본 solve 에 넣어 R90(CPI) 를 낸다",
+         "§3.5 의 커버리지 회복이 거리 축에서도 확정된다",
+         "`benchmark/cpi_guard_sweep.py` → `src/experiment_freespace_range.py`"),
+        ("헤딩 격자 전체에서 R90(ψ) 를 풀어 P_ψ[Pd≥0.9]=0.50 지점을 낸다",
+         "`R90_C50` 키가 이름 그대로의 커버리지 백분위 값을 담는다",
+         "`src/experiment_freespace_range.py:703` → 05편 §3.3"),
+        ("`SIONNA2_DPI_AMP=0` 대조군으로 Rx 스윕을 다시 돌린다",
+         "§4 의 초과분이 ECA 잔차 대비 이득임이 대조군으로 확정된다",
+         "`src/experiment_detection.py:115` → 05편 §4"),
+        ("파형·수신소자 스윕을 §1 자유공간 기하와 물리 PRF 로 옮긴다",
+         "§3.6 · §4 의 절대 SNR 이 이 편의 거리와 같은 축에 놓인다",
+         "`src/experiment_detection.py` 의 X410Scenario → `src/freespace_scene.py`"),
+        ("기준 구를 함께 재서 자체 앵커를 세운다",
+         "지금 우리 PO 출력인 σ 절대 레벨이 측정에 앵커되고, 크기전이 항 "
+         + DV.num("anchor_scope.size_law_spread_max_db", None, "{:.2f}", "dB") + " 가 닫힌다",
+         "06편 §3"),
+        ("VV/HH 2편파를 잰다", "앵커의 편파 항 크기가 수치로 확정된다", "06편 §2"),
+        ("β > 45° 의 출사 가시성·대칭화 잔차를 다시 잰다",
+         "바이스태틱 유효창의 폭이 확정된다",
+         "`benchmark/verify_sbr_defect_fixes.py` → 02편"),
+    ]))
 
     return blocks
 
 
 # --------------------------------------------------------------------------- #
 def main():
-    fig1 = os.path.join(ROOT, FIGDIR, "report05_f8_anchored_bands.png")
-    if not os.path.exists(fig1):
-        print("그림이 없다 — src/viz_report05.py 를 먼저 돌린다")
-        import viz_report05
-        viz_report05.main()
+    t0 = time.time()
+    fig = os.path.join(ROOT, PF["cpi"])
+    if not os.path.exists(fig):
+        print("게재규격 그림이 없다 — src/viz_report05_paper.py 를 먼저 돌린다")
+        import viz_report05_paper
+        viz_report05_paper.main()
 
     D = derived()
+    print(f"파생 원장: {write_derived(D, t0)}")
     rep = build_notebook("report05_results.ipynb", build_blocks(D), strict=True)
     print(f"\n생성: report05_results.ipynb  "
           f"(마크다운 {rep['md_cells']}셀 · 그림 {rep['figures']} · "
-          f"출처태그 {rep['provenance_tags']}개)")
+          f"출처태그 {rep['provenance_tags']}개 · 부정문 {rep['n_negatives']})")
     return rep
 
 

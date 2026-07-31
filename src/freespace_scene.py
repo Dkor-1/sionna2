@@ -96,8 +96,14 @@ DOPPLER_GUARD_HARD_BINS = 1.5     # = freespace_detect.DOPPLER_GUARD_WIDTH / 2
 
 # ★F17 — 크기 오름차순 정본은 `radar_scene.target_extent`(bbox 최대 수평치수):
 #   mini5pro 0.378 < phantom4 0.471 < mavic4pro 0.556 < matrice4e 0.587 < s1000plus 1.348
-#   (`anim_plots.py:439 drone_size_compare` 는 mavic·phantom 이 뒤바뀌어 있다 — 쓰지 않는다.)
-DRONE_ORDER = ("mini5pro", "phantom4", "mavic4pro", "matrice4e", "s1000plus")
+#   (`anim_plots.drone_size_compare` 는 mavic·phantom 이 뒤바뀌어 있다 — 쓰지 않는다.)
+# ⭐ 2026-07-30 (Phase 3): 5종 하드코딩이라 신규 기종이 이 순서 목록을 통과하지 못하고
+#   **에러 없이 자유공간 스윕 전체에서 빠졌다.** 앞머리는 위 실측 순서를 유지하고, 레지스트리의
+#   나머지 기종은 등록 순서로 뒤에 붙인다(신규 기종의 target_extent 는 아직 재지 않았다).
+#   ⚠ 개수를 세야 하면 `len(DRONE_ORDER)`. 상수 5 를 쓰지 말 것.
+from drones import drone_order as _drone_order            # noqa: E402
+DRONE_ORDER = tuple(_drone_order(("mini5pro", "phantom4", "mavic4pro",
+                                  "matrice4e", "s1000plus")))
 
 
 def FS_RX(L):

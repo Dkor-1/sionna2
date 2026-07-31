@@ -9,7 +9,7 @@ Sionna 렌더(사진풍)와 별개로, **치수가 또렷이 적힌 공학 도�
 만드는 그림
   1) 드론 카드(드론별)   : 3D 색칠 모델 + 위에서 본 도면(대각/프롭원) +
                            옆에서 본 도면(높이) + 제원 표  → outputs/figures/card_*.png
-  2) 크기 비교 1장        : 5종을 '같은 축척'으로 나란히 + 대각/무게 막대그래프
+  2) 크기 비교 1장        : 전 기종을 '같은 축척'으로 나란히 + 대각/무게 막대그래프
                            → outputs/figures/size_compare.png
   3) 차폐시설 도면 1장    : 30×20×11 m 박스 + 흡수체/골조/문 치수
                            → outputs/figures/chamber_schematic.png
@@ -30,7 +30,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 # _drone_dims 는 메쉬 생성기(build_frame/rotor_layout)가 쓰는 치수 소스 그대로다.
 # 도면(위/옆면도)이 3D 패널·OBJ 메쉬와 어긋나지 않도록 같은 함수를 재사용한다.
-from drones import (DRONES, build_drone, drone_colors, motor_angles, _drone_dims,
+from drones import (DRONES, build_drone, drone_colors, drone_label, motor_angles, _drone_dims,
                     frame_envelope_mm, rotor_layout)
 from vizstyle import RELEASE_BADGE
 
@@ -202,14 +202,15 @@ def drone_card(key, outdir=FIG):
 
 
 # --------------------------------------------------------------------------- #
-#  5종 크기 비교 (같은 축척)
+#  전 기종 크기 비교 (같은 축척)
 # --------------------------------------------------------------------------- #
 def size_comparison(outdir=FIG):
     keys = list(DRONES.keys())
     specs = [DRONES[k] for k in keys]
     fig = plt.figure(figsize=(14, 8.5), constrained_layout=True)
     gs = fig.add_gridspec(2, 2, height_ratios=[1.5, 1])
-    fig.suptitle("Five DJI drones at the same scale", fontsize=17, fontweight="bold")
+    # ⚠ 제목에 개수·제조사를 박지 않는다 — 이제 비-DJI 기종이 섞여 있고 개수도 변한다.
+    fig.suptitle(f"{len(keys)} target drones at the same scale", fontsize=17, fontweight="bold")
 
     # (위) 같은 축척 평면 비교 — 프로펠러 회전원 기준
     #   ⚠ 2026-07-14: 모터 위치는 **rotor_layout(=공식 외형에 맞춰 스케일된 메쉬)** 에서 읽는다.
@@ -244,7 +245,8 @@ def size_comparison(outdir=FIG):
 
     # (아래좌) 대각거리 막대 — **메쉬 대각선**(공식 외형에서 유도) 기준
     axL = fig.add_subplot(gs[1, 0])
-    names = [s.name.split("  ")[0].replace("DJI ", "") for s in specs]
+    # 제조사 접두어 제거는 drones.drone_label 이 담당(DJI 외 제조사도 처리한다).
+    names = [drone_label(s.key) for s in specs]
     dias = [DEFF[s.key] for s in specs]
     cols = [s.body_rgb if max(s.body_rgb) < 0.9 else (0.6, 0.6, 0.65) for s in specs]
     axL.barh(names, dias, color=cols, edgecolor="k")

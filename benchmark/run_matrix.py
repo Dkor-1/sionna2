@@ -10,7 +10,7 @@ run_min_cell 의 '최소 셀 1개'를 4개 축으로 확장한 **공정 벤치�
                      기준신호의 (대역 → 거리분해능) × (에너지 점유 → 처리이득) 두 축이
                      모두 물리로 Pd 에 반영된다. 측정: G1(SSB만)은 G3 보다 ~18 dB 더
                      큰 예산이 있어야 같은 Pd (불가능이 아니라 '비싸다').
-  B) 신호×드론     : {5G100, WiFi80, LTE20, LTE10} × 드론 5종 × radial, 고정 EIRP.
+  B) 신호×드론     : {5G100, WiFi80, LTE20, LTE10} × 드론 **전 기종** × radial, 고정 EIRP.
                      → Pd/SCR/위치오차 히트맵 + outputs/bench_matrix.csv (로드맵 B).
   C) 시나리오/블라인드: mavic4pro × 5G100 × {radial, waypoint, tangential, hover},
                      궤적 8스냅샷별 Pd — 측정: 완전 블라인드는 정지(hover, f_d=0)에서만
@@ -74,7 +74,13 @@ WAVEFORMS = {
     "LTE20":  ("lte",   20e6, 1.843e9),
     "LTE10":  ("lte",   10e6, 1.843e9),
 }
-DRONES5 = ["s1000plus", "phantom4", "matrice4e", "mavic4pro", "mini5pro"]  # 크기 내림차순
+#  벤치 B 섹션의 드론 행 — **레지스트리에서 유도**한다(2026-07-30 Phase 3).
+#  ⭐ 예전 이름은 `DRONES5` 였고 값도 5종 하드코딩이라, 기종을 추가해도 **에러 없이**
+#     신규 기체가 신호×드론 행렬에서 빠졌다(이름 자체가 개수를 박아 놓아 더 안 고쳐졌다).
+#     앞머리는 옛 '크기 내림차순' 순서를 유지하고 레지스트리의 나머지가 뒤에 붙는다.
+#  ⚠ 개수를 세야 하면 `len(BENCH_DRONES)`. 상수 5 를 쓰지 말 것.
+from drones import drone_order as _drone_order, drone_label as _drone_label   # noqa: E402
+BENCH_DRONES = _drone_order(("s1000plus", "phantom4", "matrice4e", "mavic4pro", "mini5pro"))
 SNAPS = [0, 4, 8, 13, 17, 22, 26, 31]     # C 섹션이 평가하는 궤적 스냅샷 (σ 프리필과 공유)
 
 # 점유 모드 색(report2/4 와 동일 규약), 시나리오 색(고정 배정)
@@ -356,7 +362,7 @@ def fig_occupancy(a, outdir=FIGDIR):
 def section_b(workers, quick=False):
     N = 30 if quick else 100
     jobs = [((std, bw, car, "G3"), d, "radial", None, EIRP_DBM, N, None, False)
-            for wfk, (std, bw, car) in WAVEFORMS.items() for d in DRONES5]
+            for wfk, (std, bw, car) in WAVEFORMS.items() for d in BENCH_DRONES]
     rows = _run_jobs(jobs, workers, "B 신호×드론")
     # **옛 엔진(순수 PO, 가림 없음) σ 를 같은 시선각에서 함께 재서 기록**한다 —
     #   노트북이 "가림이 σ 를 얼마나 내렸나"를 수기 수치 없이 인용할 수 있도록.
@@ -395,24 +401,25 @@ def fig_matrix(b, outdir=FIGDIR):
     import matplotlib.pyplot as plt
     from drones import DRONES
     wfs = list(WAVEFORMS.keys())                       # 해상도 순: 5G100, WiFi80, LTE20, LTE10
-    P = np.zeros((len(DRONES5), len(wfs)))
+    P = np.zeros((len(BENCH_DRONES), len(wfs)))
     S = np.zeros_like(P)
     for r in b["rows"]:
-        i = DRONES5.index(r["drone"])
+        i = BENCH_DRONES.index(r["drone"])
         j = [f"{s}{bw/1e6:.0f}" for s, bw, c in WAVEFORMS.values()].index(r["wf"])
         P[i, j] = r["pd"]; S[i, j] = r["scr_db"]
     E = np.zeros_like(P)                                   # 위치오차 [m]
     for r in b["rows"]:
-        i = DRONES5.index(r["drone"])
+        i = BENCH_DRONES.index(r["drone"])
         j = [f"{s}{bw/1e6:.0f}" for s, bw, c in WAVEFORMS.values()].index(r["wf"])
         E[i, j] = r["rb_err_m"] if r["rb_err_m"] is not None else np.nan
 
     # 왼쪽에 드론 3D 메쉬 썸네일 열 — '행이 어떤 드론인지' 보이게 (report2 스타일)
     from mpl_toolkits.mplot3d.art3d import Poly3DCollection
     from drones import build_drone, drone_colors
-    fig = plt.figure(figsize=(13.6, 7.0), constrained_layout=True)
-    gs = fig.add_gridspec(len(DRONES5), 2, width_ratios=[1.0, 5.6])
-    for i, key in enumerate(DRONES5):
+    # 높이는 **행 수에서 유도** — 고정 7.0 이면 기종이 늘 때 셀이 짜부라진다.
+    fig = plt.figure(figsize=(13.6, 1.4 * len(BENCH_DRONES)), constrained_layout=True)
+    gs = fig.add_gridspec(len(BENCH_DRONES), 2, width_ratios=[1.0, 5.6])
+    for i, key in enumerate(BENCH_DRONES):
         axm = fig.add_subplot(gs[i, 0], projection="3d")
         m = build_drone(DRONES[key]); V = np.array(m.v)
         c = (V.min(0) + V.max(0)) / 2; rad = (V.max(0) - V.min(0)).max() / 2
@@ -435,12 +442,12 @@ def fig_matrix(b, outdir=FIGDIR):
             err = "—" if np.isnan(E[i, j]) else f"{E[i,j]:.1f}m"
             ax.text(j, i, f"Pd {P[i,j]*100:.0f}%\nSCR {S[i,j]:.0f}dB\nerr {err}",
                     ha="center", va="center", fontsize=9, color=ink)
-    dr_lab = [f"{DRONES[k].name.replace('DJI ','')}\n(diag {DRONES[k].diagonal_mm:.0f} mm)"
-              for k in DRONES5]
+    dr_lab = [f"{_drone_label(k)}\n(diag {DRONES[k].diagonal_mm:.0f} mm)"
+              for k in BENCH_DRONES]
     # 분해능 라벨은 실제 점유대역 기준(wf.bw_hz) — 본문/CSV 의 delta_rb_m 과 동일 규약
     wf_lab = [f"{k}\nres {C0/make_wf(*WAVEFORMS[k]).bw_hz:.0f} m" for k in wfs]
     ax.set_xticks(range(len(wfs)), wf_lab, fontsize=9)
-    ax.set_yticks(range(len(DRONES5)), dr_lab, fontsize=9)
+    ax.set_yticks(range(len(BENCH_DRONES)), dr_lab, fontsize=9)
     ax.set_title("Signal × drone matrix — fixed budget (EIRP %.0f dBm) · radial · G3 · $\\sigma$ from SBR (rays + PO integral, self-shadowing included)\n"
                  "rows=drones (by size), cols=waveforms (by range resolution) · cell color=SCR margin · err=single-target peak accuracy (high SNR: accuracy≈resolution/√SNR)\n"
                  "narrowband=lower kTB noise→higher SCR · resolution is range-axis separability (direct-path residual, multi-target), not accuracy"
@@ -538,7 +545,7 @@ def _rdmap(res):
 def section_e(workers, quick=False):
     N = 30 if quick else 100
     jobs = [((std, bw, car, "G3"), d, "radial", None, EIRP_DBM, N, None, gh)
-            for std, bw, car in WAVEFORMS.values() for d in DRONES5
+            for std, bw, car in WAVEFORMS.values() for d in BENCH_DRONES
             for gh in (False, True)]
     rows = _run_jobs(jobs, workers, "E 유령 off/on")
     # 예시 RD맵 1장(5G100 × mavic4pro, 유령 on) — 메인 프로세스에서 example 을 받는다
@@ -859,7 +866,7 @@ def main():
         pre += [(("nr", 100e6, 3.5e9, "G3"), "mavic4pro", "radial", None)]
     if {"b", "d", "e"} & only:
         pre += [((std, bw, car, "G3"), d, "radial", None)
-                for std, bw, car in WAVEFORMS.values() for d in DRONES5]
+                for std, bw, car in WAVEFORMS.values() for d in BENCH_DRONES]
     if "c" in only:
         pre += [(("nr", 100e6, 3.5e9, "G3"), "mavic4pro", scen, s)
                 for scen in ("radial", "waypoint", "tangential", "hover") for s in SNAPS]

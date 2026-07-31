@@ -63,7 +63,19 @@ from geometry import TX, RX, CENTER, SPEED, SPAN, floor_ghost                 # 
 from scenarios import radial                                                  # noqa: E402
 from bistatic_scene import bistatic_params, C0                                # noqa: E402
 
-DEV = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# GPU 선택·강제 (2026-07-28): 이 하네스는 (Lf x F) 지수행렬을 만들기 때문에 순간 메모리가 크다.
+#   공용 GPU 에서 **타 사용자와 경합**하면 단일 할당이 실패한다(실측: 7.63 GiB 요구 vs 여유 5.54 GiB).
+#   · SIONNA2_GPU=N   → 그 카드로 고정 (gpu.pick 규약과 동일)
+#   · SIONNA2_CPU=1   → CPU 폴백(느리지만 251 GB RAM 이라 확실히 끝난다)
+#   그리고 아래 frame_af 는 도플러축을 청크로 잘라 complex128 중간값이 통째로 뜨지 않게 한다.
+if os.environ.get("SIONNA2_CPU") == "1":
+    DEV = torch.device("cpu")
+else:
+    _g = os.environ.get("SIONNA2_GPU")
+    if _g:
+        os.environ.setdefault("CUDA_VISIBLE_DEVICES", _g)
+    DEV = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+FD_CHUNK = int(os.environ.get("SIONNA2_FD_CHUNK", "512"))   # 도플러축 청크(메모리 레버)
 OUT = os.path.abspath(os.path.join(_HERE, "..", "outputs", "verify_ambiguity.json"))
 FIGDIR = os.path.abspath(os.path.join(_HERE, "..", "outputs", "figures"))
 
@@ -117,8 +129,14 @@ def frame_af(rf, fs, tau_s, fd_hz, chunk=64):
     X = torch.fft.fft(x)
     f = torch.fft.fftfreq(Lf, d=1.0 / fs).to(DEV)
     n = torch.arange(Lf, device=DEV, dtype=torch.float64)
-    E = torch.exp(2j * np.pi * torch.as_tensor(fd_hz, device=DEV, dtype=torch.float64)[None, :]
-                  * n[:, None] / fs).to(torch.complex64)          # (Lf, F)
+    fdt = torch.as_tensor(fd_hz, device=DEV, dtype=torch.float64)
+    # ⚠ 메모리: 예전에는 E(Lf x F) 를 float64 지수로 **한 번에** 만들어 complex128 중간값이
+    #   그대로 떴다(실측 7.63 GiB). 결과는 어차피 complex64 로 캐스팅되므로,
+    #   도플러축을 FD_CHUNK 로 잘라 만들면 **수치는 비트단위 동일**하고 순간 메모리만 1/(F/청크) 이 된다.
+    E = torch.empty((Lf, len(fd_hz)), dtype=torch.complex64, device=DEV)
+    for j0 in range(0, len(fd_hz), FD_CHUNK):
+        j1 = min(j0 + FD_CHUNK, len(fd_hz))
+        E[:, j0:j1] = torch.exp(2j * np.pi * fdt[None, j0:j1] * n[:, None] / fs).to(torch.complex64)
     xc = torch.conj(x)
     out = torch.empty((len(tau_s), len(fd_hz)), dtype=torch.complex64, device=DEV)
     for i0 in range(0, len(tau_s), chunk):

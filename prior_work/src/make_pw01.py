@@ -97,11 +97,12 @@ cells = [
         "",
         render_table(J["related_precedent_table"]),
         "",
-        "> 🔑 **핵심.** 우리 접근의 세 조각이 각각 강한 선례를 갖는다 — 드론 멀티산란체 바이스태틱 μD"
-        "(**Costa & Thomä, IEEE J-STEAP peer-reviewed**), ECA→CFAR 5G 패시브 레이더 실측"
-        "(**Wypich & Zielinski, Sensors, USRP X310**), 외부 RCS 주입 h=h_bg+h_target"
-        "(**3GPP Rel-19 표준 오픈 구현**). 우리 기여는 이 셋의 **결합**(패시브 바이스태틱 + 자작 SBR+PO "
-        "드론 RCS + 상시vs세션 9모드)이다.",
+        "> 🔑 **핵심.** 우리 접근의 세 조각 중 둘이 강한 선례를 갖는다 — 드론 멀티산란체 바이스태틱 μD"
+        "(**Costa & Thomä, IEEE J-STEAP peer-reviewed**)와 외부 RCS 주입 h=h_bg+h_target"
+        "(**3GPP Rel-19 표준 오픈 구현**). 세 번째 조각인 ECA→CFAR 실하드웨어 선례는 **원문 미확보**다 — "
+        "Wypich & Zielinski(Sensors 2026)는 디스크에 PDF 가 없고 표적도 **차량(5.8 GHz)** 이라, 각주로만 "
+        "두고 수치는 인용하지 않는다. 우리 기여는 **결합**(패시브 바이스태틱 + 자작 SBR+PO 드론 RCS + "
+        "상시vs세션 9모드)이다.",
     ),
     md("---", "## §2. ⭐ 가장 직접적인 선례 — 'Sionna + 외부 RCS 주입' 하이브리드"),
     paper_block("lambda"),

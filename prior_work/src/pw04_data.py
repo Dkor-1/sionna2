@@ -3,7 +3,10 @@
 
 출처: 3중 워크플로 문헌조사(다각도 웹서치 → 논문별 적대적 검증) + 사용자 제공 타 LLM 조사 대조.
 모든 항목은 1차 출처(arXiv/IEEE/DOI) 웹 확인. 타 LLM 이 준 것 중 **검증 실패/오류는 제외·정정**했다:
-  · Clutter-Aware(arXiv:2602.10537) — 타 LLM 은 'Sionna 사용'이라 했으나 실제 **Sionna 미사용**(추상 복소계수) → 제외.
+  · Clutter-Aware(arXiv:2602.10537 = Proc. IEEE 114(1), 2026) — **2026-07-31 정정**: 이 논문은 Sionna 를 쓴다.
+    원문 p.23 축자 "The ToI and UAVs are modeled as simplified 3-D mesh objects imported into Sionna".
+    추상 복소계수는 41쪽 중 대부분을 차지하는 **확률 신호모델** 쪽이고, Sionna 는 pp.23–26 의 사이트별 사례연구다.
+    → 표3(TABLE2)에 편입. 이전 판의 '제외' 서술은 두 절을 하나로 일반화한 오류였다.
   · Integrated Comm&Sensing for Intelligent Transportation(npj) — 6회 검색에도 **웹 미확인**(환각 의심) → 제외.
   · §4 표3 3편(Channel Modeling Framework·Site-Specific SSCR·6G Survey) — 실재하나 '붙일 수 있는 RCS 모델'은 아님
     (SSCR 의 'Sionna CIR 저장' 주장은 환각) → **설계 정당화 인용**으로 정정.
@@ -90,24 +93,30 @@ TABLE2 = [
          claim="멀티모달 데이터 대량 생성·CSI 측위 베이스라인",
          problem="UAV 코히어런트 RCS·각도패턴·rotor 미세산란 부재",
          verify="✅ 본문: \"referenced from SionnaRT\" + 재구현 명시"),
-    dict(year="2026", grade="C", study="Deterministic Modeling ISAC (Montaner)", arxiv="2603.28736 (EuCAP 2026)",
+    dict(year="2026", grade="C", study="Deterministic Modeling ISAC (Montaner)", arxiv="2603.28736v1 — 프리프린트. EuCAP 2026 채택 주장은 PDF 밖 출처(본문 'accepted' 0회)",
          task="Sionna RT 로 79 GHz mono/bistatic 차량 ISAC 디지털트윈, 사운더 측정 보정",
          how="명시적 표적 RCS 없음. 차량=씬 메시, 산란은 Sionna 정반사/확산 분할(R²+S²=1)+재질 확산계수 S(측정보정)",
          claim="측정보정된 동적 ISAC 채널 signature(멀티패스·도플러)",
-         problem="표적 backscatter 가 실제 RCS 아님 — 정량 RCS 충실도 주장 불가",
+         problem="표적 backscatter 가 실제 RCS 아님 — 정량 RCS 충실도 주장 불가. ⚠ 이 논문의 λ/10 논거는 **77–81 GHz 스코프**이고 3.5 GHz 에서는 λ/10 = 8.6 mm 라 성립하지 않는다",
          verify="✅ arXiv 본문: \"diffuse scattering abstraction ... in Sionna RT\""),
-    dict(year="2026", grade="C", study="CellSense (Sub-6 GHz Cellular ISAC)", arxiv="2606.07900 (MILCOM 2026)",
+    dict(year="2026", grade="C", study="CellSense (Sub-6 GHz Cellular ISAC)", arxiv="2606.07900 — 프리프린트. PDF 안 MILCOM 3회는 전부 참고문헌 [5](2024년 타 논문)이라 게재 근거가 아니다",
          task="5G OFDM passive/bistatic **사람** 탐지·측위·추적. Sionna 시뮬 + OAI/USRP 실측 병행",
          how="사람을 1.8×0.5×0.25 m **cuboid 메시**로, Sionna RT 가 그 반사경로 생성. baseline 차분(background subtraction)으로 동적반사만 분리. RCS 언급 자체가 없음",
          claim="차분 지연·AoA·궤적 등 상대특성·알고리즘 실용성(USRP 실측이 보완)",
          problem="cuboid+Sionna 반사가 실제 human RCS 와 정량 일치 보장 없음 → 절대 P_D·거리·SCNR 은 RCS-보정 결과 아님",
          verify="✅ arXiv 확인(표적=사람, differential detection). 타 LLM 의 'PHY link-level'은 실제 RT-CIR 이 핵심"),
-    dict(year="2025", grade="C/D", study="Micro-Doppler of Multirotor UAVs (Ray Tracing)", arxiv="IEEE ICCT 2025 (DOI 10.1109/ICCT67417.2025.11374154)",
-         task="Sionna RT 로 multirotor **UAV** micro-Doppler feasibility 검토",
-         how="Sionna RT 로 rotor 유도 micro-Doppler·dynamic RCS 시뮬 주장, 그러나 RCS 산출·보정 알고리즘 세부는 확인 제한",
-         claim="Sionna 회전 기하가 시간변화 도플러 생성 가능(feasibility)",
-         problem="RCS 가 surface-current 기반인지 mesh 반사 상대변화인지 판별 어려움 → **보조 문헌**으로 취급",
-         verify="✅ 실재(Semantic Scholar DOI 확인). 방법 세부는 초록 수준"),
+    dict(year="2026", grade="C", study="Clutter-Aware ISAC (Proc. IEEE 튜토리얼)", arxiv="2602.10537 = Proc. IEEE 114(1), 2026 (DOI 10.1109/JPROC.2026.3675476)",
+         task="클러터 분류·억제 튜토리얼. pp.23–26 에 Sionna RT 사이트별 사례연구 1건",
+         how="UAV 를 Blender 로 단순화한 메쉬로 만들어 Sionna XML 로 임포트하고 스톡 상호작용에 맡긴다 — p.23 \"simplified 3-D mesh objects imported into Sionna ... keeps the ray-tracing scene lightweight\". 해석 신호모델 쪽은 별도로 표적을 복소계수로 둔다(p.6)",
+         claim="클러터 분류체계와 억제 도구상자, Sionna RT 장면으로 예시",
+         problem="σ 를 한 번도 보고하지 않는다 — 41쪽에 dBsm 0회·`validat*` 0회, 재질 지정은 \"flexible\" 이라고만 적는다",
+         verify="✅ 원문 정독(2026-07-31): Sionna 13회·ray-trac* 7회·Blender 1회·XML 1회"),
+    dict(year="2025", grade="C", study="Micro-Doppler of Multirotor UAVs (Ray Tracing, md-rt)", arxiv="IEEE ICCT 2025 (DOI 10.1109/ICCT67417.2025.11374154)",
+         task="Sionna RT 로 multirotor **UAV** rotor micro-Doppler 스펙트로그램 생성·검증",
+         how="Blender 프로펠러 1개(Table I \"Propeller material Wood\", 기체 없음)를 넣고 **EM 설정은 스톡**으로 두되 광선발사기를 개조한다 — 기여 2번이 \"replaces spherical sampling with conical sampling\"(p.1)",
+         claim="스펙트로그램 능선 **위치**가 폐형식 식과 일치(최대 1562 Hz, T=0.04 s)",
+         problem="동적 RCS 를 계산하지 않는다 — dBsm 0회, 진폭 검증 0. 검증은 자기 해석식 대비 **운동학**뿐이고, Table I 반경 10.55 cm 와 본문 blade length 1.055 m 가 10배 어긋난다",
+         verify="✅ 원문 정독(2026-07-31): 인용 3건 쪽 단위 대조"),
     dict(year="2026", grade="D", study="SimART (멀티모달 6G ISAC 플랫폼)", arxiv="2605.13309",
          task="Sionna RT 를 back end 로 한 통합 시뮬 플랫폼",
          how="Sionna RT 로 채널 생성하나 표적 RCS 처리 세부 미보고",
@@ -118,7 +127,6 @@ TABLE2 = [
 
 # 제외(검증 실패/오류) — 정직성 기록
 EXCLUDED = [
-    "**Clutter-Aware ISAC**(arXiv:2602.10537, Swindlehurst 등, Proc. IEEE 튜토리얼): 타 LLM 은 'Sionna 도시 scene 사용'이라 했으나, 원문 검증 결과 **Sionna·ray-tracing·mesh 를 전혀 쓰지 않음**(표적을 추상 복소계수로 표현). Sionna 표에서 제외.",
     "**Integrated Comm & Sensing for Intelligent Transportation**(npj Wireless Technology 주장): 정확 제목·arXiv·저널·검색 **6회 모두 1차 출처 미확인**(환각 의심) → 제외.",
 ]
 

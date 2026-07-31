@@ -64,6 +64,12 @@ GRX_DBI = 10.0
 NF_DB = 5.0
 TAP_SPAN_M = 60.0
 
+# ── 정본 뷰/기준채널 (§10). ranges 트리의 뷰·기준 키와 meta 가 **같은 상수**를 쓰게 묶는다.
+#    ⚠ 이전에는 assemble_canonical 안의 리터럴이 유일한 출처였고 meta 에는 아무것도 안 남아서,
+#      소비자(make_notebook13)가 meta 경로를 읽으면 조용히 자기 모듈 기본값으로 떨어졌다.
+CANON_VIEW = "equal_psd"                  # 점유·전력규약 정본 뷰
+CANON_REF = "full_waveform_capture"       # 기준채널 정본
+
 # ── 모드 → (표준, 점유) 매핑. 헤드라인 상시 3인방 W1·L1·G1 ──
 MODE_STD = {"W1": ("wifi", "G1"), "W2": ("wifi", "G2"), "W3": ("wifi", "G3"),
             "L1": ("lte", "G1"), "L2": ("lte", "G2"), "L3": ("lte", "G3"),
@@ -270,13 +276,45 @@ def _sigma_lookup(sig_json, drone, band_name):
     return az, el, sm
 
 
-def _sigma_at(lookup, az_look, el_look, fallback=0.01):
-    """(az_look, el_look) 최근접 σ[m²]. 격자 없으면 fallback 스칼라."""
+#  격자 밖 조회를 몇 번 했는지 (프로세스 전체 누적) — 산출물 meta 에 실어 보낸다.
+SIGMA_OOR = {"n": 0, "worst_el_deg": 0.0, "el_min_deg": None, "el_max_deg": None}
+
+
+def _sigma_at(lookup, az_look, el_look, fallback=0.01, warn=True):
+    """(az_look, el_look) 최근접 σ[m²]. 격자 없으면 fallback 스칼라.
+
+    ⚠ **2026-07-30 수리 — 무음 외삽 버그**
+    -------------------------------------------------------------------------
+    옛 코드는 `i = argmin(|el_look − el|)` 로 **최근접 행을 말없이** 골랐다. 격자는
+    el ∈ [0, −0.5, −1, −2, −3.5, −5, −8, −12, **−20**]° 뿐인데, 자유공간 기하의 이등분
+    고도는 근거리에서 훨씬 아래로 내려간다 — L=500 m·d=30 m 에서 **−56.8°**(고도 60 m),
+    **−74.1°**(고도 120 m). 그 구간 전체가 **−20° 행으로 클램프**돼 계산됐고 **경고도
+    오류도 없었다.**
+
+    파급: 고도 120 m 에서는 **d < 291 m 전 구간**, 고도 60 m 에서는 **d < 126 m** 이
+    틀린 자세의 σ 를 쓴다. 근거리 검지 수치가 여기 걸린다.
+
+    → 이제 격자 범위를 벗어나면 **경고하고 세어서** `SIGMA_OOR` 에 남긴다. 값 자체는
+      여전히 최근접을 쓰지만(중단시키면 스윕이 죽는다), **산출물이 그 사실을 갖고 다닌다.**
+      근본 해결은 σ 격자의 el 범위를 −75° 까지 넓히는 것이다(생산자
+      `src/experiment_freespace_sigma.py` 의 el 목록).
+    """
     if lookup is None:
         return float(fallback)
     az, el, sm = lookup
+    el_look = float(np.asarray(el_look))
+    lo, hi = float(np.min(el)), float(np.max(el))
+    if el_look < lo - 1e-9 or el_look > hi + 1e-9:
+        SIGMA_OOR["n"] += 1
+        SIGMA_OOR["el_min_deg"] = lo
+        SIGMA_OOR["el_max_deg"] = hi
+        if abs(el_look) > abs(SIGMA_OOR["worst_el_deg"]):
+            SIGMA_OOR["worst_el_deg"] = el_look
+            if warn:
+                print(f"[σ] ⚠ 격자 밖 고도 조회: el={el_look:+.1f}° (격자 {lo:+.1f}~{hi:+.1f}°) "
+                      f"→ 최근접 행으로 클램프. 이 자세의 σ 는 신뢰할 수 없다.", flush=True)
     j = int(np.argmin(np.abs(((np.asarray(az_look) - az + 180) % 360) - 180)))
-    i = int(np.argmin(np.abs(np.asarray(el_look) - el)))
+    i = int(np.argmin(np.abs(el_look - el)))
     return float(sm[i, j])
 
 
@@ -579,6 +617,34 @@ def _waveform_facts(mode):
                 d_rb_m=(float(C0 / B_ref) if B_ref > 0 else None))
 
 
+def _power_normalization_facts():
+    """전력·점유 규약 사실 → `meta.link_budget.power_normalization` (소비자 계약키). GPU 불필요.
+
+    · `canonical_occupancy` / `canonical_reference` = ranges 트리가 실제로 쓰는 뷰·기준 키.
+    · `radiated_power_frac_db_vs_g3[std][occ]` = 10log10(점유율(occ)/점유율(G3)) [dB] —
+      **같은 per-RE 송신전력**(equal_psd)에서 배치현실(deploy)로 옮길 때의 **평균 방사전력** 차.
+      유휴 gNB 는 SSB 만 켜므로 nr/G1 이 가장 크게 깎인다(5G 이중고의 '전력' 쪽 절반).
+    ⚠ 점유율 정의는 `waveforms.Waveform.occupancy_frac`(프레임 내 non-EMPTY 자원요소 비율)이다.
+      절대 EIRP 예산은 손대지 않는다(EIRP_DBM 은 in-burst peak 선언값 그대로).
+    ⚠ 이 항과 Rzewuski 듀티 F_u 는 같은 물리손실의 **대체 파라미터화**다 — 곱하면 이중계상(§4).
+    """
+    from waveforms import all_waveforms
+    occ_frac = {}
+    for occ in ("G1", "G2", "G3"):
+        for std, wf in all_waveforms(occ).items():
+            occ_frac.setdefault(std, {})[occ] = float(wf.occupancy_frac)
+    frac_db = {std: {o: float(10.0 * np.log10(max(v[o], 1e-30) / max(v["G3"], 1e-30)))
+                     for o in v} for std, v in occ_frac.items()}
+    return dict(canonical_occupancy=CANON_VIEW, canonical_reference=CANON_REF,
+                views=["equal_total", "equal_psd", "deploy"],
+                occupancy_frac=occ_frac, radiated_power_frac_db_vs_g3=frac_db,
+                definition="radiated_power_frac_db_vs_g3 = 10log10(occupancy_frac(occ) / "
+                           "occupancy_frac(G3)) = average radiated power difference at equal "
+                           "per-RE power (equal_psd -> deploy); NOT multiplied with a duty "
+                           "factor F_u (same loss, alternative parameterisation)",
+                provenance="DERIVED from waveforms.occupancy_frac (3GPP/IEEE resource grids)")
+
+
 def assemble_canonical(out):
     """스테이지 산출(threshold/calib/solve)을 **스펙 §10 정본 키로 추가 매핑**한다(add-only;
     스테이지 키는 보존). 정본 키 = 소비자가 읽는 계약: `detector_transfer`(N 래퍼)·`calib.resid_db`·
@@ -605,9 +671,16 @@ def assemble_canonical(out):
     if modes:
         out["waveforms"] = {m: _waveform_facts(m) for m in modes}
 
+    # (2b) meta.link_budget.power_normalization : 정본 뷰 + deploy 평균방사전력 차(§4 '5G 이중고')
+    try:
+        (out.setdefault("meta", {}).setdefault("link_budget", {})
+            ["power_normalization"]) = _power_normalization_facts()
+    except Exception as e:
+        print(f"  [meta] power_normalization skip: {type(e).__name__}: {e}")
+
     # (3) ranges : solve → ranges[drone][mode][view][ref].by_N[N] (정본 리프)
     ranges = out.setdefault("ranges", {})
-    view, ref = "equal_psd", "full_waveform_capture"     # 헤드라인 뷰/기준(§10)
+    view, ref = CANON_VIEW, CANON_REF                   # 헤드라인 뷰/기준(§10)
     for mode, s in solve.items():
         if not isinstance(s, dict):
             continue
@@ -804,6 +877,17 @@ def main(argv=None):
         except Exception as e:
             print(f"  [F11] baseline 벽지도 skip: {type(e).__name__}: {e}")
     out["meta"]["runtime_s"] = round(time.time() - t0, 1)
+    # ⚠ 2026-07-30: σ 격자 밖 고도를 몇 번 조회했는지 **산출물이 갖고 다니게** 한다.
+    #   그냥 클램프하면 근거리 검지 수치가 틀린 자세의 σ 로 계산되고도 아무 흔적이 안 남는다.
+    out["meta"]["sigma_grid_out_of_range"] = dict(
+        n=SIGMA_OOR["n"], worst_el_deg=SIGMA_OOR["worst_el_deg"],
+        grid_el_min_deg=SIGMA_OOR["el_min_deg"], grid_el_max_deg=SIGMA_OOR["el_max_deg"],
+        note=("격자 밖 고도는 최근접 행으로 클램프된다. n>0 이면 그만큼의 σ 조회가 "
+              "틀린 자세에서 왔다는 뜻 — 근본 해결은 experiment_freespace_sigma 의 el 목록을 "
+              "넓히는 것이다(현재 0~−20°, 필요 −75°)."))
+    if SIGMA_OOR["n"]:
+        print(f"[σ] ⚠ 격자 밖 고도 조회 총 {SIGMA_OOR['n']}회, 최악 {SIGMA_OOR['worst_el_deg']:+.1f}° "
+              f"— meta.sigma_grid_out_of_range 에 기록했다.", flush=True)
     _save(args.out, out)
     print(f"\n[range] 완료 ({out['meta']['runtime_s']}s) → {args.out}")
     return out

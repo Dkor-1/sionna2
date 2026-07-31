@@ -32,6 +32,7 @@ from scipy import stats as st
 from rcs_sbr import rcs_sbr_batch, DEFAULT_DIV      # noqa: E402
 from drones import DRONES, build_drone, DRONE_GROUP_MAT  # noqa: E402
 from geom import uv_sphere                          # noqa: E402
+from mie_pec_sphere import sphere_reference_set     # noqa: E402  (구 기준해의 단일 출처)
 
 C0 = 299792458.0
 
@@ -54,26 +55,29 @@ BANDS = {
 DRONE_KEYS = ["mini5pro", "mavic4pro", "matrice4e", "s1000plus", "phantom4"]
 
 
+def _lit_mu_eps():
+    """문헌 μ/ε 계수는 src/sigma_anchor.py 가 유일한 출처다 (원문 PDF 판독본)."""
+    from sigma_anchor import literature_mu_eps
+    return literature_mu_eps(BANDS_GHZ)
+
+
+BANDS_GHZ = {k: v / 1e9 for k, v in BANDS.items()}
+
+
 # --------------------------------------------------------------------------- #
 #  문헌 기준값 (전부 정독노트가 원문 PDF 로 검증한 것 — §2·§4-P1). 우리 값 아님.
 # --------------------------------------------------------------------------- #
 LITERATURE = {
     "_provenance": "docs/DRONE_ISAC_PRIOR_READING.md §2·§4-P1, 원문 PDF 확인분만",
-    # μ(f)=a·f+b [dBsm, f in GHz], ε(f)=c·f+d [dB]. 둘 다 방위 통계(선형평균 μ / dB표준편차 ε).
-    "mu_eps": {
-        "multiband_phantom3": {   # Das et al., IEEE WCL 15:3731, 2026 · Table III θb=0°
-            "target": "DJI Phantom 3 (350x200 mm)", "geom": "monostatic far-field",
-            "mu_a": 0.21, "mu_b": -19.19, "eps_c": 0.03, "eps_d": 5.16,
-            "mu_at_bands": {"LTE 1.843 GHz": -18.80, "5G 3.5 GHz": -18.46, "WiFi 5.21 GHz": -18.10},
-            "note": "본문 명시 linear average → 우리 mean_dbsm 과 사과-대-사과",
-        },
-        "mono3d_theta90": {       # Yuan et al., EuCAP 2025 · §IV θ=90°
-            "target": "DJI Phantom 3 (350x200 mm)", "geom": "monostatic CATR, VV",
-            "mu_a": 0.315, "mu_b": -16.15,
-            "mu_at_bands": {"LTE 1.843 GHz": -15.57, "5G 3.5 GHz": -15.05, "WiFi 5.21 GHz": -14.51},
-            "note": "같은 캠페인인데 multiband 와 3.2~3.6 dB 높다 = dB영역평균 의심(§2-2)",
-        },
-    },
+    # μ(f)=a·f+b [dBsm, f in GHz], ε(f)=c·f+d.
+    # ⚠ 2026-07-30 정정 — **여기에 손으로 적어두지 않는다**. src/sigma_anchor.py 가 원문 PDF 에서
+    #   직접 읽은 표(Das Table III 전체 4기체×7 바이스태틱각, Yuan §IV 3 고도측면)를 들고 있고,
+    #   밴드별 μ 도 거기서 계산해 온다. 옛 판은 Das μ 를 "본문 명시 linear average" 라고 적었지만
+    #   그건 §III-1 문장만 본 것이고, 같은 논문 §III-2 의 로그정규 remark 는 μ 를 **dB 영역평균**
+    #   으로 쓴다. 두 논문이 같은 원자료임을 이용한 잔차검산(sigma_anchor.reconcile_das_yuan)이
+    #   dB 영역평균 쪽을 지지한다 → 우리 mean_dbsm(선형평균)과 붙이려면 +2.507 dB 가 필요하다.
+    #   같은 계수를 두 파일에 이중으로 적어 한쪽만 낡는 사고를 막으려고 import 로 바꿨다.
+    "mu_eps": _lit_mu_eps(),
     # 분포 적합도 거리 (작을수록 좋음). Rician / Gamma / LogNormal.
     "distribution": {
         "multiband_phantom3": {"metric": "Anderson-Darling", "rician": 0.436,
@@ -91,15 +95,21 @@ LITERATURE = {
     # 적합 RMSE [dB] (unified-rcs Eq.18)
     "fit_rmse_db": {"AAV": 2.414, "vehicle": 1.831, "human": 2.245,
                     "source": "Zhang et al., IEEE JSAC 44:702, 2026"},
-    # 금속구 절대교정
+    # 금속구 절대교정 — ⚠ `theory_dbsm` 은 **문헌이 쓴 πr² 광학 점근값**을 그대로 옮긴 것이다
+    #   (참값 아님). 28 GHz·r=0.25 m 는 ka=147 로 점근이 거의 정확하지만, r=0.178 m 를 우리 대역
+    #   (1.8~5.2 GHz, ka=6.9~19.4)에서 쓰면 점근 자체가 0.07~0.31 dB 틀린다 → 우리 편차는
+    #   sphere_calibration() 이 정확 Mie 기준으로 다시 잰다. 이 상수들은 문헌 인용 전용.
     "sphere_calibration": {
         "unified_rcs_0p5m": {"diameter_m": 0.5, "radius_m": 0.25, "freq_ghz": 28.0,
-                             "theory_dbsm": -7.07, "measured_dbsm": -8.96, "dev_db": 1.89,
+                             "theory_dbsm": -7.07, "theory_kind": "optical asymptote pi*r^2",
+                             "measured_dbsm": -8.96, "dev_db": 1.89,
                              "source": "unified-rcs §III-B p.709"},
         "mono3d_r17p8cm": {"radius_m": 0.178, "theory_dbsm": -10.02,
+                           "theory_kind": "optical asymptote pi*r^2",
                            "source": "mono3d, 병행 교정구"},
         "pass_threshold_db": 2.0,
-        "note": "합격선 <2 dB = unified-rcs 실측 편차 1.89 dB 를 따른다",
+        "note": ("합격선 <2 dB = unified-rcs 실측 편차 1.89 dB 를 따른다. 문헌 편차는 πr² 기준이고, "
+                 "우리 판정은 정확 Mie 기준(dev_db_vs_mie) — 비교할 때는 dev_db_vs_go 를 쓸 것"),
     },
 }
 
@@ -238,14 +248,24 @@ def fit_distributions(sigma_lin):
 
 
 # --------------------------------------------------------------------------- #
-#  4. 금속구 절대교정 — PEC 구 SBR+PO σ vs 이론 πr²
+#  4. 금속구 절대교정 — PEC 구 SBR+PO σ vs 기준해(정확 Mie · 해석 PO)
 # --------------------------------------------------------------------------- #
 def sphere_calibration(fc, radius_m=(0.25, 0.178), n_az=8, div=16, seg=180, rings=90):
-    """지름 0.5 m (r=0.25, 이론 πr²=−7.07 dBsm) 및 mono3d r=17.8 cm (−10.02 dBsm) PEC 구를
-    우리 rcs_sbr(group_mat={"metal":"metal"}) 로 돌려 편차[dB] 를 낸다. 합격선 <2 dB.
+    """지름 0.5 m (r=0.25) 및 mono3d r=17.8 cm PEC 구를 우리
+    rcs_sbr(group_mat={"metal":"metal"}) 로 돌려 편차[dB] 를 낸다. 합격선 <2 dB.
     ⚠ 곡면 격자 위상 에일리어싱(±1.5 dB) 을 줄이려 n_az 방위 평균 + 내장 jitter 를 쓴다.
     ⚠ 스펙 시그니처의 둘째 반지름 0.089 는 πr²=−16.04 로 mono3d −10.02 앵커와 안 맞아
-       원문값 r=0.178 로 교정했다(아래 return 리포트 참조)."""
+       원문값 r=0.178 로 교정했다(아래 return 리포트 참조).
+
+    ⚠ 2026-07-30 정정 — **판정 기준이 πr² 이었다**. 이 교정구들은 **ka 가 작다**(r=0.178 m·5G
+      에서 ka=13.06) → πr²(=ka→∞ 광학 점근값) 자체가 정확 Mie 대비 **+0.305 dB 틀리고**, 그
+      오차가 우리 편차를 상쇄해 **실제보다 좋아 보이게** 만들고 있었다: πr² 기준 −0.0697 dB 로
+      적혀 있던 편차가 Mie 기준으로는 **−0.3748 dB(5배)** 다. 그래서
+        · `dev_db_vs_mie` = 정확 Mie 대비 = **절대 교정의 판정값**(pass_lt2db 가 이것을 본다)
+        · `dev_db_vs_po`  = 해석 PO 대비 = 커널이 PO 이므로 **수치오차만** 보는 자
+        · `dev_db_vs_go`  = πr² 대비 = **문헌 관례와의 사과-대-사과**용(LITERATURE 의
+          unified-rcs 1.89 dB 도 πr² 기준이다). 참값 판정에는 쓰지 말 것.
+      셋을 다 남기고, 어느 자로 쟀는지를 키 이름이 말하게 한다."""
     lam = C0 / float(fc)
     az = np.linspace(0.0, 360.0, int(n_az), endpoint=False)
     res = []
@@ -256,13 +276,22 @@ def sphere_calibration(fc, radius_m=(0.25, 0.178), n_az=8, div=16, seg=180, ring
                             cache_key=("sphere", round(r * 1e4), round(fc / 1e6), seg, rings))
         sig = np.atleast_1d(np.asarray(sig, float))
         sbr = float(np.mean(sig))
-        theory = float(np.pi * r * r)
+        ref = sphere_reference_set(float(r), float(fc))
         sbr_db = 10.0 * np.log10(max(sbr, 1e-30))
-        th_db = 10.0 * np.log10(theory)
-        res.append(dict(radius_m=float(r), r_over_lambda=float(r / lam),
-                        theory_dbsm=th_db, sbr_dbsm=sbr_db, dev_db=sbr_db - th_db,
-                        pass_lt2db=bool(abs(sbr_db - th_db) < 2.0)))
-    return dict(fc_ghz=float(fc) / 1e9, div=div, spheres=res)
+        dev_mie = sbr_db - ref["mie_dbsm"]
+        res.append(dict(radius_m=float(r), r_over_lambda=float(r / lam), ka=ref["kr"],
+                        mie_dbsm=ref["mie_dbsm"], po_dbsm=ref["po_dbsm"],
+                        go_dbsm=ref["go_dbsm"],          # πr² — 라벨된 점근값(참값 아님)
+                        asymptote_err_db=ref["mie_minus_go_db"],   # πr² 이 Mie 에서 벗어난 양
+                        sbr_dbsm=sbr_db,
+                        dev_db_vs_mie=float(dev_mie),
+                        dev_db_vs_po=float(sbr_db - ref["po_dbsm"]),
+                        dev_db_vs_go=float(sbr_db - ref["go_dbsm"]),
+                        pass_lt2db=bool(abs(dev_mie) < 2.0),
+                        pass_ref="exact Mie"))
+    return dict(fc_ghz=float(fc) / 1e9, div=div, spheres=res,
+                reference_note=("dev_db_vs_mie = 절대 판정(정확 Mie) · dev_db_vs_po = 수치수렴"
+                                "(해석 PO, 커널이 PO다) · dev_db_vs_go = πr² 점근(문헌 관례 비교용)"))
 
 
 # --------------------------------------------------------------------------- #

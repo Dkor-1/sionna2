@@ -322,18 +322,18 @@ def cfar_sweep(std="nr"):
 
 
 # --------------------------------------------------------------------------- #
-#  report02 ⑨ 5종 드론 가로 정렬 회전 갤러리 (명칭 라벨) — 재질색
+#  report02 ⑨ 드론 전 기종 가로 정렬 회전 갤러리 (명칭 라벨) — 재질색
 # --------------------------------------------------------------------------- #
 def drone_row_gif(name="drone_gallery_row", frames=48):
-    """5종 드론이 **가로로 나란히**, **몸체가 돌면서 프로펠러도 스핀**(분절 메쉬 시연), 위에 명칭.
+    """**레지스트리 전 기종**이 가로로 나란히, **몸체가 돌면서 프로펠러도 스핀**(분절 메쉬 시연), 위에 명칭.
     재질색(plastic=회색(프롭 포함)·carbon=검정·metal=파랑·camera=주황·pcb=초록). pose_articulated 로
     프레임마다 몸체 yaw + 로터 위상을 바꿔 그린다(부위별 회전이 분리 가능함을 한눈에)."""
     from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-    from drones import DRONES, pose_articulated, drone_colors
-    order = ["mavic4pro", "matrice4e", "mini5pro", "phantom4", "s1000plus"]
-    disp = {"mavic4pro": "Mavic 4 Pro", "matrice4e": "Matrice 4E", "mini5pro": "Mini 5 Pro",
-            "phantom4": "Phantom 4", "s1000plus": "S1000+"}
-    drones = [d for d in order if d in DRONES]
+    from drones import DRONES, pose_articulated, drone_colors, drone_order, drone_label
+    #  ⭐ 2026-07-30: 예전엔 5종 하드코딩 목록을 `if d in DRONES` 로 걸러 썼다 — 목록에 없는
+    #     신규 기종이 **에러 없이 갤러리에서 빠졌다**. 이제 앞머리 순서만 고정하고 나머지는 자동.
+    drones = drone_order(("mavic4pro", "matrice4e", "mini5pro", "phantom4", "s1000plus"))
+    disp = {d: drone_label(d) for d in drones}          # 이름은 DroneSpec 에서 유도(사전 하드코딩 금지)
     cmaps = {d: drone_colors(DRONES[d]) for d in drones}
 
     def _polys(mesh, cmap):
@@ -379,9 +379,9 @@ def drone_row_gif(name="drone_gallery_row", frames=48):
             ax.add_collection3d(_polys(m, cmaps[d])); _fix(ax, d)
             ax.view_init(elev=24, azim=-60)
             ax.set_title(disp[d], fontsize=15, fontweight="bold", pad=2, color="white")
-        fig.suptitle("Five drones — body rotating + propellers spinning (articulated mesh)   "
-                     "material colors: metal=steel-blue · plastic/prop=gray · carbon=black · "
-                     "camera=orange · pcb=green", fontsize=10.5, y=0.99, color="white")
+        fig.suptitle(f"{len(drones)} drones - body rotating + propellers spinning (articulated mesh)   "
+                     "material colors: metal=steel-blue - plastic/prop=gray - carbon=black - "
+                     "camera=orange - pcb=green", fontsize=10.5, y=0.99, color="white")
         fig.subplots_adjust(left=0.003, right=0.997, top=0.88, bottom=0.01, wspace=0.02)
 
     a = animation.FuncAnimation(fig, update, frames=frames, blit=False)
@@ -391,9 +391,8 @@ def drone_row_gif(name="drone_gallery_row", frames=48):
 def spin_articulated(drone="mavic4pro", frames=40, name=None):
     """단일 드론 — 몸체 회전 + **프로펠러 스핀**(분절 메쉬), 재질색. spin_<drone>.gif 덮어씀."""
     from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-    from drones import DRONES, pose_articulated, drone_colors
-    disp = {"mavic4pro": "Mavic 4 Pro", "matrice4e": "Matrice 4E", "mini5pro": "Mini 5 Pro",
-            "phantom4": "Phantom 4", "s1000plus": "S1000+"}.get(drone, drone)
+    from drones import DRONES, pose_articulated, drone_colors, drone_label
+    disp = drone_label(drone) if drone in DRONES else drone
     name = name or f"spin_{drone}"
     spec = DRONES[drone]; cmap = drone_colors(spec)
     fig = plt.figure(figsize=(5.4, 5.4), dpi=140)
@@ -433,12 +432,11 @@ def spin_articulated(drone="mavic4pro", frames=40, name=None):
 
 
 def drone_size_compare(name="drone_size_compare"):
-    """5종 드론을 **같은 축척**으로 위에서 본 실루엣 — 실제 크기 비교(재질색·명칭·대각 mm·스케일바)."""
+    """드론 **전 기종**을 같은 축척으로 위에서 본 실루엣 — 실제 크기 비교(재질색·명칭·대각 mm·스케일바)."""
     from matplotlib.collections import PolyCollection
-    from drones import DRONES, build_drone, drone_colors
-    order = [d for d in ("mini5pro", "mavic4pro", "phantom4", "matrice4e", "s1000plus") if d in DRONES]
-    disp = {"mavic4pro": "Mavic 4 Pro", "matrice4e": "Matrice 4E", "mini5pro": "Mini 5 Pro",
-            "phantom4": "Phantom 4", "s1000plus": "S1000+"}
+    from drones import DRONES, build_drone, drone_colors, drone_order, drone_label
+    order = drone_order(("mini5pro", "mavic4pro", "phantom4", "matrice4e", "s1000plus"))
+    disp = {d: drone_label(d) for d in order}
     meshes = {d: build_drone(DRONES[d]) for d in order}
 
     def hspan(m):

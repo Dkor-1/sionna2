@@ -7,13 +7,13 @@ report13 은 챔버를 벗어난 **자유공간(FS-1)** 편이다. 이 모듈은
 
 무엇을 그리나 (spec §12)
   RT GIF
-    R1  r13_five_lineup_orbit.gif  — 5기종 동일축척 1열(target_extent 순) 궤도
+    R1  r13_five_lineup_orbit.gif  — 전 기종 동일축척 1열(target_extent 순) 궤도
     R2  r13_aspect_<drone>.gif ×5  — 기종별 드론 yaw 0→360°(프롭위상), 시선 el=el_look(음수)
     R3  r13_geometry_orbit.gif     — 자유공간 바이스태틱 기하(TX마스트25/RX3/표적, 바닥·벽 없음)
     R4  r13_scale_zoom.gif         — powers-of-ten 줌(20km→…→1m 메쉬), 마지막 8f만 RT
   스틸 22장 (outputs/renders/r13_*.png)
     r13_10_<drone>_aspect_{best,median,worst}.png  15장 — 자세각=σ격자 p90/p50/p10 az
-    r13_20_five_row.png                             1장 — 5기종 동일축척(target_extent 순)
+    r13_20_five_row.png                             1장 — 전 기종 동일축척(target_extent 순)
     r13_30_geometry_schematic.png                   1장 — TX마스트·RX·표적(스케일브레이크 명시)
     r13_40_<drone>_material.png ×3                  3장 — mini5pro/matrice4e/s1000plus(재질색)
     r13_50_{belly,top}.png ×2                       2장 — 같은 기체 el=−15° vs +15°(F9 근거)
@@ -270,7 +270,7 @@ def _load_sigma_grid() -> dict | None:
 #  다중 드론 1열(lineup) 자유공간 씬 — 챔버·바닥 없음
 # =========================================================================== #
 def _lineup_scene(order=DRONE_ORDER, gap=1.4):
-    """5기종을 target_extent 순으로 y축 1열 배치한 자유공간 씬 + 전체 폭·중심 반환.
+    """전 기종(DRONE_ORDER)을 target_extent 순으로 y축 1열 배치한 자유공간 씬 + 전체 폭·중심 반환.
     챔버·바닥·TX/RX 없음(순수 표적 5개). 인접 간격 = 큰 쪽 span × gap."""
     spans = {k: _span(k) for k in order}
     ys, y = [], 0.0
@@ -324,7 +324,7 @@ def _geometry_scene(drone="mavic4pro", L=L_REF, d=None, compress=None):
 #  스틸 22장
 # =========================================================================== #
 def still_five_row(out_dir=OUT, res=STILL_RES, spp=STILL_SPP) -> str:
-    """r13_20_five_row — 5기종 동일축척 1열(target_extent 순)."""
+    """r13_20_five_row — 전 기종 동일축척 1열(target_extent 순)."""
     scene, total, center, spans = _lineup_scene()
     r = total * 0.95
     campos = (r * 0.85, -r * 0.55, r * 0.28)                   # 약간 위·앞에서 1열 조망
@@ -401,7 +401,7 @@ def render_all_stills(out_dir=OUT, res=STILL_RES, spp=STILL_SPP) -> dict:
 #  RT GIF R1~R4
 # =========================================================================== #
 def gif_five_lineup_orbit(n=48, res=GIF_RES, spp=GIF_SPP, ms=90) -> str:
-    """R1 — 5기종 동일축척 1열 궤도(target_extent 순)."""
+    """R1 — 전 기종 동일축척 1열 궤도(target_extent 순)."""
     scene, total, center, spans = _lineup_scene()
     name = "r13_five_lineup_orbit"
     fdir = _framedir(name)
