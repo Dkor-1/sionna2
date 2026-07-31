@@ -1,4 +1,13 @@
+> ⚠ **2026-07-31 재편 이전의 기록이다** — 리포트 13편 구조와 `make_notebook*.py` 빌더를 전제한다. 현재 구조는 [`../README.md`](../README.md) 와 [`REPORT_CODE_MAP.md`](REPORT_CODE_MAP.md) 에 있다.
+
 # 선행연구 대조 — 방법론 차용 · 결과 정량비교
+
+> 📕 **2026-07-31 1차 사료 정산 반영.** 아래 항목이 원문 PDF 대조로 정정됐다 —
+> ① Clutter-Aware ISAC 은 **Sionna 를 쓴다**(UAV 메쉬 임포트, p.23) ② md-rt 는 EM 설정만 스톡이고 **광선발사기를 개조**했다
+> ③ "drones, humans, micro-Doppler" 향후과제 문장은 **학회판(EuCAP 2025) p.5** 에만 있다 ④ Ziganshin 저널판은 **OJAP 투고 프리프린트**다
+> ⑤ Das 는 원거리장 위반을 인정하지 않는다(서브밴드 등가 원거리장 주장) ⑥ Sionna RT 1차 사료 2편은 등급 [W]→[P] 다.
+> 판정 원장: `outputs/prior_work_survey.json` · `outputs/prior_settled_*.json` 4개. 규칙: 사실 한 줄 = (PDF 경로 · 어느 판 · 축자 문장).
+
 
 > 작성 2026-07-23. 리포트 01~13 전편에 대해 (A) 선행이 확립한 규약을 우리가 따르게 하고,
 > (B) 우리 숫자와 선행 숫자를 나란히 놓은 결과를 기록한다.
@@ -62,8 +71,8 @@
 
 | 선행 | 등급 | 무엇을 했나 | 경로 |
 |---|---|---|---|
-| Sionna RT 기술보고서 arXiv:2504.21719 (Sionna 1.x/2.x) | [W] | PathSolver 경로계산 = **SBR(경로 열거) + image method**, 프레넬 계수 식 (127)(128) 명시 | `prior_work/sionna_sensing_survey.md` (2.0.1 문서 기반 2차 노트) |
-| Hoydis 외, Sionna RT 창설논문 arXiv:2303.11103 | [W] | 스톡 솔버 아키텍처: image method + 확산계수 + 1차 회절, 반환값은 **경로별 복소이득** | `prior_work/outputs/prior_work.json` (key `sionna_rt`, grade SOURCE, 로컬 PDF 없음) |
+| Sionna RT 기술보고서 arXiv:2504.21719 — **Version 1.2 (2025-11-24), 59쪽** | [P] | PathSolver 경로계산 = **SBR + image method**(p.1), 면 상호작용 4종(p.9), 프레넬 식 (127)–(130)(p.46), 확산반사는 산란계수 S 와 정규화 산란패턴(p.50–52) | `/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__*.pdf` (원문 정독, 2026-07-31) ⚠ 파일이름은 v1 이지만 내용은 v1.2 |
+| Hoydis 외, Sionna RT 창설논문 arXiv:2303.11103 — **5쪽, v0.14 세대** | [P] | 미분가능 RT 의 창설 서술(*"Since release v0.14 it integrates a differentiable ray tracer"*, p.1). EM 식이 없어 **솔버 거동 인용에는 쓰지 않는다** — 거동은 기술보고서 v1.2 에서 인용한다 | `/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__*.pdf` (원문 정독, 2026-07-31) |
 | Pegurri 외, VaN3Twin arXiv:2505.14184 (IEEE TWC) | [P] | 차량/건물 재질을 **ITU-R P.2040** 키로 부여 | `/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2505.14184__*.pdf` |
 | Manukyan 외 arXiv:2507.19653 | [N] | 도시 RSSI 충실도가 PathSolver 노브(max_depth·토글)에 **무감** = "죽은 파라미터" | `deep_read_notes_topvenue.md` L210-217 |
 
@@ -124,7 +133,7 @@ report01 은 caveat 에서 이미 이 선을 긋고 있으므로 §2 본문에�
 
 | 선행 | 등급 | 무엇을 했나 | 경로 |
 |---|---|---|---|
-| Ziganshin 외 arXiv:2604.05991 | [P] | 곡면 표적을 facet 이산화. 위상오차 Δφ~2πs/λ, 무차원 지표 **E²/(Rλ)**. i-MiEV 3 GHz 에서 0.4–0.6. 구 케이스 앵커: **0.61 @346 facets, 1.34 @156 facets**. 메쉬 위생을 **정성 요구사항**으로 언급("removal of small details, correction of **non-manifold edges**, and **intersecting facets**") | `/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf` |
+| Ziganshin 외 arXiv:2604.05991v2 (저널판, **OJAP 투고 프리프린트**) | [P] | 곡면 표적을 facet 이산화. 위상오차 Δφ~2πs/λ, 무차원 지표 **E²/(Rλ)**(p.4). i-MiEV 3 GHz 에서 0.4–0.6(p.7). 구 케이스 앵커(p.8): **0.61 @346 facets, 1.34 @156 facets**. 메쉬 위생을 **정성 요구사항**으로 언급("removal of small details, correction of **non-manifold edges**, and **intersecting facets**") | `/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf` |
 | Geo2SigMap arXiv:2312.14303 (DySPAN) | [P] | OSM → Blender → .ply/Mitsuba XML(**객체별** 재질 ref) → Sionna 자동 파이프라인 | `.../channel_modeling_raytracing/2312.14303__*.pdf` |
 | VaN3Twin arXiv:2505.14184 (IEEE TWC) | [P] | 차량 메쉬를 body/windows/lights/rims 로 세분해 부위별 radio material 부여 | `.../digital_twin/2505.14184__*.pdf` |
 | LAMBDA 2607.03826 / Great-X 2507.08716 / TGNN 2604.08306 / Wu 2606.07328 / Beuster 2402.16591 | [P] | 표적 기하를 (a) 외부 에셋 (b) 점산란체·통계 σ (c) 실측 중 하나로 마련 | `papers_isac_sionna/*.pdf` |
@@ -148,7 +157,7 @@ report01 은 caveat 에서 이미 이 선을 긋고 있으므로 §2 본문에�
 
 | 항목 | 우리값(정의) | 선행값(정의) | 사과-대-사과 | 정직한 해석 |
 |---|---|---|---|---|
-| facet 변길이 / λ | p95/λ **0.133–0.487**, max/λ **1.81–4.98** (λ=57.54 mm @5.2 GHz, `mesh_verify.json A_geometry.*.edge_vs_lam52`) | Ziganshin: E²/(Rλ) 0.4–0.6 @3 GHz (i-MiEV), 구 앵커 0.61@346 / 1.34@156 facets | **false** (지표 정의: 우리 E/λ vs 그들 E²/(Rλ) — 곡률 R 포함) | 규약은 공유(둘 다 facet 을 λ 에 연동). 최악은 s1000plus p95/λ=0.487 ≈ **λ/2** — "λ/4 보다 촘촘" 은 거짓. E²/(Rλ) 로 직접 견주려면 곡률 R 산출이 필요하고 현재 없다 |
+| facet 변길이 / λ | p95/λ **0.133–0.487**, max/λ **1.81–4.98** (λ=57.54 mm @5.2 GHz, `mesh_verify.json A_geometry.*.edge_vs_lam52`) | Ziganshin: E²/(Rλ) 0.4–0.6 @3 GHz (i-MiEV, p.7), 구 앵커 0.61@346 / 1.34@156 facets (p.8) | **false** (지표 정의: 우리 E/λ vs 그들 E²/(Rλ) — 곡률 R 포함) | 규약은 공유(둘 다 facet 을 λ 에 연동). 최악은 s1000plus p95/λ=0.487 ≈ **λ/2** — "λ/4 보다 촘촘" 은 거짓. E²/(Rλ) 로 직접 견주려면 곡률 R 산출이 필요하고 현재 없다 |
 | SBR 광선격자 수렴 | λ/12→λ/24: 방위평균 **−0.143 dB**, per-angle mean 0.498 / p95 **1.399** / max **2.00** dB (`mesh_verify.json I_sbr_subdiv.ray_spacing_convergence`, 3.5 GHz·모노스태틱 후방산란) | (대응 없음) | — | 이것이 우리의 **진짜** 수치 놉이다. 자명한 2.9e-7 dB 만 인용하고 이 2 dB 를 숨기면 선택적 보고다 |
 | 대각거리 재현 오차 | matrice4e **−2.30%**, s1000plus **−0.14%**, phantom4 **+1.98%** (`mesh_verify.json C_dims.*.checks.diagonal`) | (대응 없음) | — | 이 3종만 유효하다. **mavic4pro(−0.57%)·mini5pro(0.00%) 는 자기참조**다 — `drones.py:126-129` 가 "diagonal was ESTIMATED (400 mm) … Fitting the frame to the official envelope implies **440.9 mm**" 라 적으므로 441 은 우리 모델 역산값이고, mini5pro 는 면내 배율 1.0 이라 0.00% 가 대수 항등식이다 |
 | 외곽 L/W/H 오차 | 0% (전 기종) | (대응 없음) | — | **결과가 아니라 구속조건**이다. `drones.py:274 frame_fit_scale()` 이 bbox 를 envelope 에 강제로 맞춘다(matrice H 잔차 1.9e-14 = 부동소수 지문). 검증으로 인용 금지 |
@@ -340,7 +349,7 @@ ifftshift + IFFT + CP 복사뿐이다 — **가드도 DC널도 구성하지 않�
 | 선행 | 등급 | 무엇을 했나 | 경로 |
 |---|---|---|---|
 | **NVIDIA 메인테이너 직답 — GitHub Discussion #844** | [P](우리 조사 기록) | 사용자가 "Sionna RT 로 금속체를 대량 광선 샘플링해 RCS 를 낼 수 있나" 묻자 **Jakob Hoydis 가 "This is currently not supported"** 라고 답 | `prior_work/sionna_sensing_survey.md:37` |
-| Sionna RT 기술보고서 arXiv:2504.21719 (2.0.1 세대) | [W] | PathSolver = image method + SBR(**경로 열거용** 광선발사) + 정반사/확산/1차회절/굴절 계수. **표적 표면전류 PO 적분 없음** | `prior_work/sionna_sensing_survey.md:28-33` (2차 노트) |
+| Sionna RT 기술보고서 arXiv:2504.21719 — Version 1.2, 우리 스택 2.0.1 대응 | [P] | PathSolver = SBR + image method + 정반사/확산/굴절/1차회절. 59쪽 전문에 `physical optics` 0회 · `radar cross section`/`RCS` 0회 · `dBsm` 0회, 유일한 `surface integral` 은 라디오맵 면적분용 참고문헌(p.35). **표적 표면전류 PO 적분과 RCS 출력이 없다** — `SBR` 자체는 44회 나오므로 "SBR 이 없다" 로 쓰지 않는다 | `.../channel_modeling_raytracing/2504.21719__*.pdf` (원문 정독, 2026-07-31) |
 | 자체 문헌 센서스 | [P] | genuine Sionna 27편 정독 → 16편 집계: A1=1·A2=2·C=3·D=5·NA=5, **스톡 솔버 안에서 코히어런트 PO/산란적분을 낸 논문 0편** | `/data/public/sionna_jeong/papers_isac_sionna/deep_read_notes.md:26-28` |
 | Ziganshin arXiv:2604.05991 | [P] | Sionna-RT **v0.19 를 in-place 확장**(UTD + vertex + double-bounce 회절) | `papers_isac_sionna/2604.05991__*.pdf` |
 | Sagitta SBR arXiv:2604.09243 | [P] | 독립 GPU BVH SBR + Stratton–Chu PO. **Sionna 미사용** | `papers_isac_sionna/2604.09243__*.pdf` |
@@ -408,7 +417,7 @@ ifftshift + IFFT + CP 복사뿐이다 — **가드도 DC널도 구성하지 않�
 | 선행 | 등급 | 무엇을 했나 | 경로 |
 |---|---|---|---|
 | Pasquale, Hu, Pennati, Peng, Markidis (KTH), SagittaSBR arXiv:2604.09243 | [P] | GO 다중반사 + **Stratton–Chu PO over ray tubes** + BVH. PEC 구를 **Mie 해석해**와 kr = 2πr/λ **10⁰–10⁴ 스윕**, σ/(πr²) 정규화. 광학영역 std **~2.5%**, 유효구간 **kr=30(Mie→광학 경계) ~ kr=8000(aliasing 개시)**. 광선샘플링 **Δs ≤ λ/5**. **모노스태틱 전용**을 명시하고 각주 1 에서 바이스태틱은 "a visibility function to account for shadow regions between the reflection points and the final receiver" 가 추가로 필요하다고 경고 | `papers_isac_sionna/2604.09243__*.pdf` |
-| Ziganshin 외 arXiv:2604.05991 | [P] | 정준 구+원통을 해석해 + FEKO-MLFMM 과 먼저 대조 후 i-MiEV 를 BiRa 실측(설비 2–18 GHz, **실제 대조 3 GHz**)과. **Fig.5 는 후방산란 MAE 를 E²/(Rλ) 함수로 직접 그린다** — 후방산란 정확도는 **E²/(Rλ) ≈ 0.5** 를 지나면 개선 미미, 실용 절충대 0.6–0.9 | `papers_isac_sionna/2604.05991__*.pdf` |
+| Ziganshin 외 arXiv:2604.05991v2 (저널판, **OJAP 투고 프리프린트**) | [P] | 정준 구+원통을 해석해 + FEKO-MLFMM 과 먼저 대조 후 i-MiEV 를 BiRa 실측(설비 2–18 GHz, p.7; **실제 대조 3 GHz**)과. **Fig.5 는 후방산란 MAE 를 E²/(Rλ) 함수로 직접 그린다** — 후방산란 정확도는 **E²/(Rλ) ≈ 0.5** 를 지나면 개선 미미, 실용 절충대 0.6–0.9 | `papers_isac_sionna/2604.05991__*.pdf` |
 
 ### 우리가 가져올 규약
 
@@ -438,7 +447,7 @@ ifftshift + IFFT + CP 복사뿐이다 — **가드도 DC널도 구성하지 않�
 | 항목 | 우리값(정의) | 선행값(정의) | 사과-대-사과 | 정직한 해석 |
 |---|---|---|---|---|
 | 광선격자 밀도 규칙 | 드론 측정 **λ/16**, 커널 기본 λ/12, 검증 스윕 λ/4–λ/30 (`rcs_sbr.py:147 d = lam/DEFAULT_DIV`, `:496 rays_per_lambda = lam/d`) | Sagitta: **Δs ≤ λ/5** ("at least five samples per wavelength are required to accurately capture the rapidly oscillating phase") | **true**(둘 다 직교 개구면 incident-ray-grid 간격) | 정의 축이 동일한 진짜 규약 대조. 우리가 공표 하한보다 3.2×, **관측된 붕괴점(8~11 samples/λ) 대비 약 1.9× 촘촘**. 결과가 아니라 방법 신뢰성 근거로만 |
-| 정준 구 facet 이산화 적정성 | `uv_sphere(r=0.5, seg=180, rings=90)`, λ=85.65 mm → E = 2πr/180 = 17.45 mm(=λ/4.91) → **E²/(Rλ) = 0.0071** | Ziganshin: 후방산란 수렴 무릎 **0.5**, 실용대 0.6–0.9, i-MiEV 0.4–0.6 | **true**(무차원 지표 그대로 계산됨) | 무릎 대비 **약 70배 촘촘**. 결론: **우리 구의 잔차를 facet 이산화 탓으로 돌릴 수 없다 — 남은 용의자는 광선격자뿐이다.** ⚠ Ziganshin 의 E²/(Rλ) 는 UTD-facet 기반이라 PO-over-ray-tubes 로의 이전이 검증된 등가는 아님 |
+| 정준 구 facet 이산화 적정성 | `uv_sphere(r=0.5, seg=180, rings=90)`, λ=85.65 mm → E = 2πr/180 = 17.45 mm(=λ/4.91) → **E²/(Rλ) = 0.0071** | Ziganshin: 후방산란 수렴 무릎 **0.5**(p.6 본문), 실용대 0.6–0.9(p.7 본문), i-MiEV 0.4–0.6(p.7) | **true**(무차원 지표 그대로 계산됨) | 무릎 대비 **약 70배 촘촘**. 결론: **우리 구의 잔차를 facet 이산화 탓으로 돌릴 수 없다 — 남은 용의자는 광선격자뿐이다.** ⚠ Ziganshin 의 E²/(Rλ) 는 UTD-facet 기반이라 PO-over-ray-tubes 로의 이전이 검증된 등가는 아님 |
 
 ### 대응 선행 없음
 
@@ -493,7 +502,11 @@ div ∈ {6, 12, 30} 이 동일, div ∈ {8, 16} 이 동일 — 순수 정수 정
   (i) OpenISAC 의 ridge 간격은 **로터 각속도(rpm/60)** 인데 우리 `flash_hz = blades × rpm/60` 은
   **정확히 2배**다 — 그 문장 옆에 우리 flash 를 두면 블레이드 수만큼 어긋난 두 양을 병치하게 된다.
   (ii) OpenISAC 은 STFT **앞에 MTI(0-Doppler 노치)** 를 걸므로 그들의 "zero-Doppler = 동체" 는
-  MTI 잔차다. 우리 pedestal·`gain_db` 는 MTI 없는 신호에서 잰다.
+  MTI 잔차다. **⚠ 이 항의 이전 판(“우리는 MTI 없는 신호에서 잰다”)은 그림에 대해 거짓이었다** —
+  `src/microdoppler.py:103-104` 의 `spectrogram(remove_dc=True)` 가 기본이라 `viz_report1.py:782,811`
+  이 그리는 **스펙트로그램 판은 이미 0-Doppler 노치가 걸려 있다**(그림 축은 그들과 같은 규약).
+  "MTI 없음" 이 참인 것은 **JSON `ratio_db`·`gain_db` 뿐**이다 — `viz_report1.py:783-785` 가
+  노치 전 원신호 E 로 |DC|/std(AC) 를 잰다. 즉 깨지는 것은 그림이 아니라 **JSON 지표 대조**다.
 - **adopt** — Beuster 의 정지/회전 분리 + 바이스태틱각 축. ⚠ 실제 정량 대조를 하려면
   `rcs_sbr_multistatic()` 출력 JSON + BiRa 데이터셋 확보 **둘 다** 필요하다(논문에 dBsm 이 없다).
 - **adopt** — Zhang 의 **σ = A·B1·B2 3층 분해**를 그대로. 우리 방위 σ 를 A(dB평균)·B1(로브)·B2
@@ -846,26 +859,35 @@ WiFi·LTE 는 점유율을 9%→89%, 3%→59% 로 올려도 0.1~0.3 dB 밖에 �
 
 ---
 
-## 13. 리포트 13 — 자유공간 검지거리 (설계 단계)
+## 13. 리포트 13 — 자유공간 검지거리 (구현됨 · 미공개)
 
-### 현재 상태
+### 현재 상태 (2026-07-29 갱신)
 
-- `src/make_notebook13.py` **없음**, `report13.ipynb` **없음**, `outputs/report13*.json` **없음**.
-- 그러나 **설계 문서는 있다**: `docs/REPORT13_DESIGN.md`(64 KB) + `docs/REPORT13_SPEC.md`(63 KB),
+- **이 절의 이전 기록 "`make_notebook13.py` 없음 / `report13.ipynb` 없음 / `outputs/report13*.json` 없음"
+  은 폐기한다 — 셋 다 실재한다.** `src/make_notebook13.py` 508 줄, `report13.ipynb`,
+  `outputs/report13_freespace.json`(5.0 MB, `meta.smoke=false`, `git_rev` 70ba2e5, 모드 W1/L1/G1),
+  `outputs/report13_sigma_grid.json`, `outputs/verify_freespace.json`,
+  `outputs/figures/report13_*.png` 16 장, `outputs/renders/anim/r13_*.gif` 20 개.
+- 다만 **README 의 리포트 표에는 아직 없다**(표가 report12 에서 끝난다) — 즉 **미공개**다.
+- `make_notebook13.py` 는 2026-07-29 에 **아래 처방의 인용을 반영**했다: spine `prior` / §0 이상화 /
+  §1 Cassini·R_eq / §2 σ 자릿수 대조 / §4 Pfa-함수 규약 + **F↔F_u 택일 기각 기록** / 용어풀이 /
+  §8 캐비엇 2건. 인용한 사실은 아래 표의 경로에서 원문 PDF 로 재확인했다.
+- **설계 문서**: `docs/REPORT13_DESIGN.md`(64 KB) + `docs/REPORT13_SPEC.md`(63 KB),
   둘 다 2026-07-22 09:58. SPEC 은 적대적 반증 4라운드를 전량 판정한 최종 구현 스펙이다.
   (⚠ 선행 조사 과정에서 "report13 을 언급하는 파일은 `RESUME_0722.md` 하나뿐" 이라는 보고가 있었으나
   사실이 아니다 — §15 에 기록.)
-- 아래는 전부 **"13 을 지을 때 이렇게 하라"는 처방**이고, 수치는 내가 기존 JSON 을 선행 식에 대입해
-  계산한 **파생값**이다(아직 `outputs/` 에 없음).
+- 아래 "우리가 가져올 규약" 은 전부 **처방**이고, 뒤 "수치 비교표" 의 Re 값은 내가 기존 JSON 을 선행 식에
+  대입해 계산한 **파생값**이다. ⚠ **이 파생 Re 는 지금도 `outputs/` 에 없다** — 선행에서 빌린 링크버짓
+  (Pt 45 dBm 등) 위의 값이라 `report13_freespace.json` 의 정본 R90 과 축도 예산도 다르다. 섞지 말 것.
 
 ### 선행은 이렇게 했다
 
 | 선행 | 등급 | 무엇을 했나 | 경로 |
 |---|---|---|---|
 | Maksymiuk 외, Asilomar 2025 | [P] | 검지거리를 **Cassini oval** 로. eq.(9) R1R2 < sqrt(Pt·Gt·Gr·S0·λ²·B·T_int·**F** / ((4π)³·L·k·Tr·Br·D0)). Table I 전 10항목. D0 = 10/15/20 dB 스윕. "ca. 3 km at 3.5 GHz". 캐비엇: "these predictions assume the target is located at the center of the base station antenna beam, which represents an **idealized scenario**" | `/data/public/jeong/papers/5G/25_UAV Intrusion…pdf` |
-| Rényi (Remote Sens. 2022) | [P] | **Re = √(R1R2) = 등가 모노스태틱 검지거리**. Pd 대 점유율 곡선을 Pfa 1e-4/1e-6/1e-8 에서. Table 2: D0 11 dB, T_int 20 ms, T0 493 K | `/data/public/jeong/papers/5G/22_Rényi…pdf` |
+| Maksymiuk 외, *Remote Sensing* 14(23):6146 (2022) — ⚠ "Rényi" 는 **엔트로피 이름이지 저자가 아니다**(저자 Maksymiuk·Abratkiewicz·Samczyński·Płotka, Asilomar 2025 와 **같은 연구팀**), DOI 10.3390/rs14236146 | [P] | **Re = √(R1R2) = 등가 모노스태틱 검지거리**. Pd 대 점유율 곡선을 Pfa 1e-4/1e-6/1e-8 에서. Table 2: D0 11 dB, T_int 20 ms, T0 493 K | `/data/public/jeong/papers/5G/22_Rényi…pdf` |
 | Rzewuski 외, NATO STO-MP-MSG-SET-183 | [P] | 커버리지를 **RCS_min(x,y) [dBsm] 공간지도**(흰 영역 = 검출 성공)로. eq.(4)에 **duty factor F_u** 명시(WiFi 실측 듀티 18%). D0 = 8 dB @Pfa≈1e-4(단, "연속 조명 + 높은 갱신율" 근거의 **트랙 레벨** 문턱). Parrot AR.Drone 2.0 FDTD: WiFi 대역 σ **−40~0 dBsm(평균 ~−20)** | `/data/public/jeong/papers/Wifi/21_Drone Detectability…pdf` |
-| Demissie 외, IEEE RadarConf 2024 | [P] | LTE450 실측 최대 검지거리: **Pfa=0.01 → 2700 m, Pfa=1e-4 → 약 1500 m** (DJI M210 88×88×39 cm). CUT 최대전력 vs 바이스태틱 거리 **이중로그 + 봉우리 선형피팅 + 문턱 교점**. 실측 CUT 전력이 **진동**(직접경로+반사 간섭) | `/data/public/jeong/papers/LTE/24_Protection…pdf` |
+| Demissie 외, *2024 International Radar Conference (RADAR)* (DOI 10.1109/RADAR58436.2024.10993905 — 리포트 인용 판본 표기는 이 문자열로 통일, `AUDIT_FINDINGS_0722.md`) | [P] | LTE450 실측 최대 검지거리: **Pfa=0.01 → 2700 m, Pfa=1e-4 → 약 1500 m** (DJI M210 88×88×39 cm). CUT 최대전력 vs 바이스태틱 거리 **이중로그 + 봉우리 선형피팅 + 문턱 교점**. 실측 CUT 전력이 **진동**(직접경로+반사 간섭) | `/data/public/jeong/papers/LTE/24_Protection…pdf` |
 | Sun 외, WiSec '22 | [P] | 20 m 실측 → T-Mobile 타워 5기 링크버짓으로 **외삽**, geofencing zone 약 20,000 m². "at least 3 LTE cell towers" | `/data/public/jeong/papers/LTE/22_…pdf` |
 | Ji 외 arXiv:2602.08203 | [P] | LTE 1.85/1.87 GHz, eNB-Rx 200/220 m, UAV-Rx <30 m(Re ≈ 77 m), 추적오차 <50 cm @90%. 표적 = **알루미늄박 25×20×40 cm 판지상자**를 매단 쿼드콥터 | `papers_isac_sionna/2602.08203__*.pdf` |
 
@@ -1079,7 +1101,7 @@ WiFi·LTE 는 점유율을 9%→89%, 3%→59% 로 올려도 0.1~0.3 dB 밖에 �
 
 | # | 항목 | 상태 | 처리 |
 |---|---|---|---|
-| H1 | 2603.28736 "EuCAP 2026 채택(peer-reviewed)" | 우리 `INDEX.md` 는 "claimed EuCAP 2026 (**unconfirmed by S2**)" 라 표기. arXiv abs 직접 조회로 사실 확인됨(comments: "Accepted for publication at the 2026 20th EuCAP") — **날조 아님, 그러나 확신의 출처가 없었다** | 확인 경로 명기 |
+| H1 | 2603.28736 "EuCAP 2026 채택(peer-reviewed)" | 채택 문장은 **arXiv comment 필드에만** 있다(*"Accepted for publication at the 2026 20th EuCAP"*). **PDF 본문에는 없다** — 2026-07-31 전문 검사에서 `accepted` 0회, `EuCAP` 은 2015년 참고문헌 안 1회, 메타데이터 /Subject 비어 있음. 따라서 게재 열로 옮기지 않고 **프리프린트**로 세며, 인용마다 "채택 주장은 arXiv comment(PDF 밖)" 를 병기한다 | 인용마다 출처 위치 명기 |
 | H2 | "CORPUS 자산 지도가 report03 을 '직접 대응 선행 없음' 이라 명시" | 해당 문자열을 워크스페이스 + `/data/public/sionna_jeong` 전역 grep 한 결과 **0건**. 근거 파일이 실재하지 않음 | **삭제** 또는 실제 경로 제시 |
 | H3 | `make_notebook03.py §4` "Ezuma/Semkin/Li&Ling 인용" | 그 파일에 `Semkin`·`Li`·`Ling` **0회**. 실제로는 "NCSU Ezuma·Güvenç" 와 "BUPT 3GPP unified RCS" 두 건 | 정정 |
 | H4 | Li&Ling / Ezuma / Semkin / Quevedo / DTMB | **전 디스크에 PDF 없음.** `.md` 노트만 존재 → **[N] 등급 확정** | 인용마다 "노트 근거" 명시 |

@@ -1,3 +1,5 @@
+> ⚠ **2026-07-31 재편 이전의 기록이다** — 리포트 13편 구조와 `make_notebook*.py` 빌더를 전제한다. 현재 구조는 [`../README.md`](../README.md) 와 [`REPORT_CODE_MAP.md`](REPORT_CODE_MAP.md) 에 있다.
+
 # 2607 논문 3편 정독 노트 — 교수님 각도(RCS 단순화·환경 리얼리스틱·디텍션)로 정리
 
 > 정독 대상: `team_meeting/2607/` 3편 (Clutter-Aware 서베이 41p·OpenISAC 15p·Montaner 5p). 2026-07-25 정독.

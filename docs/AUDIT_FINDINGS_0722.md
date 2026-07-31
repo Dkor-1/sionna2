@@ -1,3 +1,5 @@
+> ⚠ **2026-07-31 재편 이전의 기록이다** — 리포트 13편 구조와 `make_notebook*.py` 빌더를 전제한다. 현재 구조는 [`../README.md`](../README.md) 와 [`REPORT_CODE_MAP.md`](REPORT_CODE_MAP.md) 에 있다.
+
 # 리포트 1~12 적대감사 findings (2026-07-22, wf w4gurtd2o)
 
 12에이전트 적대감사. report07은 스키마 실패로 미감사(이번 세션에 이미 대폭 수정됨). **18개 high/med — 전부 적용 완료(커밋 `70ba2e5`)**.

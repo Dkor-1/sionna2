@@ -1,4 +1,8 @@
+> ⚠ **2026-07-31 재편으로 퇴역한 리포트의 설계서다** — 당시 사양을 그대로 보존한다. 현재 6편 구조는 [`../README.md`](../README.md) 와 [`REPORT_CODE_MAP.md`](REPORT_CODE_MAP.md) 에 있다.
+
 모든 쟁점을 코드·계산으로 판정 완료했습니다. 결정적 확인: **F1**(SSB 50Hz, 저장소 자체 `PILOT_RATE_HZ`가 근거), **R6**(ridge_rel=0가 정답 — 스모크로 1e-6이 오히려 누설 확인), **F2**(equal_psd 장치 실재), **S1/S6**(비단조·국소지수·천장), **F17**(target_extent 크기순서). 이제 최종 구현 스펙을 작성합니다.
+
+> ⚠ 2026-07-30: 표적이 7종이 됐다(비-DJI 2종 추가). **이 문서에 개수를 적지 않는다** — 정본은 `src/drones.py` 의 `DRONES` 이고 코드는 `viz_report13.DRONE_ORDER`(= `drone_order()`) 로 유도한다. 아래 렌더 파일명에 남은 `five` 는 **5종 시절 유래한 이름**일 뿐 내용은 전 기종이다.
 
 ---
 
@@ -119,7 +123,7 @@ u1=(TX−P)/R1, u2=(RX−P)/R2, Rb=R1+R2−L, τ=Rb/c, f_d=v·(u1+u2)/λ, β=∠
 
 | 축 | 값 | 개수 | 비고 |
 |---|---|---|---|
-| 드론 | **`mini5pro, phantom4, mavic4pro, matrice4e, s1000plus`** | 5 | ★target_extent 순(F17). 전 그림 이 순서 |
+| 드론 | **`DRONES` 레지스트리 전수** (앞머리 `mini5pro, phantom4, mavic4pro, matrice4e, s1000plus`) | `len(DRONES)` | ★target_extent 순(F17). 전 그림 이 순서. 개수를 여기 적지 않는다 |
 | 모드 | W1 W2 W3·L1 L2 L3·G1 G2 G3 | 9 | 헤드라인 상시 3인방 W1·L1·G1 |
 | 반송파 | WiFi5.21/LTE1.843/NR3.5 GHz | 3 | 표준↔반송파 1:1 |
 | **공통반송파 반사실** | W/L/G 구조를 3.5 GHz에 | +1세트 | F10 밴드효과 분리(GPU 0회, σ 3밴드 재사용) |
@@ -544,8 +548,8 @@ def stage_verify(...) -> dict       # 스팟체크
 
 | # | 파일 | 장면/카메라 | 프레임·해상도·spp·ms | 보여주는것 |
 |---|---|---|---|---|
-| R1 | `r13_five_lineup_orbit.gif` | 5기종 동일축척 1열(간격=span×1.4, **target_extent 순**), 궤도 r=전체span×1.3 fov40°, 1m스케일바 | 48f·1600×900·spp512·ms90 | 5메쉬+재질색+실제크기대비 |
-| R2 | `r13_aspect_<key>.gif` ×5 | 좌:RT 드론yaw0→360°(프롭위상), 시선고정 el=el_look(음수). 우:σ(ψ)극좌표다이얼+R90(ψ)지침+블라인드섹터음영 | 기종당24f·좌900×900 spp256·fps10 | **5종 메쉬 각각 전용** |
+| R1 | `r13_five_lineup_orbit.gif` | 전 기종 동일축척 1열(간격=span×1.4, **target_extent 순**), 궤도 r=전체span×1.3 fov40°, 1m스케일바 | 48f·1600×900·spp512·ms90 | 전 기종 메쉬+재질색+실제크기대비 |
+| R2 | `r13_aspect_<key>.gif` ×기종수 | 좌:RT 드론yaw0→360°(프롭위상), 시선고정 el=el_look(음수). 우:σ(ψ)극좌표다이얼+R90(ψ)지침+블라인드섹터음영 | 기종당24f·좌900×900 spp256·fps10 | **전 기종 메쉬 각각 전용** |
 | R3 | `r13_geometry_orbit.gif` | 자유공간 바이스태틱(TX마스트25/RX3/표적, L500, 바닥·벽 없음), 1m기준판+스케일바 | 48f·1600×1100·spp512·ms90 | 챔버 사라진 순간 |
 | R4 | `r13_scale_zoom.gif` | powers of ten: 20km평면(Cassini)→500m베이스라인→60m고도→1m메쉬, 마지막8f만 RT, 매프레임 스케일바+"scale break" | 40f·fps6(RT8f·1280×860 spp256) | 렌더 스케일문제 정면 |
 | R5 | `r13_coverage_grow.gif` | matplotlib EIRP20→90 커버리지등고선 성장, 벽닿으면 정지+조건배지("DPI-limited @depth 60dB") | 32f·1200×900·fps5 | F8/F11 동영상판, **배지에 조건** |
@@ -553,14 +557,14 @@ def stage_verify(...) -> dict       # 스팟체크
 | R7 | `r13_cpi_walk.gif` | matplotlib T_CPI56ms→1s, 피크가 walk벽서 거리축 번짐 | 24f·1100×700·fps5 | 적분 늘리면 틀림 |
 | R8 | `r13_cassini_baseline.gif` | matplotlib L50→3000 스윕, Cassini 단일→이엽 + β>90°해칭 | 36f·1100×900·fps8 | 기하가 커버리지 접음 |
 
-**스틸 22장**(`outputs/renders/r13_*.png`, 1600×1200@spp1536):
-- `r13_10_<drone>_aspect_{best,median,worst}.png` **15장** — 자세각은 σ격자 JSON p90/p50/p10 az서 읽어 결정
-- `r13_20_five_row.png` — 5기종 동일축척(target_extent 순)
+**스틸 = 3·N + 7 장**(N = `len(DRONES)`; `outputs/renders/r13_*.png`, 1600×1200@spp1536):
+- `r13_10_<drone>_aspect_{best,median,worst}.png` **3·N 장** — 자세각은 σ격자 JSON p90/p50/p10 az서 읽어 결정
+- `r13_20_five_row.png` — 전 기종 동일축척(target_extent 순). 파일명의 `five` 는 5종 시절 유래
 - `r13_30_geometry_schematic.png` — TX마스트·RX·표적(스케일브레이크 명시)
 - `r13_40_<drone>_material.png` ×3(mini5pro/matrice4e/s1000plus=σ최소/중/최대)
 - `r13_50_belly_vs_top.png` ×2 — 같은기체 el=+15° vs −15°(F9 시각근거)
 
-**기존자산 재사용(재생성금지)**: `outputs/renders/anim/spin_{5종}.gif`, `drone_gallery_row.gif`, `drone_size_compare.png`.
+**기존자산 재사용(재생성금지)**: `outputs/renders/anim/spin_{전 기종}.gif`, `drone_gallery_row.gif`, `drone_size_compare.png`.
 
 ---
 

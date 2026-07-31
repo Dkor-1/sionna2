@@ -34,7 +34,7 @@ DJI 소비자/엔터프라이즈 기체는 애초에 **PX4 가 아니라 DJI 자
 
 ## 3. 그래서 우리 `gazebo_export.py` 가 채우는 빈틈
 
-우리 5종(mini5pro·mavic4pro·matrice4e·s1000plus·phantom4)을 **스펙시트 → SDF** 로 자동 생성:
+우리 표적 **전 기종**(`src/drones.py` 의 `DRONES` 전수 — 현재 mini5pro·mavic4pro·matrice4e·s1000plus·phantom4·typhoonh480·x500v2)을 **스펙시트 → SDF** 로 자동 생성(`gazebo_export.py` 는 `list(DRONES)` 를 돌므로 기종을 추가하면 자동 포함된다):
 - base_link(동체) + rotor 링크 + revolute 관절 + gz-sim MulticopterMotorModel 플러그인
 - **관성텐서를 메쉬에서 계산**(부위별 밀도 → trimesh → 평행축, 총질량은 공식 TOW 로 스케일)
 - 충돌메쉬(볼록껍질), 추력계수 k_T 호버조건 유도 → `outputs/gazebo/<key>/model.sdf`

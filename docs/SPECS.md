@@ -1,5 +1,10 @@
 # DJI 드론 5종 — 제원 조사 근거 (웹 조사 + 독립 교차검증)
 
+> ⚠ **이 문서는 표적 전수 목록이 아니다 — DJI 5종의 조사 근거만 담는다.** 표적 목록·개수의 정본은
+> `src/drones.py` 의 `DRONES` 레지스트리(현재 7종)다. 2026-07-30 에 추가된 비-DJI 2종
+> (`typhoonh480` · `x500v2`)의 조사 근거는 `docs/RESUME_0729.md` §5 와 `drones.py` 의 각 `note` 에 있고,
+> **여기로 복사하지 않는다**(사본이 갈라지는 사고 전례 — 메모 `sionna2-r20-novelty-correction`).
+
 > 조사일 2026-06-30. 각 항목은 1차 조사(research) 후 독립 검증(verify)을 거쳤습니다.
 > 원자료(JSON): `docs/drone_research.json`.
 

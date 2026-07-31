@@ -1,4 +1,13 @@
+> ⚠ **2026-07-31 재편 이전의 기록이다** — 리포트 13편 구조와 `make_notebook*.py` 빌더를 전제한다. 현재 구조는 [`../README.md`](../README.md) 와 [`REPORT_CODE_MAP.md`](REPORT_CODE_MAP.md) 에 있다.
+
 # 드론 ISAC 선행연구 통합 정독 노트 — 13편
+
+> 📕 **2026-07-31 1차 사료 정산 반영.** 아래 항목이 원문 PDF 대조로 정정됐다 —
+> ① Clutter-Aware ISAC 은 **Sionna 를 쓴다**(UAV 메쉬 임포트, p.23) ② md-rt 는 EM 설정만 스톡이고 **광선발사기를 개조**했다
+> ③ "drones, humans, micro-Doppler" 향후과제 문장은 **학회판(EuCAP 2025) p.5** 에만 있다 ④ Ziganshin 저널판은 **OJAP 투고 프리프린트**다
+> ⑤ Das 는 원거리장 위반을 인정하지 않는다(서브밴드 등가 원거리장 주장) ⑥ Sionna RT 1차 사료 2편은 등급 [W]→[P] 다.
+> 판정 원장: `outputs/prior_work_survey.json` · `outputs/prior_settled_*.json` 4개. 규칙: 사실 한 줄 = (PDF 경로 · 어느 판 · 축자 문장).
+
 
 *2026-07-23 작성 · 대상 폴더 `/home/yunjung/workspace/paper_sionna_Ray/`*
 *우리 수치는 전부 `outputs/*.json` 에서 직접 읽었다. 재실행한 값은 그렇다고 표시했다.*
@@ -27,13 +36,13 @@
 | 4 | **md-props** — Costa·Myint·Andrich·Giehl·Schneider·Thomä, *Modelling Micro-Doppler Signature of Drone Propellers in Distributed ISAC*, IEEE RadarConf24 | 프로펠러를 thin-wire 무한 점산란체로 두고 **바이스태틱 OFDM** 으로 재유도, TU Ilmenau BiRa 무향실에서 β=30~180° 실측 대조(ρ≈0.98). 실측 도플러 피크 수치(±557.9/+559.8 Hz, 50.8 Hz)는 **이 학회판에만** 있다 | **실측** | 미사용 (RT 는 "쓸 수도 있는 다른 방법" 목록에만) |
 | 5 | **md-multiprop** — 같은 팀 저널 확장판, *Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC*, IEEE J-STEAP 1:208–222, 2025 | 다중 프로펠러 벡터 정식화 + 동체 모델 2종(가우시안 / 측정 S21 라이브러리) + 진동 랜덤워크 추가. HRR 거리-도플러에서만 경쟁 모델이 무너진다는 것을 정량화. 거리분해능을 ΔR=c/[2B·cos(β/2)] 로 **정정** | **실측** | 미사용 |
 | 6 | **md-testbed** — Wei·Ma·He·Zhang·Feng·Liu·Liang(BUPT), *UAV's Rotor Micro-Doppler Feature Extraction Using ISAC Signal*, IEEE TWC 24(12):10166–10182, 2025 | 5G NR TDD 프레임을 재설계해 전 PDSCH 심볼을 센싱에 쓰고(PRI 33.3 µs), rmD-NSP + SET 로 로터 성분을 분리. 3.5 GHz Sub-6 ISAC 실기 테스트베드(DJI M300 RTK, 닝보)로 검증 | **실측**(스펙트로그램만) | 미사용 (자유공간 가정, 점산란체) |
-| 7 | **md-rt** — Li(Changjun)·Mu·Jiang·Feng·Gao·Xu(상하이대/XJTLU), *Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing*, IEEE ICCT 2025, pp.359–364 | **스톡 Sionna RT + Blender 블레이드 메쉬**로 UAV 로터 마이크로도플러 시간-주파수 스펙트로그램을 만들고 해석해(1562 Hz, T=0.04 s)와 일치시킴. 원추형(cone) 광선 집속 전략을 제안 | 시뮬 | **사용** (17회, 핵심 도구) |
+| 7 | **md-rt** — Li(Changjun)·Mu·Jiang·Feng·Gao·Xu(상하이대/XJTLU), *Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing*, IEEE ICCT 2025, pp.359–364 | **Sionna RT(EM 설정은 스톡, 광선발사기는 개조) + Blender 블레이드 메쉬**로 UAV 로터 마이크로도플러 시간-주파수 스펙트로그램을 만들고 해석해(1562 Hz, T=0.04 s)와 일치시킴. 기여 2번이 발사기 개조다 — *"an improved directional ray-tracing strategy based on Sionna RT, which replaces spherical sampling with conical sampling"*(p.1) | 시뮬 | **사용** (17회, 핵심 도구) |
 
 ### C. 채널·클러터·RT 방법론
 
 | # | 약칭 | 한 줄 | 실측/시뮬 | Sionna |
 |---|---|---|---|---|
-| 8 | **clutter** — Liu(Rang)·Li·Li(Ming)·Swindlehurst, *Clutter-Aware ISAC: Models, Methods, and Future Directions*, Proc. IEEE 114(1):52–91, 2026 | cold/hot 클러터 분류 → 통계·공분산 모델 → slow-time·공간·STAP·KA 억제 → 송수신 공동설계까지의 39쪽 튜토리얼. 공개코드 있음 | 시뮬 | **사용** (site-specific 장면 생성 + 표적 메쉬) |
+| 8 | **clutter** — Liu(Rang)·Li·Li(Ming)·Swindlehurst, *Clutter-Aware ISAC: Models, Methods, and Future Directions*, Proc. IEEE 114(1):52–91, 2026 | cold/hot 클러터 분류 → 통계·공분산 모델 → slow-time·공간·STAP·KA 억제 → 송수신 공동설계까지의 41쪽 튜토리얼. 공개코드 있음 | 시뮬 | **사용** (site-specific 장면 생성 + 표적 메쉬) |
 | 9 | **zig-journal** — Ziganshin·Vitucci·Kotterman·Thomä·Schneider·Degli-Esposti, *Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications*, arXiv:2604.05991v2 | 곡면을 패싯으로 쪼갤 때의 이산화 품질 지표 **E²/(Rλ)** 를 제안하고, Sionna-RT 에 UTD + 정점회절 + 이중반사를 확장해 구·원기둥·차량을 MLFMM/PO/실측과 대조 | 시뮬(+바이스태틱 실측 대조) | **사용** (솔버를 직접 확장) |
 | 10 | **zig-conf** — 같은 팀 학회판, *Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC*, EuCAP | 정점회절 구현과 다중정적 산란. RT vs PO vs MLFMM 런타임을 직접 비교 — *"the simulation time for the PO solver is around one day, whereas the RT simulation takes only about two seconds"* | 시뮬 | **사용** |
 | 11 | **montaner** — Montaner·Fenollosa·Ortega·Beltrán·Cardona(UPV), *Deterministic Modeling of Dynamic ISAC Channels in RF Digital Twin Environments*, arXiv:2603.28736, EuCAP | 77–81 GHz(4 GHz 대역) 채널사운더 실측과 RT 를 위상 정합 대조해 RF 디지털트윈을 **교정**하는 프로토콜. 모노/바이스태틱·이동 표적 포함 | **실측**+시뮬 | **사용** (확산산란 R²+S²=1) |
@@ -61,7 +70,7 @@
 |---|---|---|---|---|---|---|---|---|
 | **multiband** Table III (p.3734) — Phantom 3, θb=0° | DJI Phantom 3 (350×200 mm) | μ=0.21f−19.19 → **−18.80 / −18.46 / −18.10** @1.843/3.5/5.21 GHz | 모노스태틱, 무향실 **far-field** | 논문에 없음 (V 는 Phantom 2 셋업에만 명시) | 수평면(el=0), 방위 −90°:2°:+90°, 로터 정지 | 위 세 값 | **phantom4 (350 mm)** el=15°(JSON): **−21.69 / −18.85 / −18.90** → Δ **−2.89 / −0.40 / −0.81** · el=0°(재실행): **−21.10 / −17.72 / −15.42** → Δ **−2.30 / +0.73 / +2.68** | ★**최상**. 대각·기하·지표·주파수 4축 정합. 남은 미정렬은 편파(우리 스칼라 Γ)와 **자세축**(아래 2-3) |
 | **mono3d** IV절 (p.4) — θ=90° | DJI Phantom 3 (350×200 mm) | μ=0.315f−16.15 → **−15.57 / −15.05 / −14.51** | 모노스태틱 CATR | VV | 수평면(el=0), −90°:2°:+90°, 로터 정지 | 위 세 값 | 같은 phantom4 → el=15° Δ **−6.12 / −3.81 / −4.39** · el=0° Δ **−5.54 / −2.68 / −0.91** | 조건은 동일한데 **같은 캠페인의 값이 multiband 와 3.2~3.6 dB 다르다**(2-2) |
-| 3GPP 등방 상수 (multiband §I, mono3d I절 이 함께 인용) | UAV 일반 | **−20 dBsm @ 4.9 GHz**, 입사각 무관 | 무향실 | 미상 | 미상 | −20 | 5.21 GHz 방위평균: mini5pro **−21.57**, matrice4e **−20.22**, phantom4 **−18.90**, mavic4pro **−15.98**, s1000plus **−12.92** | 거친 정합. 소·중형 3기가 ±1.6 dB 안, 대형 2기는 크기 순서대로 위로 벗어남 |
+| 등방 상수 −20 dBsm — 귀속은 두 논문이 다르다: mono3d §I → 3GPP TSG-RAN1 R1-2403921, multiband §I → JSAC 2편([1] Zhang 44:702, [2] Hong 44:3459) | UAV 일반 | **−20 dBsm @ 4.9 GHz**, 입사각 무관 | 무향실 | 미상 | 미상 | −20 | 5.21 GHz 방위평균: mini5pro **−21.57**, matrice4e **−20.22**, phantom4 **−18.90**, mavic4pro **−15.98**, s1000plus **−12.92** | 거친 정합. 소·중형 3기가 ±1.6 dB 안, 대형 2기는 크기 순서대로 위로 벗어남 |
 | **unified-rcs** §III-B (p.709) — 교정 기준 | 지름 0.5 m 금속구 | 28 GHz | 모노스태틱 | V | — | 이론 πa² = **−7.07**, 측정 **−8.96**, **편차 1.89 dB** | 우리 `rcs_sbr.validate()` 는 해석 PO 와만 대조 (구 교정 미실시) | **절차만 차용.** 편차 **< 2 dB** 를 우리 구 교정 합격선으로 삼는다 |
 
 **앵커 요약 (정직한 형태)**
@@ -99,7 +108,7 @@ multiband 와 mono3d 의 Phantom 3 는 **같은 측정 캠페인**이다. 직접
 
 ### 2-3. ⚠ 자세축 미정렬 — 우리 el=15°, 문헌 el=0° (수치 확정)
 
-> mono3d §III-A: *"Three UAV elevation sides including the azimuth plane, top, and bottom, were considered"* → θ = {90°, 0°, 180°}
+> mono3d §II-A (p.2): *"Three UAV elevation sides including the azimuth plane, top, and bottom, were considered"* → θ = {90°, 0°, 180°}
 > unified-rcs §III-A: *"this study focuses on two-dimensional RCS measurements in the horizontal plane, with the elevation angle fixed at 90°"*
 
 우리 `report2_waveform_rcs.json` 은 `meta.el_deg = 15.0` 이다. 문헌은 전부 **수평면**이다.
@@ -312,7 +321,7 @@ md-props Fig.3 은 **주파수영역 선 피크 대 선 피크** 기준.
 ### B. ⭐자세축이 문헌과 다르고, 그 편향이 이제 수치로 확정됐다
 
 - **충돌** — 우리 발표용 RCS 표는 el=15°, 문헌 실측은 **전부 수평면(el=0°)**.
-- **근거** — mono3d §III-A(θ={90°,0°,180°}) · unified-rcs §III-A(*"elevation angle fixed at 90°"*) · multiband(수평면 원호 한 평면, `elevation` 0회). 내 재실행 결과 편향은 **−0.90 ~ +3.24 dB** (§2-3).
+- **근거** — mono3d §II-A(θ={90°,0°,180°}) · unified-rcs §III-A(*"elevation angle fixed at 90°"*) · multiband(수평면 원호 한 평면, `elevation` 0회). 내 재실행 결과 편향은 **−0.90 ~ +3.24 dB** (§2-3).
 - **어떻게 답하나** — 문헌 대조 전용 **el=0° 컷**을 5기종 × 3밴드로 산출해 report08 표에 병기하고, `make_notebook08.py:687` 의 *"문헌 측정 앙각은 미상"* 각주를 §2-3 표로 대체한다.
 
 ### C. ⭐마이크로도플러 — 우리가 "고쳤다"는 SBR 이 유일한 실측에서 멀어지는 방향이다
@@ -335,18 +344,26 @@ md-props Fig.3 은 **주파수영역 선 피크 대 선 피크** 기준.
 
 ### F. ⭐"스톡 Sionna 는 표적을 못 다룬다" 프레이밍을 좁혀야 한다
 
-- **충돌** — 두 편이 스톡 Sionna RT 만으로 UAV 표적 반환을 만들어 냈다.
+- **충돌** — 두 편이 Sionna RT 의 **스톡 EM 설정**만으로 UAV 표적 반환을 만들어 냈다(md-rt 는 광선발사기만 개조했고 재질·상호작용은 내장값이다).
 - **근거** —
   > clutter §V-A4 (p.74): *"The ToI and UAVs are modeled as simplified 3-D mesh objects imported into Sionna. These meshes are obtained by simplifying publicly available 3-D models in Blender and exporting them in Sionna's XML format"* + *"for monostatic sensing, the target echoes appear as reflected and scattered paths that interact with the target object"* — Proceedings of the IEEE 게재.
   > md-rt §IV-A: *"When the rotating target is a physical model of a propeller, considering that the minimum spatial resolution in Sionna is 0.01 m, the number of scattering centers can be regarded as approaching infinity ... The simulation results are shown in Fig. 4e, which conform to the theoretical expectation."*
 - **정직한 반론(우리가 리포트에 써야 할 것)** — 두 편 모두 **표적 σ(dBsm)를 한 번도 보고하지 않는다.** clutter 는 '강한 UAV vs 약한 ToI' 라는 상대적 세기만 필요하고 Pd/Pfa 도 없다. md-rt 는 도플러 **주파수**(1562 Hz)와 회전주기(0.04 s)만 검증하고 **진폭은 검증하지 않으며** 재질도 Sionna 내장 기본값이다. 즉 참으로 주장할 수 있는 좁은 명제는 **"스톡 솔버는 형상·기종·자세별 절대 σ 를 못 낸다"** 뿐이다.
-- **추가 귀속 의무** — report07 의 "표적 조준 광선 다발" 절은 md-rt §III 이 먼저 발표한 것과 같은 전략이다(*"a cone with this vector as its main axis is constructed, limiting the spatial range of ray emission in this direction"*). 선행권을 명기하고, 우리 기여를 **절대 진폭 σ + 부위별 재질 + 가림**으로 좁힌다.
+- **추가 귀속 의무 (⚠ 이 항목의 이전 지시는 틀렸다 — 되풀이 금지)** — 이 자리에는 원래 *"report07 의 '표적 조준 광선 다발' 절은 md-rt §III 이 먼저 발표한 것과 같은 전략이니 선행권을 명기하라"* 라고 적혀 있었다. **그대로 실행하면 1986 년에 확립된 CEM 기법의 선행권을 2025 년 IEEE ICCT 통신 논문에 넘겨 주는 오귀속이 된다.** 원문을 맞춰 보면 두 구성은 애초에 다르다.
+  - **md-rt §III (발산 원추)** — 점 송신기 한 곳에서 출발해 Fibonacci 표본을 **원추 안의 서로 다른 방향들**로 매핑한다: *"a cone with this vector as its main axis is constructed, limiting the spatial range of ray emission in this direction"* + *"We utilize the built-in Fibonacci sampling function provided by the Sionna framework to generate N uniformly distributed sampling points on the unit square"*. 광선 **원점이 한 점**이고 방향이 퍼지며 **면적 가중이 없다.** 목적은 적중률이지 적분 구적이 아니다.
+  - **우리 `src/rcs_sbr.py` (정사영 평행 격자)** — 시선 û 에 **직교하는 가상 개구면 위의 정사영(orthographic) 평행 격자**다. 원점이 평면 위로 퍼지고(`:250` `(ctr + Rout*u) + (A+ox)*e1 + (B+oy)*e2`), 방향은 **전부 동일한 `-u`**(`:251` `np.tile(-u, ...)`), 격자 크기·간격은 `:203-208`, 각 광선은 PO 적분의 **구적 가중 d²** 를 나른다(`:273`). 발산이 아니라 평행이고, 적중률이 아니라 면적분 이산화다.
+- **진짜 선행 사슬** — 이 정사영 개구면 격자는 **Sagitta(arXiv:2604.09243) §4 Methodology** 가 같은 구성을 명문화한다: *"for each incident direction (θ, φ) we approximate the incident field by an orthographic bundle of rays with propagation direction k̂_inc. The rays originate from a virtual aperture plane orthogonal to k̂_inc and form a Cartesian grid with spacing Δs. Each ray represents a ray tube with area weight ΔA = Δs²."* 그리고 **Sagitta 가 이 구성을 SBR 원논문 Ling/Chou/Lee 1986 으로 소급한다** — Sagitta 참고문헌 [10]: *"Shooting and bouncing rays: Calculating RCS of an arbitrary cavity"*, 1986 IEEE APS Int. Symp., vol.24, pp.293–296, **DOI 10.1109/APS.1986.1149823**.
+  - ⚠ **검증 범위는 여기까지다 (2차 인용).** 디스크에서 직접 읽은 것은 Sagitta §4 의 구성과 그 [10] 서지 문자열이고, **1986 다이제스트 원문은 디스크에 없고 열람하지 않았다**(`/data/public/sionna_jeong` PDF 212편 전수 검색 — Ling 원문 0건, 네트워크 조회도 없음). 그러므로 쓸 수 있는 문장은 *"1986 논문이 이 격자를 구성한다"* 가 아니라 **"Sagitta 가 이 구성을 Ling/Chou/Lee 1986 [10] 으로 소급한다"** 뿐이다. 1986 을 1차 근거처럼 단정하는 서술은 R20 대정정이 잡아낸 실패양식(2차 인용을 1차로 승격)과 같다.
+  - ⚠ **회의판↔저널판 구별(상시 규칙).** SBR 의 정본 인용은 통상 **저널판** — Ling, Chou & Lee, *"Shooting and bouncing rays: calculating the RCS of an arbitrarily shaped cavity"*, IEEE Trans. Antennas Propag., **vol. 37, no. 2, pp. 194–205, 1989** — 이고, 1986 APS 항목은 그보다 앞선 **학회 다이제스트**다. 저널판 서지는 디스크의 **2차 인용 두 건**(zig-journal arXiv:2604.05991 [10] · arXiv:2502.10324 [38])에서 확인했으며 **저널판 원문도 디스크에 없고 DOI 는 확인되지 않아 적지 않는다**(추정 DOI 를 적어 넣지 말 것). 같은 연구의 두 판을 섞지 않는 것은 이 폴더의 상시 규칙이다(zig-conf↔zig-journal, md-props 학회판 `c/(2B)` ↔ 저널판 정정 — §4 P1 항목 18).
+  - **명기할 선행권 사슬** — **Ling·Chou·Lee(1989 저널판 / 1986 학회 다이제스트, 둘 다 미열람) → Sagitta §4(직접 확인) → 우리 `rcs_sbr.py`** 이고, Sagitta 는 이미 우리 참고문헌에 있다(`docs/PRIOR_WORK_COMPARISON.md`).
+- **md-rt 에 남는 몫** — **동기**(작은 표적은 등방 발사로 적중률이 바닥이라는 문제 제기)와 **그 논문 자신의 원추 해법**뿐이다. 우리는 원추를 쓰지 않으므로 "같은 전략" 이라고 써서는 안 된다. report07 §3 에는 이 구분(평행 개구면 격자 ≠ 발산 원추)을 그대로 적는다.
+- **우리 기여 범위는 그대로** — **절대 진폭 σ + 부위별 재질 + 가림**. 광선 발사 기하는 우리 기여가 아니다.
 
 ### G. ⭐선행이 우리 방법을 명시적으로 비판한다 (report08 §6 인용 프레이밍 오류)
 
 - **충돌** — report08 §6 은 zig-journal 을 *"우리와 가장 가까운 선행"* 으로 인용한다. 그 논문 서론은 SBR+PO 를 **자기 방법의 대척점**으로 놓는다.
-- **근거** — zig-journal §I: *"In this hybrid approach, SBR tracks ray trajectories and multiple reflections on the aircraft surface, while PO integration of the induced surface currents yields an accurate computation of the backscattered field and thus the RCS. **This SBR+PO approach, however, is limited to the illuminated region and is not suitable to predict the scattered field in the shadow region of the obstacle. Furthermore, the need to cascade PO after RT negates the computational advantages of RT.**"* + zig-conf: *"the simulation time for the PO solver is around one day, whereas the RT simulation takes only about two seconds"*. 그리고 자기 future work 4번으로 *"Modeling of time-varying substructures (micro-Doppler)"*, 결론부로 *"can also be applied to compute scattering from other objects, such as drones, humans, and micro-Doppler effects"* — 우리 영역을 예고한다.
-- **어떻게 답하나** — *"가장 가까운 선행"* → **"우리 방법을 명시적으로 비판한 선행"** 으로 바꾸고 원문을 그대로 인용한 뒤 우리 반론을 한 문장으로 단다: 그들은 **PEC** 차량(2–10 GHz, UTD 유효조건 facet **E > 1.5λ**, 차량 E²/(Rλ) ≈ 0.4–0.6)이고 우리는 **부위별 유전체 소형 드론**(few-λ)이라 UTD 유효조건이 성립하지 않는다. 그리고 **`make_notebook07.py:550-553` 이 이미 자발적으로 공개한 한계**와 **명시적으로 연결**한다 — 우리 리포트는 이미 *"전방산란(β→180°)에서는 조명 게이트와 수신 게이트가 상호배타가 되어 σ ≡ 0 이 되고 … 비볼록 표적의 깊은 널에서는 상반성 σ(û_i,û_s) = σ(û_s,û_i) 가 깨진다. 따라서 이 리포트의 σ 는 모노스태틱 등가값으로 읽어야 하며, 바이스태틱 결론(report12)으로 그대로 상속되지 않는다"* 라고 쓰고 있다. **물리적 인식은 이미 있고 빠진 것은 인용 프레이밍뿐이다.**
+- **근거** — zig-journal §I: *"In this hybrid approach, SBR tracks ray trajectories and multiple reflections on the aircraft surface, while PO integration of the induced surface currents yields an accurate computation of the backscattered field and thus the RCS. **This SBR+PO approach, however, is limited to the illuminated region and is not suitable to predict the scattered field in the shadow region of the obstacle. Furthermore, the need to cascade PO after RT negates the computational advantages of RT.**"* + zig-conf: *"the simulation time for the PO solver is around one day, whereas the RT simulation takes only about two seconds"*. 그리고 **zig-journal** 은 자기 future work 4번으로 *"Modeling of time-varying substructures (micro-Doppler)"*(p.9, 참고문헌 [34] = Costa) 를 적고, **zig-conf p.5 결론**(EuCAP 2025 게재본)은 *"The proposed solution can also be applied to compute scattering from other objects, such as drones, humans, and micro-Doppler effects"* 라고 적는다 — 드론 문장은 **학회판에만** 있다(저널판 전문에서 `drone` 은 참고문헌 제목 안 2회뿐). 두 판을 섞어 인용하지 않는다.
+- **어떻게 답하나** — *"가장 가까운 선행"* → **"우리 방법을 명시적으로 비판한 선행"** 으로 바꾸고 원문을 그대로 인용한 뒤 우리 반론을 한 문장으로 단다: 그들은 **PEC** 차량이다(2–10 GHz, 차량 E²/(Rλ) ≈ 0.4–0.6). 논문이 적는 것은 **패싯 변 길이** 조건뿐이다 — zig-journal p.4: *"the facet size should be of several wavelengths in order to satisfy the UTD assumptions, typically E > 1.5λ"*, 그리고 바로 뒤에 정점회절을 넣은 UTD 는 *"always stable"* 이라고 덧붙인다. **여기서 E 는 패싯 변이지 표적 크기가 아니다.** 우리 few-λ 유전체 드론에서 그 조건을 맞추기 어렵다는 것은 **우리 추론**이고 논문의 주장이 아니다. 그리고 **`make_notebook07.py:550-553` 이 이미 자발적으로 공개한 한계**와 **명시적으로 연결**한다 — 우리 리포트는 이미 *"전방산란(β→180°)에서는 조명 게이트와 수신 게이트가 상호배타가 되어 σ ≡ 0 이 되고 … 비볼록 표적의 깊은 널에서는 상반성 σ(û_i,û_s) = σ(û_s,û_i) 가 깨진다. 따라서 이 리포트의 σ 는 모노스태틱 등가값으로 읽어야 하며, 바이스태틱 결론(report12)으로 그대로 상속되지 않는다"* 라고 쓰고 있다. **물리적 인식은 이미 있고 빠진 것은 인용 프레이밍뿐이다.**
 
 ### H. 우리 벤치마크 내부의 두 축 불일치 (앵커 대조의 전제 조건)
 
@@ -377,7 +394,7 @@ md-props Fig.3 은 **주파수영역 선 피크 대 선 피크** 기준.
 |---|---|---|---|---|
 | unified-rcs UAV @10 GHz | 0.43 m(접힘 표기) / 0.81 m(실제) | 6 m | 12.3 / 43.7 m | 위반 |
 | unified-rcs 교정구 @28 GHz | 0.5 m | 6 m | 46.7 m | 위반 |
-| multiband Phantom 2 | 0.35 m | 2.6 m | 9.1 m @11 GHz | 위반 (논문도 인정) |
+| multiband Phantom 2 | 0.35 m | 2.6 m | 9.1 m @11 GHz | Table I 이 "Near-field, 2.6 m" 라 적고 서브밴드 등가 원거리장을 주장한다 — *"the target is effectively point-like within each sub-band. Hence, the sub-band responses can be treated as equivalent far-field responses"*(p.3732). 9.1 m 은 **우리 계산**이고 논문에 `violat`·`Fraunhofer` 는 0회다 |
 | multiband Phantom 3/Mini 2/M350 | — | Table I "**Far-field**" | — | ✅ |
 | md-multiprop | 0.65 m | 3.43 m | ≈20 m @7 GHz | 위반 |
 | **우리 s1000plus** | 1.348 m (`farfield_gate` 기준) | R1 = 18.75 m | 22.3 / 42.4 / **63.1** m | **전 밴드 위반** |
@@ -414,7 +431,7 @@ md-props Fig.3 은 **주파수영역 선 피크 대 선 피크** 기준.
 | LTE 20 MHz | 14 | 40.74 / 40.74 / 40.74 / **40.72** |
 
 - 12-bit 대가는 **최대 1.17 dB**(5G, DNR 30 dB)다. X410 이 12-bit 이므로 이 값이 실측 상한이다.
-- ⚠ clutter 서베이 39쪽 전체에 **ADC·양자화 모델이 없다** — `dynamic range` 0회, `quantization` 은 CSI 양자화 오차 인용 1회, 위상잡음은 각주에서 '보상 가정'. **이 축에서는 우리가 선행보다 앞서 있다.**
+- ⚠ clutter 서베이 41쪽에 **ADC 양자화·비트심도 모델이 없다** — ADC 는 수신 사슬 단계로 1회 명명되고, `dynamic range` 0회, `quantization` 은 CSI 양자화 오차 인용 1회, 위상잡음은 각주에서 '보상 가정'. **이 축에서는 우리가 선행보다 앞서 있다.**
 - **할 일**: (a) `VERIFY_CLUTTER.md` §6 "남은 리스크" 표의 ADC 행을 **닫힌 것으로 갱신**, (b) 이 스윕이 ECA 상쇄깊이 단계에만 걸려 있고 **Pd/SCR 까지 전파되지 않았다**는 잔여 한계를 대신 적는다.
 
 ### 6-1. 밴드 내 주파수 평탄 가정 — Δ(ka) 게이트 (신규)
@@ -502,10 +519,10 @@ md-props Fig.3 은 **주파수영역 선 피크 대 선 피크** 기준.
 
 | # | 빈칸 | 각 편이 왜 못 채우나 |
 |---|---|---|
-| 1 | **sub-6 GHz 소형 드론의 절대 σ(dBsm)를, 부위별 재질·유전체 셸 투과·가림을 가진 완전 CAD 메쉬에서 결정론적으로 계산** | mono3d/multiband/unified-rcs = 실측만(기하 모델 0). md-props/md-multiprop = thin-wire + 수동조정 c′_n, **dBsm 0회**. md-testbed = 점산란체 + 무출처 상수 σ_body. md-rt = 스톡 Sionna 로 **도플러 주파수만** 검증, 진폭·dBsm 없음, 재질 = 내장 기본값. clutter = Blender 단순화 메쉬를 넣고도 **σ 를 한 번도 보고 안 함**. zig-* = PEC 차량·구(드론 아님, 유전체 아님) |
-| 2 | **상시 통신 기준신호(LTE CRS·5G SSB·WiFi 프리앰블) 기반 패시브 바이스태틱 드론 검출 벤치마크 — ECA→CAF→CFAR, Pd/Pfa/SNR50** | md-testbed = **모노스태틱** ISAC(CSI = D_RX/D_TX 규약, 자기송신 전제), Pd/Pfa/ROC/CFAR 0건. clutter = SCNR 과 정성적 RDM 뿐, **Pd/Pfa/ROC 0건**, ECA/CLEAN/CAF 언급 0회. md-* = 순수 서명 모델링, 검출 성능 없음 |
+| 1 | **sub-6 GHz 소형 드론의 절대 σ(dBsm)를, 부위별 재질·유전체 셸 투과·가림을 가진 완전 CAD 메쉬에서 결정론적으로 계산** | mono3d/multiband/unified-rcs = 실측만(기하 모델 0). md-props/md-multiprop = thin-wire + 수동조정 c′_n, **dBsm 0회**. md-testbed = 점산란체 + 무출처 상수 σ_body. md-rt = Sionna 스톡 EM 설정(발사기는 개조)으로 **도플러 주파수만** 검증, 진폭·dBsm 없음, 재질 = 내장 기본값(Table I "Propeller material Wood"). clutter = Blender 단순화 메쉬를 넣고도 **σ 를 한 번도 보고 안 함**. zig-* = PEC 차량·구(드론 아님, 유전체 아님) |
+| 2 | **상시 통신 기준신호(LTE CRS·5G SSB·WiFi 프리앰블) 기반 패시브 바이스태틱 드론 검출 벤치마크 — ECA→CAF→CFAR, Pd/Pfa/SNR50** | md-testbed = **모노스태틱** ISAC(CSI = D_RX/D_TX 규약, 자기송신 전제), Pd/Pfa/ROC/CFAR 0건. clutter = CFAR 를 검토 주제로 4회, false alarm 을 3회 적지만 **Pd 값도 Pfa 값도 ROC 도 없고**, 정량 결과는 SCNR 과 정성적 RDM·빔패턴·각도-도플러 맵뿐이다. ECA/CLEAN/CAF 는 0회. md-* = 순수 서명 모델링, 검출 성능 없음 |
 | 3 | **표적 경유 바닥 유령(표적 도플러를 실은 NLoS)이 CFAR 오검출로 바뀌는 정량 분석** | clutter 는 virtual-anchor/ghost 를 **방향으로만** 제시(수치 없음). md-* 는 무향실+배경차감이라 지면 반사가 없다. 실측 3편은 무향실 |
-| 4 | **DPI 상쇄깊이의 ADC 비트 × DNR 스윕** | clutter 39쪽에 ADC·양자화 모델 없음(§6-0). 나머지 12편도 없음 |
+| 4 | **DPI 상쇄깊이의 ADC 비트 × DNR 스윕** | clutter 41쪽에 ADC 양자화·비트심도 모델 없음(ADC 자체는 1회 명명, §6-0). 나머지 12편도 없음 |
 | 5 | **5기종 × 3밴드 × 자세 스윕의 σ 원장 하나** | 실측 3편 합쳐 기종 6종이지만 밴드가 조각나 있고(우리 밴드를 전부 커버하는 기체는 **Phantom 3 하나**), 신형 Mavic 4 Pro·Matrice 4E 는 어느 편에도 없다(2024~25 출시) |
 
 ### 7-2. 반대로 — 이 13편이 갖고 우리가 못 가진 것
@@ -565,7 +582,7 @@ md-props Fig.3 은 **주파수영역 선 피크 대 선 피크** 기준.
 | md-testbed | IEEE Trans. Wireless Communications, vol. 24, no. 12, pp. 10166–10182, Dec 2025 | DOI 10.1109/TWC.2025.3578033 |
 | md-rt | 2025 IEEE 25th International Conference on Communication Technology (ICCT), pp. 359–364 | DOI 10.1109/ICCT67417.2025.11374154 |
 | clutter | Proceedings of the IEEE, vol. 114, no. 1, pp. 52–91, Jan 2026 | DOI 10.1109/JPROC.2026.3675476 · 코드 `github.com/LS-Wireless/Clutter-Aware-ISAC-Tutorial` |
-| zig-journal | 프리프린트 (PDF 헤더에 게재처 없음) | arXiv:2604.05991v2 [eess.SP] |
+| zig-journal | 프리프린트 — p.1 교신저자 각주 *"This is a preprint version of a manuscript submitted to the IEEE Open Journal of Antennas and Propagation"*, `OJAP` DOI 문자열 0회 | arXiv:2604.05991v2 [eess.SP] (2026-07-02) |
 | zig-conf | EuCAP (PDF 에 권·쪽 없음) | — |
 | montaner | 프리프린트 / EuCAP | arXiv:2603.28736v1 [eess.SP] |
 | hoydis | IEEE Trans. Machine Learning in Communications and Networking | DOI 10.1109/TMLCN.2024.3474639 |

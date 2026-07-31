@@ -1,3 +1,5 @@
+> ⚠ **2026-07-31 재편으로 퇴역한 리포트의 설계서다** — 당시 사양을 그대로 보존한다. 현재 6편 구조는 [`../README.md`](../README.md) 와 [`REPORT_CODE_MAP.md`](REPORT_CODE_MAP.md) 에 있다.
+
 # report14 SPEC — 리얼 환경 디텍션 (Sionna RT 클러터 + MVDR-STAP)
 
 > **한 줄:** 무향실을 벗어나 **실외 다중경로(Sionna RT 디지털트윈)** 속에서, RCS 는 스칼라로 단순화하고
