@@ -1,5 +1,12 @@
 # Sionna-for-Sensing 선행연구 서베이 (자율 누적)
 
+> 📕 **2026-07-31 1차 사료 정산 반영.** 아래 항목이 원문 PDF 대조로 정정됐다 —
+> ① Clutter-Aware ISAC 은 **Sionna 를 쓴다**(UAV 메쉬 임포트, p.23) ② md-rt 는 EM 설정만 스톡이고 **광선발사기를 개조**했다
+> ③ "drones, humans, micro-Doppler" 향후과제 문장은 **학회판(EuCAP 2025) p.5** 에만 있다 ④ Ziganshin 저널판은 **OJAP 투고 프리프린트**다
+> ⑤ Das 는 원거리장 위반을 인정하지 않는다(서브밴드 등가 원거리장 주장) ⑥ Sionna RT 1차 사료 2편은 등급 [W]→[P] 다.
+> 판정 원장: `outputs/prior_work_survey.json` · `outputs/prior_settled_*.json` 4개. 규칙: 사실 한 줄 = (PDF 경로 · 어느 판 · 축자 문장).
+
+
 > 목적: **NVIDIA Sionna(RT 또는 PHY)를 센싱 태스크에 쓴 논문**을 계속 모아 우리
 > 패시브 바이스태틱 드론탐지의 선행연구 후보로 삼는다. 6시간+ 자율 반복(cron)으로 누적한다.
 >
@@ -8,9 +15,14 @@
 > 각 논문마다 특히 **RCS/표적 산란 공백을 어떻게 다뤘는지**(A1 외부EM · A2 Sionna확장 ·
 > B 외부통계 · C 메쉬반사우회 · D 미보고 — pw04 분류와 정합)를 기록한다.
 >
-> **진행 카운터**: rounds=19 · papers=16(직접 Sionna 실사용) + 맥락 13편 + **덱 v6 대조 추가 2편**(Great-X=Sionna RT 재구현·LAMBDA=Sionna 미확인) · last_updated=2026-07-20 · **탐색 100% 소진(5연속 dry)→종합 섹션 완비**
+> **진행 카운터**: rounds=**20** · papers=**19**(직접 Sionna 실사용; R20 신규 md-rt·clutter·zig-conf 승격) + 맥락 13편 + **덱 v6 대조 추가 2편**(Great-X=Sionna RT 재구현·LAMBDA=Sionna RT 확정) · last_updated=**2026-07-29** · ⚠ **"탐색 100% 소진" 판정은 R20 에서 철회됨** — 아래 참조
+>
+> **🔴🔴 R20 대정정(2026-07-29, 원문 전수검증):** R19 까지의 **"탐색 소진(5연속 dry)" 판정은 arXiv 편향의 산물이었다.** R1~R19 는 초록·메타데이터 검색이 주력이라 **(a) IEEE 유료 프로시딩 전용 논문**과 **(b) 초록에 'Sionna' 가 없고 본문에만 있는 논문**을 원리적으로 놓쳤다. R20 에서 후보 66편을 새로 건져 20편을 원문판정한 결과 **헤드라인 주장 2개가 무너졌다**(아래 [R20] 항목·정정 블록). 실물 증거: **md-rt(IEEE ICCT 2025)** 는 유료 프로시딩이라 19라운드 내내 안 걸렸고, **arXiv:2509.21118** 은 초록에 Sionna 가 없고 본문에만 14회 나와 안 걸렸다. 더 뼈아픈 것은 md-rt·zig-conf 두 편이 **2026-07-23 부터 `paper_sionna_Ray/` 에 원문 PDF 로 있었고 `docs/DRONE_ISAC_PRIOR_READING.md` 에 정독 노트까지 있었는데 이 파일에 흡수되지 않았다**는 점이다. → **기록 3갈래 분산이 서베이 오류의 직접 원인.** 아카이브 일원화를 R20 에서 수행.
 >
 > **🔴 정정(2026-07-20, 원문 전문검증):** Ziganshin(arXiv:2604.05991)은 서베이가 '커스텀 UTD·비-Sionna'로 **오분류**했으나, 원문에 *"Sionna-RT (v0.19) was used as a basic RT framework"* + code(AinurZiga/sionna-RT-reflectivity) — 실제로 **Sionna-RT 확장(A2)**. 즉 **우리와 가장 가까운 선행연구**(둘 다 Sionna-RT+커스텀 산란; 차이=SBR+PO vs UTD·소형드론 vs 대형표적). 27편 전문 정독 워크플로 진행 중 — 완료 시 전체 재분류·deep_read_notes 반영.
+>
+> **🗂 R20 산출물 보존(provenance)**: 두 워크플로의 원본 판정·종합은 아카이브에 있다 — `/data/public/sionna_jeong/papers_isac_sionna/R20_verification_0729/` (`R20_main_synthesis.md` 6각도 종합 · `R20_main_verdicts.json` 20편 판정 · `R20_gapfill_correction_draft.md` 정정문 초안 · `R20_gapfill_verdicts.json` 4편 정밀판정 · `R20_gapfill_scans.json` 폴더 전수스캔·인용추적·동종탐색). 원문 PDF 13편은 `papers_isac_sionna/paper_sionna_Ray_0723/` 로 일원화(md5 대조 완료, 워크스페이스 `paper_sionna_Ray/` 원본 유지).
+> ⚠ **두 워크플로가 한 지점에서 충돌했고 사용자 세션에서 직접 판정했다**: 주 워크플로는 "Ziganshin 은 dBsm 을 내지 않는다"고 결론냈으나 이는 **저널판만 접근 가능했기 때문**이고(회의판은 IEEE 유료), 회의판 PDF 를 PyMuPDF 레이아웃으로 열면 `RCS (dBsm)` 이 `dir=(0,-1)` 세로축 라벨로 확정된다. **회의판 판정이 옳다.**
 >
 > **📖 전문검증 정정본:** 이 서베이 분류는 초록 기반 초안. **27편 원문 전문 정독 정정본 → `/data/public/sionna_jeong/papers_isac_sionna/deep_read_notes.md`** (아카이브) (8건 정정). 핵심: **Ziganshin=Sionna-RT 확장(A2)**, **LAMBDA=Sionna RT 확정(미확인 아님, 표적 A1)**, **CellSense=Sionna RT(‘PHY 링크레벨’ 아님, 표적 C)**, 무표적 논문 RCS라벨 D→NA 정밀화(BostonTwin·S-ICDF·Saribekyan·Kang).
 >
@@ -20,6 +32,21 @@
 > 드론 RCS 는 전부 딴 EM 툴(MLFMA-PO 하이브리드·WIPL-D·무향실 측정·NATO STO UHF 바이스태틱 모델)로,
 > Sionna-센싱 15편은 표적 RCS 를 Sionna 로 안 냄. → **우리 조합(Sionna PHY 링크레벨 + 커스텀 SBR+PO 표적 RCS +
 > 5종 드론 + 패시브 바이스태틱)은 문헌상 미점유 니치**로 보인다(14라운드 근거). ⚠계속 탐색해 반증 시 갱신.
+>
+> **🎯🔴 R20 Novelty 재정의(2026-07-29) — 위 R14 문장은 한 덩어리로 방어 불가.** 네 조각으로 쪼개 각각 판정한다.
+>
+> | # | 하위 주장 | 판정 | 근거 |
+> |---|---|---|---|
+> | (i) | Sionna 씬에 **표적 메쉬**를 넣은 선행이 없다 | **무너짐(다수)** | md-rt *"rotor models created in Blender"* · clutter *"simplified 3-D mesh objects imported into Sionna … exporting them in Sionna's XML format"* · zig 계열 16610 facets 차량 · CellSense 직육면체 · CAVIAR 드론 메쉬 |
+> | (ii) | Sionna 안에서 **RCS(dBsm)** 를 산출한 선행이 없다 | **무너짐(1건)** | **zig-conf(EuCAP 2025) Fig.6** — y축 라벨 `RCS (dBsm)`(PDF 레이아웃 `dir=(0,-1)` 로 세로축 확정), 캡션 *"RCS of the simplified car"*, 범례 **EM (PO) vs RT+UTD+VD**. 조건: *"The reflectivity with both TX and RX in the far-field transforms into RCS."* ⚠ **저널판(2604.05991)에는 dBsm 이 0회** — 두 판을 구별하지 않으면 정반대 결론이 난다 |
+> | (iii) | Sionna 안에서 **PO 표면산란적분**을 얹은 선행이 없다 | **유효(0/19)** | md-rt·clutter·DMSNet 전문 `physical optics`/`PO`/`SBR` 각 0회. zig 계열은 PO 를 **외부 FEKO 정답지**로만 씀 |
+> | (iv) | **드론 σ 를 물리로 계산 → 패시브 바이스태틱 Pd** 사슬 전체의 선행이 없다 | **유효, 단 범위 축소** | 로컬 전수스캔에서 Pd/ROC/Pfa 곡선 0건. ⚠ 단 **CellSense(2606.07900)는 Sionna RT + 패시브 바이스태틱 + 검출률(실내 74%·실외 94%)까지 이미 간다** — 표적이 직육면체 근사이고 RCS 계산이 없을 뿐. **"패시브 바이스태틱+Sionna+검출"은 미점유가 아니다** |
+>
+> **방어 가능한 한 문장(이걸 쓸 것):**
+> *"우리 기여는 'Sionna 로 드론을 센싱한 첫 사례'가 아니다 — 그건 선행이 있다. **few-λ 유전체 드론 5기종의 재질가중 SBR+PO 절대 σ(dBsm) 를 Sionna 광선엔진 위에서 산출하고, 그 σ 를 패시브 바이스태틱 검출 사슬(ECA→CAF→CFAR→Pd)에 끝까지 물린 조합**이며, 이 조합의 선행은 우리가 확인한 범위(R1~R20 · 로컬 원문 143편 전문 · 전방인용 4DB 교차)에서 발견되지 않았다."*
+> ⚠ 단서 필수: **중국어 DB(CNKI·万方·百度학술) HTTP 403 으로 미탐색**, IEEE Xplore 본문 다수 미확보 → "미탐색"이 아니라 "저해상도 탐색"으로 기록.
+>
+> **⭐ 전방인용 추적 결과(R20)**: md-rt 인용 **0건**(S2·OpenAlex·Crossref·GS 4DB 교차) · Ziganshin 인용 1건(arXiv:2607.13417, 묶음 인용·무관). **이 두 노선을 이어받은 후속 연구는 아직 문헌에 없다** — 공백은 유지되나 좁아졌다.
 >
 > **📉 포화 신호(R10)**: R5·R8·R9·R10 의 genuine Sionna 신규 수확이 0~1편으로 급감. Sionna 로 **센싱**을 한
 > 주요 공개연구는 대체로 R1~R8 에서 포착됨(공식 Made-with-Sionna 센싱 항목 전부 커버). 남은 각도는 대부분
@@ -50,10 +77,10 @@
 - **[R3] RIS/IRS 센싱 + Sionna** — **정직 소견: 자격 있는 Sionna-센싱 RIS 논문 0**. (a) Sionna+RIS 논문은 대부분 **커버리지 최적화**(센싱 아님) — 예 "RIS Optimization Algorithms for Urban Wireless Scenarios in Sionna RT"(Güneşer 외, VTC2025-Spring, arXiv:2501.05817)는 Sionna RT 확정이나 태스크가 RIS 커버리지맵이라 제외. (b) RIS+레이더센싱 논문은 대부분 **해석적**(비-Sionna) — Buzzi 2021(arXiv:2104.00768)·Colone 2026 저-RCS(아래 맥락).
 - **[R3b] 인간활동·제스처 WiFi 센싱 + 채널차팅** — 제스처 ISAC(Zhang 외, arXiv:2507.06588)는 **실측 기반=비-Sionna**로 제외. 채널차팅에서 **MOCSID**(Sionna RT 생성 CSI) 발견 → 아래 등재.
 - **[R3] 미커버(다음 라운드 후보)**: 3D 라디오맵/뉴럴레이트레이싱(Gaussian splatting RF·radiance field), Sionna SYS 시스템레벨, 차량/V2X ISAC+Sionna, 6G ISAC 표준화(3GPP TR 38.901 산란 확장), 위성/NTN 센싱, EuRAD/RadarConf 실측 vs Sionna 대조, Sionna 로 **드론 마이크로도플러** 특정 검색.
-- **[R4] 차량/V2X ISAC + Sionna** — **자격 있는 Sionna-표적센싱 논문 0**. Sionna+차량은 디지털네트워크트윈(ns-3 연동, arXiv:2501.00372)=통신이지 센싱 아님. 곡면체 산란 ISAC 논문(arXiv:2604.05991)은 **커스텀 UTD**(비-Sionna) → 맥락 등재.
+- **[R4] 차량/V2X ISAC + Sionna** — **자격 있는 Sionna-표적센싱 논문 0**. Sionna+차량은 디지털네트워크트윈(ns-3 연동, arXiv:2501.00372)=통신이지 센싱 아님. 곡면체 산란 ISAC 논문(arXiv:2604.05991)은 ~~**커스텀 UTD**(비-Sionna)~~ → **[R20 정정] Sionna-RT v0.19 확장(A2) 이 맞다**(본문 *"Sionna-RT (v0.19) was used as a basic RT framework"*). 이 줄은 파일 상단 2026-07-20 정정과 자기모순 상태였다.
 - **[R4b] 뉴럴 레이트레이싱/Gaussian splatting RF + 미분가능 RT 재질추정** — Gaussian-RT(arXiv:2605.07781)는 전파+뷰합성(센싱 아님)·비-Sionna → 제외. 그러나 **Sionna 미분가능 RT 로 씬 재질·산란계수를 측정에서 역추정**하는 Hoydis 계열이 genuine Sionna-센싱(환경 역문제) → 아래 등재. VLM-guided 재질추정(arXiv:2601.18242)은 Sionna 사용 미검증 → 다음 라운드 확인.
 - **[R4] 미커버(다음 라운드 후보)**: Sionna SYS 시스템레벨 센싱, 위성/NTN·해양 ISAC, 6G ISAC 표준화(TR 38.901 산란), Sionna **드론/UAV 마이크로도플러** 특정, 실측(X410/USRP) vs Sionna 대조, 스펙트럼센싱/인지라디오, 특정 저널 IEEE TWC/JSAC/AES 본문.
-- **[R5] 드론/UAV 마이크로도플러 + Sionna** — **자격 있는 Sionna 논문 0**. 드론 마이크로도플러 문헌은 **PO EM 시뮬**(로터 RCS를 물리광학으로, 예 "Extraction of Micro-Doppler Features from UAVs Based on EM Simulation")·전용 레이더 시뮬·테스트베드(arXiv:2408.16415)·드론군 신호(arXiv:2506.00497)로 전부 비-Sionna. 우리 PO+마이크로도플러 접근과 방법론 일치(A1 계열)이나 Sionna 아님.
+- **[R5] 드론/UAV 마이크로도플러 + Sionna** — 🔴 **[R20 정정] "자격 있는 Sionna 논문 0" 은 틀렸다. 1편 존재: md-rt(Li 외, IEEE ICCT 2025)** — 스톡 Sionna RT 가 유일 시뮬레이터(본문 18회)이고 **Blender 프로펠러 메쉬**를 씬에 넣어 로터 마이크로도플러 스펙트로그램을 낸다. 단 PO/SBR/UTD/dBsm/탐지·분류 전부 0 → 분류 **C**. R5 가 놓친 이유 = **IEEE 유료 프로시딩(중국 학회)이라 arXiv 검색망 밖**. 아래 원 문장은 나머지 문헌에 대해서만 유효: ~~**자격 있는 Sionna 논문 0**~~. 드론 마이크로도플러 문헌은 **PO EM 시뮬**(로터 RCS를 물리광학으로, 예 "Extraction of Micro-Doppler Features from UAVs Based on EM Simulation")·전용 레이더 시뮬·테스트베드(arXiv:2408.16415)·드론군 신호(arXiv:2506.00497)로 전부 비-Sionna. 우리 PO+마이크로도플러 접근과 방법론 일치(A1 계열)이나 Sionna 아님.
 - **[R5b] 6G ISAC 표준화(3GPP TR 38.901 산란 확장) + Sionna** — **자격 있는 Sionna 논문 0**. 표준화 라인은 전부 **GBSM/E-GBSM + 측정/주입 RCS**(비-Sionna): 표적채널을 h_target 로, 배경을 h_background 로 분해(우리 메모 '주류 h=h_bg+h_target' 확증). 바이스태틱 프레임(2408.11295)·TR 38.901 시뮬레이터(2606.07328)·RCS 통일모델(2505.20673, 이미 R1 DJI M350)·Rel-19 서베이(2512.03506) → 핵심 2편 아래 맥락 등재. **우리 포지셔닝의 정면 비교군**(주류=GBSM+주입RCS ↔ 우리=SBR+PO 산란 직접계산).
 - **[R5] 미커버(다음 라운드 후보)**: Sionna SYS 시스템레벨, 위성/NTN 센싱, 스펙트럼센싱/인지라디오+Sionna, VLM-guided 재질추정(2601.18242) Sionna 검증, Sionna 로 **실측(USRP/X410) 캘리브레이션** 사례, 특정 저널 IEEE JSAC/AES 본문, 중국어/학위논문.
 - **[R6] 패시브 레이더 CAF/클러터 억제 + VLM 재질추정** — 패시브 레이더 CAF/클러터 검색: 우리 도메인 정통이나 대부분 비-Sionna(커스텀 MC/실측). **VLM-guided 재질추정(arXiv:2601.18242)은 Sionna 확정**(R5 남긴 숙제 해결) → 아래 등재. 패시브 CAF 클러터억제(2512.24889)·셀룰러 UAV 궤적 실측(2602.08203)은 비-Sionna지만 **우리 파이프라인/응용의 실세계 대응**이라 맥락 등재.
@@ -81,9 +108,16 @@
 - **[R17] CSI/WiFi 센싱(전용) + ICASSP/WCNC/EuCAP ISAC 스윕 — genuine 신규 0**: (a) WiFi CSI 센싱은 **실측 CSI 지배**(CSI-Bench·RFBoost·HAR 다수) → Sionna dry(합성은 MOCSID R3 뿐). (b) 동적 ISAC 채널 디지털트윈(Montaner·Cardona 외, EuCAP 2026, arXiv:2603.28736)·셀프리 ISAC 그래프학습(Jiang 외, GLOBECOM 2025, arXiv:2507.06612) 둘 다 **Sionna 미확인**(초록에 미언급, 채널모델/추정 위주) → 제외. 검색요약이 'Sionna 사용' 시사했으나 초록 확인 결과 미확증(정직 표기).
 - **[R17] 미커버(다음 라운드 후보)**: 사실상 소진 — 남은 건 특정 저널 유료본문(IEEE TGRS/TAP/TAES)·비영어 학위·2026 하반기 신규뿐. **강력 권고: 새 논문 탐색 종료하고 pw05 종합 + 커밋 단계로**(17라운드 genuine 16 수렴, 반복 dry).
 - **[R18] 패시브 바이스태틱 OFDM(우리 셋업 정통) 재확인 — genuine 신규 0, 소진 확정**: OFDM WiFi/LTE 패시브 바이스태틱 레이더(모호함수·직접파 제거) 문헌은 전부 **고전 PBR·비-Sionna**(IEEE Xplore 구작·ResearchGate). Sionna 계열은 S-ICDF(R1)·OpenISAC(R11, 비-Sionna) 외 신규 없음. 관련 비-Sionna: SISO 바이스태틱 ISAC(2508.12614)·셀룰러 협력 패시브센싱(2405.09179). → **탐색 종료·맨 아래 종합 섹션으로 대체**.
-- **[R19] SAR/원격탐사(IEEE TGRS/GRSL) + Sionna — genuine 신규 0**: SAR 표적인식은 자체 EM 산란모델(산란센터·EMWaveNet·PASTE 등)·실측 SAR 영상 위주로 **Sionna 안 씀**(Sionna=전파채널이지 SAR 이미징 툴 아님). → 마지막 미탐색 저널각도까지 dry. **전 facet 소진 확정(13+ 각도 커버, 5연속 dry). 새 논문 탐색 종료가 옳음** — cron 은 이후 dry 확실.
-
-## 논문 항목
+- **[R19] SAR/원격탐사(IEEE TGRS/GRSL) + Sionna — genuine 신규 0**: SAR 표적인식은 자체 EM 산란모델(산란센터·EMWaveNet·PASTE 등)·실측 SAR 영상 위주로 **Sionna 안 씀**(Sionna=전파채널이지 SAR 이미징 툴 아님). → 마지막 미탐색 저널각도까지 dry. **전 facet 소진 확정(13+ 각도 커버, 5연속 dry). 새 논문 탐색 종료가 옳음** — cron 은 이후 dry 확실. 🔴 **[R20 에서 이 판정 철회]** — 소진이 아니라 **arXiv 편향**이었다.
+- 🔴 **[R20] 6각도 대규모 재탐색 + 보유원문 전수검증 (2026-07-29, 35에이전트·1034 툴콜)** — 사용자 질문("Sionna 에서 mesh 표적에 PO 같은 걸 입혀 RCS·탐지·분류를 한 논문이 있나")에서 촉발. **후보 66편 수집 → 20편 원문판정(STRONG 0 · PARTIAL 6 · REJECT 11 · UNKNOWN 3)** + 로컬 아카이브 143편 고유 PDF **전문 100% 커버**.
+  - **각도 A** 신규 arXiv 재스윕(22쿼리+인용그래프 3종) · **B** 디텍션/분류 중심(인용그래프 734편 전수 + 400편 인용문맥 grep, `physical optics`/`radar cross section` 매치 **0건**) · **C** 비-arXiv(OpenAlex 840건 + 인용 269편) · **D** 코드/커뮤니티 · **E** 로컬 143편 전문 · **F** 인접 RT 엔진 대조군.
+  - **헤드라인 2건 반증**: R5 "Sionna 드론 마이크로도플러 0"(→ md-rt 1편) · 종합 §1 "Sionna 안 dBsm RCS 0"(→ zig-conf Fig.6). 정정 블록은 상단 🎯 R20 Novelty 재정의 참조.
+  - **신규 genuine Sionna 3편 승격**: **md-rt**(Li 외, IEEE ICCT 2025, DOI 10.1109/ICCT67417.2025.11374154) · **zig-conf**(Ziganshin 외, EuCAP 2025, DOI 10.23919/EuCAP63536.2025.10999367 — 저널판이 *"our preliminary work [24]"* 로 지칭하는 **선행 회의판**, 독립 논문 아님·중복카운트 주의) · **clutter**(Liu·Swindlehurst 외, Proc. IEEE 114(1):52–91, DOI 10.1109/JPROC.2026.3675476, Sionna 12회·Blender 메쉬 UAV·interaction depth 3·SCNR −63.5 dB).
+  - **경계/기각**: **DMSNet**(arXiv:2607.17655, 2026-07-20 등재 — 서베이 동결일) = Sionna 선언 1문장뿐, 신호모델은 자유공간 점산란체 → **REJECT(D)**. **Sagitta**(2604.09243) = Sionna 0회 재확인(소프트웨어명이지 논문 제목 아님). **RFDT**(arXiv:2603.18026) = Sionna 를 **확장 시도했다가 실패를 보고한 대조군**(Appendix C.4 *"Since Sionna by default does not support radar simulation, we extended its functionality…"*).
+  - **⭐우리 주장을 보강한 1차 증거 4건**: Sionna RT 기술보고서(2504.21719) SBR 48회 vs `RCS`·`physical optics` **각 0회**, *"supports four types of interactions"* · Ziganshin 의 **Standard RT 정의** *"the default Sionna-RT implementation with specular reflections and single-bounce edge diffraction"* · UMD MC-SBR(2511.07586) *"Mitsuba … does not currently support surface current calculation or physical optics integration"* — **Sionna 가 올라탄 엔진에 PO 가 없다는 제3자 문서** · **Hoydis Discussion #1170(2026-06-25)** *"Sionna RT is currently not a really good fit to simulate reflections from small objects like drones for radar applications."* ← **우리 use case 를 정확히 지목한 2026년 발언, #844(2025-04)보다 인용가치 큼**.
+  - **검색 사각지대 실물 증거 2건**: md-rt = IEEE 유료 프로시딩(19라운드 내내 미포착) · **arXiv:2509.21118**(Wang·Zumegen·Studer) = **초록에 `Sionna` 없고 본문에만 14회** → arXiv 초록검색의 원리적 한계.
+  - **인접 대조군 신규**: Tsinghua Feifei Gao 3부작(2607.23789·2603.13112·2607.10319, Blender 드론 메쉬 + Wireless InSite + 드론·조류 분류) · Waterloo(Sayed/Shaker) 상세 CAD+SBR→RD맵→3종 드론 분류 논문군 · UMD MC-SBR(2511.07586, mesh+SBR+PO+RCS+ISAR, Mitsuba 사용하나 비-Sionna) · **arXiv:2401.14448 TU Ilmenau BiRa — DJI Phantom 2 바이스태틱 반사도 2–10 GHz 풀편파 실측**(우리에게 부족했던 바이스태틱 앵커).
+- **[R20] 미커버(다음 라운드 후보)**: **중국어 DB(CNKI·万方·百度학술) HTTP 403 — 미탐색 구멍** · IEEE Xplore 본문 다수(WebFetch 0바이트 / 418·403·502 / AWS WAF) · **NATO STO del-Rey-Maestre 드론 바이스태틱 UHF RCS(403, 우리와 가장 가까운 미확인 구멍)** · WiFi-JEPA(2607.11064)·RF-Vision(ICC 2025)·MILCOM 2024 데모편·Karlstad 학사논문 전문 · GitHub 코드검색 API 401(README 범위로만 대체).
 <!-- 형식:
 ### <제목> (<저자 대표>, <venue> <year>)
 - **센싱 태스크**: …
@@ -205,20 +239,52 @@
 - **우리 관련성**: **중간** — 재질캘리브레이션(전도율·ITU-R)이 Sionna 산란모델의 조정 대상임을 재확인. 우리 재질가중 PO 와 같은 ITU-R 앵커. 표적 후방산란은 여전히 다루지 않음.
 - **출처**: https://arxiv.org/abs/2601.18242
 
+### [R20] Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing (C. Li·S. Mu·J. Jiang·L. Feng·Y. Gao·S. Xu, 상하이대/XJTLU, IEEE ICCT 2025)
+- **센싱 태스크**: **다중로터 UAV 로터 마이크로도플러 시뮬레이션**. 산란점 1·2·3·6개 사다리 → Blender 블레이드 메쉬로 확장, 시간-주파수 스펙트로그램 정성분석 + 반송파 2.4/5/6/24/60/77 GHz 스윕. **탐지·분류·RCS 산출 없음**(dBsm 0회, Pd/CFAR 0 — 탐지는 동기 문단뿐).
+- **Sionna 사용**: **Sionna RT 가 유일 시뮬레이터**(본문 18회, Mitsuba 3회). 씬 구성·경로계산·CFR 전부 Sionna. 버전 미보고. **회전은 `Paths.doppler` 미사용 — 타임스텝마다 표적 속도·위치 갱신 후 RT 재실행**(관측창 0.1024 s·PRF 20 kHz·회전주기 0.04 s → 최대 2048회 재시뮬). 기여는 **광선 발사 분포 교체**: Sionna 기본 `fibonacci_lattice`→`square_to_uniform_sphere` 전방위 균일을 **원추 매핑**으로 바꿔 원거리 소형표적 히트율 붕괴 해결.
+- **RCS/표적 산란 공백 처리**: **C(메쉬 정반사 우회)** — Blender 프로펠러 메쉬(2엽, 반경 10.55 cm) + Sionna 내장 재질(Table I `Wood`, ε_r·σ 수치 미보고). PO/SBR/UTD/회절/확산산란 전부 0회. Eq.(2)의 σ(x,y,z)는 **값·산출법 없는 죽은 기호**.
+- **우리 관련성**: **중간~높음(방법론) / 낮음(수치 앵커)**. 가져갈 것: ① **원추 광선샘플링 = report07 광선예산 *문제 제기*의 명시적 선행**(우리 독자발견으로 쓰면 선행 누락). ⚠ **해법의 선행권까지는 아니다** — md-rt 는 점 송신기 한 곳에서 방향이 **발산**하는 원추(Fibonacci→원추 매핑, 면적 가중 없음)이고, 우리 `src/rcs_sbr.py` 는 방향이 전부 동일한 **정사영 평행 개구면 격자 + 구적 가중 d²**(`:203-208`·`:250-251`·`:273`) 다. 평행격자의 선행 사슬은 **Ling·Chou·Lee 1986**(DOI 10.1109/APS.1986.1149823) → **Sagitta arXiv:2604.09243 §4** 이며(⚠ **이 소급은 Sagitta 참고문헌 [10] 경유 2차 인용이다** — 1986 학회 다이제스트 원문은 디스크에 없고 열람하지 않았다. 정본 인용은 통상 저널판 IEEE Trans. Antennas Propag. 37(2):194–205, 1989 이고 DOI 는 미확인이라 적지 않는다), 이 둘을 뭉뚱그려 "같은 전략" 이라 쓰면 오귀속이다(상세: `docs/DRONE_ISAC_PRIOR_READING.md` §5-F). ② **스텝-앤-리시뮬 회전 = 우리 회전 우회의 독립 선례** ③ Table I 의 OFDM 2048×50 µs = **PRF 20 kHz 로 우리와 같은 값** → 우리 PRF 선택의 선행 방어근거.
+  ⚠ **정량 앵커 금지(우리 검산 결과)**: 프로펠러 반경 Table I `10.55 cm` vs §IV-B *"blade length of 1.055 meters"* **10배 내부모순** · 주장 f_mD=1562 Hz 는 T=0.04 s 에서 r=0.1055 m→**552 Hz**, r=1.055 m→**5524 Hz** 로 **어느 반경과도 불일치(독립 재현 불가)** · *"the minimum spatial resolution in Sionna is 0.01 m"* 는 **Sionna 문서·소스에 근거 없는 주장** · 반송파↑ 에코에너지↓ 를 *"atmospheric absorption"* 으로 돌리는 것은 **물리 설명 오류**(자유공간 손실은 유효개구 λ²/4π) · 코드·데이터 비공개.
+- **출처**: DOI 10.1109/ICCT67417.2025.11374154 · https://ieeexplore.ieee.org/document/11374154 · 로컬 `paper_sionna_Ray/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf` · **전방인용 0**(S2·OpenAlex·Crossref·GS)
+
+### [R20] Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC (A. Ziganshin·E.M. Vitucci·S.J. Myint·W. Kotterman·C. Schneider·V. Degli-Esposti·R.S. Thomä, EuCAP 2025) — **저널판 2604.05991 의 선행 회의판(중복카운트 주의)**
+- **센싱 태스크**: **다중스태틱 표적 산란장 예측·검증**(탐지 0·분류 0). 산출물 = |E_scat| 각도스캔 4장 + **Fig.6 RCS(dBsm) 곡선 1장**. 표적: under-discretized sphere(80 facets, 7.5λ)·over-discretized sphere(4500 facets, 1.0λ)·간이 차량(**16610 facets, 5264 vertices**, 3.3×2.1×1.7 m), **전부 PEC**. ⚠ 주파수는 표적마다 다르다 — 구는 **2 GHz**(§III-A *"Frequency of simulated waves is 2 GHz"*), 차량은 **10 GHz** 이고 **RX 360 방위는 차량 케이스에만** 해당한다(§III-B).
+- **Sionna 사용**: **Sionna RT 개조(A2)** — *"An open-source parallelizable framework, Sionna RT [11], is utilized … Wedge diffraction is implemented there using UTD [12]. **This framework has been extended with Vertex Diffraction (VD)**."* 검증 정답지는 외부 상용 **FEKO MLFMM/PO**(A1 종속).
+- **RCS/표적 산란 공백 처리**: **A2 주 + A1 종**. Sionna 안 물리 = GO + UTD + VD. **PO 표면적분은 Sionna 안에 없다** — PO 는 채점자(FEKO)이지 선수가 아니다. ⚠ 초록만 스치면 "Sionna 안에서 PO 했다"로 **정반대 오독**이 난다.
+- **⭐우리 관련성 — 최고(경쟁·인용 양쪽)**: ① **우리 novelty (ii)를 반증하는 유일 문헌** — Fig.6 y축 `RCS (dBsm)`(PDF `dir=(0,-1)` 세로축 확정), 캡션 *"RCS of the simplified car"*, 범례 **EM (PO) vs RT+UTD+VD**. ② **우리 PO 방어선에 정면 반론 2건**: 저널판 §I *"This SBR+PO approach … is limited to the illuminated region and is not suitable to predict the scattered field in the shadow region … the need to cascade PO after RT negates the computational advantages of RT."* + 회의판 §III *"the simulation time for the PO solver is around one day, whereas the RT simulation takes only about two seconds"*(조건: 16610 facets·PEC·10 GHz·360 RX, RT 하드웨어 미명시). ③ 그러나 그들도 자인: *"since the PO solver does not account for multiple interactions, deviations observed do not necessarily indicate that the RT results are inaccurate."* ④ **우리 편**: 드론·마이크로도플러는 future work 한 줄, few-λ 이산화는 *"remains unresolved"*.
+- **출처**: DOI 10.23919/EuCAP63536.2025.10999367 · 로컬 `paper_sionna_Ray/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf` · 확장판 https://arxiv.org/abs/2604.05991 → **IEEE OJAP 투고 프리프린트**(arXiv:2604.05991v2, 2026-07-02). p.1 교신저자 각주 *"This is a preprint version of a manuscript submitted to the IEEE Open Journal of Antennas and Propagation"* — PDF 안에 `OJAP` DOI 문자열은 0회다. 웹에서 본 DOI 10.1109/OJAP.2026.3717211 은 **PDF 밖 출처**이므로 게재 열로 옮기는 근거가 되지 않는다 · 코드 https://github.com/AinurZiga/sionna-RT-reflectivity
+
+### [R20] Clutter-Aware Integrated Sensing and Communication: Models, Methods, and Future Directions (R. Liu·P. Li·M. Li·A.L. Swindlehurst, Proc. IEEE 114(1):52–91, 2026)
+- **센싱 태스크**: **클러터 억제 튜토리얼**(41쪽). cold/hot clutter 이분법 → MTI/배경차감·부분공간투영·STAP·KA(CKM prenulling). 산출물은 억제 전/후 MUSIC·RDM·MVDR·post-STAP 각도-도플러 맵 + **SCNR 스칼라**(RT 케이스 −63.5 dB, 확률모델 −45.9/−47.4 dB). **dBsm 0회, Pd/Pfa/ROC 0회, 분류 없음.**
+- **Sionna 사용**: **Sionna RT**(본문 12회). 논문 그림 11장 중 **4장(Fig.6/7/9/11)이 Sionna 산출물**, 절마다 "확률모델 vs site-specific RT" 쌍대 비교 구조. 설정: **max interaction depth 3**, 28 GHz, N_t=N_r=16 ULA, Δf 120 kHz, BS 13.5 m·표적 10~15 m. 버전 미보고.
+- **RCS/표적 산란 공백 처리**: **C(메쉬 정반사 우회)의 최상위 사례** — *"The ToI and UAVs are modeled as simplified 3-D mesh objects imported into Sionna … simplifying publicly available 3-D models in Blender and exporting them in Sionna's XML format."* 활성 메커니즘은 LoS/정반사/확산반사/굴절/회절. RCS 는 계산 대상이 아니라 **계수 α·β 에 흡수되는 입력 파라미터**. 메쉬 세부(기종·폴리곤·재질값·프로펠러) 전부 미보고.
+- **우리 관련성**: **매우 높음 — 단 RCS 가 아니라 클러터 서사 쪽.** ① cold/hot 정의 = report09 인용원. **불리한 역설**: 패시브·비협조 조명원이면 이 분류상 **우리 표적 에코와 바닥 유령이 전부 hot clutter** 이고, 논문 처방은 *"estimated directly from secondary data collected during quiet periods"* 인데 **우리는 조명원이 상시 ON 이라 quiet period 가 없다**. ② report10 직인용: *"two-pulse SDC **doubles** [the noise variance] … necessitating **careful threshold calibration**"*. ③ report11 저속: *"map-assisted prenulling is particularly useful for **low-velocity or quasi-stationary targets**"*. ④ ECA 대응물 = 부분공간 투영(과대 차수→target self-nulling / 과소→잔여 클러터) → 우리 ECA 차수 K 논의에 이식 가능. ⚠ **Sionna 그림 4장은 공개코드에 없어 재현 불가**(레포는 MATLAB 확률모델 그림뿐).
+- **출처**: DOI 10.1109/JPROC.2026.3675476 · 프리프린트 https://arxiv.org/abs/2602.10537 · 코드 https://github.com/LS-Wireless/Clutter-Aware-ISAC-Tutorial · 로컬 `paper_sionna_Ray/Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf`
+
+### [R20] DMSNet: Cross-Band Learning for Multi-Target Sensing in Multi-Band ISAC (H. Liu·Z. Wei·Z. Feng 외, BUPT, arXiv 2026) — **판정 REJECT(경계 사례, papers 카운터 제외)**
+- **센싱 태스크**: 다중대역(3.5/28 GHz) ISAC **표적 개수추정(L∈{0..5}) + 거리·속도·각도 추정**. Count Acc 0.9174·Macro-F1 0.9307. **RCS 산출 없음·형상 분류 없음·Pd/Pfa/ROC 없음.**
+- **Sionna 사용**: **선언 1문장뿐** — *"a dual-band UAV sensing dataset is generated in a 1:1 3D digital twin of the BUPT campus using Sionna RT [13]."* 버전·씬 파일·재질·max_depth·광선수·Paths→에코 변환 절차 **전부 미보고**. 재현 가능한 사용 기술 0.
+- **RCS/표적 산란 공백 처리**: **D(미보고)** — `mesh`/`Blender`/`CAD` 각 0회. 표적은 (r,v,θ)+스칼라 ρ 의 **자유공간 점산란체**, 환경·다중경로·클러터 항 없음(AWGN 만). ⚠ 이 논문이 디지털트윈을 표방하면서 배경 항이 없다는 사실은 메모의 "주류 h=h_bg+h_target" 를 **보편 규칙이 아니라 다수 경향**으로 하향해야 함을 보여준다.
+- **우리 관련성**: **표적 EM 모델링 선행으로 인용 금지.** 쓸모는 ① 베이스라인 목록 이식(CA-CFAR·ADVI-CFAR·CFARNet·Eigenvalue-1D-CNN·CSIYOLO) → report12 보강 후보 ② 다표적 지표 관례(Count Acc·Macro-F1·MAE) ③ 다중대역 상보성 인용문 *"a target weakly visible in one band may still be detectable in another band"* → 우리 9모드 서사의 외부 근거. 사과-대-사과 비교 불가(모노스태틱 능동·자유공간).
+- **출처**: https://arxiv.org/abs/2607.17655 (v1, 2026-07-20, 5쪽) · 아카이브 `papers_isac_sionna/2607.17655__dmsnet-crossband-multiband-isac.pdf`
+
 ---
 
 ## RCS-공백 맥락 (비-Sionna, 인용 맥락용 — Sionna 실사용 아님)
 - **Sounding-Based Evaluation of Multi-Sensor ISAC Networks for Drone Applications** — J. Beuster·C. Schneider·R.S. Thomä 외(TU Ilmenau), IEEE JC&S 2024(arXiv:2402.16591). 분산 다중센서 ISAC 로 **드론 탐지·측위**: **바이스태틱 후방산란** 서명 + **마이크로도플러**로 식별, 시뮬 모델 + **무향실 바이스태틱 반사도 측정** + 실비행 채널사운딩 3중, **공개 데이터셋**. ⚠ 비-Sionna(사운딩/자체시뮬). **우리와 최직결(표적산란 측)**: 드론 바이스태틱 반사도·마이크로도플러가 정확히 우리 관심량이고, **측정 반사도**가 우리 SBR+PO 검증의 외부 앵커 후보(공개데이터). https://arxiv.org/abs/2402.16591
-- **OpenISAC: An Open-Source Real-Time Experimentation Platform for OFDM-ISAC** — Z. Zhou·X. Xu·Y. Zeng 외, IEEE IoT-J 2026(arXiv:2601.03535). **모노+바이스태틱 지연-도플러 OFDM-ISAC** 실시간 플랫폼, **USRP X400 시리즈**(우리 X410 계열) 지원, **유선 없이 바이스태틱 되는 OTA 동기** 메커니즘, C++(PHY)+Python(센싱). ⚠ 비-Sionna(USRP/UHD). **우리와 직결(실측 측)**: 우리 X410 필드테스트의 **직접 아날로그** — 바이스태틱 지연-도플러(우리 처리와 동일)·X400·OTA 동기(우리가 겪을 동기 문제 해법). [[sionna2-prior-work]] OPENSOURCE.md 의 OpenISAC 참조 확증. https://arxiv.org/abs/2601.03535
+- **OpenISAC: An Open-Source Real-Time Experimentation Platform for OFDM-ISAC** — Z. Zhou·X. Xu·Y. Zeng 외, **프리프린트 arXiv:2601.03535v2(2026-07-06)**. ⚠ 디스크 PDF 에 `IoT-J`·`Internet of Things Journal` 문자열은 0회이고 유일한 `accepted` 는 참고문헌 [2] 안의 다른 논문이다 — IoT-J 귀속은 근거가 없다. **모노+바이스태틱 지연-도플러 OFDM-ISAC** 실시간 플랫폼, **USRP X400 시리즈**(우리 X410 계열) 지원, **유선 없이 바이스태틱 되는 OTA 동기** 메커니즘, C++(PHY)+Python(센싱). ⚠ 비-Sionna(USRP/UHD). **우리와 직결(실측 측)**: 우리 X410 필드테스트의 **직접 아날로그** — 바이스태틱 지연-도플러(우리 처리와 동일)·X400·OTA 동기(우리가 겪을 동기 문제 해법). [[sionna2-prior-work]] OPENSOURCE.md 의 OpenISAC 참조 확증. https://arxiv.org/abs/2601.03535
 - **An Experimental Study on Fine-Grained Bistatic Sensing of UAV Trajectory via Cellular Downlink Signals** — C. Ji·J. Liu·R. Wang 외, IEEE WCL 2026(arXiv:2602.08203). **실측** 패시브 바이스태틱: **LTE 하향링크** 조명, 2 기지국 TX + 2 패시브 RX, 도플러로 **UAV 궤적** 복원(RX 30 m 내 90%에서 <50 cm; UAV·RX 는 기지국서 ~200 m). ⚠ 실험(비-Sionna). **우리와 최직결**: 정확히 우리가 시뮬하는 **셀룰러 패시브 바이스태틱 드론 탐지의 실세계 검증판**(추적은 우리 future work). 강력한 선행 앵커. https://arxiv.org/abs/2602.08203
 - **Adaptive Clutter Suppression via Convex Optimization** — Y. He·G. Kearney·M. Fardad, arXiv:2512.24889(2025). 패시브/바이스태틱 레이더에서 **CAF 를 보존하며** 셀별 지연-도플러 필터로 클러터 억제(별도 소거단 불필요), 통신파형 MC 로 CFAR 교정·검출률 향상. ⚠ 커스텀 MC(Sionna 미표기). **우리와 직결**: 우리 report09/10 의 **ECA 클러터억제+CAF+CFAR 파이프라인의 방법론적 대안**(ECA 대신 convex QP). https://arxiv.org/abs/2512.24889
 - **Channel Modeling Framework for Both Communications and Bistatic Sensing Under 3GPP Standard** — C. Luo·A. Tang 외, IEEE J. Sel. Areas Sensors 2024(arXiv:2408.11295). 3GPP GBSM 을 확장한 **바이스태틱 ISAC 채널 모델**(Tx-Rx 분리 기하), 표적을 **결정적 또는 통계적**으로 둘 수 있음. ⚠ 커스텀 GBSM(비-Sionna, 검증에 RT 시뮬 사용). **우리와 직결**: 정확히 우리 바이스태틱 기하이고, **주류는 표적을 주입 RCS(결정/통계)로 두는** 반면 우리는 SBR+PO 로 직접 계산 — 포지셔닝 비교군. https://arxiv.org/abs/2408.11295
 - **Implementation and Calibration of 3GPP-Compliant ISAC Channel Simulator** — C.-H. Wu·M.-C. Lee·T.-S. Lee, arXiv:2606.07328(2026). TR 38.901 ISAC 채널모델 구현·캘리브레이션, **오픈소스 GitHub 공개**. ⚠ 비-Sionna(3GPP GBSM 준거). **우리와 직결**: 표준 준거 ISAC 시뮬의 레퍼런스 구현 — 우리 파이프라인을 표준과 대조할 잣대(주류 h=h_target+h_background 접근). https://arxiv.org/abs/2606.07328
 - **Novel Extension of Full-Polarimetric Bistatic Scattering Modeling of Canonical Scatterers for Radar Recognition** — MDPI Remote Sensing 2025(doi:10.3390/rs17172999, 저자 미확인). PO + 정상위상법(SPM)으로 6 정준산란체(평판·다이헤드럴·트라이헤드럴·실린더·콘·구)의 **풀-편파 바이스태틱 산란** 해석확장, RCS 오차 0.3/2/2.6/3/6/7%. ⚠ 비-Sionna(해석 PO). **우리와 직결**: report07 이 SBR+PO 를 **평판(+16.42 dBsm)·구(−1.05 dBsm) 정준표적**으로 검증하는 것과 같은 계열 — PO 가 정준형상에서 정확함을 뒷받침하는 외부 레퍼런스(바이스태틱·편파까지). https://doi.org/10.3390/rs17172999
-- **Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications** — R. Ziganshin·E.M. Vitucci·V. Degli-Esposti 외, arXiv:2604.05991(2026). **곡면체를 평면 패싯으로 이산화**해 UTD(+정점회절·이중반사)로 산란 계산, 차량/ISAC 채널모델링. **바이스태틱 후방산란역 + 그림자역 full-wave** 검증(구·실린더 canonical 대조). ✅ **Sionna-RT v0.19 확장(A2, 전문검증)** — *"Sionna-RT (v0.19) was used as a basic RT framework"* 위에 UTD·정점회절 얹음(code AinurZiga/sionna-RT-reflectivity). **우리와 가장 가까운 선행연구**: 둘 다 **Sionna-RT+커스텀 산란 확장**. 차이=SBR+PO vs UTD · 소형드론 vs 대형표적(구·차). https://arxiv.org/abs/2604.05991
+- **Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications** — **A. Ziganshin(Ainur)**·E.M. Vitucci·W. Kotterman·R.S. Thomä·C. Schneider·V. Degli-Esposti, arXiv:2604.05991v2(2026-07-02) → **IEEE OJAP 투고 프리프린트**(p.1 각주 "submitted", PDF 내 `OJAP` DOI 0회; 웹 DOI 10.1109/OJAP.2026.3717211 은 PDF 밖 출처·미검증). **곡면체를 평면 패싯으로 이산화**해 UTD(+정점회절·이중반사)로 산란 계산, 차량/ISAC 채널모델링. **바이스태틱 후방산란역 + 그림자역 full-wave** 검증(구·실린더 canonical 대조). ✅ **Sionna-RT v0.19 확장(A2, 전문검증)** — *"Sionna-RT (v0.19) was used as a basic RT framework"* 위에 UTD·정점회절 얹음(code AinurZiga/sionna-RT-reflectivity). **우리와 가장 가까운 선행연구**: 둘 다 **Sionna-RT+커스텀 산란 확장**. 차이=SBR+PO vs UTD · 소형드론 vs 대형표적(구·차). https://arxiv.org/abs/2604.05991
 - **RIS-aided Radar Detection Architectures with Application to Low-RCS Targets** — F. Colone·F. Costa·D. Orlando 외, arXiv:2601.10846(2026). **저관측(low-RCS) 표적** 레이더 검출을 RIS 로 보조: 표적이 무관한 방향으로 산란한 에너지를 RIS 가 레이더로 재지향해 **모노스태틱+바이스태틱 결합**으로 잡음(멀티스태틱 동기화 문제 회피). ⚠ 해석적 설계(Sionna·특정 RT 시뮬 미사용). **우리와 직결**: 저-RCS·바이스태틱·표적 산란 재활용이라는 정확히 같은 레짐이고, 저자 Colone 은 패시브 레이더 권위자(Sapienza Roma). 우리 SBR 산란 재지향 논의의 참고. https://arxiv.org/abs/2601.10846
 - **Localization in Digital Twin MIMO Networks: A Case for Massive Fingerprinting** — J. Morais·A. Alkhateeb, ICC 2024(arXiv:2403.09614). RT-생성 디지털트윈 RF맵으로 대량 핑거프린팅 측위(서브미터, NLoS 95%). ⚠ 레이트레이서를 명시 안 하나 저자 그룹이 **DeepMIMO/DeepVerse**(Wireless InSite 기반) 운영 → **Sionna 아닐 가능성 큼**. 측위(에미터)라 RCS 공백도 해당없음. 참고: RT-트윈 핑거프린팅이 측위의 주류 접근임을 보여줌. https://arxiv.org/abs/2403.09614
-- **BVH-Accelerated Ray Tracing for High-Frequency EM Backscattering ("Sagitta SBR")** — M. Pasquale 외, arXiv:2604.09243(2026). 독립형 **GPU SBR+물리광학 RCS 솔버**(BVH가속·오픈소스), Sionna 기반 아님. 우리 SBR+PO 가 Sionna 산란공백을 메우는 바로 그 **A1 외부 EM/SBR** 부류 — 교차검증 후보 도구. https://arxiv.org/abs/2604.09243
+- **BVH-Accelerated Ray Tracing for High-Frequency EM Backscattering** (소프트웨어명 **SagittaSBR** — ⚠ R20 정정: "Sagitta" 는 논문 제목이 아니라 소프트웨어 이름) — M. Pasquale 외, arXiv:2604.09243(2026). 독립형 **GPU SBR+물리광학 RCS 솔버**(BVH가속·오픈소스), **Sionna 0회 재확인**(본문·주석·링크·원시바이트 전수). CPU host C++ + CUDA·HIP(NVIDIA 전용 아님), **모노스태틱 PEC 항공기 only**. 우리 SBR+PO 와 같은 **A1 외부 EM/SBR** 부류 — 교차검증 후보 도구이나 **센싱/ISAC 논문으로 인용 금지, CEM 솔버 레퍼런스로만**. ⚠ Mie 대조 유효창 kr ≳ 30. https://arxiv.org/abs/2604.09243
+- **Accelerated, Memory-Efficient Far-Field Scattering with Monte Carlo SBR** — Audia·Manocha·Zwicker(UMD), arXiv:2511.07586. mesh + **SBR+PO(EFIE/MFIE 원역장 적분)** + √RCS + ISAR. **Sionna 0회**(참고문헌 37편에도 0)이나 **Mitsuba 를 쓴다**. ⭐**우리 주장의 제3자 문서 증거**: *"Mitsuba … does not currently support surface current calculation or physical optics integration. We rather, implemented our own render."* — **Sionna RT 가 올라탄 바로 그 엔진에 PO 가 없다.** 아키텍처상 우리와 가장 닮은 비-Sionna 선행 → **A1 교차검증 승격 권장**(λ/10 층화·10 rays/λ·유전체 Fresnel 중요도표집 규약 차용). https://arxiv.org/abs/2511.07586
+- **Physically Accurate Differentiable Inverse Rendering for RF Digital Twin (RFDT)** — Chen·Zhang 외(UCSD/CU Denver/UCL), arXiv:2603.18026. 실측 삼각망(차량·인체·금속) 역렌더링 + RSS 예측, 자체 엔진 34k LOC. ⭐**Sionna 를 확장 시도했다가 실패를 보고한 대조군** — Appendix C.4 *"Since Sionna by default does not support radar simulation, we extended its functionality…"*. 또한 *"the path solver supports coherent combination with full phase information"* → **"Sionna 는 비코히런트"는 radiomap/coverage_map solver 한정**이며 path solver 에는 틀린 말임을 확정. https://arxiv.org/abs/2603.18026
+- **커뮤니티(R20 추가)**: NVlabs/sionna **Discussion #1170(2026-06-25)** — Hoydis: *"Sionna RT is currently not a really good fit to simulate reflections from small objects like drones for radar applications."* ⭐**우리 use case(소형 드론)를 정확히 지목한 2026년 발언**으로 기존 #844(2025-04)보다 인용가치가 크다. 단 #844 에서 같은 메인테이너가 *"it would not be difficult to implement this yourself as a custom PathSolver"* 라고 **제안**도 했다는 사실을 병기해야 균형이 맞는다.
 - **A Unified RCS Modeling of Typical Targets for 3GPP ISAC Channel Standardization** — Y. Zhang 외, arXiv:2505.20673(2025). **측정** 모노스태틱 RCS(무향실 10–36 GHz)로 **DJI M350 UAV**·차량·인간; RCS 를 대규모/각도/랜덤 성분 분해. 순수 **B(측정/통계)** — DJI 드론의 **직접 인용가능 RCS 앵커**. https://arxiv.org/abs/2505.20673
 - **RayLoc: Wireless Indoor Localization via Fully Differentiable Ray-tracing** — X. Han 외, arXiv:2501.17881(2025). 표적을 반사메쉬로 두고 **커스텀(비-Sionna) 미분가능 레이트레이서** 사용; 저자들이 **Sionna 는 표적위치에 미분불가**라 자체제작 — 표적센싱 연구가 왜 Sionna 를 떠나는지 근거. https://arxiv.org/abs/2501.17881
 - **커뮤니티**: NVlabs/sionna GitHub **Discussion #844**("RCS Calculation using Sionna RT by sampling objects with a huge number of rays")·커스텀 PathSolver 로 지정방향 레이 발사해 RCS — 메쉬샘플링(C)/Sionna확장(A2) 우회가 커뮤니티에서 논의됨(미출판).
@@ -238,7 +304,7 @@
 
 ### LAMBDA: A Low-Altitude Multimodal Base Dataset for UAV Sensing and Communication (L. Zhou·M. Tao 외, arXiv 2026)
 - **센싱 태스크**: 저고도 UAV **멀티모달**(RGB·depth·LiDAR·IMU·pose·CSI·radar-synthesis) 데이터셋. 사례: RGB 빔예측·RGB-LiDAR UAV 측위.
-- **Sionna 사용**: **Sionna RT 확정**(전문검증: material-aware RT + CSI 생성). ⚠단, 표적 EM 툴 구체명(덱 'CADFEKO')은 원문에 미명시.
+- **Sionna 사용**: **Sionna RT 확정**(전문검증: material-aware RT + CSI 생성). 표적 EM 툴은 원문이 **CADFEKO 로 두 곳에 명시**한다 — p.3 *"CADFEKO [28] for UAV radar cross-section (RCS) modeling"*, p.7 *"the RCS term is obtained from CADFEKO simulations of the AirSim UAV model and queried according to the UAV attitude"*(문자열 `CADFEKO` 4회 · `FEKO` 6회).
 - **RCS/표적 산란 공백 처리**: **A1** — UAV 를 외부 EM 으로 모델해 주입(전문검증). Sionna(RT)는 전파/CSI 담당, 표적 RCS는 밖에서.
 - **우리 관련성**: **낮음~중간** — 저고도 UAV 멀티모달 벤치마크. 표적 RCS 를 밖에서 구해 주입하는 구조는 우리와 같은 계열(방법은 다름). Sionna 사용 확인 필요.
 - **출처**: https://arxiv.org/abs/2607.03826
@@ -255,11 +321,13 @@
 - **멀티모달 센싱 데이터셋**(CARLA/Blender+Sionna): SimART(2605.13309)·Multimodal-Wireless(2511.03220)
 - **패시브 셀룰러 클러터강건 센싱**(Sionna PHY 링크레벨+USRP): **CellSense(2606.07900)** ← 우리와 가장 근접
 - **에미터/간섭 측위·DoA·이상탐지**: S-ICDF(2607.03411)·Active-Sensing-MetaRL(2605.12569)·Spectrum-Anomaly(Schösser)·CAVIAR(2401.03310)
-- **공통점**: Sionna = **CSI/전파/채널 생성 또는 재질 캘리브레이션**. **표적 RCS/후방산란을 Sionna 안에서 코히런트 산란적분으로 낸 논문은 0/16.**
+- **공통점**: Sionna = **CSI/전파/채널 생성 또는 재질 캘리브레이션**. ~~**표적 RCS/후방산란을 Sionna 안에서 코히런트 산란적분으로 낸 논문은 0/16.**~~
+  🔴 **[R20 정정]** 두 갈래로 쪼개야 정확하다: **(a) Sionna 안에서 표적 RCS(dBsm)를 낸 논문 = 1편**(zig-conf EuCAP 2025 Fig.6, RT+UTD+VD). **(b) Sionna 안에서 PO 표면산란적분을 얹은 논문 = 여전히 0편**(전수 문자열검증). 우리가 방어할 수 있는 것은 (b) 뿐이며, (a) 를 계속 "0편"이라 쓰면 **원문과 충돌**한다.
+- 🔴 **[R20 추가] 패시브 바이스태틱 + Sionna + 검출률도 미점유가 아니다** — **CellSense(2606.07900)** 가 Sionna RT + 패시브 셀룰러 바이스태틱으로 검출률(실내 74%·실외 94%)까지 이미 간다. 차이는 **표적을 직육면체로 근사하고 RCS 를 계산하지 않는다**는 점뿐. 우리 델타는 "패시브 바이스태틱을 Sionna 로 했다"가 아니라 **"계산된 드론 σ 를 그 사슬에 물렸다"** 이다.
 
 ### 2) 우리 니치 = 문헌상 미점유 (R14·R16 근거)
 **Sionna PHY 링크레벨 + 커스텀 SBR+PO 표적 RCS + 5종 드론(곡면·재질·회전) + 패시브 바이스태틱**. 이 조합의 출판물 없음.
-- 표적 RCS '값'을 내는 진영은 대부분 **Sionna 밖**: A1 SBR(Sagitta 2604.09243)·MLFMA-PO·정준 PO/SPM(rs17172999)·측정(DJI M350 2505.20673)·GBSM 주입(3GPP 2408.11295/2606.07328). **예외=Ziganshin(2604.05991)**: 유일하게 **Sionna-RT 안**에서(A2 확장) 커스텀 산란(UTD)을 얹은 사례 — 우리와 같은 계열(차이=SBR+PO vs UTD · 소형 드론 vs 대형 표적).
+- 표적 RCS '값'을 내는 진영은 대부분 **Sionna 밖**: A1 SBR(Sagitta 2604.09243)·MLFMA-PO·정준 PO/SPM(rs17172999)·측정(DJI M350 2505.20673)·GBSM 주입(3GPP 2408.11295/2606.07328). **예외=Ziganshin(2604.05991 저널판 + EuCAP 2025 회의판)**: 유일하게 **Sionna-RT 안**에서(A2 확장) 커스텀 산란(UTD+정점회절)을 얹은 사례 — 우리와 같은 계열(차이=SBR+PO vs UTD · 소형 유전체 드론 vs 대형 PEC 표적). 🔴 **[R20 정밀화] 두 판을 구별할 것**: **저널판은 근접장 반사도 |E|(dB)·MAE(dB) 만 내고 `dBsm` 0회**, **회의판 Fig.6 은 원거리장 극한에서 RCS(dBsm) 를 낸다**. "Ziganshin 이 RCS 를 냈다/안 냈다"는 어느 판을 말하는지 밝히지 않으면 둘 다 틀린 문장이 된다.
 - Sionna 는 **RCS 를 사용자가 얹으라고 확장(custom scattering pattern·custom radio material)을 설계로 제공**(⭐R13). ⚠ `PathSolver` subclassing 은 확장점이 아니다 — 자작 적분은 Mitsuba 광선엔진 위에 얹는다. — 우리 SBR+PO 가 정확히 그 A2 경로. 정직 프레이밍: *"기본 solver 는 코히런트 PO/RCS 안 냄; Sionna 가 연 확장에 우리가 SBR+PO 를 얹음."*
 
 ### 3) 비교군·검증 앵커 (report 인용 지도)
@@ -267,7 +335,7 @@
 - **실측 대응(응용)**: 셀룰러 UAV 궤적 바이스태틱 실측(2602.08203)·OpenISAC(X400·바이스태틱 OTA, 2601.03535)·Beuster/Thomä 드론 바이스태틱 반사도+마이크로도플러+**공개데이터**(2402.16591).
 - **RCS 절대 앵커**: DJI M350 측정(2505.20673) → report08.
 - **PO 검증 레퍼런스**: 정준산란체 PO/SPM(rs17172999) → report07 평판·구 검증.
-- **교차검증 엔진**: Sagitta SBR(2604.09243)·Ziganshin UTD(2604.05991) → report07 대안 대조.
+- **교차검증 엔진**: SagittaSBR(2604.09243)·**UMD MC-SBR(2511.07586, mesh+SBR+PO+RCS+ISAR — 아키텍처상 우리와 가장 닮은 비-Sionna 선행)**·MODSIM World 2025 #58(OptiX GPU SBR + Stratton–Chu PO, XPatch/FEKO/HFSS 4중 교차검증) → report07 대안 대조. 🔴 **[R20 정정] Ziganshin UTD 는 "교차검증 엔진"에서 하향** — 산란 물리가 다르고(UTD vs PO) 저널판은 dBsm 을 안 내므로 **수치 교차검증 불가**. "동일 계열 대안 산란모델"로만 인용할 것. ⚠ **Sagitta 인용 시 유효창 병기 필수**: Mie 대조 유효창이 kr ≳ 30 인데 3.5 GHz 에서 우리 로터(≈10 cm, kr≈3.6)는 **그 아래 한 자릿수** — "Sagitta 가 우리 PO 정확성을 뒷받침한다"는 과대주장이다.
 - **클러터 억제 대안**: CAF보존 convex(2512.24889) → report09/10 ECA 대안.
 - **주류 대비**: 표준화 GBSM+주입RCS(2408.11295/2606.07328) ↔ 우리 SBR+PO 직접계산.
 

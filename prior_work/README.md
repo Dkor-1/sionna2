@@ -22,3 +22,27 @@
 - `pw03_positioning.ipynb` — 우리 방법의 위치: 선행 방법론 대비 동일점·차이점·수용 계획
 - `pw04_rcs_solution_by_target.ipynb` — **Sionna 로 센싱한 연구는 RCS 문제를 어떻게 해결했나**: Sionna 사용 논문만 대상, A1(외부 EM solver)·A2(Sionna 확장)·B(외생/점산란체)·C(mesh 반사 우회)·D(구현 미보고) 5갈래 + 표3(외부 RCS 모델·설계근거) + 방식별 비교·이중계산 경고·복소 산란행렬·권장구조·연구공백. 3중 워크플로(60여 에이전트) + 타 LLM 조사 대조, 1차 출처 검증(오류 2건 제외·과장 3건 정정). 데이터: `src/pw04_data.py`
 생성기는 `src/make_pw0N.py` (하우스 규약: 노트북=생성물, 수치·인용=검증 JSON에서).
+
+---
+
+## 2026-07-31 — 1차 사료 정산과 `build_prior_survey.py`
+
+리포트 01 의 근거는 이제 `outputs/prior_work_survey.json` 한 개다. 생성기는
+`src/build_prior_survey.py` 이고, **PDF 를 직접 열어** 판정한다:
+
+- 논문 21편(게재 11 · 프리프린트 10) — census 16편 + 5편(Rzewuski · FWA cube · Great-X ·
+  CellSense · Temporal-GNN)
+- 축자 인용 46건을 **PDF 그 쪽에서** 기계가 찾는다. 못 찾으면 빌드가 죽는다
+- 낱말 빈도(dBsm · CFAR · false alarm · physical optics · validate)를 전문에서 직접 센다
+- H8 을 네 관문(P1 게재 · P2 드론 메쉬 · P3 Sionna 계열 엔진 · P4 진폭 검증)으로 쪼개 후보 8편을 판정
+- 그림 4장(`outputs/figures/report01_survey_*.png`)도 여기서 그린다
+
+정산으로 뒤집힌 것(자세한 원장은 `outputs/prior_settled_*.json` 4개 · survey JSON 의
+`contradictions`): Clutter-Aware ISAC 은 **Sionna 를 쓴다**(pw04 의 제외 항목을 삭제하고
+표2 행으로 편입) · md-rt 는 **광선발사기를 개조**했다 · Ziganshin 저널판은 **OJAP 투고
+프리프린트** · OpenISAC 은 **프리프린트** · LAMBDA 의 **CADFEKO 는 원문에 두 번 명시** ·
+Sionna RT 1차 사료 2편은 등급 **[W]→[P](=`PRIMARY`)** · Wypich & Zielinski 는 **원문 미확보**
+로 강등 · Ezuma/Güvenç 앵커 3행의 `VERIFIED` 제거.
+
+    ~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py   # 근거 + 그림
+    PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report01_prior.py

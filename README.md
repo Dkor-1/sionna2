@@ -1,169 +1,178 @@
-# sionna2 — 반무향 챔버 패시브 바이스태틱 레이더 드론 탐지 (리포트 12편)
+# sionna2 — 통신신호를 조명원 삼는 패시브 바이스태틱 드론 탐지 시뮬레이터
 
-**30×20×11 m 반무향(semi-anechoic) 챔버** 안에서, 남이 켜 주는 통신 신호(WiFi·LTE·5G)를
-조명 삼아 **DJI 드론 5종**을 탐지하는 패시브 바이스태틱 레이더를 Sionna RT 위에 시뮬레이션합니다.
-설계 철학: **최대한 Sionna 를 그대로 쓰고, Sionna 가 못 하는 부분(표적 산란적분 등)만 부분부분 더한다.**
-모든 그림 텍스트는 영어, 본문·주석은 한국어.
+셀이 이미 켜 두는 상시 신호(WiFi · LTE · 5G NR)를 조명 삼아 드론을 탐지하는 패시브 바이스태틱
+레이더를, Sionna RT 2.0.1 위에서 자유공간 기하로 끝까지 시뮬레이션한다. 표적 산란은 Sionna 의
+Mitsuba/OptiX 광선엔진으로 면별 가림을 풀고 그 조명면 위에서 부품별 재질 PO 를 적분해 만든다.
+σ 의 **주파수 의존성**은 공개 측정(Das)에 맞추고, **자세 패턴과 절대 레벨은 우리 PO 출력**이다.
+표적 7종의 정본은 `src/drones.py` 의 `DRONES` 레지스트리이고, 리포트 본문의 숫자는 전부
+`outputs/*.json` 에서 주입된다.
 
-> ※ **모든 실험은 챔버 안**입니다(TX·RX 는 양쪽 벽, 베이스라인 L≈15 m, R_b 수~수십 m).
-> 벽·천장은 흡수체, **바닥은 반사성 콘크리트**(semi-anechoic) — 이 바닥이 report09 의 '유령 표적'을 만듭니다.
-> ⚠ 다만 '바닥만 유일한 반사'는 아닙니다 — 우리 RT 는 천장 흡수체 1회 반사를 **−9.8 dB**(바닥 −14.7 dB 보다 강함)로,
-> 전면 흡수체 2회 반사를 같은 지연빈에서 −11.6 dB 로 잡습니다. 정적 클러터를 실제로 통제하는 것은 기하가 아니라 **ECA**(report09)입니다.
-> 거리분해능은 **바이스태틱 ΔR_b = c/B** 규약(모노스태틱 등가 c/2B 는 항상 별도 표기).
+> 처음 왔다면 **`report01_prior.ipynb` → `report02_target.ipynb`** 순서로 읽는다.
+> 어느 절이 어느 코드·JSON 에서 나왔는지는 **[`docs/REPORT_CODE_MAP.md`](docs/REPORT_CODE_MAP.md)** 한 파일에 다 있다.
 
 ---
 
-## 리포트 12편 (전부 생성물 — 커널 없이도 그림·GIF 가 보임)
+## 이 저장소가 한 일
 
-| # | 제목 | 한 줄 |
-|---|---|---|
-| [report01](report01.ipynb) | 통제 환경 — 반무향 챔버 | 챔버 기하·재질·바닥반사 — **지연(19.3 ns) 일치가 독립 증거**(세기 0.0005 dB 는 같은 프레넬을 쓴 항등식) |
-| [report02](report02.ipynb) | 드론 3D 모델 만들기 | 5종 파라메트릭 CAD(재질별 색), NACA 프로펠러, 워터타이트 검증 |
-| [report03](report03.ipynb) | 표적 검증 | 실물 제원·실기체 스캔·커뮤니티 모델과 3중 대조 |
-| [report04](report04.ipynb) | 조명원 — WiFi/LTE/5G 파형 | 3GPP/IEEE 규격 OFDM 합성, 상시 기준신호 vs 세션 신호(5G 이중고) |
-| [report05](report05.ipynb) | 파형 검증 — Sionna 로 대조 | 우리 파형 ↔ Sionna PHY 모듈 NMSE −135 dB 급 일치 |
-| [report06](report06.ipynb) | 표적 밝기(RCS)와 Sionna 의 한계 | 기본 PathSolver 에는 산란적분이 없다 — 다섯 측정으로 실증 + 선행의 우회 3갈래 + 우리가 고른 길 |
-| [report07](report07.ipynb) | SBR — 표적을 조준해 밝기를 계산 | Mitsuba 광선조준 + PO 적분, 평판/구 이론 대조(−0.01/+0.39 dB) |
-| [report08](report08.ipynb) | 드론 RCS·마이크로도플러 결과 | 5종×3밴드 RCS 지도 + 문헌 실측 대조(Li&Ling 등) + 블레이드 플래시 |
-| [report09](report09.ipynb) | 챔버 바닥의 함정 — 유령 표적 | 표적경유 바닥경로 +3.5 m 유령 → 광대역 5G(PRS)는 100% 별개 검출 |
-| [report10](report10.ipynb) | 검출기 교정 ① — 오경보율 | 명목 Pfa vs 실제 발화(파형별 1.4~2.7배), 원인 2가지와 대조실험 |
-| [report11](report11.ipynb) | 검출기 교정 ② — 저속·분해능·관측가능성 | ECA 블라인드 속도, 모호함수, 링크버짓, 단일쌍 위치 불가(FIM 랭크) |
-| [report12](report12.ipynb) | 다중 수신기 디텍션 + 9-모드 벤치마크 | **결과편**: Rx 1→4(+10log10N), W/L/G×점유 9모드, X410 실측 설계 |
+| 한 일 | 수치 |
+|---|---|
+| **광선엔진 안에서 산란을 적분한다** — Sionna 자체 Mitsuba/OptiX 로 first-hit 가림을 판정하고 조명면 위에서 부품별 재질 PO 를 적분한다 | `src/rcs_sbr.py:184` · `src/materials.py` |
+| **커널을 기준해로 검증했다** — 해석 PO 구 대비 kr 1~100 전 구간, 입사 48방향 | 최대 **0.201 dB** ⟨`outputs/sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po`⟩ |
+| **다중반사 위상을 PEC 이면각 닫힌형 8πa²b²/λ² 와 맞췄다** — 변 길이 4점 | 최대 **0.556 dB** ⟨`outputs/sbr_defect_fixes.json : d3_multibounce_phase.max_abs_err_db`⟩ |
+| **바이스태틱 출사 가시성을 넣었다** — 히트마다 수신기 방향으로 그림자 광선을 쏜다 | 상반성 위반 최악 21.15 → **13.69 dB** ⟨`…: d2_exit_vis_effect_on_reciprocity.worst_with_exit_vis_db`⟩ |
+| **σ 의 주파수 기울기를 측정에 정렬했다** — σ = A(f)·B₁(φ,θ)·B₂ 에서 A(f) 의 **기울기만** Das 측정, **절대 레벨과 B₁ 은 우리 PO 출력** | **0.210 dB/GHz** ⟨`outputs/rcs_anchor.json : literature.mu_eps.multiband_phantom3.mu_a`⟩ · 평균 레벨이동 **0.00 dB** ⟨`outputs/report02_derived.json : anchor_modes.level_shift_abs_max_db`⟩ · 정규화 각패턴 이동 **1.9e-15 dB** ⟨`outputs/report02_derived.json : anchor.shape_invariance_max_abs_db`⟩ |
+| **모드 선택의 대가를 수치로 적었다** — 레벨까지 앵커에 맞추려면 크기전이 법칙을 하나 골라야 하고, 그 선택 하나가 기체당 최대 이만큼을 정한다 | L² ↔ L⁴ 예측 차 최대 **9.50 dB** (DJI S1000+) ⟨`outputs/report02_derived.json : anchor_modes.size_law_spread_max_db`⟩ |
+| **CFAR 를 경험 Pfa 로 교정했다** — GPU 몬테카를로로 오경보 셀을 직접 세었다 | **2717 s** ⟨`outputs/verify_cfar.json : meta.runtime_s`⟩, 명목 1e-4 에서 배율 1.52~2.66 |
+| **세 파형을 한 표적·한 검출기로 비교했다** — 점유·대역·PRF·λ² 를 dB 원장으로 닫았다 | 점유 **18.0 dB** ⟨`outputs/report03_illuminators.json : occupancy_cost.value_db`⟩ |
+| **기체 7종을 사진·제원에서 세우고 실물 CAD 와 맞댔다** | `outputs/real_cad_compare.json` · `community_compare.json` |
+| **선행연구를 전문으로 판정했다** — 아카이브 PDF 41편 중 16편, 게재상태는 PDF 로 확정 | 드론 메쉬에서 산란을 계산한 게재본 **0편** ⟨`outputs/prior_census.json : funnel.all.g3_mesh_scattering`⟩ |
 
-### 부록 시리즈 — `report_mesh/` (메쉬 제작·신뢰성 심화 가이드 8편)
+---
 
-파이썬 기초만 아는 독자가 따라올 수 있는 **드론 메쉬 심화 가이드**: mesh01(전체 지도) →
-mesh02(라이브러리 선택 이유) → mesh03(모든 숫자·모델의 출처와 라이선스) → mesh04(몸체 CAD) →
-mesh05(프로펠러 익형) → mesh06(색=재질) → mesh07(기하 검증) → mesh08(실물·물리 검증).
-증거는 `report_mesh/outputs/mesh_verify.json`(9섹션 검증 스위트), 생성기는 `report_mesh/src/`.
-공식 외형이 **프롭 포함**인 기체(Mini 5 Pro)는 프레임이 아니라 **완성된 드론 전체**와 견주며,
-그 비교기준(`basis`)과 **프롭 디스크 외곽**(305.0 × 381.2 mm)을 함께 기록한다.
+## 리포트 6편 — 한 편이 한 일 하나를 보고한다
 
-### 부록 시리즈 — `prior_work/` (선행 연구·오픈소스 조사 4편)
+전부 **생성물**이다. 서술을 고치려면 `src/make_report0N_*.py` 를 고치고 다시 돌린다.
 
-**Sionna 로 ISAC 센싱을 한 선행이 있나, 소형표적 RCS 간극을 어떻게 우회하나**를 검증된 사실로 정리:
-pw01(논문: Great-X·Deterministic-Modeling·Ziganshin·CISSIR·SimART, 표적산란 처리방식 분류) →
-pw02(오픈소스 도구: NIST 5GNRad·RadarSimPy(GPLv3)·OpenISAC·ns3sionna, 채택 판정) →
-pw03(우리 위치: h=h_bg+h_target 주류 아키텍처 + 덜 점유된 틈새 + 방법론 수용) →
-pw04(**Sionna 로 센싱한 연구는 RCS 문제를 어떻게 풀었나** — A1/A2/B/C/D 5갈래 분류).
-근거·출처는 `prior_work/outputs/prior_work.json`(2× 딥리서치 + 직접 웹확인, 검증등급 표기).
-**오픈소스 대체 지도는 `OPENSOURCE.md`** — '검증 후 대체' 원칙(RadarSimPy로 RCS 교차검증, OpenISAC로 X410 실측).
+| # | 노트북 | 이 편이 한 일 | 헤드라인 |
+|---|---|---|---|
+| 01 | [`report01_prior.ipynb`](report01_prior.ipynb) | 선행 16편이 표적 서명을 어디서 조달했고 그 조달처가 무슨 주장을 사 주었는지 카탈로그로 만들었다 | 게재본 중 메쉬 산란 계산 0편, CFAR·false alarm 이 0회인 논문 13편 |
+| 02 | [`report02_target.ipynb`](report02_target.ipynb) | 메쉬 7종의 σ 를 광선 가림 + 재질 PO 로 계산하고 그 **주파수 의존성**을 Das 측정에 정렬했다 | 해석 PO 대비 0.201 dB · 앵커 기울기 0.210 dB/GHz · 평균 레벨이동 0.00 dB |
+| 03 | [`report03_illuminators.ipynb`](report03_illuminators.ipynb) | 상시 기준신호를 세 표준의 자원격자에서 세우고 조명원 선택의 대가를 dB 원장으로 닫았다 | 점유 18.0 dB · 5G SSB 무모호 속도 1.07 m/s · Sionna PHY 대조 NMSE −135.2 dB |
+| 04 | [`report04_detector.ipynb`](report04_detector.ipynb) | 검출 사슬의 경험 Pfa 를 측정하고 세 파형의 CFAR 문턱을 그 값에 맞췄다 | 명목 1e-4 → 경험 배율 WiFi 1.53 · LTE 2.66 · 5G 1.52, 교정표 확정 |
+| 05 | [`report05_results.ipynb`](report05_results.ipynb) | 같은 표적·기하·교정문턱에서 세 조명원의 검출거리를 앵커 σ 위에서 쟀다 | R90 3.69~11.10 km (5기종×3밴드) · 다중수신기 이득이 10log₁₀N 에 −0.11~+0.47 dB |
+| 06 | [`report06_measurement.ipynb`](report06_measurement.ipynb) | X410 로 교정된 σ 를 얻는 세션 설계와 판정 기준을 수치로 고정했다 | 원거리장 최대 24.44 m · 교정구 반경 17.8 cm(**절대 레벨의 첫 측정 앵커**) · 기울기 판정 문턱 2.44 dB |
 
-> ⚠️ **`reportNN.ipynb` 는 전부 생성물이다.** 서술 수정은 `src/make_notebookNN.py` 에서 하고 재실행한다
-> (`.ipynb` 직접 수정은 다음 빌드에서 사라진다). 본문 수치는 전부 `outputs/*.json` 에서 f-string 으로
-> 주입한다 — **손으로 적은 숫자 금지** 가 하우스 규약.
+헤드라인 칸의 수치는 각 편 **여는 블록**의 출처태그 붙은 값을 그대로 옮긴 것이다 — 원본과 그 JSON 키는 노트북에 있다.
+06편이 다음 라운드의 계약서다 — 어느 측정이 어느 주장을 결판내는지 결정표로 적어 둔 편이다.
+
+### 부록 — 동결(유효하고, 새 작업은 넣지 않는다)
+
+| 위치 | 내용 |
+|---|---|
+| `report_mesh/` 8편 | 드론 메쉬 제작·검증 심화 가이드. 증거는 `report_mesh/outputs/mesh_verify.json` |
+| `prior_work/` | 선행연구·오픈소스 조사 원자료. 01편 census 가 여기서 나온다 |
+| `OPENSOURCE.md` | 오픈소스 대체 지도(RadarSimPy 교차검증 · OpenISAC X410 실측) |
+
+---
+
+## 재현
 
 ```bash
 PY=~/.venvs/py312/bin/python
 cd sionna2
-for n in 01 02 03 04 05 06 07 08 09 10 11 12; do $PY src/make_notebook$n.py; done
+
+# ① 계획 — 29단계 · 직렬 9.1 h · 단계마다 "어느 편 어느 절이 읽는가" 가 붙는다
+PYTHONPATH=src:benchmark $PY benchmark/regen_mesh_dependents.py --list
+
+# ② 고아 감사 — 리포트가 읽는 JSON 을 파이프라인이 전부 만드는지 검사한다
+PYTHONPATH=src:benchmark $PY benchmark/regen_mesh_dependents.py --check
+
+# ③ 전부 다시 만든다 (GPU)
+PYTHONPATH=src:benchmark $PY benchmark/regen_mesh_dependents.py
+
+# ③' 죽은 실행 재개 / 한 단계만
+PYTHONPATH=src:benchmark $PY benchmark/regen_mesh_dependents.py --skip-done
+PYTHONPATH=src:benchmark $PY benchmark/regen_mesh_dependents.py --stage 4
+
+# ④ 노트북만 다시 조립 (계산 없음, 수 분)
+for f in src/make_report0*.py; do PYTHONPATH=src:benchmark $PY "$f"; done
+```
+
+- 편당 재현 명령은 각 노트북의 **재현** 블록이 그대로 들고 있다 — 복붙하면 그 JSON 이 나온다.
+- **GPU**: `src/gpu.py` 가 여유 큰 카드를 고른다(`SIONNA2_GPU=N` 으로 고정). 몬테카를로 규모는
+  `SIONNA2_DET_K`, 배치는 `SIONNA2_DET_BATCH`.
+- 가장 무거운 단계는 `benchmark/rcs_anchor.py` **11407 s** ⟨`outputs/rcs_anchor.json : meta.runtime_s`⟩ 이고,
+  메쉬를 고쳐 σ 캐시가 무효화되면 `src/experiment_freespace_sigma.py` 가 시간 단위로 커진다(`--list` 가 경고한다).
+
+---
+
+## 숫자가 어디 사는가
+
+```
+outputs/*.json   ──읽음──▶  src/make_report0N_*.py  ──▶  report0N_*.ipynb
+     ▲                          (표현층: 계산 없음)
+     └── benchmark/*.py · src/viz_*.py · src/experiment_*.py   (계산층: 물리가 여기 있다)
+```
+
+- 본문의 모든 숫자에 **`값 ⟨outputs/xxx.json : key⟩`** 출처가 붙는다. `src/report_style.py` 의 `num()` 이
+  JSON 을 열어 대조하고 어긋나면 빌드를 세운다 — 손으로 친 숫자는 통과하지 못한다.
+- 절 단위 지도는 **[`docs/REPORT_CODE_MAP.md`](docs/REPORT_CODE_MAP.md)**.
+- 재편 설계와 서술 규약은 **[`docs/REBUILD_2026-07-30.md`](docs/REBUILD_2026-07-30.md)** §5.
+<!-- keep-old-names:on -->
+- 태그에 `report13_*` · `report5_results.json` 처럼 **은퇴한 13편 번호**가 보이면
+  **[`docs/OUTPUT_NAMING.md`](docs/OUTPUT_NAMING.md)** §1 에서 한 번에 푼다
+  (`report5_results.json` 을 읽는 편은 05편이 아니라 03편이다).
+<!-- keep-old-names:off -->
+
+---
+
+## 별도 주제 — 코드는 그대로 있다
+
+| 주제 | 코드 | 되살리기 |
+|---|---|---|
+| 반무향 챔버 환경 | `src/chamber.py` · `benchmark/verify_clutter_doppler.py` · `benchmark/run_matrix.py --only b,c,d,e` | `regen_mesh_dependents.py --dropped` 가 명령을 찍는다 |
+| 바닥 유령 표적 | `benchmark/verify_floor_ghost.py` · `verify_ghost_impact.py` · `src/experiment_ghost.py` | 〃 |
+| 마이크로도플러 | `src/microdoppler.py` · `microdoppler_nearfield.py` · `experiment_md_range.py` · `viz_report1.py --only md` | 〃 (future work) |
+
+`_legacy_reports/` 와 `src/_legacy_builders/` 에 구 리포트 13편과 그 빌더가 읽기전용으로 남아 있다.
+
+---
+
+## 저장소 구조
+
+```
+report0N_*.ipynb        본편 6편 (생성물)
+report_mesh/            부록 8편 (동결)
+prior_work/             선행연구 조사 원자료
+_legacy_reports/        구 리포트 13편 (퇴역·읽기전용)
+
+src/
+  make_report0N_*.py    ⭐리포트 생성기 — 서술 원본. 계산은 없다
+  report_style.py       리포트 규약 강제(num()·출처태그·분량 상한·부정문 계수)
+  provenance.py         리포트 앞머리 provenance 블록
+  drones.py             ⭐표적 레지스트리 DRONES — 기종 목록·제원의 유일한 출처
+  drone_cad.py cadkit.py geom.py     파라메트릭 CAD(trimesh+manifold3d)
+  materials.py          ⭐전파재질 단일 진리원 — Sionna RT 와 PO 가 둘 다 여기서 읽는다
+  rcs_sbr.py            ⭐SBR+PO 커널 (Mitsuba 광선조준 + PO 표면적분, 가림·투과·출사 가시성)
+  sigma_anchor.py       ⭐측정 앵커 재보정 σ=A(f)·B₁·B₂ + 미통제 항 원장
+                        생산 모드 `slope_only` = 기울기만 측정에서, 레벨은 우리 PO 출력
+  waveforms*.py         WiFi/LTE/5G OFDM 합성 + Sionna PHY 대조
+  passive_process.py    패시브 DSP: ECA → CAF 거리도플러 → CA-CFAR(교정표 적용)
+  experiment_*.py       검출·자유공간 실험(GPU 몬테카를로)
+  viz_*.py              그림 (텍스트는 전부 영어)
+  _legacy_builders/     구 빌더 13개 (퇴역·실행 금지)
+
+benchmark/
+  regen_mesh_dependents.py  ⭐재생성 파이프라인 — 무엇을 어느 순서로 돌리나
+  channel.py            σ 조회 단일 진리원 + 메쉬지문 캐시
+  mie_pec_sphere.py     기준해 두 개(정확 Mie · 해석 PO) — 커널의 과녁
+  verify_*.py           검증 하네스 (리포트가 읽는 verify_*.json 생산)
+  rcs_anchor.py         σ 절대앵커·분포적합
+  prior_census.py       선행연구 census + 01편 그림 4장
+  plan_measurement.py   실측 설계값 (06편)
+
+  rename_outputs.py     옛 13편 번호 산출물 이름 이전 (예행이 기본)
+
+outputs/                *.json(숫자의 원본) · figures/ · renders/
+docs/                   REPORT_CODE_MAP.md · OUTPUT_NAMING.md · REBUILD_2026-07-30.md ·
+                        MEASUREMENT_PLAN.md · SPECS.md
 ```
 
 ---
 
-## 실험·렌더 파이프라인
+## 환경
 
-```bash
-# 디텍션 스윕(9모드 × Rx 1..4 × SNR 그리드, GPU 몬테카를로; K는 env로)
-SIONNA2_DET_K=2000 $PY src/experiment_detection.py        # → outputs/detection_rx_sweep.json
-# 검증 하네스(benchmark/) — 리포트가 읽는 verify_*.json 생성
-cd benchmark && $PY verify_cfar.py && $PY verify_eca.py && $PY verify_ambiguity.py \
-             && $PY verify_linkbudget.py && $PY verify_observability.py && $PY verify_floor_ghost.py
-# 그림(6패널 CFAR 등)
-$PY src/viz_report4.py                                    # → outputs/figures/report4_e1_cfar.png 등
-# RT 렌더 GIF(고품질; ANIM_SPP 로 품질, SIONNA2_GPU 로 카드 지정)
-SIONNA2_GPU=3 ANIM_SPP=512 $PY src/render_anim.py --which orbit_chamber   # spin/paths_build/radiomap_scan/rx_array/obs_ring
-$PY src/render_rt.py                                      # 정지 렌더 + rt_40_flight.gif
-$PY src/build_animations.py                               # matplotlib GIF(RCS 글린트·점유·마이크로도플러)
-```
+| | |
+|---|---|
+| Python | `~/.venvs/py312/bin/python` (3.12) — 이 한 env 로 전부 실행 |
+| 핵심 | Sionna RT 2.0.1 · Mitsuba 3.8.0 · drjit 1.3.1 (OptiX GPU) · torch · numpy · trimesh + manifold3d |
+| 노트북 커널 | `py312` |
+| 실행 규약 | `PYTHONPATH=src:benchmark` 를 반드시 준다 |
 
-- **GPU**: `src/gpu.py` 가 여유 큰 카드를 자동 선택(`SIONNA2_GPU=N` 으로 고정). 배치 크기는
-  `SIONNA2_DET_BATCH`, 실험 반복수는 `SIONNA2_DET_K` — **nvidia-smi 를 보며 동적으로 키운다**.
-- 생성물: `outputs/figures/`(그래프), `outputs/renders/`+`outputs/renders/anim/`(RT 렌더·GIF),
-  `outputs/*.json`(리포트가 읽는 측정치 — 재현성의 원본).
+## 하우스 규약
 
----
-
-## 드론 5종 — 실측 제원 기반
-
-> 아래 값은 **시뮬이 실제로 쓰는 값**(`src/drones.py` 의 `DroneSpec`)이다 — 웹조사 초기 추정치가 아니다.
-
-| 드론 | 출시상태 | 로터 | 대각거리(스펙) | 완성 메쉬 대각 | 무게 | 프로펠러 |
-|---|---|---|---|---|---|---|
-| **Mini 5 Pro** | 출시(2025) | 4 | **275 mm\*** | 275.0 mm | 249.9 g | Ø152 mm ×2 |
-| **Mavic 4 Pro** | 출시(2025) | 4 | **441 mm\*** | 438.5 mm (−0.6%) | 1063 g | Ø267 mm ×2 |
-| **Matrice 4E** | 출시(2025) | 4 | 438.8 mm | 428.7 mm (−2.3%) | 1219 g | Ø274 mm ×2 |
-| **S1000+** | 단종(2014) | **8** | 1045 mm | 1044 mm | **9500 g†** | Ø381 mm ×2 |
-| **Phantom 4** | 출시(2016) | 4 | 350 mm | 357 mm | 1380 g | Ø240 mm ×2 |
-
-\* 대각거리는 DJI 비공개다. Mini 5 Pro 는 조사된 로터좌표(±76, ±114 mm)에서 **275 mm**,
-Mavic 4 Pro 는 공식 언폴드 외형(328.7×390.5 mm)이 **441 mm** 를 강제한다 — 한때 돌던 400 mm 추정은
-Ø267 프로펠러와 기하적으로 양립하지 않는다(docs/ARCHIVE.md). † S1000+ 는 대표 이륙중량(권장 6~11 kg 중 ~9.5 kg);
-기체 자중은 4.4 kg 이다. 나머지는 TOW.
-
-> Mini 5 Pro 의 공식 언폴드 **304 × 380 × 91 mm 는 프롭 포함**값이라, 프레임이 아니라 **완성된 드론 전체**를
-> 그 값에 맞춘다(`DroneSpec.env_props_included`). 검증: 전체 높이 **91.0 mm**, 프롭 디스크 외곽 **305.0 × 381.2 mm**(+0.3%).
-(원자료: `docs/drone_research.json`, `docs/SPECS.md` · 문헌 대조: `refs/drone_papers/`)
-
-메쉬 원칙: **OBJ 1개 = 부위 1개 = Sionna 재질 1개** — 부위별 전파재질(ITU-R P.2040 기본 + 커스텀)과
-재질별 색을 그대로 RT 에 쓴다. 분절(articulated): 몸체 RPY ⟂ 로터별 스핀.
-
----
-
-## 코드 구조 (`src/`, 전부 한글 주석)
-
-```
-─ 장면·표적 ─────────────────────────────────────────────
-geom.py / cadkit.py     삼각형 3D 미니 도구 · CAD 로프트/불리언(trimesh+manifold3d)
-chamber.py              반무향 챔버 모델(흡수체 벽·반사 바닥)
-drones.py / drone_cad.py 5종 제원+파라메트릭 생성기 · NACA 프로펠러 로프트(피치·테이퍼·스큐)
-materials.py            Sionna 전파재질 단일 원본(ITU 기본+커스텀; PO 도 여기 Γ 를 읽음)
-scene_build.py          부위 OBJ → Sionna 장면 조립 + 렌더
-─ 신호·RCS ─────────────────────────────────────────────
-waveforms.py            OFDM 합성 + 점유 G1/G2/G3 (CRS·SSB·PRS·프리앰블) — ΔR_b=c/B 규약
-waveforms_sionna.py     Sionna PHY 모듈로 같은 파형 재구성(report05 대조용)
-rcs_po.py / rcs_sbr.py  물리광학 PO · SBR(Mitsuba 조준+PO 적분, 가림 포함)
-microdoppler.py         회전 블레이드 마이크로도플러(PO 복소장)
-─ 탐지 ──────────────────────────────────────────────────
-bistatic_scene.py       바이스태틱 기하(R_b·τ·f_d·β)
-passive_process.py / radar_process.py  ECA → CAF 거리-도플러 → CA-CFAR
-sionna_chain.py         Sionna RT 경로 → cir_to_time_channel 지연커널 에코
-experiment_detection.py 9모드×Rx1..4 GPU 몬테카를로 스윕(결과편 report12 의 원본)
-detection_gpu.py        torch 배치 RD/CFAR/피크 커널
-experiment_x410.py      USRP X410 실측 시나리오 기하
-─ 시각화·렌더 ───────────────────────────────────────────
-viz_*.py                matplotlib 그림(리포트별) · vizstyle.py 공통 스타일
-render_rt.py / render_anim.py / render_drones.py   Sionna/Mitsuba 렌더(정지·GIF)
-anim_plots.py / viz_animations.py / build_animations.py  matplotlib GIF
-─ 리포트 ────────────────────────────────────────────────
-make_notebook01..12.py  리포트 생성기(서술 원본; 수치는 outputs/*.json 주입)
-provenance.py           리포트 앞머리 provenance 블록(용어풀이·재현 명령·산출물 표)
-gpu.py                  GPU 자동선택(여유 최대 카드)·예산
-```
-
-### 검증 하네스 (`benchmark/`)
-
-```
-geometry.py / link_budget.py / channel.py   챔버 배치 · 바이스태틱 레이더방정식+Friis+kTB · 채널 백엔드
-verify_cfar.py          오경보율 교정(report10 의 원본 JSON)
-verify_eca.py           ECA 노치·블라인드 속도(report11)
-verify_ambiguity.py     모호함수 거리·도플러 분해능(report11)
-verify_linkbudget.py    3독립 계산 대조 + σ→SCR→Pd(report11)
-verify_observability.py 단일쌍 FIM 랭크·CRLB·처방(report11 §5)
-verify_floor_ghost.py / verify_ghost_impact.py  바닥 유령 기하·검출 영향(report09)
-verify_rt_*.py / verify_target_rt.py            Sionna RT 광선예산·표적경로 진단(report06/07)
-compare_real_cad.py / compare_community.py      실기체 스캔·커뮤니티 모델 형상 대조(report03)
-```
-
----
-
-## 환경 (단일 env: py312)
-- Python `~/.venvs/py312/bin/python` — 3.12.13. numpy·scipy·matplotlib·torch +
-  **Sionna RT 2.0.1 / mitsuba 3.8.0 / drjit 1.3.1** (OptiX GPU 광선추적 확인). 이 한 env 로 전부 실행.
-- VSCode 노트북 커널 **py312**.
-
-## 방향
-- **디텍션 집중** (트래킹은 future work 1줄) — 시뮬 5종 전부 + 실측 2종(Mavic 4 Pro·Matrice 4E).
-- 실측: USRP X410(4RX·400 MHz·12bit), 시뮬=통제 챔버 / 실측=외부.
-- 다음 후보: 기준안테나 없는 상시-신호-만 모드의 열화 정량화, 마이크로도플러 결합 탐지(저속 블라인드 메우기),
-  2-Rx 위치확정(report11 §5 처방의 실측판).
+- 그림 텍스트(제목·축·범례·주석)는 **영어**, 본문·주석·print 는 **한국어**.
+- 리포트는 **한 일**을 쓴다 — 각 편은 `한 일 / 결과 / 방법 / 재현 / 앞 편에서` 5블록으로 열고
+  `다음 단계` 표(`다음에 할 일 | 그러면 결정되는 것 | 어디서`)로 닫는다.
+- 불확실한 양은 **표에 수치로** 넣는다. 범위는 조건절로 쓴다 — "β ≤ 45° 에서 성립한다".
+- 분량 상한: 편당 마크다운 25셀 · 셀당 12줄 · 편당 그림 8장. `src/report_style.py` 가 검사한다.
