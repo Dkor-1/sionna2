@@ -21,3 +21,12 @@ teammeeting_0714_v5.pptx
 
 # 세션 임시 로그(검출/렌더 백그라운드) — 커밋 제외
 outputs/_*.log
+
+# 백그라운드 드라이버가 흘리는 로그·PID — 저장소 어디에 떨어져도 무시한다.
+# (2026-08-03: 루트에 w10.log·drv_nad90.log·*.pid 가 쌓여 눈에 거슬렸다.
+#  ⚠ 단 outputs/partial/**/*.log 는 예외 — 그 로그들이 'fail=13' 같은
+#  재현 불가능한 사실을 담고 있어 일부러 보존한다. 아래 부정 패턴 참조.)
+*.log
+*.pid
+nohup.out
+!outputs/partial/**/*.log
