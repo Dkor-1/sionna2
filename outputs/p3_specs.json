@@ -1,0 +1,311 @@
+{
+  "meta": {
+    "target": "DJI Phantom 3",
+    "purpose": "Phantom 3 airframe research in the SAME field schema and the SAME source classes used for the 7 registered targets (src/drones.py DroneSpec + src/drone_cad.py shape tables + src/materials.py groups).",
+    "date": "2026-08-03",
+    "method": "manufacturer specs (DJI Quick Start Guides / User Manual / archived official spec pages) + manufacturer line drawings (measured) + teardown / OEM replacement-part evidence. No RCS quantity was consulted (see blind_log).",
+    "grades": {
+      "VERIFIED": "published by the manufacturer",
+      "MEASURED": "measured by me off a manufacturer drawing, with the pixel scale and its cross-check recorded",
+      "DERIVED": "solved from VERIFIED quantities, derivation written out",
+      "UNKNOWN": "not published and not derivable - left empty on purpose, no invented number"
+    }
+  },
+
+  "variant": {
+    "chosen": "DJI Phantom 3 Professional (2015, model WM331 / FCC ID SS3-WM3231503)",
+    "das_specifies_variant": false,
+    "das_evidence": "Das et al., IEEE WCL 2026, Table I ('AAV MEASUREMENT SETTINGS') names the column only 'DJI Phantom 3'. The word 'Phantom 3' occurs 5 times in the full text and never with a variant qualifier (Standard / 4K / Advanced / Professional / SE). Table I gives Dimension 35 cm x 20 cm, Frequency Band 1.8 GHz-18.2 GHz, 2801 frequency points, azimuth -90 deg <= phi (=2 deg) <= 90 deg, TX-RX distance Far-field, Environment Anechoic.",
+    "why_this_choice": [
+      "(1) It does not matter geometrically. All five variants share ONE airframe: DJI sells a single two-piece shell part for Pro/Adv/SE/Standard (djioemparts 'Upper Shell for Phantom 3 Pro/Adv/SE/Sta'; iFixit 'DJI Phantom 3 Standard / Pro / Advanced Bottom Shell'; DJI Part 30 / Part 72 'Shell incl. Top & Bottom Covers'), the same 9450 240 mm propellers, the same PH3-4480 mAh-15.2 V battery, and the SAME published envelope 289.5 x 289 x 185 mm - the Standard Quick Start Guide V1.0 and the Professional Quick Start Guide V1.2 carry the IDENTICAL dimension diagram.",
+      "(2) Mass is the only structural difference and the Professional sits in the modal group: 1280 g is shared by 4K, Advanced and Professional (3 of 5 variants); Standard is 1216 g, SE is 1236 g. Worst-case variant error on mass is 5.0%.",
+      "(3) The Professional carries the downward Vision Positioning System (1 camera + 2 ultrasonic sensors on the belly), which the Standard lacks. Choosing it is the conservative (more-scatterer) option - picking the Standard would silently delete belly modules.",
+      "(4) The Professional's own User Manual v1.8 is the document that carries the 4-view orthographic aircraft drawing used for the measurements below, so the shape evidence and the chosen variant come from the same document."
+    ],
+    "variant_differences": {
+      "shared_across_all_variants": [
+        "envelope 289.5 x 289 x 185 mm (props excluded)",
+        "motor-to-motor diagonal 350 mm",
+        "propeller 9450, 240 mm dia, 5.0 in pitch, 2 blades",
+        "Intelligent Flight Battery PH3-4480 mAh-15.2 V, 68 Wh, 365 g",
+        "two-piece plastic shell (one DJI part number fits all)",
+        "max speed 16 m/s (ATTI, no wind)",
+        "3-axis gimbal, pitch -90 to +30 deg"
+      ],
+      "weight_g": {
+        "phantom3_standard": 1216,
+        "phantom3_se": 1236,
+        "phantom3_4k": 1280,
+        "phantom3_advanced": 1280,
+        "phantom3_professional": 1280
+      },
+      "vision_positioning_belly_sensors": {
+        "phantom3_standard": false,
+        "phantom3_4k": true,
+        "phantom3_advanced": true,
+        "phantom3_professional": true,
+        "phantom3_se": true
+      },
+      "non_geometric": "camera (2.7K vs 4K), radio (WiFi vs Lightbridge), GPS vs GPS+GLONASS. None of these change the airframe silhouette.",
+      "note_on_das_dimension": "Das lists 35 cm x 20 cm. 35 cm = the 350 mm motor diagonal (props excluded) exactly. 20 cm vs the official 185 mm height is +8.1% - most likely a rounding, or a height taken with the props fitted (the props sit above the motor plane, and DJI's 185 mm is measured from the MOTOR top, see measured_from_manufacturer_drawing.self_check). This is a discrepancy I am flagging, not resolving."
+    }
+  },
+
+  "registry_fields": {
+    "_comment": "same names as drones.DroneSpec. value=null means UNKNOWN.",
+    "key": {"value": "phantom3", "grade": "n/a"},
+    "name": {"value": "DJI Phantom 3 Professional", "grade": "VERIFIED", "src": ["S1", "S3"]},
+    "diagonal_mm": {
+      "value": 350.0, "grade": "DERIVED",
+      "derivation": "DJI's own archived spec pages publish 'Diagonal Size (Including Propellers): 590 mm' (Phantom 3 4K and Phantom 3 Professional). The propeller is officially 240 mm in diameter (DJI E305 spec: 9450 = 24 x 12.7 cm). Tip-to-tip diagonal = motor diagonal + prop diameter, so motor diagonal = 590 - 240 = 350 mm exactly.",
+      "corroboration": "third-party datasheets state 'Diagonal Size (Propellers Excluded): 350 mm' directly (dronespec.dronedesk.io).",
+      "src": ["S4", "S5", "S7", "S8"]
+    },
+    "weight_g": {"value": 1280.0, "grade": "VERIFIED", "note": "takeoff weight, battery AND propellers included (User Manual v1.8 Appendix: 'Weight (Battery & Propellers Included) 1280 g').", "src": ["S1", "S3", "S4", "S5"]},
+    "body_l_mm": {"value": 289.5, "grade": "VERIFIED", "note": "airframe bbox, props EXCLUDED. See envelope_mm - this field is 'ratio reference only' in our schema and, exactly as for phantom4/s1000plus, the plan figures here are the OVERALL footprint, not a shell dimension.", "src": ["S1", "S2"]},
+    "body_w_mm": {"value": 289.0, "grade": "VERIFIED", "src": ["S1", "S2"]},
+    "body_h_mm": {"value": 185.0, "grade": "VERIFIED", "src": ["S1", "S2"]},
+    "prop_dia_mm": {"value": 240.0, "grade": "VERIFIED", "note": "DJI part 9450 self-tightening. DJI's own E305 propulsion spec table gives 24 x 12.7 cm = 240 mm dia. (The part number literally reads 9.4 in = 238.8 mm, 0.5% smaller - same 0.5% discrepancy the phantom4 entry already documents; follow DJI's published table.) Prop mass 13 g each.", "src": ["S7", "S19"]},
+    "prop_pitch_in": {"value": 5.0, "grade": "VERIFIED", "note": "MANUFACTURER-PUBLISHED (12.7 cm = 5.0 in), not an estimate.", "src": ["S7"]},
+    "prop_blades": {"value": 2, "grade": "VERIFIED", "src": ["S7", "S19"]},
+    "num_rotors": {"value": 4, "grade": "VERIFIED", "src": ["S3"]},
+    "coaxial": {"value": false, "grade": "VERIFIED", "src": ["S3"]},
+    "max_speed_ms": {"value": 16.0, "grade": "VERIFIED", "note": "16 m/s (ATTI mode, no wind). NOTE this is SLOWER than our phantom4 entry's 20 m/s - the P4 was the generation that added Sport mode.", "src": ["S1", "S3", "S4"]},
+    "max_rpm": {
+      "value": null, "grade": "UNKNOWN",
+      "why": "A 2015 product predating EU C-class certification. DJI publishes no propeller-speed ceiling for any Phantom 3 variant, and the repo convention (mavic4pro / matrice4e / typhoonh480 notes) is that max_rpm means a CLASS or FIRMWARE ceiling - an electrical no-load figure (KV x pack voltage) is a DIFFERENT quantity and must not be substituted."
+    },
+    "hover_rpm": {
+      "value": 5100.0, "grade": "DERIVED", "band": [5030, 5210], "band_basis": "C_T 0.0132-0.0142",
+      "derivation": "T_hover = m g / N = 1.280 * 9.80665 / 4 = 3.1381 N per rotor. R = 0.120 m, A = pi R^2 = 0.045239 m^2, rho = 1.225. Solve C_T = T / (rho A (Omega R)^2). C_T = 0.0137 gives Omega R = 64.29 m/s, Omega = 535.8 rad/s, n = 5116 rpm -> adopted 5100 (rounded to nearest 50).",
+      "why_this_anchor_is_special": "This is the ONE airframe in the repo where the NASA/US Army full-vehicle hover C_T anchor (Russell/Jung/Willink/Glasner, AHS Forum 72, 2016, Fig.38) was measured on THIS AIRCRAFT - 'DJI Phantom 3 + 9450 prop', C_T = 0.0132 at 3500 rpm rising to 0.0142 at 7500 rpm. Every other entry (matrice4e, s1000plus, x500v2, typhoonh480) transfers that number across pitch ratios. Here there is no transfer and no pitch-ratio extrapolation at all - same aircraft, same propeller.",
+      "self_consistency": "Our phantom4 entry uses hover_rpm 5500 on the SAME 9450 prop at 1380 g. Since n scales as sqrt(m) at fixed C_T, the P3 value implies 5100 * sqrt(1380/1280) = 5296 rpm for the P4, i.e. our coded 5500 is +3.8% - the two entries agree.",
+      "caveat": "Like every hover_rpm in this repo this would be a HARDCODED LITERAL: it does not re-solve if weight_g or prop_dia_mm are edited later."
+    },
+    "rtk": {"value": false, "grade": "VERIFIED", "src": ["S3"]},
+    "release": {"value": "discontinued", "grade": "VERIFIED", "note": "launched 2015-04 (Advanced/Professional), long out of production.", "src": ["S17"]},
+    "confidence": {"value": "high", "grade": "n/a", "note": "SPEC confidence, not shape fidelity - see the DroneSpec.confidence field note."},
+    "shape_source": {"value": "spec_photo", "grade": "n/a", "note": "manufacturer line drawing + published envelope. NOT manufacturer_cad (no STEP/CAD in hand)."},
+    "envelope_mm": {
+      "value": [289.5, 289.0, 185.0], "grade": "VERIFIED",
+      "note": "DJI official dimension diagram, propellers EXCLUDED, height measured from motor top to landing-gear feet (proved below). The SAME diagram with the SAME three numbers appears in BOTH the Phantom 3 Standard Quick Start Guide V1.0 (2015.09) and the Phantom 3 Professional Quick Start Guide V1.2 - two independent DJI documents for two different variants.",
+      "recommended_forcing": "HEIGHT ONLY (None, None, 185.0), matching mini5pro / matrice4e / mavic4pro / typhoonh480. Forcing L/W as well is what frame_fit_scale turns into an anisotropic squash (see the mavic4pro and matrice4e notes). Here L/W would in fact be nearly self-consistent (the 45 deg solve below reproduces them to 0.06 deg), but the house rule stands.",
+      "env_props_included": false,
+      "src": ["S1", "S2"]
+    },
+    "rotor_deg": {
+      "value": [45.0, 135.0, 225.0, 315.0], "grade": "DERIVED",
+      "derivation": "Let the outermost airframe feature overhang the motor centre by p on both axes. Then 350 cos(a) + p = 289.5 and 350 sin(a) + p = 289.0. Subtracting: 350 (cos a - sin a) = 0.5 -> a = 44.94 deg. So the two OFFICIAL plan dimensions independently force a symmetric 45 deg X within 0.06 deg. Implied overhang p = 289.0 - 350 sin(45) = 41.5 mm (full width of the widest feature at the rotor station, i.e. the arm-tip / motor-mount fairing, NOT the motor bell).",
+      "prop_clearance_house_rule": "adjacent motors 350/sqrt(2) = 247.49 mm vs prop 240 mm -> +7.49 mm. Opposite motors 350 vs 240 -> +110 mm. Both positive.",
+      "src": ["S1", "S2", "S7"]
+    },
+    "rotor_r_mm": {"value": null, "grade": "UNKNOWN", "note": "No evidence of a trapezoid. Unlike mini5pro/matrice4e there is no plan-view photograph or render to measure, and the two official plan dimensions are satisfied by a single circle at diagonal/2 = 175 mm. Leave None (all rotors on one circle) until a plan view is measured."},
+    "rotor_z_mm": {"value": null, "grade": "UNKNOWN", "note": "The 4-view drawing shows all four motors at the same height; no reason to offset."},
+    "body_lw": {"value": null, "grade": "UNKNOWN", "note": "The SHELL's own plan aspect ratio is not published and DJI's documents contain no top/plan view of the Phantom 3 (I checked the Aircraft Diagram page of User Manual v1.8: it has front, rear, bottom and side elevations only). The repo also has no Phantom 3 photographs (assets/photos/ holds 7 other airframes, no phantom3). The 289.5 x 289.0 envelope is the FOOTPRINT, set by the arms, not by the shell. DO NOT copy 289.5/289 into body_lw."},
+    "body_rgb": {"value": "glossy white", "grade": "VERIFIED", "note": "Same white gloss family as phantom4 (_WHITE). Variant-specific coloured stripes on the two rear arms exist but I did NOT verify their colour this round - cosmetic, no radio effect."},
+    "arm_style": {"value": "body", "grade": "VERIFIED", "note": "The arms are moulded INTO the shell, not separate tubes - the same one-piece 'Shell (incl. Top & Bottom Covers)' part number covers the arms. So the arms join the plastic body group, exactly as for phantom4. THIS IS AN RCS LEVER: had they been carbon it would be |Gamma| 0.90 vs 0.28 = 10.1 dB on the arms (cf. the typhoonh480 note). Here it is not a judgement call - the arms are part of the moulded plastic shell.", "src": ["S10", "S12"]},
+    "fixed_arm": {"value": true, "grade": "VERIFIED", "note": "Non-folding. Classic Phantom.", "src": ["S3"]},
+    "gear": {"value": "legs", "grade": "VERIFIED", "note": "Two inverted-U (arch) legs, a SEPARATE plastic part bolted on with 8 x M3 7.5 mm screws, with the receiver antennas routed inside them. Not moulded into the shell (that changed on the Phantom 4).", "src": ["S3", "S11"]},
+    "gear_h_mm": {"value": 120.5, "grade": "MEASURED", "band_pct": 8, "note": "belly -> foot. See measured_from_manufacturer_drawing. Equivalent to 0.651 * H, vs the 0.58 * H our phantom4 branch uses - the Phantom 3's legs are proportionally LONGER and its shell THINNER than the Phantom 4's."},
+    "gimbal": {"value": "belly", "grade": "VERIFIED", "note": "Position label. The gimbal hangs under the belly on a vibration-damping plate; it is NOT recessed into the nose the way the Phantom 4's is. Fore-aft offset from the body centre is UNKNOWN (no plan/side view with a scale)."},
+    "gimbal_style": {"value": "NEW STYLE NEEDED", "grade": "UNKNOWN", "proposed": "hanging_damped", "note": "None of the five existing styles fits. 'recessed' (phantom4) is wrong - the P3 assembly is fully exposed below the belly. 'belly' (s1000plus) is a slung Zenmuse bracket, also wrong. The real assembly is: wide flat vibration-damping plate with rubber balls -> short yaw shaft -> roll motor -> camera block. Dimensions measured below; the CAD branch has to be written."},
+    "accent_rgb": {"value": null, "grade": "n/a"},
+    "body_frac": {"value": null, "grade": "UNKNOWN", "note": "Shell/diagonal ratio is a tuning parameter, not a spec. phantom4 uses 0.52. Needs the shell plan dimensions we do not have."},
+    "body_style": {"value": "shell", "grade": "VERIFIED"},
+    "arm_shape": {"value": "folding", "grade": "n/a", "note": "In our schema 'folding' just means the tapered+bent profile builder, which is what a moulded fixed Phantom arm needs (phantom4 uses it too). Not literally foldable."},
+    "arm_od_mm": {"value": null, "grade": "UNKNOWN", "note": "phantom4 uses the _ARM_WIDTH table (45 mm root -> 30 mm tip) which was photo-measured on the P4. No P3 photo exists in-repo to repeat that. See gaps."},
+    "motor_dia_mm": {"value": null, "grade": "UNKNOWN", "note": "DJI publishes the STATOR (23 x 12 mm for the 2312/2312A) but not the bell. A 23x12 stator implies a bell of roughly 27-28 mm OD by the usual outrunner convention, but that is a convention, not a measurement, so it stays UNKNOWN rather than becoming an invented number. What IS derivable is the arm-tip fairing width, 41.5 mm (rotor_deg derivation)."},
+    "motor_h_mm": {"value": null, "grade": "UNKNOWN"},
+    "gear_tube_mm": {"value": null, "grade": "n/a", "note": "Not a tube gear - moulded plastic arch."},
+    "gear_splay_deg": {"value": null, "grade": "UNKNOWN", "note": "The front elevation shows the outer leg edge moving out ~12 mm over ~118 mm of drop (about 6 deg) in the frontal plane only; the legs also splay fore-aft, which this view cannot resolve. Not enough to state a number."},
+    "shell_groups": {"value": ["body", "canopy"], "grade": "n/a", "note": "Moulded shell exists, so the rcs_sbr default is correct."},
+    "cad_version": {"value": "v2", "grade": "n/a"}
+  },
+
+  "measured_from_manufacturer_drawing": {
+    "source": "S3 - DJI Phantom 3 Professional User Manual v1.8 (2016.07.19), page 8 'Aircraft Diagram', FRONT elevation (the topmost of the four views).",
+    "why_this_is_legitimate": "The four views are orthographic engineering line art, not a marketing render, and the scale is validated against a DJI number that was NOT used to set it (see self_check).",
+    "render": "PyMuPDF, page index 7, clip Rect(48,66,178,152), 600 dpi -> 1084 x 717 px. Ink threshold: mean RGB < 200. Four full-width horizontal lines at y = 230, 318, 406, 493 are callout leaders and were excluded.",
+    "scale_anchor": "widest airframe ink at the rotor station (y = 175..215) spans x = 273..1008 = 735 px, set equal to the OFFICIAL props-excluded width 289.0 mm -> S = 0.39320 mm/px.",
+    "self_check": {
+      "statement": "The vertical extent measured with that HORIZONTAL scale reproduces the OFFICIAL height to 0.3%.",
+      "numbers": "aircraft top (motor top, props excluded) y = 170; landing-gear feet y = 639; (639-170) x 0.39320 = 184.4 mm vs official 185.0 mm -> -0.32%.",
+      "consequence_1": "the drawing really is orthographic (a 12% scale mismatch would have appeared otherwise - and did appear when I mistakenly took the prop tops, y=114, as the top: that gives 206.4 mm, +11.6%)",
+      "consequence_2": "DJI's 185 mm is measured from the MOTOR TOP, propellers excluded, down to the feet. Worth recording: it is NOT a props-included height."
+    },
+    "values_mm": {
+      "shell_crown_to_belly": {"value": 63.9, "band_pct": 8, "px": "y 170.0 -> 332.5, 162.5 px", "cross_check": "measured at three x stations (x=540, 640, 760) giving 64.1 / 63.3 / 64.0 mm"},
+      "belly_to_foot_landing_gear": {"value": 120.5, "band_pct": 8, "px": "y 332.5 -> 639, 306.5 px"},
+      "sum_check": "63.9 + 120.5 = 184.4 mm = the officially published 185 mm. The height decomposes self-consistently.",
+      "gear_fraction_of_height": 0.651,
+      "foot_track_outer_to_outer": {"value": 173.8, "band_pct": 8, "px": "x 419 -> 861, 442 px"},
+      "foot_pad_width_front_view": {"value": 12.6, "band_pct": 15, "px": "x 419..451, 32 px"},
+      "gimbal_damper_plate_width": {"value": 99.9, "band_pct": 10, "px": "x 512 -> 766, 254 px"},
+      "gimbal_damper_plate_thickness": {"value": 22.4, "band_pct": 15, "px": "y 358 -> 415, 57 px", "note": "includes the rubber damper balls"},
+      "camera_block_width": {"value": 66.1, "band_pct": 10, "px": "x 561 -> 729, 168 px", "note": "includes the roll motor can on the left of the block"},
+      "camera_block_height": {"value": 33.8, "band_pct": 12, "px": "y 487 -> 573, 86 px"},
+      "gimbal_top_below_belly": {"value": 10.0, "band_pct": 20},
+      "camera_bottom_above_feet": {"value": 26.0, "band_pct": 15, "note": "the legs protect the camera - the lowest point of the aircraft is the feet, not the gimbal. A build that gets this wrong changes which part sets the ground-bounce geometry."},
+      "camera_block_depth_fore_aft": {"value": null, "grade": "UNKNOWN", "note": "the front elevation cannot see it and there is no scaled side view"}
+    },
+    "comparison_to_our_phantom4": "phantom4's photo audit measured belly->foot 113 mm and shell thickness 83 mm on a 196 mm total. The Phantom 3 is 120.5 / 63.9 on 185 mm. So the P3 has a ~23% THINNER shell and ~7% LONGER legs than the P4 despite sharing the 350 mm diagonal and the 240 mm props. The two airframes are NOT interchangeable in silhouette, only in rotor layout.",
+    "weak_third_party_cross_check": "A marketplace listing quotes the P3 gimbal-camera assembly as 130 x 80 x 45 mm; that does not match my 100 mm plate width and the same listing claims a 5 g mass, so I grade it [C] and do NOT use it."
+  },
+
+  "materials": {
+    "_comment": "part -> real material (with evidence grade) -> our materials.py key -> our DRONE_GROUP_MAT group.",
+    "shell_body_and_arms": {
+      "real": "Injection-moulded plastic (PC/ABS family), two-piece: upper cover + bottom cover, arms moulded in. DJI sells it as ONE part covering all Phantom 3 variants.",
+      "grade": "VERIFIED that it is plastic and one-piece-per-half; the exact polymer grade is UNKNOWN (DJI never published it).",
+      "critical_difference_from_phantom4": "The Phantom 3 has NO magnesium-alloy skeleton. The magnesium core was introduced ON the Phantom 4 and is repeatedly cited as its headline structural upgrade over the plastic Phantom 3. Our own docs/drone_material_research.json records the P4 as 'magnesium alloy unibody core (Mg 90 / Al 9 / Zn 1) + plastic outer covers'. For the Phantom 3 the core simply is not there - so the largest single metal structure inside a Phantom 4 is ABSENT here. Anyone transferring the P4 material ledger to the P3 will over-metal the fuselage.",
+      "our_material_key": "plastic",
+      "our_group": "body (and 'arm' folds into 'body' because arm_style='body')",
+      "src": ["S10", "S12", "S15"]
+    },
+    "canopy_battery_bay": {
+      "real": "The Intelligent Flight Battery is a hard-plastic-cased pack that slides into the REAR of the fuselage and forms part of the upper rear surface.",
+      "grade": "VERIFIED (Aircraft Diagram callout [10]; battery installation section of the manual)",
+      "our_material_key": "plastic",
+      "our_group": "canopy",
+      "src": ["S3"]
+    },
+    "propellers": {
+      "real": "DJI 9450 self-tightening, 240 mm x 5.0 in, 13 g each, reinforced-polymer blades on a moulded hub.",
+      "grade": "VERIFIED for size/mass. Polymer grade for the STOCK white 9450 is UNKNOWN this round - DJI's propeller-material notice that our repo already cites gives 'glass fibre reinforced nylon' for the Phantom 4's 9450-series props, and the P3 uses the same prop family, but I did not obtain a DJI page naming the Phantom 3 stock prop's material, so I mark it inferred, not verified.",
+      "our_material_key": "prop_plastic",
+      "our_group": "prop",
+      "ADVERSARIAL_NOTE": "DJI itself sold an OPTIONAL 'E305 9450 Carbon Fiber Reinforced' propeller for the Phantom 3 (composite hub, black). Carbon-loaded blades are conductive: in our table that is carbon |Gamma| 0.90 vs prop_plastic 0.25, i.e. +11.1 dB on the propeller group. If the measured aircraft happened to wear the CF props this is a real, unmodelled fork. Das does not say which props were fitted. Treat it as a labelled sensitivity case, not a second spec.",
+      "src": ["S7", "S19", "S20"]
+    },
+    "motors": {
+      "real": "4 x DJI 2312 (later revision 2312A) brushless outrunner. Published: stator 23 x 12 mm, KV 800 rpm/V, 56 g. Construction is the usual copper windings + aluminium bell + laminated silicon-steel stator + NdFeB magnets + steel shaft.",
+      "grade": "VERIFIED for stator/KV/mass (DJI E305 spec page + DJI part listings). Alloy grades UNKNOWN (convention).",
+      "our_material_key": "metal",
+      "our_group": "motor",
+      "src": ["S7", "S9", "S13"]
+    },
+    "battery_pack": {
+      "real": "PH3-4480 mAh-15.2 V, LiPo 4S, 68 Wh, 365 g. Aluminium-laminate pouch cells + BMS board + metal contacts inside a hard plastic case.",
+      "grade": "VERIFIED for electrical spec and mass. Physical size 129.10 x 77.30 x 44.10 mm is a RETAILER listing only -> grade [C], use with a band or not at all.",
+      "rcs_note": "365 g is 28.5% of the whole aircraft and at GHz the laminate pouch behaves as metal - this is the single largest metallic mass on a Phantom 3, and with no magnesium core it has no competitor.",
+      "our_material_key": "metal",
+      "our_group": "battery",
+      "src": ["S1", "S4", "S18"]
+    },
+    "pcb_internal": {
+      "real": "A combined ESC + centre board (the four ESCs are integrated on the main centre board, not four separate bricks) plus the main controller; on Adv/Pro there is additionally a Vision Positioning module on the belly. FR-4 + copper planes + connectors.",
+      "grade": "VERIFIED that the Pro/Adv carry a single 'ESC Center Board and Main Controller' assembly (DJI OEM part naming, plus a community reverse-engineered schematic of exactly that board). Layer count / shield details UNKNOWN.",
+      "our_material_key": "pcb",
+      "our_group": "pcb",
+      "src": ["S14", "S10"]
+    },
+    "gimbal_camera": {
+      "real": "3-axis gimbal (yaw/roll/pitch), three small brushless motors, metal camera housing + glass lens, hung under the belly on a wide vibration-damping plate with rubber balls. Sony EXMOR 1/2.3 in sensor, 12.4 MP, FOV 94 deg, f/2.8.",
+      "grade": "VERIFIED for architecture and optics; the P3 gimbal frame material (the P4's is magnesium) is UNKNOWN for the P3.",
+      "our_material_key": "camera_assembly",
+      "our_group": "camera",
+      "src": ["S3", "S5"]
+    },
+    "landing_gear": {
+      "real": "Two moulded plastic arch legs, a separate bolt-on part (8 x M3 7.5 mm screws), with the receiver ANTENNAS routed inside them.",
+      "grade": "VERIFIED",
+      "rcs_note": "the leg polymer is a weak scatterer but the antenna wire inside it is metal and runs most of the leg's length - same caveat our P4 material ledger already records.",
+      "our_material_key": "plastic",
+      "our_group": "gear",
+      "src": ["S3", "S11"]
+    },
+    "belly_sensors_vision_positioning": {
+      "real": "Professional/Advanced/4K/SE: 1 downward camera + 2 ultrasonic transducers on the belly (Aircraft Diagram callout [11]). Standard: none.",
+      "grade": "VERIFIED",
+      "our_material_key": "camera_assembly (transducer cans and lens barrels are metal-dominated)",
+      "our_group": "camera",
+      "src": ["S3", "S17"]
+    },
+    "gps_module": {
+      "real": "GPS/GLONASS patch under a cover on the top shell, at the fuselage centre (callout [1]).",
+      "grade": "VERIFIED that it exists and where; its size is UNKNOWN.",
+      "our_material_key": "pcb",
+      "our_group": "pcb",
+      "src": ["S3"]
+    },
+    "accent": {"real": "none - no functional coloured accent part", "our_group": "accent (unused)"},
+    "groups_not_present": ["deck", "gear_cf", "fc"]
+  },
+
+  "unknowns": [
+    "body_lw - shell plan aspect ratio (DJI publishes no top view of the Phantom 3, and the repo holds no Phantom 3 photograph)",
+    "body_frac - shell size / diagonal ratio (follows from the above)",
+    "arm_od_mm / arm root and tip widths (phantom4's 45->30 mm came from a photo audit that cannot be repeated without P3 images)",
+    "motor_dia_mm and motor_h_mm - DJI publishes the 23x12 mm STATOR only, never the bell",
+    "gear_splay_deg - the fore-aft component of the leg splay is invisible in the one scaled view",
+    "gimbal fore-aft offset from the body centre, and camera block depth",
+    "max_rpm - no certification or firmware ceiling was ever published for a 2015 Phantom",
+    "exact polymer grade of the shell, and the material of the stock white 9450 blade",
+    "Phantom 3 gimbal frame material (the Phantom 4's is magnesium; unknown whether the P3's is)",
+    "battery pack physical dimensions at better than retailer-listing grade",
+    "which Phantom 3 variant Das measured, and which propellers (stock polymer vs DJI's optional carbon-fibre-reinforced 9450) were fitted"
+  ],
+
+  "gaps_to_close_next": [
+    "Obtain 3-4 official DJI product photographs (plan + front + side) into assets/photos/phantom3/ and run the same pixel audit that fixed mini5pro / mavic4pro / matrice4e. That single step closes body_lw, body_frac, _ARM_WIDTH, _ARM_SECTION and _SHELL_SHAPE - i.e. most of the unknowns list.",
+    "The FCC internal-photo exhibits for SS3-WM3231503 / SS3-WM3231507 (Phantom 3 Professional teardown) are public and are the same source class we used for the P4 Pro V2.0. They would upgrade the PCB/battery/frame ledger from 'convention' to 'observed'.",
+    "drone_cad needs a new gimbal branch: the P3's exposed damper-plate gimbal is not any of single/triple/sensor/recessed/belly, and the existing catch-all raises NotImplementedError, so registering phantom3 without writing the branch will fail loudly (by design)."
+  ],
+
+  "sources": {
+    "S1": {"kind": "manufacturer document", "id": "DJI Phantom 3 Professional Quick Start Guide V1.2", "url": "https://dl.djicdn.com/downloads/phantom_3/en/Phantom_3_Professional_Quick_Start_GuideV1.2_0419.pdf", "took": "dimension diagram 289.5 / 289 / 185 mm; Weight (Including Battery) 1280 g; Intelligent Flight Battery PH3-4480 mAh-15.2 V, LiPo 4S, 68 Wh, 365 g; max speed 16 m/s"},
+    "S2": {"kind": "manufacturer document", "id": "DJI Phantom 3 Standard Quick Start Guide V1.0 (2015.09)", "url": "https://dl.djicdn.com/downloads/phantom_3_standard/en/Phantom_3_Standard_Quick_Start_Guide_en_201509.pdf", "took": "the SAME dimension diagram 289.5 / 289 / 185 mm on a different variant (independent confirmation that the airframe is shared); Weight (Including Battery) 1216 g"},
+    "S3": {"kind": "manufacturer document", "id": "DJI Phantom 3 Professional User Manual v1.8 (2016.07.19)", "url": "https://dl.djicdn.com/downloads/phantom_3/en/Phantom+3+Professional+User+Manual+v1.8_en_20160719.pdf", "took": "page 8 Aircraft Diagram - the 4-view orthographic line art I measured, plus the part callouts (GPS, propeller, motor, front LED, landing gear, gimbal and camera, vision positioning sensors, antennas in the legs); Appendix specs 1280 g / 16 m/s / gimbal pitch -90..+30 / Vision Positioning 30-300 cm"},
+    "S4": {"kind": "manufacturer web (archived official)", "id": "DJI Phantom 3 4K spec page", "url": "https://www-v1.dji.com/phantom3-4k/spec.html", "took": "'Diagonal Size (Including Propellers): 590 mm'; weight 1280 g; battery 4480 mAh / 15.2 V / 68 Wh / 365 g"},
+    "S5": {"kind": "manufacturer web (archived official)", "id": "DJI Phantom 3 Professional spec page", "url": "https://www-v1.dji.com/phantom-3-pro/spec.html", "took": "diagonal 590 mm including propellers; hover accuracy +-0.1 m vertical with VPS / +-1.5 m horizontal; camera and battery block"},
+    "S6": {"kind": "manufacturer web (archived official)", "id": "DJI Phantom 3 Standard spec page", "url": "https://www-v1.dji.com/phantom-3-standard/spec.html", "took": "Standard weight 1216 g; 16 m/s; same battery"},
+    "S7": {"kind": "manufacturer web (archived official)", "id": "DJI E305 Tuned Propulsion System spec page", "url": "https://www-v1.dji.com/e305/spec.html", "took": "2312 motor: stator 23 x 12 mm, KV 800 rpm/V, 56 g. 9450 propeller: 24 x 12.7 cm (9.4 x 5.0 in), 13 g. This is DJI's own dimension table for exactly the Phantom 3 motor/prop pair."},
+    "S8": {"kind": "third-party datasheet", "id": "dronespec.dronedesk.io - DJI Phantom 3 Professional", "url": "https://dronespec.dronedesk.io/dji-phantom-3-pro", "took": "corroboration of 'Diagonal Size (Propellers Excluded): 350 mm'; 1280 g; 16 m/s; 4480 mAh / 15.2 V / 68 Wh; 1/2.3 in 12.4 MP"},
+    "S9": {"kind": "retail part listing", "id": "B&H - DJI 2312 Motor Phantom 3 Pro/Adv (Part 8) and DJI 2312A Motor Phantom 3 Standard/Pro/Adv (Parts 94/95)", "url": "https://www.bhphotovideo.com/c/product/1148804-REG/dji_cp_pt_000194_phantom_3_motor_cw.html", "took": "motor part numbers and which variants each fits (2312 early, 2312A later revision, shared across variants)"},
+    "S10": {"kind": "OEM part listing", "id": "djioemparts - 'Upper Shell for Phantom 3 Pro/Adv/SE/Sta'; 'ESC Board' category for Phantom 3", "url": "https://djioemparts.com/collections/phantom-3", "took": "ONE shell part number spans Pro/Adv/SE/Standard (proof the airframe is shared); existence of an ESC centre board as a single assembly"},
+    "S11": {"kind": "teardown guide", "id": "iFixit - DJI Phantom 3 Advanced Landing Gear Replacement (guide 72010)", "url": "https://www.ifixit.com/Guide/DJI+Phantom+3+Advanced+Landing+Gear+Replacement/72010", "took": "landing gear is a separate bolt-on plastic part, 8 x 3 mm x 7.5 mm screws, receiver antenna routed inside the leg"},
+    "S12": {"kind": "teardown guide", "id": "iFixit - DJI Phantom 3 Advanced Cover Replacement (guide 71927); iFixit part 'DJI Phantom 3 Standard / Pro / Advanced Bottom Shell'", "url": "https://www.ifixit.com/Guide/DJI+Phantom+3+Advanced+Cover+Replacement/71927", "took": "the shell is plastic and separates into two halves; the bottom shell is a single part shared across variants"},
+    "S13": {"kind": "teardown guide", "id": "iFixit - DJI Phantom 3 Advanced Motor Replacement (guide 71928)", "url": "https://www.ifixit.com/Guide/DJI+Phantom+3+Advanced+Motor+Replacement/71928", "took": "motor mounting (4 x 3 mm screws) and 3-phase wiring soldered to the board - i.e. no separate per-arm ESC brick"},
+    "S14": {"kind": "reverse-engineered hardware doc", "id": "o-gs/dji-hardware-schematics, phantom_3_pro_esc_center_board", "url": "https://github.com/o-gs/dji-hardware-schematics/tree/master/phantom_3_pro_esc_center_board", "took": "confirmation that the Phantom 3 Pro/Adv use a single combined ESC + centre board"},
+    "S15": {"kind": "review / comparison press", "id": "DrDrone 'A Phantom 3 and 4 Comparison'; TechRadar DJI Phantom 4 review", "url": "https://drdrone.com/blogs/drone-news-drone-help-blog/a-phantom-3-and-4-comparison", "took": "the magnesium-alloy skeleton is a Phantom 4 introduction; the Phantom 3 airframe is plastic. Grade [C] but multiply and independently attested, and it agrees with the absence of any magnesium part in DJI's own Phantom 3 parts catalogue."},
+    "S16": {"kind": "measurement paper (SETUP ONLY - see blind_log)", "id": "S. Das, P. Zhang, V. Hovinen, M. E. Leinonen, P. Kyosti et al., 'Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling', IEEE Wireless Commun. Lett., 2026, doi 10.1109/LWC.2026.3705634, Table I", "url": "local: /data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf", "took": "TARGET DIMENSION AND MEASUREMENT CONDITIONS ONLY: 'DJI Phantom 3', 35 cm x 20 cm, 1.8 GHz-18.2 GHz, 2801 frequency points, azimuth -90 <= phi (=2 deg) <= 90, far-field, anechoic. And the negative finding that no variant is named anywhere in the text."},
+    "S17": {"kind": "comparison guides", "id": "3D Insider 'Phantom 3 vs Pro vs Advanced and 4K'; pocket-lint Phantom 3 comparison; DJI Store guide 'Phantom 3 SE vs Phantom 3 Standard'", "url": "https://3dinsider.com/phantom-3-comparison/", "took": "variant weights 1216 / 1236 / 1280 g; which variants carry the Vision Positioning System; release positioning"},
+    "S18": {"kind": "retailer listing [C - weak]", "id": "Newegg listing for the DJI Phantom 3 Intelligent Flight Battery", "url": "https://www.newegg.com/p/1WM-006V-00049", "took": "battery pack 129.10 x 77.30 x 44.10 mm. Marked weak; not used for any derived number."},
+    "S19": {"kind": "retail part listing", "id": "B&H / DJI Store - 'Phantom 3 - 9450 Self-tightening Propellers (Part 9)'", "url": "https://store.dji.com/product/phantom-3-9450-propellers", "took": "the Phantom 3's stock prop is the 9450 self-tightening, 2-blade"},
+    "S20": {"kind": "retail part listing", "id": "DJI E305 9450 Carbon Fiber Reinforced Self-Tightening Propellers for Phantom 3 (composite hub, black)", "url": "https://www.maverickdrone.com/products/dji-carbon-fiber-9450-self-tightening-propellers-for-phantom-3", "took": "existence of a DJI-sold CARBON-FIBRE-REINFORCED 9450 option for the Phantom 3 - the propeller-material sensitivity fork"},
+    "S21": {"kind": "in-repo prior research (for contrast only)", "id": "docs/drone_material_research.json - the Phantom 4 / P4 Pro V2.0 material record", "took": "the Phantom 4's magnesium-alloy core, used ONLY as the contrast that establishes what the Phantom 3 does NOT have. No Phantom 3 number was taken from it."}
+  },
+
+  "blind_log": {
+    "protocol": "I was instructed not to look at any Phantom 3 RCS quantity. Everything I opened, in order:",
+    "opened": [
+      "src/drones.py (lines 1-401 and 402-681) - field schema",
+      "src/materials.py (whole file) - material keys and |Gamma| table",
+      "src/drone_cad.py - grep outline, lines 216-340 (_ARM_SECTION / _ARM_WIDTH / GEAR_SPIKE_H / _SHELL_SHAPE), lines 1580-1700 (phantom4 gimbal/gear branch)",
+      "docs/drone_research.json - the phantom4 record (schema template) and the first lines of the other four",
+      "docs/drone_material_research.json - the Phantom 4 Pro V2.0 material record (contrast only)",
+      "docs/references.bib lines 697-712 - Das and Yuan bibliographic metadata (author/title/journal/doi)",
+      "grep for 'phantom 3' over docs/*.md (see leak below)",
+      "grep for forbidden literals over docs/*.json and docs/*.md before reading anything - all clean",
+      "Das et al. PDF: page-2 Table I only, rendered as an image crop Rect(45,78,570,172); plus full-text lines mechanically filtered to drop every line containing 'dB'/'dbsm'. Tables II and III, Figure 2 and the results text were NOT opened.",
+      "DJI Phantom 3 Standard Quick Start Guide (downloaded) - text of all 8 pages, plus rendered crops of the specification/dimension page",
+      "DJI Phantom 3 Professional Quick Start Guide V1.2 (downloaded) - appendix text + rendered dimension-diagram crop",
+      "DJI Phantom 3 Professional User Manual v1.8 (downloaded) - text of pages 3, 7, 8, 9, 15, 16, 54; rendered and pixel-measured page 8 (Aircraft Diagram)",
+      "web pages listed in sources S4-S20"
+    ],
+    "deliberately_NOT_opened": [
+      "src/sigma_anchor.py (DAS / YUAN constant blocks)",
+      "outputs/rcs_anchor.json (literature section)",
+      "outputs/validate_measured_airframe.json and outputs/validation_feasibility.json - docs/ENGINE_VALIDATION.md advertises a ready-made Phantom 3 'registration_patch' inside the first of these, which would have short-circuited this whole task, but the same file's '8_comparison' section holds the measured-vs-modelled dB. I chose independence and left both closed. Everything above was researched from scratch.",
+      "docs/ENGINE_VALIDATION.md as a document (only grep-matched single lines were seen)",
+      "Das Tables II/III and Fig. 2; the Yuan / mono3d EuCAP paper entirely"
+    ],
+    "LEAK_TO_DISCLOSE": {
+      "what": "A grep of docs/*.md for 'phantom 3' returned, in its output, two absolute angle-averaged RCS levels at 3.5 GHz from docs/DRONE_ISAC_PRIOR_READING.md lines 314-315 (a multiband Table III value and a mono3d value, quoted there as a 3.4 dB spread argument). I did not open that file and did not seek those numbers.",
+      "also": "docs/INJECTION_PRECEDENT.md lines 150-152 showed envelope-margin deltas in dB for the Phantom 3 at 1.843 / 3.5 / 5.21 GHz, and docs/ENGINE_VALIDATION.md lines 46/108 showed a bistatic intercept shift and an azimuth-spread fit epsilon(f).",
+      "not_seen": "None of the four forbidden literals (0.21, -19.19, 0.315, -16.15) appeared in anything I read.",
+      "did_it_contaminate_this_file": "No. Nothing in p3_specs.json is a function of any RCS quantity - every number here traces to a DJI publication, a DJI drawing I measured, or a stated derivation from those. But the leak happened and is on the record.",
+      "lesson": "grep with a pattern that names the target is not a blindfold. The safe form is to pre-filter the OUTPUT (grep ... | grep -v dB), which I only started doing after this."
+    }
+  }
+}

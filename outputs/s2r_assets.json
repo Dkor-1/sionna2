@@ -1,0 +1,239 @@
+{
+  "meta": {
+    "purpose": "sionna2 저장소 자산 재고 — '시뮬 학습데이터 생성' 방향에 바로 쓸 수 있는 것과 없는 것을 가른다",
+    "generated": "2026-08-03",
+    "repo": "/home/yunjung/workspace/sionna2",
+    "git_rev_at_survey": "5ad359b (미커밋 변경 다수: benchmark/*.py 신규 20여개, src 5개 수정)",
+    "search_scope": "src/ 92개 + benchmark/ 80개 = 172개 .py 전수 grep + outputs/ 165개 JSON 중 관련 20여개 직접 파싱. 노트북 6편(report01~06)은 빌더(src/make_reportNN.py)로 대체 조사.",
+    "method": "함수 시그니처·docstring 직독 + 산출물 JSON 스키마 파싱. 에이전트 보고 인용 없음.",
+    "gpu_state_at_survey": "GPU0 22.0/24.6GB 100% · GPU1 23.1/24.6GB 100% · GPU2 9.4/24.6GB 0% · GPU3 22.1/24.6GB 94% — rcs_anchor + Phantom3 진행 중. 이번 라운드에서 GPU 작업 실행하지 않음.",
+    "absence_claim_policy": "'없다'는 전부 위 172개 파일 grep 결과이며 검색어를 함께 적었다. 저장소 밖(다른 폴더·다른 사람 코드)은 보지 않았다."
+  },
+
+  "have": [
+    {
+      "id": "sigma_grid_monostatic",
+      "질문": "σ(자세, 주파수) 격자",
+      "있나": "있다 — 단 '자세'는 시선각(az,el)이지 기체 자세(roll/pitch/yaw)가 아니다",
+      "정본": "outputs/report13_sigma_grid.json (1.3 MB) + 기종별 5개 파일 report13_sigma_grid.<drone>.json",
+      "생산자": "src/experiment_freespace_sigma.py (AZ_GRID/EL_GRID/N_F/DIV 상수는 62~76행)",
+      "격자": {
+        "기체": "7종 — mini5pro, phantom4, mavic4pro, matrice4e, s1000plus, x500v2, typhoonh480 (레지스트리 src/drones.py DRONES 에는 phantom3 포함 8종; phantom3 만 격자 없음, benchmark/airframe_phantom3.py 진행중)",
+        "밴드": "3종 — LTE 1.843 GHz / 5G NR 3.500 GHz / WiFi 5.210 GHz",
+        "az": "0~357°, 3° 간격, 120점",
+        "el": "9점 [0, -0.5, -1, -2, -3.5, -5, -8, -12, -20]° — 전부 음수(배 아래에서 본 시선). +el(등짝)은 report02 의 +15° 단일값뿐",
+        "배열": "sigma_dbsm shape (9,120) per (drone, band), sigma_smooth_dbsm(3° 평활) 동봉",
+        "총 셀": "7 × 3 × 9 × 120 = 22,680 밴드평균 σ (내부 SBR pose 는 ×n_f=3 → 68,040)"
+      },
+      "엔진": "rcs_sbr.rcs_sbr_batch — 1-bounce SBR + PO 면적분, spacing=λ/16, jitter=2(격자위상 4오프셋), penetrate=True(유전체 셸 투과 후 내부 금속 코히런트 합산), 반송파 ±1.5% 3점 대역평균",
+      "부속": "sigma_confidence(D/λ few-λ 판정), stats(p10/p50/p90·CDF·el별 σ), outputs/sigma_sbr_cache.json(2,000엔트리 키=drone@meshfp|fc_MHz|az_mdeg|el_mdeg → σ[m²], 메쉬 지문 포함으로 CAD 바뀌면 자동 무효화)",
+      "⚠한계": [
+        "기체 자세축 없음 — 메쉬는 build_drone(수평 호버, 로터 위상 0) 하나(experiment_freespace_sigma.py:97). drones.pose_articulated(body_rpy, rotor_phase_deg)가 존재하지만 σ 생산자에 배선되어 있지 않다.",
+        "낡음 — meta.generated=2026-07-29, 07-31 메쉬 개편(drones.py/drone_cad.py) 이전 산출물. benchmark/tm_envs.py staleness() 판정: '절대 σ 레벨 인용 금지'. 재생성 필요.",
+        "인용정책 상속: 백분위/커버리지만, 널최소값·aspect-peak·단일 점값 금지(meta.quote_policy)."
+      ]
+    },
+    {
+      "id": "microdoppler",
+      "질문": "마이크로도플러 E(t) · 스펙트로그램 생성기",
+      "있나": "있다 — 생성기 3종. 저장된 데이터셋은 사실상 없다",
+      "생성기": [
+        {
+          "파일": "src/microdoppler.py:36 microdoppler_series(spec, fc, az, el, rpm, prf=20000, n_t=2048, spacing=λ/11, blade_n=26)",
+          "물리": "순수 PO 점구름, 평면파, **가림 없음**. 프레임 상수항 + 로터별 CW/CCW 거울상 프롭 위상합. 반환 (t, E복소, info{f_tip, flash_hz, v_tip, rpm})",
+          "비용": "초 단위(CPU numpy)"
+        },
+        {
+          "파일": "src/microdoppler.py:135 microdoppler_sbr(spec, fc, az, el, rpm, prf=20000, n_t=6144, n_phase=240)",
+          "물리": "SBR(가림 포함). 핵심 트릭 = 전체 자세가 단일 각 φ=ωt 함수 → φ∈[0,360/n_blades) 를 n_phase 로 잘라 **위상표를 선계산**하고 E(t)=table[φ(t)] 조회. 시간스텝마다 광선 안 쏨",
+          "비용": "위상표 1장 = n_phase × per-pose (측정 per-pose 중앙 38 ms) → mavic4pro@3.5GHz 240위상 ≈ 9.1 s / s1000plus@5.2GHz ≈ 85 s. 표가 있으면 E(t)·스펙트로그램은 ms"
+        },
+        {
+          "파일": "src/microdoppler_nearfield.py — phase_table(:201) / series_from_table(:286) / microdoppler_nf(:302)",
+          "물리": "근접장 **구면파** 팔 + 평면파 팔 분리(wavefront='plane'|'spherical'), 점간격 frame λ/6·blade λ/11, 링크버짓 echo_over_noise_db(:334)·add_noise(:365)",
+          "부속": "md_metrics(:379) f_tip/flash 엣지검출, ac_correlation(:457), spectrogram_corr(:467)"
+        }
+      ],
+      "스펙트로그램": "src/microdoppler.py:90 spectrogram(E, prf, nperseg=256, noverlap=nperseg-16분의1, nfft, remove_dc=True) → (f양측, t, |STFT| dB). remove_dc 는 몸체 0-도플러 클러터 제거(패시브 ECA 대응). DC/AC 비가 기체·시선에 따라 0.7~133 까지 변한다고 docstring 에 실측 기재",
+      "기존 산출물": {
+        "outputs/md_range_sweep.json (225 KB)": "거리 1/2/5/10/20/50/1000 m × 3-팔(A0 평면·무잡음 / A1 평면+잡음 / A2 구면·무잡음 / A3 둘다) × 9 셀(5기체@3.5GHz + mavic·s1000 의 LTE/WiFi). ⚠ **E(t) 원파형·스펙트로그램은 저장 안 함 — 메트릭(rows)만**. runtime_s=2929.6",
+        "outputs/report1_microdoppler.npz (295 KB)": "5기체 E(t) 각 6144 complex128 + prf 1개. 그림용 스냅샷이지 데이터셋 아님"
+      },
+      "⚠한계": "PRF 20 kHz = 풀 웨이브폼 캡처 조건. 상시 기준신호(LTE CRS 1 kHz / 5G SSB 50 Hz)로는 f_tip 이 접힌다(md_range_sweep 의 prf_feasibility 블록이 드론×모드별 판정 보유)"
+    },
+    {
+      "id": "multistatic_sigma",
+      "질문": "멀티스태틱 σ — rcs_sbr_multistatic 이 실제로 무엇을 받고 무엇을 주는가",
+      "있나": "커널은 있다(정본). 산출물 텐서는 없다 — Δσ 통계만 있다",
+      "시그니처": "src/rcs_sbr.py:330 rcs_sbr_multistatic(mesh, group_mat, fc, u_i, u_s_list, spacing=None, pad=1.15, cache_key=None, penetrate=True, jitter=2, shell_groups=None, exit_vis=True, symmetrize=False)",
+      "입력": "u_i = 표적→송신국 단위벡터 1개, u_s_list = 표적→수신국 단위벡터 **리스트**(멀티 Rx)",
+      "출력": "σ[m²] — len(u_s_list)>1 이면 ndarray(len,), 1이면 float. u_s_list=[u_i] 면 모노스태틱과 0 dB 일치",
+      "효율": "조명(광선추적)은 u_i 로 **1회만** 쏘고, Rx 마다 위상합 + 그림자광선 1발만 추가 → Rx 를 늘려도 비싼 추적 재사용. 멀티 Rx 데이터셋에 그대로 유리",
+      "옵션": "exit_vis=True(출사 가시성 그림자광선; 모노에서는 실측 0.000 dB no-op) / symmetrize=True(σ_sym=√(σ(i,s)·σ(s,i)), 조명추적 1회 추가)",
+      "⚠적용범위(docstring 명시)": [
+        "전방산란 무효: β→180° 에서 조명게이트와 수신게이트가 상호배타 → σ≡0. **β≲90° 에서만 유효**",
+        "상반성은 비볼록 표적에서 β≤90° 안에서도 깨진다(격자세분으로 안 줄어듦). 실측치 outputs/sbr_defect_fixes.json 의 reciprocity",
+        "투과 출사경로는 입사 τ 로 근사(1차 투과) → 바이스태틱 비대칭 확대"
+      ],
+      "현재 산출물": "outputs/report13_sigma_grid.json 의 multistatic 블록 = 5기체 × 3밴드 × β∈{0,15,30,45,60,75,90}° 에 대해 **통계만**(dsigma_mean_db, dsigma_rms_db, dsigma_p95_db, reciprocity_rms_db, valid, n_az=24). σ(û_i,û_s) 전 텐서는 어디에도 저장되어 있지 않다",
+      "호출부": "src/experiment_freespace_sigma.py:385-418, benchmark/verify_sbr_defect_fixes.py:122-184 (검증용) — 총 2곳"
+    },
+    {
+      "id": "detection_chain",
+      "질문": "검출 사슬 — ECA / CFAR / Pd",
+      "있나": "있다 — CPU 정본 + GPU 배치판 이중",
+      "CPU 정본": "src/passive_process.py — make_cpi(:42), ECACanceller(:93)/eca(:124), range_doppler(CAF, :133), ca_cfar_2d(guard=(2,2), train=(6,6), pfa=1e-4, :153), peak_detection(:198, 부빈보간 _subbin), doppler_guard_mask(:352), check_detector_config(:383), pfa_nominal_for(:338, 파형별 경험 Pfa 교정표 로드)",
+      "GPU 배치": "src/detection_gpu.py — rd_batch(surv[B,Ns], ref_frame, M, n_range) / cfar_batch(rd[B,M,R], guard, train, pfa) / peak_batch(rd, det, guard_zd) — torch, 배치 첫 축",
+      "Pd/Pfa 몬테카를로": "src/experiment_detection.py:264 gpu_montecarlo(pre, sv, sigma, K, seed, pfa, batch) → dict(Pd, Pfa_emp, K). 배치는 SIONNA2_DET_BATCH 또는 예산기반 _batch_size. 표적유(√N·echo + DPI + 잡음) / 표적무(DPI + 잡음, 0-도플러 능선 ±2 제외, 분모=유효셀) 두 루프",
+      "사전계산": "experiment_detection.Precomputed(:190) — ECA 는 선형이라 에코·직접파 잔차를 1회만 계산해 GPU 상주, MC 는 잡음만 더한다. truth 셀은 RD 피크 실측",
+      "자유공간판 형상층": "src/freespace_detect.py — fs_shapes(:266), eca_canceller(:422), calibrate_pfa(:711, K_pfa=20000), false_alarms_per_cpi(:865, 빈/분해능셀 두 규약), transfer_by_dopoff(:942), _marcum_cfar_snr90_db(:248). 커널 재구현 없이 '형상'(탭수·거리창·가드·판정·Pfa 교정)만 정의",
+      "검증": "benchmark/verify_eca.py, verify_cfar.py(outputs/verify_cfar.json 1.5 MB), verify_ambiguity.py, verify_clutter_doppler.py, verify_pyapril.py(외부 구현 대조)",
+      "기존 산출물": "outputs/detection_rx_sweep.json — 9모드(W/L/G × G1/G2/G3 점유) × Rx N∈{1,2,3,4} × SNR 15점 × K=6000, 표적 mavic4pro 단일 자세(az=-23.8°, el=-3.1°, σ=-27.6 dBsm), vel 3벡터, pfa=1e-4. 즉 **9×4×15×(6000+3000)=4.86M CPI 시행**을 이미 돌린 배관",
+      "⚠한계": "런타임 미기록 → MC 처리율(trial/s) 을 지금 말할 수 없다. 계획 전에 1회 계측 필요"
+    },
+    {
+      "id": "scenes",
+      "질문": "Sionna 씬 — 챔버·실외가 어디 있고 새 사이트는 무엇이 필요한가",
+      "챔버": {
+        "기하 모델": "src/chamber.py — 30×20×11 m **semi-anechoic**(벽4+천장 흡수체, 바닥은 반사성 콘크리트 타일). 부위 그룹→재질/색 매니페스트 동봉",
+        "메쉬 자산": "assets/meshes/chamber/*.obj 19개(absorber_front/back/left/right/ceiling, backing_*, floor_light/dark, trim_blue, frame_steel, door) — 2026-08-03 갱신본",
+        "조립": "src/scene_build.py:101 chamber_parts(mesh_dir, cutaway) → Part 목록, :50 build_scene(parts, fc) → sionna.rt.Scene. 드론은 scene_build.drone_parts",
+        "기하 상수": "src/bistatic_scene.py:26-29 CHAMBER=(30,20,11), TX=(4,2.5,8), RX=(4,17.5,6.5), TGT=(21,10,5.5) / src/radar_scene.py:43 모노스태틱 TGT_POS=(12,10,5.5), RX_OFFSET=0.3",
+        "RT 채널": "benchmark/channel.py:339 SionnaRTChannel, :308 rt_chamber_clutter(fc, tx, rx, tgt, drone_key)"
+      },
+      "실외": {
+        "있는 것": "src/report14_scene.py — **스톡 Sionna 내장 씬 4개**(simple_street_canyon_with_cars, munich, etoile, florence) + 재질별 확산산란 S 설정(MAT_S) + PathSolver 로 클러터 공분산 추출",
+        "자유공간": "src/freespace_scene.py — 씬이 아니라 **순수함수 기하**(TX (0,0,25), RX (L,0,3), 표적 P(d,φ,alt) → R1/R2/Rb/τ/f_d/β/κ). I/O·전역상태 없음. + src/freespace_link.py(링크버짓 30여 함수: n0_thermal/quant/dpi, dnr_db, snr_rd_db, solve_range, cassini_contour, two_ray_F, classify_limit)",
+        "자체 사이트": "0개. assets/scenes/ 는 **비어 있다**"
+      },
+      "새 사이트를 만들려면": [
+        "1) 지오메트리: 부위별 OBJ (그룹 = 재질 단위). 우리 파이프라인은 chamber.py 처럼 파라메트릭 생성 → assets/meshes/<site>/<site>__<group>.obj 로 굽는 방식",
+        "2) 재질: src/materials.py make_material(키) 로 Sionna RadioMaterial 매핑(ITU concrete/brick/glass/metal 등). 확산산란 S 는 report14_scene.MAT_S 관례 재사용",
+        "3) 배선: scene_build.Part 목록 함수 하나(chamber_parts 복사) + TX/RX/TGT 상수 모듈(bistatic_scene 복사)",
+        "규모: 형상만 새로 짜면 사이트당 300~600 LOC + 메쉬 자산. 스톡 Sionna 씬을 쓰면 0"
+      ]
+    },
+    {
+      "id": "waveforms",
+      "질문": "Sionna PHY 파형 — WiFi/LTE/5G 생성기가 실제로 있는가",
+      "있나": "있다 — 자작 정본 + Sionna 교차검증",
+      "정본": "src/waveforms.py — wifi_80211ac(bw=80MHz, carrier=5.21GHz, occupancy G1/G2/G3, :258) / lte_downlink(20MHz, 1.843GHz, :313) / nr_downlink(100MHz, scs=30kHz, 3.5GHz, :370). 공통: gold_seq(:196) 3GPP 골드시퀀스, qpsk_from_gold, ofdm_modulate(심볼별 CP, :217), Waveform 클래스(:125, .tx/.grid/.fft/.fs_hz/.cp_lens/.labels), all_waveforms(occ)(:438), always_on_waveforms()(:444), autocorr_resolution(:454)",
+      "기준신호 라벨": "WiFi VHT-LTF 76.6 MHz / LTE CRS 18.0 MHz · PRS 18.0 MHz / 5G SSB 7.2 MHz · NR-PRS 98.3 MHz — 점유율 G1 1.4~9.1%, G3 59~89% (outputs/detection_rx_sweep.json modes 블록 실측치)",
+      "Sionna 결합": "src/waveforms_sionna.py — sionna.phy.ofdm.ResourceGrid/OFDMModulator, sionna.phy.nr.CarrierConfig 로 **같은 자원격자를 재변조해 상관 대조**(crosscheck(:119)). 실측 corr 0.9996~0.99999 (detection_rx_sweep modes[*].corr_sionna). nr_table(:166)은 3GPP 뉴머롤로지를 Sionna 에서 직접 읽음",
+      "채널 결합": "src/sionna_chain.py — cir_to_time_channel 로 **지연 sinc 커널만** 받고(ApplyTimeChannel 은 6.9M CPI 서 OOM → scipy fftconvolve), 도플러는 위상램프. channel_taps(:66), apply(:84), target_paths(:113)",
+      "설치본": "sionna 2.0.1 @ /home/yunjung/.venvs/py312 (PHY=PyTorch)"
+    },
+    {
+      "id": "batch_pipeline",
+      "질문": "데이터 생성 배치 파이프라인 — GPU 배치 MC 가 이미 있는가",
+      "있나": "있다 — 다만 '실험 스윕' 파이프라인이지 '데이터셋 생산' 파이프라인이 아니다",
+      "GPU 관리": "src/gpu.py — pick(n, min_free_mb)(:122), all_usable(:236), parallel_over_gpus(items, worker)(:265), budget_mb(:284), batch_for(bytes_per_item)(:306), oom_backoff(fn, batch, tries)(:214). 정책상 GPU0~3 중 여유 2GB↑ 전부 침투, 예산 92%",
+      "σ 배치": "rcs_sbr.rcs_sbr_batch 는 **방위각 전체를 하나의 광선다발**로 GPU 에 올린다(chunk_az 자동, budget_mb 기반). benchmark/channel.py:184 sbr_sigma_prefill(requests) 가 필요한 시선각을 모아 여러 GPU 에 뿌리고 outputs/sigma_sbr_cache.json 에 적재 → 워커는 조회만(SIONNA2_NO_GPU=1 로 캐시미스 시 큰 소리로 실패)",
+      "검출 MC 배치": "experiment_detection.gpu_montecarlo + detection_gpu.rd_batch/cfar_batch/peak_batch — 배치축 B 로 수천 트라이얼 동시. 배치크기 SIONNA2_DET_BATCH 환경변수 레버",
+      "스윕 러너": "benchmark/run_matrix.py(ProcessPoolExecutor 셀 분배), benchmark/run_min_cell.py, benchmark/geometry_grid.py, benchmark/vmax_grid.py, benchmark/cpi_guard_sweep.py",
+      "⚠한계": "산출은 전부 **집계 JSON**이다. 샘플 단위 텐서를 파일로 떨어뜨리는 코드는 저장소 전체에 2곳뿐이고 둘 다 그림용: src/experiment_detection.py:402 np.savez_compressed(detection_arrays.npz — 6모드 × RD맵 (112,32)) / src/viz_report1.py:821(마이크로도플러 E(t) 5기체). np.save/savez/h5py/torch.save grep 결과 그 외는 캐시(validate_measured_airframe .npy)와 CAD 스캔 전처리뿐"
+    },
+    {
+      "id": "assets_misc",
+      "질문": "부수 자산",
+      "메쉬": "assets/meshes/drones/<7종>/*.obj 62개(부위 분리: body/battery/camera/canopy/motor/pcb/prop) + _scene 하위. facet 수 실측 28.4k~35.4k",
+      "사진": "assets/photos/<7종>/ 63장 (mesh-photo 대조 검증용)",
+      "재질": "src/materials.py + benchmark/material_sources.py(출처 원장) + benchmark/material_gamma_sweep.py / material_gamma_carbon.py (γ 민감도 = 도메인 랜덤화 축 후보)",
+      "앵커": "outputs/rcs_anchor.json(212 KB, ⚠07-31 메쉬 이전), outputs/sigma_anchor.json, benchmark/airframe_phantom3.py(진행중 — Das WCL2026 / Yuan EuCAP2025 실측 Phantom 3 대조용)",
+      "Gazebo": "src/gazebo_export.py + outputs/gazebo/<5종>/ (SDF+메쉬) — 비행 시뮬레이터 연동 경로는 열려 있음"
+    }
+  ],
+
+  "missing": [
+    {
+      "id": "dataset_layer",
+      "무엇": "데이터셋 층 자체 — 샘플→텐서 writer, 라벨 스키마, manifest/split, 재현 시드 관리",
+      "근거": "172개 .py 전수 grep: 'nn.Module|DataLoader|sklearn|torch.save' 실코드 0건(히트 3건은 전부 선행연구 서지 텍스트). np.savez 2건은 그림용",
+      "규모": "300~500 LOC · 1~2일 (샘플 스키마 확정이 절반)"
+    },
+    {
+      "id": "attitude_axis",
+      "무엇": "σ 격자의 기체 자세축(roll/pitch/yaw) + 로터 위상축",
+      "근거": "drones.pose_articulated(body_rpy, body_pos, rotor_phase_deg)(:1031)는 있으나, σ 생산자는 build_drone(수평·위상0)만 부른다(experiment_freespace_sigma.py:97, channel.py:149/177/227)",
+      "규모": "배선 50~100 LOC + GPU 시간(자세 1상태 = 기존 격자 1벌). 캐시 키(_sig_key)에 자세 필드 추가 필요"
+    },
+    {
+      "id": "bistatic_sigma_tensor",
+      "무엇": "바이스태틱 σ(û_i, û_s) 정본 텐서 (지금은 β별 Δσ 통계 7점 × az 24 뿐)",
+      "근거": "rcs_sbr_multistatic 호출부는 저장소 전체에 2곳(생산 1 + 검증 1), 둘 다 통계만 기록",
+      "규모": "150~250 LOC. 조명 재사용 덕에 Rx 축은 싸다(u_s 당 위상합+그림자광선 1발). β≲90° 유효범위 마스크 필수"
+    },
+    {
+      "id": "trajectory_generator",
+      "무엇": "자세 궤적 생성기 — 비행경로 → 시간축 (aspect, 거리, 도플러) 시퀀스",
+      "근거": "grep 'trajectory|waypoint' 히트 4건: viz_bistatic.py:85 _trajectory(그림용 직선), viz_report4.py:640 시나리오 라벨 3종(radial/tangential/waypoint) — 전부 시각화 스크립트 내부. 재사용 가능한 궤적 모듈 0건",
+      "규모": "200~300 LOC (등속·선회·호버·PX4 로그 임포트)"
+    },
+    {
+      "id": "time_varying_sigma_injection",
+      "무엇": "CPI 안에서 시간가변 σ(t)·자세(t) 주입",
+      "근거": "현재 에코는 CPI 당 스칼라 σ 고정(experiment_detection.build_echo_sionna: amp=√σ·L/(√4π R1R2), 위상램프 1개). 마이크로도플러(E(t))와 검출사슬(σ 상수)이 **서로 연결되어 있지 않다**",
+      "규모": "150~250 LOC — 이 방향의 물리적 핵심 배선"
+    },
+    {
+      "id": "sigma_grid_refresh",
+      "무엇": "07-31 메쉬 개편 반영 σ 격자 재생성 + phantom3 추가",
+      "근거": "benchmark/tm_envs.py staleness(): 'sigma_grid/rcs_anchor 는 메쉬 소스보다 낡았다 — 절대 σ 레벨 인용 금지'",
+      "규모": "코드 0줄, GPU 약 1.2 시간(1카드, 아래 계산 참조)"
+    },
+    {
+      "id": "md_phase_table_cache",
+      "무엇": "마이크로도플러 SBR 위상표 캐시(디스크)",
+      "근거": "microdoppler_sbr 는 호출마다 n_phase 개 SBR 를 다시 쏜다. σ 는 sigma_sbr_cache.json 캐시가 있는데 위상표는 없다",
+      "규모": "80~150 LOC. 있으면 스펙트로그램 생산이 사실상 무료가 된다"
+    },
+    {
+      "id": "outdoor_site",
+      "무엇": "자체 실외 사이트 씬",
+      "근거": "assets/scenes/ 비어 있음. 실외는 스톡 Sionna 내장 4씬(street_canyon/munich/etoile/florence)이 전부",
+      "규모": "사이트당 300~600 LOC + 메쉬 자산 (스톡 씬 재활용이면 0)"
+    },
+    {
+      "id": "multi_target",
+      "무엇": "다중표적/군집 씬, 표적-표적 상호가림",
+      "근거": "grep 결과 모든 검출 실험이 단일 표적(scn.target 1점). 다중표적 루프 0건",
+      "규모": "200~400 LOC"
+    },
+    {
+      "id": "domain_randomization",
+      "무엇": "도메인 랜덤화 축 통합(재질 γ, rpm 지터, 클러터 강도, 캘리브레이션 오차)",
+      "근거": "축별 스윕은 있다(material_gamma_sweep, sigma_sensitivity, cpi_guard_sweep, vmax_grid) — 그러나 '샘플 생성 시 랜덤 draw' 로 묶은 곳은 0건",
+      "규모": "100~200 LOC (기존 스윕 재사용)"
+    },
+    {
+      "id": "mc_throughput_unknown",
+      "무엇": "검출 MC 처리율 계측치",
+      "근거": "outputs/detection_rx_sweep.json 에 runtime 필드 없음. regen_timings.json 에도 검출 항목 없음",
+      "규모": "1회 10분 계측"
+    }
+  ],
+
+  "samples_generatable_today": {
+    "판정": "물리 커널 기준으로는 **오늘 하루(1카드·8시간)에 σ pose 수십만 · 마이크로도플러 스펙트로그램 10^5 급**을 만들 수 있다. 그러나 **저장 코드가 0줄이라 실제 생산량은 오늘 0개**다 — 병목은 GPU 가 아니라 writer 다.",
+    "기준_계측치": {
+      "출처": "outputs/runtime_benchmark.json production_per_pose (2026-08-03, 1× RTX 4090 공유중, 프로덕션 설정 div=16·jitter=2·penetrate)",
+      "per_pose_ms_median": "9.2(mini5pro@1.8G) ~ 356.2(s1000plus@5.2G), 전체 중앙 38.1(mavic4pro@3.5G)",
+      "pose_정의": "시선 1개(az,el) × 반송파 1개 → σ 1값. jitter 4오프셋 × 투과 2패스 = 8회 ray_intersect 포함"
+    },
+    "축별_계산": {
+      "σ_격자_전면재생성": "1기체·1밴드 격자 = 120az × 9el × 3f = 3,240 pose. 실측 행별 비용 합산: 5기체 3밴드 = 3,286 s, 8기체(x500v2·typhoonh480·phantom3 ≈ phantom4급 가정) ≈ 4,276 s ≈ **1.2 시간/1카드**. 결과 = 8 × 3 × 1,080 = 25,920 밴드평균 σ 셀",
+      "자세축_증강": "자세 1상태 추가 = 위 1벌. 8시간이면 전 기체·전 밴드 기준 **약 6~7 자세상태**, 또는 mavic4pro 1기체(3밴드)만 하면 **약 66 자세상태**(436 s/상태)",
+      "마이크로도플러_SBR": "위상표 1장 = n_phase 240 × per-pose → mavic4pro@3.5G 9.1 s, s1000plus@5.2G 85 s. 8시간(중간비용 9~20 s 가정) ≈ **1,400~3,100 위상표**. 예: 8기체 × 3밴드 × 60~130 시선각. 위상표 1장에서 (rpm × PRF × n_t × SNR × 잡음시드) 변형은 각 ms → **스펙트로그램 10^5~10^6 장은 디스크 문제이지 계산 문제가 아니다**(E(t) 6144 complex64 = 49 KB → 10^5 장 ≈ 4.9 GB)",
+      "마이크로도플러_PO(가림없음)": "CPU 병렬. md_range_sweep 실적 = 9셀 × 7거리 × 4팔 = 252 결과 / 2,929.6 s ≈ **11.6 s/결과**(풀 사용). SBR 보다 싸지만 가림이 없다",
+      "검출_RD맵": "σ 조회는 무료(격자/캐시). 비용은 CPI MC 뿐. 기존 배관이 1회 생산 스윕에서 **9모드×4Rx×15SNR×9,000 = 4.86M CPI 시행**을 실제로 돌렸다(런타임 미기록). RD맵 1장 = 112×32 complex64 ≈ 28 KB → 10^5 장 ≈ 2.8 GB",
+      "라벨_가능_조합(계산 불필요, 조회만)": "기체 7(→8) × 시선 1,080 × 밴드 3 × 파형모드 9 × Rx 1~4 × SNR 15 = 이미 **1.2×10^7 조합**의 라벨좌표가 격자 안에 존재. 각 조합의 실현(realization)만 새로 뽑으면 된다"
+    },
+    "오늘의_현실치": {
+      "GPU": "0·1·3 은 rcs_anchor/Phantom3 로 점유(94~100%), 여유는 GPU2 약 15 GB / 0% 하나뿐 → **1카드 가정이 맞다**",
+      "권장 순서": "① writer + 라벨 스키마(0.5일) → ② σ 격자 재생성 1.2 h(낡음 해소 겸) → ③ 위상표 캐시 후 스펙트로그램 대량 생산 → ④ 시간가변 σ 주입으로 검출 RD맵",
+      "writer 없이 오늘 나오는 샘플 수": "0"
+    }
+  },
+
+  "biggest_gap": "물리 커널은 전부 있는데 **데이터셋 층이 0줄**이다 — 샘플을 텐서로 떨어뜨리는 writer, 라벨 스키마, split/manifest, 시드 재현 규약이 전무하고(172개 .py grep 결과 실코드 0건, np.savez 2건은 그림용), 그 다음이 σ 와 시간의 단절이다: σ 격자는 '수평 호버 고정자세 × 시선각'뿐이고(pose_articulated 미배선), 검출 사슬은 CPI 당 σ 를 스칼라 상수로 받으며(build_echo_sionna), 마이크로도플러 E(t)와 검출 RD 맵은 서로 연결된 적이 없다. 즉 '기체가 움직이는 한 CPI'를 끝까지 합성하는 경로가 존재하지 않는다."
+}

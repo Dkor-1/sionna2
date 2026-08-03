@@ -1,0 +1,414 @@
+{
+  "_meta": {
+    "title": "sim-to-real 격차 평가 규약 정찰 (레이다·ISAC 관례)",
+    "date": "2026-08-03",
+    "author_note": "원문 PDF 직접 추출(PyMuPDF)로 검증. 모든 인용은 축자 + 쪽수. 에이전트 요약 미사용.",
+    "search_scope": {
+      "corpus": "/data/public/sionna_jeong (사내 논문 아카이브)",
+      "pdf_files_total": 371,
+      "unique_basenames_full_text_scanned": 316,
+      "scan_method": "PyMuPDF 전문 추출 후 정규식 스캔 (sim-to-real / domain gap / train-on-sim / ablation / ECE 등)",
+      "papers_read_in_depth": 14,
+      "scan_hit_counts": {
+        "sim-to-real|sim2real|domain gap|reality gap 표현 사용": "316편 중 16편",
+        "train-on-sim / pretrain-on-sim / finetune-on-real 표현 사용": "316편 중 4편",
+        "expected calibration error | reliability diagram 사용": "316편 중 0편 (스캔이 잡은 ECE 5건은 전부 소속 표기 'Dept. of ECE' 오탐 — 3건 원문 확인)"
+      },
+      "scope_caveat": "이 아카이브는 Sionna·ISAC·패시브레이다 중심으로 큐레이션된 편향 표본이다. 컴퓨터비전·로보틱스 sim2real 주류 문헌(RCAN, domain randomization 계열)은 이 아카이브에 없으므로 아래 '관례' 진술은 무선/레이다 커뮤니티 내부 관례로만 읽어야 한다."
+    }
+  },
+
+  "q1_지표": {
+    "요약": "이 분야는 단일 지표를 쓰지 않는다. fidelity(신호 일치도) 층과 utility(전이 성능) 층을 분리해서 둘 다 인쇄하고, 둘이 어긋나는 것 자체를 결과로 보고하는 것이 최근 관례다. 헤드라인은 항상 utility 쪽이다.",
+
+    "layer_A_fidelity_신호일치도": {
+      "역할": "보조 지표. 단독으로 전이성을 주장하는 근거로 쓰면 안 된다(q5 함정 참조).",
+      "실제로_쓰이는_것": [
+        "range profile Pearson 상관 (RadarTwin, 거리별로 따로)",
+        "객체간 순위 보존: Spearman rho, Mantel r (RadarTwin, Mantel r=0.85 p=0.001)",
+        "range-Doppler SSIM (RadarTwin, 객체별 평균 0.76)",
+        "NMSE(dB) (Morais, CSI 압축·예측)",
+        "log-domain RSSI RMSE(dB) (Saribekyan)",
+        "분포 거리: KS 통계량 D, Wasserstein distance (NextSense)"
+      ],
+      "⭐핵심_방법론_주장": {
+        "출처": "RadarTwin (arXiv 2606.28396) p.6",
+        "축자인용": "A simulator built to generate training data need not reproduce the real signal sample-for-sample. At 77 GHz, with hardware noise and unmodeled micro-structure, it cannot. Raw range-Doppler returns differ substantially between simulation and reality, so a pixel-level signal comparison understates a simulator that is in fact useful. The question that matters is not whether the signal matches point-for-point, but whether the features that distinguish objects (shape signature, material class, motion) stand in the same relationship to one another in simulation as in reality... We therefore measure fidelity at the feature level.",
+        "우리에게의_함의": "SBR+PO 절대 sigma 가 실측과 몇 dB 어긋나는 것은 치명상이 아니다. 기종간 상대 순위(ordering)가 보존되는지가 인쇄해야 할 지표다."
+      },
+      "⭐real↔real_대조군_규약": {
+        "출처": "NextSense (arXiv 2603.20789, INFOCOM 2026 ISAC-FutureG Workshop) p.5-6",
+        "설계": "real↔synthetic 거리를 real↔real2(안테나 위치만 바꿔 재수집한 두 번째 실측 앙상블) 거리와 나란히 인쇄한다. 실측 자체의 재현 변동폭이 곧 격차의 눈금이 된다.",
+        "축자인용_KS": "Comparisons of real-synthetic (D = 0.0037, p = 0.629) and real-real (D = 0.0038, p = 0.597) distributions yield p >> 0.05.",
+        "축자인용_WD": "The distance between real and synthetic sets (WD_real,syn = 0.00149) is virtually indistinguishable from the real-to-real variability (WD_real,real2 = 0.00151).",
+        "우리에게의_함의": "실측 2회 반복(같은 기종·같은 배치)을 반드시 확보해서 real↔real 바닥선을 만들어라. 이게 없으면 어떤 격차 수치도 크다/작다를 말할 수 없다."
+      }
+    },
+
+    "layer_B_utility_전이성능": {
+      "역할": "헤드라인. 실측 테스트셋 위의 다운스트림 태스크 성능 + 베이스라인 대비 Δ.",
+      "형식": "항상 (i) 우리 방법, (ii) raw/무처리 베이스라인, (iii) chance 또는 real-only from-scratch 베이스라인 3열을 같이 인쇄한다.",
+      "예시_RadarTwin_Table3_p.11": "Level / Setting / Raw / RadarTwin / Chance 4열. 예: 'Rover lateral, 11-way obj.' → Raw 0.09, RadarTwin 0.23±.02, Chance 0.09",
+      "예시_Saribekyan_TableII_p.7": "Setup / Held-Out Val / Known Val / Held-Out Test / Known Test / ΔHeld-Out / ΔKnown. Δ열은 real-only 'A (from scratch)' 대비 paired 차이 + 95% CI + 유의성 별표."
+    },
+
+    "layer_C_레이다ISAC_고유_관례_⭐ML과_다른_점": {
+      "1_Pfa는_측정값이_아니라_설계값": {
+        "설명": "ML 의 ROC/AUC 와 결정적으로 다르다. CFAR 검출기의 Pfa 는 사람이 정하는 파라미터이고, 논문은 그 설정값을 밝힌 뒤 Pd 를 보고한다. AUC 를 헤드라인으로 쓰는 레이다 논문은 아카이브에서 보지 못했다.",
+        "출처": "Reliable UAV detection with ISAC (arXiv 2605.23561) p.4",
+        "축자인용": "in order to further improve detection rates for the long distance, the false alarm rate of the CA-CFAR detector was increased from 10^-6 to 10^-4."
+      },
+      "2_모델_대_실측_격차는_dB_곡선_중첩으로_인쇄": {
+        "설명": "sim-vs-real 을 '정확도 차'가 아니라 '예측 SINR 곡선 위에 측정 SINR 산점도를 겹쳐 그리고 dB 오프셋을 읽는' 방식으로 인쇄한다. 링크버짓 모델 변형 여러 개를 동시에 겹쳐 어느 항이 빠졌는지 보인다.",
+        "출처": "Reliable UAV detection with ISAC p.5 Fig.7 캡션",
+        "축자인용": "Measured target SINR vs. range from ISAC for the second experiment (x); expected SNR assuming thermal noise only; expected SINR based on model in eq. (1); expected SINR with additional consideration of FFT window length in eq. (9)",
+        "격차_해석_예": "p.5 — 'The expected SINR in Fig. 7 assumes full antenna gains G_Tx and G_Rx while the drone approaches the edge of the main beam at the near end of the trajectory at 250 m distance which causes an attenuation of around 6 dB of the received signal strength and is visible as gap between expectation and experiment.' → 격차를 6 dB 로 정량화하고 물리적 원인(빔 가장자리)까지 귀속시킨다."
+      },
+      "3_예측_최대탐지거리_대_달성거리": {
+        "출처": "Reliable UAV detection with ISAC p.5",
+        "축자인용": "our ISAC system is capable to detect a small UAV well beyond r_CP = 89 m in 500 meters distance in the presence of strong clutter while flying faster than 5 m/s. We compare this result with the theoretically expected maximum detectable distance based on our link budget model in Section III. Applying the parameter values in Table I and eq. (9), we calculate a maximum detectable distance of r_max = 540",
+        "우리에게의_함의": "가장 값싸고 설득력 있는 단일 sim-to-real 숫자. 시뮬 링크버짓이 예측한 r_max 대 실측 달성 거리. 우리 챔버 시뮬 → 야외 X410 실측에 그대로 이식 가능."
+      },
+      "4_검출_임계_SINR_경험값": {
+        "출처": "Reliable UAV detection with ISAC p.5",
+        "축자인용": "We observe that correctly detected and validated peaks in our experiment have an SINR of at least ~10 dB."
+      },
+      "5_정확도는_평균±표준편차가_아니라_분위수": {
+        "출처": "Reliable UAV detection with ISAC p.5 TABLE II 'ACCURACY OF RANGE MEASUREMENT WITH ISAC W.R.T. GNSS REFERENCE'",
+        "수치": "Experiment 1 (close): 50%-quantile 0.09 m, 95%-quantile 0.30 m / Experiment 2 (far): 0.23 m, 0.73 m"
+      },
+      "6_단일_숫자가_아니라_물리변수의_함수로_인쇄": {
+        "설명": "이 분야의 가장 일관된 관례. pooled accuracy 하나가 아니라 SNR·거리·기종별로 분해한 곡선/표를 낸다.",
+        "사례": [
+          "AirGuard: SNR ∈ {-20,-15,-10,-5,0,5,10,15,20,25,30} dB 11점에 대한 accuracy 곡선 (p.11)",
+          "MuDopplerTag: 0/5/7/9/13 dB 에서 confusion matrix + accuracy, 'an overall accuracy of 99% is achieved at SNR levels above 9 dB. However, at 0 dB, the classification becomes unreliable.' (p.6)",
+          "TSMS-Drone (Nature Sci. Data 2026;13:407): Fig.12/13/14 'Distance-dependent classification accuracy for each drone model' — 센서별로 거리별 정확도 3장",
+          "RadarTwin: 0.5/1.0/2.0 m 각 거리마다 별도 상관계수 (p.8-9)"
+        ]
+      },
+      "7_confusion_matrix는_표준_calibration은_부재": {
+        "설명": "분류 태스크는 confusion matrix 가 사실상 의무. 반면 ML 일반에서 흔한 calibration(ECE, reliability diagram)은 이 커뮤니티에서 쓰이지 않는다.",
+        "부재주장_범위": "전문 스캔한 316편 중 expected calibration error / reliability diagram 사용 0편. 정규식이 잡은 ECE 5건은 전부 소속기관 표기 'Department of ECE' 오탐이며 그중 3건은 원문 문맥까지 확인했다.",
+        "유일한_근접_사례": "CageDroneRF 는 calibration '분석을 가능하게 하는 도구'만 제공하고 지표는 계산하지 않는다 — p.5: 'nor do they expose per-detection class probability vectors for calibration and open-set analyses.'"
+      }
+    },
+
+    "우리_권고": {
+      "primary": "실측 테스트셋 위의 Pd @ 고정 Pfa (CFAR 설계값 명시), 기종·거리·점유모드별로 분해",
+      "secondary": [
+        "예측 r_max 대 실측 달성거리 (단일 숫자 헤드라인)",
+        "측정 SINR vs range 산점도 위에 시뮬 링크버짓 곡선 중첩 → dB 오프셋",
+        "기종간 sigma 순위 보존 Spearman rho (절대 dBsm 이 아니라)",
+        "real↔real2 반복측정 대조군을 모든 fidelity 지표 옆에 병기"
+      ],
+      "쓰지_말_것": "ECE/reliability diagram (분야 관례 아님), pooled single-number accuracy (물리변수 함수로 분해할 것), 픽셀단위 range-Doppler L2 (RadarTwin 이 명시적으로 반대)"
+    }
+  },
+
+  "q2_프로토콜": {
+    "요약": "둘 중 하나가 아니다. 최신 논문들은 supervision ladder — 실측 투입량을 0 → 무라벨 1회 → 소수 라벨 → 전량 으로 계단식으로 올리며 각 단계의 성능을 한 표에 인쇄한다. train-on-sim/test-on-real 은 그 사다리의 맨 아래 칸이고, sim-pretrain + real-finetune 은 윗 칸이다. 둘 다 내야 격차가 읽힌다.",
+
+    "⭐템플릿_A_supervision_ladder": {
+      "출처": "RadarTwin p.11 TABLE III 'Sim-real recognition by supervision level'",
+      "캡션_축자인용": "Sim-real recognition by supervision level. Level (i) uses no real data of the evaluated classes beyond unsupervised normalization. (ii) adds one unlabeled corner-reflector recording. (iii) uses a handful of labeled rotations per class. †For 3-way shape, chance is the majority-class baseline rather than uniform 1/3.",
+      "표_전체": [
+        {"level": "(i)", "setting": "Rover lateral, 11-way obj.", "raw": 0.09, "radartwin": "0.23 ±.02", "chance": 0.09},
+        {"level": "(i)", "setting": "Rover depth, 11-way obj.", "raw": 0.04, "radartwin": "0.13 ±.02", "chance": 0.09},
+        {"level": "(i)", "setting": "Rover lateral, 3-way shape", "raw": 0.55, "radartwin": "0.65 ±.01", "chance": "0.55†"},
+        {"level": "(ii)", "setting": "Rover depth, 3-way material", "raw": 0.35, "radartwin": 0.51, "chance": 0.33},
+        {"level": "(ii)", "setting": "Rover lateral, 3-way material", "raw": 0.30, "radartwin": 0.48, "chance": 0.33},
+        {"level": "(iii)", "setting": "Turntable, 12-way obj.", "raw": 0.90, "radartwin": "0.95 ±.02", "chance": 0.08}
+      ],
+      "핵심_서사_p.12": "each increment of deployment effort purchases a measured increase in capability."
+    },
+
+    "템플릿_B_삼중_프로토콜": {
+      "출처": "Morais et al., 'Comparing Stochastic and Ray-tracing Datasets in Machine Learning for Wireless Applications' (arXiv 2512.12449) p.4",
+      "축자인용": "Evaluate three protocols: (i) In-domain: train and test within the same channel model. (ii) Cross-testing: take the in-domain trained model and evaluate it on 100% of each target dataset. (iii) Fine-tuning: update all layers of the model on a percentage of the target domain and report performance on the",
+      "부가_규약": "Each run uses an 80/10/10 split (train/val/test) within the source domain. ... we repeat each experiment 10 times and report the mean."
+    },
+
+    "템플릿_C_사전학습_파인튜닝_+_필수_베이스라인": {
+      "출처": "Saribekyan et al., 'On the Physical Plausibility and Distribution Alignment for Sim-to-Real RF Positioning' (arXiv 2607.04400, IEEE CITS 2026) p.3",
+      "축자인용": "Every condition uses the same backbone [5]: we pretrain on a synthetic source (B or C, optionally with the normalization variant) and fine-tune on real Dataset A. We evaluate on real known-street and held-out-street splits, where the held-out split is constructed by removing any training crop that overlaps the held-out region, making it a strict test of geographic generalization.",
+      "필수_베이스라인": "'A (from scratch)' = 실측만으로 처음부터 학습. 모든 Δ 열이 이것 대비로 계산된다.",
+      "⭐누출_차단_설계": "held-out 영역과 겹치는 훈련 crop 을 전부 제거 — 지리적 일반화를 엄격 검사. 우리 대응: 실측 세션/비행 단위로 분할하고, 같은 비행에서 나온 세그먼트가 train/test 에 갈라지지 않게 한다."
+    },
+
+    "제로샷만_쓴_사례": {
+      "출처": "NextSense p.6",
+      "축자인용": "An SVM is trained only on NextSense semi-synthetic data and evaluated on real measurements with matched settings, without fine tuning. The classifier achieves 98.33% accuracy on real data, indicating a small domain gap and supporting semi-synthetic pre-training before limited real-world adaptation.",
+      "⚠주의": "이진 LoS 차단 여부 태스크라 난이도가 매우 낮다. 98.33% 를 '도메인 격차가 작다'의 일반 근거로 인용하면 안 된다."
+    },
+
+    "얼마나_많은_real_데이터가_필요한가": {
+      "RadarTwin": {
+        "0개_라벨": "label-free, 비지도 rank normalization 만. 11-way 0.23±0.02 (chance 0.091, binomial p<10^-4). p.11",
+        "무라벨_1회": "코너리플렉터 1회 수집(평가 클래스 라벨 0개) → 재질 3-way 가 chance 0.33 에서 0.51±0.00(depth)/0.48±0.03(lateral) 로 회복. p.11-12",
+        "소수_라벨": "클래스당 라벨된 회전 약 14개(leave-one-out nearest-class-centroid probe) → 12-way 95.3±1.5%, 동일 probe raw feature 89.7% 대비 +5.6점. p.9"
+      },
+      "Morais_CSI압축": {
+        "1%_타깃": "400 samples. 'fine-tuning on >=1% of target data reliably closes most of the domain gap' (p.5)",
+        "포화점": "p.5 — 'the orange baseline moves from -5.56 dB at 400 samples to -20.36 dB at 71,100, with pronounced diminishing returns beyond ~31,600 samples (only 0.68 dB gain thereafter).'",
+        "태스크_의존성_⚠": "p.6 — 채널 예측 태스크에서는 400 샘플로 부족: 'Contrary to the compression task, fine-tuning on more data is necessary to learn the angle-delay progression only present in RT.'"
+      },
+      "LAMBDA_UAV_dataset": {
+        "출처": "arXiv 2607.03826 p.16",
+        "곡선": "N=0 → PCK@16 0.0020±0.0025 / Success@1m 0.00008±0.00018. N=138(5%) → 0.8512±0.0480 / 0.7248±0.0275. N=2755(100%) → 0.9405±0.0301 / 0.7621±0.0025",
+        "해석": "5% 에서 성능의 대부분이 나오고 이후 포화. sim pretrain 의 가치는 저데이터 구간에 집중된다."
+      },
+      "종합_권고": "실측 예산 배분: (a) 라벨 0개 zero-shot 숫자 1개, (b) 무라벨 캘리브레이션 1회(코너리플렉터 상당 — 우리 경우 금속구/코너리플렉터 야외 1회), (c) 기종당 라벨된 비행 10~15회. 이 3점만 있어도 사다리 표가 완성된다."
+    }
+  },
+
+  "q3_ablation_관례_⭐우리_표적모형_ablation_템플릿": {
+    "요약": "있다. 형식이 확립되어 있고 세 가지 변종이 있다. 우리 표적모형 ablation 에는 A(RadarTwin)를 뼈대로, B(Saribekyan)의 fidelity↔utility 이중인쇄를 얹고, C(Zhou)를 실측 앵커가 없는 축에만 쓰는 것을 권한다.",
+
+    "변종_A_⭐주템플릿_시뮬레이터_구성요소_단계적_퇴화": {
+      "출처": "RadarTwin (arXiv 2606.28396) §7.4 'Reconstruction ablation' p.12 + Fig.12",
+      "절차_축자인용": "To isolate what the material-aware reconstruction contributes, we regenerate all lateral simulations under two degraded conditions and rerun the identical label-free protocol: uniform (room geometry kept, every surface forced to plasterboard) and void (object and stand only) (Fig. 12).",
+      "결과_축자인용": "Recognition degrades monotonically: VLM materials 0.227 ± 0.015, uniform 0.192 ± 0.015, void 0.138 ± 0.008 (void not above chance). The VLM-over-uniform margin is significant. On paired per-recording decisions, VLM is uniquely correct on 23 recordings versus 6 for uniform (p=0.001, paired exact test), and it leads in all five seeds.",
+      "교차검증_축_축자인용": "Shape is material-invariant (0.66 uniform vs. 0.65 VLM) but collapses without the environment (0.54). Both stages of the reconstruction earn their place.",
+      "형식_요소_그대로_베낄_것": [
+        "1. 퇴화 사다리를 만든다: full → 한 요소 제거 → 두 요소 제거. 단조 감소를 보인다.",
+        "2. 퇴화 조건마다 시뮬 데이터를 전량 재생성한다(부분 재사용 금지).",
+        "3. 다운스트림 프로토콜은 글자 그대로 동일하게 재실행한다.",
+        "4. 5 seeds, mean ± std, chance 선을 그림에 그린다.",
+        "5. 유의성은 recording 단위 paired exact test + '모든 seed 에서 우세' 병기.",
+        "6. 'not above chance' 를 명시적으로 판정한다.",
+        "7. 무관해야 할 축(shape vs material)에서 무관함을 확인해 특이성을 보인다."
+      ],
+      "짝지어진_fidelity_ablation_p.8-9": {
+        "설계": "동일 축(환경 유무)을 utility 가 아니라 fidelity 로도 잰다 — 실측 range profile 과의 Pearson 상관, 거리별로.",
+        "수치_Fig.9": "object-only(void) sim: 0.5 m -0.26, 1.0 m -0.32, 2.0 m -0.24 / reconstructed-scene sim: 0.5 m +0.04, 1.0 m +0.32, 2.0 m +0.42",
+        "축자인용": "Including the environment improves agreement at every distance, and the gap widens with range. At 2 m the correlation rises from -0.24 (void) to +0.42 (reconstructed scene)."
+      },
+      "⭐교란변수_통제_규칙_p.11": {
+        "축자인용": "First, distance is a confound. Pooling distances inflates sim-real feature correlations (to ~0.8) because both domains vary with range. Distance-matched, per-feature correlations peak near 0.5 and the discriminative signal lives in the joint feature structure rather than any single scalar. All scene-level transfer results are therefore distance-matched, and the turntable probe is verified under range stratification.",
+        "요인분해_규칙": "p.11 — 'we hold two of {object, distance, environment} fixed and vary the third, producing object, distance, and environment slices, so that any sim-real disagreement on a slice is attributable to a single factor'"
+      },
+      "우리_표적모형_ablation_으로의_이식": {
+        "퇴화_사다리_제안": "full(재질가중 PO + 관절 로터 + 내부 배터리/PCB) → 균일재질(전면 금속 또는 전면 유전체) → 로터 정지(강체) → 점산란체(구/타원체 근사) → void(표적 없음, 클러터만)",
+        "고정할_두_축": "{기종, 거리, 대역} 중 둘을 고정하고 하나만 변화 — 특히 거리는 반드시 매칭할 것(위 교란변수 규칙)",
+        "인쇄물_2종": "(a) fidelity: 실측 range profile / sigma 순위와의 상관, 거리별. (b) utility: 실측 테스트셋 Pd @ 고정 Pfa, 5 seeds, chance/raw 병기"
+      }
+    },
+
+    "변종_B_⭐fidelity와_utility를_같이_인쇄해_어긋남을_보이기": {
+      "출처": "Saribekyan et al. (arXiv 2607.04400, IEEE CITS 2026)",
+      "ablation_축_3개": [
+        "물리적 타당성: constrained(옥상 배치 강제) vs unconstrained(자유 배치)",
+        "규모: Dataset B(실제 BS 위치, 배치 특정) vs Dataset C(도시규모 완전합성)",
+        "분포정렬: 원본 RSSI vs C-constrained 정규화 변종"
+      ],
+      "fidelity_결과_p.4": "Mean optimized per-BS RMSE is 42.5 dB unconstrained versus 44.2 dB constrained, a 1.7 dB difference for physical plausibility.",
+      "utility_결과_p.7_TableIII_Held-Out_Test": {
+        "A (from scratch)": "268.93 m [246.4, 293.3]",
+        "B constrained → A": "249.61 [225.4, 274.4], Δ -19.32 [-43.6, +4.5] (유의하지 않음)",
+        "B unconstrained → A": "275.37 [251.6, 300.3], Δ +6.44 [-23.1, +34.4]",
+        "C constrained → A": "335.25 [311.3, 359.8], Δ +66.32 [+31.0, +101.1]* (유의하게 악화)",
+        "C unconstrained → A": "261.92 [241.0, 284.1], Δ -7.01 [-36.0, +21.5]",
+        "C constrained norm. → A": "199.16 [178.3, 220.8], Δ -69.76 [-98.9, -41.6]* (최저)"
+      },
+      "⭐결론_축자인용_p.7": "These results support the main qualitative claim of the paper: physical plausibility alone is not a reliable predictor of sim-to-real transfer.",
+      "부가_경고_p.7": "The difference between Tables II and III is informative. Known-Street Validation identifies B pretraining as a strong source, while Held-Out-Street Validation identifies normalized city-scale constrained simulation as the lowest-error held-out-street model. This suggests that validation design is an important part of sim-to-real RF positioning",
+      "우리에게의_함의": "표적모형을 더 정교하게 만들었는데 실측 전이가 안 좋아지는 결과가 나와도 그것이 논문이 된다. fidelity 개선(σ 오차 dB 감소)을 전이 개선의 증거로 제시하는 것은 이 논문이 명시적으로 반증한 추론이다."
+    },
+
+    "변종_C_leave-one-out_주변영향도_실측앵커가_없을_때": {
+      "출처": "Zhou, Wang, Liu, 'Fidelity Where it Matters: Site-Specific Nonuniform Refinement for Wireless Digital Twins' (arXiv 2605.08772) §III, p.5",
+      "축자인용": "we conduct a building-removal ablation study on a reference high-fidelity WDT D*. Each building is removed individually while keeping all other components unchanged. The resulting deviation in wireless metrics, compared with the original high-fidelity WDT, is used as an oracle measure of the marginal impact of the removed building.",
+      "정직성_단서_축자인용": "It is worth emphasizing that this procedure is not intended as a practical refinement guidance, since the high-fidelity WDT is generally unavailable during practical WDT construction. Instead, it serves to provide empirical evidence for building-level importance heterogeneity",
+      "⚠한계": "오라클이 실측이 아니라 '최고충실도 시뮬'이다. sim-vs-sim 이므로 sim-to-real 격차 주장에는 못 쓴다. 실측 앵커가 없는 축(예: 프로펠러 블레이드 수, 메시 해상도)의 상대적 중요도 순위 매기기에만 쓸 것.",
+      "지표_형식": "제거로 인해 path gain 이 유의하게 변한 수신기의 비율 (indicator 함수 기반, eq.13)"
+    },
+
+    "도메인_전이_ablation_실측사례_챔버→야외": {
+      "출처": "CageDroneRF (arXiv 2601.03302, IEEE T-AES) §V-C p.11-12",
+      "설계_축자인용": "To evaluate the effectiveness of our indoor data and its generalization to outdoor scenarios, we train our hierarchical classifier on the indoor subset of CDRF and evaluate it on the outdoor subset. We further examine how including outdoor data in the training set affects performance by training a second model on the combined indoor and outdoor data. In both cases, the amount of indoor training data is kept constant to ensure a fair comparison.",
+      "결과_indoor_only→outdoor_p.11": "Modulation: 69.95%, Protocol: 66.11%, model-level identification 42.07%. 'This indicates poor domain generalization from indoor to outdoor environments.'",
+      "결과_indoor+outdoor→outdoor_p.12": "Modulation 89.42%, Protocol 87.34%, Model 69.63%. 'The most significant gain (+27.56 pp) is observed at the model level, the task most sensitive to environmental shifts.'",
+      "⭐우리에게_가장_중요한_교훈": "태스크 입도(3 → 5 → 27 클래스)가 올라갈수록 도메인 격차가 커진다. 거친 태스크(탐지)는 잘 전이되는데 세밀한 태스크(기종 식별)는 무너진다. 우리 챔버 시뮬 → 야외 실측도 '탐지는 되는데 기종 구분은 안 된다'가 기본 예상 시나리오다.",
+      "공정성_규칙": "비교군 사이에 챔버 데이터 양을 고정한다."
+    }
+  },
+
+  "q4_표본수_요구": {
+    "요약": "⚠ 정직하게: 아카이브에서 검정력 분석(power analysis)을 한 sim-to-real 논문은 0편이다. 표본 수는 사전 계산이 아니라 사후 유의성 검정으로 정당화된다. 따라서 '몇 개 필요한가'의 답은 '분석 단위를 recording/flight 로 두고, 그 단위의 paired 검정이 p<0.05 를 통과할 만큼'이다.",
+
+    "⭐통계처리_최고수준_사례": {
+      "출처": "Saribekyan et al. p.6",
+      "축자인용": "To quantify uncertainty, we report 95% percentile bootstrap confidence intervals on test-set mean errors using 10,000 bootstrap resamples. For differences against the real-only A baseline, we use paired bootstrap resampling with identical sample indices across runs, because all runs are evaluated with batch size 1 and deterministic sample order. A confidence interval for a difference that excludes zero is treated as statistically significant.",
+      "핵심_3요소": ["percentile bootstrap 10,000 resamples", "paired — 조건들 사이에 동일 sample index 사용", "Δ의 CI 가 0을 배제하면 유의"]
+    },
+    "두번째_사례_RadarTwin": {
+      "출처": "RadarTwin p.11-12",
+      "요소": [
+        "5 seeds, mean ± std",
+        "recording-level majority voting (프레임이 아니라 recording 이 분석 단위)",
+        "binomial p over recordings (p < 10^-4)",
+        "paired exact test on per-recording decisions (VLM 23 vs uniform 6 discordant, p=0.001)",
+        "'leads in all five seeds' 병기"
+      ],
+      "역산": "23 vs 6 discordant pair 로 p=0.001 을 얻었다 → 조건당 독립 recording 이 O(100) 규모. §7.1 p.10: 'The robot performs repeated depth sweeps (toward/away from the object) and lateral sweeps (past the object) at starting stand-offs of 0.5, 1.0, and 2.0 m for each of 11 household objects, in two distinct environments... (~200 real recordings and 66 matched simulation runs per environment).'"
+    },
+
+    "드론_논문들이_실제로_쓴_실측량_수치": [
+      {
+        "paper": "RadarTwin (arXiv 2606.28396) — 실내 mmWave, sim-to-real 전용",
+        "turntable_p.7": "객체를 0.5 / 1.0 / 1.5 / 2.0 m 에 두고 회전(1회전 ~25 s), 각 300 s 녹화 = 회전 약 12회. 12개 객체.",
+        "축자인용": "Each object is mounted on a programmable turntable rotating at one revolution per ~25 s, placed at distances of 0.5, 1.0, 1.5, and 2.0 m, and recorded for 300 s, approximately twelve full rotations per recording, providing enough aspect-angle coverage to average out single-pose specular artifacts.",
+        "scene_p.10": "11개 객체 × 3 stand-off × 2 환경, 환경당 실측 ~200 recordings + 매칭 시뮬 66 runs",
+        "합계_실측": "환경 2곳 합쳐 약 400 recordings + 턴테이블 12객체×4거리×300 s"
+      },
+      {
+        "paper": "MuDopplerTag (arXiv 2601.08042) — CNN 드론 마이크로도플러",
+        "indoor_무향실_p.5": "클래스당 3 records, 각 10 s / 50,001 I/Q samples, 43 classes, 1.54 s 세그먼트(중첩)",
+        "outdoor_자유비행_p.5": "클래스당 10 records, 각 15 s / 90,001 samples, 7 classes, 2 s 세그먼트 1 s 중첩, 20 m × 5 m 영역",
+        "축자인용": "Each recording lasted 15 seconds and consisted of 90,001 samples. For each class, there were 10 records.",
+        "⚠": "즉 실외 실측 총량 = 7 클래스 × 10회 × 15 s = 17.5분. 이것이 IEEE 급 드론 분류 논문의 실제 실외 실측 규모다."
+      },
+      {
+        "paper": "TSMS-Drone (Nature Scientific Data 2026;13:407) — 다중센서 드론 레이다 데이터셋",
+        "구성_p.2": "5 target types (4 commercial drones + 1 corner reflector), 2 m ~ 30 m 를 2 m 간격 (= 15 거리)",
+        "반복_p.7": "500 total measurements for each drone into five subsets of 100. We then alternated the data collection across different drone models.",
+        "총량": "센서당 5 × 15 × 500 = 37,500 파일 (CW radar frame 0.25 s / 16,384 samples)",
+        "⚠": "규모는 크지만 사이트 1곳, 정지 호버링, 기종 4종. 반복 500회는 독립 표본 500개가 아니다."
+      },
+      {
+        "paper": "CageDroneRF (arXiv 2601.03302, IEEE T-AES)",
+        "규모": "39 classes / 23 drone models, cage(실내) + Rowan campus(실외) 두 환경",
+        "open_set_p.12": "14 drone types, 2,180 spectrogram images. known 10 types / 1,915 images, unknown 4 types / 265 images. train 60% / val 20% (known only), 나머지는 test",
+        "⚠클래스_불균형_p.6-7": "실내: 최소 클래스 1 sample (DJI_Mavic3_RC-m), background 1,504 (19.1%). 실외: background 2,100 (84.0%), 최소 클래스 1·2·2·6·8 samples"
+      },
+      {
+        "paper": "AirGuard (arXiv 2603.13112) — UAV/조류 식별 ISAC",
+        "구성_p.10-11": "UAV 종류당 300 motion models, 조류 종류당 200 → 총 3,600 motion models → SNR 11점 × 6회 반복 = 237,600 noisy echo matrices",
+        "⚠": "전량 시뮬레이션. 실측 검증 0. 237,600 은 3,600개 독립 모형의 66배 증강이다."
+      }
+    ],
+
+    "권고_수치": {
+      "분석_단위": "recording / flight. 세그먼트나 프레임이 아니다. 유의성 검정도 recording 단위로.",
+      "최소_실측_설계": "기종당 독립 비행 10~15회 (MuDopplerTag 실외 10회, RadarTwin 턴테이블 회전 ~14회가 사실상의 하한선), 거리 3점 이상, 사이트 2곳 이상(q5 참조), + 캘리브레이션 타깃(코너리플렉터) 1회 + 반복성 확인용 real↔real2 재수집 1회",
+      "통계_보고": "5 seeds, recording 단위 paired bootstrap 10,000 resamples 또는 paired exact test, Δ의 95% CI, chance/raw 베이스라인 병기",
+      "⚠정직성": "이 권고는 논문들의 사후 관행에서 역산한 것이지 검정력 계산이 아니다. 실제 필요량은 효과크기에 달렸고, 우리 효과크기는 아직 모른다. 파일럿(기종 2종 × 5비행)으로 분산을 재고 나서 본 실측 규모를 정하는 것이 정직한 순서다."
+    }
+  },
+
+  "q5_함정": {
+    "요약": "아카이브 논문들이 서로를 비판한 지점과, 자기 한계로 자백한 지점을 모았다. 항목마다 실제 사례를 붙였다.",
+
+    "함정_목록": [
+      {
+        "id": "P1_세그먼트_누출",
+        "이름": "테스트셋 누출 — 같은 recording 에서 잘라낸 중첩 세그먼트를 랜덤 분할",
+        "실제사례": "MuDopplerTag (arXiv 2601.08042) p.5-6. 실외 7 클래스 × 10 records 를 2 s 창 · 1 s 중첩으로 자른 뒤: 'The dataset was divided randomly into 80% for training, 10% for validation, and 10% for testing.' 인접 창이 train 과 test 로 갈라진다.",
+        "그_논문이_잘한_점": "다른 축은 지켰다 — p.5: 'Although 7 outdoor codes formed a subset of 43 indoor variants, underlying recordings remained disjoint and were never mixed during training or evaluation.'",
+        "대응": "분할은 recording/flight 단위로. 중첩 창은 분할 후에 만든다."
+      },
+      {
+        "id": "P2_증강으로_부풀린_N",
+        "이름": "SNR 반복·증강으로 표본 수를 부풀리고 독립 표본처럼 보고",
+        "실제사례_1": "AirGuard p.10-11: 3,600 independent motion models → SNR 11점 × 6 반복 → 237,600 'samples'. 66배 증강.",
+        "실제사례_2_비판": "CageDroneRF p.4 가 RFUAV 를 비판: 'its captures are predominantly high-SNR, with low-SNR and interference conditions synthesized post-hoc rather than captured in situ.'",
+        "대응": "독립 표본 수와 증강 후 수를 반드시 따로 인쇄한다. 유의성 검정은 독립 단위로."
+      },
+      {
+        "id": "P3_거리_교란",
+        "이름": "거리/범위를 pooling 해서 sim-real 상관을 부풀리기, 또는 거리가 클래스 단서로 새기",
+        "실제사례": "RadarTwin p.11: 'distance is a confound. Pooling distances inflates sim-real feature correlations (to ~0.8) because both domains vary with range. Distance-matched, per-feature correlations peak near 0.5'",
+        "추가_방어": "p.9 — 'Since objects sit at different ranges, range could act as a class cue. A range-stratified probe restricted to same-distance groups rules this out: level and gap survive (95.3 ± 1.5% vs. raw 90.3%, stratified chance 24.8%).'",
+        "대응": "모든 sim-real 비교를 거리 매칭 상태로. chance 도 층화 후 값으로 다시 계산(24.8% vs 8.3% 처럼 크게 달라진다)."
+      },
+      {
+        "id": "P4_사이트_1곳",
+        "이름": "환경 1곳에서만 검증 — 전이 성패가 환경에 좌우된다는 것을 발견조차 못 함",
+        "실제사례_자백": "RadarTwin p.12 Limitations: 'Transfer is also environment-dependent (it succeeded in the multipath-rich court but not the open atrium). Characterizing which environment properties predict transfer is open, and the evaluation spans two rooms and twelve objects. Scaling to more environments and object categories is the clearest path to strengthening the deployment claim.'",
+        "함의": "2곳으로 늘렸기 때문에 '환경 의존'이라는 발견이 가능했다. 1곳이었으면 성공 또는 실패 중 하나만 보고 일반화했을 것.",
+        "대응": "실측 사이트 최소 2곳. 우리 경우: 개활지 1 + 반사체 많은 곳 1."
+      },
+      {
+        "id": "P5_기종수_부족_+_깨끗한_환경_천장효과",
+        "이름": "소수 기종 · 통제 환경 → 벤치마크 정확도가 천장에 붙고 실전에서 무너짐",
+        "실제사례_비판": "CageDroneRF p.4: 'DroneRF [77] includes only three drone models in a clean controlled environment, producing near-ceiling benchmark accuracy that transfers poorly to operational settings.'",
+        "일반화_p.2": "'models trained on such data can overfit to idealized conditions, achieving near-perfect scores on easy benchmarks yet degrading severely in realistic deployments with Bluetooth/Wi-Fi interference, spectrum crowding, and low SNR.'",
+        "⚠우리에게_직격": "우리는 30×20×11 무향실 프레임을 쓴다. 무향실 시뮬에서 나온 높은 성능을 그대로 주장하면 정확히 이 비판을 맞는다. 반드시 야외 실측 전이 숫자를 같이 낸다."
+      },
+      {
+        "id": "P6_클래스_불균형",
+        "이름": "배경 클래스가 압도하고 소수 클래스가 한 자릿수 표본",
+        "실제사례": "CageDroneRF p.7 실외 subset: background 2,100 (84.0%), 나머지 9 클래스 합계 400. 최소 클래스 1·2·2·6·8 samples. p.6 실내 subset: 최소 클래스 1 sample.",
+        "귀결": "p.12 — 'The confusion matrix reveals that certain drone types are classified with high accuracy, while others exhibit significant misclassifications, particularly for classes with fewer training samples.' 20 클래스 단일라벨 분류 test accuracy 53.49%.",
+        "대응": "클래스별 표본 분포를 그림으로 인쇄한다(CDRF Fig.3/Fig.5 형식). pooled accuracy 금지, per-class recall 병기."
+      },
+      {
+        "id": "P7_fidelity를_전이의_증거로_쓰기",
+        "이름": "시뮬이 실측을 더 잘 맞춘다 → 전이도 더 좋다, 는 추론. 반증되었다.",
+        "실제사례": "Saribekyan p.4 fidelity: unconstrained 42.5 dB vs constrained 44.2 dB RMSE (unconstrained 이 더 잘 맞음). p.7 utility: 'neither regime dominates in downstream positioning. The preferred regime varies across the model-selection criterion, the synthetic-data scale, and the evaluation split.' 결론: 'physical plausibility alone is not a reliable predictor of sim-to-real transfer.'",
+        "대응": "fidelity 지표는 진단용으로만 인쇄하고, 전이 주장은 반드시 실측 다운스트림 숫자로만 한다."
+      },
+      {
+        "id": "P8_모델선택_규칙_미선언",
+        "이름": "검증 분할 선택 규칙에 따라 결론 순위가 뒤집히는데 유리한 쪽만 보고",
+        "실제사례": "Saribekyan Table II(known-street 선택) vs Table III(held-out-street 선택) p.7. 같은 6개 조건인데 최선 조건이 바뀐다. 저자들은 둘 다 인쇄했다.",
+        "축자인용_p.7": "This suggests that validation design is an important part of sim-to-real RF positioning, and the geographic location where synthetic data is generated matters.",
+        "대응": "선택 규칙을 사전 선언하거나, 두 규칙 결과를 둘 다 인쇄한다."
+      },
+      {
+        "id": "P9_태스크_입도로_격차_감추기",
+        "이름": "거친 태스크(탐지/이진)만 보고 전이 성공을 주장",
+        "실제사례": "CageDroneRF p.11-12 챔버→야외: Modulation(3 클래스) 69.95% / Protocol(5) 66.11% / Model(27) 42.07%. 입도가 올라갈수록 붕괴.",
+        "반례_주의": "NextSense p.6 의 98.33% 는 이진 LoS 차단 태스크다. 이런 숫자로 '도메인 격차 작음'을 일반화하면 이 함정에 빠진다.",
+        "대응": "탐지·기종식별을 항상 같이 인쇄한다."
+      },
+      {
+        "id": "P10_절대_방사량_주장",
+        "이름": "절대 dB/dBsm 수준이 sim-to-real 을 건넌다고 가정",
+        "실제사례": "RadarTwin p.9: 'absolute radiometry does not survive the sim-to-real gap: system gain and room-dependent multipath compression shift every level, and the simulator over-separates material contrast.' p.11: 'The simulator over-separates material contrast relative to multipath-compressed real returns (a ~25:1 ratio of separations in log-energy)'",
+        "그들의_해법": "코너리플렉터 1개(라벨 불필요)로 per-feature affine map 을 잡는다 — p.9: 'We adopt the cheapest available, a single trihedral corner reflector (a standard calibration target with known, aspect-stable cross-section) in the deployment space, defining a per-feature affine map between simulated and real energy-dependent features.'",
+        "우리에게의_함의": "SBR+PO 절대 sigma 를 실측과 직접 대조하는 주장은 위험. 순위/상대 대비로 주장하고, 코너리플렉터 앵커로 절대치를 보정한다. (기존 메모 'sionna2-rcs-methodology' 의 실측 앵커링 방침과 일치)"
+      },
+      {
+        "id": "P11_실측_검증_전무",
+        "이름": "시뮬만으로 논문을 끝내고 실측 대조를 안 함",
+        "실제사례": "AirGuard (arXiv 2603.13112): 3,600 motion models 전량 시뮬, 237,600 이미지, 실측 검증 0.",
+        "대응": "우리 방향(시뮬 5종 + 실측 2종 Mavic4Pro·Matrice4E)이 이 함정을 피하는 설계다. 실측 2종이라도 반드시 붙인다."
+      },
+      {
+        "id": "P12_사후_조건합성",
+        "이름": "저SNR·간섭 조건을 사후 합성해놓고 실측 조건인 것처럼 다루기",
+        "실제사례": "CageDroneRF p.4 의 RFUAV 비판(P2 와 동일 인용). CDRF 자신의 대응은 Faraday cage(청정) + open campus(자연 간섭) 이중 수집.",
+        "대응": "합성 조건과 실측 조건을 표에서 색/열로 분리 표기한다."
+      }
+    ],
+
+    "우리_프로젝트에_가장_위험한_3가지": [
+      "P5 — 무향실 프레임이 곧 'clean controlled environment' 이므로 천장효과 비판의 정면 표적. 야외 전이 숫자 없이는 방어 불가.",
+      "P7 — 우리는 표적모형 정교화(재질가중 PO, 관절 로터, 내부 구조)에 많이 투자했다. 이 정교화가 sigma 오차를 줄였다는 것으로 전이 개선을 주장하면 Saribekyan 이 명시적으로 반증한 추론을 반복하게 된다.",
+      "P10 — 절대 dBsm 앵커링이 우리 RCS 서사의 핵심인데, RadarTwin 은 절대 방사량이 sim-to-real 을 못 건넌다고 실측으로 보였다. 순위 기반 주장으로 재프레이밍할 준비가 필요하다."
+    ]
+  },
+
+  "sources": [
+    {"key": "RadarTwin", "cite": "E. Bejerano et al., 'RadarTwin: Scene-Specific mmWave Radar Simulation and Learning for Mobile Indoor Perception', arXiv:2606.28396v1 [cs.CV], 24 Jun 2026, 13 pp.", "path": "/data/public/sionna_jeong/reference_library/2606.28396__radartwin.pdf", "why": "⭐주템플릿. 페어드 real-sim 레이다 데이터셋, 구성요소 퇴화 ablation, supervision ladder, feature-level fidelity 논증"},
+    {"key": "Saribekyan", "cite": "A. Saribekyan, A. Manukyan, H. Khachatrian, T. P. Raptis, 'On the Physical Plausibility and Distribution Alignment for Sim-to-Real RF Positioning', arXiv:2607.04400v1 [cs.NI], 5 Jul 2026 (©2026 IEEE, CITS 2026), 8 pp.", "path": "/data/public/sionna_jeong/papers_isac_sionna/published_by_venue/IEEE_CITS_2026/2607.04400__saribekyan_sim2real-positioning.pdf", "why": "⭐fidelity↔utility 어긋남, paired bootstrap 통계, 시뮬 구성 ablation"},
+    {"key": "CageDroneRF", "cite": "M. Rostami, A. Faysal, H. Xia, H. Kasasbeh, Z. Gao, H. Wang, 'CageDroneRF: A Large-Scale RF Benchmark and Toolkit for Drone Perception', IEEE Trans. Aerospace and Electronic Systems (arXiv:2601.03302v2 [cs.CV], 19 Mar 2026), 17 pp.", "path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2601.03302__cagedronerf-benchmark.pdf", "why": "⭐챔버→야외 도메인 전이 실측, 함정 목록의 원천, 클래스 불균형 실례"},
+    {"key": "Reliable-UAV-ISAC", "cite": "'Reliable UAV Detection with ISAC' (Wild/Mandelli/Henninger 그룹 PoC), arXiv:2605.23561v1 [eess.SP], 22 May 2026, 6 pp.", "path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2605.23561__reliable-uav-detection-with-isac.pdf", "why": "⭐레이다/ISAC 고유 지표 관례 — CFAR Pfa 설계값, SINR-vs-range 곡선 중첩, 예측 r_max 대 달성, 분위수 정확도"},
+    {"key": "NextSense", "cite": "D. Rico Menéndez, P. Picazo-Martinez, A. de la Oliva, C. J. Bernardos, C. Sarathchandra, A. Mourad, 'NextSense: A Semi-Synthetic Sensing Data generation Platform', IEEE INFOCOM 2026 ISAC-FutureG Workshop (arXiv:2603.20789v1 [cs.NI], 21 Mar 2026), 6 pp.", "path": "/data/public/sionna_jeong/reference_library/new_0803/2603.20789__nextsense-semisynthetic-sensing-platform_INFOCOM2026.pdf", "why": "⭐real↔real2 대조군 규약 (KS, Wasserstein), zero-shot train-on-sim/test-on-real"},
+    {"key": "Morais-datasets", "cite": "J. Morais, A. Malhotra, S. Hamidi-Rad, A. Alkhateeb, 'Comparing Stochastic and Ray-tracing Datasets in Machine Learning for Wireless Applications', arXiv:2512.12449, 8 pp.", "path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2512.12449__morais-stochastic-vs-raytracing-datasets.pdf", "why": "삼중 프로토콜(in-domain/cross-test/fine-tune) 정의, 파인튜닝 데이터량 곡선과 포화점"},
+    {"key": "Zhou-fidelity-DT", "cite": "Z. Zhou, Z. Wang, Y. Liu, 'Fidelity Where it Matters: Site-Specific Nonuniform Refinement for Wireless Digital Twins', arXiv:2605.08772, 13 pp.", "path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2605.08772__zhou-fidelity-site-specific-dt.pdf", "why": "leave-one-out 주변영향도 ablation (오라클=최고충실도 시뮬, 실측 아님)"},
+    {"key": "MuDopplerTag", "cite": "'MuDopplerTag' CNN drone micro-Doppler, arXiv:2601.08042, 12 pp.", "path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2601.08042__mudopplertag-cnn-drone-microdoppler.pdf", "why": "실측 표본량 수치, SNR별 confusion matrix 관례, ⚠세그먼트 누출 실례"},
+    {"key": "TSMS-Drone", "cite": "'Time-synchronized multi-sensor drone radar dataset (TSMS-Drone)', Scientific Data (2026) 13:407, https://doi.org/10.1038/s41597-026-06802-6, 17 pp.", "path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/natsciData2026__multisensor-drone-radar-dataset.pdf", "why": "드론 레이다 데이터셋 실측 규모 기준선, 거리별 정확도 인쇄 관례"},
+    {"key": "AirGuard", "cite": "'AirGuard: UAV and bird recognition with ISAC', arXiv:2603.13112, 14 pp.", "path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2603.13112__airguard-uav-bird-recognition-isac.pdf", "why": "SNR 스윕 accuracy 관례, ⚠증강 부풀림·실측 부재 실례"},
+    {"key": "LAMBDA", "cite": "'LAMBDA: low-altitude multimodal UAV dataset', arXiv:2607.03826, 20 pp.", "path": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf", "why": "sim pretrain → real few-shot 데이터량 곡선 (N=0/138/2755)"}
+  ],
+
+  "우리_다음_행동_제안": [
+    "실측 계획서(measurement_plan.json)에 real↔real2 반복 수집 1세트를 추가한다 — 없으면 격차의 눈금이 없다.",
+    "코너리플렉터(또는 금속구) 야외 1회 수집을 캘리브레이션 앵커로 계획에 넣는다 — RadarTwin 의 Level (ii) 에 해당하고, 라벨이 필요 없어 비용이 가장 싸다.",
+    "표적모형 ablation 을 RadarTwin §7.4 형식으로 설계한다: 퇴화 사다리 5단계, 거리 매칭, 5 seeds, chance 선, recording 단위 paired 검정.",
+    "동일 ablation 축에 대해 fidelity(순위 상관)와 utility(Pd@Pfa) 를 둘 다 인쇄할 준비를 한다 — 어긋나면 그것이 결과다(Saribekyan).",
+    "리포트에 '탐지'와 '기종식별'을 항상 분리 인쇄하는 규약을 넣는다 (CDRF 입도 붕괴 교훈)."
+  ]
+}

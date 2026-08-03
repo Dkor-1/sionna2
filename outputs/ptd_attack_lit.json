@@ -1,0 +1,268 @@
+{
+  "meta": {
+    "task": "adversarial literature cross-check: is docs/PTD_ILDC_FORMULATION.md + src/ptd_edges.py really 'TW-ILDC' as in Gao PIER 2012?",
+    "generated": "2026-08-03",
+    "generated_by": "adversarial-review subagent (literature cross-check round)",
+    "artifacts_reviewed": [
+      "/home/yunjung/workspace/sionna2/docs/PTD_ILDC_FORMULATION.md (789 lines, read in full)",
+      "/home/yunjung/workspace/sionna2/src/ptd_edges.py (726 lines, read in full)",
+      "/home/yunjung/workspace/sionna2/outputs/smoke_ptd.json",
+      "/home/yunjung/workspace/sionna2/outputs/ptd_plate_validation.json"
+    ],
+    "method": "every load-bearing equation was re-implemented verbatim from the source PDF and compared numerically against the shipped kernel; every quotation in the doc was checked against the extracted source text.",
+    "honesty_note": "Michaeli 1986 itself and Mitzner AFAL-TR-73-296 were still NOT read. Michaeli 1986 eqs (4)-(7) were reached one step from primary, through Johansen 1996 which reproduces them verbatim with equation numbers ('Michaeli found that [6, (4)-(7)]')."
+  },
+
+  "sources_consulted": {
+    "primary_full_text_obtained_this_round": [
+      {
+        "id": "gao2012",
+        "cite": "P. C. Gao, Y. B. Tao, Z. H. Bai, H. Lin, 'Mapping the SBR and TW-ILDCs to Heterogeneous CPU-GPU Architecture for Fast Computation of Electromagnetic Scattering', PIER 122, 137-154, 2012",
+        "path": "/data/public/sionna_jeong/reference_library/new_0803/pier2011__sbr-twildcs-cpu-gpu-fast-rcs.pdf",
+        "pages": 18,
+        "key_fact": "Gao presents ONLY the EEC radiation line integral, his eq (3). He gives NO TW-ILDC coefficient formula at all: 'their detailed expressions can be found in [12]', where [12] = Johansen 1996. So 'is our thing the same as Gao's' is answered entirely through Johansen."
+      },
+      {
+        "id": "johansen1996",
+        "cite": "P. M. Johansen, 'Uniform Physical Theory of Diffraction Equivalent Edge Currents for Truncated Wedge Strips', IEEE TAP 44(7):989-995, 1996",
+        "path": "fetched from https://backend.orbit.dtu.dk/ws/files/4237273/Johansen.pdf, 8 pages, extracted + page 4/6/7 rendered and read as images",
+        "key_fact": "This is Gao's ref [12], i.e. the actual definition of TW-ILDC. Its eqs (4),(5),(6),(7) are Michaeli 1986 eqs (4)-(7) quoted verbatim and are labelled the UNTRUNCATED EECs. Its eqs (9),(10),(11),(21),(22) are the CORRECTION EECs. Truncated = untruncated - correction, eq (3)."
+      },
+      {
+        "id": "ozturk2002",
+        "cite": "A. K. Oztuerk, 'Implementation of Physical Theory of Diffraction for Radar Cross Section Calculations', MSc thesis, Bilkent Univ., July 2002",
+        "path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/bilkent_thesis__ptd-implementation-rcs.pdf",
+        "pages": 72,
+        "key_fact": "Its ref [11] is confirmed to be Michaeli 1986 (bibliography verified). Its (3.24)-(3.30) are attributed 'from Michaeli[11]'. Its (3.37)/(3.38) monostatic form IS printed in full on thesis pp. 43-44."
+      }
+    ],
+    "abstract_level_only": [
+      {
+        "id": "michaeli1986",
+        "cite": "A. Michaeli, 'Elimination of infinities in equivalent edge currents, Part I: Fringe current components', IEEE TAP 34(7):912-918, 1986",
+        "status": "full text NOT obtained; abstract retrieved verbatim",
+        "abstract_verbatim": "New expressions are derived for the fringe current components of the equivalent edge currents. They are obtained by asymptotic endpoint evaluation of the fringe current radiation integral over the 'ray coordinate' measured along the diffracted ray grazing the surface of the local wedge. The resulting expressions, unlike the previous ones, are finite for all aspects of illumination and observation, except for the special case where the direction of observation is the continuation of a glancing incident ray propagating 'inwards' with respect to the wedge surface (the Ufimtsev singularity).",
+        "why_it_matters": "confirms the strip direction u-hat is the GRAZING DIFFRACTED RAY, which is what Oztuerk (3.30) cos(gamma) = sin(b')sin(b)cos(phi) + cos(b')cos(b) encodes (note the PLUS sign; the other Keller-cone/face intersection root, used in the 1984-style derivation, carries a minus). Our doc sections 2.1 and 4.1 describe the strip as 'the intersection of the Keller cone and the wedge face' (Gao's wording) without saying WHICH of the two intersection rays. That is imprecise, though the implemented algebra picks the right one automatically."
+      },
+      {
+        "id": "knott1985",
+        "cite": "E. F. Knott, 'The relationship between Mitzner's ILDC and Michaeli's equivalent currents', IEEE TAP 33(1):112-114, 1985",
+        "status": "full text NOT obtained; abstract retrieved verbatim",
+        "abstract_verbatim": "Michaeli recently derived a set of equivalent edge currents for scattering directions not on the Keller cone. Some years ago, Mitzner developed his incremental length diffraction coefficient (ILDC) for the same purpose. It is shown that Michaeli's results relate to Mitzner's for arbitrary directions in identically the way Keller's relate to Ufimtsev's for directions on the Keller cone.",
+        "note": "This relates Mitzner's ILDC to MICHAELI 1984 (total-current EEC), not to Michaeli 1986. Our doc section 2.3 states the same relation but then slides to 'therefore (a) and (b) are the same thing, only different algebra'. That slide is stronger than the abstract supports."
+      },
+      {
+        "id": "mitzner1974",
+        "cite": "K. M. Mitzner, 'Incremental Length Diffraction Coefficients', Northrop Corp. AFAL-TR-73-296, Apr. 1974",
+        "status": "NOT obtained. Still the one unfilled hole in the ILDC chain."
+      }
+    ]
+  },
+
+  "q1_are_the_coefficients_really_michaeli_mitzner": {
+    "verdict": "YES for Michaeli. The coefficients are Michaeli's 1986 fringe (untruncated) equivalent edge currents, transcribed correctly. They are NOT a coarser approximation.",
+    "evidence": [
+      {
+        "test": "shipped _face_fringe (face-1 fringe EEC, i.e. Oztuerk (3.26)-(3.24) and (3.27)-(3.25)) vs Johansen 1996 eqs (4),(5),(6),(7) coded verbatim from the rendered page image",
+        "n_random_aspects": 400,
+        "sampled_ranges": "N in [1.02,2.0], beta0/beta in [0.3,2.8] rad, phi0 in (0,pi), phi in (0,N*pi)",
+        "worst_relative_error": 5.81e-12,
+        "fraction_of_samples_with_abs_mu_gt_1": 0.41,
+        "meaning": "Johansen introduces those four equations with the words 'Michaeli found that [6, (4)-(7)]', where [6] is Michaeli 1986. So the shipped kernel reproduces Michaeli's own published equations to double precision, including the -2j*cot(beta0)*Hz0/(k*N*sin(beta0)) tail term and the mu definition (6)."
+      },
+      {
+        "test": "shipped fringe_eec (both faces) vs Oztuerk (3.33)/(3.34), the published half-plane N=2 closed form",
+        "n_random_aspects": 12,
+        "worst_relative_error": 2.05e-15
+      },
+      {
+        "test": "shipped fringe_eec vs Oztuerk (3.35)-(3.38), the published monostatic backscatter specialization, general N",
+        "n_random_aspects": 10,
+        "worst_relative_error": 8.72e-13
+      },
+      {
+        "test": "on-cone reduction to Ufimtsev f1/g1 (already in outputs/smoke_ptd.json e_ufimtsev_oncone)",
+        "max_abs_err": 2.27e-14,
+        "note": "PASSES, but only exercises |mu| <= 1. See gap G6."
+      }
+    ],
+    "branch_question_resolved": {
+      "concern": "a = arccos(mu) is complex when |mu| > 1; Johansen eq (8) fixes a specific square-root branch that we could not read.",
+      "resolution": "moot. mu = (cos(gamma) - cos^2(beta0))/sin^2(beta0) and cos(gamma) <= 1, so mu <= 1 identically. Only mu < -1 is reachable, and there our _arccos_c agrees with numpy's principal arccos to 1e-14. Verified numerically at mu = -1, -3, -50.",
+      "corollary": "mu -> 1 (a -> 0) is exactly the Ufimtsev-singularity boundary named in Michaeli's abstract and in Johansen section II."
+    },
+    "is_it_mitzner_ildc": {
+      "verdict": "Equivalent physics, NOT the same algebra. Do not write 'Mitzner ILDC'.",
+      "reason": "Knott 1985 equates Mitzner's ILDC with Michaeli 1984 minus the PO part. Michaeli 1986 is a LATER, DIFFERENT closed form obtained by integrating along the grazing diffracted ray specifically to remove infinities the earlier forms had. Johansen lists Ufimtsev's elementary edge waves [2], Mitzner's ILDC [3], Michaeli's EECs [4][5][6] and Shore-Yaghjian [7][8] as four separate closed forms for the same untruncated quantity, and then says he uses Michaeli's. Since we never read Mitzner, claiming numerical identity with Mitzner is unverified."
+    }
+  },
+
+  "q2_did_we_do_gao_truncated_wedge": {
+    "verdict": "NO. We implemented only the untruncated half of it. The truncation is 100% absent, not approximated.",
+    "what_TW_actually_is": {
+      "structure": "Johansen 1996 eq (3): M_T = M_UT - M_cor and I_T = I_UT - I_cor.",
+      "M_UT_I_UT": "Johansen eqs (4),(5) = Michaeli 1986 (4)-(7). >>> THIS IS WHAT WE IMPLEMENTED, exactly. <<<",
+      "M_cor_I_cor": "Johansen eqs (9),(10) with the strip integral (11) L^A_{x,z} = int_{l^A}^{inf} J^{fw,A}_{x,z} exp(j k u s_hat . u_hat^A) du, asymptotically evaluated in his eqs (21),(22). >>> ABSENT FROM OUR CODE. <<<",
+      "geometric_meaning": "the incremental strip is cut at the far (trailing) boundary of the wedge face; l^A is the physical strip length from the leading edge along u_hat^A, and L = k*l^A*sin^2(beta0) is the dimensionless strip-length parameter.",
+      "what_it_needs_that_we_never_compute": [
+        "l^A per edge segment per aspect angle: the ray-march distance from the edge point along the grazing-diffracted-ray direction to where the face ends. Our extract_edges stores no face-extent information at all.",
+        "the Fresnel/transition function F() appearing in Johansen (21)/(22).",
+        "a second, independent strip and correction for face B."
+      ]
+    },
+    "why_this_is_not_a_small_omission_for_us": {
+      "literature_anchor_1": "Johansen section IV, PEC triangular cylinder of side 2*lambda (a few-lambda target, our size class), TE plane wave, bistatic: 'It is seen that the untruncated EEC's yield a poor approximation to the exact scattered FW field: the Ufimtsev singularity occurs for phi = 60 deg and the field is discontinuous across the current layers located at phi = 120, 180, 240, and 360 deg.' Read off his Fig. 4: the untruncated curve spikes to about +27 dB where the MFIE-minus-PO reference is about -5 dB, i.e. a ~30 dB error at the singularity, with several-dB errors and false lobes elsewhere.",
+      "literature_anchor_2": "Johansen's own summary of what truncation buys physically: 'the truncated EEC's only take into account part of the second-order edge diffraction because the FW current exited at the trailing edge is neglected.' Therefore omitting TW == omitting part of the second-order edge diffraction, and second-order is exactly what Oztuerk p.44 and Breinbjerg 1992 say grows relatively larger as the plate shrinks.",
+      "scope_caveat_in_our_favour": "Johansen's demonstration is BISTATIC over the full 360 deg. Our production use is monostatic backscatter. The Ufimtsev singularity (mu=1 AND phi0=pi simultaneously) is generically not on the monostatic locus, and the current-layer discontinuities are a bistatic-sweep artefact. So the 30 dB number is an upper bound for the wrong geometry and must NOT be quoted as our error bar. But the finite-face (trailing-edge) part of the truncation error has no such escape and is unbounded by anything we have measured."
+    },
+    "our_doc_argument_for_skipping_TW_is_partly_unsound": "docs/PTD_ILDC_FORMULATION.md section 4.4 justifies skipping TW with 'in monostatic the untruncated EEC already has no singularity'. That conflates two different things. Truncation exists (i) to kill the Ufimtsev singularity and layer discontinuities AND (ii) to represent a physically finite face. Only (i) is helped by going monostatic. (ii) is untouched and is the one that bites at few-lambda."
+  },
+
+  "q3_honest_name": {
+    "one_line": "First-order PTD fringe-wave correction computed with Michaeli's UNTRUNCATED equivalent edge currents (PTD-EEC), integrated analytically along straight edge segments.",
+    "korean_one_line": "1차 PTD 프린지파 보정 — Michaeli 의 비절단(untruncated) 등가모서리전류(PTD-EEC), 직선 조각 해석적 선적분.",
+    "shortest_defensible_label": "untruncated Michaeli PTD-EEC (first order)",
+    "why_these_words": [
+      "'untruncated EEC' is not our coinage: it is Johansen 1996's own term for exactly the quantity his eqs (4),(5) define and that we reproduce to 6e-12.",
+      "'PTD-EEC' is Oztuerk 2002's and Albayrak 2005's term for the same object.",
+      "'first order' is required because second-order edge-to-edge diffraction, corner diffraction and creeping waves are all zero in our code."
+    ],
+    "names_that_would_be_overclaims": {
+      "TW-ILDC": "FALSE. Missing the entire correction EEC, which is what the 'TW' means.",
+      "ILDC": "MISLEADING. In the SBR literature ILDC almost always means Mitzner's original or Gao's TW-ILDC. We implemented neither closed form.",
+      "'Gao's method' / 'Gao 2012 edge term'": "FALSE. Gao's edge term is Johansen's truncated EEC. Ours is the untruncated one Johansen wrote his paper to replace.",
+      "'PTD'": "acceptable as a family name only, and only with 'first order, untruncated' attached.",
+      "'1차 등가모서리전류 근사'": "acceptable Korean shorthand but it undersells the provenance; prefer '1차 비절단 Michaeli PTD-EEC' so the missing piece is named."
+    },
+    "file_and_label_renames_recommended": [
+      "docs/PTD_ILDC_FORMULATION.md -> the filename says ILDC but the adopted formulation is EEC. Either rename to PTD_EEC_FORMULATION.md or add a one-line note at the top saying the file surveys ILDC/TW-ILDC and ADOPTS the untruncated Michaeli EEC.",
+      "docs/RESUME.md line 138 work item 'TW-ILDC (PTD 모서리항)' -> 'untruncated Michaeli PTD-EEC (PTD 모서리항)'.",
+      "no report, notebook or deck currently claims 'we implemented TW-ILDC' (grepped): the overclaim risk is confined to these two labels."
+    ]
+  },
+
+  "q4_how_to_cite": {
+    "english_method_sentence": "The fringe-wave (non-uniform current) contribution is added to the physical-optics surface integral as a first-order physical theory of diffraction correction, using Michaeli's closed-form equivalent edge currents for an untruncated incremental wedge strip [Michaeli 1986], in the form tabulated by Oztuerk [Oztuerk 2002, eqs. (3.23)-(3.32)]. The correction (truncated-strip) equivalent edge currents of Johansen [Johansen 1996], which Gao et al. term TW-ILDCs [Gao 2012], are NOT included; our edge term is therefore the untruncated half of that formulation. Second-order edge, corner and creeping-wave contributions are likewise omitted.",
+    "english_limitation_sentence": "Because the incremental strip is taken to be infinite, the trailing-edge truncation that Johansen shows to be necessary for few-wavelength faces is absent, and part of the second-order edge diffraction is therefore missing; this is the dominant known systematic error of our edge term for drone-scale scatterers.",
+    "korean_method_sentence": "PO 면적분에 Ufimtsev 의 비균일(프린지) 전류 기여를 1차 PTD 보정으로 더한다. 계수는 Michaeli 의 비절단(untruncated) 증분 쐐기 스트립 등가모서리전류 닫힌형[Michaeli 1986]을 Oztuerk[2002, (3.23)-(3.32)] 의 표기로 구현한 것이다. Johansen[1996]의 절단(correction) EEC — Gao 등[2012]이 TW-ILDC 라 부르는 것 — 은 포함하지 않았다. 즉 우리 모서리항은 그 정식화의 비절단 절반이다.",
+    "korean_limitation_sentence": "증분 스트립을 무한으로 두었기 때문에, Johansen 이 few-λ 면에서 필요하다고 보인 후연(trailing edge) 절단이 빠져 있고 그만큼 2차 모서리회절의 일부가 누락된다. 드론 체급 표적에서 우리 모서리항의 최대 계통오차원이다.",
+    "bibtex_keys_to_add": [
+      "@article{michaeli1986, author={A. Michaeli}, title={Elimination of infinities in equivalent edge currents, Part I: Fringe current components}, journal={IEEE Trans. Antennas Propag.}, volume={34}, number={7}, pages={912--918}, year={1986}, doi={10.1109/TAP.1986.1143913}}",
+      "@article{johansen1996, author={P. M. Johansen}, title={Uniform physical theory of diffraction equivalent edge currents for truncated wedge strips}, journal={IEEE Trans. Antennas Propag.}, volume={44}, number={7}, pages={989--995}, year={1996}, doi={10.1109/8.504306}}",
+      "@article{gao2012twildc, author={P. C. Gao and Y. B. Tao and Z. H. Bai and H. Lin}, title={Mapping the SBR and TW-ILDCs to heterogeneous CPU-GPU architecture for fast computation of electromagnetic scattering}, journal={Progress In Electromagnetics Research}, volume={122}, pages={137--154}, year={2012}, doi={10.2528/PIER11092303}}",
+      "@mastersthesis{ozturk2002, author={A. K. \\\"Ozt\\\"urk}, title={Implementation of Physical Theory of Diffraction for Radar Cross Section Calculations}, school={Bilkent University}, year={2002}}",
+      "@article{knott1985, author={E. F. Knott}, title={The relationship between Mitzner's ILDC and Michaeli's equivalent currents}, journal={IEEE Trans. Antennas Propag.}, volume={33}, number={1}, pages={112--114}, year={1985}, doi={10.1109/TAP.1985.1143482}}"
+    ],
+    "citation_hygiene_rules": [
+      "Cite Michaeli 1986 as the SOURCE of the coefficients and Oztuerk 2002 as the transcription we actually read. Do not cite Michaeli 1986 as if we read it.",
+      "Cite Johansen 1996 and Gao 2012 only in the NEGATIVE ('not included'), never as our method.",
+      "Do not cite Mitzner 1974 at all until AFAL-TR-73-296 is obtained; cite Knott 1985 only for the ILDC/EEC equivalence statement, and note it concerns Michaeli 1984."
+    ]
+  },
+
+  "gaps_vs_literature": [
+    {
+      "id": "G1",
+      "severity": "high",
+      "gap": "Truncated / correction EECs entirely absent",
+      "literature": "Johansen 1996 eqs (3),(9),(10),(11),(21),(22); Gao 2012 sec. 2.2 (his whole 'TW' is this term)",
+      "our_state": "src/ptd_edges.py implements only Michaeli's untruncated eqs; NOT_IMPLEMENTED[0] declares it honestly",
+      "consequence": "the finite-face (trailing-edge) physics is missing; Johansen calls the untruncated EEC 'a poor approximation to the exact scattered FW field' for his 2-lambda test body, and states that truncation is what supplies part of the second-order edge diffraction. This is the dominant unquantified error for our few-lambda drone parts.",
+      "what_would_close_it": "implement Johansen (21)/(22) plus a per-segment, per-aspect strip length l^A obtained by ray-marching the face along the grazing diffracted ray. Requires face-extent data extract_edges does not currently keep."
+    },
+    {
+      "id": "G2",
+      "severity": "high",
+      "gap": "Overall normalization constant and sign are still uncalibrated, and the plate gate already caught the sign",
+      "literature": "no literature constant was ever adopted; doc sec. 9.1 admits '이 정규화는 우리 유도'",
+      "our_state": "outputs/ptd_plate_validation.json sign_probe: |ratio| = 1.000000 to 15 digits but phase = 180 deg at every probed angle and both polarizations; verdict 'the shipped fringe term enters with the WRONG SIGN relative to the PO surface term'. Pooled oblique RMS vs the MoM reference: PO alone 12.25 dB, PO+PTD as shipped 5.21 dB, PO+PTD sign-corrected 2.16 dB.",
+      "consequence": "the shipped edge term is still anti-phase with PO. Every downstream number computed with ptd=True before this is fixed is wrong in the interference term, and the magnitude match to 15 digits proves the error is purely the constant, not the coefficients.",
+      "what_would_close_it": "flip the sign in edge_field's prefactor, rerun ptd_plate_validation and ptd_drone_effect, and remove normalization_unverified only after the plate RMS reproduces the sign-corrected 2.16 dB."
+    },
+    {
+      "id": "G3",
+      "severity": "medium",
+      "gap": "The code's stated REASON for the numerical regularization is factually wrong, and the doc repeats an imprecise claim from Oztuerk",
+      "literature": "Oztuerk 2002 pp. 43-44 prints (3.37) and (3.38) in full, and asserts they 'do not involve any singularities except the degenerate cases just mentioned'",
+      "our_state": "src/ptd_edges.py _face_fringe_reg docstring says '우리는 Oztuerk (3.37)(3.38) 의 뺄셈이 이미 수행된 형을 갖고 있지 않으므로 0/0 을 직접 만난다'. Both halves are false: (a) we hold the PDF and the equations are printed there; (b) they do NOT perform the subtraction analytically -- verified algebraically and numerically, (3.37) still contains U(pi-phi)/(cos(phi)+mu1) and (1/N)sin(phi/N)/(cos((pi-a1)/N)-cos(phi/N)) as two separately divergent fractions whose denominators vanish together.",
+      "consequence": "documentation defect only; the regularization itself is sound (see G4). But the doc quotes Oztuerk's sentence in sec. 5.2 as evidence that the monostatic form is singularity-free, and that evidence does not hold.",
+      "what_would_close_it": "rewrite the docstring: 'the analytic difference is not available in closed non-singular form anywhere in the literature we hold, including Oztuerk (3.37)/(3.38); we regularize numerically.'"
+    },
+    {
+      "id": "G4",
+      "severity": "medium",
+      "gap": "The removable singularity sits exactly on the most important monostatic angle, and is handled by a numerical hack",
+      "literature": "Ufimtsev 1962 p.28 (f,g and f0,g0 diverge on the reflection boundary while f1,g1 stay finite)",
+      "our_state": "monostatic singular locus is cos(phi') = cot^2(beta). For beta = 90 deg (edge perpendicular to the line of sight -- the on-cone edges that section 6.2 says DOMINATE) this is phi' = 90 deg exactly, i.e. face-normal specular. Measured: at exact specular the raw kernel returns |Z I^f| ~ 1.7e31 and |M^f| ~ 6.4e33; the symmetric phi' +- 5e-3 rad average returns Z I^f = -0.015916j, M^f = -5.995868j against a delta->0 limit of -0.015916j / -5.995818j, i.e. ~1e-5 relative.",
+      "consequence": "acceptable accuracy today (1e-5), but it is an undeclared O(delta^2) approximation sitting on the specular ray of every flat metal face, and the failure mode if delta is ever reduced is catastrophic (double-precision cancellation), which the doc itself documents in sec. 3.6.",
+      "what_would_close_it": "derive the analytic limit of I_1 - I_1^PO at mu = -cos(phi') once and branch to it, instead of averaging."
+    },
+    {
+      "id": "G5",
+      "severity": "medium",
+      "gap": "Segments are dropped on |sin a| < 1e-3 alone, but the literature says the singularity needs TWO conditions",
+      "literature": "Johansen 1996 sec. II: 'The only nonremovable singularity in M^A_UT and I^A_UT is the Ufimtsev singularity which occurs when mu = 1 (alpha = 0) AND simultaneously, phi_0 = pi'. Michaeli 1986 abstract says the same.",
+      "our_state": "src/ptd_edges.py fringe_eec drops whenever |sin a| < SINA_TOL regardless of phi'. Measured at N=1.5, phi0=0.8 rad (far from pi): as mu -> 1 the fringe EEC stays finite -- |M^f| = 5.28, 6.52, 6.97, 7.11 at |sin a| = 0.51, 0.17, 0.053, 0.017.",
+      "consequence": "over-broad rejection: finite, valid segments are discarded and counted as n_drop_sin_a. Conservative (loses signal rather than inventing it) but it silently biases the edge term low near grazing observation.",
+      "what_would_close_it": "gate on (|sin a| < tol) AND (|phi' - pi| < tol) for the drop; regularize or keep the rest."
+    },
+    {
+      "id": "G6",
+      "severity": "medium",
+      "gap": "The off-cone regime -- the one section 5.3 argues dominates for few-lambda targets -- is not covered by either validation gate",
+      "literature": "n/a (this is an internal coverage gap)",
+      "our_state": "smoke_ptd e_ufimtsev_oncone only probes beta' = 90 deg, where mu = cos(phi) in [-1,1]. ptd_plate_validation's 2-D strip reference only contains the two on-cone edges; the two off-cone end edges are explicitly measured as contributing 0.017 dB (contamination_end_edges). So |mu| > 1, which occurred in 41% of my random aspect samples, has never been checked against any reference.",
+      "consequence": "doc sec. 5.3 rejects the simple Ufimtsev f1/g1 route precisely BECAUSE off-cone contributions survive at L ~ 1 lambda; but the machinery chosen to replace it has no off-cone reference test.",
+      "what_would_close_it": "Rung 4 (disc, Breinbjerg exact, Oztuerk Fig. 3.8) or Rung 3 (short cylinder, Shaeffer 1982 measurement, Oztuerk Fig. 3.10). Both are named in the doc and neither has been run."
+    },
+    {
+      "id": "G7",
+      "severity": "low",
+      "gap": "Strip-direction wording is imprecise",
+      "literature": "Michaeli 1986 abstract: integration is along 'the diffracted ray grazing the surface of the local wedge'. Gao 2012 p.140: 'traced along the intersection of the Keller cone and the wedge face'.",
+      "our_state": "doc sec. 2.1 / 4.1 use Gao's wording. The Keller cone meets a face in TWO rays; the 1984-era derivation uses one, Michaeli 1986 uses the other, and the sign of cos(beta')cos(beta) in (3.30) is what distinguishes them.",
+      "consequence": "wording only -- the implemented (3.29)/(3.30) already encode Michaeli's choice, verified against Johansen (6).",
+      "what_would_close_it": "one clause: 'specifically the grazing DIFFRACTED ray root, per Michaeli 1986'."
+    },
+    {
+      "id": "G8",
+      "severity": "low",
+      "gap": "Quote hygiene: three block quotations in the doc are paraphrases presented as verbatim",
+      "instances": [
+        "sec. 4.2 Johansen abstract is rendered as one sentence; the original reads '...well behaved for all directions of incidence and observation. The new expressions take a finite value for zero strip length and are well-suited for implementation in general computer codes.'",
+        "sec. 2.3 Knott 1985 abstract is stitched with 'and' across a sentence break; the original has two sentences.",
+        "sec. 4.3 / 3.6 Gao quote drops the '[12]' citation marker inside the sentence."
+      ],
+      "verified_correct_quotes": [
+        "Gao 2012 p.140 truncated-EEC paragraph -- verbatim, exact",
+        "Gao 2012 p.140 Keller-cone/visibility paragraph -- verbatim, exact",
+        "Gao 2012 p.142 round-off / double-precision paragraph -- verbatim, exact",
+        "Johansen 1996 sec. I two-problems paragraph -- verbatim, exact",
+        "Johansen 1996 sec. I 'exact current minus the PO current' -- verbatim, exact",
+        "Oztuerk 2002 p.35 incremental-strip sentence -- verbatim, exact",
+        "Oztuerk 2002 p.43 (3.37)/(3.38) sentence -- verbatim, exact (but see G3: the claim itself is imprecise)",
+        "Oztuerk 2002 p.44 destructive-interference and second-order sentences -- verbatim, exact",
+        "Oztuerk 2002 p.45 disc-radius sentence -- verbatim, exact",
+        "Oztuerk 2002 p.48 illumination sentence -- verbatim, exact"
+      ],
+      "gao_table1_transcription": "CHECKED AND CORRECT. Aircraft A: step1 18.2, step4 7.9, step2 1046.8, step5 906, step3 219.3, total 1371.4, SBR-only 1311. Aircraft B: 21.5 / 17.8 / 2153.5 / 2410.4 / 118.4 / 2699.9 / 2302.7. The doc's derived TW totals 913.9 s and 2428.2 s and the 70% / 105% ratios all reproduce. The doc's warning that +4.6%/+17.2% are wall-clock and not arithmetic is correct and is supported by Gao's own text."
+    },
+    {
+      "id": "G9",
+      "severity": "low",
+      "gap": "doc sec. 5.1 and the code header disagree about which equations were implemented",
+      "our_state": "doc sec. 5.1 says the monostatic specialization (3.35)-(3.38) is implemented; the code header says (3.23)-(3.32) is implemented. I verified the two are numerically identical to 8.7e-13, so this is bookkeeping only.",
+      "what_would_close_it": "one line in sec. 5.1: 'implemented in the general bistatic form (3.23)-(3.32); the monostatic form (3.35)-(3.38) is used as a cross-check only.'"
+    }
+  ],
+
+  "what_survived_the_attack": [
+    "The coefficients are genuinely Michaeli 1986's, verified to 6e-12 against Johansen's verbatim reproduction of Michaeli's own eqs (4)-(7). This is NOT a hand-rolled approximation.",
+    "The two-face composition, the U(pi-phi') illumination step, the mu and arccos definitions and the -2j cot(beta0)Hz0/(kN sin beta0) tail all match the source term by term.",
+    "The complex-arccos branch worry is resolved: mu <= 1 identically, so the ambiguous branch is unreachable.",
+    "The NOT_IMPLEMENTED / APPROXIMATIONS lists shipped in the module are accurate. Nothing absent is being passed off as present.",
+    "No report, notebook or slide deck in the repository claims 'we implemented TW-ILDC'. The overclaim exists only in the filename PTD_ILDC_FORMULATION.md and one RESUME.md work-item label."
+  ],
+
+  "single_most_important_correction": "Stop describing this work with the string 'TW-ILDC'. Gao's TW-ILDC = Johansen's truncated EEC = untruncated EEC minus correction EEC. We built the untruncated EEC and nothing else. The correct, defensible, still-respectable name is 'first-order PTD fringe-wave correction using Michaeli's untruncated equivalent edge currents (PTD-EEC)'."
+}

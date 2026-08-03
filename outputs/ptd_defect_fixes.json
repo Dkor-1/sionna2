@@ -1,0 +1,210 @@
+{
+  "meta": {
+    "role": "adjudication of outputs/ptd_attack_impl.json (11 defects) + the naming correction of outputs/ptd_attack_lit.json. Every entry is FIXED / OPEN(with reason) / NOT-A-DEFECT(with evidence). Nothing is passed over silently.",
+    "generated": "2026-08-03",
+    "kernel": "src/ptd_edges.py — untruncated Michaeli PTD-EEC (first order)",
+    "environment": "~/.venvs/py312/bin/python, numpy, CPU only (GPU untouched: benchmark/rcs_anchor.py was running on GPU2 and must not be disturbed)"
+  },
+  "D-1_sign": {
+    "severity": "critical",
+    "status": "FIXED",
+    "root_cause": {
+      "where": "docs/PTD_ILDC_FORMULATION.md 9.1 normalisation derivation, NOT the kernel algebra",
+      "statement": "the derivation took only the MAGNITUDE lam*k/(4pi) = 1/2 and therefore lost the relative sign between (A) the far-field constant implied by our m^2 amplitude convention and (B) the literature EEC radiation integral.",
+      "chain": [
+        "A: A_PO = sum_lit (n.u) dA e^{j2k u.r}  <=>  E^s.e = -(jk/2pi) (e^{-jkr}/r) A_PO. The MINUS comes from d_hat = -u_hat: the radiation integral is written with the incident PROPAGATION direction through H^i = (1/Z0) d_hat x e_hat, while A_PO is written with the OUTWARD look vector u_hat. Verified numerically: the vector radiation integral E = -j*omega*mu/(4*pi*r) int J_perp, evaluated on the same point cloud, divided by -(jk/2pi) A_PO = 1.0 at |arg| <= 4.4e-14 deg (4 angle/pol combinations).",
+        "B: the EEC radiation integral constant is +jk/(4pi) — Oztuerk 2002 eq (3.7) and Gao 2012 eq (3), quoted verbatim in doc 2.2.",
+        "C: therefore A_FW / sum[...] = (jk/4pi) / (-jk/2pi) = -1/2. The j's cancel; the surviving -1 is (A)'s minus."
+      ],
+      "ruled_out": {
+        "michaeli_coefficients": "no — they reproduce Johansen's verbatim copy of Michaeli (4)-(7) to 6e-12 and the Ufimtsev on-cone reduction to 2.3e-14",
+        "face_normal_direction": "no — face-order swap leaves A_edge identical to 1e-16",
+        "integration_direction": "no — under t_hat -> -t_hat both (Ez,Hz) and (g_I,g_M) flip, so the products g_I*I^f and g_M*M^f are invariant",
+        "time_convention": "no — both terms use exp(+jk q.(r-origin)) with the same origin"
+      },
+      "not_a_patch": "the fix is the constant A_FW_CONST = -0.5 with the derivation written next to it; restoring +0.5 breaks the phase gate by exactly 180 deg."
+    },
+    "fix": "src/ptd_edges.py A_FW_CONST = -0.5 (module constant, used in edge_field)",
+    "acceptance_gate": {
+      "criterion": "arg(A_code / A_analytic_Ufimtsev) == 0 deg on the plate on-cone edges (NOT |ratio|, which passes with the bug)",
+      "smoke_ptd_f": {
+        "n_probe": 24,
+        "max_abs_ratio_dev": 1.3988810110276972e-14,
+        "max_abs_phase_deg": 5.8120912592106e-13,
+        "passes": true
+      },
+      "plate_validation_sign_probe": {
+        "max_abs_ratio_dev": 3.774758283725532e-15,
+        "max_abs_phase_deg": 5.8120912592106e-13,
+        "passes": true
+      },
+      "before_the_fix": "|ratio| = 1.0000000000, |arg| = 180.000000 deg (reproduced this round before touching the code)"
+    },
+    "downstream_effect_measured_this_round": {
+      "plate_oblique_pooled_rms_db": {
+        "po_only": 12.249452431191079,
+        "po_ptd_kernel_after_fix": 2.155912441499109,
+        "po_ptd_sign_flipped_control": 5.205384412451928,
+        "analytic_ufimtsev_ptd": 2.1560942961876974
+      }
+    }
+  },
+  "D-2_stale_outputs": {
+    "severity": "critical",
+    "status": "PARTLY FIXED — all three files marked SUPERSEDED in place; one regenerated",
+    "done": [
+      "outputs/ptd_regression.json, ptd_drone_effect.json, ptd_plate_validation.json each carry a top-level SUPERSEDED block naming the defect, what changed in the kernel, how to regenerate, and which open defects still apply (no number inside was altered).",
+      "outputs/smoke_ptd.json REGENERATED with the fixed kernel.",
+      "outputs/ptd_plate_validation.json REGENERATED with the fixed kernel (its SUPERSEDED block is superseded by the run itself; the labels are now po_ptd = kernel and po_ptd_sign_flipped_control = negative control)."
+    ],
+    "open": "ptd_regression.json and ptd_drone_effect.json are NOT regenerated in this round. Reason: the drone run cannot produce a defensible number until D-4 (statistics) and D-5 (seam band) are settled, and its inputs (drone CAD modules) are being edited by another workflow right now, so re-running it would mix two rounds' changes."
+  },
+  "D-3_reentrant_divergence": {
+    "severity": "critical",
+    "status": "FIXED",
+    "fix": [
+      "extract_edges(keep_reentrant=False) is now the default: every edge with exterior angle alpha < 180 deg (N < 1) is dropped and counted. stats gain n_dropped_reentrant, length_reentrant_m, length_reentrant_metal_m, reentrant_length_fraction, reentrant_metal_length_fraction and n_wedge_min_before_reentrant_drop.",
+      "the ACTUAL denominator is guarded as the attack asked: fringe_eec now returns den_ok, which flags segments where |cos(phi'/N) - cos((pi-a)/N)| < DEN_TOL while the PO denominator |cos phi' + mu| is NOT small (i.e. a non-removable pole; the removable coincidence is still handled by the existing regularisation). edge_field drops those and counts them in meta['n_drop_den_pole'].",
+      "declared in NOT_IMPLEMENTED with the measured s1000plus numbers."
+    ],
+    "verification_dihedral_a0.30_el45_lambda_over_20": {
+      "note": "the dihedral is the known N = 0.5 case that used to diverge by +296..+352 dB",
+      "default_path": {
+        "n_edges_kept": 6,
+        "reentrant_dropped": 1,
+        "reentrant_length_fraction": 0.143,
+        "delta_sigma_db": {
+          "V": 12.47,
+          "H": 20.41
+        }
+      },
+      "keep_reentrant_True_diagnostic": {
+        "n_drop_den_pole": 1,
+        "delta_sigma_db": {
+          "V": 12.47,
+          "H": 20.41
+        }
+      },
+      "reading": "the two guards agree exactly: the runtime pole guard alone removes the same segment the extraction-level policy removes, so the result is identical whichever way the diagnostic is run. The divergence is gone."
+    }
+  },
+  "D-4_band_slope_not_attributable": {
+    "severity": "major",
+    "status": "OPEN by design — the claim is WITHDRAWN, not repaired",
+    "why_not_fixed": "there is nothing in the kernel to fix. The defect is an unsupported claim built on (a) the sign error, (b) a threshold-dependent magnitude and (c) a statistic under 0.7 fit standard errors. Fixing it means re-running the drone benchmark AFTER D-5 is settled and reporting a null result with its standard error, Durbin-Watson / HAC SE and sharp_deg band.",
+    "actions_taken": [
+      "recorded as ptd_edges.OPEN_DEFECTS[0], which now flows into meta['open_defects'] of every rcs_po_ptd call, so no future output can omit it",
+      "ptd_drone_effect.json marked SUPERSEDED with the withdrawal spelled out",
+      "benchmark/ptd_drone_effect_headline.py blocker list rewritten"
+    ]
+  },
+  "D-5_tessellation_seams": {
+    "severity": "major",
+    "status": "PARTLY FIXED — the false statement is corrected, the physical fix is NOT built",
+    "fixed": [
+      "the APPROXIMATIONS string 'This is a speed optimization, not physics' is REPLACED by the measured facts (sphere seam floor -32.5 dB at kr 13.1 -> -40.6 dB at kr 36.7, log-log slope -0.62 instead of -1; mini5pro seams-only -15.6 dB vs all-metal -17.8 dB) and the requirement to quote drone numbers as a band over sharp_deg 5..30 deg.",
+      "docs/PTD_ILDC_FORMULATION.md 9.4 item 4 rewritten the same way."
+    ],
+    "not_fixed": "the physical remedy (reconstruct N from the underlying CAD surface so a smooth body reports N = 1 exactly) is not implemented. It needs surface provenance that extract_edges does not have, and the CAD modules are owned by another workflow right now.",
+    "new_measurement_this_round": {
+      "rung0_sphere_gate": "FAILS marginally now: max |dsigma| = 0.3070 dB (H-pol) against the self-chosen 0.3 dB threshold. Before the sign fix the same configuration gave 0.2975 dB, i.e. the gate was passing by 0.0025 dB. The seam artefact did not grow; the gate was always a coin flip. Reported as-is rather than by moving the threshold. Independent of PO spacing (identical at lambda/8 and lambda/20).",
+      "V_pol": 0.0486
+    }
+  },
+  "D-6_reference_error_bar": {
+    "severity": "minor",
+    "status": "OPEN",
+    "why_not_fixed": "closing it needs either a Richardson/edge-graded convergence study of the 2-D MoM (M = 240/480/720/1440 with an O(M^2) python assembly) or a digitised published strip curve. Neither is a kernel change, and the attack itself concluded the Rung 2 verdict SURVIVES: the Richardson residual at M = 720 is ~0.071 dB, far below the multi-dB effects under test. Recorded so it cannot be forgotten.",
+    "actions_taken": [
+      "ptd_edges.OPEN_DEFECTS carries it into every future PTD output meta",
+      "ptd_plate_validation.json SUPERSEDED block names it"
+    ]
+  },
+  "D-7_phase_blind_gate": {
+    "severity": "major",
+    "status": "FIXED",
+    "fix": [
+      "benchmark/smoke_ptd.py gained test (f): 24 probes (theta 5..84 deg, both pol) against the analytic Ufimtsev edge wave, gate |arg(ratio)| < 1e-6 deg, and it RAISES before running anything else if it fails.",
+      "benchmark/ptd_plate_validation.py sign_probe now computes max_abs_phase_deg, carries passes, and raises on failure.",
+      "the sign-flipped curve is kept and reported as an explicit NEGATIVE CONTROL (po_ptd_sign_flipped_control) so the phase-blindness of the RMS metric stays visible: the control also 'improves' the RMS.",
+      "docs 8 Rung 2 acceptance criteria corrected in place."
+    ],
+    "evidence_that_the_metric_is_still_blind": {
+      "oblique_pooled_rms_db_po_only": 12.249452431191079,
+      "oblique_pooled_rms_db_kernel": 2.155912441499109,
+      "oblique_pooled_rms_db_sign_flipped_control": 5.205384412451928,
+      "reading": "the sign-flipped control still beats PO-only, which is exactly why the RMS cannot be the gate."
+    }
+  },
+  "D-8_po_quadrature": {
+    "severity": "major",
+    "status": "FIXED (as recommended), residual declared",
+    "fix": [
+      "rcs_po_ptd now REQUIRES spacing <= lambda/20 whenever ptd=True: the default spacing becomes lambda/20 (ptd=False keeps lambda/7 so the legacy path is untouched), and a coarser explicit spacing raises ValueError unless allow_coarse_po=True is passed.",
+      "meta gains spacing_lambda_div and po_spacing_ok_for_ptd.",
+      "call sites updated: benchmark/smoke_ptd.py (SP_PTD), verify_ptd_regression.py (SP_B and SP_PTD), ptd_drone_effect.py (SPACING_DIV 7 -> 20). ptd_plate_validation.py already used lambda/20."
+    ],
+    "residual": "at lambda/20 the PO quadrature error is still 2-4 % of the fringe amplitude on the 6x40 lambda plate (11 % at lambda/7). Declared in APPROXIMATIONS."
+  },
+  "D-9_stale_honesty_ledger": {
+    "severity": "minor",
+    "status": "FIXED",
+    "fix": [
+      "the 1/2-magnitude 'UNVERIFIED' warning is retired and replaced by the verified statement (magnitude AND sign, with the measured phase residual).",
+      "new module constant SIGN_CONVENTION_VERIFIED (constant, derivation, gate, measurement) is exported into meta['sign_convention_verified']; meta['normalization_unverified'] is now False.",
+      "APPROXIMATIONS gained the PO-spacing requirement and the corrected sharp_deg statement; NOT_IMPLEMENTED gained the reentrant-edge exclusion and the no-occlusion consequence of the never-executed SBR path.",
+      "same corrections propagated to benchmark/ptd_drone_effect.py and ptd_drone_effect_headline.py, and to the _face_fringe_reg docstring (the claim that Oztuerk (3.37)/(3.38) performs the subtraction analytically was false — lit attack G3)."
+    ]
+  },
+  "D-10_attach_to_sbr_field": {
+    "severity": "minor",
+    "status": "PARTLY FIXED",
+    "fixed": "the phase origin is no longer trusted from the caller: sbr_phase_origin(mesh) derives 0.5*(V.max(0)+V.min(0)) from the mesh itself, attach_to_sbr_field uses it, and a caller-supplied origin that disagrees by more than lambda/1000 raises ValueError instead of silently turning the coherent sum into noise.",
+    "still_open": "the path has still never been EXECUTED end to end (needs Mitsuba + a GPU) and edge occlusion is still absent unless visible_fn is supplied. Not attempted this round: GPU2 is running benchmark/rcs_anchor.py which must not be disturbed, and GPUs 0/1/3 have under 2.5 GB free."
+  },
+  "D-11_contradicting_outputs": {
+    "severity": "minor",
+    "status": "FIXED (mechanism), and applied to the existing files",
+    "fix": [
+      "new module constant ptd_edges.OPEN_DEFECTS is copied into meta['open_defects'] by every rcs_po_ptd call, so any output written from now on carries the live blocker list mechanically — that is the provenance rule the attack asked for.",
+      "benchmark/smoke_ptd.py writes open_defects and sign_convention_verified into its JSON; benchmark/ptd_drone_effect.py writes open_defects into its honesty block.",
+      "the three SUPERSEDED blocks cross-reference the defects that produced them."
+    ]
+  },
+  "naming_correction": {
+    "status": "DONE",
+    "honest_name": "untruncated Michaeli PTD-EEC (first order)",
+    "forbidden": [
+      "TW-ILDC",
+      "ILDC (as the name of OUR method)",
+      "Gao's method"
+    ],
+    "files_changed": [
+      "src/ptd_edges.py — module title and a new header block stating the name and what is NOT ours (Gao/Johansen appear only in the negative)",
+      "docs/PTD_ILDC_FORMULATION.md — filename kept, correction block added at the very top; H1 title, TL;DR adoption row and 5.1 conclusion now carry the honest name",
+      "docs/MESH_METHOD.md — 'PTD/ILDC 필요성' -> '1차 PTD 모서리항(untruncated Michaeli PTD-EEC) 필요성'"
+    ],
+    "left_alone_on_purpose": "every remaining ILDC / TW-ILDC / Gao occurrence is either a literature exposition (doc sections 2, 4) or an explicit statement of what we did NOT implement (NOT_IMPLEMENTED[0], doc 4.4, the cost discussion). Rewriting those would corrupt the literature record. docs/RETRACTION_LOG.md R13 and docs/RESUME.md already carried the correction."
+  },
+  "regression": {
+    "ptd_false_bit_identical": true,
+    "detail": {
+      "plate": {
+        "wrapper_bit_identical": true,
+        "replicated_kernel_bit_identical": true,
+        "max_abs_diff_wrapper": 0.0,
+        "max_abs_diff_kernel": 0.0,
+        "t_surface_s": 0.0025644302368164062
+      },
+      "sphere": {
+        "wrapper_bit_identical": true,
+        "replicated_kernel_bit_identical": true,
+        "max_abs_diff_wrapper": 0.0,
+        "max_abs_diff_kernel": 0.0,
+        "t_surface_s": 0.0409692358225584
+      },
+      "all_identical": true
+    },
+    "note": "ptd=False still calls rcs_po.rcs_from_points unchanged, and still defaults to lambda/7. The lambda/20 requirement applies to ptd=True only."
+  }
+}

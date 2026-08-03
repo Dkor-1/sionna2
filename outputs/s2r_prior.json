@@ -1,0 +1,668 @@
+{
+  "meta": {
+    "title": "RF 센싱 sim-to-real 선행연구 정찰 (드론 중심)",
+    "date": "2026-08-03",
+    "language_policy": "문서 본문은 한국어, 논문/지표/식별자는 영어",
+    "quote_policy": "모든 verbatim 인용은 내가 직접 연 PDF 에서 추출(pdf_page 기재). 원문 PDF 를 열지 못한 항목은 verified='abstract_only' 로 표시하고 수치는 미검증으로 간주.",
+    "gpu_used": false,
+    "files_not_touched": ["p3_*", "tm_*", "ptd_*", "facet_*", "teammeeting_0804/*"]
+  },
+
+  "scope_searched": {
+    "archive": {
+      "root": "/data/public/sionna_jeong",
+      "unique_research_pdfs": 313,
+      "note": "site-packages / reference_cad 제외. 313편 전문(full-text) 정규식 검색: 'sim-?to-?real|sim2real|synthetic.{0,20}train|train.{0,25}synthetic|domain (randomi|adapt|gap|shift)|reality gap'",
+      "regex_hit_files": 32,
+      "read_in_detail": 21
+    },
+    "web": {
+      "arxiv_api_queries": 8,
+      "websearch_queries": 12,
+      "openalex_unpaywall_semanticscholar_queries": 5,
+      "pdfs_downloaded_and_read": 12,
+      "blocked_paywalls": ["IEEE Xplore stampPDF (Inkawhich 2021 SAMPLE)", "MDPI PDF endpoint", "PMC PDF endpoint", "Wiley pdfdirect (우회: St Andrews 리포지토리 CC-BY 사본 확보)"]
+    },
+    "total_papers_examined_in_detail": 33,
+    "search_terms_used": [
+      "sim-to-real / sim2real / simulation-to-reality gap",
+      "trained on simulated|synthetic + tested on measured|real",
+      "domain randomization / domain adaptation / domain shift / distribution alignment",
+      "micro-Doppler + synthetic + measured + drone|UAV",
+      "range-Doppler|RD map + synthetic training",
+      "CSI + UAV + digital twin + classification",
+      "digital twin + RCS + classifier + field measurement"
+    ],
+    "honest_limits": [
+      "IEEE Xplore / MDPI / PMC 직접 PDF 접근이 봇 차단되어, 그쪽에만 있는 논문은 초록 수준까지만 검증됨.",
+      "중국어권 저널(JSJTU 등)·NATO STO 회색문헌은 초록만 확인.",
+      "본 정찰은 '드론 + RF 센싱' 축이 중심. 광학 드론 탐지 sim2real(예: Wisniewski 2022 J.Imaging)은 범위 밖으로 배제."
+    ]
+  },
+
+  "combo_verdict": {
+    "question": "site twin(광선추적 사이트 트윈) + 물리적으로 계산된 자세분해 σ + 분류(classification) 3자 조합이, 드론 대상으로, 실측 전이까지 보고된 사례가 있는가?",
+    "combo_found": false,
+    "statement": "정독한 33편(아카이브 전문검색 313편 범위) 중 0편. 세 요소를 다 갖추고 '실측 RF 데이터에서 분류 성능'까지 보고한 드론 논문은 찾지 못함.",
+    "why_zero_decomposed": {
+      "site_twin_plus_physical_sigma_plus_radar_cube_but_no_RF_classification_validation": ["LAMBDA (2607.03826)"],
+      "site_twin_plus_physics_RT_plus_classification_plus_real_validation_but_not_drone": ["RadarTwin (2606.28396) 실내 생활물체", "RadSimReal (2404.18150) 자동차", "Trinh 2026 (2601.17871) 실내 재실"],
+      "drone_plus_classification_plus_real_validation_but_no_site_twin_and_no_computed_sigma": ["White 2023 (IEEE TRS) — 해석적 thin-wire + 실측 배경 주입", "Moore 2023 (IET RSN) — 레이저스캔 메쉬지만 자유공간 프로펠러 단독"],
+      "site_twin_plus_classification_but_target_is_a_cube_and_no_real_data_at_all": ["Zhang 2026 FWA-CSI (2605.07623) — UAV = metallic cube", "AirGuard (2603.13112) — point-scatterer cloud, 시뮬만"]
+    },
+    "closest_single_paper": {
+      "id": "LAMBDA",
+      "gap_to_combo": "Sionna RT 사이트 트윈 + CADFEKO 로 계산한 자세(attitude)-의존 RCS + FMCW 레이더 큐브 합성까지 갖췄으나, (a) 레이더 모달리티로 분류/탐지를 학습시킨 use case 가 없고 (b) 유일한 sim-to-real 전이 검사는 RGB 이미지 백본을 DeepSense Scenario 23 로 few-shot 옮긴 것(=비전 경로)이다. RF 경로는 순수 합성으로만 남아 있다."
+    },
+    "opportunity_for_us": "'챔버 사이트 트윈 + SBR/PO 로 계산한 자세분해 σ + 패시브 바이스태틱 탐지/분류' 는 위 분해에서 비어 있는 칸이다. 단, 우리도 실측 전이 증거가 없으면 LAMBDA 와 같은 칸에 놓인다 — 차별점은 조합 자체가 아니라 '실측으로 닫았는가' 다."
+  },
+
+  "typical_gap": "드론 마이크로도플러 분류에서 가장 잘 된 사례가 합성학습 86.6% vs 실측학습 89.7% (총정확도 −3.1 pp, White 2023). 그러나 같은 논문에서 표적(드론) recall 은 88.4%→80.1% (−8.3 pp)로 총정확도보다 3배 크게 벌어지고, 시뮬 충실도를 낮추면 74.5% (−13.9 pp)까지 무너진다. 반대편 극단으로, 보정 없이 순수 RT 합성만으로 학습하면 실측에서 chance 수준(balanced acc ≈50% 2-class, ≈33% 3-class)으로 붕괴하는 것이 기본값이다(Trinh 2026). 채널 레벨 게이지로는 보정된 RT 조차 RSRP 평균 7.81 dB / 최대 46.96 dB 어긋난다(oneTwin). 요약: '3 pp' 는 도메인 정렬을 공들여 한 최선의 케이스이고, 아무것도 안 하면 붕괴가 표준이다.",
+
+  "gap_metrics_used": [
+    "classification accuracy on real test set: synthetic-trained vs real-trained baseline (pp 차)",
+    "per-class recall gap (drone recall vs bird recall) — 총정확도가 숨기는 편향을 드러냄",
+    "balanced accuracy vs chance level",
+    "normalized cross-correlation of spectrograms (0–1, pixel-wise, bend-corrected)",
+    "Pearson correlation of range profiles / Spearman correlation of per-feature ordering",
+    "Average Precision (AP) at IoU thresholds (radar object detection)",
+    "positioning error (median/mean meters), kNN-fingerprint localization error",
+    "RSRP/RSSI 차이 (dB, mean/max)",
+    "distribution tests on IQ/CSI ensembles: variance ratio, Kolmogorov–Smirnov D & p, Wasserstein, temporal autocorrelation",
+    "linear-probe accuracy in a shared (text-aligned) embedding vs chance",
+    "MPJPE / PA-MPJPE (mm) — 자세 복원",
+    "point-cloud density ratio (sim:real), multipath share (target gate 밖 에너지 비율)"
+  ],
+
+  "papers": [
+    {
+      "id": "white2023_trs",
+      "title": "Urban Bird-Drone Classification With Synthetic Micro-Doppler Spectrograms",
+      "authors": "D. White, M. Jahangir, C. J. Baker, M. Antoniou",
+      "venue": "IEEE Transactions on Radar Systems, 2023 (DOI 10.1109/TRS.2023.3326317)",
+      "source_pdf": "https://pure-oai.bham.ac.uk/ws/files/208677443/RevisedManuscript.pdf (Birmingham AAM)",
+      "task": "micro-Doppler spectrogram 2-class 분류 (bird vs drone), L-band pulse-Doppler staring radar, 도심 Birmingham, 1.4–2.7 km",
+      "target_model": "해석적 thin-wire rotor 모델(HERM 사이드밴드). 블레이드를 무한 점반사체의 집합으로 근사. 물리적 RCS 계산 아님 — 사이드밴드 개수/감쇠는 지수 포락선 α 로 인위 조정하고, S_body/S_blade 로 실측 SNR 에 1–2 dB 이내로 맞춤. 실제 비행에서 기록한 모터 회전수(per-CPI / sub-CPI 샘플링)를 주입.",
+      "environment_model": "광선추적 아님. 같은 궤적의 '표적 없는 시각' 실측 raw 데이터를 배경으로 뽑아 시뮬 시계열을 원소별로 더함(real-background injection) → 실제 도심 클러터 통계를 그대로 씀.",
+      "gap_metric": "실측 test set 총정확도 + bird/drone recall (박스플롯, 다중 시드)",
+      "numbers": {
+        "real_baseline_accuracy_pct": 89.7,
+        "best_synthetic_accuracy_pct": 86.6,
+        "worst_synthetic_accuracy_pct": 84.4,
+        "drone_recall_real_pct": 88.4,
+        "drone_recall_subCPI_pct": 80.1,
+        "drone_recall_perCPI_pct": 78.8,
+        "drone_recall_singleMotor_pct": 79.0,
+        "drone_recall_fixedSpeeds_mean_pct": 74.5,
+        "bird_recall_real_pct": 90.5,
+        "bird_recall_subCPI_pct": 93.0,
+        "bird_recall_perCPI_pct": 93.9
+      },
+      "quotes": [
+        {"pdf_page": 2, "article_page": 1, "text": "The highest fidelity synthetic dataset achieved a classification accuracy of 86.6% compared to the real benchmark accuracy of 89.7%. The adverse effect on classifier robustness when reducing the simulation fidelity by altering the motor speed sampling is shown.", "verified": "pdf"},
+        {"pdf_page": 13, "article_page": 12, "text": "the reliability of drone classifications decreased rapidly to a mean value of 74.5% for the least accurate, fixed speeds model. The drone recalls of the two multi-rotor models incorporating all four motor speeds medians fell from the real baseline of 88.4% to 80.1% (sub-CPI) and 78.8% (per-CPI).", "verified": "pdf"},
+        {"pdf_page": 13, "article_page": 12, "text": "The decrease in drone recall against training data fidelity signifies the model is becoming overfitted to the shape of the synthetic sidebands and struggles to recognize real sidebands as effectively.", "verified": "pdf"},
+        {"pdf_page": 13, "article_page": 12, "text": "As the synthetic fidelity decreases, the bird recall gets higher, thus showing that the model is biased towards predicting difficult targets as birds, which is an operationally ineffective outcome.", "verified": "pdf"},
+        {"pdf_page": 9, "article_page": 8, "text": "The thin wire simulation model as used produces sidebands that are too strong and too numerous in comparison with the real data.", "verified": "pdf"},
+        {"pdf_page": 11, "article_page": 10, "text": "The simulated target's 1-D timeseries returns are summed elementwise with the background signal - extracted, injecting the simulated target into a real background.", "verified": "pdf"}
+      ],
+      "why_it_matters": "드론 sim-to-real 의 사실상 표준 레퍼런스. 핵심 교훈 두 개: (1) 총정확도(−3.1 pp)는 표적 recall 붕괴(−8.3 pp)를 숨긴다 — 우리 리포트도 총정확도 단일지표를 쓰면 안 된다. (2) 이들이 격차를 좁힌 수단은 EM 정확도가 아니라 '실측 배경 주입 + SNR/사이드밴드 진폭 매칭 + 실측 모터속도' 라는 분포 정렬이다."
+    },
+    {
+      "id": "moore2023_iet",
+      "title": "A new simulation methodology for generating accurate drone micro-Doppler with experimental validation",
+      "authors": "M. Moore, D. A. Robertson, S. Rahman",
+      "venue": "IET Radar, Sonar & Navigation, 2023/2024 (DOI 10.1049/rsn2.12494, CC-BY)",
+      "source_pdf": "https://research-repository.st-andrews.ac.uk/bitstream/handle/10023/28555/Moore_2023_IETRSN_A_new_simulation_CCBY.pdf",
+      "task": "3종 드론(DJI Phantom 3, DJI S900, Joyance JT5L-404) 프로펠러 마이크로도플러 시뮬 → 실측 검증 → 합성 전용 학습 분류기",
+      "target_model": "실물 프로펠러를 Nikon H120 핸드헬드 레이저 스캐너(정확도 7 µm, 점 간격 0.035 mm)로 스캔한 3D 포인트클라우드/CAD 를 기하학적으로 계산. 동체·모터는 시뮬에 없음(프로펠러만).",
+      "environment_model": "자유공간(밀리미터파 CW 검증 레이더). 클러터·다중경로 없음. 저도플러 영역은 비교 공정성 위해 양쪽 다 필터로 제거.",
+      "gap_metric": "spectrogram 정규화 상호상관(bend correction 후) + 합성 전용 학습 SqueezeNet 의 실측 in-plane 분류정확도",
+      "numbers": {
+        "normalized_xcorr_laser_scanned_inplane": "0.7–0.8",
+        "normalized_xcorr_online_CAD": "consistently low across all elevation angles",
+        "squeezenet_train_images_per_class": 90,
+        "synthetic_trained_accuracy_on_unseen_measured_pct": 100.0,
+        "n_classes": 3
+      },
+      "quotes": [
+        {"pdf_page": 14, "text": "SqueezeNet, a pre-trained convolutional neural network generated by the University of California, Berkley and Stanford was trained on exclusively simulated data for all elevation angles for the three drones considered [29]. 90 images were included for each class. The network was tested on (unseen) experimental data for in-plane measurements only, and it achieved 100% classification accuracy for all three drone classes.", "verified": "pdf"},
+        {"pdf_page": 14, "text": "For the laser scanned models (DJI S900 and Joyance JTL5L-404), the normalised cross correlation for the in-plane comparison is 0.7-0.8 and decreases as simulated elevation angle increases as expected.", "verified": "pdf"},
+        {"pdf_page": 14, "text": "In contrast, the DJI Phantom 3 model, obtained from online libraries, demonstrated significantly inferior normalised cross-correlation performance, remaining consistently low across all elevation angles. This shows that the simulation performance is dependent on using very accurate input models, which can be achieved using a laser scanner.", "verified": "pdf"},
+        {"pdf_page": 12, "text": "using CAD models sourced from online libraries that do not perfectly match the dimensions of the real propeller produce micro-Doppler features that only weakly agree with experimental results.", "verified": "pdf"},
+        {"pdf_page": 5, "text": "The specialised laser scanning service used a Nikon H120 handheld laser scanner. This scanner has an accuracy of 7 microns and a point spacing of 0.035 mm.", "verified": "pdf"}
+      ],
+      "caveats": "100% 는 3-class, in-plane(0° elevation) 만, 클러터 없는 자유공간 실험실 CW 측정에 대한 값이다. White 2023 의 도심 2 km 시나리오와 난이도가 전혀 다르다. 이 논문 자체가 '상관 0.7 이면 좋은 일치'라고 인정하며 저도플러 동체 성분은 재현하지 못한다고 명시.",
+      "why_it_matters": "우리 프로젝트의 메쉬 충실도 정책을 정면으로 지지하는 유일한 정량 근거. 온라인 CAD ↔ 레이저 스캔의 차이가 상관계수에서 즉시 드러난다 — 우리 sionna2 의 '실물 CAD 대조' 라인이 왜 필요한지의 외부 증거."
+    },
+    {
+      "id": "trinh2026_cdr",
+      "title": "A Physics-Informed Digital Twin Framework for Calibrated Sim-to-Real FMCW Radar Occupancy Estimation",
+      "authors": "H. Trinh, S. Ratto V, E. Creager, G. Shaker (U. Waterloo)",
+      "venue": "arXiv 2601.17871",
+      "task": "FMCW 레이더 range-Doppler 맵으로 재실 탐지(2-class) / 인원 계수(3-class), ResNet18",
+      "target_model": "물리기반 기하 시뮬레이터 + human animation + EM 모델링 (디지털 트윈). 드론 아님(사람).",
+      "environment_model": "디지털 트윈 실내 복도. 핵심은 환경 자체가 아니라 '실측 빈방 10초 무라벨 데이터'로 노이즈 플로어 통계를 보정한 것.",
+      "gap_metric": "실측 테스트셋 balanced accuracy",
+      "numbers": {
+        "occupancy_baseline_RT_only_balanced_acc_pct": 50,
+        "occupancy_random_DR_balanced_acc_pct": 83,
+        "occupancy_calibrated_DR_balanced_acc_pct": 97,
+        "counting_baseline_RT_only_balanced_acc_pct": 33,
+        "counting_random_DR_balanced_acc_pct": 61,
+        "counting_calibrated_DR_balanced_acc_pct": 72,
+        "calibration_data_needed": "10 s of unlabeled real empty-room data"
+      },
+      "quotes": [
+        {"pdf_page": 1, "text": "Across real-world evaluations, ResNet18 models trained purely on CDR-adjusted simulation achieve 97% accuracy for occupancy detection and 72% accuracy for people counting, outperforming ray tracing baseline simulation and conventional random domain-randomization baselines.", "verified": "pdf"},
+        {"pdf_page": 3, "text": "On the real corridor test set, the baseline RT model trained solely on unmodified simulation struggles to generalize. Fig. 8 shows that it misclassifies many occupied frames as empty due to mismatched clutter and noise, resulting in a balanced accuracy close to 50% (chance-level for a binary task).", "verified": "pdf"},
+        {"pdf_page": 3, "text": "the baseline RT model again fails to transfer, achieving balanced accuracy near 33% (random guessing) Random DR improves performance to balanced accuracy ≈61%, indicating that generic noise-floor perturbation offers some regularization but does not fully align domains", "verified": "pdf"},
+        {"pdf_page": 3, "text": "CDR keeps the same clamping form (1) but replaces heuristic sampling with a one-shot, data-driven calibration from the unlabeled real empty-room calibration set by aggregating all RD magnitudes and computing their empirical mean mt and standard deviation st.", "verified": "pdf"},
+        {"pdf_page": 3, "text": "When applied to real measurements, the baseline model produces diffuse responses dominated by corridor clutter and simulator-specific artifacts. In contrast, the CDR-trained model concentrates its responses on the range-Doppler cells associated with human motion", "verified": "pdf"}
+      ],
+      "why_it_matters": "Q4/Q5 의 핵심 증거. '순수 광선추적 합성 → 실측' 이 chance 로 붕괴하는 것이 기본값이고, 이를 살린 것은 EM 정밀도가 아니라 무라벨 실측 10초로 맞춘 노이즈 플로어 분포 정렬(=Calibrated Domain Randomization)이었다. 우리 무향실 시뮬은 노이즈 플로어가 '너무 깨끗한' 전형적 케이스라 그대로 적용 가능한 교훈."
+    },
+    {
+      "id": "batstation",
+      "title": "BatStation: Toward In-Situ Radar Sensing on 5G Base Stations with Zero-Shot Template Generation",
+      "authors": "Z. Gao, Z. Liu, T. Chen (Duke)",
+      "venue": "arXiv 2509.06898 (SDR 테스트베드, CBRS 실측)",
+      "archive_path": "/data/public/sionna_jeong/reference_library/2509.06898.pdf",
+      "task": "5G 상향링크 자원격자에서 레이더 펄스 탐지/유형분류/시간·주파수 위치추정. 합성만으로 학습한 zero-shot template correlation.",
+      "target_model": "표적이 아니라 신호(레이더 펄스 파형) 합성. 물리 표적 모델 없음.",
+      "environment_model": "실측 5G 트래픽 + 실제 CBRS 대역 간섭.",
+      "gap_metric": "synthetic dataset vs experimental(PUCCH/PUSCH) dataset 에서의 분류정확도",
+      "numbers": {
+        "DeepRadar_on_synthetic_pct": 68.51,
+        "RadYOLO_on_synthetic_pct": 83.06,
+        "BatStation_on_synthetic_pct": 98.37,
+        "DeepRadar_on_experimental_PUCCH_max_pct": 49.33,
+        "RadYOLO_on_experimental_PUCCH_max_pct": 11.18,
+        "ML_baselines_on_PUSCH_max_pct": "27.73 / 27.74",
+        "BatStation_trainable_params": 4560,
+        "BatStation_params_vs_RadYOLO_pct": 0.637
+      },
+      "quotes": [
+        {"pdf_page": 10, "text": "the performance of the two ML-based baselines, DeepRadar and RadYOLO, drops significantly for their models converging to the synthetic training datasets, while the baseline, energy detection, remains robust.", "verified": "pdf"},
+        {"pdf_page": 11, "text": "On the synthetic dataset as shown in Fig. 13(left), the classification accuracies based on a single radar pulse with 30 dB SNR reach up to 68.51/83.06% for DeepRadar and RadYOLO, respectively, lower than BatStation of 98.37%. However, the classification accuracies cannot exceed 49.33/11.18% for the two ML-driven methods on the PUCCH dataset, as shown in Fig. 13(middle), and 27.73/27.74% on the PUSCH dataset", "verified": "pdf"},
+        {"pdf_page": 12, "text": "BatStation only has 4,560 trainable parameters across all trained templates, which is 0.637% of that in RadYOLO. This indicates BatStation's robustness against the over-fitting issue, i.e., less reliance on the training dataset while more portable over various hardware on BSs.", "verified": "pdf"}
+      ],
+      "why_it_matters": "RF 에서 가장 선명한 sim-to-real 실패 수치(RadYOLO 83.06% → 11.18%). 그리고 그들의 해법이 '더 큰 딥넷'이 아니라 '파라미터 4,560개짜리 물리기반 템플릿 상관' 이었다는 점 — 합성 데이터가 부실할수록 모델 용량을 줄이고 물리 구조를 넣는 것이 낫다는 반례."
+    },
+    {
+      "id": "radartwin",
+      "title": "RadarTwin: Scene-Specific mmWave Radar Simulation and Learning for Mobile Indoor Perception",
+      "authors": "E. Bejerano et al. (Columbia)",
+      "venue": "arXiv 2606.28396",
+      "archive_path": "/data/public/sionna_jeong/reference_library/2606.28396__radartwin.pdf",
+      "task": "77 GHz FMCW 이동 로버로 실내 생활물체 11/12-way 인식 + 재질 인식. 시뮬만 학습 → 실측 평가.",
+      "target_model": "3D 재구성(폰 LiDAR/RGB-to-3D) 메쉬 + VLM 이 추론한 재질 → ITU 파라미터, Mitsuba 3 기반 4-bounce 광선추적으로 raw FMCW 합성. 물리 계산된 산란이지만 '소형 표적 자세분해 RCS' 라기보다 표면 반사 기반.",
+      "environment_model": "실제 배치 공간 두 곳(가구 있는 아트리움, 스쿼시 코트)을 각각 재구성한 사이트 트윈. multipath 4-bounce 포함.",
+      "gap_metric": "supervision level 별 인식 정확도 vs chance, range-profile Pearson 상관, per-feature Spearman 부호 일치율, log-energy 분리비",
+      "numbers": {
+        "zero_real_label_11way_lateral": 0.23,
+        "zero_real_label_11way_depth": 0.13,
+        "chance_11way": 0.09,
+        "raw_simulated_signature_match_lateral": 0.09,
+        "raw_simulated_signature_match_depth": 0.04,
+        "few_shot_turntable_12way": 0.95,
+        "geometry_linear_probe_pct": 85,
+        "geometry_chance_pct": 50,
+        "material_linear_probe_pct": 40,
+        "material_chance_pct": 33,
+        "range_profile_pearson_max": 0.73,
+        "material_contrast_over_separation_ratio": "~25:1 in log-energy",
+        "ablation_uniform_material_cost": 0.035,
+        "ablation_remove_environment_cost": 0.089
+      },
+      "quotes": [
+        {"pdf_page": 1, "text": "A representation trained on simulation alone recognizes real objects at 2.5x chance with no real radar labels, and a few labeled examples raise this to 95.3% on a 12-way recognition task.", "verified": "pdf"},
+        {"pdf_page": 2, "text": "simulation preserves distance-invariant shape signatures and material-class structure, while fine size differences are limited by radar resolution and environment-specific multipath is the primary source of the remaining sim-to-real gap.", "verified": "pdf"},
+        {"pdf_page": 11, "text": "Absolute brightness does not transfer. The simulator over-separates material contrast relative to multipath-compressed real returns (a ~25:1 ratio of separations in log-energy)", "verified": "pdf"},
+        {"pdf_page": 11, "text": "the simulator is trustworthy about relative structure (which object is brighter, wider, more multipath-laden), and that is the level at which transfer succeeds.", "verified": "pdf"},
+        {"pdf_page": 4, "text": "replacing every VLM label with a single uniform material costs 0.035 of label-free recognition accuracy, while removing the environment costs 0.089.", "verified": "pdf"}
+      ],
+      "why_it_matters": "가장 정직한 sim-to-real 해부. 완전한 사이트 트윈 + 물리 광선추적 + 재질 라벨을 다 갖췄어도 real-label 없는 11-way 인식은 chance 의 2.5배(0.23)에 그친다. 그리고 '절대 밝기는 전이 안 되고 상대 순서만 전이된다' 는 결론 — 우리가 절대 σ(dBsm) 를 앵커링하는 노력의 한계와, 상대 비교(모드 간/드론 간 순서)로 주장을 세워야 하는 이유를 동시에 준다. 환경 제거 비용(0.089) > 재질 균일화 비용(0.035) 도 우선순위를 말해준다."
+    },
+    {
+      "id": "lambda_uav",
+      "title": "LAMBDA: A Low-Altitude Multimodal Base Dataset for UAV Sensing and Communication",
+      "authors": "L. Zhou, P. Rao, C. Zhang, J. Mo, S. Sun, Z. Chen, M. Tao (SJTU)",
+      "venue": "arXiv 2607.03826 (dataset paper, Science Data Bank DOI 10.57760/sciencedb.36052)",
+      "archive_path": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+      "task": "저고도 UAV 멀티모달 데이터셋(RGB/depth/LiDAR/IMU/pose/CSI/radar). 검증 use case 2개: RGB-aided beam prediction, RGB-LiDAR UAV localization.",
+      "target_model": "CADFEKO 로 계산한 UAV RCS 파일을 UAV attitude 로 조회해 사용 — 즉 물리적으로 계산된 자세분해 σ 가 실제로 존재함.",
+      "environment_model": "UE5 디지털 트윈 도시/캠퍼스 + Blender 메쉬 변환 + Sionna RT (재질 인지 광선추적, 1.4/3.5/4.9/5.9/7/28/60/77 GHz, 날씨·ITU 감쇠 포함).",
+      "gap_metric": "DeepSense 6G Scenario 23(실측) 에 대한 few-shot Top-k 정확도 — 단, RGB 백본에 한함",
+      "numbers": {
+        "dataset_size": "2.04 TB, 517,939 aligned frames",
+        "source_training_samples": 2639,
+        "deepsense_few_shot_ratios": "0.6%(N=64) ~ 9.0%(N=1024)",
+        "rf_modality_real_validation": "none"
+      },
+      "quotes": [
+        {"pdf_page": 3, "text": "Sionna RT [27] for material-aware ray tracing; and CADFEKO [28] for UAV radar cross-section (RCS) modeling. The resulting dataset contains 2.04 TB of data and 517,939 aligned multimodal data frames.", "verified": "pdf"},
+        {"pdf_page": 7, "text": "The synthesis combines the complex CSI coefficient of each valid path with its two-way delay, Doppler shift, virtual-array steering phase, UAV-orientation-dependent RCS, and optional receiver noise. The complex-valued CSI coefficient captures the propagation effects computed by the ray-tracing channel generator, whereas the RCS term is obtained from CADFEKO simulations of the AirSim UAV model and queried according to the UAV attitude.", "verified": "pdf"},
+        {"pdf_page": 14, "text": "For the external transfer check on DeepSense Scenario 23, this backbone pretrained on LAMBDA Open Ground is compared with a control model that uses only ImageNet-pretrained backbone weights.", "verified": "pdf"},
+        {"pdf_page": 14, "text": "The models pretrained on LAMBDA Open Ground converge effectively, confirming that the synthetic visual-wireless representations provided in the dataset are physically consistent and can serve as valid supervisory signals for downstream tasks.", "verified": "pdf"}
+      ],
+      "why_it_matters": "⭐ 조합에 가장 가까운 논문이자, 조합만으로는 부족하다는 증거. 사이트 트윈 + 계산된 자세분해 RCS + 레이더 큐브 합성을 다 갖췄는데도 sim-to-real 근거는 RGB 경로에서만 제시했다. RF 경로 실측 전이는 이 논문에서도 열린 채로 남아 있다."
+    },
+    {
+      "id": "saribekyan2026",
+      "title": "On the Physical Plausibility and Distribution Alignment for Sim-to-Real RF Positioning",
+      "authors": "A. Saribekyan, A. Manukyan, H. Khachatrian, T. P. Raptis",
+      "venue": "IEEE CITS 2026 (arXiv 2607.04400)",
+      "archive_path": "/data/public/sionna_jeong/papers_isac_sionna/2607.04400__saribekyan_sim2real-positioning.pdf",
+      "task": "RSSI 핑거프린트 측위. Sionna RT 로 로마 도시 스케일 합성 사전학습 → 실측 fine-tune.",
+      "target_model": "표적 없음(UE 위치추정). 대신 base station 파라미터를 Gaussian-process 로 캘리브레이션.",
+      "environment_model": "OSM 건물 메쉬, Sionna RT 1.2 GHz, path depth 5, specular+diffuse+refraction, 106 rays/source. 53 패치 × 1.5 M pairs ≈ 79.5 M (BS,UE) 쌍.",
+      "gap_metric": "positioning error (m), known-street vs held-out-street, 95% bootstrap CI",
+      "numbers": {
+        "known_street_from_scratch_m": 123.80,
+        "known_street_best_synthetic_pretrain_m": 37.86,
+        "held_out_from_scratch_m": 268.93,
+        "held_out_best_after_RSSI_normalization_m": 199.16,
+        "held_out_worst_raw_city_scale_m": 335.25,
+        "held_out_worst_delta_m": "+66.32"
+      },
+      "quotes": [
+        {"pdf_page": 1, "text": "Overall, the results suggest that distribution alignment is more important than physical realism or dataset size for sim-to-real RF positioning.", "verified": "pdf"},
+        {"pdf_page": 1, "text": "Although unconstrained calibration matches measured RSSI better, it does not always improve positioning accuracy.", "verified": "pdf"},
+        {"pdf_page": 7, "text": "The lowest Known-Street Test error is obtained by C unconstrained pretraining, reaching 37.86 m compared with 123.80 m with no pretraining.", "verified": "pdf"},
+        {"pdf_page": 7, "text": "Thus, scaling synthetic data beyond the measured deployment does not automatically improve held-out-street transfer.", "verified": "pdf"},
+        {"pdf_page": 7, "text": "with physically plausible antenna locations we are unable to reproduce real measurements even to the degree of unrealistic setups. Also note that the large absolute errors indicate that the optimized base-station parameters should be interpreted as effective simulator parameters rather than recovered physical metadata.", "verified": "pdf"}
+      ],
+      "why_it_matters": "'물리적으로 그럴듯한 것' 과 '전이가 잘 되는 것' 이 갈라진다는 직접 반례. 물리적으로 타당한 안테나 배치가 물리적으로 불가능한 fit 보다 전이가 나빴다. 그리고 합성 데이터 규모를 79.5 M 쌍까지 키워도 held-out 은 개선되지 않았고, 오히려 +66.32 m 악화된 조건이 있었다."
+    },
+    {
+      "id": "manukyan2026",
+      "title": "On the Limitations of Ray-Tracing for Learning-Based RF Tasks in Urban Environments",
+      "authors": "A. Manukyan, H. Khachatrian, E. Ghukasyan, T. P. Raptis",
+      "venue": "IEEE 2026 (arXiv 2507.19653)",
+      "archive_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2507.19653__manukyan-rt-limitations-urban.pdf",
+      "task": "SIONNA v1.0.2 광선추적의 현실성 감사. 실측 UE 1,664개, BS 6개(로마 중심).",
+      "target_model": "해당 없음(링크 예측/측위)",
+      "environment_model": "Sionna RT. path depth/diffuse/specular/refraction/carrier/안테나 고도·패턴·방향을 스윕.",
+      "gap_metric": "Spearman(측정 전력, 시뮬 전력) + kNN RSSI 핑거프린트 측위 오차",
+      "numbers": {
+        "spearman_improvement_by_antenna_optimization": "5% ~ 130%",
+        "knn_error_reduction": "one-third",
+        "residual_gap": "synthetic-only reference points remain twice the error of purely real data",
+        "solver_hyperparameter_effect": "immaterial"
+      },
+      "quotes": [
+        {"pdf_page": 1, "text": "Across all experiments, solver hyper-parameters are having immaterial effect on the chosen metrics. On the contrary, antenna locations and orientations prove decisive.", "verified": "pdf"},
+        {"pdf_page": 1, "text": "By simple greedy optimization we improve the Spearman correlation by 5% to 130% for various base stations, while kNN-based localization error using only simulated data as reference points is decreased by one-third on real-world samples, while staying twice higher than the error with purely real data.", "verified": "pdf"},
+        {"pdf_page": 1, "text": "Precise geometry and credible antenna models are therefore necessary but not sufficient; faithfully capturing the residual urban noise remains an open challenge for transferable, high-fidelity outdoor RF simulation.", "verified": "pdf"}
+      ],
+      "why_it_matters": "Sionna RT 를 실측으로 감사한 몇 안 되는 논문. 솔버 하이퍼파라미터(반사 차수·확산 등)는 무의미하고 안테나 기하가 결정적이라는 결론은, 우리가 SBR 파라미터를 조이는 데 쓰는 노력의 한계수익을 경고한다. 동시에 다 맞춰도 실측 대비 2배 오차가 남는다."
+    },
+    {
+      "id": "onetwin",
+      "title": "oneTwin: Online Digital Network Twin",
+      "venue": "arXiv 2601.03216 (top-venue 사본 동일)",
+      "archive_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2601.03216__zhang-onetwin-online-digital-network-twin.pdf",
+      "task": "디지털 네트워크 트윈. Bayesian optimization 기반 자동 재질 튜닝으로 sim-to-real 격차 축소.",
+      "gap_metric": "RSRP 차이 (dB)",
+      "numbers": {"mean_rsrp_gap_dB": 7.81, "max_rsrp_gap_dB": 46.96},
+      "quotes": [
+        {"pdf_page": 3, "text": "We found that the remaining sim-to-real gap is non-trivial (7.81dB on average), where the maximum RSRP difference can be up to 46.96dB. Therefore, we propose to further enhance the calibrated simulat", "verified": "pdf"}
+      ],
+      "why_it_matters": "'보정된 시뮬레이터' 조차 캠퍼스 드라이브 테스트에서 평균 7.81 dB / 최대 46.96 dB 를 남긴다 — 채널 레벨 sim-to-real 격차의 정직한 스케일 기준."
+    },
+    {
+      "id": "nextsense",
+      "title": "NextSense: A Semi-Synthetic Sensing Data generation Platform",
+      "authors": "D. Rico Menendez et al. (UC3M, InterDigital)",
+      "venue": "IEEE INFOCOM 2026 ISAC-FutureG Workshop (arXiv 2603.20789)",
+      "archive_path": "/data/public/sionna_jeong/reference_library/new_0803/2603.20789__nextsense-semisynthetic-sensing-platform_INFOCOM2026.pdf",
+      "task": "실내 재실 감지(빈 방 / 사람 / 이동로봇), 5G SSB 기반. 반합성(semi-synthetic) 학습 → 실측 평가, fine-tuning 없음.",
+      "target_model": "표적 EM 모델 없음. 실측 SSB 로 추정한 채널 임펄스 응답을 tap 기반(τ, P, f_D)으로 압축해 PROPSIM 하드웨어 채널 에뮬레이터에 주입 — 즉 '실측 주입' 계열.",
+      "environment_model": "OAI 5G CN+gNB + Keysight PROPSIM 채널 에뮬레이터 + Amarisoft UE 에뮬레이터. 광선추적 아님.",
+      "gap_metric": "분산비, KS test (D, p), Wasserstein, 시간 자기상관 + SVM 실측 정확도",
+      "numbers": {
+        "var_syn": 0.1129, "var_real2": 0.1129, "var_real_ref": 0.1122,
+        "KS_real_vs_syn": "D=0.0037, p=0.629",
+        "KS_real_vs_real": "D=0.0038, p=0.597",
+        "svm_trained_on_semisynthetic_tested_real_pct": 98.33
+      },
+      "quotes": [
+        {"pdf_page": 6, "text": "An SVM is trained only on NextSense semi-synthetic data and evaluated on real measurements with matched settings, without fine tuning. The classifier [11] achieves 98.33% accuracy on real data, indicating a small domain gap and supporting semi-synthetic pre-training before limited real-world adaptation.", "verified": "pdf"},
+        {"pdf_page": 5, "text": "Comparisons of real-synthetic (D = 0.0037, p = 0.629) and real-real (D = 0.0038, p = 0.597) distributions yield p >> 0.05. These nearly identical results indicate no statistical grounds to reject the", "verified": "pdf"}
+      ],
+      "caveats": "98.33% 는 2-class(LoS 차단 여부) 이고, 학습 채널 자체가 같은 방의 실측 CIR 에서 유도되었다 — 사실상 '실측 재생' 에 가깝다. 일반화 주장으로 읽으면 안 됨.",
+      "why_it_matters": "실측을 최대한 주입하면 sim-to-real 격차가 거의 사라진다는 상한선 예시. 동시에 KS/Wasserstein 같은 분포 동등성 검정을 sim-to-real 게이트로 쓰는 좋은 템플릿."
+    },
+    {
+      "id": "radsimreal",
+      "title": "RadSimReal: Bridging the Gap Between Synthetic and Real Data in Radar Object Detection With Simulation",
+      "authors": "O. Bialer, Y. Haitman (GM Israel)",
+      "venue": "CVPR 2024 (arXiv 2404.18150)",
+      "task": "자동차 레이더 영상 객체 탐지. 합성만 학습 → 실측(RADDet/CARRADA/CRUW) 평가.",
+      "target_model": "3D 자동차 장면 + 객체 유형별 표면 재질 할당 + LiDAR 점군에서 만든 폴리곤 메쉬의 법선 각도 → 광선추적 반사 계산.",
+      "environment_model": "도시 도로 사이트(정지/주행). 레이더 하드웨어 설계 상세 지식 불필요하게 설계.",
+      "gap_metric": "AP@IoU 0.1/0.3/0.5 (class car)",
+      "numbers": {
+        "UNet_RADDet_test_trained_real": 84.76,
+        "UNet_RADDet_test_trained_RadSimReal": 85.63,
+        "UNet_RADDet_test_trained_CARRADA_real": 22.33,
+        "UNet_CARRADA_test_trained_real": 50.99,
+        "UNet_CARRADA_test_trained_RadSimReal": 70.77,
+        "note": "AP@0.1 값들"
+      },
+      "quotes": [
+        {"pdf_page": 1, "text": "our findings demonstrate that training object detection models on RadSimReal data and subsequently evaluating them on real-world data produce performance levels comparable to models trained and tested on real data from the same dataset, and even achieves better performance when testing across different real datasets.", "verified": "pdf"},
+        {"pdf_page": 5, "text": "(2) Surface material allocation of each point based on its object type. (3) Computation of the angle of the surface normal vector using a polygon mesh generated from the LIDAR points.", "verified": "pdf"}
+      ],
+      "why_it_matters": "레이더에서 sim-to-real 이 '가능' 함을 보이는 최강 사례. 결정적 관찰: real→real 교차 데이터셋 격차(84.76 → 22.33)가 sim→real 격차(84.76 vs 85.63)보다 훨씬 컸다. 즉 sim-to-real 을 재는 기준선은 '실측 학습' 이 아니라 '다른 조건의 실측 학습' 이어야 공정하다. 단 표적이 자동차(수십 λ)라 소형 드론에 그대로 이전되지 않는다."
+    },
+    {
+      "id": "sim2radar",
+      "title": "Sim2Radar: Toward Bridging the Radar Sim-to-Real Gap with VLM-Guided Scene Reconstruction",
+      "venue": "arXiv 2602.13314v3",
+      "task": "단일 RGB → 3D 재구성 → Mitsuba 광선추적으로 mmWave 레이더 합성 → PointPillars 3D 탐지 사전학습",
+      "gap_metric": "3D AP@IoU 0.3 (IFR dataset), 실데이터 비율별",
+      "numbers": {
+        "sim_point_density_vs_real": "251 vs 2057 points/frame (12%)",
+        "AP_gain_5pct_real": "+3.3", "AP_gain_10pct": "+0.9", "AP_gain_25pct": "+3.2", "AP_gain_50pct": "+1.2", "AP_gain_100pct": "+3.7",
+        "variance_reduction_25pct": "std 7.8 -> 2.9"
+      },
+      "quotes": [
+        {"pdf_page": 2, "text": "Naively combining simulated and real data during training can therefore degrade performance, as models may overfit to simulation-specific artifacts rather than learning task-relevant physical structure.", "verified": "pdf"},
+        {"pdf_page": 5, "text": "Simulated frames produce 251 points per frame (12% of real density). We apply histogram matching in log space to align simulated intensity distributions with real radar, reducing one axis of domain shift while preserving the geometric structure we aim to transfer.", "verified": "pdf"}
+      ],
+      "why_it_matters": "합성의 현실적 기여 규모를 보여주는 지표: 사전학습 이득 +0.9~+3.7 AP 이지 '실측 대체' 가 아니다. 그리고 '합성+실측 단순 혼합은 오히려 해롭다' 는 경고."
+    },
+    {
+      "id": "beuster2024",
+      "title": "Sounding-Based Evaluation of Multi-Sensor ISAC Networks for Drone Applications: Measurement and Simulation Perspectives",
+      "authors": "J. Beuster et al. (TU Ilmenau)",
+      "venue": "IEEE JCS 2024 (arXiv 2402.16591)",
+      "archive_path": "/data/public/sionna_jeong/papers_isac_sionna/2402.16591__beuster_multisensor-isac-drone.pdf",
+      "task": "드론 바이스태틱 반사도/마이크로도플러의 시뮬 ↔ 실측 데이터셋 획득 인프라",
+      "target_model": "HFSS/FEKO/CST 급 상용 EM 솔버(MoM/FEM/PO)로 계산한 바이스태틱 반사도",
+      "environment_model": "BiRa 실험실(TU Ilmenau): 2축 갠트리 + 턴테이블, elevation 0–115°, azimuth 0–360°, VNA 2–18 GHz, 마이크로도플러용 4 GHz 대역폭 채널 사운더",
+      "gap_metric": "정량 지표 없음 — DJI Phantom 2 의 측정/시뮬 바이스태틱 반사도 플롯 병치(정성)",
+      "quotes": [
+        {"pdf_page": 3, "text": "This allows to analyze and characterize a multitude of objects as cars [19], cyclists [22], and UAVs [17], [18] without the need for cost-intensive measurement campaigns, even though a comparison with measurements is inevitable for validation and optimization of simulation models, as shown in Fig. 3.", "verified": "pdf"}
+      ],
+      "why_it_matters": "드론 바이스태틱 σ 의 시뮬-실측 대조가 실제로 존재하는 유일한 인프라(BiRa). 우리 바이스태틱 PO 를 앵커링할 공개 데이터의 출처 후보. 다만 이 논문 자체는 격차를 숫자로 재지 않았다."
+    },
+    {
+      "id": "costa2025",
+      "title": "Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC",
+      "venue": "IEEE JSTEAP journal version (arXiv 2504.05168v2); 회의판 2401.14287",
+      "archive_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.05168__costa_microdoppler-multiprop-drones_JSTEAP-journal.pdf",
+      "task": "OFDM 바이스태틱 다중 프로펠러 마이크로도플러 모델 + BiRa 실측 검증",
+      "target_model": "thin-wire 점산란체 프로펠러(임의 위치/방향/속도) + 동체는 (a) Gaussian body model 또는 (b) measurement-based body model(실측 반사도 주입) 두 가지",
+      "environment_model": "BiRa 챔버 기하. 자유공간.",
+      "gap_metric": "HRR range-Doppler 이미지 정성 병치. 정량 지표 없음. 분류기 학습·평가 없음.",
+      "quotes": [
+        {"pdf_page": 1, "text": "Validation results show that the model generates micro-Doppler signatures closely resembling those obtained from measurements, demonstrating its potential as a tool for data generation.", "verified": "pdf"},
+        {"pdf_page": 7, "text": "Evidently, the contribution of the drone body is still missing in the simulation, which takes us to the next step.", "verified": "pdf"}
+      ],
+      "why_it_matters": "'분류기 학습용 데이터 생성 도구' 를 표방하지만 실제로 분류기까지 간 적은 없다는 전형. 드론 바이스태틱 마이크로도플러 시뮬-실측 대조로는 가장 가까운 선행."
+    },
+    {
+      "id": "zhang2026_fwa_csi",
+      "title": "AI-Empowered Low-Altitude Economy: Cooperative Sensing With Fixed Wireless Access",
+      "venue": "IEEE ICC Workshops 2026 (arXiv 2605.07623)",
+      "archive_path": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+      "task": "다중 BS-CPE 쌍의 상향링크 CSI 로 UAV 탐지 + 측위 (attention MIL + Transformer)",
+      "target_model": "UAV = metallic cube",
+      "environment_model": "OSM + Blender + Sionna RT, 동남대 사패루 캠퍼스 200 m × 200 m 사이트 트윈. 라벨은 Sionna RT 의 path type(확산반사) 에서 유도.",
+      "gap_metric": "없음 — 실측 데이터 전무",
+      "numbers": {"missed_detection_prob_pct": 0.63, "positioning_error_95pct_m": 6.50},
+      "quotes": [
+        {"pdf_page": 8, "text": "The UAV is modeled as a metallic cube located at p = (x, y, 60), where x, y ~ U[-75, 75].", "verified": "pdf"},
+        {"pdf_page": 9, "text": "CSI samples from a fully static scenario are nearly constant, which may cause overfitting during training. Therefore, a random phase shift is introduced", "verified": "pdf"}
+      ],
+      "why_it_matters": "'사이트 트윈 + 분류' 는 있는데 표적이 금속 큐브이고 실측이 0인 전형. 우리 novelty 주장(물리적 자세분해 σ)의 대비군으로 인용 가치가 크다."
+    },
+    {
+      "id": "airguard",
+      "title": "AirGuard: UAV/bird recognition for low-altitude ISAC",
+      "venue": "arXiv 2603.13112",
+      "archive_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2603.13112__airguard-uav-bird-recognition-isac.pdf",
+      "task": "cmD 스펙트럼 + HRRP 이중입력 CNN 으로 저고도 표적(UAV/새) 인식. 237,600 샘플.",
+      "target_model": "다중 산란점(point-scatterer) 확장표적 모델, 기체/블레이드별 calibration point cloud",
+      "environment_model": "시뮬만. 실측 없음.",
+      "gap_metric": "표적 종류 간 일반화(도메인 이동 대용)",
+      "numbers": {"six_rotor_acc_pct": 66.78, "ehang_evtol_acc_pct": 4.49},
+      "quotes": [
+        {"pdf_page": 13, "text": "the recognition accuracy for Six Rotor UAV and Ehang eVTOL decrease to 66.78% and 4.49%. This indicates that the network model trained from the four rotor UAV cannot generalize to the six rotor UAV and Ehang eVTOL.", "verified": "pdf"}
+      ],
+      "why_it_matters": "sim-to-real 이전에 sim-to-sim(표적 종류) 조차 무너진다. 우리 5종 드론 벤치마크에서 '학습 안 한 기체' 를 반드시 hold-out 해야 하는 근거."
+    },
+    {
+      "id": "cagedronerf",
+      "title": "CageDroneRF (CDRF) benchmark",
+      "venue": "arXiv 2601.03302",
+      "archive_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2601.03302__cagedronerf-benchmark.pdf",
+      "task": "드론 RF 통신 방출 스펙트로그램 기반 계층분류(변조/프로토콜/기종), 20종",
+      "target_model": "해당 없음(방출 신호 데이터셋, 전부 실측)",
+      "environment_model": "실내 anechoic cage vs 실외 — real→real 도메인 이동",
+      "gap_metric": "indoor 학습 → outdoor 평가 계층별 정확도",
+      "numbers": {
+        "indoor_to_outdoor_modulation_pct": 69.95,
+        "indoor_to_outdoor_protocol_pct": 66.11,
+        "indoor_to_outdoor_model_pct": 42.07,
+        "mixed_domain_modulation_pct": 89.42,
+        "mixed_domain_protocol_pct": 87.34,
+        "mixed_domain_model_pct": 69.63,
+        "model_level_gain_pp": 27.56
+      },
+      "quotes": [
+        {"pdf_page": 11, "text": "This indicates poor domain generalization from indoor to outdoor environments. In contrast, training on a combined set of indoor and outdoor data yields substantial improvements", "verified": "pdf"},
+        {"pdf_page": 12, "text": "The most significant gain (+27.56 pp) is observed at the model level, the task most sensitive to environmental shifts. This demonstrates that training on diverse, mixed-domain data is crucial for learning robust, domain-invariant features.", "verified": "pdf"},
+        {"pdf_page": 4, "text": "DroneRF [77] includes only three drone models in a clean controlled environment, producing near-ceiling benchmark accuracy that transfers poorly to operational settings.", "verified": "pdf"}
+      ],
+      "why_it_matters": "우리가 '무향실 안' 을 서사로 고정한 것의 최대 위험을 실측으로 보여준다: 통제 실내 → 실외 이동만으로 기종식별이 42.07% 로 떨어진다. sim-to-real 이전에 chamber-to-field 격차가 이미 크다."
+    },
+    {
+      "id": "mmsimprior",
+      "title": "mmSimPrior: Learning Simulation Priors for Data-Efficient Real-World Generalizable Radar-Based Human Motion Reconstruction",
+      "venue": "arXiv 2607.22973",
+      "gap_metric": "MPJPE / PA-MPJPE / W-MPJPE (mm)",
+      "numbers": {"paired_real_sequences_needed": 24, "MPJPE_reduction_pct": "24.7-39.0", "zero_shot_MPJPE_reduction_pct": 8.5},
+      "quotes": [
+        {"pdf_page": 1, "text": "with only 24 paired real sequences, mmSimPrior-Reg reduces MPJPE by 24.7-39.0% over the strongest baseline across the three environments, while mmSimPrior-Cls reduces zero-shot MPJPE by 8.5% without finetuning.", "verified": "pdf"}
+      ],
+      "why_it_matters": "zero-shot 이득(8.5%) 대비 소량 페어링(24 시퀀스) 이득(24.7–39.0%)의 격차 — '실측 조금' 의 가치가 '시뮬 많이' 보다 크다는 반복되는 패턴."
+    },
+    {
+      "id": "gurbuz2018",
+      "title": "Diversified Radar Micro-Doppler Simulations as Training Data for Deep Residual Neural Networks",
+      "authors": "B. Erol, S. Z. Gurbuz, M. G. Amin",
+      "venue": "IEEE Radar Conference 2018",
+      "task": "Kinect MOCAP 기반 인체 마이크로도플러 시뮬 다양화 → 30-layer ResNet 초기화",
+      "quotes": [
+        {"pdf_page": 1, "text": "The use of simulated signatures to classify real micro-Doppler measurements was first proposed in 2015 [8], where motion capture (MOCAP) data made available from the Carnegie Mellon University (CMU) Motion Capture Library [9] was used to classify measured data with only a 1% difference in performance as when only real data was used for training.", "verified": "pdf"}
+      ],
+      "why_it_matters": "인체 마이크로도플러 쪽 sim2real 은 2015년에 이미 −1 pp 수준을 보고했다(운동학이 MOCAP 로 정확히 주어지기 때문). 드론에서 같은 수준이 안 나오는 이유는 운동학이 아니라 산란/클러터에 있다는 대비."
+    },
+    {
+      "id": "inkawhich2021_sample",
+      "title": "Bridging a Gap in SAR-ATR: Training on Fully Synthetic and Testing on Measured Data",
+      "authors": "N. Inkawhich, M. J. Inkawhich, E. K. Davis, U. Majumder, E. E. Tripp, C. Capraro, Y. Chen",
+      "venue": "IEEE JSTARS vol. 14, pp. 2942-2955, 2021 (SAMPLE dataset, AFRL)",
+      "verified": "abstract_only",
+      "access_note": "IEEE Xplore PDF 가 봇 차단(Temporarily Unavailable). 초록은 Semantic Scholar API 로 verbatim 확보. 웹검색이 보고한 '94.81% on measured data' 는 원문 미확인이므로 인용 금지.",
+      "quotes": [
+        {"source": "publisher abstract via Semantic Scholar API", "text": "In this work, we focus on the case of having 100% synthetic training data, while testing on only measured data. We use the SAMPLE dataset public released by AFRL, and find significant challenges to learning generalizable representations from the synthetic data due to distributional differences between the two modalities and extremely limited training sample quantities.", "verified": "abstract_only"}
+      ],
+      "why_it_matters": "물리 계산 σ(Xpatch 급 EM 예측) + 분류 + 실측 평가라는 조합의 원조. 다만 표적은 지상 차량이고 '환경' 은 SAR 배경이다. 필요하면 기관 접속으로 원문을 확보해 수치를 확정할 것."
+    },
+    {
+      "id": "survey_lowalt_uav",
+      "title": "Survey: MIMO-OFDM ISAC for low-altitude UAV surveillance",
+      "venue": "arXiv 2604.02680",
+      "archive_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2604.02680__survey-mimo-ofdm-isac-lowalt-uav-surveillance.pdf",
+      "quotes": [
+        {"pdf_page": 21, "text": "While necessary, this reliance on synthesis creates a disconnect from physical reality. The Sim-to-Real Generalization Gap: Models trained on simulated data often suffer from poor generalization when deployed in real-world scenarios (i.e., the domain shift proble", "verified": "pdf"}
+      ],
+      "why_it_matters": "저고도 UAV ISAC 서베이가 sim-to-real 격차를 미해결 open issue 로 명시 — 우리 포지셔닝 문장의 인용 근거."
+    }
+  ],
+
+  "gap_reduction_techniques": [
+    {
+      "technique": "distribution alignment (noise-floor / intensity / RSSI 통계 정렬)",
+      "evidence": [
+        "Trinh 2026: 무보정 RT 50%(chance) → random DR 83% → calibrated DR 97% (2-class); 33% → 61% → 72% (3-class). 필요한 실측은 무라벨 빈방 10초.",
+        "Saribekyan 2026: held-out street 268.93 m → 199.16 m (RSSI 정규화 적용시에만 유의한 개선)",
+        "Sim2Radar: log-space histogram matching 으로 강도 분포 정렬",
+        "White 2023: 사이드밴드 지수 감쇠 α + S_body/S_blade 로 실측 SNR 1-2 dB 이내 매칭"
+      ],
+      "verdict": "RF sim-to-real 에서 가장 비용 대비 효과가 큰 단일 기법. 물리 정밀도 향상보다 우선순위가 높다는 증거가 최소 4편."
+    },
+    {
+      "technique": "real-background / real-clutter injection",
+      "evidence": ["White 2023: 같은 궤적의 표적 없는 실측 raw 를 배경으로 더함 → 도심 클러터 통계를 그대로 획득. 이 조치 없이 86.6% 는 나오지 않았을 것."],
+      "verdict": "패시브/무향실 시뮬의 '너무 깨끗한 배경' 문제를 직접 겨냥. 우리도 semi-anechoic 잔여 클러터를 실측으로 주입할 여지."
+    },
+    {
+      "technique": "domain randomization (uncalibrated)",
+      "evidence": ["Trinh 2026: 50% → 83% (2-class), 33% → 61% (3-class). 보정판(97%/72%)에는 못 미침."],
+      "verdict": "실측 접근이 아예 없을 때의 차선책. 단독으로는 절반만 메운다."
+    },
+    {
+      "technique": "synthetic pretrain + few-shot real fine-tune",
+      "evidence": [
+        "Saribekyan: known-street 123.80 m → 37.86 m (약 −69%)",
+        "Sim2Radar: 3D AP +0.9 ~ +3.7 (모든 실데이터 비율)",
+        "RadarTwin: zero-shot 0.23 (11-way, chance 0.09) → few-shot 0.95 (12-way)",
+        "mmSimPrior: 24 페어 시퀀스로 MPJPE −24.7~39.0%",
+        "LAMBDA: 합성 사전학습 백본 + DeepSense Scenario 23 few-shot (RGB 경로 한정)"
+      ],
+      "verdict": "가장 신뢰도 높은 패러다임. 다만 '소량 실측' 이 반드시 필요하다는 것이 공통 결론 — zero-shot 은 예외적으로만 성립."
+    },
+    {
+      "technique": "text/cross-modal contrastive alignment (domain-invariant representation)",
+      "evidence": ["RadarTwin: 시뮬만 학습한 임베딩에서 geometry linear probe 85%(chance 50%), material 40%(chance 33%)"],
+      "verdict": "기하 축은 전이되고 재질/절대밝기 축은 거의 전이 안 됨. 전이되는 축을 골라 주장하라는 지침."
+    },
+    {
+      "technique": "geometry & antenna calibration (materials 아님)",
+      "evidence": ["Manukyan 2026: 솔버 하이퍼파라미터 무의미, 안테나 위치/방향 최적화로 Spearman +5~130%, kNN 오차 −1/3. 그래도 실측 대비 2배 잔차."],
+      "verdict": "'재질을 더 정교하게' 는 수익이 낮고 '기하·안테나' 가 결정적. RadarTwin ablation 도 같은 방향(환경 제거 비용 0.089 > 재질 균일화 0.035)."
+    },
+    {
+      "technique": "model capacity 축소 + 물리 구조 주입",
+      "evidence": ["BatStation: 4,560 파라미터 템플릿 상관이 RadYOLO(파라미터 157배) 대비 실측에서 11.18% → 97.00% 수준으로 압도"],
+      "verdict": "합성만으로 학습할 때는 큰 모델이 오히려 시뮬 아티팩트에 수렴한다."
+    },
+    {
+      "technique": "data augmentation (기하 변환/주파수 시프트/SNR 조건화)",
+      "evidence": ["CageDroneRF: augmented YOLO 는 clean 대비 in-domain mAP 하락(0.948→0.838)이지만 도메인 강건성 목적", "Geo2SigMap: 회전/미러링 8배 증강"],
+      "verdict": "in-domain 지표를 깎으면서 out-of-domain 을 사는 트레이드. 반드시 두 지표를 같이 보고해야 함."
+    },
+    {
+      "technique": "simulator parameter tuning against measurements (Bayesian opt / GP calibration)",
+      "evidence": ["oneTwin: 재질 자동 튜닝으로도 평균 7.81 dB 잔차", "Saribekyan: GP 기반 BS 캘리브레이션 — 물리적으로 불가능한 fit 이 RSSI 는 더 잘 맞췄으나 전이가 더 좋지는 않았음"],
+      "verdict": "캘리브레이션은 '유효 시뮬레이터 파라미터' 를 얻는 것이지 물리 메타데이터를 복원하는 것이 아니다(Saribekyan 명시)."
+    }
+  ],
+
+  "failures": [
+    {
+      "id": "trinh2026_raw_RT_collapse",
+      "what": "보정 없는 순수 광선추적 합성으로 학습한 ResNet18 이 실측 복도에서 chance 수준으로 붕괴",
+      "numbers": "occupancy balanced acc ≈50% (2-class chance), people counting ≈33% (3-class chance)",
+      "why": "클러터/노이즈 플로어 불일치. 시뮬 배경이 지나치게 깨끗해 모델이 배경 통계를 표적 신호로 학습",
+      "source": "arXiv 2601.17871 p.3"
+    },
+    {
+      "id": "batstation_ML_baseline_collapse",
+      "what": "합성 학습 딥러닝 레이더 분류기가 실측에서 붕괴",
+      "numbers": "RadYOLO 83.06%(synthetic) → 11.18%(experimental PUCCH), DeepRadar 68.51% → 49.33%; PUSCH 에서는 둘 다 ≈27.7%",
+      "why": "모델이 합성 학습셋에 수렴(over-fit); 에너지 검출 같은 비학습 기저선은 견고했음",
+      "source": "arXiv 2509.06898 p.10-11"
+    },
+    {
+      "id": "saribekyan_scale_does_not_help",
+      "what": "도시 스케일로 합성 데이터를 79.5 M 쌍까지 키워도 미지 거리(held-out street) 성능은 개선되지 않았고 일부 조건은 악화",
+      "numbers": "held-out test 268.93 m(실측만) → 335.25 m (C constrained 사전학습, Δ +66.32 m, 유의)",
+      "why": "물리적 타당성·데이터 규모가 아니라 분포 정렬이 결정적",
+      "source": "arXiv 2607.04400 Table III, p.7"
+    },
+    {
+      "id": "sim2radar_naive_mixing",
+      "what": "합성과 실측을 순진하게 섞어 학습하면 성능이 떨어질 수 있음",
+      "numbers": "정성 서술(수치는 사전학습 이득 +0.9~+3.7 AP 로만 제시)",
+      "why": "모델이 시뮬 특유 아티팩트에 과적합",
+      "source": "arXiv 2602.13314 p.2"
+    },
+    {
+      "id": "moore_online_CAD_failure",
+      "what": "온라인 CAD 라이브러리(GrabCAD) 프로펠러 모델로 시뮬하면 실측과 상관이 붕괴",
+      "numbers": "레이저 스캔 모델 in-plane 정규화 상호상관 0.7-0.8 vs 온라인 CAD 모델은 전 elevation 에서 지속적으로 낮음",
+      "why": "실물 치수 불일치. 마이크로도플러는 블레이드 형상에 민감",
+      "source": "IET RSN 2023 p.12, p.14"
+    },
+    {
+      "id": "white_thinwire_overfit",
+      "what": "thin-wire 모델이 사이드밴드를 실제보다 강하고 많게 만들고, 그 형상에 분류기가 과적합되어 실제 사이드밴드를 놓침",
+      "numbers": "실측 근거리 대형 드론 3-5쌍 사이드밴드(주엽 대비 5-10 dB, 고조파마다 3-8 dB 감쇠) vs thin-wire 최대 10쌍에 감쇠 거의 없음. 결과: 드론 recall 88.4% → 74.5% (fixed-speeds)",
+      "why": "점반사체 근사가 진폭 변조를 못 잡음(λ ≈ 블레이드 크기 영역)",
+      "source": "IEEE TRS 2023 pdf p.9, p.13"
+    },
+    {
+      "id": "manukyan_necessary_not_sufficient",
+      "what": "Sionna RT 기하·안테나를 실측으로 최적화해도 합성 전용 fingerprint 측위는 실측 대비 2배 오차를 유지",
+      "numbers": "kNN 오차 −1/3 개선, 그러나 purely real 대비 2배",
+      "why": "잔여 도시 노이즈를 재현 못함. 솔버 하이퍼파라미터는 무의미",
+      "source": "arXiv 2507.19653 p.1"
+    },
+    {
+      "id": "radartwin_absolute_brightness",
+      "what": "완전한 사이트 트윈 + 4-bounce 광선추적 + VLM 재질에도 절대 밝기/재질 대비는 전이 실패, zero-shot 인식은 chance 2.5배에 그침",
+      "numbers": "11-way lateral 0.23 (chance 0.09), depth 0.13; raw signature matching 은 0.09/0.04 로 chance 이하; log-energy 분리 과대 ~25:1; material linear probe 40% (chance 33%)",
+      "why": "실측에서는 multipath 가 재질 대비를 압축하는데 시뮬은 이를 과분리",
+      "source": "arXiv 2606.28396 p.1, p.11"
+    },
+    {
+      "id": "cagedronerf_chamber_to_field",
+      "what": "sim-to-real 이전에 통제 실내(케이지) → 실외 real-to-real 이동만으로 기종식별 붕괴",
+      "numbers": "model-level 42.07%; 혼합 도메인 학습시 69.63% (+27.56 pp)",
+      "why": "간섭·전파환경 변화. 기존 공개 데이터셋(DroneRF)의 near-ceiling 정확도가 운용 환경으로 전이되지 않음",
+      "source": "arXiv 2601.03302 p.11-12, p.4"
+    },
+    {
+      "id": "airguard_target_generalization",
+      "what": "4로터로 학습한 인식망이 6로터/eVTOL 로 일반화 실패 (시뮬 내부에서조차)",
+      "numbers": "Six Rotor UAV 66.78%, Ehang eVTOL 4.49%",
+      "why": "표적 다양성 부족",
+      "source": "arXiv 2603.13112 p.13"
+    },
+    {
+      "id": "sar_atr_background_statistics",
+      "what": "SAR-ATR 에서 합성→실측 일반화 실패의 고전적 원인으로 '네트워크가 표적이 아니라 배경 표면 통계를 학습' 이 지목됨",
+      "numbers": "미확인 (원문 PDF 접근 불가)",
+      "why": "합성/실측 분포 차이 + 극히 적은 학습 표본",
+      "source": "Inkawhich et al. JSTARS 2021 초록(verbatim) + 2차 출처. 수치 인용 금지."
+    }
+  ],
+
+  "implications_for_sionna2": [
+    "우리가 주장할 novelty 는 '조합' 이 아니라 '조합 + 실측 폐루프' 다. LAMBDA 가 이미 Sionna RT 사이트 트윈 + CADFEKO 자세분해 RCS + 레이더 큐브를 갖췄다 — 조합 자체를 novelty 로 쓰면 반증당한다.",
+    "총정확도 단일 지표 금지. White 2023 에서 총정확도 −3.1 pp 뒤에 드론 recall −8.3 pp 가 숨어 있었다. 우리 report12 벤치마크도 Pd/클래스별 recall 을 같이 내야 한다.",
+    "무향실 시뮬의 최대 위험은 '너무 깨끗한 노이즈 플로어' 다. Trinh 2026 이 이 한 축만 무라벨 실측 10초로 보정해 50%→97% 를 만들었다. USRP X410 실측 계획에 '표적 없는 배경 캡처' 를 반드시 포함할 것 — 학습용 데이터보다 이게 더 값어치 있을 수 있다.",
+    "메쉬 충실도는 실제로 값을 한다(Moore 2023: 온라인 CAD → 상관 붕괴). 우리 '실물 CAD 대조' 라인의 외부 근거로 인용 가능.",
+    "반대로 재질 정교화는 수익이 낮다(Manukyan: 솔버 파라미터·재질 immaterial; RadarTwin: 재질 균일화 비용 0.035 < 환경 제거 0.089). GROUP_GAMMA 재질 가중 PO 를 더 조이는 것보다 기하·안테나·배경 쪽에 시간을 쓰는 편이 낫다.",
+    "우리 '무향실 안' 서사의 대가를 명시해야 한다. CageDroneRF 는 통제 실내→실외 이동만으로 기종식별이 42.07% 로 떨어짐을 실측으로 보였다. 챔버 결과는 상한(upper bound) 으로 프레이밍하고, 실외 실측은 별도 도메인으로 취급할 것.",
+    "sim-to-real 을 잴 때 기준선은 '같은 실측으로 학습' 이 아니라 '다른 조건의 실측으로 학습' 이어야 공정하다(RadSimReal: real→real 교차 84.76 → 22.33 로, sim→real 격차보다 훨씬 컸다).",
+    "전이되는 축과 안 되는 축을 분리해 주장할 것: 상대 순서/기하는 전이되고 절대 σ(dBsm)·재질 대비는 전이되지 않는다(RadarTwin). 우리 절대 σ 앵커링(±2~3 dB)의 의미를 이 프레임 안에서 다시 서술해야 한다.",
+    "합성만으로 학습할 계획이면 모델 용량을 줄이고 물리 구조(정합필터/템플릿)를 넣는 쪽이 낫다(BatStation 4,560 파라미터).",
+    "정량 게이트 제안: (a) 시뮬-실측 스펙트로그램 정규화 상호상관 ≥ 0.7 (Moore 기준), (b) IQ/RD 진폭 분포 KS p > 0.05 (NextSense 기준), (c) 합성학습 분류기의 실측 드론 recall 이 실측학습 대비 −10 pp 이내."
+  ],
+
+  "not_relevant_but_checked": [
+    {"paper": "Wisniewski et al., J. Imaging 2022, 'Drone Model Classification Using CNN Trained on Synthetic Data' (92.4% on real)", "reason": "광학 이미지. RF 아님 — 검색 결과에 자주 섞여 나오므로 혼동 방지용으로 기록."},
+    {"paper": "MODSIM World 2025 #58, GPU-Accelerated Radar Simulation (SBR + OptiX)", "reason": "시뮬레이터 도구 논문. sim-to-real 전이 실험 없음."},
+    {"paper": "arXiv 2402.04368 Micro-Doppler-Coded Drone Identification", "reason": "전부 실측(CST 는 태그 설계용). 합성 학습 없음."},
+    {"paper": "arXiv 2512.17831 GPR physics-guided hierarchical domain adaptation", "reason": "지중 레이더. 기법(적대적 도메인 적응)은 참고 가치 있으나 도메인이 다름."},
+    {"paper": "arXiv 2605.00018 What Physics do Data-Driven MoCap-to-Radar Models Learn?", "reason": "합성기 자체의 물리 일관성 감사. 'reconstruction error 가 낮아도 물리적으로 일관되지 않을 수 있다' 는 경고는 우리 SBR 검증에 시사점."}
+  ]
+}

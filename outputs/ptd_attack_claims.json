@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "generated": "2026-08-03",
+    "role": "adversarial attack on the claims this PTD round is trying to make. The job was to FALSIFY, and to keep a claim alive only where falsification failed.",
+    "sources_read": [
+      "outputs/ptd_kernel_anatomy.json",
+      "outputs/ptd_plate_validation.json",
+      "outputs/ptd_regression.json",
+      "outputs/ptd_drone_effect.json"
+    ],
+    "new_computation_done_by_this_attack": [
+      "sign-flip decomposition of the stored azimuth-mean sigma (sigma_flip = 2*sigma_po + 2*sigma_edge - sigma_ptd), validated by a Cauchy-Schwarz check on all 336 (drone x cut x pol x freq) points -> 0 violations",
+      "paired / HAC(Newey-West lag 3) / Durbin-Watson refit of the band-slope change, and sub-window + leave-one-out robustness",
+      "phase-blind baselines on the plate: incoherent power sum and random-phase cross term, on the identical off-null oblique mask (reproduces the file's 11.000 / 5.425 / 2.200 dB exactly)",
+      "re-extraction of production drone edges to inventory the wedge parameter N of the metal-only edge population, and isolation of the near-pole subset's contribution to the s1000plus edge field"
+    ],
+    "provenance_timeline": {
+      "src/ptd_edges.py": "sha256_16 f32d88c4ee4fca2b, mtime 2026-08-03 07:16:16, UNCHANGED to this moment",
+      "outputs/ptd_regression.json": "07:39",
+      "outputs/ptd_drone_effect.json": "07:43",
+      "outputs/ptd_plate_validation.json": "07:57",
+      "consequence": "the 180-degree sign defect was found 14 minutes AFTER the drone run and the kernel has not been touched since. Every number in ptd_regression and ptd_drone_effect was produced by the sign-defective kernel."
+    }
+  },
+
+  "C-P1": {
+    "claim_as_offered": "our kernel has the PTD edge term implemented, and it shows an improvement on the canonical flat-plate case",
+    "verdict": "REFUTED AS STATED. Survives only in a heavily narrowed form.",
+    "what_survived": "On one 6-lambda x 40-lambda PEC plate at 3.5 GHz, in the principal plane, the oblique off-null dB-RMS versus a 2-D MoM reference does drop from 11.000 dB (PO only) to 5.425 dB (PO+PTD as shipped). I could not make that improvement disappear: it survives the null guard, it is not a grid artifact, and the shipped wrappers are bit-identical to the fast path (max 4.1e-14 dB).",
+    "falsifications": [
+      {
+        "id": "P1-a",
+        "kills": "'our kernel'",
+        "finding": "PTD is NOT in the production kernel. src/ptd_edges.py is imported only by benchmark/ptd_drone_effect.py, ptd_drone_effect_addendum.py, ptd_drone_effect_headline.py, ptd_plate_validation.py, smoke_ptd.py, verify_ptd_regression.py. attach_to_sbr_field has ZERO call sites anywhere in the tree. The round's own R0_provenance records that rcs_po.py, rcs_sbr.py and geom.py contain zero occurrences of the string 'ptd' -- it reports this as proof of a clean regression, but it is equally proof that nothing production calls the term.",
+        "restatement_required": "'a standalone PTD module exists alongside the kernel', not 'the kernel has PTD'."
+      },
+      {
+        "id": "P1-b",
+        "kills": "'implemented' (correctness)",
+        "finding": "The shipped fringe term enters with a global 180-degree phase error. The round's own sign_probe measures |A_shipped/A_analytic| = 1 to 3.8e-15 and arg = 179.9999999999994 deg over all 12 probe rows. The source docstring of edge_field concedes it: 'this constant and the OVERALL COMPLEX SIGN are unverified'. The sign enters as a single global 0.5*np.sum(...) factor, so it is one constant, applied uniformly to every edge and every wedge angle.",
+        "cost_of_the_defect": "oblique off-null dB-RMS: shipped 5.425 dB vs sign-corrected 2.200 dB vs analytic Ufimtsev 2.200 dB. Worst absolute error: 25.60 dB shipped vs 13.73 dB corrected. On the soft polarization the correct sign gives 0.047 dB RMS -- the shipped kernel leaves 4.83 dB there, a factor of ~100 in sigma."
+      },
+      {
+        "id": "P1-c",
+        "kills": "the inference from 'shows an improvement'",
+        "finding": "THE PLATE TEST IS PHASE-BLIND, so passing it is not evidence the kernel is right. On the identical off-null oblique mask, pooled over both polarizations: PO only 11.000 dB, PO+PTD as shipped 5.425 dB, PO + |edge|^2 added INCOHERENTLY (phase thrown away entirely) 2.654 dB, PO + edge with a RANDOM cross-term phase (400 draws, mean) 3.261 dB, sign-corrected 2.200 dB. The shipped kernel is beaten by discarding the phase and beaten by a random phase. Pointwise, the shipped kernel beats PO-only at only 64 % of oblique angles (both pols), while the sign-corrected one beats it at 100 % (H) / 82 % (V).",
+        "consequence": "The improvement metric measures only that the edge term has roughly the right MAGNITUDE. It has no power to discriminate a correct kernel from a sign-flipped one -- and in fact it passed a sign-flipped one. Reporting 'PTD improves the plate case' as validation of the implementation is unsupported."
+      },
+      {
+        "id": "P1-d",
+        "kills": "'canonical case' as a basis for transfer",
+        "finding": "The validation exercises exactly one wedge class, and it is the one class that never occurs in production. edges: n_wedge = 0, n_boundary = 4, i.e. only the alpha = 360 deg half-plane (N = 2) branch was tested. I re-extracted the production drone edges: of the metal-only edge length that edge_field actually integrates, the fraction with N > 1.99 is 0.00 % on BOTH airframes. mini5pro metal N in [1.032, 1.500]; s1000plus metal N in [0.169, 1.500]. 100 % of the production edge population is an untested wedge angle.",
+        "further_scope_limits": [
+          "one frequency (3.5 GHz), one principal-plane cut, monostatic, beta' = 90 deg only -- off-cone incidence untested",
+          "one 40-lambda straight edge validated; production integrates segments of median 0.029 lambda (mini5pro) / 0.051 lambda (s1000plus)",
+          "the reference is a 2-D strip MoM mapped by sigma_3D = (2 b^2/lam) sigma_2D, so the b-direction is analytic, not simulated",
+          "angles beyond 85 deg excluded; second-order, corner and truncated-wedge (Johansen/Gao TW) terms absent from both the code and the analytic curve"
+        ]
+      },
+      {
+        "id": "P1-e",
+        "kills": "'implemented' (usability on the actual targets)",
+        "finding": "The same kernel diverges by +296 to +352 dB on a dihedral (round's own C_dihedral_ptd / C6_reentrant_pole): the face-1 denominator cos(phi'/N) - cos((pi-a)/N) is identically zero at N = 1/(2m), and the singularity guard watches a different denominator. Independently confirmed on production CAD by this attack: s1000plus carries 576 metal-only edges at N = 0.1692, which is 2.5e-3 from the exact pole N = 1/6."
+      }
+    ],
+    "surviving_form_that_can_be_published": "A first-order Ufimtsev fringe module exists as a separate file. On a single 6x40-lambda PEC plate at 3.5 GHz it reduces oblique dB-RMS from 11.0 to 5.4 dB, but (i) that is worse than adding the edge power incoherently (2.65 dB), (ii) the term carries a global 180-degree sign error whose correction reaches 2.20 dB, (iii) it is not called by the production kernel, (iv) it diverges on the concave wedges present in every production mesh, and (v) none of the wedge angles it meets in production have been validated against anything."
+  },
+
+  "C-P2": {
+    "claim_as_offered": "our cost increase is comparable to the +4.6-17.2 % Gao reports",
+    "verdict": "REFUTED. The comparison is a category error, and the one number that appears to match is produced by asymmetric amortisation. The source file already contains the caveat that kills the claim.",
+    "falsifications": [
+      {
+        "id": "P2-a",
+        "kills": "the comparability of the two quantities",
+        "finding": "Gao's 4.6-17.2 % is WALL CLOCK with the CPU edge work overlapped onto the GPU surface work -- the round's own cost.gao_2012.caveat_from_our_doc says so and quotes the arithmetic: the TW-ILDC term alone is 913.9 s against 1311 s for the whole SBR run (aircraft A) and 2428.2 s against 2302.7 s (aircraft B). Gao's ARITHMETIC edge/surface ratio is therefore 69.7 % and 105.5 %. Our numbers are pure arithmetic (single-thread CPU numpy, nothing overlapped). Comparing our arithmetic ratio to his overlapped wall clock compares two different quantities.",
+        "note": "If anything, an honest arithmetic-to-arithmetic comparison (ours median 78 % vs surface integral, Gao 70-106 %) is the one that lines up -- and it is nowhere near 4.6-17.2 %."
+      },
+      {
+        "id": "P2-b",
+        "kills": "the specific number that 'brackets Gao'",
+        "finding": "The 7-34 % (median 20 %) figure is obtained by amortising the ONE-OFF edge extraction over 48,600 production poses while leaving the ONE-OFF PO point cloud amortised over only 120 poses. Recomputed from cost.rows with the SAME horizon applied to both one-offs: over 48,600 poses -> 11.1 % / 78.3 % / 257.0 % (min/median/max); over 120 poses -> 41.6 % / 105.8 % / 151.4 %. Neither brackets 4.6-17.2 %. The shipped asymmetric framing reproduces as 7.2 / 20.2 / 34.7 %, confirming the asymmetry is exactly what produces the match.",
+        "arithmetic_check": "t_pointcloud_ms_per_pose is already a 120-pose amortisation (11.26 ms on s1000plus @1.8 GHz); rescaled to 48,600 poses it is 0.028 ms and the denominator collapses to the surface integral alone."
+      },
+      {
+        "id": "P2-c",
+        "kills": "the choice of denominator",
+        "finding": "The same measurements give 11-260 % (median 78 %) against the PO area integral and 7-34 % against surface+point-cloud. The round states both, then quotes the second next to Gao. Denominator shopping: the framing that produces comparability is chosen after seeing the target number."
+      },
+      {
+        "id": "P2-d",
+        "kills": "the mechanism offered to excuse the mismatch",
+        "finding": "The stated reason ('edge cost is frequency-independent while the PO surface cost grows as f^2, so Gao's 3920-lambda aircraft sits at the far end of that trend') is contradicted by the round's own timings. Over 1.8 -> 5.8 GHz, f^2 grows 10.4x, but n_points grows only 29,622 -> 38,688 (1.31x) and t_surface only 0.755 -> 1.341 ms (1.8x). At lambda/7 the point cloud is tessellation-limited, not wavelength-limited, in this band. The f^2 argument does not hold in the regime where the measurement was taken."
+      },
+      {
+        "id": "P2-e",
+        "kills": "the precision of the quoted ranges",
+        "finding": "Single-shot CPU timings. The edge/surface median jumps 90.9 % (4.05 GHz) -> 39.4 % (4.30) -> 89.2 % (4.55) -> 31.3 % (5.05) -> 62.7 % (5.21) on a quantity that is supposed to be smooth in f. corr(t_surface, n_points) = 0.32. t_edge coefficient of variation 19 % where it should be constant. The reported min and max are the extremes of a noisy ratio, not measured bounds, yet they are printed to 8 significant figures (10.983925376957105 %, 260.24936180701843 %)."
+      },
+      {
+        "id": "P2-f",
+        "kills": "relevance to us",
+        "finding": "All of it was measured on a CPU PO path that is not the production engine. Production sigma is GPU SBR (median 38.1 ms/pose). attach_to_sbr_field -- the only path by which PTD would ever cost anything in production -- has never been executed. The production cost of PTD is UNMEASURED, so there is no 'our cost increase' to compare to anyone."
+      }
+    ],
+    "the_files_own_words_against_the_claim": "cost.gao_2012.not_apples_to_apples: 'This is a context number, not a benchmark match.' and headline.question_3_cost.why_the_difference: 'NOT a like-for-like comparison.' The claim contradicts its own source.",
+    "surviving_form_that_can_be_published": "Stated as an absolute, not a comparison: on the host CPU the edge line integral costs 1.5-5.3 ms per pose (median 2.7 ms), which is 11-257 % of the PO surface integral once both one-off costs are amortised over the same production grid. Gao's printed 4.6-17.2 % is overlapped wall clock and is not the same quantity; his arithmetic ratio is 70-106 %. The production (GPU SBR) cost of PTD is not yet measured."
+  },
+
+  "C-P3": {
+    "claim_as_offered": "PTD narrows our band-slope gap (our hypothesis, not in Gao)",
+    "verdict": "REFUTED. This is what-we-wanted-to-see. The one configuration that supports it is one airframe x one polarization (the wrong one) x one fit window, computed with a term whose sign is known to be wrong -- and correcting that sign reverses the direction.",
+    "honest_credit_where_falsification_failed": [
+      "The mini5pro headline is NOT contaminated by the numerical pole. I inventoried its metal edges: min N = 1.0323, 0.53 away from the nearest pole N = 1/2. That attack line failed.",
+      "The round's own sharp_deg 5->30 deg sweep genuinely refutes the tessellation-seam hypothesis, and the round records its own hypothesis as wrong. That is correct practice and I could not break it.",
+      "The decomposition sigma_ptd = sigma_po + sigma_edge + cross is internally consistent: 0 Cauchy-Schwarz violations in 336 points."
+    ],
+    "falsifications": [
+      {
+        "id": "P3-a",
+        "severity": "fatal",
+        "kills": "the direction of the effect",
+        "finding": "The whole effect lives in the cross term, and the cross term's sign is the one thing the plate validation proved wrong. Rebuilding the total with the sign corrected (sigma = sigma_po + sigma_edge - cross, exact from the stored means): mini5pro V-pol pooled slope goes 0.954 -> 0.985 dB/GHz, i.e. the gap WIDENS 4.54x -> 4.69x instead of narrowing to 4.08x. Per elevation cut, sign-corrected: el 0.0 1.063 -> 0.943 (closer), el -2.0 1.105 -> 1.200 (farther), el -20.0 0.601 -> 0.786 (farther). The pooled headline and 2 of 3 cuts move AWAY from Das. As-implemented and sign-corrected also disagree cut-by-cut with no physical pattern (as-implemented at el 0.0 moves 1.063 -> 1.149, also away).",
+        "normalisation_sensitivity": "scaling the edge amplitude by c (the unverified 1/2 constant): c=+0.5 slope 0.912, c=+1 0.857, c=+2 0.729 (all narrowing); c=-0.5 0.980, c=-1 0.985, c=-2 0.930 (widening except at c=-2). The claimed direction is a function of an unverified constant's sign, not of physics."
+      },
+      {
+        "id": "P3-b",
+        "severity": "fatal",
+        "kills": "the estimator",
+        "finding": "The sign of the effect flips with the fit window. Refitting the same mini5pro V-pol pooled data: 1.80-3.50 GHz delta -0.095 (closer), 2.00-4.00 -0.439 (closer), 2.50-5.00 -0.346 (closer), 3.00-5.80 +0.041 (FARTHER), 3.50-5.80 +0.155 (FARTHER). And the project's OWN three-band convention (1.843/3.5/5.21 GHz, el 0.0, V) is already in the file with gap_reduced = FALSE, 6.16x -> 6.58x. The round's headline window is one of several the round itself uses, and it is the one that gives the wanted sign.",
+        "why_this_is_decisive": "The round already documents that the window nuisance is huge -- the same simulated airframe gives 1.657 dB/GHz on 1.8-5.21 GHz and 0.435 dB/GHz on 1.8-18.2 GHz, a 3.8x swing. The claimed PTD effect is 0.097 dB/GHz on a 0.744 dB/GHz gap. The nuisance is roughly 30x the effect. The estimand is not identified."
+      },
+      {
+        "id": "P3-c",
+        "severity": "major",
+        "kills": "the statistics, in BOTH directions",
+        "finding": "The 'not statistically separable from zero' verdict is reached with the wrong error bar: the file compares delta_slope = -0.0968 to se_before = 0.1057, which is the SE of the LEVEL fit, not of the paired difference. The before/after curves share the identical PO term, so the correct test is a regression on the difference series: OLS SE = 0.0442, t = -2.19 (nominally 'significant'). But the residuals are strongly autocorrelated -- Durbin-Watson = 0.32 -- so OLS is invalid here; HAC (Newey-West, lag 3) SE = 0.0644, t = -1.50. Leave-one-frequency-out jackknife SE = 0.053. So the right conclusion was reached by wrong arithmetic, and the honest statement is that the significance question is not resolvable with 21 correlated points from a single realisation.",
+        "additional": "Delta(f) is not a trend at all, it is a hump: 0.35, 0.42, 0.74, 0.82, 1.07 (peak at 2.3 GHz), ... 0.13 (3.8 GHz), ... 0.65 dB at 5.8 GHz. Fitting a straight line to a hump makes the slope an artifact of where the window starts and ends -- which is exactly what P3-b measures."
+      },
+      {
+        "id": "P3-d",
+        "severity": "fatal",
+        "kills": "'we looked at more than one airframe'",
+        "finding": "There is one usable airframe, not two, and the second one's failure is misdiagnosed. The round reports s1000plus as 'PTD raises the azimuth-mean sigma by 8-24 dB -- physically impossible' and reads it as 'the effect scales with metal edge length exactly as PTD predicts, but it overshoots'. That reading is FALSE. I isolated the contributions: the 576 metal edges at N = 0.1692 (2.5e-3 from the exact pole N = 1/6) carry only 1.177 m of 18.203 m (6.5 %) of the metal edge length, yet they reproduce the full-airframe azimuth-mean edge field to 0.00 dB (-7.13 dB both), while the 3180 well-conditioned edges carrying 93.5 % of the length sit 40.1 dB lower (-47.22 dB). The s1000plus result is 100 % the blocker C-1 numerical pole, not edge-length scaling and not PTD physics.",
+        "corollary": "This also explains why the round's sharp_deg 5->30 deg sweep left delta at ~12.7-13.0 dB: an alpha = 30.45 deg edge is extremely sharp, so no sharpness gate can remove it. The sweep refuted the seam hypothesis but was read as confirming a physical mechanism that is not there.",
+        "consequence": "n = 1 airframe. And the sentence 'the effect scales with metal edge length exactly as PTD predicts' must be withdrawn."
+      },
+      {
+        "id": "P3-e",
+        "severity": "major",
+        "kills": "the cross-check that would be used to rescue the claim",
+        "finding": "The only configuration that halves the gap is H-pol (4.54x -> 1.91x), and Das measured VV. That result is also the most sign-sensitive number in the whole set: the H-pol cross term is destructive at 21 of 21 frequencies. Sign-corrected it gives 0.642 dB/GHz -> 3.06x, not 1.91x. Quoting the H-pol number as evidence that 'the fringe term carries real frequency-flat content' is quoting the number most contaminated by the known defect."
+      },
+      {
+        "id": "P3-f",
+        "severity": "major",
+        "kills": "transfer to the thing we actually publish",
+        "finding": "Engine mismatch, stated by the round and not resolved: this is the CPU point-cloud PO engine with NO occlusion, so every far-side motor edge radiates. Production sigma is GPU SBR with occlusion. The slope being 'moved' is a PO-engine slope (0.954 dB/GHz), not the published SBR slope (1.891 dB/GHz three-band). A 0.097 dB/GHz change on a quantity that is not the published quantity cannot narrow the published gap.",
+        "physics_absent_at_exactly_the_features_that_carry_the_effect": "the truncated-wedge (TW) correction is absent, and the effect is carried by motor rims of median segment length 0.029-0.051 lambda -- the few-lambda regime where the infinite-wedge EEC is known to be worst. Second-order, corner and creeping-wave terms are all zero. The metal-only gate (|Gamma| >= 0.999) silently excludes the entire carbon truss by fiat."
+      }
+    ],
+    "adjudication_of_the_question_asked": {
+      "does_the_data_support_C-P3": "No.",
+      "statistically_meaningful": "Not established, and not establishable by the method used. The reported 'not significant' used the wrong error bar; the paired test is nominally 2.2 sigma under OLS but Durbin-Watson 0.32 invalidates OLS, HAC gives 1.5 sigma, and the sign of the effect is not stable across fit windows. Window instability, not sampling noise, is the binding uncertainty.",
+      "only_a_few_poses": "No -- 120 azimuths x 3 elevation cuts is adequate for the azimuth mean. But that is not the inferential unit. The inferential units are 21 correlated frequency points, 1 usable airframe, and 1 polarization, and on those the answer is: yes, far too few.",
+      "only_one_airframe": "Yes, effectively one. The second airframe's number is a numerical-pole artifact (P3-d) and must be withdrawn rather than described as an overshoot."
+    },
+    "surviving_form_that_can_be_published": "Null result, and stated as a null: 'We tested whether a first-order PTD fringe term flattens the simulated band slope toward the measured value. On the one airframe where the term is numerically well-conditioned, at the polarization that was measured, it changes the slope by -0.097 dB/GHz -- about 10 % of a 350 % gap, smaller than the change induced by the choice of fit window, and of a sign that reverses when a known 180-degree phase error in our term is corrected. PTD does not explain the band-slope gap.' Nothing stronger is supported."
+  },
+
+  "cross_cutting": [
+    "The single most consequential fact in this round is the 07:16 kernel hash: ptd_edges.py has not changed since before ANY of the three result files were produced, and the sign defect was found at 07:57, 14 minutes after the drone run. ptd_regression.json and ptd_drone_effect.json are outputs of a kernel now known to be sign-wrong. Neither file carries that warning, because neither could have.",
+    "The round's honesty machinery works well where it was pointed (band-span warning, missing_physics list, blockers list, recording its own refuted hypothesis) and fails where it was not: it does not notice that its plate metric is phase-blind, that its cost comparison amortises two one-off costs on different horizons, or that its second airframe's result is a pole artifact rather than physics.",
+    "Two of the three claims are rescued by restating them as what they are: an unvalidated module (C-P1) and a null result (C-P3). C-P2 has no rescue as a comparison and must be restated as an absolute measurement."
+  ],
+
+  "what_would_settle_it": [
+    "Fix the global 180-degree sign in edge_field (single constant at src/ptd_edges.py:~552, A = 0.5 * np.sum(...)), then RERUN ptd_regression and ptd_drone_effect. Every number in both files is currently from the defective kernel.",
+    "Do the Rung 2 flat-plate calibration that pins the 1/2 normalisation, so the edge LEVEL is no longer a free parameter. Until then every delta-sigma carries a +/-6 dB amplitude ambiguity and the C-P3 direction is a function of an unverified constant.",
+    "Add a guard on the face-1 denominator cos(phi'/N) - cos((pi-a)/N), or exclude N < 1 and declare it in not_implemented. Then re-inventory: s1000plus currently loses 6.5 % of its metal edge length to a pole that produces 100 % of its edge field.",
+    "Validate a WEDGE, not just a half-plane. 0.00 % of production metal edge length is N = 2. Run the plate benchmark against a 2-D MoM wedge at N = 1.03, 1.25 and 1.5 (the production range), at beta' != 90 deg, and at two frequencies at least an octave apart.",
+    "Replace the plate pass/fail metric with one that has discriminating power: report the shipped kernel against the incoherent-power and random-phase baselines every time. Any kernel that does not beat 2.65 dB pooled off-null oblique RMS has not demonstrated it knows the phase.",
+    "Execute attach_to_sbr_field on the production GPU SBR path with occlusion, on at least one airframe, before any cost or slope statement is attached to 'our engine'. Until that runs, both C-P2 and C-P3 describe a path that does not exist.",
+    "For the band slope: pre-register the window and the polarization before fitting, and report the slope on the SAME window the anchor was fitted on (Das 1.8-18.2 GHz) or explicitly refit Das's data on 1.8-5.8 GHz. Report the window-sensitivity band alongside every slope; it is currently ~30x the effect being claimed.",
+    "For significance: fit the paired difference series, report Durbin-Watson and a HAC or block-bootstrap SE, and add airframes. With 1 airframe and 21 correlated frequency points no significance statement in either direction is supportable.",
+    "For cost: re-time with repeats (>=5) and report medians with a spread; amortise every one-off cost over the same pose horizon; and quote Gao's arithmetic ratio (70-106 %) rather than his overlapped wall clock (4.6-17.2 %) if a comparison is wanted at all.",
+    "Withdraw the sentence 'the effect scales with metal edge length exactly as PTD predicts' from ptd_drone_effect.json headline.question_1_effect.reading -- it is falsified by the near-pole isolation (6.5 % of length produces 100 % of the field)."
+  ]
+}

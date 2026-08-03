@@ -1,0 +1,790 @@
+{
+  "meta": {
+    "title": "표적모형 비교를 태울 환경 축 확정",
+    "generated": "2026-08-03T07:34:20",
+    "producer": "benchmark/tm_envs.py",
+    "git_rev": "b6bb008",
+    "python": "3.12.13",
+    "gpu_policy": "GPU2 는 benchmark/rcs_anchor.py 재생성 중 — 건드리지 않음. 이 실행은 GPU 0.",
+    "elapsed_s": 1.199399709701538
+  },
+  "target_model_branches": [
+    {
+      "id": "branch_A_isotropic_point_scalar_sigma",
+      "what": "등방 점표적 — 스칼라 상수 σ 주입 (mainstream h = h_bg + h_target)",
+      "uses_stale_sigma": false,
+      "where": "src/freespace_link.echo_power_w · src/passive_process.make_cpi 의 a_tgt"
+    },
+    {
+      "id": "branch_B_stock_sionna_rt_mesh",
+      "what": "스톡 Sionna RT — 드론 메쉬를 씬에 넣고 PathSolver 가 직접 경로를 만든다(산란적분 없음)",
+      "uses_stale_sigma": false,
+      "where": "src/render_rt.make_scene(drone=...) + benchmark/rt_experiments.py"
+    },
+    {
+      "id": "branch_C_ours_sbr_po_angle_resolved",
+      "what": "우리 SBR+PO 각도분해 σ(az, el, band) 격자 조회",
+      "uses_stale_sigma": true,
+      "where": "outputs/report13_sigma_grid.json (via src/experiment_freespace_sigma.py)"
+    }
+  ],
+  "staleness": {
+    "mesh_sources": [
+      {
+        "path": "src/drones.py",
+        "exists": true,
+        "bytes": 78725,
+        "mtime": "2026-07-31T06:49:04"
+      },
+      {
+        "path": "src/drone_cad.py",
+        "exists": true,
+        "bytes": 131114,
+        "mtime": "2026-07-31T08:04:01"
+      }
+    ],
+    "sigma_grid": {
+      "path": "outputs/report13_sigma_grid.json",
+      "exists": true,
+      "bytes": 1345092,
+      "mtime": "2026-07-30T07:39:06"
+    },
+    "rcs_anchor": {
+      "path": "outputs/rcs_anchor.json",
+      "exists": true,
+      "bytes": 212044,
+      "mtime": "2026-07-30T09:46:13"
+    },
+    "sigma_grid_meta": {
+      "generated": "2026-07-29T05:36:31",
+      "git_rev": "4aa668b",
+      "engine": "sbr (rcs_sbr_batch, 1-bounce, penetrate=True)",
+      "div": 16,
+      "backend": "direct"
+    },
+    "verdict": "sigma_grid/rcs_anchor 는 메쉬 소스(drones.py·drone_cad.py)보다 낡았다 — 절대 σ 레벨 인용 금지",
+    "affected_branch": "branch_C_ours_sbr_po_angle_resolved",
+    "unaffected_branches": [
+      "branch_A_isotropic_point_scalar_sigma",
+      "branch_B_stock_sionna_rt_mesh"
+    ],
+    "why": "A 는 스칼라 상수 σ, B 는 Sionna 재질·메쉬가 직접 경로를 만들며 우리 σ 격자를 읽지 않는다. C 만 report13_sigma_grid.json 을 조회한다 → 낡음은 3분기 중 C 한 곳에만 들어간다. 3분기 상대비교의 '순위'는 C 의 절대레벨이 아니라 C 의 각도구조에 달려 있고, 각도구조도 07-31 메쉬 변경(동체 셸·암 단면)에 영향을 받으므로 ⭐ C 분기 결론은 rcs_anchor 재생성 후 반드시 재확인한다."
+  },
+  "inventory": {
+    "scripts": [
+      {
+        "path": "src/chamber.py",
+        "exists": true,
+        "bytes": 12348,
+        "mtime": "2026-07-14T06:06:29"
+      },
+      {
+        "path": "src/scene_build.py",
+        "exists": true,
+        "bytes": 8773,
+        "mtime": "2026-07-14T08:35:24"
+      },
+      {
+        "path": "src/render_rt.py",
+        "exists": true,
+        "bytes": 13564,
+        "mtime": "2026-07-30T04:46:05"
+      },
+      {
+        "path": "src/radar_scene.py",
+        "exists": true,
+        "bytes": 8033,
+        "mtime": "2026-07-13T05:48:11"
+      },
+      {
+        "path": "src/bistatic_scene.py",
+        "exists": true,
+        "bytes": 3556,
+        "mtime": "2026-07-13T04:45:20"
+      },
+      {
+        "path": "src/monostatic_scene.py",
+        "exists": true,
+        "bytes": 30833,
+        "mtime": "2026-07-31T08:18:07"
+      },
+      {
+        "path": "src/freespace_scene.py",
+        "exists": true,
+        "bytes": 30649,
+        "mtime": "2026-07-30T04:40:14"
+      },
+      {
+        "path": "src/freespace_link.py",
+        "exists": true,
+        "bytes": 59559,
+        "mtime": "2026-08-03T06:32:51"
+      },
+      {
+        "path": "src/freespace_detect.py",
+        "exists": true,
+        "bytes": 73144,
+        "mtime": "2026-07-23T07:03:39"
+      },
+      {
+        "path": "src/experiment_freespace_sigma.py",
+        "exists": true,
+        "bytes": 40120,
+        "mtime": "2026-08-03T06:35:00"
+      },
+      {
+        "path": "src/experiment_freespace_range.py",
+        "exists": true,
+        "bytes": 65979,
+        "mtime": "2026-08-03T06:42:22"
+      },
+      {
+        "path": "src/experiment_ghost.py",
+        "exists": true,
+        "bytes": 12027,
+        "mtime": "2026-07-29T08:09:57"
+      },
+      {
+        "path": "src/experiment_detection.py",
+        "exists": true,
+        "bytes": 30507,
+        "mtime": "2026-07-29T06:36:30"
+      },
+      {
+        "path": "src/report14_scene.py",
+        "exists": true,
+        "bytes": 8007,
+        "mtime": "2026-07-27T06:08:55"
+      },
+      {
+        "path": "src/report14_stap.py",
+        "exists": true,
+        "bytes": 6840,
+        "mtime": "2026-07-27T06:12:33"
+      },
+      {
+        "path": "src/passive_process.py",
+        "exists": true,
+        "bytes": 25040,
+        "mtime": "2026-07-30T03:13:36"
+      },
+      {
+        "path": "benchmark/rt_experiments.py",
+        "exists": true,
+        "bytes": 32315,
+        "mtime": "2026-07-14T12:54:22"
+      },
+      {
+        "path": "benchmark/verify_floor_ghost.py",
+        "exists": true,
+        "bytes": 11329,
+        "mtime": "2026-07-27T05:01:13"
+      },
+      {
+        "path": "benchmark/verify_eca.py",
+        "exists": true,
+        "bytes": 33577,
+        "mtime": "2026-07-14T13:21:37"
+      },
+      {
+        "path": "benchmark/verify_clutter_doppler.py",
+        "exists": true,
+        "bytes": 46836,
+        "mtime": "2026-07-24T13:57:19"
+      },
+      {
+        "path": "benchmark/verify_freespace.py",
+        "exists": true,
+        "bytes": 32056,
+        "mtime": "2026-07-24T05:29:31"
+      },
+      {
+        "path": "benchmark/geometry_grid.py",
+        "exists": true,
+        "bytes": 67085,
+        "mtime": "2026-07-31T08:04:48"
+      },
+      {
+        "path": "benchmark/geometry_benchmark.py",
+        "exists": true,
+        "bytes": 91824,
+        "mtime": "2026-08-03T07:03:43"
+      },
+      {
+        "path": "benchmark/rcs_anchor.py",
+        "exists": true,
+        "bytes": 25012,
+        "mtime": "2026-07-30T11:03:36"
+      }
+    ],
+    "docs": [
+      {
+        "path": "docs/GEOMETRY_BENCHMARK.md",
+        "exists": true,
+        "bytes": 28670,
+        "mtime": "2026-07-31T09:07:56"
+      },
+      {
+        "path": "docs/REPORT14_SPEC.md",
+        "exists": true,
+        "bytes": 7488,
+        "mtime": "2026-07-31T02:44:03"
+      },
+      {
+        "path": "docs/REPORT13_SPEC.md",
+        "exists": true,
+        "bytes": 63911,
+        "mtime": "2026-07-31T02:44:03"
+      },
+      {
+        "path": "docs/VERIFY_CLUTTER.md",
+        "exists": true,
+        "bytes": 14028,
+        "mtime": "2026-07-30T03:15:22"
+      },
+      {
+        "path": "docs/RESUME.md",
+        "exists": true,
+        "bytes": 7801,
+        "mtime": "2026-08-03T07:04:49"
+      },
+      {
+        "path": "docs/RETRACTION_LOG.md",
+        "exists": true,
+        "bytes": 18474,
+        "mtime": "2026-08-03T07:03:27"
+      }
+    ],
+    "outputs": [
+      {
+        "path": "outputs/geometry_benchmark.json",
+        "exists": true,
+        "bytes": 65943,
+        "mtime": "2026-07-31T09:07:56"
+      },
+      {
+        "path": "outputs/geometry_grid.json",
+        "exists": true,
+        "bytes": 67908,
+        "mtime": "2026-07-31T08:05:01"
+      },
+      {
+        "path": "outputs/floor_ghost_verify.json",
+        "exists": true,
+        "bytes": 3238,
+        "mtime": "2026-07-29T04:56:33"
+      },
+      {
+        "path": "outputs/report3_rt.json",
+        "exists": true,
+        "bytes": 43511,
+        "mtime": "2026-07-31T03:40:27"
+      },
+      {
+        "path": "outputs/rt_env_clutter.json",
+        "exists": true,
+        "bytes": 1449,
+        "mtime": "2026-07-14T09:21:05"
+      },
+      {
+        "path": "outputs/verify_eca.json",
+        "exists": true,
+        "bytes": 140834,
+        "mtime": "2026-07-29T05:39:53"
+      },
+      {
+        "path": "outputs/verify_clutter_doppler.json",
+        "exists": true,
+        "bytes": 41021,
+        "mtime": "2026-07-24T13:51:33"
+      },
+      {
+        "path": "outputs/detection_ghost.json",
+        "exists": true,
+        "bytes": 3425,
+        "mtime": "2026-07-29T08:12:23"
+      },
+      {
+        "path": "outputs/report13_freespace.json",
+        "exists": true,
+        "bytes": 5035065,
+        "mtime": "2026-07-30T03:16:40"
+      },
+      {
+        "path": "outputs/report13_sigma_grid.json",
+        "exists": true,
+        "bytes": 1345092,
+        "mtime": "2026-07-30T07:39:06"
+      },
+      {
+        "path": "outputs/rcs_anchor.json",
+        "exists": true,
+        "bytes": 212044,
+        "mtime": "2026-07-30T09:46:13"
+      },
+      {
+        "path": "outputs/verify_ghost_impact.json",
+        "exists": true,
+        "bytes": 231772,
+        "mtime": "2026-07-29T06:26:32"
+      },
+      {
+        "path": "outputs/mono_link.json",
+        "exists": true,
+        "bytes": 201016,
+        "mtime": "2026-07-31T08:38:48"
+      },
+      {
+        "path": "outputs/verify_freespace.json",
+        "exists": true,
+        "bytes": 12105,
+        "mtime": "2026-07-24T21:55:27"
+      }
+    ]
+  },
+  "envs": [
+    {
+      "id": "E0_freespace",
+      "name": "자유공간 (대조군)",
+      "physics": "none — 환경 산란체 0",
+      "script": "PYTHONPATH=src:benchmark python src/experiment_freespace_range.py",
+      "support_scripts": [
+        "src/freespace_scene.py",
+        "src/freespace_link.py",
+        "src/freespace_detect.py",
+        "src/experiment_freespace_sigma.py"
+      ],
+      "runnable": "yes (CPU, 새 씬 제작 0)",
+      "measured": {
+        "geometry": {
+          "tx": [
+            0.0,
+            0.0,
+            25.0
+          ],
+          "rx": [
+            500.0,
+            0.0,
+            3.0
+          ],
+          "tgt": [
+            300.0,
+            200.0,
+            80.0
+          ],
+          "vel": [
+            5.0,
+            0.0,
+            0.0
+          ],
+          "fc_hz": 1840000000.0
+        },
+        "derived": {
+          "L": 500.4837659704858,
+          "R1": 364.72592449673766,
+          "R2": 293.1364869817471,
+          "Rb": 157.37864550799895,
+          "tau": 5.249586549238639e-07,
+          "fd": -4.304266247628647,
+          "beta": 98.47942861917271,
+          "lam": 0.16293068369565217,
+          "kappa": 106914.47621814362,
+          "R_eq": 326.97779162833615,
+          "el_deg": -18.460246462336137
+        },
+        "illumination_dirs": 1,
+        "scattering_dirs": 1,
+        "aspect_sep_deg_max": 0.0,
+        "note": "환경 산란체 0 — 표적은 이등분선 하나의 자세로만 보인다(해석적, RT 불필요)"
+      },
+      "why_sensitive": "[가설] 표적은 이등분선 **한 방향**으로만 조명되고 한 방향으로만 산란한다(측정 aspect_sep_deg_max=0). 그래서 세 표적모형의 차이는 그 한 자세의 σ 값 차이로 **환원**된다 — 각도구조(널·로브)는 φ·el 을 스윕할 때만 드러나고, 한 점에서는 스칼라 σ 로도 같은 검출확률을 낸다. ⇒ 여기서 세 분기가 갈리면 그것은 환경 탓이 아니라 σ **레벨** 차이다 — 다른 환경의 낙차를 재는 **영점**이 된다.",
+      "hypothesis_falsifier": "φ·el 스윕 위에서 세 분기의 Pd 곡선이 상수 dB 오프셋만큼 차이나면 가설 지지. 오프셋이 각도에 따라 바뀌면(교차가 생기면) 가설 반증 — 자유공간에서도 각도구조가 산다."
+    },
+    {
+      "id": "E1_chamber_floor",
+      "name": "반무향 챔버 — 반사 바닥(표적경유 유령)",
+      "physics": "바닥반사 — 표적을 경유한 2차 경로가 거울상 자세로 표적을 다시 본다",
+      "script": "PYTHONPATH=src:benchmark python benchmark/rt_experiments.py --quick --only depth,floor,ghost",
+      "support_scripts": [
+        "src/render_rt.py::make_scene",
+        "src/chamber.py",
+        "benchmark/verify_floor_ghost.py",
+        "src/experiment_ghost.py"
+      ],
+      "runnable": "yes (GPU, 챔버 씬·메쉬 존재, depth 스윕 실측 5.7 s)",
+      "measured": {
+        "scene": "chamber 30x20x11 semi-anechoic (5-face absorber + concrete floor)",
+        "tx": [
+          4.0,
+          2.5,
+          8.0
+        ],
+        "rx": [
+          4.0,
+          17.5,
+          6.5
+        ],
+        "tgt": [
+          21.0,
+          10.0,
+          5.5
+        ],
+        "fc_hz": 3500000000.0,
+        "bistatic": {
+          "L": 15.074813431681335,
+          "R1": 18.748333259252675,
+          "R2": 18.607794065928395,
+          "Rb": 22.281313893499735,
+          "tau": 7.432246308711254e-08,
+          "fd": 64.91874777796338,
+          "beta": 47.59790633026325,
+          "lam": 0.085654988
+        },
+        "illumination": {
+          "has_los": true,
+          "top_hits": [
+            {
+              "rel_db": 0.0,
+              "tau_ns": 62.5377082824707,
+              "objects": [
+                "LOS"
+              ]
+            },
+            {
+              "rel_db": -12.332550048828125,
+              "tau_ns": 87.61030578613281,
+              "objects": [
+                "absorber_left",
+                "absorber_left"
+              ]
+            },
+            {
+              "rel_db": -15.82724380493164,
+              "tau_ns": 126.24324798583984,
+              "objects": [
+                "absorber_right",
+                "absorber_right",
+                "absorber_right"
+              ]
+            },
+            {
+              "rel_db": -16.53542137145996,
+              "tau_ns": 76.61089324951172,
+              "objects": [
+                "floor_light"
+              ]
+            }
+          ],
+          "n_paths": 15,
+          "n_significant": 9,
+          "power_floor_db": -30.0,
+          "theta_deg_min": 54.70950698852539,
+          "theta_deg_max": 126.00025939941406,
+          "phi_deg_min": -166.49708557128906,
+          "phi_deg_max": 121.94493103027344,
+          "aspect_sep_deg_max": 168.0203857421875,
+          "aspect_sep_deg_p90": 145.53501892089844,
+          "aspect_sep_deg_median": 43.66320037841797,
+          "secondary_rel_db": -12.332550048828125,
+          "dyn_range_db": 28.464340209960938,
+          "delay_spread_ns": 72.63777160644531
+        },
+        "scattering": {
+          "has_los": true,
+          "top_hits": [
+            {
+              "rel_db": 0.0,
+              "tau_ns": 62.06892013549805,
+              "objects": [
+                "LOS"
+              ]
+            },
+            {
+              "rel_db": -15.056382179260254,
+              "tau_ns": 119.87925720214844,
+              "objects": [
+                "absorber_right",
+                "absorber_right"
+              ]
+            },
+            {
+              "rel_db": -15.503645896911621,
+              "tau_ns": 71.37028503417969,
+              "objects": [
+                "absorber_back",
+                "absorber_back"
+              ]
+            },
+            {
+              "rel_db": -15.859232902526855,
+              "tau_ns": 126.01167297363281,
+              "objects": [
+                "absorber_right",
+                "absorber_right",
+                "absorber_right"
+              ]
+            }
+          ],
+          "n_paths": 21,
+          "n_significant": 18,
+          "power_floor_db": -30.0,
+          "theta_deg_min": 36.34233093261719,
+          "theta_deg_max": 152.31712341308594,
+          "phi_deg_min": -165.99044799804688,
+          "phi_deg_max": 172.4824981689453,
+          "aspect_sep_deg_max": 174.20460510253906,
+          "aspect_sep_deg_p90": 135.59417724609375,
+          "aspect_sep_deg_median": 49.9839973449707,
+          "secondary_rel_db": -15.056382179260254,
+          "dyn_range_db": 29.71519660949707,
+          "delay_spread_ns": 134.60848999023438
+        },
+        "floor_image_geometry": {
+          "rb_direct_m": 22.281313893499735,
+          "rb_ghost_m": 25.792516188166005,
+          "sep_m": 3.511202294666269,
+          "el_direct_from_tx_deg": 7.66294093156971,
+          "el_floorimage_from_tx_deg": -36.0003691476265,
+          "el_direct_to_rx_deg": 3.080612049479626,
+          "el_floorimage_to_rx_deg": -32.855357950042915,
+          "aspect_sep_tx_deg": 43.66331007919623,
+          "aspect_sep_rx_deg": 35.935969999522534,
+          "note": "바닥 거울상 경로는 표적을 **직접경로와 다른 앙각**으로 본다 — 각도분해 σ 만이 두 경로에 다른 σ 를 줄 수 있다(순수 기하, RT 무관)"
+        },
+        "rt_seconds": 0.327190637588501
+      },
+      "why_sensitive": "[가설] 바닥 거울상 경로는 표적을 **직접경로와 다른 앙각**으로 때린다 — 측정된 순수 기하가 그것을 확정한다(floor_image_geometry: 직접 조명은 표적 **위**에서, 바닥경유 조명은 표적 **아래**에서 온다 — el 부호가 뒤집힌다). 즉 직접경로는 드론의 등/옆구리를, 유령경로는 **배(belly)** 를 본다. 각도분해 σ 를 가진 분기(C)만 두 경로에 **서로 다른 σ** 를 줄 수 있고, 스칼라 σ 분기(A)는 유령/직접 비를 순수 기하·프레넬로만 낸다. 드론은 등과 배의 σ 가 크게 다른 납작한 물체이므로 유령 세기 예측이 분기마다 갈릴 것이다. 스톡 Sionna 분기(B)는 few-λ 드론에서 산란적분이 없어 유령 경로 자체를 **만들지 못하거나** 재질 S 노브에만 반응할 것이다(report3 [C][D][E] 가 이미 그 방향을 가리킨다). ⭐ 측정된 사다리에서 챔버는 **각거리 축의 1위**다 — 닫힌 상자라 사방에서 되돌아온다. 다만 그 경로들은 흡수체를 거쳐 약하다(illumination.secondary_rel_db) — 각거리는 크고 전력은 작다는 조합이라, 이 칸은 '자세차가 커도 약하면 안 갈리는가'를 묻는다.",
+      "hypothesis_falsifier": "유령/직접 전력비를 세 분기로 예측해 비교한다. A 와 C 의 비가 1 dB 안이면 가설 반증 — 각도분해가 바닥반사에서 값을 못 낸다. B 가 유령 경로를 아예 못 만들면 그것은 '표적모형이 환경을 못 태운다'는 별개의 결과로 기록한다."
+    },
+    {
+      "id": "E2_outdoor_canyon",
+      "name": "실외 street canyon — 다중경로 + 가림",
+      "physics": "다중경로 + 가림/그림자 — 여러 벽 반사가 표적을 여러 자세로 조명, 건물이 LOS 를 끊는다",
+      "script": "PYTHONPATH=src:benchmark python src/report14_scene.py",
+      "support_scripts": [
+        "src/report14_scene.py",
+        "src/report14_stap.py",
+        "docs/REPORT14_SPEC.md"
+      ],
+      "runnable": "yes (GPU, 내장 씬 로컬 존재 — 다운로드·제작 불필요, 스모크 통과)",
+      "measured": {
+        "scene": "street_canyon",
+        "n_objects": 6,
+        "tx": [
+          -40.0,
+          0.0,
+          10.0
+        ],
+        "rx": [
+          40.0,
+          0.0,
+          3.0
+        ],
+        "tgt": [
+          0.0,
+          -5.0,
+          20.0
+        ],
+        "fc_hz": 3500000000.0,
+        "illumination": {
+          "has_los": true,
+          "n_paths": 6,
+          "n_significant": 5,
+          "power_floor_db": -30.0,
+          "theta_deg_min": 99.85822296142578,
+          "theta_deg_max": 126.71300506591797,
+          "phi_deg_min": -163.00367736816406,
+          "phi_deg_max": 172.87496948242188,
+          "aspect_sep_deg_max": 38.18171310424805,
+          "aspect_sep_deg_p90": 35.18958282470703,
+          "aspect_sep_deg_median": 23.431285858154297,
+          "secondary_rel_db": -4.102384090423584,
+          "dyn_range_db": 22.78536033630371,
+          "delay_spread_ns": 56.287559509277344
+        },
+        "scattering": {
+          "has_los": true,
+          "n_paths": 6,
+          "n_significant": 5,
+          "power_floor_db": -30.0,
+          "theta_deg_min": 106.4581527709961,
+          "theta_deg_max": 119.77336120605469,
+          "phi_deg_min": -16.997045516967773,
+          "phi_deg_max": 45.96451187133789,
+          "aspect_sep_deg_max": 37.02432632446289,
+          "aspect_sep_deg_p90": 31.204181671142578,
+          "aspect_sep_deg_median": 22.27496910095215,
+          "secondary_rel_db": -4.054492950439453,
+          "dyn_range_db": 27.286970138549805,
+          "delay_spread_ns": 54.21932601928711
+        },
+        "shadowed_probe": {
+          "pos": [
+            30.0,
+            -15.0,
+            8.0
+          ],
+          "illumination": {
+            "has_los": false,
+            "n_paths": 3,
+            "n_significant": 3,
+            "power_floor_db": -30.0,
+            "theta_deg_min": 88.87822723388672,
+            "theta_deg_max": 100.02808380126953,
+            "phi_deg_min": 8.201830863952637,
+            "phi_deg_max": 171.55511474609375,
+            "aspect_sep_deg_max": 163.2080535888672,
+            "aspect_sep_deg_p90": 132.79641723632812,
+            "aspect_sep_deg_median": 11.14984130859375,
+            "secondary_rel_db": -8.914641380310059,
+            "dyn_range_db": 10.293336868286133,
+            "delay_spread_ns": 10.023569107055664
+          },
+          "scattering": {
+            "has_los": false,
+            "n_paths": 5,
+            "n_significant": 5,
+            "power_floor_db": -30.0,
+            "theta_deg_min": 93.85237121582031,
+            "theta_deg_max": 101.61016082763672,
+            "phi_deg_min": 20.07834815979004,
+            "phi_deg_max": 158.45654296875,
+            "aspect_sep_deg_max": 136.33450317382812,
+            "aspect_sep_deg_p90": 113.25389862060547,
+            "aspect_sep_deg_median": 78.03642272949219,
+            "secondary_rel_db": -2.029299259185791,
+            "dyn_range_db": 13.448305130004883,
+            "delay_spread_ns": 110.96623992919922
+          }
+        },
+        "env_clutter": {
+          "total_paths": 128984,
+          "kept": 80,
+          "tau_ns_min": 270.3846130371094,
+          "tau_ns_max": 326.0526428222656,
+          "theta_r_deg_min": 54.567626953125,
+          "theta_r_deg_max": 167.19129943847656,
+          "power_range_db": 37.51686477661133
+        },
+        "rt_seconds": 0.20465302467346191
+      },
+      "why_sensitive": "[가설] 여기서 표적모형 차이가 **가장 크게** 벌어진다. 이유 둘: (1) 조명 경로가 여러 개이고 그중 2번째가 LOS 와 **거의 맞먹는 전력**이다(illumination.secondary_rel_db — 흡수체가 없으므로 챔버보다 훨씬 세다). 각도분해 σ 는 경로마다 다른 값을 주고 스칼라 σ 는 전부 같은 값을 주므로, 비슷한 세기의 경로들이 코히어런트하게 합쳐질 때 이 차이가 **진폭과 위상 둘 다** 바꾼다. (2) 가림(shadowed_probe: has_los=false)이 생기면 살아남는 조명이 전부 벽 반사이고 그 자세는 LOS 자세에서 최대 aspect_sep_deg_max 만큼 떨어져 있다 — 평균 σ 만 가진 모형은 **계통 편향**을 내고, 그 편향은 자세에 따라 부호가 바뀔 수 있다. ⇒ '가림이 있으면 형상이 중요해진다' 를 정면으로 시험하는 칸이다. ⚠ 측정된 사다리에서 실외 LOS 칸은 각거리 축에서는 챔버에 진다 — 이 가설이 참이려면 **각거리가 아니라 상대전력**이 지배변수여야 한다. 그 자체가 시험 대상이다.",
+      "hypothesis_falsifier": "그늘 위치(shadowed_probe)와 LOS 위치에서 세 분기의 SCNR/Pd 를 잰다. 그늘에서 분기 간 격차가 LOS 격차보다 크지 않으면 가설 반증. 또 실외 LOS 칸의 분기 간 격차가 챔버보다 작으면 '각거리가 지배변수' 쪽으로 반증된다. ⚠ 표적을 씬에 넣지 않고 경로만 재는 지금 방식은 **환경이 주는 방향집합**만 증명한다 — 실제 σ 결합은 3분기 실행에서 나온다."
+    },
+    {
+      "id": "E3_clutter_eca",
+      "name": "클러터 — cold(도플러퍼짐) + hot, ECA 전단",
+      "physics": "클러터 — 표적이 아닌 산란체가 같은 거리·도플러 셀에서 경쟁한다",
+      "script": "E3_N_C2=30 E3_N_C3=30 E3_N_C4=30 PYTHONPATH=src:benchmark python benchmark/verify_clutter_doppler.py",
+      "support_scripts": [
+        "benchmark/verify_eca.py",
+        "src/passive_process.py"
+      ],
+      "runnable": "yes (CPU, N 을 환경변수로 줄일 수 있음)",
+      "measured": {
+        "model": "statistical cold(C=100, 4 iso-Rb rings, +-1 m/s) + hot clutter, ECA front-end",
+        "producer": [
+          "benchmark/verify_clutter_doppler.py",
+          "benchmark/verify_eca.py"
+        ],
+        "illumination_dirs": 1,
+        "scattering_dirs": 1,
+        "aspect_sep_deg_max": 0.0,
+        "note": "클러터는 표적의 자세를 바꾸지 않는다 — 표적셀 경쟁전력만 바꾼다",
+        "clutter_doppler": {
+          "exists": true,
+          "sections": [
+            "meta",
+            "invariance",
+            "C1_cold_model",
+            "C2_amplitude_sweep",
+            "C2b_M96",
+            "C3_hot_clutter",
+            "C4_target_speed"
+          ],
+          "mtime": "2026-07-24T13:51:33"
+        },
+        "eca": {
+          "exists": true,
+          "sections": [
+            "meta",
+            "S1_depth_vs_taps",
+            "S2_dnr",
+            "S3_pilot_vs_tx",
+            "S4_target_loss",
+            "S4b_range_gate",
+            "S5_clutter_dead"
+          ],
+          "mtime": "2026-07-29T05:39:53"
+        }
+      },
+      "why_sensitive": "[가설] 여기서 표적모형 차이가 **가장 작다**. 클러터는 표적의 자세를 바꾸지 않고 (측정 aspect_sep_deg_max=0) 표적셀의 경쟁전력만 올린다. 그러면 세 분기는 **표적 에코의 평균 전력** 하나로만 갈리고, SCNR 은 그 평균에 선형이다 — 각도구조는 SCNR 에 들어갈 통로가 없다. ⇒ 이 칸이 참이면 '환경이 리치해도 클러터형이면 평균 σ 만 있으면 된다' 가 되고, E1·E2 와 대비되어 **어떤 물리가 형상을 부르는지**를 가른다. ⚠ 단 하나의 통로가 남아 있다 — 저속 드론은 클러터 도플러대에 묻히고(C4), 각도분해 σ 가 표적 자세변화에 따른 **에코 변조**를 만들면 그 변조가 도플러축에 실릴 수 있다. 이 통로는 CPI 안에서 자세가 바뀌는 경우에만 열린다.",
+      "hypothesis_falsifier": "세 분기의 SCNR 차이가 평균 σ 차이(dB)와 1:1 로 맞으면 가설 지지. SCNR 차이가 평균 σ 차이보다 크면 반증 — 각도구조가 클러터 환경에도 통로를 갖는다."
+    }
+  ],
+  "aspect_diversity_ladder": {
+    "rows": [
+      {
+        "id": "E0_freespace",
+        "n_significant_illumination_dirs": 1,
+        "aspect_sep_deg_max": 0.0,
+        "secondary_rel_db": null,
+        "has_los": true
+      },
+      {
+        "id": "E1_chamber_floor",
+        "n_significant_illumination_dirs": 9,
+        "aspect_sep_deg_max": 168.0203857421875,
+        "secondary_rel_db": -12.332550048828125,
+        "has_los": true
+      },
+      {
+        "id": "E2_outdoor_canyon",
+        "n_significant_illumination_dirs": 5,
+        "aspect_sep_deg_max": 38.18171310424805,
+        "secondary_rel_db": -4.102384090423584,
+        "has_los": true
+      },
+      {
+        "id": "E2b_outdoor_shadowed",
+        "n_significant_illumination_dirs": 3,
+        "aspect_sep_deg_max": 163.2080535888672,
+        "secondary_rel_db": -8.914641380310059,
+        "has_los": false,
+        "note": "같은 씬·같은 TX, 건물 그늘 위치 — LOS 차단"
+      },
+      {
+        "id": "E3_clutter_eca",
+        "n_significant_illumination_dirs": 1,
+        "aspect_sep_deg_max": 0.0,
+        "secondary_rel_db": null,
+        "has_los": true
+      }
+    ],
+    "ranked_by_angular_spread": [
+      "E1_chamber_floor",
+      "E2b_outdoor_shadowed",
+      "E2_outdoor_canyon",
+      "E0_freespace",
+      "E3_clutter_eca"
+    ],
+    "ranked_by_secondary_power": [
+      "E2_outdoor_canyon",
+      "E2b_outdoor_shadowed",
+      "E1_chamber_floor",
+      "E0_freespace",
+      "E3_clutter_eca"
+    ],
+    "what": "환경이 표적에게 주는 **유효 조명방향 수**·최강경로 대비 **각거리 최대값**·**2번째 경로의 상대전력**. 이 셋이 표적모형 민감도의 예측변수다.",
+    "reading": "⭐ 두 축의 순서가 **다르다** — 챔버는 각거리에서 이기고(닫힌 상자라 사방에서 되돌아온다) 실외는 2번째 경로의 상대전력에서 이긴다(흡수체가 없다). 가림 케이스(E2b)는 LOS 자체가 없어 조명 전부가 비-LOS 자세로 들어온다 — 두 축 모두에서 극단이다.",
+    "status": "measured (환경 구조만) — 표적모형 간 낙차는 아직 측정하지 않았다"
+  },
+  "control": "E0_freespace",
+  "runnable_now": true,
+  "caveats": [
+    "⚠ why_sensitive 는 전부 **가설**이다 — 측정 결과가 아니다. 각 항에 hypothesis_falsifier 를 붙였다.",
+    "⚠ outputs/report13_sigma_grid.json · outputs/rcs_anchor.json 은 07-31 메쉬 개편 이전 산출물이다. 절대 σ 레벨을 인용하지 않는다. 이 낡음은 3분기 중 branch_C 하나에만 들어간다(staleness.why 참조).",
+    "⚠ 이 파일의 measured 블록은 **환경이 표적에게 주는 방향집합·경로구조**만 잰 것이다. 표적모형별 σ 결합·검출 결과는 아직 재지 않았다.",
+    "⚠ 새 씬은 하나도 만들지 않았다 — 챔버 메쉬·Sionna 내장 실외 씬·자유공간 순수함수·통계 클러터 모델 전부 저장소에 이미 있는 것이다."
+  ]
+}

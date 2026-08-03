@@ -1,0 +1,300 @@
+{
+  "meta": {
+    "purpose": "s2r_assets.json 의 '있다' 주장을 실제로 열고·돌려서 검증한다. 파일이 있는가, 돌아가는가, 주장한 것을 정말 내는가.",
+    "generated": "2026-08-03",
+    "target": "/home/yunjung/workspace/sionna2/outputs/s2r_assets.json (2026-08-03 08:25 작성)",
+    "method": "존재확인(stat) → 구조파싱(json/npz 직독) → **실행**(venv py312, sionna 2.0.1, torch 2.12.1+cu130, mitsuba 3.8.0, GPU2 RTX4090 공유중). 커널은 스모크가 아니라 정량 대조(모노=배치 일치, 상반성, exit_vis on/off, β 스캔, MC 처리율, σ 재생성 대조).",
+    "runtime_env": "/home/yunjung/.venvs/py312/bin/python, CUDA_VISIBLE_DEVICES=2",
+    "honesty": "검증 못 한 항목은 아래 not_verified 에 이유와 함께 남겼다. '검증됨'은 전부 이 라운드에서 직접 관측한 수치다.",
+    "side_effect": "scene_build.drone_parts 탐침이 assets/meshes/drones/{phantom3,typhoonh480,x500v2}/_scene/ 에 생성 .obj 27개를 썼다(드론 .obj 97→124). 경로가 .gitignore 의 assets/meshes/**/_scene/ 라 추적상태는 불변. 삭제는 권한거부로 못 했다 — 재생성 가능한 캐시라 무해하나 기록해 둔다."
+  },
+
+  "headline": "물리 커널 5종은 **주장대로 돌아간다**(멀티스태틱·파형·마이크로도플러·검출·챔버씬 전부 실행 확인). 그러나 **저장된 산출물 3종은 자산으로 셀 수 없다**: ① σ 격자는 '낡음' 정도가 아니라 오늘 메쉬로 재생성하면 셀당 최대 22.4 dB·rms 3.3~10.8 dB 어긋난다(각도구조까지 바뀜 → 백분위 인용도 불가), ② σ 캐시 2,000엔트리 중 오늘 메쉬에 유효한 것은 50개(97.5% 사망), ③ 'GPU 배치 MC 수천 트라이얼 동시'는 실제 배치 51(하드캡 128)이다.",
+
+  "counts": { "verified": 18, "overstated": 7, "stale": 4, "not_verified": 3 },
+
+  "verified": [
+    {
+      "id": "multistatic_kernel",
+      "주장": "rcs_sbr_multistatic 이 임의 (û_i, û_s) 쌍을 받는다 / 조명 재사용 / 모노 0 dB 일치 / exit_vis 모노 no-op / symmetrize 기하평균 / β→180 σ≡0",
+      "판정": "전부 사실 — 이 저장소에서 가장 튼튼한 자산",
+      "실행": "mavic4pro 29,932 facet, 3.5 GHz, spacing=λ/16, penetrate=True, jitter=2",
+      "측정": {
+        "모노_일치": "σ(u_s_list=[u_i]) − σ(rcs_sbr_batch) = **−3.55e−15 dB** (비트 일치). 반환형도 주장대로 len=1→float, len>1→ndarray",
+        "임의쌍_수용": "û_i=(az37,el−3) 고정, û_s 를 **면외로** 흩어 6쌍 (az,el)=(37,−3)/(60,+12)/(120,−25)/(200,+40)/(300,−60)/(216,−3) → β=0/27.3/82.4/139.9/90.9/173.9°, 전부 유한한 σ 반환(−11.84 / −27.13 / −25.37 / −33.14 / −23.97 / −36.97 dBsm). **동일평면 제약 없음 확인**",
+        "조명_재사용": "Rx 1개 0.101 s · 8개 0.183 s · 32개 0.451 s → 첫 Rx 101 ms, 추가 Rx **11 ms/개**. 주장('추적 재사용') 실측 확인",
+        "exit_vis": "모노 Δ = **0.000000 dB**(정확한 no-op, 주장대로) / 바이스태틱 β=45° Δ = **+0.588 dB**",
+        "symmetrize": "σ_sym − ½(σ_fwd+σ_rev)[dB] = 3.55e−15 → **정확히 기하평균**",
+        "전방산란": "β=180.0° 정확 → σ = **0.0 (정확한 0)**; β=179.9° → 0.0; β=176° → −54.9 dBsm; β=90.8° → −15.90 dBsm. 'β≲90° 에서만 유효' 경계 실측 재현",
+        "상반성_위반": "면외쌍(û_i=az37/el−3 ↔ û_s=az120/el−25) 에서 σ(i→s)−σ(s→i) = **−1.21 dB** — docstring 경고와 일치"
+      },
+      "근사_전수": [
+        "(1) obliquity = 표준 PO (n̂·û_i) **하나뿐**. √((n̂·û_i)(n̂·û_s)) 대칭화는 코드주석에 '시도했다가 grazing(n̂·û_i→0)에서 이산격자 폭발로 rms 악화 → 폐기'로 명시. 즉 바이스태틱 수신측 경사는 진폭에 반영되지 않고 **게이트(n̂·û_s>0)로만** 들어간다",
+        "(2) exit visibility = 히트점당 û_s 로 그림자광선 **1발, 이진 게이트**. 부분가림·회절·엣지 없음. 오프셋은 clearance/max(n̂·û_s, EXIT_COSMIN) 로 스케일 → grazing 출사에서 오프셋이 커짐",
+        "(3) 투과 출사경로는 **입사 τ=1−Γ² 를 재사용**(1차 투과). 출사 가시성은 셸 제외 씬으로 판정 → 셸은 나가는 길에 가림체로 안 셈",
+        "(4) 1-bounce 전용 — 다중산란·PTD 엣지 없음",
+        "(5) 상반성은 비볼록에서 구조적으로 깨짐(격자세분으로 안 줄어듦) — 위 −1.21 dB 실측"
+      ],
+      "숨은_근사": "없음 — 위 5개는 전부 docstring/주석에 이미 적혀 있다. 미기재 근사는 발견하지 못했다"
+    },
+    {
+      "id": "microdoppler_npz",
+      "주장": "outputs/report1_microdoppler.npz 가 5기체 복소 E(t) 를 담는다",
+      "판정": "**사실, 정확히 주장대로**",
+      "실측": {
+        "files": "['prf','mini5pro','mavic4pro','matrice4e','s1000plus','phantom4']",
+        "배열": "5기체 각 shape (6144,) **complex128**, 전부 유한. |E| std/mean = mini5pro 0.259 / mavic4pro 0.647 / matrice4e 0.519 / s1000plus 0.261 / phantom4 0.072 → 상수 아님(실제 시간변조 있음)",
+        "prf": "scalar 20000.0",
+        "크기": "294,845 B (07-29 11:34)"
+      },
+      "단서": "주장 자신이 '그림용 스냅샷이지 데이터셋 아님'이라고 적었고 그게 옳다 — 시선각 1개·밴드 1개·rpm 1개, prf 외 메타·라벨 없음"
+    },
+    {
+      "id": "microdoppler_generators",
+      "주장": "생성기 3종(microdoppler_series / microdoppler_sbr / microdoppler_nearfield)",
+      "판정": "3종 전부 실행 성공, 시그니처도 주장과 일치",
+      "실측": {
+        "microdoppler_series": "n_t=1024 에 7.28 s. 반환 (t, E complex128, info). info = rpm 3600 · f_tip 1173.5 Hz · flash 120 Hz · v_tip 50.3 m/s · n_rotors 4 — 주장한 필드 전부 존재",
+        "spectrogram": "(f 256, t 49, S (256,49) float64, 전부 유한)",
+        "microdoppler_sbr": "n_phase=8 에서 12.66 s, 3-튜플 반환, E complex128 512점 — **동작 확인**",
+        "microdoppler_nearfield": "주장한 8함수 전부 존재 + 시그니처 일치 — phase_table / series_from_table / microdoppler_nf / md_metrics / ac_correlation / spectrogram_corr / echo_over_noise_db / add_noise. wavefront='plane'|'spherical' 인자 실재"
+      }
+    },
+    {
+      "id": "waveforms_canon",
+      "주장": "src/waveforms.py 자작 정본 3표준 + 점유 G1/G2/G3",
+      "판정": "사실. 9조합 전부 생성 성공",
+      "실측": "WiFi fs 80 MHz grid (13,256) fft 256 tx 4160 / LTE fs 30.72 MHz grid (14,2048) fft 2048 tx 30720 / NR fs 122.88 MHz grid (14,4096) fft 4096 tx 61440, 전부 complex128. 실측 점유율 G1 9.1/1.4(NR)% → G2 16.4/20.6/17.7% → G3 89.1/58.6/79.8% — 주장한 'G1 1.4~9.1% · G3 59~89%' 정확히 재현. always_on_waveforms() → 3개"
+    },
+    {
+      "id": "waveforms_sionna_phy",
+      "주장": "sionna.phy 로 같은 자원격자 재변조해 상관 대조, corr 0.9996~0.99999",
+      "판정": "**사실이고 주장보다 좋다**",
+      "실측": {
+        "임포트": "sionna.phy.ofdm.ResourceGrid/OFDMModulator + sionna.phy.nr.CarrierConfig 실제 사용(파일 39~40행)",
+        "crosscheck()": "3.63 s 에 3표준 전부 ok=True. corr = WiFi 0.99999992 · LTE 1.00000003 · NR 0.99999997, NMSE = −136.7 / −135.3 / −135.0 dB. 주장(0.9996~0.99999)은 **과소** 진술",
+        "nr_table()": "Sionna CarrierConfig 에서 직접 읽음 — μ=0/1/2, RB 106/273/135, 부반송파 1272/3276/1620, CP 160/352/208 샘플, fs_ref 30.72/122.88/122.88 MHz",
+        "설치본": "sionna 2.0.1 @ /home/yunjung/.venvs/py312, PHY=PyTorch 2.12.1+cu130, mitsuba 3.8.0"
+      }
+    },
+    {
+      "id": "sionna_chain",
+      "주장": "cir_to_time_channel 로 지연 커널만 받고 도플러는 위상램프",
+      "판정": "사실 — 코드·실행 둘 다 확인",
+      "실측": "build_echo_sionna 실행 3.0 s: Ns=1,720,320 (M=56,Lf=30720), τ=74.32 ns, R_b=22.28 m, f_d=+63.76 Hz, PRF 1000 Hz, Δf_d 17.86 Hz. ApplyTimeChannel 은 임포트만 되고 경로는 scipy fftconvolve — 주장(OOM 회피)과 일치"
+    },
+    {
+      "id": "detection_gpu_kernels",
+      "주장": "rd_batch/cfar_batch/peak_batch (torch, 배치 첫 축)",
+      "판정": "사실. detection_gpu.validate() → **True** (numpy passive_process 기준과 일치)",
+      "실측": "시그니처 일치. 입력은 **torch 복소텐서** 필수(numpy 넣으면 .view 에서 TypeError) — docstring 이 '복소텐서'라 적어둔 대로. cfar_batch 는 적분영상 기반 가변학습셀 CA-CFAR, peak_batch 는 0-도플러 능선 가드 후 argmax"
+    },
+    {
+      "id": "gpu_montecarlo_runs",
+      "주장": "GPU 배치 MC 가 실재한다",
+      "판정": "**실재하고 끝까지 돈다** (배치 크기 주장만 틀림 — overstated O3 참조)",
+      "실측_end2end": "waveforms.lte_downlink(G1) → build_echo_sionna 2.97 s → Precomputed 0.58 s (truth cell (32,8)) → gpu_montecarlo K=1000: Pd=0.376, Pfa_emp=3.80e−5 (nominal 6.46e−5 계열), 0.585 s",
+      "⭐측정_처리율": "주장이 '런타임 미기록 → 처리율을 말할 수 없다'고 남긴 구멍을 이번에 메웠다. **2,563 CPI/s** (K=1000, 총 1,500 CPI, LTE Ns=1.72M, 공유 4090 1장, 기본배치 51). K=200 은 1,131 CPI/s(셋업 지배). → 기존 4.86M CPI 스윕은 이 속도면 1카드 약 **32분**+파형/사전계산 오버헤드"
+    },
+    {
+      "id": "gpu_manager",
+      "주장": "src/gpu.py pick/all_usable/parallel_over_gpus/budget_mb/batch_for/oom_backoff",
+      "판정": "6개 전부 존재·시그니처 일치·실행됨",
+      "실측": "all_usable() → [2,3,0,1] (여유순 정렬, 방침대로 4장 전부 침투) / budget_mb() = 12,484 / batch_for(1 MB) = 11,126. 주장 라인번호 122/236/265/284/306/214 전부 일치"
+    },
+    {
+      "id": "passive_process_cpu",
+      "주장": "CPU 정본 9함수",
+      "판정": "9개 전부 존재, 주장 라인번호 전부 정확(42/93/124/133/153/198/352/383/338)",
+      "실측": "make_cpi·ECACanceller·eca·range_doppler·ca_cfar_2d(guard 2,2 · train 6,6 · pfa 1e-4 기본)·peak_detection·doppler_guard_mask·check_detector_config·pfa_nominal_for 시그니처 일치",
+      "부수관찰": "임포트 시 스스로 낡음 경고를 찍는다 — '_PFA_FALLBACK 사본이 낡았다: wifi Pfa=1e-04 리터럴 6.5180e-05 vs 측정 6.2698e-05 (−3.8%)', '1e-05 … (−7.7%)'. s2r_assets.json 에는 이 낡음이 안 적혀 있다"
+    },
+    {
+      "id": "freespace_detect_shapes",
+      "주장": "형상층 6함수",
+      "판정": "6개 전부 존재, 라인번호 266/422/711/865/942/248 전부 정확"
+    },
+    {
+      "id": "detection_rx_sweep_output",
+      "주장": "9모드 × Rx 1~4 × SNR 15점 × K=6000, mavic4pro 단일자세",
+      "판정": "**전부 사실**",
+      "실측": "meta.K=6000, n_list=[1,2,3,4], modes 9개(W1~3·L1~3·G1~3). 9모드 전부 snr_grid 15점 · curves 키 '1'~'4' · Pd 길이 15. meta: drone=mavic4pro, az=−23.806°, el=−3.081°, σ=−27.578 dBsm, vel [−3,0,0], pfa 1e−4, fc 3.5 GHz. G1 실측 ref=SSB 7.2 MHz, 점유 1.447%, M=112, Ns=6,881,280, PRF 2000 Hz, corr_sionna 0.9999916. 9×4×15×(6000+3000)=4.86M CPI 산수 맞음"
+    },
+    {
+      "id": "chamber_scene",
+      "주장": "chamber_parts → build_scene → sionna.rt.Scene",
+      "판정": "**끝까지 빌드됨**",
+      "실측": "chamber_parts('assets/meshes/chamber') → Part 16개 + manifest, 0.18 s. build_scene(parts, 3.5e9) → sionna.rt.scene.Scene, objects 16개, RadioMaterial 12+종(mat_absorber_front/back/left/right/ceiling, mat_backing_*, mat_floor_dark, mat_door). 0.19 s. 메쉬 19 .obj, mtime 2026-08-03 08:30 — '2026-08-03 갱신본' 사실"
+    },
+    {
+      "id": "scene_constants",
+      "주장": "CHAMBER=(30,20,11), TX=(4,2.5,8), RX=(4,17.5,6.5), TGT=(21,10,5.5) / 모노 TGT_POS=(12,10,5.5), RX_OFFSET=0.3",
+      "판정": "**6개 상수 전부 정확히 일치**"
+    },
+    {
+      "id": "outdoor_stock_scenes",
+      "주장": "실외는 스톡 Sionna 4씬 + MAT_S, 자체 사이트 0개, assets/scenes/ 비어 있음",
+      "판정": "사실",
+      "실측": "report14_scene 소스에 simple_street_canyon_with_cars·munich·etoile·florence 4개 전부 등장. MAT_S = 10키(metal .1 / glass .2 / concrete .5 / brick .55 / wood .45 / marble .3 + itu_*). 함수 load_scene·load_outdoor_scene·extract_clutter_paths·clutter_covariance·_spatial_steering·_temporal_steering. **assets/scenes/ 는 실제로 빈 디렉터리**"
+    },
+    {
+      "id": "md_range_sweep_output",
+      "주장": "9셀 × 7거리 × 4팔 메트릭만, E(t) 미저장, runtime 2929.6 s",
+      "판정": "**전부 사실**",
+      "실측": "cells 9개 = (mini5pro·mavic4pro·matrice4e·s1000plus·phantom4)@5G NR 3.5G + mavic4pro LTE/WiFi + s1000plus LTE/WiFi — 주장한 조합 그대로. 각 cell rows 7개(R=1/2/5/10/20/50/1000 m). meta.arms A0/A1/A2/A3, engine='pure PO point cloud, NO occlusion', runtime_s 2929.6, prf_feasibility 블록 4모드(WiFi VHT-LTF·LTE CRS·5G SSB·5G NR-PRS) 존재. rows 는 스칼라 메트릭뿐 — **E(t)·스펙트로그램 없음 확인**"
+    },
+    {
+      "id": "missing_dataset_layer",
+      "주장": "'데이터셋 층 0줄' — nn.Module|DataLoader|torch.save|sklearn 실코드 0건, np.savez 2건은 그림용",
+      "판정": "**사실** (이 라운드의 grep 재현)",
+      "실측": "src/+benchmark/ .py 전수 grep -E 'nn\\.Module|DataLoader|torch\\.save|sklearn' → **0 히트**. np.savez_compressed 3건 = experiment_detection.py:402(그림·GIF용) · viz_report1.py:821(그림용) · prep_cad_scan.py:99(CAD 전처리). np.save 2건 = validate_measured_airframe.py:305,329(캐시). h5py 0건. 주장과 일치"
+    },
+    {
+      "id": "line_number_audit",
+      "주장": "s2r_assets.json 이 인용한 40여 개 파일:라인",
+      "판정": "**rcs_sbr.py 1건 빼고 전부 정확** (그 1건도 검증 도중 발생한 동시편집 탓 — stale S4 참조)",
+      "실측": "정확: microdoppler 36/90/135, passive_process 42/93/124/133/153/198/338/352/383, experiment_detection 190/264/402, waveforms 125/196/217/258/313/370/438/444/454, waveforms_sionna 119/166, sionna_chain 66/84/113, gpu 122/214/236/265/284/306, scene_build 50/101, drones 1013/1031, channel 184/308/339, freespace_detect 248/266/422/711/865/942, viz_report1 821. 부속 파일 18개(verify_*.py·run_matrix·geometry_grid·vmax_grid·cpi_guard_sweep·material_*·airframe_phantom3·measure_runtime·materials·rcs_po) 전부 존재"
+    }
+  ],
+
+  "overstated": [
+    {
+      "id": "O1_sigma_grid_not_countable",
+      "심각도": "★최대 — 이 라운드의 결론",
+      "주장": "σ 격자는 '있다'. ⚠한계는 '낡음 — 절대 σ 레벨 인용 금지' 뿐이고, 백분위/커버리지는 인용 가능하다고 상속",
+      "실제": "낡은 정도가 아니라 **오늘 메쉬로는 다른 데이터**다. 각도구조까지 바뀌어 백분위/CDF 도 못 쓴다",
+      "결정적_실험": "생산자와 **동일 설정**으로 재생성해 저장값과 1:1 대조 — div=16, jitter=2, penetrate=True, n_f=3 at fc×[0.985,1.0,1.015], m² 선형평균(meta.quote_policy 규약 그대로), el=−3.5°, 5G NR 3.5 GHz, az 12점(0~330°, 30° 간격), 7기체 전부",
+      "결과_표": [
+        {"drone": "mavic4pro",   "max_abs_delta_db": 22.36, "rms_delta_db": 10.82, "mean_delta_db": -5.70, "old_mean_dbsm": -17.12, "new_mean_dbsm": -22.82},
+        {"drone": "typhoonh480", "max_abs_delta_db": 11.91, "rms_delta_db": 5.54,  "mean_delta_db": -1.04, "old_mean_dbsm": -14.20, "new_mean_dbsm": -15.24},
+        {"drone": "mini5pro",    "max_abs_delta_db": 10.13, "rms_delta_db": 4.61,  "mean_delta_db": 3.18,  "old_mean_dbsm": -24.76, "new_mean_dbsm": -21.57},
+        {"drone": "matrice4e",   "max_abs_delta_db": 9.00,  "rms_delta_db": 4.87,  "mean_delta_db": 1.34,  "old_mean_dbsm": -22.47, "new_mean_dbsm": -21.13},
+        {"drone": "x500v2",      "max_abs_delta_db": 8.65,  "rms_delta_db": 5.23,  "mean_delta_db": -2.62, "old_mean_dbsm": -18.44, "new_mean_dbsm": -21.06},
+        {"drone": "s1000plus",   "max_abs_delta_db": 7.83,  "rms_delta_db": 4.64,  "mean_delta_db": -2.09, "old_mean_dbsm": -14.00, "new_mean_dbsm": -16.09},
+        {"drone": "phantom4",    "max_abs_delta_db": 5.10,  "rms_delta_db": 3.34,  "mean_delta_db": -1.07, "old_mean_dbsm": -18.26, "new_mean_dbsm": -19.33}
+      ],
+      "해석": [
+        "84 셀 중 **일치(<0.01 dB) 0개**. 7기체 전부 어긋난다",
+        "mean 이 −5.7 ~ +3.2 dB 로 **기체마다 다른 방향으로** 움직인다 → 밴드평균·백분위·CDF·기체간 순위가 전부 이동. '백분위만 인용'은 방어가 안 된다",
+        "mavic4pro 예: az=30° old −33.71 → new −24.32 dBsm(+9.4 dB), rms 10.8 dB. 널 위치 자체가 이동했다는 뜻 → 각도구조 변경",
+        "s2r_assets.json 이 이 격자를 근거로 세운 '라벨 가능 조합 1.2×10⁷'·'σ 셀 22,680' 같은 수치는 **좌표축 개수**로만 유효하고, 값은 못 쓴다"
+      ],
+      "자산으로_셀_수_있는가": "**아니다 — 데이터로는 못 센다.** 셀 수 있는 것은 (a) 축 설계(az 120 × el 9 × band 3 × drone 7), (b) 생산 파이프라인, (c) 재생성 비용 추정(실측 12 az·3 f 에 기체당 2.0~6.6 s → 1기체·1밴드 격자 3,240 pose 는 이 비율로 추정 가능) 세 가지뿐",
+      "provenance": "meta.generated 2026-07-29T05:36:31 @ git 4aa668b, mesh_generation='2026-07-28 blade overhaul'. 이후 메쉬 소스가 커밋 cba8626 에서 바뀌었고, 지금은 **미커밋 워킹트리 수정**까지 얹혀 있다(drones.py 08-03 08:00 M, drone_cad.py 08-03 07:58 M). benchmark/tm_envs.staleness() 도 같은 판정을 낸다"
+    },
+    {
+      "id": "O2_sigma_cache_97pct_dead",
+      "심각도": "높음",
+      "주장": "outputs/sigma_sbr_cache.json — 2,000엔트리, 키=drone@meshfp|fc_MHz|az_mdeg|el_mdeg, **메쉬 지문 포함으로 CAD 바뀌면 자동 무효화**",
+      "실제": "총 2,000개는 맞지만 **오늘 메쉬에 유효한 것은 50개(2.5%)**. 그리고 650개는 애초에 지문이 **없는 옛 키 형식**이다",
+      "실측": {
+        "total": 2000,
+        "legacy_no_meshfp": 650,
+        "stale_meshfp": 1300,
+        "live_under_current_mesh": 50,
+        "키_형식_실물": "'mini5pro|1843.0|175905|5868' — 4필드, @meshfp 없음 (650개가 이 꼴)",
+        "현재_지문": "mini5pro 8afe5530 / mavic4pro 73d30b20 / matrice4e 5ee3b19b / s1000plus 02f45928 / phantom4 8e44ef2a / typhoonh480 83ea1cd0 / x500v2 126e2936 / phantom3 c137610a",
+        "기체별_키_난립": "mavic4pro 만 4가지 키형태(no-fp 530 + 9f4dc0a0 530 + e559ec41 530 + 73d30b20 15). x500v2·phantom3 은 **엔트리 0개**"
+      },
+      "정정": "메커니즘 주장(_sig_key 에 _mesh_fp 포함, benchmark/channel.py:75-89)은 **코드에는 사실**이다. 틀린 것은 '2,000엔트리'를 자산으로 센 것 — 자동무효화가 제대로 작동한 결과 97.5%가 죽어 있다. 실제 자산 = 50엔트리. 650개 레거시 키는 영구 미스라 순수 쓰레기"
+    },
+    {
+      "id": "O3_batch_size_51_not_thousands",
+      "심각도": "높음(계획 수치에 직결)",
+      "주장": "'배치축 B 로 **수천 트라이얼 동시**'",
+      "실제": "기본 배치 = **51**, 코드에 **하드캡 128**",
+      "근거": "src/experiment_detection.py:253 _batch_size → `int(max(4, min(128, bud / per)))`, per = Ns*8*10. LTE 모드(Ns=1,720,320)에서 실측 반환값 **51**",
+      "실험": "SIONNA2_DET_BATCH=512 → torch.OutOfMemoryError(6.56 GiB 요청). =256 → OOM(3.28 GiB 요청). 즉 레버를 올려도 Ns 1.7M 급에서는 수백이 한계",
+      "정정": "수천 트라이얼은 **순차적으로 51개씩 쪼개** 돈다. 처리율은 실측 2,563 CPI/s 로 충분히 빠르지만, '동시'라는 표현과 '메모리 레버=배치'라는 계획 전제는 과장이다"
+    },
+    {
+      "id": "O4_drone_meshes_5_not_7",
+      "심각도": "중간",
+      "주장": "assets/meshes/drones/<**7종**>/*.obj **62개**",
+      "실제": "**5종 디렉터리, 54개 .obj**(_scene 캐시 제외). _scene 포함해도 97개 — 62 는 어느 셈법에도 안 맞는다",
+      "실측": "matrice4e 10 / mavic4pro 15 / mini5pro 9 / phantom4 9 / s1000plus 11 = 54. **x500v2·typhoonh480·phantom3 은 구운 OBJ 가 없다** — drones.py 파라메트릭 스펙으로만 존재",
+      "완화": "치명적이진 않다 — scene_build.drone_parts 가 요청 시 생성한다(4기체 테스트 전부 성공, _scene/ 캐시에 씀). 다만 '메쉬 자산 7종'을 디스크 자산으로 세면 틀린다",
+      "부작용": "이 검증이 그 생성 경로를 밟아 3개 디렉터리·27개 .obj 를 _scene/ 에 만들었다(97→124). gitignore 대상이라 추적상태 불변"
+    },
+    {
+      "id": "O5_photos_50_not_63",
+      "심각도": "낮음",
+      "주장": "assets/photos/<7종>/ **63장**",
+      "실제": "7종은 맞고 **50장**",
+      "실측": "matrice4e 5 / mavic4pro 4 / mini5pro 3 / phantom4 5 / s1000plus 2 / typhoonh480 14 / x500v2 17 = 50"
+    },
+    {
+      "id": "O6_detection_arrays_shape",
+      "심각도": "낮음",
+      "주장": "detection_arrays.npz — '6모드 × RD맵 **(112,32)**'",
+      "실제": "모드 6개는 맞다(W1·W3·L1·L3·G1·G3). 그러나 **LTE 모드는 (56,32)** 이고(CPI_CFG lte M=56), RD 맵 개수도 6이 아니라 **30**이다",
+      "실측": "모드당 rd0(float64) + rdN1~rdN4(float32) = RD 5장 + 축 2개(Rb 32, fd 112 또는 56). 총 배열 42개 = RD 30 + 축 12"
+    },
+    {
+      "id": "O7_file_census",
+      "심각도": "낮음(하지만 모든 '없다'의 근거)",
+      "주장": "'src/ 92개 + benchmark/ **80개** = **172개** .py 전수 grep'",
+      "실제": "src 92 ✓, benchmark **83**, 합 **175**",
+      "왜_중요한가": "s2r_assets.json 의 missing 항목 10개가 전부 '172개 전수 grep' 을 근거로 든다. 표본이 3개 빠졌다는 뜻이라 결론 자체는 안 뒤집히지만(재현 grep 도 0 히트) 근거 문장은 정정 필요"
+    }
+  ],
+
+  "stale": [
+    {
+      "id": "S1_report13_sigma_grid",
+      "path": "outputs/report13_sigma_grid.json",
+      "판정": "**낡음 확정 — 데이터로 인용 불가**(O1 의 재생성 대조가 근거)",
+      "mtime": "2026-07-30 07:39:06",
+      "meta_generated": "2026-07-29T05:36:31 @ git 4aa668b",
+      "메쉬소스_mtime": "src/drones.py 2026-08-03 08:00:02 (미커밋 M) · src/drone_cad.py 2026-08-03 07:58:55 (미커밋 M)",
+      "구조는_정상": "sigma.grid 7기체 × 3밴드 × sigma_dbsm (9,120) + sigma_smooth_dbsm (9,120) — 주장한 shape·축 전부 실재(el [0,−0.5,−1,−2,−3.5,−5,−8,−12,−20], az 0~357° 3° 120점, 밴드 1.843/3.5/5.21 GHz). 22,680 셀 산수 맞음",
+      "추가_불일치": "meta.drone_order·drones_merged 는 **5기체**만 적혀 있는데 sigma.grid 에는 **7기체**가 들어 있다(x500v2·typhoonh480 이 meta 갱신 없이 병합됨). multistatic 블록은 **5기체뿐** — 주장이 '5기체 × 3밴드 × β 7점'이라 한 것과는 일치",
+      "권고": "s2r_assets.json 의 have 에서 빼고 missing.sigma_grid_refresh 로 옮길 것. 재생성 전에는 격자 유래 수치를 어느 리포트에도 넣지 말 것"
+    },
+    {
+      "id": "S2_rcs_anchor_sigma_anchor",
+      "path": "outputs/rcs_anchor.json (07-30 09:46) · outputs/sigma_anchor.json (07-31 01:34)",
+      "판정": "둘 다 08-03 메쉬 편집 이전. 주장도 '⚠07-31 메쉬 이전'이라 적었으나 실제 메쉬 편집은 **08-03** 이므로 더 낡았다",
+      "근거": "benchmark/tm_envs.staleness() 가 verdict='sigma_grid/rcs_anchor 는 메쉬 소스(drones.py·drone_cad.py)보다 낡았다 — 절대 σ 레벨 인용 금지', affected_branch='branch_C_ours_sbr_po_angle_resolved' 를 반환. 함수 실재·실행 확인"
+    },
+    {
+      "id": "S3_sigma_sbr_cache",
+      "path": "outputs/sigma_sbr_cache.json",
+      "판정": "97.5% 무효 (O2)"
+    },
+    {
+      "id": "S4_line_numbers_drifting_live",
+      "판정": "**저장소가 지금 이 순간에도 다른 프로세스에 의해 편집되고 있다** — 라인번호 인용의 수명이 매우 짧다",
+      "증거": "src/rcs_sbr.py: 09:00 시점 rcs_sbr_multistatic = 330행(주장과 일치) → **09:14:25 에 488행**. 파일이 53,893 → 64,627 B 로 커졌다. 같은 창에서 함께 수정된 파일: benchmark/measurement_layers.py(09:19) · benchmark/phi_sweep_fig.py(09:07) · benchmark/phi_sweep_verdict.py(09:04) · src/ptd_edges.py(09:02) · benchmark/ptd_drone_effect{,_headline}.py(09:00)",
+      "함의": "① s2r_assets.json 의 rcs_sbr.py:330 인용은 이제 틀렸다(내용은 그대로, 위치만 이동). ② 이번 라운드의 멀티스태틱 실측치는 09:00~09:12 버전 기준이다. ③ PTD 엣지 작업이 진행 중이라면 SBR 커널의 근사 목록(1-bounce·PTD 없음)이 곧 바뀔 수 있다"
+    }
+  ],
+
+  "not_verified": [
+    {
+      "id": "NV1_md_sbr_240phase_cost",
+      "무엇": "'위상표 1장 = mavic4pro@3.5GHz 240위상 ≈ 9.1 s / s1000plus@5.2GHz ≈ 85 s'",
+      "왜": "n_phase=8 은 12.66 s 로 셋업 지배라 외삽 불가. n_phase=60/240 계측을 시도했으나 실행이 툴 타임아웃·권한거부로 두 번 중단됐다",
+      "부분근거": "outputs/runtime_benchmark.json 에 production_per_pose(rows·summary_ms·band_averaged_pose_ms)가 독립적으로 존재하고, mini5pro@1.843G per_pose_ms median 9.24 를 실측 기록 — 주장 '9.2~356.2, 중앙 38.1' 의 하단은 파일에서 확인됨"
+    },
+    {
+      "id": "NV2_multistatic_after_0914_edit",
+      "무엇": "09:14 이후 버전의 rcs_sbr_multistatic",
+      "왜": "동시편집으로 파일이 바뀌었다. 위 멀티스태틱 실측 전부 09:00~09:12 스냅샷 기준. 재검증 필요"
+    },
+    {
+      "id": "NV3_rt_chamber_clutter_execution",
+      "무엇": "benchmark/channel.py rt_chamber_clutter / SionnaRTChannel 실행",
+      "왜": "존재·시그니처·라인번호(308/339/184)는 확인했으나 실행은 안 했다(GPU 3장이 다른 작업으로 90~100% 점유 중이라 RT 경로를 띄우지 않았다)"
+    }
+  ],
+
+  "질문별_직답": {
+    "σ 격자 — 자산으로 셀 수 있는가": "**없다.** 파일·구조·축은 전부 실재하고 주장대로지만, 오늘 메쉬로 재생성하면 84셀 중 일치 0개, 셀당 최대 22.4 dB, 기체별 rms 3.3~10.8 dB, 평균이 −5.7~+3.2 dB 로 기체마다 다른 방향으로 이동한다. 절대레벨뿐 아니라 **각도구조와 백분위·기체간 순위까지** 못 쓴다. 셀 수 있는 자산은 '축 설계 + 생산 파이프라인 + 재생성 비용' 세 가지뿐이다.",
+    "마이크로도플러 — npz 가 5기체 복소 E(t) 를 담는가": "**담는다.** 5기체 × 6144 complex128 + prf 20 kHz, 전부 유한·비상수. 다만 주장 자신이 적었듯 시선각·밴드·rpm 각 1개짜리 그림용 스냅샷이라 데이터셋은 아니다.",
+    "멀티스태틱 — 임의 (û_i,û_s) 쌍을 받는가": "**받는다.** û_s 를 방위·앙각 둘 다 û_i 와 다르게 준 면외 6쌍이 전부 유한한 σ 를 냈고, 모노 특수해는 rcs_sbr_batch 와 −3.6e−15 dB(비트 일치), Rx 32개까지 조명 재사용이 실측 확인됐다(추가 Rx 11 ms).",
+    "멀티스태틱 — obliquity·exit visibility 근사": "obliquity 는 **표준 PO (n̂·û_i) 하나뿐**이다 — 수신측 경사는 진폭에 안 들어가고 게이트(n̂·û_s>0)로만 작동한다(√((n̂·û_i)(n̂·û_s)) 대칭화는 grazing 폭발로 폐기됐다고 주석에 명시). exit visibility 는 히트점당 û_s 방향 그림자광선 **1발의 이진 게이트**이고, 오프셋은 clearance/max(n̂·û_s, EXIT_COSMIN) 로 스케일된다 — 부분가림·회절 없음. 투과 출사는 **입사 τ 재사용(1차 투과)**이고 셸은 나가는 길에 가림체로 안 센다. 실측 부작용: 모노 exit_vis Δ=0.000 dB(정확한 no-op), β=45° Δ=+0.588 dB, 면외쌍 상반성 위반 −1.21 dB, β=180° σ=정확히 0. **숨은 근사는 없다 — 5개 전부 docstring 에 이미 적혀 있다.**",
+    "Sionna PHY 파형 생성기 — 어느 파일이고 무엇을 내는가": "**두 층이다.** ① 정본 `src/waveforms.py` 는 자작(3GPP 골드시퀀스 → QPSK → 심볼별 CP OFDM)으로 wifi_80211ac/lte_downlink/nr_downlink 를 내고, tx complex128 4160/30720/61440 샘플 + grid (13,256)/(14,2048)/(14,4096) 을 준다. Sionna 를 **안 쓴다**. ② `src/waveforms_sionna.py` 가 진짜 Sionna PHY(sionna.phy.ofdm.ResourceGrid/OFDMModulator, sionna.phy.nr.CarrierConfig)를 써서 **같은 격자를 재변조해 대조**한다 — crosscheck() 실행 3.6 s, corr 0.99999992~1.00000003, NMSE −135 dB. 즉 Sionna 는 생성기가 아니라 **교차검증자**다. 채널 쪽은 `src/sionna_chain.py` 가 cir_to_time_channel 로 지연 커널만 받아 오고 도플러는 우리가 위상램프로 건다.",
+    "배치 파이프라인 — GPU 배치 MC 가 실재하는가": "**실재하고 끝까지 돈다.** detection_gpu.validate()=True, build_echo_sionna→Precomputed→gpu_montecarlo 전 구간 실행, Pd/Pfa 산출 확인. gpu.py 6함수 전부 동작(all_usable [2,3,0,1], budget 12,484 MB). **단 배치는 51(하드캡 128)** 이지 '수천 동시'가 아니다. 처리율은 이번에 처음 계측했다 — **2,563 CPI/s** (LTE Ns=1.72M, 공유 4090 1장). 주장 자신이 남긴 '런타임 미기록' 구멍은 이 수치로 메워진다."
+  }
+}

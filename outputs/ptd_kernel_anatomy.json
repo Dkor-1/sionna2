@@ -1,0 +1,263 @@
+{
+  "meta": {
+    "purpose": "Anatomy of the production SBR+PO scattering kernel in /home/yunjung/workspace/sionna2, to locate exact attachment points for a TW-ILDC / PTD edge term.",
+    "generated": "2026-08-03",
+    "method": "static read of source only. NO code was executed, NO numbers were re-measured. Every claim below is a quote or a line reference; anything not readable from source is marked UNKNOWN.",
+    "repo_root": "/home/yunjung/workspace/sionna2",
+    "files_read": [
+      "src/rcs_sbr.py (869 lines, full)",
+      "src/rcs_po.py (283 lines, full)",
+      "src/materials.py (225 lines, full)",
+      "src/geom.py (329 lines, full)",
+      "src/cadkit.py (partial: 30-160)",
+      "src/mesh_check.py (1-110)",
+      "src/microdoppler_nearfield.py (100-170)",
+      "src/drones.py (615-675, 826-980)",
+      "src/drone_cad.py (1195-1245, 1780-1815)",
+      "src/sigma_anchor.py (1-60)",
+      "benchmark/rcs_anchor.py (1-80)",
+      "benchmark/verify_sbr_kr_sweep.py (full)"
+    ],
+    "engine_default": "src/rcs_po.py:143  RCS_ENGINE_DEFAULT = \"sbr\"  (pure point-cloud PO is kept for comparison only, src/rcs_po.py:142)"
+  },
+
+  "q1_surface_integral": {
+    "summary": "There are FIVE surface-integral entry points. The production headline number comes from rcs_sbr_batch (monostatic, Mitsuba first-hit ray grid, 1 bounce). The classic dA-explicit PO integral survives only in rcs_po.rcs_from_points (legacy, no occlusion).",
+    "production_monostatic": {
+      "signature": "src/rcs_sbr.py:184  def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0, spacing=None, pad=1.15, cache_key=None, chunk_az=None, penetrate=True, jitter=2, shell_groups=None)",
+      "kernel_lines": {
+        "hit_gate": "src/rcs_sbr.py:241  lit = valid & (np.einsum(\"ij,ij->i\", Nn, U) > 1e-6)",
+        "phase": "src/rcs_sbr.py:242  phase = np.exp(1j * 2.0 * k * np.einsum(\"ij,ij->i\", P - ctr, U))",
+        "integrand": "src/rcs_sbr.py:281  contrib = np.where(lit, g, 0.0) * phase",
+        "coherent_sum_per_azimuth": "src/rcs_sbr.py:293-294  E = np.zeros(len(sub), complex); np.add.at(E, aidx, contrib)",
+        "sigma": "src/rcs_sbr.py:295  sig_acc += (4.0 * np.pi / lam ** 2) * np.abs(E * d * d) ** 2",
+        "grid_dither_power_average": "src/rcs_sbr.py:296  sig[s0:s0+len(sub)] = sig_acc / len(offsets)"
+      },
+      "area_element": "d*d only (src/rcs_sbr.py:295). There is NO explicit dA and NO explicit obliquity factor: the (n_hat . u) dS -> dA_projected change of variables is done analytically, documented at src/rcs_sbr.py:29-34 ('(n̂·û) dS = dA_투영 (비스듬함 계수가 상쇄된다)'). d = lam/DEFAULT_DIV, DEFAULT_DIV=12 (src/rcs_sbr.py:83, set at :201)."
+    },
+    "production_bistatic_multistatic": {
+      "signature": "src/rcs_sbr.py:330  def rcs_sbr_multistatic(mesh, group_mat, fc, u_i, u_s_list, spacing=None, pad=1.15, cache_key=None, penetrate=True, jitter=2, shell_groups=None, exit_vis=True, symmetrize=False)",
+      "kernel_lines": {
+        "illumination_gate": "src/rcs_sbr.py:432  lit_i = valid & ((Nn @ u_i) > 1e-6)",
+        "receive_gate": "src/rcs_sbr.py:446  lit = lit_i & ((Nn @ u_s) > 1e-6)",
+        "exit_visibility": "src/rcs_sbr.py:447-451 (calls _exit_visible, src/rcs_sbr.py:316)",
+        "field": "src/rcs_sbr.py:452  E = np.sum(np.where(lit, g, 0.0) * np.exp(1j * k * (Pc @ (u_i + u_s))))",
+        "sigma": "src/rcs_sbr.py:463  sig_acc[j] += (4.0 * np.pi / lam ** 2) * np.abs(E * d * d) ** 2",
+        "symmetrize_option": "src/rcs_sbr.py:466-474  sigma_sym = sqrt(sigma(i,s) * sigma(s,i))"
+      }
+    },
+    "complex_field_no_sigma": {
+      "signature": "src/rcs_sbr.py:479  def sbr_field(mesh, group_mat, fc, u, spacing=None, pad=1.15, cache_key=None, penetrate=True, shell_groups=None)",
+      "kernel_lines": "src/rcs_sbr.py:527 (lit), :528 (phase exp(1j*2k*((P-ctr)@u))), :531 (E = sum), :539 (return complex(E) * d * d)",
+      "note": "This is the micro-Doppler feed: returns E, not sigma."
+    },
+    "multi_bounce_path": {
+      "signature": "src/rcs_sbr.py:542  def rcs_sbr(mesh, group_mat, fc, az_deg, el_deg=0.0, spacing=None, max_bounce=1, pad=1.15, return_hits=False)",
+      "kernel_lines": {
+        "gate": "src/rcs_sbr.py:646-647  cosr = Nh @ u ; lit = cosr > 1e-6",
+        "path_length": "src/rcs_sbr.py:648-649  seg = ||Ph - Pprev[hit]|| ; R_fwd = path[hit] + seg",
+        "phase_general_form": "src/rcs_sbr.py:652  phase = np.exp(-1j * k * (R_fwd[lit] - Rout - r_dot))",
+        "field": "src/rcs_sbr.py:653  E += np.sum(amp[hit][lit] * gh[lit] * phase) * d * d",
+        "specular_retrace": "src/rcs_sbr.py:667-675 (Dref = D - 2(D.N)N, amp *= gamma, path accumulates)",
+        "sigma": "src/rcs_sbr.py:677  sig[i] = (4.0 * np.pi / lam ** 2) * abs(E) ** 2"
+      },
+      "note": "Not batched, not used for production sigma (production is all 1-bounce, src/rcs_sbr.py:556-558). >=2 bounce drops the obliquity ratio (n.u_s)/(n.(-d_in)) = 1, documented at src/rcs_sbr.py:641-645."
+    },
+    "legacy_explicit_dA_PO": {
+      "signature": "src/rcs_po.py:104  def rcs_from_points(P, N, dA, fc, az_deg, el_deg=0.0, w=None)",
+      "kernel_lines": {
+        "illumination": "src/rcs_po.py:111  illum = NU > 0",
+        "integrand_with_obliquity_and_dA": "src/rcs_po.py:113  integrand = np.where(illum, NU, 0.0) * amp[:, None] * np.exp(1j * 2 * k * PU)   # amp = dA or dA*w (line 112)",
+        "sigma": "src/rcs_po.py:115  return (4 * np.pi / lam**2) * np.abs(E)**2"
+      },
+      "point_cloud_builder": "src/rcs_po.py:66  def mesh_to_points(mesh, spacing, gamma=None) -> (P, N, dA[, w]); barycentric sub-sampling of each triangle at src/rcs_po.py:83-90",
+      "single_direction_field": "src/rcs_po.py:118  def po_field_dir(P, N, dA, fc, u, w=None) -> complex E",
+      "status": "comparison/verification only (src/rcs_po.py:142). Known to over-predict by +5.3 dB on mavic4pro because it has no self-occlusion (src/rcs_po.py:132-134)."
+    },
+    "near_field_bistatic_PO": {
+      "plane_wave": "src/microdoppler_nearfield.py:130  def _field_plane(P, N, dA_w, k, u_t, u_s)  ->  line 136-138: ph = exp(1j*k*(P @ (u_t+u_s))); integ = where((nt>0)&(ns>0), nt, 0.0) * dA_w * ph",
+      "spherical_wave": "src/microdoppler_nearfield.py:141  def _field_spherical(P, N, dA_w, k, A_t, A_s, R_t, R_s)  ->  lines 159-164, spread = (R_t*R_s)/(rt*rs), ph = exp(-1j*k*(rt+rs-R_t-R_s))",
+      "note": "This variant keeps the explicit obliquity nt = n.u_t (line 137/163) and per-point dA_w, i.e. it is the classic PO form on a point cloud, extended to spherical wavefronts and bistatic geometry. No occlusion."
+    }
+  },
+
+  "q2_lit_test": {
+    "summary": "In the production SBR path, 'lit' is decided PER RAY (per hit point), never per triangle. There is no triangle-level lit list anywhere.",
+    "primary": {
+      "ray_cast": "src/rcs_sbr.py:277-279  ray = mi.Ray3f(o=..., d=...); si = scene.ray_intersect(ray)",
+      "helper": "src/rcs_sbr.py:231  def _lit_g_phase(si, shptr, gam, D, U) -> (lit, g, phase, valid, si)",
+      "data_structure": "Mitsuba SurfaceInteraction3f `si`, unpacked to numpy at src/rcs_sbr.py:234-236: valid = si.is_valid(); P = np.asarray(mi.Point3f(si.p)).T; Nn = np.asarray(mi.Vector3f(si.n)).T; shape identity via si.shape compared against mi.ShapePtr (line 238).",
+      "normal_orientation_fix": "src/rcs_sbr.py:239-240  sgn = sign(Nn . (-D)); Nn *= sgn  (normal flipped toward the incoming ray, so face winding errors cannot flip the gate)",
+      "gate": "src/rcs_sbr.py:241  lit = valid & (Nn . U > 1e-6)",
+      "occlusion_source": "free: only the FIRST hit of each ray exists (Mitsuba ray_intersect). Documented src/rcs_sbr.py:12-16."
+    },
+    "ray_grid_construction": {
+      "target_center": "src/rcs_sbr.py:217  ctr = 0.5 * (V.max(0) + V.min(0))   # bbox center",
+      "aperture_radius": "src/rcs_sbr.py:218  Rout = max||V-ctr|| * pad(1.15) + 3*d",
+      "grid": "src/rcs_sbr.py:220-225  n = ceil(2*Rout/d); t = (arange(n)-(n-1)/2)*d; A,B = meshgrid(t,t)",
+      "basis_and_origins": "src/rcs_sbr.py:262-266 (e1,e2 perpendicular to u), :272 O = (ctr + Rout*u) + (A+ox)*e1 + (B+oy)*e2, :273 D = -u",
+      "jitter_offsets": "src/rcs_sbr.py:253-255  J = max(1,int(jitter)); fr = (arange(J)+0.5)/J - 0.5; offsets = [(ox*d, oy*d) ...]  (J^2 sub-cell offsets, incoherent power average at :296)"
+    },
+    "extra_gates_bistatic": {
+      "receive_normal_gate": "src/rcs_sbr.py:446",
+      "exit_visibility_shadow_ray": "src/rcs_sbr.py:316  def _exit_visible(sc, P_abs, Nn, u_s, clearance=EXIT_CLEARANCE, cosmin=EXIT_COSMIN) -> bool mask via sc.ray_test; constants at :312-313 (EXIT_CLEARANCE=1e-5 m, EXIT_COSMIN=0.02). Offset is applied ALONG u_s only (rationale/counter-evidence at :301-311).",
+      "penetration_second_scene": "src/rcs_sbr.py:213 / :396 / :500  scene_i = scene without dielectric-shell groups; its own hits get their own lit mask (:290, :438-439, :537)."
+    },
+    "legacy_PO_lit_test": "src/rcs_po.py:111  illum = NU > 0 on the point cloud. No visibility, no occlusion (explicitly stated src/rcs_po.py:47-49).",
+    "triangle_identity_not_kept": "si.prim_index (and si.uv) are NEVER referenced anywhere in src/ or benchmark/ (grep: zero hits). Only si.shape (== group, see q3) is used. So the current kernel cannot tell you WHICH triangle was hit — only which material group."
+  },
+
+  "q3_gamma_attachment": {
+    "material_table": "src/materials.py:53  MATERIALS dict (single source of truth for both Sionna RT and PO)",
+    "gamma_function": "src/materials.py:171  def gamma_po(mat_key: str, fc: float = 3.5e9) -> float   — returns MATERIALS[key]['gamma_po'] override if present (:181-182), else bulk normal-incidence Fresnel |Gamma| from src/materials.py:162 gamma_bulk (formula at :167-168, Gamma = (1-sqrt(eps_c))/(1+sqrt(eps_c)), eps_c = eps_r - j*sigma/(w*eps0), abs() taken).",
+    "group_to_material_map": "src/drones.py:622  DRONE_GROUP_MAT = {'body':('plastic',..), 'arm':('carbon',..), 'motor':('metal',..), 'prop':('prop_plastic',..), 'battery':('metal',..), 'pcb':('pcb',..), 'camera':('camera_assembly',..), 'deck'/'gear_cf':('carbon',..), 'fc':('pcb',..), ...}; helper src/drones.py:648  drone_gamma_map(spec, fc)",
+    "attach_point_in_SBR": {
+      "one_mitsuba_shape_per_group": "src/rcs_sbr.py:132  def _mi_scene_from_mesh(mesh, group_mat, fc=3.5e9, exclude=()) — loop at :141, per-group mi.Mesh built at :148-153, gamma resolved at :155-156  `val = group_mat.get(grp, 'plastic'); gammas.append(float(val) if not isinstance(val,str) else gamma_po(val, fc))`",
+      "per_hit_lookup": "src/rcs_sbr.py:236-238  g = np.zeros(N); for sp, gm in zip(shptr, gam): g = np.where(si.shape == sp, gm, g)   (same pattern at :426-427, :523-524, :608-609)",
+      "multiplication_into_integrand": "src/rcs_sbr.py:281 (batch), :452 (bistatic), :531 (field), :653 (multi-bounce, with cumulative amp = prod|Gamma| from :672)"
+    },
+    "shell_transmission": {
+      "tau": "src/rcs_sbr.py:286-288  tau = 1.0 - gammas[i]**2 (round-trip power transmission used as amplitude) applied at :291 `contrib += where(lit2 & (tau>0), tau*g2, 0)*phase2`",
+      "shell_groups": "src/rcs_sbr.py:88  _DIELECTRIC_SHELLS = frozenset({'body','canopy'}); guard src/rcs_sbr.py:103 _resolve_shells + SHELL_GAMMA_MAX=0.5 (:100) raises if an opaque material is declared a shell"
+    },
+    "attach_point_in_legacy_PO": "src/rcs_po.py:91-92  Ws.append(np.full(len(pts), float(gamma.get(mesh.g[fi], 1.0))))  ->  applied src/rcs_po.py:112  amp = dA if w is None else dA * w",
+    "PEC_convention": "PEC is passed as the FLOAT 1.0, not a material string: src/rcs_sbr.py:694  _PEC_GROUP_MAT = {'metal': 1.0}; rationale src/materials.py:116-138 (unknown key now raises)."
+  },
+
+  "q4_phase_convention": {
+    "look_vector": {
+      "definition": "src/rcs_sbr.py:161  def _look(az_deg, el_deg): return [cos(el)cos(az), cos(el)sin(az), sin(el)]  — identical in src/rcs_po.py:97 _look_dirs and src/microdoppler_nearfield.py:106 look_unit",
+      "direction_meaning": "u_hat points FROM the target TOWARD the radar (outward). Stated at src/rcs_po.py:27 ('û = 표적→레이더 방향'), src/rcs_sbr.py:336 ('û_i = 표적→송신국, û_s = 표적→수신국 방향(둘 다 outward 단위벡터)'), src/rcs_sbr.py:578 comment ('표적 → 레이더 방향'). Rays are launched from (ctr + Rout*u) with direction D = -u (src/rcs_sbr.py:272-273)."
+    },
+    "origin": {
+      "SBR": "bbox center of the mesh: src/rcs_sbr.py:217 (batch), :400 (multistatic), :505 (sbr_field), :569 (multi-bounce)  ctr = 0.5*(V.max(0)+V.min(0)). The subtraction is documented as float32-stability only, sigma-invariant (src/rcs_sbr.py:242 comment '중심감산(float32 안정·σ 불변)').",
+      "legacy_PO": "NO centering — absolute mesh coordinates: src/rcs_sbr/PO uses PU = P @ U.T with P from mesh_to_points (src/rcs_po.py:109, :113). Origin = the drone-local frame origin used by geom/drones (z-up, forward +x; src/geom.py:25-29, src/drones.py:828).",
+      "consequence": "sigma is invariant to origin choice (global phase), but any added edge term must use the SAME origin as the surface term it is coherently added to."
+    },
+    "sign": {
+      "monostatic": "+ : src/rcs_sbr.py:242  exp(+1j * 2k * (p - ctr) . u_hat)   and src/rcs_po.py:113  exp(+1j * 2k * (p . u_hat))",
+      "bistatic": "+ : src/rcs_sbr.py:452  exp(+1j * k * (p' . (u_i + u_s))), p' = p - ctr",
+      "multi_bounce_general": "src/rcs_sbr.py:652  exp(-1j * k * (R_fwd - Rout - r_dot)), r_dot = (p - ctr).u_hat, R_fwd = optical path from launch plane to this hit (:648-649). Derivation and the two-check reduction are written at src/rcs_sbr.py:625-633: forward propagation along the GO ray carries exp(-jkS), re-radiation toward u_s carries exp(+jk u_s.p); at 1 bounce R_fwd = Rout - u.p' so phi = +2k(u.p') — identical to the monostatic form.",
+      "near_field": "src/microdoppler_nearfield.py:162  exp(-1j*k*(r_t + r_s - R_t - R_s)) — same convention, since r ~ R - p.u.",
+      "statement": "Convention is exp(+j 2k p.u_hat) with u_hat OUTWARD (target->radar); equivalently exp(-jk * range). Points closer to the radar carry larger positive phase. No exp(-j...) variant exists in the production path."
+    },
+    "wavenumber": "k = 2*pi/lam, lam = C0/fc, C0 = 299792458.0 (src/rcs_sbr.py:74, :199-200; src/rcs_po.py:60, :107). The factor 2 in 2k is the monostatic round trip; the bistatic form writes k(u_i+u_s) instead."
+  },
+
+  "q5_sigma_conversion": {
+    "formula": "sigma = (4*pi/lam^2) * |E|^2  with E in m^2",
+    "sites": [
+      "src/rcs_sbr.py:295   sig_acc += (4.0*np.pi/lam**2) * np.abs(E * d * d)**2      # production monostatic",
+      "src/rcs_sbr.py:463   sig_acc[j] += (4.0*np.pi/lam**2) * np.abs(E * d * d)**2   # bistatic/multistatic",
+      "src/rcs_sbr.py:677   sig[i] = (4.0*np.pi/lam**2) * abs(E)**2                   # multi-bounce (d*d already folded in at :653)",
+      "src/rcs_po.py:115    return (4*np.pi/lam**2) * np.abs(E)**2                    # legacy point-cloud PO",
+      "src/rcs_sbr.py:539   sbr_field returns complex(E)*d*d  (NO sigma conversion — caller does it)",
+      "src/rcs_po.py:124    po_field_dir returns E (NO sigma conversion)"
+    ],
+    "post_processing_outside_kernel": [
+      "grid-dither incoherent average over J^2 offsets: src/rcs_sbr.py:296",
+      "band average over n_f frequencies: src/rcs_po.py:181  drone_rcs_pattern_bw (:200-205)",
+      "angular power smoothing (3 deg window): src/rcs_po.py:208  angular_smooth",
+      "dBsm helper: src/rcs_po.py:222  dbsm(sigma) = 10*log10(max(sigma,1e-30))"
+    ]
+  },
+
+  "q6_mesh_datastructure": {
+    "production_class": {
+      "where": "src/geom.py:41  class Mesh",
+      "fields": "src/geom.py:45 self.v : list[tuple[float,float,float]] (vertices) | :46 self.f : list[tuple[int,int,int]] (0-based triangles) | :47 self.g : list[str] (per-FACE material group name)",
+      "has_adjacency": false,
+      "has_edge_list": false,
+      "has_vertex_normals": false,
+      "notes": [
+        "No adjacency, no half-edge, no face-face map, no edge list anywhere in geom.py.",
+        "Mesh.merge (src/geom.py:66-73) concatenates with index offset and NEVER welds duplicate vertices — parts merged this way are topologically disjoint even where they touch.",
+        "Mitsuba shapes are built per GROUP (src/rcs_sbr.py:141-157) with has_vertex_normals=False (:149), so group boundaries are separate shapes/topological seams in the EM scene too."
+      ]
+    },
+    "is_trimesh_used": "YES, upstream and for validation, but NOT in the EM kernel.",
+    "trimesh_path": {
+      "cad_construction": "src/drone_cad.py:1220  def build_frame_cad(spec) — builds a cadkit Assembly of real trimesh.Trimesh parts, boolean-unions each group at :1803-1806, `return A`. NOTE: its return annotation says '-> trimesh.Trimesh' and its docstring says 'geom.Mesh 로 반환' — BOTH are wrong; it returns a cadkit.Assembly.",
+      "propeller": "src/drone_cad.py:1810  def build_propeller_cad(spec, n_sec=22) -> Assembly",
+      "assembly_class": "src/cadkit.py:38  class Assembly — self.parts: dict[str, list[trimesh.Trimesh]] (:42). add() does nondegenerate_faces + merge_vertices + trimesh.repair.fix_normals (:50-55). union_group() runs trimesh.boolean.union(engine='manifold') (:73).",
+      "conversion_to_geom": "src/cadkit.py:110  def to_geom(self) — flattens every trimesh part into geom.Mesh v/f/g (:114-121). Vertices are NOT welded across parts here; the trimesh objects are discarded.",
+      "consumer": "src/drones.py:748  return build_frame_cad(spec).to_geom()  (inside _build_frame_raw), then anisotropic envelope scaling on the geom.Mesh at src/drones.py:830-832 (build_frame). Propellers: src/drones.py:856  build_propeller_cad(spec, ...).to_geom(), mirrored copies flip winding at src/drones.py:835-842 (_mirror_y).",
+      "round_trip_back_to_trimesh": "src/mesh_check.py:36  def _tm(v, f): return trimesh.Trimesh(vertices=..., faces=..., process=True)  — used per group at src/mesh_check.py:48-52. process=True welds vertices."
+    },
+    "can_edges_be_extracted": {
+      "answer": "YES, but not from geom.Mesh directly — via a trimesh round trip that already exists (src/mesh_check.py:36-39) or from the CAD Assembly before .to_geom() (src/cadkit.py:38-59). trimesh then exposes edges_unique / face_adjacency / face_adjacency_angles.",
+      "caveats": [
+        "Edge extraction must run on the FINAL production geometry: build_frame applies an anisotropic scale AFTER to_geom (src/drones.py:830-832), so edges taken from the CAD Assembly are pre-scale.",
+        "Groups are separate shapes in the EM scene (src/rcs_sbr.py:141-157) and separate components in mesh_check (:48-52); a physical edge at a group boundary will look like two open boundaries unless welded globally.",
+        "geom.Mesh from Assembly.to_geom is not welded across parts (src/cadkit.py:114-121); process=True in _tm welds by position, which is what an edge/dihedral-angle extraction would need.",
+        "Mirrored propellers reverse winding (src/drones.py:840) — dihedral-angle sign conventions must be checked per part.",
+        "Actual edge counts / dihedral-angle distributions for the production drones: NOT MEASURED here (no code was run)."
+      ]
+    }
+  },
+
+  "q7_polarization": {
+    "answer": "scalar",
+    "evidence": [
+      "|Gamma| is a real python float per group: src/materials.py:171 gamma_po returns float; src/materials.py:168 gamma_bulk returns float(abs(...)) — the Fresnel phase is discarded.",
+      "Fresnel is NORMAL-INCIDENCE bulk only (src/materials.py:163-168) — no TE/TM split, no incidence-angle dependence, no thin-film phase.",
+      "Scattered field is a complex SCALAR: src/rcs_sbr.py:293-294 (E = np.zeros(len(sub), complex)), :452, :531, :589 (E = 0.0+0.0j); src/rcs_po.py:114.",
+      "No incident polarization vector exists anywhere in the kernel: grep for 'polariz|편파|TE|TM|hh|vv' over src/rcs_sbr.py, src/rcs_po.py, src/materials.py, src/microdoppler*.py returns exactly ONE hit, and it is a disclaimer: src/microdoppler_nearfield.py:89  '* 편파 미보존(복소 스칼라 E, 스칼라 |Γ|) — 저장소 전체 규약과 동일.' (= polarization not preserved: complex scalar E, scalar |Gamma|; same convention repo-wide).",
+      "The polarization-dependent physics that PO would normally carry (the n_hat x H_inc surface current, and its projection onto the receive polarization) is collapsed into the scalar |Gamma|*(n.u) obliquity."
+    ],
+    "implication_for_ILDC": "TW-ILDC coefficients are defined per polarization pair in an edge-fixed frame. The current kernel has no incident polarization, no scattered polarization basis, and no complex Gamma — so an ILDC term cannot be added without introducing a vector field path (at minimum: incident E-field unit vector, edge tangent frame, and a 2x2 scattering-matrix accumulation replacing the scalar E). Everything currently summed into E would then need a polarization basis assignment too, or the two terms cannot be added coherently."
+  },
+
+  "q8_monostatic_vs_bistatic": {
+    "production_headline": "MONOSTATIC. src/rcs_sbr.py:184 rcs_sbr_batch takes az_deg (array) + el_deg (scalar) and uses one u for both illumination and reception (src/rcs_sbr.py:262-266, :274). Confirmed repo-wide, e.g. benchmark/verify_monostatic.py:869 'src/rcs_sbr.py rcs_sbr_batch (monostatic)'.",
+    "bistatic_input_exists": {
+      "function": "src/rcs_sbr.py:330  rcs_sbr_multistatic(..., u_i, u_s_list, ...) — u_i and a LIST of u_s; one illumination ray-trace is reused for all receivers (documented :341-343). u_s_list=[u_i] reduces exactly to the monostatic result (:339, :344).",
+      "callers": "src/experiment_freespace_sigma.py:234-256 (multistatic delta-sigma vs bistatic angle beta, both directions for reciprocity check)",
+      "documented_limits": "src/rcs_sbr.py:371-380 — (1) forward scatter INVALID: for beta -> 180 deg the illumination gate (n.u_i>0) and receive gate (n.u_s>0) are mutually exclusive so sigma == 0 (no shadow-radiation / Babinet lobe); valid roughly beta <~ 90 deg. (2) reciprocity breaks on non-convex targets. (3) transmission exit path approximated by the entry tau. (4) obliquity uses (n.u_i) only, never sqrt((n.u_i)(n.u_s)) — the symmetrized version was tried and REJECTED because it explodes at grazing (src/rcs_sbr.py:366-369, :441-444)."
+    },
+    "near_field_bistatic": "src/microdoppler_nearfield.py:130 _field_plane(P,N,dA_w,k,u_t,u_s) and :141 _field_spherical(...,A_t,A_s,R_t,R_s) accept separate Tx/Rx directions and even separate Tx/Rx POSITIONS (spherical wavefront)."
+  },
+
+  "q9_units_and_normalization": {
+    "length_units": "meters everywhere (src/geom.py:28-29). Frequency in Hz. C0 = 299792458.0 (src/rcs_sbr.py:74, src/rcs_po.py:60).",
+    "incident_field_amplitude": "IMPLICITLY 1 (unit-amplitude plane wave). There is NO E0 / E_inc / amplitude symbol anywhere in src/rcs_sbr.py, src/rcs_po.py, src/microdoppler_nearfield.py (grep returns nothing). The formulas as written (src/rcs_sbr.py:33-34, src/rcs_po.py:25-26) contain only |Gamma|, the obliquity/projected-area factor and the phase.",
+    "field_units": "E has units of m^2: SBR sums dimensionless (|Gamma| * phase) per ray and multiplies by d*d (src/rcs_sbr.py:295, :539, :653); legacy PO carries dA [m^2] directly (src/rcs_po.py:112-113). Hence sigma = (4pi/lam^2)|E|^2 is m^4/m^2 = m^2.",
+    "no_range_dependence": "Far-field RCS definition — no 1/(4pi R^2), no r-dependence in the batch/multistatic kernels. The near-field module instead normalizes by spread (R_t R_s)/(r_t r_s) with reference-phase subtraction so that it converges to the plane-wave kernel as R -> inf (src/microdoppler_nearfield.py:161-162, docstring :148-149).",
+    "ray_weight": "one ray carries projected area d^2, d = spacing or lam/DEFAULT_DIV with DEFAULT_DIV=12 (src/rcs_sbr.py:83, :201, :383, :489, :563).",
+    "aperture": "Rout = max||V-ctr||*pad + 3d, pad default 1.15 (src/rcs_sbr.py:218, :401, :505, :570); grid is square of side 2*Rout (:220-221).",
+    "dither_normalization": "sigma is averaged over J^2 sub-cell grid offsets INCOHERENTLY (power average): src/rcs_sbr.py:253-255 (offsets), :296 and :464 (divide by len(offsets)). Default jitter=2; validation uses jitter=3 (src/rcs_sbr.py:738-745).",
+    "no_calibration_inside_kernel": "The kernel applies no fudge/anchor factor. External re-levelling sigma(f) = A(f)*B1(phi,theta)*B2 lives in src/sigma_anchor.py (docstring :4-19) and is explicitly labelled 're-levelling, not validation' (:14-18).",
+    "known_grid_uncertainty": "src/rcs_sbr.py:36-41 — measured peak-to-peak single-grid dither: lam/8 5.284 dB, lam/12 1.373 dB, lam/16 1.782 dB (from outputs/report2_waveform_rcs.json sbr_validation.dither). Convergence is NOT monotonic."
+  },
+
+  "ptd_ildc_status": {
+    "exists_today": false,
+    "grep_evidence": "No PTD/ILDC/edge-current implementation exists in src/ or benchmark/. All hits for 'PTD|ILDC|diffract|회절' are prose: src/sigma_anchor.py:25-27, src/microdoppler_nearfield.py:90 ('모서리/정점 회절 없음'), benchmark/mie_pec_sphere.py:191, benchmark/validate_measured_airframe.py:735-764, src/report_style.py:114 / :1418 / :1466-1475 (next-steps text 'PTD 를 넣는다' pointing at src/rcs_sbr.py), src/make_report02_target.py:1730.",
+    "documented_symptom": "src/sigma_anchor.py:24-27 — our sigma(f) slope is 0.742-1.699 dB/GHz (3 bands, el=0) vs measured 0.175-0.315 dB/GHz (Yuan) / 0.21 dB/GHz (Das), i.e. 3-8x too steep; cause stated as PO keeping only the specular (f^2) term and discarding the frequency-independent edge-diffraction term. Called a SYSTEMATIC error, not random.",
+    "where_a_TW_ILDC_term_would_attach": [
+      "Coherent addition point (monostatic production): src/rcs_sbr.py:281-295 — E currently = sum(contrib); an edge term must be added to E BEFORE line 295 so that sigma = 4pi/lam^2 |E_PO + E_edge|^2, and it must use the same origin (ctr, line 217) and the same sign convention (exp(+j2k p.u), line 242) and the same d^2-free units (E in m^2).",
+      "Bistatic: src/rcs_sbr.py:452 (same requirements, phase exp(+jk p'.(u_i+u_s))).",
+      "Micro-Doppler / complex-field consumers: src/rcs_sbr.py:531/539 (sbr_field) and src/rcs_po.py:124 (po_field_dir) would need the same term or they silently diverge from the sigma path.",
+      "Edge visibility: reuse src/rcs_sbr.py:316 _exit_visible (a ray_test-based shadow ray on the SAME Mitsuba scene, no new scene build) to decide whether an edge point is lit by u_i and visible to u_s. Note its offset-direction lesson at :301-311.",
+      "Edge geometry source: trimesh round trip at src/mesh_check.py:36-39 on the FINAL geom.Mesh (post envelope scaling, src/drones.py:830-832), or the CAD Assembly at src/cadkit.py:38 before .to_geom() (pre-scaling).",
+      "Material/edge coefficient source: src/materials.py:171 gamma_po is the only |Gamma| provider; it is a real scalar and has no edge-wedge parameters (interior wedge angle, polarization pair), so ILDC coefficients would need a new provider."
+    ],
+    "structural_blockers_found": [
+      "Scalar-only field/polarization (see q7) — ILDC coefficients are polarization-dependent.",
+      "No triangle identity at hits (si.prim_index unused) and no edge list in geom.Mesh (see q2, q6) — edges must be built as a separate data structure, they cannot be read out of the current hit records.",
+      "Illumination is sampled on a ray grid of spacing d = lam/12; edges are 1-D and would need their own (line) sampling and their own lit/shadow test rather than the surface grid.",
+      "The >=2 bounce path (src/rcs_sbr.py:542) already drops the obliquity ratio (:641-645) and has no exit-visibility test (:555-558); an edge term added there would inherit those approximations."
+    ]
+  },
+
+  "unknowns": [
+    "No code was executed. Every line reference is a static read; runtime behaviour (e.g. that si.n is the geometric and not shading normal in this Mitsuba build, or the exact numeric effect of the 1e-6 gate) was NOT verified by running anything.",
+    "Whether Mitsuba's si.prim_index / si.uv are populated in this build is UNKNOWN — the repo never touches them, so triangle-level attribution has never been exercised here.",
+    "The polarization the existing sigma numbers correspond to is UNDEFINED by construction (scalar kernel). There is no HH/VV/HV mapping to recover — treat published sigma as polarization-agnostic.",
+    "Edge counts, edge lengths and dihedral-angle distributions of the production drone meshes: NOT MEASURED (would require running trimesh over build_drone output).",
+    "Whether vertices weld cleanly across group boundaries after Assembly.to_geom (src/cadkit.py:114-121) + envelope scaling (src/drones.py:830-832) is UNVERIFIED numerically; within a part, Assembly.add welds (src/cadkit.py:51) and _tm(process=True) welds on the round trip.",
+    "src/drone_cad.py:1220 build_frame_cad has a WRONG return annotation ('-> trimesh.Trimesh') and a WRONG docstring ('geom.Mesh 로 반환'); it actually returns a cadkit.Assembly (return at :1806). Flagged, not fixed.",
+    "Bistatic exit-visibility for >=2 bounce is not implemented (documented src/rcs_sbr.py:555-558) — its effect size is UNKNOWN.",
+    "Whether any downstream consumer rescales sigma outside the paths inspected (rcs_po band/angular averaging, sigma_anchor re-levelling) was not exhaustively audited across all of benchmark/."
+  ]
+}

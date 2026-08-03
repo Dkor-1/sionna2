@@ -1,0 +1,263 @@
+{
+  "meta": {
+    "role": "adversarial implementation attack on the PTD edge term. Default assumption: it is wrong.",
+    "generated": "2026-08-03",
+    "targets_read": [
+      "src/ptd_edges.py (726 lines, full)",
+      "docs/PTD_ILDC_FORMULATION.md (789 lines, full)",
+      "outputs/ptd_kernel_anatomy.json",
+      "outputs/ptd_plate_validation.json",
+      "outputs/ptd_regression.json",
+      "outputs/ptd_drone_effect.json",
+      "benchmark/mom2d_reference.py, benchmark/ptd_plate_validation.py, benchmark/ptd_drone_effect.py (read for provenance)"
+    ],
+    "method": "code was EXECUTED, not only read. Every number below was produced by this attack unless it is quoted from a shipped JSON (marked 'shipped:'). Attack scripts live in the session scratchpad: atk1b.py (Ufimtsev on-cone reduction), atk2.py (independent sign anchor), atk3.py (drone edge-population anatomy), atk4.py (band-slope re-fit under sign flip and threshold sweep), atk5.py (face-order, reentrant magnitude, PO quadrature residual), atk6.py (singularity regularisation, face-order invariance), atk7.py (open-strip MoM convergence).",
+    "environment": "~/.venvs/py312/bin/python, numpy 2.5.0, CPU only",
+    "what_survived_the_attack": [
+      "Michaeli fringe EEC reduces EXACTLY to the Ufimtsev wedge coefficients f1/g1 on the Keller cone (beta'=90 deg, monostatic) for N = 1.10, 1.25, 1.50, 1.75, 2.00 at phi0 = 40/70/110 deg: ratio to N=2 agrees with Ufimtsev to 0.00 % in BOTH I^f (soft/f1) and M^f (hard/g1). docs 10 lists this as 'never run'. It passes. The wedge-angle dependence of the shipped kernel is correct.",
+      "Removable-singularity regularisation (_face_fringe_reg) is accurate: at N=2, beta'=90 deg, phi'->90 deg (|cos phi' + mu| down to 1.2e-16) the regularised value reproduces the exact half-plane invariant to < 1e-5 relative. Not a defect.",
+      "Face-order invariance: swapping which adjacent triangle becomes 'face 1' leaves A_edge identical to 1e-16 (tested at exterior alpha = 270 deg and 225 deg). The convex/concave dihedral logic (ptd_edges.py:209-212) is correct (verified analytically for a cube edge -> N=1.5 and an L-corner -> N=0.5).",
+      "The MAGNITUDE of the 1/2 normalisation (doc 9.1) is correct: |A_code / A_analytic| = 1.0000000000 at theta = 10..80 deg, both polarisations. The doc and the module meta still call it 'UNVERIFIED'; that warning is now stale (see D-9).",
+      "ptd=False is a true no-op: shipped regression R1-R4 report delta = 0.000e+00 bit-identical, and the fast path vs the shipped wrappers agree to 4.1e-14 dB.",
+      "The PO subtraction structure is right in principle: _face_fringe_raw returns I_t - I_po (line 329), and the unit step U(pi-phi') correctly zeroes the PO part on the unlit face, which matches the one-sided illum = (n.u > 0) gate of rcs_po.mesh_to_points. The literal 'is it adding the total instead of the difference' hypothesis is REFUTED. The real subtraction problem is quantitative, not structural - see D-8."
+    ]
+  },
+
+  "defects": [
+    {
+      "id": "D-1",
+      "severity": "critical",
+      "title": "The fringe term enters with a GLOBAL SIGN FLIP. Constructive interference is being computed as destructive.",
+      "file": "src/ptd_edges.py:544",
+      "code": "A = 0.5 * np.sum((Z0 * g_I * I_f + g_M * M_f) * Ls[idx] * ph * sc)",
+      "why_wrong": "The overall complex constant of doc 9.1 is a self-derivation ('우리 유도', ptd_edges.py:24-25, doc 9.1 warning box), not a citation, and its SIGN is wrong. Two independent anchors pin it. (1) The sign of the constant is fixed WITHOUT any appeal to the shipped code: for a half-plane the PO part of the same expansion, +(j/k) sum f0_i e^{j2k r_i.u}, reproduces the exact PO closed form a cos(th) sinc(k a sin th) to 9 digits at th = 5/15/35/55/80 deg (measured: W_PO = -2.23761441e-02 vs +(j/k)Sf0 = -2.23761441e-02 at 5 deg, imaginary residue 1.1e-16). Because f = f0 + f1 lives inside that one expansion, the fringe MUST enter with the same +(j/k). (2) Measured A_code / [+(j/k) L sum f1_i e^{j2k r_i.u}] = 1.0000000000 at |phase| = 180.0000 deg for theta = 10/25/40/65/80 deg in BOTH polarisations. Magnitude right, sign inverted. Note the time convention is NOT the culprit: exp(+j2k p.u) with u outward is the e^{+jwt}/e^{-jkr} convention, the same one Michaeli/Oztuerk/Gao use (ptd_kernel_anatomy.json q4.sign). The most likely mechanism is the dropped leading jk of Oztuerk (3.7) in the 'lam*k/(4pi) = 1/2' step, combined with a compensating sign; empirically the correct constant for THIS code's I^f/M^f is -1/2.",
+      "consequence": "Every coherently added result flips its cross term. On the mini5pro headline configuration the band-slope change reverses sign: shipped (+) gives delta_slope = +0.0765 dB/GHz (AWAY from the measured 0.210), sign-fixed (-) gives -0.1089 dB/GHz (toward it). The shipped claim 'it does bend the slope the right way' is produced by the defect, not despite it.",
+      "how_to_check": "PYTHONPATH=src python <scratchpad>/atk2.py -- section B1 fixes the sign of the constant from the PO endpoint identity alone, section B2 measures the ratio. Independently: outputs/ptd_plate_validation.json sign_probe reports the same thing (max_abs_ratio_dev 3.8e-15, min |phase| 179.9999999999994 deg).",
+      "fix": "Negate line 544 (A = -0.5 * np.sum(...)), or fold the -1 into the geometry factors. Then REGENERATE every downstream output; do not hand-patch numbers. Add a permanent phase assertion to smoke_ptd.py: |A_edge / A_ufimtsev_halfplane - 1| < 1e-6 (not |ratio| - 1, which passes with the bug).",
+      "status_in_repo": "NOT FIXED. src/ptd_edges.py mtime 07:16:16; ptd_plate_validation.json (which found it) mtime 07:57:46. The file was never touched afterwards."
+    },
+    {
+      "id": "D-2",
+      "severity": "critical",
+      "title": "Every shipped PTD result predates the sign discovery and is therefore stale, including the two headline claims.",
+      "file": "outputs/ptd_drone_effect.json (whole file); outputs/ptd_regression.json sections B, B2, C",
+      "why_wrong": "mtimes: ptd_regression.json 07:39:42, ptd_drone_effect.json 07:43:40, ptd_plate_validation.json 07:57:46. The plate run is the only one that postdates nothing, and it is the one that found the sign inversion. The drone headline ('PTD is cheap ... and it does bend the slope the right way'), the +8-24 dB s1000plus level, the cost table and the runtime table were all computed with A_edge negated. Nothing in ptd_drone_effect.json cites the defect, and nothing in ptd_regression.json's concerns list mentions it either.",
+      "consequence": "ptd_drone_effect.json headline.one_line and headline.question_2_band_slope are not merely uncertain, they are of the wrong sign in the interference term. |A|^2-dominated quantities (the s1000plus +13-24 dB inflation) are unaffected by the sign, which is itself diagnostic: it means those numbers are incoherent power addition, not a coherent PTD correction.",
+      "how_to_check": "stat -c '%y %n' src/ptd_edges.py outputs/ptd_*.json ; then diff the drone slope with A -> -A (atk4.py does exactly this).",
+      "fix": "Mark ptd_drone_effect.json and the B/C sections of ptd_regression.json SUPERSEDED in place, fix D-1 and D-3 first, then regenerate. Do not let any report cite them meanwhile."
+    },
+    {
+      "id": "D-3",
+      "severity": "critical",
+      "title": "The whole drone-level 'PTD effect' is the unguarded reentrant-wedge (N<1) divergence, not physics. 6.5 % of the metal edge length carries 99.99 % of the edge power.",
+      "file": "src/ptd_edges.py:218 (guard) with src/ptd_edges.py:93 (N_MIN = 0.05) and src/ptd_edges.py:321-327 (the divergent branch)",
+      "why_wrong": "sin((pi-a)/N)/sin(a) in (3.26)/(3.27) grows like exp((1/N - 1)|Im a|) once |mu| > 1, so it diverges for every N < 1, and the denominator cos(phi'/N) - cos((pi-a)/N) is identically zero for N = 1/(2m). The only guard in the code is alpha/pi < n_min with N_MIN = 0.05, which lets the entire band 0.05 < N < 1 through. The SING_TOL guard (line 343) watches a DIFFERENT denominator (cos phi' + mu) and cannot see this one. MEASURED on the production CAD at 3.5 GHz, el=0, 30 poses, V-pol, with the shipped gamma map and metal_only=True:\n  s1000plus: 3756 metal edges, L = 18.20 m. Of these 576 are reentrant (N < 1), L = 1.18 m = 6.5 % of the metal edge length, clustered at N = 0.169..0.170 -- straddling the analytic pole N = 1/6 = 0.16667.\n    all metal edges          |A|/|E| = +13.47 dB, dSigma = +13.81 dB\n    reentrant subset ONLY    |A|/|E| = +13.55 dB, dSigma = +13.93 dB\n    reentrant REMOVED        |A|/|E| = -14.23 dB, dSigma =  +0.49 dB\n  i.e. deleting 6.5 % of the edge length removes 27.7 dB of amplitude and collapses the effect from +13.8 dB to +0.5 dB.\n  Raw EEC magnitude vs N at beta'=85 deg, phi'=70 deg: |Z I^f| = 7.9e-3 (N=2), 1.1e-2 (N=1.5), 6.3e-18 (N=1), 2.4e+0 (N=0.5001), 1.24e+0 (N=0.1692), 5.3e-1 (N=0.1667), 5.3e-2 (N=0.16). The +34..+50 dB jump and the erratic non-monotonic behaviour across 0.16..0.17 are the signature of the divergent branch, not of a physical wedge.",
+      "consequence": "ptd_drone_effect.json headline.question_1_effect.reading -- 'the effect scales with metal edge length exactly as PTD predicts' -- is FALSE; it does not scale with edge length at all. And falsification_attempts[0], which concludes 'REFUTED ... The effect comes from the genuinely sharp motor rims, not from the seams', had NO POWER against the real cause: reentrant edges have |alpha-180| ~ 150 deg, so no sharp_deg gate (5..30 deg) can ever remove them. The test was insensitive by construction and the conclusion drawn from it is unsupported. ptd_regression.json already filed this as blockers C-1/C-2 at 07:39; the drone run 4 minutes later does not cite them.",
+      "how_to_check": "PYTHONPATH=src python <scratchpad>/atk3.py -- it prints the six edge-population variants per airframe. Cross-check with outputs/ptd_regression.json C6_reentrant_pole.monostatic_pole_scan (poles_in_0_to_2 = [0.5, 0.25, 0.1667, ...]).",
+      "fix": "Guard the ACTUAL denominators, per face: reject a segment when |cos(phi'/N) - cos((pi-a)/N)| < tol OR when (1/N - 1)*|Im a| exceeds a growth budget (e.g. > 10). Simplest defensible interim: drop every N < 1 edge, count it, and put it in NOT_IMPLEMENTED with the discarded length fraction (1.18 m / 18.20 m on s1000plus) printed in the report. Do NOT ship a drone number until this is done."
+    },
+    {
+      "id": "D-4",
+      "severity": "major",
+      "title": "The band-slope improvement is not attributable to PTD: its SIGN comes from D-1, its MAGNITUDE comes from a speed threshold, and it is inside the fit error.",
+      "file": "outputs/ptd_drone_effect.json headline.question_2_band_slope",
+      "why_wrong": "Re-ran the shipped headline configuration independently (mini5pro, V-pol, el = 0, az 0..357 step 3 = 120 poses, 17 frequencies 1.80-5.80 GHz, linear azimuth mean then 10log10, OLS):\n  PO only                      slope = +0.9729 dB/GHz (se 0.1614, R2 0.708)\n  PO+PTD sharp_deg=5, SHIPPED  slope = +1.0493  -> delta = +0.0765  (gap 4.63x -> 5.00x, i.e. AWAY from Das 0.210)\n  PO+PTD sharp_deg=5, SIGN-FIX slope = +0.8639  -> delta = -0.1089  (gap 4.63x -> 4.11x)\n  PO+PTD sharp_deg=0, shipped  delta = +0.0770 ; sign-fixed -0.1106\n  PO+PTD sharp_deg=10, shipped delta = +0.0180 ; sign-fixed -0.0766\n  PO+PTD sharp_deg=20, shipped delta = +0.0256 ; sign-fixed -0.0700\n  PO+PTD seams<10 removed,     delta = +0.0180 ; sign-fixed -0.0766\nThree separate problems. (a) |delta| <= 0.109 dB/GHz against a fit standard error of 0.14-0.18 dB/GHz -- under 0.7 sigma, statistically indistinguishable from zero (the shipped file already says 'not statistically separable from zero' for V-pol, but still writes 'The direction of the effect is right'). (b) The DIRECTION is set by the sign defect: with the shipped code the slope moves the WRONG way at el = 0. (c) The MAGNITUDE moves 4.3x (0.0765 -> 0.0180) when sharp_deg goes 5 -> 10, a knob the module itself calls 'a speed optimization, not physics' (line 696). The edge-only slope wanders +0.249 / +0.232 / +0.061 / +0.158 dB/GHz over sharp_deg = 5/0/10/20 with no sign of converging.",
+      "consequence": "No claim about PTD and the frequency slope can be made from this implementation. The correct statement is a null result whose sign is currently undefined.",
+      "how_to_check": "PYTHONPATH=src python <scratchpad>/atk4.py (~35 s). Vary sharp_deg and the sign of A independently and watch delta_slope.",
+      "fix": "After D-1 and D-3 are fixed, re-fit, and report delta_slope with its standard error AND its sharp_deg sensitivity band. If |delta| stays below 1 se across the threshold sweep, report 'no measurable effect' and stop."
+    },
+    {
+      "id": "D-5",
+      "severity": "major",
+      "title": "On the headline airframe the tessellation-seam contribution is LARGER than the total edge field, and the sphere test shows it does not vanish with refinement.",
+      "file": "src/ptd_edges.py:87 (SHARP_DEG_DEFAULT = 5.0) and src/ptd_edges.py:695-696 (the claim that the threshold is 'a speed optimization, not physics')",
+      "why_wrong": "MEASURED on mini5pro (the airframe the shipped headline uses), 3.5 GHz, V-pol, 30 poses:\n  all metal edges (1608, L = 5.93 m)              |A|/|E| = -17.80 dB\n  seams only, |alpha-180| < 10 deg (864, 3.26 m)  |A|/|E| = -15.64 dB   <-- LARGER than the total\n  seams removed (744, 2.67 m)                     |A|/|E| = -16.22 dB\nThe seam population and the 'physical' population partially cancel, so the total is smaller than either. That means the claimed physical term is NOT separable from the mesh artefact on this airframe. And the artefact is not removable by refining: outputs/ptd_regression.json B/B2 (shipped) measures the same seam class on a smooth sphere and finds it does NOT converge -- amplitude floor -32.5 dB at kr = 13.06 and -40.6 dB at kr = 36.68, log-log slope -0.62 instead of -1, verdict '수렴하지 않는다'. Meanwhile at production mesh density the sharp_deg = 5 gate deletes ALL seams on a smooth sphere (n_kept = 0 at seg >= 96), so Rung 0 passes only because the threshold switches PTD off. The APPROXIMATIONS string at line 696 asserting this is not physics is contradicted by the repo's own measurement (their concern C-4).",
+      "consequence": "The mini5pro numbers -- the only ones the shipped file says it can 'stand behind' -- rest on a contribution the same size as an artefact that mesh refinement cannot remove.",
+      "how_to_check": "PYTHONPATH=src python <scratchpad>/atk3.py (variant 'seams ONLY |a-180|<10'); outputs/ptd_regression.json B_sphere_artifact.'convergence_sharp_deg=0'.verdict.",
+      "fix": "Either (a) suppress tessellation seams physically rather than by threshold -- reconstruct N from the underlying CAD surface, not from triangle normals, so a smooth surface reports N = 1 exactly; or (b) report every drone PTD number as a band over sharp_deg in 5..30 deg and refuse to quote a single value. Correct the line-696 string in either case."
+    },
+    {
+      "id": "D-6",
+      "severity": "minor",
+      "title": "The plate 'reference solution' is home-grown, validated only on a geometry that has no edges, and its own quoted convergence understates its error by ~1.8x -- but I attacked it and it survives quantitatively.",
+      "file": "benchmark/mom2d_reference.py:276 (selftest) and outputs/ptd_plate_validation.json reference_solver_selftest / reference_convergence",
+      "why_wrong": "The reference is our own 2-D EFIE MoM. It shares no code with ptd_edges, which is good, but 'independent of the code under test' is not the same as 'known to be right'. Its only external anchor is the exact PEC CIRCULAR CYLINDER eigenfunction series -- a closed, smooth body with no edge singularity. The quantity the whole comparison hinges on is the open strip's edge behaviour (J ~ rho^-1/2 for TM), and that is never checked against anything external. Doc 10 lists EVERY published strip reference (Ross 1966 R2-c, Oztuerk Fig 3.7 R2-a, Knott/Shaeffer/Tuley R2-d, Stein 1992 R2-e) as 미확보/not digitised, so the Rung 2 'pass' contains no external number. I ran the missing convergence study myself (uniform strip meshes M = 240/480/720/1440, TM; 240/360/720, TE, a = 6 lam): the increments d(480->720) = +0.0359 dB and d(720->1440) = +0.0355 dB at theta = 10 deg are equal, which is the exact signature of first-order O(1/M) convergence -- confirming the 1/sqrt(rho) edge singularity is NOT resolved by the uniform pulse basis. Richardson-extrapolating, the residual error at the shipped M = 720 is 0.071 dB at theta = 10-20 deg, versus the 0.0405 dB the shipped reference_convergence quotes from a 480-vs-720 self-comparison: the shipped figure understates by ~1.8x. TE behaves similarly (d(360->720) = +0.051..0.059 dB at theta = 10-20 deg). HONEST CONCLUSION: 0.07 dB is far below the 2.16 dB residual the plate run attributes to physics PTD cannot represent, so the Rung 2 conclusion SURVIVES this attack. The defect is that the error bar is wrong and the validation geometry is the wrong one, not that the answer is wrong.",
+      "how_to_check": "PYTHONPATH=src PYTHONPATH=benchmark python <scratchpad>/atk7.py. For an external datum: digitise Oztuerk Fig 3.7 (square plate 36 lam^2, PTD-EEC vs MoM) -- the PDF is already in hand -- and overlay.",
+      "fix": "Replace reference_convergence's 1.5x self-comparison with the Richardson residual (or an edge-graded mesh variant) and quote THAT as the reference's error bar. Label the Rung 2 result 'self-referential reference, no external datum' until one published curve is digitised."
+    },
+    {
+      "id": "D-7",
+      "severity": "major",
+      "title": "The Rung 2 pass criterion ('PTD improves the RMS') cannot detect a sign error, and in fact passed with one.",
+      "file": "outputs/ptd_plate_validation.json verdict (ptd_improves_as_implemented = true AND sign_defect_found = true simultaneously); doc 8 Rung 2 합격 기준",
+      "why_wrong": "In the oblique region the fringe amplitude is comparable to or larger than the PO sidelobe, so |E_PO + A|^2 is dominated by |A|^2 and improves for EITHER sign. Shipped pooled RMS, oblique: PO only 12.25 dB, PO+PTD as implemented (wrong sign) 5.21 dB, sign-corrected 2.16 dB. A dB-RMS improvement test therefore reports 'PASS' on a 180-degree-wrong term. The doc's proposed acceptance criteria (0.5 dB inside the specular lobe, HH/VV split appears, null positions match) are all magnitude/shape tests and share the blind spot.",
+      "consequence": "Rung 2 as specified would have shipped the sign bug. It only got caught because someone added an explicit phase probe that is not part of the stated criteria.",
+      "how_to_check": "outputs/ptd_plate_validation.json headline_rms_db_pooled_over_pol.oblique -- compare po_ptd_as_implemented (5.21) with po_only (12.25).",
+      "fix": "Promote the phase probe to the gate: require arg(A_code / A_analytic) < 1 deg over the full theta sweep and both polarisations, and make it a hard assert in smoke_ptd.py. Keep the RMS test as a secondary."
+    },
+    {
+      "id": "D-8",
+      "severity": "major",
+      "title": "The fringe subtracts the ANALYTIC PO endpoint but is added to a MIDPOINT-QUADRATURE PO; at production spacing the PO's own endpoint error is 3-11 % of the fringe term.",
+      "file": "src/ptd_edges.py:311-315 (I^PO_1, M^PO_1) vs src/ptd_edges.py:554-565 (_po_field_dirs) and rcs_po.mesh_to_points (spacing = lam/7 default, rcs_po.py:143 production, ptd_edges.py:580)",
+      "why_wrong": "This is the sharpened form of the double-counting question. The structure is correct -- line 329 returns I_t - I_po, and U(pi - phi') switches the PO part off on the unlit face exactly as mesh_to_points' illum = (n.u > 0) does, so nothing is added twice. But J^(1) := J - J^(0) is defined against the EXACT PO current, whereas the surface term actually evaluated is a barycentric midpoint sum. On a clean 6 lam x 40 lam plate the residual |A_PO_numeric - A_PO_exact| relative to |A_edge| measures:\n  lam/7  (production):  0.064 / 0.113 / 0.027  at theta = 20 / 45 / 70 deg\n  lam/12:               0.038 / 0.066 / 0.016\n  lam/20:               0.023 / 0.040 / 0.009\n  lam/40:               0.011 / 0.020 / 0.005\ni.e. at lam/7 between 3 % and 11 % of what is being 'added' is in fact cancelling the PO integral's own discretisation error, and it decays only linearly in spacing. The shipped plate validation records the same thing from the other direction: po_numeric_vs_closed_form_max_abs_db_off_null = 1.588 dB, rms 0.318 dB.",
+      "consequence": "At the production PO density the fringe correction and the PO quadrature error are not cleanly separable; a 0.3-1.0 dB slice of any reported PTD delta is quadrature, not physics. On a drone (curved, many small facets) this is likely worse than on a plate, and it was never measured there.",
+      "how_to_check": "PYTHONPATH=src python <scratchpad>/atk5.py section C. Repeat on a drone mesh by comparing A_PO at lam/7 vs lam/28 and ratio-ing to |A_edge|.",
+      "fix": "Require spacing <= lam/20 whenever ptd=True (assert in rcs_po_ptd), or subtract the fringe against the closed-form PO where one exists. Report the PO-convergence residual next to every PTD delta."
+    },
+    {
+      "id": "D-9",
+      "severity": "minor",
+      "title": "The honesty ledger is stale in the dangerous direction: it warns about the one thing that turned out to be right and is silent about the three things that are wrong.",
+      "file": "src/ptd_edges.py:593 (normalization_unverified=True), src/ptd_edges.py:684-718 (APPROXIMATIONS / NOT_IMPLEMENTED)",
+      "why_wrong": "APPROXIMATIONS[2] says the 1/2 constant is 'UNVERIFIED until the Rung 2 flat-plate check' -- Rung 2 has now run and the MAGNITUDE is exact (|ratio| = 1.0000000000), while the SIGN is inverted; the string warns about the correct half and misses the wrong half. Nothing in either list mentions (a) the sign inversion, (b) the N < 1 divergence that makes every drone number meaningless, (c) the non-converging tessellation floor. Both (b) and (c) were known and written into outputs/ptd_regression.json as blockers at 07:39, 18 minutes before the module was last touched... which it never was. Line 696 additionally asserts the sharp_deg threshold is 'a speed optimization, not physics', which the repo's own sphere measurement contradicts.",
+      "consequence": "Any downstream consumer that reads meta['approximations'] / meta['not_implemented'] -- which is the whole point of shipping them -- is misinformed about which risks are live.",
+      "how_to_check": "grep -n 'normalization_unverified\\|speed optimization' src/ptd_edges.py and diff against outputs/ptd_regression.json concerns[].",
+      "fix": "Move the three live defects into NOT_IMPLEMENTED/APPROXIMATIONS with their measured sizes, retire the 1/2-magnitude warning, and add a meta key sign_convention_verified with the phase-probe result so it cannot silently regress."
+    },
+    {
+      "id": "D-10",
+      "severity": "minor",
+      "title": "The only production-relevant attachment path has never been executed, and it will accept a wrong phase origin silently.",
+      "file": "src/ptd_edges.py:639-652 (attach_to_sbr_field)",
+      "why_wrong": "Production sigma comes from the SBR engine (rcs_po.RCS_ENGINE_DEFAULT = 'sbr'), which uses origin = 0.5*(V.max(0)+V.min(0)); the PO path uses origin = 0. attach_to_sbr_field takes origin as a caller-supplied argument with no check that it matches the field it is being added to, and a mismatched origin turns the coherent sum into noise with no error and no warning. The function is documented as never exercised ('needs Mitsuba/GPU', NOT_IMPLEMENTED last entry). Consequently every PTD number in the repo comes from the PO engine WITHOUT occlusion: visible_fn defaults to None (line 424) and the only gate is lit1|lit2 (line 499), which for a closed body passes ~56 % of the metal edge length in every pose (shipped: L_used 10.25 m of L_metal 18.20 m on s1000plus) including edges behind the airframe.",
+      "how_to_check": "grep -n attach_to_sbr_field benchmark/ src/ -- no caller exists. Then run it once with the correct bbox origin and once with origin=0 on the same geometry; sigma should change materially, and nothing warns.",
+      "fix": "Have attach_to_sbr_field derive the origin from the mesh itself (same expression as rcs_sbr) instead of trusting the caller, or assert against a passed-in reference. Then actually run it, and wire visible_fn to the SBR exit-visibility test that already exists (_exit_visible, doc 6.4)."
+    },
+    {
+      "id": "D-11",
+      "severity": "minor",
+      "title": "Two shipped outputs contradict each other and neither cross-references the other.",
+      "file": "outputs/ptd_regression.json concerns C-1/C-2 vs outputs/ptd_drone_effect.json headline.question_1_effect",
+      "why_wrong": "ptd_regression.json (07:39) states as a BLOCKER: '생산 드론 CAD 전부에 같은 종류의 오목 모서리가 1,136~1,985 개 ... 지금 PTD 를 드론에 켜면 σ 폭발'. ptd_drone_effect.json (07:43) then reports exactly that explosion (+4 to +23 dB) as a physical PTD effect that 'scales with metal edge length exactly as PTD predicts', with no reference to C-1/C-2, and builds a headline slope result on top of it. The blockers_before_this_can_be_used list in the drone file names four items and the reentrant divergence is not among them.",
+      "how_to_check": "Read outputs/ptd_regression.json concerns[0..1] and outputs/ptd_drone_effect.json headline.question_1_effect side by side; my D-3 measurement decides between them.",
+      "fix": "One provenance rule: any output produced after a blocker is filed must either cite it or state why it does not apply. Add the blocker id list to each PTD output's meta."
+    }
+  ],
+
+  "answers_to_the_five_questions": {
+    "1_sign_and_phase_convention": "DEFECTIVE, and it is the headline finding. The propagation phase convention IS consistent between the two terms (both use exp(+jk q.(r-origin)) with outward u and the same origin, verified in code and in ptd_kernel_anatomy q4), so the doc's e^{+jwt}/e^{-jwt} trap was NOT sprung there. But the overall complex constant of doc 9.1 is inverted: measured A_code = -1.0000000000 x A_analytic over theta = 10..80 deg and both polarisations, with the sign of A_analytic pinned independently by the fact that the PO half of the same expansion reproduces the exact PO closed form. Constructive interference is being computed as destructive. See D-1.",
+    "2_double_counting": "The literal hypothesis is REFUTED: the code adds the difference, not the total. Line 329 returns I_t - I_po, and the U(pi-phi') step correctly removes the PO part on the unlit face, matching the one-sided illumination gate of the surface integral. What IS wrong is quantitative: the fringe is defined against the exact PO current but added to a lam/7 midpoint-quadrature PO whose own endpoint error is 3-11 % of the fringe amplitude on a clean plate (1.59 dB max off-null on the shipped plate run). See D-8.",
+    "3_mesh_artifacts": "YES, and the shipped convergence study does not support the conclusion drawn from it. (a) On mini5pro the |alpha-180| < 10 deg seam population alone produces a LARGER edge amplitude (-15.64 dB) than the whole metal edge set (-17.80 dB); they partially cancel, so the physical and artefact parts are inseparable. (b) The repo's own sphere study shows this class of contribution does NOT converge -- floor -32.5 dB at kr = 13, -40.6 dB at kr = 37, log-log slope -0.62 vs the -1 it would need. (c) At production mesh density the sharp_deg = 5 gate deletes every seam on a smooth body (n_kept = 0), so 'Rung 0 passes' means 'the threshold switched PTD off', not 'the artefact is small'. (d) Separately, the drone-level effect is dominated by a genuinely divergent edge class (N < 1) that no resolution study can touch. See D-3, D-5.",
+    "4_is_the_plate_reference_independent": "Independent of the code under test, yes -- no shared source, and the PO closed form, the 2D->3D identity and the reference solver are checked separately. Independently VALIDATED where it matters, no: the only external anchor is a closed circular cylinder, which has no edge singularity, and every published strip datum in doc 10 is 미확보/not digitised, so the Rung 2 'pass' contains no external number. I ran the missing convergence study: the open-strip TM solution converges only at O(1/M) (d(480->720) = 0.0359 dB and d(720->1440) = 0.0355 dB are equal, the signature of an unresolved 1/sqrt(rho) edge current), so the Richardson residual at the shipped M = 720 is 0.071 dB -- about 1.8x the 0.0405 dB the shipped file quotes. But 0.07 dB is far below the multi-dB residuals under discussion, so the reference SURVIVES: the Rung 2 verdict is not compromised, only its error bar is wrong and its validation geometry is the wrong one. See D-6.",
+    "5_is_the_slope_improvement_really_ptd": "NO. Measured directly: at el = 0 on the headline airframe the SHIPPED code moves the slope the WRONG way (delta = +0.0765 dB/GHz, gap 4.63x -> 5.00x); only after fixing D-1 does it move the right way (-0.1089, -> 4.11x). Either way |delta| is under 0.7 fit standard errors. And the magnitude is a function of a documented speed knob: sharp_deg 5 -> 10 changes delta by 4.3x (+0.0765 -> +0.0180), while the edge-only slope wanders +0.249 / +0.232 / +0.061 / +0.158 dB/GHz across sharp_deg = 5/0/10/20 without converging. The reported direction is an artefact of the sign defect; the reported magnitude is an artefact of the threshold; neither is significant. See D-4."
+  },
+
+  "measurements": {
+    "sign_probe_independent": {
+      "anchor_1_po_endpoint_identity": {
+        "claim": "+(j/k) sum f0_i e^{j2k r_i.u} == a cos(th) sinc(k a sin th) exactly, which fixes the sign of the constant that must also multiply f1",
+        "theta_deg": [5, 15, 35, 55, 80],
+        "W_PO_closed_form": [-2.23761441e-2, -1.66051361e-2, 7.00085738e-3, -4.86359326e-3, -1.30267576e-3],
+        "endpoint_expansion_real": [-2.23761441e-2, -1.66051361e-2, 7.00085738e-3, -4.86359326e-3, -1.30267576e-3],
+        "imag_residue": [1.1e-16, 1.2e-17, 1.5e-18, 3.0e-18, 7.6e-19]
+      },
+      "anchor_2_ratio": {
+        "theta_deg": [10, 25, 40, 65, 80],
+        "abs_ratio_H": [1.0, 1.0, 1.0, 1.0, 1.0],
+        "abs_ratio_V": [1.0, 1.0, 1.0, 1.0, 1.0],
+        "phase_deg": "|180.0000| for all ten (theta, pol) points"
+      }
+    },
+    "ufimtsev_on_cone_reduction_PASSES": {
+      "config": "beta' = 90 deg, monostatic, phi0 = 40 / 70 / 110 deg",
+      "N": [2.0, 1.75, 1.5, 1.25, 1.1],
+      "max_err_pct_I_vs_f1": 0.0,
+      "max_err_pct_M_vs_g1": 0.0,
+      "note": "docs/PTD_ILDC_FORMULATION.md 10 lists this check as never run. It passes exactly."
+    },
+    "drone_edge_population_anatomy_3p5GHz_el0_Vpol": {
+      "s1000plus": {
+        "metal_edges": 3756, "L_metal_m": 18.203,
+        "reentrant_metal_edges_N_lt_1": 576, "L_reentrant_m": 1.180,
+        "N_min": 0.1692,
+        "seams_abs_alpha_minus_180_lt_10deg": {"n": 1440, "L_m": 7.33},
+        "edge_over_po_amp_db": {
+          "all": 13.47, "no_reentrant": -14.23, "reentrant_only": 13.55,
+          "no_seams_lt10": 13.35, "seams_only_lt10": -19.70
+        },
+        "delta_sigma_db_shipped_sign": {"all": 13.81, "no_reentrant": 0.49, "reentrant_only": 13.93},
+        "delta_sigma_db_sign_fixed": {"all": 14.75, "no_reentrant": -0.31, "reentrant_only": 14.88}
+      },
+      "mini5pro": {
+        "metal_edges": 1608, "L_metal_m": 5.930,
+        "reentrant_metal_edges_N_lt_1": 0,
+        "seams_abs_alpha_minus_180_lt_10deg": {"n": 864, "L_m": 3.26},
+        "edge_over_po_amp_db": {"all": -17.80, "no_seams_lt10": -16.22, "seams_only_lt10": -15.64},
+        "delta_sigma_db_shipped_sign": {"all": 0.20},
+        "delta_sigma_db_sign_fixed": {"all": -0.05}
+      }
+    },
+    "band_slope_refit_mini5pro_Vpol_el0": {
+      "grid": "17 freqs 1.80-5.80 GHz, 120 azimuth poses, linear azimuth mean then 10log10, OLS",
+      "po_only": {"slope_db_per_ghz": 0.9729, "se": 0.1614, "r2": 0.708},
+      "rows": [
+        {"edges": "sharp5 (shipped)", "sign": "shipped", "slope": 1.0493, "se": 0.1782, "delta": 0.0765, "gap_x": 5.00, "edge_only_slope": 0.249},
+        {"edges": "sharp5 (shipped)", "sign": "sign-fixed", "slope": 0.8639, "se": 0.1422, "delta": -0.1089, "gap_x": 4.11, "edge_only_slope": 0.249},
+        {"edges": "sharp0", "sign": "shipped", "slope": 1.0499, "se": 0.1782, "delta": 0.0770, "gap_x": 5.00, "edge_only_slope": 0.232},
+        {"edges": "sharp0", "sign": "sign-fixed", "slope": 0.8623, "se": 0.1421, "delta": -0.1106, "gap_x": 4.11, "edge_only_slope": 0.232},
+        {"edges": "sharp10", "sign": "shipped", "slope": 0.9909, "se": 0.1692, "delta": 0.0180, "gap_x": 4.72, "edge_only_slope": 0.061},
+        {"edges": "sharp10", "sign": "sign-fixed", "slope": 0.8963, "se": 0.1525, "delta": -0.0766, "gap_x": 4.27, "edge_only_slope": 0.061},
+        {"edges": "sharp20", "sign": "shipped", "slope": 0.9984, "se": 0.1708, "delta": 0.0256, "gap_x": 4.75, "edge_only_slope": 0.158},
+        {"edges": "sharp20", "sign": "sign-fixed", "slope": 0.9029, "se": 0.1516, "delta": -0.0700, "gap_x": 4.30, "edge_only_slope": 0.158},
+        {"edges": "sharp5 no-seams<10", "sign": "shipped", "slope": 0.9909, "se": 0.1692, "delta": 0.0180, "gap_x": 4.72, "edge_only_slope": 0.061},
+        {"edges": "sharp5 no-seams<10", "sign": "sign-fixed", "slope": 0.8963, "se": 0.1525, "delta": -0.0766, "gap_x": 4.27, "edge_only_slope": 0.061}
+      ],
+      "das_slope_db_per_ghz": 0.210
+    },
+    "fringe_eec_magnitude_vs_N": {
+      "config": "beta' = 85 deg, phi' = 70 deg, monostatic, unit Ez and Hz",
+      "N": [2.0, 1.5, 1.0, 0.5001, 0.3, 0.2, 0.17, 0.1692, 0.1667, 0.1617, 0.16, 0.1],
+      "abs_Z_If": [7.88e-3, 1.081e-2, 6.28e-18, 2.415, 6.571e-2, 3.834e-2, 8.032e-1, 1.241, 5.311e-1, 4.035e-1, 5.334e-2, 2.416e-1],
+      "abs_Mf": [1.590e-2, 8.612e-3, 3.45e-18, 2.230, 4.515e-2, 4.235e-2, 1.093, 1.597, 4.923e-1, 6.375e-1, 6.477e-1, 3.436e-1],
+      "reading": "vanishes correctly at N = 1 (flat), well behaved for N > 1, and blows up by 34-50 dB and erratically for N < 1. The drone reentrant population sits at N = 0.169-0.170, on top of the N = 1/6 pole."
+    },
+    "po_quadrature_residual_vs_fringe": {
+      "target": "6 lam x 40 lam PEC plate, 3.5 GHz",
+      "ratio_abs_A_PO_num_minus_exact_over_abs_A_edge": {
+        "lam/7":  {"20deg": 0.064, "45deg": 0.113, "70deg": 0.027},
+        "lam/12": {"20deg": 0.038, "45deg": 0.066, "70deg": 0.016},
+        "lam/20": {"20deg": 0.023, "45deg": 0.040, "70deg": 0.009},
+        "lam/40": {"20deg": 0.011, "45deg": 0.020, "70deg": 0.005}
+      }
+    },
+    "regularisation_accuracy": {
+      "config": "N = 2, beta' = 90 deg, monostatic, phi' -> 90 deg (the removable Ufimtsev singularity)",
+      "phi_prime_deg": [95.0, 91.0, 90.2, 90.05, 90.01, 90.0],
+      "abs_denominator": [1.74e-1, 3.49e-2, 6.98e-3, 1.75e-3, 3.49e-4, 1.22e-16],
+      "rel_err_vs_analytic_pct": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      "n_regularized": [0, 0, 0, 0, 2, 2],
+      "verdict": "sound"
+    },
+    "face_order_invariance": {
+      "alpha_ext_deg": [270.0, 225.0],
+      "A_order1_vs_order2_rel_diff": "< 1e-16",
+      "verdict": "sound"
+    },
+    "open_strip_mom_reference_convergence": {
+      "target": "PEC strip a = 6 lam, 3.5 GHz, uniform meshes",
+      "TM_increments_db_at_theta10": {"240->480": 0.1096, "480->720": 0.0359, "720->1440": 0.0355},
+      "expected_for_O_1_over_M": {"240->480 : 480->720": 3.0, "480->720 : 720->1440": 1.0},
+      "measured_ratios_at_theta10": [3.05, 1.01],
+      "reading": "exactly first-order O(1/M) -- the 1/sqrt(rho) TM edge current is NOT resolved by the uniform pulse basis",
+      "richardson_residual_at_M720_db": {"10deg": 0.0711, "20deg": 0.0710, "30deg": 0.0003, "45deg": 0.0014, "60deg": 0.0091, "75deg": 0.0049, "84.7deg": 0.0018},
+      "shipped_reference_convergence_max_abs_db": {"H(TM)": 0.0405, "V(TE)": 0.0684},
+      "understatement_factor": 1.75,
+      "TE_increments_db_360_to_720": {"10deg": 0.0513, "20deg": 0.0587, "30deg": 0.0006, "45deg": -0.0130, "60deg": -0.0038, "75deg": -0.0039, "84.7deg": -0.0058},
+      "verdict": "error bar understated ~1.8x, but the absolute residual (0.07 dB) is negligible against the multi-dB effects under test -- the reference survives"
+    }
+  },
+
+  "priority_order_for_repair": [
+    "D-1 sign (one line; invalidates everything downstream)",
+    "D-3 N<1 divergence guard (blocks any drone number at all)",
+    "D-8 PO spacing coupled to ptd=True (assert lam/20)",
+    "regenerate ptd_regression / ptd_drone_effect / ptd_plate_validation in that order",
+    "D-7 make the phase probe the Rung 2 gate, D-9 refresh the honesty ledger",
+    "D-5 / D-6 report seam-artefact band and reference error bar",
+    "D-10 exercise attach_to_sbr_field with occlusion before any production claim"
+  ],
+
+  "verdict": "BROKEN",
+  "verdict_reason": "One of the two headline claims (drone-level PTD effect) is a numerical divergence in 6.5 % of the edge length, and the other (band slope) has the wrong sign, a threshold-dependent magnitude, and no statistical significance. The kernel's physics core -- wedge coefficients, singularity regularisation, frame construction, PO subtraction structure -- is sound and independently verified here; the defects are in the normalisation sign, the missing N<1 guard, and the claims built on top of them."
+}

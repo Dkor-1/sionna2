@@ -1,0 +1,453 @@
+{
+ "_meta": {
+  "task": "적대검증 — 'facet 수가 스톡 Sionna 표적 에코를 지배한다' 가설 반증 시도",
+  "date": "2026-08-03",
+  "stance": "기본값은 '우리가 틀렸다'. 모든 살아남은 주장은 범위(scope)까지 명시한다.",
+  "evidence": [
+   "outputs/facet_count.json",
+   "outputs/facet_mechanism.json"
+  ],
+  "scripts": [
+   "benchmark/facet_count_effect.py",
+   "benchmark/facet_mechanism_verdict.py"
+  ],
+  "agent": "적대검증 서브에이전트"
+ },
+ "hypothesis_under_attack": {
+  "as_written": "mesh triangle count governs stock-Sionna target echo amplitude",
+  "korean": "형상을 유지한 채 삼각형 수만 줄이면 스톡 Sionna 의 표적 에코 진폭이 바뀐다",
+  "source_files_own_verdict": {
+   "total_echo": "REFUTED",
+   "specular_channel": "SUPPORTED"
+  }
+ },
+ "attack_1_shape": {
+  "question": "데시메이션이 형상을 바꾸지 않았는가 (bbox·실루엣·표면적)?",
+  "answer": "사다리 6단 중 5단은 형상이 보존됐다. 6단째(r=1%)는 깨졌고, 그 단이 헤드라인 숫자를 끌고 있었다.",
+  "shape_table": [
+   {
+    "ratio": 1.0,
+    "n_tri": 29932,
+    "bbox_dev_pct": 0.0,
+    "silhouette_dev_pct": 0.0,
+    "surface_dev_pct": 0.0,
+    "shape_ok": true
+   },
+   {
+    "ratio": 0.5,
+    "n_tri": 14970,
+    "bbox_dev_pct": 0.003,
+    "silhouette_dev_pct": 0.032,
+    "surface_dev_pct": -3.089,
+    "shape_ok": true
+   },
+   {
+    "ratio": 0.25,
+    "n_tri": 7498,
+    "bbox_dev_pct": 0.014,
+    "silhouette_dev_pct": 0.193,
+    "surface_dev_pct": -2.987,
+    "shape_ok": true
+   },
+   {
+    "ratio": 0.1,
+    "n_tri": 3008,
+    "bbox_dev_pct": 0.477,
+    "silhouette_dev_pct": 1.252,
+    "surface_dev_pct": -3.757,
+    "shape_ok": true
+   },
+   {
+    "ratio": 0.05,
+    "n_tri": 1522,
+    "bbox_dev_pct": 0.265,
+    "silhouette_dev_pct": 3.065,
+    "surface_dev_pct": -5.447,
+    "shape_ok": true
+   },
+   {
+    "ratio": 0.01,
+    "n_tri": 450,
+    "bbox_dev_pct": 10.237,
+    "silhouette_dev_pct": 19.288,
+    "surface_dev_pct": -22.458,
+    "shape_ok": false
+   }
+  ],
+  "shape_preserved": true,
+  "shape_preserved_scope": "r>=5% (29932→1522 tri, 1.30 decades): bbox<=0.48%, 실루엣<=3.06%, 표면적>=-5.45%",
+  "shape_broken_rung": {
+   "ratio": 0.01,
+   "n_tri": 450,
+   "bbox_dev_pct": 10.237,
+   "silhouette_dev_pct": 19.288,
+   "surface_dev_pct": -22.458,
+   "consequence": "이 단은 스크립트 자신의 게이트(shape_ok=False)에 걸린다. 그런데 specular_hot_aspect.slopes 의 step_1to0_facet_db=-42.97 dB 와 total_collapse_db=+49.02 dB 는 **바로 이 단**을 쓴다 → 두 숫자는 폐기 대상."
+  },
+  "killer_counter_evidence": {
+   "claim": "생산 설정 총에코의 변화는 '면 수'가 아니라 '실루엣 면적'으로 전부 설명된다",
+   "method": "확산 채널의 수신전력 ∝ 광선이 가로채는 투영(실루엣) 면적. 각 단의 실루엣비로 예측한 dB 와 시드·방위 짝지은 실측 dB 를 비교했다.",
+   "table": [
+    {
+     "ratio": 0.5,
+     "n_tri": 14970,
+     "shape_ok": true,
+     "decimation_factor": 2.0,
+     "d_incoh_mean_db": 0.0304,
+     "d_incoh_sd_db": 0.0428,
+     "d_incoh_min_db": -0.029,
+     "d_incoh_max_db": 0.108,
+     "d_coh_mean_db": 0.0338,
+     "d_coh_sd_db": 0.0539,
+     "silhouette_ratio_mean": 1.0,
+     "predicted_from_silhouette_db": 0.0,
+     "residual_db": 0.03
+    },
+    {
+     "ratio": 0.25,
+     "n_tri": 7498,
+     "shape_ok": true,
+     "decimation_factor": 4.0,
+     "d_incoh_mean_db": 0.0131,
+     "d_incoh_sd_db": 0.0652,
+     "d_incoh_min_db": -0.137,
+     "d_incoh_max_db": 0.14,
+     "d_coh_mean_db": 0.0201,
+     "d_coh_sd_db": 0.0986,
+     "silhouette_ratio_mean": 1.00002,
+     "predicted_from_silhouette_db": 0.0,
+     "residual_db": 0.013
+    },
+    {
+     "ratio": 0.1,
+     "n_tri": 3008,
+     "shape_ok": true,
+     "decimation_factor": 10.0,
+     "d_incoh_mean_db": -0.0446,
+     "d_incoh_sd_db": 0.1459,
+     "d_incoh_min_db": -0.259,
+     "d_incoh_max_db": 0.211,
+     "d_coh_mean_db": -0.0463,
+     "d_coh_sd_db": 0.2361,
+     "silhouette_ratio_mean": 0.98913,
+     "predicted_from_silhouette_db": -0.047,
+     "residual_db": 0.003
+    },
+    {
+     "ratio": 0.05,
+     "n_tri": 1522,
+     "shape_ok": true,
+     "decimation_factor": 19.7,
+     "d_incoh_mean_db": -0.0981,
+     "d_incoh_sd_db": 0.2079,
+     "d_incoh_min_db": -0.448,
+     "d_incoh_max_db": 0.181,
+     "d_coh_mean_db": -0.11,
+     "d_coh_sd_db": 0.3298,
+     "silhouette_ratio_mean": 0.97685,
+     "predicted_from_silhouette_db": -0.102,
+     "residual_db": 0.004
+    },
+    {
+     "ratio": 0.01,
+     "n_tri": 450,
+     "shape_ok": false,
+     "decimation_factor": 66.5,
+     "d_incoh_mean_db": -0.1397,
+     "d_incoh_sd_db": 0.3315,
+     "d_incoh_min_db": -0.671,
+     "d_incoh_max_db": 0.32,
+     "d_coh_mean_db": -0.5233,
+     "d_coh_sd_db": 0.4644,
+     "silhouette_ratio_mean": 0.81328,
+     "predicted_from_silhouette_db": -0.898,
+     "residual_db": 0.758
+    }
+   ],
+   "verdict": "형상보존 5단 전부에서 잔차 <=0.03 dB. 즉 데시메이션이 총에코에 남긴 것은 **잔여 형상 변화(실루엣 -2.3%)** 이지 면 수가 아니다. 가설의 인과가 뒤집힌다."
+  },
+  "note_on_specular_step": "⭐ 유일하게 형상이 깨끗한 상태로 남는 효과는 az=0/el=0 에서의 -6.05 dB 단차(r=25%→10%, 실루엣 편차 0.19%→1.25%). 이것만 살아남는다. 다만 attack_4 에서 그 정체가 뒤집힌다."
+ },
+ "attack_2_noise": {
+  "question": "경로 수·전력 변화가 광선 예산 랜덤성 때문 아닌가? 반복 실행 산포는?",
+  "answer": "총에코 쪽은 효과가 잡음 이하다(가설에 불리). 정반사 채널 쪽은 결정론적이다(가설에 유리).",
+  "noise_ruled_out": true,
+  "paired_seed_matched": {
+   "design": "같은 방위·같은 시드끼리 짝지어 뺐다(방위간 1.4 dB 편차를 제거).",
+   "r050_20x_decimation": "-0.098 +- 0.208 dB (min -0.448, max +0.181)",
+   "r025_4x": "+0.013 +- 0.065 dB",
+   "conclusion": "20배 데시메이션에도 총에코 이동 <=0.1 dB, 시드 산포와 같은 크기. 효과 검출 안 됨."
+  },
+  "correct_noise_scale": {
+   "per_aspect_per_seed_sd_db": [
+    0.037,
+    0.324
+   ],
+   "warning": "⚠ facet_count.json 의 rt_incoh_sd(0.55~0.82 dB)는 **4개 방위를 함께 풀링**한 값이라 잡음이 아니라 방위 편차다. 잡음으로 인용하면 안 된다. 진짜 시드 산포는 0.14~0.30 dB."
+  },
+  "path_count_is_not_geometry": {
+   "paths_vs_spp_exponent": 1.021,
+   "paths_vs_ntri_exponent": 0.026,
+   "statement": "경로 수는 광선 예산에 선형(∝spp^1.02)이고 삼각형 수에는 무감(∝N^0.026). '면이 적으면 경로가 적다'는 순진한 버전은 반증됐다."
+  },
+  "coherent_sum_is_a_budget_artifact": {
+   "coh_db_slope_per_decade_of_spp": 10.69,
+   "incoh_db_slope_per_decade_of_spp": 0.444,
+   "same_mesh_coh_range_db": [
+    -98.317,
+    -71.952
+   ],
+   "statement": "**같은 메쉬**에서 광선 4M→1024M 만 바꿔도 coh_db 가 26.4 dB 움직인다(진폭 ∝ √spp). 확산 켠 설정의 coh_db 는 물리량이 아니다. incoh_db 는 +0.44 dB/decade 로 수렴."
+  },
+  "specular_channel_is_deterministic": {
+   "evidence": [
+    "facet_mechanism A_plate_size: 시드 5 × 예산 1M~64M 전부 coh_sd=0.0",
+    "facet_mechanism 평판 크기 40배 스윕 rt_spread_db=7.4e-7",
+    "facet_mechanism B_subdivide: 예산 1M~64M 에서 경로 수·진폭 동일",
+    "facet_count hot-aspect: 3 시드에서 -33.9045/-33.9042/-33.9045 dB"
+   ],
+   "statement": "정반사 경로는 image-source 로 해석적으로 풀리므로 표집 잡음이 없다. 따라서 -6.02 dB 단차는 잡음이 아니다."
+  },
+  "positive_control_passes": {
+   "plate_control_db": -40.0023,
+   "image_source_prediction_db": -40.0004,
+   "statement": "시선에 법선을 맞춘 금속평판(0.6 m)은 200만 광선으로 즉시 1경로. 예측과 0.002 dB 일치. → 36개 자세 중 35개에서 정반사 0개인 것은 하네스 고장이 아니라 메쉬의 물리다."
+  }
+ },
+ "attack_3_depth": {
+  "question": "max_depth 를 바꾸면 결론이 유지되는가?",
+  "answer": "총에코 반증은 유지된다. 하지만 살아남은 두 효과는 depth>=2 에서 **아예 시험되지 않았다**.",
+  "tested": {
+   "total_echo_depth2": {
+    "slope_db_per_decade": 0.338,
+    "spp": 64000000,
+    "levels": [
+     29932,
+     3008,
+     450
+    ],
+    "note": "depth=1 의 +0.093 대비 +0.338 dB/decade. 1.82 decades 에 0.61 dB — 여전히 0에 가깝다."
+   },
+   "total_echo_R20m": {
+    "slope_db_per_decade": -0.084,
+    "note": "거리 2배에서도 -0.084 dB/decade. 반증 유지."
+   },
+   "plate_image_source_depth": {
+    "depth1_db": -75.37211455072149,
+    "depth2_db": -75.37211455072149,
+    "note": "평판 image-source 진폭은 depth 1↔2 에서 1e-14 이내 동일."
+   }
+  },
+  "untested_gaps": [
+   "정반사 전용 (az,el) 36격자 탐침([B])은 max_depth=1 로만 돌았다 → 드론의 -6.02 dB 단차는 depth>=2 미시험",
+   "facet_mechanism 의 세분-중복(B/E/G, 최대 +9.54 dB)도 max_depth=1 로만 돌았다 → depth>=2 미시험",
+   "depth=2 견고성은 3개 단(29932/3008/450)만, 그 중 450 은 형상 깨진 단 → 실효 2점"
+  ],
+  "depth_verdict": "총에코 반증: 견고. 정반사·중복 효과: depth 견고성 미확인 — '견고하다'고 쓰면 안 된다."
+ },
+ "attack_4_defect_vs_misuse": {
+  "question": "⭐ 이것이 Sionna 의 결함인가, 우리가 Sionna 를 잘못 쓴 것인가?",
+  "framing": "R6 오류('스톡에 회절 없다'를 결함이라 부른 것)를 반복하지 않으려면 세 주장을 분리해야 한다. 셋은 지위가 서로 다르다.",
+  "C1_amplitude_carries_no_sigma": {
+   "finding": "정반사 경로 진폭 = λ/(4π(R1+R2)) — 면적·크기·곡률과 무관.",
+   "evidence": "평판 변 0.1→4 m (면적 400배). PO 이론 σ 는 64.08 dB 움직이는데 RT 진폭은 7.4e-7 dB 만 움직였고 image-source 예측과 0.0017 dB 일치.",
+   "status": "SCOPE — 결함 아님",
+   "why": "image-source/GO 정반사 추적기의 **정의**다. 벤더는 표적 RCS 를 주장한 적이 없다. 이것을 버그라 부르면 R6 오류의 재판.",
+   "legitimate_form": "'스톡 Sionna RT 의 정반사 경로에는 σ 가 실리지 않는다 — 설계상 그렇다. 그래서 표적 산란은 외부 커널이 필요하다.'"
+  },
+  "C2_size_enters_only_as_angular_acceptance": {
+   "finding": "면 크기는 진폭이 아니라 각도 허용폭 ±(side/2)/R 로만 들어온다.",
+   "evidence": [
+    {
+     "side_m": 0.2,
+     "pred_cutoff_deg": 0.2865,
+     "last_detected_deg": 0.2,
+     "first_missed_deg": 0.4,
+     "bracket_ok": true
+    },
+    {
+     "side_m": 1.0,
+     "pred_cutoff_deg": 1.4324,
+     "last_detected_deg": 0.8,
+     "first_missed_deg": 1.6,
+     "bracket_ok": true
+    },
+    {
+     "side_m": 4.0,
+     "pred_cutoff_deg": 5.7296,
+     "last_detected_deg": 3.2,
+     "first_missed_deg": 6.4,
+     "bracket_ok": true
+    }
+   ],
+   "status": "SCOPE — 결함 아님",
+   "consequence": "⭐ 데시메이션은 진폭이 아니라 **어느 자세에서 정반사가 존재하느냐(자세 지지집합)** 를 바꾼다. 드론 r=100% 에서 평균 삼각변 5.04 mm(0.059λ) → 허용 반각 0.0144°. 그래서 36개 자세 중 35개가 정반사 0개다. 소형표적의 정반사 검출은 메쉬 법선에 대한 사실상 측도-0 복권이고, 총에코는 전부 확산 채널이 진다."
+  },
+  "C3_tessellation_non_invariance": {
+   "finding": "⭐ **같은 평면**을 더 잘게 쪼개면 수신전력이 올라간다 — 정반사 경로가 중복 생성된다.",
+   "evidence": {
+    "plate_1m": {
+     "n_tri": [
+      2,
+      8,
+      32,
+      128,
+      512
+     ],
+     "n_paths": [
+      1,
+      1,
+      1,
+      2,
+      3
+     ],
+     "coh_db": [
+      -75.3721,
+      -75.3721,
+      -75.3721,
+      -69.3515,
+      -65.8297
+     ],
+     "inflation_db": 9.542
+    },
+    "plate_0p2m": {
+     "n_tri": [
+      2,
+      8,
+      32,
+      128,
+      512
+     ],
+     "n_paths": [
+      1,
+      1,
+      2,
+      2,
+      2
+     ],
+     "inflation_db": 6.021
+    },
+    "forensics": "중복 경로들은 완전히 동일하다 — 진폭 산포 0.0 dB, 지연 산포 0.0 ns, 위상 산포 0.0°. 합은 20log10(N) 을 0.0017 dB 이내로 따른다.",
+    "onset": "삼각변이 λ 근방 이하로 내려갈 때(변 0.2 m 판: 0.58λ, 변 1.0 m 판: 1.46λ)",
+    "offset_control": "격자를 셀의 (0.37, 0.23) 만큼 밀어도 중복이 사라지지 않고, 변 0.2 m·k=2 에서는 오히려 **생겼다** → 대칭 퇴화가 아니라 일반 현상.",
+    "budget_seed": "예산 1M~64M · 시드 5개에서 동일(sd<=4e-7 dB).",
+    "drone_link": {
+     "statement": "⭐⭐ 드론의 -6.02 dB '면 수 효과'가 바로 이것이었다.",
+     "one_path_db": -39.8914794921875,
+     "two_path_db": -33.870880126953125,
+     "one_plus_20log10_2": -33.87088,
+     "residual_db": -5.48e-07,
+     "reading": "r=100/50/25% 에서는 중복 2개, r=10/5% 에서는 1개. 즉 데시메이션이 지운 것은 **물리적 산란체가 아니라 중복 복사본**이다. 6.02 dB 는 애초에 허수 부풀림이었고, 남은 1경로 값(-39.89 dB)도 σ 가 아니라 무한거울 값이다."
+    }
+   },
+   "status": "DEFECT — 정당한 사용 범위 **안**",
+   "why": "평평한 벽·건물 외벽은 Sionna RT 가 바로 그것을 위해 만들어진 대상이다. 같은 벽을 몇 개로 삼각화했느냐가 수신전력을 9.5 dB 바꾸면, 그건 표적 RCS 논쟁과 무관하게 메쉬 불변성/경로 중복제거의 문제다. 벤더 범위 항변이 통하지 않는 유일한 축.",
+   "direction_warning": "⚠ 부호가 우리 가설과 **반대**다. 가설은 '면을 줄이면 에코가 준다'였는데 기전은 '면을 늘리면 에코가 부푼다'이다. 뒤섞으면 안 된다.",
+   "hedges": [
+    "단일 준-모노스태틱 자유공간 기하(β=0.29°, R=20 m, ITU-metal)에서만 측정",
+    "max_depth=1 에서만 측정",
+    "손실 재질·일반 바이스태틱 각·다중반사에서 지속되는지 미시험",
+    "Sionna 솔버 소스의 중복제거 코드를 읽지 않았다 — 기전은 출력에서의 추론"
+   ]
+  },
+  "C4_curved_surface_instability": {
+   "finding": "구는 정반사 경로를 거의 못 낸다. 내더라도 평판값이다.",
+   "evidence": {
+    "fixed_r0p5": "삼각형 48→16128, 광선 1M→64M, 전부 0경로",
+    "radius_sweep": "r=0.25~80 m (r/R=0.0125~4), seg=64 정렬 메쉬에서 전부 0경로",
+    "degeneracy_probe": "테셀레이션·자세를 흔들면 검출이 뒤집힌다 — r=0.5 m 0/6 · r=5 m 2/6 · r=40 m 4/6",
+    "when_detected": "검출되면 진폭은 평면 image-source 값(산포 0.042 dB), GO 구 이론보다 13.03~15.91 dB 높다"
+   },
+   "status": "IN-SCOPE 우려이나 C3 보다 약함",
+   "why": "곡면의 GO/image-source 한계는 널리 알려진 것. 정당한 형태는 '결함'이 아니라 '곡면 정반사 검출이 테셀레이션·자세에 따라 재현되지 않는다 + 검출 시 값은 평면거울 값'."
+  },
+  "overall": "혼합. 헤드라인 가설은 반증됐고, 살아남은 정반사 관찰은 대부분 **범위(설계)** 이며, 진짜 결함(C3)은 우리가 세우려던 주장과 방향이 반대인 다른 명제다."
+ },
+ "attack_5_clutter_survey": {
+  "question": "이 결과가 클러터 서베이(Proc. IEEE 114(1):52-89, 2026)에 대한 비판으로 성립하는가?",
+  "answer": "표적 축으로는 **성립하지 않는다**. 건물 클러터 축으로는 '미보고 파라미터' 형태로만 성립한다.",
+  "what_the_survey_actually_does": {
+   "target_rcs": "식(108) α_t,n ~ CN(0, σ²_t,n) — **통계 추출**. RT 에서 안 가져온다.",
+   "clutter": "β_c,n ~ CN(0, σ²c(f)) 경험적 지면클러터 + \"background cold-clutter returns from surrounding buildings are generated by ray tracing\"",
+   "mesh": "\"simplified 3-D mesh … publicly available 3-D models in Blender … keeps the ray-tracing scene lightweight\"",
+   "geometry": "모노스태틱, BS 13.5 m, 표적 10~15 m, emitter 5 m",
+   "source": "docs/RESUME.md §1-3 (원문 확인 기록)"
+  },
+  "why_the_target_attack_fails": "그들의 표적 반사진폭은 RT 산출물이 아니라 복소 가우시안 추출이다. 메쉬를 아무리 줄여도 그 진폭은 변하지 않는다. '그들이 메쉬를 단순화했으니 표적 에코가 틀렸다'는 비판은 **대상을 잘못 짚은 것**이다.",
+  "what_is_genuinely_unreported": {
+   "fulltext_counts_41p": {
+    "num_samples": 0,
+    "samples_per": 0,
+    "max_depth": 0,
+    "launch": 0,
+    "mesh": 2,
+    "Blender": 1,
+    "physical_optics": 0,
+    "dBsm": 0,
+    "drone": 0,
+    "DJI": 0
+   },
+   "unreported": [
+    "광선 예산(samples_per_src)",
+    "max_depth",
+    "메쉬 삼각형 수/해상도",
+    "기종(드론 모델명)",
+    "건물 메쉬의 면 크기"
+   ],
+   "source": "docs/RESUME.md §1-3 전문 카운트"
+  },
+  "which_of_our_findings_could_touch_their_RT_use": "C3(평면 테셀레이션 비불변)와 C4(곡면 검출 불안정)만. 건물 외벽은 평면판이므로 종류상 해당된다. C1/C2 는 그들이 RT 로 표적 σ 를 안 내므로 무관하다.",
+  "why_we_still_cannot_quantify_it": [
+   "그들의 건물 메쉬 삼각변 길이를 모른다 → λ 대비 어디인지 모른다",
+   "그들의 광선 예산·max_depth 를 모른다",
+   "그들의 기하(모노스태틱 BS 13.5 m)는 우리 준-모노 자유공간 탐침과 다르다",
+   "우리 +9.54 dB 는 **우리 하네스의 특정 판**에서 나온 값이다"
+  ],
+  "stacking_warning": "⚠ 이미 알려진 오류를 겹치지 말 것: 'Proc. IEEE 서베이가 16 dB RT 페널티를 보였다'는 **우리 뺄셈**(Fig.5 -47.4 vs Fig.7 -63.5)이지 그들 주장이 아니다 (docs/TEAMMEETING_PRIORWORK_AUDIT.md). 여기에 두 번째 미획득 숫자를 얹지 말 것.",
+  "positioning_not_criticism": "그들이 표적 축을 비운 것은 명시적 의도다. 그 빈 칸은 **우리 자리**이지 그들의 오류가 아니다. 포지셔닝으로 쓰되 비판으로 팔지 말 것."
+ },
+ "residual_gaps": [
+  "PO/SBR 대조군은 el=15° 4방위에서만 돌았다. 정작 효과가 난 자세(az=0/el=0)에는 **같은 자세 대조군이 없다** → 'RT 는 6 dB 뛰는데 PO/SBR 은 가만있었다'를 같은 자세로 말할 수 없다.",
+  "정반사 36격자 탐침은 시드 1개·1회만. (facet_mechanism 의 결정론성으로 간접 방어되나 직접 반복은 없음)",
+  "드론 1기(mavic4pro) · 주파수 1개(3.5 GHz) · 거리 2점(10/20 m) — 일반화 근거 없음",
+  "spec 격자 el 은 {0,15,90}° 3점뿐. 정반사가 존재하는 자세의 실제 비율은 36점으로는 추정 불가",
+  "C3 중복이 Sionna 의 중복제거 로직 문제라는 것은 **출력 기반 추론** — 솔버 소스 미확인",
+  "PO 기울기 자체가 형상보존 단에서도 +0.65~0.76 dB/decade 로 0이 아니다(점밀도 λ/7~λ/28 에서 일관). 면적분이면 0이어야 하므로 우리 PO 커널 쪽에도 잔여 메쉬 의존이 있다 — 별건으로 추적 필요."
+ ],
+ "verdict": {
+  "on": "가설 '메쉬 삼각형 수가 스톡 Sionna 표적 에코 진폭을 지배한다' + 그것이 Sionna/서베이 비판이 된다는 주장",
+  "result": "REFUTED",
+  "because": [
+   "생산 설정 총에코: 20배 데시메이션에 -0.098 +- 0.208 dB (짝지은 시드·방위). 잡음 이하.",
+   "그 미미한 변화조차 실루엣 면적으로 잔차 0.03 dB 이내 설명된다 → 원인은 면 수가 아니라 형상.",
+   "경로 수는 광선 예산에 ∝spp^1.02, 삼각형 수에 ∝N^0.026 — 기하량이 아니다.",
+   "살아남은 정반사 단차 -6.02 dB 는 물리 산란체 소멸이 아니라 **중복 경로 2→1** 이었다 (1경로값 + 20log10(2) 와 5e-7 dB 일치).",
+   "그 관찰이 겨냥한 대상(정반사 진폭에 σ 없음)은 벤더가 밝힌 설계 범위이지 결함이 아니다.",
+   "서베이는 표적 진폭을 RT 가 아니라 CN(0,σ²) 에서 뽑는다 → 비판 대상이 아니다."
+  ],
+  "what_survives": "C3(평면 테셀레이션 비불변 / 중복 정반사 경로)만이 정당한 사용 범위 안의 결함으로 남는다. 단 방향이 반대(세분→부풀림)이고 depth>=2·일반 바이스태틱에서 미검증."
+ },
+ "fair_criticism_form": {
+  "template": "'그들이 틀렸다'가 아니라 '이 파라미터가 보고되지 않았고, 우리 하네스에서 그것이 X dB 를 움직인다'",
+  "sionna_facing": "스톡 Sionna RT PathSolver 에서 **동일한 평면 PEC 판의 수신전력이 삼각화에 불변이 아니다**. 1 m×1 m 판을 2→512 삼각형으로 세분하면 코히런트 수신전력이 +9.54 dB 부푼다 (-75.372 → -65.830 dB). 부푸는 이유는 진폭·지연·위상이 **완전히 동일한** 정반사 경로가 2~3개 반환되고 합이 20log10(N) 을 0.0017 dB 이내로 따르기 때문이다. 삼각변이 λ 근방 이하로 갈 때 시작되고, 격자 오프셋으로 사라지지 않으며, 광선 1M~64M · 시드 5개에서 동일하다. [측정 범위: 준-모노스태틱 자유공간 β=0.29°, R=20 m, max_depth=1, ITU-metal. depth>=2·일반 바이스태틱·손실재질 미시험. 솔버 소스 미확인.] 반대로 '정반사 진폭에 σ 가 실리지 않는다'는 **결함이 아니라 image-source 설계**이며, 벤더가 표적 RCS 를 주장한 적 없다 — 그건 결함 주장이 아니라 범위 진술로만 쓴다.",
+  "survey_facing": "클러터 서베이는 표적 반사진폭을 식(108) CN(0,σ²_t,n) 에서 뽑고 RT 는 **건물 배경 클러터** 생성에 쓴다. 따라서 메쉬 단순화가 그들의 표적 에코를 바꾼다는 비판은 성립하지 않는다. 성립하는 것은 이것뿐이다: **41쪽 전문에 광선 예산·max_depth·메쉬 해상도가 한 번도 나오지 않는다** (num_samples/samples_per/max_depth/launch 출현 0회, mesh 2회, Blender 1회). 우리 하네스에서 그 미보고 파라미터 중 하나 — 평면의 삼각화 세밀도 — 는 단일 평면판 수신전력을 최대 9.54 dB 움직인다. 그들의 씬·예산·기하를 모르므로 그들 결과가 몇 dB 움직인다고는 말할 수 없다. **재현성 요구**이지 오류 지적이 아니다.",
+  "our_own_positioning": "서베이가 표적 축을 비운 것은 명시적 의도다. 그 칸이 우리 자리라는 것은 포지셔닝이고, 그들의 오류가 아니다."
+ },
+ "must_not_say": [
+  "'메쉬를 줄이면 스톡 Sionna 에코가 바뀐다' / '면 수가 표적 에코를 지배한다' — 자기 데이터가 반증한다(20배 데시메이션에 -0.098±0.208 dB).",
+  "'면이 사라지면 에코가 49 dB / 43 dB 무너진다' — 두 숫자 모두 형상이 깨진 r=1% 단(bbox 10.2%·실루엣 19.3%)에서 나왔고, 게다가 확산 켠 coh_db 를 쓴다.",
+  "확산(diffuse_reflection=True) 켠 실행의 coh_db 를 어떤 형태로든 물리량으로 인용하는 것 — 같은 메쉬에서 광선 예산만 바꿔도 +10.7 dB/decade 로 움직인다.",
+  "'Sionna 는 표적 RCS 를 못 낸다, 이건 Sionna 의 결함이다' — 벤더가 밝힌 설계 범위. R6('스톡에 회절 없다') 오류의 재판.",
+  "'정반사 진폭이 면 크기와 무관한 것은 버그다' — image-source 정의 그 자체. 40배 크기 스윕에서 7.4e-7 dB 는 결함의 증거가 아니라 설계의 증거다.",
+  "'드론에서 면 하나가 없어지자 6 dB 가 날아갔다 = 산란체를 잃었다' — 잃은 것은 **중복 복사본**이다(1경로값+20log10(2) 와 5e-7 dB 일치). 물리 산란체가 아니다.",
+  "'면을 줄이면 전력이 준다'를 C3 중복 결함의 방향으로 서술하는 것 — 부호가 반대다(세분→+9.54 dB).",
+  "'정반사 채널이 가설을 지지한다'를 조건 없이 쓰는 것 — 36개 자세 중 1개(az=0/el=0)에서만 존재하고 el=15°·el=90° 전 방위에서 0개다.",
+  "'클러터 서베이의 표적 에코가 메쉬 단순화 때문에 틀렸다' — 그들 표적 진폭은 RT 산출물이 아니라 CN(0,σ²) 추출이다.",
+  "'우리 측정으로 그들 결과가 X dB 움직인다' — 그들의 메쉬 해상도·광선 예산·기하를 모른다. '우리 하네스에서' 를 빼면 안 된다.",
+  "'Proc. IEEE 서베이가 16 dB RT 페널티를 증명했다' — 이미 확정된 오류(우리 뺄셈이다). 여기에 새 숫자를 얹지 말 것.",
+  "'중복 경로는 Sionna 의 경로 중복제거 버그다'를 확정형으로 — 출력 기반 추론이고 솔버 소스를 읽지 않았다. '~와 일관된다'까지만.",
+  "'이 결과는 max_depth 에 견고하다'를 정반사·중복 효과에까지 확장하는 것 — 그 둘은 depth=1 로만 돌았다.",
+  "'PO/SBR 은 같은 조건에서 평평했다' — PO/SBR 대조군은 el=15° 에서만 돌았고 효과가 난 az=0/el=0 에는 대조군이 없다.",
+  "rt_incoh_sd 0.55~0.82 dB 를 '시드 잡음'으로 인용하는 것 — 4개 방위를 풀링한 값이다. 진짜 시드 산포는 0.14~0.30 dB."
+ ]
+}
