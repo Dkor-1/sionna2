@@ -1,0 +1,2729 @@
+{
+ "meta": {
+  "title": "sigma grid regeneration on today's mesh — old vs new",
+  "generated": "2026-08-03T11:24:15",
+  "new": "outputs/report13_sigma_grid.json",
+  "old": "outputs/archive/report13_sigma_grid_pre0803.json",
+  "backup_of_replaced_canonical": "outputs/archive/report13_sigma_grid_pre_merge_0803.json",
+  "new_meta": {
+   "generated": "2026-08-03T11:17:59",
+   "git_rev": "4265045",
+   "div": 16,
+   "jitter": 2,
+   "n_f": 3,
+   "frac_bw": 0.015,
+   "smooth_deg": 3.0,
+   "backend": "direct",
+   "mesh_fp": {
+    "mini5pro": "8afe5530",
+    "phantom4": "8e44ef2a",
+    "mavic4pro": "73d30b20",
+    "matrice4e": "5ee3b19b",
+    "s1000plus": "02f45928",
+    "typhoonh480": "83ea1cd0",
+    "x500v2": "126e2936"
+   },
+   "mesh_generation": "2026-08-03 (drone_cad/drones working tree, uncommitted)",
+   "worker_cpu_hours": 5.566,
+   "drones": [
+    "mini5pro",
+    "phantom4",
+    "mavic4pro",
+    "matrice4e",
+    "s1000plus",
+    "typhoonh480",
+    "x500v2"
+   ]
+  },
+  "old_meta": {
+   "generated": "2026-07-29T05:36:31",
+   "git_rev": "4aa668b",
+   "div": 16,
+   "jitter": 2,
+   "n_f": 3,
+   "frac_bw": 0.015,
+   "smooth_deg": 3.0,
+   "backend": "direct",
+   "mesh_generation": "2026-07-28 blade overhaul + matrice4e rotor_deg 51.2deg",
+   "drone_order": [
+    "mini5pro",
+    "phantom4",
+    "mavic4pro",
+    "matrice4e",
+    "s1000plus"
+   ]
+  },
+  "axes": {
+   "az_identical": true,
+   "el_old": [
+    0.0,
+    -0.5,
+    -1.0,
+    -2.0,
+    -3.5,
+    -5.0,
+    -8.0,
+    -12.0,
+    -20.0
+   ],
+   "el_new": [
+    0.0,
+    -0.5,
+    -1.0,
+    -2.0,
+    -3.5,
+    -5.0,
+    -8.0,
+    -12.0,
+    -20.0,
+    -24.0,
+    -28.0,
+    -33.0,
+    -38.0,
+    -44.0,
+    -50.0,
+    -57.0,
+    -64.0,
+    -71.0,
+    -78.0,
+    -81.0,
+    -84.0,
+    -87.0,
+    -90.0
+   ],
+   "el_shared": [
+    0.0,
+    -0.5,
+    -1.0,
+    -2.0,
+    -3.5,
+    -5.0,
+    -8.0,
+    -12.0,
+    -20.0
+   ],
+   "el_extension": [
+    -24.0,
+    -28.0,
+    -33.0,
+    -38.0,
+    -44.0,
+    -50.0,
+    -57.0,
+    -64.0,
+    -71.0,
+    -78.0,
+    -81.0,
+    -84.0,
+    -87.0,
+    -90.0
+   ],
+   "note": "the new grid extends el from 9 to 23 rows; ALL old-vs-new numbers below are computed on the 9 SHARED rows only (apples to apples). The extension rows are reported separately under el_extension."
+  },
+  "statistic": "headline = sigma_smooth_dbsm (the consumed/quoted array); level = 10log10 linear mean in m^2 (quote_policy)",
+  "cells": {
+   "drone_band_cells_merged": 21,
+   "compared_values_per_drone": 3240,
+   "compared_values_total": 22680
+  },
+  "shared_drones": [
+   "mini5pro",
+   "phantom4",
+   "mavic4pro",
+   "matrice4e",
+   "s1000plus",
+   "typhoonh480",
+   "x500v2"
+  ],
+  "new_only_drones": [],
+  "old_only_drones": []
+ },
+ "shard_integrity": {
+  "n_base_shards": 21,
+  "n_extension_shards": 294,
+  "anomalies": [],
+  "mesh_fp_drift": {},
+  "mesh_fp": {
+   "matrice4e": "5ee3b19b",
+   "mavic4pro": "73d30b20",
+   "mini5pro": "8afe5530",
+   "phantom4": "8e44ef2a",
+   "s1000plus": "02f45928",
+   "typhoonh480": "83ea1cd0",
+   "x500v2": "126e2936"
+  }
+ },
+ "recompute_verification": {
+  "purpose": "recompute already-computed cells with the production worker and demand bit-identity; the SBR kernel has no RNG (jitter is a deterministic J^2 lattice), so any difference would be a real defect",
+  "A_cross_round": {
+   "n": 21,
+   "n_bit_identical": 21,
+   "max_abs_delta_db": 0.0,
+   "claim": "base rows (sg_worker, 9 el at once) reproduce exactly under elx_worker (1 el at a time) -- this is the premise that lets the two rounds be merged into one grid"
+  },
+  "B_reproducibility": {
+   "n": 14,
+   "n_bit_identical": 14,
+   "max_abs_delta_db": 0.0,
+   "claim": "extension rows reproduce exactly on re-run"
+  },
+  "overall": {
+   "n": 35,
+   "n_bit_identical": 35,
+   "max_abs_delta_db": 0.0,
+   "verdict": "PASS"
+  },
+  "rows": [
+   {
+    "kind": "A",
+    "drone": "matrice4e",
+    "band": "lte",
+    "el_deg": 0.0,
+    "source": "sigma_matrice4e_lte.json[el=+0.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "matrice4e",
+    "band": "nr",
+    "el_deg": -0.5,
+    "source": "sigma_matrice4e_nr.json[el=-0.5]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "matrice4e",
+    "band": "wifi",
+    "el_deg": -1.0,
+    "source": "sigma_matrice4e_wifi.json[el=-1.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "mavic4pro",
+    "band": "lte",
+    "el_deg": -8.0,
+    "source": "sigma_mavic4pro_lte.json[el=-8.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "mavic4pro",
+    "band": "nr",
+    "el_deg": -12.0,
+    "source": "sigma_mavic4pro_nr.json[el=-12.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "mavic4pro",
+    "band": "wifi",
+    "el_deg": -20.0,
+    "source": "sigma_mavic4pro_wifi.json[el=-20.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "mini5pro",
+    "band": "lte",
+    "el_deg": 0.0,
+    "source": "sigma_mini5pro_lte.json[el=+0.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "mini5pro",
+    "band": "nr",
+    "el_deg": -0.5,
+    "source": "sigma_mini5pro_nr.json[el=-0.5]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "mini5pro",
+    "band": "wifi",
+    "el_deg": -1.0,
+    "source": "sigma_mini5pro_wifi.json[el=-1.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "phantom4",
+    "band": "lte",
+    "el_deg": -2.0,
+    "source": "sigma_phantom4_lte.json[el=-2.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "phantom4",
+    "band": "nr",
+    "el_deg": -3.5,
+    "source": "sigma_phantom4_nr.json[el=-3.5]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "phantom4",
+    "band": "wifi",
+    "el_deg": -5.0,
+    "source": "sigma_phantom4_wifi.json[el=-5.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "s1000plus",
+    "band": "lte",
+    "el_deg": -2.0,
+    "source": "sigma_s1000plus_lte.json[el=-2.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "s1000plus",
+    "band": "nr",
+    "el_deg": -3.5,
+    "source": "sigma_s1000plus_nr.json[el=-3.5]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "s1000plus",
+    "band": "wifi",
+    "el_deg": -5.0,
+    "source": "sigma_s1000plus_wifi.json[el=-5.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "typhoonh480",
+    "band": "lte",
+    "el_deg": -8.0,
+    "source": "sigma_typhoonh480_lte.json[el=-8.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "typhoonh480",
+    "band": "nr",
+    "el_deg": -12.0,
+    "source": "sigma_typhoonh480_nr.json[el=-12.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "typhoonh480",
+    "band": "wifi",
+    "el_deg": -20.0,
+    "source": "sigma_typhoonh480_wifi.json[el=-20.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "x500v2",
+    "band": "lte",
+    "el_deg": 0.0,
+    "source": "sigma_x500v2_lte.json[el=+0.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "x500v2",
+    "band": "nr",
+    "el_deg": -0.5,
+    "source": "sigma_x500v2_nr.json[el=-0.5]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "A",
+    "drone": "x500v2",
+    "band": "wifi",
+    "el_deg": -1.0,
+    "source": "sigma_x500v2_wifi.json[el=-1.0]",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "B",
+    "drone": "matrice4e",
+    "band": "lte",
+    "el_deg": -28.0,
+    "source": "elx_matrice4e_lte_m28.json",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "B",
+    "drone": "matrice4e",
+    "band": "nr",
+    "el_deg": -28.0,
+    "source": "elx_matrice4e_nr_m28.json",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "B",
+    "drone": "mavic4pro",
+    "band": "lte",
+    "el_deg": -81.0,
+    "source": "elx_mavic4pro_lte_m81.json",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "B",
+    "drone": "mavic4pro",
+    "band": "wifi",
+    "el_deg": -81.0,
+    "source": "elx_mavic4pro_wifi_m81.json",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "B",
+    "drone": "mini5pro",
+    "band": "lte",
+    "el_deg": -24.0,
+    "source": "elx_mini5pro_lte_m24.json",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "B",
+    "drone": "mini5pro",
+    "band": "nr",
+    "el_deg": -24.0,
+    "source": "elx_mini5pro_nr_m24.json",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "B",
+    "drone": "phantom4",
+    "band": "nr",
+    "el_deg": -50.0,
+    "source": "elx_phantom4_nr_m50.json",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "B",
+    "drone": "phantom4",
+    "band": "wifi",
+    "el_deg": -50.0,
+    "source": "elx_phantom4_wifi_m50.json",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "B",
+    "drone": "s1000plus",
+    "band": "nr",
+    "el_deg": -57.0,
+    "source": "elx_s1000plus_nr_m57.json",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "B",
+    "drone": "s1000plus",
+    "band": "wifi",
+    "el_deg": -57.0,
+    "source": "elx_s1000plus_wifi_m57.json",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "B",
+    "drone": "typhoonh480",
+    "band": "lte",
+    "el_deg": -84.0,
+    "source": "elx_typhoonh480_lte_m84.json",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "B",
+    "drone": "typhoonh480",
+    "band": "wifi",
+    "el_deg": -84.0,
+    "source": "elx_typhoonh480_wifi_m84.json",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "B",
+    "drone": "x500v2",
+    "band": "lte",
+    "el_deg": -33.0,
+    "source": "elx_x500v2_lte_m33.json",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   },
+   {
+    "kind": "B",
+    "drone": "x500v2",
+    "band": "nr",
+    "el_deg": -33.0,
+    "source": "elx_x500v2_nr_m33.json",
+    "bit_identical": true,
+    "max_abs_delta_db": 0.0,
+    "n_az": 120
+   }
+  ]
+ },
+ "summary_by_drone": {
+  "mini5pro": {
+   "max_abs_delta_db": 18.45,
+   "rms_delta_db": 5.21,
+   "mean_cell_delta_db": 0.88,
+   "level_shift_db": 0.17,
+   "pattern_corr": 0.511,
+   "n_identical_cells": 4,
+   "n_within_1db": 530,
+   "n_cells": 3240
+  },
+  "phantom4": {
+   "max_abs_delta_db": 23.72,
+   "rms_delta_db": 4.7,
+   "mean_cell_delta_db": -1.55,
+   "level_shift_db": -2.03,
+   "pattern_corr": 0.646,
+   "n_identical_cells": 3,
+   "n_within_1db": 490,
+   "n_cells": 3240
+  },
+  "mavic4pro": {
+   "max_abs_delta_db": 26.22,
+   "rms_delta_db": 7.14,
+   "mean_cell_delta_db": -1.24,
+   "level_shift_db": -1.7,
+   "pattern_corr": 0.089,
+   "n_identical_cells": 1,
+   "n_within_1db": 382,
+   "n_cells": 3240
+  },
+  "matrice4e": {
+   "max_abs_delta_db": 23.27,
+   "rms_delta_db": 5.61,
+   "mean_cell_delta_db": 0.66,
+   "level_shift_db": 0.74,
+   "pattern_corr": 0.395,
+   "n_identical_cells": 3,
+   "n_within_1db": 402,
+   "n_cells": 3240
+  },
+  "s1000plus": {
+   "max_abs_delta_db": 19.68,
+   "rms_delta_db": 4.37,
+   "mean_cell_delta_db": 0.53,
+   "level_shift_db": 0.0,
+   "pattern_corr": 0.618,
+   "n_identical_cells": 8,
+   "n_within_1db": 694,
+   "n_cells": 3240
+  },
+  "typhoonh480": {
+   "max_abs_delta_db": 22.27,
+   "rms_delta_db": 6.11,
+   "mean_cell_delta_db": -1.21,
+   "level_shift_db": -2.28,
+   "pattern_corr": 0.421,
+   "n_identical_cells": 5,
+   "n_within_1db": 416,
+   "n_cells": 3240
+  },
+  "x500v2": {
+   "max_abs_delta_db": 21.35,
+   "rms_delta_db": 5.36,
+   "mean_cell_delta_db": -1.33,
+   "level_shift_db": -1.57,
+   "pattern_corr": 0.441,
+   "n_identical_cells": 5,
+   "n_within_1db": 475,
+   "n_cells": 3240
+  }
+ },
+ "by_drone_band": {
+  "mini5pro": {
+   "smooth": {
+    "LTE 1.8 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 18.454888002382646,
+     "rms_delta_db": 5.358996626132285,
+     "mean_cell_delta_db": 1.444886191032347,
+     "level_shift_db": 0.8575077101851285,
+     "old_level_dbsm": -24.734922959469678,
+     "new_level_dbsm": -23.87741524928455,
+     "pattern_corr": 0.4059187876617905,
+     "n_within_0p01db": 1,
+     "n_within_1db": 189,
+     "ks_stat": 0.1703703703703704,
+     "pct_old_dbsm": {
+      "p10": -33.664471222132505,
+      "p50": -26.959465474935882,
+      "p90": -20.2630140459378
+     },
+     "pct_new_dbsm": {
+      "p10": -30.99418477124716,
+      "p50": -25.405367112504678,
+      "p90": -19.617875794966427
+     },
+     "pct_delta_db": {
+      "p10": 2.670286450885346,
+      "p50": 1.5540983624312048,
+      "p90": 0.6451382509713746
+     }
+    },
+    "5G NR 3.5 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 15.685663799161269,
+     "rms_delta_db": 4.8453839501846385,
+     "mean_cell_delta_db": 0.28953255433036856,
+     "level_shift_db": -0.028897066070030064,
+     "old_level_dbsm": -21.47311654801046,
+     "new_level_dbsm": -21.50201361408049,
+     "pattern_corr": 0.46698592257341837,
+     "n_within_0p01db": 0,
+     "n_within_1db": 169,
+     "ks_stat": 0.12314814814814817,
+     "pct_old_dbsm": {
+      "p10": -29.927950288022693,
+      "p50": -24.176194900199594,
+      "p90": -17.726442914329017
+     },
+     "pct_new_dbsm": {
+      "p10": -30.04756758007094,
+      "p50": -22.89037515491369,
+      "p90": -18.45220725857443
+     },
+     "pct_delta_db": {
+      "p10": -0.11961729204824678,
+      "p50": 1.2858197452859024,
+      "p90": -0.7257643442454125
+     }
+    },
+    "WiFi 5.2 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 18.41223411924278,
+     "rms_delta_db": 5.413762008534468,
+     "mean_cell_delta_db": 0.9011281026667677,
+     "level_shift_db": 0.0648470732714479,
+     "old_level_dbsm": -20.01471472870427,
+     "new_level_dbsm": -19.949867655432822,
+     "pattern_corr": 0.49527294567612357,
+     "n_within_0p01db": 3,
+     "n_within_1db": 172,
+     "ks_stat": 0.10370370370370371,
+     "pct_old_dbsm": {
+      "p10": -31.201714720441924,
+      "p50": -23.015760842229295,
+      "p90": -15.75787968439005
+     },
+     "pct_new_dbsm": {
+      "p10": -28.835094225964728,
+      "p50": -21.979395591557058,
+      "p90": -15.895199490314953
+     },
+     "pct_delta_db": {
+      "p10": 2.3666204944771962,
+      "p50": 1.0363652506722367,
+      "p90": -0.13731980592490345
+     }
+    }
+   },
+   "raw": {
+    "LTE 1.8 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 18.454888002382646,
+     "rms_delta_db": 5.358996626132285,
+     "mean_cell_delta_db": 1.444886191032347,
+     "level_shift_db": 0.8575077101851285,
+     "old_level_dbsm": -24.734922959469678,
+     "new_level_dbsm": -23.87741524928455,
+     "pattern_corr": 0.4059187876617905,
+     "n_within_0p01db": 1,
+     "n_within_1db": 189,
+     "ks_stat": 0.1703703703703704,
+     "pct_old_dbsm": {
+      "p10": -33.664471222132505,
+      "p50": -26.959465474935882,
+      "p90": -20.2630140459378
+     },
+     "pct_new_dbsm": {
+      "p10": -30.99418477124716,
+      "p50": -25.405367112504678,
+      "p90": -19.617875794966427
+     },
+     "pct_delta_db": {
+      "p10": 2.670286450885346,
+      "p50": 1.5540983624312048,
+      "p90": 0.6451382509713746
+     }
+    },
+    "5G NR 3.5 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 15.685663799161269,
+     "rms_delta_db": 4.8453839501846385,
+     "mean_cell_delta_db": 0.28953255433036856,
+     "level_shift_db": -0.028897066070030064,
+     "old_level_dbsm": -21.47311654801046,
+     "new_level_dbsm": -21.50201361408049,
+     "pattern_corr": 0.46698592257341837,
+     "n_within_0p01db": 0,
+     "n_within_1db": 169,
+     "ks_stat": 0.12314814814814817,
+     "pct_old_dbsm": {
+      "p10": -29.927950288022693,
+      "p50": -24.176194900199594,
+      "p90": -17.726442914329017
+     },
+     "pct_new_dbsm": {
+      "p10": -30.04756758007094,
+      "p50": -22.89037515491369,
+      "p90": -18.45220725857443
+     },
+     "pct_delta_db": {
+      "p10": -0.11961729204824678,
+      "p50": 1.2858197452859024,
+      "p90": -0.7257643442454125
+     }
+    },
+    "WiFi 5.2 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 18.41223411924278,
+     "rms_delta_db": 5.413762008534468,
+     "mean_cell_delta_db": 0.9011281026667677,
+     "level_shift_db": 0.0648470732714479,
+     "old_level_dbsm": -20.01471472870427,
+     "new_level_dbsm": -19.949867655432822,
+     "pattern_corr": 0.49527294567612357,
+     "n_within_0p01db": 3,
+     "n_within_1db": 172,
+     "ks_stat": 0.10370370370370371,
+     "pct_old_dbsm": {
+      "p10": -31.201714720441924,
+      "p50": -23.015760842229295,
+      "p90": -15.75787968439005
+     },
+     "pct_new_dbsm": {
+      "p10": -28.835094225964728,
+      "p50": -21.979395591557058,
+      "p90": -15.895199490314953
+     },
+     "pct_delta_db": {
+      "p10": 2.3666204944771962,
+      "p50": 1.0363652506722367,
+      "p90": -0.13731980592490345
+     }
+    }
+   },
+   "pooled": {
+    "n_cells": 3240,
+    "max_abs_delta_db": 18.454888002382646,
+    "rms_delta_db": 5.212338232458803,
+    "mean_cell_delta_db": 0.8785156160098279,
+    "level_shift_db": 0.174087049109648,
+    "old_level_dbsm": -21.66408928213436,
+    "new_level_dbsm": -21.49000223302471,
+    "pattern_corr": 0.5106013138990365,
+    "n_within_0p01db": 4,
+    "n_within_1db": 530,
+    "ks_stat": 0.08858024691358024,
+    "pct_old_dbsm": {
+     "p10": -31.92360173261049,
+     "p50": -24.565667312706843,
+     "p90": -17.59184660110771
+    },
+    "pct_new_dbsm": {
+     "p10": -30.161296785166012,
+     "p50": -23.92765992967417,
+     "p90": -17.69734057553874
+    },
+    "pct_delta_db": {
+     "p10": 1.762304947444477,
+     "p50": 0.6380073830326722,
+     "p90": -0.10549397443102748
+    }
+   }
+  },
+  "phantom4": {
+   "smooth": {
+    "LTE 1.8 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 13.173220957420003,
+     "rms_delta_db": 4.253580285004557,
+     "mean_cell_delta_db": -2.7913474742353923,
+     "level_shift_db": -2.5401967683187294,
+     "old_level_dbsm": -20.628158896646237,
+     "new_level_dbsm": -23.168355664964967,
+     "pattern_corr": 0.7443415567575878,
+     "n_within_0p01db": 3,
+     "n_within_1db": 154,
+     "ks_stat": 0.35370370370370374,
+     "pct_old_dbsm": {
+      "p10": -29.150012094512405,
+      "p50": -21.40584636151807,
+      "p90": -17.598864318394295
+     },
+     "pct_new_dbsm": {
+      "p10": -31.501053426661528,
+      "p50": -24.6940533415821,
+      "p90": -19.395687675878527
+     },
+     "pct_delta_db": {
+      "p10": -2.351041332149123,
+      "p50": -3.2882069800640323,
+      "p90": -1.7968233574842323
+     }
+    },
+    "5G NR 3.5 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 17.233611178910053,
+     "rms_delta_db": 4.876694619087877,
+     "mean_cell_delta_db": -1.069929082615242,
+     "level_shift_db": -2.102323084437831,
+     "old_level_dbsm": -18.723173602241882,
+     "new_level_dbsm": -20.825496686679713,
+     "pattern_corr": 0.5323869786437877,
+     "n_within_0p01db": 0,
+     "n_within_1db": 153,
+     "ks_stat": 0.1425925925925926,
+     "pct_old_dbsm": {
+      "p10": -28.24324788512926,
+      "p50": -21.61652298951347,
+      "p90": -14.943027759956513
+     },
+     "pct_new_dbsm": {
+      "p10": -28.853158508174385,
+      "p50": -22.131953244208574,
+      "p90": -17.812018584823523
+     },
+     "pct_delta_db": {
+      "p10": -0.6099106230451241,
+      "p50": -0.5154302546951044,
+      "p90": -2.8689908248670104
+     }
+    },
+    "WiFi 5.2 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 23.71544746790218,
+     "rms_delta_db": 4.9525010527531474,
+     "mean_cell_delta_db": -0.7805695290572976,
+     "level_shift_db": -1.8215978846263852,
+     "old_level_dbsm": -16.35702171684337,
+     "new_level_dbsm": -18.178619601469755,
+     "pattern_corr": 0.6621838838195748,
+     "n_within_0p01db": 0,
+     "n_within_1db": 183,
+     "ks_stat": 0.08611111111111114,
+     "pct_old_dbsm": {
+      "p10": -28.121491285338724,
+      "p50": -21.394940143494146,
+      "p90": -11.675332059990131
+     },
+     "pct_new_dbsm": {
+      "p10": -29.064868210749243,
+      "p50": -21.118642930396906,
+      "p90": -14.234887855393437
+     },
+     "pct_delta_db": {
+      "p10": -0.9433769254105187,
+      "p50": 0.27629721309724076,
+      "p90": -2.5595557954033055
+     }
+    }
+   },
+   "raw": {
+    "LTE 1.8 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 13.173220957420003,
+     "rms_delta_db": 4.253580285004557,
+     "mean_cell_delta_db": -2.7913474742353923,
+     "level_shift_db": -2.5401967683187294,
+     "old_level_dbsm": -20.628158896646237,
+     "new_level_dbsm": -23.168355664964967,
+     "pattern_corr": 0.7443415567575878,
+     "n_within_0p01db": 3,
+     "n_within_1db": 154,
+     "ks_stat": 0.35370370370370374,
+     "pct_old_dbsm": {
+      "p10": -29.150012094512405,
+      "p50": -21.40584636151807,
+      "p90": -17.598864318394295
+     },
+     "pct_new_dbsm": {
+      "p10": -31.501053426661528,
+      "p50": -24.6940533415821,
+      "p90": -19.395687675878527
+     },
+     "pct_delta_db": {
+      "p10": -2.351041332149123,
+      "p50": -3.2882069800640323,
+      "p90": -1.7968233574842323
+     }
+    },
+    "5G NR 3.5 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 17.233611178910053,
+     "rms_delta_db": 4.876694619087877,
+     "mean_cell_delta_db": -1.069929082615242,
+     "level_shift_db": -2.102323084437831,
+     "old_level_dbsm": -18.723173602241882,
+     "new_level_dbsm": -20.825496686679713,
+     "pattern_corr": 0.5323869786437877,
+     "n_within_0p01db": 0,
+     "n_within_1db": 153,
+     "ks_stat": 0.1425925925925926,
+     "pct_old_dbsm": {
+      "p10": -28.24324788512926,
+      "p50": -21.61652298951347,
+      "p90": -14.943027759956513
+     },
+     "pct_new_dbsm": {
+      "p10": -28.853158508174385,
+      "p50": -22.131953244208574,
+      "p90": -17.812018584823523
+     },
+     "pct_delta_db": {
+      "p10": -0.6099106230451241,
+      "p50": -0.5154302546951044,
+      "p90": -2.8689908248670104
+     }
+    },
+    "WiFi 5.2 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 23.71544746790218,
+     "rms_delta_db": 4.9525010527531474,
+     "mean_cell_delta_db": -0.7805695290572976,
+     "level_shift_db": -1.8215978846263852,
+     "old_level_dbsm": -16.35702171684337,
+     "new_level_dbsm": -18.178619601469755,
+     "pattern_corr": 0.6621838838195748,
+     "n_within_0p01db": 0,
+     "n_within_1db": 183,
+     "ks_stat": 0.08611111111111114,
+     "pct_old_dbsm": {
+      "p10": -28.121491285338724,
+      "p50": -21.394940143494146,
+      "p90": -11.675332059990131
+     },
+     "pct_new_dbsm": {
+      "p10": -29.064868210749243,
+      "p50": -21.118642930396906,
+      "p90": -14.234887855393437
+     },
+     "pct_delta_db": {
+      "p10": -0.9433769254105187,
+      "p50": 0.27629721309724076,
+      "p90": -2.5595557954033055
+     }
+    }
+   },
+   "pooled": {
+    "n_cells": 3240,
+    "max_abs_delta_db": 23.71544746790218,
+    "rms_delta_db": 4.704691358149549,
+    "mean_cell_delta_db": -1.5472820286359772,
+    "level_shift_db": -2.0341732770140837,
+    "old_level_dbsm": -18.2190887431634,
+    "new_level_dbsm": -20.253262020177484,
+    "pattern_corr": 0.6464242428471308,
+    "n_within_0p01db": 3,
+    "n_within_1db": 490,
+    "ks_stat": 0.14074074074074072,
+    "pct_old_dbsm": {
+     "p10": -28.59816502193758,
+     "p50": -21.462594988704023,
+     "p90": -14.886693186708401
+    },
+    "pct_new_dbsm": {
+     "p10": -30.026847233302465,
+     "p50": -23.116539217416943,
+     "p90": -16.748503941286483
+    },
+    "pct_delta_db": {
+     "p10": -1.4286822113648867,
+     "p50": -1.6539442287129198,
+     "p90": -1.861810754578082
+    }
+   }
+  },
+  "mavic4pro": {
+   "smooth": {
+    "LTE 1.8 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 21.30913789181132,
+     "rms_delta_db": 6.976451457954689,
+     "mean_cell_delta_db": -0.48615067409500223,
+     "level_shift_db": 0.10842185161516227,
+     "old_level_dbsm": -17.751021836912052,
+     "new_level_dbsm": -17.64259998529689,
+     "pattern_corr": 0.06086675241533617,
+     "n_within_0p01db": 0,
+     "n_within_1db": 181,
+     "ks_stat": 0.1120370370370371,
+     "pct_old_dbsm": {
+      "p10": -26.92182277783045,
+      "p50": -17.95197759170665,
+      "p90": -14.71580956566176
+     },
+     "pct_new_dbsm": {
+      "p10": -27.789159311756055,
+      "p50": -19.34423098479747,
+      "p90": -13.561420096246541
+     },
+     "pct_delta_db": {
+      "p10": -0.8673365339256058,
+      "p50": -1.3922533930908187,
+      "p90": 1.154389469415218
+     }
+    },
+    "5G NR 3.5 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 26.215499355754716,
+     "rms_delta_db": 7.242745226805196,
+     "mean_cell_delta_db": -0.3441807294470894,
+     "level_shift_db": -0.6033797324245889,
+     "old_level_dbsm": -16.94213495153698,
+     "new_level_dbsm": -17.545514683961567,
+     "pattern_corr": 0.07972941970927852,
+     "n_within_0p01db": 1,
+     "n_within_1db": 82,
+     "ks_stat": 0.04351851851851851,
+     "pct_old_dbsm": {
+      "p10": -26.89930584428329,
+      "p50": -19.570678343783175,
+      "p90": -13.16260327741077
+     },
+     "pct_new_dbsm": {
+      "p10": -27.122770540480833,
+      "p50": -19.869374270312775,
+      "p90": -13.37148937488132
+     },
+     "pct_delta_db": {
+      "p10": -0.22346469619754217,
+      "p50": -0.2986959265296001,
+      "p90": -0.20888609747054865
+     }
+    },
+    "WiFi 5.2 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 21.358951227932806,
+     "rms_delta_db": 7.1973982995614225,
+     "mean_cell_delta_db": -2.8913460183758044,
+     "level_shift_db": -3.652993902239526,
+     "old_level_dbsm": -13.97965446057221,
+     "new_level_dbsm": -17.632648362811736,
+     "pattern_corr": 0.11110492592625158,
+     "n_within_0p01db": 0,
+     "n_within_1db": 119,
+     "ks_stat": 0.24907407407407411,
+     "pct_old_dbsm": {
+      "p10": -23.28816083087193,
+      "p50": -16.65376464587105,
+      "p90": -10.511322195616922
+     },
+     "pct_new_dbsm": {
+      "p10": -26.067975569793596,
+      "p50": -19.47251198704265,
+      "p90": -14.088182260283354
+     },
+     "pct_delta_db": {
+      "p10": -2.779814738921665,
+      "p50": -2.8187473411716013,
+      "p90": -3.576860064666432
+     }
+    }
+   },
+   "raw": {
+    "LTE 1.8 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 21.30913789181132,
+     "rms_delta_db": 6.976451457954689,
+     "mean_cell_delta_db": -0.48615067409500223,
+     "level_shift_db": 0.10842185161516227,
+     "old_level_dbsm": -17.751021836912052,
+     "new_level_dbsm": -17.64259998529689,
+     "pattern_corr": 0.06086675241533617,
+     "n_within_0p01db": 0,
+     "n_within_1db": 181,
+     "ks_stat": 0.1120370370370371,
+     "pct_old_dbsm": {
+      "p10": -26.92182277783045,
+      "p50": -17.95197759170665,
+      "p90": -14.71580956566176
+     },
+     "pct_new_dbsm": {
+      "p10": -27.789159311756055,
+      "p50": -19.34423098479747,
+      "p90": -13.561420096246541
+     },
+     "pct_delta_db": {
+      "p10": -0.8673365339256058,
+      "p50": -1.3922533930908187,
+      "p90": 1.154389469415218
+     }
+    },
+    "5G NR 3.5 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 26.215499355754716,
+     "rms_delta_db": 7.242745226805196,
+     "mean_cell_delta_db": -0.3441807294470894,
+     "level_shift_db": -0.6033797324245889,
+     "old_level_dbsm": -16.94213495153698,
+     "new_level_dbsm": -17.545514683961567,
+     "pattern_corr": 0.07972941970927852,
+     "n_within_0p01db": 1,
+     "n_within_1db": 82,
+     "ks_stat": 0.04351851851851851,
+     "pct_old_dbsm": {
+      "p10": -26.89930584428329,
+      "p50": -19.570678343783175,
+      "p90": -13.16260327741077
+     },
+     "pct_new_dbsm": {
+      "p10": -27.122770540480833,
+      "p50": -19.869374270312775,
+      "p90": -13.37148937488132
+     },
+     "pct_delta_db": {
+      "p10": -0.22346469619754217,
+      "p50": -0.2986959265296001,
+      "p90": -0.20888609747054865
+     }
+    },
+    "WiFi 5.2 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 21.358951227932806,
+     "rms_delta_db": 7.1973982995614225,
+     "mean_cell_delta_db": -2.8913460183758044,
+     "level_shift_db": -3.652993902239526,
+     "old_level_dbsm": -13.97965446057221,
+     "new_level_dbsm": -17.632648362811736,
+     "pattern_corr": 0.11110492592625158,
+     "n_within_0p01db": 0,
+     "n_within_1db": 119,
+     "ks_stat": 0.24907407407407411,
+     "pct_old_dbsm": {
+      "p10": -23.28816083087193,
+      "p50": -16.65376464587105,
+      "p90": -10.511322195616922
+     },
+     "pct_new_dbsm": {
+      "p10": -26.067975569793596,
+      "p50": -19.47251198704265,
+      "p90": -14.088182260283354
+     },
+     "pct_delta_db": {
+      "p10": -2.779814738921665,
+      "p50": -2.8187473411716013,
+      "p90": -3.576860064666432
+     }
+    }
+   },
+   "pooled": {
+    "n_cells": 3240,
+    "max_abs_delta_db": 26.215499355754716,
+    "rms_delta_db": 7.139812687742286,
+    "mean_cell_delta_db": -1.2405591406392986,
+    "level_shift_db": -1.7005088972026545,
+    "old_level_dbsm": -15.906192656816023,
+    "new_level_dbsm": -17.606701554018677,
+    "pattern_corr": 0.08862552899761934,
+    "n_within_0p01db": 1,
+    "n_within_1db": 382,
+    "ks_stat": 0.13024691358024693,
+    "pct_old_dbsm": {
+     "p10": -26.24551624150423,
+     "p50": -17.86378185101654,
+     "p90": -12.75665537984622
+    },
+    "pct_new_dbsm": {
+     "p10": -27.018073549495075,
+     "p50": -19.508314228248828,
+     "p90": -13.695576400802457
+    },
+    "pct_delta_db": {
+     "p10": -0.7725573079908443,
+     "p50": -1.644532377232288,
+     "p90": -0.9389210209562364
+    }
+   }
+  },
+  "matrice4e": {
+   "smooth": {
+    "LTE 1.8 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 15.598149831061718,
+     "rms_delta_db": 4.772277409377528,
+     "mean_cell_delta_db": 0.8582534619964128,
+     "level_shift_db": 1.6333528642573718,
+     "old_level_dbsm": -21.59448964169669,
+     "new_level_dbsm": -19.961136777439318,
+     "pattern_corr": 0.5335366020353912,
+     "n_within_0p01db": 2,
+     "n_within_1db": 140,
+     "ks_stat": 0.13796296296296295,
+     "pct_old_dbsm": {
+      "p10": -29.0736790531834,
+      "p50": -23.212219278658317,
+      "p90": -17.935719805965082
+     },
+     "pct_new_dbsm": {
+      "p10": -29.93277062553131,
+      "p50": -21.865367865170384,
+      "p90": -15.956166477070344
+     },
+     "pct_delta_db": {
+      "p10": -0.8590915723479107,
+      "p50": 1.3468514134879328,
+      "p90": 1.9795533288947382
+     }
+    },
+    "5G NR 3.5 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 23.271782010038113,
+     "rms_delta_db": 6.244302463237081,
+     "mean_cell_delta_db": 0.6753076002774774,
+     "level_shift_db": 1.8194727327621933,
+     "old_level_dbsm": -20.375846222117012,
+     "new_level_dbsm": -18.55637348935482,
+     "pattern_corr": 0.2546948771389609,
+     "n_within_0p01db": 1,
+     "n_within_1db": 129,
+     "ks_stat": 0.0981481481481482,
+     "pct_old_dbsm": {
+      "p10": -28.421733496921703,
+      "p50": -22.987469694318925,
+      "p90": -17.360110321925646
+     },
+     "pct_new_dbsm": {
+      "p10": -29.46666114124364,
+      "p50": -22.157952473126354,
+      "p90": -14.399894906985262
+     },
+     "pct_delta_db": {
+      "p10": -1.0449276443219375,
+      "p50": 0.829517221192571,
+      "p90": 2.960215414940384
+     }
+    },
+    "WiFi 5.2 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 22.939717321198962,
+     "rms_delta_db": 5.6997266549822925,
+     "mean_cell_delta_db": 0.44984174587733305,
+     "level_shift_db": -0.5854953739959861,
+     "old_level_dbsm": -17.96400779543243,
+     "new_level_dbsm": -18.549503169428416,
+     "pattern_corr": 0.39782388327272994,
+     "n_within_0p01db": 0,
+     "n_within_1db": 133,
+     "ks_stat": 0.10833333333333334,
+     "pct_old_dbsm": {
+      "p10": -28.94013084648706,
+      "p50": -21.582013387461714,
+      "p90": -13.355068288257641
+     },
+     "pct_new_dbsm": {
+      "p10": -26.74579636850208,
+      "p50": -21.411029096488953,
+      "p90": -15.015828690548364
+     },
+     "pct_delta_db": {
+      "p10": 2.194334477984981,
+      "p50": 0.17098429097276124,
+      "p90": -1.6607604022907232
+     }
+    }
+   },
+   "raw": {
+    "LTE 1.8 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 15.598149831061718,
+     "rms_delta_db": 4.772277409377528,
+     "mean_cell_delta_db": 0.8582534619964128,
+     "level_shift_db": 1.6333528642573718,
+     "old_level_dbsm": -21.59448964169669,
+     "new_level_dbsm": -19.961136777439318,
+     "pattern_corr": 0.5335366020353912,
+     "n_within_0p01db": 2,
+     "n_within_1db": 140,
+     "ks_stat": 0.13796296296296295,
+     "pct_old_dbsm": {
+      "p10": -29.0736790531834,
+      "p50": -23.212219278658317,
+      "p90": -17.935719805965082
+     },
+     "pct_new_dbsm": {
+      "p10": -29.93277062553131,
+      "p50": -21.865367865170384,
+      "p90": -15.956166477070344
+     },
+     "pct_delta_db": {
+      "p10": -0.8590915723479107,
+      "p50": 1.3468514134879328,
+      "p90": 1.9795533288947382
+     }
+    },
+    "5G NR 3.5 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 23.271782010038113,
+     "rms_delta_db": 6.244302463237081,
+     "mean_cell_delta_db": 0.6753076002774774,
+     "level_shift_db": 1.8194727327621933,
+     "old_level_dbsm": -20.375846222117012,
+     "new_level_dbsm": -18.55637348935482,
+     "pattern_corr": 0.2546948771389609,
+     "n_within_0p01db": 1,
+     "n_within_1db": 129,
+     "ks_stat": 0.0981481481481482,
+     "pct_old_dbsm": {
+      "p10": -28.421733496921703,
+      "p50": -22.987469694318925,
+      "p90": -17.360110321925646
+     },
+     "pct_new_dbsm": {
+      "p10": -29.46666114124364,
+      "p50": -22.157952473126354,
+      "p90": -14.399894906985262
+     },
+     "pct_delta_db": {
+      "p10": -1.0449276443219375,
+      "p50": 0.829517221192571,
+      "p90": 2.960215414940384
+     }
+    },
+    "WiFi 5.2 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 22.939717321198962,
+     "rms_delta_db": 5.6997266549822925,
+     "mean_cell_delta_db": 0.44984174587733305,
+     "level_shift_db": -0.5854953739959861,
+     "old_level_dbsm": -17.96400779543243,
+     "new_level_dbsm": -18.549503169428416,
+     "pattern_corr": 0.39782388327272994,
+     "n_within_0p01db": 0,
+     "n_within_1db": 133,
+     "ks_stat": 0.10833333333333334,
+     "pct_old_dbsm": {
+      "p10": -28.94013084648706,
+      "p50": -21.582013387461714,
+      "p90": -13.355068288257641
+     },
+     "pct_new_dbsm": {
+      "p10": -26.74579636850208,
+      "p50": -21.411029096488953,
+      "p90": -15.015828690548364
+     },
+     "pct_delta_db": {
+      "p10": 2.194334477984981,
+      "p50": 0.17098429097276124,
+      "p90": -1.6607604022907232
+     }
+    }
+   },
+   "pooled": {
+    "n_cells": 3240,
+    "max_abs_delta_db": 23.271782010038113,
+    "rms_delta_db": 5.605141356111054,
+    "mean_cell_delta_db": 0.661134269383741,
+    "level_shift_db": 0.7354567114790171,
+    "old_level_dbsm": -19.70901903350372,
+    "new_level_dbsm": -18.9735623220247,
+    "pattern_corr": 0.3950062832445913,
+    "n_within_0p01db": 3,
+    "n_within_1db": 402,
+    "ks_stat": 0.09351851851851845,
+    "pct_old_dbsm": {
+     "p10": -28.87126850453858,
+     "p50": -22.69246985232574,
+     "p90": -16.64848035350652
+    },
+    "pct_new_dbsm": {
+     "p10": -29.043402069777063,
+     "p50": -21.8100106868013,
+     "p90": -15.155464918413411
+    },
+    "pct_delta_db": {
+     "p10": -0.17213356523848233,
+     "p50": 0.8824591655244411,
+     "p90": 1.4930154350931097
+    }
+   }
+  },
+  "s1000plus": {
+   "smooth": {
+    "LTE 1.8 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 13.301148543041808,
+     "rms_delta_db": 3.5003352915220116,
+     "mean_cell_delta_db": 0.6279322595089717,
+     "level_shift_db": 0.9084050666029491,
+     "old_level_dbsm": -15.735777880448863,
+     "new_level_dbsm": -14.827372813845914,
+     "pattern_corr": 0.7235472458339868,
+     "n_within_0p01db": 4,
+     "n_within_1db": 258,
+     "ks_stat": 0.11574074074074081,
+     "pct_old_dbsm": {
+      "p10": -23.387060994479626,
+      "p50": -17.370551206686443,
+      "p90": -12.126492456178187
+     },
+     "pct_new_dbsm": {
+      "p10": -24.161003655378302,
+      "p50": -16.024815498409172,
+      "p90": -11.558643728636493
+     },
+     "pct_delta_db": {
+      "p10": -0.7739426608986761,
+      "p50": 1.345735708277271,
+      "p90": 0.5678487275416941
+     }
+    },
+    "5G NR 3.5 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 15.318612521086997,
+     "rms_delta_db": 4.647379203769649,
+     "mean_cell_delta_db": 0.47485029564042797,
+     "level_shift_db": 0.3356564704491145,
+     "old_level_dbsm": -14.148779808362066,
+     "new_level_dbsm": -13.813123337912952,
+     "pattern_corr": 0.5284154081766579,
+     "n_within_0p01db": 2,
+     "n_within_1db": 228,
+     "ks_stat": 0.0888888888888889,
+     "pct_old_dbsm": {
+      "p10": -23.169128146762983,
+      "p50": -16.34842653385512,
+      "p90": -10.7797636633574
+     },
+     "pct_new_dbsm": {
+      "p10": -22.799884975518058,
+      "p50": -15.88516871431116,
+      "p90": -10.287782266527804
+     },
+     "pct_delta_db": {
+      "p10": 0.3692431712449249,
+      "p50": 0.4632578195439585,
+      "p90": 0.49198139682959585
+     }
+    },
+    "WiFi 5.2 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 19.679472630962362,
+     "rms_delta_db": 4.837873243125889,
+     "mean_cell_delta_db": 0.5003433957779876,
+     "level_shift_db": -0.658435543997971,
+     "old_level_dbsm": -11.800941262999292,
+     "new_level_dbsm": -12.459376806997263,
+     "pattern_corr": 0.6022017435284244,
+     "n_within_0p01db": 2,
+     "n_within_1db": 208,
+     "ks_stat": 0.14814814814814817,
+     "pct_old_dbsm": {
+      "p10": -22.814843505534462,
+      "p50": -16.08643456676782,
+      "p90": -7.523822319528414
+     },
+     "pct_new_dbsm": {
+      "p10": -21.101013635786884,
+      "p50": -15.421816200456732,
+      "p90": -9.312330400723868
+     },
+     "pct_delta_db": {
+      "p10": 1.7138298697475776,
+      "p50": 0.664618366311089,
+      "p90": -1.7885080811954532
+     }
+    }
+   },
+   "raw": {
+    "LTE 1.8 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 13.301148543041808,
+     "rms_delta_db": 3.5003352915220116,
+     "mean_cell_delta_db": 0.6279322595089717,
+     "level_shift_db": 0.9084050666029491,
+     "old_level_dbsm": -15.735777880448863,
+     "new_level_dbsm": -14.827372813845914,
+     "pattern_corr": 0.7235472458339868,
+     "n_within_0p01db": 4,
+     "n_within_1db": 258,
+     "ks_stat": 0.11574074074074081,
+     "pct_old_dbsm": {
+      "p10": -23.387060994479626,
+      "p50": -17.370551206686443,
+      "p90": -12.126492456178187
+     },
+     "pct_new_dbsm": {
+      "p10": -24.161003655378302,
+      "p50": -16.024815498409172,
+      "p90": -11.558643728636493
+     },
+     "pct_delta_db": {
+      "p10": -0.7739426608986761,
+      "p50": 1.345735708277271,
+      "p90": 0.5678487275416941
+     }
+    },
+    "5G NR 3.5 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 15.318612521086997,
+     "rms_delta_db": 4.647379203769649,
+     "mean_cell_delta_db": 0.47485029564042797,
+     "level_shift_db": 0.3356564704491145,
+     "old_level_dbsm": -14.148779808362066,
+     "new_level_dbsm": -13.813123337912952,
+     "pattern_corr": 0.5284154081766579,
+     "n_within_0p01db": 2,
+     "n_within_1db": 228,
+     "ks_stat": 0.0888888888888889,
+     "pct_old_dbsm": {
+      "p10": -23.169128146762983,
+      "p50": -16.34842653385512,
+      "p90": -10.7797636633574
+     },
+     "pct_new_dbsm": {
+      "p10": -22.799884975518058,
+      "p50": -15.88516871431116,
+      "p90": -10.287782266527804
+     },
+     "pct_delta_db": {
+      "p10": 0.3692431712449249,
+      "p50": 0.4632578195439585,
+      "p90": 0.49198139682959585
+     }
+    },
+    "WiFi 5.2 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 19.679472630962362,
+     "rms_delta_db": 4.837873243125889,
+     "mean_cell_delta_db": 0.5003433957779876,
+     "level_shift_db": -0.658435543997971,
+     "old_level_dbsm": -11.800941262999292,
+     "new_level_dbsm": -12.459376806997263,
+     "pattern_corr": 0.6022017435284244,
+     "n_within_0p01db": 2,
+     "n_within_1db": 208,
+     "ks_stat": 0.14814814814814817,
+     "pct_old_dbsm": {
+      "p10": -22.814843505534462,
+      "p50": -16.08643456676782,
+      "p90": -7.523822319528414
+     },
+     "pct_new_dbsm": {
+      "p10": -21.101013635786884,
+      "p50": -15.421816200456732,
+      "p90": -9.312330400723868
+     },
+     "pct_delta_db": {
+      "p10": 1.7138298697475776,
+      "p50": 0.664618366311089,
+      "p90": -1.7885080811954532
+     }
+    }
+   },
+   "pooled": {
+    "n_cells": 3240,
+    "max_abs_delta_db": 19.679472630962362,
+    "rms_delta_db": 4.368657235858577,
+    "mean_cell_delta_db": 0.5343753169757958,
+    "level_shift_db": 0.0003074614294735767,
+    "old_level_dbsm": -13.591227504456644,
+    "new_level_dbsm": -13.59092004302717,
+    "pattern_corr": 0.6184476824257998,
+    "n_within_0p01db": 8,
+    "n_within_1db": 694,
+    "ks_stat": 0.07901234567901239,
+    "pct_old_dbsm": {
+     "p10": -23.062396167749224,
+     "p50": -16.6100952165513,
+     "p90": -10.548738027287227
+    },
+    "pct_new_dbsm": {
+     "p10": -22.960428045931184,
+     "p50": -15.773856874457465,
+     "p90": -10.470996600980616
+    },
+    "pct_delta_db": {
+     "p10": 0.10196812181803949,
+     "p50": 0.8362383420938357,
+     "p90": 0.07774142630661096
+    }
+   }
+  },
+  "typhoonh480": {
+   "smooth": {
+    "LTE 1.8 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 19.605479517821976,
+     "rms_delta_db": 5.238719627371746,
+     "mean_cell_delta_db": -1.5869171676174667,
+     "level_shift_db": -1.417772305976344,
+     "old_level_dbsm": -14.56316423176112,
+     "new_level_dbsm": -15.980936537737463,
+     "pattern_corr": 0.45868621008875243,
+     "n_within_0p01db": 2,
+     "n_within_1db": 165,
+     "ks_stat": 0.13611111111111113,
+     "pct_old_dbsm": {
+      "p10": -22.292797299536886,
+      "p50": -16.493074702503492,
+      "p90": -10.58532739923495
+     },
+     "pct_new_dbsm": {
+      "p10": -24.74126041676246,
+      "p50": -18.152346794864812,
+      "p90": -12.264995401672492
+     },
+     "pct_delta_db": {
+      "p10": -2.4484631172255753,
+      "p50": -1.65927209236132,
+      "p90": -1.6796680024375412
+     }
+    },
+    "5G NR 3.5 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 22.26935447067641,
+     "rms_delta_db": 6.640212975902523,
+     "mean_cell_delta_db": -0.8691915835910214,
+     "level_shift_db": -2.288095828932354,
+     "old_level_dbsm": -13.651322521209593,
+     "new_level_dbsm": -15.939418350141947,
+     "pattern_corr": 0.23382877599805904,
+     "n_within_0p01db": 2,
+     "n_within_1db": 143,
+     "ks_stat": 0.12777777777777777,
+     "pct_old_dbsm": {
+      "p10": -24.405101826269817,
+      "p50": -17.721021380131365,
+      "p90": -9.190664295369215
+     },
+     "pct_new_dbsm": {
+      "p10": -24.24242567603207,
+      "p50": -17.864395015375464,
+      "p90": -12.313145553914838
+     },
+     "pct_delta_db": {
+      "p10": 0.16267615023774695,
+      "p50": -0.14337363524409952,
+      "p90": -3.1224812585456228
+     }
+    },
+    "WiFi 5.2 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 18.14750571160389,
+     "rms_delta_db": 6.368527122862315,
+     "mean_cell_delta_db": -1.175364672739658,
+     "level_shift_db": -2.676946580774695,
+     "old_level_dbsm": -10.544313795120395,
+     "new_level_dbsm": -13.22126037589509,
+     "pattern_corr": 0.524868716161546,
+     "n_within_0p01db": 1,
+     "n_within_1db": 108,
+     "ks_stat": 0.09999999999999998,
+     "pct_old_dbsm": {
+      "p10": -24.704792704834027,
+      "p50": -16.33732441934696,
+      "p90": -6.481051105331784
+     },
+     "pct_new_dbsm": {
+      "p10": -24.547887614338514,
+      "p50": -17.526013981403608,
+      "p90": -9.792340210335096
+     },
+     "pct_delta_db": {
+      "p10": 0.15690509049551338,
+      "p50": -1.1886895620566484,
+      "p90": -3.311289105003312
+     }
+    }
+   },
+   "raw": {
+    "LTE 1.8 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 19.605479517821976,
+     "rms_delta_db": 5.238719627371746,
+     "mean_cell_delta_db": -1.5869171676174667,
+     "level_shift_db": -1.417772305976344,
+     "old_level_dbsm": -14.56316423176112,
+     "new_level_dbsm": -15.980936537737463,
+     "pattern_corr": 0.45868621008875243,
+     "n_within_0p01db": 2,
+     "n_within_1db": 165,
+     "ks_stat": 0.13611111111111113,
+     "pct_old_dbsm": {
+      "p10": -22.292797299536886,
+      "p50": -16.493074702503492,
+      "p90": -10.58532739923495
+     },
+     "pct_new_dbsm": {
+      "p10": -24.74126041676246,
+      "p50": -18.152346794864812,
+      "p90": -12.264995401672492
+     },
+     "pct_delta_db": {
+      "p10": -2.4484631172255753,
+      "p50": -1.65927209236132,
+      "p90": -1.6796680024375412
+     }
+    },
+    "5G NR 3.5 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 22.26935447067641,
+     "rms_delta_db": 6.640212975902523,
+     "mean_cell_delta_db": -0.8691915835910214,
+     "level_shift_db": -2.288095828932354,
+     "old_level_dbsm": -13.651322521209593,
+     "new_level_dbsm": -15.939418350141947,
+     "pattern_corr": 0.23382877599805904,
+     "n_within_0p01db": 2,
+     "n_within_1db": 143,
+     "ks_stat": 0.12777777777777777,
+     "pct_old_dbsm": {
+      "p10": -24.405101826269817,
+      "p50": -17.721021380131365,
+      "p90": -9.190664295369215
+     },
+     "pct_new_dbsm": {
+      "p10": -24.24242567603207,
+      "p50": -17.864395015375464,
+      "p90": -12.313145553914838
+     },
+     "pct_delta_db": {
+      "p10": 0.16267615023774695,
+      "p50": -0.14337363524409952,
+      "p90": -3.1224812585456228
+     }
+    },
+    "WiFi 5.2 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 18.14750571160389,
+     "rms_delta_db": 6.368527122862315,
+     "mean_cell_delta_db": -1.175364672739658,
+     "level_shift_db": -2.676946580774695,
+     "old_level_dbsm": -10.544313795120395,
+     "new_level_dbsm": -13.22126037589509,
+     "pattern_corr": 0.524868716161546,
+     "n_within_0p01db": 1,
+     "n_within_1db": 108,
+     "ks_stat": 0.09999999999999998,
+     "pct_old_dbsm": {
+      "p10": -24.704792704834027,
+      "p50": -16.33732441934696,
+      "p90": -6.481051105331784
+     },
+     "pct_new_dbsm": {
+      "p10": -24.547887614338514,
+      "p50": -17.526013981403608,
+      "p90": -9.792340210335096
+     },
+     "pct_delta_db": {
+      "p10": 0.15690509049551338,
+      "p50": -1.1886895620566484,
+      "p90": -3.311289105003312
+     }
+    }
+   },
+   "pooled": {
+    "n_cells": 3240,
+    "max_abs_delta_db": 22.26935447067641,
+    "rms_delta_db": 6.112684882389711,
+    "mean_cell_delta_db": -1.2104911413160486,
+    "level_shift_db": -2.282780657407617,
+    "old_level_dbsm": -12.56155584866849,
+    "new_level_dbsm": -14.844336506076107,
+    "pattern_corr": 0.4205321634982847,
+    "n_within_0p01db": 5,
+    "n_within_1db": 416,
+    "ks_stat": 0.09012345679012346,
+    "pct_old_dbsm": {
+     "p10": -23.778720291939393,
+     "p50": -16.81919339676864,
+     "p90": -9.45429500156528
+    },
+    "pct_new_dbsm": {
+     "p10": -24.602562645758862,
+     "p50": -17.837723597213774,
+     "p90": -11.585489484444802
+    },
+    "pct_delta_db": {
+     "p10": -0.8238423538194688,
+     "p50": -1.0185302004451344,
+     "p90": -2.131194482879522
+    }
+   }
+  },
+  "x500v2": {
+   "smooth": {
+    "LTE 1.8 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 15.781790497258893,
+     "rms_delta_db": 5.7365018319707834,
+     "mean_cell_delta_db": -2.2636413265952773,
+     "level_shift_db": -2.9145320416909577,
+     "old_level_dbsm": -18.242042574715274,
+     "new_level_dbsm": -21.156574616406232,
+     "pattern_corr": 0.2654302148759622,
+     "n_within_0p01db": 3,
+     "n_within_1db": 137,
+     "ks_stat": 0.2694444444444445,
+     "pct_old_dbsm": {
+      "p10": -26.614314060291747,
+      "p50": -20.24737291942834,
+      "p90": -14.33560967865111
+     },
+     "pct_new_dbsm": {
+      "p10": -28.28580486231172,
+      "p50": -21.88940557077938,
+      "p90": -18.087622483030994
+     },
+     "pct_delta_db": {
+      "p10": -1.6714908020199744,
+      "p50": -1.642032651351041,
+      "p90": -3.752012804379884
+     }
+    },
+    "5G NR 3.5 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 21.349450268214717,
+     "rms_delta_db": 5.080121134354656,
+     "mean_cell_delta_db": -1.5427662583138397,
+     "level_shift_db": -1.8850676491648102,
+     "old_level_dbsm": -16.157625662230437,
+     "new_level_dbsm": -18.042693311395247,
+     "pattern_corr": 0.5286036790344282,
+     "n_within_0p01db": 0,
+     "n_within_1db": 169,
+     "ks_stat": 0.1435185185185185,
+     "pct_old_dbsm": {
+      "p10": -25.873526862215662,
+      "p50": -18.66428580103867,
+      "p90": -11.69662322259931
+     },
+     "pct_new_dbsm": {
+      "p10": -26.719834513969783,
+      "p50": -20.067934132683305,
+      "p90": -14.414653161667195
+     },
+     "pct_delta_db": {
+      "p10": -0.8463076517541204,
+      "p50": -1.4036483316446358,
+      "p90": -2.7180299390678844
+     }
+    },
+    "WiFi 5.2 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 17.854677989708392,
+     "rms_delta_db": 5.241237835665167,
+     "mean_cell_delta_db": -0.17757122160845448,
+     "level_shift_db": -0.6545523768459418,
+     "old_level_dbsm": -16.19724396734162,
+     "new_level_dbsm": -16.851796344187562,
+     "pattern_corr": 0.4485998626587788,
+     "n_within_0p01db": 2,
+     "n_within_1db": 169,
+     "ks_stat": 0.07685185185185184,
+     "pct_old_dbsm": {
+      "p10": -25.954020365670175,
+      "p50": -19.23761793305715,
+      "p90": -11.718155555557534
+     },
+     "pct_new_dbsm": {
+      "p10": -25.317689724923916,
+      "p50": -19.105229950526265,
+      "p90": -13.435020648405589
+     },
+     "pct_delta_db": {
+      "p10": 0.6363306407462588,
+      "p50": 0.13238798253088646,
+      "p90": -1.7168650928480549
+     }
+    }
+   },
+   "raw": {
+    "LTE 1.8 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 15.781790497258893,
+     "rms_delta_db": 5.7365018319707834,
+     "mean_cell_delta_db": -2.2636413265952773,
+     "level_shift_db": -2.9145320416909577,
+     "old_level_dbsm": -18.242042574715274,
+     "new_level_dbsm": -21.156574616406232,
+     "pattern_corr": 0.2654302148759622,
+     "n_within_0p01db": 3,
+     "n_within_1db": 137,
+     "ks_stat": 0.2694444444444445,
+     "pct_old_dbsm": {
+      "p10": -26.614314060291747,
+      "p50": -20.24737291942834,
+      "p90": -14.33560967865111
+     },
+     "pct_new_dbsm": {
+      "p10": -28.28580486231172,
+      "p50": -21.88940557077938,
+      "p90": -18.087622483030994
+     },
+     "pct_delta_db": {
+      "p10": -1.6714908020199744,
+      "p50": -1.642032651351041,
+      "p90": -3.752012804379884
+     }
+    },
+    "5G NR 3.5 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 21.349450268214717,
+     "rms_delta_db": 5.080121134354656,
+     "mean_cell_delta_db": -1.5427662583138397,
+     "level_shift_db": -1.8850676491648102,
+     "old_level_dbsm": -16.157625662230437,
+     "new_level_dbsm": -18.042693311395247,
+     "pattern_corr": 0.5286036790344282,
+     "n_within_0p01db": 0,
+     "n_within_1db": 169,
+     "ks_stat": 0.1435185185185185,
+     "pct_old_dbsm": {
+      "p10": -25.873526862215662,
+      "p50": -18.66428580103867,
+      "p90": -11.69662322259931
+     },
+     "pct_new_dbsm": {
+      "p10": -26.719834513969783,
+      "p50": -20.067934132683305,
+      "p90": -14.414653161667195
+     },
+     "pct_delta_db": {
+      "p10": -0.8463076517541204,
+      "p50": -1.4036483316446358,
+      "p90": -2.7180299390678844
+     }
+    },
+    "WiFi 5.2 GHz": {
+     "n_cells": 1080,
+     "max_abs_delta_db": 17.854677989708392,
+     "rms_delta_db": 5.241237835665167,
+     "mean_cell_delta_db": -0.17757122160845448,
+     "level_shift_db": -0.6545523768459418,
+     "old_level_dbsm": -16.19724396734162,
+     "new_level_dbsm": -16.851796344187562,
+     "pattern_corr": 0.4485998626587788,
+     "n_within_0p01db": 2,
+     "n_within_1db": 169,
+     "ks_stat": 0.07685185185185184,
+     "pct_old_dbsm": {
+      "p10": -25.954020365670175,
+      "p50": -19.23761793305715,
+      "p90": -11.718155555557534
+     },
+     "pct_new_dbsm": {
+      "p10": -25.317689724923916,
+      "p50": -19.105229950526265,
+      "p90": -13.435020648405589
+     },
+     "pct_delta_db": {
+      "p10": 0.6363306407462588,
+      "p50": 0.13238798253088646,
+      "p90": -1.7168650928480549
+     }
+    }
+   },
+   "pooled": {
+    "n_cells": 3240,
+    "max_abs_delta_db": 21.349450268214717,
+    "rms_delta_db": 5.359902301905919,
+    "mean_cell_delta_db": -1.327992935505857,
+    "level_shift_db": -1.5736896176636392,
+    "old_level_dbsm": -16.762881704577005,
+    "new_level_dbsm": -18.336571322240644,
+    "pattern_corr": 0.4412812217270256,
+    "n_within_0p01db": 5,
+    "n_within_1db": 475,
+    "ks_stat": 0.1308641975308642,
+    "pct_old_dbsm": {
+     "p10": -26.18515149235809,
+     "p50": -19.285562800005067,
+     "p90": -12.533603252699267
+    },
+    "pct_new_dbsm": {
+     "p10": -27.145966449245883,
+     "p50": -20.606759099195493,
+     "p90": -14.717369929054572
+    },
+    "pct_delta_db": {
+     "p10": -0.9608149568877913,
+     "p50": -1.3211962991904258,
+     "p90": -2.1837666763553045
+    }
+   }
+  }
+ },
+ "ranking": {
+  "LTE 1.8 GHz": {
+   "old_order_desc": [
+    "typhoonh480",
+    "s1000plus",
+    "mavic4pro",
+    "x500v2",
+    "phantom4",
+    "matrice4e",
+    "mini5pro"
+   ],
+   "new_order_desc": [
+    "s1000plus",
+    "typhoonh480",
+    "mavic4pro",
+    "matrice4e",
+    "x500v2",
+    "phantom4",
+    "mini5pro"
+   ],
+   "changed": true,
+   "n_drones_moved": 5,
+   "old_level_dbsm": {
+    "typhoonh480": -14.56316423176112,
+    "s1000plus": -15.735777880448863,
+    "mavic4pro": -17.751021836912052,
+    "x500v2": -18.242042574715274,
+    "phantom4": -20.628158896646237,
+    "matrice4e": -21.59448964169669,
+    "mini5pro": -24.734922959469678
+   },
+   "new_level_dbsm": {
+    "s1000plus": -14.827372813845914,
+    "typhoonh480": -15.980936537737463,
+    "mavic4pro": -17.64259998529689,
+    "matrice4e": -19.961136777439318,
+    "x500v2": -21.156574616406232,
+    "phantom4": -23.168355664964967,
+    "mini5pro": -23.87741524928455
+   },
+   "spearman": 0.8571428571428573,
+   "kendall_tau": 0.7142857142857143,
+   "max_rank_shift": 2
+  },
+  "5G NR 3.5 GHz": {
+   "old_order_desc": [
+    "typhoonh480",
+    "s1000plus",
+    "x500v2",
+    "mavic4pro",
+    "phantom4",
+    "matrice4e",
+    "mini5pro"
+   ],
+   "new_order_desc": [
+    "s1000plus",
+    "typhoonh480",
+    "mavic4pro",
+    "x500v2",
+    "matrice4e",
+    "phantom4",
+    "mini5pro"
+   ],
+   "changed": true,
+   "n_drones_moved": 6,
+   "old_level_dbsm": {
+    "typhoonh480": -13.651322521209593,
+    "s1000plus": -14.148779808362066,
+    "x500v2": -16.157625662230437,
+    "mavic4pro": -16.94213495153698,
+    "phantom4": -18.723173602241882,
+    "matrice4e": -20.375846222117012,
+    "mini5pro": -21.47311654801046
+   },
+   "new_level_dbsm": {
+    "s1000plus": -13.813123337912952,
+    "typhoonh480": -15.939418350141947,
+    "mavic4pro": -17.545514683961567,
+    "x500v2": -18.042693311395247,
+    "matrice4e": -18.55637348935482,
+    "phantom4": -20.825496686679713,
+    "mini5pro": -21.50201361408049
+   },
+   "spearman": 0.8928571428571429,
+   "kendall_tau": 0.7142857142857143,
+   "max_rank_shift": 1
+  },
+  "WiFi 5.2 GHz": {
+   "old_order_desc": [
+    "typhoonh480",
+    "s1000plus",
+    "mavic4pro",
+    "x500v2",
+    "phantom4",
+    "matrice4e",
+    "mini5pro"
+   ],
+   "new_order_desc": [
+    "s1000plus",
+    "typhoonh480",
+    "x500v2",
+    "mavic4pro",
+    "phantom4",
+    "matrice4e",
+    "mini5pro"
+   ],
+   "changed": true,
+   "n_drones_moved": 4,
+   "old_level_dbsm": {
+    "typhoonh480": -10.544313795120395,
+    "s1000plus": -11.800941262999292,
+    "mavic4pro": -13.97965446057221,
+    "x500v2": -16.19724396734162,
+    "phantom4": -16.35702171684337,
+    "matrice4e": -17.96400779543243,
+    "mini5pro": -20.01471472870427
+   },
+   "new_level_dbsm": {
+    "s1000plus": -12.459376806997263,
+    "typhoonh480": -13.22126037589509,
+    "x500v2": -16.851796344187562,
+    "mavic4pro": -17.632648362811736,
+    "phantom4": -18.178619601469755,
+    "matrice4e": -18.549503169428416,
+    "mini5pro": -19.949867655432822
+   },
+   "spearman": 0.9285714285714288,
+   "kendall_tau": 0.8095238095238095,
+   "max_rank_shift": 1
+  },
+  "ALL BANDS": {
+   "old_order_desc": [
+    "typhoonh480",
+    "s1000plus",
+    "mavic4pro",
+    "x500v2",
+    "phantom4",
+    "matrice4e",
+    "mini5pro"
+   ],
+   "new_order_desc": [
+    "s1000plus",
+    "typhoonh480",
+    "mavic4pro",
+    "x500v2",
+    "matrice4e",
+    "phantom4",
+    "mini5pro"
+   ],
+   "changed": true,
+   "n_drones_moved": 4,
+   "old_level_dbsm": {
+    "typhoonh480": -12.56155584866849,
+    "s1000plus": -13.591227504456644,
+    "mavic4pro": -15.906192656816023,
+    "x500v2": -16.762881704577005,
+    "phantom4": -18.2190887431634,
+    "matrice4e": -19.70901903350372,
+    "mini5pro": -21.66408928213436
+   },
+   "new_level_dbsm": {
+    "s1000plus": -13.59092004302717,
+    "typhoonh480": -14.844336506076107,
+    "mavic4pro": -17.606701554018677,
+    "x500v2": -18.336571322240644,
+    "matrice4e": -18.9735623220247,
+    "phantom4": -20.253262020177484,
+    "mini5pro": -21.49000223302471
+   },
+   "spearman": 0.9285714285714288,
+   "kendall_tau": 0.8095238095238095,
+   "max_rank_shift": 1
+  },
+  "ALL BANDS (new grid, all 23 el rows)": {
+   "new_order_desc": [
+    "s1000plus",
+    "x500v2",
+    "typhoonh480",
+    "mavic4pro",
+    "phantom4",
+    "matrice4e",
+    "mini5pro"
+   ],
+   "new_level_dbsm": {
+    "s1000plus": -3.790716710049618,
+    "x500v2": -13.527408903285698,
+    "typhoonh480": -14.045742884063838,
+    "mavic4pro": -16.199882918609987,
+    "phantom4": -16.213326185986883,
+    "matrice4e": -16.967023475478758,
+    "mini5pro": -21.365361702481067
+   },
+   "note": "23 el rows incl. the extension; no old counterpart, reference only"
+  }
+ },
+ "el_extension": {
+  "new_el_deg": [
+   -24.0,
+   -28.0,
+   -33.0,
+   -38.0,
+   -44.0,
+   -50.0,
+   -57.0,
+   -64.0,
+   -71.0,
+   -78.0,
+   -81.0,
+   -84.0,
+   -87.0,
+   -90.0
+  ],
+  "what_it_fixes": "the old grid stopped at -20 deg and consumers silently clamped every lookup below that to the -20 deg row; these rows replace the clamp with computed values",
+  "clamp_error_removed_db": {
+   "mini5pro": {
+    "bands": {
+     "LTE 1.8 GHz": {
+      "clamp_ref_dbsm": -23.664033205202472,
+      "level_vs_el_minus20_db": {
+       "-24.0": 0.15493385219429,
+       "-28.0": 0.3490516056868529,
+       "-33.0": 0.6307490713711843,
+       "-38.0": 1.1139446233473151,
+       "-44.0": 1.6164120863405316,
+       "-50.0": 1.9183113100305036,
+       "-57.0": 2.59903260225785,
+       "-64.0": 3.878544003390857,
+       "-71.0": 4.349495881809666,
+       "-78.0": 3.105325117756628,
+       "-81.0": 2.1338856044367596,
+       "-84.0": 1.2644117415411102,
+       "-87.0": 0.505290145030898,
+       "-90.0": -0.1250125325736562
+      },
+      "worst_el_deg": -71.0,
+      "worst_abs_db": 4.349495881809666
+     },
+     "5G NR 3.5 GHz": {
+      "clamp_ref_dbsm": -22.43566874504686,
+      "level_vs_el_minus20_db": {
+       "-24.0": -0.6045262000609632,
+       "-28.0": -1.3340834694885473,
+       "-33.0": -2.1145166240551916,
+       "-38.0": -1.6262087053104608,
+       "-44.0": -0.5457439279494807,
+       "-50.0": -0.7739113214049809,
+       "-57.0": 0.21243394706477403,
+       "-64.0": 0.6025696212586347,
+       "-71.0": 3.9169861904016514,
+       "-78.0": 3.796211727181092,
+       "-81.0": 0.7209164327301316,
+       "-84.0": -6.155884525678637,
+       "-87.0": -3.2476995326022973,
+       "-90.0": -0.524494828412827
+      },
+      "worst_el_deg": -84.0,
+      "worst_abs_db": 6.155884525678637
+     },
+     "WiFi 5.2 GHz": {
+      "clamp_ref_dbsm": -22.211703102157948,
+      "level_vs_el_minus20_db": {
+       "-24.0": -0.7582801202417855,
+       "-28.0": -1.5703203853352043,
+       "-33.0": -2.140600488893444,
+       "-38.0": -2.051376172839813,
+       "-44.0": -1.948773726808021,
+       "-50.0": -1.1677120357635573,
+       "-57.0": -1.31771440833284,
+       "-64.0": 1.0722503953278846,
+       "-71.0": 2.9999971342853726,
+       "-78.0": 3.931493265432916,
+       "-81.0": 5.017160754501944,
+       "-84.0": 4.697526377151,
+       "-87.0": 4.229108241291243,
+       "-90.0": 5.158901522711176
+      },
+      "worst_el_deg": -90.0,
+      "worst_abs_db": 5.158901522711176
+     }
+    },
+    "worst_abs_db": 6.155884525678637
+   },
+   "phantom4": {
+    "bands": {
+     "LTE 1.8 GHz": {
+      "clamp_ref_dbsm": -21.692023989694004,
+      "level_vs_el_minus20_db": {
+       "-24.0": -0.39919546973478504,
+       "-28.0": -1.0896483145751112,
+       "-33.0": -1.1337150286326825,
+       "-38.0": -0.5388052273903341,
+       "-44.0": 0.7244602778151901,
+       "-50.0": 1.737291520621259,
+       "-57.0": 3.0270540635750613,
+       "-64.0": 4.4767603955225646,
+       "-71.0": 6.1448314848202195,
+       "-78.0": 6.8775584510064665,
+       "-81.0": 6.840392321468142,
+       "-84.0": 6.376317100470089,
+       "-87.0": 5.818119492638274,
+       "-90.0": 5.962798272472288
+      },
+      "worst_el_deg": -78.0,
+      "worst_abs_db": 6.8775584510064665
+     },
+     "5G NR 3.5 GHz": {
+      "clamp_ref_dbsm": -22.975212869883986,
+      "level_vs_el_minus20_db": {
+       "-24.0": 0.6112989896796641,
+       "-28.0": 0.3581553419252259,
+       "-33.0": -1.2399222397369059,
+       "-38.0": -1.2602290225827524,
+       "-44.0": 0.43013751406274636,
+       "-50.0": 1.6571376107544715,
+       "-57.0": 4.182151852049973,
+       "-64.0": 3.1302707512589407,
+       "-71.0": 6.344579047389438,
+       "-78.0": 10.64066724862441,
+       "-81.0": 14.134981967571912,
+       "-84.0": 14.6683503636749,
+       "-87.0": 12.510186500844432,
+       "-90.0": 10.692377776748465
+      },
+      "worst_el_deg": -84.0,
+      "worst_abs_db": 14.6683503636749
+     },
+     "WiFi 5.2 GHz": {
+      "clamp_ref_dbsm": -19.798289575619833,
+      "level_vs_el_minus20_db": {
+       "-24.0": -1.1054645833336068,
+       "-28.0": -4.114927831027618,
+       "-33.0": -4.42460091096595,
+       "-38.0": -3.3309593683368632,
+       "-44.0": -2.275121919386631,
+       "-50.0": -1.114930506848161,
+       "-57.0": 0.9077041113696964,
+       "-64.0": 1.431475299908218,
+       "-71.0": 4.262128146778334,
+       "-78.0": 7.226159412232866,
+       "-81.0": 10.00355845914101,
+       "-84.0": 10.174618586403257,
+       "-87.0": 6.672967975873153,
+       "-90.0": 12.23545394095126
+      },
+      "worst_el_deg": -90.0,
+      "worst_abs_db": 12.23545394095126
+     }
+    },
+    "worst_abs_db": 14.6683503636749
+   },
+   "mavic4pro": {
+    "bands": {
+     "LTE 1.8 GHz": {
+      "clamp_ref_dbsm": -18.397113388144813,
+      "level_vs_el_minus20_db": {
+       "-24.0": -0.34226554933412245,
+       "-28.0": -0.4437581578342211,
+       "-33.0": -0.22533579804272463,
+       "-38.0": 0.34741104903845255,
+       "-44.0": 0.327213199644369,
+       "-50.0": 0.7096956010647979,
+       "-57.0": 2.1192527246107815,
+       "-64.0": 0.8872589370095589,
+       "-71.0": 2.936702549138486,
+       "-78.0": 3.492163478194568,
+       "-81.0": 2.097177966107143,
+       "-84.0": 0.18494499936211994,
+       "-87.0": -1.1998721336337006,
+       "-90.0": -1.8433260909132407
+      },
+      "worst_el_deg": -78.0,
+      "worst_abs_db": 3.492163478194568
+     },
+     "5G NR 3.5 GHz": {
+      "clamp_ref_dbsm": -17.45709035901092,
+      "level_vs_el_minus20_db": {
+       "-24.0": -1.365525541213664,
+       "-28.0": -1.961911719034159,
+       "-33.0": -1.055830649489213,
+       "-38.0": -0.30951725999561575,
+       "-44.0": -1.2623454359843294,
+       "-50.0": -0.6111803694691957,
+       "-57.0": -1.5671648768012787,
+       "-64.0": -1.3618476179494436,
+       "-71.0": 2.5066028620004417,
+       "-78.0": 4.3357222653341285,
+       "-81.0": 4.378816398844556,
+       "-84.0": 1.545480163222365,
+       "-87.0": 3.439401178681475,
+       "-90.0": 9.860837354453004
+      },
+      "worst_el_deg": -90.0,
+      "worst_abs_db": 9.860837354453004
+     },
+     "WiFi 5.2 GHz": {
+      "clamp_ref_dbsm": -18.13751557004554,
+      "level_vs_el_minus20_db": {
+       "-24.0": -0.00674567622395017,
+       "-28.0": -0.768824949742168,
+       "-33.0": -0.20252181431764882,
+       "-38.0": -0.223696276870875,
+       "-44.0": -0.20175459150392427,
+       "-50.0": -1.1340045293010945,
+       "-57.0": 0.5537971557521608,
+       "-64.0": 1.946500692300237,
+       "-71.0": 3.4996534702354563,
+       "-78.0": 3.6462089369124175,
+       "-81.0": 9.088262309102902,
+       "-84.0": 6.110679571974014,
+       "-87.0": 3.5970237493284376,
+       "-90.0": 4.203063995136965
+      },
+      "worst_el_deg": -81.0,
+      "worst_abs_db": 9.088262309102902
+     }
+    },
+    "worst_abs_db": 9.860837354453004
+   },
+   "matrice4e": {
+    "bands": {
+     "LTE 1.8 GHz": {
+      "clamp_ref_dbsm": -20.956293806806563,
+      "level_vs_el_minus20_db": {
+       "-24.0": -0.40361120207688117,
+       "-28.0": -0.7575412195094913,
+       "-33.0": -0.5310319039264613,
+       "-38.0": 0.6086044471438896,
+       "-44.0": 1.833613910542475,
+       "-50.0": 2.216704106318719,
+       "-57.0": 3.0959236134729373,
+       "-64.0": 4.671126755119854,
+       "-71.0": 6.006388155925089,
+       "-78.0": 6.76902800518692,
+       "-81.0": 6.307753571413304,
+       "-84.0": 4.727102074529576,
+       "-87.0": 2.2675439175988963,
+       "-90.0": 1.3633705680813186
+      },
+      "worst_el_deg": -78.0,
+      "worst_abs_db": 6.76902800518692
+     },
+     "5G NR 3.5 GHz": {
+      "clamp_ref_dbsm": -20.153623429672077,
+      "level_vs_el_minus20_db": {
+       "-24.0": -0.9831714115689216,
+       "-28.0": -1.8272873138784256,
+       "-33.0": -2.610780753302425,
+       "-38.0": -3.5461302586460164,
+       "-44.0": -3.0613705942790155,
+       "-50.0": -1.2554476644551187,
+       "-57.0": -0.6981966076748414,
+       "-64.0": 0.2921892919022113,
+       "-71.0": 2.8794375609137326,
+       "-78.0": 5.782016605005477,
+       "-81.0": 6.4783711180291395,
+       "-84.0": 6.385009496389332,
+       "-87.0": 0.6184829621983177,
+       "-90.0": -11.292360504239916
+      },
+      "worst_el_deg": -90.0,
+      "worst_abs_db": 11.292360504239916
+     },
+     "WiFi 5.2 GHz": {
+      "clamp_ref_dbsm": -20.661872388861546,
+      "level_vs_el_minus20_db": {
+       "-24.0": -0.1869964460116762,
+       "-28.0": -0.8334234428292859,
+       "-33.0": -0.17527433326090502,
+       "-38.0": -0.9079501066009996,
+       "-44.0": -1.284682328973087,
+       "-50.0": -0.839602988713203,
+       "-57.0": 0.1201612622100896,
+       "-64.0": 1.6202946118417287,
+       "-71.0": 4.5217289224887125,
+       "-78.0": 7.9041109462489345,
+       "-81.0": 8.986463805548617,
+       "-84.0": 8.438565311759787,
+       "-87.0": 6.225163037309862,
+       "-90.0": 15.194144823876282
+      },
+      "worst_el_deg": -90.0,
+      "worst_abs_db": 15.194144823876282
+     }
+    },
+    "worst_abs_db": 15.194144823876282
+   },
+   "s1000plus": {
+    "bands": {
+     "LTE 1.8 GHz": {
+      "clamp_ref_dbsm": -13.611472602812553,
+      "level_vs_el_minus20_db": {
+       "-24.0": 0.9711013200675804,
+       "-28.0": 0.8718840379192478,
+       "-33.0": -0.9549147014458743,
+       "-38.0": 0.7486076996102344,
+       "-44.0": 1.006001174902952,
+       "-50.0": 2.5628706536146115,
+       "-57.0": 0.33987588235771327,
+       "-64.0": 0.9902428557469509,
+       "-71.0": 2.6489501110167364,
+       "-78.0": 3.4901463162722433,
+       "-81.0": 5.903405750313475,
+       "-84.0": 8.29289202002208,
+       "-87.0": 13.724488731893427,
+       "-90.0": 16.654511621102685
+      },
+      "worst_el_deg": -90.0,
+      "worst_abs_db": 16.654511621102685
+     },
+     "5G NR 3.5 GHz": {
+      "clamp_ref_dbsm": -13.675890578718333,
+      "level_vs_el_minus20_db": {
+       "-24.0": -0.1497272519942907,
+       "-28.0": -0.017965516657991287,
+       "-33.0": 1.1931814347666503,
+       "-38.0": 0.08560052201338486,
+       "-44.0": 1.6724643545846902,
+       "-50.0": 3.2061082755889814,
+       "-57.0": 2.006306172736368,
+       "-64.0": 3.2424310817597704,
+       "-71.0": 3.4638660952964706,
+       "-78.0": 3.0084651128871993,
+       "-81.0": 9.83755917902236,
+       "-84.0": 10.8973897825882,
+       "-87.0": 12.457866615975522,
+       "-90.0": 18.346027659445568
+      },
+      "worst_el_deg": -90.0,
+      "worst_abs_db": 18.346027659445568
+     },
+     "WiFi 5.2 GHz": {
+      "clamp_ref_dbsm": -14.670300146762534,
+      "level_vs_el_minus20_db": {
+       "-24.0": -0.45226006100772764,
+       "-28.0": -0.3052439349975966,
+       "-33.0": -0.23714240826904565,
+       "-38.0": -1.2728723625842804,
+       "-44.0": 0.6542907636805761,
+       "-50.0": 1.7524441517564444,
+       "-57.0": 3.228920199951075,
+       "-64.0": 5.259924213050111,
+       "-71.0": 7.165181575779086,
+       "-78.0": 9.97418024805075,
+       "-81.0": 9.924256013934176,
+       "-84.0": 12.926562098819353,
+       "-87.0": 14.280721268181916,
+       "-90.0": 26.544394592543668
+      },
+      "worst_el_deg": -90.0,
+      "worst_abs_db": 26.544394592543668
+     }
+    },
+    "worst_abs_db": 26.544394592543668
+   },
+   "typhoonh480": {
+    "bands": {
+     "LTE 1.8 GHz": {
+      "clamp_ref_dbsm": -17.75764829469884,
+      "level_vs_el_minus20_db": {
+       "-24.0": -0.6728704258085685,
+       "-28.0": -0.43307522442143664,
+       "-33.0": -0.8548639373884015,
+       "-38.0": -2.5461352809075137,
+       "-44.0": -3.3665104538844055,
+       "-50.0": -0.4277411618016771,
+       "-57.0": 0.4262630500634792,
+       "-64.0": 1.3482839080111937,
+       "-71.0": 4.663517159363996,
+       "-78.0": 3.5156240988321255,
+       "-81.0": 2.490628831888545,
+       "-84.0": 2.291789195761277,
+       "-87.0": 3.577899316732024,
+       "-90.0": 4.2949428537564724
+      },
+      "worst_el_deg": -71.0,
+      "worst_abs_db": 4.663517159363996
+     },
+     "5G NR 3.5 GHz": {
+      "clamp_ref_dbsm": -17.345146645390884,
+      "level_vs_el_minus20_db": {
+       "-24.0": -2.3980724699866727,
+       "-28.0": -0.6442586869774942,
+       "-33.0": -2.093663195960918,
+       "-38.0": -4.151535467160304,
+       "-44.0": -1.2718377022864402,
+       "-50.0": -1.2521533376683465,
+       "-57.0": -1.6072204711744895,
+       "-64.0": 0.678163566690742,
+       "-71.0": 3.3190377426205018,
+       "-78.0": 6.859278167245284,
+       "-81.0": 5.781116943582052,
+       "-84.0": 4.3313835166688985,
+       "-87.0": 7.874225578962902,
+       "-90.0": 11.771022430625244
+      },
+      "worst_el_deg": -90.0,
+      "worst_abs_db": 11.771022430625244
+     },
+     "WiFi 5.2 GHz": {
+      "clamp_ref_dbsm": -17.781120372122807,
+      "level_vs_el_minus20_db": {
+       "-24.0": -1.6542433486118604,
+       "-28.0": -2.159185041092819,
+       "-33.0": -1.442197313258724,
+       "-38.0": -0.1797204767724665,
+       "-44.0": -0.1729313867938771,
+       "-50.0": 0.09658519962376744,
+       "-57.0": -0.3944288498864914,
+       "-64.0": 1.6597849451331115,
+       "-71.0": 3.1860209324215987,
+       "-78.0": 7.575368968950977,
+       "-81.0": 8.357070915480243,
+       "-84.0": 9.102356381045993,
+       "-87.0": 7.074409241986448,
+       "-90.0": 9.70443301187844
+      },
+      "worst_el_deg": -90.0,
+      "worst_abs_db": 9.70443301187844
+     }
+    },
+    "worst_abs_db": 11.771022430625244
+   },
+   "x500v2": {
+    "bands": {
+     "LTE 1.8 GHz": {
+      "clamp_ref_dbsm": -19.698969570958013,
+      "level_vs_el_minus20_db": {
+       "-24.0": -0.935220131482815,
+       "-28.0": -3.339883903886875,
+       "-33.0": -4.186965784857982,
+       "-38.0": -2.268352315463961,
+       "-44.0": -0.9268601206650864,
+       "-50.0": -1.5737132138205254,
+       "-57.0": 0.5670760106613884,
+       "-64.0": 0.734406282649843,
+       "-71.0": 1.908876648049258,
+       "-78.0": 0.01592395875481145,
+       "-81.0": 0.3682520295095699,
+       "-84.0": 1.8430400401783835,
+       "-87.0": 2.71801551899523,
+       "-90.0": 3.0011778457312914
+      },
+      "worst_el_deg": -33.0,
+      "worst_abs_db": 4.186965784857982
+     },
+     "5G NR 3.5 GHz": {
+      "clamp_ref_dbsm": -20.223956267730962,
+      "level_vs_el_minus20_db": {
+       "-24.0": -1.6768998093674874,
+       "-28.0": -0.899154190794313,
+       "-33.0": -1.765117517033282,
+       "-38.0": -1.696629859984096,
+       "-44.0": -1.140907597519874,
+       "-50.0": -1.8251276594201045,
+       "-57.0": 1.3669616371796316,
+       "-64.0": 3.9243317840784506,
+       "-71.0": 4.514722900200349,
+       "-78.0": 11.616670059810213,
+       "-81.0": 12.746002986754982,
+       "-84.0": 11.458063201597154,
+       "-87.0": 2.587630541445236,
+       "-90.0": 8.642463195071263
+      },
+      "worst_el_deg": -81.0,
+      "worst_abs_db": 12.746002986754982
+     },
+     "WiFi 5.2 GHz": {
+      "clamp_ref_dbsm": -19.56408641490485,
+      "level_vs_el_minus20_db": {
+       "-24.0": -0.22225993860832105,
+       "-28.0": -1.3164904357177605,
+       "-33.0": -1.634257705655937,
+       "-38.0": -3.3894363082988406,
+       "-44.0": -1.6291118764912014,
+       "-50.0": -1.4664267164448468,
+       "-57.0": 0.8452743855878921,
+       "-64.0": 3.07489712362727,
+       "-71.0": 4.272750468428855,
+       "-78.0": 6.996624164408853,
+       "-81.0": 10.330290402883413,
+       "-84.0": 15.131908601368586,
+       "-87.0": 17.251064743912703,
+       "-90.0": 17.56076021870599
+      },
+      "worst_el_deg": -90.0,
+      "worst_abs_db": 17.56076021870599
+     }
+    },
+    "worst_abs_db": 17.56076021870599
+   }
+  },
+  "worst_over_all_drones_db": 26.544394592543668
+ },
+ "cache_prune": {
+  "total": 2000,
+  "legacy": 650,
+  "stale": 1300,
+  "live": 50,
+  "unknown_drone": 0,
+  "kept": 50,
+  "removed": 1950,
+  "fingerprints": {
+   "mini5pro": "8afe5530",
+   "mavic4pro": "73d30b20",
+   "matrice4e": "5ee3b19b",
+   "s1000plus": "02f45928",
+   "phantom4": "8e44ef2a",
+   "typhoonh480": "83ea1cd0",
+   "x500v2": "126e2936",
+   "phantom3": "c137610a"
+  }
+ }
+}

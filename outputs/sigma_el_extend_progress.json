@@ -1,0 +1,215 @@
+{
+ "task": "report13 σ 격자 고도(el) 확장 — −20° 클램프 제거",
+ "updated": "2026-08-03T11:09:20",
+ "new_el_deg": [
+  -24,
+  -28,
+  -33,
+  -38,
+  -44,
+  -50,
+  -57,
+  -64,
+  -71,
+  -78,
+  -81,
+  -84,
+  -87,
+  -90
+ ],
+ "n_new_el": 14,
+ "why_those": "근거 두 가지를 실제로 재서 정했다. ① 조회밀도: freespace_scene.look_el_deg 를 공표 스윕(L=500 m, alt=60·120 m, d 100…20 km, φ 전주기) 위에서 다시 계산하니 −20° 밖 조회가 alt60 에서 11.9 %, alt120 에서 23.7 % 였고, 그 중 31 % 가 [−25,−20), 17.6 % 가 [−30,−25) 에 몰렸다(최저 −88.1°, d=100 m·φ=180°). 그래서 위쪽은 4° 로 촘촘히, 가운데는 7° 로 벌린다. ② σ(el) 곡률: 2.5° 미세 스캔(11 개 드론×밴드)에서 −20~−60° 는 2.5° 당 0.2~1 dB 로 완만한데 −78° 아래는 천정 실루엣이 급변해 2.5° 당 4~10 dB 까지 뛴다. 그래서 −78° 아래를 3° 로 다시 좁혔다(−81·−84·−87·−90). 후보 격자 8종을 σ 최근접행 오차로 비교해 이 14점이 rms 0.75 dB·max 4.8 dB 로 최선이었다(원안 5점은 rms 1.62·max 18.9, 원안 10점은 rms 1.06·max 14.6). +el 은 넣지 않았다 — 표적이 조명원 마스트(25 m)·수신기(3 m)보다 높으면 이등분선 z 가 항등적으로 음수라 look el 이 구조적으로 음수다(관측 최대 −0.13°). +el 은 표적 고도 25 m 미만에서만 생기고 report13 장면은 그 고도를 쓰지 않는다.",
+ "base_el_deg": [
+  0.0,
+  -0.5,
+  -1.0,
+  -2.0,
+  -3.5,
+  -5.0,
+  -8.0,
+  -12.0,
+  -20.0
+ ],
+ "drones": [
+  "s1000plus",
+  "typhoonh480",
+  "matrice4e",
+  "mavic4pro",
+  "phantom4",
+  "mini5pro",
+  "x500v2"
+ ],
+ "bands": [
+  "wifi",
+  "nr",
+  "lte"
+ ],
+ "n_cells_total": 295,
+ "n_cells_done": 295,
+ "n_cells_todo": 0,
+ "workers_running": 0,
+ "artifacts": {
+  "grid": "/home/yunjung/workspace/sionna2/outputs/report13_sigma_grid_elext.json",
+  "verify": "/home/yunjung/workspace/sionna2/outputs/sigma_el_extend_verify.json",
+  "ceiling": "/home/yunjung/workspace/sionna2/outputs/sigma_el_extend_ceiling.json",
+  "backup_of_canonical": "/home/yunjung/workspace/sionna2/outputs/archive/report13_sigma_grid_backup_0803_elext.json",
+  "shards": "/home/yunjung/workspace/sionna2/outputs/partial/sigma_regen_0803/elx",
+  "div_crosscheck": "/home/yunjung/workspace/sionna2/outputs/partial/sigma_regen_0803/elxdiv",
+  "probes": "/home/yunjung/workspace/sionna2/outputs/partial/sigma_regen_0803/probe",
+  "producer_updated": "src/experiment_freespace_sigma.py EL_GRID (9 → 23 rows)"
+ },
+ "clamp_removed": {
+  "phi_sweep_alt60": {
+   "n": 17280,
+   "el_min": -88.05789957195047,
+   "el_max": -0.13140665061014922,
+   "out_of_grid_old": 2056,
+   "out_of_grid_old_frac": 0.11898148148148148,
+   "out_of_grid_new": 0,
+   "out_of_grid_new_frac": 0.0,
+   "beta_gate_pass_frac": 0.8291666666666667,
+   "el_min_beta_gated": -49.765779133850515
+  },
+  "phi_sweep_alt120": {
+   "n": 17280,
+   "el_min": -83.0683009760028,
+   "el_max": -0.30331821228897954,
+   "out_of_grid_old": 4096,
+   "out_of_grid_old_frac": 0.23703703703703705,
+   "out_of_grid_new": 0,
+   "out_of_grid_new_frac": 0.0,
+   "beta_gate_pass_frac": 0.8458333333333333,
+   "el_min_beta_gated": -58.66433412580561
+  },
+  "headline_phi90_alt60": {
+   "n": 240,
+   "el_min": -24.664087718424803,
+   "el_max": -0.1317800206513666,
+   "out_of_grid_old": 11,
+   "out_of_grid_old_frac": 0.04583333333333333,
+   "out_of_grid_new": 0,
+   "out_of_grid_new_frac": 0.0,
+   "beta_gate_pass_frac": 0.8291666666666667,
+   "el_min_beta_gated": -10.491346827758582
+  }
+ },
+ "clamp_error_db": {
+  "definition": "sigma read at the true bisector elevation minus sigma read at the clamped -20 deg row, dB, over every lookup that used to fall outside the grid (phi sweep, alt 60 and 120 m, all 7 airframes x 3 bands)",
+  "n": 129192,
+  "rms_db": 6.232091108078279,
+  "mean_db": 0.24681069689993368,
+  "p50_abs_db": 3.4362042285625662,
+  "p90_abs_db": 10.538914293547858,
+  "p99_abs_db": 18.07637772268453,
+  "max_abs_db": 32.79155724273435,
+  "beta_gated": {
+   "n": 33306,
+   "rms_db": 4.976920445989124,
+   "p99_abs_db": 15.513230986164103,
+   "max_abs_db": 23.243399609686243
+  },
+  "level_only": {
+   "definition": "azimuth linear-mean sigma at the true el row minus the same at the clamped -20 deg row — the SYSTEMATIC part; the rest of clamp_error is speckle (null pattern decorrelates between el rows)",
+   "rms_db": 2.2294410450518636,
+   "mean_db": 0.019859602859328297,
+   "p90_abs_db": 3.4638660952964706,
+   "max_abs_db": 17.251064743912703,
+   "note": "clamping to -20 deg UNDER-states sigma where mean>0 and over-states where mean<0"
+  }
+ },
+ "ceiling_impact": {
+  "n_cases": 45,
+  "delta_ceiling_max_abs_db": 9.16591315648904,
+  "delta_ceiling_rms_db": 3.3701371541807577,
+  "delta_ceiling_at_phi0_max_abs_db": 9.16591315648904,
+  "headline_phi90": {
+   "delta_ceiling_max_abs_db": 0.0,
+   "note": "at the headline azimuth the SNR ceiling sits at d~250 m where the bisector elevation is only about -10 deg, i.e. INSIDE the old 9-row grid; the clamp touched only the d<130 m tail, which is below the ceiling"
+  }
+ },
+ "convergence_div_cross": {
+  "-24/div24": {
+   "n": 3,
+   "mean_abs_db": 0.03349542547420962,
+   "max_abs_db": 0.06654840101758808
+  },
+  "-28/div24": {
+   "n": 4,
+   "mean_abs_db": 0.026211331584335085,
+   "max_abs_db": 0.06857838810219619
+  },
+  "-33/div24": {
+   "n": 1,
+   "mean_abs_db": 0.02970769210595492,
+   "max_abs_db": 0.02970769210595492
+  },
+  "-38/div24": {
+   "n": 3,
+   "mean_abs_db": 0.025242364935402623,
+   "max_abs_db": 0.046842220871699425
+  },
+  "-44/div24": {
+   "n": 1,
+   "mean_abs_db": 0.05025031555243942,
+   "max_abs_db": 0.05025031555243942
+  },
+  "-50/div24": {
+   "n": 7,
+   "mean_abs_db": 0.019289651946497597,
+   "max_abs_db": 0.0711686394780493
+  },
+  "-57/div24": {
+   "n": 4,
+   "mean_abs_db": 0.010077699776700477,
+   "max_abs_db": 0.02005425747781331
+  },
+  "-64/div24": {
+   "n": 3,
+   "mean_abs_db": 0.015017452965906841,
+   "max_abs_db": 0.02991515914261811
+  },
+  "-71/div24": {
+   "n": 4,
+   "mean_abs_db": 0.04015102518414482,
+   "max_abs_db": 0.0769370108875016
+  },
+  "-78/div24": {
+   "n": 14,
+   "mean_abs_db": 0.036237222240384295,
+   "max_abs_db": 0.07463420317658276
+  },
+  "-81/div24": {
+   "n": 4,
+   "mean_abs_db": 0.06314644539071634,
+   "max_abs_db": 0.15963315506700226
+  },
+  "-84/div24": {
+   "n": 4,
+   "mean_abs_db": 0.20277506780623822,
+   "max_abs_db": 0.5447720129086377
+  },
+  "-87/div24": {
+   "n": 14,
+   "mean_abs_db": 0.2194076120009403,
+   "max_abs_db": 0.7296647551662936
+  },
+  "-87/div32": {
+   "n": 7,
+   "mean_abs_db": 0.16041090353211315,
+   "max_abs_db": 0.2922943910059601
+  },
+  "-90/div24": {
+   "n": 14,
+   "mean_abs_db": 0.34004097075900325,
+   "max_abs_db": 2.6893182916212837
+  },
+  "-90/div32": {
+   "n": 14,
+   "mean_abs_db": 0.2115611829066588,
+   "max_abs_db": 1.2212669358351746
+  }
+ },
+ "resume": "cd outputs/partial/sigma_regen_0803 && python elx_driver.py jobs_elx.json 30 3,2,3,2,3,2 650 <progress> — 이미 있는 out 은 건너뛴다. 그다음 elx_merge.py → elx_verify.py → elx_ceiling.py",
+ "todo_ids": [],
+ "todo_truncated": 0
+}

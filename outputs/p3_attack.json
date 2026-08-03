@@ -1,0 +1,526 @@
+{
+ "_meta": {
+  "what": "Phantom 3 눈감기(blind) 검증에 대한 적대감사 — 눈감기 진위·특례·자유도·사과대사과·대조군",
+  "generated": "2026-08-03 11:02:41",
+  "audited": [
+   "outputs/p3_specs.json",
+   "outputs/p3_ours.json",
+   "outputs/p3_validation.json",
+   "docs/MESH_METHOD.md",
+   "outputs/validate_measured_airframe.json",
+   "src/drones.py(phantom3)",
+   "src/drone_cad.py(phantom3)",
+   "benchmark/airframe_phantom3.py",
+   "git log · 파일 mtime · 세션 스크래치패드 실행로그"
+  ],
+  "new_computation_by_this_audit": "대조군 5종을 **우리 커널(rcs_sbr_batch)** 로 p3_ours 와 동일 규약(el=0 · 방위 360점 · λ/16 · μ=10log10 mean_az σ)으로 새로 계산했다.",
+  "control_worker": "scratchpad/p3ctl/ctl_worker.py · 채점 scratchpad/p3ctl/score.py"
+ },
+ "Q1_was_the_answer_seen": {
+  "verdict": "blind_intact = FALSE. 다만 **맞추려 손댄 흔적은 없다**(방향시험이 무죄를 가리킨다).",
+  "A_self_reported_leak": {
+   "where": "outputs/p3_specs.json blind_log.LEAK_TO_DISCLOSE",
+   "what_it_admits": "docs/*.md 를 'phantom 3' 로 grep 한 출력에 3.5 GHz 절대 σ 2건, INJECTION_PRECEDENT 의 envelope 편차 dB, ENGINE_VALIDATION 의 ε(f) 줄이 딸려 나왔다.",
+   "honesty": "⭐ 아무도 못 잡을 누출을 스스로 적었다. 이 항목만 보면 성실하다."
+  },
+  "B_the_leak_is_LARGER_than_disclosed": {
+   "claim_in_blind_log": "\"not_seen: 금지 리터럴 4종(0.21, -19.19, 0.315, -16.15)은 내가 읽은 어떤 것에도 없었다\"",
+   "test": "그 로그가 스스로 적은 조작(`grep 'phantom 3' docs/*.md`)을 재실행했다. 소문자 대소문자구분 grep 은 **0줄**이므로 그 로그가 출력을 봤다면 -i 또는 'Phantom 3' 였다.",
+   "result": [
+    "docs/DRONE_ISAC_PRIOR_READING.md:71 → 'μ=0.21f−19.19 → −18.80 / −18.46 / −18.10'",
+    "docs/DRONE_ISAC_PRIOR_READING.md:72 → 'μ=0.315f−16.15 → −15.57 / −15.05 / −14.51'",
+    "docs/AUDIT_FINDINGS_0722.md:350 → 'multiband Phantom 3 0.21 · mono3d θ=90° 0.315'",
+    "docs/ENGINE_VALIDATION.md:60 → '전 기체 7행 총람은 0.07~0.315'"
+   ],
+   "provenance": "이 세 줄은 2026-07-31 10:10 커밋본에 그대로 있다(git show 확인) — 눈감기 라운드보다 사흘 앞선다.",
+   "consequence": "**'금지 리터럴 4종을 보지 않았다' 는 재현으로 반증된다.** 같은 grep 출력의 앞부분(71·72행)이 뒷부분(314·315행, 로그가 공개한 것)보다 먼저 찍힌다. 화면에 무엇이 남았는지는 증명할 수 없지만, **문서가 기술한 조작은 네 수를 전부 출력한다.**",
+   "severity": "높음 — 헤드라인 대조량(기울기 0.21·0.315, 절편 −19.19·−16.15)이 전부 그 출력 안에 있다."
+  },
+  "C_structural_breach_the_logs_do_not_mention": {
+   "fact": "같은 날 **03:55** 에 이미 사시(sighted) 대조가 끝나 있었다 — outputs/validate_measured_airframe.json 의 8_comparison. 그 헤드라인은 눈감기 라운드가 나중에 내놓은 결론과 **같다**: 'FR1 바닥에서 너무 낮고 주파수가 오르면 결손이 닫힌다'.",
+   "timeline": {
+    "01:48": "outputs/validation_feasibility.json (사시 — Das/Yuan 설정·계수 감사)",
+    "02:46": "benchmark/airframe_phantom3.py (P3 메쉬 최초 작성, 높이 200 mm)",
+    "03:55": "outputs/validate_measured_airframe.json (**사시 대조 완료**, 8_comparison)",
+    "07:04": "docs/ENGINE_VALIDATION.md · src/sigma_anchor.py 갱신",
+    "07:50": "outputs/p3_specs.json ('눈감기' 스펙 재조사 — 위 B 의 누출 발생)",
+    "07:58 / 08:00": "src/drone_cad.py · src/drones.py 에 phantom3 **재등록**(높이 185 mm, 셸 fh 교체, 짐벌 교체)",
+    "08:34–09:45": "p3_ours 계산(눈감기 가드가 걸린 별도 프로세스)",
+    "10:12:41": "commit 00fbbe4 — p3_ours.json · p3_specs.json **동결**",
+    "10:33": "outputs/p3_validation.json — 봉인 해제 대조"
+   },
+   "so_what": "σ 계산 프로세스의 눈감기는 진짜지만, **조직 수준의 눈감기는 아니다.** 메쉬는 답을 이미 정량한 워크플로 안에서 다시 지어졌다."
+  },
+  "D_direction_test_EXCULPATORY": {
+   "why_this_is_the_decisive_test": "맞추려 했다면 메쉬는 실측 쪽(위)으로 움직였어야 한다.",
+   "measured": {
+    "옛 메쉬(사시 라운드, 높이 200 mm) μ(f) el=0": [
+     -22.88,
+     -20.59,
+     -19.69,
+     -18.84,
+     -16.96,
+     -16.39,
+     -16.87,
+     -16.42,
+     -16.43,
+     -14.36,
+     -17.25,
+     -15.33,
+     -14.76,
+     -13.81,
+     -13.18,
+     -15.54,
+     -13.84,
+     -15.47,
+     -14.32,
+     -13.93,
+     -12.84
+    ],
+    "새 메쉬(눈감기 라운드, 높이 185 mm) μ(f) el=0": [
+     -24.35,
+     -22.32,
+     -21.4,
+     -19.36,
+     -19.38,
+     -17.55,
+     -18.64,
+     -17.18,
+     -15.63,
+     -17.99,
+     -16.36,
+     -16.18,
+     -16.73,
+     -14.98,
+     -16.68,
+     -15.69,
+     -17.23,
+     -16.61,
+     -15.2,
+     -16.62,
+     -13.48
+    ],
+    "차이 dB": [
+     -1.47,
+     -1.73,
+     -1.7,
+     -0.51,
+     -2.42,
+     -1.16,
+     -1.77,
+     -0.76,
+     0.8,
+     -3.63,
+     0.89,
+     -0.86,
+     -1.97,
+     -1.17,
+     -3.5,
+     -0.15,
+     -3.4,
+     -1.14,
+     -0.88,
+     -2.69,
+     -0.64
+    ],
+    "밴드평균 이동": -1.421,
+    "최대 하강": -3.63
+   },
+   "reading": "재등록은 우리 σ 를 평균 1.42 dB **더 낮췄다** — 실측은 우리보다 위에 있으므로 **맞춤과 반대 방향**이다. 높이를 논문의 200 mm 에서 제조사 185 mm 로 내린 것도, 셸 fh 를 P4 0.418 → P3 실측 0.345 로 얇게 한 것도 전부 σ 를 깎는다.",
+   "also": "P3 실물에 없는 마그네슘 판을 '전용 예외를 만들지 않겠다' 며 **남겼다**. 그 판을 빼면 (물리적으로 옳은 쪽) σ 는 더 내려가고 일치는 더 나빠진다 — 즉 선언된 편향이 우리에게 유리하다."
+  },
+  "E_pre_registration_intact": {
+   "check": "git diff -- outputs/p3_ours.json outputs/p3_specs.json → **빈 diff**. 두 파일은 commit 00fbbe4(10:12:41)와 바이트 동일하고, 대조 산출물 p3_validation.json 은 10:33 이다.",
+   "meaning": "봉인 해제 뒤 우리 쪽 수를 고친 흔적은 없다. p3_validation 이 스스로 적은 'p3_ours.json 을 한 줄도 고치지 않았다' 는 참이다."
+  },
+  "F_no_relevel": {
+   "risk": "src/sigma_anchor.relevel() 은 우리 σ 를 문헌 레벨로 **끌어올리는** 함수이고 저장소 다른 곳(src/experiment_freespace_sigma.py)에서 실제로 쓰인다.",
+   "check": "P3 경로(p3_ours_run → rcs_anchor.raw_sigma_az → rcs_sbr.rcs_sbr_batch)에는 호출이 없다. 확인됨.",
+   "watch": "다른 리포트가 relevel 된 σ 를 쓰면서 이 P3 결과를 검증근거로 인용하면 **순환**이 된다."
+  }
+ },
+ "Q2_phantom3_special_cases": {
+  "verdict": "치명적 특례는 없다. 있는 것은 (a) 기종 전용 분기 — 이 저장소의 **모든** 기체가 갖는다, (b) 두 개의 P3 전용 수(셸 fh·짐벌 치수) — 둘 다 P3 도면 실측이다, (c) 죽은 라벨 하나. 시험을 약화시키는 것은 특례가 아니라 **자유도**(Q3)다.",
+  "items": [
+   {
+    "what": "src/drone_cad.py:1628 `elif key == \"phantom3\"`",
+    "is_it_special": "아니다 — mavic4pro·matrice4e·phantom4·mini5pro 도 각자 key 분기를 갖는다. MESH_METHOD §0: '공용 기본경로로만 지어진 표적은 하나도 없다.'",
+    "weakens_test": "아니다. 단 '우리 방법은 새 기체에 기계적으로 적용된다' 는 주장은 여기서 죽는다."
+   },
+   {
+    "what": "_SHELL_SHAPE['phantom3'] = dict(_SHELL_SHAPE['phantom4'], fh=63.9/185)",
+    "is_it_special": "P3 전용 항목이지만 **P3 도면 실측 1개**만 바꾼 것이다. 나머지 20개 수는 P4 사진실측 상속.",
+    "weakens_test": "약화라기보다 **시험 대상이 좁아진다** — 검증되는 것은 'P4 형상표 + P3 제원' 조합이다(MESH_METHOD §9)."
+   },
+   {
+    "what": "gimbal_style='hanging_damped' (새 스타일 이름)",
+    "is_it_special": "이름만 새롭고 **소비하는 코드가 없다** — key=='phantom3' 분기가 먼저 걸린다. 죽은 라벨.",
+    "weakens_test": "아니다(σ 무영향). 다만 스키마 오염."
+   },
+   {
+    "what": "마그네슘 판 유지",
+    "is_it_special": "**반(反)특례** — P3 에는 마그네슘 골격이 없는데도 '전용 예외를 만들지 않겠다' 며 남겼다.",
+    "weakens_test": "우리에게 **불리한 쪽이 아니라 유리한 쪽**으로 σ 를 올린다 → 잔차를 과소평가한다."
+   },
+   {
+    "what": "div=16, n_az=360, penetrate=True",
+    "is_it_special": "아니다 — rcs_anchor.raw_sigma_az 가 전 기체에 쓰는 기본이다(커널 기본 div=12 와는 다르다).",
+    "weakens_test": "div 선택 자체는 자유도(Q3 tier C). 측정된 레버 0.52 dB rms."
+   },
+   {
+    "what": "P3 만 10 고도 · 21 주파수 · div 대조 · n_az 대조까지 돌았다",
+    "is_it_special": "다른 기체보다 **훨씬 촘촘하다**. 특혜가 아니라 정밀조사지만, 그 결과 **대조 자세를 10개 중에서 고르게 되었다**(Q3 tier C).",
+    "weakens_test": "그렇다 — 아래 Q5 참조."
+   }
+  ]
+ },
+ "Q3_degrees_of_freedom": {
+  "_rule": "'자유로운 선택' = 이 메쉬의 σ 를 바꾸는데 **Phantom 3 자체의 관측으로 고정되지 않은** 수. 저장소에 P3 사진이 한 장도 없으므로(MESH_METHOD §9) 형상 수는 거의 전부 여기 들어간다.",
+  "constrained_by_a_phantom3_observation": {
+   "count": 13,
+   "items": [
+    "대각 350 mm(공표·논문)",
+    "body_l 289.5(공표 외형)",
+    "body_w 289.0(공표 외형)",
+    "body_h 185(DJI 공표)",
+    "프롭 지름 240",
+    "프롭 피치 5.0 in",
+    "블레이드 2",
+    "로터 4",
+    "로터각 45°(위 2·3에서 유도)",
+    "셸 높이 63.9 mm(도면 픽셀실측)",
+    "다리 높이 120.5 mm(도면 픽셀실측, ±8%)",
+    "짐벌 블록 폭 66.1 mm(도면)",
+    "짐벌 블록 높이 33.8 mm(도면)"
+   ]
+  },
+  "tier_A_p3_specific_decisions": {
+   "count": 32,
+   "examples": [
+    "변종 Professional 선택(4 변종 중)",
+    "높이 185(DJI) vs 200(논문 2편) 갈림",
+    "envelope 강제축을 '높이만' 으로 하는 정책",
+    "짐벌 깊이 71.2 = P4 깊이/폭비 이전",
+    "짐벌 x = nose_x·0.62(상속)",
+    "짐벌 z 앵커 = −0.50bh−0.010−0.68h(손)",
+    "P4 전용 부품 4종 제거 판단",
+    "VPS 부품 3개의 치수·위치 8개 리터럴",
+    "마그네슘 판을 **알면서 남긴** 결정",
+    "스톡 폴리머 프롭 vs 옵션 카본 프롭",
+    "rotor_r_mm·rotor_z_mm 를 None 으로 둠",
+    "body_lw(1.06,1.0)·body_frac 0.52 상속",
+    "arm_od/motor_dia/motor_h 를 None 으로 두어 대각비례식에 맡김",
+    "arm_style='body'(플라스틱) — 카본이었다면 |Γ| 0.90↔0.28 = 10.1 dB"
+   ]
+  },
+  "tier_B_inherited_shape_constants_no_p3_evidence": {
+   "count": 160,
+   "breakdown": {
+    "_SHELL_SHAPE(phantom4) 중 fh 제외": 20,
+    "_ARM_WIDTH": 2,
+    "_ARM_SECTION": 2,
+    "_body_folding 법칙(스테이션·tail_w·해상도·스무딩)": 10,
+    "_canopy 법칙": 14,
+    "암 비율 리터럴": 3,
+    "모터(비율 2 + 벨 프로파일 9점=18 + 벨 z)": 21,
+    "_gear_arch 비율": 13,
+    "다리높이 0.58·H 규약": 1,
+    "_gimbal_hanging 내부 비율": 21,
+    "내부 산란체 3상자(치수3+위치3)×3": 18,
+    "프로펠러 H등급 상수(sweep_frac·root_frac·허브·해상도·base_ang 12°·회전방향)": 15,
+    "프로펠러 D등급 상수(코드·두께비·캠버)": 5,
+    "그룹→재질 배정(존재 8그룹)": 8,
+    "쓰인 |Γ| 실효값 5종": 5,
+    "셸 투과 규약(어느 그룹이 셸인가 + τ=1−|Γ|²)": 2
+   }
+  },
+  "tier_C_engine_and_comparison_knobs": {
+   "count": 13,
+   "items_with_measured_leverage": {
+    "div=16 (커널 기본 12)": "grid_control: rms 0.52 dB, 1.8 GHz 에서 1.18 dB",
+    "el=0 을 대조 자세로 선택(계산된 10 자세 중)": "μ 의 고도간 산포 최대 11.97 dB, 기울기 부호가 |el|≥15° 에서 뒤집힘",
+    "통계 규약 선형평균 vs dB영역평균": "우리 패턴에서 직접 잰 차 3.634 dB (min 0.957 / max 7.163)",
+    "적합구간 전대역 vs 1.8–6 GHz": "기울기 0.420 vs 1.563",
+    "끝점 포함 여부": "0.420 → 0.334",
+    "대조 상대 선택(Das 원문/+exp/+lognormal/Yuan θ90 모델/Yuan θ90 곡선)": "레벨오차가 −0.51 … −4.91 dB 로 갈린다",
+    "방위창 360° vs 문헌 180° 호 91점": "평균 |편향| <0.35 dB, 시작각 미상 최악 폭 4.46 dB",
+    "jitter=2 · penetrate=True · max_bounce=1 · ptd=False · n_az=360 · 균등 21주파수": "각각 선언됨"
+   }
+  },
+  "total": 205,
+  "ratio_free_to_constrained": 15.8,
+  "leverage_evidence_that_these_knobs_can_move_sigma_by_the_size_of_the_residual": {
+   "재질 브래킷(|Γ| 0.10~0.45)": "레벨 1.136 dB · 기울기 0.430 dB/GHz (validate_measured_airframe 7_material_bracket)",
+   "형상 충실도(실물 0.4 mm 스캔 vs 우리 스펙메쉬, 둘 다 PEC)": "밴드별 +1.16 / +1.96 / −0.57 dB, 기울기 −0.519 dB/GHz",
+   "배터리 그룹 leave-one-out": "2.26 / 2.69 / 3.59 dB",
+   "카메라 그룹 leave-one-out": "0.87 / 1.50 / 1.11 dB",
+   "스펙 개정 한 번(200→185 mm 높이 + 셸 fh + 짐벌 교체)": "밴드평균 -1.42 dB, 주파수별 최대 -3.63 dB",
+   "결론": "손잡이 하나하나가 1~3.6 dB 다. 잔차 4.85 dB 는 손잡이 2~3개 폭이다."
+  }
+ },
+ "Q4_apples_to_apples": {
+  "verdict": "규약·구간·기하는 **성실하게 맞췄고 안 맞는 항은 대부분 정량돼 있다**. 그러나 정합되지 않은 채 남은 항이 최소 4개이고, 그 합은 잔차 4.85 dB 와 같은 규모다.",
+  "matched": {
+   "밴드": "1.8–18.2 GHz — 문헌과 같다(window.same_window=true)",
+   "고도": "우리 el=0 ↔ Yuan θ=90(방위면). Das 는 고도풀링(추론)이라 정합 아님 — 문서도 그렇게 적는다",
+   "통계": "둘 다 방위 **선형평균** μ=10log10(mean σ); ε 는 둘 다 dB 영역 std(Das)",
+   "추정량": "우리·Yuan 둘 다 단일주파수 CW",
+   "앵커 곡선": "Yuan Fig.5 벡터경로 복원 699점, 공표 적합선과 기울기 8e-5 이내로 자기검사됨 — 견고",
+   "격자밀도": "21점 vs 2801점 → 기울기 ±0.04 dB/GHz 로 정량됨"
+  },
+  "NOT_matched": [
+   {
+    "item": "편파",
+    "detail": "Das/Yuan 은 VV, 우리 커널은 **무편파 스칼라 |Γ|**",
+    "quantified": false,
+    "note": "'레벨에 흡수된다' 고만 적혀 있다 — 크기를 잰 적이 없다"
+   },
+   {
+    "item": "표적 높이",
+    "detail": "우리 메쉬 185 mm vs 논문이 잰 물건 200 mm (−7.5%)",
+    "quantified": false,
+    "note": "우리가 **다른 크기의 물건**을 재고 있다. 방향은 σ 를 낮추는 쪽"
+   },
+   {
+    "item": "방위창",
+    "detail": "문헌 −90:2:90 = 180° 호 91점 vs 우리 360° 360점",
+    "quantified": true,
+    "size": "평균 |편향| <0.35 dB, 시작각 미상 최악 폭 4.46 dB"
+   },
+   {
+    "item": "변종",
+    "detail": "논문은 'DJI Phantom 3' 라고만 적는다(Standard/4K/Advanced/Professional)",
+    "quantified": false
+   },
+   {
+    "item": "Das 추정량",
+    "detail": "Das 는 시간영역 피크(§II eq.3), 우리·Yuan 은 CW",
+    "quantified": false,
+    "note": "Das 갈래 대조에만 해당"
+   },
+   {
+    "item": "Das 규약 미해소",
+    "detail": "선형평균(§III-1) vs dB영역평균(§III-2) — 2.507~3.43 dB",
+    "quantified": true
+   },
+   {
+    "item": "앵커 독립성",
+    "detail": "Das 의 Phantom 3 행은 **Yuan 원자료의 재분석**(Das ACKNOWLEDGMENT). 독립 2건이 아니라 **한 기체·한 측정체인**이다",
+    "quantified": true
+   },
+   {
+    "item": "프로펠러 방위위상",
+    "detail": "우리 메쉬는 base_ang+12° 의 고정 블레이드 방위를 쓰고 스윕하지 않는다. 실측 기체의 블레이드 방위는 미상",
+    "quantified": false,
+    "note": "이 감사가 새로 지적하는 항. prop 그룹 격리 σ 가 −44~−45 dBsm 이라 작을 것으로 보이나 확인 안 됨"
+   }
+  ],
+  "cross_check_of_the_headline_number": {
+   "p3_validation 이 적은 값": {
+    "mean_db": -4.913,
+    "rms_db": 5.154,
+    "std_db": 1.595
+   },
+   "이 감사가 독립 재계산한 값": {
+    "mean_db": -4.845,
+    "rms_db": 5.094,
+    "shape_std_db": 1.571
+   },
+   "일치": "0.07 dB 이내 — 재계산 통과(작은 차는 곡선 끝점 클램프 처리)"
+  }
+ },
+ "Q5_control_group_THE_DECISIVE_TEST": {
+  "protocol": "대조군은 **우리 커널로, p3_ours 와 같은 규약으로** 새로 계산했다: rcs_sbr_batch · el=0 · az 360점 · spacing λ/16 · μ=10log10(mean_az σ) · PEC(|Γ|=1). 채점 기준은 고도·통계·추정량이 모두 정합인 **Yuan θ90 복원 실측곡선**이다.",
+  "measured_band_mean_dbsm": -12.751,
+  "table": {
+   "ours_phantom3_mesh": {
+    "what": "우리 P3 메쉬 (28,160 삼각형·8 재질그룹)",
+    "n_freq": 21,
+    "level_err_db": -4.85,
+    "rms_db": 5.09,
+    "shape_std_after_level_removed_db": 1.57,
+    "slope_db_per_ghz": 0.42,
+    "slope_err_db_per_ghz": 0.083,
+    "eps_err_vs_das_db": 0.71,
+    "cv_amp_mean": 0.758
+   },
+   "cube_vol": {
+    "what": "PEC 정육면체, 부피 = 우리 메쉬 고체부피 2.339 L (한 변 132.7 mm)",
+    "n_freq": 21,
+    "level_err_db": 6.94,
+    "rms_db": 7.08,
+    "shape_std_after_level_removed_db": 1.4,
+    "slope_db_per_ghz": 0.539,
+    "slope_err_db_per_ghz": 0.202,
+    "eps_err_vs_das_db": 3.58,
+    "cv_amp_mean": 1.458
+   },
+   "sphere_vol": {
+    "what": "PEC 구, 같은 부피 2.339 L (r=82.3 mm)",
+    "n_freq": 21,
+    "level_err_db": -3.96,
+    "rms_db": 4.34,
+    "shape_std_after_level_removed_db": 1.78,
+    "slope_db_per_ghz": 0.003,
+    "slope_err_db_per_ghz": -0.333,
+    "eps_err_vs_das_db": -5.44,
+    "cv_amp_mean": 0.002
+   },
+   "box_paper": {
+    "what": "PEC 박스 350×350×200 mm (논문 표기 치수를 그대로 상자로)",
+    "n_freq": 11,
+    "level_err_db": 14.49,
+    "rms_db": 14.56,
+    "shape_std_after_level_removed_db": 1.49,
+    "slope_db_per_ghz": 0.552,
+    "slope_err_db_per_ghz": 0.191,
+    "eps_err_vs_das_db": 5.02,
+    "cv_amp_mean": 2.163
+   },
+   "box_bbox": {
+    "what": "PEC 박스 = 우리 메쉬 bbox 435×463×199 mm (프롭 포함)",
+    "n_freq": 10,
+    "level_err_db": 15.51,
+    "rms_db": 15.58,
+    "shape_std_after_level_removed_db": 1.54,
+    "slope_db_per_ghz": 0.593,
+    "slope_err_db_per_ghz": 0.232,
+    "eps_err_vs_das_db": 4.3,
+    "cv_amp_mean": 2.321
+   },
+   "plate_disc": {
+    "what": "PEC 수평 원판, 상면 투영면적 = 우리 메쉬 (r=129 mm)",
+    "n_freq": 20,
+    "level_err_db": -21.26,
+    "rms_db": 21.33,
+    "shape_std_after_level_removed_db": 1.66,
+    "slope_db_per_ghz": 0.411,
+    "slope_err_db_per_ghz": 0.091,
+    "eps_err_vs_das_db": -5.46,
+    "cv_amp_mean": 0.002
+   },
+   "SIB_sphere_eqvol_mie": {
+    "what": "[형제 에이전트·독립구현] PEC 구, 부피 = 논문 외형상자 12.95 L (r=145.7 mm), 정확 Mie",
+    "n_freq": 21,
+    "level_err_db": 0.97,
+    "rms_db": 1.99,
+    "shape_std_after_level_removed_db": 1.73,
+    "slope_db_per_ghz": 0.011,
+    "slope_err_db_per_ghz": -0.325,
+    "eps_err_vs_das_db": null,
+    "cv_amp_mean": null
+   },
+   "SIB_cube_eqvol_bbox": {
+    "what": "[형제] PEC 정육면체, 부피 = 논문 외형상자 (한 변 234.8 mm)",
+    "n_freq": 21,
+    "level_err_db": 14.34,
+    "rms_db": 14.41,
+    "shape_std_after_level_removed_db": 1.42,
+    "slope_db_per_ghz": 0.542,
+    "slope_err_db_per_ghz": 0.205,
+    "eps_err_vs_das_db": 4.21,
+    "cv_amp_mean": null
+   },
+   "SIB_cube_side_max": {
+    "what": "[형제] PEC 정육면체 한 변 350 mm (최대치수를 그대로)",
+    "n_freq": 21,
+    "level_err_db": 19.56,
+    "rms_db": 19.61,
+    "shape_std_after_level_removed_db": 1.41,
+    "slope_db_per_ghz": 0.54,
+    "slope_err_db_per_ghz": 0.204,
+    "eps_err_vs_das_db": 4.65,
+    "cv_amp_mean": null
+   },
+   "SIB_box_bbox_lit": {
+    "what": "[형제] PEC 박스 350×200×185 mm (논문 표기 치수)",
+    "n_freq": 21,
+    "level_err_db": 12.96,
+    "rms_db": 13.04,
+    "shape_std_after_level_removed_db": 1.41,
+    "slope_db_per_ghz": 0.541,
+    "slope_err_db_per_ghz": 0.204,
+    "eps_err_vs_das_db": 4.2,
+    "cv_amp_mean": null
+   }
+  },
+  "how_well_must_it_match_to_mean_anything": {
+   "question": "아무 상자나 넣어도 그 정도 맞는가?",
+   "answer": "**레벨에 관한 한 그렇다.** PEC 구 σ=πr² 만으로 다음 크기의 구는 전부 통과한다:",
+   "pass_bands": [
+    {
+     "tol_db": 3,
+     "radius_m": [
+      0.092,
+      0.1836
+     ],
+     "diameter_cm": [
+      18.4,
+      36.7
+     ],
+     "volume_L": [
+      3.26,
+      25.92
+     ],
+     "volume_ratio": 7.9
+    },
+    {
+     "tol_db": 5,
+     "radius_m": [
+      0.0731,
+      0.2311
+     ],
+     "diameter_cm": [
+      14.6,
+      46.2
+     ],
+     "volume_L": [
+      1.64,
+      51.72
+     ],
+     "volume_ratio": 31.6
+    }
+   ],
+   "killer": {
+    "what": "PEC 구, 부피 = 논문이 적는 외형상자 0.35×0.20×0.185 m (12.95 L), r=0.1457 m, **모수 0개**",
+    "level_err_db": 0.97,
+    "rms_db": 1.99,
+    "vs_ours": "우리 메쉬 레벨오차 −4.85 dB · rms 5.09 dB → **모수 0개짜리 구가 우리 메쉬를 레벨에서 3.9 dB, rms 에서 2.6배 이긴다.**",
+    "but": "그 구의 기울기는 0.011 dB/GHz(실측 0.315), 방위산포 ε=0(실측 5.2~5.7 dB) — 두 축에서는 완패."
+   },
+   "verdict_on_the_level_claim": "⛔ **절대레벨 일치는 형상 충실도의 증거가 아니다.** 드론 크기의 금속 덩어리면 무엇이든 ±5 dB 안에 들어온다."
+  },
+  "which_metrics_actually_discriminate": {
+   "레벨(밴드평균)": "판별력 없음 — 등가부피 구가 우리보다 낫다",
+   "레벨 제거 후 μ(f) 잔물결(shape_std)": "판별력 없음 — 후보 전원이 1.4~1.8 dB",
+   "기울기 a": "약한 판별력 — 우리 오차 +0.083 vs 큐브 +0.202 vs 구 −0.325. 우리 SE 가 0.066 이라 큐브와의 차 0.12 는 약 1.8σ",
+   "방위 산포 ε": "⭐ **유일하게 강한 판별력** — 우리 +0.71 dB vs 큐브 +3.58 vs 구/원판 −5.44(=산포 자체가 없다)",
+   "composite": "네 축을 동시에 통과하는 후보는 우리 메쉬뿐이다. 다만 그 '통과 상자' 는 결과를 보고 그린 것이다."
+  }
+ },
+ "headline_findings": [
+  "1. blind_log 는 스스로 누출을 적었다는 점에서 성실하지만, 그 로그가 기술한 grep 을 재실행하면 **'보지 않았다' 고 단언한 네 리터럴이 전부 출력된다** — 눈감기 라벨은 취소해야 한다.",
+  "2. 그럼에도 **맞춤(fitting)의 흔적은 없다.** 눈감기 라운드의 메쉬 재등록은 우리 σ 를 평균 1.42 dB 더 낮췄고(실측에서 멀어지는 방향), 산출물은 대조보다 21분 먼저 커밋으로 동결됐다.",
+  "3. Phantom 3 전용 특례는 없다. 전용 분기는 이 저장소의 모든 기체가 갖고, P3 전용 수 2개는 도면 실측이며, P3 에 없는 마그네슘 판은 **일부러 남겼다**(우리에게 유리한 편향을 선언).",
+  "4. 자유도 ≈ **205 개** 대 Phantom 3 관측으로 고정된 수 **13 개** (16:1). 손잡이 하나의 측정된 레버가 1~3.6 dB 이고 잔차는 4.85 dB — **손잡이 두세 개 폭**이다.",
+  "5. ⭐ 대조군이 레벨 주장을 무너뜨린다: 논문 외형상자와 같은 부피의 **PEC 구(모수 0개)** 가 레벨 +0.97 dB · rms 1.99 dB 로 우리 메쉬(−4.85 / 5.09)를 이긴다. 지름 18~37 cm 의 어떤 PEC 구든 ±3 dB 레벨 시험을 통과한다.",
+  "6. 우리 메쉬가 **실제로** 이기는 축은 방위 산포 ε(우리 +0.71 dB vs 큐브 +3.58, 구 −5.44)와 기울기(+0.083 vs +0.202 / −0.325)다. 그런데 저장소의 헤드라인은 레벨·기울기이지 ε 가 아니다.",
+  "7. 기울기 일치는 **el=0 선택에 걸려 있다** — 계산된 10 자세 중 |el|≥15° 에서는 기울기 부호가 뒤집혀 실측과 정면으로 어긋난다(μ 의 고도간 산포 최대 11.97 dB). Yuan 측정의 실제 고도빔폭이 넓으면 이 축도 무너진다.",
+  "8. docs/RESUME.md §A 의 '눈감기 검증 — **좋다**' 헤드라인은 p3_validation(10:33)보다 이르고 지금은 낡았다: 고도정합 대조에서 기울기 초과는 1.6σ 로 **유의하지 않고**, 지배 오차는 레벨 −4.9 dB 다."
+ ],
+ "what_would_make_this_test_meaningful": [
+  "헤드라인 지표를 절대레벨에서 **방위 산포·분포족(ε, CV, 분위점)** 으로 옮긴다 — 거기서만 대리표적을 이긴다.",
+  "대조군을 리포트에 **상시 동반**한다(등가부피 구·큐브·문헌 bbox 상자). 레벨 수치는 그것들과 나란히가 아니면 인용하지 않는다.",
+  "형상표가 다른 두 번째 실측 앵커가 필요하다 — 지금 검증되는 것은 'P4 사진실측 형상표 + P3 제원' 하나뿐이다.",
+  "편파(VV vs 무편파)와 높이 185 vs 200 mm 를 **정량**한다. 둘 다 지금은 미측정 항이다.",
+  "다음 눈감기 라운드는 **작업 저장소를 분리**하고(문헌 문서가 없는 클론), 로그의 '보지 않았다' 는 **재실행 가능한 명령 기록**으로만 주장한다."
+ ],
+ "return_summary": {
+  "blind_intact": false,
+  "n_free_choices": 205,
+  "control_cube_err_db": 6.94,
+  "our_mesh_err_db": -4.85,
+  "better_than_cube": true,
+  "verdict": "WEAK"
+ }
+}

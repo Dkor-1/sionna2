@@ -1,0 +1,1123 @@
+{
+ "meta": {
+  "title": "σ 격자 재생성·el 클램프 해소가 기존 결과를 얼마나 바꾸는가",
+  "generated": "2026-08-03T11:40:42",
+  "question": "① report13 snr_ceiling_db 전후 ② 급소실험 M3 인쇄 가능성 ③ 무효화 목록 ④ 재계산 우선순위",
+  "grids": {
+   "old": "outputs/archive/report13_sigma_grid_pre0803.json (2026-07-29T05:36:31, git 4aa668b, el 9행)",
+   "new": "outputs/report13_sigma_grid.json (2026-08-03T11:17:59, git 4265045, el 23행)",
+   "note": "outputs/report13_sigma_grid_elext.json 은 새 격자와 **비트 동일**하다(중간 산출물). 따라서 '옛 메쉬 + 23행' 격자는 존재하지 않으며, 메쉬효과와 클램프효과는 새 격자를 옛 9행으로 잘라 읽는 방식으로 분해했다."
+  },
+  "decomposition": {
+   "delta_mesh": "새 격자를 옛 9행으로만 읽음 − 옛 격자 = 메쉬 재생성 효과",
+   "delta_clamp": "새 격자 23행 − 새 격자 9행 = 클램프 해소 효과",
+   "delta_total": "새 격자 23행 − 옛 격자"
+  },
+  "method": "src/experiment_freespace_range.stage_solve 의 σ·링크·solve_range 경로를 그대로 다시 태웠다. 기하·닫힌형 링크버짓은 저장된 report13_freespace.json 과 1.4e-14 dB 로 일치(검증됨). 프로젝트 파일은 한 줄도 고치지 않았고 GPU 는 쓰지 않았다.",
+  "reproduction_caveat": "저장된 report13_freespace.json(2026-07-24, git 70ba2e5)은 07-29 격자보다도 **한 세대 더 옛** σ 를 썼다. 그래서 '저장값'과 '옛 격자 재계산값'이 최대 2.35 dB 어긋난다 — 이 어긋남은 오늘 작업과 무관한 별개의 낡음이다."
+ },
+ "snr_ceiling": {
+  "headline_geometry": "L=500 m, alt=60 m, φ=90°, N=1, T_cpi=0.1 s, EIRP 63 dBm, G_rx 10 dBi, NF 5 dB",
+  "snr90_db": 11.86143572621035,
+  "by_drone_mode": {
+   "mini5pro/W1": {
+    "stored_0724_grid_db": 53.217185245317296,
+    "recomputed_old_0729_grid_db": 53.11226507469879,
+    "new_mesh_9el_db": 55.874739610958244,
+    "new_mesh_23el_db": 55.874739610958244,
+    "delta_mesh_db": 2.762474536259454,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": 2.762474536259454,
+    "delta_total_vs_stored_db": 2.657554365640948,
+    "peak_d_old_m": 248.16319008748,
+    "peak_d_new_m": 248.16319008748,
+    "R90_stored_m": 4153.4735686558,
+    "R90_old_m": 4205.834620885038,
+    "R90_new_m": 4629.038702079812,
+    "R90_ratio_new_over_old": 1.1006230913344182
+   },
+   "mini5pro/L1": {
+    "stored_0724_grid_db": 62.75172054287795,
+    "recomputed_old_0729_grid_db": 62.37043845326096,
+    "new_mesh_9el_db": 62.660964014225,
+    "new_mesh_23el_db": 62.660964014225,
+    "delta_mesh_db": 0.29052556096404203,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": 0.29052556096404203,
+    "delta_total_vs_stored_db": -0.09075652865294614,
+    "peak_d_old_m": 248.16319008748,
+    "peak_d_new_m": 248.16319008748,
+    "R90_stored_m": 6499.858151601613,
+    "R90_old_m": 6511.38549716404,
+    "R90_new_m": 6560.294557315987,
+    "R90_ratio_new_over_old": 1.0075113138629632
+   },
+   "mini5pro/G1": {
+    "stored_0724_grid_db": 61.0166776526153,
+    "recomputed_old_0729_grid_db": 61.016255442355714,
+    "new_mesh_9el_db": 58.90437546798657,
+    "new_mesh_23el_db": 58.90437546798657,
+    "delta_mesh_db": -2.1118799743691454,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": -2.1118799743691454,
+    "delta_total_vs_stored_db": -2.1123021846287315,
+    "peak_d_old_m": 248.16319008748,
+    "peak_d_new_m": 248.16319008748,
+    "R90_stored_m": 5188.8611542492945,
+    "R90_old_m": 5275.215948933997,
+    "R90_new_m": 5362.1932432958665,
+    "R90_ratio_new_over_old": 1.0164879116236833
+   },
+   "mavic4pro/W1": {
+    "stored_0724_grid_db": 62.53914505788339,
+    "recomputed_old_0729_grid_db": 62.199624605806264,
+    "new_mesh_9el_db": 59.25461935872097,
+    "new_mesh_23el_db": 59.25461935872097,
+    "delta_mesh_db": -2.945005247085291,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": -2.945005247085291,
+    "delta_total_vs_stored_db": -3.2845256991624154,
+    "peak_d_old_m": 265.22874173938624,
+    "peak_d_new_m": 265.22874173938624,
+    "R90_stored_m": 6616.305133983892,
+    "R90_old_m": 6726.718173484434,
+    "R90_new_m": 5882.411195780123,
+    "R90_ratio_new_over_old": 0.8744845620212804
+   },
+   "mavic4pro/L1": {
+    "stored_0724_grid_db": 56.7858091064204,
+    "recomputed_old_0729_grid_db": 57.747274348065616,
+    "new_mesh_9el_db": 67.5249436075402,
+    "new_mesh_23el_db": 67.5249436075402,
+    "delta_mesh_db": 9.777669259474578,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": 9.777669259474578,
+    "delta_total_vs_stored_db": 10.739134501119793,
+    "peak_d_old_m": 265.22874173938624,
+    "peak_d_new_m": 265.22874173938624,
+    "R90_stored_m": 4281.51715212014,
+    "R90_old_m": 3537.938831669595,
+    "R90_new_m": 9814.777760882569,
+    "R90_ratio_new_over_old": 2.7741513428740823
+   },
+   "mavic4pro/G1": {
+    "stored_0724_grid_db": 58.86550769708231,
+    "recomputed_old_0729_grid_db": 58.90023093319803,
+    "new_mesh_9el_db": 61.18624301857943,
+    "new_mesh_23el_db": 61.18624301857943,
+    "delta_mesh_db": 2.286012085381401,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": 2.286012085381401,
+    "delta_total_vs_stored_db": 2.320735321497125,
+    "peak_d_old_m": 265.22874173938624,
+    "peak_d_new_m": 248.16319008748,
+    "R90_stored_m": 6301.062944411723,
+    "R90_old_m": 6374.329562901768,
+    "R90_new_m": 5553.0440359368195,
+    "R90_ratio_new_over_old": 0.8711573477868506
+   },
+   "matrice4e/W1": {
+    "stored_0724_grid_db": 60.19356243349594,
+    "recomputed_old_0729_grid_db": 62.400033531425805,
+    "new_mesh_9el_db": 61.999866309672484,
+    "new_mesh_23el_db": 61.999866309672484,
+    "delta_mesh_db": -0.4001672217533212,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": -0.4001672217533212,
+    "delta_total_vs_stored_db": 1.8063038761765426,
+    "peak_d_old_m": 248.16319008748,
+    "peak_d_new_m": 265.22874173938624,
+    "R90_stored_m": 4825.666117909955,
+    "R90_old_m": 5659.550397676081,
+    "R90_new_m": 6282.969476959972,
+    "R90_ratio_new_over_old": 1.1101534636991444
+   },
+   "matrice4e/L1": {
+    "stored_0724_grid_db": 60.5072465510228,
+    "recomputed_old_0729_grid_db": 62.85551142879535,
+    "new_mesh_9el_db": 67.3525314081875,
+    "new_mesh_23el_db": 67.3525314081875,
+    "delta_mesh_db": 4.4970199793921495,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": 4.4970199793921495,
+    "delta_total_vs_stored_db": 6.8452848571647,
+    "peak_d_old_m": 265.22874173938624,
+    "peak_d_new_m": 248.16319008748,
+    "R90_stored_m": 6072.994163188897,
+    "R90_old_m": 7162.754186416079,
+    "R90_new_m": 8961.347924492338,
+    "R90_ratio_new_over_old": 1.2511036524870882
+   },
+   "matrice4e/G1": {
+    "stored_0724_grid_db": 61.926843798530655,
+    "recomputed_old_0729_grid_db": 63.013677002029425,
+    "new_mesh_9el_db": 65.35614565949652,
+    "new_mesh_23el_db": 65.35614565949652,
+    "delta_mesh_db": 2.3424686574670943,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": 2.3424686574670943,
+    "delta_total_vs_stored_db": 3.4293018609658645,
+    "peak_d_old_m": 248.16319008748,
+    "peak_d_new_m": 265.22874173938624,
+    "R90_stored_m": 5623.2361971505,
+    "R90_old_m": 5762.3381907790035,
+    "R90_new_m": 7978.561555832019,
+    "R90_ratio_new_over_old": 1.3846048759511296
+   },
+   "phantom4/W1": {
+    "stored_0724_grid_db": 61.86474258191245,
+    "recomputed_old_0729_grid_db": 61.808236294316174,
+    "new_mesh_9el_db": 57.02546784357905,
+    "new_mesh_23el_db": 57.02546784357905,
+    "delta_mesh_db": -4.782768450737123,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": -4.782768450737123,
+    "delta_total_vs_stored_db": -4.839274738333401,
+    "peak_d_old_m": 265.22874173938624,
+    "peak_d_new_m": 248.16319008748,
+    "R90_stored_m": 6779.5369752546585,
+    "R90_old_m": 6783.7878201391295,
+    "R90_new_m": 6178.155928568169,
+    "R90_ratio_new_over_old": 0.9107236388241665
+   },
+   "phantom4/L1": {
+    "stored_0724_grid_db": 63.53260945176282,
+    "recomputed_old_0729_grid_db": 63.83280239554625,
+    "new_mesh_9el_db": 64.95248639375427,
+    "new_mesh_23el_db": 64.95248639375427,
+    "delta_mesh_db": 1.1196839982080178,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": 1.1196839982080178,
+    "delta_total_vs_stored_db": 1.419876941991447,
+    "peak_d_old_m": 248.16319008748,
+    "peak_d_new_m": 248.16319008748,
+    "R90_stored_m": 4932.06857489315,
+    "R90_old_m": 4929.818298460245,
+    "R90_new_m": 4818.007228324694,
+    "R90_ratio_new_over_old": 0.9773194338277185
+   },
+   "phantom4/G1": {
+    "stored_0724_grid_db": 56.03586773520975,
+    "recomputed_old_0729_grid_db": 56.3323989334495,
+    "new_mesh_9el_db": 56.902173554630565,
+    "new_mesh_23el_db": 56.902173554630565,
+    "delta_mesh_db": 0.5697746211810681,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": 0.5697746211810681,
+    "delta_total_vs_stored_db": 0.8663058194208162,
+    "peak_d_old_m": 265.22874173938624,
+    "peak_d_new_m": 248.16319008748,
+    "R90_stored_m": 5776.7368621014775,
+    "R90_old_m": 5853.9603962413585,
+    "R90_new_m": 4645.483535097707,
+    "R90_ratio_new_over_old": 0.7935625150591085
+   },
+   "s1000plus/W1": {
+    "stored_0724_grid_db": 66.81344621627343,
+    "recomputed_old_0729_grid_db": 66.7998597473587,
+    "new_mesh_9el_db": 68.398868269947,
+    "new_mesh_23el_db": 68.398868269947,
+    "delta_mesh_db": 1.5990085225883064,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": 1.5990085225883064,
+    "delta_total_vs_stored_db": 1.5854220536735681,
+    "peak_d_old_m": 248.16319008748,
+    "peak_d_new_m": 265.22874173938624,
+    "R90_stored_m": 9724.071630719278,
+    "R90_old_m": 9758.404077100975,
+    "R90_new_m": 5983.747367790169,
+    "R90_ratio_new_over_old": 0.6131891363088359
+   },
+   "s1000plus/L1": {
+    "stored_0724_grid_db": 67.35683436067336,
+    "recomputed_old_0729_grid_db": 66.9208251592301,
+    "new_mesh_9el_db": 70.02176364565612,
+    "new_mesh_23el_db": 70.02176364565612,
+    "delta_mesh_db": 3.100938486426017,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": 3.100938486426017,
+    "delta_total_vs_stored_db": 2.6649292849827617,
+    "peak_d_old_m": 248.16319008748,
+    "peak_d_new_m": 265.22874173938624,
+    "R90_stored_m": 9737.512619898665,
+    "R90_old_m": 9325.307643228549,
+    "R90_new_m": 8752.852029006817,
+    "R90_ratio_new_over_old": 0.938612683235452
+   },
+   "s1000plus/G1": {
+    "stored_0724_grid_db": 63.561022005621965,
+    "recomputed_old_0729_grid_db": 64.26884089743201,
+    "new_mesh_9el_db": 71.4266734799757,
+    "new_mesh_23el_db": 71.4266734799757,
+    "delta_mesh_db": 7.157832582543691,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": 7.157832582543691,
+    "delta_total_vs_stored_db": 7.86565147435374,
+    "peak_d_old_m": 248.16319008748,
+    "peak_d_new_m": 248.16319008748,
+    "R90_stored_m": 10038.31406019253,
+    "R90_old_m": 10112.873311491881,
+    "R90_new_m": 8361.034258837357,
+    "R90_ratio_new_over_old": 0.8267713834935714
+   },
+   "typhoonh480/W1": {
+    "stored_0724_grid_db": null,
+    "recomputed_old_0729_grid_db": 64.96692554139938,
+    "new_mesh_9el_db": 64.55768009797555,
+    "new_mesh_23el_db": 64.55768009797555,
+    "delta_mesh_db": -0.40924544342382774,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": -0.40924544342382774,
+    "delta_total_vs_stored_db": null,
+    "peak_d_old_m": 404.1547205616202,
+    "peak_d_new_m": 248.16319008748,
+    "R90_stored_m": null,
+    "R90_old_m": 9655.980106828592,
+    "R90_new_m": 9054.103237183721,
+    "R90_ratio_new_over_old": 0.9376679671057698
+   },
+   "typhoonh480/L1": {
+    "stored_0724_grid_db": null,
+    "recomputed_old_0729_grid_db": 73.22238569314959,
+    "new_mesh_9el_db": 71.94852639723408,
+    "new_mesh_23el_db": 71.94852639723408,
+    "delta_mesh_db": -1.2738592959155142,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": -1.2738592959155142,
+    "delta_total_vs_stored_db": null,
+    "peak_d_old_m": 248.16319008748,
+    "peak_d_new_m": 265.22874173938624,
+    "R90_stored_m": null,
+    "R90_old_m": 7360.719957072593,
+    "R90_new_m": 9866.832711880317,
+    "R90_ratio_new_over_old": 1.340471145407415
+   },
+   "typhoonh480/G1": {
+    "stored_0724_grid_db": null,
+    "recomputed_old_0729_grid_db": 65.54377865121143,
+    "new_mesh_9el_db": 66.88107906357406,
+    "new_mesh_23el_db": 66.88107906357406,
+    "delta_mesh_db": 1.3373004123626373,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": 1.3373004123626373,
+    "delta_total_vs_stored_db": null,
+    "peak_d_old_m": 248.16319008748,
+    "peak_d_new_m": 265.22874173938624,
+    "R90_stored_m": null,
+    "R90_old_m": 9455.753669906724,
+    "R90_new_m": 7026.231840731833,
+    "R90_ratio_new_over_old": 0.7430641793359177
+   },
+   "x500v2/W1": {
+    "stored_0724_grid_db": null,
+    "recomputed_old_0729_grid_db": 63.26964543712235,
+    "new_mesh_9el_db": 63.63979468531342,
+    "new_mesh_23el_db": 63.63979468531342,
+    "delta_mesh_db": 0.3701492481910691,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": 0.3701492481910691,
+    "delta_total_vs_stored_db": null,
+    "peak_d_old_m": 265.22874173938624,
+    "peak_d_new_m": 265.22874173938624,
+    "R90_stored_m": null,
+    "R90_old_m": 6595.079505395647,
+    "R90_new_m": 4848.957865698802,
+    "R90_ratio_new_over_old": 0.7352387278624486
+   },
+   "x500v2/L1": {
+    "stored_0724_grid_db": null,
+    "recomputed_old_0729_grid_db": 67.54932509538088,
+    "new_mesh_9el_db": 61.914608700398034,
+    "new_mesh_23el_db": 61.914608700398034,
+    "delta_mesh_db": -5.634716394982846,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": -5.634716394982846,
+    "delta_total_vs_stored_db": null,
+    "peak_d_old_m": 248.16319008748,
+    "peak_d_new_m": 248.16319008748,
+    "R90_stored_m": null,
+    "R90_old_m": 5775.7816198344035,
+    "R90_new_m": 7295.7007314274715,
+    "R90_ratio_new_over_old": 1.2631538398843836
+   },
+   "x500v2/G1": {
+    "stored_0724_grid_db": null,
+    "recomputed_old_0729_grid_db": 63.652499110427584,
+    "new_mesh_9el_db": 58.97423953658499,
+    "new_mesh_23el_db": 58.97423953658499,
+    "delta_mesh_db": -4.678259573842595,
+    "delta_clamp_db": 0.0,
+    "delta_total_vs_old_db": -4.678259573842595,
+    "delta_total_vs_stored_db": null,
+    "peak_d_old_m": 248.16319008748,
+    "peak_d_new_m": 248.16319008748,
+    "R90_stored_m": null,
+    "R90_old_m": 6611.965312583641,
+    "R90_new_m": 6278.714825922307,
+    "R90_ratio_new_over_old": 0.9495988755374889
+   }
+  },
+  "by_phi_summary": {
+   "phi0": {
+    "n": 21,
+    "mesh_rms_db": 6.350614094671273,
+    "mesh_absmax_db": 17.917842865285508,
+    "clamp_rms_db": 4.853192539712593,
+    "clamp_absmax_db": 11.078121937071586,
+    "total_rms_db": 4.819329682867435,
+    "total_absmax_db": 10.114435541475999
+   },
+   "phi10": {
+    "n": 21,
+    "mesh_rms_db": 3.6076094564533467,
+    "mesh_absmax_db": 9.042559380176456,
+    "clamp_rms_db": 2.635934017299435,
+    "clamp_absmax_db": 7.289281862001658,
+    "total_rms_db": 3.451663903517577,
+    "total_absmax_db": 6.829688734676665
+   },
+   "phi30": {
+    "n": 21,
+    "mesh_rms_db": 3.2896937842083527,
+    "mesh_absmax_db": 8.09085736853639,
+    "clamp_rms_db": 0.0,
+    "clamp_absmax_db": 0.0,
+    "total_rms_db": 3.2896937842083527,
+    "total_absmax_db": 8.09085736853639
+   },
+   "phi90": {
+    "n": 21,
+    "mesh_rms_db": 3.7337588685621177,
+    "mesh_absmax_db": 9.777669259474578,
+    "clamp_rms_db": 0.0,
+    "clamp_absmax_db": 0.0,
+    "total_rms_db": 3.7337588685621177,
+    "total_absmax_db": 9.777669259474578
+   },
+   "phi180": {
+    "n": 21,
+    "mesh_rms_db": 6.648494208974028,
+    "mesh_absmax_db": 16.182823665054784,
+    "clamp_rms_db": 5.051222042509167,
+    "clamp_absmax_db": 9.976068570109973,
+    "total_rms_db": 5.165777881828436,
+    "total_absmax_db": 9.92659839860302
+   }
+  },
+  "headline_finding": "φ=90°(공표 방위)에서 클램프 기여는 **정확히 0 dB** 다 — 천장이 d≈250 m 에 서고 그 자리의 이등분선 앙각은 약 −10° 로 옛 9행 격자 안이다. 공표 천장을 움직인 것은 전부 **메쉬 재생성**이다(rms 3.73 dB, 최대 9.78 dB). 클램프는 φ=0/10/180° 와 근거리 d<130 m 에서만 산다(rms 2.6~5.1 dB, 최대 11.1 dB)."
+ },
+ "report13_spec_24p7": {
+  "text": "REPORT13_SPEC.md 41·265·641 행의 ★'snr_ceiling_db +24.7 dB @ d452'",
+  "status": "RETRACT — 재현 불가, 그리고 이번 재생성과 무관하게 이미 틀려 있었다",
+  "evidence": {
+   "delivered_values_db": "53.2~73.2 dB, 피크 d≈248~404 m (7 기체×3 모드, 옛·새 격자 모두)",
+   "tested_hypotheses": [
+    "σ=0.01 m² 대체값 @ d=452 → 45.6~59.9 dB (불일치)",
+    "σ=0.1 m² @ d=452 → 55.6~69.9 dB (불일치)",
+    "내부봉우리 상승폭(snr_rise_db) 최대 → 24.47 dB 이지만 d=296 m (φ=10, s1000plus, L1, 새 격자) — 값은 가깝고 거리가 다르다"
+   ],
+   "reading": "스펙의 ★ 값은 구현 이전 감사(2026-07-22 무렵) 때 다른 기하·다른 σ 로 잰 설계시점 표식이다. 인도된 파이프라인은 그 숫자를 한 번도 낸 적이 없다. 새 격자는 이 어긋남을 줄이지도 늘리지도 않는다."
+  },
+  "action": "스펙의 ★ 를 '재현 불가(설계시점 표식)'로 표시하고, 단위테스트 목표치를 새 격자 산출값으로 갈아끼운다."
+ },
+ "tm_M3": {
+  "protocol": "tm_result.protocol 그대로 (Pfa=1e-4/cell, ncx2 정확 Pd, 정규화 b, 자세앙상블=격자 전체). E0 자유공간은 경로쌍이 1개라 RT 없이 격자만으로 정확 재현된다.",
+  "reproduction_check": {
+   "snr_flat_pd90_db": 11.749083424299345,
+   "canonical_snr_flat_pd90_db": 11.749083424299364,
+   "M3_old_recomputed": 7.519581092676344,
+   "M3_canonical": 7.519581551761051,
+   "M2_old_recomputed": 29.3021955254902,
+   "M2_canonical": 29.302195670591075,
+   "verdict": "PASS — 정본과 소수 넷째 자리까지 일치"
+  },
+  "by_model": {
+   "M1": {
+    "mean": 2.1315754302703593e-13,
+    "std": 0.0,
+    "min": 2.1315754302703593e-13,
+    "max": 2.1315754302703593e-13,
+    "ci95": 0.0
+   },
+   "M2": {
+    "mean": 29.3021955254902,
+    "std": 7.464823661463665,
+    "min": 14.264280723187296,
+    "max": 44.2248826020607,
+    "ci95": 3.1927578179611014
+   },
+   "M3_old9": {
+    "mean": 7.519581092676344,
+    "std": 1.563030719624635,
+    "min": 5.536740980143511,
+    "max": 11.916173445775632,
+    "ci95": 0.6685192813806442
+   },
+   "M3_new9": {
+    "mean": 6.930297654768126,
+    "std": 1.0968184032146302,
+    "min": 5.211308060030684,
+    "max": 9.326023658869577,
+    "ci95": 0.469116979926153
+   },
+   "M3_new23": {
+    "mean": 9.844817355632385,
+    "std": 3.2124863953758265,
+    "min": 5.730501026693923,
+    "max": 18.07889551481278,
+    "ci95": 1.374003127077052
+   },
+   "M3_new22": {
+    "mean": 8.963165778144328,
+    "std": 2.1150353156864474,
+    "min": 5.998697119873795,
+    "max": 13.936954989634067,
+    "ci95": 0.9046155469528769
+   }
+  },
+  "paired_change_new9_minus_old9": {
+   "mean": -0.5892834379082166,
+   "std": 1.563965088875792,
+   "ci95": 0.6689189177105545,
+   "min": -2.5901497869060552,
+   "max": 2.793947796749273,
+   "n_cells_down": 15,
+   "n_cells": 21,
+   "significant_at_95pct": false
+  },
+  "order_preserved_cells": {
+   "new9": 21,
+   "new23": 21,
+   "n_cells": 21
+  },
+  "cells": [
+   {
+    "drone": "mini5pro",
+    "band": "LTE 1.8 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 14.264280723187296,
+    "M3_old9": 7.126798032438192,
+    "M3_new9": 5.373862875940509,
+    "M3_new23": 5.787711577317329,
+    "M3_new22": 5.998697119873795,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "mini5pro",
+    "band": "5G NR 3.5 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 26.851303886311225,
+    "M3_old9": 6.226313361482289,
+    "M3_new9": 6.1750759322041056,
+    "M3_new23": 6.104076147126408,
+    "M3_new22": 6.310710069357397,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "mini5pro",
+    "band": "WiFi 5.2 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 22.164805974065136,
+    "M3_old9": 8.99089291324354,
+    "M3_new9": 6.632571448636187,
+    "M3_new23": 7.79776959646835,
+    "M3_new22": 7.764814720300728,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "mavic4pro",
+    "band": "LTE 1.8 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 20.650432418026366,
+    "M3_old9": 6.922455148678525,
+    "M3_new9": 7.906644806731406,
+    "M3_new23": 5.730501026693923,
+    "M3_new22": 6.018766490522989,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "mavic4pro",
+    "band": "5G NR 3.5 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 26.498728765072528,
+    "M3_old9": 7.978373862969279,
+    "M3_new9": 7.697599436695669,
+    "M3_new23": 8.500043386713362,
+    "M3_new22": 7.495648276227856,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "mavic4pro",
+    "band": "WiFi 5.2 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 34.56557483024795,
+    "M3_old9": 7.360342410043398,
+    "M3_new9": 6.370678233870077,
+    "M3_new23": 7.772871081482271,
+    "M3_new22": 7.8219676279500705,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "matrice4e",
+    "band": "LTE 1.8 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 21.209037725907145,
+    "M3_old9": 5.536740980143511,
+    "M3_new9": 7.794848284648763,
+    "M3_new23": 7.939057285009501,
+    "M3_new22": 8.193918530218621,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "matrice4e",
+    "band": "5G NR 3.5 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 26.404049011389734,
+    "M3_old9": 5.989583256672716,
+    "M3_new9": 8.783531053421989,
+    "M3_new23": 9.874543545514232,
+    "M3_new22": 9.07512711407869,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "matrice4e",
+    "band": "WiFi 5.2 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 34.14661912658073,
+    "M3_old9": 8.726539397356051,
+    "M3_new9": 6.237805652674962,
+    "M3_new23": 10.125179815085117,
+    "M3_new22": 8.28475357419206,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "phantom4",
+    "band": "LTE 1.8 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 20.287335274748276,
+    "M3_old9": 6.275770197625137,
+    "M3_new9": 6.174162293571492,
+    "M3_new23": 8.969907079049063,
+    "M3_new22": 8.926445409454871,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "phantom4",
+    "band": "5G NR 3.5 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 25.58670664398716,
+    "M3_old9": 7.5806905556230095,
+    "M3_new9": 6.035811559475951,
+    "M3_new23": 11.52811508425557,
+    "M3_new22": 11.476977415485868,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "phantom4",
+    "band": "WiFi 5.2 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 35.71051364627417,
+    "M3_old9": 9.603942783043813,
+    "M3_new9": 8.844599602970904,
+    "M3_new23": 11.898800465442164,
+    "M3_new22": 11.053658093987261,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "s1000plus",
+    "band": "LTE 1.8 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 30.97373813852417,
+    "M3_old9": 5.687978249134924,
+    "M3_new9": 7.074628690904526,
+    "M3_new23": 13.681506164486667,
+    "M3_new22": 11.388700880659046,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "s1000plus",
+    "band": "5G NR 3.5 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 44.2248826020607,
+    "M3_old9": 6.706210671562377,
+    "M3_new9": 6.8037132786055965,
+    "M3_new23": 13.149895278616722,
+    "M3_new22": 10.351153521882361,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "s1000plus",
+    "band": "WiFi 5.2 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 42.15227043390175,
+    "M3_old9": 9.067405073839153,
+    "M3_new9": 6.84652986076638,
+    "M3_new23": 18.07889551481278,
+    "M3_new22": 10.943852093136945,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "typhoonh480",
+    "band": "LTE 1.8 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 24.99928519584484,
+    "M3_old9": 5.954559517008724,
+    "M3_new9": 6.726537668459571,
+    "M3_new23": 8.072477806356106,
+    "M3_new22": 8.0923643779543,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "typhoonh480",
+    "band": "5G NR 3.5 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 33.84790846712865,
+    "M3_old9": 8.725276570101725,
+    "M3_new9": 6.303853138530933,
+    "M3_new23": 9.115334161085324,
+    "M3_new22": 8.011673019192449,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "typhoonh480",
+    "band": "WiFi 5.2 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 34.75635193640485,
+    "M3_old9": 11.916173445775632,
+    "M3_new9": 9.326023658869577,
+    "M3_new23": 9.779082882480242,
+    "M3_new22": 9.524739771735371,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "x500v2",
+    "band": "LTE 1.8 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 30.53321512784546,
+    "M3_old9": 6.522894617466994,
+    "M3_new9": 5.211308060030684,
+    "M3_new23": 6.6337262692843275,
+    "M3_new22": 6.563283662701696,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "x500v2",
+    "band": "5G NR 3.5 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 33.879569224041525,
+    "M3_old9": 7.423091369326322,
+    "M3_new9": 6.759848040707555,
+    "M3_new23": 11.03157190988077,
+    "M3_new22": 10.992274582484404,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   },
+   {
+    "drone": "x500v2",
+    "band": "WiFi 5.2 GHz",
+    "M1": 2.1315754302703593e-13,
+    "M2": 31.639496883744417,
+    "M3_old9": 7.5891705326679,
+    "M3_new9": 6.4566171724138215,
+    "M3_new23": 15.17009839111987,
+    "M3_new22": 13.936954989634067,
+    "order_M1_lt_M3new9_lt_M2": true,
+    "order_M1_lt_M3new23_lt_M2": true
+   }
+  ]
+ },
+ "sigma_grid_change": {
+  "source": "outputs/sigma_grid_regen.json (9 공통행 기준) + outputs/sigma_el_extend_progress.json",
+  "pattern_corr": {
+   "mini5pro": 0.511,
+   "phantom4": 0.646,
+   "mavic4pro": 0.089,
+   "matrice4e": 0.395,
+   "s1000plus": 0.618,
+   "typhoonh480": 0.421,
+   "x500v2": 0.441
+  },
+  "level_shift_db": {
+   "mini5pro": 0.17,
+   "phantom4": -2.03,
+   "mavic4pro": -1.7,
+   "matrice4e": 0.74,
+   "s1000plus": 0.0,
+   "typhoonh480": -2.28,
+   "x500v2": -1.57
+  },
+  "rms_delta_db": {
+   "mini5pro": 5.21,
+   "phantom4": 4.7,
+   "mavic4pro": 7.14,
+   "matrice4e": 5.61,
+   "s1000plus": 4.37,
+   "typhoonh480": 6.11,
+   "x500v2": 5.36
+  },
+  "max_abs_delta_db": {
+   "mini5pro": 18.45,
+   "phantom4": 23.72,
+   "mavic4pro": 26.22,
+   "matrice4e": 23.27,
+   "s1000plus": 19.68,
+   "typhoonh480": 22.27,
+   "x500v2": 21.35
+  },
+  "ranking_changed": {
+   "LTE 1.8 GHz": true,
+   "5G NR 3.5 GHz": true,
+   "WiFi 5.2 GHz": true,
+   "ALL BANDS": true
+  },
+  "clamp_error_db": {
+   "definition": "sigma read at the true bisector elevation minus sigma read at the clamped -20 deg row, dB, over every lookup that used to fall outside the grid (phi sweep, alt 60 and 120 m, all 7 airframes x 3 bands)",
+   "n": 129192,
+   "rms_db": 6.232091108078279,
+   "mean_db": 0.24681069689993368,
+   "p50_abs_db": 3.4362042285625662,
+   "p90_abs_db": 10.538914293547858,
+   "p99_abs_db": 18.07637772268453,
+   "max_abs_db": 32.79155724273435,
+   "beta_gated": {
+    "n": 33306,
+    "rms_db": 4.976920445989124,
+    "p99_abs_db": 15.513230986164103,
+    "max_abs_db": 23.243399609686243
+   },
+   "level_only": {
+    "definition": "azimuth linear-mean sigma at the true el row minus the same at the clamped -20 deg row — the SYSTEMATIC part; the rest of clamp_error is speckle (null pattern decorrelates between el rows)",
+    "rms_db": 2.2294410450518636,
+    "mean_db": 0.019859602859328297,
+    "p90_abs_db": 3.4638660952964706,
+    "max_abs_db": 17.251064743912703,
+    "note": "clamping to -20 deg UNDER-states sigma where mean>0 and over-states where mean<0"
+   }
+  },
+  "clamp_removed": {
+   "phi_sweep_alt60": {
+    "n": 17280,
+    "el_min": -88.05789957195047,
+    "el_max": -0.13140665061014922,
+    "out_of_grid_old": 2056,
+    "out_of_grid_old_frac": 0.11898148148148148,
+    "out_of_grid_new": 0,
+    "out_of_grid_new_frac": 0.0,
+    "beta_gate_pass_frac": 0.8291666666666667,
+    "el_min_beta_gated": -49.765779133850515
+   },
+   "phi_sweep_alt120": {
+    "n": 17280,
+    "el_min": -83.0683009760028,
+    "el_max": -0.30331821228897954,
+    "out_of_grid_old": 4096,
+    "out_of_grid_old_frac": 0.23703703703703705,
+    "out_of_grid_new": 0,
+    "out_of_grid_new_frac": 0.0,
+    "beta_gate_pass_frac": 0.8458333333333333,
+    "el_min_beta_gated": -58.66433412580561
+   },
+   "headline_phi90_alt60": {
+    "n": 240,
+    "el_min": -24.664087718424803,
+    "el_max": -0.1317800206513666,
+    "out_of_grid_old": 11,
+    "out_of_grid_old_frac": 0.04583333333333333,
+    "out_of_grid_new": 0,
+    "out_of_grid_new_frac": 0.0,
+    "beta_gate_pass_frac": 0.8291666666666667,
+    "el_min_beta_gated": -10.491346827758582
+   }
+  }
+ },
+ "invalidated": [
+  {
+   "tier": "A",
+   "item": "outputs/report13_freespace.json",
+   "producer": "src/experiment_freespace_range.py",
+   "what": "ranges[*].R90_C50_m · snr_ceiling_db · coverage · E_psi_Pd · heading_polar · sensitivity_* · curves.* · budget_terms_db.sigma",
+   "measured_change": "ceiling rms 3.73 dB (max 9.78) · R90 x0.613~x2.774"
+  },
+  {
+   "tier": "A",
+   "item": "outputs/phi_sweep.json",
+   "producer": "benchmark/phi_sweep.py",
+   "what": "sigma_grid[*] · snr_at_1km[*] · rankings.R90_* · rankings.SNR1km_* · aspect_averaged · C8 ceiling claim",
+   "measured_change": "mesh + clamp both enter off-headline phi (clamp rms up to 5.05 dB)"
+  },
+  {
+   "tier": "A",
+   "item": "outputs/tm_setup.json, outputs/tm_result.json",
+   "producer": "lost scratchpad/tm_*.py",
+   "what": "M3 branch; E0/E3 superseded by this document, E1/E2/E2b not recomputed",
+   "measured_change": "M3 fluctuation penalty 7.520 -> 6.930 dB (E0, 9-row)"
+  },
+  {
+   "tier": "A",
+   "item": "outputs/mono_link.json",
+   "producer": "benchmark/mono_link.py",
+   "what": "monostatic vs passive link comparison sigma terms",
+   "measured_change": "not measured"
+  },
+  {
+   "tier": "A",
+   "item": "outputs/mono_vs_passive.json, outputs/verify_monostatic.json",
+   "producer": "benchmark/mono_vs_passive.py, benchmark/verify_monostatic.py",
+   "what": "monostatic sigma comparison and verification gates",
+   "measured_change": "not measured"
+  },
+  {
+   "tier": "A",
+   "item": "outputs/sigma_sensitivity.json, outputs/sigma_robust_summary.json",
+   "producer": "benchmark/sigma_sensitivity.py, benchmark/sigma_robust_summary.py",
+   "what": "sigma smoothing/aspect/percentile sensitivity and its summary",
+   "measured_change": "not measured"
+  },
+  {
+   "tier": "A",
+   "item": "outputs/geometry_grid.json, outputs/geometry_benchmark.json, outputs/geometry_grid_axis_review.json",
+   "producer": "benchmark/geometry_grid.py, benchmark/geometry_benchmark.py",
+   "what": "cells that read sigma (pure-geometry cells unaffected)",
+   "measured_change": "partial"
+  },
+  {
+   "tier": "A",
+   "item": "outputs/fix_wire.json, outputs/ptd_drone_effect.json",
+   "producer": "benchmark/fix_wire.py, benchmark/ptd_drone_effect.py",
+   "what": "corrections quoted against the sigma baseline",
+   "measured_change": "partial"
+  },
+  {
+   "tier": "A",
+   "item": "outputs/report05_derived.json -> report05_results.ipynb",
+   "producer": "src/make_report05_results.py",
+   "what": "report05 sections 1-3 detection-range tables and figures",
+   "measured_change": "follows R90"
+  },
+  {
+   "tier": "A",
+   "item": "outputs/report02_derived.json -> report02_target.ipynb",
+   "producer": "src/make_report02_target.py",
+   "what": "report02 sections 4-5 sigma tables",
+   "measured_change": "level -2.28..+0.74 dB, ranking changed in all 3 bands"
+  },
+  {
+   "tier": "A",
+   "item": "outputs/figures/report13_*.png (13 files)",
+   "producer": "src/viz_report13.py, src/render_report13.py",
+   "what": "every report13 figure derives from sigma or R90",
+   "measured_change": "-"
+  },
+  {
+   "tier": "A",
+   "item": "outputs/figs/phi_sweep.png",
+   "producer": "benchmark/phi_sweep_fig.py",
+   "what": "phi sweep figure",
+   "measured_change": "-"
+  },
+  {
+   "tier": "A",
+   "item": "outputs/figs/tm_target_model_effect.png",
+   "producer": "lost scratchpad/tm_finalize.py",
+   "what": "M3 bar printed at 7.5 dB",
+   "measured_change": "-0.59 dB"
+  },
+  {
+   "tier": "A",
+   "item": "outputs/figures/report05_f4_range_bars.png, report02_f7_sigma_sensitivity.{png,pdf}",
+   "producer": "make_report0N_*.py",
+   "what": "figures tracking the tables above",
+   "measured_change": "-"
+  },
+  {
+   "tier": "B",
+   "item": "decks/teammeeting_0804_short.pptx slide p05",
+   "producer": "deck builder",
+   "what": "'9 elevations x 120 azimuths' -> 23 elevations; delete 'this run predates our newest mesh edit'",
+   "measured_change": "both changes are good news"
+  },
+  {
+   "tier": "B",
+   "item": "docs/REPORT13_SPEC.md lines 41/265/641",
+   "producer": "hand",
+   "what": "star '+24.7 dB @ d452' is unreproducible; replace unit-test target",
+   "measured_change": "delivered ceilings 53.2-73.2 dB at d 248-404 m"
+  },
+  {
+   "tier": "B",
+   "item": "docs/REPORT13_SPEC.md S8 row",
+   "producer": "hand",
+   "what": "el grid 9 points -> 23 points",
+   "measured_change": "-"
+  },
+  {
+   "tier": "B",
+   "item": "outputs/tm_result.json staleness/caveats",
+   "producer": "hand or rerun",
+   "what": "narrow the stale scope: E0/E3 resolved, E1/E2/E2b still stale",
+   "measured_change": "-"
+  },
+  {
+   "tier": "B",
+   "item": "outputs/tm_result.json Q3.monotonicity_note",
+   "producer": "rerun",
+   "what": "E1/E2 0.45 dB inversion blamed on clamping is now directly testable",
+   "measured_change": "-"
+  },
+  {
+   "tier": "B",
+   "item": "outputs/phi_sweep.json verdict.caveats[0]",
+   "producer": "rerun",
+   "what": "'sigma grid predates the mesh rebuild' caveat",
+   "measured_change": "-"
+  },
+  {
+   "tier": "B",
+   "item": "outputs/tm_envs.json staleness.verdict",
+   "producer": "benchmark/tm_envs.py",
+   "what": "'sigma grid older than mesh sources' verdict",
+   "measured_change": "resolved"
+  },
+  {
+   "tier": "B",
+   "item": "docs/RESUME.md, docs/RETRACTION_LOG.md",
+   "producer": "hand",
+   "what": "add this round",
+   "measured_change": "-"
+  },
+  {
+   "tier": "C",
+   "item": "outputs/p3_*.json, outputs/anchor_subband*.json, outputs/figs/ours_mu_curve.png",
+   "producer": "benchmark/rcs_anchor.raw_sigma_az",
+   "what": "phantom3 only, reads the current mesh directly, never the grid",
+   "measured_change": "none"
+  },
+  {
+   "tier": "C",
+   "item": "decks/teammeeting_0804_v3.pptx (all 12 slides)",
+   "producer": "deck builder",
+   "what": "phantom3 blind anchor experiment",
+   "measured_change": "none"
+  },
+  {
+   "tier": "C",
+   "item": "tm_result M1 and M2 branches",
+   "producer": "-",
+   "what": "M1 is a 3GPP constant, M2 cube edge already from the current bbox",
+   "measured_change": "none"
+  },
+  {
+   "tier": "C",
+   "item": "tm_result Q1 and Q3 verdict directions",
+   "producer": "-",
+   "what": "8-16 dB and the ranking survive a +-0.6 dB M3 shift",
+   "measured_change": "none"
+  },
+  {
+   "tier": "C",
+   "item": "phi_sweep sigma_fixed control and geometry arms",
+   "producer": "-",
+   "what": "constant sigma = 0.01 m^2, grid never read; the 0.48 % headline stands",
+   "measured_change": "none"
+  },
+  {
+   "tier": "C",
+   "item": "outputs/verify_eca.json, verify_cfar.json, verify_ambiguity.json",
+   "producer": "-",
+   "what": "detector side; sigma is a multiplicative offset that does not enter threshold/Pfa calibration",
+   "measured_change": "none"
+  },
+  {
+   "tier": "C",
+   "item": "outputs/rcs_anchor.json",
+   "producer": "benchmark/rcs_anchor.py",
+   "what": "upstream of the grid; currently running as PID 1364837, do not touch",
+   "measured_change": "none"
+  }
+ ],
+ "recompute_priority": [
+  {
+   "rank": 1,
+   "task": "rerun src/experiment_freespace_range.py -> report13_freespace.json",
+   "cost": "~10 min (stored runtime_s 565) + 1 GPU for stage_threshold",
+   "impact": "highest - R90 moves x0.61..x2.77; every report05/13 headline and items 2,3,5 read this file",
+   "why_first": "largest value shift at the lowest cost; everything else is wasted without it"
+  },
+  {
+   "rank": 2,
+   "task": "rerun benchmark/phi_sweep.py (+ phi_sweep_fig.py, phi_sweep_verdict.py)",
+   "cost": "~4 min (225 s, CPU, 0 GPU)",
+   "impact": "high - phi is the only published axis where the clamp actually lives; frac_el_outside_sigma_grid goes to 0 and the whole out-of-grid caveat disappears",
+   "why_first": "cheap, reads item 1, deletes a caveat outright"
+  },
+  {
+   "rank": 3,
+   "task": "fold this document's M3 numbers into tm_result.json",
+   "cost": "0 - already computed in outputs/sigma_regen_impact.json",
+   "impact": "high - removes the 'awaiting confirmation' tag on M3",
+   "why_first": "free"
+  },
+  {
+   "rank": 4,
+   "task": "rerun mono_link.py, mono_vs_passive.py, verify_monostatic.py, sigma_sensitivity.py, sigma_robust_summary.py, geometry_grid.py, geometry_benchmark.py",
+   "cost": "1-30 s each (measured 0.79 / 2.39 / 16.8 / 23.6 s)",
+   "impact": "medium - monostatic-vs-passive comparison and sigma sensitivity tables",
+   "why_first": "essentially free; batch right after 1 and 2"
+  },
+  {
+   "rank": 5,
+   "task": "rerun viz_report13.py, render_report13.py, make_report05_results.py, make_report02_target.py",
+   "cost": "~30 min",
+   "impact": "medium - the visible artefacts",
+   "why_first": "only meaningful after 1 and 4"
+  },
+  {
+   "rank": 6,
+   "task": "edit deck teammeeting_0804_short.pptx slide p05 (9 -> 23 elevations, drop 'predates')",
+   "cost": "~5 min by hand",
+   "impact": "medium - presentation accuracy, and it is good news",
+   "why_first": "before the 08/04 talk"
+  },
+  {
+   "rank": 7,
+   "task": "fix REPORT13_SPEC.md (star 24.7 dB, el grid 9 -> 23)",
+   "cost": "~15 min by hand",
+   "impact": "medium - closes a spec-vs-implementation mismatch",
+   "why_first": "documentation, do it in one pass after 1 and 2"
+  },
+  {
+   "rank": 8,
+   "task": "rerun the multipath arm of the target-model experiment (E1/E2/E2b)",
+   "cost": "high - the RT path-extraction script is lost and must be rewritten; 1 GPU plus hours",
+   "impact": "medium - promotes the Q3 clamp-artefact claim from inference to measurement",
+   "why_first": "the only item that needs new code; the verdict direction is not expected to change"
+  },
+  {
+   "rank": 9,
+   "task": "generate the 14 extension rows of the M2 cube sigma for a 23-row apples-to-apples",
+   "cost": "~1.7 h GPU (tm_setup's 9 rows took 2453 s)",
+   "impact": "low - the canonical M3 number is the 9-row one, printable without this",
+   "why_first": "nice to have; last"
+  }
+ ],
+ "md": "/home/yunjung/workspace/sionna2/docs/SIGMA_REGEN_IMPACT.md"
+}

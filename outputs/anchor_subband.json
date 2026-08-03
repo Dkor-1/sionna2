@@ -1,0 +1,771 @@
+{
+ "_meta": {
+  "generated": "2026-08-03 10:44:14",
+  "task": "앵커 논문에서 DJI Phantom 3 의 mu(f) 곡선을 찾아 디지타이즈하고 저대역/고대역/전대역 기울기를 분리 산출",
+  "why": "우리 실험 대역(LTE 1.843 / 5G 3.5 / WiFi 5.21 GHz)이 전부 저주파 구간인데, 두 앵커 논문은 1.8~18.2 GHz 전체에 직선 하나만 인쇄한다. 저대역 기울기를 모르면 우리 대역에서의 격차를 말할 수 없다.",
+  "figure": "/home/yunjung/workspace/sionna2/outputs/figs/anchor_curve_digitized.png",
+  "sources": [
+   {
+    "key": "yuan",
+    "cite": "Z. Yuan, L. Yu, C. Li, W. Fan, \"On Experimental Analysis of Mono-Static 3D UAV RCS for ISAC Channel Modeling,\" 2025 19th European Conf. on Antennas and Propagation (EuCAP), doi:10.23919/EuCAP63536.2025.10999912",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+    "md5": "59ce42a0c650ace9bef7412e11b035be",
+    "pages": "PDF 5쪽, 인쇄 쪽번호 없음 → PDF 쪽으로 인용"
+   },
+   {
+    "key": "das",
+    "cite": "S. Das, P. Zhang, V. Hovinen, M. E. Leinonen, A. Parssinen, P. Kyosti, \"Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling,\" IEEE Wireless Commun. Lett., vol. 15, pp. 3731-3735, 2026, doi:10.1109/LWC.2026.3705634",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+    "md5": "69cf664c39d94a7501bc4e4afccd8ca2",
+    "pages": "인쇄 쪽 3731-3735 (PDF 1-5쪽에 대응)"
+   }
+  ],
+  "source_independence_warning": "⚠ Das 의 Phantom 3 행은 Yuan 의 원자료를 재분석한 것이다. 독립 2건이 아니다. (Das Table I 의 Phantom 3 열 = 1.8~18.2 GHz · 2801 주파수점 · 방위 -90:2:90 · 35x20 cm = Yuan §II-A 와 동일; Das ACKNOWLEDGMENT 가 Wei Fan(Yuan 교신저자)에게 자료 제공을 사사). outputs/p3_validation.json 의 동일 판정과 일치한다.",
+  "relation_to_existing_outputs": "outputs/p3_validation.json (오늘 10:33 생성) 이 이미 Yuan θ=90 곡선을 복원해 저대역 0.41066 / 고대역 0.30572 를 적어 두었다. 본 산출물은 **다른 추출 경로(PDF 벡터 경로 좌표)** 로 독립 재도출해 0.4120 / 0.3037 을 얻었다 — 0.3% / 0.5% 이내 일치. 본 산출물이 추가하는 것은 (i) 불확도(블록 부트스트랩·창 민감도), (ii) Das Fig.3(b) 의 실제 디지타이즈, (iii) θ=0/180 고도 두 개의 저대역 기울기다. p3_validation.json 은 건드리지 않았다."
+ },
+ "curve_found": true,
+ "answer_headline": "⭐ 곡선은 존재한다. Yuan Fig. 5 가 mu(f) 실측곡선을 세 고도(θ=90/0/180°)로 다 싣고 있고, Das Fig. 3(b) 도 같은 기체의 mu(f) 를 싣는다. 두 논문이 인쇄한 직선 하나(Das 0.21 / Yuan 0.315)는 **저대역에서 곡선을 잘못 대표한다** — 그러나 저대역 기울기 자체가 통계적으로 결정되지 않는다.",
+ "verbatim": {
+  "das_table_III_phantom3_monostatic": {
+   "quote": "mu = 0.21 f - 19.19 ; eps = 0.03 f + 5.16",
+   "where": "Das, TABLE III, row 'Phantom 3', column theta_b = 0deg, 인쇄 쪽 3734 (PDF p.4)",
+   "grade": "verbatim"
+  },
+  "das_table_III_phantom3_all_bistatic": {
+   "quote": "theta_b=0: mu=0.21f-19.19 | 15: 0.21f-19.23 | 30: 0.21f-19.33 | 45: 0.21f-19.48 | 60: 0.21f-19.64 | 75: 0.21f-19.77 | 90: 0.21f-19.82 (eps = 0.03f+5.16 전 각도 동일)",
+   "where": "Das, TABLE III, 인쇄 쪽 3734",
+   "grade": "verbatim",
+   "note": "Phantom 3 은 7개 바이스태틱 각 전부 기울기가 0.21 로 같고 절편만 움직인다."
+  },
+  "das_table_I_phantom3": {
+   "quote": "Dimension 35 cm x 20 cm ; Frequency Band 1.8 GHz-18.2 GHz ; Frequency points 2801 ; Azimuth resolution -90deg <= phi(=2deg) <= 90deg ; TX-RX distance Far-field ; Environment Anechoic",
+   "where": "Das, TABLE I, 인쇄 쪽 3732 (PDF p.2)",
+   "grade": "verbatim"
+  },
+  "das_fig3_caption": {
+   "quote": "Fig. 3. Linear fitting of the mean and standard deviation of the measured monostatic RCS.",
+   "where": "Das, 인쇄 쪽 3733 (PDF p.3)",
+   "grade": "verbatim"
+  },
+  "das_linearity_claim": {
+   "quote": "Although narrowband deviations are observed, the fitted lines closely follow the measurements, indicating that a linear approximation is sufficient for wideband mean RCS modeling.",
+   "where": "Das, §III-1, 인쇄 쪽 3733",
+   "grade": "verbatim",
+   "our_reading": "⭐ 이 주장은 **광대역(wideband)** 에 한정된다. 본 산출물은 그 한정이 필요한 이유를 정량화한다 — 저대역만 떼면 기울기가 +0.41 ~ -0.62 dB/GHz 로 고도에 따라 부호까지 바뀐다."
+  },
+  "yuan_regression_constants": {
+   "quote": "the regression parameters mean values {a, b, c, d} are calculated as {0.315, -16.15, 0.0045, 0.07}, {0.231, -17.92, 0.0024, 0.06}, and {0.175, -17.12, 0.0019, 0.07} for theta = 90deg, theta = 0deg, and theta = 180deg, respectively.",
+   "where": "Yuan, §IV, PDF p.4",
+   "grade": "verbatim",
+   "note": "mu = a*f + b (mu in dBsm, f in GHz); eps = c*f + d"
+  },
+  "yuan_measurement_setup": {
+   "quote": "The frequency sweep ranges from 1.8 GHz to 18.2 GHz, with 2801 frequency points recorded at each azimuth angle",
+   "where": "Yuan, §II-A, PDF p.2",
+   "grade": "verbatim"
+  },
+  "yuan_elevations": {
+   "quote": "Three UAV elevation sides including the azimuth plane, top, and bottom, were considered in the measurements, i.e, theta = {90deg, 0deg, 180deg}.",
+   "where": "Yuan, §II-A, PDF p.2",
+   "grade": "verbatim",
+   "our_reading": "θ=90° = 방위면(측면 조사) = 우리 챔버 측벽 TX/RX 기하와 정합하는 유일한 고도."
+  },
+  "yuan_fig5_caption": {
+   "quote": "Fig. 5. Rician fitting results, including (a) the mean and standard deviation of the measured and Rician-fitted RCS and (b) the distribution parameters.",
+   "where": "Yuan, PDF p.4",
+   "grade": "verbatim"
+  },
+  "yuan_upward_trend": {
+   "quote": "an upward trend in the mean RCS with increasing frequency is observed, suggesting that the UAV's electrical size increases as frequency rises",
+   "where": "Yuan, §IV, PDF p.4",
+   "grade": "verbatim"
+  },
+  "yuan_linearity_hedge": {
+   "quote": "It is worth mentioning that this analysis aims to make it easier to generate RCS at multiple frequencies, albeit at the expense of some errors.",
+   "where": "Yuan, §IV, PDF p.4",
+   "grade": "verbatim",
+   "our_reading": "저자 스스로 직선화가 오차를 대가로 한다고 적었다."
+  }
+ },
+ "digitization": {
+  "yuan": {
+   "method": "PyMuPDF get_drawings() 로 PDF 벡터 경로의 정점 좌표를 직접 추출 (픽셀 디지타이즈 아님). Fig.5 각 패널의 solid MATLAB-blue 폴리라인 = 'Measured' 평균 RCS.",
+   "n_vertices": 700,
+   "vertex_spacing_mhz": 23.4,
+   "decimation": "2801 측정점 → 700 정점 = 정확히 4:1 균일 데시메이션 (간격 중앙값 23.4 MHz, 최대 29 MHz, 적응형 단순화 아님)",
+   "x_calibration": "하단 눈금 라벨(2,4,...,18 GHz) 텍스트 중심에 최소자승 → 8.7888 pt/GHz. 검증: 폴리라인 양끝이 1.810 / 18.194 GHz 로 나와 논문이 적은 1.8 / 18.2 GHz 와 0.01 GHz 이내 일치.",
+   "y_calibration": "⭐ 'Mean-fre. fit' 점선 폴리라인(=축자 상수 mu=a*f+b 를 그린 직선)에 최소자승으로 정합. 잔차 RMS = 0.0002 pt = 0.0000 dB → 축 보정이 **수학적으로 정확**하다. 좌축 눈금 라벨로 독립 산출한 척도(6.9325 pt/dB)와 0.06% 일치.",
+   "validation": "보정 후 실측곡선을 전대역 재적합 → a=0.3154/0.2313/0.1724, b=-16.107/-17.924/-17.231. 인쇄값 0.315/-16.15, 0.231/-17.92, 0.175/-17.12 과 세 자리까지 일치(θ=180 은 폴리라인이 1.88~18.03 GHz 로 잘려 a 가 0.003 낮다).",
+   "uncertainty_db": {
+    "axis_calibration": 0.0,
+    "vertex_decimation_local_value": 0.37,
+    "trend_slope": 0.01,
+    "note": "축 보정 오차는 0. 남는 것은 4:1 데시메이션뿐이고, 인접정점 |Δmu| 의 90% 분위가 0.75 dB 이므로 **단일 주파수 값**의 상한은 ±0.37 dB. 기울기(추세)에는 데시메이션이 거의 영향이 없다(균일 간격이라 편향 없음)."
+   }
+  },
+  "das": {
+   "method": "Fig.3(b) 는 PDF 에 415x331 px 래스터로 박혀 있어 벡터 추출 불가 → 픽셀 디지타이즈. 파란 코어 픽셀(B-R>=100, B-G>=40) 을 열마다 모아 (min+max)/2 를 곡선 추정치로 사용.",
+   "x_calibration": "하단 major tick 픽셀 열 120/210/300 = 5/10/15 GHz → 정확히 18.0 px/GHz. 축 프레임 66~353 px → 표시 구간 약 2.0~17.94 GHz (측정 대역 1.8~18.2 보다 양끝이 잘려 있다).",
+   "y_calibration": "좌축 눈금 라벨 중심 행 33.5/113.5/192.5/272.5 = -10/-15/-20/-25 dBsm, 간격 80/79/80 px. 축 프레임 행 33~271 = [-10,-25] 채택 → 15.87 px/dB.",
+   "validation": "전대역(2~18 GHz) 재적합 a=0.2072, b=-19.180. Das 인쇄값 0.21 / -19.19 와 일치 → 디지타이즈 파이프라인 검증됨.",
+   "uncertainty_db": {
+    "pixel_quantization": 0.063,
+    "estimator_and_axis": 0.15,
+    "legend_occlusion_local": 1.0,
+    "note": "⚠ 범례 흰 상자가 -16.30 dBsm 위를 f<11.56 GHz 에서 불투명하게 가린다. 282 열 중 41 열(14.5%)에서 파란 곡선이 상자 하단에 닿아 **잘렸다**. 그중 15 열이 2.83~3.72 GHz — 즉 5G n78 바로 옆이다."
+   }
+  },
+  "grade": "reconstructed (그림에서 읽은 값). 인쇄된 계수(Das 0.21/-19.19, Yuan 0.315/-16.15 등)만 verbatim."
+ },
+ "subband_slopes": {
+  "theta90": {
+   "theta_deg": 90,
+   "view": "azimuth plane (side)",
+   "panel": "Fig. 5(a)",
+   "printed_full_band": {
+    "a_db_per_ghz": 0.315,
+    "b_dbsm": -16.15,
+    "grade": "verbatim"
+   },
+   "extracted_f_range_ghz": [
+    1.81,
+    18.1912
+   ],
+   "n_polyline_vertices": 700,
+   "vertex_spacing_mhz": 23.4,
+   "residual_decorrelation_bw_ghz": 0.22,
+   "bands": {
+    "low_1.8_6": {
+     "a_db_per_ghz": 0.412,
+     "b_dbsm": -16.518,
+     "rmse_db": 1.257,
+     "n_grid": 419,
+     "block_bootstrap_se": 0.518,
+     "block_bootstrap_ci95": [
+      -0.871,
+      1.21
+     ],
+     "f_actual_ghz": [
+      1.81,
+      5.99
+     ]
+    },
+    "high_6_18.2": {
+     "a_db_per_ghz": 0.3037,
+     "b_dbsm": -15.954,
+     "rmse_db": 0.607,
+     "n_grid": 1220,
+     "block_bootstrap_se": 0.033,
+     "block_bootstrap_ci95": [
+      0.224,
+      0.355
+     ],
+     "f_actual_ghz": [
+      6.0,
+      18.19
+     ]
+    },
+    "full_1.8_18.2": {
+     "a_db_per_ghz": 0.3154,
+     "b_dbsm": -16.107,
+     "rmse_db": 0.827,
+     "n_grid": 1639,
+     "block_bootstrap_se": 0.032,
+     "block_bootstrap_ci95": [
+      0.242,
+      0.367
+     ],
+     "f_actual_ghz": [
+      1.81,
+      18.19
+     ]
+    }
+   },
+   "low_band_window_sensitivity": {
+    "start_swept_end_6.0": {
+     "1.8": 0.412,
+     "2.0": 0.361,
+     "2.2": 0.219,
+     "2.5": -0.133,
+     "3.0": -0.494
+    },
+    "end_swept_start_1.8": {
+     "5.0": 0.787,
+     "5.5": 0.44,
+     "6.0": 0.412,
+     "6.5": 0.346,
+     "7.0": 0.471,
+     "8.0": 0.411
+    }
+   },
+   "validation_refit_vs_printed": {
+    "a_refit": 0.3154,
+    "a_printed": 0.315,
+    "a_err": 0.0004,
+    "b_refit": -16.107,
+    "b_printed": -16.15,
+    "b_err": 0.043
+   },
+   "mu_at_our_bands_dbsm": {
+    "LTE_1.843GHz": {
+     "measured_curve_mean_pm0.25GHz": -16.44,
+     "measured_curve_std_in_window": 0.64,
+     "printed_line": -15.57,
+     "delta_measured_minus_line": -0.87
+    },
+    "5G_n78_3.5GHz": {
+     "measured_curve_mean_pm0.25GHz": -13.14,
+     "measured_curve_std_in_window": 0.6,
+     "printed_line": -15.05,
+     "delta_measured_minus_line": 1.91
+    },
+    "WiFi_5.21GHz": {
+     "measured_curve_mean_pm0.25GHz": -15.43,
+     "measured_curve_std_in_window": 0.46,
+     "printed_line": -14.51,
+     "delta_measured_minus_line": -0.92
+    }
+   }
+  },
+  "theta0": {
+   "theta_deg": 0,
+   "view": "top",
+   "panel": "Fig. 5(b)",
+   "printed_full_band": {
+    "a_db_per_ghz": 0.231,
+    "b_dbsm": -17.92,
+    "grade": "verbatim"
+   },
+   "extracted_f_range_ghz": [
+    1.8098,
+    18.1918
+   ],
+   "n_polyline_vertices": 700,
+   "vertex_spacing_mhz": 23.4,
+   "residual_decorrelation_bw_ghz": 0.2,
+   "bands": {
+    "low_1.8_6": {
+     "a_db_per_ghz": -0.0954,
+     "b_dbsm": -16.55,
+     "rmse_db": 1.33,
+     "n_grid": 419,
+     "block_bootstrap_se": 0.537,
+     "block_bootstrap_ci95": [
+      -1.453,
+      0.896
+     ],
+     "f_actual_ghz": [
+      1.81,
+      5.99
+     ]
+    },
+    "high_6_18.2": {
+     "a_db_per_ghz": 0.2674,
+     "b_dbsm": -18.395,
+     "rmse_db": 0.74,
+     "n_grid": 1220,
+     "block_bootstrap_se": 0.026,
+     "block_bootstrap_ci95": [
+      0.215,
+      0.314
+     ],
+     "f_actual_ghz": [
+      6.0,
+      18.19
+     ]
+    },
+    "full_1.8_18.2": {
+     "a_db_per_ghz": 0.2313,
+     "b_dbsm": -17.924,
+     "rmse_db": 0.957,
+     "n_grid": 1639,
+     "block_bootstrap_se": 0.031,
+     "block_bootstrap_ci95": [
+      0.169,
+      0.293
+     ],
+     "f_actual_ghz": [
+      1.81,
+      18.19
+     ]
+    }
+   },
+   "low_band_window_sensitivity": {
+    "start_swept_end_6.0": {
+     "1.8": -0.095,
+     "2.0": -0.066,
+     "2.2": -0.251,
+     "2.5": -0.414,
+     "3.0": -0.996
+    },
+    "end_swept_start_1.8": {
+     "5.0": 0.378,
+     "5.5": -0.096,
+     "6.0": -0.095,
+     "6.5": -0.057,
+     "7.0": -0.028,
+     "8.0": 0.096
+    }
+   },
+   "validation_refit_vs_printed": {
+    "a_refit": 0.2313,
+    "a_printed": 0.231,
+    "a_err": 0.0003,
+    "b_refit": -17.924,
+    "b_printed": -17.92,
+    "b_err": -0.004
+   },
+   "mu_at_our_bands_dbsm": {
+    "LTE_1.843GHz": {
+     "measured_curve_mean_pm0.25GHz": -17.1,
+     "measured_curve_std_in_window": 1.34,
+     "printed_line": -17.49,
+     "delta_measured_minus_line": 0.4
+    },
+    "5G_n78_3.5GHz": {
+     "measured_curve_mean_pm0.25GHz": -15.69,
+     "measured_curve_std_in_window": 0.44,
+     "printed_line": -17.11,
+     "delta_measured_minus_line": 1.42
+    },
+    "WiFi_5.21GHz": {
+     "measured_curve_mean_pm0.25GHz": -18.26,
+     "measured_curve_std_in_window": 0.8,
+     "printed_line": -16.72,
+     "delta_measured_minus_line": -1.55
+    }
+   }
+  },
+  "theta180": {
+   "theta_deg": 180,
+   "view": "bottom",
+   "panel": "Fig. 5(c)",
+   "printed_full_band": {
+    "a_db_per_ghz": 0.175,
+    "b_dbsm": -17.12,
+    "grade": "verbatim"
+   },
+   "extracted_f_range_ghz": [
+    1.88,
+    18.0337
+   ],
+   "n_polyline_vertices": 687,
+   "vertex_spacing_mhz": 23.4,
+   "residual_decorrelation_bw_ghz": 0.3,
+   "bands": {
+    "low_1.8_6": {
+     "a_db_per_ghz": -0.6171,
+     "b_dbsm": -13.633,
+     "rmse_db": 1.102,
+     "n_grid": 411,
+     "block_bootstrap_se": 0.353,
+     "block_bootstrap_ci95": [
+      -1.596,
+      -0.08
+     ],
+     "f_actual_ghz": [
+      1.89,
+      5.99
+     ]
+    },
+    "high_6_18.2": {
+     "a_db_per_ghz": 0.3151,
+     "b_dbsm": -19.111,
+     "rmse_db": 0.772,
+     "n_grid": 1204,
+     "block_bootstrap_se": 0.033,
+     "block_bootstrap_ci95": [
+      0.247,
+      0.377
+     ],
+     "f_actual_ghz": [
+      6.0,
+      18.03
+     ]
+    },
+    "full_1.8_18.2": {
+     "a_db_per_ghz": 0.1724,
+     "b_dbsm": -17.231,
+     "rmse_db": 1.114,
+     "n_grid": 1615,
+     "block_bootstrap_se": 0.041,
+     "block_bootstrap_ci95": [
+      0.097,
+      0.263
+     ],
+     "f_actual_ghz": [
+      1.89,
+      18.03
+     ]
+    }
+   },
+   "low_band_window_sensitivity": {
+    "start_swept_end_6.0": {
+     "1.8": -0.617,
+     "2.0": -0.634,
+     "2.2": -0.615,
+     "2.5": -0.686,
+     "3.0": -1.197
+    },
+    "end_swept_start_1.8": {
+     "5.0": -0.423,
+     "5.5": -0.744,
+     "6.0": -0.617,
+     "6.5": -0.483,
+     "7.0": -0.503,
+     "8.0": -0.278
+    }
+   },
+   "validation_refit_vs_printed": {
+    "a_refit": 0.1724,
+    "a_printed": 0.175,
+    "a_err": -0.0026,
+    "b_refit": -17.231,
+    "b_printed": -17.12,
+    "b_err": -0.111
+   },
+   "mu_at_our_bands_dbsm": {
+    "LTE_1.843GHz": {
+     "measured_curve_mean_pm0.25GHz": -15.09,
+     "measured_curve_std_in_window": 0.54,
+     "printed_line": -16.8,
+     "delta_measured_minus_line": 1.71
+    },
+    "5G_n78_3.5GHz": {
+     "measured_curve_mean_pm0.25GHz": -15.16,
+     "measured_curve_std_in_window": 0.63,
+     "printed_line": -16.51,
+     "delta_measured_minus_line": 1.35
+    },
+    "WiFi_5.21GHz": {
+     "measured_curve_mean_pm0.25GHz": -17.93,
+     "measured_curve_std_in_window": 0.5,
+     "printed_line": -16.21,
+     "delta_measured_minus_line": -1.72
+    }
+   }
+  }
+ },
+ "das_fig3b_subband_slopes": {
+  "env": {
+   "low_2_6": {
+    "a_db_per_ghz": -0.0799,
+    "b_dbsm": -18.003,
+    "rmse_db": 1.163,
+    "n_pixel_columns": 70,
+    "block_bootstrap_se": 0.504,
+    "block_bootstrap_ci95": [
+     -1.343,
+     0.739
+    ]
+   },
+   "high_6_18": {
+    "a_db_per_ghz": 0.2243,
+    "b_dbsm": -19.394,
+    "rmse_db": 0.63,
+    "n_pixel_columns": 213,
+    "block_bootstrap_se": 0.027,
+    "block_bootstrap_ci95": [
+     0.172,
+     0.279
+    ]
+   },
+   "full_2_18": {
+    "a_db_per_ghz": 0.2072,
+    "b_dbsm": -19.18,
+    "rmse_db": 0.815,
+    "n_pixel_columns": 282,
+    "block_bootstrap_se": 0.028,
+    "block_bootstrap_ci95": [
+     0.152,
+     0.261
+    ]
+   },
+   "low_2_6_occluded_columns_dropped": {
+    "a_db_per_ghz": 0.0393,
+    "n": 55
+   }
+  },
+  "med": {
+   "low_2_6": {
+    "a_db_per_ghz": -0.1798,
+    "b_dbsm": -17.478,
+    "rmse_db": 1.221,
+    "n_pixel_columns": 70,
+    "block_bootstrap_se": 0.515,
+    "block_bootstrap_ci95": [
+     -1.573,
+     0.571
+    ]
+   },
+   "high_6_18": {
+    "a_db_per_ghz": 0.2243,
+    "b_dbsm": -19.383,
+    "rmse_db": 0.701,
+    "n_pixel_columns": 213,
+    "block_bootstrap_se": 0.031,
+    "block_bootstrap_ci95": [
+     0.163,
+     0.283
+    ]
+   },
+   "full_2_18": {
+    "a_db_per_ghz": 0.1975,
+    "b_dbsm": -19.042,
+    "rmse_db": 0.891,
+    "n_pixel_columns": 282,
+    "block_bootstrap_se": 0.031,
+    "block_bootstrap_ci95": [
+     0.137,
+     0.257
+    ]
+   },
+   "low_2_6_occluded_columns_dropped": {
+    "a_db_per_ghz": -0.0462,
+    "n": 55
+   }
+  },
+  "nofit": {
+   "low_2_6": {
+    "a_db_per_ghz": -0.1924,
+    "b_dbsm": -17.419,
+    "rmse_db": 1.256,
+    "n_pixel_columns": 69,
+    "block_bootstrap_se": 0.535,
+    "block_bootstrap_ci95": [
+     -1.574,
+     0.661
+    ]
+   },
+   "high_6_18": {
+    "a_db_per_ghz": 0.2241,
+    "b_dbsm": -19.382,
+    "rmse_db": 0.746,
+    "n_pixel_columns": 213,
+    "block_bootstrap_se": 0.034,
+    "block_bootstrap_ci95": [
+     0.159,
+     0.29
+    ]
+   },
+   "full_2_18": {
+    "a_db_per_ghz": 0.1962,
+    "b_dbsm": -19.028,
+    "rmse_db": 0.931,
+    "n_pixel_columns": 281,
+    "block_bootstrap_se": 0.033,
+    "block_bootstrap_ci95": [
+     0.131,
+     0.262
+    ]
+   },
+   "low_2_6_occluded_columns_dropped": {
+    "a_db_per_ghz": NaN,
+    "n": 55
+   }
+  }
+ },
+ "headline_numbers": {
+  "primary_source": "Yuan Fig. 5(a), theta=90deg (azimuth plane) — 우리 챔버 측벽 TX/RX 기하와 고도가 정합하는 유일한 대조",
+  "a_lowband_1.8_6_ghz": 0.412,
+  "a_highband_6_18.2_ghz": 0.3037,
+  "a_fullband_1.8_18.2_ghz": 0.3154,
+  "a_fullband_printed_verbatim": 0.315,
+  "elevation_spread_lowband": {
+   "theta90": 0.412,
+   "theta0": -0.0954,
+   "theta180": -0.6171
+  },
+  "das_lowband_2_6_ghz": -0.0799
+ },
+ "uncertainty_verdict": {
+  "statement": "⭐⭐ 저대역 기울기는 **통계적으로 결정되지 않는다**. 잔차 상관대역폭이 0.20~0.30 GHz 인데 저대역 창은 4.2 GHz 뿐이라 독립 표본이 14~20 개다.",
+  "residual_decorrelation_bw_ghz": {
+   "theta90": 0.22,
+   "theta0": 0.2,
+   "theta180": 0.3,
+   "das": 0.22
+  },
+  "block_bootstrap_se_lowband": {
+   "theta90": 0.518,
+   "theta0": 0.537,
+   "theta180": 0.353,
+   "das": 0.504
+  },
+  "window_sensitivity": {
+   "theta90": {
+    "start_swept_end_6.0": {
+     "1.8": 0.412,
+     "2.0": 0.361,
+     "2.2": 0.219,
+     "2.5": -0.133,
+     "3.0": -0.494
+    },
+    "end_swept_start_1.8": {
+     "5.0": 0.787,
+     "5.5": 0.44,
+     "6.0": 0.412,
+     "6.5": 0.346,
+     "7.0": 0.471,
+     "8.0": 0.411
+    }
+   },
+   "theta0": {
+    "start_swept_end_6.0": {
+     "1.8": -0.095,
+     "2.0": -0.066,
+     "2.2": -0.251,
+     "2.5": -0.414,
+     "3.0": -0.996
+    },
+    "end_swept_start_1.8": {
+     "5.0": 0.378,
+     "5.5": -0.096,
+     "6.0": -0.095,
+     "6.5": -0.057,
+     "7.0": -0.028,
+     "8.0": 0.096
+    }
+   },
+   "theta180": {
+    "start_swept_end_6.0": {
+     "1.8": -0.617,
+     "2.0": -0.634,
+     "2.2": -0.615,
+     "2.5": -0.686,
+     "3.0": -1.197
+    },
+    "end_swept_start_1.8": {
+     "5.0": -0.423,
+     "5.5": -0.744,
+     "6.0": -0.617,
+     "6.5": -0.483,
+     "7.0": -0.503,
+     "8.0": -0.278
+    }
+   }
+  },
+  "two_readings": {
+   "deterministic": "측정곡선은 특정 기체 한 대의 실측이므로 '1.8~6.0 GHz 창에서의 기울기'는 0.412 로 유일하게 정해진다 — 우리 모델이 재현해야 할 대상으로는 이 값을 쓰는 게 맞다.",
+   "as_a_model_parameter": "⚠ 그러나 '저대역 기울기 = 0.41' 을 모델 상수로 인쇄하면 거짓 정밀이다. 창 시작을 1.8→3.0 GHz 로 옮기면 +0.41 → -0.49 로 뒤집힌다. 블록 부트스트랩 95% 구간은 [-1.16, +2.13] 이다."
+  }
+ },
+ "comparison_to_ours": {
+  "ours_lowband": {
+   "a": 1.5634,
+   "b": -26.743,
+   "n": 6,
+   "ols_se": 0.1559,
+   "source": "outputs/p3_ours.json / p3_validation.json (SBR+PO, el=0, 21점 중 1.8~6.0 GHz 6점)"
+  },
+  "measured_lowband_theta90": {
+   "a": 0.412,
+   "block_bootstrap_se": 0.518,
+   "a_resampled_at_our_6_freqs": 0.3388
+  },
+  "difference_db_per_ghz": 1.1514,
+  "z_deterministic_measurement": 7.38,
+  "z_with_measurement_uncertainty": 2.13,
+  "reading": "⭐ 우리 저대역 기울기 1.563 은 측정 0.412 보다 1.15 dB/GHz 크다. 측정곡선을 확정값으로 보면 7.4σ 로 명백히 다르다. 그러나 측정 기울기 자체의 창 불확도(SE 0.52)를 같이 물리면 2.1σ 로 떨어진다 — **'3.8배 가파르다'는 창을 1.8~6.0 으로 고정했을 때만 나오는 수다.** 방향(우리가 더 가파르다)은 어느 읽기에서도 유지된다.",
+  "level_is_still_the_bigger_error": "p3_validation.json 의 판정(지배 오차는 레벨 -4.6~-4.9 dB)을 본 산출물이 뒤집지 않는다. 본 산출물은 기울기 항의 불확도만 정직하게 키운다."
+ },
+ "mu_at_our_experiment_bands": {
+  "theta90": {
+   "LTE_1.843GHz": {
+    "measured_curve_mean_pm0.25GHz": -16.44,
+    "measured_curve_std_in_window": 0.64,
+    "printed_line": -15.57,
+    "delta_measured_minus_line": -0.87
+   },
+   "5G_n78_3.5GHz": {
+    "measured_curve_mean_pm0.25GHz": -13.14,
+    "measured_curve_std_in_window": 0.6,
+    "printed_line": -15.05,
+    "delta_measured_minus_line": 1.91
+   },
+   "WiFi_5.21GHz": {
+    "measured_curve_mean_pm0.25GHz": -15.43,
+    "measured_curve_std_in_window": 0.46,
+    "printed_line": -14.51,
+    "delta_measured_minus_line": -0.92
+   }
+  },
+  "theta0": {
+   "LTE_1.843GHz": {
+    "measured_curve_mean_pm0.25GHz": -17.1,
+    "measured_curve_std_in_window": 1.34,
+    "printed_line": -17.49,
+    "delta_measured_minus_line": 0.4
+   },
+   "5G_n78_3.5GHz": {
+    "measured_curve_mean_pm0.25GHz": -15.69,
+    "measured_curve_std_in_window": 0.44,
+    "printed_line": -17.11,
+    "delta_measured_minus_line": 1.42
+   },
+   "WiFi_5.21GHz": {
+    "measured_curve_mean_pm0.25GHz": -18.26,
+    "measured_curve_std_in_window": 0.8,
+    "printed_line": -16.72,
+    "delta_measured_minus_line": -1.55
+   }
+  },
+  "theta180": {
+   "LTE_1.843GHz": {
+    "measured_curve_mean_pm0.25GHz": -15.09,
+    "measured_curve_std_in_window": 0.54,
+    "printed_line": -16.8,
+    "delta_measured_minus_line": 1.71
+   },
+   "5G_n78_3.5GHz": {
+    "measured_curve_mean_pm0.25GHz": -15.16,
+    "measured_curve_std_in_window": 0.63,
+    "printed_line": -16.51,
+    "delta_measured_minus_line": 1.35
+   },
+   "WiFi_5.21GHz": {
+    "measured_curve_mean_pm0.25GHz": -17.93,
+    "measured_curve_std_in_window": 0.5,
+    "printed_line": -16.21,
+    "delta_measured_minus_line": -1.72
+   }
+  }
+ },
+ "coverage_verdict": {
+  "which_paper_covers_our_band_best": "Yuan (EuCAP 2025)",
+  "why": [
+   "① 대역: Yuan Fig.5 는 1.8~18.2 GHz 전체를 그린다. Das Fig.3(b) 는 같은 기체·같은 대역이지만 표시 구간이 약 2.0~17.94 GHz 로 양끝이 잘려 LTE 1.843 GHz 가 **그림 밖**이다.",
+   "② 가림: Das Fig.3(b) 는 범례 흰 상자가 f<11.56 GHz, mu>-16.30 dBsm 영역을 불투명하게 덮어 2.83~3.72 GHz(=5G n78 인접)에서 곡선이 잘린다. Yuan Fig.5 는 범례가 곡선 아래쪽·중앙에 있어 저대역을 가리지 않는다.",
+   "③ 충실도: Yuan Fig.5 는 PDF 벡터라 정점 좌표를 그대로 뽑을 수 있고 축 보정이 0.0000 dB 로 검증된다. Das Fig.3(b) 는 415x331 px 래스터라 1 px = 0.063 dB 양자화가 한계다.",
+   "④ 고도 분해: Yuan 은 θ=90/0/180 세 고도를 따로 준다 — 우리 챔버 기하(측벽 TX/RX)에 맞는 θ=90 을 고를 수 있다. Das Phantom 3 행은 고도 정보가 없다(풀링 또는 단일 고도, 명시 없음).",
+   "⑤ Das 가 더 나은 유일한 점: 바이스태틱. Das Table III 는 θ_b=0~90° 7개 각의 mu 를 준다(Phantom 3 은 기울기 전부 0.21, 절편만 -19.19→-19.82). 우리가 바이스태틱을 쓰므로 **레벨 보정에는 Das 를 써야 한다** — 단 그 각도 의존은 전대역 직선이라 저대역 분해가 없다."
+  ],
+  "practical_recommendation": "저대역 mu(f) 형상 = Yuan θ=90 복원곡선. 바이스태틱 각도 감쇠 = Das Table III 의 절편차(0°→90° 에서 -0.63 dB). 이 둘은 같은 원자료이므로 섞어 써도 이중계산이 아니다."
+ },
+ "caveats": [
+  "⚠ 통계 규약 불일치: Das §III-1 은 sigma_m = (1/K)sum sigma (선형평균) 로, §III-2 는 ln(sigma)~N(...) (dB영역 평균) 로 mu 를 서로 다르게 정의한다. Das Fig.3(b) 의 Phantom 3 곡선은 Yuan 의 세 고도 전부보다 2~3 dB **낮게** 나오는데, 이는 dB영역 평균(mean-of-dB)일 때 나타나는 방향이다. p3_validation.json 의 statistic_resolution 절이 같은 문제를 다룬다.",
+  "⚠ Das 와 Yuan 은 독립 앵커가 아니다 — 같은 Southeast Univ. CATR 측정의 두 통계다. 두 논문이 어긋나는 부분(기울기 0.21 vs 0.315)은 '측정 불확실성'이 아니라 '처리 규약 차이'로 읽어야 한다.",
+  "⚠ Das Fig.3(b) 표시 구간이 2.0~17.94 GHz 인데 Table I 은 측정이 1.8~18.2 GHz 라고 적는다. 즉 그림이 측정 전체를 보여주지 않는다(MATLAB 자동 축한계로 보임). 이 때문에 Das 로는 LTE 1.843 GHz 를 그림에서 읽을 수 없다.",
+  "⚠ Yuan θ=180 패널의 폴리라인은 1.88~18.03 GHz 로 짧다(687 정점). 축 상하한을 벗어난 구간이 클립된 것으로 보이며, 그래서 전대역 재적합 a=0.172 가 인쇄값 0.175 와 0.003 어긋난다.",
+  "⚠ 본 산출물의 모든 곡선값은 **reconstructed** 다. 인쇄된 계수만 verbatim 이다.",
+  "⚠ Yuan 은 mu 를 Rician 적합의 평균으로 준다(그림에 'Measured' 와 'Rician-fitted' 가 둘 다 있고, 본 추출은 'Measured' 실선을 썼다). Das 는 각도평균을 직접 쓴다. 두 mu 는 같은 양이 아닐 수 있다."
+ ],
+ "fallback_options_if_no_curve": {
+  "needed": false,
+  "note": "곡선이 있으므로 대안은 불필요했다. 아래는 확인 결과만 기록한다.",
+  "checked": [
+   {
+    "option": "Das Table III 에 부분대역/고도별 계수가 있는가?",
+    "answer": "부분대역 계수는 **없다**. Table III 는 AAV 4종 x 바이스태틱 7각 각각에 1.8~18.2 GHz(Phantom 3) 전대역 직선 하나씩만 준다. 고도별 계수도 없다(Das 는 고도 축이 없는 실험). 있는 것은 바이스태틱 각도 의존뿐이고 Phantom 3 은 기울기가 7각 모두 0.21 로 동일하다."
+   },
+   {
+    "option": "Yuan 의 분포 파라미터(Rician K 등)가 주파수별로 인쇄돼 있는가?",
+    "answer": "곡선으로는 있다 — Fig. 6(a) 가 θ=90° 의 K factor 를 주파수축으로 그린다(본문: 'K factors vary around -10 dB at some frequencies, while the others are significantly lower, falling below -30 dB'). 표로는 없다. 대표값 2개만 축자로 인쇄: 10.0 GHz 에서 K=-8.9 dB, 6.1 GHz 에서 K=-62.8 dB. Das Fig. 5(b) 는 Phantom 3 의 Rician s(f), sigma(f) 를 주파수축으로 그린다(표 없음)."
+   },
+   {
+    "option": "저자에게 원자료를 요청하는 것이 유일한 길인가?",
+    "answer": "아니다 — mu(f) 는 위 방법으로 충분히 복원된다. 다만 **저대역 기울기의 불확도를 줄이는 것**은 그림 복원으로 안 된다(창 민감도가 지배). 그게 필요하면 Wei Fan(Southeast Univ., Das 사사 대상·Yuan 교신저자) 에게 2801점 원자료를 요청하는 것이 유일한 길이다. Das 논문에 supplementary material 이 있다고 적혀 있으나(doi 10.1109/LWC.2026.3705634) Rician/Gamma 파라미터화 절차만 담고 원자료는 아닌 것으로 보인다."
+   }
+  ]
+ }
+}

@@ -1,0 +1,1583 @@
+{
+ "_meta": {
+  "generated": "2026-08-03 11:05:55",
+  "generator": "src/viz_mesh_photo.py :: build_all(['phantom3']) + remeasure(['phantom3']), driven by scratchpad/run_p3_photo.py",
+  "subject": "phantom3",
+  "question": "현재 phantom3 메쉬의 **실루엣(형상)** 이 실제 기체 사진과 얼마나 맞는가",
+  "path_identical_to_other_airframes": "same code path as the seven airframes already in outputs/mesh_compare_photo.json: calibrate() for the ceiling, run_key() for the declared-aspect and free fits, then remeasure() so the free branch is scored at the same 1.2 M point density as the headline. No parameter was changed for this airframe.",
+  "independence": {
+   "claim": "이 시험은 σ(RCS) 와 **독립**이다",
+   "why": "silhouette IoU is computed from binary masks of projected geometry only. No material, no permittivity, no conductivity, no frequency, no polarisation and no scattering integral enters it. The RCS comparison (level and slope) enters through material-weighted physical optics on the same mesh. The two tests share the mesh and nothing else, so they are two independent pieces of evidence about the same object.",
+   "how_to_read": "agreement between the two strengthens the case; disagreement is itself information — a shape that matches while sigma does not points at materials or at the scattering model, and sigma matching while shape does not points at a level coincidence.",
+   "sigma_side_reference": "σ comparison reported separately (level -2.60 dB, slope 2.00x); those numbers are NOT re-derived here and nothing in this file depends on them."
+  },
+  "method_ref": "outputs/mesh_compare_photo.json :: _meta.method (identical definitions)",
+  "ledger_untouched": "outputs/mesh_compare_photo.json was read only and not modified",
+  "figures": [
+   "outputs/figures/mesh_photo_phantom3.png",
+   "outputs/figures/mesh_photo_phantom3_rank.png",
+   "outputs/figures/mesh_photo_phantom3_propfix.png"
+  ],
+  "amended": "2026-08-03 11:24:16",
+  "amendment": "prop_placement_defect 절 추가 — 헤드라인·순위는 그대로다."
+ },
+ "headline": {
+  "iou_headline": 0.7072477498815727,
+  "headline_definition": "best-matching photograph of this airframe, fitted with the viewing direction confined to the aspect declared by eye for that photograph (the free-camera value is NOT the headline)",
+  "headline_file": "phantom3_d02_official_front.png",
+  "headline_window_deg": 20.0,
+  "headline_fit_delta_deg": 0.9999999999999002,
+  "iou_ceiling": 0.9079308288610615,
+  "pct_of_ceiling": 77.8966554939838,
+  "free_iou": 0.7072477498815727,
+  "free_iou_gain": 0.0,
+  "free_delta_deg": 0.9999999999999002,
+  "boundary_err_mean_mm": 8.909591146086495,
+  "boundary_err_p95_mm": 32.521602628946255,
+  "boundary_err_pct_span": 3.138854340640657,
+  "disagreement_area_mm2": 11347.752882101422,
+  "disagreement_mesh_only_mm2": 4820.040665941138,
+  "disagreement_photo_only_mm2": 6527.712216160284,
+  "union_area_mm2": 38762.307984006635,
+  "n_views": 4,
+  "iou_median_over_views": 0.6271203407951615,
+  "iou_range_over_views": [
+   0.5444919775228378,
+   0.7072477498815727
+  ],
+  "free_iou_gain_median_over_views": 0.0,
+  "free_iou_gain_range_over_views": [
+   -0.0006170541590416745,
+   0.057479111552425244
+  ],
+  "rank_among_8_by_pct_of_ceiling": 3,
+  "rank_among_8_by_raw_iou": 3
+ },
+ "calibration": {
+  "airframe": "phantom3",
+  "purpose": "같은 파이프라인에 **자기 자신**을 넣었을 때의 상한과 민감도",
+  "truth": {
+   "azim": 25.0,
+   "elev": 18.0,
+   "roll": -4.0,
+   "q": 0.3,
+   "phases": [
+    40.0,
+    110.0,
+    20.0,
+    150.0
+   ],
+   "scale_px_per_m": 625.9191028446229
+  },
+  "recovered": {
+   "azim": 23.5,
+   "elev": 17.875,
+   "roll": -2.71875,
+   "q": 0.22687500000000008,
+   "phases": [
+    44.0,
+    119.0,
+    -11.0,
+    154.5
+   ],
+   "scale_px_per_m": 627.3303509363401
+  },
+  "recovered_iou": 0.9079308288610615,
+  "recovered_contour_mean_mm": 1.2084440493505944,
+  "pose_error_deg": 1.4325493003691707,
+  "scale_error_pct": 0.225468129236428,
+  "sensitivity": {
+   "same_pose_other_sample": 0.9976382846488502,
+   "pose_off_deg": {
+    "0.5": 0.9631598240469208,
+    "1.0": 0.9320242598931123,
+    "2.0": 0.874251844964844,
+    "3.0": 0.8250141163184641,
+    "5.0": 0.7469847081628258
+   },
+   "scale_off_pct": {
+    "0.5": 0.9740641057010032,
+    "1.0": 0.9484591818345648,
+    "2.0": 0.9001102152096989,
+    "4.0": 0.8145047298031967
+   },
+   "one_prop_phase_off_deg": {
+    "5.0": 0.9903002594835043,
+    "10.0": 0.983857107782961,
+    "20.0": 0.9571462916215892
+   }
+  },
+  "reading": "An exact copy of the mesh scores 0.908 here. One degree of pose error takes it to 0.932 and one percent of scale error to 0.948: arms and blades a few pixels wide make this metric steep.",
+  "runtime_s": 39.6
+ },
+ "per_view": [
+  {
+   "file": "phantom3_d02_official_front.png",
+   "note": "front, slightly above; alpha-channel background, silhouette is exact",
+   "declared_aspect_deg": [
+    0,
+    13
+   ],
+   "window_deg": 20.0,
+   "fit_deg": [
+    0.0,
+    14.0
+   ],
+   "fit_delta_deg": 0.9999999999999002,
+   "fit_at_window_edge": false,
+   "iou": 0.7072477498815727,
+   "pct_of_ceiling": 77.8966554939838,
+   "free_iou": 0.7072477498815727,
+   "free_iou_gain": 0.0,
+   "free_delta_deg": 0.9999999999999002,
+   "contour_mean_mm": 8.909591146086495,
+   "contour_p95_mm": 32.521602628946255,
+   "contour_mean_pct_span": 3.138854340640657,
+   "mesh_only_frac": 0.12434864992894362,
+   "photo_only_frac": 0.16840360018948367,
+   "aspect_err_pct": 6.278309729946662,
+   "fill_ratio": 0.9496889369759264,
+   "radial_ratio": {
+    "median": 0.951583429364388,
+    "p10": 0.6594357462069281,
+    "p90": 1.0889558994801996,
+    "n_directions": 180,
+    "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+   },
+   "disagreement_area": {
+    "definition": "symmetric difference of the two silhouettes at the fitted scale",
+    "union_mm2": 38762.307984006635,
+    "intersection_mm2": 27414.555101905215,
+    "mesh_only_mm2": 4820.040665941138,
+    "photo_only_mm2": 6527.712216160284,
+    "total_mm2": 11347.752882101422,
+    "total_cm2": 113.47752882101422,
+    "photo_silhouette_mm2": 33942.2673180655,
+    "mesh_silhouette_mm2": 32234.595767846353
+   },
+   "blobs": [
+    {
+     "side": "photo only",
+     "part": "camera",
+     "area_frac": 0.04031264803410706,
+     "area_mm2": 1562.6112787489176,
+     "centroid": [
+      204.52643948296122,
+      231.96592244418332
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.02918048318332544,
+     "area_mm2": 1131.102876274187,
+     "centroid": [
+      85.5211038961039,
+      135.4577922077922
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.028990999526290858,
+     "area_mm2": 1123.7580524022767,
+     "centroid": [
+      85.44117647058823,
+      324.8169934640523
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.025390810042633823,
+     "area_mm2": 984.206398835981,
+     "centroid": [
+      127.50746268656717,
+      125.46641791044776
+     ]
+    }
+   ],
+   "segmentation_fragile": null,
+   "segmentation_spread_pct": null,
+   "credit": "DJI product image (Phantom 3 Professional product page)",
+   "licence": "Copyright DJI, no public licence — internal lab reference, attribution required when published",
+   "provenance": "assets/photos/phantom3/SOURCES.md"
+  },
+  {
+   "file": "phantom3_d03_official_top.png",
+   "note": "from above (azimuth unconstrained at this elevation); alpha-channel background. The only official top view of the Phantom 3 airframe: DJI publishes none for the Professional, and its manual carries front, rear, bottom and side views only",
+   "declared_aspect_deg": [
+    0,
+    85
+   ],
+   "window_deg": 20.0,
+   "fit_deg": [
+    270.0,
+    89.0
+   ],
+   "fit_delta_deg": 5.098770457699952,
+   "fit_at_window_edge": false,
+   "iou": 0.5755361178402458,
+   "pct_of_ceiling": 63.38986402325576,
+   "free_iou": 0.5749190636812042,
+   "free_iou_gain": -0.0006170541590416745,
+   "free_delta_deg": 18.62499999999998,
+   "contour_mean_mm": 18.417162204682228,
+   "contour_p95_mm": 81.70257791003881,
+   "contour_mean_pct_span": 6.488377365536258,
+   "mesh_only_frac": 0.18618206057847075,
+   "photo_only_frac": 0.23828182158128344,
+   "aspect_err_pct": 42.803974186952914,
+   "fill_ratio": 0.9359810610222653,
+   "radial_ratio": {
+    "median": 0.9229081363463028,
+    "p10": 0.38358147892237626,
+    "p90": 1.204065032883309,
+    "n_directions": 180,
+    "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+   },
+   "disagreement_area": {
+    "definition": "symmetric difference of the two silhouettes at the fitted scale",
+    "union_mm2": 82603.0315387057,
+    "intersection_mm2": 47541.028093622066,
+    "mesh_only_mm2": 15379.202621904635,
+    "photo_only_mm2": 19682.800823179,
+    "total_mm2": 35062.00344508363,
+    "total_cm2": 350.62003445083633,
+    "photo_silhouette_mm2": 67223.82891680107,
+    "mesh_silhouette_mm2": 62920.2307155267
+   },
+   "blobs": [
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.03749979677109922,
+     "area_mm2": 3097.5968953781635,
+     "centroid": [
+      650.0667678300455,
+      290.0472577498374
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.035735769912367696,
+     "area_mm2": 2951.882929131239,
+     "centroid": [
+      653.9865787079162,
+      538.2304367606915
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "prop",
+     "area_frac": 0.035418732827157885,
+     "area_mm2": 2925.694704782714,
+     "centroid": [
+      439.7548772090888,
+      663.1971540050494
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "prop",
+     "area_frac": 0.03506104996179297,
+     "area_mm2": 2896.149015774121,
+     "centroid": [
+      395.2487827498261,
+      174.4576860653837
+     ]
+    }
+   ],
+   "segmentation_fragile": null,
+   "segmentation_spread_pct": null,
+   "credit": "DJI product image (Phantom 3 SE product page, same airframe)",
+   "licence": "Copyright DJI, no public licence — internal lab reference, attribution required when published",
+   "provenance": "assets/photos/phantom3/SOURCES.md"
+  },
+  {
+   "file": "phantom3_d01_official_iso34.jpg",
+   "note": "three-quarter, gimbal toward the camera and to the left. White aircraft on a near-white JPEG background: the silhouette is threshold-bound (51 % area swing), so read its IoU together with the alpha-channel views",
+   "declared_aspect_deg": [
+    35,
+    22
+   ],
+   "window_deg": 26.0,
+   "fit_deg": [
+    40.0,
+    42.0
+   ],
+   "fit_delta_deg": 20.434710788637645,
+   "fit_at_window_edge": false,
+   "iou": 0.5444919775228378,
+   "pct_of_ceiling": 59.9706453635754,
+   "free_iou": 0.6019710890752631,
+   "free_iou_gain": 0.057479111552425244,
+   "free_delta_deg": 6.405857189199183,
+   "contour_mean_mm": 15.636196126409793,
+   "contour_p95_mm": 53.90707521084769,
+   "contour_mean_pct_span": 5.508641336931392,
+   "mesh_only_frac": 0.34870085661155764,
+   "photo_only_frac": 0.10680716586560446,
+   "aspect_err_pct": -20.58375941060429,
+   "fill_ratio": 1.371401825415399,
+   "radial_ratio": {
+    "median": 1.0072163789646864,
+    "p10": 0.7183020438529789,
+    "p90": 1.2045302479458888,
+    "n_directions": 180,
+    "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+   },
+   "disagreement_area": {
+    "definition": "symmetric difference of the two silhouettes at the fitted scale",
+    "union_mm2": 52087.232219035686,
+    "intersection_mm2": 28361.080074634014,
+    "mesh_only_mm2": 18162.86249330287,
+    "photo_only_mm2": 5563.2896510988,
+    "total_mm2": 23726.15214440167,
+    "total_cm2": 237.2615214440167,
+    "photo_silhouette_mm2": 33924.36972573282,
+    "mesh_silhouette_mm2": 46523.94256793689
+   },
+   "blobs": [
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.08069219904278993,
+     "area_mm2": 4203.033309806448,
+     "centroid": [
+      307.3673340889057,
+      193.91739075683162
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.07483919480545874,
+     "area_mm2": 3898.1665189175783,
+     "centroid": [
+      204.57325186693822,
+      390.6032586558045
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.06380384306632389,
+     "area_mm2": 3323.365590262522,
+     "centroid": [
+      331.31772575250835,
+      308.5144131231088
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "prop",
+     "area_frac": 0.05032973956163437,
+     "area_mm2": 2621.5368320704365,
+     "centroid": [
+      223.27013930950937,
+      201.12053301029678
+     ]
+    }
+   ],
+   "segmentation_fragile": true,
+   "segmentation_spread_pct": 51.19,
+   "credit": "DJI product image (Phantom 3 Professional product page)",
+   "licence": "Copyright DJI, no public licence — internal lab reference, attribution required when published",
+   "provenance": "assets/photos/phantom3/SOURCES.md"
+  },
+  {
+   "file": "phantom3_d06_official_se_iso34.png",
+   "note": "three-quarter from the SE banner, alpha-channel background: re-measures the same aspect as the Professional hero render without the threshold problem",
+   "declared_aspect_deg": [
+    28,
+    16
+   ],
+   "window_deg": 26.0,
+   "fit_deg": [
+    29.0,
+    17.125
+   ],
+   "fit_delta_deg": 1.4779465256253488,
+   "fit_at_window_edge": false,
+   "iou": 0.6787045637500774,
+   "pct_of_ceiling": 74.7528933015158,
+   "free_iou": 0.6787045637500774,
+   "free_iou_gain": 0.0,
+   "free_delta_deg": 1.4779465256253488,
+   "contour_mean_mm": 7.148718371248755,
+   "contour_p95_mm": 25.247983631645255,
+   "contour_mean_pct_span": 2.5184977987983115,
+   "mesh_only_frac": 0.18308254381076228,
+   "photo_only_frac": 0.13821289243916032,
+   "aspect_err_pct": -14.742735270594508,
+   "fill_ratio": 1.0549255632030563,
+   "radial_ratio": {
+    "median": 0.989353299860525,
+    "p10": 0.6862179448237756,
+    "p90": 1.0679474062606416,
+    "n_directions": 180,
+    "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+   },
+   "disagreement_area": {
+    "definition": "symmetric difference of the two silhouettes at the fitted scale",
+    "union_mm2": 42189.96918181697,
+    "intersection_mm2": 28634.52462817429,
+    "mesh_only_mm2": 7724.246881104715,
+    "photo_only_mm2": 5831.197672537956,
+    "total_mm2": 13555.444553642672,
+    "total_cm2": 135.55444553642673,
+    "photo_silhouette_mm2": 34465.72230071225,
+    "mesh_silhouette_mm2": 36358.77150927901
+   },
+   "blobs": [
+    {
+     "side": "mesh only",
+     "part": "camera",
+     "area_frac": 0.06989906495758251,
+     "area_mm2": 2949.0393963982283,
+     "centroid": [
+      308.3093550673281,
+      307.46084337349396
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "camera",
+     "area_frac": 0.04625673416310608,
+     "area_mm2": 1951.5701887929451,
+     "centroid": [
+      367.6765729585007,
+      394.0755020080321
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "gear",
+     "area_frac": 0.03393398972072574,
+     "area_mm2": 1431.6739805335126,
+     "centroid": [
+      298.17810218978104,
+      515.0047445255475
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.02187132330175243,
+     "area_mm2": 922.7504560664903,
+     "centroid": [
+      151.68516421291054,
+      651.3029445073613
+     ]
+    }
+   ],
+   "segmentation_fragile": null,
+   "segmentation_spread_pct": null,
+   "credit": "DJI product image (Phantom 3 SE product page, same airframe)",
+   "licence": "Copyright DJI, no public licence — internal lab reference, attribution required when published",
+   "provenance": "assets/photos/phantom3/SOURCES.md"
+  }
+ ],
+ "ranking": {
+  "ordered_by": "pct_of_ceiling, descending",
+  "note": "the seven comparison rows are read unchanged from outputs/mesh_compare_photo.json; phantom3 is the row measured here",
+  "rows": [
+   {
+    "rank": 1,
+    "key": "x500v2",
+    "label": "X500 V2",
+    "iou_headline": 0.8747763621577663,
+    "ceiling": 0.957419250384522,
+    "pct_of_ceiling": 91.36816100223967,
+    "contour_mean_mm": 2.1802686169231045,
+    "contour_p95_mm": 6.7918113946235685,
+    "free_iou_gain": 0.0,
+    "free_delta_deg": 8.250000000000034,
+    "n_photos": 3
+   },
+   {
+    "rank": 2,
+    "key": "s1000plus",
+    "label": "S1000+",
+    "iou_headline": 0.7536929220997931,
+    "ceiling": 0.8636613523914238,
+    "pct_of_ceiling": 87.26718175044708,
+    "contour_mean_mm": 10.951177920338719,
+    "contour_p95_mm": 72.3428450559432,
+    "free_iou_gain": 0.0,
+    "free_delta_deg": 5.9999999999999645,
+    "n_photos": 2
+   },
+   {
+    "rank": 3,
+    "key": "phantom3",
+    "label": "Phantom 3 Professional",
+    "iou_headline": 0.7072477498815727,
+    "ceiling": 0.9079308288610615,
+    "pct_of_ceiling": 77.8966554939838,
+    "contour_mean_mm": 8.909591146086495,
+    "contour_p95_mm": 32.521602628946255,
+    "free_iou_gain": 0.0,
+    "free_delta_deg": 0.9999999999999002,
+    "n_photos": 4
+   },
+   {
+    "rank": 4,
+    "key": "matrice4e",
+    "label": "Matrice 4E",
+    "iou_headline": 0.5585853518704315,
+    "ceiling": 0.8828147930730849,
+    "pct_of_ceiling": 63.273220640763356,
+    "contour_mean_mm": 12.611216327669792,
+    "contour_p95_mm": 44.28885265169504,
+    "free_iou_gain": 0.18032763387799733,
+    "free_delta_deg": 77.41082059060457,
+    "n_photos": 3
+   },
+   {
+    "rank": 5,
+    "key": "phantom4",
+    "label": "Phantom 4",
+    "iou_headline": 0.5455977528516389,
+    "ceiling": 0.919975301018833,
+    "pct_of_ceiling": 59.30569573415862,
+    "contour_mean_mm": 10.716968871923251,
+    "contour_p95_mm": 36.15241246820885,
+    "free_iou_gain": 0.00040855454467580987,
+    "free_delta_deg": 101.04149238268278,
+    "n_photos": 4
+   },
+   {
+    "rank": 6,
+    "key": "typhoonh480",
+    "label": "Typhoon H (H480)",
+    "iou_headline": 0.5468480603448276,
+    "ceiling": 0.9333754446623891,
+    "pct_of_ceiling": 58.58822014999846,
+    "contour_mean_mm": 15.925758523872995,
+    "contour_p95_mm": 75.85500341056009,
+    "free_iou_gain": -0.08805827876237327,
+    "free_delta_deg": 53.939646014848506,
+    "n_photos": 2
+   },
+   {
+    "rank": 7,
+    "key": "mavic4pro",
+    "label": "Mavic 4 Pro",
+    "iou_headline": 0.5249128399242953,
+    "ceiling": 0.9165018677213799,
+    "pct_of_ceiling": 57.27351557169667,
+    "contour_mean_mm": 18.991797456184862,
+    "contour_p95_mm": 72.41455583791056,
+    "free_iou_gain": -0.0025029209771803007,
+    "free_delta_deg": 133.7484017263018,
+    "n_photos": 4
+   },
+   {
+    "rank": 8,
+    "key": "mini5pro",
+    "label": "Mini 5 Pro",
+    "iou_headline": 0.4781253837651971,
+    "ceiling": 0.9557820833052049,
+    "pct_of_ceiling": 50.024518362154716,
+    "contour_mean_mm": 13.005998966252177,
+    "contour_p95_mm": 41.06444613767345,
+    "free_iou_gain": 0.03802038202393532,
+    "free_delta_deg": 109.2585400870071,
+    "n_photos": 3
+   }
+  ],
+  "rows_by_raw_iou": [
+   {
+    "rank": 1,
+    "key": "x500v2",
+    "label": "X500 V2",
+    "iou_headline": 0.8747763621577663
+   },
+   {
+    "rank": 2,
+    "key": "s1000plus",
+    "label": "S1000+",
+    "iou_headline": 0.7536929220997931
+   },
+   {
+    "rank": 3,
+    "key": "phantom3",
+    "label": "Phantom 3 Professional",
+    "iou_headline": 0.7072477498815727
+   },
+   {
+    "rank": 4,
+    "key": "matrice4e",
+    "label": "Matrice 4E",
+    "iou_headline": 0.5585853518704315
+   },
+   {
+    "rank": 5,
+    "key": "typhoonh480",
+    "label": "Typhoon H (H480)",
+    "iou_headline": 0.5468480603448276
+   },
+   {
+    "rank": 6,
+    "key": "phantom4",
+    "label": "Phantom 4",
+    "iou_headline": 0.5455977528516389
+   },
+   {
+    "rank": 7,
+    "key": "mavic4pro",
+    "label": "Mavic 4 Pro",
+    "iou_headline": 0.5249128399242953
+   },
+   {
+    "rank": 8,
+    "key": "mini5pro",
+    "label": "Mini 5 Pro",
+    "iou_headline": 0.4781253837651971
+   }
+  ]
+ },
+ "airframe_record": {
+  "key": "phantom3",
+  "name": "DJI Phantom 3 Professional",
+  "label": "Phantom 3 Professional",
+  "span_m": 0.2837708925514104,
+  "centre_m": [
+   -2.031566724106093e-05,
+   1.1298318588162659e-05,
+   -0.06191693935693325
+  ],
+  "measured_airframe": false,
+  "n_photos_available": 6,
+  "photos": [
+   {
+    "file": "phantom3_d02_official_front.png",
+    "credit": "DJI product image (Phantom 3 Professional product page)",
+    "licence": "Copyright DJI, no public licence — internal lab reference, attribution required when published",
+    "provenance": "assets/photos/phantom3/SOURCES.md",
+    "note": "front, slightly above; alpha-channel background, silhouette is exact",
+    "props_in_photo": true,
+    "compared_against": "full drone",
+    "expect": [
+     0,
+     13
+    ],
+    "window_deg": 20.0,
+    "fit_delta_deg": 0.9999999999999002,
+    "fit_at_window_edge": false,
+    "free_delta_deg": 0.9999999999999002,
+    "free_fit": {
+     "iou": 0.7072477498815727,
+     "azim": 0.0,
+     "elev": 14.0,
+     "roll": 0.0,
+     "q": 0.0975,
+     "scale_px_per_m": 737.9710118786859,
+     "tx": 230.60101586121627,
+     "ty": 166.3164293733215,
+     "phases": [
+      31.0,
+      51.5,
+      40.0,
+      48.0
+     ],
+     "branch": "free",
+     "n_pose_evaluated": 576,
+     "n_eval": 8847,
+     "iou_search_grid": 0.6974332010898141,
+     "contour_mean_mm": 8.909591146086495,
+     "clipped_frac": 0.0
+    },
+    "free_iou_gain": 0.0,
+    "segmentation": {
+     "source": "alpha channel",
+     "pad_px": 66,
+     "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+     "sensitivity": null,
+     "max_side": 600,
+     "background_rgb": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "threshold": null,
+     "image_px": [
+      330,
+      208
+     ],
+     "mask_area_px": 18485,
+     "mask_area_frac": 0.1177
+    },
+    "fit": {
+     "iou": 0.6974332010898141,
+     "azim": 0.0,
+     "elev": 14.0,
+     "roll": 0.0,
+     "q": 0.0975,
+     "scale_px_per_m": 737.9710118786859,
+     "tx": 230.60101586121627,
+     "ty": 166.3164293733215,
+     "phases": [
+      31.0,
+      51.5,
+      40.0,
+      48.0
+     ],
+     "branch": "declared",
+     "n_pose_evaluated": 17,
+     "n_eval": 3234
+    },
+    "metrics": {
+     "iou": 0.7072477498815727,
+     "mesh_only_frac": 0.12434864992894362,
+     "photo_only_frac": 0.16840360018948367,
+     "contour_mean_mm": 8.909591146086495,
+     "contour_p95_mm": 32.521602628946255,
+     "contour_mean_pct_span": 3.138854340640657,
+     "mm_per_px": 1.355066776206094,
+     "silhouette_px": {
+      "photo": [
+       321.0,
+       168.0
+      ],
+      "mesh": [
+       331.0,
+       163.0
+      ]
+     },
+     "aspect_photo": 1.9107142857142858,
+     "aspect_mesh": 2.0306748466257667,
+     "aspect_err_pct": 6.278309729946662,
+     "fill_ratio": 0.9496889369759264,
+     "implied_span_mm": 283.84850582993283,
+     "clipped_frac": 0.0,
+     "radial_ratio": {
+      "median": 0.951583429364388,
+      "p10": 0.6594357462069281,
+      "p90": 1.0889558994801996,
+      "n_directions": 180,
+      "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+     },
+     "blobs": [
+      {
+       "side": "photo only",
+       "part": "camera",
+       "area_frac": 0.04031264803410706,
+       "area_mm2": 1562.6112787489176,
+       "centroid": [
+        204.52643948296122,
+        231.96592244418332
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.02918048318332544,
+       "area_mm2": 1131.102876274187,
+       "centroid": [
+        85.5211038961039,
+        135.4577922077922
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.028990999526290858,
+       "area_mm2": 1123.7580524022767,
+       "centroid": [
+        85.44117647058823,
+        324.8169934640523
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.025390810042633823,
+       "area_mm2": 984.206398835981,
+       "centroid": [
+        127.50746268656717,
+        125.46641791044776
+       ]
+      }
+     ]
+    },
+    "runtime_s": 69.7,
+    "headline": "Silhouette IoU 0.707, mean outline error 8.9 mm (3.14 % of span).  The largest single disagreement is the camera, 4 % of the union, photo only.",
+    "disagreement_area": {
+     "definition": "symmetric difference of the two silhouettes at the fitted scale",
+     "union_mm2": 38762.307984006635,
+     "intersection_mm2": 27414.555101905215,
+     "mesh_only_mm2": 4820.040665941138,
+     "photo_only_mm2": 6527.712216160284,
+     "total_mm2": 11347.752882101422,
+     "total_cm2": 113.47752882101422,
+     "photo_silhouette_mm2": 33942.2673180655,
+     "mesh_silhouette_mm2": 32234.595767846353
+    }
+   },
+   {
+    "file": "phantom3_d03_official_top.png",
+    "credit": "DJI product image (Phantom 3 SE product page, same airframe)",
+    "licence": "Copyright DJI, no public licence — internal lab reference, attribution required when published",
+    "provenance": "assets/photos/phantom3/SOURCES.md",
+    "note": "from above (azimuth unconstrained at this elevation); alpha-channel background. The only official top view of the Phantom 3 airframe: DJI publishes none for the Professional, and its manual carries front, rear, bottom and side views only",
+    "props_in_photo": true,
+    "compared_against": "full drone",
+    "expect": [
+     0,
+     85
+    ],
+    "window_deg": 20.0,
+    "fit_delta_deg": 5.098770457699952,
+    "fit_at_window_edge": false,
+    "free_delta_deg": 18.62499999999998,
+    "free_fit": {
+     "iou": 0.5749190636812042,
+     "azim": 180.0,
+     "elev": 76.375,
+     "roll": 0.0,
+     "q": 0.10875,
+     "scale_px_per_m": 1395.9607634437727,
+     "tx": 417.3798828875466,
+     "ty": 437.5494476284032,
+     "phases": [
+      0.0,
+      28.5,
+      0.0,
+      28.5
+     ],
+     "branch": "free",
+     "n_pose_evaluated": 576,
+     "n_eval": 9341,
+     "iou_search_grid": 0.437603353802973,
+     "contour_mean_mm": 23.853346838776645,
+     "clipped_frac": 0.0
+    },
+    "free_iou_gain": -0.0006170541590416745,
+    "segmentation": {
+     "source": "alpha channel",
+     "pad_px": 120,
+     "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+     "sensitivity": null,
+     "max_side": 600,
+     "background_rgb": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "threshold": null,
+     "image_px": [
+      594,
+      600
+     ],
+     "mask_area_px": 100111,
+     "mask_area_frac": 0.1429
+    },
+    "fit": {
+     "iou": 0.4387384426819195,
+     "azim": 270.0,
+     "elev": 89.0,
+     "roll": -0.09375,
+     "q": 0.46812499999999996,
+     "scale_px_per_m": 1220.3355896115188,
+     "tx": 418.20684297947497,
+     "ty": 414.4211927288939,
+     "phases": [
+      61.5,
+      30.0,
+      60.0,
+      28.5
+     ],
+     "branch": "declared",
+     "n_pose_evaluated": 85,
+     "n_eval": 3657
+    },
+    "metrics": {
+     "iou": 0.5755361178402458,
+     "mesh_only_frac": 0.18618206057847075,
+     "photo_only_frac": 0.23828182158128344,
+     "contour_mean_mm": 18.417162204682228,
+     "contour_p95_mm": 81.70257791003881,
+     "contour_mean_pct_span": 6.488377365536258,
+     "mm_per_px": 0.8194467231086324,
+     "silhouette_px": {
+      "photo": [
+       592.0,
+       598.0
+      ],
+      "mesh": [
+       598.0,
+       423.0
+      ]
+     },
+     "aspect_photo": 0.9899665551839465,
+     "aspect_mesh": 1.41371158392435,
+     "aspect_err_pct": 42.803974186952914,
+     "fill_ratio": 0.9359810610222653,
+     "implied_span_mm": 283.84850582993283,
+     "clipped_frac": 0.0,
+     "radial_ratio": {
+      "median": 0.9229081363463028,
+      "p10": 0.38358147892237626,
+      "p90": 1.204065032883309,
+      "n_directions": 180,
+      "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+     },
+     "blobs": [
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.03749979677109922,
+       "area_mm2": 3097.5968953781635,
+       "centroid": [
+        650.0667678300455,
+        290.0472577498374
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.035735769912367696,
+       "area_mm2": 2951.882929131239,
+       "centroid": [
+        653.9865787079162,
+        538.2304367606915
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "prop",
+       "area_frac": 0.035418732827157885,
+       "area_mm2": 2925.694704782714,
+       "centroid": [
+        439.7548772090888,
+        663.1971540050494
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "prop",
+       "area_frac": 0.03506104996179297,
+       "area_mm2": 2896.149015774121,
+       "centroid": [
+        395.2487827498261,
+        174.4576860653837
+       ]
+      }
+     ]
+    },
+    "runtime_s": 186.8,
+    "headline": "Silhouette IoU 0.576, mean outline error 18.4 mm (6.49 % of span).  The largest single disagreement is the motor, 4 % of the union, photo only.",
+    "disagreement_area": {
+     "definition": "symmetric difference of the two silhouettes at the fitted scale",
+     "union_mm2": 82603.0315387057,
+     "intersection_mm2": 47541.028093622066,
+     "mesh_only_mm2": 15379.202621904635,
+     "photo_only_mm2": 19682.800823179,
+     "total_mm2": 35062.00344508363,
+     "total_cm2": 350.62003445083633,
+     "photo_silhouette_mm2": 67223.82891680107,
+     "mesh_silhouette_mm2": 62920.2307155267
+    }
+   },
+   {
+    "file": "phantom3_d01_official_iso34.jpg",
+    "credit": "DJI product image (Phantom 3 Professional product page)",
+    "licence": "Copyright DJI, no public licence — internal lab reference, attribution required when published",
+    "provenance": "assets/photos/phantom3/SOURCES.md",
+    "note": "three-quarter, gimbal toward the camera and to the left. White aircraft on a near-white JPEG background: the silhouette is threshold-bound (51 % area swing), so read its IoU together with the alpha-channel views",
+    "props_in_photo": true,
+    "compared_against": "full drone",
+    "expect": [
+     35,
+     22
+    ],
+    "window_deg": 26.0,
+    "fit_delta_deg": 20.434710788637645,
+    "fit_at_window_edge": false,
+    "free_delta_deg": 6.405857189199183,
+    "free_fit": {
+     "iou": 0.6019710890752631,
+     "azim": 30.75,
+     "elev": 17.0,
+     "roll": 0.0,
+     "q": 0.1875,
+     "scale_px_per_m": 1369.7147570237937,
+     "tx": 406.6255077137745,
+     "ty": 307.81762447825514,
+     "phases": [
+      36.0,
+      43.5,
+      46.0,
+      36.0
+     ],
+     "branch": "free",
+     "n_pose_evaluated": 576,
+     "n_eval": 9471,
+     "iou_search_grid": 0.47373516074794925,
+     "contour_mean_mm": 8.162070538774854,
+     "clipped_frac": 0.0
+    },
+    "free_iou_gain": 0.057479111552425244,
+    "segmentation": {
+     "source": "background colour distance",
+     "pad_px": 120,
+     "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+     "sensitivity": {
+      "thresholds": [
+       0.03,
+       0.055,
+       0.09,
+       0.14
+      ],
+      "area_change_pct": [
+       17.73,
+       0.0,
+       -14.43,
+       -33.47
+      ],
+      "spread_pct": 51.19,
+      "fragile": true,
+      "note": "silhouette area against the background-distance threshold, relative to the 0.055 we use"
+     },
+     "max_side": 600,
+     "background_rgb": [
+      0.969,
+      0.973,
+      0.98
+     ],
+     "threshold": 0.055,
+     "image_px": [
+      600,
+      405
+     ],
+     "mask_area_px": 64095,
+     "mask_area_frac": 0.1183
+    },
+    "fit": {
+     "iou": 0.4571871768355739,
+     "azim": 40.0,
+     "elev": 42.0,
+     "roll": -11.0,
+     "q": 0.43687499999999996,
+     "scale_px_per_m": 1374.536200291302,
+     "tx": 404.64664973071575,
+     "ty": 330.6588660043254,
+     "phases": [
+      30.0,
+      25.5,
+      -5.5,
+      0.0
+     ],
+     "branch": "declared",
+     "n_pose_evaluated": 32,
+     "n_eval": 3684
+    },
+    "metrics": {
+     "iou": 0.5444919775228378,
+     "mesh_only_frac": 0.34870085661155764,
+     "photo_only_frac": 0.10680716586560446,
+     "contour_mean_mm": 15.636196126409793,
+     "contour_p95_mm": 53.90707521084769,
+     "contour_mean_pct_span": 5.508641336931392,
+     "mm_per_px": 0.7275181255961629,
+     "silhouette_px": {
+      "photo": [
+       590.0,
+       351.0
+      ],
+      "mesh": [
+       562.0,
+       421.0
+      ]
+     },
+     "aspect_photo": 1.6809116809116809,
+     "aspect_mesh": 1.334916864608076,
+     "aspect_err_pct": -20.58375941060429,
+     "fill_ratio": 1.371401825415399,
+     "implied_span_mm": 283.84850582993283,
+     "clipped_frac": 0.0,
+     "radial_ratio": {
+      "median": 1.0072163789646864,
+      "p10": 0.7183020438529789,
+      "p90": 1.2045302479458888,
+      "n_directions": 180,
+      "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+     },
+     "blobs": [
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.08069219904278993,
+       "area_mm2": 4203.033309806448,
+       "centroid": [
+        307.3673340889057,
+        193.91739075683162
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.07483919480545874,
+       "area_mm2": 3898.1665189175783,
+       "centroid": [
+        204.57325186693822,
+        390.6032586558045
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.06380384306632389,
+       "area_mm2": 3323.365590262522,
+       "centroid": [
+        331.31772575250835,
+        308.5144131231088
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "prop",
+       "area_frac": 0.05032973956163437,
+       "area_mm2": 2621.5368320704365,
+       "centroid": [
+        223.27013930950937,
+        201.12053301029678
+       ]
+      }
+     ]
+    },
+    "runtime_s": 121.7,
+    "headline": "Silhouette IoU 0.544, mean outline error 15.6 mm (5.51 % of span).  The largest single disagreement is the body, 8 % of the union, mesh only.  A camera free to move anywhere reaches 0.602 by swinging 6 deg off the declared aspect.",
+    "disagreement_area": {
+     "definition": "symmetric difference of the two silhouettes at the fitted scale",
+     "union_mm2": 52087.232219035686,
+     "intersection_mm2": 28361.080074634014,
+     "mesh_only_mm2": 18162.86249330287,
+     "photo_only_mm2": 5563.2896510988,
+     "total_mm2": 23726.15214440167,
+     "total_cm2": 237.2615214440167,
+     "photo_silhouette_mm2": 33924.36972573282,
+     "mesh_silhouette_mm2": 46523.94256793689
+    }
+   },
+   {
+    "file": "phantom3_d06_official_se_iso34.png",
+    "credit": "DJI product image (Phantom 3 SE product page, same airframe)",
+    "licence": "Copyright DJI, no public licence — internal lab reference, attribution required when published",
+    "provenance": "assets/photos/phantom3/SOURCES.md",
+    "note": "three-quarter from the SE banner, alpha-channel background: re-measures the same aspect as the Professional hero render without the threshold problem",
+    "props_in_photo": true,
+    "compared_against": "full drone",
+    "expect": [
+     28,
+     16
+    ],
+    "window_deg": 26.0,
+    "fit_delta_deg": 1.4779465256253488,
+    "fit_at_window_edge": false,
+    "free_delta_deg": 1.4779465256253488,
+    "free_fit": {
+     "iou": 0.6787045637500774,
+     "azim": 29.0,
+     "elev": 17.125,
+     "roll": 1.5,
+     "q": 0.315,
+     "scale_px_per_m": 1383.4173414690972,
+     "tx": 408.00664927838034,
+     "ty": 282.08261327872947,
+     "phases": [
+      38.5,
+      40.0,
+      38.5,
+      46.0
+     ],
+     "branch": "free",
+     "n_pose_evaluated": 576,
+     "n_eval": 9412,
+     "iou_search_grid": 0.5612506610259123,
+     "contour_mean_mm": 7.148718371248755,
+     "clipped_frac": 0.0
+    },
+    "free_iou_gain": 0.0,
+    "segmentation": {
+     "source": "alpha channel",
+     "pad_px": 120,
+     "pad_note": "canvas widened by this many pixels on each side so that mesh area outside the photograph frame is counted as mesh-only instead of being clipped away",
+     "sensitivity": null,
+     "max_side": 600,
+     "background_rgb": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "threshold": null,
+     "image_px": [
+      600,
+      353
+     ],
+     "mask_area_px": 65962,
+     "mask_area_frac": 0.1324
+    },
+    "fit": {
+     "iou": 0.5612506610259123,
+     "azim": 29.0,
+     "elev": 17.125,
+     "roll": 1.5,
+     "q": 0.315,
+     "scale_px_per_m": 1383.4173414690972,
+     "tx": 408.00664927838034,
+     "ty": 282.08261327872947,
+     "phases": [
+      38.5,
+      40.0,
+      38.5,
+      46.0
+     ],
+     "branch": "declared",
+     "n_pose_evaluated": 27,
+     "n_eval": 3608
+    },
+    "metrics": {
+     "iou": 0.6787045637500774,
+     "mesh_only_frac": 0.18308254381076228,
+     "photo_only_frac": 0.13821289243916032,
+     "contour_mean_mm": 7.148718371248755,
+     "contour_p95_mm": 25.247983631645255,
+     "contour_mean_pct_span": 2.5184977987983115,
+     "mm_per_px": 0.7228476686131942,
+     "silhouette_px": {
+      "photo": [
+       594.0,
+       324.0
+      ],
+      "mesh": [
+       533.0,
+       341.0
+      ]
+     },
+     "aspect_photo": 1.8333333333333333,
+     "aspect_mesh": 1.563049853372434,
+     "aspect_err_pct": -14.742735270594508,
+     "fill_ratio": 1.0549255632030563,
+     "implied_span_mm": 283.84850582993283,
+     "clipped_frac": 0.0,
+     "radial_ratio": {
+      "median": 0.989353299860525,
+      "p10": 0.6862179448237756,
+      "p90": 1.0679474062606416,
+      "n_directions": 180,
+      "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+     },
+     "blobs": [
+      {
+       "side": "mesh only",
+       "part": "camera",
+       "area_frac": 0.06989906495758251,
+       "area_mm2": 2949.0393963982283,
+       "centroid": [
+        308.3093550673281,
+        307.46084337349396
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "camera",
+       "area_frac": 0.04625673416310608,
+       "area_mm2": 1951.5701887929451,
+       "centroid": [
+        367.6765729585007,
+        394.0755020080321
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "gear",
+       "area_frac": 0.03393398972072574,
+       "area_mm2": 1431.6739805335126,
+       "centroid": [
+        298.17810218978104,
+        515.0047445255475
+       ]
+      },
+      {
+       "side": "photo only",
+       "part": "motor",
+       "area_frac": 0.02187132330175243,
+       "area_mm2": 922.7504560664903,
+       "centroid": [
+        151.68516421291054,
+        651.3029445073613
+       ]
+      }
+     ]
+    },
+    "runtime_s": 144.8,
+    "headline": "Silhouette IoU 0.679, mean outline error 7.1 mm (2.52 % of span).  The largest single disagreement is the camera, 7 % of the union, mesh only.",
+    "disagreement_area": {
+     "definition": "symmetric difference of the two silhouettes at the fitted scale",
+     "union_mm2": 42189.96918181697,
+     "intersection_mm2": 28634.52462817429,
+     "mesh_only_mm2": 7724.246881104715,
+     "photo_only_mm2": 5831.197672537956,
+     "total_mm2": 13555.444553642672,
+     "total_cm2": 135.55444553642673,
+     "photo_silhouette_mm2": 34465.72230071225,
+     "mesh_silhouette_mm2": 36358.77150927901
+    }
+   }
+  ],
+  "best_index": 0,
+  "best_file": "phantom3_d02_official_front.png",
+  "best_iou": 0.7072477498815727,
+  "runtime_s": 523.0
+ },
+ "prop_placement_defect": {
+  "status": "⚠ 이 라운드에서 발견. 저장소 소스는 **수정하지 않았다** — 보고만 한다.",
+  "where": "src/viz_mesh_photo.py",
+  "what": "mesh_parts() stores each propeller's sampled points in propeller-local coordinates (centred on the origin) and keeps the rotor position separately in part['center']. Every consumer — Fitter.__init__, final_masks(), clipped_fraction() — projects p['P'] - centre and never adds part['center'] back. spin() then rotates that origin-centred cloud about the rotor position, which translates the propeller around a circle of radius |rotor centre| instead of spinning it about its own shaft.",
+  "consequence": "at phase 0 all propellers sit on the body centre; at phase 180 they sit at twice the rotor offset. The fitted 'propeller phase' is therefore a per-rotor placement parameter, not a blade azimuth, and the mesh silhouette being graded has its propellers in the wrong places.",
+  "also_affects": "mesh_parts()['span'] is the bounding box of the same mis-placed cloud, so it reports the frame extent (283.9 mm) instead of the tip-to-tip extent (485.8 mm). contour_mean_pct_span is inflated by that ratio (1.71x). contour_mean_mm is NOT affected: it comes from the fitted scale, which is in true mesh metres.",
+  "one_line_fix": "in mesh_parts(), append the propeller points already translated: P=Pp + rot['center'], and compute span/centre from that. spin() then becomes a true blade rotation with no other change.",
+  "scope": "generic code, so all eight airframes and the whole of outputs/mesh_compare_photo.json are measured this way. x500v2 is the only airframe whose headline photograph has no propellers (frame kit, props_in_photo=false), which is the one number in the ledger the defect cannot touch — and it is also the highest.",
+  "verification": {
+   "method": "mesh_parts() was wrapped in a scratch script to translate propeller points onto their rotors; nothing else changed. Same fitting code, same photographs, same point densities.",
+   "propeller_cloud_centroids_mm": [
+    {
+     "rotor": 0,
+     "rotor_centre_mm": [
+      123.7,
+      123.7,
+      34.2
+     ],
+     "current_points_mean_mm": [
+      1.1,
+      0.3,
+      2.2
+     ],
+     "fixed_points_mean_mm": [
+      124.8,
+      124.0,
+      36.4
+     ]
+    },
+    {
+     "rotor": 1,
+     "rotor_centre_mm": [
+      -123.7,
+      123.7,
+      34.2
+     ],
+     "current_points_mean_mm": [
+      -0.4,
+      0.2,
+      2.2
+     ],
+     "fixed_points_mean_mm": [
+      -124.2,
+      123.9,
+      36.4
+     ]
+    },
+    {
+     "rotor": 2,
+     "rotor_centre_mm": [
+      -123.7,
+      -123.7,
+      34.2
+     ],
+     "current_points_mean_mm": [
+      0.8,
+      0.2,
+      2.2
+     ],
+     "fixed_points_mean_mm": [
+      -122.9,
+      -123.6,
+      36.4
+     ]
+    },
+    {
+     "rotor": 3,
+     "rotor_centre_mm": [
+      123.7,
+      -123.7,
+      34.2
+     ],
+     "current_points_mean_mm": [
+      1.1,
+      -0.1,
+      2.2
+     ],
+     "fixed_points_mean_mm": [
+      124.8,
+      -123.9,
+      36.4
+     ]
+    }
+   ],
+   "span_mm": {
+    "today": 283.86017695473834,
+    "corrected": 485.822440357622
+   },
+   "ceiling": {
+    "today": 0.9079308288610615,
+    "corrected": 0.9850500266963809,
+    "reading": "the pipeline recovers an exact copy of the mesh at 0.985 once the propellers are placed correctly, against 0.908 today: most of the 'ceiling is not 1.0 because arms and blades are thin' story was actually this defect."
+   },
+   "per_view": [
+    {
+     "file": "phantom3_d02_official_front.png",
+     "iou_today": 0.7072477498815727,
+     "iou_corrected": 0.7123287671232876,
+     "delta": 0.005081017241714947,
+     "contour_mean_mm_today": 8.909591146086495,
+     "contour_mean_mm_corrected": 8.786452792553241,
+     "aspect_err_pct_today": 6.278309729946662,
+     "aspect_err_pct_corrected": -33.5946136066727
+    },
+    {
+     "file": "phantom3_d03_official_top.png",
+     "iou_today": 0.5755361178402458,
+     "iou_corrected": 0.8223351122058019,
+     "delta": 0.24679899436555608,
+     "contour_mean_mm_today": 18.417162204682228,
+     "contour_mean_mm_corrected": 3.2508643836790934,
+     "aspect_err_pct_today": 42.803974186952914,
+     "aspect_err_pct_corrected": 3.254427635826952
+    },
+    {
+     "file": "phantom3_d01_official_iso34.jpg",
+     "iou_today": 0.5444919775228378,
+     "iou_corrected": 0.48196814460997567,
+     "delta": -0.06252383291286218,
+     "contour_mean_mm_today": 15.636196126409793,
+     "contour_mean_mm_corrected": 18.554745927446216,
+     "aspect_err_pct_today": -20.58375941060429,
+     "aspect_err_pct_corrected": -23.51089588377723
+    },
+    {
+     "file": "phantom3_d06_official_se_iso34.png",
+     "iou_today": 0.6787045637500774,
+     "iou_corrected": 0.6757288477381436,
+     "delta": -0.0029757160119338044,
+     "contour_mean_mm_today": 7.148718371248755,
+     "contour_mean_mm_corrected": 6.550782415055535,
+     "aspect_err_pct_today": -14.742735270594508,
+     "aspect_err_pct_corrected": -21.11436950146627
+    }
+   ],
+   "best_corrected": {
+    "file": "phantom3_d03_official_top.png",
+    "iou": 0.8223351122058019,
+    "pct_of_corrected_ceiling": 83.48155828833534
+   },
+   "top_view_detail": {
+    "view": "phantom3_d03_official_top.png",
+    "today": {
+     "iou": 0.5755361178402458,
+     "contour_mean_mm": 18.417162204682228,
+     "contour_p95_mm": 81.70257791003881,
+     "aspect_err_pct": 42.803974186952914,
+     "mesh_only_frac": 0.18618206057847075,
+     "photo_only_frac": 0.23828182158128344,
+     "fit": {
+      "iou": 0.4387384426819195,
+      "azim": 270.0,
+      "elev": 89.0,
+      "roll": -0.09375,
+      "q": 0.46812499999999996,
+      "scale_px_per_m": 1220.3355896115188,
+      "tx": 418.20684297947497,
+      "ty": 414.4211927288939,
+      "phases": [
+       61.5,
+       30.0,
+       60.0,
+       28.5
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 85,
+      "n_eval": 3657
+     }
+    },
+    "corrected": {
+     "iou": 0.8223351122058019,
+     "contour_mean_mm": 3.2508643836790934,
+     "contour_p95_mm": 16.61501638965932,
+     "aspect_err_pct": 3.254427635826952,
+     "mesh_only_frac": 0.14382354953475643,
+     "photo_only_frac": 0.03384133825944171,
+     "fit": {
+      "iou": 0.5242032621197439,
+      "azim": 180.0,
+      "elev": 80.0,
+      "roll": 0.1875,
+      "q": 0.14250000000000002,
+      "scale_px_per_m": 1384.4207160072453,
+      "tx": 417.92852653832426,
+      "ty": 438.6855546373958,
+      "phases": [
+       128.5,
+       51.5,
+       128.5,
+       51.5
+      ],
+      "branch": "declared",
+      "n_pose_evaluated": 85,
+      "n_eval": 3568
+     },
+     "blobs": [
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.0606356048166393,
+       "area_mm2": 3699.2191152102837,
+       "centroid": [
+        538.1306064880113,
+        417.9194640338505
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.021406335522714832,
+       "area_mm2": 1305.944350546028,
+       "centroid": [
+        418.489013184179,
+        510.7067518977227
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.02054255610290093,
+       "area_mm2": 1253.2474350825248,
+       "centroid": [
+        419.80890924229806,
+        324.4208992506245
+       ]
+      },
+      {
+       "side": "mesh only",
+       "part": "body",
+       "area_frac": 0.008646346469622332,
+       "area_mm2": 527.4909062732859,
+       "centroid": [
+        308.677546983185,
+        564.2017804154302
+       ]
+      }
+     ]
+    }
+   },
+   "caveat_on_corrected_free_branch": "the corrected run did NOT get the remeasure() pass, so its free-branch IoUs are search-grid values at 150 k points and its free_iou_gain is not on the same scale as the headline. On the search grid the corrected gains are ~0 for all four views, which agrees with the headline run.",
+   "no_corrected_ranking": "only phantom3 was re-run corrected. The other seven were not, so there is no corrected ranking — the ranking in this file is the as-measured one, and it is apples-to-apples because every airframe carries the same defect."
+  },
+  "figure": "outputs/figures/mesh_photo_phantom3_propfix.png",
+  "reading": "the headline numbers in this file stay as measured, because they have to be comparable with the seven airframes already in the ledger. But they understate the mesh: on the official top view — the view that actually shows arm length, arm width and propeller reach — correcting the placement moves IoU from 0.576 to 0.822 and the mean outline error from 18.4 mm to 3.3 mm, and the remaining disagreement is entirely mesh-only shell area, not propellers."
+ }
+}

@@ -1,0 +1,2739 @@
+{
+ "meta": {
+  "generated": "2026-08-03 10:50:37",
+  "purpose": "우리 실험 대역(LTE 1.843 · 5G 3.5 · WiFi 5.21 GHz)만 놓고 σ(f) 를 조밀하게 다시 낸 것. p3_ours.json 의 부분대역 적합 a=+1.563(R²=0.96)이 **6 점**에서 나왔다는 점을 고치고, 밴드별 **국소** 기울기와 곡률의 원인을 판정한다.",
+  "drone": "phantom3",
+  "drone_name": "DJI Phantom 3 Professional",
+  "engine": "SBR (Mitsuba/OptiX first-hit) + PO surface integral — src/rcs_sbr.rcs_sbr_batch",
+  "caller": "benchmark/rcs_anchor.raw_sigma_az (p3_ours.json 과 동일 경로·동일 인자)",
+  "aspect": "el=0 (수평면), 방위 전주기 az=linspace(0,360,360,endpoint=False)",
+  "div": 16,
+  "n_az": 360,
+  "ptd_default": false,
+  "penetrate_default": true,
+  "max_bounce": 1,
+  "stat_convention": "μ(f)=10log10(mean_φ σ_lin) [dBsm] — **선형평균**. ε(f)=std(10log10 σ_lin) [dB].",
+  "freq_sampling": "1.80–6.00 GHz 를 Δ=0.05 GHz 균등격자로 85 점 + 밴드중심 1.843·5.21 + p3_ours 격자점 2.62·3.44·4.26·5.08 (재현검증) = 91 점. 추가로 1.20–1.75 GHz 12 점 — LTE 1.843 의 국소창이 한쪽만 있으면 기울기가 편향되기 때문이다.",
+  "gpu": "GPU 3 · GPU 2 (⛔ benchmark/rcs_anchor.py PID 1364837 는 건드리지 않았다 — GPU2 에는 그 프로세스 여유 안에서만 워커 2~3 개, 예산 1800 MB)",
+  "no_literature": "이 산출물에 문헌 수치는 하나도 들어오지 않았다(p3_ours 의 blind 규약 유지). 따라서 '그림에서 읽은 reconstructed 값'도 없다 — 전부 계산값이다.",
+  "grading": "모든 수치 grade=computed. 축자인용·쪽수가 필요한 외부 주장 없음."
+ },
+ "q1_what_existed": {
+  "source": "outputs/p3_ours.json → subband_fits.by_aspect.el0",
+  "el0_1p8_6p0": {
+   "n": 6,
+   "a": 1.56335,
+   "b": -26.7427,
+   "R2": 0.9617,
+   "rmse_db": 0.437
+  },
+  "n_freq_in_1p8_6p0_before": 6,
+  "freqs_before": [
+   1.8,
+   2.62,
+   3.44,
+   4.26,
+   5.08,
+   5.9
+  ],
+  "mu_before": [
+   -24.3488,
+   -22.3165,
+   -21.3964,
+   -19.3579,
+   -19.3764,
+   -17.5469
+  ],
+  "other_subbands_el0": {
+   "1.8-6.0 GHz": {
+    "n": 6,
+    "a": 1.56335,
+    "b": -26.7427,
+    "R2": 0.9617,
+    "rmse_db": 0.437
+   },
+   "1.8-10.0 GHz": {
+    "n": 11,
+    "a": 0.88324,
+    "b": -24.3145,
+    "R2": 0.8194,
+    "rmse_db": 1.075
+   },
+   "6.0-18.2 GHz": {
+    "n": 15,
+    "a": 0.19863,
+    "b": -18.821,
+    "R2": 0.3344,
+    "rmse_db": 0.993
+   },
+   "10.0-18.2 GHz": {
+    "n": 11,
+    "a": 0.14901,
+    "b": -18.0785,
+    "R2": 0.142,
+    "rmse_db": 0.95
+   }
+  },
+  "comment": "a=+1.563·R²=0.9617 은 Δ=0.82 GHz 균등격자의 **6 점**에서 나온 값이다. 1.8–6.0 GHz 를 6 점으로 재면 아래에서 보듯 ~1 GHz 주기의 물결을 통째로 건너뛴다 — 기울기는 우연히 비슷하게 나왔지만 국소 구조는 전부 잃는다."
+ },
+ "q2_dense_resample": {
+  "n_freq_lowband": 91,
+  "n_freq_lowband_before": 6,
+  "n_freq_added_total": 97,
+  "n_freq_added_inside_1p8_6p0": 85,
+  "n_freq_added_below_1p8": 12,
+  "n_freq_total_incl_below_1p8": 103,
+  "df_ghz": 0.05,
+  "freqs_ghz": [
+   1.2,
+   1.25,
+   1.3,
+   1.35,
+   1.4,
+   1.45,
+   1.5,
+   1.55,
+   1.6,
+   1.65,
+   1.7,
+   1.75,
+   1.8,
+   1.843,
+   1.85,
+   1.9,
+   1.95,
+   2.0,
+   2.05,
+   2.1,
+   2.15,
+   2.2,
+   2.25,
+   2.3,
+   2.35,
+   2.4,
+   2.45,
+   2.5,
+   2.55,
+   2.6,
+   2.62,
+   2.65,
+   2.7,
+   2.75,
+   2.8,
+   2.85,
+   2.9,
+   2.95,
+   3.0,
+   3.05,
+   3.1,
+   3.15,
+   3.2,
+   3.25,
+   3.3,
+   3.35,
+   3.4,
+   3.44,
+   3.45,
+   3.5,
+   3.55,
+   3.6,
+   3.65,
+   3.7,
+   3.75,
+   3.8,
+   3.85,
+   3.9,
+   3.95,
+   4.0,
+   4.05,
+   4.1,
+   4.15,
+   4.2,
+   4.25,
+   4.26,
+   4.3,
+   4.35,
+   4.4,
+   4.45,
+   4.5,
+   4.55,
+   4.6,
+   4.65,
+   4.7,
+   4.75,
+   4.8,
+   4.85,
+   4.9,
+   4.95,
+   5.0,
+   5.05,
+   5.08,
+   5.1,
+   5.15,
+   5.2,
+   5.21,
+   5.25,
+   5.3,
+   5.35,
+   5.4,
+   5.45,
+   5.5,
+   5.55,
+   5.6,
+   5.65,
+   5.7,
+   5.75,
+   5.8,
+   5.85,
+   5.9,
+   5.95,
+   6.0
+  ],
+  "mu_dbsm": [
+   -24.6352,
+   -24.4107,
+   -24.1191,
+   -24.9005,
+   -24.0537,
+   -24.2619,
+   -23.9548,
+   -24.3206,
+   -24.9953,
+   -24.1778,
+   -24.3816,
+   -23.8186,
+   -24.3488,
+   -24.4109,
+   -24.4494,
+   -23.9147,
+   -23.9519,
+   -23.4546,
+   -23.9767,
+   -23.7196,
+   -23.3766,
+   -22.7462,
+   -22.5024,
+   -22.6882,
+   -22.4062,
+   -22.022,
+   -22.0509,
+   -22.4364,
+   -22.1254,
+   -22.1141,
+   -22.3165,
+   -22.1457,
+   -22.2199,
+   -22.2192,
+   -22.3537,
+   -22.8587,
+   -22.4393,
+   -22.2575,
+   -22.443,
+   -22.2077,
+   -22.0842,
+   -21.9105,
+   -21.6596,
+   -21.9904,
+   -21.5435,
+   -21.5867,
+   -21.7476,
+   -21.3964,
+   -21.3683,
+   -21.5331,
+   -21.5543,
+   -21.2577,
+   -21.2517,
+   -20.6707,
+   -20.7259,
+   -20.1248,
+   -20.0001,
+   -19.9289,
+   -19.3971,
+   -19.6167,
+   -19.6055,
+   -19.2989,
+   -19.2983,
+   -19.2559,
+   -19.3129,
+   -19.3579,
+   -19.3307,
+   -19.2412,
+   -19.5862,
+   -19.6839,
+   -20.0771,
+   -20.3452,
+   -20.235,
+   -20.2643,
+   -20.4712,
+   -20.2961,
+   -19.9788,
+   -19.5825,
+   -19.5846,
+   -19.6139,
+   -19.2871,
+   -19.197,
+   -19.3764,
+   -19.1875,
+   -19.4846,
+   -19.2974,
+   -19.2928,
+   -19.1889,
+   -19.1402,
+   -18.7451,
+   -18.8149,
+   -18.6398,
+   -18.2522,
+   -17.9914,
+   -18.0386,
+   -18.0689,
+   -17.8566,
+   -17.6935,
+   -17.6086,
+   -17.627,
+   -17.5469,
+   -17.4386,
+   -17.2773
+  ],
+  "eps_db": [
+   3.9181,
+   4.7274,
+   4.8775,
+   4.8561,
+   5.2073,
+   5.1128,
+   5.1113,
+   5.5081,
+   4.8347,
+   4.4973,
+   4.0655,
+   4.0746,
+   4.6377,
+   4.7579,
+   4.7326,
+   4.842,
+   4.571,
+   4.6655,
+   4.814,
+   4.9192,
+   4.9156,
+   5.2509,
+   5.1531,
+   5.0197,
+   4.7538,
+   5.2225,
+   5.7307,
+   6.01,
+   5.5589,
+   5.4597,
+   5.2272,
+   5.204,
+   5.3683,
+   5.1593,
+   5.018,
+   4.5517,
+   4.4078,
+   4.0903,
+   3.9064,
+   4.0216,
+   4.3276,
+   4.6488,
+   4.4741,
+   4.297,
+   4.0964,
+   3.9823,
+   4.3995,
+   4.4392,
+   4.4111,
+   4.1284,
+   4.1281,
+   4.2503,
+   4.1176,
+   4.3377,
+   4.3436,
+   4.9156,
+   5.4946,
+   5.3747,
+   5.1844,
+   5.455,
+   5.8641,
+   5.9419,
+   5.7891,
+   6.1691,
+   6.02,
+   6.0333,
+   6.246,
+   6.0586,
+   5.8757,
+   5.6278,
+   5.3528,
+   5.3751,
+   5.4258,
+   5.3801,
+   5.2852,
+   5.312,
+   5.3988,
+   5.6733,
+   5.9577,
+   5.8713,
+   5.9865,
+   5.9051,
+   5.7432,
+   5.6999,
+   5.4341,
+   5.5179,
+   5.5524,
+   5.7871,
+   5.4432,
+   5.5722,
+   5.8532,
+   5.7056,
+   5.5634,
+   5.5877,
+   5.2534,
+   5.058,
+   5.1079,
+   5.7023,
+   6.4809,
+   6.2877,
+   6.4624,
+   6.5509,
+   6.7428
+  ],
+  "reproducibility_vs_p3_ours": {
+   "points": [
+    {
+     "f_ghz": 1.8,
+     "p3_ours_mu": -24.348776912315166,
+     "rerun_mu": -24.348776912315166,
+     "delta_db": 0.0
+    },
+    {
+     "f_ghz": 2.62,
+     "p3_ours_mu": -22.31649182141773,
+     "rerun_mu": -22.31649182141773,
+     "delta_db": 0.0
+    },
+    {
+     "f_ghz": 3.44,
+     "p3_ours_mu": -21.39639244923866,
+     "rerun_mu": -21.39639244923866,
+     "delta_db": 0.0
+    },
+    {
+     "f_ghz": 4.26,
+     "p3_ours_mu": -19.35788414069207,
+     "rerun_mu": -19.35788414069207,
+     "delta_db": 0.0
+    },
+    {
+     "f_ghz": 5.08,
+     "p3_ours_mu": -19.376374870227245,
+     "rerun_mu": -19.376374870227245,
+     "delta_db": 0.0
+    },
+    {
+     "f_ghz": 5.9,
+     "p3_ours_mu": -17.546915794970115,
+     "rerun_mu": -17.546915794970115,
+     "delta_db": 0.0
+    }
+   ],
+   "max_abs_delta_db": 0.0,
+   "verdict": "겹치는 6 점이 **비트 단위로 동일**하다 — 이 조밀 스윕은 p3_ours 와 같은 커널·같은 인자임이 실측으로 확인된다."
+  },
+  "ripple": {
+   "detrended_std_db": 0.502,
+   "detrended_p2p_db": 2.125,
+   "dominant_period_ghz": 1.417,
+   "equivalent_path_difference_m": 0.1058,
+   "note": "2 차 추세를 뺀 잔차의 주기도. 우세주기 T [GHz] 는 두 산란중심의 왕복 경로차 ΔR=c/(2T) [m] 에 대응한다. 국소기울기 창을 T 에 맞추면 이 물결이 상쇄된다 — 창을 T 보다 좁게 잡으면 물결의 순간기울기를 '대역 기울기'로 잘못 읽는다."
+  },
+  "subband_fits_dense": {
+   "1.8-6.0 GHz": {
+    "n": 91,
+    "a_db_per_ghz": 1.45243,
+    "b_dbsm": -26.3194,
+    "R2": 0.9245,
+    "se_a": 0.044,
+    "rmse_db": 0.5097
+   },
+   "1.2-6.0 GHz": {
+    "n": 103,
+    "a_db_per_ghz": 1.47119,
+    "b_dbsm": -26.4056,
+    "R2": 0.9443,
+    "se_a": 0.0355,
+    "rmse_db": 0.497
+   },
+   "1.2-1.8 GHz": {
+    "n": 13,
+    "a_db_per_ghz": 0.42364,
+    "b_dbsm": -24.9723,
+    "R2": 0.0575,
+    "se_a": 0.5173,
+    "rmse_db": 0.321
+   },
+   "1.8-3.0 GHz": {
+    "n": 27,
+    "a_db_per_ghz": 1.82884,
+    "b_dbsm": -27.2534,
+    "R2": 0.6833,
+    "se_a": 0.249,
+    "rmse_db": 0.4549
+   },
+   "1.8-2.5 GHz": {
+    "n": 16,
+    "a_db_per_ghz": 3.58961,
+    "b_dbsm": -30.9273,
+    "R2": 0.9094,
+    "se_a": 0.3027,
+    "rmse_db": 0.2514
+   },
+   "2.5-4.0 GHz": {
+    "n": 33,
+    "a_db_per_ghz": 1.75758,
+    "b_dbsm": -27.2489,
+    "R2": 0.7895,
+    "se_a": 0.163,
+    "rmse_db": 0.4067
+   },
+   "3.0-4.5 GHz": {
+    "n": 33,
+    "a_db_per_ghz": 2.26712,
+    "b_dbsm": -29.1229,
+    "R2": 0.8762,
+    "se_a": 0.153,
+    "rmse_db": 0.3798
+   },
+   "4.0-6.0 GHz": {
+    "n": 44,
+    "a_db_per_ghz": 1.1637,
+    "b_dbsm": -24.8768,
+    "R2": 0.6199,
+    "se_a": 0.1406,
+    "rmse_db": 0.531
+   },
+   "4.5-6.0 GHz": {
+    "n": 33,
+    "a_db_per_ghz": 2.17062,
+    "b_dbsm": -30.3365,
+    "R2": 0.9592,
+    "se_a": 0.0804,
+    "rmse_db": 0.1944
+   },
+   "1.6-2.1 GHz": {
+    "n": 12,
+    "a_db_per_ghz": 1.84875,
+    "b_dbsm": -27.5524,
+    "R2": 0.5038,
+    "se_a": 0.5802,
+    "rmse_db": 0.2778
+   },
+   "3.25-3.75 GHz": {
+    "n": 12,
+    "a_db_per_ghz": 2.08867,
+    "b_dbsm": -28.6854,
+    "R2": 0.7619,
+    "se_a": 0.3692,
+    "rmse_db": 0.1778
+   },
+   "4.96-5.46 GHz": {
+    "n": 12,
+    "a_db_per_ghz": 1.47891,
+    "b_dbsm": -26.8452,
+    "R2": 0.6452,
+    "se_a": 0.3468,
+    "rmse_db": 0.1503
+   }
+  },
+  "headline": "1.8–6.0 GHz 조밀 91 점 재적합: a=+1.452 dB/GHz (R²=0.924, rmse=0.510 dB). 옛 6 점 값 a=+1.563 와 0.111 dB/GHz 차이 — **전대역 기울기 자체는 크게 안 틀렸다**. 틀린 것은 '이 구간이 직선이다'라는 그림이다."
+ },
+ "q3_band_local_slopes": {
+  "definition": "국소 기울기 = f₀ 근방 창에서의 dμ/df [dB/GHz]. 전대역 적합선의 기울기가 아니다.",
+  "window_choice": "헤드라인 창 반폭 = 리플 우세주기의 절반(±0.71 GHz). μ(f) 가 주기 1.42 GHz 의 간섭 물결을 타므로, 창을 그보다 좁게 잡으면 물결의 순간기울기를 '대역 기울기'로 잘못 읽는다.",
+  "by_band": {
+   "lte": {
+    "f_ghz": 1.843,
+    "label": "LTE 1.843 GHz",
+    "mu_dbsm_at_band": -24.410916547412157,
+    "mu_source": "직접 계산점",
+    "headline_slope_db_per_ghz": 1.941,
+    "headline_se_db_per_ghz": 0.2119,
+    "headline_window": "±0.71 GHz(리플 1주기), 1차",
+    "headline_n_points": 29,
+    "slope_spread_over_variants_db_per_ghz": [
+     1.546,
+     1.958
+    ],
+    "slope_h040_deg1": 1.5455,
+    "slope_h100_deg1": 1.8645,
+    "power_law_exponent_n": 0.824,
+    "power_law_note": "σ ∝ f^n, n = (dμ/dlog10f)/10 = ln10/10 · f · (dμ/df)",
+    "db_per_octave": 2.48,
+    "window_is_two_sided": false,
+    "variants": {
+     "h0.25_deg1": {
+      "n": 11,
+      "half_ghz": 0.25,
+      "deg": 1,
+      "slope_db_per_ghz": 1.9143621876393802,
+      "se_db_per_ghz": 0.7044137247696947,
+      "mu_at_f0_dbsm": -24.139608374425247,
+      "R2": 0.450741117045907,
+      "rmse_db": 0.28957401415656264
+     },
+     "h0.25_deg2": {
+      "n": 11,
+      "half_ghz": 0.25,
+      "deg": 2,
+      "slope_db_per_ghz": 1.849419457950969,
+      "se_db_per_ghz": 0.7716546393378454,
+      "mu_at_f0_dbsm": -24.10778464263796,
+      "R2": 0.45726508774638464,
+      "rmse_db": 0.28784913013843066
+     },
+     "h0.40_deg1": {
+      "n": 17,
+      "half_ghz": 0.4,
+      "deg": 1,
+      "slope_db_per_ghz": 1.545544228564256,
+      "se_db_per_ghz": 0.41326648715373493,
+      "mu_at_f0_dbsm": -23.98910866706095,
+      "R2": 0.48251395699977884,
+      "rmse_db": 0.35796346960771835
+     },
+     "h0.40_deg2": {
+      "n": 17,
+      "half_ghz": 0.4,
+      "deg": 2,
+      "slope_db_per_ghz": 1.7187653492989894,
+      "se_db_per_ghz": 0.3406721747449205,
+      "mu_at_f0_dbsm": -24.221353871393205,
+      "R2": 0.6814944650079403,
+      "rmse_db": 0.2808328325113623
+     },
+     "h0.60_deg1": {
+      "n": 25,
+      "half_ghz": 0.6,
+      "deg": 1,
+      "slope_db_per_ghz": 1.8410107682698842,
+      "se_db_per_ghz": 0.2755377468252971,
+      "mu_at_f0_dbsm": -23.782700485482,
+      "R2": 0.6599780903234744,
+      "rmse_db": 0.44814384116911565
+     },
+     "h0.60_deg2": {
+      "n": 25,
+      "half_ghz": 0.6,
+      "deg": 2,
+      "slope_db_per_ghz": 1.9575602406958545,
+      "se_db_per_ghz": 0.18435336162138827,
+      "mu_at_f0_dbsm": -24.1467045412159,
+      "R2": 0.8563417243761526,
+      "rmse_db": 0.2912925019688736
+     },
+     "h0.71_deg1": {
+      "n": 29,
+      "half_ghz": 0.708,
+      "deg": 1,
+      "slope_db_per_ghz": 1.940989437470783,
+      "se_db_per_ghz": 0.21185539754544908,
+      "mu_at_f0_dbsm": -23.73620023063548,
+      "R2": 0.7566244874173403,
+      "rmse_db": 0.4369268093609893
+     },
+     "h0.71_deg2": {
+      "n": 29,
+      "half_ghz": 0.708,
+      "deg": 2,
+      "slope_db_per_ghz": 1.8089361912851094,
+      "se_db_per_ghz": 0.16107623197543966,
+      "mu_at_f0_dbsm": -24.05362777698247,
+      "R2": 0.8686291823534255,
+      "rmse_db": 0.32101084531322904
+     },
+     "h1.00_deg1": {
+      "n": 35,
+      "half_ghz": 1.0,
+      "deg": 1,
+      "slope_db_per_ghz": 1.8645091492754335,
+      "se_db_per_ghz": 0.1494620925521212,
+      "mu_at_f0_dbsm": -23.745389040696676,
+      "R2": 0.8250455660255726,
+      "rmse_db": 0.4074719151921983
+     },
+     "h1.00_deg2": {
+      "n": 35,
+      "half_ghz": 1.0,
+      "deg": 2,
+      "slope_db_per_ghz": 1.6406408019143288,
+      "se_db_per_ghz": 0.18139131198045946,
+      "mu_at_f0_dbsm": -23.87946673913835,
+      "R2": 0.8446067324265722,
+      "rmse_db": 0.3840177540638553
+     }
+    }
+   },
+   "nr": {
+    "f_ghz": 3.5,
+    "label": "5G NR 3.5 GHz",
+    "mu_dbsm_at_band": -21.533135249979512,
+    "mu_source": "직접 계산점",
+    "headline_slope_db_per_ghz": 2.578,
+    "headline_se_db_per_ghz": 0.1283,
+    "headline_window": "±0.71 GHz(리플 1주기), 1차",
+    "headline_n_points": 30,
+    "slope_spread_over_variants_db_per_ghz": [
+     1.873,
+     2.646
+    ],
+    "slope_h040_deg1": 2.5222,
+    "slope_h100_deg1": 1.8729,
+    "power_law_exponent_n": 2.078,
+    "power_law_note": "σ ∝ f^n, n = (dμ/dlog10f)/10 = ln10/10 · f · (dμ/df)",
+    "db_per_octave": 6.254,
+    "window_is_two_sided": true,
+    "variants": {
+     "h0.25_deg1": {
+      "n": 12,
+      "half_ghz": 0.25,
+      "deg": 1,
+      "slope_db_per_ghz": 2.0886677054772624,
+      "se_db_per_ghz": 0.3691862502794407,
+      "mu_at_f0_dbsm": -21.37509027185641,
+      "R2": 0.7619455645056978,
+      "rmse_db": 0.1777917064107559
+     },
+     "h0.25_deg2": {
+      "n": 12,
+      "half_ghz": 0.25,
+      "deg": 2,
+      "slope_db_per_ghz": 2.074787145548565,
+      "se_db_per_ghz": 0.35595751151474775,
+      "mu_at_f0_dbsm": -21.45135767862949,
+      "R2": 0.8010013907048469,
+      "rmse_db": 0.16255426922184688
+     },
+     "h0.40_deg1": {
+      "n": 18,
+      "half_ghz": 0.4,
+      "deg": 1,
+      "slope_db_per_ghz": 2.5221713315422267,
+      "se_db_per_ghz": 0.267975564823025,
+      "mu_at_f0_dbsm": -21.23239609931291,
+      "R2": 0.8470139696302956,
+      "rmse_db": 0.2555886947255117
+     },
+     "h0.40_deg2": {
+      "n": 18,
+      "half_ghz": 0.4,
+      "deg": 2,
+      "slope_db_per_ghz": 2.5112020618545206,
+      "se_db_per_ghz": 0.18777430064054373,
+      "mu_at_f0_dbsm": -21.432176840859306,
+      "R2": 0.9295922091487749,
+      "rmse_db": 0.17339082424176436
+     },
+     "h0.60_deg1": {
+      "n": 26,
+      "half_ghz": 0.6,
+      "deg": 1,
+      "slope_db_per_ghz": 2.6458454368739908,
+      "se_db_per_ghz": 0.1588648116229932,
+      "mu_at_f0_dbsm": -21.13236102722934,
+      "R2": 0.9203660402927594,
+      "rmse_db": 0.27530842220473567
+     },
+     "h0.60_deg2": {
+      "n": 26,
+      "half_ghz": 0.6,
+      "deg": 2,
+      "slope_db_per_ghz": 2.6421856670664403,
+      "se_db_per_ghz": 0.11749357871169427,
+      "mu_at_f0_dbsm": -21.33669624455832,
+      "R2": 0.9582585469123649,
+      "rmse_db": 0.19932148939465252
+     },
+     "h0.71_deg1": {
+      "n": 30,
+      "half_ghz": 0.708,
+      "deg": 1,
+      "slope_db_per_ghz": 2.578029856584295,
+      "se_db_per_ghz": 0.12826681970812628,
+      "mu_at_f0_dbsm": -21.107065805717003,
+      "R2": 0.9351804210733468,
+      "rmse_db": 0.2792541194398416
+     },
+     "h0.71_deg2": {
+      "n": 30,
+      "half_ghz": 0.708,
+      "deg": 2,
+      "slope_db_per_ghz": 2.575870213190339,
+      "se_db_per_ghz": 0.10259456106005185,
+      "mu_at_f0_dbsm": -21.29383694923284,
+      "R2": 0.9600128471523856,
+      "rmse_db": 0.21933438789359946
+     },
+     "h1.00_deg1": {
+      "n": 44,
+      "half_ghz": 1.0,
+      "deg": 1,
+      "slope_db_per_ghz": 1.8728799407128447,
+      "se_db_per_ghz": 0.10961991463760905,
+      "mu_at_f0_dbsm": -21.027199074392332,
+      "R2": 0.8742155740222742,
+      "rmse_db": 0.42442880560676055
+     },
+     "h1.00_deg2": {
+      "n": 44,
+      "half_ghz": 1.0,
+      "deg": 2,
+      "slope_db_per_ghz": 1.878026054010383,
+      "se_db_per_ghz": 0.10452968655876334,
+      "mu_at_f0_dbsm": -21.188825917978715,
+      "R2": 0.8884011303693522,
+      "rmse_db": 0.3997802296942355
+     }
+    }
+   },
+   "wifi": {
+    "f_ghz": 5.21,
+    "label": "WiFi 5.21 GHz",
+    "mu_dbsm_at_band": -19.292786287889086,
+    "mu_source": "직접 계산점",
+    "headline_slope_db_per_ghz": 2.2445,
+    "headline_se_db_per_ghz": 0.0869,
+    "headline_window": "±0.71 GHz(리플 1주기), 1차",
+    "headline_n_points": 30,
+    "slope_spread_over_variants_db_per_ghz": [
+     1.285,
+     2.341
+    ],
+    "slope_h040_deg1": 2.0926,
+    "slope_h100_deg1": 1.4932,
+    "power_law_exponent_n": 2.693,
+    "power_law_note": "σ ∝ f^n, n = (dμ/dlog10f)/10 = ln10/10 · f · (dμ/df)",
+    "db_per_octave": 8.105,
+    "window_is_two_sided": true,
+    "variants": {
+     "h0.25_deg1": {
+      "n": 12,
+      "half_ghz": 0.25,
+      "deg": 1,
+      "slope_db_per_ghz": 1.4789059895990393,
+      "se_db_per_ghz": 0.3468404182646361,
+      "mu_at_f0_dbsm": -19.14010339725231,
+      "R2": 0.6451530790320374,
+      "rmse_db": 0.15030863085032553
+     },
+     "h0.25_deg2": {
+      "n": 12,
+      "half_ghz": 0.25,
+      "deg": 2,
+      "slope_db_per_ghz": 1.2845111810990877,
+      "se_db_per_ghz": 0.24519736856070262,
+      "mu_at_f0_dbsm": -19.261829126525917,
+      "R2": 0.8486792066639757,
+      "rmse_db": 0.09815506229862474
+     },
+     "h0.40_deg1": {
+      "n": 18,
+      "half_ghz": 0.4,
+      "deg": 1,
+      "slope_db_per_ghz": 2.092587821445004,
+      "se_db_per_ghz": 0.22630833724293786,
+      "mu_at_f0_dbsm": -19.052505131122793,
+      "R2": 0.8423645823795711,
+      "rmse_db": 0.19899443388975027
+     },
+     "h0.40_deg2": {
+      "n": 18,
+      "half_ghz": 0.4,
+      "deg": 2,
+      "slope_db_per_ghz": 1.9789298054430253,
+      "se_db_per_ghz": 0.15616693068080229,
+      "mu_at_f0_dbsm": -19.207105858519373,
+      "R2": 0.9315356188958553,
+      "rmse_db": 0.13114337959138253
+     },
+     "h0.60_deg1": {
+      "n": 26,
+      "half_ghz": 0.6,
+      "deg": 1,
+      "slope_db_per_ghz": 2.3405106103363478,
+      "se_db_per_ghz": 0.11206370684838131,
+      "mu_at_f0_dbsm": -19.057356907327822,
+      "R2": 0.9478493987225448,
+      "rmse_db": 0.18320111808374734
+     },
+     "h0.60_deg2": {
+      "n": 26,
+      "half_ghz": 0.6,
+      "deg": 2,
+      "slope_db_per_ghz": 2.3255915548403023,
+      "se_db_per_ghz": 0.11157436286278818,
+      "mu_at_f0_dbsm": -19.104587146539917,
+      "R2": 0.9510473811056785,
+      "rmse_db": 0.17749512330583586
+     },
+     "h0.71_deg1": {
+      "n": 30,
+      "half_ghz": 0.708,
+      "deg": 1,
+      "slope_db_per_ghz": 2.244467810496195,
+      "se_db_per_ghz": 0.08692098555556274,
+      "mu_at_f0_dbsm": -19.04526687198795,
+      "R2": 0.9596990202672844,
+      "rmse_db": 0.17986631787166352
+     },
+     "h0.71_deg2": {
+      "n": 30,
+      "half_ghz": 0.708,
+      "deg": 2,
+      "slope_db_per_ghz": 2.232638912008264,
+      "se_db_per_ghz": 0.0854328391872426,
+      "mu_at_f0_dbsm": -19.09736321637967,
+      "R2": 0.9627796830276178,
+      "rmse_db": 0.17285505143690738
+     },
+     "h1.00_deg1": {
+      "n": 39,
+      "half_ghz": 1.0,
+      "deg": 1,
+      "slope_db_per_ghz": 1.4931743814564227,
+      "se_db_per_ghz": 0.14859056060426742,
+      "mu_at_f0_dbsm": -18.86746644544003,
+      "R2": 0.7318466641757041,
+      "rmse_db": 0.46791864126897387
+     },
+     "h1.00_deg2": {
+      "n": 39,
+      "half_ghz": 1.0,
+      "deg": 2,
+      "slope_db_per_ghz": 1.8019401870242426,
+      "se_db_per_ghz": 0.10200260573912158,
+      "mu_at_f0_dbsm": -19.243996014159052,
+      "R2": 0.8966697972129904,
+      "rmse_db": 0.29046404840369355
+     }
+    }
+   }
+  },
+  "band_context": {
+   "window_half_ghz": 0.708,
+   "f_range_ghz": [
+    1.9,
+    5.3
+   ],
+   "min_db_per_ghz": 0.103,
+   "max_db_per_ghz": 2.641,
+   "mean_db_per_ghz": 1.449,
+   "fraction_positive": 1.0,
+   "our_band_percentile": {
+    "lte": 67,
+    "nr": 97,
+    "wifi": 83
+   },
+   "reading": "국소 기울기는 대역 안에서 +0.10 ~ +2.64 dB/GHz 로 변하고 **한 번도 음수가 되지 않는다**. 우리 3 밴드는 각각 67·97·83 백분위 — 즉 세 밴드 전부 평균보다 가파른 자리에 있다. 우연이 아니라 표적 크기와 sub-6 의 궁합이다."
+  },
+  "summary": {
+   "lte": {
+    "f_ghz": 1.843,
+    "mu_dbsm": -24.411,
+    "slope_db_per_ghz": 1.941,
+    "se": 0.2119,
+    "spread_over_windows": [
+     1.546,
+     1.958
+    ],
+    "power_law_n": 0.824
+   },
+   "nr": {
+    "f_ghz": 3.5,
+    "mu_dbsm": -21.533,
+    "slope_db_per_ghz": 2.578,
+    "se": 0.1283,
+    "spread_over_windows": [
+     1.873,
+     2.646
+    ],
+    "power_law_n": 2.078
+   },
+   "wifi": {
+    "f_ghz": 5.21,
+    "mu_dbsm": -19.293,
+    "slope_db_per_ghz": 2.2445,
+    "se": 0.0869,
+    "spread_over_windows": [
+     1.285,
+     2.341
+    ],
+    "power_law_n": 2.693
+   }
+  },
+  "caveat": "⚠ 창 크기에 따른 산포가 크다(각 밴드의 spread_over_windows 참조). 국소 기울기는 **점추정보다 범위로** 인용할 것. 이 산포 자체가 물리다 — 표적 깊이방향 구조가 만드는 간섭 물결이 대역 폭과 같은 규모다."
+ },
+ "q4_curvature": {
+  "quantification": {
+   "quadratic_in_f": {
+    "a2_db_per_ghz2": -0.07121,
+    "se_a2": 0.03965,
+    "a1": 2.00499,
+    "a0": -27.284,
+    "R2": 0.9272,
+    "rmse_db": 0.5006
+   },
+   "linear_in_f": {
+    "a": 1.45243,
+    "b": -26.3194,
+    "R2": 0.9245,
+    "rmse_db": 0.5097
+   },
+   "linear_in_log10f": {
+    "slope_db_per_decade": 11.9736,
+    "b": -27.4458,
+    "R2": 0.922,
+    "rmse_db": 0.5181,
+    "power_law_exponent_n": 1.197
+   },
+   "which_fits_better": "선형 f 축",
+   "note": "a2<0 = 위로 볼록(저주파에서 가파르고 고주파로 갈수록 완만). σ ∝ f^n 해석은 log10f 축 적합에서 n = slope/10."
+  },
+  "hypotheses": [
+   {
+    "id": "c_resonance_region",
+    "claim": "물리적으로 실제 그렇다 — 표적이 공진영역을 벗어나는 중이다.",
+    "rank": 1,
+    "mechanism": "P3 의 최대 치수는 462.6 mm 이고 1.843 GHz 에서 L/λ=2.84, 5.21 GHz 에서 8.04 다. 부품 단위로는 더 작다 — 모터 폭 36.4 mm(ka=0.70@LTE), 프롭 날 폭 111 mm(ka=2.15), 캐노피 126 mm(ka=2.43), 셸 269 mm(ka=5.19). 즉 우리 3 밴드는 표적이 레일리↔광학 사이의 **공진/전이영역**을 가로지르는 구간이다. 그 구간에서 σ 는 레일리 극한 f⁴(=40 dB/decade)에서 광학 극한 f⁰(=0 dB/decade)로 내려가며, 중간값을 갖는 것이 정상이다.",
+    "distinguishing_prediction": "관측 지수 n(σ∝f^n)이 0<n<4 사이에 있어야 하고, **포화(knee)가 지배 산란체가 광학영역에 드는 주파수 근처에서 일어나야** 한다. 그리고 격자·PTD·내부항 등 수치·모형 인자를 껐다 켜도 상승 자체는 남아야 한다.",
+    "test_run": "1.8–6.0 GHz 를 91 점으로 조밀 재계산해 지수 n 과 국소기울기 곡선을 냈다. 포화 위치는 우리 조밀값과 p3_ours 의 6–18.2 GHz 적합을 나란히 놓고 읽었다.",
+    "measurement": {
+     "n_over_1p8_6p0": 1.197,
+     "n_by_band": {
+      "lte": 0.824,
+      "nr": 2.078,
+      "wifi": 2.693
+     },
+     "quadratic_a2_db_per_ghz2": -0.07121,
+     "quadratic_a2_se": 0.03965,
+     "slope_4p5_6p0": 2.17062,
+     "slope_6_18p2_from_p3_ours": 0.19863,
+     "knee_check": {
+      "slope_below_6ghz_db_per_ghz": 1.45243,
+      "slope_above_6ghz_db_per_ghz": 0.19863,
+      "body_shell_ka_at_knee": 16.9,
+      "reading": "셸(폭 268.7 mm)의 ka 는 6 GHz 에서 ≈16.9 다. 광학영역 진입의 통상 눈금(ka≳10~20)과 knee 위치가 일치한다 — 포화가 물리적으로 **있어야 할 자리**에서 일어난다."
+     }
+    },
+    "verdict": "**지지(주원인)**. ⚠ 다만 처음 세운 예측 하나는 틀렸다 — '주파수가 오를수록 n 이 준다'는 1.8–6 GHz **안에서는** 성립하지 않는다(n=0.82→2.08→2.69). 이 구간에서 μ 는 f 에 거의 **선형**으로 오르고(≈+1.45 dB/GHz, 2 차항 −0.071±0.040 은 2σ 미만이라 유의하지 않다), 곡률은 우리 대역 **안이 아니라 6 GHz 부근의 knee 에** 있다: 1.8–6 에서 +1.45 dB/GHz 이던 것이 6–18.2 에서 +0.199 dB/GHz 로 꺾인다. 그 knee 가 셸이 광학영역에 드는 ka≈17 자리에 있다는 것이 물리 해석을 지지한다. 우리 3 밴드는 전부 knee **이전**, 즉 가파른 쪽에 있다.",
+    "grade": "computed"
+   },
+   {
+    "id": "b_ray_grid",
+    "claim": "광선격자 λ/div 가 저주파에서 형상을 못 본다(수치 미수렴).",
+    "rank": 2,
+    "mechanism": "광선 간격은 λ/16 이라 절대 크기가 주파수에 반비례한다 — 1.843 GHz 에서 10.17 mm. 그러면 작은 부품을 가로지르는 광선 수가 저주파에서 줄어든다: 모터 폭 3.58 개, 프롭 날 두께 1.36 개, 캐노피 두께 1.49 개, PCB 두께 0.36 개(전부 λ/16, 1.843 GHz). 표본이 이렇게 성기면 PO 면적분이 그 부품을 통째로 놓치거나 겹쳐 세어 **저주파 σ 를 낮게** 만들 수 있고, 그러면 곡률이 인공적으로 생긴다.",
+    "distinguishing_prediction": "div 를 올리면 저주파 μ 가 **한 방향으로 움직여 수렴**해야 한다. 고주파에서는 이미 수렴이므로 안 움직여야 한다 — 즉 div 의존성이 주파수에 따라 체계적으로 달라야 한다.",
+    "test_run": "우리 3 밴드에서 div = 8·12·16·24·32·48 (광선간격 20.3 mm → 3.4 mm) 전주사. 고주파 대조군 12.0 GHz 에서 div=12·16·24.",
+    "measurement": {
+     "by_freq": {
+      "1.8 GHz": {
+       "divs": [
+        8,
+        12,
+        12,
+        16,
+        24,
+        32,
+        48
+       ],
+       "mu_dbsm": [
+        -24.2998,
+        -25.527,
+        -25.527,
+        -24.3488,
+        -24.393,
+        -24.6211,
+        -24.7187
+       ],
+       "delta_vs_finest_db": {
+        "8": 0.4189,
+        "12": -0.8083,
+        "16": 0.3699,
+        "24": 0.3257,
+        "32": 0.0976,
+        "48": 0.0
+       },
+       "div16_minus_div48_db": 0.3699
+      },
+      "1.843 GHz": {
+       "divs": [
+        8,
+        12,
+        16,
+        24,
+        32,
+        48
+       ],
+       "mu_dbsm": [
+        -24.4097,
+        -24.7241,
+        -24.4109,
+        -24.9414,
+        -24.3393,
+        -24.4742
+       ],
+       "delta_vs_finest_db": {
+        "8": 0.0645,
+        "12": -0.2499,
+        "16": 0.0633,
+        "24": -0.4672,
+        "32": 0.1349,
+        "48": 0.0
+       },
+       "div16_minus_div48_db": 0.0633
+      },
+      "3.5 GHz": {
+       "divs": [
+        8,
+        12,
+        16,
+        24,
+        32,
+        48
+       ],
+       "mu_dbsm": [
+        -20.7296,
+        -21.5244,
+        -21.5331,
+        -21.5271,
+        -21.5475,
+        -21.5145
+       ],
+       "delta_vs_finest_db": {
+        "8": 0.7848,
+        "12": -0.0099,
+        "16": -0.0187,
+        "24": -0.0127,
+        "32": -0.033,
+        "48": 0.0
+       },
+       "div16_minus_div48_db": -0.0187
+      },
+      "5.21 GHz": {
+       "divs": [
+        8,
+        12,
+        16,
+        24,
+        32,
+        48
+       ],
+       "mu_dbsm": [
+        -18.8987,
+        -19.2251,
+        -19.2928,
+        -19.2694,
+        -19.4033,
+        -19.2943
+       ],
+       "delta_vs_finest_db": {
+        "8": 0.3956,
+        "12": 0.0692,
+        "16": 0.0015,
+        "24": 0.0249,
+        "32": -0.109,
+        "48": 0.0
+       },
+       "div16_minus_div48_db": 0.0015
+      },
+      "12.0 GHz": {
+       "divs": [
+        12,
+        16,
+        24
+       ],
+       "mu_dbsm": [
+        -16.5391,
+        -16.5013,
+        -16.4388
+       ],
+       "delta_vs_finest_db": {
+        "12": -0.1003,
+        "16": -0.0625,
+        "24": 0.0
+       },
+       "div16_minus_div48_db": -0.0625
+      }
+     },
+     "lte_spread_div12_to_48_db": 0.602,
+     "monotone_trend": "없음 — div 를 3 배 올려도 μ 가 한 방향으로 가지 않는다",
+     "p3_ours_grid_control_recheck": {
+      "p3_ours_1p8GHz_div12_minus_div16_db": -1.178,
+      "our_1p8GHz_full_div_sweep": {
+       "divs": [
+        8,
+        12,
+        12,
+        16,
+        24,
+        32,
+        48
+       ],
+       "mu_dbsm": [
+        -24.2998,
+        -25.527,
+        -25.527,
+        -24.3488,
+        -24.393,
+        -24.6211,
+        -24.7187
+       ],
+       "ray_spacing_mm": [
+        20.819,
+        13.879,
+        13.879,
+        10.409,
+        6.94,
+        5.205,
+        3.47
+       ],
+       "delta_vs_finest_db": {
+        "8": 0.4189,
+        "12": -0.8083,
+        "16": 0.3699,
+        "24": 0.3257,
+        "32": 0.0976,
+        "48": 0.0
+       },
+       "finest_div": 48,
+       "div16_minus_finest_db": 0.3699
+      },
+      "our_1p843GHz_div12_minus_div16_db": -0.3132
+     }
+    },
+    "verdict": "**곡률의 원인으로서는 기각. 상한은 0.4 dB.** λ/16 은 세 밴드에서 div=48 대비 LTE +0.063 dB · 5G −0.019 dB · WiFi +0.002 dB 다. 격자 잔차의 최악값은 1.800 GHz 에서 div16→48 −0.37 dB 인데, **바로 옆 1.843 GHz 에서는 +0.06 dB** 라 체계 편향이 아니라 위상 디더다. 최악값을 그대로 인정해도 1.843→6.0 GHz 상승 7.13 dB 중 ≤0.4 dB(≤6%)만 격자 몫이다. ⚠ 격자가 **실제로 지는 지점은 있다** — div=8(간격 20.8 mm)은 3.5 GHz 에서 +0.78 dB, 5.21 GHz 에서 +0.40 dB 로 확실히 미수렴이다. 우리 λ/16 이 그보다 위일 뿐이다. ⭐ 부수 정정: p3_ours.grid_control 의 '1.8 GHz div12 −1.178 dB' 는 **재현된다**(우리 div12 값이 비트동일). 그러나 div 를 8·16·24·32·48 로 넓혀 보면 div=12 만 −0.81 dB 로 튀는 **단일 이상점**이고 나머지는 0.42 dB 폭 안에 있다 — 그 −1.178 dB 는 '저주파 미수렴의 증거'가 아니라 두 디더 표본의 차였다.",
+    "grade": "computed"
+   },
+   {
+    "id": "a_po_small_ka",
+    "claim": "ka 가 작아 PO(물리광학) 근사 자체가 진다.",
+    "rank": 3,
+    "mechanism": "PO 는 조명면 전류를 2n̂×H_inc 로, 그늘면을 0 으로 놓는다 — ka→∞ 점근이다. 유한 ka 에서는 모서리 프린지 전류, 그늘경계의 크리핑파, 다중상호작용이 빠진다. 우리 부품들은 LTE 에서 ka=0.70~5.19 로 바로 그 영역에 있다.",
+    "distinguishing_prediction": "PO 의 오차는 **격자를 조여도 남는다**(수치가 아니라 물리다). 그리고 구에서 재보면 ka 에 대해 **진동**하지 저주파로 갈수록 단조로 커지지 않는다 — 따라서 단조 곡률의 원인이 되기 어렵고, **불확도**로 나타나야 한다.",
+    "test_run": "① PEC 구를 우리 커널로 돌려 (커널−해석PO)=수치오차 와 (해석PO−정확Mie)=PO 물리오차로 분해했다. ② 모서리 프린지(PTD) 항을 켜서 Δμ 를 쟀다.",
+    "measurement": {
+     "sphere_po_minus_mie_thresholds_ka": {
+      "|PO-Mie|<0.5dB_above_ka": 15.2,
+      "|PO-Mie|<1.0dB_above_ka": 9.1,
+      "|PO-Mie|<2.0dB_above_ka": 5.5,
+      "|PO-Mie|<3.0dB_above_ka": 3.1
+     },
+     "sphere_kernel_minus_analytic_po_db": {
+      "r=7mm": [
+       {
+        "f_ghz": 1.8,
+        "ka": 0.264,
+        "kernel_minus_analytic_po_db": -2.984,
+        "analytic_po_minus_mie_db": 2.013,
+        "kernel_minus_mie_db": -0.971
+       },
+       {
+        "f_ghz": 2.4,
+        "ka": 0.352,
+        "kernel_minus_analytic_po_db": 1.517,
+        "analytic_po_minus_mie_db": -0.489,
+        "kernel_minus_mie_db": 1.028
+       },
+       {
+        "f_ghz": 3.0,
+        "ka": 0.44,
+        "kernel_minus_analytic_po_db": 0.134,
+        "analytic_po_minus_mie_db": -2.418,
+        "kernel_minus_mie_db": -2.285
+       },
+       {
+        "f_ghz": 3.5,
+        "ka": 0.513,
+        "kernel_minus_analytic_po_db": 0.833,
+        "analytic_po_minus_mie_db": -3.724,
+        "kernel_minus_mie_db": -2.891
+       },
+       {
+        "f_ghz": 4.2,
+        "ka": 0.616,
+        "kernel_minus_analytic_po_db": 0.354,
+        "analytic_po_minus_mie_db": -5.179,
+        "kernel_minus_mie_db": -4.825
+       },
+       {
+        "f_ghz": 5.21,
+        "ka": 0.764,
+        "kernel_minus_analytic_po_db": 0.654,
+        "analytic_po_minus_mie_db": -6.524,
+        "kernel_minus_mie_db": -5.87
+       },
+       {
+        "f_ghz": 6.0,
+        "ka": 0.88,
+        "kernel_minus_analytic_po_db": -0.319,
+        "analytic_po_minus_mie_db": -6.884,
+        "kernel_minus_mie_db": -7.203
+       }
+      ],
+      "r=13mm": [
+       {
+        "f_ghz": 1.8,
+        "ka": 0.49,
+        "kernel_minus_analytic_po_db": -1.629,
+        "analytic_po_minus_mie_db": -3.339,
+        "kernel_minus_mie_db": -4.969
+       },
+       {
+        "f_ghz": 1.8,
+        "ka": 0.49,
+        "kernel_minus_analytic_po_db": 0.167,
+        "analytic_po_minus_mie_db": -3.339,
+        "kernel_minus_mie_db": -3.172
+       },
+       {
+        "f_ghz": 1.8,
+        "ka": 0.49,
+        "kernel_minus_analytic_po_db": -0.197,
+        "analytic_po_minus_mie_db": -3.339,
+        "kernel_minus_mie_db": -3.536
+       },
+       {
+        "f_ghz": 2.4,
+        "ka": 0.654,
+        "kernel_minus_analytic_po_db": -0.554,
+        "analytic_po_minus_mie_db": -5.609,
+        "kernel_minus_mie_db": -6.163
+       },
+       {
+        "f_ghz": 3.0,
+        "ka": 0.817,
+        "kernel_minus_analytic_po_db": -0.193,
+        "analytic_po_minus_mie_db": -6.769,
+        "kernel_minus_mie_db": -6.962
+       },
+       {
+        "f_ghz": 3.5,
+        "ka": 0.954,
+        "kernel_minus_analytic_po_db": 0.176,
+        "analytic_po_minus_mie_db": -6.779,
+        "kernel_minus_mie_db": -6.603
+       },
+       {
+        "f_ghz": 3.5,
+        "ka": 0.954,
+        "kernel_minus_analytic_po_db": 0.05,
+        "analytic_po_minus_mie_db": -6.779,
+        "kernel_minus_mie_db": -6.729
+       },
+       {
+        "f_ghz": 4.2,
+        "ka": 1.144,
+        "kernel_minus_analytic_po_db": 0.204,
+        "analytic_po_minus_mie_db": -5.409,
+        "kernel_minus_mie_db": -5.205
+       },
+       {
+        "f_ghz": 5.21,
+        "ka": 1.42,
+        "kernel_minus_analytic_po_db": 0.069,
+        "analytic_po_minus_mie_db": -0.988,
+        "kernel_minus_mie_db": -0.919
+       },
+       {
+        "f_ghz": 6.0,
+        "ka": 1.635,
+        "kernel_minus_analytic_po_db": 0.04,
+        "analytic_po_minus_mie_db": 5.07,
+        "kernel_minus_mie_db": 5.11
+       }
+      ],
+      "r=25mm": [
+       {
+        "f_ghz": 1.8,
+        "ka": 0.943,
+        "kernel_minus_analytic_po_db": 0.248,
+        "analytic_po_minus_mie_db": -6.809,
+        "kernel_minus_mie_db": -6.562
+       },
+       {
+        "f_ghz": 2.4,
+        "ka": 1.258,
+        "kernel_minus_analytic_po_db": -0.114,
+        "analytic_po_minus_mie_db": -3.95,
+        "kernel_minus_mie_db": -4.065
+       },
+       {
+        "f_ghz": 3.0,
+        "ka": 1.572,
+        "kernel_minus_analytic_po_db": -0.019,
+        "analytic_po_minus_mie_db": 3.075,
+        "kernel_minus_mie_db": 3.056
+       },
+       {
+        "f_ghz": 3.5,
+        "ka": 1.834,
+        "kernel_minus_analytic_po_db": -0.073,
+        "analytic_po_minus_mie_db": 5.944,
+        "kernel_minus_mie_db": 5.871
+       },
+       {
+        "f_ghz": 4.2,
+        "ka": 2.201,
+        "kernel_minus_analytic_po_db": 0.152,
+        "analytic_po_minus_mie_db": -0.572,
+        "kernel_minus_mie_db": -0.42
+       },
+       {
+        "f_ghz": 5.21,
+        "ka": 2.73,
+        "kernel_minus_analytic_po_db": -0.08,
+        "analytic_po_minus_mie_db": 1.467,
+        "kernel_minus_mie_db": 1.388
+       },
+       {
+        "f_ghz": 6.0,
+        "ka": 3.144,
+        "kernel_minus_analytic_po_db": -0.215,
+        "analytic_po_minus_mie_db": 1.176,
+        "kernel_minus_mie_db": 0.961
+       }
+      ],
+      "r=45mm": [
+       {
+        "f_ghz": 1.8,
+        "ka": 1.698,
+        "kernel_minus_analytic_po_db": -0.241,
+        "analytic_po_minus_mie_db": 6.753,
+        "kernel_minus_mie_db": 6.512
+       },
+       {
+        "f_ghz": 1.8,
+        "ka": 1.698,
+        "kernel_minus_analytic_po_db": 0.032,
+        "analytic_po_minus_mie_db": 6.753,
+        "kernel_minus_mie_db": 6.785
+       },
+       {
+        "f_ghz": 1.8,
+        "ka": 1.698,
+        "kernel_minus_analytic_po_db": -0.044,
+        "analytic_po_minus_mie_db": 6.753,
+        "kernel_minus_mie_db": 6.71
+       },
+       {
+        "f_ghz": 2.4,
+        "ka": 2.264,
+        "kernel_minus_analytic_po_db": -0.323,
+        "analytic_po_minus_mie_db": -0.924,
+        "kernel_minus_mie_db": -1.247
+       },
+       {
+        "f_ghz": 3.0,
+        "ka": 2.829,
+        "kernel_minus_analytic_po_db": 0.11,
+        "analytic_po_minus_mie_db": 2.77,
+        "kernel_minus_mie_db": 2.879
+       },
+       {
+        "f_ghz": 3.5,
+        "ka": 3.301,
+        "kernel_minus_analytic_po_db": 0.128,
+        "analytic_po_minus_mie_db": -1.184,
+        "kernel_minus_mie_db": -1.056
+       },
+       {
+        "f_ghz": 3.5,
+        "ka": 3.301,
+        "kernel_minus_analytic_po_db": 0.016,
+        "analytic_po_minus_mie_db": -1.184,
+        "kernel_minus_mie_db": -1.168
+       },
+       {
+        "f_ghz": 4.2,
+        "ka": 3.961,
+        "kernel_minus_analytic_po_db": -0.035,
+        "analytic_po_minus_mie_db": -0.412,
+        "kernel_minus_mie_db": -0.447
+       },
+       {
+        "f_ghz": 5.21,
+        "ka": 4.914,
+        "kernel_minus_analytic_po_db": 0.114,
+        "analytic_po_minus_mie_db": -0.659,
+        "kernel_minus_mie_db": -0.545
+       },
+       {
+        "f_ghz": 6.0,
+        "ka": 5.659,
+        "kernel_minus_analytic_po_db": 0.0,
+        "analytic_po_minus_mie_db": 0.688,
+        "kernel_minus_mie_db": 0.688
+       }
+      ],
+      "r=145mm": [
+       {
+        "f_ghz": 1.8,
+        "ka": 5.47,
+        "kernel_minus_analytic_po_db": -0.022,
+        "analytic_po_minus_mie_db": 1.984,
+        "kernel_minus_mie_db": 1.962
+       },
+       {
+        "f_ghz": 1.8,
+        "ka": 5.47,
+        "kernel_minus_analytic_po_db": -0.111,
+        "analytic_po_minus_mie_db": 1.984,
+        "kernel_minus_mie_db": 1.873
+       },
+       {
+        "f_ghz": 2.4,
+        "ka": 7.294,
+        "kernel_minus_analytic_po_db": 0.104,
+        "analytic_po_minus_mie_db": -1.286,
+        "kernel_minus_mie_db": -1.182
+       },
+       {
+        "f_ghz": 3.0,
+        "ka": 9.117,
+        "kernel_minus_analytic_po_db": 0.185,
+        "analytic_po_minus_mie_db": 0.805,
+        "kernel_minus_mie_db": 0.99
+       },
+       {
+        "f_ghz": 3.5,
+        "ka": 10.636,
+        "kernel_minus_analytic_po_db": -0.061,
+        "analytic_po_minus_mie_db": -0.641,
+        "kernel_minus_mie_db": -0.702
+       },
+       {
+        "f_ghz": 3.5,
+        "ka": 10.636,
+        "kernel_minus_analytic_po_db": -0.023,
+        "analytic_po_minus_mie_db": -0.641,
+        "kernel_minus_mie_db": -0.665
+       },
+       {
+        "f_ghz": 4.2,
+        "ka": 12.764,
+        "kernel_minus_analytic_po_db": -0.075,
+        "analytic_po_minus_mie_db": 0.15,
+        "kernel_minus_mie_db": 0.075
+       },
+       {
+        "f_ghz": 5.21,
+        "ka": 15.833,
+        "kernel_minus_analytic_po_db": 0.113,
+        "analytic_po_minus_mie_db": -0.216,
+        "kernel_minus_mie_db": -0.104
+       },
+       {
+        "f_ghz": 5.21,
+        "ka": 15.833,
+        "kernel_minus_analytic_po_db": 0.043,
+        "analytic_po_minus_mie_db": -0.216,
+        "kernel_minus_mie_db": -0.173
+       },
+       {
+        "f_ghz": 6.0,
+        "ka": 18.234,
+        "kernel_minus_analytic_po_db": -0.1,
+        "analytic_po_minus_mie_db": 0.088,
+        "kernel_minus_mie_db": -0.012
+       }
+      ]
+     },
+     "po_error_is_oscillatory": "ka<3 에서 −6.9 ~ +4.4 dB 로 진동한다(ka=0.2:+4.4 · 0.7:−6.1 · 1.9:+4.0 · 3.0:+3.2)",
+     "ptd_delta_db": {
+      "1.843 GHz": {
+       "mu_po_only_dbsm": -24.9414,
+       "mu_po_plus_ptd_dbsm": -25.0887,
+       "delta_db": -0.1473,
+       "div": 24
+      },
+      "3.5 GHz": {
+       "mu_po_only_dbsm": -21.5271,
+       "mu_po_plus_ptd_dbsm": -21.689,
+       "delta_db": -0.1619,
+       "div": 24
+      },
+      "5.21 GHz": {
+       "mu_po_only_dbsm": -19.2694,
+       "mu_po_plus_ptd_dbsm": -19.3434,
+       "delta_db": -0.074,
+       "div": 24
+      },
+      "12.0 GHz": {
+       "mu_po_only_dbsm": -16.5013,
+       "mu_po_plus_ptd_dbsm": -16.4967,
+       "delta_db": 0.0047,
+       "div": 16
+      }
+     },
+     "airframe_ka_halfextent": {
+      "lte": 8.93,
+      "nr": 16.97,
+      "wifi": 25.26
+     },
+     "part_ka_at_lte": {
+      "body": 5.19,
+      "canopy": 2.43,
+      "motor": 0.7,
+      "camera": 1.91,
+      "gear": 2.4,
+      "battery": 1.69,
+      "pcb": 1.29,
+      "prop": 2.15
+     }
+    },
+    "verdict": "**곡률의 원인은 아니지만, 저주파 절대 레벨의 지배적 불확도다.** PTD 를 켜도 μ 는 LTE −0.15 dB · 5G −0.16 dB · WiFi −0.07 dB 밖에 안 움직인다(12 GHz 는 +0.005 dB) — 곡률 수 dB 를 만들 수 없다. 반면 구 기준해로 재면 PO 자체의 물리오차는 ka<5.5 에서 2 dB 를 넘고 ka<3.1 에서 3 dB 를 넘는다. LTE 에서 우리 부품 대부분이 그 안에 있으므로 **1.843 GHz 의 절대 μ 는 ±2~3 dB 급으로 의심해야 한다**. 방향까지 말하면: 구에서 PO 는 ka≈0.5–1.3 구간을 **과소평가**한다(최대 −6.9 dB) → 참값 곡선은 우리 곡선보다 **덜 가파를** 개연성이 있다.",
+    "grade": "computed"
+   },
+   {
+    "id": "d_internal_coherent_path",
+    "claim": "셸 투과로 더해지는 내부 금속(배터리·PCB) 코히런트 항이 주파수 추세를 만든다.",
+    "rank": 4,
+    "mechanism": "우리 커널은 penetrate=True 로 유전체 셸을 τ=1−|Γ|² 로 투과시켜 내부 배터리·PCB 반사를 외부 반사와 **코히런트**로 더한다. 두 경로의 상대위상은 f 에 비례해 돌므로, 그 간섭이 μ(f) 에 주파수 의존 추세·물결을 넣을 수 있다.",
+    "distinguishing_prediction": "penetrate=False 로 끄면 상승 기울기가 크게 줄어야 한다. 원인이라면 끈 뒤에는 평평해야 한다.",
+    "test_run": "같은 주파수 19 점을 penetrate=False 로 재계산(그 외 인자 동일).",
+    "measurement": {
+     "delta_db_by_freq": {
+      "1.843 GHz": {
+       "mu_penetrate_on_dbsm": -24.4109,
+       "mu_penetrate_off_dbsm": -25.5555,
+       "delta_db": 1.1446
+      },
+      "1.9 GHz": {
+       "mu_penetrate_on_dbsm": -23.9147,
+       "mu_penetrate_off_dbsm": -25.9685,
+       "delta_db": 2.0538
+      },
+      "2.0 GHz": {
+       "mu_penetrate_on_dbsm": -23.4546,
+       "mu_penetrate_off_dbsm": -26.2258,
+       "delta_db": 2.7712
+      },
+      "2.2 GHz": {
+       "mu_penetrate_on_dbsm": -22.7462,
+       "mu_penetrate_off_dbsm": -25.3801,
+       "delta_db": 2.6339
+      },
+      "2.4 GHz": {
+       "mu_penetrate_on_dbsm": -22.022,
+       "mu_penetrate_off_dbsm": -25.5444,
+       "delta_db": 3.5224
+      },
+      "2.6 GHz": {
+       "mu_penetrate_on_dbsm": -22.1141,
+       "mu_penetrate_off_dbsm": -24.5075,
+       "delta_db": 2.3933
+      },
+      "2.8 GHz": {
+       "mu_penetrate_on_dbsm": -22.3537,
+       "mu_penetrate_off_dbsm": -23.3993,
+       "delta_db": 1.0456
+      },
+      "3.0 GHz": {
+       "mu_penetrate_on_dbsm": -22.443,
+       "mu_penetrate_off_dbsm": -22.5487,
+       "delta_db": 0.1057
+      },
+      "3.2 GHz": {
+       "mu_penetrate_on_dbsm": -21.6596,
+       "mu_penetrate_off_dbsm": -22.4406,
+       "delta_db": 0.781
+      },
+      "3.5 GHz": {
+       "mu_penetrate_on_dbsm": -21.5331,
+       "mu_penetrate_off_dbsm": -22.8221,
+       "delta_db": 1.289
+      },
+      "3.8 GHz": {
+       "mu_penetrate_on_dbsm": -20.1248,
+       "mu_penetrate_off_dbsm": -22.1124,
+       "delta_db": 1.9877
+      },
+      "4.0 GHz": {
+       "mu_penetrate_on_dbsm": -19.6167,
+       "mu_penetrate_off_dbsm": -21.4843,
+       "delta_db": 1.8676
+      },
+      "4.2 GHz": {
+       "mu_penetrate_on_dbsm": -19.2559,
+       "mu_penetrate_off_dbsm": -21.3681,
+       "delta_db": 2.1122
+      },
+      "4.5 GHz": {
+       "mu_penetrate_on_dbsm": -20.0771,
+       "mu_penetrate_off_dbsm": -22.6989,
+       "delta_db": 2.6219
+      },
+      "4.8 GHz": {
+       "mu_penetrate_on_dbsm": -19.9788,
+       "mu_penetrate_off_dbsm": -22.7336,
+       "delta_db": 2.7548
+      },
+      "5.21 GHz": {
+       "mu_penetrate_on_dbsm": -19.2928,
+       "mu_penetrate_off_dbsm": -21.9909,
+       "delta_db": 2.6981
+      },
+      "5.5 GHz": {
+       "mu_penetrate_on_dbsm": -18.2522,
+       "mu_penetrate_off_dbsm": -20.8242,
+       "delta_db": 2.572
+      },
+      "5.7 GHz": {
+       "mu_penetrate_on_dbsm": -17.8566,
+       "mu_penetrate_off_dbsm": -20.4911,
+       "delta_db": 2.6344
+      },
+      "6.0 GHz": {
+       "mu_penetrate_on_dbsm": -17.2773,
+       "mu_penetrate_off_dbsm": -20.1556,
+       "delta_db": 2.8783
+      },
+      "12.0 GHz": {
+       "mu_penetrate_on_dbsm": -16.5013,
+       "mu_penetrate_off_dbsm": -19.2518,
+       "delta_db": 2.7505
+      }
+     },
+     "trend": {
+      "slope_db_per_ghz": 0.1979,
+      "R2": 0.0966,
+      "mean_delta_db": 2.0983,
+      "range_db": [
+       0.106,
+       3.522
+      ]
+     },
+     "apples_to_apples": {
+      "n": 19,
+      "penetrate_on": {
+       "a_db_per_ghz": 1.4804,
+       "rise_1p843_to_6p0_db": 7.134,
+       "detrended_p2p_db": 1.666
+      },
+      "penetrate_off": {
+       "a_db_per_ghz": 1.2825,
+       "rise_1p843_to_6p0_db": 5.4,
+       "detrended_p2p_db": 2.493
+      }
+     }
+    },
+    "verdict": "**부분 지지 — 기여자이되 원인은 아니다.** 내부 코히런트 항은 평균 +2.10 dB 를 보태고(범위 +0.11 ~ +3.52 dB) 그 크기가 주파수에 따라 출렁인다. 같은 19 점에서 사과-대-사과로 재면: penetrate ON 기울기 +1.480 dB/GHz · 1.843→6.0 상승 7.13 dB, OFF 는 +1.283 dB/GHz · 5.40 dB. 즉 이 항이 **상승의 1.73 dB(24%), 기울기의 13%** 를 만든다. 끄고도 +1.28 dB/GHz 가 남으므로 곡률의 원인은 아니다. ⚠ 반직관 한 가지: 이 항은 물결을 **만드는** 게 아니라 **메운다** — 추세 제거 잔차 p2p 가 ON 1.67 dB, OFF 2.49 dB 로, 코히런트 내부 반사가 널을 채운다.",
+    "grade": "computed"
+   },
+   {
+    "id": "e_tessellation",
+    "claim": "메쉬 삼각형이 곡면을 못 따라가 σ 가 틀린다.",
+    "rank": 5,
+    "mechanism": "삼각형 변 길이는 절대 mm 로 고정(중앙값 5.85 mm)이라 λ 대비 비율이 f 에 비례한다.",
+    "distinguishing_prediction": "테셀레이션 오차는 **고주파에서 커진다**(1.843 GHz 에서 변/λ=1/28, 18.2 GHz 에서 1/2.8). 즉 저주파를 가파르게 만드는 방향이 아니라 **고주파를 흔드는** 방향이다.",
+    "test_run": "방향 논증만(추가 계산 없음). p3_ours caveats.facet_vs_lambda 와 같은 사실.",
+    "measurement": {
+     "edge_median_mm": 5.85,
+     "edge_over_lambda": {
+      "1.843 GHz": 0.036,
+      "5.21 GHz": 0.1017,
+      "18.2 GHz": 0.3552
+     }
+    },
+    "verdict": "**방향으로 기각**. 저주파 곡률을 설명할 수 없다(부호가 반대다).",
+    "grade": "reasoned"
+   }
+  ],
+  "tests_not_run": [
+   {
+    "test": "전파 풀웨이브(MoM/MLFMM, 예: openEMS)로 같은 메쉬를 1.843·3.5·5.21 GHz 에서 계산",
+    "settles": "가설 (a) 를 결정적으로 판정한다 — 풀웨이브가 같은 곡률을 내면 (c) 확정이고, 평평하면 (a) 가 원인이다. 지금 우리에겐 (a) 를 '불확도'로만 묶어둘 근거뿐이다.",
+    "cost": "메쉬 삼각형 28k. 1.843 GHz 는 λ/10 이산화로 감당 가능, 5.21 GHz 는 ~8 배."
+   },
+   {
+    "test": "CAD 재테셀레이션(곡면 세그먼트 수를 2 배로) 후 같은 스윕",
+    "settles": "가설 (e) 를 측정으로 바꾼다. 지금은 방향 논증뿐이다.",
+    "cost": "drone_cad 의 세그먼트 노브를 올리고 91 점 재스윕."
+   },
+   {
+    "test": "부품군 절제(ablation) — 프롭·모터·기어를 하나씩 빼고 μ(f) 재계산",
+    "settles": "곡률이 어느 산란체에서 오는지. (c) 의 '작은 부품이 공진영역' 서사를 직접 검증한다.",
+    "cost": "그룹별 서브메쉬 8 회 × 91 점. 이번에는 시간상 안 했다."
+   },
+   {
+    "test": "el≠0 자세에서도 같은 조밀 스윕",
+    "settles": "이 곡률이 수평면만의 성질인지. p3_ours 는 el=+15/+30 에서 부분대역 기울기가 el=0 의 절반 이하(+0.88·+0.78)라고 이미 알려준다 — 자세 의존이 크다.",
+    "cost": "el 당 91 점."
+   }
+  ],
+  "bottom_line": "① **질문의 전제부터 고쳐야 한다.** 우리 대역 안(1.8–6 GHz)에서 μ(f) 는 '저주파에서 가파르다'기보다 **거의 일정한 +1.45 dB/GHz 로 오른다**. 2 차항은 −0.071±0.040 dB/GHz² 로 2σ 미만이다. 진짜 꺾임(knee)은 6 GHz 근처에 있고 그 위에서 +0.199 dB/GHz 로 주저앉는다 — 즉 우리 3 밴드는 전부 knee **이전**의 가파른 쪽에 나란히 있다. ② 그 상승의 주원인은 **(c) 물리**다 — knee 가 셸이 광학영역에 드는 ka≈17 자리에 있고, 수치 후보들은 크기가 안 맞는다: (b)격자 ≤0.4 dB(≤6%), (a)PTD ≤0.16 dB, (e)테셀레이션은 부호가 반대. (d)내부 코히런트항만 상승의 24%(1.73 dB)를 차지하는 **실질 기여자**다 — 이건 물리 모형 선택이므로 리포트에 밝혀 쓸 것. ③ 남는 큰 구멍은 **(a) PO 의 절대 정확도**다. 구 기준해로 재면 ka<5.5 에서 PO 물리오차가 2 dB 를 넘고, LTE 에서 우리 부품 대부분이 그 안에 있다 → 1.843 GHz 의 **절대 μ 는 ±2~3 dB 로 의심**해야 한다(기울기가 아니라 레벨). 지우려면 풀웨이브 대조뿐이다."
+ },
+ "evidence": {
+  "grid_convergence": {
+   "1.8 GHz": {
+    "divs": [
+     8,
+     12,
+     12,
+     16,
+     24,
+     32,
+     48
+    ],
+    "mu_dbsm": [
+     -24.2998,
+     -25.527,
+     -25.527,
+     -24.3488,
+     -24.393,
+     -24.6211,
+     -24.7187
+    ],
+    "ray_spacing_mm": [
+     20.819,
+     13.879,
+     13.879,
+     10.409,
+     6.94,
+     5.205,
+     3.47
+    ],
+    "delta_vs_finest_db": {
+     "8": 0.4189,
+     "12": -0.8083,
+     "16": 0.3699,
+     "24": 0.3257,
+     "32": 0.0976,
+     "48": 0.0
+    },
+    "finest_div": 48,
+    "div16_minus_finest_db": 0.3699
+   },
+   "1.843 GHz": {
+    "divs": [
+     8,
+     12,
+     16,
+     24,
+     32,
+     48
+    ],
+    "mu_dbsm": [
+     -24.4097,
+     -24.7241,
+     -24.4109,
+     -24.9414,
+     -24.3393,
+     -24.4742
+    ],
+    "ray_spacing_mm": [
+     20.333,
+     13.555,
+     10.167,
+     6.778,
+     5.083,
+     3.389
+    ],
+    "delta_vs_finest_db": {
+     "8": 0.0645,
+     "12": -0.2499,
+     "16": 0.0633,
+     "24": -0.4672,
+     "32": 0.1349,
+     "48": 0.0
+    },
+    "finest_div": 48,
+    "div16_minus_finest_db": 0.0633
+   },
+   "3.5 GHz": {
+    "divs": [
+     8,
+     12,
+     16,
+     24,
+     32,
+     48
+    ],
+    "mu_dbsm": [
+     -20.7296,
+     -21.5244,
+     -21.5331,
+     -21.5271,
+     -21.5475,
+     -21.5145
+    ],
+    "ray_spacing_mm": [
+     10.707,
+     7.138,
+     5.353,
+     3.569,
+     2.677,
+     1.784
+    ],
+    "delta_vs_finest_db": {
+     "8": 0.7848,
+     "12": -0.0099,
+     "16": -0.0187,
+     "24": -0.0127,
+     "32": -0.033,
+     "48": 0.0
+    },
+    "finest_div": 48,
+    "div16_minus_finest_db": -0.0187
+   },
+   "5.21 GHz": {
+    "divs": [
+     8,
+     12,
+     16,
+     24,
+     32,
+     48
+    ],
+    "mu_dbsm": [
+     -18.8987,
+     -19.2251,
+     -19.2928,
+     -19.2694,
+     -19.4033,
+     -19.2943
+    ],
+    "ray_spacing_mm": [
+     7.193,
+     4.795,
+     3.596,
+     2.398,
+     1.798,
+     1.199
+    ],
+    "delta_vs_finest_db": {
+     "8": 0.3956,
+     "12": 0.0692,
+     "16": 0.0015,
+     "24": 0.0249,
+     "32": -0.109,
+     "48": 0.0
+    },
+    "finest_div": 48,
+    "div16_minus_finest_db": 0.0015
+   },
+   "12.0 GHz": {
+    "divs": [
+     12,
+     16,
+     24
+    ],
+    "mu_dbsm": [
+     -16.5391,
+     -16.5013,
+     -16.4388
+    ],
+    "ray_spacing_mm": [
+     2.082,
+     1.561,
+     1.041
+    ],
+    "delta_vs_finest_db": {
+     "12": -0.1003,
+     "16": -0.0625,
+     "24": 0.0
+    },
+    "finest_div": 24,
+    "div16_minus_finest_db": -0.0625
+   }
+  },
+  "ptd_delta": {
+   "1.843 GHz": {
+    "mu_po_only_dbsm": -24.9414,
+    "mu_po_plus_ptd_dbsm": -25.0887,
+    "delta_db": -0.1473,
+    "div": 24
+   },
+   "3.5 GHz": {
+    "mu_po_only_dbsm": -21.5271,
+    "mu_po_plus_ptd_dbsm": -21.689,
+    "delta_db": -0.1619,
+    "div": 24
+   },
+   "5.21 GHz": {
+    "mu_po_only_dbsm": -19.2694,
+    "mu_po_plus_ptd_dbsm": -19.3434,
+    "delta_db": -0.074,
+    "div": 24
+   },
+   "12.0 GHz": {
+    "mu_po_only_dbsm": -16.5013,
+    "mu_po_plus_ptd_dbsm": -16.4967,
+    "delta_db": 0.0047,
+    "div": 16
+   }
+  },
+  "penetrate_control": {
+   "by_freq": {
+    "1.843 GHz": {
+     "mu_penetrate_on_dbsm": -24.4109,
+     "mu_penetrate_off_dbsm": -25.5555,
+     "delta_db": 1.1446
+    },
+    "1.9 GHz": {
+     "mu_penetrate_on_dbsm": -23.9147,
+     "mu_penetrate_off_dbsm": -25.9685,
+     "delta_db": 2.0538
+    },
+    "2.0 GHz": {
+     "mu_penetrate_on_dbsm": -23.4546,
+     "mu_penetrate_off_dbsm": -26.2258,
+     "delta_db": 2.7712
+    },
+    "2.2 GHz": {
+     "mu_penetrate_on_dbsm": -22.7462,
+     "mu_penetrate_off_dbsm": -25.3801,
+     "delta_db": 2.6339
+    },
+    "2.4 GHz": {
+     "mu_penetrate_on_dbsm": -22.022,
+     "mu_penetrate_off_dbsm": -25.5444,
+     "delta_db": 3.5224
+    },
+    "2.6 GHz": {
+     "mu_penetrate_on_dbsm": -22.1141,
+     "mu_penetrate_off_dbsm": -24.5075,
+     "delta_db": 2.3933
+    },
+    "2.8 GHz": {
+     "mu_penetrate_on_dbsm": -22.3537,
+     "mu_penetrate_off_dbsm": -23.3993,
+     "delta_db": 1.0456
+    },
+    "3.0 GHz": {
+     "mu_penetrate_on_dbsm": -22.443,
+     "mu_penetrate_off_dbsm": -22.5487,
+     "delta_db": 0.1057
+    },
+    "3.2 GHz": {
+     "mu_penetrate_on_dbsm": -21.6596,
+     "mu_penetrate_off_dbsm": -22.4406,
+     "delta_db": 0.781
+    },
+    "3.5 GHz": {
+     "mu_penetrate_on_dbsm": -21.5331,
+     "mu_penetrate_off_dbsm": -22.8221,
+     "delta_db": 1.289
+    },
+    "3.8 GHz": {
+     "mu_penetrate_on_dbsm": -20.1248,
+     "mu_penetrate_off_dbsm": -22.1124,
+     "delta_db": 1.9877
+    },
+    "4.0 GHz": {
+     "mu_penetrate_on_dbsm": -19.6167,
+     "mu_penetrate_off_dbsm": -21.4843,
+     "delta_db": 1.8676
+    },
+    "4.2 GHz": {
+     "mu_penetrate_on_dbsm": -19.2559,
+     "mu_penetrate_off_dbsm": -21.3681,
+     "delta_db": 2.1122
+    },
+    "4.5 GHz": {
+     "mu_penetrate_on_dbsm": -20.0771,
+     "mu_penetrate_off_dbsm": -22.6989,
+     "delta_db": 2.6219
+    },
+    "4.8 GHz": {
+     "mu_penetrate_on_dbsm": -19.9788,
+     "mu_penetrate_off_dbsm": -22.7336,
+     "delta_db": 2.7548
+    },
+    "5.21 GHz": {
+     "mu_penetrate_on_dbsm": -19.2928,
+     "mu_penetrate_off_dbsm": -21.9909,
+     "delta_db": 2.6981
+    },
+    "5.5 GHz": {
+     "mu_penetrate_on_dbsm": -18.2522,
+     "mu_penetrate_off_dbsm": -20.8242,
+     "delta_db": 2.572
+    },
+    "5.7 GHz": {
+     "mu_penetrate_on_dbsm": -17.8566,
+     "mu_penetrate_off_dbsm": -20.4911,
+     "delta_db": 2.6344
+    },
+    "6.0 GHz": {
+     "mu_penetrate_on_dbsm": -17.2773,
+     "mu_penetrate_off_dbsm": -20.1556,
+     "delta_db": 2.8783
+    },
+    "12.0 GHz": {
+     "mu_penetrate_on_dbsm": -16.5013,
+     "mu_penetrate_off_dbsm": -19.2518,
+     "delta_db": 2.7505
+    }
+   },
+   "trend": {
+    "slope_db_per_ghz": 0.1979,
+    "R2": 0.0966,
+    "mean_delta_db": 2.0983,
+    "range_db": [
+     0.106,
+     3.522
+    ]
+   },
+   "apples_to_apples": {
+    "n": 19,
+    "penetrate_on": {
+     "a_db_per_ghz": 1.4804,
+     "rise_1p843_to_6p0_db": 7.134,
+     "detrended_p2p_db": 1.666
+    },
+    "penetrate_off": {
+     "a_db_per_ghz": 1.2825,
+     "rise_1p843_to_6p0_db": 5.4,
+     "detrended_p2p_db": 2.493
+    }
+   }
+  },
+  "sphere_reference": {
+   "analytic_po_minus_mie_thresholds_ka": {
+    "|PO-Mie|<0.5dB_above_ka": 15.2,
+    "|PO-Mie|<1.0dB_above_ka": 9.1,
+    "|PO-Mie|<2.0dB_above_ka": 5.5,
+    "|PO-Mie|<3.0dB_above_ka": 3.1
+   },
+   "kernel_runs": {
+    "r=7mm": [
+     {
+      "f_ghz": 1.8,
+      "ka": 0.264,
+      "kernel_minus_analytic_po_db": -2.984,
+      "analytic_po_minus_mie_db": 2.013,
+      "kernel_minus_mie_db": -0.971
+     },
+     {
+      "f_ghz": 2.4,
+      "ka": 0.352,
+      "kernel_minus_analytic_po_db": 1.517,
+      "analytic_po_minus_mie_db": -0.489,
+      "kernel_minus_mie_db": 1.028
+     },
+     {
+      "f_ghz": 3.0,
+      "ka": 0.44,
+      "kernel_minus_analytic_po_db": 0.134,
+      "analytic_po_minus_mie_db": -2.418,
+      "kernel_minus_mie_db": -2.285
+     },
+     {
+      "f_ghz": 3.5,
+      "ka": 0.513,
+      "kernel_minus_analytic_po_db": 0.833,
+      "analytic_po_minus_mie_db": -3.724,
+      "kernel_minus_mie_db": -2.891
+     },
+     {
+      "f_ghz": 4.2,
+      "ka": 0.616,
+      "kernel_minus_analytic_po_db": 0.354,
+      "analytic_po_minus_mie_db": -5.179,
+      "kernel_minus_mie_db": -4.825
+     },
+     {
+      "f_ghz": 5.21,
+      "ka": 0.764,
+      "kernel_minus_analytic_po_db": 0.654,
+      "analytic_po_minus_mie_db": -6.524,
+      "kernel_minus_mie_db": -5.87
+     },
+     {
+      "f_ghz": 6.0,
+      "ka": 0.88,
+      "kernel_minus_analytic_po_db": -0.319,
+      "analytic_po_minus_mie_db": -6.884,
+      "kernel_minus_mie_db": -7.203
+     }
+    ],
+    "r=13mm": [
+     {
+      "f_ghz": 1.8,
+      "ka": 0.49,
+      "kernel_minus_analytic_po_db": -1.629,
+      "analytic_po_minus_mie_db": -3.339,
+      "kernel_minus_mie_db": -4.969
+     },
+     {
+      "f_ghz": 1.8,
+      "ka": 0.49,
+      "kernel_minus_analytic_po_db": 0.167,
+      "analytic_po_minus_mie_db": -3.339,
+      "kernel_minus_mie_db": -3.172
+     },
+     {
+      "f_ghz": 1.8,
+      "ka": 0.49,
+      "kernel_minus_analytic_po_db": -0.197,
+      "analytic_po_minus_mie_db": -3.339,
+      "kernel_minus_mie_db": -3.536
+     },
+     {
+      "f_ghz": 2.4,
+      "ka": 0.654,
+      "kernel_minus_analytic_po_db": -0.554,
+      "analytic_po_minus_mie_db": -5.609,
+      "kernel_minus_mie_db": -6.163
+     },
+     {
+      "f_ghz": 3.0,
+      "ka": 0.817,
+      "kernel_minus_analytic_po_db": -0.193,
+      "analytic_po_minus_mie_db": -6.769,
+      "kernel_minus_mie_db": -6.962
+     },
+     {
+      "f_ghz": 3.5,
+      "ka": 0.954,
+      "kernel_minus_analytic_po_db": 0.176,
+      "analytic_po_minus_mie_db": -6.779,
+      "kernel_minus_mie_db": -6.603
+     },
+     {
+      "f_ghz": 3.5,
+      "ka": 0.954,
+      "kernel_minus_analytic_po_db": 0.05,
+      "analytic_po_minus_mie_db": -6.779,
+      "kernel_minus_mie_db": -6.729
+     },
+     {
+      "f_ghz": 4.2,
+      "ka": 1.144,
+      "kernel_minus_analytic_po_db": 0.204,
+      "analytic_po_minus_mie_db": -5.409,
+      "kernel_minus_mie_db": -5.205
+     },
+     {
+      "f_ghz": 5.21,
+      "ka": 1.42,
+      "kernel_minus_analytic_po_db": 0.069,
+      "analytic_po_minus_mie_db": -0.988,
+      "kernel_minus_mie_db": -0.919
+     },
+     {
+      "f_ghz": 6.0,
+      "ka": 1.635,
+      "kernel_minus_analytic_po_db": 0.04,
+      "analytic_po_minus_mie_db": 5.07,
+      "kernel_minus_mie_db": 5.11
+     }
+    ],
+    "r=25mm": [
+     {
+      "f_ghz": 1.8,
+      "ka": 0.943,
+      "kernel_minus_analytic_po_db": 0.248,
+      "analytic_po_minus_mie_db": -6.809,
+      "kernel_minus_mie_db": -6.562
+     },
+     {
+      "f_ghz": 2.4,
+      "ka": 1.258,
+      "kernel_minus_analytic_po_db": -0.114,
+      "analytic_po_minus_mie_db": -3.95,
+      "kernel_minus_mie_db": -4.065
+     },
+     {
+      "f_ghz": 3.0,
+      "ka": 1.572,
+      "kernel_minus_analytic_po_db": -0.019,
+      "analytic_po_minus_mie_db": 3.075,
+      "kernel_minus_mie_db": 3.056
+     },
+     {
+      "f_ghz": 3.5,
+      "ka": 1.834,
+      "kernel_minus_analytic_po_db": -0.073,
+      "analytic_po_minus_mie_db": 5.944,
+      "kernel_minus_mie_db": 5.871
+     },
+     {
+      "f_ghz": 4.2,
+      "ka": 2.201,
+      "kernel_minus_analytic_po_db": 0.152,
+      "analytic_po_minus_mie_db": -0.572,
+      "kernel_minus_mie_db": -0.42
+     },
+     {
+      "f_ghz": 5.21,
+      "ka": 2.73,
+      "kernel_minus_analytic_po_db": -0.08,
+      "analytic_po_minus_mie_db": 1.467,
+      "kernel_minus_mie_db": 1.388
+     },
+     {
+      "f_ghz": 6.0,
+      "ka": 3.144,
+      "kernel_minus_analytic_po_db": -0.215,
+      "analytic_po_minus_mie_db": 1.176,
+      "kernel_minus_mie_db": 0.961
+     }
+    ],
+    "r=45mm": [
+     {
+      "f_ghz": 1.8,
+      "ka": 1.698,
+      "kernel_minus_analytic_po_db": -0.241,
+      "analytic_po_minus_mie_db": 6.753,
+      "kernel_minus_mie_db": 6.512
+     },
+     {
+      "f_ghz": 1.8,
+      "ka": 1.698,
+      "kernel_minus_analytic_po_db": 0.032,
+      "analytic_po_minus_mie_db": 6.753,
+      "kernel_minus_mie_db": 6.785
+     },
+     {
+      "f_ghz": 1.8,
+      "ka": 1.698,
+      "kernel_minus_analytic_po_db": -0.044,
+      "analytic_po_minus_mie_db": 6.753,
+      "kernel_minus_mie_db": 6.71
+     },
+     {
+      "f_ghz": 2.4,
+      "ka": 2.264,
+      "kernel_minus_analytic_po_db": -0.323,
+      "analytic_po_minus_mie_db": -0.924,
+      "kernel_minus_mie_db": -1.247
+     },
+     {
+      "f_ghz": 3.0,
+      "ka": 2.829,
+      "kernel_minus_analytic_po_db": 0.11,
+      "analytic_po_minus_mie_db": 2.77,
+      "kernel_minus_mie_db": 2.879
+     },
+     {
+      "f_ghz": 3.5,
+      "ka": 3.301,
+      "kernel_minus_analytic_po_db": 0.128,
+      "analytic_po_minus_mie_db": -1.184,
+      "kernel_minus_mie_db": -1.056
+     },
+     {
+      "f_ghz": 3.5,
+      "ka": 3.301,
+      "kernel_minus_analytic_po_db": 0.016,
+      "analytic_po_minus_mie_db": -1.184,
+      "kernel_minus_mie_db": -1.168
+     },
+     {
+      "f_ghz": 4.2,
+      "ka": 3.961,
+      "kernel_minus_analytic_po_db": -0.035,
+      "analytic_po_minus_mie_db": -0.412,
+      "kernel_minus_mie_db": -0.447
+     },
+     {
+      "f_ghz": 5.21,
+      "ka": 4.914,
+      "kernel_minus_analytic_po_db": 0.114,
+      "analytic_po_minus_mie_db": -0.659,
+      "kernel_minus_mie_db": -0.545
+     },
+     {
+      "f_ghz": 6.0,
+      "ka": 5.659,
+      "kernel_minus_analytic_po_db": 0.0,
+      "analytic_po_minus_mie_db": 0.688,
+      "kernel_minus_mie_db": 0.688
+     }
+    ],
+    "r=145mm": [
+     {
+      "f_ghz": 1.8,
+      "ka": 5.47,
+      "kernel_minus_analytic_po_db": -0.022,
+      "analytic_po_minus_mie_db": 1.984,
+      "kernel_minus_mie_db": 1.962
+     },
+     {
+      "f_ghz": 1.8,
+      "ka": 5.47,
+      "kernel_minus_analytic_po_db": -0.111,
+      "analytic_po_minus_mie_db": 1.984,
+      "kernel_minus_mie_db": 1.873
+     },
+     {
+      "f_ghz": 2.4,
+      "ka": 7.294,
+      "kernel_minus_analytic_po_db": 0.104,
+      "analytic_po_minus_mie_db": -1.286,
+      "kernel_minus_mie_db": -1.182
+     },
+     {
+      "f_ghz": 3.0,
+      "ka": 9.117,
+      "kernel_minus_analytic_po_db": 0.185,
+      "analytic_po_minus_mie_db": 0.805,
+      "kernel_minus_mie_db": 0.99
+     },
+     {
+      "f_ghz": 3.5,
+      "ka": 10.636,
+      "kernel_minus_analytic_po_db": -0.061,
+      "analytic_po_minus_mie_db": -0.641,
+      "kernel_minus_mie_db": -0.702
+     },
+     {
+      "f_ghz": 3.5,
+      "ka": 10.636,
+      "kernel_minus_analytic_po_db": -0.023,
+      "analytic_po_minus_mie_db": -0.641,
+      "kernel_minus_mie_db": -0.665
+     },
+     {
+      "f_ghz": 4.2,
+      "ka": 12.764,
+      "kernel_minus_analytic_po_db": -0.075,
+      "analytic_po_minus_mie_db": 0.15,
+      "kernel_minus_mie_db": 0.075
+     },
+     {
+      "f_ghz": 5.21,
+      "ka": 15.833,
+      "kernel_minus_analytic_po_db": 0.113,
+      "analytic_po_minus_mie_db": -0.216,
+      "kernel_minus_mie_db": -0.104
+     },
+     {
+      "f_ghz": 5.21,
+      "ka": 15.833,
+      "kernel_minus_analytic_po_db": 0.043,
+      "analytic_po_minus_mie_db": -0.216,
+      "kernel_minus_mie_db": -0.173
+     },
+     {
+      "f_ghz": 6.0,
+      "ka": 18.234,
+      "kernel_minus_analytic_po_db": -0.1,
+      "analytic_po_minus_mie_db": 0.088,
+      "kernel_minus_mie_db": -0.012
+     }
+    ]
+   },
+   "note": "해석 PO 와 정확 Mie 의 차 [dB] — **구**에 대한 PO 근사의 물리적 한계. 우리 커널은 PO 이므로 이 간극은 격자를 아무리 조여도 사라지지 않는다."
+  },
+  "geometry": {
+   "airframe_extent_mm": [
+    435.4,
+    462.6,
+    199.4
+   ],
+   "per_part_electrical_size": {
+    "lte": {
+     "f_ghz": 1.843,
+     "lambda_mm": 162.67,
+     "by_part": {
+      "body": {
+       "width_mm": 268.71,
+       "thick_mm": 61.78,
+       "ka_width": 5.19,
+       "rays_across_width_div16": 26.43,
+       "rays_across_width_div12": 19.82,
+       "rays_across_thick_div12": 4.56
+      },
+      "canopy": {
+       "width_mm": 125.95,
+       "thick_mm": 15.14,
+       "ka_width": 2.43,
+       "rays_across_width_div16": 12.39,
+       "rays_across_width_div12": 9.29,
+       "rays_across_thick_div12": 1.12
+      },
+      "motor": {
+       "width_mm": 36.4,
+       "thick_mm": 16.07,
+       "ka_width": 0.7,
+       "rays_across_width_div16": 3.58,
+       "rays_across_width_div12": 2.69,
+       "rays_across_thick_div12": 1.19
+      },
+      "camera": {
+       "width_mm": 99.15,
+       "thick_mm": 38.15,
+       "ka_width": 1.91,
+       "rays_across_width_div16": 9.75,
+       "rays_across_width_div12": 7.31,
+       "rays_across_thick_div12": 2.81
+      },
+      "gear": {
+       "width_mm": 124.3,
+       "thick_mm": 26.84,
+       "ka_width": 2.4,
+       "rays_across_width_div16": 12.23,
+       "rays_across_width_div12": 9.17,
+       "rays_across_thick_div12": 1.98
+      },
+      "battery": {
+       "width_mm": 87.57,
+       "thick_mm": 33.62,
+       "ka_width": 1.69,
+       "rays_across_width_div16": 8.61,
+       "rays_across_width_div12": 6.46,
+       "rays_across_thick_div12": 2.48
+      },
+      "pcb": {
+       "width_mm": 66.56,
+       "thick_mm": 3.67,
+       "ka_width": 1.29,
+       "rays_across_width_div16": 6.55,
+       "rays_across_width_div12": 4.91,
+       "rays_across_thick_div12": 0.27
+      },
+      "prop": {
+       "width_mm": 111.32,
+       "thick_mm": 13.78,
+       "ka_width": 2.15,
+       "rays_across_width_div16": 10.95,
+       "rays_across_width_div12": 8.21,
+       "rays_across_thick_div12": 1.02
+      }
+     }
+    },
+    "nr": {
+     "f_ghz": 3.5,
+     "lambda_mm": 85.65,
+     "by_part": {
+      "body": {
+       "width_mm": 268.71,
+       "thick_mm": 61.78,
+       "ka_width": 9.86,
+       "rays_across_width_div16": 50.19,
+       "rays_across_width_div12": 37.65,
+       "rays_across_thick_div12": 8.66
+      },
+      "canopy": {
+       "width_mm": 125.95,
+       "thick_mm": 15.14,
+       "ka_width": 4.62,
+       "rays_across_width_div16": 23.53,
+       "rays_across_width_div12": 17.65,
+       "rays_across_thick_div12": 2.12
+      },
+      "motor": {
+       "width_mm": 36.4,
+       "thick_mm": 16.07,
+       "ka_width": 1.34,
+       "rays_across_width_div16": 6.8,
+       "rays_across_width_div12": 5.1,
+       "rays_across_thick_div12": 2.25
+      },
+      "camera": {
+       "width_mm": 99.15,
+       "thick_mm": 38.15,
+       "ka_width": 3.64,
+       "rays_across_width_div16": 18.52,
+       "rays_across_width_div12": 13.89,
+       "rays_across_thick_div12": 5.34
+      },
+      "gear": {
+       "width_mm": 124.3,
+       "thick_mm": 26.84,
+       "ka_width": 4.56,
+       "rays_across_width_div16": 23.22,
+       "rays_across_width_div12": 17.41,
+       "rays_across_thick_div12": 3.76
+      },
+      "battery": {
+       "width_mm": 87.57,
+       "thick_mm": 33.62,
+       "ka_width": 3.21,
+       "rays_across_width_div16": 16.36,
+       "rays_across_width_div12": 12.27,
+       "rays_across_thick_div12": 4.71
+      },
+      "pcb": {
+       "width_mm": 66.56,
+       "thick_mm": 3.67,
+       "ka_width": 2.44,
+       "rays_across_width_div16": 12.43,
+       "rays_across_width_div12": 9.32,
+       "rays_across_thick_div12": 0.51
+      },
+      "prop": {
+       "width_mm": 111.32,
+       "thick_mm": 13.78,
+       "ka_width": 4.08,
+       "rays_across_width_div16": 20.79,
+       "rays_across_width_div12": 15.6,
+       "rays_across_thick_div12": 1.93
+      }
+     }
+    },
+    "wifi": {
+     "f_ghz": 5.21,
+     "lambda_mm": 57.54,
+     "by_part": {
+      "body": {
+       "width_mm": 268.71,
+       "thick_mm": 61.78,
+       "ka_width": 14.67,
+       "rays_across_width_div16": 74.72,
+       "rays_across_width_div12": 56.04,
+       "rays_across_thick_div12": 12.88
+      },
+      "canopy": {
+       "width_mm": 125.95,
+       "thick_mm": 15.14,
+       "ka_width": 6.88,
+       "rays_across_width_div16": 35.02,
+       "rays_across_width_div12": 26.27,
+       "rays_across_thick_div12": 3.16
+      },
+      "motor": {
+       "width_mm": 36.4,
+       "thick_mm": 16.07,
+       "ka_width": 1.99,
+       "rays_across_width_div16": 10.12,
+       "rays_across_width_div12": 7.59,
+       "rays_across_thick_div12": 3.35
+      },
+      "camera": {
+       "width_mm": 99.15,
+       "thick_mm": 38.15,
+       "ka_width": 5.41,
+       "rays_across_width_div16": 27.57,
+       "rays_across_width_div12": 20.68,
+       "rays_across_thick_div12": 7.96
+      },
+      "gear": {
+       "width_mm": 124.3,
+       "thick_mm": 26.84,
+       "ka_width": 6.79,
+       "rays_across_width_div16": 34.56,
+       "rays_across_width_div12": 25.92,
+       "rays_across_thick_div12": 5.6
+      },
+      "battery": {
+       "width_mm": 87.57,
+       "thick_mm": 33.62,
+       "ka_width": 4.78,
+       "rays_across_width_div16": 24.35,
+       "rays_across_width_div12": 18.26,
+       "rays_across_thick_div12": 7.01
+      },
+      "pcb": {
+       "width_mm": 66.56,
+       "thick_mm": 3.67,
+       "ka_width": 3.63,
+       "rays_across_width_div16": 18.51,
+       "rays_across_width_div12": 13.88,
+       "rays_across_thick_div12": 0.77
+      },
+      "prop": {
+       "width_mm": 111.32,
+       "thick_mm": 13.78,
+       "ka_width": 6.08,
+       "rays_across_width_div16": 30.95,
+       "rays_across_width_div12": 23.22,
+       "rays_across_thick_div12": 2.87
+      }
+     }
+    }
+   },
+   "representative_parts": {
+    "body": {
+     "group": "body",
+     "n_tri": 7074,
+     "thick_mm": 61.78,
+     "width_mm": 268.71,
+     "length_mm": 268.71,
+     "area_m2": 0.09499201146536315,
+     "n_parts_in_group": 1
+    },
+    "canopy": {
+     "group": "canopy",
+     "n_tri": 2240,
+     "thick_mm": 15.14,
+     "width_mm": 125.95,
+     "length_mm": 141.24,
+     "area_m2": 0.03065152460525732,
+     "n_parts_in_group": 1
+    },
+    "motor": {
+     "group": "motor",
+     "n_tri": 504,
+     "thick_mm": 16.07,
+     "width_mm": 36.4,
+     "length_mm": 36.4,
+     "area_m2": 0.0031025082865448242,
+     "n_parts_in_group": 4
+    },
+    "camera": {
+     "group": "camera",
+     "n_tri": 190,
+     "thick_mm": 38.15,
+     "width_mm": 99.15,
+     "length_mm": 108.31,
+     "area_m2": 0.040564247473744354,
+     "n_parts_in_group": 4
+    },
+    "gear": {
+     "group": "gear",
+     "n_tri": 1840,
+     "thick_mm": 26.84,
+     "width_mm": 124.3,
+     "length_mm": 166.88,
+     "area_m2": 0.023550109714842768,
+     "n_parts_in_group": 2
+    },
+    "battery": {
+     "group": "battery",
+     "n_tri": 12,
+     "thick_mm": 33.62,
+     "width_mm": 87.57,
+     "length_mm": 97.65,
+     "area_m2": 0.029557515989014127,
+     "n_parts_in_group": 2
+    },
+    "pcb": {
+     "group": "pcb",
+     "n_tri": 12,
+     "thick_mm": 3.67,
+     "width_mm": 66.56,
+     "length_mm": 85.05,
+     "area_m2": 0.012433560591323676,
+     "n_parts_in_group": 1
+    },
+    "prop": {
+     "group": "prop",
+     "n_tri": 3188,
+     "thick_mm": 13.78,
+     "width_mm": 111.32,
+     "length_mm": 215.12,
+     "area_m2": 0.009840153826410873,
+     "n_parts_in_group": 4
+    }
+   },
+   "note": "부품 = 메쉬 연결성분. 그룹 bbox('프롭 4 개 전체 span')가 아니라 부품 하나의 폭·두께로 ka 와 광선수를 쟀다. ⚠ P3 는 별도의 arm 그룹이 없다 — 팔이 셸(body)에 융합돼 있어 '암에 광선 N 개'는 이 기체에선 모터 폭(36.4 mm)과 프롭 날 두께(13.8 mm)로 읽어야 한다."
+  }
+ },
+ "caveats": [
+  "el=0 수평면 한 자세뿐이다. p3_ours 는 el=+15/+30 에서 1.8–6 GHz 기울기가 +0.88·+0.78 로 el=0(+1.56)의 절반 이하라고 이미 말한다 — 이 곡률은 자세 의존이 크다.",
+  "1-bounce PO(가림·셸 투과 포함), 모노스태틱, 정지 메쉬. 다중반사·교차편파·프롭 회전 없음.",
+  "P3 메쉬의 형상은 phantom4 사진실측표를 상속했다(저장소에 P3 사진 없음) — p3_ours caveats.mesh_shape_inherited 와 같은 지배적 불확도가 그대로 있다.",
+  "절대 σ 에는 격자위상 디더가 남는다. 이번 div 8→48 스윕에서 LTE 의 잔차 산포가 ±0.3 dB 였다(체계 편향이 아니라 디더).",
+  "PTD 는 div=24 에서 쟀다 — src/rcs_sbr.py 가 ptd=True 에는 λ/20 이상을 권고하므로 λ/16 값은 참고로만 싣는다."
+ ],
+ "artifacts": {
+  "figure": "/home/yunjung/workspace/sionna2/outputs/figs/ours_mu_curve.png",
+  "json": "/home/yunjung/workspace/sionna2/outputs/ours_subband.json",
+  "wrote_nothing_else": "teammeeting_0804/* · p3_*.json · outputs/partial/sigma_regen_0803/* 는 읽지도 쓰지도 않았다(p3_ours.json 은 **읽기만**)."
+ }
+}
