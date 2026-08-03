@@ -1,0 +1,608 @@
+{
+ "meta": {
+  "generated": "2026-08-03 04:54",
+  "task": "r2_hunt_recent — 2025-01 ~ 2026-08 최신 우선 스윕 + 우리 위치를 정의하는 4편(Abratkiewicz JSTARS 2023 / LaSen SenSys 2026 / Ziganshin 두 판 / Taylor & Poullin TAES 2025)의 전방인용 추적",
+  "this_file_is_the_deliverable": true,
+  "rule": "모든 사실 주장은 (a) PDF 절대경로 (b) 페이지(1-based, PDF 물리 페이지) (c) 원문 문장을 함께 단다. 셋 중 하나라도 없으면 UNVERIFIED 로 적고 그대로 둔다. 빈칸을 그럴듯하게 채우지 않는다.",
+  "download_dir": "/data/public/sionna_jeong/reference_library/new_0803",
+  "house_rules_applied": [
+   "게재처+게재상태+연도 동시 표기",
+   "프리프린트는 arXiv ID 표기",
+   "Ziganshin 회의판/저널판 분리(단 아래 status_corrections 참조)"
+  ],
+  "search_surfaces": [
+   "arXiv API — 15개 질의, submittedDate 2025-01-01~2026-08-05, 최신순 정렬, 고유 레코드 723건",
+   "OpenAlex works API — 앵커 6종 전방인용(cites: 필터) 전수, 2025-2026 비-arXiv 게재처 8질의",
+   "Semantic Scholar graph API — Ziganshin 두 판·LaSen 인용 교차확인(OpenAlex 0건 검증용)",
+   "Crossref works API — DOI 3건 확정(Ziganshin OJAP, Samczynski TGRS, Taylor TAES)"
+  ],
+  "known_blind_spots": [
+   "arXiv all: 검색은 제목/초록/코멘트만 본다. 초록에 Sionna 를 안 쓰는 Sionna 사용 논문은 구조적으로 안 잡힌다. 전방인용 스윕이 부분적으로만 보완한다.",
+   "IEEE TAP·AWPL·EuCAP·IET RSN·TMTT 는 dblp 미색인이고 OpenAlex 검색어 순위에 잘 안 뜬다. 이번 라운드도 손 스윕은 못 했다.",
+   "IEEE Xplore 직접 PDF 는 이 환경에서 502/403 으로 막힌다. 비-OA IEEE 논문은 서지사항만 확정하고 전문은 못 읽었다(아래 leads_not_retrieved)."
+  ],
+  "gate_policy": "인용문은 전부 benchmark/verify_quotes_tool.py 로 채점한 뒤 이 파일에 남겼다. 표에서 눈으로 읽은 수치는 quote 가 아니라 read_from_table 로 분리했다.",
+  "gate_result": "benchmark/verify_quotes_tool.py --only r2_hunt_recent.json --gate → exit 0, 28/28 verbatim, unverified 0"
+ },
+ "counts": {
+  "arxiv_records_screened_unique": 723,
+  "arxiv_queries": 15,
+  "arxiv_new_not_on_disk": 638,
+  "on_disk_arxiv_ids_used_for_dedupe": 183,
+  "anchor_forward_citation_records_fetched": 40,
+  "pdfs_downloaded_this_round": 23,
+  "pdfs_read_in_full_or_targeted_fulltext": 14,
+  "quotes_recorded": 28,
+  "status_corrections": 3,
+  "claim_impacts": 4,
+  "quotes_graded_verbatim": 28,
+  "quotes_unverified": 0
+ },
+ "status_corrections": [
+  {
+   "id": "SC-1",
+   "severity": "HIGH — 하우스 룰 문구 자체를 고쳐야 한다",
+   "what_we_said": "Ziganshin 저널판(arXiv:2604.05991)은 프리프린트다. 회의판(게재)과 저널판(프리프린트)을 절대 섞지 않는다.",
+   "what_is_true": "저널판은 이제 게재됐다. IEEE Open Journal of Antennas and Propagation, 2026, DOI 10.1109/OJAP.2026.3717211, journal-article, 저자 Ziganshin·Vitucci·Kotterman·Thoma·Schneider·Degli-Esposti. Crossref 가 페이지를 '1-1' 로 주는 것으로 보아 early access 다.",
+   "evidence": {
+    "crossref_doi": "10.1109/ojap.2026.3717211",
+    "crossref_type": "journal-article",
+    "crossref_container": "IEEE Open Journal of Antennas and Propagation",
+    "crossref_year": 2026,
+    "crossref_page": "1-1",
+    "arxiv_2604_05991_journal_ref": null,
+    "why_we_missed_it": "arXiv 레코드 2604.05991(v2, 2026-07-02 갱신)에 journal_ref 가 아직 안 붙어 있다. arXiv 만 보면 영원히 프리프린트로 보인다."
+   },
+   "consequence": "Q-A 의 반론은 이제 '프리프린트의 지적' 이 아니라 '동료심사를 통과한 IEEE 저널의 지적' 이다. 우리 아키텍처에 대한 공개 반론의 무게가 올라갔고, 답을 미룰 근거가 하나 사라졌다. 두 판을 분리하는 규칙은 유지하되 라벨은 '회의판(EuCAP 2025, 게재) / 저널판(IEEE OJAP 2026, 게재·early access)' 로 바꿔야 한다.",
+   "verification_note": "Crossref 원본 응답으로 확인. IEEE Xplore 전문은 이 환경에서 못 받았으므로 '페이지 범위·권호' 는 아직 미확정."
+  },
+  {
+   "id": "SC-2",
+   "severity": "MEDIUM",
+   "what_we_said": "2602.08203 (Ji 외, cellular UAV bistatic) 은 arXiv 프리프린트.",
+   "what_is_true": "IEEE Wireless Communications Letters 에 게재됐다. 제목 'An Experimental Study on Fine-Grained Bistatic Sensing of UAV Trajectory via Cellular Downlink Signals', DOI 10.1109/LWC.2026.3663501, 2026. OpenAlex 가 이 DOI 의 유일 OA 사본으로 arXiv 2602.08203 을 가리킨다 — 즉 우리가 이미 디스크에 갖고 있는 그 PDF 다.",
+   "evidence": {
+    "openalex_work": "W7128555266",
+    "doi": "10.1109/lwc.2026.3663501",
+    "oa_location": "https://arxiv.org/pdf/2602.08203",
+    "on_disk": "/data/public/sionna_jeong/papers_isac_sionna/2602.08203__ji_cellular-uav-bistatic.pdf"
+   },
+   "consequence": "패시브 바이스태틱 UAV 실측 계열에서 '게재된' 경쟁 행이 하나 늘었다. 인용할 때 반드시 WCL 2026 게재로 쓴다."
+  },
+  {
+   "id": "SC-3",
+   "severity": "MEDIUM — 우리 R2 정정문의 사정거리 문제",
+   "what_we_said": "R2: '모노스태틱은 PRF 를 자유롭게 고른다' 는 틀렸다 — 3GPP 가 sub-6 CSI-RS 를 500 Hz 로 묶는다.",
+   "what_is_true_now": "CSI-RS 에 대한 진술로는 손대지 않는다. 그러나 '모노스태틱 5G NR 센싱의 반복률 천장' 을 일반화해서 쓰면 반증된다. NIST 의 2026 베이스라인은 PRS 를 주기 1 ms(=1 kHz)로 놓고 3GPP Rel-19 UMa-AV 평가 가정을 따른다.",
+   "evidence_quote": {
+    "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2604.02205__evaluation-gnb-monostatic-sensing-uav.pdf",
+    "page": 4,
+    "quote": "PRS is configured with period TPRS = 1 ms and LPRS = 2 PRS symbols per occasion."
+   },
+   "supporting_quote": {
+    "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2604.02205__evaluation-gnb-monostatic-sensing-uav.pdf",
+    "page": 2,
+    "quote": "PRS occasions are scheduled periodically with period TPRS, analogous to a pulse repetition interval"
+   },
+   "consequence": "우리 문장은 'CSI-RS 는 sub-6 에서 500 Hz 가 천장' 까지만 주장해야 한다. '3GPP 가 모노스태틱 반복률을 500 Hz 로 묶는다' 로 넓히면 NIST 의 1 kHz PRS 설정이 반례다.",
+   "derived_by_us": "이 설정의 무모호 속도는 그들의 식 (12) v_r = λν/(2 N_D T_PRS) 에서 |ν|<=N_D/2 를 넣으면 λ/(4 T_PRS) = 18.75 m/s (fc=4 GHz). 논문은 이 수를 인쇄하지 않는다 — 우리가 유도한 값이므로 인용이 아니라 파생값으로 표시한다."
+  }
+ ],
+ "claims_under_test": {
+  "H8": {
+   "statement": "드론 MESH 로부터 Sionna 급 GPU 광선엔진 '안에서' 산란 시그니처를 계산하고 진폭까지 검증한 게재 논문은 0편 (4갈래: 게재 / 드론 표면메시 / 엔진 내부 계산 / 진폭 검증).",
+   "verdict_this_round": "SURVIVES — 이번 스윕에서 4갈래를 동시에 채우는 새 논문은 없었다.",
+   "how_hard_we_looked": "arXiv 게이트 B(드론|UAV AND RCS|산란) 는 2025-01~2026-08 전체에서 10건뿐이고 그중 6건이 디스크에 없었으며, 열어본 결과 전부 스칼라 RCS 또는 추적/자원할당 논문이었다. 게이트 F(메시|CAD AND RCS) 는 8건이고 전부 나노구조·적분방정식 수치해석이라 표적이 드론이 아니다.",
+   "new_supporting_evidence": [
+    {
+     "why": "2026년 NIST 베이스라인이 소형 UAV 표적을 '단일 지배 산란점' 으로 놓는다 — 필드 기본값이 메시가 아니라는 직접 진술.",
+     "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2604.02205__evaluation-gnb-monostatic-sensing-uav.pdf",
+     "page": 2,
+     "quote": "3GPP models the target as a single dominant SP"
+    },
+    {
+     "why": "2026년 5G NR ISAC 한계 분석도 표적 RCS 를 3GPP TR 38.901 통계 모형으로 대체한다.",
+     "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2603.28318__isac-3gpp-new-radio-sensing-limits.pdf",
+     "page": 7,
+     "quote": "The radar cross section (RCS) is modeled according to"
+    },
+    {
+     "why": "2026년 드론 감시 논문(다중 AP·SSB)은 표적 RCS 를 상수 -10 dBsm 로 놓는다.",
+     "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2601.08483__drone-surveillance-coordinated-beam-sweeping-mimo-isac.pdf",
+     "page": 5,
+     "read_from_table": "TABLE I: Baseline parameters — σRCS = -10 dBsm",
+     "machine_can_decide": false,
+     "note": "표 셀이라 인용문으로 채점되지 않는다. 인용이 아니라 표 판독으로 분리한다."
+    }
+   ],
+   "residual_risk": "게이트가 전부 초록 기반이다. 드론 메시 RCS 를 계산해 놓고 초록에 RCS·메시·드론 중 어느 것도 안 쓴 논문은 이 스윕이 구조적으로 못 잡는다. H8 은 '우리가 찾은 범위에서' 라는 한정을 계속 달아야 한다."
+  },
+  "C2": {
+   "statement": "Sionna 파이프라인에서 dBsm 을 인쇄한 논문은 정확히 한 편, Ziganshin EuCAP 2025, 표적은 차량.",
+   "verdict_this_round": "부분 수정 필요 — 편수 주장은 살아 있으나 '판본 상태' 가 바뀐다(SC-1). 같은 연구의 저널 확장판이 IEEE OJAP 2026 에 게재됐으므로, 'Sionna 계열에서 dBsm 을 낸 게재물' 은 이제 회의판 1편 + 저널판 1편, 연구로는 여전히 1건이다.",
+   "counting_rule_to_keep": "편수 세기는 코퍼스 이름과 판본을 반드시 단다. '연구 1건 / 게재물 2건' 이 정확한 표현이다."
+  },
+  "C4": {
+   "statement": "통제된 다중 ILLUMINATOR 비교를 교정된 오경보율에서 수행한 논문은 없다.",
+   "verdict_this_round": "SURVIVES — 그러나 ⚠ 어휘 위험이 이번에 두 번 확인됐다.",
+   "lexical_hazard": "'multiple illuminators' 라는 말이 2026년 논문 제목·본문에 실재하는데, 뜻이 우리와 다르다. 둘 다 '조명 위치가 여럿' 이지 '조명 규격이 여럿' 이 아니다. C4 문장에서 illuminator 는 반드시 '규격/파형(WiFi vs LTE vs 5G)' 으로 한정해 써야 하고, 그냥 illuminator 로 두면 제목 검색만으로 반증당한 것처럼 보인다.",
+   "hazard_evidence": [
+    {
+     "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2601.08483__drone-surveillance-coordinated-beam-sweeping-mimo-isac.pdf",
+     "page": 1,
+     "quote": "providing multiple illuminators and a single sensing receiver",
+     "what_it_actually_is": "같은 5G SSB 를 쓰는 다중 AP. 규격 비교가 아니다."
+    },
+    {
+     "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2603.08217__3d-nearfield-passive-radar-imaging-multiple-illumination.pdf",
+     "page": 1,
+     "quote": "multiple Tx antennas provide diverse illumination perspectives",
+     "what_it_actually_is": "근접장 영상용 Tx 위치 다양화. 검출도 오경보율 교정도 없다."
+    }
+   ],
+   "nearest_new_competitors": [
+    "2606.21677 (IEEE/AIAA DASC 2026 채택) — 능동/수동 모드를 한 프레임에서 비교하지만 조명은 5G 하나이고, 비교축이 자원할당이다.",
+    "2601.15785 (VTC2026-Spring 채택) — 파일럿 대 미지 데이터 심볼 비교. Taylor & Poullin 과 같은 종류의 '한 규격 안 심볼 부분집합' 비교다."
+   ]
+  }
+ },
+ "anchor_forward_citations": {
+  "how": "OpenAlex cites: 필터로 전수 수집, Semantic Scholar 로 교차확인. 앵커 4편(판본까지 6 레코드).",
+  "anchors": {
+   "ABRATKIEWICZ_JSTARS_2023": {
+    "openalex": "W4361763707",
+    "doi": "10.1109/JSTARS.2023.3262291",
+    "venue_status_year": "IEEE J. Sel. Topics Appl. Earth Obs. Remote Sens., vol.16, pp.3469-3484 — 게재, 2023",
+    "citers_found": 33,
+    "note": "우리 R1 정정의 출처. 인용자 33편 중 2026년이 5편이고 그중 4편이 이번에 새로 잡혔다."
+   },
+   "TAYLOR_POULLIN_TAES_2025": {
+    "openalex": "W4407899909",
+    "doi": "10.1109/TAES.2025.3545000",
+    "venue_status_year": "IEEE Trans. Aerosp. Electron. Syst. — 게재, 2025 (Drone Detection Using 4G-LTE-Based Passive Radar)",
+    "citers_found": 7,
+    "note": "인용자가 7편뿐이다. C4 를 정면으로 무너뜨린 후속은 없다."
+   },
+   "LASEN_SENSYS_2026": {
+    "openalex": "W7160619000",
+    "doi": "10.1145/3774906.3800504",
+    "dblp": "conf/sensys/YangDLHCZSZT26",
+    "venue_status_year": "ACM/IEEE SenSys '26, Saint Malo — 게재, 2026",
+    "citers_found": 0,
+    "note": "2026-05 발표라 아직 인용 0. LaSen 자신은 Abratkiewicz 와 Taylor 를 둘 다 인용한다 — 우리가 잡아 둔 계보가 맞았다는 교차확인."
+   },
+   "ZIGANSHIN_CONF_EuCAP_2025": {
+    "openalex": "W4410582235",
+    "doi": "10.23919/EuCAP63536.2025.10999367",
+    "venue_status_year": "19th EuCAP 2025 — 게재, 2025",
+    "citers_found_openalex": 0,
+    "citers_found_s2": 1,
+    "s2_citer": "자기 확장판(IEEE OJAP 2026)",
+    "note": "외부 인용 0. 우리가 이 자리를 비워두고 있다는 뜻이기도 하다."
+   },
+   "ZIGANSHIN_JOURNAL": {
+    "arxiv": "2604.05991",
+    "doi": "10.1109/OJAP.2026.3717211",
+    "venue_status_year": "IEEE Open Journal of Antennas and Propagation — 게재(early access), 2026 ⭐ SC-1 참조",
+    "citers_found_openalex": 0,
+    "citers_found_s2": 1,
+    "s2_citer": "arXiv:2607.13417 Xu·Ottersten·Swindlehurst, Parametric Diffraction-Based Object Sensing"
+   }
+  },
+  "new_papers_surfaced_only_by_this_sweep": [
+   "Target detection in passive radar based on LTE CSR signal with a signal receive channel — Digital Signal Processing, 게재, 2026, DOI 10.1016/j.dsp.2026.106271",
+   "A Two-Stage 5G NR ISAC Framework for Coarse-to-Fine UAV Detection and Tracking — IEEE DySPAN 2026, 게재, DOI 10.1109/DYSPAN69846.2026.11571167 (arXiv:2511.14529 와 동일 연구로 보인다)",
+   "NextSense: A Semi-Synthetic Sensing Data generation Platform — IEEE INFOCOM 2026, 게재, DOI 10.1109/INFOCOM59046.2026.11571727 (arXiv:2603.20789)",
+   "Characterization of Monostatic Base Stations Sensing Resolution Using 5G Reference Signals — IEEE ICC Workshops 2025, 게재, DOI 10.1109/ICCWORKSHOPS67674.2025.11162456 ⚠ 미입수",
+   "Remote Radio Frequency Sensing Based on 5G New Radio Positioning Reference Signals — Sensors 25(2):337, 게재·OA, 2025, DOI 10.3390/s25020337 ⚠ 미입수(MDPI 403)",
+   "Ghost peaks mitigation with target-contaminated reference signal in passive bistatic radar — Scientific Reports, 게재·OA, 2025, DOI 10.1038/s41598-025-34316-5 (입수·정독)",
+   "Ultra-Low-Complexity Doppler-Spread Clutter Suppression in Ground-Based Passive Radar — Electronics Letters, 게재, 2026, DOI 10.1049/ell2.70581 ⚠ 미입수",
+   "A SDR System for Passive UAV Detection with Deep Learning Method — IEEE GLOBECOM 2025, 게재, DOI 10.1109/GLOBECOM59602.2025.11432088 ⚠ 미입수"
+  ]
+ },
+ "new_papers": [
+  {
+   "key": "fernandez2026_nr_sensing_limits",
+   "title": "Integrated sensing and communications in the 3GPP New Radio: sensing limits",
+   "authors": "S. Fernández, J. Giménez, M. C. Aguayo-Torres, J. A. Cortés (Univ. Málaga)",
+   "venue": "arXiv (eess.SP)",
+   "status": "PREPRINT",
+   "year": 2026,
+   "arxiv": "2603.28318v4",
+   "doi": null,
+   "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2603.28318__isac-3gpp-new-radio-sensing-limits.pdf",
+   "bears_on": "R1(vmax 공식 우선권) · Q-F(3GPP 사양) · H8(표적 RCS 처리)",
+   "one_line": "3GPP Rel-19 UAV 모노스태틱 유스케이스에서 5G NR 의 거리·속도 추정 CRLB 를 유도하고, 무모호 속도의 닫힌 형태를 인쇄한다.",
+   "why_it_matters": "⭐ R1 에 두 번째 독립 출처가 생겼다. 식 (24) 의 v_max = c0·N·Δf/(4·fc·L) 은 Ts=1/(NΔf) 를 넣으면 λ/(4·L·Ts) = λ·PRF/4 와 같은 식이다. 즉 우리가 한때 '우리 것' 이라 했던 형태는 Abratkiewicz(2023)뿐 아니라 5G NR ISAC 문맥에서도 2026년에 독립적으로 인쇄돼 있다.",
+   "evidence": [
+    {
+     "page": 6,
+     "quote": "the range of velocities that can be estimated unambiguously is"
+    },
+    {
+     "page": 7,
+     "quote": "The radar cross section (RCS) is modeled according to"
+    }
+   ],
+   "read_from_table": [
+    {
+     "page": 8,
+     "what": "TABLE IV — Range (dmax) 4996.5 m, Velocity (vmax) 525.2 m/s",
+     "machine_can_decide": false
+    }
+   ],
+   "derived_by_us": "525.2 m/s 를 λ/(4T) 로 역산하면 슬로우타임 간격 35.7 µs = OFDM 심볼 1개(30 kHz SCS). 즉 이 논문은 '센싱 신호가 매 심볼 있다' 를 가정한다. 우리 500 Hz 논의와 층이 다르다."
+  },
+  {
+   "key": "blandino2026_5gnrad_gnb_monostatic",
+   "title": "Evaluation of gNB Monostatic Sensing for UAV Use Case",
+   "authors": "S. Blandino, N. Varshney, J. Wang, J. Chuang, C. Gentile, N. Golmie (NIST)",
+   "venue": "arXiv (eess.SP)",
+   "status": "PREPRINT",
+   "year": 2026,
+   "arxiv": "2604.02205",
+   "doi": null,
+   "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2604.02205__evaluation-gnb-monostatic-sensing-uav.pdf",
+   "bears_on": "H8(강한 지지) · R2(사정거리 축소) · C4(교정된 오경보 운용점 비교 대상)",
+   "one_line": "NIST 가 3GPP Rel-19 UMa-AV 가정 위에서 5G NR PRS 모노스태틱 UAV 센싱 처리 사슬을 열고, 오픈소스 시뮬레이터 5GNRad 를 공개한다.",
+   "why_it_matters": "우리 모노스태틱 대조군의 표준 베이스라인이 생겼다. 표적은 단일 산란점, RCS 는 3GPP 통계 모형 — H8 을 정면으로 지지한다. 동시에 PRS 주기 1 ms 설정은 우리 500 Hz 문장의 사정거리를 좁힌다(SC-3).",
+   "evidence": [
+    {
+     "page": 2,
+     "quote": "3GPP models the target as a single dominant SP"
+    },
+    {
+     "page": 2,
+     "quote": "PRS occasions are scheduled periodically with period TPRS, analogous to a pulse repetition interval"
+    },
+    {
+     "page": 4,
+     "quote": "PRS is configured with period TPRS = 1 ms and LPRS = 2 PRS symbols per occasion."
+    }
+   ],
+   "operating_point_from_abstract": "Pd > 70 % at Pfa < 5 % (CA-CFAR), 위치오차 90퍼센타일 수직 4 m·수평 6 m — 우리 벤치마크와 나란히 놓을 수 있는 교정된 운용점이다.",
+   "derived_by_us": "T_PRS=1 ms, fc=4 GHz → 무모호 속도 λ/(4T_PRS) = 18.75 m/s. 논문은 이 수를 인쇄하지 않는다."
+  },
+  {
+   "key": "peloso2026_zero_overhead_vmax",
+   "title": "Zero-Overhead Unambiguous Velocity Estimation in Multiband ISAC Systems Under Random Traffic",
+   "authors": "A. Peloso, M. Rossi, J. Pegoraro (Univ. Padova)",
+   "venue": "arXiv (eess.SP)",
+   "status": "PREPRINT",
+   "year": 2026,
+   "arxiv": "2604.06790",
+   "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2604.06790__zero-overhead-unambiguous-velocity-multiband-isac.pdf",
+   "bears_on": "R1 계보 · 무모호 속도",
+   "one_line": "통신 트래픽이 불규칙해 슬로우타임 표본이 비균일한 ISAC 에서, 다중 반송파의 위상차로 도플러 모호를 푸는 혼합정수 이차계획을 제안한다.",
+   "why_it_matters": "'채널추정률이 최대 관측 속도를 물리적으로 제한한다' 는 진술의 ISAC 쪽 계보를 확정해 준다 — 이 논문은 그 진술의 출처로 SPARCS(Pegoraro 외, ACM/IEEE IPSN 2022)를 든다. 또한 Taylor 계열이 '비균일 슬로우타임이라 단일 PRF 환산이 불가능' 해 무모호 속도에 침묵하는 것과 정확히 같은 문제를 정면으로 다룬 첫 사례다.",
+   "evidence": [
+    {
+     "page": 1,
+     "quote": "the channel estimation rate imposes a physical constraint on the ISAC system by determining a maximum observable target velocity"
+    }
+   ]
+  },
+  {
+   "key": "wu2026_two_stage_lae",
+   "title": "A Two-Stage ISAC Framework for Low-Altitude Economy Based on 5G NR Signals",
+   "authors": "H. Wu, H. Ren, C. Pan, B. Wang, J. Tang, H. Weng, F. Shu, J. Wang",
+   "venue": "arXiv (eess.SP); 같은 연구가 IEEE DySPAN 2026 에 게재(DOI 10.1109/DYSPAN69846.2026.11571167)",
+   "status": "PREPRINT(arXiv) / 게재(DySPAN 2026) — 두 판을 분리해 인용",
+   "year": 2026,
+   "arxiv": "2511.14529",
+   "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2511.14529__two-stage-isac-lae-5gnr_DySPAN2026.pdf",
+   "bears_on": "우리 상시-기준신호 서사(G1 SSB vs G3 PRS) · C4",
+   "one_line": "SSB+Type#0-PDCCH+SIB1 로 거친 검출을 하고, CORESET#0 대역에 희소 파일럿을 끼워 넣어 정밀 추정하는 2단 프레임워크.",
+   "why_it_matters": "⭐ 우리 '상시 신호 대 세션 신호' 프레이밍에 처음으로 게재된 문장 근거가 붙는다. PRS·CSI-RS 가 상시가 아니라는 진술이 우리 메모(사용자 지시)와 정확히 같다.",
+   "evidence": [
+    {
+     "page": 2,
+     "quote": "which limits their ubiquitous applicability for persistent sensing"
+    },
+    {
+     "page": 2,
+     "quote": "in most operational networks, which limits their ubiquitous"
+    }
+   ],
+   "c4_note": "여러 5G 신호를 융합하지 비교하지 않는다. 규격 간 비교가 아니므로 C4 를 건드리지 않는다."
+  },
+  {
+   "key": "dasc2026_adaptive_multistatic_uav",
+   "title": "Adaptive 5G Resource Allocation for Multistatic ISAC-Based UAV Detection and Tracking",
+   "venue": "arXiv; 코멘트에 IEEE/AIAA 학술대회 채택 명시",
+   "status": "PREPRINT(게재 채택 주장은 PDF 코멘트 근거)",
+   "year": 2026,
+   "arxiv": "2606.21677",
+   "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2606.21677__adaptive-5g-resource-multistatic-isac-uav.pdf",
+   "bears_on": "C4(최근접 경쟁) · 우리 '점유 대가' 서사",
+   "one_line": "5G 망에서 센싱 파형 길이·전송률·빔 배분이 UAV 검출/추적에 미치는 영향을 능동·수동 모드를 함께 놓고 다룬다.",
+   "why_it_matters": "패시브의 성능이 '기회적 통신 점유' 에 종속된다는 우리 report05 논지가 독립적으로 인쇄돼 있다. 또한 SSB 를 '상시 가용 조명' 으로 규정한다.",
+   "evidence": [
+    {
+     "page": 2,
+     "quote": "illuminators for passive bistatic detection and localization"
+    },
+    {
+     "page": 2,
+     "quote": "sensing performance depends on opportunistic communication occupancy rather than"
+    }
+   ]
+  },
+  {
+   "key": "zhang2025_ghost_peaks",
+   "title": "Ghost peaks mitigation with target-contaminated reference signal in passive bistatic radar",
+   "authors": "Y. Zhang, L. Ge, Y. Wu",
+   "venue": "Scientific Reports",
+   "status": "게재·OA",
+   "year": 2025,
+   "doi": "10.1038/s41598-025-34316-5",
+   "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/scirep2025__ghost-peaks-target-contaminated-reference-pbr.pdf",
+   "bears_on": "우리 '패시브 CAF 보류질문' + report09 유령",
+   "one_line": "기준 채널에 표적 에코가 새어 들어가면 range-Doppler 면에 '같은 도플러, 다른 거리' 의 유령 봉우리가 생긴다는 기구를 정합필터 관점에서 분석하고 사후처리로 억제한다.",
+   "why_it_matters": "⭐ 우리는 헤드라인 벤치마크에서 '이상적 기준신호' 를 쓰고 있고 그 이상화가 무엇을 숨기는지는 열린 과제로 남겨 뒀다. 이 논문이 그 빈칸에 이름을 붙인다 — 숨겨진 것은 '표적 오염 기준신호가 만드는 동일-도플러 유령' 이다. 우리 바닥유령(표적 경유 다중경로)과는 다른 기구이므로 report09 와 나란히 두되 절대 합치지 않는다.",
+   "evidence": [
+    {
+     "page": 1,
+     "quote": "Such contamination generates ghost peaks in the range-Doppler plane that share the true target"
+    }
+   ]
+  },
+  {
+   "key": "ji2025_multistatic_lte_doppler",
+   "title": "Doppler-Based Multistatic Drone Tracking via Cellular Downlink Signals",
+   "authors": "C. Ji, Q. Liu, J. Liu, C. Yu, Y. Sun, R. Wang, F. Liu (SUSTech/SEU)",
+   "venue": "IEEE GLOBECOM Workshops 2025",
+   "status": "게재",
+   "year": 2025,
+   "doi": "10.1109/GCWKSHPS68340.2025.11591241",
+   "arxiv": "2509.25732",
+   "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2509.25732__doppler-multistatic-drone-tracking-cellular-downlink.pdf",
+   "bears_on": "다중 Rx 벤치마크 대조군 · C4(비위협)",
+   "one_line": "LTE 기지국을 조명으로, 3개 패시브 수신기의 바이스태틱 도플러만으로 드론 궤적을 재구성하는 실측(약 200 m, 90 % 오차 90 cm 이하).",
+   "why_it_matters": "조명은 LTE 하나뿐이라 C4 를 건드리지 않지만, 우리 다중 Rx 코히어런트 상한 논의에 실측 대조군이 하나 생겼다. Taylor & Poullin 인용자이기도 하다."
+  },
+  {
+   "key": "gao2012_sbr_twildc",
+   "title": "Mapping the SBR and TW-ILDCs to Heterogeneous CPU-GPU Architecture for Fast Computation of Electromagnetic Scattering",
+   "authors": "P. C. Gao, Y. B. Tao, Z. H. Bai, H. Lin (Zhejiang Univ.)",
+   "venue": "Progress In Electromagnetics Research, Vol.122, pp.137-154",
+   "status": "게재·OA",
+   "year": 2012,
+   "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/pier2011__sbr-twildcs-cpu-gpu-fast-rcs.pdf",
+   "bears_on": "⭐ Q-C(구현 가능한 PTD 보정) · Q-A 후반부(런타임 반론) · Q-B",
+   "one_line": "GPU SBR 에 절단 쐐기 증분길이 회절계수(TW-ILDC, PTD/ILDC 계열)를 CPU 로 병행 실행해 얹고, MLFMM 과 대조한다.",
+   "why_it_matters": "⭐⭐ Q-C 의 답이 여기 있다. (1) 얹을 수 있는 PTD 계열 보정이 실재하고 MLFMM 으로 검증돼 있다. (2) 비용이 인쇄돼 있다 — SBR 대비 +4.6 %(항공기 A) / +17.2 %(항공기 B). Ziganshin 의 15-27 배와 두 자릿수 차이다. (3) 효과가 나타나는 지점이 '약산란 각도' 다 — 소형 드론의 비정합·비스펙큘러 영역이 바로 거기다.",
+   "evidence": [
+    {
+     "page": 14,
+     "quote": "The efficiency decreases by only 4.6% for aircraft A as compared to the GPU-based SBR"
+    },
+    {
+     "page": 11,
+     "quote": "can not be ignored in the case of weak scattering"
+    }
+   ],
+   "read_from_table": [
+    {
+     "page": 14,
+     "what": "Table 1 — Aircraft A: SBR 1311 s vs SBR+TW-ILDC 총 1371.4 s; Aircraft B: 2302.7 s vs 2699.9 s",
+     "machine_can_decide": false
+    }
+   ],
+   "caveat": "⚠ 표적이 전기적으로 매우 크다(항공기 A 는 100 GHz 에서 3920λ, 대조용 선박은 10 GHz 에서 0.9 m). 우리 드론은 few-λ 다. 상대 오버헤드(+4.6~17.2 %)는 옮길 만하지만 절대 시간은 못 옮긴다.",
+   "our_hypothesis_UNVERIFIED": "모서리 회절 항은 평판 PO 항과 주파수 의존이 달라(에지 ~λ^0 대 평판 ~λ^-1) 대역 기울기를 낮추는 방향으로 작용할 것이다. 이 문장은 이 논문에 없다 — 우리 가설이며 미검증이다."
+  },
+  {
+   "key": "xu2026_parametric_diffraction",
+   "title": "Parametric Diffraction-Based Object Sensing: Modeling, Estimation, and Fundamental Limits",
+   "authors": "J. Xu, B. Ottersten, A. L. Swindlehurst",
+   "venue": "arXiv (IEEE 저널 템플릿)",
+   "status": "PREPRINT",
+   "year": 2026,
+   "arxiv": "2607.13417",
+   "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2607.13417__parametric-diffraction-object-sensing.pdf",
+   "bears_on": "Q-A 전반부(그림자 영역) · Q-C",
+   "one_line": "차단물의 회절 패턴(Fresnel 리플)에서 형상·거리·DoA 를 추정하는 물리 일관 모형과 CRB.",
+   "why_it_matters": "Ziganshin 저널판을 인용하면서 그 계열을 '반사 지배' 로 분류하고, 회절 지배 설정은 연구가 적다고 적는다 — Ziganshin 반론 전반부(그림자 영역)를 제3자가 같은 방향으로 반복한 셈이다. 또한 이 논문의 참고문헌 [22] 가 우리가 찾던 'PO 대 UTD 대 실측' 비교(Mukherjee 외, IEEE Access 10:133643-133654, 2022, DOI 10.1109/ACCESS.2022.3231812)로 가는 다리다.",
+   "evidence": [
+    {
+     "page": 1,
+     "quote": "Less work has concentrated on diffraction-dominant settings"
+    }
+   ]
+  },
+  {
+   "key": "andrich2026_bira",
+   "title": "BIRA: A Spherical Bistatic Radar Reflectivity Measurement System",
+   "authors": "C. Andrich, T. F. Nowack, A. Ihlow, …, M. A. Hein, R. S. Thomä (TU Ilmenau)",
+   "venue": "IEEE Transactions on Antennas and Propagation",
+   "status": "게재",
+   "year": 2026,
+   "doi": "10.1109/TAP.2026.3659989",
+   "arxiv": "2407.13749",
+   "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/tap2026__bira-spherical-bistatic-reflectivity.pdf",
+   "bears_on": "바이스태틱 RCS 앵커 부재 문제",
+   "one_line": "0.7-260 GHz, 직경 7 m 구면 이중 갠트리로 동적 표적의 바이스태틱 반사도를 도플러·거리까지 특성화하는 측정 시설.",
+   "why_it_matters": "우리 RCS 방법론 메모의 최대 결손(바이스태틱 실측 앵커)이 어디서 나올 수 있는지를 가리킨다. ⭐ 그리고 이 시설의 저자단은 Thomä·Ilmenau 로, Ziganshin 논문의 공저자단과 같다 — 우리 아키텍처를 반박한 그룹이 바이스태틱 측정 인프라를 쥐고 있다.",
+   "evidence": [
+    {
+     "page": 1,
+     "quote": "the only bistatic measurement facility capable of unrestricted"
+    }
+   ],
+   "limitation": "이 논문의 검증 표적은 지름 30 cm 금속구다. 드론은 없다."
+  }
+ ],
+ "open_questions_progress": {
+  "Q-A_published_objection": {
+   "objection_verbatim": "This SBR+PO approach, however, is limited to the illuminated region and is not suitable to predict the scattered field in the shadow region of the obstacle. Furthermore, the need to cascade PO after RT negates the computational advantages of RT.",
+   "source_status_change": "⭐ 이 반론은 이제 프리프린트가 아니라 게재된 IEEE 저널(OJAP 2026, DOI 10.1109/OJAP.2026.3717211)의 문장이다 — SC-1.",
+   "half_1_shadow_region": {
+    "status": "부분 진전 — 직접 반박도 직접 지지도 아직 못 찾았고, 같은 방향의 제3자 진술 1건과 결정적 비교논문 1편의 좌표를 얻었다.",
+    "third_party_echo": {
+     "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2607.13417__parametric-diffraction-object-sensing.pdf",
+     "page": 1,
+     "quote": "Less work has concentrated on diffraction-dominant settings",
+     "reading": "Ziganshin 계열을 '반사 지배' 로 분류하고 회절 지배 설정의 공백을 지적한다. 반론 전반부와 같은 방향."
+    },
+    "the_paper_that_would_settle_it": {
+     "cite": "S. Mukherjee et al., 'Scalable Modeling of Human Blockage at Millimeter-Wave: A Comparative Analysis of Knife-Edge Diffraction, the Uniform Theory of Diffraction, and Physical Optics Against 60 GHz Channel Measurements', IEEE Access, vol.10, pp.133643-133654, 게재, 2022, DOI 10.1109/ACCESS.2022.3231812",
+     "why": "그림자 영역에서 PO 를 UTD·KED 와 실측에 대고 직접 비교한 게재 논문이다. Q-A 전반부를 수치로 판정할 수 있는 유일한 후보.",
+     "status": "⚠ 미입수. IEEE Xplore 가 이 환경에서 502 를 낸다. 다음 라운드 최우선 입수 대상."
+    },
+    "counter_consideration_ours": "⚠ 우리 자신에 대한 반론: SBR 은 다중 반사를 추적하므로 '그림자 영역이 전부 0' 은 아니다. Ziganshin 문장이 참인 범위는 '회절로만 도달하는 영역' 이다. 이 구분을 우리 답변에 반드시 넣어야 한다. (이 구분은 우리 판단이며 인용 근거 없음 — UNVERIFIED)"
+   },
+   "half_2_runtime": {
+    "status": "⭐ 여기서 실질 진전이 났다. '못 답한다' 에서 '두 개의 게재 수치로 답할 수 있다' 로 바뀐다.",
+    "evidence_for_the_objection": {
+     "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+     "page": 9,
+     "quote": "average computation time of 616.12 ms",
+     "context": "30,000×30,000 광선을 90×90 m 격자에서 쏘아 각도 하나당 FP32 616.12 ms, 전체 스윕 8 LUMI 노드에서 약 27분. PO 정확도 요구가 광선 수를 끌어올려 교차판정 비용을 지배한다는 서술이 같은 절에 있다 — 즉 PO 는 뒤에 붙는 상수 비용이 아니라 RT 의 광선 예산 자체를 올린다. 반론 후반부를 부분적으로 지지한다.",
+     "status_of_source": "Sagitta 는 프리프린트(arXiv:2604.09243)다. 핵심 논문이 ICCS 2026 채택이라는 우리 기록은 별건이며 이 수치의 게재 상태는 프리프린트."
+    },
+    "evidence_against_the_objection": {
+     "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/pier2011__sbr-twildcs-cpu-gpu-fast-rcs.pdf",
+     "page": 14,
+     "quote": "The efficiency decreases by only 4.6% for aircraft A as compared to the GPU-based SBR",
+     "reading": "고차 산란 보정을 SBR 위에 얹는 비용이 잘 병렬화하면 +4.6~17.2 % 다. Ziganshin 이 보고한 15-27 배는 그의 구현의 성질이지 '광선추적 뒤에 물리광학/회절을 붙이면 이점이 사라진다' 는 일반 명제의 증거가 아니다.",
+     "status_of_source": "PIER Vol.122, pp.137-154, 2012 — 게재·OA."
+    },
+    "how_to_use_it": "우리 답변은 '반론을 부정' 이 아니라 '반론을 조건화' 여야 한다. 조건은 두 개다 — (i) PO 는 광선 예산을 통해 RT 비용을 올린다(Sagitta), (ii) 그러나 보정항을 이종 병렬로 스케줄하면 오버헤드는 한 자릿수 퍼센트일 수 있다(Gao 2012). 우리 자신의 per-pose 비용을 아직 이 축에 안 올려놨다는 것이 남은 결손이다."
+   },
+   "objection_source_evidence": {
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "page": 2,
+    "quote": "is limited to the illuminated region and is not suitable to predict the scattered field in the shadow region",
+    "quote_second_half": "the need to cascade PO after RT negates the computational advantages of RT",
+    "note": "PDF 는 arXiv:2604.05991 판. 같은 문장이 IEEE OJAP 게재본에도 있는지는 Xplore 미접근으로 미확인 — 인용 시 arXiv 판으로 귀속한다."
+   },
+   "objection_verbatim_note": "아래 objection_source_evidence 가 원문 대조본이다."
+  },
+  "Q-B_runtime_baselines": {
+   "new_numbers_this_round": [
+    {
+     "source": "Sagitta SBR (arXiv:2604.09243, 프리프린트)",
+     "number": "각도당 616.12 ms (FP32), 총 스윕 ~27분 / 8 LUMI 노드",
+     "rays": "30,000 × 30,000 = 9e8 광선, 90×90 m 정사영 격자",
+     "evidence": {
+      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+      "page": 9,
+      "quote": "average computation time of 616.12 ms"
+     }
+    },
+    {
+     "source": "Gao 외, PIER 122:137-154, 2012 (게재)",
+     "number": "항공기 A: GPU SBR 1311 s vs SBR+TW-ILDC 1371.4 s / 항공기 B: 2302.7 s vs 2699.9 s",
+     "normalization": "⚠ 포즈당으로 못 나눈다 — 각도 개수가 항공기 사례에 인쇄돼 있지 않다(선박 사례만 0-360°, 1° 간격). 상대 오버헤드만 옮긴다.",
+     "hardware": "Intel Core i5 2.8 GHz + NVIDIA GeForce GTX 470, CUDA 3.2 — 2012년 하드웨어"
+    }
+   ],
+   "still_missing": "우리 SBR+PO 의 포즈당 비용을 같은 형식(초/포즈, 광선 수, GPU 모델)으로 인쇄한 적이 없다. 이 표를 채우지 않으면 Q-A 후반부에 대한 우리 답은 남의 수치만 나열하는 꼴이 된다."
+  },
+  "Q-C_ptd_we_could_adopt": {
+   "answer": "⭐ 있다. 절단 쐐기 증분길이 회절계수(TW-ILDC). PTD/ILDC 계열이고, SBR 위에 얹는 구현이 게재돼 있으며, MLFMM 대조로 검증됐고, 비용도 인쇄돼 있다.",
+   "cite": "P. C. Gao, Y. B. Tao, Z. H. Bai, H. Lin, PIER Vol.122, pp.137-154, 게재, 2012",
+   "cost": "+4.6 % (항공기 A) / +17.2 % (항공기 B) — GPU SBR 대비",
+   "where_it_helps": {
+    "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/pier2011__sbr-twildcs-cpu-gpu-fast-rcs.pdf",
+    "page": 11,
+    "quote": "can not be ignored in the case of weak scattering",
+    "reading": "큰 RCS(스펙큘러) 각도에서는 SBR 만으로 MLFMM 과 잘 맞고, 약산란 각도에서 회절항이 갈린다. 소형 드론의 비정합 각도가 정확히 그 영역이다."
+   },
+   "distinguish": {
+    "cite_as_limitation": "현재 우리 PO 는 모서리 회절항이 없다 — 이건 지금도 한계로 적을 수 있다.",
+    "implement_and_the_number_improves": "⚠ 아직 주장할 수 없다. TW-ILDC 가 우리 대역 기울기를 실측 쪽으로 움직인다는 근거는 어느 논문에도 없다. 우리 가설(에지 항 ~λ^0 대 평판 항 ~λ^-1 → 기울기 하강)은 미검증이며, 판정하려면 우리 지오메트리에서 직접 돌려 봐야 한다.",
+    "caveat": "검증 사례가 전기적으로 큰 표적(3920λ, 30λ)이다. few-λ 드론에서 ILDC 가 같은 이득을 준다는 보장은 원문에 없다."
+   }
+  },
+  "Q-D_openisac_shelf": {
+   "status": "목록만 훑었다 — 이번 브리프의 본무가 아니라 전수 정독은 안 했다. 정직하게 미완으로 남긴다.",
+   "count": "PDF 28편 + manifest.json + README.md",
+   "on_our_axis_by_title": [
+    "08_Experimental_results_for_OFDM_WiFi-based_passive_bistatic_radar.pdf — WiFi 패시브 바이스태틱 실측(C4 축)",
+    "23_Doppler_frequency_sidelobes_level_control_for_WiFi-based_passive_bistatic_radar.pdf — WiFi PBR 도플러 사이드로브(C4 축)",
+    "30_Comparison_of_correlation-based_OFDM_radar_receivers.pdf — OFDM 레이더 수신기 비교(우리 정합필터 규약과 직결)",
+    "29_OFDM_radar_algorithms_in_mobile_communication_networks.pdf",
+    "07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf — ⭐ LTE 와 5G NR 파형을 한 논문에서 실측 비교. C4 어휘 위험 재확인 대상(단 모노스태틱 풀듀플렉스일 가능성이 높다).",
+    "22_Bi-static_ISAC_with_asynchronous_transceivers_Mechanism_solution_and_field_test.pdf",
+    "19_Sionna_RT_Technical_Report.pdf — 이미 우리 기록에 반영된 문서"
+   ],
+   "next_action": "07번은 C4 에 대한 잠재적 위협이므로 다음 라운드에서 반드시 열어야 한다. 제목만으로 판단하지 않는다."
+  },
+  "Q-E_samczynski_genealogy": {
+   "status": "서지 확정, 전문 미입수 — 한 걸음 남았지만 그 한 걸음이 유료장벽이다.",
+   "resolved": "P. Samczyński, K. Abratkiewicz, M. Płotka, T. P. Zieliński, J. Wszołek, S. Hausman, P. Korbel, A. Księżyk, '5G Network-Based Passive Radar', IEEE Transactions on Geoscience and Remote Sensing, vol.60, pp.1-9, 게재, 2022(온라인 2021), DOI 10.1109/TGRS.2021.3137904, 피인용 108.",
+   "how_resolved": "Chen 외, Appl. Sci. 14(10):4282, 2024 의 참고문헌 [16] 을 원문에서 읽어 확정했고(디스크: /data/public/sionna_jeong/reference_library/g1g2/chen2024_applsci_14_4282.pdf), Crossref 로 권·페이지·연도를 교차확인했다.",
+   "not_done": "OA 사본이 없다(OpenAlex best_oa_location None). 바이스태틱 도플러 식이 이 논문에서 어떤 형태로 인쇄돼 있는지는 여전히 미확인. 계보 주장은 '체인이 여기로 이어진다' 까지만 쓰고 '이 논문이 그 식을 처음 인쇄했다' 로 쓰면 안 된다."
+  },
+  "Q-F_3gpp_specs": {
+   "status": "직접 사양은 이번에도 안 읽었다. 대신 사양을 인용하는 2026년 논문 두 편에서 간접 근거를 얻었다.",
+   "what_we_learned": [
+    "NIST 는 3GPP Rel-19 UMa-AV 평가 가정 아래 PRS 주기를 1 ms 로 놓는다 — 우리 500 Hz 문장이 CSI-RS 밖으로 나가면 안 되는 이유(SC-3).",
+    "Fernández 외는 표적 RCS 를 3GPP TR 38.901 §7.9.2.1 model 1 로 잡는다. 소형 UAV 의 σ_S 로그정규 표준편차를 3.74 dB 로 인쇄한다(표 아님, 본문)."
+   ],
+   "not_done": "TS 38.331 / 38.214 원문은 여전히 미독. 500 Hz 천장은 아직도 Chen 의 슬롯 목록 + 산술 위에 서 있다."
+  }
+ },
+ "leads_not_retrieved": [
+  {
+   "priority": "HIGHEST",
+   "cite": "Mukherjee 외, IEEE Access 10:133643-133654, 게재, 2022, DOI 10.1109/ACCESS.2022.3231812",
+   "why": "Q-A 전반부(PO vs UTD vs 실측, 그림자 영역)를 수치로 판정할 유일 후보",
+   "blocker": "IEEE Xplore 502"
+  },
+  {
+   "priority": "HIGH",
+   "cite": "Characterization of Monostatic Base Stations Sensing Resolution Using 5G Reference Signals, IEEE ICC Workshops 2025, 게재, DOI 10.1109/ICCWORKSHOPS67674.2025.11162456",
+   "why": "⚠ C4 잠재 위협 — 제목이 '5G 기준신호들' 의 센싱 분해능 비교다. 규격 내 비교인지 규격 간인지 열어봐야 안다",
+   "blocker": "비-OA"
+  },
+  {
+   "priority": "HIGH",
+   "cite": "Target detection in passive radar based on LTE CSR signal with a signal receive channel, Digital Signal Processing, 게재, 2026, DOI 10.1016/j.dsp.2026.106271",
+   "why": "LTE CRS 패시브 + 단일 수신 채널(= 기준채널 없음). 우리 CAF 보류질문과 정면",
+   "blocker": "Elsevier 비-OA"
+  },
+  {
+   "priority": "MEDIUM",
+   "cite": "Remote Radio Frequency Sensing Based on 5G NR Positioning Reference Signals, Sensors 25(2):337, 게재·OA, 2025, DOI 10.3390/s25020337",
+   "why": "우리 G3(PRS) 모드의 외부 대조군",
+   "blocker": "MDPI/PMC 403 — 다른 경로 필요"
+  },
+  {
+   "priority": "MEDIUM",
+   "cite": "Samczyński 외, IEEE TGRS 60:1-9, 게재, 2022, DOI 10.1109/TGRS.2021.3137904",
+   "why": "Q-E 계보 마지막 한 걸음",
+   "blocker": "OA 사본 없음"
+  },
+  {
+   "priority": "MEDIUM",
+   "cite": "Monostatic and Bistatic RCS Characterisation of a Drone for ISAC Channel Modelling, TechRxiv 프리프린트, 2025, DOI 10.36227/techrxiv.174970248.89231992/v1",
+   "why": "바이스태틱 드론 RCS. Das WCL 2026 과의 관계(재분석인지 별건인지)를 확정해야 한다",
+   "blocker": "TechRxiv 403"
+  },
+  {
+   "priority": "LOW",
+   "cite": "RadarTwin: Scene-Specific mmWave Radar Simulation and Learning, arXiv, 프리프린트, 2026",
+   "why": "장면 기반 레이더 시뮬. H8 4갈래 중 '드론' 이 빠질 가능성이 높지만 확인 안 했다",
+   "blocker": "미확인"
+  }
+ ],
+ "negative_findings": [
+  "2025-01~2026-08 arXiv 723편 중 드론 메시로 광선엔진 안에서 RCS 를 계산하고 진폭까지 검증한 논문은 0편. H8 은 이번 스윕에서 살아남았다.",
+  "Ziganshin 회의판을 인용한 외부 논문은 OpenAlex 0건·Semantic Scholar 1건(자기 확장판)이다. 그가 제기한 반론에 답한 논문도, 그의 방법을 이어받은 논문도 아직 없다.",
+  "Taylor & Poullin TAES 2025 의 인용자 7편 중 C4 를 무너뜨리는 것은 없다 — 전부 단일 규격(LTE 또는 5G) 안에서의 처리 개선이다.",
+  "'multiband' 를 제목에 단 2026년 패시브 논문 두 편(802.11bf 다중대역, 다중대역 ISAC 속도추정)은 둘 다 한 규격 안의 다중 대역이다. 규격 간 비교가 아니다.",
+  "NextSense(INFOCOM 2026 게재)는 5G 스택 + 하드웨어 채널 에뮬레이터다. 광선추적도 산란 계산도 없다 — C2 위협 아님.",
+  "2605.17988 은 Sionna RT 를 쓰지만 용도가 확산산란 파라미터(S, ε_r, σ, α_R) 교정이다. 표적 RCS 를 내지 않는다 — C2 위협 아님."
+ ],
+ "recommendations": [
+  "① 하우스 룰 문구를 고친다: 'Ziganshin 저널판(프리프린트)' → '저널판(IEEE OJAP 2026, 게재·early access)'. 이 한 줄을 안 고치면 다음 라운드가 또 잘못된 라벨 위에서 논증한다.",
+  "② R2 문장의 사정거리를 CSI-RS 로 한정한다. NIST 의 1 ms PRS 설정이 일반형 진술의 반례다.",
+  "③ C4 문장에서 illuminator 를 '규격/파형' 으로 명시적으로 한정한다. 2026년 논문 제목에 'multiple illuminators' 가 실재한다.",
+  "④ Q-A 후반부에 대한 우리 답변 초안을 지금 쓴다 — 조건화 형태로, Sagitta(지지)와 Gao 2012(반대)를 나란히. 그리고 우리 per-pose 비용을 같은 형식으로 인쇄한다.",
+  "⑤ 다음 입수 3편: Mukherjee IEEE Access 2022 / ICC-W 2025 모노스태틱 분해능 / OpenISAC 07번(LTE·5G NR 파형 실측 비교)."
+ ],
+ "status": "complete"
+}

@@ -1,0 +1,216 @@
+{
+  "meta": {
+    "file": "outputs/r3_quote_attack.json",
+    "generated_utc": "2026-08-03",
+    "round": "R3 적대적 검증 — 인용 공격",
+    "task_ko": "세 산출물(evasion_catalogue / injection_validation_hunt / deepread_wave5)에 박힌 모든 축자 인용을 원문 PDF 에 대고 재확인한다.",
+    "targets": [
+      "/home/yunjung/workspace/sionna2/outputs/evasion_catalogue.json",
+      "/home/yunjung/workspace/sionna2/outputs/injection_validation_hunt.json",
+      "/home/yunjung/workspace/sionna2/outputs/deepread_wave5.json"
+    ],
+    "method": [
+      "1차: benchmark/verify_quotes_tool.py --only <세 파일> (PyMuPDF 1.28.0 텍스트 레이어). 이 도구는 --selftest 음성대조 7/7 통과 — 날조 인용은 unverified 로 떨어지고 진짜는 verbatim 으로 통과함을 먼저 확인한 뒤 사용했다.",
+      "2차: 도구 판정을 믿지 않고 독립 재검증 스크립트로 118건 전부 다시 채점. 도(°) 계열 글리프(◦ U+2218 / U+25E6)·그리스 문자·생략부호·페이지 경계 걸침을 흡수하는 자체 정규화 사용.",
+      "3차: 연속 일치에 실패한 건은 이진탐색으로 최장 공통 접두사를 재서 '원문의 어느 지점에서 갈라지는가'를 눈으로 확인. 표·그림 전사인지, 문장을 손댄 것인지 여기서 갈린다.",
+      "4차: 수집 사각지대 점검 — 세 파일의 문자열 리프 784개를 전수로 훑어 키 이름에 quote 가 없어 도구가 안 걷어간 영문 산문이 있는지 확인."
+    ],
+    "grading_ko": {
+      "verbatim": "정규화 후 원문에 연속 문자열로 존재. PDF 텍스트 레이어가 각주를 문장 중간에 끼워 넣은 추출 아티팩트는 원문 판독순서 기준으로 연속이므로 verbatim 으로 둔다.",
+      "reconstructed": "내용은 원문에 있으나 연속 문자열이 아니다. 표·그림 전사이거나, 인용부호를 달고 있으면서 실제로는 단어가 바뀐/줄어든 경우.",
+      "NOT_FOUND": "그 문자열이 원문 어디에도 없다. 날조이거나 서로 다른 문장을 이어붙인 것."
+    }
+  },
+
+  "counts": {
+    "n_quotes": 118,
+    "verbatim": 113,
+    "reconstructed": 4,
+    "not_found": 1,
+    "by_source_json": {
+      "evasion_catalogue.json": 67,
+      "deepread_wave5.json": 41,
+      "injection_validation_hunt.json": 10
+    },
+    "collection_completeness": "784개 문자열 리프 중 인용 삼중항 118건 전수 수집. 미수집 9건은 전부 title·정규식 스크린·출처 메모로 축자 인용이 아니다 — 인용문이 도구를 빠져나간 사례는 없다.",
+    "pdfs_opened": 28
+  },
+
+  "headline_ko": "NOT_FOUND 1건. evasion_catalogue papers[2](Ziganshin 저널판)의 인용문은 원문에 없는 문장이며, p.5 의 서로 다른 두 문장을 이어붙인 것이다. 그 결과 2.3→0.8 dB MAE 개선의 원인이 '이중 모서리 회절 추가'에서 '면분할 세밀화'로 뒤바뀌어 있다.",
+
+  "NOT_FOUND": [
+    {
+      "id": "R3-NF-01",
+      "severity": "HIGH",
+      "source_json": "evasion_catalogue.json",
+      "json_path": "/papers[2]/quotes[1]/q",
+      "paper_key": "ZIG-JOUR_2604.05991",
+      "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+      "stated_page": 5,
+      "stated_page_correct": true,
+      "recorded_quote": "Refining the discretization (green curve) improves the prediction from 2.3 to 0.8 dB of MAE and reproduces the behaviour observed in the analytical solution.",
+      "verdict": "NOT_FOUND — 이 문자열은 원문에 존재하지 않는다. 두 문장의 봉합이다.",
+      "actual_source_sentences": [
+        {
+          "label": "A — 주어를 가져온 곳 (원통, 후방산란 영역, Fig. 4a)",
+          "verbatim_p5": "RT with coarse mesh (dashed blue curve) exhibits noticeable deviations from the analytical solution. Refining the discretization (green) significantly improves agreement with the analytical solution.",
+          "note_ko": "여기에는 숫자가 없다. '(green)' 이지 '(green curve)' 가 아니다."
+        },
+        {
+          "label": "B — 술어와 숫자를 가져온 곳 (원통, 그림자 영역, Fig. 4b)",
+          "verbatim_p5": "The standard RT approach (dashed purple) falls short in reproducing the field in the shadow accurately. The inclusion of double-edge diffraction (green curve) improves the prediction from 2.3 to 0.8 dB of MAE and reproduces the behaviour observed in the analytical solution.",
+          "note_ko": "2.3→0.8 dB MAE 는 전부 이 문장의 것이고, 원인은 이중 모서리 회절(double-edge diffraction) 추가다."
+        }
+      ],
+      "what_broke_ko": "A 의 주어('Refining the discretization')에 B 의 술어('(green curve) improves the prediction from 2.3 to 0.8 dB of MAE and reproduces the behaviour observed in the analytical solution')를 붙였다. 내용어 커버리지는 1.000 이라 단어 단위 검사로는 안 잡힌다 — 단어가 전부 같은 페이지에 있기 때문이다. 연속성 검사만이 잡아낸다.",
+      "why_it_matters_ko": "인과가 뒤바뀐다. 원문은 '회절 메커니즘을 추가해야 그림자 영역이 맞는다'고 말하는데, 봉합된 인용문은 '메시를 더 잘게 쪼개면 1.5 dB 좋아진다'로 읽힌다. 우리 RCS 방법론에서 면분할 예산과 회절 항 구현은 전혀 다른 결정이므로, 이 인용문을 그대로 옮기면 잘못된 설계 결론으로 간다.",
+      "blast_radius_ko": "papers[2].verdict_ko 는 '절대 필드 오차 0.8 dB' 만 인용하고 원인을 면분할로 돌리지 않는다. 따라서 verdict(이 논문이 dBsm 대신 |E|(dB) 로 절대 진폭에 커밋했다는 판정)는 살아남는다. 고칠 것은 인용문 자체다. 다만 이 인용문이 다른 기록물·덱으로 이미 복사되었는지는 이번 라운드가 확인하지 않았다.",
+      "fix_ko": "문장 B 를 축자로 갈아끼우고 원인을 double-edge diffraction 으로 적을 것. 면분할 이야기가 필요하면 문장 A 를 숫자 없이 따로 인용할 것.",
+      "corroborating_context_ko": "같은 논문 p.6 에는 별개의 회절 수치가 또 있다 — 'MAE improves from 3.5 to 2.2 dB'(구, EV/VE 추가), p.7 'MAE from 2.6 to 1.6 dB'(차량). 숫자가 여러 쌍 흩어져 있어 봉합이 눈에 안 띄었던 것으로 보인다."
+    }
+  ],
+
+  "reconstructed": [
+    {
+      "id": "R3-RC-01",
+      "severity": "MEDIUM",
+      "source_json": "injection_validation_hunt.json",
+      "json_path": "/evidence[7]/papers[1]/quote",
+      "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2604.02205__evaluation-gnb-monostatic-sensing-uav.pdf",
+      "page_found": 4,
+      "recorded_quote": "The UAV RCS follows the 3GPP RCS model with sigma_M = -12.81 dBsm, while sigma_D = 1, and sigma_S follows a log-normal distribution with sigma_sigma_S = 3.74 dB.",
+      "actual_verbatim": "The UAV RCS follows the 3GPP RCS model with σM = −12.81 dBsm [1] and σD = 1, while σS follows a log-normal distribution with σσS = 3.74 dB.",
+      "delta_ko": "절 구조가 바뀌었다. 원문은 '...dBsm [1] and σD = 1, while σS follows...' 인데 기록은 '...dBsm, while σ_D = 1, and σ_S follows...' 로 and/while 이 맞바뀌었고 인용 표지 [1] 이 조용히 빠졌다.",
+      "substance_ko": "수치는 전부 보존됨(σM=−12.81 dBsm, σD=1, σσS=3.74 dB). 이 증거가 떠받치는 주장은 흔들리지 않는다.",
+      "fix_ko": "축자로 교체하고 [1] 은 유지하거나 [...] 로 명시할 것."
+    },
+    {
+      "id": "R3-RC-02",
+      "severity": "LOW",
+      "source_json": "injection_validation_hunt.json",
+      "json_path": "/evidence[7]/papers[0]/quote",
+      "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2505.24763__detecting-airborne-objects-5gnr-radars.pdf",
+      "page_found": 5,
+      "recorded_quote": "The ST RCS is set to sigma_M = -12.81 dBsm, reflecting values proposed in ongoing 3GPP standardization efforts for small UAVs.",
+      "actual_verbatim": "The ST RCS is set to σM = −12.81 decibels relative to a square meter (dBsm), reflecting values proposed in ongoing 3GPP standardization efforts for small UAVs.",
+      "delta_ko": "원문의 단위 풀어쓰기 'decibels relative to a square meter (dBsm)' 를 'dBsm' 으로 줄였는데 생략 표시가 없다.",
+      "substance_ko": "의미 동일. 표시되지 않은 축약이라는 형식 결함뿐이다.",
+      "fix_ko": "축자로 되돌리거나 '−12.81 [dBsm]' 처럼 축약을 표시할 것."
+    },
+    {
+      "id": "R3-RC-03",
+      "severity": "LOW",
+      "source_json": "evasion_catalogue.json",
+      "json_path": "/papers[12]/quotes[1]/q",
+      "pdf": "/data/public/sionna_jeong/reference_library/iet-rsn-2019-0471__deep2020_pedestrian_rcs_raytracing_pointscatterer__PUBLISHED.pdf",
+      "stated_page": 2,
+      "page_found": 2,
+      "recorded_quote": "The results show a low normalised mean square error (<10%) and high structural similarity (>81%) between the measured and simulated radar signatures.",
+      "actual_verbatim": "Our results show a low normalised mean square error (<10%) and high structural similarity (>81%) between the measured and simulated radar signatures.",
+      "delta_ko": "첫 단어 'Our' → 'The'. 나머지는 완전 일치이고 페이지도 맞다.",
+      "substance_ko": "영향 없음. 다만 같은 논문 p.10 결론은 '>80%' 로 적혀 있어(p.2 는 '>81%') 어느 쪽을 인용했는지가 중요한데, 기록은 p.2 를 정확히 집었다.",
+      "fix_ko": "'Our' 로 복원."
+    },
+    {
+      "id": "R3-RC-04",
+      "severity": "LOW",
+      "source_json": "injection_validation_hunt.json",
+      "json_path": "/evidence[5]/quote",
+      "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2505.08754__3gpp-rcs-indoor-factory-targets.pdf",
+      "page_found": 1,
+      "recorded_quote": "The 3GPP-compliant RCS parameters obtained for the small-sized UAV are in close agreement (< 1 dB deviation) with 3GPP agreed values.",
+      "actual_verbatim": "The 3GPP-complaint RCS parameters obtained for the small-sized UAV are in close agreement (< 1 dB deviation) with 3GPP agreed values.",
+      "delta_ko": "원문 초록의 오타 '3GPP-complaint' 를 말없이 '3GPP-compliant' 로 고쳤다.",
+      "substance_ko": "저자 오타가 맞고 의미도 명백하다. 그러나 축자 인용에 [sic] 없이 손을 댄 것은 규약 위반이다.",
+      "fix_ko": "'3GPP-complaint [sic]' 로 적을 것."
+    }
+  ],
+
+  "verbatim_notes": {
+    "count": 113,
+    "breakdown_ko": {
+      "본문_연속_일치": 108,
+      "PDF_메타데이터_연속_일치": 3,
+      "각주_삽입_추출_아티팩트": 2
+    },
+    "metadata_quotes_ko": "3건은 본문이 아니라 PDF /Subject·저널 스탬프에서 온 게재정보다. 기록물이 스스로 where='PDF /Subject metadata' 라고 밝혀 두었고, 실제 메타데이터와 문자 단위로 일치한다. 축자 맞다.",
+    "metadata_quote_list": [
+      {"json_path": "evasion_catalogue.json/papers[0]/publication_evidence/quote", "field": "/Subject", "exact_match": true},
+      {"json_path": "evasion_catalogue.json/papers[1]/publication_evidence/quote", "field": "/Subject", "exact_match": true},
+      {"json_path": "evasion_catalogue.json/papers[12]/publication_evidence/quote", "field": "저널 스탬프", "exact_match": true}
+    ],
+    "footnote_artifacts_ko": [
+      "deepread_wave5.json/papers[2]/quotes[0]/text — PDF 텍스트 레이어가 'do not significantly alter the channel' 과 'statistics' 사이에 펀딩 각주(This work was supported by Polaris Wireless… Serhat Tadik)를 끼워 넣는다. 판독순서로는 연속이다.",
+      "deepread_wave5.json/papers[4]/quotes[3]/text — 원문은 'Sionna RT¹' 로 각주 번호가 붙는다. 기록이 위첨자를 뺀 것은 표준 인용 관행이다."
+    ]
+  },
+
+  "false_alarms_from_the_tool_ko": {
+    "why_this_section_ko": "verify_quotes_tool.py 는 unverified 3건을 올렸으나 원문 대조 결과 셋 다 도구 쪽 결함이었다. 다음 라운드에서 같은 오경보로 시간을 버리지 않도록 원인을 남긴다.",
+    "cases": [
+      {
+        "tool_verdict": "unverified",
+        "true_verdict": "verbatim",
+        "json_path": "deepread_wave5.json/papers[4]/quotes[1]/text, /quotes[5]/text",
+        "cause_ko": "도(度) 글리프. 이 PDF 는 LaTeX \\circ 를 U+2218/U+25E6('◦')로 찍는데 도구의 _DEG_RE 는 U+00B0('°')만 편다. 그래서 '3°'가 '3deg' 로 안 펴지고 missing token 으로 잡혔다.",
+        "tool_fix_ko": "_DEG_RE 에 ◦ ∘ º ⁰ 를 추가할 것."
+      },
+      {
+        "tool_verdict": "unverified",
+        "true_verdict": "verbatim (메타데이터)",
+        "json_path": "evasion_catalogue.json/papers[1]/publication_evidence/quote",
+        "cause_ko": "기록이 where='PDF /Subject metadata' 라고 명시했는데 도구는 본문 텍스트 레이어에만 대고 채점했다. check_metadata_assertion 은 있으나 META_RE 트리거를 안 타서 호출되지 않았다.",
+        "tool_fix_ko": "형제 키 where/source 가 metadata 를 가리키면 메타데이터 경로로 보낼 것."
+      },
+      {
+        "tool_verdict": "verbatim_doc (페이지 불일치 의심)",
+        "true_verdict": "페이지 정확",
+        "json_path": "injection_validation_hunt.json/evidence[1]/quote_lookup_p12",
+        "cause_ko": "이 기록은 같은 논문의 preprint(2505.20673, 13쪽)와 published(JSAC, 15쪽) 두 경로를 함께 적어 두었다. 도구가 preprint 를 골라 채점해 p.11 로 나왔다. published 판에서 확인하면 정확히 p.12 다. 나머지 두 인용도 published 기준 p.11·p.8 로 키 이름과 일치한다.",
+        "verified_ko": "lookup→published p.12 ✓, heldout→published p.11 ✓, sphere→published p.8 ✓ (셋 다 연속 일치 178/178, 183/183, 131/131 chars)",
+        "tool_fix_ko": "path_published/path_preprint 가 함께 있으면 published 를 우선 채점할 것."
+      }
+    ],
+    "page_misattributions_found": 0,
+    "page_note_ko": "도구가 verbatim_doc 로 올린 7건은 전부 페이지가 키 이름에만 적혀 있어(quote_p7, quote_lookup_p12 …) 도구가 stated_page 를 못 뽑은 것이다. 키 이름의 페이지를 수동 대조한 결과 7건 모두 일치했다 — 페이지 오귀속 0건."
+  },
+
+  "secondary_finding_titles_ko": {
+    "severity": "LOW",
+    "what_ko": "인용문은 아니지만 같은 종류의 결함이라 함께 보고한다. evasion_catalogue.json 의 title 필드 4개는 논문의 실제 제목이 아니라 우리 내부 설명 라벨이다. pdf_path 가 함께 있어 논문 식별은 모호하지 않지만, 이 값을 그대로 참고문헌으로 옮기면 검색이 안 된다.",
+    "cases": [
+      {
+        "json_path": "/papers[15]/title",
+        "recorded": "SagittaSBR: GPU/MPI shooting-and-bouncing-rays with discretized PO integration",
+        "actual_title": "BVH-Accelerated Ray Tracing for High-Frequency Electromagnetic Backscattering",
+        "note_ko": "가장 오해 소지가 크다 — 'Sagitta' 는 제목에 없고 소프트웨어 이름이다(github.com/marco-pas/SagittaSBR, 본문 7회). 기억에 A1 교차검증 참고문헌으로 등록된 논문이라 제목이 틀리면 아프다."
+      },
+      {
+        "json_path": "/papers[3]/title",
+        "recorded": "Bistatic reflectivity and micro-Doppler signatures of drones for ISAC (RadarConf24 판)",
+        "actual_title": "Modelling Micro-Doppler Signature of Drone Propellers in Distributed ISAC"
+      },
+      {
+        "json_path": "/papers[12]/title",
+        "recorded": "Radar cross-section of pedestrians / human micro-Doppler via ray tracing + point scatterers",
+        "actual_title": "Radar cross-sections of pedestrians at automotive radar frequencies using ray tracing and point scatterer modelling"
+      },
+      {
+        "json_path": "/papers[16]/title",
+        "recorded": "Monte Carlo shooting-and-bouncing rays for far-field scattering",
+        "actual_title": "Accelerated, Memory-Efficient Far-Field Scattering Computation with Monte Carlo SBR"
+      }
+    ],
+    "fix_ko": "title 은 축자 제목으로 두고, 설명 라벨이 필요하면 label_ko 같은 별도 키로 분리할 것."
+  },
+
+  "what_this_pass_did_not_do": [
+    "R3-NF-01 의 봉합된 인용문이 다른 기록물·리포트·덱으로 이미 복사되었는지는 추적하지 않았다. 세 파일 밖은 이번 범위가 아니다.",
+    "인용문이 축자인지만 봤다. 그 인용문에서 뽑아낸 해석(verdict_ko, q1_claim_class 같은 판정)이 타당한지는 별개 문제이며 검사하지 않았다.",
+    "term_counts(dBsm 0회 등) 의 부재 주장은 이번 라운드에서 다시 세지 않았다.",
+    "래스터 그림 안의 텍스트는 여전히 사각지대다. 표·그림에서 옮긴 수치가 있다면 이 방법으로는 verbatim 여부를 가릴 수 없다.",
+    "PDF 텍스트 레이어만 근거로 삼았다. 텍스트 레이어가 원문 조판과 다르게 배열되는 경우(2단·각주)는 판독순서로 보정했으나 완전하지는 않다."
+  ],
+
+  "status": "COMPLETE — 118/118 채점, NOT_FOUND 1건 확정"
+}

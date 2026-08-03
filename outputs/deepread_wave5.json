@@ -1,0 +1,353 @@
+{
+  "meta": {
+    "file": "outputs/deepread_wave5.json",
+    "generated": "2026-08-03",
+    "purpose_ko": "outputs/deepread_backlog.json 의 deprioritized_tail(107편) 중 우리 과제(드론 RCS·패시브 바이스태틱·Sionna 센싱)에 가장 가까운 6편을 골라 원문 정독한 결과. 이 파일은 읽기 결과이며, 논문에 대한 모든 주장에는 축자 인용문 + PDF 경로 + 쪽수가 붙는다.",
+    "the_rule_ko": "축자 인용 + 쪽수가 없는 문장은 UNVERIFIED 이고, UNVERIFIED 라고 적는 것도 결과다.",
+    "selection_method_ko": [
+      "tail 107편 전부의 basename·state·why_ko 를 훑고, backlog entries[] 의 signals(term-count)로 레이더 관련 신호(rcs·dbsm·sbr·po·bistatic·monostatic·passive_radar·anechoic·drone_uav·cfar·crs/prs/ssb)를 가진 후보만 남겼다.",
+      "term-count 는 신호일 뿐이라 후보 15편의 1쪽(초록)을 직접 열어 판정했다.",
+      "이미 정독된 편은 제외했다 - outputs/deepread_w1~w5.json 를 basename 으로 역조회해 read 여부를 확인했고, w3 의 tier 필드('UNREAD - 용어 카운트만')로 실제 미독을 확정했다.",
+      "최종 6편은 우리 세 축에 하나씩 이상 닿도록 배분했다: Sionna 산란/재질 모델의 1차 출처(1), 산란 물리를 Sionna 밖으로 외주하는 패턴 + 실측 검증 사다리(1), 실물→메시→재질 파이프라인(2), 하드웨어 인 더 루프 실측 준비(1), '표적 센싱'이라 쓰고 산란을 안 푸는 ISAC 논문(1)."
+    ],
+    "n_read": 6,
+    "read_depth_ko": "6편 모두 본문 전 쪽 텍스트 추출 후 정독. 그림은 축자 인용 대상에서 제외했고 표·본문 숫자만 인용했다.",
+    "environment_checks_run": [
+      "python -c 'import sionna.rt' 로 설치본 2.0.1 의 공개 심볼을 열거해 RIS 클래스 부재를 확인했다(아래 checks_run 참조).",
+      "인용문마다 PyMuPDF 로 해당 쪽에 실제로 존재하는지 재대조했다(하이픈 개행 정규화 포함)."
+    ]
+  },
+
+  "papers": [
+    {
+      "rank_for_us": 1,
+      "basename": "Learning_Radio_Environments_by_Differentiable_Ray_.pdf",
+      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Learning_Radio_Environments_by_Differentiable_Ray_.pdf",
+      "title": "Learning Radio Environments by Differentiable Ray Tracing",
+      "authors": "J. Hoydis, F. Aït Aoudia, S. Cammerer, F. Euchner, M. Nimier-David, S. ten Brink, A. Keller (NVIDIA + Univ. Stuttgart)",
+      "pages": 12,
+      "prior_state_in_our_records": "deepread_w3.json 에서 tier='UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED.' 였다. backlog tail 에서는 score 0 · '회절 처리 있음; 강등: Sionna 전파해석 전용(장면에 표적이 없음)'.",
+      "publication_status": {
+        "value": "게재(저자 수용판). 12쪽 전 쪽 하단에 수용 스탬프가 찍혀 있다.",
+        "quote": {
+          "page": "1-11 (every page footer)",
+          "text": "This article has been accepted for publication in IEEE Transactions on Machine Learning in Communications and Networking. ... Citation information: DOI 10.1109/TMLCN.2024.3474639"
+        },
+        "pdf_metadata_subject": "IEEE Transactions on Machine Learning in Communications and Networking; ;PP;99;10.1109/TMLCN.2024.3474639",
+        "volume_pages_secondhand": "vol. 2, pp. 1527-1539, 2024 — 이 PDF 안에는 없다. 2606.01261(RFDT-Channel) 의 참고문헌 [19] 에서 나온 2차 정보이므로 인용 전 IEEE Xplore 로 확인할 것."
+      },
+      "target_what_ko": "표적이 없다. 슈투트가르트 대학 통신연구소 복도와 현관홀이라는 실내 전파 환경 자체가 대상이고, 이동 송신기는 단일 다이폴 단말이다. 산란 표적·드론·RCS 는 논문 전체에 없다.",
+      "scattering_how_ko": "Sionna RT 의 표준 표면 모델 그대로다. 재질은 (εr, σ, S, Kx) 네 파라미터, 확산 성분은 S² 로 갈라 표면소 dA 에 대한 산란패턴 fs 로 뿌린다 - 즉 표면 산란 모델이지 표적 위 산란적분이 아니다. 논문의 기여는 이 네 파라미터와 안테나·산란 패턴을 미분가능하게 매개화해 경사하강으로 교정하는 것이다. 'Neural Materials' 는 좌표를 positional encoding 해 MLP 가 교차점마다 재질을 뱉게 한 것.",
+      "validation_what_ko": "두 겹이다. (1) 합성 데이터 - 재질 참값을 알고 있는 장면에서 3000 스텝(RTX 3090 약 10분) 만에 εr·σ·S·Kx 를 전부 복원. (2) 실측 - DICHASUS 분산 MIMO 채널 사운더로 3.438 GHz·50 MHz·1024 부반송파·약 32.5k 위치에서 잰 CFR 에 맞춰 교정. 지표는 총 채널이득의 절대 로그오차(ALE)와 RMS 지연확산의 상대오차(RAE).",
+      "key_numbers": {
+        "ALE_dB_avg_sd (Table II, p.8)": {"ITU Materials": "4.93 / 5.30", "Learned Materials": "2.11 / 1.72", "Neural Materials": "1.06 / 0.95", "Neural (right corridor only)": "1.65 / 1.33", "Neural (RX 2 only)": "1.96 / 2.31"},
+        "RAE_delayspread_avg_sd (Table II, p.8)": {"ITU": "0.53 / 0.23", "Learned": "0.23 / 0.17", "Neural": "0.13 / 0.12"},
+        "measurement (p.6)": "f=3.438 GHz, BW=50 MHz, 1024 subcarriers, ~32.5k positions, 두 개의 8x4 패널이 복도 양끝 약 50 m",
+        "compute (p.7)": "경로 데이터셋 생성 약 14 h on RTX 4090, 교정 1회 8~15 분"
+      },
+      "quotes": [
+        {"page": 4, "text": "We consider a fixed maximum number of specular reflections, possibly followed by a diffuse reflection. Only first-order diffraction (i.e., transmitter-diffraction-receiver) is assumed and refraction ignored. Specular paths are found by first determining a set of candidate primitives using shooting-and-bouncing rays (SBR) which are then corrected to exact specular chains using the image method. Diffuse reflections are found through next event estimation in the same process."},
+        {"page": 4, "text": "Note that we do not seek to compute gradients w.r.t. the scene geometry, although this would be in principle possible, see, e.g., [49]. This has the advantage that the calibration is carried out on the field computations alone which avoids re-tracing of paths for every training iteration."},
+        {"page": 3, "text": "A material is described by four parameters, the conductivity σ ≥ 0, the relative permittivity εr ≥ 1, the scattering coefficient S, and the cross polarization discrimination (XPD) coefficient Kx ∈ [0, 1]."},
+        {"page": 7, "text": "Although we may in principle calibrate antenna and scattering patterns as done for the synthetic dataset, we did not observe any benefits in doing so for our measured dataset. For this reason, diffuse reflections were turned off and the receive and transmit antennas were respectively configured with vertically polarized 3GPP 38.901 [2] and ideal dipole antenna patterns. We have simulated specular reflections up to fifth order as well as first order diffractions."},
+        {"page": 6, "text": "Despite the intricate nature of this setting, characterized by composite walls of drywall, glass, and metal, a ceiling half-covered by a metal grid, and a sizable magnetic board in the entrance hall, we opted for a rudimentary handcrafted 3D model. This model solely represents the visible walls, floor, and ceiling."},
+        {"page": 10, "text": "Although all parameters have clear physical interpretations, the calibration does not necessarily lead to the same values which would be obtained by directly measuring them for each object. The reason for this is that calibration also compensates for errors in the geometry and measurements as well as modelling errors in the RT process."},
+        {"page": 5, "text": "A particularity of our channel measurements is that no absolute power reference is known. This means that all examples of the measured dataset are scaled by a common but unknown value α ∈ R."}
+      ],
+      "use_for_us_ko": [
+        "⭐ p.4 축자가 우리 'Sionna RT-RCS 주장 범위' 메모의 1차 출처가 된다. Sionna 저자들 본인이 SBR 은 '후보 primitive 를 찾는 단계'이고 정반사는 image method 로 보정, 확산은 next event estimation, 회절은 1차만, 굴절은 무시라고 썼다. 우리가 유지할 수 있는 문장은 '스톡 파이프라인에 표적 산란적분 단계가 없다'이지 'SBR 이 없다'가 아니다.",
+        "⭐ 절대 진폭 앵커링의 외부 기준선. 실측 교정을 끝까지 밀어붙인 최신 결과가 실내 복도 경로손실 평균 1.06 dB, 미교정 ITU 재질은 4.93 dB 다. 우리 PO 커널의 ±2~3 dB 앵커링 목표가 문헌 대비 어디쯤인지 이 두 수로 말할 수 있다.",
+        "재질 교정 문헌 지도의 4분류(개별 물성 측정 / 집계통계 피팅 / per-ray 매칭 / 미분가능 RT)가 p.1~2 에 정리돼 있다. 우리 report06 의 '재질을 어떻게 정하나' 절에 그대로 인용 가능.",
+        "p.10 의 자기고백 - 교정된 파라미터는 물리 참값이 아니라 기하·측정·모델 오차까지 흡수한 값이다. 우리가 GROUP_GAMMA 를 실측에 맞춰 조정할 때 반드시 같이 적어야 할 단서다.",
+        "p.5 의 '절대 전력 기준이 없어 공통 스케일 α 를 EMA 로 추정' - 우리 X410 실측에서도 절대 교정이 없으면 같은 문제가 생긴다. 그들의 해법(배치마다 최소자승 α + EMA)이 바로 이식 가능하다."
+      ],
+      "conflicts_with_our_records_ko": [
+        "⚠ outputs/reference_library.json 의 hoydis 항목 pdf 는 arXiv 판(2311.18558__hoydis_learning-radio-env.pdf, 11쪽)을 가리킨다. 쪽 인용은 게재판(이 파일, 12쪽)에서만 맞다. 두 파일은 쪽수가 1쪽 다르므로 인용 쪽 번호가 어긋날 수 있다. (report01_citation_audit.json 이 이미 같은 오배치를 지적해 두었다 - 그 정정을 reference_library 에 반영하지 않은 상태다.)",
+        "백로그 tail 의 강등 사유 '장면에 표적이 없음' 은 사실이지만 '우리 주장 축과 접점 없음' 은 틀렸다. 이 편은 우리 회절·SBR·재질 문장 세 개의 1차 출처다."
+      ],
+      "cautions_ko": [
+        "⚠ 이 논문의 실측 교정 절에서는 확산 반사를 '껐다'(p.7). '이 논문이 확산 산란을 실측 검증했다'로 요약하면 거짓이다. 확산·산란패턴 학습이 검증된 곳은 합성 데이터 절뿐이다.",
+        "⚠ 4.93 dB 대 1.06 dB 는 실내 복도 경로손실 대상이다. 이것을 'RCS 오차'로 옮기면 종류가 다른 양을 옮기는 것이다."
+      ]
+    },
+
+    {
+      "rank_for_us": 2,
+      "basename": "2409.17738__shabanpour-physically-consistent-ris.pdf",
+      "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2409.17738__shabanpour-physically-consistent-ris.pdf",
+      "title": "Physically Consistent RIS: From Reradiation Mode Optimization to Practical Realization",
+      "authors": "J. Shabanpour, C. Simovski (Aalto), G. Geraci (Telefónica Research / UPF)",
+      "pages": 6,
+      "prior_state_in_our_records": "deepread_w3.json tier='UNREAD - 용어 카운트만'. backlog tail why_ko 는 '표적을 산란 계산에 실제로 통과시킴(PO/SBR/MoM/dBsm)' 이라고 적었다 - 아래 conflicts 참조.",
+      "publication_status": {"value": "UNVERIFIED. 1쪽에 게재처 스탬프가 없고 PDF /Subject 도 비어 있다. arXiv:2409.17738 로만 인용할 것."},
+      "target_what_ko": "표적은 RIS(재구성 지능형 표면) 자신이다. 케이프타운 시가지 한 구획(8 GHz, FR3)에서 커버리지가 나쁜 두 개의 10x10 m 구역을 RIS 재복사 모드로 살리는 문제. 드론·비협조 표적은 없다.",
+      "scattering_how_ko": "두 단계로 갈린다. (1) Sionna 레이트레이싱 안에서는 RIS 가 Degli-Esposti/Vitucci 의 거시적 재복사 모델(내장)로 처리된다. 즉 메시 위 산란적분이 아니라 '재복사 모드 진폭' 이라는 매개변수로 들어가고, Adam(lr 0.01)으로 그 진폭을 학습한다. (2) 그 진폭을 실제로 실현하는 물리(시트 임피던스 → 유닛셀 → 바랙터)는 Sionna 밖에서 계산된다 - 모드매칭 + Matlab 최적화 + CST Microwave Studio 풀웨이브.",
+      "validation_what_ko": "3단 사다리다. 이론(모드매칭 예측) → 풀웨이브(CST, 주기경계, 평면파 수직입사, K=9 유닛셀) → 실측(평행판 도파관 PPW 안에서 45개 유닛셀 1행, 구리판 1x2 m 두 장, 원형 구멍 배열로 3° 간격 S21 을 VNA 로 측정). 세 단계 모두 같은 세 시나리오([0.5,0.5],[0.3,0.7],[0.7,0.3])에서 비교한다.",
+      "key_numbers": {
+        "carrier": "8 GHz (FR3 7-24 GHz 대역 사용례)",
+        "ray_tracing (p.2)": "최대 6회 반사, 10^7 개 랜덤 광선, LOS·반사·산란·회절 포함. RIS 크기 82.5 x 82.5 cm, BS 33 m / RIS 40 m 높이",
+        "coverage (p.2)": "RIS 없을 때 두 표적구역 약 -110 dB → 동등강도 최적화 후 두 구역 모두 -93.6 dB 로 수렴, 모드 진폭 [0.41, 0.59], 구역 주변 약 25 dB 개선",
+        "theory_vs_experiment P1/P2 (p.6, Fig.6c-e)": "2.33 ↔ 2.24 · 1 ↔ 0.98 · 0.43 ↔ 0.45",
+        "loss (p.6)": "커패시터·바랙터 손실 약 10%"
+      },
+      "quotes": [
+        {"page": 2, "text": "In particular, we employ NVIDIA Sionna [10], a GPU-accelerated, open-source library based on TensorFlow. Sionna uses the RIS model from [7], [8] in its ray tracer to calculate channel impulse responses and coverage maps."},
+        {"page": 2, "text": "Our simulations consider a maximum of six ray bounces and trace 107 random rays, accounting for line-of-sight propagation, reflection, scattering, and diffraction."},
+        {"page": 2, "text": "Note that in physically consistent RIS modeling, conventional unitcells are not defined."},
+        {"page": 5, "text": "We utilize CST Microwave Studio to calculate the reradiations from the RIS by applying periodic boundary conditions in the x- and y-directions."},
+        {"page": 5, "text": "These align closely with our theoretical predictions and confirm that the incident plane wave is nearly fully reflected into the desired reradiation modes with the predefined reflection amplitudes."},
+        {"page": 6, "text": "The results show that the theoretical predictions for the mode power allocations align well with the measurements."},
+        {"page": 6, "text": "We note that the remaining power is either dissipated due to varactor losses or falls into blind spots. From the curves, it can be seen that the capacitor and varactor losses are approximately 10%, which is considered within an acceptable range."}
+      ],
+      "use_for_us_ko": [
+        "⭐ 우리 검증 사다리의 외부 선례. '레이트레이서로 설계 → 풀웨이브로 확인 → 실물 제작해 측정' 이라는 3단이 6쪽짜리 학회 논문 안에서 실제로 돌아간 사례다. 우리의 'PO/SBR 커널 → openEMS/문헌 앵커 → X410 실측' 사다리를 정당화하는 형식적 선례로 인용 가능하다.",
+        "⭐ '산란 물리는 Sionna 밖에서 계산된다' 패턴의 또 한 사례. Sionna 는 재복사 모드 진폭이라는 매개변수까지만 다루고, 그 진폭을 만드는 표면 물리는 CST 가 낸다. 우리가 SBR+PO 를 직접 짜는 이유를 설명할 때 이 분업 구조를 그대로 보여줄 수 있다.",
+        "정량 일치 보고 방식이 참고가 된다 - 절대 dBsm 이 아니라 '두 모드의 전력비 P1/P2' 라는 비(ratio) 지표로 이론↔실측을 맞췄다. 절대 교정이 어려운 우리 실측에서도 같은 전략(비 기반 지표)이 쓸 만하다.",
+        "PPW(평행판 도파관) 기법 - 한 방향으로 균일한 2D 구조는 1행만 제작해 무한 표면을 흉내낼 수 있다. 무향실 없이도 각도 분해 측정을 하는 저비용 대안으로 기록해 둔다(우리 드론에는 직접 적용 불가하지만 발상은 유효)."
+      ],
+      "conflicts_with_our_records_ko": [
+        "⚠⚠ backlog tail 의 why_ko '표적을 산란 계산에 실제로 통과시킴(PO/SBR/MoM/dBsm)' 은 기계 카운트 오탐이다. 이 논문에 PO 도 SBR 도 MoM 도 dBsm 도 없다(backlog 자신의 signals 도 po=0, sbr=0, dbsm=0, rcs=0 이다). 'fullwave_solver: 6' 은 전부 CST 언급이다. 트리아지 문구를 고칠 것.",
+        "⚠ '기반은 TensorFlow' 라는 p.2 서술은 Sionna 0.x 세대 기준이다. 우리 설치본 2.0.1 의 PHY 는 PyTorch 이고 RT 는 별도 배포다(우리 'Sionna 버전·확장점' 메모와 일치). 이 논문을 근거로 'Sionna=TensorFlow' 라고 적으면 우리 기록과 어긋난다.",
+        "⚠⚠ 더 중요한 것 - 이 논문이 쓴 'Sionna 내장 RIS 모델' 경로는 우리 버전에 존재하지 않는다. 설치본 sionna.rt 2.0.1 의 공개 심볼에 RIS 관련 클래스가 0개다(checks_run 참조). 즉 '이상 재복사 객체를 Sionna 에 심는 공식 통로' 는 0.x 에는 있었고 지금은 없다. 우리 '확장점=재질/산란패턴 추상베이스만' 메모는 강화되지만, '과거에 RIS 객체 모델이 있었다' 는 사실은 우리 기록 어디에도 없다."
+      ],
+      "cautions_ko": [
+        "⚠ 표적이 RIS 다. '드론 산란을 풀웨이브로 검증한 논문' 으로 옮기면 거짓이다.",
+        "⚠ 실측은 자유공간 무향실이 아니라 평행판 도파관 안이다. '무향실 실측 앵커' 목록에 넣지 말 것."
+      ]
+    },
+
+    {
+      "rank_for_us": 3,
+      "basename": "2501.06945__tadik-opengert-geometry-extraction.pdf",
+      "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2501.06945__tadik-opengert-geometry-extraction.pdf",
+      "title": "OpenGERT: Open Source Automated Geometry Extraction with Geometric and Electromagnetic Sensitivity Analyses for Ray-Tracing Propagation Models",
+      "authors": "S. Tadik, R. Bhattacharjea, J. Corgan, D. Johnson, J. Van der Merwe, G. D. Durgin (Georgia Tech / Corgan Labs / Univ. Utah)",
+      "pages": 9,
+      "prior_state_in_our_records": "deepread_w3.json tier='UNREAD - 용어 카운트만'. backlog tail score -2.",
+      "publication_status": {"value": "UNVERIFIED (arXiv:2501.06945v3, 20 Feb 2026 스탬프). 1쪽에 게재처 없음."},
+      "target_what_ko": "표적이 없다. 뮌헨·에투알 도시 장면(Sionna RT 기본 제공)에서 송신기 10곳을 놓고 수신점들의 채널통계를 본다. 이 논문의 대상은 '장면 자체의 불확실성'이다.",
+      "scattering_how_ko": "Sionna RT 스톡 그대로다. 그런데 산란을 아예 끄고 돌렸다 - 설정은 'LOS, 최대 5회 반사, 회절·엣지회절 켬, 산란 끔, 광선 100만 개'(Table I, p.4). 재질은 ITU 재질을 Blender 에서 배정한다. 기여는 OSM + Microsoft Global ML Building Footprints + USGS 고도를 Blender Python API 로 자동 조립해 Mitsuba XML 로 내보내고 Sionna RT 가 읽게 하는 파이프라인, 그리고 그 위의 섭동 민감도 분석이다.",
+      "validation_what_ko": "실측 검증이 없다. 검증 대신 '섭동 민감도' 를 한다 - 건물 높이에 σ=1 m, 위치에 σ=0.4 m, 재질 εr·σ 에 각 초기값의 10% 표준편차 가우시안 잡음을 넣고 장면당 송신기 10곳 x 섭동유형 5종 x 각 50회를 돌려 경로이득·평균초과지연·지연확산·링크단절·라이시안 K 의 표준편차를 본다.",
+      "key_numbers": {
+        "frequency": "3.5 GHz, Tx/Rx 등방·수직편파·1소자",
+        "perturbation (Table I, p.4)": "건물 높이 σ=1 m · 건물 위치 σ=0.4 m · εr 및 σ 는 초기값의 10%",
+        "solver_config (Table I, p.4)": "LOS, 최대 5회 반사, 회절 및 엣지회절, 산란 없음, 100만 샘플",
+        "aggregated path gain std (Fig.6a, p.7)": "뮌헨·재질+높이+위치 동시섭동에서 Mean = 4.45 dB, Median = 2.34 dB",
+        "aggregated MED std (p.7)": "Mean = 436.29 ns, Median = 224.58 ns",
+        "aggregated DS std (p.7)": "Mean = 23.83 ns, Median = 4.46 ns"
+      },
+      "quotes": [
+        {"page": 1, "text": "The findings reveal that, assuming the initial material properties of buildings are roughly accurate, minor perturbations in permittivity and conductivity do not significantly alter the channel statistics. In contrast, variations in building height and position have a considerable impact on all the statistics, even with a noise standard deviation of 1 meter for building heights and 0.4 meters for building positions."},
+        {"page": 4, "text": "Material properties, such as relative permittivity and conductivity, were also altered to simulate uncertainty in electromagnetic parameters. Assuming that initial material parameters were approximately correct, Gaussian noise with a standard deviation equal to 10% of the initial values was added."},
+        {"page": 4, "text": "Coverage Map & Path Configuration | Line-of-sight (LOS), up to 5 reflections, diffraction and edge diffraction, no scattering, 1 million samples"},
+        {"page": 5, "text": "In such cases, diffraction and edge diffraction are the primary contributors to path gain and are significantly affected by changes in building heights which in turn makes the path gain standard deviation large at those locations."},
+        {"page": 6, "text": "Without scattering, and with a cap of five reflections per ray, the complexity of multipath propagation is inherently limited in the simulations."},
+        {"page": 9, "text": "Moreover, when the general material class of buildings is known, introducing a modest 10% uncertainty in their relative permittivity and conductivity does not significantly change the resulting channel statistics. However, if the initial material parameters are largely unknown or mischaracterized, the resulting variability would likely be much greater."}
+      ],
+      "use_for_us_ko": [
+        "⭐ '기하 정확도 > 재질 정확도' 의 정량 근거. 재질을 10% 흔드는 것보다 건물 높이를 1 m, 위치를 0.4 m 흔드는 쪽이 훨씬 크게 채널을 바꾼다. 우리 CAD 재구축(trimesh+manifold3d)에 들인 비용을 정당화하는 외부 인용이고, 동시에 우리 재질가중 PO 의 GROUP_GAMMA 세밀화가 어느 지점부터 수확체감인지에 대한 경고다.",
+        "⭐ 불확실성 예산의 문헌 눈금. 도시 장면에서 기하+재질을 함께 흔들면 경로이득 표준편차가 평균 4.45 dB / 중앙값 2.34 dB 다. 우리가 ±2~3 dB 앵커링을 말할 때 '문헌의 장면 불확실성도 같은 자릿수' 라고 붙일 수 있다.",
+        "방법론 차용 - 섭동 개수(장면당 Tx 10 x 유형 5 x 각 50회)와 통계쌍 분산도(pairwise dispersion) 형식은 우리 드론 메시/재질 민감도 분석에 그대로 옮길 수 있는 실험 설계다. 코드도 공개(github.com/serhatadik/OpenGERT/).",
+        "p.5 의 관찰 - LOS 도 다중반사도 안 되는 지점에서는 회절이 경로이득의 주 기여자이고 그런 곳이 가장 민감하다. 우리 챔버 바닥유령·차폐 구역 해석에 참고."
+      ],
+      "conflicts_with_our_records_ko": [
+        "우리 기록과 정면 충돌은 없다. 다만 한 가지 - 우리는 'PathSolver 기본 diffraction=False 라 회절을 안 켰다' 를 한계로 적어 왔는데, 이 논문은 회절·엣지회절을 켜고 산란을 껐다. 즉 문헌의 기본값은 하나가 아니다. '회절 없이 돌리는 것이 이 분야 기본값' 이라는 우리 reconcile 문장은 이 편 앞에서 약해진다 - 회절을 켠 Sionna 연구가 실재한다.",
+        "⚠ 이 논문은 σ 를 두 뜻으로 쓴다(전도율 σ, 잡음 표준편차 σ). 인용할 때 반드시 구분할 것."
+      ],
+      "cautions_ko": [
+        "⚠ 실측 대조가 0 이다. '섭동 민감도' 는 시뮬레이터 내부 자기일관성이지 정확도가 아니다. '문헌이 4.45 dB 오차를 측정했다' 로 옮기면 거짓이다 - 잰 것은 오차가 아니라 산포다.",
+        "⚠ 결론의 조건절을 떼면 안 된다 - '재질 종류를 이미 알고 있을 때' 10% 섭동이 무해하다는 것이고, 재질을 모르면 훨씬 커진다고 저자들이 직접 단서를 달았다(p.9)."
+      ]
+    },
+
+    {
+      "rank_for_us": 4,
+      "basename": "2606.01261__yao-rfdt-channel-rgb-lidar-28ghz.pdf",
+      "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2606.01261__yao-rfdt-channel-rgb-lidar-28ghz.pdf",
+      "title": "RFDT-Channel: RGB-LiDAR-Based RF Digital Twin Scene Construction for 28 GHz Indoor Ray-Tracing Channel Simulation",
+      "authors": "C. Yao, C. Pan, J. Zeng, Y. Sun, H. Weng, H. Wang, H. Ren, J. Wang (Southeast Univ. 계열)",
+      "pages": 9,
+      "prior_state_in_our_records": "deepread_w3.json tier='UNREAD - 용어 카운트만'. backlog tail score -3.",
+      "publication_status": {"value": "UNVERIFIED (arXiv 계열, 1쪽에 게재처 스탬프 없음)."},
+      "target_what_ko": "표적이 없다. 실제 실내 공간(방 하나)을 RGB 영상 + LiDAR 로 재구성해 28 GHz 채널을 시뮬레이션하는 파이프라인 논문이다. 표적 대신 '실물 → 메시' 자체가 주제다.",
+      "scattering_how_ko": "Sionna RT 스톡. 최대 깊이 8, 엣지회절과 산란을 켜고 LOS·정반사·확산반사·굴절 경로를 낸다. 재질은 OpenScene(개방어휘 3D 의미분할)이 낸 의미영역을 사람이 검수한 뒤 ITU-R P.2040 의 콘크리트·유리·목재·금속에 수동 매핑한다. 저자들은 OpenScene 이 '전자기 파라미터 예측기가 아니라 의미 단서 제공자' 라고 못박는다.",
+      "validation_what_ko": "실측 채널 대조가 없다. 검증 대신 같은 메시·같은 TX/RX 에서 재질만 바꾼 두 설정(All Concrete vs Multi-Material)을 서로 비교한다. 지표는 유효경로 수, 최대 CIR 진폭, CFR 모양, 라디오맵 차분.",
+      "key_numbers": {
+        "frequency_setup (p.6)": "28 GHz, max depth 8, TX (1.5, 0.0, 0.8) m / RX (1.5, 4.0, 0.8) m, 수평거리 4.0 m, 1024 부반송파 x 30 kHz = 30.72 MHz",
+        "hardware (p.3, Table I)": "NVIDIA Jetson Orin + Hesai PandarXT-32 LiDAR + GMSL 카메라, ROS 2",
+        "pipeline": "COLMAP → 3DGS → SuGaR 메시 → Blender 에서 LiDAR 유도 정규화 → OpenScene 의미 재질 → Sionna RT",
+        "headline (p.6, p.8)": "유효경로 수 약 742(All Concrete) → 약 52(Multi-Material), 최대 CIR 진폭은 양쪽 모두 약 4.63e-4 로 불변"
+      },
+      "quotes": [
+        {"page": 5, "text": "The resulting Gaussian field has good visual fidelity, but it is still a continuous primitive set designed for image rendering and cannot directly serve as ray-intersection geometry in Sionna RT."},
+        {"page": 5, "text": "Local noise, holes, broken surfaces, uneven wall boundaries, and unclear door/window contours may appear. For visual rendering, these issues may sometimes be hidden by textures or viewpoint changes. In ray tracing, however, they directly affect reflecting surface normals, occlusion boundaries, penetration path lengths, and ray-intersection stability."},
+        {"page": 5, "text": "The specific operations include using wall and floor point clouds to help determine the main room planes, applying Solidify to assign physical thickness to walls, using Boolean operations to construct door and window openings, repairing local broken surfaces and unstable boundaries, and preserving key blockage and reflection boundaries for furniture and metal objects."},
+        {"page": 6, "text": "The carrier frequency is 28 GHz, the maximum depth is set to 8, edge diffraction and scattering are enabled, and the path types include LOS, specular reflection, diffuse reflection, and refraction."},
+        {"page": 6, "text": "As shown in Fig. 3, the number of effective paths decreases from about 742 in the All Concrete case to about 52 in the Multi-Material case, whereas the maximum CIR amplitude remains approximately 4.63×10−4 in both cases."},
+        {"page": 6, "text": "In this workflow, OpenScene does not predict permittivity, conductivity, or surface roughness. Instead, it provides semantic cues for material-related regions."},
+        {"page": 5, "text": "Here, the LiDAR point cloud provides scale and geometric reference, rather than error-free physical ground truth."}
+      ],
+      "use_for_us_ko": [
+        "⭐ '보기 좋은 메시 ≠ 레이트레이싱 가능한 메시' 를 명시적으로 쓴 외부 문장(p.5)이 생겼다. 우리 CAD 재구축에서 manifold3d 로 벽 두께·위상 복구를 한 이유를 이 축자로 뒷받침할 수 있다. report02/03 의 왜-절에 바로 넣을 문장이다.",
+        "⭐ 재질 결합의 효과가 '약경로를 지우는 것' 이지 '지배경로 진폭을 바꾸는 것' 이 아니라는 대조 실험(742→52, 최대진폭 불변). 우리 재질가중 PO 가 형상 A/B 대비 몇 dB 를 움직였다는 결과와 나란히 놓으면, '언제 재질이 중요한가' 를 구분해 말할 수 있다 - 지배 정반사가 살아 있으면 재질은 부차적이고, 약산란 총합이 문제일 때 재질이 지배한다.",
+        "실물대조 파이프라인의 최신 사례(COLMAP → 3DGS → SuGaR → LiDAR 정규화 → 의미 재질). 우리 report03(실물 대조)의 선행 방법론 칸을 채운다. 특히 '의미분할은 재질 카테고리 단서일 뿐, 전자기 파라미터는 사람이 ITU 표에서 고른다' 는 분업이 우리와 같다.",
+        "이 편의 참고문헌 [19] 가 Hoydis 게재판의 권·쪽(IEEE TMLCN, vol. 2, pp. 1527-1539, 2024)을 준다 - 2차 정보이지만 우리 인용 초안 보강에 쓸 단서."
+      ],
+      "conflicts_with_our_records_ko": [
+        "우리 기록과의 직접 충돌 없음. 다만 우리가 '재질을 정교화하면 진폭이 바뀐다' 는 서사를 쓸 때, 이 편은 반대 방향 사례(지배경로 진폭 완전 불변)를 제공한다. 두 결과가 모순이 아니라 조건이 다른 것임을 report08 에서 명시할 것."
+      ],
+      "cautions_ko": [
+        "⚠⚠ '유효경로' 의 임계값을 논문이 밝히지 않는다. 742 → 52 라는 14배 감소는 임계값 정의에 크게 좌우되므로, 이 수를 우리 문서에 옮길 때 반드시 '임계 정의 미공개' 를 붙일 것.",
+        "⚠ 실측 채널 대조가 0 이다. 제목의 'digital twin' 은 파이프라인을 뜻하지 검증된 트윈을 뜻하지 않는다.",
+        "⚠ TX/RX 가 4 m 거리 LOS 고정 1쌍뿐이다. 일반화 주장 금지."
+      ]
+    },
+
+    {
+      "rank_for_us": 5,
+      "basename": "2510.17342__ceresoli-aoa-services-5g.pdf",
+      "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/positioning_localization/2510.17342__ceresoli-aoa-services-5g.pdf",
+      "title": "AoA Services in 5G Networks: A Framework for Real-World Implementation and Systematic Testing",
+      "authors": "A. Ceresoli, V. Bernazzoli, R. Pegurri, I. Filippini (Politecnico di Milano)",
+      "pages": 6,
+      "prior_state_in_our_records": "정독 기록 0건. deepread_w1~w5 어디에도 없다(파일명·arXiv id 로 조회). backlog tail score -3, '강등: Sionna 전파해석 전용'.",
+      "publication_status": {"value": "UNVERIFIED (arXiv:2510.17342v2, 17 Nov 2025 스탬프)."},
+      "target_what_ko": "표적은 협조적 5G 단말이다. gNB 가 단말이 올려보내는 SRS 로 도래각을 추정한다. 산란 표적도 드론도 없다 - 다만 서론이 드론 항법을 응용처로 든다.",
+      "scattering_how_ko": "Sionna RT 로 도시 협곡 장면의 시변 CIR 을 만든다(LOS + 3차·5차 반사, 정반사와 확산 표면반사 포함, 3.95 GHz 라 굴절은 무시). 단말은 궤적 csv 를 따라 움직이는 물체로 모델링하고 위치마다 PathSolver 를 돌린다. 산란적분·RCS 는 없다.",
+      "validation_what_ko": "⭐ 하드웨어 인 더 루프다. Sionna RT 가 낸 CIR 을 자체 변환기로 PROPSIM .asc 로 바꿔 Keysight PROPSIM F8800A 채널 에뮬레이터에 올리고, 실제 OpenAirInterface gNB + Open5GS 코어 + Ettus N310 SDR(4 수신포트) + COTS 단말(Snapdragon 888)로 재생한다. 즉 채널은 시뮬, 무선기·프로토콜 스택은 실물이다.",
+      "key_numbers": {
+        "rf": "3.95 GHz, gNB 4소자 ULA(λ/2), 단말 단일 수직편파 등방",
+        "srs (p.4)": "전대역 60 MHz 설정에서 SRS 길이 960 샘플",
+        "campaign (p.5)": "SRS 총 69,303 개, 그중 6% 가 NLOS. 다중경로 없음 31% / 3차 34% / 5차 35%",
+        "accuracy (p.6)": "다중경로 없을 때 95% 이상이 RMSE 2도 미만. SNR 30 dB 초과에서 95% 이상이 3도 미만. SNR 0-10 dB 에서는 같은 95% 수준을 얻으려면 9도까지 감수",
+        "trajectory (p.4)": "Δt=0.1 s, k ∈ [0,900] (= 90 초)"
+      },
+      "quotes": [
+        {"page": 3, "text": "As stated in the manufacturer's documentation: \"The N310 has no way of aligning the phase between channels, and it will be random between runs.\" [16]"},
+        {"page": 4, "text": "A reference UE is temporarily positioned at 0° in front of the array, where the theoretical inter-antenna phase difference is zero under narrowband and far-field assumptions... These offsets represent per-port phase biases that remain constant until the next SDR reboot and are stored for the duration of the measurement campaign."},
+        {"page": 4, "text": "The CIRs generated in Sionna RT are converted into the PROPSIM-compatible .asc format using a dedicated channel converter developed for this framework."},
+        {"page": 4, "text": "Ray-tracing scenarios were designed in Sionna RT for channel characterization in specific environments. Each scenario includes a line-of-sight (LOS) component, along with specular and diffuse surface reflections. As the experiments were conducted at 3.95GHz, refraction effects were considered negligible."},
+        {"page": 5, "text": "We evaluated the accuracy of the proposed framework over a total of 69,303 SRS signals exchanged between UE and gNB, 6% of which correspond to Non-Line-of-Sight (NLOS) conditions."},
+        {"page": 6, "text": "for SNR values above 30 dB, over 95% of the estimates exhibit an RMSE below 3°, while in the 0–10 dB range, achieving the same 95% level requires tolerating errors up to 9°."},
+        {"page": 2, "text": "Originally designed for channel sounding, uplink scheduling, and beam management, the SRS is a deterministic, unmodulated sequence transmitted by the UE and known at the gNB [10]."}
+      ],
+      "use_for_us_ko": [
+        "⭐⭐ 우리 X410 실측 계획에 직접 걸린다. N310 은 채널 간 위상을 맞출 방법이 없고 부팅마다 랜덤이라 저자들이 OTA 위상 교정(보어사이트에 기준 단말, 포트별 위상편차 평균, 재부팅 전까지 유지)을 새로 만들었다. 우리 4RX 패시브 바이스태틱은 채널 간 위상 일관성 위에 서 있으므로, X410 이 같은 문제를 갖는지 여부를 실측 전에 확정하고 교정 절차를 계획서에 명시해야 한다(현재 우리 기록에 이 검증이 없다).",
+        "⭐ 실측과 시뮬 사이의 '중간 단계' 선례. 채널 에뮬레이터로 Sionna CIR 을 재생하면 전파환경은 반복 가능하게 두고 무선기 비이상성만 실물로 받는다. 우리가 외부 필드테스트 전에 스택을 검증할 방법으로 기록해 둘 가치가 있다(장비 보유 여부는 별도 문제).",
+        "⭐ 우리 '상시 기준신호' 서사 보강. 이 편이 쓰는 SRS 는 상향·스케줄된·단말이 협조해 보내는 신호다. 비협조 드론에는 존재하지 않는다. '패시브는 상시 하향 신호만 쓴다' 는 우리 제약이 임의 선택이 아니라 구조적 제약임을 대비로 보여준다.",
+        "각도 정확도의 문헌 눈금 - 4소자 ULA·5G 신호·실제 SDR 로 다중경로 없을 때 2도, SNR 0-10 dB 에서 9도. 우리가 각도 기반 국지화를 future work 로 언급할 때 현실적 기대치가 된다."
+      ],
+      "conflicts_with_our_records_ko": [
+        "⚠ 우리 기록은 X410 을 '4RX·400 MHz·12bit' 로만 적어 두었고, 채널 간 위상 정합성에 대해서는 아무 말이 없다. 이 편은 같은 계열 장비(N310)에서 그 가정이 깨진다는 제조사 문서를 인용한다. 우리 실측 계획의 미검증 가정 1건으로 등록한다. (X410 은 N310 과 아키텍처가 다르므로 '같은 문제가 있다' 고 단정하지 말 것 - 확인해야 할 질문으로만 남긴다.)",
+        "백로그의 '강등: Sionna 전파해석 전용' 은 문자적으로 맞지만, 이 편은 우리 실측 축과 정면으로 닿는다. tail 판정을 되돌릴 근거다."
+      ],
+      "cautions_ko": [
+        "⚠ '실측' 이라 부르되 전파환경은 시뮬이다. 무선 채널은 PROPSIM 이 재생한 Sionna RT 결과다. 우리 '실측=외부 필드테스트' 정의와 다른 층위이므로 같은 칸에 넣지 말 것.",
+        "⚠ '3.95 GHz 라 굴절은 무시' 라는 p.4 문장은 근거가 제시되지 않는다. 그대로 옮기지 말 것."
+      ]
+    },
+
+    {
+      "rank_for_us": 6,
+      "basename": "2604.19599__pan-active-inference-agentic-isac.pdf",
+      "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/isac_sensing_radar/2604.19599__pan-active-inference-agentic-isac.pdf",
+      "title": "Active Inference-Enabled Agentic Closed-Loop ISAC with Long-Horizon Planning",
+      "authors": "G. Pan, H. Wymeersch (Chalmers), Z. Tian (KTH), M. Bennis (Oulu)",
+      "pages": 5,
+      "prior_state_in_our_records": "deepread_w3.json tier='UNREAD - 용어 카운트만'. backlog tail score 0, '우리 주장 축과 접점 없음'.",
+      "publication_status": {"value": "UNVERIFIED (arXiv:2604.19599v1, 21 Apr 2026 스탬프)."},
+      "target_what_ko": "이름은 ISAC 이고 서론은 'BS 가 UAV 같은 표적을 센싱한다' 로 시작하지만, 실제 모델의 이동체(ME)는 단일 등방 안테나를 단 1.5 m 높이 점이다. BS 는 그 링크의 채널주파수응답 H_t 를 재고, 사전학습된 ResNet-34 위치추정 모델이 H_t → 2D 위치로 회귀한다. 즉 표적은 산란체가 아니라 협조 송신단이다.",
+      "scattering_how_ko": "산란을 계산하지 않는다. 학습 데이터는 Sionna 도시협곡 장면에서 무작위 20,000 위치를 최대 3회 상호작용 + 회절 켜고 레이트레이싱해 만든 링크 채널이다. RCS·dBsm·CFAR·거리도플러·오경보율은 논문 전체에 0회.",
+      "validation_what_ko": "실측·실물 검증 없음. 순수 시뮬레이션 비교다. 자기 방법(AIF)과 두 베이스라인(prior-k + AIF-u, AIF-k + greedy-u)의 비용 항목(추정·제어·센싱자원)을 표로 비교하고, 계획 지평 길이에 따른 평균 비용을 본다.",
+      "key_numbers": {
+        "rf (p.4)": "fc = 3 GHz, BS (-32, 12, 35), 16소자 ULA(λ/2), 송신전력 23 dBm, 잡음 PSD -174 dBm/Hz",
+        "sensing_resource (p.4)": "부반송파 K = {50,...,400} → 유효 센싱 대역폭 12.5 MHz ~ 100 MHz",
+        "dataset (p.4)": "Sionna 레이트레이싱으로 20,000 위치, 최대 3 bounce + 회절 켬. 15,000 위치학습 / 5,000 분산학습",
+        "kinematics (p.4-5)": "(-50,0) → (50,0) m 직선, 1 m/s, Δt = 0.1 s, N = 1000 스텝",
+        "results (Table I, p.5)": "AIF J = 150.67 (Jest 110.01 / Jctrl 1.61 / Jsens 39.05), prior-k+AIF-u J = 243.02, AIF-k+greedy-u J = 1477.82. 관측비용 47% 감소, 지평 1→10 에서 비용 85% 감소"
+      },
+      "quotes": [
+        {"page": 1, "text": "A prominent application of this paradigm lies in integrated sensing and communication (ISAC) [2], where base stations (BSs) sense targets such as UAVs [3], vehicles [4], or robots [5], and simultaneously deliver control commands to guide their behavior."},
+        {"page": 2, "text": "The ME's state is partially observed through wireless channel measurements collected at the ISAC BS."},
+        {"page": 2, "text": "During inference, the ISAC BS allocates kt subcarriers to acquire the channel frequency response Ht, which depends on the ME's state st and the sensing configuration kt. A pretrained localization model then maps the channel measurement to the observation and its covariance."},
+        {"page": 4, "text": "We consider the Sionna [15] street canyon scene. The BS is at (−32, 12, 35) with a 16-element ULA at half-wavelength spacing, operating at fc = 3 GHz with a transmit power of 23 dBm and noise power spectral density of −174 dBm/Hz. The ME has a single isotropic antenna at 1.5 m height."},
+        {"page": 4, "text": "The training dataset consists of 20,000 randomly sampled ME positions generated via Sionna ray tracing with up to 3 interaction bounces and diffraction enabled."},
+        {"page": 4, "text": "We train a separate variance head for each k rather than a single shared head, because different subcarrier configurations lead to different noise levels in the position observations."}
+      ],
+      "use_for_us_ko": [
+        "⭐ 우리 novelty(C1/H8) 논거의 깔끔한 최신 사례. Wymeersch·Bennis 급 저자군이 2026년에 'BS 가 UAV 를 센싱한다' 고 쓰면서도 실제 모델에서는 산란을 한 번도 풀지 않고 링크 CFR→위치 회귀로 끝낸다. '드론을 표적이라 부르는 ISAC 논문 다수가 산란을 계산하지 않는다' 는 우리 문장에 게재 전 프리프린트지만 강한 예시가 된다.",
+        "센싱 자원↔정확도 사상 방식이 참고가 된다 - 부반송파 수 k 를 늘리면 유효대역폭이 늘고 위치 분산이 준다는 구조를, k 별로 분리된 분산 헤드로 학습했다(공유 헤드는 이질적 잡음을 평균내 나쁘다는 p.4 근거 포함). 우리 점유(occupancy) 대 검출성능 곡선을 만들 때 같은 논리를 쓸 수 있다.",
+        "우리 방향(디텍션 집중, 트래킹은 future work) 대비축. 이 편은 추적·제어까지 닫힌 고리로 가지만 그 대가로 관측 모델을 '위치+공분산' 이라는 추상으로 접었다. 우리가 왜 디텍션에서 멈추고 물리를 붙드는지 설명하는 대조로 쓸 수 있다."
+      ],
+      "conflicts_with_our_records_ko": [
+        "⚠ backlog tail 이 이 편을 '우리 주장 축과 접점 없음' 으로 강등했으나 틀렸다. UAV 를 센싱 표적이라 부르면서 산란을 0회 계산하는 사례는 우리 C1/H8 논거에 직접 쓰인다. 트리아지 판정을 뒤집을 것.",
+        "⚠ backlog signals 의 fullwave_solver=1 은 오탐이다. 본문에 풀웨이브 솔버가 없다."
+      ],
+      "cautions_ko": [
+        "⚠ '드론 센싱 논문' 으로 분류하면 안 된다. 이동체는 UAV·로봇·차량 중 무엇이어도 되는 2D 점질량이고, 시뮬레이션의 실제 대상은 도시협곡 지상 궤적이다.",
+        "⚠ 프리프린트다. 게재로 세지 말 것."
+      ]
+    }
+  ],
+
+  "also_opened_not_counted": [
+    {
+      "basename": "2507.08716__great-x_unreal-isac.pdf",
+      "why_ko": "선정 과정에서 후보 1위였고 6쪽 전문을 읽었으나, outputs/deepread_w5.json 에 이미 '전문 6쪽 정독' 기록이 있어 신규 정독 6편에서 제외했다. 이번 재독으로 확인한 사실은 기존 기록과 일치한다 - Sionna RT 의 반사·굴절·확산 수식을 Unreal Engine 에 C++ 로 재구현했고(p.2-4), UAV 는 산란 표적이 아니라 CSI 링크의 수신단이며(Table I, p.4: 송신 4x8 UPA, 수신 1x1), 성능 지표는 미터 단위 측위오차뿐이다.",
+      "new_number_worth_recording": "교차 플랫폼 일반화(Table II, p.5): 동일 맵·동일 파라미터인데도 Sionna RT 로 학습→Great-X 로 시험 11.082 m, 반대 방향 8.107 m 인 반면 자기 플랫폼 안에서는 0.309 m / 0.647 m. 같은 수식을 구현했다고 주장하는 두 레이트레이서 사이의 도메인 갭이 10~30배다.",
+      "caution_ko": "⚠ 저자들은 이 갭을 두고 Great-X 의 NLOS 가 '더 정확하다' 고 주장하지만(p.5) 실측 기준이 없다. 근거 없는 주장이므로 인용 금지."
+    }
+  ],
+
+  "checks_run": [
+    {
+      "id": "CHK1",
+      "question_ko": "Shabanpour 가 쓴 'Sionna 내장 RIS 재복사 모델' 이 우리 설치본에 있는가?",
+      "how": "/home/yunjung/.venvs/py312/bin/python -c \"import sionna.rt as rt; print([n for n in dir(rt) if 'RIS' in n])\"",
+      "result": "sionna 2.0.1 · sionna.rt 공개 심볼에 RIS 관련 클래스 0개. 대신 RadioMaterialBase, RadioMaterial, ITURadioMaterial, ScatteringPattern, BackscatteringPattern, DirectivePattern, LambertianPattern, register_scattering_pattern 이 있다.",
+      "meaning_ko": "우리 'Sionna 확장점 = 재질/산란패턴 추상베이스만' 메모를 강화한다. 동시에 0.x 세대에는 이상 재복사 객체(RIS) 모델이 있었다는 사실이 새로 확인됐다 - 그 통로는 현재 버전에 없다."
+    },
+    {
+      "id": "CHK2",
+      "question_ko": "Hoydis 논문의 게재 상태와 어느 PDF 가 게재판인가?",
+      "how": "두 PDF 의 쪽수·각주 스탬프·PDF /Subject 메타데이터 대조",
+      "result": "게재판은 12쪽 Learning_Radio_Environments_by_Differentiable_Ray_.pdf 이고 전 쪽 하단에 IEEE TMLCN 수용 스탬프 + DOI 10.1109/TMLCN.2024.3474639, /Subject 도 동일. arXiv 판 2311.18558__hoydis_learning-radio-env.pdf 는 11쪽이다.",
+      "meaning_ko": "쪽 인용은 12쪽 판으로만 해야 한다. reference_library.json 의 pdf 경로가 11쪽 판을 가리키고 있어 정정 대상."
+    },
+    {
+      "id": "CHK3",
+      "question_ko": "이번 6편 중 드론·RCS·패시브 레이더를 실제로 다룬 편이 있는가?",
+      "how": "전문 정독 + 용어 검색",
+      "result": "0편. 여섯 편 모두 RCS(dBsm)를 한 번도 계산하지 않고, CFAR·오경보율도 0회이며, 패시브 바이스태틱 기하도 없다. UAV 가 등장하는 두 편(Pan, 그리고 참고로 Great-X)에서도 UAV 는 산란체가 아니라 통신 단말이다.",
+      "meaning_ko": "tail 107편에서 우리 주장 축을 반증할 편이 나올 확률은 이번 표본에서도 0 이었다. 우리 C1('드론 메시를 산란적분에 통과시켜 진폭을 낸 게재 논문 0편')은 이번 라운드에서도 살아남았다 - 다만 이것은 6편 표본이지 107편 전수가 아니다."
+    }
+  ],
+
+  "corrections_to_our_records": [
+    "backlog tail 의 2409.17738 why_ko '표적을 산란 계산에 실제로 통과시킴(PO/SBR/MoM/dBsm)' 은 기계 오탐 - 이 논문에 PO·SBR·MoM·dBsm 이 전부 0회이고 fullwave 6회는 모두 CST 언급이다.",
+    "backlog 가 2507.08716(Great-X)을 'quoted_but_not_page_by_page + 접점 없음' 으로 적었으나 outputs/deepread_w5.json 에 이미 6쪽 전문 정독 기록이 있다 - 증거상태를 deep_read 로 올릴 것.",
+    "outputs/reference_library.json 의 Hoydis 항목 pdf 가 arXiv 11쪽 판을 가리킨다 - 쪽 인용이 어긋나므로 게재판(12쪽, TMLCN DOI 스탬프)으로 교체할 것.",
+    "'Sionna 기본 solver 에 산란적분 없음' 의 1차 출처가 확정됐다 - Sionna 저자들이 직접 'SBR 은 후보 primitive 탐색, 정반사는 image method 보정, 확산은 next event estimation, 회절은 1차만, 굴절 무시' 라고 쓴 p.4 축자로 우리 RT-RCS 주장 범위 메모를 고정할 것.",
+    "'회절 없이 돌리는 것이 이 분야 기본값' 이라는 우리 reconcile 문장은 약화된다 - OpenGERT 는 회절·엣지회절을 켜고 산란을 껐다(Table I, p.4). 문헌의 기본값은 하나가 아니다.",
+    "우리 X410 실측 계획에 채널 간 위상 정합 검증이 없다 - 같은 계열 N310 은 제조사 문서상 '부팅마다 채널 간 위상 랜덤' 이고 저자들이 OTA 위상 교정을 따로 만들었다(2510.17342 p.3-4). X410 이 같은지 확인 전까지 미검증 가정으로 등록."
+  ],
+
+  "highlights": [
+    "Sionna 저자 원문 p.4 축자를 확보했다 - SBR 은 경로 후보 탐색용이고 정반사는 image method, 확산은 next event estimation, 회절은 1차만, 굴절은 무시. 우리 '산란적분 없음' 문장의 1차 출처가 생겼다.",
+    "실측 교정을 끝까지 민 Sionna 의 최고 성적이 실내 복도 경로손실 평균오차 1.06 dB 이고 미교정 ITU 재질은 4.93 dB 다(TMLCN 2024, Table II p.8). 우리 ±2~3 dB 앵커링의 외부 눈금.",
+    "OpenGERT: εr·σ 를 10% 흔들어도 채널통계는 거의 안 변하지만 건물 높이 1 m·위치 0.4 m 잡음은 경로이득 표준편차 평균 4.45 dB 를 만든다 - 기하 정확도가 재질 정확도보다 훨씬 비싸다.",
+    "RFDT-Channel: 같은 메시에서 재질 결합만 바꾸면 유효경로가 742→52 로 줄지만 최대 CIR 진폭은 4.63e-4 로 완전히 불변 - 재질은 약경로를 지우고 지배경로는 기하가 정한다.",
+    "Shabanpour: Sionna 로 설계 → CST 풀웨이브 → 평행판 도파관 실측의 3단 사다리를 6쪽 안에서 돌렸고 모드전력비가 이론 2.33 ↔ 실측 2.24 로 맞았다. 산란 물리는 Sionna 밖에서 계산된다는 패턴의 또 한 사례이며, 그 내장 RIS 통로는 우리 설치본 2.0.1 에 아예 없다.",
+    "Ceresoli: Sionna RT CIR → Keysight PROPSIM → 실제 OAI gNB + N310 의 하드웨어 인 더 루프. 그리고 N310 은 '채널 간 위상을 맞출 방법이 없고 부팅마다 랜덤' 이라 OTA 위상 교정을 새로 만들어야 했다 - 우리 X410 4RX 계획의 미검증 가정을 정면으로 찌른다."
+  ],
+
+  "what_this_did_not_do": [
+    "tail 107편 전수를 읽지 않았다. 6편은 신호 기반 선별 표본이며, 나머지 101편에 대해 어떤 판정도 내리지 않았다.",
+    "게재처를 확정하지 않았다. 여섯 편 중 게재 확인은 Hoydis 1편뿐이고 나머지 다섯은 UNVERIFIED 로 남겼다.",
+    "그림에서 수를 읽어내지 않았다. 인용한 숫자는 모두 본문·표의 텍스트다(RFDT 의 742/52 와 4.63e-4 는 본문 p.6·p.8 에 텍스트로도 적혀 있다).",
+    "X410 의 채널 간 위상 특성을 확인하지 않았다. N310 사례에서 생긴 질문을 등록만 했다.",
+    "Hoydis 게재판의 권·쪽(vol. 2, pp. 1527-1539)은 다른 논문의 참고문헌에서 온 2차 정보다. IEEE Xplore 로 확인하기 전에는 인용문에 넣지 말 것."
+  ],
+
+  "status": "read_done"
+}

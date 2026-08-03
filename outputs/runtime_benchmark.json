@@ -1,0 +1,5782 @@
+{
+ "meta": {
+  "purpose": "per-pose runtime of our SBR+PO kernel, to answer Ziganshin's 'cascading PO after RT negates the computational advantages of RT'",
+  "generated": "2026-08-03 06:02:37",
+  "script": "benchmark/measure_runtime.py",
+  "kernel_under_test": "src/rcs_sbr.py rcs_sbr_batch (1-bounce SBR + PO surface integral)",
+  "production_settings": {
+   "div": 16,
+   "jitter": 2,
+   "penetrate": true,
+   "n_f_band_average": 3,
+   "el_deg": -2.0,
+   "source": "src/experiment_freespace_sigma.py:62-76"
+  },
+  "pose_definition": {
+   "pose": "one backscatter aspect (az, el) at ONE carrier → one sigma value",
+   "passes_per_pose_production": "J^2=4 grid-jitter offsets x 2 traces (penetrate) = 8 ray_intersect calls",
+   "band_averaged_pose": "production sigma also averages n_f=3 carriers → x3 on top"
+  },
+  "hardware": {
+   "gpu_used": "NVIDIA GeForce RTX 4090 (index 3), SHARED with another user's job during measurement",
+   "gpu_query": [
+    "0, NVIDIA GeForce RTX 4090, 24564, 580.126.09",
+    "1, NVIDIA GeForce RTX 4090, 24564, 580.126.09",
+    "2, NVIDIA GeForce RTX 4090, 24564, 580.126.09",
+    "3, NVIDIA GeForce RTX 4090, 24564, 580.126.09"
+   ],
+   "cpu": "INTEL(R) XEON(R) GOLD 6526Y",
+   "cpu_logical_cores": 64,
+   "note": "PO integration runs in host numpy (single-threaded except BLAS-free ops); ray tracing runs on the GPU. Both host and device were shared during the run.",
+   "loadavg": [
+    8.1884765625,
+    8.7470703125,
+    8.2314453125
+   ],
+   "gpu_budget_mb": 2500
+  },
+  "software": {
+   "python": "3.12.13",
+   "numpy": "2.5.0",
+   "drjit": "1.3.1",
+   "mitsuba": "3.8.0",
+   "mitsuba_variant": "cuda_ad_mono_polarized",
+   "sionna": "2.0.1"
+  },
+  "contention_snapshots": [
+   {
+    "t": "06:02:38",
+    "rows": [
+     "0, NVIDIA GeForce RTX 4090, 96, 19607, 24564, 71, 2730",
+     "1, NVIDIA GeForce RTX 4090, 100, 23086, 24564, 78, 2745",
+     "2, NVIDIA GeForce RTX 4090, 0, 4336, 24564, 42, 2520",
+     "3, NVIDIA GeForce RTX 4090, 94, 18043, 24564, 70, 2775"
+    ],
+    "procs": [
+     "1810098, 19596 MiB, GPU-af4ba473-8d5d-5d38-d5fa-e70d9df30e20",
+     "1308525, 3235 MiB, GPU-132aa1dc-35e2-c9d9-a95e-1be2b9fa654e",
+     "1810099, 19790 MiB, GPU-132aa1dc-35e2-c9d9-a95e-1be2b9fa654e",
+     "1364837, 4324 MiB, GPU-c653a4f7-aadb-ba13-5801-a9f39588c56a",
+     "1405452, 17608 MiB, GPU-6acc3d07-443d-4f77-abfe-de7b46b1bf3a",
+     "1429913, 420 MiB, GPU-6acc3d07-443d-4f77-abfe-de7b46b1bf3a"
+    ],
+    "our_gpu_index": 3
+   },
+   {
+    "t": "06:11:05",
+    "rows": [
+     "0, NVIDIA GeForce RTX 4090, 100, 19607, 24564, 75, 2730",
+     "1, NVIDIA GeForce RTX 4090, 100, 23086, 24564, 77, 2730",
+     "2, NVIDIA GeForce RTX 4090, 1, 4946, 24564, 42, 2520",
+     "3, NVIDIA GeForce RTX 4090, 96, 22013, 24564, 70, 2775"
+    ],
+    "procs": [
+     "1810098, 19596 MiB, GPU-af4ba473-8d5d-5d38-d5fa-e70d9df30e20",
+     "1308525, 3235 MiB, GPU-132aa1dc-35e2-c9d9-a95e-1be2b9fa654e",
+     "1810099, 19790 MiB, GPU-132aa1dc-35e2-c9d9-a95e-1be2b9fa654e",
+     "1364837, 4932 MiB, GPU-c653a4f7-aadb-ba13-5801-a9f39588c56a",
+     "1405452, 18904 MiB, GPU-6acc3d07-443d-4f77-abfe-de7b46b1bf3a",
+     "1429913, 3094 MiB, GPU-6acc3d07-443d-4f77-abfe-de7b46b1bf3a"
+    ],
+    "our_gpu_index": 3
+   },
+   {
+    "t": "06:15:21",
+    "rows": [
+     "0, NVIDIA GeForce RTX 4090, 100, 19607, 24564, 76, 2730",
+     "1, NVIDIA GeForce RTX 4090, 100, 23086, 24564, 78, 2730",
+     "2, NVIDIA GeForce RTX 4090, 3, 4962, 24564, 43, 2520",
+     "3, NVIDIA GeForce RTX 4090, 1, 20544, 24564, 65, 2520"
+    ],
+    "procs": [
+     "1810098, 19596 MiB, GPU-af4ba473-8d5d-5d38-d5fa-e70d9df30e20",
+     "1308525, 3235 MiB, GPU-132aa1dc-35e2-c9d9-a95e-1be2b9fa654e",
+     "1810099, 19790 MiB, GPU-132aa1dc-35e2-c9d9-a95e-1be2b9fa654e",
+     "1364837, 4948 MiB, GPU-c653a4f7-aadb-ba13-5801-a9f39588c56a",
+     "1429913, 3142 MiB, GPU-6acc3d07-443d-4f77-abfe-de7b46b1bf3a",
+     "1478369, 16996 MiB, GPU-6acc3d07-443d-4f77-abfe-de7b46b1bf3a"
+    ],
+    "our_gpu_index": 3
+   },
+   {
+    "t": "06:23:13",
+    "rows": [
+     "0, NVIDIA GeForce RTX 4090, 100, 19607, 24564, 77, 2730",
+     "1, NVIDIA GeForce RTX 4090, 100, 23086, 24564, 78, 2730",
+     "2, NVIDIA GeForce RTX 4090, 0, 7832, 24564, 44, 2520",
+     "3, NVIDIA GeForce RTX 4090, 94, 22435, 24564, 74, 2775"
+    ],
+    "procs": [
+     "1810098, 19596 MiB, GPU-af4ba473-8d5d-5d38-d5fa-e70d9df30e20",
+     "1308525, 3235 MiB, GPU-132aa1dc-35e2-c9d9-a95e-1be2b9fa654e",
+     "1810099, 19790 MiB, GPU-132aa1dc-35e2-c9d9-a95e-1be2b9fa654e",
+     "1364837, 7818 MiB, GPU-c653a4f7-aadb-ba13-5801-a9f39588c56a",
+     "1478369, 19366 MiB, GPU-6acc3d07-443d-4f77-abfe-de7b46b1bf3a",
+     "1505800, 3054 MiB, GPU-6acc3d07-443d-4f77-abfe-de7b46b1bf3a"
+    ],
+    "our_gpu_index": 3
+   }
+  ],
+  "honesty": [
+   "timings measured under foreign GPU load; min over repeats = least-contended observation, median = representative",
+   "no cross-hardware normalisation is applied silently; any scaling states its factor",
+   "the instrumented replica is checked bit-equal against the production kernel for every config (replica_check.max_abs_ddb)"
+  ],
+  "elapsed_total_s": 763.9224018193781
+ },
+ "production_per_pose": {
+  "settings": {
+   "div": 16,
+   "jitter": 2,
+   "penetrate": true,
+   "el_deg": -2.0,
+   "n_az_per_batch": 120,
+   "n_az_note": "= experiment_freespace_sigma.AZ_GRID (0..357 deg, 3 deg step); the production chunker puts the whole grid in one ray bundle"
+  },
+  "rows": [
+   {
+    "drone": "mini5pro",
+    "tag": "mini5pro",
+    "fc_ghz": 1.843,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 29068,
+    "rays_per_az_per_pass": 3249,
+    "passes_per_pose": 8,
+    "rays_per_pose": 25992,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 0.8643622882664204,
+     "median": 0.9275781093165278,
+     "max": 0.9907939303666353
+    },
+    "raw_kernel_s": {
+     "min": 1.016723008826375,
+     "median": 1.1087411530315876,
+     "max": 1.2007592972368002
+    },
+    "per_pose_ms": {
+     "min": 8.47269174021979,
+     "median": 9.239509608596563,
+     "max": 10.006327476973334
+    },
+    "per_pose_ms_instrumented": 7.729817577637732,
+    "instrumentation_overhead_pct": -16.339525525837363,
+    "stage_s_median": {
+     "scene": 6.282515823841095e-05,
+     "raygen_host": 0.07909545861184597,
+     "ray_upload": 0.017416231334209442,
+     "rt_trace": 0.06913910061120987,
+     "handoff": 0.5758678894490004,
+     "po": 0.17545439302921295
+    },
+    "stage_pct": {
+     "scene": 0.006850894099364865,
+     "raygen_host": 8.625121303063498,
+     "ray_upload": 1.899187520195681,
+     "rt_trace": 7.539410479719819,
+     "handoff": 62.796657206472034,
+     "po": 19.132772596449602
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0005235429853200912,
+     "raygen_host": 0.6591288217653831,
+     "ray_upload": 0.14513526111841202,
+     "rt_trace": 0.5761591717600822,
+     "handoff": 4.79889907874167,
+     "po": 1.4621199419101079
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 5.414895713329315e-05,
+      "median": 6.282515823841095e-05,
+      "max": 7.150135934352875e-05
+     },
+     "raygen_host": {
+      "min": 0.07378377206623554,
+      "median": 0.07909545861184597,
+      "max": 0.0844071451574564
+     },
+     "ray_upload": {
+      "min": 0.01607315056025982,
+      "median": 0.017416231334209442,
+      "max": 0.018759312108159065
+     },
+     "rt_trace": {
+      "min": 0.05495530180633068,
+      "median": 0.06913910061120987,
+      "max": 0.08332289941608906
+     },
+     "handoff": {
+      "min": 0.5385932829231024,
+      "median": 0.5758678894490004,
+      "max": 0.6131424959748983
+     },
+     "po": {
+      "min": 0.17132889293134212,
+      "median": 0.17545439302921295,
+      "max": 0.17957989312708378
+     }
+    },
+    "hit_fraction": 0.03205184928696009,
+    "lit_fraction": 0.03205184928696009,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -23.55430091345848,
+    "po_over_rt": 2.537701408872039,
+    "po_plus_handoff_over_rt": 10.86682175261617,
+    "band": "LTE 1.8 GHz"
+   },
+   {
+    "drone": "mini5pro",
+    "tag": "mini5pro",
+    "fc_ghz": 3.5,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 29068,
+    "rays_per_az_per_pass": 10404,
+    "passes_per_pose": 8,
+    "rays_per_pose": 83232,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 1.2449475824832916,
+     "median": 1.5529304798692465,
+     "max": 1.8609133772552013
+    },
+    "raw_kernel_s": {
+     "min": 1.1950949877500534,
+     "median": 1.3611601432785392,
+     "max": 1.527225298807025
+    },
+    "per_pose_ms": {
+     "min": 9.959124897917112,
+     "median": 11.343001193987826,
+     "max": 12.726877490058541
+    },
+    "per_pose_ms_instrumented": 12.94108733224372,
+    "instrumentation_overhead_pct": 14.088741691245998,
+    "stage_s_median": {
+     "scene": 7.396470755338669e-05,
+     "raygen_host": 0.3071888471022248,
+     "ray_upload": 0.06607250683009624,
+     "rt_trace": 0.049316179007291794,
+     "handoff": 0.3593573858961463,
+     "po": 0.7417672714218497
+    },
+    "stage_pct": {
+     "scene": 0.004854040228440097,
+     "raygen_host": 20.159709554534142,
+     "ray_upload": 4.336103214031909,
+     "rt_trace": 3.2364451200130047,
+     "handoff": 23.58334488469287,
+     "po": 48.67954318649963
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0006163725629448891,
+     "raygen_host": 2.559907059185207,
+     "ray_upload": 0.5506042235841354,
+     "rt_trace": 0.4109681583940983,
+     "handoff": 2.994644882467886,
+     "po": 6.181393928515415
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 6.251223385334015e-05,
+      "median": 7.396470755338669e-05,
+      "max": 8.541718125343323e-05
+     },
+     "raygen_host": {
+      "min": 0.28471672534942627,
+      "median": 0.3071888471022248,
+      "max": 0.3296609688550234
+     },
+     "ray_upload": {
+      "min": 0.058362506330013275,
+      "median": 0.06607250683009624,
+      "max": 0.07378250733017921
+     },
+     "rt_trace": {
+      "min": 0.02433139644563198,
+      "median": 0.049316179007291794,
+      "max": 0.0743009615689516
+     },
+     "handoff": {
+      "min": 0.14355934597551823,
+      "median": 0.3593573858961463,
+      "max": 0.5751554258167744
+     },
+     "po": {
+      "min": 0.706224923953414,
+      "median": 0.7417672714218497,
+      "max": 0.7773096188902855
+     }
+    },
+    "hit_fraction": 0.036079472638728696,
+    "lit_fraction": 0.036079472638728696,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -23.785108975498602,
+    "po_over_rt": 15.041053186869433,
+    "po_plus_handoff_over_rt": 22.32785831106635,
+    "band": "5G NR 3.5 GHz"
+   },
+   {
+    "drone": "mini5pro",
+    "tag": "mini5pro",
+    "fc_ghz": 5.21,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 29068,
+    "rays_per_az_per_pass": 21904,
+    "passes_per_pose": 8,
+    "rays_per_pose": 175232,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 3.901992831379175,
+     "median": 3.9876947179436684,
+     "max": 4.0733966045081615
+    },
+    "raw_kernel_s": {
+     "min": 3.5328485909849405,
+     "median": 3.8276811381801963,
+     "max": 4.122513685375452
+    },
+    "per_pose_ms": {
+     "min": 29.440404924874503,
+     "median": 31.897342818168298,
+     "max": 34.354280711462096
+    },
+    "per_pose_ms_instrumented": 33.23078931619724,
+    "instrumentation_overhead_pct": 4.180431284293125,
+    "stage_s_median": {
+     "scene": 7.195118814706802e-05,
+     "raygen_host": 0.7622007597237825,
+     "ray_upload": 0.14395880419760942,
+     "rt_trace": 0.086996846832335,
+     "handoff": 0.8880927814170718,
+     "po": 2.0446063624694943
+    },
+    "stage_pct": {
+     "scene": 0.0018327182058315936,
+     "raygen_host": 19.414539840387214,
+     "ray_upload": 3.666873725607207,
+     "rt_trace": 2.215956527551242,
+     "handoff": 22.62122212136132,
+     "po": 52.07957506688719
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0005995932345589002,
+     "raygen_host": 6.351672997698188,
+     "ray_upload": 1.1996567016467452,
+     "rt_trace": 0.7249737236027917,
+     "handoff": 7.400773178475599,
+     "po": 17.038386353912454
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 4.7380104660987854e-05,
+      "median": 7.195118814706802e-05,
+      "max": 9.65222716331482e-05
+     },
+     "raygen_host": {
+      "min": 0.7401949930936098,
+      "median": 0.7622007597237825,
+      "max": 0.7842065263539553
+     },
+     "ray_upload": {
+      "min": 0.1355742495507002,
+      "median": 0.14395880419760942,
+      "max": 0.15234335884451866
+     },
+     "rt_trace": {
+      "min": 0.08185981027781963,
+      "median": 0.086996846832335,
+      "max": 0.09213388338685036
+     },
+     "handoff": {
+      "min": 0.8371110055595636,
+      "median": 0.8880927814170718,
+      "max": 0.93907455727458
+     },
+     "po": {
+      "min": 2.033792471513152,
+      "median": 2.0446063624694943,
+      "max": 2.0554202534258366
+     }
+    },
+    "hit_fraction": 0.03799586643231069,
+    "lit_fraction": 0.03799586643231069,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -22.079229039537978,
+    "po_over_rt": 23.502074350004545,
+    "po_plus_handoff_over_rt": 33.710407338539774,
+    "band": "WiFi 5.2 GHz"
+   },
+   {
+    "drone": "phantom4",
+    "tag": "phantom4",
+    "fc_ghz": 1.843,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 28402,
+    "rays_per_az_per_pass": 5929,
+    "passes_per_pose": 8,
+    "rays_per_pose": 47432,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 1.132579391822219,
+     "median": 1.182053248398006,
+     "max": 1.231527104973793
+    },
+    "raw_kernel_s": {
+     "min": 1.1450726445764303,
+     "median": 1.1573689626529813,
+     "max": 1.1696652807295322
+    },
+    "per_pose_ms": {
+     "min": 9.54227203813692,
+     "median": 9.64474135544151,
+     "max": 9.747210672746103
+    },
+    "per_pose_ms_instrumented": 9.85044373665005,
+    "instrumentation_overhead_pct": 2.132793131798012,
+    "stage_s_median": {
+     "scene": 5.08604571223259e-05,
+     "raygen_host": 0.1358845941722393,
+     "ray_upload": 0.028958043083548546,
+     "rt_trace": 0.09395151678472757,
+     "handoff": 0.5758699951693416,
+     "po": 0.3328362051397562
+    },
+    "stage_pct": {
+     "scene": 0.0043561649782313675,
+     "raygen_host": 11.638426858622408,
+     "ray_upload": 2.4802375019019585,
+     "rt_trace": 8.046886131695674,
+     "handoff": 49.322889468678696,
+     "po": 28.50720387412303
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.00042383714268604916,
+     "raygen_host": 1.1323716181019943,
+     "ray_upload": 0.2413170256962379,
+     "rt_trace": 0.7829293065393964,
+     "handoff": 4.79891662641118,
+     "po": 2.7736350428313017
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 4.761107265949249e-05,
+      "median": 5.08604571223259e-05,
+      "max": 5.41098415851593e-05
+     },
+     "raygen_host": {
+      "min": 0.1267182771116495,
+      "median": 0.1358845941722393,
+      "max": 0.1450509112328291
+     },
+     "ray_upload": {
+      "min": 0.02771778590977192,
+      "median": 0.028958043083548546,
+      "max": 0.030198300257325172
+     },
+     "rt_trace": {
+      "min": 0.0884706899523735,
+      "median": 0.09395151678472757,
+      "max": 0.09943234361708164
+     },
+     "handoff": {
+      "min": 0.5294021666049957,
+      "median": 0.5758699951693416,
+      "max": 0.6223378237336874
+     },
+     "po": {
+      "min": 0.3202173374593258,
+      "median": 0.3328362051397562,
+      "max": 0.3454550728201866
+     }
+    },
+    "hit_fraction": 0.04703276971945803,
+    "lit_fraction": 0.04703276971945803,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -31.565610815855976,
+    "po_over_rt": 3.542637910810833,
+    "po_plus_handoff_over_rt": 9.672075889857414,
+    "band": "LTE 1.8 GHz"
+   },
+   {
+    "drone": "phantom4",
+    "tag": "phantom4",
+    "fc_ghz": 3.5,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 28402,
+    "rays_per_az_per_pass": 19600,
+    "passes_per_pose": 8,
+    "rays_per_pose": 156800,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 3.529389388859272,
+     "median": 3.6812424175441265,
+     "max": 3.833095446228981
+    },
+    "raw_kernel_s": {
+     "min": 4.097006289288402,
+     "median": 4.1108889719471335,
+     "max": 4.1247716546058655
+    },
+    "per_pose_ms": {
+     "min": 34.14171907740335,
+     "median": 34.25740809955945,
+     "max": 34.373097121715546
+    },
+    "per_pose_ms_instrumented": 30.677020146201055,
+    "instrumentation_overhead_pct": -10.451426864965994,
+    "stage_s_median": {
+     "scene": 8.757226169109344e-05,
+     "raygen_host": 0.7160938028246164,
+     "ray_upload": 0.13466815650463104,
+     "rt_trace": 0.11368206422775984,
+     "handoff": 0.8093162942677736,
+     "po": 1.8451099693775177
+    },
+    "stage_pct": {
+     "scene": 0.0024198198788660096,
+     "raygen_host": 19.787293210722225,
+     "ray_upload": 3.7211860909752894,
+     "rt_trace": 3.1412928429235007,
+     "handoff": 22.3632417313542,
+     "po": 50.984566304145915
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0007297688474257787,
+     "raygen_host": 5.967448356871803,
+     "ray_upload": 1.122234637538592,
+     "rt_trace": 0.947350535231332,
+     "handoff": 6.744302452231447,
+     "po": 15.375916411479315
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 5.4584816098213196e-05,
+      "median": 8.757226169109344e-05,
+      "max": 0.0001205597072839737
+     },
+     "raygen_host": {
+      "min": 0.680997658520937,
+      "median": 0.7160938028246164,
+      "max": 0.7511899471282959
+     },
+     "ray_upload": {
+      "min": 0.1267493087798357,
+      "median": 0.13466815650463104,
+      "max": 0.14258700422942638
+     },
+     "rt_trace": {
+      "min": 0.10662944801151752,
+      "median": 0.11368206422775984,
+      "max": 0.12073468044400215
+     },
+     "handoff": {
+      "min": 0.7503599356859922,
+      "median": 0.8093162942677736,
+      "max": 0.868272652849555
+     },
+     "po": {
+      "min": 1.80135184712708,
+      "median": 1.8451099693775177,
+      "max": 1.8888680916279554
+     }
+    },
+    "hit_fraction": 0.05148580994897959,
+    "lit_fraction": 0.05148580994897959,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -17.711475373615542,
+    "po_over_rt": 16.230440412138147,
+    "po_plus_handoff_over_rt": 23.349560739213874,
+    "band": "5G NR 3.5 GHz"
+   },
+   {
+    "drone": "phantom4",
+    "tag": "phantom4",
+    "fc_ghz": 5.21,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 28402,
+    "rays_per_az_per_pass": 42025,
+    "passes_per_pose": 8,
+    "rays_per_pose": 336200,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 6.8295680563896894,
+     "median": 6.859475985169411,
+     "max": 6.889383913949132
+    },
+    "raw_kernel_s": {
+     "min": 6.918834758922458,
+     "median": 6.943995824083686,
+     "max": 6.969156889244914
+    },
+    "per_pose_ms": {
+     "min": 57.656956324353814,
+     "median": 57.86663186736405,
+     "max": 58.076307410374284
+    },
+    "per_pose_ms_instrumented": 57.16229987641176,
+    "instrumentation_overhead_pct": -1.2171643108012413,
+    "stage_s_median": {
+     "scene": 4.720408469438553e-05,
+     "raygen_host": 1.2626549880951643,
+     "ray_upload": 0.3869568342342973,
+     "rt_trace": 0.11346893478184938,
+     "handoff": 1.5011614030227065,
+     "po": 3.4996450254693627
+    },
+    "stage_pct": {
+     "scene": 0.000697879103711448,
+     "raygen_host": 18.667463570021305,
+     "ray_upload": 5.720883910763986,
+     "rt_trace": 1.677558182037335,
+     "handoff": 22.193612719119443,
+     "po": 51.739783738954216
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.00039336737245321274,
+     "raygen_host": 10.522124900793036,
+     "ray_upload": 3.2246402852858105,
+     "rt_trace": 0.9455744565154115,
+     "handoff": 12.509678358522555,
+     "po": 29.16370854557802
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 4.2401254177093506e-05,
+      "median": 4.720408469438553e-05,
+      "max": 5.200691521167755e-05
+     },
+     "raygen_host": {
+      "min": 1.2271406967192888,
+      "median": 1.2626549880951643,
+      "max": 1.2981692794710398
+     },
+     "ray_upload": {
+      "min": 0.36562085896730423,
+      "median": 0.3869568342342973,
+      "max": 0.4082928095012903
+     },
+     "rt_trace": {
+      "min": 0.10702675767242908,
+      "median": 0.11346893478184938,
+      "max": 0.11991111189126968
+     },
+     "handoff": {
+      "min": 1.4987170975655317,
+      "median": 1.5011614030227065,
+      "max": 1.5036057084798813
+     },
+     "po": {
+      "min": 3.4824682865291834,
+      "median": 3.4996450254693627,
+      "max": 3.516821764409542
+     }
+    },
+    "hit_fraction": 0.05318753718024985,
+    "lit_fraction": 0.05318753718024985,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -14.103345218806584,
+    "po_over_rt": 30.842318491820105,
+    "po_plus_handoff_over_rt": 44.07203115201892,
+    "band": "WiFi 5.2 GHz"
+   },
+   {
+    "drone": "mavic4pro",
+    "tag": "mavic4pro",
+    "fc_ghz": 1.843,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 29932,
+    "rays_per_az_per_pass": 7744,
+    "passes_per_pose": 8,
+    "rays_per_pose": 61952,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 1.2317360993474722,
+     "median": 1.2939959997311234,
+     "max": 1.3562559001147747
+    },
+    "raw_kernel_s": {
+     "min": 1.3123217932879925,
+     "median": 1.3368623927235603,
+     "max": 1.3614029921591282
+    },
+    "per_pose_ms": {
+     "min": 10.936014944066603,
+     "median": 11.140519939363003,
+     "max": 11.345024934659403
+    },
+    "per_pose_ms_instrumented": 10.783299997759363,
+    "instrumentation_overhead_pct": -3.2064925474570445,
+    "stage_s_median": {
+     "scene": 5.157105624675751e-05,
+     "raygen_host": 0.1575344419106841,
+     "ray_upload": 0.03690086957067251,
+     "rt_trace": 0.10219671204686165,
+     "handoff": 0.5842609265819192,
+     "po": 0.39398443792015314
+    },
+    "stage_pct": {
+     "scene": 0.004045014106802249,
+     "raygen_host": 12.356330977339677,
+     "ray_upload": 2.8943471169649557,
+     "rt_trace": 8.015875027270827,
+     "handoff": 45.82693980067181,
+     "po": 30.90246206364593
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.00042975880205631256,
+     "raygen_host": 1.3127870159223676,
+     "ray_upload": 0.30750724642227095,
+     "rt_trace": 0.8516392670571804,
+     "handoff": 4.868841054849327,
+     "po": 3.2832036493346095
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 4.0335580706596375e-05,
+      "median": 5.157105624675751e-05,
+      "max": 6.280653178691864e-05
+     },
+     "raygen_host": {
+      "min": 0.15627342276275158,
+      "median": 0.1575344419106841,
+      "max": 0.15879546105861664
+     },
+     "ray_upload": {
+      "min": 0.03636474162340164,
+      "median": 0.03690086957067251,
+      "max": 0.03743699751794338
+     },
+     "rt_trace": {
+      "min": 0.09779180772602558,
+      "median": 0.10219671204686165,
+      "max": 0.10660161636769772
+     },
+     "handoff": {
+      "min": 0.5213673263788223,
+      "median": 0.5842609265819192,
+      "max": 0.6471545267850161
+     },
+     "po": {
+      "min": 0.39238290302455425,
+      "median": 0.39398443792015314,
+      "max": 0.39558597281575203
+     }
+    },
+    "hit_fraction": 0.03485359633264463,
+    "lit_fraction": 0.03485359633264463,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -25.315947496235104,
+    "po_over_rt": 3.85515766631997,
+    "po_plus_handoff_over_rt": 9.572180404918548,
+    "band": "LTE 1.8 GHz"
+   },
+   {
+    "drone": "mavic4pro",
+    "tag": "mavic4pro",
+    "fc_ghz": 3.5,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 29932,
+    "rays_per_az_per_pass": 25921,
+    "passes_per_pose": 8,
+    "rays_per_pose": 207368,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 4.647873111069202,
+     "median": 4.8582838689908385,
+     "max": 5.068694626912475
+    },
+    "raw_kernel_s": {
+     "min": 4.531613884493709,
+     "median": 4.57617587223649,
+     "max": 4.620737859979272
+    },
+    "per_pose_ms": {
+     "min": 37.76344903744757,
+     "median": 38.13479893530409,
+     "max": 38.5061488331606
+    },
+    "per_pose_ms_instrumented": 40.48569890825699,
+    "instrumentation_overhead_pct": 6.1647105493888095,
+    "stage_s_median": {
+     "scene": 0.0001228833571076393,
+     "raygen_host": 0.9798995731398463,
+     "ray_upload": 0.21354773361235857,
+     "rt_trace": 0.1440466297790408,
+     "handoff": 0.953433383256197,
+     "po": 2.47755572386086
+    },
+    "stage_pct": {
+     "scene": 0.0025769241365014117,
+     "raygen_host": 20.548973602337565,
+     "ray_upload": 4.478200482094823,
+     "rt_trace": 3.020728321526439,
+     "handoff": 19.99396464817411,
+     "po": 51.95555602173056
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0010240279758969943,
+     "raygen_host": 8.165829776165387,
+     "ray_upload": 1.7795644467696548,
+     "rt_trace": 1.2003885814920068,
+     "handoff": 7.9452781938016415,
+     "po": 20.6462976988405
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 9.183026850223541e-05,
+      "median": 0.0001228833571076393,
+      "max": 0.0001539364457130432
+     },
+     "raygen_host": {
+      "min": 0.8984985183924437,
+      "median": 0.9798995731398463,
+      "max": 1.061300627887249
+     },
+     "ray_upload": {
+      "min": 0.21269098855555058,
+      "median": 0.21354773361235857,
+      "max": 0.21440447866916656
+     },
+     "rt_trace": {
+      "min": 0.1373959556221962,
+      "median": 0.1440466297790408,
+      "max": 0.15069730393588543
+     },
+     "handoff": {
+      "min": 0.9127178639173508,
+      "median": 0.953433383256197,
+      "max": 0.9941489025950432
+     },
+     "po": {
+      "min": 2.4074493683874607,
+      "median": 2.47755572386086,
+      "max": 2.547662079334259
+     }
+    },
+    "hit_fraction": 0.03759516093772102,
+    "lit_fraction": 0.03759516093772102,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -31.77532291411407,
+    "po_over_rt": 17.19967851841648,
+    "po_plus_handoff_over_rt": 23.818600354482403,
+    "band": "5G NR 3.5 GHz"
+   },
+   {
+    "drone": "mavic4pro",
+    "tag": "mavic4pro",
+    "fc_ghz": 5.21,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 29932,
+    "rays_per_az_per_pass": 55696,
+    "passes_per_pose": 8,
+    "rays_per_pose": 445568,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 9.301787124946713,
+     "median": 9.532786747440696,
+     "max": 9.763786369934678
+    },
+    "raw_kernel_s": {
+     "min": 9.254650551825762,
+     "median": 10.259894322603941,
+     "max": 11.26513809338212
+    },
+    "per_pose_ms": {
+     "min": 77.12208793188134,
+     "median": 85.49911935503283,
+     "max": 93.87615077818432
+    },
+    "per_pose_ms_instrumented": 79.4398895620058,
+    "instrumentation_overhead_pct": -7.086891465941599,
+    "stage_s_median": {
+     "scene": 6.804987788200378e-05,
+     "raygen_host": 1.791111339814961,
+     "ray_upload": 0.5065339198336005,
+     "rt_trace": 0.13292789086699486,
+     "handoff": 2.1608656411990523,
+     "po": 4.797268538735807
+    },
+    "stage_pct": {
+     "scene": 0.0007248003613398224,
+     "raygen_host": 19.077156149328722,
+     "ray_upload": 5.395101057534178,
+     "rt_trace": 1.4158171378293936,
+     "handoff": 23.015415255610186,
+     "po": 51.09578559933618
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0005670823156833649,
+     "raygen_host": 14.925927831791341,
+     "ray_upload": 4.221115998613338,
+     "rt_trace": 1.1077324238916237,
+     "handoff": 18.00721367665877,
+     "po": 39.97723782279839
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 4.2436644434928894e-05,
+      "median": 6.804987788200378e-05,
+      "max": 9.366311132907867e-05
+     },
+     "raygen_host": {
+      "min": 1.7334015481173992,
+      "median": 1.791111339814961,
+      "max": 1.8488211315125227
+     },
+     "ray_upload": {
+      "min": 0.4987255446612835,
+      "median": 0.5065339198336005,
+      "max": 0.5143422950059175
+     },
+     "rt_trace": {
+      "min": 0.13192357495427132,
+      "median": 0.13292789086699486,
+      "max": 0.1339322067797184
+     },
+     "handoff": {
+      "min": 2.0661215409636497,
+      "median": 2.1608656411990523,
+      "max": 2.255609741434455
+     },
+     "po": {
+      "min": 4.724869426339865,
+      "median": 4.797268538735807,
+      "max": 4.869667651131749
+     }
+    },
+    "hit_fraction": 0.03880030657497845,
+    "lit_fraction": 0.03880030657497845,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -18.228744078901546,
+    "po_over_rt": 36.08925491442472,
+    "po_plus_handoff_over_rt": 52.34517853666269,
+    "band": "WiFi 5.2 GHz"
+   },
+   {
+    "drone": "matrice4e",
+    "tag": "matrice4e",
+    "fc_ghz": 1.843,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 30712,
+    "rays_per_az_per_pass": 8649,
+    "passes_per_pose": 8,
+    "rays_per_pose": 69192,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 1.2100223433226347,
+     "median": 1.4729221016168594,
+     "max": 1.7358218599110842
+    },
+    "raw_kernel_s": {
+     "min": 1.0503334198147058,
+     "median": 1.2356594195589423,
+     "max": 1.4209854193031788
+    },
+    "per_pose_ms": {
+     "min": 8.752778498455882,
+     "median": 10.297161829657853,
+     "max": 11.841545160859823
+    },
+    "per_pose_ms_instrumented": 12.274350846807163,
+    "instrumentation_overhead_pct": 19.201300803631305,
+    "stage_s_median": {
+     "scene": 5.2022747695446014e-05,
+     "raygen_host": 0.18964795302599669,
+     "ray_upload": 0.04133474640548229,
+     "rt_trace": 0.12127328012138605,
+     "handoff": 0.6292020287364721,
+     "po": 0.46669838204979897
+    },
+    "stage_pct": {
+     "scene": 0.003592214160982563,
+     "raygen_host": 13.095349489219256,
+     "ray_upload": 2.8541987487407274,
+     "rt_trace": 8.37402124069243,
+     "handoff": 43.44692539075496,
+     "po": 32.22591291643164
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.00043352289746205014,
+     "raygen_host": 1.5803996085499723,
+     "ray_upload": 0.34445622004568577,
+     "rt_trace": 1.0106106676782172,
+     "handoff": 5.243350239470601,
+     "po": 3.889153183748325
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 4.262477159500122e-05,
+      "median": 5.2022747695446014e-05,
+      "max": 6.142072379589081e-05
+     },
+     "raygen_host": {
+      "min": 0.17636077292263508,
+      "median": 0.18964795302599669,
+      "max": 0.2029351331293583
+     },
+     "ray_upload": {
+      "min": 0.04129566438496113,
+      "median": 0.04133474640548229,
+      "max": 0.041373828426003456
+     },
+     "rt_trace": {
+      "min": 0.10152246616780758,
+      "median": 0.12127328012138605,
+      "max": 0.14102409407496452
+     },
+     "handoff": {
+      "min": 0.4047534875571728,
+      "median": 0.6292020287364721,
+      "max": 0.8536505699157715
+     },
+     "po": {
+      "min": 0.4614951852709055,
+      "median": 0.46669838204979897,
+      "max": 0.47190157882869244
+     }
+    },
+    "hit_fraction": 0.02795891625236058,
+    "lit_fraction": 0.02795891625236058,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -20.25528176118355,
+    "po_over_rt": 3.8483199397482,
+    "po_plus_handoff_over_rt": 9.03661886352337,
+    "band": "LTE 1.8 GHz"
+   },
+   {
+    "drone": "matrice4e",
+    "tag": "matrice4e",
+    "fc_ghz": 3.5,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 30712,
+    "rays_per_az_per_pass": 28900,
+    "passes_per_pose": 8,
+    "rays_per_pose": 231200,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 4.770128650590777,
+     "median": 4.781317828223109,
+     "max": 4.792507005855441
+    },
+    "raw_kernel_s": {
+     "min": 4.956751924008131,
+     "median": 4.971933941356838,
+     "max": 4.9871159587055445
+    },
+    "per_pose_ms": {
+     "min": 41.30626603340109,
+     "median": 41.432782844640315,
+     "max": 41.55929965587954
+    },
+    "per_pose_ms_instrumented": 39.84431523519258,
+    "instrumentation_overhead_pct": -3.833842431979486,
+    "stage_s_median": {
+     "scene": 7.494725286960602e-05,
+     "raygen_host": 0.8337025865912437,
+     "ray_upload": 0.23907908704131842,
+     "rt_trace": 0.16246364079415798,
+     "handoff": 1.193655664101243,
+     "po": 2.2621058402583003
+    },
+    "stage_pct": {
+     "scene": 0.0015976539443883317,
+     "raygen_host": 17.77207535854085,
+     "ray_upload": 5.096459600685716,
+     "rt_trace": 3.4632447033924225,
+     "handoff": 25.445211224896084,
+     "po": 48.22141145854054
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0006245604405800501,
+     "raygen_host": 6.9475215549270315,
+     "ray_upload": 1.99232572534432,
+     "rt_trace": 1.3538636732846498,
+     "handoff": 9.947130534177026,
+     "po": 18.850882002152503
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 4.641897976398468e-05,
+      "median": 7.494725286960602e-05,
+      "max": 0.00010347552597522736
+     },
+     "raygen_host": {
+      "min": 0.8172197639942169,
+      "median": 0.8337025865912437,
+      "max": 0.8501854091882706
+     },
+     "ray_upload": {
+      "min": 0.23799295723438263,
+      "median": 0.23907908704131842,
+      "max": 0.2401652168482542
+     },
+     "rt_trace": {
+      "min": 0.15665083192288876,
+      "median": 0.16246364079415798,
+      "max": 0.1682764496654272
+     },
+     "handoff": {
+      "min": 1.1654160395264626,
+      "median": 1.193655664101243,
+      "max": 1.2218952886760235
+     },
+     "po": {
+      "min": 2.2469262927770615,
+      "median": 2.2621058402583003,
+      "max": 2.277285387739539
+     }
+    },
+    "hit_fraction": 0.03011220444059977,
+    "lit_fraction": 0.03011220444059977,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -23.528220172140873,
+    "po_over_rt": 13.92376675298319,
+    "po_plus_handoff_over_rt": 21.270984002740686,
+    "band": "5G NR 3.5 GHz"
+   },
+   {
+    "drone": "matrice4e",
+    "tag": "matrice4e",
+    "fc_ghz": 5.21,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 30712,
+    "rays_per_az_per_pass": 62500,
+    "passes_per_pose": 8,
+    "rays_per_pose": 500000,
+    "chunk_az": 111,
+    "total_s": {
+     "min": 10.952853575348854,
+     "median": 11.426691741682589,
+     "max": 11.900529908016324
+    },
+    "raw_kernel_s": {
+     "min": 11.514896402135491,
+     "median": 11.997211907058954,
+     "max": 12.479527411982417
+    },
+    "per_pose_ms": {
+     "min": 95.95747001779577,
+     "median": 99.97676589215796,
+     "max": 103.99606176652014
+    },
+    "per_pose_ms_instrumented": 95.22243118068823,
+    "instrumentation_overhead_pct": -4.755439595433677,
+    "stage_s_median": {
+     "scene": 5.45792281627655e-05,
+     "raygen_host": 1.8930210573598742,
+     "ray_upload": 0.5487106200307608,
+     "rt_trace": 0.3266530157998204,
+     "handoff": 3.1515712905675173,
+     "po": 5.358209686353803
+    },
+    "stage_pct": {
+     "scene": 0.0004839347605927431,
+     "raygen_host": 16.784749858654905,
+     "ray_upload": 4.865223482959328,
+     "rt_trace": 2.896317048063837,
+     "handoff": 27.943870760565826,
+     "po": 47.50935491499551
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0004548269013563792,
+     "raygen_host": 15.775175477998951,
+     "ray_upload": 4.57258850025634,
+     "rt_trace": 2.7221084649985037,
+     "handoff": 26.263094088062644,
+     "po": 44.65174738628169
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 4.254281520843506e-05,
+      "median": 5.45792281627655e-05,
+      "max": 6.661564111709595e-05
+     },
+     "raygen_host": {
+      "min": 1.8669391795992851,
+      "median": 1.8930210573598742,
+      "max": 1.9191029351204634
+     },
+     "ray_upload": {
+      "min": 0.5441136639565229,
+      "median": 0.5487106200307608,
+      "max": 0.5533075761049986
+     },
+     "rt_trace": {
+      "min": 0.29737228713929653,
+      "median": 0.3266530157998204,
+      "max": 0.3559337444603443
+     },
+     "handoff": {
+      "min": 2.8176687881350517,
+      "median": 3.1515712905675173,
+      "max": 3.485473792999983
+     },
+     "po": {
+      "min": 5.280405046418309,
+      "median": 5.358209686353803,
+      "max": 5.436014326289296
+     }
+    },
+    "hit_fraction": 0.0308641,
+    "lit_fraction": 0.0308641,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -21.462612591477203,
+    "po_over_rt": 16.403368183312356,
+    "po_plus_handoff_over_rt": 26.05143857645045,
+    "band": "WiFi 5.2 GHz"
+   },
+   {
+    "drone": "s1000plus",
+    "tag": "s1000plus",
+    "fc_ghz": 1.843,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 35370,
+    "rays_per_az_per_pass": 29584,
+    "passes_per_pose": 8,
+    "rays_per_pose": 236672,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 4.584166930988431,
+     "median": 4.629650600254536,
+     "max": 4.67513426952064
+    },
+    "raw_kernel_s": {
+     "min": 4.670437114313245,
+     "median": 4.7059675315395,
+     "max": 4.741497948765755
+    },
+    "per_pose_ms": {
+     "min": 38.92030928594371,
+     "median": 39.2163960961625,
+     "max": 39.512482906381294
+    },
+    "per_pose_ms_instrumented": 38.5804216687878,
+    "instrumentation_overhead_pct": -1.6217054362038477,
+    "stage_s_median": {
+     "scene": 5.869101732969284e-05,
+     "raygen_host": 0.6898105703294277,
+     "ray_upload": 0.1764994328841567,
+     "rt_trace": 0.1727916682139039,
+     "handoff": 1.2918789852410555,
+     "po": 2.2174295941367745
+    },
+    "stage_pct": {
+     "scene": 0.0012903466656666752,
+     "raygen_host": 15.165775102621874,
+     "ray_upload": 3.880414160054271,
+     "rt_trace": 3.798897396552594,
+     "handoff": 28.402502067506212,
+     "po": 48.751120926599384
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0004890918110807737,
+     "raygen_host": 5.748421419411898,
+     "ray_upload": 1.4708286073679726,
+     "rt_trace": 1.4399305684491992,
+     "handoff": 10.76565821034213,
+     "po": 18.47857995113979
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 5.397200584411621e-05,
+      "median": 5.869101732969284e-05,
+      "max": 6.341002881526947e-05
+     },
+     "raygen_host": {
+      "min": 0.6801861077547073,
+      "median": 0.6898105703294277,
+      "max": 0.6994350329041481
+     },
+     "ray_upload": {
+      "min": 0.17576182819902897,
+      "median": 0.1764994328841567,
+      "max": 0.17723703756928444
+     },
+     "rt_trace": {
+      "min": 0.17039154656231403,
+      "median": 0.1727916682139039,
+      "max": 0.17519178986549377
+     },
+     "handoff": {
+      "min": 1.2426749467849731,
+      "median": 1.2918789852410555,
+      "max": 1.3410830236971378
+     },
+     "po": {
+      "min": 2.2140069473534822,
+      "median": 2.2174295941367745,
+      "max": 2.220852240920067
+     }
+    },
+    "hit_fraction": 0.03209184722597801,
+    "lit_fraction": 0.03209184722597801,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -11.419563577608878,
+    "po_over_rt": 12.832965947129772,
+    "po_plus_handoff_over_rt": 20.309477972245475,
+    "band": "LTE 1.8 GHz"
+   },
+   {
+    "drone": "s1000plus",
+    "tag": "s1000plus",
+    "fc_ghz": 3.5,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 35370,
+    "rays_per_az_per_pass": 102400,
+    "passes_per_pose": 8,
+    "rays_per_pose": 819200,
+    "chunk_az": 68,
+    "total_s": {
+     "min": 17.707457276061177,
+     "median": 17.835576424375176,
+     "max": 17.963695572689176
+    },
+    "raw_kernel_s": {
+     "min": 19.33105604350567,
+     "median": 21.367323885671794,
+     "max": 23.40359172783792
+    },
+    "per_pose_ms": {
+     "min": 161.09213369588056,
+     "median": 178.06103238059828,
+     "max": 195.029931065316
+    },
+    "per_pose_ms_instrumented": 148.6298035364598,
+    "instrumentation_overhead_pct": -16.52873087988753,
+    "stage_s_median": {
+     "scene": 7.653608918190002e-05,
+     "raygen_host": 3.044769085943699,
+     "ray_upload": 0.8692385274916887,
+     "rt_trace": 0.38888523261994123,
+     "handoff": 4.852716132067144,
+     "po": 8.459842246957123
+    },
+    "stage_pct": {
+     "scene": 0.00043448081839826696,
+     "raygen_host": 17.284574877486843,
+     "ray_upload": 4.934501760474165,
+     "rt_trace": 2.2076274857753053,
+     "handoff": 27.547946322473223,
+     "po": 48.024915072972064
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0006378007431825002,
+     "raygen_host": 25.37307571619749,
+     "ray_upload": 7.243654395764072,
+     "rt_trace": 3.2407102718328438,
+     "handoff": 40.43930110055953,
+     "po": 70.49868539130937
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 5.373544991016388e-05,
+      "median": 7.653608918190002e-05,
+      "max": 9.933672845363617e-05
+     },
+     "raygen_host": {
+      "min": 3.01912522315979,
+      "median": 3.044769085943699,
+      "max": 3.0704129487276077
+     },
+     "ray_upload": {
+      "min": 0.8536081351339817,
+      "median": 0.8692385274916887,
+      "max": 0.8848689198493958
+     },
+     "rt_trace": {
+      "min": 0.38821976631879807,
+      "median": 0.38888523261994123,
+      "max": 0.3895506989210844
+     },
+     "handoff": {
+      "min": 4.760851876810193,
+      "median": 4.852716132067144,
+      "max": 4.944580387324095
+     },
+     "po": {
+      "min": 8.415605708956718,
+      "median": 8.459842246957123,
+      "max": 8.504078784957528
+     }
+    },
+    "hit_fraction": 0.033351704915364586,
+    "lit_fraction": 0.033351704915364586,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -7.361829607782435,
+    "po_over_rt": 21.754084591905688,
+    "po_plus_handoff_over_rt": 34.232614824010746,
+    "band": "5G NR 3.5 GHz"
+   },
+   {
+    "drone": "s1000plus",
+    "tag": "s1000plus",
+    "fc_ghz": 5.21,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 2,
+    "facets": 35370,
+    "rays_per_az_per_pass": 223729,
+    "passes_per_pose": 8,
+    "rays_per_pose": 1789832,
+    "chunk_az": 31,
+    "total_s": {
+     "min": 38.67325523868203,
+     "median": 38.78355600312352,
+     "max": 38.89385676756501
+    },
+    "raw_kernel_s": {
+     "min": 40.94301350042224,
+     "median": 42.74277514498681,
+     "max": 44.54253678955138
+    },
+    "per_pose_ms": {
+     "min": 341.1917791701853,
+     "median": 356.18979287489003,
+     "max": 371.18780657959485
+    },
+    "per_pose_ms_instrumented": 323.19630002602935,
+    "instrumentation_overhead_pct": -9.26289677830536,
+    "stage_s_median": {
+     "scene": 9.53255221247673e-05,
+     "raygen_host": 7.003937081433833,
+     "ray_upload": 1.8854414923116565,
+     "rt_trace": 0.799236573278904,
+     "handoff": 10.044463269412518,
+     "po": 18.587112825363874
+    },
+    "stage_pct": {
+     "scene": 0.0002487599406577894,
+     "raygen_host": 18.27736091985894,
+     "ray_upload": 4.920217621544199,
+     "rt_trace": 2.08567483407194,
+     "handoff": 26.211868879857995,
+     "po": 48.50462898472627
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0007943793510397276,
+     "raygen_host": 58.366142345281936,
+     "ray_upload": 15.71201243593047,
+     "rt_trace": 6.6603047773242,
+     "handoff": 83.70386057843764,
+     "po": 154.8926068780323
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 9.478628635406494e-05,
+      "median": 9.53255221247673e-05,
+      "max": 9.586475789546967e-05
+     },
+     "raygen_host": {
+      "min": 6.994120605289936,
+      "median": 7.003937081433833,
+      "max": 7.013753557577729
+     },
+     "ray_upload": {
+      "min": 1.884638249874115,
+      "median": 1.8854414923116565,
+      "max": 1.886244734749198
+     },
+     "rt_trace": {
+      "min": 0.7899469789117575,
+      "median": 0.799236573278904,
+      "max": 0.8085261676460505
+     },
+     "handoff": {
+      "min": 9.94092502631247,
+      "median": 10.044463269412518,
+      "max": 10.148001512512565
+     },
+     "po": {
+      "min": 18.57556730695069,
+      "median": 18.587112825363874,
+      "max": 18.59865834377706
+     }
+    },
+    "hit_fraction": 0.033863210811592,
+    "lit_fraction": 0.033863210811592,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -10.425697004005022,
+    "po_over_rt": 23.256083926576846,
+    "po_plus_handoff_over_rt": 35.823656038804714,
+    "band": "WiFi 5.2 GHz"
+   }
+  ],
+  "summary_ms": {
+   "min": 9.239509608596563,
+   "median": 38.13479893530409,
+   "max": 356.18979287489003,
+   "geomean": 36.26030628603941,
+   "least_contended_median": 37.76344903744757
+  },
+  "stage_pct_median_over_configs": {
+   "scene": 0.0018327182058315936,
+   "raygen_host": 17.77207535854085,
+   "ray_upload": 4.336103214031909,
+   "rt_trace": 3.1412928429235007,
+   "handoff": 26.211868879857995,
+   "po": 48.50462898472627
+  },
+  "band_averaged_pose_ms": {
+   "note": "production sigma averages n_f=3 carriers → multiply by 3",
+   "median": 114.40439680591227,
+   "min": 27.71852882578969,
+   "max": 1068.5693786246702
+  },
+  "whole_published_grid": {
+   "note": "the full report13 sigma grid: 5 airframes x 3 bands x n_f=3 carriers x 9 el x 120 az, priced from the measured per-pose medians",
+   "poses": 48600,
+   "projected_seconds": 3285.9982964945957,
+   "projected_hours": 0.9127773045818321,
+   "caveat": "one shared RTX 4090; production actually fans out over free GPUs (channel.sbr_sigma_prefill), so wall clock is lower"
+  }
+ },
+ "scene_build": {
+  "note": "ONE-OFF per (mesh, carrier, exclude-set). rcs_sbr._SCENE_CACHE reuses it across all azimuths/elevations, so it is NOT a per-pose cost. Reported so the split is complete.",
+  "rows": [
+   {
+    "drone": "mini5pro",
+    "facets": 29068,
+    "groups": 9,
+    "mi_scene_build_s": {
+     "min": 0.04212145321071148,
+     "median": 0.04310979135334492
+    },
+    "cad_build_s": 1.516384276561439
+   },
+   {
+    "drone": "phantom4",
+    "facets": 28402,
+    "groups": 8,
+    "mi_scene_build_s": {
+     "min": 0.04108511470258236,
+     "median": 0.04558521695435047
+    },
+    "cad_build_s": 1.435041862539947
+   },
+   {
+    "drone": "mavic4pro",
+    "facets": 29932,
+    "groups": 8,
+    "mi_scene_build_s": {
+     "min": 0.038859741762280464,
+     "median": 0.04150364734232426
+    },
+    "cad_build_s": 1.5425414573401213
+   },
+   {
+    "drone": "matrice4e",
+    "facets": 30712,
+    "groups": 9,
+    "mi_scene_build_s": {
+     "min": 0.0478970929980278,
+     "median": 0.05082821100950241
+    },
+    "cad_build_s": 1.5200777342543006
+   },
+   {
+    "drone": "s1000plus",
+    "facets": 35370,
+    "groups": 10,
+    "mi_scene_build_s": {
+     "min": 0.040906667709350586,
+     "median": 0.041274143382906914
+    },
+    "cad_build_s": 1.2508632214739919
+   }
+  ]
+ },
+ "sweeps": {
+  "divisor": {
+   "note": "ray grid spacing = lambda/div; rays per pass scale as div^2. Production div=16. measured at n_az=32 (slope, not absolute production cost)",
+   "rows": [
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 8,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 32,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 7056,
+     "passes_per_pose": 8,
+     "rays_per_pose": 56448,
+     "chunk_az": 32,
+     "total_s": {
+      "min": 1.3620860688388348,
+      "median": 1.3820576630532742,
+      "max": 1.4020292572677135
+     },
+     "raw_kernel_s": {
+      "min": 1.4960438627749681,
+      "median": 1.653057400137186,
+      "max": 1.810070937499404
+     },
+     "per_pose_ms": {
+      "min": 46.751370711717755,
+      "median": 51.658043754287064,
+      "max": 56.56471679685637
+     },
+     "per_pose_ms_instrumented": 43.18930197041482,
+     "instrumentation_overhead_pct": -16.393849182818563,
+     "stage_s_median": {
+      "scene": 5.5732205510139465e-05,
+      "raygen_host": 0.05074179917573929,
+      "ray_upload": 0.012005923315882683,
+      "rt_trace": 0.2630446031689644,
+      "handoff": 0.9055747874081135,
+      "po": 0.12472268752753735
+     },
+     "stage_pct": {
+      "scene": 0.004109603590626351,
+      "raygen_host": 3.741619018639436,
+      "ray_upload": 0.8852975602905155,
+      "rt_trace": 19.39648782572205,
+      "handoff": 66.77563473126877,
+      "po": 9.1968512604886
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.0017416314221918583,
+      "raygen_host": 1.5856812242418528,
+      "ray_upload": 0.37518510362133384,
+      "rt_trace": 8.220143849030137,
+      "handoff": 28.299212106503546,
+      "po": 3.897583985235542
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 5.220435559749603e-05,
+       "median": 5.5732205510139465e-05,
+       "max": 5.92600554227829e-05
+      },
+      "raygen_host": {
+       "min": 0.04846610873937607,
+       "median": 0.05074179917573929,
+       "max": 0.05301748961210251
+      },
+      "ray_upload": {
+       "min": 0.010279489681124687,
+       "median": 0.012005923315882683,
+       "max": 0.013732356950640678
+      },
+      "rt_trace": {
+       "min": 0.2519474979490042,
+       "median": 0.2630446031689644,
+       "max": 0.2741417083889246
+      },
+      "handoff": {
+       "min": 0.8748494368046522,
+       "median": 0.9055747874081135,
+       "max": 0.9363001380115747
+      },
+      "po": {
+       "min": 0.1244198027998209,
+       "median": 0.12472268752753735,
+       "max": 0.1250255722552538
+      }
+     },
+     "hit_fraction": 0.034637520372732426,
+     "lit_fraction": 0.034637520372732426,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -28.79391066733119,
+     "po_over_rt": 0.47415033809845103,
+     "po_plus_handoff_over_rt": 3.9168166254825167
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 12,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 32,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 14884,
+     "passes_per_pose": 8,
+     "rays_per_pose": 119072,
+     "chunk_az": 32,
+     "total_s": {
+      "min": 1.5860047712922096,
+      "median": 1.6502045821398497,
+      "max": 1.7144043929874897
+     },
+     "raw_kernel_s": {
+      "min": 1.7652928959578276,
+      "median": 1.9525210000574589,
+      "max": 2.13974910415709
+     },
+     "per_pose_ms": {
+      "min": 55.16540299868211,
+      "median": 61.01628125179559,
+      "max": 66.86715950490907
+     },
+     "per_pose_ms_instrumented": 51.5688931918703,
+     "instrumentation_overhead_pct": -15.48338880394693,
+     "stage_s_median": {
+      "scene": 9.790807962417603e-05,
+      "raygen_host": 0.10818114224821329,
+      "ray_upload": 0.02175084874033928,
+      "rt_trace": 0.27300357166677713,
+      "handoff": 0.9605149831622839,
+      "po": 0.25687684677541256
+     },
+     "stage_pct": {
+      "scene": 0.006042122372659429,
+      "raygen_host": 6.6760956030066,
+      "ray_upload": 1.3422925901805127,
+      "rt_trace": 16.847649290186432,
+      "handoff": 59.27548667399646,
+      "po": 15.852433720257336
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.003059627488255501,
+      "raygen_host": 3.3806606952566653,
+      "ray_upload": 0.6797140231356025,
+      "rt_trace": 8.531361614586785,
+      "handoff": 30.016093223821372,
+      "po": 8.027401461731642
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 9.752251207828522e-05,
+       "median": 9.790807962417603e-05,
+       "max": 9.829364717006683e-05
+      },
+      "raygen_host": {
+       "min": 0.0916855800896883,
+       "median": 0.10818114224821329,
+       "max": 0.12467670440673828
+      },
+      "ray_upload": {
+       "min": 0.020820122212171555,
+       "median": 0.02175084874033928,
+       "max": 0.022681575268507004
+      },
+      "rt_trace": {
+       "min": 0.27072976157069206,
+       "median": 0.27300357166677713,
+       "max": 0.2752773817628622
+      },
+      "handoff": {
+       "min": 0.929189121350646,
+       "median": 0.9605149831622839,
+       "max": 0.9918408449739218
+      },
+      "po": {
+       "min": 0.2393406517803669,
+       "median": 0.25687684677541256,
+       "max": 0.2744130417704582
+      }
+     },
+     "hit_fraction": 0.03680493734883096,
+     "lit_fraction": 0.03680493734883096,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -34.414865218816345,
+     "po_over_rt": 0.9409285204845286,
+     "po_plus_handoff_over_rt": 4.459252391846438
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 32,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 8,
+     "rays_per_pose": 207368,
+     "chunk_az": 32,
+     "total_s": {
+      "min": 1.8885687161237001,
+      "median": 1.9039354538545012,
+      "max": 1.9193021915853024
+     },
+     "raw_kernel_s": {
+      "min": 2.067342560738325,
+      "median": 2.0684599336236715,
+      "max": 2.069577306509018
+     },
+     "per_pose_ms": {
+      "min": 64.60445502307266,
+      "median": 64.63937292573974,
+      "max": 64.67429082840681
+     },
+     "per_pose_ms_instrumented": 59.497982932953164,
+     "instrumentation_overhead_pct": -7.953960194962292,
+     "stage_s_median": {
+      "scene": 8.942652493715286e-05,
+      "raygen_host": 0.17181130219250917,
+      "ray_upload": 0.036640786565840244,
+      "rt_trace": 0.2677660472691059,
+      "handoff": 0.970675359480083,
+      "po": 0.4259462095797062
+     },
+     "stage_pct": {
+      "scene": 0.004774688130360609,
+      "raygen_host": 9.173401133689307,
+      "ray_upload": 1.9563359844961434,
+      "rt_trace": 14.296645972857393,
+      "handoff": 51.82659306732787,
+      "po": 22.74224915349893
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.002794578904286027,
+      "raygen_host": 5.369103193515912,
+      "ray_upload": 1.1450245801825076,
+      "rt_trace": 8.36768897715956,
+      "handoff": 30.333604983752593,
+      "po": 13.310819049365819
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 6.951764225959778e-05,
+       "median": 8.942652493715286e-05,
+       "max": 0.00010933540761470795
+      },
+      "raygen_host": {
+       "min": 0.1578595507889986,
+       "median": 0.17181130219250917,
+       "max": 0.18576305359601974
+      },
+      "ray_upload": {
+       "min": 0.03554624132812023,
+       "median": 0.036640786565840244,
+       "max": 0.03773533180356026
+      },
+      "rt_trace": {
+       "min": 0.26630801521241665,
+       "median": 0.2677660472691059,
+       "max": 0.2692240793257952
+      },
+      "handoff": {
+       "min": 0.9596131071448326,
+       "median": 0.970675359480083,
+       "max": 0.9817376118153334
+      },
+      "po": {
+       "min": 0.4130549654364586,
+       "median": 0.4259462095797062,
+       "max": 0.4388374537229538
+      }
+     },
+     "hit_fraction": 0.037518897563751395,
+     "lit_fraction": 0.037518897563751395,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -31.77532291411407,
+     "po_over_rt": 1.5907401775686243,
+     "po_plus_handoff_over_rt": 5.21582770968785
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 24,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 32,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 56644,
+     "passes_per_pose": 8,
+     "rays_per_pose": 453152,
+     "chunk_az": 32,
+     "total_s": {
+      "min": 2.9703376926481724,
+      "median": 3.055978462100029,
+      "max": 3.1416192315518856
+     },
+     "raw_kernel_s": {
+      "min": 2.646592538803816,
+      "median": 2.9508787617087364,
+      "max": 3.255164984613657
+     },
+     "per_pose_ms": {
+      "min": 82.70601683761925,
+      "median": 92.21496130339801,
+      "max": 101.72390576917678
+     },
+     "per_pose_ms_instrumented": 95.4993269406259,
+     "instrumentation_overhead_pct": 3.5616407476677736,
+     "stage_s_median": {
+      "scene": 6.305146962404251e-05,
+      "raygen_host": 0.39240015763789415,
+      "ray_upload": 0.08996663428843021,
+      "rt_trace": 0.282285557128489,
+      "handoff": 1.1799548976123333,
+      "po": 1.0691285748034716
+     },
+     "stage_pct": {
+      "scene": 0.002092092813165396,
+      "raygen_host": 13.020117605096559,
+      "ray_upload": 2.98515720794133,
+      "rt_trace": 9.366436481977082,
+      "handoff": 39.15174659486076,
+      "po": 35.4744500173111
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.0019703584257513285,
+      "raygen_host": 12.262504926184192,
+      "ray_upload": 2.811457321513444,
+      "rt_trace": 8.821423660265282,
+      "handoff": 36.873590550385416,
+      "po": 33.410267962608486
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 6.117485463619232e-05,
+       "median": 6.305146962404251e-05,
+       "max": 6.49280846118927e-05
+      },
+      "raygen_host": {
+       "min": 0.38066253811120987,
+       "median": 0.39240015763789415,
+       "max": 0.40413777716457844
+      },
+      "ray_upload": {
+       "min": 0.08612135238945484,
+       "median": 0.08996663428843021,
+       "max": 0.09381191618740559
+      },
+      "rt_trace": {
+       "min": 0.2763461172580719,
+       "median": 0.282285557128489,
+       "max": 0.28822499699890614
+      },
+      "handoff": {
+       "min": 1.1710138451308012,
+       "median": 1.1799548976123333,
+       "max": 1.1888959500938654
+      },
+      "po": {
+       "min": 1.002030061557889,
+       "median": 1.0691285748034716,
+       "max": 1.1362270880490541
+      }
+     },
+     "hit_fraction": 0.0386834881011228,
+     "lit_fraction": 0.0386834881011228,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -34.05081652377187,
+     "po_over_rt": 3.7874009059444447,
+     "po_plus_handoff_over_rt": 7.9674054007378095
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 32,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 32,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 99225,
+     "passes_per_pose": 8,
+     "rays_per_pose": 793800,
+     "chunk_az": 32,
+     "total_s": {
+      "min": 5.539825536310673,
+      "median": 5.663294988684356,
+      "max": 5.78676444105804
+     },
+     "raw_kernel_s": {
+      "min": 6.30461978726089,
+      "median": 6.5347825437784195,
+      "max": 6.764945300295949
+     },
+     "per_pose_ms": {
+      "min": 197.0193683519028,
+      "median": 204.2119544930756,
+      "max": 211.4045406342484
+     },
+     "per_pose_ms_instrumented": 176.97796839638613,
+     "instrumentation_overhead_pct": -13.336137036782988,
+     "stage_s_median": {
+      "scene": 7.065106183290482e-05,
+      "raygen_host": 0.8878678297623992,
+      "ray_upload": 0.20359059143811464,
+      "rt_trace": 0.31158384773880243,
+      "handoff": 1.4101468650624156,
+      "po": 2.7450698874890804
+     },
+     "stage_pct": {
+      "scene": 0.001271084408357134,
+      "raygen_host": 15.973644639085409,
+      "ray_upload": 3.662801658625195,
+      "rt_trace": 5.605710098078953,
+      "handoff": 25.369975300777906,
+      "po": 49.38659721902418
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.0022078456822782755,
+      "raygen_host": 27.745869680074975,
+      "ray_upload": 6.362205982441083,
+      "rt_trace": 9.736995241837576,
+      "handoff": 44.06708953320049,
+      "po": 85.78343398403376
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 6.016343832015991e-05,
+       "median": 7.065106183290482e-05,
+       "max": 8.113868534564972e-05
+      },
+      "raygen_host": {
+       "min": 0.8632455412298441,
+       "median": 0.8878678297623992,
+       "max": 0.9124901182949543
+      },
+      "ray_upload": {
+       "min": 0.19058530405163765,
+       "median": 0.20359059143811464,
+       "max": 0.21659587882459164
+      },
+      "rt_trace": {
+       "min": 0.3115073721855879,
+       "median": 0.31158384773880243,
+       "max": 0.311660323292017
+      },
+      "handoff": {
+       "min": 1.3524075970053673,
+       "median": 1.4101468650624156,
+       "max": 1.467886133119464
+      },
+      "po": {
+       "min": 2.587302725762129,
+       "median": 2.7450698874890804,
+       "max": 2.902837049216032
+      }
+     },
+     "hit_fraction": 0.039250992063492064,
+     "lit_fraction": 0.039250992063492064,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -33.63646197478762,
+     "po_over_rt": 8.810051956833926,
+     "po_plus_handoff_over_rt": 13.335789973409572
+    }
+   ]
+  },
+  "batch_az": {
+   "note": "poses fused into one ray bundle; shows per-launch-latency amortisation. Production runs the whole 120-azimuth grid in one bundle.",
+   "rows": [
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 1,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 8,
+     "rays_per_pose": 207368,
+     "chunk_az": 1,
+     "total_s": {
+      "min": 1.2956931199878454,
+      "median": 1.2960788197815418,
+      "max": 1.2964645195752382
+     },
+     "raw_kernel_s": {
+      "min": 1.4915770683437586,
+      "median": 1.5018012644723058,
+      "max": 1.512025460600853
+     },
+     "per_pose_ms": {
+      "min": 1491.5770683437586,
+      "median": 1501.8012644723058,
+      "max": 1512.025460600853
+     },
+     "per_pose_ms_instrumented": 1296.0788197815418,
+     "instrumentation_overhead_pct": -13.698380042518444,
+     "stage_s_median": {
+      "scene": 8.822791278362274e-05,
+      "raygen_host": 0.0066171325743198395,
+      "ray_upload": 0.003568553365767002,
+      "rt_trace": 0.3183252913877368,
+      "handoff": 0.9157268078997731,
+      "po": 0.017587963491678238
+     },
+     "stage_pct": {
+      "scene": 0.006991594864421389,
+      "raygen_host": 0.5243727145316518,
+      "ray_upload": 0.2827889564462364,
+      "rt_trace": 25.225593604828752,
+      "handoff": 72.56650016221948,
+      "po": 1.3937529671094555
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.08822791278362274,
+      "raygen_host": 6.6171325743198395,
+      "ray_upload": 3.568553365767002,
+      "rt_trace": 318.3252913877368,
+      "handoff": 915.7268078997731,
+      "po": 17.587963491678238
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 8.482672274112701e-05,
+       "median": 8.822791278362274e-05,
+       "max": 9.162910282611847e-05
+      },
+      "raygen_host": {
+       "min": 0.006547281518578529,
+       "median": 0.0066171325743198395,
+       "max": 0.00668698363006115
+      },
+      "ray_upload": {
+       "min": 0.0032667964696884155,
+       "median": 0.003568553365767002,
+       "max": 0.0038703102618455887
+      },
+      "rt_trace": {
+       "min": 0.31700824201107025,
+       "median": 0.3183252913877368,
+       "max": 0.31964234076440334
+      },
+      "handoff": {
+       "min": 0.9152974653989077,
+       "median": 0.9157268078997731,
+       "max": 0.9161561504006386
+      },
+      "po": {
+       "min": 0.01723875291645527,
+       "median": 0.017587963491678238,
+       "max": 0.017937174066901207
+      }
+     },
+     "hit_fraction": 0.03457621233748698,
+     "lit_fraction": 0.03457621233748698,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -31.77532291411407,
+     "po_over_rt": 0.05525154289501673,
+     "po_plus_handoff_over_rt": 2.931952931929073
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 2,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 8,
+     "rays_per_pose": 207368,
+     "chunk_az": 2,
+     "total_s": {
+      "min": 1.2665146626532078,
+      "median": 1.2946910308673978,
+      "max": 1.3228673990815878
+     },
+     "raw_kernel_s": {
+      "min": 1.511125810444355,
+      "median": 1.5133875776082277,
+      "max": 1.5156493447721004
+     },
+     "per_pose_ms": {
+      "min": 755.5629052221775,
+      "median": 756.6937888041139,
+      "max": 757.8246723860502
+     },
+     "per_pose_ms_instrumented": 647.3455154336989,
+     "instrumentation_overhead_pct": -14.45079568357896,
+     "stage_s_median": {
+      "scene": 5.7437457144260406e-05,
+      "raygen_host": 0.009952760301530361,
+      "ray_upload": 0.004269234836101532,
+      "rt_trace": 0.2865707352757454,
+      "handoff": 0.9429837390780449,
+      "po": 0.026488056406378746
+     },
+     "stage_pct": {
+      "scene": 0.00452148815821203,
+      "raygen_host": 0.7834832891690644,
+      "ray_upload": 0.33607502343944357,
+      "rt_trace": 22.55890581620005,
+      "handoff": 74.231869264671,
+      "po": 2.08514511836222
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.028718728572130203,
+      "raygen_host": 4.976380150765181,
+      "ray_upload": 2.134617418050766,
+      "rt_trace": 143.2853676378727,
+      "handoff": 471.49186953902245,
+      "po": 13.244028203189373
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 5.351938307285309e-05,
+       "median": 5.7437457144260406e-05,
+       "max": 6.135553121566772e-05
+      },
+      "raygen_host": {
+       "min": 0.009720912203192711,
+       "median": 0.009952760301530361,
+       "max": 0.010184608399868011
+      },
+      "ray_upload": {
+       "min": 0.0029840879142284393,
+       "median": 0.004269234836101532,
+       "max": 0.005554381757974625
+      },
+      "rt_trace": {
+       "min": 0.2788243517279625,
+       "median": 0.2865707352757454,
+       "max": 0.2943171188235283
+      },
+      "handoff": {
+       "min": 0.9230216424912214,
+       "median": 0.9429837390780449,
+       "max": 0.9629458356648684
+      },
+      "po": {
+       "min": 0.025517914444208145,
+       "median": 0.026488056406378746,
+       "max": 0.027458198368549347
+      }
+     },
+     "hit_fraction": 0.03497164461247637,
+     "lit_fraction": 0.03497164461247637,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -31.77532291411407,
+     "po_over_rt": 0.09243112832470939,
+     "po_plus_handoff_over_rt": 3.3830104618029964
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 4,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 8,
+     "rays_per_pose": 207368,
+     "chunk_az": 4,
+     "total_s": {
+      "min": 1.32775997556746,
+      "median": 1.3330705678090453,
+      "max": 1.3383811600506306
+     },
+     "raw_kernel_s": {
+      "min": 1.5469071175903082,
+      "median": 1.5492125246673822,
+      "max": 1.5515179317444563
+     },
+     "per_pose_ms": {
+      "min": 386.72677939757705,
+      "median": 387.30313116684556,
+      "max": 387.8794829361141
+     },
+     "per_pose_ms_instrumented": 333.26764195226133,
+     "instrumentation_overhead_pct": -13.951730535146742,
+     "stage_s_median": {
+      "scene": 5.432683974504471e-05,
+      "raygen_host": 0.019609040580689907,
+      "ray_upload": 0.005752984434366226,
+      "rt_trace": 0.27559418324381113,
+      "handoff": 0.954458880238235,
+      "po": 0.0522313192486763
+     },
+     "stage_pct": {
+      "scene": 0.004154378621058405,
+      "raygen_host": 1.4995052049813984,
+      "ray_upload": 0.43993126884566885,
+      "rt_trace": 21.074713499427745,
+      "handoff": 72.9875616794504,
+      "po": 3.9941339686737303
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.013581709936261177,
+      "raygen_host": 4.902260145172477,
+      "ray_upload": 1.4382461085915565,
+      "rt_trace": 68.89854581095278,
+      "handoff": 238.61472005955875,
+      "po": 13.057829812169075
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 4.9734488129615784e-05,
+       "median": 5.432683974504471e-05,
+       "max": 5.891919136047363e-05
+      },
+      "raygen_host": {
+       "min": 0.01935715228319168,
+       "median": 0.019609040580689907,
+       "max": 0.019860928878188133
+      },
+      "ray_upload": {
+       "min": 0.0053205229341983795,
+       "median": 0.005752984434366226,
+       "max": 0.006185445934534073
+      },
+      "rt_trace": {
+       "min": 0.27152463234961033,
+       "median": 0.27559418324381113,
+       "max": 0.27966373413801193
+      },
+      "handoff": {
+       "min": 0.9472211692482233,
+       "median": 0.954458880238235,
+       "max": 0.9616965912282467
+      },
+      "po": {
+       "min": 0.050085194408893585,
+       "median": 0.0522313192486763,
+       "max": 0.054377444088459015
+      }
+     },
+     "hit_fraction": 0.035424945025269085,
+     "lit_fraction": 0.035424945025269085,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -31.77532291411407,
+     "po_over_rt": 0.18952257494661484,
+     "po_plus_handoff_over_rt": 3.6527991543142195
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 8,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 8,
+     "rays_per_pose": 207368,
+     "chunk_az": 8,
+     "total_s": {
+      "min": 1.4023602195084095,
+      "median": 1.4095834996551275,
+      "max": 1.4168067798018456
+     },
+     "raw_kernel_s": {
+      "min": 1.062650041654706,
+      "median": 1.0756415612995625,
+      "max": 1.088633080944419
+     },
+     "per_pose_ms": {
+      "min": 132.83125520683825,
+      "median": 134.4551951624453,
+      "max": 136.07913511805236
+     },
+     "per_pose_ms_instrumented": 176.19793745689094,
+     "instrumentation_overhead_pct": 31.045838164909227,
+     "stage_s_median": {
+      "scene": 5.798507481813431e-05,
+      "raygen_host": 0.03851241618394852,
+      "ray_upload": 0.00927660521119833,
+      "rt_trace": 0.29455356672406197,
+      "handoff": 0.9352327613160014,
+      "po": 0.10465528350323439
+     },
+     "stage_pct": {
+      "scene": 0.004194860180609398,
+      "raygen_host": 2.7861342184312914,
+      "ray_upload": 0.6711047960831378,
+      "rt_trace": 21.309121907363906,
+      "handoff": 67.6582841765849,
+      "po": 7.571160041356157
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.0072481343522667885,
+      "raygen_host": 4.814052022993565,
+      "ray_upload": 1.1595756513997912,
+      "rt_trace": 36.819195840507746,
+      "handoff": 116.90409516450018,
+      "po": 13.081910437904298
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 4.8628076910972595e-05,
+       "median": 5.798507481813431e-05,
+       "max": 6.734207272529602e-05
+      },
+      "raygen_host": {
+       "min": 0.03834686428308487,
+       "median": 0.03851241618394852,
+       "max": 0.038677968084812164
+      },
+      "ray_upload": {
+       "min": 0.009191131219267845,
+       "median": 0.00927660521119833,
+       "max": 0.009362079203128815
+      },
+      "rt_trace": {
+       "min": 0.292706485837698,
+       "median": 0.29455356672406197,
+       "max": 0.29640064761042595
+      },
+      "handoff": {
+       "min": 0.9335600472986698,
+       "median": 0.9352327613160014,
+       "max": 0.936905475333333
+      },
+      "po": {
+       "min": 0.10087515972554684,
+       "median": 0.10465528350323439,
+       "max": 0.10843540728092194
+      }
+     },
+     "hit_fraction": 0.036412320126538326,
+     "lit_fraction": 0.036412320126538326,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -31.77532291411407,
+     "po_over_rt": 0.35530136221801567,
+     "po_plus_handoff_over_rt": 3.5303868711710553
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 16,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 8,
+     "rays_per_pose": 207368,
+     "chunk_az": 16,
+     "total_s": {
+      "min": 1.1019234266132116,
+      "median": 1.1532484758645296,
+      "max": 1.2045735251158476
+     },
+     "raw_kernel_s": {
+      "min": 1.2391746956855059,
+      "median": 1.2478810604661703,
+      "max": 1.2565874252468348
+     },
+     "per_pose_ms": {
+      "min": 77.44841848034412,
+      "median": 77.99256627913564,
+      "max": 78.53671407792717
+     },
+     "per_pose_ms_instrumented": 72.0780297415331,
+     "instrumentation_overhead_pct": -7.583461885885892,
+     "stage_s_median": {
+      "scene": 6.832554936408997e-05,
+      "raygen_host": 0.0787945706397295,
+      "ray_upload": 0.023352558724582195,
+      "rt_trace": 0.2644603466615081,
+      "handoff": 0.5439407750964165,
+      "po": 0.2127615036442876
+     },
+     "stage_pct": {
+      "scene": 0.006082150841404808,
+      "raygen_host": 7.014074070020388,
+      "ray_upload": 2.0787799881243525,
+      "rt_trace": 23.54152633876773,
+      "handoff": 48.420098685160674,
+      "po": 18.93943876708545
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.004270346835255623,
+      "raygen_host": 4.924660664983094,
+      "ray_upload": 1.4595349202863872,
+      "rt_trace": 16.528771666344255,
+      "handoff": 33.99629844352603,
+      "po": 13.297593977767974
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 5.5946409702301025e-05,
+       "median": 6.832554936408997e-05,
+       "max": 8.07046890258789e-05
+      },
+      "raygen_host": {
+       "min": 0.07817046530544758,
+       "median": 0.0787945706397295,
+       "max": 0.07941867597401142
+      },
+      "ray_upload": {
+       "min": 0.018773116171360016,
+       "median": 0.023352558724582195,
+       "max": 0.027932001277804375
+      },
+      "rt_trace": {
+       "min": 0.24136476404964924,
+       "median": 0.2644603466615081,
+       "max": 0.28755592927336693
+      },
+      "handoff": {
+       "min": 0.528830723837018,
+       "median": 0.5439407750964165,
+       "max": 0.5590508263558149
+      },
+      "po": {
+       "min": 0.20444989018142223,
+       "median": 0.2127615036442876,
+       "max": 0.22107311710715294
+      }
+     },
+     "hit_fraction": 0.03732193491763435,
+     "lit_fraction": 0.03732193491763435,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -31.77532291411407,
+     "po_over_rt": 0.8045119290288475,
+     "po_plus_handoff_over_rt": 2.861307142235707
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 32,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 8,
+     "rays_per_pose": 207368,
+     "chunk_az": 32,
+     "total_s": {
+      "min": 1.5130088441073895,
+      "median": 1.5306073101237416,
+      "max": 1.5482057761400938
+     },
+     "raw_kernel_s": {
+      "min": 1.5776823293417692,
+      "median": 1.5857343273237348,
+      "max": 1.5937863253057003
+     },
+     "per_pose_ms": {
+      "min": 49.30257279193029,
+      "median": 49.55419772886671,
+      "max": 49.805822665803134
+     },
+     "per_pose_ms_instrumented": 47.831478441366926,
+     "instrumentation_overhead_pct": -3.4764346240162274,
+     "stage_s_median": {
+      "scene": 8.385162800550461e-05,
+      "raygen_host": 0.17700207326561213,
+      "ray_upload": 0.04575966391712427,
+      "rt_trace": 0.2512546721845865,
+      "handoff": 0.5735243400558829,
+      "po": 0.44757387787103653
+     },
+     "stage_pct": {
+      "scene": 0.005608060012604186,
+      "raygen_host": 11.838031924243046,
+      "ray_upload": 3.0604407750674167,
+      "rt_trace": 16.804101644464826,
+      "handoff": 38.35773966739749,
+      "po": 29.93407792881462
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.002620363375172019,
+      "raygen_host": 5.531314789550379,
+      "ray_upload": 1.4299894974101335,
+      "rt_trace": 7.851708505768329,
+      "handoff": 17.92263562674634,
+      "po": 13.986683683469892
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 7.20396637916565e-05,
+       "median": 8.385162800550461e-05,
+       "max": 9.566359221935272e-05
+      },
+      "raygen_host": {
+       "min": 0.17449826933443546,
+       "median": 0.17700207326561213,
+       "max": 0.1795058771967888
+      },
+      "ray_upload": {
+       "min": 0.045011766254901886,
+       "median": 0.04575966391712427,
+       "max": 0.04650756157934666
+      },
+      "rt_trace": {
+       "min": 0.24880699254572392,
+       "median": 0.2512546721845865,
+       "max": 0.25370235182344913
+      },
+      "handoff": {
+       "min": 0.570195971056819,
+       "median": 0.5735243400558829,
+       "max": 0.5768527090549469
+      },
+      "po": {
+       "min": 0.4344876892864704,
+       "median": 0.44757387787103653,
+       "max": 0.46066006645560265
+      }
+     },
+     "hit_fraction": 0.037518897563751395,
+     "lit_fraction": 0.037518897563751395,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -31.77532291411407,
+     "po_over_rt": 1.7813554429834535,
+     "po_plus_handoff_over_rt": 4.063996936052041
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 64,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 8,
+     "rays_per_pose": 207368,
+     "chunk_az": 64,
+     "total_s": {
+      "min": 2.2152032908052206,
+      "median": 2.2472821874544024,
+      "max": 2.2793610841035843
+     },
+     "raw_kernel_s": {
+      "min": 2.427339192479849,
+      "median": 2.466492034494877,
+      "max": 2.505644876509905
+     },
+     "per_pose_ms": {
+      "min": 37.92717488249764,
+      "median": 38.53893803898245,
+      "max": 39.15070119546726
+     },
+     "per_pose_ms_instrumented": 35.11378417897504,
+     "instrumentation_overhead_pct": -8.887514898679465,
+     "stage_s_median": {
+      "scene": 5.836319178342819e-05,
+      "raygen_host": 0.32489904947578907,
+      "ray_upload": 0.07502568606287241,
+      "rt_trace": 0.23898750636726618,
+      "handoff": 0.7218806985765696,
+      "po": 0.8494667187333107
+     },
+     "stage_pct": {
+      "scene": 0.002640488436132644,
+      "raygen_host": 14.699199218485873,
+      "ray_upload": 3.3943389730474443,
+      "rt_trace": 10.812358400215585,
+      "handoff": 32.659585238791124,
+      "po": 38.43187768102384
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.0009119248716160655,
+      "raygen_host": 5.076547648059204,
+      "ray_upload": 1.1722763447323814,
+      "rt_trace": 3.734179786988534,
+      "handoff": 11.2793859152589,
+      "po": 13.27291748020798
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 5.2172690629959106e-05,
+       "median": 5.836319178342819e-05,
+       "max": 6.455369293689728e-05
+      },
+      "raygen_host": {
+       "min": 0.2957246843725443,
+       "median": 0.32489904947578907,
+       "max": 0.35407341457903385
+      },
+      "ray_upload": {
+       "min": 0.07440484128892422,
+       "median": 0.07502568606287241,
+       "max": 0.0756465308368206
+      },
+      "rt_trace": {
+       "min": 0.23445224948227406,
+       "median": 0.23898750636726618,
+       "max": 0.2435227632522583
+      },
+      "handoff": {
+       "min": 0.6529614310711622,
+       "median": 0.7218806985765696,
+       "max": 0.7907999660819769
+      },
+      "po": {
+       "min": 0.7848284114152193,
+       "median": 0.8494667187333107,
+       "max": 0.9141050260514021
+      }
+     },
+     "hit_fraction": 0.03758588294722426,
+     "lit_fraction": 0.03758588294722426,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -31.77532291411407,
+     "po_over_rt": 3.55443986024895,
+     "po_plus_handoff_over_rt": 6.575019092818593
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 120,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 8,
+     "rays_per_pose": 207368,
+     "chunk_az": 120,
+     "total_s": {
+      "min": 4.444161366671324,
+      "median": 4.617407758720219,
+      "max": 4.7906541507691145
+     },
+     "raw_kernel_s": {
+      "min": 5.149531751871109,
+      "median": 5.1527978191152215,
+      "max": 5.156063886359334
+     },
+     "per_pose_ms": {
+      "min": 42.91276459892591,
+      "median": 42.939981825960174,
+      "max": 42.967199052994445
+     },
+     "per_pose_ms_instrumented": 38.47839798933516,
+     "instrumentation_overhead_pct": -10.39027881918591,
+     "stage_s_median": {
+      "scene": 7.463991641998291e-05,
+      "raygen_host": 0.7225189199671149,
+      "ray_upload": 0.16441261302679777,
+      "rt_trace": 0.28215563483536243,
+      "handoff": 1.1327810361981392,
+      "po": 2.217872155830264
+     },
+     "stage_pct": {
+      "scene": 0.0016513931748028058,
+      "raygen_host": 15.98558613578712,
+      "ray_upload": 3.637596074950306,
+      "rt_trace": 6.242636808131851,
+      "handoff": 25.062553141107674,
+      "po": 49.069976446848244
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.0006219993034998575,
+      "raygen_host": 6.020990999725957,
+      "ray_upload": 1.370105108556648,
+      "rt_trace": 2.3512969569613538,
+      "handoff": 9.439841968317827,
+      "po": 18.482267965252202
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 4.5727938413619995e-05,
+       "median": 7.463991641998291e-05,
+       "max": 0.00010355189442634583
+      },
+      "raygen_host": {
+       "min": 0.6894010994583368,
+       "median": 0.7225189199671149,
+       "max": 0.755636740475893
+      },
+      "ray_upload": {
+       "min": 0.1521088294684887,
+       "median": 0.16441261302679777,
+       "max": 0.17671639658510685
+      },
+      "rt_trace": {
+       "min": 0.2807485871016979,
+       "median": 0.28215563483536243,
+       "max": 0.28356268256902695
+      },
+      "handoff": {
+       "min": 1.1024751048535109,
+       "median": 1.1327810361981392,
+       "max": 1.1630869675427675
+      },
+      "po": {
+       "min": 2.099238319322467,
+       "median": 2.217872155830264,
+       "max": 2.3365059923380613
+      }
+     },
+     "hit_fraction": 0.03759516093772102,
+     "lit_fraction": 0.03759516093772102,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -31.77532291411407,
+     "po_over_rt": 7.8604567196554145,
+     "po_plus_handoff_over_rt": 11.87519502838746
+    }
+   ]
+  },
+  "passes": {
+   "note": "jitter J → J^2 grid offsets; penetrate → second trace on the shell-removed scene",
+   "rows": [
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 1,
+     "penetrate": false,
+     "n_az": 32,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 1,
+     "rays_per_pose": 25921,
+     "chunk_az": 32,
+     "total_s": {
+      "min": 0.2256486676633358,
+      "median": 0.2289593182504177,
+      "max": 0.23226996883749962
+     },
+     "raw_kernel_s": {
+      "min": 0.24340811744332314,
+      "median": 0.24764959141612053,
+      "max": 0.2518910653889179
+     },
+     "per_pose_ms": {
+      "min": 7.606503670103848,
+      "median": 7.7390497317537665,
+      "max": 7.871595793403685
+     },
+     "per_pose_ms_instrumented": 7.154978695325553,
+     "instrumentation_overhead_pct": -7.547064002337859,
+     "stage_s_median": {
+      "scene": 3.913603723049164e-05,
+      "raygen_host": 0.035017737187445164,
+      "ray_upload": 0.00801577977836132,
+      "rt_trace": 0.029880676418542862,
+      "handoff": 0.1014516968280077,
+      "po": 0.043600927107036114
+     },
+     "stage_pct": {
+      "scene": 0.01795182041036797,
+      "raygen_host": 16.062743539008597,
+      "ray_upload": 3.676862789727929,
+      "rt_trace": 13.70635799549141,
+      "handoff": 46.53620475310992,
+      "po": 19.99987910225177
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.0012230011634528637,
+      "raygen_host": 1.0943042871076614,
+      "ray_upload": 0.25049311807379127,
+      "rt_trace": 0.9337711380794644,
+      "handoff": 3.1703655258752406,
+      "po": 1.3625289720948786
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 3.534741699695587e-05,
+       "median": 3.913603723049164e-05,
+       "max": 4.2924657464027405e-05
+      },
+      "raygen_host": {
+       "min": 0.0332726426422596,
+       "median": 0.035017737187445164,
+       "max": 0.03676283173263073
+      },
+      "ray_upload": {
+       "min": 0.007958697155117989,
+       "median": 0.00801577977836132,
+       "max": 0.008072862401604652
+      },
+      "rt_trace": {
+       "min": 0.029785187914967537,
+       "median": 0.029880676418542862,
+       "max": 0.029976164922118187
+      },
+      "handoff": {
+       "min": 0.10052137449383736,
+       "median": 0.1014516968280077,
+       "max": 0.10238201916217804
+      },
+      "po": {
+       "min": 0.043448660522699356,
+       "median": 0.043600927107036114,
+       "max": 0.04375319369137287
+      }
+     },
+     "hit_fraction": 0.04294539176729293,
+     "lit_fraction": 0.04294539176729293,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -28.2729269332067,
+     "po_over_rt": 1.4591680086592338,
+     "po_plus_handoff_over_rt": 4.8543955934354095
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 1,
+     "penetrate": true,
+     "n_az": 32,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 2,
+     "rays_per_pose": 51842,
+     "chunk_az": 32,
+     "total_s": {
+      "min": 0.4905070550739765,
+      "median": 0.49644816666841507,
+      "max": 0.5023892782628536
+     },
+     "raw_kernel_s": {
+      "min": 0.4725216869264841,
+      "median": 0.5094257304444909,
+      "max": 0.5463297739624977
+     },
+     "per_pose_ms": {
+      "min": 14.766302716452628,
+      "median": 15.919554076390341,
+      "max": 17.072805436328053
+     },
+     "per_pose_ms_instrumented": 15.514005208387971,
+     "instrumentation_overhead_pct": -2.5474888684465316,
+     "stage_s_median": {
+      "scene": 5.752965807914734e-05,
+      "raygen_host": 0.04081333987414837,
+      "ray_upload": 0.009167086333036423,
+      "rt_trace": 0.06968421675264835,
+      "handoff": 0.24722518865019083,
+      "po": 0.11258783377707005
+     },
+     "stage_pct": {
+      "scene": 0.011996962615794641,
+      "raygen_host": 8.511020733379887,
+      "ray_upload": 1.9116607973212196,
+      "rt_trace": 14.531616755696934,
+      "handoff": 51.55517075798821,
+      "po": 23.47853399299796
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.0017978018149733543,
+      "raygen_host": 1.2754168710671365,
+      "ray_upload": 0.2864714479073882,
+      "rt_trace": 2.177631773520261,
+      "handoff": 7.7257871453184634,
+      "po": 3.518369805533439
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 4.929304122924805e-05,
+       "median": 5.752965807914734e-05,
+       "max": 6.576627492904663e-05
+      },
+      "raygen_host": {
+       "min": 0.040618035942316055,
+       "median": 0.04081333987414837,
+       "max": 0.04100864380598068
+      },
+      "ray_upload": {
+       "min": 0.009003804996609688,
+       "median": 0.009167086333036423,
+       "max": 0.009330367669463158
+      },
+      "rt_trace": {
+       "min": 0.06762082502245903,
+       "median": 0.06968421675264835,
+       "max": 0.07174760848283768
+      },
+      "handoff": {
+       "min": 0.24542940221726894,
+       "median": 0.24722518865019083,
+       "max": 0.24902097508311272
+      },
+      "po": {
+       "min": 0.10237937234342098,
+       "median": 0.11258783377707005,
+       "max": 0.12279629521071911
+      }
+     },
+     "hit_fraction": 0.03750397843447398,
+     "lit_fraction": 0.03750397843447398,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -38.15453629124407,
+     "po_over_rt": 1.6156862920152022,
+     "po_plus_handoff_over_rt": 5.163479467731639
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 2,
+     "penetrate": false,
+     "n_az": 32,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 4,
+     "rays_per_pose": 103684,
+     "chunk_az": 32,
+     "total_s": {
+      "min": 1.0801658350974321,
+      "median": 1.0821346314623952,
+      "max": 1.0841034278273582
+     },
+     "raw_kernel_s": {
+      "min": 1.3079691398888826,
+      "median": 1.3201243532821536,
+      "max": 1.3322795666754246
+     },
+     "per_pose_ms": {
+      "min": 40.87403562152758,
+      "median": 41.2538860400673,
+      "max": 41.63373645860702
+     },
+     "per_pose_ms_instrumented": 33.81670723319985,
+     "instrumentation_overhead_pct": -18.027826032301995,
+     "stage_s_median": {
+      "scene": 3.8411468267440796e-05,
+      "raygen_host": 0.16189849749207497,
+      "ray_upload": 0.04592357389628887,
+      "rt_trace": 0.1750334119424224,
+      "handoff": 0.4749812977388501,
+      "po": 0.20858146343380213
+     },
+     "stage_pct": {
+      "scene": 0.0036017842874675526,
+      "raygen_host": 15.180973046162908,
+      "ray_upload": 4.3061828757067895,
+      "rt_trace": 16.41261376749907,
+      "handoff": 44.53826558061745,
+      "po": 19.55836294572632
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.0012003583833575249,
+      "raygen_host": 5.059328046627343,
+      "ray_upload": 1.4351116842590272,
+      "rt_trace": 5.4697941232007,
+      "handoff": 14.843165554339066,
+      "po": 6.5181707323063165
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 3.480538725852966e-05,
+       "median": 3.8411468267440796e-05,
+       "max": 4.201754927635193e-05
+      },
+      "raygen_host": {
+       "min": 0.157909469678998,
+       "median": 0.16189849749207497,
+       "max": 0.16588752530515194
+      },
+      "ray_upload": {
+       "min": 0.03633365407586098,
+       "median": 0.04592357389628887,
+       "max": 0.055513493716716766
+      },
+      "rt_trace": {
+       "min": 0.15979578904807568,
+       "median": 0.1750334119424224,
+       "max": 0.1902710348367691
+      },
+      "handoff": {
+       "min": 0.44433230347931385,
+       "median": 0.4749812977388501,
+       "max": 0.5056302919983864
+      },
+      "po": {
+       "min": 0.20839802734553814,
+       "median": 0.20858146343380213,
+       "max": 0.20876489952206612
+      }
+     },
+     "hit_fraction": 0.04293363730180163,
+     "lit_fraction": 0.04293363730180163,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -25.384083737068835,
+     "po_over_rt": 1.1916665573680039,
+     "po_plus_handoff_over_rt": 3.905327294868203
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 32,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 8,
+     "rays_per_pose": 207368,
+     "chunk_az": 32,
+     "total_s": {
+      "min": 2.0339692514389753,
+      "median": 2.093874587677419,
+      "max": 2.153779923915863
+     },
+     "raw_kernel_s": {
+      "min": 1.9780024662613869,
+      "median": 2.193521123379469,
+      "max": 2.409039780497551
+     },
+     "per_pose_ms": {
+      "min": 61.81257707066834,
+      "median": 68.5475351056084,
+      "max": 75.28249314054847
+     },
+     "per_pose_ms_instrumented": 65.43358086491935,
+     "instrumentation_overhead_pct": -4.542766178085778,
+     "stage_s_median": {
+      "scene": 5.683489143848419e-05,
+      "raygen_host": 0.18754041846841574,
+      "ray_upload": 0.04033277370035648,
+      "rt_trace": 0.3128236886113882,
+      "handoff": 1.0478787990286946,
+      "po": 0.4709066143259406
+     },
+     "stage_pct": {
+      "scene": 0.0027595926990402054,
+      "raygen_host": 9.105941024635268,
+      "ray_upload": 1.9583397631015695,
+      "rt_trace": 15.189014095560964,
+      "handoff": 50.87928577128514,
+      "po": 22.86465975271802
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.001776090357452631,
+      "raygen_host": 5.860638077137992,
+      "ray_upload": 1.26039917813614,
+      "rt_trace": 9.775740269105881,
+      "handoff": 32.74621246964671,
+      "po": 14.715831697685644
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 5.140341818332672e-05,
+       "median": 5.683489143848419e-05,
+       "max": 6.226636469364166e-05
+      },
+      "raygen_host": {
+       "min": 0.1781857032328844,
+       "median": 0.18754041846841574,
+       "max": 0.19689513370394707
+      },
+      "ray_upload": {
+       "min": 0.03834613226354122,
+       "median": 0.04033277370035648,
+       "max": 0.042319415137171745
+      },
+      "rt_trace": {
+       "min": 0.3058548476547003,
+       "median": 0.3128236886113882,
+       "max": 0.31979252956807613
+      },
+      "handoff": {
+       "min": 1.0222390536218882,
+       "median": 1.0478787990286946,
+       "max": 1.073518544435501
+      },
+      "po": {
+       "min": 0.4327933620661497,
+       "median": 0.4709066143259406,
+       "max": 0.5090198665857315
+      }
+     },
+     "hit_fraction": 0.037518897563751395,
+     "lit_fraction": 0.037518897563751395,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -31.77532291411407,
+     "po_over_rt": 1.5053419273210291,
+     "po_plus_handoff_over_rt": 4.855084409037125
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 3,
+     "penetrate": true,
+     "n_az": 32,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 18,
+     "rays_per_pose": 466578,
+     "chunk_az": 32,
+     "total_s": {
+      "min": 3.495047675445676,
+      "median": 3.6512379879131913,
+      "max": 3.807428300380707
+     },
+     "raw_kernel_s": {
+      "min": 3.8340360429137945,
+      "median": 3.844492024742067,
+      "max": 3.854948006570339
+     },
+     "per_pose_ms": {
+      "min": 119.81362634105608,
+      "median": 120.14037577318959,
+      "max": 120.4671252053231
+     },
+     "per_pose_ms_instrumented": 114.10118712228723,
+     "instrumentation_overhead_pct": -5.026776894974604,
+     "stage_s_median": {
+      "scene": 5.9205107390880585e-05,
+      "raygen_host": 0.29857642482966185,
+      "ray_upload": 0.07661551423370838,
+      "rt_trace": 0.5563609153032303,
+      "handoff": 1.8488853788003325,
+      "po": 0.817537977360189
+     },
+     "stage_pct": {
+      "scene": 0.0016454842866086624,
+      "raygen_host": 8.298318119167483,
+      "ray_upload": 2.129370764411924,
+      "rt_trace": 15.462908255034954,
+      "handoff": 51.385969431161975,
+      "po": 22.721787945937056
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.0018501596059650183,
+      "raygen_host": 9.330513275926933,
+      "ray_upload": 2.394234819803387,
+      "rt_trace": 17.386278603225946,
+      "handoff": 57.77766808751039,
+      "po": 25.548061792505905
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 5.741044878959656e-05,
+       "median": 5.9205107390880585e-05,
+       "max": 6.099976599216461e-05
+      },
+      "raygen_host": {
+       "min": 0.29057811573147774,
+       "median": 0.29857642482966185,
+       "max": 0.30657473392784595
+      },
+      "ray_upload": {
+       "min": 0.07442579790949821,
+       "median": 0.07661551423370838,
+       "max": 0.07880523055791855
+      },
+      "rt_trace": {
+       "min": 0.5548139251768589,
+       "median": 0.5563609153032303,
+       "max": 0.5579079054296017
+      },
+      "handoff": {
+       "min": 1.755181098356843,
+       "median": 1.8488853788003325,
+       "max": 1.942589659243822
+      },
+      "po": {
+       "min": 0.7686698734760284,
+       "median": 0.817537977360189,
+       "max": 0.8664060812443495
+      }
+     },
+     "hit_fraction": 0.03755454607804054,
+     "lit_fraction": 0.03755454607804054,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -31.02781513192359,
+     "po_over_rt": 1.4694381917799002,
+     "po_plus_handoff_over_rt": 4.79261443932893
+    }
+   ]
+  },
+  "facets": {
+   "note": "same surface, 1x/4x/16x triangles (loop subdivision). Isolates BVH/facet cost from ray count. Ziganshin's vehicle mesh is 1496 facets; ours are 20-95x that.",
+   "rows": [
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro_x1",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 32,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 29932,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 8,
+     "rays_per_pose": 207368,
+     "chunk_az": 32,
+     "total_s": {
+      "min": 1.8079880140721798,
+      "median": 1.9862136030569673,
+      "max": 2.1644391920417547
+     },
+     "raw_kernel_s": {
+      "min": 2.425457749515772,
+      "median": 2.431712742894888,
+      "max": 2.437967736274004
+     },
+     "per_pose_ms": {
+      "min": 75.79555467236787,
+      "median": 75.99102321546525,
+      "max": 76.18649175856262
+     },
+     "per_pose_ms_instrumented": 62.06917509553023,
+     "instrumentation_overhead_pct": -18.320385133466303,
+     "stage_s_median": {
+      "scene": 5.3209252655506134e-05,
+      "raygen_host": 0.1344350203871727,
+      "ray_upload": 0.03330200631171465,
+      "rt_trace": 0.27830258198082447,
+      "handoff": 1.1617454933002591,
+      "po": 0.3489434802904725
+     },
+     "stage_pct": {
+      "scene": 0.002719222597328529,
+      "raygen_host": 6.870210105672161,
+      "ray_upload": 1.7018763387916334,
+      "rt_trace": 14.222463801863276,
+      "handoff": 59.370211759584706,
+      "po": 17.832518771490896
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.0016627891454845667,
+      "raygen_host": 4.201094387099147,
+      "ray_upload": 1.0406876972410828,
+      "rt_trace": 8.696955686900765,
+      "handoff": 36.3045466656331,
+      "po": 10.904483759077266
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 4.509836435317993e-05,
+       "median": 5.3209252655506134e-05,
+       "max": 6.132014095783234e-05
+      },
+      "raygen_host": {
+       "min": 0.13342173770070076,
+       "median": 0.1344350203871727,
+       "max": 0.13544830307364464
+      },
+      "ray_upload": {
+       "min": 0.03284899331629276,
+       "median": 0.03330200631171465,
+       "max": 0.033755019307136536
+      },
+      "rt_trace": {
+       "min": 0.2622878570109606,
+       "median": 0.27830258198082447,
+       "max": 0.29431730695068836
+      },
+      "handoff": {
+       "min": 0.9884292203933001,
+       "median": 1.1617454933002591,
+       "max": 1.3350617662072182
+      },
+      "po": {
+       "min": 0.33766026608645916,
+       "median": 0.3489434802904725,
+       "max": 0.36022669449448586
+      }
+     },
+     "hit_fraction": 0.037518897563751395,
+     "lit_fraction": 0.037518897563751395,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -31.77532291411407,
+     "po_over_rt": 1.2538276785176048,
+     "po_plus_handoff_over_rt": 5.428224786268137
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro_x4",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 32,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 119728,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 8,
+     "rays_per_pose": 207368,
+     "chunk_az": 32,
+     "total_s": {
+      "min": 1.8895631954073906,
+      "median": 2.0714713474735618,
+      "max": 2.253379499539733
+     },
+     "raw_kernel_s": {
+      "min": 1.931578941643238,
+      "median": 2.2008900679647923,
+      "max": 2.4702011942863464
+     },
+     "per_pose_ms": {
+      "min": 60.36184192635119,
+      "median": 68.77781462389976,
+      "max": 77.19378732144833
+     },
+     "per_pose_ms_instrumented": 64.7334796085488,
+     "instrumentation_overhead_pct": -5.880290086951349,
+     "stage_s_median": {
+      "scene": 7.453747093677521e-05,
+      "raygen_host": 0.12951063830405474,
+      "ray_upload": 0.03247575741261244,
+      "rt_trace": 0.29813541378825903,
+      "handoff": 1.2220994513481855,
+      "po": 0.3411823743954301
+     },
+     "stage_pct": {
+      "scene": 0.0036836310834329213,
+      "raygen_host": 6.400397100898663,
+      "ray_upload": 1.6049472561874112,
+      "rt_trace": 14.73380923044879,
+      "handoff": 60.3959789546793,
+      "po": 16.861183826702405
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.0023292959667742252,
+      "raygen_host": 4.0472074470017105,
+      "ray_upload": 1.0148674191441387,
+      "rt_trace": 9.316731680883095,
+      "handoff": 38.1906078546308,
+      "po": 10.66194919985719
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 6.991252303123474e-05,
+       "median": 7.453747093677521e-05,
+       "max": 7.916241884231567e-05
+      },
+      "raygen_host": {
+       "min": 0.12908108346164227,
+       "median": 0.12951063830405474,
+       "max": 0.1299401931464672
+      },
+      "ray_upload": {
+       "min": 0.03229527920484543,
+       "median": 0.03247575741261244,
+       "max": 0.03265623562037945
+      },
+      "rt_trace": {
+       "min": 0.27986507304012775,
+       "median": 0.29813541378825903,
+       "max": 0.3164057545363903
+      },
+      "handoff": {
+       "min": 1.0614997316151857,
+       "median": 1.2220994513481855,
+       "max": 1.3826991710811853
+      },
+      "po": {
+       "min": 0.33792179822921753,
+       "median": 0.3411823743954301,
+       "max": 0.34444295056164265
+      }
+     },
+     "hit_fraction": 0.037518897563751395,
+     "lit_fraction": 0.037518897563751395,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -31.77531774541827,
+     "po_over_rt": 1.144387277110742,
+     "po_plus_handoff_over_rt": 5.243529461595212
+    },
+    {
+     "drone": "mavic4pro",
+     "tag": "mavic4pro_x16",
+     "fc_ghz": 3.5,
+     "div": 16,
+     "jitter": 2,
+     "penetrate": true,
+     "n_az": 32,
+     "el_deg": -2.0,
+     "reps": 2,
+     "facets": 478912,
+     "rays_per_az_per_pass": 25921,
+     "passes_per_pose": 8,
+     "rays_per_pose": 207368,
+     "chunk_az": 32,
+     "total_s": {
+      "min": 2.540307091549039,
+      "median": 2.66575166862458,
+      "max": 2.791196245700121
+     },
+     "raw_kernel_s": {
+      "min": 2.824534196406603,
+      "median": 2.866399466060102,
+      "max": 2.908264735713601
+     },
+     "per_pose_ms": {
+      "min": 88.26669363770634,
+      "median": 89.57498331437819,
+      "max": 90.88327299105003
+     },
+     "per_pose_ms_instrumented": 83.30473964451812,
+     "instrumentation_overhead_pct": -6.999994237066849,
+     "stage_s_median": {
+      "scene": 8.021481335163116e-05,
+      "raygen_host": 0.15371396206319332,
+      "ray_upload": 0.041513475589454174,
+      "rt_trace": 0.41961423587054014,
+      "handoff": 1.4980506543070078,
+      "po": 0.41216455679386854
+     },
+     "stage_pct": {
+      "scene": 0.0031766518091038507,
+      "raygen_host": 6.087351142139561,
+      "ray_upload": 1.6440087787195043,
+      "rt_trace": 16.617483302749285,
+      "handoff": 59.32551759826284,
+      "po": 16.322462526319708
+     },
+     "stage_per_pose_ms": {
+      "scene": 0.002506712917238474,
+      "raygen_host": 4.803561314474791,
+      "ray_upload": 1.297296112170443,
+      "rt_trace": 13.11294487095438,
+      "handoff": 46.81408294709399,
+      "po": 12.880142399808392
+     },
+     "stage_spread": {
+      "scene": {
+       "min": 7.361359894275665e-05,
+       "median": 8.021481335163116e-05,
+       "max": 8.681602776050568e-05
+      },
+      "raygen_host": {
+       "min": 0.15088472701609135,
+       "median": 0.15371396206319332,
+       "max": 0.1565431971102953
+      },
+      "ray_upload": {
+       "min": 0.035911452025175095,
+       "median": 0.041513475589454174,
+       "max": 0.047115499153733253
+      },
+      "rt_trace": {
+       "min": 0.39030977711081505,
+       "median": 0.41961423587054014,
+       "max": 0.44891869463026524
+      },
+      "handoff": {
+       "min": 1.3899111449718475,
+       "median": 1.4980506543070078,
+       "max": 1.606190163642168
+      },
+      "po": {
+       "min": 0.41125944443047047,
+       "median": 0.41216455679386854,
+       "max": 0.4130696691572666
+      }
+     },
+     "hit_fraction": 0.037518897563751395,
+     "lit_fraction": 0.037518897563751395,
+     "replica_check": {
+      "max_abs_ddb": 0.0,
+      "bit_identical": true
+     },
+     "sigma_dbsm_first": -31.775313115303586,
+     "po_over_rt": 0.9822463623970804,
+     "po_plus_handoff_over_rt": 4.552312690578539
+    }
+   ]
+  },
+  "target_size": {
+   "note": "ray grid covers the projected bounding sphere → rays ∝ R^2; dominant size driver",
+   "rows": [
+    {
+     "drone": "mini5pro",
+     "facets": 29068,
+     "rays_per_pose": 25992,
+     "per_pose_ms": 9.239509608596563,
+     "fc_ghz": 1.843
+    },
+    {
+     "drone": "mini5pro",
+     "facets": 29068,
+     "rays_per_pose": 83232,
+     "per_pose_ms": 11.343001193987826,
+     "fc_ghz": 3.5
+    },
+    {
+     "drone": "mini5pro",
+     "facets": 29068,
+     "rays_per_pose": 175232,
+     "per_pose_ms": 31.897342818168298,
+     "fc_ghz": 5.21
+    },
+    {
+     "drone": "phantom4",
+     "facets": 28402,
+     "rays_per_pose": 47432,
+     "per_pose_ms": 9.64474135544151,
+     "fc_ghz": 1.843
+    },
+    {
+     "drone": "phantom4",
+     "facets": 28402,
+     "rays_per_pose": 156800,
+     "per_pose_ms": 34.25740809955945,
+     "fc_ghz": 3.5
+    },
+    {
+     "drone": "phantom4",
+     "facets": 28402,
+     "rays_per_pose": 336200,
+     "per_pose_ms": 57.86663186736405,
+     "fc_ghz": 5.21
+    },
+    {
+     "drone": "mavic4pro",
+     "facets": 29932,
+     "rays_per_pose": 61952,
+     "per_pose_ms": 11.140519939363003,
+     "fc_ghz": 1.843
+    },
+    {
+     "drone": "mavic4pro",
+     "facets": 29932,
+     "rays_per_pose": 207368,
+     "per_pose_ms": 38.13479893530409,
+     "fc_ghz": 3.5
+    },
+    {
+     "drone": "mavic4pro",
+     "facets": 29932,
+     "rays_per_pose": 445568,
+     "per_pose_ms": 85.49911935503283,
+     "fc_ghz": 5.21
+    },
+    {
+     "drone": "matrice4e",
+     "facets": 30712,
+     "rays_per_pose": 69192,
+     "per_pose_ms": 10.297161829657853,
+     "fc_ghz": 1.843
+    },
+    {
+     "drone": "matrice4e",
+     "facets": 30712,
+     "rays_per_pose": 231200,
+     "per_pose_ms": 41.432782844640315,
+     "fc_ghz": 3.5
+    },
+    {
+     "drone": "matrice4e",
+     "facets": 30712,
+     "rays_per_pose": 500000,
+     "per_pose_ms": 99.97676589215796,
+     "fc_ghz": 5.21
+    },
+    {
+     "drone": "s1000plus",
+     "facets": 35370,
+     "rays_per_pose": 236672,
+     "per_pose_ms": 39.2163960961625,
+     "fc_ghz": 1.843
+    },
+    {
+     "drone": "s1000plus",
+     "facets": 35370,
+     "rays_per_pose": 819200,
+     "per_pose_ms": 178.06103238059828,
+     "fc_ghz": 3.5
+    },
+    {
+     "drone": "s1000plus",
+     "facets": 35370,
+     "rays_per_pose": 1789832,
+     "per_pose_ms": 356.18979287489003,
+     "fc_ghz": 5.21
+    }
+   ]
+  }
+ },
+ "po_hotspot": {
+  "note": "host-numpy PO stage decomposed at production scale (n_rays=445560 = one pass of mavic4pro @ 5.21 GHz, div=16; n_az=120)",
+  "seconds": {
+   "dot_products": 0.002199023962020874,
+   "sign_flip": 0.0034315455704927444,
+   "complex_phase_exp": 0.01941896229982376,
+   "coherent_sum_np_add_at": 0.0015868842601776123,
+   "coherent_sum_np_bincount": 0.004005454480648041
+  },
+  "add_at_over_bincount": 0.3961808248837897,
+  "equivalence_max_abs_diff": 0.0,
+  "finding": "⭐ the hotspot is the COMPLEX PHASE EXPONENTIAL, not the scatter-add: np.exp(1j·2k·(r·û)) costs 19.4 ms while the coherent sum np.add.at costs 1.6 ms for the same 445560 rays. The phase exponential alone is 12x the reduction.",
+  "hypothesis_disproved": "we expected np.add.at to be numpy's unbuffered scatter-add slow path and np.bincount to beat it. Measured the other way: np.add.at 1.6 ms vs np.bincount(real)+bincount(imag) 4.0 ms, i.e. add.at is 2.5x FASTER on this numpy (2.5.0). Recorded because we were wrong, not because it helped. The two paths agree to 0.00e+00 in absolute value.",
+  "caveat": "single-threaded host numpy on a 64-core box shared with other jobs"
+ },
+ "stock_sionna_same_card": {
+  "note": "stock sionna.rt.PathSolver on the SAME RTX 4090 as our kernel — removes the cross-hardware objection for the most important baseline. Different quantity (propagation paths, not target RCS); scene = our 30x20x11 m chamber with a mavic4pro at 3.50 GHz.",
+  "engine": "sionna.rt.PathSolver (sionna 2.0.1), los+specular+diffuse, refraction off",
+  "rows": [
+   {
+    "with_chamber": false,
+    "max_depth": 1,
+    "spp": 100000,
+    "scene_build_s": 3.2300973292440176,
+    "solve_s": {
+     "min": 0.08561819978058338,
+     "median": 0.08996769413352013,
+     "max": 0.09431718848645687
+    },
+    "n_paths": 1
+   },
+   {
+    "with_chamber": false,
+    "max_depth": 1,
+    "spp": 1000000,
+    "scene_build_s": 3.2300973292440176,
+    "solve_s": {
+     "min": 0.07248800061643124,
+     "median": 0.07279908191412687,
+     "max": 0.07311016321182251
+    },
+    "n_paths": 1
+   },
+   {
+    "with_chamber": false,
+    "max_depth": 2,
+    "spp": 100000,
+    "scene_build_s": 3.2300973292440176,
+    "solve_s": {
+     "min": 0.08266318030655384,
+     "median": 0.08734782598912716,
+     "max": 0.09203247167170048
+    },
+    "n_paths": 1
+   },
+   {
+    "with_chamber": false,
+    "max_depth": 2,
+    "spp": 1000000,
+    "scene_build_s": 3.2300973292440176,
+    "solve_s": {
+     "min": 0.06633860990405083,
+     "median": 0.07677626516669989,
+     "max": 0.08721392042934895
+    },
+    "n_paths": 1
+   },
+   {
+    "with_chamber": false,
+    "max_depth": 3,
+    "spp": 100000,
+    "scene_build_s": 3.2300973292440176,
+    "solve_s": {
+     "min": 0.11016533710062504,
+     "median": 0.1193146537989378,
+     "max": 0.12846397049725056
+    },
+    "n_paths": 1
+   },
+   {
+    "with_chamber": false,
+    "max_depth": 3,
+    "spp": 1000000,
+    "scene_build_s": 3.2300973292440176,
+    "solve_s": {
+     "min": 0.08010470494627953,
+     "median": 0.08610653690993786,
+     "max": 0.09210836887359619
+    },
+    "n_paths": 1
+   },
+   {
+    "with_chamber": true,
+    "max_depth": 1,
+    "spp": 100000,
+    "scene_build_s": 1.9776863548904657,
+    "solve_s": {
+     "min": 0.08341965824365616,
+     "median": 0.1079938979819417,
+     "max": 0.13256813772022724
+    },
+    "n_paths": 9502
+   },
+   {
+    "with_chamber": true,
+    "max_depth": 1,
+    "spp": 1000000,
+    "scene_build_s": 1.9776863548904657,
+    "solve_s": {
+     "min": 0.08510665781795979,
+     "median": 0.10508879832923412,
+     "max": 0.12507093884050846
+    },
+    "n_paths": 95094
+   },
+   {
+    "with_chamber": true,
+    "max_depth": 2,
+    "spp": 100000,
+    "scene_build_s": 1.9776863548904657,
+    "solve_s": {
+     "min": 0.10510177351534367,
+     "median": 0.12394005060195923,
+     "max": 0.1427783276885748
+    },
+    "n_paths": 18875
+   },
+   {
+    "with_chamber": true,
+    "max_depth": 2,
+    "spp": 1000000,
+    "scene_build_s": 1.9776863548904657,
+    "solve_s": {
+     "min": 0.10567658394575119,
+     "median": 0.12798182014375925,
+     "max": 0.1502870563417673
+    },
+    "n_paths": 189710
+   },
+   {
+    "with_chamber": true,
+    "max_depth": 3,
+    "spp": 100000,
+    "scene_build_s": 1.9776863548904657,
+    "solve_s": {
+     "min": 0.10678111016750336,
+     "median": 0.1262326156720519,
+     "max": 0.14568412117660046
+    },
+    "n_paths": 27240
+   },
+   {
+    "with_chamber": true,
+    "max_depth": 3,
+    "spp": 1000000,
+    "scene_build_s": 1.9776863548904657,
+    "solve_s": {
+     "min": 0.10589529387652874,
+     "median": 0.10751678980886936,
+     "max": 0.10913828574120998
+    },
+    "n_paths": 265631
+   }
+  ],
+  "range_ms": {
+   "min": 72.79908191412687,
+   "max": 127.98182014375925
+  },
+  "caveat": "spp and max_depth are free parameters neither we nor the cited papers pinned; the sweep is the honest form. Production in this repo uses spp=1e6-2e6."
+ },
+ "published_baselines": {
+  "note": "every row carries pdf path + page + verbatim quote; four rows carry a correction found by opening the source this session",
+  "rows": [
+   {
+    "id": "deeprt-e",
+    "who": "stock Sionna, measured by DeepRT-E authors",
+    "cite": "T. Wu et al., 'DeepRT Engine: A Unified GPU-Parallel Ray-Tracing Framework…', arXiv:2607.11743v1 (preprint, no venue)",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2607.11743__deeprt-engine-sbr-im-hybrid.pdf",
+    "page": 4,
+    "value_s": 0.286,
+    "quote_prose": "the execution time comparison conducted on the same server platform, as summarized in Table I, indicates that DeepRT-E achieves a substantial speedup over Wireless InSite and demonstrates computational efficiency on the same order of magnitude as Sionna",
+    "table_read": "TABLE I: DeepRT-E 0.148 s / serial hybrid RT 3.981 s / Wireless InSite 2.804 s / Sionna 0.286 s",
+    "hardware": "dual Intel Xeon Gold 6330 (2.00 GHz) + NVIDIA GeForce RTX 4090 (p.3)",
+    "scene": "indoor scenario, 28 GHz; facet count NOT printed",
+    "unit_as_printed": "none — the table says 'Runtime', not 'per pose'",
+    "caveat": "⚠ 'per pose' is OUR reading (consistent with their Fig. 7, where runtime is flat in ray count). It is not the authors' statement. Recorded in outputs/r2_read_w3.json records[2].VERIFICATION_OF_OUR_OWN_QB_NUMBER.",
+    "correction": "our record said 0.29 s; the printed value is 0.286 s"
+   },
+   {
+    "id": "onetwin",
+    "who": "stock Sionna RT, measured by oneTwin authors",
+    "cite": "Zhang et al., 'oneTwin: Online Digital Network Twin via Neural Radio Radiance Field', arXiv:2601.03216",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2601.03216__zhang-onetwin-online-digital-network-twin.pdf",
+    "page": 8,
+    "value_s": 0.204,
+    "quote": "we observe that the execution of Sionna RT requires 0.204 seconds on average, which totals 0.204 × 25 = 5.1 seconds during material tuning",
+    "hardware": "Intel i7-14700K (64G) + NVIDIA RTX 4090 (24G), Ubuntu 22.04 (p.6)",
+    "scene": "outdoor, 650 m × 370 m, 27 buildings, 200 online data points (p.8)",
+    "unit_as_printed": "per execution of Sionna RT (one solve inside a Bayesian-optimisation step)"
+   },
+   {
+    "id": "luo",
+    "who": "stock Sionna RT, measured by Luo et al.",
+    "cite": "H. Luo, S. R. Khosravirad, A. Alkhateeb, 'Wireless Digital Twin Calibration: Refining DFT-Domain Channel Information', arXiv:2603.16126",
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2603.16126__luo-wireless-dt-calibration-dft.pdf",
+    "page": 5,
+    "value_s": 0.0592,
+    "quote": "the computation time for ray tracing using Sionna RT (0.0592 seconds per sample) is much lower than that of Wireless Insite (1.2019 seconds per sample)",
+    "hardware": "NVIDIA RTX A5000 GPU (p.5)",
+    "unit_as_printed": "per sample",
+    "correction": "⭐ PROVENANCE FIX — our record cited 'Luo p5' without the arXiv id, and the Luo paper filed in papers_isac_sionna (2408.11295, 3GPP bistatic sensing) contains ZERO occurrences of 'Sionna', 'GPU', 'RTX', 'A5000' or '0.0592' (checked all 13 pages). The number belongs to a DIFFERENT Luo paper, arXiv:2603.16126, filed under sionna_papers_by_task/digital_twin."
+   },
+   {
+    "id": "ziganshin-tableII",
+    "who": "Ziganshin et al., UTD ladder on top of Sionna-RT",
+    "cite": "Ziganshin et al., journal preprint arXiv:2604.05991v2 (2 Jul 2026)",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "page": 8,
+    "table_quote": "TABLE II EXECUTION TIME (IN SECONDS) FOR DIFFERENT GEOMETRIES AND RT CONFIGURATIONS. Scenario RT +V +EE +EV/VE | Sphere (156 facets) 0.3 1.1 1.8 4.6 | Sphere (346 facets) 0.4 1.8 3.1 6.8 | Vehicle (220 facets) 0.4 0.9 2.4 5.0 | Vehicle (1496 facets) 0.7 3.6 10.2 19.0",
+    "hardware_quote": "All simulations were performed on a CPU platform. … The computational performance was evaluated on a dual-socket AMD EPYC 7343 CPU platform with 32 physical cores. Reported runtimes correspond to the average of 5 independent runs.",
+    "sweep_quote": "The considered scenarios include two spherical cases with 720 angular points and two vehicle meshes with 360 angular points",
+    "parallel_quote": "Also, all observation locations are processed simultaneously (in parallel) within a single RT simulation.",
+    "vehicle_1496_facets_s": {
+     "RT": 0.7,
+     "plus_V": 3.6,
+     "plus_EE": 10.2,
+     "plus_EV_VE": 19.0
+    },
+    "per_angular_point_ms": {
+     "RT": 1.9444444444444444,
+     "plus_V": 10.0,
+     "plus_EE": 28.333333333333332,
+     "plus_EV_VE": 52.77777777777778,
+     "n_angles": 360
+    },
+    "correction": "⭐ APPLES-TO-APPLES FIX — 0.7 s and 19.0 s are for the WHOLE 360-angle sweep, not per pose: p.8 states the vehicle scenarios use '360 angular points' and that 'all observation locations are processed simultaneously (in parallel) within a single RT simulation'. Per angular point that is 1.94 ms (RT) and 52.8 ms (full ladder). Placing our per-pose cost against 0.7 s / 19.0 s directly would be wrong by 360x. (Already verified in-repo: outputs/psolve_adopt_audit.json paper_quotes_re_verified[3].)"
+   },
+   {
+    "id": "ziganshin-mlfmm",
+    "who": "full-wave reference in the same paper",
+    "cite": "arXiv:2604.05991v2",
+    "page": 8,
+    "quote": "it should be emphasized that MLFMM simulations are considerably more computationally demanding. For instance, each of the MLFMM simulations in this study took several hours.",
+    "correction": "our record said 'MLFMM ~1 h per 720-point sphere'; the printed statement is 'several hours' per simulation, with no per-point figure. The 'full PO solver around one day (EuCAP conference version p4)' line could NOT be checked — the EuCAP conference version is not in our corpus (only the journal preprint, two copies)."
+   },
+   {
+    "id": "sagitta-perpose",
+    "who": "SagittaSBR — an independent SBR+PO RCS solver (closest peer)",
+    "cite": "SagittaSBR, arXiv:2604.09243",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+    "page": 9,
+    "quote": "A total of 30,000 × 30,000 rays are launched from a 90 × 90 m grid, with an average computation time of 616.12 ms in FP32 per angular position with a total sweep time of ∼27 minutes on 8 LUMI nodes.",
+    "hardware_quote": "on a partition of eight LUMI nodes with four AMD MI250X GPUs per node, the average computation time is approximately 616 ms per angular position in FP32 (p.10)",
+    "value_s": 0.61612,
+    "rays_per_pose": 900000000.0,
+    "target": "A380 aircraft, ~80 × 73 × 21 m, 162,000 triangles, 10 GHz",
+    "unit_as_printed": "per angular position",
+    "caveat": "8 nodes × 4 MI250X = 32 GPUs (64 GCDs). 616 ms is NOT a single-GPU number."
+   },
+   {
+    "id": "sagitta-kernel-split",
+    "who": "⭐ SagittaSBR kernel-time breakdown — the only published GPU-level RT-vs-PO split",
+    "cite": "SagittaSBR, arXiv:2604.09243",
+    "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+    "page": 11,
+    "quote": "Table 1: Kernel-time breakdown for A380 scattering simulations (18,000 × 18,000 rays) using one MPI process. Statistics evaluated over 10 simulation repetitions, each simulation scans 600 angular positions. … NVIDIA A100 (Full) Ray Launch 98.96 ± 1.18 [FP32 ms] 151.30 ± 1.75 [FP64 ms]; PO Integral 6.43 ± 0.09 / 6.01 ± 0.06. AMD MI250X (1 GCD) Ray Launch 249.81 ± 0.52 / 198.70 ± 0.31; PO Integral 4.83 ± 0.01 / 7.41 ± 0.01",
+    "po_over_raylaunch": {
+     "A100_fp32": 0.06497574777687955,
+     "A100_fp64": 0.03972240581625908,
+     "MI250X_gcd_fp32": 0.019334694367719465,
+     "MI250X_gcd_fp64": 0.03729240060392552
+    },
+    "why_it_matters": "⭐ This is the direct published test of Ziganshin's claim that 'the need to cascade PO after RT negates the computational advantages of RT'. In a GPU-resident SBR+PO solver the PO integral costs 6.5% (A100 FP32) to 1.9% (MI250X FP32) of the ray-launch kernel. The cascade does not negate RT; it adds single-digit percent — when the integral is a device kernel.",
+    "caveat": "the table's ms figures are read as per angular position (324M rays in 98.96 ms = 3.3 G rays/s traversal and 5.2 GB reduced in 6.43 ms = 0.8 TB/s, both plausible for an A100); the caption's '600 angular positions' describes the repetition protocol, not the per-row unit."
+   }
+  ]
+ },
+ "ladder": [
+  {
+   "what": "ours — SBR+PO backscatter pose, 5 drones × 3 bands, 18.8k–35.4k facets",
+   "per_pose_s": [
+    0.009239509608596564,
+    0.35618979287489005
+   ],
+   "median_s": 0.03813479893530409,
+   "hardware": "1× RTX 4090 (SHARED with another user's job) + Intel Xeon Gold 6526Y host",
+   "measures": "RCS of a target (ray cast + PO surface integral)"
+  },
+  {
+   "what": "stock Sionna RT solve — Luo arXiv:2603.16126 p.5",
+   "per_pose_s": [
+    0.0592,
+    0.0592
+   ],
+   "hardware": "RTX A5000",
+   "measures": "propagation paths (no target RCS)"
+  },
+  {
+   "what": "stock Sionna RT solve — oneTwin arXiv:2601.03216 p.8",
+   "per_pose_s": [
+    0.204,
+    0.204
+   ],
+   "hardware": "RTX 4090 + i7-14700K",
+   "measures": "propagation paths (no target RCS)"
+  },
+  {
+   "what": "stock Sionna RT solve — DeepRT-E arXiv:2607.11743 Table I",
+   "per_pose_s": [
+    0.286,
+    0.286
+   ],
+   "hardware": "RTX 4090 + dual Xeon Gold 6330",
+   "measures": "propagation paths (no target RCS)"
+  },
+  {
+   "what": "Ziganshin RT only, vehicle 1496 facets, PER ANGULAR POINT (0.7 s / 360)",
+   "per_pose_s": [
+    0.0019444444444444444,
+    0.0019444444444444444
+   ],
+   "hardware": "dual AMD EPYC 7343, 32 cores, CPU only",
+   "measures": "GO/RT field on a PEC car"
+  },
+  {
+   "what": "Ziganshin full diffraction ladder +EV/VE, PER ANGULAR POINT (19.0 s / 360)",
+   "per_pose_s": [
+    0.05277777777777778,
+    0.05277777777777778
+   ],
+   "hardware": "dual AMD EPYC 7343, 32 cores, CPU only",
+   "measures": "RT + vertex + 2nd-order edge diffraction on a PEC car"
+  },
+  {
+   "what": "SagittaSBR (SBR+PO), A380, 900M rays, per angular position",
+   "per_pose_s": [
+    0.61612,
+    0.61612
+   ],
+   "hardware": "32× AMD MI250X (8 LUMI nodes, 64 GCDs)",
+   "measures": "RCS of an aircraft (ray cast + PO integral, GPU-resident)"
+  },
+  {
+   "what": "MLFMM full-wave, same Ziganshin study",
+   "per_pose_s": [
+    null,
+    null
+   ],
+   "hardware": "not stated",
+   "measures": "'several hours' per simulation (p.8)"
+  }
+ ],
+ "answer": {
+  "one_line": "our production SBR+PO pose costs 9–356 ms (median 38 ms) on one shared RTX 4090",
+  "same_card_control": {
+   "stock_sionna_pathsolver_ms": {
+    "min": 72.79908191412687,
+    "max": 127.98182014375925,
+    "median": 106.30279406905174,
+    "n_configs": 12
+   },
+   "ours_ms": {
+    "min": 9.239509608596563,
+    "median": 38.13479893530409,
+    "max": 356.18979287489003
+   },
+   "ratio_ours_median_over_stock_median": 0.358737503273269,
+   "reading": "on the SAME RTX 4090, in our own 30x20x11 m chamber scene with a drone, a stock sionna.rt.PathSolver propagation solve costs 73-128 ms across max_depth 1-3 and spp 1e5-1e6, while our full SBR+PO backscatter pose costs 9-356 ms. The hardware variable is gone: we are in the same band as stock Sionna, not an order above it.",
+   "caveat": "different quantities (paths vs RCS) and different scene content; this controls hardware, not the physics being computed."
+  },
+  "two_sentence_answer": "Measured on the production kernel (rcs_sbr_batch, spacing λ/16, jitter J=2, dielectric-shell penetration on, the full 120-azimuth production batch), one backscatter pose of a 29k–35k-facet airframe costs 9–356 ms (median 38 ms) on a single (shared) RTX 4090 — the same band as stock Sionna's own published per-solve cost (0.0592 s on an A5000, 0.204 s and 0.286 s on RTX 4090s), as stock Sionna measured on OUR card in OUR chamber scene (73–128 ms per PathSolver solve), and between Ziganshin's own RT-only 1.9 ms and his full diffraction ladder's 52.8 ms per angular point on a 32-core EPYC platform — on a mesh carrying 20x his facet count. The cascade itself is not what costs: ray casting is only 3.1% of our wall clock and the PO integral is 49% of it solely because we run the integral in host numpy — the one published GPU kernel-level breakdown of an SBR+PO RCS solver (SagittaSBR Table 1, p.11) puts the PO integral at 6.5% of ray-launch time on an A100, so cascading PO after RT costs single-digit percent when the integral is written as a device kernel.",
+  "what_the_measurement_does_NOT_support": [
+   "it does not show our kernel is efficient per ray — it is not. Our PO reduction runs at 86 ns/ray in host numpy; SagittaSBR's device-side PO kernel reduces 324M rays in 6.43 ms = 0.02 ns/ray on one A100. We are cheap per pose because our targets are small (0.05–0.5 M rays/pose), not because the engine is fast.",
+   "it does not answer the first half of Ziganshin's objection (shadow region). That half is answered by scope: our claims live in backscatter and beta <= 45 deg.",
+   "the stock-Sionna baselines measure a different quantity (propagation paths in a room/city scene) than ours (target RCS). The ladder places orders of magnitude, not a like-for-like speed ratio.",
+   "no cross-hardware normalisation was applied. Our card was shared with another job at 0–100% foreign utilisation during the run; the per-config min is the least-contended observation and the spread between min and max is reported for every row."
+  ],
+  "verdict": "ANSWERABLE, with the ratio conceded. The objection is right that in OUR implementation PO dominates ray casting (PO/RT = 16x at production batch); it is wrong that this negates RT's advantage in practice, because the absolute per-pose cost lands at or below stock Sionna's own published per-solve cost, and because the published GPU-resident SBR+PO breakdown puts the PO integral at 1.9–6.5% of ray launch.",
+  "cost_structure": {
+   "rt_trace_pct": 3.1412928429235007,
+   "handoff_d2h_pct": 26.211868879857995,
+   "po_integral_pct": 48.50462898472627,
+   "host_side_pct": 96.8587071570765,
+   "po_over_rt": 16.230440412138147,
+   "reading": "at the production batch size the GPU ray cast is a few percent of wall clock; the rest is host-side: ray-grid generation (numpy), device→host transfer of hit records, and the PO phase sum. This is an implementation property, not a property of SBR+PO."
+  },
+  "cost_per_ray": {
+   "ours_ns_per_ray_median": 183.89914999085727,
+   "ours_po_ns_per_ray_median": 86.0579655655632,
+   "sagitta_A100_raylaunch_ns_per_ray": 0.3054320987654321,
+   "sagitta_A100_po_ns_per_ray": 0.019845679012345678,
+   "note": "Sagitta Table 1 row is 18,000² = 324M rays per angular position"
+  },
+  "least_contended_median_ms": 37.76344903744757,
+  "stage_pct_median": {
+   "scene": 0.0018327182058315936,
+   "raygen_host": 17.77207535854085,
+   "ray_upload": 4.336103214031909,
+   "rt_trace": 3.1412928429235007,
+   "handoff": 26.211868879857995,
+   "po": 48.50462898472627
+  },
+  "two_passes": {
+   "headline_pass": {
+    "min": 9.239509608596563,
+    "median": 38.13479893530409,
+    "max": 356.18979287489003
+   },
+   "repeat_pass": {
+    "min": 8.896916483839354,
+    "median": 39.38034667323033,
+    "max": 355.6540707591921
+   },
+   "drift_ratio": {
+    "min": 0.8032788663817182,
+    "median": 0.9170157443632223,
+    "max": 1.09980297217363
+   },
+   "per_config": [
+    {
+     "drone": "mini5pro",
+     "fc_ghz": 1.843,
+     "pass1_ms": 9.239509608596563,
+     "pass2_ms": 8.896916483839354,
+     "ratio": 1.0385069507373152,
+     "gpu_util_samples": [
+      {
+       "util_pct": 99.0,
+       "mem_used_mb": 18859.0
+      },
+      {
+       "util_pct": 97.0,
+       "mem_used_mb": 18923.0
+      }
+     ]
+    },
+    {
+     "drone": "mini5pro",
+     "fc_ghz": 3.5,
+     "pass1_ms": 11.343001193987826,
+     "pass2_ms": 12.492515270908672,
+     "ratio": 0.9079837765259554,
+     "gpu_util_samples": [
+      {
+       "util_pct": 99.0,
+       "mem_used_mb": 18923.0
+      },
+      {
+       "util_pct": 0.0,
+       "mem_used_mb": 19604.0
+      }
+     ]
+    },
+    {
+     "drone": "mini5pro",
+     "fc_ghz": 5.21,
+     "pass1_ms": 31.897342818168298,
+     "pass2_ms": 35.32147156074643,
+     "ratio": 0.9030581515640066,
+     "gpu_util_samples": [
+      {
+       "util_pct": 100.0,
+       "mem_used_mb": 19213.0
+      },
+      {
+       "util_pct": 94.0,
+       "mem_used_mb": 19757.0
+      }
+     ]
+    },
+    {
+     "drone": "mavic4pro",
+     "fc_ghz": 1.843,
+     "pass1_ms": 11.140519939363003,
+     "pass2_ms": 12.148668120304743,
+     "ratio": 0.9170157443632223,
+     "gpu_util_samples": [
+      {
+       "util_pct": 99.0,
+       "mem_used_mb": 19759.0
+      },
+      {
+       "util_pct": 95.0,
+       "mem_used_mb": 19887.0
+      }
+     ]
+    },
+    {
+     "drone": "mavic4pro",
+     "fc_ghz": 3.5,
+     "pass1_ms": 38.13479893530409,
+     "pass2_ms": 39.38034667323033,
+     "ratio": 0.9683713363861033,
+     "gpu_util_samples": [
+      {
+       "util_pct": 96.0,
+       "mem_used_mb": 19887.0
+      },
+      {
+       "util_pct": 94.0,
+       "mem_used_mb": 19951.0
+      }
+     ]
+    },
+    {
+     "drone": "mavic4pro",
+     "fc_ghz": 5.21,
+     "pass1_ms": 85.49911935503283,
+     "pass2_ms": 101.77450253007312,
+     "ratio": 0.8400838837779521,
+     "gpu_util_samples": [
+      {
+       "util_pct": 97.0,
+       "mem_used_mb": 19985.0
+      },
+      {
+       "util_pct": 96.0,
+       "mem_used_mb": 21137.0
+      }
+     ]
+    },
+    {
+     "drone": "s1000plus",
+     "fc_ghz": 1.843,
+     "pass1_ms": 39.2163960961625,
+     "pass2_ms": 48.82040065713227,
+     "ratio": 0.8032788663817182,
+     "gpu_util_samples": [
+      {
+       "util_pct": 0.0,
+       "mem_used_mb": 21528.0
+      },
+      {
+       "util_pct": 96.0,
+       "mem_used_mb": 21139.0
+      }
+     ]
+    },
+    {
+     "drone": "s1000plus",
+     "fc_ghz": 3.5,
+     "pass1_ms": 178.06103238059828,
+     "pass2_ms": 161.90266519164047,
+     "ratio": 1.09980297217363,
+     "gpu_util_samples": [
+      {
+       "util_pct": 97.0,
+       "mem_used_mb": 21139.0
+      },
+      {
+       "util_pct": 95.0,
+       "mem_used_mb": 21759.0
+      }
+     ]
+    },
+    {
+     "drone": "s1000plus",
+     "fc_ghz": 5.21,
+     "pass1_ms": 356.18979287489003,
+     "pass2_ms": 355.6540707591921,
+     "ratio": 1.001506301093516,
+     "gpu_util_samples": [
+      {
+       "util_pct": 96.0,
+       "mem_used_mb": 21793.0
+      },
+      {
+       "util_pct": 94.0,
+       "mem_used_mb": 22435.0
+      }
+     ]
+    }
+   ],
+   "note": "the card was shared with a foreign job whose utilisation swung between 0% and 100% during the session. Both passes are kept; the drift ratio is the honest error bar on every absolute millisecond in this file."
+  },
+  "cost_drivers": {
+   "facet_count": {
+    "facets": [
+     29932,
+     119728,
+     478912
+    ],
+    "per_pose_ms": [
+     75.99102321546525,
+     68.77781462389976,
+     89.57498331437819
+    ],
+    "ratio_vs_x1": [
+     1.0,
+     0.9050781488872294,
+     1.1787574311296865
+    ],
+    "rays_per_pose_identical": true,
+    "finding": "⭐ cost is NEARLY FLAT in facet count: 16x the triangles on the identical surface changes the pose cost by +18%. Our cost is set by RAY COUNT, not mesh complexity. This is the sharpest comparability point against Ziganshin, whose diffraction ladder is edge/vertex combinatorial and whose own table shows the 1496-facet car costing 3.8x the 220-facet car at +EV/VE (19.0 s vs 5.0 s)."
+   },
+   "pass_count": {
+    "rows": [
+     {
+      "jitter": 1,
+      "penetrate": false,
+      "passes": 1,
+      "per_pose_ms": 7.7390497317537665,
+      "ms_per_pass": 7.7390497317537665
+     },
+     {
+      "jitter": 1,
+      "penetrate": true,
+      "passes": 2,
+      "per_pose_ms": 15.919554076390341,
+      "ms_per_pass": 7.9597770381951705
+     },
+     {
+      "jitter": 2,
+      "penetrate": false,
+      "passes": 4,
+      "per_pose_ms": 41.2538860400673,
+      "ms_per_pass": 10.313471510016825
+     },
+     {
+      "jitter": 2,
+      "penetrate": true,
+      "passes": 8,
+      "per_pose_ms": 68.5475351056084,
+      "ms_per_pass": 8.56844188820105
+     },
+     {
+      "jitter": 3,
+      "penetrate": true,
+      "passes": 18,
+      "per_pose_ms": 120.14037577318959,
+      "ms_per_pass": 6.674465320732755
+     }
+    ],
+    "finding": "cost is LINEAR in the number of ray-cast passes. One bare SBR+PO pass — i.e. exactly the 'cascade PO after RT' the objection names — costs 7.7 ms. Our production pose is 8x that because WE chose grid-jitter averaging (J=2 → 4 offsets) and dielectric-shell penetration (2nd trace). Those are our accuracy choices, not a cost of cascading PO onto RT."
+   },
+   "ray_spacing": {
+    "div": [
+     8,
+     12,
+     16,
+     24,
+     32
+    ],
+    "rays_per_pose": [
+     56448,
+     119072,
+     207368,
+     453152,
+     793800
+    ],
+    "per_pose_ms": [
+     51.658043754287064,
+     61.01628125179559,
+     64.63937292573974,
+     92.21496130339801,
+     204.2119544930756
+    ],
+    "finding": "rays scale as div^2 (lambda/div grid); measured time grows sublinearly at small div because fixed per-launch cost dominates there."
+   },
+   "batch_size": {
+    "n_az": [
+     1,
+     2,
+     4,
+     8,
+     16,
+     32,
+     64,
+     120
+    ],
+    "per_pose_ms": [
+     1501.8012644723058,
+     756.6937888041139,
+     387.30313116684556,
+     134.4551951624453,
+     77.99256627913564,
+     49.55419772886671,
+     38.53893803898245,
+     42.939981825960174
+    ],
+    "speedup_1_to_max": 34.97442710989606,
+    "finding": "⭐ fusing azimuths into one ray bundle is worth 35x per pose. Quoting a per-pose cost without the batch size is meaningless; production runs the whole 120-azimuth grid in one bundle."
+   }
+  },
+  "headroom_named_not_applied": [
+   {
+    "where": "src/rcs_sbr.py rcs_sbr_batch — `np.exp(1j*2*k*einsum(P-ctr, U))`",
+    "what": "the complex phase exponential is the single most expensive host operation in the PO stage (see po_hotspot). It is elementwise and embarrassingly parallel — the natural first thing to move onto the device.",
+    "physics_change": "none"
+   },
+   {
+    "where": "src/rcs_sbr.py rcs_sbr_batch — `np.add.at(E, aidx, contrib)`",
+    "what": "NOT a bottleneck. We predicted it was numpy's slow scatter-add path and measured the opposite (po_hotspot.hypothesis_disproved). Left alone.",
+    "physics_change": "none"
+   },
+   {
+    "where": "src/rcs_sbr.py `_lit_g_phase` — `for sp, gm in zip(shptr, gam): np.where(np.asarray(si.shape == sp) …)`",
+    "what": "one device kernel + one device→host copy PER MATERIAL GROUP per pass. With 8–10 groups, 4 jitter offsets and the penetration pass that is ~64–80 round-trips per pose; a single shape-index readback would need one. On a shared card each round-trip queues behind the foreign job, which is why the handoff bucket dominates at small batch.",
+    "physics_change": "none"
+   },
+   {
+    "where": "src/rcs_sbr.py rcs_sbr_batch — `np.tile(-u, (rays_per_az, 1))` for D and U",
+    "what": "materialises two (N,3) arrays whose rows are all identical, per azimuth per jitter offset; the dot products that consume them could broadcast instead",
+    "physics_change": "none"
+   },
+   {
+    "where": "the PO integral as a whole",
+    "what": "it runs in host numpy. SagittaSBR (arXiv:2604.09243 Table 1, p.11) shows a device-side PO integral costing 1.9–6.5% of ray launch. That is the size of the prize, and it is measured by someone else, not asserted by us.",
+    "physics_change": "none"
+   }
+  ]
+ },
+ "production_per_pose_repeat": {
+  "pass_note": "INDEPENDENT REPEAT of the headline configs, run later in the session with GPU utilisation sampled per config. The headline production_per_pose is NOT overwritten — this row set exists to size run-to-run drift on a shared card.",
+  "settings": {
+   "div": 16,
+   "jitter": 2,
+   "penetrate": true,
+   "el_deg": -2.0,
+   "n_az_per_batch": 120,
+   "reps": 1,
+   "drones": [
+    "mini5pro",
+    "mavic4pro",
+    "s1000plus"
+   ]
+  },
+  "rows": [
+   {
+    "drone": "mini5pro",
+    "tag": "mini5pro",
+    "fc_ghz": 1.843,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 1,
+    "facets": 29068,
+    "rays_per_az_per_pass": 3249,
+    "passes_per_pose": 8,
+    "rays_per_pose": 25992,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 1.1076150871813297,
+     "median": 1.1076150871813297,
+     "max": 1.1076150871813297
+    },
+    "raw_kernel_s": {
+     "min": 1.0676299780607224,
+     "median": 1.0676299780607224,
+     "max": 1.0676299780607224
+    },
+    "per_pose_ms": {
+     "min": 8.896916483839354,
+     "median": 8.896916483839354,
+     "max": 8.896916483839354
+    },
+    "per_pose_ms_instrumented": 9.230125726511082,
+    "instrumentation_overhead_pct": 3.7452216537828606,
+    "stage_s_median": {
+     "scene": 0.00016211532056331635,
+     "raygen_host": 0.15015405602753162,
+     "ray_upload": 0.024041419848799706,
+     "rt_trace": 0.07753105647861958,
+     "handoff": 0.5998848620802164,
+     "po": 0.22188647650182247
+    },
+    "stage_pct": {
+     "scene": 0.015099316602866076,
+     "raygen_host": 13.985252123525834,
+     "ray_upload": 2.239202369141153,
+     "rt_trace": 7.221192693309628,
+     "handoff": 55.872889905418724,
+     "po": 20.666363592001797
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0013509610046943028,
+     "raygen_host": 1.2512838002294302,
+     "ray_upload": 0.20034516540666422,
+     "rt_trace": 0.6460921373218298,
+     "handoff": 4.999040517335136,
+     "po": 1.8490539708485205
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 0.00016211532056331635,
+      "median": 0.00016211532056331635,
+      "max": 0.00016211532056331635
+     },
+     "raygen_host": {
+      "min": 0.15015405602753162,
+      "median": 0.15015405602753162,
+      "max": 0.15015405602753162
+     },
+     "ray_upload": {
+      "min": 0.024041419848799706,
+      "median": 0.024041419848799706,
+      "max": 0.024041419848799706
+     },
+     "rt_trace": {
+      "min": 0.07753105647861958,
+      "median": 0.07753105647861958,
+      "max": 0.07753105647861958
+     },
+     "handoff": {
+      "min": 0.5998848620802164,
+      "median": 0.5998848620802164,
+      "max": 0.5998848620802164
+     },
+     "po": {
+      "min": 0.22188647650182247,
+      "median": 0.22188647650182247,
+      "max": 0.22188647650182247
+     }
+    },
+    "hit_fraction": 0.03205184928696009,
+    "lit_fraction": 0.03205184928696009,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -23.55430091345848,
+    "gpu_util_samples": [
+     {
+      "util_pct": 99.0,
+      "mem_used_mb": 18859.0
+     },
+     {
+      "util_pct": 97.0,
+      "mem_used_mb": 18923.0
+     }
+    ],
+    "po_over_rt": 2.8619044622848806,
+    "po_plus_handoff_over_rt": 10.59925371723337,
+    "band": "LTE 1.8 GHz"
+   },
+   {
+    "drone": "mini5pro",
+    "tag": "mini5pro",
+    "fc_ghz": 3.5,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 1,
+    "facets": 29068,
+    "rays_per_az_per_pass": 10404,
+    "passes_per_pose": 8,
+    "rays_per_pose": 83232,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 2.0293769389390945,
+     "median": 2.0293769389390945,
+     "max": 2.0293769389390945
+    },
+    "raw_kernel_s": {
+     "min": 1.4991018325090408,
+     "median": 1.4991018325090408,
+     "max": 1.4991018325090408
+    },
+    "per_pose_ms": {
+     "min": 12.492515270908672,
+     "median": 12.492515270908672,
+     "max": 12.492515270908672
+    },
+    "per_pose_ms_instrumented": 16.91147449115912,
+    "instrumentation_overhead_pct": 35.37285426050973,
+    "stage_s_median": {
+     "scene": 0.00012392736971378326,
+     "raygen_host": 0.3793380204588175,
+     "ray_upload": 0.06903762184083462,
+     "rt_trace": 0.0802895724773407,
+     "handoff": 0.7059999126940966,
+     "po": 0.7474615518003702
+    },
+    "stage_pct": {
+     "scene": 0.006251851773866884,
+     "raygen_host": 19.136733730231374,
+     "ray_upload": 3.4827897950711435,
+     "rt_trace": 4.050424916423028,
+     "handoff": 35.61607751960177,
+     "po": 37.70772218689882
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0010327280809481938,
+     "raygen_host": 3.1611501704901457,
+     "ray_upload": 0.5753135153402885,
+     "rt_trace": 0.6690797706445059,
+     "handoff": 5.883332605784138,
+     "po": 6.228846265003085
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 0.00012392736971378326,
+      "median": 0.00012392736971378326,
+      "max": 0.00012392736971378326
+     },
+     "raygen_host": {
+      "min": 0.3793380204588175,
+      "median": 0.3793380204588175,
+      "max": 0.3793380204588175
+     },
+     "ray_upload": {
+      "min": 0.06903762184083462,
+      "median": 0.06903762184083462,
+      "max": 0.06903762184083462
+     },
+     "rt_trace": {
+      "min": 0.0802895724773407,
+      "median": 0.0802895724773407,
+      "max": 0.0802895724773407
+     },
+     "handoff": {
+      "min": 0.7059999126940966,
+      "median": 0.7059999126940966,
+      "max": 0.7059999126940966
+     },
+     "po": {
+      "min": 0.7474615518003702,
+      "median": 0.7474615518003702,
+      "max": 0.7474615518003702
+     }
+    },
+    "hit_fraction": 0.036079472638728696,
+    "lit_fraction": 0.036079472638728696,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -23.785108975498602,
+    "gpu_util_samples": [
+     {
+      "util_pct": 99.0,
+      "mem_used_mb": 18923.0
+     },
+     {
+      "util_pct": 0.0,
+      "mem_used_mb": 19604.0
+     }
+    ],
+    "po_over_rt": 9.309571949848388,
+    "po_plus_handoff_over_rt": 18.10274260589272,
+    "band": "5G NR 3.5 GHz"
+   },
+   {
+    "drone": "mini5pro",
+    "tag": "mini5pro",
+    "fc_ghz": 5.21,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 1,
+    "facets": 29068,
+    "rays_per_az_per_pass": 21904,
+    "passes_per_pose": 8,
+    "rays_per_pose": 175232,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 4.368127483874559,
+     "median": 4.368127483874559,
+     "max": 4.368127483874559
+    },
+    "raw_kernel_s": {
+     "min": 4.238576587289572,
+     "median": 4.238576587289572,
+     "max": 4.238576587289572
+    },
+    "per_pose_ms": {
+     "min": 35.32147156074643,
+     "median": 35.32147156074643,
+     "max": 35.32147156074643
+    },
+    "per_pose_ms_instrumented": 36.40106236562133,
+    "instrumentation_overhead_pct": 3.05647176397563,
+    "stage_s_median": {
+     "scene": 0.00018104352056980133,
+     "raygen_host": 0.9291581138968468,
+     "ray_upload": 0.16247639618813992,
+     "rt_trace": 0.09835243597626686,
+     "handoff": 0.9617026336491108,
+     "po": 2.1267274226993322
+    },
+    "stage_pct": {
+     "scene": 0.004231374824798208,
+     "raygen_host": 21.716415141652462,
+     "ray_upload": 3.7974213619502035,
+     "rt_trace": 2.2987070746180076,
+     "handoff": 22.47705027033018,
+     "po": 49.706174776624344
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0015086960047483444,
+     "raygen_host": 7.742984282473723,
+     "ray_upload": 1.3539699682344992,
+     "rt_trace": 0.8196036331355572,
+     "handoff": 8.01418861374259,
+     "po": 17.722728522494435
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 0.00018104352056980133,
+      "median": 0.00018104352056980133,
+      "max": 0.00018104352056980133
+     },
+     "raygen_host": {
+      "min": 0.9291581138968468,
+      "median": 0.9291581138968468,
+      "max": 0.9291581138968468
+     },
+     "ray_upload": {
+      "min": 0.16247639618813992,
+      "median": 0.16247639618813992,
+      "max": 0.16247639618813992
+     },
+     "rt_trace": {
+      "min": 0.09835243597626686,
+      "median": 0.09835243597626686,
+      "max": 0.09835243597626686
+     },
+     "handoff": {
+      "min": 0.9617026336491108,
+      "median": 0.9617026336491108,
+      "max": 0.9617026336491108
+     },
+     "po": {
+      "min": 2.1267274226993322,
+      "median": 2.1267274226993322,
+      "max": 2.1267274226993322
+     }
+    },
+    "hit_fraction": 0.03799586643231069,
+    "lit_fraction": 0.03799586643231069,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -22.079229039537978,
+    "gpu_util_samples": [
+     {
+      "util_pct": 100.0,
+      "mem_used_mb": 19213.0
+     },
+     {
+      "util_pct": 94.0,
+      "mem_used_mb": 19757.0
+     }
+    ],
+    "po_over_rt": 21.623535823886726,
+    "po_plus_handoff_over_rt": 31.401663067030725,
+    "band": "WiFi 5.2 GHz"
+   },
+   {
+    "drone": "mavic4pro",
+    "tag": "mavic4pro",
+    "fc_ghz": 1.843,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 1,
+    "facets": 29932,
+    "rays_per_az_per_pass": 7744,
+    "passes_per_pose": 8,
+    "rays_per_pose": 61952,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 1.6157638877630234,
+     "median": 1.6157638877630234,
+     "max": 1.6157638877630234
+    },
+    "raw_kernel_s": {
+     "min": 1.4578401744365692,
+     "median": 1.4578401744365692,
+     "max": 1.4578401744365692
+    },
+    "per_pose_ms": {
+     "min": 12.148668120304743,
+     "median": 12.148668120304743,
+     "max": 12.148668120304743
+    },
+    "per_pose_ms_instrumented": 13.464699064691862,
+    "instrumentation_overhead_pct": 10.83271788606656,
+    "stage_s_median": {
+     "scene": 0.00013592839241027832,
+     "raygen_host": 0.28212689608335495,
+     "ray_upload": 0.046235354617238045,
+     "rt_trace": 0.11010804586112499,
+     "handoff": 0.6235118713229895,
+     "po": 0.5166245736181736
+    },
+    "stage_pct": {
+     "scene": 0.008609914395947355,
+     "raygen_host": 17.870353507457093,
+     "ray_upload": 2.9286187989271593,
+     "rt_trace": 6.974413750939398,
+     "handoff": 39.4942053073376,
+     "po": 32.7237987209428
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.001132736603418986,
+     "raygen_host": 2.3510574673612914,
+     "ray_upload": 0.38529462181031704,
+     "rt_trace": 0.9175670488427082,
+     "handoff": 5.195932261024912,
+     "po": 4.305204780151446
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 0.00013592839241027832,
+      "median": 0.00013592839241027832,
+      "max": 0.00013592839241027832
+     },
+     "raygen_host": {
+      "min": 0.28212689608335495,
+      "median": 0.28212689608335495,
+      "max": 0.28212689608335495
+     },
+     "ray_upload": {
+      "min": 0.046235354617238045,
+      "median": 0.046235354617238045,
+      "max": 0.046235354617238045
+     },
+     "rt_trace": {
+      "min": 0.11010804586112499,
+      "median": 0.11010804586112499,
+      "max": 0.11010804586112499
+     },
+     "handoff": {
+      "min": 0.6235118713229895,
+      "median": 0.6235118713229895,
+      "max": 0.6235118713229895
+     },
+     "po": {
+      "min": 0.5166245736181736,
+      "median": 0.5166245736181736,
+      "max": 0.5166245736181736
+     }
+    },
+    "hit_fraction": 0.03485359633264463,
+    "lit_fraction": 0.03485359633264463,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -25.315947496235104,
+    "gpu_util_samples": [
+     {
+      "util_pct": 99.0,
+      "mem_used_mb": 19759.0
+     },
+     {
+      "util_pct": 95.0,
+      "mem_used_mb": 19887.0
+     }
+    ],
+    "po_over_rt": 4.691978407007351,
+    "po_plus_handoff_over_rt": 10.354706016481057,
+    "band": "LTE 1.8 GHz"
+   },
+   {
+    "drone": "mavic4pro",
+    "tag": "mavic4pro",
+    "fc_ghz": 3.5,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 1,
+    "facets": 29932,
+    "rays_per_az_per_pass": 25921,
+    "passes_per_pose": 8,
+    "rays_per_pose": 207368,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 4.795776791870594,
+     "median": 4.795776791870594,
+     "max": 4.795776791870594
+    },
+    "raw_kernel_s": {
+     "min": 4.72564160078764,
+     "median": 4.72564160078764,
+     "max": 4.72564160078764
+    },
+    "per_pose_ms": {
+     "min": 39.38034667323033,
+     "median": 39.38034667323033,
+     "max": 39.38034667323033
+    },
+    "per_pose_ms_instrumented": 39.96480659892162,
+    "instrumentation_overhead_pct": 1.484141139083944,
+    "stage_s_median": {
+     "scene": 0.00012000277638435364,
+     "raygen_host": 1.0575161464512348,
+     "ray_upload": 0.19949765130877495,
+     "rt_trace": 0.08127009868621826,
+     "handoff": 0.726690836250782,
+     "po": 2.6159449107944965
+    },
+    "stage_pct": {
+     "scene": 0.0025635923951216628,
+     "raygen_host": 22.591480234404198,
+     "ray_upload": 4.261823577329255,
+     "rt_trace": 1.736154889245885,
+     "handoff": 15.524133337135044,
+     "po": 55.8838443694905
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0010000231365362804,
+     "raygen_host": 8.81263455376029,
+     "ray_upload": 1.6624804275731246,
+     "rt_trace": 0.6772508223851522,
+     "handoff": 6.0557569687565165,
+     "po": 21.79954092328747
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 0.00012000277638435364,
+      "median": 0.00012000277638435364,
+      "max": 0.00012000277638435364
+     },
+     "raygen_host": {
+      "min": 1.0575161464512348,
+      "median": 1.0575161464512348,
+      "max": 1.0575161464512348
+     },
+     "ray_upload": {
+      "min": 0.19949765130877495,
+      "median": 0.19949765130877495,
+      "max": 0.19949765130877495
+     },
+     "rt_trace": {
+      "min": 0.08127009868621826,
+      "median": 0.08127009868621826,
+      "max": 0.08127009868621826
+     },
+     "handoff": {
+      "min": 0.726690836250782,
+      "median": 0.726690836250782,
+      "max": 0.726690836250782
+     },
+     "po": {
+      "min": 2.6159449107944965,
+      "median": 2.6159449107944965,
+      "max": 2.6159449107944965
+     }
+    },
+    "hit_fraction": 0.03759516093772102,
+    "lit_fraction": 0.03759516093772102,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -31.77532291411407,
+    "gpu_util_samples": [
+     {
+      "util_pct": 96.0,
+      "mem_used_mb": 19887.0
+     },
+     {
+      "util_pct": 94.0,
+      "mem_used_mb": 19951.0
+     }
+    ],
+    "po_over_rt": 32.18828269047133,
+    "po_plus_handoff_over_rt": 41.1299580175374,
+    "band": "5G NR 3.5 GHz"
+   },
+   {
+    "drone": "mavic4pro",
+    "tag": "mavic4pro",
+    "fc_ghz": 5.21,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 1,
+    "facets": 29932,
+    "rays_per_az_per_pass": 55696,
+    "passes_per_pose": 8,
+    "rays_per_pose": 445568,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 12.299451868981123,
+     "median": 12.299451868981123,
+     "max": 12.299451868981123
+    },
+    "raw_kernel_s": {
+     "min": 12.212940303608775,
+     "median": 12.212940303608775,
+     "max": 12.212940303608775
+    },
+    "per_pose_ms": {
+     "min": 101.77450253007312,
+     "median": 101.77450253007312,
+     "max": 101.77450253007312
+    },
+    "per_pose_ms_instrumented": 102.49543224150935,
+    "instrumentation_overhead_pct": 0.7083598480112502,
+    "stage_s_median": {
+     "scene": 0.00015375018119812012,
+     "raygen_host": 2.3170809131115675,
+     "ray_upload": 0.6441007852554321,
+     "rt_trace": 0.1308586746454239,
+     "handoff": 2.610919017344713,
+     "po": 6.375775542110205
+    },
+    "stage_pct": {
+     "scene": 0.001272883501434896,
+     "raygen_host": 19.182898145589174,
+     "ray_upload": 5.332450709481992,
+     "rt_trace": 1.0833668401415426,
+     "handoff": 21.61555657926816,
+     "po": 52.784454842017695
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0012812515099843342,
+     "raygen_host": 19.309007609263062,
+     "ray_upload": 5.367506543795268,
+     "rt_trace": 1.0904889553785324,
+     "handoff": 21.75765847787261,
+     "po": 53.131462850918375
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 0.00015375018119812012,
+      "median": 0.00015375018119812012,
+      "max": 0.00015375018119812012
+     },
+     "raygen_host": {
+      "min": 2.3170809131115675,
+      "median": 2.3170809131115675,
+      "max": 2.3170809131115675
+     },
+     "ray_upload": {
+      "min": 0.6441007852554321,
+      "median": 0.6441007852554321,
+      "max": 0.6441007852554321
+     },
+     "rt_trace": {
+      "min": 0.1308586746454239,
+      "median": 0.1308586746454239,
+      "max": 0.1308586746454239
+     },
+     "handoff": {
+      "min": 2.610919017344713,
+      "median": 2.610919017344713,
+      "max": 2.610919017344713
+     },
+     "po": {
+      "min": 6.375775542110205,
+      "median": 6.375775542110205,
+      "max": 6.375775542110205
+     }
+    },
+    "hit_fraction": 0.03880030657497845,
+    "lit_fraction": 0.03880030657497845,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -18.228744078901546,
+    "gpu_util_samples": [
+     {
+      "util_pct": 97.0,
+      "mem_used_mb": 19985.0
+     },
+     {
+      "util_pct": 96.0,
+      "mem_used_mb": 21137.0
+     }
+    ],
+    "po_over_rt": 48.72260520279666,
+    "po_plus_handoff_over_rt": 68.67480955164314,
+    "band": "WiFi 5.2 GHz"
+   },
+   {
+    "drone": "s1000plus",
+    "tag": "s1000plus",
+    "fc_ghz": 1.843,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 1,
+    "facets": 35370,
+    "rays_per_az_per_pass": 29584,
+    "passes_per_pose": 8,
+    "rays_per_pose": 236672,
+    "chunk_az": 120,
+    "total_s": {
+     "min": 5.813320921733975,
+     "median": 5.813320921733975,
+     "max": 5.813320921733975
+    },
+    "raw_kernel_s": {
+     "min": 5.858448078855872,
+     "median": 5.858448078855872,
+     "max": 5.858448078855872
+    },
+    "per_pose_ms": {
+     "min": 48.82040065713227,
+     "median": 48.82040065713227,
+     "max": 48.82040065713227
+    },
+    "per_pose_ms_instrumented": 48.4443410144498,
+    "instrumentation_overhead_pct": -0.7702920042044628,
+    "stage_s_median": {
+     "scene": 0.00014508888125419617,
+     "raygen_host": 1.0679701380431652,
+     "ray_upload": 0.26113321259617805,
+     "rt_trace": 0.14488085731863976,
+     "handoff": 1.3490842692553997,
+     "po": 2.8634482473134995
+    },
+    "stage_pct": {
+     "scene": 0.0025513893038636905,
+     "raygen_host": 18.780264645333432,
+     "ray_upload": 4.592029931874486,
+     "rt_trace": 2.547731201054307,
+     "handoff": 23.723659213820298,
+     "po": 50.35376361861361
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0012090740104516347,
+     "raygen_host": 8.89975115035971,
+     "ray_upload": 2.1761101049681506,
+     "rt_trace": 1.2073404776553314,
+     "handoff": 11.242368910461664,
+     "po": 23.862068727612495
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 0.00014508888125419617,
+      "median": 0.00014508888125419617,
+      "max": 0.00014508888125419617
+     },
+     "raygen_host": {
+      "min": 1.0679701380431652,
+      "median": 1.0679701380431652,
+      "max": 1.0679701380431652
+     },
+     "ray_upload": {
+      "min": 0.26113321259617805,
+      "median": 0.26113321259617805,
+      "max": 0.26113321259617805
+     },
+     "rt_trace": {
+      "min": 0.14488085731863976,
+      "median": 0.14488085731863976,
+      "max": 0.14488085731863976
+     },
+     "handoff": {
+      "min": 1.3490842692553997,
+      "median": 1.3490842692553997,
+      "max": 1.3490842692553997
+     },
+     "po": {
+      "min": 2.8634482473134995,
+      "median": 2.8634482473134995,
+      "max": 2.8634482473134995
+     }
+    },
+    "hit_fraction": 0.03209184722597801,
+    "lit_fraction": 0.03209184722597801,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -11.419563577608878,
+    "gpu_util_samples": [
+     {
+      "util_pct": 0.0,
+      "mem_used_mb": 21528.0
+     },
+     {
+      "util_pct": 96.0,
+      "mem_used_mb": 21139.0
+     }
+    ],
+    "po_over_rt": 19.764158635642616,
+    "po_plus_handoff_over_rt": 29.075839241509875,
+    "band": "LTE 1.8 GHz"
+   },
+   {
+    "drone": "s1000plus",
+    "tag": "s1000plus",
+    "fc_ghz": 3.5,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 1,
+    "facets": 35370,
+    "rays_per_az_per_pass": 102400,
+    "passes_per_pose": 8,
+    "rays_per_pose": 819200,
+    "chunk_az": 68,
+    "total_s": {
+     "min": 19.816790092736483,
+     "median": 19.816790092736483,
+     "max": 19.816790092736483
+    },
+    "raw_kernel_s": {
+     "min": 19.428319822996855,
+     "median": 19.428319822996855,
+     "max": 19.428319822996855
+    },
+    "per_pose_ms": {
+     "min": 161.90266519164047,
+     "median": 161.90266519164047,
+     "max": 161.90266519164047
+    },
+    "per_pose_ms_instrumented": 165.13991743947068,
+    "instrumentation_overhead_pct": 1.9995052237085604,
+    "stage_s_median": {
+     "scene": 0.00014316104352474213,
+     "raygen_host": 3.6782741229981184,
+     "ray_upload": 1.0163438078016043,
+     "rt_trace": 0.222491055727005,
+     "handoff": 4.707898391410708,
+     "po": 9.848048834130168
+    },
+    "stage_pct": {
+     "scene": 0.000735169608145752,
+     "raygen_host": 18.88890496379928,
+     "ray_upload": 5.219192739355333,
+     "rt_trace": 1.1425500836509888,
+     "handoff": 24.176296360994698,
+     "po": 50.57232068259155
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0011930086960395176,
+     "raygen_host": 30.652284358317655,
+     "ray_upload": 8.469531731680036,
+     "rt_trace": 1.8540921310583751,
+     "handoff": 39.232486595089235,
+     "po": 82.0670736177514
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 0.00014316104352474213,
+      "median": 0.00014316104352474213,
+      "max": 0.00014316104352474213
+     },
+     "raygen_host": {
+      "min": 3.6782741229981184,
+      "median": 3.6782741229981184,
+      "max": 3.6782741229981184
+     },
+     "ray_upload": {
+      "min": 1.0163438078016043,
+      "median": 1.0163438078016043,
+      "max": 1.0163438078016043
+     },
+     "rt_trace": {
+      "min": 0.222491055727005,
+      "median": 0.222491055727005,
+      "max": 0.222491055727005
+     },
+     "handoff": {
+      "min": 4.707898391410708,
+      "median": 4.707898391410708,
+      "max": 4.707898391410708
+     },
+     "po": {
+      "min": 9.848048834130168,
+      "median": 9.848048834130168,
+      "max": 9.848048834130168
+     }
+    },
+    "hit_fraction": 0.033351704915364586,
+    "lit_fraction": 0.033351704915364586,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -7.361829607782435,
+    "gpu_util_samples": [
+     {
+      "util_pct": 97.0,
+      "mem_used_mb": 21139.0
+     },
+     {
+      "util_pct": 95.0,
+      "mem_used_mb": 21759.0
+     }
+    ],
+    "po_over_rt": 44.26267295083384,
+    "po_plus_handoff_over_rt": 65.42261745299515,
+    "band": "5G NR 3.5 GHz"
+   },
+   {
+    "drone": "s1000plus",
+    "tag": "s1000plus",
+    "fc_ghz": 5.21,
+    "div": 16,
+    "jitter": 2,
+    "penetrate": true,
+    "n_az": 120,
+    "el_deg": -2.0,
+    "reps": 1,
+    "facets": 35370,
+    "rays_per_az_per_pass": 223729,
+    "passes_per_pose": 8,
+    "rays_per_pose": 1789832,
+    "chunk_az": 31,
+    "total_s": {
+     "min": 43.72122543491423,
+     "median": 43.72122543491423,
+     "max": 43.72122543491423
+    },
+    "raw_kernel_s": {
+     "min": 42.67848849110305,
+     "median": 42.67848849110305,
+     "max": 42.67848849110305
+    },
+    "per_pose_ms": {
+     "min": 355.6540707591921,
+     "median": 355.6540707591921,
+     "max": 355.6540707591921
+    },
+    "per_pose_ms_instrumented": 364.3435452909519,
+    "instrumentation_overhead_pct": 2.443237754374904,
+    "stage_s_median": {
+     "scene": 0.00013100728392601013,
+     "raygen_host": 8.096500301733613,
+     "ray_upload": 2.140983683988452,
+     "rt_trace": 0.5703985262662172,
+     "handoff": 10.7517791390419,
+     "po": 21.51187644340098
+    },
+    "stage_pct": {
+     "scene": 0.000304161149679694,
+     "raygen_host": 18.79773983825302,
+     "ray_upload": 4.970746963467917,
+     "rt_trace": 1.3243009573629556,
+     "handoff": 24.962531899219506,
+     "po": 49.944376180546925
+    },
+    "stage_per_pose_ms": {
+     "scene": 0.0010917273660500844,
+     "raygen_host": 67.47083584778011,
+     "ray_upload": 17.841530699903767,
+     "rt_trace": 4.753321052218477,
+     "handoff": 89.59815949201584,
+     "po": 179.2656370283415
+    },
+    "stage_spread": {
+     "scene": {
+      "min": 0.00013100728392601013,
+      "median": 0.00013100728392601013,
+      "max": 0.00013100728392601013
+     },
+     "raygen_host": {
+      "min": 8.096500301733613,
+      "median": 8.096500301733613,
+      "max": 8.096500301733613
+     },
+     "ray_upload": {
+      "min": 2.140983683988452,
+      "median": 2.140983683988452,
+      "max": 2.140983683988452
+     },
+     "rt_trace": {
+      "min": 0.5703985262662172,
+      "median": 0.5703985262662172,
+      "max": 0.5703985262662172
+     },
+     "handoff": {
+      "min": 10.7517791390419,
+      "median": 10.7517791390419,
+      "max": 10.7517791390419
+     },
+     "po": {
+      "min": 21.51187644340098,
+      "median": 21.51187644340098,
+      "max": 21.51187644340098
+     }
+    },
+    "hit_fraction": 0.033863210811592,
+    "lit_fraction": 0.033863210811592,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "sigma_dbsm_first": -10.425697004005022,
+    "gpu_util_samples": [
+     {
+      "util_pct": 96.0,
+      "mem_used_mb": 21793.0
+     },
+     {
+      "util_pct": 94.0,
+      "mem_used_mb": 22435.0
+     }
+    ],
+    "po_over_rt": 37.71376581951568,
+    "po_plus_handoff_over_rt": 56.563357191047054,
+    "band": "WiFi 5.2 GHz"
+   }
+  ],
+  "summary_ms": {
+   "min": 8.896916483839354,
+   "median": 39.38034667323033,
+   "max": 355.6540707591921
+  },
+  "stage_pct_median_over_configs": {
+   "scene": 0.0025635923951216628,
+   "raygen_host": 18.88890496379928,
+   "ray_upload": 4.261823577329255,
+   "rt_trace": 2.2987070746180076,
+   "handoff": 24.176296360994698,
+   "po": 49.944376180546925
+  },
+  "drift_vs_pass1": [
+   {
+    "drone": "mini5pro",
+    "fc_ghz": 1.843,
+    "pass1_ms": 9.239509608596563,
+    "pass2_ms": 8.896916483839354,
+    "ratio": 1.0385069507373152,
+    "gpu_util_samples": [
+     {
+      "util_pct": 99.0,
+      "mem_used_mb": 18859.0
+     },
+     {
+      "util_pct": 97.0,
+      "mem_used_mb": 18923.0
+     }
+    ]
+   },
+   {
+    "drone": "mini5pro",
+    "fc_ghz": 3.5,
+    "pass1_ms": 11.343001193987826,
+    "pass2_ms": 12.492515270908672,
+    "ratio": 0.9079837765259554,
+    "gpu_util_samples": [
+     {
+      "util_pct": 99.0,
+      "mem_used_mb": 18923.0
+     },
+     {
+      "util_pct": 0.0,
+      "mem_used_mb": 19604.0
+     }
+    ]
+   },
+   {
+    "drone": "mini5pro",
+    "fc_ghz": 5.21,
+    "pass1_ms": 31.897342818168298,
+    "pass2_ms": 35.32147156074643,
+    "ratio": 0.9030581515640066,
+    "gpu_util_samples": [
+     {
+      "util_pct": 100.0,
+      "mem_used_mb": 19213.0
+     },
+     {
+      "util_pct": 94.0,
+      "mem_used_mb": 19757.0
+     }
+    ]
+   },
+   {
+    "drone": "mavic4pro",
+    "fc_ghz": 1.843,
+    "pass1_ms": 11.140519939363003,
+    "pass2_ms": 12.148668120304743,
+    "ratio": 0.9170157443632223,
+    "gpu_util_samples": [
+     {
+      "util_pct": 99.0,
+      "mem_used_mb": 19759.0
+     },
+     {
+      "util_pct": 95.0,
+      "mem_used_mb": 19887.0
+     }
+    ]
+   },
+   {
+    "drone": "mavic4pro",
+    "fc_ghz": 3.5,
+    "pass1_ms": 38.13479893530409,
+    "pass2_ms": 39.38034667323033,
+    "ratio": 0.9683713363861033,
+    "gpu_util_samples": [
+     {
+      "util_pct": 96.0,
+      "mem_used_mb": 19887.0
+     },
+     {
+      "util_pct": 94.0,
+      "mem_used_mb": 19951.0
+     }
+    ]
+   },
+   {
+    "drone": "mavic4pro",
+    "fc_ghz": 5.21,
+    "pass1_ms": 85.49911935503283,
+    "pass2_ms": 101.77450253007312,
+    "ratio": 0.8400838837779521,
+    "gpu_util_samples": [
+     {
+      "util_pct": 97.0,
+      "mem_used_mb": 19985.0
+     },
+     {
+      "util_pct": 96.0,
+      "mem_used_mb": 21137.0
+     }
+    ]
+   },
+   {
+    "drone": "s1000plus",
+    "fc_ghz": 1.843,
+    "pass1_ms": 39.2163960961625,
+    "pass2_ms": 48.82040065713227,
+    "ratio": 0.8032788663817182,
+    "gpu_util_samples": [
+     {
+      "util_pct": 0.0,
+      "mem_used_mb": 21528.0
+     },
+     {
+      "util_pct": 96.0,
+      "mem_used_mb": 21139.0
+     }
+    ]
+   },
+   {
+    "drone": "s1000plus",
+    "fc_ghz": 3.5,
+    "pass1_ms": 178.06103238059828,
+    "pass2_ms": 161.90266519164047,
+    "ratio": 1.09980297217363,
+    "gpu_util_samples": [
+     {
+      "util_pct": 97.0,
+      "mem_used_mb": 21139.0
+     },
+     {
+      "util_pct": 95.0,
+      "mem_used_mb": 21759.0
+     }
+    ]
+   },
+   {
+    "drone": "s1000plus",
+    "fc_ghz": 5.21,
+    "pass1_ms": 356.18979287489003,
+    "pass2_ms": 355.6540707591921,
+    "ratio": 1.001506301093516,
+    "gpu_util_samples": [
+     {
+      "util_pct": 96.0,
+      "mem_used_mb": 21793.0
+     },
+     {
+      "util_pct": 94.0,
+      "mem_used_mb": 22435.0
+     }
+    ]
+   }
+  ],
+  "drift_ratio": {
+   "min": 0.8032788663817182,
+   "median": 0.9170157443632223,
+   "max": 1.09980297217363
+  },
+  "reading": "ratio = pass1 / pass2 per config. Values away from 1.0 are contention, not physics — the kernel is deterministic (sigma is bit-identical between passes)."
+ }
+}

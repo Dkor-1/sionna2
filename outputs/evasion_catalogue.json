@@ -1,0 +1,483 @@
+{
+ "meta": {
+  "file": "outputs/evasion_catalogue.json",
+  "generated": "2026-08-03",
+  "task_ko": "정확도 회피 전략 카탈로그 - 시뮬레이션 논문이 '진폭이 맞을 필요가 없는 주장'만 하도록 설계되는 패턴이 얼마나 일반적인지 원문으로 판정한다.",
+  "trigger_ko": "IEEE ICCT 2025 md-rt 논문이 식 (2) 에 sigma(x,y,z) 를 'reflectivity function' 으로 써놓고 끝까지 계산하지 않으며, dBsm/SNR/CFAR/Pd 가 전부 0회라는 확정 사실.",
+  "method": "PyMuPDF(fitz) 1.28.0 로 전문 텍스트 레이어 추출. 후보 선별은 305편 고유 PDF 의 term-count 스크리닝, 판정은 18편 원문 정독. 모든 인용문은 텍스트 레이어에서 축자 복사했고 페이지는 PDF 1-based 인덱스다.",
+  "corpus_scanned": [
+   "/data/public/sionna_jeong (360 PDF 경로, basename+filesize 중복 접어 305편 고유)",
+   "/home/yunjung/workspace/sionna2/outputs/reflib_sweep_sionna.json (Sionna 사용 140편의 역할 분류)",
+   "/home/yunjung/workspace/sionna2/outputs/deepread_backlog.json (227 엔트리, 미독 131편 중 관련 30편 추림)"
+  ],
+  "selection_rule_ko": "reflib_sweep 이 role_TARGET_* / ENGINE_* 로 표시한 Sionna 논문 전부 + 같은 주장 공간(드론/표적 마이크로도플러·검출)에서 비교 가능한 비-Sionna 시뮬 논문 + 진폭에 실제로 커밋한 대조군(EM 솔버·실측 앵커).",
+  "the_rule_ko": "판정에는 축자 인용문 + PDF 경로 + 페이지가 붙는다. 붙지 않으면 UNVERIFIED 이고 그렇게 적는다.",
+  "known_limits": [
+   "18편은 표본이지 전수가 아니다. deepread_backlog 미독 156편 중 대다수는 전파 전용이라 이 질문에 무관하다고 판단해 열지 않았다 - 그 판단 자체는 term-count 기반이므로 오분류 가능하다.",
+   "그림 축 라벨은 벡터 텍스트일 때만 잡힌다. 래스터 그림 안의 dBsm 은 이 방법으로 놓칠 수 있다.",
+   "게재 상태는 PDF 안 스탬프/메타데이터만 근거로 적었다. 스탬프가 없으면 NOT_STAMPED 로 두었고 2차 출처(Semantic Scholar 등)는 쓰지 않았다.",
+   "'회피'는 저자 의도가 아니라 논증 구조에 대한 서술이다. 대부분의 경우 이것은 정직한 스코핑이며, 문제는 회피 자체가 아니라 회피한 사실이 독자에게 보이지 않을 때다."
+  ]
+ },
+
+ "taxonomy": {
+  "q1_claim_class": {
+   "KINEMATIC_ONLY": "주장한 관측량이 위상의 도함수(도플러 능선·마이크로도플러 포락선·지연·각도)뿐. 진폭이 상수배 틀려도 결론이 그대로 선다.",
+   "ENERGETIC_RELATIVE": "dB 축·검출률·정확도를 인쇄하지만 전부 상대량(같은 시뮬 안의 baseline 대비, 정규화 dB, 순위)이다. 절대 레벨이 틀려도 결론이 선다.",
+   "ENERGETIC_ABSOLUTE": "절대 레벨(dBsm, 절대 SNR, 실측과의 절대 정합)이 결론의 일부다. 진폭이 틀리면 논문이 틀린다.",
+   "NO_TARGET_CLAIM": "표적 산란에 대한 주장 자체가 없다(툴체인·전파 전용)."
+  },
+  "q2_amplitude_justification": {
+   "NOT_APPLICABLE": "에너지 주장이 없어 정당화가 필요 없다.",
+   "NONE": "에너지량을 인쇄했는데 그 진폭의 출처를 아무것도 대지 않았다.",
+   "RELATIVE_ONLY": "같은 시뮬레이터 안의 다른 알고리즘/설정과의 비교로만 정당화했다.",
+   "HAND_TUNED": "그림이 맞을 때까지 스칼라 이득을 손으로 맞췄다고 본문에 적었다.",
+   "ASSUMED_CONSTANT": "sigma 를 표의 상수 한 칸으로 가정했다(출처 없음).",
+   "STANDARD_MODEL": "표준화 기구 모델(3GPP Rel-19 RCS)에서 sigma 를 가져왔다.",
+   "EXTERNAL_SOLVER": "외부 솔버(FEKO/CADFEKO/PO)가 계산한 sigma 를 광선추적 경로에 곱해 주입했다.",
+   "MEASUREMENT_ANCHOR": "실측(무향실·코너리플렉터·BIRA)으로 절대 레벨을 앵커했다.",
+   "REFERENCE_SOLVER": "해석해(Mie)·전파해석(MLFMM/PO)와 절대 비교해 검증했다."
+  },
+  "evasion_devices": {
+   "E1_SYMBOLIC_SIGMA": "sigma 를 식에 써넣고 끝까지 값을 주지 않는다.",
+   "E2_PHASE_ONLY_OBSERVABLE": "보고 관측량을 위상 미분(도플러)로 한정해 진폭을 소거한다.",
+   "E3_NORMALIZED_DB_AXIS": "세로축이 'Amplitude [dB]' 처럼 기준이 명시되지 않은 상대 dB 다.",
+   "E4_SCALE_INVARIANT_METRIC": "상관계수·순위·[0,1] 정규화 MSE 처럼 스케일에 둔감한 지표로 검증한다.",
+   "E5_MANUAL_GAIN_FIT": "스칼라 이득을 수동 조정한다.",
+   "E6_STATISTICAL_RCS_PLACEHOLDER": "RCS 를 분산 미지정 확률변수(Swerling/CN(0,sigma^2))로 대체한다.",
+   "E7_CONSTANT_SIGMA_ASSUMPTION": "sigma 를 파라미터 표의 상수 한 칸으로 넣는다.",
+   "E8_STANDARD_TABLE_SIGMA": "sigma 를 표준 문서 표에서 가져와 책임을 위임한다.",
+   "E9_EXTERNAL_SOLVER_INJECTION": "sigma 를 외부 솔버에서 계산해 주입한다(엔진 안에서 풀지 않는다).",
+   "E10_GEOMETRIC_PROXY_TARGET": "표적을 정육면체·직육면체·구로 바꿔 'RCS 가 얼마냐'는 질문이 성립하지 않게 한다.",
+   "E11_SELF_CONSISTENT_LEARNING": "같은 시뮬레이터로 학습·평가해 진폭 편향을 공통모드로 상쇄시킨다.",
+   "E12_NOISE_OMITTED": "잡음을 모델링하지 않아 검출 통계량 자체가 정의되지 않는다.",
+   "E13_RELATIVE_BASELINE_ONLY": "같은 시뮬 안의 열등한 baseline 을 이겼다는 주장으로 끝낸다.",
+   "E14_MEASUREMENT_ANCHOR": "(회피 아님) 실측 앵커로 절대 레벨을 붙인다.",
+   "E15_REFERENCE_SOLVER_VALIDATION": "(회피 아님) 해석해·전파해석과 절대 비교한다."
+  }
+ },
+
+ "headline_findings_ko": [
+  "⭐패턴은 일반적이다. 원문 판정 18편 중 표적 산란을 주장한 17편에서, 계산된(가정이 아닌) 절대 dBsm 을 인쇄한 것은 3편뿐이고 그 3편의 표적은 차량·보행자·항공기다. 드론 표적의 계산된 절대 dBsm 을 인쇄한 논문은 이 표본에 0편이다.",
+  "md-rt(ICCT 2025)의 구조는 예외가 아니라 정석이다. sigma 를 기호로 두고 관측량을 위상 미분으로 한정하면(E1+E2) 진폭 검증 의무가 통째로 사라진다. Costa 계열 2편이 같은 구조를 실측 대조까지 붙여 반복한다.",
+  "⭐가장 흔한 회피는 '표적을 상자로 바꾸기'(E10)다. CellSense 는 사람을 1.8x0.5x0.25 m 직육면체로, LowAlt-Cube 는 UAV 를 금속 정육면체로 놓고 각각 Pd=0.74, 미검출률 0.63% 를 소수점까지 인쇄한다. 두 논문 모두 'RCS' 라는 단어가 본문에 0회다(CellSense 는 'SNR' 도 0회).",
+  "에너지 주장을 한 14편의 진폭 정당화는 넷으로 갈린다 - 아무것도 대지 않거나(NONE 3편), 같은 시뮬 안의 baseline 대비로만 대거나(RELATIVE_ONLY 2편 + HAND_TUNED 1편), 스칼라 상수·표준표로 위임하거나(ASSUMED_CONSTANT·STANDARD_MODEL 2편), 엔진 밖(FEKO/실측/Mie)으로 내보낸다(EXTERNAL_SOLVER 1 + MEASUREMENT_ANCHOR 3 + REFERENCE_SOLVER 3 = 7편). 광선추적 엔진 안에서 표적 진폭을 풀어낸 사례는 표본에 0편이다.",
+  "Costa 저널판은 회피를 문장으로 자백한다 - 몸통 반사도 스칼라를 '단순화를 위해 수동 조정' 했고, 검증 지표는 [0,1] 정규화 후의 Pearson 상관(스케일 불변)이다. 이건 E5+E4 의 교과서적 조합이다.",
+  "RadarTwin 은 회피를 이름 붙이고 고친 유일한 사례다 - '절대 방사측정은 sim-to-real 격차를 넘지 못한다' 고 쓴 뒤 삼면 코너리플렉터 1개로 앵커를 붙였다. 우리가 쓸 수 있는 가장 정직한 선행 문장이다.",
+  "Deep(IET RSN 2020)은 반대 방향의 자백이다 - 시뮬에는 잡음을 넣지 않았으므로 CFAR 은 실측에만 돌렸다고 적었다(E12). 검출 통계량을 시뮬에서 안 내는 이유가 본문에 명시된 드문 경우다.",
+  "Sagitta(SBR+PO 전용 논문)조차 검증 축은 정규화 RCS sigma/(pi r^2) 다. 절대 dBsm 은 본문 산문에서 단위로만 언급된다 - 진폭에 가장 강하게 커밋한 부류에서도 그림 축은 정규화된다."
+ ],
+
+ "counts": {
+  "papers_read_in_full_text": 18,
+  "kinematic_only": 3,
+  "energetic": 14,
+  "no_target_claim": 1,
+  "absolute_dbsm_printed_anywhere": 5,
+  "absolute_dbsm_as_computed_output": 3,
+  "absolute_dbsm_as_assumed_input": 2,
+  "absolute_dbsm_for_a_drone_target_computed": 0,
+  "by_claim_class": {
+   "ENERGETIC_ABSOLUTE": 8,
+   "ENERGETIC_RELATIVE": 6,
+   "KINEMATIC_ONLY": 3,
+   "NO_TARGET_CLAIM": 1
+  },
+  "by_amplitude_justification": {
+   "NOT_APPLICABLE": 3,
+   "NONE": 3,
+   "RELATIVE_ONLY": 2,
+   "HAND_TUNED": 1,
+   "ASSUMED_CONSTANT": 1,
+   "STANDARD_MODEL": 1,
+   "EXTERNAL_SOLVER": 1,
+   "MEASUREMENT_ANCHOR": 3,
+   "REFERENCE_SOLVER": 3
+  },
+  "sionna_based_subset": 10,
+  "sionna_based_that_print_computed_absolute_dbsm": 1
+ },
+
+ "papers": [
+  {
+   "key": "md-rt_ICCT2025",
+   "title": "Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing",
+   "authors_as_printed": "Changjun Li, Shiyi Mu, Jun Jiang, Lei Feng, Yuan Gao, Shugong Xu",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+   "pages": 6,
+   "publication_evidence": {"where": "PDF /Subject metadata + p.1 footer", "quote": "2025 IEEE 25th International Conference on Communication Technology (ICCT);2025; ; ;10.1109/ICCT67417.2025.11374154"},
+   "engine": "Sionna RT (버전 미기재) + Blender 블레이드 메시, Mitsuba Frame 유틸",
+   "target_representation": "회전 프로펠러 1개. Sionna 내장 reflector -> 산란점 1/2/3/6 -> Blender 블레이드 실물 모델. 기체 동체 없음.",
+   "q1_claim_class": "KINEMATIC_ONLY",
+   "q2_amplitude_justification": "NOT_APPLICABLE",
+   "q3_absolute_dbsm": {"printed": false, "role": null, "page": null, "quote": null},
+   "term_counts": {"dBsm": 0, "SNR": 0, "CFAR": 0, "Pd_or_ROC": 0, "false_alarm": 0, "RCS": 3, "Doppler": 57, "Sionna": 16},
+   "evasion_devices": ["E1_SYMBOLIC_SIGMA", "E2_PHASE_ONLY_OBSERVABLE"],
+   "quotes": [
+    {"page": 2, "q": "where σ(x, y, z) is the reflectivity function and ϕ(t) = 4πf c r(t) represents signal phase. The Doppler shift is obtained by phase differentiation:"},
+    {"page": 4, "q": "According to Eq. (7), the calculated maximum Micro-Doppler frequency shift is 1562 Hz. The rotation period derived from the angular velocity, T = 2π ω = 0.04 s, matches perfectly with the simulation results."},
+    {"page": 6, "q": "However, simulation experiments also show that the echo energy of high-frequency signals significantly decreases. This reduction may be caused by atmospheric absorption. According to the free-space path loss formula, higher frequencies suffer greater path loss, resulting in lower received energy."}
+   ],
+   "verdict_ko": "기준 사례. 진폭 기호는 식 (2) 에 등장하고 값을 받지 못한 채 식 (3) 의 위상 미분으로 넘어간다. 유일한 에너지 언급(p.6)은 절대값 없이 'may be caused by' 로 헤지된 정성 서술이며, 자유공간 손실로 설명하지만 표적 RCS 의 주파수 의존은 다루지 않는다.",
+   "citation_caution_ko": "정량 앵커로 쓰지 말 것 - Table I 의 propeller radius 10.55 cm 와 본문 blade length 1.055 m 가 10배 모순이고, 주장한 1562 Hz 가 어느 반경과도 맞지 않는다(우리 기록 sionna2-r20-novelty-correction 에서 이미 확정)."
+  },
+  {
+   "key": "ZIG-CONF_EuCAP2025",
+   "title": "Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+   "pages": 5,
+   "publication_evidence": {"where": "PDF /Subject metadata", "quote": "2025 19th European Conference on Antennas and Propagation (EuCAP);2025; ; ;10.23919/EuCAP63536.2025.10999367"},
+   "engine": "Sionna RT 를 저자가 UTD + vertex diffraction 으로 확장",
+   "target_representation": "면분할된 구 + 단순화 차량 메시(전부 PEC, 수직 편파)",
+   "q1_claim_class": "ENERGETIC_ABSOLUTE",
+   "q2_amplitude_justification": "REFERENCE_SOLVER",
+   "q3_absolute_dbsm": {"printed": true, "role": "computed_output", "page": 5, "quote": "0 25 50 75 100 125 150 175 Angle (deg) 40 30 20 10 0 10 20 30 40 RCS (dBsm) EM (PO) RT+UTD+VD Fig. 6: RCS of the simplified car"},
+   "term_counts": {"dBsm": 1, "SNR": 0, "CFAR": 0, "Pd_or_ROC": 0, "RCS": 7, "Doppler": 1, "Sionna": 2, "FEKO_MLFMM_PO": 20},
+   "evasion_devices": ["E15_REFERENCE_SOLVER_VALIDATION"],
+   "quotes": [
+    {"page": 3, "q": "EM simulation is performed with the commercial FEKO package [15] in order to validate the accuracy of the RT tool. Since FEKO offers many solvers, we choose two of them: firstly, Multilevel Fast Multiple Method (MLFMM), which is an alternative and faster formulation of the Method of Moment (MoM) solver, and secondly, the Physical Optics (PO) solver [16]."},
+    {"page": 4, "q": "The reflectivity with both TX and RX in the far-field transforms into RCS. In each case, the simulation time for the PO solver is around one day, whereas the RT simulation takes only about two seconds"}
+   ],
+   "verdict_ko": "이 표본에서 Sionna 계열로 계산된 절대 dBsm 을 인쇄한 유일한 논문. 회피하지 않았고, 그 대가로 FEKO MLFMM/PO 를 ground truth 로 세워야 했다. 표적은 차량이며 드론이 아니다.",
+   "version_caution_ko": "저널판과 반드시 구별할 것. 회의판만 dBsm 축을 갖는다."
+  },
+  {
+   "key": "ZIG-JOUR_2604.05991",
+   "title": "Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+   "pages": 11,
+   "publication_evidence": {"where": "p.1 좌측 여백 스탬프", "quote": "arXiv:2604.05991v2  [eess.SP]  2 Jul 2026"},
+   "engine": "확장 RT(UTD + EE/EV/VE/vertex diffraction), 참조는 FEKO MLFMM + BIRA 실측",
+   "target_representation": "면분할 원통·구(해석해 대조), 차량 상세 메시 1496 facet / 저폴리 220 facet (전부 PEC)",
+   "q1_claim_class": "ENERGETIC_ABSOLUTE",
+   "q2_amplitude_justification": "MEASUREMENT_ANCHOR",
+   "q3_absolute_dbsm": {"printed": false, "role": null, "page": null, "quote": null, "note_ko": "축은 |E_sc| (dB) · |E_tot| (dB) 이고 지표는 MAE(dB). dBsm 은 0회."},
+   "term_counts": {"dBsm": 0, "SNR": 0, "CFAR": 0, "Pd_or_ROC": 0, "RCS": 11, "Doppler": 3, "Sionna": 10, "measured": 21, "FEKO_MLFMM_PO": 31},
+   "evasion_devices": ["E14_MEASUREMENT_ANCHOR", "E15_REFERENCE_SOLVER_VALIDATION"],
+   "quotes": [
+    {"page": 1, "q": "Validation is initially performed against analytical solutions and full-wave simulations for canonical geometries (sphere and circular cylinder). Furthermore, the practical applicability of the approach is demonstrated for a realistic vehicle by comparison with bistatic measurements in the backscattering region and full-wave simulation in the shadow region."},
+    {"page": 5, "q": "Refining the discretization (green curve) improves the prediction from 2.3 to 0.8 dB of MAE and reproduces the behaviour observed in the analytical solution."},
+    {"page": 7, "q": "Post-processing of the data includes background subtraction, time-delay gating using car dimensions, and LOS calibration [33]."}
+   ],
+   "verdict_ko": "절대 진폭에 커밋했지만 단위를 dBsm 이 아니라 근접장 |E|(dB) 로 잡았다. 즉 '절대 필드 오차 0.8 dB' 라는 강한 주장을 하면서도 far-field RCS 라는 논쟁적 개념은 회피했다 - 이건 회피가 아니라 스코핑의 모범 사례다(p.1 에서 far-field RCS 개념이 부적절한 이유를 먼저 논증한다)."
+  },
+  {
+   "key": "Costa_RadarConf24_2401.14287",
+   "title": "Bistatic reflectivity and micro-Doppler signatures of drones for ISAC (RadarConf24 판)",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2401.14287__costa_microdoppler-drone-propellers_RadarConf24-conf.pdf",
+   "pages": 6,
+   "publication_evidence": {"where": "p.1 스탬프", "quote": "arXiv:2401.14287v3  [eess.SP]  5 Sep 2025"},
+   "engine": "해석적 점산란 모델(광선추적 아님) + BIRA 바이스태틱 OFDM 실측",
+   "target_representation": "회전 프로펠러의 점산란점 집합. 각 점에 sigma_P 가 붙지만 값을 주지 않는다.",
+   "q1_claim_class": "KINEMATIC_ONLY",
+   "q2_amplitude_justification": "RELATIVE_ONLY",
+   "q3_absolute_dbsm": {"printed": false, "role": null, "page": null, "quote": null, "note_ko": "그림 축은 'Amplitude [dB]' 이며 기준이 명시되지 않는다."},
+   "term_counts": {"dBsm": 0, "SNR": 0, "CFAR": 0, "Pd_or_ROC": 0, "RCS": 3, "Doppler": 59, "measured": 51},
+   "evasion_devices": ["E1_SYMBOLIC_SIGMA", "E2_PHASE_ONLY_OBSERVABLE", "E3_NORMALIZED_DB_AXIS"],
+   "quotes": [
+    {"page": 2, "q": "where z(t) is the noise, and γP (t) is the amplitude of the returned signal, given by [5] γP (t) = γ0 ... σP is the radar cross section (RCS) of the scatter point P."},
+    {"page": 6, "q": "The main properties of the drone micro-Doppler signatures for the sake of classification, such as number of propellers, position and Doppler spread of each propeller, and distance between impulses in frequency direction are the same on both sides. In order to improve intensity match between simulation and measurement, a better RCS model for propellers and static parts returns can be included, by adjusting σP in (3)."}
+   ],
+   "verdict_ko": "⭐진폭이 안 맞는다는 사실을 본문에서 스스로 인정하고, 그 수정을 미래 작업으로 미룬다. 성립하는 주장의 목록('number of propellers, position and Doppler spread ... are the same')이 전부 운동학적이라는 점이 명시적으로 나열되어 있다 - 회피 구조가 가장 노골적으로 드러난 문장."
+  },
+  {
+   "key": "Costa_JSTSP_2504.05168",
+   "title": "Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC (저널 확장판)",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.05168__costa_microdoppler-multiprop-drones_JSTEAP-journal.pdf",
+   "pages": 14,
+   "publication_evidence": {"where": "p.1 스탬프", "quote": "arXiv:2504.05168v2  [eess.SP]  10 Sep 2025"},
+   "engine": "해석적 점산란 모델 + Gaussian body model / 실측 반사도 라이브러리(BIRA, 5.78-8.22 GHz)",
+   "target_representation": "다중 프로펠러 + 동체를 질량중심 가우시안으로 퍼뜨린 확장표적",
+   "q1_claim_class": "ENERGETIC_RELATIVE",
+   "q2_amplitude_justification": "HAND_TUNED",
+   "q3_absolute_dbsm": {"printed": false, "role": null, "page": null, "quote": null, "note_ko": "실측 반사도 Fig.12 는 dB 스케일 S21 이고 dBsm 이 아니다."},
+   "term_counts": {"dBsm": 0, "SNR": 0, "CFAR": 0, "Pd_or_ROC": 1, "RCS": 6, "Doppler": 103, "measured": 79},
+   "evasion_devices": ["E5_MANUAL_GAIN_FIT", "E4_SCALE_INVARIANT_METRIC", "E3_NORMALIZED_DB_AXIS"],
+   "quotes": [
+    {"page": 8, "q": "where γ′ n defines the body reflectivity with respect to the propellers reflectivity. The appropriate values of γ′ n depend strongly on the material of the drone and, for simplicity, in the current work, they are considered equal for all values of n, and this single value was manually adjusted, similarly to what is usually done in the single-point scatter method."},
+    {"page": 7, "q": "The Gaussian body model assumes a smoothly distributed RCS centered on the drone's mass center. This is clearly a simplification, as real drone bodies exhibit intricate reflectivity patterns that depend on the shape, material and aspect angle."},
+    {"page": 9, "q": "we used, at the left-hand side and right-hand side of the figure, respectively, the complex and the magnitude values of the frequency-domain micro-Doppler signature, normalized between 0 and 1, what gives a scale between 0 and 1 for both metrics. The Pearson correlation coefficient ... is a scale invariant metric for comparisons"}
+   ],
+   "verdict_ko": "⭐교과서적 조합 - 스칼라 이득 수동 조정(E5) 후 [0,1] 정규화 + 스케일 불변 상관계수로 검증(E4). 실측 앵커를 갖고 있으면서도 검증 지표를 스케일 불변으로 골랐다는 점이 핵심이다. 진폭 정확도를 요구하지 않는 방향으로 지표가 설계되었다."
+  },
+  {
+   "key": "CellSense_2606.07900",
+   "title": "CellSense: A Sub-6 GHz Cellular ISAC System for Clutter-Robust Passive Sensing",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2606.07900__cellsense.pdf",
+   "pages": 6,
+   "publication_evidence": {"where": "p.1 스탬프", "quote": "arXiv:2606.07900v1  [eess.SY]  5 Jun 2026"},
+   "engine": "Sionna RT (Blender 씬) + 자체 5G OFDM 송수신기, 별도 USRP/OAI 하드웨어 실험",
+   "target_representation": "사람을 흉내낸 직육면체",
+   "q1_claim_class": "ENERGETIC_RELATIVE",
+   "q2_amplitude_justification": "NONE",
+   "q3_absolute_dbsm": {"printed": false, "role": null, "page": null, "quote": null},
+   "term_counts": {"dBsm": 0, "SNR": 0, "CFAR": 0, "Pd_or_ROC": 12, "false_alarm": 4, "RCS": 0, "Doppler": 1, "Sionna": 3},
+   "evasion_devices": ["E10_GEOMETRIC_PROXY_TARGET", "E13_RELATIVE_BASELINE_ONLY"],
+   "quotes": [
+    {"page": 4, "q": "To simulate a dynamic target, we model a mobile object as a 1.8 m × 0.5 m × 0.25 m cuboid to emulate the average physiological profile of a human."},
+    {"page": 5, "q": "In the high-clutter indoor warehouse, CellSense achieves a detection probability (Pd) of 0.74 with a low false alarm rate (Pfa = 0.10), whereas the baseline struggles at Pd = 0.22 and a prohibitive Pfa = 0.88."}
+   ],
+   "verdict_ko": "⭐가장 강한 사례. Pd 를 소수점 둘째 자리까지 인쇄하면서 'RCS' 도 'SNR' 도 본문에 0회다. 검출 임계값은 'pre-determined threshold' 이고 잡음 지수·수신기 잡음 레벨이 제시되지 않는다. Pd 의 절대값이 무엇에 의해 결정되는지 추적할 경로가 논문 안에 없으며, 방어는 전적으로 2D-FFT baseline 대비 상대 우위와 별도 하드웨어 실험에 실린다."
+  },
+  {
+   "key": "LowAltCube_2605.07623",
+   "title": "AI-Empowered Low-Altitude Economy: Cooperative Sensing With Fixed Wireless Access",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+   "pages": 13,
+   "publication_evidence": {"where": "p.1 스탬프", "quote": "arXiv:2605.07623v1  [eess.SP]  8 May 2026"},
+   "engine": "OSM + Blender + Sionna RT (PathSolver), Transformer 기반 검출·측위망",
+   "target_representation": "금속 정육면체",
+   "q1_claim_class": "ENERGETIC_RELATIVE",
+   "q2_amplitude_justification": "NONE",
+   "q3_absolute_dbsm": {"printed": false, "role": null, "page": null, "quote": null},
+   "term_counts": {"dBsm": 0, "SNR": 0, "CFAR": 0, "Pd_or_ROC": 4, "false_alarm": 2, "RCS": 0, "Doppler": 0, "Sionna": 5},
+   "evasion_devices": ["E10_GEOMETRIC_PROXY_TARGET", "E11_SELF_CONSISTENT_LEARNING", "E13_RELATIVE_BASELINE_ONLY"],
+   "quotes": [
+    {"page": 8, "q": "The UAV is modeled as a metallic cube located at p = (x, y, 60), where x, y ∼U[−75, 75]."},
+    {"page": 1, "q": "Simulations show that cooperative schemes significantly reduce the missed detection probability to 0.63% and realize a 95%-confidence positioning error of 6.50 m, satisfying 3GPP requirements"},
+    {"page": 9, "q": "the pair labels y(m,n) is derived from the path type provided by Sionna RT. As described in Sec. V-A1, UAV-affected paths are typically caused by diffuse reflections."}
+   ],
+   "verdict_ko": "미검출률 0.63% 를 인쇄하는데 'RCS'·'SNR' 이 각각 0회. 정답 라벨을 Sionna 의 path type 에서 직접 뽑기 때문에 학습·평가가 같은 시뮬 안에서 닫힌다(E11). 3GPP 요구조건 통과라는 프레이밍이 절대 진폭 검증을 대체한다."
+  },
+  {
+   "key": "ClutterAware_2602.10537",
+   "title": "Clutter-Aware Integrated Sensing and Communication: Models, Methods, and Future Directions",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+   "pages": 36,
+   "publication_evidence": {"where": "p.1 스탬프", "quote": "arXiv:2602.10537v2  [eess.SP]  18 Mar 2026", "note_ko": "파일명은 procIEEE-accepted 를 주장하나 게재 확정은 이번 패스에서 미검증."},
+   "engine": "Sionna RT (max depth 3) 씬 + 확률 산란체 모델 병행",
+   "target_representation": "공개 3D 모델을 Blender 로 단순화한 UAV/ToI 메시(재질 임의 배정 가능)",
+   "q1_claim_class": "ENERGETIC_RELATIVE",
+   "q2_amplitude_justification": "NONE",
+   "q3_absolute_dbsm": {"printed": false, "role": null, "page": null, "quote": null, "note_ko": "RDM·빔패턴 축은 정규화 dB. dBsm 0회, Pd/ROC 0회."},
+   "term_counts": {"dBsm": 0, "SNR": 11, "CFAR": 4, "Pd_or_ROC": 0, "RCS": 11, "Doppler": 133, "Sionna": 13},
+   "evasion_devices": ["E6_STATISTICAL_RCS_PLACEHOLDER", "E3_NORMALIZED_DB_AXIS", "E13_RELATIVE_BASELINE_ONLY"],
+   "quotes": [
+    {"page": 20, "q": "The ToI and UAVs are modeled as simplified 3D mesh objects imported into Sionna. These meshes are obtained by simplifying publicly available 3D models in Blender and exporting them in Sionna's XML format, which keeps the ray-tracing scene lightweight while enabling flexible material assignment."},
+    {"page": 10, "q": "where the variance σ2 c(f) represents the strength of the frequency-dependent RCS. The Gaussian assumption is valid for resolution cells encompassing numerous independent scatterers"},
+    {"page": 9, "q": "To maintain a prescribed false-alarm probability, range-Doppler constant false-alarm rate (CFAR) detectors estimate the local interference power from neighboring training cells around the cell under test and adapt the threshold accordingly."}
+   ],
+   "verdict_ko": "Proc. IEEE 급 서베이/튜토리얼인데도 표적 RCS 는 분산 미지정 복소 가우시안으로 남는다. CFAR 은 개념 설명으로만 나오고 Pd 곡선은 없다 - 주장 전부가 클러터 억제 전후의 상대 dB 이므로 절대 진폭이 필요 없게 설계되어 있다."
+  },
+  {
+   "key": "LAMBDA_2607.03826",
+   "title": "LAMBDA: A Low-Altitude Multimodal Base Dataset for UAV Sensing and Communication",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+   "pages": 20,
+   "publication_evidence": {"where": "p.1 스탬프", "quote": "arXiv:2607.03826v1  [eess.SP]  4 Jul 2026"},
+   "engine": "UE5/Cosys-AirSim + Blender + Sionna RT (전파) + CADFEKO (표적 RCS)",
+   "target_representation": "AirSim UAV 모델의 자세별 RCS 를 CADFEKO 로 계산해 Sionna 경로에 곱함",
+   "q1_claim_class": "ENERGETIC_RELATIVE",
+   "q2_amplitude_justification": "EXTERNAL_SOLVER",
+   "q3_absolute_dbsm": {"printed": false, "role": null, "page": null, "quote": null, "note_ko": "RCS 파일을 배포한다고 적었을 뿐 논문 안에 dBsm 수치·축이 없다."},
+   "term_counts": {"dBsm": 0, "SNR": 0, "CFAR": 0, "Pd_or_ROC": 0, "RCS": 13, "Doppler": 8, "Sionna": 9, "FEKO_MLFMM_PO": 6},
+   "evasion_devices": ["E9_EXTERNAL_SOLVER_INJECTION"],
+   "quotes": [
+    {"page": 7, "q": "The synthesis combines the complex CSI coefficient of each valid path with its two-way delay, Doppler shift, virtual-array steering phase, UAV-orientation-dependent RCS, and optional receiver noise. The complex-valued CSI coefficient captures the propagation effects computed by the ray-tracing channel generator, whereas the RCS term is obtained from CADFEKO simulations of the AirSim UAV model and queried according to the UAV attitude."},
+    {"page": 3, "q": "Blender [26] for scene-mesh conversion; Sionna RT [27] for material-aware ray tracing; and CADFEKO [28] for UAV radar cross-section (RCS) modeling."}
+   ],
+   "verdict_ko": "표적 진폭을 광선추적 엔진 밖으로 완전히 이관한 유일한 사례(h = h_RT × sigma_FEKO). 회피는 아니지만 '엔진 안에서 산란을 풀지 않는다' 는 공백은 그대로다. 수신 잡음은 'optional' 이고, 검증은 데이터셋 무결성·빔예측 Top-k·측위 PCK 로 이뤄져 절대 dBsm 은 끝까지 인쇄되지 않는다.",
+   "note_ko": "RCS 값 자체는 배포 파일에 있다고 하므로, 논문만 읽어서는 절대 레벨을 검사할 수 없다."
+  },
+  {
+   "key": "NeuralISAC_2509.21118",
+   "title": "Neural Integrated Sensing and Communication for the MIMO-OFDM Downlink",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/isac_sensing_radar/2509.21118__wang-neural-isac-mimo-ofdm.pdf",
+   "pages": 18,
+   "publication_evidence": {"where": "p.1 스탬프", "quote": "arXiv:2509.21118v1  [eess.SP]  25 Sep 2025"},
+   "engine": "Sionna (RT + PHY), Blender 씬 시드, 센싱/통신 씬 분리",
+   "target_representation": "씬 시드에 '재질 속성과 형상 정보' 를 갖는 표적 객체(구체 형상·크기 미기재)",
+   "q1_claim_class": "ENERGETIC_RELATIVE",
+   "q2_amplitude_justification": "RELATIVE_ONLY",
+   "q3_absolute_dbsm": {"printed": false, "role": null, "page": null, "quote": null},
+   "term_counts": {"dBsm": 0, "SNR": 2, "CFAR": 0, "Pd_or_ROC": 0, "RCS": 0, "Doppler": 2, "Sionna": 14},
+   "evasion_devices": ["E11_SELF_CONSISTENT_LEARNING", "E13_RELATIVE_BASELINE_ONLY"],
+   "quotes": [
+    {"page": 6, "q": "The Sionna scene for CIR generation is first configured by the target positions generated by a random target setting generator, a Sionna scene seed including the material properties and shape information of the targets and the non-target environment"},
+    {"page": 7, "q": "the attenuation in the sensing channel is more severe than that in the direct path of the communication channel, leading to a lower signal-to-noise ratio (SNR) in received sensing signals"},
+    {"page": 10, "q": "The prior knowledge on the static environment in the form of reference sensing CSI ... can be acquired during a calibration phase by sending unitary training pilots to the target-free environment."}
+   ],
+   "verdict_ko": "관측량이 점유(probability map) 추정 정확도라서, 시뮬레이터가 만든 진폭이 얼마든 학습·평가가 같은 분포 안에서 닫힌다. 'RCS' 라는 단어가 18쪽 논문에 0회이며, 표적 진폭이 물리적으로 옳은지 물을 지점이 논문 구조상 존재하지 않는다."
+  },
+  {
+   "key": "TGNN_2604.08306",
+   "title": "Temporal Graph Neural Network for ISAC Target Detection and Tracking",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.08306__temporal-gnn-isac.pdf",
+   "pages": 4,
+   "publication_evidence": {"where": "p.1 스탬프", "quote": "arXiv:2604.08306v1  [eess.SP]  9 Apr 2026"},
+   "engine": "Sionna 광선추적(일메나우 캠퍼스) + OS-CFAR + EvolveGCN",
+   "target_representation": "점산란체. 표적 경로 이득에 해석적 바이스태틱 RCS 를 실어준다(씬 객체 아님).",
+   "q1_claim_class": "KINEMATIC_ONLY",
+   "q2_amplitude_justification": "NOT_APPLICABLE",
+   "q3_absolute_dbsm": {"printed": false, "role": null, "page": null, "quote": null},
+   "term_counts": {"dBsm": 0, "SNR": 0, "CFAR": 7, "Pd_or_ROC": 0, "RCS": 3, "Doppler": 42, "Sionna": 2},
+   "evasion_devices": ["E2_PHASE_ONLY_OBSERVABLE", "E6_STATISTICAL_RCS_PLACEHOLDER"],
+   "quotes": [
+    {"page": 2, "q": "For a target-related path ˆl, αˆl incorporates Tx and Rx antenna radiation patterns, propagation path loss, and the radar cross section (RCS) of the target. The bi-static RCS relies on the assumption that the target is a point scatterer [13]."},
+    {"page": 2, "q": "A sequence of delay-Doppler maps is first converted into graph snapshots through OS-CFAR detection. ... Each node in the graph is subsequently labeled according to the ground-truth ray-tracing results."},
+    {"page": 3, "q": "Assuming perfect channel knowledge, we comp..."}
+   ],
+   "verdict_ko": "⭐CFAR 이 7회 나오지만 Pd 는 0회다. CFAR 이 검출 성능 계측기가 아니라 그래프 노드 추출기로 쓰이고, 정답 라벨은 광선추적 ground truth 에서 온다. 결과 관측량은 추적 정확도(운동학)이므로 임계값 통과 확률의 절대성이 요구되지 않는다."
+  },
+  {
+   "key": "RadarTwin_2606.28396",
+   "title": "RadarTwin (VLM 재질 라벨링 기반 mmWave 레이더 디지털트윈)",
+   "pdf_path": "/data/public/sionna_jeong/reference_library/2606.28396__radartwin.pdf",
+   "pages": 13,
+   "publication_evidence": {"where": "p.1 스탬프", "quote": "arXiv:2606.28396v1  [cs.CV]  24 Jun 2026"},
+   "engine": "자체 광선추적(4 bounce, ITU 재질 + Rayleigh roughness), 77 GHz 실측 대조",
+   "target_representation": "재구성 메시 + VLM 재질 라벨, 실물 객체(캔·머그 등) 대조",
+   "q1_claim_class": "ENERGETIC_ABSOLUTE",
+   "q2_amplitude_justification": "MEASUREMENT_ANCHOR",
+   "q3_absolute_dbsm": {"printed": false, "role": null, "page": null, "quote": null},
+   "term_counts": {"dBsm": 0, "SNR": 1, "CFAR": 3, "Pd_or_ROC": 0, "RCS": 2, "Doppler": 10, "Sionna": 3, "measured": 26},
+   "evasion_devices": ["E14_MEASUREMENT_ANCHOR"],
+   "quotes": [
+    {"page": 9, "q": "Every analysis so far has compared structure rather than absolute levels, because absolute radiometry does not survive the sim-to-real gap: system gain and room-dependent multipath compression shift every level, and the simulator over-separates material contrast."},
+    {"page": 9, "q": "Tasks that need absolute energy, material classification above all, require an anchor to the real system. We adopt the cheapest available, a single trihedral corner reflector (a standard calibration target with known, aspect-stable cross-section) in the deployment space, defining a per-feature affine map between simulated and real energy-dependent features."},
+    {"page": 11, "q": "What does transfer reliably is ordering structure"}
+   ],
+   "verdict_ko": "⭐회피를 이름 붙이고 고친 유일한 사례. '지금까지의 분석은 절대 레벨이 아니라 구조를 비교했다' 고 먼저 자백하고, 절대 에너지가 필요한 작업에는 코너리플렉터 앵커를 붙인다. 우리 리포트에서 '왜 절대 앵커가 필요한가' 를 뒷받침할 최적의 선행 문장."
+  },
+  {
+   "key": "Deep_IETRSN2020_pedestrian",
+   "title": "Radar cross-section of pedestrians / human micro-Doppler via ray tracing + point scatterers",
+   "pdf_path": "/data/public/sionna_jeong/reference_library/iet-rsn-2019-0471__deep2020_pedestrian_rcs_raytracing_pointscatterer__PUBLISHED.pdf",
+   "pages": 12,
+   "publication_evidence": {"where": "PDF /Subject 메타데이터", "quote": "IET Radar, Sonar & Navigation 2020.14:833-844"},
+   "engine": "광선추적 + MoCap 구동 점산란체, 77 GHz INRAS RadarLog 실측 대조",
+   "target_representation": "MoCap 23 마커 기반 인체 산란중심",
+   "q1_claim_class": "ENERGETIC_ABSOLUTE",
+   "q2_amplitude_justification": "MEASUREMENT_ANCHOR",
+   "q3_absolute_dbsm": {"printed": true, "role": "computed_output", "page": 5, "quote": "The figure shows that the co-polarisation (σvv and σhh) components range from −10 to +5 dBsm. The cross-polarisation components are generally weaker by ∼10 dB. These RCS values are within the range of those reported from measurement studies of pedestrians at X-band frequencies [28, 39]."},
+   "term_counts": {"dBsm": 2, "SNR": 0, "CFAR": 1, "Pd_or_ROC": 0, "false_alarm": 1, "RCS": 68, "Doppler": 72, "measured": 51},
+   "evasion_devices": ["E12_NOISE_OMITTED", "E14_MEASUREMENT_ANCHOR"],
+   "quotes": [
+    {"page": 6, "q": "Since this data is naturally corrupted by noise, an ordered statistics constant false alarm rate algorithm based on [42] is implemented on the measurement data. The algorithm adaptively estimates the detection threshold for each cell based on neighbouring cells. The CFAR algorithm is not required on the simulation data where noise is not considered."},
+    {"page": 2, "q": "The results show a low normalised mean square error (<10%) and high structural similarity (>81%) between the measured and simulated radar signatures."}
+   ],
+   "verdict_ko": "⭐두 얼굴. 절대 dBsm 을 인쇄하고 문헌 실측 범위와 대조하는(정직) 동시에, 시뮬에는 잡음을 안 넣었으므로 CFAR 은 실측에만 돌렸다고 명시한다(회피를 명시). 검출 통계량을 시뮬에서 내지 않는 이유가 본문에 적힌 드문 사례이며, 우리가 '시뮬 Pd 를 내려면 잡음·임계값을 먼저 정의해야 한다' 고 말할 때의 근거로 쓸 수 있다."
+  },
+  {
+   "key": "SPAWC2025_SSB_2504.02641",
+   "title": "5G NR SSB 기반 저고도 드론 패시브 검출 (SPAWC 2025)",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.02641__5gnr-ssb-passive-detection-lowalt-drones_SPAWC2025.pdf",
+   "pages": 5,
+   "publication_evidence": {"where": "p.1 스탬프", "quote": "arXiv:2504.02641v3  [eess.SP]  3 Jul 2025"},
+   "engine": "해석 모델 + 몬테카를로(광선추적 없음)",
+   "target_representation": "Swerling-1 점표적. alpha_k ~ CN(0,1), 크기는 표의 sigma_RCS 상수 하나.",
+   "q1_claim_class": "ENERGETIC_ABSOLUTE",
+   "q2_amplitude_justification": "ASSUMED_CONSTANT",
+   "q3_absolute_dbsm": {"printed": true, "role": "assumed_input", "page": 4, "quote": "TABLE I: Simulation parameters. Parameter Value ... σRCS −10 dBsm ... fc 15 GHz"},
+   "term_counts": {"dBsm": 2, "SNR": 2, "CFAR": 0, "Pd_or_ROC": 1, "false_alarm": 2, "RCS": 4, "Doppler": 5},
+   "evasion_devices": ["E7_CONSTANT_SIGMA_ASSUMPTION", "E6_STATISTICAL_RCS_PLACEHOLDER"],
+   "quotes": [
+    {"page": 3, "q": "αk ∼CN (0, 1) is the randomness model of a radar cross section (RCS) of the kth target that follows a Swerling 1 model [10], where the realization fluctuates slowly and remains fixed within the OFDM block length L"},
+    {"page": 5, "q": "let us define Pfa = P(maxr PAF > γ|H0) as the probability of false alarm and Pd = P(maxr PAF > γ|H1) as the probability of detection"}
+   ],
+   "verdict_ko": "Pd/Pfa 를 내려면 절대 sigma 가 필요하다는 사실을 회피하지 않고, 대신 표의 상수 한 칸(−10 dBsm)으로 흡수했다. 이 값의 출처(어떤 기체·주파수·자세)는 본문에 없다. 15 GHz 라는 반송파와 −10 dBsm 의 조합이 어떤 드론에 해당하는지 추적 불가.",
+   "our_relevance_ko": "우리 report12 의 서사와 정확히 같은 지점을 다루면서 sigma 만 상수로 둔 논문 - 우리 델타(계산된 재질가중 sigma 를 검출 사슬에 물림)가 어디서 생기는지 보여주는 대조군."
+  },
+  {
+   "key": "gNBmono_2604.02205",
+   "title": "Evaluation of gNB-based Monostatic Sensing for UAV (3GPP Rel-19 가정)",
+   "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2604.02205__evaluation-gnb-monostatic-sensing-uav.pdf",
+   "pages": 6,
+   "publication_evidence": {"where": "p.1 스탬프", "quote": "arXiv:2604.02205v1  [eess.SP]  2 Apr 2026"},
+   "engine": "3GPP Rel-19 ISAC 채널모델 + 자체 수신기(채널추정·range-Doppler·CA-CFAR·각도추정·3D 측위)",
+   "target_representation": "단일 지배 산란점(SP). sigma_RCS = sigma_M sigma_D sigma_S.",
+   "q1_claim_class": "ENERGETIC_ABSOLUTE",
+   "q2_amplitude_justification": "STANDARD_MODEL",
+   "q3_absolute_dbsm": {"printed": true, "role": "assumed_input", "page": 4, "quote": "The UAV RCS follows the 3GPP RCS model with σM = −12.81 dBsm1 and σD = 1, while σS follows a log-normal distribution with σσS = 3.74 dB."},
+   "term_counts": {"dBsm": 3, "SNR": 5, "CFAR": 9, "Pd_or_ROC": 5, "false_alarm": 7, "RCS": 11, "Doppler": 21},
+   "evasion_devices": ["E8_STANDARD_TABLE_SIGMA"],
+   "quotes": [
+    {"page": 5, "q": "Fig. 2 shows the receiver operating characteristic (ROC) obtained by sweeping the CA-CFAR threshold on the range–"},
+    {"page": 5, "q": "increasing PD from about 0.70 to about 0.80 raises PF A to approximately 0.20"},
+    {"page": 2, "q": "For the small-UAV use case considered here, 3GPP models the target as a single dominant SP with the following monostatic RCS: σRCS = σM σD σS"}
+   ],
+   "verdict_ko": "이 표본에서 드론 표적에 대해 ROC 를 끝까지 그린 유일한 논문. 진폭 책임을 3GPP Rel-19 표에 위임했고(그 표는 다시 실측 기반이다), 각도 의존은 sigma_D = 1 로 꺼버렸다. 즉 자세 의존 RCS 는 없고 스칼라 + 로그정규 요동만 남는다.",
+   "our_relevance_ko": "우리와 가장 가까운 반대극 - 우리는 sigma 를 계산하고 각도 의존을 살리며, 이 논문은 sigma 를 상수로 두고 검출 사슬을 정교하게 만든다."
+  },
+  {
+   "key": "Sagitta_2604.09243",
+   "title": "SagittaSBR: GPU/MPI shooting-and-bouncing-rays with discretized PO integration",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+   "pages": 14,
+   "publication_evidence": {"where": "p.1 스탬프", "quote": "arXiv:2604.09243v1  [cs.CE]  10 Apr 2026"},
+   "engine": "자체 SBR + PO 표면적분 (Sionna 아님)",
+   "target_representation": "PEC 구(검증) + 복잡 항공기 형상",
+   "q1_claim_class": "ENERGETIC_ABSOLUTE",
+   "q2_amplitude_justification": "REFERENCE_SOLVER",
+   "q3_absolute_dbsm": {"printed": false, "role": "prose_only", "page": 7, "quote": "the monostatic RCS is 𝜎= 4𝜋|𝐴|2, which is evaluated in m2 and typically expressed in dBsm as 10 log10(𝜎)", "note_ko": "검증 그림(Fig.4) 축은 Normalized RCS σ/(πr²) 이고 절대 dBsm 축이 아니다."},
+   "term_counts": {"dBsm": 2, "SNR": 0, "CFAR": 0, "Pd_or_ROC": 0, "RCS": 27, "Doppler": 0, "Sionna": 0},
+   "evasion_devices": ["E15_REFERENCE_SOLVER_VALIDATION"],
+   "quotes": [
+    {"page": 8, "q": "Our simulation results (Fig. 4) demonstrate excellent agreement with Mie theory beginning at an electrical size around 𝑘𝑟≈30. This transition marks the boundary between the Mie resonance region, where wave phenomena dominate, and the optical region, where the ray approximation can accurately capture the scattering physics of the triangulated PEC sphere."},
+    {"page": 8, "q": "At 𝑘𝑟= 1, Mie resonances dominate and ray tracing methods fail, as wave effects cannot be neglected in this regime."}
+   ],
+   "verdict_ko": "진폭에 가장 강하게 커밋한 부류인데도 검증 축은 정규화 RCS 다. 유효창을 kr ≳ 30 으로 스스로 못박는데, 3.5 GHz 드론 로터(kr≈3.6)는 그 창의 한 자릿수 아래다 - 이 논문을 우리 SBR+PO 근거로 인용할 때 유효창을 반드시 병기해야 하는 이유."
+  },
+  {
+   "key": "MCSBR_2511.07586",
+   "title": "Monte Carlo shooting-and-bouncing rays for far-field scattering",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2511.07586__monte-carlo-sbr-farfield-scattering.pdf",
+   "pages": 14,
+   "publication_evidence": {"where": "p.1 스탬프", "quote": "arXiv:2511.07586v1  [cs.CE]  10 Nov 2025"},
+   "engine": "Mitsuba 위에 자체 몬테카를로 SBR (Sionna 아님)",
+   "target_representation": "구·평판·박스·2면반사기 정준형상 + PEC/유전체 항공기",
+   "q1_claim_class": "ENERGETIC_ABSOLUTE",
+   "q2_amplitude_justification": "REFERENCE_SOLVER",
+   "q3_absolute_dbsm": {"printed": true, "role": "computed_output", "page": 11, "quote": "TX/RX RCS (dBsm) TX/RX RCS (dBsm) Fig. 12: Comparison of inverse synthetic aperture RADAR images for a PEC airplane using standard and Monte Carlo algorithms."},
+   "term_counts": {"dBsm": 16, "SNR": 0, "CFAR": 0, "Pd_or_ROC": 0, "RCS": 7, "Doppler": 0, "Sionna": 0},
+   "evasion_devices": ["E15_REFERENCE_SOLVER_VALIDATION"],
+   "quotes": [
+    {"page": 9, "q": "once at least 10 rays per wavelength are sampled, the variance is greatly reduced, and the two algorithms are within 0.01 dBsm2 of error"}
+   ],
+   "verdict_ko": "오차를 dBsm² 단위로 보고하는, 이 표본에서 진폭 정확도에 가장 엄격한 논문. Sionna 가 올라탄 엔진(Mitsuba)에 PO 적분이 없다는 제3자 진술도 이 논문에 있다.",
+   "note_ko": "회피 카탈로그의 반대극 눈금 - '진폭이 맞아야 하는 주장' 이 어떤 검증 부담을 지는지 보여준다."
+  },
+  {
+   "key": "SimART_2605.13309",
+   "title": "SimART: 통합 시뮬레이션 툴체인 (AirSim + Sionna RT/SYS + CKM)",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2605.13309__simart.pdf",
+   "pages": 7,
+   "publication_evidence": {"where": "p.1 스탬프", "quote": "arXiv:2605.13309v1  [eess.SP]  13 May 2026"},
+   "engine": "Sionna RT + Sionna SYS + AirSim",
+   "target_representation": "없음. 드론은 표적이 아니라 플랫폼/단말이다.",
+   "q1_claim_class": "NO_TARGET_CLAIM",
+   "q2_amplitude_justification": "NOT_APPLICABLE",
+   "q3_absolute_dbsm": {"printed": false, "role": null, "page": null, "quote": null},
+   "term_counts": {"dBsm": 0, "SNR": 0, "CFAR": 0, "Pd_or_ROC": 0, "RCS": 0, "Doppler": 1, "Sionna": 12},
+   "evasion_devices": [],
+   "quotes": [
+    {"page": 4, "q": "each surface is assigned an electromagnetic material type from the Sionna RT material library. The resulting mesh typically contains one to two orders of magnitude fewer triangles than the original visual scene"}
+   ],
+   "verdict_ko": "대조용 - '표적 없는 Sionna 논문' 의 전형. reflib_sweep 의 role_PROPAGATION_ONLY 118편이 이 형태이며, 이들에게는 진폭 회피라는 질문 자체가 성립하지 않는다."
+  }
+ ],
+
+ "cross_cutting_patterns_ko": [
+  "패턴 A - 기호 sigma + 위상 관측량 (md-rt, Costa 회의판, TGNN): 진폭이 식에 등장하지만 값을 받지 않고, 보고 관측량이 위상 미분이라 검증 의무가 소거된다. 이 조합에서는 dBsm·SNR·CFAR·Pd 가 동시에 0회가 되는 경향이 뚜렷하다.",
+  "패턴 B - 기하 대리표적 (CellSense 직육면체, LowAlt-Cube 금속 정육면체): 표적을 상자로 바꾸면 'RCS 가 얼마냐' 는 질문이 문법적으로 성립하지 않는다. 그런데도 Pd·미검출률은 소수점까지 인쇄된다. 두 논문 모두 'RCS' 단어가 0회.",
+  "패턴 C - 통계 대리 RCS (Clutter-aware CN(0,sigma²), SPAWC Swerling-1, gNBmono 로그정규): sigma 를 확률변수로 바꾸면 특정 기체의 특정 자세를 방어할 필요가 없어진다. 절대 레벨은 표의 상수 한 칸이거나 표준 문서로 위임된다.",
+  "패턴 D - 스케일 불변 지표 (Costa 저널판 Pearson 상관, RadarTwin ordering/Spearman): 지표 자체가 스칼라 이득에 둔감하도록 골라진다. 이건 회피가 가장 정교해지는 지점이며, 논문은 여전히 '검증했다' 고 말할 수 있다.",
+  "패턴 E - 엔진 밖 이관 (LAMBDA CADFEKO, ZIG FEKO, Sagitta/MC-SBR 자체 PO): 진폭을 진지하게 다루는 순간 광선추적 엔진 밖으로 나간다. 이 표본에서 Sionna 안에서 표적 진폭을 풀어낸 논문은 0편이며, 이는 우리 기존 판정(Sionna 기본 solver 에 산란적분 없음)과 일치한다.",
+  "패턴 F - 자백형 (RadarTwin, Costa 회의판, Deep 2020): 소수는 회피를 문장으로 적는다. 인용 가치가 가장 높은 것은 이 부류다 - 우리 주장을 남의 문장으로 지지할 수 있기 때문이다."
+ ],
+
+ "implications_for_our_reports_ko": [
+  "우리 델타 문장을 이 카탈로그로 다시 쓸 수 있다 - '드론 표적에 대해 계산된(가정·표·외부솔버가 아닌) 절대 sigma 를 광선추적 엔진 위에서 내고, 그것을 검출 사슬(Pd)까지 물린 사례는 이 표본에 없다'. 각 절(계산된 sigma / 드론 / Pd)마다 반례가 하나씩 존재하지만 셋을 동시에 만족하는 논문이 없다는 형태로 주장해야 안전하다.",
+  "report06(Sionna 한계)·report08(RCS 결과)·report12(검출 결과)에 이 표를 근거로 '선행은 왜 진폭을 안 냈는가' 절을 붙일 수 있다. 지금까지 우리는 '못 낸다' 로 썼는데, 더 정확한 문장은 '내지 않아도 되는 주장만 하도록 관측량을 골랐다' 이다.",
+  "RadarTwin p.9 인용문은 우리 절대 앵커 방침(실측 앵커 ±2-3 dB)의 외부 지지 문장으로 즉시 쓸 수 있다.",
+  "Deep(IET RSN 2020) p.6 인용문은 '시뮬에서 CFAR/Pd 를 내려면 잡음 정의가 선행되어야 한다' 는 우리 report10(CFAR 교정) 논지의 선행 근거다.",
+  "gNBmono(2604.02205)와 SPAWC(2504.02641)는 우리 report12 의 사과-대-사과 비교 대상이다 - 같은 5G/드론/Pd 공간에서 sigma 만 상수인 구성이므로, 우리 sigma 를 그들 값(−10 / −12.81 dBsm)과 나란히 놓아야 한다."
+ ],
+
+ "what_this_pass_did_not_do": [
+  "deepread_backlog 의 미독 156편을 전수로 열지 않았다. term-count 로 무관 판정한 논문 중 오분류가 있을 수 있다.",
+  "게재 상태를 2차 출처로 확인하지 않았다. 스탬프가 PDF 안에 없는 항목은 그렇게 표시했다.",
+  "각 논문의 수치가 물리적으로 옳은지는 검사하지 않았다. 이 파일은 '어떤 종류의 주장을 했고 그것을 무엇으로 정당화했는가' 만 판정한다.",
+  "md-rt 이외의 논문에 대해서는 내부 모순(수치 자기일관성) 검사를 하지 않았다."
+ ]
+}

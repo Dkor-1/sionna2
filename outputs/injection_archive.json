@@ -1,0 +1,478 @@
+{
+  "task": "Find every RCS-INJECTION instance already on our archive shelves and read each one. Injection = target signature computed OUTSIDE the propagation simulator (commercial EM solver, measurement campaign, or fitted parametric model) and then applied to simulated paths as sigma / reflectivity / echo coefficient.",
+  "generated_utc": "2026-08-03T06:22:59.797317Z",
+  "evidence_rule": "Every claim below carries the absolute PDF path, the page number, and the quoted sentence, all read from the PDF itself. Venue and publication status are read FROM THE PDF (printed masthead, DOI line, arXiv stamp, or embedded PDF metadata), never from our folder names. Machine counts are labelled as machine counts.",
+  "method": {
+    "archives_swept": [
+      "/data/public/sionna_jeong/papers_isac_sionna",
+      "/data/public/jeong/papers",
+      "/data/public/sionna_jeong/sionna_papers_by_task",
+      "/data/public/sionna_jeong/reference_library",
+      "/data/public/OpenISAC",
+      "/data/public/sionna_jeong/5g_nr_standards",
+      "/data/public/sionna_jeong/passive_isac_testbed",
+      "/data/public/sionna_jeong/sionna2_archive"
+    ],
+    "pdf_paths_found": 409,
+    "unique_documents_after_text_hash_dedup": 327,
+    "text_extraction": "PyMuPDF full-text with page markers, cached under scratchpad/inj/txt",
+    "extraction_failures": [
+      {
+        "path": "/data/public/OpenISAC/05_A_USRP-based_testbed_for_OFDM-based_radar_and_communication_systems.pdf",
+        "issue": "0 extractable text characters over 6 pages (image-only scan)",
+        "resolution": "pages rendered to PNG at 130 dpi and read visually; it is Braun/Mueller/Fuhr/Jondral, 'A USRP-based Testbed for OFDM-based Radar and Communication Systems' (KIT) - a hardware testbed paper with no EM solver and no RCS table. NOT injection."
+      }
+    ],
+    "screens_run": [
+      {
+        "name": "tool+pattern screen (machine count)",
+        "regexes": "FEKO/CADFEKO, CST, HFSS, QuickWave, MLFMM/MLFMA, MoM, FDTD, FEM, WIPL-D, SBR+, POFACETS, openEMS, COMSOL, XFdtd/Remcom, GRECO, Altair, MATLAB Radar Toolbox + lookup table / precomputed / queried / RCS model / reflectivity table / scattering coefficient database / aspect-dependent",
+        "result": "100 PDF paths, 85 unique documents flagged; every one of them opened and the tool's ROLE read (injector vs reference/validator vs mere citation)"
+      },
+      {
+        "name": "sentence-level injection scan (machine count)",
+        "rule": "one sentence containing an RCS/reflectivity term AND >=2 of {external-source verb, apply-to-simulator verb, lookup/precomputed/queried, EM-solver name}",
+        "result": "16 sentence hits"
+      },
+      {
+        "name": "paragraph-level scan (800-char windows, machine count)",
+        "rule": "window must contain RCS term AND external-source term AND apply-to-simulator term",
+        "result": "7 documents"
+      },
+      {
+        "name": "co-occurrence scan (machine count)",
+        "rule": "RCS/reflectivity term within 300 chars of Sionna / ray tracing / Wireless InSite / channel simulator / digital twin",
+        "result": "27 documents"
+      }
+    ],
+    "what_was_NOT_done": "This is an ARCHIVE census, not a literature search. No web/Scholar query was run. 'Not on our shelf' is NOT evidence of 'not published'."
+  },
+  "headline_answer": {
+    "question": "Has the injection approach ever been published at a strong venue?",
+    "answer": "YES - and the strongest instance was already sitting on our shelf unrecognised.",
+    "top_venue_instance": "Zhang et al., 'A Unified RCS Modeling of Typical Targets for 3GPP ISAC Channel Standardization and Experimental Analysis', IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 44, 2026, pp. 702-..., DOI 10.1109/JSAC.2025.3608732. Measurement-derived RCS -> fitted three-component model -> lookup table (Table V) -> integrated into a 3GPP TR 38.901-based ISAC channel simulation platform.",
+    "correction_to_our_prior_position": "Our census previously held that the only injection instance on the shelf was LAMBDA (arXiv preprint). That was wrong in scope, not in fact: LAMBDA is the only CADFEKO->ray-tracer instance, but injection as an ARCHITECTURE (external signature -> table -> applied to simulated paths) is published in IEEE JSAC, IEEE J-STEAP, IEEE WCL and IET Radar Sonar & Navigation. 'Preprint-only' is no longer a defensible summary.",
+    "counts": {
+      "injection_instances_found_and_read": 10,
+      "of_which_published_in_a_peer_reviewed_venue_per_the_pdf": 5,
+      "of_which_preprint_only_per_the_pdf": 5,
+      "external_commercial_solver_into_a_RAY_TRACER": 1,
+      "openisac_shelf_injection_instances": 0
+    }
+  },
+  "injection_instances": [
+    {
+      "id": "INJ-01-LAMBDA",
+      "flavour": "commercial EM solver -> per-attitude RCS files -> multiplied onto ray-traced path coefficients (the textbook injection, and the only one on our shelf that touches a ray tracer)",
+      "paper": "LAMBDA: A Low-Altitude Multimodal Base Dataset for UAV Sensing and Communication",
+      "authors_from_pdf": "Lin Zhou, Peichuan Rao, Chenshuo Zhang, Jianhua Mo, Shu Sun, Zhiyong Chen, Meixia Tao (SJTU)",
+      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+      "venue_read_from_pdf": "None printed. No masthead, no DOI line, no acceptance statement anywhere in the 20 pages. Section headings are 'Background & Summary', 'Methods', 'Data Records', 'Technical Validation', 'Usage Notes' - the Nature Scientific Data template - but the template is not an acceptance.",
+      "publication_status": "PREPRINT (arXiv:2607.03826). NOT a venue paper.",
+      "external_solver": "CADFEKO (Altair Feko), cited as ref [28] 'Altair Engineering Inc. Altair Feko: High-frequency electromagnetic simulation software.'",
+      "what_it_computed": "RCS of the AirSim UAV model",
+      "table_axes_and_resolution": "NOT STATED. The paper says the RCS is 'queried according to the UAV attitude' and ships 'UAV RCS files' in the release, but gives no azimuth/elevation grid, no angular step, no frequency list for the RCS table, and no dBsm values. Radar preset is 77 GHz / 2 GHz BW / 40 us chirp / 64 chirps per frame / 4x4 array.",
+      "how_applied_to_paths": "Per-path multiplication inside a downstream FMCW radar-cube synthesiser: each Sionna RT path's complex CSI coefficient is combined with two-way delay, Doppler, virtual-array steering phase and the attitude-queried RCS.",
+      "target": "AirSim UAV model (generic, not a named airframe)",
+      "propagation_layer": "Sionna RT (material-aware ray tracing) -> path-level CSI",
+      "quotes": [
+        {
+          "page": 3,
+          "text": "LAMBDA is generated on a digital-twin platform that integrates Unreal Engine 5 (UE5) [23] for high-fidelity scene construction; Cosys-AirSim [24,25] for UAV motion control ...; Blender [26] for scene-mesh conversion; Sionna RT [27] for material-aware ray tracing; and CADFEKO [28] for UAV radar cross-section (RCS) modeling."
+        },
+        {
+          "page": 7,
+          "text": "The complex-valued CSI coefficient captures the propagation effects computed by the ray-tracing channel generator, whereas the RCS term is obtained from CADFEKO simulations of the AirSim UAV model and queried according to the UAV attitude."
+        },
+        {
+          "page": 4,
+          "text": "The radar synthesis module further combines the Sionna RT multipath geometry with CADFEKO-derived UAV RCS information to generate radar data."
+        }
+      ],
+      "was_the_injected_signature_validated": {
+        "verdict": "NO",
+        "detail": "The quality-control module checks 'modality completeness, frame-index consistency, pose continuity, and CSI/radar plausibility' - housekeeping, not physics. The Technical Validation content is beam-prediction and localisation use cases plus weather/visualisation checks. There is no comparison of the CADFEKO RCS against any measurement, against another solver, or against published drone RCS. Not one dBsm number for the UAV appears in the paper."
+      },
+      "relevance_to_us": "Closest published-architecture twin of our pipeline, but it is a preprint and it never checks its own sigma. If a reviewer accepts LAMBDA's architecture, our architecture is accepted; but LAMBDA sets the LOW bar on validation, and our sigma grid + anchoring is strictly stronger evidence than what LAMBDA offers."
+    },
+    {
+      "id": "INJ-02-ZHANG-JSAC",
+      "flavour": "measurement campaign -> fitted three-component parametric model -> LOOKUP TABLE -> 3GPP channel simulation platform. This is the top-venue instance.",
+      "paper": "A Unified RCS Modeling of Typical Targets for 3GPP ISAC Channel Standardization and Experimental Analysis",
+      "authors_from_pdf": "Yuxiang Zhang, Jianhua Zhang, Huiwen Gong, Xidong Hu, Jiwei Zhang, Hongbo Xing, Shilin Luo, Yifeng Xiong, Li Yu, Zhiqiang Yuan, Guangyi Liu, Tao Jiang (BUPT / CMCC)",
+      "pdf_path_published": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+      "pdf_path_preprint": "/data/public/sionna_jeong/papers_isac_sionna/2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf",
+      "venue_read_from_pdf": "Page 1 running head: 'IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 44, 2026' with page number 702. Page 1 also prints 'Digital Object Identifier 10.1109/JSAC.2025.3608732'. Embedded PDF metadata subject field: 'IEEE Journal on Selected Areas in Communications;2026;44; ;10.1109/JSAC.2025.3608732'.",
+      "publication_status": "PUBLISHED, IEEE JSAC (top venue in wireless communications). The arXiv v1 (2505.20673, 27 May 2025) is the same work.",
+      "external_solver": "NONE - the external source is a MEASUREMENT CAMPAIGN, which our definition admits.",
+      "what_it_computed": "Monostatic RCS of UAV (incl. DJI M350-class AAV), human and vehicle targets in a large anechoic chamber, then decomposed into sigma = A(f) (large-scale power factor) x B1(phi) (deterministic angular pattern) x B2 (log-normal random component)",
+      "table_axes_and_resolution": "Measured at 36 / 28 / 20 / 15 / 10 GHz; 801 frequency samples over 3 GHz bandwidth; target rotation [0, 360 deg] in 5 deg steps; Tx/Rx-to-target 6 m (UAV, sphere) and 12 m (human, vehicle); vertical polarisation; monostatic only; 10 snapshots averaged per angle. The shipped artefact is Table V, 'FITTING PARAMETER RESULTS FOR AAVS, VEHICLES, AND HUMANS' - i.e. the table is over (target type, band) and returns model PARAMETERS, not a dense angle grid; the angle dependence is carried by the fitted B1(phi) = F(theta=90 deg, phi).",
+      "how_applied_to_paths": "Inside the ISAC target-channel generation chain built on 3GPP TR 38.901: the lookup supplies A, B1, B2; A enters the large-scale target-channel path loss; B1 and B2 modulate the per-path/angle-resolved terms.",
+      "target": "AAV (UAV), vehicle, human",
+      "propagation_layer": "BUPT-CMCC-CMG channel simulation platform on top of 3GPP TR 38.901 (a stochastic geometry-based channel simulator, NOT a ray tracer)",
+      "quotes": [
+        {
+          "page": 1,
+          "text": "Finally, the model is incorporated into an ISAC channel simulation platform to assess the impact of target RCS characteristics on path loss, delay spread, and angular spread, providing valuable insights for future ISAC system design."
+        },
+        {
+          "page": 12,
+          "text": "Target RCS Configuration: Based on the target type and frequency band specified in the simulation configuration, the corresponding RCS statistical parameters are obtained by consulting a lookup table (e.g., Table V). The specific values for A, B1, and B2 are then determined by sampling from the corresponding distributions."
+        },
+        {
+          "page": 13,
+          "text": "To validate its effectiveness, the unified RCS model is integrated into the BUPTCMCCCMG-IMT2023 channel simulation platform [38], which is specifically designed for ISAC channel evaluation."
+        }
+      ],
+      "internal_inconsistency_noted": "Body text on p.13 calls the platform 'BUPTCMCCCMG-IMT2023'; reference [44] on p.15 calls it 'BUPTCMCCCMG-IMT2030 Channel Model Platform'. Quoted as printed; we do not resolve which is correct.",
+      "was_the_injected_signature_validated": {
+        "verdict": "YES - the strongest validation of any instance found",
+        "detail": [
+          "Setup calibration against a metal sphere (a target with a closed-form RCS) at 28 GHz, listed in Table III as 'Validation of Data Processing'.",
+          "HELD-OUT BAND TEST: 'we exclude the 28 GHz data when fitting the parameters A(f), B1(phi), B2, and use the obtained model to predict the RCS at 28 GHz. This strategy ensures that the validation is conducted on previously unseen data.' (p.12)",
+          "Model-vs-measurement RCS pattern overlay at 28 GHz for all three target classes (Fig. 12).",
+          "CDF comparison against Rayleigh / Gamma / Log-normal (classical Swerling-type) baselines with RMSE and KL divergence (Fig. 13)."
+        ]
+      },
+      "relevance_to_us": "This is the answer to the user's question. A JSAC paper does exactly the injection move - signature from outside the simulator, stored as a table, consulted at run time - and reviewers accepted it. Note what it paid for that acceptance: a held-out-band validation and a sphere calibration. That is the bar a JSAC-class reviewer applied."
+    },
+    {
+      "id": "INJ-03-COSTA-JSTEAP",
+      "flavour": "measurement library of bistatic reflectivity profiles, SELECTED BY GEOMETRY at run time, injected as the static-body term of a bistatic OFDM ISAC signal simulation",
+      "paper": "Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC",
+      "authors_from_pdf": "Heraldo C. A. Costa, Saw J. Myint, Carsten Andrich, Sebastian W. Giehl, Maximilian Engelhardt, Christian Schneider, Reiner S. Thomae (TU Ilmenau)",
+      "pdf_path_published": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modeling_Micro-Doppler_Signature_of_Multi-Propeller_Drones_in_Distributed_ISAC.pdf",
+      "pdf_path_preprint": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.05168__costa_microdoppler-multiprop-drones_JSTEAP-journal.pdf",
+      "venue_read_from_pdf": "Published-version page 1 prints 'Received 2 May 2025; revised 8 July 2025; accepted 19 August 2025. Date of publication 1 September 2025; date of current version 30 October 2025. Digital Object Identifier 10.1109/JSTEAP.2025.3604407'. Embedded PDF metadata subject: 'IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation;2025;1;1;10.1109/JSTEAP.2025.3604407'. The arXiv copy prints '979-8-3503-2920-9/24/$31.00 (c)2025 IEEE - DOI: 10.1109/JSTEAP.2025.3604407'.",
+      "publication_status": "PUBLISHED, IEEE J-STEAP (IEEE journal, inaugural volume 1). Preprint arXiv:2504.05168v2.",
+      "external_solver": "BiRa bistatic radar test bed at TU Ilmenau (measurement); the paper explicitly offers full-wave EM simulation as the drop-in substitute when measurements are unavailable.",
+      "what_it_computed": "High-resolution bistatic reflectivity S21(f) = |E_scat(f)|^2 / |E_inc(f)|^2 of the drone's STATIC parts (body, arms, gimbal) at multiple aspect angles; propellers are handled separately by an analytic rotating-scatterer model",
+      "table_axes_and_resolution": "A 'library with range reflectivity profiles S21(f)' indexed by aspect angle / bistatic geometry. BiRa coverage is elevation 0-115 deg, azimuth 0-360 deg (more than a half hemisphere); VNA sweep 2-18 GHz, and an SDR sounder with >2 GHz instantaneous bandwidth for micro-Doppler. The paper does NOT print the library's angular step.",
+      "how_applied_to_paths": "'According to the desired geometry, we select the appropriate reflectivity profile from the library, and sample S21(f) by fs = N/T, in order to get the discrete reflectivity profile' - the sampled profile becomes the drone-body echo term added to the per-propeller scatterer returns in the OFDM received-signal model.",
+      "target": "multi-propeller drones (BiRa DUTs incl. DJI Phantom 2 class), plus a VTOL configuration",
+      "propagation_layer": "analytic bistatic OFDM ISAC signal model (free-space geometry), not a ray tracer",
+      "quotes": [
+        {
+          "page": 8,
+          "text": "2) Measurement-based Body Model: The second strategy carried out was to use static reflectivity values obtained from measurements. The idea here is to perform high-resolution bistatic reflectivity measurements of the drone in multiple aspect angles, in order to create a library with range reflectivity profiles S21(f) of the drone static parts. According to the desired geometry, we select the appropriate reflectivity profile from the library, and sample S21(f) by fs = N/T, in order to get the discrete reflectivity profile."
+        },
+        {
+          "page": 8,
+          "text": "When measurements are not available, the static reflectivity of the drone body can also be generated using full-wave electromagnetic (EM) simulation."
+        }
+      ],
+      "was_the_injected_signature_validated": {
+        "verdict": "YES",
+        "detail": "The full simulated signature is compared against BiRa OFDM measurements: single rotating propeller frequency-domain micro-Doppler (same Doppler spread, same peak spacing), high-range-resolution range-Doppler of one and two rotating propellers, and the full drone with the measurement-based body model versus the Gaussian body model. The paper is candid about the cost: the measurement-based model 'requires measurements, or at least full-wave EM simulation, for each target' and 'it is unfeasible to perform static reflectivity measurements for all possible geometric constellations'."
+      },
+      "relevance_to_us": "This is injection with an explicit table-lookup-by-geometry step, in an IEEE journal, on drones, in a bistatic ISAC setting - i.e. our exact problem class. And the authors state in print that a full-wave EM simulation is an acceptable substitute for the measured library. That sentence is a direct precedent for a computed sigma grid standing in for a measured one."
+    },
+    {
+      "id": "INJ-04-DEEP-IET",
+      "flavour": "signature computed by an SBR RAY-TRACING solver, regressed into per-scatterer reflectivities, injected into a separate radar signal simulator. Architecturally the closest published relative of OUR pipeline.",
+      "paper": "Radar cross-sections of pedestrians at automotive radar frequencies using ray tracing and point scatterer modelling",
+      "authors_from_pdf": "Yoshana Deep, Patrick Held, Shobha Sundar Ram, Dagmar Steinhauser, Anshu Gupta, Frank Gruson, Andreas Koch, Anirban Roy (IIIT Delhi / TH Ingolstadt CARISSMA / Continental ADAS)",
+      "pdf_path_published": "/data/public/sionna_jeong/reference_library/iet-rsn-2019-0471__deep2020_pedestrian_rcs_raytracing_pointscatterer__PUBLISHED.pdf",
+      "pdf_path_preprint": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/1910.13706__deep_polarimetric-rcs-pedestrians-automotive.pdf",
+      "venue_read_from_pdf": "Page 1 masthead: 'IET Radar, Sonar & Navigation - Research Article ... ISSN 1751-8784, Received on 3rd October 2019, Revised 28th December 2019, Accepted on 7th February 2020, E-First on 28th April 2020, doi: 10.1049/iet-rsn.2019.0471'. Running footer: 'IET Radar Sonar Navig., 2020, Vol. 14'.",
+      "publication_status": "PUBLISHED, IET Radar, Sonar & Navigation 2020. (arXiv:1910.13706 is the preprint of the same work, titled 'Polarimetric Radar Cross-Sections of Pedestrians at Automotive Radar Frequencies'.)",
+      "external_solver": "an IN-HOUSE shooting-and-bouncing-ray (SBR) solver, not a commercial package: 'While there are several commercially available electromagnetic solvers that carry out ray tracing, we developed our solver in-house in order to customise it for speed and efficiency.'",
+      "what_it_computed": "Polarimetric monostatic and bistatic RCS (sigma_hh, sigma_vv, sigma_hv, sigma_vh) of a MoCap-animated pedestrian poly-mesh, one RCS per video frame (30/48/60 Hz), at 24 and 77 GHz",
+      "table_axes_and_resolution": "RCS computed per MoCap frame at the video frame rate 1/Tf, for 4 polarisation combinations, at 24 and 77 GHz, over multiple aspect angles and incident/scatter angle pairs (bistatic; monostatic when phi_s = phi_i). Calibrated monostatic and bistatic RCS at multiple aspect angles are reported.",
+      "how_applied_to_paths": "Linear regression maps the frame-rate RCS onto the reflectivities a_b of B point scatterers on the human body; those a_b then multiply the per-scatterer returns in an FMCW automotive radar signal model y(tau,t) = sum_b a_b rect(...) exp(...), which is evaluated at the radar sampling rate to produce range-time, Doppler-time and range-Doppler signatures. Rationale: reflectivity varies slowly (per CPI) while scatterer position varies fast (per PRI).",
+      "target": "pedestrians (dielectric human bodies)",
+      "propagation_layer": "FMCW radar signal model with free-space geometry (the ray tracer supplies only the signature, not the channel)",
+      "quotes": [
+        {
+          "page": 1,
+          "text": "In this work, the authors combine the two methods in a linear regression framework to accurately estimate the scattering coefficients or reflectivities of point scatterers in a realistic automotive radar signal model which they subsequently use to simulate range-time, Doppler-time and range-Doppler radar signatures."
+        },
+        {
+          "page": 2,
+          "text": "Highly accurate estimates of RCS of the human are generated at the video frame rate using the ray-tracing technique. The reflectivities of the point scatterer human model are then estimated from the ray-tracing RCS values using linear regression. These reflectivities are subsequently integrated with the scattering centre model to generate the RCS at high radar sampling frequencies."
+        }
+      ],
+      "was_the_injected_signature_validated": {
+        "verdict": "YES - end-to-end against radar hardware",
+        "detail": [
+          "'The simulated signatures show a normalised mean square error <10% and a structural similarity >81% with respect to measurement results generated with an automotive radar at 77 GHz.' (abstract, p.1)",
+          "Joint MoCap (Xsens MTw Awinda, 17 trackers) + 77 GHz INRAS RadarLog collection of the SAME subject, with OS-CFAR applied to the measured data before comparison.",
+          "Sanity check on absolute level: 'These RCS values are within the range of those reported from measurement studies of pedestrians at X-band frequencies [28, 39].'"
+        ]
+      },
+      "relevance_to_us": "This is the paper to cite when a reviewer asks whether a self-computed SBR signature may legitimately be injected into a separate signal simulator. It is peer-reviewed, it uses an in-house SBR solver exactly as we do, and it validates the injected number end-to-end against hardware. Its validation design (sim-vs-measured signature, NMSE + SSIM) is a template we can copy."
+    },
+    {
+      "id": "INJ-05-RZEWUSKI-NATO",
+      "flavour": "commercial FDTD solver -> mono/bistatic RCS -> passive-radar COVERAGE budget (link-budget level, not path level)",
+      "paper": "Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band",
+      "authors_from_pdf": "Stanislaw Rzewuski, Krzysztof Kulpa, Marek Pachwicewicz, Mateusz Malanowski, Bartek Salski (RS Technologies / Warsaw University of Technology)",
+      "pdf_path": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+      "venue_read_from_pdf": "Every page header/footer prints 'STO-MP-MSG-SET-183' with paper number 13 (pages 13-1 ... 13-13). Embedded PDF metadata: subject 'MSG-SET-183', author 'Stanislaw Rzewuski', creationDate D:20210630 -> 2021.",
+      "publication_status": "PUBLISHED in NATO STO meeting proceedings (STO-MP-MSG-SET-183, paper 13). NOTE: no year is printed in the body text; the 2021 date comes from the PDF's embedded creationDate, which is metadata, not print.",
+      "external_solver": "QuickWave-3D (QWED Sp. z o.o.), FDTD",
+      "what_it_computed": "Mono- and bi-static RCS of the Parrot AR.Drone 2.0",
+      "table_axes_and_resolution": "Bistatic RCS vs angle and vs illuminating frequency (figures). Reported ranges: WiFi band -40 to 0 dBsm, average about -20 dBsm; DVB-T band -60 to -20 dBsm, increasing with frequency. Angular step not printed.",
+      "how_applied_to_paths": "Into the minimum-detectable-RCS form of the passive-radar equation (their eq. 4, with system losses, WiFi duty factor Fu, integration time, noise figure 6.5 dB, detection SNR 8 dB) evaluated over a map of five WiFi access points and one receiver, producing a coverage area. This is a BUDGET, not a per-path simulation.",
+      "target": "Parrot AR.Drone 2.0 (carbon-fibre arms and propellers identified as the dominant scatterers)",
+      "propagation_layer": "analytic passive-radar coverage equation over an illuminator layout",
+      "quotes": [
+        {
+          "page": 4,
+          "text": "Mono- and bi-static radar cross-sections (RCS) of the Parrot AR.Drone 2.0 were computed with a finite-difference time-domain (FDTD) method implemented in the commercial software package, QuickWave-3D [2,3]."
+        },
+        {
+          "page": 5,
+          "text": "It is clearly visible that Parrot drone (bistatic) RCS characteristics is not symmetrical (confirmed by the measurements [3]) and it varies with the illuminating signal frequency."
+        }
+      ],
+      "was_the_injected_signature_validated": {
+        "verdict": "CLAIMED BUT MIS-CITED",
+        "detail": "The paper claims the asymmetry is 'confirmed by the measurements [3]'. Reference [3] in the printed reference list is 'QuickWave-3D, QWED Sp. z o.o., 1997-2016' - the solver itself, not a measurement. The measurement work is reference [2], 'Drone RCS estimation using simple experimental measurement in the WIFI bands - MIKON (2018)'. So the validation is a pointer to a companion measurement paper via a broken citation, with no quantitative comparison in this paper. Real flight experiments are reported, but they detect a drone; they do not check the RCS number."
+      },
+      "relevance_to_us": "Proof that FDTD-computed drone RCS driving a passive-radar coverage analysis was publishable in NATO STO proceedings. Also a cautionary example: the one validation sentence points at the wrong reference. Do not cite it as 'validated'."
+    },
+    {
+      "id": "INJ-06-DAS-WCL",
+      "flavour": "measurement campaign -> fitted distributions + Gaussian-cluster scatterer model -> bistatic radar equation path-loss (budget level)",
+      "paper": "Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling",
+      "authors_from_pdf": "Shrayan Das, Peize Zhang, Veikko Hovinen, Marko E. Leinonen, Aarno Parssinen, Pekka Kyosti (Oulu)",
+      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+      "venue_read_from_pdf": "Page 1 running head 'IEEE WIRELESS COMMUNICATIONS LETTERS, VOL. 15, 2026' with page number 3731; 'Digital Object Identifier 10.1109/LWC.2026.3705634'; '(c) 2026 The Authors' with a CC-BY notice.",
+      "publication_status": "PUBLISHED, IEEE Wireless Communications Letters 2026.",
+      "external_solver": "NONE - measurement campaign (anechoic far-field and controlled indoor near-field)",
+      "what_it_computed": "Monostatic and bistatic RCS of four DJI airframes (Phantom 2 newly measured; Mini 2, Phantom 3, M350 RTK re-processed from a prior campaign), calibrated against a reference cylinder",
+      "table_axes_and_resolution": "1.8-27 GHz; bistatic angles 0:15:90 deg; K = 360 azimuth samples per (bistatic angle, frequency); near-field data sub-banded into 200 MHz sub-bands centred at 11 + 0.1i GHz, i = 0..149 (0.75 m range resolution). Delivered artefacts: Table II (best-fit distribution family per platform) and Table III (linear fits of mean mu(f) [dBsm] and spread epsilon(f) [dB] versus frequency, per platform and bistatic angle).",
+      "how_applied_to_paths": "Fitted RCS -> scattering gain Gs(f, theta_b, phi) = sigma_dB + 10log10(4pi/lambda^2) -> target-induced path loss PL_t = 2PL - Gs for a symmetric Tx-target-Rx geometry. Stochastic path-loss samples are drawn from the best-fit distribution.",
+      "target": "DJI Phantom 2, Phantom 3, Mini 2, M350 RTK",
+      "propagation_layer": "free-space bistatic radar equation (no propagation simulator); the Gaussian-cluster model is offered as the drop-in for geometry-based stochastic ISAC channel simulations",
+      "quotes": [
+        {
+          "page": 1,
+          "text": "Furthermore, a measurement-validated Gaussian-cluster representation is proposed as a geometry-based stochastic model to reproduce angular AAV RCS fluctuations in ISAC channel simulations. Finally, the fitted RCS models are applied to analyze the impact of target-induced scattering on ISAC path-loss."
+        },
+        {
+          "page": 5,
+          "text": "4) ISAC Path-Loss Modeling: The fitted RCS models are next mapped to target-induced ISAC path-loss models using the bistatic radar-equation."
+        }
+      ],
+      "was_the_injected_signature_validated": {
+        "verdict": "YES (internally)",
+        "detail": "Anderson-Darling goodness-of-fit per frequency and bistatic angle across three candidate families; the Gaussian-cluster model is checked by overlaying its 10-90% CDF envelope and median CDF against the measured monostatic RCS CDF at 21 GHz for the Mini 2 and M350 RTK. Absolute calibration is via a reference cylinder of known RCS. There is no external cross-check against an independent campaign or a solver."
+      },
+      "relevance_to_us": "Our known bistatic measurement anchor. Its headline numbers are directly usable as an apples-to-apples check on our sigma grid: mean RCS increases with frequency, and moving from monostatic to 90 deg bistatic raises mean target path loss by only about 1-2 dB while platform-to-platform spread approaches 30 dB at 100 m."
+    },
+    {
+      "id": "INJ-07-COSTA-RADARCONF",
+      "flavour": "conference precursor of INJ-03",
+      "paper": "Modelling Micro-Doppler Signature of Drone Propellers in Distributed ISAC",
+      "pdf_paths": [
+        "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modelling_Micro-Doppler_Signature_of_Drone_Propellers_in_Distributed_ISAC.pdf",
+        "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2401.14287__costa_microdoppler-drone-propellers_RadarConf24-conf.pdf"
+      ],
+      "venue_read_from_pdf": "Not printed on the copy we hold beyond the arXiv stamp. Beuster et al. (INJ-10) cites it in print as: 'Modelling Micro-Doppler Signature of Drone Propellers in Distributed ISAC, in 2024 IEEE Radar Conference (RadarConf24), 2024, doi: 10.48550/arXiv.2401.14287, accepted for publication.'",
+      "publication_status": "RadarConf24 per a third-party printed citation; NOT established from this PDF itself.",
+      "note": "This version models the ROTATING PROPELLERS analytically. The measurement-library body term - the injection step - appears in the J-STEAP journal extension (INJ-03), which states it 'extends this model by including multiple propellers and two different ways of generating the static reflectivity of the drone body'.",
+      "was_the_injected_signature_validated": {
+        "verdict": "N/A at this stage - no injected external signature yet"
+      }
+    },
+    {
+      "id": "INJ-08-AZIM-INF",
+      "flavour": "measurement campaign -> best-fit distributions -> two-way path-loss term (budget level)",
+      "papers": [
+        "Indoor Statistical and Deterministic RCS Characterization for ISAC Channel Modeling (arXiv:2411.03206v4)",
+        "Statistical and Deterministic RCS Characterization for ISAC Channel Modeling (arXiv:2502.11540)",
+        "3GPP-Compliant Radar Cross Section Characterization of Indoor Factory Targets (arXiv:2505.08754v1)"
+      ],
+      "authors_from_pdf": "Ali Waqar Azim, Ahmad Bazzi, Roberto Bomfin, Nikolaos Giakoumidis, Theodore S. Rappaport, Marwa Chafii (NYU Abu Dhabi / NYU WIRELESS)",
+      "pdf_paths": [
+        "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2411.03206__statistical-rcs-indoor-factory.pdf",
+        "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2502.11540__rcs-characterization-isac-channel-modeling.pdf",
+        "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2505.08754__3gpp-rcs-indoor-factory-targets.pdf"
+      ],
+      "venue_read_from_pdf": "No masthead, no DOI, no acceptance line on any of the three copies we hold. Only arXiv stamps (arXiv:2411.03206v4, arXiv:2502.11540, arXiv:2505.08754v1).",
+      "publication_status": "PREPRINT per the PDFs. NOT ESTABLISHED as published from our copies.",
+      "external_solver": "NONE - measurements at 25-28 GHz in an indoor factory, quasi-monostatic and bistatic at 20/40/60 deg, T-R separations 2-10 m, 10 deg 3 dB beamwidth in azimuth and elevation",
+      "target": "small and mid-sized UAVs, autonomous mobile robot / AGV, robotic arm",
+      "how_applied_to_paths": "Section 'Statistical RCS Integration to Target Channel Path Loss' maps the fitted distributions into an ISAC target-channel loss L_tar = (4pi)^3 d^4 / (G_Tx G_Rx lambda^2 L sigma), i.e. a two-way link budget with an explicit RCS term, then combines it with 'established channel models' for the propagation part.",
+      "quotes": [
+        {
+          "page": 12,
+          "text": "Statistical RCS Integration to Target Channel Path Loss - This section elaborates on how the obtained RCS statistics can be incorporated in the target channel PL. ... the fitted distributions can be directly mapped into a target channel PL term via the bistatic radar equation."
+        },
+        {
+          "page": 2,
+          "text": "measured RCS realizations are fitted to candidate parametric distributions, and the most suitable model is selected using goodness-of-fit (GoF) criteria, yielding compact distribution parameters that are directly usable in system-level simulators."
+        }
+      ],
+      "was_the_injected_signature_validated": {
+        "verdict": "PARTIAL",
+        "detail": "Goodness-of-fit selection against the same measurements the parameters came from; the 3GPP-compliant paper additionally checks the measured data against the 3GPP-standardised log-normal form. No held-out test and no independent cross-check found."
+      }
+    },
+    {
+      "id": "INJ-09-3GPP-SPEC-PARAMETER",
+      "flavour": "WEAKEST flavour: the sigma is a fitted parametric model lifted from a standards document and dropped into a channel/system simulator; the authors compute nothing themselves",
+      "instances": [
+        {
+          "paper": "Detecting Airborne Objects with 5G NR Radars",
+          "authors_from_pdf": "Steve Blandino, Nada Golmie, Anirudha Sahoo, Thao Nguyen, Tanguy Ropitault, David Griffith, Amala Sonny (NIST / Prometheus Computing)",
+          "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2505.24763__detecting-airborne-objects-5gnr-radars.pdf",
+          "venue_read_from_pdf": "arXiv:2505.24763v1 [eess.SP] 30 May 2025 only. PREPRINT.",
+          "quote": {
+            "page": 5,
+            "text": "The ST RCS is set to sigma_M = -12.81 Decibels relative to a square meter (dBsm), reflecting values proposed in ongoing 3GPP standardization efforts for small UAVs."
+          },
+          "how_applied": "a_q = 10^(-PL_q/20) * sqrt(4 pi sigma_M,q / lambda^2) as the per-target path magnitude in a 5G NR PRS radar chain over 3GPP UMi-AV / UMa-AV (TR 36.777) environments; the simulation platform is released open source."
+        },
+        {
+          "paper": "Evaluation of gNB Monostatic Sensing for UAV Use Case",
+          "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2604.02205__evaluation-gnb-monostatic-sensing-uav.pdf",
+          "venue_read_from_pdf": "arXiv:2604.02205v1 only; no masthead, DOI or acceptance line. PREPRINT. (Same NIST group as the other instance, so the two are not independent adopters of -12.81 dBsm.)",
+          "quote": {
+            "page": 4,
+            "text": "The UAV RCS follows the 3GPP RCS model with sigma_M = -12.81 dBsm, while sigma_D = 1, and sigma_S follows a log-normal distribution with sigma_sigma_S = 3.74 dB."
+          },
+          "how_applied": "sigma_RCS = sigma_M sigma_D sigma_S enters the complex path gain alpha together with two-segment path loss, shadow fading and Doppler",
+          "authors_from_pdf": "Steve Blandino, Neeraj Varshney, Jian Wang, Jack Chuang, Camillo Gentile, Nada Golmie (NIST / Prometheus Computing)"
+        }
+      ],
+      "was_the_injected_signature_validated": {
+        "verdict": "NO - and it does not need to be, because the number is a citation",
+        "detail": "Neither paper checks -12.81 dBsm against anything. Its provenance is the 3GPP Rel-19 ISAC channel work, which in turn was populated from measurement campaigns of the INJ-02 / INJ-06 / INJ-08 kind. This is the genealogy: measurement -> spec parameter -> everybody's simulator."
+      },
+      "relevance_to_us": "sigma_M = -12.81 dBsm for a small UAV is the de-facto community default, used in both NIST papers and traceable to 3GPP Rel-19 ISAC work. NOTE: the two instances share authors (Blandino, Golmie, NIST), so they are ONE group, not two independent adopters. That number still belongs in any comparison table we publish, but do not describe it as independently corroborated on this evidence."
+    },
+    {
+      "id": "INJ-10-BEUSTER-FRAMEWORK",
+      "flavour": "architecture-level: an ISAC simulation framework whose target-reflectivity block is a SWITCH between measured and simulated signature",
+      "paper": "Sounding-Based Evaluation of Multi-Sensor ISAC Networks for Drone Applications: Measurement and Simulation Perspectives",
+      "authors_from_pdf": "Julia Beuster, Carsten Smeenk, Saw James Myint, Reza Faramarzahangari, Carsten Andrich, Sebastian Giehl, Christian Schneider, Reiner S. Thomae (TU Ilmenau / Fraunhofer IIS)",
+      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2402.16591__beuster_multisensor-isac-drone.pdf",
+      "venue_read_from_pdf": "arXiv:2402.16591v1 [eess.SP] 26 Feb 2024. No masthead, no DOI, no acceptance line.",
+      "publication_status": "PREPRINT per the PDF. WARNING: our archive files a byte-identical copy under 'published_by_venue/IEEE_JCS_2024/'. That folder name is OUR OWN annotation and is NOT supported by anything printed in the PDF. Do not cite it as an IEEE JC&S paper on this evidence.",
+      "what_it_shows": "Fig. 4 of the paper is a flow diagram of a modular ISAC simulation framework in which the 'Channel - Path components e.g. Radar Reflectivity' stage has parallel 'Measurement' and 'Simulation' inputs feeding the same signal-processing chain (object detection, parameter estimation, multi-target tracking). Fig. 3 shows measured (upper right) and simulated (lower right) bistatic reflectivity of a DJI Phantom 2 over 2-18 GHz for bistatic angles 10 to 180 deg from the BiRa facility.",
+      "quotes": [
+        {
+          "page": 3,
+          "text": "The commercially available software suits for instance Ansys HFSS, Altair FEKO, and CST Studio Suit, can simulate the reflectivity of given complex object shapes and material compositions and to some extent micro-Doppler with software add-ons. Their accuracy mainly depends on the implemented EM solvers, such as method of moments (MoM), finite element method (FEM) and physical optics (PO)."
+        },
+        {
+          "page": 4,
+          "text": "An extensive, modular framework for testing ISAC signal processing chains and parameter estimation, as introduced in [25], additionally allows to exchange simulation data from channel modeling and measurement data from channel sounding."
+        }
+      ],
+      "was_the_injected_signature_validated": {
+        "verdict": "YES, as a stated principle",
+        "detail": "'a comparison with measurements is inevitable for validation and optimization of simulation models, as shown in Fig. 3' (p.3), and Fig. 3 puts the measured and simulated Phantom 2 bistatic reflectivity side by side over 2-18 GHz. No error metric is printed in this paper."
+      },
+      "relevance_to_us": "The cleanest published statement of the architectural claim we are making: the target-reflectivity block is a swappable module, and either a measurement or an EM simulation may fill it, provided the two are compared. Note it is a preprint, and note that our folder label overstated it."
+    }
+  ],
+  "screened_out_with_reason": [
+    {
+      "paper": "Ziganshin et al., Ray-Based Simulation of Scattering from Discretized Curved Bodies (arXiv:2604.05991) and Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC",
+      "paths": [
+        "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+        "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf"
+      ],
+      "verdict": "NOT injection - FEKO/MLFMM is the GROUND TRUTH used to validate the ray tracer. This is the exact trap the task warned about.",
+      "quote": {
+        "page": 3,
+        "text": "EM simulation is performed with the commercial FEKO package [15] in order to validate the accuracy of the RT tool."
+      }
+    },
+    {
+      "paper": "Xu, Ottersten, Swindlehurst, Parametric Diffraction-Based Object Sensing (arXiv:2607.13417)",
+      "path": "/data/public/sionna_jeong/reference_library/new_0803/2607.13417__parametric-diffraction-object-sensing.pdf",
+      "verdict": "NOT injection - 16 HFSS mentions, all validation of an analytical Fresnel diffraction model.",
+      "quote": {
+        "text": "To verify the diffraction model, we compare the analytical received field to a full-wave simulation via finite element methods. ... FIGURE 6. Validation of the proposed analytical model using HFSS."
+      }
+    },
+    {
+      "paper": "Rauf et al., Quantifying System Level KPI Deviations of Sionna RT (arXiv:2605.10352)",
+      "path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2605.10352__sionna-rt-kpi-deviations-oai-testbed.pdf",
+      "verdict": "NOT injection - CST is used to characterise the Tx antenna near-field boundary (0.343 m at 3.349 GHz). The word 'injected' in this paper refers to CHANNELS injected into a hardware-in-the-loop emulator, not RCS."
+    },
+    {
+      "paper": "Shabanpour et al., physically consistent RIS (arXiv:2409.17738)",
+      "path": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2409.17738__shabanpour-physically-consistent-ris.pdf",
+      "verdict": "NOT injection, and the arrow points the other way - Sionna ray tracing sets the desired reradiation modes, then CST validates the unit cells designed to realise them."
+    },
+    {
+      "paper": "RadarTwin (arXiv:2606.28396)",
+      "path": "/data/public/sionna_jeong/reference_library/2606.28396__radartwin.pdf",
+      "verdict": "NOT injection - MATLAB Radar Toolbox, Ansys HFSS SBR+ and Remcom appear only in the related-work comparison table as tools that 'require expert-built CAD scenes'. RadarTwin's own signature comes from its own ray tracer with VLM-inferred materials."
+    },
+    {
+      "paper": "Wang, Tong, Eibert, 3-D Near-Field Passive Radar Imaging (arXiv:2603.08217)",
+      "path": "/data/public/sionna_jeong/reference_library/new_0803/2603.08217__3d-nearfield-passive-radar-imaging-multiple-illumination.pdf",
+      "verdict": "NOT injection - FEKO IS the forward simulator ('Simulations were conducted by the commercial software FEKO [12]'); its scattered fields are the synthetic measurement fed to an imaging algorithm. No propagation simulator is involved, so nothing is injected INTO anything."
+    },
+    {
+      "paper": "Braun, OFDM Radar Algorithms in Mobile Communication Networks (OpenISAC #29)",
+      "path": "/data/public/OpenISAC/29_OFDM_radar_algorithms_in_mobile_communication_networks.pdf",
+      "verdict": "NOT injection - point-scatter model with a scalar sigma_RCS,h; the thesis ESTIMATES RCS from the periodogram rather than injecting it. Abstraction."
+    },
+    {
+      "paper": "Luo et al. 3GPP bistatic sensing (2408.11295); GREAT-X (2507.08716); Wu 3GPP ISAC simulator (2606.07328); two-stage ISAC LAE (2511.14529, 'The RCS of each UAV is set to sigma = 0.05 m2'); coordinated beam sweeping (2601.08483, Swerling-2 / Weibull)",
+      "verdict": "NOT injection - assumed or standardised sigma with no external computation. Abstraction."
+    },
+    {
+      "paper": "Pure EM / solver papers with no propagation simulator: Sagitta BVH-accelerated SBR (2604.09243), Lee/Lee/Seo dynamic RCS via MoM (JEES 2021), Lindgren CST-vs-OPTISCAT MSc thesis, Kirik & Ozdemir PTD-into-SBR (Sigma J Eng & Nat Sci 2019), PLOS ONE OptiX SBR (2021), PIER GPU SBR/GRECO, Semkin drone RCS 26-40 GHz (IEEE Access 2020), Ezuma compact-range drone RCS",
+      "verdict": "NOT injection - they PRODUCE signatures (some are excellent anchors for us) but never apply them to simulated propagation paths."
+    }
+  ],
+  "false_positives_worth_remembering": [
+    {
+      "pattern": "\\bGRECO\\b",
+      "what_happened": "matched the author surname 'Greco' (Maria Greco) in five passive-radar papers: 2601.20817, 2510.07948, 2601.15821, 2602.10537 and Clutter-Aware ISAC. Zero of them use the GRECO solver.",
+      "lesson": "tool-name screening produces surname collisions; every hit must be opened."
+    },
+    {
+      "path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Sionna RT 드론 ISAC 연구.pdf",
+      "what_happened": "scored 10 RCS-near-simulator co-occurrence hits, ranking 6th in the whole archive. It is a 10-page Korean document produced by the 'Skia/PDF m152 Google Docs Renderer' with no authors, no venue and no references - an internally generated report sitting inside a papers folder, NOT a paper.",
+      "lesson": "This is the same failure mode as the retracted '22 of 81' count: a keyword hit landing on our own notes. Any census over these folders must exclude it by hand."
+    },
+    {
+      "path": "/data/public/sionna_jeong/papers_isac_sionna/published_by_venue/IEEE_JCS_2024/2402.16591__beuster_multisensor-isac-drone.pdf",
+      "what_happened": "the folder asserts a venue the PDF does not. The file is byte-identical to the arXiv copy and prints only 'arXiv:2402.16591v1'.",
+      "lesson": "folder names in this archive are our annotations. Venue claims must come from the PDF."
+    }
+  ],
+  "openisac_shelf": {
+    "status": "FULLY COVERED for the first time",
+    "pdfs": 28,
+    "injection_instances": 0,
+    "how": "machine scan of every PDF for EM-solver names, RCS/reflectivity terms and lookup/precomputed/queried language, followed by opening every non-zero hit",
+    "notable": [
+      "#06 Millimeterwave mobile sensing (Wireless InSite / Remcom): ray tracing used to CORROBORATE an RF measurement campaign; 'pre-computed' refers to matrix factors in an estimator, not to RCS.",
+      "#07 and #28: 'precomputed' refers to canceller correlation matrices and pre-simulated FEC curves respectively.",
+      "#29 Braun thesis: point-scatter sigma, and RCS is estimated from data rather than injected.",
+      "#32: 'lookup table' is an SNR-to-rate mapping.",
+      "#05 had zero extractable text and was read by rendering its pages to images."
+    ],
+    "conclusion": "The untriaged OpenISAC shelf contributes nothing to the injection question. It is a testbed/waveform/synchronisation shelf; target signatures are physical, not modelled."
+  },
+  "leads_off_shelf_not_opened": {
+    "note": "These are cited IN PRINT by Costa et al. (INJ-03, p.2) as prior work that computes a drone/rotor signature in an external EM solver. We do NOT hold these PDFs and have NOT opened them. Listed as hunting leads only.",
+    "items": [
+      "ref [12] of Costa: physical optics + method of equivalent currents for the time-varying RCS of a helicopter rotor",
+      "ref [13] Karabayir et al.: combines PO simulation from CAD models in different positions to generate the time-varying reflectivity of a propelled aircraft",
+      "ref [14] Schroeder et al.: MoM plus PO to simulate the micro-Doppler of a multi-propeller drone with 512 discrete propeller positions",
+      "ref [15] of Costa: hybrid FEM/MoM with 512 uniformly spaced propeller positions through 360 deg, comparing micro-Doppler returns from different drone models",
+      "ref [16] Petrovic et al.: multiple full-wave EM simulations of a multi-propeller drone to create the returns from half of the full rotation of all propellers",
+      "ref [2] of Rzewuski: Rzewuski, Kulpa, Salski, Kopyt, Borowiec, Malanowski, Samczynski, 'Drone RCS estimation using simple experimental measurement in the WIFI bands', MIKON 2018 - the measurement companion to INJ-05"
+    ]
+  },
+  "what_this_means_for_us": [
+    "The injection architecture IS published at strong venues: IEEE JSAC (INJ-02), IEEE J-STEAP (INJ-03), IEEE WCL (INJ-06), IET Radar Sonar & Navigation (INJ-04). Our previous 'only a preprint (LAMBDA)' summary was too narrow and should be retracted.",
+    "But the venue record splits by WHERE the table comes from. Every peer-reviewed instance on our shelf sources its signature from MEASUREMENT (JSAC, J-STEAP, WCL) or from the authors' OWN ray/SBR solver (IET). The single instance that buys a commercial solver's RCS and multiplies it onto ray-traced paths - LAMBDA - is the one that is still a preprint. Reviewers have accepted the ARCHITECTURE; the commercial-solver-into-a-ray-tracer variant has no venue record on our shelf.",
+    "That is good news for us. Our sigma grid is computed by our own SBR+PO on Sionna's ray engine, which is the INJ-04 (Deep, IET) pattern, not the INJ-01 (LAMBDA) pattern - and the IET pattern is the one that got peer-reviewed.",
+    "Every peer-reviewed instance validated its number; the preprint did not. INJ-02 held out a whole frequency band and calibrated on a metal sphere. INJ-04 compared the end-to-end signature against 77 GHz hardware (NMSE < 10%, SSIM > 81%). INJ-03 compared micro-Doppler and range-Doppler against BiRa. INJ-06 used a calibration cylinder plus AD goodness-of-fit. This is the reviewer question and the price of entry - not 'is injection allowed' but 'did you check the number'.",
+    "Nobody on this shelf publishes the dense table we publish. INJ-02 ships model PARAMETERS per (target, band) with a fitted B1(phi); INJ-06 ships linear fits of mu(f) and epsilon(f) per (platform, bistatic angle); INJ-01 ships opaque 'UAV RCS files' with no stated axes; INJ-03's library has no printed angular step. Our 9 elevations x 120 azimuths x 3 bands per airframe, published as dBsm, is finer and more transparent than any of them. That is a claimable contribution, and it is the kind of claim that survives adversarial review because it is a fact about our artefact.",
+    "The community default we will be measured against is sigma_M = -12.81 dBsm for a small UAV, used in two NIST papers (INJ-09) and traceable to 3GPP Rel-19. Both NIST papers share authors, so this is one group applying the spec number, not independent corroboration. Any headline table of ours should sit next to that number."
+  ]
+}

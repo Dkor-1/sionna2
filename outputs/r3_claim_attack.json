@@ -1,0 +1,252 @@
+{
+  "_meta": {
+    "generated": "2026-08-03",
+    "task": "적대적 검증 — 살아 있다고 믿는 주장 C1/C2/C3 를 반증 우선으로 공격",
+    "rule": "기본값은 '반증됨'. 반증할 수 없을 때만 살린다. 근거 없이 살려두지 않는다.",
+    "read_first": ["docs/RETRACTION_LOG.md", "docs/SIONNA_RT_REFERENCE.md"],
+    "recomputed_this_session": [
+      "outputs/sigma_sensitivity.json : common_mode (slope 재적합 · 국소기울기 · 교차점 외삽)",
+      "outputs/sigma_sensitivity.json : pair_lead_db (측정 밴드차분·듀티항 주입 후 순위재판정)",
+      "outputs/sbr_kr_sweep.json : rows (Mie 대비 편차 전수)",
+      "outputs/sbr_defect_fixes.json : d3_multibounce_phase (이면각 4행 전수)",
+      "outputs/mesh_gallery.json (면 크기 대 파장 추정)"
+    ],
+    "reporting_grade_convention": "직접확인 / 코드재계산 / 방금센것(=가설). 각 항목에 grade 를 붙였다.",
+    "self_correction_in_session": "패싯밀도 공격 1건을 스스로 철회했다 — sbr_defect_fixes 의 sphere_lam/N 은 메쉬 패싯이 아니라 광선격자 λ/div 다(src/rcs_sbr.py:784 `d = lam/div`, 구는 seg=180/rings=90 고정). 패싯축은 여전히 미검증이나 그 표로는 정량화할 수 없다."
+  },
+
+  "C1": {
+    "claim_as_posed": "Sionna 안에서 드론 산란적분을 정밀 계산한 연구는 공개문헌상 공백이다",
+    "verdict": "REFUTED_AS_STATED",
+    "survives_only_as": "우리가 보유한 218편 로컬 아카이브(그 중 135/140 이 arXiv 형태 ID) 안에서, 드론 메시를 PO 표면전류 적분에 통과시켜 절대 σ(dBsm)를 낸 저작을 찾지 못했다. '공개문헌상 공백'이 아니라 '이 코퍼스 안에서 미발견'이다.",
+    "attacks": [
+      {
+        "id": "C1-a",
+        "grade": "코드재계산",
+        "attack": "근거 코퍼스가 구조적으로 arXiv 편향이다 — 이 주장을 뒷받침하는 유일한 전수집계 outputs/reflib_sweep_sionna.json 의 논문 ID 140개 중 135개가 arXiv 형태다. IEEE Xplore·Elsevier·Springer 유료 프로시딩은 원리적으로 안 보인다.",
+        "smoking_gun": "md-rt (Li 외, Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing, IEEE ICCT 2025) 는 이 sweep 에 **없다**(ID 검색 0건). 그런데 이 논문은 Sionna RT 위에 Blender 블레이드 메시를 세우고 광선발사기를 개조해 드론 마이크로도플러를 낸, C1 의 과녁에 가장 가까운 저작이고 docs/DRONE_ISAC_PRIOR_READING.md §1 #7 에 우리 자신의 정독 노트가 있다.",
+        "why_fatal": "'공개문헌상 공백'은 공개문헌 전수를 전제한다. 우리 코퍼스는 우리가 이미 손에 쥔 반례조차 담지 못한다."
+      },
+      {
+        "id": "C1-b",
+        "grade": "직접확인",
+        "attack": "부정명제의 근거가 미검증 구간에 걸쳐 있다. reflib_sweep_sionna.json counts: sionna_used=137, deep_read=30, machine_classified_not_deep_read=110. 같은 파일 meta.known_limits 가 스스로 적는다 — 'MACHINE_CENSUS_ONLY entries ... their target representation was NOT checked page by page.'",
+        "why_fatal": "C1 이 부재를 주장하는 바로 그 속성(표적 표현)이 110/137 편에서 확인되지 않았다. 80% 미검사 코퍼스로 부재를 선언할 수 없다."
+      },
+      {
+        "id": "C1-c",
+        "grade": "직접확인",
+        "attack": "한정어가 주장의 전부를 지고 있고, 그 한정어는 우리 아키텍처로 정의돼 있다. 한 칸만 느슨하게 읽으면 자리는 이미 차 있다 — Sionna 씬 안 드론/표적 메시: 2602.10537(Clutter-Aware ISAC, 'simplified 3-D UAV/ToI meshes imported into Sionna'), 2605.07623(UAV = metallic cube), 2606.07900(CellSense), CAVIAR. 드론 σ 를 외부 풀웨이브로 계산해 Sionna 에 주입: 2607.03826(LAMBDA, Altair CADFEKO). Sionna 위에서 표적 산란을 정밀화하고 dBsm 을 인쇄: Ziganshin(UTD+정점회절 추가, EuCAP 2025 회의판) — 단 표적이 자동차다.",
+        "corroboration": "docs/DECK_FACTS.md F30 이 이미 '드론 메시를 Sionna 씬에 넣은 논문이 없다로 읽히는 문장은 즉시 거짓' 이라고 적어 두었다. R20 메모도 'Sionna 씬 안 표적 메쉬 = 다수 존재 ❌' 로 인정한다.",
+        "why_fatal": "공백이 아니라 세 한정어(드론 ∧ Sionna 내부 ∧ PO 표면적분)의 교집합이다. 교집합의 공허함은 발견이 아니다."
+      },
+      {
+        "id": "C1-d",
+        "grade": "직접확인",
+        "attack": "공백이 도구 브랜드로 색인돼 있지 물리로 색인돼 있지 않다. PO 계열 점근해로 표적 RCS 를 내는 것은 RCS 문헌의 표준 관행이고, 우리 자신의 docs/DRONE_ISAC_PRIOR_READING.md 가 unified-rcs 의 참고문헌 [20] 을 'Weinmann PO/PTD' 로 적어 두었는데 docs/REFERENCE_LIBRARY.md 에 Weinmann 항목은 **0건**이다(grep 확인).",
+        "why_fatal": "'Sionna 안에서'를 빼면 남는 물리적 신규성이 무엇인지 우리는 조사하지 않았다. 시뮬레이터 이름으로 그은 공백은 물리 공백이 아니다."
+      },
+      {
+        "id": "C1-e",
+        "grade": "직접확인",
+        "attack": "공백이 미개척이 아니라 공표된 범위결정이다. Hoydis(Sionna 저자) Discussion #1170: 'Sionna RT is currently not a really good fit to simulate reflections from small objects like drones for radar applications.' SIONNA_RT_REFERENCE §6.3 도 같은 결론을 문서 원문으로 세운다.",
+        "why_fatal": "벤더가 스스로 범위 밖이라 선언한 자리를 '문헌 공백' 이라 부르면 기여의 크기가 과장된다. §6.3 의 자기 규율('엔진의 결함을 고쳤다가 아니라 초대된 확장 지점에 얹었다')과 C1 의 어투가 충돌한다."
+      }
+    ],
+    "what_would_restore_it": [
+      "IEEE Xplore·Scopus·Web of Science 에서 (UAV|drone) AND (RCS|scattering) AND (physical optics|SBR) 로 별도 전수 — arXiv 밖 코퍼스 없이는 복구 불가",
+      "110편 MACHINE_CENSUS_ONLY 의 target_representation 을 쪽 단위로 확인",
+      "문장을 DECK_FACTS.md:513 의 좁힌 판으로 고정하고 '공개문헌' 이라는 낱말을 버릴 것"
+    ]
+  },
+
+  "C2": {
+    "claim_as_posed": "우리 SBR+PO 커널은 해석해 대비 구 0.38~0.85 dB, 이면각 0.076 dB 로 검증됐다",
+    "verdict": "REFUTED",
+    "survives_only_as": "커널은 (i) 자기 자신의 해석 PO 구에 kr 1~100 에서 최대 0.2006 dB 로 수렴하고(수치수렴), (ii) r=0.178 m PEC 구의 정확 Mie 에 ka 6.88~19.44 세 점에서 0.375~0.851 dB 로 맞으며(광학영역 절대스케일), (iii) PEC 이면각 PO 폐형해에 a=0.15~0.40 m 네 점에서 **최대 0.556 dB** 로 맞는다.",
+    "attacks": [
+      {
+        "id": "C2-a",
+        "grade": "코드재계산",
+        "attack": "이면각 0.076 dB 는 4행 중 최량 1행이다. outputs/sbr_defect_fixes.json : d3_multibounce_phase.rows — a=0.15 → +0.556, a=0.20 → +0.466, a=0.30 → **+0.076**, a=0.40 → −0.108 dB. 같은 블록의 max_abs_err_db 는 0.5563 이다.",
+        "worse": "0.076 이 나온 a=0.30 행은 1-bounce σ 가 **−118.33 dBsm** 으로 붕괴한 행이다(이웃 a=0.40 은 −7.76 dBsm — 110 dB 도약). 즉 잔차가 작은 이유가 수렴이 아니라 그 격자에서 1-bounce 성분이 우연히 상쇄됐기 때문이다. 커널의 성질이 아니라 정렬의 우연이다.",
+        "already_correct_elsewhere": "docs/PAPER_DRAFT.md:140 은 이미 '최대 0.556 dB' 로 옳게 적는다.",
+        "new_defect_found": "⚠ **RETRACTION_LOG.md A1 자신이 이 체리픽을 퍼뜨린다** — '수리 후 +0.076 dB 는 정확' 이라 적고 같은 표의 최대치 0.556 을 병기하지 않는다. 정정 문서가 새 정정 대상이 됐다."
+      },
+      {
+        "id": "C2-b",
+        "grade": "코드재계산",
+        "attack": "'해석해' 가 세 개의 서로 다른 기준을 한 낱말로 뭉갠다. (1) 정확 Mie = 참 해석해. (2) 해석 PO 구 = **커널과 같은 물리**(src/rcs_sbr.py 의 sphere_reference_set). (3) 평판 4πA²/λ² · 이면각 8πa²b²/λ² = **PO/GO 폐형해**. 코드 주석이 스스로 인정한다 — '금속 평판 … 정확 PO σ=4πA²/λ²'(src/rcs_sbr.py:800), 즉 정확한 것은 답이 아니라 PO 의 답이다.",
+        "why_fatal": "세 게이트 중 둘은 PO 를 PO 로 채점한 자기일관성 검사다. PO 근사 자체의 오차는 원리적으로 검출되지 않는다. '해석해 대비 검증' 이라는 표현은 이 구별을 지운다."
+      },
+      {
+        "id": "C2-c",
+        "grade": "코드재계산",
+        "attack": "참 해석해(Mie) 를 과녁으로 놓으면 같은 파일이 훨씬 나쁜 수를 이미 적고 있다. outputs/sbr_kr_sweep.json — summary_div16.max_abs_db_vs_mie = **6.729 dB** (div12 는 6.599), std_sbr_over_mie_pct = **31.1 %**. 대비: max_abs_db_vs_po = 0.2006 dB, std 1.52 %.",
+        "where": "최악은 kr=1 (db_sbr_over_mie = −6.729), 다음이 kr=3 (+3.188), kr=2 (+1.765). kr≥30 으로 자르면 std 가 1.83 % 로 떨어진다 — 즉 오차는 전적으로 저-kr 구간에 있다.",
+        "why_fatal": "드론 부재가 사는 곳이 바로 그 구간이다. 1.843 GHz(λ=16.3 cm)에서 로터 블레이드 코드·암 단면·짐벌은 kr ≈ 1~3 이다. 검증이 성립한 구간(ka 6.88~19.44, kr≥30)과 커널이 실제로 쓰이는 구간이 겹치지 않는다."
+      },
+      {
+        "id": "C2-d",
+        "grade": "직접확인",
+        "attack": "'구 0.38~0.85 dB' 는 **반지름 1개(0.178 m) × 주파수 3점**이다(outputs/validate_measured_airframe.json : 2_calibration_sphere). 세 점 모두 광학영역이고, 셋 다 **부호가 같다**(−0.851 / −0.375 / −0.420). 이는 산포가 아니라 계통 저평가다.",
+        "corroboration": "engine_validation_verdict 의 mechanism 이 같은 말을 한다 — '전기적으로 커질수록 오차가 줄어드는 것이 광학영역 아래에서 PO 가 지는 신호'. 그리고 같은 파일의 1_verdict.status 는 **'FAILED'** 다(기체 절대 σ 가 1.843 GHz 에서 −4.43 dB).",
+        "why_fatal": "'검증됐다' 와 같은 문서의 판정 'THE VALIDATION FAILS' 가 나란히 서 있다. C2 는 실패한 검증에서 통과한 하위항목만 뽑아 만든 문장이다."
+      },
+      {
+        "id": "C2-e",
+        "grade": "직접확인",
+        "attack": "세 수의 광선격자 규약이 서로 다르다. 구 0.2006 dB = div 16 · jitter 3 · 입사 48방향 평균, 구 0.38~0.85 dB = div 16, 이면각 = spacing λ/DEFAULT_DIV = **λ/12** · 단일 입사(el=45° 이등분선) · jitter 3. 생산 σ 격자는 div 16 · jitter 2 다(report13_sigma_grid.*.json meta).",
+        "why_it_matters": "같은 커널의 서로 다른 세 설정을 한 문장에 담으면 '이 설정에서 이만큼' 이라는 재현 가능한 진술이 되지 못한다."
+      },
+      {
+        "id": "C2-f",
+        "grade": "방금센것(가설, 미검증)",
+        "attack": "**패싯 밀도 축이 통째로 미검증이다.** 커널의 수렴 연구는 전부 광선격자 λ/div 축에서만 돌았고(구는 seg=180/rings=90 고정 메시), 메시 패싯 크기 축에서는 한 번도 돌지 않았다.",
+        "exposure_numbers": "mesh_gallery.json 의 표면적/삼각형수에서 등가 정삼각형 변을 추정하면 λ/변 = mini5pro 47.6/25.1/16.9 · mavic4pro 32.3/17.0/11.4 · matrice4e 32.2/16.9/11.4 · phantom4 30.8/16.2/10.9 · typhoonh480 29.6/15.6/10.5 · x500v2 22.4/11.8/7.9 · s1000plus **18.4/9.7/6.5** (1.843/3.5/5.21 GHz).",
+        "honesty": "이 수로 오차를 주장할 수 없다 — 우리에게 패싯축 수렴표가 없기 때문이다. 이것은 결함 주장이 아니라 **측정된 적 없는 노출**이다. Ziganshin 의 E²/(Rλ) 이산화 품질지표가 정확히 이 축을 재려고 만든 것이고 우리는 그것을 'adopt' 목록에만 올려두었다."
+      }
+    ],
+    "honest_replacement_sentence": "커널은 자기 해석 PO 에 kr 1~100 에서 0.2006 dB 로 수렴한다(수치수렴). 참 해석해(Mie) 대비는 kr≥30 에서 1.8 % 산포로 맞지만 kr≤3 에서 최대 6.73 dB 벌어진다. 다중반사 위상은 PEC 이면각 PO 폐형해에 최대 0.556 dB 로 맞는다. 절대 스케일은 r=0.178 m 교정구 3주파에서 Mie 대비 0.375~0.851 dB(부호 전부 음)다."
+  },
+
+  "C3": {
+    "claim_as_posed": "공통모드 sigma 오차는 순위를 바꾸지 않는다 (dR_dB/dsigma_dB = 0.2462)",
+    "verdict": "REFUTED_AS_FRAMED",
+    "arithmetic_status": "REPRODUCED_EXACTLY",
+    "reproduction": {
+      "method": "outputs/sigma_sensitivity.json : common_mode.by_drone 의 R90_m 배열 15셀에 10*log10(R) 을 offset_db 에 1차 적합, 평균",
+      "recomputed_slope_mean": 0.24621813638904827,
+      "stored_slope_mean": 0.24621813638904827,
+      "identical": true,
+      "order_invariant_within_pm10dB": true
+    },
+    "attacks": [
+      {
+        "id": "C3-a",
+        "grade": "코드재계산",
+        "attack": "0.2462 는 상수가 아니라 15개 전역 적합의 평균이다. 셀별 적합 기울기 0.2227(mavic4pro L1) ~ 0.2561(mini5pro W1), 폭 0.0334 = 평균의 **13.6 %**. 유효숫자 4자리 인용은 거짓 정밀이다.",
+        "worse": "**국소** 기울기(인접 offset 차분)는 0.0493 ~ 0.3566 로 **7.2배** 벌어진다. 최악 셀 mavic4pro L1 은 offset −1.5~0 dB 구간에서 R90 이 3478→3498→3518→3538 m 로 거의 평평하다(국소 기울기 0.049).",
+        "physics_violation": "국소 최대 0.3566 은 σ/R⁴ 사슬의 상한 0.25 를 **넘는다**. 순수 거듭제곱 법칙에서는 불가능하므로 이는 물리가 아니라 σ 격자(고도각 조회) 계단 아티팩트다. 즉 0.2462 는 계단 잡음 위에 그은 회귀선이다."
+      },
+      {
+        "id": "C3-b",
+        "grade": "코드재계산",
+        "attack": "순위 불변성은 발견이 아니라 항등식이다. 세 모드가 같은 σ/R⁴ 사슬을 쓰므로 균일 dB 오프셋은 각 10log10(R90) 곡선을 같은 양만큼 평행이동시킨다. 적합선의 실제 교차점을 외삽하면 |offset| ≥ **31.1 dB**(최소, s1000plus W1-G1)이고 대부분 88~20501 dB 다.",
+        "why_fatal": "±10 dB 에서 안 뒤집히는 것은 실험 결과가 아니라 산술의 귀결이다. 이 스윕은 그것을 확인할 뿐 새 정보를 만들지 않는다. 정보가 있는 축은 **차분** 축인데 C3 은 그 축을 가린다."
+      },
+      {
+        "id": "C3-c",
+        "grade": "코드재계산",
+        "attack": "⭐ **결정적 — 우리 σ 오차는 공통모드가 아니다.** engine_validation_verdict.json : mechanism.airframe_gap 이 밴드별로 LTE −4.431 / 5G −1.197 / WiFi 0.000 dB 다. 분해하면 공통 성분 −1.876 dB, **차분 성분 W1 +1.876 / L1 −2.555 / G1 +0.679 dB**, peak-to-peak **4.431 dB**. 교정구조차 공통 −0.549 · 차분 peak-to-peak 0.476 dB 로 완전 공통모드가 아니다.",
+        "consequence_recomputed": "이 실측 차분을 pair_lead_db 에 그대로 얹으면 **15개 밴드쌍 중 3개가 뒤집힌다** — matrice4e W1-L1(−4.09 → +0.35), matrice4e W1-G1(−0.31 → +0.89), s1000plus W1-G1(−0.62 → +0.58).",
+        "our_own_file_says_so": "sigma_sensitivity.json : differential — realistic_span_db = 5.013, n_drones_flipping_inside_realistic = **3/5**, smallest_flip_span_db_overall = **0.614 dB**.",
+        "why_fatal": "C3 은 참이지만 우리가 실제로 가진 오차가 아닌 오차 모드에 대해 참이다. '순위는 안전하다' 는 안심으로 읽히는 순간 거짓 진술이 된다. 0.614 dB 만 차분이 생겨도 뒤집히는 쌍이 있다."
+      },
+      {
+        "id": "C3-d",
+        "grade": "코드재계산",
+        "attack": "C3 이 보호한다는 그 기준 순위 자체가 문서화된 미적용 항 위에 서 있다. sigma_sensitivity.json : gap_decomposition.duty_never_applied — freespace_link.duty_db_from_cpi 의 called_anywhere = **false**, 문서화된 SSB 듀티 핸디캡 ≈ −16 dB(geometry_benchmark C6: nr duty_db = −16.0206).",
+        "consequence_recomputed": "이 항을 G1 에만 켜면 **15쌍 중 6쌍이 뒤집히고 5기종 전부의 밴드 순위가 바뀐다** — mini5pro W1-G1, mavic4pro L1-G1, matrice4e W1-G1, phantom4 L1-G1, s1000plus W1-G1·L1-G1.",
+        "why_fatal": "공통모드 σ 오차에 대한 불변성을 증명해도, 그보다 26배 큰(16.02 vs 0.614 dB) 모드-차분 항이 코드에서 한 번도 호출되지 않았다면 지켜진 순위가 없다."
+      },
+      {
+        "id": "C3-e",
+        "grade": "직접확인",
+        "attack": "규약 미선언 — dR_dB 가 10log10(R) 이다(코드: np.polyfit(cm_grid, 10*np.log10(rows[m]), 1)). 길이를 10log10 으로 dB 화하는 것은 비표준이다. 20log10 규약이면 같은 물리에서 값이 0.492 가 된다. 규약 없이 '0.2462' 를 인용하면 재현이 안 된다.",
+        "also": "figure 캡션이 '1/n with n≈4' 로 적는데, 정확한 σ/R⁴ 이면 값은 0.25 여야 한다. 0.2462 는 그보다 1.5 % 낮고 그 차이의 출처는 물리가 아니라 C3-a 의 계단 아티팩트다."
+      }
+    ],
+    "honest_replacement_sentence": "세 모드가 같은 σ/R⁴ 사슬을 쓰므로 공통모드 σ 오프셋은 R90 곡선을 평행이동만 시키고(10log10(R) 기울기 0.246, 셀별 0.223~0.256, 국소 0.049~0.357), ±10 dB 안에서 밴드 순위는 15셀 전부 불변이다 — 이는 산술의 귀결이다. 실제 위험은 차분 오차이고 우리 커널의 실측 밴드차분은 span 4.43 dB 로 최소 뒤집힘 문턱 0.614 dB 를 훨씬 넘어 15쌍 중 3쌍을 뒤집는다. 또한 문서화된 −16.02 dB 듀티 항이 R90 경로에서 호출되지 않아, 그 항을 켜면 6쌍이 추가로 뒤집힌다."
+  },
+
+  "new_retractions": [
+    {
+      "id": "R9",
+      "title": "이면각 '0.076 dB' 는 4행 중 최량 1행 체리픽 — 정직한 수는 최대 0.556 dB",
+      "wrong": "우리 커널은 PEC 이면각 해석해에 0.076 dB 로 맞는다",
+      "right": "a=0.15/0.20/0.30/0.40 m 에서 +0.556 / +0.466 / +0.076 / −0.108 dB, max_abs_err_db = 0.5563 ⟨outputs/sbr_defect_fixes.json : d3_multibounce_phase⟩",
+      "aggravating": "0.076 이 나온 a=0.30 행은 1-bounce σ 가 −118.33 dBsm 으로 붕괴한 행이다(이웃 a=0.40 은 −7.76 dBsm). 작은 잔차의 원인은 수렴이 아니라 그 격자에서의 우연한 상쇄다.",
+      "propagated_in": ["docs/RETRACTION_LOG.md 추가정정 A1 ('수리 후 +0.076 dB 는 정확')"],
+      "already_correct_in": ["docs/PAPER_DRAFT.md:140"],
+      "severity": "high — 정정 문서 자신이 감염원이다"
+    },
+    {
+      "id": "R10",
+      "title": "'해석해 대비 검증' 이 세 기준을 뭉갠다 — 셋 중 둘은 PO 를 PO 로 채점한다",
+      "wrong": "커널이 해석해 대비 0.2 dB 이내다",
+      "right": "0.2006 dB 는 **해석 PO 구** 대비다(커널이 PO 이므로 수치수렴 지표). 평판 4πA²/λ² 과 이면각 8πa²b²/λ² 도 PO/GO 폐형해다. 참 해석해는 Mie 하나뿐이고, 그 대비 최대 편차는 **6.729 dB** (div16), 산포 31.1 % 다 ⟨outputs/sbr_kr_sweep.json : summary_div16⟩",
+      "scope": "오차는 저-kr 에 집중된다 — kr=1 에서 −6.73, kr=3 에서 +3.19, kr≥30 에서 1.83 %",
+      "why_it_matters": "드론 부재(블레이드 코드·암·짐벌)는 1.843 GHz 에서 kr ≈ 1~3 이다. 검증이 성립한 구간과 커널이 쓰이는 구간이 겹치지 않는다",
+      "affected_files": ["docs/ENGINE_VALIDATION.md:39", "docs/DECK_FACTS.md F19", "docs/SIONNA_RT_REFERENCE.md §6.2 첫 행"],
+      "severity": "high"
+    },
+    {
+      "id": "R11",
+      "title": "'구 0.38~0.85 dB' 는 반지름 1개·주파수 3점의 광학영역 슬라이스이고 부호가 전부 같다",
+      "wrong": "구 검증이 커널의 절대 정확도를 0.85 dB 로 유계한다",
+      "right": "r=0.178 m 한 개, ka 6.88/13.06/19.44 세 점, 편차 −0.851/−0.375/−0.420 dB — 산포가 아니라 계통 저평가다 ⟨outputs/validate_measured_airframe.json : 2_calibration_sphere⟩. 같은 파일의 종합 판정은 'FAILED' 이고 기체 절대 σ 는 1.843 GHz 에서 −4.43 dB 다",
+      "rule": "이 수를 인용할 때 engine_validation_verdict.json : 1_verdict.status = 'FAILED' 를 반드시 병기한다",
+      "severity": "medium-high"
+    },
+    {
+      "id": "R12",
+      "title": "dR_dB/dσ_dB = 0.2462 는 거짓 정밀 — 셀별 0.223~0.256, 국소 0.049~0.357, 상한 0.25 초과",
+      "wrong": "공통모드 민감도는 0.2462 (사실상 1/4) 다",
+      "right": "15셀 전역적합 평균이다. 적합값 폭 13.6 %, 국소 기울기 폭 7.2배. 국소 최대 0.3566 은 σ/R⁴ 상한 0.25 를 넘으므로 물리가 아니라 σ 격자 계단 아티팩트다 ⟨outputs/sigma_sensitivity.json : common_mode 재계산⟩",
+      "convention_defect": "dB(range) 가 10log10(R) 이라는 규약이 어디에도 선언돼 있지 않다. 20log10 규약이면 0.492 다",
+      "how_to_quote": "'0.25 근처, 셀별 0.22~0.26' 로 쓰고 유효숫자 4자리를 버린다",
+      "severity": "medium"
+    },
+    {
+      "id": "R13",
+      "title": "⭐ 공통모드 불변성은 우리가 실제로 가진 오차 모드가 아니다 — 실측 차분 4.43 dB 가 3쌍을 뒤집는다",
+      "wrong": "σ 오차가 순위를 바꾸지 않는다",
+      "right": "**공통모드** σ 오차는 안 바꾼다(±10 dB, 교차점 |offset| ≥ 31 dB — 산술의 귀결). 그러나 우리 커널의 문서화된 오차는 밴드차분이다 — airframe_gap LTE −4.431 / 5G −1.197 / WiFi 0.000 dB, 차분 peak-to-peak 4.431 dB. 이를 pair_lead 에 얹으면 15쌍 중 **3쌍이 뒤집힌다**(matrice4e W1-L1, W1-G1, s1000plus W1-G1). 우리 파일이 이미 3/5 기종 뒤집힘·최소 문턱 0.614 dB 를 적고 있다",
+      "severity": "high — 안심 문구로 쓰이면 즉시 거짓"
+    },
+    {
+      "id": "R14",
+      "title": "C3 이 지키는 기준 순위 자체가 −16.02 dB 미적용 듀티 항 위에 서 있다",
+      "wrong": "R90 밴드 순위는 확립된 결과다",
+      "right": "freespace_link.duty_db_from_cpi 는 코드 어디에서도 호출되지 않는다(called_anywhere=false). 문서화된 NR 듀티는 −16.0206 dB 다. 켜면 15쌍 중 **6쌍이 뒤집히고 5기종 전부의 밴드 순위가 바뀐다** ⟨재계산⟩",
+      "cross_ref": "geometry_benchmark.json C6 이 이미 '⚠ 듀티는 여전히 R90 경로에서 호출되지 않는다 — §5 결함 D2' 로 적어 두었다. C3 과 나란히 놓인 적이 없을 뿐이다",
+      "severity": "high"
+    },
+    {
+      "id": "R15",
+      "title": "'공개문헌상 공백' 의 근거 코퍼스가 arXiv 형태 135/140 이고 우리 손에 있는 반례를 담지 못한다",
+      "wrong": "Sionna 안에서 드론 산란을 정밀 계산한 연구는 공개문헌상 공백이다",
+      "right": "reflib_sweep_sionna.json 은 218편 로컬 아카이브 집계이고 meta.known_limits 가 스스로 'not an exhaustive census' 라 적는다. ID 140개 중 135개가 arXiv 형태이고, md-rt(IEEE ICCT 2025) 는 이 sweep 에 없다 — 우리가 docs/DRONE_ISAC_PRIOR_READING.md §1 #7 로 정독해 둔 논문인데도 그렇다. 또한 sionna_used 137편 중 110편이 MACHINE_CENSUS_ONLY 로 표적 표현이 쪽 단위로 확인되지 않았다",
+      "correct_wording": "docs/DECK_FACTS.md:513 의 좁힌 판을 정본으로 쓰고 '공개문헌' 이라는 낱말을 버린다",
+      "recurrence": "R20(2026-07-29) 이 이미 같은 원인(arXiv 편향)으로 헤드라인 2건을 무너뜨렸다. 같은 실패가 C1 에 남아 있다",
+      "severity": "high — 재발"
+    }
+  ],
+
+  "open_exposures_not_yet_refutations": [
+    {
+      "id": "E1",
+      "what": "패싯(메시 삼각형) 밀도 축의 수렴이 한 번도 측정되지 않았다",
+      "detail": "커널 수렴 연구는 전부 광선격자 λ/div 축이다. 표면적/삼각형수에서 추정한 λ/등가변은 5.21 GHz 에서 s1000plus 6.5 · x500v2 7.9 · phantom4 10.9 로 내려간다",
+      "grade": "방금센것(가설). 이 수로 오차를 주장할 수 없다 — 패싯축 수렴표가 없다",
+      "cheapest_fix": "구·평판을 패싯 λ/4~λ/20 으로 다시 메시해 σ 를 재는 20분짜리 스윕. Ziganshin E²/(Rλ) 를 그대로 채택"
+    },
+    {
+      "id": "E2",
+      "what": "Ziganshin 런타임 반론에 여전히 답이 없다",
+      "detail": "RETRACTION_LOG '아직 답 못 한 공개 반론' 이 그대로 살아 있다 — 우리 per-pose 비용 미측정. outputs/runtime_benchmark.json 이 존재하므로 다음 라운드에서 바로 메울 수 있다"
+    },
+    {
+      "id": "E3",
+      "what": "편파 — 커널이 스칼라 |Γ| 이고 측정 앵커는 VV 단독이다",
+      "detail": "SIONNA_RT_REFERENCE §6 6행이 '엔진이 우리보다 강하다 … 우리 커널은 스칼라' 라 적는다. C2 의 어떤 게이트도 편파를 시험하지 않는다"
+    }
+  ],
+
+  "verdicts": {
+    "C1": "REFUTED_AS_STATED",
+    "C2": "REFUTED",
+    "C3": "REFUTED_AS_FRAMED"
+  }
+}
