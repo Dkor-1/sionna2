@@ -1,0 +1,988 @@
+{
+ "_meta": {
+  "task": "00편 — 'Sionna 기본 path solver 에는 표적 크기가 σ 로 들어가지 않는다' 의 실측 근거 모음",
+  "date": "2026-08-04",
+  "builder": "scratchpad/build_report00_evidence.py",
+  "rule": "숫자는 손으로 치지 않는다. 전부 outputs/*.json 또는 설치본 코드에서 읽거나 여기서 계산한다.",
+  "sionna": "2.0.1",
+  "fc_hz": 3500000000.0,
+  "lambda_m": 0.085654988,
+  "geometry": {
+   "tx": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rx": [
+    0.0,
+    0.1,
+    0.0
+   ],
+   "tgt": [
+    20.0,
+    0.0,
+    0.0
+   ],
+   "R1": 20.0,
+   "R2": 20.000249998437518,
+   "R_sum": 40.00024999843752,
+   "bistatic_deg": 0.28647651027590837,
+   "note": "자유공간 준-모노스태틱(TX·RX 0.10 m 이격). 벽·바닥 없음."
+  },
+  "solver": {
+   "specular_reflection": true,
+   "diffuse_reflection": false,
+   "refraction": false,
+   "diffraction": false,
+   "los": true,
+   "material": "ITU-metal 근사(conductivity=1e7, S=0)",
+   "budgets": [
+    1000000,
+    4000000,
+    16000000,
+    64000000
+   ],
+   "depths": [
+    1,
+    2
+   ],
+   "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ]
+  },
+  "sources": [
+   "outputs/facet_mechanism.json",
+   "outputs/facet_count.json",
+   "outputs/rt_no_rcs_verify.json",
+   "docs/SIONNA_RT_REFERENCE.md",
+   "docs/RETRACTION_LOG.md",
+   "docs/VERIFY_RT_VS_PO.md",
+   "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/radio_materials/itu_material.py"
+  ],
+  "fairness_note": "Sionna 를 부당하게 깎는 것은 그 자체가 결함이다. F 절을 A~E 와 같은 무게로 읽을 것. 틀린 것은 '도구가 부실하다' 가 아니라 '전파용 도구에 표적 산란을 시켰다' 이다.",
+  "headline": {
+   "plate_size_ratio": 40.0,
+   "po_sigma_span_db": 64.0823996531185,
+   "rt_amplitude_span_db": 7.418911422973906e-07,
+   "shape_gap_sphere_vs_plate_db": 31.28794428232964,
+   "specular_aspects_with_echo": "1 / 36",
+   "drone_collapse_db": 49.02111307779948
+  }
+ },
+ "A_plate_size_sweep": {
+  "claim": "금속 평판의 변을 0.1 m 에서 4.0 m 로(면적 1600배) 키우면 PO 레이더단면적은 64.08 dB 커지지만, Sionna 기본 path solver 의 표적 에코 진폭은 0.0000007 dB 도 움직이지 않는다. 경로 수는 전 구간 1개이고 예산·시드에 무관하다.",
+  "numbers": {
+   "side_m": [
+    0.1,
+    0.2,
+    0.5,
+    1.0,
+    2.0,
+    4.0
+   ],
+   "area_m2": [
+    0.010000000000000002,
+    0.04000000000000001,
+    0.25,
+    1.0,
+    4.0,
+    16.0
+   ],
+   "n_tri": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "sigma_po_dbsm": [
+    -7.662954531332076,
+    4.378245295227172,
+    20.295845642108677,
+    32.337045468667924,
+    44.378245295227174,
+    56.419445121786424
+   ],
+   "amp_po_db": [
+    -114.02550567926451,
+    -101.98430585270526,
+    -86.06670550582376,
+    -74.0255056792645,
+    -61.984305852705255,
+    -49.943106026146005
+   ],
+   "far_field_dist_m": [
+    0.46698973327741305,
+    1.8679589331096522,
+    11.674743331935325,
+    46.6989733277413,
+    186.7958933109652,
+    747.1835732438608
+   ],
+   "rt_coh_db_all_cells": [
+    -75.37211380883035,
+    -75.37211380883035,
+    -75.37211380883035,
+    -75.37211380883035,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149,
+    -75.37211455072149
+   ],
+   "rt_coh_db_value": -75.37211380883035,
+   "rt_span_db": 7.418911422973906e-07,
+   "rt_span_db_from_verdict": 7.418911422973906e-07,
+   "po_theory_span_db": 64.0823996531185,
+   "size_ratio_max": 40.0,
+   "area_ratio_max": 1599.9999999999998,
+   "n_paths_target_set_union": [
+    1
+   ],
+   "detect_rate_all": [
+    1.0
+   ],
+   "coh_sd_all": [
+    0.0
+   ],
+   "spp_list": [
+    1000000,
+    4000000,
+    16000000,
+    64000000
+   ],
+   "n_seeds": 5,
+   "n_cells": 24,
+   "max_depth_tested": [
+    1,
+    2
+   ],
+   "slope_sigma_db_per_area_db": 2.0,
+   "image_source_theory_db": -75.37039822174944,
+   "rt_minus_image_source_db": [
+    -0.0017155870809091311,
+    -0.0017163289720514285,
+    -0.0017163289720514285,
+    -0.0017163289720514285,
+    -0.0017163289720514285,
+    -0.0017163289720514285
+   ],
+   "rt_minus_image_source_max_abs_db": 0.0017163289720514285,
+   "rt_minus_po_db": [
+    38.65339187043416,
+    26.612192043874913,
+    10.694591696993413,
+    -1.3466081295658512,
+    -13.387807956125094,
+    -25.429007782684344
+   ],
+   "rt_minus_po_max_over_db": 38.65339187043416,
+   "rt_minus_po_max_under_db": -25.429007782684344,
+   "side_m_where_rt_equals_po": 0.9254112967767055
+  },
+  "source_path": [
+   "outputs/facet_mechanism.json"
+  ],
+  "source_key": [
+   "A_plate_size",
+   "theory.amp_image_source_db",
+   "VERDICT.plate_size_invariance",
+   "_meta.solver"
+  ],
+  "computed_here": true,
+  "computed_what": "slope_sigma_db_per_area_db(=Δσ_dB/ΔA_dB 회귀), rt_span_db, area_ratio_max, rt_minus_po_db, side_m_where_rt_equals_po. 나머지는 JSON 원값.",
+  "formula": {
+   "sigma_plate_po": "σ = 4πA²/λ²  (A = side², 모노스태틱 정입사 PO)",
+   "amp_from_sigma": "|a| = sqrt(λ²σ / ((4π)³ R1² R2²))  (등방 안테나 레이더식)",
+   "image_source": "|a| = λ / (4π(R1+R2))  — 면적 A 가 식 어디에도 없다",
+   "side_where_rt_is_right": "amp_po_db ∝ 40·log10(side) 이므로 side = 1.0·10^((a_RT − a_PO(1m))/40)"
+  }
+ },
+ "B_facet_count_sweep": {
+  "claim": "드론 메쉬를 29,932 → 450 삼각형(1.82 decade)으로 깎아도 실루엣은 유지되는데, 36 자세 중 정반사 경로가 존재하는 자세는 1개뿐이다. 그 한 자세에서 진폭은 기여 면 개수(2→1→0)를 따라 계단으로 떨어져 총 49.02 dB 붕괴한다. 같은 자세에서 광선은 표적에 닿는다 — 자세당 총 표적경로가 100개를 넘는다.",
+  "numbers": {
+   "n_tri_per_level": [
+    29932,
+    14970,
+    7498,
+    3008,
+    1522,
+    450
+   ],
+   "ratio_per_level": [
+    1.0,
+    0.5,
+    0.25,
+    0.1,
+    0.05,
+    0.01
+   ],
+   "shape_ok_per_level": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    false
+   ],
+   "proj_dev_pct_per_level": [
+    0.0,
+    0.03224419604472839,
+    0.19346517626828152,
+    1.2521968365553748,
+    3.0645869947275917,
+    19.288007003209806
+   ],
+   "bbox_dev_pct_per_level": [
+    0.0,
+    0.0025587127197468362,
+    0.014107010192454528,
+    0.4768923647401446,
+    0.26483187858108437,
+    10.23666360505915
+   ],
+   "n_tri_span_decades": 1.8229232227756536,
+   "spec_probe_spp": 256000000,
+   "spec_probe_az_deg": [
+    0.0,
+    30.0,
+    60.0,
+    90.0,
+    120.0,
+    150.0,
+    180.0,
+    210.0,
+    240.0,
+    270.0,
+    300.0,
+    330.0
+   ],
+   "spec_probe_el_deg": [
+    0.0,
+    15.0,
+    90.0
+   ],
+   "spec_n_aspects": 36,
+   "spec_n_aspects_nonzero_per_level": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    0
+   ],
+   "spec_paths_per_level": [
+    2,
+    2,
+    2,
+    1,
+    1,
+    0
+   ],
+   "spec_coh_db_per_level": [
+    -33.870880126953125,
+    -33.87087631225586,
+    -33.87087631225586,
+    -39.8914794921875,
+    -39.8914794921875,
+    null
+   ],
+   "hot_aspect": {
+    "az_deg": 0.0,
+    "el_deg": 0.0
+   },
+   "hot_spp": 256000000,
+   "hot_n_paths_per_level": [
+    120.66666666666667,
+    120.0,
+    121.33333333333333,
+    120.66666666666667,
+    119.33333333333333,
+    102.33333333333333
+   ],
+   "hot_n_paths_min": 102.33333333333333,
+   "hot_n_paths_max": 121.33333333333333,
+   "hot_coh_db_per_level": [
+    -33.90453592936198,
+    -33.90419133504232,
+    -33.90448125203451,
+    -39.95792007446289,
+    -39.95826975504557,
+    -82.92564900716145
+   ],
+   "hot_incoh_db_per_level": [
+    -36.88117599487305,
+    -36.88117599487305,
+    -36.88117599487305,
+    -39.8914794921875,
+    -39.8914794921875,
+    -102.35656229654948
+   ],
+   "step_2to1_facet_db": -6.053384145100914,
+   "step_1to0_facet_db": -42.96772893269856,
+   "total_collapse_db": 49.02111307779948,
+   "stock_incoh_slope_db_per_decade": 0.09300185500940204,
+   "stock_incoh_slope_shapeok": 0.08414800810379126,
+   "po_slope_db_per_decade": 1.9199881023786225,
+   "po_slope_shapeok": 0.6536598385425566,
+   "stock_incoh_span_db": 0.17004776000976562,
+   "po_span_db": 4.51416682427125,
+   "plate_control": {
+    "n_paths": 1,
+    "n_total": 2,
+    "sec": 0.10561943054199219,
+    "coh_db": -40.002281188964844,
+    "incoh_db": -40.002281188964844,
+    "tau_mean_ns": 66.71615600585938,
+    "truncated": false,
+    "side_m": 0.6,
+    "az_deg": 0.0,
+    "el_deg": 15.0,
+    "spp": 2000000
+   },
+   "verdict_result": "REFUTED",
+   "verdict_specular_channel": "SUPPORTED",
+   "verdict_note": "specular echo exists at 1 of 36 aspects; there its amplitude steps exactly with the number of contributing facets",
+   "theoretical_step_two_to_one_facet_db": -6.020599913279624
+  },
+  "source_path": [
+   "outputs/facet_count.json"
+  ],
+  "source_key": [
+   "verdict.spec_paths_per_level",
+   "verdict.spec_coh_db_per_level",
+   "specular_hot_aspect.aspect",
+   "specular_hot_aspect.rows",
+   "specular_hot_aspect.slopes.step_2to1_facet_db",
+   "specular_hot_aspect.slopes.step_1to0_facet_db",
+   "specular_hot_aspect.slopes.total_collapse_db",
+   "levels[].spec_n_aspects",
+   "levels[].spec_n_aspects_nonzero",
+   "spans",
+   "plate_control",
+   "meta.spec_spp",
+   "meta.spp_main"
+  ],
+  "computed_here": false,
+  "computed_what": "theoretical_step_two_to_one_facet_db = 20·log10(1/2) 만 여기서 계산.",
+  "reading": "자세 35/36 에서 정반사 경로가 0개인 것은 '광선이 표적을 못 찾아서'가 아니다. 같은 자세에 확산을 켜면 표적경유 경로가 100개 넘게 잡힌다. 빈 것은 광선이 아니라 **거울 조건을 만족하는 삼각형**이다."
+ },
+ "C_same_material_different_shape": {
+  "claim": "반지름 0.500 m 금속 구와 같은 정면면적(0.7854 m²) 금속 평판을 같은 3.5 GHz 에서 비교하면 σ 가 31.29 dB 다르다. 재질(PEC)도 반사계수도 정면면적도 같다. 다른 것은 모양뿐이다. 게다가 구의 σ 는 주파수에 무관하고 평판의 σ 는 1/λ² 로 커진다 — 반사계수가 같아도 σ 는 같아지지 않는다.",
+  "numbers": {
+   "fc_hz": 3500000000.0,
+   "lambda_m": 0.085654988,
+   "sphere_kr": 36.67728788415443,
+   "sphere_r_m": 0.5,
+   "sphere_sigma_m2": 0.7853981633974483,
+   "sphere_sigma_dbsm": -1.0491011863382855,
+   "sphere_sigma_dbsm_in_json": -1.0491011863382855,
+   "sphere_recon_err_db": 0.0,
+   "frontal_area_m2": 0.7853981633974483,
+   "plate_same_area_sigma_m2": 1056.5360242694562,
+   "plate_same_area_sigma_dbsm": 30.238843095991356,
+   "shape_gap_db": 31.28794428232964,
+   "plate_sigma_dbsm_at_2fc": 36.259443009270974,
+   "plate_sigma_df_db_per_octave": 6.020599913279618,
+   "sphere_sigma_df_db_per_octave": 0.0,
+   "rt_sphere_detected_amp_db": [
+    -75.37730563032162,
+    -75.37756842077538,
+    -75.41376013405396,
+    -75.4158394619241,
+    -75.39899624406365,
+    -75.37389304591048
+   ],
+   "rt_sphere_detected_minus_flat_plate_db": [
+    -0.0069074085721752,
+    -0.007170199025935631,
+    -0.043361912304519024,
+    -0.045441240174653785,
+    -0.028598022314213267,
+    -0.0034948241610379682
+   ],
+   "rt_sphere_flat_plate_ref_db": -75.37039822174944,
+   "rt_sphere_minus_go_theory_db": {
+    "0.5": null,
+    "5.0": 15.910507256781159,
+    "40.0": 13.033971989466963
+   },
+   "rt_sphere_r0p5_detect_rate": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rt_sphere_r0p5_n_tri": [
+    48,
+    224,
+    960,
+    3968,
+    16128
+   ],
+   "rt_sphere_radius_sweep_m": [
+    0.25,
+    0.5,
+    1.0,
+    2.0,
+    5.0,
+    10.0,
+    20.0,
+    40.0,
+    80.0
+   ],
+   "rt_sphere_radius_sweep_detect": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "source_path": [
+   "outputs/facet_mechanism.json"
+  ],
+  "source_key": [
+   "theory.sphere_kr",
+   "theory.sphere_sigma_dbsm",
+   "_meta.lambda_m",
+   "_meta.fc_hz",
+   "VERDICT.sphere"
+  ],
+  "computed_here": true,
+  "computed_what": "r = kr·λ/2π 로 반지름을 역산 → σ_sphere = πr² 로 JSON 값을 재현(자기검증) → 같은 정면면적 평판의 σ = 4πA²/λ² 를 계산 → 차이. 2f_c 값도 여기서 계산.",
+  "formula": {
+   "sphere": "σ = πr²  (kr ≫ 1 광학영역, GO. λ 에 무관)",
+   "plate": "σ = 4πA²/λ²  (정입사 PO. λ 에 의존)",
+   "why_they_differ": "두 값 모두 |Γ|=1 을 쓴다. 차이는 위상이 면 위에서 어떻게 정렬되는가다 — 평판은 A 전체가 같은 위상으로 더해지고(∝A), 구는 곡률이 위상을 흩어 실효 기여면이 λ 규모의 정반사점 근방으로 줄어든다."
+  }
+ },
+ "D_units_argument": {
+  "claim": "반사계수 Γ 는 무차원이고 σ 는 m² 다. 무차원을 아무리 정확히 계산해도 m² 는 나오지 않는다. 면적은 조명면 위의 **면적분**에서만 들어온다. Sionna 의 정반사 진폭식 λ/(4π(R1+R2)) 에는 면적 기호가 없다 — 그래서 크기가 0.0000007 dB 도 움직이지 못한다.",
+  "numbers": {
+   "gamma_dimension": "1 (무차원)",
+   "sigma_dimension": "m^2",
+   "plate_formula_dimension": "4π·[m²]²/[m]² = m²",
+   "image_source_formula_dimension": "[m]/[m] = 1 (무차원 진폭비)",
+   "rt_amp_db": -75.37211380883035,
+   "image_source_theory_db": -75.37039822174944,
+   "rt_minus_image_source_max_abs_db": 0.0017163289720514285,
+   "rt_span_over_40x_size_db": 7.418911422973906e-07,
+   "R1_m": 20.0,
+   "R2_m": 20.000249998437518,
+   "R_sum_m": 40.00024999843752,
+   "tilt_acceptance": [
+    {
+     "side_m": 0.2,
+     "pred_cutoff_deg": 0.2864788975654116,
+     "last_detected_deg": 0.2,
+     "first_missed_deg": 0.4,
+     "bracket_contains_prediction": true,
+     "coh_spread_within_acceptance_db": 5.475139539612428e-05
+    },
+    {
+     "side_m": 1.0,
+     "pred_cutoff_deg": 1.4323944878270582,
+     "last_detected_deg": 0.8,
+     "first_missed_deg": 1.6,
+     "bracket_contains_prediction": true,
+     "coh_spread_within_acceptance_db": 0.0008464565732566598
+    },
+    {
+     "side_m": 4.0,
+     "pred_cutoff_deg": 5.729577951308233,
+     "last_detected_deg": 3.2,
+     "first_missed_deg": 6.4,
+     "bracket_contains_prediction": true,
+     "coh_spread_within_acceptance_db": 0.013553416323091483
+    }
+   ],
+   "tilt_acceptance_formula": "±(side/2)/R  [rad]",
+   "tilt_pred_cutoff_deg": [
+    0.2864788975654116,
+    1.4323944878270582,
+    5.729577951308233
+   ],
+   "tilt_bracket_contains_prediction": [
+    true,
+    true,
+    true
+   ],
+   "tilt_coh_spread_within_acceptance_db": [
+    5.475139539612428e-05,
+    0.0008464565732566598,
+    0.013553416323091483
+   ],
+   "mechanism_sentence": "Sionna RT 기본 path solver 의 표적 에코는 '정반사 조건을 만족하는 삼각형 하나당 image-source 경로 1개'다. 그 경로의 진폭은 λ/(4π(R1+R2)) — 즉 **무한 거울** 값이고 삼각형의 크기·면적·곡률과 무관하다. 면 크기는 진폭이 아니라 **각도 허용폭 ±(side/2)/R** 로만 들어온다(D 에서 확인). 따라서 산란단면적 σ 정보가 경로 진폭에 실리지 않는다. 여기에 더해, 삼각형이 λ 수준 이하로 잘게 쪼개지면 **동일한 정반사 경로가 인접 삼각형에서 중복 생성**되어 (진폭·위상·지연이 완전히 동일한 복사본) 코히어런트 합으로 20·log10(N) 만큼 전력이 부풀려진다."
+  },
+  "source_path": [
+   "outputs/facet_mechanism.json",
+   "sionna/rt (설치본 2.0.1)"
+  ],
+  "source_key": [
+   "theory.amp_image_source_db",
+   "VERDICT.plate_size_invariance",
+   "VERDICT.tilt_acceptance",
+   "VERDICT.mechanism",
+   "_meta.geometry"
+  ],
+  "computed_here": false,
+  "computed_what": "차원 회계는 식에서 직접 읽었다. 수치는 전부 JSON 원값.",
+  "reading": "면 크기가 Sionna 에 **전혀** 안 들어가는 것은 아니다. 각도 허용폭 ±(side/2)/R 로 들어간다 — 즉 '이 경로가 존재하는가(0/1)' 는 크기가 정하고, '존재할 때 얼마나 센가' 는 크기가 못 정한다. 레이더가 필요한 것은 후자다."
+ },
+ "E_diffuse_workaround_fails": {
+  "claim": "확산산란으로 우회하면 σ 가 아니라 산란계수 S 를 재게 된다. 같은 금속 구에서 S 만 0.2 → 1.0 로 올리면 진폭이 +15.76 dB 움직이고(진폭 ∝ S 예측 +13.98 dB), 이론값에 맞추려면 S ≈ 0.71 를 골라야 한다 — 답을 알고 입력을 고르는 순환논법이다. 게다가 ITU metal 의 산란계수 기본값은 0 이라 금속 표적에서는 확산 채널이 원천적으로 비어 있고, 확산을 켜고 광선을 256배 늘리면 코히어런트 합이 수렴하는 대신 26 dB 더 커진다.",
+  "numbers": {
+   "itu_metal_scattering_coefficient_default": 0.0,
+   "itu_material_py": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/radio_materials/itu_material.py",
+   "itu_material_line": 77,
+   "itu_material_text": "scattering_coefficient: float | mi.Float = 0.0,",
+   "pathsolver_defaults": {
+    "diffuse_reflection": false,
+    "diffraction": false,
+    "edge_diffraction": false,
+    "specular_reflection": true,
+    "refraction": true,
+    "max_depth": 3,
+    "samples_per_src": 1000000,
+    "max_num_paths_per_src": 1000000
+   },
+   "S_values": [
+    0.2,
+    0.5,
+    0.9,
+    1.0
+   ],
+   "S_ratio_db": [
+    -56.5611317187382,
+    -46.75439123238241,
+    -41.72413330670438,
+    -40.797536157323655
+   ],
+   "S_dev_vs_theory_db": [
+    -12.794844704508403,
+    -2.9881042181526087,
+    2.042153707525422,
+    2.9687508569061443
+   ],
+   "S_n_paths": [
+    6,
+    55,
+    174,
+    212
+   ],
+   "S_shift_db": 15.763595561414547,
+   "S_law_prediction_db": 13.979400086720377,
+   "S_shift_minus_prediction_db": 1.7841954746941706,
+   "S_required_to_match_theory": 0.7089384327036415,
+   "budget_convergence": [
+    {
+     "ratio": 1.0,
+     "n_tri": 29932,
+     "spp_lo": 4000000,
+     "spp_hi": 1024000000,
+     "spp_factor": 256.0,
+     "n_paths_lo": 2.75,
+     "n_paths_hi": 866.0,
+     "n_paths_factor": 314.90909090909093,
+     "coh_db_lo": -98.31721496582031,
+     "coh_db_hi": -71.95164489746094,
+     "coh_drift_db": 26.365570068359375,
+     "incoh_db_lo": -101.5645523071289,
+     "incoh_db_hi": -100.2636604309082,
+     "incoh_drift_db": 1.3008918762207031,
+     "pred_if_power_prop_to_paths_db": 24.98185198187084,
+     "coh_drift_minus_pred_db": 1.3837180864885354
+    },
+    {
+     "ratio": 0.1,
+     "n_tri": 3008,
+     "spp_lo": 4000000,
+     "spp_hi": 1024000000,
+     "spp_factor": 256.0,
+     "n_paths_lo": 2.5,
+     "n_paths_hi": 859.25,
+     "n_paths_factor": 343.7,
+     "coh_db_lo": -99.23244094848633,
+     "coh_db_hi": -72.01678657531738,
+     "coh_drift_db": 27.215654373168945,
+     "incoh_db_lo": -102.55595970153809,
+     "incoh_db_hi": -100.30754280090332,
+     "incoh_drift_db": 2.2484169006347656,
+     "pred_if_power_prop_to_paths_db": 25.361795321372252,
+     "coh_drift_minus_pred_db": 1.853859051796693
+    },
+    {
+     "ratio": 0.01,
+     "n_tri": 450,
+     "spp_lo": 4000000,
+     "spp_hi": 1024000000,
+     "spp_factor": 256.0,
+     "n_paths_lo": 1.5,
+     "n_paths_hi": 743.0,
+     "n_paths_factor": 495.3333333333333,
+     "coh_db_lo": -102.49380493164062,
+     "coh_db_hi": -72.60523986816406,
+     "coh_drift_db": 29.888565063476562,
+     "incoh_db_lo": -103.93046188354492,
+     "incoh_db_hi": -100.5316333770752,
+     "incoh_drift_db": 3.3988285064697266,
+     "pred_if_power_prop_to_paths_db": 26.948975547048942,
+     "coh_drift_minus_pred_db": 2.9395895164276205
+    }
+   ],
+   "coh_drift_db_max": 29.888565063476562,
+   "incoh_drift_db_max": 3.3988285064697266,
+   "pec_sphere_rows": [
+    {
+     "r": 0.3,
+     "spp": 1000000,
+     "n_paths": 0
+    },
+    {
+     "r": 0.3,
+     "spp": 16000000,
+     "n_paths": 0
+    },
+    {
+     "r": 1.0,
+     "spp": 1000000,
+     "n_paths": 0
+    },
+    {
+     "r": 1.0,
+     "spp": 16000000,
+     "n_paths": 0
+    },
+    {
+     "r": 3.0,
+     "spp": 1000000,
+     "n_paths": 0
+    },
+    {
+     "r": 3.0,
+     "spp": 16000000,
+     "n_paths": 0
+    }
+   ],
+   "pec_sphere_n_paths_all": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "pec_sphere_radii_m": [
+    0.3,
+    1.0,
+    3.0
+   ],
+   "pec_sphere_spp": [
+    1000000,
+    16000000
+   ],
+   "sphere_specular_only_detect_rate": 0.0,
+   "sphere_specular_only_spp": 16000000,
+   "plate_same_place_detect_rate": 1.0,
+   "plate_same_place_spp": 1000000
+  },
+  "source_path": [
+   "outputs/rt_no_rcs_verify.json",
+   "outputs/facet_count.json",
+   "outputs/facet_mechanism.json",
+   "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt/radio_materials/itu_material.py"
+  ],
+  "source_key": [
+   "rt_no_rcs_verify.json::B_sphere_S",
+   "rt_no_rcs_verify.json::C_pec_sphere",
+   "facet_count.json::budget_sweep",
+   "facet_mechanism.json::C_control",
+   "itu_material.py:ITUMaterial.__init__ scattering_coefficient 기본값"
+  ],
+  "computed_here": true,
+  "computed_what": "S_shift_db, S_law_prediction_db(=20·log10(S_hi/S_lo)), S_required_to_match_theory(dev_db 가 0 을 지나는 S 를 20log10(S) 위에서 선형보간), budget_convergence 의 drift·비교예측값. ITU 기본값과 PathSolver 기본값은 설치본에서 직접 읽음.",
+  "unverified": []
+ },
+ "F_what_sionna_gets_right": {
+  "claim": "Sionna 는 전파 문제에서 정확하다. 같은 씬에서 자유공간 직접파는 Friis 이론과 6.3e-07 dB 안에서 일치한다. 반사 세기는 Fresnel 4계수로 정확히 계산하고, 편파는 2성분 복소 벡터로 운반한다. 1차 UTD 쐐기회절도 구현돼 있다 — 설치본 기본값이 꺼져 있을 뿐이다. 틀린 것은 'Sionna 가 부실하다' 가 아니라 '전파용 도구에 표적 산란을 시켰다' 이다.",
+  "numbers": {
+   "los_amp_measured_db": -23.329144743331106,
+   "los_amp_friis_db": -23.32914410888889,
+   "los_agreement_db": 6.344422160964314e-07,
+   "los_tx_rx_sep_m": 0.1,
+   "sionna_version": "2.0.1",
+   "fresnel": "식 (127)(128) 4계수 r⊥·r∥·t⊥·t∥, 기술보고서 p.46",
+   "jones": "정반사·굴절 2×2 대각 전달행렬 (129)(130), p.46",
+   "polarization": "경로마다 2성분 복소 전계 벡터. 이중편파는 독립 2벡터, p.27",
+   "utd_diffraction": "1차 UTD 쐐기회절 구현됨 — Kouyoumjian–Pathak 을 Luebbers 가 유한도전율로 휴리스틱 확장한 판, 기술보고서 p.47 식 (145)(146)(153)–(156). 설치본 2.0.1 기본값은 diffraction=False / edge_diffraction=False",
+   "utd_retraction": "이 저장소는 '스톡 Sionna 에 회절이 없다'고 잘못 말했다가 철회했다 — docs/RETRACTION_LOG.md R6",
+   "utd_reverse_error_also_banned": "반대 방향 오류도 금지: 'Sionna UTD 가 우리 PTD 결손을 메운다' 도 거짓. Sionna 의 D 는 전파경로의 필드 전달용이고 표적 산란단면 산출이 아니다."
+  },
+  "source_path": [
+   "outputs/facet_mechanism.json",
+   "docs/SIONNA_RT_REFERENCE.md",
+   "docs/RETRACTION_LOG.md",
+   "sionna/rt (설치본 2.0.1)"
+  ],
+  "source_key": [
+   "_meta.convention_check",
+   "SIONNA_RT_REFERENCE.md §3.4·§6·C21·C35·C38",
+   "RETRACTION_LOG.md R6",
+   "PathSolver.__call__ 기본 인자"
+  ],
+  "computed_here": true,
+  "computed_what": "los_agreement_db 만 여기서 뺄셈. 나머지는 JSON·문서·설치본 원문."
+ },
+ "G_exact_wording_infinite_surface": {
+  "claim": "'무한평면 가정' 이라는 거친 요약 대신 기술보고서 원문 세 줄을 인용한다. 무한 크기 가정은 경로 기하(p.19)·반사계수(p.46)·에너지 회계(p.35) 세 층에 각각 박혀 있고, 슬래브 모델이 완화하는 것은 두께뿐이며 측방 크기는 끝까지 무한이다.",
+  "numbers": {
+   "quote_path_geometry": "p.19 — \"the image method assumes all reflection surfaces extend infinitely, making the exact in-plane position of a primitive irrelevant to the path geometry\"",
+   "quote_coefficients": "p.46 — \"The reflection and refraction coefficients described above assume that the object reflecting the wave or allowing it to penetrate is of infinite size (or thickness).\"",
+   "quote_energy": "p.35 — \"only the source s and diffuse reflection points act as point sources that spawn new ray tubes, whereas specular reflection and refraction points merely deviate existing ray tubes rather than spawning new ones.\"",
+   "quote_slab": "p.46–47 — \"…is of infinite size (or thickness). However… it is often more practical to assume that the object has a finite thickness.\" → 완화되는 것은 두께뿐이고 측방 크기는 무한으로 남는다 (Figure 32)",
+   "caution_locally": "'locally planar' 는 우리 낱말이 아니다. 기술보고서에 2회 나오고 둘 다 다른 뜻이다 — p.8 은 엣지 인덱스가 identified locally, p.50 은 입사파가 \"an incoming locally planar linearly polarized wave\". 평면인 것은 파(wave)이지 표면이 아니다. 표면에 대해서는 조건 없이 extend infinitely / of infinite size 라고 쓴다.",
+   "missing_layer": "빠진 층은 표면전류 면적분이다. SIONNA_RT_REFERENCE.md §6 행 5: 엔진이 하는 것 = 아무것도 없음(경계의 중심선), 엔진이 안 하는 것 = J_s 면적분·정규화 원거리장·σ 정의. 우리가 얹은 것 = GO 가림 + PO 적분."
+  },
+  "source_path": [
+   "docs/SIONNA_RT_REFERENCE.md"
+  ],
+  "source_key": [
+   "§3.4 '무한 크기 가정이 두 층에 박혀 있다' 표",
+   "§6 (a)(b)(c)(d) 표 행 1·5",
+   "§6.1 행별 결정 인용"
+  ],
+  "computed_here": false,
+  "computed_what": "원문 인용만. 숫자 없음."
+ },
+ "H_tessellation_changes_the_answer": {
+  "claim": "같은 1 m 금속 평판을 2 → 512 삼각형으로 쪼개기만 해도 코히어런트 전력이 9.54 dB 부풀어 오른다. 늘어난 경로들은 진폭·위상·지연이 완전히 같은 복사본이고(산포 0.0), 합은 20·log10(N) 을 0.0017 dB 안에서 따른다. 격자 위치를 옮겨도 중복은 사라지지 않는다.",
+  "numbers": {
+   "per_side": [
+    {
+     "side_m": 0.2,
+     "n_tri": [
+      2,
+      8,
+      32,
+      128,
+      512
+     ],
+     "facet_edge_m": [
+      0.2,
+      0.1,
+      0.05,
+      0.025,
+      0.0125
+     ],
+     "facet_edge_lambda": [
+      2.3349486663870644,
+      1.1674743331935322,
+      0.5837371665967661,
+      0.29186858329838306,
+      0.14593429164919153
+     ],
+     "n_paths": [
+      1,
+      1,
+      2,
+      2,
+      2
+     ],
+     "coh_db": [
+      -75.37211455072149,
+      -75.37211455072149,
+      -69.35151315365965,
+      -69.35151330203789,
+      -69.35151330203786
+     ],
+     "spread_db": 6.020601397061839,
+     "resid_vs_20logN_db": [
+      -0.0017163289720514285,
+      -0.0017163289720514285,
+      -0.001714845189837888,
+      -0.0017149935680720318,
+      -0.0017149935680436101
+     ]
+    },
+    {
+     "side_m": 1.0,
+     "n_tri": [
+      2,
+      8,
+      32,
+      128,
+      512
+     ],
+     "facet_edge_m": [
+      1.0,
+      0.5,
+      0.25,
+      0.125,
+      0.0625
+     ],
+     "facet_edge_lambda": [
+      11.674743331935321,
+      5.837371665967661,
+      2.9186858329838303,
+      1.4593429164919152,
+      0.7296714582459576
+     ],
+     "n_paths": [
+      1,
+      1,
+      1,
+      2,
+      3
+     ],
+     "coh_db": [
+      -75.37211455072149,
+      -75.37211455072149,
+      -75.37211455072149,
+      -69.35151537933307,
+      -65.82968945632827
+     ],
+     "spread_db": 9.542425094393224,
+     "resid_vs_20logN_db": [
+      -0.0017163289720514285,
+      -0.0017163289720514285,
+      -0.0017163289720514285,
+      -0.0017170708632505693,
+      -0.0017163289720798502
+     ]
+    }
+   ],
+   "max_inflation_db": 9.542425094393224,
+   "all_paths_identical": true,
+   "per_path_amp_equals_image_source": true,
+   "coherent_N_law_max_resid_db": 0.0017173181603311605,
+   "offset_removes_duplication": false,
+   "duplication_onset": [
+    {
+     "side_m": 0.2,
+     "first_dup_facet_edge_m": 0.05,
+     "first_dup_facet_edge_lambda": 0.5837371665967661,
+     "largest_single_facet_edge_m": 0.1
+    },
+    {
+     "side_m": 1.0,
+     "first_dup_facet_edge_m": 0.125,
+     "first_dup_facet_edge_lambda": 1.4593429164919152,
+     "largest_single_facet_edge_m": 0.25
+    }
+   ],
+   "duplicate_path_forensics": [
+    {
+     "side_m": 1.0,
+     "k": 16,
+     "n_paths": 3,
+     "coh_db": -65.82969044551652,
+     "per_path_amp_db": [
+      -75.37211608886719,
+      -75.37211608886719,
+      -75.37211608886719
+     ],
+     "amp_spread_db": 0.0,
+     "tau_spread_ns": 0.0,
+     "phase_spread_deg": 0.0,
+     "vertex_max_dev_mm": 0.6598298997146745,
+     "resid_vs_20logN_db": -0.0017173181603311605
+    },
+    {
+     "side_m": 1.0,
+     "k": 8,
+     "n_paths": 2,
+     "coh_db": -69.3515146374419,
+     "per_path_amp_db": [
+      -75.37211608886719,
+      -75.37211608886719
+     ],
+     "amp_spread_db": 0.0,
+     "tau_spread_ns": 0.0,
+     "phase_spread_deg": 0.0,
+     "vertex_max_dev_mm": 0.25572310551069677,
+     "resid_vs_20logN_db": -0.0017163289720798502
+    },
+    {
+     "side_m": 1.0,
+     "k": 1,
+     "n_paths": 1,
+     "coh_db": -75.37211455072149,
+     "per_path_amp_db": [
+      -75.37211608886719
+     ],
+     "amp_spread_db": 0.0,
+     "tau_spread_ns": 0.0,
+     "phase_spread_deg": 0.0,
+     "vertex_max_dev_mm": 0.026628326472044214,
+     "resid_vs_20logN_db": -0.0017163289720514285
+    },
+    {
+     "side_m": 0.2,
+     "k": 4,
+     "n_paths": 2,
+     "coh_db": -69.35151315365965,
+     "per_path_amp_db": [
+      -75.37211608886719,
+      -75.37211608886719
+     ],
+     "amp_spread_db": 0.0,
+     "tau_spread_ns": 0.0,
+     "phase_spread_deg": 0.0,
+     "vertex_max_dev_mm": 0.40830904617972485,
+     "resid_vs_20logN_db": -0.001714845189837888
+    },
+    {
+     "side_m": 0.2,
+     "k": 1,
+     "n_paths": 1,
+     "coh_db": -75.37211455072149,
+     "per_path_amp_db": [
+      -75.37211608886719
+     ],
+     "amp_spread_db": 0.0,
+     "tau_spread_ns": 0.0,
+     "phase_spread_deg": 0.0,
+     "vertex_max_dev_mm": 0.02683848172426603,
+     "resid_vs_20logN_db": -0.0017163289720514285
+    }
+   ]
+  },
+  "source_path": [
+   "outputs/facet_mechanism.json"
+  ],
+  "source_key": [
+   "VERDICT.subdivide",
+   "B_subdivide",
+   "E_subdivide_offset",
+   "G_duplicate_paths"
+  ],
+  "computed_here": false,
+  "computed_what": "JSON 원값. 파생 없음."
+ }
+}

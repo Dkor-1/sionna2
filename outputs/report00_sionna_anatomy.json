@@ -1,0 +1,228 @@
+{
+  "_meta": {
+    "title": "Sionna RT 설치본 해부 — 무엇을 계산하는가",
+    "purpose_ko": "리포트 00(가르치는 편)의 근거 JSON. 모든 수치는 여기서 num()/fetch() 로 주입한다. 손타이핑 금지.",
+    "generated_on": "2026-08-04",
+    "install_root": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt",
+    "python": "/home/yunjung/.venvs/py312/bin/python",
+    "method_ko": "설치본 소스 직접 독해 + 실행 프로브. 인용된 줄 번호는 모두 위 설치본 기준.",
+    "companion_json": "outputs/report00_sionna_probe.json",
+    "fairness_note_ko": "이 편의 결론은 'Sionna 가 부실하다' 가 아니다. Sionna 는 자기가 계산한다고 말한 것(표면 반사·투과·회절·확산산란)을 정확히 계산한다. 틀린 것은 전파용 도구에 표적 산란을 시킨 사용법이다."
+  },
+
+  "item6_versions": {
+    "what": "설치된 스택의 실제 버전 (직접 import 해서 찍음)",
+    "where": "런타임 확인: python -c 'import sionna, mitsuba, drjit'",
+    "verbatim": "python 3.12.13\nsionna 2.0.1\nsionna.rt 2.0.1\nmitsuba 3.8.0\ndrjit 1.3.1",
+    "values": {
+      "python": "3.12.13",
+      "sionna": "2.0.1",
+      "sionna_rt": "2.0.1",
+      "mitsuba": "3.8.0",
+      "drjit": "1.3.1",
+      "sionna_rt_py_files": 49
+    },
+    "reading_ko": "sionna.rt 는 sionna 와 같은 2.0.1 을 보고하지만 별도 배포 패키지다. RT 엔진의 실체는 Mitsuba 3.8.0 이고, 그 밑의 Dr.Jit 1.3.1 이 JIT 컴파일과 GPU 벡터화를 담당한다. 즉 Sionna RT 는 '렌더러 위에 얹은 전파 계층' 이다 — 기하(광선-삼각형 교차)는 Mitsuba 가, 전자기(Fresnel·Jones·UTD)는 Sionna 가 맡는다. 이 분업이 뒤에 나올 모든 한계의 뿌리다."
+  },
+
+  "item1_ray_shooting_and_dedup": {
+    "what": "광선을 쏘는 곳, 그리고 여러 광선이 같은 경로로 '합쳐지는' 지점",
+
+    "a_spawn": {
+      "what": "광선 발사: 소스마다 samples_per_src 개를 구면에 균일 분포로 쏜다",
+      "where": [
+        "path_solvers/path_solver.py:148",
+        "path_solvers/sb_candidate_generator.py:278",
+        "path_solvers/sb_candidate_generator.py:285",
+        "utils/ray_tracing.py:16-31",
+        "utils/ray_tracing.py:53-54"
+      ],
+      "verbatim": "path_solver.py:148:                 samples_per_src: int = 1000000,\n\nsb_candidate_generator.py:278:        num_samples = samples_per_src*num_sources\nsb_candidate_generator.py:285:        ray = spawn_ray_from_sources(fibonacci_lattice, samples_per_src,\nsb_candidate_generator.py:286:                                     src_positions)\n\nray_tracing.py:24:    golden_ratio = (1.+dr.sqrt(mi.Float64(5.)))/2.\nray_tracing.py:25:    ns = dr.arange(mi.Float64, 0, num_points)\nray_tracing.py:27:    x = ns/golden_ratio\nray_tracing.py:28:    x = x - dr.floor(x)\nray_tracing.py:29:    y = ns/(num_points-1)\nray_tracing.py:53:    samples_on_square = lattice(samples_per_src)\nray_tracing.py:54:    k_world = mi.warp.square_to_uniform_sphere(samples_on_square)",
+      "reading_ko": "기본값 samples_per_src=1,000,000. 방향은 난수가 아니라 피보나치 격자(황금비 나선)를 구면에 사상한 준(準)균일 분포다. 난수보다 뭉침이 적어 같은 개수로 더 고르게 훑는다. 핵심: 이 광선들은 '에너지를 나눠 갖는 광선' 이 아니라 '경로를 찾으러 보낸 정찰병' 이다. 이 구분이 다음 (b),(c) 의 전부다."
+    },
+
+    "b_dedup_point": {
+      "what": "⭐ 여러 광선이 같은 경로로 합쳐지는 정확한 지점 — 해시 카운터로 중복을 버린다",
+      "where": [
+        "path_solvers/sb_candidate_generator.py:42-45",
+        "path_solvers/sb_candidate_generator.py:51-59",
+        "path_solvers/sb_candidate_generator.py:474",
+        "path_solvers/sb_candidate_generator.py:484-498",
+        "path_solvers/sb_candidate_generator.py:501"
+      ],
+      "verbatim": "sb_candidate_generator.py:42-45 (docstring):\n    This generator ensures that all specular chain candidates are uniquely\n    present in the returned buffer. This uniqueness is ensured through hashing\n    of the paths. Note that this can causes loss of candidates due to hash\n    collisions.\n\nsb_candidate_generator.py:474:                new_specular = specular_chain & los_visible\nsb_candidate_generator.py:484:                for i in range(num_hashes):\nsb_candidate_generator.py:485:                    path_target_hash = hash_fnv1a(t, h=hashes[i])\nsb_candidate_generator.py:486:                    counter_ind = path_target_hash % spec_counter_size\nsb_candidate_generator.py:487:                    counter_ind += spec_counter_size*samples_data.src_indices\nsb_candidate_generator.py:496:                    samples_counter = dr.scatter_inc(specular_chain_counters[i],\nsb_candidate_generator.py:497:                                                     counter_ind, new_specular)\nsb_candidate_generator.py:498:                    new_specular &= samples_counter == 0\nsb_candidate_generator.py:501:                store = active & (valid | new_specular)",
+      "reading_ko": "⭐ 여기가 합류 지점이다. 각 광선이 부딪힌 평면들의 해시(FNV-1a)를 누적해 경로 지문을 만들고, 그 지문의 카운터를 원자적으로 증가시킨다(dr.scatter_inc). 증가 '이전' 값이 0인 광선만 new_specular 로 남는다(498줄). 즉 같은 경로를 발견한 백만 개의 광선 중 **맨 처음 하나만 저장되고 나머지는 전부 버려진다**. 더해지는 게 아니라 버려진다. 그래서 광선을 100배 더 쏴도 경로 목록은 같고 진폭도 같다. 광선 수는 '경로를 놓칠 확률' 만 낮출 뿐 진폭에 곱해지지 않는다. 부작용도 정직하게: 해시 충돌이 나면 서로 다른 경로가 같은 지문을 갖고 하나가 소실된다(43-45줄이 직접 인정). 그래서 카운터 배열을 소스당 최소 1e6 으로 크게 잡는다(MIN_SPEC_COUNT_SIZE)."
+    },
+
+    "c_refinement": {
+      "what": "이미지법: 거칠게 찾은 후보 경로를 정확한 정반사 경로로 정제하거나 폐기",
+      "where": [
+        "path_solvers/image_method.py:28-47",
+        "path_solvers/path_solver.py:222-229"
+      ],
+      "verbatim": "image_method.py:37-47 (docstring):\n    4. Image computations: Images of the sources are computed by reflecting them\n    on surfaces on which a specular reflection occurred. Refraction events\n    are ignored during this step.\n\n    5. Backtracking: Tracing is done backward from the targets to the sources,\n    by spawning rays toward the images, first from the target, then from the\n    intersection points of the rays with the scene. These intersection\n    points are the final vertices of the paths for specular reflections and\n    refractions. If intersections with other primitives than the ones computed\n    during the candidates generation are found, then the paths are discarded,\n    i.e., flagged as a non-valid candidate.",
+      "reading_ko": "샷앤바운스(SBR)로 찾은 후보는 '어느 면들을 어떤 순서로 맞았나' 라는 위상 정보만 믿을 만하고, 교점 좌표는 근사다. 이미지법이 소스를 각 면에 대해 거울반사시켜 상(image)을 만들고 표적에서 역추적하여 **정확한** 반사점을 다시 찍는다. 결과적으로 최종 경로 기하는 광선을 몇 개 쐈는지와 무관한 해석해다. 이것이 (b)의 결론을 두 번째로 못박는다: 광선 수는 후보를 '발견' 하는 데만 쓰이고, 발견된 뒤에는 기하도 진폭도 해석적으로 다시 계산된다."
+    },
+
+    "d_ray_count_in_amplitude": {
+      "what": "⭐ '광선 수가 진폭에 들어가는 경로' 를 코드로 끝까지 추적한 결과 — 정직하게: 정반사는 없다, 확산산란은 있다",
+      "where": [
+        "path_solvers/field_calculator.py:209-222",
+        "path_solvers/field_calculator.py:313",
+        "path_solvers/field_calculator.py:323-347",
+        "radio_materials/radio_material.py:939",
+        "radio_materials/radio_material.py:960"
+      ],
+      "verbatim": "field_calculator.py:209-222:\n        # Solid angle of the ray tube.\n        # It is required to compute the diffusely reflected field.\n        # Initialized assuming that all the rays initially spawn from the source\n        # share the unit sphere equally, i.e., initialized to\n        # 4*PI/samples_per_src.\n        ...\n        solid_angle = dr.full(mi.Float, 4.*dr.pi*dr.rcp(samples_per_src),\n                              num_paths)\n\nfield_calculator.py:313:            solid_angle = dr.select(diffuse, dr.two_pi, solid_angle)\n\nradio_material.py:939:        solid_angle = si.t\nradio_material.py:960:        jones_mat = dr.sqrt(fs * solid_angle) * gamma * self._xpd_jones_mat\n\nfield_calculator.py:346-347:\n                a_ = jones_vec_dot(tgt_pattern, e_field)\n                a_ *= spreading_factor*wl_scaling",
+      "reading_ko": "⭐ 공정하게 답하면 '경우에 따라 다르다'. (1) 정반사·투과·회절 경로: 최종 진폭 a 는 안테나 패턴 · Jones 행렬 곱 · spreading_factor · λ/4π 로만 만들어진다(346-347줄). samples_per_src 가 들어갈 자리가 없다. (2) 확산산란 경로: solid_angle 이 4π/samples_per_src 로 초기화되고(221줄), 이것이 si.t 에 실려 재질로 전달돼 sqrt(fs · solid_angle) 로 진폭에 곱해진다(960줄). 즉 확산산란 진폭은 1/sqrt(samples_per_src) 에 비례한다. 이건 버그가 아니라 몬테카를로 추정기의 정상 정규화다 — 경로 하나하나는 작아지지만 경로 개수가 N 에 비례해 늘어 총 전력은 수렴한다. 중요한 함의: 확산산란을 켜면 결과가 광선 수에 의존하므로 수렴을 확인해야 하고, 끄면(기본값) 진폭은 광선 수와 완전히 무관하다. 다만 첫 반사가 확산이면 ray_tube_length 가 0 으로 리셋되고 solid_angle 이 2π 로 덮어써지므로(307·313줄), 초기 4π/N 은 **첫 상호작용에만** 살아있다."
+    },
+
+    "e_empirical_proof": {
+      "what": "실행 프로브: 광선 수를 400배 늘려도 정반사 진폭은 비트 단위로 동일",
+      "where": "outputs/report00_sionna_probe.json → exp_a_ray_count_sweep, summary",
+      "verbatim": "[A] samples_per_src=    10000  |a|=8.030735e-04  paths=1\n[A] samples_per_src=   100000  |a|=8.030735e-04  paths=1\n[A] samples_per_src=  1000000  |a|=8.030735e-04  paths=1\n[A] samples_per_src=  4000000  |a|=8.030735e-04  paths=1",
+      "reading_ko": "1만 → 400만 광선(400배)에서 |a| 가 소수점 아래 전부 동일하다. 스프레드 정확히 0 dB. 코드 독해가 맞았음을 실행으로 확인한 것이다. 이건 Sionna 의 장점이지 결함이 아니다 — 사용자가 광선 수를 튜닝해서 답을 바꿀 수 없다는 뜻이니까."
+    }
+  },
+
+  "item2_field_calculation_arguments": {
+    "what": "⭐ 필드 계산 인자 목록 — 곡률·면적·크기·삼각형 크기가 '없다' 는 것을 인자로 보인다",
+    "where": [
+      "radio_materials/radio_material.py:853-863",
+      "radio_materials/radio_material.py:581-582",
+      "path_solvers/field_calculator.py:404-405",
+      "utils/electromagnetics.py:60-65"
+    ],
+    "verbatim": "radio_material.py:853-863:\n    def _specular_reflection_transmission_matrix(\n        self,\n        to_world: mi.Matrix3f,\n        ki_local: mi.Vector3f,\n        ko_local: mi.Vector3f,\n        reflection: mi.Bool,\n        r_te: mi.Complex2f,\n        r_tm: mi.Complex2f,\n        t_te: mi.Complex2f,\n        t_tm: mi.Complex2f\n    ) -> mi.Matrix4f:\n\n(런타임 확인)\ninspect.signature(...) -> ['self', 'to_world', 'ki_local', 'ko_local', 'reflection', 'r_te', 'r_tm', 't_te', 't_tm']\n\nfield_calculator.py:404-405:\n        normal_world = paths.get_primitive_props(depth, return_normal=True,\n                                                 return_vertices=False, active=active)\n\nelectromagnetics.py:60-65:\ndef itu_coefficients_single_layer_slab(\n    cos_theta: mi.Float,\n    eta: mi.Complex2f,\n    d: mi.Float,\n    wavelength: mi.Float\n    ) -> Tuple[mi.Complex2f, mi.Complex2f, mi.Complex2f, mi.Complex2f]:",
+    "argument_inventory": {
+      "to_world": "국소→월드 3x3 회전 행렬 (자세, 크기 아님)",
+      "ki_local": "입사 진행 방향 단위벡터",
+      "ko_local": "산란 진행 방향 단위벡터",
+      "reflection": "반사인가 투과인가 하는 불리언",
+      "r_te": "TE 반사계수 (Fresnel, 복소)",
+      "r_tm": "TM 반사계수 (Fresnel, 복소)",
+      "t_te": "TE 투과계수 (복소)",
+      "t_tm": "TM 투과계수 (복소)"
+    },
+    "absent_quantities": [
+      "표면 곡률 (주곡률반경 R1, R2)",
+      "물체 면적 A",
+      "물체 치수 L (전장·폭·높이)",
+      "부딪힌 삼각형의 면적 또는 변 길이",
+      "삼각형 정점 좌표 (return_vertices=False 로 명시적으로 요청하지 않음)",
+      "인접 삼각형 정보 (회절을 끈 경우)",
+      "파장 (이 함수 안에는 없음; 상위 Fresnel 계수 계산에만 들어감)"
+    ],
+    "reading_ko": "⭐ 인자는 여덟 개고, 그 중 여섯 개는 방향(단위벡터·회전)과 Fresnel 계수다. 물체가 얼마나 큰지, 얼마나 휘었는지, 부딪힌 삼각형이 손톱만한지 축구장만한지를 알려주는 인자가 하나도 없다. 더 결정적인 증거는 field_calculator.py:404-405 이다 — 호출부가 return_vertices=False 로 **정점 좌표를 일부러 요청하지 않는다**. 법선만 가져온다. 삼각형의 크기를 알 수 있는 유일한 통로를 스스로 닫아둔 것이다.\n\n그래서 정확히 이렇게 말해야 한다(거친 요약 금지): Sionna 는 '무한평면을 가정한다' 고 말하면 반박당한다. 실제로는 유한한 삼각형을 쓰고, 광선이 그 삼각형을 맞았는지 아닌지는 Mitsuba 가 정확히 판정한다(가림·그림자는 제대로 작동한다). 정확한 진술은 이것이다: **광선이 면을 맞았는가는 유한 기하로 판정하되, 맞은 뒤 필드를 얼마나 바꿀지는 국소 평면파-평면경계 문제의 해로 계산한다.** 즉 크기는 'yes/no' 로만 쓰이고 'how much' 에는 쓰이지 않는다. 이게 회절 적분(유한 개구가 만드는 산란 패턴)이 없다는 말의 정확한 의미다.\n\n공정하게: 이 계산 자체는 정확하다. Fresnel r_te/r_tm 은 ITU-R P.2040 단층 슬래브 식(43),(44) 를 그대로 구현했고(electromagnetics.py:60-90), 편파는 Jones 행렬로 완전히 다룬다. 벽·바닥·건물처럼 프레넬 존보다 훨씬 큰 면에 대해서는 이게 맞는 답이다."
+  },
+
+  "item3_spreading_factor": {
+    "what": "spreading_factor — 자유공간 확산 손실. 반사는 1/ray_tube_length, 회절은 1/sqrt(s·s'·(s+s'))",
+    "where": [
+      "path_solvers/field_calculator.py:224-228",
+      "path_solvers/field_calculator.py:306-308",
+      "path_solvers/field_calculator.py:323-329",
+      "path_solvers/field_calculator.py:347"
+    ],
+    "verbatim": "field_calculator.py:224-228:\n        # Length of the ray tube.\n        # Note that this is different from the length of the path, as every\n        # diffuse interaction generates a new ray tube, and therefore\n        # effectively \"resets\" the ray tube length.\n        ray_tube_length = dr.copy(path_length)\n\nfield_calculator.py:306-308:\n            # Updates the ray tube length\n            ray_tube_length = dr.select(diffuse, 0.0, ray_tube_length)\n            ray_tube_length += dr.select(active, length, 0.)\n\nfield_calculator.py:323-329:\n        # Scaling to apply free-space propagation loss\n        spreading_factor = dr.select(has_diffraction,\n                                     dr.rcp(dr.sqrt(s*s_prime*(s + s_prime))),\n                                     dr.rcp(ray_tube_length))\n\n        # Scaling by wavelength\n        wl_scaling = wavelength * dr.rcp(4.*dr.pi)",
+    "symbols": {
+      "ray_tube_length": "마지막 확산산란 이후 누적된 경로 길이 [m]. 확산이 없으면 소스→표적 전체 길이.",
+      "s": "회절점에서 표적(수신)까지 거리 [m]",
+      "s_prime": "소스(송신)에서 회절점까지 거리 [m]",
+      "spreading_factor": "파면이 퍼지면서 진폭이 줄어드는 비율 [1/m]",
+      "wl_scaling": "λ/4π — 안테나 유효개구를 진폭 스케일로 환산한 상수 [m]"
+    },
+    "reading_reflection_ko": "왜 평면 반사는 '거리만' 으로 끝나는가. 점원에서 나온 구면파는 진폭이 1/r 로 준다. 이 구면파가 **평평한** 면에 부딪히면, 반사된 파면은 여전히 구면이고 그 중심은 소스를 면에 대해 거울반사시킨 상(image)의 위치다. 상은 면 뒤 s' 만큼에 있으므로, 반사점에서 s 를 더 간 수신점은 상으로부터 s'+s 거리에 있다. 따라서 진폭은 1/(s'+s) — 정확히 1/ray_tube_length 다. 즉 **평면 반사는 파면의 곡률을 바꾸지 않으므로(곡률 반경이 그냥 계속 자란다) 거리 합만 알면 끝난다.** 코드가 반사 때마다 별도 곡률 갱신 없이 길이만 누적하는(308줄) 이유가 이것이다.\n\n굽은 면이면 무엇이 더 붙는가. 일반적인 기하광학 확산 인자는 비점수차(astigmatic) 광선관 공식 A(s) = sqrt( ρ1·ρ2 / ((ρ1+s)(ρ2+s)) ) 이고, ρ1·ρ2 는 반사 **직후** 파면의 두 주곡률반경이다. 곡면 반사에서는 이 ρ 가 입사 파면 곡률과 **면의 주곡률반경** 이 섞여 결정된다(1/ρ = 입사곡률항 + 면곡률·입사각항). 면이 평평하면 면곡률항이 0 이 되어 ρ = s' 가 되고, 위 식이 s'/(s'+s) 로 붕괴한다 — 여기에 소스에서 반사점까지의 1/s' 를 곱하면 정확히 1/(s+s') 다. 즉 **Sionna 는 일반 공식의 '면곡률 = 0' 특수해를 정확히 구현하고 있다.** 빠진 것은 면곡률항 하나인데, 이걸 채우려면 그 점에서 표면의 제2기본형식(주곡률)이 필요하고, 삼각형 메쉬는 각 면이 정의상 곡률 0 이라 그 정보가 애초에 없다. 드론 동체처럼 곡면인 표적에서 오목면이 만드는 집속(focusing)이나 볼록면이 만드는 추가 발산이 재현되지 않는 이유가 이것이다.",
+    "reading_diffraction_ko": "회절의 1/sqrt(s·s'·(s+s')) 는 두 조각의 곱으로 읽어야 뜻이 보인다: (1/s') × sqrt( s' / (s·(s+s')) ). 앞의 1/s' 는 소스에서 회절 모서리까지 오는 구면파의 평범한 확산이다. 뒤의 sqrt(s'/(s(s+s'))) 가 UTD 표준 모서리 확산 인자다. 왜 sqrt 인가 — 모서리에서 나온 회절파는 켈러 원뿔(Keller cone)을 따라 한 방향으로는 원통형으로 퍼지기 때문이다. 완전한 원통파라면 1/sqrt(s), 완전한 구면파라면 1/s 인데, 유한 거리 s' 에서 온 파는 그 사이의 비점수차 파면이라 두 반경(하나는 s' 에서 온 것, 하나는 모서리 자체)이 섞인 형태로 나온다. has_diffraction 플래그로 분기하는 이유는(324줄) 이 파면 형태가 반사와 근본적으로 다르기 때문이다.",
+    "reading_wavelength_ko": "λ/4π (329줄) 는 표적 크기와 무관한 상수다. 여기서 λ 가 등장하는 것을 보고 '파장 의존성이 있으니 산란도 다루겠지' 라고 오해하기 쉽다. 아니다. 이 λ 는 등방 안테나의 유효개구 A_eff = λ²/4π 를 진폭 차원으로 옮긴 것이고, 순전히 **수신 안테나** 쪽 항이다. 표적의 전기적 크기(L/λ)는 이 식 어디에도 들어오지 않는다."
+  },
+
+  "item4_diffraction": {
+    "what": "회절: 기본값은 꺼져 있으나, 구현은 실재한다 (UTD 쐐기 + Luebbers 유한도전율 확장)",
+    "where": [
+      "path_solvers/path_solver.py:154-156",
+      "radio_materials/radio_material.py:974-979",
+      "radio_materials/radio_material.py:1031-1062",
+      "radio_materials/radio_material.py:1080-1100",
+      "utils/wedges.py:92-106",
+      "path_solvers/sb_candidate_generator.py:48-49"
+    ],
+    "verbatim": "path_solver.py:154-156:\n                 diffraction: bool = False,\n                 edge_diffraction: bool = False,\n                 diffraction_lit_region: bool = True,\n\nradio_material.py:974-979 (docstring):\n        Computes the Jones matrix of diffracted rays\n\n        This method computes the Jones matrix for electromagnetic wave diffraction\n        at a wedge edge using the uniform theory of diffraction (UTD). The matrix\n        describes the transformation of the incident wave into the diffracted wave.\n\nradio_material.py:1031, 1049-1062:\n        n = exterior_angle * dr.rcp(dr.pi)\n        ...\n        factor = -dr.exp(mi.Complex2f(0, -dr.pi/4))\n        factor *= dr.rcp(2 * n * dr.safe_sqrt(dr.two_pi * wavenumber)\n                         * dr.sin(beta0))\n        d1 = cot( (dr.pi + dif_phi) * dr.rcp(2 * n) )\n        d2 = cot( (dr.pi - dif_phi) * dr.rcp(2 * n) )\n        d3 = cot( (dr.pi + sum_phi) * dr.rcp(2 * n) )\n        d4 = cot( (dr.pi - sum_phi) * dr.rcp(2 * n) )\n        d1 *= factor * f_utd(wavenumber * l * a1)\n\nradio_material.py:1080-1090:\n        # Compute fresnel coefficients for both faces\n        r_te_0, r_tm_0, _, _ =\\\n            itu_coefficients_single_layer_slab(dr.abs(dr.sin(phi_prime)),\n                                               eta, self._d, wavenumber)\n        r_te_n, r_tm_n, _, _ =\\\n            itu_coefficients_single_layer_slab(dr.abs(dr.sin(exterior_angle-phi)),\n                                               eta, self._d, wavenumber)\n\nradio_material.py:1096-1100:\n        d12 = -(d1 + d2)\n        r_te_0 *= d4\n        r_tm_0 *= d4\n        r_te_n *= d3\n        r_tm_n *= d3\n\nsb_candidate_generator.py:48-49:\n    # Probability of selecting a diffraction event from a valid wedge\n    DIFFRACTION_SAMPLING_PROBABILITY = 0.2",
+    "defaults": {
+      "diffraction": false,
+      "edge_diffraction": false,
+      "diffraction_lit_region": true,
+      "diffraction_sampling_probability": 0.2,
+      "verified_by_ko": "inspect.signature(PathSolver.__call__) 런타임 확인"
+    },
+    "reading_ko": "⭐ 공정성 경보. 이 저장소는 과거에 'Sionna 에는 회절이 없다' 고 썼다가 철회한 이력이 있다(docs/RETRACTION_LOG.md R6). 코드를 보면 회절은 **분명히 구현돼 있다**. 있는 것을 정확히 적으면:\n\n(1) 1차 UTD 쐐기 회절이다. Kouyoumjian-Pathak 표준형 그대로다 — 쐐기 외부각으로 n = (2π-내부각)/π 를 만들고(1031줄), 네 개의 코탄젠트 항 d1~d4 를 각각 전이함수 f_utd(k·L·a) 로 보정한다(1053-1062줄). exp(-jπ/4)/(2n·sqrt(2πk)·sin β0) 계수(1049-1051줄)와 거리 파라미터 L = s·s'/(s+s')·sin²β0 (1028줄)도 교과서와 일치한다.\n\n(2) Luebbers 유한도전율 확장이다. 완전도체 쐐기라면 d1~d4 를 부호만 바꿔 더하면 되지만, 여기서는 쐐기의 두 면(0-face, n-face) 각각에 대해 Fresnel 반사계수를 따로 구해(1081-1090줄) 반사 성분 d3, d4 에 곱한다(1097-1100줄). 이것이 Luebbers 가 제안한 헤어리스틱 확장이고, 유전체·손실성 쐐기를 다룰 수 있게 해준다.\n\n(3) 그런데 기본값이 False 다(154-155줄). 왜 껐는지도 코드가 말해준다 — 쐐기 회절은 후보 생성에서 확률 0.2 로 샘플링되고(sb_candidate_generator.py:49), 모든 삼각형 모서리가 잠재적 쐐기라 비용이 크다. edge_diffraction 은 '자유롭게 떠 있는 모서리(free floating edges)' 까지 포함할지를 따로 켜는 스위치다.\n\n(4) ⭐ 그럼에도 이것이 표적 산란을 대신하지 못하는 이유를 정확히: UTD 는 **1차** 회절이고, 모서리를 '무한히 곧고 국소적으로 균일한 쐐기' 로 본다. 드론처럼 모서리 길이가 몇 λ 밖에 안 되고 모서리끼리 서로 재회절하는 표적에서는, 1차 쐐기 회절의 전제(모서리가 파장보다 훨씬 길다)가 깨진다. 또 회절은 '그림자 경계를 매끄럽게 잇는' 보정이지 '표적이 되쏘는 총량' 을 주는 물리량이 아니다. 회절을 켜도 RCS 가 나오지는 않는다."
+  },
+
+  "item5_diffuse_scattering": {
+    "what": "확산산란: solid_angle=2π 분기, 산란계수 S 가 들어오는 자리, ITU metal 의 S 기본값",
+    "where": [
+      "path_solvers/field_calculator.py:310-313",
+      "radio_materials/radio_material.py:894-912",
+      "radio_materials/radio_material.py:933-962",
+      "radio_materials/radio_material.py:599-602",
+      "radio_materials/radio_material.py:751-767",
+      "radio_materials/radio_material.py:97",
+      "radio_materials/itu_material.py:77",
+      "radio_materials/itu.py:41"
+    ],
+    "verbatim": "field_calculator.py:310-313:\n            # Update the solid angle\n            # If a diffuse reflection is sampled, then it is set to 2PI.\n            # Otherwise it is left unchanged\n            solid_angle = dr.select(diffuse, dr.two_pi, solid_angle)\n\nradio_material.py:908:        ko_local = mi.warp.square_to_uniform_hemisphere(sample2)\n\nradio_material.py:939-960:\n        # Solid angle\n        solid_angle = si.t\n        ...\n        gamma = dr.select(ei_norm > 0.,\n                          er_spec_norm * dr.rcp(ei_norm),\n                          mi.Float(0.))\n\n        # Scattering pattern\n        fs = self._scattering_pattern(ki_local, ko_local)\n        ...\n        jones_mat = dr.sqrt(fs * solid_angle) * gamma * self._xpd_jones_mat\n\nradio_material.py:599-602:\n        # Apply multiplication by scattering coefficient\n        s = dr.select(reflection, dr.sqrt(1. - dr.square(self._s)), 1.)\n        s = dr.select(diffuse, self._s, s)\n        jones_mat *= s\n\nradio_material.py:751-767 (_event_probabilities):\n        r = dr.square(dr.abs(r_te)) + dr.square(dr.abs(r_tm))\n        t = dr.square(dr.abs(t_te)) + dr.square(dr.abs(t_tm))\n        # Scattering coefficient\n        s = dr.square(self._s)\n        ...\n        # Probability of sampling a specular reflection\n        prs = dr.select(specular_reflection_enabled, r * (1. - s), mi.Float(0.))\n        # Probability of sampling a diffuse reflection\n        prd = dr.select(diffuse_reflection_enabled, r * s, mi.Float(0.))\n\nradio_material.py:97:        scattering_coefficient: float | mi.Float = 0.0,\nitu_material.py:77:        scattering_coefficient: float | mi.Float = 0.0,\n\nitu.py:41:    \"metal\"             :   { (1.0, 100.)   :   (1.0, 0.0, 1e7, 0.0) },\n\n(런타임 확인)\n>>> ITURadioMaterial(name='m', itu_type='metal', thickness=0.01)\nITURadioMaterial type=metal\n                 eta_r=1.000\n                 sigma=0.000\n                 thickness=0.010\n                 scattering_coefficient=0.000\n                 xpd_coefficient=0.000\n>>> m.scattering_coefficient -> [0]\n>>> m.scattering_pattern -> LambertianPattern object",
+    "values": {
+      "itu_metal_scattering_coefficient_default": 0.0,
+      "itu_metal_xpd_coefficient_default": 0.0,
+      "radio_material_scattering_coefficient_default": 0.0,
+      "default_scattering_pattern": "lambertian",
+      "itu_metal_relative_permittivity": 1.0,
+      "itu_metal_conductivity_S_per_m": 10000000.0,
+      "diffuse_reflection_solver_default": false
+    },
+    "reading_ko": "확산산란은 이중으로 꺼져 있다. **첫째, 솔버 기본값이 diffuse_reflection=False 다.** 둘째, 설령 켜도 ITU metal 의 산란계수 S 기본값이 0.0 이다(itu_material.py:77 및 런타임 확인). S=0 이면 어떻게 되는지는 확률식이 직접 보여준다(751-767줄): 확산 샘플링 확률 prd = r·S² = 0 이고, 정반사 확률은 prs = r·(1-S²) = r 로 전부 몰린다. 진폭 쪽에서도 같다 — 599-602줄에서 정반사에는 sqrt(1-S²) = 1 이, 확산에는 S = 0 이 곱해진다. 즉 **S 는 반사 에너지를 정반사와 확산으로 나누는 손잡이이고, 기본 위치는 정반사 100% 다.** 에너지 보존이 sqrt(1-S²) 와 S 라는 쌍으로 명시적으로 지켜지고 있다는 점은 짚어둘 만하다.\n\n분기의 물리: 확산이 샘플링되면 방향은 반구 균일 분포에서 뽑히고(908줄), solid_angle 은 2π 로 덮어써진다(313줄). 2π 는 반구의 입체각이다 — '이 지점에서 나가는 에너지가 반구 전체로 퍼진다' 는 선언이다. 동시에 ray_tube_length 가 0 으로 리셋되므로(307줄) 확산 지점이 새로운 점원 노릇을 한다. 진폭은 sqrt(fs · solid_angle) · gamma 인데(960줄), gamma 는 같은 지점의 정반사 Jones 행렬의 이득 크기이고 fs 는 산란 패턴(기본 Lambertian)이다.\n\n⭐ 여기서 오해를 정확히 잘라두자. 확산산란을 켜면 '표적 산란이 생기는 것 아니냐' 는 반문이 자연스럽다. 아니다. 이 모델은 **거친 표면이 정반사 에너지의 일부를 어느 방향으로 흩는가** 를 기술하는 경험 모델(Degli-Esposti 계열)이고, 그 총량은 여전히 그 지점의 Fresnel 정반사 이득 gamma 에 묶여 있다. 표적의 크기·형상이 만드는 회절 로브, 정반사 방향의 A²/λ² 이득, 모서리·다중산란 — 어느 것도 여기서 나오지 않는다. 게다가 금속의 S=0 이라 드론 표면에는 애초에 적용되지도 않는다."
+  },
+
+  "item7_rcs_string_count": {
+    "what": "rt 패키지 전체에서 rcs / radar_cross_section 문자열 출현 수 — 실제로 셈",
+    "where": "grep -rIi -o \"radar[ _]cross[ _]section|rcs\" over the whole installed package",
+    "verbatim": "$ cd site-packages/sionna\n$ grep -rIi -o \"radar[ _]cross[ _]section\\|rcs\" rt/ | wc -l\n0\n$ find rt -name \"*.py\" | wc -l\n49\n$ grep -rIil \"radar[ _]cross[ _]section\\|\\brcs\\b\" .        # 패키지 전체\n(출력 없음)\n$ grep -rIi -o \"jones\" rt/ | wc -l                          # 대조군(검색이 동작함을 확인)\n129",
+    "values": {
+      "rcs_occurrences_in_rt": 0,
+      "rcs_occurrences_in_whole_sionna": 0,
+      "rt_py_files_searched": 49,
+      "jones_occurrences_in_rt_control": 129,
+      "search_scope_ko": "확장자 무관 전체 파일, 대소문자 무시"
+    },
+    "reading_ko": "sionna.rt 49개 파이썬 파일 어디에도 rcs 나 radar cross section 이라는 문자열이 단 한 번도 없다. sionna 패키지 전체(phy 포함)로 넓혀도 0 이다. 대조군으로 jones 는 129번 나오므로 검색 자체는 정상 작동한다.\n\n이 0 을 어떻게 읽어야 공정한가. '기능이 빠졌다' 가 아니라 **'애초에 그 개념이 이 도구의 어휘가 아니다'** 로 읽어야 한다. RCS 는 '표적이 입사 전력밀도를 어느 방향으로 얼마나 되쏘는가' 를 한 숫자로 압축한 레이다 용어다. Sionna 의 어휘는 재질·경로·Jones 행렬·지연·도플러 — 통신 채널의 어휘다. 도구가 자기 문서와 코드에서 RCS 를 한 번도 약속하지 않았으므로, RCS 가 안 나온다고 비난하는 것은 부당하다. 반대로, RCS 가 필요한 문제에 이 도구를 그대로 쓰는 것도 부당하다. 이것이 이 편 전체의 논지다."
+  },
+
+  "item8_empirical_size_test": {
+    "what": "⭐ 결정적 실험: 금속 평판의 크기를 125배 바꿔도 수신 진폭이 변하지 않는다",
+    "where": "outputs/report00_sionna_probe.json → exp_b_plate_size_sweep, fresnel_scale, summary",
+    "verbatim": "[B] L=  0.4 m (   4.7 lambda)  |a|=8.030735e-04  paths=1\n[B] L=  1.0 m (  11.7 lambda)  |a|=8.030735e-04  paths=1\n[B] L=  2.0 m (  23.3 lambda)  |a|=8.030735e-04  paths=1\n[B] L= 10.0 m ( 116.7 lambda)  |a|=8.030735e-04  paths=1\n[B] L= 50.0 m ( 583.7 lambda)  |a|=8.030735e-04  paths=1\n\nsummary:\n  plate_side_span                     = 125.0\n  abs_a_spread_over_plate_size_db     = 6.30e-07\n  expected_abs_a_spread_if_target_db  = 83.88\n  num_plates_smaller_than_first_fresnel_zone = 2\n  first_fresnel_diameter_on_surface_m = 1.206",
+    "setup_ko": "3.5 GHz(λ=8.57 cm), 빈 씬에 z=0 평면의 정사각 금속 평판 하나(ITU metal, 두께 1 cm). TX(-3,0,3), RX(3,0,3) 로 원점에서 정확히 45도 정반사가 일어나도록 대칭 배치. LoS 는 끄고 1회 반사만, 확산·회절·투과 모두 끔. 등방 안테나.",
+    "reading_ko": "⭐ 이 실험 하나가 이 편의 결론 전체를 대신한다.\n\n한 변 0.4 m 짜리 평판과 50 m 짜리 평판이 **완전히 같은 진폭** 을 돌려준다. 편차 6.3e-07 dB — float32 정밀도 잡음이다. 물리적 표적이었다면 어땠어야 하나. 물리광학(PO)에서 평판의 정반사 방향 산란 진폭은 면적 A 에 비례한다. 한 변이 125배면 면적은 15,625배, 진폭비로 83.9 dB 차이가 나야 한다. Sionna 는 0 dB 를 준다.\n\n더 날카롭게: 이 배치의 첫 프레넬 존은 반사면 위에서 지름 1.21 m 다. 즉 L=0.4 m 와 L=1.0 m 평판은 **정반사 근사가 성립하기 위한 최소 면적조차 못 채운다** — 물리적으로는 반사가 눈에 띄게 약해져야 하는 영역이다. 그런데도 진폭은 50 m 평판과 같다. 드론 크기(0.3~0.4 m 급)가 바로 이 영역이라는 점이 이 프로젝트에서 이 사실이 중요한 이유다.\n\n반대편도 정직하게 적자. L=50 m 평판에 대해서는 Sionna 의 답이 **맞다**. 프레넬 존을 넉넉히 덮는 큰 면이라면 무한평면 반사와 구분되지 않고, 실제로 실험 C 가 이를 확인해준다 — 측정 진폭이 2구간 자유공간 확산 예측 λ/(4π(r1+r2)) 의 0.9997 배다. 오차 0.03% 는 금속의 유한 도전율(σ=1e7 S/m, |Γ| 가 1 보다 아주 약간 작음) 때문이다. 벽·바닥·건물에 대해서는 Sionna 가 정확한 도구라는 뜻이다.\n\n한 문장으로: **Sionna 는 '면이 거기 있느냐' 는 정확히 답하고, '그 면이 얼마나 큰가' 는 묻지 않는다.** 전자가 중요한 문제(전파 환경)에는 옳고, 후자가 전부인 문제(표적 산란)에는 쓸 수 없다."
+  },
+
+  "item9_verdict": {
+    "what": "종합 판정 — 무엇을 할 수 있고 무엇을 할 수 없는가",
+    "can_do": [
+      {"항목": "정반사 세기", "근거": "radio_material.py:560-562, 853-892", "설명_ko": "ITU-R P.2040 단층 슬래브 Fresnel r_te/r_tm 을 정확히 구현. 편파는 Jones 행렬로 완전히 처리."},
+      {"항목": "투과(굴절)", "근거": "path_solver.py:153 (기본 True)", "설명_ko": "두께 d 를 반영한 슬래브 투과계수. 단 광선은 꺾이지 않고 직진(얇은 벽 가정, path_solver.py:36-41 이 명시)."},
+      {"항목": "가림·그림자", "근거": "Mitsuba 광선-삼각형 교차 + image_method.py:41-47 역추적 검증", "설명_ko": "유한 기하로 정확히 판정. 표적이 벽 뒤에 있으면 제대로 사라진다."},
+      {"항목": "1차 UTD 쐐기 회절", "근거": "radio_material.py:964-1144", "설명_ko": "Kouyoumjian-Pathak + Luebbers 유한도전율. 기본값 off 일 뿐 구현은 완비."},
+      {"항목": "다중 반사·기하", "근거": "path_solver.py:146 max_depth=3", "설명_ko": "임의 순서의 반사/투과/확산 조합 경로."},
+      {"항목": "지연·도플러", "근거": "field_calculator.py:355, 526-", "설명_ko": "τ = 경로길이/c. 도플러는 객체당 강체 속도 1벡터 기준."},
+      {"항목": "확산산란(경험모델)", "근거": "radio_material.py:914-962", "설명_ko": "거친 표면의 에너지 분산. S 로 정반사와 배분. 단 기본 S=0."}
+    ],
+    "cannot_do": [
+      {"항목": "표적 RCS", "근거": "rt 패키지 내 rcs 문자열 0회", "설명_ko": "개념 자체가 없다. 산란 적분(유한 개구 위의 유도전류 적분)이 구현돼 있지 않다."},
+      {"항목": "크기 의존 산란", "근거": "item2 인자목록 + item8 실험", "설명_ko": "필드 계산 인자에 면적·치수가 없다. 125배 크기 변화에 0 dB 응답."},
+      {"항목": "곡면 집속/발산", "근거": "field_calculator.py:323-326", "설명_ko": "확산인자에 면곡률항이 없다(평면 특수해). 삼각형 메쉬는 면곡률이 정의상 0."},
+      {"항목": "회전 프로펠러 마이크로도플러", "근거": "Paths.doppler 는 객체당 강체 속도 1벡터", "설명_ko": "부품별 회전 속도를 넣을 통로가 없다(별도 메모 sionna-rt-doppler-velocity 참조)."},
+      {"항목": "공진·크리핑파", "근거": "GO/UTD 계열 고주파 근사", "설명_ko": "몇 λ 크기 표적의 공진 영역 현상은 원리적으로 범위 밖."}
+    ],
+    "reading_ko": "⭐ 이 표가 이 편의 결론이다. 왼쪽 열은 길고 튼튼하다 — Sionna 는 전파 환경 시뮬레이터로서 훌륭하고, 우리가 챔버 기하·가림·다중경로·지연을 믿고 쓰는 근거가 여기 있다. 오른쪽 열은 전부 하나의 뿌리에서 나온다: **표면에서 필드를 갱신할 때 그 표면이 얼마나 큰지·얼마나 휘었는지를 보지 않는다.**\n\n그래서 우리의 역할 분담은 이렇게 정리된다. σ(표적이 얼마나 되쏘는가)는 우리 커널(Mitsuba 기하 + 자체 PO)이 계산하고, 환경(그 신호가 챔버 안을 어떻게 돌아다니는가)은 Sionna 가 계산한다. 레이다 방정식에서 이 둘은 원래 분리된 항이다. 도구를 바꿀 문제가 아니라 항을 올바로 나눌 문제였다."
+  }
+}

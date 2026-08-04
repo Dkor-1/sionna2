@@ -1,0 +1,250 @@
+{
+ "_meta": {
+  "file": "outputs/report00_decision_map.json",
+  "title": "리포트 00 F4 — 무엇을 Sionna 만으로 할 수 있고, 어디서 표적 항이 필요해지는가",
+  "generated": "2026-08-04 04:56:09",
+  "generator": "benchmark/build_report00_decision_map.py",
+  "reads": [
+   "outputs/report00_evidence.json",
+   "outputs/report00_po_case.json",
+   "outputs/report00_sionna_anatomy.json",
+   "outputs/report00_sionna_probe.json"
+  ],
+  "writes_only": "outputs/report00_decision_map.json",
+  "value_rule": "배지 값은 전부 위 네 JSON 에서 fetch() 로 읽었다. 손으로 친 수치는 0 개다. 배치(어느 칸인가)는 판단이고, 그 근거는 evidence 키다.",
+  "house_rules": "본문·주석은 한국어, 그림 안 텍스트는 전부 영어.",
+  "fairness_rule": "오른쪽 두 칸에서 Sionna 는 맞는 도구이고 그 정확도를 숫자로 적는다. 틀린 것은 '엔진이 부실하다' 가 아니라 '전파용 도구에 표적 산란을 시켰다' 이다."
+ },
+ "axes": {
+  "x": {
+   "question_en": "Does the target term cancel as a constant?",
+   "false_en": "No - it stays in the answer",
+   "true_en": "Yes - it divides out",
+   "meaning_ko": "표적 산란량이 비(比)를 취하거나 기준경로로 나눌 때 상수로 빠지는가. 빠지면 표적 모델 없이도 답이 선다."
+  },
+  "y": {
+   "question_en": "Is an absolute level required?",
+   "false_en": "No - relative is enough",
+   "true_en": "Yes - an absolute number",
+   "meaning_ko": "결론이 '어느 쪽이 큰가' 로 끝나는가, 아니면 절대 dBsm·dB 를 인쇄해야 하는가."
+  }
+ },
+ "zones": [
+  {
+   "id": "Z1",
+   "x_cancels": true,
+   "y_absolute": false,
+   "tool_en": "Sionna RT alone",
+   "verdict_en": "The engine is the whole answer.",
+   "why_ko": "표적 항이 소거되고 절대값도 필요 없으면, 남는 것은 기하·가림·지연뿐이고 그것이 정확히 Sionna 가 계산하는 것이다."
+  },
+  {
+   "id": "Z2",
+   "x_cancels": true,
+   "y_absolute": true,
+   "tool_en": "Sionna RT alone, and it is exact",
+   "verdict_en": "The engine prints the absolute number.",
+   "why_ko": "전파 문제의 절대 레벨은 Sionna 가 이론과 소수점 아래 여섯째 자리까지 맞춘다. 여기서 우리 커널을 얹을 이유가 없다."
+  },
+  {
+   "id": "Z3",
+   "x_cancels": false,
+   "y_absolute": false,
+   "tool_en": "Our PO surface integral, pattern only",
+   "verdict_en": "The target term is needed, but only its shape.",
+   "why_ko": "자세 패턴·기체 순위는 기하에서 계산된다. 측정 앵커 없이도 선다."
+  },
+  {
+   "id": "Z4",
+   "x_cancels": false,
+   "y_absolute": true,
+   "tool_en": "PO integral + measurement anchor",
+   "verdict_en": "Geometry sets shape, measurement sets level.",
+   "why_ko": "절대 dBsm 이 필요하면 기하만으로는 닫히지 않는다. 레벨은 공개 실측에 맞추고, 격자 불확도와 PO 유효 하한을 함께 인쇄한다."
+  }
+ ],
+ "items": [
+  {
+   "id": "I1",
+   "zone": "Z1",
+   "label_en": "Chamber geometry, shadowing, occlusion",
+   "note_en": "finite mesh, exact hit test",
+   "evidence": "anatomy:item9_verdict.can_do[2]",
+   "badges": [],
+   "why_ko": "가림은 유한 기하로 정확히 판정된다 — 표적이 벽 뒤면 제대로 사라진다.",
+   "evidence_src": "outputs/report00_sionna_anatomy.json:item9_verdict.can_do[2]"
+  },
+  {
+   "id": "I2",
+   "zone": "Z1",
+   "label_en": "Multipath delay, floor-ghost timing",
+   "note_en": "tau = path length / c",
+   "evidence": "anatomy:item9_verdict.can_do[5]",
+   "badges": [],
+   "why_ko": "유령 경로의 지연은 경로 길이만으로 정해진다 — 표적 세기가 상수로 빠진다.",
+   "evidence_src": "outputs/report00_sionna_anatomy.json:item9_verdict.can_do[5]"
+  },
+  {
+   "id": "I3",
+   "zone": "Z1",
+   "label_en": "CFAR threshold from target-free noise",
+   "note_en": "no target in the cell",
+   "evidence": "anatomy:item9_verdict.can_do[4]",
+   "badges": [],
+   "why_ko": "허위경보 문턱은 표적이 없는 셀의 통계로 정한다. 표적 항이 아예 등장하지 않는다.",
+   "evidence_src": "outputs/report00_sionna_anatomy.json:item9_verdict.can_do[4]"
+  },
+  {
+   "id": "I4",
+   "zone": "Z2",
+   "label_en": "Free-space link budget, absolute power",
+   "note_en": "measured against Friis",
+   "evidence": "evidence:F_what_sionna_gets_right.numbers.los_agreement_db",
+   "badges": [
+    {
+     "prefix_en": "RT vs Friis:",
+     "value": 6.344422160964314e-07,
+     "fmt": "{:.1e}",
+     "unit": "dB",
+     "src": "outputs/report00_evidence.json:F_what_sionna_gets_right.numbers.los_agreement_db",
+     "text_en": "RT vs Friis: 6.3e-07 dB"
+    }
+   ],
+   "why_ko": "자유공간 직접파는 Friis 이론과 소수 일곱째 자리에서 일치한다.",
+   "evidence_src": "outputs/report00_evidence.json:F_what_sionna_gets_right.numbers.los_agreement_db"
+  },
+  {
+   "id": "I5",
+   "zone": "Z2",
+   "label_en": "Specular reflection strength off a wall",
+   "note_en": "Fresnel coefficients and polarization",
+   "evidence": "probe:exp_c_spreading_check.ratio_measured_over_predicted",
+   "badges": [
+    {
+     "prefix_en": "RT / analytic:",
+     "value": 0.9997208714336298,
+     "fmt": "{:.4f}",
+     "unit": "",
+     "src": "outputs/report00_sionna_probe.json:exp_c_spreading_check.ratio_measured_over_predicted",
+     "text_en": "RT / analytic: 0.9997"
+    }
+   ],
+   "why_ko": "반사 세기는 Fresnel 4계수로 정확히 계산된다. 이미지-소스 해석해와 0.03% 안이다.",
+   "evidence_src": "outputs/report00_sionna_probe.json:exp_c_spreading_check.ratio_measured_over_predicted"
+  },
+  {
+   "id": "I6",
+   "zone": "Z3",
+   "label_en": "Aspect pattern shape vs azimuth",
+   "note_en": "kernel checked against analytic PO",
+   "evidence": "po_case:s3_validation.layer1_analytic_po_convergence.kr_sweep_max_abs_db_vs_po_div16",
+   "badges": [
+    {
+     "prefix_en": "kernel vs analytic PO:",
+     "value": 0.2005726178588444,
+     "fmt": "{:.3f}",
+     "unit": "dB",
+     "src": "outputs/report00_po_case.json:s3_validation.layer1_analytic_po_convergence.kr_sweep_max_abs_db_vs_po_div16",
+     "text_en": "kernel vs analytic PO: 0.201 dB"
+    }
+   ],
+   "why_ko": "자세 패턴은 기하에서 나온다. 커널이 해석 PO 를 제대로 계산하는지가 관문이다.",
+   "evidence_src": "outputs/report00_po_case.json:s3_validation.layer1_analytic_po_convergence.kr_sweep_max_abs_db_vs_po_div16"
+  },
+  {
+   "id": "I7",
+   "zone": "Z3",
+   "label_en": "Airframe-to-airframe ranking by shape",
+   "note_en": "same material and area, different shape",
+   "evidence": "evidence:C_same_material_different_shape.numbers.shape_gap_db",
+   "badges": [
+    {
+     "prefix_en": "sphere vs plate:",
+     "value": 31.28794428232964,
+     "fmt": "{:.2f}",
+     "unit": "dB",
+     "src": "outputs/report00_evidence.json:C_same_material_different_shape.numbers.shape_gap_db",
+     "text_en": "sphere vs plate: 31.29 dB"
+    }
+   ],
+   "why_ko": "같은 재질·같은 정면면적에서도 모양만으로 31 dB 가 갈린다 — 반사계수로는 못 가른다.",
+   "evidence_src": "outputs/report00_evidence.json:C_same_material_different_shape.numbers.shape_gap_db"
+  },
+  {
+   "id": "I8",
+   "zone": "Z3",
+   "label_en": "Micro-Doppler modulation shape",
+   "note_en": "needs complex E per part",
+   "evidence": "anatomy:item9_verdict.cannot_do[3]",
+   "badges": [],
+   "why_ko": "부품별 회전 속도를 넣을 통로가 엔진에 없다. 위상을 가진 복소 산란장이 필요하다.",
+   "evidence_src": "outputs/report00_sionna_anatomy.json:item9_verdict.cannot_do[3]"
+  },
+  {
+   "id": "I9",
+   "zone": "Z4",
+   "label_en": "Absolute drone RCS in dBsm",
+   "note_en": "the uncertainty travels with it",
+   "evidence": "po_case:s2_our_kernel.grid_dither.dither_spread_div16_db",
+   "badges": [
+    {
+     "prefix_en": "grid dither at lambda/16:",
+     "value": 1.7821516012275314,
+     "fmt": "{:.2f}",
+     "unit": "dB",
+     "src": "outputs/report00_po_case.json:s2_our_kernel.grid_dither.dither_spread_div16_db",
+     "text_en": "grid dither at lambda/16: 1.78 dB"
+    },
+    {
+     "prefix_en": "PO validity floor:",
+     "value": 0.7288815751523454,
+     "fmt": "{:.3f}",
+     "unit": "lambda",
+     "src": "outputs/report00_po_case.json:s4_limits.po_validity_knee_a_over_lambda",
+     "text_en": "PO validity floor: 0.729 lambda"
+    }
+   ],
+   "why_ko": "절대 σ 는 기하 + 실측 앵커로만 선다. 불확도를 숨기지 않고 같이 인쇄한다.",
+   "evidence_src": "outputs/report00_po_case.json:s2_our_kernel.grid_dither.dither_spread_div16_db"
+  },
+  {
+   "id": "I10",
+   "zone": "Z4",
+   "label_en": "Detection range and Pd benchmark",
+   "note_en": "sigma sits directly in the radar equation",
+   "evidence": "evidence:_meta.headline.po_sigma_span_db",
+   "badges": [
+    {
+     "prefix_en": "size span a path solver misses:",
+     "value": 64.0823996531185,
+     "fmt": "{:.1f}",
+     "unit": "dB",
+     "src": "outputs/report00_evidence.json:_meta.headline.po_sigma_span_db",
+     "text_en": "size span a path solver misses: 64.1 dB"
+    }
+   ],
+   "why_ko": "검출 거리는 σ 에 직접 걸린다. 크기를 40배 바꿔도 경로 진폭이 안 움직이는 도구로는 못 낸다.",
+   "evidence_src": "outputs/report00_evidence.json:_meta.headline.po_sigma_span_db"
+  },
+  {
+   "id": "I11",
+   "zone": "Z4",
+   "label_en": "Mesh fidelity budget for a drone target",
+   "note_en": "specular-only echo collapses with facets",
+   "evidence": "evidence:_meta.headline.drone_collapse_db",
+   "badges": [
+    {
+     "prefix_en": "collapse over the facet sweep:",
+     "value": 49.02111307779948,
+     "fmt": "{:.1f}",
+     "unit": "dB",
+     "src": "outputs/report00_evidence.json:_meta.headline.drone_collapse_db",
+     "text_en": "collapse over the facet sweep: 49.0 dB"
+    }
+   ],
+   "why_ko": "실루엣이 유지돼도 정반사 채널만으로는 49 dB 가 무너진다 — 면적분이 있어야 메쉬 예산을 잴 수 있다.",
+   "evidence_src": "outputs/report00_evidence.json:_meta.headline.drone_collapse_db"
+  }
+ ],
+ "footer_en": "The split is the radar equation's own: propagation is the engine's term, target scattering is a separate one."
+}

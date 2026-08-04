@@ -29,12 +29,13 @@ Mitsuba/OptiX 광선엔진으로 면별 가림을 풀고 그 조명면 위에서
 
 ---
 
-## 리포트 6편 — 한 편이 한 일 하나를 보고한다
+## 리포트 7편 — 한 편이 한 일 하나를 보고한다
 
 전부 **생성물**이다. 서술을 고치려면 `src/make_report0N_*.py` 를 고치고 다시 돌린다.
 
 | # | 노트북 | 이 편이 한 일 | 헤드라인 |
 |---|---|---|---|
+| 00 | [`report00_foundations.ipynb`](report00_foundations.ipynb) | Sionna RT 설치본을 인자 목록까지 해부해 광선이 면을 맞았을 때 무엇이 계산되는지를 적고, 표적 산란이 어디서부터 별도 항이 되는지를 결정표로 갈랐다 | 평판 면적 1600배에 PO σ 는 64.08 dB · path solver 진폭은 7.4e-07 dB ⟨`outputs/report00_evidence.json : A_plate_size_sweep.numbers`⟩ · 판별 기준 2문 결정표 |
 | 01 | [`report01_prior.ipynb`](report01_prior.ipynb) | 선행 16편이 표적 서명을 어디서 조달했고 그 조달처가 무슨 주장을 사 주었는지 카탈로그로 만들었다 | 게재본 중 메쉬 산란 계산 0편, CFAR·false alarm 이 0회인 논문 13편 |
 | 02 | [`report02_target.ipynb`](report02_target.ipynb) | 메쉬 7종의 σ 를 광선 가림 + 재질 PO 로 계산하고 그 **주파수 의존성**을 Das 측정에 정렬했다 | 해석 PO 대비 0.201 dB · 앵커 기울기 0.210 dB/GHz · 평균 레벨이동 0.00 dB |
 | 03 | [`report03_illuminators.ipynb`](report03_illuminators.ipynb) | 상시 기준신호를 세 표준의 자원격자에서 세우고 조명원 선택의 대가를 dB 원장으로 닫았다 | 점유 18.0 dB · 5G SSB 무모호 속도 1.07 m/s · Sionna PHY 대조 NMSE −135.2 dB |

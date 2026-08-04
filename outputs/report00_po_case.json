@@ -1,0 +1,2012 @@
+{
+ "_meta": {
+  "file": "outputs/report00_po_case.json",
+  "title": "리포트 00 「왜 PO 인가 · 우리 PO 는 납득 가능한가 · 선행에서 무엇을 빌릴 수 있나」의 근거",
+  "generated": "2026-08-04 04:33:19",
+  "generator": "benchmark/build_report00_po_case.py",
+  "run": "cd /home/yunjung/workspace/sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report00_po_case.py",
+  "reads_only": true,
+  "value_rule": "모든 스칼라 옆에 <이름>_src 가 붙는다. outputs/…:키 = 다른 산출물에서 읽었다 · code: = 소스 상수 · computed: = 이 스크립트가 계산 · doc: = 문서 문장(숫자 아님).",
+  "house_rules": "본문·주석·print 는 한국어, 그림 안 텍스트는 전부 영어. 숫자는 손으로 치지 않는다(src/report_style.py num()).",
+  "fairness_rule": "Sionna 를 부당하게 깎으면 그 자체가 결함이다. Fresnel 반사는 정확히 계산되고, 1차 UTD 쐐기회절은 구현돼 있으며(설치본 기본값 off), 환경·클러터에서는 맞는 도구다. 틀린 것은 '전파용 도구에 표적 산란을 시킨 것' 이다.",
+  "do_not_cite": [
+   "outputs/ptd_drone_effect.json — SUPERSEDED, 어떤 숫자도 인용 금지"
+  ]
+ },
+ "s0_fair_boundary": {
+  "_title": "Sionna 는 무엇을 계산하고 무엇을 계산하지 않는가 — 공정한 경계",
+  "_why_this_section_first": "이 편은 'Sionna 로 되는 것과 안 되는 것' 을 가르는 편이다. 그 경계를 우리 말이 아니라 **엔진 자신의 기술보고서 문장**으로 긋는다. 그래야 다음 절의 'PO 를 얹었다' 가 비난이 아니라 위치 설명이 된다.",
+  "sionna_rt_citation": "Sionna RT Technical Report, Version 1.2 (2025-11-24), arXiv:2504.21719v2",
+  "sionna_rt_citation_src": "outputs/sionnart_boundary.json:SOURCE_IDENTITY.primary.cite_string",
+  "sionna_rt_pages": 59,
+  "sionna_rt_pages_src": "outputs/sionnart_boundary.json:SOURCE_IDENTITY.primary.pages",
+  "sionna_rt_self_declared_purpose": "\"This document details the algorithms employed by Sionna RT to simulate radio wave propagation efficiently, while also addressing their current limitations.\"",
+  "sionna_rt_self_declared_purpose_src": "outputs/sionnart_boundary.json:SOURCE_IDENTITY.primary.self_declared_purpose_p1",
+  "what_the_engine_does_exactly": [
+   {
+    "mechanism": "정반사 필드",
+    "detail": "교차점에서 (⊥,∥) 기저의 2×2 대각 Fresnel 행렬을 필드에 곱한다. 식 (127)(128) 계수, (129) 적용.",
+    "why_it_is_correct": "평면파가 반평면 경계에 부딪힐 때의 반사계수는 Fresnel 식 그 자체다. Sionna 는 이 값을 근사하지 않고 계산한다.",
+    "src": "outputs/sionnart_boundary.json:SECTION_1_BOUNDARY_TABLE.rows[0]"
+   },
+   {
+    "mechanism": "굴절·투과",
+    "detail": "Snell (121)(122), 투과계수 (127)(128), 두께가 주어지면 단일층 슬래브 (131)~(133) 로 에탈론 리플까지 낸다.",
+    "why_it_is_correct": "벽처럼 측방으로 넓은 매질에 대해서는 이것이 옳은 모형이다.",
+    "src": "outputs/sionnart_boundary.json:SECTION_1_BOUNDARY_TABLE.rows[1]"
+   },
+   {
+    "mechanism": "1차 UTD 쐐기회절",
+    "detail": "Kouyoumjian–Pathak 을 Luebbers 가 유한도전율로 확장한 판이 기술보고서 p.47 에 **구현돼 있다**. 우리 설치본 2.0.1 이 diffraction=False / edge_diffraction=False 로 기본값이 꺼져 있을 뿐이다.",
+    "why_it_is_correct": "회절은 실제 물리이고 UTD 는 그 표준 고주파 처리다.",
+    "src": "doc: docs/RETRACTION_LOG.md R6"
+   },
+   {
+    "mechanism": "확산산란",
+    "detail": "반사 에너지를 S²:R² 로 쪼개고 정규화된 산란패턴으로 반구에 재분배한다(식 164~174).",
+    "why_it_is_correct": "거친 벽면의 전력 재분배 모형으로 설계된 그대로 작동한다.",
+    "src": "outputs/sionnart_boundary.json:SECTION_1_BOUNDARY_TABLE.rows[2]"
+   }
+  ],
+  "errors_we_already_retracted": [
+   {
+    "we_said": "스톡 Sionna 에 회절이 없다",
+    "truth": "1차 UTD 쐐기회절이 기술보고서 p.47 에 구현돼 있다. 설치본 기본값이 off 일 뿐이다.",
+    "also_forbidden": "반대 방향 오류도 금지 — 'Sionna 의 UTD 가 우리 PTD 결손을 메운다' 도 거짓이다. Sionna 의 D 는 전파경로의 필드 전달용이지 표적 산란단면 산출이 아니다.",
+    "src": "doc: docs/RETRACTION_LOG.md R6"
+   },
+   {
+    "we_said": "레이트레이싱은 RCS 를 못 낸다",
+    "truth": "거짓이다. SBR(GO+PO)은 상용 EM 솔버의 표준 고주파 기법이고 우리가 쓰는 것이 바로 그것이다.",
+    "src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.our_layer_stated_precisely.what_we_do_not_claim[0]"
+   }
+  ],
+  "the_four_structural_facts": [
+   "링크가 **radio device 사이**에 정의된다(p5). 물체는 링크의 양 끝이 아니라 그 사이의 산란체다.",
+   "산란체는 **BSDF 유비의 재질**로만 개입한다(p6) — BSDF 는 정규화된 반사율 분포이지 물체의 절대 단면적이 아니다.",
+   "경로 종단점인 target 은 **점**이다(p14, p16) — 부피도 면적도 없으므로 애초에 단면적을 정의할 대상이 아니다.",
+   "출력이 **채널량**으로 닫혀 있다(p6, p38) — 물체 귀속량이 목록에 없다."
+  ],
+  "the_four_structural_facts_src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.the_four_structural_facts",
+  "what_a_sensing_application_needs": "물체 하나에 귀속되는, 절대 레벨을 가진 방향·주파수·자세 의존 산란 단면적 σ(û_i, û_s; f, pose) — 그리고 그 위상까지 보존한 복소 산란장.",
+  "what_a_sensing_application_needs_src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.what_a_sensing_application_needs_that_this_does_not_provide.quantity",
+  "why_the_engine_cannot_supply_it": [
+   "표면 계산이 국소 2×2 행렬 곱이라 형상 인자가 들어갈 자리가 없다(p27 Evaluate_Material 인자).",
+   "정반사가 광선관을 새로 낳지 않아 발산인자가 1 이다(p35) — 유한 크기·곡률의 파면 확산이 표현되지 않는다.",
+   "확산 경로는 반구적분 1 로 정규화되어 있어(식 171) 어떤 파라미터를 골라도 절대 후방산란량이 되지 않는다.",
+   "우리 자체 실측이 이를 확인한다: 평판 크기를 바꿔 σ 를 52 dB 움직여도 정반사 진폭비 불변(−7.91 dB, 산포 0.00 dB); 확산 경로는 S² 에 비례해 움직인다(S 0.2→1.0 에서 +15.8 dB); PEC 구(S=0)에서는 경로가 0개. (docs/VERIFY_RT_VS_PO.md)"
+  ],
+  "why_the_engine_cannot_supply_it_src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.what_a_sensing_application_needs_that_this_does_not_provide.why_the_engine_cannot_supply_it_by_construction",
+  "forbidden_sentence": "⚠ '저자들이 §3.4 에서 RCS 가 없다는 한계를 인정했다' — **거짓이며 인용 위조에 해당한다**. 절대 쓰지 않는다.",
+  "forbidden_sentence_src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.why_this_is_a_scope_decision_not_a_defect.the_forbidden_sentence",
+  "permitted_sentence": "✅ '저자들의 한계 목록에 표적 산란단면이 없다는 사실 자체가, 물체 귀속 산란량이 이 엔진의 문제 정의에 포함되지 않음을 보여준다.'",
+  "permitted_sentence_src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.why_this_is_a_scope_decision_not_a_defect.the_permitted_sentence",
+  "extensibility_counterweight": "그리고 저자들은 확장을 명시적으로 초대한다 — p7: \"While Sionna RT provides built-in solvers and radio material models, it is designed to facilitate the implementation of custom alternatives.\" 따라서 우리 기여의 정확한 형태는 '엔진의 결함을 고쳤다'가 아니라 '엔진이 초대한 확장 지점에 센싱용 층을 얹었다'이다.",
+  "extensibility_counterweight_src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.why_this_is_a_scope_decision_not_a_defect.the_extensibility_counterweight",
+  "our_layer_one_sentence": "우리는 Sionna RT 가 계산하는 채널량 위에, 표적 표면의 PO 적분으로 얻은 물체 귀속 복소 산란장을 얹고, 그것을 다시 Sionna PHY 채널에 주입한다.",
+  "our_layer_one_sentence_src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.our_layer_stated_precisely.one_sentence",
+  "what_we_do_not_claim": [
+   "'레이트레이싱은 RCS 를 못 낸다' — 거짓. SBR(GO+PO)은 상용 EM 솔버의 표준 고주파 기법이고 우리가 쓰는 것이 바로 그것이다.",
+   "'Sionna 로는 원리적으로 불가능하다' — 거짓. p7 이 커스텀 확장을 초대하고, Ziganshin 외(EuCAP 2025)가 실제로 UTD·정점 회절을 얹어 dBsm 을 냈다.",
+   "'우리 σ 가 정확하다' — PO 는 few-λ 표적에서 best-fit 이지 정확도가 아니다. 절대 앵커는 공개 문헌 RCS 다."
+  ],
+  "what_we_do_not_claim_src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.our_layer_stated_precisely.what_we_do_not_claim",
+  "engine_carries_no_sigma_experiment": {
+   "_what": "표적 경로가 σ 를 실어 나르는지 직접 흔들어 본 실험(benchmark/verify_rt_no_rcs.py).",
+   "plate_side_min_m": 0.2,
+   "plate_side_min_m_src": "outputs/rt_no_rcs_verify.json:A_plate[0].side",
+   "plate_side_max_m": 4.0,
+   "plate_side_max_m_src": "outputs/rt_no_rcs_verify.json:A_plate[4].side",
+   "plate_sigma_min_dbsm": 4.378245295227174,
+   "plate_sigma_min_dbsm_src": "outputs/rt_no_rcs_verify.json:A_plate[0].sigma_dbsm",
+   "plate_sigma_max_dbsm": 56.419445121786424,
+   "plate_sigma_max_dbsm_src": "outputs/rt_no_rcs_verify.json:A_plate[4].sigma_dbsm",
+   "plate_sigma_span_db": 52.04119982655925,
+   "plate_sigma_span_db_src": "computed: A_plate[4].sigma_dbsm − A_plate[0].sigma_dbsm",
+   "plate_rt_ratio_at_min_db": -7.913447361792892,
+   "plate_rt_ratio_at_min_db_src": "outputs/rt_no_rcs_verify.json:A_plate[0].ratio_db",
+   "plate_rt_ratio_at_max_db": -7.913448005571883,
+   "plate_rt_ratio_at_max_db_src": "outputs/rt_no_rcs_verify.json:A_plate[4].ratio_db",
+   "plate_rt_ratio_spread_db": 6.437789910052061e-07,
+   "plate_rt_ratio_spread_db_src": "computed: |A_plate[4].ratio_db − A_plate[0].ratio_db|",
+   "plate_image_source_theory_db": -7.882198020828888,
+   "plate_image_source_theory_db_src": "outputs/rt_no_rcs_verify.json:image_source_db",
+   "sphere_S_lo": 0.2,
+   "sphere_S_lo_src": "outputs/rt_no_rcs_verify.json:B_sphere_S[0].S",
+   "sphere_S_hi": 1.0,
+   "sphere_S_hi_src": "outputs/rt_no_rcs_verify.json:B_sphere_S[3].S",
+   "sphere_ratio_at_S_lo_db": -56.5611317187382,
+   "sphere_ratio_at_S_lo_db_src": "outputs/rt_no_rcs_verify.json:B_sphere_S[0].ratio_db",
+   "sphere_ratio_at_S_hi_db": -40.797536157323655,
+   "sphere_ratio_at_S_hi_db_src": "outputs/rt_no_rcs_verify.json:B_sphere_S[3].ratio_db",
+   "sphere_ratio_moved_by_S_db": 15.763595561414547,
+   "sphere_ratio_moved_by_S_db_src": "computed: B_sphere_S[3].ratio_db − B_sphere_S[0].ratio_db",
+   "pec_sphere_paths_r03_spp1M": 0,
+   "pec_sphere_paths_r03_spp1M_src": "outputs/rt_no_rcs_verify.json:C_pec_sphere[0].n_paths",
+   "pec_sphere_paths_r30_spp16M": 0,
+   "pec_sphere_paths_r30_spp16M_src": "outputs/rt_no_rcs_verify.json:C_pec_sphere[5].n_paths",
+   "reading": "평판 넓이를 바꿔 σ 를 52 dB 흔들어도 RT 진폭비는 소수 셋째 자리까지 그대로다 — 그 경로가 나르는 것은 이미지-소스 거울장이지 표적의 단면적이 아니다. 확산 경로는 표적이 아니라 재질 파라미터 S 를 잰다. 그리고 물리적으로 옳은 설정(PEC 금속, S=0)에서는 표적 경로가 아예 0 개다.",
+   "fairness_note": "이것은 엔진의 버그가 아니다. 무한평면 거울장은 **전파 문제의 정답**이고, 표적 단면적은 그 문제의 출력 목록에 애초에 없다."
+  },
+  "analogies_and_where_they_break": [
+   {
+    "analogy": "Sionna 의 표면 처리는 **거울 한 장**이다 — 들어온 빛을 각도 맞춰 되돌린다.",
+    "what_it_teaches": "그래서 반사의 세기(Fresnel)는 맞고, 방향도 맞다.",
+    "where_it_breaks": "거울은 '크기' 가 없다. 우리 실험에서 평판 변을 20배 키워 σ 를 52 dB 바꿔도 진폭이 안 움직인 것이 그 뜻이다. 진짜 물체는 크기·모양이 되돌리는 양을 정한다.",
+    "anchor": "engine_carries_no_sigma_experiment.plate_sigma_span_db"
+   },
+   {
+    "analogy": "PO 표면적분은 **조명된 면에 붙은 수많은 작은 안테나의 합**이다.",
+    "what_it_teaches": "각 지점이 위상을 갖고 더해지므로, 모양이 바뀌면 보강·상쇄 패턴이 바뀐다 — 여기서 비로소 σ 가 창발한다.",
+    "where_it_breaks": "그 '작은 안테나' 의 세기를 우리는 **국소 평면 반사**로 정한다. 특징 폭이 파장보다 작아지면 그 가정이 깨지고, 실제 전류는 모서리 근방에서 다르게 흐른다. 그 깨짐의 크기가 §4 의 무릎(0.729λ)이다.",
+    "anchor": "s4_limits.po_validity_knee_a_over_lambda"
+   },
+   {
+    "analogy": "SBR 은 **손전등으로 물체를 비추고, 빛이 닿은 자리만 세는 것**이다.",
+    "what_it_teaches": "가림(self-shadowing)이 공짜로 처리된다 — 안 닿은 면은 애초에 세지 않는다.",
+    "where_it_breaks": "손전등 비유는 빛이 '모서리에서 휘는 것' 과 '매끄러운 몸통을 감아 도는 것'을 설명하지 못한다. 전자가 PTD 항이고 후자(크리핑파)는 우리 커널에도, Sionna 에도 없다.",
+    "anchor": "s2_our_kernel.what_our_kernel_does_not_do"
+   }
+  ]
+ },
+ "s1_alternatives": {
+  "_title": "표적 σ 를 얻는 다섯 갈래 — 비용과 정확도",
+  "_axis": "행 = 방법, 열 = (무엇을 푸는가 · 비용 · 정확도 근거 · 이 프로젝트에서의 위치).",
+  "ours_runtime": {
+   "_what": "생산 커널 rcs_sbr_batch 의 **자세 1개당** 벽시계 시간. 자세 = (방위, 고도) 한 점 × 반송파 1개 → σ 한 값.",
+   "ours_per_pose_ms_min": 9.239509608596563,
+   "ours_per_pose_ms_min_src": "outputs/runtime_benchmark.json:answer.two_passes.headline_pass.min",
+   "ours_per_pose_ms_median": 38.13479893530409,
+   "ours_per_pose_ms_median_src": "outputs/runtime_benchmark.json:answer.two_passes.headline_pass.median",
+   "ours_per_pose_ms_max": 356.18979287489003,
+   "ours_per_pose_ms_max_src": "outputs/runtime_benchmark.json:answer.two_passes.headline_pass.max",
+   "ours_least_contended_median_ms": 37.76344903744757,
+   "ours_least_contended_median_ms_src": "outputs/runtime_benchmark.json:answer.least_contended_median_ms",
+   "facets_smallest_airframe": 29068,
+   "facets_smallest_airframe_src": "outputs/runtime_benchmark.json:production_per_pose.rows[0].facets",
+   "rays_per_pose_lte": 25992,
+   "rays_per_pose_lte_src": "outputs/runtime_benchmark.json:production_per_pose.rows[0].rays_per_pose",
+   "rays_per_pose_wifi": 175232,
+   "rays_per_pose_wifi_src": "outputs/runtime_benchmark.json:production_per_pose.rows[2].rays_per_pose",
+   "passes_per_pose": 8,
+   "passes_per_pose_src": "outputs/runtime_benchmark.json:production_per_pose.rows[0].passes_per_pose",
+   "hardware": "1× RTX 4090 (SHARED with another user's job) + Intel Xeon Gold 6526Y host",
+   "hardware_src": "outputs/runtime_benchmark.json:ladder[0].hardware"
+  },
+  "stock_sionna_same_card": {
+   "_what": "스톡 sionna.rt.PathSolver 를 **우리 카드·우리 챔버 씬**에서 잰 대조군. 하드웨어 변수를 없앤다. ⚠ 재는 양이 다르다 — 전파 경로 대 표적 RCS.",
+   "stock_sionna_ms_min": 72.79908191412687,
+   "stock_sionna_ms_min_src": "outputs/runtime_benchmark.json:answer.same_card_control.stock_sionna_pathsolver_ms.min",
+   "stock_sionna_ms_median": 106.30279406905174,
+   "stock_sionna_ms_median_src": "outputs/runtime_benchmark.json:answer.same_card_control.stock_sionna_pathsolver_ms.median",
+   "stock_sionna_ms_max": 127.98182014375925,
+   "stock_sionna_ms_max_src": "outputs/runtime_benchmark.json:answer.same_card_control.stock_sionna_pathsolver_ms.max",
+   "stock_sionna_n_configs": 12,
+   "stock_sionna_n_configs_src": "outputs/runtime_benchmark.json:answer.same_card_control.stock_sionna_pathsolver_ms.n_configs",
+   "ratio_ours_median_over_stock_median": 0.358737503273269,
+   "ratio_ours_median_over_stock_median_src": "outputs/runtime_benchmark.json:answer.same_card_control.ratio_ours_median_over_stock_median",
+   "reading": "on the SAME RTX 4090, in our own 30x20x11 m chamber scene with a drone, a stock sionna.rt.PathSolver propagation solve costs 73-128 ms across max_depth 1-3 and spp 1e5-1e6, while our full SBR+PO backscatter pose costs 9-356 ms. The hardware variable is gone: we are in the same band as stock Sionna, not an order above it.",
+   "reading_src": "outputs/runtime_benchmark.json:answer.same_card_control.reading",
+   "caveat": "different quantities (paths vs RCS) and different scene content; this controls hardware, not the physics being computed.",
+   "caveat_src": "outputs/runtime_benchmark.json:answer.same_card_control.caveat"
+  },
+  "published_runtime_ladder": [
+   {
+    "what": "스톡 Sionna RT solve — Luo arXiv:2603.16126 p.5 (RTX A5000)",
+    "seconds": 0.0592,
+    "seconds_src": "outputs/runtime_benchmark.json:published_baselines.rows[2].value_s"
+   },
+   {
+    "what": "스톡 Sionna RT solve — oneTwin arXiv:2601.03216 p.8 (RTX 4090)",
+    "seconds": 0.204,
+    "seconds_src": "outputs/runtime_benchmark.json:published_baselines.rows[1].value_s"
+   },
+   {
+    "what": "스톡 Sionna RT solve — DeepRT-E arXiv:2607.11743 Table I (RTX 4090)",
+    "seconds": 0.286,
+    "seconds_src": "outputs/runtime_benchmark.json:published_baselines.rows[0].value_s"
+   },
+   {
+    "what": "SagittaSBR — SBR+PO, A380 162k 삼각형, 각도위치당 (MI250X 32장)",
+    "seconds": 0.61612,
+    "seconds_src": "outputs/runtime_benchmark.json:published_baselines.rows[5].value_s"
+   },
+   {
+    "what": "Ziganshin RT only — PEC 차량 1496 facet, **각도점당** (CPU 32코어)",
+    "ms": 1.9444444444444444,
+    "ms_src": "outputs/runtime_benchmark.json:published_baselines.rows[3].per_angular_point_ms.RT"
+   },
+   {
+    "what": "Ziganshin 전체 회절 사다리(+V+EE+EV/VE), **각도점당** (CPU 32코어)",
+    "ms": 52.77777777777778,
+    "ms_src": "outputs/runtime_benchmark.json:published_baselines.rows[3].per_angular_point_ms.plus_EV_VE"
+   },
+   {
+    "what": "MLFMM full-wave 기준해 — 같은 Ziganshin 연구",
+    "quote": "it should be emphasized that MLFMM simulations are considerably more computationally demanding. For instance, each of the MLFMM simulations in this study took several hours.",
+    "quote_src": "outputs/runtime_benchmark.json:published_baselines.rows[4].quote",
+    "seconds": null,
+    "seconds_src": "미인쇄 — 원문은 'several hours' 라고만 적는다"
+   }
+  ],
+  "apples_to_apples_fix_ziganshin": "⭐ APPLES-TO-APPLES FIX — 0.7 s and 19.0 s are for the WHOLE 360-angle sweep, not per pose: p.8 states the vehicle scenarios use '360 angular points' and that 'all observation locations are processed simultaneously (in parallel) within a single RT simulation'. Per angular point that is 1.94 ms (RT) and 52.8 ms (full ladder). Placing our per-pose cost against 0.7 s / 19.0 s directly would be wrong by 360x. (Already verified in-repo: outputs/psolve_adopt_audit.json paper_quotes_re_verified[3].)",
+  "apples_to_apples_fix_ziganshin_src": "outputs/runtime_benchmark.json:published_baselines.rows[3].correction",
+  "cascade_cost_objection": {
+   "_the_objection": "Ziganshin arXiv:2604.05991v2 pp.1–2, 게재된 반론: 'the need to cascade PO after RT negates the computational advantages of RT'",
+   "our_rt_trace_pct": 3.1412928429235007,
+   "our_rt_trace_pct_src": "outputs/runtime_benchmark.json:answer.cost_structure.rt_trace_pct",
+   "our_po_integral_pct": 48.50462898472627,
+   "our_po_integral_pct_src": "outputs/runtime_benchmark.json:answer.cost_structure.po_integral_pct",
+   "our_host_side_pct": 96.8587071570765,
+   "our_host_side_pct_src": "outputs/runtime_benchmark.json:answer.cost_structure.host_side_pct",
+   "our_po_over_rt": 16.230440412138147,
+   "our_po_over_rt_src": "outputs/runtime_benchmark.json:answer.cost_structure.po_over_rt",
+   "sagitta_po_over_raylaunch_A100_fp32": 0.06497574777687955,
+   "sagitta_po_over_raylaunch_A100_fp32_src": "outputs/runtime_benchmark.json:published_baselines.rows[6].po_over_raylaunch.A100_fp32",
+   "sagitta_po_over_raylaunch_MI250X_fp32": 0.019334694367719465,
+   "sagitta_po_over_raylaunch_MI250X_fp32_src": "outputs/runtime_benchmark.json:published_baselines.rows[6].po_over_raylaunch.MI250X_gcd_fp32",
+   "ours_ns_per_ray_median": 183.89914999085727,
+   "ours_ns_per_ray_median_src": "outputs/runtime_benchmark.json:answer.cost_per_ray.ours_ns_per_ray_median",
+   "ours_po_ns_per_ray_median": 86.0579655655632,
+   "ours_po_ns_per_ray_median_src": "outputs/runtime_benchmark.json:answer.cost_per_ray.ours_po_ns_per_ray_median",
+   "sagitta_po_ns_per_ray": 0.019845679012345678,
+   "sagitta_po_ns_per_ray_src": "outputs/runtime_benchmark.json:answer.cost_per_ray.sagitta_A100_po_ns_per_ray",
+   "verdict": "ANSWERABLE, with the ratio conceded. The objection is right that in OUR implementation PO dominates ray casting (PO/RT = 16x at production batch); it is wrong that this negates RT's advantage in practice, because the absolute per-pose cost lands at or below stock Sionna's own published per-solve cost, and because the published GPU-resident SBR+PO breakdown puts the PO integral at 1.9–6.5% of ray launch.",
+   "verdict_src": "outputs/runtime_benchmark.json:answer.verdict",
+   "what_it_does_not_support": [
+    "it does not show our kernel is efficient per ray — it is not. Our PO reduction runs at 86 ns/ray in host numpy; SagittaSBR's device-side PO kernel reduces 324M rays in 6.43 ms = 0.02 ns/ray on one A100. We are cheap per pose because our targets are small (0.05–0.5 M rays/pose), not because the engine is fast.",
+    "it does not answer the first half of Ziganshin's objection (shadow region). That half is answered by scope: our claims live in backscatter and beta <= 45 deg.",
+    "the stock-Sionna baselines measure a different quantity (propagation paths in a room/city scene) than ours (target RCS). The ladder places orders of magnitude, not a like-for-like speed ratio.",
+    "no cross-hardware normalisation was applied. Our card was shared with another job at 0–100% foreign utilisation during the run; the per-config min is the least-contended observation and the spread between min and max is reported for every row."
+   ],
+   "what_it_does_not_support_src": "outputs/runtime_benchmark.json:answer.what_the_measurement_does_NOT_support",
+   "honest_concession": "반론의 절반은 맞다 — **우리 구현에서** PO 적분이 광선캐스팅의 16 배다. 우리 적분이 아직 호스트 numpy 라서다. 게재된 유일한 GPU 커널 분해(SagittaSBR Table 1)는 같은 캐스케이드가 광선발사의 1.9~6.5% 라고 적는다."
+  },
+  "alternatives": [
+   {
+    "method": "① 완전파 (MoM / MLFMM / FDTD)",
+    "what_it_solves": "맥스웰 방정식을 근사 없이 푼다. 크리핑파·다중산란·편파를 전부 포함한다.",
+    "accuracy": "참값. 이 라운드의 2D EFIE MoM 자체검사는 정확 원기둥 고유함수해 대비 worst 0.00027 dB 다.",
+    "our_position": "우리 **검증 과녁**으로 쓴다(§3 3층). 생산 계산으로는 쓰지 않는다.",
+    "mom2d_selftest_worst_db": 0.0002704533920672436,
+    "mom2d_selftest_worst_db_src": "outputs/lowfreq_anchor.json:thin_plate.mom_selftest.worst_abs_db_at_240seg",
+    "cost_quote_mlfmm": "it should be emphasized that MLFMM simulations are considerably more computationally demanding. For instance, each of the MLFMM simulations in this study took several hours.",
+    "cost_quote_mlfmm_src": "outputs/runtime_benchmark.json:published_baselines.rows[4].quote",
+    "cost_reading": "표를 못 만든다. 회당 several hours 면 우리 격자 16,200 셀은 불가능하다. 이 추론은 두 비용 수치에서 나온 **가설**이며 어떤 논문도 이렇게 말하지 않는다.",
+    "cost_reading_src": "doc: docs/INJECTION_PRECEDENT.md §4.2"
+   },
+   {
+    "method": "② SBR + PO (우리)",
+    "what_it_solves": "광선으로 '어느 면이 실제로 조명되는가' 를 찾고, 그 면에서 PO 표면적분으로 σ 를 낸다. 상용 EM 솔버(FEKO/CST/HFSS SBR+)의 고주파 표준 방법이다.",
+    "accuracy": "해석 PO 대비 수치수렴은 소수 셋째 자리(§3). 참값 대비는 특징/λ 의 함수(§4).",
+    "our_position": "생산 경로.",
+    "per_pose_ms_median": 38.13479893530409,
+    "per_pose_ms_median_src": "outputs/runtime_benchmark.json:answer.two_passes.headline_pass.median"
+   },
+   {
+    "method": "③ 통계 RCS 주입 (3GPP 표 조회)",
+    "what_it_solves": "σ 를 규격 표에서 읽어 각도 섹터로 조회하고 경로전력에 곱한다.",
+    "our_position": "우리 격자와 **같은 구조**다. 갈리는 곳은 '표를 누가 만드는가' 뿐이다.",
+    "tr38901_small_uav_dbsm": -12.81,
+    "tr38901_small_uav_dbsm_src": "outputs/injection_standards.json:the_specification.the_shipped_numbers.table_7.9.2.1-1.UAV with small size.10lg(sigma_M)_dBsm",
+    "tr38901_sigma_S_std_db": 3.74,
+    "tr38901_sigma_S_std_db_src": "outputs/injection_standards.json:the_specification.the_shipped_numbers.table_7.9.2.1-1.UAV with small size.sigma_S_std_dB",
+    "no_frequency_axis": "The standardized sigma_M values carry no frequency argument. -12.81 dBsm is used across the TR's whole 0.5-100 GHz scope. The calibration tables (7.9.6.1-1) apply the same -12.81 dBsm at FR1 6 GHz and FR2 30 GHz.",
+    "no_frequency_axis_src": "outputs/injection_standards.json:the_specification.what_the_standard_deliberately_left_out.no_frequency_axis",
+    "company_spread_is_the_field_precision": "Use the company spread (-10 to -19.78 dBsm around -12.81 for the same size class) as the honest reference for how much disagreement is normal. If our SBR+PO grid lands within a few dB of the standard's value at a comparable aspect, that is as good as the standards body's own internal agreement.",
+    "company_spread_is_the_field_precision_src": "outputs/injection_standards.json:what_this_means_for_us[5]",
+    "accuracy": "주파수축이 없고 각도는 섹터 단위다. 같은 크기급에 대해 제출된 회사값이 −10 ~ −19.78 dBsm 로 벌어져 있었다 — 그 산포가 이 분야의 합의 정밀도다."
+   },
+   {
+    "method": "④ 기하 대리표적 (큐브·박스·구)",
+    "what_it_solves": "표적을 정육면체·직육면체·구로 바꾼다. 선행에서 가장 흔한 회피다.",
+    "our_position": "대조군으로 **같은 자로** 재봤다(benchmark/p3_control.py, 같은 PO 커널·같은 방위격자·같은 실측 앵커).",
+    "ours_mesh_mean_delta_db": -4.9131282182585565,
+    "ours_mesh_mean_delta_db_src": "outputs/p3_control.json:comparison.ours_p3_mesh.mean_delta_db",
+    "ours_mesh_rms_delta_db": 5.153821244044805,
+    "ours_mesh_rms_delta_db_src": "outputs/p3_control.json:comparison.ours_p3_mesh.rms_delta_db",
+    "ours_mesh_slope_err_db_per_ghz": 0.06090707860412553,
+    "ours_mesh_slope_err_db_per_ghz_src": "outputs/p3_control.json:comparison.ours_p3_mesh.slope_err",
+    "box_bbox_mean_delta_db": 12.896771152684927,
+    "box_bbox_mean_delta_db_src": "outputs/p3_control.json:comparison.box_bbox_lit.mean_delta_db",
+    "box_bbox_rms_delta_db": 12.976094584354978,
+    "box_bbox_rms_delta_db_src": "outputs/p3_control.json:comparison.box_bbox_lit.rms_delta_db",
+    "box_bbox_slope_err_db_per_ghz": 0.18197361512652327,
+    "box_bbox_slope_err_db_per_ghz_src": "outputs/p3_control.json:comparison.box_bbox_lit.slope_err",
+    "cube_eqvol_mean_delta_db": 14.276611694626302,
+    "cube_eqvol_mean_delta_db_src": "outputs/p3_control.json:comparison.cube_eqvol_bbox.mean_delta_db",
+    "cube_eqvol_rms_delta_db": 14.348691395249531,
+    "cube_eqvol_rms_delta_db_src": "outputs/p3_control.json:comparison.cube_eqvol_bbox.rms_delta_db",
+    "cube_eqvol_slope_err_db_per_ghz": 0.1829430506237269,
+    "cube_eqvol_slope_err_db_per_ghz_src": "outputs/p3_control.json:comparison.cube_eqvol_bbox.slope_err",
+    "cube_side_max_mean_delta_db": 19.491242279508363,
+    "cube_side_max_mean_delta_db_src": "outputs/p3_control.json:comparison.cube_side_max.mean_delta_db",
+    "cube_side_max_rms_delta_db": 19.543601867952866,
+    "cube_side_max_rms_delta_db_src": "outputs/p3_control.json:comparison.cube_side_max.rms_delta_db",
+    "cube_side_max_slope_err_db_per_ghz": 0.18117054692887086,
+    "cube_side_max_slope_err_db_per_ghz_src": "outputs/p3_control.json:comparison.cube_side_max.slope_err",
+    "sphere_eqvol_mie_mean_delta_db": 0.9026512949959408,
+    "sphere_eqvol_mie_mean_delta_db_src": "outputs/p3_control.json:comparison.sphere_eqvol_mie.mean_delta_db",
+    "sphere_eqvol_mie_rms_delta_db": 2.0788632435982284,
+    "sphere_eqvol_mie_rms_delta_db_src": "outputs/p3_control.json:comparison.sphere_eqvol_mie.rms_delta_db",
+    "sphere_eqvol_mie_slope_err_db_per_ghz": -0.34800127250114077,
+    "sphere_eqvol_mie_slope_err_db_per_ghz_src": "outputs/p3_control.json:comparison.sphere_eqvol_mie.slope_err",
+    "reading": "박스·큐브는 전부 **크게 과대평가**한다 — 최대치수 큐브는 +19.5 dB, 100 배 가깝다. ⚠ 그러나 등가부피 PEC 구는 밴드평균 레벨에서 우리보다 낫다(+0.90 vs −4.91 dB). 구가 사지 못하는 것은 주파수 의존(기울기 오차 −0.348 vs 우리 +0.061)과 각도 구조(ε=0)이고, 그 +0.90 dB 는 등가반지름 규칙 4개가 6.51 dB 를 벌리는 **자유 손잡이**를 돌려 나온 값이다.",
+    "reading_src": "doc: docs/MESH_VALIDATION.md §6.2·§6.3"
+   },
+   {
+    "method": "⑤ 실측",
+    "what_it_solves": "무향실·CATR 에서 직접 잰다. 절대 앵커의 최종 출처다.",
+    "our_position": "우리 절대 레벨의 앵커. 자체 측정이 아니라 **공개 문헌 RCS** 다.",
+    "das_slope_db_per_ghz": 0.21,
+    "das_slope_db_per_ghz_src": "outputs/rcs_anchor.json:literature.mu_eps.das_phantom3_mono.mu_a",
+    "das_band_ghz": [
+     1.8,
+     18.2
+    ],
+    "das_band_ghz_src": "outputs/rcs_anchor.json:literature.mu_eps.das_phantom3_mono.band_ghz",
+    "yuan_az_plane_slope_db_per_ghz": 0.315,
+    "yuan_az_plane_slope_db_per_ghz_src": "outputs/rcs_anchor.json:literature.mu_eps.yuan_phantom3_azplane.mu_a",
+    "caveat": "Das WCL 2026 은 Yuan EuCAP 2025 **원자료의 재분석**이다(사사에 명시) — '독립 앵커 2건' 이 아니라 측정 1건이다.",
+    "caveat_src": "doc: docs/RETRACTION_LOG.md 추가정정 A2"
+   }
+  ],
+  "what_the_field_actually_prints": {
+   "_what": "원문 정독 18편의 진폭 정당화 인구조사(outputs/evasion_catalogue.json).",
+   "papers_read_in_full_text": 18,
+   "papers_read_in_full_text_src": "outputs/evasion_catalogue.json:counts.papers_read_in_full_text",
+   "absolute_dbsm_as_computed_output": 3,
+   "absolute_dbsm_as_computed_output_src": "outputs/evasion_catalogue.json:counts.absolute_dbsm_as_computed_output",
+   "absolute_dbsm_for_a_drone_target_computed": 0,
+   "absolute_dbsm_for_a_drone_target_computed_src": "outputs/evasion_catalogue.json:counts.absolute_dbsm_for_a_drone_target_computed",
+   "sionna_based_subset": 10,
+   "sionna_based_subset_src": "outputs/evasion_catalogue.json:counts.sionna_based_subset",
+   "sionna_based_that_print_computed_absolute_dbsm": 1,
+   "sionna_based_that_print_computed_absolute_dbsm_src": "outputs/evasion_catalogue.json:counts.sionna_based_that_print_computed_absolute_dbsm",
+   "headline_findings": [
+    "⭐패턴은 일반적이다. 원문 판정 18편 중 표적 산란을 주장한 17편에서, 계산된(가정이 아닌) 절대 dBsm 을 인쇄한 것은 3편뿐이고 그 3편의 표적은 차량·보행자·항공기다. 드론 표적의 계산된 절대 dBsm 을 인쇄한 논문은 이 표본에 0편이다.",
+    "md-rt(ICCT 2025)의 구조는 예외가 아니라 정석이다. sigma 를 기호로 두고 관측량을 위상 미분으로 한정하면(E1+E2) 진폭 검증 의무가 통째로 사라진다. Costa 계열 2편이 같은 구조를 실측 대조까지 붙여 반복한다.",
+    "⭐가장 흔한 회피는 '표적을 상자로 바꾸기'(E10)다. CellSense 는 사람을 1.8x0.5x0.25 m 직육면체로, LowAlt-Cube 는 UAV 를 금속 정육면체로 놓고 각각 Pd=0.74, 미검출률 0.63% 를 소수점까지 인쇄한다. 두 논문 모두 'RCS' 라는 단어가 본문에 0회다(CellSense 는 'SNR' 도 0회).",
+    "에너지 주장을 한 14편의 진폭 정당화는 넷으로 갈린다 - 아무것도 대지 않거나(NONE 3편), 같은 시뮬 안의 baseline 대비로만 대거나(RELATIVE_ONLY 2편 + HAND_TUNED 1편), 스칼라 상수·표준표로 위임하거나(ASSUMED_CONSTANT·STANDARD_MODEL 2편), 엔진 밖(FEKO/실측/Mie)으로 내보낸다(EXTERNAL_SOLVER 1 + MEASUREMENT_ANCHOR 3 + REFERENCE_SOLVER 3 = 7편). 광선추적 엔진 안에서 표적 진폭을 풀어낸 사례는 표본에 0편이다.",
+    "Costa 저널판은 회피를 문장으로 자백한다 - 몸통 반사도 스칼라를 '단순화를 위해 수동 조정' 했고, 검증 지표는 [0,1] 정규화 후의 Pearson 상관(스케일 불변)이다. 이건 E5+E4 의 교과서적 조합이다.",
+    "RadarTwin 은 회피를 이름 붙이고 고친 유일한 사례다 - '절대 방사측정은 sim-to-real 격차를 넘지 못한다' 고 쓴 뒤 삼면 코너리플렉터 1개로 앵커를 붙였다. 우리가 쓸 수 있는 가장 정직한 선행 문장이다.",
+    "Deep(IET RSN 2020)은 반대 방향의 자백이다 - 시뮬에는 잡음을 넣지 않았으므로 CFAR 은 실측에만 돌렸다고 적었다(E12). 검출 통계량을 시뮬에서 안 내는 이유가 본문에 명시된 드문 경우다.",
+    "Sagitta(SBR+PO 전용 논문)조차 검증 축은 정규화 RCS sigma/(pi r^2) 다. 절대 dBsm 은 본문 산문에서 단위로만 언급된다 - 진폭에 가장 강하게 커밋한 부류에서도 그림 축은 정규화된다."
+   ],
+   "headline_findings_src": "outputs/evasion_catalogue.json:headline_findings_ko"
+  }
+ },
+ "s2_our_kernel": {
+  "_title": "우리 PO 커널 — src/rcs_sbr.py 를 수식으로 풀어 쓴다",
+  "derivation": [
+   {
+    "step": 1,
+    "statement": "모노스태틱 PO 의 출발점:  E(û) ∝ ∬_조명면 (n̂·û) · e^{j2k r·û} dS",
+    "symbols": "û = 표적→레이더 단위벡터 · n̂ = 면의 바깥 법선 · k = 2π/λ · r = 면 위의 점 · dS = 면적요소",
+    "plain": "조명된 표면의 모든 점이 각자 위상 e^{j2k r·û} 를 갖고 더해진다. (n̂·û) 는 '그 점이 레이더 쪽으로 얼마나 정면을 보고 있나' 를 재는 비스듬함(obliquity) 계수다."
+   },
+   {
+    "step": 2,
+    "statement": "û 에 수직인 평면으로 변수변환:  (n̂·û) dS = dA_투영",
+    "symbols": "dA_투영 = 그 면적요소를 û 방향에서 본 **그림자 면적**",
+    "plain": "면이 기울어져 있으면 실제 면적 dS 는 크지만 정면에서 본 넓이는 (n̂·û) 배로 줄어든다. 그 두 요인이 정확히 **상쇄**된다 — 이것이 이 커널의 핵심이다.",
+    "why_it_matters": "비스듬함 계수를 따로 계산할 필요가 사라진다. 대신 '투영면에 균일 격자로 광선을 쏘는 것' 자체가 구적법이 된다."
+   },
+   {
+    "step": 3,
+    "statement": "따라서  E(û) ∝ ∬ e^{j2k r·û} dA_투영",
+    "plain": "적분이 표면 위가 아니라 **투영 평면 위**의 적분으로 바뀌었다."
+   },
+   {
+    "step": 4,
+    "statement": "투영면에 간격 d 의 균일 격자로 평행 광선을 쏜다. 광선 1발이 대표하는 투영면적은 d² 다.",
+    "plain": "격자의 칸 하나가 dA_투영 하나다. 광선이 맞은 지점 p_i 마다 위상을 계산해 더하면 적분이 합으로 바뀐다."
+   },
+   {
+    "step": 5,
+    "statement": "E = Σ_hits |Γ_i| · e^{j2k p_i·û} · d²      [단위 m²]",
+    "symbols": "|Γ_i| = 그 지점 재질의 Fresnel 반사 진폭(materials.py, Sionna 와 같은 표) · p_i = 광선이 맞은 점",
+    "plain": "재질이 다른 부품(플라스틱 셸·카본·금속 모터·배터리)이 각자 다른 |Γ| 로 기여한다."
+   },
+   {
+    "step": 6,
+    "statement": "σ = (4π/λ²) · |E|²      [단위 m², dBsm 은 10log10]",
+    "plain": "복소 산란장 E 를 레이더 단면적으로 바꾸는 표준 변환이다. 우리가 σ 가 아니라 **복소 E** 를 내부에 갖고 있다는 점이 중요하다 — 마이크로도플러는 위상이 필요하다."
+   },
+   {
+    "step": 7,
+    "statement": "가림(self-shadowing)은 **공짜**다 — Mitsuba first-hit 이 뒤에 가려진 면을 애초에 맞히지 않는다. 조명 게이트는 (n̂·û) > 1e-6 이다.",
+    "plain": "이것이 SBR 이 '점구름 PO' 보다 나은 이유다. 팔에 가린 동체, 프로펠러에 가린 모터가 자동으로 빠진다."
+   },
+   {
+    "step": 8,
+    "statement": "바이스태틱 일반형:  E ∝ Σ_hit |Γ| · e^{jk(û_i+û_s)·p} · d²",
+    "symbols": "û_i = 표적→송신국 · û_s = 표적→수신국",
+    "plain": "모노스태틱은 û_s = û_i 인 특수해이고, 그때 지수가 e^{j2k û·p} 로 정확히 돌아간다.",
+    "extra_gate": "수신 가시성 — 법선 판정 (n̂·û_s)>0 에 더해 히트점마다 û_s 로 그림자광선을 1발 더 쏜다(exit_vis). 모노스태틱에서는 정확한 no-op 다(실측 0.000 dB)."
+   }
+  ],
+  "production_settings": {
+   "_where": "src/experiment_freespace_sigma.py:92-96 · src/rcs_sbr.py:84 · outputs/lowfreq_grid.json:_meta.convention",
+   "div": 16,
+   "div_src": "outputs/runtime_benchmark.json:meta.production_settings.div",
+   "jitter": 2,
+   "jitter_src": "outputs/runtime_benchmark.json:meta.production_settings.jitter",
+   "penetrate": true,
+   "penetrate_src": "outputs/runtime_benchmark.json:meta.production_settings.penetrate",
+   "n_f_band_average": 3,
+   "n_f_band_average_src": "outputs/runtime_benchmark.json:meta.production_settings.n_f_band_average",
+   "settings_source_line": "src/experiment_freespace_sigma.py:62-76",
+   "settings_source_line_src": "outputs/runtime_benchmark.json:meta.production_settings.source",
+   "kernel_default_div": 12,
+   "kernel_default_div_src": "code: src/rcs_sbr.py:84 (DEFAULT_DIV)",
+   "max_bounce": 1,
+   "max_bounce_src": "code: src/experiment_freespace_sigma.py:28 (스펙 §9 다중반사 금지)",
+   "ptd": false,
+   "ptd_src": "code: src/rcs_sbr.py:185-187 (rcs_sbr_batch 시그니처 기본값 ptd=False)",
+   "production_convention_line": "생산 경로(benchmark/rcs_anchor.raw_sigma_az)와 **spacing 만** 다르다: el=0 · az=linspace(0,360,360,endpoint=False) · penetrate=True · ptd=False · max_bounce=1 · jitter=2 · μ=10log10(mean_φ σ_lin) · ε=std(10log10 σ_lin).",
+   "production_convention_line_src": "outputs/lowfreq_grid.json:_meta.convention",
+   "spacing_meaning": "격자 간격 d = λ/div. div=16 이면 3.5 GHz 에서 d = 5.36 mm.",
+   "jitter_meaning": "J=2 면 서브셀 오프셋 J²=4 개를 평균한다. 격자 정렬이 우연히 유리·불리해지는 위상 에일리어싱을 눌러 절대 σ 를 안정화한다.",
+   "penetrate_meaning": "유전체 셸(body·canopy)을 왕복 투과 τ=1−|Γ|² 로 통과시켜 내부 금속(배터리·PCB)을 코히어런트 가산한다. 셸 선언은 이름 규약이 아니라 |Γ| ≤ 0.5 검사로 강제한다 — 카본 데크를 body 로 넣으면 즉시 예외."
+  },
+  "grid_dither": {
+   "_what": "서브셀 오프셋을 흔들었을 때의 **단일격자** σ 산포(peak-to-peak). 구 r=0.5 m·3.5 GHz. 수렴은 단조롭지 않다 — λ/12 가 λ/16 보다 작다.",
+   "dither_spread_div8_db": 5.284270838913799,
+   "dither_spread_div8_db_src": "outputs/report2_waveform_rcs.json:sbr_validation.dither[0].spread",
+   "dither_spread_div12_db": 1.3734745431514732,
+   "dither_spread_div12_db_src": "outputs/report2_waveform_rcs.json:sbr_validation.dither[1].spread",
+   "dither_spread_div16_db": 1.7821516012275314,
+   "dither_spread_div16_db_src": "outputs/report2_waveform_rcs.json:sbr_validation.dither[2].spread",
+   "dither_spread_div24_db": 0.3422091164711472,
+   "dither_spread_div24_db_src": "outputs/report2_waveform_rcs.json:sbr_validation.dither[3].spread",
+   "reading": "이 산포가 절대 σ 에 붙는 격자 불확실성이다. 숫자를 인용할 때는 반드시 div 를 함께 적는다. 자세 **간** 상대 패턴은 이보다 훨씬 안정하다."
+  },
+  "same_methodology_as": {
+   "statement": "그래픽 레이트레이서 위에 자기 PO 적분기를 얹는 것은 우리 발명이 아니라 **이 문제의 표준 대응**이고, 두 팀이 독립적으로 같은 곳에 도달했다.",
+   "quote_mc_sbr": "\"Our implementation is not simply a direct application of Mitsuba, which does not currently support surface current calculation or physical optics integration.\" — Monte-Carlo SBR (UMD), arXiv:2511.07586 p.7",
+   "sagitta": "SagittaSBR(arXiv:2604.09243)은 독립 SBR+PO RCS 솔버이고 코드를 공개했다.",
+   "how_to_write_it": "'우리는 이렇게 했다' 가 아니라 '이 구조가 이 문제의 표준 대응이고, 우리는 그것을 **부품별 재질을 가진 드론**에 처음 적용했다'.",
+   "src": "doc: docs/HOW_OTHERS_SOLVED_IT.md §5"
+  },
+  "what_our_kernel_does_not_do": [
+   {
+    "item": "모서리 프린지(PTD) 항",
+    "state": "배선은 돼 있고 **생산에서는 꺼져 있다**(ptd=False). ptd=False 경로는 배선 이전과 비트 단위로 같다.",
+    "note": "PTD 를 켜도 저대역이 닫히지 않는다는 것이 §4 의 결과다."
+   },
+   {
+    "item": "2회 이상 다중반사",
+    "state": "생산 σ 는 전부 1-bounce 다.",
+    "note": "오목한 이면반사체에서는 2-bounce 가 필수다 — 그 검증은 §3 에 있고, 드론 생산 경로는 아니다."
+   },
+   {
+    "item": "편파",
+    "state": "면적분이 **스칼라**라 VV/HH 를 가르지 못한다.",
+    "note": "얇은 띠 참값이 0.15λ 에서 편파로 11.56 dB 갈라진다 — 그 갈라짐을 원리적으로 낼 수 없다."
+   },
+   {
+    "item": "크리핑파·표면파",
+    "state": "없다.",
+    "note": "Sionna 에도 없다. 매끄러운 볼록체 그림자 경계를 감아 도는 성분이다."
+   },
+   {
+    "item": "전방산란(β→180°)",
+    "state": "σ ≡ 0 이 된다 — 조명 게이트와 수신 게이트가 상호배타다.",
+    "note": "lit-PO 는 Babinet 전방로브를 못 낸다. 주장 창을 후방~중간 바이스태틱각으로 못박는다."
+   },
+   {
+    "item": "셸 내부 흡수손실",
+    "state": "τ=1−|Γ|² 는 반사되지 않은 전력이 전부 통과한다고 본다.",
+    "note": "유전손실을 무시하는 **상한**이다."
+   }
+  ]
+ },
+ "s3_validation": {
+  "_title": "검증 3층 — ① 해석 PO 수렴 ② PEC 구 Mie 정확해 ③ 얇은 판 2D MoM",
+  "_the_decomposition": "(커널 − 참값) = (커널 − 해석 PO) + (해석 PO − 참값). ①이 앞항을, ②③이 뒷항을 잰다. 두 항은 성질이 다르다 — 앞항은 **구현 오차**(격자를 조이면 준다), 뒷항은 **모형 오차**(격자로는 못 고친다).",
+  "_decomposition_src": "outputs/lowfreq_anchor.json:_meta.decomposition",
+  "layer1_analytic_po_convergence": {
+   "_what": "커널이 **PO 를 제대로 계산하는가**. 과녁은 정확 Mie 가 아니라 해석 PO 다 — 커널이 PO 이기 때문이다.",
+   "kr_sweep_max_abs_db_vs_po_div16": 0.2005726178588444,
+   "kr_sweep_max_abs_db_vs_po_div16_src": "outputs/sbr_kr_sweep.json:summary_div16.max_abs_db_vs_po",
+   "kr_sweep_std_pct_vs_po_div16": 1.5171976590188996,
+   "kr_sweep_std_pct_vs_po_div16_src": "outputs/sbr_kr_sweep.json:summary_div16.std_sbr_over_po_pct",
+   "kr_sweep_std_pct_vs_po_kr_ge30": 0.8854682372035955,
+   "kr_sweep_std_pct_vs_po_kr_ge30_src": "outputs/sbr_kr_sweep.json:summary_div16.std_sbr_over_po_pct_kr_ge30",
+   "kr_sweep_n_points": 21,
+   "kr_sweep_n_points_src": "outputs/sbr_kr_sweep.json:summary_div16.n_points",
+   "kr_sweep_kr_min": 1.0,
+   "kr_sweep_kr_min_src": "outputs/sbr_kr_sweep.json:summary_div16.kr_min",
+   "kr_sweep_kr_max": 100.0,
+   "kr_sweep_kr_max_src": "outputs/sbr_kr_sweep.json:summary_div16.kr_max",
+   "kr_sweep_n_incidence": 48,
+   "kr_sweep_n_incidence_src": "outputs/sbr_kr_sweep.json:meta.n_incidence",
+   "kr_sweep_runtime_s": 175.7,
+   "kr_sweep_runtime_s_src": "outputs/sbr_kr_sweep.json:meta.runtime_s",
+   "kr_sweep_ms_per_incidence": 87.15277777777777,
+   "kr_sweep_ms_per_incidence_src": "computed: meta.runtime_s ÷ (div 2개 × n_incidence × n_points) × 1000",
+   "sphere_ka1_kernel_vs_po_at_finest_db": -0.00019464666528534735,
+   "sphere_ka1_kernel_vs_po_at_finest_db_src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.finest.vs_po_db",
+   "sphere_ka1_finest_d_mm": 0.25,
+   "sphere_ka1_finest_d_mm_src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.finest.d_mm",
+   "sphere_ka1_grid_refine_factor": 209.43951023931953,
+   "sphere_ka1_grid_refine_factor_src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.grid_refine_factor",
+   "sphere_ka1_ray_count_factor": 7086.578512396694,
+   "sphere_ka1_ray_count_factor_src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.ray_count_factor",
+   "thin_plate_0p15lam_vs_po_at_lam12_db": -0.3342375548694969,
+   "thin_plate_0p15lam_vs_po_at_lam12_db_src": "outputs/lowfreq_anchor.json:thin_plate.per_width.0.15.vs_po_at_lam12_db",
+   "thin_plate_0p15lam_vs_po_at_finest_db": -0.014928583264299355,
+   "thin_plate_0p15lam_vs_po_at_finest_db_src": "outputs/lowfreq_anchor.json:thin_plate.per_width.0.15.vs_po_at_finest_db",
+   "plate_normal_incidence_note": "sigma = 8*pi*a^2*b^2/lambda^2 (bisector incidence, a=b)",
+   "plate_normal_incidence_note_src": "outputs/sbr_defect_fixes.json:d3_multibounce_phase.exact_formula",
+   "plate_is_exact_not_asymptotic": "PEC 평판 정면입사에서 4πA²/λ² 는 점근이 아니라 **PO 의 정확한 답**이다. 그래서 이 과녁은 격자만 잰다.",
+   "reading": "격자를 209 배 조이면(광선 7087 배) 커널이 해석 PO 에 소수 넷째 자리로 붙는다. '우리 PO 면적분이 PO 를 제대로 계산한다' 는 확립됐다."
+  },
+  "layer2_pec_sphere_mie": {
+   "_what": "PO 라는 **모형** 이 참값에서 얼마나 떨어지는가. 구는 정확 Mie 급수해가 있다.",
+   "po_minus_mie_at_ka1_db": -6.583859437709146,
+   "po_minus_mie_at_ka1_db_src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.po_minus_mie_db",
+   "kernel_minus_mie_at_ka1_lam12_db": -6.5303202290031575,
+   "kernel_minus_mie_at_ka1_lam12_db_src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.lam12.vs_mie_db",
+   "kernel_minus_mie_at_ka1_finest_db": -6.584054084374431,
+   "kernel_minus_mie_at_ka1_finest_db_src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.finest.vs_mie_db",
+   "improvement_from_refining_grid_db": -0.05373385537127362,
+   "improvement_from_refining_grid_db_src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.improvement_vs_mie_db",
+   "kr_sweep_std_pct_vs_mie_kr_ge30_div16": 1.834374210222452,
+   "kr_sweep_std_pct_vs_mie_kr_ge30_div16_src": "outputs/sbr_kr_sweep.json:summary_div16.std_sbr_over_mie_pct_kr_ge30",
+   "kr_sweep_max_abs_db_vs_mie": 6.729111994408728,
+   "kr_sweep_max_abs_db_vs_mie_src": "outputs/sbr_kr_sweep.json:summary_div16.max_abs_db_vs_mie",
+   "cal_sphere_r178mm_lte_dev_vs_mie_db": -0.8511794043608774,
+   "cal_sphere_r178mm_lte_dev_vs_mie_db_src": "outputs/rcs_anchor.json:sphere_calibration.LTE 1.843 GHz.spheres[1].dev_db_vs_mie",
+   "cal_sphere_r178mm_lte_dev_vs_po_db": -0.18334563527647596,
+   "cal_sphere_r178mm_lte_dev_vs_po_db_src": "outputs/rcs_anchor.json:sphere_calibration.LTE 1.843 GHz.spheres[1].dev_db_vs_po",
+   "cal_sphere_r178mm_lte_ka": 6.87550342831337,
+   "cal_sphere_r178mm_lte_ka_src": "outputs/rcs_anchor.json:sphere_calibration.LTE 1.843 GHz.spheres[1].ka",
+   "cal_sphere_r250mm_5g_dev_vs_mie_db": 0.004154363058668231,
+   "cal_sphere_r250mm_5g_dev_vs_mie_db_src": "outputs/rcs_anchor.json:sphere_calibration.5G 3.5 GHz.spheres[0].dev_db_vs_mie",
+   "cal_sphere_r250mm_5g_ka": 18.338643942077216,
+   "cal_sphere_r250mm_5g_ka_src": "outputs/rcs_anchor.json:sphere_calibration.5G 3.5 GHz.spheres[0].ka",
+   "reading": "ka=1 에서 커널−Mie 간극 6.53 dB 는 격자를 209 배 조여도 6.58 dB 로 **0.05 dB 밖에 안 준다** — 그리고 그 값은 해석 PO−Mie 간극 그 자체다. 저 ka 오차는 표본화가 아니라 PO 다. 반대로 kr≥30(광학영역)에서는 Mie 대비 산포가 1.8% 로 떨어진다.",
+   "fairness": "이 층은 '우리 커널이 나쁘다' 가 아니라 'PO 라는 근사가 언제 성립하는가' 를 잰다. 같은 자를 어떤 SBR+PO 솔버에 대도 같은 결과가 나온다."
+  },
+  "layer3_thin_plate_2d_mom": {
+   "_what": "드론의 진짜 문제는 **가는 특징**이다. 폭 a 의 얇은 띠에서 PO 를 근사 없는 2D EFIE MoM 참값과 맞댄다.",
+   "mom_selftest_worst_db": 0.0002704533920672436,
+   "mom_selftest_worst_db_src": "outputs/lowfreq_anchor.json:thin_plate.mom_selftest.worst_abs_db_at_240seg",
+   "mom_selftest_reference": "exact 2-D PEC circular cylinder eigenfunction series",
+   "mom_selftest_reference_src": "outputs/lowfreq_anchor.json:thin_plate.mom_selftest.reference",
+   "po_minus_tm_at_0p15lam_db": -4.022224316343777,
+   "po_minus_tm_at_0p15lam_db_src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.0.15.po_minus_tm_db",
+   "po_minus_te_at_0p15lam_db": 7.534819540071847,
+   "po_minus_te_at_0p15lam_db_src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.0.15.po_minus_te_db",
+   "tm_minus_te_at_0p15lam_db": 11.557043856415623,
+   "tm_minus_te_at_0p15lam_db_src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.0.15.tm_minus_te_db",
+   "po_minus_tm_at_1lam_db": -0.12595768560082318,
+   "po_minus_tm_at_1lam_db_src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.1.po_minus_tm_db",
+   "po_minus_te_at_1lam_db": 0.3878289471003995,
+   "po_minus_te_at_1lam_db_src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.1.po_minus_te_db",
+   "po_minus_tm_at_2lam_db": -0.020207484790962127,
+   "po_minus_tm_at_2lam_db_src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.2.po_minus_tm_db",
+   "po_ptd_minus_tm_at_0p15lam_db": -0.7470188202584702,
+   "po_ptd_minus_tm_at_0p15lam_db_src": "outputs/lowfreq_anchor.json:ptd_does_not_close_it.per_width.0.15.po_ptd_minus_tm_db",
+   "po_ptd_minus_te_at_0p15lam_db": 10.810025036157153,
+   "po_ptd_minus_te_at_0p15lam_db_src": "outputs/lowfreq_anchor.json:ptd_does_not_close_it.per_width.0.15.po_ptd_minus_te_db",
+   "ptd_v_minus_h_at_0p15lam_db": 8.056577627257866e-11,
+   "ptd_v_minus_h_at_0p15lam_db_src": "outputs/lowfreq_anchor.json:ptd_does_not_close_it.per_width.0.15.v_minus_h_db",
+   "ptd_reading": "1차 프린지는 정면입사에서 편파를 못 가른다(V−H ≈ 1e-10 dB). 그래서 TM 을 −4.02 → −0.75 dB 로 고치는 대신 TE 를 +7.53 → +10.81 dB 로 **악화**시킨다. 'PTD 를 켜면 저대역이 고쳐진다' 는 희망은 여기서 죽는다.",
+   "scalar_po_structural_limit": "참값이 0.15λ 에서 편파로 11.56 dB 갈라지는데 스칼라 면적분은 그 갈라짐을 **원리적으로** 낼 수 없다. 이것은 크기 귀속이 필요 없는 구조에 대한 주장이다."
+  },
+  "layer4_dihedral_multibounce": {
+   "_what": "직각 이면반사체 — 볼록체 과녁 두 개가 못 잡는 **다중반사 위상**을 잡는 유일한 검증.",
+   "exact_formula": "sigma = 8*pi*a^2*b^2/lambda^2 (bisector incidence, a=b)",
+   "exact_formula_src": "outputs/sbr_defect_fixes.json:d3_multibounce_phase.exact_formula",
+   "max_abs_err_2bounce_db": 0.5563136017522101,
+   "max_abs_err_2bounce_db_src": "outputs/sbr_defect_fixes.json:d3_multibounce_phase.max_abs_err_db",
+   "a03_exact_dbsm": 14.432195614094232,
+   "a03_exact_dbsm_src": "outputs/sbr_defect_fixes.json:d3_multibounce_phase.rows[2].exact_dbsm",
+   "a03_sbr_1bounce_dbsm": -118.33391013501708,
+   "a03_sbr_1bounce_dbsm_src": "outputs/sbr_defect_fixes.json:d3_multibounce_phase.rows[2].sbr_1bounce_dbsm",
+   "a03_sbr_2bounce_dbsm": 14.507914557175841,
+   "a03_sbr_2bounce_dbsm_src": "outputs/sbr_defect_fixes.json:d3_multibounce_phase.rows[2].sbr_2bounce_dbsm",
+   "reading": "1-bounce 로는 이면반사체가 −118 dBsm 으로 죽고, 2-bounce 를 켜면 해석해에 0.08 dB 로 붙는다. 우리 **생산** 경로는 1-bounce 이므로, 드론에 깊은 오목부가 있다면 그 성분이 빠진다."
+  },
+  "layer5_reciprocity_selfcheck": {
+   "_what": "상반성 σ(û_i,û_s)=σ(û_s,û_i) 는 **정리**이므로 위반은 전부 모형오차다. 213편 중 자기 커널에 이 검사를 돌린 논문은 0편이다.",
+   "drone_worst_violation_db": 8.237310530822135,
+   "drone_worst_violation_db_src": "outputs/sbr_defect_fixes.json:d2_reciprocity_drone.worst_db",
+   "drone_worst_without_exit_vis_db": 9.687496055911556,
+   "drone_worst_without_exit_vis_db_src": "outputs/sbr_defect_fixes.json:d2_exit_vis_effect_on_reciprocity.worst_without_exit_vis_db",
+   "drone_worst_after_symmetrize_db": 1.0658141036401503e-14,
+   "drone_worst_after_symmetrize_db_src": "outputs/sbr_defect_fixes.json:d2_reciprocity_drone.worst_after_symmetrize_db",
+   "symmetrize_honest_note": "대칭화는 σ_sym(i,s)=σ_sym(s,i) 를 구성상 정확히 만든다(잔차 ~1e-14 dB, 부동소수 수준). 그러나 두 평가값의 dB 차이(=위반량)는 그대로다 — 평판처럼 위반원인이 알려진 경우에만 '제거' 이고, 기체의 잔여 성분에 대해서는 '상반성 성질 보장' 일 뿐 정확도 개선의 증거가 아니다.",
+   "symmetrize_honest_note_src": "outputs/sbr_defect_fixes.json:d2_reciprocity_drone.honest_note",
+   "reading": "우리가 이 검사를 인쇄하는 것은 우리 커널이 나쁘다는 뜻이 아니라, 다른 커널들은 같은 결함이 있어도 **보이지 않는다**는 뜻이다.",
+   "reading_src": "doc: docs/HOW_OTHERS_SOLVED_IT.md §2 (P8)"
+  }
+ },
+ "s4_limits": {
+  "_title": "⚠ 한계 — PO 유효 무릎과, 아직 크기를 못 정한 것",
+  "po_validity_knee_a_over_lambda": 0.7288815751523454,
+  "po_validity_knee_a_over_lambda_src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom_fine_width_grid.knee_a_over_lam",
+  "po_validity_knee_rule": "max(|PO−MoM TM|,|PO−MoM TE|) 가 1 dB 를 넘는 구간의 상단",
+  "po_validity_knee_rule_src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom_fine_width_grid.knee_rule",
+  "knee_establishing_sentence": "worst-pol |PO − 참값| 이 1 dB 아래로 내려가려면 특징 폭이 ≥0.729λ 여야 한다(lowfreq_anchor.thin_plate.truth_2d_mom_fine_width_grid.knee_a_over_lam).",
+  "knee_establishing_sentence_src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.what_this_round_establishes",
+  "feature_knee_frequencies": {
+   "_what": "각 부품이 그 무릎(폭 ≥ 0.729λ)을 통과하는 주파수 [GHz]. ⚠ 적대검증 에이전트가 재계산한 값이며 crude 라고 스스로 표시했다.",
+   "body_81p51mm_ghz": 2.68,
+   "body_81p51mm_ghz_src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.body_81.51mm",
+   "arm_root_45mm_ghz": 4.86,
+   "arm_root_45mm_ghz_src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.arm_root_45mm",
+   "arm_tip_30mm_ghz": 7.28,
+   "arm_tip_30mm_ghz_src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.arm_tip_30mm",
+   "prop_blade_13p78mm_ghz": 15.86,
+   "prop_blade_13p78mm_ghz_src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.prop_blade_13.78mm",
+   "motor_13p68mm_ghz": 15.97,
+   "motor_13p68mm_ghz_src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.motor_13.68mm",
+   "canopy_6p22mm_ghz": 35.13,
+   "canopy_6p22mm_ghz_src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.canopy_6.22mm",
+   "pcb_2p99mm_ghz": 73.08,
+   "pcb_2p99mm_ghz_src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.pcb_2.99mm"
+  },
+  "our_production_bands_vs_knee": {
+   "_what": "우리 생산 3 밴드. **body 를 뺀 모든 특징이 무릎 아래**다.",
+   "lte_ghz": 1.843,
+   "lte_ghz_src": "code: src/experiment_freespace_sigma.py:63 (BANDS)",
+   "nr_ghz": 3.5,
+   "nr_ghz_src": "code: src/experiment_freespace_sigma.py:64 (BANDS)",
+   "wifi_ghz": 5.21,
+   "wifi_ghz_src": "code: src/experiment_freespace_sigma.py:65 (BANDS)",
+   "the_uncomfortable_corollary": "우리 생산 3 밴드(LTE 1.843 · 5G 3.5 · WiFi 5.21 GHz)에서 body 를 제외한 **모든** 특징이 이 무릎 아래에 있다. 그리고 prop·motor·canopy·pcb 는 **18.2 GHz 까지 대역 전체**에서 무릎 아래다. 따라서 이 라운드가 '고대역은 깨끗하다' 고 말할 근거는 자기 자신의 무릎 기준에 의해 **없다**. 자매 파일이 권고한 '우리 모형의 신뢰 하한 ≈6 GHz' 도 body·arm 에만 참이고 prop 계열에는 거짓이다.",
+   "the_uncomfortable_corollary_src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.⭐_the_uncomfortable_corollary",
+   "sign_of_the_error": "지배채널(TM) 기준 PO 는 얇은 특징을 **과소평가**한다(prop 0.083λ 에서 −7.25 dB). 따라서 우리 저주파 σ 는 낮게 나와 있을 개연성이 높고, 검출 성능 산출물은 **보수적(비관적)** 쪽으로 틀렸을 것이다. 단, 스칼라 PO 는 편파를 못 가르므로 TE 채널 기준으로는 부호가 반대다 — 방향을 못 박으려면 편파 있는 커널이 필요하다.",
+   "sign_of_the_error_src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.sign_of_the_error"
+  },
+  "gap_at_drone_feature_scales": {
+   "_what": "1.8 GHz 에서 드론 부품 폭 / λ, 그리고 그 폭에서 잰 worst-pol |PO−참값|.",
+   "prop_over_lambda_at_1p8ghz": 0.08273722106208653,
+   "prop_over_lambda_at_1p8ghz_src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone_feature_over_lambda_at_1p8ghz.prop",
+   "prop_worst_pol_gap_db": 13.464686440783248,
+   "prop_worst_pol_gap_db_src": "outputs/lowfreq_anchor.json:consistency_with_drone.checks.gap_lives_at_drone_feature_scales.worst_pol_gap_db_at_drone_features.prop",
+   "arm_tip_over_lambda_at_1p8ghz": 0.18012457415548594,
+   "arm_tip_over_lambda_at_1p8ghz_src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone_feature_over_lambda_at_1p8ghz.arm_tip",
+   "arm_tip_worst_pol_gap_db": 5.609368333774663,
+   "arm_tip_worst_pol_gap_db_src": "outputs/lowfreq_anchor.json:consistency_with_drone.checks.gap_lives_at_drone_feature_scales.worst_pol_gap_db_at_drone_features.arm_tip",
+   "arm_root_over_lambda_at_1p8ghz": 0.2701868612332289,
+   "arm_root_over_lambda_at_1p8ghz_src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone_feature_over_lambda_at_1p8ghz.arm_root",
+   "arm_root_worst_pol_gap_db": 1.5234546243646807,
+   "arm_root_worst_pol_gap_db_src": "outputs/lowfreq_anchor.json:consistency_with_drone.checks.gap_lives_at_drone_feature_scales.worst_pol_gap_db_at_drone_features.arm_root",
+   "body_over_lambda_at_1p8ghz": 0.48939846798045533,
+   "body_over_lambda_at_1p8ghz_src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone_feature_over_lambda_at_1p8ghz.body",
+   "body_worst_pol_gap_db": 2.438425306930697,
+   "body_worst_pol_gap_db_src": "outputs/lowfreq_anchor.json:consistency_with_drone.checks.gap_lives_at_drone_feature_scales.worst_pol_gap_db_at_drone_features.body",
+   "mean_gap_db_for_feature_ge_1lam": 0.2593751740868207,
+   "mean_gap_db_for_feature_ge_1lam_src": "outputs/lowfreq_anchor.json:consistency_with_drone.checks.gap_lives_at_drone_feature_scales.mean_gap_db_for_feature_ge_1lam",
+   "max_gap_db_for_feature_0p05_to_0p30_lam": 18.060413389592743,
+   "max_gap_db_for_feature_0p05_to_0p30_lam_src": "outputs/lowfreq_anchor.json:consistency_with_drone.checks.gap_lives_at_drone_feature_scales.max_gap_db_for_feature_0p05_to_0p30_lam"
+  },
+  "low_frequency_grid_convergence": {
+   "_what": "1.8 GHz 에서 광선격자를 절대값[mm]으로 계단식으로 조였을 때 μ 가 움직이는가.",
+   "ladder_total_spread_at_1p8_db": 0.0837,
+   "ladder_total_spread_at_1p8_db_src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone.ladder_total_spread_at_1p8_db",
+   "shift_converged_minus_lam16_db": -0.3212,
+   "shift_converged_minus_lam16_db_src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone.shift_conv_minus_lam16_db_at_1p8",
+   "a_lowband_at_lam16": 1.5634,
+   "a_lowband_at_lam16_src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone.a_lowband_lam16",
+   "a_lowband_converged": 1.6319,
+   "a_lowband_converged_src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone.a_lowband_converged",
+   "a_highband_converged": 0.202,
+   "a_highband_converged_src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone.a_highband_converged",
+   "das_anchor_a": 0.21,
+   "das_anchor_a_src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone.das_anchor_a",
+   "what_would_it_take_lowband_db": 8.162,
+   "what_would_it_take_lowband_db_src": "outputs/lowfreq_grid.json:what_would_it_take.lowband.delta_mu_at_lowest_freq_db",
+   "lowfreq_grid_bottom_line": "가설 A(표본화)는 배제된다. 1.8 GHz 에서 격자를 6 mm → 0.375 mm 로 16 배 조이는 동안 μ 는 0.084 dB 안에서만 움직인다 — 완전히 수렴했다. 수렴값은 생산 격자(λ/16)보다 0.32 dB 아래이고, 저대역 기울기는 1.563 → 1.632 dB/GHz 로 **오히려 가팔라진다**. 기울기를 Das 0.21 에 맞추려면 μ(1.8 GHz) 가 +8.2 dB 올라가야 하는데, 격자가 만드는 여지는 그 100 분의 1 이고 부호도 반대다. 전대역 배수는 2.00 → 2.03 로 사실상 그대로다. ⚠ 'PO 근본한계' 는 표본화를 배제한 것(음성 증거)과, 가파른 구간이 blade/λ ≈ 0.2712 에서 끝난다는 것(양성 증거)의 결합이다. PTD 프린지 항과 메쉬 테셀레이션은 아직 열려 있다.",
+   "lowfreq_grid_bottom_line_src": "outputs/lowfreq_grid.json:bottom_line",
+   "interpretation_limit": "격자 정련이 산 것은 (커널 − 해석 PO) 뿐이다. 정확한 진술은 '격자는 무관하다' 가 아니라 '격자로 살 수 있는 것에 상한이 있고 그 상한이 간극보다 훨씬 작다' 이다.",
+   "interpretation_limit_src": "outputs/lowfreq_anchor.json:caveats[5]"
+  },
+  "adversarial_verdict_verbatim": {
+   "_what": "적대검증이 이 판정을 공격한 결과. **그대로 싣는다.**",
+   "attacked_verdict_label": "B_PO_LIMIT",
+   "attacked_verdict_label_src": "outputs/lowfreq_grid.json:verdict",
+   "adversarial_verdict": "PREMATURE",
+   "adversarial_verdict_src": "outputs/lowfreq_attack.json:verdict",
+   "why_not_SOUND": "판정 라벨 'B_PO_LIMIT' 이 증거보다 많이 주장한다. 정직한 라벨은 A_EXCLUDED · B_CONTRIBUTES_SIGN_ONLY · C_UNBOUNDED 세 필드다.",
+   "why_not_SOUND_src": "outputs/lowfreq_attack.json:verdict_reasoning.why_not_SOUND",
+   "why_not_BROKEN": "아무 것도 반증되지 않았다. Mie·2D MoM 참값 앵커는 실제로 새 정보를 만들었고(PO−Mie 6.58 dB, PO−MoM TM −4.02 dB / TE +7.53 dB), 커널이 해석 PO 로 0.000 dB 수렴한다는 것은 커널 구현 검증으로서 값이 있다. 부호는 전부 같은 방향을 가리킨다.",
+   "why_not_BROKEN_src": "outputs/lowfreq_attack.json:verdict_reasoning.why_not_BROKEN",
+   "one_line": "가설 A(표본화) 배제는 **정말 강하다** — 크기·부호·양성대조·독립복제·jitter 재채점까지 다 있다. 무너지는 것은 그 다음 줄, 즉 '따라서 B(PO 근본한계)다' 이다. B 는 음성증거(A 배제) + 잡음 수준의 무릎 + 부호만 맞춘 단일 스트립 유추로 세워졌고, 두 파일 어디에도 **크기 귀속**이 없다. 그 사이에 배제되지 않은 세 번째 축(C: 기하·테셀레이션·CAD)이 자기 데이터 안에서 이미 격자효과의 33 배로 관측된다.",
+   "one_line_src": "outputs/lowfreq_attack.json:verdict_reasoning.one_line",
+   "the_structural_flaw": "A 와 B 는 배타적이지도, 망라적이지도 않다. verdict_rule 은 {A, B, MIXED} 3 분류인데 MIXED 는 '둘 다'가 아니라 '두 문턱 사이'로 정의돼 있어, 두 원인이 동시에 기여하는 경우를 표현할 자리가 아예 없다. 그리고 C(기하)·D(누락 물리: 다중반사·투과·편파)·E(앵커 비교가능성)를 담을 자리는 분류 자체에 없다.",
+   "the_structural_flaw_src": "outputs/lowfreq_attack.json:verdict_reasoning.the_structural_flaw",
+   "honest_labels": [
+    "A_EXCLUDED",
+    "B_CONTRIBUTES_SIGN_ONLY",
+    "C_UNBOUNDED"
+   ],
+   "honest_labels_src": "outputs/lowfreq_attack.json:verdict_reasoning.why_not_SOUND",
+   "honest_labels_meaning": {
+    "A_EXCLUDED": "가설 A(광선 표본화)는 배제됐다 — 크기·부호·양성대조·독립복제·jitter 재채점까지 다 있다.",
+    "B_CONTRIBUTES_SIGN_ONLY": "가설 B(PO 근본한계)는 **부호만** 확인됐다. 크기 귀속이 없다.",
+    "C_UNBOUNDED": "세 번째 축(기하·테셀레이션·CAD)이 자기 데이터 안에서 이미 격자효과의 33 배로 관측되는데 경계가 지어지지 않았다."
+   },
+   "what_survives_the_attack": [
+    "① 가설 A(표본화) 배제는 견고하다. 크기(≤0.32 dB @생산격자)뿐 아니라 **부호**로 죽였고(조일수록 가팔라짐), 양성대조(구 ka=20 에서 1.78 dB 이동)로 도구 둔감성을 배제했고, 독립 축(div 스윕)에서 복제됐고, jitter=1 재채점에도 불변이다.",
+    "② 커널 구현 검증은 성공했다. 격자를 조이면 해석 PO 로 |오차| ≤0.0023 dB 수렴하고(구 전 ka), 얇은 판도 0.015 dB 로 수렴한다. '우리 PO 면적분이 PO 를 제대로 계산한다' 는 이제 확립됐다.",
+    "③ 참값 앵커 두 개(정확 Mie, 2D EFIE MoM + 원기둥 고유함수 자체검사 0.00027 dB)는 실재하고 자기검사를 통과했다. 드론에 참값이 없다는 문제를 정면으로 우회한 좋은 설계다.",
+    "④ PTD 반박은 강하다 — 1 차 프린지는 정면입사에서 편파를 못 가르고(V−H = 8.3e-11 dB), TM 을 4.02→0.75 dB 로 고치는 대신 TE 를 7.53→10.81 dB 로 악화시킨다. 'PTD 를 켜면 저대역이 고쳐진다' 는 희망은 죽었다.",
+    "⑤ 스칼라 PO 의 원리적 한계는 확립됐다 — 참값이 0.15λ 에서 편파로 11.56 dB 갈라지는데 스칼라 면적분은 그 갈라짐을 낼 수 없다. 이것은 부호가 아니라 구조에 대한 주장이라 크기 귀속이 필요 없다.",
+    "⑥ 두 파일의 caveat 목록은 성실하다. 비단조성·테셀레이션 미검증·단일 스트립 한계·b=6λ 버그 폐기·CAD 개정 오염을 전부 자기 입으로 적었다. 공격 대상은 은폐가 아니라 **헤드라인의 과잉 요약**이다."
+   ],
+   "what_survives_the_attack_src": "outputs/lowfreq_attack.json:what_survives_the_attack",
+   "what_does_not_survive": [
+    "① 라벨 'B_PO_LIMIT'. 규칙은 구조적으로 A 만 기각할 수 있고 B 를 확립할 수 없다. 정직한 라벨은 A_EXCLUDED + B_SIGN_CONFIRMED_MAGNITUDE_UNATTRIBUTED + C_UNBOUNDED.",
+    "② '양성 증거: 가파른 구간이 blade/λ=0.2712 에서 끝난다'. 국소 3점 기울기의 std 가 0.793 dB/GHz 이고 무릎 이후에도 +1.86 · +1.28 이 나온다. 19 점에서 사후 선택한 낙차다.",
+    "③ '격자가 만드는 여지는 그 100 분의 1'. 생산격자 잣대로는 25 분의 1, λ/12 잣대로는 10 분의 1 이다.",
+    "④ 'lowfreq_anchor: 생산 규약(jitter=3)'. 생산은 jitter=2 다(rcs_sbr.py:954 가 명시). 그 규약에서 (커널−해석PO) 는 ≤0.2 dB 가 아니라 최대 0.52 dB 다.",
+    "⑤ '메쉬 중앙값 모서리 5.85 mm' 와 'd 는 그 1/8'. 계산값은 5.186 mm, 비율은 1/6.9 (하드코딩 잔재).",
+    "⑥ 기울기 오차막대로 쓰인 방위 부트스트랩. 주파수-잔차 OLS SE 가 2.2~2.6 배 크다. 특히 a_high = 0.202 ± 0.079 라 'Das 0.21 과 일치' 는 검증이 아니라 무판정이다.",
+    "⑦ 저대역 기울기를 **전대역** 앵커(Das 0.21)에 대는 것. 밴드평균 span 규약 위반이며 이 저장소의 상시 규칙이다. 밴드정합 앵커(Yuan θ=90, 1.8~6.0 GHz = +0.41)를 쓰면 초과가 1.4219 → 1.2219 dB/GHz, 필요 상승이 8.162 → 5.13 dB 다. lowfreq_grid.what_would_it_take.lowband 와 lowfreq_anchor.consistency_with_drone.drone_lowband_excess_over_das 둘 다 같은 오류를 쓴다.",
+    "⑧ 'CAD 개정 2.72 dB 는 우리 결론과 같은 방향' 이라는 읽기. 같은 사실이 '판정 대상인 기울기가 기하에 대해 불안정하다(2점 전대역 기울기 −23%)' 도 지지하며, 이쪽이 우리에게 불리하다.",
+    "⑨ anchor_subband_attack.q3 의 'div=48 도 미수렴, 외삽하면 −0.07 dB 더' — 새 절대사다리가 1.5 mm 에서 되돌아 올라감을 보여 반증했다."
+   ],
+   "what_does_not_survive_src": "outputs/lowfreq_attack.json:what_does_not_survive",
+   "must_fix": [
+    "[HIGH] 판정 필드를 셋으로 쪼갤 것: sampling_excluded=true(증거 강함) · po_limit_sign_confirmed=true · po_limit_magnitude_attributed=false · geometry_axis_bounded=false. 단일 라벨 'B_PO_LIMIT' 은 인용될 때 세 번째·네 번째 필드를 잃는다.",
+    "[HIGH] 메쉬 테셀레이션 사다리를 **드론 본체에서** 돌릴 것 — 현 메쉬 → 모서리 1/2 → 1/4 로 재테셀레이션해 같은 21 주파수 μ(f) 를 뽑고 Δa_low·Δa_high 를 격자사다리와 동일 형식으로 인쇄. 드론 p50 facet/λ 는 3.61 GHz 위에서 앵커 메쉬사다리의 가장 성긴 점을 넘어서므로, 현재 그 축은 대역의 80% 에서 무경계다.",
+    "[HIGH] CAD 개정 후 p3_ours 를 재생성하고 a_low·a_full 을 다시 뽑을 것. 2 점 전대역 기울기가 0.663 → 0.510 (−23%) 으로 움직인다는 자기 데이터가 있는 이상, 현 헤드라인 a=0.4198 은 이미 존재하지 않는 기체의 값이다.",
+    "[HIGH] '양성 증거(무릎)' 주장을 철회하거나, 국소 3점 기울기에 SE(≈0.38~0.86 dB/GHz)와 다중비교 보정을 붙여 재판정할 것. 지금 상태로는 무릎 이후 국소기울기 +1.86(7.54 GHz)이 반례로 같은 배열 안에 있다.",
+    "[HIGH] σ-가중 오차예산을 계산할 것 — 특징별 σ 지분 × 그 특징의 PO−참값(지배채널)을 1.8 GHz 와 6.0 GHz 에서 합산해 B 가 공급하는 dB/GHz 를 인쇄하고, 격차 대비 비율을 명시. 내 crude 추정은 25~56% 이고, 이 수가 100% 에 크게 못 미치면 B 단독 서사는 못 쓴다.",
+    "[MEDIUM] lowfreq_anchor 의 'jitter=3 = 생산 규약' 을 'jitter=3 = 검증 규약, 생산은 jitter=2' 로 정정하고, (커널−해석PO) 상한을 jitter=2 값(최대 0.52 dB)으로 다시 인쇄할 것(benchmark/lowfreq_anchor_merge.py:211).",
+    "[MEDIUM] 저대역 기울기 비교의 앵커를 밴드정합 값으로 교체할 것 — Das 0.21(전대역) 대신 Yuan θ=90 저대역 +0.41. what_would_it_take.lowband 의 8.162 dB → 5.13 dB, consistency_with_drone.drone_lowband_excess_over_das 1.4219 → 1.2219 로 정정하고 필드명에서 'das' 를 뺄 것.",
+    "[MEDIUM] 기울기 불확도를 주파수-잔차 OLS SE 로 교체하거나 병기할 것: a_low 1.632±0.182, a_high 0.202±0.079, a_full 0.427±0.068. 특히 'a_high 가 Das 0.21 과 일치' 를 '구별되지 않는다(CI [0.05,0.36])' 로 격하할 것.",
+    "[MEDIUM] penetrate 축을 caveat 에 추가할 것 — 생산은 penetrate=True 인데 참값 앵커는 전부 penetrate=False·|Γ|=1·볼록(자기가림 없음)이다. 내부 산란체 pcb(1.843 GHz 에서 0.018λ, 삼각형 12 개)·battery(삼각형 24 개)의 저 ka 거동은 **어떤 참값과도** 대조된 적이 없다.",
+    "[MEDIUM] '100 분의 1' 을 생산격자 잣대(25 분의 1)로 교체하고, abs_ladder 가 1.8 GHz 에서 이미 λ/27.8 부터 시작한다는 사실을 bottom_line 에 명시할 것. λ/12↔λ/16 사이의 1.178 dB 이동이 같은 rows 안에 있다.",
+    "[MEDIUM] 판정규칙 사전등록 산출물을 만들 것(build_das_fleet_prereg.py 형식). 현재 lowfreq_grid_analyze.py 의 최종수정(13:23)이 스윕 종료(12:58) 이후다.",
+    "[LOW] 사다리 비대칭을 명시할 것 — 0.375 mm 계단은 1.8·3.5 GHz 에서만 돌았다. 잔차 방향이 결론에 불리하지 않다는 것도 함께 적을 것.",
+    "[LOW] refit.mu_conv 가 21 주파수 전부 단일 d=0.75 mm 실행이고 수렴은 그 중 2 점(1.8·18.2)에서만 검증됐음을 명시할 것.",
+    "[LOW] 하드코딩 '5.85 mm' 를 계산된 p50(5.186 mm)로 교체(benchmark/lowfreq_grid_analyze.py:93,405).",
+    "[LOW] anchor_subband_attack.q3 의 div48 미수렴 외삽 주장에 철회 표시를 달 것 — 새 절대사다리가 반증한다."
+   ],
+   "must_fix_src": "outputs/lowfreq_attack.json:must_fix",
+   "residual_holes": [
+    "내 σ-가중 예산은 crude 하다. 판 근사·직사각 치수·재질 Γ 무시·자기가림 무시·2D→3D 환산 무시. 25~56% 라는 수는 '두 파일이 이 계산을 안 했다' 의 증거지 'B 가 불충분하다' 의 증명이 아니다.",
+    "테셀레이션 오차의 **부호**를 못 정했다. 곡면을 성긴 평면으로 자르면 정반사 플래시가 생겨 σ ∝ A²/λ² 로 f 와 함께 커질 개연성이 있고(고대역 부풀림 → 기울기 상승), 반대로 실루엣 면적 손실은 반대 방향이다. 드론에서 직접 재기 전에는 부호도 모른다.",
+    "Das a=0.21 이 전대역 값이라는 것은 lowfreq_grid._meta 의 인용문(Table III, bistatic 0°)에서 읽은 것이고 원문을 직접 확인하지 않았다. Yuan θ=90 저대역 +0.41 은 자매 파일 anchor_subband_attack 의 재계산을 인용했다.",
+    "편파 방향을 못 박지 못했다. 스칼라 PO 가 TM/TE 중 어느 쪽에 가까운지, 방위평균에서 두 채널이 어떻게 섞이는지 모르면 '우리 σ 가 낮다/높다' 의 부호를 확정할 수 없다.",
+    "생산 경로(penetrate=True + 재질 Γ + 자기가림 + 다중반사 off)에 대한 참값 대조가 이 저장소에 존재하지 않는다. 이 라운드가 검증한 것은 그 경로의 부분집합이다."
+   ],
+   "residual_holes_src": "outputs/lowfreq_attack.json:residual_holes_i_could_not_close",
+   "what_must_not_be_said": [
+    "'저주파 σ 가 틀렸다' — 아니다. '저주파 σ 의 불확도가 선언된 것보다 훨씬 크고, 그 크기를 아직 못 정했다' 가 맞다.",
+    "'고대역(6~18.2 GHz)은 검증됐다' — 아니다. a_high 의 주파수-잔차 SE 가 0.079 이고, prop·motor·canopy·pcb 는 그 대역 전체에서 PO 무릎 아래다.",
+    "'격자를 조이면 σ 가 고쳐진다' — 아니다. 이 라운드의 가장 확실한 결과가 그 반대다."
+   ],
+   "what_must_not_be_said_src": "outputs/lowfreq_attack.json:q5_blast_radius.what_must_not_be_said",
+   "sampling_blast_radius_size": "생산격자 λ/16 → 수렴값 이동: 1.8 GHz −0.321 dB, 3.5 GHz −0.029, 6.0 GHz −0.113, 12 GHz −0.006, 18.2 GHz −0.012",
+   "sampling_blast_radius_size_src": "outputs/lowfreq_attack.json:q5_blast_radius.sampling_blast_radius_actual.size",
+   "sampling_blast_radius_direction": "생산 σ 는 1.843 GHz 근처에서 약 0.3 dB **높게** 나와 있고, 저대역 기울기는 약 0.07 dB/GHz **완만하게** 나와 있다.",
+   "sampling_blast_radius_direction_src": "outputs/lowfreq_attack.json:q5_blast_radius.sampling_blast_radius_actual.direction",
+   "affected_outputs_scoping_note": "위 목록은 '표본화 때문에 틀렸다' 가 아니다. 표본화발 정정은 ≤0.32 dB 로 작다. 목록의 근거는 이 라운드가 확립한 **PO 유효성 하한**이다 — 각 산출물이 특징/λ < 0.729 인 주파수에서 σ 를 쓰고 있는지가 판별 기준이고, 우리 세 생산 밴드는 전부 그 안에 있다.",
+   "affected_outputs_scoping_note_src": "outputs/lowfreq_attack.json:q5_blast_radius.affected_outputs_scoping_note"
+  },
+  "anchor_caveats": [
+   "⚠ 구는 매끄러워 **특징 치수가 반경 하나**뿐이다 — 팔 0.18~0.27λ · 블레이드 0.083λ · 동체 0.49λ 가 한 몸에 섞인 드론과 다르다. 그래서 얇은 판을 반드시 같이 본다.",
+   "⚠ 2D MoM 은 **무한히 긴 띠**의 정확해다. 우리 3D 판은 b=6λ 로 유한하므로, 시선에 나란한 두 모서리(off-cone) 기여만큼 대응이 어긋난다. σ_3D=(2b²/λ)σ_2D 는 PO 항과 on-cone 모서리에 대해 정확하다.",
+   "⚠ 정면입사만 참값과 나란히 놓았다. 경사입사는 PO 닫힌형과만 비교했다(oblique 항목).",
+   "⚠ 우리 PO 면적분은 **스칼라**라 편파가 없다. TM/TE 참값의 중간 어디쯤이라고 말할 근거가 없으며, 이 라운드는 그 간극을 재기만 하고 고치지 않는다.",
+   "⚠ 커널 규약은 생산과 같지만(jitter=3, penetrate=False, max_bounce=1) 구·판은 볼록이라 다중반사가 원래 없다 — 이 검증은 다중반사 경로를 재지 않는다.",
+   "⚠ **격자 정련이 산 것은 (커널−해석PO) 뿐이다.** 생산 규약(jitter=3)에서 그 항은 λ/12 에서 이미 ≤0.2 dB 라 '격자를 조여도 안 움직인다' 로 보인다. 단일격자(jitter=1)로 재면 정련이 최대 1.35 dB 를 벌지만 정확히 PO−Mie 바닥에서 멈추고, 규칙을 J=1 로 재채점해도 판정은 그대로다(sphere.adversarial_jitter_control). 즉 정확한 진술은 '격자는 무관하다' 가 아니라 '격자로 살 수 있는 것에 상한이 있고 그 상한이 간극보다 훨씬 작다' 이다.",
+   "⚠ 기울기 실험은 단일 스트립이고 드론은 다특징 3D 기체의 방위 360 평균이다. 비교한 것은 **부호와 메커니즘**이지 dB/GHz 숫자의 크기가 아니다.",
+   "⚠ 'PO 가 저대역 기울기를 가파르게 만든다' 는 **지배 채널(TM) 기준** 진술이다. 얇은 띠에서 σ_TM ≫ σ_TE 라 절대 레벨은 TM 이 만들지만, 약한 TE 채널만 보면 기울기 초과의 부호가 반대다.",
+   "⚠ 기울기 스윕의 3D 환산 span 은 **고정 물리 길이**(0.999 m)다. 처음에 b=6λ 로 두었더니 σ_3D 의 주파수 의존이 통째로 상쇄돼 a_PO 가 0.0000 dB/GHz 로 나왔고, 그 판은 폐기했다(outputs/partial/lowfreq_anchor/slope.json.blam_bug.bak). 기울기 **차이**는 그 버그에 무관했다.",
+   "⚠ 구의 절대격자 사다리는 모든 ka 에서 8 mm → 0.25 mm 다. 한 계단 더(0.125 mm)는 뺐다 — ka=1 에서 0.25 mm 는 이미 λ/2513 이고 |커널−해석PO| = 0.000 dB 라 배울 것이 없는데, 공용 GPU 에서 Dr.Jit 이 메모리를 터뜨렸다.",
+   "⚠ 메쉬 사다리는 ka=1·3 두 점에서만 돌렸다. 테셀레이션이 별도 오차축이라는 것은 여기서 배제하지 않았고, 다만 그 축의 이동폭을 mesh_ladder_spread_db 로 적어 둔다.",
+   "⚠ 드론 쪽 숫자는 outputs/lowfreq_grid.json 에서 그대로 인용했다. 그 스윕 이후 Phantom 3 CAD 가 개정됐다는 경고(그 파일 geometry_revised_after_run)가 여기에도 그대로 적용된다 — 이 라운드는 드론을 다시 재지 않았다."
+  ],
+  "anchor_caveats_src": "outputs/lowfreq_anchor.json:caveats",
+  "other_open_limits": [
+   {
+    "item": "생산 경로에 대한 참값 대조가 없다",
+    "detail": "참값 앵커는 전부 penetrate=False · |Γ|=1 · 볼록(자기가림 없음)이다. 생산은 penetrate=True · 재질 Γ · 자기가림 · 1-bounce 다. 이 라운드가 검증한 것은 그 경로의 **부분집합**이다.",
+    "src": "outputs/lowfreq_attack.json:residual_holes_i_could_not_close[4]"
+   },
+   {
+    "item": "테셀레이션 축이 무경계다",
+    "detail": "메쉬 사다리는 앵커 물체 두 점에서만 돌렸다. 드론 본체에서 재테셀레이션 사다리를 돌리지 않았고, 오차의 **부호조차** 모른다.",
+    "src": "outputs/lowfreq_attack.json:residual_holes_i_could_not_close[1]"
+   },
+   {
+    "item": "outputs/ptd_drone_effect.json 은 SUPERSEDED 다",
+    "detail": "부호 결함 커널로 생산된 판이라 **어떤 숫자도 인용하지 않는다**. PTD 가 드론 밴드 기울기를 움직이는지에 대한 유효한 수치는 이 저장소에 현재 없다.",
+    "src": "outputs/ptd_drone_effect.json:SUPERSEDED.status"
+   }
+  ]
+ },
+ "s5_prior_work": {
+  "_title": "선행에서 빌린 것과 아직 안 빌린 것",
+  "_standing_rule": "저장소 상시규칙 — 리포트마다 선행 방법론을 최대한 가져오고, 우리 결과를 선행 수치와 나란히 놓는다(사과-대-사과 검사 필수).",
+  "already_borrowed": [
+   {
+    "what": "분포적합 · μ/ε 회귀 · 금속구 교정 · 분위점 · RMSE",
+    "from": "Das(IEEE WCL 2026) · Yuan(EuCAP 2025) 이 실제로 쓴 절차 그대로",
+    "where_in_our_repo": "benchmark/rcs_anchor.py (docstring 첫 줄이 이 차용을 명시한다)",
+    "what_it_bought": "report08 이 '보류(defer)' 로 남긴 절대 σ 판정을 문헌과 같은 자로 채웠다.",
+    "das_mu_a": 0.21,
+    "das_mu_a_src": "outputs/rcs_anchor.json:literature.mu_eps.das_phantom3_mono.mu_a",
+    "das_eps_d": 5.16,
+    "das_eps_d_src": "outputs/rcs_anchor.json:literature.mu_eps.das_phantom3_mono.eps_d",
+    "yuan_az_mu_a": 0.315,
+    "yuan_az_mu_a_src": "outputs/rcs_anchor.json:literature.mu_eps.yuan_phantom3_azplane.mu_a",
+    "statistic_convention_trap": "Das 원문은 μ 의 정의를 두 곳에서 **서로 다르게** 적는다.\n  (A) §III-1  : sigma_m = (1/K) sum_k sigma(phi_k)          → 선형(전력) 방위평균\n  (B) §III-2  : ln(sigma) ~ N((ln10/10)mu, ((ln10/10)eps)^2) → mu = E[10log10 sigma], dB 영역평균\n  둘은 같은 양이 아니다. 변환량은 분포가정에 걸린다:\n      지수(Swerling I/II) → +10/ln10*gamma = +2.507 dB (레벨·주파수 무관 상수)\n      로그정규            → +(ln10/20)*eps^2, eps 의존 (Das eps 는 우리 대역에서 5.2~5.3 dB)\n  → `reconcile_das_yuan()` 이 Yuan 과 맞춰본다. 두 논문이 **같은 원자료**이므로 잔차가 0 에\n    가장 가까운 변환이 Das 의 실제 규약이다. 실행 결과는 statistic_resolution 필드가 들고 있고,\n    채택 상수와 탈락 상수의 차이가 **해소되지 않은 규약 불확도**로 앵커에 딸려 다닌다.",
+    "statistic_convention_trap_src": "outputs/rcs_anchor.json:literature.mu_eps._convention.stat_ambiguity"
+   },
+   {
+    "what": "금속구 교정 (calibration sphere)",
+    "from": "Das 절차 + Zhang(JSAC 2026)의 0.5 m 금속구 잔차 검사",
+    "where_in_our_repo": "benchmark/rcs_anchor.py sphere_calibration · benchmark/mie_pec_sphere.py",
+    "what_it_bought": "우리 커널이 생산 3 밴드에서 정확 Mie 대비 몇 dB 인지가 표가 됐다.",
+    "our_r178mm_lte_dev_vs_mie_db": -0.8511794043608774,
+    "our_r178mm_lte_dev_vs_mie_db_src": "outputs/rcs_anchor.json:sphere_calibration.LTE 1.843 GHz.spheres[1].dev_db_vs_mie",
+    "prior_number_to_stand_beside": "Zhang JSAC 2026: 0.5 m 구, 이론 −7.07 dBsm ↔ 실측 −8.96 dBsm (2 dBsm 이내). 우리는 시뮬 대 해석해라 같은 양이 아니다 — 그들 것은 sim-to-real, 우리 것은 kernel-to-theory 다.",
+    "prior_number_src": "doc: docs/INJECTION_PRECEDENT.md §3.2(2)"
+   },
+   {
+    "what": "정규화 RCS σ/(πr²) 축과 kr 유효성 바닥",
+    "from": "SagittaSBR(arXiv:2604.09243) — 독립 SBR+PO 솔버, 우리 최근친",
+    "where_in_our_repo": "benchmark/verify_sbr_kr_sweep.py (Sagitta 와 **같은 축**: 입사방향 평균 후 kr 스윕)",
+    "what_it_bought": "'우리가 몇 배 나쁘다' 는 옛 헤드라인이 애초에 다른 양이었음이 드러났고, kr≥30 에서 우리 산포가 그들과 같은 급이라는 것이 인쇄됐다.",
+    "our_std_pct_vs_mie_kr_ge30": 1.834374210222452,
+    "our_std_pct_vs_mie_kr_ge30_src": "outputs/sbr_kr_sweep.json:summary_div16.std_sbr_over_mie_pct_kr_ge30",
+    "axis_note": "⭐ Sagitta 와 **같은 축**에서 쟀다 — 입사방향 평균 후 kr 스윕. 옛 '6배 나쁨' 헤드라인은 kr 고정 + 광선격자 밀도축 산포라 애초에 다른 양이었다. ⚠ 그래도 완전한 사과-대-사과는 아니다: 메쉬(uv_sphere, 극 특이점)와 구현이 다르다.",
+    "axis_note_src": "outputs/sbr_kr_sweep.json:meta.axis_note",
+    "prior_floor": "Sagitta: kr ≥ 30 에서 ~2%, 면 이산화 ds ≤ λ/5.",
+    "prior_floor_src": "doc: docs/HOW_OTHERS_SOLVED_IT.md §1 표"
+   },
+   {
+    "what": "모노스태틱에서 출사 가시성 함수를 생략해도 되는 근거",
+    "from": "SagittaSBR 각주 1 (원문 인용이 src/rcs_sbr.py:538-542 주석에 그대로 실려 있다)",
+    "where_in_our_repo": "src/rcs_sbr.py rcs_sbr_multistatic(exit_vis=…)",
+    "what_it_bought": "바이스태틱에만 그림자광선을 1발 더 쏘는 설계의 근거. 모노에서 정확한 no-op 임을 실측으로 확인했다.",
+    "exit_vis_note": "Δ = 10log10(sigma_exit_vis_on / sigma_off). β=0(모노)에서 0 이어야 한다 — first-hit 이 이미 그 가림을 뺐으므로(Sagitta arXiv:2604.09243 각주 1).",
+    "exit_vis_note_src": "outputs/sbr_defect_fixes.json:d4_exit_visibility.note"
+   },
+   {
+    "what": "표적 서명을 밖에서 만들어 경로에 곱하는 **주입 아키텍처**",
+    "from": "IEEE TAP(Schuler 2008) → IET RSN(Deep 2020) 계보, 그리고 3GPP TR 38.901 7.9.2.1",
+    "where_in_our_repo": "outputs/report13_sigma_grid.json → src/sionna_chain.py",
+    "what_it_bought": "우리 구조가 '발명' 이 아니라 '표준 구조' 라는 것. 기여 문장은 표를 만든다가 아니라 **두 번째 것**을 이름 붙여야 한다.",
+    "injection_instances_found": 16,
+    "injection_instances_found_src": "outputs/injection_verdict.json:counts.injection_instances_in_the_master_table",
+    "injection_peer_reviewed": 10,
+    "injection_peer_reviewed_src": "outputs/injection_verdict.json:counts.peer_reviewed",
+    "injection_standards_documents": 2,
+    "injection_standards_documents_src": "outputs/injection_verdict.json:counts.standards_documents"
+   }
+  ],
+  "injection_precedent_and_their_validation": {
+   "_what": "⭐ 우리 구조의 게재 전례 — 그리고 **각각이 인쇄한 검증 방식**. 이 표의 오른쪽 열이 우리가 넘어야 할 바다.",
+   "_src": "docs/INJECTION_PRECEDENT.md §1.1 · outputs/injection_verdict.json",
+   "rows": [
+    {
+     "venue": "IEEE TAP 56(11):3543-3551 (2008)",
+     "who": "Schuler 외",
+     "signature_source": "저자 자체 광선추적기(IHE Karlsruhe), 상용 full-wave 아님",
+     "target": "Ford Focus, 삼각형 12,100",
+     "validation": "2중 — EC JRC Ispra 무향실 바이스태틱 측정 + 축약모델↔원본 광선추적 자기일관성",
+     "role": "기여(파이프라인 자체가 결과)",
+     "why_it_matters_to_us": "⭐ 가장 강한 구조적 전례. 세 단계가 우리와 같은 순서다 — 자체 광선솔버 → 자세색인 표 → 하류로 넘김."
+    },
+    {
+     "venue": "IEEE JSAC 44:702-716 (2026)",
+     "who": "Zhang 외",
+     "signature_source": "무향실 측정(10/15/20/28/36 GHz)",
+     "target": "AAV(M350급)·인체·차량",
+     "validation": "⭐ 최강 — 0.5 m 금속구(이론 −7.07 ↔ 실측 −8.96 dBsm) **+ 28 GHz 밴드 held-out**",
+     "role": "기여(RAN1 #120 규격 채택)",
+     "why_it_matters_to_us": "우리는 구 교정 **절반만** 갖고 있다. held-out 밴드 시험이 없다."
+    },
+    {
+     "venue": "IET Radar Sonar Navig. 14(6):833-844 (2020)",
+     "who": "Deep 외",
+     "signature_source": "저자 **자체 SBR 솔버** (\"developed our solver in-house\")",
+     "target": "보행자 폴리메쉬(MoCap)",
+     "validation": "엔드투엔드 — 77 GHz 실장비 대비 NMSE < 10%, SSIM > 81%",
+     "role": "기여",
+     "why_it_matters_to_us": "자체 SBR 로 표를 만든 두 번째 전례. 소비처가 자유공간 FMCW 신호모델이라 전파채널이 없다는 점만 우리와 다르다."
+    },
+    {
+     "venue": "IEEE TMTT 70(3):1582-1593 (2022)",
+     "who": "Abadpour 외",
+     "signature_source": "고분해능 측정",
+     "target": "보행자·VRU",
+     "validation": "표 자체가 측정",
+     "role": "기여(분해능)",
+     "why_it_matters_to_us": "TAP 과 함께 '표를 만드는 절반만으로' 게재된 사례."
+    },
+    {
+     "venue": "IEEE TAES 61:151-161 (2025)",
+     "who": "Potter 외",
+     "signature_source": "무향실 측정(Semkin, IEEE Access 2020)",
+     "target": "7 기체(F450·M100·P4P 등), 26–40 GHz × 방위 0–180° / 고도 1° 스텝",
+     "validation": "표 자체가 측정",
+     "role": "방법선택(기여는 베이지안 융합 분류)",
+     "why_it_matters_to_us": "드론 σ 표를 자세 색인 + 이중선형보간으로 소비하는 형태의 전례."
+    },
+    {
+     "venue": "IEEE J-STEAP 1 (2025)",
+     "who": "Costa 외",
+     "signature_source": "BiRa 바이스태틱 측정 라이브러리",
+     "target": "다중프로펠러 드론(Phantom 2 급)",
+     "validation": "⚠ **형상만** — Pearson r=0.98, [0,1] 정규화 신호 기준. 절대 레벨 미정착. 몸통 반사도 스칼라는 본문에 'manually adjusted' 라고 적혀 있다.",
+     "role": "방법선택",
+     "why_it_matters_to_us": "절대 레벨을 주장하지 않고 게재된 사례."
+    },
+    {
+     "venue": "Digital Commun. & Networks 11(5):1601-1613 (2025)",
+     "who": "Zhang 외",
+     "signature_source": "⭐ 자체 PO 계산",
+     "target": "RIS 패널(+금속판·인체·UAV·차량)",
+     "validation": "계산 σ ↔ 실측 채널전력, 0.11~7 dB",
+     "role": "기여",
+     "why_it_matters_to_us": "PO 계산값을 실측 채널전력으로 검증한 유일 사례."
+    },
+    {
+     "venue": "NATO STO-MP-MSG-SET-183 #13 (2021)",
+     "who": "—",
+     "signature_source": "QuickWave-3D FDTD(상용)",
+     "target": "Parrot AR.Drone 2.0",
+     "validation": "❌ 주장했으나 인용이 깨져 있다(ref[3] 이 솔버 자체)",
+     "role": "방법선택",
+     "why_it_matters_to_us": "상용 full-wave → 표 경로의 드문 사례이고, 검증이 확인되지 않는다."
+    },
+    {
+     "venue": "arXiv:2607.03826 (LAMBDA, 프리프린트)",
+     "who": "—",
+     "signature_source": "CADFEKO(상용 full-wave)",
+     "target": "UAV",
+     "validation": "❌ 없음. 표의 축·각스텝·주파수·dBsm 값이 전부 미인쇄",
+     "role": "방법선택",
+     "why_it_matters_to_us": "⛔ **전례로 인용 금지**(docs/INJECTION_PRECEDENT.md §7). 아키텍처 전례는 Schuler → Deep 순으로만 인용한다."
+    }
+   ],
+   "what_this_retracts": "우리가 '아무도 주입 σ 를 검증하지 않았으니 검증이 우리의 열린 축이다' 라고 적었던 것은 **철회됐다**. 심사통과 5편이 검증했고 둘은 지금 우리보다 강하다.",
+   "what_this_retracts_src": "doc: docs/INJECTION_PRECEDENT.md §6 C2"
+  },
+  "not_yet_borrowed": [
+   {
+    "rank": 1,
+    "what": "세 유효성 바닥을 기체 × 밴드 표로 인쇄",
+    "from": "Sagitta(kr≥30 @2%, ds≤λ/5) · Monte-Carlo SBR(10 rays/λ) · Ziganshin(면 규칙 E>1.5λ, E²/(Rλ) 0.6–0.9)",
+    "cost": "반나절, 새 실행 0",
+    "what_it_buys": "'전기적 소형' 이 고백에서 **표**가 된다. 우리 kr 스윕은 kr≥30 에서 이미 그 자리에 앉아 있고 인쇄한 적이 없다. 동시에 mini5pro@LTE(kr 8.38)가 모든 공개 바닥 아래라는 것을 우리가 먼저 말한다.",
+    "src": "doc: docs/HOW_OTHERS_SOLVED_IT.md §2 채택 #1"
+   },
+   {
+    "rank": 2,
+    "what": "정준체(구·원통)를 우리 커널에 통과 + 캠페인 패드에 2.8 dBsm 원통",
+    "from": "Das 절차(IEEE Std 1502-2020) + Zhang 잔차",
+    "cost": "커널 1일 + 원통 가공비",
+    "what_it_buys": "절대 σ 에 처음으로 **실측** 검사가 붙는다. 목표 불확실도 약 2 dB.",
+    "src": "doc: docs/HOW_OTHERS_SOLVED_IT.md §2 채택 #2"
+   },
+   {
+    "rank": 3,
+    "what": "PTD-EEC 가산 모서리 항을 **진단으로**",
+    "from": "Kirik & Özdemir 2019(SBR 에 PTD 를 꽂는 전체 알고리즘) + Öztürk 2002(유도·닫힌형, E_tot = E_PTDEEC + E_PO)",
+    "cost": "1–2주",
+    "what_it_buys": "회절 결손과 상반성 위반을 **동시에** 건드리는 유일한 항목. Öztürk p.70 이 PO 의 상반성 위반과 PTD 를 한 문장에 묶는다.",
+    "our_prediction_recorded_in_advance": "주파수 무관한 edge 항 하나로는 3.5–8배 기울기 초과를 설명하지 못한다. 기울기가 앵커까지 평탄해지면 절대 레벨이 6–12 dB 튀어 절대레벨 검증과 정면충돌한다.",
+    "src": "doc: docs/HOW_OTHERS_SOLVED_IT.md §3"
+   },
+   {
+    "rank": 4,
+    "what": "SBR 마이크로도플러에 회전 불변성 적용",
+    "from": "jees2021(MoM) — 같은 연산에서 156.8× 를 쟀다",
+    "cost": "며칠",
+    "what_it_buys": "우리 해석 PO 는 이미 이 트릭(시선 역회전)을 쓰고 SBR 만 안 쓴다.",
+    "src": "doc: docs/HOW_OTHERS_SOLVED_IT.md §2 채택 #4"
+   },
+   {
+    "rank": 5,
+    "what": "스칼라 γ_po 5개 → MECA 유전체 등가전류",
+    "from": "Monte-Carlo SBR (UMD, arXiv:2511.07586)",
+    "cost": "1주",
+    "what_it_buys": "'우리 모델링 선택 5개' 가 '명시된 상수를 쓴 **표준 유전체 PO**' 가 된다. 값 문제는 남는다.",
+    "src": "doc: docs/HOW_OTHERS_SOLVED_IT.md §2 채택 #5"
+   },
+   {
+    "rank": 6,
+    "what": "미분가능 재질 보정",
+    "from": "Hoydis 외(IEEE TMLCN 2024) — 경사하강 보정 4.93 → 2.16 → 1.00 dB",
+    "cost": "큼. 실측 캠페인이 먼저다",
+    "what_it_buys": "이 효과를 잰 **유일한 공개 숫자**를 우리 재질표에 적용한다.",
+    "src": "doc: docs/HOW_OTHERS_SOLVED_IT.md §2 채택 #6"
+   },
+   {
+    "rank": 7,
+    "what": "held-out 밴드 시험",
+    "from": "Zhang JSAC 2026 — 두 밴드로 정착시키고 세 번째를 예측",
+    "cost": "새 실행 1회",
+    "what_it_buys": "JSAC 심사자가 실제로 적용한 바를 우리가 넘는지가 결정된다.",
+    "src": "doc: docs/INJECTION_PRECEDENT.md §7"
+   }
+  ],
+  "deliberately_not_borrowed": [
+   {
+    "what": "Ziganshin 의 UTD + vertex 회절 이식",
+    "why_not": "보정이 아니라 **대체**다. 그의 파이프라인에는 표면적분이 아예 없다. 전부 PEC 라 부품별 재질 서사를 통째로 버린다. 공개 코드는 TF 시대 Sionna 0.17 포크이고 우리는 2.0.1 이다. 두 문서 어디에도 주파수 스윕이 없어 밴드 기울기 근거로 인용할 수 없다.",
+    "src": "doc: docs/HOW_OTHERS_SOLVED_IT.md §2"
+   },
+   {
+    "what": "Sionna stock diffraction=True 를 표적에 켜기",
+    "why_not": "이미 쓸 수 있고 **잘못된 도구**다. D 를 켜도 Sionna 는 경로계수를 내지 σ 를 내지 않는다 — D 가 먹일 산란적분이 없다. 게다가 wedge 각을 인접 두 면의 법선에서 읽으므로(utils/wedges.py) 면분할된 셸에서 그 각은 드론의 성질이 아니라 **우리 메싱의 성질**이다.",
+    "src": "doc: docs/HOW_OTHERS_SOLVED_IT.md §2"
+   },
+   {
+    "what": "상용 CADFEKO 표를 사서 주입 (LAMBDA 방식)",
+    "why_not": "회당 several hours 인 full-wave 로는 조밀한 표를 못 만든다(가설). 그리고 그 유일 사례가 표의 축·각스텝·dBsm 을 하나도 인쇄하지 않았다.",
+    "src": "doc: docs/INJECTION_PRECEDENT.md §4.2"
+   }
+  ],
+  "nobody_solved_these": [
+   {
+    "problem": "표적 재질의 측정 출처",
+    "corpus_count": "140편 중 0편",
+    "reading": "이 분야에서 가장 깊이 들어간 저자가 현실 재질을 future work 로 적었다. 우리 γ_po 5개는 md-rt 의 stock \"Wood\"(출처 0)나 Costa 의 손튜닝보다 근거가 많고, jees2021 의 인용 붙은 PEC 근사보다 근거가 적다."
+   },
+   {
+    "problem": "자기 커널 상반성 검사",
+    "corpus_count": "213편 중 0편",
+    "reading": "우리가 그 검사를 돌리고 숫자를 인쇄한 것은 우리 커널이 나쁘다는 뜻이 아니라, 다른 커널들은 같은 결함이 있어도 보이지 않는다는 뜻이다."
+   },
+   {
+    "problem": "엔진 안에서 회전 로터를 표현",
+    "corpus_count": "213 PDF 중 0편",
+    "reading": "md-rt 는 회전 프로펠러를 실제로 추적했으나 **방법을 적지 않았다** — 존재증명이지 레시피가 아니다."
+   }
+  ],
+  "nobody_solved_these_src": "doc: docs/HOW_OTHERS_SOLVED_IT.md §1·§2"
+ },
+ "report_outline": {
+  "_what": "리포트 00 빌더(src/make_report00_po_case.py, 미작성)가 num()/table_from() 으로 찌를 자리. 이 편은 **가르치는 편**이라 다른 편보다 길어도 된다.",
+  "tone": [
+   "유도를 건너뛰지 않는다 — 기호를 처음 쓸 때마다 뜻을 적는다.",
+   "비유를 쓰되 **반드시** '이 비유가 어디서 깨지는가' 를 붙인다(s0.analogies_and_where_they_break).",
+   "Sionna 를 깎지 않는다 — s0.what_the_engine_does_exactly 가 먼저 나온다.",
+   "'무한평면 가정' 같은 거친 요약을 그대로 쓰지 않는다. 코드·원문에 실제로 있는 것을 인용한다.",
+   "본문·주석·print 는 한국어, 그림 안의 텍스트는 전부 영어."
+  ],
+  "sections": [
+   {
+    "sec": "§0",
+    "title": "Sionna 는 무엇을 하고 무엇을 안 하는가",
+    "key": "s0_fair_boundary"
+   },
+   {
+    "sec": "§1",
+    "title": "표적 σ 를 얻는 다섯 갈래 — 비용과 정확도",
+    "key": "s1_alternatives"
+   },
+   {
+    "sec": "§2",
+    "title": "우리 PO 커널을 수식으로 풀어 쓴다",
+    "key": "s2_our_kernel"
+   },
+   {
+    "sec": "§3",
+    "title": "검증 3층",
+    "key": "s3_validation"
+   },
+   {
+    "sec": "§4",
+    "title": "⚠ 한계",
+    "key": "s4_limits"
+   },
+   {
+    "sec": "§5",
+    "title": "선행에서 빌린 것 / 빌릴 것",
+    "key": "s5_prior_work"
+   }
+  ],
+  "figure_candidates": [
+   {
+    "fig": 1,
+    "question": "Does the ray-traced target path carry any RCS information?",
+    "data": "s0_fair_boundary.engine_carries_no_sigma_experiment (plate σ span vs RT ratio)"
+   },
+   {
+    "fig": 2,
+    "question": "Where does the PO surface integral come from?",
+    "data": "s2_our_kernel.derivation (다이어그램 — 투영면 격자 → 위상합)"
+   },
+   {
+    "fig": 3,
+    "question": "How close is the kernel to analytic PO, and PO to the truth?",
+    "data": "s3_validation.layer1/layer2 (kr 사다리 2축)"
+   },
+   {
+    "fig": 4,
+    "question": "At which feature width does PO stop being usable?",
+    "data": "s4_limits.po_validity_knee_a_over_lambda + feature_knee_frequencies"
+   },
+   {
+    "fig": 5,
+    "question": "How does one pose of our kernel cost against stock Sionna?",
+    "data": "s1_alternatives.ours_runtime + stock_sionna_same_card + published_runtime_ladder"
+   }
+  ],
+  "figure_text_rule": "그림 안의 모든 글자는 영어. report_style.assert_fig_text() 로 검사한다."
+ },
+ "_provenance": {
+  "n_fields_traced": 212,
+  "source_files": [
+   "outputs/evasion_catalogue.json",
+   "outputs/injection_standards.json",
+   "outputs/injection_verdict.json",
+   "outputs/lowfreq_anchor.json",
+   "outputs/lowfreq_attack.json",
+   "outputs/lowfreq_grid.json",
+   "outputs/p3_control.json",
+   "outputs/rcs_anchor.json",
+   "outputs/report2_waveform_rcs.json",
+   "outputs/rt_no_rcs_verify.json",
+   "outputs/runtime_benchmark.json",
+   "outputs/sbr_defect_fixes.json",
+   "outputs/sbr_kr_sweep.json",
+   "outputs/sionnart_boundary.json"
+  ],
+  "ledger": [
+   {
+    "field": "sionna_rt_citation",
+    "src": "outputs/sionnart_boundary.json:SOURCE_IDENTITY.primary.cite_string"
+   },
+   {
+    "field": "sionna_rt_pages",
+    "src": "outputs/sionnart_boundary.json:SOURCE_IDENTITY.primary.pages"
+   },
+   {
+    "field": "sionna_rt_self_declared_purpose",
+    "src": "outputs/sionnart_boundary.json:SOURCE_IDENTITY.primary.self_declared_purpose_p1"
+   },
+   {
+    "field": "the_four_structural_facts",
+    "src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.the_four_structural_facts"
+   },
+   {
+    "field": "what_a_sensing_application_needs",
+    "src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.what_a_sensing_application_needs_that_this_does_not_provide.quantity"
+   },
+   {
+    "field": "why_the_engine_cannot_supply_it",
+    "src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.what_a_sensing_application_needs_that_this_does_not_provide.why_the_engine_cannot_supply_it_by_construction"
+   },
+   {
+    "field": "forbidden_sentence",
+    "src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.why_this_is_a_scope_decision_not_a_defect.the_forbidden_sentence"
+   },
+   {
+    "field": "permitted_sentence",
+    "src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.why_this_is_a_scope_decision_not_a_defect.the_permitted_sentence"
+   },
+   {
+    "field": "extensibility_counterweight",
+    "src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.why_this_is_a_scope_decision_not_a_defect.the_extensibility_counterweight"
+   },
+   {
+    "field": "our_layer_one_sentence",
+    "src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.our_layer_stated_precisely.one_sentence"
+   },
+   {
+    "field": "what_we_do_not_claim",
+    "src": "outputs/sionnart_boundary.json:SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS.our_layer_stated_precisely.what_we_do_not_claim"
+   },
+   {
+    "field": "plate_side_min_m",
+    "src": "outputs/rt_no_rcs_verify.json:A_plate[0].side"
+   },
+   {
+    "field": "plate_side_max_m",
+    "src": "outputs/rt_no_rcs_verify.json:A_plate[4].side"
+   },
+   {
+    "field": "plate_sigma_min_dbsm",
+    "src": "outputs/rt_no_rcs_verify.json:A_plate[0].sigma_dbsm"
+   },
+   {
+    "field": "plate_sigma_max_dbsm",
+    "src": "outputs/rt_no_rcs_verify.json:A_plate[4].sigma_dbsm"
+   },
+   {
+    "field": "plate_sigma_span_db",
+    "src": "computed: A_plate[4].sigma_dbsm − A_plate[0].sigma_dbsm"
+   },
+   {
+    "field": "plate_rt_ratio_at_min_db",
+    "src": "outputs/rt_no_rcs_verify.json:A_plate[0].ratio_db"
+   },
+   {
+    "field": "plate_rt_ratio_at_max_db",
+    "src": "outputs/rt_no_rcs_verify.json:A_plate[4].ratio_db"
+   },
+   {
+    "field": "plate_rt_ratio_spread_db",
+    "src": "computed: |A_plate[4].ratio_db − A_plate[0].ratio_db|"
+   },
+   {
+    "field": "plate_image_source_theory_db",
+    "src": "outputs/rt_no_rcs_verify.json:image_source_db"
+   },
+   {
+    "field": "sphere_S_lo",
+    "src": "outputs/rt_no_rcs_verify.json:B_sphere_S[0].S"
+   },
+   {
+    "field": "sphere_S_hi",
+    "src": "outputs/rt_no_rcs_verify.json:B_sphere_S[3].S"
+   },
+   {
+    "field": "sphere_ratio_at_S_lo_db",
+    "src": "outputs/rt_no_rcs_verify.json:B_sphere_S[0].ratio_db"
+   },
+   {
+    "field": "sphere_ratio_at_S_hi_db",
+    "src": "outputs/rt_no_rcs_verify.json:B_sphere_S[3].ratio_db"
+   },
+   {
+    "field": "sphere_ratio_moved_by_S_db",
+    "src": "computed: B_sphere_S[3].ratio_db − B_sphere_S[0].ratio_db"
+   },
+   {
+    "field": "pec_sphere_paths_r03_spp1M",
+    "src": "outputs/rt_no_rcs_verify.json:C_pec_sphere[0].n_paths"
+   },
+   {
+    "field": "pec_sphere_paths_r30_spp16M",
+    "src": "outputs/rt_no_rcs_verify.json:C_pec_sphere[5].n_paths"
+   },
+   {
+    "field": "ours_per_pose_ms_min",
+    "src": "outputs/runtime_benchmark.json:answer.two_passes.headline_pass.min"
+   },
+   {
+    "field": "ours_per_pose_ms_median",
+    "src": "outputs/runtime_benchmark.json:answer.two_passes.headline_pass.median"
+   },
+   {
+    "field": "ours_per_pose_ms_max",
+    "src": "outputs/runtime_benchmark.json:answer.two_passes.headline_pass.max"
+   },
+   {
+    "field": "ours_least_contended_median_ms",
+    "src": "outputs/runtime_benchmark.json:answer.least_contended_median_ms"
+   },
+   {
+    "field": "facets_smallest_airframe",
+    "src": "outputs/runtime_benchmark.json:production_per_pose.rows[0].facets"
+   },
+   {
+    "field": "rays_per_pose_lte",
+    "src": "outputs/runtime_benchmark.json:production_per_pose.rows[0].rays_per_pose"
+   },
+   {
+    "field": "rays_per_pose_wifi",
+    "src": "outputs/runtime_benchmark.json:production_per_pose.rows[2].rays_per_pose"
+   },
+   {
+    "field": "passes_per_pose",
+    "src": "outputs/runtime_benchmark.json:production_per_pose.rows[0].passes_per_pose"
+   },
+   {
+    "field": "hardware",
+    "src": "outputs/runtime_benchmark.json:ladder[0].hardware"
+   },
+   {
+    "field": "stock_sionna_ms_min",
+    "src": "outputs/runtime_benchmark.json:answer.same_card_control.stock_sionna_pathsolver_ms.min"
+   },
+   {
+    "field": "stock_sionna_ms_median",
+    "src": "outputs/runtime_benchmark.json:answer.same_card_control.stock_sionna_pathsolver_ms.median"
+   },
+   {
+    "field": "stock_sionna_ms_max",
+    "src": "outputs/runtime_benchmark.json:answer.same_card_control.stock_sionna_pathsolver_ms.max"
+   },
+   {
+    "field": "stock_sionna_n_configs",
+    "src": "outputs/runtime_benchmark.json:answer.same_card_control.stock_sionna_pathsolver_ms.n_configs"
+   },
+   {
+    "field": "ratio_ours_median_over_stock_median",
+    "src": "outputs/runtime_benchmark.json:answer.same_card_control.ratio_ours_median_over_stock_median"
+   },
+   {
+    "field": "reading",
+    "src": "outputs/runtime_benchmark.json:answer.same_card_control.reading"
+   },
+   {
+    "field": "caveat",
+    "src": "outputs/runtime_benchmark.json:answer.same_card_control.caveat"
+   },
+   {
+    "field": "seconds",
+    "src": "outputs/runtime_benchmark.json:published_baselines.rows[2].value_s"
+   },
+   {
+    "field": "seconds",
+    "src": "outputs/runtime_benchmark.json:published_baselines.rows[1].value_s"
+   },
+   {
+    "field": "seconds",
+    "src": "outputs/runtime_benchmark.json:published_baselines.rows[0].value_s"
+   },
+   {
+    "field": "seconds",
+    "src": "outputs/runtime_benchmark.json:published_baselines.rows[5].value_s"
+   },
+   {
+    "field": "ms",
+    "src": "outputs/runtime_benchmark.json:published_baselines.rows[3].per_angular_point_ms.RT"
+   },
+   {
+    "field": "ms",
+    "src": "outputs/runtime_benchmark.json:published_baselines.rows[3].per_angular_point_ms.plus_EV_VE"
+   },
+   {
+    "field": "quote",
+    "src": "outputs/runtime_benchmark.json:published_baselines.rows[4].quote"
+   },
+   {
+    "field": "apples_to_apples_fix_ziganshin",
+    "src": "outputs/runtime_benchmark.json:published_baselines.rows[3].correction"
+   },
+   {
+    "field": "our_rt_trace_pct",
+    "src": "outputs/runtime_benchmark.json:answer.cost_structure.rt_trace_pct"
+   },
+   {
+    "field": "our_po_integral_pct",
+    "src": "outputs/runtime_benchmark.json:answer.cost_structure.po_integral_pct"
+   },
+   {
+    "field": "our_host_side_pct",
+    "src": "outputs/runtime_benchmark.json:answer.cost_structure.host_side_pct"
+   },
+   {
+    "field": "our_po_over_rt",
+    "src": "outputs/runtime_benchmark.json:answer.cost_structure.po_over_rt"
+   },
+   {
+    "field": "sagitta_po_over_raylaunch_A100_fp32",
+    "src": "outputs/runtime_benchmark.json:published_baselines.rows[6].po_over_raylaunch.A100_fp32"
+   },
+   {
+    "field": "sagitta_po_over_raylaunch_MI250X_fp32",
+    "src": "outputs/runtime_benchmark.json:published_baselines.rows[6].po_over_raylaunch.MI250X_gcd_fp32"
+   },
+   {
+    "field": "ours_ns_per_ray_median",
+    "src": "outputs/runtime_benchmark.json:answer.cost_per_ray.ours_ns_per_ray_median"
+   },
+   {
+    "field": "ours_po_ns_per_ray_median",
+    "src": "outputs/runtime_benchmark.json:answer.cost_per_ray.ours_po_ns_per_ray_median"
+   },
+   {
+    "field": "sagitta_po_ns_per_ray",
+    "src": "outputs/runtime_benchmark.json:answer.cost_per_ray.sagitta_A100_po_ns_per_ray"
+   },
+   {
+    "field": "verdict",
+    "src": "outputs/runtime_benchmark.json:answer.verdict"
+   },
+   {
+    "field": "what_it_does_not_support",
+    "src": "outputs/runtime_benchmark.json:answer.what_the_measurement_does_NOT_support"
+   },
+   {
+    "field": "mom2d_selftest_worst_db",
+    "src": "outputs/lowfreq_anchor.json:thin_plate.mom_selftest.worst_abs_db_at_240seg"
+   },
+   {
+    "field": "cost_quote_mlfmm",
+    "src": "outputs/runtime_benchmark.json:published_baselines.rows[4].quote"
+   },
+   {
+    "field": "per_pose_ms_median",
+    "src": "outputs/runtime_benchmark.json:answer.two_passes.headline_pass.median"
+   },
+   {
+    "field": "tr38901_small_uav_dbsm",
+    "src": "outputs/injection_standards.json:the_specification.the_shipped_numbers.table_7.9.2.1-1.UAV with small size.10lg(sigma_M)_dBsm"
+   },
+   {
+    "field": "tr38901_sigma_S_std_db",
+    "src": "outputs/injection_standards.json:the_specification.the_shipped_numbers.table_7.9.2.1-1.UAV with small size.sigma_S_std_dB"
+   },
+   {
+    "field": "no_frequency_axis",
+    "src": "outputs/injection_standards.json:the_specification.what_the_standard_deliberately_left_out.no_frequency_axis"
+   },
+   {
+    "field": "company_spread_is_the_field_precision",
+    "src": "outputs/injection_standards.json:what_this_means_for_us[5]"
+   },
+   {
+    "field": "ours_mesh_mean_delta_db",
+    "src": "outputs/p3_control.json:comparison.ours_p3_mesh.mean_delta_db"
+   },
+   {
+    "field": "ours_mesh_rms_delta_db",
+    "src": "outputs/p3_control.json:comparison.ours_p3_mesh.rms_delta_db"
+   },
+   {
+    "field": "ours_mesh_slope_err_db_per_ghz",
+    "src": "outputs/p3_control.json:comparison.ours_p3_mesh.slope_err"
+   },
+   {
+    "field": "box_bbox_mean_delta_db",
+    "src": "outputs/p3_control.json:comparison.box_bbox_lit.mean_delta_db"
+   },
+   {
+    "field": "box_bbox_rms_delta_db",
+    "src": "outputs/p3_control.json:comparison.box_bbox_lit.rms_delta_db"
+   },
+   {
+    "field": "box_bbox_slope_err_db_per_ghz",
+    "src": "outputs/p3_control.json:comparison.box_bbox_lit.slope_err"
+   },
+   {
+    "field": "cube_eqvol_mean_delta_db",
+    "src": "outputs/p3_control.json:comparison.cube_eqvol_bbox.mean_delta_db"
+   },
+   {
+    "field": "cube_eqvol_rms_delta_db",
+    "src": "outputs/p3_control.json:comparison.cube_eqvol_bbox.rms_delta_db"
+   },
+   {
+    "field": "cube_eqvol_slope_err_db_per_ghz",
+    "src": "outputs/p3_control.json:comparison.cube_eqvol_bbox.slope_err"
+   },
+   {
+    "field": "cube_side_max_mean_delta_db",
+    "src": "outputs/p3_control.json:comparison.cube_side_max.mean_delta_db"
+   },
+   {
+    "field": "cube_side_max_rms_delta_db",
+    "src": "outputs/p3_control.json:comparison.cube_side_max.rms_delta_db"
+   },
+   {
+    "field": "cube_side_max_slope_err_db_per_ghz",
+    "src": "outputs/p3_control.json:comparison.cube_side_max.slope_err"
+   },
+   {
+    "field": "sphere_eqvol_mie_mean_delta_db",
+    "src": "outputs/p3_control.json:comparison.sphere_eqvol_mie.mean_delta_db"
+   },
+   {
+    "field": "sphere_eqvol_mie_rms_delta_db",
+    "src": "outputs/p3_control.json:comparison.sphere_eqvol_mie.rms_delta_db"
+   },
+   {
+    "field": "sphere_eqvol_mie_slope_err_db_per_ghz",
+    "src": "outputs/p3_control.json:comparison.sphere_eqvol_mie.slope_err"
+   },
+   {
+    "field": "das_slope_db_per_ghz",
+    "src": "outputs/rcs_anchor.json:literature.mu_eps.das_phantom3_mono.mu_a"
+   },
+   {
+    "field": "das_band_ghz",
+    "src": "outputs/rcs_anchor.json:literature.mu_eps.das_phantom3_mono.band_ghz"
+   },
+   {
+    "field": "yuan_az_plane_slope_db_per_ghz",
+    "src": "outputs/rcs_anchor.json:literature.mu_eps.yuan_phantom3_azplane.mu_a"
+   },
+   {
+    "field": "papers_read_in_full_text",
+    "src": "outputs/evasion_catalogue.json:counts.papers_read_in_full_text"
+   },
+   {
+    "field": "absolute_dbsm_as_computed_output",
+    "src": "outputs/evasion_catalogue.json:counts.absolute_dbsm_as_computed_output"
+   },
+   {
+    "field": "absolute_dbsm_for_a_drone_target_computed",
+    "src": "outputs/evasion_catalogue.json:counts.absolute_dbsm_for_a_drone_target_computed"
+   },
+   {
+    "field": "sionna_based_subset",
+    "src": "outputs/evasion_catalogue.json:counts.sionna_based_subset"
+   },
+   {
+    "field": "sionna_based_that_print_computed_absolute_dbsm",
+    "src": "outputs/evasion_catalogue.json:counts.sionna_based_that_print_computed_absolute_dbsm"
+   },
+   {
+    "field": "headline_findings",
+    "src": "outputs/evasion_catalogue.json:headline_findings_ko"
+   },
+   {
+    "field": "div",
+    "src": "outputs/runtime_benchmark.json:meta.production_settings.div"
+   },
+   {
+    "field": "jitter",
+    "src": "outputs/runtime_benchmark.json:meta.production_settings.jitter"
+   },
+   {
+    "field": "penetrate",
+    "src": "outputs/runtime_benchmark.json:meta.production_settings.penetrate"
+   },
+   {
+    "field": "n_f_band_average",
+    "src": "outputs/runtime_benchmark.json:meta.production_settings.n_f_band_average"
+   },
+   {
+    "field": "settings_source_line",
+    "src": "outputs/runtime_benchmark.json:meta.production_settings.source"
+   },
+   {
+    "field": "kernel_default_div",
+    "src": "code: src/rcs_sbr.py:84 (DEFAULT_DIV)"
+   },
+   {
+    "field": "max_bounce",
+    "src": "code: src/experiment_freespace_sigma.py:28 (스펙 §9 다중반사 금지)"
+   },
+   {
+    "field": "ptd",
+    "src": "code: src/rcs_sbr.py:185-187 (rcs_sbr_batch 시그니처 기본값 ptd=False)"
+   },
+   {
+    "field": "production_convention_line",
+    "src": "outputs/lowfreq_grid.json:_meta.convention"
+   },
+   {
+    "field": "dither_spread_div8_db",
+    "src": "outputs/report2_waveform_rcs.json:sbr_validation.dither[0].spread"
+   },
+   {
+    "field": "dither_spread_div12_db",
+    "src": "outputs/report2_waveform_rcs.json:sbr_validation.dither[1].spread"
+   },
+   {
+    "field": "dither_spread_div16_db",
+    "src": "outputs/report2_waveform_rcs.json:sbr_validation.dither[2].spread"
+   },
+   {
+    "field": "dither_spread_div24_db",
+    "src": "outputs/report2_waveform_rcs.json:sbr_validation.dither[3].spread"
+   },
+   {
+    "field": "kr_sweep_max_abs_db_vs_po_div16",
+    "src": "outputs/sbr_kr_sweep.json:summary_div16.max_abs_db_vs_po"
+   },
+   {
+    "field": "kr_sweep_std_pct_vs_po_div16",
+    "src": "outputs/sbr_kr_sweep.json:summary_div16.std_sbr_over_po_pct"
+   },
+   {
+    "field": "kr_sweep_std_pct_vs_po_kr_ge30",
+    "src": "outputs/sbr_kr_sweep.json:summary_div16.std_sbr_over_po_pct_kr_ge30"
+   },
+   {
+    "field": "kr_sweep_n_points",
+    "src": "outputs/sbr_kr_sweep.json:summary_div16.n_points"
+   },
+   {
+    "field": "kr_sweep_kr_min",
+    "src": "outputs/sbr_kr_sweep.json:summary_div16.kr_min"
+   },
+   {
+    "field": "kr_sweep_kr_max",
+    "src": "outputs/sbr_kr_sweep.json:summary_div16.kr_max"
+   },
+   {
+    "field": "kr_sweep_n_incidence",
+    "src": "outputs/sbr_kr_sweep.json:meta.n_incidence"
+   },
+   {
+    "field": "kr_sweep_runtime_s",
+    "src": "outputs/sbr_kr_sweep.json:meta.runtime_s"
+   },
+   {
+    "field": "kr_sweep_ms_per_incidence",
+    "src": "computed: meta.runtime_s ÷ (div 2개 × n_incidence × n_points) × 1000"
+   },
+   {
+    "field": "sphere_ka1_kernel_vs_po_at_finest_db",
+    "src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.finest.vs_po_db"
+   },
+   {
+    "field": "sphere_ka1_finest_d_mm",
+    "src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.finest.d_mm"
+   },
+   {
+    "field": "sphere_ka1_grid_refine_factor",
+    "src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.grid_refine_factor"
+   },
+   {
+    "field": "sphere_ka1_ray_count_factor",
+    "src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.ray_count_factor"
+   },
+   {
+    "field": "thin_plate_0p15lam_vs_po_at_lam12_db",
+    "src": "outputs/lowfreq_anchor.json:thin_plate.per_width.0.15.vs_po_at_lam12_db"
+   },
+   {
+    "field": "thin_plate_0p15lam_vs_po_at_finest_db",
+    "src": "outputs/lowfreq_anchor.json:thin_plate.per_width.0.15.vs_po_at_finest_db"
+   },
+   {
+    "field": "plate_normal_incidence_note",
+    "src": "outputs/sbr_defect_fixes.json:d3_multibounce_phase.exact_formula"
+   },
+   {
+    "field": "po_minus_mie_at_ka1_db",
+    "src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.po_minus_mie_db"
+   },
+   {
+    "field": "kernel_minus_mie_at_ka1_lam12_db",
+    "src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.lam12.vs_mie_db"
+   },
+   {
+    "field": "kernel_minus_mie_at_ka1_finest_db",
+    "src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.finest.vs_mie_db"
+   },
+   {
+    "field": "improvement_from_refining_grid_db",
+    "src": "outputs/lowfreq_anchor.json:sphere.per_ka.1.improvement_vs_mie_db"
+   },
+   {
+    "field": "kr_sweep_std_pct_vs_mie_kr_ge30_div16",
+    "src": "outputs/sbr_kr_sweep.json:summary_div16.std_sbr_over_mie_pct_kr_ge30"
+   },
+   {
+    "field": "kr_sweep_max_abs_db_vs_mie",
+    "src": "outputs/sbr_kr_sweep.json:summary_div16.max_abs_db_vs_mie"
+   },
+   {
+    "field": "cal_sphere_r178mm_lte_dev_vs_mie_db",
+    "src": "outputs/rcs_anchor.json:sphere_calibration.LTE 1.843 GHz.spheres[1].dev_db_vs_mie"
+   },
+   {
+    "field": "cal_sphere_r178mm_lte_dev_vs_po_db",
+    "src": "outputs/rcs_anchor.json:sphere_calibration.LTE 1.843 GHz.spheres[1].dev_db_vs_po"
+   },
+   {
+    "field": "cal_sphere_r178mm_lte_ka",
+    "src": "outputs/rcs_anchor.json:sphere_calibration.LTE 1.843 GHz.spheres[1].ka"
+   },
+   {
+    "field": "cal_sphere_r250mm_5g_dev_vs_mie_db",
+    "src": "outputs/rcs_anchor.json:sphere_calibration.5G 3.5 GHz.spheres[0].dev_db_vs_mie"
+   },
+   {
+    "field": "cal_sphere_r250mm_5g_ka",
+    "src": "outputs/rcs_anchor.json:sphere_calibration.5G 3.5 GHz.spheres[0].ka"
+   },
+   {
+    "field": "mom_selftest_worst_db",
+    "src": "outputs/lowfreq_anchor.json:thin_plate.mom_selftest.worst_abs_db_at_240seg"
+   },
+   {
+    "field": "mom_selftest_reference",
+    "src": "outputs/lowfreq_anchor.json:thin_plate.mom_selftest.reference"
+   },
+   {
+    "field": "po_minus_tm_at_0p15lam_db",
+    "src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.0.15.po_minus_tm_db"
+   },
+   {
+    "field": "po_minus_te_at_0p15lam_db",
+    "src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.0.15.po_minus_te_db"
+   },
+   {
+    "field": "tm_minus_te_at_0p15lam_db",
+    "src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.0.15.tm_minus_te_db"
+   },
+   {
+    "field": "po_minus_tm_at_1lam_db",
+    "src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.1.po_minus_tm_db"
+   },
+   {
+    "field": "po_minus_te_at_1lam_db",
+    "src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.1.po_minus_te_db"
+   },
+   {
+    "field": "po_minus_tm_at_2lam_db",
+    "src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.2.po_minus_tm_db"
+   },
+   {
+    "field": "po_ptd_minus_tm_at_0p15lam_db",
+    "src": "outputs/lowfreq_anchor.json:ptd_does_not_close_it.per_width.0.15.po_ptd_minus_tm_db"
+   },
+   {
+    "field": "po_ptd_minus_te_at_0p15lam_db",
+    "src": "outputs/lowfreq_anchor.json:ptd_does_not_close_it.per_width.0.15.po_ptd_minus_te_db"
+   },
+   {
+    "field": "ptd_v_minus_h_at_0p15lam_db",
+    "src": "outputs/lowfreq_anchor.json:ptd_does_not_close_it.per_width.0.15.v_minus_h_db"
+   },
+   {
+    "field": "exact_formula",
+    "src": "outputs/sbr_defect_fixes.json:d3_multibounce_phase.exact_formula"
+   },
+   {
+    "field": "max_abs_err_2bounce_db",
+    "src": "outputs/sbr_defect_fixes.json:d3_multibounce_phase.max_abs_err_db"
+   },
+   {
+    "field": "a03_exact_dbsm",
+    "src": "outputs/sbr_defect_fixes.json:d3_multibounce_phase.rows[2].exact_dbsm"
+   },
+   {
+    "field": "a03_sbr_1bounce_dbsm",
+    "src": "outputs/sbr_defect_fixes.json:d3_multibounce_phase.rows[2].sbr_1bounce_dbsm"
+   },
+   {
+    "field": "a03_sbr_2bounce_dbsm",
+    "src": "outputs/sbr_defect_fixes.json:d3_multibounce_phase.rows[2].sbr_2bounce_dbsm"
+   },
+   {
+    "field": "drone_worst_violation_db",
+    "src": "outputs/sbr_defect_fixes.json:d2_reciprocity_drone.worst_db"
+   },
+   {
+    "field": "drone_worst_without_exit_vis_db",
+    "src": "outputs/sbr_defect_fixes.json:d2_exit_vis_effect_on_reciprocity.worst_without_exit_vis_db"
+   },
+   {
+    "field": "drone_worst_after_symmetrize_db",
+    "src": "outputs/sbr_defect_fixes.json:d2_reciprocity_drone.worst_after_symmetrize_db"
+   },
+   {
+    "field": "symmetrize_honest_note",
+    "src": "outputs/sbr_defect_fixes.json:d2_reciprocity_drone.honest_note"
+   },
+   {
+    "field": "po_validity_knee_a_over_lambda",
+    "src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom_fine_width_grid.knee_a_over_lam"
+   },
+   {
+    "field": "po_validity_knee_rule",
+    "src": "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom_fine_width_grid.knee_rule"
+   },
+   {
+    "field": "knee_establishing_sentence",
+    "src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.what_this_round_establishes"
+   },
+   {
+    "field": "body_81p51mm_ghz",
+    "src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.body_81.51mm"
+   },
+   {
+    "field": "arm_root_45mm_ghz",
+    "src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.arm_root_45mm"
+   },
+   {
+    "field": "arm_tip_30mm_ghz",
+    "src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.arm_tip_30mm"
+   },
+   {
+    "field": "prop_blade_13p78mm_ghz",
+    "src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.prop_blade_13.78mm"
+   },
+   {
+    "field": "motor_13p68mm_ghz",
+    "src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.motor_13.68mm"
+   },
+   {
+    "field": "canopy_6p22mm_ghz",
+    "src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.canopy_6.22mm"
+   },
+   {
+    "field": "pcb_2p99mm_ghz",
+    "src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.pcb_2.99mm"
+   },
+   {
+    "field": "lte_ghz",
+    "src": "code: src/experiment_freespace_sigma.py:63 (BANDS)"
+   },
+   {
+    "field": "nr_ghz",
+    "src": "code: src/experiment_freespace_sigma.py:64 (BANDS)"
+   },
+   {
+    "field": "wifi_ghz",
+    "src": "code: src/experiment_freespace_sigma.py:65 (BANDS)"
+   },
+   {
+    "field": "the_uncomfortable_corollary",
+    "src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.⭐_the_uncomfortable_corollary"
+   },
+   {
+    "field": "sign_of_the_error",
+    "src": "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.sign_of_the_error"
+   },
+   {
+    "field": "prop_over_lambda_at_1p8ghz",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone_feature_over_lambda_at_1p8ghz.prop"
+   },
+   {
+    "field": "prop_worst_pol_gap_db",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.checks.gap_lives_at_drone_feature_scales.worst_pol_gap_db_at_drone_features.prop"
+   },
+   {
+    "field": "arm_tip_over_lambda_at_1p8ghz",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone_feature_over_lambda_at_1p8ghz.arm_tip"
+   },
+   {
+    "field": "arm_tip_worst_pol_gap_db",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.checks.gap_lives_at_drone_feature_scales.worst_pol_gap_db_at_drone_features.arm_tip"
+   },
+   {
+    "field": "arm_root_over_lambda_at_1p8ghz",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone_feature_over_lambda_at_1p8ghz.arm_root"
+   },
+   {
+    "field": "arm_root_worst_pol_gap_db",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.checks.gap_lives_at_drone_feature_scales.worst_pol_gap_db_at_drone_features.arm_root"
+   },
+   {
+    "field": "body_over_lambda_at_1p8ghz",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone_feature_over_lambda_at_1p8ghz.body"
+   },
+   {
+    "field": "body_worst_pol_gap_db",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.checks.gap_lives_at_drone_feature_scales.worst_pol_gap_db_at_drone_features.body"
+   },
+   {
+    "field": "mean_gap_db_for_feature_ge_1lam",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.checks.gap_lives_at_drone_feature_scales.mean_gap_db_for_feature_ge_1lam"
+   },
+   {
+    "field": "max_gap_db_for_feature_0p05_to_0p30_lam",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.checks.gap_lives_at_drone_feature_scales.max_gap_db_for_feature_0p05_to_0p30_lam"
+   },
+   {
+    "field": "ladder_total_spread_at_1p8_db",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone.ladder_total_spread_at_1p8_db"
+   },
+   {
+    "field": "shift_converged_minus_lam16_db",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone.shift_conv_minus_lam16_db_at_1p8"
+   },
+   {
+    "field": "a_lowband_at_lam16",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone.a_lowband_lam16"
+   },
+   {
+    "field": "a_lowband_converged",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone.a_lowband_converged"
+   },
+   {
+    "field": "a_highband_converged",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone.a_highband_converged"
+   },
+   {
+    "field": "das_anchor_a",
+    "src": "outputs/lowfreq_anchor.json:consistency_with_drone.drone.das_anchor_a"
+   },
+   {
+    "field": "what_would_it_take_lowband_db",
+    "src": "outputs/lowfreq_grid.json:what_would_it_take.lowband.delta_mu_at_lowest_freq_db"
+   },
+   {
+    "field": "lowfreq_grid_bottom_line",
+    "src": "outputs/lowfreq_grid.json:bottom_line"
+   },
+   {
+    "field": "attacked_verdict_label",
+    "src": "outputs/lowfreq_grid.json:verdict"
+   },
+   {
+    "field": "adversarial_verdict",
+    "src": "outputs/lowfreq_attack.json:verdict"
+   },
+   {
+    "field": "why_not_SOUND",
+    "src": "outputs/lowfreq_attack.json:verdict_reasoning.why_not_SOUND"
+   },
+   {
+    "field": "why_not_BROKEN",
+    "src": "outputs/lowfreq_attack.json:verdict_reasoning.why_not_BROKEN"
+   },
+   {
+    "field": "one_line",
+    "src": "outputs/lowfreq_attack.json:verdict_reasoning.one_line"
+   },
+   {
+    "field": "the_structural_flaw",
+    "src": "outputs/lowfreq_attack.json:verdict_reasoning.the_structural_flaw"
+   },
+   {
+    "field": "what_survives_the_attack",
+    "src": "outputs/lowfreq_attack.json:what_survives_the_attack"
+   },
+   {
+    "field": "what_does_not_survive",
+    "src": "outputs/lowfreq_attack.json:what_does_not_survive"
+   },
+   {
+    "field": "must_fix",
+    "src": "outputs/lowfreq_attack.json:must_fix"
+   },
+   {
+    "field": "residual_holes",
+    "src": "outputs/lowfreq_attack.json:residual_holes_i_could_not_close"
+   },
+   {
+    "field": "what_must_not_be_said",
+    "src": "outputs/lowfreq_attack.json:q5_blast_radius.what_must_not_be_said"
+   },
+   {
+    "field": "sampling_blast_radius_size",
+    "src": "outputs/lowfreq_attack.json:q5_blast_radius.sampling_blast_radius_actual.size"
+   },
+   {
+    "field": "sampling_blast_radius_direction",
+    "src": "outputs/lowfreq_attack.json:q5_blast_radius.sampling_blast_radius_actual.direction"
+   },
+   {
+    "field": "affected_outputs_scoping_note",
+    "src": "outputs/lowfreq_attack.json:q5_blast_radius.affected_outputs_scoping_note"
+   },
+   {
+    "field": "anchor_caveats",
+    "src": "outputs/lowfreq_anchor.json:caveats"
+   },
+   {
+    "field": "das_mu_a",
+    "src": "outputs/rcs_anchor.json:literature.mu_eps.das_phantom3_mono.mu_a"
+   },
+   {
+    "field": "das_eps_d",
+    "src": "outputs/rcs_anchor.json:literature.mu_eps.das_phantom3_mono.eps_d"
+   },
+   {
+    "field": "yuan_az_mu_a",
+    "src": "outputs/rcs_anchor.json:literature.mu_eps.yuan_phantom3_azplane.mu_a"
+   },
+   {
+    "field": "statistic_convention_trap",
+    "src": "outputs/rcs_anchor.json:literature.mu_eps._convention.stat_ambiguity"
+   },
+   {
+    "field": "our_r178mm_lte_dev_vs_mie_db",
+    "src": "outputs/rcs_anchor.json:sphere_calibration.LTE 1.843 GHz.spheres[1].dev_db_vs_mie"
+   },
+   {
+    "field": "our_std_pct_vs_mie_kr_ge30",
+    "src": "outputs/sbr_kr_sweep.json:summary_div16.std_sbr_over_mie_pct_kr_ge30"
+   },
+   {
+    "field": "axis_note",
+    "src": "outputs/sbr_kr_sweep.json:meta.axis_note"
+   },
+   {
+    "field": "exit_vis_note",
+    "src": "outputs/sbr_defect_fixes.json:d4_exit_visibility.note"
+   },
+   {
+    "field": "injection_instances_found",
+    "src": "outputs/injection_verdict.json:counts.injection_instances_in_the_master_table"
+   },
+   {
+    "field": "injection_peer_reviewed",
+    "src": "outputs/injection_verdict.json:counts.peer_reviewed"
+   },
+   {
+    "field": "injection_standards_documents",
+    "src": "outputs/injection_verdict.json:counts.standards_documents"
+   }
+  ]
+ }
+}
