@@ -1,0 +1,355 @@
+{
+ "_meta": {
+  "task": "적대검증 — outputs/lowfreq_grid.json + outputs/lowfreq_anchor.json 의 'B_PO_LIMIT' 판정을 공격한다",
+  "date": "2026-08-03",
+  "stance": "기본값은 '결론이 이르다'. 살아남는 주장은 범위(scope)까지 못 박고, 내가 새로 만든 숫자는 전부 crude 라고 표시한다.",
+  "targets": [
+   "/home/yunjung/workspace/sionna2/outputs/lowfreq_grid.json",
+   "/home/yunjung/workspace/sionna2/outputs/lowfreq_anchor.json"
+  ],
+  "cross_checked_against": [
+   "/home/yunjung/workspace/sionna2/outputs/anchor_subband_attack.json (verdict SUSPECT, 11:51 — 같은 격차를 이미 공격한 자매 파일)",
+   "/home/yunjung/workspace/sionna2/outputs/ours_subband.json (div 8~48 격자수렴 선행 스윕)",
+   "/home/yunjung/workspace/sionna2/benchmark/lowfreq_grid_worker.py · lowfreq_grid_analyze.py · lowfreq_anchor.py · lowfreq_anchor_merge.py",
+   "/home/yunjung/workspace/sionna2/benchmark/das_fleet_sigma.py · src/experiment_freespace_sigma.py (생산 커널 규약 실측)"
+  ],
+  "recomputed_by_me": "주파수-잔차 OLS 기울기 SE, 국소 3점 기울기 잡음, 메쉬 facet/λ 대역별, 특징/λ 대역별, σ-가중 PO 오차 예산, CAD 개정의 기울기 파급",
+  "agent": "적대검증 서브에이전트"
+ },
+
+ "verdict": "PREMATURE",
+
+ "verdict_reasoning": {
+  "one_line": "가설 A(표본화) 배제는 **정말 강하다** — 크기·부호·양성대조·독립복제·jitter 재채점까지 다 있다. 무너지는 것은 그 다음 줄, 즉 '따라서 B(PO 근본한계)다' 이다. B 는 음성증거(A 배제) + 잡음 수준의 무릎 + 부호만 맞춘 단일 스트립 유추로 세워졌고, 두 파일 어디에도 **크기 귀속**이 없다. 그 사이에 배제되지 않은 세 번째 축(C: 기하·테셀레이션·CAD)이 자기 데이터 안에서 이미 격자효과의 33 배로 관측된다.",
+  "the_structural_flaw": "A 와 B 는 배타적이지도, 망라적이지도 않다. verdict_rule 은 {A, B, MIXED} 3 분류인데 MIXED 는 '둘 다'가 아니라 '두 문턱 사이'로 정의돼 있어, 두 원인이 동시에 기여하는 경우를 표현할 자리가 아예 없다. 그리고 C(기하)·D(누락 물리: 다중반사·투과·편파)·E(앵커 비교가능성)를 담을 자리는 분류 자체에 없다.",
+  "why_not_BROKEN": "아무 것도 반증되지 않았다. Mie·2D MoM 참값 앵커는 실제로 새 정보를 만들었고(PO−Mie 6.58 dB, PO−MoM TM −4.02 dB / TE +7.53 dB), 커널이 해석 PO 로 0.000 dB 수렴한다는 것은 커널 구현 검증으로서 값이 있다. 부호는 전부 같은 방향을 가리킨다.",
+  "why_not_SOUND": "판정 라벨 'B_PO_LIMIT' 이 증거보다 많이 주장한다. 정직한 라벨은 A_EXCLUDED · B_CONTRIBUTES_SIGN_ONLY · C_UNBOUNDED 세 필드다."
+ },
+
+ "nonmonotonic_handled": true,
+ "mesh_resolution_bound": false,
+
+ "q1_nonmonotonicity": {
+  "question": "수렴 판정이 비단조성에 속지 않았는가? 사다리 점은 충분한가? 서브셀 오프셋(jitter)은 켰나?",
+  "answer": "속지 않았다 — 그러나 헤드라인 숫자는 사다리의 '이미 수렴한 구간'에서만 뽑았다.",
+  "jitter_is_on_and_correct": {
+   "drone_sweep": "jitter=2 (benchmark/lowfreq_grid_worker.py:11) — 생산 규약과 동일(src/experiment_freespace_sigma.py:120, benchmark/das_fleet_sigma.py:225 둘 다 jitter=2)",
+   "anchors": "jitter=3 (benchmark/lowfreq_anchor.py:60)",
+   "j_squared_offsets": "J²  오프셋 격자위상 평균 — src/rcs_sbr.py:260,598. J=2 → 4 오프셋, J=3 → 9 오프셋",
+   "verdict": "켜져 있다. 그리고 lowfreq_anchor 의 adversarial_jitter_control 은 'jitter 가 격자오차를 지운 것 아니냐' 를 직접 물어 J=1 로 재채점까지 했다 — 이 프로젝트 표준으로도 상위 수준의 자기공격이다."
+  },
+  "defect_J1": {
+   "id": "J1_false_production_convention",
+   "severity": "MEDIUM",
+   "claim": "lowfreq_anchor.json precision_note / caveats: \"생산 규약(jitter=3)에서 그 항은 λ/12 에서 이미 ≤0.2 dB 다\" (benchmark/lowfreq_anchor_merge.py:211)",
+   "why_false": "생산 규약은 **jitter=2** 다. jitter=3 은 검증 규약(src/rcs_sbr.py:947-954 가 명시적으로 '드론 생산 호출은 jitter=2(기본)이고 여기선 3' 이라고 적어 둔다). lowfreq_grid.json 의 convention 필드 자신이 jitter=2 라고 쓴다 — 두 자매 파일이 '생산 규약' 을 서로 다르게 부른다.",
+   "size_of_the_error": {
+    "worst_abs_kernel_minus_analytic_po_at_lam12_db": {"jitter1": 1.3456, "jitter2": 0.5165, "jitter3": 0.1897},
+    "note": "jitter2 값은 lowfreq_anchor.sphere.adversarial_jitter_control.rows 에서 내가 직접 뽑았다(ka=1 λ/12 j2 vs_po=+0.5165, ka=3 j2=+0.3384, ka=6 j2=−0.2406, ka=12 j2=+0.1835). 즉 '≤0.2 dB' 는 실제 생산 규약에서 **2.6 배** 낙관적이다."
+   },
+   "does_it_flip_the_verdict": false,
+   "why_not": "0.52 dB 도 PO−Mie 간극 6.58 dB 의 8% 다. 판정은 안 뒤집힌다. 그러나 인용될 문장이 틀렸다."
+  },
+  "defect_J2": {
+   "id": "J2_headline_convergence_number_is_near_tautological",
+   "severity": "MEDIUM",
+   "claim": "bottom_line: \"1.8 GHz 에서 격자를 6 mm → 0.375 mm 로 16 배 조이는 동안 μ 는 0.084 dB 안에서만 움직인다\" + \"격자가 만드는 여지는 그 100 분의 1\"",
+   "attack": "1.8 GHz 에서 6.0 mm 는 이미 λ/27.8 이다 — 생산 격자 λ/16(10.41 mm)보다 **더 촘촘한 점에서 사다리가 시작**한다. 즉 0.084 dB 는 '이미 수렴한 구간 안에서 안 움직인다' 는 동어반복에 가깝다. 같은 rows 배열 안에 λ/12(−25.527) 와 λ/16(−24.349) 이 있고 그 둘 사이만 **1.178 dB** 움직인다.",
+   "correct_ratios": {
+    "as_printed_0p084_vs_8p162": 97.5,
+    "using_production_grid_lam16_shift_0p3212": 25.4,
+    "using_lam12_shift_0p857": 9.5,
+    "reading": "'100 분의 1' 은 잣대를 바꾸면 '25 분의 1' 또는 '10 분의 1' 이다. 결론(격자로는 못 메운다)은 셋 다에서 살아남지만, 인쇄된 배수는 3~10 배 부풀려져 있다."
+   }
+  },
+  "defect_J3": {
+   "id": "J3_16_of_21_frequencies_never_laddered",
+   "severity": "MEDIUM",
+   "attack": "refit.mu_conv_dbsm 는 21 주파수 전부에 대한 **단일 d=0.75 mm 실행**이다(1.8 GHz 에서 −24.670 = mu_conv_0p75mm, 18.2 GHz 에서 −13.4888 = mu_conv_0p75mm 로 확인). 사다리는 5 주파수(1.8·3.5·6.0·12.0·18.2)에서만 돌았고 그 중 refit 격자와 겹치는 것은 1.8 과 18.2 **두 점뿐**이다.",
+   "consequence": "'수렴한 기울기 a=1.6319' 는 21 점 단일격자 적합이고, 그 21 점 중 2 점에서만 수렴이 검증됐다. 고대역 적합 RMSE 가 1.077 dB(R²=0.334)라 개별 점이 기울기에 실제로 영향을 준다.",
+   "mitigation_that_exists": "5 사다리 주파수의 last_step_db 가 전부 |≤0.02| dB 이고, 대역 양끝(1.8·18.2)이 포함돼 있어 기울기에 미치는 최악 편향은 작다. 치명적이지는 않다."
+  },
+  "what_makes_the_A_exclusion_genuinely_strong": [
+   "부호가 반대다 — 격자를 조이면 저대역 기울기가 1.5634 → 1.6319 로 **더 가팔라진다**. A 가설이 맞다면 완만해져야 한다. 크기가 아니라 부호로 죽였다.",
+   "양성대조가 있다 — 같은 절대사다리(8→0.25 mm)가 구 ka=20 에서는 1.784 dB 를 움직인다(lowfreq_anchor.sphere.positive_control). 도구가 둔감해서 0 이 나온 게 아니라는 것을 보였다. 드론 쪽도 18.2 GHz 에서 6 mm→0.5 mm 가 1.929 dB 움직인다.",
+   "독립 복제가 있다 — 자매 파일 anchor_subband_attack.q3 이 div 8~48 스윕으로 같은 결론(+0.071 dB/GHz, 조일수록 가팔라짐)에 도달했다. 두 실험이 다른 축(상대격자 vs 절대격자)에서 같은 부호를 준다.",
+   "jitter 적대대조가 있다 — J=1 로 재채점해도 판정 불변(저 ka 개선 0.233 dB, 비율 0.056).",
+   "비단조성을 인정하고 한 계단이 아니라 사다리 전체 추세로 판정했다(caveat 2)."
+  ],
+  "one_correction_the_new_data_forces_on_the_sibling_file": {
+   "target": "anchor_subband_attack.json → q3.decisive_test.is_div48_itself_converged",
+   "old_claim": "\"24→32→48 이 단조 감소(−0.228, −0.098)라 div=48 도 완전 수렴은 아니다. 기하 외삽하면 −0.07 dB 더 내려간다\"",
+   "refuted_by": "lowfreq_grid 의 절대사다리는 1.8 GHz 에서 3.0 mm(≈div48) −24.7173 이후 **되돌아 올라간다**: 1.5 mm −24.6462, 0.75 mm −24.6700, 0.5 mm −24.6784, 0.375 mm −24.6749. 단조 감소가 아니라 진동이고, 외삽 −0.07 dB 는 일어나지 않는다.",
+   "action": "자매 파일의 그 문장을 철회 표시할 것. 결론 방향은 안 바뀐다."
+  }
+ },
+
+ "q2_mesh_resolution": {
+  "question": "메쉬 삼각형 해상도가 격자보다 성긴 건 아닌가? 두 해상도를 함께 보고했는가?",
+  "answer": "보고는 했다. **경계는 못 지었다.** 그리고 이것이 이 라운드에서 가장 큰 미해결 구멍이다.",
+  "mesh_resolution_bound": false,
+  "reported_yes": "lowfreq_grid.feature_scales.mesh_edge_mm = {p05 0.638, p50 5.186, p95 10.022} 를 격자 d 와 나란히 실었다. caveats 1 이 '테셀레이션은 별개의 오차축이고 여기서 검증하지 않았다' 고 명시한다. 은폐는 없다.",
+  "defect_M1": {
+   "id": "M1_mesh_ladder_covers_none_of_the_drone_band",
+   "severity": "HIGH",
+   "attack": "lowfreq_anchor 의 mesh_ladder 는 ka=1·3 두 점에서만 돌았고 facet/λ 범위가 [0.00069, 0.0625] 다. 드론 메쉬의 facet/λ 를 대역별로 계산하면 그 범위를 **3.6 GHz 위에서 전부 벗어난다**.",
+   "recomputed_by_me": {
+    "drone_median_edge_over_lambda": {
+     "1.843GHz": 0.0319, "3.5GHz": 0.0605, "5.21GHz": 0.0901,
+     "6GHz": 0.1038, "12GHz": 0.2076, "18.2GHz": 0.3148
+    },
+    "drone_p95_edge_over_lambda": {
+     "1.843GHz": 0.0616, "3.5GHz": 0.1170, "5.21GHz": 0.1742,
+     "6GHz": 0.2006, "12GHz": 0.4012, "18.2GHz": 0.6084
+    },
+    "anchor_mesh_ladder_coarsest_facet_over_lam": 0.0625,
+    "crossover_ghz": 3.61,
+    "reading": "3.61 GHz 위에서는 드론의 **중앙값** 삼각형이 앵커 메쉬사다리의 **가장 성긴 점**보다도 λ 대비 성기다. 18.2 GHz 에서 p95 모서리는 0.61λ 다. 즉 메쉬사다리는 드론 대역의 어느 지점도 경계 짓지 못한다."
+   }
+  },
+  "defect_M2": {
+   "id": "M2_tessellation_error_is_frequency_dependent_and_therefore_enters_the_slope",
+   "severity": "HIGH",
+   "attack": "facet/λ 가 1.8→18.2 GHz 에서 0.031 → 0.315 로 **10 배** 커진다. 테셀레이션 오차는 정의상 f 의 함수이므로 이 라운드가 판정하려는 바로 그 양(기울기)에 직접 들어간다. 격자(d)는 절대값으로 고정해 f 의존을 끊을 수 있지만 메쉬는 그렇게 못 한다 — 메쉬는 f 와 함께 자동으로 나빠진다.",
+   "why_this_is_not_a_hypothetical": {
+    "cad_revision_natural_experiment": "lowfreq_grid.geometry_revised_after_run 이 우연히 이 실험을 해 줬다. 스윕 뒤 다른 작업이 Phantom 3 CAD 를 개정했고 μ 가 1.8 GHz 에서 +2.7227 dB, 18.2 GHz 에서 +0.2216 dB 움직였다.",
+    "slope_impact_recomputed_by_me": {
+     "two_point_fullband_slope_swept_cad": 0.6629,
+     "two_point_fullband_slope_revised_cad": 0.5104,
+     "delta_db_per_ghz": -0.1525,
+     "percent_of_swept_value": -23.0
+    },
+    "reading": "⭐ 기하 하나 바꿨더니 2점 전대역 기울기가 23% 움직였다. 리포트는 이 관측을 '격자효과의 33 배 → 우리 결론과 같은 방향' 이라고 읽는데, 그건 **한쪽 읽기**다. 같은 사실의 다른 읽기는 '판정 대상인 기울기 자체가 기하에 대해 불안정하다' 이고, 이쪽이 더 불리하다. 파일은 '레벨 변화일 뿐 기울기 재판정이 아니다' 라고 방어하지만, 두 점이 대역 양 끝이라 2점 기울기는 실제로 계산된다."
+   }
+  },
+  "defect_M3": {
+   "id": "M3_stale_hardcoded_median_edge",
+   "severity": "LOW",
+   "detail": "lowfreq_grid.feature_scales.reading 과 caveats[0] 이 '메쉬 중앙값 모서리(5.85 mm)' 라고 두 번 쓴다(benchmark/lowfreq_grid_analyze.py:93,405 에 하드코딩). 같은 파일이 계산한 p50 은 **5.186 mm** 다. 따라서 'd=0.75 mm 는 중앙값의 1/8' 도 틀렸다 — 실제로는 1/6.9 다.",
+   "action": "하드코딩 상수를 계산값으로 교체."
+  },
+  "defect_M4": {
+   "id": "M4_facet_studies_in_repo_do_not_cover_our_PO_kernel",
+   "severity": "INFO",
+   "detail": "outputs/facet_count.json · facet_mechanism.json · facet_attack.json 이 있어 '메쉬 삼각형 수' 문제를 이미 다룬 것처럼 보이지만, 그 셋은 **스톡 Sionna PathSolver** 의 정반사 경로에 대한 것이고 우리 SBR+PO 커널의 테셀레이션 오차가 아니다. 이 구멍을 메우는 선행 산출물은 저장소에 없다."
+  },
+  "what_would_close_it": "Phantom 3 CAD 를 subdivision 사다리(현 메쉬 → 1/2 → 1/4 모서리)로 재테셀레이션해 **같은 21 주파수**로 μ(f) 를 다시 뽑고, Δa_low / Δa_high 를 격자사다리와 같은 형식으로 인쇄한다. 구·판이 아니라 드론 본체에서 재야 한다 — 곡률·자기가림·얇은 특징이 섞여 있어야 의미가 있다."
+ },
+
+ "q3_cost_asymmetry": {
+  "question": "저주파에서만 촘촘히 돌리고 고주파는 안 돌렸는가? 모든 주파수에서 같은 절대격자를 돌렸는가?",
+  "answer": "대체로 대칭이다 — 한 계단만 비대칭이고, 그 비대칭의 방향은 우리에게 **불리하지 않다**.",
+  "audit": {
+   "absolute_ladder_by_frequency": {
+    "1.8GHz": [0.375, 0.5, 0.75, 1.5, 3.0, 6.0],
+    "3.5GHz": [0.375, 0.5, 0.75, 1.5, 3.0, 6.0],
+    "6GHz": [0.5, 0.75, 1.5, 3.0, 6.0],
+    "12GHz": [0.5, 0.75, 1.5, 3.0, 6.0],
+    "18.2GHz": [0.5, 0.75, 1.5, 3.0, 6.0]
+   },
+   "asymmetry_found": "0.375 mm 계단은 1.8·3.5 GHz 에서만 돌았다. 6·12·18.2 GHz 는 0.5 mm 에서 멈춘다.",
+   "is_the_refit_symmetric": "예 — mu_conv 는 21 주파수 전부 동일한 **절대** d=0.75 mm 다. 비교의 기본 단위는 대칭이다.",
+   "cost_note": "총 29831 s / 75 runs. 0.375 mm 한 점이 ≈2000 s 이므로 고대역 3 점 추가는 ≈6000 s(총비용의 20%)였다. 비용 때문에 뺐다면 그 사실을 인쇄해야 한다 — 지금은 사다리 배열에서 조용히 빠져 있다."
+  },
+  "direction_of_the_untested_residual": {
+   "observed": "고주파일수록 성긴 격자가 μ 를 **부풀린다**. 18.2 GHz 에서 6 mm −11.578 → 0.5 mm −13.508 (1.929 dB). 1.8 GHz 에서는 같은 구간이 0.017 dB.",
+   "consequence": "고대역에 남은 미수렴 잔차가 있다면 μ(고주파)를 높이고 → 기울기를 **높인다**. 그런데 판정이 설명하려는 이상현상은 '저대역이 너무 가파르다' 이므로, 이 잔차는 격차를 줄이는 쪽이 아니라 늘리는 쪽이다. 즉 비대칭은 결론에 유리하게 작동하지 않는다.",
+   "residual_size": "18.2 GHz 0.75→0.5 mm 마지막 계단 −0.0195 dB. 구 ka=20 에서 0.5→0.25 mm 가 0.0057 dB. 남은 잔차는 0.02 dB 급으로 추정된다."
+  },
+  "verdict": "비용이 판정을 왜곡했다는 증거는 없다. 다만 사다리 배열의 비대칭을 파일이 명시하지 않았다 — 독자가 abs_ladder_d_mm 배열을 직접 비교해야만 보인다."
+ },
+
+ "q4_A_and_B_are_not_exclusive": {
+  "question": "가설 A 와 B 는 배타적이지 않다. 둘 다일 수 있다. 판정이 그걸 허용하는가? MIXED 라면 각각의 기여를 dB 로 가를 수 있는가?",
+  "answer": "허용하지 않는다. 그리고 더 나쁜 것은, 배제되지 않은 **세 번째 축이 분류 자체에 없다**는 점이다.",
+  "defect_R1": {
+   "id": "R1_rule_cannot_express_both",
+   "severity": "HIGH",
+   "rule_as_written": "A_SAMPLING : |μ(0.75mm)−μ(λ/16)|@1.8GHz ≥ 1.0 dB **그리고** 저대역 기울기 ≥50% 감소. B_PO_LIMIT : 이동 < 0.5 dB **그리고** 기울기 변화 < 20%. 그 사이는 MIXED.",
+   "attack": "MIXED 는 '두 원인이 함께 기여한다' 가 아니라 '두 문턱 사이의 회색지대' 다. 두 축의 기여를 각각 dB 로 요구하지 않으므로, 규칙을 통과해도 분해는 얻어지지 않는다. 관측(이동 0.3212 dB, 기울기 변화 +4.4%)은 B 조건을 만족하지만, 그것이 증명하는 것은 '**A 가 작다**' 뿐이고 '**B 가 크다**' 는 한 글자도 증명하지 않는다. 이 규칙은 구조적으로 B 를 증명할 수 없고 오직 A 를 기각할 수만 있다.",
+   "rule_fragility": "기준격자를 λ/16 대신 λ/12 로 잡으면 이동이 0.857 dB 라 **MIXED** 가 나온다. λ/16 이 생산격자이므로 선택 자체는 옳지만, 라벨이 규약 한 줄에 뒤집힐 만큼 얇다는 것은 인쇄돼야 한다."
+  },
+  "defect_R2": {
+   "id": "R2_no_preregistration",
+   "severity": "MEDIUM",
+   "evidence": "스윕 실행 12:24–12:58(파일 _meta). benchmark/lowfreq_grid_analyze.py 최종수정 13:23:19, 산출 13:27:43. 즉 판정규칙이 담긴 스크립트의 마지막 편집이 **데이터가 존재한 뒤**다. 이 저장소는 사전등록 관행이 있다(outputs/das_fleet_prereg.json, benchmark/build_das_fleet_prereg.py) — 이 실험은 그 관행을 쓰지 않았다.",
+   "note": "post-hoc 작성의 **증명**은 아니다(무관한 이유로 편집됐을 수 있다). 그러나 사전등록 산출물이 없으므로 방어할 근거도 없다."
+  },
+  "defect_R3": {
+   "id": "R3_missing_hypothesis_C_geometry",
+   "severity": "HIGH",
+   "attack": "올바른 분해는 2 항이 아니라 최소 4 항이다:\n  (커널 − 실제) = (커널 − 이 메쉬 위의 PO)  ← A, 측정됨\n              + (이 메쉬 위의 PO − 참 형상 위의 PO)  ← C, **측정 안 됨**\n              + (참 형상 위의 PO − 참 물리)  ← B, 정준표적에서만 측정됨\n              + (누락 물리: 다중반사·투과·편파·크리핑파)  ← D, 측정 안 됨\nlowfreq_anchor 는 A 와 B 를 정준표적에서 훌륭히 갈랐다. 그런데 드론에는 C 와 D 가 있고, C 는 자기 파일 안에서 이미 2.72 dB / 기울기 23% 로 관측됐다.",
+   "D_specifics": "앵커 커널 규약이 생산과 세 군데 다르다. (i) jitter 3 vs 2 (ii) **penetrate=False vs 생산 True** (iii) |Γ|=1 PEC vs DRONE_GROUP_MAT 유전체 가중. (ii) 는 어느 caveat 에도 없다 — 생산 드론 σ 는 셸을 투과해 내부 battery(68.87 mm, 삼각형 24 개)·pcb(2.99 mm, 삼각형 12 개)를 조명하는데, 그 경로는 참값 앵커가 **하나도** 재지 않았다. pcb 는 1.843 GHz 에서 0.018λ 로 이 라운드가 잰 어떤 특징보다 극단적인 저 ka 산란체다. 볼록 PEC 구·판은 자기가림도 다중반사도 투과도 없다."
+  },
+  "the_dB_decomposition_the_files_refuse_to_do": {
+   "why_it_matters": "lowfreq_anchor.slope_mechanism.caveat 이 명시적으로 '크기 비교는 하지 않는다 — 같은 것은 부호와 메커니즘이지 숫자가 아니다' 라고 선언한다. 그래서 B 는 **부호만** 확립됐다. 부호만으로는 격차의 1% 를 설명해도 100% 를 설명해도 똑같이 '일치' 한다.",
+   "my_crude_budget": {
+    "method": "특징별 PO 판 근사 σ ∝ A²/λ²(정면) 또는 방위평균 ∝ 2A²/(λw)(정반사 로브폭 λ/w 가중) 로 σ 지분을 매기고, 각 특징의 w/λ 에서 lowfreq_anchor.thin_plate.truth_2d_mom_fine_width_grid 의 po_minus_tm 을 보간해 지배채널(TM) 참값으로 보정한 뒤, 1.8 GHz 와 6.0 GHz 보정량의 차이를 기울기로 환산했다.",
+    "status": "⚠ CRUDE. 판 근사·직사각 치수 가정·재질 Γ 무시·자기가림 무시·2D→3D 환산 무시. 절대값이 아니라 **크기 자릿수**만 보라고 만든 것이다.",
+    "feature_shares_percent": {
+     "broadside_weighting": {"body": 74.5, "arm_root": 14.5, "arm_tip": 6.5, "prop_blade": 4.3, "canopy": 0.2},
+     "azimuth_lobe_weighting": {"body": 50.8, "arm_root": 17.9, "prop_blade": 17.2, "arm_tip": 12.0, "canopy": 2.2}
+    },
+    "po_minus_tm_db_at_1p8ghz": {"prop_blade": -7.25, "arm_tip": -3.14, "arm_root": -1.52, "body": -0.30, "canopy": -10.24},
+    "slope_supplied_by_B_db_per_ghz": {"broadside_weighting": -0.306, "azimuth_lobe_weighting": -0.683},
+    "slope_excess_to_explain_db_per_ghz": {"vs_das_0p21_span_mismatched": -1.422, "vs_yuan_theta90_band_matched_0p41": -1.222},
+    "fraction_of_the_gap_B_can_supply": "25% ~ 56%",
+    "reading": "⭐ B 는 부호가 맞고 크기가 **부족하다**. 이유는 구조적이다 — PO 오차가 가장 큰 특징(prop 0.083λ, −7.25 dB)이 σ 예산에서 가장 작은 지분(4~17%)을 갖고, 레벨을 만드는 특징(body 0.489λ)의 지배채널 오차는 −0.30 dB 뿐이다. 두 파일 어디에도 이 가중이 없다.",
+    "honest_caveat": "내 예산이 틀렸을 여지도 크다 — 방위평균에서 얇은 특징의 실제 지분은 로브폭 가중보다 더 클 수 있고(360° 중 넓은 각도에서 보이므로), 재질 Γ 가 body 를 깎으면 지분이 얇은 쪽으로 더 넘어간다. 그래서 이것은 'B 는 불충분하다' 의 **증명이 아니라** '두 파일이 반드시 계산했어야 할 것을 안 했다' 의 증명이다."
+   }
+  },
+  "defect_R4": {
+   "id": "R4_positive_evidence_for_B_is_noise",
+   "severity": "HIGH",
+   "claim_attacked": "lowfreq_grid.bottom_line: \"'PO 근본한계' 는 표본화를 배제한 것(음성 증거)과, 가파른 구간이 blade/λ ≈ 0.2712 에서 끝난다는 것(양성 증거)의 결합이다\"",
+   "attack": "그 '양성 증거' 는 po_validity_diagnostic.local_slope_3pt 의 19 개 국소기울기 중 한 점을 사후 선택한 것이다. 같은 배열의 잡음을 재면 무릎이 유의하지 않다.",
+   "recomputed_by_me": {
+    "highband_local_slopes_std_db_per_ghz": 0.793,
+    "highband_local_slopes_range": [-0.670, 1.863],
+    "predicted_3pt_slope_SE_from_fit_residual": {"if_per_point_resid_0.44dB": 0.379, "if_per_point_resid_1.0dB": 0.862},
+    "claimed_knee_drop": 1.444,
+    "significance": "≈1.7~3.8 SE 의 단일 낙차인데, 19 개 점을 훑어 최대 낙차를 고른 것이므로 다중비교 보정 후 유의하지 않다.",
+    "direct_counterexample": "무릎(5.9 GHz) 이후에도 국소기울기가 7.54 GHz 에서 **+1.863**, 15.74 GHz 에서 **+1.277** 로 저대역만큼 가파르다. '가파른 구간이 5.9 GHz 에서 끝난다' 는 데이터가 지지하지 않는다."
+   },
+   "free_parameter": "특징 치수가 4 개(prop 13.78 · arm_tip 30 · arm_root 45 · body 81.51 mm)이고 국소기울기 점이 19 개다. 어느 낙차든 네 특징 중 하나의 '의미 있는' λ 비에 떨어질 확률이 높다. blade 를 고른 것은 사후 선택이며, 5.9 GHz 에서 arm_root/λ=0.886 · body/λ=1.60 도 동시에 성립한다."
+  },
+  "defect_R5": {
+   "id": "R5_slope_error_bars_are_the_wrong_ones",
+   "severity": "MEDIUM",
+   "attack": "refit.bootstrap_az_slope 는 **방위 부트스트랩**이다. 그런데 기울기는 21 개 **주파수** 점의 회귀에서 나오고, 그 회귀의 잔차(저대역 RMSE 0.44 dB, 고대역 1.08 dB)는 방위 재표본으로 재현되지 않는 주파수 간섭구조다.",
+   "recomputed_by_me": {
+    "OLS_slope_SE_from_frequency_residuals": {"low_1p8_6": 0.1816, "high_6_18p2": 0.0785, "full_1p8_18p2": 0.0682},
+    "reported_azimuth_bootstrap_SE": {"low_1p8_6": 0.070, "high_6_18p2": 0.0348, "full_1p8_18p2": 0.0322},
+    "understatement_factor": "2.2 ~ 2.6 배"
+   },
+   "consequences": [
+    "a_low = 1.632 ± 0.182 (±0.070 아님). 저대역 결론은 그래도 압도적으로 살아남는다(vs 0.41 → 6.7σ).",
+    "⚠ a_high = 0.202 ± 0.079 다. 'Das 0.21 과 일치' 는 95% CI [0.05, 0.36] 안에 0.21 이 들어간다는 뜻일 뿐, **고대역이 검증됐다는 주장이 아니다**. 두 파일이 이 일치를 '고대역은 깨끗하다' 의 근거로 쓰는데, 그 CI 는 0.21 의 4 분의 1 부터 1.7 배까지를 다 허용한다."
+   ]
+  }
+ },
+
+ "q5_blast_radius": {
+  "question": "표본화가 원인이었다면 우리가 지금까지 낸 모든 저주파 σ 가 틀렸다는 뜻이다. 어떤 산출물이 영향받는가?",
+  "answer_short": "표본화는 원인이 **아니었다** — 그래서 표본화발 파급은 작고 이제 정량화됐다. 그러나 이 라운드는 그 자리에 **더 큰 파급**을 놓았다. 질문이 상정한 것보다 나쁜 답이다.",
+  "sampling_blast_radius_actual": {
+   "size": "생산격자 λ/16 → 수렴값 이동: 1.8 GHz −0.321 dB, 3.5 GHz −0.029, 6.0 GHz −0.113, 12 GHz −0.006, 18.2 GHz −0.012",
+   "direction": "생산 σ 는 1.843 GHz 근처에서 약 0.3 dB **높게** 나와 있고, 저대역 기울기는 약 0.07 dB/GHz **완만하게** 나와 있다.",
+   "verdict": "산출물 재생성이 필요할 정도는 아니다. 그러나 이 오프셋은 어디에도 선언돼 있지 않다 — 최소한 σ 산출물의 uncertainty 필드에 들어가야 한다."
+  },
+  "po_validity_blast_radius_the_real_one": {
+   "what_this_round_establishes": "worst-pol |PO − 참값| 이 1 dB 아래로 내려가려면 특징 폭이 ≥0.729λ 여야 한다(lowfreq_anchor.thin_plate.truth_2d_mom_fine_width_grid.knee_a_over_lam).",
+   "recomputed_by_me_frequency_at_which_each_feature_passes_that_knee": {
+    "body_81.51mm": 2.68,
+    "arm_root_45mm": 4.86,
+    "arm_tip_30mm": 7.28,
+    "prop_blade_13.78mm": 15.86,
+    "motor_13.68mm": 15.97,
+    "canopy_6.22mm": 35.13,
+    "pcb_2.99mm": 73.08,
+    "units": "GHz"
+   },
+   "⭐_the_uncomfortable_corollary": "우리 생산 3 밴드(LTE 1.843 · 5G 3.5 · WiFi 5.21 GHz)에서 body 를 제외한 **모든** 특징이 이 무릎 아래에 있다. 그리고 prop·motor·canopy·pcb 는 **18.2 GHz 까지 대역 전체**에서 무릎 아래다. 따라서 이 라운드가 '고대역은 깨끗하다' 고 말할 근거는 자기 자신의 무릎 기준에 의해 **없다**. 자매 파일이 권고한 '우리 모형의 신뢰 하한 ≈6 GHz' 도 body·arm 에만 참이고 prop 계열에는 거짓이다.",
+   "sign_of_the_error": "지배채널(TM) 기준 PO 는 얇은 특징을 **과소평가**한다(prop 0.083λ 에서 −7.25 dB). 따라서 우리 저주파 σ 는 낮게 나와 있을 개연성이 높고, 검출 성능 산출물은 **보수적(비관적)** 쪽으로 틀렸을 것이다. 단, 스칼라 PO 는 편파를 못 가르므로 TE 채널 기준으로는 부호가 반대다 — 방향을 못 박으려면 편파 있는 커널이 필요하다."
+  },
+  "affected_outputs": [
+   "outputs/lowfreq_grid.json — 판정 라벨과 인쇄된 배수(자기 자신)",
+   "outputs/lowfreq_anchor.json — '생산 규약 jitter=3' 오기, penetrate 미검증 미고지(자기 자신)",
+   "outputs/p3_ours.json — Phantom 3 σ(f) 21 주파수 헤드라인 곡선. 이 라운드의 기준선이자 저대역 이상현상의 원본",
+   "outputs/p3_ours_v2.json",
+   "outputs/ours_subband.json — 서브밴드 기울기(저대역 창)",
+   "outputs/rcs_anchor.json — LTE 1.843 / 5G 3.5 / WiFi 5.21 GHz 전 기체 σ. 세 밴드 전부 PO 무릎 아래",
+   "outputs/sigma_anchor.json — 문헌 앵커링과 size_law·our_kernel_size_exponent",
+   "outputs/anchor_subband.json · anchor_subband_compare.json · anchor_subband_attack.json — 저대역 기울기 격차 비교 전체",
+   "outputs/report13_sigma_grid.json · report13_sigma_grid_elext.json · report13_sigma_grid.phantom4.json · report13_sigma_grid.s1000plus.json — 검출 체인에 들어가는 σ 격자(div=16, jitter=2, penetrate=True)",
+   "outputs/sigma_grid_regen.json · sigma_robust_summary.json · sigma_sensitivity.json",
+   "outputs/das_fleet_ours.json · das_fleet_spec.json · das_fleet_prereg.json — 함대 σ 와 사전등록 게이트",
+   "outputs/ptd_drone_effect.json · ptd_regression.json · ptd_wiring.json · ptd_attack_claims.json — PTD 는 정면입사에서 편파를 못 가른다는 이번 결과가 직접 걸린다",
+   "outputs/mesh_compare_material.json · material_sources.json — 재질 가중 PO 의 저대역 신뢰도",
+   "outputs/report2_waveform_rcs.json · report02_derived.json — report02 RCS 결과편",
+   "outputs/md_range_sweep.json — BANDS 가 LTE 1.843 / 5G 3.5 / WiFi 5.21, 순수 PO 점구름",
+   "outputs/geometry_benchmark.json · geometry_grid.json · geometry_grid_axis_review.json · geometry_grid_fairness_audit.json",
+   "outputs/report13_freespace.json — σ 를 소비하는 자유공간 검출거리",
+   "outputs/detection_rx_sweep.json · detection_ghost.json · cpi_guard_sweep.json · bench_matrix.csv · bench_ghost.csv — 검출 벤치마크(σ 레벨 오차를 그대로 상속)",
+   "outputs/measurement_layers.json · measurement_plan.json · validation_feasibility.json — 실측계획의 링크버짓",
+   "outputs/validate_measured_airframe.json · validation_comparability.json · p3_validation.json · p3_validation_v2.json",
+   "outputs/engine_validation_verdict.json — 엔진 검증 판정문",
+   "outputs/capability_matrix.json · deck_facts.json · paper_kit.json · correction_sweep.json — 파생 주장 저장소",
+   "report02_target.ipynb · report03_illuminators.ipynb · report05_results.ipynb · report06_measurement.ipynb — σ 수치를 본문에 인쇄하는 리포트",
+   "decks/ — 위 수치를 인용한 발표 자료 일체"
+  ],
+  "affected_outputs_scoping_note": "위 목록은 '표본화 때문에 틀렸다' 가 아니다. 표본화발 정정은 ≤0.32 dB 로 작다. 목록의 근거는 이 라운드가 확립한 **PO 유효성 하한**이다 — 각 산출물이 특징/λ < 0.729 인 주파수에서 σ 를 쓰고 있는지가 판별 기준이고, 우리 세 생산 밴드는 전부 그 안에 있다.",
+  "what_must_not_be_said": [
+   "'저주파 σ 가 틀렸다' — 아니다. '저주파 σ 의 불확도가 선언된 것보다 훨씬 크고, 그 크기를 아직 못 정했다' 가 맞다.",
+   "'고대역(6~18.2 GHz)은 검증됐다' — 아니다. a_high 의 주파수-잔차 SE 가 0.079 이고, prop·motor·canopy·pcb 는 그 대역 전체에서 PO 무릎 아래다.",
+   "'격자를 조이면 σ 가 고쳐진다' — 아니다. 이 라운드의 가장 확실한 결과가 그 반대다."
+  ]
+ },
+
+ "what_survives_the_attack": [
+  "① 가설 A(표본화) 배제는 견고하다. 크기(≤0.32 dB @생산격자)뿐 아니라 **부호**로 죽였고(조일수록 가팔라짐), 양성대조(구 ka=20 에서 1.78 dB 이동)로 도구 둔감성을 배제했고, 독립 축(div 스윕)에서 복제됐고, jitter=1 재채점에도 불변이다.",
+  "② 커널 구현 검증은 성공했다. 격자를 조이면 해석 PO 로 |오차| ≤0.0023 dB 수렴하고(구 전 ka), 얇은 판도 0.015 dB 로 수렴한다. '우리 PO 면적분이 PO 를 제대로 계산한다' 는 이제 확립됐다.",
+  "③ 참값 앵커 두 개(정확 Mie, 2D EFIE MoM + 원기둥 고유함수 자체검사 0.00027 dB)는 실재하고 자기검사를 통과했다. 드론에 참값이 없다는 문제를 정면으로 우회한 좋은 설계다.",
+  "④ PTD 반박은 강하다 — 1 차 프린지는 정면입사에서 편파를 못 가르고(V−H = 8.3e-11 dB), TM 을 4.02→0.75 dB 로 고치는 대신 TE 를 7.53→10.81 dB 로 악화시킨다. 'PTD 를 켜면 저대역이 고쳐진다' 는 희망은 죽었다.",
+  "⑤ 스칼라 PO 의 원리적 한계는 확립됐다 — 참값이 0.15λ 에서 편파로 11.56 dB 갈라지는데 스칼라 면적분은 그 갈라짐을 낼 수 없다. 이것은 부호가 아니라 구조에 대한 주장이라 크기 귀속이 필요 없다.",
+  "⑥ 두 파일의 caveat 목록은 성실하다. 비단조성·테셀레이션 미검증·단일 스트립 한계·b=6λ 버그 폐기·CAD 개정 오염을 전부 자기 입으로 적었다. 공격 대상은 은폐가 아니라 **헤드라인의 과잉 요약**이다."
+ ],
+
+ "what_does_not_survive": [
+  "① 라벨 'B_PO_LIMIT'. 규칙은 구조적으로 A 만 기각할 수 있고 B 를 확립할 수 없다. 정직한 라벨은 A_EXCLUDED + B_SIGN_CONFIRMED_MAGNITUDE_UNATTRIBUTED + C_UNBOUNDED.",
+  "② '양성 증거: 가파른 구간이 blade/λ=0.2712 에서 끝난다'. 국소 3점 기울기의 std 가 0.793 dB/GHz 이고 무릎 이후에도 +1.86 · +1.28 이 나온다. 19 점에서 사후 선택한 낙차다.",
+  "③ '격자가 만드는 여지는 그 100 분의 1'. 생산격자 잣대로는 25 분의 1, λ/12 잣대로는 10 분의 1 이다.",
+  "④ 'lowfreq_anchor: 생산 규약(jitter=3)'. 생산은 jitter=2 다(rcs_sbr.py:954 가 명시). 그 규약에서 (커널−해석PO) 는 ≤0.2 dB 가 아니라 최대 0.52 dB 다.",
+  "⑤ '메쉬 중앙값 모서리 5.85 mm' 와 'd 는 그 1/8'. 계산값은 5.186 mm, 비율은 1/6.9 (하드코딩 잔재).",
+  "⑥ 기울기 오차막대로 쓰인 방위 부트스트랩. 주파수-잔차 OLS SE 가 2.2~2.6 배 크다. 특히 a_high = 0.202 ± 0.079 라 'Das 0.21 과 일치' 는 검증이 아니라 무판정이다.",
+  "⑦ 저대역 기울기를 **전대역** 앵커(Das 0.21)에 대는 것. 밴드평균 span 규약 위반이며 이 저장소의 상시 규칙이다. 밴드정합 앵커(Yuan θ=90, 1.8~6.0 GHz = +0.41)를 쓰면 초과가 1.4219 → 1.2219 dB/GHz, 필요 상승이 8.162 → 5.13 dB 다. lowfreq_grid.what_would_it_take.lowband 와 lowfreq_anchor.consistency_with_drone.drone_lowband_excess_over_das 둘 다 같은 오류를 쓴다.",
+  "⑧ 'CAD 개정 2.72 dB 는 우리 결론과 같은 방향' 이라는 읽기. 같은 사실이 '판정 대상인 기울기가 기하에 대해 불안정하다(2점 전대역 기울기 −23%)' 도 지지하며, 이쪽이 우리에게 불리하다.",
+  "⑨ anchor_subband_attack.q3 의 'div=48 도 미수렴, 외삽하면 −0.07 dB 더' — 새 절대사다리가 1.5 mm 에서 되돌아 올라감을 보여 반증했다."
+ ],
+
+ "must_fix": [
+  "[HIGH] 판정 필드를 셋으로 쪼갤 것: sampling_excluded=true(증거 강함) · po_limit_sign_confirmed=true · po_limit_magnitude_attributed=false · geometry_axis_bounded=false. 단일 라벨 'B_PO_LIMIT' 은 인용될 때 세 번째·네 번째 필드를 잃는다.",
+  "[HIGH] 메쉬 테셀레이션 사다리를 **드론 본체에서** 돌릴 것 — 현 메쉬 → 모서리 1/2 → 1/4 로 재테셀레이션해 같은 21 주파수 μ(f) 를 뽑고 Δa_low·Δa_high 를 격자사다리와 동일 형식으로 인쇄. 드론 p50 facet/λ 는 3.61 GHz 위에서 앵커 메쉬사다리의 가장 성긴 점을 넘어서므로, 현재 그 축은 대역의 80% 에서 무경계다.",
+  "[HIGH] CAD 개정 후 p3_ours 를 재생성하고 a_low·a_full 을 다시 뽑을 것. 2 점 전대역 기울기가 0.663 → 0.510 (−23%) 으로 움직인다는 자기 데이터가 있는 이상, 현 헤드라인 a=0.4198 은 이미 존재하지 않는 기체의 값이다.",
+  "[HIGH] '양성 증거(무릎)' 주장을 철회하거나, 국소 3점 기울기에 SE(≈0.38~0.86 dB/GHz)와 다중비교 보정을 붙여 재판정할 것. 지금 상태로는 무릎 이후 국소기울기 +1.86(7.54 GHz)이 반례로 같은 배열 안에 있다.",
+  "[HIGH] σ-가중 오차예산을 계산할 것 — 특징별 σ 지분 × 그 특징의 PO−참값(지배채널)을 1.8 GHz 와 6.0 GHz 에서 합산해 B 가 공급하는 dB/GHz 를 인쇄하고, 격차 대비 비율을 명시. 내 crude 추정은 25~56% 이고, 이 수가 100% 에 크게 못 미치면 B 단독 서사는 못 쓴다.",
+  "[MEDIUM] lowfreq_anchor 의 'jitter=3 = 생산 규약' 을 'jitter=3 = 검증 규약, 생산은 jitter=2' 로 정정하고, (커널−해석PO) 상한을 jitter=2 값(최대 0.52 dB)으로 다시 인쇄할 것(benchmark/lowfreq_anchor_merge.py:211).",
+  "[MEDIUM] 저대역 기울기 비교의 앵커를 밴드정합 값으로 교체할 것 — Das 0.21(전대역) 대신 Yuan θ=90 저대역 +0.41. what_would_it_take.lowband 의 8.162 dB → 5.13 dB, consistency_with_drone.drone_lowband_excess_over_das 1.4219 → 1.2219 로 정정하고 필드명에서 'das' 를 뺄 것.",
+  "[MEDIUM] 기울기 불확도를 주파수-잔차 OLS SE 로 교체하거나 병기할 것: a_low 1.632±0.182, a_high 0.202±0.079, a_full 0.427±0.068. 특히 'a_high 가 Das 0.21 과 일치' 를 '구별되지 않는다(CI [0.05,0.36])' 로 격하할 것.",
+  "[MEDIUM] penetrate 축을 caveat 에 추가할 것 — 생산은 penetrate=True 인데 참값 앵커는 전부 penetrate=False·|Γ|=1·볼록(자기가림 없음)이다. 내부 산란체 pcb(1.843 GHz 에서 0.018λ, 삼각형 12 개)·battery(삼각형 24 개)의 저 ka 거동은 **어떤 참값과도** 대조된 적이 없다.",
+  "[MEDIUM] '100 분의 1' 을 생산격자 잣대(25 분의 1)로 교체하고, abs_ladder 가 1.8 GHz 에서 이미 λ/27.8 부터 시작한다는 사실을 bottom_line 에 명시할 것. λ/12↔λ/16 사이의 1.178 dB 이동이 같은 rows 안에 있다.",
+  "[MEDIUM] 판정규칙 사전등록 산출물을 만들 것(build_das_fleet_prereg.py 형식). 현재 lowfreq_grid_analyze.py 의 최종수정(13:23)이 스윕 종료(12:58) 이후다.",
+  "[LOW] 사다리 비대칭을 명시할 것 — 0.375 mm 계단은 1.8·3.5 GHz 에서만 돌았다. 잔차 방향이 결론에 불리하지 않다는 것도 함께 적을 것.",
+  "[LOW] refit.mu_conv 가 21 주파수 전부 단일 d=0.75 mm 실행이고 수렴은 그 중 2 점(1.8·18.2)에서만 검증됐음을 명시할 것.",
+  "[LOW] 하드코딩 '5.85 mm' 를 계산된 p50(5.186 mm)로 교체(benchmark/lowfreq_grid_analyze.py:93,405).",
+  "[LOW] anchor_subband_attack.q3 의 div48 미수렴 외삽 주장에 철회 표시를 달 것 — 새 절대사다리가 반증한다."
+ ],
+
+ "residual_holes_i_could_not_close": [
+  "내 σ-가중 예산은 crude 하다. 판 근사·직사각 치수·재질 Γ 무시·자기가림 무시·2D→3D 환산 무시. 25~56% 라는 수는 '두 파일이 이 계산을 안 했다' 의 증거지 'B 가 불충분하다' 의 증명이 아니다.",
+  "테셀레이션 오차의 **부호**를 못 정했다. 곡면을 성긴 평면으로 자르면 정반사 플래시가 생겨 σ ∝ A²/λ² 로 f 와 함께 커질 개연성이 있고(고대역 부풀림 → 기울기 상승), 반대로 실루엣 면적 손실은 반대 방향이다. 드론에서 직접 재기 전에는 부호도 모른다.",
+  "Das a=0.21 이 전대역 값이라는 것은 lowfreq_grid._meta 의 인용문(Table III, bistatic 0°)에서 읽은 것이고 원문을 직접 확인하지 않았다. Yuan θ=90 저대역 +0.41 은 자매 파일 anchor_subband_attack 의 재계산을 인용했다.",
+  "편파 방향을 못 박지 못했다. 스칼라 PO 가 TM/TE 중 어느 쪽에 가까운지, 방위평균에서 두 채널이 어떻게 섞이는지 모르면 '우리 σ 가 낮다/높다' 의 부호를 확정할 수 없다.",
+  "생산 경로(penetrate=True + 재질 Γ + 자기가림 + 다중반사 off)에 대한 참값 대조가 이 저장소에 존재하지 않는다. 이 라운드가 검증한 것은 그 경로의 부분집합이다."
+ ],
+
+ "provenance": {
+  "numbers_i_recomputed": {
+   "OLS_slope_SE_frequency_residuals": "lowfreq_grid.refit.freqs_ghz + mu_conv_dbsm / mu_lam16_dbsm 로 numpy polyfit, SE=RMSE/sqrt(Sxx)",
+   "local_slope_noise": "lowfreq_grid.po_validity_diagnostic.local_slope_3pt 의 f>6 GHz 부분 std, 및 Δf=0.82 GHz 3점 회귀 SE",
+   "mesh_facet_over_lambda": "lowfreq_grid.feature_scales.mesh_edge_mm ÷ (c/f)",
+   "feature_knee_frequencies": "0.7289 × c / w, w 는 feature_scales.group_min_bbox_mm 와 arm_width",
+   "sigma_weighted_PO_error_budget": "판 근사 두 가중(정면 4πA²/λ², 방위평균 2A²/(λw)) × lowfreq_anchor.thin_plate.truth_2d_mom_fine_width_grid.po_minus_tm_db 보간",
+   "cad_revision_slope_impact": "lowfreq_grid.geometry_revised_after_run.points 두 점의 2점 기울기",
+   "jitter2_residual": "lowfreq_anchor.sphere.adversarial_jitter_control.rows 에서 jitter==2 · grid=='lam/12' 행 추출"
+  },
+  "code_facts_verified_by_reading_source": [
+   "benchmark/lowfreq_grid_worker.py:11 — 드론 스윕 jitter=2",
+   "benchmark/lowfreq_anchor.py:60 — 앵커 JITTER=3, 그리고 :144/:260/:287 전부 penetrate=False",
+   "src/experiment_freespace_sigma.py:120 · benchmark/das_fleet_sigma.py:225 — 생산 σ 는 jitter=2 · penetrate=True · div=16",
+   "src/rcs_sbr.py:954 — '드론 생산 호출은 jitter=2(기본)이고 여기선 3' 이라고 소스가 직접 적어 둔다",
+   "benchmark/lowfreq_grid_analyze.py:93,405 — '5.85 mm' 하드코딩, :89 에서 p50 은 별도 계산",
+   "파일 mtime: lowfreq_grid_analyze.py 13:23:19 > 스윕 종료 12:58 > 산출 13:27:43"
+  ]
+ }
+}

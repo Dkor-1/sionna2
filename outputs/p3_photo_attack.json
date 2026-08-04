@@ -1,0 +1,227 @@
+{
+ "_meta": {
+  "generated": "2026-08-03 12:05",
+  "what": "적대검증 — outputs/p3_photo_match.json 의 phantom3 실루엣 대조를 공격한다. 다섯 축: 변종 동일성 · 배경분리가 IoU 를 만들었는가 · free_iou_gain · 프로펠러 위상 자유도 · σ 결과와의 방향 일치.",
+  "attacked": [
+   "outputs/p3_photo_match.json",
+   "src/viz_mesh_photo.py",
+   "outputs/p3_specs.json",
+   "outputs/p3_validation.json",
+   "outputs/p3_attack.json",
+   "assets/photos/phantom3/SOURCES.md"
+  ],
+  "repo_untouched": "저장소 소스·원장은 **읽기만** 했다. 새 계산은 전부 스크래치패드 스크립트에서 viz_mesh_photo 의 함수를 그대로 import 해 돌렸다. outputs/mesh_compare_photo.json · p3_photo_match.json 은 수정하지 않았다.",
+  "reproduction_baseline": "1단계로 네 장 모두 마스크 화소수(18485 / 100111 / 64095 / 65962)와 IoU 를 **소수 넷째자리까지 동일하게** 재현했다(Δ=+0.0000). 즉 아래 공격은 원장과 같은 파이프라인·같은 점밀도(120만) 위에서 돈다.",
+  "new_computation": [
+   "임계값 스윕: 알파 마스크 7단계(0.02~0.98) · 배경색거리 8단계(0.02~0.20), 각 단계마다 (a) 기록된 정합 그대로의 IoU (b) 자세 고정·배율/이동만 재정렬한 IoU",
+   "프레임 전용: 메쉬에서 프롭을 지운 판, 그리고 **로터 원판(위상 무관)** 을 두 실루엣에서 함께 도려낸 판",
+   "위상 자유도: 기록 자세에서 공통위상 스윕(10° 간격)과 로터별 무작위 위상 24회 추첨",
+   "보정 기하: prop_placement_defect 의 one_line_fix 를 그대로 적용한 점구름 재현(문서 IoU 0.8223 을 0.8223 으로 재현) 후 같은 위상 공격",
+   "변종 검사: 사진↔사진 2D 상사정합(배율·회전·평행이동)으로 Pro 렌더와 SE 렌더를 직접 견주고, 동일형상 대조군(같은 메쉬의 시선각 8.93° 간격·다른 프롭 위상·다른 원근)을 옆에 세웠다"
+  ]
+ },
+
+ "verdict": {
+  "variant_ok": true,
+  "shape_or_physics": "PHYSICS",
+  "one_line": "실루엣은 σ 오차를 설명할 만큼 틀리지 않았다 — 외형 윤곽 오차는 σ 로 환산해 ≲1 dB 인데 σ 결손은 −3~−4.9 dB(1.8 GHz 에서 −8.0 dB)이고, 게다가 주파수에 따라 줄어든다. 형상 오차는 dB 오프셋이 주파수에 평평하다. 남는 것은 물리(저 ka PO)와 재질이다.",
+  "but": "'형상이 아니다' 는 **외형 윤곽**에 대해서만 참이다. 실루엣 IoU 는 내부 산란체(배터리·PCB·마그네슘판)·|Γ|·셸 투과 규약을 하나도 못 본다. p3_attack 이 센 205개 자유도 중 tier B(160개)는 이 시험 밖에 있다."
+ },
+
+ "q1_variant": {
+  "question": "사진이 정말 그 변종인가. Standard/4K/Advanced/Professional/SE 가 실루엣에서 구별되는가.",
+  "answer": "구별되지 않는다 — 그리고 그것을 문헌이 아니라 **사진끼리 재서** 확인했다.",
+  "photo_families": {
+   "phantom3_d01_official_iso34.jpg": "Professional 제품 페이지. 배지 'PHANTOM PROFESSIONAL' 육안 확인.",
+   "phantom3_d02_official_front.png": "Professional 제품 페이지 배너(헤드라인 장).",
+   "phantom3_d03_official_top.png": "SE 제품 페이지(공식 톱뷰는 이것뿐).",
+   "phantom3_d06_official_se_iso34.png": "SE 배너. 배지 'PHANTOM SE' 육안 확인."
+  },
+  "by_eye_on_the_actual_files": {
+   "same": [
+    "2아치 랜딩기어(아치당 검은 발패드 2개) — Pro·SE 동일",
+    "댐퍼볼 4개 판에 매달린 3축 짐벌, 은색 카메라 블록, 렌즈 각인 'F/2.8 94° FOV' — 양쪽 동일",
+    "금색 암 스트라이프, 모터벨 형상, 2엽 9450 프롭, 셸 벤트 위치"
+   ],
+   "different": [
+    "동체 배지 글자(PROFESSIONAL vs SE) — 인쇄이지 형상이 아니다",
+    "카메라 바디 디테일(Pro 는 '4K' 각인) — 우리 메쉬 해상도 아래"
+   ]
+  },
+  "documentary_evidence_checked": {
+   "source": "outputs/p3_specs.json :: variant.variant_differences",
+   "shared": "셸 부품번호 1개가 Pro/Adv/SE/Standard 공용, 공표 외형 289.5×289×185 mm, 모터대각 350 mm, 9450(240 mm) 프롭, 3축 짐벌 — 전 변종 공통. Standard 와 Professional 의 QSG 치수도면이 동일 도면이다.",
+   "only_structural_difference": "질량(1216~1280 g, 최악 5.0%)과 벨리 비전포지셔닝 유무(Standard 만 없음). 둘 다 실루엣에 안 나온다."
+  },
+  "quantitative_test_run_here": {
+   "method": "세 장을 **같은 분리 경로**(배경색거리 thr 0.055, SE 배너는 흰 배경에 합성)로 마스크화한 뒤, 2D 상사변환(배율·회전·평행이동)으로 서로 정합해 IoU 를 냈다. 카메라 자세는 못 고치므로 동일형상 대조군을 함께 잰다.",
+   "pro_d01_vs_pro_d04_same_variant_near_same_aspect": 0.7831,
+   "pro_d01_vs_se_d06_cross_variant_aspect_gap_8.93deg": 0.7566,
+   "pro_d04_vs_se_d06": 0.6959,
+   "control_same_mesh_same_aspect_different_perspective_q": 0.9474,
+   "control_same_mesh_aspect_gap_8.93deg": 0.7794,
+   "control_same_mesh_other_prop_phase": 0.8165,
+   "reading": "동일형상이라도 시선각이 8.93° 벌어지면 이 지표는 0.779 로 떨어진다. 교차변종(Pro↔SE) 은 0.757 로 그 대조군과 같은 자리이고, **동일변종 쌍(0.783)과의 차이는 0.026** 이다 — 프롭 위상 하나만 달라도 0.18 이 움직이는 지표에서 0.026 은 신호가 아니다.",
+   "conclusion": "SE 페이지 자산을 Professional 실루엣 대조에 쓴 것은 정당하다. 톱뷰가 SE 것이라는 사실은 결과를 오염시키지 않는다."
+  },
+  "residual_risk": [
+   "⚠ 변종이 실제로 다른 유일한 외형부(카메라 블록)가 하필 우리 메쉬의 최대 불일치 덩어리다. 다만 그 덩어리는 **어느 변종과도 안 맞는다**(q4_shape_defects 참조) — 변종 혼동이 아니라 메쉬 디테일 결손이다.",
+   "⚠ 네 장 전부 DJI **마케팅 렌더**다(3장은 알파 채널 CG). 실물 기체 사진이 아니다. 원장이 'photograph' 라고 적는 것은 과장이다 — 앵커는 DJI 의 CAD 를 렌더로 거른 것이다.",
+   "⚠ FCC 인증 실물 사진은 짐벌·프롭이 없어 뺐다고 SOURCES.md 에 적혀 있다. 즉 이 대조에 **실물 촬영 이미지는 0장**이다."
+  ]
+ },
+
+ "q2_segmentation": {
+  "question": "배경 분리 임계값이 IoU 를 만들었는가.",
+  "answer": "헤드라인 장(_d02, 알파)은 아니다(±0.007). 그러나 _d01(JPEG 흰-위-흰)은 **IoU 가 곧 임계값 판독**이다(스윕 폭 0.312).",
+  "method": "seg_sensitivity 는 알파 사진에서 None 을 돌려주고 끝난다 — 알파 컷(0.5)도 임계값인데 시험된 적이 없다. 여기서는 알파 컷도 함께 훑었다. 각 임계값마다 (a) 기록된 정합 그대로 (b) 자세 고정·배율/이동만 재정렬 두 가지로 쟀다.",
+  "per_view": {
+   "phantom3_d02_official_front.png": {
+    "kind": "alpha",
+    "sane_band_thresholds": [0.25, 0.98],
+    "iou_over_sane_band": [0.7001, 0.7135],
+    "iou_spread_sane_band": 0.0134,
+    "iou_full_sweep": [0.6142, 0.7135],
+    "iou_spread_full_sweep": 0.0993,
+    "area_swing_full_sweep_pct": 40.3,
+    "note": "기본값 0.5 는 **최댓값이 아니다** — 0.25 에서 0.7135 로 더 높다. 즉 헤드라인은 임계값을 유리하게 고른 결과가 아니다. 0.02 에서만 0.614 로 떨어지는데, 그 임계값은 렌더의 반투명 그림자까지 삼켜 면적이 +33% 커진다."
+   },
+   "phantom3_d03_official_top.png": {
+    "kind": "alpha", "iou_full_sweep": [0.5700, 0.6020], "iou_spread_full_sweep": 0.0320
+   },
+   "phantom3_d06_official_se_iso34.png": {
+    "kind": "alpha", "iou_full_sweep": [0.6137, 0.6832], "iou_spread_full_sweep": 0.0695,
+    "note": "여기서도 0.25 (0.6832) 가 기본 0.5 (0.6787) 보다 높다."
+   },
+   "phantom3_d01_official_iso34.jpg": {
+    "kind": "background colour distance",
+    "published_threshold": 0.055,
+    "iou_at_published": 0.5445,
+    "sweep": {"0.02": 0.5766, "0.03": 0.5706, "0.04": 0.5589, "0.055": 0.5445,
+              "0.07": 0.5292, "0.09": 0.5017, "0.14": 0.3924, "0.20": 0.2644},
+    "iou_spread": 0.3121,
+    "area_swing_pct": 83.3,
+    "reading": "⚠ 이 장의 IoU 는 형상이 아니라 임계값을 잰다. 원장이 fragile=true 로 표시는 하지만, 그 값이 headline.iou_median_over_views(0.627)·iou_range_over_views 에 **그대로 들어가 있다**."
+   }
+  },
+  "realignment_check": "임계값마다 배율·이동을 다시 조여도 결론이 안 바뀐다(스윕 폭 0.098 / 0.043 / 0.294 / 0.060). 즉 위 흔들림은 정합 실패가 아니라 마스크 자체의 흔들림이다.",
+  "verdict": "헤드라인(0.707)은 배경분리가 만든 값이 아니다. 다만 4장 통계와 _d01 관련 서술은 임계값 밴드를 달고 다녀야 한다."
+ },
+
+ "q3_free_iou_gain": {
+  "question": "free_iou_gain 이 큰가.",
+  "headline": 0.0,
+  "median_over_views": 0.0,
+  "range_over_views": [-0.0006170541590417, 0.0574791115524252],
+  "largest_gain_view": "phantom3_d01_official_iso34.jpg (+0.0575)",
+  "answer": "작다. 즉 '맞는 각도보다 틀린 각도에 더 잘 맞는' 증거는 없다.",
+  "but_the_instrument_is_blunt": {
+   "logic": "자유 갈래는 선언 갈래의 **상위집합**이므로 free_iou_gain 은 구조적으로 ≥0 이어야 한다. 음수가 나오면 그것은 형상 정보가 아니라 탐색이 전역최적에 못 갔다는 증거다.",
+   "observed_negatives": {"phantom3_d03": -0.0006, "typhoonh480_in_same_ledger": -0.0881},
+   "consequence": "이 지표의 분해능 바닥은 같은 원장 안에서 관측된 **0.088** 이다. phantom3 의 최대 이득 +0.057 은 그 바닥보다 작다 → 'gain=0' 은 강한 무죄증명이 아니라 **분해 불가**다."
+  },
+  "second_defect": "헤드라인 장에서 자유 갈래는 선언 갈래와 **완전히 같은 해**로 수렴했다(az 0.0 / el 14.0 / roll 0 / q 0.0975 / 위상 [31, 51.5, 40, 48] / 배율·이동까지 동일). 두 갈래가 독립 표본이 아니므로 그 장의 gain=0.0 은 '독립 탐색이 선언 자세를 확인했다' 가 아니라 '같은 곳에 앉았다' 는 뜻이다.",
+  "third": "가장 큰 이득(+0.0575)이 하필 임계값 취약 장(_d01)에서 났고, 그 장은 정합이 선언에서 20.4°(창 26°) 떨어져 앉았다 — 형상 신호가 아니라 마스크 신호일 가능성이 높다."
+ },
+
+ "q4_prop_phase_and_frame_only": {
+  "question": "로터마다 자유인 프로펠러 위상이 IoU 를 부풀렸는가. 프롭을 빼고 프레임만으로도 재라.",
+  "answer": "위상은 실제로 큰 레버다(헤드라인 +0.072, 보정기하 톱뷰 +0.281). 그러나 **프롭을 양쪽에서 완전히 지워도** 헤드라인 장 0.716 · 톱뷰 0.828 이 나온다 → 형상 일치는 프로펠러가 만든 것이 아니다.",
+  "phase_lever_current_geometry": {
+   "definition": "기록 자세 그대로 두고, 위상만 (a) 로터 공통값 0~170° 10° 간격 (b) 로터별 무작위 24회 추첨. 이득 = 적합위상 IoU − 무작위 중앙값.",
+   "phantom3_d02_official_front.png": {"fitted": 0.7072, "common_sweep": [0.5945, 0.6953], "random_median": 0.6356, "gain": 0.0717},
+   "phantom3_d03_official_top.png": {"fitted": 0.5755, "common_sweep": [0.4417, 0.5568], "random_median": 0.4899, "gain": 0.0856},
+   "phantom3_d01_official_iso34.jpg": {"fitted": 0.5445, "common_sweep": [0.4126, 0.5324], "random_median": 0.4863, "gain": 0.0582},
+   "phantom3_d06_official_se_iso34.png": {"fitted": 0.6787, "common_sweep": [0.5944, 0.6754], "random_median": 0.6154, "gain": 0.0633}
+  },
+  "phase_lever_corrected_geometry_top_view": {
+   "why": "현재 코드에서 '위상' 은 블레이드 방위가 아니라 **프롭 배치**다(prop_placement_defect). 그래서 one_line_fix 를 적용한 점구름으로 다시 쟀다.",
+   "reproduction_of_the_documented_fix": {"documented_iou": 0.8223351122058019, "reproduced": 0.8223351122058019, "delta": 0.0},
+   "fitted_phases_iou": 0.8232,
+   "random_per_rotor_median": 0.5425,
+   "gain": 0.2807,
+   "reading": "톱뷰에서는 IoU 의 3분의 1 이상이 **블레이드 방위 4개**가 사 온 것이다. 톱뷰 IoU 를 형상 점수처럼 읽으면 안 된다."
+  },
+  "frame_only": {
+   "definition_A": "메쉬에서 프롭 점을 지우고 사진은 그대로(사진의 프롭이 전부 photo-only 로 잡히므로 하한이다)",
+   "definition_B": "⭐ 공정판 — 로터 원판(반경 120 mm, 위상과 무관)을 **두 실루엣에서 함께** 도려내고 잰다",
+   "phantom3_d02_official_front.png": {"full": 0.7072, "A_props_deleted": 0.6720, "A_realigned": 0.6767, "B_prop_zone_excluded": 0.7164, "zone_frac_of_union": 0.456},
+   "phantom3_d03_official_top.png": {"full": 0.5755, "A_props_deleted": 0.5676, "A_realigned": 0.5745, "B_prop_zone_excluded": 0.8281, "zone_frac_of_union": 0.736},
+   "phantom3_d01_official_iso34.jpg": {"full": 0.5445, "A_props_deleted": 0.5266, "A_realigned": 0.5295, "B_prop_zone_excluded": 0.5540, "zone_frac_of_union": 0.798},
+   "phantom3_d06_official_se_iso34.png": {"full": 0.6787, "A_props_deleted": 0.6657, "A_realigned": 0.6673, "B_prop_zone_excluded": 0.5967, "zone_frac_of_union": 0.450},
+   "readings": [
+    "프롭을 지워도 헤드라인은 0.707 → 0.672 밖에 안 내려간다. 프롭이 점수를 떠받치고 있지 않다.",
+    "⭐ 톱뷰에서 프롭 구역을 양쪽에서 도려내면 0.828 — 보정 기하로 다시 적합한 0.822 와 **다른 경로로 같은 값**이다. 프롭 배치 결함을 우회한 두 독립 측정이 일치한다.",
+    "⚠ _d06 은 도려내면 오히려 내려간다(0.679 → 0.597). 남은 영역이 짐벌·다리라서다 — 그 두 부품이 이 메쉬의 실제 약점이다."
+   ]
+  }
+ },
+
+ "q5_shape_or_physics": {
+  "question": "실루엣 결과가 σ 결과와 같은 방향인가. 형상이 문제인가, 물리인가.",
+  "answer": "PHYSICS.",
+  "silhouette_side": {
+   "iou_headline": 0.7072,
+   "pct_of_ceiling": 77.9,
+   "rank_among_8": 3,
+   "outline_error_mm": {"d02_front": 8.9, "d06_se_iso": 7.1, "d03_top_after_prop_fix": 3.3},
+   "outline_error_pct_of_true_tip_to_tip": {"d02_front": 1.83, "d06_se_iso": 1.47, "d03_top_after_prop_fix": 0.67,
+    "note": "원장은 프레임 폭 283.9 mm 로 나눠 3.14 % 라고 적지만, 실제 최대 치수는 팁-투-팁 485.8 mm 다(1.71배 과장)."},
+   "area_agreement": {"fill_ratio_front": 0.950, "fill_ratio_top": 0.936, "radial_reach_median_front": 0.952},
+   "absolute_size_not_fitted": {
+    "mesh_frame_bbox_mm": [283.89, 283.89, 185.0],
+    "published_envelope_mm": [289.5, 289.0, 185.0],
+    "error_pct": [-1.9, -1.8, 0.0],
+    "note": "IoU 는 배율을 맞추므로 크기를 못 본다. 그래서 따로 쟀다 — 크기도 맞다."
+   }
+  },
+  "sigma_side": {
+   "as_quoted_in_the_task": {"level_db": -2.60, "slope_ratio": 2.00,
+    "⚠": "이 조합은 p3_validation 이 **쓰지 말라고 적어 둔 가지**다. −2.60 은 f=0 절편차(밴드 밖 외삽)이고, 2.00 배는 고도풀링인 Das 를 상대로 한 값이다."},
+   "elevation_matched_pair": {"level_db": -4.60, "slope_ratio": 1.33, "slope_significant_at_95pct": false,
+    "comparand": "Yuan θ=90° 실측곡선 ↔ 우리 el=0"},
+   "das_convention_branches_level_db": {"as_published": -0.51, "exponential": -3.01, "lognormal": -3.94},
+   "in_our_own_band_1p8_to_6GHz": {"level_deficit_at_1.8GHz_db": -8.0, "level_deficit_at_5.9GHz_db": -3.4,
+    "slope_ratio": 3.8}
+  },
+  "the_decisive_argument": {
+   "step1_how_much_dB_can_the_shape_error_buy": "σ 는 매끈한 곡면이면 L², 판이면 L⁴ 로 간다. 실측된 면적비 0.95(선형 −2.5%)를 최악(L⁴)으로 환산해도 10log10(0.975⁴)=−0.44 dB, 절대치수 오차 −1.9% 를 더해도 ≲1 dB 다.",
+   "step2_the_sigma_gap_is_3_to_8_dB": "레벨 결손은 밴드중심 −3.0~−4.9 dB, 우리가 쓰는 1.8 GHz 에서 −8.0 dB. 형상으로는 못 만든다.",
+   "step3_frequency_signature": "⭐ 고정된 형상·크기 오차는 dB 오프셋이 **주파수에 평평하다**. 관측된 결손은 1.8 GHz −8.0 → 5.9 GHz −3.4 dB 로 줄어든다. 주파수 의존 기구만이 이런 모양을 만든다.",
+   "step4_named_mechanism": "p3_validation 의 ka 표가 그 기구를 이름 붙여 준다 — 모터벨 ka 0.64~0.93, 다리튜브 ka 0.30~0.44 (전 대역 ka<1), 셸 반높이 ka 1.21 @1.8 GHz. 구 PO vs Mie 는 ka=1 에서 −6.58 dB 다.",
+   "conclusion": "실루엣은 맞고 σ 는 틀리다 → 원인은 **저 ka PO(그리고 실루엣이 못 보는 재질·투과 규약)** 다. 메쉬 외형을 더 깎아서 σ 를 맞추려는 시도는 방향이 틀렸다."
+  },
+  "scope_limit": "⚠ 실루엣은 외곽선만 본다. 내부 산란체 3상자·|Γ| 5값·셸 투과 τ=1−|Γ|² 규약은 이 시험에 전혀 안 들어온다. 'SHAPE 아님' 은 **외형 윤곽**에 한정된 판정이다.",
+  "shape_defects_that_do_remain": {
+   "gimbal_camera_block": {
+    "mesh_group_camera_bbox_mm": {"fore_aft": 117.5, "width": 99.2, "height": 53.5,
+                                  "bottom_above_feet": 76.1},
+    "manufacturer_drawing_p3_specs": {"camera_block_width": 66.1, "camera_block_height": 33.8,
+                                      "damper_plate_width": 99.9, "camera_bottom_above_feet": 26.0},
+    "verdict": "짐벌이 50 mm 너무 높이 매달려 있고 앞뒤로 과하게 길다. 4장 중 3장에서 최대 불일치 덩어리가 'camera' 인 이유다. 지상반사 기하(카메라가 최저점인지 발이 최저점인지)까지 바꾸는 값이다."
+   },
+   "landing_gear": "아치 트랙은 175.6 mm 로 도면 실측 173.8 mm 와 1% 안이다 — 다리 폭은 문제가 아니다. _d06 에서 gear 덩어리가 뜨는 것은 아치 단면·경사 쪽이다.",
+   "shell": "셸 크라운-벨리 61.8 mm vs 도면 63.9 mm(−3%), 벨리-발 123.2 vs 120.5 mm(+2%). 문제 없음.",
+   "height_convention": "⚠ 메쉬는 크라운→발 = 185.0 mm 로 강제됐는데, p3_specs 는 DJI 의 185 mm 가 **모터 상단→발** 이라고 확정했다. 메쉬의 모터 상단→발은 175.2 mm 다(−5.3%)."
+  }
+ },
+
+ "must_fix": [
+  "⭐ src/viz_mesh_photo.py mesh_parts() 프롭 배치 결함이 **아직 저장소에 그대로 있다**. 이번 라운드에서 one_line_fix(P = Pp + rot['center'])를 재현해 문서값 0.8223 을 정확히 재현했다 — 고칠 근거는 충분하다. 안 고치면 8기체 원장 전체가 계속 이 값으로 남는다.",
+  "⭐ span 이 프레임 폭(283.9 mm)이라 contour_mean_pct_span 이 1.71배 과장된다(팁-투-팁 485.8 mm). 리포트에 % 로 인용하지 말 것.",
+  "⭐ σ 헤드라인을 '레벨 −2.60 dB · 기울기 2.00배' 로 들고 다니지 말 것. p3_validation 은 절편차를 쓰지 말라고 명시했고, 고도정합 대조는 −4.60 dB · 1.33배(95%에서 유의하지 않음)다. 이 쌍을 그대로 인용하면 σ 오차를 과소·과대 양쪽으로 잘못 전한다.",
+  "_d01 (IoU 0.544) 은 임계값 판독이다(0.264~0.577). headline.iou_median_over_views·iou_range_over_views 에서 빼거나 밴드를 붙여 적을 것.",
+  "free_iou_gain 은 노이즈 바닥(같은 원장에서 −0.088 관측)과 함께 보고할 것. '0.000' 은 검증이 아니라 분해 불가다. 덧붙여 헤드라인 장은 자유 갈래가 선언 갈래와 동일 해로 수렴했으므로 독립 확인이 아니다.",
+  "헤드라인 옆에 항상 **프롭 제외 IoU** 를 함께 적을 것 — 위상 4개가 사 오는 양이 헤드라인 +0.072, 보정 톱뷰 +0.281 이다.",
+  "짐벌/카메라 블록을 도면 실측치로 다시 지을 것(폭 66.1 · 높이 33.8 · 발 위 26 mm). 현재는 발 위 76 mm 에 매달린 118×99×54 mm 상자다.",
+  "원장 문구의 'photograph' 를 'manufacturer render' 로 바꿀 것. 4장 전부 DJI 마케팅 렌더이고 3장은 알파 채널 CG 다 — 실물 촬영본은 0장이다.",
+  "seg_sensitivity() 가 알파 사진에서 None 을 돌려주고 끝나므로 알파 컷 0.5 는 한 번도 시험된 적이 없다. 알파 임계값 스윕을 넣을 것(헤드라인 장 기준 0.25 에서 0.7135 로 더 높다)."
+ ],
+
+ "what_survived_the_attack": [
+  "헤드라인 IoU 0.707 은 재현된다(Δ=0.0000), 임계값에 ±0.007 밖에 안 흔들리고, 프롭을 지워도 0.716(구역 제외)/0.672(단순 삭제)로 유지된다.",
+  "SE 페이지 자산 사용은 정당하다 — 교차변종 실루엣 차이(0.026)가 동일형상 대조군의 산포 안에 있다.",
+  "prop_placement_defect 절의 보정 수치(톱뷰 0.8223)는 독립 재현됐고, 프롭 구역을 도려낸 완전히 다른 경로(0.828)와도 일치한다.",
+  "메쉬 절대 치수는 공표 외형과 ≤1.9% 다 — 실루엣이 못 보는 축이지만 따로 확인됐다."
+ ]
+}

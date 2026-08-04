@@ -1,0 +1,264 @@
+{
+  "_meta": {
+    "generated": "2026-08-03",
+    "what": "das_fleet 라운드 적대검증 — 기본가정 '맞추려 손댔거나 대조가 무효다' 로 시작해 7개 질문을 원문·git·재계산으로 검증",
+    "read_only": [
+      "outputs/das_fleet_spec.json",
+      "outputs/das_fleet_prereg.json",
+      "outputs/das_fleet_ours.json",
+      "outputs/mini2_mesh_audit.json",
+      "outputs/m350rtk_mesh_audit.json",
+      "outputs/rcs_anchor.json",
+      "docs/RETRACTION_LOG.md",
+      "src/sigma_anchor.py",
+      "src/drones.py",
+      "src/drone_cad.py",
+      "src/rcs_sbr.py",
+      "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf"
+    ],
+    "wrote_only": "outputs/das_fleet_attack.json",
+    "independence": "θb 정의와 Table I·III 은 검증자가 PDF 를 직접 열어 재판독했다(spec 을 믿지 않았다). 메쉬 불변성은 HEAD worktree 를 만들어 재빌드·해시로 확인했다.",
+    "method_error_caught_in_self": "1차 메쉬 대조는 무효였다 — build_frame_cad 가 Assembly 를 돌려주는데 .vertices 를 읽어 전 기체가 같은 예외 문자열을 냈고 그것들이 '동일' 로 비교됐다. build_drone(.v/.f) 로 다시 했다. 아래 결론은 재실행본이다."
+  },
+
+  "Q1_theta_b": {
+    "verdict": "MATCHES — 28쌍은 이 이유로는 무효가 아니다",
+    "das_literal_confirmed_by_me": "§II-1 축자(PDF 텍스트레이어에서 직접 추출): \"Both monostatic and bistatic configurations are evaluated. The TX is fixed, whereas the RX is moved over bistatic angles θb = 0°:15°:90°.\" — spec 의 literal_text 인용은 정확하다(조작 없음).",
+    "but_the_sentence_alone_does_not_define_the_vertex": "이 문장은 θb 를 '낀각' 이라고 명시하지 않는다. 꼭짓점 판정은 Fig.1 에 의존한다 — spec 도 그렇게 적었다.",
+    "fig1_verified_by_me": {
+      "how": "PyMuPDF 로 p.3732 좌단 Fig.1 영역을 600 dpi 로 렌더해 육안 판독",
+      "what_i_saw": [
+        "θb 호가 **표적(드론/회전대)을 꼭짓점**으로, 표적→TX 선과 표적→RX 선 사이에 그려져 있다",
+        "TX 는 'TX (fixed)' 로 고정 표시(빨강 삼각)",
+        "RX(초록)는 표적 중심 반경 **2.6 m** 원호를 따라 이동하고 호 끝단이 'RX (θb = 90°)' 로 라벨돼 있다",
+        "드론 위에 **빨간 회전화살표** = 회전대 방위각 φ",
+        "평면도이고 RX 호가 같은 평면 안에 있다 → el ≈ 0"
+      ],
+      "conclusion": "θb = TX–표적–RX **낀각**(고전적 bistatic angle β)이 확정된다. 반각도 이등분선 기준도 아니다."
+    },
+    "our_implementation": "각 θb 에서 el=0, 입사 az=φ, 산란 az=φ+θb (표적 좌표계). û_i=표적→TX, û_s=표적→RX.",
+    "why_that_is_the_right_model": "실측은 TX 가 **방 좌표계**에 고정되고 표적이 φ 로 돈다. 표적 좌표계로 옮기면 입사=φ+c, 산란=φ+c+θb 다. 우리는 c=0 으로 뒀는데 mini2·m350rtk·phantom2 는 φ 를 **전주기** 평균하므로 c 가 상쇄된다 — 무해하다.",
+    "numerical_verification_in_artifact": {
+      "V2_included_angle": "arccos(û_i·û_s) − θb 최대오차 1.78e-14 도 → 낀각으로 구현됐다(반각·이등분선 아님)",
+      "V1_theta_b0_is_monostatic": "θb=0 열이 모노 전용 경로 rcs_sbr_batch 와 절대최대 9.24e-14 dB 로 같다 → 함대 모노 대조가 기존 앵커(p3_ours)와 같은 커널",
+      "V3_bisector_counterfactual": "금지된 '이등분선 고정' 을 일부러 같이 돌려 차이를 쟀다. φ 전주기 평균 μ 는 짝수 θb 에서 완전 동일, 홀수 θb 에서 0.38~0.70 dB(격자 정렬 효과). 자세별 σ 는 rms 8.8~15.8 dB 로 완전히 다른 물건.",
+      "V4_exit_vis_noop_at_0": "θb=0 에서 0.000 dB"
+    },
+    "residual_caveat_declared_by_spec_and_upheld": "이 정의는 Fig.1 = **Phantom 2 오울루 설비**에서 확립된 것이다. 나머지 3 기체(출처 [7], Wei Fan/Southeast Univ.)의 θb 열이 같은 정의인지 Das 는 진술하지 않는다. 다만 그 3 기체의 θb 의존이 해석 taper 로 밝혀졌으므로(Q2 참조) 실질 영향은 없다.",
+    "sign_convention_gap": "RX 이동방향(시계/반시계)은 원문 미기술. 전주기 평균 3 기체는 무해. phantom3 만 반주기라 유해한데, phantom3 는 이 라운드에서 모노만 쓴다."
+  },
+
+  "Q2_table3": {
+    "verdict": "VERIFIED — 판독은 정확하다",
+    "how_i_checked": "spec 을 믿지 않고 PDF p.3734 의 Table III 를 500·900 dpi 로 직접 렌더해 28 셀 × 4 계수 = 112 값을 눈으로 다시 읽었다. Table I(p.3732)도 같은 방식으로 재판독했다.",
+    "result_vs_spec": "112/112 일치",
+    "result_vs_sigma_anchor": "src/sigma_anchor.py : DAS['table3'] 112/112 일치. 혼동 후보(−0.13 음부호 · 0.50 vs 0.56 · 25.85 vs 25.35)가 전부 분리된다.",
+    "sigma_anchor_not_touched_this_round": "git diff src/sigma_anchor.py = **주석 5줄 추가뿐**(A2·A11 대역 범위 경고). DAS 상수는 한 자도 안 바뀌었다 — 즉 표를 우리 결과에 맞춰 고친 흔적이 없다.",
+    "table1_also_verified_by_me": {
+      "mini2": "15.9 cm × 20.3 cm · 21–27 GHz · 501 pts · 0:0.5:360 · Far-field · Anechoic",
+      "m350rtk": "81 cm × 67 cm · 21–27 GHz · 501 pts · 0:0.5:360 · Far-field · Anechoic",
+      "phantom2": "35 cm × 20 cm · 11–26 GHz · 2001 pts · 0:1:360 · Near-field 2.6 m · Controlled non-anechoic indoor",
+      "phantom3": "35 cm × 20 cm · 1.8–18.2 GHz · 2801 pts · −90:2:90 · Far-field · Anechoic"
+    },
+    "synthetic_taper_finding_independently_reproduced": {
+      "claim": "phantom3·mini2·m350rtk 의 θb=15~90 은 측정이 아니라 θb=0 적합에 씌운 해석 taper 다",
+      "my_check": "세 기체 모두 a 와 ε 가 7 열에서 **완전히 동일**하고 b 만 움직인다. Δb 수열이 세 기체에서 [0, −0.04, −0.14, −0.29/−0.30, −0.45/−0.46, −0.58, −0.62/−0.63] 로 0.01~0.02 dB 안에서 같다.",
+      "closed_form_check": "−0.6153·sin²θb = [0, −0.041, −0.154, −0.308, −0.461, −0.574, −0.615] — 표의 반올림 단위와 같은 자릿수로 설명된다",
+      "consequence": "28 셀 중 **18 셀은 독립 측정정보가 없다**. 실측 바이스태틱은 phantom2 7 열뿐. 산출물이 이것을 caveat 5 에서 정확히 그렇게 적고 판정에서도 뺐다 — 정직하다."
+    }
+  },
+
+  "Q3_existing_airframes": {
+    "verdict": "메쉬 오염 없음 — 기존 7 기체는 **비트 동일**임을 재빌드로 증명",
+    "how": "git worktree 를 HEAD 로 만들고 작업본과 나란히 build_drone(DRONES[k]) 를 돌려 sha256(float32 vertices + int32 faces) 과 재질그룹 라벨 해시를 비교",
+    "result_bit_identical": {
+      "mini5pro": "2f4a3b728f97528e (nv 14580 / nt 29068)",
+      "mavic4pro": "6d10971549591cfe (nv 15006 / nt 29932)",
+      "matrice4e": "554c31bdc21827d9 (nv 15410 / nt 30712)",
+      "s1000plus": "c8d240fd818ee06a (nv 17753 / nt 35370)",
+      "phantom4": "075f30ed3659803e (nv 14247 / nt 28402)",
+      "typhoonh480": "da4c6ab10d756aa1 (nv 17424 / nt 34732)",
+      "x500v2": "a23407feae5c2953 (nv 9504 / nt 18816)"
+    },
+    "group_labels_also_identical": "7/7 (재질 배정이 안 바뀌었다 → σ 에 재질 경유 영향도 없다)",
+    "cross_check": "이 SHA 들이 outputs/rcs_anchor.json meta.mesh_provenance.built_mesh 에 기록된 값과도 일치한다(5 기체분)",
+    "why_shared_code_edits_were_safe": {
+      "guarded_by_per_key_table_default_old_literal": [
+        "GEAR_ARCH (phantom3 만) — _gear_arch 의 q 기본값이 옛 하드코딩과 동일: leg_w 0.013/0.024, y_top 0.447, y_foot 0.497, x_top_f 0.36, x_top_r −0.34, x_foot_f 0.34, x_foot_r −0.32, skid_r 0.009, skid_len_f 0.85, skid_cx 0.01",
+        "MOTOR_BASE_Z.get(key, 0.014*diag)",
+        "ARM_TIP_OVERHANG.get(key, 0.0)",
+        "INTERNALS (phantom3 만) — else 로 옛 비율 상자 유지",
+        "sh.get('bx0', 0.0) · sh.get('cfw', 1.0)"
+      ],
+      "the_one_unguarded_change": {
+        "what": "leg_h = spec.gear_h_mm/1000 if set else 0.58*H (옛 코드는 무조건 0.58*H)",
+        "risk": "spec.gear_h_mm 가 있는 기존 기체가 이 분기에 오면 다리 길이가 바뀐다",
+        "audited": "이 분기는 spec.gear == 'legs' 뿐이고 해당 기체는 phantom4(gear_h_mm=None) + 신규 phantom3 뿐이다. gear_h_mm 를 가진 mini5pro·mavic4pro·mini2 는 'motor_legs', x500v2·m350rtk 는 'tall' 로 다른 분기다.",
+        "conclusion": "실제 영향 0 — 위 비트동일 결과가 이를 확인한다"
+      }
+    },
+    "drones_py_deletions": "단 1줄 — docstring '현재 **7종**' 문구. 기존 7 기체의 DroneSpec 필드는 한 자도 안 바뀌었다(diff 전체가 순수 추가).",
+    "separate_caution_NOT_caused_by_this_round": {
+      "what": "outputs/rcs_anchor.json 이 재생성되며 기존 기체 σ 가 움직였다 — phantom4 5G 3.5 GHz mean_dbsm −17.713 → −19.760 (−2.05 dB), 회귀 a 1.4105 → 1.5663, b −23.469 → −25.825",
+      "is_it_this_round": "아니다. 메쉬·그룹이 비트동일이므로 원인이 이 라운드의 CAD 작업일 수 없다. 파일 자신의 mesh_provenance 가 원인을 적는다 — 07-30 판 앵커가 07-31 메쉬 개편보다 낡았고 그 사이 σ 가 1.66~2.69 dB 움직였는데 meta 에 메쉬 지문이 없어 아무도 못 알아챘다. 08-03 05:49 재생성은 그 **정당한 갱신**이다.",
+      "but_flag_this": "⚠ 같은 재생성에서 **기체 수가 7 → 5 로 줄었다**. typhoonh480·x500v2 가 rcs_anchor.json 에서 사라졌다. 공용 원장의 범위 축소이므로 이 두 기체를 인용하는 곳이 조용히 낡는다."
+    }
+  },
+
+  "Q4_off_prereg": {
+    "verdict": "이탈 4건 — 그중 2건은 미declared, 1건은 결과 파일이 미완성 계산 스냅샷",
+    "items": [
+      {
+        "id": "OP1",
+        "severity": "high",
+        "what": "phantom2 적합 정의역이 사전등록과 다르다",
+        "prereg_required": "200 MHz 서브밴드 중심 **150 점(11.0~25.9 GHz)** — spec fit_rule 이 'Das 와 같은 창·같은 격자' 라고 명시",
+        "actually_used": "**30 점 @ 0.5 GHz, 11.0~25.5 GHz**",
+        "declared": false,
+        "evidence": "das_fleet_ours.json 안에 '서브밴드' 문자열 0건. airframes.phantom2.freqs_ghz = 30 점, step 0.5",
+        "impact": "μ(f_c) 는 창 중앙이라 견고하지만 SE(a) 가 ~√5 배 달라지고, 무엇보다 **Das 와 같은 격자로 적합한다** 는 사과-대-사과 전제가 깨진다. phantom2 는 기울기 게이트 2 셀 중 1 셀이다."
+      },
+      {
+        "id": "OP2",
+        "severity": "high",
+        "what": "das_fleet_ours.json 은 **미완성 계산의 스냅샷**이다",
+        "evidence": [
+          "caveat 13 자신이 '계산이 아직 도는 중이다' 라고 적는다",
+          "outputs/partial/das_fleet_0803/m350rtk 에 ours.json 생성시각(17:37:39) **이후** 기록된 샤드가 37 개",
+          "driver_c.log 가 17:56 까지 'm350rtk s3 ... n_az=30' 을 계속 찍는다"
+        ],
+        "why_it_matters": "미완성인 기체가 하필 **헤드라인 실패를 지고 있는 m350rtk**(DL +9.076 dB, P1 파괴, P3 산포 16.27 dB 의 상단)다. 지금 다시 집계하면 그 수가 바뀐다.",
+        "mitigation_observed": "dense-az-only 대체적합이 −3.238 vs −3.187 dBsm 으로 0.05 dB 차 → 결론의 부호·크기는 견고할 가능성이 높다. 그래도 **최종본이 아니다**."
+      },
+      {
+        "id": "OP3",
+        "severity": "medium",
+        "what": "m350rtk 방위격자가 계약(0:0.5:360 = 720 점)보다 훨씬 성기고, caveat 가 적합 규칙을 잘못 적었다",
+        "actual_histogram": {"90": 18, "120": 1, "360": 19, "690": 1, "720": 2},
+        "declared": "caveat 13·14 가 성김 자체는 적는다",
+        "the_misstatement": "caveat 13 은 '적합에는 기준밀도의 절반 이상인 주파수만 넣었다' 고 적는데, n_freq_in_fit = **41**(전부)이고 n_freq_at_reference_az_density = 22 다. 헤드라인 적합은 90 점짜리 18 주파수를 **포함**한다. 배제본은 fit_mu_lin_dense_az_only 라는 별도 진단일 뿐이다."
+      },
+      {
+        "id": "OP4",
+        "severity": "medium",
+        "what": "통제군 phantom3 를 사전등록대로 **다시 돌리지 않았다**",
+        "prereg_required": "'먼저 **돌려서** −3.01 dB 를 ±1.0 dB 로 재현하는지 확인한 뒤에만 나머지 3 기체를 읽는다'",
+        "actually_done": "outputs/p3_ours.json 을 **읽기 전용**으로 가져왔다(산출물 자신이 '이 라운드에서 재계산하지 않았다' 고 적음)",
+        "consequence": "headline.what_held 1번의 '함대 규약으로 다시 내니 DL=−3.014 로 사전등록값(−3.014)과 소수 셋째자리까지 같다' 는 **과장**이다. 비교 상대가 같은 파일이므로 일치는 거의 항등식이다. 잘 봐줘도 집계·적합 코드 검산이지, 사전등록이 의도한 커널+메쉬 사슬 검산이 아니다.",
+        "additional": "phantom3 방위창이 0:1:360 전주기인데 Das Table I 은 −90:2:90 반주기다. 산출물이 arc_window_span_db = **3.87 dB** 로 그 폭을 정직히 남겼지만, 모든 예측이 이 앵커 한 점에 걸려 있었다는 점에서 큰 불확도다."
+      },
+      {
+        "id": "OP5",
+        "severity": "low",
+        "what": "exit_vis=True 가 사전등록의 kernel_settings_frozen_now 목록에 없다",
+        "frozen_list": "div · jitter · max_bounce · penetrate · ptd · symmetrize (exit_vis 없음)",
+        "impact": "θb=0 에서 정확히 no-op(V4, 0.000 dB)이라 **모노 대조·P1~P4 게이트는 무영향**. θb>0 은 0.5~10.8 dB 움직인다.",
+        "declared": true
+      }
+    ],
+    "what_was_NOT_violated": [
+      "커널 설정 div=16 · jitter=2 · max_bounce=1 · penetrate=True · ptd=False · symmetrize=False 가 사전등록과 정확히 일치",
+      "합격문턱(P1 6.0 · P2 4.0/3중 · P3 6.0 · P4 부호 · 기울기 0.25 · 바이스태틱 5.0)이 사후 조정 없이 그대로 적용됐다 — 내가 DL 값으로 재계산해 4 게이트 결과가 전부 맞는 것을 확인했다",
+      "θb=75·90 배제가 **사전에** 커널 유효범위로 못박혔다(사후 체리피킹 아님)",
+      "판정 사다리대로 NOT_VALIDATED 를 선언했다 — 실패를 실패로 적었다"
+    ]
+  },
+
+  "Q5_tuned_evidence": {
+    "verdict": "튜닝의 **적극적 증거는 없다**. 다만 작업 순서가 불리하므로 기록한다.",
+    "the_unfavourable_ordering": {
+      "timeline_by_mtime": [
+        "12:28  das_fleet_spec.json — Das Table III 전사(mini2 a=0.07·b=−25.85, m350rtk a=0.17·b=−18.85 이 손에 들어옴)",
+        "12:38  mini2_specs.json",
+        "12:45  m350rtk_specs.json",
+        "13:13  src/drone_cad.py + mini2_mesh_audit.json",
+        "13:22  src/drones.py",
+        "13:23  m350rtk_mesh_audit.json",
+        "13:28  das_fleet_prereg.json (예측 봉인)",
+        "17:37  das_fleet_ours.json"
+      ],
+      "reading": "신규 2 기체의 메쉬는 Das 계수를 읽은 **뒤에** 작성됐다. 게다가 DAS['table3'] 는 sigma_anchor.py 에 **커밋된 채 이미 존재**했으므로 노출은 이 날짜보다 더 앞선다. 사전등록의 inputs_read_only 도 mesh_audit 두 개를 읽었다고 적는다 — 즉 **메쉬가 예측보다 먼저 존재했다**.",
+      "conclusion": "튜닝의 **기회는 있었다**. 이것은 반드시 리포트에 남아야 한다."
+    },
+    "evidence_against_tuning": [
+      "⭐ 라운드가 자기 1차 게이트를 **실패**했다 — NOT_VALIDATED, P3 산포 16.27 dB vs 문턱 6.0 dB. 맞추려 손댄 사람은 이 결과를 내지 않는다.",
+      "⭐ 봉인된 예측(네 기체 DL −3~−4 dB, 산포 ≤1 dB)이 **반증**됐다: 실제 −0.51 / −3.01 / −7.19 / +9.08. 예측이 크게 틀린 것 자체가 결과를 미리 알지 못했다는 표시다.",
+      "⭐⭐ 일치도가 **메쉬 구속도를 따라간다** — 튜닝의 정반대 서명이다. mini2: 관측 54건·free:constrained 3.65·실루엣 IoU 0.705(천장의 77%) → DL −0.51 dB(최소 오차). m350rtk: free 177개·비 5.53·IoU 0.503(천장의 56%)·등록사진 **1장** → DL +9.08 dB(최대 오차). 튜너라면 둘 다 맞췄을 것이다.",
+      "기울기 질문에 직접 답: 우리 mini2 a(θb=0) = **0.140 dB/GHz** 이고 Das 는 0.07 이다(Δa = +0.070). 즉 Das 의 완만한 0.07 을 **재현하지 못했다** — 완만하게 만들려고 메쉬를 손댄 흔적이 없다.",
+      "mini2 의 슬로프 게이트 배제 사유는 결과가 아니라 **Table I 이 정하는 검정력**이다(6 GHz 창 → SE(a)≈0.28 이 Das 0.07 의 4배). 사후 배제가 아니다.",
+      "m350rtk 형상은 phantom3·mavic 계열 공용 셸 경로를 **쓰지 않고** 별도 상자형 분기로 지었다 — 기존 상수를 끌어다 맞추는 경로를 오히려 끊었다."
+    ],
+    "provenance_gap_found": {
+      "what": "mini2 형상의 1차 근거라고 주장된 DJI 공식 CAD **WM161_zhankai_1k.glb 가 저장소에 없다**",
+      "how_i_checked": "find /home/yunjung/workspace/sionna2 -iname '*WM161*' -o -iname '*.glb' → 0 건",
+      "what_exists": "assets/photos/mini2/SOURCES.md §4 가 출처·수집절차·라이선스를 적고, 그 GLB 를 우리가 렌더한 2차 산출물 20장(_d20~_d49)이 있다",
+      "why_it_still_partly_holds": "SOURCES.md 가 GLB 에서 잰 프롭제외 bbox 159.1 × 203.4 × 56.0 mm 를 DJI 공표 159 × 203 × 56 과 대조해 0.06 % · 0.2 % · 0.0 % 로 재현했다 — 외부 구속이 실재한다는 방증",
+      "verdict": "튜닝 증거가 아니라 **재현성 구멍**이다. 저장소만으로는 셸 실측 137.66 × 66.85 × 46.16 mm 를 다시 유도할 수 없다."
+    }
+  },
+
+  "Q6_conventions": {
+    "geometry": "MATCH — 낀각 정의·el=0·표적좌표계 회전. 수치검산 V1·V2 통과",
+    "azimuth_window": {
+      "mini2": "MATCH — 720 점 전주기, 41/41 주파수에서 유지",
+      "phantom2": "MATCH(사실상) — 360 점 vs Table I 361 점(끝점 중복). 무시 가능",
+      "m350rtk": "MISMATCH — 계약 720 점인데 실제 중앙값 360, 18/41 주파수는 90 점뿐(OP3)",
+      "phantom3": "MISMATCH(declared) — 우리 0:1:360 전주기 vs Das −90:2:90 반주기. 그 대가를 arc_window_span_db = 3.87 dB 로 정량화해 남겼다"
+    },
+    "statistic_mu": "PARTIAL — 원문이 자기모순이다. §III-1 은 선형평균 σ_m=(1/K)Σσ 를 정의하는데 §III-2 의 3GPP remark 는 dB 영역평균이라야 성립한다. 산출물이 **두 규약을 다 낸다**(DL_prereg 선형 +2.5068 오프셋 / DL_dbdomain dB영역)고 미해소 규약불확도 0.925 dB 를 병기했다 — 올바른 처리다. ⭐ 두 규약 어느 쪽에서도 P3 가 실패한다(16.27 / 15.01 dB), C 등급을 빼도 실패한다(12.09 / 6.90 dB) → 판정이 규약 선택의 산물이 아니다",
+    "epsilon": "MATCH — Das Table III 표제가 'STANDARD DEVIATION ϵ [DB]' 로 dB 단위를 명시하고 우리도 std_φ(10log10 σ) 를 쓴다",
+    "polarisation": {
+      "das": "VV — §II-1 축자 확인(내가 PDF 에서 직접): 'The setup uses vertically polarized directional antennas at both the transmitter (TX) and receiver (RX)'",
+      "scope_problem": "⚠ 그 문단은 **Phantom 2 오울루 설비** 설명 문단이다. mini2·m350rtk·phantom3 의 편파는 Das 본문에 없다(phantom3 만 Yuan 경유로 VV 확정). spec 은 이를 정확히 '미확인' 으로 적었으나 **src/sigma_anchor.py 는 DAS['polarisation'] 을 전역 속성처럼 'VV (…, §II-1)' 로 단정**한다 — 그 한 줄은 spec 보다 덜 정확하다",
+      "ours": "MISMATCH(declared, caveat 3) — 우리 PO 면적분은 **스칼라**라 편파가 아예 없다. 이 대조는 편파 무관성을 가정한다"
+    },
+    "estimator": "MISMATCH(declared, caveat 7) — Das σ 는 6차 Kaiser 레인지게이트 안의 **시간영역 피크비**(식 3: max|s_DUT|²/max|s_Cal|²·σ_Cal)이고 우리는 주파수영역 PO 합이다. 같은 이름을 쓰지만 같은 추정량이 아니다. 미해소",
+    "calibration": "N/A — Das 는 금속 원기둥(r 5.5 cm·h 30 cm·σ_Cal +2.8 dBsm, phantom2) / Yuan 계열 금속구(r 17.8 cm, 나머지). 우리는 교정체가 없는 절대계산이다",
+    "elevation": "우리 el=0. Das 는 고도축 자체가 Table I 에 없다 — 대조 불가 항목",
+    "K_inconsistency_in_source": "§III-2 는 K=360 이라 적지만 Table I 격자는 721/361/91 이다. spec 이 Table I 을 사실로 택했다 — 타당"
+  },
+
+  "Q7_phantom2_inclusion": {
+    "verdict": "포함 근거는 있다. 그리고 **판정은 포함 여부에 무관**하다 — 다만 'N=4' 표현이 독립성을 과장한다",
+    "what_A9_actually_ruled": "docs/RETRACTION_LOG.md A9 는 Phantom 2 를 **절대 σ 앵커로 부적격**(근거리장 2.6 m · 비무향 · 대역 11–26 GHz 가 우리 밖)이라고 판정했고, sigma_anchor.py 가 원래부터 DEFAULT_ANCHOR='das_phantom3_mono' 로 맞게 돼 있었다고 적는다",
+    "is_das_fleet_violating_A9": "아니다 — das_fleet 은 phantom2 를 **앵커로 쓰지 않는다**. 7 셀 전부 등급 C 로 달았고 용도를 '바이스태틱 각도의존의 상대형상 · 기울기 산포 검정' 으로 한정했다",
+    "grounds_for_inclusion": [
+      "⭐ Das 에서 **실측 바이스태틱 열을 가진 유일한 기체**다. 나머지 18 셀은 합성 taper(Q2)이므로 phantom2 를 빼면 측정 바이스태틱이 **0 개**가 된다",
+      "등급 C 가 모든 보고 쌍에 함께 다닌다",
+      "근거리장·비무향·대리메쉬 문제가 caveat 1·2·15 에 명시"
+    ],
+    "verdict_is_invariant": "사전등록이 **미리** drop-grade-C 변형을 계산해 뒀다: 선형 규약 산포 12.09 dB, dB영역 규약 산포 6.90 dB — 둘 다 P3 문턱 6.0 을 넘는다. 즉 phantom2 를 빼도 NOT_VALIDATED 다. 사후 변명이 아니라 사전 계산이라는 점이 중요하다",
+    "the_real_weakness_found": {
+      "what": "⭐ phantom2 는 **phantom3 메쉬를 대리로 쓴다**(proxy_mesh = true)",
+      "consequence": "P1~P4 게이트가 N=4 로 계산되지만 실제로는 **서로 다른 메쉬가 3 개**이고 phantom3 메쉬가 두 번 들어간다. phantom2(−7.19) 와 phantom3(−3.01) 의 4.2 dB 차이는 **같은 메쉬**를 다른 대역·다른 방위창·근거리장 측정과 견준 결과이지 기체 간 산포가 아니다",
+      "declared": "caveat 1 과 prereg mesh_status 가 대리메쉬임을 적는다 — 그러나 게이트 산술은 여전히 4 독립표본처럼 다룬다",
+      "recommendation": "산포 P3 를 인용할 때 '4 기체' 가 아니라 '3 메쉬 · 4 (기체×대역) 쌍' 으로 적을 것"
+    }
+  },
+
+  "overall": {
+    "what_survived_the_attack": [
+      "θb 정의 — 내가 PDF 원문과 Fig.1 을 직접 열어 재확인했다. 28 쌍은 이 이유로 무효가 아니다",
+      "Table III 판독 — 내가 112 값을 직접 재판독했다. spec·sigma_anchor 와 전부 일치하고, 표를 결과에 맞춰 고친 흔적이 없다",
+      "기존 7 기체 무오염 — 재빌드 해시로 비트동일 증명. 공용 코드 수정이 전부 기본값-보존 방식이고, 유일한 무가드 변경도 도달 불가",
+      "사전등록 문턱 준수 — 사후 조정 없음, 실패를 실패로 선언(NOT_VALIDATED)"
+    ],
+    "what_did_not_survive": [
+      "OP1 phantom2 적합격자 이탈이 **미declared** (150 점 서브밴드 → 30 점 @0.5 GHz)",
+      "OP2 결과 파일이 **미완성 계산 스냅샷** — 그것도 헤드라인 실패를 지는 m350rtk 에서",
+      "OP3 caveat 13 이 실제 적합 규칙을 잘못 서술",
+      "OP4 통제군을 재계산하지 않고 'DL 이 소수 셋째자리까지 같다' 고 적은 것은 과장",
+      "'4 기체' 표현이 대리메쉬로 인한 3 메쉬 실체를 가린다"
+    ],
+    "why_not_INVALID": "대조를 무효화하는 두 축(θb 정의·Table III 판독)이 독립 재검증을 통과했고, 기존 기체 오염이 0 이며, 결론이 **실패** 쪽이라 위 이탈들이 성공을 조작하는 방향으로 작동하지 않았다. 미완성·미declared 이탈은 결론의 **최종성**을 깎지 결론의 **부호**를 뒤집지 않는다(dense-only 재적합 0.05 dB 차가 그 방증).",
+    "why_not_SOUND": "헤드라인 수치가 도는 중인 계산에서 떠졌고(OP2), 사전등록 격자 이탈 1건이 선언되지 않았으며(OP1), 통제군이 사전등록대로 실행되지 않았다(OP4).",
+    "required_before_citing": [
+      "m350rtk 계산을 끝내고 das_fleet_ours.json 을 **재집계**한 뒤 +9.08 dB 가 유지되는지 확인",
+      "phantom2 를 사전등록대로 200 MHz 서브밴드 중심 150 점으로 다시 적합하거나, 30 점 @0.5 GHz 를 쓴 이유를 caveat 에 명시",
+      "caveat 13 문구를 실제 적합(41 주파수 전부 사용)에 맞게 정정",
+      "headline.what_held 1번을 '통제군을 재계산하지 않고 p3_ours 를 읽었다' 로 약화",
+      "P3 산포를 '3 메쉬 · 4 쌍' 으로 표기",
+      "mini2 GLB 를 /data/public/sionna_jeong 에 보관하고 경로를 SOURCES.md 에 적기"
+    ]
+  }
+}

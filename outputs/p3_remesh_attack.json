@@ -1,0 +1,267 @@
+{
+ "_meta": {
+  "generated": "2026-08-03",
+  "what": "적대검증 — Phantom 3 메쉬 재제작(2026-08-03)을 공격한다. 기본 가설은 '문헌 계수를 맞추려 형상을 손댔다'. 다섯 축: 수정 방향의 부호 · 설정 동일성 · 사진 축척의 신뢰성 · 다른 기체 오염 · IoU 와 σ 의 방향 일치.",
+  "attacked": [
+   "outputs/p3_mesh_v2_measurements.json",
+   "src/drones.py (working tree diff)",
+   "src/drone_cad.py (working tree diff)",
+   "outputs/p3_ours.json",
+   "outputs/p3_validation.json",
+   "outputs/p3_photo_match.json",
+   "outputs/p3_photo_attack.json",
+   "assets/photos/phantom3/ (146 files)",
+   "assets/meshes/drones/phantom3/_scene/*.obj (09:12 = 재제작 이전 메쉬)"
+  ],
+  "repo_untouched": "저장소 소스·원장은 읽기만 했다. 새 계산은 전부 스크래치패드에서 돌렸고(HEAD 를 git archive 로 별도 추출해 나란히 빌드), 이 파일 외에는 아무것도 쓰지 않았다.",
+  "target_files_named_in_the_brief_do_not_exist": [
+   "outputs/p3_ours_v2.json — 없음",
+   "outputs/p3_validation_v2.json — 없음"
+  ]
+ },
+
+ "headline": "재제작은 튜닝이 아니다 — 그러나 아직 σ 로 검증되지 않았다. 지배 산란체(금속)는 오히려 −2.2 dB 줄었는데, 우리 σ 는 이미 문헌보다 3~5.5 dB 낮다. 즉 이 재제작은 알려진 결손을 **넓히는** 방향이다. 튜닝이라면 나올 수 없는 부호다. 대신 진짜 위험은 다른 데 있다: **σ 는 한 번도 다시 돌지 않았고**, 저장소·리포트·0804 덱의 모든 Phantom 3 σ 는 이제 저장소가 더 이상 짓지 않는 옛 메쉬의 것이다.",
+
+ "q0_the_named_outputs_do_not_exist": {
+  "finding": "지시받은 두 파일이 존재하지 않는다. 재제작 이후 σ 는 한 번도 계산되지 않았다.",
+  "evidence": {
+   "outputs/p3_ours.json": "2026-08-03 09:45:08 (내용 생성 08:34)",
+   "outputs/p3_validation.json": "2026-08-03 10:33:42",
+   "src/drone_cad.py": "2026-08-03 13:13:24",
+   "src/drones.py": "2026-08-03 13:22:36",
+   "outputs/p3_mesh_v2_measurements.json": "2026-08-03 13:28:53",
+   "reading": "σ 산출물 두 개가 형상 코드보다 3.5~4.5 시간 **앞선다**. 실행 중인 σ 프로세스도 없다(ps 확인)."
+  },
+  "consequence": [
+   "p3_validation.json 의 모든 수치(기울기 0.420, 10 GHz 레벨 −17.60 dBsm, Das/Yuan 대비 −3.0~−5.6 dB, ε 분포)는 **옛 메쉬**의 것이다.",
+   "재제작이 그 수치를 어떻게 움직이는지는 현재 저장소 어디에도 없다.",
+   "리포트·팀미팅 덱이 'Phantom 3 대조' 로 인용하는 숫자와 저장소가 지금 짓는 메쉬가 **서로 다른 기체**다. 이것이 이 라운드의 최대 미결 위험이다.",
+   "따라서 아래 σ 방향 논의는 전부 **면적 대리지표**이지 σ 계산이 아니다. 명시적으로 구분해 적는다."
+  ]
+ },
+
+ "q1_one_directional": {
+  "question": "레벨을 올리는 수정만 반영됐는가(=논문 계수를 보고 골랐는가). 부호별로 세라.",
+  "answer": "아니다. 부호는 갈렸고, **큰 쪽이 내리는 방향**이다.",
+  "which_direction_would_flatter": "우리 σ 는 문헌보다 낮다(10 GHz 에서 Das 지수변환 대비 −3.01 dB, Yuan θ90 대비 −4.60 dB, 1.8 GHz 에서 −8.04 dB). 따라서 '맞추려 손댔다'면 σ 를 **올리는** 수정만 남아야 한다.",
+  "method": "재제작 이전 메쉬가 assets/meshes/drones/phantom3/_scene/*.obj (2026-08-03 09:12) 로 디스크에 남아 있다. 그 프레임 bbox 가 [283.89, 283.89, 185.0] mm 로 p3_mesh_v2_measurements.json 의 old_frame_bbox_mm 과 **정확히 일치**하므로, 이 OBJ 집합이 원장이 말하는 '옛 메쉬'임이 확인된다. 그것을 현재 워킹트리 빌드와 그룹별로 나란히 쟀다.",
+  "group_area_change_measured_not_claimed": {
+   "units": "mm^2 (그룹 총 표면적), dB = 10log10(new/old)",
+   "battery_METAL": {"old": 53359, "new": 32184, "dB": -2.20, "sign": "DOWN"},
+   "motor_METAL": {"old": 12410, "new": 7811, "dB": -2.01, "sign": "DOWN"},
+   "canopy_plastic": {"old": 30651, "new": 9014, "dB": -5.32, "sign": "DOWN"},
+   "gear_plastic": {"old": 47100, "new": 24946, "dB": -2.76, "sign": "DOWN"},
+   "camera_assembly": {"old": 42341, "new": 37850, "dB": -0.49, "sign": "DOWN"},
+   "body_plastic": {"old": 94992, "new": 99181, "dB": 0.19, "sign": "UP"},
+   "pcb": {"old": 12434, "new": 27780, "dB": 3.49, "sign": "UP"}
+  },
+  "sign_count": {"down": 5, "up": 2, "note": "그리고 내려간 다섯 중 둘이 |Γ|≈1 인 금속 그룹이다."},
+  "weighted_proxy": {
+   "quantity": "Σ |Γ|² · A  (진폭-면적 대리지표, σ 가 아니다)",
+   "old_mm2": 117818, "new_mm2": 95533,
+   "delta_dB_area": -0.91,
+   "delta_dB_plate_limit_A2": -1.82,
+   "metal_only": {"old": 65769, "new": 39995, "dB_area": -2.16, "dB_plate_limit": -4.32}
+  },
+  "the_biggest_single_change_is_a_deletion": {
+   "what": "마그네슘 구조판(bl·0.58 × bw·0.68 × bh·0.08 = 101.6 × 107.1 × 5.11 mm, 'battery'=금속 그룹)이 **삭제**됐다.",
+   "why": "Phantom 3 에는 마그네슘 골격이 없다(그것은 Phantom 4 의 대표 구조 변경이다). 공용 shell-v2 경로가 전 기종에 넣던 판이었다.",
+   "sigma_direction": "금속 표면적 23,891 mm² 를 통째로 뺐다 — 이 라운드에서 단일 최대의 σ 인하 조치다.",
+   "adversarial_reading": "결손이 −3~−8 dB 인 것을 **이미 알고 있는 상태에서** 지배 금속체를 지웠다. 튜닝 가설로는 설명되지 않는다."
+  },
+  "changes_that_do_raise_the_level": [
+   "셸 높이 63.9 → 78.6 mm (+23 %) — body 면적 +0.19 dB",
+   "프레임 평면 bbox 283.89 → 289.07 mm (+1.82 %, ARM_TIP_OVERHANG 13.9 mm 도입)",
+   "높이 강제 압착 해제: frame_fit_scale sz 0.9565 → 0.9982 (기체 전체가 세로로 +4.36 %)",
+   "PCB 66.6×85.1×3.8 → 120×110×3 mm (+3.49 dB 면적, |Γ|=0.80)"
+  ],
+  "changes_that_lower_the_level": [
+   "마그네슘판 삭제 + 배터리 상자 87.6×97.7×35.1 → 80×76×45 mm (금속 −2.20 dB)",
+   "모터 벨 지름 36.4 → 28.3 mm (−22 %, 금속 −2.01 dB)",
+   "다리 단면 13.0×24.0 → 9.3×14.2 mm (단면적 ×0.42, gear −2.76 dB)",
+   "동체 평면 175.1×157.5 → 149.6×138.9 mm (평면적 ×0.75)",
+   "캐노피를 동체 안으로 묻어 축소 (−5.32 dB; penetrate=True 라 묻힌 면도 세어지므로 실효 인하다)",
+   "짐벌/카메라 재조립 (−0.49 dB), P4 세대 전용 벨리 센서(스테레오 4 + 3D IR 2) 제거"
+  ],
+  "verdict": "one_directional = FALSE. 부호는 5:2 로 갈리고, 내리는 쪽이 금속을 들고 있다.",
+  "but_the_round_was_not_blind": {
+   "finding": "p3_mesh_v2_measurements 는 'RCS 숫자를 보고 고른 것은 없다 / p3_ours.json 의 적합계수를 열지 않았다' 고 자기선언한다. 그러나 **봉인은 이미 10:33 에 풀려 있었다**(p3_validation.json). 재제작은 13:13 에 시작됐다.",
+   "so": "이 라운드에 'blind' 라는 말을 붙이면 안 된다. 붙일 수 있는 것은 '파일을 열지 않았다' 는 자기보고뿐이고, 결손의 부호와 크기는 같은 세션에서 이미 알려져 있었다.",
+   "mitigation": "그럼에도 결과가 결손을 넓히는 방향이라는 사실이 자기보고보다 강한 증거다 — 그래서 이 항목은 유죄가 아니라 **표기 정정** 이다."
+  }
+ },
+
+ "q2_settings_identical": {
+  "question": "설정이 정말 같은가 — div·jitter·penetrate·주파수·방위·el.",
+  "sigma_comparison": {
+   "answer": "비교 자체가 존재하지 않는다. v2 σ 런이 없다(q0).",
+   "v1_settings_for_the_record": {
+    "engine": "SBR(Mitsuba/OptiX first-hit) + PO, src/rcs_sbr.rcs_sbr_batch",
+    "div": 16, "sbr_default_div": 12, "jitter": 2, "penetrate": true, "max_bounce": 1,
+    "band_ghz": [1.8, 18.2], "n_freq": 21, "freq_spacing": "uniform 0.82 GHz",
+    "n_az": 360, "az_step_deg": 1.0,
+    "els_deg": [-15, -5, -2, 0, 2, 5, 15, 30, 45, 60],
+    "stat": "mu(f)=10log10(mean_phi sigma_lin), eps=std(10log10 sigma_lin)"
+   },
+   "warning": "v2 σ 를 돌릴 때 이 여섯 축을 하나라도 바꾸면 비교가 무효가 된다. 특히 div=16 은 SBR 기본 12 가 아니라 이 런의 상향값이고, penetrate=True 는 셸을 통과해 내부 battery/pcb 를 코히런트 가산한다 — 이번 라운드가 바꾼 것이 정확히 그 내부 산란체다. 규약을 바꾸면 형상 효과와 규약 효과가 분리되지 않는다."
+  },
+  "iou_comparison": {
+   "answer": "이쪽은 동일하다 — 검증했다.",
+   "evidence": [
+    "git diff src/viz_mesh_photo.py = **131 insertions, 0 deletions**. 알고리즘·정합·마스킹·점밀도 코드는 한 줄도 바뀌지 않았고, 추가분은 전부 PHOTOS 레지스트리 항목과 크레딧 딕트다.",
+    "사진 4장은 같은 등록집합이고 old 행(IoU 0.7072 · ceiling 0.9079 · pct 77.90)이 outputs/p3_photo_match.json 의 기록과 소수 넷째자리까지 일치한다."
+   ],
+   "residual": "new 행(0.794 / ceiling 0.914 / pct 86.9)은 저장소 원장 어디에도 기록되지 않았다 — p3_mesh_v2_measurements.json 안에만 있고 '스크래치 복사본에서 돌렸다' 고 적혀 있다. outputs/mesh_compare_photo.json 은 다시 쓰이지 않았다(원장 자신이 밝힘). 즉 old 행은 감사 가능하고 new 행은 아니다."
+  },
+  "verdict": "settings_identical = FALSE — σ 축에서는 비교할 두 번째 런이 아예 없기 때문이다. 실행된 유일한 비교(IoU)는 설정 동일이 확인된다."
+ },
+
+ "q3_photo_scale_sound": {
+  "question": "사진 실측이 믿을 만한가 — 축척 기준·해상도·원근. 분해 사진의 치수는 무엇으로 스케일했나.",
+  "answer": "부분적으로만. 헤드라인 정정은 살아남지만, 그것을 떠받친다고 적힌 두 다리 중 **하나는 산술적으로 강제된 항등식**이고, 폴더 안에 있는 더 강한 축척 근거를 쓰지 않았다.",
+
+  "a_the_flagship_cross_check_is_circular": {
+   "claim_attacked": "front_elevation.cross_check: 'the two anchors agree to five digits (0.749289 vs 0.749291)'",
+   "arithmetic": {
+    "anchor_1": "247.49 mm / 330.3 px = 0.7492885 mm/px",
+    "anchor_2": "185.00 mm / 246.9 px = 0.7492912 mm/px",
+    "relative_agreement": 3.58e-06,
+    "px_quantisation_at_0.1px": 4.05e-04,
+    "ratio": "일치도가 인용된 픽셀 분해능보다 **113배 더 정밀하다** — 측정으로는 나올 수 없는 수다.",
+    "back_solve_test": "crown 행 = 594 − 185.0/0.7492885 = 347.0991 → 보고된 값 347.1 과 **정확히 같다**."
+   },
+   "reading": "보고된 crown 행 347.1 은 'crown→발 = 185 mm' 를 가정하면 그대로 떨어지는 값이다. 그 crown 으로 185 를 확인할 수는 없다. 이 교차검사는 증거가 아니라 항등식이다.",
+   "severity": "표현의 결함이지 결론의 결함은 아니다 — 아래 (b) 가 진짜 다리를 준다."
+  },
+
+  "b_but_the_rear_elevation_is_genuine": {
+   "test": "후면도의 축척은 **폭 289.0 mm** 로 잡혔다(높이와 무관한 양). 185 mm 로 역산했다면 crown 행이 650.83 이어야 하는데, 보고된 값은 650.3 이다 — 역산이 아니다.",
+   "result": "650.3 → 발 896 = 245.7 px × 0.7545692 = **185.40 mm** (공표 185.0, +0.22 %).",
+   "conclusion": "'공표 185 mm 는 셸 crown→발이지 모터 위→발이 아니다' 라는 헤드라인 정정은 **독립적으로 지지된다.** 다만 다리가 둘이 아니라 하나다. 원장은 '두 장이 독립적으로' 라고 적었는데, 정확히는 한 장이다."
+  },
+
+  "c_every_anchor_descends_from_one_derived_number": {
+   "chain": "247.49 mm = 350·sin45°. 그 350 mm 자체가 DERIVED 다(공표 590 mm '프롭 포함' − 9450 프롭 240 mm). 여섯 개 축척 앵커 중 네 개(front / side / official_top / ifixit_bottom / teardown_top)가 350 mm 또는 그 파생값에 걸려 있고, 나머지 둘은 공표 289.0 / 185.0 에 걸려 있다.",
+   "consequence": "350 이 1 % 틀리면 배터리 길이·X보드 치수·짐벌 x 위치·암 현 프로파일이 **모두 같은 방향으로** 1 % 틀린다. 상관된 오차라 서로를 검사하지 못한다."
+  },
+
+  "d_fourteen_ruler_photos_were_available_and_unused": {
+   "finding": "assets/photos/phantom3/ 에 자·줄자가 프레임 안에 들어간 FCC 사진이 **14장** 있다: p09~p14(강철자, 정면·측면·저면), p15~p28(줄자, 상면·정면·측면·저면).",
+   "why_it_matters": "이것들은 파생된 350 mm 에 의존하지 않는 **절대 축척**이다. 이 라운드의 축척 사슬 어디에도 쓰이지 않았다.",
+   "sharpest_form": "같은 커밋에서 쓰인 m350rtk 항목은 정확히 이 기법을 쓴다 — 't05: 강철 자 눈금 40–60 cm ↔ 605 px → 0.3306 mm/px'. 즉 기법을 알고 있었고, **검증 주장을 지고 있는 바로 그 기체에만** 적용하지 않았다."
+  },
+
+  "e_the_plan_form_came_from_a_marketing_render_that_is_also_a_scorer": {
+   "source_used": "phantom3_d03_official_top.png (876 × 884 px, 0.48122 mm/px) — 공식 제품 렌더. 여기서 나온 것: 평면형 전체, 기수 +60.0 / 꼬리 −89.6, 반폭 프로파일, 암 현 8점, hubf(허브 반경 70 mm), 배터리 뒷면 폭.",
+   "problem_1_circularity": "d03 는 동시에 채점 사진 4장 중 하나다(IoU 0.582). 원장 자신이 flag 했다 — 정직하다.",
+   "problem_2_orthographicity_untested": "원장이 내놓은 검사는 '두 대각이 727.6 / 727.0 px 로 0.08 % 일치' 다. 그런데 기체 중심에 광축을 둔 **원근 렌더도 두 대각이 같다** — 이 검사는 정렬(centring)을 재지 원근을 재지 않는다. 렌더의 정사영 여부는 검사되지 않았다.",
+   "problem_3_an_orthographic_plan_view_exists": "phantom3_m02_manual_pro_v18_ortho_4views.png (정투영 4면도, 저면 포함)가 폴더에 있다. 평면형을 여기서 재지 않고 마케팅 렌더에서 쟀다.",
+   "error_direction_if_d03_is_perspective": "위에서 내려다보는 원근이면 모터 평면(z ≈ +11…+25)보다 **아래**에 있는 셸 최대폭(z ≈ −5)은 더 작게 찍힌다 → 동체 평면형을 과소 측정 → σ 를 더 낮춘다. 즉 이 결함마저도 튜닝 방향과 반대다."
+  },
+
+  "f_teardown_photos_scaled_by_one_in_plane_anchor_no_perspective_correction": {
+   "question_asked": "분해 사진의 치수는 무엇으로 스케일했나?",
+   "p33_ifixit_bottom": {
+    "resolution": "4500 × 3375 px",
+    "anchor_as_written": "motor-mount pad diagonal 3345 px = 350 mm → 0.10464 mm/px",
+    "objection_1": "350 mm 는 **모터 축** 대각이다. 여기 쓰인 것은 다리를 뗀 저면의 **모터 마운트 패드** 대각이다. 패드 중심 = 모터 축이라는 가정이 들어가 있고, 원장은 그것을 적지 않았다.",
+    "objection_2": "이 사진에서 배터리 베이 바닥 길이 766 px = 80.2 mm 와 짐벌 방진판 위치(+26 mm)가 나온다. 베이 바닥과 모터 마운트 패드는 **같은 평면이 아니다** — 원근 사진에서 단일 평면 축척을 쓰면 그 높이차만큼 곧바로 틀린다."
+   },
+   "t67_ifixit_teardown_top": {
+    "resolution": "4236 × 3177 px",
+    "anchor_as_written": "motor square 1183 px = 247.49 mm → 4.78 px/mm",
+    "objection": "여기서 중앙 X 보드 bbox 159 × 128 mm 와 실드 영상모듈 44 × 33 mm 가 나온다. 보드는 암 허브 평면(z=0), 모터 사각은 z ≈ +11…+25 — 다시 높이차가 있는데 보정이 없다."
+   },
+   "not_in_the_cannot_measure_list": "p3_mesh_v2_measurements.cannot_measure 9항목 어디에도 '원근'이라는 단어가 없다. 선언되지 않은 편향이다."
+  },
+
+  "g_resolution_of_the_headline_scoring_photograph": {
+   "file": "phantom3_d02_official_front.png",
+   "measured_here": "이미지 **330 × 208 px**, 알파 마스크 18,394 px, 기체 가로 폭 321 px → 공표 289.5 mm 기준 **0.90 mm/px**",
+   "reading": "IoU 0.707 → 0.794 (+0.087) 는 18.4 k 화소 위에서 약 1.6 k 화소가 움직인 것이다. 방향은 분명하지만, 0.90 mm/px 에서 9.3 mm 다리 스트럿은 10 px 이고 그보다 얇은 것은 보간이 만든다. 이 지표를 소수 셋째자리로 읽으면 안 된다.",
+   "contrast": "같은 라운드의 d03 는 0.33 mm/px 로 3배 좋다 — 그런데 그쪽이 순환 사진이다."
+  },
+
+  "h_the_ceiling_still_carries_a_known_unfixed_defect": {
+   "fact": "새 ceiling 0.914 는 옛 0.908 과 사실상 같다. outputs/p3_photo_attack.json 은 이 ceiling 이 **prop_placement_defect** 때문이며 고치면 0.985 가 된다고 이미 밝혔다.",
+   "check_run_here": "git diff src/viz_mesh_photo.py 는 삭제 0 줄 — 그 결함은 고쳐지지 않았다.",
+   "consequence": "before/after **차이**는 두 런에 같은 결함이 걸려 있으므로 여전히 사과-대-사과다. 그러나 'pct_of_ceiling 86.9 %' 와 'peers 중 2위' 는 결함 있는 정규화 분모로 계산된 값이다. 절대 순위 주장으로 쓰면 안 된다."
+  },
+
+  "verdict": "photo_scale_sound = FALSE. 치수 작업 자체는 성실하고 자기고백도 많지만, (a) 대표 교차검사가 항등식이고 (d) 더 강한 절대 축척을 안 썼고 (e) 정투영 도면 대신 마케팅 렌더로 평면형을 쟀으며 (f) 원근 보정이 없고 선언도 없다. 헤드라인 정정은 (b) 하나로 살아남는다."
+ },
+
+ "q4_other_airframes": {
+  "question": "다른 7기체가 오염되지 않았는가.",
+  "answer": "오염되지 않았다 — 주장이 아니라 **재빌드 해시로 검증했다**.",
+  "method": "git archive HEAD src 로 커밋본을 별도 디렉터리에 풀고, 같은 인터프리터로 HEAD 와 워킹트리에서 build_frame_cad 를 각각 돌려 그룹별 (정점 9자리 반올림 + 면 인덱스) SHA-256 을 비교했다.",
+  "result": {
+   "mini5pro": "IDENTICAL (16316 faces, bbox 180.2577 × 256.1856 × 55.4855)",
+   "mavic4pro": "IDENTICAL (17180, 320.9949 × 390.5145 × 99.97)",
+   "matrice4e": "IDENTICAL (17960, 305.8959 × 389.7477 × 157.3409)",
+   "s1000plus": "IDENTICAL (9770, 1017.4541 × 1017.4541 × 409.0)",
+   "phantom4": "IDENTICAL (15650, 283.8874 × 283.8874 × 209.087)",
+   "typhoonh480": "IDENTICAL (15580, 452.1685 × 517.0 × 304.24)",
+   "x500v2": "IDENTICAL (6080, 396.6869 × 396.6869 × 334.78)"
+  },
+  "why_it_could_have_broken": "이 diff 는 공용 경로 일곱 곳을 건드린다 — _gear_arch 시그니처(p=None 추가), leg_h 규약(gear_h_mm 우선), bx0, cfw, ARM_TIP_OVERHANG, MOTOR_BASE_Z, INTERNALS. 전부 기본값이 옛 리터럴과 비트동일하게 설계돼 있고, 실제로 그렇다는 것이 위 해시다.",
+  "the_one_that_was_genuinely_risky": "leg_h = spec.gear_h_mm or 0.58·H 는 gear=='legs' 분기 전체의 동작을 바꾼다. 레지스트리를 훑어 확인: gear=='legs' 인 기존 기체는 phantom4 뿐이고 gear_h_mm=None 이라 0.58·H 로 떨어진다. mini5pro/mavic4pro(31.0/48.0 mm)와 x500v2(215.0)는 gear_h_mm 이 있지만 각각 motor_legs / tall 분기라 이 코드에 닿지 않는다. 안전하되 **여유가 없는** 안전이다 — 앞으로 gear='legs' + gear_h_mm 을 가진 기체가 하나만 추가돼도 phantom4 와 규약이 갈린다.",
+  "side_effect_not_a_contamination_but_report_it": {
+   "what": "같은 diff 가 레지스트리를 7종 → **10종**으로 늘린다(phantom3 · m350rtk · mini2).",
+   "impact": "len(DRONES) / drone_keys() / drone_order() 를 읽는 모든 하류 산출물(그림 격자, σ 표, 리포트 문구, 덱)의 행 수와 순서가 바뀐다. 메쉬 오염은 아니지만 **원장 오염**은 될 수 있다.",
+   "new_meshes_built_clean": {
+    "phantom3": "15614 faces, 289.066 × 289.066 × 185.338 mm (강제 전) — 원장의 sanity.n_triangles.frame 15614 와 envelope_fit_scale 0.9982 를 정확히 재현한다",
+    "m350rtk": "13464 faces, 771.05 × 626.34 × 434.0 mm",
+    "mini2": "13415 faces, 159.39 × 193.82 × 61.82 mm"
+   }
+  },
+  "verdict": "other_airframes_touched = []"
+ },
+
+ "q5_iou_vs_sigma": {
+  "question": "IoU 가 올랐다면 그게 σ 개선과 같은 방향인가. 어긋나면 그것도 정보다.",
+  "iou_side": {
+   "headline_d02_front": "0.707 → 0.794 (+0.087)",
+   "all_four": {"d02_front": [0.707, 0.794], "d03_top": [0.576, 0.582],
+                "d01_iso34": [0.544, 0.564], "d06_iso34_se": [0.679, 0.762]},
+   "pct_of_ceiling": [77.9, 86.9],
+   "note": "네 장 모두 올랐고 부호는 일관된다. 헤드라인 개선의 물리적 원인도 추적된다 — d02 는 정면도이고, 이 라운드의 유일한 헤드라인 정정(셸 63.9→78.6 · 다리 120.5→111.6, 총높이는 185 로 고정)이 정확히 정면 실루엣의 세로 분할을 바꾼다. 우연한 이득이 아니다."
+  },
+  "sigma_side": {
+   "status": "계산되지 않음. 아래는 면적 대리지표다.",
+   "metal_groups": "−2.16 dB 면적 (판 한계 −4.32 dB)",
+   "all_groups_weighted": "−0.91 dB 면적 (판 한계 −1.82 dB)",
+   "existing_deficit": "10 GHz 에서 Das(지수) 대비 −3.01 dB · Yuan θ90 대비 −4.60 dB, 1.8 GHz 에서 −8.04 dB"
+  },
+  "answer": "**어긋난다 — 정반대다.** IoU 는 올랐고(형상은 실물에 더 가까워졌고) σ 대리지표는 내려갔다(문헌과는 더 멀어질 방향이다). 재제작은 이미 알려진 −3~−8 dB 결손을 **넓힐 것으로 예상된다.**",
+  "what_that_means": [
+   "튜닝 가설의 반증이다. 문헌을 보고 형상을 골랐다면 IoU 와 σ 가 같은 방향으로 갔어야 한다.",
+   "outputs/p3_photo_attack.json 이 이미 내린 판정(SHAPE 이 아니라 PHYSICS — 외형 오차는 ≲1 dB 밖에 못 산다)을 **강화한다.** 형상을 실측으로 갈아엎었더니 σ 가 더 내려간다면, 남는 설명은 저 ka PO 커널과 |Γ| 표다.",
+   "동시에 그 판정의 사각지대를 건드린 것이기도 하다. p3_photo_attack 은 '실루엣 IoU 는 내부 산란체·|Γ|·셸 투과 규약을 하나도 못 본다(tier B 160 자유도)' 고 적었는데, 이번 라운드가 바꾼 가장 큰 것이 정확히 그 내부 산란체다. 즉 IoU 상승은 이번 변경의 **σ 지배 부분을 증언하지 못한다.**"
+  ],
+  "the_test_that_must_be_run": "같은 여섯 축(div=16 · jitter=2 · penetrate=True · 1.8–18.2 GHz 균등 21점 · n_az=360 · 같은 el 격자)으로 v2 σ 를 돌려 p3_ours_v2.json / p3_validation_v2.json 을 만들 것. 예측을 미리 못박아 둔다: **레벨은 내려가고 결손은 넓어진다.** 그 예측이 빗나가면 이 파일의 판정을 다시 열어야 한다."
+ },
+
+ "residual_risks_ranked": [
+  "1. σ 재계산 부재. 리포트·0804 팀미팅 덱이 인용하는 Phantom 3 σ 는 저장소가 더 이상 짓지 않는 메쉬의 것이다. 재계산 전까지 '재제작 후 대조' 라고 말하면 안 된다.",
+  "2. new IoU 행(0.794 / 0.914)이 어떤 원장에도 기록되지 않았다 — p3_mesh_v2_measurements.json 안의 서술뿐이고 스크래치에서 돌았다. old 행은 p3_photo_match.json 으로 감사되지만 new 행은 감사 불가.",
+  "3. 'blind' 표기. 봉인은 재제작 4시간 전에 풀렸다. 형상표에 blind 를 붙이면 안 된다.",
+  "4. front elevation 의 5자리 교차검사는 항등식이다. 헤드라인 정정의 근거는 rear elevation **하나**라고 고쳐 적을 것.",
+  "5. 자·줄자가 든 FCC 사진 14장이 축척에 안 쓰였다. 같은 커밋의 m350rtk 는 썼다. 최소한 하나로 350 mm 사슬을 교차확인할 것.",
+  "6. 평면형이 정투영 도면(m02)이 아니라 마케팅 렌더(d03)에서 나왔고, d03 는 채점 사진이기도 하다. 렌더의 정사영 여부는 검사되지 않았다(두 대각 일치는 정렬 검사이지 원근 검사가 아니다).",
+  "7. 분해사진(p33·t67) 원근 미보정, cannot_measure 목록에 미기재.",
+  "8. IoU ceiling 이 prop_placement_defect 를 그대로 안고 있다(고치면 0.985). pct_of_ceiling·peer 순위는 결함 분모 위의 값이다.",
+  "9. 캐노피가 없는 기체에 캐노피를 묻어 두었다 — penetrate=True 라 묻힌 면이 세어진다. 원장이 '줄이는 데서 멈췄다' 고 선언은 했다.",
+  "10. leg_h 규약이 phantom4 와 phantom3 사이에서만 우연히 안전하다. gear='legs' + gear_h_mm 기체가 하나 더 생기면 갈린다."
+ ],
+
+ "verdict": {
+  "one_directional": false,
+  "settings_identical": false,
+  "photo_scale_sound": false,
+  "other_airframes_touched": [],
+  "iou_vs_sigma": "OPPOSED — IoU 는 네 장 모두 올랐지만(헤드라인 0.707→0.794) σ 대리지표는 내려갔다(금속 −2.16 dB 면적 / −4.32 dB 판한계, 전체 가중 −0.91 dB). 우리 σ 는 이미 문헌보다 3~5.5 dB 낮으므로 이 재제작은 결손을 넓힐 방향이다. 어긋남 자체가 튜닝 가설의 반증이며, '형상이 아니라 물리' 라는 기존 판정을 강화한다.",
+  "overall": "CLEAN",
+  "one_line": "맞추려 손댄 흔적이 없다 — 부호가 반대이기 때문이다. 지배 금속체를 −2.2 dB 지우고 있지도 않은 마그네슘판을 삭제한 것은, 결손이 −3~−8 dB 인 것을 이미 아는 상태에서 할 수 있는 가장 튜닝답지 않은 선택이다. 7기체 비오염은 재빌드 해시로 확인했다. 진짜 결함은 다른 데 있다: σ 가 아직 안 돌았고(리포트·덱은 옛 메쉬를 인용 중), 헤드라인 정정의 대표 교차검사는 항등식이며, 폴더 안의 자 든 사진 14장을 쓰지 않았다."
+ }
+}

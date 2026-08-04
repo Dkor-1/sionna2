@@ -53,6 +53,7 @@ from __future__ import annotations
 
 import os
 import sys
+import time
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
@@ -183,7 +184,7 @@ def _scene_for(mesh: Mesh, group_mat: dict, key=None, fc: float = 3.5e9, exclude
 
 def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
                   spacing=None, pad=1.15, cache_key=None, chunk_az=None, penetrate=True, jitter=2,
-                  shell_groups=None):
+                  shell_groups=None, ptd=False, ptd_pol="V", ptd_opts=None):
     """**방위각 전체를 한 배치로** GPU 에 올려 1-bounce SBR σ 를 낸다 (가림 포함).
 
     왜 배치인가: 방위각 하나당 Mitsuba 호출을 따로 하면 커널 실행 오버헤드가 지배한다.
@@ -193,6 +194,12 @@ def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
     왕복 투과 진폭 τ=1−|Γ_shell|² 로 가중해 외부 기여와 **코히런트 합산**한다 — first-hit 가
     내부를 삭제하는 자기모순(직접 검증: battery/pcb 0 히트)을 없앤다. 셸 없는 표적(구·평판)엔 무영향.
     ⚠ 근사: 얇은 셸의 굴절(광로 굴곡)·유전체 내 위상지연은 무시(1차 투과·기하위상만).
+
+    ptd (기본 **False**) : True 면 모서리 프린지 항 A_FW 를 **코히어런트로** 더한다
+      (σ = 4π/λ²|E_면적분 + A_FW|²). 규약·게이트·근사는 위 「PTD 배선」 절 참조.
+      ptd_pol : 프린지 항의 편파("V"/"H"). 면적분은 스칼라라 편파가 없다 → PO 는 두 편파에 공통.
+      ptd_opts : dict. occlusion(기본 True) 및 extract_edges/edge_field 로 넘길 키.
+      ⚠ **ptd=False 는 이 인자들이 없던 때와 비트 단위로 같은 값을 낸다**(outputs/ptd_wiring.json).
 
     다중반사가 필요하면 rcs_sbr(..., max_bounce≥2) 를 쓸 것 (배치 안 함)."""
     from gpu import budget_mb
@@ -254,6 +261,13 @@ def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
     fr = (np.arange(J) + 0.5) / J - 0.5
     offsets = [(ox * d, oy * d) for ox in fr for oy in fr]
 
+    #  모서리 프린지 항 — 방위각마다 1 개(격자 오프셋에 무관하므로 jitter 루프 **밖**에서 한 번).
+    if ptd:
+        _ptd_spacing_warn(d, lam, "rcs_sbr_batch")
+        _u = [_look(a, el_deg) for a in az]
+        A_ptd = _ptd_edge_A(mesh, group_mat, fc, [(u, u) for u in _u], ctr, scene,
+                            pol=ptd_pol, cache_key=cache_key, opts=ptd_opts)[0]
+
     sig = np.zeros(len(az))
     for s0 in range(0, len(az), chunk_az):
         sub = az[s0:s0 + chunk_az]
@@ -292,7 +306,10 @@ def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
 
             E = np.zeros(len(sub), complex)
             np.add.at(E, aidx, contrib)
-            sig_acc += (4.0 * np.pi / lam ** 2) * np.abs(E * d * d) ** 2
+            Etot = E * d * d                                  # 면적분 [m²]
+            if ptd:
+                Etot = Etot + A_ptd[s0:s0 + len(sub)]         # + 모서리 프린지 [m²]
+            sig_acc += (4.0 * np.pi / lam ** 2) * np.abs(Etot) ** 2
         sig[s0:s0 + len(sub)] = sig_acc / len(offsets)
 
     return sig if len(az) > 1 else float(sig[0])
@@ -327,9 +344,180 @@ def _exit_visible(sc, P_abs, Nn, u_s, clearance=EXIT_CLEARANCE, cosmin=EXIT_COSM
     return ~np.asarray(sc.ray_test(ray)).astype(bool)
 
 
+# --------------------------------------------------------------------------- #
+#  PTD (모서리 프린지) 배선 — **기본 꺼짐**. ptd=False 경로는 한 줄도 달라지지 않는다.
+# --------------------------------------------------------------------------- #
+#  PO/SBR 면적분이 세는 것은 균일전류 J⁰ 뿐이다. Ufimtsev 의 비균일(프린지) 전류 J¹ = J − J⁰
+#  는 모서리 근방에만 살아 있고 통째로 빠져 있다 → `src/ptd_edges.py` 가 그 항 A_FW [m²] 를
+#  낸다. 여기서 하는 일은 **배선뿐**이다: 같은 위상원점·같은 단위·같은 게이트로 코히어런트 가산.
+#
+#      σ = (4π/λ²) |E_면적분 + A_FW|²          (ptd=True 일 때만)
+#
+#  ■ 위상 규약 일치 — 이게 배선의 전부다
+#      면적분 : e^{+j k (û_i+û_s)·(P − ctr)},   ctr = 0.5·(V.max+V.min)   [이 파일 전역 규약]
+#      모서리 : e^{+j k q·(R_c − org)},         q = û_i + û_s            [ptd_edges.edge_field]
+#    → org 를 ctr 로 맞추면 **원점·부호·계수(모노에서 2k)가 전부 같다**. 모노스태틱 특수화도
+#      정확히 겹친다: q=2û → e^{+j2k û·(R_c−ctr)} ↔ 면적분 e^{+j2k û·(P−ctr)}.
+#    → `ptd_edges.sbr_phase_origin(mesh)` 이 같은 식으로 원점을 **메쉬에서 다시** 만들고,
+#      아래 `_ptd_edge_A()` 가 면적분이 실제로 쓴 ctr 와 대조해 어긋나면 예외를 던진다.
+#      (원점이 어긋나면 두 항의 상대위상이 무의미해져 코히어런트 합이 조용히 잡음이 된다.)
+#    → 단위도 같다: 면적분 Σ|Γ|e^{jφ}·d² [m²], 모서리항도 [m²].
+#
+#  ■ 게이트 일치
+#    · 조명: 면적분은 first-hit + (n̂·û_i > 1e-6). 모서리는 edge_field 안에서 **인접면 중
+#      하나라도 lit**(n̂₁·û_i>0 또는 n̂₂·û_i>0)이면 후보다 — 같은 규칙이고 문턱만 1e-6 ↔ 0 이다
+#      (그 사이 구간은 grazing 극한). 양쪽 lit / 한쪽 lit 은 Michaeli 단위계단이 자동 처리한다.
+#    · 가림: 면적분은 입사쪽을 first-hit 으로, 출사쪽을 `_exit_visible()` 로 끊는다. ptd_edges
+#      기본값은 **가림 없음**(모듈 미구현 목록)이라 그대로 두면 몸통 뒤 모서리까지 계상된다
+#      → 여기서 **같은 Mitsuba 씬**에 그림자광선을 쏘는 visible_fn 을 만들어 넣는다
+#      (입사 û_i · 출사 û_s 양쪽. 모노스태틱은 û_s=û_i 라 1 발). ptd_opts={"occlusion": False}
+#      로 끌 수 있다(진단용).
+#
+#  ■ 남는 근사 (정직 표기)
+#    · 투과(penetrate) 기여에는 모서리항을 **붙이지 않는다** — 셸 안쪽 금속 모서리는 위 가림
+#      판정(외부 씬)에서 대부분 떨어진다. 프린지 계수가 PEC 유도이고(metal_only) 셸 통과
+#      투과계수를 프린지에 곱하는 근거가 없어서 값을 지어내지 않는다.
+#    · ptd_edges 자체의 미구현(TW 절단·2 차 회절·코너)은 그대로 남는다. 그 목록은
+#      ptd_edges.NOT_IMPLEMENTED / APPROXIMATIONS 에 있고 진단 메타로 실려 나온다.
+#
+#  모서리점은 표면 **위에** 정확히 놓여 있어 그림자광선이 자기 면을 맞을 수 있다 → 광선을
+#  û 로만 밀어낸다(측방 오프셋이 만드는 가짜 가림은 `_exit_visible` 주석의 반증기록 참조).
+#  전진거리는 면적분이 허용하는 **최대 전진거리와 같은 값** EXIT_CLEARANCE/EXIT_COSMIN
+#  = 0.5 mm 로 고정한다 — 광선격자(λ/12 ≈ 7 mm)보다 훨씬 작아 진짜 가림체를 건너뛰지 않고,
+#  (n̂·û) ≥ EXIT_COSMIN 인 면에서 수직여유가 EXIT_CLEARANCE 이상이 된다(면적분과 같은 보장).
+EDGE_EXIT_ADVANCE = EXIT_CLEARANCE / EXIT_COSMIN
+
+_EDGE_CACHE: dict = {}
+#  마지막 PTD 호출의 진단 요약(비용·가림·조각수). **전역 상태이므로 진단 전용**이다.
+_LAST_PTD: dict = {}
+#  extract_edges 로 넘길 키(나머지 ptd_opts 는 edge_field 로 간다)
+_PTD_EXTRACT_KEYS = ("sharp_deg", "weld_tol", "keep_flat", "n_min", "keep_reentrant")
+
+
+_PTD_SPACING_WARNED = set()
+
+
+def _ptd_spacing_warn(d, lam, where):
+    """PTD 를 켤 때 **면적분 격자가 성기면** 경고한다 (ptd_edges D-8). 막지는 않는다.
+
+    왜: 프린지 항은 *정확* PO 전류에 대해 정의됐는데 우리가 더하는 상대는 이산 격자로 잰
+    면적분이다. ptd_edges.rcs_po_ptd 는 이 이유로 PO 점구름 간격을 λ/20 이하로 **강제**한다.
+    SBR 광선격자는 다른 이산화(투영면적 격자)라 그 문턱을 그대로 옮길 근거가 없어서
+    **차단하지 않는다** — 대신 같은 위험을 눈에 보이게 한다. 게다가 SBR 격자 자체의 위상
+    산포(dither)가 λ/12 에서 1.37 dB(peak-to-peak, 파일 상단 실측)로 프린지 보정과 같은
+    크기이거나 더 크다 → ptd=True 결과를 인용할 때는 격자 의존성을 함께 보고할 것."""
+    import ptd_edges as pe
+    div = lam / float(d)
+    if div >= float(pe.PTD_SPACING_MAX_DIV) - 1e-9:
+        return
+    key = (where, round(div, 3))
+    if key in _PTD_SPACING_WARNED:
+        return
+    _PTD_SPACING_WARNED.add(key)
+    print(f"[rcs_sbr] ⚠ ptd=True 인데 광선격자가 λ/{div:.1f} 다 "
+          f"(ptd_edges 권고 λ/{pe.PTD_SPACING_MAX_DIV:g} 이상, D-8). 면적분의 격자 오차가 "
+          f"프린지 항과 섞인다 — 격자 의존성을 함께 보고할 것. [{where}]", flush=True)
+
+
+def _ray_clear(sc, P, u, advance=EDGE_EXIT_ADVANCE):
+    """P(표면 위 점)에서 û 로 나가는 길이 뚫려 있는가 — 그림자광선 1발(ray_test)."""
+    u = np.asarray(u, float)
+    o = np.asarray(P, float) + advance * u[None, :]
+    dd = np.tile(u, (o.shape[0], 1))
+    ray = mi.Ray3f(o=mi.Point3f(*o.T.astype(np.float32)),
+                   d=mi.Vector3f(*dd.T.astype(np.float32)))
+    return ~np.asarray(sc.ray_test(ray)).astype(bool)
+
+
+def _ptd_gamma_map(mesh: Mesh, group_mat: dict, fc: float):
+    """그룹 → |Γ| — **씬이 실제로 붙인 값과 같은 규약**(누락 그룹 기본 'plastic')."""
+    out = {}
+    for grp in sorted(set(np.asarray(mesh.g).tolist())):
+        val = group_mat.get(grp, "plastic")
+        out[grp] = float(val) if not isinstance(val, str) else float(gamma_po(val, fc))
+    return out
+
+
+def _ptd_edges_for(mesh: Mesh, group_mat: dict, fc: float, cache_key=None, extract_kw=None):
+    """모서리 추출(파이썬 루프라 비싸다) 캐시. 키에 fc(|Γ| 의존)·추출 파라미터를 접어 넣는다."""
+    import ptd_edges as pe
+    ek = dict(extract_kw or {})
+    ck = ((cache_key, round(float(fc) / 1e6), tuple(sorted(ek.items())))
+          if cache_key is not None else None)
+    if ck is not None and ck in _EDGE_CACHE:
+        return _EDGE_CACHE[ck]
+    es = pe.extract_edges(mesh, gamma=_ptd_gamma_map(mesh, group_mat, fc), **ek)
+    if ck is not None:
+        _EDGE_CACHE[ck] = es
+    return es
+
+
+def _ptd_edge_A(mesh: Mesh, group_mat: dict, fc: float, pairs, ctr, scene,
+                pol="V", cache_key=None, opts=None, exit_vis=True):
+    """(û_i, û_s) 쌍 목록에 대한 모서리 프린지 장 A_FW [m²] 배열.
+
+    ctr : 면적분이 실제로 쓴 위상원점. 모서리항 원점과 **대조**한다(어긋나면 예외).
+    scene : 가림 판정에 쓸 Mitsuba 씬 — 면적분이 조명 추적에 쓴 **그 씬**.
+    exit_vis : 면적분의 같은 이름 스위치를 **그대로 물려받는다**. 면적분에서 입사쪽 가림은
+      first-hit 이라 끌 수 없고 출사쪽만 선택인데, 모서리항도 정확히 그 대응을 따른다
+      (입사 그림자광선은 항상, 출사 그림자광선은 exit_vis 일 때만).
+    반환: (A[len(pairs)] complex, edges, summary dict)."""
+    import ptd_edges as pe
+    o = dict(opts or {})
+    occl = bool(o.pop("occlusion", True))
+    edges = o.pop("edges", None)
+    ek = {kk: o.pop(kk) for kk in list(o) if kk in _PTD_EXTRACT_KEYS}
+
+    t0 = time.perf_counter()
+    if edges is None:
+        edges = _ptd_edges_for(mesh, group_mat, fc, cache_key, ek)
+    t_ext = time.perf_counter() - t0
+
+    #  ⭐ 위상원점 대조 (D-10) — 면적분과 모서리항이 다른 원점을 쓰면 코히어런트 합이 무의미해진다.
+    org = pe.sbr_phase_origin(mesh)
+    ctr = np.asarray(ctr, float)
+    dev = float(np.max(np.abs(org - ctr)))
+    tol = (C0 / float(fc)) / 1000.0                     # λ/1000 = 위상 0.36°
+    if dev > tol:
+        raise ValueError(
+            "rcs_sbr PTD: 모서리 위상원점이 면적분 원점(bbox 중심)과 %.4g m 어긋난다 "
+            "(허용 %.4g m). 두 항이 다른 원점을 쓰면 상대위상이 무의미해진다." % (dev, tol))
+
+    t0 = time.perf_counter()
+    A = np.zeros(len(pairs), complex)
+    agg = {}
+    for i, (u_i, u_s) in enumerate(pairs):
+        vf = None
+        if occl:
+            def vf(pts, ui, us, _sc=scene, _ev=bool(exit_vis)):
+                v = _ray_clear(_sc, pts, ui)                # 입사 가림(면적분의 first-hit 대응)
+                if _ev and not np.array_equal(np.asarray(us, float), np.asarray(ui, float)):
+                    v = v & _ray_clear(_sc, pts, us)        # 출사 가시성(바이스태틱만 추가 1발)
+                return v
+        a, m = pe.edge_field(edges, fc, u_i, u_s=u_s, pol=pol, origin=org, visible_fn=vf, **o)
+        A[i] = a
+        for kk, vv in m.items():
+            if vv is None:
+                continue
+            if kk.startswith(("n_", "length_")):
+                agg[kk] = agg.get(kk, 0) + vv
+            elif kk == "sin_a_min":
+                agg[kk] = vv if agg.get(kk) is None else min(agg[kk], vv)
+    t_edge = time.perf_counter() - t0
+
+    _LAST_PTD.clear()
+    _LAST_PTD.update(pol=str(pol), n_dirs=len(pairs), occlusion=bool(occl),
+                     origin=[float(x) for x in org], origin_dev_from_surface_m=dev,
+                     t_extract_s=t_ext, t_edge_s=t_edge, edge_meta=agg,
+                     edges_stats=dict(edges.stats),
+                     A_abs=[float(abs(x)) for x in A])
+    return A, edges, dict(_LAST_PTD)
+
+
 def rcs_sbr_multistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s_list,
                         spacing=None, pad=1.15, cache_key=None, penetrate=True, jitter=2,
-                        shell_groups=None, exit_vis=True, symmetrize=False):
+                        shell_groups=None, exit_vis=True, symmetrize=False,
+                        ptd=False, ptd_pol="V", ptd_opts=None):
     """**바이스태틱/멀티스태틱** RCS σ(û_i,û_s)[m²].
 
     û_i = 표적→송신국, û_s = 표적→수신국 방향(둘 다 outward 단위벡터).
@@ -411,6 +599,13 @@ def rcs_sbr_multistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s_list,
     fr = (np.arange(J) + 0.5) / J - 0.5
     offsets = [(ox * d, oy * d) for ox in fr for oy in fr]
 
+    #  모서리 프린지 항 — 수신방향마다 1 개. 조명(û_i)은 하나이므로 모서리 추출·가림도 재사용된다.
+    if ptd:
+        _ptd_spacing_warn(d, lam, "rcs_sbr_multistatic")
+        A_ptd = _ptd_edge_A(mesh, group_mat, fc, [(u_i, us) for us in U_s], ctr, scene,
+                            pol=ptd_pol, cache_key=cache_key, opts=ptd_opts,
+                            exit_vis=exit_vis)[0]
+
     sig_acc = np.zeros(len(U_s))
     for ox, oy in offsets:
         O = (ctr + Rout * u_i)[None, :] + (A + ox)[:, None] * e1 + (B + oy)[:, None] * e2
@@ -460,7 +655,10 @@ def rcs_sbr_multistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s_list,
                         litp = litp.copy()
                         litp[sel] = _exit_visible(scene_i, Pc2[sel] + ctr, Nn2[sel], u_s)
                 E = E + np.sum(np.where(litp, tau * g2, 0.0) * np.exp(1j * k * (Pc2 @ (u_i + u_s))))
-            sig_acc[j] += (4.0 * np.pi / lam ** 2) * np.abs(E * d * d) ** 2
+            Etot = E * d * d                                  # 면적분 [m²]
+            if ptd:
+                Etot = Etot + A_ptd[j]                        # + 모서리 프린지 [m²]
+            sig_acc[j] += (4.0 * np.pi / lam ** 2) * np.abs(Etot) ** 2
     sig = sig_acc / len(offsets)
 
     if symmetrize:
@@ -470,20 +668,26 @@ def rcs_sbr_multistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s_list,
             rev[j] = float(np.atleast_1d(np.asarray(rcs_sbr_multistatic(
                 mesh, group_mat, fc, u_s, [u_i], spacing=spacing, pad=pad, cache_key=cache_key,
                 penetrate=penetrate, jitter=jitter, shell_groups=shell_groups,
-                exit_vis=exit_vis, symmetrize=False), float))[0])
+                exit_vis=exit_vis, symmetrize=False,
+                ptd=ptd, ptd_pol=ptd_pol, ptd_opts=ptd_opts), float))[0])
         sig = np.sqrt(sig * rev)
 
     return sig if len(U_s) > 1 else float(sig[0])
 
 
 def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
-              cache_key=None, penetrate=True, shell_groups=None):
+              cache_key=None, penetrate=True, shell_groups=None,
+              ptd=False, ptd_pol="V", ptd_opts=None):
     """**복소 산란장 E(û)** 를 돌려준다 (σ 가 아니라 E — 마이크로도플러는 위상이 필요하다).
 
         E(û) = Σ_hits |Γ_i| · e^{j2k p_i·û} · d²          σ = (4π/λ²)|E|²
 
     û 는 표적 → 레이더 방향 단위벡터. penetrate=True 면 rcs_sbr_batch 와 동일하게 유전체 셸을
-    투과시켜 내부 금속을 τ=1−|Γ|² 로 코히런트 가산(헤드라인과 일관)."""
+    투과시켜 내부 금속을 τ=1−|Γ|² 로 코히런트 가산(헤드라인과 일관).
+
+    ptd (기본 **False**) : True 면 같은 위상원점(bbox 중심)의 모서리 프린지 A_FW [m²] 를 더한
+    **복소장**을 돌려준다 — 위상을 쓰는 하류(마이크로도플러)가 그대로 쓸 수 있다.
+    ⚠ ptd=False 는 이 인자들이 없던 때와 비트 단위로 같다."""
     lam = C0 / float(fc)
     k = 2.0 * np.pi / lam
     d = float(spacing) if spacing else lam / DEFAULT_DIV
@@ -536,7 +740,12 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
                            1.0 - gammas[i] ** 2, tau)
         _, lit2, g2, phase2, _ = _field(scene_i, shptr_i, gammas_i)
         E = E + np.sum(np.where(lit2 & (tau > 0), tau * g2, 0.0) * phase2)
-    return complex(E) * d * d
+    Etot = complex(E) * d * d                                 # 면적분 [m²]
+    if ptd:
+        _ptd_spacing_warn(d, lam, "sbr_field")
+        Etot = Etot + complex(_ptd_edge_A(mesh, group_mat, fc, [(u, u)], ctr, scene,
+                                          pol=ptd_pol, cache_key=cache_key, opts=ptd_opts)[0][0])
+    return Etot
 
 
 def rcs_sbr(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,

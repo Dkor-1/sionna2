@@ -17,6 +17,16 @@ report08 이 "보류(defer)" 로 남긴 절대 σ 판정을, 문헌이 실제로
 실행:
   cd /home/yunjung/workspace/sionna2
   SIONNA2_GPU=3 PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/rcs_anchor.py
+
+■ PTD 스위치 (`--ptd`, 기본 **꺼짐**)
+  `src/rcs_sbr.py` 에 모서리 프린지(PTD) 항이 배선돼 있다(σ = 4π/λ²|E_면적분 + A_FW|²).
+  기본값은 **False** 이고, 그때 이 스크립트의 산출은 배선 이전과 **비트 단위로 같다**
+  (증명: outputs/ptd_wiring.json). --ptd 를 주면 드론 σ 에만 모서리항이 붙는다.
+  · 출력 경로도 함께 갈린다 — `--ptd` + `--out` 미지정이면 `outputs/rcs_anchor_ptd.json` 이다.
+    PO-only 헤드라인 `outputs/rcs_anchor.json` 을 실수로 덮지 않게 하려는 것이다.
+  · **금속구 교정은 PTD 를 켜지 않는다**(의도적). 그 절의 과녁은 해석 PO 와 정확 Mie 이고
+    구에는 진짜 모서리가 없다 — 켜면 삼각메쉬의 인공 모서리를 재게 되어 '수치 수렴의 자'
+    라는 역할이 망가진다. 그 인공 모서리 효과는 benchmark/verify_ptd_regression.py 의 몫이다.
 """
 from __future__ import annotations
 
@@ -53,6 +63,57 @@ BANDS = {
 }
 
 DRONE_KEYS = ["mini5pro", "mavic4pro", "matrice4e", "s1000plus", "phantom4"]
+
+
+def _mesh_provenance() -> dict:
+    """⭐ **어떤 메쉬로 계산했는지**를 산출물 자신이 적게 한다.
+
+    왜 필요한가 (2026-08-03 에 실제로 겪은 사고):
+      · 이 스크립트는 6시간 넘게 돈다. 파이썬은 import 시점에 모듈을 한 번 읽고 끝이므로
+        산출물의 `generated` 는 **착수 시각**이고, 담긴 메쉬는 **그 시각의 메쉬**다.
+        그런데 파일 mtime 은 **종료 시각**이라 둘이 6시간 넘게 벌어진다.
+      · 07-30 판 앵커가 07-31 메쉬 개편보다 낡았는데도 아무도 못 알아챘다. meta 가 GPU·div·
+        밴드·runtime 은 다 적으면서 **메쉬만 안 적었기** 때문이다. 그 사이 σ 는 1.66~2.69 dB
+        움직였다.
+    그래서 두 층으로 지문을 남긴다:
+      source — 형상을 만드는 소스 파일들의 sha256 (사람이 git 과 대조하기 좋다)
+      built  — 실제로 만들어진 메쉬 꼭짓점·삼각형의 sha256 (진짜 과녁. 소스가 리팩터링만
+               됐는지 형상이 바뀌었는지를 이것만이 구별한다)
+    """
+    import hashlib
+    import numpy as _np
+
+    def _sha_file(p):
+        try:
+            with open(p, "rb") as fh:
+                return hashlib.sha256(fh.read()).hexdigest()[:16]
+        except OSError:
+            return None
+
+    here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    src = {rel: _sha_file(os.path.join(here, rel)) for rel in
+           ("src/drones.py", "src/geom.py", "src/materials.py", "src/rcs_sbr.py")}
+
+    built = {}
+    for key in DRONE_KEYS:
+        try:
+            m = build_drone(DRONES[key])
+            h = hashlib.sha256()
+            # float32 로 고정 — 플랫폼 간 float 표현 차이로 지문이 흔들리지 않게.
+            h.update(_np.asarray(m.v, dtype=_np.float32).tobytes())
+            h.update(_np.asarray(m.f, dtype=_np.int32).tobytes())
+            built[key] = {"sha256_16": h.hexdigest()[:16],
+                          "n_vert": len(m.v), "n_tri": len(m.f)}
+        except Exception as exc:                      # 지문 때문에 본 계산이 죽으면 안 된다
+            built[key] = {"error": f"{type(exc).__name__}: {exc}"}
+
+    return {
+        "note": ("generated 는 **착수** 시각이고 파일 mtime 은 종료 시각이다. 담긴 메쉬는 "
+                 "착수 시각의 것이며 그 지문이 아래다. 재사용 전에 현재 메쉬와 대조하라 "
+                 "— built 해시가 다르면 이 파일은 낡았다."),
+        "source_sha256_16": src,
+        "built_mesh": built,
+    }
 
 
 def _lit_mu_eps():
@@ -117,25 +178,29 @@ LITERATURE = {
 # --------------------------------------------------------------------------- #
 #  1. 원시 σ(az) — 단일 주파수·단일 격자·평활 없음
 # --------------------------------------------------------------------------- #
-def raw_sigma_az(drone, fc, el, n_az=360, div=16):
+def raw_sigma_az(drone, fc, el, n_az=360, div=16, ptd=False, ptd_pol="V"):
     """드론 1종의 **원시** 모노스태틱 σ(az) 배열 [m²] (평활·대역평균 없음, 단일 fc).
 
     rcs_sbr.rcs_sbr_batch 를 az=linspace(0,360,n_az,endpoint=False) 로 호출한다.
     재질은 DRONE_GROUP_MAT (Sionna 와 동일 출처), 격자 = λ/div (report2 는 div=16).
-    ⚠ report2 의 sigma_smooth (밴드평균+3°창) 과 달리 이 값이 분포/회귀/분위점의 유일한 입력이다."""
+    ⚠ report2 의 sigma_smooth (밴드평균+3°창) 과 달리 이 값이 분포/회귀/분위점의 유일한 입력이다.
+
+    ptd (기본 **False**): 모서리 프린지 항을 코히어런트로 더할지. False 면 커널이 이 인자를
+    받기 전과 **비트 단위로 같은 값**을 낸다(outputs/ptd_wiring.json)."""
     mesh = _mesh_for(drone)
     gm = {g: mat for g, (mat, _) in DRONE_GROUP_MAT.items()}   # rcs_po.drone_rcs_pattern 과 동일 규약
     lam = C0 / float(fc)
     az = np.linspace(0.0, 360.0, int(n_az), endpoint=False)
     sig = rcs_sbr_batch(mesh, gm, fc, az_deg=az, el_deg=float(el), spacing=lam / div,
-                        cache_key=(drone, round(fc / 1e6), float(el), "raw"))
+                        cache_key=(drone, round(fc / 1e6), float(el), "raw"),
+                        ptd=bool(ptd), ptd_pol=str(ptd_pol))
     return np.atleast_1d(np.asarray(sig, float))
 
 
 # --------------------------------------------------------------------------- #
 #  2. μ(f)=a·f+b, ε(f)=c·f+d 선형회귀 (1.8–6 GHz, 0.2 GHz 간격 ≥20점)
 # --------------------------------------------------------------------------- #
-def mu_eps_regression(drone, band_fc, el, freqs=None, n_az=360, div=16):
+def mu_eps_regression(drone, band_fc, el, freqs=None, n_az=360, div=16, ptd=False, ptd_pol="V"):
     """1.8–6 GHz 를 0.2 GHz 간격으로 스윕(≥20점). 각 fc 에서
         μ(f) = 10log10(mean(σ_lin))   [dBsm]   (방위 선형평균 = 우리 mean_dbsm 규약)
         ε(f) = std(10log10(σ_lin))    [dB]     (방위 dBsm 표준편차)
@@ -149,7 +214,7 @@ def mu_eps_regression(drone, band_fc, el, freqs=None, n_az=360, div=16):
     fghz = freqs / 1e9
     mu, eps = [], []
     for f in freqs:
-        s = raw_sigma_az(drone, f, el, n_az=n_az, div=div)
+        s = raw_sigma_az(drone, f, el, n_az=n_az, div=div, ptd=ptd, ptd_pol=ptd_pol)
         s = np.maximum(s, 1e-30)
         mu.append(10.0 * np.log10(np.mean(s)))
         eps.append(float(np.std(10.0 * np.log10(s))))
@@ -343,22 +408,31 @@ def fit_rmse_db(sigma_lin, frozen_by_domain):
 #  main — 5기종 × 3밴드 × {el=0, el=15} 원시σ → 전부 계산 → JSON
 # --------------------------------------------------------------------------- #
 def run_all(drones=DRONE_KEYS, bands=BANDS, els=(0.0, 15.0),
-            n_az_band=720, n_az_reg=360, div=16, out_path=None):
+            n_az_band=720, n_az_reg=360, div=16, out_path=None, ptd=False, ptd_pol="V"):
     """전체 산출. ⚠ 감사 반영:
       · n_az_band=720 — 분위점(특히 P1)이 360 에서 미수렴(360↔720 에서 −1.1 dB 이동,
         raw-not-smooth 결함1)이므로 밴드 σ(→percentiles/dist/RMSE)는 720 로 산출.
       · n_az_reg=360  — 회귀 μ/ε(선형평균·dB표준편차)는 360 에서 수렴하므로 유지(속도).
+
+    ptd (기본 **False**): 드론 σ 에만 모서리 프린지 항을 더한다. 금속구 교정은 켜지 않는다
+    (모듈 상단 「PTD 스위치」 참조). False 면 산출은 배선 이전과 비트 단위로 같다.
     """
     t0 = time.time()
     result = {
         "meta": {
             "generated": time.strftime("%Y-%m-%d %H:%M:%S"),
             "gpu": os.environ.get("CUDA_VISIBLE_DEVICES", "?"),
+            "mesh_provenance": _mesh_provenance(),
             "n_az_band": n_az_band, "n_az_reg": n_az_reg,
             "div": div, "sbr_default_div": DEFAULT_DIV,
             "els_deg": list(els), "bands": {k: v for k, v in bands.items()},
             "regression_sweep": "1.8-6.0 GHz @ 0.2 GHz (22 pts)",
             "raw_only": "분포/회귀/분위점은 전부 원시 σ(az) — sigma_smooth 아님",
+            "ptd": bool(ptd), "ptd_pol": (str(ptd_pol) if ptd else None),
+            "ptd_note": ("드론 σ 에 모서리 프린지(PTD) 항을 코히어런트로 더했는가. "
+                         "False 가 기본이고 그때 값은 PTD 배선 이전과 비트 단위로 같다 "
+                         "(outputs/ptd_wiring.json). 금속구 교정은 어느 경우에도 PO-only 다 "
+                         "— 구에는 진짜 모서리가 없어 수치수렴의 자로 남겨야 한다."),
             "caveats": {
                 "min_dbsm": ("min/median/peak/mean 은 커널 기본 jitter=2(2×2 격자위상 평균) "
                              "산출. min 은 코히런트 진짜 널바닥이 아니라 격자평균 진단값 "
@@ -386,12 +460,14 @@ def run_all(drones=DRONE_KEYS, bands=BANDS, els=(0.0, 15.0),
     for dk in drones:
         result["drones"][dk] = {"name": DRONES[dk].name, "bands": {}, "regression": {}}
         for el in els:
-            reg = mu_eps_regression(dk, bands["5G 3.5 GHz"], el, n_az=n_az_reg, div=div)
+            reg = mu_eps_regression(dk, bands["5G 3.5 GHz"], el, n_az=n_az_reg, div=div,
+                                    ptd=ptd, ptd_pol=ptd_pol)
             result["drones"][dk]["regression"][f"el{int(el)}"] = reg
         for bname, fc in bands.items():
             result["drones"][dk]["bands"][bname] = {}
             for el in els:
-                sig = raw_sigma_az(dk, fc, el, n_az=n_az_band, div=div)
+                sig = raw_sigma_az(dk, fc, el, n_az=n_az_band, div=div,
+                                   ptd=ptd, ptd_pol=ptd_pol)
                 fit_sum, frozen = fit_distributions(sig)
                 s = np.maximum(sig, 1e-30)
                 entry = dict(
@@ -423,13 +499,22 @@ if __name__ == "__main__":
     import argparse
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default=os.path.join(here, "outputs", "rcs_anchor.json"))
+    ap.add_argument("--out", default=None,
+                    help="기본: outputs/rcs_anchor.json (--ptd 면 outputs/rcs_anchor_ptd.json)")
     ap.add_argument("--els", default="0,15", help="쉼표구분 el 목록 (예: '0' 또는 '0,15')")
     ap.add_argument("--n-az-band", type=int, default=720)
     ap.add_argument("--n-az-reg", type=int, default=360)
     ap.add_argument("--drones", default=",".join(DRONE_KEYS))
+    #  ⚠ 기본 **꺼짐**. 켜면 드론 σ 에 모서리 프린지 항이 코히어런트로 더해지고, 출력 파일도
+    #    갈린다(PO-only 헤드라인을 덮지 않게). 모듈 상단 「PTD 스위치」 참조.
+    ap.add_argument("--ptd", action="store_true",
+                    help="모서리 프린지(PTD) 항을 드론 σ 에 더한다 (기본 꺼짐)")
+    ap.add_argument("--ptd-pol", default="V", choices=["V", "H"],
+                    help="PTD 항의 편파 (면적분은 스칼라라 편파가 없다)")
     a = ap.parse_args()
     els = tuple(float(x) for x in a.els.split(","))
     dks = a.drones.split(",")
+    out = a.out or os.path.join(here, "outputs",
+                                "rcs_anchor_ptd.json" if a.ptd else "rcs_anchor.json")
     run_all(drones=dks, els=els, n_az_band=a.n_az_band, n_az_reg=a.n_az_reg,
-            out_path=a.out)
+            out_path=out, ptd=a.ptd, ptd_pol=a.ptd_pol)

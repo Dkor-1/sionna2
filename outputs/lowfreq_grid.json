@@ -1,0 +1,956 @@
+{
+ "_meta": {
+  "generated": "2026-08-03 13:23:31",
+  "purpose": "저주파 격차(1.8–6 GHz a=+1.563 vs 6–18.2 GHz a=+0.199)의 원인을 **표본화(A)** 와 **PO 근본한계(B)** 로 가른다. 광선격자 d 를 λ 상대가 아니라 **절대값[mm]** 으로 계단식으로 줄여 μ(f) 가 수렴하는지 본다.",
+  "drone": "phantom3",
+  "drone_name": "DJI Phantom 3 Professional",
+  "engine": "SBR (Mitsuba/OptiX first-hit) + PO surface integral — src/rcs_sbr.rcs_sbr_batch",
+  "convention": "생산 경로(benchmark/rcs_anchor.raw_sigma_az)와 **spacing 만** 다르다: el=0 · az=linspace(0,360,360,endpoint=False) · penetrate=True · ptd=False · max_bounce=1 · jitter=2 · μ=10log10(mean_φ σ_lin) · ε=std(10log10 σ_lin).",
+  "baseline": "outputs/p3_ours.json el0 (div=16, 21 주파수) — 이 파일이 그 격자를 재계산해 재현한다",
+  "anchor": "Das IEEE WCL 2026 Table III, Phantom 3, bistatic 0° : a = 0.21 dB/GHz",
+  "gpu": "GPU 3 · GPU 2 (둘 다 유휴였다), 워커 24 개 · 카드당 14~15 GB. 커널이 호스트(numpy) 병목이라 GPU 사용률은 10~30% 였다 — 레버는 메모리가 아니라 워커 수였다.",
+  "cost_s": 29830.9,
+  "n_runs": 75,
+  "n_az": 360,
+  "grade": "computed (전부 계산값, 문헌은 Das a=0.21 하나뿐)"
+ },
+ "verdict": "B_PO_LIMIT",
+ "bottom_line": "가설 A(표본화)는 배제된다. 1.8 GHz 에서 격자를 6 mm → 0.375 mm 로 16 배 조이는 동안 μ 는 0.084 dB 안에서만 움직인다 — 완전히 수렴했다. 수렴값은 생산 격자(λ/16)보다 0.32 dB 아래이고, 저대역 기울기는 1.563 → 1.632 dB/GHz 로 **오히려 가팔라진다**. 기울기를 Das 0.21 에 맞추려면 μ(1.8 GHz) 가 +8.2 dB 올라가야 하는데, 격자가 만드는 여지는 그 100 분의 1 이고 부호도 반대다. 전대역 배수는 2.00 → 2.03 로 사실상 그대로다. ⚠ 'PO 근본한계' 는 표본화를 배제한 것(음성 증거)과, 가파른 구간이 blade/λ ≈ 0.2712 에서 끝난다는 것(양성 증거)의 결합이다. PTD 프린지 항과 메쉬 테셀레이션은 아직 열려 있다.",
+ "verdict_rule": "A_SAMPLING : |μ(0.75mm)−μ(λ/16)|@1.8GHz ≥ 1.0 dB **그리고** 저대역 기울기가 ≥50% 줄어든다. B_PO_LIMIT : 이동 < 0.5 dB **그리고** 기울기 변화 < 20%. 그 사이는 MIXED.",
+ "headline": {
+  "mu_shift_at_1p8_db_vs_lam12": 0.857,
+  "mu_shift_at_1p8_db_vs_lam16": -0.3212,
+  "shift_mean_lowband_1p8_3p5_db": 0.1752,
+  "shift_mean_highband_12_18p2_db": 0.0089,
+  "a_lowband_lam16": 1.5634,
+  "a_lowband_converged": 1.6319,
+  "a_fullband_lam16": 0.4198,
+  "a_fullband_converged": 0.4268,
+  "a_highband_lam16": 0.1986,
+  "a_highband_converged": 0.202,
+  "das_a": 0.21,
+  "ratio_to_das_before": 1.9988,
+  "ratio_to_das_after": 2.0323
+ },
+ "ladder": {
+  "1.8GHz": {
+   "f_ghz": 1.8,
+   "lam_mm": 166.5514,
+   "rows": [
+    {
+     "d_mm": 13.87928,
+     "rays_per_lambda": 12.0,
+     "mu_dbsm": -25.527,
+     "eps_db": 4.1936,
+     "n_rays_per_az": 3364,
+     "t_s": 1.5
+    },
+    {
+     "d_mm": 10.40946,
+     "rays_per_lambda": 16.0,
+     "mu_dbsm": -24.3488,
+     "eps_db": 4.6377,
+     "n_rays_per_az": 5625,
+     "t_s": 2.36
+    },
+    {
+     "d_mm": 6.0,
+     "rays_per_lambda": 27.759,
+     "mu_dbsm": -24.7299,
+     "eps_db": 4.582,
+     "n_rays_per_az": 15625,
+     "t_s": 9.85
+    },
+    {
+     "d_mm": 3.0,
+     "rays_per_lambda": 55.517,
+     "mu_dbsm": -24.7173,
+     "eps_db": 5.3435,
+     "n_rays_per_az": 59049,
+     "t_s": 40.12
+    },
+    {
+     "d_mm": 1.5,
+     "rays_per_lambda": 111.034,
+     "mu_dbsm": -24.6462,
+     "eps_db": 5.4892,
+     "n_rays_per_az": 229441,
+     "t_s": 152.47
+    },
+    {
+     "d_mm": 0.75,
+     "rays_per_lambda": 222.068,
+     "mu_dbsm": -24.67,
+     "eps_db": 5.5365,
+     "n_rays_per_az": 904401,
+     "t_s": 661.75
+    },
+    {
+     "d_mm": 0.5,
+     "rays_per_lambda": 333.103,
+     "mu_dbsm": -24.6784,
+     "eps_db": 5.5429,
+     "n_rays_per_az": 2024929,
+     "t_s": 1239.1
+    },
+    {
+     "d_mm": 0.375,
+     "rays_per_lambda": 444.137,
+     "mu_dbsm": -24.6749,
+     "eps_db": 5.5515,
+     "n_rays_per_az": 3591025,
+     "t_s": 2002.15
+    }
+   ],
+   "mu_lam12": -25.527,
+   "mu_lam16": -24.3488,
+   "mu_conv_0p75mm": -24.67,
+   "mu_finest": -24.6749,
+   "d_finest_mm": 0.375,
+   "shift_conv_minus_lam12_db": 0.857,
+   "shift_conv_minus_lam16_db": -0.3212,
+   "last_step_db": 0.0035,
+   "abs_ladder_d_mm": [
+    0.375,
+    0.5,
+    0.75,
+    1.5,
+    3.0,
+    6.0
+   ],
+   "abs_ladder_mu_dbsm": [
+    -24.6749,
+    -24.6784,
+    -24.67,
+    -24.6462,
+    -24.7173,
+    -24.7299
+   ]
+  },
+  "3.5GHz": {
+   "f_ghz": 3.5,
+   "lam_mm": 85.655,
+   "rows": [
+    {
+     "d_mm": 7.13792,
+     "rays_per_lambda": 12.0,
+     "mu_dbsm": -21.5245,
+     "eps_db": 4.011,
+     "n_rays_per_az": 11236,
+     "t_s": 6.67
+    },
+    {
+     "d_mm": 6.0,
+     "rays_per_lambda": 14.276,
+     "mu_dbsm": -21.4849,
+     "eps_db": 3.8292,
+     "n_rays_per_az": 15625,
+     "t_s": 10.53
+    },
+    {
+     "d_mm": 5.35344,
+     "rays_per_lambda": 16.0,
+     "mu_dbsm": -21.5331,
+     "eps_db": 4.1284,
+     "n_rays_per_az": 19321,
+     "t_s": 12.16
+    },
+    {
+     "d_mm": 3.0,
+     "rays_per_lambda": 28.552,
+     "mu_dbsm": -21.6753,
+     "eps_db": 4.3057,
+     "n_rays_per_az": 59049,
+     "t_s": 41.63
+    },
+    {
+     "d_mm": 1.5,
+     "rays_per_lambda": 57.103,
+     "mu_dbsm": -21.5343,
+     "eps_db": 4.2857,
+     "n_rays_per_az": 229441,
+     "t_s": 164.54
+    },
+    {
+     "d_mm": 0.75,
+     "rays_per_lambda": 114.207,
+     "mu_dbsm": -21.5624,
+     "eps_db": 4.3674,
+     "n_rays_per_az": 904401,
+     "t_s": 657.81
+    },
+    {
+     "d_mm": 0.5,
+     "rays_per_lambda": 171.31,
+     "mu_dbsm": -21.5707,
+     "eps_db": 4.3445,
+     "n_rays_per_az": 2024929,
+     "t_s": 1230.61
+    },
+    {
+     "d_mm": 0.375,
+     "rays_per_lambda": 228.413,
+     "mu_dbsm": -21.5883,
+     "eps_db": 4.3326,
+     "n_rays_per_az": 3591025,
+     "t_s": 1987.3
+    }
+   ],
+   "mu_lam12": -21.5245,
+   "mu_lam16": -21.5331,
+   "mu_conv_0p75mm": -21.5624,
+   "mu_finest": -21.5883,
+   "d_finest_mm": 0.375,
+   "shift_conv_minus_lam12_db": -0.038,
+   "shift_conv_minus_lam16_db": -0.0293,
+   "last_step_db": -0.0176,
+   "abs_ladder_d_mm": [
+    0.375,
+    0.5,
+    0.75,
+    1.5,
+    3.0,
+    6.0
+   ],
+   "abs_ladder_mu_dbsm": [
+    -21.5883,
+    -21.5707,
+    -21.5624,
+    -21.5343,
+    -21.6753,
+    -21.4849
+   ]
+  },
+  "6GHz": {
+   "f_ghz": 6.0,
+   "lam_mm": 49.9654,
+   "rows": [
+    {
+     "d_mm": 6.0,
+     "rays_per_lambda": 8.328,
+     "mu_dbsm": -17.1455,
+     "eps_db": 6.1698,
+     "n_rays_per_az": 15625,
+     "t_s": 9.21
+    },
+    {
+     "d_mm": 4.16378,
+     "rays_per_lambda": 12.0,
+     "mu_dbsm": -17.3996,
+     "eps_db": 6.3516,
+     "n_rays_per_az": 31329,
+     "t_s": 20.31
+    },
+    {
+     "d_mm": 3.12284,
+     "rays_per_lambda": 16.0,
+     "mu_dbsm": -17.2773,
+     "eps_db": 6.7424,
+     "n_rays_per_az": 54289,
+     "t_s": 38.21
+    },
+    {
+     "d_mm": 3.0,
+     "rays_per_lambda": 16.655,
+     "mu_dbsm": -17.3829,
+     "eps_db": 6.7794,
+     "n_rays_per_az": 59049,
+     "t_s": 41.42
+    },
+    {
+     "d_mm": 1.5,
+     "rays_per_lambda": 33.31,
+     "mu_dbsm": -17.4277,
+     "eps_db": 6.9681,
+     "n_rays_per_az": 229441,
+     "t_s": 151.95
+    },
+    {
+     "d_mm": 0.75,
+     "rays_per_lambda": 66.621,
+     "mu_dbsm": -17.3905,
+     "eps_db": 7.0443,
+     "n_rays_per_az": 904401,
+     "t_s": 661.31
+    },
+    {
+     "d_mm": 0.5,
+     "rays_per_lambda": 99.931,
+     "mu_dbsm": -17.4034,
+     "eps_db": 7.0358,
+     "n_rays_per_az": 2024929,
+     "t_s": 1226.37
+    }
+   ],
+   "mu_lam12": -17.3996,
+   "mu_lam16": -17.2773,
+   "mu_conv_0p75mm": -17.3905,
+   "mu_finest": -17.4034,
+   "d_finest_mm": 0.5,
+   "shift_conv_minus_lam12_db": 0.0091,
+   "shift_conv_minus_lam16_db": -0.1132,
+   "last_step_db": -0.0129,
+   "abs_ladder_d_mm": [
+    0.5,
+    0.75,
+    1.5,
+    3.0,
+    6.0
+   ],
+   "abs_ladder_mu_dbsm": [
+    -17.4034,
+    -17.3905,
+    -17.4277,
+    -17.3829,
+    -17.1455
+   ]
+  },
+  "12GHz": {
+   "f_ghz": 12.0,
+   "lam_mm": 24.9827,
+   "rows": [
+    {
+     "d_mm": 6.0,
+     "rays_per_lambda": 4.164,
+     "mu_dbsm": -15.2193,
+     "eps_db": 5.3175,
+     "n_rays_per_az": 15625,
+     "t_s": 11.42
+    },
+    {
+     "d_mm": 3.0,
+     "rays_per_lambda": 8.328,
+     "mu_dbsm": -16.2251,
+     "eps_db": 5.7869,
+     "n_rays_per_az": 59049,
+     "t_s": 40.3
+    },
+    {
+     "d_mm": 2.08189,
+     "rays_per_lambda": 12.0,
+     "mu_dbsm": -16.539,
+     "eps_db": 6.5306,
+     "n_rays_per_az": 120409,
+     "t_s": 81.96
+    },
+    {
+     "d_mm": 1.56142,
+     "rays_per_lambda": 16.0,
+     "mu_dbsm": -16.5014,
+     "eps_db": 6.5202,
+     "n_rays_per_az": 211600,
+     "t_s": 136.29
+    },
+    {
+     "d_mm": 1.5,
+     "rays_per_lambda": 16.655,
+     "mu_dbsm": -16.5583,
+     "eps_db": 6.6902,
+     "n_rays_per_az": 229441,
+     "t_s": 162.97
+    },
+    {
+     "d_mm": 0.75,
+     "rays_per_lambda": 33.31,
+     "mu_dbsm": -16.5074,
+     "eps_db": 6.8308,
+     "n_rays_per_az": 904401,
+     "t_s": 661.62
+    },
+    {
+     "d_mm": 0.5,
+     "rays_per_lambda": 49.965,
+     "mu_dbsm": -16.5153,
+     "eps_db": 6.8129,
+     "n_rays_per_az": 2024929,
+     "t_s": 1312.88
+    }
+   ],
+   "mu_lam12": -16.539,
+   "mu_lam16": -16.5014,
+   "mu_conv_0p75mm": -16.5074,
+   "mu_finest": -16.5153,
+   "d_finest_mm": 0.5,
+   "shift_conv_minus_lam12_db": 0.0316,
+   "shift_conv_minus_lam16_db": -0.006,
+   "last_step_db": -0.0078,
+   "abs_ladder_d_mm": [
+    0.5,
+    0.75,
+    1.5,
+    3.0,
+    6.0
+   ],
+   "abs_ladder_mu_dbsm": [
+    -16.5153,
+    -16.5074,
+    -16.5583,
+    -16.2251,
+    -15.2193
+   ]
+  },
+  "18.2GHz": {
+   "f_ghz": 18.2,
+   "lam_mm": 16.4721,
+   "rows": [
+    {
+     "d_mm": 6.0,
+     "rays_per_lambda": 2.745,
+     "mu_dbsm": -11.5778,
+     "eps_db": 5.3269,
+     "n_rays_per_az": 15625,
+     "t_s": 9.74
+    },
+    {
+     "d_mm": 3.0,
+     "rays_per_lambda": 5.491,
+     "mu_dbsm": -12.9061,
+     "eps_db": 6.3431,
+     "n_rays_per_az": 59049,
+     "t_s": 35.51
+    },
+    {
+     "d_mm": 1.5,
+     "rays_per_lambda": 10.981,
+     "mu_dbsm": -13.4898,
+     "eps_db": 7.0506,
+     "n_rays_per_az": 229441,
+     "t_s": 162.09
+    },
+    {
+     "d_mm": 1.37268,
+     "rays_per_lambda": 12.0,
+     "mu_dbsm": -13.4752,
+     "eps_db": 6.9535,
+     "n_rays_per_az": 272484,
+     "t_s": 203.13
+    },
+    {
+     "d_mm": 1.02951,
+     "rays_per_lambda": 16.0,
+     "mu_dbsm": -13.477,
+     "eps_db": 7.217,
+     "n_rays_per_az": 481636,
+     "t_s": 343.02
+    },
+    {
+     "d_mm": 0.75,
+     "rays_per_lambda": 21.963,
+     "mu_dbsm": -13.4888,
+     "eps_db": 7.3334,
+     "n_rays_per_az": 904401,
+     "t_s": 661.97
+    },
+    {
+     "d_mm": 0.5,
+     "rays_per_lambda": 32.944,
+     "mu_dbsm": -13.5083,
+     "eps_db": 7.3764,
+     "n_rays_per_az": 2024929,
+     "t_s": 1317.1
+    }
+   ],
+   "mu_lam12": -13.4752,
+   "mu_lam16": -13.477,
+   "mu_conv_0p75mm": -13.4888,
+   "mu_finest": -13.5083,
+   "d_finest_mm": 0.5,
+   "shift_conv_minus_lam12_db": -0.0136,
+   "shift_conv_minus_lam16_db": -0.0118,
+   "last_step_db": -0.0195,
+   "abs_ladder_d_mm": [
+    0.5,
+    0.75,
+    1.5,
+    3.0,
+    6.0
+   ],
+   "abs_ladder_mu_dbsm": [
+    -13.5083,
+    -13.4888,
+    -13.4898,
+    -12.9061,
+    -11.5778
+   ]
+  }
+ },
+ "slope_vs_d": {
+  "note": "사다리 주파수 5 점(1.8·3.5·6.0·12.0·18.2)만으로 낸 기울기. 격자를 조일수록 기울기가 어디로 가는지를 **추세**로 본다.",
+  "rows": [
+   {
+    "d_mm": 6.0,
+    "a_low_1p8_6": 1.8006,
+    "a_high_6_18p2": 0.4571,
+    "a_full": 0.7262
+   },
+   {
+    "d_mm": 3.0,
+    "a_low_1p8_6": 1.7441,
+    "a_high_6_18p2": 0.3679,
+    "a_full": 0.6412
+   },
+   {
+    "d_mm": 1.5,
+    "a_low_1p8_6": 1.713,
+    "a_high_6_18p2": 0.3237,
+    "a_full": 0.5971
+   },
+   {
+    "d_mm": 0.75,
+    "a_low_1p8_6": 1.7284,
+    "a_high_6_18p2": 0.3207,
+    "a_full": 0.5993
+   },
+   {
+    "d_mm": 0.5,
+    "a_low_1p8_6": 1.7273,
+    "a_high_6_18p2": 0.3202,
+    "a_full": 0.5987
+   },
+   {
+    "d_mm": "lambda/12",
+    "a_low_1p8_6": 1.9138,
+    "a_high_6_18p2": 0.3226,
+    "a_full": 0.6291
+   },
+   {
+    "d_mm": "lambda/16",
+    "a_low_1p8_6": 1.6851,
+    "a_high_6_18p2": 0.3125,
+    "a_full": 0.5864
+   }
+  ]
+ },
+ "what_would_it_take": {
+  "lowband": {
+   "a_now": 1.6319,
+   "target": 0.21,
+   "delta_mu_at_lowest_freq_db": 8.162,
+   "lowest_freq_ghz": 1.8
+  },
+  "fullband": {
+   "a_now": 0.4268,
+   "target": 0.21,
+   "delta_mu_at_lowest_freq_db": 13.688,
+   "lowest_freq_ghz": 1.8
+  },
+  "note": "기울기를 Das 0.21 로 맞추려면 최저주파 μ 를 이만큼 **올려야** 한다는 뜻이다. 관측된 격자효과와 부호·크기를 비교하면 격자가 원인인지 바로 보인다."
+ },
+ "grid_dither_slope_uncertainty": {
+  "per_point_db": 0.0136,
+  "slope_se_db_per_ghz": {
+   "1.8-6.0": 0.004,
+   "6.0-18.2": 0.001,
+   "1.8-18.2": 0.0006
+  },
+  "note": "점당 불확도 = 사다리 마지막 계단(0.75↔0.5·0.375 mm) 변화의 RMS. 기울기 불확도 = 그 값 / sqrt(Sxx)."
+ },
+ "po_validity_diagnostic": {
+  "local_slope_3pt": [
+   {
+    "f_ghz": 2.62,
+    "a_local": 1.8376,
+    "blade_over_lambda": 0.1204
+   },
+   {
+    "f_ghz": 3.44,
+    "a_local": 1.8439,
+    "blade_over_lambda": 0.1581
+   },
+   {
+    "f_ghz": 4.26,
+    "a_local": 1.4279,
+    "blade_over_lambda": 0.1958
+   },
+   {
+    "f_ghz": 5.08,
+    "a_local": 1.0445,
+    "blade_over_lambda": 0.2335
+   },
+   {
+    "f_ghz": 5.9,
+    "a_local": 0.3997,
+    "blade_over_lambda": 0.2712
+   },
+   {
+    "f_ghz": 6.72,
+    "a_local": 0.1614,
+    "blade_over_lambda": 0.3089
+   },
+   {
+    "f_ghz": 7.54,
+    "a_local": 1.8635,
+    "blade_over_lambda": 0.3466
+   },
+   {
+    "f_ghz": 8.36,
+    "a_local": -0.4244,
+    "blade_over_lambda": 0.3843
+   },
+   {
+    "f_ghz": 9.18,
+    "a_local": -0.4837,
+    "blade_over_lambda": 0.422
+   },
+   {
+    "f_ghz": 10.0,
+    "a_local": 1.0563,
+    "blade_over_lambda": 0.4597
+   },
+   {
+    "f_ghz": 10.82,
+    "a_local": -0.1786,
+    "blade_over_lambda": 0.4973
+   },
+   {
+    "f_ghz": 11.64,
+    "a_local": 0.7915,
+    "blade_over_lambda": 0.535
+   },
+   {
+    "f_ghz": 12.46,
+    "a_local": 0.0318,
+    "blade_over_lambda": 0.5727
+   },
+   {
+    "f_ghz": 13.28,
+    "a_local": -0.4083,
+    "blade_over_lambda": 0.6104
+   },
+   {
+    "f_ghz": 14.1,
+    "a_local": -0.3969,
+    "blade_over_lambda": 0.6481
+   },
+   {
+    "f_ghz": 14.92,
+    "a_local": -0.6701,
+    "blade_over_lambda": 0.6858
+   },
+   {
+    "f_ghz": 15.74,
+    "a_local": 1.2767,
+    "blade_over_lambda": 0.7235
+   },
+   {
+    "f_ghz": 16.56,
+    "a_local": 0.1076,
+    "blade_over_lambda": 0.7612
+   },
+   {
+    "f_ghz": 17.38,
+    "a_local": 1.0398,
+    "blade_over_lambda": 0.7989
+   }
+  ],
+  "first_freq_with_local_slope_below_0p5": {
+   "f_ghz": 5.9,
+   "a_local": 0.3997,
+   "blade_over_lambda": 0.2712
+  },
+  "note": "3 점 이동창 국소 기울기. 가파른 구간(>0.5 dB/GHz)이 끝나는 곳의 blade/λ 를 함께 적는다 — PO 의 국소평면 가정이 회복되는 지점과 견주기 위해서다."
+ },
+ "feature_scales": {
+  "group_min_bbox_mm": {
+   "battery": 68.87,
+   "body": 81.51,
+   "camera": 92.0,
+   "canopy": 6.22,
+   "gear": 112.71,
+   "motor": 13.68,
+   "pcb": 2.99,
+   "prop": 13.78
+  },
+  "arm_width_root_tip_mm": [
+   45.0,
+   30.0
+  ],
+  "arm_note": "phantom3 메쉬에는 'arm' 그룹이 없다 — 팔은 body 셸의 일부다. 45/30 mm 는 drone_cad._ARM_WIDTH['phantom3'](phantom4 상속) 값이다.",
+  "mesh_edge_mm": {
+   "p05": 0.638,
+   "p50": 5.186,
+   "p95": 10.022
+  },
+  "per_freq": {
+   "1.8GHz": {
+    "lam_mm": 166.551,
+    "d_lam16_mm": 10.4095,
+    "d_lam12_mm": 13.8793,
+    "rays_across_prop_blade_lam16": 1.32,
+    "rays_across_prop_blade_0p75mm": 18.37,
+    "rays_across_canopy_lam16": 0.6,
+    "prop_blade_over_lambda": 0.0827,
+    "canopy_over_lambda": 0.0373
+   },
+   "3.5GHz": {
+    "lam_mm": 85.655,
+    "d_lam16_mm": 5.3534,
+    "d_lam12_mm": 7.1379,
+    "rays_across_prop_blade_lam16": 2.57,
+    "rays_across_prop_blade_0p75mm": 18.37,
+    "rays_across_canopy_lam16": 1.16,
+    "prop_blade_over_lambda": 0.1609,
+    "canopy_over_lambda": 0.0726
+   },
+   "6GHz": {
+    "lam_mm": 49.965,
+    "d_lam16_mm": 3.1228,
+    "d_lam12_mm": 4.1638,
+    "rays_across_prop_blade_lam16": 4.41,
+    "rays_across_prop_blade_0p75mm": 18.37,
+    "rays_across_canopy_lam16": 1.99,
+    "prop_blade_over_lambda": 0.2758,
+    "canopy_over_lambda": 0.1245
+   },
+   "12GHz": {
+    "lam_mm": 24.983,
+    "d_lam16_mm": 1.5614,
+    "d_lam12_mm": 2.0819,
+    "rays_across_prop_blade_lam16": 8.83,
+    "rays_across_prop_blade_0p75mm": 18.37,
+    "rays_across_canopy_lam16": 3.98,
+    "prop_blade_over_lambda": 0.5516,
+    "canopy_over_lambda": 0.249
+   },
+   "18.2GHz": {
+    "lam_mm": 16.472,
+    "d_lam16_mm": 1.0295,
+    "d_lam12_mm": 1.3727,
+    "rays_across_prop_blade_lam16": 13.39,
+    "rays_across_prop_blade_0p75mm": 18.37,
+    "rays_across_canopy_lam16": 6.04,
+    "prop_blade_over_lambda": 0.8366,
+    "canopy_over_lambda": 0.3776
+   }
+  },
+  "reading": "d=0.75 mm 는 메쉬 삼각형 중앙값 모서리(5.85 mm)의 1/8 이다 → 이 격자에서 수렴하는 대상은 **이 삼각메쉬 위의 PO 면적분**이다. 테셀레이션 자체는 별개의 오차축이다."
+ },
+ "baseline_reproduction": {
+  "n_compared": 21,
+  "max_abs_dmu_db": 0.00047,
+  "source": "outputs/p3_ours.json fit.el0 (div=16, 21 freqs)",
+  "reading": "같은 커널·같은 인자 → 0 이어야 한다. 이 실행이 헤드라인 기준선을 재현한다는 증거다."
+ },
+ "geometry_revised_after_run": {
+  "checked_at": "2026-08-03 13:27:43",
+  "what_happened": "스윕(12:24–12:58) 이 끝난 뒤 다른 작업이 Phantom 3 CAD 를 개정했다 — 개정은 이 검사 도중에도 계속됐다(연속 검사마다 메쉬 삼각형 수가 달랐다). 아래 숫자는 checked_at 시점의 소스 기준이다.",
+  "this_sweep_measured": "outputs/p3_ours.json el0 과 같은 기체 — baseline_reproduction 의 max_abs_dmu_db 가 증거다. 헤드라인 관측이 나온 기체와 동일하다.",
+  "current_mesh": {
+   "n_vertices": 14225,
+   "n_triangles": 28366,
+   "tri_per_group": {
+    "body": 7792,
+    "canopy": 2240,
+    "motor": 2016,
+    "camera": 354,
+    "gear": 3176,
+    "battery": 24,
+    "pcb": 12,
+    "prop": 12752
+   }
+  },
+  "points": [
+   {
+    "f_ghz": 1.8,
+    "mu_current_source_dbsm": -21.6261,
+    "mu_in_this_sweep_dbsm": -24.3488,
+    "abs_diff_db": 2.722708
+   },
+   {
+    "f_ghz": 18.2,
+    "mu_current_source_dbsm": -13.2554,
+    "mu_in_this_sweep_dbsm": -13.477,
+    "abs_diff_db": 0.221645
+   }
+  ],
+  "max_abs_diff_db": 2.722708,
+  "ladder_total_spread_at_1p8_db": 0.0837,
+  "cad_over_grid_ratio": 32.5,
+  "reading": "CAD 개정이 μ 를 2.72 dB 움직인다 — 이 실험이 잰 **격자 사다리 전체 효과 0.084 dB 의 33 배**다. 저주파 격차의 후보가 표본화가 아니라 기하·물리 쪽에 있다는 이 실험의 결론과 같은 방향이다. ⚠ 다만 이 두 점은 개정된 CAD 의 **레벨** 변화일 뿐, 기울기 재판정이 아니다."
+ },
+ "reproducibility": {
+  "available": true,
+  "overlap": 63,
+  "max_abs_dmu_db": 0.000328,
+  "mean_abs_dmu_db": 2e-05,
+  "source": "같은 세션 09:58–10:41 의 선행 실행(스크래치 res_w*.json). 소스 파일은 그 뒤 변경 없음.",
+  "reading": "커널은 결정적(난수 없음)이라 0 이어야 한다."
+ },
+ "refit": {
+  "freqs_ghz": [
+   1.8,
+   2.62,
+   3.44,
+   4.26,
+   5.08,
+   5.9,
+   6.72,
+   7.54,
+   8.36,
+   9.18,
+   10.0,
+   10.82,
+   11.64,
+   12.46,
+   13.28,
+   14.1,
+   14.92,
+   15.74,
+   16.56,
+   17.38,
+   18.2
+  ],
+  "mu_lam16_dbsm": [
+   -24.3488,
+   -22.3165,
+   -21.3964,
+   -19.3579,
+   -19.3763,
+   -17.5469,
+   -18.6405,
+   -17.1776,
+   -15.6338,
+   -17.9875,
+   -16.3553,
+   -16.1847,
+   -16.7278,
+   -14.9775,
+   -16.6798,
+   -15.6949,
+   -17.2325,
+   -16.6094,
+   -15.1971,
+   -16.6162,
+   -13.477
+  ],
+  "mu_conv_dbsm": [
+   -24.67,
+   -22.3123,
+   -21.6564,
+   -19.2883,
+   -19.3146,
+   -17.5753,
+   -18.6591,
+   -17.3107,
+   -15.603,
+   -18.0067,
+   -16.3962,
+   -16.2744,
+   -16.6891,
+   -14.9763,
+   -16.6369,
+   -15.6458,
+   -17.2879,
+   -16.7448,
+   -15.1942,
+   -16.5683,
+   -13.4888
+  ],
+  "fits_lam16": {
+   "1.8-6.0": {
+    "a": 1.563355894926887,
+    "b": -26.742717201566006,
+    "R2": 0.9617428932794851,
+    "rmse_db": 0.43665825553667525,
+    "n": 6
+   },
+   "6.0-18.2": {
+    "a": 0.1986275674189655,
+    "b": -18.821014736120407,
+    "R2": 0.3343282328267647,
+    "rmse_db": 0.992956687051188,
+    "n": 15
+   },
+   "1.8-18.2": {
+    "a": 0.4197572470262567,
+    "b": -21.79445393349049,
+    "R2": 0.679503663656549,
+    "rmse_db": 1.4314078804839865,
+    "n": 21
+   }
+  },
+  "fits_converged": {
+   "1.8-6.0": {
+    "a": 1.631872480496486,
+    "b": -27.085521447396218,
+    "R2": 0.9528066551696307,
+    "rmse_db": 0.508605976019206,
+    "n": 6
+   },
+   "6.0-18.2": {
+    "a": 0.20196707077363302,
+    "b": -18.881984824964462,
+    "R2": 0.3376105118832119,
+    "rmse_db": 1.002251098506475,
+    "n": 15
+   },
+   "1.8-18.2": {
+    "a": 0.4267804670429842,
+    "b": -21.901090443371906,
+    "R2": 0.6734968433614636,
+    "rmse_db": 1.475468736993185,
+    "n": 21
+   }
+  },
+  "bootstrap_az_slope": {
+   "lam16": {
+    "1.8-6.0": {
+     "se": 0.07,
+     "ci95": [
+      1.4182,
+      1.6885
+     ]
+    },
+    "6.0-18.2": {
+     "se": 0.0347,
+     "ci95": [
+      0.1207,
+      0.2577
+     ]
+    },
+    "1.8-18.2": {
+     "se": 0.0337,
+     "ci95": [
+      0.3461,
+      0.4735
+     ]
+    }
+   },
+   "conv": {
+    "1.8-6.0": {
+     "se": 0.07,
+     "ci95": [
+      1.5008,
+      1.7716
+     ]
+    },
+    "6.0-18.2": {
+     "se": 0.0348,
+     "ci95": [
+      0.1363,
+      0.2687
+     ]
+    },
+    "1.8-18.2": {
+     "se": 0.0322,
+     "ci95": [
+      0.3638,
+      0.4869
+     ]
+    }
+   }
+  },
+  "note": "λ/16 열은 outputs/p3_ours.json el0 의 재계산이다 — 같은 코드경로·같은 인자."
+ },
+ "caveats": [
+  "수렴한 대상은 **이 삼각메쉬 위의 PO 면적분**이다. d=0.75 mm 는 메쉬 중앙값 모서리(5.85 mm)의 1/8 이라 격자는 형상을 다 표본화한다 — 대신 테셀레이션·CAD 형상 자체는 별개의 오차축이고 여기서 검증하지 않았다.",
+  "곡면 수렴은 단조롭지 않다(실루엣 grazing 위상 에일리어싱). 판정은 한 계단이 아니라 사다리 전체 추세로 했다.",
+  "λ/12 와 λ/16 을 구분해 읽어야 한다. 1.8 GHz 에서 λ/12 는 수렴값과 실제로 어긋나지만(패널 A 참조), 헤드라인 산출(p3_ours el0)은 λ/16 이고 거기서는 어긋남이 훨씬 작다.",
+  "PTD 모서리 프린지 항은 꺼져 있다(생산 규약 ptd=False). 프린지 기여는 저주파에서 상대적으로 커지므로 저대역 기울기를 바꿀 수 있는 **미검증 후보**다 — 이 실험은 그것을 배제하지 않는다.",
+  "1-bounce 다중반사 없음, 크리핑파·표면파 없음. 'PO 근본한계' 는 표본화를 배제한 음성 증거와 격차가 특징/λ 가 작은 구간에만 있다는 양성 증거의 결합이지, PO 오차를 직접 잰 것이 아니다.",
+  "el=0 단일 고도, 편파 없음(PO 면적분은 스칼라). Das 와의 **레벨** 비교에는 통계규약 오프셋(선형평균 vs dB영역평균)이 남아 있다 — 기울기 비교는 그 오프셋에 무관하다.",
+  "실행은 호스트(numpy) 병목이었다 — GPU 사용률 10~30%, 카드당 14~15 GB. GPU 메모리가 구속조건이 아니었다.",
+  "오차막대는 방위 부트스트랩과 격자 디더만 담는다. 메쉬·재질·기하 불확도는 들어 있지 않다.",
+  "⚠ 스윕이 끝난 뒤 다른 작업이 Phantom 3 CAD 를 개정했다(geometry_revised_after_run 참조). 이 산출물은 헤드라인 관측(a=+0.4198)이 나온 기체를 잰 것이고 — baseline_reproduction 이 증거다 — 대조군·실험군이 같은 기체라는 요건은 충족된다. 개정된 CAD 로 기울기를 다시 보려면 p3_ours 부터 재생성해야 한다."
+ ]
+}

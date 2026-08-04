@@ -1,0 +1,555 @@
+{
+  "_meta": {
+    "generated": "2026-08-03 09:47:34",
+    "generated_by": "scratchpad ptdwire/{verify_ptd_wiring,addendum,cost3,cost4,anchor_check,smoke2,smoke3,griddep}.py",
+    "task": "PTD 를 생산 SBR 경로에 배선한다 (ptd 기본 False, 기존 결과 불변)",
+    "gpu": "SIONNA2_GPU=0 (GPU2 의 benchmark/rcs_anchor.py 는 건드리지 않았다)",
+    "fc_hz": 3500000000.0,
+    "files": {
+      "src/rcs_sbr.py": "e85649b7ad1cc716463f62d16aee97ad12e40272582ae2531634294e73cf8eb8",
+      "src/ptd_edges.py": "9851f167e1ce01e02fd6902a30e12cf6f36b584a2c226b71edaca808215d9941",
+      "benchmark/rcs_anchor.py": "b45a92ed3f4ac1c3b557de82955a6cacccc20d14d51d2d6648e9c0303687321d"
+    },
+    "baseline_snapshot_sha256": "69dda15fadc0bb2dffd60432d8883507934ab099aa4eab0b64b0acc988a47d7a",
+    "wired_sha256": "e85649b7ad1cc716463f62d16aee97ad12e40272582ae2531634294e73cf8eb8"
+  },
+  "verdict": {
+    "wired_fns": [
+      "rcs_sbr_batch",
+      "rcs_sbr_multistatic",
+      "sbr_field"
+    ],
+    "bit_identical_ptd_false": true,
+    "max_abs_delta_sigma_ptd_false": 0.0,
+    "phase_convention_matches": true,
+    "gates_consistent": true,
+    "cost_increase_pct": 47.171097236570425,
+    "anchor_job_safe": true,
+    "ptd_default_is_false": true
+  },
+  "wiring": {
+    "how": "σ = (4π/λ²)|E_면적분 + A_FW|². E_면적분 은 기존 그대로이고 모서리항 A_FW [m²] 는 ptd_edges.edge_field 가 낸다. ptd=False 면 A_FW 를 아예 계산하지 않고 (ptd_edges import 조차 안 한다) 식이 원본과 글자 그대로 같다.",
+    "entry_points": {
+      "rcs_sbr_batch": "ptd=False, ptd_pol='V', ptd_opts=None — 방위각마다 A_FW 1 개(jitter 루프 밖)",
+      "rcs_sbr_multistatic": "동일 + exit_vis 를 모서리 가림에 그대로 물려준다. symmetrize 재귀에도 전달",
+      "sbr_field": "복소장 E+A_FW 를 돌려준다(하류 마이크로도플러가 위상을 그대로 쓴다)"
+    },
+    "not_wired": {
+      "rcs_sbr(max_bounce>=2)": "다중반사 커널에는 배선하지 않았다 — 프린지 EEC 는 1 차 회절이고 2-bounce 경로의 모서리 대응물이 정식화돼 있지 않다. 생산 σ 는 전부 1-bounce 다.",
+      "penetrate 투과 기여": "셸 통과 내부금속 기여에는 모서리항을 붙이지 않는다. 내부 금속 모서리는 외부 씬 가림판정에서 대부분 떨어진다(프린지 계수는 PEC 유도, 셸 투과계수를 곱할 근거 없음)."
+    },
+    "diagnostics": "rcs_sbr._LAST_PTD (마지막 호출의 원점·비용·가림·조각수. 전역이라 진단 전용)"
+  },
+  "A_bit_identity_ptd_false": {
+    "criterion": "배선 직전 스냅샷 모듈과 **바이트 단위** 동일 (max|Δσ| = 0.0)",
+    "all_bit_identical": true,
+    "max_abs_delta_over_all_cases": 0.0,
+    "kernel_run_to_run_deterministic": true,
+    "synthetic_cases": [
+      {
+        "case": "batch/PEC sphere r=0.3 div12 J2 az6",
+        "n": 6,
+        "bit_identical": true,
+        "max_abs_delta": 0.0,
+        "ref_scale": 0.28657276797187403
+      },
+      {
+        "case": "batch/PEC plate off-origin div10 J1 el90",
+        "n": 2,
+        "bit_identical": true,
+        "max_abs_delta": 0.0,
+        "ref_scale": 13.835261067774677
+      },
+      {
+        "case": "batch/shell+inner metal penetrate=True J2 el15",
+        "n": 4,
+        "bit_identical": true,
+        "max_abs_delta": 0.0,
+        "ref_scale": 0.013467847317675046
+      },
+      {
+        "case": "batch/shell penetrate=False chunk_az=1",
+        "n": 4,
+        "bit_identical": true,
+        "max_abs_delta": 0.0,
+        "ref_scale": 0.0341335239348545
+      },
+      {
+        "case": "multistatic/shell exit_vis=True 3Rx",
+        "n": 3,
+        "bit_identical": true,
+        "max_abs_delta": 0.0,
+        "ref_scale": 0.02457574997402318
+      },
+      {
+        "case": "multistatic/shell exit_vis=False 3Rx",
+        "n": 3,
+        "bit_identical": true,
+        "max_abs_delta": 0.0,
+        "ref_scale": 0.02457574997402318
+      },
+      {
+        "case": "multistatic/shell symmetrize=True 2Rx",
+        "n": 2,
+        "bit_identical": true,
+        "max_abs_delta": 0.0,
+        "ref_scale": 0.02698408179568489
+      },
+      {
+        "case": "sbr_field/shell complex E (penetrate=True)",
+        "n": 1,
+        "bit_identical": true,
+        "max_abs_delta": 0.0,
+        "ref_scale": 0.001437847671734314
+      },
+      {
+        "case": "sbr_field/plate complex E (penetrate=False)",
+        "n": 1,
+        "bit_identical": true,
+        "max_abs_delta": 0.0,
+        "ref_scale": 0.011222545428028752
+      }
+    ],
+    "production_mesh_cases": [
+      {
+        "drone": "mavic4pro",
+        "fc_ghz": 3.5,
+        "el": 15.0,
+        "div": 16,
+        "n_az": 8,
+        "bit_identical": true,
+        "max_abs_delta": 0.0,
+        "mean_dbsm_po": -16.047029915899166,
+        "mean_dbsm_po_ptd": -16.496518011458445,
+        "delta_ptd_db_absmax": 2.616443412177759,
+        "n_edges": 11057,
+        "metal_len_frac": 0.14311202543618903,
+        "edge_len_used_m": 29.465341564844756,
+        "n_drop_occluded": 1112,
+        "n_seg_used": 6462
+      },
+      {
+        "drone": "mavic4pro",
+        "fc_ghz": 1.843,
+        "el": 0.0,
+        "div": 16,
+        "n_az": 8,
+        "bit_identical": true,
+        "max_abs_delta": 0.0,
+        "mean_dbsm_po": -15.807971863226323,
+        "mean_dbsm_po_ptd": -16.183473217668322,
+        "delta_ptd_db_absmax": 2.0450211612121016,
+        "n_edges": 11057,
+        "metal_len_frac": 0.14311202543618903,
+        "edge_len_used_m": 18.8394581083347,
+        "n_drop_occluded": 2621,
+        "n_seg_used": 3968
+      },
+      {
+        "drone": "mini5pro",
+        "fc_ghz": 3.5,
+        "el": 15.0,
+        "div": 16,
+        "n_az": 8,
+        "bit_identical": true,
+        "max_abs_delta": 0.0,
+        "mean_dbsm_po": -20.687941956578648,
+        "mean_dbsm_po_ptd": -20.854666883183857,
+        "delta_ptd_db_absmax": 0.8025190882868252,
+        "n_edges": 10555,
+        "metal_len_frac": 0.1485591043858527,
+        "edge_len_used_m": 18.7997817956538,
+        "n_drop_occluded": 853,
+        "n_seg_used": 6657
+      },
+      {
+        "drone": "mini5pro",
+        "fc_ghz": 1.843,
+        "el": 0.0,
+        "div": 16,
+        "n_az": 8,
+        "bit_identical": true,
+        "max_abs_delta": 0.0,
+        "mean_dbsm_po": -22.613702897896957,
+        "mean_dbsm_po_ptd": -22.723076148242072,
+        "delta_ptd_db_absmax": 1.8782269795324638,
+        "n_edges": 10555,
+        "metal_len_frac": 0.1485591043858527,
+        "edge_len_used_m": 12.913189358208012,
+        "n_drop_occluded": 2241,
+        "n_seg_used": 4300
+      }
+    ],
+    "production_all_bit_identical": true,
+    "final_recheck_after_last_edit": {
+      "final_bit_identical_batch": true,
+      "final_bit_identical_multistatic": true,
+      "final_max_abs_delta": 0.0
+    },
+    "note": "합성표적 9 케이스(구·평판·셸투과·chunk_az·멀티스태틱 exit_vis/symmetrize·복소장) + 생산 드론 메쉬 4 케이스(mavic4pro/mini5pro × 5G/LTE, div=16). 전부 0.0."
+  },
+  "B_phase_convention": {
+    "surface": "exp(+j k (u_i+u_s)·(P − ctr)),  ctr = 0.5*(V.max(0)+V.min(0))",
+    "edge": "exp(+j k q·(R_c − org)),  q = u_i+u_s,  org = ptd_edges.sbr_phase_origin(mesh)",
+    "origin_bitwise_equal": true,
+    "origin_max_abs_diff_m": 0.0,
+    "monostatic_exponent_max_abs_diff": 0.0,
+    "bistatic_exponent_max_abs_diff": 0.0,
+    "translation_invariance_wired_db": 0.00024121639531671235,
+    "translation_invariance_wrong_origin_db": 7.561110996462368,
+    "origin_guard_raises_on_mismatch": true,
+    "matches": true,
+    "note": "물리 시험: 표적을 (0.137,−0.29,0.051) m 평행이동해도 코히어런트 합 σ 가 불변이어야 한다. 배선판 0.00024 dB. **반증 대조군** — 모서리항만 원점 (0,0,0) 으로 두면 같은 시험이 7.56 dB 로 깨진다 → 이 시험은 무력한 항등식이 아니다."
+  },
+  "C_gates": {
+    "illumination": {
+      "surface_rule": "first-hit AND (n̂·û_i > 1e-6)",
+      "edge_rule": "인접면 중 하나라도 lit: (n̂₁·û_i > 0) OR (n̂₂·û_i > 0)  [Michaeli 단위계단이 면별 처리]",
+      "lit_rule_checks": 5760,
+      "lit_face1_mismatch_vs_n1_dot_u": 0,
+      "lit_face2_mismatch_vs_n2_dot_u": 0,
+      "edges_in_threshold_gap_0_to_1e-6": 0,
+      "note": "edge_field 내부의 sin(φ')>0 / sin(Nπ−φ')>0 이 n̂·û>0 과 동치임을 40 방향 × 72 모서리 = 5760 판정에서 **불일치 0** 으로 실측했다. 남는 차이는 문턱 1e-6 ↔ 0 뿐이고 그 사이 구간에 걸린 모서리는 0 개였다(측도 0 인 grazing 극한)."
+    },
+    "occlusion": {
+      "surface_rule": "입사=first-hit(끌 수 없음) · 출사=_exit_visible() 그림자광선(exit_vis 스위치)",
+      "edge_rule": "같은 씬에 그림자광선 — 입사 û_i 는 항상, 출사 û_s 는 exit_vis 일 때만. 전진거리 EXIT_CLEARANCE/EXIT_COSMIN = 5.0e-04 m (면적분의 최대 전진거리와 동일)",
+      "false_occlusion_on_convex_targets": {
+        "plate_n_drop_occluded": 0,
+        "sphere_n_drop_occluded": 0,
+        "note": "볼록·비가림 표적에서 가짜 가림 0 (no-op 임을 확인)"
+      },
+      "real_occlusion_blocked_pair": {
+        "az8_el25": {
+          "n_drop_occluded": 2,
+          "n_seg_used_occl_on": 16,
+          "n_seg_used_occl_off": 18,
+          "length_used_m_occl_on": 3.0200000000000005,
+          "length_used_m_occl_off": 3.144,
+          "n_drop_sin_a_occl_off": 0,
+          "n_drop_edge_on_occl_off": 0,
+          "n_seg_total": 24,
+          "A_abs_occl_on": 0.0005104822932008505,
+          "A_abs_occl_off": 0.0004953594078904248
+        },
+        "az0_el0_degenerate": {
+          "n_drop_occluded": 4,
+          "n_seg_used_occl_on": 0,
+          "n_seg_used_occl_off": 0,
+          "length_used_m_occl_on": 0.0,
+          "length_used_m_occl_off": 0.0,
+          "n_drop_sin_a_occl_off": 8,
+          "n_drop_edge_on_occl_off": 8,
+          "n_seg_total": 24,
+          "A_abs_occl_on": 0.0,
+          "A_abs_occl_off": 0.0
+        }
+      },
+      "surface_first_hit_probe": {
+        "az0_el0": {
+          "n_hits_valid": 3249,
+          "n_hits_back_plate_x_lt_0": 0,
+          "n_lit_back_plate": 0,
+          "n_lit_front_plate": 3249
+        },
+        "az8_el25": {
+          "n_hits_valid": 3011,
+          "n_hits_back_plate_x_lt_0": 206,
+          "n_lit_back_plate": 206,
+          "n_lit_front_plate": 2805
+        }
+      },
+      "exit_vis_coupling": {
+        "exit_vis_True": {
+          "sigma_dbsm": -14.62089421053344,
+          "A_edge_abs": 0.0044885184640006915,
+          "n_drop_occluded": 4,
+          "n_seg_used": 4,
+          "length_used_m": 1.208
+        },
+        "exit_vis_False": {
+          "sigma_dbsm": -5.310823451864696,
+          "A_edge_abs": 0.005995846009837225,
+          "n_drop_occluded": 0,
+          "n_seg_used": 8,
+          "length_used_m": 2.408
+        },
+        "exit_gate_distinguishes": true
+      },
+      "bistatic_counts": {
+        "mono": 3,
+        "bistatic": 1,
+        "note": "바이스태틱 쪽 drop 수가 작은 것은 가림이 약해서가 아니라 û_s 외부영역 게이트가 후보를 먼저 줄이기 때문(분모가 다르다)."
+      },
+      "production_mesh": {
+        "n_drop_occluded_range": [
+          853,
+          2621
+        ],
+        "note": "실제 드론 메쉬에서 방위 8 자세당 853~2621 조각이 가림으로 떨어진다(게이트가 실동)"
+      }
+    },
+    "consistent": true
+  },
+  "D_cost": {
+    "headline": {
+      "setting": "drone-like 합성표적 · div=16 · 120 자세 · jitter=2 · 짝지어 11 회",
+      "per_pose_ms_ptd_false_median": 28.040008697037894,
+      "per_pose_ms_ptd_true_median": 41.26678846466044,
+      "paired_delta_ms_per_pose_median": 13.226779767622551,
+      "cost_increase_pct_median": 47.171097236570425,
+      "ratio_min": 0.9786986954130924,
+      "ratio_max": 1.8010443783202885
+    },
+    "by_setting": [
+      {
+        "tag": "drone-like div16 (production)",
+        "div": 16,
+        "n_az": 120,
+        "n_rep": 7,
+        "n_faces": 276,
+        "n_edges": 276,
+        "per_pose_ms_ptd_false_min": 27.470020189260442,
+        "per_pose_ms_ptd_true_min": 28.930430005614955,
+        "ratio_median": 1.6228483381418268,
+        "ratio_min": 1.0470815563216496,
+        "ratio_max": 1.8281645788783323,
+        "cost_increase_pct_median": 62.28483381418268,
+        "t_edge_extract_once_s": 5.850568413734436e-06,
+        "delta_sigma_db_rms": 0.6851927817375193,
+        "delta_sigma_db_absmax": 1.843215151699809
+      },
+      {
+        "tag": "drone-like div16 short sweep",
+        "div": 16,
+        "n_az": 24,
+        "n_rep": 7,
+        "n_faces": 276,
+        "n_edges": 276,
+        "per_pose_ms_ptd_false_min": 35.49616667442024,
+        "per_pose_ms_ptd_true_min": 22.763902864729364,
+        "ratio_median": 1.5268281497331118,
+        "ratio_min": 0.6017307511084097,
+        "ratio_max": 1.673295436873807,
+        "cost_increase_pct_median": 52.682814973311174,
+        "t_edge_extract_once_s": 8.266419172286987e-06,
+        "delta_sigma_db_rms": 0.730657839823992,
+        "delta_sigma_db_absmax": 1.5558758791970746
+      },
+      {
+        "tag": "drone-like div24 (fine grid)",
+        "div": 24,
+        "n_az": 120,
+        "n_rep": 7,
+        "n_faces": 276,
+        "n_edges": 276,
+        "per_pose_ms_ptd_false_min": 56.87468325098356,
+        "per_pose_ms_ptd_true_min": 65.0170774043848,
+        "ratio_median": 1.0813427932103983,
+        "ratio_min": 1.0356289647594967,
+        "ratio_max": 1.4307778399683053,
+        "cost_increase_pct_median": 8.134279321039827,
+        "t_edge_extract_once_s": 4.017725586891174e-06,
+        "delta_sigma_db_rms": 0.6886855760392584,
+        "delta_sigma_db_absmax": 1.6902307107186303
+      },
+      {
+        "tag": "synthetic shell div12",
+        "div": 12,
+        "n_az": 120,
+        "n_rep": 7,
+        "n_faces": 72,
+        "n_edges": 72,
+        "per_pose_ms_ptd_false_min": 11.553134272495905,
+        "per_pose_ms_ptd_true_min": 16.168781261270244,
+        "ratio_median": 2.535616800412352,
+        "ratio_min": 1.137650205487593,
+        "ratio_max": 2.9098815871463275,
+        "cost_increase_pct_median": 153.5616800412352,
+        "t_edge_extract_once_s": 3.2801181077957153e-06,
+        "delta_sigma_db_rms": 1.2713907560236961,
+        "delta_sigma_db_absmax": 2.587589039641628
+      }
+    ],
+    "small_target_setting": {
+      "n_poses": 24,
+      "n_repeat": 5,
+      "div": 12,
+      "t_ptd_false_s_min": 0.2341939602047205,
+      "t_ptd_true_s_min": 1.081174362450838,
+      "t_ptd_false_s_all": [
+        0.6279674079269171,
+        0.5908068399876356,
+        0.588953135535121,
+        0.2341939602047205,
+        0.5872933175414801
+      ],
+      "t_ptd_true_s_all": [
+        1.0960482265800238,
+        1.081174362450838,
+        1.0969181805849075,
+        1.0880511458963156,
+        1.095705097541213
+      ],
+      "per_pose_ms_ptd_false": 9.758081675196687,
+      "per_pose_ms_ptd_true": 45.04893176878492,
+      "per_pose_ms_edge_only": 20.442330045625567,
+      "cost_increase_pct": 361.65766252286363,
+      "t_edge_extract_once_s": 5.109235644340515e-06,
+      "n_edges": 72,
+      "delta_sigma_db_absmax": 2.587589039641628,
+      "note": "min-of-5 (GPU 를 다른 작업과 공유중이라 평균은 오염된다). 모서리 추출은 메쉬·fc 당 1 회 캐시 → 스윕에는 t_edge 만 반복된다."
+    },
+    "first_call_extra": {
+      "t_edge_extract_once_s_range": [
+        3.2801181077957153e-06,
+        8.266419172286987e-06
+      ],
+      "note": "extract_edges 는 (메쉬, fc, 추출파라미터) 당 1 회만 — rcs_sbr._EDGE_CACHE"
+    },
+    "model": "모서리항의 per-pose 비용은 **거의 상수**(방위당 edge_field 1 회 + 그림자광선 1 발)이고 면적분은 격자²로 커진다 → 증가율은 설정 의존이다. 측정 범위 +8 ~ +154 %.",
+    "measurement_caveat": "GPU 0 을 남의 100% util 작업과 공유중이라 단발 wall-clock 이 2.5 배까지 흔들렸다(초기 측정에서 물리적으로 불가능한 음수 증가율이 나왔다). 그래서 **같은 반복 안에서 (false,true) 를 붙여 재고 비율의 중앙값**을 쓴다. ratio_min<1 인 반복이 남아 있는 것은 경합 잡음이다."
+  },
+  "E_attach_to_sbr_field": {
+    "status": "이 배선 라운드에서 **처음 실행**됐다 (D-10 의 '아직 한 번도 실행되지 않았다' 해소)",
+    "sigma_attach_dbsm": -25.247497938666616,
+    "sigma_wired_dbsm": -25.247497938666616,
+    "delta_db": 0.0,
+    "field_bit_identical": true,
+    "occlusion_effect_db": -1.2252370240915411,
+    "note": "attach_to_sbr_field 에는 가림 훅이 없다 → 배선 쪽을 occlusion=False 로 맞춰 비교하면 E+A 가 **비트 동일**이다. 생산 기본값(가림 켬)은 이 표적에서 -1.23 dB 낮다 — 셸 안쪽 금속 모서리가 떨어지기 때문."
+  },
+  "F_effect_size": {
+    "production_drones_8az": [
+      {
+        "drone": "mavic4pro",
+        "fc_ghz": 3.5,
+        "el": 15.0,
+        "div": 16,
+        "mean_dbsm_po": -16.047029915899166,
+        "mean_dbsm_po_ptd": -16.496518011458445,
+        "delta_ptd_db_absmax": 2.616443412177759,
+        "n_edges": 11057,
+        "metal_len_frac": 0.14311202543618903,
+        "n_seg_used": 6462,
+        "n_drop_occluded": 1112
+      },
+      {
+        "drone": "mavic4pro",
+        "fc_ghz": 1.843,
+        "el": 0.0,
+        "div": 16,
+        "mean_dbsm_po": -15.807971863226323,
+        "mean_dbsm_po_ptd": -16.183473217668322,
+        "delta_ptd_db_absmax": 2.0450211612121016,
+        "n_edges": 11057,
+        "metal_len_frac": 0.14311202543618903,
+        "n_seg_used": 3968,
+        "n_drop_occluded": 2621
+      },
+      {
+        "drone": "mini5pro",
+        "fc_ghz": 3.5,
+        "el": 15.0,
+        "div": 16,
+        "mean_dbsm_po": -20.687941956578648,
+        "mean_dbsm_po_ptd": -20.854666883183857,
+        "delta_ptd_db_absmax": 0.8025190882868252,
+        "n_edges": 10555,
+        "metal_len_frac": 0.1485591043858527,
+        "n_seg_used": 6657,
+        "n_drop_occluded": 853
+      },
+      {
+        "drone": "mini5pro",
+        "fc_ghz": 1.843,
+        "el": 0.0,
+        "div": 16,
+        "mean_dbsm_po": -22.613702897896957,
+        "mean_dbsm_po_ptd": -22.723076148242072,
+        "delta_ptd_db_absmax": 1.8782269795324638,
+        "n_edges": 10555,
+        "metal_len_frac": 0.1485591043858527,
+        "n_seg_used": 4300,
+        "n_drop_occluded": 2241
+      }
+    ],
+    "grid_dependence": {
+      "mean_level_shift_spread_db": 0.05994145940450868,
+      "po_mean_spread_db": 0.5661112603916223,
+      "rows": [
+        {
+          "div": 12,
+          "mean_dbsm_po": -17.33634266574562,
+          "mean_dbsm_po_ptd": -16.78192965084564,
+          "mean_level_shift_db": 0.5544130148999767,
+          "delta_db_rms": 0.4531811982653605,
+          "delta_db_absmax": 1.3869464085895338
+        },
+        {
+          "div": 16,
+          "mean_dbsm_po": -16.770231405353996,
+          "mean_dbsm_po_ptd": -16.204955760351677,
+          "mean_level_shift_db": 0.5652756450023233,
+          "delta_db_rms": 0.5437703821447101,
+          "delta_db_absmax": 1.5558758791970746
+        },
+        {
+          "div": 20,
+          "mean_dbsm_po": -17.13723156004409,
+          "mean_dbsm_po_ptd": -16.527126198393503,
+          "mean_level_shift_db": 0.6101053616505829,
+          "delta_db_rms": 0.5514231645997726,
+          "delta_db_absmax": 1.2997834557737526
+        },
+        {
+          "div": 24,
+          "mean_dbsm_po": -16.992683088861856,
+          "mean_dbsm_po_ptd": -16.37832861455737,
+          "mean_level_shift_db": 0.6143544743044854,
+          "delta_db_rms": 0.48480639183497304,
+          "delta_db_absmax": 1.332730925781739
+        }
+      ]
+    },
+    "note": "PTD 를 켜면 드론 평균 σ 가 +0.55~+0.61 dB 움직이고 자세별로는 ±2.6 dB 까지 바뀐다. ⭐ **격자 의존성**: 평균 레벨이동은 div 12→24 에서 0.060 dB 밖에 안 흔들리는데, PO 절대레벨 자체는 같은 구간에서 0.566 dB 흔들린다 → 프린지 보정은 격자보다 강건하다. 그래도 λ/20 미만 격자에서는 커널이 경고를 출력한다(D-8)."
+  },
+  "anchor_switch": {
+    "file": "benchmark/rcs_anchor.py",
+    "cli": [
+      "--ptd (store_true, 기본 False)",
+      "--ptd-pol {V,H} (기본 V)"
+    ],
+    "signatures": {
+      "raw_sigma_az": "(drone, fc, el, n_az=360, div=16, ptd=False, ptd_pol='V')",
+      "run_all": "(drones=['mini5pro', 'mavic4pro', 'matrice4e', 's1000plus', 'phantom4'], bands={'LTE 1.843 GHz': 1843000000.0, '5G 3.5 GHz': 3500000000.0, 'WiFi 5.21 GHz': 5210000000.0}, els=(0.0, 15.0), n_az_band=720, n_az_reg=360, div=16, out_path=None, ptd=False, ptd_pol='V')"
+    },
+    "default_ptd_false": true,
+    "sphere_calibration_stays_po_only": true,
+    "out_path_split": "--ptd 이고 --out 미지정이면 outputs/rcs_anchor_ptd.json 으로 간다 — PO-only 헤드라인 outputs/rcs_anchor.json 을 덮을 수 없다.",
+    "running_job_safety": {
+      "pid": 1364837,
+      "cmd": "benchmark/rcs_anchor.py (GPU2)",
+      "safe": true,
+      "why": [
+        "CPython 은 메인 스크립트를 시작 시 1 회 읽고 컴파일한다 — 실행 중 재읽기 없음",
+        "열린 fd 확인: 소스 파일 핸들 없음(로그·optix 캐시뿐)",
+        "self-hash·provenance·subprocess 재실행·multiprocessing spawn 없음(파일 전수 확인)",
+        "모든 import 는 모듈 로드 시점에 끝났다 → 편집한 rcs_sbr.py 도 재읽기 안 됨",
+        "출력 경로를 갈라 두어 --ptd 실행이 그 작업의 산출을 덮을 수 없다",
+        "GPU2 를 쓰지 않았다(전 검증 SIONNA2_GPU=0)"
+      ],
+      "residual_risk": "그 프로세스가 **예외로 죽을 경우** traceback 이 linecache 로 편집 후 소스를 읽어 줄 번호가 어긋나 보일 수 있다(표시상 문제뿐, 계산·산출 무관)."
+    }
+  },
+  "limitations": [
+    "PTD 는 ptd_edges 의 1 차 비절단 Michaeli EEC 다 — TW 절단·2 차 회절·코너 회절 미구현(ptd_edges.NOT_IMPLEMENTED).",
+    "metal_only=True 기본 — 양쪽 인접면이 |Γ|≥0.999 인 모서리에만 붙는다(생산 드론에서 금속 모서리 길이비 ~0.14).",
+    "오목(reentrant, N<1) 모서리는 ptd_edges 가 기본적으로 버린다(D-3).",
+    "투과(셸 통과) 기여에는 모서리항 없음 — 내부 금속 모서리는 외부 씬 가림에서 떨어진다.",
+    "rcs_sbr(max_bounce>=2) 경로는 배선하지 않았다.",
+    "PO 는 스칼라(|Γ| 가중), 프린지만 편파를 갖는다 → 두 항을 더할 때 PO 를 두 편파에 공통으로 쓴다(ptd_edges §9.2).",
+    "광선격자 λ/20 미만이면 경고를 낸다(D-8). 차단하지는 않는다 — SBR 격자는 rcs_po 점구름과 다른 이산화라 문턱을 그대로 옮길 근거가 없다.",
+    "비용 측정은 공용 GPU 경합 하에서 이뤄졌다(중앙값·짝지은 비율로 완화)."
+  ]
+}

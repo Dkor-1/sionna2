@@ -1,0 +1,926 @@
+{
+ "meta": {
+  "target": "DJI Mini 2",
+  "registry_key": "mini2",
+  "purpose": "DJI Mini 2 airframe research in the SAME field schema and the SAME source classes used for the registered targets (src/drones.py DroneSpec + src/drone_cad.py shape tables). Written because Das et al. (IEEE WCL 2026) measured this airframe in an anechoic chamber and printed its RCS fit coefficients in Table III - see outputs/das_fleet_spec.json airframes.mini2. Fitting a mesh to it takes the mesh-method validation from N=1 to N=4.",
+  "date": "2026-08-03",
+  "method": "manufacturer specs (DJI User Manual v1.0 2020.11 / Quick Start Guide v1.4 / accessory user guides) + DIRECT MEASUREMENT of DJI's own published 3D CAD (GLB) + FCC certification exhibits (public record, ruler in frame) + iFixit teardown. No RCS quantity was consulted while writing the geometry fields.",
+  "grades": {
+   "VERIFIED": "published by the manufacturer",
+   "MEASURED": "measured by me off a manufacturer artefact (here: DJI's own GLB CAD), with the scale check recorded",
+   "DERIVED": "solved from VERIFIED/MEASURED quantities, derivation written out",
+   "UNKNOWN": "not published and not derivable - left empty on purpose, no invented number"
+  },
+  "photos": "assets/photos/mini2/ (86 files) - see its SOURCES.md. Integrity re-checked 2026-08-03: all 86 decode, md5-unique (0 duplicates).",
+  "do_not_touch": "This file is a NEW artefact. p3_*.json, phantom3/mavic4pro/matrice4e assets, sigma_*.json, anchor_subband*.json, teammeeting_0804/* were not read or written. src/drones.py was NOT edited - registering mini2 is a separate decision.",
+  "photo_set_correction": "One file was removed and three added after a byte-level audit. mini2_d04_official_folded_rear34_white.jpg was labelled a folded rear-3/4 render but its bytes are IDENTICAL to d03 (md5 e7c6cc96c4c707e0c5fa7fa7bcf006bf, 26964 B); DJI's CDN serves the same image at two different hash paths, so the rear view never existed. It was deleted and replaced by three genuinely new official renders pulled from the same Wayback-recovered product-page HTML: d11 (unfolded SIDE elevation, 2696x1124), d12 (unfolded FRONT elevation, 1200x480), d13 (folded top-rear iso, 3840x2160 - highest-res folded shot in the set). Rear coverage remains via CAD orthographic d21/d41 and ruler-bearing FCC photos p13/p14. Candidate pool also contained other DJI aircraft (Air 2S, Matrice 300, FPV, Agras, Phantom 4) which were identified and REJECTED rather than filed under mini2."
+ },
+ "variant": {
+  "chosen": "DJI Mini 2 (2020-11 launch, international version, aircraft model MT2WD / MT2PD)",
+  "das_specifies_variant": false,
+  "das_evidence": "Das et al., IEEE WCL 2026, Table I ('AAV MEASUREMENT SETTINGS') names the column only 'DJI Mini 2', with Dimension 15.9 cm x 20.3 cm, Frequency Band 21-27 GHz, 501 frequency points, azimuth 0<=phi(=0.5deg)<=360deg, TX-RX distance Far-field, Environment Anechoic. Das attributes this airframe's data to ref [7] (Wang et al., China Commun. 2026) via Prof. Wei Fan.",
+  "identification_evidence": [
+   "FCC product label exhibit (SS3-MT2WD2007) prints literally 'DJI Mini 2', 'Model: MT2WD', and 'Powered by battery: 7.7V 2250mAh, 17.32Wh'. The battery string matches the User Manual v1.0 p.47 Intelligent Flight Battery (International Version) exactly (2250 mAh / 7.7 V / 17.32 Wh). File assets/photos/mini2/mini2_m08_fcc_mt2wd_product_label.png.",
+   "The DJI Mini 2 SE is a SEPARATE FCC grant, SS3-MT2SD22, whose fccid.io title is 'DJI Mini 2 SE'. Nothing in this folder comes from that grant.",
+   "The internal DJI model code of the Mini 2 is WM161 - the official 3D assets are named WM161_zhankai_1k.glb (unfolded) and wm161_v11_zhedie_1k.glb (folded).",
+   "Propeller blade count is 2 per rotor, confirmed three ways: manual p.20 ('The two blades attached to one motor are the same'), the GLB (8 blade parts / 4 rotors), and FCC external photo mini2_c07 (the apparent third blade is the grey ARM)."
+  ],
+  "jp_version_difference": {
+   "note": "DJI sells a Japan-market version at 199 g with a smaller battery. It is NOT the one measured/modelled here.",
+   "takeoff_weight_g": 199,
+   "folded_mm": [
+    138,
+    81,
+    57
+   ],
+   "unfolded_mm": [
+    159,
+    202,
+    55
+   ],
+   "unfolded_with_props_mm": [
+    245,
+    289,
+    55
+   ],
+   "battery": {
+    "capacity_mah": 1065,
+    "voltage_v": 7.6,
+    "energy_wh": 8.09,
+    "weight_g": 48.9
+   }
+  }
+ },
+ "das_dimension_reconciliation": {
+  "question": "Das Table I gives '15.9 cm x 20.3 cm'. What are those two numbers, and was the aircraft folded or unfolded?",
+  "answer": "UNFOLDED, PROPELLERS EXCLUDED. The pair is (length x width) of DJI's published 'Unfolded: 159x203x56 mm'.",
+  "folded_state": "unfolded (propellers excluded)",
+  "evidence": {
+   "1_literal_string_match": "DJI User Manual v1.0 p.45 lists three dimension strings for the international version: Folded 138x81x58 mm, Unfolded 159x203x56 mm, Unfolded (with propellers) 245x289x56 mm. Only the middle one contains both 159 and 203. Character-for-character.",
+   "2_official_cad_bbox": {
+    "measured_props_excluded_mm": [
+     159.1,
+     203.4,
+     56.0
+    ],
+    "dji_published_unfolded_mm": [
+     159,
+     203,
+     56
+    ],
+    "error_pct": [
+     0.06,
+     0.2,
+     0.0
+    ],
+    "how": "DJI's own GLB (WM161_zhankai_1k.glb), all parts EXCEPT the 8 propeller-blade meshes, axis-aligned bounding box, model is in metres.",
+    "note": "This is the strongest single piece of evidence: DJI's CAD reproduces DJI's spec string to 0.2%, and that string is exactly Das's number pair."
+   },
+   "3_with_props_consistency": {
+    "measured_props_included_as_modelled_mm": [
+     211.0,
+     265.0,
+     56.4
+    ],
+    "max_swing_length_mm": 244.4,
+    "max_swing_width_mm": 290.0,
+    "dji_published_mm": [
+     245,
+     289,
+     56
+    ],
+    "note": "A 2-blade propeller has a free rotation angle, so the with-props bbox is not unique. DJI's 245x289 corresponds to the MAXIMUM-extent configuration, which the CAD reproduces to 0.2-0.3%. The as-modelled GLB prop angles give a smaller box, as expected."
+   },
+   "4_sister_airframe_same_convention": "Das Table I also lists DJI M350 RTK as '81.0 cm x 67.0 cm', which equals DJI's published M350 RTK unfolded-without-propellers 810 x 670 mm. Mini 2 and M350 RTK are the two airframes Das attributes to ref [7]. Same source, same convention (manufacturer 'unfolded, props excluded' L x W)."
+  },
+  "what_this_does_NOT_settle": [
+   "Whether Das's chamber measurement was made with the propellers FITTED or REMOVED. The reconciliation above only identifies which published dimension string Table I quotes; it says nothing about the hardware state on the positioner.",
+   "Propeller rotational angle during the measurement (matters for a 0.5 deg azimuth sweep at 21-27 GHz, where the blade is ~8-10 wavelengths long).",
+   "Polarisation - das_fleet_spec.json already flags airframes.mini2.polarisation as UNVERIFIED."
+  ],
+  "correction_to_repo_note": {
+   "affects": "outputs/das_fleet_spec.json -> airframes.mini2.dimensions.note and airframes.m350rtk.dimensions.note",
+   "existing_text": "Both say 'Table I is not explicit about what the two numbers mean' and read the Phantom 3 column as (diagonal x height) by analogy with Yuan.",
+   "finding": "For mini2 (and, by the same argument, m350rtk) the pair is (length x width) unfolded, props excluded - NOT (diagonal x height). The Mini 2 motor diagonal is 213 mm, which is neither 159 nor 203.",
+   "so_what": "Das Table I's 'Dimension' row does NOT use one convention across columns. That is consistent with the columns having different upstream sources (Phantom 3 <- Yuan; Mini 2 and M350 RTK <- ref [7] Wang et al.). This entry RECORDS that; it does not edit das_fleet_spec.json."
+  }
+ },
+ "registry_fields": {
+  "_comment": "same names as drones.DroneSpec (z-up, forward = +x, angles CCW from +x). value=null means UNKNOWN. NOTHING here has been written into src/drones.py.",
+  "key": {
+   "value": "mini2",
+   "grade": "n/a"
+  },
+  "name": {
+   "value": "DJI Mini 2",
+   "grade": "VERIFIED",
+   "src": [
+    "S1",
+    "S5"
+   ]
+  },
+  "diagonal_mm": {
+   "value": 213.0,
+   "grade": "VERIFIED",
+   "note": "DJI publishes 'Diagonal Distance 213 mm' directly (User Manual v1.0 p.45). This is motor-to-motor, propellers excluded.",
+   "independent_check": "Measured on DJI's own GLB: front-hub to opposite rear-hub = 213.91 mm, i.e. +0.4%. Two DJI artefacts agree.",
+   "src": [
+    "S1",
+    "S6"
+   ]
+  },
+  "weight_g": {
+   "value": 249.0,
+   "grade": "VERIFIED",
+   "note": "DJI publishes 'Takeoff Weight <249 g (International version)' - a REGULATORY CEILING (the sub-250 g class), not a measured mass. Treat 249 as an upper bound; the true takeoff weight is a few grams under. JP version is 199 g.",
+   "src": [
+    "S1"
+   ]
+  },
+  "body_l_mm": {
+   "value": 137.7,
+   "grade": "MEASURED",
+   "note": "Fuselage SHELL only (GLB part 'Default_4', 16766 verts), fore-aft. Cross-check: DJI's published FOLDED length is 138 mm and the folded envelope is set by the fuselage - 137.7 vs 138 is 0.2%. This is the shell, NOT the footprint; the footprint is envelope_mm.",
+   "src": [
+    "S6",
+    "S1"
+   ]
+  },
+  "body_w_mm": {
+   "value": 66.8,
+   "grade": "MEASURED",
+   "note": "Fuselage shell width (GLB 'Default_4').",
+   "src": [
+    "S6"
+   ]
+  },
+  "body_h_mm": {
+   "value": 46.2,
+   "grade": "MEASURED",
+   "note": "Fuselage shell height (GLB 'Default_4'), excluding legs and gimbal. The 56 mm published height includes the folded arm/leg stack.",
+   "src": [
+    "S6"
+   ]
+  },
+  "prop_dia_mm": {
+   "value": 119.1,
+   "grade": "MEASURED",
+   "band": [
+    118.1,
+    119.1
+   ],
+   "derivation": "GLB blade vertices, max radius from the hub centre: rear rotors 59.56 mm -> D = 119.11 mm; front rotors 59.07 mm -> D = 118.14 mm (front and rear props are modelled very slightly differently).",
+   "note": "DJI does NOT publish a propeller diameter for the Mini 2 anywhere in the manual, QSG, or the dedicated Propellers User Guide (all three checked). The measured 119.1 mm is 0.3% from the nominal 4.7 in = 119.4 mm implied by the commonly quoted 4726F part designation - but the '4726F' string was NOT found in any DJI document I read, so it is NOT recorded as VERIFIED here.",
+   "src": [
+    "S6"
+   ]
+  },
+  "prop_pitch_in": {
+   "value": null,
+   "grade": "UNKNOWN",
+   "why": "Not published by DJI for the Mini 2. The manual's Propellers section (p.20) and the standalone Propellers User Guide v1.0 give mounting instructions only - no diameter, no pitch. Do NOT substitute the '2.6 in' from the unverified 4726F designation."
+  },
+  "prop_blades": {
+   "value": 2,
+   "grade": "VERIFIED",
+   "note": "Manual p.20: 'The two blades attached to one motor are the same.' Confirmed on the GLB (8 blade meshes / 4 rotors) and on FCC photo mini2_c07.",
+   "src": [
+    "S1",
+    "S6",
+    "S4"
+   ]
+  },
+  "num_rotors": {
+   "value": 4,
+   "grade": "VERIFIED",
+   "src": [
+    "S1"
+   ]
+  },
+  "coaxial": {
+   "value": false,
+   "grade": "VERIFIED",
+   "src": [
+    "S1"
+   ]
+  },
+  "max_speed_ms": {
+   "value": 16.0,
+   "grade": "VERIFIED",
+   "note": "16 m/s Sport, 10 m/s Normal, 6 m/s Cine (near sea level, no wind).",
+   "src": [
+    "S1"
+   ]
+  },
+  "max_rpm": {
+   "value": null,
+   "grade": "UNKNOWN",
+   "why": "DJI publishes no propeller-speed ceiling for the Mini 2. The repo convention (see the DroneSpec.max_rpm warning) is that max_rpm means a CLASS or FIRMWARE ceiling; the Mini 2 predates the EU C-class marking that made mini5pro's 7800/11200 numbers public. Do not substitute an electrical no-load figure."
+  },
+  "hover_rpm": {
+   "value": 9200.0,
+   "grade": "DERIVED",
+   "band": [
+    9000,
+    9335
+   ],
+   "band_basis": "C_T 0.0132-0.0142",
+   "derivation": "T_hover = m g / N = 0.249 * 9.80665 / 4 = 0.61046 N per rotor. R = 0.05955 m, A = pi R^2 = 0.011141 m^2, rho = 1.225. Solve C_T = T / (rho A (Omega R)^2). C_T = 0.0137 gives Omega R = 57.14 m/s, Omega = 959.5 rad/s, n = 9163 rpm -> adopted 9200 (rounded to nearest 50).",
+   "anchor_provenance": "Same NASA/US Army full-vehicle hover C_T band (Russell/Jung/Willink/Glasner, AHS Forum 72, 2016) the repo already uses for phantom3/phantom4/matrice4e etc. It was measured on a DJI Phantom 3 with 9450 props, NOT on a Mini 2 - this is a TRANSFER, not a same-aircraft anchor.",
+   "why_the_transfer_is_defensible": "The pitch ratio is close. 9450 = 9.4 in dia / 5.0 in pitch -> 0.532. If the Mini 2 prop really is a 4726F (4.7/2.6) the ratio is 0.553, i.e. 4% apart. But note prop_pitch_in is UNKNOWN, so this justification rests on an unverified part designation - treat the band, not the point value, as the honest statement.",
+   "caveats": [
+    "m = 249 g is a regulatory ceiling, so T_hover is an upper bound and the true hover rpm is slightly lower.",
+    "Like every hover_rpm in this repo this would be a HARDCODED LITERAL: it does not re-solve if weight_g or prop_dia_mm are edited later (see the DroneSpec.hover_rpm provenance warning).",
+    "Tip speed at 9200 rpm is 57.4 m/s. At 21-27 GHz (Das's band) that is a Doppler of 8.0-10.3 kHz at the tip - relevant if micro-Doppler is ever compared against Das."
+   ]
+  },
+  "rtk": {
+   "value": false,
+   "grade": "VERIFIED",
+   "note": "GNSS is GPS+GLONASS+Galileo. No RTK.",
+   "src": [
+    "S1"
+   ]
+  },
+  "release": {
+   "value": "discontinued",
+   "grade": "VERIFIED",
+   "note": "Launched 2020-11. Superseded by Mini 3 / Mini 2 SE; the dji.com product page now 302s to the support page.",
+   "src": [
+    "S5"
+   ]
+  },
+  "confidence": {
+   "value": "high",
+   "grade": "n/a",
+   "note": "SPEC confidence, not shape fidelity - see the DroneSpec.confidence warning."
+  },
+  "shape_source": {
+   "value": "manufacturer_cad",
+   "grade": "n/a",
+   "why": "This is the FIRST DJI airframe in the repo for which we hold the manufacturer's own 3D model. DJI published WM161 GLBs (folded and unfolded) on the product page and they are still served. Their dimensional fidelity is checked below (cad_validation). Only x500v2 previously had manufacturer_cad status (STEP)."
+  },
+  "envelope_mm": {
+   "value": [
+    159.0,
+    203.0,
+    56.0
+   ],
+   "grade": "VERIFIED",
+   "note": "DJI User Manual v1.0 p.45 'Unfolded: 159x203x56 mm', international version, propellers EXCLUDED. Order is (L, W, H) with L fore-aft, matching the repo's forward=+x convention.",
+   "independent_check": "GLB bbox with the 8 propeller meshes removed = [159.1, 203.4, 56.0] mm - 0.06% / 0.2% / 0.0%.",
+   "recommended_forcing": "HEIGHT ONLY (None, None, 56.0), matching mini5pro / matrice4e / mavic4pro / typhoonh480 / phantom3. Forcing L/W as well is what frame_fit_scale turns into an anisotropic squash. Here L/W happen to be self-consistent with the rotor solve, but the house rule stands.",
+   "env_props_included": false,
+   "src": [
+    "S1",
+    "S6"
+   ]
+  },
+  "rotor_deg": {
+   "value": [
+    53.78,
+    125.55,
+    234.45,
+    306.22
+   ],
+   "grade": "MEASURED",
+   "order": [
+    "front-left",
+    "rear-left",
+    "rear-right",
+    "front-right"
+   ],
+   "derivation": "GLB hub centres, converted into the repo frame (forward = +x, z up, angle CCW from +x): front hubs at (x=+64.3, y=+-87.8), rear hubs at (x=-61.1, y=+-85.5). atan2 gives +-53.78 deg (front) and +-125.55 deg (rear).",
+   "note": "NOT a symmetric 45 deg X. The Mini 2 is a forward-swept folding quad: the front arms sit further out laterally and less far forward than a square layout would put them.",
+   "prop_clearance_house_rule": "Front-to-rear hub spacing 125.44 mm vs prop dia 119.11 mm -> +6.33 mm. Front track 175.58 mm and rear track 171.05 mm both exceed 119.11 mm. Diagonal 213.91 mm. All clearances positive.",
+   "src": [
+    "S6"
+   ]
+  },
+  "rotor_r_mm": {
+   "value": [
+    108.83,
+    105.09,
+    105.09,
+    108.83
+   ],
+   "grade": "MEASURED",
+   "order": "same as rotor_deg",
+   "derivation": "hypot of the hub centres above: front sqrt(64.3^2+87.8^2)=108.83, rear sqrt(61.1^2+85.5^2)=105.09.",
+   "why_needed": "The four rotors are NOT on one circle - the layout is a slight trapezoid (front radius 3.6% larger than rear). This is exactly the case rotor_r_mm was added for (see its DroneSpec docstring, matrice4e knot). Sum of the two radii = 213.92 mm = the published 213 mm diagonal.",
+   "src": [
+    "S6"
+   ]
+  },
+  "rotor_z_mm": {
+   "value": [
+    10.75,
+    -10.75,
+    -10.75,
+    10.75
+   ],
+   "grade": "MEASURED",
+   "order": "same as rotor_deg",
+   "derivation": "GLB hub heights: front rotors at +24.7 mm, rear rotors at +3.2 mm relative to the model bbox centre - the front rotors sit 21.5 mm HIGHER. Expressed as offsets about their own mean (13.95 mm) so the motor plane stays at z=0, giving +-10.75 mm.",
+   "why": "On the Mini 2 the front arms hinge from the TOP of the fuselage and the rear arms from the BOTTOM, so the two rotor pairs are at different heights and the FRONT landing legs are correspondingly longer. This also means the front and rear propeller discs are 21.5 mm apart vertically - they are allowed to overlap in plan, which is the whole reason rotor_z_mm exists.",
+   "src": [
+    "S6"
+   ]
+  },
+  "body_lw": {
+   "value": null,
+   "grade": "UNKNOWN",
+   "note": "This is a (length,width)/hub RATIO tuning parameter, not a spec. The measured shell is 137.7 x 66.8 mm (body_l_mm/body_w_mm) - use those to set it when the CAD branch is written, rather than copying the 159 x 203 footprint, which is set by the arms."
+  },
+  "body_frac": {
+   "value": null,
+   "grade": "UNKNOWN",
+   "note": "Shell/diagonal ratio is a tuning parameter. Measured shell length / diagonal = 137.7/213 = 0.646, which is the natural starting point but is NOT a manufacturer figure."
+  },
+  "body_style": {
+   "value": "shell",
+   "grade": "VERIFIED"
+  },
+  "body_rgb": {
+   "value": "light warm grey, matte",
+   "grade": "VERIFIED",
+   "note": "Single-tone grey (DJI calls it the Mini 2 grey); arms and legs the same family, slightly darker motor bells. Orange propeller tips are the only accent. No white gloss like the Phantom family."
+  },
+  "accent_rgb": {
+   "value": "orange propeller tips only",
+   "grade": "VERIFIED",
+   "note": "Cosmetic. Visible in mini2_d06 / mini2_c07."
+  },
+  "arm_style": {
+   "value": "body",
+   "grade": "VERIFIED",
+   "note": "Moulded plastic arms, same material family as the shell - NOT carbon tube. RCS-relevant: keeps the arms in the plastic group, not the conductor group (cf. the typhoonh480 note where carbon vs plastic is 10.1 dB on |Gamma|).",
+   "src": [
+    "S4",
+    "S6"
+   ]
+  },
+  "fixed_arm": {
+   "value": false,
+   "grade": "VERIFIED",
+   "note": "Folding. Front arms swing out horizontally, rear arms swing down-and-out. See mini2_m05 (QSG unfold sequence).",
+   "src": [
+    "S1",
+    "S3"
+   ]
+  },
+  "arm_shape": {
+   "value": "folding",
+   "grade": "n/a"
+  },
+  "arm_od_mm": {
+   "value": null,
+   "grade": "UNKNOWN",
+   "note": "Not measured this round. The GLB part that contains a front arm ('polySurface18') also contains the motor mount and the landing leg, so its bbox is not the arm section. Separating it is a straightforward follow-up on the GLB."
+  },
+  "gear": {
+   "value": "legs",
+   "grade": "VERIFIED",
+   "note": "Four short legs, one under each arm/motor station, moulded as part of the arm assembly - not a separate bolted arch like the Phantom 3.",
+   "src": [
+    "S6",
+    "S4"
+   ]
+  },
+  "gear_h_mm": {
+   "value": 37.2,
+   "grade": "MEASURED",
+   "note": "FRONT leg, measured on GLB part 'polySurface202' (9.5 x 37.2 x 9.2 mm post at the front-right hub station). The front legs are longer than the rear ones because the front arms sit 21.5 mm higher (see rotor_z_mm). The rear leg length was NOT separately measured.",
+   "src": [
+    "S6"
+   ]
+  },
+  "gear_tube_mm": {
+   "value": null,
+   "grade": "n/a",
+   "note": "Not a tube gear - moulded plastic post."
+  },
+  "gear_splay_deg": {
+   "value": null,
+   "grade": "UNKNOWN"
+  },
+  "gimbal": {
+   "value": "front",
+   "grade": "VERIFIED",
+   "note": "Label field only (see the DroneSpec warning that nothing reads it). The camera hangs at the nose under the front of the fuselage.",
+   "src": [
+    "S1"
+   ]
+  },
+  "gimbal_style": {
+   "value": "single",
+   "grade": "VERIFIED",
+   "note": "One camera, 3-axis (tilt/roll/pan) mechanical stabilisation. Mechanical range tilt -110 to +35, roll -35 to +35, pan -20 to +20 (manual p.46). Not recessed like the Phantom 4, not a triple head like the Mavic 3.",
+   "src": [
+    "S1"
+   ]
+  },
+  "motor_dia_mm": {
+   "value": null,
+   "grade": "UNKNOWN",
+   "note": "DJI publishes no motor designation for the Mini 2. Not extracted from the GLB this round - the motor bell is merged into the arm assembly mesh. mini2_t28 (FCC 'Propeller motor view') shows the motor with a ruler in frame if a number is needed later."
+  },
+  "motor_h_mm": {
+   "value": null,
+   "grade": "UNKNOWN"
+  },
+  "cad_version": {
+   "value": "v1",
+   "grade": "n/a",
+   "note": "No mini2 CAD branch exists yet."
+  },
+  "note": {
+   "value": "Sub-250 g class folding quad. Smallest airframe in the fleet by a wide margin: diagonal 213 mm vs phantom3 350 mm vs s1000plus 1045 mm.",
+   "grade": "n/a"
+  }
+ },
+ "cad_validation": {
+  "what": "DJI's own published 3D model, checked against DJI's own published specification table. Two independent DJI artefacts.",
+  "assets": {
+   "unfolded": {
+    "url": "https://dji-official-fe.djicdn.com/assets/uploads/p/f2a89648-ce9d-4318-9454-8a1a79cf6db7/WM161_zhankai_1k.glb",
+    "bytes": 7707032,
+    "parts": 59,
+    "faces": 109470
+   },
+   "folded": {
+    "url": "https://dji-official-fe.djicdn.com/assets/uploads/p/f2a89648-ce9d-4318-9454-8a1a79cf6db7/wm161_v11_zhedie_1k.glb",
+    "bytes": 7494904,
+    "parts": 61,
+    "faces": 109190
+   },
+   "units": "metres",
+   "axes": "glTF: +y up, +z nose, +x lateral. Nose direction confirmed three ways: the gimbal protrusion is at +z, the higher rotor pair is at +z (matches the Mini 2's top-hinged front arms), and the longest landing legs are at +z.",
+   "checked_alive": "2026-08-03"
+  },
+  "checks": [
+   {
+    "quantity": "folded envelope L x W x H (mm)",
+    "cad": [
+     137.66,
+     83.13,
+     56.1
+    ],
+    "published": [
+     138,
+     81,
+     58
+    ],
+    "err_pct": [
+     0.2,
+     2.6,
+     -3.3
+    ]
+   },
+   {
+    "quantity": "unfolded, props excluded, L x W x H (mm)",
+    "cad": [
+     159.1,
+     203.4,
+     56.0
+    ],
+    "published": [
+     159,
+     203,
+     56
+    ],
+    "err_pct": [
+     0.06,
+     0.2,
+     0.0
+    ]
+   },
+   {
+    "quantity": "motor-to-motor diagonal (mm)",
+    "cad": 213.91,
+    "published": 213,
+    "err_pct": 0.4
+   },
+   {
+    "quantity": "unfolded, props included, max-swing L x W (mm)",
+    "cad": [
+     244.4,
+     290.0
+    ],
+    "published": [
+     245,
+     289
+    ],
+    "err_pct": [
+     -0.2,
+     0.3
+    ]
+   }
+  ],
+  "verdict": "The GLB reproduces every published dimension to within 0.4% except the folded width (+2.6%) and folded height (-3.3%), where DJI's own folded figures are the coarser of the two. Usable as a primary shape source.",
+  "derived_layout_mm": {
+   "hub_front": {
+    "x_fore": 64.3,
+    "y_lateral": 87.8,
+    "z_up": 24.7,
+    "radius": 108.83
+   },
+   "hub_rear": {
+    "x_fore": -61.1,
+    "y_lateral": 85.5,
+    "z_up": 3.2,
+    "radius": 105.09
+   },
+   "track_front": 175.58,
+   "track_rear": 171.05,
+   "wheelbase_fore_aft": 125.44,
+   "diagonal": 213.91,
+   "prop_radius_rear": 59.56,
+   "prop_radius_front": 59.07,
+   "fuselage_shell_LxWxH": [
+    137.7,
+    66.8,
+    46.2
+   ],
+   "front_leg_height": 37.2,
+   "lowest_point_z": -28.2,
+   "highest_point_z": 28.2
+  },
+  "reproduce": "scratchpad .../mini2/render_glb.py renders the 20 orthographic views shipped as assets/photos/mini2/mini2_d20..d49; per-view mm/px scale is in glb_render_scale.json."
+ },
+ "published_specs": {
+  "_source": "DJI Mini 2 User Manual v1.0 (2020.11), Appendix > Specifications, pp.45-47. International version unless noted.",
+  "aircraft": {
+   "takeoff_weight_g": {
+    "international": 249,
+    "japan": 199,
+    "note": "'<249 g' as printed - a class ceiling"
+   },
+   "dimensions_mm": {
+    "folded": [
+     138,
+     81,
+     58
+    ],
+    "unfolded": [
+     159,
+     203,
+     56
+    ],
+    "unfolded_with_propellers": [
+     245,
+     289,
+     56
+    ],
+    "convention": "L x W x H, propellers excluded unless the key says otherwise"
+   },
+   "diagonal_distance_mm": 213,
+   "max_ascent_speed_ms": {
+    "sport": 5,
+    "normal": 3,
+    "cine": 2
+   },
+   "max_descent_speed_ms": {
+    "sport": 3.5,
+    "normal": 3,
+    "cine": 1.5
+   },
+   "max_speed_ms": {
+    "sport": 16,
+    "normal": 10,
+    "cine": 6
+   },
+   "max_service_ceiling_m": {
+    "international": 4000,
+    "japan": 3000
+   },
+   "max_flight_time_min": {
+    "international": 31,
+    "japan": 18,
+    "condition": "17 kph, windless"
+   },
+   "max_wind_resistance_ms": 10,
+   "max_tilt_deg": {
+    "sport": 40,
+    "normal": 25,
+    "cine": 25
+   },
+   "max_angular_velocity_deg_s": 250,
+   "operating_temp_c": [
+    0,
+    40
+   ],
+   "gnss": "GPS+GLONASS+Galileo",
+   "operating_frequency_ghz": [
+    [
+     2.4,
+     2.4835
+    ],
+    [
+     5.725,
+     5.85
+    ]
+   ],
+   "eirp_dbm": {
+    "2.4GHz": {
+     "FCC": 26,
+     "CE_SRRC_MIC": 20
+    },
+    "5.8GHz": {
+     "FCC_SRRC": 26,
+     "CE": 14
+    }
+   },
+   "hovering_accuracy_m": {
+    "vertical_vision": 0.1,
+    "vertical_gps": 0.5,
+    "horizontal_vision": 0.3,
+    "horizontal_gps": 1.5
+   }
+  },
+  "propeller": {
+   "blades_per_rotor": 2,
+   "rotors": 4,
+   "diameter_mm": {
+    "value": 119.1,
+    "grade": "MEASURED_from_official_CAD",
+    "note": "NOT published by DJI in the manual, QSG, or the dedicated Propellers User Guide."
+   },
+   "pitch_in": null,
+   "types": "two handednesses; propellers 'with marks' go on the marked arms (manual p.20)"
+  },
+  "gimbal": {
+   "stabilisation": "3-axis (tilt, roll, pan)",
+   "mechanical_range_deg": {
+    "tilt": [
+     -110,
+     35
+    ],
+    "roll": [
+     -35,
+     35
+    ],
+    "pan": [
+     -20,
+     20
+    ]
+   },
+   "controllable_range_deg": {
+    "tilt_default": [
+     -90,
+     0
+    ],
+    "tilt_extended": [
+     -90,
+     20
+    ]
+   },
+   "max_control_speed_deg_s": 100,
+   "angular_vibration_deg": 0.01
+  },
+  "sensing": {
+   "downward": {
+    "hovering_range_m": [
+     0.5,
+     10
+    ]
+   },
+   "requirements": "non-reflective, discernible surfaces with diffuse reflectivity >20%, lux >15",
+   "note": "Downward vision + infrared only. NO forward/backward/lateral obstacle sensing on the Mini 2."
+  },
+  "camera": {
+   "sensor": "1/2.3 in CMOS, 12 MP effective",
+   "fov_deg": 83,
+   "eq_focal_mm": 35,
+   "aperture": "f/2.8",
+   "focus_range_m": [
+    1,
+    null
+   ],
+   "iso": [
+    100,
+    3200
+   ],
+   "shutter_s": [
+    4,
+    0.000125
+   ],
+   "max_image_px": {
+    "4:3": [
+     4000,
+     3000
+    ],
+    "16:9": [
+     4000,
+     2250
+    ]
+   },
+   "video": {
+    "4K": "3840x2160 24/25/30p",
+    "2.7K": "2720x1530 24/25/30p",
+    "FHD": "1920x1080 24/25/30/48/50/60p"
+   },
+   "max_bitrate_mbps": 100
+  },
+  "battery": {
+   "international": {
+    "capacity_mah": 2250,
+    "voltage_v": 7.7,
+    "charge_limit_v": 8.8,
+    "chemistry": "LiPo 2S",
+    "energy_wh": 17.32,
+    "weight_g": 82.5,
+    "max_charge_power_w": 29
+   },
+   "japan": {
+    "capacity_mah": 1065,
+    "voltage_v": 7.6,
+    "charge_limit_v": 8.7,
+    "chemistry": "LiPo 2S",
+    "energy_wh": 8.09,
+    "weight_g": 48.9,
+    "max_charge_power_w": 18
+   },
+   "battery_mass_fraction": {
+    "value": 0.331,
+    "derivation": "82.5 g / 249 g - a third of the airframe mass is one LiPo block. Relevant to the material-weighted PO model (GROUP_GAMMA), where the battery is an interior conductor-backed block."
+   }
+  },
+  "remote_controller": {
+   "model": "RC231 (not verified in the manual text; the manual calls it only 'Remote Controller')",
+   "operating_frequency_ghz": [
+    [
+     2.4,
+     2.4835
+    ],
+    [
+     5.725,
+     5.85
+    ]
+   ],
+   "video_link": "OcuSync 2.0",
+   "live_view": "720p@30fps",
+   "max_bitrate_mbps": 8,
+   "latency_ms": 200,
+   "max_distance_km": {
+    "FCC": 10,
+    "CE_SRRC_MIC": 6
+   },
+   "battery_mah": 5200,
+   "note": "Not part of the airframe. Recorded because the 2.4/5.8 GHz downlink is the aircraft's own emission and could matter if the Mini 2 is ever used as an illuminator-of-opportunity target."
+  },
+  "charger": {
+   "input": "100-240 V, 50/60 Hz, 0.5 A",
+   "output": "12V 1.5A / 9V 2A / 5V 3A",
+   "rated_power_w": 18
+  }
+ },
+ "internal_structure_observed": {
+  "_why": "For the material-weighted PO model the interior conductors matter (see the repo's rcs materials note: battery + PCB with GROUP_GAMMA). These are OBSERVATIONS from photographs, not measurements.",
+  "items": [
+   {
+    "part": "main PCB",
+    "evidence": [
+     "mini2_t01",
+     "mini2_t06",
+     "mini2_t20",
+     "mini2_t22"
+    ],
+    "note": "One large board filling most of the fuselage plan area, mounted horizontally above the battery bay. Blue thermal pads on its top face."
+   },
+   {
+    "part": "GPS patch antenna",
+    "evidence": [
+     "mini2_t11",
+     "mini2_c01",
+     "mini2_c02",
+     "mini2_d09"
+    ],
+    "note": "Ceramic patch on its own small carrier board, mounted on TOP of the main PCB near the nose - the highest metal object in the airframe and unobstructed upward. mini2_c01/c02 have a mm ruler in frame, so the patch side length is directly measurable if needed."
+   },
+   {
+    "part": "finned heatsink / shield",
+    "evidence": [
+     "mini2_t03",
+     "mini2_t04",
+     "mini2_t05",
+     "mini2_t21"
+    ],
+    "note": "Large black finned block over the SoC, occupying much of the belly side. Metallic and comparable in area to the PCB - likely the dominant interior scatterer after the battery."
+   },
+   {
+    "part": "battery",
+    "evidence": [
+     "mini2_c03",
+     "mini2_p14",
+     "mini2_t17"
+    ],
+    "note": "Rear-loading 2S LiPo, 82.5 g = 33% of takeoff mass. Occupies the rear half of the fuselage volume."
+   },
+   {
+    "part": "ESC board",
+    "evidence": [
+     "mini2_t27"
+    ],
+    "note": "Separate small board ('Motivation board' in the FCC exhibit)."
+   },
+   {
+    "part": "gimbal camera block",
+    "evidence": [
+     "mini2_t12",
+     "mini2_t13",
+     "mini2_c04",
+     "mini2_c05",
+     "mini2_c06"
+    ],
+    "note": "Three small boards plus the motor/lens assembly, hanging below the nose - outside the shell, so it is an exterior scatterer, not an interior one."
+   },
+   {
+    "part": "motor stator windings",
+    "evidence": [
+     "mini2_d09",
+     "mini2_t28"
+    ],
+    "note": "Visible as copper coils in DJI's own X-ray render. Four of them, at the rotor stations."
+   },
+   {
+    "part": "shielding foil",
+    "evidence": [
+     "mini2_t18"
+    ],
+    "note": "Foil/tape over part of the board stack."
+   }
+  ],
+  "caveat": "No interior dimension has been measured yet. Every FCC image in assets/photos/mini2/ has a ruler in frame, so this is a bounded follow-up rather than an open question."
+ },
+ "gaps": [
+  "prop_pitch_in UNKNOWN - DJI publishes no propeller geometry for the Mini 2 at all. The '4726F' designation is widely quoted but was not found in any DJI document read here.",
+  "max_rpm UNKNOWN - no published ceiling; the Mini 2 predates C-class marking.",
+  "motor_dia_mm / motor_h_mm / arm_od_mm UNKNOWN - extractable from the GLB with a bit more part separation, or from the ruler-bearing FCC photos.",
+  "Rear leg height not separately measured (only the front leg, 37.2 mm).",
+  "hover_rpm rests on a C_T transferred from a Phantom 3 measurement, and its pitch-ratio justification rests on the unverified 4726F designation. Report the band [9000, 9335], not the point value.",
+  "weight_g 249 is a regulatory ceiling, not a measurement. Every mass-derived quantity here inherits that bias (it makes hover_rpm an OVER-estimate).",
+  "Das's measurement state (props fitted or removed, prop angle, polarisation) is still unknown - see das_dimension_reconciliation.what_this_does_NOT_settle."
+ ],
+ "sources": {
+  "S1": {
+   "id": "DJI Mini 2 User Manual v1.0, 2020.11",
+   "url": "https://dl.djicdn.com/downloads/DJI_Mini_2/DJI_Mini_2_User_Manual_EN.pdf",
+   "pages_used": [
+    8,
+    20,
+    21,
+    45,
+    46,
+    47
+   ],
+   "checked": "2026-08-03"
+  },
+  "S2": {
+   "id": "DJI Mini 2 User Manual EN (dated build)",
+   "url": "https://dl.djicdn.com/downloads/DJI_Mini_2/20210222/DJI_Mini_2_User_Manual_EN.pdf"
+  },
+  "S3": {
+   "id": "DJI Mini 2 Quick Start Guide v1.4",
+   "url": "https://dl.djicdn.com/downloads/DJI_Mini_2/20210129/DJI_Mini_2_Quick_Start_Guide.pdf"
+  },
+  "S4": {
+   "id": "FCC ID SS3-MT2WD2007 (label / external photos / internal photos), SZ DJI Technology, final action 2022-04-01, TUV Rheinland Shenzhen",
+   "url": "https://fccid.io/SS3-MT2WD2007",
+   "note": "US federal public record. Label prints 'DJI Mini 2', Model MT2WD."
+  },
+  "S5": {
+   "id": "FCC ID SS3-MT2PD2007 (external / internal photos), final action 2020-10-06, Bay Area Compliance Labs",
+   "url": "https://fccid.io/SS3-MT2PD2007",
+   "note": "The original 2020 certification, immediately before the 2020-11 launch."
+  },
+  "S6": {
+   "id": "DJI official 3D model, WM161 (Mini 2), GLB, unfolded + folded",
+   "url": "https://dji-official-fe.djicdn.com/assets/uploads/p/f2a89648-ce9d-4318-9454-8a1a79cf6db7/",
+   "note": "Asset URLs recovered from a Wayback snapshot of dji.com/mini-2; the files themselves were fetched live from the CDN on 2026-08-03."
+  },
+  "S7": {
+   "id": "DJI Mini 2 Propellers User Guide v1.0, 2020.11",
+   "url": "https://dl.djicdn.com/downloads/DJI_Mini_2/Accessories/DJI_Mini_2_Propellers_User_Guide.pdf",
+   "note": "Checked specifically for a diameter/pitch figure - there is none."
+  },
+  "S8": {
+   "id": "DJI Mini 2 360 Propeller Guard User Guide v1.0",
+   "url": "https://dl.djicdn.com/downloads/DJI_Mini_2/Accessories/DJI_Mini_2_360%C2%B0_Propeller_Guard_User_Guide.pdf"
+  },
+  "S9": {
+   "id": "iFixit DJI Mini 2 repair guides (Battery 149601, Drone Body 149681, Main Board 149748, Gimbal Camera 149750, Drone Arm 149759)",
+   "url": "https://www.ifixit.com/Device/DJI_Mini_2",
+   "licence": "CC BY-NC-SA 3.0"
+  },
+  "S10": {
+   "id": "Das, Zhang, Hovinen, Leinonen, Parssinen, Kyosti, 'Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling', IEEE WCL vol.15 pp.3731-3735, 2026, doi:10.1109/LWC.2026.3705634",
+   "note": "Read via outputs/das_fleet_spec.json, which carries the Table I / Table III readings."
+  }
+ },
+ "blind_log": {
+  "claim": "No RCS quantity was consulted while establishing the geometry and material fields above.",
+  "what_was_read_from_das": "Only Table I row 'Dimension' for the mini2 and m350rtk columns, via outputs/das_fleet_spec.json, and only to answer the folded-vs-unfolded question the task asked. Table III coefficients (a, b, c, d) were NOT used to shape any geometry decision.",
+  "why_it_matters": "If the mesh is later fitted to Das's Table III, the geometry must not have been tuned toward it beforehand."
+ }
+}

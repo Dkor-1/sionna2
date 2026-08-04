@@ -1,0 +1,183 @@
+{
+ "meta": {
+  "target": "DJI Mini 2",
+  "registry_key": "mini2",
+  "date": "2026-08-03",
+  "what": "Degrees-of-freedom audit of the mini2 mesh: every parameter the build reads, bucketed by where its value came from. Written so the claim 'this airframe borrows almost nothing' can be checked rather than believed.",
+  "why": "docs/MESH_METHOD.md section 9 records that the phantom3 mesh is 'the phantom4 shape table with P3 dimensions on it', so a sigma agreement there validates one shell table, not a method. The Mini 2 was added to break that: DJI published its own CAD, so this airframe's shape is measured rather than inherited. The number that says whether that worked is the free/constrained ratio below.",
+  "shape_source": "DJI's own published GLB of the WM161 (DJI Mini 2), unfolded, 59 parts / 109,470 faces, metres. URL, collection procedure and licence in assets/photos/mini2/SOURCES.md section 4. Spec provenance in outputs/mini2_specs.json.",
+  "code": ["src/drones.py :: DRONES['mini2']",
+           "src/drone_cad.py :: _SHELL_SHAPE['mini2'] / _ARM_SECTION['mini2'] / _ARM_WIDTH['mini2'] / build_frame_cad key=='mini2'"],
+  "not_touched": "The seven pre-existing airframe definitions were not edited. p3_*.json, phantom3/mavic4pro/matrice4e assets, sigma_*.json, anchor_subband*.json and teammeeting_0804/* were neither read nor written."
+ },
+
+ "counting_rule": {
+  "unit": "one NUMERIC parameter that the build reads and that can change the mesh. Booleans and categorical selections are NOT counted as constrained (they are counted as judgements), so the denominator is numbers only.",
+  "symmetry": "mirror-image duplicates count once (rotor_deg has four entries but two independent values).",
+  "buckets": {
+   "observed": "read off an artefact OF THIS AIRCRAFT - DJI's own CAD, DJI's published specification table, or this aircraft's teardown.",
+   "judged": "chosen for this airframe with no artefact reading behind the value (including which helper/gear topology to use).",
+   "borrowed": "the value's provenance is ANOTHER airframe's measurement. A shared helper's internal proportions count here when docs/MESH_METHOD.md attributes them to a specific other airframe's audit; otherwise they count as engine.",
+   "engine": "shared constants in cadkit/drone_cad/drones that every shell-path airframe gets and that this airframe cannot change without editing shared code."
+  },
+  "ratio": "free / constrained, free = judged + borrowed + engine, constrained = observed.",
+  "honesty": "the phantom3 round reported 15.8 but did not record its counting rule, so the comparison below RECOMPUTES phantom3 under the rule above. Compare 3.6 against 12.8, not against 15.8."
+ },
+
+ "mini2": {
+  "observed": {
+   "n": 54,
+   "spec_numeric": {
+    "diagonal_mm": 213.0, "weight_g": 249.0,
+    "body_l_mm": 159.0, "body_w_mm": 203.0, "body_h_mm": 56.0,
+    "prop_dia_mm": 119.1, "prop_blades": 2, "num_rotors": 4,
+    "max_speed_ms": 16.0, "prop_pitch_in": 2.6,
+    "rotor_deg_independent": [63.14, 133.70],
+    "rotor_r_mm_independent": [98.43, 116.92],
+    "rotor_z_mm_independent": 10.63,
+    "body_frac": 0.6463, "body_lw_width": 0.4856,
+    "motor_dia_mm": 18.2, "motor_h_mm": 7.1, "gear_h_mm": 30.8,
+    "envelope_height_mm": 56.0
+   },
+   "spec_numeric_count": 21,
+   "shell_table": "fl, fw, fh, npow, hw x6, hh x6, zo x6 = 22",
+   "arm": "_ARM_SECTION h_ratio 2.95, _ARM_WIDTH (9.9, 9.0) = 3",
+   "gimbal": "_gimbal_compact3 w 32.24 / h 24.38 / d 27.98 mm and its two placement offsets = 5",
+   "belly_sensors": "x -0.2971*bl, y +/-0.1485*bw, r 3.2 mm = 3",
+   "how_measured": {
+    "axes": "glTF (+y up, +z nose) -> repo (+x nose, +y left, +z up): X = z_glb, Y = x_glb, Z = y_glb",
+    "origin_x": "fore-aft centre of the shell part 'Default_4'. The shell sits 20.2 mm AHEAD of the rotor centroid, and build_frame_cad always builds the shell at the origin.",
+    "origin_z": "the plane at which the MEAN of the front and rear arm axes lands on 0.012*diag, where _arm_folding puts the arm tip.",
+    "shell_sections": "the shell cut at xs = (-0.50,-0.30,-0.05,0.18,0.38,0.50)*L; half-width, half-height and centreline offset are the bounding box of all loops of each cut.",
+    "npow": "superellipse |y/a|^n+|z/b|^n=1 least-squares fit to the outer profile (|y| max over 40 z-bands) of each cut. Station values 1.85 / 1.89 / 5.74 / 3.13 / 4.07 / 1.63; the two end stations are degenerate; median of the four body stations = 3.6.",
+    "arm": "cuts PERPENDICULAR to the arm axis at r = 60..100 mm. Front 9.05 x 14.15 mm (H/W 1.563), rear 9.44 x 13.13 (1.391).",
+    "prop_pitch": "chord axis by SVD in the (tangential, axial) plane at r/R = 0.30..0.90, inverted through the repository's own twist law and PITCH_K table. Four blades give 2.76 / 2.49 / 2.00 / 3.00 in, median 2.56."
+   }
+  },
+  "judged": {
+   "n": 18,
+   "items": [
+    "origin X placed at the shell centre rather than the rotor centroid",
+    "origin Z placed at the MEAN of the two arm axes (splitting the engine's flat-arm-plane error evenly)",
+    "gear = 'motor_legs' (one of six gear topologies)",
+    "gimbal helper = _gimbal_compact3 (rather than _gimbal_hanging)",
+    "accent_rgb = None, i.e. no accent ring part",
+    "npow estimator = median of the four body stations",
+    "envelope forcing = height only (house rule applied)",
+    "arm_od_mm deliberately left None so the measured taper survives",
+    "hubf 0.20 - chosen so both arm roots bury inside the shell",
+    "cfh 0.85 - chosen so the canopy stays buried (the Mini 2 has no raised canopy)",
+    "cx0 -0.06 (canopy x offset, inert once buried)",
+    "cfrac 0.62 (canopy length fraction, inert once buried)",
+    "ndrop 0.0 (inert because zo is supplied)",
+    "c_ratio 1.00 - stadium approximation of the measured near-elliptical arm section",
+    "belly sensor cylinder length 4 mm and 14 segments",
+    "belly sensor count = 2, and no other sensors",
+    "cad_version 'v2'",
+    "body_lw length factor = 1.0 (normalisation)"
+   ]
+  },
+  "borrowed": {
+   "n": 33,
+   "items": [
+    {"what": "hover_rpm 9200", "n": 1,
+     "from": "DJI Phantom 3 + 9450 propeller, NASA/US Army full-vehicle hover C_T (Russell/Jung/Willink/Glasner, AHS Forum 72, 2016)",
+     "note": "a cross-airframe C_T transfer. It does not enter the static mesh at all - only micro-Doppler."},
+    {"what": "_gimbal_compact3 internal proportions", "n": 23,
+     "from": "mini5pro (designed in the 2026-07-30 photo-audit round from mini 5 pro_1.png / _2.png)",
+     "note": "we supply only the outer w/h/d and the two placement offsets, all five measured on the Mini 2 CAD; the cheek/lens/cap/mount ratios inside the helper are the Mini 5 Pro's."},
+    {"what": "_gear_motor_legs prong geometry", "n": 9,
+     "from": "mini5pro and mavic4pro (same photo-audit round)",
+     "note": "prong half-width 0.62*arm_r1, radial spread 0.95*mot_r, taper 0.55, section 2w x 1.7w with corner 0.55w."}
+   ]
+  },
+  "engine": {
+   "n": 146,
+   "items": [
+    {"what": "propeller law (CHORD_RR/FRAC, PITCH_RR/K, CHORD_MAX_OVER_R, TC_ROOT/TIP, CAMBER_M/P, sweep_frac, root_frac, hub radius/height and profile, resolutions)", "n": 80,
+     "note": "measured on three REFERENCE propellers (Holybro 1345, 3DR Solo, Yuneec Typhoon H480), not on any registry airframe - repo-wide."},
+    {"what": "_body_folding shared law (6 station positions, tail_w 0.95, n_sec 30, n_pts 72, smooth iters 4)", "n": 10},
+    {"what": "_canopy law (4 stations x hw/hh, n_pow, z offset)", "n": 14},
+    {"what": "arm/motor placement (arm tip rise 0.012*diag, bell base 0.014*diag, bend 0.06, _motor_bell 7-point profile, sweep resolution)", "n": 19},
+    {"what": "internal scatterer boxes (battery, PCB, magnesium plate: 3 sizes + 3 positions each)", "n": 18,
+     "note": "shared shell-v2 ratios with no per-airframe basis - docs/MESH_METHOD.md section 7.7 flags this and it is inherited here unchanged."},
+    {"what": "drones.py shared (base_ang +12 deg, rotation-direction alternation, body_z 0.35*bh, arm_t 0.045*diag, prop_z +6 mm)", "n": 5}
+   ]
+  },
+  "totals": {"constrained": 54, "free": 197, "ratio_free_over_constrained": 3.65}
+ },
+
+ "phantom3_recomputed_under_the_same_rule": {
+  "why": "so the two numbers can be compared. This does NOT edit anything phantom3 owns - it only re-counts what src/drones.py and src/drone_cad.py already say about that airframe.",
+  "observed": {"n": 17,
+   "items": "diagonal 350, weight 1280, body_l 289.5, body_w 289.0, body_h 185.0, prop_dia 240, prop_blades 2, num_rotors 4, max_speed 16, prop_pitch 5.0, rotor_deg 45 (1 independent), gear_h_mm 120.5, envelope height 185, fh 0.34541, gimbal w 66.1 mm, gimbal h 33.8 mm, hover_rpm 5100 (the ONE same-aircraft C_T anchor in the registry)"},
+  "judged": {"n": 7,
+   "items": "gear 'legs'; helper _gimbal_hanging; gimbal anchored to the belly rather than to its measured height; not inheriting the phantom4 sensor suite; keeping the magnesium plate; envelope height only; cad_version v2"},
+  "borrowed": {"n": 51,
+   "items": "_SHELL_SHAPE phantom4 copy minus fh (fl, fw, ndrop, npow, cx0, cfrac, cfh, hubf, hw x6, hh x6) = 20; _ARM_SECTION 2; _ARM_WIDTH 2; body_frac 1 and body_lw 2; gimbal depth 71.2 mm and gimbal x placement from the P4 ratios = 2; P4 VPS sensor literals 10; _gear_arch ratios from the P4 photo audit 12"},
+  "engine": {"n": 159,
+   "note": "same shell path as mini2 (146) plus the diagonal-proportional motor bell 2 and _gimbal_hanging internals 11, which mini2 does not use."},
+  "totals": {"constrained": 17, "free": 217, "ratio_free_over_constrained": 12.76},
+  "reported_by_the_phantom3_round": 15.8,
+  "reconciliation": "the earlier 15.8 and this 12.8 are the same story counted slightly differently; the rule behind 15.8 was not recorded, so only the recomputed 12.8 is a valid comparand."
+ },
+
+ "verdict": {
+  "ratio_mini2": 3.65,
+  "ratio_phantom3_same_rule": 12.76,
+  "improvement": "3.5x fewer free parameters per constrained one",
+  "what_it_means": "mini2 borrows NO shape table. The three borrowed blocks are one micro-Doppler constant and the internal proportions of two shared helpers whose outer dimensions we measured ourselves. The remaining free parameters are overwhelmingly the engine's own shared constants (146 of 197), which are identical for every shell airframe and are therefore what a second anchor is supposed to test.",
+  "what_it_does_NOT_mean": "a low ratio is not accuracy. It says the shape came from an artefact of this aircraft, not that the artefact is right or that the engine renders it faithfully. The two known shape defects are listed below and neither is fixed by counting."
+ },
+
+ "silhouette_iou": {
+  "how": "src/viz_mesh_photo.py :: build_all(keys=['mini2']), full resolution. Partial runs deliberately do NOT overwrite outputs/mesh_compare_photo.json, so the fleet ledger is untouched; the figure is outputs/figures/mesh_photo_mini2.png.",
+  "self_replication_ceiling": 0.9121,
+  "ceiling_note": "an exact copy of this mesh, put through the same segmentation and pose fit, scores 0.912. Pose sensitivity 0.87 IoU-points per degree, scale sensitivity +0.66 % per point.",
+  "per_photo": [
+   {"file": "mini2_d05_official_unfolded_iso_black.png", "iou": 0.7048, "pct_of_ceiling": 77.3,
+    "outline_mean_mm": 4.81, "outline_p95_mm": 18.87,
+    "mesh_only_frac": 0.084, "photo_only_frac": 0.211,
+    "declared_aspect_deg": [35, 32], "fitted_aspect_deg": [27.0, 23.0], "free_iou_gain": 0.000,
+    "segmentation": "alpha channel"},
+   {"file": "mini2_d06_official_unfolded_front_alpha.png", "iou": 0.6779, "pct_of_ceiling": 74.3,
+    "outline_mean_mm": 4.34, "outline_p95_mm": 16.75,
+    "mesh_only_frac": 0.099, "photo_only_frac": 0.223,
+    "declared_aspect_deg": [0, 12], "fitted_aspect_deg": [1.0, 14.0], "free_iou_gain": 0.005,
+    "segmentation": "alpha channel"},
+   {"file": "mini2_p02_ifixit_unfolded_top34.jpg", "iou": 0.3082, "pct_of_ceiling": 33.8,
+    "outline_mean_mm": 15.49, "outline_p95_mm": 55.09,
+    "mesh_only_frac": 0.351, "photo_only_frac": 0.341,
+    "declared_aspect_deg": [175, 45], "fitted_aspect_deg": [189.5, 51.4], "free_iou_gain": -0.016,
+    "segmentation": "background colour distance, FRAGILE: silhouette area swings 84 % across the threshold ladder (grey aircraft on a white cloth with its own shadow). This one grades the segmentation, not the mesh, and is reported rather than hidden."}
+  ],
+  "headline": {"best_iou": 0.7048, "pct_of_ceiling": 77.3,
+               "file": "mini2_d05_official_unfolded_iso_black.png"},
+  "fleet_comparison_pct_of_ceiling": {
+   "_source": "outputs/mesh_compare_photo.json generated 2026-07-31 (phantom3 and m350rtk are not in it yet)",
+   "x500v2": 91.4, "s1000plus": 87.3, "mini2": 77.3, "matrice4e": 63.3, "phantom4": 59.3,
+   "typhoonh480": 58.6, "mavic4pro": 57.3, "mini5pro": 50.0,
+   "reading": "mini2 is third overall and FIRST among the moulded-shell consumer airframes, ahead of the four DJI entries built from product photographs by 14 to 27 points. The two above it carry caveats that mini2 does not: x500v2's best view is a propeller-less frame-kit top-ortho, and s1000plus was anchored on the same photograph it is scored against (partial circularity, recorded in MESH_METHOD section 0). Mini 2's own circularity risk was removed by refusing to register the 20 GLB renders it was measured from.",
+   "caveat": "the ceiling differs per airframe, which is why the comparison is on percent-of-ceiling and not on raw IoU."
+  },
+  "where_it_still_disagrees": "on both clean views the mesh is the SMALLER silhouette - photo-only 21-22 % against mesh-only 8-10 %, filled-area ratio 0.862. That is the two declared shortfalls showing up together: the unmodelled outboard nacelle (-4.5 % width) and the envelope height forcing (sz 0.906). The scale-free proportion check is much better than the area: silhouette aspect W/H 1.802 (mesh) vs 1.826 (photo), -1.3 %."
+ },
+
+ "known_defects_declared": [
+  {"what": "front arms are ~11 mm too low and rear arms ~11 mm too high",
+   "why": "rotor_z_mm moves the propellers only; build_frame_cad builds all four arms at z ~ 0 with shared z0/z1 literals. The real Mini 2 hinges the front arms off the top of the fuselage and the rear arms off the bottom (measured separation 21.8 mm).",
+   "consequence": "the landing posts end 10.65 mm below the aircraft's measured lowest point, which is the whole of the +10.4 % raw height error together with the 4.81 mm of unmodelled propeller-holder clips at the top."},
+  {"what": "two prongs per front arm instead of one post",
+   "why": "_gear_motor_legs splays two prongs at r_motor +/- 0.95*mot_r and that expression lives in shared code used by mini5pro and mavic4pro.",
+   "consequence": "the OUTER prong foot lands at (48.4, +/-95.5) mm, 1.3 mm from the real post at (49.3, +/-94.6); the inner prong at (40.6, +/-80.1) is an extra body, and the prong section is 5.6 x 4.7 mm against the real 9.2 x 9.9. The two small rear pads at the rear-arm roots are not modelled at all."},
+  {"what": "frame width 193.8 mm vs 203.4 measured",
+   "why": "the outboard nacelle structure on the front arm assemblies carries the true width; our motor bells stop at +/-96.9 mm.",
+   "consequence": "-4.5 % on the widest dimension, reported rather than scaled away."},
+  {"what": "the canopy part is fully buried inside the shell",
+   "why": "the shell path always calls _canopy and the Mini 2 has no raised canopy. union_group cannot merge it into 'body' because they are different material groups.",
+   "consequence": "an interior surface that PO/SBR will count. This is pre-existing shared behaviour (mini5pro, mavic4pro and phantom4 all have it) and was not fixed here."},
+  {"what": "the 'magnesium structural plate' of the shell-v2 path",
+   "why": "the Mini 2 has no magnesium chassis, the same declared bias as phantom3.",
+   "consequence": "unlike phantom3 it does have a real counterpart here - the large finned metal heatsink over the SoC seen in the teardown - but its size is a shared ratio, not a measurement."}
+ ]
+}

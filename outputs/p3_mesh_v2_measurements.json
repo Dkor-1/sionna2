@@ -1,0 +1,200 @@
+{
+ "_meta": {
+  "generated": "2026-08-03",
+  "target": "DJI Phantom 3 Professional (WM331) — mesh rebuilt from photographs",
+  "what_changed": "Until today drone_cad's phantom3 shape tables were phantom4's, because the repository held no Phantom 3 photograph. assets/photos/phantom3/ now holds 145 reference images. This round measured what those images can measure and replaced the inherited constants. Nothing here was chosen by looking at an RCS number: the fit coefficients in outputs/p3_ours.json were not opened while measuring.",
+  "code": ["src/drone_cad.py :: _SHELL_SHAPE['phantom3'], _ARM_WIDTH, _ARM_SECTION, GEAR_ARCH, INTERNALS, MOTOR_BASE_Z, ARM_TIP_OVERHANG, build_frame_cad phantom3 gimbal branch",
+           "src/drones.py :: DRONES['phantom3'] (gear_h_mm, motor_dia_mm, motor_h_mm, note)"],
+  "figure": "outputs/figs/p3_mesh_v2.png (new mesh above, old mesh below, same camera and scale)",
+  "grades": {"M": "measured on a Phantom 3 image, pixel scale recorded",
+             "D": "derived from Phantom 3 measurements or from a published Phantom 3 figure",
+             "H": "no Phantom 3 evidence — shared repository law or a judgement call"}
+ },
+
+ "scale_anchors": {
+  "front_elevation": {
+   "file": "assets/photos/phantom3/phantom3_m01_manual_pro_v18_aircraft_diagram_page.png",
+   "region_px": {"rows": [332, 594], "cols": [227, 812]},
+   "mm_per_px": 0.74929,
+   "anchor_1": "motor bell centres 330.3 px apart = 2*(350/2)*sin45 = 247.49 mm",
+   "anchor_2": "shell crown row 347.1 to feet row 594 = 246.9 px = published 185 mm",
+   "cross_check": "the two anchors agree to five digits (0.749289 vs 0.749291)"
+  },
+  "rear_elevation": {"rows": [634, 896], "mm_per_px": 0.75457,
+                     "anchor": "arm-tip width 383 px = published 289.0 mm",
+                     "cross_check": "crown 650.3 to feet 896 = 245.7 px = 185.4 mm (+0.2 % of published)"},
+  "side_elevation": {"rows": [962, 1247], "mm_per_px": 0.69281,
+                     "anchor": "motor bell separation, same 247.49 mm",
+                     "cross_check": "arm-tip span 416 px = 288.2 mm (published 289.5, -0.4 %)"},
+  "official_top_render": {"file": "phantom3_d03_official_top.png", "mm_per_px": 0.48122,
+                          "anchor": "motor diagonal 727.3 px = 350 mm",
+                          "cross_check": "the two diagonals measure 727.6 and 727.0 px, 0.08 % apart"},
+  "ifixit_bottom": {"file": "phantom3_p33_ifixit_std_bottom_gear_removed.jpg",
+                    "mm_per_px": 0.10464, "anchor": "motor-mount pad diagonal 3345 px = 350 mm"},
+  "teardown_top": {"file": "phantom3_t67_ifixit_adv_airframe_shell_off_top.jpg",
+                   "px_per_mm": 4.78, "anchor": "motor square 1183 px = 247.49 mm"}
+ },
+
+ "headline_correction": {
+  "claim": "The published 185 mm is the SHELL CROWN to the feet, not the motor top to the feet.",
+  "evidence": ["front elevation: crown row 347.1 -> feet 594 = 246.9 px x 0.74929 = 184.1 mm",
+               "rear elevation: crown row 650.3 -> feet 896 = 245.7 px x 0.75457 = 185.4 mm",
+               "motor bell top is row 361 in the front elevation, i.e. 10.4 mm BELOW the crown; motor top to feet is only 175.0 mm"],
+  "what_it_overturns": "outputs/p3_specs.json measured_from_manufacturer_drawing recorded shell_crown_to_belly = 63.9 mm and belly_to_foot = 120.5 mm by taking the motor top as the crown. The true split is shell 78.6 mm and legs 111.6 mm (foot pad radius takes gear_h_mm to 106.1). That JSON has not been edited here; this file is the correction record.",
+  "consequence": "the envelope forcing (None, None, 185) is now nearly inert — frame_fit_scale sz went from 0.9565 to 0.9982, so the mesh is no longer squashed 4.4 % vertically to meet the published height."
+ },
+
+ "measured": {
+  "shell_plan": {
+   "nose_x_mm": {"v": 60.0, "g": "M", "src": "d03 top, centreline column scan"},
+   "tail_x_mm": {"v": -89.6, "g": "M", "src": "d03 top, battery rear face"},
+   "body_length_mm": {"v": 149.6, "g": "M"},
+   "body_x_offset_mm": {"v": -14.8, "g": "M", "note": "the shell sits 14.8 mm AFT of the rotor centre; new _SHELL_SHAPE key bx0"},
+   "half_width_profile_mm": {"v": {"0": 53.3, "10": 54.6, "20": 58.0, "30": 63.2, "42": 72.2},
+                             "g": "M", "note": "armpit envelope; beyond |x| ~ 35 mm the 45 deg arm covers it, so those values are the arm outline, not the body"},
+   "battery_rear_face_width_mm": {"v": 67.4, "g": "M", "src": "d03 top row scan"}
+  },
+  "shell_section": {
+   "crown_z_mm": {"v": 34.4, "g": "M"}, "belly_z_mm": {"v": -44.2, "g": "M"},
+   "shell_height_mm": {"v": 78.6, "g": "M"},
+   "body_centre_z_mm": {"v": -4.9, "g": "M"},
+   "crown_station_x_mm": {"v": 12.0, "g": "M", "src": "side elevation ridge apex"},
+   "tail_top_z_mm": {"v": 3.0, "g": "M"}, "tail_bottom_z_mm": {"v": -45.0, "g": "M"}
+  },
+  "arm": {
+   "chord_vs_radius_mm": {"v": {"80": 41.5, "100": 35.5, "110": 32.0, "120": 29.4,
+                                "130": 26.3, "140": 25.8, "150": 28.3, "160": 32.8},
+                          "g": "M", "src": "d03 top, perpendicular chords on the 45 deg ray, 4 arms averaged"},
+   "root_width_mm": {"v": 43.0, "g": "M/D"}, "tip_width_mm": {"v": 31.0, "g": "M/D"},
+   "section_h_ratio": {"v": 1.00, "g": "M", "src": "front elevation: pod 16.3 mm tall on 31 mm wide, root 20.6 on 43"},
+   "section_c_ratio": {"v": 0.48, "g": "D"},
+   "hub_radius_mm": {"v": 70.0, "g": "M"},
+   "tip_overhang_beyond_motor_axis_mm": {"v": 13.9, "g": "D", "src": "solved from the published 289.0 mm plan width with the 350 mm diagonal and the 31 mm tip width"}
+  },
+  "motor": {
+   "bell_od_mm": {"v": 28.3, "g": "M", "src": "front elevation, 37.7 px"},
+   "bell_height_mm": {"v": 13.7, "g": "M", "src": "front elevation, 18.3 px"},
+   "bell_base_z_mm": {"v": 11.0, "g": "M"}, "bell_top_z_mm": {"v": 24.7, "g": "M"},
+   "cross_check": "DJI publishes the 2312 stator as 23 x 12 mm; a 28.3 mm aluminium bell around it is consistent"
+  },
+  "landing_gear": {
+   "leg_lateral_thickness_mm": {"v": 9.3, "g": "M"},
+   "leg_fore_aft_thickness_mm": {"v": 14.2, "g": "M"},
+   "attach_span_outer_mm": {"v": 143.9, "g": "M"}, "foot_track_outer_mm": {"v": 166.3, "g": "M"},
+   "foot_pad_width_mm": {"v": 12.7, "g": "M"},
+   "top_bar_x_mm": {"v": [66.3, -81.6], "g": "M", "note": "centrelines"},
+   "foot_x_mm": {"v": [52.7, -51.6], "g": "M"},
+   "belly_to_foot_mm": {"v": 111.6, "g": "M", "note": "gear_h_mm is 106.1 because the skid capsule adds its 5.5 mm radius below"},
+   "shape": "a closed rectangular loop (top bar, two struts, bottom skid) — confirmed on phantom3_c06_ifixit_std_landing_gear_pair.jpg. It tapers strongly fore-aft: 162 mm at the top, 104 mm at the feet. The phantom4 legs are nearly parallel."
+  },
+  "gimbal": {
+   "damper_plate_width_mm": {"v": 95.9, "g": "M"}, "damper_plate_thickness_mm": {"v": 16.5, "g": "M"},
+   "damper_plate_z_mm": {"v": -57.7, "g": "M"},
+   "yaw_shaft_dia_mm": {"v": 13.5, "g": "M"}, "yaw_shaft_height_mm": {"v": 16.5, "g": "M"},
+   "camera_block_w_h_d_mm": {"v": [66.0, 31.5, 34.0], "g": "M/M/D"},
+   "camera_block_z_mm": {"v": -109.4, "g": "M"},
+   "camera_bottom_above_feet_mm": {"v": 26.2, "g": "M", "note": "the feet, not the camera, are the lowest point"},
+   "x_position_mm": {"v": 22.0, "g": "M",
+                     "note": "the gimbal hangs near the AIRCRAFT CENTRE, not under the nose. p33 puts the damper-plate centre 26 mm forward of the rotor centre, the side elevation +5 mm. The old code used nose_x*0.62 = +46 mm, an inherited value."}
+  },
+  "internal_scatterers": {
+   "count": 18,
+   "note": "3 boxes x (3 sizes + 3 positions). These were the never-measured ones.",
+   "battery": {"size_mm": [80.0, 76.0, 45.0], "centre_mm": [-49.6, 0.0, -24.5], "g": "M",
+               "src": ["rear elevation: exposed rear face 76.1 x 46.6 mm (the face with the 4 LEDs and the power button)",
+                       "d03 top: 74.6 mm wide, rear face at x = -89.6",
+                       "p33 bottom: bay floor 766 px = 80.2 mm long"],
+               "volume_check": "76 x 45 x 80 = 274 mL for 68 Wh = 248 Wh/L, right for a cased 4S pouch pack; a 120 mm length would give 0.85 g/mL, too light for LiPo"},
+   "centre_x_board": {"size_mm": [120.0, 110.0, 3.0], "centre_mm": [0.0, 0.0, 0.0], "g": "M/D",
+                      "src": "t67 shell-off top-down: bbox 159 (lateral) x 128 (fore-aft) mm",
+                      "declared_simplification": "the real board is X-shaped and does not fill that bbox. We use an area-equivalent rectangle inside it, because the 'pcb' group is NOT in build_frame_cad's boolean union list, so two crossed plates would leave buried faces for PO/SBR to count."},
+   "shielded_video_module": {"size_mm": [44.0, 33.0, 20.0], "centre_mm": [13.0, 0.0, 12.0], "g": "M/D",
+                             "src": "t67: 210 x 160 px = 44 x 33 mm; height ~20 mm from the oblique t29",
+                             "replaces": "the magnesium structural plate that the shared shell-v2 path inserted. THE PHANTOM 3 HAS NO MAGNESIUM SKELETON (that is the Phantom 4's headline structural change), so the old mesh was over-metalling the fuselage with a part that does not exist."}
+  }
+ },
+
+ "still_borrowed": {
+  "total": 81,
+  "of_the_original": 160,
+  "items": [
+   {"n": 1, "what": "_SHELL_SHAPE npow (superellipse exponent of the body cross-section)",
+    "why": "a photograph of a smooth white shell does not resolve how square the section is. Set to 3.0 by judgement; phantom4 uses 3.4."},
+   {"n": 10, "what": "_body_folding law: the six station x-fractions, tail_w 0.95, n_sec 30, n_pts 72, Taubin iters 4",
+    "why": "shared repository law for every shell airframe, not a per-airframe measurement"},
+   {"n": 14, "what": "_canopy internal law (4 stations x half-width/half-height, n_pow, z = 0.30 H)",
+    "why": "the Phantom 3 has no raised canopy at all. Only the canopy's placement and size were set from the battery bay; its internal shape law is untouched and now sits buried inside the body."},
+   {"n": 1, "what": "arm tip rise z1 = 0.012*diag and the Bezier bend 0.02",
+    "why": "the drawing shows the arm rising toward the motor but the two literals are not separable from it"},
+   {"n": 18, "what": "_motor_bell 9-point revolve profile",
+    "why": "only the bell's outer diameter and height are visible in an elevation; its waist and shoulder are not"},
+   {"n": 2, "what": "_gear_arch corner radius 0.004 m and the sweep resolutions",
+    "why": "below the drawing's resolution"},
+   {"n": 15, "what": "propeller H-grade law (sweep_frac 0.10, root_frac, hub 0.085R x 0.09R, resolutions, base_ang 12 deg, spin direction)",
+    "why": "shared prop law anchored on three reference propellers, not on this aircraft. The 9450 is the same part number the phantom4 entry uses."},
+   {"n": 5, "what": "propeller D-grade law (chord max over R, thickness ratios, camber)",
+    "why": "same"},
+   {"n": 8, "what": "group -> material assignment for the 8 groups present",
+    "why": "convention, not geometry"},
+   {"n": 5, "what": "the five effective |Gamma| values",
+    "why": "materials.py is the single source; no Phantom 3 measurement exists"},
+   {"n": 2, "what": "shell transmission convention (which group is shell, tau = 1 - |Gamma|^2)",
+    "why": "engine convention"}
+  ]
+ },
+
+ "cannot_measure": [
+  "Body half-width and half-height at the two stations the arms cover (model x = -59.7 and +42.0). A 45 deg arm 43 mm wide hides the shell there in every view we have; those four numbers are smooth interpolations between the neighbouring measurements.",
+  "The superellipse exponent of the body cross-section (npow). No view resolves it.",
+  "The gimbal camera block's fore-aft depth to better than a few mm — the side elevation shows 31.9 mm of block plus an unresolved lens mount; 34 mm is the working value.",
+  "Motor internals. Only the bell's outside is visible; DJI publishes the stator as 23 x 12 mm but not the bell wall thickness or the magnet ring.",
+  "Propeller aerofoil section for the DJI 9450. Our blade law comes from three other propellers; no 9450 section was measured.",
+  "Material grades. DJI never published the shell polymer, and no Phantom 3 dielectric measurement exists.",
+  "Prop mounting height. The house formula prop_z = motor_h + arm_t/2 + 6 mm gives 33.7 mm where the drawing shows the blade plane at 27.7 mm. Fixing it needs a spec-level prop_z override that would touch every airframe, so the 6 mm is recorded, not patched.",
+  "Whether the aircraft in the measurement literature wore the stock polymer 9450 or DJI's optional carbon-fibre-reinforced 9450 (+11.1 dB on the propeller group). Unchanged from the previous round.",
+  "The variant actually measured in the literature. Unchanged: all Phantom 3 variants share one shell, so this does not move the geometry."
+ ],
+
+ "sanity": {
+  "n_triangles": {"drone": 28366, "frame": 15614, "old_drone": 28160, "old_frame": 15408},
+  "frame_bbox_mm": [289.07, 289.07, 185.0],
+  "published_bbox_mm": [289.5, 289.0, 185.0],
+  "bbox_error_pct": [-0.15, 0.02, 0.0],
+  "old_frame_bbox_mm": [283.89, 283.89, 185.0],
+  "envelope_fit_scale": [1.0, 1.0, 0.9982],
+  "old_envelope_fit_scale": [1.0, 1.0, 0.9565],
+  "wheelbase_mm": 350.0,
+  "mesh_check": "every group passes: watertight per connected part, no inward normals, no winding breaks, no degenerate faces. body 7792 faces in ONE part (arms fuse into the shell), camera 6 parts, gear 2, motor 4, prop 4, battery 2, pcb 1, canopy 1."
+ },
+
+ "silhouette_iou": {
+  "method": "src/viz_mesh_photo.py, unchanged pipeline and unchanged registered photo set, run once on the old mesh and once on the new one",
+  "old": {"ceiling": 0.908, "best": 0.707, "best_file": "phantom3_d02_official_front.png",
+          "per_photo": {"d02_front": 0.707, "d03_top": 0.576, "d01_iso34": 0.544, "d06_iso34_se": 0.679},
+          "pct_of_ceiling": 77.9},
+  "new": {"ceiling": 0.914, "best": 0.794, "best_file": "phantom3_d02_official_front.png",
+          "per_photo": {"d02_front": 0.794, "d03_top": 0.582, "d01_iso34": 0.564, "d06_iso34_se": 0.762},
+          "pct_of_ceiling": 86.9},
+  "all_four_improved": true,
+  "peers_pct_of_ceiling": {"x500v2": 91, "phantom3_new": 87, "phantom3_old": 78,
+                           "matrice4e": 63, "phantom4": 59, "typhoonh480": 59,
+                           "mavic4pro": 57, "mini5pro": 50},
+  "independent_check_without_any_pose_fitting": {
+   "what": "frame silhouette vs the official top render, scale and centre fixed by the published 350 mm diagonal, no camera fitted at all",
+   "iou_within_100mm_radius": 0.884, "iou_within_120mm": 0.850, "iou_within_140mm": 0.807
+  },
+  "circularity_warning": "phantom3_d03_official_top.png is BOTH a measurement source (plan form, arm widths, hub radius) and a scoring photograph, so its 0.582 is partly self-graded. This is the same situation the repository already records for s1000plus, and the same one that applies to phantom4 / mini5pro / mavic4pro, whose shell tables were measured on their own registered photographs. The headline photograph here is d02 (front), whose aspect was measured from a different file (the manual's orthographic front elevation, m01), so the circularity is partial, not total.",
+  "ledger_note": "outputs/mesh_compare_photo.json was NOT rewritten — viz_mesh_photo.build_all replaces the whole ledger and only phantom3 was run. Both runs were done in scratch copies of the repository."
+ },
+
+ "biggest_changes": [
+  "Published 185 mm re-read as shell crown to feet: shell 63.9 -> 78.6 mm (+23 %), legs 120.5 -> 111.6 mm.",
+  "Plan form measured for the first time: body 149.6 x 138.9 mm sitting 14.8 mm aft of the rotor centre, with the measured waist. The inherited phantom4 body was 175 x 158 mm and centred.",
+  "Frame bbox 283.9 -> 289.07 mm, i.e. the published 289.5 x 289.0 is now met to 0.15 %, and the vertical envelope squash dropped from 4.4 % to 0.2 %.",
+  "Motor bell 36.4 -> 28.3 mm diameter (the diagonal-proportional fallback was +29 %).",
+  "Gimbal moved 24 mm aft to its measured position near the aircraft centre, and rebuilt from four measured parts instead of the shared hanging-gimbal ratio law.",
+  "Landing gear rebuilt: 9.3 x 14.2 mm struts (was 13 x 24), foot track 166.3 mm, and the strongly tapered fore-aft loop the drawing shows.",
+  "Internal scatterers measured for the first time: battery 80 x 76 x 45 mm at the tail, centre X board 120 x 110 mm at the arm plane, shielded video module 44 x 33 x 20 mm.",
+  "The magnesium structural plate was removed. The Phantom 3 has no magnesium skeleton; the shared shell-v2 path had been inserting one."
+ ]
+}

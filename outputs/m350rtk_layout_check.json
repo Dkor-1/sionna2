@@ -1,0 +1,96 @@
+{
+ "_meta": {
+  "drone": "m350rtk",
+  "name": "DJI Matrice 350 RTK",
+  "generated": "2026-08-03 13:22",
+  "purpose": "m350rtk 메쉬 주장에 대한 **독립 재검증 라운드**. 같은 기체를 다른 손이 다시 재고, 재현되지 않는 주장은 철회한다.",
+  "relation_to_other_files": {
+   "outputs/m350rtk_mesh_audit.json": "온전성·자유도·IoU 원장(피검증 대상). 이 파일의 §1 결과로 로터각 항목 문구가 수정되었다(_meta.amended).",
+   "src/drones.py :: DRONES['m350rtk']": "note 의 rotor_deg 문단이 같은 이유로 수정되었다.",
+   "outputs/m350rtk_specs.json": "공표 제원 단일 출처(읽기만 함).",
+   "assets/photos/m350rtk/SOURCES.md": "사진 65장 출처(읽기만 함)."
+  },
+  "method": "재현 시도 3건 + 반증 시도 1건. 숫자는 전부 이 라운드에서 다시 계산했고, 남의 값을 옮겨 적은 곳은 그렇다고 표시했다."
+ },
+
+ "1_refuted__rotor_angle_agreement_is_not_a_check": {
+  "claim_as_written": "895cos a + p = 810 과 895sin a + p = 670 이 **같은** 오버행 p = 111.0 mm 를 0.1 mm 안에서 돌려주며, 그 일치가 로터 배치(대칭 X)의 검사다.",
+  "verdict": "REFUTED — 항등식이다. 검사가 아니다.",
+  "why": "미지수가 (a, p) 둘, 식이 둘이다. a 를 두 식의 차로 풀고 나면 p = 810 − 895cos a 와 p = 670 − 895sin a 는 **정의상** 같은 수가 된다. 어떤 박스 치수를 넣어도 그렇다. 즉 여분(redundancy)이 0 이라 검사에 쓸 자유도가 남지 않는다.",
+  "counterexamples_same_algebra": [
+   {"box_mm": [810, 670], "a_deg": 38.65, "p_from_L_mm": 111.023, "p_from_W_mm": 111.023, "diff_mm": 0.0},
+   {"box_mm": [900, 600], "a_deg": 31.289, "p_from_L_mm": 135.173, "p_from_W_mm": 135.173, "diff_mm": 1.7e-13},
+   {"box_mm": [1000, 500], "a_deg": 21.732, "p_from_L_mm": 168.612, "p_from_W_mm": 168.612, "diff_mm": 1.1e-13, "comment": "물리적으로 말이 안 되는 박스인데도 '일치'한다 — 이것이 반례다."}
+  ],
+  "what_actually_constrains_the_angle": [
+   "공표 박스 810×670 + 휠베이스 895 는 (a, p) 를 **정확히** 결정한다 → a = 38.65°, p = 111.0 mm (오버행이 등가·비반경 모델일 때).",
+   "경쟁 모델: 오버행이 암을 따라 **반경방향**이면 같은 두 식이 a = 39.596°, q = 78.09 mm 로 닫힌다.",
+   "따라서 정직한 대역은 **38.6°~39.6°(±0.5°)** 이고, 이 폴더의 사진 중 이 1° 를 좁히는 것은 없다.",
+   "t02(상면, 암 펼침) 스팬비 대조도 카메라 기울기 코사인을 **적합**해서 맞춘 것이다 — 자유도 1 로 측정 1 을 설명하므로 검사가 아니라 정황이다."
+  ],
+  "does_the_count_change": "아니다. 로터각은 여전히 '이 기체의 공표값으로 고정된 수'다(constrained 32 유지). 바뀐 것은 그 고정에 **여분의 검사가 붙어 있다는 주장**뿐이고, 그 주장을 철회했다."
+ },
+
+ "2_reproduced__d01_vertical_decomposition": {
+  "what_was_claimed": "d01(공식 정면 렌더, 알파 있음)에서 동체 130 px : 다리 152 px → 공표 총높이 430 mm 를 나눠 동체 198 · 다리 232 mm. 코드는 200/230 을 쓴다.",
+  "independent_reading_this_round": {
+   "silhouette_bbox_px": {"x": [63, 652], "y": [211, 500]},
+   "body_top_px": 212.5,
+   "belly_px": 348,
+   "foot_px": 497,
+   "body_px": 135.5,
+   "gear_px": 149,
+   "total_px": 284.5,
+   "mm_per_px": 1.5115,
+   "body_mm": 204.8,
+   "gear_mm": 225.2
+  },
+  "verdict": "REPRODUCED — 독립 읽기 205/225 vs 원 주장 198/232. 코드가 쓰는 200/230 은 두 읽기 사이에 있고 차이는 ±2.5 % 다. body_h 200 mm 를 유지할 근거가 된다.",
+  "trap_found": "자동으로 '중앙 열의 최하단 픽셀'을 벨리로 잡으면 176 px : 110 px (동체 266 · 다리 164 mm)가 나온다 — DGC2.0 페이로드 마운트가 벨리 아래 ~50 px 더 내려오기 때문이다. 30 % 급 오차이므로 이 사진을 자동으로 재는 코드를 쓸 사람은 반드시 마운트를 빼야 한다.",
+  "how_measured": "PNG 알파 채널(>128) 실루엣, 중앙 열 프로파일 + 4배 확대 육안 확인."
+ },
+
+ "3_reproduced__silhouette_iou_and_watertightness": {
+  "iou": {
+   "photo": "m350rtk_d01_front_elevation_unfolded.png",
+   "best_iou_independent_run": 0.503251,
+   "self_replication_ceiling_independent_run": 0.898958,
+   "pct_of_ceiling": 56.0,
+   "ledger_value": 0.5033,
+   "verdict": "REPRODUCED — 별도 프로세스에서 viz_mesh_photo.calibrate + run_key 를 다시 돌려 소수 4자리까지 같다.",
+   "peer_context_pct_of_ceiling": {"x500v2": 91.4, "s1000plus": 87.3, "matrice4e": 63.3, "phantom4": 59.3, "typhoonh480": 58.6, "mavic4pro": 57.3, "m350rtk": 56.0, "mini5pro": 50.0},
+   "caveat": "등록 사진이 **1장**이다. 다른 기체(2~4장)와 같은 무게로 읽으면 안 된다. 그리고 이 한 장은 앙각 10° 정면 한 방향만 본다 — 상면 실루엣(암 각도 38.65° 가 사는 곳)은 이 시험에 **들어오지 않는다**."
+  },
+  "mesh_sanity": {
+   "n_tri_drone": 26216,
+   "n_tri_frame": 13464,
+   "n_vertices": 13194,
+   "n_parts": 43,
+   "watertight_parts": "43/43",
+   "positive_volume_parts": "43/43",
+   "bbox_frame_mm": [771.05, 626.34, 430.0],
+   "bbox_with_props_mm": [1150.48, 1008.01, 430.0],
+   "published_unfolded_props_excluded_mm": [810.0, 670.0, 430.0],
+   "bbox_vs_published_pct": [-4.81, -6.52, 0.0],
+   "envelope_fit_scale": [1.0, 1.0, 0.99078],
+   "verdict": "REPRODUCED — trimesh 로 그룹별 연결요소를 다시 쪼개 워터타이트·부호부피를 독립 확인했다."
+  }
+ },
+
+ "4_open__what_fills_the_missing_5_to_7_percent_of_the_published_box": {
+  "fact": "프레임 bbox 771 × 626 mm 는 공표 810 × 670 보다 각각 −4.8 % · −6.5 % 작다. 원인은 로터 스테이션의 오버행을 공표값이 함의하는 55.5 mm(편측)가 아니라 사진에서 잰 모터 포드 절반(40 mm)으로 지었기 때문이다.",
+  "candidates_not_yet_settled": [
+   "모터 포드 실측(58×80×52 mm, p06)이 낮게 읽혔을 가능성 — 포드 길이가 110 mm 면 편측 55 mm 로 정확히 맞는다.",
+   "DJI 의 박스가 포드가 아닌 다른 것(프롭 접이 허브·어댑터)에 닿을 가능성. '프로펠러 제외'가 블레이드만 제외한다면 허브는 남는다.",
+   "오버행이 반경방향이라면 편측 78 mm 여야 하고, 그러면 포드 실측과의 간극은 더 커진다."
+  ],
+  "how_to_settle": "모터 포드 단품 사진 + 자, 또는 암 끝을 정투영으로 담은 컷이 필요하다. FCC 내부 사진 86장에 모터·암 단품 컷이 없다고 SOURCES.md 가 이미 적었다(§5-3). 지금 폴더로는 못 닫는다.",
+  "why_it_matters": "투영면적이 곧 σ 의 1차 항이다. 공용 경로로 지은 대조기체(M100·M600)가 투영면적 −3.1~−3.5 dB 였던 것과 같은 종류의 손실이므로, 이 −5 % 는 '보고하고 두는' 항목이지 '외형강제로 지우는' 항목이 아니다(envelope 은 높이만 강제한다)."
+ },
+
+ "5_standing_warnings_confirmed": [
+  "프롭 지름 533.4 mm 는 여전히 SECONDARY(소매점)다. p05/p06 자로 닫으려는 시도는 이미 실패로 기록돼 있다(접힌 날이 겹쳐 허브-팁 대응 불가).",
+  "TB65 2팩이 셸 밖에 있는데 rcs_sbr 은 주변 body 그룹을 유전체 셸로 본다 — 선언된 편향, 안 고쳤다.",
+  "CSM Radar·흰 보호캡·GNSS 안테나는 일부러 안 지었다."
+ ]
+}

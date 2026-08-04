@@ -1,0 +1,1253 @@
+{
+ "_meta": {
+  "generated": "2026-08-03T12:28:48",
+  "generator": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/build_das_fleet_spec_v2.py",
+  "purpose": "Das Table I·III 전수 판독 — 4기체 x 7 바이스태틱각 대조 명세 확정 (1200 dpi 재판독본)",
+  "source_pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+  "citation": "S. Das, P. Zhang, V. Hovinen, M. E. Leinonen, A. Parssinen, P. Kyosti, \"Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling,\" IEEE Wireless Commun. Lett., vol. 15, pp. 3731-3735, 2026, doi:10.1109/LWC.2026.3705634",
+  "read_method": "Table I(p.3732) · II(p.3733) · III(p.3734) 은 텍스트 레이어가 없다(벡터 아웃라인). PyMuPDF get_drawings 로 표의 괘선 좌표를 먼저 뽑아 열·행 경계를 확정하고(Table I: V=110.76/169.22/171.37/248.99/326.61/423.63/501.24, H=89.35..148.35 8줄; Table III: V=77.81/116.68/118.83/177.86/236.90/295.93/354.97/414.00/475.16/534.19, H=89.35..163.77 10줄), 열 단위 스트립을 **1200 dpi** 그레이스케일로 각각 렌더해 셀 하나씩 판독했다(요구 900 dpi 상회). Table II 는 900 dpi. 스트립 크기는 축소 후에도 유효 해상도가 900 dpi 밑으로 안 내려가게 잡았다.",
+  "render_dir": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/das_render",
+  "independent_corroboration": "Fig.3(p.3733, 'Linear fitting of the mean and standard deviation of the measured monostatic RCS') 네 패널의 Mean-freq. fit / SD-freq. fit 점선 끝점이 Table III θb=0 행의 예측값과 눈금 위에서 일치한다: P2 μ −9.79→−6.64 / ε 2.91→4.41 (축 −20..0, 1..5), P3 μ −18.81→−15.37 / ε 5.21→5.71 (축 −25..−10, 0..15), M350 μ −15.28→−14.26 / ε 6.82→6.88 (축 −20..−10, 5..10), Mini2 μ −24.38→−23.96 / ε 5.68→5.74 (축 −30..−20, 3..9). 또 Fig.2(a) 의 θb 별 7 곡선 기울기 부호·크기가 Table III Phantom 2 행과 맞는다(75° 하강 포함).",
+  "do_not_touch": "이 스크립트는 outputs/das_fleet_spec.json 한 파일만 쓴다. sigma_anchor.py · drones.py · p3_*.json · phantom3/mavic4pro/matrice4e 산출물 · teammeeting_0804/* · sigma_grid_regen.json · sigma_el_extend_progress.json · anchor_subband*.json 은 읽기만 했다."
+ },
+ "table1_layout": {
+  "orientation": "전치형 — 행=파라미터, 열=기체",
+  "row_labels": [
+   "Dimension",
+   "Frequency Band",
+   "Frequency points",
+   "Azimuth resolution",
+   "TX-RX distance",
+   "Environment"
+  ],
+  "column_order": [
+   "DJI Mini 2",
+   "DJI M350 RTK",
+   "DJI Phantom 2",
+   "DJI Phantom 3"
+  ],
+  "dimension_convention_warning": "⚠ Table I 은 두 수의 의미를 정의하지 않고, **기체별로 규약이 다르다** — Phantom 2·3 은 (수평대각 x 높이), Mini 2·M350 RTK 는 (바닥면적 두 변). 가우시안-클러스터 모델의 sigma_s ≈ D/4.3 에 쓰는 D(최대치수)를 표에서 곧장 읽으면 기체마다 다른 것을 재게 된다."
+ },
+ "airframes": {
+  "phantom2": {
+   "name": "DJI Phantom 2",
+   "table1_column": 3,
+   "data_provenance": "본 논문에서 신규 측정 (Univ. Oulu 실내홀). Fig.1 이 그 설비다.",
+   "dimensions": {
+    "literal_table1": "35.0 cm x 20.0 cm",
+    "dim_cm": [
+     35.0,
+     20.0
+    ],
+    "dim_mm": [
+     350,
+     200
+    ],
+    "convention": "35 cm = 수평 대각(모터-모터), 20 cm = 높이. Phantom 3 열과 같은 수이고 Yuan §II-A 가 그 정의를 준다."
+   },
+   "frequency": {
+    "band_ghz": [
+     11.0,
+     26.0
+    ],
+    "n_points": 2001,
+    "step_mhz": 7.5
+   },
+   "azimuth": {
+    "literal_table1": "0 deg <= phi(= 1 deg) <= 360 deg",
+    "start_deg": 0.0,
+    "stop_deg": 360.0,
+    "step_deg": 1.0,
+    "n_points": 361
+   },
+   "geometry": {
+    "tx_rx_distance_table1": "Near-field, 2.6 m",
+    "environment_table1": "Controlled non-anechoic, indoor",
+    "far_field_claimed": false,
+    "anechoic_claimed": false
+   },
+   "farfield_check": {
+    "D_max_m": 0.4031,
+    "D_def": "Table I 두 수의 대각 = 최대 선형 확장 (원문은 D 를 정의하지 않는다)",
+    "R_ff_at_lo_m": 11.92,
+    "lambda_at_lo_mm": 27.254,
+    "R_ff_at_hi_m": 28.19,
+    "lambda_at_hi_mm": 11.53,
+    "D_horizontal_only_m": 0.35,
+    "R_ff_horizontal_at_lo_m": 8.99,
+    "R_ff_horizontal_at_hi_m": 21.25,
+    "D_ambiguity_note": "D 를 3차원 대각(0.403 m)으로 잡느냐 수평대각(0.350 m)으로 잡느냐에 따라 R_ff 가 1.33배 달라진다. 어느 쪽이든 결론(Phantom 2 는 근거리장)은 안 바뀐다.",
+    "actual_range_m": 2.6,
+    "shortfall_factor_at_hi": 10.8,
+    "shortfall_factor_at_hi_horizontal_D": 8.2,
+    "cross_target_phase_error_deg": {
+     "11.0": 103.2,
+     "18.5": 173.6,
+     "26.0": 243.9
+    },
+    "cross_target_phase_error_deg_horizontal_D": {
+     "11.0": 77.8,
+     "18.5": 130.8,
+     "26.0": 183.9
+    },
+    "criterion_deg": 22.5,
+    "verdict": "근거리장 확정. 어느 D 규약에서도 2.6 m 는 필요거리의 1/8~1/11 이고, 표적 횡단 위상오차가 26 GHz 에서 184~244 도로 기준 22.5 도의 8~11 배다. 원문의 방어논리('서브밴드 레인지분해능 0.75 m > 최대치수 0.35 m → 점표적 → 등가 원거리장')는 **레인지영역 분리가능성**을 논한 것이지 파면곡률을 논한 것이 아니다. 두 조건은 다른 조건이다."
+   },
+   "polarisation": "VV — §II-1 축자('vertically polarized directional antennas at both the transmitter (TX) and receiver (RX)'). ⚠ 단 그 문단은 Phantom 2 오울루 설비 설명 문단이다.",
+   "best_fit_distribution": {
+    "Log-Normal": 1.04,
+    "Gamma": 4.22,
+    "Rician": 5.37,
+    "best": "Log-Normal"
+   },
+   "table3_abcd": {
+    "0": {
+     "a_db_per_ghz": 0.21,
+     "b_dbsm": -12.1,
+     "c_db_per_ghz": 0.1,
+     "d_db": 1.81,
+     "mu_lo_dbsm": -9.79,
+     "mu_hi_dbsm": -6.64,
+     "mu_bandcentre_dbsm": -8.215,
+     "eps_lo_db": 2.91,
+     "eps_hi_db": 4.41
+    },
+    "15": {
+     "a_db_per_ghz": 0.5,
+     "b_dbsm": -19.31,
+     "c_db_per_ghz": 0.07,
+     "d_db": 2.73,
+     "mu_lo_dbsm": -13.81,
+     "mu_hi_dbsm": -6.31,
+     "mu_bandcentre_dbsm": -10.06,
+     "eps_lo_db": 3.5,
+     "eps_hi_db": 4.55
+    },
+    "30": {
+     "a_db_per_ghz": 0.22,
+     "b_dbsm": -13.3,
+     "c_db_per_ghz": 0.06,
+     "d_db": 3.06,
+     "mu_lo_dbsm": -10.88,
+     "mu_hi_dbsm": -7.58,
+     "mu_bandcentre_dbsm": -9.23,
+     "eps_lo_db": 3.72,
+     "eps_hi_db": 4.62
+    },
+    "45": {
+     "a_db_per_ghz": 0.21,
+     "b_dbsm": -14.76,
+     "c_db_per_ghz": 0.07,
+     "d_db": 2.87,
+     "mu_lo_dbsm": -12.45,
+     "mu_hi_dbsm": -9.3,
+     "mu_bandcentre_dbsm": -10.875,
+     "eps_lo_db": 3.64,
+     "eps_hi_db": 4.69
+    },
+    "60": {
+     "a_db_per_ghz": 0.12,
+     "b_dbsm": -14.18,
+     "c_db_per_ghz": 0.02,
+     "d_db": 3.85,
+     "mu_lo_dbsm": -12.86,
+     "mu_hi_dbsm": -11.06,
+     "mu_bandcentre_dbsm": -11.96,
+     "eps_lo_db": 4.07,
+     "eps_hi_db": 4.37
+    },
+    "75": {
+     "a_db_per_ghz": -0.13,
+     "b_dbsm": -7.85,
+     "c_db_per_ghz": 0.08,
+     "d_db": 2.8,
+     "mu_lo_dbsm": -9.28,
+     "mu_hi_dbsm": -11.23,
+     "mu_bandcentre_dbsm": -10.255,
+     "eps_lo_db": 3.68,
+     "eps_hi_db": 4.88
+    },
+    "90": {
+     "a_db_per_ghz": 0.08,
+     "b_dbsm": -10.4,
+     "c_db_per_ghz": 0.05,
+     "d_db": 3.16,
+     "mu_lo_dbsm": -9.52,
+     "mu_hi_dbsm": -8.32,
+     "mu_bandcentre_dbsm": -8.92,
+     "eps_lo_db": 3.71,
+     "eps_hi_db": 4.46
+    }
+   },
+   "delta_mu_vs_mono_at_bandcentre_db": {
+    "0": 0.0,
+    "15": -1.845,
+    "30": -1.015,
+    "45": -2.66,
+    "60": -3.745,
+    "75": -2.04,
+    "90": -0.705
+   },
+   "overlaps_our_band_1p8_6p0": false
+  },
+  "phantom3": {
+   "name": "DJI Phantom 3",
+   "table1_column": 4,
+   "data_provenance": "ref [7] (Wang et al., China Commun. 2026) 제공 — ACKNOWLEDGMENT 의 Wei Fan(Southeast Univ.). Yuan EuCAP 2025 와 설정이 글자단위로 같아 **동일 원자료**다.",
+   "dimensions": {
+    "literal_table1": "35.0 cm x 20.0 cm",
+    "dim_cm": [
+     35.0,
+     20.0
+    ],
+    "dim_mm": [
+     350,
+     200
+    ],
+    "convention": "35 cm = 수평 대각, 20 cm = 높이 — Yuan §II-A 축자와 일치(확정)."
+   },
+   "frequency": {
+    "band_ghz": [
+     1.8,
+     18.2
+    ],
+    "n_points": 2801,
+    "step_mhz": 5.8571
+   },
+   "azimuth": {
+    "literal_table1": "-90 deg <= phi(= 2 deg) <= 90 deg",
+    "start_deg": -90.0,
+    "stop_deg": 90.0,
+    "step_deg": 2.0,
+    "n_points": 91
+   },
+   "geometry": {
+    "tx_rx_distance_table1": "Far-field",
+    "environment_table1": "Anechoic",
+    "far_field_claimed": true,
+    "anechoic_claimed": true
+   },
+   "farfield_check": {
+    "D_max_m": 0.4031,
+    "D_def": "Table I 두 수의 대각 = 최대 선형 확장 (원문은 D 를 정의하지 않는다)",
+    "R_ff_at_lo_m": 1.95,
+    "lambda_at_lo_mm": 166.551,
+    "R_ff_at_hi_m": 19.73,
+    "lambda_at_hi_mm": 16.472,
+    "D_horizontal_only_m": 0.35,
+    "R_ff_horizontal_at_lo_m": 1.47,
+    "R_ff_horizontal_at_hi_m": 14.87,
+    "D_ambiguity_note": "D 를 3차원 대각(0.403 m)으로 잡느냐 수평대각(0.350 m)으로 잡느냐에 따라 R_ff 가 1.33배 달라진다. 어느 쪽이든 결론(Phantom 2 는 근거리장)은 안 바뀐다."
+   },
+   "polarisation": "VV — Das 는 미기술. Yuan §II-A(동일 원자료)가 VV 로 명시한다. 그 경유로만 확정.",
+   "best_fit_distribution": {
+    "Log-Normal": 1.38,
+    "Gamma": 0.628,
+    "Rician": 0.436,
+    "best": "Rician"
+   },
+   "table3_abcd": {
+    "0": {
+     "a_db_per_ghz": 0.21,
+     "b_dbsm": -19.19,
+     "c_db_per_ghz": 0.03,
+     "d_db": 5.16,
+     "mu_lo_dbsm": -18.812,
+     "mu_hi_dbsm": -15.368,
+     "mu_bandcentre_dbsm": -17.09,
+     "eps_lo_db": 5.214,
+     "eps_hi_db": 5.706
+    },
+    "15": {
+     "a_db_per_ghz": 0.21,
+     "b_dbsm": -19.23,
+     "c_db_per_ghz": 0.03,
+     "d_db": 5.16,
+     "mu_lo_dbsm": -18.852,
+     "mu_hi_dbsm": -15.408,
+     "mu_bandcentre_dbsm": -17.13,
+     "eps_lo_db": 5.214,
+     "eps_hi_db": 5.706
+    },
+    "30": {
+     "a_db_per_ghz": 0.21,
+     "b_dbsm": -19.33,
+     "c_db_per_ghz": 0.03,
+     "d_db": 5.16,
+     "mu_lo_dbsm": -18.952,
+     "mu_hi_dbsm": -15.508,
+     "mu_bandcentre_dbsm": -17.23,
+     "eps_lo_db": 5.214,
+     "eps_hi_db": 5.706
+    },
+    "45": {
+     "a_db_per_ghz": 0.21,
+     "b_dbsm": -19.48,
+     "c_db_per_ghz": 0.03,
+     "d_db": 5.16,
+     "mu_lo_dbsm": -19.102,
+     "mu_hi_dbsm": -15.658,
+     "mu_bandcentre_dbsm": -17.38,
+     "eps_lo_db": 5.214,
+     "eps_hi_db": 5.706
+    },
+    "60": {
+     "a_db_per_ghz": 0.21,
+     "b_dbsm": -19.64,
+     "c_db_per_ghz": 0.03,
+     "d_db": 5.16,
+     "mu_lo_dbsm": -19.262,
+     "mu_hi_dbsm": -15.818,
+     "mu_bandcentre_dbsm": -17.54,
+     "eps_lo_db": 5.214,
+     "eps_hi_db": 5.706
+    },
+    "75": {
+     "a_db_per_ghz": 0.21,
+     "b_dbsm": -19.77,
+     "c_db_per_ghz": 0.03,
+     "d_db": 5.16,
+     "mu_lo_dbsm": -19.392,
+     "mu_hi_dbsm": -15.948,
+     "mu_bandcentre_dbsm": -17.67,
+     "eps_lo_db": 5.214,
+     "eps_hi_db": 5.706
+    },
+    "90": {
+     "a_db_per_ghz": 0.21,
+     "b_dbsm": -19.82,
+     "c_db_per_ghz": 0.03,
+     "d_db": 5.16,
+     "mu_lo_dbsm": -19.442,
+     "mu_hi_dbsm": -15.998,
+     "mu_bandcentre_dbsm": -17.72,
+     "eps_lo_db": 5.214,
+     "eps_hi_db": 5.706
+    }
+   },
+   "delta_mu_vs_mono_at_bandcentre_db": {
+    "0": 0.0,
+    "15": -0.04,
+    "30": -0.14,
+    "45": -0.29,
+    "60": -0.45,
+    "75": -0.58,
+    "90": -0.63
+   },
+   "overlaps_our_band_1p8_6p0": true
+  },
+  "mini2": {
+   "name": "DJI Mini 2",
+   "table1_column": 1,
+   "data_provenance": "ref [7] 제공 (Wei Fan). Das 는 설비를 기술하지 않는다.",
+   "dimensions": {
+    "literal_table1": "15.9 cm x 20.3 cm",
+    "dim_cm": [
+     15.9,
+     20.3
+    ],
+    "dim_mm": [
+     159,
+     203
+    ],
+    "convention": "15.9 x 20.3 cm 는 DJI 공식 unfolded 치수 159x203x56 mm 의 앞 두 수 = **기체 바닥면적**이다. 대각(모터-모터) 213 mm 가 아니다."
+   },
+   "frequency": {
+    "band_ghz": [
+     21.0,
+     27.0
+    ],
+    "n_points": 501,
+    "step_mhz": 12.0
+   },
+   "azimuth": {
+    "literal_table1": "0 deg <= phi(= 0.5 deg) <= 360 deg",
+    "start_deg": 0.0,
+    "stop_deg": 360.0,
+    "step_deg": 0.5,
+    "n_points": 721
+   },
+   "geometry": {
+    "tx_rx_distance_table1": "Far-field",
+    "environment_table1": "Anechoic",
+    "far_field_claimed": true,
+    "anechoic_claimed": true
+   },
+   "farfield_check": {
+    "D_max_m": 0.2579,
+    "D_def": "Table I 두 수의 대각 = 최대 선형 확장 (원문은 D 를 정의하지 않는다)",
+    "R_ff_at_lo_m": 9.32,
+    "lambda_at_lo_mm": 14.276,
+    "R_ff_at_hi_m": 11.98,
+    "lambda_at_hi_mm": 11.103
+   },
+   "polarisation": "⚠ 미확인. Das 본문에 진술 없음. ref [7] 미판독(우리 코퍼스에 없음). VV 는 추정일 뿐이다.",
+   "best_fit_distribution": {
+    "Log-Normal": 8.34,
+    "Gamma": 1.05,
+    "Rician": 0.532,
+    "best": "Rician"
+   },
+   "table3_abcd": {
+    "0": {
+     "a_db_per_ghz": 0.07,
+     "b_dbsm": -25.85,
+     "c_db_per_ghz": 0.01,
+     "d_db": 5.47,
+     "mu_lo_dbsm": -24.38,
+     "mu_hi_dbsm": -23.96,
+     "mu_bandcentre_dbsm": -24.17,
+     "eps_lo_db": 5.68,
+     "eps_hi_db": 5.74
+    },
+    "15": {
+     "a_db_per_ghz": 0.07,
+     "b_dbsm": -25.89,
+     "c_db_per_ghz": 0.01,
+     "d_db": 5.47,
+     "mu_lo_dbsm": -24.42,
+     "mu_hi_dbsm": -24.0,
+     "mu_bandcentre_dbsm": -24.21,
+     "eps_lo_db": 5.68,
+     "eps_hi_db": 5.74
+    },
+    "30": {
+     "a_db_per_ghz": 0.07,
+     "b_dbsm": -25.99,
+     "c_db_per_ghz": 0.01,
+     "d_db": 5.47,
+     "mu_lo_dbsm": -24.52,
+     "mu_hi_dbsm": -24.1,
+     "mu_bandcentre_dbsm": -24.31,
+     "eps_lo_db": 5.68,
+     "eps_hi_db": 5.74
+    },
+    "45": {
+     "a_db_per_ghz": 0.07,
+     "b_dbsm": -26.14,
+     "c_db_per_ghz": 0.01,
+     "d_db": 5.47,
+     "mu_lo_dbsm": -24.67,
+     "mu_hi_dbsm": -24.25,
+     "mu_bandcentre_dbsm": -24.46,
+     "eps_lo_db": 5.68,
+     "eps_hi_db": 5.74
+    },
+    "60": {
+     "a_db_per_ghz": 0.07,
+     "b_dbsm": -26.3,
+     "c_db_per_ghz": 0.01,
+     "d_db": 5.47,
+     "mu_lo_dbsm": -24.83,
+     "mu_hi_dbsm": -24.41,
+     "mu_bandcentre_dbsm": -24.62,
+     "eps_lo_db": 5.68,
+     "eps_hi_db": 5.74
+    },
+    "75": {
+     "a_db_per_ghz": 0.07,
+     "b_dbsm": -26.43,
+     "c_db_per_ghz": 0.01,
+     "d_db": 5.47,
+     "mu_lo_dbsm": -24.96,
+     "mu_hi_dbsm": -24.54,
+     "mu_bandcentre_dbsm": -24.75,
+     "eps_lo_db": 5.68,
+     "eps_hi_db": 5.74
+    },
+    "90": {
+     "a_db_per_ghz": 0.07,
+     "b_dbsm": -26.47,
+     "c_db_per_ghz": 0.01,
+     "d_db": 5.47,
+     "mu_lo_dbsm": -25.0,
+     "mu_hi_dbsm": -24.58,
+     "mu_bandcentre_dbsm": -24.79,
+     "eps_lo_db": 5.68,
+     "eps_hi_db": 5.74
+    }
+   },
+   "delta_mu_vs_mono_at_bandcentre_db": {
+    "0": 0.0,
+    "15": -0.04,
+    "30": -0.14,
+    "45": -0.29,
+    "60": -0.45,
+    "75": -0.58,
+    "90": -0.62
+   },
+   "overlaps_our_band_1p8_6p0": false
+  },
+  "m350rtk": {
+   "name": "DJI M350 RTK",
+   "table1_column": 2,
+   "data_provenance": "ref [7] 제공 (Wei Fan). Das 는 설비를 기술하지 않는다.",
+   "dimensions": {
+    "literal_table1": "81.0 cm x 67.0 cm",
+    "dim_cm": [
+     81.0,
+     67.0
+    ],
+    "dim_mm": [
+     810,
+     670
+    ],
+    "convention": "81 x 67 cm 는 DJI 공식 unfolded(암 펼침·프로펠러 접음) 810x670x430 mm 의 앞 두 수 = **바닥면적**이다. 대각 wheelbase 895 mm 가 아니다."
+   },
+   "frequency": {
+    "band_ghz": [
+     21.0,
+     27.0
+    ],
+    "n_points": 501,
+    "step_mhz": 12.0
+   },
+   "azimuth": {
+    "literal_table1": "0 deg <= phi(= 0.5 deg) <= 360 deg",
+    "start_deg": 0.0,
+    "stop_deg": 360.0,
+    "step_deg": 0.5,
+    "n_points": 721
+   },
+   "geometry": {
+    "tx_rx_distance_table1": "Far-field",
+    "environment_table1": "Anechoic",
+    "far_field_claimed": true,
+    "anechoic_claimed": true
+   },
+   "farfield_check": {
+    "D_max_m": 1.0512,
+    "D_def": "Table I 두 수의 대각 = 최대 선형 확장 (원문은 D 를 정의하지 않는다)",
+    "R_ff_at_lo_m": 154.81,
+    "lambda_at_lo_mm": 14.276,
+    "R_ff_at_hi_m": 199.04,
+    "lambda_at_hi_mm": 11.103
+   },
+   "polarisation": "⚠ 미확인. 위와 같음.",
+   "best_fit_distribution": {
+    "Log-Normal": 4.11,
+    "Gamma": 50.0,
+    "Rician": 218.0,
+    "best": "Log-Normal"
+   },
+   "table3_abcd": {
+    "0": {
+     "a_db_per_ghz": 0.17,
+     "b_dbsm": -18.85,
+     "c_db_per_ghz": 0.01,
+     "d_db": 6.61,
+     "mu_lo_dbsm": -15.28,
+     "mu_hi_dbsm": -14.26,
+     "mu_bandcentre_dbsm": -14.77,
+     "eps_lo_db": 6.82,
+     "eps_hi_db": 6.88
+    },
+    "15": {
+     "a_db_per_ghz": 0.17,
+     "b_dbsm": -18.89,
+     "c_db_per_ghz": 0.01,
+     "d_db": 6.61,
+     "mu_lo_dbsm": -15.32,
+     "mu_hi_dbsm": -14.3,
+     "mu_bandcentre_dbsm": -14.81,
+     "eps_lo_db": 6.82,
+     "eps_hi_db": 6.88
+    },
+    "30": {
+     "a_db_per_ghz": 0.17,
+     "b_dbsm": -18.99,
+     "c_db_per_ghz": 0.01,
+     "d_db": 6.61,
+     "mu_lo_dbsm": -15.42,
+     "mu_hi_dbsm": -14.4,
+     "mu_bandcentre_dbsm": -14.91,
+     "eps_lo_db": 6.82,
+     "eps_hi_db": 6.88
+    },
+    "45": {
+     "a_db_per_ghz": 0.17,
+     "b_dbsm": -19.15,
+     "c_db_per_ghz": 0.01,
+     "d_db": 6.61,
+     "mu_lo_dbsm": -15.58,
+     "mu_hi_dbsm": -14.56,
+     "mu_bandcentre_dbsm": -15.07,
+     "eps_lo_db": 6.82,
+     "eps_hi_db": 6.88
+    },
+    "60": {
+     "a_db_per_ghz": 0.17,
+     "b_dbsm": -19.31,
+     "c_db_per_ghz": 0.01,
+     "d_db": 6.61,
+     "mu_lo_dbsm": -15.74,
+     "mu_hi_dbsm": -14.72,
+     "mu_bandcentre_dbsm": -15.23,
+     "eps_lo_db": 6.82,
+     "eps_hi_db": 6.88
+    },
+    "75": {
+     "a_db_per_ghz": 0.17,
+     "b_dbsm": -19.43,
+     "c_db_per_ghz": 0.01,
+     "d_db": 6.61,
+     "mu_lo_dbsm": -15.86,
+     "mu_hi_dbsm": -14.84,
+     "mu_bandcentre_dbsm": -15.35,
+     "eps_lo_db": 6.82,
+     "eps_hi_db": 6.88
+    },
+    "90": {
+     "a_db_per_ghz": 0.17,
+     "b_dbsm": -19.48,
+     "c_db_per_ghz": 0.01,
+     "d_db": 6.61,
+     "mu_lo_dbsm": -15.91,
+     "mu_hi_dbsm": -14.89,
+     "mu_bandcentre_dbsm": -15.4,
+     "eps_lo_db": 6.82,
+     "eps_hi_db": 6.88
+    }
+   },
+   "delta_mu_vs_mono_at_bandcentre_db": {
+    "0": 0.0,
+    "15": -0.04,
+    "30": -0.14,
+    "45": -0.3,
+    "60": -0.46,
+    "75": -0.58,
+    "90": -0.63
+   },
+   "overlaps_our_band_1p8_6p0": false
+  }
+ },
+ "table2_goodness_of_fit": {
+  "what": "TABLE II — MEAN dAD FOR MONOSTATIC RCS FITTING (900 dpi 판독). 굵은 글씨=최적",
+  "values": {
+   "mini2": {
+    "Log-Normal": 8.34,
+    "Gamma": 1.05,
+    "Rician": 0.532,
+    "best": "Rician"
+   },
+   "m350rtk": {
+    "Log-Normal": 4.11,
+    "Gamma": 50.0,
+    "Rician": 218.0,
+    "best": "Log-Normal"
+   },
+   "phantom2": {
+    "Log-Normal": 1.04,
+    "Gamma": 4.22,
+    "Rician": 5.37,
+    "best": "Log-Normal"
+   },
+   "phantom3": {
+    "Log-Normal": 1.38,
+    "Gamma": 0.628,
+    "Rician": 0.436,
+    "best": "Rician"
+   }
+  },
+  "note": "최적분포가 기체마다 다르다 — Phantom 2·M350 RTK 는 로그정규, Mini 2·Phantom 3 은 라이시안. 그런데 §III-2 는 '3GPP 정합 기본값' 으로 로그정규를 채택하고 Table III 의 (μ, ε) 를 'corresponding scale adjustment' 후 로그정규 모수로 쓰라고 한다. 즉 Mini 2·Phantom 3 에 대해서는 최적분포와 권장 생성분포가 다르다."
+ },
+ "table3": {
+  "phantom2": {
+   "0": [
+    0.21,
+    -12.1,
+    0.1,
+    1.81
+   ],
+   "15": [
+    0.5,
+    -19.31,
+    0.07,
+    2.73
+   ],
+   "30": [
+    0.22,
+    -13.3,
+    0.06,
+    3.06
+   ],
+   "45": [
+    0.21,
+    -14.76,
+    0.07,
+    2.87
+   ],
+   "60": [
+    0.12,
+    -14.18,
+    0.02,
+    3.85
+   ],
+   "75": [
+    -0.13,
+    -7.85,
+    0.08,
+    2.8
+   ],
+   "90": [
+    0.08,
+    -10.4,
+    0.05,
+    3.16
+   ]
+  },
+  "phantom3": {
+   "0": [
+    0.21,
+    -19.19,
+    0.03,
+    5.16
+   ],
+   "15": [
+    0.21,
+    -19.23,
+    0.03,
+    5.16
+   ],
+   "30": [
+    0.21,
+    -19.33,
+    0.03,
+    5.16
+   ],
+   "45": [
+    0.21,
+    -19.48,
+    0.03,
+    5.16
+   ],
+   "60": [
+    0.21,
+    -19.64,
+    0.03,
+    5.16
+   ],
+   "75": [
+    0.21,
+    -19.77,
+    0.03,
+    5.16
+   ],
+   "90": [
+    0.21,
+    -19.82,
+    0.03,
+    5.16
+   ]
+  },
+  "mini2": {
+   "0": [
+    0.07,
+    -25.85,
+    0.01,
+    5.47
+   ],
+   "15": [
+    0.07,
+    -25.89,
+    0.01,
+    5.47
+   ],
+   "30": [
+    0.07,
+    -25.99,
+    0.01,
+    5.47
+   ],
+   "45": [
+    0.07,
+    -26.14,
+    0.01,
+    5.47
+   ],
+   "60": [
+    0.07,
+    -26.3,
+    0.01,
+    5.47
+   ],
+   "75": [
+    0.07,
+    -26.43,
+    0.01,
+    5.47
+   ],
+   "90": [
+    0.07,
+    -26.47,
+    0.01,
+    5.47
+   ]
+  },
+  "m350rtk": {
+   "0": [
+    0.17,
+    -18.85,
+    0.01,
+    6.61
+   ],
+   "15": [
+    0.17,
+    -18.89,
+    0.01,
+    6.61
+   ],
+   "30": [
+    0.17,
+    -18.99,
+    0.01,
+    6.61
+   ],
+   "45": [
+    0.17,
+    -19.15,
+    0.01,
+    6.61
+   ],
+   "60": [
+    0.17,
+    -19.31,
+    0.01,
+    6.61
+   ],
+   "75": [
+    0.17,
+    -19.43,
+    0.01,
+    6.61
+   ],
+   "90": [
+    0.17,
+    -19.48,
+    0.01,
+    6.61
+   ]
+  }
+ },
+ "table3_format": "(a, b, c, d) 로 mu(f) = a*f + b [dBsm], eps(f) = c*f + d [dB], f in GHz",
+ "table3_verified": true,
+ "table3_diffs": [],
+ "table3_verification": {
+  "cells_compared": 28,
+  "params_compared": 112,
+  "against": "src/sigma_anchor.py : DAS['table3'] (읽기 전용)",
+  "result": "28 셀 x 4 계수 = 112 개 값 전부 일치. 1200 dpi 에서 글리프는 모호하지 않다(−0.13 의 음부호, 0.50 vs 0.56, 25.85 vs 25.35 같은 혼동 후보가 전부 분리된다).",
+  "residual_uncertainty": "판독 불확도가 아니라 **표 자체의 반올림**만 남는다 — a 에 ±0.005 dB/GHz, b·d 에 ±0.005 dB, c 에 ±0.005 dB/GHz.",
+  "table1_diffs": [],
+  "table1_verified": true
+ },
+ "finding_bistatic_taper_is_synthetic": {
+  "headline": "⭐ Phantom 3 · Mini 2 · M350 RTK 세 기체의 바이스태틱 열은 **독립 측정이 아니다**. θb=0 의 적합에 공통 해석 taper 를 씌운 파생값이다.",
+  "delta_b_db": {
+   "phantom2": [
+    0.0,
+    -7.21,
+    -1.2,
+    -2.66,
+    -2.08,
+    4.25,
+    1.7
+   ],
+   "phantom3": [
+    0.0,
+    -0.04,
+    -0.14,
+    -0.29,
+    -0.45,
+    -0.58,
+    -0.63
+   ],
+   "mini2": [
+    0.0,
+    -0.04,
+    -0.14,
+    -0.29,
+    -0.45,
+    -0.58,
+    -0.62
+   ],
+   "m350rtk": [
+    0.0,
+    -0.04,
+    -0.14,
+    -0.3,
+    -0.46,
+    -0.58,
+    -0.63
+   ]
+  },
+  "max_disagreement_among_three_db": 0.01,
+  "eps_across_theta_b": "세 기체 모두 ε 가 7 개 θb 열에서 완전히 동일하다(변화 0.00 dB). a 도 동일하다.",
+  "closed_form": "delta_mu(theta_b) = -0.6153 * sin^2(theta_b)  [dB]",
+  "closed_form_rms_residual_db": 0.0095,
+  "closed_form_note": "잔차가 표의 반올림 단위(0.01 dB)와 같은 자릿수다 — sin^2 꼴이 표를 설명한다.",
+  "alternatives_rejected_rms_db": {
+   "sin^2(theta_b/2) = (1-cos)/2": 0.0636,
+   "linear in theta_b": 0.0441,
+   "10log10(cos(theta_b/2))": 0.3751
+  },
+  "why_not_bistatic_equivalence_theorem": "단조(monostatic-to-bistatic) 등가정리는 f -> f*cos(theta_b/2) 치환이므로 delta_mu = a*f*(cos(theta_b/2)-1) 이고 **기울기 a 에 비례**해야 한다. 그런데 a 는 0.07 / 0.17 / 0.21 로 3배 차이인데 delta_b 는 0.007 dB 안에서 같다. 등가정리가 아니다.",
+  "corroborating_text": "§II-1 에서 'The TX is fixed, whereas the RX is moved over bistatic angles theta_b = 0:15:90' 라고 적은 문단은 바로 앞 문장이 'Phantom 2 is the only platform measured in a controlled indoor non-anechoic near-field setting, with the corresponding measurement environment illustrated in Fig.1' 인 **Phantom 2 설비 문단**이다. Fig.1 캡션도 'the DJI Phantom 2 RCS measurement in an indoor hall' 이다. 나머지 3 기체의 바이스태틱 설비를 Das 는 한 줄도 기술하지 않는다. Fig.2 (바이스태틱 7 각도 표시)도 Phantom 2 뿐이고, Fig.3·5·6 은 전부 monostatic 이다.",
+  "consequence": "⭐ Table III 28 셀 중 **독립 정보는 10 개**다 — Phantom 2 의 7 열(실측 바이스태틱) + 나머지 3 기체의 θb=0 열 3 개. 남은 21 셀은 그 3 개에 공통 taper 를 씌운 것이다. '4기체 x 7각도 = 28쌍' 은 28 개의 독립 검증점이 아니다.",
+  "confidence": "매우 높음 — 정황증거 4중(수치 0.007 dB 동일성 · ε/a 완전 동일 · 본문 설비 미기술 · 바이스태틱 그림이 Phantom 2 뿐). 원문이 인정한 것은 아니므로 추론임을 유지한다."
+ },
+ "finding_phantom2_slope_anomaly": {
+  "headline": "⭐ Phantom 2 의 기울기 요동(0.21/0.50/0.22/0.21/0.12/−0.13/0.08)은 **통계적으로 유의하지 않다**. 물리적 바이스태틱 효과를 가정할 필요가 없다.",
+  "slopes_a": [
+   0.21,
+   0.5,
+   0.22,
+   0.21,
+   0.12,
+   -0.13,
+   0.08
+  ],
+  "sample_std_db_per_ghz": 0.1894,
+  "mechanism": "Fig.2(a)·Fig.3(a) 에서 Phantom 2 의 μ(f) 곡선은 11–26 GHz 에 걸쳐 로브·노치가 4~5 개 있고 선형추세 대비 ±4~6 dB 로 흔들린다. 그런 상관 잔차 위에 15 GHz 창으로 직선을 맞추면 기울기 자체가 크게 불확실해진다.",
+  "fit_noise_model": {
+   "assumed_residual_rms_db": 2.75,
+   "assumed_lobe_correlation_length_ghz": "1.5 ~ 5.0 (Fig.2(a) 극대 개수에서 3 GHz 가 중심추정)",
+   "band_ghz": [
+    11.0,
+    26.0
+   ],
+   "by_correlation_length": {
+    "1.5": {
+     "SE_a_db_per_ghz": 0.201,
+     "chi2_df6": 5.33,
+     "p_value": 0.502
+    },
+    "2.0": {
+     "SE_a_db_per_ghz": 0.232,
+     "chi2_df6": 4.0,
+     "p_value": 0.677
+    },
+    "3.0": {
+     "SE_a_db_per_ghz": 0.284,
+     "chi2_df6": 2.67,
+     "p_value": 0.849
+    },
+    "4.0": {
+     "SE_a_db_per_ghz": 0.328,
+     "chi2_df6": 2.0,
+     "p_value": 0.92
+    },
+    "5.0": {
+     "SE_a_db_per_ghz": 0.367,
+     "chi2_df6": 1.6,
+     "p_value": 0.953
+    }
+   },
+   "test": "H0: a(θb) 가 θb 에 무관한 상수. 검정통계 = sum((a_i - abar)^2)/SE^2 ~ chi2(6)",
+   "verdict": "상관길이 1.5~5.0 GHz 어느 값을 써도 p = 0.50 ~ 0.95 다. **어떤 가정에서도 유의하지 않다.** 관측된 산포(std 0.189)가 적합잡음 SE(0.20~0.37)보다 작다."
+  },
+  "b_column_is_a_trap": {
+   "corr_a_b": -0.9374,
+   "b_spread_db": 11.46,
+   "mu_at_bandcentre_spread_db": 3.75,
+   "mu_at_bandcentre_dbsm": {
+    "0": -8.215,
+    "15": -10.06,
+    "30": -9.23,
+    "45": -10.875,
+    "60": -11.96,
+    "75": -10.255,
+    "90": -8.92
+   },
+   "delta_mu_vs_mono_db": {
+    "0": 0.0,
+    "15": -1.845,
+    "30": -1.015,
+    "45": -2.66,
+    "60": -3.745,
+    "75": -2.04,
+    "90": -0.705
+   },
+   "note": "⭐ b 는 f=0 으로 외삽한 절편이라 a 와 −0.94 로 강하게 반상관한다. b 열만 보면 레벨이 11.5 dB 요동치는 것처럼 보이지만, 측정창 중심 18.5 GHz 에서 보면 실제 레벨 폭은 3.75 dB 다. **바이스태틱 각도의존은 b 가 아니라 μ(f_center) 로 읽어라.**"
+  },
+  "internal_tension": {
+   "claim": "§III-1: 'The monostatic mean RCS is consistently higher than its bistatic counterparts.'",
+   "check_from_table3": {
+    "11.0": {
+     "mono_dbsm": -9.79,
+     "max_bistatic_dbsm": -9.28,
+     "argmax_theta_b": 75,
+     "mono_is_highest": false
+    },
+    "14.0": {
+     "mono_dbsm": -9.16,
+     "max_bistatic_dbsm": -9.28,
+     "argmax_theta_b": 90,
+     "mono_is_highest": true
+    },
+    "18.5": {
+     "mono_dbsm": -8.21,
+     "max_bistatic_dbsm": -8.92,
+     "argmax_theta_b": 90,
+     "mono_is_highest": true
+    },
+    "22.0": {
+     "mono_dbsm": -7.48,
+     "max_bistatic_dbsm": -8.31,
+     "argmax_theta_b": 15,
+     "mono_is_highest": true
+    },
+    "26.0": {
+     "mono_dbsm": -6.64,
+     "max_bistatic_dbsm": -6.31,
+     "argmax_theta_b": 15,
+     "mono_is_highest": false
+    }
+   },
+   "verdict": "적합직선으로 재구성하면 밴드 양 끝(11 GHz 에서 θb=75, 26 GHz 에서 θb=15)에서 바이스태틱이 모노를 0.3~0.5 dB 넘는다. Fig.2(a) 에서도 곡선들이 실제로 교차한다. 'consistently' 는 느슨한 표현이고 중간 대역에서만 성립한다."
+  },
+  "what_our_sim_decides": "⭐ 우리 깨끗한 원거리장 시뮬이 이 요동을 재현하지 못하면 그것은 '아티팩트' 의 **보강증거**이지 결정적 증거는 아니다. 위 chi2 검정이 이미 '요동이 잡음과 구별되지 않는다' 를 보였기 때문에, 재현 실패는 예측된 결과다. 반대로 **재현에 성공하면** 그게 놀라운 결과이고 요동이 물리라는 증거가 된다. 검정을 이 방향으로 걸어라 — 가설은 '요동은 적합잡음' 이고 우리 시뮬은 그 가설을 **반증하려는 시도**다.",
+  "how_to_compare": "우리 시뮬로도 같은 절차를 밟아라: 11–26 GHz 에서 θb 별로 φ 전주기 평균 μ(f) 를 뽑고, **같은 창·같은 방식으로 직선적합**해 a(θb) 7 개를 얻은 뒤 그 산포를 Das 의 0.189 와 비교하라. 우리 μ(f) 곡선의 로브 잔차 RMS 도 함께 보고해 SE 를 가정이 아니라 실측으로 대체하라."
+ },
+ "theta_b_definition": {
+  "answer": "theta_b 는 **송수신 사이각**이다 — 표적을 꼭짓점으로 한 TX–표적–RX 낀각(고전적 bistatic angle beta). 이등분선 기준이 아니고, 반각도 아니다. theta_b=0 이 모노스태틱이고 theta_b=90 은 TX 와 RX 가 표적에서 90도 벌어진 배치다.",
+  "literal_text": "§II-1 축자: \"Both monostatic and bistatic configurations are evaluated. The TX is fixed, whereas the RX is moved over bistatic angles theta_b = 0deg:15deg:90deg.\" 초록 축자: \"bistatic angles (0deg:15deg:90deg)\".",
+  "figure_evidence": "Fig.1(실내홀 평면도) 이 결정적이다 — theta_b 호가 **표적(회전대) 위치를 꼭짓점**으로 표적→TX 방향과 표적→RX 방향 사이에 그려져 있다. TX(빨강)는 'TX (fixed)' 로 고정 표시, RX(초록)는 표적 중심 반경 2.6 m 원호를 따라 이동하고 원호 끝단이 'RX (theta_b = 90deg)' 로 라벨돼 있다. 즉 호의 각이 곧 theta_b 다.",
+  "plane": "수평면. Fig.1 은 평면도이고 RX 원호도 그 평면 안에 있다. 고도각은 원문 어디에도 없다 — TX·표적·RX 가 같은 높이(el ~ 0)로 읽는다. Fig.1 사진에서 드론은 마스트 위에 수평으로 얹혀 있다.",
+  "target_frame_relation": "⭐ phi 는 **회전대 방위각**(표적이 수직축으로 도는 각, Fig.1 의 빨간 회전화살표)이고 TX 는 고정이다. 따라서 표적 좌표계에서 보면 입사방위와 산란방위가 **함께 돈다**: 입사 = phi, 산란 = phi + theta_b. 이등분선이 phi 와 같이 회전한다. sigma(theta_b, f, phi) 의 phi 평균은 '바이스태틱 낀각을 theta_b 로 고정한 채 표적 자세를 전주기 평균' 이다.",
+  "what_our_comparison_must_do": "⭐⭐ 각 theta_b 마다 el=0 평면에서 입사 azimuth = phi, 산란 azimuth = phi + theta_b (둘 다 표적 좌표계) 인 바이스태틱 sigma 를 계산하고 phi 를 전주기 평균하라. **이등분선을 고정한 채 TX·RX 를 대칭으로 벌리는 방식(bisector-fixed)으로 계산하면 틀린 대조다** — 그건 표적 자세가 theta_b 와 함께 바뀌는 다른 실험이다.",
+  "sign_convention": "RX 이동방향(시계/반시계)은 원문 미기술. phi 를 전주기(0~360) 평균하는 기체(Phantom 2·Mini 2·M350 RTK)에서는 부호가 상쇄돼 무해하다. Phantom 3 은 phi 가 −90~90 반주기뿐이라 무해하지 않다 — 부호 양쪽을 다 계산해 폭으로 남겨라.",
+  "caveat": "⚠ 이 정의는 Fig.1 = Phantom 2 오울루 설비에서 확립된 것이다. 나머지 3 기체의 theta_b 열이 같은 정의인지 Das 는 진술하지 않는다. 다만 그 3 기체의 theta_b 의존이 해석 taper 로 밝혀졌으므로(finding_bistatic_taper_is_synthetic) 실질적으로 문제되지 않는다."
+ },
+ "stat_convention": {
+  "mu_as_written": "§III-1 축자: sigma_m(theta_b, f_i) = (1/K) sum_k sigma(theta_b, f_i, phi_k), 'where K is the number of azimuth scans for each theta_b and f_i'. 합의 대상이 **선형 sigma** 다 → mu = 10log10( E_phi[sigma] ) 의 주파수 선형적합.",
+  "mu_axis": "방위평균이다. **주파수 평균이 아니고**(주파수 의존은 선형적합으로 남긴다) **바이스태틱각 평균도 아니다**(theta_b 마다 열이 따로다). 고도 평균 여부는 원문 미기술 — Table I 에 고도축 자체가 없다.",
+  "eps": "ε 는 방위 across-aspect **표준편차 [dB]** 다. Table III 표제가 'STANDARD DEVIATION epsilon [DB]' 로 명시하고 Fig.3 우축 라벨도 'Standard deviation [dB]' 다. 단위가 dB 이므로 ε = std_phi( 10log10 sigma ) 이지 선형 sigma 의 표준편차가 아니다. 값 2.8~6.9 dB 가 지수분포(Swerling I/II) 이론값 (10/ln10)*pi/sqrt(6) = 5.570 dB 근방인 것도 정합한다.",
+  "contradiction": "⚠ 원문 내부 모순이다. §III-2 의 3GPP remark 는 ln(sigma) ~ N( (ln10/10)*mu, ((ln10/10)*eps)^2 ) 라 적는데, 이 식이 성립하려면 mu 가 **dB 영역 평균** E[10log10 sigma] 여야 한다. §III-1 의 선형평균과 같은 양이 아니다. 게다가 ε 가 dB 단위라는 사실은 (mu, eps) 가 **한 쌍의 dB 영역 모수**임을 가리켜 §III-2 쪽을 지지한다.",
+  "gap_size_db": {
+   "if_lognormal": "10log10(E[sigma]) - E[10log10 sigma] = (ln10/20)*eps^2 → eps=2.91 dB 이면 0.97 dB, eps=5.16 dB 이면 3.07 dB, eps=6.61 dB 이면 5.03 dB",
+   "if_exponential": "상수 +10/ln10*gamma = +2.507 dB (레벨·주파수 무관)"
+  },
+  "resolution_attempt": {
+   "method": "sigma_anchor.reconcile_das_yuan() — Das Phantom 3 와 Yuan 은 **같은 원자료**이므로 잔차가 가장 작은 변환이 Das 의 실제 규약이다.",
+   "exponential_branch": {
+    "offset_db": 2.5068,
+    "resid_rms_db": 0.2376,
+    "resid_absmax_db": 0.4894
+   },
+   "lognormal_branch": {
+    "offset_db": 3.4322,
+    "resid_rms_db": 0.8526,
+    "resid_absmax_db": 1.1773
+   },
+   "best": "exponential",
+   "interpretation": "오프셋이 0 이 아니라는 것 자체가 'Das 의 mu 는 선형평균이 아니다' 를 뜻한다. 즉 **mu = E[10log10 sigma] (dB 영역 방위평균)** 이고, 선형(전력) 평균으로 올리려면 +2.5 dB 를 더해야 한다. 지수분기가 로그정규분기를 이긴 것은 Table II 와도 정합한다 — Phantom 3 의 최적분포가 라이시안(dAD 0.436)이지 로그정규(1.38)가 아니기 때문이다.",
+   "caveat": "⚠ Yuan 은 고도 3 단면을 통합하고 Das Phantom 3 는 방위 −90~90 이라 모집단이 완전히 같지는 않다. 잔차에 규약 외의 성분이 섞여 있다. 두 분기의 차 0.93 dB 는 **해소되지 않은 규약 불확도**로 앵커에 딸려 다녀야 한다 — 단일값으로 좁히지 마라."
+  },
+  "K_inconsistency": "⚠ §III-2 는 'K = 360 corresponding to the number of azimuth measurements' 라 적지만 Table I 의 방위격자는 Mini 2 / M350 RTK = 721 점(0:0.5:360), Phantom 2 = 361 점(0:1:360), Phantom 3 = 91 점(−90:2:90) 이다. K=360 은 Phantom 2 에만 맞는다. Table I 쪽을 사실로 본다.",
+  "estimator": "⚠ sigma 는 **시간영역 피크비**다 (식 3): sigma = max|s_DUT_bs|^2 / max|s_Cal_bs|^2 * sigma_Cal. 단일주파수 CW 비가 아니다. 우리 커널(주파수영역 PO 합)과 추정량이 다르다는 점을 대조에 남겨라.",
+  "calibration": "금속 원기둥 r=5.5 cm · h=30 cm · sigma_Cal=+2.8 dBsm, 배경 코히런트 차감(식 1), 6차 Kaiser 레인지게이팅. ⚠ §II 전체가 Phantom 2 오울루 파이프라인이다 — 서브밴드 중심이 f_i = 11 + 0.1i GHz, i=0..149 (=11.0~25.9 GHz) 로 Phantom 2 대역과 정확히 일치한다. 나머지 3 기체의 보정체는 Yuan 계열 금속구 r=17.8 cm (sigma_Cal=−10 dBsm) 다.",
+  "phantom2_fit_domain": "⭐ Phantom 2 의 mu/eps 적합 정의역은 Table I 의 2001 개 원시 VNA 점이 아니라 **200 MHz 서브밴드 중심 150 개(11.0~25.9 GHz)** 다 (§II-3c). 우리도 대조할 때 이 격자를 써라."
+ },
+ "conditions_by_airframe": {
+  "phantom2": {
+   "field_region": "near-field",
+   "anechoic": false,
+   "range_m": 2.6,
+   "environment_literal": "Controlled non-anechoic, indoor",
+   "band_ghz": [
+    11.0,
+    26.0
+   ],
+   "n_freq_points": 2001,
+   "azimuth": "0 deg <= phi(= 1 deg) <= 360 deg",
+   "polarisation": "VV — §II-1 축자('vertically polarized directional antennas at both the transmitter (TX) and receiver (RX)'). ⚠ 단 그 문단은 Phantom 2 오울루 설비 설명 문단이다.",
+   "measured_by": "본 논문에서 신규 측정 (Univ. Oulu 실내홀). Fig.1 이 그 설비다.",
+   "R_farfield_required_m": [
+    11.92,
+    28.19
+   ],
+   "range_type_inference": "실거리 2.6 m. 필요한 2D^2/λ 는 9.0~28.2 m 라 최대 10.8배 부족하다.",
+   "bistatic_data_is_real": true
+  },
+  "phantom3": {
+   "field_region": "far-field (claimed)",
+   "anechoic": true,
+   "range_m": "미기술 — Table I 은 'Far-field' 라고만 적는다",
+   "environment_literal": "Anechoic",
+   "band_ghz": [
+    1.8,
+    18.2
+   ],
+   "n_freq_points": 2801,
+   "azimuth": "-90 deg <= phi(= 2 deg) <= 90 deg",
+   "polarisation": "VV — Das 는 미기술. Yuan §II-A(동일 원자료)가 VV 로 명시한다. 그 경유로만 확정.",
+   "measured_by": "ref [7] (Wang et al., China Commun. 2026) 제공 — ACKNOWLEDGMENT 의 Wei Fan(Southeast Univ.). Yuan EuCAP 2025 와 설정이 글자단위로 같아 **동일 원자료**다.",
+   "R_farfield_required_m": [
+    1.95,
+    19.73
+   ],
+   "range_type_inference": "⚠ Das 는 레인지 종류를 안 적는다. 2D^2/λ 로 필요한 거리가 19.73 m 인데 무향실 실거리로는 가능한 규모다(대형 챔버).",
+   "bistatic_data_is_real": false
+  },
+  "mini2": {
+   "field_region": "far-field (claimed)",
+   "anechoic": true,
+   "range_m": "미기술 — Table I 은 'Far-field' 라고만 적는다",
+   "environment_literal": "Anechoic",
+   "band_ghz": [
+    21.0,
+    27.0
+   ],
+   "n_freq_points": 501,
+   "azimuth": "0 deg <= phi(= 0.5 deg) <= 360 deg",
+   "polarisation": "⚠ 미확인. Das 본문에 진술 없음. ref [7] 미판독(우리 코퍼스에 없음). VV 는 추정일 뿐이다.",
+   "measured_by": "ref [7] 제공 (Wei Fan). Das 는 설비를 기술하지 않는다.",
+   "R_farfield_required_m": [
+    9.32,
+    11.98
+   ],
+   "range_type_inference": "⚠ Das 는 레인지 종류를 안 적는다. 2D^2/λ 로 필요한 거리가 11.98 m 인데 무향실 실거리로는 불가능하다 — CATR(컴팩트레인지) 정적영역 평면파여야 한다. Yuan(동일 제공자 계열)이 Phantom 3 에 CATR 을 썼다는 사실이 방증이나 확정은 아니다.",
+   "bistatic_data_is_real": false
+  },
+  "m350rtk": {
+   "field_region": "far-field (claimed)",
+   "anechoic": true,
+   "range_m": "미기술 — Table I 은 'Far-field' 라고만 적는다",
+   "environment_literal": "Anechoic",
+   "band_ghz": [
+    21.0,
+    27.0
+   ],
+   "n_freq_points": 501,
+   "azimuth": "0 deg <= phi(= 0.5 deg) <= 360 deg",
+   "polarisation": "⚠ 미확인. 위와 같음.",
+   "measured_by": "ref [7] 제공 (Wei Fan). Das 는 설비를 기술하지 않는다.",
+   "R_farfield_required_m": [
+    154.81,
+    199.04
+   ],
+   "range_type_inference": "⚠ Das 는 레인지 종류를 안 적는다. 2D^2/λ 로 필요한 거리가 199.04 m 인데 무향실 실거리로는 불가능하다 — CATR(컴팩트레인지) 정적영역 평면파여야 한다. Yuan(동일 제공자 계열)이 Phantom 3 에 CATR 을 썼다는 사실이 방증이나 확정은 아니다.",
+   "bistatic_data_is_real": false
+  }
+ },
+ "grading_policy": "⭐⭐ 사용자 지시: **전 기체를 다 대조한다.** 조건이 나쁜 기체를 빼지 않는다. 대신 각 대조점에 등급을 붙여 결과를 그 등급과 함께 읽는다. 등급은 '쓰지 마라' 가 아니라 '이 값이 표준적 의미의 sigma 인지' 를 말한다.",
+ "grade_scale": {
+  "A": "원거리장 + 무향실 + 실측 + 우리 운용대역(1.8–6.0 GHz)과 겹침. 절대 sigma 앵커로 쓸 수 있다.",
+  "B": "원거리장 + 무향실 + 실측이나 **대역이 우리 밖**이다. 그 대역에서 우리 시뮬을 돌려야만 유효하다. 우리 대역으로 외삽하면 앵커가 아니다.",
+  "B-": "B 이면서 원거리장 주장 자체에 미검증 항이 있다(필요거리가 CATR 없이는 불가능한 규모).",
+  "C": "실측이지만 **근거리장 + 비무향**이다. 값이 표준적 의미의 sigma 가 아닐 수 있다. 절대레벨은 등급 C 로 읽고, 상대형상(Δmu(theta_b), 기울기 산포)은 이 논문에서 유일한 실측 증거다.",
+  "D": "**측정값이 아니다.** theta_b=0 적합에 해석 taper 를 씌운 파생값이다. 여기에 우리 시뮬을 맞대면 Das 의 모델 가정을 검사하는 것이지 측정을 검사하는 게 아니다. 일치해도 물리 검증이 아니고, 불일치해도 반증이 아니다."
+ },
+ "grades": {
+  "phantom2": {
+   "theta_b_0": "C",
+   "theta_b_15_90": "C",
+   "why": "근거리장 2.6 m(필요 9.0~28.2 m) + 비무향 실내홀. 다만 **이 논문에서 유일하게 실측된 바이스태틱 7 각도**다. 대역 11–26 GHz 는 우리 운용대역 밖이다.",
+   "use_for": "바이스태틱 각도의존의 상대형상 · 기울기 산포 검정. 절대레벨은 C 등급으로.",
+   "band_ghz": [
+    11.0,
+    26.0
+   ],
+   "in_our_band": false
+  },
+  "phantom3": {
+   "theta_b_0": "A",
+   "theta_b_15_90": "D",
+   "why": "theta_b=0 은 원거리장·무향실 실측이고 대역 1.8–18.2 GHz 가 우리 대역을 덮는다 — **우리 대역에서 유일한 A 등급 앵커**다. theta_b>=15 는 합성 taper 라 D 다.",
+   "use_for": "절대 sigma 앵커(현행 유지). 바이스태틱 열은 모델검사용으로만.",
+   "band_ghz": [
+    1.8,
+    18.2
+   ],
+   "in_our_band": true
+  },
+  "mini2": {
+   "theta_b_0": "B",
+   "theta_b_15_90": "D",
+   "why": "원거리장·무향실 실측이나 21–27 GHz 뿐이다. 우리 대역과 안 겹친다. 필요거리 9.3~12.0 m 는 대형 챔버로 가능한 규모다. 편파 미기술.",
+   "use_for": "21–27 GHz 에서 우리 SBR+PO 를 돌려 그 대역 한정 앵커로. 외삽 금지.",
+   "band_ghz": [
+    21.0,
+    27.0
+   ],
+   "in_our_band": false
+  },
+  "m350rtk": {
+   "theta_b_0": "B-",
+   "theta_b_15_90": "D",
+   "why": "원거리장·무향실 주장이나 D=1.051 m·27 GHz 에서 2D^2/λ = 199 m 다. 무향실 실거리로 불가능하고 CATR 이어야 하는데 Das 는 레인지 종류를 안 적는다. 대역도 21–27 GHz 로 우리 밖이다. 편파 미기술.",
+   "use_for": "21–27 GHz 한정. CATR 정적영역이 1 m 급인지 [7] 로 확인되면 B 로 승급.",
+   "band_ghz": [
+    21.0,
+    27.0
+   ],
+   "in_our_band": false
+  },
+  "cell_count_by_grade": {
+   "A": 1,
+   "B": 1,
+   "B-": 1,
+   "C": 7,
+   "D": 18
+  },
+  "cell_count_note": "총 28 셀 = A 1(P3 θb=0) + B 1(Mini2 θb=0) + B- 1(M350 θb=0) + C 7(P2 전체) + D 18(P3·Mini2·M350 의 θb=15..90 각 6 열)."
+ },
+ "comparison_plan": {
+  "headline": "⭐ 28 쌍을 **전부** 계산하되, 각 쌍에 등급을 달아 보고한다. 독립 측정정보를 담은 쌍은 10 개(P2 7 + 나머지 3 기체의 θb=0)이고, 우리 운용대역에서 절대레벨을 검증할 수 있는 쌍은 **P3 θb=0 하나**다.",
+  "n_pairs": 28,
+  "n_independent_measurement_pairs": 10,
+  "per_airframe_run_band_ghz": {
+   "phantom2": [
+    11.0,
+    26.0
+   ],
+   "phantom3": [
+    1.8,
+    18.2
+   ],
+   "mini2": [
+    21.0,
+    27.0
+   ],
+   "m350rtk": [
+    21.0,
+    27.0
+   ]
+  },
+  "band_rule": "⛔ 각 기체는 **자기 측정대역에서만** 대조한다. Das 계수를 대역 밖으로 외삽하지 마라. 3 기체(P2·Mini2·M350)는 우리 운용대역 1.8–6.0 GHz 와 아예 겹치지 않으므로 우리 SBR+PO 를 11–27 GHz 에서 새로 돌려야 한다.",
+  "geometry_rule": "각 theta_b 에서 입사 az=phi · 산란 az=phi+theta_b (표적 좌표계, el=0) 로 계산하고 phi 를 그 기체의 Table I 격자대로 평균하라 (P2 0:1:360, Mini2/M350 0:0.5:360, P3 −90:2:90).",
+  "statistic_rule": "우리도 mu 를 **dB 영역 방위평균** E_phi[10log10 sigma] 로 내라(규약 정합). 선형평균으로 낼 거면 −2.5 dB 를 빼서 맞추고, 그 2.5 dB 에 ±0.93 dB 규약 불확도를 실어라.",
+  "fit_rule": "Das 와 **같은 창·같은 격자**로 직선적합해 (a, b) 를 뽑아라. Phantom 2 는 200 MHz 서브밴드 중심 150 점(11.0~25.9 GHz) 격자를 써라.",
+  "report_rule": "각 쌍마다 (등급, Delta_a, Delta_mu(f_center), 우리 곡선의 로브 잔차 RMS) 를 보고하라. b 절편은 보고하지 마라 — a 와 −0.94 로 반상관해 오해를 부른다.",
+  "mesh_status": {
+   "present_in_registry": [
+    "phantom3"
+   ],
+   "missing": [
+    "phantom2",
+    "mini2",
+    "m350rtk"
+   ],
+   "new_keys_reserved": [
+    "mini2",
+    "m350rtk"
+   ],
+   "phantom2_option": "Table I 이 Phantom 2 와 Phantom 3 에 **같은 치수(35x20 cm)** 를 주므로 phantom3 메쉬를 대리로 쓰는 선택지가 있다. 쓰면 '대리 메쉬' 라고 명시하라 — P2 와 P3 는 짐벌·카메라·랜딩기어가 다르다.",
+   "note": "⛔ src/drones.py 는 이 작업에서 건드리지 않았다. 위 키는 예약일 뿐 등록하지 않았다."
+  },
+  "do_not": [
+   "⛔ D 등급 21 셀의 −0.6*sin^2(theta_b) taper 를 '재현' 하려 하지 마라. 측정이 아니다.",
+   "⛔ Mini 2 · M350 RTK 계수를 1.8–6.0 GHz 로 끌어내리지 마라(외삽 6배).",
+   "⛔ Phantom 2 의 b 절편을 절대레벨로 인용하지 마라.",
+   "⛔ 이등분선 고정 방식으로 바이스태틱 sigma 를 계산하지 마라."
+  ]
+ },
+ "open_questions": [
+  "ref [7] (Z. Wang, Y. Zhang, Y. Ren, W. Fan, Z. Yuan, W. Wang, China Commun. 2026) 이 우리 코퍼스에 없다. Mini 2 · M350 RTK 의 편파 · 레인지 종류(CATR 여부) · 거리 · 바이스태틱 측정 유무가 여기 걸려 있다.",
+  "supplementary material (doi:10.1109/LWC.2026.3705634 첨부) 미확보 — 라이시안 모수 절차와 세 기체 taper 의 출처가 여기 있을 수 있다.",
+  "Das Phantom 3 의 mu 가 방위단면만인지 Yuan 의 고도 3 단면 통합인지 원문에서 확정 불가. 규약 재조정 잔차(±0.49 dB)에 이 성분이 섞여 있다.",
+  "taper 의 sin^2(theta_b) 꼴이 어느 문헌식에서 왔는지 미확인. 등가정리는 아님을 확인했다.",
+  "Table I 의 Dimension 두 수가 기체마다 다른 규약(대각x높이 vs 바닥면적)인 것이 의도인지 오기인지 불명. 가우시안-클러스터의 D 에 직접 영향한다."
+ ]
+}
