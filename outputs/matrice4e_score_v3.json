@@ -1,0 +1,1602 @@
+{
+ "_meta": {
+  "drone": "matrice4e",
+  "name": "DJI Matrice 4E",
+  "generated": "2026-08-04 05:01:08",
+  "generator": "scratch m4e_v3_{worker,calib,assemble}.py — src/viz_mesh_photo.py 를 그대로 호출",
+  "purpose": "다듬은 메쉬를 사진으로 채점한다. 전기체가 보이는 17장을 전부 등록했고, 적용 전 메쉬도 같은 등록부로 다시 재서 나란히 둔다.",
+  "shape_untouched": "이 라운드는 형상을 만지지 않았다. 맞춘 것은 자세(SO3)·원근 q·등방배율·평행이동·로터별 프롭 위상뿐이다.",
+  "sigma_firewall": "σ 파일을 열지 않았다 — outputs/das_fleet_*.json · p3_* · phantom3/* · rcs_anchor.json · lowfreq_* · RETRACTION_LOG.md 미열람. 자세 선언과 등록 판단의 근거는 사진·공식 CAD·공표제원뿐이다.",
+  "mesh_variants": {
+   "current": {
+    "sha256": "4b66faa02f908b2244df285f9258a435a2cc41503479aa59b802911de7fc6e1f",
+    "n_faces": 30734,
+    "source": "src/drones.py · src/drone_cad.py (현재)"
+   },
+   "pre_fix": {
+    "sha256": "554c31bdc21827d9f4afe08d8d045fcc7117217a649708a84714d0f75610780e",
+    "n_faces": 30712,
+    "source": "scratch m4e_before/ — outputs/meshfix_applied.json 의 sha_before 와 **비트동일**로 복원했다",
+    "verification": "복원판으로 잰 'matrice 4E_1.png' IoU 0.5545 와 자기복제 천장 0.8675 가 2026-08-03 기록과 소수점까지 같다 — 전후 대조가 같은 파이프라인 위에 있다는 증거다"
+   }
+  },
+  "registry_change": {
+   "n_registered_before": 3,
+   "n_registered_now": 17,
+   "n_whole_aircraft_views": 17,
+   "aspect_corrections": [
+    {
+     "file": "matrice 4E_3.png",
+     "was": [
+      0,
+      4
+     ],
+     "now": [
+      270,
+      4
+     ],
+     "why": "정면이 아니라 **측면**이다(기수 오른쪽). 짐벌이 안 보이고, 동체 양 끝에 어안이 한 개씩만 보이며(정면·후면 정투영은 두 개 나란히), 모터 뭉치 벌어짐비 0.15 가 방위 270∓3.6° 를 준다. SOURCES.md 도 '후방 3/4 우' 로 적어 두었다. ⭐ 옛 헤드라인 0.575 는 90° 틀린 각도에서 잰 값이다"
+    },
+    {
+     "file": "matrice 4E_2.png",
+     "was": "등록 안 함(기수 판독 불가)",
+     "now": [
+      90,
+      4
+     ],
+     "why": "꼬리 방열구·RTK 터렛·짐벌이 전부 같은 끝에 모여 있어 기수가 읽힌다"
+    },
+    {
+     "file": "matrice4e_p04_front_low_angle.jpg",
+     "was": "—",
+     "now": [
+      180,
+      2
+     ],
+     "why": "파일명과 달리 후면이다(배터리 게이지·후방 어안쌍, 짐벌 없음)"
+    },
+    {
+     "file": "matrice4e_p05_rear_elevation.jpg",
+     "was": "—",
+     "now": [
+      90,
+      4
+     ],
+     "why": "파일명과 달리 측면이다(양 끝에 어안 한 개씩)"
+    },
+    {
+     "file": "matrice4e_p08_iso_rear_left_low.jpg",
+     "was": "—",
+     "now": [
+      40,
+      25
+     ],
+     "why": "파일명과 달리 전좌 3/4 이다(짐벌이 카메라를 향한다)"
+    }
+   ],
+   "side_view_angles_measured": "측면 5장의 방위·고각은 눈대중이 아니라 사진에서 쟀다 — 로터 뭉치 벌어짐비로 방위(270∓3.6°), 앞뒤 다리끝 어긋남으로 고각(1.6°, 원근 보정 전). 선언은 (270|90, 4°)."
+  },
+  "metric_calibration": {
+   "current": {
+    "airframe": "matrice4e",
+    "purpose": "같은 파이프라인에 **자기 자신**을 넣었을 때의 상한과 민감도",
+    "truth": {
+     "azim": 25.0,
+     "elev": 18.0,
+     "roll": -4.0,
+     "q": 0.3,
+     "phases": [
+      40.0,
+      110.0,
+      20.0,
+      150.0
+     ],
+     "scale_px_per_m": 545.1288085527286
+    },
+    "recovered": {
+     "azim": 24.25,
+     "elev": 18.0,
+     "roll": -2.625,
+     "q": 0.2925,
+     "phases": [
+      41.5,
+      117.5,
+      20.0,
+      163.0
+     ],
+     "scale_px_per_m": 547.3494625607833
+    },
+    "recovered_iou": 0.8471211641885479,
+    "recovered_contour_mean_mm": 2.0364162933981738,
+    "pose_error_deg": 0.7132919009215914,
+    "scale_error_pct": 0.40736317237577424,
+    "sensitivity": {
+     "same_pose_other_sample": 0.9973347089674147,
+     "pose_off_deg": {
+      "0.5": 0.942026564196809,
+      "1.0": 0.8882310000811096,
+      "2.0": 0.7953040800615858,
+      "3.0": 0.7222344888496357,
+      "5.0": 0.6146908990775162
+     },
+     "scale_off_pct": {
+      "0.5": 0.972306653157717,
+      "1.0": 0.947237431557989,
+      "2.0": 0.8952791756530074,
+      "4.0": 0.8093061591488087
+     },
+     "one_prop_phase_off_deg": {
+      "5.0": 0.9614609571788413,
+      "10.0": 0.9388058468907424,
+      "20.0": 0.9177107752000647
+     }
+    },
+    "reading": "An exact copy of the mesh scores 0.847 here. One degree of pose error takes it to 0.888 and one percent of scale error to 0.947: arms and blades a few pixels wide make this metric steep.",
+    "runtime_s": 26.9,
+    "mesh_variant": "current"
+   },
+   "pre_fix": {
+    "airframe": "matrice4e",
+    "purpose": "같은 파이프라인에 **자기 자신**을 넣었을 때의 상한과 민감도",
+    "truth": {
+     "azim": 25.0,
+     "elev": 18.0,
+     "roll": -4.0,
+     "q": 0.3,
+     "phases": [
+      40.0,
+      110.0,
+      20.0,
+      150.0
+     ],
+     "scale_px_per_m": 537.2924651564791
+    },
+    "recovered": {
+     "azim": 23.5,
+     "elev": 18.125,
+     "roll": -2.625,
+     "q": 0.24374999999999997,
+     "phases": [
+      41.5,
+      116.5,
+      20.0,
+      158.5
+     ],
+     "scale_px_per_m": 538.4542855745677
+    },
+    "recovered_iou": 0.8675109965114516,
+    "recovered_contour_mean_mm": 1.637346133811703,
+    "pose_error_deg": 1.431541854277967,
+    "scale_error_pct": 0.21623612714356533,
+    "sensitivity": {
+     "same_pose_other_sample": 0.9964381121994658,
+     "pose_off_deg": {
+      "0.5": 0.9404864992521451,
+      "1.0": 0.8882514915098669,
+      "2.0": 0.7960521523781776,
+      "3.0": 0.7226415094339622,
+      "5.0": 0.6183968462549277
+     },
+     "scale_off_pct": {
+      "0.5": 0.9708761040821199,
+      "1.0": 0.9440537583997499,
+      "2.0": 0.8929458706617481,
+      "4.0": 0.8033941271741427
+     },
+     "one_prop_phase_off_deg": {
+      "5.0": 0.9539884575855799,
+      "10.0": 0.9273490976975731,
+      "20.0": 0.909741458910434
+     }
+    },
+    "reading": "An exact copy of the mesh scores 0.868 here. One degree of pose error takes it to 0.888 and one percent of scale error to 0.944: arms and blades a few pixels wide make this metric steep.",
+    "runtime_s": 27.6,
+    "mesh_variant": "pre-fix"
+   }
+  },
+  "method": {
+   "fitted_dof": "camera azimuth, elevation, image roll (all of SO(3)), perspective strength q, isotropic scale, translation, one propeller phase per rotor",
+   "headline_branch": "declared aspect, constrained to the window in the registry",
+   "free_branch": "unconstrained sweep of the whole sphere; free_iou_gain is what the camera buys by leaving the declared aspect",
+   "both_branches_measured_at_full_density": "선언·자유 두 갈래를 **둘 다** 120만 점으로 다시 재서 free_iou_gain 이 해상도 차이를 재지 않게 했다(2026-08-03 규약과 동일)",
+   "ceiling": "자기 메쉬로 만든 가짜 사진을 같은 파이프라인에 넣은 값. 형상이 바뀌면 천장도 움직이므로 판마다 따로 쟀다"
+  }
+ },
+ "headline": {
+  "photo": "matrice4e_p01_side_profile_left.jpg",
+  "iou_before": 0.7082,
+  "iou_after": 0.8184,
+  "d_iou": 0.1102,
+  "ceiling_before": 0.8675,
+  "ceiling_after": 0.8471,
+  "pct_of_ceiling_before": 81.6,
+  "pct_of_ceiling_after": 96.6,
+  "free_iou_gain_after": 0.0,
+  "free_iou_gain_before": 0.0,
+  "best_photo_before_mesh": "matrice4e_p05_rear_elevation.jpg",
+  "best_iou_before_mesh": 0.7107
+ },
+ "fleet_summary": {
+  "n_photos": 17,
+  "mean_iou_before": 0.5779,
+  "mean_iou_after": 0.6322,
+  "mean_d_iou": 0.0542,
+  "n_improved": 17,
+  "n_worsened": 0,
+  "mean_free_iou_gain_after": -0.0016,
+  "mean_free_iou_gain_before": -0.0003,
+  "n_fit_at_window_edge": 0
+ },
+ "prior_record_2026_08_03": {
+  "headline_iou": 0.575,
+  "headline_file": "matrice 4E_3.png",
+  "ceiling": 0.8675,
+  "pct_of_ceiling": 66.3,
+  "free_iou_gain_headline": 0.1213,
+  "n_registered": 6,
+  "caveat": "이 기록의 헤드라인은 'matrice 4E_3.png' 를 **정면(0°)** 이라고 선언하고 잰 값이다. 그 선언이 90° 틀렸다는 것이 이번 라운드의 발견이고, 그래서 0.575 는 현재 숫자와 직접 비교할 값이 아니다. 직접 비교는 이 파일의 iou_before 열이 한다 — **같은 등록부로 적용 전 메쉬를 다시 잰 값**이다."
+ },
+ "photos": [
+  {
+   "idx": 0,
+   "file": "matrice 4E_5.png",
+   "expect": [
+    0,
+    85
+   ],
+   "window_deg": 20.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.3951,
+   "iou_after": 0.4358,
+   "d_iou": 0.0407,
+   "pct_of_ceiling_before": 45.5,
+   "pct_of_ceiling_after": 51.4,
+   "free_iou_before": 0.3911,
+   "free_iou_after": 0.4357,
+   "free_iou_gain_before": -0.0041,
+   "free_iou_gain_after": -0.0001,
+   "free_delta_deg_after": 6.2,
+   "fit_after": {
+    "azim": 0.0,
+    "elev": 90.0,
+    "roll": 0.0,
+    "q": 0.465
+   },
+   "fit_delta_deg_after": 5.0,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 23.657934795383685,
+   "contour_mean_mm_after": 23.09287827544972,
+   "aspect_err_pct_after": -18.3,
+   "mesh_only_frac_after": 0.18958997796994706,
+   "photo_only_frac_after": 0.37457666129615624,
+   "blobs_after": [
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.06842468681156084,
+     "area_mm2": 4475.090796630948,
+     "centroid": [
+      531.6535319557905,
+      284.6518500720807
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.06835892545950745,
+     "area_mm2": 4470.789892453503,
+     "centroid": [
+      531.6673881673881,
+      531.3922558922559
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "prop",
+     "area_frac": 0.05627527701969552,
+     "area_mm2": 3680.498749848086,
+     "centroid": [
+      164.85626643295356,
+      411.8656149576395
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.04861407950547463,
+     "area_mm2": 3179.443413175808,
+     "centroid": [
+      421.1230977341901,
+      321.09638146770374
+     ]
+    }
+   ],
+   "note": "from above, trapezoidal rotor layout (azimuth unconstrained at this elevation)"
+  },
+  {
+   "idx": 1,
+   "file": "matrice 4E_1.png",
+   "expect": [
+    0,
+    16
+   ],
+   "window_deg": 20.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.5545,
+   "iou_after": 0.5905,
+   "d_iou": 0.0361,
+   "pct_of_ceiling_before": 63.9,
+   "pct_of_ceiling_after": 69.7,
+   "free_iou_before": 0.5427,
+   "free_iou_after": 0.5753,
+   "free_iou_gain_before": -0.0118,
+   "free_iou_gain_after": -0.0152,
+   "free_delta_deg_after": 175.0,
+   "fit_after": {
+    "azim": 0.0,
+    "elev": 22.1,
+    "roll": 0.4,
+    "q": 0.159
+   },
+   "fit_delta_deg_after": 6.1,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 12.690298449300514,
+   "contour_mean_mm_after": 12.493408371323842,
+   "aspect_err_pct_after": -22.8,
+   "mesh_only_frac_after": 0.133330271437101,
+   "photo_only_frac_after": 0.27612180223212235,
+   "blobs_after": [
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.04498691039360676,
+     "area_mm2": 1849.5028462222845,
+     "centroid": [
+      323.6687085247575,
+      629.7998979070954
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.041886740458365865,
+     "area_mm2": 1722.0485918884365,
+     "centroid": [
+      322.8360745614035,
+      188.37280701754386
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "camera",
+     "area_frac": 0.037868001653423966,
+     "area_mm2": 1556.8301140482629,
+     "centroid": [
+      397.7568223165555,
+      409.0885385081868
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.03481376016166812,
+     "area_mm2": 1431.264070889731,
+     "centroid": [
+      251.69591029023746,
+      619.2222955145119
+     ]
+    }
+   ],
+   "note": "front, slightly above; the reference view for the 4E gimbal (three lenses plus laser rangefinder)"
+  },
+  {
+   "idx": 2,
+   "file": "matrice4e_p02_front_elevation.jpg",
+   "expect": [
+    0,
+    12
+   ],
+   "window_deg": 20.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.5503,
+   "iou_after": 0.5767,
+   "d_iou": 0.0263,
+   "pct_of_ceiling_before": 63.4,
+   "pct_of_ceiling_after": 68.1,
+   "free_iou_before": 0.5413,
+   "free_iou_after": 0.5733,
+   "free_iou_gain_before": -0.0091,
+   "free_iou_gain_after": -0.0034,
+   "free_delta_deg_after": 172.0,
+   "fit_after": {
+    "azim": 0.0,
+    "elev": 20.5,
+    "roll": 0.0,
+    "q": 0.03
+   },
+   "fit_delta_deg_after": 8.5,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 12.266773936120009,
+   "contour_mean_mm_after": 11.414758931371516,
+   "aspect_err_pct_after": -20.1,
+   "mesh_only_frac_after": 0.16103157066319582,
+   "photo_only_frac_after": 0.2623119532645216,
+   "blobs_after": [
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.039682779913430395,
+     "area_mm2": 1562.695405196406,
+     "centroid": [
+      441.24866514111363,
+      229.00381388253243
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.03901685988437207,
+     "area_mm2": 1536.471683675185,
+     "centroid": [
+      440.8844065166796,
+      611.311093871218
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "camera",
+     "area_frac": 0.0287253685261979,
+     "area_mm2": 1131.1959874381307,
+     "centroid": [
+      503.5194942044257,
+      420.40252897787144
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.02842267760389866,
+     "area_mm2": 1119.2761140193938,
+     "centroid": [
+      381.75612353567624,
+      604.2949946751863
+     ]
+    }
+   ],
+   "note": "front elevation: both forward fisheyes visible side by side, which is what an on-axis view looks like"
+  },
+  {
+   "idx": 3,
+   "file": "matrice4e_p03_front_elevation_gimbal.jpg",
+   "expect": [
+    0,
+    14
+   ],
+   "window_deg": 20.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.5521,
+   "iou_after": 0.5755,
+   "d_iou": 0.0233,
+   "pct_of_ceiling_before": 63.6,
+   "pct_of_ceiling_after": 67.9,
+   "free_iou_before": 0.545,
+   "free_iou_after": 0.5745,
+   "free_iou_gain_before": -0.0071,
+   "free_iou_gain_after": -0.0009,
+   "free_delta_deg_after": 173.0,
+   "fit_after": {
+    "azim": 0.5,
+    "elev": 20.5,
+    "roll": 0.0,
+    "q": 0.03
+   },
+   "fit_delta_deg_after": 6.5,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 11.964309637544414,
+   "contour_mean_mm_after": 11.334548150554232,
+   "aspect_err_pct_after": -18.3,
+   "mesh_only_frac_after": 0.16005950167348457,
+   "photo_only_frac_after": 0.2644849386388992,
+   "blobs_after": [
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.04038676087764968,
+     "area_mm2": 1605.886694470994,
+     "centroid": [
+      439.42418661755676,
+      623.2179251074278
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.03862650303706459,
+     "area_mm2": 1535.8940883890784,
+     "centroid": [
+      438.67522464698334,
+      203.02310654685493
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.027965786537746375,
+     "area_mm2": 1111.9952064845188,
+     "centroid": [
+      374.4237588652482,
+      617.2916666666666
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "camera",
+     "area_frac": 0.02563530432626751,
+     "area_mm2": 1019.3289392774757,
+     "centroid": [
+      510.04352030947774,
+      407.9719535783366
+     ]
+    }
+   ],
+   "note": "front, gimbal large in frame"
+  },
+  {
+   "idx": 4,
+   "file": "matrice4e_p11_front_top_iso.jpg",
+   "expect": [
+    0,
+    18
+   ],
+   "window_deg": 20.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.5511,
+   "iou_after": 0.5731,
+   "d_iou": 0.022,
+   "pct_of_ceiling_before": 63.5,
+   "pct_of_ceiling_after": 67.7,
+   "free_iou_before": 0.5455,
+   "free_iou_after": 0.5745,
+   "free_iou_gain_before": -0.0056,
+   "free_iou_gain_after": 0.0014,
+   "free_delta_deg_after": 177.0,
+   "fit_after": {
+    "azim": 1.0,
+    "elev": 20.8,
+    "roll": 0.0,
+    "q": 0.049
+   },
+   "fit_delta_deg_after": 2.9,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 12.18493956684017,
+   "contour_mean_mm_after": 11.425786530706102,
+   "aspect_err_pct_after": -19.5,
+   "mesh_only_frac_after": 0.1592727991305207,
+   "photo_only_frac_after": 0.26763659717419225,
+   "blobs_after": [
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.04184369133484833,
+     "area_mm2": 1676.0415015661172,
+     "centroid": [
+      439.6528925619835,
+      622.3831168831168
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.03695287026973619,
+     "area_mm2": 1480.14054683761,
+     "centroid": [
+      437.52272727272725,
+      202.12032085561498
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.028035767216678192,
+     "area_mm2": 1122.9675940245236,
+     "centroid": [
+      374.4863436123348,
+      617.4625550660793
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "camera",
+     "area_frac": 0.02714652702302144,
+     "area_mm2": 1087.3492386193404,
+     "centroid": [
+      510.00090991810737,
+      406.24294813466787
+     ]
+    }
+   ],
+   "note": "front from above; 720 px, the lowest resolution registered here"
+  },
+  {
+   "idx": 5,
+   "file": "matrice4e_p12_top_front_iso.jpg",
+   "expect": [
+    0,
+    18
+   ],
+   "window_deg": 20.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.5501,
+   "iou_after": 0.5738,
+   "d_iou": 0.0237,
+   "pct_of_ceiling_before": 63.4,
+   "pct_of_ceiling_after": 67.7,
+   "free_iou_before": 0.5454,
+   "free_iou_after": 0.5747,
+   "free_iou_gain_before": -0.0047,
+   "free_iou_gain_after": 0.0009,
+   "free_delta_deg_after": 176.6,
+   "fit_after": {
+    "azim": 0.2,
+    "elev": 21.2,
+    "roll": -0.2,
+    "q": 0.032
+   },
+   "fit_delta_deg_after": 3.3,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 11.85969868974327,
+   "contour_mean_mm_after": 11.361255058996369,
+   "aspect_err_pct_after": -18.9,
+   "mesh_only_frac_after": 0.16383636138919788,
+   "photo_only_frac_after": 0.2623408725744655,
+   "blobs_after": [
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.04061302681992337,
+     "area_mm2": 1625.5821647421078,
+     "centroid": [
+      439.5331710286062,
+      622.9312233718807
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.04053887034977135,
+     "area_mm2": 1622.6139684583425,
+     "centroid": [
+      439.1841463414634,
+      204.7987804878049
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.029168211593128168,
+     "area_mm2": 1167.4905382810025,
+     "centroid": [
+      373.9279661016949,
+      615.6771186440678
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "camera",
+     "area_frac": 0.027635644543319737,
+     "area_mm2": 1106.1478150831872,
+     "centroid": [
+      510.44007155635063,
+      408.3577817531306
+     ]
+    }
+   ],
+   "note": "front from above at 2667 px. RESOLUTION CONTROL against 'matrice 4E_1.png' (the two silhouettes agree to IoU 0.994): it separates what the photograph costs from what the mesh costs"
+  },
+  {
+   "idx": 6,
+   "file": "matrice 4E_4.png",
+   "expect": [
+    180,
+    4
+   ],
+   "window_deg": 22.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.6231,
+   "iou_after": 0.665,
+   "d_iou": 0.0419,
+   "pct_of_ceiling_before": 71.8,
+   "pct_of_ceiling_after": 78.5,
+   "free_iou_before": 0.6231,
+   "free_iou_after": 0.6685,
+   "free_iou_gain_before": 0.0,
+   "free_iou_gain_after": 0.0036,
+   "free_delta_deg_after": 0.5,
+   "fit_after": {
+    "azim": 180.5,
+    "elev": 4.0,
+    "roll": -0.4,
+    "q": 0.105
+   },
+   "fit_delta_deg_after": 0.5,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 8.432768314847179,
+   "contour_mean_mm_after": 7.152582879568163,
+   "aspect_err_pct_after": -15.5,
+   "mesh_only_frac_after": 0.16302765647743814,
+   "photo_only_frac_after": 0.1720160116448326,
+   "blobs_after": [
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.04061135371179039,
+     "area_mm2": 1159.4146869828187,
+     "centroid": [
+      246.9811827956989,
+      329.168458781362
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.03966521106259097,
+     "area_mm2": 1132.403233701857,
+     "centroid": [
+      260.58990825688073,
+      634.4440366972477
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.03806404657933042,
+     "area_mm2": 1086.6915435340757,
+     "centroid": [
+      295.15678776290633,
+      416.4608030592734
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "prop",
+     "area_frac": 0.034388646288209604,
+     "area_mm2": 981.762436558032,
+     "centroid": [
+      288.8539682539683,
+      529.6687830687831
+     ]
+    }
+   ],
+   "note": "rear, near-orthographic: battery gauge, power button and BOTH rear fisheyes are visible, and no gimbal"
+  },
+  {
+   "idx": 7,
+   "file": "matrice4e_p04_front_low_angle.jpg",
+   "expect": [
+    180,
+    2
+   ],
+   "window_deg": 22.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.6224,
+   "iou_after": 0.6763,
+   "d_iou": 0.0539,
+   "pct_of_ceiling_before": 71.7,
+   "pct_of_ceiling_after": 79.8,
+   "free_iou_before": 0.633,
+   "free_iou_after": 0.6717,
+   "free_iou_gain_before": 0.0106,
+   "free_iou_gain_after": -0.0046,
+   "free_delta_deg_after": 0.7,
+   "fit_after": {
+    "azim": 179.9,
+    "elev": 3.5,
+    "roll": 0.0,
+    "q": 0.058
+   },
+   "fit_delta_deg_after": 1.5,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 8.641924282596126,
+   "contour_mean_mm_after": 7.4460684484148985,
+   "aspect_err_pct_after": -12.3,
+   "mesh_only_frac_after": 0.14402991881784183,
+   "photo_only_frac_after": 0.17969533886709843,
+   "blobs_after": [
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.042324181337225215,
+     "area_mm2": 1235.751520966928,
+     "centroid": [
+      456.1346982758621,
+      422.35129310344826
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.041412022256681565,
+     "area_mm2": 1209.1189450840202,
+     "centroid": [
+      425.3314977973568,
+      613.1751101321586
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "body",
+     "area_frac": 0.03283772689957128,
+     "area_mm2": 958.7727317846856,
+     "centroid": [
+      411.0722222222222,
+      523.2791666666667
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "prop",
+     "area_frac": 0.02649822128979294,
+     "area_mm2": 773.6763293984754,
+     "centroid": [
+      449.30120481927713,
+      515.3080895008605
+     ]
+    }
+   ],
+   "note": "rear, low. ⚠ the file name says 'front' — it is not: the battery gauge and the rear fisheye pair are in view and the gimbal is absent"
+  },
+  {
+   "idx": 8,
+   "file": "matrice 4E_3.png",
+   "expect": [
+    270,
+    4
+   ],
+   "window_deg": 26.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.6963,
+   "iou_after": 0.7639,
+   "d_iou": 0.0676,
+   "pct_of_ceiling_before": 80.3,
+   "pct_of_ceiling_after": 90.2,
+   "free_iou_before": 0.6963,
+   "free_iou_after": 0.7639,
+   "free_iou_gain_before": 0.0,
+   "free_iou_gain_after": 0.0,
+   "free_delta_deg_after": 19.1,
+   "fit_after": {
+    "azim": 259.5,
+    "elev": -12.0,
+    "roll": -0.8,
+    "q": 0.0
+   },
+   "fit_delta_deg_after": 19.1,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 10.795451970497204,
+   "contour_mean_mm_after": 10.323957748026386,
+   "aspect_err_pct_after": -33.1,
+   "mesh_only_frac_after": 0.11963264675364814,
+   "photo_only_frac_after": 0.11647570479281188,
+   "blobs_after": [
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.03715477846214981,
+     "area_mm2": 1399.986291816654,
+     "centroid": [
+      271.89126559714794,
+      288.4575163398693
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "gear",
+     "area_frac": 0.034571825948738324,
+     "area_mm2": 1302.6610415834107,
+     "centroid": [
+      368.18199233716473,
+      514.360153256705
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "gear",
+     "area_frac": 0.03223171512462194,
+     "area_mm2": 1214.4860285515836,
+     "centroid": [
+      284.1595890410959,
+      639.5986301369863
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "body",
+     "area_frac": 0.02483608185972581,
+     "area_mm2": 935.8197137811859,
+     "centroid": [
+      349.1173333333333,
+      258.024
+     ]
+    }
+   ],
+   "note": "side, nose to the right of frame, camera slightly above. ⭐ this photograph was registered as a head-on view until 2026-08-04; see the block comment"
+  },
+  {
+   "idx": 9,
+   "file": "matrice4e_p06_rear_low_angle.jpg",
+   "expect": [
+    270,
+    4
+   ],
+   "window_deg": 26.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.7005,
+   "iou_after": 0.7909,
+   "d_iou": 0.0904,
+   "pct_of_ceiling_before": 80.7,
+   "pct_of_ceiling_after": 93.4,
+   "free_iou_before": 0.7005,
+   "free_iou_after": 0.7909,
+   "free_iou_gain_before": 0.0,
+   "free_iou_gain_after": 0.0,
+   "free_delta_deg_after": 7.5,
+   "fit_after": {
+    "azim": 262.5,
+    "elev": 4.9,
+    "roll": -1.5,
+    "q": 0.021
+   },
+   "fit_delta_deg_after": 7.5,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 10.57763093960113,
+   "contour_mean_mm_after": 9.499873571711719,
+   "aspect_err_pct_after": -29.4,
+   "mesh_only_frac_after": 0.09311479641220881,
+   "photo_only_frac_after": 0.11595792734077563,
+   "blobs_after": [
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.040491708072530164,
+     "area_mm2": 1394.4283042708564,
+     "centroid": [
+      405.8693227091633,
+      598.0087649402391
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.021746144415048074,
+     "area_mm2": 748.8802207797269,
+     "centroid": [
+      406.97032640949556,
+      320.7373887240356
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "prop",
+     "area_frac": 0.019971607407885398,
+     "area_mm2": 687.7698170069006,
+     "centroid": [
+      411.4959612277868,
+      212.32310177705978
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "gear",
+     "area_frac": 0.011873265793379363,
+     "area_mm2": 408.88415615272925,
+     "centroid": [
+      485.9266304347826,
+      291.92934782608694
+     ]
+    }
+   ],
+   "note": "side, nose right; same viewing direction as 'matrice 4E_3.png' at 2560 px"
+  },
+  {
+   "idx": 10,
+   "file": "matrice 4E_2.png",
+   "expect": [
+    90,
+    4
+   ],
+   "window_deg": 26.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.7087,
+   "iou_after": 0.7951,
+   "d_iou": 0.0864,
+   "pct_of_ceiling_before": 81.7,
+   "pct_of_ceiling_after": 93.9,
+   "free_iou_before": 0.7087,
+   "free_iou_after": 0.7951,
+   "free_iou_gain_before": 0.0,
+   "free_iou_gain_after": 0.0,
+   "free_delta_deg_after": 8.5,
+   "fit_after": {
+    "azim": 88.5,
+    "elev": 12.4,
+    "roll": -0.8,
+    "q": 0.324
+   },
+   "fit_delta_deg_after": 8.5,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 10.531534132687739,
+   "contour_mean_mm_after": 9.652933049919586,
+   "aspect_err_pct_after": -39.5,
+   "mesh_only_frac_after": 0.10873669306203786,
+   "photo_only_frac_after": 0.09612460013634695,
+   "blobs_after": [
+    {
+     "side": "photo only",
+     "part": "camera",
+     "area_frac": 0.037154544024332686,
+     "area_mm2": 1381.7179255120711,
+     "centroid": [
+      245.13832039520113,
+      219.89767113620326
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.03369342912580628,
+     "area_mm2": 1253.0046113500434,
+     "centroid": [
+      233.66614785992218,
+      544.0171206225681
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "prop",
+     "area_frac": 0.02375583407624941,
+     "area_mm2": 883.4413835666453,
+     "centroid": [
+      251.7141280353201,
+      628.948123620309
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "body",
+     "area_frac": 0.017226912790392783,
+     "area_mm2": 640.6412682155475,
+     "centroid": [
+      307.89345509893457,
+      563.1232876712329
+     ]
+    }
+   ],
+   "note": "side, nose to the LEFT of frame: the mirror of 'matrice 4E_3.png'. Which end is the nose is read from the tail vents, the RTK turret and the gimbal, all three of which sit at the same end"
+  },
+  {
+   "idx": 11,
+   "file": "matrice4e_p01_side_profile_left.jpg",
+   "expect": [
+    90,
+    4
+   ],
+   "window_deg": 26.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.7082,
+   "iou_after": 0.8184,
+   "d_iou": 0.1102,
+   "pct_of_ceiling_before": 81.6,
+   "pct_of_ceiling_after": 96.6,
+   "free_iou_before": 0.7082,
+   "free_iou_after": 0.8184,
+   "free_iou_gain_before": 0.0,
+   "free_iou_gain_after": 0.0,
+   "free_delta_deg_after": 7.1,
+   "fit_after": {
+    "azim": 97.0,
+    "elev": 2.8,
+    "roll": 0.4,
+    "q": 0.037
+   },
+   "fit_delta_deg_after": 7.1,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 8.740638853501153,
+   "contour_mean_mm_after": 5.509688994433537,
+   "aspect_err_pct_after": -9.1,
+   "mesh_only_frac_after": 0.08023543990086741,
+   "photo_only_frac_after": 0.1013453708620995,
+   "blobs_after": [
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.022658877677465036,
+     "area_mm2": 777.3287971854761,
+     "centroid": [
+      403.759765625,
+      509.595703125
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.021198442202159676,
+     "area_mm2": 727.227527054381,
+     "centroid": [
+      409.3444676409186,
+      602.7578288100209
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "prop",
+     "area_frac": 0.015445211541865816,
+     "area_mm2": 529.8588871440062,
+     "centroid": [
+      399.7507163323782,
+      252.38681948424068
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "gear",
+     "area_frac": 0.013763497964241459,
+     "area_mm2": 472.1665154778966,
+     "centroid": [
+      452.6784565916399,
+      352.34726688102893
+     ]
+    }
+   ],
+   "note": "side, nose left, 2667 px: the sharpest view of body height, leg length and gimbal projection"
+  },
+  {
+   "idx": 12,
+   "file": "matrice4e_p05_rear_elevation.jpg",
+   "expect": [
+    90,
+    4
+   ],
+   "window_deg": 26.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.7107,
+   "iou_after": 0.7968,
+   "d_iou": 0.0862,
+   "pct_of_ceiling_before": 81.9,
+   "pct_of_ceiling_after": 94.1,
+   "free_iou_before": 0.6831,
+   "free_iou_after": 0.7968,
+   "free_iou_gain_before": -0.0275,
+   "free_iou_gain_after": 0.0,
+   "free_delta_deg_after": 8.7,
+   "fit_after": {
+    "azim": 88.0,
+    "elev": 12.5,
+    "roll": 0.0,
+    "q": 0.354
+   },
+   "fit_delta_deg_after": 8.7,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 10.280928993499586,
+   "contour_mean_mm_after": 9.810428253301767,
+   "aspect_err_pct_after": -39.6,
+   "mesh_only_frac_after": 0.10233318377027113,
+   "photo_only_frac_after": 0.10082687007243125,
+   "blobs_after": [
+    {
+     "side": "photo only",
+     "part": "camera",
+     "area_frac": 0.03772194090122428,
+     "area_mm2": 1436.166272669401,
+     "centroid": [
+      405.5964316057774,
+      239.23619371282922
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.03349144285622716,
+     "area_mm2": 1275.1008962952626,
+     "centroid": [
+      399.74545454545455,
+      529.1866028708134
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "prop",
+     "area_frac": 0.02592782513941414,
+     "area_mm2": 987.1355264142272,
+     "centroid": [
+      411.6625463535229,
+      611.8887515451174
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "gear",
+     "area_frac": 0.017210435228510994,
+     "area_mm2": 655.2432357038813,
+     "centroid": [
+      508.5828677839851,
+      296.9813780260708
+     ]
+    }
+   ],
+   "note": "side, nose left. ⚠ the file name says 'rear elevation' — it is not: only one fisheye is visible at each end of the body, which only happens off to the side"
+  },
+  {
+   "idx": 13,
+   "file": "matrice4e_p07_iso_front_left.jpg",
+   "expect": [
+    40,
+    25
+   ],
+   "window_deg": 30.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.5314,
+   "iou_after": 0.5921,
+   "d_iou": 0.0607,
+   "pct_of_ceiling_before": 61.3,
+   "pct_of_ceiling_after": 69.9,
+   "free_iou_before": 0.549,
+   "free_iou_after": 0.5864,
+   "free_iou_gain_before": 0.0176,
+   "free_iou_gain_after": -0.0057,
+   "free_delta_deg_after": 115.8,
+   "fit_after": {
+    "azim": 23.5,
+    "elev": 19.2,
+    "roll": 5.2,
+    "q": 0.24
+   },
+   "fit_delta_deg_after": 16.3,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 11.255441302399875,
+   "contour_mean_mm_after": 11.675471278681764,
+   "aspect_err_pct_after": -12.7,
+   "mesh_only_frac_after": 0.1488699181302918,
+   "photo_only_frac_after": 0.25904415366314465,
+   "blobs_after": [
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.0615422293751312,
+     "area_mm2": 2730.142511740948,
+     "centroid": [
+      400.9818078453667,
+      593.5503126776578
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "prop",
+     "area_frac": 0.046672731089496884,
+     "area_mm2": 2070.500347164539,
+     "centroid": [
+      443.2413793103448,
+      476.3815592203898
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "body",
+     "area_frac": 0.043034077391365194,
+     "area_mm2": 1909.0820292446651,
+     "centroid": [
+      441.1520325203252,
+      288.51463414634145
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.04163459519977608,
+     "area_mm2": 1846.9980608139444,
+     "centroid": [
+      414.7798319327731,
+      298.63949579831933
+     ]
+    }
+   ],
+   "note": "three-quarter from front-left and above, gimbal toward the camera and to the left"
+  },
+  {
+   "idx": 14,
+   "file": "matrice4e_p08_iso_rear_left_low.jpg",
+   "expect": [
+    40,
+    25
+   ],
+   "window_deg": 30.0,
+   "pose_grid_el_lo_deg": -36.0,
+   "iou_before": 0.5326,
+   "iou_after": 0.585,
+   "d_iou": 0.0525,
+   "pct_of_ceiling_before": 61.4,
+   "pct_of_ceiling_after": 69.1,
+   "free_iou_before": 0.5469,
+   "free_iou_after": 0.5863,
+   "free_iou_gain_before": 0.0143,
+   "free_iou_gain_after": 0.0013,
+   "free_delta_deg_after": 115.7,
+   "fit_after": {
+    "azim": 26.0,
+    "elev": 20.9,
+    "roll": -0.4,
+    "q": 0.184
+   },
+   "fit_delta_deg_after": 13.5,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 11.309596506132701,
+   "contour_mean_mm_after": 12.036026497674204,
+   "aspect_err_pct_after": -9.9,
+   "mesh_only_frac_after": 0.15565105881537447,
+   "photo_only_frac_after": 0.2593144560357675,
+   "blobs_after": [
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.07046061068173154,
+     "area_mm2": 3167.6894499961195,
+     "centroid": [
+      363.35022134776193,
+      375.2287260206591
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "prop",
+     "area_frac": 0.04134752018854192,
+     "area_mm2": 1858.8556388811462,
+     "centroid": [
+      442.0486169321039,
+      474.27745180217937
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "gear",
+     "area_frac": 0.035074342356080826,
+     "area_mm2": 1576.833115295658,
+     "centroid": [
+      469.3833992094862,
+      560.2845849802371
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "gear",
+     "area_frac": 0.033133469656534846,
+     "area_mm2": 1489.577527887993,
+     "centroid": [
+      418.744769874477,
+      617.5794979079498
+     ]
+    }
+   ],
+   "note": "three-quarter from front-left and above at 1440 px. ⚠ the file name says 'rear' — the gimbal faces the camera, so it is a front three-quarter"
+  },
+  {
+   "idx": 15,
+   "file": "matrice4e_p09_underside_plan.jpg",
+   "expect": [
+    0,
+    -45
+   ],
+   "window_deg": 26.0,
+   "pose_grid_el_lo_deg": -72.0,
+   "iou_before": 0.4174,
+   "iou_after": 0.4691,
+   "d_iou": 0.0517,
+   "pct_of_ceiling_before": 48.1,
+   "pct_of_ceiling_after": 55.4,
+   "free_iou_before": 0.4295,
+   "free_iou_after": 0.4651,
+   "free_iou_gain_before": 0.0121,
+   "free_iou_gain_after": -0.004,
+   "free_delta_deg_after": 10.3,
+   "fit_after": {
+    "azim": 350.2,
+    "elev": -52.0,
+    "roll": -10.0,
+    "q": 0.331
+   },
+   "fit_delta_deg_after": 9.5,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 21.62907120338109,
+   "contour_mean_mm_after": 20.18801216321735,
+   "aspect_err_pct_after": -11.2,
+   "mesh_only_frac_after": 0.1423906311581555,
+   "photo_only_frac_after": 0.3884916389842914,
+   "blobs_after": [
+    {
+     "side": "photo only",
+     "part": "gear",
+     "area_frac": 0.042621474016102695,
+     "area_mm2": 2409.613647230432,
+     "centroid": [
+      383.20277410832233,
+      233.68758256274768
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.042480716175891,
+     "area_mm2": 2401.655874287135,
+     "centroid": [
+      301.42743538767394,
+      299.41153081510936
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.04129835031811272,
+     "area_mm2": 2334.810581563437,
+     "centroid": [
+      409.7580095432856,
+      359.3653715064758
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "gear",
+     "area_frac": 0.04124204718202804,
+     "area_mm2": 2331.6274723861184,
+     "centroid": [
+      383.7740614334471,
+      605.7890784982935
+     ]
+    }
+   ],
+   "note": "from below and in front, about 45 deg under the horizon: the only direction in the folder that shows the belly, the landing gear from underneath and the downward vision cluster"
+  },
+  {
+   "idx": 16,
+   "file": "matrice4e_p10_underside_plan_alt.jpg",
+   "expect": [
+    0,
+    -45
+   ],
+   "window_deg": 26.0,
+   "pose_grid_el_lo_deg": -72.0,
+   "iou_before": 0.4202,
+   "iou_after": 0.4689,
+   "d_iou": 0.0487,
+   "pct_of_ceiling_before": 48.4,
+   "pct_of_ceiling_after": 55.4,
+   "free_iou_before": 0.4307,
+   "free_iou_after": 0.4686,
+   "free_iou_gain_before": 0.0105,
+   "free_iou_gain_after": -0.0003,
+   "free_delta_deg_after": 9.4,
+   "fit_after": {
+    "azim": 350.1,
+    "elev": -51.4,
+    "roll": -9.9,
+    "q": 0.335
+   },
+   "fit_delta_deg_after": 9.1,
+   "fit_at_window_edge_after": false,
+   "contour_mean_mm_before": 21.109820035782555,
+   "contour_mean_mm_after": 20.33304933472643,
+   "aspect_err_pct_after": -10.8,
+   "mesh_only_frac_after": 0.13767070998388328,
+   "photo_only_frac_after": 0.39341759267113413,
+   "blobs_after": [
+    {
+     "side": "photo only",
+     "part": "gear",
+     "area_frac": 0.043402041451070204,
+     "area_mm2": 2467.441434056184,
+     "centroid": [
+      382.87882736156354,
+      233.99543973941368
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "motor",
+     "area_frac": 0.04283654253965561,
+     "area_mm2": 2435.29235999682,
+     "centroid": [
+      301.53663366336633,
+      299.32079207920793
+     ]
+    },
+    {
+     "side": "photo only",
+     "part": "gear",
+     "area_frac": 0.04136624536997766,
+     "area_mm2": 2351.7047674424734,
+     "centroid": [
+      383.7922077922078,
+      605.8202323991798
+     ]
+    },
+    {
+     "side": "mesh only",
+     "part": "body",
+     "area_frac": 0.040857296349704524,
+     "area_mm2": 2322.770600789046,
+     "centroid": [
+      409.3086505190311,
+      358.70795847750867
+     ]
+    }
+   ],
+   "note": "same direction as p09 at 1440 px and with the blades at a different phase"
+  }
+ ],
+ "worst_remaining": [
+  {
+   "part": "motor",
+   "side": "photo only",
+   "area_mm2": 4475,
+   "area_frac_of_union": 0.0684,
+   "photo": "matrice 4E_5.png",
+   "photo_iou": 0.4358,
+   "also_visible_in": [
+    "matrice 4E_5.png (4471 mm2)",
+    "matrice4e_p08_iso_rear_left_low.jpg (3168 mm2)",
+    "matrice4e_p07_iso_front_left.jpg (2730 mm2)",
+    "matrice4e_p10_underside_plan_alt.jpg (2435 mm2)"
+   ]
+  },
+  {
+   "part": "prop",
+   "side": "mesh only",
+   "area_mm2": 3680,
+   "area_frac_of_union": 0.0563,
+   "photo": "matrice 4E_5.png",
+   "photo_iou": 0.4358,
+   "also_visible_in": [
+    "matrice4e_p07_iso_front_left.jpg (2071 mm2)",
+    "matrice4e_p08_iso_rear_left_low.jpg (1859 mm2)"
+   ]
+  },
+  {
+   "part": "body",
+   "side": "mesh only",
+   "area_mm2": 3179,
+   "area_frac_of_union": 0.0486,
+   "photo": "matrice 4E_5.png",
+   "photo_iou": 0.4358,
+   "also_visible_in": [
+    "matrice4e_p09_underside_plan.jpg (2335 mm2)",
+    "matrice4e_p10_underside_plan_alt.jpg (2323 mm2)",
+    "matrice4e_p07_iso_front_left.jpg (1847 mm2)",
+    "matrice 4E_3.png (1400 mm2)"
+   ]
+  },
+  {
+   "part": "gear",
+   "side": "photo only",
+   "area_mm2": 2467,
+   "area_frac_of_union": 0.0434,
+   "photo": "matrice4e_p10_underside_plan_alt.jpg",
+   "photo_iou": 0.4689,
+   "also_visible_in": [
+    "matrice4e_p09_underside_plan.jpg (2410 mm2)",
+    "matrice4e_p10_underside_plan_alt.jpg (2352 mm2)",
+    "matrice4e_p09_underside_plan.jpg (2332 mm2)",
+    "matrice4e_p08_iso_rear_left_low.jpg (1577 mm2)"
+   ]
+  },
+  {
+   "part": "body",
+   "side": "photo only",
+   "area_mm2": 1909,
+   "area_frac_of_union": 0.043,
+   "photo": "matrice4e_p07_iso_front_left.jpg",
+   "photo_iou": 0.5921,
+   "also_visible_in": [
+    "matrice4e_p04_front_low_angle.jpg (959 mm2)",
+    "matrice 4E_3.png (936 mm2)",
+    "matrice 4E_2.png (641 mm2)"
+   ]
+  }
+ ]
+}

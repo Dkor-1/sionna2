@@ -1,0 +1,645 @@
+{
+ "_meta": {
+  "what": "DJI Mini 2 — 다듬은 메쉬를 사진 실루엣으로 다시 채점한 결과(v3).",
+  "date": "2026-08-04",
+  "generator": "src/viz_mesh_photo.py :: build_all(keys=['mini2']) + 자세별 천장 재측정",
+  "mesh_state": "outputs/meshfix_applied.json 의 mini2 수정 12건(F1~F9·D1~D3) 적용 후. 메쉬 sha 41781fde…(수정 전 eb93de39…). 다른 7기체는 sha 불변.",
+  "photos_registered": 4,
+  "photos_registered_before": 3,
+  "photo_files_in_folder": 86,
+  "sigma_firewall": "⛔ σ 파일을 열지 않았다. das_fleet_*·p3_*·phantom3/*·rcs_anchor.json·lowfreq_*·RETRACTION_LOG.md 미열람·미수정. 이번 라운드에서 형상은 한 줄도 바꾸지 않았다 — 자세·원근·등방배율만 적합했다.",
+  "shape_untouched": "이 라운드는 측정만 했다. src/drones.py·src/drone_cad.py 미수정. 편집한 파일은 src/viz_mesh_photo.py 의 사진 등록부/제외목록뿐이다.",
+  "overwrite_guard": "mesh_compare_photo.json(부분 실행이라 자동으로 안 덮음)·outputs/figures/mesh_photo_mini2.png(수정 전 증거)·outputs/mini2_mesh_audit.json 모두 그대로 두었다.",
+  "before_source": "outputs/mini2_mesh_audit.json (2026-08-03 13:12, 수정 전 메쉬, 같은 파이프라인). outputs/mini2_photo_measure.json 은 존재하지 않는다.",
+  "pipeline_identical": "src/viz_mesh_photo.py 의 측정 함수는 전후가 같다(git diff 상 변경은 PHOTOS 등록부와 EXCLUDED 주석뿐, 함수 0건)."
+ },
+ "headline": {
+  "iou_before": 0.7048,
+  "iou_before_file": "mini2_d05_official_unfolded_iso_black.png",
+  "iou_after": 0.8036,
+  "iou_after_file": "mini2_d11_official_unfolded_side_elevation_249g.jpg",
+  "iou_after_same_photo_set": 0.7449,
+  "iou_after_same_photo_set_file": "mini2_d05_official_unfolded_iso_black.png",
+  "note": "iou_after 는 등록된 4장 전체의 최고값이고, iou_after_same_photo_set 은 수정 전에도 등록돼 있던 3장만으로 다시 고른 값이다. 엄밀한 A/B 는 후자다 — 전자는 새 뷰(d11) 추가 효과가 섞여 있다."
+ },
+ "ceiling": {
+  "headline_view_ceiling": 0.9582,
+  "headline_view_ceiling_pose_error_deg": 0.64,
+  "legacy_same_pose_before": 0.9121,
+  "legacy_same_pose_after": 0.8055519773283525,
+  "per_view": {
+   "mini2_d06_official_unfolded_front_alpha.png": {
+    "ceiling": 0.9848,
+    "pose_error_deg": 0.0,
+    "scale_error_pct": 0.25,
+    "same_pose_two_samples": 0.9948
+   },
+   "mini2_d05_official_unfolded_iso_black.png": {
+    "ceiling": 0.9263,
+    "pose_error_deg": 1.73,
+    "scale_error_pct": -1.82,
+    "same_pose_two_samples": 0.9953
+   },
+   "mini2_p02_ifixit_unfolded_top34.jpg": {
+    "ceiling": 0.989,
+    "pose_error_deg": 0.13,
+    "scale_error_pct": -0.1,
+    "same_pose_two_samples": 0.9952
+   },
+   "mini2_d11_official_unfolded_side_elevation_249g.jpg": {
+    "ceiling": 0.9582,
+    "pose_error_deg": 0.64,
+    "scale_error_pct": -0.52,
+    "same_pose_two_samples": 0.9983
+   },
+   "(calibrate default)": {
+    "ceiling": 0.8056,
+    "pose_error_deg": 5.42,
+    "scale_error_pct": -2.3,
+    "same_pose_two_samples": 0.9955
+   }
+  },
+  "band": [
+   0.8056,
+   0.9582,
+   0.989
+  ],
+  "finding": "⚠ 천장 지표 자체가 불안정하다는 것이 이번 라운드의 부산물이다. calibrate() 는 (25°,18°) 한 자세만 쓰는데, 이번 메쉬에서 그 자세의 정합이 5.42° 어긋난 데서 멈춰 천장이 0.806 으로 나왔다. 같은 자세에서 같은 메쉬 두 표본을 겹치면 0.995 이므로 래스터화 한계가 아니라 **정합기 수렴 실패**다. 등록된 사진 4장이 실제로 앉은 자세에서 다시 재면 천장은 0.926~0.989 (자세오차 0.00~1.73°) 이다. 따라서 '천장이 0.912 → 0.806 으로 떨어졌다' 는 메쉬 악화가 아니라 한 자세짜리 추정량의 나쁜 뽑기다. 전후를 같은 방식으로 견주려면 legacy 쌍을, 의미 있는 분모를 쓰려면 per_view 를 봐라.",
+  "why_before_has_no_per_view": "수정 전 메쉬는 재현할 수 없다 — mini2 는 HEAD 커밋에 아예 없고(추가·수정이 같은 미커밋 작업트리에 있다), 돌아가는 das_fleet_sigma.py 때문에 작업트리를 되돌릴 수도 없다. 그래서 before 의 자세별 천장은 없다고 적는다."
+ },
+ "free_iou_gain": {
+  "headline": 0.0,
+  "per_photo": {
+   "mini2_d06_official_unfolded_front_alpha.png": {
+    "before": 0.005,
+    "after": 0.0
+   },
+   "mini2_d05_official_unfolded_iso_black.png": {
+    "before": 0.0,
+    "after": -0.0019
+   },
+   "mini2_p02_ifixit_unfolded_top34.jpg": {
+    "before": -0.016,
+    "after": 0.0
+   },
+   "mini2_d11_official_unfolded_side_elevation_249g.jpg": {
+    "before": null,
+    "after": 0.0
+   }
+  },
+  "reading": "⭐ 판별자. 자유 카메라가 선언 자세를 떠나 벌어들이는 IoU 다. 네 장 모두 +0.000 ~ -0.002 로, 자유 카메라가 아무것도 못 번다. 즉 이번 상승은 '자세를 더 잘 맞춰서' 가 아니라 형상이 사진에 맞아서다. 수정 전에도 이미 작았고(0.000/+0.005/-0.016) 지금은 더 작아졌다. d11 은 자유 갈래가 선언 갈래와 **같은 자세**를 독립적으로 골랐다 — 내가 선언한 방위 270° 가 맞다는 교차확인이다."
+ },
+ "photos": [
+  {
+   "file": "mini2_d06_official_unfolded_front_alpha.png",
+   "newly_registered": false,
+   "iou_before": 0.6779,
+   "iou_after": 0.7433,
+   "delta_iou": 0.0654,
+   "ceiling_this_view": 0.9848,
+   "ceiling_this_view_pose_error_deg": 0.0,
+   "pct_of_ceiling_after_this_view": 75.5,
+   "pct_of_ceiling_before_legacy": 74.3,
+   "free_iou_gain_before": 0.005,
+   "free_iou_gain_after": 0.0,
+   "declared_aspect_deg": [
+    0,
+    12
+   ],
+   "fitted_aspect_deg": [
+    0.0,
+    25.0
+   ],
+   "fit_delta_deg": 13.0,
+   "window_deg": 20.0,
+   "fit_at_window_edge": false,
+   "outline_mean_mm": 4.42,
+   "outline_mean_mm_before": 4.34,
+   "outline_p95_mm": 20.08,
+   "mesh_only_frac": 0.097,
+   "mesh_only_frac_before": 0.099,
+   "photo_only_frac": 0.16,
+   "photo_only_frac_before": 0.223,
+   "fill_ratio_mesh_over_photo": 0.931,
+   "aspect_wh_photo": 2.718,
+   "aspect_wh_mesh": 2.55,
+   "aspect_err_pct": -6.2,
+   "clipped_frac": 0.0,
+   "segmentation": "alpha channel",
+   "seg_area_swing_pct": null,
+   "segmentation_bound": false,
+   "blobs": [
+    {
+     "letter": "A",
+     "side": "photo only",
+     "nearest_part": "motor",
+     "area_mm2": 444.6,
+     "pct_of_union": 3.9,
+     "centroid_row_col": [
+      380,
+      633
+     ]
+    },
+    {
+     "letter": "B",
+     "side": "photo only",
+     "nearest_part": "motor",
+     "area_mm2": 421.5,
+     "pct_of_union": 3.7,
+     "centroid_row_col": [
+      382,
+      210
+     ]
+    },
+    {
+     "letter": "C",
+     "side": "mesh only",
+     "nearest_part": "body",
+     "area_mm2": 188.6,
+     "pct_of_union": 1.7,
+     "centroid_row_col": [
+      459,
+      359
+     ]
+    },
+    {
+     "letter": "D",
+     "side": "mesh only",
+     "nearest_part": "body",
+     "area_mm2": 183.3,
+     "pct_of_union": 1.6,
+     "centroid_row_col": [
+      459,
+      483
+     ]
+    }
+   ]
+  },
+  {
+   "file": "mini2_d05_official_unfolded_iso_black.png",
+   "newly_registered": false,
+   "iou_before": 0.7048,
+   "iou_after": 0.7449,
+   "delta_iou": 0.0401,
+   "ceiling_this_view": 0.9263,
+   "ceiling_this_view_pose_error_deg": 1.73,
+   "pct_of_ceiling_after_this_view": 80.4,
+   "pct_of_ceiling_before_legacy": 77.3,
+   "free_iou_gain_before": 0.0,
+   "free_iou_gain_after": -0.0019,
+   "declared_aspect_deg": [
+    35,
+    32
+   ],
+   "fitted_aspect_deg": [
+    30.0,
+    30.1
+   ],
+   "fit_delta_deg": 4.7,
+   "window_deg": 26.0,
+   "fit_at_window_edge": false,
+   "outline_mean_mm": 4.35,
+   "outline_mean_mm_before": 4.81,
+   "outline_p95_mm": 17.98,
+   "mesh_only_frac": 0.062,
+   "mesh_only_frac_before": 0.084,
+   "photo_only_frac": 0.193,
+   "photo_only_frac_before": 0.211,
+   "fill_ratio_mesh_over_photo": 0.86,
+   "aspect_wh_photo": 1.826,
+   "aspect_wh_mesh": 1.767,
+   "aspect_err_pct": -3.3,
+   "clipped_frac": 0.0,
+   "segmentation": "alpha channel",
+   "seg_area_swing_pct": null,
+   "segmentation_bound": false,
+   "blobs": [
+    {
+     "letter": "A",
+     "side": "photo only",
+     "nearest_part": "body",
+     "area_mm2": 506.4,
+     "pct_of_union": 4.1,
+     "centroid_row_col": [
+      362,
+      590
+     ]
+    },
+    {
+     "letter": "B",
+     "side": "photo only",
+     "nearest_part": "motor",
+     "area_mm2": 419.1,
+     "pct_of_union": 3.4,
+     "centroid_row_col": [
+      268,
+      300
+     ]
+    },
+    {
+     "letter": "C",
+     "side": "photo only",
+     "nearest_part": "prop",
+     "area_mm2": 238.4,
+     "pct_of_union": 1.9,
+     "centroid_row_col": [
+      397,
+      447
+     ]
+    },
+    {
+     "letter": "D",
+     "side": "photo only",
+     "nearest_part": "motor",
+     "area_mm2": 234.0,
+     "pct_of_union": 1.9,
+     "centroid_row_col": [
+      284,
+      215
+     ]
+    }
+   ]
+  },
+  {
+   "file": "mini2_p02_ifixit_unfolded_top34.jpg",
+   "newly_registered": false,
+   "iou_before": 0.3082,
+   "iou_after": 0.3181,
+   "delta_iou": 0.0099,
+   "ceiling_this_view": 0.989,
+   "ceiling_this_view_pose_error_deg": 0.13,
+   "pct_of_ceiling_after_this_view": 32.2,
+   "pct_of_ceiling_before_legacy": 33.8,
+   "free_iou_gain_before": -0.016,
+   "free_iou_gain_after": 0.0,
+   "declared_aspect_deg": [
+    175,
+    45
+   ],
+   "fitted_aspect_deg": [
+    189.0,
+    42.0
+   ],
+   "fit_delta_deg": 10.6,
+   "window_deg": 30.0,
+   "fit_at_window_edge": false,
+   "outline_mean_mm": 13.1,
+   "outline_mean_mm_before": 15.49,
+   "outline_p95_mm": 50.27,
+   "mesh_only_frac": 0.366,
+   "mesh_only_frac_before": 0.351,
+   "photo_only_frac": 0.316,
+   "photo_only_frac_before": 0.341,
+   "fill_ratio_mesh_over_photo": 1.079,
+   "aspect_wh_photo": 1.333,
+   "aspect_wh_mesh": 1.285,
+   "aspect_err_pct": -3.6,
+   "clipped_frac": 0.0,
+   "segmentation": "background colour distance",
+   "seg_area_swing_pct": 84.21,
+   "segmentation_bound": true,
+   "blobs": [
+    {
+     "letter": "A",
+     "side": "mesh only",
+     "nearest_part": "body",
+     "area_mm2": 3111.4,
+     "pct_of_union": 15.2,
+     "centroid_row_col": [
+      303,
+      427
+     ]
+    },
+    {
+     "letter": "B",
+     "side": "mesh only",
+     "nearest_part": "body",
+     "area_mm2": 1919.4,
+     "pct_of_union": 9.4,
+     "centroid_row_col": [
+      327,
+      545
+     ]
+    },
+    {
+     "letter": "C",
+     "side": "photo only",
+     "nearest_part": "motor",
+     "area_mm2": 1570.9,
+     "pct_of_union": 7.7,
+     "centroid_row_col": [
+      232,
+      619
+     ]
+    },
+    {
+     "letter": "D",
+     "side": "photo only",
+     "nearest_part": "body",
+     "area_mm2": 1129.1,
+     "pct_of_union": 5.5,
+     "centroid_row_col": [
+      470,
+      556
+     ]
+    }
+   ]
+  },
+  {
+   "file": "mini2_d11_official_unfolded_side_elevation_249g.jpg",
+   "newly_registered": true,
+   "iou_before": null,
+   "iou_after": 0.8036,
+   "delta_iou": null,
+   "ceiling_this_view": 0.9582,
+   "ceiling_this_view_pose_error_deg": 0.64,
+   "pct_of_ceiling_after_this_view": 83.9,
+   "pct_of_ceiling_before_legacy": null,
+   "free_iou_gain_before": null,
+   "free_iou_gain_after": 0.0,
+   "declared_aspect_deg": [
+    270,
+    6
+   ],
+   "fitted_aspect_deg": [
+    264.4,
+    3.0
+   ],
+   "fit_delta_deg": 6.4,
+   "window_deg": 30.0,
+   "fit_at_window_edge": false,
+   "outline_mean_mm": 4.19,
+   "outline_mean_mm_before": null,
+   "outline_p95_mm": 17.95,
+   "mesh_only_frac": 0.066,
+   "mesh_only_frac_before": null,
+   "photo_only_frac": 0.13,
+   "photo_only_frac_before": null,
+   "fill_ratio_mesh_over_photo": 0.932,
+   "aspect_wh_photo": 4.184,
+   "aspect_wh_mesh": 3.118,
+   "aspect_err_pct": -25.5,
+   "clipped_frac": 0.0,
+   "segmentation": "background colour distance",
+   "seg_area_swing_pct": 7.2,
+   "segmentation_bound": false,
+   "blobs": [
+    {
+     "letter": "A",
+     "side": "photo only",
+     "nearest_part": "body",
+     "area_mm2": 377.1,
+     "pct_of_union": 4.8,
+     "centroid_row_col": [
+      212,
+      645
+     ]
+    },
+    {
+     "letter": "B",
+     "side": "photo only",
+     "nearest_part": "prop",
+     "area_mm2": 240.6,
+     "pct_of_union": 3.1,
+     "centroid_row_col": [
+      250,
+      336
+     ]
+    },
+    {
+     "letter": "C",
+     "side": "mesh only",
+     "nearest_part": "body",
+     "area_mm2": 227.7,
+     "pct_of_union": 2.9,
+     "centroid_row_col": [
+      218,
+      485
+     ]
+    },
+    {
+     "letter": "D",
+     "side": "photo only",
+     "nearest_part": "prop",
+     "area_mm2": 87.0,
+     "pct_of_union": 1.1,
+     "centroid_row_col": [
+      259,
+      359
+     ]
+    }
+   ]
+  }
+ ],
+ "worst_remaining": [
+  {
+   "rank": 1,
+   "area_mm2": 3111.4,
+   "pct_of_union": 15.2,
+   "side": "mesh only",
+   "nearest_part": "body",
+   "seen_in": "mini2_p02_ifixit_unfolded_top34.jpg",
+   "fitted_aspect_deg": [
+    189.0,
+    42.0
+   ],
+   "blob_letter": "A",
+   "segmentation_bound": true,
+   "seg_area_swing_pct": 84.21
+  },
+  {
+   "rank": 2,
+   "area_mm2": 1919.4,
+   "pct_of_union": 9.4,
+   "side": "mesh only",
+   "nearest_part": "body",
+   "seen_in": "mini2_p02_ifixit_unfolded_top34.jpg",
+   "fitted_aspect_deg": [
+    189.0,
+    42.0
+   ],
+   "blob_letter": "B",
+   "segmentation_bound": true,
+   "seg_area_swing_pct": 84.21
+  },
+  {
+   "rank": 3,
+   "area_mm2": 1570.9,
+   "pct_of_union": 7.7,
+   "side": "photo only",
+   "nearest_part": "motor",
+   "seen_in": "mini2_p02_ifixit_unfolded_top34.jpg",
+   "fitted_aspect_deg": [
+    189.0,
+    42.0
+   ],
+   "blob_letter": "C",
+   "segmentation_bound": true,
+   "seg_area_swing_pct": 84.21
+  },
+  {
+   "rank": 4,
+   "area_mm2": 1129.1,
+   "pct_of_union": 5.5,
+   "side": "photo only",
+   "nearest_part": "body",
+   "seen_in": "mini2_p02_ifixit_unfolded_top34.jpg",
+   "fitted_aspect_deg": [
+    189.0,
+    42.0
+   ],
+   "blob_letter": "D",
+   "segmentation_bound": true,
+   "seg_area_swing_pct": 84.21
+  },
+  {
+   "rank": 5,
+   "area_mm2": 506.4,
+   "pct_of_union": 4.1,
+   "side": "photo only",
+   "nearest_part": "body",
+   "seen_in": "mini2_d05_official_unfolded_iso_black.png",
+   "fitted_aspect_deg": [
+    30.0,
+    30.1
+   ],
+   "blob_letter": "A",
+   "segmentation_bound": false,
+   "seg_area_swing_pct": null
+  }
+ ],
+ "worst_remaining_trustworthy_views_only": [
+  {
+   "rank": 5,
+   "area_mm2": 506.4,
+   "pct_of_union": 4.1,
+   "side": "photo only",
+   "nearest_part": "body",
+   "seen_in": "mini2_d05_official_unfolded_iso_black.png",
+   "fitted_aspect_deg": [
+    30.0,
+    30.1
+   ],
+   "blob_letter": "A",
+   "segmentation_bound": false,
+   "seg_area_swing_pct": null
+  },
+  {
+   "rank": 6,
+   "area_mm2": 444.6,
+   "pct_of_union": 3.9,
+   "side": "photo only",
+   "nearest_part": "motor",
+   "seen_in": "mini2_d06_official_unfolded_front_alpha.png",
+   "fitted_aspect_deg": [
+    0.0,
+    25.0
+   ],
+   "blob_letter": "A",
+   "segmentation_bound": false,
+   "seg_area_swing_pct": null
+  },
+  {
+   "rank": 7,
+   "area_mm2": 421.5,
+   "pct_of_union": 3.7,
+   "side": "photo only",
+   "nearest_part": "motor",
+   "seen_in": "mini2_d06_official_unfolded_front_alpha.png",
+   "fitted_aspect_deg": [
+    0.0,
+    25.0
+   ],
+   "blob_letter": "B",
+   "segmentation_bound": false,
+   "seg_area_swing_pct": null
+  },
+  {
+   "rank": 8,
+   "area_mm2": 419.1,
+   "pct_of_union": 3.4,
+   "side": "photo only",
+   "nearest_part": "motor",
+   "seen_in": "mini2_d05_official_unfolded_iso_black.png",
+   "fitted_aspect_deg": [
+    30.0,
+    30.1
+   ],
+   "blob_letter": "B",
+   "segmentation_bound": false,
+   "seg_area_swing_pct": null
+  },
+  {
+   "rank": 9,
+   "area_mm2": 377.1,
+   "pct_of_union": 4.8,
+   "side": "photo only",
+   "nearest_part": "body",
+   "seen_in": "mini2_d11_official_unfolded_side_elevation_249g.jpg",
+   "fitted_aspect_deg": [
+    264.4,
+    3.0
+   ],
+   "blob_letter": "A",
+   "segmentation_bound": false,
+   "seg_area_swing_pct": 7.2
+  }
+ ],
+ "worst_note": "mm² 순서로 줄세우면 1~4위가 전부 p02(iFixit 실물 사진) 에서 나온다. 그 사진은 회색 기체를 흰 천 위에 놓고 찍어 실루엣 면적이 임계값 사다리에서 84 % 흔들린다 — 그 덩어리들은 메쉬가 아니라 분리를 재고 있을 공산이 크다. 그래서 분리가 튼튼한 뷰(알파 채널 d05·d06, 면적 변동 7.2 % 인 d11)만으로 다시 줄세운 목록을 함께 낸다. 판단은 그쪽을 봐라.",
+ "registration": {
+  "added_this_round": [
+   "mini2_d11_official_unfolded_side_elevation_249g.jpg"
+  ],
+  "why_added": "폴더의 86개 파일을 전수 검사해 전기체 뷰 후보를 모두 판정했고, 새로 통과한 것은 이 한 장이다. 기수 방향은 눈대중이 아니라 계산으로 정했다 — 짐벌(camera 그룹) 무게중심이 기체좌표 x=+30.9 mm 이고 사진에서 짐벌이 화면 오른쪽이므로 방위 270°. 등록 근거는 CAD·사진뿐이고 IoU 를 보고 고르지 않았다(등록 시점에 이 사진의 IoU 는 아직 없었다).",
+  "why_it_matters": "유일하게 기체를 옆에서 보는 뷰다. 이번에 적용된 수정의 대부분(F1 암 상반각 ±10.63 mm · F2/F3 모터 벨 z · F4 다리 z · 봉투 강제 sz 0.906→1.001)이 **높이** 를 건드렸는데, 기존 3장은 정면·3/4·위라 높이를 가장 약하게 본다.",
+  "rejected_whole_aircraft_candidates": [
+   {
+    "file": "mini2_d20..d49_officialcad_*.png (20장)",
+    "reason": "순환. 우리 메쉬가 바로 이 GLB 를 재서 지어졌다 — 채점하면 형상이 아니라 베끼기 정확도를 잰다. 이 항목은 방법론의 핵심이라 절대 안 푼다."
+   },
+   {
+    "file": "mini2_d12_official_unfolded_front_elevation_flight.jpg",
+    "reason": "측정: 추출된 실루엣이 대부분 산이고 기체는 파편으로만 남는다(면적 3.9 %, 임계값 변동 60.4 %)."
+   },
+   {
+    "file": "mini2_p05_ifixit_belly_bottom.jpg",
+    "reason": "측정: 실루엣이 **빈 마스크**(면적 0.000). 회색 기체 위 회색 천이라 배경 중앙값이 기체색에 앉는다. 프롭 3개는 화면 밖으로도 나간다."
+   },
+   {
+    "file": "mini2_p04_ifixit_top_shell_screws_annot.jpg",
+    "reason": "기체가 **뒤집혀** 있어 카메라가 메쉬를 수평 아래 약 50° 에서 봐야 하는데 자세 탐색의 하한이 -36° 다 — 선언 자세에 닿을 수 없다. 주석 원 4개, 분리 변동 68.7 %."
+   },
+   {
+    "file": "mini2_d01·d02·d03·d13 (folded)",
+    "reason": "접힘 상태. drone_cad 에 접힘 관절이 없다(`_arm_folding` 은 접이식 암의 **단면 모양**이지 접힘 자세가 아니다 — 소스로 확인). 다른 시점이 아니라 다른 구성이다."
+   },
+   {
+    "file": "mini2_d09_official_xray_cutaway_internals.jpg",
+    "reason": "접힘 + 컷어웨이(셸 투명). 메쉬에 투명도가 없다."
+   },
+   {
+    "file": "mini2_m01..m08",
+    "reason": "매뉴얼·라벨 도판. 콜아웃 원·지시선·치수 화살표·글자가 실루엣에 섞인다. m05 는 펼침 **시퀀스**라 한 그림에 기체가 여러 벌이다."
+   },
+   {
+    "file": "mini2_d07 · d08 · d10 · p01 · p03 · p10..p15",
+    "reason": "기존 제외 사유 유지(산 배경·프롭 블러·프롭가드 장착·기수 판독 불가(분리 변동 115 %)·짐벌 커버 장착·자·액세서리 동반)."
+   },
+   {
+    "file": "mini2_c01..c07 · t01..t28 · p06",
+    "reason": "부품 클로즈업. 전기체 실루엣이 아니다."
+   }
+  ]
+ },
+ "verdict": {
+  "improved": true,
+  "statement": "등록돼 있던 3장 전부에서 IoU 가 올랐다(+0.065 / +0.040 / +0.010). 자유 카메라 이득이 네 장 모두 0 이므로 자세맞춤이 아니라 형상 개선이다. 새로 등록한 측면 뷰가 0.804 로 이 기체의 최고값이다.",
+  "caveats": [
+   "천장 추정량이 한 자세에서 실패했다(위 ceiling.finding). 천장 대비 % 를 인용할 때 분모를 반드시 함께 적어라.",
+   "p02 는 분리가 84 % 흔들리는 사진이라 그 IoU(0.318) 와 그 덩어리들은 메쉬보다 분리를 재고 있다. 올랐지만(+0.010) 근거로 세우지 마라.",
+   "d11 은 프롭이 회전 중이라 사진 실루엣의 블레이드가 번짐이다. 측면 W/H 가 메쉬 3.118 vs 사진 4.184 로 -25.5 % 인 것은 대부분 이 번짐이 폭을 늘린 탓이다(반경 도달비 중앙값은 1.00 으로 정상)."
+  ]
+ },
+ "figure": "outputs/figures/mesh_photo_mini2_v3.png",
+ "figure_before": "outputs/figures/mesh_photo_mini2.png (2026-08-03, 덮지 않았다)"
+}

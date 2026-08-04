@@ -4,7 +4,8 @@ drones.py — 표적 드론의 '실측 제원' + 파라메트릭 3D 모델 생�
 ==================================================================
 
 표적 목록은 아래 `DRONES` 레지스트리 **하나**가 정한다 — 저장소의 개수 출처는 `len(DRONES)` 뿐이다.
-  현재 **7종**: DJI 5종(Mini 5 Pro · Mavic 4 Pro · Matrice 4E · S1000+ · Phantom 4)
+  현재 **10종**: DJI 8종(Mini 5 Pro · Mavic 4 Pro · Matrice 4E · S1000+ · Phantom 4
+  · Phantom 3, 2026-08-03 추가 · Matrice 350 RTK, 2026-08-03 추가 · Mini 2, 2026-08-03 추가)
   + 비-DJI 2종(Yuneec Typhoon H480 · Holybro X500 V2, 2026-07-30 추가).
   ⚠ 이 문장이 저장소에서 개수를 산문으로 적는 **유일한 자리**다. 코드·다른 문서는 개수를
     하드코딩하지 말고 `len(DRONES)` / `drone_keys()` / `drone_order()` 를 쓴다(그 함수들 주석 참조).
@@ -300,12 +301,22 @@ DRONES: dict[str, DroneSpec] = {
         rotor_deg=(52.45, 131.53, 228.47, 307.55), rotor_r_mm=(228.77, 210.36, 210.36, 228.77),
         body_lw=(1.08, 0.98), gimbal_style="sensor", cad_version="v2",
         envelope_mm=(None, None, 149.5),
-        arm_od_mm=20.0, motor_dia_mm=27.0),      # ⭐ 2026-07-30 사진대조 — 아래 [암 굵기] 주석 참조
-        # ⭐ 2026-07-30 사진대조 라운드 (assets/photos/matrice4e/ 5장)
-        #   [암 굵기] `arm_od_mm=20.0` 으로 대각비례(0.055·diag=반경 24.1 → 폭 48.3 mm)를 덮는다.
-        #     근거: 상면사진 _5 에서 암 폭 **16.6 mm**(축척 0.6249 mm/px, 프롭이 가리지 않는
-        #     모터 근처 스테이션), docs/drone_specs_2026.json 은 18~22 mm. 옛 값은 실물의 2.4배라
-        #     상면 실루엣에서 암이 '쐐기'로 보였다. 단면도 원형으로 바꿨다(drone_cad._ARM_SECTION).
+        arm_od_mm=13.6, motor_dia_mm=27.0, motor_h_mm=16.3),   # ⭐ 공식 STEP 실측 — 아래 주석
+        # ⭐⭐ 2026-08-04 형상 라운드 — 근거는 **DJI 공식 STEP CAD**
+        #   `assets/meshes/reference/matrice4-M4T_v2.step` 의 모서리(1D) 실측이다
+        #   (추출 방법·축척 검증·좌표 규약은 drone_cad._SHELL_SHAPE["matrice4e"] 주석).
+        #   [암 굵기] `arm_od_mm = 13.6`. 암 솔리드(앞 107/97 · 뒤 86/91)를 **암 축에 수직**으로
+        #     잘라 r = 100~200 mm 6단면을 재면 앞 폭 13.2~15.7 · 높이 11.7~13.2, 뒤 폭
+        #     12.1~14.5 · 높이 14.2~16.5 → 앞뒤 평균 **폭 13.6 · 높이 13.7** = 사실상 원형이다.
+        #     (상면투영으로 잰 값은 암 축 경사 때문에 실폭보다 크게 나온다.)
+        #     단면 형상비 `_ARM_SECTION["matrice4e"] = (2.00, 1.00)` = 원형은 CAD 가 확인한다 —
+        #     틀린 것은 지름뿐이었다.
+        #   [모터 벨 높이] `motor_h_mm = 16.3`. 회전 캔(벨) 솔리드 104(앞) 16.53 · 94(뒤) 16.13 mm.
+        #     None 이면 0.045·diag = 19.75 가 쓰인다.
+        #   ⚠ arm_od 는 `drone_cad` 의 암 단면과 `drones._arm_motor_dims` 의 프롭 장착 높이에
+        #     **둘 다** 들어가고, 다리 부착 z(z_arm)를 통해 GEAR_SPIKE_H 와 짝을 이룬다.
+        #   ⚠ `motor_dia_mm = 27.0` 은 그대로 둔다 — CAD 벨 지름은 앞 25.6~27.5 · 뒤 26.8~27.8
+        #     (평균 26.9)로 0.4 % 차, 측정 산포 안이다.
         # ⭐⭐ 2026-07-31 로터 배치 — **사다리꼴 채택, 매듭 해소**. (rotor_r_mm 신설)
         #   [측정] `assets/photos/matrice4e/matrice 4E_5.png`(상면)에서 **주황 프롭팁 8개**의
         #     무게중심을 찾고 2날 프롭의 두 팁의 중점을 허브로 삼았다(부분픽셀).
@@ -479,14 +490,17 @@ DRONES: dict[str, DroneSpec] = {
     "x500v2": DroneSpec(
         key="x500v2", name="Holybro X500 V2",
         diagonal_mm=500, weight_g=1650,
-        body_l_mm=144, body_w_mm=144, body_h_mm=32,
+        body_l_mm=143.72, body_w_mm=143.72, body_h_mm=32,
         prop_dia_mm=254.0, prop_blades=2, num_rotors=4,
         max_speed_ms=None, hover_rpm=5450, max_rpm=None, prop_pitch_in=4.5,
         rtk=False, release="released", confidence="medium",
         note="Development frame: our first OPEN-FRAME target - no moulded shell at all "
              "(body_style='plate_stack', shell_groups=()) and no camera (gimbal_style='none'). "
              "diagonal_mm 500 VERIFIED (docs.holybro.com X500 V2, 'Wheelbase: 500mm'). "
-             "plate_mm 144 x 144 x (2 + 28 + 2) mm VERIFIED for plate size / thickness / spacing; "
+             "plate 143.72 mm across flats MEASURED off the manufacturer STEP by edge sampling "
+             "(the straight flats sit at x = 71.86 and the LINE runs (71.860, +/-48.906), length "
+             "97.812), against the published 144 - the published figure is the rounded one, "
+             "-0.19 %. plate thickness 2.000 and gap 28.000 VERIFIED, reproduced exactly; "
              "body_h_mm 32 is therefore DERIVED (2+28+2), not a published overall height. "
              "prop 254.0 mm / 4.5 in VERIFIED - the kit ships 1045 propellers (10 x 4.5 in). The 1345 "
              "prop in the community CAD is NOT the X500 prop (13 in nominal, 346.9 mm measured); "
@@ -503,12 +517,19 @@ DRONES: dict[str, DroneSpec] = {
              "which carries the whole measured table (leg top |y| 56.78, skid track 239.91, skid length "
              "248.0, EVA foam sleeves 19.0 OD x 93.0, four of them). The mesh used to build FOUR legs; "
              "the real aircraft has TWO (BOM: GUAN-CHENG x2). *** "
-             "*** motor_dia_mm / motor_h_mm FILLED 2026-07-30, both VERIFIED, replacing the "
+             "*** motor_dia_mm / motor_h_mm are both MEASURED off manufacturer CAD, replacing the "
              "diagonal-proportional fallback that this note used to warn about (52.0 mm dia x 24.0 mm, "
              "~1.9x a real 22xx bell, overstating motor projected area by ~3.5x). Holybro's "
-             "AIR2216II_Motor_3D.STEP gives can OD 27.7 mm (their store says 28), and the frame STEP "
-             "puts the can at 12.7..37.2 mm above the arm axis, i.e. 24.5 mm tall, on a 32.3 mm base "
-             "flange at 6.0..12.7 mm. The mesh now builds both stages. *** "
+             "AIR2216II_Motor_3D.STEP - the CURRENT kit motor - puts the r = 13.85 (OD 27.70) can "
+             "circles at axial 11.0 and 39.5 only, i.e. a 28.5 mm can, standing on a 24.7 mm OD base "
+             "disc at axial 9.5. The frame STEP corroborates the height independently on its own "
+             "(earlier-configuration) DJ-2216-KV880: can from y 23.5 to 52.5 = 29.0 mm, two sources "
+             "agreeing to 0.5 mm. In our frame the can sits 1.5 mm above the carbon plate top, "
+             "z 7.5..36.0, with the base disc at 6.0..7.5. The mesh builds both stages. "
+             "*** THE BASE-FLANGE DIAMETER IS A CONFIGURATION CHOICE, NOT A MEASUREMENT BAND: the "
+             "frame STEP's DJ-2216 carries lugs of OD 34..36.6 in y 22..27, i.e. a base WIDER than "
+             "its can, which the AIR2216II does not have. We follow the AIR2216II because that is "
+             "what the kit ships; if that is falsified, only motor_base_od_mm reverts. *** "
              "weight_g 1650 DERIVED - Holybro does not publish a TOW, this is a PX4 Full-Kit build-up "
              "(610 g frame + electronics + 4S 5000 mAh pack). "
              "hover_rpm 5450 DERIVED. Working, using the same C_T anchors as the matrice4e and "
@@ -530,31 +551,476 @@ DRONES: dict[str, DroneSpec] = {
              "max_rpm None = UNKNOWN - a development frame carries no C-class certification or firmware "
              "ceiling, and an electrical no-load figure is a different quantity (matrice4e note). "
              "max_speed_ms None = UNKNOWN (airframe kit; speed depends on the build). "
-             "SHAPE SOURCE (2026-07-30): the manufacturer's own STEP assembly is in-repo at "
-             "assets/meshes/reference/x500v2-frame.step (57 parts / 244 placed instances), measured by "
-             "benchmark/measure_x500v2_cad.py into outputs/x500v2_cad.json (51 entries, all VERIFIED). "
-             "It independently reproduces four published values (plate 2.000 thick, 28.000 gap, 143.72 "
-             "across flats vs published 144, gear 215.28 vs published 215); only the wheelbase differs, "
-             "502.8 vs a rounded 500. drone_cad.X500V2 is the table the mesh builds from, and it is the "
-             "reason this airframe now has an octagonal (45 deg chamfered) plate, carbon teardrop motor "
-             "mount plates, nylon corner/tip clamps, two legs with foam sleeves, payload rails, a slung "
-             "battery tray and a GPS mast. diagonal_mm stays at the published 500 (it only scales "
-             "arm/motor fallbacks that this airframe no longer uses); the motor ring itself is built at "
-             "the measured 251.4 mm radius. "
+             "SHAPE SOURCE: the manufacturer's own STEP assembly is in-repo at "
+             "assets/meshes/reference/x500v2-frame.step (57 parts / 244 placed instances). The shape "
+             "constants live in drone_cad.X500V2 and are EDGE-BASED (1D): EDGE_CURVE -> VERTEX_POINT "
+             "plus same-sense circular-arc sampling at 0.25 mm arc length, with cylinder diameters read "
+             "off CYLINDRICAL_SURFACE radii. A whole-point-cloud reading of a STEP file is NOT "
+             "equivalent: its CARTESIAN_POINTs mix circle CENTRES, untrimmed-LINE parametric endpoints "
+             "and B-spline control points, all of which can lie outside the solid, so point-cloud boxes "
+             "run large and point-cloud centroids get pulled toward asymmetric features. "
+             "The CAD reproduces NINE published values: plate 143.72 vs 144 (-0.19 %), thickness 2.000, "
+             "gap 28.000, WHEELBASE 500.28 vs 500 (+0.06 %), gear 215.28 vs 215, arm-tube clamp bore "
+             "16.00, skid 10.0, leg 16.0, payload rail 250.0 - worst 0.19 %. drone_cad.X500V2 is the "
+             "table the mesh builds from, and it is the reason this airframe has an octagonal (45 deg "
+             "chamfered) plate, carbon teardrop motor mount plates, nylon corner/tip clamps, two legs "
+             "with foam sleeves, payload rails, a slung battery tray on two pylon side-plates, a GPS "
+             "mast with its tray and an optical-flow cover. diagonal_mm stays at the published 500 (it "
+             "only scales arm/motor fallbacks that this airframe no longer uses); the motor ring itself "
+             "is built at the measured 250.141 mm radius, i.e. the vertical-axis CIRCLE centres of all "
+             "eight motor instances land on (+/-176.876, +/-176.876) at exactly +/-45.000 deg. "
+             "*** DECLARED, NOT APPLIED: rotor_r_mm is left unset, so the PROPELLERS are still placed "
+             "at diagonal_mm/2 = 250.0 while the motors sit at 250.141 - a 0.141 mm offset. Setting "
+             "rotor_r_mm = 250.141 would close it, at the cost of moving the reported "
+             "wheelbase_opposite_mm / diagonal_effective_mm from 500.0 to 500.28 wherever a table "
+             "expects 500.0. Not worth 0.141 mm inside a geometry-only round. *** "
              "NOT a BOM or geometry source: assets/meshes/reference/NXP-HGD-CF.dae is the ReadytoSky "
              "LJI X4 500 from the NXP HoverGames kit - proven by the FMUK66 flight-controller mesh "
              "inside it - and NOT a Holybro X500. Cousin-class LAYOUT reference only; every number "
              "above is a published value, not a measurement off that DAE.",
         body_rgb=_BLACK, arm_style="carbon", gear="tall", gimbal="none",
-        accent_rgb=None, body_frac=0.288,        # = 144/500 → _drone_dims 의 동체치수가 실제 판과 같아진다
+        accent_rgb=None, body_frac=0.28744,      # = 143.72/500 → _drone_dims 의 동체치수 = 실제 판
         shape_source="manufacturer_cad",         # ⭐ 저장소에서 유일 — 제조사 STEP 실측(위 note 의 SHAPE SOURCE 절)
         body_lw=(1.0, 1.0), gimbal_style="none", cad_version="v2",
         envelope_mm=None,                        # Holybro 는 전체 외형(L×W×H)을 공표하지 않는다 → 맞출 대상이 없다
-        body_style="plate_stack", plate_mm=(144.0, 144.0, 2.0, 28.0, 2.0),
+        #  ⭐ 2026-08-04 — 판 맞변거리 144.0 → **143.72** (모서리 실측). body_l/w_mm 과 반드시
+        #    같아야 한다(build_frame_cad 가 ValueError 로 막는다). body_frac 도 함께 따라간다.
+        body_style="plate_stack", plate_mm=(143.72, 143.72, 2.0, 28.0, 2.0),
         arm_shape="tube", arm_od_mm=16.0,
-        motor_dia_mm=27.7, motor_h_mm=24.5,      # ⭐ VERIFIED (제조사 STEP) — 아래 note 참조
+        motor_dia_mm=27.7, motor_h_mm=28.5,      # ⭐ 제조사 CAD 실측 — 위 note 의 모터 절 참조
         gear_h_mm=215.0, gear_tube_mm=(16.0, 10.0), gear_splay_deg=17.59,
         shell_groups=()),                        # ⭐ 셸이 없다 — body·canopy 그룹이 존재하지 않는다
+    # ----------------------------------------------------------------------- #
+    # 8) 검증 표적 (2026-08-03 추가) — 공개 실측 σ 가 존재하는 유일한 기체.
+    #    제원의 단일 출처는 `outputs/p3_specs.json` 이고, 등급(VERIFIED / MEASURED /
+    #    DERIVED / UNKNOWN)은 그 파일이 적은 대로 아래 note 에 **올리지 않고** 옮겼다.
+    # ----------------------------------------------------------------------- #
+    "phantom3": DroneSpec(
+        key="phantom3", name="DJI Phantom 3 Professional",
+        diagonal_mm=350.0, weight_g=1280.0,
+        body_l_mm=289.5, body_w_mm=289.0, body_h_mm=185.0,
+        prop_dia_mm=240.0, prop_blades=2, num_rotors=4,
+        max_speed_ms=16.0, hover_rpm=5100.0, max_rpm=None, prop_pitch_in=5.0,
+        rtk=False, release="discontinued", confidence="high",
+        note="Fixed-arm quad, one-piece white plastic shell, bolt-on arch landing legs, exposed "
+             "3-axis gimbal hung under the belly on a vibration-damping plate. Spec provenance is "
+             "outputs/p3_specs.json (manufacturer documents + a pixel audit of DJI's own 4-view "
+             "line art); grades are copied from there, not upgraded. "
+             "VARIANT: the Professional (WM331). It does not matter geometrically - DJI sells ONE "
+             "two-piece shell part for Pro/Adv/SE/Standard, all variants share the 350 mm motor "
+             "diagonal, the 9450 propeller, the PH3 battery and the SAME published envelope "
+             "289.5 x 289 x 185 mm (the Standard Quick Start Guide V1.0 and the Professional Quick "
+             "Start Guide V1.2 carry the identical dimension diagram). Only mass differs "
+             "(1216 / 1236 / 1280 g) and 1280 g is the modal value; the Professional also carries "
+             "the belly Vision Positioning System, so choosing it is the more-scatterer option. "
+             "diagonal_mm 350 DERIVED and exact: DJI's archived spec pages publish 'Diagonal Size "
+             "(Including Propellers) 590 mm' and the E305 table gives the 9450 as 24 x 12.7 cm, so "
+             "590 - 240 = 350 mm; third-party datasheets state 350 mm props-excluded directly. "
+             "weight_g 1280 VERIFIED (User Manual v1.8 Appendix, battery and propellers included). "
+             "prop 240 mm / 5.0 in / 2 blades VERIFIED from DJI's own E305 propulsion table - the "
+             "SAME 9450 part number as the phantom4 entry, and the same 0.5% part-number/table "
+             "discrepancy that entry already documents. "
+             "body_l/w/h 289.5 / 289.0 / 185.0 VERIFIED - DJI's dimension diagram, propellers "
+             "EXCLUDED, height measured from the MOTOR TOP down to the feet (proved by the pixel "
+             "audit: taking the prop tops instead gives 206.4 mm, +11.6%). "
+             "*** HEIGHT DISCREPANCY, FLAGGED NOT RESOLVED: the measurement literature that makes "
+             "this airframe interesting quotes '35 cm x 20 cm'. The 35 cm is the 350 mm motor "
+             "diagonal exactly; the 20 cm is +8.1% over DJI's published 185 mm and is most likely "
+             "a rounding or a props-fitted height. THIS ENTRY USES DJI'S 185 mm, i.e. the "
+             "manufacturer value, not the paper's. Anyone comparing against that literature must "
+             "know the model is 7.5% shorter than the number printed there. *** "
+             "rotor_deg 45/135/225/315 DERIVED and forced by the two official plan dimensions: "
+             "350 cos(a) + p = 289.5 and 350 sin(a) + p = 289.0 subtract to a = 44.94 deg, i.e. a "
+             "symmetric X within 0.06 deg. Implied outermost overhang p = 41.5 mm at the rotor "
+             "station. Prop clearance (house rule, must stay positive): adjacent motors "
+             "350/sqrt(2) = 247.49 vs prop 240 -> +7.49 mm; opposite 350 vs 240 -> +110 mm. "
+             "rotor_r_mm / rotor_z_mm None = UNKNOWN: no plan-view photograph exists to test a "
+             "trapezoid, and one circle at diagonal/2 satisfies both official plan figures. "
+             "hover_rpm 5100 DERIVED, band 5030-5210 (C_T 0.0132-0.0142). This is the ONE airframe "
+             "in the registry where the NASA/US Army full-vehicle hover C_T anchor was measured on "
+             "THIS aircraft with THIS propeller ('DJI Phantom 3 + 9450'; Russell/Jung/Willink/"
+             "Glasner, AHS Forum 72, 2016, Fig.38) - every other entry transfers that number across "
+             "pitch ratios. Self-consistency: our phantom4 uses 5500 on the same prop at 1380 g, and "
+             "n ~ sqrt(m) implies 5296 for the P4 from this value, so the two agree to +3.8%. Like "
+             "every hover_rpm here it is a HARDCODED LITERAL (see the field note) and it does not "
+             "enter the static mesh at all. "
+             "max_rpm None = UNKNOWN - a 2015 product predating C-class certification; an "
+             "electrical no-load figure (KV x pack voltage) is a different quantity and must not be "
+             "substituted (see the matrice4e note). "
+             "gear_h_mm 120.5 MEASURED (+/-8%), belly to foot, off the User Manual v1.8 p.8 front "
+             "elevation at 0.39320 mm/px. The scale is anchored on the props-excluded WIDTH 289.0 mm "
+             "and then reproduces the published HEIGHT to -0.32% (184.4 vs 185.0), which is an "
+             "independent check that the drawing is orthographic. The height decomposes "
+             "self-consistently as shell 63.9 + legs 120.5 = 184.4 mm. Compared with our phantom4 "
+             "(shell 83, legs 113 on 196 mm) the Phantom 3 has a ~23% THINNER shell and ~7% LONGER "
+             "legs - the two airframes are interchangeable in rotor layout only, not in silhouette. "
+             "arm_style 'body' VERIFIED, and it is NOT a judgement call here: the arms are moulded "
+             "into the shell (one DJI part number, 'Shell incl. Top & Bottom Covers', covers arms "
+             "and body), so they join the plastic group. Had they been carbon this would be "
+             "|Gamma| 0.90 vs 0.28 = 10.1 dB on the arms. "
+             "envelope_mm forces HEIGHT ONLY (185 mm), the house rule shared with mini5pro / "
+             "mavic4pro / matrice4e / typhoonh480. L/W would in fact be nearly self-consistent here "
+             "(the 45 deg solve reproduces them to 0.06 deg) but forcing three axes is what turns "
+             "frame_fit_scale into an anisotropic squash. "
+             "*** MATERIAL FORK, UNCONTROLLED: DJI also sold an optional 'E305 9450 Carbon Fiber "
+             "Reinforced' propeller for the Phantom 3. Carbon-loaded blades are conductive - in our "
+             "table carbon |Gamma| 0.90 vs prop_plastic 0.25, i.e. +11.1 dB on the propeller group. "
+             "This entry models the STOCK polymer prop. Treat the CF prop as a labelled sensitivity "
+             "case, not a second spec. *** "
+             "*** THE PHANTOM 3 HAS NO MAGNESIUM SKELETON. The magnesium-alloy core was introduced "
+             "ON the Phantom 4 and is its headline structural upgrade over the plastic Phantom 3; "
+             "DJI's Phantom 3 parts catalogue contains no magnesium part. The shared shell-v2 path "
+             "in drone_cad nonetheless inserts a magnesium structural plate into the 'battery' "
+             "group for every v2 shell airframe. It was NOT removed for this entry, because "
+             "removing it would be a phantom3-only carve-out in shared code. CONSEQUENCE: this mesh "
+             "over-metals the fuselage by one plate (0.58 bl x 0.68 bw x 0.08 bh). Declared bias. *** "
+             "SHAPE IS MEASURED (2026-08-03 rebuild). The previous entry inherited the phantom4 "
+             "photo-audit tables because the repository held no Phantom 3 photograph; 145 reference "
+             "images now exist (assets/photos/phantom3/SOURCES.md) and the shape tables in "
+             "drone_cad (_SHELL_SHAPE / _ARM_WIDTH / _ARM_SECTION / GEAR_ARCH / INTERNALS) are now "
+             "pixel measurements off DJI's own orthographic 4-view line art, DJI's official top "
+             "render and FCC / iFixit teardown photographs. Every constant carries its scale anchor "
+             "in the drone_cad comments. "
+             "*** MEASUREMENT THAT OVERTURNS THE PREVIOUS ENTRY: the published 185 mm is the SHELL "
+             "CROWN to the feet, NOT the motor top to the feet. The front elevation and the rear "
+             "elevation independently give 184.1 and 185.4 mm for crown->feet, and the front "
+             "elevation's own motor-separation anchor (247.49 mm = 350 sin45 across the two bells) "
+             "reproduces the same millimetres-per-pixel to five digits. Motor top to feet is only "
+             "175 mm. Consequence: the shell is 78.6 mm thick, not the 63.9 mm this entry used to "
+             "record, and the legs are 111.6 mm, not 120.5 mm. The old numbers came from taking the "
+             "motor top as the crown; on a Phantom the body dome is 10 mm ABOVE the motors. *** "
+             "motor_dia_mm 28.3 / motor_h_mm 13.7 MEASURED off the front elevation (bell 37.7 px "
+             "wide, 18.3 px tall at 0.74929 mm/px); this matches the published DJI 2312 stator "
+             "23 x 12 mm with an aluminium bell around it. Before this they were UNKNOWN and the "
+             "diagonal-proportional fallback produced a 36.4 mm bell, +29%. "
+             "*** RESIDUAL, NOT FIXED: prop_z is a house formula (motor_h + arm_t/2 + 6 mm) and "
+             "gives 33.7 mm where the drawing shows the blade plane at 27.7 mm, so the propellers "
+             "sit 6 mm high. Correcting it needs a spec-level prop_z override, which would touch "
+             "every airframe, so it is recorded rather than patched. *** "
+             "body_lw and body_frac remain UNKNOWN for the P3 and carry the phantom4 values - they "
+             "do not enter the CAD shell path (build_frame_cad reads body_l/w/h_mm directly) and "
+             "affect diagrams only.",
+        body_rgb=_WHITE, arm_style="body", fixed_arm=True, gear="legs", gear_h_mm=106.1,
+        motor_dia_mm=28.3, motor_h_mm=13.7,
+        gimbal="belly", accent_rgb=None, body_frac=0.52, shape_source="spec_photo",
+        rotor_deg=(45, 135, 225, 315), body_lw=(1.06, 1.0),
+        gimbal_style="hanging_damped", cad_version="v2",
+        envelope_mm=(None, None, 185.0)),
+    # ----------------------------------------------------------------------- #
+    # 9) 산업용 대형 쿼드 (2026-08-03 추가) — Das Table I 대조용 두 번째 형상 가족.
+    #    제원의 단일 출처는 `outputs/m350rtk_specs.json`, 사진 65장의 출처는
+    #    `assets/photos/m350rtk/SOURCES.md` 다. 등급(VERIFIED/SECONDARY/MEASURED/
+    #    DERIVED/JUDGED)은 그 파일들이 적은 대로 **올리지 않고** 옮겼다.
+    # ----------------------------------------------------------------------- #
+    "m350rtk": DroneSpec(
+        key="m350rtk", name="DJI Matrice 350 RTK",
+        diagonal_mm=895.0, weight_g=6470.0,
+        body_l_mm=285.0, body_w_mm=175.0, body_h_mm=200.0,
+        prop_dia_mm=533.4, prop_blades=2, num_rotors=4,
+        max_speed_ms=23.0, hover_rpm=2400.0, max_rpm=None, prop_pitch_in=10.0,
+        rtk=True, release="released", confidence="high",
+        note="Industrial quad: boxy fuselage, four FOLDING straight carbon-tube arms, two TB65 "
+             "batteries carried EXTERNALLY in the rear bay, a tall detachable A-frame tube "
+             "landing gear, and NO camera in the base configuration (DGC2.0 payload port only). "
+             "It is the second SHAPE FAMILY in this registry with a published-sigma counterpart, "
+             "which is the whole point of adding it - phantom3 rides the phantom4 shell table, so "
+             "one anchor could not separate 'our method' from 'that one shell table'. "
+             "VARIANT PROOF: the FCC nameplate in the applications photos reads 'DJI MATRICE 350 "
+             "RTK / M350 RTK / FCC ID SS3-M3502301'; the M300 RTK, whose airframe is nearly "
+             "identical, is SS3-M3001910. All 65 photographs used here come from that one "
+             "application or from DJI's own product page and manuals (SOURCES.md). "
+             "diagonal_mm 895 VERIFIED (enterprise.dji.com/matrice-350-rtk/specs, 'Diagonal "
+             "Wheelbase'). weight_g 6470 VERIFIED but is the AIRCRAFT WITH TWO TB65 AND NO "
+             "PAYLOAD - i.e. exactly what this mesh builds. Max takeoff weight is 9.2 kg; using "
+             "that would put a payload on the aircraft that the mesh does not have. "
+             "prop 533.4 mm / 10.0 in / 2 blades is SECONDARY, not DJI: DJI publishes the model "
+             "name (2110s) but no geometry, and 21 x 10 in is a retailer figure. The ruler photos "
+             "p05/p06 could cross-check the folded blade length and have NOT been used for that "
+             "yet - so this number carries the weakest grade in the entry. "
+             "rotor_deg 38.65 deg DERIVED, and the layout is EXACTLY determined rather than "
+             "checked: DJI publishes the unfolded props-excluded box 810 x 670 mm and the 895 mm "
+             "wheelbase. Put four rotors on the 447.5 mm circle at +/-a and let one isotropic "
+             "overhang p at the rotor station close both equations - 895 cos a + p = 810 and "
+             "895 sin a + p = 670 subtract to a = 38.65 deg and then p = 111.0 mm. "
+             "*** RETRACTED 2026-08-03, an earlier revision of this note claimed the agreement of "
+             "the two p values was a check on the layout. IT IS NOT. Two equations in two unknowns "
+             "return the same p identically, for ANY box: run the nonsense box 1000 x 500 mm "
+             "through the same algebra and it returns a = 21.73 deg with the two p values agreeing "
+             "to 1e-13 mm. There is no redundancy left over to test anything with. What actually "
+             "remains is (i) p = 111 mm has to be physically plausible, and (ii) a competing model "
+             "- overhang purely RADIAL along the arm - closes the same two equations at "
+             "a = 39.60 deg with q = 78 mm. The angle is therefore good to about 1 deg and no "
+             "photograph in the folder narrows it further. *** The t02 reading (airframe, shell "
+             "off, arms UNFOLDED, from above) lands on cot(38.65 deg) = 1.251 only after a camera "
+             "tilt cosine is FITTED, i.e. one free parameter absorbs the one measurement, so it "
+             "corroborates and does not test either. Prop clearance (house rule, must stay "
+             "positive): front-to-front "
+             "895 sin a = 559.0 vs prop 533.4 -> +25.6 mm; same-side fore-and-aft 895 cos a = 699.0 "
+             "-> +165.6 mm. Both positive, the lateral one tight - as it is on the real aircraft. "
+             "*** THE 111 mm OVERHANG IS LARGER THAN THE MOTOR POD WE MEASURE (about 60 mm across "
+             "on p06), so either the pod reading is low or DJI's box touches something else at the "
+             "rotor station. The competing model - overhang purely RADIAL along the arm - closes "
+             "the same two equations exactly with a = 39.60 deg. The angle is therefore good to "
+             "about 1 deg, and that 1 deg is the honest band on this layout. *** "
+             "rotor_r_mm / rotor_z_mm None = one circle, flat: no photograph in the folder shows "
+             "the unfolded aircraft from straight above, so a trapezoid cannot be tested, and one "
+             "circle already satisfies both official plan dimensions. "
+             "body_l/w/h 285 / 175 / 200 mm MEASURED, band about +/-6 %, and each from a "
+             "DIFFERENT image so the three are not one reading repeated: length and max width from "
+             "p06 (folded from above) at 0.706 mm/px, that scale being anchored on the VERIFIED "
+             "folded width 420 mm and then reproducing the VERIFIED folded length 430 mm to "
+             "-2.3 % as an independent check; width also from t05, where the fuselage lower shell "
+             "lies in the same plane as a steel rule and measures 165 mm across (the 175 adopted "
+             "here is the mean of the 184 mm outer reading on p06 and that 165). Height from the "
+             "vertical proportions of d01 (official front elevation): body 130 px : gear 152 px, "
+             "so setting the body to 200 mm returns a total of 434 mm against the VERIFIED 430 - "
+             "+0.9 %, again an independent check rather than an assertion. "
+             "arm_od_mm 22.0 MEASURED, +/-10 %, from two photographs that do not share a scale: "
+             "p06 gives 19.1 mm (chord across the tilted tube, corrected by the tube's screen "
+             "angle) and p07 gives 22.5 mm against the body height. "
+             "motor_dia_mm 56.0 MEASURED from the prop-hub cover diameter on p06; motor_h_mm 30.0 "
+             "DERIVED (bell height is not visible in any view - it only has to put prop_z above "
+             "the bell top). "
+             "gear_h_mm 230.0 DERIVED from the same d01 decomposition (430 - 200), and the gear "
+             "itself is built from measured numbers in drone_cad, not from the 0.30*body_h shell "
+             "convention. "
+             "hover_rpm 2400 DERIVED with the registry's own C_T ladder: the 2110s pitch ratio "
+             "10/21 = 0.476 sits between the DJI 9450 (0.532, NASA/US Army full-vehicle hover "
+             "C_T = 0.0140; Russell/Jung/Willink/Glasner, AHS Forum 72, 2016) and the DJI 1552 "
+             "(0.347, bounded below 0.0105 in the s1000plus note). Interpolating gives C_T = "
+             "0.01294 and T = 6.47*9.80665/4 = 15.86 N per rotor at D = 0.5334 m gives 2396 rpm. "
+             "Like every hover_rpm here it is a HARDCODED LITERAL and does not re-solve. "
+             "max_rpm None = UNKNOWN: an industrial platform predating and outside C-class "
+             "certification publishes no firmware propeller-speed ceiling. "
+             "envelope_mm forces HEIGHT ONLY (430 mm, props excluded), the house rule shared with "
+             "mini5pro / mavic4pro / matrice4e / typhoonh480 / phantom3. Forcing L and W too would "
+             "hand frame_fit_scale an anisotropic squash, and here it would also be wrong in a "
+             "specific way: our frame reaches only about 760 x 620 mm because we build the pod we "
+             "can measure rather than the 111 mm overhang the box implies. That gap is REPORTED, "
+             "not scaled away - report02 already records that a 0 % envelope match is a constraint "
+             "frame_fit_scale manufactures, not evidence. "
+             "gimbal 'none' is an OBSERVATION, not a simplification: every external photograph in "
+             "the application shows the aircraft with the DGC2.0 port empty, and DJI sells the "
+             "Zenmuse payloads separately. The mesh therefore carries the payload MOUNT and no "
+             "camera - which is also why this entry inherits none of the repository's gimbal "
+             "constant blocks. "
+             "arm_style 'carbon' VERIFIED from the weave visible on p06/p07; the root collars and "
+             "the motor pods are moulded plastic and drone_cad puts them in the plastic group "
+             "SEPARATELY - this airframe does not repeat the typhoonh480 simplification that folds "
+             "collar and tube into one material. "
+             "*** THE TWO TB65 BATTERIES ARE OUTSIDE THE SHELL. They slide into the rear bay and "
+             "their own cases are the aircraft's rear surface, so on this airframe the dominant "
+             "metal scatterer is NOT behind a dielectric shell the way it is on every folding "
+             "consumer entry here. The mesh places them at the measured rear-bay position; the "
+             "residual bias is that rcs_sbr still treats the surrounding 'body' group as a shell. "
+             "Declared, not fixed. *** "
+             "NOT MODELLED, declared: the CSM Radar (an accessory, and the FCC unit wears one), "
+             "the four white motor protection caps of the test unit, the GNSS antennas as separate "
+             "bodies (the motor top covers stand in), and the aircraft's six-direction vision "
+             "system beyond the eight lens ports that are actually placed.",
+        body_rgb=_GRAY_D, arm_style="carbon", gear="tall", gear_h_mm=230.0,
+        gimbal="none", accent_rgb=None, body_frac=285.0 / 895.0, shape_source="spec_photo",
+        rotor_deg=(38.65, 141.35, 218.65, 321.35), body_lw=(1.0, 175.0 / 285.0),
+        gimbal_style="none", cad_version="v2",
+        #  ⚠ arm_shape 는 기본값("folding")을 그대로 둔다. "tube" 로 두면 `_arm_motor_dims` 가
+        #    **열린 프레임 식**(OPEN_MOTOR_BASE_M = X500 V2 의 모터마운트 판 높이 12.7 mm)으로
+        #    갈아타는데, M350 의 모터는 판이 아니라 **암 끝 포드** 위에 앉는다. 형상은 어차피
+        #    drone_cad 의 전용 분기가 짓고, 이 필드는 prop_z 공식만 고른다.
+        arm_od_mm=22.0, motor_dia_mm=56.0, motor_h_mm=30.0,
+        envelope_mm=(None, None, 430.0)),
+    # ----------------------------------------------------------------------- #
+    # 10) 초소형 접이식 (2026-08-03 추가) — ⭐ **제조사 자기 CAD 로 지은 첫 DJI 기체.**
+    #     제원의 단일 출처는 `outputs/mini2_specs.json`, 참조자료 84장의 출처는
+    #     `assets/photos/mini2/SOURCES.md` 다. 등급(VERIFIED/MEASURED/DERIVED/UNKNOWN)은
+    #     그 파일들이 적은 대로 **올리지 않고** 옮겼고, 형상 상수는 전부 아래 note 의
+    #     GLB 실측에서 나온다(drone_cad._SHELL_SHAPE["mini2"] 주석에 픽셀급 근거).
+    # ----------------------------------------------------------------------- #
+    "mini2": DroneSpec(
+        key="mini2", name="DJI Mini 2",
+        diagonal_mm=213.0, weight_g=249.0,
+        body_l_mm=159.0, body_w_mm=203.0, body_h_mm=56.0,
+        prop_dia_mm=119.1, prop_blades=2, num_rotors=4,
+        max_speed_ms=16.0, hover_rpm=9200.0, max_rpm=None, prop_pitch_in=2.6,
+        rtk=False, release="discontinued", confidence="high",
+        note="Sub-250 g folding quad, the smallest airframe in the registry by a wide margin "
+             "(213 mm diagonal vs phantom3 350, m350rtk 895). Moulded plastic shell and moulded "
+             "plastic arms, a compact 3-axis gimbal recessed into the nose, two landing posts on "
+             "the FRONT arms only, and no obstacle sensing except downward vision + infrared. "
+             "*** SHAPE SOURCE IS DJI'S OWN 3D CAD, NOT PHOTOGRAPHS. DJI's product page served two "
+             "GLB models of the WM161 (the Mini 2's internal code), unfolded and folded, and they "
+             "are still up (SOURCES.md section 4). Every shape constant in this entry and in "
+             "drone_cad._SHELL_SHAPE['mini2'] / _ARM_SECTION['mini2'] / _ARM_WIDTH['mini2'] was "
+             "measured off the unfolded GLB. NOTHING was inherited from another airframe - which is "
+             "the exact opposite of the phantom3 entry, whose shell table, arm width and arm "
+             "section are all copied from phantom4. Only x500v2 (Holybro STEP) had "
+             "shape_source='manufacturer_cad' before this. *** "
+             "THE CAD VALIDATES ITSELF against DJI's own specification table: with the eight "
+             "propeller-blade meshes removed its bounding box is 159.1 x 203.4 x 56.0 mm against "
+             "the published 159 x 203 x 56 (+0.06 / +0.2 / 0.0 %), and the motor-to-motor diagonal "
+             "measures 213.05 mm against the published 213 mm (+0.02 %). Two independent DJI "
+             "artefacts agreeing to 0.2 % is what licences using the CAD as the shape source. "
+             "diagonal_mm 213 VERIFIED (User Manual v1.0 2020.11 p.45, 'Diagonal Distance'). "
+             "weight_g 249 VERIFIED but it is a REGULATORY CEILING ('<249 g', the sub-250 g class), "
+             "not a measured mass, so every mass-derived quantity here is an upper bound. The "
+             "Japan-market 199 g version is a DIFFERENT aircraft and is not modelled. "
+             "body_l/w/h 159 / 203 / 56 = the published unfolded props-excluded envelope, used here "
+             "only as the denominator of the shell ratios fl/fw/fh; the SHELL itself measures "
+             "137.66 x 66.85 x 46.16 mm (GLB part 'Default_4', 23,912 triangles) and that is what "
+             "the mesh builds. Cross-check on the shell length: DJI's published FOLDED length is "
+             "138 mm and the folded envelope is set by the fuselage - 137.66 vs 138 is 0.2 %. "
+             "*** THE SHELL IS NOT CENTRED ON THE ROTOR ARRAY. Its fore-aft centre sits 20.2 mm "
+             "AHEAD of the rotor centroid. build_frame_cad always builds the shell at the origin, "
+             "so the origin here is defined as the SHELL centre and the rotors are expressed about "
+             "that - which is why rotor_deg/rotor_r_mm are fore-aft ASYMMETRIC (63.14 deg / 98.43 mm "
+             "front, 133.70 deg / 116.92 mm rear) where every other folding entry is symmetric. "
+             "Centring on the rotors instead would pull the nose back by 20.2 mm and shorten the "
+             "props-excluded length from 159.1 to 140.5 mm, -11.7 %. The price of this choice is "
+             "that 2 x mean rotor radius (215.4 mm) is no longer the wheelbase; the wheelbase is "
+             "still exactly right at 213.05 mm and frame_envelope_mm reports both. *** "
+             "rotor_deg / rotor_r_mm MEASURED from the four motor-bell centres in the GLB: front "
+             "(x +44.47, y +/-87.81), rear (x -80.77, y +/-84.54) mm about the shell centre. Front "
+             "track 175.6, rear track 169.1, fore-aft spacing 125.2 mm - a trapezoid, not a square. "
+             "Prop clearance (house rule, must stay positive): front pair 175.6 - 119.1 = +56.5, "
+             "rear pair 169.1 - 119.1 = +50.0, same-side fore-and-aft 125.3 - 119.1 = +6.2, "
+             "diagonal 213.05 - 119.1 = +94.0 mm. All positive. "
+             "rotor_z_mm +/-10.63 MEASURED from the two propeller mid-planes (front 21.25 mm above "
+             "rear). The Mini 2 hinges its FRONT arms off the TOP of the fuselage and its REAR arms "
+             "off the BOTTOM, so the two rotor pairs really are at different heights. "
+             "*** THE ARMS, MOTOR BELLS AND LANDING POSTS FOLLOW rotor_z_mm on this airframe "
+             "(drone_cad.ARM_Z_FOLLOWS_ROTOR, key-gated so no other airframe is affected). The two "
+             "arm axes are 21.44 mm apart in the CAD (front +13.68, rear -7.76, measured on sections "
+             "cut PERPENDICULAR to each arm's own axis at r 70-100 mm); half of that, 10.72, agrees "
+             "with the independently measured propeller-plane offset 10.63 to 0.09 mm. "
+             "RESIDUAL, DECLARED: a uniform dz per rotor keeps the engine's upward tip rise, whereas "
+             "the real rear arm slopes DOWN going outboard (-5.89 at r 60-70 to -8.19 at r 90-100) - "
+             "a 2.5 mm slope-sign error over 40 mm that this airframe still carries. Second residual: "
+             "the bell bases are 21.81 mm apart (half 10.905) against the 10.63 used, because "
+             "rotor_z_mm is what positions the propellers and the propellers are already right; the "
+             "0.275 mm is left rather than chased. *** "
+             "prop_dia_mm 119.1 MEASURED (outputs/mini2_specs.json, DJI's GLB). Re-measured here "
+             "about the motor-bell centres as 118.6 (front) / 119.9 (rear), mean 119.2, i.e. +0.1 % "
+             "- inside the noise, so the registered 119.1 is kept. DJI publishes NO propeller "
+             "geometry for the Mini 2 anywhere (manual, QSG, and the standalone Propellers User "
+             "Guide were all checked). "
+             "prop_pitch_in 2.6 MEASURED, band 2.0-3.0, and this UPGRADES the UNKNOWN that "
+             "outputs/mini2_specs.json records. Method: for each of the four modelled blades, take "
+             "vertex annuli at r/R = 0.30...0.90, fit the chord axis in the (tangential, axial) "
+             "plane by SVD to get the local blade angle beta(r), and invert our own twist law "
+             "theta = atan(k(r/R) P / (2 pi r)) with the repository's PITCH_K table for P. Blade "
+             "medians: 2.76 / 2.49 in (front pair), 2.00 / 3.00 in (rear pair, which is modelled "
+             "with a visible coning tilt that splits its two blades); overall median 2.56 in, "
+             "adopted 2.6. THE SPREAD IS THE HONEST STATEMENT - report the band, not the point. "
+             "This lands on the 2.6 in implied by the widely quoted '4726F' part designation. That "
+             "designation was NOT the source of the value, but it IS legible on a DJI-submitted "
+             "federal exhibit - assets/photos/mini2/mini2_t28_fcc_mt2wd_propeller_motor_view.jpg "
+             "shows '4726 F' printed on both propeller blades of the certification unit - so the "
+             "agreement is an independent corroboration, not a coincidence of hearsay. The value "
+             "stays MEASURED from blade twist and is not re-sourced to a part number after the fact; "
+             "outputs/mini2_specs.json's instruction not to substitute 4726F is respected. Leaving "
+             "it None would have dropped this airframe alone onto the legacy linear-washout blade "
+             "law (MESH_METHOD section 4c). "
+             "hover_rpm 9200 DERIVED, band 9000-9335 (C_T 0.0132-0.0142), copied from "
+             "outputs/mini2_specs.json. The C_T anchor is the NASA/US Army Phantom 3 + 9450 "
+             "measurement (Russell/Jung/Willink/Glasner, AHS Forum 72, 2016) - a TRANSFER across "
+             "pitch ratio, not a same-aircraft anchor, and its justification leans on the measured "
+             "pitch above. Like every hover_rpm here it is a HARDCODED LITERAL and does not "
+             "re-solve if weight_g or prop_dia_mm change. Tip speed 57.4 m/s. "
+             "max_rpm None = UNKNOWN - a 2020 product predating C-class marking; an electrical "
+             "no-load figure is a different quantity (matrice4e note). "
+             "arm_style 'body' VERIFIED from the iFixit teardown and the CAD: the arms are moulded "
+             "plastic of the same family as the shell, so they join the plastic group. Had they "
+             "been carbon this would be |Gamma| 0.90 vs 0.28 = 10.1 dB on the arms. "
+             "gear 'motor_legs' with gear_h_mm 30.8 MEASURED = front-arm underside (z +6.3) to foot "
+             "(z -24.5) in the GLB. ONE post per front arm, matching the aircraft: polySurface202, "
+             "9.16 x 9.53 mm in section and 37.25 mm long, centre (49.74, +/-94.90) = radius 107.15 "
+             "at azimuth 62.35 deg, i.e. 8.72 mm OUTBOARD of the motor axis. The engine's outer "
+             "prong sits at r_motor + 0.95*mot_r = 107.08 mm, 0.07 mm from it; the prong count and "
+             "half-width are per-key (drone_cad.GEAR_LEG_N_PRONG / GEAR_LEG_W_M) so mini5pro and "
+             "mavic4pro, which photograph with two prongs, are untouched. RESIDUAL, DECLARED: the "
+             "helper builds 2w x 1.7w, so w = 4.77 reproduces the 9.53 mm lateral dimension exactly "
+             "and leaves the fore-aft at 8.11 against a real 9.16 (-11 %). "
+             "*** RETRACTED, 2026-08-04: outputs/mini2_mesh_audit.json declares 'two small rear pads "
+             "at the rear-arm roots, (x -47, y +/-26, down to z -19.8)' as an unmodelled defect. NOT "
+             "REPRODUCED. Taking every non-propeller part with x < -20 and its lowest z gives "
+             "Default_4 (fuselage shell) -20.13, pSphere3 -16.16, polySurface10 -15.94, "
+             "polySurface101/21 (rear arms) -14.90, Mesh/zengjia_3 -14.80, Default_23 -14.44. "
+             "Nothing at (x -47, y +/-26) reaches -19.8 except the shell itself, whose belly is the "
+             "lowest structure in the rear half. There appear to be no separate rear landing pads on "
+             "this airframe, so none are modelled and the audit entry is the thing to correct - an "
+             "unverified declared defect is a false debt that invites modelling a part that does not "
+             "exist. *** "
+             "envelope_mm - see the ENVELOPE note below the constructor. "
+             "gimbal_style 'single' VERIFIED: one 3-axis stabilised camera (tilt -110/+35, roll "
+             "+/-35, pan +/-20, manual p.46), recessed into the nose. drone_cad reuses the Mini "
+             "family's _gimbal_compact3 and back-solves its arguments from the measured 40.57 x "
+             "32.24 x 34.01 mm block so the built assembly's bounding box matches by construction. "
+             "*** NO FISHEYES, NO LiDAR, NO NOSE GRILLE. DJI's own sensing table says the Mini 2 "
+             "has downward vision + infrared and NOTHING else - no forward, backward or lateral "
+             "obstacle sensing. Copying the mini5pro branch would have bolted six to eight sensors "
+             "that do not exist onto this airframe. Only the two downward-vision lenses are placed, "
+             "at the measured belly position. *** "
+             "accent_rgb None: the orange propeller tips are paint, and an accent ring would build "
+             "a part the aircraft does not have. "
+             "*** NO MAGNESIUM SKELETON, same declared bias as phantom3. The shared shell-v2 path "
+             "inserts a 'magnesium structural plate' into the metal 'battery' group for every v2 "
+             "shell airframe. The Mini 2 has no magnesium chassis - but it DOES have a large finned "
+             "metal heatsink/shield over the SoC filling much of the belly (iFixit t03-t05, FCC "
+             "t21), so on this airframe that plate has a real counterpart even though its size is a "
+             "shared ratio, not a measurement. Declared either way. *** "
+             "*** THE HIGHEST POINTS ARE THE PROPELLER-MOUNT SCREW HEADS, and they are modelled "
+             "(drone_cad.PROP_SCREW_POSTS, two solid 3.79 mm square posts per rotor at radius 5.0 mm "
+             "from the motor axis, standing 5.47 mm above the bell top). Four separate GLB parts, "
+             "two per rotor, put their tops at z +31.46 (front) - that value with the -24.52 foot is "
+             "what makes the props-excluded height 55.98 = the published 56. Corroborated, not "
+             "measured, by the FCC exhibit mini2_t28: two steel cross-head screws per propeller hub, "
+             "diametrically opposite - steel, hence the metal 'motor' group. DECLARED: the CAD's "
+             "screw heads float 4.6 mm above the bell top because the propeller hub that fills the "
+             "gap belongs to the blade meshes; a floating box would add an unsupported interior "
+             "surface, so the shank is built solid and those 4.6 mm are geometry the CAD does not "
+             "draw. Their azimuth is a JUDGED choice (they rotate with the motor, so the CAD pose is "
+             "arbitrary); at r = 5.0 mm they stay inside the 9.1 mm bell radius and cannot change "
+             "any silhouette. *** "
+             "The arm-end fairings that carry the true width are modelled through "
+             "drone_cad.ARM_TIP_OVERHANG (per-rotor, front 15.09 / rear 9.30 mm); the frame width "
+             "now overshoots by +1.6 % instead of falling short by -4.7 %, because the swept tip "
+             "section stays 9.0 mm wide where the real fairing has tapered to 6.96 - see that table "
+             "for why the envelope-solved 13.33 mm was refused. "
+             "NOT MODELLED, declared: the GPS patch antenna as a separate body, and the ESC board.",
+        body_rgb=_SILVER, arm_style="body", gear="motor_legs", gear_h_mm=30.8,
+        gimbal="front", accent_rgb=None, body_frac=137.66 / 213.0,
+        shape_source="manufacturer_cad",
+        rotor_deg=(63.14, 133.70, 226.30, 296.86),
+        rotor_r_mm=(98.43, 116.92, 116.92, 98.43),
+        rotor_z_mm=(10.63, -10.63, -10.63, 10.63),
+        body_lw=(1.0, 66.85 / 137.66), gimbal_style="single", cad_version="v2",
+        motor_dia_mm=18.2, motor_h_mm=7.1,
+        #  ⚠ arm_od_mm 은 **일부러 비워 둔다.** 주면 `_arm_folding` 이 등단면이 되어
+        #    _ARM_WIDTH["mini2"] 의 완만한 테이퍼(9.9→9.0)가 죽고, `_arm_motor_dims` 의
+        #    arm_t 도 갈아탄다. 실측 암은 9.0~9.9 로 거의 등단면이라 두 경로 차이는 1 mm 미만이고,
+        #    대각비례가 주는 arm_t = 0.045·213 = 9.59 mm 는 실측 평균 9.24 와 +3.8 % 다 —
+        #    이 기체에서는 비례식이 우연히 실측과 맞는 드문 경우다(그래서 덮을 이유가 없다).
+        envelope_mm=(None, None, 56.0)),
+        # ⭐ ENVELOPE — **높이만** 강제(집안 규칙, mini5pro/mavic4pro/matrice4e/typhoonh480/
+        #   phantom3/m350rtk 와 같다). 강제 전 원본 프레임은 **160.09 × 206.92 × 55.93 mm** 다.
+        #     길이 160.09 ↔ CAD 159.11 → **+0.62 %**  (강제하지 않았는데 맞는다.
+        #        원점을 로터 중심이 아니라 셸 중심에 둔 것이 이 값을 만든다 — 위 note 참조)
+        #     폭   206.92 ↔ CAD 203.43 → **+1.7 %**  (암 끝 페어링 스윕이 끝단면을 실물의
+        #        6.96 mm 로 좁히지 못하고 9.0 mm 로 쓸어가는 잔차 — ARM_TIP_OVERHANG 주석 참조.
+        #        ⛔ 목표 폭에서 역산한 오버행 13.33 mm 는 채택하지 않는다. 부품에서 잰 값이 아니다.)
+        #     높이  55.93 ↔ 공표  56   → **−0.13 %** → sz = 1.0013.
+        #        최저점은 앞 착륙포스트(−24.75, CAD −24.52), 최고점은 프롭 나사머리(+31.19, CAD +31.46).
+        #   ⛔⛔ **L/W 를 추가로 강제하지 말 것.** 자유롭게 둔 길이·폭이 0.6 %/1.7 % 안에 들어오면
+        #     "그것도 맞춰버리자" 가 유혹적으로 보인다. 그 순간 frame_fit_scale 이 비등방 압축으로
+        #     바뀌고, 0 % 일치는 **증거가 아니라 구속조건**이 된다.
+        #   ⚠ 셸 자체의 남는 잔차(선언): 지어진 셸 bbox 높이는 CAD 46.16 보다 +4.8 % 다. 이것은
+        #     로프트 스플라인 오버슈트(엔진 아티팩트)이고 22개 스테이션 숫자가 **측정값**이다 —
+        #     fh 를 깎아 흡수하면 엔진을 고치려고 측정을 망가뜨리는 것이 된다. 셸은 더 이상
+        #     bbox 를 정하지 않으므로 이 잔차는 fit 스케일에 닿지 않는다.
+        #   [참고] 예전 실루엣 IoU 측정(quick 모드, 같은 파이프라인, 강제 ↔ 비강제):
+        #        d06 정면(알파) 0.670 ↔ 0.678   d05 3/4 0.695 ↔ 0.705
+        #     ⚠ 그 값은 sz = 0.906 시절의 것이라 지금(sz = 1.0013)은 다시 재야 한다.
+        #     강제를 유지하는 이유는 IoU 가 아니다 — 저앙각 σ 가 기체 높이에 직접 걸리므로
+        #     레지스트리 전 기종을 같은 규약(공표 높이)에 두어야 기종 간 비교가 성립한다.
 }
 
 
@@ -692,11 +1158,11 @@ def motor_radii(spec: DroneSpec) -> list[float]:
 
 
 #  열린 프레임(튜브 암)에서 **모터 캔(벨)이 시작하는 z** [m] — 암 중심선 기준.
-#  Holybro X500 V2 제조사 STEP 실측: 암 축 y_step 16.0, 모터 밑판 22.0~28.7, 캔 28.7~53.2
-#  → 캔 바닥 = 28.7 − 16.0 = +12.7 mm. VERIFIED.
+#  ⭐ Holybro X500 V2 제조사 STEP 모서리(1D) 실측: 암 축 y_step 16.0, 카본 모터마운트 판 윗면
+#  y_step 22.0(= z 6.0), OD 27.7 캔이 y_step 23.5 부터 시작 → 캔 바닥 = 판 위 1.5 mm = **z 7.5**.
 #  ⚠ drone_cad.X500V2["motor_bell_z_mm"][0] 과 **같은 값**이어야 한다 — 어긋나면 프롭이
 #    모터 위가 아니라 공중에 뜨는데 예외는 안 난다. drone_cad._x500v2_arm_tip 이 대조 검사한다.
-OPEN_MOTOR_BASE_M = 0.0127
+OPEN_MOTOR_BASE_M = 0.0075
 
 
 def _arm_motor_dims(spec: DroneSpec, diag: float) -> tuple[float, float, float]:
@@ -718,7 +1184,13 @@ def _arm_motor_dims(spec: DroneSpec, diag: float) -> tuple[float, float, float]:
     if getattr(spec, "motor_h_mm", None) is not None:
         motor_h = float(spec.motor_h_mm) / 1000.0
     if getattr(spec, "arm_shape", "folding") == "tube":
-        return arm_t, motor_h, OPEN_MOTOR_BASE_M + motor_h + 0.0008
+        #  ⭐ 2026-08-04 — 캔 위 클리어런스 0.8 → **2.0 mm**. 프롭이 앉는 면은 제조사 STEP 의
+        #    프롭어댑터 플랜지(y_step 53.08~54.0 → z 37.1~38.0)다. 캔이 z 7.5~36.0 으로
+        #    정정되면서 prop_z 를 38.0 mm 로 유지하려면 클리어런스가 2.0 이어야 한다.
+        #    (안 고치면 프롭이 1.2 mm 내려앉아 캔 꼭대기에 파묻히고, 프롭 루트가 불리언
+        #     합집합에서 캔에 먹힌다 — 예외는 안 난다.)
+        #    ⚠ 이 분기는 arm_shape=='tube' 전용이고 현재 그 기체는 x500v2 뿐이다.
+        return arm_t, motor_h, OPEN_MOTOR_BASE_M + motor_h + 0.002
     return arm_t, motor_h, motor_h + arm_t / 2 + 0.006
 
 

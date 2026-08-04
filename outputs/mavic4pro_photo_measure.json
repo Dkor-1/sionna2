@@ -1,0 +1,881 @@
+{
+ "_meta": {
+  "drone": "mavic4pro",
+  "name": "DJI Mavic 4 Pro",
+  "generated": "2026-08-03 13:24:37",
+  "purpose": "모은 사진 52장으로 현 메쉬를 채점하고 무엇이 얼마나 틀렸는지 잰다. **메쉬는 이번 라운드에 고치지 않았다**(src/drones.py · src/drone_cad.py 무수정).",
+  "photo_set": "assets/photos/mavic4pro/ 52장(FCC exhibit 23 · 부품 13 · 도면 6 · 커먼즈 6 · 기존 렌더 4)",
+  "sources_doc": "assets/photos/mavic4pro/SOURCES.md",
+  "mesh_sources": {
+   "src/drone_cad.py": "2026-08-03 13:13:24",
+   "src/drones.py": "2026-08-03 13:22:36",
+   "src/cadkit.py": "2026-07-14 12:04:37",
+   "src/geom.py": "2026-07-20 00:53:43"
+  },
+  "classification_scheme": "outputs/p3_attack.json :: Q3_degrees_of_freedom 과 같은 4분류",
+  "leverage_reference": "outputs/p3_attack.json :: Q3 …leverage_evidence (재질 1.14 dB · 형상충실도 1.16~1.96 · 배터리 2.26~3.59 · 카메라 0.87~1.50 dB)",
+  "figure": "outputs/figures/mesh_photo_mavic4pro_v2.png",
+  "iou_ledger_untouched": "outputs/mesh_compare_photo.json 은 건드리지 않았다(부분 실행)",
+  "files_not_touched": [
+   "src/drones.py · src/drone_cad.py (다른 워크플로가 phantom3 를 편집 중 — 13:13/13:22 에 바뀌었지만 mavic4pro 항목은 그대로임을 확인: rotor_deg=(51.4,…) · _SHELL_SHAPE fl 0.620)",
+   "outputs/mesh_compare_photo.json (2026-07-31 05:19 그대로)",
+   "outputs/figures/mesh_photo_mavic4pro.png (2026-07-31 05:22 그대로)",
+   "assets/photos/mavic4pro/* (읽기만; 컷아웃은 scratchpad 에 만들었다)"
+  ],
+  "cutouts": "IoU 입력용 알파 컷아웃은 /tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/m4p/cut/ 에 있다(c02·p08·p09·p01_frame·p10_frame + 확인용 *_check.jpg). 세션 폴더라 영구 보관이 필요하면 옮겨야 한다."
+ },
+ "Q1_shape_constants_inventory": {
+  "_rule": "'자유로운 선택' = 이 메쉬의 σ 를 바꾸는데 **Mavic 4 Pro 자체의 관측으로 고정되지 않은** 수. p3_attack Q3 와 같은 분류다.",
+  "constrained_by_a_mavic4pro_observation": {
+   "count": 16,
+   "items": [
+    "이륙중량 1063 g (DJI 공표)",
+    "언폴드 외형 L 328.7 mm (DJI 공표, body_l_mm=329)",
+    "언폴드 외형 W 390.5 mm (DJI 공표, body_w_mm=391)",
+    "언폴드 외형 H 135.2 mm (DJI 공표, body_h_mm=135 · envelope_mm 높이강제)",
+    "프롭 지름 267 mm (DJI 부품 1158F, 26.7×14.7 cm)",
+    "프롭 기하피치 5.787 in → 5.8 (같은 부품표)",
+    "블레이드 2 (전 사진)",
+    "로터 4 (전 사진)",
+    "최대 프롭회전수 8400 RPM (매뉴얼 v1.0 p.88 C2 표)",
+    "최대속도 25 m/s (공표)",
+    "gear='motor_legs' — 다리는 **앞 두 모터포드에만** (c01·c06·c07 단품 + p02 far-pod + p05 near-pod)",
+    "gear_h_mm 48.0 (구 사진 _2.png 실측 ±15 %; 이번 p05 재측 ≈52 mm 로 부합)",
+    "arm_style='body'(플라스틱 암) · accent_rgb=None (전 사진에 액센트 링 없음)",
+    "gimbal_style='triple' · 전방 LiDAR 존재 (p05·p09·m04)",
+    "rotor_deg 51.4° — 공표 W 에서 **역산**(441·sin a + 45.9 = 390.5). 관측에 묶여 있지만 대칭 X 가정 + 모터지름 45.9 가정을 통과한 값이다 → 이번 라운드에 반증됨(아래 §3)",
+    "diagonal_mm 441 — 같은 역산의 부산물. note 가 '암/모터 굵기 스케일로만 남긴다'고 선언"
+   ]
+  },
+  "tier_A_mavic4pro_specific_decisions": {
+   "count": 26,
+   "items": [
+    "envelope 강제축을 '높이만'으로 하는 정책(L/W 강제 해제, 2026-07-30)",
+    "_SHELL_SHAPE fl 0.620 — 폴디드 257.6 에서 셸 ~205 mm 로 잡은 판단",
+    "_SHELL_SHAPE fw 0.302 — 폴디드 폭 123.1 − 접힌 암 ≈ 112 mm 로 잡은 판단",
+    "_SHELL_SHAPE fh 0.460 — 폴디드 높이 105.9 − 짐벌볼 ≈ 62 mm 로 잡은 판단",
+    "_SHELL_SHAPE ndrop 0.14 · npow 3.1 (근거 미기재)",
+    "_SHELL_SHAPE cx0 −0.06 · cfrac 0.66 · cfh 0.70 (캐노피 배치, 근거 미기재)",
+    "_SHELL_SHAPE hubf 0.30 (암 시작 반경)",
+    "_SHELL_SHAPE hw 6개 리터럴 (0.38,0.46,0.50,0.50,0.44,0.26) — 근거 미기재",
+    "_SHELL_SHAPE hh 6개 리터럴 (0.46,0.50,0.50,0.48,0.42,0.30) — 근거 미기재",
+    "_SHELL_SHAPE zo=None (중심선 처짐 없음) 선택",
+    "셸을 x=0 에 **중심 배치**하는 규약(기종별 오프셋 없음)",
+    "body_lw (1.52, 0.62) — 하지만 셸형에서 이 필드는 _SHELL_SHAPE 가 있으면 형상에 안 쓰인다",
+    "body_frac 0.42 (셸형에서 미사용)",
+    "cad_version 'v2' 선택(짐벌을 _gimbal_infinity → _gimbal_hasselblad 로 교체한 판단)",
+    "_gimbal_hasselblad 크기 s=0.050 (사진에서 잡았다고 기록)",
+    "짐벌 x 배치 gx = nose_x − 0.030",
+    "짐벌 z 배치 cz = −0.30·bh",
+    "기수-짐벌 연결 마운트 상자 0.030×0.032×0.032 @ (nose_x−0.012, 0, −0.05·bh) — 5 리터럴",
+    "어안 6개 배치 좌표 (cxf,dy,dz,r) 4×6 = 24 리터럴",
+    "전방 LiDAR 배치 (nose_x·0.99, 0.12·bh, w 0.010) — 3 리터럴",
+    "rotor_r_mm 를 None 으로 둠(= 로터 4개를 한 원 위에 올린다는 선택)",
+    "rotor_z_mm 를 None 으로 둠(앞뒤 모터 같은 높이)",
+    "arm_od_mm · motor_dia_mm · motor_h_mm 를 None 으로 두어 **대각비례식**에 맡김(3)",
+    "hover_rpm 3600 — 하드코딩 리터럴(추력균형에서 유도되지 않는다)",
+    "confidence='high' / shape_source='spec_photo' 선언",
+    "재질 그룹 배정: 다리를 'gear'='plastic' 로 둔 결정 — 매뉴얼이 'Landing Gears (antennas included)' 라고 못박고 c03·t08 이 다리로 들어가는 동축을 보여준다"
+   ]
+  },
+  "tier_B_inherited_or_unevidenced_shared_laws": {
+   "count": 195,
+   "breakdown": {
+    "_ARM_WIDTH mavic4pro (26.5, 18.5) — mini5pro 실측의 스케일 이전(D, 이 기체 실측 아님)": 2,
+    "_ARM_SECTION (1.55, 0.72) — mini5pro 와 공유": 2,
+    "_body_folding 법칙(스테이션 xs 6 · tail_w 0.95 · n_sec 30 · n_pts 72 · smooth 4)": 10,
+    "_canopy 법칙(xs 4 · hw 4 · hh 4 · n_pow · z)": 14,
+    "암 대각비례식 잔여(z1 0.012·diag · bend 0.06 · hub_r 계수)": 3,
+    "모터 대각비례식(mot_r 0.052·diag · mot_h 0.048·diag · 벨 z 0.014·diag)": 3,
+    "_motor_bell 프로파일 9점(r,z)": 18,
+    "_gear_motor_legs 법칙(w 0.62·arm_r1 · spread 0.95·mot_r · taper 0.55 · 단면 2w×1.7w×0.55w · 경로 8점 · n_pts 16 · **갈래 2개**)": 8,
+    "다리 부착 z 법칙 (0.012·diag − arm_r1·h_ratio/2)": 2,
+    "_gimbal_hasselblad 내부 비율(x_squash 0.86 · 요크 0.26/2.0/0.15 · 하우징 0.95 · 렌즈열 12 · 보조렌즈 8 …)": 34,
+    "_fisheye 법칙(r·0.55 · r·0.7 · subdiv 2 · 축)": 4,
+    "_lidar 법칙(w·0.5 / 1.4 / 0.8 …)": 9,
+    "내부 산란체 3상자(치수 3 + 위치 3)×3 — 셸형 전 기종 공용 비율": 18,
+    "프로펠러 M/D 표 이전(CHORD_RR·CHORD_FRAC 15점, PITCH_RR·PITCH_K 16점 — 3DR Solo 실측)": 31,
+    "프로펠러 H/D 상수(CHORD_MAX_OVER_R 0.25 · TC 2 · CAMBER 2 · sweep_frac 0.10 · root_frac 0.070 · 허브 r/h 2 · 허브 프로파일 6 · airfoil pts · n_sec · n_pts · base_ang 12° · 회전방향)": 20,
+    "그룹→재질 배정(존재하는 8그룹: body·canopy·arm·motor·prop·gear·camera·battery/pcb)": 8,
+    "쓰인 |Γ| 실효값 5종": 5,
+    "셸 투과 규약(어느 그룹이 셸인가 + τ=1−|Γ|²)": 2,
+    "body_z = 0.35·body_h": 1,
+    "frame_fit_scale 비등방 배율 정책(높이만 강제)": 1
+   }
+  },
+  "tier_C_measurement_and_engine_knobs": {
+   "count": 8,
+   "items": [
+    "실루엣 IoU 자유도: 방위·고각·롤·원근 q·등방배율·평행이동·로터별 프롭 위상",
+    "선언 자세 창 window_deg (20~25°) — 헤드라인이 어느 각도에서 채점되는가",
+    "분리 임계값 0.055 (배경색거리) / 알파 컷아웃 사용 여부",
+    "max_side 600 (래스터 해상도) · 정합점 15만 / 최종점 120만",
+    "자기복제 상한(0.917)으로 정규화할지 원값으로 볼지",
+    "사진 선택 자체(9장 중 무엇을 헤드라인으로 쓰나 — best_iou 는 최대값이다)",
+    "프롭 포함/프레임 전용 판정(props 플래그)",
+    "PO/SBR 쪽: div · jitter · penetrate · max_bounce · ptd · n_az · 주파수 격자"
+   ]
+  },
+  "total": 245,
+  "ratio_free_to_constrained": 14.3,
+  "comparison_with_phantom3": "P3 는 13 constrained / 205 total (비 15.8). Mavic 4 Pro 는 사진이 52장 있는데도 코드에 반영된 관측은 위 목록뿐이다 — **사진을 모았다는 것과 메쉬가 그 사진에 묶였다는 것은 다르다.**"
+ },
+ "Q2_new_measurements": {
+  "_scale_policy": "c02(제조사 톱뷰 렌더)의 축척은 **공표 외형**에 앵커했다 — 프롭 지름 267 mm 로 앵커하면 L·W 가 둘 다 +2.5 % 로 나와서(둘이 같은 배수로 어긋난다) 프롭 앵커가 2.5 % 거칠다고 판정했다. 앵커를 바꾼 뒤 L·W 재현오차는 +0.06 % / +0.2 % 다. FCC 컷은 자(cm)에서 직접 축척을 냈고(FFT 로 mm 주기), 부품이 자와 같은 평면에 있을 때만 썼다.",
+  "top_plan_c02": {
+   "source": "assets/photos/mavic4pro/mavic4pro_c02_arm_positions_topview_labelled.jpg",
+   "method": "주황 프롭팁 8개의 무게중심 → 2엽 프롭 두 팁의 중점 = 허브 (matrice4e 라운드와 같은 방법)",
+   "tips_px": {
+    "FL": [
+     [
+      457.13,
+      232.62
+     ],
+     [
+      197.24,
+      606.91
+     ]
+    ],
+    "FR": [
+     [
+      829.08,
+      229.86
+     ],
+     [
+      1081.91,
+      608.87
+     ]
+    ],
+    "RL": [
+     [
+      208.88,
+      737.21
+     ],
+     [
+      533.73,
+      1047.54
+     ]
+    ],
+    "RR": [
+     [
+      1073.66,
+      737.28
+     ],
+     [
+      748.67,
+      1047.44
+     ]
+    ]
+   },
+   "hubs_px": {
+    "FL": [
+     327.19,
+     419.77
+    ],
+    "FR": [
+     955.5,
+     419.37
+    ],
+    "RL": [
+     371.31,
+     892.38
+    ],
+    "RR": [
+     911.17,
+     892.36
+    ]
+   },
+   "self_checks": {
+    "front_pair_midline_px": 641.35,
+    "rear_pair_midline_px": 641.24,
+    "midline_disagreement_px": 0.11,
+    "tip_to_tip_px": {
+     "FL": 455.67,
+     "FR": 455.6,
+     "RL": 449.26,
+     "RR": 449.24
+    },
+    "front_over_rear_magnification": 1.0142,
+    "why_it_matters": "앞/뒤 좌우폭 비는 1.164 인데 같은 사진의 프롭 팁-투-팁 비(=그 로터면의 배율)는 1.0142 뿐이다. 배율 1.4 % 로 16.4 % 를 만들 수 없다 ⇒ **실물이 사다리꼴이다.**"
+   },
+   "scale_mm_per_px": {
+    "front_rotor_plane": 0.5717,
+    "rear_rotor_plane": 0.5798,
+    "body": 0.5756
+   },
+   "rotor_positions_mm": {
+    "front": {
+     "x": 136.0,
+     "y": 179.6,
+     "r": 224.3,
+     "theta_deg": 52.87
+    },
+    "rear": {
+     "x": -136.0,
+     "y": 156.5,
+     "r": 207.3,
+     "theta_deg": 131.02
+    }
+   },
+   "diagonal_mm": 432.4,
+   "track_mm": {
+    "front": 359.2,
+    "rear": 313.0,
+    "ratio": 1.148
+   },
+   "independent_checks": {
+    "width_from_layout_mm": 391.2,
+    "official_width_mm": 390.5,
+    "err_pct": 0.06,
+    "length_from_layout_mm": 328.9,
+    "official_length_mm": 328.7
+   },
+   "corroboration": "m03(사용설명서 펼침 톱 평면 선도)에서 같은 비를 재면 앞/뒤 좌우폭 비 ≈1.21, p07(FCC 저면 평면)에서 ≈1.14 — 세 출처가 전부 '앞이 넓다'로 일치한다. 선도는 오차가 더 크므로 수치는 c02 를 쓴다."
+  },
+  "shell_c02": {
+   "length_mm": 211.2,
+   "max_width_mm": 95.0,
+   "centre_x_mm": 31.4,
+   "note": "셸(회색 동체)은 로터 중앙면 기준 앞으로 137 mm · 뒤로 74 mm 뻗는다 → **중심이 +31.4 mm 앞**이다. 허리 폭 ≈69 mm, 최대폭(암 뿌리 어깨) ≈95 mm.",
+   "height_mm": {
+    "value": 76.0,
+    "uncertainty_mm": 10.0,
+    "note": "p06 측면컷을 셸 길이로 축척내어 crown→belly 를 잰 값. p06 은 정투영이 아니라 이 항목만 신뢰도가 낮다."
+   },
+   "cross_check": "공표 폴디드 폭 124.8 mm ↔ 셸 95 + 접힌 암 2×12 = 119 ✓ (현재 코드값 112.2 로는 136 > 124.8 로 기하학적 불가)"
+  },
+  "arm": {
+   "width_front_mm": 17.4,
+   "width_rear_mm": 15.7,
+   "stations": "c02 톱뷰에서 암 축의 0.65·0.80 지점(셸·모터에 안 물리는 구간) 수직 현",
+   "section": "c03·c04 는 살짝 눌린 원통 — _ARM_SECTION (1.55,0.72) 와 모순 없음"
+  },
+  "motor_bell": {
+   "diameter_mm": 31.0,
+   "uncertainty_mm": 2.0,
+   "height_mm": 17.0,
+   "sources": "c02 톱뷰 32.0 mm · p05 정면 30.2 mm(전폭 390.5 앵커)",
+   "note": "벨 위에 프롭 허브가 더 얹혀 포드 총높이는 ≈27 mm"
+  },
+  "gimbal": {
+   "barrel_diameter_mm": 57.0,
+   "uncertainty_mm": 4.0,
+   "fore_aft_mm": 50.0,
+   "centre_x_mm": 156.0,
+   "shape": "매달린 볼이 아니라 **기수 앞으로 튀어나온 가로 원통(배럴)** — 정면에 큰 원형 메인렌즈 1 + 아래 작은 렌즈 2. 배럴 앞끝이 기체의 최전방(로터면 +179 mm)이고 앞 모터포드(+152 mm)보다 앞선다.",
+   "sources": "p05 정면 · c02 톱 · p09/p10 3/4"
+  },
+  "landing_gear": {
+   "count": 2,
+   "which": "앞 두 모터포드",
+   "prongs_per_pod": 1,
+   "length_mm": 52.0,
+   "root_width_mm": 22.0,
+   "tip_width_mm": 10.0,
+   "sources": "p05 정면 · c03 단품 · c01(앞 2개만 다리) · c06/c07(뒷암 매끈)",
+   "electrical": "매뉴얼 콜아웃 9 'Landing Gear (antennas included)' + c03·t08 의 다리로 들어가는 동축 → 순수 플라스틱이 아니다(열린 질문)"
+  },
+  "propeller": {
+   "span_hub_to_tip_mm": 130.3,
+   "chord_max_over_R": 0.207,
+   "chord_max_mm": 27.6,
+   "root_start_r_over_R": 0.17,
+   "method": "c02 컷아웃에서 허브→팁 축에 수직인 현을 0.05 R 마다 측정, 국소 피치 19.3° 의 cos 로 투영보정"
+  },
+  "internals": {
+   "battery": {
+    "L_mm": 133.5,
+    "W_mm": 54.0,
+    "H_mm": 38.0,
+    "centre_x_mm": -7.5,
+    "centre_z": "셸 중앙보다 아래(꼬리 하부 블록)",
+    "sources": "t16 단품(자 축척 0.2447 mm/px, FFT 4.086 px/mm) + p03 배터리 베이 개구",
+    "independent_check": "t16 폭 53.8 mm ↔ p03 베이 폭 53.6 mm — 서로 다른 두 사진이 0.4 % 로 일치",
+    "caveat": "부피 274 mL ↔ 95.3 Wh = 348 Wh/L. 팩 기준으로 높은 편이라 높이 38 mm 는 하한일 수 있다"
+   },
+   "mainboard": {
+    "L_mm": 116.0,
+    "W_mm": 44.0,
+    "H_mm": 6.0,
+    "sources": "t07 하면(자 축척 0.1412 mm/px)",
+    "note": "하면이 **대형 금속 실드캔으로 거의 전면 피복** → 전기적으로 ≈110×42 mm 연속 도체판 1장으로 봐야 한다"
+   },
+   "heatsink": {
+    "L_mm": 100.0,
+    "W_mm": 52.0,
+    "H_mm": 10.0,
+    "uncertainty_pct": 10,
+    "sources": "t04 분리 모듈(자 축척 0.5766 mm/px) + t03 장착 상태",
+    "note": "핀 달린 알루미늄 — 동체 안 **최대 금속면**인데 현재 메쉬에 **없다**"
+   },
+   "fan": {
+    "diameter_mm": 48.0,
+    "sources": "t04 · t03",
+    "note": "원심팬, 현재 메쉬에 없다"
+   },
+   "wifi_antennas": {
+    "count": 2,
+    "L_mm": 25.0,
+    "W_mm": 20.0,
+    "sources": "t10 단품 2개(RX-KE79 WIFI, 2411), 자 축척 0.0891 mm/px",
+    "note": "현재 메쉬에 없다"
+   },
+   "not_measured_but_seen": [
+    "GNSS 패치 모듈(t02)",
+    "전원보드(t11·t13)",
+    "실드 프레임(t05)",
+    "암별 ESC 보드(c08·c09)",
+    "ANT0~ANT5 동축 급전 6개(t06·t03)"
+   ]
+  }
+ },
+ "Q3_borrowed_vs_measured": {
+  "sorted_by": "상대오차 내림차순(부재 항목은 끝)",
+  "rows": [
+   {
+    "constant": "짐벌 하우징 지름 (sphere r=0.95·s, s=0.050)",
+    "coded": "95.0 mm",
+    "measured": "57 ± 4 mm",
+    "rel_err_pct": 66.7,
+    "grade_before": "M(사진이라 기록)",
+    "sigma_leverage": "카메라 0.87~1.50 dB",
+    "source": "p05 정면 · c02 톱 · p09",
+    "reading": "'s=0.050 은 사진' 이라는 기록이 있지만 그 s 는 **반지름**으로 쓰여 지름 95 mm 가 된다. 실물 배럴은 57 mm 다. 카메라 그룹이 실물의 2.7배 면적을 갖는다."
+   },
+   {
+    "constant": "짐벌 앞뒤 두께 (0.86·2·0.95·s)",
+    "coded": "81.7 mm",
+    "measured": "50 ± 5 mm",
+    "rel_err_pct": 63.4,
+    "grade_before": "H",
+    "sigma_leverage": "카메라 0.87~1.50 dB",
+    "source": "p05 · p04 · p10",
+    "reading": "같은 과대치의 앞뒤 성분."
+   },
+   {
+    "constant": "짐벌 중심 x",
+    "coded": "+72.0 mm",
+    "measured": "+156.0 mm",
+    "rel_err_pct": -53.8,
+    "grade_before": "H",
+    "sigma_leverage": "카메라 0.87~1.50 dB",
+    "source": "c02 톱뷰(로터 중앙면 기준)",
+    "reading": "메쉬 짐벌은 앞 모터보다 뒤에 있고 실물은 앞 모터보다 **앞**에 있다. 정면·3/4 실루엣의 기수 쪽 덩어리 위치가 통째로 어긋난다."
+   },
+   {
+    "constant": "모터 벨 지름 (0.052·diag)",
+    "coded": "45.9 mm",
+    "measured": "31 ± 2 mm",
+    "rel_err_pct": 48.1,
+    "grade_before": "H(대각비례)",
+    "sigma_leverage": "형상 1.16~1.96 dB",
+    "source": "c02 톱 32.0 · p05 정면 30.2",
+    "reading": "matrice4e 가 겪은 '모터를 부풀려 폭을 맞추는 매듭'과 같은 병. 여기선 폭을 맞추려고 부풀린 게 아니라 대각비례식이 그냥 크게 낸다."
+   },
+   {
+    "constant": "PCB 판 폭 (0.54·bw)",
+    "coded": "63.8 mm",
+    "measured": "44 mm",
+    "rel_err_pct": 45.0,
+    "grade_before": "H",
+    "sigma_leverage": "형상/내부",
+    "source": "t07 자 실측",
+    "reading": "메인보드는 좁고 길다. 비율 상자는 그 반대(짧고 넓다)로 낸다."
+   },
+   {
+    "constant": "배터리 상자 폭 (0.62·bw)",
+    "coded": "73.2 mm",
+    "measured": "54 mm",
+    "rel_err_pct": 35.6,
+    "grade_before": "H",
+    "sigma_leverage": "배터리 2.26~3.59 dB",
+    "source": "t16 단품 53.8 · p03 베이 53.6",
+    "reading": "σ 지배 부품에서 폭이 +36 %."
+   },
+   {
+    "constant": "PCB 판 길이 (0.38·bl)",
+    "coded": "77.5 mm",
+    "measured": "116 mm",
+    "rel_err_pct": -33.2,
+    "grade_before": "H",
+    "sigma_leverage": "형상/내부",
+    "source": "t07 자 실측",
+    "reading": "길이는 반대로 −33 %."
+   },
+   {
+    "constant": "셸 중심 x (규약상 0)",
+    "coded": "0 mm",
+    "measured": "+31.4 mm",
+    "rel_err_pct": "-31.4 mm(절대)",
+    "grade_before": "H(규약)",
+    "sigma_leverage": "형상 1.16~1.96 dB",
+    "source": "c02 톱뷰",
+    "reading": "셸이 로터 중앙면 앞으로 치우쳐 있다는 사실을 메쉬가 표현하지 못한다. 내부 산란체 좌표가 전부 이 중심에 매달려 있으므로 배터리·PCB 위치도 같이 밀린다."
+   },
+   {
+    "constant": "배터리 상자 길이 (0.50·bl)",
+    "coded": "102.0 mm",
+    "measured": "133.5 mm",
+    "rel_err_pct": -23.6,
+    "grade_before": "H",
+    "sigma_leverage": "배터리 2.26~3.59 dB",
+    "source": "t16 단품",
+    "reading": ""
+   },
+   {
+    "constant": "프로펠러 CHORD_MAX_OVER_R",
+    "coded": "0.25",
+    "measured": "0.207",
+    "rel_err_pct": 20.8,
+    "grade_before": "D/H(Solo·1345 중간값)",
+    "sigma_leverage": "형상",
+    "source": "c02 블레이드 현 분포",
+    "reading": "블레이드 면적이 +21 % — 프롭이 σ 에 들어오는 각도대에서 직접 작용."
+   },
+   {
+    "constant": "셸 최대폭 (0.95·fw·body_w)",
+    "coded": "112.2 mm",
+    "measured": "95.0 mm",
+    "rel_err_pct": 18.1,
+    "grade_before": "M/D(폴디드에서 유도)",
+    "sigma_leverage": "형상 1.16~1.96 dB",
+    "source": "c02 톱뷰 + 폴디드 124.8 정합성",
+    "reading": "폴디드 폭 검산이 코드값을 배제한다(95+24=119 ≤ 124.8, 112+24=136 ✗)."
+   },
+   {
+    "constant": "셸 높이 bh (fh 0.460)",
+    "coded": "62.1 mm",
+    "measured": "76 ± 10 mm",
+    "rel_err_pct": -18.3,
+    "grade_before": "D",
+    "sigma_leverage": "형상 1.16~1.96 dB",
+    "source": "p06 측면(신뢰도 낮음)",
+    "reading": "이 항목만 정투영 컷이 없어 불확도가 크다. 부호는 '메쉬가 낮다'."
+   },
+   {
+    "constant": "뒤 로터 좌우 반폭 (r·sin51.4)",
+    "coded": "172.4 mm",
+    "measured": "156.5 mm",
+    "rel_err_pct": 10.2,
+    "grade_before": "역산",
+    "sigma_leverage": "형상 1.16~1.96 dB",
+    "source": "c02 팁-중점법",
+    "reading": "**사다리꼴의 본체.** 뒤 트랙이 실물보다 46 mm 넓다."
+   },
+   {
+    "constant": "모터 벨 높이 (0.048·diag)",
+    "coded": "21.2 mm",
+    "measured": "17 mm",
+    "rel_err_pct": 24.7,
+    "grade_before": "H(대각비례)",
+    "sigma_leverage": "형상",
+    "source": "p05 정면",
+    "reading": ""
+   },
+   {
+    "constant": "배터리 상자 높이 (0.55·bh)",
+    "coded": "34.2 mm",
+    "measured": "38 mm",
+    "rel_err_pct": -10.0,
+    "grade_before": "H",
+    "sigma_leverage": "배터리 2.26~3.59 dB",
+    "source": "p03 베이 개구",
+    "reading": ""
+   },
+   {
+    "constant": "뒤 로터 반경",
+    "coded": "220.5 mm",
+    "measured": "207.3 mm",
+    "rel_err_pct": 6.4,
+    "grade_before": "역산",
+    "sigma_leverage": "형상",
+    "source": "c02",
+    "reading": ""
+   },
+   {
+    "constant": "암 폭(끝) _ARM_WIDTH[1]",
+    "coded": "18.5 mm",
+    "measured": "17.4 mm",
+    "rel_err_pct": 6.3,
+    "grade_before": "D(mini5pro 이전)",
+    "sigma_leverage": "형상",
+    "source": "c02 0.80 스테이션",
+    "reading": "빌려온 값치고는 잘 맞는다 — 이번 라운드에서 **확증**된 항목."
+   },
+   {
+    "constant": "앞 로터 좌우 반폭",
+    "coded": "172.4 mm",
+    "measured": "179.6 mm",
+    "rel_err_pct": -4.0,
+    "grade_before": "역산",
+    "sigma_leverage": "형상",
+    "source": "c02",
+    "reading": ""
+   },
+   {
+    "constant": "셸 길이 (fl·body_l)",
+    "coded": "204.0 mm",
+    "measured": "211.2 mm",
+    "rel_err_pct": -3.4,
+    "grade_before": "M/D",
+    "sigma_leverage": "형상",
+    "source": "c02",
+    "reading": "확증에 가깝다."
+   },
+   {
+    "constant": "로터각(앞)",
+    "coded": "51.40°",
+    "measured": "52.87°",
+    "rel_err_pct": -2.8,
+    "grade_before": "역산",
+    "sigma_leverage": "형상",
+    "source": "c02",
+    "reading": ""
+   },
+   {
+    "constant": "모터 대각거리",
+    "coded": "441.0 mm",
+    "measured": "432.4 mm",
+    "rel_err_pct": 2.0,
+    "grade_before": "역산",
+    "sigma_leverage": "형상",
+    "source": "c02",
+    "reading": "확증에 가깝다."
+   },
+   {
+    "constant": "로터 앞뒤 좌표",
+    "coded": "±137.5 mm",
+    "measured": "±136.0 mm",
+    "rel_err_pct": 1.1,
+    "grade_before": "역산",
+    "sigma_leverage": "형상",
+    "source": "c02",
+    "reading": "**앞뒤는 맞다.** 틀린 것은 좌우뿐이다."
+   },
+   {
+    "constant": "다리 갈래 수 (_gear_motor_legs)",
+    "coded": "포드당 2",
+    "measured": "포드당 1",
+    "rel_err_pct": "+100 %(개수)",
+    "grade_before": "H",
+    "sigma_leverage": "형상",
+    "source": "p05 · c03 · p09 · p10",
+    "reading": "메쉬는 두 갈래로 벌리고 실물은 넓고 납작한 **한 장**이다."
+   },
+   {
+    "constant": "다리 재질 그룹",
+    "coded": "'gear' = plastic",
+    "measured": "안테나 내장(도체)",
+    "rel_err_pct": "-",
+    "grade_before": "H",
+    "sigma_leverage": "재질 1.14 dB",
+    "source": "매뉴얼 콜아웃 9 · c03 · t08",
+    "reading": "다리를 순수 유전체로 두면 RCS 과소평가 가능 — 열린 질문."
+   },
+   {
+    "constant": "히트싱크(핀 알루미늄)",
+    "coded": "모델에 없음",
+    "measured": "100 × 52 × 10 mm",
+    "rel_err_pct": "-",
+    "grade_before": "부재",
+    "sigma_leverage": "내부 금속",
+    "source": "t03 · t04",
+    "reading": "동체 내 최대 금속면이 통째로 빠져 있다."
+   },
+   {
+    "constant": "원심팬",
+    "coded": "모델에 없음",
+    "measured": "Ø48 mm",
+    "rel_err_pct": "-",
+    "grade_before": "부재",
+    "sigma_leverage": "내부 금속",
+    "source": "t03 · t04",
+    "reading": ""
+   },
+   {
+    "constant": "Wi-Fi 안테나 2개",
+    "coded": "모델에 없음",
+    "measured": "25 × 20 mm ×2",
+    "rel_err_pct": "-",
+    "grade_before": "부재",
+    "sigma_leverage": "내부 금속",
+    "source": "t10",
+    "reading": ""
+   }
+  ],
+  "summary": "가장 큰 것은 **짐벌**(지름 +67 %, 중심 x −54 %)과 **모터 벨**(+48 %), 그리고 **내부 상자 3개**(폭 +36~45 %, 길이 −24~33 %)다. 로터 배치는 앞뒤(±136 mm)는 맞고 좌우만 틀렸다 — 실물은 앞 트랙 359 / 뒤 트랙 313 의 **사다리꼴**인데 메쉬는 정사각 X 다. 그리고 동체 안 최대 금속면인 **히트싱크가 통째로 없다.**"
+ },
+ "Q4_silhouette_iou": {
+  "before": {
+   "n_photos": 4,
+   "best_file": "mavic 4 pro_4.png",
+   "best_iou": 0.5249,
+   "ceiling": 0.9165,
+   "pct_of_ceiling": 57.3,
+   "mean_iou": 0.4655,
+   "mean_free_iou_gain": 0.0132,
+   "photos": [
+    {
+     "file": "mavic 4 pro_1.png",
+     "aspect": [
+      0,
+      14
+     ],
+     "props": true,
+     "iou": 0.4723,
+     "free_iou": 0.5059,
+     "free_iou_gain": 0.0336,
+     "free_delta_deg": 136.0,
+     "contour_mean_mm": 23.1,
+     "mesh_only_pct": 24.6,
+     "photo_only_pct": 28.2,
+     "worst_blob": "motor / photo only / 7%",
+     "headline": "Silhouette IoU 0.472, mean outline error 23.1 mm (5.93 % of span).  The largest single disagreement is the motor, 7 % of the union, photo only.  A camera free to move anywhere reaches 0.506 by swinging 136 deg off the declared aspect."
+    },
+    {
+     "file": "mavic 4 pro_3.png",
+     "aspect": [
+      0,
+      3
+     ],
+     "props": true,
+     "iou": 0.4178,
+     "free_iou": 0.4396,
+     "free_iou_gain": 0.0219,
+     "free_delta_deg": 132.6,
+     "contour_mean_mm": 13.8,
+     "mesh_only_pct": 43.7,
+     "photo_only_pct": 14.5,
+     "worst_blob": "body / mesh only / 14%",
+     "headline": "Silhouette IoU 0.418, mean outline error 13.8 mm (3.55 % of span).  The largest single disagreement is the body, 14 % of the union, mesh only.  A camera free to move anywhere reaches 0.440 by swinging 133 deg off the declared aspect."
+    },
+    {
+     "file": "mavic 4 pro_2.png",
+     "aspect": [
+      0,
+      40
+     ],
+     "props": true,
+     "iou": 0.4468,
+     "free_iou": 0.4468,
+     "free_iou_gain": 0.0,
+     "free_delta_deg": 20.0,
+     "contour_mean_mm": 18.1,
+     "mesh_only_pct": 28.6,
+     "photo_only_pct": 26.7,
+     "worst_blob": "body / mesh only / 7%",
+     "headline": "Silhouette IoU 0.447, mean outline error 18.1 mm (4.64 % of span).  The largest single disagreement is the body, 7 % of the union, mesh only."
+    },
+    {
+     "file": "mavic 4 pro_4.png",
+     "aspect": [
+      40,
+      15
+     ],
+     "props": true,
+     "iou": 0.5249,
+     "free_iou": 0.5224,
+     "free_iou_gain": -0.0025,
+     "free_delta_deg": 133.7,
+     "contour_mean_mm": 19.0,
+     "mesh_only_pct": 24.8,
+     "photo_only_pct": 22.7,
+     "worst_blob": "body / mesh only / 7%",
+     "headline": "Silhouette IoU 0.525, mean outline error 19.0 mm (4.86 % of span).  The largest single disagreement is the body, 7 % of the union, mesh only."
+    }
+   ]
+  },
+  "after": {
+   "n_photos": 9,
+   "best_file": "p08.png",
+   "best_iou": 0.555,
+   "ceiling": 0.9165,
+   "pct_of_ceiling": 60.6,
+   "mean_iou": 0.4873,
+   "mean_free_iou_gain": 0.0127,
+   "photos": [
+    {
+     "file": "mavic 4 pro_1.png",
+     "aspect": [
+      0,
+      14
+     ],
+     "props": true,
+     "iou": 0.4723,
+     "free_iou": 0.4586,
+     "free_iou_gain": 0.0071,
+     "free_delta_deg": 136.0,
+     "contour_mean_mm": 23.1,
+     "mesh_only_pct": 24.6,
+     "photo_only_pct": 28.2,
+     "worst_blob": "motor / photo only / 7%",
+     "headline": "Silhouette IoU 0.472, mean outline error 23.1 mm (5.93 % of span).  The largest single disagreement is the motor, 7 % of the union, photo only."
+    },
+    {
+     "file": "mavic 4 pro_3.png",
+     "aspect": [
+      0,
+      3
+     ],
+     "props": true,
+     "iou": 0.4178,
+     "free_iou": 0.4017,
+     "free_iou_gain": 0.0259,
+     "free_delta_deg": 132.6,
+     "contour_mean_mm": 13.8,
+     "mesh_only_pct": 43.7,
+     "photo_only_pct": 14.5,
+     "worst_blob": "body / mesh only / 14%",
+     "headline": "Silhouette IoU 0.418, mean outline error 13.8 mm (3.55 % of span).  The largest single disagreement is the body, 14 % of the union, mesh only."
+    },
+    {
+     "file": "mavic 4 pro_2.png",
+     "aspect": [
+      0,
+      40
+     ],
+     "props": true,
+     "iou": 0.4468,
+     "free_iou": 0.4182,
+     "free_iou_gain": 0.0,
+     "free_delta_deg": 20.0,
+     "contour_mean_mm": 18.1,
+     "mesh_only_pct": 28.6,
+     "photo_only_pct": 26.7,
+     "worst_blob": "body / mesh only / 7%",
+     "headline": "Silhouette IoU 0.447, mean outline error 18.1 mm (4.64 % of span).  The largest single disagreement is the body, 7 % of the union, mesh only."
+    },
+    {
+     "file": "mavic 4 pro_4.png",
+     "aspect": [
+      40,
+      15
+     ],
+     "props": true,
+     "iou": 0.5249,
+     "free_iou": 0.4838,
+     "free_iou_gain": -0.0139,
+     "free_delta_deg": 133.7,
+     "contour_mean_mm": 19.0,
+     "mesh_only_pct": 24.8,
+     "photo_only_pct": 22.7,
+     "worst_blob": "body / mesh only / 7%",
+     "headline": "Silhouette IoU 0.525, mean outline error 19.0 mm (4.86 % of span).  The largest single disagreement is the body, 7 % of the union, mesh only."
+    },
+    {
+     "file": "c02.png",
+     "aspect": [
+      0,
+      82
+     ],
+     "props": true,
+     "iou": 0.4026,
+     "free_iou": 0.3847,
+     "free_iou_gain": 0.0,
+     "free_delta_deg": 8.0,
+     "contour_mean_mm": 24.9,
+     "mesh_only_pct": 25.1,
+     "photo_only_pct": 34.7,
+     "worst_blob": "body / mesh only / 11%",
+     "headline": "Silhouette IoU 0.403, mean outline error 24.9 mm (6.38 % of span).  The largest single disagreement is the body, 11 % of the union, mesh only."
+    },
+    {
+     "file": "p09.png",
+     "aspect": [
+      40,
+      32
+     ],
+     "props": true,
+     "iou": 0.5109,
+     "free_iou": 0.4949,
+     "free_iou_gain": 0.0027,
+     "free_delta_deg": 111.9,
+     "contour_mean_mm": 19.6,
+     "mesh_only_pct": 23.2,
+     "photo_only_pct": 25.7,
+     "worst_blob": "motor / photo only / 6%",
+     "headline": "Silhouette IoU 0.511, mean outline error 19.6 mm (5.01 % of span).  The largest single disagreement is the motor, 6 % of the union, photo only."
+    },
+    {
+     "file": "p08.png",
+     "aspect": [
+      140,
+      35
+     ],
+     "props": true,
+     "iou": 0.555,
+     "free_iou": 0.5411,
+     "free_iou_gain": 0.0072,
+     "free_delta_deg": 126.1,
+     "contour_mean_mm": 11.9,
+     "mesh_only_pct": 26.8,
+     "photo_only_pct": 17.7,
+     "worst_blob": "body / mesh only / 7%",
+     "headline": "Silhouette IoU 0.555, mean outline error 11.9 mm (3.05 % of span).  The largest single disagreement is the body, 7 % of the union, mesh only."
+    },
+    {
+     "file": "p01_frame.png",
+     "aspect": [
+      0,
+      85
+     ],
+     "props": false,
+     "iou": 0.5111,
+     "free_iou": 0.5642,
+     "free_iou_gain": 0.0613,
+     "free_delta_deg": 34.3,
+     "contour_mean_mm": 13.8,
+     "mesh_only_pct": 25.4,
+     "photo_only_pct": 23.5,
+     "worst_blob": "body / mesh only / 13%",
+     "headline": "Silhouette IoU 0.511, mean outline error 13.8 mm (3.54 % of span).  The largest single disagreement is the body, 13 % of the union, mesh only.  A camera free to move anywhere reaches 0.564 by swinging 34 deg off the declared aspect."
+    },
+    {
+     "file": "p10_frame.png",
+     "aspect": [
+      45,
+      -20
+     ],
+     "props": false,
+     "iou": 0.5445,
+     "free_iou": 0.5572,
+     "free_iou_gain": 0.0241,
+     "free_delta_deg": 124.5,
+     "contour_mean_mm": 14.8,
+     "mesh_only_pct": 29.8,
+     "photo_only_pct": 15.7,
+     "worst_blob": "motor / mesh only / 8%",
+     "headline": "Silhouette IoU 0.544, mean outline error 14.8 mm (3.79 % of span).  The largest single disagreement is the motor, 8 % of the union, mesh only."
+    }
+   ]
+  },
+  "how_to_read": "before 와 after 는 **같은 메쉬·같은 파이프라인**이고 사진만 다르다. after 는 옛 4장을 그대로 포함하므로 두 헤드라인이 같은 자로 재어진다. best_iou 는 사진집합의 **최대값**이라 사진을 늘리면 우연히 오를 수 있다 — 그래서 평균과 사진별 값을 같이 적는다.",
+  "caveats": [
+   "FCC·커먼즈 사진은 배경(자갈·천·하늘)이 색거리 분리를 허용하지 않아 **알파 컷아웃**을 미리 만들어 넣었다(GrabCut 시드 + 파란천 구멍법). 컷아웃은 전부 눈으로 확인했지만, 그만큼 IoU 에 **내 분리 판단**이 섞인다. 옛 4장은 원본 그대로다.",
+   "p01(FCC 톱 평면)은 블레이드가 접혀 있어 블레이드를 컷에서 지우고 **프레임 전용**으로 견줬다. 사진은 접힌 허브가 모터벨을 가리는데 메쉬에는 벨이 있다 → 4곳에서 메쉬만 남는다.",
+   "p10(비행중)은 블레이드가 회전 블러라 같은 이유로 프레임 전용이다.",
+   "선언 자세(expect)는 내가 눈으로 읽은 값이다. az 부호 규약은 메쉬를 여러 방위에서 실루엣으로 찍어 확인했다(az=90 에서 기수가 화면 왼쪽).",
+   "FCC 개체는 양산 전 시제(EVT)다 — 셸에 마스킹테이프가 있고 도색이 다르다. 형상 근거로만 썼다.",
+   "free_iou_gain 은 before/after 가 **같은 자가 아니다**: 원장 쪽은 remeasure() 로 자유갈래를 최종 점밀도에서 다시 잰 값이고, 이번 부분 실행은 run_key 의 탐색밀도 값이다. 헤드라인 metrics.iou 는 양쪽 다 최종밀도(120만 점)라 **before/after 헤드라인 비교는 유효**하다.",
+   "c02(톱 평면)는 고각 ≈90° 에서 정합되는데 그 자세에서 방위와 롤이 축퇴하고 프롭 위상 4개가 자유라 이 지표가 가장 까다로운 자세다. free_iou_gain 이 0.000 이라 '자세 실패'가 아니라 형상 차이로 읽는다."
+  ]
+ },
+ "return_summary": {
+  "n_photos": 52,
+  "n_constants": 245,
+  "n_borrowed": 195,
+  "n_now_measurable": 24,
+  "internals_measured": 5,
+  "iou_before": 0.5249,
+  "iou_after": 0.555,
+  "pct_of_ceiling": 60.6,
+  "worst_mismatches": [
+   "짐벌 하우징 지름 (sphere r=0.95·s, s=0.050)",
+   "짐벌 앞뒤 두께 (0.86·2·0.95·s)",
+   "짐벌 중심 x",
+   "모터 벨 지름 (0.052·diag)",
+   "PCB 판 폭 (0.54·bw)",
+   "배터리 상자 폭 (0.62·bw)"
+  ]
+ }
+}

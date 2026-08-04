@@ -1,0 +1,334 @@
+{
+ "meta": {
+  "target": "DJI Mini 2",
+  "registry_key": "mini2",
+  "date": "2026-08-04",
+  "what": "PATCH SPECIFICATION ONLY. No source file was edited. Every record says which constant to change, where it lives, what it is now, what the manufacturer CAD says it should be, and what that is expected to do. Three airframes are being corrected against the same two source files, so the edits are applied in one later pass.",
+  "why_this_airframe": "mini2 is the Das comparison airframe that ALREADY agrees best (|dL| 0.51 dB). The first job here is not to improve it, it is not to break it. Every record below therefore carries an explicit 'do not touch' counterpart list, and nothing is changed that the CAD does not force.",
+  "blind_rule": "NO sigma quantity was read or computed while writing this file. outputs/das_fleet_*.json, p3_*.json, phantom3/* and rcs_anchor.json were not opened. expected_sigma_direction below is a PREDICTION written in advance precisely so it can be falsified later.",
+  "evidence_base": {
+   "cad": "DJI's own published GLB of the WM161 (DJI Mini 2), unfolded: /tmp scratch copy of WM161_zhankai_1k.glb, 7,707,032 bytes, 59 parts, 109,470 faces, native units metres. Provenance and URL in assets/photos/mini2/SOURCES.md section 4; spec provenance in outputs/mini2_specs.json.",
+   "photos": "assets/photos/mini2/ (86 files + SOURCES.md). Used this round ONLY as corroboration, never as the source of a number - see n_from_photo.",
+   "published": "DJI Mini 2 User Manual v1.0 (2020.11) pp.45-47, international version."
+  },
+  "measurement_method": "EDGE-BASED (1D). Every truth value below is a distance between two identified features - hub centre to hub centre, arm underside to foot, bell top to screw-head top, motor axis to fairing tip along the arm axis - taken on named GLB parts with the scene-graph world transform applied. Whole-mesh bounding boxes are used only for the scale check, never to set a constant.",
+  "frame_convention": {
+   "axes": "glTF (+y up, +z nose) -> repo (X = +nose, Y = +left, Z = +up): X = z_glb, Y = x_glb, Z = y_glb, scaled to mm.",
+   "origin_x": "fore-aft centre of the fuselage shell, GLB part 'Default_4'. This is the repo's existing choice (build_frame_cad always builds the shell at the origin) and is kept.",
+   "origin_z": "the aircraft's lowest non-propeller point is defined as z = -24.52 mm, which reproduces the repo's existing published-height decomposition exactly (-24.52 .. +31.46 = 55.98 = the published 56 mm). All z values below are in that frame.",
+   "rotor_order": "index 0,1,2,3 = rotor_deg (63.14, 133.70, 226.30, 296.86) = front-left, rear-left, rear-right, front-right."
+  },
+  "rel_err_pct_definition": "signed relative error of the CURRENT (old) modelled quantity against the CAD truth, (old - truth) / truth * 100. It is the error the record removes, not the size of the edit."
+ },
+
+ "scale_check": {
+  "verdict": "PASS - the GLB is used at native metre scale with NO scale factor applied.",
+  "checks": [
+   {"quantity": "props-excluded bounding box L x W x H",
+    "cad_mm": [159.11, 203.43, 55.98], "published_mm": [159, 203, 56],
+    "error_pct": [0.07, 0.21, -0.04],
+    "how": "all 59 parts except the 8 propeller-blade meshes (polySurface95/89/81/61/102/84/80/58)"},
+   {"quantity": "motor-to-motor diagonal", "cad_mm": 213.05, "published_mm": 213, "error_pct": 0.02,
+    "how": "centre of front-left motor bell (polySurface76) to centre of rear-right bell (polySurface90); the two diagonals agree to 0.00 mm"},
+   {"quantity": "fuselage shell fore-aft", "cad_mm": 137.66, "published_mm": 138, "error_pct": -0.25,
+    "how": "GLB part 'Default_4' alone, against the published FOLDED length, which the fuselage sets"},
+   {"quantity": "propeller diameter", "cad_mm": [118.59, 119.87], "published_mm": null,
+    "how": "max vertex radius about each bell centre, front pair then rear pair. DJI publishes no propeller geometry (manual, QSG and the standalone Propellers User Guide all checked) so this one has no published comparand."}
+  ],
+  "conclusion": "Two independent DJI artefacts - the CAD and the specification table - agree to <= 0.25 % on every quantity that both of them carry. The CAD is therefore treated as the dimensional truth for shape constants, and the published table stays the truth for the forced envelope."
+ },
+
+ "current_state": {
+  "code_that_builds_this_airframe": {
+   "registry": "src/drones.py:804-935  DRONES['mini2'] = DroneSpec(...)  (note text 811-921, constructor fields 922-935, envelope comment 936-952)",
+   "shell_table": "src/drone_cad.py:516-521  _SHELL_SHAPE['mini2'] (fl, fw, fh, ndrop, npow, cx0, cfrac, cfh, hubf, hw x6, hh x6, zo x6)",
+   "arm_section": "src/drone_cad.py:528  _ARM_SECTION['mini2'] = (2.95, 1.00)",
+   "arm_width": "src/drone_cad.py:531  _ARM_WIDTH['mini2'] = (9.9, 9.0)",
+   "branch": "src/drone_cad.py:2041-2066  build_frame_cad, elif key == 'mini2' (gimbal _gimbal_compact3 + two belly vision lenses)",
+   "shared_path_this_airframe_uses": [
+    "src/drone_cad.py:1882-1885  _arm_folding(r_tip, a, arm_r0, arm_r1, hub_r, z0=0.0, z1=0.012*diag, bend=0.06, h_ratio, c_ratio)",
+    "src/drone_cad.py:1881       r_tip = r_k + ARM_TIP_OVERHANG.get(key, 0.0)",
+    "src/drone_cad.py:1891-1894  bell = _motor_bell(mot_r, mot_h); translate to [r_k*ca, r_k*sa, MOTOR_BASE_Z.get(key, 0.014*diag)]",
+    "src/drone_cad.py:2138-2143  gear == 'motor_legs': z_arm = 0.012*diag - arm_r1*h_ratio/2; _gear_motor_legs(r_list, angs, z_arm, gear_h, w=arm_r1*0.62, spread=mot_r*0.95)",
+    "src/drones.py:1182-1218     frame_fit_scale  (the envelope forcing)",
+    "src/drones.py:1255-1270     rotor_layout     (the ONLY place rotor_z_mm is currently read)"
+   ]
+  },
+  "spec_constants_as_built": {
+   "diagonal_mm": 213.0, "body_l_mm": 159.0, "body_w_mm": 203.0, "body_h_mm": 56.0,
+   "prop_dia_mm": 119.1, "prop_pitch_in": 2.6, "motor_dia_mm": 18.2, "motor_h_mm": 7.1,
+   "gear_h_mm": 30.8, "gear": "motor_legs", "arm_style": "body",
+   "rotor_deg": [63.14, 133.70, 226.30, 296.86],
+   "rotor_r_mm": [98.43, 116.92, 116.92, 98.43],
+   "rotor_z_mm": [10.63, -10.63, -10.63, 10.63],
+   "envelope_mm": [null, null, 56.0], "body_frac": 0.646, "body_lw": [1.0, 0.4856]
+  },
+  "measured_now": {
+   "raw_frame_bbox_mm": [159.386, 193.821, 61.817],
+   "raw_frame_x_mm": [-89.878, 69.508],
+   "raw_frame_y_mm": [-96.911, 96.911],
+   "raw_frame_z_mm": [-35.170, 26.647],
+   "group_z_extents_mm": {
+    "body_shell_and_arms": [-21.71, 26.65], "canopy": [1.99, 20.85], "camera": [-16.78, 18.19],
+    "gear": [-35.17, -3.44], "motor": [2.98, 10.08], "battery": [-11.42, 13.22], "pcb": [10.30, 12.99]
+   },
+   "fit_scale": [1.0, 1.0, 0.9058974105931354],
+   "frame_triangles": 13415,
+   "how": "src/drones.py::_build_frame_raw + frame_envelope_mm, python 3.12 venv, no GPU"
+  }
+ },
+
+ "envelope_forcing": {
+  "why_this_is_the_priority": "frame_fit_scale multiplies the finished frame by sz to make its bounding box equal the published height. sz != 1 means the shape is being falsified to pay for a modelling error somewhere else. On phantom3 this was driven from 4.4 % to 0.2 %; here it is currently 9.4 %.",
+  "now": {
+   "fit_scale": [1.0, 1.0, 0.90590],
+   "abs_sz_minus_1_pct": 9.41,
+   "what_it_costs": "the measured 46.16 mm fuselage shell is squashed to 41.8 mm (-9.4 %), and every other vertical dimension with it. The error being absorbed is NOT in the shell - it is in the arms, the legs and a missing part."
+  },
+  "residual_decomposition": {
+   "raw_height_mm": 61.817, "true_height_mm": 55.98, "excess_mm": 5.837,
+   "cause_1": {"what": "landing foot is 10.65 mm too LOW", "modelled_z": -35.17, "cad_z": -24.52,
+               "why": "rotor_z_mm currently moves the propellers only; build_frame_cad builds all four arms, all four motors and the two landing posts on ONE z plane (0.012*diag), so the front arm - which the CAD puts 21.44 mm above the rear one - sits at the mean instead."},
+   "cause_2": {"what": "top of the aircraft is 4.81 mm too LOW", "modelled_z": 26.647, "cad_z": 31.46,
+               "why": "the modelled top is the fuselage crown. The real top is the pair of propeller-mount screw heads standing above each motor bell, which are not modelled at all."},
+   "residual": 0.0,
+   "note": "10.65 - 4.81 = 5.84 = the excess, to the last recorded digit. The decomposition closes with no remainder, which is why both causes are treated as real and neither is absorbed into a fudge."
+  },
+  "predicted": {
+   "fit_scale": [1.0, 1.0, 1.00493],
+   "abs_sz_minus_1_pct": 0.49,
+   "arithmetic": {
+    "new_z_min_mm": -24.540, "from": "gear group -35.170 + 10.63 (front rotor dz)",
+    "new_z_max_mm": 31.185, "from": "MOTOR_BASE_Z 7.985 + 10.63 (front rotor dz) + motor_h 7.1 + screw-head stand 5.47",
+    "new_raw_height_mm": 55.725, "sz": "56.0 / 55.725 = 1.00493",
+    "cad_comparands": {"z_min": -24.52, "z_max": 31.46, "height": 55.98},
+    "residual_mm": {"z_min": -0.02, "z_max": -0.275, "height": -0.255},
+    "residual_source": "rotor_z_mm is +-10.63 (measured from the two propeller mid-planes) while the two motor-bell bases are +-10.905 apart and the two arm axes +-10.72. Keeping the propeller-derived 10.63 leaves 0.275 mm on the bell height. Changing rotor_z_mm to chase it would move the propellers, which are already right, so it is left as a declared residual."
+   }
+  },
+  "warning_partial_application_is_worse_than_none": "F1+F4 alone (arms/gear follow rotor_z_mm, no screw heads) gives a raw height of 51.19 mm and sz = 1.094 - the same 9.4 % distortion with the sign flipped. F1, F3, F4 and F6 must land together or not at all.",
+  "sx_sy": "unchanged at 1.0 - envelope_mm is (None, None, 56.0) and STAYS height-only (house rule, same as mini5pro / mavic4pro / matrice4e / typhoonh480 / phantom3 / m350rtk). The width record F5 therefore does NOT act through the fit scale; it corrects the mesh directly."
+ },
+
+ "fixes": [
+  {
+   "id": "F1",
+   "constant": "_arm_folding z0/z1 for the mini2 arms - the arm plane must follow rotor_z_mm",
+   "where": "src/drone_cad.py:1882-1885 (call site, currently z0=0.0, z1=0.012*diag)",
+   "old": "z0 = 0.0, z1 = 0.012*diag = 2.556 mm for all four arms",
+   "new": "z0 = dz_k, z1 = 0.012*diag + dz_k, with dz_k = spec.rotor_z_mm[k]/1000 -> front arms +10.63 mm, rear arms -10.63 mm. Gate it on a new per-key opt-in (e.g. ARM_Z_FOLLOWS_ROTOR = {'mini2': True}) so every other airframe stays bit-identical.",
+   "unit": "mm (metres in code)",
+   "source": "official CAD",
+   "evidence": "Arm axis measured by cutting the arm assembly PERPENDICULAR to its own axis at r = 70..100 mm. Front (polySurface201): axis z = +13.64 / +13.68 / +13.91 at r 70-80 / 80-90 / 90-100, section height 14.15 mm, underside +6.56..+6.81. Rear (polySurface101): axis z = -7.43 / -7.76 / -8.19 over the same bands, underside -14.24..-14.64. Half-separation of the two arm axes = 10.72 mm; the registry already carries rotor_z_mm = +-10.63 (measured independently from the two propeller mid-planes, 21.25 mm apart). The two independent measurements of the same physical offset agree to 0.09 mm. Mean of the two arm axes = +2.96 mm against the engine's 0.012*diag = 2.556 mm, i.e. the CURRENT single plane is the correct mean - the defect is that there is only one plane.",
+   "rel_err_pct": -21.4,
+   "rel_err_note": "front arm axis modelled at 2.556 against a true 13.68 mm; expressed against the 21.44 mm true front-to-rear separation the model has 0 % of it.",
+   "leverage_group": "envelope_height",
+   "expected_sigma_direction": "PREDICTION: azimuth-mean sigma up slightly (order +0.2 to +0.5 dB) at low elevation, because removing the sz=0.906 squash restores 9.4 % of vertical projected area to the fuselage and arms; near zero change at nadir/zenith where the projection is horizontal. Separately, the front and rear rotor stations become genuinely 21.3 mm apart in z, so the front/rear two-scatterer interference pattern at non-zero elevation will move - lobe positions change even where the mean does not.",
+   "confidence": "high",
+   "risk": "SHARED CODE. mini5pro also carries rotor_z_mm = (-12, +2, +2, -12); if this is applied unconditionally its mesh changes and any mini5pro result already on disk is invalidated. Must be key-gated. Second, the rear arm really slopes DOWN going outboard (-5.89 at r 60-70 to -8.19 at r 90-100) while a uniform dz keeps the engine's upward tip rise - a 2.5 mm slope-sign error over 40 mm that this record does not fix and that should be declared, not hidden."
+  },
+  {
+   "id": "F2",
+   "constant": "motor bell z placement - must follow rotor_z_mm",
+   "where": "src/drone_cad.py:1891-1894 (bell.apply_translation([r_k*ca, r_k*sa, MOTOR_BASE_Z.get(key, 0.014*diag)]))",
+   "old": "z = MOTOR_BASE_Z or 0.014*diag, identical for all four rotors",
+   "new": "z = MOTOR_BASE_Z + dz_k, same dz_k as F1 (front +10.63, rear -10.63 mm). Same per-key gate as F1.",
+   "unit": "mm (metres in code)",
+   "source": "official CAD",
+   "evidence": "Motor bells measured as named parts: front-left polySurface76 centre (44.47, +87.81, 22.44), 18.20 x 18.13 x 7.11 mm, z [18.89, 25.99]. Rear-left polySurface96 centre (-80.76, +84.54, 0.96), 17.96 x 18.38 x 7.75 mm, z [-2.92, 4.83]. Front-to-rear bell base separation 21.81 mm (half 10.905). The right-hand pair mirrors to 0.00 mm.",
+   "rel_err_pct": -86.7,
+   "rel_err_note": "front bell base modelled at 2.982 mm against a true 18.89 mm.",
+   "leverage_group": "envelope_height",
+   "expected_sigma_direction": "PREDICTION: no first-order change to the azimuth-mean - the bells are the same four metal cylinders, just at their true heights. Second-order: the front bells stop being buried inside the fuselage crown silhouette, so the metal group gains a little exposed area at side aspects (order +0.1 dB), and the front-bell/rear-bell path length difference changes at elevation.",
+   "confidence": "high",
+   "risk": "Same shared-code gate as F1. If F2 is applied without F1 the bells detach from the arms."
+  },
+  {
+   "id": "F3",
+   "constant": "MOTOR_BASE_Z['mini2']  (motor bell base z, mean plane)",
+   "where": "src/drone_cad.py:311  MOTOR_BASE_Z = {'phantom3': 0.0110}",
+   "old": null,
+   "old_effective": 0.002982,
+   "new": 0.007985,
+   "unit": "m",
+   "source": "official CAD",
+   "evidence": "Mean of the two measured bell bases: (18.89 + (-2.92)) / 2 = 7.985 mm. With F2's dz this puts the front bell base at 18.615 (CAD 18.89) and the rear at -2.645 (CAD -2.92). The engine's default 0.014*diag = 2.982 mm sits essentially ON the arm axis, i.e. it buries the bell to half its height inside the arm; the CAD puts the bell base 5.21 mm (front) / 4.84 mm (rear) ABOVE the arm axis, sitting on top of the arm end as a motor physically does. The proportional rule is what fails here: the Mini 2's arm section (14.15 mm) is unusually large against its 213 mm diagonal.",
+   "rel_err_pct": -62.7,
+   "leverage_group": "envelope_height",
+   "expected_sigma_direction": "PREDICTION: this is the record that lets F6 land at the true height without inventing a 10 mm tall screw. On its own, negligible (<0.1 dB) - it raises four 18.2 mm metal cylinders by 5.0 mm inside a 56 mm tall aircraft.",
+   "confidence": "high",
+   "risk": "Low - MOTOR_BASE_Z already exists as a per-key override table and airframes absent from it are bit-identical. The only exposure is that the front/rear split then comes from rotor_z_mm (+-10.63) rather than the measured +-10.905, leaving 0.275 mm."
+  },
+  {
+   "id": "F4",
+   "constant": "landing-post attachment plane z_arm for gear == 'motor_legs'",
+   "where": "src/drone_cad.py:2139-2143 (z_arm = 0.012*diag - arm_r1*h_ratio/2; _gear_motor_legs(..., z_arm, ...))",
+   "old": "z_arm = -4.0815 mm, giving a foot at -35.17 mm",
+   "new": "z_arm = -4.0815 + dz_front = +6.549 mm, giving a foot at -24.54 mm. gear_h_mm stays 30.8. Same per-key gate as F1.",
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "The lowest point of the whole aircraft (props excluded) is the front arm assembly's moulded foot at z = -24.52 mm, in the band X [44.72, 53.98], Y [89.65, 99.62] (part polySurface201 / polySurface18). The separate front landing post polySurface202 measures 9.16 x 9.53 x 37.25 mm, centre (49.74, +-94.90, -4.60), z [-23.22, +14.03]. The registered gear_h_mm = 30.8 was measured as front-arm underside (+6.3) to foot (-24.5); the engine's derived z_arm = 0.012*diag - arm_r1*h_ratio/2 lands at +6.549 once the front dz is added, against the CAD's measured underside +6.56..+6.81. The derived expression is therefore RIGHT and only its plane is wrong.",
+   "rel_err_pct": 43.4,
+   "rel_err_note": "modelled foot -35.17 against a true -24.52.",
+   "leverage_group": "envelope_height",
+   "expected_sigma_direction": "PREDICTION: sigma DOWN slightly at grazing / low-elevation aspects, because two plastic posts stop protruding 10.6 mm below the airframe where they currently present the lowest and most isolated scattering feature. Order -0.1 to -0.3 dB at the lowest elevations, ~0 elsewhere. This partly cancels F1's increase, so the package's net mean change is expected to be small - which is the honest prediction, not a hedge.",
+   "confidence": "high",
+   "risk": "Shared branch with mini5pro and mavic4pro (both gear='motor_legs'); mavic4pro has rotor_z_mm=None so it is untouched by construction, mini5pro is not and needs the gate."
+  },
+  {
+   "id": "F5",
+   "constant": "ARM_TIP_OVERHANG['mini2']  (arm-end fairing reach beyond the motor axis)",
+   "where": "src/drone_cad.py:319  ARM_TIP_OVERHANG = {'phantom3': 0.0139}   (consumed at src/drone_cad.py:1881)",
+   "old": null,
+   "old_effective": 0.0,
+   "new": [0.01509, 0.00930, 0.00930, 0.01509],
+   "new_scalar_fallback": 0.01509,
+   "unit": "m, per rotor in rotor_deg order (front-L, rear-L, rear-R, front-R)",
+   "source": "official CAD",
+   "evidence": "Radial profile of each arm assembly along its OWN axis. Front (polySurface201, axis 63.14 deg, hub r 98.43): structure continues to s = 113.52 mm, i.e. 15.09 mm past the motor axis, with transverse width tapering 19.4 -> 13.4 -> 10.6 -> 7.0 mm over s 98..114 and z from +8.6 to +19.1. The widest vertex of the entire aircraft is (50.34, 101.72, 13.11) at s = 113.49 - it is this fairing, not the motor bell, that carries the published 203 mm width. Rear (polySurface101, axis 133.69 deg, hub r 116.92): structure continues to s = 126.22, i.e. 9.30 mm past the motor axis, and it is this fairing that sets the aircraft's rearmost point at X = -90.28 mm. Our motor bells stop at |Y| = 96.911 and X = -89.878.",
+   "rel_err_pct": -4.72,
+   "rel_err_note": "modelled frame width 193.821 mm against the CAD's 203.43 mm.",
+   "leverage_group": "width",
+   "expected_sigma_direction": "PREDICTION: sigma UP at the azimuths where a front arm tip is broadside (roughly +-60 deg from the nose), order +0.1 to +0.4 dB, because ~2 x (14 x 10 x 15 mm) of moulded plastic appears where there was nothing. Plastic group |Gamma| ~ 0.28, so the effect is modest. Near-nose and near-tail aspects: ~0.",
+   "confidence": "medium",
+   "risk": "TWO risks, both declared. (a) ARM_TIP_OVERHANG is currently a per-key SCALAR; the Mini 2 needs different values front and rear, so the engine must accept a per-rotor tuple. That is the same generalisation already made for r_motor in _gear_motor_legs (src/drone_cad.py:1422-1423), and a scalar entry must keep behaving exactly as today. If the tuple is refused, use the front value 0.01509 for all four and accept that the rearmost point overshoots to about X = -96 mm (+3.6 % on length) - which would be WORSE than doing nothing, so in that case skip the record. (b) _arm_folding sweeps a constant 2*arm_r1 = 9.0 mm wide tip section, while the real fairing has tapered to 6.96 mm by s = 113.5. The measured 15.09 mm overhang therefore lands the mesh's max |Y| at about 103.3 mm against a true 101.72 - the width error goes from -4.7 % to +1.6 %, not to zero. An overhang of 13.33 mm would hit 101.72 exactly, and it is REJECTED here: that number is solved from the envelope, not measured on the part, and this repository's whole claim rests on shape constants being measurements. The +1.6 % is recorded as a residual to be removed later by tapering the tip section, not by bending the overhang."
+  },
+  {
+   "id": "F6",
+   "constant": "NEW PART - propeller-mount screw heads (the aircraft's highest points), 2 per rotor, 8 total",
+   "where": "src/drone_cad.py:2041-2066, mini2 branch (add after the belly-vision lenses); group 'motor'",
+   "old": "not modelled",
+   "new": "per rotor k: two square posts, section 3.79 x 3.79 mm, at radius 5.0 mm from the motor axis and 180 deg apart in azimuth, standing from the motor-bell top (MOTOR_BASE_Z + dz_k + motor_h) up by 5.47 mm.",
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "Four separate GLB parts, two per front rotor and two per rear rotor. Front-left: polySurface72 at hub-relative (dx +0.96, dy -4.56), r 4.66, size 3.79 x 3.78 x 0.86, z [30.60, 31.46]; polySurface73 at (dx -1.73, dy +5.05), r 5.34, z [30.22, 31.07]. The two are 187 deg apart. Rear-left: polySurface94 r 5.54 z [8.57, 9.56] and polySurface98 r 4.49 z [9.17, 10.16], 192.6 deg apart, size 3.78 x 3.82 x 0.99. Stand above their own bell top: front 5.47 and 5.08 mm (bell top 25.99), rear 4.73 and 5.33 mm (bell top 4.83). z = +31.46 IS the highest non-propeller point of the aircraft and is what makes the props-excluded height 55.98 = the published 56. CORROBORATED BY PHOTOGRAPH, not measured from it: assets/photos/mini2/mini2_t28_fcc_mt2wd_propeller_motor_view.jpg (FCC exhibit, ruler in frame) shows the mounted propeller held by exactly two cross-head screws, diametrically opposite, one at each end of the prop hub, standing proud of the hub face - and shows they are STEEL, which is why the group is 'motor' (metal) and not the plastic body group.",
+   "rel_err_pct": -15.3,
+   "rel_err_note": "modelled top +26.647 mm (the fuselage crown) against a true +31.46 mm.",
+   "leverage_group": "envelope_height",
+   "expected_sigma_direction": "PREDICTION: negligible in its own right, |dsigma| < 0.1 dB. At the Das band (21-27 GHz, lambda 11-14 mm) a 3.8 mm square post is roughly 0.3 lambda - a Rayleigh-regime scatterer, and there are only eight of them. Its whole value is that it removes the need for a 9.4 % vertical squash. If a later round finds these eight posts moving sigma by more than a few tenths of a dB, that is evidence the model is over-sensitive to sub-wavelength detail and should be reported as such.",
+   "confidence": "medium-high",
+   "risk": "The CAD shows the screw heads FLOATING 4.6 mm above the bell top, because the propeller hub that fills the gap belongs to the blade meshes. Building them as floating boxes would add an interior surface with no support, so the spec builds a solid post from the bell top to the measured head top. That post's shank is 4.6 mm of geometry the CAD does not draw - declared. Second, azimuth: the screws rotate with the motor, so their absolute azimuth in the CAD is an arbitrary frozen pose. Aligning them with the arm axis (ang, ang+180) is a JUDGED choice; at r = 5.0 mm they stay well inside the 9.1 mm bell radius so it cannot change any silhouette."
+  },
+  {
+   "id": "F7",
+   "constant": "belly downward-vision lens lateral offset",
+   "where": "src/drone_cad.py:2064-2066  for dy in (-0.1485, 0.1485): cyl(0.0032, 0.004, center=(-0.2971*bl, dy*bw, -0.33*bh))",
+   "old": 0.1485,
+   "new": 0.10770,
+   "unit": "fraction of bw (bw = 66.85 mm) -> +-9.93 mm becomes +-7.20 mm",
+   "source": "official CAD",
+   "evidence": "GLB part pSphere3 contains both lenses (618 vertices). Splitting on the sign of y gives two identical bodies at centre (-40.90, +-7.20, -14.65), each 6.40 mm in x by 6.44 mm in y by 3.02 mm tall; the y histogram is empty between -3.98 and +3.98, confirming two separate bodies rather than one. The modelled x (-0.2971*bl = -40.90) is exact and the modelled radius (3.2) matches 3.22; only the lateral offset is wrong. Two smaller items in the same call, listed but NOT promoted to records because their leverage is negligible: z centre -0.33*bh = -14.78 against a measured -14.65 (use -0.32701), and cylinder length 4.0 mm against a measured 3.02 mm.",
+   "rel_err_pct": 37.9,
+   "leverage_group": "detail",
+   "expected_sigma_direction": "PREDICTION: no measurable change. Two 6.4 mm plastic-lens cylinders move 2.7 mm on the belly. Recorded because it is a free, CAD-backed correction, not because it is expected to matter.",
+   "confidence": "high",
+   "risk": "None beyond the mini2 branch - the literal is inside the key == 'mini2' block."
+  },
+  {
+   "id": "F8",
+   "constant": "number of landing prongs per front arm",
+   "where": "src/drone_cad.py:2140-2142 (_gear_motor_legs call) and src/drone_cad.py:1428 (for s in (+1.0, -1.0))",
+   "old": 2,
+   "new": 1,
+   "unit": "count per front arm (keep the OUTER prong, s = +1.0)",
+   "source": "official CAD",
+   "evidence": "The real aircraft has ONE post per front arm: polySurface202, centre (49.74, +-94.90), which is at radius 107.15 mm and azimuth 62.35 deg, i.e. 8.72 mm OUTBOARD of the motor axis (98.43). The engine's outer prong sits at r_motor + 0.95*mot_r = 107.08 mm - 0.07 mm from the real post. The inner prong at r = 89.79 mm, (40.6, +-80.1), corresponds to nothing on the aircraft. Needs a per-key opt-in (e.g. GEAR_LEG_N_PRONG = {'mini2': 1}) so mini5pro and mavic4pro, whose photographs show two prongs, are untouched.",
+   "rel_err_pct": 100.0,
+   "rel_err_note": "one modelled body out of two has no physical counterpart.",
+   "leverage_group": "detail",
+   "expected_sigma_direction": "PREDICTION: sigma DOWN slightly at low elevation from deleting a spurious body, partly offset by F9 fattening the surviving one. Net expected |dsigma| < 0.2 dB. Direction is stated as DOWN because deletion is the larger of the two effects at grazing incidence, where the inner prong is separately visible.",
+   "confidence": "high",
+   "risk": "Shared helper used by mini5pro and mavic4pro; must be key-gated. If F8 lands without F9 the aircraft loses a body and gains nothing, so the two should be applied together."
+  },
+  {
+   "id": "F9",
+   "constant": "landing prong half-width w",
+   "where": "src/drone_cad.py:2142  w=arm_r1 * 0.62",
+   "old": 2.79,
+   "new": 4.77,
+   "unit": "mm (half-width; the helper builds 2w x 1.7w, so 9.54 x 8.11 mm at the root)",
+   "source": "official CAD",
+   "evidence": "polySurface202 section measures 9.16 mm fore-aft by 9.53 mm laterally (37.25 mm long). The engine builds 2w x 1.7w = 5.58 x 4.74 mm from w = 0.62*arm_r1. Setting w = 4.77 reproduces the 9.53 mm lateral dimension exactly; the 1.7 aspect then gives 8.11 mm against a true 9.16 (-11 %), which a second per-key knob could close but which is not worth a record on its own.",
+   "rel_err_pct": -41.5,
+   "leverage_group": "detail",
+   "expected_sigma_direction": "PREDICTION: sigma UP slightly at low elevation - the surviving post's projected area roughly triples. Combined with F8 the net is expected to be near zero, order +-0.2 dB.",
+   "confidence": "medium",
+   "risk": "Same shared call site as F8 - the expression w=arm_r1*0.62 is read by mini5pro and mavic4pro too. Needs a per-key table, not an edit to the expression."
+  }
+ ],
+
+ "documentation_corrections": [
+  {
+   "id": "D1",
+   "where": "src/drones.py:855-860 ('*** ENGINE LIMIT, DECLARED: rotor_z_mm moves the PROPELLERS only ...') and src/drones.py:918-921 ('NOT MODELLED, declared: the outboard nacelle structure ... and the propeller-holder clips that are the aircraft's highest points') and the envelope comment block src/drones.py:936-952",
+   "what": "These paragraphs describe the defects F1-F6 fix. If the patch lands they become false and must be rewritten in the same pass.",
+   "tone_rule": "per the repository's tone policy, the rewrite states the CURRENT state and its remaining limits - it does not narrate the bug or the fix."
+  },
+  {
+   "id": "D2",
+   "where": "outputs/mini2_mesh_audit.json, known_defects_declared[1].consequence",
+   "claim": "'The two small rear pads at the rear-arm roots are not modelled at all', located at (x -47, y +-26, down to z -19.8).",
+   "finding": "NOT REPRODUCED. Searching every non-propeller part with x < -20 for its lowest z gives: Default_4 (fuselage shell) -20.13, pSphere3 -16.16, polySurface10 -15.94, polySurface101/21 (rear arms) -14.90, Mesh/zengjia_3:Mesh -14.80, Default_23 -14.44. Nothing at (x -47, y +-26) reaches -19.8 except the fuselage shell itself, whose belly is the lowest structure in the rear half. There appear to be no separate rear landing pads on this airframe.",
+   "action": "correct the audit entry; do NOT add rear pads to the mesh.",
+   "why_it_matters": "an unverified 'declared defect' is a false debt - it invites a later round to model a part that does not exist."
+  },
+  {
+   "id": "D3",
+   "where": "src/drones.py:874-877 (prop_pitch_in note: '4726F ... that designation was NOT the source and was not found in any DJI document')",
+   "finding": "The designation IS legible on a DJI-submitted federal exhibit: assets/photos/mini2/mini2_t28_fcc_mt2wd_propeller_motor_view.jpg shows '4726 F' printed on both propeller blades of the certification unit.",
+   "action": "upgrade the corroboration sentence only. prop_pitch_in STAYS 2.6 with its measured band 2.0-3.0 - the value was derived from blade twist on the CAD and must not be re-sourced to a part number after the fact.",
+   "why_it_matters": "the note currently understates the strength of an independent check, which is an error in the conservative direction but still an error."
+  }
+ ],
+
+ "do_not_touch": [
+  {"item": "envelope_mm = (None, None, 56.0)", "where": "src/drones.py:935",
+   "why": "height-only forcing is the house rule shared with mini5pro/mavic4pro/matrice4e/typhoonh480/phantom3/m350rtk. After the patch the free length and width land within 0.6 % and 1.6 % of the CAD, which will look like an invitation to force them too. Forcing L/W converts frame_fit_scale into an anisotropic squash and manufactures a 0 % agreement that is a constraint, not evidence."},
+  {"item": "diagonal_mm 213.0, rotor_deg, rotor_r_mm", "where": "src/drones.py:806, 925-926",
+   "why": "the modelled motor-to-motor diagonal already reproduces the CAD's 213.05 mm to +0.02 %. Nothing in this round touches the planform."},
+  {"item": "body_l_mm 159 / body_w_mm 203 / body_h_mm 56", "where": "src/drones.py:807",
+   "why": "these are the PUBLISHED envelope, VERIFIED grade, used as the denominators of the shell ratios. Replacing them with the CAD's 159.11 / 203.43 / 55.98 would silently rescale every shell ratio for a 0.2 % gain and would demote a manufacturer-published number to a measured one."},
+  {"item": "_SHELL_SHAPE['mini2'] fl / fw / fh / npow / hw / hh / zo", "where": "src/drone_cad.py:516-521",
+   "why": "the built shell's bounding box is 48.36 mm tall against the CAD's 46.16 (+4.8 %), and the temptation is to shave fh to absorb it. Do not. The 22 station numbers ARE the measurement; the +4.8 % is spline overshoot in the loft, an engine artefact. Retuning fh would corrupt a measurement to patch the engine. After F1/F3/F6 the shell no longer sets the bounding box at all, so this residual stops touching the fit scale."},
+  {"item": "_ARM_WIDTH['mini2'] = (9.9, 9.0) and _ARM_SECTION['mini2'] = (2.95, 1.00)", "where": "src/drone_cad.py:528, 531",
+   "why": "F5 moves the arm TIP outboard to s = 113.5 mm where the real fairing has narrowed to 6.96 mm, which argues for arm_r1 = 3.48. Resist it: arm_r1 also feeds z_arm = 0.012*diag - arm_r1*h_ratio/2, and at 4.5 that expression lands the landing-post attachment at +6.549 mm against a CAD-measured arm underside of +6.56..+6.81. Narrowing the tip lifts the foot 1.5 mm and re-breaks the height that F4 just fixed."},
+  {"item": "gear_h_mm 30.8", "where": "src/drones.py:922",
+   "why": "measured front-arm underside to foot. With F4 it lands the foot at -24.54 against a CAD -24.52. It is the correct number sitting on the wrong plane, and the plane is what F4 moves."},
+  {"item": "prop_dia_mm 119.1, prop_pitch_in 2.6, prop_blades 2", "where": "src/drones.py:808-809",
+   "why": "re-measured this round as 118.59 (front) / 119.87 (rear), mean 119.23 = +0.1 % on the registered value. Inside the noise."},
+  {"item": "motor_dia_mm 18.2, motor_h_mm 7.1", "where": "src/drones.py:929",
+   "why": "the front bell measures 18.20 x 18.13 x 7.11 mm. Exact. The rear bell is 7.75 mm tall, which will look like a reason to average to 7.4 - it is not worth splitting a per-rotor knob for 0.3 mm."},
+  {"item": "prop_z (0.0178925 m, from _arm_motor_dims) and rotor_z_mm = +-10.63", "where": "src/drones.py:1097-1121, 927",
+   "why": "the propellers are ALREADY right - the modelled front propeller plane lands within about 0.5-0.9 mm of the CAD's. F2 and F3 raise the bells by 5 mm; do not chase that with prop_z, and do not retune rotor_z_mm to the bells' +-10.905 or the arms' +-10.72, because rotor_z_mm is what positions the propellers."},
+  {"item": "hubf 0.20, cx0 -0.06, cfrac 0.62, cfh 0.85, ndrop 0.0", "where": "src/drone_cad.py:518",
+   "why": "engine handles, not features. hubf is chosen so both arm roots stay buried in the shell (verified again after F1: the front root at z +10.63 and the rear at -10.63 both remain inside their shell stations); the canopy trio is chosen so a part the Mini 2 does not have stays buried. Changing any of them creates geometry the aircraft lacks."},
+  {"item": "the 'magnesium structural plate' of the shell-v2 path", "where": "shared v2 shell path",
+   "why": "same declared bias as phantom3, and here it has a real counterpart (the finned metal heatsink over the SoC). Out of scope for a CAD-driven round - the CAD models no interior."},
+  {"item": "hover_rpm 9200, weight_g 249, max_speed_ms 16", "where": "src/drones.py:806, 809",
+   "why": "not shape. hover_rpm is a cross-airframe C_T transfer and weight_g is a regulatory ceiling; both are already declared as such and neither is touched by a geometry round."},
+  {"item": "mini5pro's mesh", "where": "src/drones.py:221 rotor_z_mm=(-12, +2, +2, -12)",
+   "why": "mini5pro is the only OTHER airframe carrying rotor_z_mm. Every shared-code record here (F1, F2, F4, F8, F9) must be key-gated so mini5pro stays bit-identical. Verify with a byte comparison of its frame mesh before and after."},
+  {"item": "the 20 GLB renders assets/photos/mini2/mini2_d20..d49", "where": "assets/photos/mini2/",
+   "why": "they are renders OF the artefact the shape is measured from. They are deliberately not registered as photo evidence; scoring the mesh against them would be circular."}
+ ],
+
+ "verification_after_apply": [
+  "frame_fit_scale(DRONES['mini2']) -> expect (1.0, 1.0, 1.005 +- 0.002). If |sz - 1| > 2 % the package landed only partially - see envelope_forcing.warning_partial_application_is_worse_than_none.",
+  "frame_envelope_mm(DRONES['mini2'])['lwh_mm'] -> expect about (159.9, 206.6, 56.0) against the CAD's (159.11, 203.43, 55.98).",
+  "raw frame z range -> expect about (-24.54, +31.19) against the CAD's (-24.52, +31.46).",
+  "wheelbase_opposite_mm must stay 213.05 and diagonal_effective_mm 215.35 - if either moves, a planform constant was touched by accident.",
+  "byte-compare the frame mesh of all NINE other airframes before and after. Any difference means a shared-code gate is missing.",
+  "silhouette IoU on mini2_d05 and mini2_d06 is a SECONDARY check, not the acceptance test. It was 0.7048 / 0.6779 (77.3 % / 74.3 % of the 0.9121 self-replication ceiling) and both views currently show the mesh as the SMALLER silhouette (photo-only 21-22 % against mesh-only 8-10 %), which F1/F4/F5 are expected to reduce.",
+  "ONLY AFTER the geometry checks pass, recompute sigma - and record the outcome against the expected_sigma_direction predictions above, including where they were wrong."
+ ],
+
+ "methodology_guard": {
+  "rule": "shape constants come from CAD, photographs and published specification. They are never chosen to move sigma, and no sigma file was opened while this specification was written.",
+  "why_it_matters_here": "in the phantom3 round the silhouette IoU improved while the sigma proxy went the other way, and that disagreement is the evidence that the meshes are not being tuned toward the published RCS. A record that improved both would be weaker, not stronger. The predictions in expected_sigma_direction are written down now so that a later sigma run can falsify them.",
+  "specific_temptation_resisted": "F5's overhang of 15.09 mm (measured on the part) is kept instead of 13.33 mm (solved from the target width), even though 13.33 would make the width error zero."
+ },
+
+ "counts": {"n_fixes": 9, "n_from_cad": 9, "n_from_photo": 0, "n_from_published_spec": 0,
+            "n_documentation_corrections": 3,
+            "photo_note": "F6 is corroborated by mini2_t28 but its numbers are CAD; no record takes its VALUE from a photograph this round, because the manufacturer's own CAD reproduces the published table to <= 0.25 % and a pixel measurement would be a downgrade."}
+}

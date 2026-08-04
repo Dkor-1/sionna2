@@ -1,0 +1,826 @@
+{
+ "_meta": {
+  "drone": "x500v2",
+  "name": "Holybro X500 V2",
+  "generated": "2026-08-04 04:47:26",
+  "generator": "scratch x500/{worker.py, calib.py, dump_masks.py, propcheck*.py, figure.py}",
+  "purpose": "다듬은 x500v2 메쉬를 사진 실루엣으로 채점하고, 정정 **전** 메쉬와 같은 자로 나란히 놓는다.",
+  "scope": "측정만 했다. 형상 상수는 한 개도 바꾸지 않았다 — src/viz_mesh_photo.py 의 **사진 등록부**만 넓혔다(전기체 뷰 4번째 등록 + 제외 사유 실측 기록).",
+  "sigma_firewall": "⛔ σ 파일(das_fleet_* · p3_* · phantom3/* · rcs_anchor.json · lowfreq_*) 을 열지 않았다. 이 라운드의 근거는 CAD·사진·공표제원뿐이고, IoU 를 σ 로 검증하지도, σ 를 보고 메쉬를 맞추지도 않았다.",
+  "mesh_fingerprints": {
+   "method": "build_drone(spec) → 꼭짓점 float32 + 삼각형 int32 의 sha256",
+   "before": "a23407feae5c29534e4e167be169e002d7700317e1fe528949b0a2ad6dd87cd7",
+   "after": "8983310d56320b23ca96f5cc67711174f10d7ece081a0f92b8ad9200df9b0800",
+   "note": "before 는 git HEAD 의 drones.py·drone_cad.py 로 지은 것이고 지문이 outputs/meshfix_applied.json 의 sha_before 와 **바이트 단위로 일치**한다. 그래서 이 대조는 진짜 전/후다(다른 라운드의 편집이 섞이지 않았다).",
+   "cross_check": "정정 전 판의 IoU 3건이 2026-07-31 원장(mesh_compare_photo.json)의 값과 소수점 4자리까지 같다: _09 0.7092 · _03 0.8748 · _01 0.7033. 파이프라인이 결정적이라는 뜻이고, 재구성이 옳다는 독립 증거다."
+  },
+  "photo_registry": {
+   "n_files_in_folder": 16,
+   "n_whole_aircraft_views": 4,
+   "registered": [
+    "x500v2_03_top_ortho.jpg",
+    "x500v2_02_frame_front34.jpg",
+    "x500v2_01_arf_front34_props.jpg",
+    "x500v2_09_arf_iso34_props.jpg"
+   ],
+   "newly_registered_this_round": [
+    "x500v2_02_frame_front34.jpg"
+   ],
+   "excluded_with_evidence": [
+    {
+     "file": "x500v2_04_dimensioned_drawing.jpg",
+     "reason": "치수 화살표·지시선이 정리 후에도 기체 성분에 붙어 남는다(실측: 실루엣이 화면의 6.2 %)"
+    },
+    {
+     "file": "x500v2_15_built_aircraft_field.jpg",
+     "reason": "자갈 배경이라 임계값이 0.87 로 올라가고 실루엣이 **빈다**(면적 0.0000). 게다가 GoPro·컴패니언 컴퓨터가 달린 사용자 빌드다"
+    },
+    {
+     "file": "x500v2_16_payload_gps_mast.png",
+     "reason": "제목 글자·빨간 지시선·라즈베리파이/뎁스카메라 사진이 함께 잡힌다(면적 11.4 % ↔ 깨끗한 ARF 뷰 7.4 %)"
+    },
+    {
+     "file": "x500v2_05/06/07/08/10/11/12/13/14",
+     "reason": "부품 클로즈업·조립 단계. 전기체 실루엣이 아니다(_12 는 손도 들어온다)"
+    }
+   ]
+  },
+  "method": {
+   "fitted_dof": "카메라 방위·고각·화면 롤(합쳐서 SO(3)) · 원근 q · 등방 배율 · 이동 · 로터별 프로펠러 위상. **형상은 자유도가 아니다**.",
+   "headline": "사진 4장 중 IoU 최고인 사진(=원장의 best_iou 관례). 전 값은 같은 사진을 같은 코드로 잰 값이다.",
+   "ceiling": "메쉬 자신을 가짜 사진으로 넣었을 때의 IoU. 메쉬가 바뀌면 천장도 바뀌므로 전·후를 따로 쟀다.",
+   "free_iou_gain": "시선방향 구속을 푼 정합이 사는 IoU. 크게 양수면 '맞는 각도보다 틀린 각도에 더 잘 맞는다'(형상 차이), 0 이하면 개선이 자세맞춤으로 산 것이 아니라는 뜻이다.",
+   "free_branch_caveat": "_02 의 −0.168 은 형상 정보가 아니라 자유갈래 탐색이 나쁜 국소 최적에 앉은 것이다(자유 최적은 정의상 구속 최적보다 낮을 수 없다). 자유갈래는 IoU 의 **하한**으로만 읽어야 한다."
+  }
+ },
+ "headline": {
+  "file": "x500v2_03_top_ortho.jpg",
+  "iou_before": 0.8747763621577663,
+  "iou_after": 0.8876387556530081,
+  "delta": 0.012862393495241764,
+  "ceiling_before": 0.957419250384522,
+  "ceiling_after": 0.9547817866708681,
+  "pct_of_ceiling_before": 91.36816100223967,
+  "pct_of_ceiling_after": 92.9677092760667,
+  "free_iou_gain": 0.0,
+  "mean_iou_before": 0.7718224295095222,
+  "mean_iou_after": 0.7790019223535618,
+  "improved": true,
+  "reading": "네 뷰 중 셋이 올랐고 하나(ARF 아이소 3/4)가 0.005 내렸다. 헤드라인은 0.8748 → 0.8876, 천장 대비 91.4 → 93.0 %. free_iou_gain 은 네 뷰 모두 0 이하라 이 상승은 자세맞춤으로 산 것이 아니다."
+ },
+ "per_photo": {
+  "0": {
+   "before": {
+    "file": "x500v2_09_arf_iso34_props.jpg",
+    "expect": [
+     150,
+     28
+    ],
+    "window_deg": 30.0,
+    "compared_against": "full drone",
+    "iou": 0.709221946951716,
+    "mesh_only_frac": 0.0977807037300116,
+    "photo_only_frac": 0.19299734931827237,
+    "contour_mean_mm": 7.7374823940126145,
+    "contour_p95_mm": 35.41044466838437,
+    "aspect_err_pct": -5.6516875219905724,
+    "fill_ratio": 0.8944639668183652,
+    "radial_ratio": {
+     "median": 0.9946256642987248,
+     "p10": 0.5298726759465805,
+     "p90": 1.056880934136429,
+     "n_directions": 180,
+     "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+    },
+    "clipped_frac": 0.025700833333333332,
+    "fit": {
+     "azim": 123.0,
+     "elev": 35.75,
+     "roll": 2.0,
+     "q": 0.5,
+     "phases": [
+      148.5,
+      6.0,
+      46.0,
+      -2.5
+     ],
+     "mm_per_px": 1.1109526328252919
+    },
+    "fit_delta_deg": 24.109894630815965,
+    "fit_at_window_edge": false,
+    "free_iou_gain": -0.0040526726058838225,
+    "free_delta_deg": 112.29663494870637,
+    "free_iou": 0.7051692743458322,
+    "blobs": [
+     {
+      "side": "photo only",
+      "part": "motor",
+      "area_frac": 0.034597460196462294,
+      "area_mm2": 2464.7288575057514,
+      "centroid": [
+       304.7270906359539,
+       636.4646970455683
+      ]
+     },
+     {
+      "side": "mesh only",
+      "part": "accent",
+      "area_frac": 0.02759827445816947,
+      "area_mm2": 1966.1056935436466,
+      "centroid": [
+       259.0087884494664,
+       338.56497175141243
+      ]
+     },
+     {
+      "side": "photo only",
+      "part": "prop",
+      "area_frac": 0.026766688033817848,
+      "area_mm2": 1906.863337429337,
+      "centroid": [
+       473.2576051779935,
+       407.00129449838187
+      ]
+     },
+     {
+      "side": "photo only",
+      "part": "deck",
+      "area_frac": 0.02638554425599002,
+      "area_mm2": 1879.7105908769452,
+      "centroid": [
+       439.1582403151674,
+       491.2107682206172
+      ]
+     }
+    ],
+    "pct_of_ceiling": 74.07642437384415
+   },
+   "after": {
+    "file": "x500v2_09_arf_iso34_props.jpg",
+    "expect": [
+     150,
+     28
+    ],
+    "window_deg": 30.0,
+    "compared_against": "full drone",
+    "iou": 0.7044678870617437,
+    "mesh_only_frac": 0.1023373668424863,
+    "photo_only_frac": 0.19319474609576998,
+    "contour_mean_mm": 8.270629185463111,
+    "contour_p95_mm": 37.007266537208,
+    "aspect_err_pct": -4.867294656060487,
+    "fill_ratio": 0.8987844921942508,
+    "radial_ratio": {
+     "median": 0.9964364663254794,
+     "p10": 0.5398140948540014,
+     "p90": 1.0579073507614756,
+     "n_directions": 180,
+     "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+    },
+    "clipped_frac": 0.02518164568196193,
+    "fit": {
+     "azim": 122.5,
+     "elev": 35.5,
+     "roll": 2.1875,
+     "q": 0.45687500000000014,
+     "phases": [
+      149.5,
+      6.0,
+      48.5,
+      -2.5
+     ],
+     "mm_per_px": 1.1132837476427875
+    },
+    "fit_delta_deg": 24.463420743131266,
+    "fit_at_window_edge": false,
+    "free_iou_gain": -0.003451040802827321,
+    "free_delta_deg": 112.83664230336245,
+    "free_iou": 0.7010168462589164,
+    "blobs": [
+     {
+      "side": "photo only",
+      "part": "motor",
+      "area_frac": 0.03473299548384873,
+      "area_mm2": 2497.3924160726233,
+      "centroid": [
+       304.7727047146402,
+       637.2049627791563
+      ]
+     },
+     {
+      "side": "photo only",
+      "part": "deck",
+      "area_frac": 0.032078463819078154,
+      "area_mm2": 2306.5247078467255,
+      "centroid": [
+       440.6824288017195,
+       494.62170875873187
+      ]
+     },
+     {
+      "side": "mesh only",
+      "part": "accent",
+      "area_frac": 0.02951011824731961,
+      "area_mm2": 2121.8540031346556,
+      "centroid": [
+       259.7178738317757,
+       339.60630841121497
+      ]
+     },
+     {
+      "side": "photo only",
+      "part": "prop",
+      "area_frac": 0.029113662219464268,
+      "area_mm2": 2093.3477869710473,
+      "centroid": [
+       474.9366489046773,
+       408.17110716400236
+      ]
+     }
+    ],
+    "pct_of_ceiling": 73.78313001948659
+   }
+  },
+  "1": {
+   "before": {
+    "file": "x500v2_03_top_ortho.jpg",
+    "expect": [
+     0,
+     85
+    ],
+    "window_deg": 20.0,
+    "compared_against": "frame only (photo has no propellers)",
+    "iou": 0.8747763621577663,
+    "mesh_only_frac": 0.07279750609921389,
+    "photo_only_frac": 0.052426131743019785,
+    "contour_mean_mm": 2.1802686169231045,
+    "contour_p95_mm": 6.7918113946235685,
+    "aspect_err_pct": 0.634249471458781,
+    "fill_ratio": 1.0219707933166688,
+    "radial_ratio": {
+     "median": 1.0,
+     "p10": 0.943641934056138,
+     "p90": 1.070258602728384,
+     "n_directions": 180,
+     "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+    },
+    "clipped_frac": 0.0,
+    "fit": {
+     "azim": 180.0,
+     "elev": 86.75,
+     "roll": 0.375,
+     "q": 0.48312499999999997,
+     "phases": [],
+     "mm_per_px": 0.9244027762103518
+    },
+    "fit_delta_deg": 8.250000000000034,
+    "fit_at_window_edge": false,
+    "free_iou_gain": 0.0,
+    "free_delta_deg": 8.250000000000034,
+    "free_iou": 0.8747763621577663,
+    "blobs": [
+     {
+      "side": "mesh only",
+      "part": "gear",
+      "area_frac": 0.010734616427216048,
+      "area_mm2": 676.7802301910014,
+      "centroid": [
+       466.864898989899,
+       320.0441919191919
+      ]
+     },
+     {
+      "side": "mesh only",
+      "part": "gear",
+      "area_frac": 0.010653293575494714,
+      "area_mm2": 671.653107235009,
+      "centroid": [
+       441.74045801526717,
+       536.1412213740458
+      ]
+     },
+     {
+      "side": "photo only",
+      "part": "accent",
+      "area_frac": 0.007888316616969369,
+      "area_mm2": 497.3309267312662,
+      "centroid": [
+       263.8264604810997,
+       463.2182130584192
+      ]
+     },
+     {
+      "side": "photo only",
+      "part": "accent",
+      "area_frac": 0.00712930333423692,
+      "area_mm2": 449.47777914200344,
+      "centroid": [
+       263.40304182509504,
+       377.91634980988596
+      ]
+     }
+    ],
+    "pct_of_ceiling": 91.36816100223967
+   },
+   "after": {
+    "file": "x500v2_03_top_ortho.jpg",
+    "expect": [
+     0,
+     85
+    ],
+    "window_deg": 20.0,
+    "compared_against": "frame only (photo has no propellers)",
+    "iou": 0.8876387556530081,
+    "mesh_only_frac": 0.06250513909825955,
+    "photo_only_frac": 0.04985610524873236,
+    "contour_mean_mm": 1.9211693815987103,
+    "contour_p95_mm": 6.6601378102859705,
+    "aspect_err_pct": 0.6276150627614996,
+    "fill_ratio": 1.0134923767340556,
+    "radial_ratio": {
+     "median": 0.99295592126765,
+     "p10": 0.9333302809364885,
+     "p90": 1.038164708528565,
+     "n_directions": 180,
+     "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+    },
+    "clipped_frac": 0.0,
+    "fit": {
+     "azim": 180.0,
+     "elev": 87.5,
+     "roll": 0.375,
+     "q": 0.5075,
+     "phases": [],
+     "mm_per_px": 0.923594937563174
+    },
+    "fit_delta_deg": 7.4999999999999645,
+    "fit_at_window_edge": false,
+    "free_iou_gain": 0.0,
+    "free_delta_deg": 7.4999999999999645,
+    "free_iou": 0.8876387556530081,
+    "blobs": [
+     {
+      "side": "mesh only",
+      "part": "gear",
+      "area_frac": 0.011717144031793887,
+      "area_mm2": 729.3386054319365,
+      "centroid": [
+       466.9391812865497,
+       320.1099415204678
+      ]
+     },
+     {
+      "side": "photo only",
+      "part": "gear",
+      "area_frac": 0.009291489653282171,
+      "area_mm2": 578.3527186933952,
+      "centroid": [
+       479.79498525073745,
+       297.67846607669617
+      ]
+     },
+     {
+      "side": "photo only",
+      "part": "accent",
+      "area_frac": 0.00749623132794299,
+      "area_mm2": 466.6061019547008,
+      "centroid": [
+       263.3510054844607,
+       463.55941499085924
+      ]
+     },
+     {
+      "side": "mesh only",
+      "part": "gear",
+      "area_frac": 0.0066602713443881046,
+      "area_mm2": 414.5714178244691,
+      "centroid": [
+       443.18930041152265,
+       534.8292181069959
+      ]
+     }
+    ],
+    "pct_of_ceiling": 92.9677092760667
+   }
+  },
+  "2": {
+   "before": {
+    "file": "x500v2_01_arf_front34_props.jpg",
+    "expect": [
+     180,
+     25
+    ],
+    "window_deg": 26.0,
+    "compared_against": "full drone",
+    "iou": 0.7032743746044435,
+    "mesh_only_frac": 0.07431464641417675,
+    "photo_only_frac": 0.2224109789813797,
+    "contour_mean_mm": 9.78379997380958,
+    "contour_p95_mm": 55.701457076604896,
+    "aspect_err_pct": -12.522664820304216,
+    "fill_ratio": 0.8400143936667867,
+    "radial_ratio": {
+     "median": 0.9529423472684713,
+     "p10": 0.43148119903626436,
+     "p90": 1.0789894892508913,
+     "n_directions": 180,
+     "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+    },
+    "clipped_frac": 0.025701666666666668,
+    "fit": {
+     "azim": 179.75,
+     "elev": 29.875,
+     "roll": 0.0,
+     "q": 0.48874999999999996,
+     "phases": [
+      -8.0,
+      155.0,
+      4.5,
+      4.0
+     ],
+     "mm_per_px": 1.0087351673982219
+    },
+    "fit_delta_deg": 4.880041118379721,
+    "fit_at_window_edge": false,
+    "free_iou_gain": -0.009971036054626126,
+    "free_delta_deg": 124.74948030701493,
+    "free_iou": 0.6933033385498174,
+    "blobs": [
+     {
+      "side": "photo only",
+      "part": "motor",
+      "area_frac": 0.0358082675460511,
+      "area_mm2": 2187.7252715837253,
+      "centroid": [
+       384.38976744186044,
+       175.70511627906976
+      ]
+     },
+     {
+      "side": "photo only",
+      "part": "motor",
+      "area_frac": 0.03464241697478432,
+      "area_mm2": 2116.497006927511,
+      "centroid": [
+       380.1004807692308,
+       675.1927884615385
+      ]
+     },
+     {
+      "side": "mesh only",
+      "part": "accent",
+      "area_frac": 0.029296159355118083,
+      "area_mm2": 1789.8645361468712,
+      "centroid": [
+       245.00227401932918,
+       429.2217168845935
+      ]
+     },
+     {
+      "side": "photo only",
+      "part": "accent",
+      "area_frac": 0.0285300289797142,
+      "area_mm2": 1743.057390801359,
+      "centroid": [
+       475.3771161704612,
+       228.88149445417397
+      ]
+     }
+    ],
+    "pct_of_ceiling": 73.45521560403053
+   },
+   "after": {
+    "file": "x500v2_01_arf_front34_props.jpg",
+    "expect": [
+     180,
+     25
+    ],
+    "window_deg": 26.0,
+    "compared_against": "full drone",
+    "iou": 0.7164275859776267,
+    "mesh_only_frac": 0.07614567577001712,
+    "photo_only_frac": 0.2074267382523562,
+    "contour_mean_mm": 9.764852240736055,
+    "contour_p95_mm": 56.432406456020615,
+    "aspect_err_pct": -12.09280076536715,
+    "fill_ratio": 0.8578985246491544,
+    "radial_ratio": {
+     "median": 0.9385332891118787,
+     "p10": 0.45771572136301225,
+     "p90": 1.0372976807786292,
+     "n_directions": 180,
+     "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+    },
+    "clipped_frac": 0.025259145617378652,
+    "fit": {
+     "azim": 180.0,
+     "elev": 30.0,
+     "roll": -0.1875,
+     "q": 0.5000000000000001,
+     "phases": [
+      -8.0,
+      156.0,
+      4.5,
+      4.0
+     ],
+     "mm_per_px": 1.017502312170481
+    },
+    "fit_delta_deg": 4.999999999999992,
+    "fit_at_window_edge": false,
+    "free_iou_gain": -0.010106928218119982,
+    "free_delta_deg": 124.99882416316649,
+    "free_iou": 0.7063206577595067,
+    "blobs": [
+     {
+      "side": "photo only",
+      "part": "motor",
+      "area_frac": 0.03733315603131597,
+      "area_mm2": 2325.3084055415293,
+      "centroid": [
+       384.90516473731077,
+       677.0124666073019
+      ]
+     },
+     {
+      "side": "photo only",
+      "part": "motor",
+      "area_frac": 0.03555459516962817,
+      "area_mm2": 2214.5301333273956,
+      "centroid": [
+       384.01729780271154,
+       175.05984104721833
+      ]
+     },
+     {
+      "side": "mesh only",
+      "part": "accent",
+      "area_frac": 0.031050015790960922,
+      "area_mm2": 1933.9608644486093,
+      "centroid": [
+       244.25749464668095,
+       429.20182012847965
+      ]
+     },
+     {
+      "side": "photo only",
+      "part": "motor",
+      "area_frac": 0.02440119013979156,
+      "area_mm2": 1519.8364823396994,
+      "centroid": [
+       264.958446866485,
+       255.5217983651226
+      ]
+     }
+    ],
+    "pct_of_ceiling": 75.03574072937288
+   }
+  },
+  "3": {
+   "before": {
+    "file": "x500v2_02_frame_front34.jpg",
+    "expect": [
+     180,
+     30
+    ],
+    "window_deg": 26.0,
+    "compared_against": "frame only (photo has no propellers)",
+    "iou": 0.8000170343241632,
+    "mesh_only_frac": 0.1567157823013372,
+    "photo_only_frac": 0.04326718337449962,
+    "contour_mean_mm": 5.027748460082291,
+    "contour_p95_mm": 19.95535841441257,
+    "aspect_err_pct": -12.179201898828067,
+    "fill_ratio": 1.1345318654681344,
+    "radial_ratio": {
+     "median": 1.0100497044704415,
+     "p10": 0.9488734490868094,
+     "p90": 1.3005978343591713,
+     "n_directions": 180,
+     "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+    },
+    "clipped_frac": 0.0,
+    "fit": {
+     "azim": 179.5,
+     "elev": 37.5,
+     "roll": 0.5,
+     "q": 0.609375,
+     "phases": [],
+     "mm_per_px": 0.9679770651727198
+    },
+    "fit_delta_deg": 7.511475035399889,
+    "fit_at_window_edge": false,
+    "free_iou_gain": -0.018668954814373917,
+    "free_delta_deg": 112.37500000000001,
+    "free_iou": 0.7813480795097892,
+    "blobs": [
+     {
+      "side": "mesh only",
+      "part": "accent",
+      "area_frac": 0.033693893194787494,
+      "area_mm2": 1853.3456462293748,
+      "centroid": [
+       206.61425682507584,
+       421.0449949443883
+      ]
+     },
+     {
+      "side": "mesh only",
+      "part": "motor",
+      "area_frac": 0.020492291968316156,
+      "area_mm2": 1127.1864572365712,
+      "centroid": [
+       449.99002493765585,
+       687.5045719035744
+      ]
+     },
+     {
+      "side": "mesh only",
+      "part": "motor",
+      "area_frac": 0.019776850353462227,
+      "area_mm2": 1087.8333140911548,
+      "centroid": [
+       446.4866494401378,
+       156.7424633936262
+      ]
+     },
+     {
+      "side": "mesh only",
+      "part": "battery",
+      "area_frac": 0.012707605825738863,
+      "area_mm2": 698.9867806304923,
+      "centroid": [
+       444.89544235924933,
+       424.88605898123325
+      ]
+     }
+    ],
+    "pct_of_ceiling": 83.55973979036432
+   },
+   "after": {
+    "file": "x500v2_02_frame_front34.jpg",
+    "expect": [
+     180,
+     30
+    ],
+    "window_deg": 26.0,
+    "compared_against": "frame only (photo has no propellers)",
+    "iou": 0.8074734607218683,
+    "mesh_only_frac": 0.1591507430997877,
+    "photo_only_frac": 0.03337579617834395,
+    "contour_mean_mm": 4.820966389195215,
+    "contour_p95_mm": 18.523661219212492,
+    "aspect_err_pct": -14.0571362793585,
+    "fill_ratio": 1.1495808504191496,
+    "radial_ratio": {
+     "median": 1.000982516254762,
+     "p10": 0.9586017918018952,
+     "p90": 1.1304405540003226,
+     "n_directions": 180,
+     "definition": "max silhouette radius of the mesh over that of the photograph, measured from the photograph centroid in 180 directions"
+    },
+    "clipped_frac": 0.0,
+    "fit": {
+     "azim": 180.0,
+     "elev": 37.0,
+     "roll": 0.125,
+     "q": 0.5774999999999998,
+     "phases": [],
+     "mm_per_px": 0.9695727416092424
+    },
+    "fit_delta_deg": 6.9999999999999725,
+    "fit_at_window_edge": false,
+    "free_iou_gain": -0.1675733151008989,
+    "free_delta_deg": 62.750446850724664,
+    "free_iou": 0.6399001456209694,
+    "blobs": [
+     {
+      "side": "mesh only",
+      "part": "accent",
+      "area_frac": 0.03643312101910828,
+      "area_mm2": 2016.4529412277168,
+      "centroid": [
+       207.99254079254078,
+       420.404662004662
+      ]
+     },
+     {
+      "side": "mesh only",
+      "part": "motor",
+      "area_frac": 0.017715498938428876,
+      "area_mm2": 980.4943672263444,
+      "centroid": [
+       443.73633748801535,
+       164.1869606903164
+      ]
+     },
+     {
+      "side": "mesh only",
+      "part": "motor",
+      "area_frac": 0.01654352441613588,
+      "area_mm2": 915.6294474385996,
+      "centroid": [
+       444.1868583162218,
+       676.0328542094455
+      ]
+     },
+     {
+      "side": "mesh only",
+      "part": "accent",
+      "area_frac": 0.013656050955414013,
+      "area_mm2": 755.8173262224169,
+      "centroid": [
+       482.1256218905473,
+       634.4689054726368
+      ]
+     }
+    ],
+    "pct_of_ceiling": 84.5715190627343
+   }
+  }
+ },
+ "worst_remaining": [
+  {
+   "rank": 1,
+   "line": "mesh only  ·  3.6 % of the union, 20.2 cm2  ·  seen in _02, _01, _09  ·  configuration: the mesh is the Full Kit, the photographs are ARF or bare frame",
+   "short": "configuration: the mesh is the Full Kit, the photographs are ARF / bare frame",
+   "what": "GPS mast, its tray and the GPS puck",
+   "side": "mesh only",
+   "size": "3.6 % of the union, 20.2 cm2 (worst case, _02)",
+   "seen_in": "_02, _01, _09  (invisible in _03, which looks straight down the mast)",
+   "why": "configuration, not shape: the mesh is the Full-Kit build and carries the mast, while every clean Holybro whole-aircraft photograph is an ARF or bare-frame kit with no mast. It also explains the -12 to -14 % silhouette aspect error, the mesh being relatively taller than the photograph",
+   "evidence": "mesh-only blob attributed to group 'accent' at the top centre of all three oblique views; removing that blob from the union alone would raise _02 from 0.807 to 0.838 (arithmetic estimate, the mesh was not rebuilt)"
+  },
+  {
+   "rank": 2,
+   "line": "photo only  ·  3.7 + 3.6 + 2.4 % of the union on _01  ·  seen in _01, _09  ·  the fit hides the mesh blades: at any phase they cover only 11 % of the photographed blade",
+   "short": "the fit hides the mesh blades; they can cover only 11 % of the photographed blade",
+   "what": "Propeller blades",
+   "side": "photo only",
+   "size": "3.7 + 3.6 + 2.4 % of the union on _01 (60.6 cm2 together)",
+   "seen_in": "_01, _09  (the two photographs that have propellers)",
+   "why": "the fitted camera HIDES the mesh blades by laying them along the arms: with props the mesh silhouette is 0.07 % larger than frame-only on _01. Sweeping each rotor phase over the full circle, the mesh blades can cover at most 1449 px of the 12684 px the photograph's blades occupy outside the mesh frame (11 %; 21 % on _09) while adding 10306 px of new mesh-only area, so hiding them really is the IoU optimum. The blade itself is dimensionally right (254.0 mm diameter, max chord 34 mm against photo blade widths of 13-39 mm), so this is a placement mismatch of the projected rotor disc, not a blade-size error. Cause not isolated; the leading candidate is the 5 deg elevation the fit spends on the frame acting on the longest lever arm in the model",
+   "evidence": "propcheck: IoU 0.7168 with props vs 0.7167 frame-only on _01; per-rotor phase sweep at 6 deg steps"
+  },
+  {
+   "rank": 3,
+   "line": "mesh only  ·  1.8 + 1.7 + 1.4 % of the union on _02  ·  seen in _02  ·  configuration: bare motor-mount plates in the photograph, cans in the mesh",
+   "short": "configuration: bare motor-mount plates in the photograph, cans in the mesh",
+   "what": "Motor cans on a bare-frame photograph",
+   "side": "mesh only",
+   "size": "1.8 + 1.7 + 1.4 % of the union on _02 (26.6 cm2 together)",
+   "seen_in": "_02  (and, as the nylon motor seat, along the arm tips of _03)",
+   "why": "configuration again: the frame kit in _02 has bare carbon motor-mount plates, the mesh always carries the AIR2216II cans (28.5 mm tall, 24.7 mm base). The registry note for _02 declares this",
+   "evidence": "two symmetric mesh-only blobs at the left and right arm tips, attributed to group 'motor'"
+  },
+  {
+   "rank": 4,
+   "line": "both sides  ·  1.2 % mesh-only + 0.9 % photo-only on _03  ·  seen in all four  ·  skid track and splay: CAD 17.6 deg against 11-15 deg read off the photographs",
+   "short": "skid track and splay: CAD 17.6 deg against 11-15 deg read off the photographs",
+   "what": "Landing gear: skid track and leg splay",
+   "side": "both sides",
+   "size": "1.2 % mesh-only + 0.9 % photo-only on _03 (13.1 cm2 together)",
+   "seen_in": "_03 (clearest, straight down onto the skids), _01, _02, _09 (red fringes along both legs)",
+   "why": "the mesh follows the official STEP (splay 17.59 deg, skid track 239.9 mm) while the photographs read 11-15 deg; SOURCES.md records this as unresolved because the top view is a real photograph taken about 0.64 m above the plate, so the skids 215 mm below it are shrunk by parallax. The single perspective q the fitter carries cannot undo a depth-dependent shrink exactly",
+   "evidence": "mesh-only 'gear' blob 1.17 % beside a photo-only 'gear' blob 0.93 % on _03 - a lateral offset, not a size error"
+  },
+  {
+   "rank": 5,
+   "line": "photo only  ·  3.2 % of the union on _09  ·  seen in _09, _01  ·  the ESC lead bundle and ARF payload boards, which the mesh does not model",
+   "short": "ESC lead bundle and ARF payload boards, which the mesh does not model",
+   "what": "Under-plate payload deck and the ESC wiring bundle",
+   "side": "photo only",
+   "size": "3.2 % of the union on _09 (23.1 cm2)",
+   "seen_in": "_09, _01",
+   "why": "the ARF builds hang the four ESC leads with their M1-M4 tags, a battery strap and the payload boards under the plate. Wiring is not modelled on any airframe in this repository (house rule), and the ARF payload boards are not part of the Full-Kit mesh either",
+   "evidence": "photo-only blob attributed to the nearest mesh part 'deck', centred on the belly in both oblique ARF views"
+  }
+ ],
+ "configuration_note": {
+  "what": "남은 최대 불일치 5건 중 2건(1위 마스트·3위 모터캔)은 **형상 오류가 아니라 구성 차이**다. 우리 메쉬는 Full Kit 빌드이고, Holybro 의 깨끗한 전기체 사진은 전부 ARF 또는 프레임 킷이다.",
+  "arithmetic_estimate": {
+   "0": {
+    "area_frac": 0.02951011824731961,
+    "iou_if_union_minus_blob": 0.7258889559873539
+   },
+   "2": {
+    "area_frac": 0.031050015790960922,
+    "iou_if_union_minus_blob": 0.7393855179867223
+   },
+   "3": {
+    "area_frac": 0.03643312101910828,
+    "iou_if_union_minus_blob": 0.8380045831129913
+   }
+  },
+  "caveat": "위 추정치는 합집합에서 그 덩어리만 뺀 산술이다. 메쉬를 마스트 없이 다시 짓지 않았다(형상 불변 규율)."
+ },
+ "figure": "outputs/figures/mesh_photo_x500v2_v3.png",
+ "ledger_comparison": {
+  "source": "outputs/mesh_compare_photo.json (2026-07-31)",
+  "note": "옛 원장은 사진 3장만 등록했고 메쉬는 정정 전이었다. 이 라운드는 사진 4장 · 메쉬 두 판을 같은 코드로 다시 쟀다. 옛 원장은 **덮어쓰지 않았다**.",
+  "old_values": {
+   "x500v2_09_arf_iso34_props.jpg": 0.709221946951716,
+   "x500v2_03_top_ortho.jpg": 0.8747763621577663,
+   "x500v2_01_arf_front34_props.jpg": 0.7033132709714831
+  }
+ }
+}

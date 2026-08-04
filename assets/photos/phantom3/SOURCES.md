@@ -250,3 +250,178 @@ SE·Adv 는 교차확인으로만 쓴다. 배터리는 세 변종 모두 `4480 m
   유력하고, 등록 전에 1차와 같은 `expect` 각도 선언·`fit_pose` 확인을 거쳐야 한다.
 * **줄자 눈금의 실제 판독**을 하지 않았다. FCC Pro 는 **인치/cm 혼합 줄자**라 어느 눈금을 읽는지
   주의해야 한다(SE 의 금속 mm 자가 더 안전하다).
+
+---
+# 3차 수집 (2026-08-03, 같은 날 오후)
+2차까지 58장이었다. 3차에서 **87장을 더해 145장**이 됐다. 2차가 "확인만 하고 안 받은 것"으로
+남겨 둔 두 갈래를 실제로 받은 것이 이번 수확의 대부분이다.
+
+1. **FCC External Photos 를 되살렸다.** 1차는 이 전시물을 "실루엣용으로 부적합"이라며 통째로
+   버렸다(§🔴 받았다가 뺀 후보들). 그 판단은 **실루엣 한정으로는 옳지만 치수용으로는 틀렸다** —
+   같은 프레임의 자·줄자가 1차에서는 단점이었으나 여기서는 목적이다. 4개 FCC ID 의 External
+   전시물에서 **기체 전체를 자와 함께 찍은 20장**(`p09`–`p28`)을 받았다. 정면·측면·저면·톱·사선이
+   모두 있고, SE 필링(`p09`–`p14`)은 **강철자**라 줄자보다 정밀하다.
+2. **iFixit 가이드를 5편 → 17편으로 넓혔다.** 2차는 Advanced/Pro 5편만 봤다. 검색 API 로
+   Phantom 3 가이드를 전수(17편) 훑어 **Standard 6편 · Pro 짐벌암 1편**을 새로 찾았고,
+   스텝 이미지 245장에서 34장을 골랐다. 셸은 4변종 공통이라 Standard 가이드도 형상용으로 쓴다.
+
+2차의 FCC Internal 도 **28장만 골랐던 것을 다시 훑어 33장을 더** 가져왔다(자 포함 부품 위주).
+
+⚠ **중복 제거** — 기존 58장 전체와 sha256 + 16×16 지각해시(해밍 ≤12)로 대조했다. 후보 336장 중
+55장이 중복이라 버렸고, 남은 281장에서 87장을 골랐다.
+
+## 이번에 새로 쓴 출처
+
+| 출처 | 무엇 | 라이선스 |
+|---|---|---|
+| FCC **External Photos** 4개 ID | 기체 전체 + 자, 다각도 | 미국 FCC 공개 규제 서류 (작성자 DJI) |
+| iFixit Standard 가이드 6편 (201290·201866·201940·201944·201946 등) | Standard 기체 분해 | CC BY-NC-SA 3.0 — 외부 배포 시 표기 필요 |
+| iFixit Pro 가이드 112297 (Camera Gimbal Arm) | 짐벌 암·댐퍼·카메라 보드 | 동일 |
+| DJI **Advanced** User Manual (FCC User-Manual 전시물) | Aircraft Diagram 4면도 | 저작권 DJI |
+| DJI **SE Quick Start Guide** (FCC 전시물) | 6520 px 폴드아웃 선도 | 저작권 DJI |
+
+## 파일 (87장 추가분)
+
+접두: `d`=공식 렌더 · `p`=제품/규제 전신 사진 · `t`=분해 · `m`=도면 · `c`=부품 단품
+
+| 파일 | ⭐ 무엇을 잴 수 있나 | 출처 | 해상도 | sha256(앞16) |
+|---|---|---|---|---|
+| `phantom3_p09_fccse_all_items_props_steelruler.jpg` | 기체+프롭4+어댑터 한 프레임, 강철자. 프롭 9450 실물 길이 | FCC SE W3281705 · External Photos · p01 | 1048×697 | `954b58989d2401f7` |
+| `phantom3_p10_fccse_front34_high_steelruler.jpg` | ⭐ 고각 3/4 앞 + 직교 강철자 2개. 톱뷰가 아니다 — 모터축 배치는 보이나 대각은 투영보정 필요 | FCC SE W3281705 · External Photos · p01 | 1048×697 | `c45a8359e854e512` |
+| `phantom3_p11_fccse_front_steelruler.jpg` | ⭐ 정면 + 강철자. 다리 스탠스 폭·전고 | FCC SE W3281705 · External Photos · p02 | 1048×697 | `d93bbd3acb00e2de` |
+| `phantom3_p12_fccse_bottom_gimbal_steelruler.jpg` | ⭐ 저면(짐벌 장착) + 강철자. 짐벌 돌출·다리 발 간격 | FCC SE W3281705 · External Photos · p02 | 1048×697 | `d20e134324b04e87` |
+| `phantom3_p13_fccse_side_steelruler.jpg` | ⭐ 측면 + 강철자. 전고·다리 높이 | FCC SE W3281705 · External Photos · p03 | 1048×697 | `048bfe4da437b9e7` |
+| `phantom3_p14_fccse_side_gimbal_steelruler.jpg` | 측면(짐벌쪽) + 강철자 | FCC SE W3281705 · External Photos · p03 | 1048×697 | `379f07d70496dee0` |
+| `phantom3_p15_fccadv_top_tape.jpg` | 톱뷰 + 줄자. 대각 교차확인 | FCC Adv WM3221503 · External Photos · p01 | 640×480 | `c13d5eaf9df7fafd` |
+| `phantom3_p16_fccadv_inner_frame_gimbal_tape.jpg` | 저면, 하부셸 제거 → 내부 프레임 + 짐벌 + 줄자 | FCC Adv WM3221503 · External Photos · p02 | 640×480 | `b559c04f9109d11e` |
+| `phantom3_p17_fccadv_front_tape.jpg` | 정면 + 줄자 | FCC Adv WM3221503 · External Photos · p02 | 640×480 | `408a4b6861dc4ecf` |
+| `phantom3_p18_fccadv_side_gimbal_tape.jpg` | 측면(짐벌 장착) + 줄자 | FCC Adv WM3221503 · External Photos · p03 | 640×480 | `df46e6e0c5ae5ffd` |
+| `phantom3_p19_fccadv_side_gimbal_tape2.jpg` | 측면 다른 각 + 줄자 | FCC Adv WM3221503 · External Photos · p03 | 640×480 | `978d753daa5b5048` |
+| `phantom3_p20_fccadv_front_low_tape.jpg` | 정면 저각 + 줄자 | FCC Adv WM3221503 · External Photos · p04 | 640×480 | `3ea4939050f6eaee` |
+| `phantom3_p21_fccpro03_top_tape.jpg` | 톱뷰 + 줄자 (WM3231503) | FCC Pro WM3231503 · External Photos · p01 | 640×480 | `f5048530d8e1b0a2` |
+| `phantom3_p22_fccpro03_bottom_iso_tape.jpg` | 저면 사선 + 줄자 | FCC Pro WM3231503 · External Photos · p02 | 640×480 | `3cb5c205ebe90777` |
+| `phantom3_p23_fccpro03_iso_tape.jpg` | 사선 전경 + 줄자 | FCC Pro WM3231503 · External Photos · p03 | 640×480 | `356615f726ae0649` |
+| `phantom3_p24_fccpro07_top_tape.jpg` | 톱뷰(깨끗) + 줄자 | FCC Pro WM3231507 · External Photos · p01 | 640×480 | `67a6ff3a2190b43d` |
+| `phantom3_p25_fccpro07_top_props_laid_tape.jpg` | 톱뷰 + 프롭 4장 나란히 + 줄자. 프롭↔동체 상대 크기 | FCC Pro WM3231507 · External Photos · p01 | 640×480 | `6e891510eef715bb` |
+| `phantom3_p26_fccpro07_iso_top_tape.jpg` | 사선 위 + 줄자 | FCC Pro WM3231507 · External Photos · p02 | 640×480 | `dceb43c35afbc0cb` |
+| `phantom3_p27_fccpro07_bottom_gimbal_tape.jpg` | ⭐ 저면(짐벌) + 줄자 | FCC Pro WM3231507 · External Photos · p02 | 640×480 | `bff7699683eea16c` |
+| `phantom3_p28_fccpro07_bottom_rear_iso_tape.jpg` | 저면 후방 사선 + 줄자 | FCC Pro WM3231507 · External Photos · p03 | 640×480 | `0629aa882976ae22` |
+| `phantom3_p29_ifixit_std_bottom_gear_screws.jpg` | 저면 전경, 다리 나사 주석 (Standard) | iFixit `DJI Phantom 3 Standard Gimbal Replacement` step 2 | 4500×3375 | `c663362ac1bee84e` |
+| `phantom3_p30_ifixit_std_bottom_annot.jpg` | 저면 전경, 셸 나사 주석 | iFixit `DJI Phantom 3 Standard Cover Replacement` step 3 | 4500×3375 | `afb1d27be6170d4f` |
+| `phantom3_p31_ifixit_std_bottom_motor_screws.jpg` | 저면 전경, 모터 나사 4개 주석 | iFixit `DJI Phantom 3 Standard Propeller Motors Replacement` step 8 | 4500×3375 | `2b23df2f5a53f1ed` |
+| `phantom3_p32_ifixit_std_bottom_landing_gear.jpg` | 저면 + 착륙다리 나사 위치 | iFixit `DJI Phantom 3 Standard Landing Gear Replacement` step 2 | 4500×3375 | `70fe0a0cf5683041` |
+| `phantom3_p33_ifixit_std_bottom_gear_removed.jpg` | 저면, 다리 제거 상태 → 하부셸 윤곽 | iFixit `DJI Phantom 3 Standard Landing Gear Replacement` step 2 | 4500×3375 | `98eb1f27018d4bd3` |
+| `phantom3_p34_ifixit_std_front_battery.jpg` | 정면, 배터리 장착. 배터리 돌출량 | iFixit `DJI Phantom 3 Standard Battery Replacement` step 1 | 4500×3375 | `5f66cced822022de` |
+| `phantom3_p35_ifixit_adv_iso_arms_motors.jpg` | 사선 전경, 암·모터 노출 | iFixit `DJI Phantom 3 Advanced Cover Replacement` step 7 | 3640×2730 | `fb03bed7171de054` |
+| `phantom3_p36_ifixit_adv_rear_battery_bay.jpg` | 후방, 배터리실 | iFixit `DJI Phantom 3 Advanced Cover Replacement` step 1 | 2948×2211 | `01cccc7683296bcb` |
+| `phantom3_t34_fccadv_inner_frame_gear_top.jpg` | ⭐⭐ 흰 내부 프레임(X)+착륙다리 톱뷰. 프레임 대각·암 폭 | FCC Adv WM3221503 · Internal Photos · p01 | 640×480 | `34d4ee2b54bb9d20` |
+| `phantom3_t35_fccadv_inner_frame_centerboard_tape.jpg` | ⭐⭐ 내부 프레임 + 중앙보드 톱뷰 + 줄자. 프레임 대각 | FCC Adv WM3221503 · Internal Photos · p06 | 640×480 | `40c1ff3298c6293e` |
+| `phantom3_t36_fccpro07_inner_frame_gear_tape.jpg` | ⭐⭐ 내부 프레임+다리 + 줄자 | FCC Pro WM3231507 · Internal Photos · p01 | 640×480 | `e65e5217240c54fd` |
+| `phantom3_t37_fccpro07_inner_frame_bottom_tape.jpg` | ⭐⭐ 내부 프레임 아랫면 + 줄자 | FCC Pro WM3231507 · Internal Photos · p03 | 640×480 | `8167b7d8ecabce0f` |
+| `phantom3_t38_fccadv_center_x_board_wired_top.jpg` | 중앙 X보드(배선 포함) 윗면 + 줄자. X 대각 span | FCC Adv WM3221503 · Internal Photos · p02 | 640×480 | `5e566412b00473ad` |
+| `phantom3_t39_fccadv_center_x_board_wired_bottom.jpg` | 중앙 X보드 아랫면 + 줄자 | FCC Adv WM3221503 · Internal Photos · p03 | 640×480 | `a2b80ab8405db99f` |
+| `phantom3_t40_fccadv_center_x_board_with_camera.jpg` | 중앙 X보드 + 카메라 모듈 동봉 + 줄자 | FCC Adv WM3221503 · Internal Photos · p02 | 640×480 | `ed000d8c470e9de3` |
+| `phantom3_t41_fccse_pcb_antenna_strip_mm.jpg` | ⭐ 기판 안테나 스트립 + mm 자. 안테나 길이(전기적 크기) | FCC SE W3281705 · Internal Photos · p04 | 503×335 | `cdb45afc044c94e1` |
+| `phantom3_t42_fccpro07_antenna_strip_tape.jpg` | 안테나 스트립 + 줄자. t41 교차확인 | FCC Pro WM3231507 · Internal Photos · p07 | 640×480 | `08fa20b70ff7ec9d` |
+| `phantom3_t43_fccadv_vision_ultrasonic_board.jpg` | ⭐ 비전+초음파 보드, 트랜스듀서 2개 간격 | FCC Adv WM3221503 · Internal Photos · p08 | 640×480 | `14e8ad5d0e92a605` |
+| `phantom3_t44_fccpro07_vision_ultrasonic_tape.jpg` | ⭐ 비전+초음파 보드 + 줄자 | FCC Pro WM3231507 · Internal Photos · p16 | 640×480 | `9996f0adcd8abba1` |
+| `phantom3_t45_fccse_main_pcb_bottom_mm.jpg` | 메인 PCB 아랫면 + mm 자 | FCC SE W3281705 · Internal Photos · p07 | 1048×697 | `610a0422d7beb5b1` |
+| `phantom3_t46_fccadv_main_pcb_green_top_tape.jpg` | ⭐ 메인 PCB(녹색) 윗면 + 줄자 | FCC Adv WM3221503 · Internal Photos · p10 | 640×480 | `abb5ecedf3ce25e5` |
+| `phantom3_t47_fccadv_main_pcb_green_bottom_tape.jpg` | ⭐ 메인 PCB(녹색) 아랫면 + 줄자 | FCC Adv WM3221503 · Internal Photos · p10 | 640×480 | `135ce44e22878034` |
+| `phantom3_t48_fccadv_gimbal_camera_exploded_tape.jpg` | ⭐⭐ 짐벌+카메라 모듈 분해 + 줄자 | FCC Adv WM3221503 · Internal Photos · p09 | 640×480 | `192380161a088908` |
+| `phantom3_t49_fccpro07_gimbal_camera_assy_tape.jpg` | ⭐⭐ 짐벌+카메라 조립체 + 보드 + 줄자 | FCC Pro WM3231507 · Internal Photos · p08 | 640×480 | `00ff4c77664b7f6d` |
+| `phantom3_t50_fccpro07_gimbal_camera_lens_tape.jpg` | ⭐ 짐벌 조립체(렌즈 정면) + 줄자 | FCC Pro WM3231507 · Internal Photos · p11 | 640×480 | `e717a9aaa0599474` |
+| `phantom3_t51_fccpro07_gimbal_boards_exploded_tape.jpg` | 짐벌 마운트+보드 분해 + 줄자 | FCC Pro WM3231503 · Internal Photos · p07 | 640×480 | `6c7a9577fa430ad3` |
+| `phantom3_t52_fccse_image_sensor_board_mm.jpg` | 이미지 센서 보드 + mm 자. 센서 다이 | FCC SE W3281705 · Internal Photos · p17 | 1048×697 | `20d8fdd8e374c559` |
+| `phantom3_t53_fccadv_image_sensor_board_tape.jpg` | 이미지 센서 보드 + 줄자 | FCC Adv WM3221503 · Internal Photos · p11 | 640×480 | `3859a380fe5dc6ad` |
+| `phantom3_t54_fccadv_gimbal_board_hole_tape.jpg` | 짐벌 보드(중앙 개구) + 줄자 | FCC SE W3281705 · Internal Photos · p14 | 1048×697 | `93d65decae9217b0` |
+| `phantom3_t55_fccadv_gimbal_board_shield_tape.jpg` | 짐벌 보드 + 곡면 실드 + 줄자 | FCC SE W3281705 · Internal Photos · p14 | 1048×697 | `89fed5653bb4f717` |
+| `phantom3_t56_fccse_gps_module_round.jpg` | GPS 모듈 원형 보드. **자 없음** — 지름은 t07 로 재라 | FCC SE W3281705 · Internal Photos · p06 | 1048×697 | `6f2b1c5348250ada` |
+| `phantom3_t57_fccadv_gps_patch_antenna_tape.jpg` | GPS 패치 안테나 + 줄자 | FCC Adv WM3221503 · Internal Photos · p04 | 640×480 | `161aba3fe7cbb2d4` |
+| `phantom3_t58_fccse_arm_led_board.jpg` | 암 LED 보드. **자 없음** — 길이는 t14/t25/t59 로 재라 | FCC SE W3281705 · Internal Photos · p11 | 1048×697 | `805d12cc4d593db7` |
+| `phantom3_t59_fccadv_arm_led_board_tape.jpg` | 암 LED 보드 + 줄자 | FCC Adv WM3221503 · Internal Photos · p05 | 640×480 | `d4b049762bf8df15` |
+| `phantom3_t60_fccse_led_board_in_gear.jpg` | 착륙다리 속 LED 보드 장착 상태. **자 없음** | FCC SE W3281705 · Internal Photos · p10 | 503×335 | `3f44e11043588d79` |
+| `phantom3_t61_fccse_battery_side_mm.jpg` | ⭐ 배터리 측면 + mm 자 | FCC SE W3281705 · Internal Photos · p18 | 503×335 | `229fd970a0ba4a99` |
+| `phantom3_t62_fccadv_battery_label_tape.jpg` | ⭐ 배터리 라벨면(4480mAh 15.2V) + 줄자 | FCC Adv WM3221503 · Internal Photos · p12 | 640×480 | `6a781a7c26613387` |
+| `phantom3_t63_fccadv_battery_contacts.jpg` | 배터리 접점면·경고라벨 | FCC Adv WM3221503 · Internal Photos · p13 | 640×480 | `df86b40a802908c4` |
+| `phantom3_t64_fccse_flight_ctrl_board_mm.jpg` | 비행 컨트롤러/IMU 소형 보드 + mm 자 | FCC SE W3281705 · Internal Photos · p02 | 1048×697 | `56763894acaf8fa9` |
+| `phantom3_t65_fccse_camera_board_shield_mm.jpg` | 카메라 보드(금속 실드) + mm 자 | FCC SE W3281705 · Internal Photos · p03 | 1048×697 | `7ac0329ed8ad4137` |
+| `phantom3_t66_fccse_vision_ultrasonic_mm.jpg` | 비전+초음파 보드 + mm 자 | FCC SE W3281705 · Internal Photos · p08 | 1048×697 | `6ccbaafe64056191` |
+| `phantom3_t67_ifixit_adv_airframe_shell_off_top.jpg` | ⭐⭐ 셸 벗긴 기체 톱다운 4236px. X보드·암·모터 배치 | iFixit `DJI Phantom 3 Advanced LED Replacement` step 0 | 4236×3177 | `6cf7b26e68ffba76` |
+| `phantom3_t68_ifixit_std_internals_iso.jpg` | ⭐⭐ 셸 벗긴 기체 사선 전경 | iFixit `DJI Phantom 3 Standard Cover Replacement` step 0 | 4500×3375 | `71199d641bf88882` |
+| `phantom3_t69_ifixit_std_mainboard_in_situ.jpg` | 메인보드 장착 상태 톱다운 | iFixit `DJI Phantom 3 Standard Propeller Motors Replacement` step 9 | 4500×3375 | `52fdeaa2952a0b30` |
+| `phantom3_t70_ifixit_adv_mainboard_arm_wiring.jpg` | 메인보드 + 암 배선 | iFixit `DJI Phantom 3 Advanced Motor Replacement` step 10 | 4604×3453 | `66bbb2b8afd44e78` |
+| `phantom3_t71_ifixit_std_arm_interior_wiring.jpg` | ⭐ 암 내부 배선(암 절개) | iFixit `DJI Phantom 3 Standard Propeller Motors Replacement` step 10 | 4500×3375 | `a10b5e45703b2c85` |
+| `phantom3_t72_ifixit_adv_motor_in_arm.jpg` | ⭐ 모터가 암에 장착된 상태 + 암 내부 공동 | iFixit `DJI Phantom 3 Advanced LED Replacement` step 11 | 4604×3453 | `15712d3d7a72d49d` |
+| `phantom3_t73_ifixit_adv_motor_arm_led_wiring.jpg` | 모터 + 암 LED 보드 + 배선 | iFixit `DJI Phantom 3 Advanced LED Replacement` step 11 | 4604×3453 | `61c104625198907e` |
+| `phantom3_t74_ifixit_adv_arm_led_strip_seated.jpg` | 암 LED 스트립 장착 상태 | iFixit `DJI Phantom 3 Advanced Landing Gear Replacement` step 5 | 4016×3012 | `085150bd52bcba15` |
+| `phantom3_t75_ifixit_adv_arm_interior_led.jpg` | 암 내부 + LED 보드 | iFixit `DJI Phantom 3 Advanced Landing Gear Replacement` step 5 | 3860×2895 | `fd57d9e49461869b` |
+| `phantom3_t76_ifixit_adv_bottom_gimbal_vision.jpg` | ⭐ 저면 짐벌+비전센서 나사 주석 | iFixit `DJI Phantom 3 Advanced Landing Gear Replacement` step 3 | 3168×2376 | `1ea51ced38ff712b` |
+| `phantom3_t77_ifixit_adv_bottom_gear_off.jpg` | ⭐ 저면, 다리 제거 → 짐벌·비전모듈 노출 | iFixit `DJI Phantom 3 Advanced Cover Replacement` step 6 | 3352×2514 | `1c121dc52b6352d1` |
+| `phantom3_t78_ifixit_std_gimbal_mount_vision.jpg` | 짐벌 마운트 + 비전 플레이트 | iFixit `DJI Phantom 3 Standard Gimbal Replacement` step 6 | 4500×3375 | `a4b98432483f10ee` |
+| `phantom3_t79_ifixit_pro_camera_board_in_housing.jpg` | ⭐ 카메라 보드 하우징 내부(주석) | iFixit `DJI Phantom 3 Pro Camera Gimbal Arm and Cable Replacement` step 3 | 960×720 | `daa6b2cbdf927b55` |
+| `phantom3_t80_ifixit_std_shell_open_gear.jpg` | 셸 개방 + 다리 분리 | iFixit `DJI Phantom 3 Standard Landing Gear Replacement` step 0 | 3892×2919 | `a11cc04ed8e9d519` |
+| `phantom3_t81_ifixit_std_internals_under_shell.jpg` | 셸 아래 보드·배선 | iFixit `DJI Phantom 3 Standard Cover Replacement` step 6 | 4500×3375 | `a041809bbcd5ca44` |
+| `phantom3_t82_ifixit_pro_gimbal_mount_on_airframe.jpg` | 짐벌 마운트가 기체에 붙은 상태 | iFixit `DJI Phantom 3 Pro Camera Gimbal Arm and Cable Replacement` step 0 | 1744×1308 | `f2561f040f22c4a4` |
+| `phantom3_c04_ifixit_pro_gimbal_damper_plate.jpg` | ⭐ 짐벌 댐퍼 플레이트 단품 평면. 4점 마운트 간격 | iFixit `DJI Phantom 3 Pro Camera Gimbal Arm and Cable Replacement` step 2 | 960×720 | `b02980b5cd0861e3` |
+| `phantom3_c05_ifixit_pro_gimbal_yaw_bracket.jpg` | ⭐ 짐벌 요 브래킷 단품 평면 | iFixit `DJI Phantom 3 Pro Camera Gimbal Arm and Cable Replacement` step 4 | 1192×894 | `cdb5b6acf203f63f` |
+| `phantom3_c06_ifixit_std_landing_gear_pair.jpg` | ⭐ 착륙다리 한 쌍 단품. 다리 프로파일 | iFixit `DJI Phantom 3 Standard Landing Gear Replacement` step 3 | 4500×3375 | `629fa51ab48d1a8a` |
+| `phantom3_m05_manual_adv_aircraft_diagram_page.png` | ⭐⭐ Advanced 매뉴얼 Aircraft Diagram (4면도+번호표). m02 교차확인 | man_SS3-WM3221503__User-Manual__Users-Manual_p008.png | 1630×2422 | `28cd3711ae49b4aa` |
+| `phantom3_m06_qsg_se_foldout_p1.png` | ⭐ SE 퀵스타트 폴드아웃 1면 6520px. 기체 선도 다수 | man_SS3-W3281705__User-Manual__User-Manual-3_p001.png | 6520×2422 | `52d1949986ae9d5a` |
+| `phantom3_m07_qsg_se_foldout_p2.png` | ⭐ SE 퀵스타트 폴드아웃 2면 6520px | man_SS3-W3281705__User-Manual__User-Manual-3_p002.png | 6520×2422 | `ec8c5f217dd6ad9f` |
+| `phantom3_m08_manual_adv_specifications.png` | Advanced Specifications (대각 350mm 등) | man_SS3-WM3221503__User-Manual__User-Manual-_p039.png | 1630×2422 | `ea38a9d4df0fc0f1` |
+| `phantom3_m09_manual_se_specifications.png` | SE Specifications | man_Phantom_3_SE_User_Manual_v1.0_en_p046.png | 1630×2422 | `66ec9c9005dcede1` |
+| `phantom3_m10_manual_se_flight_limits.png` | SE 매뉴얼 비행제한/No-Fly Zone 표. 형상 정보 없음 — 참고용 | man_Phantom_3_SE_User_Manual_v1.0_en_p039.png | 1630×2422 | `2a397c139d8c1f87` |
+| `phantom3_m11_manual_se_aircraft_section.png` | SE 매뉴얼 Aircraft 절 도해 | man_Phantom_3_SE_User_Manual_v1.0_en_p010.png | 1630×2422 | `a6147f85cde5e03f` |
+
+## ⚠ 3차에서 고친 내 오독 (반증 보존)
+
+컨택트시트로 전수 확인하다가 **내가 붙인 이름이 사진과 다른 것 7건**을 잡아 고쳤다.
+고치기 전 이름을 남겨 둔다 — 자동 수집은 이런 식으로 틀린다.
+
+| 처음 붙인 이름 | 실제 | 고친 이름 |
+|---|---|---|
+| `p10_fccse_top_steelruler` | 톱뷰가 아니라 **고각 3/4** | `p10_fccse_front34_high_steelruler` |
+| `p16_fccadv_bottom_frame_tape` | 하부셸 제거된 **내부 프레임** | `p16_fccadv_inner_frame_gimbal_tape` |
+| `t35_fccadv_airframe_top_tape` | 조립 기체가 아니라 **내부 프레임+중앙보드** | `t35_fccadv_inner_frame_centerboard_tape` |
+| `t56_..._gps_module_round_mm` | **자가 없다** | `t56_fccse_gps_module_round` |
+| `t58_..._arm_led_board_mm` | **자가 없다** | `t58_fccse_arm_led_board` |
+| `t60_..._led_board_in_gear_mm` | **자가 없다** | `t60_fccse_led_board_in_gear` |
+| `m10_manual_se_gimbal_diagram` | 짐벌 도해가 아니라 **비행제한 표** | `m10_manual_se_flight_limits` |
+
+⚠ 나머지 80장의 이름은 **썸네일 수준(260 px)에서만** 확인했다. 원본을 열어 한 장씩 검증하지는
+않았으므로, 실제로 치수를 잴 때는 그 장의 이름을 믿지 말고 사진을 먼저 봐라.
+
+## ⚠ 아직 안 한 것 (3차에서도 정직하게)
+
+* **치수를 재지 않았다.** 3차도 사진 확보까지다. `drone_cad.py` 의 phantom3 내부 상수 18개는
+  여전히 **phantom4 상속 그대로**다. 달라진 것은 이제 잴 근거가 145장 있다는 것뿐이다.
+* **`viz_mesh_photo.py` 의 `PHOTOS["phantom3"]` 은 여전히 1차 4장만** 등록돼 있다.
+  3차에서 실루엣 후보가 크게 늘었다 — `p11`(정면 강철자) · `p13`(측면 강철자) ·
+  `p12`/`p27`(저면) · `p24`(톱, 줄자) 는 배경이 균일한 청색 천이라 **흰 기체와 대비가 크다**.
+  1차 `_d01` 의 51 % 임계값 민감도 문제를 이 장들이 풀어 줄 가능성이 높다. 등록 전에
+  1차와 같은 `expect` 선언 + `fit_pose` 확인을 거쳐야 한다.
+* **DJI CDN 3차 훑기는 실패했다.** Wayback CDX 가 이번에는 connection refused 로 막혔다
+  (1·2차에는 됐다). 공식 렌더는 11장에서 늘지 않았다.
+* **줄자 눈금 판독은 여전히 안 했다.** FCC Pro/Adv 는 **인치/cm 혼합 줄자**이고 SE 는 금속 mm 자다.
+  SE 장(`p09`–`p14`, `t41`, `t45`, `t52`, `t61`, `t64`–`t66`)이 판독에 가장 안전하다.
+
+
+---
+
+# 4차 — **실제로 쟀다** (2026-08-03, 같은 날 저녁)
+
+1·2·3차는 전부 "사진 확보까지"였고 세 번 다 "치수를 재지 않았다"고 적어 두었다.
+이번 라운드가 그 빚을 갚았다. `drone_cad.py` 의 phantom3 형상표는 이제 phantom4 상속이 아니라
+**이 폴더의 픽셀 실측**이다.
+
+* 측정 원장 — `outputs/p3_mesh_v2_measurements.json` (축척 앵커·등급·못 잰 것 목록)
+* 렌더 — `outputs/figs/p3_mesh_v2.png` (신판 위, 구판 아래, 같은 카메라·같은 축척)
+* ⭐⭐ **가장 크게 뒤집힌 것**: 공표 185 mm 는 "모터 위→발"이 아니라 **"셸 crown→발"** 이다.
+  정면도(184.1)·후면도(185.4) 두 장이 독립으로 말한다. 모터 위→발은 175.0 mm 뿐이다.
+  이 오독 때문에 `p3_specs.json` 의 셸 63.9 / 다리 120.5 가 나왔고, 실제는 **78.6 / 111.6** 이다.
+* ⭐ **줄자 눈금 판독은 이번에도 안 했다.** 대신 더 정확한 길을 썼다 — 분해 부품은 기체 자체를
+  자로 쓴다(`p33`·`t67` 에서 모터 대각 350 mm 로 축척을 잡고 그 안의 부품을 잰다).
+  FCC 줄자 사진(`t15`·`t19`·`t61` 등)은 원근이 커서 이 방식보다 나쁘다.
+* 못 잰 것은 위 JSON 의 `cannot_measure` 에 그대로 적어 두었다(암이 가리는 두 스테이션의
+  동체 반폭·반높이, 단면 초타원 지수, 짐벌 깊이, 9450 익형 단면 등).

@@ -1,0 +1,1125 @@
+{
+ "_meta": {
+  "drone": "matrice4e",
+  "name": "DJI Matrice 4E",
+  "generated": "2026-08-03 13:33:23",
+  "generator": "scratch m4e/{run_iou.py, cad_solids.py, cad_edges.py, make_json.py}",
+  "purpose": "모은 사진으로 현 matrice4e 메쉬를 채점하고 무엇이 어긋났는지 잰다. 메쉬는 고치지 않았다.",
+  "scope": "수집·실측·대조까지. src/drones.py · src/drone_cad.py 는 읽기만 했다.",
+  "mesh_sources": {
+   "src/drone_cad.py": "2026-08-03 12:54:33",
+   "src/drones.py": "2026-08-03 12:54:11",
+   "src/cadkit.py": "2026-07-14 12:04:37",
+   "src/geom.py": "2026-07-20 00:53:43"
+  },
+  "mesh_source_newest": "2026-08-03 12:54:33",
+  "mesh_fingerprint": {
+   "vertex_sha256_16": "84a0d3cd04315b25",
+   "n_faces": 30712,
+   "shell_x_mm": [
+    -123.7,
+    123.7
+   ],
+   "motor_z_above_feet_mm": [
+    89.4,
+    109.4
+   ],
+   "note": "src/drone_cad.py 는 이 라운드 **도중에도**(13:13) 다른 워크플로가 고쳤다. 고친 뒤 다시 지어 위 치수가 그대로임을 확인했다 — matrice4e 메쉬는 이 라운드 내내 같다. 다음 라운드는 이 지문으로 '메쉬가 움직였는가'를 먼저 확인할 것."
+  },
+  "caveat_mesh_moved_under_us": "src/drone_cad.py 와 src/drones.py 는 2026-08-03 12:54 에 **다른 워크플로(phantom3)** 가 고쳤다. 옛 원장(mesh_compare_photo.json)은 07-31 메쉬로 잰 것이라 같은 사진의 IoU 가 미세하게 다르다 (4E_5 0.417->0.395, 4E_3 0.559->0.575). 이 라운드의 숫자는 **현재 메쉬**의 것이다.",
+  "sources_of_truth": [
+   "assets/photos/matrice4e/ 사진 55장 (2026-08-03 수집, SOURCES.md)",
+   "DJI 공식 CAD M4T_v2.stp — 솔리드 125개 / 면 19,465 / 모서리 56,559개를 gmsh-OCC 로 직접 임포트해 **모서리 67.9만 점**을 뽑았다. ⚠ 면(2D) 매개변수 샘플링은 무한 평면의 잘림을 무시해 쓰레기를 낳는다 — 반드시 모서리(1D)를 써야 한다(이 라운드에서 실증).",
+   "DJI Matrice 4 Series User Manual v1.2 (배터리 공표 치수)",
+   "outputs/mesh_compare_photo.json (2026-07-31 옛 성적)"
+  ],
+  "variant_warning": "공식 CAD 와 분해사진(t01~t14)은 **Matrice 4T** 다. 기체(airframe)는 4E 와 공유하므로 셸·암·모터·다리·배터리에는 그대로 쓴다. 짐벌(t15/t16, CAD 짐벌부)은 4T 전용이라 짐벌 폭·깊이 비교는 '같은 계열 짐벌' 수준의 대조로만 읽을 것."
+ },
+ "photo_inventory": {
+  "n_files_in_folder": 56,
+  "n_image_files": 56,
+  "n_whole_aircraft_views": 17,
+  "n_distinct_viewing_directions": 7,
+  "n_registered_for_iou": 6,
+  "duplicate_finding": "⭐ 새로 넣은 12장(p01~p12) 중 **새로운 시선방향은 2개뿐**이다. 정규화 실루엣 IoU 로 재면 p01=p05=기존 'matrice 4E_2.png' (0.99) · p02=p03=p11=p12=기존 '4E_1' (0.97~0.99) · p06~=4E_3 (0.966) · p04~=4E_4 (0.868) 이다. 진짜 새 방향은 **저면 오블리크(p09/p10)** 와 **전좌 iso(p07/p08)** 다. SOURCES.md 가 p01 을 '기존 5장에 없던 각도'라고 적은 것은 틀렸다 — 그 각도는 이미 있었고, 게다가 **기수 방향을 못 읽어 등록에서 제외된** 바로 그 사진이다.",
+  "distinct_directions": [
+   {
+    "direction": "front, slightly above (elev ~17 deg)",
+    "files": [
+     "matrice 4E_1.png",
+     "matrice4e_p02",
+     "matrice4e_p03",
+     "matrice4e_p11",
+     "matrice4e_p12"
+    ],
+    "registered": [
+     "matrice 4E_1.png",
+     "matrice4e_p12 (해상도 대조군)"
+    ]
+   },
+   {
+    "direction": "head-on, eye level",
+    "files": [
+     "matrice 4E_3.png",
+     "matrice4e_p06"
+    ],
+    "registered": [
+     "matrice 4E_3.png"
+    ]
+   },
+   {
+    "direction": "near-side / rear oblique (기수 판독 불가)",
+    "files": [
+     "matrice 4E_2.png",
+     "matrice4e_p01",
+     "matrice4e_p05"
+    ],
+    "registered": []
+   },
+   {
+    "direction": "rear, near-orthographic",
+    "files": [
+     "matrice 4E_4.png",
+     "matrice4e_p04"
+    ],
+    "registered": []
+   },
+   {
+    "direction": "top plan",
+    "files": [
+     "matrice 4E_5.png"
+    ],
+    "registered": [
+     "matrice 4E_5.png"
+    ]
+   },
+   {
+    "direction": "⭐ NEW: underside, front-low oblique (elev ~ -45 deg)",
+    "files": [
+     "matrice4e_p09",
+     "matrice4e_p10"
+    ],
+    "registered": [
+     "matrice4e_p09_underside_plan.jpg"
+    ]
+   },
+   {
+    "direction": "⭐ NEW: three-quarter from front-left and above",
+    "files": [
+     "matrice4e_p07",
+     "matrice4e_p08"
+    ],
+    "registered": [
+     "matrice4e_p07_iso_front_left.jpg"
+    ]
+   }
+  ],
+  "excluded": [
+   {
+    "files": "p01 / p05",
+    "reason": "기존 4E_2 와 같은 시선(정규화 실루엣 IoU 0.99). 그 방향은 기수 판독 불가로 이미 제외돼 있다"
+   },
+   {
+    "files": "p02 / p03 / p11",
+    "reason": "4E_1 · p12 와 같은 시선. 한 방향에 가중치를 5배 주게 된다"
+   },
+   {
+    "files": "p04",
+    "reason": "4E_4 와 같은 시선(0.868), 해상도 이점 없음"
+   },
+   {
+    "files": "p06",
+    "reason": "4E_3 와 같은 시선(0.966)"
+   },
+   {
+    "files": "p08 / p10",
+    "reason": "p07 · p09 의 저해상 판"
+   },
+   {
+    "files": "c01~c04 · m01~m19 · t01~t16",
+    "reason": "부품 단품·도해·분해 사진이라 전기체 실루엣이 아니다. 치수 실측에는 썼다"
+   }
+  ]
+ },
+ "iou": {
+  "headline_iou": 0.575,
+  "headline_file": "matrice 4E_3.png",
+  "ceiling_self_replica": 0.8675,
+  "pct_of_ceiling": 66.3,
+  "prior_headline_iou": 0.5586,
+  "prior_ceiling": 0.883,
+  "prior_pct_of_ceiling": 63.3,
+  "free_iou_gain_headline": 0.1213,
+  "photos": [
+   {
+    "file": "matrice 4E_5.png",
+    "expect_deg": [
+     0,
+     85
+    ],
+    "window_deg": 20.0,
+    "pose_grid_el_lo_deg": -36.0,
+    "new_in_this_round": false,
+    "iou": 0.3951,
+    "iou_prior_2026_07_31": 0.4172,
+    "pct_of_ceiling": 45.5,
+    "free_iou": 0.3911,
+    "free_iou_gain": -0.0041,
+    "free_delta_deg": 3.1,
+    "fit": {
+     "azim": 0.2,
+     "elev": 86.0,
+     "roll": 0.0,
+     "q": 0.0
+    },
+    "fit_delta_deg": 1.0,
+    "fit_at_window_edge": false,
+    "contour_mean_mm": 23.7,
+    "contour_p95_mm": 99.4,
+    "aspect_err_pct": -16.6,
+    "mesh_only_frac": 0.25,
+    "photo_only_frac": 0.354,
+    "top_blobs": [
+     {
+      "side": "mesh only",
+      "part": "body",
+      "area_frac": 0.0672,
+      "area_mm2": 4636
+     },
+     {
+      "side": "mesh only",
+      "part": "body",
+      "area_frac": 0.0654,
+      "area_mm2": 4513
+     },
+     {
+      "side": "mesh only",
+      "part": "canopy",
+      "area_frac": 0.0553,
+      "area_mm2": 3814
+     }
+    ],
+    "note": "from above, X rotor layout (baseline photo, unchanged)"
+   },
+   {
+    "file": "matrice 4E_1.png",
+    "expect_deg": [
+     0,
+     16
+    ],
+    "window_deg": 20.0,
+    "pose_grid_el_lo_deg": -36.0,
+    "new_in_this_round": false,
+    "iou": 0.5545,
+    "iou_prior_2026_07_31": 0.556,
+    "pct_of_ceiling": 63.9,
+    "free_iou": 0.5427,
+    "free_iou_gain": -0.0118,
+    "free_delta_deg": 144.0,
+    "fit": {
+     "azim": 0.0,
+     "elev": 21.0,
+     "roll": 0.0,
+     "q": 0.18
+    },
+    "fit_delta_deg": 5.0,
+    "fit_at_window_edge": false,
+    "contour_mean_mm": 12.7,
+    "contour_p95_mm": 48.7,
+    "aspect_err_pct": -27.2,
+    "mesh_only_frac": 0.226,
+    "photo_only_frac": 0.22,
+    "top_blobs": [
+     {
+      "side": "mesh only",
+      "part": "camera",
+      "area_frac": 0.0737,
+      "area_mm2": 3113
+     },
+     {
+      "side": "photo only",
+      "part": "motor",
+      "area_frac": 0.029,
+      "area_mm2": 1226
+     },
+     {
+      "side": "photo only",
+      "part": "motor",
+      "area_frac": 0.0286,
+      "area_mm2": 1207
+     }
+    ],
+    "note": "front, slightly above (baseline photo, unchanged)"
+   },
+   {
+    "file": "matrice 4E_3.png",
+    "expect_deg": [
+     0,
+     4
+    ],
+    "window_deg": 20.0,
+    "pose_grid_el_lo_deg": -36.0,
+    "new_in_this_round": false,
+    "iou": 0.575,
+    "iou_prior_2026_07_31": 0.5586,
+    "pct_of_ceiling": 66.3,
+    "free_iou": 0.6963,
+    "free_iou_gain": 0.1213,
+    "free_delta_deg": 83.3,
+    "fit": {
+     "azim": 350.2,
+     "elev": -4.0,
+     "roll": -10.8,
+     "q": 0.15
+    },
+    "fit_delta_deg": 12.6,
+    "fit_at_window_edge": false,
+    "contour_mean_mm": 11.4,
+    "contour_p95_mm": 33.4,
+    "aspect_err_pct": -33.1,
+    "mesh_only_frac": 0.218,
+    "photo_only_frac": 0.207,
+    "top_blobs": [
+     {
+      "side": "photo only",
+      "part": "gear",
+      "area_frac": 0.079,
+      "area_mm2": 2548
+     },
+     {
+      "side": "mesh only",
+      "part": "body",
+      "area_frac": 0.0779,
+      "area_mm2": 2511
+     },
+     {
+      "side": "photo only",
+      "part": "gear",
+      "area_frac": 0.0591,
+      "area_mm2": 1905
+     }
+    ],
+    "note": "head-on, eye level (baseline photo, unchanged)"
+   },
+   {
+    "file": "matrice4e_p09_underside_plan.jpg",
+    "expect_deg": [
+     0,
+     -45
+    ],
+    "window_deg": 26.0,
+    "pose_grid_el_lo_deg": -72.0,
+    "new_in_this_round": true,
+    "iou": 0.4174,
+    "iou_prior_2026_07_31": null,
+    "pct_of_ceiling": 48.1,
+    "free_iou": 0.4295,
+    "free_iou_gain": 0.0121,
+    "free_delta_deg": 35.2,
+    "fit": {
+     "azim": 11.2,
+     "elev": -64.0,
+     "roll": 12.2,
+     "q": 0.75
+    },
+    "fit_delta_deg": 20.0,
+    "fit_at_window_edge": false,
+    "contour_mean_mm": 21.6,
+    "contour_p95_mm": 91.0,
+    "aspect_err_pct": -8.3,
+    "mesh_only_frac": 0.228,
+    "photo_only_frac": 0.355,
+    "top_blobs": [
+     {
+      "side": "photo only",
+      "part": "gear",
+      "area_frac": 0.0755,
+      "area_mm2": 5273
+     },
+     {
+      "side": "photo only",
+      "part": "gear",
+      "area_frac": 0.0634,
+      "area_mm2": 4429
+     },
+     {
+      "side": "mesh only",
+      "part": "body",
+      "area_frac": 0.0483,
+      "area_mm2": 3378
+     }
+    ],
+    "note": "NEW DIRECTION: from below and in front, about 45 deg under the horizon. The only view in the repository that shows the belly, the landing gear from underneath and the downward vision cluster"
+   },
+   {
+    "file": "matrice4e_p07_iso_front_left.jpg",
+    "expect_deg": [
+     40,
+     25
+    ],
+    "window_deg": 30.0,
+    "pose_grid_el_lo_deg": -36.0,
+    "new_in_this_round": true,
+    "iou": 0.5314,
+    "iou_prior_2026_07_31": null,
+    "pct_of_ceiling": 61.3,
+    "free_iou": 0.549,
+    "free_iou_gain": 0.0176,
+    "free_delta_deg": 125.8,
+    "fit": {
+     "azim": 20.0,
+     "elev": 21.0,
+     "roll": 2.0,
+     "q": 0.0
+    },
+    "fit_delta_deg": 18.8,
+    "fit_at_window_edge": false,
+    "contour_mean_mm": 11.3,
+    "contour_p95_mm": 39.2,
+    "aspect_err_pct": -18.0,
+    "mesh_only_frac": 0.273,
+    "photo_only_frac": 0.196,
+    "top_blobs": [
+     {
+      "side": "mesh only",
+      "part": "camera",
+      "area_frac": 0.0655,
+      "area_mm2": 2994
+     },
+     {
+      "side": "mesh only",
+      "part": "body",
+      "area_frac": 0.0493,
+      "area_mm2": 2250
+     },
+     {
+      "side": "mesh only",
+      "part": "body",
+      "area_frac": 0.0376,
+      "area_mm2": 1719
+     }
+    ],
+    "note": "NEW DIRECTION: three-quarter from front-left and above, gimbal facing the camera and to the left"
+   },
+   {
+    "file": "matrice4e_p12_top_front_iso.jpg",
+    "expect_deg": [
+     0,
+     16
+    ],
+    "window_deg": 20.0,
+    "pose_grid_el_lo_deg": -36.0,
+    "new_in_this_round": true,
+    "iou": 0.5501,
+    "iou_prior_2026_07_31": null,
+    "pct_of_ceiling": 63.4,
+    "free_iou": 0.5454,
+    "free_iou_gain": -0.0047,
+    "free_delta_deg": 144.0,
+    "fit": {
+     "azim": 0.0,
+     "elev": 22.0,
+     "roll": 0.0,
+     "q": 0.178
+    },
+    "fit_delta_deg": 6.0,
+    "fit_at_window_edge": false,
+    "contour_mean_mm": 11.9,
+    "contour_p95_mm": 43.4,
+    "aspect_err_pct": -26.5,
+    "mesh_only_frac": 0.247,
+    "photo_only_frac": 0.202,
+    "top_blobs": [
+     {
+      "side": "mesh only",
+      "part": "camera",
+      "area_frac": 0.0705,
+      "area_mm2": 3105
+     },
+     {
+      "side": "mesh only",
+      "part": "prop",
+      "area_frac": 0.033,
+      "area_mm2": 1452
+     },
+     {
+      "side": "photo only",
+      "part": "motor",
+      "area_frac": 0.0281,
+      "area_mm2": 1238
+     }
+    ],
+    "note": "RESOLUTION CONTROL: same viewing direction as 'matrice 4E_1.png' (silhouette IoU 0.994 between the two files) at 2667 px instead of 1028 px. It measures how much of the shortfall is the photograph and not the mesh"
+   }
+  ],
+  "reading": [
+   "헤드라인은 63.3 % -> 66.3 % 로 올랐지만 **그 상승은 새 사진 때문이 아니다**. 최고점은 여전히 기존 사진('matrice 4E_3.png')이고, 오른 이유는 (a) 다른 워크플로가 08-03 에 메쉬를 고쳤고 (b) 상한이 0.883 -> 0.868 로 내려갔기 때문이다.",
+   "⭐ 새 방향 2개는 둘 다 기존 평균보다 **낮다**: 저면 0.417(48 %) · 전좌 iso 0.531(61 %). 즉 사진을 늘렸더니 메쉬가 더 나빠 보이는 방향이 드러났다. 저면은 상면(0.395)에 이어 두 번째로 나쁘다.",
+   "⭐ 해상도 대조군이 결정적이다: p12 는 4E_1 과 **같은 시선인데 픽셀이 2.6배**다. IoU 0.5501 vs 0.5545 (-0.8 %). 부족분은 사진 해상도가 아니라 **메쉬**다.",
+   "차이 덩어리의 귀속이 일관된다 — 정면계열은 'camera(짐벌) mesh-only 6.6~7.4 %', 저앙각·저면은 'gear photo-only 5.9~7.9 %'. 짐벌은 크고 다리는 가늘다는 CAD 실측과 같은 결론이다.",
+   "'matrice 4E_3.png' 의 free_iou_gain 이 +0.121 (83 deg 벗어나서)이다 — 자세 모호가 아니라 형상 차이의 신호다."
+  ]
+ },
+ "measurements": {
+  "comparison_table_worst_first": [
+   {
+    "part": "body shell",
+    "quantity": "shell centre offset ahead of the rotor mid-plane",
+    "mesh": 0.0,
+    "measured": 44.3,
+    "unit": "mm",
+    "rel_err_pct": null,
+    "measured_from": "official CAD (upper deck z>100 mm, |y|<50 mm) — and independently 44.9 mm from the top-view photo",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": "aspect-dependent phase term, 0.52 lambda at 3.5 GHz",
+    "comment": "우리 셸은 로터 중앙면에 대칭으로 놓여 있다. 실물은 통째로 44~45 mm 앞이다. CAD 와 상면사진(4E_5)이 서로 다른 자료인데 44.3 / 44.9 mm 로 일치한다 — 이번 라운드 최대 결함."
+   },
+   {
+    "part": "propeller",
+    "quantity": "chord distribution RMS error vs 1157F (0.20-1.00 R)",
+    "mesh": null,
+    "measured": null,
+    "unit": "%",
+    "rel_err_pct": null,
+    "measured_from": "part photo c02",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": "distribution, not level",
+    "comment": "RMS 19.8 %: 안쪽(0.25~0.45R)이 +9~+19 % 뚱뚱하고 바깥(0.60~0.95R)이 -6~-15 % 얇으며 팁은 -69 % 로 뾰족하다. 시위표가 3DR Solo 실측이라 그렇다."
+   },
+   {
+    "part": "downward vision",
+    "quantity": "two camera axes",
+    "mesh": null,
+    "measured": null,
+    "unit": "-",
+    "rel_err_pct": null,
+    "measured_from": "underside photo p09",
+    "leverage_group": "camera 0.87-1.50",
+    "sigma_impact_db_est": "small",
+    "comment": "우리 배치는 (0.06bl, +-0.24bw) 로 **좌우 한 쌍**이다. 사진은 중심선 위 **앞뒤 한 쌍**이다 — 90 deg 어긋났다."
+   },
+   {
+    "part": "RTK antenna",
+    "quantity": "centre x behind the rotor mid-plane",
+    "mesh": -66.1,
+    "measured": -20.2,
+    "unit": "mm",
+    "rel_err_pct": 227.2,
+    "measured_from": "official CAD",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": "included in the shell-offset row",
+    "comment": "셸 기준으로는 맞다(-66.1 vs -63.5). 어긋난 것은 셸 자체의 위치다."
+   },
+   {
+    "part": "shell",
+    "quantity": "tail x, rear end of the upper deck (+ = forward of the rotor mid-plane)",
+    "mesh": -121.7,
+    "measured": -69.1,
+    "unit": "mm",
+    "rel_err_pct": 76.1,
+    "measured_from": "official CAD, same slice (z>100 mm, |y|<50 mm)",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": "same item as the centre offset",
+    "comment": "꼬리가 52.6 mm 더 뒤로 나가 있다. 상면 IoU 의 'body mesh-only' 덩어리 두 개가 바로 여기다."
+   },
+   {
+    "part": "battery",
+    "quantity": "battery box centre, x (+ = forward)",
+    "mesh": -14.7,
+    "measured": -49.8,
+    "unit": "mm",
+    "rel_err_pct": -70.5,
+    "measured_from": "derived: the pack is inserted from the rear and its rear face is the tail surface (p05/p09/m13/m14), so its centre sits half a pack length ahead of the shell tail",
+    "leverage_group": "battery 2.26-3.59",
+    "sigma_impact_db_est": "aspect-dependent phase term",
+    "comment": "35 mm 앞으로 밀려 있다. 셸 자체가 45 mm 뒤로 밀려 있는 것과 겹치면 실제 배터리는 우리 좌표에서 훨씬 앞이다."
+   },
+   {
+    "part": "landing gear",
+    "quantity": "rotor plane height above the ground contact",
+    "mesh": 99.4,
+    "measured": 59.8,
+    "unit": "mm",
+    "rel_err_pct": 66.2,
+    "measured_from": "official CAD (motor bell y -3.24..13.30, feet y -54.77)",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": "changes the target-height geometry used by report09 floor ghost",
+    "comment": "우리 다리가 로터면을 지면에서 40 mm 더 띄운다. 총높이 149.5 는 맞춰져 있으므로 그만큼 동체가 아래로 밀려 있다(형상은 틀리고 bbox 만 맞는 전형)."
+   },
+   {
+    "part": "shell",
+    "quantity": "station of maximum width, x/L",
+    "mesh": 0.18,
+    "measured": 0.11,
+    "unit": "-",
+    "rel_err_pct": 63.6,
+    "measured_from": "top-view photo 4E_5",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": "distribution, not level",
+    "comment": "최대폭 스테이션이 뒤로 밀려 있다."
+   },
+   {
+    "part": "arm",
+    "quantity": "cross-section vertical thickness at |y|=100..120 mm",
+    "mesh": 17.7,
+    "measured": 11.1,
+    "unit": "mm",
+    "rel_err_pct": 59.5,
+    "measured_from": "official CAD",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": "arm group area x2.2 -> up to ~1 dB at broadside",
+    "comment": "실물 암은 원형 튜브가 아니라 **납작한 타원**(세로 11 x 전후 17)이다. _ARM_SECTION(2.00,1.00) 은 정원을 만든다."
+   },
+   {
+    "part": "landing gear",
+    "quantity": "leg root diameter",
+    "mesh": 14.0,
+    "measured": 30.0,
+    "unit": "mm",
+    "rel_err_pct": -53.3,
+    "measured_from": "official CAD leg solid bbox 33.6 x 54.6 x 27.9 mm (front)",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": -1.3,
+    "comment": "실물 다리는 가는 원뿔이 아니라 **넓은 핀**이다. IoU 의 'gear photo-only' 덩어리가 바로 이것."
+   },
+   {
+    "part": "landing gear",
+    "quantity": "foot drop below the rotor plane",
+    "mesh": 83.5,
+    "measured": 54.8,
+    "unit": "mm",
+    "rel_err_pct": 52.4,
+    "measured_from": "official CAD",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": "same item as above",
+    "comment": "GEAR_SPIKE_H 0.079 m + splay 20 deg 의 결과. 옆면사진 랜드마크(벨리->발 38.5 mm)와는 맞지만 로터면 기준으로는 어긋난다 — 두 앵커가 서로 다른 것을 재고 있었다."
+   },
+   {
+    "part": "shell",
+    "quantity": "nose full width at the front station x=+0.50L",
+    "mesh": 22.7,
+    "measured": 45.0,
+    "unit": "mm",
+    "rel_err_pct": -49.6,
+    "measured_from": "top-view photo 4E_5 (last valid row before the outline ends)",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": -1.5,
+    "comment": "hw 프로파일의 코 끝 0.12 는 실물의 뭉툭한 코를 **쐐기**로 만든다."
+   },
+   {
+    "part": "gimbal",
+    "quantity": "bottom clearance above the ground contact",
+    "mesh": 11.3,
+    "measured": 20.1,
+    "unit": "mm",
+    "rel_err_pct": -43.8,
+    "measured_from": "official CAD",
+    "leverage_group": "camera 0.87-1.50",
+    "sigma_impact_db_est": "geometry, not level",
+    "comment": "짐벌이 9 mm 더 아래로 내려와 있다. 저앙각 실루엣에서 gear/camera 덩어리가 뒤섞이는 원인."
+   },
+   {
+    "part": "arm",
+    "quantity": "cross-section fore-aft width at |y|=100..120 mm",
+    "mesh": 24.3,
+    "measured": 17.3,
+    "unit": "mm",
+    "rel_err_pct": 40.5,
+    "measured_from": "official CAD",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": "included above",
+    "comment": "spec arm_od_mm=20.0 은 코드 자신의 사진실측 16.6 mm 보다도 +20 % 다."
+   },
+   {
+    "part": "shell",
+    "quantity": "nose x, front end of the upper deck",
+    "mesh": 121.7,
+    "measured": 157.7,
+    "unit": "mm",
+    "rel_err_pct": -22.8,
+    "measured_from": "official CAD, same slice",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": "same item as the centre offset",
+    "comment": "코가 36 mm 짧다. 셸이 통째로 뒤로 밀린 것의 앞쪽 절반이다."
+   },
+   {
+    "part": "RTK antenna",
+    "quantity": "outer diameter",
+    "mesh": 46.0,
+    "measured": 37.9,
+    "unit": "mm",
+    "rel_err_pct": 21.4,
+    "measured_from": "official CAD 37.1-38.7 · top-view photo 37.5-38.3 · front-view photo 38.4-39.3 (three sources)",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": -1.6,
+    "comment": "이 기종의 최대 식별점인데 21 % 굵다. 실물 상면은 원이 아니라 **모서리 둥근 사각**이다."
+   },
+   {
+    "part": "motor",
+    "quantity": "bell height",
+    "mesh": 20.0,
+    "measured": 16.5,
+    "unit": "mm",
+    "rel_err_pct": 21.2,
+    "measured_from": "official CAD (rotating can only; the whole stator+bell+hub stack is 23.8 mm)",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": 0.5,
+    "comment": "mot_h = 0.048*diag 비율식의 결과."
+   },
+   {
+    "part": "propeller",
+    "quantity": "projected blade area vs 1154F (low-noise, EU default)",
+    "mesh": 2434.1,
+    "measured": 3081.1,
+    "unit": "mm^2",
+    "rel_err_pct": -21.0,
+    "measured_from": "part photo c01",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": -2.05,
+    "comment": "EU 기본 프롭을 쓰면 우리 블레이드가 21 % 작다. 어느 프롭을 모델링하는지 선언이 없다."
+   },
+   {
+    "part": "propeller",
+    "quantity": "max projected chord / R",
+    "mesh": 0.2331,
+    "measured": 0.1987,
+    "unit": "-",
+    "rel_err_pct": 17.3,
+    "measured_from": "part photo c02 (1157F)",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": "distribution, not level",
+    "comment": "CHORD_MAX_OVER_R=0.25 는 Solo/1345 의 중간값이었다. 실물 1157F 는 0.199."
+   },
+   {
+    "part": "battery",
+    "quantity": "battery box length",
+    "mesh": 122.5,
+    "measured": 145.47,
+    "unit": "mm",
+    "rel_err_pct": -15.8,
+    "measured_from": "DJI User Manual v1.2 p.103, BPX345-6741-14.76 (145.47 x 60.6 x 46.3 mm, 400 g)",
+    "leverage_group": "battery 2.26-3.59",
+    "sigma_impact_db_est": -1.35,
+    "comment": "sigma 지배 부품인데 지금까지 근거 0 이었다(0.50*bl 비율상자). 공표치가 존재한다."
+   },
+   {
+    "part": "gimbal",
+    "quantity": "fore-aft depth",
+    "mesh": 60.8,
+    "measured": 56.3,
+    "unit": "mm",
+    "rel_err_pct": 8.0,
+    "measured_from": "official CAD (M4T gimbal)",
+    "leverage_group": "camera 0.87-1.50",
+    "sigma_impact_db_est": 0.67,
+    "comment": "깊이 0.052 m 는 사진 근거 없이 정해진 값이었다(폭·높이만 실측)."
+   },
+   {
+    "part": "shell",
+    "quantity": "upper-deck max width (same slice)",
+    "mesh": 94.6,
+    "measured": 88.1,
+    "unit": "mm",
+    "rel_err_pct": 7.4,
+    "measured_from": "official CAD",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": 0.62,
+    "comment": "상면사진은 94.4~100.6 을 준다 — 자료가 갈린다."
+   },
+   {
+    "part": "shell",
+    "quantity": "upper-deck length (z>100 mm, |y|<50 mm, same slice both sides)",
+    "mesh": 243.3,
+    "measured": 226.8,
+    "unit": "mm",
+    "rel_err_pct": 7.3,
+    "measured_from": "official CAD",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": 0.61,
+    "comment": "같은 절단면끼리 비교했다."
+   },
+   {
+    "part": "battery",
+    "quantity": "battery box height",
+    "mesh": 49.0,
+    "measured": 46.3,
+    "unit": "mm",
+    "rel_err_pct": 5.8,
+    "measured_from": "DJI User Manual v1.2 p.103",
+    "leverage_group": "battery 2.26-3.59",
+    "sigma_impact_db_est": 0.49,
+    "comment": "높이도 거의 맞다."
+   },
+   {
+    "part": "landing gear",
+    "quantity": "foot lateral position |y|",
+    "mesh": 168.4,
+    "measured": 161.7,
+    "unit": "mm",
+    "rel_err_pct": 4.1,
+    "measured_from": "official CAD (feet |y| 151.2-172.2)",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": 0.35,
+    "comment": "잘 맞는다."
+   },
+   {
+    "part": "gimbal",
+    "quantity": "width including the roll barrels",
+    "mesh": 80.8,
+    "measured": 83.5,
+    "unit": "mm",
+    "rel_err_pct": -3.2,
+    "measured_from": "official CAD 82.5 (M4T gimbal) · front-view photo 84.4 (M4E gimbal)",
+    "leverage_group": "camera 0.87-1.50",
+    "sigma_impact_db_est": -0.28,
+    "comment": "폭은 잘 맞는다."
+   },
+   {
+    "part": "battery",
+    "quantity": "battery box width",
+    "mesh": 61.6,
+    "measured": 60.6,
+    "unit": "mm",
+    "rel_err_pct": 1.7,
+    "measured_from": "DJI User Manual v1.2 p.103",
+    "leverage_group": "battery 2.26-3.59",
+    "sigma_impact_db_est": 0.14,
+    "comment": "폭은 거의 맞다."
+   },
+   {
+    "part": "rotor layout",
+    "quantity": "front rotor half-span",
+    "mesh": 181.35,
+    "measured": 179.5,
+    "unit": "mm",
+    "rel_err_pct": 1.0,
+    "measured_from": "official CAD (motor axes x=+-179.0..179.9)",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": 0.09,
+    "comment": "2026-07-31 사다리꼴 판정이 제조사 CAD 로 확인됐다."
+   },
+   {
+    "part": "propeller",
+    "quantity": "projected blade area 0.20-1.00 R vs 1157F (standard)",
+    "mesh": 2434.1,
+    "measured": 2452.8,
+    "unit": "mm^2",
+    "rel_err_pct": -0.8,
+    "measured_from": "part photo c02, tip-to-tip = 274 mm; our mesh projected the same way",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": -0.07,
+    "comment": "총면적은 우연히 맞는다."
+   },
+   {
+    "part": "motor",
+    "quantity": "bell outer diameter",
+    "mesh": 27.0,
+    "measured": 26.9,
+    "unit": "mm",
+    "rel_err_pct": 0.4,
+    "measured_from": "official CAD (front 25.6/27.6, rear 26.9/27.8)",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": 0.03,
+    "comment": "spec motor_dia_mm=27.0 이 CAD 와 맞는다. 이번 라운드에서 가장 잘 맞은 항목."
+   },
+   {
+    "part": "rotor layout",
+    "quantity": "rear rotor half-span",
+    "mesh": 157.5,
+    "measured": 156.8,
+    "unit": "mm",
+    "rel_err_pct": 0.4,
+    "measured_from": "official CAD (x=+-156.5..157.3)",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": 0.04,
+    "comment": "확인."
+   },
+   {
+    "part": "rotor layout",
+    "quantity": "fore-aft rotor separation",
+    "mesh": 278.9,
+    "measured": 279.2,
+    "unit": "mm",
+    "rel_err_pct": -0.1,
+    "measured_from": "official CAD",
+    "leverage_group": "shape fidelity 1.16-1.96",
+    "sigma_impact_db_est": -0.01,
+    "comment": "확인. 오차 0.1 %."
+   }
+  ],
+  "internals": [
+   {
+    "item": "Intelligent Flight Battery BPX345-6741-14.76",
+    "measured": "145.47 x 60.6 x 46.3 mm, 400 g",
+    "source": "DJI Matrice 4 Series User Manual v1.2, p.103 (C2 list of qualified accessories)",
+    "mesh": "122.5 x 61.6 x 49.0 mm box at x=-14.7 mm",
+    "verdict": "길이 -15.8 %, 위치 35 mm 앞. 폭·높이는 +1.7 / +5.8 % 로 맞다."
+   },
+   {
+    "item": "battery bay / rear-face position",
+    "measured": "팩 후면이 곧 기체 꼬리면 (p05 후면 · p09 저면 · m13 저면도해 · m14 삽입도해)",
+    "source": "photographs + DJI maintenance-manual illustrations",
+    "mesh": "상자 중심 -0.06*bl",
+    "verdict": "후면 정합을 쓰면 중심은 -0.20*bl 이어야 한다."
+   },
+   {
+    "item": "main board + shield can",
+    "measured": "분해사진 t03/t05/t06/t07 에 **완전히 보인다**. 그러나 이 사진들에는 축척 앵커가 없다 (손·워터마크·근접 원근). 절대 치수는 이번 라운드에서 확정하지 못했다.",
+    "source": "teardown t03 (내부 상면 전경) · t06/t07 (보드 단품)",
+    "mesh": "PCB 판 93.0 x 53.6 x 5.1 mm at (x=+4.9, z=+22.1)",
+    "verdict": "미확정 — 다음 라운드에 t14(하부 셸 단품, 외형으로 축척 가능)를 앵커로 쓰면 풀린다."
+   },
+   {
+    "item": "magnesium structural plate",
+    "measured": "t13/t14 에 하부 셸의 금속 보강 구조가 보이나 치수 앵커 없음",
+    "source": "teardown t13/t14",
+    "mesh": "142.1 x 67.6 x 7.1 mm",
+    "verdict": "미확정."
+   },
+   {
+    "item": "cooling blower + heatsink",
+    "measured": "t02/t04 에 단품으로 보인다. 우리 메쉬에 **아예 없는 금속 덩어리**다.",
+    "source": "teardown t02/t04",
+    "mesh": "없음",
+    "verdict": "미모델링 부품이 하나 더 있다는 것이 이번 라운드의 새 정보."
+   }
+  ],
+  "propeller_planform": {
+   "method": "부품 단품 사진(c01/c02)의 실루엣을 팁-투-팁 274 mm 로 축척하고 반경 밴드마다 투영 시위를 쟀다. 우리 메쉬 프롭도 **같은 방식으로 로터 평면에 투영해** 잰다(사과 대 사과: 둘 다 투영 시위).",
+   "r_over_R": [
+    0.2,
+    0.25,
+    0.3,
+    0.35,
+    0.4,
+    0.45,
+    0.5,
+    0.55,
+    0.6,
+    0.65,
+    0.7,
+    0.75,
+    0.8,
+    0.85,
+    0.9,
+    0.95,
+    1.0
+   ],
+   "mesh_mm": [
+    25.98,
+    29.38,
+    31.67,
+    31.93,
+    30.12,
+    27.12,
+    25.79,
+    24.6,
+    22.21,
+    21.03,
+    19.88,
+    18.72,
+    16.53,
+    15.21,
+    14.02,
+    12.48,
+    3.33
+   ],
+   "photo_1157F_mm": [
+    25.21,
+    26.89,
+    27.22,
+    26.92,
+    26.47,
+    26.01,
+    25.26,
+    24.67,
+    23.62,
+    22.86,
+    21.98,
+    20.78,
+    19.55,
+    17.94,
+    15.97,
+    14.04,
+    10.59
+   ],
+   "photo_1154F_mm": [
+    26.66,
+    29.39,
+    29.93,
+    29.74,
+    30.08,
+    30.18,
+    30.18,
+    30.18,
+    30.18,
+    29.85,
+    29.62,
+    29.03,
+    28.47,
+    27.68,
+    25.78,
+    20.83,
+    10.68
+   ],
+   "area_mm2": {
+    "mesh": 2434.1,
+    "prop_1157F": 2452.8,
+    "prop_1154F": 3081.1
+   },
+   "verdict": "총면적은 표준 프롭과 -0.8 % 로 맞지만 분포가 RMS 19.8 % 어긋난다. 저소음(EU 기본) 프롭 기준이면 면적 -21 % = **-2.05 dB**."
+  },
+  "rotor_layout_confirmed": {
+   "claim": "2026-07-31 에 상면사진 팁-중점법으로 얻은 **사다리꼴 로터 배치**",
+   "cad_front_half_span_mm": 179.5,
+   "cad_rear_half_span_mm": 156.8,
+   "cad_separation_mm": 279.2,
+   "spec_front_half_span_mm": 181.35,
+   "spec_rear_half_span_mm": 157.5,
+   "spec_separation_mm": 278.9,
+   "max_rel_err_pct": 1.0,
+   "second_independent_check": "저면사진 p09 에서 앞/뒤 프롭쌍 폭 비 1.2260 을 팁-투-팁 비 1.0705 로 원근보정하면 1.1452 — 스펙 비 1.1514 와 -0.54 %.",
+   "verdict": "⭐ 제조사 CAD 와 두 번째 사진이 독립적으로 확인한다. 이 항목은 이제 검증된 것으로 다뤄도 된다."
+  },
+  "photo_scale_anchors": {
+   "top_view": "matrice 4E_5.png — 0.6249 mm/px (프롭 팁-투-팁 438.5 px = 274 mm)",
+   "front_view": "matrice4e_p12 — 4.6195 px/mm (앞 로터 허브 간격 1675.5 px = 362.7 mm)",
+   "side_view": "matrice4e_p01 — 0.25865 mm/px (RTK 상단~발끝 578 px = 149.5 mm)",
+   "underside": "matrice4e_p09 — 앞 로터쌍 1342.5 px = 362.7 mm, 세로는 원근 보정 필요(elev ~ -45 deg)"
+  }
+ },
+ "constants_inventory": {
+  "_rule": "'자유로운 선택' = 이 메쉬의 sigma 를 바꾸는데 **Matrice 4E 자체의 관측으로 고정되지 않은** 수. p3_attack.json Q3 의 분류를 그대로 따른다(관측고정 / tier A 기종전용 결정 / tier B 상속 / tier C 엔진·비교).",
+  "constrained_by_a_matrice4e_observation": {
+   "count": 26,
+   "items": [
+    "diagonal 438.8 mm (DJI 공표)",
+    "body_l 307 mm (공표 펼침 L)",
+    "body_w 388 mm (공표 387.5)",
+    "body_h 150 mm (공표 149.5)",
+    "envelope 높이 149.5 mm 강제 (공표)",
+    "prop 지름 274 mm (공표 27.4 cm)",
+    "prop 피치 5.7 in (1157F, 공표 13.7 cm)",
+    "블레이드 2",
+    "로터 4",
+    "weight 1219 g (공표)",
+    "rtk=True (공표)",
+    "rotor_deg 4개 (상면사진 팁-중점법) — 이번 라운드 CAD 로 +-1 % 확인",
+    "rotor_r_mm 4개 (같은 실측) — CAD 로 확인",
+    "_SHELL_SHAPE fl 0.798 = 셸 길이 245.0 mm (상면사진)",
+    "_SHELL_SHAPE fw 0.2561 = 셸 폭 94.4 mm (상면사진)",
+    "_SHELL_SHAPE fh 0.594 = 셸 높이 89.1 mm (측면사진)",
+    "hw 6점 프로파일 (상면사진 픽셀 프로파일)",
+    "GEAR_SPIKE_H 0.079 m (측면사진 벨리->발 38.5 mm)",
+    "_rtk_cylinder 높이 32 mm (후면사진)",
+    "RTK 중심 -0.27*bl (상면사진)",
+    "비콘 위치 -0.44*bl (상면사진)",
+    "짐벌 블록 폭 59 mm (정면사진 2026-07-31)",
+    "짐벌 블록 높이 47 mm (정면사진 2026-07-31)",
+    "어안 6개의 대략 위치 (상면사진: 기수 모서리 2 · 어깨 2 · 벨리 2)",
+    "motor_dia_mm 27.0 (사진 대역 27~32 의 하단) — CAD 26.9 로 사후 확인",
+    "hover_rpm 3800 (C_T 앵커에서 유도, 형상 아님)"
+   ],
+   "note": "이 중 **어긋난 것으로 이번에 판명된 것**: _rtk_cylinder 지름 46/43 mm (실측 37.9), GEAR_SPIKE_H (로터면 기준으로는 +52 %). 관측으로 고정됐다고 적혀 있어도 어떤 랜드마크를 앵커로 삼았는가에 따라 틀릴 수 있다."
+  },
+  "tier_A_matrice4e_specific_decisions": {
+   "count": 31,
+   "examples": [
+    "셸을 로터 중앙면에 **대칭으로** 놓기로 한 것 (실물은 +44 mm) — 명시 결정이 아니라 기본동작",
+    "arm_od_mm 20.0 (자신의 사진실측 16.6 과 문서대역 18~22 사이에서 고른 값)",
+    "_ARM_SECTION (2.00,1.00) = 원형 튜브 판정 (실물은 11x17 납작 타원)",
+    "짐벌 깊이 0.052 m (폭·높이만 실측, 깊이는 미실측)",
+    "짐벌 z = -0.60*bh (기수 아래 물림 위치)",
+    "RTK 밑동 z = 0.42*bh (셸이 낮아진 뒤 손으로 되맞춘 값)",
+    "cad_version v2 선택(짐벌 v1/v2 갈림)",
+    "envelope 강제를 **높이만** 으로 하는 정책",
+    "rotor_z_mm 을 None 으로 둠(로터 4개 동일 평면)",
+    "body_frac 0.42 · body_lw (1.08,0.98)",
+    "arm_style='body'(플라스틱) — 카본이면 |Gamma| 0.90 <-> 0.28 = 10.1 dB",
+    "gear='feet' 종류 선택(6종 중), 다리를 원뿔로 볼 것인가 핀으로 볼 것인가",
+    "max_rpm 7500 vs 문서 6130 미해결",
+    "npow 3.2 · ndrop 0.0 · cx0 -0.16 · cfrac 0.62 · cfh 1.0 · hubf 0.20 (셸표의 비형상수 6개)",
+    "hh 6점 · zo 6점 (측면 프로파일 — 측면사진 1장에서 읽은 것이라 반증력이 약하다)",
+    "어안 반경 9 mm · 비콘 7x5 mm (치수는 집안 리터럴)",
+    "표준 1157F 를 모델링한다는 **암묵** 선택(EU 기본은 1154F, 선언 없음)"
+   ]
+  },
+  "tier_B_inherited_shape_constants_no_matrice4e_evidence": {
+   "count": 158,
+   "breakdown": {
+    "_body_folding 법칙(스테이션 6 · tail_w · n_sec · n_pts · smooth)": 10,
+    "_canopy 법칙 14점": 14,
+    "_gimbal_sensor_v2 내부 비율(2x2 개구 좌표·배럴 위치·사다리꼴 비율)": 52,
+    "_rtk_cylinder 프로파일 비율": 11,
+    "_gear_arm_spikes 비율(splay 20 · inboard 0.87 · d_root 0.014 · d_tip 0.007)": 4,
+    "_fisheye 내부 비율": 4,
+    "암·모터 비율(arm z1 0.012*diag · bend 0.06 · mot_h 0.048*diag · 벨 프로파일 9점 · 벨 z 0.014*diag)": 21,
+    "내부 산란체 3상자(배터리·PCB·마그네슘판) 치수3+위치3 x 3": 18,
+    "프로펠러 H 등급(sweep_frac 0.10 · root_frac 0.070 · 허브 2 · 허브프로파일 6 · 해상도 3 · base_ang 12 deg · 회전방향)": 15,
+    "프로펠러 D 등급(CHORD_MAX_OVER_R · TC_ROOT/TIP · CAMBER_M/P)": 5,
+    "그룹->재질 배정(존재 9그룹)": 9,
+    "쓰인 |Gamma| 실효값": 5
+   },
+   "note": "프로펠러 시위·피치 표는 **3DR Solo 실측**이다. 이번 라운드에 1157F/1154F 실물 단품사진으로 처음 대조했고 RMS 19.8 % 어긋났다."
+  },
+  "tier_C_engine_and_comparison_knobs": {
+   "count": 13,
+   "note": "P3 감사의 tier C 와 같은 목록이다(엔진이 같다): div, 대조 자세, 선형/dB 평균, 적합구간, 끝점, 대조상대, 방위창, jitter/penetrate/max_bounce/ptd/n_az/주파수격자. 이 라운드는 엔진 손잡이를 건드리지 않았다."
+  },
+  "total": 228,
+  "ratio_free_to_constrained": 7.8
+ },
+ "newly_measurable_this_round": [
+  "shell centre offset (official CAD + top-view photo, two independent sources agree)",
+  "arm cross-section shape and size (official CAD)",
+  "rotor-plane height above the ground / foot drop (official CAD)",
+  "leg root diameter and leg profile shape (official CAD)",
+  "RTK antenna diameter (official CAD + two photos)",
+  "motor bell height (official CAD)",
+  "gimbal fore-aft depth (official CAD)",
+  "gimbal ground clearance (official CAD)",
+  "battery box L x W x H (DJI User Manual v1.2 p.103, published)",
+  "battery box longitudinal position (rear-flush, from p05/p09/m13/m14)",
+  "propeller chord distribution and max chord/R for both 1157F and 1154F (part photos c01/c02)",
+  "downward-vision camera pair orientation (underside photo p09)",
+  "shell nose bluntness and the station of maximum width (top-view photo re-profiled)"
+ ],
+ "what_this_round_did_not_settle": [
+  "메인보드·마그네슘판의 절대 치수 — 분해사진에 축척 앵커가 없다(t14 를 앵커로 쓰면 다음 라운드에 풀린다)",
+  "냉각 송풍기 모듈: 실물에 있는 금속 덩어리인데 우리 메쉬에 아예 없다. 크기 미확정",
+  "M4E 짐벌의 앞뒤 깊이 — CAD 짐벌은 4T 다",
+  "셸 길이가 자료마다 갈린다: 공식 CAD 상부데크 226.8 mm vs 상면사진 245.0 mm. 같은 것을 재고 있지 않다",
+  "재질(1.14 dB 레버)은 이번 라운드에서 손대지 않았다",
+  "메쉬를 고치지 않았으므로 위 오차들이 sigma 를 실제로 얼마나 움직이는지는 **추정치**다. 확정하려면 고친 메쉬로 leave-one-out 을 다시 돌려야 한다"
+ ],
+ "headline": [
+  "⭐⭐ 동체 전체가 로터 중앙면 대비 **44~45 mm 뒤로** 놓여 있다(공식 CAD 44.3 · 상면사진 44.9, 두 자료 독립 일치). 셸 길이의 0.18, 3.5 GHz 파장의 0.52 배다.",
+  "⭐ 로터 평면이 지면에서 **40 mm 높다**(우리 99.4 · CAD 59.8). 총높이 149.5 는 강제로 맞춰져 있어 'bbox 는 맞고 형상은 틀린' 상태의 교과서적 사례다.",
+  "⭐ 암 단면이 원형(Ø20)으로 돼 있으나 실물은 **11 x 17 mm 납작 타원**이다 — 단면적 2.2배.",
+  "⭐ 배터리 공표 치수가 존재한다(145.47 x 60.6 x 46.3 mm). 우리 상자는 길이 -15.8 %, 위치 35 mm 앞. sigma 지배 부품(2.26~3.59 dB)의 근거가 처음으로 생겼다.",
+  "⭐ 프롭 시위표는 3DR Solo 실측이었다. 실물 1157F 와 RMS 19.8 % 어긋나고, EU 기본 1154F 기준이면 -2.05 dB.",
+  "⭐ 로터 사다리꼴 배치는 제조사 CAD 로 **확인**됐다(오차 1 % 이내).",
+  "⭐ 새 사진 12장 중 새 시선은 2개뿐이었고, 그 2개는 둘 다 기존보다 낮은 점수를 냈다.",
+  "⭐ 해상도 대조군(같은 시선 2.6배 픽셀)이 -0.8 % 를 냈다 — 부족분은 사진이 아니라 메쉬다."
+ ],
+ "return_summary": {
+  "drone": "matrice4e",
+  "json": "/home/yunjung/workspace/sionna2/outputs/matrice4e_photo_measure.json",
+  "fig": "/home/yunjung/workspace/sionna2/outputs/figures/mesh_photo_matrice4e_v2.png",
+  "n_photos": 56,
+  "n_constants": 228,
+  "n_borrowed": 189,
+  "n_now_measurable": 13,
+  "internals_measured": 1,
+  "iou_before": 0.559,
+  "iou_after": 0.575,
+  "pct_of_ceiling": 66.3,
+  "worst_mismatches": [
+   "RTK antenna: centre x behind the rotor mid-plane — mesh -66.1 vs -20.2 (+227 %)",
+   "shell: tail x, rear end of the upper deck (+ = forward of the rotor mid-plane) — mesh -121.7 vs -69.1 (+76 %)",
+   "battery: battery box centre, x (+ = forward) — mesh -14.7 vs -49.8 (-70 %)",
+   "landing gear: rotor plane height above the ground contact — mesh 99.4 vs 59.8 (+66 %)",
+   "shell: station of maximum width, x/L — mesh 0.18 vs 0.11 (+64 %)"
+  ]
+ }
+}

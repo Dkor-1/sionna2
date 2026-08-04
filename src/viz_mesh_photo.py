@@ -106,6 +106,29 @@ GRAY = G.GRAY
 _DJI = dict(credit="DJI product image", licence=None,
             provenance="assets/photos/<key>/ 에 SOURCES.md 없음 — 출처·라이선스 미기록")
 
+#: phantom3 은 기록이 있다 — 전부 DJI 공식 제품 페이지 렌더이고 URL·해시가 SOURCES.md 에 있다.
+_DJI_P3 = dict(credit="DJI product image (Phantom 3 Professional product page)",
+               licence="Copyright DJI, no public licence — internal lab reference, "
+                       "attribution required when published",
+               provenance="assets/photos/phantom3/SOURCES.md")
+#: Phantom 3 SE 페이지 자산. DJI 는 Pro/Adv/SE/Standard 에 **같은 셸 부품**을 팔고 외형 공표값도
+#: 같다(289.5×289×185 mm, 대각 350 mm, 9450 프롭) — 실루엣 수준에서 Professional 과 구분되지 않는다.
+#: 그래도 어디서 왔는지는 그림에 그대로 적힌다(SOURCES.md §변종).
+_DJI_P3SE = dict(credit="DJI product image (Phantom 3 SE product page, same airframe)",
+                 licence="Copyright DJI, no public licence — internal lab reference, "
+                         "attribution required when published",
+                 provenance="assets/photos/phantom3/SOURCES.md")
+#: Matrice 4E — 2026-08-03 에 SOURCES.md 가 생겼다. 원본 5장은 DJI 제품컷,
+#: p01~p12 는 같은 DJI 제품컷이 판매점 CDN(shopify · dronefly)에 올라간 고해상판이다.
+_DJI_M4E = dict(credit="DJI product image (Matrice 4 Series product page)",
+                licence="Copyright DJI, no public licence — internal lab reference, "
+                        "attribution required when published",
+                provenance="assets/photos/matrice4e/SOURCES.md")
+_SHOP_M4E = dict(credit="DJI product image via reseller CDN (heliguy / dronefly / shopify)",
+                 licence="Copyright DJI, no public licence — internal lab reference, "
+                         "attribution required when published",
+                 provenance="assets/photos/matrice4e/SOURCES.md")
+
 PHOTOS: dict[str, list[dict]] = {
     "mini5pro": [
         dict(file="mini 5 pro_1.png", expect=(0, 12), props=True,
@@ -125,15 +148,119 @@ PHOTOS: dict[str, list[dict]] = {
         dict(file="mavic 4 pro_4.png", expect=(40, 15), props=True,
              note="three-quarter, gimbal facing the camera and to the left", **_DJI),
     ],
+    #  ⭐⭐ Matrice 4E (2026-08-04 재등록) — **전기체가 보이는 17장을 전부 등록**한다.
+    #  이 기체는 실측 캠페인 대상이라 사진이 5 → 56장으로 늘었고, 그 중 전기체 뷰가 17장이다.
+    #  전에는 3장만 등록했고 나머지는 "같은 시선방향의 중복"이라며 뺐다. 중복은 사실이지만
+    #  **가중치가 아니라 재현성**을 준다 — 같은 방향을 다른 해상도·다른 판으로 두 번 재면
+    #  낮은 IoU 가 메쉬 탓인지 그 사진 한 장 탓인지 갈린다.
+    #
+    #  ⛔⭐ 기수 판정 정정 — `matrice 4E_3.png` 의 선언 자세가 **90° 틀려 있었다**.
+    #    옛 등록: expect=(0, 4) "head-on, eye level". 세 갈래 증거가 전부 아니라고 말한다.
+    #      (a) 짐벌이 없다. 정면컷(_1 · p02 · p03)은 예외 없이 3렌즈 짐벌이 동체 아래
+    #          매달려 실루엣을 지배하는데 _3 에는 그 덩어리가 아예 없다.
+    #      (b) 동체 양 끝에 어안이 **한 개씩만** 보인다. 정면·후면 정투영(p02 · _4)에서는
+    #          어안쌍이 **두 개 나란히** 보인다 — 한 개씩 = 먼 쪽이 동체에 가린 **측면**이다.
+    #      (c) 어안 두 개의 화면 간격이 앞뒤 어안 거리(199.8 mm)와 맞고, 모터 4개가
+    #          좌우 두 뭉치로 뭉치는 정도(뭉치 내 벌어짐 / 뭉치 사이 거리 = 0.15)가
+    #          방위 263°(대칭해 277°)를 준다. 정면(0°)이면 이 비는 1 에 가까워야 한다.
+    #    SOURCES.md 도 이 파일을 "후방 3/4 우" 로 적어 두었다(우리 등록부만 정면이라고 했다).
+    #    → azim 270 으로 고친다. RTK 터렛·방열구가 있는 끝이 꼬리다(_1 정면컷이 RTK 를
+    #      동체 **뒤쪽 위**로 보여 준다). ⚠ 옛 헤드라인 IoU 0.575 는 **틀린 각도에서 잰 값**이다.
+    #
+    #  ⭐ 측면 5장의 **고각은 4°**(눈높이)다 — 다리 끝으로 쟀다. 같은 뭉치의 앞·뒤 다리
+    #    끝이 화면에서 23 px 어긋나고(p06, 1300 px 폭) 그 두 발의 기체 y 간격이 320 mm,
+    #    축척이 2.646 px/mm 이므로 sin(고각) = 23/(320·2.646) → **1.6°**. 원근(먼 것이
+    #    위로 몰리는 효과)을 빼면 더 작아지므로 4° 는 상한 쪽 선언이다.
+    #    ⭐ 방위도 같은 방식으로 잰다: 앞 로터쌍이 화면에서 60 px 벌어지고 앞뒤 로터
+    #    뭉치가 738 px 떨어져 있으므로 |cot(방위)| = 0.0625 → 270 ∓ 3.6°. 사실상 정측면이다.
+    #  el_lo : 저면 오블리크(p09 · p10)는 기본 격자(고각 −36°) 밖이라 이 두 장만 하한을 내린다.
     "matrice4e": [
+        # --- 상면 --------------------------------------------------------------- #
         dict(file="matrice 4E_5.png", expect=(0, 85), props=True,
-             note="from above, X rotor layout", **_DJI),
+             note="from above, trapezoidal rotor layout (azimuth unconstrained at this elevation)",
+             **_DJI_M4E),
+        # --- 정면 계열 4장: 같은 방향을 618 px 에서 2667 px 까지 --------------------- #
         dict(file="matrice 4E_1.png", expect=(0, 16), props=True,
-             note="front, slightly above", **_DJI),
-        dict(file="matrice 4E_3.png", expect=(0, 4), props=True,
-             note="head-on, eye level", **_DJI),
-        # matrice 4E_2.png 은 뺐다 — 거의 정측면이라 **기수가 어느 쪽인지 눈으로 못 정한다**.
-        #   선언 자세가 틀리면 헤드라인 IoU 가 형상이 아니라 내 오독을 재게 된다.
+             note="front, slightly above; the reference view for the 4E gimbal (three lenses "
+                  "plus laser rangefinder)", **_DJI_M4E),
+        dict(file="matrice4e_p02_front_elevation.jpg", expect=(0, 12), props=True,
+             note="front elevation: both forward fisheyes visible side by side, which is what an "
+                  "on-axis view looks like", **_SHOP_M4E),
+        dict(file="matrice4e_p03_front_elevation_gimbal.jpg", expect=(0, 14), props=True,
+             note="front, gimbal large in frame", **_SHOP_M4E),
+        dict(file="matrice4e_p11_front_top_iso.jpg", expect=(0, 18), props=True,
+             note="front from above; 720 px, the lowest resolution registered here",
+             **_SHOP_M4E),
+        dict(file="matrice4e_p12_top_front_iso.jpg", expect=(0, 18), props=True,
+             note="front from above at 2667 px. RESOLUTION CONTROL against 'matrice 4E_1.png' "
+                  "(the two silhouettes agree to IoU 0.994): it separates what the photograph "
+                  "costs from what the mesh costs", **_SHOP_M4E),
+        # --- 후면 2장 ------------------------------------------------------------ #
+        dict(file="matrice 4E_4.png", expect=(180, 4), props=True, window=22.0,
+             note="rear, near-orthographic: battery gauge, power button and BOTH rear fisheyes "
+                  "are visible, and no gimbal", **_DJI_M4E),
+        dict(file="matrice4e_p04_front_low_angle.jpg", expect=(180, 2), props=True, window=22.0,
+             note="rear, low. ⚠ the file name says 'front' — it is not: the battery gauge and the "
+                  "rear fisheye pair are in view and the gimbal is absent", **_SHOP_M4E),
+        # --- 측면 계열 5장(좌우 두 방향) ------------------------------------------- #
+        dict(file="matrice 4E_3.png", expect=(270, 4), props=True, window=26.0,
+             note="side, nose to the right of frame, camera slightly above. ⭐ this photograph was "
+                  "registered as a head-on view until 2026-08-04; see the block comment",
+             **_DJI_M4E),
+        dict(file="matrice4e_p06_rear_low_angle.jpg", expect=(270, 4), props=True, window=26.0,
+             note="side, nose right; same viewing direction as 'matrice 4E_3.png' at 2560 px",
+             **_SHOP_M4E),
+        dict(file="matrice 4E_2.png", expect=(90, 4), props=True, window=26.0,
+             note="side, nose to the LEFT of frame: the mirror of 'matrice 4E_3.png'. Which end "
+                  "is the nose is read from the tail vents, the RTK turret and the gimbal, all "
+                  "three of which sit at the same end", **_DJI_M4E),
+        dict(file="matrice4e_p01_side_profile_left.jpg", expect=(90, 4), props=True, window=26.0,
+             note="side, nose left, 2667 px: the sharpest view of body height, leg length and "
+                  "gimbal projection", **_SHOP_M4E),
+        dict(file="matrice4e_p05_rear_elevation.jpg", expect=(90, 4), props=True, window=26.0,
+             note="side, nose left. ⚠ the file name says 'rear elevation' — it is not: only one "
+                  "fisheye is visible at each end of the body, which only happens off to the side",
+             **_SHOP_M4E),
+        # --- 3/4 전좌 2장 --------------------------------------------------------- #
+        dict(file="matrice4e_p07_iso_front_left.jpg", expect=(40, 25), props=True, window=30.0,
+             note="three-quarter from front-left and above, gimbal toward the camera and to the "
+                  "left", **_SHOP_M4E),
+        dict(file="matrice4e_p08_iso_rear_left_low.jpg", expect=(40, 25), props=True, window=30.0,
+             note="three-quarter from front-left and above at 1440 px. ⚠ the file name says "
+                  "'rear' — the gimbal faces the camera, so it is a front three-quarter",
+             **_SHOP_M4E),
+        # --- 저면 2장 (기본 고각 격자 밖) ------------------------------------------ #
+        dict(file="matrice4e_p09_underside_plan.jpg", expect=(0, -45), props=True,
+             window=26.0, el_lo=-72.0,
+             note="from below and in front, about 45 deg under the horizon: the only direction in "
+                  "the folder that shows the belly, the landing gear from underneath and the "
+                  "downward vision cluster", **_SHOP_M4E),
+        dict(file="matrice4e_p10_underside_plan_alt.jpg", expect=(0, -45), props=True,
+             window=26.0, el_lo=-72.0,
+             note="same direction as p09 at 1440 px and with the blades at a different phase",
+             **_SHOP_M4E),
+    ],
+    "phantom3": [
+        # 알파 채널이 있는 두 장을 앞에 둔다 — 임계값이 실루엣을 흔들지 않는 쪽이 기준이다.
+        dict(file="phantom3_d02_official_front.png", expect=(0, 13), props=True,
+             note="front, slightly above; alpha-channel background, silhouette is exact",
+             **_DJI_P3),
+        dict(file="phantom3_d03_official_top.png", expect=(0, 85), props=True,
+             note="from above (azimuth unconstrained at this elevation); alpha-channel background. "
+                  "The only official top view of the Phantom 3 airframe: DJI publishes none for the "
+                  "Professional, and its manual carries front, rear, bottom and side views only",
+             **_DJI_P3SE),
+        dict(file="phantom3_d01_official_iso34.jpg", expect=(35, 22), props=True, window=26.0,
+             note="three-quarter, gimbal toward the camera and to the left. White aircraft on a "
+                  "near-white JPEG background: the silhouette is threshold-bound (51 % area swing), "
+                  "so read its IoU together with the alpha-channel views",
+             **_DJI_P3),
+        # 같은 자세를 알파 채널로 다시 재는 교차검증. _d01 의 낮은 IoU 가 분리 탓인지 형상 탓인지
+        # 이 한 장이 가른다.
+        dict(file="phantom3_d06_official_se_iso34.png", expect=(28, 16), props=True, window=26.0,
+             note="three-quarter from the SE banner, alpha-channel background: re-measures the same "
+                  "aspect as the Professional hero render without the threshold problem",
+             **_DJI_P3SE),
     ],
     "phantom4": [
         dict(file="Phantom 4 Pro+ V2.0_5.png", expect=(0, 85), props=True,
@@ -170,6 +297,56 @@ PHOTOS: dict[str, list[dict]] = {
              licence="Copyright Yuneec — attribution required when published",
              provenance="assets/photos/typhoonh480/SOURCES.md"),
     ],
+    #  ⭐ Mini 2 (2026-08-03). ⛔ **GLB 정사영 렌더 20장(_d20~_d49)은 등록하지 않는다** —
+    #     이 기체의 메쉬는 바로 그 GLB 를 재서 지었다. 자기가 베낀 그림으로 채점하면 IoU 는
+    #     형상이 아니라 **베끼기 정확도**를 잰다(s1000plus 가 같은 사진을 앵커와 채점에 함께 써서
+    #     "부분 순환"이라고 적어둔 그 함정의 완전판이다). 아래 3장은 전부 GLB 와 무관한 자료다.
+    "mini2": [
+        dict(file="mini2_d06_official_unfolded_front_alpha.png", expect=(0, 12), props=True,
+             note="front, camera slightly above; alpha-channel background, silhouette is exact. "
+                  "The two landing posts under the FRONT arms and the nose-recessed gimbal are "
+                  "both unobstructed here",
+             credit="DJI product image (Mini 2 product page)",
+             licence="Copyright DJI, no public licence — internal lab reference, "
+                     "attribution required when published",
+             provenance="assets/photos/mini2/SOURCES.md"),
+        dict(file="mini2_d05_official_unfolded_iso_black.png", expect=(35, 32), props=True,
+             window=26.0,
+             note="three-quarter from above, nose toward the camera and to the left",
+             credit="DJI product image (Mini 2 product page)",
+             licence="Copyright DJI, no public licence — internal lab reference, "
+                     "attribution required when published",
+             provenance="assets/photos/mini2/SOURCES.md"),
+        # 실물 하드웨어 한 장 — DJI 렌더가 아니라 분해 사진이다(렌더와 실물이 다를 가능성을 검사한다).
+        dict(file="mini2_p02_ifixit_unfolded_top34.jpg", expect=(175, 45), props=True,
+             window=30.0,
+             note="real aircraft, three-quarter from above and BEHIND (the rear bay, USB-C and "
+                  "microSD face the camera). Grey aircraft on a white cloth, so the silhouette is "
+                  "threshold-bound — read it together with the two alpha/clean renders",
+             credit="iFixit repair guide photograph (DJI Mini 2 Drone Body, step 1)",
+             licence="CC BY-NC-SA 3.0",
+             provenance="assets/photos/mini2/SOURCES.md"),
+        #  ⭐ 2026-08-04 추가. 이 폴더의 **네 번째이자 마지막** 전기체 뷰다. 나머지 파일이 왜
+        #     빠졌는지는 EXCLUDED 에 측정값과 함께 적었다(전수 검사했다).
+        #     · 기수 방향: 짐벌(camera 그룹) 무게중심이 기체 좌표 x=+31 mm 이고, 사진에서 짐벌이
+        #       화면 오른쪽에 있다. 렌더 규약상 그 조합은 방위 270° 다 — 눈대중이 아니라 계산이다.
+        #     · 고각: 상면 셸의 통풍 그릴이 보이므로 수평보다 조금 위. +6° 로 읽고 창을 30° 로 뒀다.
+        #     · 프롭이 흐르지만(회전 중) 이 사진은 **분리가 흔들리지 않는다** — 임계값 사다리에서
+        #       면적이 7.2 % 밖에 안 변한다(측정값. 알파 아닌 mini2 전기체 사진 중 가장 안정적이다).
+        #       흐린 날개는 측면에서 어차피 얇은 선으로 투영되고, 블레이드 위상은 자유 파라미터다.
+        dict(file="mini2_d11_official_unfolded_side_elevation_249g.jpg", expect=(270, 6),
+             props=True, window=30.0,
+             note="side elevation, nose to the right, camera a few degrees above the horizon. "
+                  "This is the only registered view that sees the airframe edge-on, so it is the "
+                  "one that grades body HEIGHT rather than plan-form. The propellers are turning "
+                  "and their blades are motion blurred, but the silhouette is the steadiest of "
+                  "any non-alpha whole-aircraft photograph here (area moves 7.2 % across the "
+                  "threshold ladder) and blade phase is a fitted parameter in any case",
+             credit="DJI product image (Mini 2 product page, ULTRA LIGHT 249 g side render)",
+             licence="Copyright DJI, no public licence — internal lab reference, "
+                     "attribution required when published",
+             provenance="assets/photos/mini2/SOURCES.md"),
+    ],
     "x500v2": [
         # 상판에 인쇄된 전방 화살표가 기수를 준다. _09 는 화살표가 왼쪽 위(카메라 반대)를 향한다.
         dict(file="x500v2_09_arf_iso34_props.jpg", expect=(150, 28), props=True, window=30.0,
@@ -188,6 +365,33 @@ PHOTOS: dict[str, list[dict]] = {
              credit="Holybro product photo",
              licence="Manufacturer product image — attribution required when published",
              provenance="assets/photos/x500v2/SOURCES.md"),
+        #  ⭐ 2026-08-04 추가. 이 폴더에서 전기체가 보이는 네 번째(마지막) 뷰다 — 프레임 킷이라
+        #     모터·프롭이 없으므로 props=False 로 **프레임끼리** 견준다. 상판 화살표가 화면
+        #     위쪽(카메라 반대)을 향하므로 기수는 뒤, 카메라는 방위 180°. 고각은 상판 팔각형의
+        #     겉보기 세로/가로비 ≈ 0.50 에서 30° 로 읽었다(눈대중이라 창을 26° 로 넓혔다).
+        dict(file="x500v2_02_frame_front34.jpg", expect=(180, 30), props=False, window=26.0,
+             note="frame kit, three-quarter from behind and above (top-plate arrow points away). "
+                  "No motors and no propellers on the airframe, so the mesh is compared frame-"
+                  "only; the mesh still carries its motor cans, which is a known mesh-only excess "
+                  "at the four arm tips",
+             credit="Holybro product photo",
+             licence="Manufacturer product image — attribution required when published",
+             provenance="assets/photos/x500v2/SOURCES.md"),
+    ],
+    #  ⚠ M350 RTK 는 사진이 65장이나 되는데 **여기 등록되는 것은 한 장뿐**이다. 나머지가 왜
+    #    빠졌는지는 아래 EXCLUDED 에 전부 적었다 — 요약하면 (a) FCC 사진 묶음은 전부 **접힌
+    #    상태 + 착륙장치 제거 + 비표준 CSM Radar/보호캡**이라 우리 메쉬(펼침·다리 있음·액세서리
+    #    없음)와 견줄 자세가 아니고, (b) 비행 사진은 프롭이 흐르고 페이로드가 달려 있으며,
+    #    (c) 매뉴얼 3면도는 콜아웃 원과 지시선이 실루엣에 섞인다.
+    "m350rtk": [
+        dict(file="m350rtk_d01_front_elevation_unfolded.png", expect=(0, 10), props=True,
+             note="front, camera about 10 deg above; unfolded, landing gear down, DGC2.0 port "
+                  "empty — the same configuration the mesh builds. Alpha-channel background, so "
+                  "the silhouette is exact and threshold-free",
+             credit="DJI product image (Matrice 350 RTK product page)",
+             licence="Copyright DJI, no public licence — internal lab reference, "
+                     "attribution required when published",
+             provenance="assets/photos/m350rtk/SOURCES.md"),
     ],
 }
 
@@ -213,12 +417,113 @@ EXCLUDED = [
     dict(key="typhoonh480", file="typhoonh480_y05_official_header.png",
          reason="propellers motion blurred"),
     dict(key="x500v2", file="x500v2_15_built_aircraft_field.jpg",
-         reason="outdoor background, no colour separation"),
+         reason="outdoor background, no colour separation — measured: the border-median "
+                "background is the gravel, the threshold rises to 0.87 and the extracted "
+                "silhouette comes out EMPTY (area 0.0000). It is also a user build carrying a "
+                "GoPro, a companion computer and extra masts"),
     dict(key="x500v2", file="x500v2_04_dimensioned_drawing.jpg",
-         reason="dimension arrows and text are part of the image, they enter the silhouette"),
-    dict(key="matrice4e", file="matrice 4E_2.png",
-         reason="near-side view: which end is the nose cannot be read off the photograph, and a "
-                "wrong declared aspect would be measured as a shape error"),
+         reason="dimension arrows and text are part of the image, they enter the silhouette — "
+                "measured: the 500 mm arrow and the 215/28 mm leader lines survive cleanup "
+                "attached to the airframe component, so the silhouette is 6.2 % of the frame "
+                "instead of the airframe alone"),
+    dict(key="x500v2", file="x500v2_16_payload_gps_mast.png",
+         reason="annotated figure: the title text, two red leader lines and the separate "
+                "photographs of a Raspberry Pi and two depth cameras all enter the mask "
+                "(measured area 11.4 % against 7.4 % for the clean ARF views), and the aircraft "
+                "carries payloads the mesh does not"),
+    dict(key="x500v2", file="x500v2_05/06/07/08/10/11/12/13/14 (9 files)",
+         reason="part close-ups and assembly steps — arm tip, plate corner, payload rails, arm "
+                "assemblies, propeller on motor, top-plate plan, flight-controller stack, arm "
+                "insert, arm clamp. None is a whole-aircraft silhouette (and _12 has a hand in "
+                "frame)"),
+    #  ⭐ matrice 4E_2.png 은 2026-08-04 에 **다시 넣었다**. 뺐던 이유("기수를 못 읽는다")는
+    #    해소됐다 — 꼬리 방열구 · RTK 터렛 · 짐벌이 전부 같은 끝에 모여 있어서 세 근거가
+    #    한 방향을 가리킨다. 그리고 못 읽는다고 빼는 대신 잘못 읽은 채로 남겨 둔 사진이
+    #    따로 있었다(matrice 4E_3.png, 위 등록부 참조).
+    dict(key="matrice4e", file="matrice4e_c01..c04 · m01..m19 · t01..t16 (39 files)",
+         reason="component close-ups, manual line art and teardown exhibits — not whole-aircraft "
+                "silhouettes. They are used as DIMENSION sources instead (see drone_cad)"),
+    dict(key="phantom3", file="phantom3_d04_official_iso34_v1.jpg",
+         reason="earlier revision of the same hero render: its aspect duplicates "
+                "phantom3_d01_official_iso34.jpg, so registering it would weight one viewing "
+                "direction twice"),
+    dict(key="phantom3", file="phantom3_d05_official_front34_spinning_props.png",
+         reason="propellers are spinning: the blades are motion blurred and the silhouette is a smear"),
+    # --- Mini 2 (2026-08-03) ---
+    dict(key="mini2", file="mini2_d20..d49_officialcad_*.png (20 files)",
+         reason="CIRCULAR: these 20 orthographic views are OUR renders of the very DJI GLB that "
+                "the mini2 mesh was measured from (drone_cad._SHELL_SHAPE['mini2']). Scoring the "
+                "mesh against them would grade how well we copied the CAD, not whether the CAD-"
+                "derived mesh looks like the aircraft"),
+    dict(key="mini2", file="mini2_d07_official_unfolded_front34_flight.jpg",
+         reason="mountain background: no background/foreground separation by colour"),
+    dict(key="mini2", file="mini2_d08_official_unfolded_side_flight_white.jpg",
+         reason="in flight: propellers are motion blurred, silhouette is a smear"),
+    dict(key="mini2", file="mini2_d10_official_propguard_360_installed.jpg",
+         reason="360 degree propeller guard fitted: the guard is not part of the airframe mesh"),
+    dict(key="mini2", file="mini2_d01..d04_official_folded_*.jpg/png",
+         reason="folded state: the mesh is built unfolded and drone_cad has no fold articulation"),
+    dict(key="mini2", file="mini2_p10..p15_fcc_ext_*.jpg",
+         reason="FCC exhibits with steel rules laid in frame (and, on p15, a cable and two "
+                "chargers beside the aircraft): the rulers and accessories enter the silhouette"),
+    dict(key="mini2", file="mini2_p03_ifixit_unfolded_iso_above.jpg",
+         reason="the gimbal protective cover is installed, which adds a large body the mesh "
+                "does not have, exactly where the camera is"),
+    dict(key="mini2", file="mini2_p01_ifixit_unfolded_front.jpg",
+         reason="near head-on with the rear ports facing the camera and a white-on-white "
+                "background: which end is the nose cannot be declared safely, and the "
+                "matrice4e_2 lesson applies. Measured, the silhouette area also swings 115 % "
+                "across the threshold ladder — the widest of any file in this folder"),
+    # --- Mini 2, 2026-08-04: 폴더를 전수 검사하고 남은 전기체 후보를 전부 판정했다 --------- #
+    dict(key="mini2", file="mini2_d12_official_unfolded_front_elevation_flight.jpg",
+         reason="grey aircraft against a sunlit mountain ridge: measured, the extracted "
+                "silhouette is mostly MOUNTAIN and the aircraft survives only as fragments "
+                "(area 3.9 % of frame, 60 % swing across the threshold ladder). Same rule as "
+                "d07. The propellers are turning as well"),
+    dict(key="mini2", file="mini2_d13_official_folded_top_rear_iso_4k.jpg",
+         reason="folded state (same rule as d01..d03): the mesh is built unfolded and drone_cad "
+                "has no fold articulation, so this is a different configuration, not a "
+                "different viewpoint"),
+    dict(key="mini2", file="mini2_d09_official_xray_cutaway_internals.jpg",
+         reason="folded state AND a cutaway: the shell is drawn transparent so the battery, "
+                "mainboard and motor windings show through. The mesh has no transparency, so "
+                "this grades the render style"),
+    dict(key="mini2", file="mini2_p04_ifixit_top_shell_screws_annot.jpg",
+         reason="the aircraft is lying BELLY UP, so the camera looks at the mesh from about "
+                "50 deg BELOW the horizon — outside the -36 deg floor of the pose search, which "
+                "means the declared aspect is not reachable and the fit would be pinned to the "
+                "window edge. Four red annotation circles are printed on it and the segmentation "
+                "swings 69 %"),
+    dict(key="mini2", file="mini2_p05_ifixit_belly_bottom.jpg",
+         reason="grey aircraft on a grey cloth: measured, the extracted silhouette is EMPTY "
+                "(mask area 0.000) because the background median lands on the aircraft's own "
+                "grey. Three of the four propellers also run out of the frame"),
+    dict(key="mini2", file="mini2_m01..m08_manual/label_*.png",
+         reason="manual and label artwork: callout circles, leader lines, dimension arrows and "
+                "printed text are part of the image and would enter the silhouette. m05 is an "
+                "unfold SEQUENCE — several copies of the aircraft in one picture. Used as "
+                "DIMENSION and SHAPE sources instead"),
+    dict(key="m350rtk", file="m350rtk_d02_iso34_unfolded.jpg",
+         reason="near-black aircraft on a near-black gradient: the silhouette area swings 195 % "
+                "across the threshold ladder (measured, seg_sensitivity), so its IoU would grade "
+                "the threshold rather than the mesh"),
+    dict(key="m350rtk", file="m350rtk_p05..p13_fcc_external_*.png",
+         reason="the whole FCC external set is the FOLDED aircraft with the landing gear REMOVED "
+                "and wearing a CSM Radar plus four white motor caps that are not part of the "
+                "standard aircraft: it is a different configuration from the mesh, not a "
+                "different viewpoint of it"),
+    dict(key="m350rtk", file="m350rtk_t01..t14_fcc_internal_*.png",
+         reason="teardown exhibits — sub-assemblies beside a steel rule, not a whole-aircraft "
+                "silhouette. They are used as DIMENSION sources instead (see drone_cad)"),
+    dict(key="m350rtk", file="m350rtk_p01..p04_flight_*.jpg",
+         reason="in flight: the propellers are motion blurred, a Zenmuse payload is fitted that "
+                "the mesh does not carry, and the backgrounds are forest and substation"),
+    dict(key="m350rtk", file="m350rtk_m01..m07_manual_*.png",
+         reason="manual line art: callout circles and leader lines are part of the image and "
+                "would enter the silhouette. Used as a SHAPE source instead"),
+    dict(key="m350rtk", file="m350rtk_d03..d08_closeup_*.jpg",
+         reason="close-ups of the belly, battery bay, arm tip and top deck — not whole-aircraft "
+                "views (same rule as every other airframe here)"),
 ]
 #: 부품 클로즈업 사진은 전기체 실루엣이 아니므로 등록 자체를 안 한다(위 목록에도 넣지 않는다).
 
@@ -618,6 +923,11 @@ class Fitter:
         return ph, bv
 
 
+#: 자세 격자의 기본 고각 하한. 제품컷은 거의 다 수평 위에서 찍혀 −36° 로 충분하지만,
+#: **아래에서 올려다본 사진**(저면 오블리크)은 이 격자 밖이라 등록부가 사진마다 내릴 수 있다.
+EL_LO_DEG = -36.0
+
+
 def _pose_grid(az_step, el_lo, el_hi, el_step, keep=None):
     for az in np.arange(0.0, 360.0, az_step):
         for el in np.arange(el_lo, el_hi + 1e-6, el_step):
@@ -626,11 +936,15 @@ def _pose_grid(az_step, el_lo, el_hi, el_step, keep=None):
 
 
 def fit_pose(parts, target, shape, span, centre, *, declared=None, window_deg=20.0,
-             quick=False, log=None, want_free=True):
+             quick=False, log=None, want_free=True, el_lo=EL_LO_DEG):
     """자세 + 배율·이동 + 로터별 프롭 위상을 IoU 최대로 맞춘다.
 
     declared 가 있으면 **그 시선방향에서 window_deg 이내**로 묶어서 한 번 더 맞추고
-    두 결과를 함께 돌려준다(위 주석의 두 갈래)."""
+    두 결과를 함께 돌려준다(위 주석의 두 갈래).
+
+    el_lo 는 자세 격자의 고각 하한이다. 기본 −36°. **아래에서 찍은 사진**은 그 격자에
+    후보가 없으므로 그런 사진에만 하한을 내린다(등록부의 `el_lo` 키). 탐색공간의
+    상위집합이라 하한을 내리지 않은 사진의 숫자는 바뀌지 않는다."""
     F = Fitter(parts, centre, span, target, shape)
     az_step = 15.0 if quick else 10.0
     el_step = 12.0 if quick else 8.0
@@ -642,7 +956,7 @@ def fit_pose(parts, target, shape, span, centre, *, declared=None, window_deg=20
     def branch(keep, tag):
         # --- A. 자세 훑기 (롤 0, 정투영, 프롭 위상 0) --------------------------- #
         cand = [(F.align(F.xys(az, el, 0.0, 0.0), refine=False)[0], az, el)
-                for az, el in _pose_grid(az_step, -36.0, 90.0, el_step, keep)]
+                for az, el in _pose_grid(az_step, float(el_lo), 90.0, el_step, keep)]
         if not cand:
             return None
         cand.sort(reverse=True)
@@ -1388,9 +1702,10 @@ def run_key(key, quick=False, n_fit=150_000, n_final=1_200_000):
                                        mesh_parts(key, n_final, include_props=e["props"]))
         pr, prh = parts_cache[e["props"]]
         win = float(e.get("window", WINDOW_DEG))
+        el_lo = float(e.get("el_lo", EL_LO_DEG))
         fit, free = fit_pose(pr["parts"], pm, shape, pr["span"], pr["centre"],
                              declared=tuple(e["expect"]), window_deg=win,
-                             quick=quick, log=lambda s: print(s))
+                             quick=quick, log=lambda s: print(s), el_lo=el_lo)
         m, mesh_m, _g = measure_pair(prh["parts"], pm, shape, prh["span"],
                                      prh["centre"], prh["groups"], fit)
         rec = dict(file=e["file"], credit=e["credit"], licence=e["licence"],
@@ -1399,7 +1714,7 @@ def run_key(key, quick=False, n_fit=150_000, n_final=1_200_000):
                    compared_against=("full drone" if e["props"] else
                                      "frame only (photo has no propellers)"),
                    expect=list(e["expect"]),
-                   window_deg=win,
+                   window_deg=win, pose_grid_el_lo_deg=el_lo,
                    fit_delta_deg=view_angle(fit["azim"], fit["elev"], *e["expect"]),
                    # 정합이 창 경계에 붙어 있으면 **선언 자세가 틀렸을 가능성**을 뜻한다.
                    fit_at_window_edge=bool(

@@ -74,3 +74,30 @@
 (다운로드 메쉬는 부위별 재질이 없어 RCS 엔진에 못 쓴다 — X500 DAE 만 예외적으로 재질 분할이 있다).
 ⚠ **라이선스 의무가 내부 점검이 아니라 배포되는 표적 모델에 붙는다**:
 Typhoon H480 = Apache-2.0(ethz-asl/rotors_simulator), X500 참조 = BSD-3(PX4/PX4-gazebo-models).
+
+---
+
+## `matrice4-M4T_v2.step` — DJI Matrice 4 시리즈 공식 CAD (2026-08-03 추가)
+
+- 원본: <https://dl.djicdn.com/downloads/DJI_Matrice_4_Series/M4T_v2.stp> (158 MB)
+  DJI 다운로드 허브의 "3D Model v2" — <https://enterprise.dji.com/matrice-4-series/downloads>
+- 어셈블리명 `M4T_ASM`, Creo Parametric 작성, 스키마 `CONFIG_CONTROL_DESIGN`, **단위 mm**
+- ⚠ **M4T 판이다.** `M4E_v2.stp` · `M4E.stp` 는 403 으로 공개되지 않는다.
+  **기체(airframe)는 M4E 와 공유**하고 **짐벌만 다르다** — 짐벌 형상에는 쓰지 말 것.
+  (변종 판별 근거는 `../../photos/matrice4e/SOURCES.md` 참조)
+
+**실측(gmsh/OCC 임포트, 메쉬 생성 없이 bbox)**: 솔리드 125개 · 면 19,465개
+
+| 축 | CAD | DJI 공표(펼침) | 차이 |
+|---|---|---|---|
+| X(폭) | **387.51 mm** | **387.5 mm** | **+0.003 %** ⭐ |
+| Y(높이) | 151.83 mm | 149.5 mm | +2.3 mm |
+| Z(길이) | 331.07 mm | 307.0 mm | +24.1 mm |
+
+폭이 공표값과 사실상 일치 → **양산 형상으로 신뢰할 수 있다.**
+길이·높이 차이는 측정 기준 차이로 보이나 **아직 미검증**이다.
+
+> ⚠ gmsh 표면 메쉬 생성은 **실패**한다 — `Impossible to mesh periodic surface 4456`.
+> 임포트·치수 측정은 정상. 메쉬가 필요하면 솔리드 단위로 나눠 굽거나 다른 커널을 쓸 것.
+
+**라이선스**: DJI 저작물. 사내 형상 대조·치수 근거용으로만 쓰고 재배포하지 말 것.

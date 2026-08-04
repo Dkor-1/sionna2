@@ -1,0 +1,457 @@
+{
+  "_meta": {
+    "stage": "ATTACK — 2026-08-04 메쉬정정 라운드(matrice4e · mini2 · x500v2)에 대한 적대검증",
+    "date": "2026-08-04",
+    "stance": "기본 입장은 '결론이 이르다'. 주장은 하나도 믿지 않고 전부 다시 쟀다.",
+    "what_i_recomputed_myself": [
+      "10 기종 메쉬 지문(꼭짓점 float32 + 삼각형 int32 sha256) — 내가 쓴 스크립트로, 적용 단계의 스크립트를 쓰지 않았다",
+      "git HEAD 소스로 지은 7 기종 메쉬(대조군)",
+      "라운드가 건드린 상수를 전부 오염시킨 뒤 phantom3·m350rtk 재빌드(감도 시험)",
+      "mini2 '수정 전' 메쉬를 표만 되돌려 재구성",
+      "DJI 공식 STEP(matrice4-M4T_v2.step) gmsh/OCC 직접 임포트 — 솔리드 125개 bbox + 이름",
+      "Holybro x500v2-frame.step · AIR2216II_Motor_3D.STEP 직접 임포트 — 부품별 모서리(1D) 샘플 bbox + 원(CIRCLE) 피팅",
+      "DJI Mini 2 GLB 파트 점군(59파트)에서 명세가 인용한 파트 9개 재측정"
+    ],
+    "discipline": {
+      "sigma_files_not_opened": "outputs/das_fleet_*.json · p3_*.json · phantom3/* · rcs_anchor.json · lowfreq_*.json · docs/RETRACTION_LOG.md — 열지도 쓰지도 않았다. σ 값을 한 번도 보지 않았다.",
+      "protected_process": "benchmark/das_fleet_sigma.py (PID 3907543, m350rtk) 실행 중 확인 — 건드리지 않았다.",
+      "writes": "이 파일 하나만 썼다. 소스·기존 산출물 무수정.",
+      "my_numbers_are_crude": "아래 내가 새로 만든 수치는 전부 crude 로 표시했다. 목적은 자릿수·부호 검증이지 정밀 계측이 아니다."
+    }
+  },
+
+  "verdict": "PREMATURE",
+  "verdict_reasoning": {
+    "what_survives": "형상 작업 자체는 살아남았다 — σ 로 튜닝한 흔적이 없고(상수를 CAD 에서 내가 직접 재현했다), 다른 7 기체는 비트단위로 불변이며, IoU 상승은 자세맞춤이 아니라 형상이다. 이 세 가지는 반증하려고 최선을 다했고 실패했다.",
+    "why_not_SOUND": [
+      "mini2 헤드라인이 부풀려져 있다 — 같은 사진집합 A/B 는 +0.040 인데 헤드라인은 +0.099 이고, 천장 대비 % 는 전·후가 서로 다른 뷰·다른 천장을 분모로 쓴다.",
+      "이 라운드는 σ **파일**을 안 열었을 뿐 σ **지식**에서 자유롭지 않다 — mini2 명세가 das_fleet 결과 '|dL| 0.51 dB' 를 인용해 보수적 방침을 정당화한다. 눈감기의 정의가 파일 접근으로 좁혀져 있다.",
+      "선언된 채 출하된 기하 결함 2건(matrice4e 공중부양 어안 2개 · 프롭-벨 6.7 mm 공백)과 미측정 내부상자 2개(F12)가 남아 있다 — 전부 실루엣이 증언할 수 없는 항목이고 σ 는 본다.",
+      "이 세 기체를 먹는 σ 산출물이 전부 낡았다. 특히 mini2 는 Das N=4 검증의 4분의 1이고 matrice4e 는 rcs_anchor 5기체 중 하나다 — 그 둘을 다시 돌리기 전에는 '메쉬가 좋아졌다' 를 저장소가 신경 쓰는 의미(σ 일치)로 말할 수 없다."
+    ],
+    "why_not_BROKEN": "방법론의 급소(σ 로 메쉬를 맞추지 않는다 · 다른 기체를 조용히 바꾸지 않는다 · 자세로 IoU 를 사지 않는다)는 셋 다 독립 재계산으로 지켰다. 깨진 것이 아니라 **아직 결론을 낼 수 없는** 상태다."
+  },
+
+  "Q1_tuned_to_sigma": {
+    "answer": false,
+    "how_i_tested": "명세 3편이 인용한 원본을 직접 열어 값을 다시 쟀다. σ 산출물은 열지 않았다.",
+    "independent_reproductions": {
+      "x500v2_from_manufacturer_STEP": [
+        {"claim": "BOTTOM/TOP-PLATE 맞변거리 143.72 (옛 144.0)", "my_measure_mm": [143.72, 2.0, 143.72], "match": "정확일치"},
+        {"claim": "BATTERY-MOUNTING-PLAT 100.0 × 2.0 × 50.3 (옛 폭 56.2)", "my_measure_mm": [100.0, 2.0, 50.3], "match": "정확일치"},
+        {"claim": "PYLONS-X500 은 기둥 4개가 아니라 측판 2장, 9.5 × 38.83 × 69.43", "my_measure": "인스턴스 2개, 9.5 × 38.845 × 69.430, 중심 x=±35.01", "match": "정확일치"},
+        {"claim": "PCB-PM06 두께 12 → 5.19", "my_measure_mm": [55.0, 5.2, 35.0], "match": "정확일치"},
+        {"claim": "PLATFORM-PLAT-X500 65 × 2 × 93", "my_measure_mm": [65.0, 2.0, 93.0], "match": "정확일치"},
+        {"claim": "GPSV5-ZHIJIA-TUOPAN 28.98 × 9.5 × 28.98 (CAD 최상단은 봉이 아니라 이 트레이)", "my_measure_mm": [29.0, 9.5, 29.0], "match": "정확일치"},
+        {"claim": "GPS-ZHIJIA-ZUO 29.74 × 18.70 × 29.74", "my_measure_mm": [29.758, 18.7, 29.758], "match": "0.02 mm"},
+        {"claim": "JIA-LIANJIE 33.8 × 22.03 × 32.5, 중심 (0, −11.02, ±55.5)", "my_measure": "33.8 × 22.034 × 32.5, 중심 (0, −11.017, ±55.5)", "match": "정확일치"},
+        {"claim": "JIAO-LIANJIE 40.0 × 32.29 × 23.23, 중심 (0, −196.03, ±114.81)", "my_measure": "40.0 × 32.394 × 23.269, 중심 (0, −196.078, ±114.816)", "match": "0.05 mm"},
+        {"claim": "JIA-GUAN 6.0 × 22.97 × 21.0, 중심 (±50, −11.49, ±30)", "my_measure": "6.0 × 22.978 × 21.0, 중심 (±50.0, −11.489, ±30.0)", "match": "정확일치"},
+        {"claim": "X03 AIR2216II 캔 28.5 mm (r=13.85 원이 축 11.0 과 39.5 에만)", "my_measure": "r=13.85 원의 축좌표 최소 1154.1755 · 최대 1182.6755 → 스팬 28.500 mm (원 28개 피팅)", "match": "정확일치 — 이 값이 옛 24.5 와 크게 다른데도 CAD 가 지지한다"},
+        {"claim": "X07 모터축 반경 250.141 (휠베이스 500.28)", "my_measure": "DJ-2216 인스턴스 8개의 bbox 중심 (±177.369, ±177.369) → r 250.84 (crude, 솔리드 bbox 중심이라 축 중심이 아니다)", "match": "0.3 % — 더 정밀한 특징(수직축 CIRCLE 중심)을 쓰는 명세 쪽이 맞을 가능성이 높다"}
+      ],
+      "matrice4e_from_DJI_official_STEP": [
+        {"claim": "SOURCES.md 의 CAD 전체 스팬 387.51 × 151.83 × 331.07", "my_measure_mm": [387.508, 151.744, 331.068], "match": "0.09 mm 이내 — CAD 파일과 그 서술은 진짜다"},
+        {"claim": "공표 폭 387.5 ↔ CAD 387.51", "my_measure": "387.508 (오차 +0.002 %)", "note": "이 일치가 '양산 형상' 근거로 유효함을 확인"},
+        {"claim": "RTK 터렛 꼭대기 z_ours = +89.70", "my_measure": "명세의 변환식(z_ours = y_cad − 5.272)으로 상위 솔리드 z_ours 최대 = +89.719 (TOPCOVER_230920_2)", "match": "0.02 mm"},
+        {"claim": "발 접지 z_ours = −59.82", "my_measure": "최저 솔리드 4개가 −60.043(2개) · −59.799(2개)", "match": "0.02~0.22 mm — 아래 결함 D07 참조"},
+        {"claim": "접지→RTK 꼭대기 = 149.52 ↔ 공표 149.5", "my_measure_crude": "극값끼리면 89.719 − (−60.043) = 149.762 (공표 대비 +0.18 %); 명세의 접지 기준이면 149.54", "match": "어느 쪽이든 CAD 가 공표 149.5 를 독립 재현한다 — σ 를 보고 맞춘 값이 아니다"}
+      ],
+      "mini2_from_DJI_official_GLB_part_extraction": [
+        {"claim": "F5 앞 페어링 polySurface201 이 모터축에서 s=113.52 까지", "my_measure": "중심기준 최대반경 113.52", "match": "정확일치"},
+        {"claim": "F5 뒤 페어링 polySurface101 이 s=126.22 까지", "my_measure": "126.22", "match": "정확일치"},
+        {"claim": "F5 최대폭 정점 y=101.72", "my_measure": "polySurface201 의 y 최대 101.72", "match": "정확일치"},
+        {"claim": "F3 벨 밑동 평균 (18.89 + (−2.92))/2 = 7.985", "my_measure": "polySurface76 z[14.79,21.90] · polySurface96 z[−7.01,0.74] (내 z 원점은 4.10 mm 어긋나 있다). 상대차 21.80 ↔ 명세 21.81, 평균 3.89 + 4.095 = 7.985", "match": "정확일치"},
+        {"claim": "F1 앞뒤 로터면 반값 10.72 ↔ 등록된 rotor_z_mm ±10.63", "my_measure": "벨 중심 z 차 21.49 → 반값 10.74", "match": "0.02 mm"},
+        {"claim": "F9 polySurface202 단면 9.16(앞뒤) × 9.53(좌우)", "my_measure": "x 스팬 9.16 · y 스팬 9.53", "match": "정확일치"},
+        {"claim": "F8 앞 암당 착륙 포스트 **1개**", "my_measure": "polySurface202 는 파트 1개이고 안쪽 갈래에 대응물이 없다", "match": "확인"},
+        {"claim": "F6 나사머리 4파트 단면 3.79 × 3.78~3.82, 벨 축에서 r=5.0", "my_measure": "polySurface72/73/94/98 각 x·y 스팬 3.79/3.78, 벨(76) 중심에서 4.64 · 5.35 (평균 5.0)", "match": "정확일치"},
+        {"claim": "F7 pSphere3 는 두 몸체, 중심 (−40.90, ±7.20, ...), y 히스토그램이 ±3.98 에서 빈다", "my_measure": "두 반쪽 중심 (−40.91, +7.26) · (−40.91, −7.14), 각 6.40 × 6.43 × 3.02, y 값이 ±4.0 안쪽에 없다", "match": "정확일치"}
+      ]
+    },
+    "sources_actually_present": {
+      "matrice4e": "assets/meshes/reference/matrice4-M4T_v2.step (158 MB) — 저장소에 있고 내가 열었다. 공표제원은 docs/drone_specs_2026.json 에 있고 F11 배터리 145.5×60.6×46.3 은 그 문서의 4E 매뉴얼 인용과 일치한다(mesh 145.47×60.6×46.3).",
+      "x500v2": "assets/meshes/reference/x500v2-frame.step · AIR2216II_Motor_3D.STEP — 둘 다 있고 내가 열었다.",
+      "mini2": "⛔ **없다.** 명세의 유일한 형상 근거인 DJI 공식 GLB(WM161_zhankai_1k.glb)는 저장소·아카이브·홈 어디에도 없다. 남은 것은 scratchpad 의 파트 점군 추출본(mini2_parts.npy, 2 MB)과 SOURCES.md 에 적힌 URL 뿐이다. 나는 그 추출본으로 9건을 재현했고 전부 맞았지만, **제3자가 저장소만으로 재현할 수 없다.**"
+    },
+    "sigma_contamination_traces": [
+      {
+        "where": "outputs/meshfix_mini2.json → meta.why_this_airframe",
+        "text": "\"mini2 is the Das comparison airframe that ALREADY agrees best (|dL| 0.51 dB). The first job here is not to improve it, it is not to break it.\"",
+        "reading": "0.51 dB 는 σ 대조 결과다. 파일을 열지 않았더라도 이 라운드는 **σ 답을 알고** 작업했다. 상수를 그쪽으로 민 흔적은 못 찾았지만(9건을 CAD 로 재현), '어느 정정을 넣고 어느 것을 미룰지' 의 보수성이 σ 지식에서 나온 것은 사실이다.",
+        "severity": "medium — 눈감기의 정의가 '파일 미열람' 으로 좁아져 있다. 진짜 눈감기는 지식 차단이다."
+      },
+      {
+        "where": "명세 3편 전부의 expected_sigma_direction",
+        "reading": "전부 사전 **예측**이고, 근거가 기하(투영면적·원통 σ∝aL²·Rayleigh 영역)다. 부호가 섞여 있고(up/down/≈0) '이 라운드 순 변화는 0 근처' 라고 미리 적었다 — σ 를 목표로 삼았다면 나올 수 없는 형태다. 반증 가능하게 적어 둔 것이 맞다.",
+        "severity": "none — 오히려 방어 증거"
+      },
+      {
+        "where": "atime 포렌식",
+        "reading": "금지 σ 파일(das_fleet_* · p3_* · lowfreq_* · rcs_anchor.json)의 atime 은 전부 08-03 이고 라운드 창(08-04 02:50~04:20)에 갱신되지 않았다. 다만 08-04 02:54:59 에 outputs/ 전수 스캔(grep -r 로 보임)이 있었고 relatime 규칙상 24 h 이내 atime 은 갱신되지 않으므로 **이 포렌식은 무죄를 증명하지 못한다**(유죄 증거도 없다).",
+        "severity": "inconclusive"
+      }
+    ],
+    "edits_without_a_source": "48건 중 source 필드가 비어 있는 것은 D1(주석 문단 재작성) 하나뿐이고 그것은 측정이 아니다. F12 는 source='official CAD' 로 적혀 있지만 evidence 가 '**치수는 측정하지 않았다**' 라고 스스로 밝힌다 — 배제 논증이지 측정이 아니다(아래 D03)."
+  },
+
+  "Q2_other_airframes": {
+    "answer_touched": [],
+    "method": "① 내가 쓴 해시 스크립트로 현재 소스에서 10 기종을 다시 지었다. ② git HEAD 의 drones.py·drone_cad.py 로 같은 일을 했다. ③ 라운드가 만들거나 바꾼 표를 전부 말도 안 되는 값으로 오염시키고 재빌드했다.",
+    "result_recomputed_sha_vs_claim": "10/10 기종의 현재 sha 가 outputs/meshfix_applied.json 의 값과 **정확히** 같다. 지문 정의(꼭짓점 float32 + 삼각형 int32 sha256)를 독립 구현해도 재현된다.",
+    "head_vs_current_bit_identical": {
+      "mavic4pro": true, "mini5pro": true, "phantom4": true, "s1000plus": true, "typhoonh480": true,
+      "note": "이 5 기체는 **git HEAD 이후의 모든 미커밋 작업(08-03 라운드 포함)** 을 통틀어 비트동일이다. 면별 그룹 라벨까지 같은 해시로 확인했다 — 재질 재배정도 없었다."
+    },
+    "head_equals_claimed_before": {
+      "matrice4e": true, "x500v2": true,
+      "note": "이 둘의 sha_before 가 HEAD 빌드와 비트동일이다 → 두 기체의 전/후 대조는 진짜 전/후이고 08-03 라운드의 편집이 섞이지 않았다. x500v2 채점 파일이 같은 주장을 했고 그 주장이 맞다."
+    },
+    "phantom3_m350rtk": {
+      "problem": "이 둘은 HEAD 에 없어 HEAD 대조가 불가능하다.",
+      "perturbation_test": "GEAR_SPIKE_H · MOTOR_BASE_Z(mini2 항목) · ARM_TIP_OVERHANG(mini2 항목) · ARM_Z_FOLLOWS_ROTOR · GEAR_LEG_N_PRONG · GEAR_LEG_W_M · PROP_SCREW_POSTS · X500V2 표 전체 · _SHELL_SHAPE['matrice4e'] · INTERNALS['matrice4e'] 를 오염시키고, drones.OPEN_MOTOR_BASE_M 을 옛 값 0.0127 로 되돌린 뒤 재빌드",
+      "result": "phantom3 · m350rtk sha 불변(그리고 mini5pro·mavic4pro·phantom4·s1000plus·typhoonh480 도 불변). matrice4e·mini2 는 바뀌고 x500v2 는 ValueError — 즉 시험 자체가 살아 있다.",
+      "conclusion": "phantom3·m350rtk 은 이 라운드가 건드린 어떤 상수도 읽지 않는다 → sha_before == sha_after 주장 검증됨."
+    },
+    "shared_code_audit": {
+      "OPEN_MOTOR_BASE_M": "전역 스칼라를 0.0127 → 0.0075 로 바꿨다. 위험해 보이지만 소비처는 `arm_shape=='tube'` 분기뿐이고 tube 기체는 x500v2 하나다(내가 10 기종 arm_shape 를 직접 찍어 확인). 되돌려도 다른 9 기체 sha 불변.",
+      "_arm_motor_dims tube 클리어런스 0.0008→0.002": "같은 분기 안 — x500v2 전용.",
+      "_gear_tall_tube 5-튜플 확장": "s1000plus·typhoonh480 도 gear='tall' 인데 HEAD 대비 비트동일 → 3-튜플 하위호환 주장 검증됨. m350rtk 도 같은 경로이고 위 감도시험으로 불변 확인.",
+      "_gear_motor_legs n_prong / ARM_TIP_OVERHANG 시퀀스 확장 / _gear_arm_spikes 호출부 명시": "mini5pro·mavic4pro·phantom3 비트동일로 검증됨."
+    },
+    "mini2_before_reconstruction": {
+      "what": "명세가 '재현 불가' 라고 적은 mini2 수정 전 메쉬를, 표 6개를 되돌리고 F7 리터럴 하나만 소스 복사본에서 되돌려 다시 지었다.",
+      "result_sha": "eb93de3981381bbaaaed3cf23b0a3f1f5087307cefc4bc05304cb17192786a8c",
+      "claimed_before_sha": "eb93de3981381bbaaaed3cf23b0a3f1f5087307cefc4bc05304cb17192786a8c",
+      "match": true,
+      "consequence": "sha_before 주장은 참이다. 동시에 outputs/mini2_score_v3.json 의 '수정 전 메쉬는 재현할 수 없다' 는 **거짓**이다(아래 D05)."
+    }
+  },
+
+  "Q3_iou_gain_is_shape": {
+    "answer": true,
+    "free_iou_gain_definition": "선언 자세(사진 등록부가 못 박은 방위·고각)를 풀고 자유 카메라로 다시 정합했을 때 추가로 벌어들이는 IoU. 크게 양수면 '맞는 각도보다 틀린 각도에 더 잘 맞는다'(=형상이 틀렸다), 0 이하면 상승을 자세로 산 것이 아니다. 정의는 타당하다.",
+    "evidence_for": [
+      "matrice4e: 헤드라인 사진 p01 하나로 전·후를 쟀고 free_iou_gain 이 전 0.0 · 후 0.0. 전 메쉬는 HEAD 빌드이고 그 지문이 sha_before 와 비트동일임을 내가 확인했다.",
+      "x500v2: 전 메쉬가 HEAD 빌드이고, 정정 전 IoU 3건이 2026-07-31 원장과 소수점 4자리까지 같다(파이프라인 결정적). free_iou_gain 네 뷰 모두 0 이하.",
+      "mini2: 네 장 모두 +0.000 ~ −0.002. 자유 갈래가 아무것도 못 번다.",
+      "src/viz_mesh_photo.py 의 diff 는 사진 등록부·출처 메타·제외 사유뿐이고 측정 함수는 0건 변경 — 전·후가 같은 자를 쓴다(내가 diff 로 확인)."
+    ],
+    "residual_doubts": [
+      "free_iou_gain 은 '선언 자세가 이미 최적인가' 를 잰다. 선언 자세 자체가 메쉬에서 유도된 경우에는 결합이 남는다 — mini2 d11 의 방위 270° 는 **메쉬의 짐벌 무게중심 x=+30.9 mm** 로 정했다. 이번 라운드가 mini2 짐벌을 안 옮겼으므로 실해는 없지만, 규약으로는 '메쉬 유도 선언 자세' 는 자유도가 새는 통로다.",
+      "matrice4e 는 등록 사진이 3 → 17 장으로 늘고 3장의 방위 선언이 바뀌었다(4E_3 은 0° → 270°). 헤드라인 p01 은 이번에 새로 등록된 사진이라 '옛 헤드라인 대비 개선' 으로 읽으면 안 된다 — 같은 메쉬·같은 사진 A/B 로만 읽어야 한다(파일은 그렇게 하고 있다).",
+      "x500v2 _02 의 free 갈래가 −0.168 로 나온 것은 자유 최적화가 나쁜 국소최적에 앉은 것이다(자유 최적은 정의상 구속 최적보다 낮을 수 없다). 즉 free_iou_gain 은 **하한** 추정량이지 정밀 판별자가 아니다 — 0 이 나왔다고 '자세이득 0' 이 증명된 것은 아니고 '측정 가능한 자세이득이 없다' 까지다."
+    ],
+    "silhouette_blind_spots": {
+      "statement": "⚠ 실루엣 IoU 는 바깥 외곽선의 이진 점유만 본다. 내부 산란체·재질 배정·부품 사이 공백·내부 다중반사 기하는 **원리적으로 증언할 수 없다.** 아래 항목은 이번 라운드가 바꿨지만 IoU 가 검증하지 못한 것이다.",
+      "not_witnessed_by_silhouette": [
+        {"id": "F11", "what": "matrice4e 배터리 상자 122.5×61.6×49.0 @(−14.7,0,1.78) → 145.5×60.6×46.3 @(−2.9,0,17.0)", "why_invisible": "셸 안에 완전히 묻힌 상자. 이 기체 최대 금속 덩어리이고 명세 자신이 'σ 를 가장 크게 올릴 후보' 라고 적었다."},
+        {"id": "F12", "what": "matrice4e pcb(93×53.6×5) · 구조판(142×67.6×7.1) 을 z +23.17 / −3.56 → −12.0 / −22.0 으로 이설", "why_invisible": "완전 내부. 게다가 **치수는 한 번도 측정되지 않았다**(명세가 자인). 나는 이 셋이 12삼각형 상자이고 전부 셸 안이라는 것을 직접 확인했다."},
+        {"id": "F6", "what": "mini2 프롭 나사머리 8개를 그룹 'motor'(금속)로 신설", "why_invisible": "그룹=재질 배정은 실루엣이 전혀 못 본다. 형상은 보이지만 **금속이냐 플라스틱이냐** 는 IoU 밖이다."},
+        {"id": "X16", "what": "x500v2 PM06 두께 12 → 5.2", "why_invisible": "상·하판 간극 안에 고립. 정정 전에도 고립이었다."},
+        {"id": "X14", "what": "x500v2 배터리 트레이 폭 56.2 → 50.3, z −71.3 → −61.5", "why_invisible": "파일런 측판 2장 사이 — 대부분 가려진다."},
+        {"id": "X17 · X19", "what": "x500v2 top_clamp · 레일 클램프 상자의 z 구간을 판 아래로", "why_invisible": "하판 밑 구조물."},
+        {"id": "X06", "what": "x500v2 모터 밑판 OD 32.3 → 24.7 (**구성 선택**, C7)", "why_invisible": "캔에 대부분 가려진다. 그리고 이건 측정 불확실성이 아니라 '어느 킷이냐' 라는 외부 사실이다."},
+        {"id": "C8", "what": "matrice4e 하방 어안 2개가 지지 없이 뜬 채 남았다", "why_invisible": "동체 아래 그늘. 실루엣은 못 보고 산란 커널은 본다 — 아래 D02."},
+        {"id": "F14 파생", "what": "프롭 장착면(29.1)과 벨 꼭대기(22.44) 사이 6.7 mm 공백", "why_invisible": "정측면 뷰에서만 아주 약하게 보이고 그 각도에서 프롭 위상 자유도에 먹힌다."}
+      ],
+      "quantified_crude": "matrice4e 현재 메쉬의 내부 상자 3개(battery ×2 · pcb ×1)는 합쳐 36 삼각형뿐이지만 부피로는 배터리 하나가 145×61×46 mm — 셸 내부의 지배 산란체다. 삼각형 수로는 0.1 %, σ 로는 그렇지 않을 것이다."
+    }
+  },
+
+  "Q4_envelope_forcing": {
+    "answer": "줄었다 — 그리고 옮겨가지도 않았다. 다만 '왜 1.0 이 됐는가' 의 일부는 직접측정이 아니라 역산에 걸려 있다.",
+    "envelope_targets_unchanged": {
+      "check": "git diff 에 envelope_mm 을 **지운** 줄이 하나도 없다. matrice4e 는 (None,None,149.5) 그대로, x500v2 는 None 그대로. mini2 의 (None,None,56.0) 은 08-03 기체 추가 때 들어온 것이지 이번 라운드가 아니다.",
+      "reading": "골대를 옮겨 fit 을 1.0 으로 만든 것이 아니다."
+    },
+    "fit_scale_recomputed_by_me": {
+      "matrice4e": {"before": [1.0, 1.0, 0.950166], "after": [1.0, 1.0, 0.999873]},
+      "mini2": {"before_reconstructed": [1.0, 1.0, 0.905897], "after": [1.0, 1.0, 1.00126]},
+      "x500v2": {"before": [1.0, 1.0, 1.0], "after": [1.0, 1.0, 1.0], "note": "envelope 없음 — fit 은 지표가 아니다"}
+    },
+    "did_the_error_move_to_the_free_axes": {
+      "method": "강제되지 않는 축(L·W)의 오차를 전·후로 직접 쟀다. mini2 는 내가 재구성한 수정 전 메쉬로 쟀다(crude 아님 — 비트동일 재구성).",
+      "mini2": {
+        "before_frame_bbox_mm": [159.386, 193.821, 56.0],
+        "after_frame_bbox_mm": [160.094, 206.919, 56.0],
+        "cad_mm": [159.11, 203.43, 55.98],
+        "L_err_pct": {"before": 0.17, "after": 0.62},
+        "W_err_pct": {"before": -4.72, "after": 1.72},
+        "H_squash": {"before": "9.4 % 압축", "after": "0.13 % 인장"},
+        "reading": "폭 오차의 **크기**가 4.72 → 1.72 로 줄고 부호가 뒤집혔다. 길이는 0.17 → 0.62 로 약간 나빠졌다. 총 오차는 줄었다 — 압축이 옆으로 도망친 것이 아니다. 폭 +1.7 % 는 명세가 스스로 선언했고, 오차를 0 으로 만드는 오버행 13.33 mm 를 '엔벨로프에서 역산한 값' 이라고 거부한 것은 이 저장소 방법론의 옳은 적용이다."
+      },
+      "matrice4e": {
+        "before_frame_bbox_mm": [305.896, 389.748, 149.5],
+        "after_frame_bbox_mm": [331.431, 389.748, 149.5],
+        "before_frame_z_mm": [-83.538, 65.962],
+        "after_frame_z_mm": [-59.811, 89.689],
+        "reading": "높이 스팬은 강제라 둘 다 149.5 지만 **내부 분포가 통째로 옮겨갔다**(발 −83.5 → −59.8, 꼭대기 +66.0 → +89.7) — 이것이 CAD 값이고 그래서 raw 스팬이 157.3 → 149.52 로 줄어 강제압축이 사라졌다. 길이 305.9 → 331.4 는 짐벌이 30 mm 앞으로 나간 결과이고, 암끝-암끝(모터그룹 x 스팬)은 305.896 으로 전·후 **동일**이다(내가 그룹별로 직접 쟀다). 즉 공표 307 과 견줄 값은 안 바뀌었다."
+      },
+      "x500v2": {
+        "before_frame_bbox_mm": [396.687, 396.687, 334.78],
+        "after_frame_bbox_mm": [400.378, 400.378, 336.28],
+        "cad_mm": [400.35, 400.35, 336.28],
+        "reading": "envelope 강제가 없는 기체라 bbox÷CAD 가 등가 지표다. 0.9908 → 0.99993 (crude, 내 재계산). 실제로 좋아졌다."
+      }
+    },
+    "the_soft_spot": {
+      "id": "GEAR_SPIKE_H 역산",
+      "what": "matrice4e 다리 길이 52.90 mm 는 **직접 잰 값이 아니다**. CAD 접지면 z=−59.82 를 엔진식 foot = z_arm − h − d_tip/2 에 넣어 푼 값이다. 명세의 독립검산(다리 솔리드 직접 측정)은 앞 54.7 · 뒤 45.4, 평균 **50.05** 로 2.85 mm 다르다.",
+      "consequence_crude": "직접측정 50.05 를 쓰면 발이 −56.97 로 올라가 raw 높이가 146.66 → fit sz ≈ 1.019 (2 % 인장)가 된다. 즉 'fit 이 1.000 이 됐다' 는 헤드라인은 **직접측정이 아니라 역산 상수**에 걸려 있다.",
+      "is_it_circular": "완전한 순환은 아니다 — 목표가 공표 149.5 가 아니라 CAD 접지면이고, 그 결과가 공표 149.5 와 0.02 % 로 맞은 것은 진짜 교차검증이다. 하지만 '엔벨로프 강제가 사라졌다' 를 형상 정확도의 증거로 인용할 때는 이 한 상수가 역산이라는 것을 함께 적어야 한다.",
+      "severity": "medium"
+    },
+    "fleet_context_crude": {
+      "note": "이 라운드는 10 기체 중 2 기체의 z 강제를 풀었을 뿐이다. 내가 HEAD 소스로 직접 잰 나머지 fit sz 는 다음과 같다 — 압축/인장 문제는 함대 수준에서 **미해결**이다.",
+      "fit_sz": {"mini5pro": 1.4187, "mavic4pro": 1.3524, "phantom4": 0.9374, "s1000plus": 0.9291, "typhoonh480": 1.0189, "phantom3": 0.9982, "m350rtk": 0.9908},
+      "extra": "phantom4 는 xy 도 1.0198 로 강제되고 s1000plus 는 0.9986 이다.",
+      "reading": "'우리 메쉬는 CAD 실측이다' 를 함대 전체 주장으로 쓰면 안 된다. 지금 근거가 있는 것은 matrice4e·mini2·x500v2(+phantom3) 뿐이다."
+    }
+  },
+
+  "Q5_4T_to_4E_transfer": {
+    "framing": "CAD 는 **M4T** 다(SOURCES.md 가 명시하고 어셈블리명 M4T_ASM 을 내가 확인했다). M4E_v2.stp 는 DJI 가 403 으로 막았다. 따라서 matrice4e 형상 정정 14건 중 F01~F10 · F13 · F14 는 전부 4T 기하에서 왔다.",
+    "what_supports_the_transfer": [
+      "CAD 폭 387.508 ↔ 4E 공표 387.5 (+0.002 %) — 내가 직접 쟀다. 폭은 암·모터 배치가 정하므로 기체 공용의 강한 증거다.",
+      "CAD 접지→RTK 꼭대기 149.5~149.8 ↔ 4E 공표 149.5 — 내가 직접 쟀다.",
+      "4E 매뉴얼 배터리 145.5×60.6×46.3 이 CAD 배터리 베이(앞끝 +70.10 ↔ 팩 앞면 +69.88)와 0.2 mm 로 맞는다 — 베이가 공용이라는 증거.",
+      "명세가 짐벌 **치수** 는 CAD 에서 쓰지 않았다(사진 실측 59×47×52 유지)."
+    ],
+    "risk_ranked_high_to_low": [
+      {
+        "rank": 1, "item": "F10 짐벌 부착 위치 (cx 118.49→148.3, cz −53.46→−17.16)",
+        "why_4E_may_differ": "4T 카메라 블록(열화상 + NIR 스포트라이트 포함)의 **앞면 x=+174.34** 를 기준으로 부착점을 풀었다. 4E 는 열화상·스포트라이트가 없어 정면 개구가 4개뿐이고 블록 깊이가 다르다 — 앞면 위치가 곧 다르다. 명세 자신도 confidence='medium', '4E 블록은 4T 보다 얕아 지상고가 +0/−5 mm 다를 수 있다' 고 적었다.",
+        "independent_flag": "docs/drone_specs_2026.json 의 4E 서술은 '짐벌이 동체 앞으로 **30~40 mm** 돌출' 이라고 적는다. 새 메쉬는 셸 코 +159.0, 짐벌 앞면 +174.34 → 돌출 **15.3 mm** (crude). 저장소 자신의 4E 문서와 2배 차이다.",
+        "blast_radius": "짐벌은 금속 카메라 블록이라 전방·저앙각 σ 기여가 크고, 프레임 bbox 길이 305.9 → 331.4 의 전부가 이 이동이다."
+      },
+      {
+        "rank": 2, "item": "F04 · F05 셸 기수 스테이션(k5) hh 0.14→0.369 · hw 0.12→0.4355",
+        "why_4E_may_differ": "기수는 짐벌 크래들이 파고드는 U자 함몰 구간이다. 크래들·댐핑플레이트는 공용이라는 것이 명세의 가정이지만, 4T 는 그 자리에 더 큰 블록을 매단다. 기수 '뭉툭해짐' 이 4T 전용 형상일 위험.",
+        "blast_radius": "명세가 expected_sigma_direction 을 'up (기수 정면 정반사면 생성, 전방 aspect σ 증가 클 것)' 이라고 적었다 — 즉 4E 에서 틀리면 전방 σ 가 통째로 틀린다."
+      },
+      {
+        "rank": 3, "item": "F13 어안 6개 위치 (특히 전방 x=+146.2)",
+        "why_4E_may_differ": "전방 어안은 짐벌 요크 어깨에 붙는다. 4T·4E 둘 다 6 어안이지만 전방 쌍의 x 는 기수 형상과 함께 움직인다.",
+        "blast_radius": "작다(18 mm 구). 다만 하방 2개는 C8 로 이미 공중에 떠 있다."
+      },
+      {
+        "rank": 4, "item": "F01 · F02 · F03 셸 중심·높이·스테이션 z 오프셋",
+        "why_4E_may_differ": "동체 상부 돌출물이 다르다(4T 는 없고 4E 는 셀룰러 동글 커버 등). 다만 셸 하부·중앙 단면은 공용일 가능성이 높다.",
+        "blast_radius": "중간 — 측면 투영면적을 직접 정한다."
+      },
+      {
+        "rank": 5, "item": "F09 RTK 터렛",
+        "why_4E_may_differ": "4E·4T 모두 같은 RTK 모듈로 보이고, 꼭대기 z 가 4E 공표 149.5 를 재현한다 — 사실상 공용 확정.",
+        "blast_radius": "작다"
+      },
+      {
+        "rank": 6, "item": "F06 다리 · F08 암 굵기 · F14 모터 캔 · F11 배터리 베이",
+        "why_4E_may_differ": "기체(airframe) 공용 부품. 배터리는 4E 매뉴얼 수치와 교차확인됨.",
+        "blast_radius": "무시 가능 — 다만 F08 의 13.6 mm 는 저장소 자신의 4E 서술(18~22 mm)·2026-07-30 상면사진 실측(16.6 mm)과 다르다. 명세가 사진 건은 해명했으나(상면투영 경사) 문서의 18~22 는 충돌 원장에 없다."
+      }
+    ],
+    "verdict_on_transfer": "F10 하나가 4T→4E 전이 위험의 대부분을 진다. 나머지는 폭·높이·배터리 세 개의 독립 교차검증이 받쳐 준다. **F10 은 4E 사진(정측면 p01·p06)으로 짐벌 지상고와 돌출을 직접 재서 확정하기 전까지 '측정' 이라고 쓰면 안 된다.**"
+  },
+
+  "Q6_invalidated_outputs": {
+    "method": "src/ · benchmark/ 에서 build_drone/build_frame/DRONES 를 쓰는 스크립트를 전부 뽑고, 그 스크립트가 쓰는 outputs/ 대상을 역으로 모았다. ⛔ σ 산출물의 **내용은 열지 않았다** — 파일명과 생성 코드만 봤다.",
+    "critical": [
+      {
+        "output": "outputs/das_fleet_ours.json · das_fleet_validation.json · das_fleet_attack.json · das_fleet_box_control.json · das_fleet_prereg.json",
+        "why": "mini2 는 Das 비교 4기체 중 하나다. 그 메쉬가 바뀌었으므로 mini2 의 σ·|dL| 은 전부 낡았다.",
+        "severity": "critical",
+        "consequence": "'메쉬 방법 검증 N=4' 라는 저장소의 핵심 주장이 **재계산 전까지 보류**다. 아이러니하게도 이 라운드의 mini2 명세가 근거로 인용한 '|dL| 0.51 dB' 자신이 이제 낡은 수다.",
+        "note": "지금 도는 das_fleet_sigma.py 는 m350rtk 전용이고 m350rtk 메쉬는 불변이라 그 실행 결과는 무사하다(내가 sha 로 확인)."
+      },
+      {
+        "output": "outputs/rcs_anchor.json",
+        "why": "benchmark/rcs_anchor.py 의 DRONE_KEYS = [mini5pro, mavic4pro, **matrice4e**, s1000plus, phantom4] — 5기체 중 하나가 바뀌었다.",
+        "severity": "critical"
+      },
+      {
+        "output": "outputs/report13_sigma_grid.json · report13_sigma_grid.matrice4e.json · report13_sigma_grid_elext.json · sigma_grid_regen.json · sigma_el_extend_*.json",
+        "why": "matrice4e σ 격자. 파일 mtime 07-24 로 이미 오래됐고 이제 형상까지 다르다.",
+        "severity": "critical"
+      },
+      {
+        "output": "outputs/sigma_anchor.json · sigma_sensitivity.json · sigma_robust_summary.json · sigma_sbr_cache.json · sigma_regen_impact.json",
+        "why": "matrice4e(및 mini2) 형상을 먹는 σ 캐시·민감도.",
+        "severity": "critical",
+        "extra": "sigma_sbr_cache.json 은 캐시라 **키가 형상 지문을 포함하지 않으면 조용히 틀린 값을 돌려준다** — 재생성 전에 키 규약을 확인할 것."
+      }
+    ],
+    "high": [
+      {"output": "outputs/mesh_compare_photo.json (07-31)", "why": "matrice4e·mini2·x500v2 행이 전부 낡았고, 게다가 src/viz_mesh_photo.py 의 등록부가 3→17(m4e)·3→4(mini2)·3→4(x500) 로 넓어졌는데 재생성하지 않았다. 두 겹으로 낡았다.", "severity": "high"},
+      {"output": "outputs/mesh_compare_cad.json (07-31) · x500v2_cad.json (07-30) · mesh_compare_material.json", "why": "CAD 대조·재질 대조가 옛 형상 기준", "severity": "high"},
+      {"output": "outputs/mesh_gallery.json + outputs/figures/mesh_gallery_matrice4e.png · mesh_gallery_all.png", "why": "형상 갤러리", "severity": "high"},
+      {"output": "outputs/geometry_grid.json · geometry_benchmark.json · geometry_grid_fairness_audit.json · geometry_grid_axis_review.json", "why": "함대 기하 격자에 matrice4e·x500v2 포함", "severity": "high"},
+      {"output": "outputs/report02_derived.json · report05_derived.json · report06_derived.json · report1.json", "why": "리포트 파생수치가 matrice4e 형상을 인용", "severity": "high"},
+      {"output": "outputs/mini2_mesh_audit.json", "why": "D2 가 철회한 '뒤 착륙패드 미모델링' 과 F8/F9 가 고친 '안쪽 갈래는 여분 몸체 · 단면 5.6×4.7' 이 **아직 그대로 적혀 있다**(내가 172행에서 확인). 원장이 소스와 모순된다.", "severity": "high"},
+      {"output": "outputs/facet_count.json · facet_mechanism.json · facet_attack.json", "why": "삼각형 수가 바뀌었다(matrice4e 30712→30734 · mini2 26151→25823 · x500v2 18816→19030)", "severity": "high"}
+    ],
+    "medium": [
+      {"output": "outputs/sentinel_truth.json", "why": "x500v2 사용", "severity": "medium"},
+      {"output": "outputs/community_compare.json · real_cad_compare.json", "why": "타 오픈소스 메쉬와의 대조", "severity": "medium"},
+      {"output": "outputs/cpi_guard_sweep.json · refrate_law.json · vmax_grid.json · md_range_sweep.json · monostatic_prior.json · report13_freespace.json", "why": "matrice4e·x500v2 를 표적으로 쓴다", "severity": "medium"},
+      {"output": "outputs/capability_matrix.json · deck_facts.json", "why": "위 수치들을 인용해 덱·표를 만든다 — 하류의 하류", "severity": "medium"},
+      {"output": "outputs/figures/report02_f2_mesh_photo.* · report02_f5~f7.* · report03_*.* · report06_*.*", "why": "이미 작업트리에서 수정됨(08-03)이지만 새 형상 기준이 아니다", "severity": "medium"},
+      {"output": "outputs/validation_feasibility.json · measurement_layers.json · report2_waveform_rcs.json · report5_results.json · bench_matrix.csv", "why": "matrice4e 를 표적으로 쓴다", "severity": "medium"}
+    ],
+    "unaffected_verified": "phantom3 · m350rtk · mini5pro · mavic4pro · s1000plus · phantom4 · typhoonh480 을 쓰는 산출물(p3_* · lowfreq_* · m350rtk_* 등)은 메쉬가 비트동일이므로 무사하다 — 내가 sha 로 직접 확인했다."
+  },
+
+  "defects": [
+    {
+      "id": "D01",
+      "title": "눈감기의 정의가 '파일 미열람' 으로 좁다 — mini2 명세가 σ 결과 |dL| 0.51 dB 를 인용한다",
+      "where": "outputs/meshfix_mini2.json → meta.why_this_airframe",
+      "severity": "medium",
+      "why_it_matters": "상수는 CAD 에서 왔다(9건 내가 재현). 하지만 '무엇을 고치고 무엇을 미룰지' 의 보수성이 σ 답을 아는 상태에서 정해졌다. 다음 라운드에서 σ 가 예측과 어긋났을 때 '우린 눈감았다' 를 방패로 쓸 수 없다.",
+      "fix": "눈감기 선언을 '파일 미열람' 이 아니라 '어떤 σ 수치도 인용하지 않음' 으로 강화하고, 이번 라운드는 그 기준에서 **부분 실패** 로 기록할 것."
+    },
+    {
+      "id": "D02",
+      "title": "matrice4e 하방 어안 2개가 공중에 뜬 채 출하됐다 (C8)",
+      "where": "src/drone_cad.py 어안 배치 · 좌표 (84.4, ±17.75, −19.1)",
+      "severity": "high",
+      "my_independent_measure_crude": "가장 가까운 비-camera 정점까지 **11.46 mm** (명세 선언값 11.18 mm 와 일치하는 자릿수)",
+      "why_it_matters": "18 mm 급 고립 산란체 2개가 동체 아래 허공에 있다. 실루엣은 이걸 못 보고 PO/SBR 은 본다 — 즉 '검증됐다' 는 지표가 이 결함에 대해 침묵한다. 게다가 물리적으로 불가능한 형상이므로 σ 오차의 원인이 되면 원인 추적이 어렵다.",
+      "fix": "다음 라운드가 C8(셸 hull 표 vs 크래들)을 판정하기 전까지, 이 두 몸체를 **끄거나** 크래들을 넣어라. 최소한 σ 재생성 시 이 두 몸체를 뺀 대조군을 함께 돌려라."
+    },
+    {
+      "id": "D03",
+      "title": "F12 는 측정이 아니라 엔진 손잡이인데 source='official CAD' 로 적혀 있다",
+      "where": "outputs/meshfix_applied.json edits[F12] · outputs/meshfix_matrice4e.json fixes[F12]",
+      "severity": "medium",
+      "why_it_matters": "evidence 본문은 '치수는 측정하지 않았다' 라고 정직하게 밝히지만 source 필드는 'official CAD' 다. 원장을 기계적으로 집계하면 '전부 CAD 실측' 으로 세어진다. 이 저장소의 주장이 '형상 상수는 측정값' 이라는 데 걸려 있으므로 필드 값이 곧 주장이다.",
+      "fix": "source 를 'official CAD (exclusion argument only — dimensions unmeasured)' 로 바꾸거나 별도 등급(derived/knob)을 만들 것."
+    },
+    {
+      "id": "D04",
+      "title": "mini2 헤드라인이 부풀려져 있다 — 새 뷰와 다른 천장이 섞였다",
+      "where": "outputs/mini2_score_v3.json headline · ceiling",
+      "severity": "medium",
+      "numbers": {
+        "reported": "IoU 0.7048 → 0.8036, 천장 대비 77.3 % → 83.9 %",
+        "same_photo_set_AB": "0.7048 → 0.7449 (+0.040), 같은 뷰(d05) 천장 대비 77.3 % → 80.4 % (crude, 후자는 per_view 천장 0.9263 사용)",
+        "why_they_differ": "0.8036 은 이번에 새로 등록한 측면 뷰 d11 의 값이고, 83.9 % 의 분모(0.9582)는 d11 의 천장이다. 전 값의 분모(0.9121)는 옛 단일자세 추정량이다 — 뷰도 추정량도 다르다."
+      },
+      "why_it_matters": "파일 안에는 iou_after_same_photo_set 과 '엄밀한 A/B 는 후자' 라는 주석이 있다. 그런데 headline 과 상위 요약은 앞의 수를 쓴다. 상위로 인용될 때 주석은 떨어져 나간다.",
+      "fix": "headline 을 같은 사진집합 값으로 바꾸고, d11 추가 효과는 별도 항목으로 적을 것. 천장 대비 % 는 전·후가 **같은 뷰·같은 추정량** 일 때만 쓸 것."
+    },
+    {
+      "id": "D05",
+      "title": "'mini2 수정 전 메쉬는 재현할 수 없다' 는 거짓이다 — 나는 2분 만에 비트동일로 재현했다",
+      "where": "outputs/mini2_score_v3.json → ceiling.why_before_has_no_per_view",
+      "severity": "medium",
+      "evidence": "표 6개(ARM_Z_FOLLOWS_ROTOR · GEAR_LEG_N_PRONG · GEAR_LEG_W_M · PROP_SCREW_POSTS · MOTOR_BASE_Z[mini2] · ARM_TIP_OVERHANG[mini2])를 되돌리고 소스 복사본에서 F7 리터럴 하나만 되돌리면 sha eb93de39… 가 그대로 나온다. 작업트리를 되돌릴 필요가 없다(나는 /tmp 복사본에서 했고 도는 작업에 손대지 않았다).",
+      "why_it_matters": "그 잘못된 판단 때문에 mini2 만 '수정 전 자세별 천장' 이 비어 있고, 그래서 D04 의 분모 불일치가 생겼다. matrice4e·x500v2 는 같은 문제를 정확히 이 방법으로 풀었다 — mini2 만 안 했다.",
+      "fix": "복사본 재구성으로 mini2 의 before per-view 천장을 채우고 D04 를 정리할 것."
+    },
+    {
+      "id": "D06",
+      "title": "mini2 의 유일한 형상 근거(공식 GLB)가 저장소에 없다",
+      "where": "assets/photos/mini2/SOURCES.md §4 — URL 만 있고 파일이 없다",
+      "severity": "high",
+      "evidence": "WM161_zhankai_1k.glb 를 저장소·/data/public/sionna_jeong·홈·/tmp 전부에서 찾지 못했다. 남은 것은 scratchpad 의 파트 점군 추출본(mini2_parts.npy)뿐이고 그것도 세션 임시 디렉터리에 있다. 반면 matrice4e·x500v2 는 STEP 원본이 assets/meshes/reference/ 에 들어 있다.",
+      "why_it_matters": "mini2 는 Das 검증 4기체 중 하나다. 그 형상 상수 9개의 근거가 지워지면 검증 사슬이 끊긴다. 나는 추출본으로 재현했지만, **저장소만 받은 사람은 재현할 수 없다.**",
+      "fix": "GLB 2개를 assets/meshes/reference/ 에 넣고 md5 를 SOURCES.md 에 박을 것(matrice4-M4T_v2.step 과 같은 대우). 라이선스가 걸리면 최소한 파트 점군 추출본을 저장소에 커밋할 것."
+    },
+    {
+      "id": "D07",
+      "title": "matrice4e 접지 기준(−59.82)이 CAD 최저점(−60.04)과 다르고, 다리 길이는 직접측정이 아니라 역산이다",
+      "where": "GEAR_SPIKE_H['matrice4e'] = 0.0529 · F06",
+      "severity": "medium",
+      "my_measure_crude": "CAD 최저 솔리드 4개 = −60.043(2) · −59.799(2) (내 좌표변환은 명세가 선언한 식 그대로 사용). 극값 기준 접지→RTK 꼭대기 = 149.762 (공표 149.5 대비 +0.18 %).",
+      "why_it_matters": "'fit sz 가 0.950 → 0.9999 가 됐다' 는 헤드라인이 이 한 상수에 걸려 있는데, 명세 자신의 독립 직접측정(앞 54.7·뒤 45.4, 평균 50.05)을 쓰면 sz 가 1.019 로 돌아간다(내 계산, crude). 역산 값과 직접측정이 2.85 mm 어긋난 채 역산 쪽을 채택했다.",
+      "fix": "다리 길이를 앞/뒤 따로 두는 기종별 표를 만들고(엔진 변경), 그때까지 '엔벨로프 강제가 사라졌다' 를 인용할 때 이 상수가 역산임을 함께 적을 것."
+    },
+    {
+      "id": "D08",
+      "title": "matrice4e 프롭이 모터 벨 위 6.7 mm 허공에 떠 있다 (F14 가 선언, 미해결)",
+      "where": "drones._arm_motor_dims — prop_z 는 셸형에서 motor_h + arm_t/2 + 0.006",
+      "severity": "medium",
+      "why_it_matters": "전에는 9.9 mm 였으니 악화는 아니지만, 금속 원통 4개와 회전 산란체 4개 사이의 공백은 저앙각 σ 와 마이크로도플러 결합에 그대로 들어간다. 실루엣은 프롭 위상 자유도에 먹혀 못 본다.",
+      "fix": "F19(암 상반각 · prop_z 기종별 오버라이드) 를 다음 라운드에 올릴 것 — 이미 deferred 에 있다."
+    },
+    {
+      "id": "D09",
+      "title": "outputs/mini2_mesh_audit.json 이 소스와 모순된 상태로 남았다",
+      "where": "outputs/mini2_mesh_audit.json (2026-08-03 13:13)",
+      "severity": "high",
+      "evidence": "172행에 '안쪽 갈래는 여분 몸체 · 단면 5.6×4.7 (실물 9.2×9.9) · 뒤 착륙패드 미모델링' 이 그대로 있다. F8·F9 가 앞 둘을 고쳤고 D2 가 셋째를 '존재하지 않는 부품' 으로 철회했다.",
+      "why_it_matters": "검증 안 된 '선언된 결함' 은 가짜 부채이고, 고쳐진 결함이 원장에 남으면 가짜 부채 + 가짜 미해결이다. 다음 라운드가 없는 부품을 모델링하게 만든다.",
+      "fix": "D2 가 스스로 적어 둔 대로 원장을 정정할 것. 이번 라운드는 '소스만 건드렸다' 며 미뤘다."
+    },
+    {
+      "id": "D10",
+      "title": "F10(짐벌 부착 위치)이 4T CAD 에서 왔는데 저장소 자신의 4E 서술과 2배 어긋난다",
+      "where": "src/drone_cad.py 짐벌 호출부 · docs/drone_specs_2026.json 의 matrice4e silhouette 서술",
+      "severity": "high",
+      "my_measure_crude": "새 메쉬의 짐벌 앞면 +174.34 vs 셸 코 +159.0 → 돌출 15.3 mm. 저장소 4E 문서는 '동체 앞으로 30~40 mm 돌출'.",
+      "why_it_matters": "짐벌은 금속 블록이라 전방·저앙각 σ 기여가 크고, 이번에 36 mm 위 · 30 mm 앞으로 옮겼다(프레임 길이 305.9→331.4 의 전부). 4T 블록 앞면을 기준점으로 쓴 것이 4E 에서 어긋나면 그 이동이 통째로 틀린다.",
+      "fix": "4E 정측면 사진(p01·p06, 2560~2667 px)에서 짐벌 지상고와 코 대비 돌출을 직접 재라. 그 전까지 F10 은 confidence='medium' 그대로 두고 '측정' 으로 승격하지 말 것."
+    },
+    {
+      "id": "D11",
+      "title": "F08(암 13.6 mm)·F14(모터 캔 16.3 mm)가 저장소 자신의 공표제원 문서와 충돌하는데 충돌 원장에 없다",
+      "where": "docs/drone_specs_2026.json matrice4e — 암 '직경 ~18~22mm', 모터 벨 '높이 ~18~22mm'",
+      "severity": "low",
+      "why_it_matters": "F08 은 2026-07-30 상면사진 16.6 mm 와의 충돌은 해명했지만(상면투영 경사) 문서의 18~22 는 언급하지 않는다. 그 문서 값이 서술적 추정이라 등급은 낮지만, C1~C8 충돌 원장이 '모든 충돌을 적는다' 를 표방하는 이상 빠지면 안 된다.",
+      "fix": "C 목록에 'official CAD vs 저장소 서술추정' 항목을 추가하고 CAD 채택 사유를 적을 것."
+    },
+    {
+      "id": "D12",
+      "title": "free_iou_gain 은 하한 추정량인데 판별자로 쓰인다",
+      "where": "세 채점 파일 공통",
+      "severity": "low",
+      "evidence": "x500v2 _02 에서 −0.168 이 나왔다 — 자유 최적은 정의상 구속 최적보다 낮을 수 없으므로 이는 탐색 실패다. 즉 이 지표가 0 이라는 것은 '자세이득 0' 이 아니라 '탐색이 찾은 자세이득이 0' 이다.",
+      "why_it_matters": "결론(형상 때문이다)은 여전히 맞다고 본다 — 세 기체·11 뷰에서 전부 ≤0 이고 matrice4e·x500v2 는 비트검증된 전 메쉬로 쟀다. 다만 '판별자' 라는 단어는 과하다.",
+      "fix": "다중 시작점 탐색을 넣거나 지표 이름을 free_iou_gain_lower_bound 로 바꿀 것."
+    },
+    {
+      "id": "D13",
+      "title": "선언 자세 일부가 메쉬에서 유도된다 — 자유도가 새는 통로",
+      "where": "outputs/mini2_score_v3.json registration.why_added ('짐벌 무게중심 x=+30.9 mm 이므로 방위 270°')",
+      "severity": "low",
+      "why_it_matters": "이번엔 무해하다(mini2 짐벌 미이동). 하지만 matrice4e 처럼 짐벌을 30 mm 옮기는 라운드에서 같은 규칙을 쓰면 '선언 자세' 가 메쉬를 따라 움직여 free_iou_gain 이 구조적으로 0 이 된다.",
+      "fix": "기수 판정은 사진 특징(짐벌 유무·어안 배치·배터리 게이지)만으로 하고 메쉬 양을 쓰지 말 것."
+    },
+    {
+      "id": "D14",
+      "title": "σ 캐시가 형상 지문을 키에 안 넣으면 조용히 틀린다",
+      "where": "outputs/sigma_sbr_cache.json (benchmark/channel.py)",
+      "severity": "medium",
+      "why_it_matters": "세 기체 형상이 바뀌었는데 캐시 키가 (기종, 주파수, 각도) 뿐이면 옛 σ 를 그대로 돌려준다. 예외도 안 난다.",
+      "fix": "재생성 전에 캐시 키에 build_drone sha 를 넣어라. 안 되면 캐시를 지우고 다시 채워라.",
+      "note": "나는 캐시 파일 내용을 열지 않았다 — 코드 이름만 보고 지적한다. 확인 필요."
+    },
+    {
+      "id": "D15",
+      "title": "이 라운드는 10 기체 중 2(+1)만 고쳤는데 함대 수준 주장으로 새어 나갈 위험",
+      "where": "함대 fit_scale",
+      "severity": "medium",
+      "my_measure": "HEAD 소스로 내가 직접 잰 fit sz — mini5pro 1.4187 · mavic4pro 1.3524 · phantom4 0.9374(xy 도 1.0198) · s1000plus 0.9291 · typhoonh480 1.0189 · m350rtk 0.9908 · phantom3 0.9982",
+      "why_it_matters": "mini5pro·mavic4pro 는 프레임을 35~42 % **늘려서** 공표 높이에 맞추고 있다. 'CAD 실측 메쉬' 라는 서술이 리포트에서 함대 전체로 읽히면 그건 거짓이다.",
+      "fix": "리포트·덱에서 형상 근거 등급을 기종별 표로 명시할 것(CAD 실측 4 · 사진 6 식)."
+    }
+  ],
+
+  "what_i_could_not_break": [
+    "σ 로 튜닝했다는 가설 — 48건 중 CAD 원본으로 되잴 수 있는 것을 20건 이상 되쟀고 전부 맞았다(x500 11건은 mm 단위 정확일치, mini2 9건도 정확일치). σ 를 목표로 삼았다면 이렇게 다양한 부품의 실측값이 동시에 맞을 수 없다.",
+    "다른 기체를 조용히 바꿨다는 가설 — 5 기체는 git HEAD 대비 비트동일(그룹 라벨 포함), phantom3·m350rtk 는 라운드가 건드린 상수 전체를 오염시켜도 sha 불변.",
+    "IoU 상승이 자세맞춤이라는 가설 — matrice4e·x500v2 는 비트검증된 전 메쉬 · 같은 사진 · 같은 코드로 쟀고, x500v2 는 07-31 원장과 소수점 4자리까지 일치한다. free_iou_gain 은 11 뷰 전부 ≤0.",
+    "엔벨로프 골대를 옮겼다는 가설 — envelope_mm 을 지우거나 바꾼 diff 줄이 하나도 없다.",
+    "mini2 상수가 지어낸 값이라는 가설 — GLB 파일은 사라졌지만 파트 점군 추출본에서 113.52 · 126.22 · 101.72 · 9.16×9.53 · 3.79 · ±7.20 · 21.80 이 전부 그대로 나온다."
+  ],
+
+  "recommended_gate_before_any_sigma_claim": [
+    "1. D02(공중부양 어안)를 끄거나 고친 뒤 σ 를 돌려라 — 안 그러면 예측 대조가 오염된다.",
+    "2. sigma_sbr_cache 키에 메쉬 sha 를 넣어라(D14).",
+    "3. das_fleet mini2 · rcs_anchor matrice4e 를 먼저 재계산하고, expected_sigma_direction 예측 15건과 대조해 **틀린 것을 먼저 기록**하라. 맞은 것만 적으면 이 라운드의 가치가 사라진다.",
+    "4. mini2 GLB 를 저장소에 넣어라(D06) — 넣기 전까지 mini2 는 검증 사슬의 약한 고리다.",
+    "5. mini2_mesh_audit.json 원장을 정정하라(D09).",
+    "6. 그 다음에야 '메쉬가 좋아졌다' 를 σ 의미로 말할 수 있다."
+  ]
+}

@@ -1,0 +1,496 @@
+{
+ "drone": "x500v2",
+ "name": "Holybro X500 V2",
+ "generated": "2026-08-04",
+ "stage": "SPEC ONLY — 이 라운드는 소스를 수정하지 않았다. src/drones.py · src/drone_cad.py 는 읽기만 했고, 적용은 다음 단계가 세 기체를 한 번에 한다.",
+ "headline": "이 기체는 '측정'이 아니라 '대조'였다. 제조사 STEP 51항목은 이미 메쉬에 들어와 있고, 이번 라운드가 찾은 것은 그 51항목 자체가 **점군(CARTESIAN_POINT) 기반**이라 생긴 계통오차다. 모서리(1D) 기반으로 다시 재니 원장 항목 9건이 틀렸고(그 중 3건은 물리적으로 존재하지 않는 치수), 메쉬 상수 25건이 따라 움직인다.",
+
+ "sources": {
+  "official CAD": {
+   "frame": "assets/meshes/reference/x500v2-frame.step (Holybro 공식 STEP AP214, 2022-07-19, 부품 57종·배치 인스턴스 244, 어셈블리 파서로 51개 부품이 좌표계에 놓임)",
+   "motor": "assets/meshes/reference/AIR2216II_Motor_3D.STEP (Holybro 공식 단품, 현재 킷 모터)",
+   "caveat": "⚠ 프레임 STEP 의 전장품은 **초기 구성**이다(모터 DJ-2216-KV880, 전원모듈 PM06). 구조 치수(판·암·다리·레일·클램프)는 믿되, 모터 형상은 현재 킷 부품인 AIR2216II 를 1차로 쓰고 프레임 STEP 은 **장착 높이**와 교차검증에만 쓴다."
+  },
+  "photo": "assets/photos/x500v2/ (이번 라운드에서 새로 채택한 photo-소스 수치는 0건. _02_frame_front34 · _07_payload_board_rails · _16_payload_gps_mast 는 CAD 판독을 **뒷받침**하는 데만 썼다)",
+  "published spec": "docs.holybro.com X500 V2 — Wheelbase 500 mm · 판 144×144 · 판두께 2 · 판간격 28 · 착륙장치 높이 215 · 암 튜브 16 mm · 스키드 10 mm · 페이로드 레일 250 mm",
+  "excluded": "assets/meshes/reference/NXP-HGD-CF.dae 는 ReadytoSky LJI X4 500(NXP HoverGames)이며 X500 이 아니다 — 이번 라운드에서 일절 참조하지 않았다."
+ },
+
+ "method": {
+  "why_1d": "기존 측정기 benchmark/measure_x500v2_cad.py 는 BREP 하위의 **모든 CARTESIAN_POINT**를 모아 bbox/중심을 냈다. STEP 의 점 엔티티에는 (a) 원의 **중심점**, (b) 잘리지 않은 LINE 의 **파라메트릭 끝점**, (c) B-스플라인 **제어점**이 섞여 있고 이들은 솔리드 바깥에 있을 수 있다. 그래서 점군 bbox 는 과대, 점군 중심은 비대칭 피처 쪽으로 끌린다.",
+  "what_we_did": "EDGE_CURVE → VERTEX_POINT(솔리드 위의 진짜 정점)만 쓰고, 곡선이 CIRCLE 이면 same_sense 로 원호 방향을 정확히 풀어 **호길이 0.25 mm 간격**으로 샘플했다. 원통 지름은 CYLINDRICAL_SURFACE 반지름에서 읽었다(점군 bbox 는 원통 지름을 과소평가한다).",
+  "arc_sampler_validation": "하판 외곽을 이 방법으로 복원하니 직선변(x=71.86, 길이 97.812) · 45° 챔퍼변(길이 23.977) · R6 코너 필렛이 정확히 닫히고 어떤 원호도 71.86 을 넘지 않았다 → 원호 방향(주호/열호) 판정이 옳다는 증거.",
+  "box_simplification_rule": "CAD 부품 하나를 메쉬에서 상자 하나로 표현할 때는 **평면 실루엣 면적을 보존**하는 폭을 쓴다(∫w(r)dr / 길이). 최댓값도 함께 기록한다.",
+  "not_used": "σ 파일은 열지 않았다. 이 명세의 어떤 값도 σ 를 보고 정하지 않았다 — 근거는 CAD·사진·공표제원뿐이다. expected_sigma_direction 은 **예측**이며 나중에 반증하기 위해 지금 적어둔다."
+ },
+
+ "scale_check": {
+  "verdict": "CAD 는 1:1 mm 스케일이다. 스케일 인자는 필요 없다(1.0000). 공표값 대비 최대 어긋남 0.19 %.",
+  "table": [
+   {"item": "plate across flats", "cad_mm": 143.72, "published_mm": 144.0, "err_pct": -0.19},
+   {"item": "plate thickness", "cad_mm": 2.0, "published_mm": 2.0, "err_pct": 0.0},
+   {"item": "plate gap", "cad_mm": 28.0, "published_mm": 28.0, "err_pct": 0.0},
+   {"item": "wheelbase (motor axis × 2)", "cad_mm": 500.28, "published_mm": 500.0, "err_pct": 0.06,
+    "note": "⭐ 1D 재측정의 최대 성과. 옛 점군 값 502.8(+0.56 %)은 모터 점군 무게중심이 비대칭 피처(배선·러그)에 끌린 것이었다. 수직축 CIRCLE 중심의 중앙값은 4모터 전부 (±176.876, ±176.876) → r=250.141, 방위각 정확히 ±45.000°. 즉 '공표 500 은 반올림' 이라는 기존 서술은 **틀렸다** — CAD 가 공표 500 을 0.06 % 로 재현한다."},
+   {"item": "landing gear height", "cad_mm": 215.28, "published_mm": 215.0, "err_pct": 0.13},
+   {"item": "arm tube OD (클램프 보어)", "cad_mm": 16.0, "published_mm": 16.0, "err_pct": 0.0,
+    "note": "튜브 솔리드는 15.4 로 그려져 있다(클램프 안 여유). 보어는 뿌리 15.90 / 끝 16.00."},
+   {"item": "skid tube OD", "cad_mm": 10.0, "published_mm": 10.0, "err_pct": 0.0},
+   {"item": "landing leg OD", "cad_mm": 16.0, "published_mm": 16.0, "err_pct": 0.0},
+   {"item": "payload rail length", "cad_mm": 250.0, "published_mm": 250.0, "err_pct": 0.0}
+  ]
+ },
+
+ "fit_scale": {
+  "now": [1.0, 1.0, 1.0],
+  "predicted": [1.0, 1.0, 1.0],
+  "explanation": "⭐ 이 기체에는 **강제압축이 애초에 없다**. Holybro 가 L×W×H 를 공표하지 않아 spec.envelope_mm = None 이고, drones.frame_fit_scale 은 그 경우 (1,1,1) 을 그대로 돌려준다(실측 확인). Phantom 3 에서 4.4 % → 0.2 % 로 없앤 그 항목이 여기서는 처음부터 0 이다.",
+  "real_metric_for_this_airframe": {
+   "why": "fit 스케일이 상수 1 이면 '형상이 눌렸는가' 를 그 값으로는 잴 수 없다. 이 기체의 등가 지표는 **메쉬 bbox ÷ CAD bbox** 다(둘 다 프롭 제외).",
+   "cad_bbox_mm": [400.35, 400.35, 322.28],
+   "cad_bbox_note": "높이 322.28 = 접지(폼 최하점) → GPS 트레이 상면. CAD 에는 GPS 퍽(사용자 부품)이 없다. 퍽 14 mm 를 얹으면 336.28.",
+   "mesh_bbox_now_mm": [396.69, 396.69, 334.78],
+   "implicit_scale_now": [1.0092, 1.0092, 1.0045],
+   "mesh_bbox_predicted_mm": [400.38, 400.38, 336.28],
+   "implicit_scale_predicted": [0.9999, 0.9999, 1.0],
+   "reading": "지금 메쉬는 좌우로 0.92 % 작다. 원인은 암 끝 카본 마운트 판의 반경 구간을 점군으로 잡아 바깥 끝이 270.65(실제 274.24)에서 끝나기 때문이다. 정정 후 최대 |x| 는 200.19 mm(CAD 200.21)."
+  }
+ },
+
+ "current_mesh_constants": {
+  "note": "1단계 — 지금 이 기체를 만드는 상수들이 어디에 있는지",
+  "DroneSpec (src/drones.py:480-558)": {
+   "diagonal_mm": 500, "body_l_mm/body_w_mm/body_h_mm": "144 / 144 / 32",
+   "body_frac": 0.288, "body_style": "plate_stack",
+   "plate_mm": "(144.0, 144.0, 2.0, 28.0, 2.0)",
+   "arm_shape": "tube", "arm_od_mm": 16.0,
+   "motor_dia_mm": 27.7, "motor_h_mm": 24.5,
+   "gear": "tall", "gear_h_mm": 215.0, "gear_tube_mm": "(16.0, 10.0)", "gear_splay_deg": 17.59,
+   "envelope_mm": null, "shell_groups": "()", "gimbal_style": "none",
+   "prop_dia_mm/prop_blades/prop_pitch_in": "254.0 / 2 / 4.5"
+  },
+  "module constants (src/drones.py)": {
+   "OPEN_MOTOR_BASE_M": "0.0127  (line 1094) — 캔 밑동 z, drone_cad.X500V2['motor_bell_z_mm'][0] 과 **같아야** 하고 _x500v2_arm_tip 가 대조 검사한다",
+   "_arm_motor_dims tube 분기": "line 1116 — prop_z = OPEN_MOTOR_BASE_M + motor_h + 0.0008 (= 38.0 mm)",
+   "frame_fit_scale": "line 1182 — envelope_mm 이 None 이라 (1,1,1)",
+   "rotor_layout": "line 1255 — 프롭 중심 반경은 motor_radii(spec) = diagonal_mm/2 = 250.0 (motor_axis_r_mm 251.4 와 **어긋나 있다**)"
+  },
+  "X500V2 실측표 (src/drone_cad.py:1223-1272)": "49개 키. 판·암·클램프·모터·다리·스키드·레일·트레이·PM06·마스트. 소비자: _x500v2_arm_tip(1275) · _x500v2_underslung(1323) · build_frame_cad 의 열린프레임 분기(1767-2223) · 착륙장치 분기(2144-2183)",
+  "형상 함수": {
+   "_body_plate_stack": "line 545 — shape='rect' + chamfer(45° 직각변) + posts=False",
+   "_arm_tube": "line 655 — 직선 등단면 튜브 (r0=arm_tube_r0_mm, r1=arm_tube_r1_mm)",
+   "_teardrop_plate": "line 1379 — mount_plate_width 법칙을 밀어낸 물방울꼴 판",
+   "_gear_tall_tube": "line 1155 — 다리 2개 + 스키드 + EVA + top_clamp/foot_clamp",
+   "_motor_bell": "모터 캔"
+  }
+ },
+
+ "n_fixes": 25,
+ "n_from_cad": 25,
+ "n_from_photo": 0,
+
+ "fixes": [
+  {
+   "constant": "X500V2['mount_plate_width']",
+   "where": "src/drone_cad.py:1232-1234 (소비: _x500v2_arm_tip line 1287)",
+   "old": [[206.4, 21.0], [215.0, 27.0], [226.0, 32.5], [234.0, 30.3], [242.0, 31.8], [250.0, 42.5], [258.0, 38.0], [266.0, 28.5], [269.5, 22.0], [270.65, 11.0]],
+   "new": [[220.75, 27.0], [224.1, 30.8], [229.4, 26.4], [236.1, 29.4], [243.5, 33.0], [250.8, 34.0], [256.2, 33.2], [260.2, 32.0], [264.2, 35.0], [266.56, 33.1], [269.5, 25.0], [272.0, 17.1], [274.24, 5.7]],
+   "unit": "(mm 반경, mm 폭)",
+   "source": "official CAD",
+   "evidence": "BAN-DJ-DIAN-F2(카본 모터마운트 판) 윗면 y=22.0 의 모서리는 LINE 105 + CIRCLE 102 뿐이고 스플라인이 없다 → 원호 샘플이 곧 정확한 윤곽이다. 200구간 폭 프로파일의 평면적 1587.3 mm², 최대폭 35.00 @ r=264.2, max|x| 200.21. 제안 법칙은 면적 1600.5(+0.8 %) · max|x| 200.19 로 재현한다. 옛 법칙은 면적 2025.8 mm²(+27.6 %) · 최대폭 42.5(+21 %) 였고 최대폭 위치도 250 으로 14 mm 안쪽이었다.",
+   "rel_err_pct": -21.0,
+   "leverage_group": "arm_tip",
+   "expected_sigma_direction": "고앙각(위에서 내려다보는 조명) ↓ — 수평 카본판 4장의 평면적이 21 % 줄어 정반사 플래시가 약해진다. 챔버 저앙각(el≈15°)에서는 ≈0 (이 판은 두께 2 mm 라 측면 투영이 거의 없다).",
+   "confidence": "high",
+   "risk": "mount_plate_r_mm 와 **함께** 바꿔야 한다(법칙의 양 끝이 r 구간과 일치해야 _teardrop_plate 가 닫힌다). 나일론 시트(motor_seat_r_mm)도 이 법칙을 필터링해 쓰므로 같이 검토."
+  },
+  {
+   "constant": "X500V2['mount_plate_r_mm']",
+   "where": "src/drone_cad.py:1229 (소비: line 1285)",
+   "old": [206.4, 270.65],
+   "new": [220.75, 274.24],
+   "unit": "mm (기체 중심에서의 반경)",
+   "source": "official CAD",
+   "evidence": "정점(VERTEX_POINT)만 222.89..270.59, 원호까지 포함하면 220.75..274.24. 옛 206.4 는 **원의 중심점**(오목 필렛의 중심은 재료 바깥에 있다)까지 센 점군 값이다. 판 길이 64.25 → 53.49 mm.",
+   "rel_err_pct": -16.7,
+   "leverage_group": "arm_tip",
+   "expected_sigma_direction": "고앙각 ↓(면적), 그러나 바깥 끝이 3.6 mm 더 나가서 기체 최대폭은 ↑ — 저앙각 실루엣은 아주 조금 ↑.",
+   "confidence": "high",
+   "risk": "안쪽 끝이 220.75 로 물러나면 튜브 끝(229.15)과 판 사이가 뜬다 → tip_clamp/motor_seat 구간을 221.0 까지 늘리는 레코드와 **한 묶음**으로 적용할 것."
+  },
+  {
+   "constant": "DroneSpec.motor_h_mm (x500v2)",
+   "where": "src/drones.py:556",
+   "old": 24.5,
+   "new": 28.5,
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "AIR2216II 단품(현재 킷 모터)에서 캔(r=13.85, OD 27.70) 원은 축좌표 11.0 ~ 39.5 에만 나타난다(원통면은 양 끝에만 모서리를 만든다) → 캔 높이 28.5. 교차검증: 프레임 STEP 의 DJ-2216-KV880 은 캔이 y 23.5 ~ 52.5 = 29.0. 두 독립 소스가 0.5 mm 안에서 일치한다. 옛 24.5 는 프레임 점군에서 y 28.7..53.2 구간을 캔으로 본 값이다.",
+   "rel_err_pct": 16.3,
+   "leverage_group": "motor",
+   "expected_sigma_direction": "저앙각 ↑ — 금속 캔 4개의 측면 투영이 27.7×24.5 → 27.7×28.5 (+16 %). 챔버 기하에서 모터는 지배 산란체군에 속하므로 이 라운드에서 σ 를 올릴 1순위 후보.",
+   "confidence": "high",
+   "risk": "prop_z = OPEN_MOTOR_BASE_M + motor_h + 0.0008 이므로 이 값만 바꾸면 프롭이 4 mm 떠오른다. motor_bell_z_mm · OPEN_MOTOR_BASE_M · prop_z 클리어런스 레코드와 **반드시 함께**."
+  },
+  {
+   "constant": "X500V2['motor_bell_z_mm'] + drones.OPEN_MOTOR_BASE_M",
+   "where": "src/drone_cad.py:1242 · src/drones.py:1094 (가드: _x500v2_arm_tip line 1308 가 둘이 다르면 ValueError)",
+   "old": [[12.7, 37.2], 0.0127],
+   "new": [[7.5, 36.0], 0.0075],
+   "unit": "mm (암 축 기준 z) / m",
+   "source": "official CAD",
+   "evidence": "프레임 STEP 의 모터 반경 프로파일에서 OD 27.7 캔은 y 23.5 부터 시작한다(y 22.0 은 카본 마운트 판 윗면 = z 6.0). 즉 캔 밑동은 판 위 1.5 mm = z 7.5, 꼭대기는 z 7.5+28.5 = 36.0. 옛 12.7 은 캔 밑동을 5.2 mm 높게 잡은 값이다.",
+   "rel_err_pct": -40.9,
+   "leverage_group": "motor",
+   "expected_sigma_direction": "저앙각 ≈0 (캔 높이 정정과 상쇄되어 캔의 z 중심은 24.95 → 21.75 로 3 mm 내려감). 바닥유령 경로에는 3 mm 만큼 지연 변화.",
+   "confidence": "high",
+   "risk": "두 파일을 동시에 고쳐야 한다 — 하나만 고치면 빌드 시 즉시 ValueError(그게 의도된 가드다)."
+  },
+  {
+   "constant": "_arm_motor_dims tube 분기의 프롭 클리어런스",
+   "where": "src/drones.py:1116  (return arm_t, motor_h, OPEN_MOTOR_BASE_M + motor_h + 0.0008)",
+   "old": 0.0008,
+   "new": 0.002,
+   "unit": "m",
+   "source": "official CAD",
+   "evidence": "프롭이 앉는 면은 프레임 STEP 의 프롭어댑터 플랜지(y 53.08~54.0 → z 37.1~38.0)다. 현재 prop_z = 12.7+24.5+0.8 = 38.0 mm 로 **우연히** 맞아 있었다. 캔 정정 후 7.5+28.5 = 36.0 이므로 클리어런스를 2.0 mm 로 올려야 prop_z 가 38.0 으로 유지된다.",
+   "rel_err_pct": 150.0,
+   "leverage_group": "motor",
+   "expected_sigma_direction": "≈0 (프롭 높이 불변이 목표. 안 고치면 프롭이 1.2 mm 내려앉아 캔 꼭대기에 파묻힌다 → 불리언 합집합에서 프롭 루트가 캔에 먹힌다)",
+   "confidence": "high",
+   "risk": "이 분기는 arm_shape=='tube' 전용이고 현재 그 기체는 x500v2 뿐이다(레지스트리 확인). 다른 기체 메쉬는 비트동일로 남는다."
+  },
+  {
+   "constant": "X500V2['motor_base_od_mm'] + X500V2['motor_base_z_mm']",
+   "where": "src/drone_cad.py:1240-1241 (소비: line 1315)",
+   "old": [32.3, [6.0, 12.7]],
+   "new": [24.7, [6.0, 7.5]],
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "AIR2216II 의 밑판 디스크는 축좌표 9.5 에서 r=12.35 (OD 24.7) 이고 그 1.5 mm 위에서 캔이 시작한다. 옛 32.3 은 프레임 STEP 의 **다른 모터**(DJ-2216, 초기 구성) 점군 최대반경 16.13 에서 온 값이고, 캔(27.7)보다 넓은 밑판은 2216 급에서 이례적이다.",
+   "rel_err_pct": -23.5,
+   "leverage_group": "motor",
+   "expected_sigma_direction": "고앙각 ↓ (수평 원판 4개의 면적 −41 %). 저앙각 ↓ 아주 조금.",
+   "confidence": "medium",
+   "risk": "프레임 STEP 의 DJ-2216 은 y 22~27 구간에 OD 34~36.6 짜리 러그가 있다 — 초기구성 모터가 실제로 더 넓은 밑판을 가졌을 수 있다. 현재 킷은 AIR2216II 이므로 그쪽을 택했다. 이 선택은 **구성 선택**이지 측정 불확실성이 아니다."
+  },
+  {
+   "constant": "X500V2['motor_axis_r_mm']",
+   "where": "src/drone_cad.py:1239 (소비: line 1313)",
+   "old": 251.4,
+   "new": 250.141,
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "모터 8 인스턴스 각각에서 축이 수직인 CIRCLE 중심의 중앙값이 정확히 (±176.876, ±176.876) → r = 250.141, 방위각 ±45.000°. 8개 전부 소수 셋째자리까지 동일. 옛 251.4 는 점군 무게중심(배선·러그로 비대칭)이다. 휠베이스 502.8 → 500.28 (공표 500 대비 +0.06 %).",
+   "rel_err_pct": -0.5,
+   "leverage_group": "rotor_axis",
+   "expected_sigma_direction": "크기 ≈0. 4모터 간 상대위상이 1.26 mm 이동 = 24 GHz 에서 0.1λ → **미세 로브 구조만** 바뀌고 평균 σ 는 안 바뀐다. (평균이 바뀐다면 그건 우리 CPI·평균화 규약을 의심할 신호다.)",
+   "confidence": "high",
+   "risk": "지금 프롭은 rotor_layout 이 diagonal_mm/2 = 250.0 에 놓는다 → 정정 후 모터축과 프롭축의 어긋남이 1.4 mm 에서 0.141 mm 로 **줄어든다**(개선). 완전 일치를 원하면 다음 레코드."
+  },
+  {
+   "constant": "DroneSpec.rotor_r_mm (x500v2) [선택]",
+   "where": "src/drones.py:480-558 (필드 미설정 → motor_radii 가 diagonal_mm/2 사용)",
+   "old": null,
+   "new": [250.141, 250.141, 250.141, 250.141],
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "프롭 중심을 모터 축과 정확히 같은 반경에 둔다. 현재는 프롭 250.0 · 모터 251.4 로 1.4 mm 어긋나 있고, 위 레코드 적용 후에도 0.141 mm 남는다.",
+   "rel_err_pct": 0.06,
+   "leverage_group": "rotor_axis",
+   "expected_sigma_direction": "≈0",
+   "confidence": "high",
+   "risk": "frame_envelope_mm 의 diagonal_effective_mm · wheelbase_opposite_mm 이 500.0 → 500.28 로 바뀐다. 리포트/표에서 '500.0' 을 기대하는 자리가 있으면 같이 갱신할 것. 적용하지 않아도 물리적 해악은 0.141 mm 뿐이다."
+  },
+  {
+   "constant": "DroneSpec.plate_mm + body_l_mm + body_w_mm (x500v2)",
+   "where": "src/drones.py:554 (plate_mm) · src/drones.py:483 (body_l_mm/body_w_mm) — build_frame_cad line 1783 이 둘의 불일치를 ValueError 로 막는다",
+   "old": [[144.0, 144.0, 2.0, 28.0, 2.0], 144, 144],
+   "new": [[143.72, 143.72, 2.0, 28.0, 2.0], 143.72, 143.72],
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "하판·상판의 **정점**이 모두 |x|,|z| ≤ 71.86 이고 직선변 LINE 이 (71.860, ±48.906) 로 길이 97.812 다 → 맞변거리 143.72. 공표 144 대비 −0.19 %. 판 두께 2.000 · 간격 28.000 은 CAD 가 공표값을 그대로 재현한다(변경 없음).",
+   "rel_err_pct": -0.19,
+   "leverage_group": "plate_stack",
+   "expected_sigma_direction": "≈0 (< 0.05 dB). 판 평면적 −0.39 %.",
+   "confidence": "high",
+   "risk": "body_l/w_mm 를 같이 안 고치면 빌드가 ValueError 로 죽는다(의도된 가드). body_frac 도 일관성 레코드 참조."
+  },
+  {
+   "constant": "X500V2['plate_chamfer_mm']",
+   "where": "src/drone_cad.py:1224 (소비: line 1798 → _body_plate_stack chamfer)",
+   "old": 22.95,
+   "new": 20.47,
+   "unit": "mm (45° 챔퍼의 직각변)",
+   "source": "official CAD",
+   "evidence": "직선변은 x=71.86, 챔퍼변은 x−z=123.252 (두 끝점 (70.103,−53.149)·(53.149,−70.103)에서 확정). 두 직선의 교점은 (71.86, −51.392) → 직각변 20.468. 옛 22.95 는 직선변이 **끝나는 점**(48.906)까지 잰 값인데, 거기서 끝나는 이유는 코너에 R6 필렛이 있어서다(접선길이 6·tan22.5° = 2.486, 실제로 CAD 에 r=6.0 원이 (65.86, ±48.91) 에 있다). 즉 옛 값은 필렛 접점을 팔각형 꼭짓점으로 오인한 것이다.",
+   "rel_err_pct": -10.8,
+   "leverage_group": "plate_stack",
+   "expected_sigma_direction": "고앙각 ↑ 아주 조금 — 판 평면적 19683 → 19811 mm² (+0.65 %). 45° 방위에서 판 모서리 회절선이 2.5 mm 바깥으로 이동.",
+   "confidence": "high",
+   "risk": "없음. R6 코너 필렛 자체는 여전히 모델링하지 않는다(8곳 합계 6.2 mm², 무시 가능)."
+  },
+  {
+   "constant": "X500V2['arm_tube_r1_mm']",
+   "where": "src/drone_cad.py:1226 (소비: line 1803 → _arm_tube)",
+   "old": 232.15,
+   "new": 229.15,
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "HMX5V-GUAN-DINGWEI(암 튜브) 4 인스턴스 전부 축 원점 (±47.48, y=16.0, ±47.48)· 축 (±0.7071,0,±0.7071)· **축방향 모서리 길이 162.000**. 안쪽 끝 r=67.15(=47.48·√2) → 바깥 끝 r=229.15. 옛 232.15(길이 165)는 점군에 섞인 잘리지 않은 끝점 때문이다.",
+   "rel_err_pct": -1.29,
+   "leverage_group": "arm_tip",
+   "expected_sigma_direction": "≈0 — 튜브 끝 3 mm 는 나일론 시트 안에 파묻히는 구간이다(시트가 r 191.4~274.24 를 덮는다).",
+   "confidence": "high",
+   "risk": "없음. arm_tube_r0_mm=67.15 는 정확하므로 그대로 둔다."
+  },
+  {
+   "constant": "X500V2['tip_clamp_r_mm'] / ['tip_clamp_w_mm'] / ['tip_clamp_z_mm']",
+   "where": "src/drone_cad.py:1235-1237 (소비: line 1297-1301)",
+   "old": [[192.0, 216.0], 24.0, [-12.0, 10.0]],
+   "new": [[191.4, 221.0], 23.9, [-11.0, 11.0]],
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "이 부품은 HMX5V-ZUO-DJ-MUJU(나일론 모터시트 상부)의 안쪽 칼라다. CAD: r 191.40~274.24 · y 5.00~27.00 (= z −11.0~+11.0). 칼라 구간(191.4~221.0)의 실루엣 면적 692.9 mm² / 길이 28.99 → 면적보존폭 23.9 (최대 31.0). **등급 승격**: 옛 값은 사진 _05 에서 잡은 DERIVED 였는데 CAD 와 ±1 mm 로 맞았다 — 사진 추정이 맞은 드문 사례라 그대로 기록해 둔다.",
+   "rel_err_pct": -0.4,
+   "leverage_group": "arm_tip",
+   "expected_sigma_direction": "≈0 (플라스틱 |Γ|=0.28, 크기 변화도 1 mm 급)",
+   "confidence": "high",
+   "risk": "바깥 끝 221.0 은 새 mount_plate_r_mm 의 안쪽 끝 220.75 와 물리도록 정한 값이다 — 판 레코드와 함께 적용."
+  },
+  {
+   "constant": "X500V2['motor_seat_r_mm'] + 시트 폭계수 + 시트 하단 z",
+   "where": "src/drone_cad.py:1238 (표) · line 1292 (0.78 계수) · line 1294 (_teardrop_plate(seat, -0.004, zp0, ...))",
+   "old": [[208.0, 268.0], 0.78, -0.004],
+   "new": [[221.0, 274.24], 1.0, -0.011],
+   "unit": "mm / 배 / m",
+   "source": "official CAD",
+   "evidence": "판 아래 나일론은 HMX5V-ZUO-DJ-MUJU(y 5~27) + HMX5V-DIGAI-DIANJIZUO-MUJU(하부커버, y 4.7~13.4, r 227.28~274.24) 두 장이다. r 222~274 구간에서 시트 폭 ÷ 카본판 폭 = 0.999~1.016 → 0.78 은 근거 없는 축소였다. 나일론이 판 아래로 내려가는 깊이는 y 5.0 → z −11.0.",
+   "rel_err_pct": 28.2,
+   "leverage_group": "arm_tip",
+   "expected_sigma_direction": "저앙각 ↑ 조금 — 암 끝 아래쪽에 두께 15 mm 짜리 플라스틱 덩어리가 생긴다(지금은 8 mm). 고앙각은 판에 가려 ≈0.",
+   "confidence": "medium",
+   "risk": "표 밖의 하드코딩 두 곳(0.78, −0.004)을 같이 고쳐야 한다 — 표만 고치면 조용히 절반만 반영된다."
+  },
+  {
+   "constant": "X500V2['corner_clamp_w_mm'] / ['corner_clamp_r_mm']",
+   "where": "src/drone_cad.py:1227-1228 (소비: line 2213-2217)",
+   "old": [26.0, [65.1, 93.2]],
+   "new": [21.8, [65.15, 93.15]],
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "HMX5V-JIBI-JIA-MUJU 8 인스턴스(모서리당 상·하 2개, y 0~17.9 와 14.1~32.0 → 합쳐서 판 스택 32 mm 를 정확히 채운다 = 지금 메쉬의 '32 mm 기둥 4개' 는 옳다). 실루엣 면적 607.7 mm² / 길이 27.86 → 면적보존폭 21.8 (최대 28.0, 중간에 18.0 허리). 옛 26.0 은 점군 |lat| 주모드에서 DERIVED 였다.",
+   "rel_err_pct": -16.2,
+   "leverage_group": "plate_stack",
+   "expected_sigma_direction": "≈0 (판 간극 안쪽 플라스틱). 45° 방위 저앙각에서 아주 조금 ↓.",
+   "confidence": "medium",
+   "risk": "표현 선택(면적보존)이지 측정 불확실성이 아니다. 최대폭 28.0 을 쓰고 싶으면 그 근거도 CAD 지만, 그러면 평면적을 +28 % 과대표현한다."
+  },
+  {
+   "constant": "X500V2['batt_tray_mm'] + ['batt_tray_z_mm']",
+   "where": "src/drone_cad.py:1257-1258 (소비: line 1345-1354)",
+   "old": [[100.0, 56.2, 2.0], -71.3],
+   "new": [[100.0, 50.3, 2.0], -61.5],
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "BATTERY-MOUNTING-PLAT 의 모서리·정점 bbox 가 **완전히 일치**한다: 100.0 × 2.0 × 50.3, 중심 (0.01, −45.51, 0). 옛 값(폭 56.3 · 높이 21.64)은 점군 전용 아티팩트였다(정점은 2.0 두께를 준다). z: y −45.51 → z −61.51. 즉 지금 트레이는 **9.8 mm 아래**에 달려 있다.",
+   "rel_err_pct": -10.5,
+   "leverage_group": "underslung",
+   "expected_sigma_direction": "저앙각 ≈0 (면적 −10 %, 위치 +9.8 mm). 바닥유령 경로길이는 기체 아래 구조가 10 mm 올라가므로 그만큼 짧아진다 — report09 의 유령 지연에 mm 급 영향.",
+   "confidence": "high",
+   "risk": "배터리 팩(DERIVED 145×45×25)이 트레이 위에 얹히므로 팩도 9.8 mm 따라 올라간다. 팩 상면은 z −35.5 로 레일(−29)·하판(−16) 아래에 남는다 → 관통 없음(확인)."
+  },
+  {
+   "constant": "파일런 (X500V2['pylon_x_mm']/['pylon_y_mm'] + 생성 코드)",
+   "where": "src/drone_cad.py:1260-1261 (표) · line 1348-1352 (기둥 4개 루프)",
+   "old": "8×8 mm 기둥 4개, (x,y) = (±35, ±30), z −29 → −71.3",
+   "new": "9.5(x) × 69.4(y) × 38.8(z) 판 2장, x = ±35, z 중심 −41.1 (z −60.5 ~ −21.7)",
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "PYLONS-X500 은 2 인스턴스이고 각각 bbox 9.5 × 38.83 × 69.43, 중심 (±35.0, −25.1, 0) 이다. 즉 **좌우 기둥 4개가 아니라 전후 측판 2장**이고, 폭이 69.4 mm 로 지금 기둥(8 mm)보다 8.7배 넓다. 위 끝(z −21.7)은 하판 아랫면(−16)에서 5.7 mm 아래, 아래 끝은 새 트레이 상면(−60.5)에 닿는다.",
+   "rel_err_pct": 767.0,
+   "leverage_group": "underslung",
+   "expected_sigma_direction": "저앙각 **↑ (이 라운드의 2순위 상승 요인)** — 기체 배 아래에 69×39 mm 짜리 세로판 2장이 전후 방향 정면으로 선다. 전후 방위(0°/180°)에서 특히.",
+   "confidence": "high",
+   "risk": "표 상수만으로는 못 고친다(루프 구조 변경). pylon_y_mm 30.0 은 의미가 사라지므로 키를 pylon_w_mm=69.4 로 대체할 것. 재질 그룹은 현행 accent(플라스틱) 유지 — CAD 부품명·사진 모두 나일론계로 보인다."
+  },
+  {
+   "constant": "X500V2['pm06_mm'] + ['pm06_centre_mm']",
+   "where": "src/drone_cad.py:1262-1263 (소비: line 1357-1359)",
+   "old": [[55.0, 35.0, 12.0], [10.0, 0.0, -3.0]],
+   "new": [[55.0, 35.0, 5.2], [10.0, 0.0, -6.4]],
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "PCB-PM06 모서리 bbox 55.0 × 5.19 × 35.0, 중심 (10.0, 9.6, 0) (정점만 보면 4.2 두께). 점군은 11.99 두께 · 중심 y 13.0 을 준다. 평면 55×35 는 정확했고 **두께만** 2.3배 부풀어 있었다.",
+   "rel_err_pct": -56.7,
+   "leverage_group": "underslung",
+   "expected_sigma_direction": "≈0 ~ 아주 조금 ↓ (pcb 그룹, 판 간극 안이라 저앙각에서 판에 가려진다)",
+   "confidence": "high",
+   "risk": "없음."
+  },
+  {
+   "constant": "top_clamp (다리 상단 브래킷)",
+   "where": "src/drone_cad.py:2177 (build_frame_cad 의 _gear_tall_tube 호출 인자)",
+   "old": [0.04, 0.03, "z_deck_bot - 0.010 (= -0.026)", "gap/2 (= +0.014)"],
+   "new": [0.0338, 0.0325, -0.03803, -0.016],
+   "unit": "m",
+   "source": "official CAD",
+   "evidence": "JIA-LIANJIE 2 인스턴스, bbox 33.8 × 22.03 × 32.5, 중심 (0, −11.02, ±55.5) → 우리 좌표로 z −38.03 ~ −16.00, 즉 **전부 하판 아래**에 있다. 지금 메쉬는 이 블록을 z −26 ~ +14 로 두어 40 mm 중 30 mm 가 판 사이 간극을 채우고 있다 — 실물에는 거기 아무것도 없다(사진 _02 에서 다리가 하판 밑면에서 시작하는 것이 보인다).",
+   "rel_err_pct": -45.0,
+   "leverage_group": "gear",
+   "expected_sigma_direction": "저앙각 ≈0 ~ 조금 ↓ — 판 간극에서 40×30 mm 플라스틱 덩어리 2개가 빠지고 판 아래로 22 mm 짜리가 내려간다. 판 간극은 원래 전기적으로 막혀 있으므로 순 효과는 작다.",
+   "confidence": "high",
+   "risk": "없음(값만 교체)."
+  },
+  {
+   "constant": "foot_clamp (다리-스키드 T커넥터)",
+   "where": "src/drone_cad.py:2178 (인자) + _gear_tall_tube line 1205-1208 (중심 계산이 하드코딩)",
+   "old": [0.04, 0.026, 0.019],
+   "new": {"size_m": [0.04, 0.0232, 0.0323], "centre_m": [0.0, "±0.11481", -0.21203]},
+   "unit": "m",
+   "source": "official CAD",
+   "evidence": "JIAO-LIANJIE 2 인스턴스, bbox 40.0 × 32.29 × 23.23, 중심 (0, −196.03, ±114.81) → z −228.2 ~ −195.9, 좌우 ±114.81. 지금은 스키드 축(z −221.78, ±119.91)에 중심을 두고 40×26×19 로 만든다.",
+   "rel_err_pct": 70.0,
+   "leverage_group": "gear",
+   "expected_sigma_direction": "저앙각 ↑ 아주 조금(플라스틱 블록이 32 mm 로 커진다). 접지 높이는 불변이어야 한다.",
+   "confidence": "high",
+   "risk": "⛔ **크기만 바꾸면 안 된다.** _gear_tall_tube 는 이 블록을 스키드 축에 중심 정렬하므로, 높이를 19 → 32.3 으로만 키우면 블록 밑면이 z −237.9 로 내려가 **EVA 폼 최하점(−231.28)보다 낮아진다** → 착륙장치 높이가 215 → 221.6 mm 로 조용히 바뀌고 공표값 재현이 깨진다. 반드시 중심 z 오프셋 인자를 함께 넣을 것."
+  },
+  {
+   "constant": "레일 클램프 상자 높이",
+   "where": "src/drone_cad.py:1341-1343 (box(0.006, 0.021, |rail_z − z_deck_bot| + 0.004))",
+   "old": "높이 0.017 (z −33.0 ~ −16.0)",
+   "new": "높이 0.023 (z −38.98 ~ −16.0)",
+   "unit": "m",
+   "source": "official CAD",
+   "evidence": "JIA-GUAN 8 인스턴스, bbox 6.0 × 22.97 × 21.0, 중심 (±50.0, −11.49, ±30.0) → z −38.98 ~ −16.00. x 두께 6.0 · 좌우 21.0 은 현행과 일치.",
+   "rel_err_pct": 35.3,
+   "leverage_group": "underslung",
+   "expected_sigma_direction": "≈0",
+   "confidence": "high",
+   "risk": "없음."
+  },
+  {
+   "constant": "X500V2['front_board_centre_mm']",
+   "where": "src/drone_cad.py:1265 (소비: line 1363)",
+   "old": [99.0, 0.0, -42.4],
+   "new": [99.0, 0.0, -43.0],
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "PLATFORM-PLAT-X500 모서리·정점 bbox 65.0 × 2.0 × 93.0, 중심 (99.0, −27.0, 0) → z −43.0. 판 크기 (65, 93, 2.0) 는 정확했다(점군은 두께를 15.63 으로 준다).",
+   "rel_err_pct": 1.4,
+   "leverage_group": "underslung",
+   "expected_sigma_direction": "≈0",
+   "confidence": "high",
+   "risk": "없음."
+  },
+  {
+   "constant": "X500V2['mast_x_mm'] + ['mast_base_mm']",
+   "where": "src/drone_cad.py:1266,1269 (소비: line 1368-1375)",
+   "old": [99.6, [32.2, 32.2, 18.7]],
+   "new": [99.0, [29.7, 29.7, 18.7]],
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "GAN-GPSV5-ZHIJIA(마스트 봉)의 원통 축이 x=99.000, OD 3.95, 길이 108.0, y −2.5~105.5. GPS-ZHIJIA-ZUO(마운트 베이스)의 모서리 bbox 29.74 × 18.70 × 29.74 (점군 32.24). 옛 99.6 은 봉 점군의 x 범위 97.6~101.5 중앙이었다.",
+   "rel_err_pct": -0.6,
+   "leverage_group": "mast",
+   "expected_sigma_direction": "≈0",
+   "confidence": "high",
+   "risk": "없음."
+  },
+  {
+   "constant": "GPS 트레이 (신규) + 퍽 z 기준",
+   "where": "src/drone_cad.py:1266-1271 (표에 mast_tray_mm 신설) · line 1374-1375 (퍽을 트레이 위로)",
+   "old": "없음 (퍽이 봉 꼭대기 z 89.5 에 바로 앉는다)",
+   "new": "트레이 29.0 × 29.0 × 9.5, z 81.5 ~ 91.0 → 퍽은 z 91.0 부터",
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "GPSV5-ZHIJIA-TUOPAN bbox 28.98 × 9.5 × 28.98, 중심 (99.0, 102.25, 0) → z 81.5~91.0. CAD 최상단은 봉(105.5)이 아니라 이 트레이(107.0)다. 퍽(⌀50×14)은 CAD 에 없는 사용자 부품이라 사진 기반 DERIVED 그대로 두되, 앉는 면을 트레이 상면으로 올린다.",
+   "rel_err_pct": null,
+   "leverage_group": "mast",
+   "expected_sigma_direction": "≈0 (기체 최상단 1.5 mm 상승, 29×29 플라스틱 판 1장 추가)",
+   "confidence": "high",
+   "risk": "이 레코드까지 넣어야 메쉬 총높이가 CAD+퍽 = 336.28 mm 와 정확히 맞는다."
+  },
+  {
+   "constant": "광류 센서 커버 (신규)",
+   "where": "src/drone_cad.py:1323-1376 (_x500v2_underslung 에 추가) + 표에 optical_flow_mm 신설",
+   "old": "없음",
+   "new": "22.0 × 60.0 × 2.0 판, 중심 (−105.5, 0.0, −64.2)",
+   "unit": "mm",
+   "source": "official CAD",
+   "evidence": "GAI-GUANGLIU('광류 덮개') 1 인스턴스, 정점 bbox 22.0 × 2.0 × 60.0, 중심 (−105.5, −48.2, 0) → z −64.2. 프레임 STEP 에 들어 있는데 메쉬에는 통째로 없다.",
+   "rel_err_pct": null,
+   "leverage_group": "underslung",
+   "expected_sigma_direction": "≈0 ~ 아주 조금 ↑ (1320 mm² 수평판 1장이 기체 뒤쪽 아래에 추가)",
+   "confidence": "medium",
+   "risk": "이 부품이 킷 기본 구성인지 옵션 액세서리인지 공표 BOM 으로 확정하지 못했다. 넣지 않아도 결함은 아니며, 넣는다면 그 근거는 '제조사 프레임 STEP 에 있다' 뿐이다. 재질은 플라스틱(accent) 로 둘 것."
+  },
+  {
+   "constant": "DroneSpec.body_frac (x500v2)",
+   "where": "src/drones.py:550",
+   "old": 0.288,
+   "new": 0.28744,
+   "unit": "비율 (= 판 맞변거리 / diagonal_mm)",
+   "source": "official CAD",
+   "evidence": "주석이 '= 144/500' 이라고 스스로 밝히는 파생값이다. 판이 143.72 가 되면 143.72/500 = 0.28744. 열린 프레임 분기에서 bl/bw/bh 는 plate_mm 으로 덮이므로 메쉬 형상에는 영향이 없고, _drone_dims 를 읽는 진단·다이어그램 코드의 일관성만 지킨다.",
+   "rel_err_pct": -0.19,
+   "leverage_group": "plate_stack",
+   "expected_sigma_direction": "정확히 0 (메쉬 미사용 경로)",
+   "confidence": "high",
+   "risk": "없음."
+  }
+ ],
+
+ "ledger_corrections": {
+  "target": "outputs/x500v2_cad.json (51항목) 과 그것을 만드는 benchmark/measure_x500v2_cad.py",
+  "why": "원장 자체가 점군 기반이라 아래 항목이 틀렸다. 메쉬를 고치면서 원장을 안 고치면 다음 라운드가 다시 틀린 값을 집는다.",
+  "entries": [
+   {"key": "plate_span_including_corner_tabs_mm", "old": 148.0, "new": "존재하지 않음 (항목 삭제 권고)",
+    "evidence": "정점 최대는 71.86 이고, 148 을 만드는 점은 y=0 평면의 단 4개 (±74.0, 0, ∓49.251) 뿐이다. 이 점들은 x−z=123.251 을 만족한다 = **잘리지 않은 챔퍼 LINE 의 파라메트릭 끝점**. 실물에 '코너 돌기' 는 없다."},
+   {"key": "plate_chamfer_leg_mm", "old": 22.95, "new": 20.47, "evidence": "R6 필렛 접점을 꼭짓점으로 오인. 접선길이 2.486 = 6·tan22.5°."},
+   {"key": "arm_tube_length_mm", "old": 165.0, "new": 162.0, "evidence": "축방향 모서리 범위 (4 인스턴스 동일)."},
+   {"key": "motor_axis_radius_mm", "old": 251.4, "new": 250.141, "evidence": "수직축 CIRCLE 중심 중앙값, 8 인스턴스 일치."},
+   {"key": "wheelbase_mm", "old": 502.8, "new": 500.28, "evidence": "공표 500 대비 +0.06 % — '공표값이 반올림' 이라는 기존 주석은 철회해야 한다."},
+   {"key": "motor_mount_plate_radial_span_mm", "old": [206.4, 270.6], "new": [220.75, 274.24], "evidence": "원 중심점이 점군에 섞였다."},
+   {"key": "motor_stack_height_mm", "old": 51.9, "new": 51.4, "evidence": "모서리 y 12.10~63.50."},
+   {"key": "payload_platform_board_bbox_mm", "old": [65.0, 15.63, 93.0], "new": [65.0, 2.0, 93.0], "evidence": "정점=모서리 일치, 두께 2.0."},
+   {"key": "battery_mounting_board_bbox_mm", "old": [100.0, 21.64, 56.3], "new": [100.0, 2.0, 50.3], "evidence": "정점=모서리 일치."},
+   {"key": "power_module_pcb_pm06_bbox_mm", "old": [55.0, 11.99, 35.0], "new": [55.0, 5.19, 35.0], "evidence": "모서리 기준(정점만이면 4.2)."},
+   {"key": "gps_mount_base_bbox_mm", "old": [32.24, 18.7, 32.24], "new": [29.74, 18.7, 29.74], "evidence": "모서리 기준."},
+   {"key": "gps_mast_top_above_plate_mm", "old": 73.5, "new": "73.5 (봉) — 다만 CAD 최상단은 트레이 75.0 (y 107.0)", "evidence": "GPSV5-ZHIJIA-TUOPAN."}
+  ],
+  "measurer_upgrade": "measure_x500v2_cad.py 를 VERTEX_POINT + same_sense 원호 샘플러로 바꾸면 위 12건이 자동으로 바로잡힌다. 지름은 지금처럼 CYLINDRICAL_SURFACE 에서 읽는 것이 여전히 옳다."
+ },
+
+ "do_not_touch": [
+  {"item": "DroneSpec.envelope_mm = None", "why": "⭐ 최우선. CAD bbox(400.35×400.35×322.28)를 envelope 로 집어넣고 싶어지지만, 그 순간 frame_fit_scale 이 다시 비등방 배율을 걸기 시작한다 — 우리가 Phantom 3 에서 없앤 바로 그 병이다. Holybro 는 L×W×H 를 공표하지 않는다. 형상은 부품 치수로 맞추고, 엔벨로프는 **결과**로 두어야 한다."},
+  {"item": "DroneSpec.diagonal_mm = 500", "why": "공표값(Wheelbase 500 mm). 이 기체에서 diagonal_mm 은 로터 위치를 정하지 않고(모터는 motor_axis_r_mm) 안 쓰는 비례식 기본값의 스케일로만 남는다. CAD 실측 500.28 로 덮어쓰면 '공표 제원' 이라는 provenance 를 잃는다."},
+  {"item": "DroneSpec.arm_od_mm = 16.0", "why": "CAD 의 튜브 솔리드 15.4 를 절대 채택하지 말 것 — 클램프 보어(뿌리 15.90 / 끝 16.00)가 15.4 는 여유(clearance)로 그린 것임을 확증한다. 공표도 16 mm."},
+  {"item": "DroneSpec.gear_h_mm = 215.0 · gear_splay_deg = 17.59 · gear_tube_mm = (16,10)", "why": "공표 215 를 CAD 가 215.28 로 재현하고, 실제 접지 높이는 skid_axis_z + foam_od 에서 나온다(gear_h_mm 은 존재검사용). 벌림각은 CAD 17.5967° 와 0.007° 차이."},
+  {"item": "다리 튜브를 스키드 축까지 뽑는 단순화", "why": "CAD 의 다리 튜브는 z −211.28 에서 끝나고 나머지 10.5 mm 는 T커넥터가 채운다. 메쉬가 스키드 축까지 뽑는 것은 그 공간을 어차피 채우는 무해한 단순화이고, 잘라내면 오히려 떠 있는 끝면이 생긴다."},
+  {"item": "판의 슬롯·구멍(하판 4×(20×10) 등)", "why": "우리 판은 솔리드다. 구멍을 뚫으면 면적은 실물에 가까워지지만 메쉬 삼각형·불리언 비용이 커지고, 구멍 지름 10~20 mm 는 24 GHz λ(12.5 mm) 근처라 PO 로는 어차피 신뢰할 수 없는 영역이다. 지금 라운드에서 손대지 않는다."},
+  {"item": "볼트·너트·스탠드오프 100+ 개 (GB70-* · ZSLM-* · NILONGZHU-* · M3-*)", "why": "BOM 인스턴스 244개 중 대부분이 이것이다. 개당 투영면적 <50 mm² 이고 판·암에 파묻혀 있다. 모델링 대상 아님."},
+  {"item": "ZHIJIA-CAMERA-INTEL (19 × 107 × 41.7, 중심 (−100.5, −26.35, 0))", "why": "프레임 STEP 에 있지만 **옵션 페이로드 브래킷**이다 — Holybro 자신의 사진 _16 이 이 자리를 'Depth Camera & Companion Computer **Mounting Example**' 로 설명한다. 맨몸 기체 실루엣에 107 mm 짜리 세로판을 더하는 것은 근거가 약하다. 넣고 싶으면 '페이로드 장착 변형' 이라는 별도 구성으로."},
+  {"item": "batt_pack_mm (145,45,25) · OPEN_FC_FRAC(비행제어기 상자)", "why": "CAD 에 없는 사용자 부품이다(팩·FC). DERIVED 등급 그대로 두고, CAD 를 근거로 바꾸려 하지 말 것."},
+  {"item": "gps_puck_mm (50,14)", "why": "CAD 는 마운트만 담는다. 퍽 자체는 사진 DERIVED — 이번 라운드에서 CAD 근거가 생긴 것은 **앉는 면**(트레이 상면)뿐이다."},
+  {"item": "z 원점 규약 (z_ours = y_step − 16.0)", "why": "판 간극 정중앙이 z=0. 표의 모든 값이 이 규약 위에 있다. 바꾸면 49개 상수가 전부 흔들린다."},
+  {"item": "모터 캔 OD 27.7", "why": "AIR2216II 와 프레임 STEP 이 독립적으로 같은 값을 준다(13.85×2). 이번 정정은 **높이·밑판**이지 지름이 아니다."},
+  {"item": "arm_tube_r0_mm = 67.15 · mount_plate_z_mm = (4.0,6.0) · rail_* 전부 · skid_* 전부 · foam_* 전부 · gear_leg_top_* 전부", "why": "1D 재측정에서 전부 확인됐다(0.05 mm 이내). 건드릴 이유가 없다."}
+ ],
+
+ "open_questions": [
+  {"q": "CAD 의 +x 가 기수(전방)인가?", "detail": "GPS 마스트 베이스와 전방 페이로드 보드가 **둘 다** x=+99 에 있고, 광류 커버와 카메라 브래킷이 둘 다 x≈−100 에 있다. 사진 _16 은 깊이카메라가 기수 쪽, GPS 마스트가 후방 쪽으로 보이는데 CAD 는 그 둘을 반대편에 놓는다. 우리 메쉬는 CAD 의 x 부호를 그대로 따르므로 **CAD 가 맞으면 우리도 맞고, 틀리면 앞뒤가 뒤집힌다**. 방위평균 σ 에는 영향이 없고 특정 방위(0°/180°)에서만 갈린다. 판·암은 4회 대칭이라 판별 단서가 못 되고, 결정적 증거(상판 인쇄 화살표의 CAD 내 위치)는 STEP 에 없다.", "action": "다음 라운드에서 사진 _11(상판 평면도)의 화살표와 슬롯 배치를 CAD 상판 컷아웃(x=±64 노치)과 대조해 확정할 것."},
+  {"q": "배터리 팩은 트레이 위인가 아래인가?", "detail": "BATTERY-PAD(91.5×2.0×23.6)가 트레이 **아래**(y −48.51~−46.51)에 있다. 팩을 트레이 위에 얹는 현재 모델과 어긋난다. 다만 팩 자체가 CAD 에 없어 판정 불가.", "action": "이번 라운드에서는 팩을 트레이 위(현행)로 유지한다. 잘못이면 팩이 25 mm 아래로 내려간다."},
+  {"q": "초기구성 모터(DJ-2216)의 넓은 밑판(OD 34~36.6)", "detail": "AIR2216II 에는 없다. 어느 쪽이 현재 킷인지는 판매 페이지가 정하지 항목별 CAD 가 정하지 않는다.", "action": "AIR2216II 채택(=현재 킷). 반증되면 motor_base_od_mm 만 되돌리면 된다."}
+ ],
+
+ "doc_touchups": [
+  "src/drones.py:539 — '502.8 vs a rounded 500' 문장 철회. 새 문장: CAD 는 공표 500 을 500.28(+0.06 %)로 재현한다.",
+  "src/drones.py:544 — 'the measured 251.4 mm radius' → 250.141.",
+  "src/drones.py:490-491 — 'plate_mm 144 x 144 VERIFIED' → 143.72 (공표 144 는 반올림).",
+  "src/drones.py:507-512 — 모터 문단(52.0 비판 부분은 유효)에서 '24.5 mm tall · 32.3 mm base flange' 를 28.5 · 24.7 로.",
+  "src/drone_cad.py:1216-1218 — 표 머리주석의 '원장 51항목 VERIFIED' 를 '점군 기반 원장은 12항목이 정정됐다(모서리 재측정)' 로.",
+  "benchmark/measure_x500v2_cad.py:26-29 — 검증 사슬 문단에 휠베이스 +0.06 % 를 반영."
+ ]
+}
