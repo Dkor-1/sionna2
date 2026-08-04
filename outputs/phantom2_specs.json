@@ -1,0 +1,457 @@
+{
+ "_meta": {
+  "drone_key": "phantom2",
+  "name": "DJI Phantom 2 (및 Vision / Vision+ 파생형)",
+  "generated": "2026-08-03T12:58:17",
+  "generator": "scratchpad/p2/build_specs.py",
+  "purpose": "Das et al. IEEE WCL 2026 Table III 의 Phantom 2 RCS 계수에 맞출 메쉬를 만들기 위한 공표 스펙 수집. 메쉬 방법 검증을 N=1 에서 N=4 로 넓히는 작업의 입력.",
+  "photo_dir": "assets/photos/phantom2",
+  "confusion_warning": "저장소의 mini5pro(DJI Mini 5 Pro) · matrice4e(DJI Matrice 4E) 는 완전히 다른 기체다. 이 파일은 2013년 12월 출시된 DJI Phantom 2 전용이다.",
+  "do_not_touch": "이 스크립트는 outputs/phantom2_specs.json 한 파일만 쓴다. p3_*.json · phantom3/mavic4pro/matrice4e 산출물 · teammeeting_0804/* · sigma_grid_regen.json · sigma_el_extend_progress.json · anchor_subband*.json 은 건드리지 않았다.",
+  "sources": {
+   "man_p2_v14": {
+    "title": "PHANTOM 2 User Manual V1.4 (2013-2015)",
+    "url": "https://dl.djicdn.com/downloads/phantom_2/en/PHANTOM2_User_Manual_v1.4_en.pdf",
+    "publisher": "SZ DJI Technology Co., Ltd.",
+    "kind": "1차(제조사 공식 매뉴얼)"
+   },
+   "factsheet_p2": {
+    "title": "Phantom 2 Fact Sheet (보도자료)",
+    "url": "http://download.dji-innovations.com/downloads/press/Phantom_2_Fact_Sheet.pdf",
+    "publisher": "DJI Innovations",
+    "kind": "1차(제조사 공식 보도자료)"
+   },
+   "man_pvplus_v18": {
+    "title": "PHANTOM 2 VISION+ User Manual V1.8 (2015.01)",
+    "url": "https://dl.djicdn.com/downloads/phantom_2_vision_plus/en/Phantom_2_Vision_Plus_User_Manual_v1.8_en.pdf",
+    "publisher": "SZ DJI Technology Co., Ltd.",
+    "kind": "1차(제조사 공식 매뉴얼)"
+   },
+   "man_pv_v18": {
+    "title": "PHANTOM 2 VISION User Manual V1.8 (2015)",
+    "url": "https://dl.djicdn.com/downloads/phantom-2-vision/en/Phantom_2_Vision_User_Manual_v1.8_en.pdf",
+    "publisher": "SZ DJI Technology Co., Ltd.",
+    "kind": "1차(제조사 공식 매뉴얼)"
+   },
+   "fcc_pv3311402": {
+    "title": "FCC ID SS3-PV3311402 — PHANTOM 2 VISION + (PV3311402), 신청 2014-03-13 / 공개 2014-06-28",
+    "url": "https://fccid.io/SS3-PV3311402",
+    "publisher": "FCC (시험기관 Bay Area Compliance Laboratory Corp. Shenzhen)",
+    "kind": "1차(규제기관 제출 문서)"
+   },
+   "ifixit_td33365": {
+    "title": "DJI Phantom 2 Teardown (iFixit, guide 33365)",
+    "url": "https://www.ifixit.com/Teardown/DJI+Phantom+2+Teardown/33365",
+    "publisher": "iFixit 커뮤니티",
+    "kind": "2차(분해 관측)"
+   },
+   "bh_prop13": {
+    "title": "DJI 9450 Self-Tightening Propeller Set (Part 13) CP.PT.000128 제품 페이지",
+    "url": "https://www.bhphotovideo.com/c/product/1096879-REG/dji_cp_pt_000128_9450_self_tightening_propeller_set.html",
+    "publisher": "B&H Photo Video (DJI 제공 사양 전재)",
+    "kind": "2차(판매처가 전재한 제조사 사양)"
+   },
+   "das_wcl2026": {
+    "title": "S. Das, P. Zhang, V. Hovinen, M. E. Leinonen, A. Parssinen, P. Kyosti, \"Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling,\" IEEE WCL, vol. 15, pp. 3731-3735, 2026",
+    "url": "doi:10.1109/LWC.2026.3705634",
+    "publisher": "IEEE",
+    "kind": "1차(우리가 맞추려는 측정 논문)"
+   }
+  }
+ },
+ "airframe_is_folding": false,
+ "folded_state": "해당 없음 — Phantom 2 계열은 비접이식 강체 기체다. 암·다리가 접히지 않고 탈착되는 것은 프로펠러(자동조임 9450/9450R)와 배터리·짐벌뿐이다. 따라서 '펼침/접힘 두 상태'라는 구분 자체가 이 기체엔 없다. 대신 의미 있는 상태 구분은 '프로펠러 장착 / 미장착'이며, Das Table I 의 35.0 cm 는 프로펠러를 뺀 모터-모터 대각(DJI 공표 Wheelbase 350 mm)이다.",
+ "variants": {
+  "phantom2": {
+   "full_name": "DJI Phantom 2",
+   "released": "2013-12",
+   "model_code": "P330 계열 (Phantom 2 / Phantom 2 V2.0)",
+   "payload": "카메라 미탑재. Zenmuse H3-2D / H3-3D 짐벌 + GoPro 를 옵션으로 장착",
+   "dimensions": {
+    "wheelbase_diagonal_mm": {
+     "value": 350,
+     "unit": "mm",
+     "source": "man_p2_v14",
+     "literal": "Wheelbase 350mm",
+     "note": "매뉴얼 v1.4 p.35 사양표. 모터축-모터축 대각, 프로펠러 제외."
+    },
+    "bounding_box_mm": {
+     "value": [
+      290,
+      290,
+      180
+     ],
+     "unit": "mm",
+     "source": "factsheet_p2",
+     "literal": "dimensions: 29cm x 29cm x 18cm or approx. 11in x 11in x 7in",
+     "note": "보도자료 Fact Sheet. 프로펠러 제외 외곽 상자로 읽힌다 (290 = 대각 350 을 축에 정렬했을 때의 변 길이와 정합: 350/√2=247 보다 크고, 암 끝 모터 외경까지 포함하면 290 이 된다). 높이 180 은 다리 끝~셸 상면."
+    },
+    "height_mm": {
+     "value": 180,
+     "unit": "mm",
+     "source": "factsheet_p2",
+     "note": "위 상자의 3번째 수"
+    }
+   },
+   "mass": {
+    "weight_with_battery_g": {
+     "value": 1000,
+     "unit": "g",
+     "source": "man_p2_v14",
+     "literal": "Weight (including the battery) 1000g"
+    },
+    "max_takeoff_weight_g": {
+     "value": 1300,
+     "unit": "g",
+     "source": "man_p2_v14",
+     "literal": "Take-off Weight ≤1300g"
+    }
+   },
+   "propeller": {
+    "count": {
+     "value": 4,
+     "unit": "개",
+     "source": "man_p2_v14"
+    },
+    "blades_each": {
+     "value": 2,
+     "unit": "장",
+     "source": "man_p2_v14",
+     "note": "9450/9450R 도해(p.13) 및 모든 사진에서 2날"
+    },
+    "model": {
+     "value": [
+      "9450 (회색 너트, CW)",
+      "9450R (검정 너트, CCW)"
+     ],
+     "unit": "-",
+     "source": "man_p2_v14",
+     "literal": "PHANTOM 2 uses the original 9-inch propellers which are classified by the color of each central nut."
+    },
+    "nominal_size_in": {
+     "value": [
+      9.4,
+      5.0
+     ],
+     "unit": "inch (지름 x 피치)",
+     "source": "bh_prop13",
+     "note": "'9450' 명명규칙 = 9.4 in 지름 x 5.0 in 피치. 매뉴얼은 '9-inch' 로 뭉뚱그린다."
+    },
+    "diameter_mm": {
+     "value": 238.8,
+     "unit": "mm",
+     "source": "bh_prop13",
+     "note": "9.4 in x 25.4 = 238.76 mm (파생값)"
+    },
+    "self_tightening": {
+     "value": true,
+     "unit": "-",
+     "source": "factsheet_p2",
+     "literal": "9 inch self-tightening propellers"
+    },
+    "part_number": {
+     "value": "CP.PT.000128 (Part 13, 2쌍 세트)",
+     "unit": "-",
+     "source": "bh_prop13"
+    }
+   },
+   "motor": {
+    "model": {
+     "value": "DJI 2212",
+     "unit": "-",
+     "source": "ifixit_td33365",
+     "literal": "Brushless AC Motor (DJIPV-06 DJI 2212)",
+     "note": "분해 사진의 모터 각인. 2212 = 스테이터 지름 22 mm x 높이 12 mm."
+    },
+    "kv": {
+     "value": 920,
+     "unit": "rpm/V @ 12 V",
+     "source": "bh_prop13",
+     "literal": "KV 920 at 12V"
+    },
+    "count": {
+     "value": 4,
+     "unit": "개",
+     "source": "man_p2_v14"
+    },
+    "max_thrust_per_motor_kg": {
+     "value": 0.68,
+     "unit": "kg",
+     "source": "bh_prop13",
+     "literal": "maximum thrust of 1.5lbs / 0.68kg with 2212 motor"
+    }
+   },
+   "battery": {
+    "type": {
+     "value": "3S LiPo (DJI Intelligent Battery)",
+     "unit": "-",
+     "source": "man_p2_v14",
+     "literal": "Type 3S LiPo Battery"
+    },
+    "capacity_mah": {
+     "value": 5200,
+     "unit": "mAh",
+     "source": "man_p2_v14",
+     "literal": "Capacity 5200mAh, 11.1V"
+    },
+    "voltage_v": {
+     "value": 11.1,
+     "unit": "V",
+     "source": "man_p2_v14"
+    },
+    "flight_time_min": {
+     "value": 25,
+     "unit": "분",
+     "source": "factsheet_p2",
+     "literal": "up to 25 minutes of flight time"
+    }
+   },
+   "flight": {
+    "max_speed_ms": {
+     "value": 15,
+     "unit": "m/s",
+     "source": "man_p2_v14"
+    },
+    "max_ascent_ms": {
+     "value": 6,
+     "unit": "m/s",
+     "source": "man_p2_v14"
+    },
+    "max_descent_ms": {
+     "value": 2,
+     "unit": "m/s",
+     "source": "man_p2_v14"
+    },
+    "max_tilt_deg": {
+     "value": 35,
+     "unit": "deg",
+     "source": "man_p2_v14"
+    },
+    "max_yaw_rate_dps": {
+     "value": 200,
+     "unit": "deg/s",
+     "source": "man_p2_v14"
+    },
+    "power_consumption_w": {
+     "value": 5.6,
+     "unit": "W",
+     "source": "man_p2_v14"
+    }
+   },
+   "radio": {
+    "rc_band": {
+     "value": "2.4 GHz ISM",
+     "unit": "-",
+     "source": "man_p2_v14"
+    },
+    "rc_range_m": {
+     "value": 1000,
+     "unit": "m",
+     "source": "man_p2_v14"
+    },
+    "rc_rx_sensitivity_dbm": {
+     "value": -97,
+     "unit": "dBm @1%PER",
+     "source": "man_p2_v14"
+    },
+    "flight_controller": {
+     "value": "Naza-M V2 (GPS·컴퍼스·2.4 GHz 수신기 내장)",
+     "unit": "-",
+     "source": "factsheet_p2"
+    }
+   }
+  },
+  "phantom2_vision": {
+   "full_name": "DJI Phantom 2 Vision",
+   "released": "2013-10",
+   "payload": "내장 14 MP 카메라(1축 틸트, 0°~60°), 짐벌 안정화 없음",
+   "dimensions": {
+    "wheelbase_diagonal_mm": {
+     "value": 350,
+     "unit": "mm",
+     "source": "man_pv_v18",
+     "literal": "Wheelbase 350mm"
+    }
+   },
+   "mass": {
+    "weight_g": {
+     "value": 1160,
+     "unit": "g",
+     "source": "man_pv_v18",
+     "literal": "PHANTOM 2 VISION Weight 1160g"
+    },
+    "max_payload_g": {
+     "value": 1350,
+     "unit": "g",
+     "source": "man_pv_v18"
+    }
+   },
+   "radio": {
+    "rc_band": {
+     "value": "5.728-5.85 GHz",
+     "unit": "-",
+     "source": "man_pv_v18"
+    },
+    "wifi_range_extender_mhz": {
+     "value": [
+      2412,
+      2462
+     ],
+     "unit": "MHz",
+     "source": "man_pv_v18"
+    },
+    "range_extender_tx_dbm": {
+     "value": 17,
+     "unit": "dBm",
+     "source": "man_pv_v18"
+    }
+   }
+  },
+  "phantom2_vision_plus": {
+   "full_name": "DJI Phantom 2 Vision+",
+   "released": "2014-04",
+   "model_code": "PV331 / PV3311402 (FCC ID SS3-PV3311402)",
+   "payload": "3축 안정화 짐벌 + 내장 14 MP 카메라",
+   "dimensions": {
+    "motor_diagonal_mm": {
+     "value": 350,
+     "unit": "mm",
+     "source": "man_pvplus_v18",
+     "literal": "Motor Diagonal Length 350mm"
+    }
+   },
+   "mass": {
+    "weight_with_battery_and_props_g": {
+     "value": 1242,
+     "unit": "g",
+     "source": "man_pvplus_v18",
+     "literal": "Weight (Battery & Propellers included) 1242g"
+    },
+    "recommended_payload_g": {
+     "value": 1300,
+     "unit": "g",
+     "source": "man_pvplus_v18"
+    },
+    "max_payload_g": {
+     "value": 1350,
+     "unit": "g",
+     "source": "man_pvplus_v18"
+    }
+   },
+   "gimbal": {
+    "axes": {
+     "value": 3,
+     "unit": "축",
+     "source": "man_pvplus_v18"
+    },
+    "control_accuracy_deg": {
+     "value": 0.03,
+     "unit": "deg",
+     "source": "man_pvplus_v18"
+    },
+    "pitch_range_deg": {
+     "value": [
+      -90,
+      0
+     ],
+     "unit": "deg",
+     "source": "man_pvplus_v18"
+    },
+    "current_ma": {
+     "value": [
+      750,
+      900
+     ],
+     "unit": "mA (정지/동작)",
+     "source": "man_pvplus_v18"
+    }
+   },
+   "radio": {
+    "rc_band": {
+     "value": "5.728-5.85 GHz",
+     "unit": "-",
+     "source": "man_pvplus_v18"
+    },
+    "rc_range_m": {
+     "value": {
+      "CE": 400,
+      "FCC": 800
+     },
+     "unit": "m",
+     "source": "man_pvplus_v18"
+    },
+    "range_extender_mhz": {
+     "value": [
+      2412,
+      2462
+     ],
+     "unit": "MHz",
+     "source": "man_pvplus_v18"
+    },
+    "range_extender_tx_dbm": {
+     "value": 20,
+     "unit": "dBm",
+     "source": "man_pvplus_v18"
+    },
+    "fcc_tested_band_mhz": {
+     "value": [
+      2412,
+      2462
+     ],
+     "unit": "MHz",
+     "source": "fcc_pv3311402"
+    }
+   }
+  }
+ },
+ "derived": {
+  "prop_tip_to_tip_diagonal_mm": {
+   "value": 588.8,
+   "formula": "wheelbase 350 + 프로펠러 지름 238.8",
+   "note": "프로펠러를 대각 방향으로 최대한 벌렸을 때의 팁-팁 거리. Das Table I 의 35.0 cm 와 명확히 다르다 → Das 값은 프롭 제외 대각이다."
+  },
+  "arm_half_span_mm": {
+   "value": 175.0,
+   "formula": "wheelbase/2",
+   "note": "중심~모터축"
+  },
+  "rcs_gaussian_sigma_s_from_D_m": {
+   "value": 0.0814,
+   "formula": "D/4.3, D = 0.350 m (수평 대각)",
+   "note": "das_fleet_spec.json 의 dimension_convention_warning 이 지적한 대로, D 를 표에서 곧장 읽으면 기체마다 다른 것을 재게 된다. Phantom 2 는 (수평대각, 높이) 규약이므로 D=0.350 m 가 수평 최대 확장이다. 3D 대각을 쓰면 D=0.403 m → sigma_s=0.0937 m."
+  }
+ },
+ "das_crossref": {
+  "table1_dimension_literal": "35.0 cm x 20.0 cm",
+  "table1_convention": "(수평 대각) x (높이) — das_fleet_spec.json 판독",
+  "reconciliation": {
+   "35.0_cm": "DJI 공표 Wheelbase / Motor Diagonal Length 350 mm 과 글자단위로 일치. → Das 의 첫 수는 프로펠러 제외 모터-모터 대각이 확실하다.",
+   "20.0_cm": "DJI 자체 공표 높이는 Fact Sheet 의 180 mm 다. Das 의 200 mm 와 20 mm 차이가 난다. 가능한 설명: (a) 짐벌·카메라를 단 상태의 높이, (b) 다리 끝~프롭 상면까지 포함, (c) Das 가 인용한 2차 출처의 반올림. ⚠ 미해결 — 우리 메쉬는 DJI 공표 180 mm 를 기준으로 하고 짐벌 부착 시 높이가 커지는 것을 별도로 다루는 편이 안전하다."
+  },
+  "measurement_setting": {
+   "environment": "Controlled non-anechoic, indoor (Univ. Oulu 실내홀) — 무향실 아님",
+   "tx_rx_distance_m": 2.6,
+   "band_ghz": [
+    11.0,
+    26.0
+   ],
+   "n_freq_points": 2001,
+   "azimuth": "0~360 deg, 1 deg 간격",
+   "polarisation": "VV",
+   "far_field": false,
+   "note": "⚠ 과제문의 '무향실에서 쟀다'는 서술은 Phantom 2 에는 맞지 않는다. Das Table I 은 Phantom 2 열에 'Controlled non-anechoic, indoor' 를 적었고, 본문도 'Phantom 2 is the only platform measured in a controlled indoor non-anechoic near-field setting' 이라고 못박는다. 무향 원거리장은 나머지 세 기체(Mini 2·Phantom 3·M350 RTK, 출처 [7])다."
+  },
+  "props_installed_during_measurement": {
+   "verdict": "장착됨(고신뢰)",
+   "evidence": "Das Fig.1 (p.3732) 우측 사진 인셋에서 최소 3개 모터에 2날 프로펠러가 달린 것이 보인다."
+  },
+  "airframe_identity_open_question": {
+   "status": "⚠ 미해결 — 후속 확인 필요",
+   "observation": "Das Fig.1 사진 인셋을 원본 래스터(1067x755 px 중 약 130x90 px)에서 11배 확대해 보면, 촬영된 기체는 (1) 암이 동체와 이어진 후퇴익 형태이고 (2) 다리가 두껍고 뿌리가 높으며 (3) 암에 붉은 스트라이프가 안 보이고 (4) 코 아래 짐벌·카메라가 달려 있다. 이 특징은 Phantom 4 계열 외형에 더 가깝고, Phantom 2(원통형 암 + 붉은 스트라이프 + 가는 관형 다리) 나 Phantom 3(금색 스트라이프)와는 어긋나 보인다.",
+   "counter": "다만 판독 해상도가 극히 낮고(유효 130x90 px), 각도·노출·저해상 보간의 영향이 크다. 논문 본문·표는 일관되게 'DJI Phantom 2' 라고 적는다.",
+   "confidence": "중간(약 70 %) — 단정하지 않는다",
+   "why_it_matters": "만약 실제 측정체가 Phantom 4 계열이라면 Table III 의 Phantom 2 계수에 맞출 메쉬가 달라진다. 저자 문의 또는 고해상 원본 확보 전에는 Phantom 2 기하로 진행하되 이 구멍을 기록해 둔다.",
+   "artifact": "scratchpad/p2/das_fig1_drone_only.png (11배 확대본)"
+  }
+ }
+}

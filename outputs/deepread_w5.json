@@ -1,0 +1,1471 @@
+{
+ "meta": {
+  "wave": "WAVE 5",
+  "scope_ko": "머신-센서스만 된 Sionna 논문(reflib_sweep_sionna.json 의 machine_classified=True 110편)을 관련도 순으로 실제 정독. 부수적으로 outputs/deepread_backlog.json 의 wave_05 배정 6편도 포함.",
+  "date": "2026-08-03",
+  "method_ko": "PDF 를 fitz 로 전문 추출해 쪽 단위로 읽고, 모든 칸에 값 + 그 값을 세우는 축자 인용문 + 쪽번호를 붙였다. 세울 수 없는 칸은 UNVERIFIED 와 이유를 적었다.",
+  "rule_ko": "인용문 없는 주장은 UNVERIFIED. 칸을 채워 기록을 완성해 보이게 만드는 것이 우리가 막으려는 실패 방식이다.",
+  "generator": "wave5 deep-read agent (incremental append)",
+  "n_records": 17,
+  "n_from_machine_census_only_sionna": 12,
+  "n_from_backlog_wave05_assignment": 6,
+  "n_overlap": 1,
+  "machine_census_only_sionna_total": 110,
+  "machine_census_only_sionna_remaining_unread": 98,
+  "verdict_counts": {
+   "CORRECTED": 6,
+   "CONFIRMED_or_ENRICHED": 6,
+   "NEW_RECORD_non_sionna": 4,
+   "ARCHIVE_FOLDER_MISLEADING": 1
+  },
+  "publication_status_from_pdf": {
+   "PUBLISHED_verified": 3,
+   "PREPRINT": 13,
+   "UNVERIFIED": 1
+  }
+ },
+ "records": [
+  {
+   "basename": "2503.12177__open-wireless-dt-oai-sionna-rt.pdf",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2503.12177__open-wireless-dt-oai-sionna-rt.pdf",
+   "census_key": "2503.12177",
+   "title": "Open Wireless Digital Twin: End-to-End 5G Mobility Emulation with OpenAirInterface and Ray Tracing",
+   "authors_verified": "Tetsuya Iye, Masaya Sakamoto, Shohei Takaya, Eisaku Sato, Yuki Susukida, Yu Nagaoka, Kazuki Maruta, Jin Nakazato (Kozo Keikaku Engineering Inc. / Takushoku Univ. / Tokyo Univ. of Science, Japan)",
+   "pages": 14,
+   "read_scope_ko": "1,3,4,5,6,7,8,11,12쪽 정독 + 전문 키워드 스캔",
+   "columns": {
+    "engine": {
+     "value": "NVIDIA Sionna RT (ray tracing) + OpenAirInterface 5G NR stack + SUMO mobility; CIR 를 사전 생성해 OAI 에 주입",
+     "quote": "We realized the OWDT by integrating the OAI, which reproduces the 5G NR protocol stack from the PHY layer and above, with NVIDIA Sionna RT v0.18.0, which enables the construction of a deterministic channel model through ray tracing.",
+     "page": 4
+    },
+    "engine_version": {
+     "value": "Sionna RT v0.18.0 (Blender 4.2 + Mitsuba Blender Add-on 로 장면 제작)",
+     "quote": "with NVIDIA Sionna RT v0.18.0",
+     "page": 4
+    },
+    "target_representation": {
+     "value": "NONE - 장면에 표적이 없다. 산란체는 도시 건물 지오메트리(PLATEAU CityGML LOD1/LOD2)뿐이고 '이동체'는 SUMO 차량 궤적을 따라 움직이는 UE 안테나 점 하나다. 차량 자체의 메시조차 장면에 없다.",
+     "quote": "At arbitrary time intervals, the CIR can be calculated by considering reflections, diffractions, and diffuse scatterings between the gNB, which is fixed at a specific location, and the UE",
+     "page": 5
+    },
+    "material_model": {
+     "value": "ITU-R 형식 주파수의존 파라미터 3종(Vacuum/Concrete/Glass/Metal), eps_r = a f^b, sigma_c = c f^d; LOD1 은 전부 concrete, LOD2 는 벽=glass·도로=concrete·고가=metal",
+     "quote": "These materials are determined using the values of the real part of the relative permittivity and conductivity, given by the equations ϵr = a(f ·10−9)b, σc = c(f ·10−9)d, where f is the carrier frequency",
+     "page": 5
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - RCS 를 전혀 계산하지 않는다. 본문 전체에서 'RCS' 는 저자 약력의 IEICE RCS 상 이름으로 1회 나올 뿐이다.",
+     "quote": "he received ... the IEICE RCS Outstanding Researcher Award in 2018",
+     "page": 14
+    },
+    "rotor_or_micromotion": {
+     "value": "NO - 드론도 로터도 없다. 'drone' 0회, 'UAV' 는 저자 약력에만.",
+     "quote": "ZERO HITS for 'drone' in the full text layer",
+     "page": null
+    },
+    "diffraction_treatment": {
+     "value": "Sionna RT 0.18 내장 회절을 켰다(회절 1회까지, 반사와의 조합은 계산 안 함). UTD/PTD 라는 용어는 본문에 없고 엔진 기본값에 의존한다.",
+     "quote": "When diffraction is set to True, the model considers up to one diffraction per path without any reflection. In other words, the combination of reflections and diffractions was not calculated.",
+     "page": 6
+    },
+    "amplitude_validated_against": {
+     "value": "전파 진폭은 실측 대조가 없다. 저자 스스로 미교정이라고 적었다. 'Experimental validation' 은 SDR 루프백 에뮬레이션의 KPI(RSRP/MCS/BLER/throughput) 재현을 뜻한다.",
+     "quote": "(c) it has not yet been calibrated against measured data",
+     "page": 3
+    },
+    "geometry_configuration": {
+     "value": "모노스태틱/바이스태틱 아님 - 통신 링크(gNB 1 - UE 1, SISO, 4.01916 GHz, 40 MHz, SCS 30 kHz). 도쿄 신나카노(LOD1)·시부야(LOD2) 2개 시나리오, gNB 높이 22.0 m / 10.5 m, UE 1.5 m, 스냅샷 570/230, 간격 100 ms.",
+     "quote": "Number of transmitters MT 1 Number of receivers MR 1 ... UE antenna height 1.5 m gNB antenna height 22.0 m (Shin-nakano) 10.5 m (Shibuya) Reflection True Diffuse scattering False Max depth 5 Diffraction True",
+     "page": 6
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "해당 없음 - 도플러를 아예 모델링하지 않는다고 명시. 100 ms 스냅샷 사이 시간변화 없음 -> 위상이 스냅샷마다 불연속.",
+     "quote": "This indicates that our study did not consider the Doppler effect.",
+     "page": 8
+    },
+    "venue": {
+     "value": "게재지 없음 - IEEE Access LaTeX 템플릿으로 조판된 arXiv 프리프린트",
+     "quote": "arXiv:2503.12177v4 [cs.NI] 12 Oct 2025",
+     "page": 1
+    },
+    "publication_status": {
+     "value": "PREPRINT (arXiv:2503.12177v4, 2025-10-12)",
+     "quote": "Date of publication xxxx 00, 0000, date of current version xxxx 00, 0000. Digital Object Identifier 10.1109/ACCESS.2023.1120000",
+     "page": 1
+    }
+   },
+   "census_verdict": "CORRECTED",
+   "census_corrections_ko": [
+    "⭐ publication_status: 센서스는 'PUBLISHED_DOI_IN_PDF' + doi_in_pdf='10.1109/ACCESS.2023.1120000' 이었다. 그 DOI 는 IEEE Access LaTeX 템플릿의 자리표시자다. 같은 줄이 'Date of publication xxxx 00, 0000' 이고 쪽바닥은 'VOLUME 11, 2023' 으로 고정돼 있으며 1쪽 옆에 arXiv 스탬프가 찍혀 있다. 실제 상태는 PREPRINT 다. 게재로 인용하면 우리 오류기록에 한 줄이 더 붙는다.",
+    "authors: 센서스는 'OAI/Sionna DT team' 이라는 기계 추정값이었다. 실제는 Iye 외 8인(Kozo Keikaku Engineering / Takushoku Univ. / Tokyo Univ. of Science).",
+    "venue: 센서스의 'IEEE Access' 는 Semantic Scholar 2차 출처였고 PDF 안에는 게재 증거가 없다. 'IEEE Access 템플릿' 과 'IEEE Access 게재' 를 구별해야 한다.",
+    "target_representation: 센서스의 'none stated - propagation use only' 는 정독으로 CONFIRMED."
+   ],
+   "claim_impact_ko": {
+    "H8": "무관(표적 없음)",
+    "C1": "지지 - Sionna 장면에 표적을 넣지 않은 전파해석 전용 사례",
+    "C2": "지지 - dBsm 0회",
+    "C3": "무관",
+    "C4": "무관 - CFAR/오경보율 없음"
+   },
+   "why_it_matters_ko": "⭐ 우리 회절 칸에 쓸 만한 실사용 증거: Sionna RT 0.18 의 diffraction=True 는 '경로당 회절 1회, 반사와 조합 없음' 이라는 제한을 갖는다는 것을 제3자가 문서화했다. 그리고 이 논문은 '게재처럼 보이는 프리프린트' 의 표본이다."
+  },
+  {
+   "basename": "2604.19599__pan-active-inference-agentic-isac.pdf",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/isac_sensing_radar/2604.19599__pan-active-inference-agentic-isac.pdf",
+   "census_key": "2604.19599",
+   "title": "Active Inference-Enabled Agentic Closed-Loop ISAC with Long-Horizon Planning",
+   "authors_verified": "Guangjin Pan, Zhuojun Tian, Mehdi Bennis, Henk Wymeersch (Chalmers / KTH / Univ. of Oulu)",
+   "pages": 5,
+   "read_scope_ko": "전문 5쪽 정독",
+   "columns": {
+    "engine": {
+     "value": "Sionna 광선추적(내장 street canyon 장면). 데이터셋 생성기로만 쓰인다.",
+     "quote": "We consider the Sionna [15] street canyon scene.",
+     "page": 4
+    },
+    "engine_version": {
+     "value": "UNVERIFIED - 본문·참고문헌 어디에도 버전이 없다. 참고문헌 [15]는 URL 뿐(https://nvlabs.github.io/sionna/).",
+     "quote": "[15] \"Sionna,\" https://nvlabs.github.io/sionna/.",
+     "page": 5
+    },
+    "target_representation": {
+     "value": "⭐ 표적 없음(산란 표적 아님). '표적' 은 mobile entity(ME) 라는 통신 단말이고, 1.5 m 높이의 등방성 안테나 1개로 표현된다. BS 는 이 단말과의 채널주파수응답 H_t 를 측정해 신경망으로 위치를 추정한다. 즉 센싱이 아니라 단말기반 측위다. 'RCS' 0회, 'mesh' 0회, 'scatter' 0회, 'echo' 0회.",
+     "quote": "The ME has a single isotropic antenna at 1.5 m height.",
+     "page": 4
+    },
+    "material_model": {
+     "value": "UNVERIFIED - Sionna 기본 street canyon 장면의 재질을 그대로 쓴 것으로 보이나 재질을 언급하는 문장이 없다.",
+     "quote": null,
+     "page": null
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - RCS 단어가 문서 전체에 0회.",
+     "quote": "ZERO HITS for 'RCS' in the full text layer",
+     "page": null
+    },
+    "rotor_or_micromotion": {
+     "value": "NO - UAV 는 예시로만 언급되고 로터·마이크로도플러는 없다.",
+     "quote": "we consider a wireless agentic system for closed-loop sensing and control of a mobile entity (ME) (e.g., a UAV, robot, or autonomous vehicle)",
+     "page": 1
+    },
+    "diffraction_treatment": {
+     "value": "Sionna 내장 회절 옵션을 켰다(상호작용 3회까지). UTD/PTD/wedge 용어는 없다.",
+     "quote": "The training dataset consists of 20,000 randomly sampled ME positions generated via Sionna ray tracing with up to 3 interaction bounces and diffraction enabled.",
+     "page": 4
+    },
+    "amplitude_validated_against": {
+     "value": "NONE - 실측 대조 없음. 성능 지표는 자체 정의한 AIF 비용·EFE·추적오차의 시뮬레이션 비교뿐이다.",
+     "quote": "Table I compares the AIF method against two baselines over 10 planning steps, averaged over 10 independent runs",
+     "page": 5
+    },
+    "geometry_configuration": {
+     "value": "단일 BS 하향/상향 통신 링크(모노·바이스태틱 레이더 기하가 아님). BS (-32,12,35), 16소자 ULA, fc=3 GHz, 송신 23 dBm, 잡음 -174 dBm/Hz, 부반송파 50~400개(=대역폭 12.5~100 MHz), ME 는 (-50,0)->(50,0) m 를 1 m/s 로 직선 이동, dt=0.1 s, 1000 스텝.",
+     "quote": "The BS is at (−32, 12, 35) with a 16-element ULA at half-wavelength spacing, operating at fc = 3 GHz with a transmit power of 23 dBm and noise power spectral density of −174 dBm/Hz.",
+     "page": 4
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "해당 없음 - 'Doppler' 0회. 속도는 상태벡터의 파라미터일 뿐 도플러로 측정하지 않는다.",
+     "quote": "ZERO HITS for 'Doppler' in the full text layer",
+     "page": null
+    },
+    "venue": {
+     "value": "게재지 없음(arXiv). 형식은 IEEE 컨퍼런스 2단.",
+     "quote": "arXiv:2604.19599v1 [eess.SP] 21 Apr 2026",
+     "page": 1
+    },
+    "publication_status": {
+     "value": "PREPRINT (arXiv:2604.19599v1, 2026-04-21)",
+     "quote": "arXiv:2604.19599v1 [eess.SP] 21 Apr 2026",
+     "page": 1
+    }
+   },
+   "census_verdict": "CONFIRMED_AND_SHARPENED",
+   "census_corrections_ko": [
+    "센서스의 role_class='PROPAGATION_ONLY' 와 target_representation='none stated' 는 맞다. 다만 이 논문은 아카이브에서 isac_sensing_radar 폴더에 들어 있고 'sensing' 55회·'ISAC' 24회라 표적을 다루는 것처럼 보인다. 정독 결과 여기서 말하는 센싱은 단말기반 측위(BS 가 ME 와의 CFR 을 신경망에 넣어 위치 추정)이고 산란·에코·RCS 가 전혀 없다.",
+    "⭐ 방법론 교훈: 'ISAC/sensing' 용어 빈도로 표적 유무를 추정하면 안 된다. 이 논문이 그 반례다."
+   ],
+   "claim_impact_ko": {
+    "H8": "무관",
+    "C1": "지지 - Sionna 장면에 표적 메시를 넣지 않음",
+    "C2": "지지 - dBsm 0회",
+    "C3": "무관",
+    "C4": "무관 - CFAR·오경보율 0회"
+   },
+   "why_it_matters_ko": "우리 리포트의 '선행 ISAC 연구 중 상당수는 표적을 장면에 넣지 않는다' 문장을 뒷받침하는 깨끗한 사례. isac_sensing_radar 폴더에 있으면서도 표적이 없다."
+  },
+  {
+   "basename": "2401.03310__caviar-digital-twin.pdf",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+   "census_key": "2401.03310",
+   "title": "CAVIAR: Co-simulation of 6G Communications, 3D Scenarios and AI for Digital Twins",
+   "authors_verified": "Joao Borges, Felipe Bastos, Ilan Correa, Pedro Batista (Ericsson Research), Aldebaro Klautau (UFPA LASSE, Brazil)",
+   "pages": 14,
+   "read_scope_ko": "1~3, 6~9, 12쪽 정독 + 전문 키워드 스캔",
+   "columns": {
+    "engine": {
+     "value": "Sionna(통신·RT 모듈) + AirSim/Unreal Engine(3D·이동) + YOLOv8 + scikit-learn 을 NATS 메시지패싱으로 묶은 공동시뮬레이션",
+     "quote": "For executing the SAR co-simulation we adopt five open-source solutions: the physical and link level network simulator Sionna, the simulator for autonomous vehicles AirSim, scikit-learn for training a decision tree for MIMO beam selection, Yolov8 for the detection of rescue targets and NATS for message passing.",
+     "page": 1
+    },
+    "engine_version": {
+     "value": "UNVERIFIED - Sionna 버전 문자열이 문서 전체에 없다(센서스 판정과 일치).",
+     "quote": null,
+     "page": null
+    },
+    "target_representation": {
+     "value": "⭐ 드론 객체가 Sionna 장면에 재질과 함께 들어 있다. 표 V 는 건물·지면에 ITU concrete, 드론에 ITU metal 을 배정한다. 다만 그 드론은 감지 대상이 아니라 수신기(UAV Rx)이고, 도시 메시는 OSM 을 Blender 데시메이트 0.75 로 줄인 9803 면이다. 산란적분·RCS 출력은 없다. 사람 5명은 3D 모듈(YOLO 영상)에서만 등장한다.",
+     "quote": "Sionna scene parameters Carrier frequency 40 GHz Radio material (building and ground) ITU concrete Radio material (drone) ITU metal Synthetic array True",
+     "page": 9
+    },
+    "material_model": {
+     "value": "Sionna 내장 ITU 재질 프리셋 2종(ITU concrete = 건물·지면, ITU metal = 드론). 주파수 40 GHz.",
+     "quote": "Radio material (building and ground) ITU concrete Radio material (drone) ITU metal",
+     "page": 9
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - 'RCS' 0회, dBsm 0회. 출력은 MPC 채널(빔쌍 선택용 채널 크기)이다.",
+     "quote": "ZERO HITS for 'RCS' in the full text layer",
+     "page": null
+    },
+    "rotor_or_micromotion": {
+     "value": "NO - 로터·마이크로도플러 없음. UAV 는 5 m/s 로 331 m 궤적을 따라 강체 이동한다.",
+     "quote": "The drone followed a trajectory from the point A to B, with roughly 331 meters, with a speed of 5 m/s",
+     "page": 8
+    },
+    "diffraction_treatment": {
+     "value": "Sionna RT 내장 회절+확산산란을 켰다(최대 5회 반사, Fibonacci 경로탐색, 광선 1,000,000개). UTD/PTD/wedge 용어는 없다.",
+     "quote": "Ray tracing parameters Maximum ray bounces 5 Diffraction and scattering Enabled Ray tracing method Fibonacci Rays shot in random directions 1.000.000",
+     "page": 9
+    },
+    "amplitude_validated_against": {
+     "value": "NONE - 전파 진폭의 실측 대조 없음. 검증 대상은 계산자원 벤치마크(RTF·CPU·GPU 메모리)와 빔선택 정확도이며 랜덤·오라클 기준선과 비교한다.",
+     "quote": "Two baseline approaches were used to facilitate observing the performance of the ML-based beam selection: random and oracle.",
+     "page": 8
+    },
+    "geometry_configuration": {
+     "value": "단일 링크(모노·바이스태틱 레이더 아님). 뉴욕 센트럴파크 인근 719.2 x 693.4 m, Tx 는 건물 옥상 120 m 에서 45도 하향, Rx 는 비행 중인 UAV. 40 GHz, Tx 8x8 UPA / Rx 2x2 UPA, TR38901 패턴. NLOS 장면 1274 개로 결정트리 학습.",
+     "quote": "The Tx was positioned on the top of a building, at 120 meters high, facing the street where the drone was moving and tilted downwards in 45 degrees.",
+     "page": 8
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "해당 없음 - 'Doppler' 0회. 오히려 스냅샷 간격 Ts=500 ms 가 채널 코히어런스 시간(ms 급)보다 길다는 것을 저자가 한계로 적었다.",
+     "quote": "However, the wireless channel can change very fast, specially with respect to the channel phase. In many cases, the channel coherence time is of the order of ms",
+     "page": 3
+    },
+    "venue": {
+     "value": "게재지 없음 - IEEE 투고 중이라고 1쪽에 명시",
+     "quote": "This work has been submitted to the IEEE for possible publication.",
+     "page": 1
+    },
+    "publication_status": {
+     "value": "PREPRINT (arXiv:2401.03310v1, 2024-01-06)",
+     "quote": "arXiv:2401.03310v1 [cs.NI] 6 Jan 2024",
+     "page": 1
+    }
+   },
+   "census_verdict": "CORRECTED",
+   "census_corrections_ko": [
+    "⭐ target_representation: 센서스는 'none stated - propagation use only' 였다. 정독하면 드론 객체가 Sionna 장면 안에 ITU metal 재질로 존재한다(표 V, 9쪽). 즉 '장면에 드론이 없다' 는 틀리다. 정확한 문장은 '드론 지오메트리가 장면에 있고 금속 재질이 배정돼 있지만, 그 드론은 감지 대상이 아니라 수신기이고 RCS·산란 시그니처를 출력하지 않는다' 이다.",
+    "venue: 센서스는 venue=None 이었다. PDF 1쪽에 'submitted to the IEEE for possible publication' 이 있어 프리프린트임이 문서 내부 증거로 확정된다.",
+    "authors/venue provenance 는 센서스에 비어 있었고 이번에 PDF 로 채웠다."
+   ],
+   "claim_impact_ko": {
+    "H8": "깨지 않음 - 4개 관문 중 '게재'(프리프린트), '엔진 내부 산란 시그니처 계산'(RCS 출력 없음), '진폭 실측 검증'(없음) 이 모두 미달. 다만 '드론 표면 메시' 관문은 사실상 통과한다.",
+    "C1": "⭐ 문구 수정 필요 - 'Sionna 장면에 통째 드론 에어프레임 메시를 넣은 논문이 0편' 이라고 쓰면 반례로 지목당할 수 있다. CAVIAR 은 드론을 장면에 넣고 ITU metal 을 배정했다. 우리가 유지할 수 있는 참인 문장은 '그 드론을 산란적분에 통과시켜 RCS 를 뽑은 논문은 0편' 이다.",
+    "C2": "지지 - dBsm 0회",
+    "C3": "무관",
+    "C4": "무관 - CFAR·오경보율 없음"
+   },
+   "why_it_matters_ko": "⭐ 이번 웨이브에서 C1 문구에 가장 가깝게 다가온 논문. 적대적 심사자가 '드론을 Sionna 에 넣은 사례가 이미 있다' 고 말할 때 들이밀 표가 표 V 다. 우리 주장은 '장면 배치' 가 아니라 '산란적분을 거친 진폭' 에서만 성립한다는 것을 문서화한다."
+  },
+  {
+   "basename": "2507.08716__great-x_unreal-isac.pdf",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2507.08716__great-x_unreal-isac.pdf",
+   "census_key": "2507.08716",
+   "title": "Unreal is all you need: Multimodal ISAC Data Simulation with Only One Engine (Great-X / Great-MSD)",
+   "authors_verified": "Kongwu Huang, Shiyi Mu, Jun Jiang, Yuan Gao (Shanghai University), Shugong Xu (Xi'an Jiaotong-Liverpool University)",
+   "pages": 6,
+   "read_scope_ko": "전문 6쪽 정독",
+   "columns": {
+    "engine": {
+     "value": "Sionna RT 가 아니라, Sionna RT 의 전자기 수식을 Unreal Engine 안에 C++ 로 재구현한 자체 엔진(Great-X). Sionna RT 는 교차검증 상대로만 쓴다.",
+     "quote": "This single-engine multimodal data twin platform reconstructs the ray-tracing computation of Sionna within Unreal Engine and is deeply integrated with autonomous driving tools.",
+     "page": 1
+    },
+    "engine_version": {
+     "value": "UNVERIFIED - Sionna 버전 없음. 참고문헌 [13] 은 URL 뿐(https://nvlabs.github.io/sionna/rt). Unreal Engine 버전도 없다.",
+     "quote": "[13] Sionna. [Online]. Available: https://nvlabs.github.io/sionna/rt",
+     "page": 6
+    },
+    "target_representation": {
+     "value": "UAV 3D 모델을 장면에 임포트한다(그림 1a '실사 UAV 모델'). 그러나 그 UAV 는 감지 표적이 아니라 1x1 수신 안테나를 단 통신 단말이고, 기지국 4x8 교차편파 UPA 가 송신한다. CSI 기반 3D 측위가 과제다. 'RCS' 0회, 'mesh' 0회.",
+     "quote": "we utilized the Great-X to import a 3D model of a UAV, simulate its flight trajectory, and record multimodal data including CSI, RGB images, depth maps, and positional metadata.",
+     "page": 4
+    },
+    "material_model": {
+     "value": "ITU-R P.2040-3 유전율/도전율 정의를 따르고, 매질은 균질·비자성 유전체로 가정. Sionna 와 동일한 프레넬 r_perp/r_par + 확산산란 계수 S, R = sqrt(1-S^2).",
+     "quote": "this paper assumes that both media are uniform and non-magnetic dielectrics and adopts the parameter definitions in ITU recommendations [14]",
+     "page": 2
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - RCS 0회, dBsm 0회. 표적의 각도별 시그니처를 내지 않는다.",
+     "quote": "ZERO HITS for 'RCS' in the full text layer",
+     "page": null
+    },
+    "rotor_or_micromotion": {
+     "value": "NO - UAV 는 1 m/s 등속 강체 궤적. 로터·마이크로도플러 없음, 'Doppler' 0회.",
+     "quote": "Each trajectory was flown at a constant speed of 1 m/s, with 1000 sampling points collected per path.",
+     "page": 4
+    },
+    "diffraction_treatment": {
+     "value": "⭐ NONE - 'diffraction' 이 문서 전체에 0회. 재구현한 것은 반사·굴절(투과)·확산산란 3종뿐이라고 명시한다. Sionna RT 를 옮겼다면서 회절은 빠뜨린 셈이다.",
+     "quote": "The following mainly introduces the reflection, refraction, and the scattering parts. The following formulas are referenced from SionnaRT [13].",
+     "page": 2
+    },
+    "amplitude_validated_against": {
+     "value": "진폭 실측 대조 NONE. 대신 Sionna RT 와의 양방향 교차플랫폼 ML 일반화 시험을 한다. ⭐ 같은 맵·같은 파라미터인데도 자기 플랫폼 내 0.309 m / 0.647 m 였던 측위 오차가 엔진을 바꾸면 8.107 m / 11.082 m 로 커진다.",
+     "quote": "Both platforms used identical map configurations and consistent parameters. ... Sionna RT-trian SionnaRT-test 0.309 Great-MSD-trian Great-MSD-test 0.647 Sionna RT-trian Great-MSD-test 11.082 Great-MSD-trian SionnaRT-test 8.107",
+     "page": 4
+    },
+    "geometry_configuration": {
+     "value": "지상 기지국 1 - 비행 UAV 1 의 단일 통신 링크(레이더 기하 아님). 상하이 루자쭈이 도심 장면. BS/카메라 [57.70, 0.01, 25.70] m, 비행공간 170 x 16 x 30 m, 궤적 100개 x 1000 샘플, 90/10 학습·시험 분할. ⚠ 반송주파수가 문서 어디에도 없다('frequency' 0회) - 재현 불가능한 설정.",
+     "quote": "We randomly generated 100 distinct flight paths within a three-dimensional space measuring 170 meters in length, 16 meters in width, and 30 meters in height.",
+     "page": 4
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "해당 없음 - 'Doppler' 0회. 속도 추정 자체를 하지 않는다(위치만).",
+     "quote": "ZERO HITS for 'Doppler' in the full text layer",
+     "page": null
+    },
+    "venue": {
+     "value": "게재지 없음(arXiv, cs.CV)",
+     "quote": "arXiv:2507.08716v3 [cs.CV] 26 Jul 2025",
+     "page": 1
+    },
+    "publication_status": {
+     "value": "PREPRINT (arXiv:2507.08716v3, 2025-07-26)",
+     "quote": "arXiv:2507.08716v3 [cs.CV] 26 Jul 2025",
+     "page": 1
+    }
+   },
+   "census_verdict": "CORRECTED",
+   "census_corrections_ko": [
+    "⭐ 센서스는 이 논문을 'Sionna 사용' 으로 세었지만(sionna_used=yes), 실제로는 Sionna 를 쓰지 않는다. Sionna RT 의 수식을 Unreal Engine 에 재구현한 별도 엔진이고, Sionna RT 는 비교 대상으로만 등장한다. 'Sionna 로 만든 데이터셋' 이라고 인용하면 틀린다.",
+    "target_representation: 센서스의 'none stated' 는 부정확하다. UAV 3D 모델을 장면에 임포트한다. 다만 그 UAV 는 수신 단말이다.",
+    "venue: 센서스 venue=None. PDF 안에 arXiv 스탬프만 있어 PREPRINT 로 확정."
+   ],
+   "claim_impact_ko": {
+    "H8": "깨지 않음 - Sionna 급 엔진이 아니라 자체 재구현이고, 게재도 아니고, RCS 도 없다.",
+    "C1": "미묘 - 'Sionna 장면' 은 아니지만 UAV 3D 모델을 광선추적 장면에 넣은 또 하나의 사례. 산란적분·RCS 는 없다.",
+    "C2": "지지 - dBsm 0회",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "why_it_matters_ko": "⭐ 두 가지로 쓸모 있다. (1) 회절 칸: Sionna RT 를 옮겼다고 선언한 재구현이 회절을 통째로 빼먹었다 - 커뮤니티가 회절을 얼마나 가볍게 취급하는지 보여주는 증거. (2) 엔진 비교 서사: 같은 맵·같은 파라미터인데 엔진만 바꾸면 측위 오차가 0.3 m 에서 11 m 로 벌어진다. 광선추적 엔진 간 CSI 불일치의 정량 사례로 우리 리포트에 인용할 수 있다."
+  },
+  {
+   "basename": "2507.19173__cazzella-hifi-rf-mapping-6g-dt.pdf",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2507.19173__cazzella-hifi-rf-mapping-6g-dt.pdf",
+   "census_key": "2507.19173",
+   "title": "High-Fidelity RF Mapping: Assessing Environmental Modeling in 6G Network Digital Twins",
+   "authors_verified": "Lorenzo Cazzella, Francesco Linsalata, Damiano Badini (Huawei Italia), Matteo Matteucci, Maurizio Magarini, Umberto Spagnolini (Politecnico di Milano)",
+   "pages": 31,
+   "read_scope_ko": "1, 3~8, 11, 13~17, 22쪽 정독 + 전문 키워드 스캔",
+   "columns": {
+    "engine": {
+     "value": "NVIDIA Sionna RT (Mitsuba 3 + TensorFlow 위) + SUMO 교통 시뮬레이터 연동",
+     "quote": "We used the NVIDIA Sionna RT [33] ray tracing simulator to achieve accurate wireless propagation simulations while retrieving the rays parameters required for our comparisons. In our experiments, we employed Sionna RT v0.18.0, which accounts for specular reflection, diffraction and diffuse scattering interaction types with the environment.",
+     "page": 16
+    },
+    "engine_version": {
+     "value": "Sionna RT v0.18.0 (센서스와 일치, 원문 확인)",
+     "quote": "we employed Sionna RT v0.18.0",
+     "page": 16
+    },
+    "target_representation": {
+     "value": "⭐ CARLA 자산에서 가져온 실제 차량 메시 3종(Tesla Model 3=세단, Citroen C3=해치백, Mercedes Sprinter=트럭)을 주차차량으로 장면에 배치하고, 창문 부품을 손으로 분리(세그멘테이션)해 부품별 재질을 준다. 밀라노 550 x 670 m 도시 모델은 OSM 기반 불규칙 각기둥 적층. 다만 차량은 표적이 아니라 전파 환경의 산란체이고, RCS 를 뽑지 않는다. 메시 복잡도 때문에 CARLA 의 최고 상세 모델 대신 낮은 상세 버전을 골랐다고 명시.",
+     "quote": "Owing to the high number of vehicle models to be set in the reference scenario, and to the spatial extension of the latter, we chose the version of the CARLA vehicle models depicted in Fig. 2 instead of the most detailed ones as a trade-off between level of detail and mesh complexity. This choice has been driven by the use of the final integrated model within NVIDIA Sionna [29] for ray tracing simulation.",
+     "page": 7
+    },
+    "material_model": {
+     "value": "ITU 권고 재질 3종을 부품별로 배정: 건물·지면 = ITU concrete, 건물창·차량창 = ITU glass, 나머지 차량 부품 = PEC(완전도체). 28 GHz 에서의 파라미터를 취함.",
+     "quote": "We considered the ITU concrete radio material for the buildings and the ground, ITU glass for buildings windows and vehicles windows, and perfect electric conductor (PEC) for the remaining vehicle components.",
+     "page": 16
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - 'RCS' 0회, dBsm 0회. 출력은 경로별 (지연, 전력, 각도) 6-튜플 집합이고 비교는 Hausdorff/Chamfer 거리다.",
+     "quote": "ZERO HITS for 'RCS' in the full text layer",
+     "page": null
+    },
+    "rotor_or_micromotion": {
+     "value": "NO - 드론은 서론에서 응용 예시로 한 번 언급될 뿐이고 움직이는 물체는 SUMO 차량이다.",
+     "quote": "These detailed radio maps enable advanced applications involving connected vehicles, drones, and other networked entities [10, 7, 11].",
+     "page": 3
+    },
+    "diffraction_treatment": {
+     "value": "Sionna RT 0.18 의 3종 상호작용을 모두 켰다: R(반사)·D(회절)·DS(확산산란). 회절 방법의 이름(UTD 등)은 밝히지 않고 엔진 기본에 의존한다. 22쪽에서 재질만 바꾼 실험의 각도·지연이 안 변한 이유를 '가장 중요한 상호작용은 정반사와 회절인데 재질 변화가 이들의 각도·지연에 영향을 안 준다' 로 설명한다.",
+     "quote": "Selected interation types R, D, DS",
+     "page": 17
+    },
+    "amplitude_validated_against": {
+     "value": "⭐ NONE - 실측 대조가 전혀 없다. 'validat' 이 31쪽 전체에 0회. 비교는 시뮬레이션 대 시뮬레이션(주차차량 있음/없음, 창 분리 있음/없음)이며, 저자 스스로 재질 교정에는 채널 실측이 필요하다고 서론에 적어 놓았다.",
+     "quote": "the characterization of material properties continues to pose significant challenges, requiring accurate calibration through channel measurements",
+     "page": 4
+    },
+    "geometry_configuration": {
+     "value": "인프라-차량(I2V) 통신 링크. 28 GHz, BS 높이 21.7 m, Rx 높이 1.5 m, 격자 해상도 2 x 2 m, 초기 광선 10^6개, Fibonacci 경로탐색, SUMO 샘플링 0.1 s. 밀라노 폴리테크니코 DEIB 주변 550 x 670 m.",
+     "quote": "Carrier frequency 28 GHz BS height from the ground 21.7 m Rx height from the ground 1.5 m Rx grid resolution 2 × 2 m SUMO simulation sampling time 0.1 s Number of initial sampled rays 106 Sionna RT ray tracing method Fibonacci Selected interation types R, D, DS",
+     "page": 17
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "해당 없음 - 도플러를 튜플에 넣을 수 있다고 언급하지만 이 연구에서는 쓰지 않았다고 명시.",
+     "quote": "the comparison of the Doppler shifts can highlight relevant differences in the presence of diverse motion patterns among the meshes within dynamic environments. These parameters have not been considered in this work",
+     "page": 11
+    },
+    "venue": {
+     "value": "UNVERIFIED from PDF - PDF 안에는 저널명이 없다. Elsevier 형식(단일단 조판)이고 센서스의 'Comput. Networks' 는 Semantic Scholar 2차 출처다. PDF 증거로는 arXiv 뿐.",
+     "quote": "arXiv:2507.19173v1 [eess.SP] 25 Jul 2025",
+     "page": 1
+    },
+    "publication_status": {
+     "value": "PREPRINT (arXiv:2507.19173v1, 2025-07-25). PDF 안에 게재 증거 없음.",
+     "quote": "arXiv:2507.19173v1 [eess.SP] 25 Jul 2025",
+     "page": 1
+    }
+   },
+   "census_verdict": "CORRECTED",
+   "census_corrections_ko": [
+    "⭐ target_representation: 센서스의 'none stated - propagation use only' 는 틀렸다. 이 논문의 주제 자체가 '장면에 차량 메시를 넣으면 광선추적 결과가 어떻게 달라지는가' 다. CARLA 차량 메시 3종을 부품 단위로 세그멘테이션해 유리/PEC 를 배정한다.",
+    "engine_version 0.18.0 은 원문에서 CONFIRMED.",
+    "venue: 센서스가 적은 'Comput. Networks' 는 PDF 로 확인되지 않는다. 2차 출처 표시를 유지해야 한다."
+   ],
+   "claim_impact_ko": {
+    "H8": "깨지 않음 - 드론이 아니고 RCS 도 없고 게재 증거도 없다.",
+    "C1": "⭐ 우리 방법론의 최근접 선행. Sionna 장면에 '물체 메시 + 부품별 재질' 을 넣는 작업을 차량으로 이미 했다. 드론이 아니고 산란적분도 아니지만, 우리 리포트가 '아무도 물체 메시를 Sionna 에 안 넣었다' 처럼 읽히면 안 된다.",
+    "C2": "지지 - dBsm 0회",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "why_it_matters_ko": "⭐ 두 가지. (1) 우리 CAD 워크플로(메시 상세도 vs RT 비용 절충, 부품별 재질 배정)를 그대로 밟은 선행이 있고, 인용하면 우리 §CAD 절의 정당화가 세진다. (2) 31쪽짜리 'High-Fidelity' 논문에 'validat' 이 0회다 - 디지털트윈 문헌이 실측 앵커 없이 시뮬 대 시뮬 비교로 충실도를 논한다는 우리 비판의 깨끗한 증거."
+  },
+  {
+   "basename": "2505.14184__pegurri-van3twin-v2x-digital-twin.pdf",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2505.14184__pegurri-van3twin-v2x-digital-twin.pdf",
+   "census_key": "2505.14184",
+   "title": "VaN3Twin: the Multi-Technology V2X Digital Twin with Ray Tracing in the Loop",
+   "authors_verified": "Roberto Pegurri, Diego Gasco, Francesco Linsalata, Marco Rapelli, Eugenio Moro, Francesco Raviglione, Claudio Casetti (Politecnico di Milano / Politecnico di Torino)",
+   "pages": 16,
+   "read_scope_ko": "1~9, 12~13쪽 정독 + 전문 키워드 스캔",
+   "columns": {
+    "engine": {
+     "value": "Sionna RT 를 ms-van3t(ns-3 기반 V2X 시뮬레이터) 루프 안에 넣은 VaN3Twin. 광선추적은 GPU 서버(RTX 3090)에서 분리 실행.",
+     "quote": "VaN3Twin extends the ms-van3t simulator by integrating Sionna Ray Tracer (RT) in the loop",
+     "page": 1
+    },
+    "engine_version": {
+     "value": "Sionna RT v1.2.0 (센서스와 일치, 원문 확인)",
+     "quote": "The same scenario considered in Section IV-B was used with ray tracing parameters for Sionna RT v1.2.0 as per Table I except for the maximum number of interactions, which is set to 3.",
+     "page": 12
+    },
+    "target_representation": {
+     "value": "⭐ 차량 메시를 동적 객체로 장면에 넣고, 메시를 차체·전조등·창·휠림 등 부품으로 분할해 부품별 무선재질을 배정한다. 정적 객체(건물·표지판·RSU)는 DT 모델로 고정. 차량은 표적이 아니라 통신 노드이자 서로의 가림/산란체다.",
+     "quote": "Each vehicle mesh was further segmented into distinct components—i.e., vehicle body, lights, windows, rims, etc.—in order to assign appropriate radio material properties to each part.",
+     "page": 3
+    },
+    "material_model": {
+     "value": "ITU-R P.2040 권고 기반: 건물·도로 Concrete, 나무 Wood, 차량 Metal. 반송주파수 5.89 GHz.",
+     "quote": "Ray tracing parameters Carrier Frequency [GHz] 5.89 Buildings and Roads Material Concrete [27] Trees Material Wood [27] Cars Material Metal [27] Reflections Specular, Diffused Refractions Yes Maximum Interactions 5",
+     "page": 5
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - 'RCS' 0회. 출력은 경로별 (복소이득, 지연, AoD, AoA, 도플러) 이고 이를 다중경로 임펄스응답으로 합성한다.",
+     "quote": "Each path rk is characterized by a complex gain αk, a delay τk, direction of departure ψk, direction of arrival ϑk, and a Doppler shift φk.",
+     "page": 4
+    },
+    "rotor_or_micromotion": {
+     "value": "NO - 드론·로터 없음. 움직이는 것은 차량 강체.",
+     "quote": null,
+     "page": null
+    },
+    "diffraction_treatment": {
+     "value": "⭐ 실제로는 회절 없음 - 본문과 표 I 이 정반사·확산반사·굴절 3종만 든다. 그런데 초록은 '회절 같은 부지의존 효과' 를 표현할 수 있다고 광고한다. 같은 논문 안에서 어긋난다.",
+     "quote": "simulates specular reflection, diffuse reflection, and refraction, with a maximum of 5 interactions (bounces) per ray",
+     "page": 5
+    },
+    "amplitude_validated_against": {
+     "value": "⭐ 실측 대조 있음(이 웨이브에서 드문 사례). 이탈리아 살리 베르첼레세(농촌)·토리노(도심) 두 차례 필드 캠페인의 RSSI 및 패킷 수신을 시뮬과 비교. 패킷수신 불일치비(DR) 가 농촌 12.82%->6.5%(-49.3%), 도심 27.9%->8.16%(-70.8%). 다만 검증 대상은 링크 RSSI 이지 표적 산란 진폭이 아니다.",
+     "quote": "Type of Scenario ms-van3t VaN3Twin Difference Rural (Sali Vercellese) 12.82% 6.5% 49.3% Urban (City of Turin) 27.9% 8.16% 70.8%",
+     "page": 8
+    },
+    "geometry_configuration": {
+     "value": "차량-차량/차량-인프라 통신(레이더 기하 아님). 5.89 GHz, Tx·Rx 높이 1.8 m, 등방성 안테나, 수직편파, 최대 상호작용 5(성능실험은 3). 공존실험은 5.9 GHz·10 MHz 에서 차량 20대(802.11p 10 + NR-V2X 10). DT 는 Blender + Blosm 으로 OSM 2.5D 임포트.",
+     "quote": "The DTs for ray tracing in VaN3Twin—Figure 3b and Figure 3d—were modeled in Blender using the Blosm add-on, which imports 2.5D representations of the propagation environment from OpenStreetMap.",
+     "page": 5
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "도플러는 경로 파라미터로 계산하지만(속도로부터), 도플러 모호성·무모호 속도 논의는 없다. 도플러는 오히려 장면 갱신 임계거리 결정에 쓰인다.",
+     "quote": "The velocity νvn(t) is provided to allow for Doppler shift—and consequent channel coherence time—computation.",
+     "page": 4
+    },
+    "venue": {
+     "value": "UNVERIFIED from PDF - PDF 안에 저널명·DOI 가 없다. 센서스가 적은 'IEEE TWC (DOI 10.1109/TWC.2026.3685710)' 는 Semantic Scholar 2차 출처이며 PDF 로 확인 불가.",
+     "quote": "arXiv:2505.14184v3 [cs.NI] 4 Jun 2026",
+     "page": 1
+    },
+    "publication_status": {
+     "value": "PDF 증거로는 PREPRINT (arXiv:2505.14184v3, 2026-06-04). 게재 여부는 2차 출처만 있으므로 인용 시 반드시 그렇게 표기.",
+     "quote": "arXiv:2505.14184v3 [cs.NI] 4 Jun 2026",
+     "page": 1
+    }
+   },
+   "census_verdict": "CORRECTED",
+   "census_corrections_ko": [
+    "⭐ target_representation: 센서스의 'none stated - propagation use only' 는 틀렸다. 차량 메시를 부품 단위(차체·전조등·창·림)로 나눠 재질을 배정하는 것이 이 프레임워크의 핵심 기능 중 하나다.",
+    "engine_version v1.2.0 는 원문 확인 CONFIRMED.",
+    "⭐ 회절: 센서스는 회절을 따로 세지 않았지만, 이 논문은 초록에서 회절을 광고하고 본문 표에서는 회절이 없다. 우리가 이 논문을 '회절 포함 RT' 로 인용하면 틀린다.",
+    "publication_status: 센서스의 IEEE TWC DOI 는 PDF 에 없다. 'IEEE TWC 게재' 로 단정하지 말 것."
+   ],
+   "claim_impact_ko": {
+    "H8": "깨지 않음 - 드론 아님, RCS 없음, PDF 상 게재 증거 없음.",
+    "C1": "⭐ Cazzella 와 함께 '물체 메시 + 부품별 재질을 Sionna 장면에 넣는' 선행의 두 번째 사례. 드론이 아니고 산란적분·RCS 도 없다.",
+    "C2": "지지 - dBsm 0회",
+    "C3": "무관",
+    "C4": "무관 - CFAR·오경보율 없음"
+   },
+   "why_it_matters_ko": "⭐ (1) 회절 칸의 반례 관리: Sionna RT 1.2.0 을 쓰면서 정반사·확산·굴절만 켠 사례이고 초록은 회절을 주장한다. (2) 실측 대조를 실제로 한 드문 사례라 우리 리포트의 '검증 층위' 표에서 링크 RSSI 수준 검증의 표준 사례로 인용할 수 있다."
+  },
+  {
+   "basename": "2606.14114__dt-channel-gen-toolchain-xlmimo.pdf",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2606.14114__dt-channel-gen-toolchain-xlmimo.pdf",
+   "census_key": "2606.14114",
+   "title": "Digital Twin-Based Channel Generation Toolchain and Foundation Model for Low-Altitude XL-MIMO (LAETwin-XL)",
+   "authors_verified": "Mengyuan Li, Yu Han, Jiachen Tian, Chao-Kai Wen, Shi Jin (Southeast Univ. 계열 + NSYSU)",
+   "pages": 16,
+   "read_scope_ko": "1~5, 9, 11, 16쪽 정독 + 전문 키워드 스캔",
+   "columns": {
+    "engine": {
+     "value": "Sionna RT 모듈(안테나별 정확한 CIR 계산: SBR + 이미지법 + 해시 중복제거). OSM 에서 정적 장면 구성 -> ITU 재질 매핑 -> 도로유도 UAV 궤적 -> 안테나별 광선추적.",
+     "quote": "We employ the Sionna RT module [27] to simulate high-fidelity XL-MIMO channels. By providing exact per-antenna channel impulse response computations through a combination of shooting-and-bouncing rays, the image method, and hashing-based deduplication to eliminate redundant paths, Sionna RT inherently supports accurate near-field channel modeling",
+     "page": 3
+    },
+    "engine_version": {
+     "value": "UNVERIFIED - 버전 문자열 0회. 인용은 Sionna RT GLOBECOM Wkshps 2023 논문([27])뿐.",
+     "quote": "[27] J. Hoydis et al., \"Sionna RT: differentiable ray tracing for radio propagation modeling,\" in Proc. IEEE GLOBECOM Workshops (GC Wkshps), Kuala Lumpur, Malaysia, Dec. 2023, pp. 317-321.",
+     "page": 16
+    },
+    "target_representation": {
+     "value": "표적 없음. UAV 는 단일 안테나 UE 로 상향링크를 쏘는 통신 단말이며 장면 안에 기체 메시가 없다('mesh' 0회). 장면은 OSM 건물 + 지면뿐.",
+     "quote": "In this system, each UAV serves as a single-antenna user equipment (UE) located at oT ∈ R3, communicating with a base station (BS) centered at oR ∈ R3.",
+     "page": 3
+    },
+    "material_model": {
+     "value": "Sionna RT 내장 ITU 재질 키(itu-concrete, itu-metal, itu-medium-dry-ground, itu-glass 등)에 표면 텍스처를 매핑. 그림 2 워크플로에는 ITU-Concrete 와 ITU-very_dry_ground 가 표시된다.",
+     "quote": "we map surface textures to the standard material keys supported by the Sionna RT engine, which encompasses a set of ITU-compliant materials including itu-concrete, itu-metal, itu-medium-dry-ground, and itu-glass, among others [28]",
+     "page": 5
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - 'RCS' 0회.",
+     "quote": "ZERO HITS for 'RCS' in the full text layer",
+     "page": null
+    },
+    "rotor_or_micromotion": {
+     "value": "NO - UAV 는 도로유도 궤적을 따르는 점 단말. 로터 없음.",
+     "quote": null,
+     "page": null
+    },
+    "diffraction_treatment": {
+     "value": "⭐ NONE - 'diffraction' 이 16쪽 전체에 0회. 상호작용은 SBR + 이미지법으로만 서술된다. 저고도 도심 장면에서 회절을 아예 논하지 않는다.",
+     "quote": "ZERO HITS for 'diffract' in the full text layer",
+     "page": null
+    },
+    "amplitude_validated_against": {
+     "value": "NONE - 실측 대조 없음. 'validation' 은 전부 ML 학습·검증 분할과 다운스트림 성능 비교를 뜻한다.",
+     "quote": "Comprehensive experimental validation: Extensive experiments validate both the utility of LAETwin-XL and the effectiveness of the proposed framework.",
+     "page": 2
+    },
+    "geometry_configuration": {
+     "value": "상향링크 통신(레이더 기하 아님). BS UPA 64 x 64, 배열중심 (0,0,35 m) 도심 / (0,0,65 m) 교외, fc = 7 GHz, SCS 30 kHz, 3GPP TR 38.901 준수. 13개 도시, 사전학습 57,236 샘플 + 다운스트림 13,450 샘플.",
+     "quote": "The BS UPA consists of Mz = 64 elements in the vertical dimension and My = 64 elements in the horizontal dimension. The array center oR is located at (0, 0, 35 m) in urban scenarios and at (0, 0, 65 m) in suburban scenarios.",
+     "page": 9
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "도플러는 UE 이동만으로 생기고(산란체·배열은 정지), 스냅샷 간격 1 s 가 도플러 시간척도 2.14 ms 보다 훨씬 커서 스냅샷을 독립으로 취급한다. 즉 도플러 모호성 논의가 성립하지 않는 설정이다.",
+     "quote": "Since the BS array and environmental scatterers are static in the Sionna RT setup, the Doppler shift νl,m is solely induced by the UE's movement.",
+     "page": 3
+    },
+    "venue": {
+     "value": "UNVERIFIED from PDF - 저널명·DOI 가 PDF 안에 없다('DOI' 0회). 센서스의 'IEEE JSTSP' 는 Semantic Scholar 2차 출처.",
+     "quote": "arXiv:2606.14114v2 [eess.SP] 15 Jun 2026",
+     "page": 1
+    },
+    "publication_status": {
+     "value": "PDF 증거로는 PREPRINT (arXiv:2606.14114v2, 2026-06-15)",
+     "quote": "arXiv:2606.14114v2 [eess.SP] 15 Jun 2026",
+     "page": 1
+    }
+   },
+   "census_verdict": "CONFIRMED",
+   "census_corrections_ko": [
+    "target_representation='none stated - propagation use only' 는 정독으로 CONFIRMED. drone_uav 용어가 29회지만 UAV 는 전부 단일 안테나 UE 다.",
+    "sionna_version_stated=None 도 CONFIRMED.",
+    "venue 'IEEE JSTSP' 는 PDF 로 확인 불가 - 2차 출처 표기 유지 필요."
+   ],
+   "claim_impact_ko": {
+    "H8": "무관",
+    "C1": "지지 - UAV 를 다루면서도 기체 메시를 장면에 안 넣는다",
+    "C2": "지지 - dBsm 0회",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "why_it_matters_ko": "'저고도 경제(LAE) + 디지털트윈 + Sionna' 조합의 최신 대표 사례인데도 드론은 점 단말이고 회절은 단어조차 없다. 우리가 '드론을 물체로 다루는 Sionna 연구가 비어 있다' 고 말할 때 인용할 표본."
+  },
+  {
+   "basename": "23_5G_Spectrum_Learning-Based_Passive_UAV_Detection_in_Urban_Scenario.pdf",
+   "pdf_path": "/data/public/jeong/papers/5G/23_5G_Spectrum_Learning-Based_Passive_UAV_Detection_in_Urban_Scenario.pdf",
+   "census_key": "deepread_backlog wave_05 rank 25",
+   "title": "5G Spectrum Learning-Based Passive UAV Detection in Urban Scenario",
+   "authors_verified": "Luning Lin, Ningning Yu, Yong Wang, Zhiguo Shi (Zhejiang University)",
+   "pages": 5,
+   "read_scope_ko": "전문 5쪽 정독 + PDF 메타데이터 확인",
+   "columns": {
+    "engine": {
+     "value": "시뮬레이터 없음 - 전부 실측. USRP-B210 으로 5G I/Q 캡처, SSB 추출 -> STFT -> CNN 분류.",
+     "quote": "on-field 5G I/Q signals are collected in different conditions of UAV presence",
+     "page": 1
+    },
+    "engine_version": {
+     "value": "해당 없음(시뮬레이션 엔진 미사용)",
+     "quote": null,
+     "page": null
+    },
+    "target_representation": {
+     "value": "실물 드론 - DJI Phantom 4. 모델링 자체가 없다(데이터 주도).",
+     "quote": "The UAV in the experiment is a DJI Phantom 4.",
+     "page": 4
+    },
+    "material_model": {
+     "value": "해당 없음",
+     "quote": null,
+     "page": null
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - 'RCS' 0회. 표적을 산란 세기로 다루지 않고 'SSB 스펙트럼의 교란' 이라는 학습 특징으로 다룬다.",
+     "quote": "the spectral disturbance caused by UAVs is too weak to be observed directly from the received 5G I/Q data",
+     "page": 2
+    },
+    "rotor_or_micromotion": {
+     "value": "NO - 마이크로도플러 0회. 호버링/이동을 구분하지만 그 근거는 CNN 이 학습한 특징이지 로터 성분이 아니다.",
+     "quote": "ZERO HITS for 'micro-Doppler' in the full text layer",
+     "page": null
+    },
+    "diffraction_treatment": {
+     "value": "해당 없음 - 전파 모델링을 하지 않는다. 오히려 '패시브 레이더는 도심에서 극도로 복잡한 명시적 채널 모델링에 의존한다' 를 회피 동기로 든다.",
+     "quote": "However, the passive radar system depends on explicit channel modeling for reliable detection and location-related parameter estimation results, which is extremely complicated in a typical urban scenario",
+     "page": 1
+    },
+    "amplitude_validated_against": {
+     "value": "진폭 검증 없음. 성능 지표는 분류 정확도뿐: 실내 2분류 약 93%, 실외 3분류 약 82%, 실외 2분류(호버+이동 병합) 약 90%.",
+     "quote": "For the binary classification of the indoor scene, the accuracy achieves about 93%, while the accuracy is about 82% for the three-class classification of the outdoor scene.",
+     "page": 4
+    },
+    "geometry_configuration": {
+     "value": "⭐ 바이스태틱 패시브 수신 - 실내는 실험용 5G 기지국 4.85 GHz, 드론은 USRP-B210 에서 5~10 m. 실외는 인근 상용 5G 기지국 3.5 GHz, 드론은 건물 사이를 50~100 m 거리에서 비행. 샘플링 30 MHz, SSB 4심볼 x 240 부반송파. 케이스당 STFT 행렬 약 4,000장(60% 학습/40% 검증).",
+     "quote": "For the outdoor scene, the signal transmitted by the adjacent commercial 5G base station is utilized, whose center frequency is 3.5GHz. ... the UAV moves between buildings to simulate shading and obstruction in an actual urban outdoor environment at a distance of about 50 to 100 meters.",
+     "page": 4
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "다루지 않음 - 거리·속도 추정 자체가 없다(존재 유무 분류만). 'Doppler' 는 참고문헌에만.",
+     "quote": "the UAV detection task is framed as a multi-class classification task",
+     "page": 1
+    },
+    "venue": {
+     "value": "2023 IEEE/CIC International Conference on Communications in China (ICCC), DOI 10.1109/ICCC57788.2023.10233342",
+     "quote": "PDF metadata Subject: '2023 IEEE/CIC International Conference on Communications in China (ICCC);2023; ; ;10.1109/ICCC57788.2023.10233342'",
+     "page": null
+    },
+    "publication_status": {
+     "value": "PUBLISHED (IEEE Xplore 배포판 워터마크 확인)",
+     "quote": "Authorized licensed use limited to: DGIST. Downloaded on June 24,2026 at 07:04:28 UTC from IEEE Xplore. Restrictions apply.",
+     "page": 4
+    }
+   },
+   "census_verdict": "NEW_RECORD (Sionna 센서스 밖 - 백로그 wave_05 배정분)",
+   "census_corrections_ko": [
+    "이 논문은 reflib_sweep_sionna 센서스 대상이 아니다(Sionna 무관). 백로그의 'quoted_but_not_page_by_page' 상태를 오늘 정독으로 해소했다.",
+    "게재상태는 PDF 본문 스탬프(IEEE Xplore)와 메타데이터 DOI 로 확정 - '게재, ICCC 2023' 로 인용 가능."
+   ],
+   "claim_impact_ko": {
+    "H8": "무관(시뮬레이션 없음)",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "⭐ 깨지 않지만 근접 - SSB 를 패시브 감지에 쓰면서 주기성을 명시적으로 활용한다고 적었다. 다만 실제 주기 값(20 ms 등)도, ssb-PeriodicityServingCell 도, 그 배치 분포도 없다. 'periodicity' 라는 단어만 정성적으로 쓴다.",
+    "C4": "⭐ 지지 - 5G 조명원 하나로 실측 감지를 하면서 CFAR·오경보율·검출확률이 전부 0회다. 평가는 분류 정확도(%) 뿐이라, 교정된 오경보율에서의 비교라는 우리 기여와 겹치지 않는다."
+   },
+   "why_it_matters_ko": "⭐ 게재된 실측 5G 패시브 UAV 감지 논문인데도 (1) 레이더 처리(CAF·거리도플러·CFAR)를 아예 포기하고 CNN 분류로 갔고, (2) 그 이유로 '도심에서 명시적 채널 모델링이 너무 복잡하다' 를 든다. 우리 리포트의 '5G 패시브는 조명원 구조 때문에 레이더 처리가 어렵다' 서사를 제3자 문장으로 뒷받침한다. 동시에 우리의 교정된 Pfa 벤치마크가 왜 새로운지도 보여준다."
+  },
+  {
+   "basename": "23_OFDM_based_WiFi_Passive_Sensing_a_reference-free_non-coherent_approach.pdf",
+   "pdf_path": "/data/public/jeong/papers/Wifi/23_OFDM_based_WiFi_Passive_Sensing_a_reference-free_non-coherent_approach.pdf",
+   "census_key": "deepread_backlog wave_05 rank 26",
+   "title": "OFDM based WiFi Passive Sensing: a reference-free non-coherent approach",
+   "authors_verified": "Francesca Filippini, Marco Di Seglio, Carlo Bongioanni, Fabiola Colone (Sapienza Univ. of Rome), Paul V. Brennan (UCL)",
+   "pages": 6,
+   "read_scope_ko": "전문 6쪽 정독 + PDF 메타데이터 확인",
+   "columns": {
+    "engine": {
+     "value": "자체 신호수준 시뮬레이터(802.11n OFDM 패킷열 생성) + 실측. 전파 광선추적 엔진 없음.",
+     "quote": "A stream of 802.11n OFDM modulated WiFi packets is generated at the receiver, encompassing the signal transmitted by the AP, the signal backscattered by the point-like moving target and thermal noise.",
+     "page": 3
+    },
+    "engine_version": {
+     "value": "해당 없음",
+     "quote": null,
+     "page": null
+    },
+    "target_representation": {
+     "value": "시뮬은 점표적(point-like moving target) - 형상·메시·RCS 값이 없다. 실측은 실물 DJI Mavic Pro.",
+     "quote": "the signal backscattered by the point-like moving target",
+     "page": 3
+    },
+    "material_model": {
+     "value": "해당 없음",
+     "quote": null,
+     "page": null
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - RCS 는 정성적으로만 등장한다('매우 낮은 RCS'). 절대값 dBsm 없음.",
+     "quote": "although the target is characterized by a very low RCS, the proposed solution is able to detect it for a remarkable part of its trajectory against the competing background",
+     "page": 5
+    },
+    "rotor_or_micromotion": {
+     "value": "NO - 로터 성분을 분리하지 않는다. 25~30초 구간의 서명은 로터가 아니라 고도 급변으로 설명한다.",
+     "quote": "when returning to its initial position, the target rapidly changes the altitude, explaining the signature between 25s and 30s",
+     "page": 5
+    },
+    "diffraction_treatment": {
+     "value": "해당 없음 - 전파 모델링 자체가 없다.",
+     "quote": null,
+     "page": null
+    },
+    "amplitude_validated_against": {
+     "value": "실측 대조 있음(정성). 시뮬 배경준위와 실측 배경준위의 '성상도 의존' 경향이 일치함을 보인다. 절대 진폭 교정은 아니다.",
+     "quote": "This confirms the results obtained on simulated data, namely that the higher is the number of points in the employed OFDM constellation, the higher is the BNR level which might jeopardize the capability to detect small targets.",
+     "page": 5
+    },
+    "geometry_configuration": {
+     "value": "⭐ 바이스태틱 패시브(기준채널 없음). 실측: 상용 AP TP-Link Archer VR600 AC1600 (802.11ac, 5.18 GHz) + Ubiquiti UMA-D 지향 안테나 송신, 수신은 UMA-D + NI USRP-2955(4채널, 10 MHz~6 GHz, 80 MHz 대역). 야외 사유지. 시뮬: fs 20 MHz, PRI 3 ms, 패킷당 OFDM 심볼 5개, 표적 초기 (10,10) m, 속도 (-1.5,0) m/s, SNR -10 dB, DNR 20 dB.",
+     "quote": "Carrier frequency (f0) 5.18 GHz Sampling frequency (fs) 20 MHz Packet repetition interval (PRI) 3 ms Number of OFDM symbols per packet 5 OFDM Constellation 16-QAM Target initial position (x0,y0) (10, 10) m",
+     "page": 3
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "UNVERIFIED - 결과는 '절대 바이스태틱 속도-시간' 평면인데 무모호 속도나 모호성 논의가 본문에 없다. PRI 3 ms(불균일 가능)와 비균일 표본에 대한 보간/NUDFT 만 언급한다.",
+     "quote": "if the sequence z̄(p) collects samples that are not taken at equally spaced time instants, one can either resort to an appropriate interpolation stage ... or resort to a nonuniform discrete Fourier transform at each batch",
+     "page": 3
+    },
+    "venue": {
+     "value": "2023 IEEE Radar Conference (RadarConf23), DOI 10.1109/RadarConf2351548.2023.10149694",
+     "quote": "PDF metadata Subject: '2023 IEEE Radar Conference (RadarConf23);2023; ; ;10.1109/RadarConf2351548.2023.10149694'",
+     "page": null
+    },
+    "publication_status": {
+     "value": "PUBLISHED (IEEE Xplore 배포판, PDF eXpress 인증)",
+     "quote": "Authorized licensed use limited to: DGIST. Downloaded on June 24,2026 at 07:09:30 UTC from IEEE Xplore. Restrictions apply.",
+     "page": 5
+    }
+   },
+   "census_verdict": "NEW_RECORD (Sionna 센서스 밖 - 백로그 wave_05 배정분)",
+   "census_corrections_ko": [
+    "백로그의 'quoted_but_not_page_by_page' 를 오늘 정독으로 해소. 게재상태는 IEEE Xplore 스탬프 + 메타 DOI 로 확정."
+   ],
+   "claim_impact_ko": {
+    "H8": "무관",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "⭐ 지지 - 게재된 패시브 드론 감지 실측인데도 CFAR 0회·오경보율 0회다. 검출은 스펙트로그램 위 궤적의 육안 식별 수준이고, 교정된 Pfa 에서의 비교가 없다."
+   },
+   "why_it_matters_ko": "⭐⭐ 우리에게 두 가지로 중요하다. (1) 우리 미해결 과제인 '기준채널 없는 패시브' 를 정면으로 다룬 게재 논문이다(IDP: 진폭변조만 보고 위상 버림). 우리 report12 의 이상적 기준 정합필터 가정과 대비되는 반대극단 사례로 인용할 수 있다. (2) ⭐ 배경준위가 OFDM 성상도에 따라 달라진다는 수치표가 있다: DNR 20 dB 에서 BPSK 31.20 / QPSK 32.79 / 16-QAM 37.49 / 64-QAM 39.01 dB(약 8 dB 폭), DNR 30 dB 에서 50.52 / 52.31 / 57.37 / 58.95 dB. 실측에서도 ACK(QPSK) 대 RTS(16-QAM) 선택이 배경을 바꿨다. 우리 report5 의 '점유 대가' 서사와 같은 계열의 독립 증거다."
+  },
+  {
+   "basename": "2401.14287__costa_microdoppler-drone-propellers_RadarConf24-conf.pdf",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2401.14287__costa_microdoppler-drone-propellers_RadarConf24-conf.pdf",
+   "census_key": "deepread_backlog wave_05 rank 30",
+   "title": "Modelling Micro-Doppler Signature of Drone Propellers in Distributed ISAC",
+   "authors_verified": "Heraldo Cesar Alves Costa, Saw James Myint, Carsten Andrich, Sebastian W. Giehl, Christian Schneider, Reiner S. Thomä (TU Ilmenau; Fraunhofer IIS)",
+   "pages": 6,
+   "read_scope_ko": "전문 6쪽 정독",
+   "columns": {
+    "engine": {
+     "value": "광선추적 엔진 없음 - 해석적 마이크로도플러 모델(블레이드를 무한개 점산란체의 선으로 보고 적분, sinc 형태) + OFDM 파형 항. BiRa 실측과 대조.",
+     "quote": "considering a blade i as a line of infinite point scatters going from the center O until a point Ptip, distant l = LB from the center O, [6] derives a mathematical model for the monostatic slow-time returns of a rotor with NB rotating blades",
+     "page": 2
+    },
+    "engine_version": {
+     "value": "해당 없음",
+     "quote": null,
+     "page": null
+    },
+    "target_representation": {
+     "value": "⭐ 점산란체 기반 - 회전 블레이드를 선적분으로, 드론 전체는 각 로터의 회전중심 좌표를 드론 기하에 맞춰 배치하고 로터별 응답 + 정적 부위 응답을 합산. 메시·CAD 없음. RCS σ_P 는 자유 파라미터.",
+     "quote": "It is also possible to simulate a drone with multiple propellers by setting the coordinates of the rotation center point O (Fig. 1) of each rotor according to the drone geometry, generating each propeller returns using the proposed model, and then summing the returns from each propeller and from the static parts of the drone.",
+     "page": 6
+    },
+    "material_model": {
+     "value": "재질 모델 없음(전자기 재질 파라미터 미사용). 실측 프로펠러는 탄소섬유.",
+     "quote": "Propeller material carbon fiber carbon fiber",
+     "page": 4
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - RCS 는 식 (3) 의 스칼라 σ_P 로만 들어가고 각도 의존이 없다. 저자가 이 한계를 명시한다.",
+     "quote": "In order to improve intensity match between simulation and measurement, a better RCS model for propellers and static parts returns can be included, by adjusting σP in (3).",
+     "page": 6
+    },
+    "rotor_or_micromotion": {
+     "value": "YES - 논문의 주제 자체. 프로펠러 반지름 16.55 cm, 블레이드 2매, 1500 / 2000 rpm. 실측은 상용 드론 대신 Tarot IRON MAN 650 기체에 아두이노로 회전수를 원격 제어하는 자작 장치를 썼다(회전속도 기준값 확보를 위해).",
+     "quote": "a custom-built system was assembled, allowing us to remotely set the propeller's angular velocities. This system, presented on Fig. 4, is composed by a Tarot IRON MAN 650 mechanical structure, with motors, sensors, and an Arduino on a PCB board for setting up motors thrust values and measuring rotation speeds",
+     "page": 4
+    },
+    "diffraction_treatment": {
+     "value": "⭐ NONE - 저자가 한계로 직접 적었다. 대안 기법으로 FEM·광선추적·이산 점산란체·고전 프리미티브 연속모델을 열거하고, 자기 모델은 회절과 다중경로를 못 담는다고 밝힌다.",
+     "quote": "Among the disadvantages, it does not take into account some electromagnetic phenomena, such as diffraction and multipath, and it also cannot reproduce more complex phenomena such as frequency components due to vibration.",
+     "page": 6
+    },
+    "amplitude_validated_against": {
+     "value": "⭐ 구조는 검증, 진폭은 미검증. BiRa 무향/실내 바이스태틱 실측과 비교해 프로펠러 개수·위치·도플러 확산·임펄스 간격이 일치함을 보이지만, 세기(intensity) 일치는 아직 안 됐고 더 나은 RCS 모델이 필요하다고 스스로 적는다. 실측 교정은 back-to-back 측정으로 수행.",
+     "quote": "The main properties of the drone micro-Doppler signatures for the sake of classification, such as number of propellers, position and Doppler spread of each propeller, and distance between impulses in frequency direction are the same on both sides.",
+     "page": 6
+    },
+    "geometry_configuration": {
+     "value": "⭐ 바이스태틱(BiRa: 회전 갠트리 2대 + 턴테이블, 방위 임의 바이스태틱각, 상반구 전체 + 하반구 25도까지). Setup 1: 3.7 GHz, 200 MHz, 심볼 8 us, 로터 1개. Setup 2: 7 GHz, 2.46 GHz 대역, 심볼 1.02 us, 로터 2개(HRR 거리-도플러). 파형은 Newman 시퀀스(정진폭·저 crest factor) OFDM.",
+     "quote": "Central frequency 3.7 GHz 7 GHz Bandwidth 200 MHz 2.46 GHz Total number of carriers 1600 2500 Carriers with energy 1280 2048 Symbol duration 8µs 1.02µs Rotating propellers 1 2 Blades per propeller 2 2 Propeller radius 16.55 cm",
+     "page": 4
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "⭐ 모호성 자체는 안 다룬다('PRF' 0회, 'Doppler ambiguity' 0회). 대신 바이스태틱각 의존성을 정량적으로 보인다: 바이스태틱각이 커질수록 도플러 확산이 줄고 전방산란(180도)에서는 거의 사라진다. 임펄스 간격은 회전주파수와 블레이드 수에만 의존해 바이스태틱각과 무관하다.",
+     "quote": "As expected, the maximum Doppler spread is observed in the monostatic case, while in forward configuration almost no Doppler spread is present. We can also notice, that distance among impulses does not change with respect to bistatic angles, since they depend only on the rotation frequency and the number of blades.",
+     "page": 5
+    },
+    "venue": {
+     "value": "2024 IEEE Radar Conference (RadarConf24), DOI 10.1109/RADARCONF2458775.2024.10548468",
+     "quote": "979-8-3503-2920-9/24/$31.00 ©2024 IEEE — DOI: 10.1109/RADARCONF2458775.2024.10548468",
+     "page": 1
+    },
+    "publication_status": {
+     "value": "PUBLISHED (RadarConf24). PDF 자체는 arXiv:2401.14287v3 (2025-09-05) 저자판이며 1쪽 하단에 게재 DOI 가 찍혀 있다.",
+     "quote": "arXiv:2401.14287v3 [eess.SP] 5 Sep 2025",
+     "page": 1
+    }
+   },
+   "census_verdict": "NEW_RECORD (Sionna 센서스 밖 - 백로그 wave_05 배정분)",
+   "census_corrections_ko": [
+    "백로그 상태 'quoted_but_not_page_by_page' 를 정독으로 해소.",
+    "⭐ 인용 시 주의: 이 PDF 는 arXiv v3 저자판이지만 1쪽에 RadarConf24 게재 DOI 가 인쇄돼 있다. '게재(RadarConf24) + arXiv 저자판' 으로 표기해야 하고, Ziganshin 때와 같은 회의판/프리프린트 혼동을 피해야 한다."
+   ],
+   "claim_impact_ko": {
+    "H8": "깨지 않음 - 광선추적 엔진을 안 쓰고 메시도 없다.",
+    "C1": "지지 - 드론 마이크로도플러를 게재 수준으로 다루면서도 표적은 점산란체 조합이다.",
+    "C2": "지지 - dBsm 없음, RCS 는 조정 가능한 스칼라.",
+    "C3": "무관",
+    "C4": "지지 - CFAR·오경보율 0회. 검증은 시그니처 형상 비교."
+   },
+   "why_it_matters_ko": "⭐⭐ 세 가지로 직접 쓸모 있다. (1) 회절 칸의 명문 증거: 게재 논문이 '우리 모델은 회절과 다중경로를 못 담는다' 고 명시하고 대안으로 광선추적을 든다 - 우리 SBR+PO 커널의 위치를 잡아 준다. (2) 진폭 대 구조의 분리: 마이크로도플러 문헌이 검증하는 것은 구조(로터 수·도플러 확산·임펄스 간격)이고 세기는 아직 미검증이라고 저자가 인정한다. 우리 리포트의 '절대 진폭 앵커가 희소하다' 주장의 1차 증거. (3) ⭐ 바이스태틱각이 커지면 로터 도플러 확산이 줄고 전방산란에서 사라진다는 실측 뒷받침 예측 - 우리 챔버 바이스태틱 기하(L, Rb) 선정과 마이크로도플러 가시성 논의에 그대로 대입해 검증할 수 있는 항목이다."
+  },
+  {
+   "basename": "2601.08042__mudopplertag-cnn-drone-microdoppler.pdf",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2601.08042__mudopplertag-cnn-drone-microdoppler.pdf",
+   "census_key": "deepread_backlog wave_05 rank 28",
+   "title": "(제목행 없음 - 초록으로 시작) 공명 전자기 스티커로 인코딩한 인공 마이크로도플러 서명 기반 드론 분류 (muDopplerTag)",
+   "authors_verified": "O. Yerushalimov, D. Vovchuk, A. Glam, P. Ginzburg (School of Electrical Engineering, Tel Aviv University, Israel)",
+   "pages": 12,
+   "read_scope_ko": "1~7, 11쪽 정독 + 전문 키워드 스캔",
+   "columns": {
+    "engine": {
+     "value": "시뮬레이션 엔진 없음 - 자작 CW 레이더 실측(3.35 GHz S-대역) + CNN. 물리 모델은 데이터 해석에만 쓴다.",
+     "quote": "The radar carrier frequency was selected to be in the S-band, with the μDopplerTag designed to resonate at 3.35 GHz.",
+     "page": 2
+    },
+    "engine_version": {
+     "value": "해당 없음",
+     "quote": null,
+     "page": null
+    },
+    "target_representation": {
+     "value": "실물 드론(협조적 표적). 블레이드에 미앤더형 공명 스티커를 붙여 태그 = 1, 미부착 = 0 으로 코드를 만든다. 43개 태그 조합을 무향실에서, 7개 클래스를 실외에서 측정.",
+     "quote": "Fig. 1f shows a photograph of the drone, with several blades tagged with meander structures while others remain untouched. This procedure establishes the tagging space, where a tagged blade is considered '1' and an untagged blade as '0'.",
+     "page": 3
+    },
+    "material_model": {
+     "value": "해당 없음(전자기 시뮬 없음). 다만 '공진에 동조되지 않은 구조는 블레이드 전체를 금속화해도 RCS 가 더 낮다' 는 물리 근거를 든다.",
+     "quote": "It is worth noting that metalizing the entire blade does not improve the electromagnetic response, as the RCS of a structure that is not tuned to resonance remains lower.",
+     "page": 3
+    },
+    "aspect_resolved_rcs": {
+     "value": "⭐ 측정 RCS 있음(각도분해는 아님, 편파 2조건). 인증 무향실에서 황동 원판을 교정 표적으로 써서 태그 1개 부착 드론의 RCS 스펙트럼을 측정했다. 드론은 정지 상태로 입사면 안에서 안테나를 향하고, 태그 블레이드를 입사 편파에 정렬한 경우와 90도 회전(편파 불일치)한 경우를 비교한다.",
+     "quote": "All the RCS measurements were performed in a certified chamber, using a brass disk as the calibration target. The drone is statically positioned in an anechoic chamber, facing the antenna within the plane of incidence.",
+     "page": 3
+    },
+    "rotor_or_micromotion": {
+     "value": "YES - 핵심. 회전 블레이드로 시간가변 RCS(깜빡이는 표적)를 만들어 마이크로도플러 서명을 인공적으로 강화한다. 플라스틱 블레이드의 자연 마이크로도플러가 약하다는 점을 출발점으로 삼는다.",
+     "quote": "These stickers significantly enhance the micro-Doppler signature of the plastic blades, which naturally generates a weak micro-Doppler due to the low scattering efficiency",
+     "page": 2
+    },
+    "diffraction_treatment": {
+     "value": "해당 없음 - 전파 모델링을 하지 않는다.",
+     "quote": null,
+     "page": null
+    },
+    "amplitude_validated_against": {
+     "value": "실측 자체가 데이터원. 무향실 배경반사는 -50~-40 dB 로 억제, 실외는 지면반사·정적 클러터 영향. 분류는 SNR 7 dB 까지 신뢰 가능하다고 보고.",
+     "quote": "background reflections from walls were suppressed to typical levels of -50 to -40 dB, which effectively results in data with a very high SNR",
+     "page": 3
+    },
+    "geometry_configuration": {
+     "value": "모노스태틱 CW(Tx/Rx 근접, Rx 뒤 LNA). 실내: 무향실 호버링, 10초 기록 x 50,001 I/Q 샘플, STFT 창 1.54 s. 실외: 20 m x 5 m 구역, 지그재그·등속·가속 궤적, 15초 x 90,001 샘플, 클래스당 10기록, 2초 조각으로 증강.",
+     "quote": "The outdoor measurements were conducted in an area measuring 20 meters by 5 meters, where arbitrary flying movements of a drone were recorded.",
+     "page": 5
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "다루지 않음. 다만 '도플러 필터링은 기동 중인 드론만 잡고 호버링이나 접선방향 비행은 배제한다' 는 도플러 널링 한계를 명시한다.",
+     "quote": "applying Doppler filtering is essential, as it limits detection to moving drones while excluding those that are hovering or flying in directions tangential to the radar antenna",
+     "page": 2
+    },
+    "venue": {
+     "value": "UNVERIFIED - PDF 안에 저널·학회·DOI·arXiv 스탬프가 전혀 없다. Word 로 만든 IEEE 스타일 원고이고 메타데이터에도 제목이 비어 있다. 파일명의 '2601.08042' 는 우리 아카이브가 붙인 arXiv ID 로 보이나 문서 자체에는 없다.",
+     "quote": "PDF metadata: {'title': '', 'author': '-', 'creator': 'Microsoft Word LTSC', 'creationDate': 'D:20260113...'} - no venue string anywhere",
+     "page": null
+    },
+    "publication_status": {
+     "value": "UNVERIFIED (문서 내부 증거로는 미게재 원고). 선행 자매논문 2편은 게재 확인됨: Vovchuk 외, Metamaterials 2024 (DOI 10.1109/METAMATERIALS62190.2024.10703226) 와 IEEE Trans. Antennas Propag. 2025 (DOI 10.1109/TAP.2025.3540278).",
+     "quote": "[15] D. Vovchuk et al., \"Micro-Doppler-Coded Drone Identification via Resonant Tagging,\" IEEE Trans Antennas Propag, 2025, doi: 10.1109/TAP.2025.3540278.",
+     "page": 11
+    }
+   },
+   "census_verdict": "NEW_RECORD (Sionna 센서스 밖 - 백로그 wave_05 배정분)",
+   "census_corrections_ko": [
+    "백로그 상태 'mentioned_in_prose_only' 를 정독으로 해소.",
+    "⚠ 게재상태를 문서로 세울 수 없다. 인용하려면 UNVERIFIED 로 적거나, 같은 그룹의 게재된 IEEE TAP 2025 논문을 대신 인용해야 한다."
+   ],
+   "claim_impact_ko": {
+    "H8": "무관",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "지지 - CFAR 0회. 오경보는 서론에서 위험으로만 언급되고 교정된 Pfa 실험은 없다."
+   },
+   "why_it_matters_ko": "⭐ 두 가지. (1) 절대 RCS 앵커 후보: 'DJI Mini 2 의 전형적 RCS 는 S/X 대역에서 약 10 cm^2' 라는 문장이 있다(= 1e-3 m^2, 약 -30 dBsm). 우리 소형 드론 앵커표에 넣기 전에 이 논문이 근거를 대는지 추가 확인이 필요하다 - 본문은 출처 없이 '전형적 값' 이라고만 한다. (2) 무향실에서 황동 원판 교정으로 드론 RCS 를 재는 절차가 서술돼 있어 우리 실측계획(measurement_plan)의 교정 표적 선택에 참고가 된다. 다만 우리와 반대 방향의 연구다 - 이들은 표적에 태그를 붙여 협조적으로 만들고, 우리는 비협조 표적을 다룬다."
+  },
+  {
+   "basename": "2312.03950__lee-scalable-pathloss-map-prediction.pdf",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2312.03950__lee-scalable-pathloss-map-prediction.pdf",
+   "census_key": "reflib_sweep_sionna 에 없음(비-Sionna). 백로그 wave_05 rank 29",
+   "title": "A Scalable and Generalizable Pathloss Map Prediction (PMNet)",
+   "authors_verified": "Ju-Hyung Lee, Andreas F. Molisch (USC)",
+   "pages": 13,
+   "read_scope_ko": "1, 3, 5, 8~10, 13쪽 정독 + 전문 키워드 스캔",
+   "columns": {
+    "engine": {
+     "value": "⭐ Sionna 아님 - Remcom Wireless InSite 상용 광선추적. 'Sionna' 문자열이 전문에 0회.",
+     "quote": "In this paper, we employ a commercial RT tool, Wireless Insite from Remcom [7] for all RT simulations, both because of its user-friendliness and the fact that its accuracy has been compared against a number of channel sounder measurements [6], [23], [24].",
+     "page": 3
+    },
+    "engine_version": {
+     "value": "UNVERIFIED - Wireless InSite 버전 미기재.",
+     "quote": null,
+     "page": null
+    },
+    "target_representation": {
+     "value": "표적 없음 - 예측 대상은 지도 위 경로손실 격자다. 장면은 USC / UCLA / 보스턴 캠퍼스 건물 지오메트리.",
+     "quote": "The ground-truth pathloss map over the USC campus is then obtained using Wireless Insite RT simulation and pre-processing",
+     "page": 3
+    },
+    "material_model": {
+     "value": "UNVERIFIED - 재질 파라미터를 본문에 적지 않았다(Wireless InSite 기본값 추정이나 근거 없음).",
+     "quote": null,
+     "page": null
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - 'RCS' 0회.",
+     "quote": "ZERO HITS for 'RCS' in the full text layer",
+     "page": null
+    },
+    "rotor_or_micromotion": {
+     "value": "NO",
+     "quote": null,
+     "page": null
+    },
+    "diffraction_treatment": {
+     "value": "⭐ UTD 를 이름으로 명시하는 드문 문서. 고주파 근사 3종을 나눠 적는다: 정반사·투과는 스넬 법칙, 회절은 UTD, 확산산란은 키르히호프 산란이론. 'wedge' 는 0회.",
+     "quote": "the various interaction processes computed according to high-frequency approximations, namely (most commonly) Snell's laws for specular reflection and transmission, uniform theory of diffraction (UTD) for diffraction, and Kirchhoff scattering theory for diffuse scattering [22, Ch. 4].",
+     "page": 3
+    },
+    "amplitude_validated_against": {
+     "value": "직접 실측 없음. 대신 엔진 선택 근거로 'Wireless InSite 는 여러 채널사운더 실측과 정확도가 비교돼 왔다' 를 든다(2차 근거). 학습 정답은 RT 출력이고 비교 기준선은 3GPP TR 38.901 모델과 RadioUNet.",
+     "quote": "its accuracy has been compared against a number of channel sounder measurements [6], [23], [24]",
+     "page": 3
+    },
+    "geometry_configuration": {
+     "value": "단일 Tx 에서의 경로손실 지도(레이더 기하 아님). USC(학습) -> UCLA / 보스턴(전이). 회색조 변환 시 -254 dBm ~ 0 dBm 을 1~255 로 정규화.",
+     "quote": "Map of USC, UCLA, and Boston used in RT simulation.",
+     "page": 3
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "해당 없음 - 정적 경로손실 지도 예측. 논문 각주에서 '채널 예측' 의 두 뜻을 구분하고 시간예측은 다루지 않는다고 명시.",
+     "quote": "This paper only considers the former case.",
+     "page": 1
+    },
+    "venue": {
+     "value": "UNVERIFIED - PDF 안에 저널명 없음. 각주에 선행 버전이 ICASSP 2023, Globecom 2023 에서 발표됐다고 적혀 있다.",
+     "quote": "presented at ICASSP 2023 [1] and Globecom 2023 [2]",
+     "page": 1
+    },
+    "publication_status": {
+     "value": "PREPRINT (arXiv:2312.03950v1, 2023-12-06). 선행 축약본 2편은 게재.",
+     "quote": "arXiv:2312.03950v1 [cs.IT] 6 Dec 2023",
+     "page": 1
+    }
+   },
+   "census_verdict": "ARCHIVE_FOLDER_MISLEADING",
+   "census_corrections_ko": [
+    "⭐ 이 PDF 는 /data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/ 에 있어 Sionna 논문처럼 보이지만 Sionna 를 전혀 쓰지 않는다(전문 0회). reflib_sweep_sionna 센서스에는 애초에 들어 있지 않아 센서스 자체는 옳다. 함정은 아카이브 폴더 이름이다 - 'sionna_papers_by_task 에 있으니 Sionna 논문' 이라는 추론은 성립하지 않는다."
+   ],
+   "claim_impact_ko": {
+    "H8": "무관",
+    "C1": "무관(Sionna 아님)",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "why_it_matters_ko": "⭐ 회절 칸에 이름을 채워 주는 문서. 우리 코퍼스에서 UTD 를 명시적으로 호명하는 소수 문서 중 하나이고, 회절=UTD / 확산=키르히호프 라는 표준 분업을 한 문장으로 적어 준다. 우리 SBR+PO 커널이 PTD 를 안 갖고 있다는 자기비판을 서술할 때 대비 문장으로 쓸 수 있다."
+  },
+  {
+   "basename": "2605.16547__wang-world-model-causal-dt-semantic.pdf",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/semantic_goaloriented_comms/2605.16547__wang-world-model-causal-dt-semantic.pdf",
+   "census_key": "2605.16547",
+   "title": "World Model-Enabled Causal Digital Twins for Semantic Communications in Physical AI Systems",
+   "authors_verified": "Lingyi Wang, Tingyu Shui, Walid Saad, Pascal Adjakple",
+   "pages": 13,
+   "read_scope_ko": "1~2, 4~6, 8~9, 12~13쪽 정독 + 전문 키워드 스캔",
+   "columns": {
+    "engine": {
+     "value": "AirSim(물리·시각) + Sionna(무선 채널) 를 시간슬롯 단위로 동기화한 자체 시뮬레이터. Sionna 는 상향링크 채널만 담당.",
+     "quote": "The second module is the Sionna-based wireless communication module [43]. Particularly, the Sionna-based channel module simulates the uplink transmission from the physical agent to the edge server.",
+     "page": 8
+    },
+    "engine_version": {
+     "value": "UNVERIFIED - 버전 0회. Sionna 의 어느 구성요소(RT 인지 PHY 인지)도 밝히지 않는다. 'ray tracing' 과 'scene' 이 전문에 0회이므로 RT 사용 근거가 없다.",
+     "quote": "ZERO HITS for 'ray tracing' and 'scene' in the full text layer",
+     "page": null
+    },
+    "target_representation": {
+     "value": "표적 없음. UAV 는 통신 단말이자 제어 대상이고, 장면에는 '무작위 배치 장애물' 이 있으나 그것은 AirSim 물리 환경이지 전파 장면이 아니다.",
+     "quote": "The UAV flies in a 200 m × 200 m three-dimensional environment with randomly placed obstacles.",
+     "page": 8
+    },
+    "material_model": {
+     "value": "UNVERIFIED - 재질 언급 0회.",
+     "quote": null,
+     "page": null
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - RCS 0회.",
+     "quote": "ZERO HITS for 'RCS' in the full text layer",
+     "page": null
+    },
+    "rotor_or_micromotion": {
+     "value": "NO",
+     "quote": null,
+     "page": null
+    },
+    "diffraction_treatment": {
+     "value": "NONE - 'diffraction' 0회. 전파효과는 '경로손실·페이딩·다중경로·가산잡음' 이라는 나열 한 줄이 전부다.",
+     "quote": "propagation effects such as path loss, fading, multipath propagation, and additive noise",
+     "page": 8
+    },
+    "amplitude_validated_against": {
+     "value": "NONE - 실측 없음. 비교는 RL 기준선(AC-RRL, MBPO, AC, PPO)의 kbit 당 리턴.",
+     "quote": "WM-CDT achieves about 13.8% higher return-per-kbit than AC-RRL, 39.8% higher than MBPO, 66.7% higher than AC, and 71.9% higher than PPO.",
+     "page": 9
+    },
+    "geometry_configuration": {
+     "value": "UAV -> 엣지서버 상향링크 1개. 200 m x 200 m 환경, 목적지는 반경 70 m 원 위 무작위, 성공반경 5 m, 최대 200 슬롯. ⚠ 표 I(시뮬레이션 파라미터)에 무선 파라미터가 하나도 없다 - 전부 RL 하이퍼파라미터. 반송주파수·대역폭·SNR 이 문서 전체에 없다.",
+     "quote": "Environment size 200 m × 200 m Success radius 5 m Maximum horizon T 200 ... Bit budget Ut (bits/slot) {64, 96, 128, 160, 192}",
+     "page": 9
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "해당 없음 - 'Doppler' 0회.",
+     "quote": "ZERO HITS for 'Doppler' in the full text layer",
+     "page": null
+    },
+    "venue": {
+     "value": "UNVERIFIED - PDF 안에 게재처 없음(IEEE 저널 형식). 센서스의 'arXiv-only' 와 일치.",
+     "quote": "arXiv:2605.16547v1 [cs.LG] 15 May 2026",
+     "page": 1
+    },
+    "publication_status": {
+     "value": "PREPRINT (arXiv:2605.16547v1, 2026-05-15)",
+     "quote": "arXiv:2605.16547v1 [cs.LG] 15 May 2026",
+     "page": 1
+    }
+   },
+   "census_verdict": "CONFIRMED_WITH_CAVEAT",
+   "census_corrections_ko": [
+    "target_representation='none stated' CONFIRMED.",
+    "⭐ 센서스 요약 'AirSim-Sionna UAV navigation sim' 은 맞지만, Sionna 를 어떻게 썼는지는 문서로 확인 불가하다. 광선추적이라는 근거가 없고(ray tracing/scene 0회), 반송주파수·대역폭·SNR·채널모델명·버전이 전부 없다. '실감 무선 채널 모델링' 이라는 초록의 주장을 우리가 인용하면 안 된다 - 재현 불가능한 서술이다."
+   ],
+   "claim_impact_ko": {
+    "H8": "무관",
+    "C1": "지지",
+    "C2": "지지",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "why_it_matters_ko": "'Sionna 로 실감 채널을 모델링했다' 고 초록에 쓰면서 무선 파라미터를 하나도 적지 않은 표본. 우리가 선행연구의 Sionna 사용을 인용할 때 '무엇을 어떻게 썼는지 문서에 있는가' 를 먼저 확인해야 한다는 근거."
+  },
+  {
+   "basename": "2312.14303__geo2sigmap-rf-signal-mapping.pdf",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2312.14303__geo2sigmap-rf-signal-mapping.pdf",
+   "census_key": "2312.14303",
+   "title": "GEO2SIGMAP: High-Fidelity RF Signal Mapping Using Geographic Databases",
+   "authors_verified": "Yiming Li, Zeyu Li, Zhihui Gao, Tingjun Chen (Duke University)",
+   "pages": 9,
+   "read_scope_ko": "전문 9쪽 정독",
+   "columns": {
+    "engine": {
+     "value": "OSM(지리DB) -> Blender(3D 메시·Mitsuba XML 재질) -> Sionna RT(경로이득 지도) 자동 파이프라인 + 계단식 U-Net.",
+     "quote": "we develop an automated framework that seamlessly integrates three open-source software tools: OpenStreetMap (OSM) [18], ... Blender [19], ... and Sionna [11], which is a next-generation Physical layer research tool that includes a differentiable ray tracer.",
+     "page": 1
+    },
+    "engine_version": {
+     "value": "Sionna 0.15.1 + Blender 3.3.1 (센서스 값과 일치, 원문 2곳에서 확인)",
+     "quote": "The dataset generation is implemented on Sionna 0.15.1 and Blender 3.3.1, and the code is open-source at [20].",
+     "page": 5
+    },
+    "target_representation": {
+     "value": "표적 없음 - 장면은 건물뿐이다(OSM 건물층 -> Blender -> .ply 메시). 표적/차량/사람/드론 없음('drone|UAV' 0회). 저자도 한계로 인정한다: 지형·수목·사람/차량 가림이 빠져 있다.",
+     "quote": "In addition to 3D buildings, PG can be affected by other environmental factors, such as the terrain profile, foliage condition, and human/vehicle blockage.",
+     "page": 8
+    },
+    "material_model": {
+     "value": "Mitsuba XML 로 메시별 ITU 재질(벽돌·유리 등) 을 기록하고, 상대유전율·도전율에서 반사·회절 계수를 유도한다. 예시 코드에 itu_brick 이 그대로 보인다.",
+     "quote": "<string name=\"filename\" value=\"meshes/Wilkinson_Building-itu_brick.ply\"/> ... <ref id=\"mat-itu_brick\" name=\"bsdf\"/>",
+     "page": 3
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - RCS 0회.",
+     "quote": "ZERO HITS for 'RCS' in the full text layer",
+     "page": null
+    },
+    "rotor_or_micromotion": {
+     "value": "NO",
+     "quote": null,
+     "page": null
+    },
+    "diffraction_treatment": {
+     "value": "Sionna 0.15.1 의 반사·회절을 모두 켜고 최대 8회 바운스, 광선 7,000,000개. 회절 계수는 재질의 유전율·도전율에서 유도된다고 서술. UTD 라는 이름은 안 쓴다.",
+     "quote": "Reflection Enabled Diffraction Enabled Maximum # of reflections/diffractions 8 bounces Total # of rays 7,000,000",
+     "page": 3
+    },
+    "amplitude_validated_against": {
+     "value": "⭐ 실측 대조 있음 - 이 웨이브에서 가장 강한 검증. 2023-07~11 듀크대 서캠퍼스에서 CBRS 대역(3.55~3.7 GHz) LTE 셀 6개를 단말 3종으로 45,000+ 지점 RSRP 측정. Geo2SigMap 평균 RMSE 6.04 dB, 기존 기법 대비 평균 3.59 dB 개선. ⚠ 스톡 Sionna 단독 기준선의 RMSE 절대값은 본문에 없고 그림 6~8 에만 있다 - 텍스트는 상대 개선폭만 준다.",
+     "quote": "Our results show that GEO2SIGMAP achieves an average root-mean-square-error (RMSE) of 6.04 dB for predicting the reference signal received power (RSRP) at the UE, representing an average RMSE improvement of 3.59 dB compared to existing methods.",
+     "page": 1
+    },
+    "geometry_configuration": {
+     "value": "하향링크 커버리지 지도(레이더 기하 아님). 3.66 GHz, 512 m x 512 m, 공간해상도 4 m, BS 높이 max(건물)+5 m, 등방 및 지향 안테나, 이중편파(VH), UE 높이 2 m. 학습 데이터는 건물비율 20% 이상 지역 27,176곳(총 7,124 km^2).",
+     "quote": "Carrier frequency, f 3.66 GHz Area dimension 512 m×512 m Spatial resolution, r 4 m ... BS antenna height (area-specific) max(B) + 5(m) ... UE antenan height 2 m",
+     "page": 3
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "해당 없음 - 'Doppler' 0회, 정적 커버리지 지도.",
+     "quote": "ZERO HITS for 'Doppler' in the full text layer",
+     "page": null
+    },
+    "venue": {
+     "value": "UNVERIFIED from PDF - PDF 안에 게재처 표기 없음. 센서스의 'IEEE DySPAN' 은 Semantic Scholar 2차 출처.",
+     "quote": "arXiv:2312.14303v2 [eess.SP] 4 Jan 2024",
+     "page": 1
+    },
+    "publication_status": {
+     "value": "PDF 증거로는 PREPRINT (arXiv:2312.14303v2, 2024-01-04)",
+     "quote": "arXiv:2312.14303v2 [eess.SP] 4 Jan 2024",
+     "page": 1
+    }
+   },
+   "census_verdict": "CONFIRMED_AND_ENRICHED",
+   "census_corrections_ko": [
+    "engine_version 0.15.1 CONFIRMED(원문 5쪽·7쪽).",
+    "target_representation='none stated - propagation use only' CONFIRMED - 장면에 건물만 있다.",
+    "센서스가 놓친 핵심: 이 논문은 ⭐스톡 Sionna RT 를 실측과 나란히 놓은 몇 안 되는 문서다(기준선 목록에 Friis / UMa / Ericsson / Sionna / PLNet / Geo2SigMap). 다만 Sionna 단독 RMSE 숫자는 그림에만 있다."
+   ],
+   "claim_impact_ko": {
+    "H8": "무관",
+    "C1": "지지",
+    "C2": "지지 - dBsm 0회",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "why_it_matters_ko": "⭐ 우리 '검증 층위' 표에 넣을 최적 사례. (1) 완전 오픈소스 OSM->Blender->Sionna 파이프라인이 존재하고 버전까지 밝힌다. (2) 스톡 Sionna RT 의 예측을 45,000점 실측 RSRP 와 직접 비교한 몇 안 되는 문서다. 다만 Sionna 단독 RMSE 를 인용하려면 그림에서 값을 읽어야 하고, 본문 문장으로는 뒷받침되지 않는다 - 지금은 UNVERIFIED 로 둔다."
+  },
+  {
+   "basename": "2512.12449__morais-stochastic-vs-raytracing-datasets.pdf",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2512.12449__morais-stochastic-vs-raytracing-datasets.pdf",
+   "census_key": "2512.12449",
+   "title": "Comparing Stochastic and Ray-tracing Datasets in Machine Learning for Wireless Applications",
+   "authors_verified": "João Morais, Ahmed Alkhateeb (Arizona State Univ.), Akshay Malhotra, Shahab Hamidi-Rad (InterDigital)",
+   "pages": 8,
+   "read_scope_ko": "1~4, 7~8쪽 정독 + 전문 키워드 스캔",
+   "columns": {
+    "engine": {
+     "value": "⭐ 두 계열을 나눠 쓴다. 확률모델(TDL/CDL/UMa)은 Sionna PHY(sionna.phy.channel.tr38901), 광선추적은 DeepMIMO 이고 DeepMIMO 장면은 Wireless InSite 로 만들어진 것이다. 즉 Sionna RT 는 안 쓴다.",
+     "quote": "The data for both tasks comes from the stochastic channel model implementations in sionna.phy.channel.tr38901.",
+     "page": 3
+    },
+    "engine_version": {
+     "value": "Sionna version 0.19.2, DeepMIMO version 4.0.0b11 (센서스 값 CONFIRMED)",
+     "quote": "DeepMIMO version 4.0.0b11 Sionna version 0.19.2 Reproducibility Code Open-source",
+     "page": 3
+    },
+    "target_representation": {
+     "value": "표적 없음 - 통신 채널 데이터셋 비교 연구. 'mesh' 0회, 'drone|UAV' 0회. 'target' 은 전이학습의 target domain 을 뜻한다.",
+     "quote": "ZERO HITS for 'mesh' and for 'drone|UAV' in the full text layer",
+     "page": null
+    },
+    "material_model": {
+     "value": "직접 설정하지 않음(DeepMIMO 기성 장면). 다만 확률모델의 한계로 '주파수 분산 재질을 거의 반영하지 못한다' 를 지적한다.",
+     "quote": "(C5) Frequency dependence and materials: Stochastic models rarely account for frequency-dispersive materials. Modern RT frameworks can incorporate material properties and even differentiate with respect to them",
+     "page": 2
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - RCS 0회.",
+     "quote": "ZERO HITS for 'RCS' in the full text layer",
+     "page": null
+    },
+    "rotor_or_micromotion": {
+     "value": "NO",
+     "quote": null,
+     "page": null
+    },
+    "diffraction_treatment": {
+     "value": "RT 쪽(Wireless InSite/DeepMIMO) 설정을 표로 밝힌다: 반사 5, 회절 1, 산란 1(과제1) / 0(과제2), 투과 없음. 과제2 의 초고밀도 장면은 산란 없이 회절과 반사만 쓴다.",
+     "quote": "The high-density scenario in Task 2 does not include scattering events, only diffraction and reflections.",
+     "page": 3
+    },
+    "amplitude_validated_against": {
+     "value": "NONE - 실측 대조 없음. 오히려 '실측 검증' 을 향후 과제로 남긴다. 잡음도 안 넣어 SNR 을 무한대로 둔다.",
+     "quote": "Future work: Two immediate steps are (i) validation on real-world measurements to quantify simulation-to-real gaps",
+     "page": 7
+    },
+    "geometry_configuration": {
+     "value": "통신 링크. 공통: SCS 15 kHz, fc 3.5 GHz, 확률모델 지연확산 300 ns, ULA λ/2. RT 장면: 과제1 은 asu_campus_3p5 / city_0_newyork_3p5 / city_1_losangeles_3p5 를 1 m 간격(장면당 수신기 5만 이상), 과제2 는 asu_campus_3p5_10cm 을 10 cm 간격 1200만 수신기.",
+     "quote": "Subcarrier spacing (Δf) 15 kHz Carrier frequency (fc) 3.5 GHz Stochastic delay spread 300 ns Arrays ULA, λ/2 spacing",
+     "page": 3
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "모호성은 안 다룬다. 대신 ⭐확률모델이 도플러를 어떻게 다루는지가 이 논문의 핵심 쟁점이다: 확률모델은 도플러 통계와 정지 클러스터로 시간변화를 제약하는 반면 부지특정 채널은 지연-각도-도플러가 결합해 움직인다.",
+     "quote": "stochastic profiles typically constrain temporal evolution via Doppler statistics and stationary clusters, whereas site-specific channels exhibit coupled delay–angle–Doppler dynamics that a predictor can exploit",
+     "page": 1
+    },
+    "venue": {
+     "value": "UNVERIFIED from PDF - 게재처 표기 없음. 센서스의 'Asilomar' 는 2차 출처.",
+     "quote": "arXiv:2512.12449v1 [eess.SP] 13 Dec 2025",
+     "page": 1
+    },
+    "publication_status": {
+     "value": "PDF 증거로는 PREPRINT (arXiv:2512.12449v1, 2025-12-13)",
+     "quote": "arXiv:2512.12449v1 [eess.SP] 13 Dec 2025",
+     "page": 1
+    }
+   },
+   "census_verdict": "CONFIRMED",
+   "census_corrections_ko": [
+    "센서스 인용문('Stochastic datasets use Sionna PHY [14] with 3GPP-compliant TDL, CDL, and UMa profiles.')과 버전 0.19.2 는 원문 확인 CONFIRMED.",
+    "⚠ 추가로 명확히 해야 할 점: 이 논문의 광선추적은 Sionna RT 가 아니라 Wireless InSite 로 만든 DeepMIMO 장면이다. 'Sionna 로 광선추적 비교를 했다' 로 인용하면 틀린다."
+   ],
+   "claim_impact_ko": {
+    "H8": "무관",
+    "C1": "지지",
+    "C2": "지지",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "why_it_matters_ko": "우리가 report12 에서 '확률채널 대신 부지특정 시뮬을 쓴다' 를 정당화할 때 인용할 수 있는 대조연구다. 특히 도플러 결합구조가 필요한 과제에서 확률모델이 성능을 과대·과소평가한다는 결론이 우리 저속·마이크로도플러 논의와 맞닿는다. 단, 이 논문도 실측 검증은 향후 과제로 남겼다."
+  },
+  {
+   "basename": "2504.09849__ckmimagenet-channel-knowledge-map.pdf",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2504.09849__ckmimagenet-channel-knowledge-map.pdf",
+   "census_key": "2504.09849",
+   "title": "CKMImageNet: A Dataset for AI-Based Channel Knowledge Map Towards Environment-Aware Communication and Sensing",
+   "authors_verified": "Zijian Wu, Di Wu, Shen Fu, Yuelong Qiu, Yong Zeng (Southeast University 계열)",
+   "pages": 13,
+   "read_scope_ko": "1~10, 12~13쪽 정독 + 전문 키워드 스캔",
+   "columns": {
+    "engine": {
+     "value": "⭐ 실제 데이터셋 생성기는 Wireless InSite 다. 파이프라인은 OSM -> blender-osm 애드온 -> Blender 3D 모델 -> Collada .dae -> Wireless InSite. Sionna 는 별도 절('Ray-Tracing Alternative')에서 오픈소스 대안으로 소개될 뿐이다.",
+     "quote": "Finally, export the 3D environment model as Collada.dae file, and then it can be opened in Wireless Insite for the subsequent operation.",
+     "page": 6
+    },
+    "engine_version": {
+     "value": "UNVERIFIED - Sionna 버전 없음(각주는 GitHub URL). Wireless InSite 버전도 없음.",
+     "quote": "3https://github.com/NVlabs/sionna",
+     "page": 4
+    },
+    "target_representation": {
+     "value": "표적 없음. 장면은 건물·지형이고 장애물은 이진행렬 M ∈ {0,1}^{HxW} 로 표현된다(1 = 건물·차량 등 장애물). 'mesh' 0회.",
+     "quote": "These maps are stored as binary matrices M ∈{0, 1}H×W , where 1 indicates obstacles (e.g., buildings, vehicles)",
+     "page": 4
+    },
+    "material_model": {
+     "value": "도전율·유전율 같은 재질 속성을 환경지도에 포함한다고 서술하나 구체 값·재질명은 없다.",
+     "quote": "incorporate detailed 3D geometries of buildings, terrain profiles, and material properties (e.g., conductivity, permittivity)",
+     "page": 4
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - RCS 0회.",
+     "quote": "ZERO HITS for 'RCS' in the full text layer",
+     "page": null
+    },
+    "rotor_or_micromotion": {
+     "value": "NO - UAV 는 관련연구의 궤적계획 응용으로만 언급.",
+     "quote": null,
+     "page": null
+    },
+    "diffraction_treatment": {
+     "value": "Wireless InSite 설정으로 최대 반사 6회 + 회절 1회, 다중경로 성분 최대 25개. UTD 라는 이름은 없다('UTD' 0회).",
+     "quote": "the maximum number of multipath components is set to 25, with a maximum of 6 reflections and 1 diffraction to simulate real-world scenarios",
+     "page": 6
+    },
+    "amplitude_validated_against": {
+     "value": "⭐ NONE - 실측 데이터가 아직 없다고 저자가 명시한다. 논문 구조상 '실측 데이터' 가 데이터셋의 세 기둥 중 하나로 그려지지만 실제로는 계획 단계다.",
+     "quote": "Although we have not yet collected actual measurement data at this stage, measurement data can not only help in enriching the dataset but als...",
+     "page": 10
+    },
+    "geometry_configuration": {
+     "value": "커버리지/CKM 격자. 28 GHz, BS·UE 모두 반파장 다이폴 1개(z축). 300 x 300 m 안에 4x4 BS 격자(간격 100 m), 사방 200 m 확장한 700 x 700 m 에 2 m 간격 수신기 351 x 351 = 123,201개. 스터디에어리어 1개 계산에 하루 소요. 환경지도 10,000개 이상, 각 128 m x 128 m.",
+     "quote": "we place a 4×4 grid of BSs within a 300×300m2 rectangular area, with adjacent BSs spaced 100m apart. ... resulting in a grid of 351 × 351 = 123, 201 receivers.",
+     "page": 6
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "해당 없음 - 'Doppler' 0회, 정적 CKM.",
+     "quote": "ZERO HITS for 'Doppler' in the full text layer",
+     "page": null
+    },
+    "venue": {
+     "value": "UNVERIFIED from PDF - 게재처 표기 없음. 센서스의 'IEEE Transactions on Communications' 는 2차 출처.",
+     "quote": "arXiv:2504.09849v1 [eess.SP] 14 Apr 2025",
+     "page": 1
+    },
+    "publication_status": {
+     "value": "PDF 증거로는 PREPRINT (arXiv:2504.09849v1, 2025-04-14)",
+     "quote": "arXiv:2504.09849v1 [eess.SP] 14 Apr 2025",
+     "page": 1
+    }
+   },
+   "census_verdict": "CORRECTED",
+   "census_corrections_ko": [
+    "⭐ 센서스는 sionna_used='yes' 로 세었고 근거 인용문은 8쪽의 'Sionna is built on TensorFlow...' 였다. 그 문장은 사용 서술이 아니라 '상용 Wireless InSite 의 오픈소스 대안 소개' 절의 설명문이다. 실제 데이터 생성은 Wireless InSite 로 이뤄졌고(6쪽 절차 서술 + 파라미터), Sionna 로 만든 데이터가 있다는 문장은 찾을 수 없다. 'Sionna 로 CKM 데이터셋을 만들었다' 고 인용하면 틀린다.",
+    "target_representation='none stated' 는 CONFIRMED.",
+    "⚠ 이 논문의 '실측 데이터' 축은 아직 없다(10쪽). 데이터셋 소개 그림만 보고 실측이 포함됐다고 인용하면 안 된다."
+   ],
+   "claim_impact_ko": {
+    "H8": "무관",
+    "C1": "지지",
+    "C2": "지지",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "why_it_matters_ko": "⭐ 우리 센서스의 대표적 오탐 유형을 보여 준다 - Sionna 를 '대안으로 소개' 한 문장이 '사용' 으로 집계됐다. 110편 머신센서스 전체에 같은 유형의 오탐이 더 있을 수 있으므로, 인용 전 'Sionna 를 실제로 돌린 문장이 있는가' 를 확인하는 절차가 필요하다."
+  },
+  {
+   "basename": "2606.01261__yao-rfdt-channel-rgb-lidar-28ghz.pdf",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2606.01261__yao-rfdt-channel-rgb-lidar-28ghz.pdf",
+   "census_key": "2606.01261",
+   "title": "RFDT-Channel: RGB-LiDAR-Based RF Digital Twin Scene Construction for 28 GHz Indoor Ray-Tracing Channel Simulation",
+   "authors_verified": "Chengyang Yao, Cunhua Pan, Jiaming Zeng, Yuquan Sun, Haoyang Weng, Haojian Wang, Hong Ren, Jiangzhou Wang",
+   "pages": 9,
+   "read_scope_ko": "1~3, 6쪽 정독 + 전문 키워드 스캔",
+   "columns": {
+    "engine": {
+     "value": "Sionna RT (28 GHz). 앞단은 Jetson Orin + LiDAR + GMSL 카메라 -> COLMAP + 3DGS + SuGaR 로 삼각메시 -> Blender 에서 RF 정규화 -> OpenScene 시맨틱으로 재질 배정.",
+     "quote": "OpenScene semantic segmentation maps major indoor structures to concrete, glass, wood, and metal materials, and Sionna RT performs 28 GHz ray tracing.",
+     "page": 1
+    },
+    "engine_version": {
+     "value": "UNVERIFIED - Sionna RT 버전 없음(센서스 판정과 일치).",
+     "quote": null,
+     "page": null
+    },
+    "target_representation": {
+     "value": "표적 없음 - 'target' 이 전문에 0회다. 장면은 실내 구조(벽·바닥·천장·문·창·가구)이고, 이들은 시각 재구성에서 얻은 삼각메시를 RF 용으로 정규화한 것이다.",
+     "quote": "ZERO HITS for 'target' in the full text layer",
+     "page": null
+    },
+    "material_model": {
+     "value": "ITU-R P.2040 재질 모델. OpenScene 오픈보캐뷸러리 시맨틱 결과를 사람이 검수해 concrete / glass / wood / metal(PEC) 로 매핑. ⭐ 저자가 '시맨틱 범주 자체가 전자기 재질 파라미터와 동일하지 않다' 고 명시한다.",
+     "quote": "Semantic categories themselves are not equivalent to electromagnetic material parameters. This paper combines OpenScene category results with manual inspection, and then establishes mappings according to indoor object properties and the ITU-R P.2040 material model [22].",
+     "page": 6
+    },
+    "aspect_resolved_rcs": {
+     "value": "NO - RCS 0회.",
+     "quote": "ZERO HITS for 'RCS' in the full text layer",
+     "page": null
+    },
+    "rotor_or_micromotion": {
+     "value": "NO - 드론·UAV 0회.",
+     "quote": null,
+     "page": null
+    },
+    "diffraction_treatment": {
+     "value": "⭐ Sionna RT 의 edge diffraction 을 켰다고 명시하는 드문 문서. 최대 깊이 8, 경로 종류는 LOS·정반사·확산반사·굴절.",
+     "quote": "The carrier frequency is 28 GHz, the maximum depth is set to 8, edge diffraction and scattering are enabled, and the path types include LOS, specular reflection, diffuse reflection, and refraction.",
+     "page": 6
+    },
+    "amplitude_validated_against": {
+     "value": "NONE - 실측 채널 대조가 없다. 비교는 같은 메시·같은 Tx/Rx 에서 'All Concrete' 대 'Multi-Material' 두 재질 구성의 CIR/CFR/Radio Map 차이다.",
+     "quote": "To highlight the effect of material binding on channel results, this paper organizes two experiments, All Concrete and Multi-Material, under the same regularized mesh, transmitter-receiver positions, and antenna settings.",
+     "page": 6
+    },
+    "geometry_configuration": {
+     "value": "실내 단일 링크(Tx/Rx 고정)로 재질 효과만 분리. 28 GHz. 장면 이름 scene_camera_lidar.",
+     "quote": "In the experiments, the transmitter and receiver positions are fixed to isolate the influence of material configuration on both a single li...",
+     "page": 6
+    },
+    "unambiguous_velocity_or_doppler_ambiguity": {
+     "value": "해당 없음 - 'Doppler' 0회, 정적 장면.",
+     "quote": "ZERO HITS for 'Doppler' in the full text layer",
+     "page": null
+    },
+    "venue": {
+     "value": "UNVERIFIED from PDF - 게재처 없음(센서스의 'arXiv-only' 와 일치).",
+     "quote": "arXiv:2606.01261v1 [eess.IV] 31 May 2026",
+     "page": 1
+    },
+    "publication_status": {
+     "value": "PREPRINT (arXiv:2606.01261v1, 2026-05-31)",
+     "quote": "arXiv:2606.01261v1 [eess.IV] 31 May 2026",
+     "page": 1
+    }
+   },
+   "census_verdict": "CONFIRMED_AND_ENRICHED",
+   "census_corrections_ko": [
+    "target_representation='none stated - propagation use only' CONFIRMED('target' 0회).",
+    "engine_version=None CONFIRMED.",
+    "센서스가 못 담은 것: 이 논문의 실체는 '시각 재구성 메시를 광선추적이 쓸 수 있는 메시로 고치는 법' 이다. 우리 메시 워크플로와 정면으로 겹친다."
+   ],
+   "claim_impact_ko": {
+    "H8": "무관",
+    "C1": "지지 - 메시가 37회 나오지만 전부 실내 구조물이고 표적은 없다",
+    "C2": "지지",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "why_it_matters_ko": "⭐⭐ 우리 CAD·메시 절(report02/03)의 최적 인용처. (1) 시각 재구성 메시가 RT 에 못 쓰이는 이유를 우리와 같은 목록으로 적는다: 벽 두께 없음, 국소 구멍, 스케일 오차, 비다양체 위상, 재질 정보 부재. '렌더링에는 문제없는 구멍이 광선이 벽을 통과하는지 여부를 바꾼다' 는 문장은 우리 manifold3d 리메시 정당화에 그대로 쓸 수 있다. (2) Sionna RT 의 edge diffraction 을 명시적으로 켠 사례라 회절 칸에 실사용 근거를 준다. (3) '시맨틱 범주 != 전자기 파라미터' 라는 경고는 우리 재질 가중 PO 의 GROUP_GAMMA 배정 논의와 같은 문제의식이다."
+  }
+ ],
+ "headline_ko": [
+  "⭐ 이번 웨이브에서 H8·C1·C2·C3·C4 를 깨는 논문은 없다. 다만 C1 의 문구는 반드시 좁혀야 한다 - 'Sionna 장면에 드론/물체 메시를 넣은 논문이 0편' 은 거짓이고, 참인 문장은 '그 메시를 산란적분에 통과시켜 검증된 RCS 진폭을 낸 논문이 0편' 이다.",
+  "⭐ 센서스 오류 2건이 특히 위험하다: (1) 2503.12177 을 'PUBLISHED_DOI_IN_PDF' 로 적은 것 - 그 DOI 는 IEEE Access 템플릿 자리표시자다. (2) 2504.09849(CKMImageNet)를 'Sionna 사용' 으로 센 것 - Sionna 는 '대안 소개' 절에만 나오고 데이터는 Wireless InSite 로 만들었다.",
+  "⭐ 회절: Sionna RT 2.0.1(우리 설치본)은 UTD 쐐기 회절을 실제로 갖고 있다(sionna.rt.f_utd, wedge_geometry, PathSolver 인자 diffraction/edge_diffraction/diffraction_lit_region). 반면 선행 연구들의 회절 취급은 제각각이다 - 켠 곳(0.18 계열 4편), 아예 없는 곳(Sionna 재구현 Great-X, LAETwin-XL), 초록만 회절을 광고하고 표에는 없는 곳(VaN3Twin v1.2.0)."
+ ]
+}

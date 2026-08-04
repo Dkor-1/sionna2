@@ -1,13 +1,14 @@
 {
  "_meta": {
-  "generated": "2026-07-31 06:17:45",
+  "generated": "2026-08-03 11:47:53",
   "generator": "src/make_report06_measurement.py :: derive()",
   "purpose": "리포트 06 이 인용하는 **설계값**. 측정값은 하나도 없다.",
   "inputs": [
    "outputs/report06_measurement.json",
    "outputs/measurement_plan.json",
    "outputs/sigma_anchor.json",
-   "outputs/sigma_sensitivity.json"
+   "outputs/sigma_sensitivity.json",
+   "outputs/measurement_layers.json"
   ],
   "paper_section": "VI. Validation",
   "definitions": {
@@ -19,7 +20,8 @@
    "differential_db": "(L4-L2)_matrice4e - (L4-L2)_mini5pro [dB]. 두 기체가 앵커보다 각각 크고 작으므로 두 법칙의 예측이 **반대 방향**으로 갈린다.",
    "modes": "평균 레벨이동 = 세 밴드 delta_db 의 산술평균 [dB]. slope_only 는 밴드 비가중 평균 레벨을 축으로 회전만 시키므로 0 이고, 절대 레벨은 우리 PO 출력 그대로다. 나머지 두 모드는 크기전이 법칙으로 축까지 옮긴다.",
    "path_diff_m": "2hH/R — 표적경유 지면반사와 직접 표적경로의 경로차 [m].",
-   "ranking_validation": "flip_span = 자세평균 σ 에서 두 파형의 R90 순서를 뒤집는 데 필요한 밴드별 σ 이동폭 [dB] ⟨sigma_sensitivity.json : aspect_averaged.by_drone.<k>.smallest_flip_span_db⟩. margin = flip_span − drift_budget. common_mode_slope_db_per_db = σ 를 세 밴드 공통으로 1 dB 옮길 때 절대거리가 움직이는 dB — 순위는 그 이동에서 불변이다."
+   "ranking_validation": "flip_span = 자세평균 σ 에서 두 파형의 R90 순서를 뒤집는 데 필요한 밴드별 σ 이동폭 [dB] ⟨sigma_sensitivity.json : aspect_averaged.by_drone.<k>.smallest_flip_span_db⟩. margin = flip_span − drift_budget. common_mode_slope_db_per_db = σ 를 세 밴드 공통으로 1 dB 옮길 때 절대거리가 움직이는 dB — 순위는 그 이동에서 불변이다.",
+   "layers": "1층 = σ(f) 레인지(§2), 2층 = ISM 한 반송파의 파형축, 3층 = 비행 검출. 값은 outputs/measurement_layers.json 에서 옮기거나 단위만 바꿨다. n_channels = 기준 1 + 감시 1 (공통 클럭, 수신전용) — 하드웨어 사양의 4 RX 와 구별한다."
   },
   "runtime_s": 0.0
  },
@@ -401,6 +403,51 @@
   ],
   "mc_basis": "단일자세 lead 위의 몬테카를로 (benchmark/sigma_sensitivity.py:430)",
   "definition": "flip_span = 자세평균 σ 에서 두 파형의 R90 순서를 뒤집는 데 필요한 밴드별 σ 이동폭 [dB] ⟨sigma_sensitivity.json : aspect_averaged.by_drone.<k>.smallest_flip_span_db⟩. margin = flip_span − drift_budget. common_mode_slope_db_per_db = σ 를 세 밴드 공통으로 1 dB 옮길 때 절대거리가 움직이는 dB — 순위는 그 이동에서 불변이다."
+ },
+ "layers": {
+  "rows": [
+   {
+    "layer": "1층 — σ(f) 레인지",
+    "measures": "정지 표적 · 턴테이블 방위컷 · 교정구 · 배경 코히런트 차감",
+    "carrier": "LTE 1.843 GHz · 5G NR 3.5 GHz · WiFi 5.21 GHz (§2)",
+    "product": "σ(f, φ) 의 분포 P(σ)"
+   },
+   {
+    "layer": "2층 — 파형축",
+    "measures": "세 파형 구조를 같은 서브밴드 중심에 겹쳐 송신",
+    "carrier": "ISM 5.8 GHz 단일 (span 150 MHz)",
+    "product": "SNR_out / E_tx"
+   },
+   {
+    "layer": "3층 — 비행 검출",
+    "measures": "로터가 도는 비행 표적 — 로터가 도는 유일한 층",
+    "carrier": "ISM 5.8 GHz",
+    "product": "고정 Pfa 에서 Pd(range)"
+   }
+  ],
+  "carrier_ism_ghz": 5.8,
+  "span_ism_mhz": 150.0,
+  "validation_points": "LTE 1.843 GHz · 5G NR 3.5 GHz · WiFi 5.21 GHz",
+  "validation_receive_only": true,
+  "n_channels": 2,
+  "channels": "reference + surveillance = 2 channels on a common clock (NOT 4 simultaneous channels - see RETRACTION_LOG)",
+  "layer3_headline": "Pd vs range at fixed Pfa",
+  "layer3_ties_back_to": "1층의 P(sigma) 를 Swerling 틀로 넣으면 Pd(range) 가 예측된다. 3층은 그 예측의 검사다.",
+  "farfield_ism_bbox_max_m": 13.686507462235696,
+  "anchor_step_deg": 2.0,
+  "anchor_N": 91,
+  "anchor_too_coarse_1": "matrice4e @ WiFi 5.21 GHz",
+  "anchor_too_coarse_2": "matrice4e @ ISM 5.8 GHz",
+  "N_required_min": 28,
+  "N_required_max": 145,
+  "cal_anchor_declared_dbsm": -10.0,
+  "cal_pir2_dbsm": -10.020101226880783,
+  "mie_shift_min_db": 0.07229932031543207,
+  "mie_shift_max_db": 0.3051197437131492,
+  "gate_bw_mhz": 400.0,
+  "eval_bw_mhz": 50.0,
+  "n_subbands": 8,
+  "definition": "1층 = σ(f) 레인지(§2), 2층 = ISM 한 반송파의 파형축, 3층 = 비행 검출. 값은 outputs/measurement_layers.json 에서 옮기거나 단위만 바꿨다. n_channels = 기준 1 + 감시 1 (공통 클럭, 수신전용) — 하드웨어 사양의 4 RX 와 구별한다."
  },
  "ground_bounce": [
   {

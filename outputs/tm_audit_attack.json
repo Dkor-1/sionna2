@@ -1,0 +1,471 @@
+{
+  "generated": "2026-08-03",
+  "task": "적대검증 — 감사 자체를 공격. outputs/tm_verify_{clutter,openisac_montaner,rest}.json 의 판정을 원문에 다시 대고 재채점.",
+  "targets": [
+    "/home/yunjung/workspace/sionna2/outputs/tm_verify_clutter.json (n=37, wrong=6)",
+    "/home/yunjung/workspace/sionna2/outputs/tm_verify_openisac_montaner.json (n=20, wrong=1)",
+    "/home/yunjung/workspace/sionna2/outputs/tm_verify_rest.json (n=165, correct=107 wrong=18 imprecise=13 unverifiable=27)"
+  ],
+  "method": {
+    "quote_recheck": "PyMuPDF 텍스트 추출 + NFKC/합자/소프트하이픈/줄바꿈하이픈/유니코드 따옴표 정규화 후 연속부분문자열 검색. 2단 조판 대비 raw/sorted 두 모드. 스크립트: /tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/qcheck.py",
+    "note_on_verify_quotes_tool": "benchmark/verify_quotes_tool.py 는 outputs/*.json 을 훑어 (pdf,page,quote) 삼중항을 채점하도록 만들어져 있으나, 이번 세 파일은 그 도구가 요구하는 스키마(quote 옆에 pdf 경로 필드)를 따르지 않는다 — page/quote 는 있고 pdf 경로는 파일 헤더에만 있다. 그래서 동등한 채점기를 별도로 돌렸다. 이 스키마 불일치 자체가 결함이다(아래 audit_level_defects[0]).",
+    "pdfs_rechecked": [
+      "team_meeting/2607/Clutter-Aware-ISAC-Survey_Models-Methods-Future-Directions.pdf (41p)",
+      "team_meeting/2607/OpenISAC_Open-Source-Realtime-OFDM-ISAC-Platform.pdf (15p)",
+      "team_meeting/2607/Montaner_EuCAP2026_Deterministic-ISAC-Channels-RF-Digital-Twin.pdf (5p)",
+      "papers/5G/26_LaSen.pdf, papers/5G/23_5G_Spectrum_Learning-Based_Passive_UAV_Detection_in_Urban_Scenario.pdf",
+      "2504.21719__sionna-rt-technical-report-v1.pdf, 2502.10371__cissir.pdf"
+    ],
+    "decks_reopened": "python 으로 pptx 를 직접 열어 슬라이드별 도형/그림/차트/SmartArt/하이퍼링크 인벤토리를 만들고, 그림 안 텍스트는 이미지로 직접 읽음.",
+    "network": "GitHub API 도달 확인(HTTP 200). 즉 이번 라운드에서 외부 조회는 가능했다."
+  },
+
+  "verbatim_recheck_result": {
+    "verdict": "인용문 자체는 대체로 진짜 축자다 — 이것이 이 감사의 가장 튼튼한 부분이다.",
+    "checked": 47,
+    "verbatim_on_stated_page": 41,
+    "verbatim_but_reflowed_2col_same_page": 5,
+    "not_a_quote_but_reconstruction": 1,
+    "page_offset_spotcheck": "클러터 서베이 'printed = PDF + 51' 규약을 10곳에서 재확인 — 전부 일치(예: Fig.2 캡션 PDF p.10 = 인쇄 p.61, Fig.7 캡션 PDF p.25 = 인쇄 p.76, Eq.112 후속문 PDF p.28 = 인쇄 p.79, REFERENCES PDF p.38 = 인쇄 p.89).",
+    "github_evidence_reverified": "LS-Wireless/Clutter-Aware-ISAC-Tutorial 파일목록을 오늘 재조회 — 감사가 적은 목록과 정확히 일치(BLP_BFstap_Design.m, Vcc_Reta_esti.m, param_basic.m, fig2/fig4_5/fig8/fig10/fig12a/fig12b, function/, data/, LICENSE, README.md). pushed_at 2026-03-18. Sionna/씬/메시 파일 없음도 사실.",
+    "absence_counts_reverified": {
+      "clutter_survey '16 dB'": 0,
+      "clutter_survey 'physical optics' / 'dbsm' / 'drone' / 'max_depth' / 'num_samples'": 0,
+      "OpenISAC 'X400'": 2,
+      "OpenISAC 'CFAR' / 'false alarm' / 'detection probability' / 'detector' / 'Neyman'": 0,
+      "OpenISAC 'threshold'": 4,
+      "SionnaRT_TR 'RCS' / 'radar cross' / 'physical optics' / 'Kirchhoff'": 0,
+      "CISSIR 'target radar cross section 1 m2'": "존재 — 감사의 CISSIR WRONG 판정은 옳다",
+      "Lin et al. 실내 실험": "존재 — '두 조건(배경/UAV 호버링)을 실내 씬에서 시험', DJI Phantom 4. 감사의 '전부 야외' WRONG 판정은 옳다"
+    }
+  },
+
+  "weak_confirmations": [
+    {
+      "id": "W1",
+      "file": "tm_verify_clutter.json",
+      "claim": "venue: 'Proceedings of the IEEE, a journal known for in-depth review, survey, and tutorial articles rather than short single-method contributions'",
+      "audit_verdict": "CONFIRMED",
+      "attack": "제시된 인용문(초록 'we review clutter characterization…', 기여목록 3번)은 전부 이 논문 한 편의 성격에 관한 것이다. 주장은 저널의 편집 성격에 관한 것이므로 이 PDF 로는 확인 불가다. 게다가 correction 스스로 '이 논문은 자기를 tutorial 이라 부르지 않는다(재확인: 'tutorial' 4회 = 코드 URL 1회 + 참고문헌 제목 3회)' 고 인정한다.",
+      "should_be": "UNVERIFIABLE_FROM_SOURCE (근거는 외부 지식)"
+    },
+    {
+      "id": "W2",
+      "file": "tm_verify_clutter.json",
+      "claim": "quote (survey definition): 'Noise — random disturbance, close to thermal noise and uncorrelated with the waveform'",
+      "audit_verdict": "CONFIRMED",
+      "attack": "claim_type 이 'quote(서베이 정의)' 인데 correction 이 '서베이는 그런 정의를 쓰지 않는다, 문구는 우리 것이고 z 는 열잡음 + 잔류 SI 인데 슬라이드가 SI 를 떨어뜨렸다' 고 적는다. 인용이 아닌 것을 인용으로 제시한 것 자체가 결함인데 CONFIRMED 로 통과했다.",
+      "should_be": "IMPRECISE (혹은 quote 타입이면 WRONG)"
+    },
+    {
+      "id": "W3",
+      "file": "tm_verify_clutter.json",
+      "claim": "quote (survey definition): 'Clutter — structured unwanted returns from walls, floor, and nearby objects'",
+      "audit_verdict": "CONFIRMED",
+      "attack": "correction 이 ''walls, floor' 는 우리 챔버 어휘를 논문에 되읽은 것 — 서베이 문구로 제시하지 말 것' 이라고 명시한다. 그런데 판정은 CONFIRMED 다. 판정과 correction 이 서로 반대 방향이다.",
+      "should_be": "IMPRECISE"
+    },
+    {
+      "id": "W4",
+      "file": "tm_verify_clutter.json",
+      "claim": "quote (survey definition): 'Hot clutter — scattered external interference from a non-cooperative emitter'",
+      "audit_verdict": "CONFIRMED",
+      "attack": "원문 재확인(인쇄 p.53, 축자): '…reach the sensing receiver both directly and after scattering'. 즉 직접경로가 정의의 절반인데 슬라이드가 그 절반을 버렸고, 논문의 'may not originate from a cooperative source' 헤지를 '비협력' 이라는 정의로 굳혔다. correction 은 둘 다 적어놓고 판정만 CONFIRMED.",
+      "should_be": "IMPRECISE"
+    },
+    {
+      "id": "W5",
+      "file": "tm_verify_clutter.json",
+      "claim": "quote: 'Eq. (112) says: if slow-time is white, Doppler discrimination cannot be achieved from second-order statistics alone'",
+      "audit_verdict": "CONFIRMED",
+      "attack": "로케이터 오류다. 재확인 결과 'Doppler discrimination cannot be achieved using second-order statistics alone.' 는 인쇄 p.79 의 번호 없는 산문이고 Eq.(112) 는 전제식일 뿐이다. 'Eq. N 이 말한다' 는 형식의 인용에서 방정식 번호가 틀리면 그건 확인된 인용이 아니다. correction 에 'locator fixes' 라고 적어두고 CONFIRMED 로 셌다.",
+      "should_be": "IMPRECISE(locator wrong)"
+    },
+    {
+      "id": "W6",
+      "file": "tm_verify_clutter.json",
+      "claim": "capability: 'our stochastic clutter (C=100 over 4 iso-Rb rings, v∈[-1,1] m/s) is exactly their model'",
+      "audit_verdict": "CONFIRMED",
+      "attack": "주장의 핵심 단어가 'exactly' 인데 correction 이 '그들은 iso-RANGE 원, 우리는 iso-bistatic-range 타원 — 'identical' 말고 'transplanted' 라고 쓰라' 고 반박한다. 반박이 주장의 핵심어를 무너뜨리는데 판정은 CONFIRMED. 게다가 correction 이 리포지토리 README 가 링 개수를 2개로 적어 논문(4개)과 모순된다고 인정한다 — 즉 '그들의 모델' 자체가 두 판본으로 갈린다.",
+      "should_be": "IMPRECISE"
+    },
+    {
+      "id": "W7",
+      "file": "tm_verify_clutter.json",
+      "claim": "capability: 섹션 구조 'I-II … VI proactive clutter management'",
+      "audit_verdict": "CONFIRMED",
+      "attack": "두 겹. (1) correction 이 '논문은 여섯이 아니라 여덟 섹션' 이라고 적는데도 CONFIRMED. (2) 근거로 든 섹션 제목들('II. SIGNAL MODELS FOR ISAC SYSTEMS WITH CLUTTER' 등)은 축자 인용이 아니다 — PDF 는 자간을 벌려 'II. S I G N A L  M O D E L S …' 로 조판돼 있어 연속 문자열 검색에 잡히지 않는다. 재구성(reconstructed)을 인용부호로 감쌌다.",
+      "should_be": "IMPRECISE + 인용을 reconstructed 로 표기"
+    },
+    {
+      "id": "W8",
+      "file": "tm_verify_clutter.json",
+      "claim": "number: '28 GHz, 16x16, C=100, N*L ≈ 131k cells' (Table 3)",
+      "audit_verdict": "CONFIRMED",
+      "attack": "감사 스스로 '(Table 3; rendered from the page image — the table is raster, not extractable text)' 라고 적는다. 즉 사람 눈으로 이미지 표를 옮긴 값이고 기계 재검증이 불가능하다. 우리 프로젝트의 verify_quotes_tool.py 는 정확히 이 경우를 위해 grade=reconstructed + machine_can_decide=false 를 정의해 두었는데, 이 파일 스키마에는 그 구분이 없어 기계검증된 인용과 같은 등급으로 뭉개졌다.",
+      "should_be": "RECONSTRUCTED / machine_can_decide=false"
+    },
+    {
+      "id": "W9",
+      "file": "tm_verify_clutter.json",
+      "claim": "repo 관련 2건 ('MATLAB implementation …', 'No released Sionna RT scene or mesh pipeline')",
+      "audit_verdict": "CONFIRMED",
+      "attack": "근거가 'fetched 2026-08-03' 뿐이고 커밋 SHA·스냅샷·해시가 없다. 리포는 바뀔 수 있으므로 이 CONFIRMED 는 재현 불가능한 근거 위에 있다. 반증은 아니다 — 오늘 재조회해보니 목록은 정확히 일치했다(pushed_at 2026-03-18). 그러니 판정은 살리되 앵커(커밋/날짜)를 반드시 박아야 한다.",
+      "should_be": "CONFIRMED + provenance anchor (commit/pushed_at) 필수"
+    },
+    {
+      "id": "W10",
+      "file": "tm_verify_rest.json",
+      "idx": 36,
+      "claim": "'to do that, it used a noticeably more expensive drone' (LaSen)",
+      "audit_verdict": "correct",
+      "attack": "근거가 'the Matrice 4E is DJI's enterprise/RTK platform (deck price ~7.0M KRW)' — 즉 덱 자신의 가격 칸을 덱 주장의 근거로 썼다(순환). 게다가 LaSen 은 Matrice 4E 와 Mini 4 Pro 두 대를 쓰고(감사 자신이 idx 76 에서 인정) 두 기체 모두에서 추적 결과를 낸다. 따라서 '추적하려고(to do that) 비싼 기체를 썼다' 는 인과는 원문이 지지하지 않는다.",
+      "should_be": "imprecise (근거 순환 + 인과 미지지)"
+    },
+    {
+      "id": "W11",
+      "file": "tm_verify_rest.json",
+      "idx": 75,
+      "claim": "'The DJI Mavic is the drone most reference papers commonly used'",
+      "audit_verdict": "correct",
+      "attack": "감사 자신의 셈이 6/21 = 29% 다. 최빈값이지 'most'(과반)가 아니다. 더 결정적으로 6건 중 5건은 2016년 Mavic Pro 이고, 이 주장은 'Mavic 4 Pro 를 사면 그들과 비교 가능하다' 를 정당화하는 데 쓰인다 — 다른 기체다. 감사는 'modal platform' 이라고 정확히 쓰면서도 판정은 correct.",
+      "should_be": "imprecise"
+    },
+    {
+      "id": "W12",
+      "file": "tm_verify_rest.json",
+      "idx": [95, 96, 97],
+      "claim": "CRS 1 kHz → 42 m/s, CSI-RS 200 Hz → 4.3 m/s, SSB 50 Hz → 1.1 m/s",
+      "audit_verdict": "correct (3건)",
+      "attack": "세 건 모두 source_pdf 가 null 이고 근거는 감사 자신의 산술('Arithmetic checked')이다. 원문 주장 검증이 아니라 발표자 파생값 재계산인데 'correct' 로 다른 원문검증과 같은 칸에 들어갔다. 자매 파일(openisac_montaner)에는 정확히 이 경우를 위한 NOT_A_SOURCE_CLAIM 등급이 있는데 여기서는 쓰지 않았다. (파생식 자체의 문제는 context_stripped CS3 참조.)",
+      "should_be": "NOT_A_SOURCE_CLAIM / own_derivation"
+    },
+    {
+      "id": "W13",
+      "file": "tm_verify_rest.json",
+      "idx": 139,
+      "claim": "'A target fills only a tiny angle ≈ A/R². Below one ray's angle, most rays pass around it.'",
+      "audit_verdict": "correct",
+      "attack": "근거가 'Elementary solid-angle geometry, consistent with the 4π/N_S …' — 인용도 로케이터도 없다. 원문검증이 아니라 감사의 물리적 동의다. W12 와 같은 범주 오류.",
+      "should_be": "NOT_A_SOURCE_CLAIM / own_derivation"
+    },
+    {
+      "id": "W14",
+      "file": "tm_verify_rest.json",
+      "idx": 137,
+      "claim": "Part-2 divider subtitle 'Sionna lacks RCS'",
+      "audit_verdict": "correct",
+      "attack": "용어 0회 카운트로 correct 를 줬다. 그런데 같은 파일 idx 154 에서는 더 약한 표현('stock ray tracer cannot hand a small drone its RCS')을 'overbroad' 라며 imprecise 로 내린다. 가장 짧고 가장 단정적인 형태(디바이더 헤드라인 — 슬라이드에서 제일 크게 읽히는 줄)에 가장 관대한 등급이 갔다. 중대도가 뒤집혔다.",
+      "should_be": "imprecise, 최소한 idx 154 와 같은 등급"
+    },
+    {
+      "id": "W15",
+      "file": "tm_verify_rest.json",
+      "idx": 88,
+      "claim": "'Placement (density × periodicity) decides how much known signal a passive radar gets'",
+      "audit_verdict": "correct",
+      "attack": "근거가 'Matches LaSen Sec. 3.1' 한 줄뿐, 인용문이 없다. 그리고 LaSen 은 모노스태틱이다(감사 자신이 idx 80 에서 '하드웨어는 co-located USRP TX/RX' 라고 인정). 모노스태틱 파일럿 논변을 'a passive radar' 로 일반화한 문장을 인용 없이 correct 로 통과시켰다 — 메모리의 'LaSen 은 monostatic' 위험 그대로다.",
+      "should_be": "imprecise + 인용 요구"
+    },
+    {
+      "id": "W16",
+      "file": "tm_verify_rest.json",
+      "idx": [90, 159, 92],
+      "claim": "CRS 'every 6th subcarrier' / '5G also supports mini-slot' / 'SSB every ~20 ms'",
+      "audit_verdict": "correct (3건)",
+      "attack": "근거가 이 파일의 papers_on_disk 매니페스트에 없는 문서를 인용한다. idx 90 은 LTE 36.211 Sec.6.10.1.2 — 재확인 결과 36.211 은 reference_library 어디에도 없다(디스크에 부재). idx 159 는 38.214 — 실제로는 디스크에 있으나(ex_38214-i80/38214-i80.docx) 감사의 자기 매니페스트에는 없다. idx 92 의 '20 ms default assumed for initial access' 는 로케이터가 아예 없다. 내용은 셋 다 맞지만, 근거는 기억에서 나왔고 감사는 자기 근거목록을 정확히 적지 않았다.",
+      "should_be": "correct 유지하되 근거문서를 매니페스트에 편입 / 36.211 은 unverifiable"
+    }
+  ],
+
+  "over_judgments": [
+    {
+      "id": "O1",
+      "file": "tm_verify_rest.json",
+      "idx": 51,
+      "deck": "0623 s6 (speaker note)",
+      "audit_verdict": "wrong",
+      "deck_actual_words": "\"The Wi-Fi papers are again very detection-focused, so the pattern holds across all three signals.\"",
+      "attack": "감사가 claim 뒤에 '— no Wi-Fi paper goes past detection' 이라는 절대문을 스스로 덧붙인 뒤 그 절대문을 반증했다. 덱은 'very detection-focused'(헤지)이고 '그 패턴'이란 바로 앞 슬라이드에서 예외를 명시한 패턴이다(0623 s5 note: 'mostly detection as well. The one exception is … SenSys, which actually does tracking'). 결정적으로 감사는 완전히 같은 모양의 5G 문장(idx 34)에 'the 5G corpus does not reach tracking' 이라는 (실제로는 거짓인) 글로스를 붙여놓고 correct 를 줬다. 같은 문형에 정반대 잣대.",
+      "should_be": "correct 또는 imprecise, 그리고 idx 34 와 같은 등급"
+    },
+    {
+      "id": "O2",
+      "file": "tm_verify_rest.json",
+      "idx": 84,
+      "deck": "0630 s10 figure caption",
+      "audit_verdict": "wrong ('FALSIFIED on both counts')",
+      "attack": "첫 번째 count 는 과잉이다. 감사는 '실제 LaSen Fig.1 캡션은 A UAV sensing scenario of LaSen 이지 이게 아니다' 라고 하지만, 덱은 그 캡션을 인용한다고 주장한 적이 없다 — '(LaSen Fig. 1)' 은 출처표기이지 인용부호가 아니다. 발표덱이 빌려온 그림에 자기 설명을 다는 것은 표준 관행이다. 그림 자체를 확인해보니(0630 s10 image7.png) LaSen Fig.1 이 맞고, 그 안에 'Downlink Transmission'(기지국탑→UAV)과 'UAV reflections' 가 그려져 있어 덱의 서술은 그림 내용의 정확한 서술이다. 남는 진짜 오류는 'live' 뿐인데 그건 idx 79 에서 이미 셌다.",
+      "should_be": "imprecise, 그리고 idx 79 와 중복이므로 별도 wrong 으로 세지 말 것"
+    },
+    {
+      "id": "O3",
+      "file": "tm_verify_rest.json",
+      "idx": [140, 141],
+      "deck": "0721 s12",
+      "audit_verdict": "wrong × 2",
+      "attack": "세 겹. (1) 같은 결함('only a path gain')을 본문과 부제로 두 번 셌다 — wrong=18 중 2를 한 결함이 차지한다. (2) 감사 스스로 'HALF FALSIFIED', ''never a scattering integral → no RCS' part stands' 라고 적는다. 이 파일 자신의 legend 에 따르면 방향은 맞고 표현이 안 받쳐지는 경우는 imprecise 다. (3) 반증 근거로 든 Eq.(168)(확산산란장 Es(r))은 Sionna 가 계수를 계산할 때 쓰는 내부 모델이지 API 가 무엇을 반환하는가에 대한 문장이 아니다. 더 날카로운 반증은 TR §3.3 'Channel coefficients, delays, and Doppler shifts computation' 이다. 재확인: TR 에서 'path gain' 이라는 말은 라디오맵 절(비코히런트 path gain 합)에서만 2회 쓰이고 경로솔버 출력은 'channel coefficients'(9회) 로 불린다 — 즉 덱의 용어는 Sionna 안에 실재하는 다른 하위시스템의 용어를 잘못 끌어온 것이지 날조가 아니다.",
+      "should_be": "imprecise 1건 (2건이 아니라)"
+    },
+    {
+      "id": "O4",
+      "file": "tm_verify_rest.json",
+      "idx": 107,
+      "audit_verdict": "wrong",
+      "attack": "판정문 첫 줄이 'The sparse-recovery half is EXACT' 다. 반증된 나머지 절반('on a live 5G downlink')은 idx 79 와 idx 84 에 이어 같은 결함의 세 번째 계수다. LaSen-live-downlink 라는 단일 결함이 wrong 3건으로 부풀었다.",
+      "should_be": "imprecise, 그리고 idx 79 와 병합"
+    },
+    {
+      "id": "O5",
+      "file": "tm_verify_rest.json",
+      "idx": 149,
+      "audit_verdict": "wrong",
+      "attack": "판정문에 'The only SBR+PO half DOES survive' 라고 적혀 있다. 그리고 두 오류 중 하나(CISSIR 의 'no target' 가족)는 idx 147 에서 이미 셌다. 남는 새 오류는 'the only small drone' 하나뿐인데 wrong 1건이 통째로 붙었다.",
+      "should_be": "wrong 유지 가능하나 CISSIR 부분은 idx 147 과 중복 표시"
+    },
+    {
+      "id": "O6",
+      "file": "tm_verify_rest.json",
+      "idx": 64,
+      "deck": "0623 s10 (speaker note)",
+      "audit_verdict": "wrong",
+      "deck_actual_words": "\"For the metrics — things like how visible the target is on the map, signal-to-clutter ratio, detection rate, and false-alarm rate — I deliberately picked the same ones the papers use\"",
+      "attack": "노트는 'things like'(예시 열거) 로 헤지돼 있고 네 개만 든다. 감사는 다섯 개로 세면서 'RD-peak stability' 를 넣는데 그 표현은 화자 노트에 없다. 그리고 감사 자신의 셈으로 3/5(또는 3/4)는 코퍼스 지표가 맞다. 부분 불일치를 통째 wrong 으로 올렸다.",
+      "should_be": "imprecise"
+    },
+    {
+      "id": "O7",
+      "file": "tm_verify_rest.json",
+      "idx": 67,
+      "audit_verdict": "wrong",
+      "attack": "'Phantom 3 / 4 / 4 RTK' 중 두 항목은 맞고 '4 RTK' 하나가 틀렸다. 감사 자신이 'FALSIFIED for the '4 RTK' entry' 라고 범위를 좁혀 적는다. legend 기준 imprecise 다.",
+      "should_be": "imprecise"
+    },
+    {
+      "id": "O8",
+      "file": "tm_verify_rest.json",
+      "idx": 55,
+      "audit_verdict": "wrong (두 오류 (a)cm (b)2편)",
+      "attack": "(b) '두 편이 아니라 세 편' 은 옳다. (a) 는 절반 과잉이다 — 0623 s7 화자 노트는 'one uses DGPS, the other uses RTK with proper time sync. RTK is … centimetre accuracy' 로 cm 을 RTK 에만 붙인다. 즉 화자는 구분하고 있었고, 뭉갠 것은 표의 버킷 라벨 'RTK / DGPS (cm)' 하나다. 감사는 노트를 인용하면서도 노트가 이미 구분했다는 사실을 적지 않았다.",
+      "should_be": "wrong 유지(=(b) 때문에), 단 (a) 는 '표 라벨만의 문제' 로 축소 기술"
+    },
+    {
+      "id": "O9",
+      "file": "tm_verify_clutter.json",
+      "claim": "'the survey PRINTS a 16 dB RT penalty'",
+      "audit_verdict": "WRONG (판정 자체는 옳음 — '16 dB' 는 0회, 재확인함)",
+      "attack": "판정은 맞는데 그 판정을 떠받치는 근거문장이 거짓이다. 감사는 'Exhaustive scan of all 41 pages: the ONLY dB figures printed anywhere in the article are -47.4, -45.9, -47.4 and -63.5' 라고 단언한다. 재확인 결과 본문에 최소 세 개의 다른 dB 수치가 더 있다 — σ0 [dB] = 10 log10(…) 클러터 반사도 모델(인쇄 p.63), 'the response for the target AoA is reduced by -10 dB due to the null for the nearby UAV'(인쇄 p.76), 'transmit power for K = 6 users with a 10-dB SINR requirement'(인쇄 p.84). 과장을 정정하면서 또 다른 과장(exhaustive 단언)을 심었다. 이 라운드의 교훈('원문을 열기 전에 단언하지 말 것')이 감사 자신에게 적용되지 않은 자리다.",
+      "should_be": "판정 WRONG 유지 + 근거문을 ''16 dB' 문자열은 0회' 로만 좁힐 것"
+    },
+    {
+      "id": "O10",
+      "file": "tm_verify_rest.json",
+      "idx": 73,
+      "audit_verdict": "wrong",
+      "attack": "'most of the paper focused on detection without ground truth' 의 진위는 'ground truth' 를 (a)아무 GPS 로그나 (b)정밀 GT 중 어느 쪽으로 읽느냐에 전적으로 달렸다. 감사는 (a)로 읽어 반증하면서, 같은 슬라이드의 idx 71('coarse ground truth 뿐')과 idx 72('정밀 GT 는 추적 논문에만')는 (b) 읽기로 correct 를 준다. 한 슬라이드 안에서 같은 낱말을 두 뜻으로 채점했다.",
+      "should_be": "imprecise (모호성 지적), 또는 idx 71/72 와 같은 읽기로 통일"
+    }
+  ],
+
+  "missed_claim_types": [
+    {
+      "id": "M1",
+      "type": "그림 안 텍스트 (이미지로 렌더된 수식·구조도·표지)",
+      "evidence": "tm_claims.json 의 추출 규약은 'python-pptx: all shapes (incl. groups), tables, and speaker notes' 다. 그림에는 text_frame 이 없으므로 python-pptx 는 그림 안 글자를 한 자도 읽지 못한다. 인덱싱된 5개 덱에 그림이 44장 있다(0623:1, 0630:15, 0714:12, 0721:10, 0728v30:6). 차트/SmartArt 는 0개이므로 그 두 경로는 실제 구멍이 아니다 — 구멍은 전부 그림이다.",
+      "confirmed_instances": [
+        {
+          "where": "0728 v30 s20, media image7.png (alt-text 'eq_decomp.png')",
+          "content": "y_n[ℓ] = H^t_{n,ℓ} x_n[ℓ] + H^c_{n,ℓ} x_n[ℓ] + H^h_{n,ℓ} s^ext_n[ℓ] + z_n[ℓ]",
+          "why_it_matters": "★ 이 이미지는 옳다. 감사가 WRONG 으로 올린 항목은 '같은 슬라이드의 화자 노트가 H_h x 로 적었다' 는 것인데, 청중이 보는 슬라이드 위 수식은 정확히 s^ext 를 쓰고 있다. 감사는 '더 짧은 v29/v30 컷에서 생긴 회귀' 라고만 적어, 마치 덱이 잘못된 분류법을 가르치는 것처럼 읽힌다. 실제 노출은 화자 노트 한 줄에 국한된다 — 심각도가 과장됐다."
+        },
+        {
+          "where": "0728 v30 s8, image4.png (alt-text 'eq_numerology.png')",
+          "content": "Δf = 15 × 2^μ kHz,  T_slot = 1/2^μ ms",
+          "why_it_matters": "3GPP 에 대한 number 주장 2건이 통째로 인벤토리에 없다. 이 슬라이드에 잡힌 claim 은 idx 155/156/157 셋뿐이고 이 두 식은 없다. (내용은 옳다 — 다만 T_slot = 1/2^μ ms 는 normal CP 한정이라는 조건이 이미지에 없다.)"
+        },
+        {
+          "where": "0728 v30 s19, image6.png",
+          "content": "'II. SIGNAL MODELS FOR ISAC SYSTEMS WITH CLUTTER' → 'II.A System Configuration' / 'II.B Transmit Waveform and Downlink Communication' / 'II.C Sensing Signal Model'",
+          "why_it_matters": "하위절 제목 3건의 quote 주장. 원문 대조 결과 셋 다 실재한다(인쇄 p.54 A, p.55 B — 단 2단 조판에서 'B. Transmit Waveform and Downlink' + 'Communication' 으로 갈림, p.56 C). 검증은 통과하지만 감사는 이 세 건을 아예 보지 못했다."
+        },
+        {
+          "where": "0630 s13, image9/10/11.emf (EMF 안에 PDF 임베드)",
+          "content": "f_d = 2v/λ ;  PRF ≥ 2 f_d,max ;  v_max = PRF·λ/4 ,  λ = c/f",
+          "why_it_matters": "idx 95/96/97 의 세 숫자(42 / 4.3 / 1.1 m/s)를 낳는 식 자체가 이미지다. 감사는 결과 숫자만 산술 검산했고 식의 기하 가정은 검사하지 않았다. context_stripped CS3 참조."
+        },
+        {
+          "where": "0721 s11, image10.png",
+          "content": "Sionna RT: Technical Report 표지 — '2025-11-24 – Version 1.2', 저자 6인 (Aït Aoudia, Hoydis, Nimier-David, Nicolet, Cammerer, Keller)",
+          "why_it_matters": "판본·저자 주장이 이미지로만 존재한다. 재확인: 감사가 쓴 파일 '2504.21719__sionna-rt-technical-report-v1.pdf' 는 파일명만 v1 이고 내용은 실제로 Version 1.2 / 2025-11-24 이므로 실질 불일치는 없다. 그러나 감사 어디에도 문서 자체의 판본 문자열이 기록돼 있지 않아, NVIDIA 가 재게시하면 감사의 쪽수 로케이터가 조용히 어긋난다."
+        }
+      ]
+    },
+    {
+      "id": "M2",
+      "type": "제3자 그림·표를 그대로 붙인 것 (출처·내용 주장)",
+      "evidence": "0630 s10 = LaSen Fig.1 원본, 0728 s17 = 클러터 서베이 Fig.1 원본, 0714 s18 = PWC-Diff 결과표 원본.",
+      "why_it_matters": "★ 0714 의 PWC-Diff 주장 20건은 감사에서 전부 'unverifiable — PDF not on disk' 로 처리됐다. 그런데 그 논문의 결과표가 덱 안에 이미지로 붙어 있다. 이미지를 읽어보니 PWC-Diff 63.60 / IQFormer 63.54 / TechRec 91.02 vs MSNet 88.79 / Rank 1.0 — 덱의 숫자 주장('63.60 vs IQFormer 63.54', 'TechRec 91.0 against 88.8')과 정확히 일치한다. 즉 PDF 가 없어도 내부 정합성 대조는 가능했는데 시도되지 않았다. 반대로 그 이미지가 보여주는 Rank 는 데이터셋별이 아니라 집계 1개 값이므로 노트의 'a rank of one on all cases' 는 이미지만으로는 지지되지 않는다 — 이것도 잡을 수 있었다."
+    },
+    {
+      "id": "M3",
+      "type": "제조사 제품 스펙·가격 주장 (제3자에 대한 사실 주장인데 논문이 아니라서 인벤토리에서 빠짐)",
+      "evidence": "0630 s6 은 DJI Mavic 4 Pro / Matrice 4E 스펙 11행 표(무게 1,063 g / 1,229 g, 크기 329×391×135 / 307×388×150 mm, 비행 51 / 49 min, 최고속 25 / 21 m/s, RTK 무/유, 가격 ~2.6–4.2M / 7.0M KRW)인데 tm_claims 에서 이 슬라이드에서 뽑힌 claim 은 'Used in passive-radar lit.' 행 1건뿐이다. 0630 s8(그림 4장, DJI S1000 PLUS '8 rotors · long blades', Mini 5 Pro 'small body · low RCS')은 claim 0건. 0623 s13 은 KRW 가격표에 'Price sources (verified):' 라고 자체 인증까지 달고 djienter.com / helsel.co.kr / bit-drone.shop / xcopter.com 4개 링크를 건다.",
+      "why_it_matters": "추출 규약은 '제3자 도구/표준에 대한 사실 주장' 을 포함한다고 선언하는데 DJI 제품 주장은 papers 키에 아예 없다. 발표 자리에서 반박당하기 가장 쉬운 숫자(무게·가격·비행시간)가 통째로 검증 밖이다."
+    },
+    {
+      "id": "M4",
+      "type": "하이퍼링크 타깃",
+      "evidence": "0623 덱에 4개의 외부 URL 이 관계(rels)로 박혀 있다(위 소매점 4곳). 나머지 덱은 0개. 링크 텍스트는 추출되지만 링크 '타깃' 은 인벤토리에 없다.",
+      "why_it_matters": "표시 문자열과 실제 타깃이 다를 수 있고, 'verified' 라고 라벨된 근거가 바로 이 링크들이다."
+    },
+    {
+      "id": "M5",
+      "type": "덱 판본 커버리지",
+      "evidence": "tm_claims.json 의 source_decks 는 날짜당 딱 한 판본이다(0728 = v30). 디스크에는 v29(24슬라이드)와 v24(34슬라이드)도 있다. 클러터 검증자는 v24 를 따로 읽었다고 적었지만, rest/openisac 검증자는 v30 만 봤다.",
+      "why_it_matters": "v24 슬라이드 15–30 의 '15슬라이드 클러터 취급' 중 v30 에 남지 않은 주장은 인벤토리 자체에 존재하지 않는다. 실제로 발표된 판본이 무엇인지도 기록에 없다."
+    },
+    {
+      "id": "M6",
+      "type": "패밀리 밖 덱",
+      "evidence": "/home/yunjung/workspace/team_meeting/OpenISAC_group_meeting/groupmeeting_OpenISAC_v30.pptx (+ 07_condensed_decks 에 v6~v30 다수) 가 같은 OpenISAC 논문을 다루는데 source_decks 에 없다.",
+      "why_it_matters": "소유권 규약상 그룹미팅 파일은 별도 레인이므로 '감사 실패' 로 세지 않는다. 다만 이번 라운드의 OpenISAC 정정(50/100 MHz 안정·200 MHz 붕괴, 'no custom FPGA development', X400 미실증)이 그 덱에 전파됐는지 아무도 확인하지 않았다 — 미전파 위험으로 기록한다."
+    },
+    {
+      "id": "M7",
+      "type": "파일명이 나르는 주장",
+      "evidence": "team_meeting/2607/Montaner_EuCAP2026_....pdf 는 파일명으로 EuCAP 2026 을 단언하는데 PDF 본문에는 그 정보가 없다(감사가 P9 에서 정확히 잡음). 그러나 어느 인벤토리도 '파일명/경로' 를 주장 운반체로 다루지 않는다.",
+      "why_it_matters": "인용 시 근거가 arXiv comments 필드임을 아는 사람은 그 JSON 을 읽은 사람뿐이다."
+    },
+    {
+      "id": "M8",
+      "type": "외부 조회 노력의 비대칭",
+      "evidence": "클러터 파일은 GitHub 두 미러를 조회했다(오늘 재현 확인, 네트워크 도달 가능 — GitHub API 200). 반면 주장 20건이 공중에 뜬 PWC-Diff 논문에 대해서는 arXiv/OpenReview/덱이 명시한 repo(github.com/BUPT-GAMMA/FoundWSR) 어느 것도 시도한 흔적이 없다.",
+      "why_it_matters": "'unverifiable' 이 하드 리밋이 아니라 노력 배분의 결과다. 가장 검증이 급한 20건에 가장 적은 노력이 갔다."
+    },
+    {
+      "id": "M9",
+      "type": "감사 자신의 근거 매니페스트 결손",
+      "evidence": "tm_verify_rest.json 의 papers_on_disk 에 38.211 과 38.331 만 3GPP 로 올라 있는데, 판정 근거에는 38.214(idx 159)와 LTE 36.211(idx 90)이 등장한다. 재확인: 38.214 는 디스크에 있으나 매니페스트 누락, 36.211 은 디스크에 아예 없다.",
+      "why_it_matters": "'무엇으로 확인했는가' 가 목록과 어긋나면 제3자가 감사를 재현할 수 없다."
+    },
+    {
+      "id": "M10",
+      "type": "인벤토리로 전파된 오귀속",
+      "evidence": "감사는 CISSIR 의 '(NVIDIA)' 귀속이 틀렸다고(저자는 Hernangomez/Fink/Cavalcante/Stanczak) 정확히 판정했다. 그런데 tm_claims.json 의 papers 목록과 by_paper 키 자체가 여전히 'CISSIR (NVIDIA)' 다.",
+      "why_it_matters": "산문에서만 고치고 키를 고치지 않으면 이 인덱스를 읽는 다음 도구가 오류를 그대로 상속한다."
+    }
+  ],
+
+  "context_stripped": [
+    {
+      "id": "CS1",
+      "claim": "OpenISAC 이 'Sionna 는 통신 시뮬/프로토타이핑을 겨냥할 뿐 end-to-end ISAC 센싱 파이프라인이 아니다' 라고 말한다 → 우리 포지셔닝을 제3자 저널이 지지한다",
+      "where": "tm_verify_openisac_montaner.json collateral_findings[0] ('인용 가능한 문장이다')",
+      "verbatim": "\"NVIDIA Sionna and the Sionna Research Kit are also important open-source tools … However, they primarily target communication-system simulation and prototyping rather than a complete end-to-end ISAC sensing pipeline. In contrast, OpenISAC provides a compact and generic OFDM-ISAC implementation.\" (IoT-J p.2, 축자 확인)",
+      "stripped": "이 문장은 관련연구 절에서 저자들이 자기 기여를 세우려고 쓴 경쟁적 위치짓기다. 대상은 Sionna + Sionna Research Kit 이라는 '툴체인/프로토타이핑' 이지 산란적분·RCS 가 아니다. 이걸 '스톡 Sionna 는 소형표적 RCS 를 못 준다' 의 제3자 지지로 승격시키면 R20 정정에서 배운 실패(회의판/저널판 혼동, 서베이 헤드라인 오전파)와 같은 형태의 과잉이 된다.",
+      "safe_form": "'OpenISAC 저자들은 Sionna 를 완결된 ISAC 센싱 파이프라인이 아닌 통신 시뮬·프로토타이핑 도구로 분류한다(IoT-J p.2)' — 여기까지."
+    },
+    {
+      "id": "CS2",
+      "claim": "'Sionna lacks RCS' (0721 s10 Part-2 디바이더 부제)",
+      "audit_verdict": "correct (idx 137)",
+      "stripped": "근거는 Sionna RT TR / 창설논문 / 라이브러리 논문에서 'RCS' 문자열이 0회라는 것이다(재확인: 0회 맞음). 그러나 용어 부재는 능력 부재가 아니고, TR 의 임무는 CIR 과 라디오맵이다. 디바이더 부제는 슬라이드에서 가장 크게 읽히는 줄이라 '레이트레이서는 RCS 를 못 낸다' 로 들린다 — 감사 자신이 idx 154 에서 그 일반형을 overbroad 라고 판정했다.",
+      "safe_form": "'Sionna 의 기본 path solver 에는 산란(PO) 적분이 없고 RCS 를 출력하지 않는다' (메모리 sionna2-rt-rcs-claim-scope 와 동일)."
+    },
+    {
+      "id": "CS3",
+      "claim": "f_d = 2v/λ, PRF ≥ 2f_d,max, v_max = PRF·λ/4 → CRS 42 m/s, CSI-RS 4.3 m/s, SSB 1.1 m/s",
+      "where": "0630 s13 (수식은 EMF 이미지, 숫자는 idx 95/96/97)",
+      "stripped": "f_d = 2v/λ 와 v_max = PRF·λ/4 의 인수 2 와 4 는 왕복(모노스태틱) 도플러 가정이다. LaSen 은 모노스태틱이므로 LaSen 맥락에서는 옳다. 그러나 이 슬라이드가 놓인 덱의 조사 대상 21편은 전부 패시브 바이스태틱이고 우리 프로젝트도 패시브 바이스태틱이다. 바이스태틱에서는 f_d = (2v/λ)·cos(β/2)·cos(δ) 로 β 에 따라 최대 인수 2까지 줄어들고, 그만큼 'SSB 로는 1.1 m/s 밖에 못 본다' 같은 결론 수치가 달라진다. 기술적으로 맞고 맥락이 잘린 전형이다.",
+      "safe_form": "'모노스태틱 기준' 을 식 옆에 명시하거나, 바이스태틱 각도 인수를 함께 적을 것."
+    },
+    {
+      "id": "CS4",
+      "claim": "OpenISAC = '검증된 플랫폼: 오픈소스 코드 + X400 지원 + 실험 검증' / 'Delay-Doppler sensing with optional OTA synchronization'",
+      "audit_verdict": "CORRECT_WITH_CAVEAT (idx 194), CORRECT (idx 191)",
+      "stripped": "바이스태틱 검증이 성립한 조건이 슬라이드에서 사라진다. 축자 확인: \"the UAV was moved slowly to ensure visibility after MTI filtering\" (p.14). 즉 호버링 표적은 MTI 를 통과하지 못해 일부러 움직여야 보였다 — 우리 hover-blind 서사와 정확히 같은 현상이다. 그리고 SI 처리는 혼 안테나 물리격리 + MTI 뿐이며 저자들 스스로 \"this simple SI handling is not a replacement for active analog SI cancellation\" 이라고 적는다(p.12). 감사는 이 두 문장을 collateral_findings 에 정확히 옮겨 적었지만 어떤 판정(verdict)에도 연결하지 않았다 — 그래서 정정 대상 목록에도 들어가지 않았다.",
+      "safe_form": "'X310+B210, 야외 개활지, 바이스태틱 베이스라인 1.4 m, 표적을 일부러 천천히 움직여 MTI 를 통과시킨 조건에서의 검증' 으로 조건을 붙여 쓸 것."
+    },
+    {
+      "id": "CS5",
+      "claim": "클러터 서베이의 SCNR -47.4 dB(Fig.5) vs -63.5 dB(Fig.7) → '광선추적은 16 dB 짜리다'",
+      "audit_verdict": "WRONG × 2 (이미 잡힘)",
+      "stripped": "감사가 잘 잡았다. 여기 더할 것 두 가지. (1) Fig.2 와 Fig.5 가 같은 -47.4 dB 를 쓰므로 '-47.4' 를 그림 이름 없이 인용하면 독립 데이터 2점으로 오해된다(감사도 지적). (2) 감사의 대체문구('same processing chain moved from stochastic ring model to site-specific RT urban scene')조차 여전히 '같은 체인' 을 강조해 통제비교처럼 읽힌다 — 표적 모델부터 다르다(점표적 vs 메시). 문장을 더 낮춰야 한다.",
+      "safe_form": "'서베이는 두 개의 서로 다른 씬에서 각각 SCNR 을 보고한다(-47.4 dB 확률모델 씬, -63.5 dB Sionna RT 씬). 두 값의 차이는 우리 뺄셈이고 논문은 이 둘을 비교로 제시하지 않는다.'"
+    },
+    {
+      "id": "CS6",
+      "claim": "'RTK / DGPS (cm) — Only LIPASE & LaSen, the 2 tracking papers'",
+      "audit_verdict": "wrong (idx 55)",
+      "stripped": "표 라벨이 cm 을 두 논문에 공통으로 붙이지만 축자 근거는 LaSen 의 RTK 뿐이고 LIPASE 는 'sub-meter'다. 화자 노트는 실제로 구분하고 있다('one uses DGPS, the other uses RTK … centimetre accuracy'). 즉 슬라이드에 올라간 압축된 표 칸이 발표자의 정확한 이해를 잘라냈다 — 잘린 것은 원문 맥락이 아니라 우리 자신의 맥락이다.",
+      "safe_form": "'DGPS(sub-meter, LIPASE) / RTK(cm, LaSen)' 로 분리."
+    },
+    {
+      "id": "CS7",
+      "claim": "'Montaner: Sionna RT 는 지연·전력만 주고 도플러는 후처리 합성'",
+      "audit_verdict": "CORRECT_FOR_THIS_PAPER_BUT_DO_NOT_GENERALIZE (P6)",
+      "stripped": "감사가 스코프 경고를 붙인 것은 잘한 일이다. 다만 같은 논문 §II-D 에 \"Motion updates delays, angles, and Doppler at the chirp rate for Scenarios B/C.\" 라는 반대 방향 문장이 있다(축자 확인, p.3). 감사는 '§II-F 가 더 구체적이므로 지배한다(operative)' 고 선언해 모순을 해소했는데, 그 우선순위 자체에는 근거가 없다 — 저자 확인도, 코드도 없다. 모순은 해소된 것이 아니라 판정자가 한쪽을 골랐을 뿐이다.",
+      "safe_form": "'논문 안에서 두 문장이 어긋난다(§II-D vs §II-F). 우리는 더 구체적인 §II-F 를 따라 읽지만 이는 우리의 독해다' 로 표시."
+    },
+    {
+      "id": "CS8",
+      "claim": "'LaSen — a monostatic ISAC sensor, the gNB senses its own downlink' 을 5G 대표 레퍼런스로 사용",
+      "audit_verdict": "correct (idx 80, caveat 는 본문 안에만)",
+      "stripped": "감사는 idx 80 안에 'the hardware is a co-located USRP TX/RX emulating a gNB, not a gNB' 라는 결정적 단서를 적어놓고 판정은 correct 로 닫았다. 그리고 idx 88 에서는 같은 LaSen 논변을 'a passive radar' 로 확장한 덱 문장에 인용도 없이 correct 를 줬다(W15). 우리 프로젝트는 패시브 바이스태틱이므로 'PDSCH 재활용' 결론은 이전되지 않는다 — 메모리 sionna2-lasen-monostatic 이 이미 못박은 사실이다. 감사는 이 이전 불가능성을 한 건의 finding 으로도 올리지 않았다.",
+      "safe_form": "LaSen 을 인용할 때마다 '모노스태틱, 자기 송신기, 실측 gNB 는 점유마스크 생성에만' 을 붙일 것."
+    }
+  ],
+
+  "audit_level_defects": [
+    {
+      "id": "A1",
+      "defect": "세 파일이 서로 다른 판정 어휘를 쓴다 — 등급 자체가 결과를 만든다",
+      "detail": "clutter 는 CONFIRMED / WRONG 두 등급뿐이고 IMPRECISE 도 UNVERIFIABLE 도 없다. 그래서 '내용은 맞고 표현이 우리 것' 인 사례가 전부 CONFIRMED 로 흘러들어갔다 — 37건 중 CONFIRMED 이면서 비어있지 않은 correction 을 단 항목이 12건이다. rest 는 correct/wrong/imprecise/unverifiable, openisac_montaner 는 CORRECT / CORRECT_WITH_CAVEAT / IMPRECISE / IMPRECISE_UNDERSTATEMENT / NOT_A_SOURCE_CLAIM / CORRECT_AND_UNDERSTATED / CORRECT_FOR_THIS_PAPER_BUT_DO_NOT_GENERALIZE / CORRECT_BUT_PROVENANCE_IS_NOT_THE_PDF / WRONG 로 아홉 갈래다. 세 파일의 wrong 카운트(6 / 1 / 18)를 합산하는 것은 의미가 없다.",
+      "fix": "단일 등급표 강제: verbatim / reconstructed / imprecise / wrong / unverifiable / not_a_source_claim, 그리고 machine_can_decide 플래그."
+    },
+    {
+      "id": "A2",
+      "defect": "구별되는 결함(distinct defect)과 주장 건수(claim count)를 구분하지 않는다",
+      "detail": "wrong=18 안에서 LaSen-live-downlink 단일 결함이 3건(idx 79/84/107), Sionna 'only a path gain' 단일 결함이 2건(idx 140/141), CISSIR 단일 결함이 2건(idx 147/149, + imprecise 151)을 차지한다. 실제 구별되는 결함은 18 이 아니라 12~13 이다.",
+      "fix": "defect_id 를 부여하고 claim→defect 다대일 매핑을 기록."
+    },
+    {
+      "id": "A3",
+      "defect": "감사가 주장문에 자기 글로스를 덧붙인 뒤 그 글로스를 반증한다",
+      "detail": "claim 필드가 '덱 원문 — 감사의 해석' 형태로 합쳐져 있어 무엇이 반증됐는지 흐려진다. idx 51 이 대표(덱: 'very detection-focused' → 글로스: 'no Wi-Fi paper goes past detection' → 반증). idx 34 는 같은 형인데 글로스가 거짓임에도 correct.",
+      "fix": "claim_verbatim(덱 원문) 과 claim_reading(감사 해석) 을 분리 필드로."
+    },
+    {
+      "id": "A4",
+      "defect": "verify_quotes_tool.py 게이트를 통과할 수 없는 스키마",
+      "detail": "그 도구는 (pdf 경로, page, quote) 삼중항을 요구하는데 세 파일 모두 quote 옆에 pdf 경로가 없다(헤더에만 있거나, rest 는 source_pdf 가 있으나 claims[].evidence 안의 인용문과 페이지가 구조화돼 있지 않다). 즉 이 라운드 산출물은 우리가 만들어 둔 인용 게이트를 통과할 수 없다.",
+      "fix": "evidence 를 [{pdf, page, quote}] 배열로 구조화해 게이트에 태울 것."
+    },
+    {
+      "id": "A5",
+      "defect": "collateral_findings 가 어떤 판정에도 연결되지 않는다",
+      "detail": "openisac_montaner 의 collateral_findings 에 담긴 결정적 사실(MTI 통과를 위해 UAV 를 일부러 움직였다, SI 처리는 격리+MTI 뿐, SISO 라 각도 없음, X410 400 MHz 함의)이 어느 claim 의 verdict 도 바꾸지 않았고 record_updates_recommended 에도 대부분 올라가지 않았다.",
+      "fix": "collateral 항목마다 affects_claim_idx 를 달 것."
+    }
+  ],
+
+  "what_the_audit_got_right": [
+    "인용문 자체는 진짜 축자다 — 47건 표본 재검에서 41건이 명시 페이지에서 연속 일치, 5건은 2단 조판 리플로우(같은 페이지, 문서 전체 재현율 1.00), 1건만 재구성(자간 벌린 섹션 제목).",
+    "printed = PDF + 51 페이지 오프셋 규약이 10곳에서 정확하다.",
+    "GitHub 리포 파일목록 주장이 오늘 재조회에서 정확히 재현된다.",
+    "핵심 WRONG 판정 5건은 원문으로 재확인된다: '16 dB' 문자열 0회, CISSIR target RCS 1 m2 실재, Lin et al. 실내 실험 실재(DJI Phantom 4 호버링), LaSen Fig.1 캡션 실제 문구, Sionna RT TR 의 Eq.(168) 복소 산란장.",
+    "OpenISAC 부재 카운트(X400 2회, CFAR 0, false alarm 0, detector 0, threshold 4)가 전부 재현된다.",
+    "'우리 기록이 틀렸다' 를 자기 프로젝트 문서(RESUME.md L27/L184)에 대고 적용한 점 — 남의 논문보다 우리 기록을 더 세게 때렸다."
+  ],
+
+  "priority_actions": [
+    "P0: 0714 PWC-Diff 20건 — 네트워크가 열려 있으므로 arXiv/OpenReview/github.com/BUPT-GAMMA/FoundWSR 로 원문을 먼저 확보하라. 확보 전까지 덱의 SOTA 숫자 슬라이드는 발표에서 내리거나 '원문 미확보' 라고 명시.",
+    "P0: 그림 안 텍스트 44장을 claim 인벤토리에 편입(수식 이미지 우선). 최소한 0728 s8·s19·s20, 0630 s13, 0721 s11.",
+    "P1: clutter 파일의 '16 dB' 항목 근거문에서 'the ONLY dB figures … are' 를 삭제하고 ''16 dB' 문자열 0회' 로 좁힐 것(본문에 σ0[dB], -10 dB, 10-dB SINR 이 실재).",
+    "P1: wrong 18 → 구별 결함 12~13 으로 재집계하고, half-falsified 5건(idx 51/64/67/107/140·141)을 imprecise 로 재등급.",
+    "P1: tm_claims.json 의 papers 키 'CISSIR (NVIDIA)' → 'CISSIR (Hernangomez et al.)' 로 정정(오귀속이 인덱스에 남아 있다).",
+    "P2: DJI 스펙·가격 주장을 별도 검증 패스로. 메모리 sionna2-drone-sensor-specs 에 이미 교차검증된 사실이 있으므로 그것과 덱 표를 대조.",
+    "P2: 세 파일 등급표 통일 + evidence 를 {pdf,page,quote} 배열로 구조화해 verify_quotes_tool.py 게이트에 태울 것.",
+    "P2: 0728 v24/v29 미인덱싱, 그리고 groupmeeting_OpenISAC 덱으로의 정정 미전파 여부 확인."
+  ]
+}

@@ -1,0 +1,417 @@
+{
+ "meta": {
+  "purpose": "independent re-measurement + stage-split validity probes for runtime_benchmark.json",
+  "generated": "2026-08-03 07:17:00",
+  "gpu_picked": "3",
+  "budget_mb": 1831,
+  "ref_budget_mb": 2500,
+  "util_at_start": {
+   "util_pct": 95.0,
+   "mem_used_mb": 20251.0,
+   "mem_total_mb": 24564.0
+  },
+  "numpy": "2.5.0",
+  "drjit": "1.3.1",
+  "mitsuba": "3.8.0",
+  "util_at_end": {
+   "util_pct": 97.0,
+   "mem_used_mb": 18811.0,
+   "mem_total_mb": 24564.0
+  }
+ },
+ "production_config_check": {
+  "report13_backend": "direct",
+  "report13_div": 16,
+  "report13_jitter": 2,
+  "report13_n_f": 3,
+  "report13_n_az": 120,
+  "report13_n_el": 9,
+  "bench_settings": {
+   "div": 16,
+   "jitter": 2,
+   "penetrate": true,
+   "el_deg": -2.0,
+   "n_az_per_batch": 120,
+   "n_az_note": "= experiment_freespace_sigma.AZ_GRID (0..357 deg, 3 deg step); the production chunker puts the whole grid in one ray bundle"
+  },
+  "note": "backend=direct -> experiment_freespace_sigma._sigma_az_direct passes the whole 120-point AZ_GRID to rcs_sbr_batch in one call. Benchmark n_az=120 is faithful."
+ },
+ "p1_reproduce_production": {
+  "rows": [
+   {
+    "drone": "mini5pro",
+    "fc_ghz": 1.843,
+    "reps": 3,
+    "mine_ms": {
+     "min": 7.782311722015341,
+     "median": 7.81494144660731,
+     "max": 8.270720827082794
+    },
+    "mine_stage_pct": {
+     "scene": 0.006758511607671241,
+     "raygen_host": 10.48319499773106,
+     "ray_upload": 2.110352287024276,
+     "rt_trace": 7.132187628039042,
+     "handoff": 56.864125253244445,
+     "po": 23.403381322353507
+    },
+    "mine_chunk_az": 120,
+    "mine_rays_per_pose": 25992,
+    "mine_facets": 29068,
+    "mine_sigma_dbsm_first": -23.55430091345848,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "instrumentation_overhead_pct": -3.0019494421764006,
+    "po_over_rt": 3.281374880036372,
+    "ref_pass1_ms": 9.239509608596563,
+    "ref_pass2_ms": 8.896916483839354,
+    "ref_pass1_chunk": 120,
+    "ref_pass1_rays": 25992,
+    "ref_pass1_sigma_dbsm_first": -23.55430091345848,
+    "ratio_mine_over_pass1": 0.8458177736333738,
+    "ref_pass1_stage_pct": {
+     "scene": 0.006850894099364865,
+     "raygen_host": 8.625121303063498,
+     "ray_upload": 1.899187520195681,
+     "rt_trace": 7.539410479719819,
+     "handoff": 62.796657206472034,
+     "po": 19.132772596449602
+    },
+    "util_before": {
+     "util_pct": 95.0,
+     "mem_used_mb": 20251.0,
+     "mem_total_mb": 24564.0
+    },
+    "util_after": {
+     "util_pct": 96.0,
+     "mem_used_mb": 20633.0,
+     "mem_total_mb": 24564.0
+    }
+   },
+   {
+    "drone": "mavic4pro",
+    "fc_ghz": 3.5,
+    "reps": 3,
+    "mine_ms": {
+     "min": 33.31929983881612,
+     "median": 33.482202965145305,
+     "max": 33.90896810839573
+    },
+    "mine_stage_pct": {
+     "scene": 0.0019424513577046235,
+     "raygen_host": 20.516763323742747,
+     "ray_upload": 4.440165113589312,
+     "rt_trace": 1.5735519636014774,
+     "handoff": 18.62325854377712,
+     "po": 54.84431860393164
+    },
+    "mine_chunk_az": 120,
+    "mine_rays_per_pose": 207368,
+    "mine_facets": 29932,
+    "mine_sigma_dbsm_first": -31.77532291411407,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "instrumentation_overhead_pct": 16.66712567569311,
+    "po_over_rt": 34.85383379294723,
+    "ref_pass1_ms": 38.13479893530409,
+    "ref_pass2_ms": 39.38034667323033,
+    "ref_pass1_chunk": 120,
+    "ref_pass1_rays": 207368,
+    "ref_pass1_sigma_dbsm_first": -31.77532291411407,
+    "ratio_mine_over_pass1": 0.8779960534720023,
+    "ref_pass1_stage_pct": {
+     "scene": 0.0025769241365014117,
+     "raygen_host": 20.548973602337565,
+     "ray_upload": 4.478200482094823,
+     "rt_trace": 3.020728321526439,
+     "handoff": 19.99396464817411,
+     "po": 51.95555602173056
+    },
+    "util_before": {
+     "util_pct": 96.0,
+     "mem_used_mb": 20633.0,
+     "mem_total_mb": 24564.0
+    },
+    "util_after": {
+     "util_pct": 95.0,
+     "mem_used_mb": 21243.0,
+     "mem_total_mb": 24564.0
+    }
+   },
+   {
+    "drone": "mavic4pro",
+    "fc_ghz": 5.21,
+    "reps": 3,
+    "mine_ms": {
+     "min": 72.55934397689998,
+     "median": 91.63831545350452,
+     "max": 95.615206953759
+    },
+    "mine_stage_pct": {
+     "scene": 0.0006473893942872217,
+     "raygen_host": 18.185947838832952,
+     "ray_upload": 5.189318500902583,
+     "rt_trace": 1.889453326248446,
+     "handoff": 24.93215520940559,
+     "po": 49.802477735216144
+    },
+    "mine_chunk_az": 91,
+    "mine_rays_per_pose": 445568,
+    "mine_facets": 29932,
+    "mine_sigma_dbsm_first": -18.228744078901546,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "instrumentation_overhead_pct": -21.672585565813492,
+    "po_over_rt": 26.358141290581724,
+    "ref_pass1_ms": 85.49911935503283,
+    "ref_pass2_ms": 101.77450253007312,
+    "ref_pass1_chunk": 120,
+    "ref_pass1_rays": 445568,
+    "ref_pass1_sigma_dbsm_first": -18.228744078901546,
+    "ratio_mine_over_pass1": 1.071804202719081,
+    "ref_pass1_stage_pct": {
+     "scene": 0.0007248003613398224,
+     "raygen_host": 19.077156149328722,
+     "ray_upload": 5.395101057534178,
+     "rt_trace": 1.4158171378293936,
+     "handoff": 23.015415255610186,
+     "po": 51.09578559933618
+    },
+    "util_before": {
+     "util_pct": 95.0,
+     "mem_used_mb": 21243.0,
+     "mem_total_mb": 24564.0
+    },
+    "util_after": {
+     "util_pct": 4.0,
+     "mem_used_mb": 22978.0,
+     "mem_total_mb": 24564.0
+    }
+   },
+   {
+    "drone": "s1000plus",
+    "fc_ghz": 5.21,
+    "reps": 2,
+    "mine_ms": {
+     "min": 356.9175781371693,
+     "median": 361.1051391034076,
+     "max": 365.29270006964606
+    },
+    "mine_stage_pct": {
+     "scene": 0.0001820138506333858,
+     "raygen_host": 18.49282912849397,
+     "ray_upload": 5.037830731034368,
+     "rt_trace": 1.2828408009305272,
+     "handoff": 24.937313276077163,
+     "po": 50.24900404961334
+    },
+    "mine_chunk_az": 22,
+    "mine_rays_per_pose": 1789832,
+    "mine_facets": 35370,
+    "mine_sigma_dbsm_first": -10.425697004005022,
+    "replica_check": {
+     "max_abs_ddb": 0.0,
+     "bit_identical": true
+    },
+    "instrumentation_overhead_pct": -4.28597319015977,
+    "po_over_rt": 39.17010124184115,
+    "ref_pass1_ms": 356.18979287489003,
+    "ref_pass2_ms": 355.6540707591921,
+    "ref_pass1_chunk": 31,
+    "ref_pass1_rays": 1789832,
+    "ref_pass1_sigma_dbsm_first": -10.425697004005022,
+    "ratio_mine_over_pass1": 1.013799795296897,
+    "ref_pass1_stage_pct": {
+     "scene": 0.0002487599406577894,
+     "raygen_host": 18.27736091985894,
+     "ray_upload": 4.920217621544199,
+     "rt_trace": 2.08567483407194,
+     "handoff": 26.211868879857995,
+     "po": 48.50462898472627
+    },
+    "util_before": {
+     "util_pct": 4.0,
+     "mem_used_mb": 22978.0,
+     "mem_total_mb": 24564.0
+    },
+    "util_after": {
+     "util_pct": 95.0,
+     "mem_used_mb": 22621.0,
+     "mem_total_mb": 24564.0
+    }
+   }
+  ]
+ },
+ "p2_sigma_cross_process": {
+  "note": "sigma_dbsm_first from this process vs the benchmark process (different run, same code)",
+  "rows": [
+   {
+    "drone": "mini5pro",
+    "fc_ghz": 1.843,
+    "mine": -23.55430091345848,
+    "ref": -23.55430091345848,
+    "d_db": 0.0
+   },
+   {
+    "drone": "mavic4pro",
+    "fc_ghz": 3.5,
+    "mine": -31.77532291411407,
+    "ref": -31.77532291411407,
+    "d_db": 0.0
+   },
+   {
+    "drone": "mavic4pro",
+    "fc_ghz": 5.21,
+    "mine": -18.228744078901546,
+    "ref": -18.228744078901546,
+    "d_db": 0.0
+   },
+   {
+    "drone": "s1000plus",
+    "fc_ghz": 5.21,
+    "mine": -10.425697004005022,
+    "ref": -10.425697004005022,
+    "d_db": 0.0
+   }
+  ]
+ },
+ "p3_stage_split_validity": {
+  "question": "their timed_batch closes the rt_trace window after dr.eval(si.p, si.n, si.t). If si.shape is a deferred output, its kernel cost would land in 'handoff' and understate RT. Probe: evaluate si.shape separately, right after.",
+  "rows": [
+   {
+    "drone": "mavic4pro",
+    "fc_ghz": 3.5,
+    "chunk_az": 120,
+    "rays": 3110520,
+    "rt_as_their_replica_measures_it_s": 0.014523280784487724,
+    "extra_eval_of_si_shape_s": 0.008599435910582542,
+    "handoff_d2h_s": 0.049865417182445526,
+    "si_shape_leak_pct_of_rt": 59.21138645041949,
+    "_med": [
+     0.014523280784487724,
+     0.008604925125837326,
+     0.04977307841181755
+    ]
+   },
+   {
+    "drone": "mavic4pro",
+    "fc_ghz": 5.21,
+    "chunk_az": 91,
+    "rays": 5068336,
+    "rt_as_their_replica_measures_it_s": 0.013898003846406937,
+    "extra_eval_of_si_shape_s": 0.00923708826303482,
+    "handoff_d2h_s": 0.1904865838587284,
+    "si_shape_leak_pct_of_rt": 66.46341708577734,
+    "_med": [
+     0.013898003846406937,
+     0.0081324502825737,
+     0.1904865838587284
+    ]
+   },
+   {
+    "drone": "s1000plus",
+    "fc_ghz": 5.21,
+    "chunk_az": 22,
+    "rays": 4922038,
+    "rt_as_their_replica_measures_it_s": 0.014607619494199753,
+    "extra_eval_of_si_shape_s": 0.006233165040612221,
+    "handoff_d2h_s": 0.229571845382452,
+    "si_shape_leak_pct_of_rt": 42.670642147320606,
+    "_med": [
+     0.015833931043744087,
+     0.002502555027604103,
+     0.23067370802164078
+    ]
+   }
+  ]
+ },
+ "p4_scene_build": {
+  "rows": [
+   {
+    "drone": "mavic4pro",
+    "mine_median_s": 0.041709261015057564,
+    "ref_median_s": 0.04150364734232426,
+    "facets": 29932
+   },
+   {
+    "drone": "s1000plus",
+    "mine_median_s": 0.051957495510578156,
+    "ref_median_s": 0.041274143382906914,
+    "facets": 35370
+   }
+  ],
+  "cold_vs_warm": {
+   "first_call_with_empty_cache_s": 4.4755029156804085,
+   "second_call_s": 4.111800190061331,
+   "third_call_s": 3.4746925085783005,
+   "delta_s": 1.000810407102108,
+   "note": "delta = scene build + kernel JIT paid once. The benchmark's warmup call pays this before any timed rep, so per-pose excludes it; scene_build is separately and directly measured (not estimated)."
+  },
+  "ref_note": "ONE-OFF per (mesh, carrier, exclude-set). rcs_sbr._SCENE_CACHE reuses it across all azimuths/elevations, so it is NOT a per-pose cost. Reported so the split is complete."
+ },
+ "p5_batch_size": {
+  "rows": [
+   {
+    "n_az": 1,
+    "mine_ms": 105.38597963750362,
+    "ref_ms": 1501.8012644723058,
+    "mine_stage_pct": {
+     "scene": 0.05062566138952227,
+     "raygen_host": 5.667370234086183,
+     "ray_upload": 1.9148292467785615,
+     "rt_trace": 27.108102567130437,
+     "handoff": 49.74536949439405,
+     "po": 15.513702796221246
+    }
+   },
+   {
+    "n_az": 8,
+    "mine_ms": 31.150342663750052,
+    "ref_ms": 134.4551951624453,
+    "mine_stage_pct": {
+     "scene": 0.019849154225342048,
+     "raygen_host": 17.29552025383633,
+     "ray_upload": 4.085150567131458,
+     "rt_trace": 10.074491284505083,
+     "handoff": 25.46118576271094,
+     "po": 43.063802977590846
+    }
+   },
+   {
+    "n_az": 120,
+    "mine_ms": 34.944568978001676,
+    "ref_ms": 42.939981825960174,
+    "mine_stage_pct": {
+     "scene": 0.0015279341119423205,
+     "raygen_host": 22.934388826756344,
+     "ray_upload": 4.6957152587048165,
+     "rt_trace": 0.6318107275847308,
+     "handoff": 9.720774938052985,
+     "po": 62.015782314789185
+    }
+   }
+  ],
+  "mine_speedup_1_to_120": 3.0158042499779083,
+  "ref_speedup": 34.97442710989606
+ },
+ "p6_po_masking_headroom": {
+  "scale": {
+   "rays_one_pass_full_batch": 6683520,
+   "hit_fraction": 0.03880030657497845,
+   "config": "mavic4pro 5.21 GHz div=16"
+  },
+  "po_core_current_s": 0.7073406223207712,
+  "po_core_gather_first_s": 0.07573253102600574,
+  "speedup": 9.339983924185473,
+  "phase_exp_all_rays_s": 0.38593695126473904,
+  "phase_exp_hits_only_s": 0.011301815509796143,
+  "phase_exp_speedup": 34.148226090774365,
+  "reading": "rcs_sbr.rcs_sbr_batch evaluates the PO phase term on every launched ray and masks afterwards. >94% of launched rays never hit the target. Gathering hits first is arithmetically identical (the masked entries contribute 0 to np.add.at either way)."
+ }
+}

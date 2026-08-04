@@ -1,0 +1,1226 @@
+{
+ "meta": {
+  "file": "/home/yunjung/workspace/sionna2/outputs/verify_quotes.json",
+  "built": "2026-08-03 01:19",
+  "task": "G3 closure - raise the quote-less entries of outputs/reflib_sweep_venues.json by opening the PDFs and recording (a) the venue string AS PRINTED IN THE PDF, (b) publication status from the PDF, (c) a verbatim supporting sentence, (d) the geometry with its proving sentence.",
+  "evidence_rule": "Every quote below was read by me from the PDF at the recorded path in this session with PyMuPDF. Nothing here is from a web summary, a filename, or an earlier JSON. Where a fact could NOT be read off the PDF it is labelled NOT PRINTED / NOT LOOKED AT rather than guessed.",
+  "source_of_entries": "outputs/reflib_sweep_venues.json (81 entries, 8 with a verbatim quote before this run)",
+  "reproduce": "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python <scratchpad>/build_vq.py ; PDF text via fitz(PyMuPDF)"
+ },
+ "counts": {
+  "entries_opened_and_closed_this_run": 35,
+  "verbatim_quotes_recorded": 96,
+  "entries_with_at_least_one_correction": 16,
+  "total_corrections": 26,
+  "entries_with_cautions": 16,
+  "venue_strings_that_do_not_exist_in_the_pdf": 12,
+  "quote_coverage_before": 8,
+  "quote_coverage_after": 43,
+  "venue_ids_with_no_printed_venue": [
+   "F10",
+   "F05",
+   "F08",
+   "F07",
+   "F09",
+   "F11",
+   "F12",
+   "A06",
+   "A07",
+   "D10",
+   "C14",
+   "C24"
+  ],
+  "venue_strings_read_off_the_pdf": 23
+ },
+ "headline_corrections": [
+  {
+   "rank": 1,
+   "about": "V8 (our own verified-fact list)",
+   "finding": "V8's paper IS in the archive (F08, /data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf) and V8 SURVIVES: 'dBsm' occurs exactly once in it, on the Fig.6 axis, for a simplified CAR. BUT the wording 'after adding UTD' is wrong - Sionna already implements UTD wedge diffraction; Ziganshin added VERTEX diffraction. AND the 'EuCAP 2025 / DOI 10.23919/EuCAP63536.2025.10999367' venue appears nowhere in the PDF."
+  },
+  {
+   "rank": 2,
+   "about": "B01-B04 config label",
+   "finding": "All four are filed as B_passive_quasi_monostatic. All four PDFs prove they are passive BISTATIC (B04 deliberately spans up to EXTREME bistatic/forward scatter). The taxonomy block of the same JSON even says 'no pure quasi-monostatic case was found in this sweep' - so the JSON contradicts itself. The real axis separating these four is REFERENCE-FREE, not baseline."
+  },
+  {
+   "rank": 3,
+   "about": "F02 vs F10",
+   "finding": "Same paper, two versions, carried as two separate RCS_ANCHOR entries. Cite IEEE JSAC 44:702 (2026); arXiv:2505.20673v1 is superseded. Numbers identical; author spelling/order and UAV->AAV terminology differ."
+  },
+  {
+   "rank": 4,
+   "about": "F09 status",
+   "finding": "Archive filename asserts 'procIEEE-accepted'. 'Proceedings of the IEEE', 'accepted' and 'submitted' occur ZERO times in the PDF. Must be cited as arXiv:2602.10537v2 preprint (E4)."
+  },
+  {
+   "rank": 5,
+   "about": "C24 identity",
+   "finding": "Was grade U with nothing read. Now: Viberg/Gerosa/McKelvey/Dammert/Eriksson, 'Separable Delay And Doppler Estimation In Passive Radar', arXiv:2601.15821v1. The 'ICASSP2026' in our filename is unsupported by the PDF."
+  },
+  {
+   "rank": 6,
+   "about": "D10 BatStation",
+   "finding": "Filed as A_active_monostatic in a drone-sensing corpus. The BS never transmits a sensing waveform - it receives incumbent NAVAL radar in CBRS. 'drone', 'UAV', 'monostatic', 'bistatic' each occur ZERO times in the PDF."
+  },
+  {
+   "rank": 7,
+   "about": "C09 WiSec poster",
+   "finding": "Its drone was fitted with an aluminium-wrapped bottle to RAISE its RCS to ~0.07 m2, transmitters were amplified, radius 20 m, 3-page poster. Never cite it as bare-drone passive detection."
+  },
+  {
+   "rank": 8,
+   "about": "V4 (our own verified-fact list)",
+   "finding": "The 500 Hz CSI-RS cap binds systems restricted to reference signals. A09 (IEEE TWC, published) reaches PRI 33.3 us (~30 kHz PRF) by using PDSCH data symbols it transmitted itself. V4 must be stated with that scope or it overstates."
+  },
+  {
+   "rank": 9,
+   "about": "F01 vs F05 independence",
+   "finding": "F01 acknowledges Wei Fan (Southeast Univ.) for the Mini 2 / Phantom 3 / M350 RTK data; Wei Fan is an author of F05. They are NOT independent anchors."
+  },
+  {
+   "rank": 10,
+   "about": "F07 version",
+   "finding": "Our records and the user's tracking table say arXiv:2604.05991v1. The PDF on disk is v2 (2 Jul 2026)."
+  },
+  {
+   "rank": 11,
+   "about": "diffraction column of the user's tracking table",
+   "finding": "LAMBDA (F12): 'diffract' occurs ZERO times in the whole PDF, so 'partial' is unsupported. Clutter-Aware (F09): 'Diffraction' occurs only inside one figure legend listing Sionna's interaction types, never in the text."
+  },
+  {
+   "rank": 12,
+   "about": "F05 and F08 and C14 venue strings",
+   "finding": "Three PDFs print NO venue at all (no ISBN, DOI or copyright line). Their venues must be labelled 'not looked at at the publisher', not asserted."
+  }
+ ],
+ "supports_our_claims": [
+  {
+   "our_claim": "V7 - of the papers that put a target in a Sionna scene, none put a whole drone airframe through a scattering integral",
+   "strengthened_by": [
+    "F12 LAMBDA: RCS comes from CADFEKO, Sionna only supplies multipath geometry",
+    "F09 Clutter-Aware: UAV meshes give echoes as 'reflected and scattered paths', no RCS integral, no dBsm",
+    "F06 ICCT: the Sionna target is a single Blender PROPELLER (radius 10.55 cm, material Wood), not an airframe",
+    "F08 Ziganshin: names drones as FUTURE WORK ('can also be applied to ... other objects, such as drones')"
+   ]
+  },
+  {
+   "our_claim": "our SBR+PO is monostatic-only and bistatic is not a trivial extension",
+   "strengthened_by": [
+    "F11 SagittaSBR footnote 1: a bistatic calculation 'would require a visibility function to account for shadow regions between the reflection points and the final receiver', omittable only in monostatic"
+   ]
+  },
+  {
+   "our_claim": "our SBR+PO has no diffraction",
+   "strengthened_by": [
+    "F11: 'A known modeling limitation of classical GO+PO SBR is the absence of diffraction mechanisms'",
+    "F07: stock Sionna-RT = 'specular reflections and single-bounce edge diffraction' only"
+   ]
+  },
+  {
+   "our_claim": "occupancy dominates passive detection (18 dB occupancy cost, G1-G3 modes)",
+   "strengthened_by": [
+    "C11 (IEEE TAES 61(4), published): the 'idle LTE' time, 'the moments when the illuminator transmits nearly no signal'"
+   ]
+  },
+  {
+   "our_claim": "bistatic Doppler / V5 monostatic == bistatic at beta=0",
+   "strengthened_by": [
+    "C03 (Asilomar 2025): fb = (2Vb/lambda) cos(delta) cos(beta/2), delta measured from the bisector"
+   ]
+  },
+  {
+   "our_claim": "passive uses always-on signals; SSB is the reliable periodic block",
+   "strengthened_by": [
+    "C04 (SPAWC 2025): 'the synchronization signal (SSB) of 5G NR is the only periodic block of symbols that is well-defined as a fixed-size block in the time-frequency grid'"
+   ]
+  },
+  {
+   "our_claim": "bistatic geometry is the natural ISAC/passive case, not monostatic",
+   "strengthened_by": [
+    "F03 (IEEE JSTEAP, published): 'Monostatic sensing ... is likely to become the exception, as full-duplex access has not yet been introduced in mobile communications'"
+   ]
+  },
+  {
+   "our_claim": "our open CAF question (ideal reference vs real two-channel)",
+   "strengthened_by": [
+    "C07: canonical reference+surveillance channel definition",
+    "C24: 'Each RN is equipped with a Reference Channel (RC) and a Surveillance Channel (SC)'",
+    "C16: reconstruct-the-reference by demodulate/remodulate 'avoids the need for a dedicated reference channel'",
+    "B02: reference-free amplitude approach, 'does not require the knowledge of the signal transmitted by the AP'"
+   ]
+  }
+ ],
+ "G4_five_unindexed_venues": {
+  "rule_applied": "dblp does not index IEEE TAP, AWPL, EuCAP, IET RSN or TMTT. Anything not opened is labelled NOT LOOKED AT, never 'not found'.",
+  "method": "Hand sweep of the local archive: every PDF under /data/public/sionna_jeong and /data/public/jeong (350 files, 0 read errors) had its first two pages scanned for each venue's printed front-matter string.",
+  "results": {
+   "IET_RSN": {
+    "opened_by_hand": 2,
+    "files": [
+     "C08 LTE-based multistatic passive radar (doi 10.1049/iet-rsn.2019.0452)",
+     "B04 Comparing reference-free WiFi radar sensing (doi 10.1049/rsn2.12506)"
+    ],
+    "status": "PARTIALLY CLOSED - 2 items opened and quoted"
+   },
+   "IEEE_TAES_bonus": {
+    "opened_by_hand": 2,
+    "files": [
+     "B02 TAES 59(5) p.6433",
+     "C11 TAES 61(4) p.8804"
+    ],
+    "note": "not on the G4 list but also poorly covered; closed here"
+   },
+   "IEEE_TAP": {
+    "opened_by_hand": 0,
+    "status": "NOT LOOKED AT - zero TAP front-matter in the archive. The 13 automated hits were EM benchmark problem-description PDFs, not papers."
+   },
+   "IEEE_AWPL": {
+    "opened_by_hand": 0,
+    "status": "NOT LOOKED AT - zero AWPL front-matter in the archive."
+   },
+   "EuCAP": {
+    "opened_by_hand": 0,
+    "status": "NOT LOOKED AT - no PDF in the archive prints a EuCAP banner. F05 and F08, both attributed to EuCAP in our records, print NO venue at all."
+   },
+   "IEEE_TMTT": {
+    "opened_by_hand": 0,
+    "status": "NOT LOOKED AT - zero TMTT front-matter in the archive. A02 (TMTT 2019) is bibliographic only."
+   }
+  },
+  "leads_only_UNVERIFIED": [
+   "Yuan et al., 'Experimental Analysis and Modeling of Mono-static UAV RCS for ISAC Channels', IEEE AWPL, reportedly Nov 2024 - probably a sibling of F05 by the same Southeast Univ. group. SOURCE: web search snippet only. PDF NOT OPENED. Do not cite.",
+   "Li and Ling, radar signatures of small consumer drones, IEEE AWPL 2016. SOURCE: web search snippet only. PDF NOT OPENED.",
+   "Roeding et al., fully polarimetric wideband RCS of small drones, EuCAP 2017. SOURCE: web search snippet only. PDF NOT OPENED.",
+   "IEEE DataPort, 'Drone RCS measurements (26-40 GHz)', quasi-monostatic anechoic. SOURCE: web search snippet only. NOT OPENED.",
+   "*** These four are the shape of the G4 blind spot: AWPL/EuCAP drone-RCS work exists and our corpus has none of it. Acquiring the Yuan AWPL item is the highest-value next step after G1."
+  ]
+ },
+ "still_open": [
+  "G1 Chen et al., Applied Sciences 14(10):4282 (2024) - still secondhand via LaSen. Not touched in this run.",
+  "G2 Abratkiewicz et al., IEEE JSTARS 16:3469-3484 (2023) - still bibliographic only.",
+  "C01 (Renyi, Remote Sensing 14(23):6146) has no PDF path in the JSON, so it could not be re-opened; its single existing quote stands.",
+  "Entries with no PDF on disk (40 of 81, all grade B/S) were not raised - by design, depth over coverage.",
+  "F04 (Costa conference version, RadarConf24) was not opened this run; F03 the journal version was. Keep them distinct (E2).",
+  "F13 Ezuma, F14 Semkin, F15 Monte-Carlo SBR were not opened this run."
+ ],
+ "entries": [
+  {
+   "id": "F01",
+   "short": "Das et al., multiband monostatic+bistatic AAV RCS",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "venue_as_printed_in_pdf": "IEEE WIRELESS COMMUNICATIONS LETTERS, VOL. 15, 2026 (running head, p.3731)",
+   "status_from_pdf": "PUBLISHED. 'Received 3 March 2026; revised 13 May 2026; accepted 13 June 2026. Date of publication 22 June 2026; date of current version 30 June 2026.'",
+   "geometry": "monostatic AND bistatic, measured (anechoic far-field + non-anechoic indoor near-field)",
+   "quotes": [
+    {
+     "where": "sec.II-A Measurement Setup",
+     "text": "The TX is fixed, whereas the RX is moved over bistatic angles theta_b = 0deg:15deg:90deg.",
+     "supports": "config: genuinely mono+bistatic, our recorded claim"
+    },
+    {
+     "where": "Abstract",
+     "text": "This letter develops 3GPP-compliant statistical RCS models for autonomous aerial vehicles (AAVs) using monostatic and bistatic measurements acquired across multiple frequency bands (1.8 GHz-27 GHz) and bistatic angles (0deg:15deg:90deg) in both anechoic far-field and controlled indoor near-field environments.",
+     "supports": "band + bistatic-angle span"
+    },
+    {
+     "where": "sec.I contributions",
+     "text": "Monostatic and bistatic RCS measurements for four AAVs, namely DJI Phantom 2, Phantom 3, Mini 2, and M350 RTK, are considered across multiple frequency bands and environments.",
+     "supports": "airframe list"
+    }
+   ],
+   "verdict": "OUR RECORD CONFIRMED EXACTLY (IEEE WCL 2026, 15:3731-3735). Independently matches the user's tracking table.",
+   "cautions": [
+    "Only the DJI Phantom 2 was newly measured here. Quote: 'The DJI Phantom 2 dataset is newly measured in this work, whereas the RCS data for the DJI Mini 2, Phantom 3, and M350 RTK were obtained from [7] and are further processed and analyzed here.' Acknowledgements thank 'Wei Fan from Southeast University for providing the measured RCS data for the DJI Mini 2, DJI Phantom 3, and DJI M350 RTK.'",
+    "*** NON-INDEPENDENCE: Wei Fan is also an author of F05 (Yuan et al.). F01 and F05 therefore share a measurement source and are NOT two independent anchors. Do not average them as if independent."
+   ],
+   "corrections": []
+  },
+  {
+   "id": "F02",
+   "short": "Zhang et al., unified RCS for 3GPP ISAC - PUBLISHED version",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+   "venue_as_printed_in_pdf": "IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 44, 2026 (running head, p.702)",
+   "status_from_pdf": "PUBLISHED. 'Received 13 February 2025; revised 9 July 2025; accepted 5 September 2025. Date of publication 11 September 2025; date of current version 4 February 2026.' DOI 10.1109/JSAC.2025.3608732",
+   "geometry": "MONOSTATIC ONLY (emulated by two closely spaced horns)",
+   "quotes": [
+    {
+     "where": "sec.V-A Measurement Setup",
+     "text": "The two horn antennas are positioned approximately 10 cm apart to simulate monostatic sensing.",
+     "supports": "geometry = monostatic, and it is an EMULATED monostatic, not truly co-located"
+    },
+    {
+     "where": "sec.V-A",
+     "text": "The AAV used is the DJI M350, with four symmetrically deployed rotor arms and approximate dimensions of 430 x 420 x 430 mm.",
+     "supports": "airframe identity"
+    },
+    {
+     "where": "sec.VI eq.(17)",
+     "text": "A_AAV = 0.31 * f - 9.26, A_vehicle = 0.08 * f + 8.21, A_human = 0.16 * f - 4.68,",
+     "supports": "the frequency SLOPE we use for anchoring (V3): +0.31 dB/GHz for an AAV"
+    },
+    {
+     "where": "sec.V-B calibration",
+     "text": "The theoretical RCS is -7.07 dBsm, while the measured average is -8.96 dBsm, with a discrepancy of less than 2 dBsm, confirming the high accuracy of the measurements.",
+     "supports": "external precedent for our +-2~3 dB anchoring tolerance"
+    }
+   ],
+   "verdict": "OUR RECORD CONFIRMED (Zhang, IEEE JSAC vol.44, p.702, 2026).",
+   "cautions": [
+    "*** BAND MISMATCH: measured at 10/15/20/28/36 GHz only. Using A_AAV = 0.31f - 9.26 at our 1.8-5.8 GHz bands is an EXTRAPOLATION well below the measured support. Must be stated whenever cited.",
+    "The turntable steps 5 deg over 360 deg; vertical polarization only."
+   ],
+   "corrections": []
+  },
+  {
+   "id": "F10",
+   "short": "Zhang et al., SAME PAPER as F02 - arXiv preprint version",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf",
+   "venue_as_printed_in_pdf": "NONE. Only the arXiv stamp: 'arXiv:2505.20673v1 [eess.SP] 27 May 2025'",
+   "status_from_pdf": "PREPRINT",
+   "geometry": "monostatic only (identical setup text)",
+   "quotes": [
+    {
+     "where": "p.1 stamp",
+     "text": "arXiv:2505.20673v1 [eess.SP] 27 May 2025",
+     "supports": "preprint status"
+    }
+   ],
+   "verdict": "*** CORRECTION (E2/E4): F02 and F10 are THE SAME PAPER in two versions, but reflib_sweep_venues.json carries them as two independent RCS_ANCHOR entries with different use_for_us strings. This inflates the anchor count and risks double-citation.",
+   "corrections": [
+    "F02 and F10 must be merged into one bibliographic identity: cite the JSAC published version, list arXiv:2505.20673v1 as the superseded preprint.",
+    "The entries_total=81 and by_config.RCS_ANCHOR=15 counts are affected: there are 14 distinct anchor works, not 15."
+   ],
+   "cautions": [
+    "Numbers are IDENTICAL across versions (checked: A_AAV=0.31f-9.26; sphere -7.07 vs -8.96 dBsm). Safe to quote numbers, but the CITATION must be the JSAC version.",
+    "Terminology changed UAV -> AAV between versions, and the author list/order changed ('Zhiqing Yuan' in the preprint vs 'Zhiqiang Yuan' in JSAC). Never copy the author list from the preprint."
+   ]
+  },
+  {
+   "id": "F03",
+   "short": "Costa et al., bistatic micro-Doppler of multi-propeller drones (journal)",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modeling_Micro-Doppler_Signature_of_Multi-Propeller_Drones_in_Distributed_ISAC.pdf",
+   "venue_as_printed_in_pdf": "IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation, VOLUME 1, 2025 (running foot)",
+   "status_from_pdf": "PUBLISHED, CC BY 4.0. 'Received 2 May 2025; revised 8 July 2025; accepted 19 August 2025. Date of publication 1 September 2025; date of current version 30 October 2025.' DOI 10.1109/JSTEAP.2025.3604407",
+   "geometry": "BISTATIC (measured with the BIRA bistatic reflectivity system), bistatic angles 10:5:180 deg",
+   "quotes": [
+    {
+     "where": "sec.I Introduction",
+     "text": "Monostatic sensing is also discussed but is likely to become the exception, as full-duplex access has not yet been introduced in mobile communications and will be problematic with the orthogonal frequency-division multiplexing (OFDM) waveforms used there.",
+     "supports": "*** EXTERNAL PUBLISHED SUPPORT for our bistatic focus and for our critique of monostatic-ISAC framing"
+    },
+    {
+     "where": "sec.I",
+     "text": "The inherent bistatic nature of ISAC somehow resembles the well-known passive radar principle.",
+     "supports": "the ISAC/passive-radar bridge our reports assert"
+    },
+    {
+     "where": "sec.III validation",
+     "text": "This produces a cross-correlation coefficient of 0.98 across the bistatic angles from 30 to 180.",
+     "supports": "the r=0.98 we record"
+    },
+    {
+     "where": "Appendix A",
+     "text": "The reflectivity of Ironman Drone is measured with wide bandwidth (5.78GHz:10MHz:8.22GHz) for multiple bistatic angle constellations (10:5:180) in HH polarization.",
+     "supports": "measurement band/geometry"
+    }
+   ],
+   "verdict": "OUR RECORD SUBSTANTIALLY CONFIRMED, with a scope tightening on r=0.98.",
+   "corrections": [
+    "*** SCOPE: our note reads 'thin-wire blade micro-Doppler vs bistatic OFDM measurement, r=0.98'. The 0.98 is for the SINGLE rotating propeller, frequency-domain signature, across bistatic angles 30-180 deg. For the full multi-propeller-with-body case the paper reports 'all models achieve low MSE values (under 0.01), and high Pearson correlation coefficients (above 0.99)'. Cite the case with the number."
+   ],
+   "cautions": [
+    "Target is an 'Ironman Drone', not a DJI airframe.",
+    "This is the JOURNAL version; F04 is the conference version (RadarConf24). Never conflate (E2)."
+   ]
+  },
+  {
+   "id": "F05",
+   "short": "Yuan et al., monostatic 3D UAV RCS",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "venue_as_printed_in_pdf": "*** NONE. The PDF carries no venue banner, no ISBN, no DOI, no copyright line. 'EuCAP' appears in the PDF only inside its own reference list.",
+   "status_from_pdf": "NOT STATED IN THE PDF (author camera-ready without publisher banner)",
+   "geometry": "MONOSTATIC, anechoic chamber",
+   "quotes": [
+    {
+     "where": "Abstract",
+     "text": "First, we conduct mono-static UAV RCS measurements in an anechoic chamber, recording RCS covering frequency band of 1.8 ~ 18.2 GHz and azimuth angles of -90deg ~ 90deg (given the symmetry of the UAV) at three UAV elevation sides {90deg, 0deg, 180deg}.",
+     "supports": "geometry + band"
+    },
+    {
+     "where": "Abstract",
+     "text": "Our analysis reveals the superiority of the Rician distribution in modeling UAV RCS, according to the performance evaluation of the fittings.",
+     "supports": "the fitted-distribution result"
+    }
+   ],
+   "verdict": "*** CORRECTION: our record asserts '(Yuan, EuCAP 2025)'. That venue is NOT readable from this PDF. Label it 'venue not printed on the PDF; EuCAP 2025 attribution NOT LOOKED AT at the publisher' until an Xplore record is opened.",
+   "corrections": [
+    "Downgrade the venue string of F05 from asserted 'EuCAP 2025' to 'NOT PRINTED IN PDF / publisher record not looked at'."
+   ],
+   "cautions": [
+    "*** HIGH VALUE despite the venue gap: the band starts at 1.8 GHz, which OVERLAPS our bands, unlike F02/F10 (10-36 GHz). This is the better absolute anchor for our carriers.",
+    "Author Wei Fan is the data source acknowledged by F01 - see the F01 non-independence caution."
+   ]
+  },
+  {
+   "id": "F06",
+   "short": "Li et al., micro-Doppler of multirotor UAVs using Sionna RT",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+   "venue_as_printed_in_pdf": "2025 IEEE 25th International Conference on Communication Technology (ICCT) | 979-8-3315-8578-5/25/$31.00 (c)2025 IEEE | DOI: 10.1109/ICCT67417.2025.11374154 (p.359)",
+   "status_from_pdf": "PUBLISHED",
+   "geometry": "not stated as mono/bistatic; a Tx illuminates a rotating target and CFR is recomputed per time step",
+   "quotes": [
+    {
+     "where": "sec.III-B / Table",
+     "text": "In the physical modeling, both built-in objects in Sionna and rotor models created in Blender are employed.",
+     "supports": "Sionna + Blender mesh"
+    },
+    {
+     "where": "Table (RT Parameters)",
+     "text": "Rotating propellers 1 | Blades per propeller 2 | Propeller radius 10.55cm | Propeller material Wood",
+     "supports": "*** the target is ONE PROPELLER, not a drone airframe - supports V7"
+    },
+    {
+     "where": "sec.I",
+     "text": "To date, no research has systematically employed ray tracing to model and analyze signal spectrum variations caused by rotational motions of multirotor UAVs.",
+     "supports": "a competing novelty claim in our exact space - must be cited in our positioning"
+    },
+    {
+     "where": "sec.III",
+     "text": "We propose an improved directional ray-tracing strategy based on Sionna RT, which replaces spherical sampling with conical sampling to enhance path density and distribution accuracy in critical regions.",
+     "supports": "they modified Sionna's sampling, they did not add a scattering integral"
+    }
+   ],
+   "verdict": "*** OUR RECORD IMPROVED: the user's tracking table lists Mesh/material as 'unclear'. Now settled: mesh = a Blender propeller (not an airframe), material = 'Wood', RCS = never computed, dBsm = never printed. This paper SUPPORTS V7 rather than threatening it.",
+   "cautions": [
+    "*** INTERNAL 10x INCONSISTENCY IN THE PAPER: the parameter table says 'Propeller radius 10.55cm' but the results text says 'Under the conditions of a blade length of 1.055 meters'. Any micro-Doppler number taken from this paper must state which figure it belongs to.",
+    "Their novelty sentence overlaps ours; we must cite them and differentiate, not ignore them."
+   ],
+   "corrections": []
+  },
+  {
+   "id": "F08",
+   "short": "Ziganshin et al., multistatic scattering in ISAC - THE V8 PAPER",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+   "venue_as_printed_in_pdf": "*** NONE. No ISBN, no DOI, no copyright line printed. Only an IEEE Xplore download banner. 'EuCAP' occurs once in the PDF, inside its own reference [2].",
+   "status_from_pdf": "NOT STATED IN THE PDF",
+   "geometry": "multistatic/bistatic reflectivity of a simplified CAR (3.3 x 2.1 x 1.7 m), 10 GHz; the word 'monostatic' never appears",
+   "quotes": [
+    {
+     "where": "Fig. 6 axis label + caption",
+     "text": "RCS (dBsm) EM (PO) RT+UTD+VD ... Fig. 6: RCS of the simplified car",
+     "supports": "*** V8: this is the single dBsm-printing Sionna paper, and the target is a CAR. dBsm occurs EXACTLY ONCE in the whole PDF."
+    },
+    {
+     "where": "sec.II Simulation Methods",
+     "text": "An open-source parallelizable framework, Sionna RT [11], is utilized to conduct simulations.",
+     "supports": "Sionna is genuinely the engine"
+    },
+    {
+     "where": "sec.II",
+     "text": "Wedge diffraction is implemented there using UTD [12]. This framework has been extended with Vertex Diffraction (VD) in accordance with [8].",
+     "supports": "*** what was ADDED is VERTEX diffraction; UTD wedge diffraction was ALREADY in Sionna"
+    },
+    {
+     "where": "sec.II",
+     "text": "This is a key difference compared to Radar Cross-Section (RCS), which is a real-valued distance-independent far-field power measure [6].",
+     "supports": "they explicitly separate reflectivity from RCS"
+    },
+    {
+     "where": "Conclusion",
+     "text": "The proposed solution can also be applied to compute scattering from other objects, such as drones, humans, and micro-Doppler effects, making it an important area for further investigation.",
+     "supports": "*** the closest Sionna-scattering group names DRONES as future work - strong support for our positioning and for V7"
+    }
+   ],
+   "verdict": "*** V8 SURVIVES and is now backed by a PDF I opened myself - but with two fixes.",
+   "corrections": [
+    "*** V8 WORDING IS WRONG: we say 'after adding UTD'. The PDF says Sionna ALREADY implements UTD wedge diffraction; Ziganshin added VERTEX diffraction (VD) on top. Correct phrasing: 'after adding vertex diffraction on top of Sionna's existing UTD wedge diffraction'.",
+    "*** V8 VENUE IS NOT PDF-BACKED: the 'EuCAP 2025, DOI 10.23919/EuCAP63536.2025.10999367' attribution appears nowhere in this PDF. It comes from our own earlier R20 records. Label the venue 'not looked at at the publisher' until an Xplore page is opened.",
+    "The archive filename contains neither 'ziganshin' nor 'eucap', which is why a filename sweep for the V8 source returns nothing. Record the path explicitly."
+   ],
+   "cautions": []
+  },
+  {
+   "id": "F07",
+   "short": "Ziganshin et al., scattering from discretized curved bodies",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+   "venue_as_printed_in_pdf": "NONE - arXiv stamp only: 'arXiv:2604.05991v2 [eess.SP] 2 Jul 2026'",
+   "status_from_pdf": "PREPRINT. No 'accepted'/'submitted'/'to appear' statement anywhere in the PDF.",
+   "geometry": "bistatic near-field scattering of a PEC vehicle + canonical PEC sphere/cylinder; validated against BIRA bistatic measurements 2-18 GHz and MLFMM",
+   "quotes": [
+    {
+     "where": "sec.III-A",
+     "text": "Extended Ray-tracing Framework Sionna-RT (v0.19) [19] was used as a basic RT framework, which is open-source, parallelizable, differentiable, and provides efficient path tracing and electromagnetic field computation on triangulized geometries.",
+     "supports": "Sionna is the base, version pinned"
+    },
+    {
+     "where": "sec.II",
+     "text": "All objects considered in this work are assumed to be perfectly electrically conducting (PEC), as vehicle bodies can often be approximated by PEC boundary conditions.",
+     "supports": "material column = PEC, matching the user's tracking table"
+    },
+    {
+     "where": "sec.IV",
+     "text": "Standard RT corresponds to the default Sionna-RT implementation with specular reflections and single-bounce edge diffraction, without the proposed vertex and higher-order diffraction extensions.",
+     "supports": "*** an authoritative statement of what STOCK Sionna-RT does: specular + single-bounce edge diffraction only"
+    },
+    {
+     "where": "sec.III-C",
+     "text": "In addition to the curvature-related metric, the facet size should be of several wavelengths in order to satisfy the UTD assumptions, typically E > 1.5*lambda.",
+     "supports": "discretization rule - directly comparable to our mesh/few-lambda marginality caveat"
+    }
+   ],
+   "verdict": "*** CORRECTIONS on version and on our dBsm bookkeeping.",
+   "corrections": [
+    "*** VERSION: our records and the user's tracking table both say 'arXiv:2604.05991v1'. The PDF on disk is v2 (2 Jul 2026). Cite v2.",
+    "*** Our earlier R20 record calls this an 'IEEE Open Journal of Antennas and Propagation submitted preprint'. The PDF states no such thing. That venue claim is NOT PDF-backed - label it not looked at."
+   ],
+   "cautions": [
+    "dBsm occurs ZERO times in this PDF - so it does not disturb V8's 'only 1 paper prints dBsm from Sionna'.",
+    "Target is a VEHICLE, not a drone. Diffraction is the paper's whole subject (147 'diffract*' hits), which is why the user's table double-fills that column.",
+    "It ships an open-source fork: https://github.com/AinurZiga/sionna-RT-reflectivity (cited as accessed 2026-03-31). Relevant to our OPENSOURCE.md."
+   ]
+  },
+  {
+   "id": "F09",
+   "short": "Liu et al., Clutter-Aware ISAC",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+   "venue_as_printed_in_pdf": "NONE - arXiv stamp only: 'arXiv:2602.10537v2 [eess.SP] 18 Mar 2026'",
+   "status_from_pdf": "PREPRINT. The strings 'Proceedings of the IEEE', 'accepted' and 'submitted' occur ZERO times in the paper's own text.",
+   "geometry": "MONOSTATIC baseline, with explicit bistatic/multistatic extension remarks",
+   "quotes": [
+    {
+     "where": "sec.II-A System Configuration",
+     "text": "We consider a monostatic ISAC system where a single BS simultaneously performs sensing and communication using separate transmit and receive antenna arrays with Nt and Nr elements, respectively.",
+     "supports": "geometry"
+    },
+    {
+     "where": "sec.VI site-specific study",
+     "text": "The ToI and UAVs are modeled as simplified 3D mesh objects imported into Sionna. These meshes are obtained by simplifying publicly available 3D models in Blender and exporting them in Sionna's XML format, which keeps the ray-tracing scene lightweight while enabling flexible material assignment.",
+     "supports": "mesh + material columns of the user's table"
+    },
+    {
+     "where": "sec.VI",
+     "text": "Sionna defines the LoS as a direct Tx-Rx path, so for monostatic sensing the target echoes appear as reflected and scattered paths that interact with the target object, even when a geometric LoS exists.",
+     "supports": "*** V7 DIRECTLY: a UAV mesh sits in a Sionna scene and the echo comes from reflected/scattered PATHS, never from a scattering integral. dBsm never printed."
+    },
+    {
+     "where": "Remark 1",
+     "text": "The same formulation extends to bistatic and multistatic operation when the illuminator and the sensing receiver are at different locations.",
+     "supports": "their bistatic extension is a remark, not a result"
+    }
+   ],
+   "verdict": "*** CORRECTION (E4): the archive filename asserts 'procIEEE-accepted'. The PDF does not support it.",
+   "corrections": [
+    "*** Status must be demoted to 'arXiv:2602.10537v2 (18 Mar 2026), preprint; the Proceedings-of-the-IEEE acceptance is an ARCHIVE-FILENAME assertion only, publisher record NOT LOOKED AT.' Citing it as accepted violates our own E4 rule.",
+    "*** The user's tracking table marks its diffraction column 'partial'. In the PDF 'Diffraction' occurs only TWICE, both times as one word in a single figure legend listing Sionna's ray interaction types ('Line-of-sight / Specular reflection / Diffuse reflection / Refraction / Diffraction'). Diffraction is never modeled or discussed in the text. The honest cell is 'figure legend only'."
+   ],
+   "cautions": [
+    "Their max interaction depth is 3: 'The maximum interaction depth for Sionna is set to three, so each ray undergoes at most three interactions with scene objects.'"
+   ]
+  },
+  {
+   "id": "F11",
+   "short": "Pasquale et al., SagittaSBR - BVH-accelerated SBR",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+   "venue_as_printed_in_pdf": "NONE - arXiv stamp 'arXiv:2604.09243v1 [cs.CE] 10 Apr 2026', plus an author note naming ICCS 2026",
+   "status_from_pdf": "EXTENDED PREPRINT of an accepted paper. Verbatim: 'Note. This manuscript is an extended version of the paper accepted at the 26th International Conference on Computational Science (ICCS 2026).'",
+   "geometry": "MONOSTATIC ONLY (explicitly); PEC sphere + a complex aircraft",
+   "quotes": [
+    {
+     "where": "Abstract",
+     "text": "We validate against analytical Mie solutions for a perfectly electrically conducting (PEC) sphere and demonstrate applicability to a complex aircraft geometry for monostatic radar cross-section prediction.",
+     "supports": "*** same validation strategy as our V2 (kernel vs analytic reference on a PEC sphere)"
+    },
+    {
+     "where": "sec.4 footnote 1",
+     "text": "A bistatic scattering calculation would require a visibility function to account for shadow regions between the reflection points and the final receiver. In a monostatic configuration this can be omitted, since the predominantly scattering surfaces are by assumption visible to the co-located launcher and receiver.",
+     "supports": "*** EXTERNAL PRIMARY-SOURCE CONFIRMATION of our own 'bistatic needs more than an obliquity change' limitation"
+    },
+    {
+     "where": "sec.2",
+     "text": "A known modeling limitation of classical GO+PO SBR is the absence of diffraction mechanisms, which can be important near edges, tips, or shadow boundaries.",
+     "supports": "*** lets us state our own no-diffraction limitation with an external citation instead of only self-assertion"
+    },
+    {
+     "where": "sec.4",
+     "text": "the monostatic RCS is sigma = 4*pi*|A|^2, which is evaluated in m2 and typically expressed in dBsm as 10 log10(sigma).",
+     "supports": "definition parity with our kernel"
+    }
+   ],
+   "verdict": "*** STATUS CORRECTED and the paper is more useful to us than recorded.",
+   "corrections": [
+    "Cite as 'arXiv:2604.09243v1, extended version of a paper accepted at ICCS 2026' - NOT as an ICCS 2026 paper simpliciter, and not as a bare preprint either."
+   ],
+   "cautions": [
+    "Target is an aircraft (Sagitta), PEC, not a drone. Open source: https://github.com/marco-pas/SagittaSBR."
+   ]
+  },
+  {
+   "id": "F12",
+   "short": "LAMBDA low-altitude multimodal UAV dataset",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+   "venue_as_printed_in_pdf": "NONE - arXiv stamp only: 'arXiv:2607.03826v1 [eess.SP] 4 Jul 2026'. Structured as a data-descriptor ('Background & Summary', 'Data Records').",
+   "status_from_pdf": "PREPRINT",
+   "geometry": "BS-to-UAV air-ground links; radar cube synthesized from Sionna paths + externally computed RCS",
+   "quotes": [
+    {
+     "where": "Methods, pipeline overview",
+     "text": "LAMBDA is generated on a digital-twin platform that integrates Unreal Engine 5 (UE5) [23] for high-fidelity scene construction; Cosys-AirSim [24,25] for UAV motion control...; Blender [26] for scene-mesh conversion; Sionna RT [27] for material-aware ray tracing; and CADFEKO [28] for UAV radar cross-section (RCS) modeling.",
+     "supports": "*** the division of labour: Sionna does propagation, FEKO does the RCS"
+    },
+    {
+     "where": "Methods, radar synthesis",
+     "text": "The radar synthesis module further combines the Sionna RT multipath geometry with CADFEKO-derived UAV RCS information to generate radar data.",
+     "supports": "*** V7 DIRECTLY - confirms the user's table cell 'external EM computation'"
+    },
+    {
+     "where": "Data Records",
+     "text": "The complex-valued CSI coefficient captures the propagation effects computed by the ray-tracing channel generator, whereas the RCS term is obtained from CADFEKO simulations of the AirSim UAV model and queried according to the UAV attitude.",
+     "supports": "RCS is a lookup keyed on attitude, not a Sionna computation"
+    }
+   ],
+   "verdict": "OUR RECORD AND THE USER'S TABLE CONFIRMED on Sionna/mesh/material/RCS-external.",
+   "corrections": [
+    "*** The user's tracking table marks LAMBDA's diffraction column 'partial'. The string 'diffract' occurs ZERO times in the entire PDF (case-insensitive). The honest cell is 'not mentioned' - whatever Sionna does internally, the paper never claims it."
+   ],
+   "cautions": [
+    "dBsm never printed. The UAV RCS is FEKO's, so LAMBDA is not an independent RCS source for us."
+   ]
+  },
+  {
+   "id": "A09",
+   "short": "UAV rotor micro-Doppler with ISAC signal - testbed",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+   "venue_as_printed_in_pdf": "IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. ... (running head)",
+   "status_from_pdf": "PUBLISHED. 'Received 2 August 2024; revised 24 February 2025; accepted 31 May 2025. Date of publication 10 July 2025; date of current version 12 December 2025.' (c) 2025 IEEE",
+   "geometry": "ACTIVE MONOSTATIC, full-duplex BS",
+   "quotes": [
+    {
+     "where": "sec.I contributions",
+     "text": "A new mathematical model for UAV micro-Doppler in monostatic ISAC systems is proposed.",
+     "supports": "geometry"
+    },
+    {
+     "where": "sec.II",
+     "text": "The BS is equipped with separate antennas that enable full-duplex operation, allowing it to transmit and receive signals simultaneously.",
+     "supports": "it is the transmitter - the toll our reports describe"
+    },
+    {
+     "where": "sec.II",
+     "text": "During DL slots, the BS utilizes all physical downlink shared channel (PDSCH) signals as sensing symbols, resulting in the shortest pulse repetition interval (PRI) of 33.3 microseconds.",
+     "supports": "*** PRF = 30 kHz achieved by owning the transmitter and using DATA symbols"
+    },
+    {
+     "where": "sec.III",
+     "text": "To ensure that these features are preserved, the pulse repetition frequency (PRF) must be at least twice the maximum micro-Doppler frequency, i.e., PRF >= 2 f_mD_max, where the maximum micro-Doppler frequency is given by f_mD_max = 2*pi*f_r*L/lambda.",
+     "supports": "*** the SAME Nyquist-on-PRF law family as our V1 - published, monostatic form"
+    },
+    {
+     "where": "sec.VI",
+     "text": "For example, using our hardware test parameters (fr = 80 r/s and L = 0.5 m), we obtain fmD = 2934 Hz, which requires a PRF of at least 5868 Hz (corresponding to a PRI of less than 1.7 x 10^-4 s).",
+     "supports": "a concrete published PRF requirement to place beside our table"
+    }
+   ],
+   "verdict": "*** IMPORTANT NUANCE FOR V4, not a contradiction.",
+   "corrections": [
+    "*** V4 says '3GPP sub-6 CSI-RS caps at 500 Hz -> 10.71 m/s ... covers 0 of 5 airframes'. That is true FOR REFERENCE SIGNALS. A09 shows the published escape route: a system that OWNS the transmitter uses PDSCH data symbols and reaches PRI 33.3 us (PRF ~30 kHz). When we state V4 we must say 'the 500 Hz cap binds systems restricted to CSI-RS; monostatic systems that own the transmitter bypass it via PDSCH (A09) or via non-uniform sparse recovery (LaSen)'. Otherwise V4 overstates."
+   ],
+   "cautions": []
+  },
+  {
+   "id": "A06",
+   "short": "Khosroshahi et al., PRS + PDSCH for ISAC",
+   "pdf": "/data/public/sionna_jeong/reference_library/2408.00667v2.pdf",
+   "venue_as_printed_in_pdf": "NONE - arXiv stamp only: 'arXiv:2408.00667v2 [eess.SP] 2 Aug 2024'",
+   "status_from_pdf": "PREPRINT",
+   "geometry": "not stated as mono/bistatic in the sentences found; a 5G NR downlink sensing framework",
+   "quotes": [
+    {
+     "where": "Abstract",
+     "text": "We propose to take advantage of the existing positioning reference signal (PRS) for sensing and the physical downlink shared channel (PDSCH) for communication, both readily available in 5G NR.",
+     "supports": "signal choice"
+    },
+    {
+     "where": "Abstract",
+     "text": "However, the use of PRS for sensing poses challenges, leading to the appearance of ghost targets.",
+     "supports": "*** a PRS ghost mechanism that is NOT our floor ghost"
+    }
+   ],
+   "verdict": "*** CORRECTION: our JSON lists venue 'IEEE GLOBECOM 2024' with grade P. The PDF on disk is the arXiv preprint and prints no GLOBECOM banner. The GLOBECOM attribution is bibliographic, not read off this PDF.",
+   "corrections": [
+    "Split the record: PDF-backed status = arXiv:2408.00667v2 preprint; GLOBECOM 2024 = bibliographic, publisher record not looked at."
+   ],
+   "cautions": [
+    "*** Their 'ghost target' is comb-structure aliasing from the PRS comb size, NOT a target-via-floor multipath ghost. Our report 09 floor-ghost narrative must not cite this as the same phenomenon."
+   ]
+  },
+  {
+   "id": "A07",
+   "short": "mmHawkeye - UAV detection with a COTS mmWave radar",
+   "pdf": "/data/public/sionna_jeong/reference_library/2308.06479v1.pdf",
+   "venue_as_printed_in_pdf": "NONE - arXiv stamp only: 'arXiv:2308.06479v1 [cs.NI] 12 Aug 2023'",
+   "status_from_pdf": "PREPRINT",
+   "geometry": "ACTIVE radar (FMCW), target non-cooperative. The words 'monostatic' and 'bistatic' never appear.",
+   "quotes": [
+    {
+     "where": "sec.II",
+     "text": "Specifically, a mmWave radar sends frequency-modulated continuous wave (FMCW) chirp signals for range estimation and velocity measurement.",
+     "supports": "the sensor TRANSMITS - so 'passive' here is our taxonomy's sense (2), non-cooperative target"
+    },
+    {
+     "where": "sec.V",
+     "text": "We implement mmHawkeye on the commercial radar (TI IWR6843ISKODS board) and conduct extensive experiments.",
+     "supports": "hardware"
+    }
+   ],
+   "verdict": "Config A_active_monostatic is substantively right but is our INFERENCE, not a quoted word.",
+   "corrections": [
+    "PDF-backed status = arXiv preprint v1. Our JSON's 'SECON 2023' venue with grade P is bibliographic only - the SECON camera-ready was not opened.",
+    "Record the config as 'inferred from the FMCW sentence', since the paper never uses the word monostatic. This is a live case of the taxonomy's own TERMINOLOGY_TRAP."
+   ],
+   "cautions": []
+  },
+  {
+   "id": "D10",
+   "short": "BatStation - in-situ radar sensing on 5G base stations",
+   "pdf": "/data/public/sionna_jeong/reference_library/2509.06898.pdf",
+   "venue_as_printed_in_pdf": "NONE - arXiv stamp only: 'arXiv:2509.06898v1 [cs.NI] 8 Sep 2025'",
+   "status_from_pdf": "PREPRINT (matches our record)",
+   "geometry": "*** NEITHER. The 5G BS RECEIVES a third party's incumbent radar emissions in CBRS; it does not illuminate a target.",
+   "quotes": [
+    {
+     "where": "Abstract",
+     "text": "However, the targeting radar signals are superimposed with concurrent 5G uplink transmissions received by the BS, and practical deployment also demands a lightweight, portable radar sensing model.",
+     "supports": "the BS is a RECEIVER of someone else's radar"
+    },
+    {
+     "where": "sec.1",
+     "text": "the citizens broadband radio service (CBRS) band located at 3.55-3.70 GHz is released for commercial 5G access, but at a lower priority than the incumbent access",
+     "supports": "the problem is spectrum coexistence"
+    },
+    {
+     "where": "sec.1",
+     "text": "Among the incumbent occupancies, the naval radar managed by the department of defense (DoD) commonly occurs, whose radar signals are challenging to detect due to their deployment on mobile radar transceivers, as well as the low signal power.",
+     "supports": "the target of interest is a NAVAL RADAR EMITTER"
+    }
+   ],
+   "verdict": "*** MISCLASSIFIED, and it is not a drone paper at all.",
+   "corrections": [
+    "*** D10 is filed as 'A_active_monostatic'. It is not: the BS never transmits a sensing waveform. It belongs with emission-based / incumbent-detection work (taxonomy sense (3)).",
+    "*** MEASURED: the strings 'drone', 'UAV', 'monostatic' and 'bistatic' each occur ZERO times in the entire PDF. BatStation has no drone content and should not sit in a drone-sensing corpus without that caveat."
+   ],
+   "cautions": []
+  },
+  {
+   "id": "B01",
+   "short": "Di Seglio et al., RpF-based WiFi passive radar",
+   "pdf": "/data/public/jeong/papers/Wifi/22_Human_and_Drone_Surveillance_via_RpF-based_WiFi_Passive_Radar_Experimental_Validation.pdf",
+   "venue_as_printed_in_pdf": "'978-83-956020-5-4 (c)2022 Warsaw University of Technology' - ISBN and publisher only; the conference NAME is not printed on the page.",
+   "status_from_pdf": "PUBLISHED (conference proceedings, ISBN present)",
+   "geometry": "*** BISTATIC",
+   "quotes": [
+    {
+     "where": "sec.V experimental setup",
+     "text": "A moderate bistatic acquisition geometry was employed (see Fig.",
+     "supports": "*** geometry is bistatic, NOT quasi-monostatic"
+    },
+    {
+     "where": "Abstract",
+     "text": "The effectiveness of the resulting processing scheme is tested on experimental data, collected in both the 2.4 and 5 GHz WiFi bands, against both humans and a small drone.",
+     "supports": "band + target"
+    }
+   ],
+   "verdict": "Venue partially closed (ISBN + publisher read off the PDF); conference name still not printed.",
+   "corrections": [
+    "*** See the block-level B correction below: config must move from B_passive_quasi_monostatic to passive BISTATIC."
+   ],
+   "cautions": []
+  },
+  {
+   "id": "B02",
+   "short": "Colone et al., reference-free amplitude-based WiFi passive sensing",
+   "pdf": "/data/public/jeong/papers/Wifi/23_Reference-Free_Amplitude-Based_WiFi_Passive_Sensing.pdf",
+   "venue_as_printed_in_pdf": "IEEE TRANSACTIONS ON AEROSPACE AND ELECTRONIC SYSTEMS, VOL. 59, NO. 5 (running head, p.6433)",
+   "status_from_pdf": "PUBLISHED. 'Date of publication 16 May 2023; date of current version ...'",
+   "geometry": "*** BISTATIC",
+   "quotes": [
+    {
+     "where": "sec.II signal model",
+     "text": "R_q,p(l) = R_Tx-TGT_q,p(l) + R_Rx-TGT_q,p(l) - B is the relative bistatic range law of the qth target along the pth packet, being B the distance between the Tx and the Rx",
+     "supports": "*** an explicit bistatic range law with a nonzero baseline B - this is not quasi-monostatic"
+    },
+    {
+     "where": "sec.I",
+     "text": "Compared with the PR approach, this can be inherently considered as a reference-free approach since it does not require the knowledge of the signal transmitted by the AP.",
+     "supports": "*** the real distinguishing axis is REFERENCE-FREE, not baseline"
+    }
+   ],
+   "verdict": "Venue and status closed from the PDF. *** Config was wrong (see block correction).",
+   "cautions": [
+    "G4-relevant: TAES is one of the five venues our automated sweep could not index, and this one WAS opened by hand."
+   ],
+   "corrections": []
+  },
+  {
+   "id": "B03",
+   "short": "Filippini et al., OFDM WiFi passive sensing, reference-free non-coherent",
+   "pdf": "/data/public/jeong/papers/Wifi/23_OFDM_based_WiFi_Passive_Sensing_a_reference-free_non-coherent_approach.pdf",
+   "venue_as_printed_in_pdf": "2023 IEEE Radar Conference (RadarConf23) | 978-1-6654-3669-4/23/$31.00 (c)2023 IEEE | DOI: 10.1109/RADARCONF2351548.2023.1...",
+   "status_from_pdf": "PUBLISHED",
+   "geometry": "*** BISTATIC",
+   "quotes": [
+    {
+     "where": "sec.I",
+     "text": "To this end, we resort to a reference-free non-coherent signal processing scheme, where the presence of a moving target echo is sought by detecting the amplitude modulation that it produces on the direct signal transmitted from the WiFi access point.",
+     "supports": "method"
+    },
+    {
+     "where": "sec.IV results",
+     "text": "Figure 3 reports the output of the IDP strategy in the absolute bistatic velocity - time plane.",
+     "supports": "*** bistatic"
+    },
+    {
+     "where": "Abstract",
+     "text": "Then, we apply the conceived solution on experimental data collected in a small outdoor area with the purpose of detecting a small cooperative drone.",
+     "supports": "drone target"
+    }
+   ],
+   "verdict": "*** Venue string CLOSED - our JSON said 'conference proceedings (string NOT read off the PDF)'.",
+   "corrections": [
+    "Config was wrong (see block correction)."
+   ],
+   "cautions": []
+  },
+  {
+   "id": "B04",
+   "short": "Di Seglio et al., comparing reference-free WiFi radar sensing approaches",
+   "pdf": "/data/public/jeong/papers/Wifi/24_Comparing reference-free WiFi radar sensing approaches for monitoring people and drones.pdf",
+   "venue_as_printed_in_pdf": "IET Radar, Sonar & Navigation, DOI: 10.1049/rsn2.12506; '(c) 2023 The Authors. IET Radar, Sonar & Navigation published by John Wiley & Sons Ltd on behalf of ...'",
+   "status_from_pdf": "PUBLISHED. 'Received: 1 May 2023 - Revised: 11 October 2023 - Accepted: 29 October 2023'",
+   "geometry": "*** BISTATIC, deliberately spanning moderate to EXTREME bistatic (forward scatter)",
+   "quotes": [
+    {
+     "where": "sec.I",
+     "text": "Based on its principle of operation, it does not require accurate time and phase synchronization; however, it suffers from an inherent sign ambiguity in the target velocity measure and it is expected to be effective when extreme bistatic geometries are considered.",
+     "supports": "*** extreme bistatic - the OPPOSITE end of the baseline axis from quasi-monostatic"
+    },
+    {
+     "where": "sec.I",
+     "text": "Specifically, signals of a commercial WiFi AP in either the 2.4 and 5 GHz bands were exploited to detect cooperative human targets and a commercial drone that were observed under moderate or extreme bistatic geometries.",
+     "supports": "geometry span + targets"
+    },
+    {
+     "where": "sec.V",
+     "text": "A four-channel National Instrument USRP-2955 receiving system was employed and connected to three surveillance antennas, steered towards the monitored area.",
+     "supports": "multi-channel receive - comparable to our multi-Rx setting"
+    }
+   ],
+   "verdict": "*** Venue/status closed. Config was wrong (see block correction).",
+   "cautions": [
+    "G4-relevant: IET RSN is dblp-invisible and this one WAS opened by hand."
+   ],
+   "corrections": []
+  },
+  {
+   "id": "C02",
+   "short": "5G network-based passive radar for drone detection",
+   "pdf": "/data/public/jeong/papers/5G/23_5G Network-Based Passive Radar for Drone Detection.pdf",
+   "venue_as_printed_in_pdf": "'The International Radar Symposium IRS 2023, May 24-26, 2023, Berlin' with '978-3-944976-34-1 (c)2022 DGON' on the same line",
+   "status_from_pdf": "PUBLISHED",
+   "geometry": "PASSIVE BISTATIC, cooperative 5G illuminator",
+   "quotes": [
+    {
+     "where": "sec.2",
+     "text": "A typical passive bistatic radar (PBR) measurement geometry is shown in Figure 1.",
+     "supports": "geometry"
+    },
+    {
+     "where": "sec.4",
+     "text": "It operates at a 3.44 GHz carrier frequency with 38.16 MHz of maximum bandwidth, which gives a maximum bistatic range resolution of approximately 7.8 m.",
+     "supports": "*** an external published c/B-style bistatic range resolution figure to sit beside our delta-R_b = c/B convention"
+    },
+    {
+     "where": "Abstract",
+     "text": "The concept has been validated by performing a real experiment with a drone and a cooperative 5G network as a source of illumination.",
+     "supports": "cooperative, not opportunistic"
+    }
+   ],
+   "verdict": "*** Venue string CLOSED. Our year=2023 is CORRECT.",
+   "cautions": [
+    "The PDF prints an internal mismatch: conference IRS 2023 but ISBN line '(c)2022 DGON'. Quote the conference line, not the copyright year."
+   ],
+   "corrections": []
+  },
+  {
+   "id": "C03",
+   "short": "UAV intrusion detection with passive radar based on the 5G network",
+   "pdf": "/data/public/jeong/papers/5G/25_UAV Intrusion Detection with Passive Radar Based on the 5G Network.pdf",
+   "venue_as_printed_in_pdf": "2025 59th Asilomar Conference on Signals, Systems, and Computers | 979-8-3315-8745-1/25/$31.00 (c)2025 IEEE | DOI: 10.1109/IEEECONF67917.2025.11443758 (p.1639)",
+   "status_from_pdf": "PUBLISHED",
+   "geometry": "PASSIVE BISTATIC",
+   "quotes": [
+    {
+     "where": "sec.II",
+     "text": "The fundamental operating principle of passive radar relies on exploiting non-cooperative transmitters of opportunity, which typically results in bistatic system geometry (see Figure 1).",
+     "supports": "geometry"
+    },
+    {
+     "where": "sec.II eq.(2)",
+     "text": "The former is defined as Rb = R1 + R2 - L, where R1 and R2 represent the distances from the transmitter and receiver to the target, respectively, and L is the baseline separation between the two stations",
+     "supports": "the bistatic range definition our pipeline uses"
+    },
+    {
+     "where": "sec.II eq.(4)",
+     "text": "fb = (2*Vb/lambda) * cos(delta) * cos(beta/2), where delta is the angle between the target's velocity vector and the bisector of the bistatic angle beta.",
+     "supports": "*** the published bisector form behind our V5 (monostatic == bistatic at beta=0) and behind our bisector-approximation caution"
+    }
+   ],
+   "verdict": "*** Venue string CLOSED - our JSON said 'string NOT read off the PDF'. This is now a first-class citable source for the bistatic Doppler law.",
+   "corrections": [],
+   "cautions": []
+  },
+  {
+   "id": "C04",
+   "short": "Jopanya et al., 5G NR SSB for passive drone detection/localization",
+   "pdf": "/data/public/jeong/papers/5G/25_Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones.pdf",
+   "venue_as_printed_in_pdf": "'2025 IEEE 26th International Workshop on Signal Processing and Artificial Intelligence for [Wireless Communications]' | 978-1-6654-7776-5/25/$31.00 (c)2025 IEEE | DOI: 10.1109/SPAWC66079.2025.1114331x",
+   "status_from_pdf": "PUBLISHED (IEEE camera-ready with copyright line and DOI)",
+   "geometry": "PASSIVE BISTATIC",
+   "quotes": [
+    {
+     "where": "Abstract",
+     "text": "We propose a sensing mechanism based on the synchronization signal block (SSB) in the fifth-generation (5G) standard that performs sensing in a passive bistatic setting.",
+     "supports": "*** geometry, explicitly"
+    },
+    {
+     "where": "sec.II",
+     "text": "Moreover, the synchronization signal (SSB) of 5G NR is the only periodic block of symbols that is well-defined as a fixed-size block in the time-frequency grid.",
+     "supports": "*** external support for our always-on-reference-signal narrative (SSB is the only reliably periodic block)"
+    },
+    {
+     "where": "sec.II",
+     "text": "By assuming planar arrays at the sensing nodes and according to the 5G standard, we consider that the SSB signal is sent using sweeping beams that are multiplexed in time, with some of them pointing toward a surveillance region where low-altitude drones can be flying.",
+     "supports": "beam-sweep structure"
+    }
+   ],
+   "verdict": "*** Venue string CLOSED from the PDF - our JSON had it as 'per archive filename' with the string unread. The DOI prefix SPAWC66079 confirms SPAWC 2025.",
+   "corrections": [],
+   "cautions": []
+  },
+  {
+   "id": "C05",
+   "short": "Passive detection experiment of UAV based on 5G NR signal",
+   "pdf": "/data/public/jeong/papers/5G/21_Passive Detection Experiment of UAV Based on 5G New Radio Signal.pdf",
+   "venue_as_printed_in_pdf": "978-1-7281-7247-7/21/$31.00 (c)2021 IEEE | DOI: 10.1109/PIERS53385.2021.9695141",
+   "status_from_pdf": "PUBLISHED",
+   "geometry": "PASSIVE BISTATIC (5G NR illuminator)",
+   "quotes": [
+    {
+     "where": "sec.IV",
+     "text": "The appearance of the remaining secondary peaks is related to the relevant reference signal in the SSB.",
+     "supports": "SSB ambiguity structure"
+    }
+   ],
+   "verdict": "Our record (PIERS, Hangzhou, 2021) CONFIRMED by the DOI prefix PIERS53385.2021.",
+   "corrections": [],
+   "cautions": []
+  },
+  {
+   "id": "C06",
+   "short": "5G spectrum learning-based passive UAV detection",
+   "pdf": "/data/public/jeong/papers/5G/23_5G_Spectrum_Learning-Based_Passive_UAV_Detection_in_Urban_Scenario.pdf",
+   "venue_as_printed_in_pdf": "979-8-3503-4538-4/23/$31.00 (c)2023 IEEE | DOI: 10.1109/ICCC57788.2023.10233342 (IEEE/CIC ICCC 2023)",
+   "status_from_pdf": "PUBLISHED",
+   "geometry": "PASSIVE BISTATIC (reference + surveillance cross-correlation)",
+   "quotes": [
+    {
+     "where": "sec.I",
+     "text": "By utilizing the existing communication signals as the illuminators, passive radar can be implemented for UAV detection, where the signals are separated as reference signals and surveillance signals for cross correlation calculation",
+     "supports": "two-channel CAF architecture"
+    }
+   ],
+   "verdict": "*** Venue string CLOSED - our JSON said 'string NOT read off the PDF'.",
+   "corrections": [],
+   "cautions": []
+  },
+  {
+   "id": "C07",
+   "short": "Dan et al., LTE-based passive radar for drone detection",
+   "pdf": "/data/public/jeong/papers/LTE/19_LTE-based passive radar for drone detection and its experimental results.pdf",
+   "venue_as_printed_in_pdf": "'The Journal of Engineering / IET International Radar Conference (IRC 2018)'; 'J. Eng., 2019, Vol. 2019 Iss. 20, pp. 6910-6913'; eISSN 2051-3305; doi: 10.1049/joe.2019.0583",
+   "status_from_pdf": "PUBLISHED, IET open access CC BY-NC. 'Received on 21st February 2019 / Accepted on 8th May 2019 / E-First on 19th September 2019'",
+   "geometry": "PASSIVE BISTATIC, two-channel",
+   "quotes": [
+    {
+     "where": "sec.2",
+     "text": "Passive radar always equips with two types of channels: one called reference channel collects replica from non-cooperative IO for matched filtering and the other called surveillance channel collects targets echo.",
+     "supports": "*** the canonical two-channel definition - the honest contrast to our ideal-reference matched filter (our open CAF question)"
+    },
+    {
+     "where": "sec.3",
+     "text": "Two Yagi antennas at the top of another 20 m-high building are chosen as reference and surveillance channel, respectively.",
+     "supports": "physical realization of the two channels"
+    }
+   ],
+   "verdict": "Our record CONFIRMED and sharpened: exact volume/issue/pages now read off the PDF (2019, Vol. 2019, Iss. 20, pp. 6910-6913).",
+   "cautions": [
+    "Venue year trap: conference is IRC 2018, publication is J. Eng. 2019. State both."
+   ],
+   "corrections": []
+  },
+  {
+   "id": "C08",
+   "short": "Geng et al., LTE-based multistatic passive radar for UAV detection",
+   "pdf": "/data/public/jeong/papers/LTE/20_LTE-based multistatic passive radar system for UAV detection.pdf",
+   "venue_as_printed_in_pdf": "'IET Radar, Sonar & Navigation / Research Article', ISSN 1751-8784, doi: 10.1049/iet-rsn.2019.0452",
+   "status_from_pdf": "PUBLISHED. 'Received on 16th September 2019 / Revised 17th February 2020 / Accepted on 16th March 2020 / E-First on 22nd April 2020'",
+   "geometry": "MULTISTATIC (multiple eNodeB illuminators, one receiver), hyperbolic positioning",
+   "quotes": [
+    {
+     "where": "sec.1",
+     "text": "However, these previous works on the LTE-based passive radar are all limited to the conventional bistatic configurations.",
+     "supports": "*** positions multistatic as the novelty - relevant to our multi-Rx claim"
+    },
+    {
+     "where": "Abstract",
+     "text": "The bistatic range measurements are obtained from multiple eNodeBs, and the hyperbolic positioning technique is used for target localisation.",
+     "supports": "geometry"
+    },
+    {
+     "where": "sec.2",
+     "text": "However, since the CRS are originally designed for communication, they are not the optimum choices for radar detection.",
+     "supports": "external support for our reference-signal-vs-data tradeoff narrative"
+    }
+   ],
+   "verdict": "Venue/status closed. G4-relevant: IET RSN, opened by hand.",
+   "cautions": [
+    "*** Their multistatic = MANY ILLUMINATORS, one receiver. Our multi-Rx benchmark = ONE illuminator, many receivers. Do not present C08 as prior art for our configuration without stating the difference."
+   ],
+   "corrections": []
+  },
+  {
+   "id": "C09",
+   "short": "Passive drone localization using LTE signals (poster)",
+   "pdf": "/data/public/jeong/papers/LTE/22_Passive Drone Localization Using LTE Signals.pdf",
+   "venue_as_printed_in_pdf": "'Proceedings of the 15th ... (WiSec)'; 'ISBN 978-1-4503-9216-7/22/05'; '(c) 2022 Copyright held by the owner/author(s).' - 3 pages, POSTER",
+   "status_from_pdf": "PUBLISHED (poster/extended abstract)",
+   "geometry": "passive, multiple transmitters (3-6 Tx), receiver-side localization",
+   "quotes": [
+    {
+     "where": "Evaluation",
+     "text": "The target drone is a DJI Mavic Air 2, which has a very small radar cross section (RCS). Thus we attach an extra load under the drone (an aluminum-wrapped plastic bottle (190 mm x 190 mm x 250 mm)) to increase the RCS, and add two RF amplifiers to the transmitters to increase the signal power.",
+     "supports": "*** the result is NOT bare-drone detection"
+    },
+    {
+     "where": "Evaluation",
+     "text": "In above experiments, we achieved a maximum drone localization radius of 20 m.",
+     "supports": "scale of the demonstration"
+    },
+    {
+     "where": "Evaluation",
+     "text": "The measured RCS of our reflector is about 0.07 m2.",
+     "supports": "the augmented target's RCS = -11.5 dBsm, far above a bare small drone"
+    }
+   ],
+   "verdict": "*** MAJOR CAVEAT DISCOVERED. This entry must never be cited as evidence that bare drones are passively detectable with LTE.",
+   "corrections": [
+    "*** Record prominently: the target carried an aluminium-wrapped bottle to RAISE its RCS to ~0.07 m2, the transmitters were AMPLIFIED, and the demonstrated radius was 20 m. It is a 3-page poster. Any use of C09 in a related-work table must carry this qualification."
+   ],
+   "cautions": []
+  },
+  {
+   "id": "C10",
+   "short": "Experimental UAV detection using 4G-LTE-based passive radar",
+   "pdf": "/data/public/jeong/papers/LTE/23_Experimental UAV detection using 4G-LTE-based passive Radar.pdf",
+   "venue_as_printed_in_pdf": "2023 IEEE International Radar Conference (RADAR) | 978-1-6654-8278-3/23/$31.00 (c)2023 IEEE | DOI: 10.1109/RADAR54928.2023.1037115x",
+   "status_from_pdf": "PUBLISHED",
+   "geometry": "PASSIVE BISTATIC, reference antenna toward Tx + surveillance antenna",
+   "quotes": [
+    {
+     "where": "sec.I",
+     "text": "Work in [2] can be mentioned, where the reference antenna pointing towards the transmitter and surveillance antenna were placed on a top of a building, with a drone evolving above the surveillance antenna, making the environment friendlier that the one that we will consider here.",
+     "supports": "two-channel geometry + an explicit statement that prior geometries were favourable"
+    },
+    {
+     "where": "sec.II",
+     "text": "These are usually refered to as Cell-specific Reference Signals (CRS) in LTE framework.",
+     "supports": "our LTE CRS illuminator choice"
+    }
+   ],
+   "verdict": "*** Venue string CLOSED - our JSON said 'conference proceedings (ONERA; string NOT read off the PDF)'.",
+   "corrections": [],
+   "cautions": []
+  },
+  {
+   "id": "C11",
+   "short": "Drone detection using 4G-LTE-based passive radar",
+   "pdf": "/data/public/jeong/papers/LTE/25_Drone_Detection_Using_4G-LTE-Based_Passive_Radar.pdf",
+   "venue_as_printed_in_pdf": "IEEE TRANSACTIONS ON AEROSPACE AND ELECTRONIC SYSTEMS, VOL. 61, NO. 4 (running head, p.8804)",
+   "status_from_pdf": "PUBLISHED. 'Received 4 October 2024; revised 21 January 2025; accepted 18 February 2025. Date of publication 24 February 2025; date of current version ...' (c) 2025 IEEE",
+   "geometry": "PASSIVE BISTATIC",
+   "quotes": [
+    {
+     "where": "sec.I",
+     "text": "An issue that the authors faced, and that will also be encountered in this article, is the 'idle LTE' time, i.e., the moments when the illuminator transmits nearly no signal.",
+     "supports": "*** a PUBLISHED TAES statement of the OCCUPANCY problem - external support for our occupancy-cost narrative and our G1/G2/G3 modes"
+    },
+    {
+     "where": "sec.I",
+     "text": "Once again, passive radar can show advantages in this matter: because the illuminators of opportunity transmit continuously, longer integration times can be considered.",
+     "supports": "the always-on premise our reports use"
+    }
+   ],
+   "verdict": "Venue/status closed with volume, number and page. G4-relevant: TAES, opened by hand.",
+   "corrections": [],
+   "cautions": []
+  },
+  {
+   "id": "C12",
+   "short": "LTE450-based passive radar for critical infrastructure",
+   "pdf": "/data/public/jeong/papers/LTE/24_Protection_of_Critical_Infrastructure_using_LTE450-based_Passive_Radar_Range_Measurements_for_Drone_Detection.pdf",
+   "venue_as_printed_in_pdf": "979-8-3503-6238-1/24/$31.00 (c)2024 IEEE | DOI: 10.1109/RADAR58436.2024.1099390x (IEEE Radar Conference 2024)",
+   "status_from_pdf": "PUBLISHED",
+   "geometry": "PASSIVE BISTATIC, single surveillance + single reference channel",
+   "quotes": [
+    {
+     "where": "sec.II",
+     "text": "However, the signal processing is based on a single surveillance and a reference channel.",
+     "supports": "architecture"
+    },
+    {
+     "where": "sec.I",
+     "text": "Fortunately, in Germany and other European countries critical infrastructure will be equipped with a blackout resistant LTE network, known as LTE450, with downlink frequency bands 31 and 72 (461.0 MHz - 467.5 MHz) which could be used then as illuminator.",
+     "supports": "a sub-GHz illuminator band far below ours"
+    },
+    {
+     "where": "sec.I",
+     "text": "The presumably first mentioned experimental results with an LTE illuminator transmitting at center frequency around 1.8 GHz for the detection of a DJI Phantom 4 quadcopter up to a bistatic range of 200 meter can be found in [15].",
+     "supports": "an external bistatic-range datum at our LTE carrier"
+    }
+   ],
+   "verdict": "*** Venue string CLOSED - our JSON said 'conference proceedings (Fraunhofer FKIE; string NOT read off the PDF)'.",
+   "corrections": [],
+   "cautions": []
+  },
+  {
+   "id": "C13",
+   "short": "Passive UAV tracking with digital arrays and cellular downlink",
+   "pdf": "/data/public/jeong/papers/LTE/25_An Experimental Study of Passive UAV Tracking With Digital Arrays and Cellular Downlink Signals.pdf",
+   "venue_as_printed_in_pdf": "IEEE Open Journal of the Communications Society; Digital Object Identifier 10.1109/OJCOMS.2025.3558430",
+   "status_from_pdf": "PUBLISHED, open access. 'Received 14 December 2024; revised 24 February 2025; accepted 28 March 2025. Date of publication 7 April 2025; date of current version 30 April 2025.'",
+   "geometry": "PASSIVE BISTATIC (one LTE BS illuminator, one array receiver)",
+   "quotes": [
+    {
+     "where": "sec.I",
+     "text": "Passive sensing with one illuminator and one receiver is referred to as bistatic sensing, and sensing with more than one illuminator or receiver is referred to as multi-static sensing.",
+     "supports": "*** a clean published definition that settles our own mono/bi/multi vocabulary"
+    },
+    {
+     "where": "Abstract",
+     "text": "From their cross ambiguity function, the bistatic range, Doppler shift and angle-of-arrival (AoA) of the target UAV can be detected in a sequence of time slots.",
+     "supports": "CAF-based observable set"
+    }
+   ],
+   "verdict": "Venue/status closed exactly as recorded.",
+   "corrections": [],
+   "cautions": []
+  },
+  {
+   "id": "C14",
+   "short": "Martelli et al., WiFi-based passive radar 3D localization",
+   "pdf": "/data/public/jeong/papers/Wifi/17_Detection_and_3D_localization_of_ultralight_aircrafts_and_drones_with_a_WiFi-based_passive_radar.pdf",
+   "venue_as_printed_in_pdf": "*** NONE PRINTED ANYWHERE. No ISBN, no DOI, no copyright line. Only an IEEE Xplore download banner.",
+   "status_from_pdf": "NOT STATED IN THE PDF",
+   "geometry": "PASSIVE BISTATIC, two horizontally displaced surveillance antennas",
+   "quotes": [
+    {
+     "where": "sec.2",
+     "text": "In [7]-[8] we have shown that by exploiting the range and azimuth measurements provided by the two horizontally displaced surveillance antennas, it is possible to localize the target on the 2D Cartesian plane.",
+     "supports": "receive geometry"
+    },
+    {
+     "where": "sec.4",
+     "text": "To this purpose, a dedicated acquisition campaign has been performed in a small external area of the Sapienza University sport facility using a very low RCS drone as a cooperative target.",
+     "supports": "target and site"
+    }
+   ],
+   "verdict": "Our JSON's honest label ('string NOT read off the PDF') is CORRECT and stays. Venue must be reported as NOT LOOKED AT at the publisher, never as 'not found'.",
+   "corrections": [],
+   "cautions": []
+  },
+  {
+   "id": "C15",
+   "short": "Rzewuski et al., drone detectability with WiFi and DVB-T passive radar",
+   "pdf": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+   "venue_as_printed_in_pdf": "'STO-MP-MSG-SET-183' with page numbering '13 - 1' (NATO STO Meeting Proceedings, paper 13)",
+   "status_from_pdf": "PUBLISHED (NATO STO meeting proceedings)",
+   "geometry": "PASSIVE BISTATIC (PCL) with DVB-T and WiFi illuminators",
+   "quotes": [
+    {
+     "where": "sec.2",
+     "text": "2.0 BISTATIC RADIO-LOCATION PRINCIPLES Passive radar is a radar that does not emit any energy. It utilizes signals from existing illuminators of opportunity.",
+     "supports": "geometry + taxonomy sense (1)"
+    },
+    {
+     "where": "Abstract/sec.1",
+     "text": "Drones are a small size targets that are widely present in monitored air-space. Typical drone radar cross section in comparison to the standard small size airplane is very small.",
+     "supports": "the small-RCS premise"
+    }
+   ],
+   "verdict": "Our record CONFIRMED EXACTLY (NATO STO-MP-MSG-SET-183, paper 13).",
+   "corrections": [],
+   "cautions": []
+  },
+  {
+   "id": "C16",
+   "short": "Milani et al., fusing Wi-Fi emission-based and passive radar sensors",
+   "pdf": "/data/public/jeong/papers/Wifi/21_Fusing Measurements from Wi-Fi Emission-Based and Passive Radar Sensors for Short-Range Surveillance.pdf",
+   "venue_as_printed_in_pdf": "'Remote Sens. 2021, 13, 3556. https://doi.org/10.3390/rs13183556' (MDPI, journal 'remote sensing')",
+   "status_from_pdf": "PUBLISHED, open access CC BY. 'Received: 2 July 2021 / Accepted: 8 August 2021 / Published: 7 September 2021'",
+   "geometry": "PASSIVE BISTATIC + emission-based sensor fusion, 2.4 GHz 802.11",
+   "quotes": [
+    {
+     "where": "sec.2",
+     "text": "the reference signal can be reconstructed by demodulating and remodulating the received signal according to the IEEE 802.11 standard. This approach may suffer from the reconstruction errors, but it avoids the need for a dedicated reference channel.",
+     "supports": "*** DIRECTLY addresses our open CAF question: reconstruct-the-reference is the third option between an ideal reference and a real 2-channel CAF"
+    }
+   ],
+   "verdict": "Our record CONFIRMED EXACTLY (Remote Sensing 13(18):3556, 2021).",
+   "corrections": [],
+   "cautions": []
+  },
+  {
+   "id": "C24",
+   "short": "Viberg et al., separable delay and Doppler estimation in passive radar",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2601.15821__separable-delay-doppler-passive-radar_ICASSP2026.pdf",
+   "venue_as_printed_in_pdf": "*** NONE - arXiv stamp only: 'arXiv:2601.15821v1 [eess.SP] 22 Jan 2026'. No IEEE copyright line, no ICASSP banner, no DOI.",
+   "status_from_pdf": "PREPRINT",
+   "geometry": "PASSIVE BISTATIC, one illuminator + one receiver node, explicit reference + surveillance channels",
+   "quotes": [
+    {
+     "where": "Abstract",
+     "text": "We consider the case where the IO signal is available at each receiver node through a reference channel, whereas target returns corrupted by interference are collected in a separate surveillance channel.",
+     "supports": "*** the standard two-channel model, the honest contrast to our ideal-reference assumption"
+    },
+    {
+     "where": "sec.2",
+     "text": "Each RN is equipped with a Reference Channel (RC) and a Surveillance Channel (SC).",
+     "supports": "architecture"
+    },
+    {
+     "where": "sec.4 simulations",
+     "text": "Only a single 'bistatic pair' (one IO and one RN) is considered, as well as a single target at random location (then kept fixed) within the clutter range.",
+     "supports": "scope of their evaluation"
+    }
+   ],
+   "verdict": "*** ENTRY LARGELY REWRITTEN. Our JSON had grade U with title, authors and venue all unread.",
+   "corrections": [
+    "TITLE (now read): 'Separable Delay And Doppler Estimation In Passive Radar'.",
+    "AUTHORS (now read): Mats Viberg, Daniele Gerosa, Tomas McKelvey, Patrik Dammert, Thomas Eriksson (Blekinge Inst. of Technology / Chalmers / SAAB).",
+    "*** VENUE: the 'IEEE ICASSP 2026' in our archive filename is NOT supported by the PDF. Status is arXiv:2601.15821v1 preprint; the ICASSP claim is a filename assertion and the publisher record is NOT LOOKED AT.",
+    "Grade can move U -> P for content, but the venue stays unverified."
+   ],
+   "cautions": []
+  }
+ ]
+}

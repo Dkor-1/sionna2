@@ -1,0 +1,807 @@
+{
+  "_meta": {
+    "task": "Sionna RT Technical Report 정독 — 전자기 모델 편 (Q2 회절, Q3 재질/ITU-R, Q7 산란패턴 목적, B2 Fresnel, B3 확산, B4 상호작용 4종)",
+    "date": "2026-08-03",
+    "primary_document": {
+      "archive_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+      "title": "Sionna RT: Technical Report",
+      "authors": "Fayçal Aït Aoudia, Jakob Hoydis, Merlin Nimier-David, Baptiste Nicolet, Sebastian Cammerer, Alexander Keller",
+      "pages": 59,
+      "VERSION_VERIFIED_FROM_INSIDE_PDF": {
+        "cover_line_p1": "2025-11-24 – Version 1.2",
+        "arxiv_stamp_p1": "arXiv:2504.21719v2  [cs.IT]  21 Nov 2025",
+        "version_history_table_p56": [
+          "1.2 | September 2025 | Support for first-order diffraction and path solver improvements",
+          "1.1 | June 2025 | Support for mesh-based measurement surfaces",
+          "1.0 | April 2025 | Major release: Complete re-architecture of Sionna RT"
+        ],
+        "verdict": "⭐ 우리 기록이 맞다. 파일명은 '-v1.pdf' 이지만 내용물은 arXiv v2 = 문서 Version 1.2 다. 인용할 때 반드시 'Sionna RT Technical Report, Version 1.2 (2025-11-24), arXiv:2504.21719v2' 로 적어야 한다.",
+        "⭐추가_발견": "본문 p56 Version History 는 '문서 판번호'가 아니라 Sionna(RT) 소프트웨어 릴리스 이력이다. p5 각주 1 이 이를 뒷받침한다: 'As of version 1.2, Sionna RT does not support RISs. It remains available as part of Sionna version 0.19.2.' 즉 1.2 는 소프트웨어 버전이다. ⭐따라서 재구축된 Sionna RT 1.x 계열에서 first-order diffraction 은 2025년 9월 v1.2 에서야 (재)도입되었다. 1.0(2025-04) 재구축판에는 회절이 없었다."
+      }
+    },
+    "secondary_document": {
+      "archive_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__sionna-rt-founding.pdf",
+      "title": "Sionna RT: Differentiable Ray Tracing for Radio Propagation Modeling",
+      "pages": 5,
+      "stamp": "arXiv:2303.11103v2 [cs.IT] 19 Jul 2023",
+      "역할": "창설논문. 본 문서에서 인용하는 모든 문장은 [FOUNDING] 태그로 표시했고, 기술보고서 문장과 절대 섞지 않았다."
+    },
+    "page_convention": "본 JSON 의 page 는 PDF 에 인쇄된 쪽번호이다(= fitz 0-index + 1). 예: 인쇄 p47 = fitz index 46.",
+    "quote_convention": "quote 필드는 PDF 원문 영어 그대로. 수식기호는 fitz 추출 특성상 유니코드가 깨질 수 있어 수식은 번호로만 지칭한다."
+  },
+  "Q2_diffraction": {
+    "요약_한줄": "Sionna RT 의 회절은 Kouyoumjian–Pathak UTD(완전도체 쐐기) 를 Luebbers 방식으로 유한도전율 쐐기에 휴리스틱 확장한 것을, McNamara 교재의 3D 형태로 구현한 것이다. 삼각형 프리미티브의 '엣지' 에서만 일어나고, 1차 회절 한 번만 지원하며, 확산반사와 같은 경로에 공존할 수 없다.",
+    "A_어떤_정식화인가": {
+      "section": "A.8 Diffraction",
+      "pages": "47–50",
+      "계보_인용": [
+        {
+          "page": 47,
+          "quote": "While modern geometrical optics (GO) [34, 35] can accurately describe phase and polarization properties of electromagnetic fields undergoing reflection and refraction (transmission) as described above, they fail to account for the phenomenon of diffraction, e.g., bending of waves around corners."
+        },
+        {
+          "page": 47,
+          "quote": "Joseph Keller presented in [10] a method which allowed the incorporation of diffraction into GO which is known as the geometrical theory of diffraction (GTD)."
+        },
+        {
+          "page": 47,
+          "quote": "The GTD suffers, however from several shortcomings, most importantly the fact that the diffracted field is infinite at shadow boundaries."
+        },
+        {
+          "page": 47,
+          "quote": "The uniform theory of diffraction (UTD) [36] alleviates this problem and provides solutions that are uniformly valid, even at shadow boundaries."
+        },
+        {
+          "page": 47,
+          "⭐quote_핵심": "While [36] deals with diffraction at edges of perfectly conducting surfaces, it was heuristically extended to finitely conducting wedges in [37]. This solution, which is also recomended by the ITU [38], is implemented in Sionna."
+        },
+        {
+          "page": 47,
+          "quote": "However, both [37] and [38] only deal with two-dimensional scenes where source and observation lie in the same plane, orthogonal to the edge. We will provide below the three-dimensional version of [37], following the defintitions of [12, Ch. 6]. A similar result can be found, e.g., in [39, Eq. 6-29–6-39]."
+        }
+      ],
+      "참고문헌_실체_확인": {
+        "[10]": "J. B. Keller, 'Geometrical Theory of Diffraction', J. Opt. Soc. Am. 52(2), 1962 (p57 참고문헌; 본문 인용 p9, p47)",
+        "[12]": "D. A. McNamara, C. W. I. Pistorius, J. Malherbe, *Introduction to the Uniform Geometrical Theory of Diffraction*, Artech House, 1990 (p57; 본문 인용 p9, p47, p50)",
+        "[36]": "R. G. Kouyoumjian and P. H. Pathak, 'A uniform geometrical theory of diffraction for an edge in a perfectly conducting surface', Proc. IEEE 62(11), 1448–1461, 1974 (p58)",
+        "[37]": "⭐R. Luebbers, 'Finite conductivity uniform GTD versus knife edge diffraction in prediction of propagation path loss', IEEE TAP 32(1), 70–76, 1984 (p58) — 실제 구현된 계수의 출처",
+        "[38]": "ITU, 'Recommendation ITU-R P.526-15: Propagation by diffraction', 2019-10 (p59)",
+        "[39]": "METIS Project, 'METIS Channel Models', Deliverable D1.4, 2015-02 (p59) — 유사결과 대조용으로만 언급",
+        "[40]": "Wikipedia, Fresnel integral (p59) — 전이함수 F(x) 를 표준 Fresnel 적분으로 표현할 때"
+      },
+      "⭐판정": "즉 정식화는 'heuristic UTD for finitely conducting wedges (Luebbers 1984)' 이다. 'UTD' 라고만 말하면 부정확하고, 'Kouyoumjian–Pathak UTD 를 Luebbers 가 유한도전율로 휴리스틱 확장한 판' 이라고 말해야 원문에 충실하다. 저자들 스스로 'heuristically extended' 라고 썼다."
+    },
+    "B_기하_및_좌표계": {
+      "pages": "9, 47–49",
+      "Keller_cone": [
+        {
+          "page": 9,
+          "section": "2.3",
+          "quote": "Diffraction (D): The wave encounters a wedge-shaped object and is diffracted, as shown in Figure 5b. Diffraction occurs in all directions along the Keller cone [10], where the angle between the incident ray and the wedge edge, denoted by beta'_0, equals the angle between the diffracted ray and the wedge edge, denoted by beta_0. The wedge exterior angle is denoted by n*pi, such that n in [1, 2]. If the wedge's exterior angle n*pi equals 2*pi, i.e., n = 2, the wedge is termed an edge."
+        },
+        {
+          "page": 47,
+          "quote": "We consider an infinitely long wedge with unit norm edge vector e, as shown in Figure 33."
+        },
+        {
+          "eq": "(134)",
+          "page": 48,
+          "설명": "Keller 조건 cos(beta'_0) = |s'^T e| = |s^T e| = cos(beta_0)"
+        }
+      ],
+      "편파_분해": {
+        "page": 48,
+        "quote": "To be able to express the diffraction coefficients as a 2x2 matrix—similar to what is done for reflection and refraction—the incident field must be resolved into two components E_{i,phi'} and E_{i,beta'_0}, the former orthogonal and the latter parallel to the edge-fixed plane of incidence, i.e., the plane containing e and s'.",
+        "eqs": "(135)–(138) 이 edge-fixed 단위벡터 phi'_hat, beta'_0_hat, phi_hat, beta_0_hat 를 정의",
+        "각도": "(139)–(143) 이 0-face 기준 입사각 phi' 와 회절각 phi, 그리고 t0_hat, s'_t, s_t 를 정의. (144) 는 sgn 함수.",
+        "쐐기면": {
+          "page": 48,
+          "quote": "The wedge has two faces called 0-face and n-face, respectively, with surface normal vectors n0 and nn. The exterior wedge angle is n*pi, with 1 <= n <= 2. Note that the surfaces are chosen such that e = n0 x nn. For n = 2, the wedge reduces to a screen and the choice of the 0-face and n-face is arbitrary as they point in opposite directions."
+        }
+      }
+    },
+    "C_회절_계수_수식": {
+      "핵심식": {
+        "eq": "(145)",
+        "page": 49,
+        "형태": "[E_d,phi ; E_d,beta0](S) = -((D1+D2) I - D3 R_n - D4 R_0) [E_i,phi' ; E_i,beta'_0](S') * sqrt(1/(s' s (s'+s))) * exp(-j k (s'+s))",
+        "설명": "2x2 행렬 회절계수 x 구면파 확산인자 sqrt(1/(s'(s'+s)s)) x 위상. 반사/굴절과 동일한 2x2 대각-아닌 행렬 구조."
+      },
+      "유한도전율_삽입점": {
+        "eq": "(146)",
+        "page": 49,
+        "⭐설명": "R_nu (nu ∈ {0, n}) 가 유한도전율을 넣는 자리다. R_nu = W(phi_hat, beta0_hat, e_r⊥nu, e_r∥nu) · diag(r⊥(theta_r,nu, eta_nu), r∥(theta_r,nu, eta_nu)) · W(e_i⊥nu, e_i∥nu, phi'_hat, beta'_0_hat).",
+        "quote": {
+          "page": 49,
+          "text": "with W(·) as defined in (120), where r_perp(theta_r,nu, eta_nu) and r_parallel(theta_r,nu, eta_nu) are the Fresnel reflection coefficents from (128), evaluated for the complex relative permittivities eta_nu and angles theta_r,nu with cosines"
+        },
+        "각도": "(147) cos(theta_r,0) = |sin(phi')|, (148) cos(theta_r,n) = |sin(n*pi - phi)|",
+        "quote2": {
+          "page": 49,
+          "text": "The matrices R_nu simply describe the reflected field from both surfaces in the basis used for the description of the diffraction process. Note that the absolute value is used in (147) to account for virtual reflections from shadowed surfaces, see the discussion in [12, p.185]."
+        },
+        "⭐우리에게_중요": "즉 회절의 '재질 의존성' 은 전적으로 두 쐐기면의 **평면 Fresnel 반사계수 (128)** 로만 들어온다. 회절 고유의 재질 모델은 없다. 쐐기면 각각이 서로 다른 복소 비유전율 eta_0, eta_n 을 가질 수 있다."
+      },
+      "D1_D4": {
+        "eqs": "(153)–(156)",
+        "page": 50,
+        "형태": "D_k = -exp(-j pi/4) / (2 n sqrt(2 pi k) sin(beta_0)) * cot( (pi ± (phi ∓ phi')) / (2n) ) * F( k L a^±(phi ∓ phi') )",
+        "보조식": {
+          "(157)": "L = s s' /(s+s') * sin^2(beta_0)",
+          "(158)": "a^±(beta) = 2 cos^2( (2 n pi N^± - beta)/2 )",
+          "(159)": "N^± = round( (beta ± pi)/(2 n pi) )",
+          "(160)": "F(x) = 2 j sqrt(x) e^{jx} ∫_{sqrt(x)}^{∞} e^{-j t^2} dt  (UTD 전이함수)",
+          "(161)(162)": "표준 Fresnel 적분 S(x), C(x)",
+          "(163)": "F(x) 를 S, C 로 표현한 닫힌형"
+        },
+        "quote": {
+          "page": 50,
+          "text": "and round(·) is the function that rounds to the closest integer. The function F(x) can be expressed with the help of the standard Fresnel integrals [40]."
+        },
+        "주파수_의존성": "⭐ D_k 의 크기는 1/sqrt(k) ∝ sqrt(lambda) 로 스케일한다(k = 2 pi/lambda, p49 '(145) where k = 2*pi/lambda is the wave number'). 전이함수 F(kL a) 의 인자에도 k 가 들어간다. 즉 회절항은 정확히 GTD/UTD 의 주파수 스케일링만 가진다."
+      }
+    },
+    "D_어떤_엣지에서_일어나는가_⭐": {
+      "요약": "실제 지오메트리의 '쐐기' 를 사전에 검출해서 목록으로 관리하는 것이 아니라, **광선이 때린 삼각형 프리미티브의 세 엣지 중 하나로 교점을 투영**해서 회절점을 만든다.",
+      "quotes": [
+        {
+          "page": 15,
+          "section": "3.1 Diffraction",
+          "⭐quote": "When tracing rays, the probability that a ray exactly intersects the edge of a wedge is zero. Therefore, when a ray intersects a primitive and diffraction is sampled (i.e., chi^(l)_n = D), the intersection point between the ray (v^(l-1)_n, k^(l-1)_n) and the primitive (o^(l)_n, m^(l)_n) is projected onto one of the primitive's edges, yielding the vertex v^(l)_n, as illustrated in Figure 13. The index of the edge onto which the intersection point is projected is denoted by iota^(l)_n."
+        },
+        {
+          "page": 16,
+          "figure": "Figure 13 caption",
+          "quote": "Diffracting edges are identified by projecting the intersection point onto the edges of the intersected primitive."
+        },
+        {
+          "page": 8,
+          "section": "2.1",
+          "quote": "Each primitive possesses three edges, identified locally by an index iota in {0, 1, 2}. Primitives from different objects may share indices, therefore a primitive is uniquely identified by the pair (o, m) in N_0^2. Similarly, an edge is uniquely identified by the triplet (o, m, iota) in N_0^3."
+        },
+        {
+          "page": 16,
+          "quote": "Finally, a new ray is traced in the direction (17) to continue the sample path, with phi sampled uniformly from [0, n*pi]."
+        }
+      ],
+      "라디오맵_쪽은_다름": {
+        "page": 33,
+        "section": "4.1/4.2",
+        "quote": "However, SBR is not applicable to paths that include diffraction: as explained in Section 3.1, the probability of a ray intersecting an edge is zero. To address this, Sionna RT computes the radio map in two steps, as illustrated in Figure 26. First, the radio map is computed for all interaction types except diffraction using a single SBR loop; wedges near the source are detected and stored during this step. Second, only diffracted paths are computed.",
+        "quote2": {
+          "page": 35,
+          "text": "The Sionna RT radio map solver currently supports only first-order diffraction, i.e., paths connecting the source to the measurement surface via a single diffracting wedge. For clarity, we consider diffraction on a single edge E, defined by an origin o, an edge vector e, and length L_E. Sionna RT processes all such wedges found near the source (see Figure 26) in parallel."
+        },
+        "메모": "라디오맵 경로에서는 'wedges near the source are detected and stored' 로 쐐기를 명시 검출한다. 즉 path solver(투영 방식)와 radio map solver(사전 검출 방식)의 쐐기 취득 방식이 다르다. 다만 '어떤 엣지를 진짜 쐐기로 인정하는가(내부 테셀레이션 엣지 배제 기준, 외부각 n*pi 를 메시에서 어떻게 산출하는가)' 는 ⚠본 기술보고서에 서술되어 있지 않다."
+      },
+      "⭐우리쪽_함의_INFERENCE": "이건 원문 진술이 아니라 우리 추론임을 명시해야 한다: 회절점이 '광선이 때린 삼각형의 엣지' 로 정의되므로, 곡면을 잘게 테셀레이션한 메시(우리 드론 동체, 프로펠러 등)에서는 물리적으로 존재하지 않는 다수의 인공 엣지가 회절 후보가 될 수 있다. 보고서는 이 위험을 논하지 않는다. 우리가 이 점을 주장하려면 '보고서에 서술이 없다' 는 형태로만 말해야 한다."
+    },
+    "E_명시적으로_배제된_것_⭐": {
+      "저자_자신의_한계_서술": [
+        {
+          "page": 16,
+          "section": "3.1",
+          "⭐quote": "To avoid significantly increased computational complexity from refining non-suffix path segments, the path solver prohibits sampling paths that contain both diffraction and diffuse reflection. Such paths typically contribute negligibly to the total transported energy and therefore have little impact on the accuracy of the CIRs. Moreover, Sionna RT currently supports only first-order diffraction, meaning that paths may contain at most one diffraction event."
+        },
+        {
+          "page": 29,
+          "section": "3.4 (Higher-Order Diffraction and Diffuse Reflection)",
+          "⭐quote": "The path solver supports only first-order diffraction and does not handle paths that contain both diffraction and diffuse reflection. Enabling support for such combined paths would require the refinement of non-suffix path segments, which is computationally expensive and thus not implemented at present. However, these mixed paths typically transport a negligible amount of energy and therefore have little impact on the accuracy of the computed CIRs."
+        },
+        {
+          "page": 30,
+          "section": "3.4",
+          "⭐quote": "Regarding high-order diffraction, there are algorithms for determining the diffraction vertices [22]. However, calculating the electric field along these high-order diffraction paths remains an open problem, and as a result, high-order diffraction is not currently supported."
+        }
+      ],
+      "샘플링_확률": {
+        "page": 17,
+        "eq": "(19)(20)",
+        "quote": "Diffraction, on the other hand, is sampled using a fixed probability q(D) in [0, 1]. This choice is motivated by the fact that diffraction typically carries much less energy compared to reflection and refraction, which would result in very low probabilities for sampling diffraction if its probability were also based on the diffraction coefficients.",
+        "값": {
+          "page": 18,
+          "quote": "In Sionna RT, q(D) is set to 0.2."
+        }
+      },
+      "⚠문서에_전혀_없는_것_0회_검색확인": {
+        "검색결과": "기술보고서 전문(59쪽) 텍스트 추출 후 대소문자 무시 검색: 'physical optics' 0회, 'PTD' 0회, 'surface current' 0회, 'equivalent current' 0회, 'induced current' 0회, 'RCS' 0회, 'radar cross section' 0회, 'dBsm' 0회, 'roughness' 0회. 'cross section' 은 1회이나 Figure 28 캡션의 '(b) 2D cross-section' 으로 순수 기하학적 단면도이다.",
+        "⭐따라서_말할_수_있는_것": "Sionna RT 의 D 는 UTD 계열 **엣지 회절계수**만 포함한다. PTD(Physical Theory of Diffraction) 의 프린지파(fringe-wave) 보정항, 등가 엣지 전류(equivalent edge currents), 코너/꼭짓점 회절, slope diffraction, creeping wave 는 문서 어디에도 등장하지 않는다. 이는 term count 가 아니라 A.8 전문을 읽어 확인한 결과다: A.8 은 (134)~(163) 로 끝나며 (145) 의 D1~D4 외에 어떤 추가 보정항도 도입하지 않는다.",
+        "⚠정직성_경계": "'문서에 없다' 는 '구현에 없다' 와 논리적으로 동일하지 않다. 다만 이 문서는 스스로를 'This document details the algorithms employed by Sionna RT'(p1 초록) 라고 규정하므로, 문서에 없는 항은 구현에도 없다고 보는 것이 합리적 추정이다. 코드 확인이 필요하면 별도 검증 항목으로 남긴다."
+      }
+    },
+    "F_우리_PTD_결손과의_대조": {
+      "우리_상황": "우리 커널(SBR+PO)에는 PTD 프린지 보정이 없고, 그것이 밴드 기울기가 3~8배 과도하게 가파른 기전으로 지목되어 왔다(sionna2 rcs-methodology 메모).",
+      "⭐대조_결과": "Sionna RT 역시 PTD 를 갖지 않는다. 그러나 성격이 다르다. Sionna 의 D 는 '경로를 하나 더 만들어 CIR 에 더하는 UTD 엣지 회절' 이고, 우리 PO 의 결손은 '한 표적의 후방산란 단면적을 적분할 때 엣지 기여를 빼먹는 것' 이다. 두 결손은 같은 물리(엣지 회절)의 서로 다른 사용처다.",
+      "⭐말할_수_있는_정확한_문장": "'Sionna RT 가 계산하는 D 는 무한히 긴 유한도전율 쐐기에 대한 1차 UTD 엣지 회절계수(식 145–156)이며, 두 쐐기면의 평면 Fresnel 반사계수(식 128)로만 재질에 의존한다. 이는 전파경로(path)의 필드 전달을 다루는 것이지, 표적의 산란단면적을 산출하는 것이 아니다. PTD 프린지 보정, 등가 엣지 전류, 코너 회절, 고차 회절은 포함하지 않으며 저자들 스스로 고차 회절은 open problem 이라고 적었다(p30).'",
+      "⚠우리가_하면_안되는_주장": "'Sionna 에는 회절이 없다' 는 거짓. 'Sionna 의 UTD 를 쓰면 우리 PO 의 PTD 결손이 메워진다' 도 거짓(용도가 다름). 'Sionna 의 회절도 우리와 같은 이유로 밴드 기울기가 틀린다' 는 미검증 주장."
+    }
+  },
+  "B2_fresnel_reflection_refraction": {
+    "우리_기존_믿음": "Fresnel 처리는 p46 근처, '...incident, reflected, and refracted field components' 문장, 식 127/128, 129-130 에서 2x2 대각행렬로 적용, 131-133 에 slab 변형.",
+    "⭐검증결과": "대체로 맞다. 단 쪽수를 정정한다 — Fresnel 식 (127)(128) 과 2x2 적용 (129)(130) 은 **인쇄 p46**, slab (131)(132)(133) 은 **인쇄 p47** 이다(p46 마지막 줄이 A.7.1 제목이고 본문은 p47 로 넘어간다).",
+    "섹션구조": {
+      "A.7": "Specular Reflection and Refraction (p44–46)",
+      "A.7.1": "Single-Layer Slab (p46 제목 – p47 본문)"
+    },
+    "전제": [
+      {
+        "page": 44,
+        "quote": "When a plane wave hits a plane interface which separates two materials, e.g., air and concrete, a part of the wave gets reflected and the other refracted, i.e. it propagates into the other material. We assume in the following description that both materials are uniform non-magnetic dielectrics, i.e. mu_r = 1, and follow the definitions as in [33]."
+      },
+      {
+        "⭐메모": "'[33]' 이 ITU-R P.2040-3 이다. 즉 반사/굴절의 **정의와 표기 자체**를 P.2040 에서 가져왔다고 저자가 명시한다."
+      }
+    ],
+    "체인_단계별": [
+      {
+        "단계": "1. 입사장 표현",
+        "eq": "(117)(118)",
+        "page": "44–45",
+        "설명": "임의 직교 편파 (E_i,s, E_i,p) 로 표현한 뒤, 입사면 기준 TE(⊥)/TM(∥) 기저로 재표현.",
+        "quote": {
+          "page": 45,
+          "text": "where the former is orthogonal to the plane of incidence and called transverse electric (TE) polarization (left), and the latter is parallel to the plane of incidence and called transverse magnetic (TM) polarization (right)."
+        }
+      },
+      {
+        "단계": "2. 기저변환 행렬",
+        "eq": "(119)(120)",
+        "page": 45,
+        "설명": "W(a,b,q,r) = [[a^T q, a^T r],[b^T q, b^T r]] 인 2x2 기저변환. 이후 회절(146)에서도 재사용된다."
+      },
+      {
+        "단계": "3. Snell 법칙",
+        "eq": "(121)(122)",
+        "page": 45,
+        "설명": "sin(theta_2) = sqrt(eta_1/eta_2) sin(theta_1). 굴절각은 복소 비유전율로 계산."
+      },
+      {
+        "단계": "4. 반사/투과 방향",
+        "eq": "(125)(126)",
+        "page": 46,
+        "설명": "k_r = k_i - 2 (k_i^T n) n ; k_t = sqrt(eta1/eta2) k_i + (sqrt(eta1/eta2) cos theta1 - cos theta2) n"
+      },
+      {
+        "단계": "5. Fresnel 계수",
+        "eq": "(127)",
+        "page": 46,
+        "⭐quote": "The Fresnel equations provide relationships between the incident, reflected, and refracted field components for sqrt(|eta_1/eta_2|) sin(theta_1) < 1:",
+        "설명": "r⊥, r∥, t⊥, t∥ 네 계수. 전반사 조건도 명시.",
+        "전반사": {
+          "page": 46,
+          "quote": "If sqrt(|eta_1/eta_2|) sin(theta_1) >= 1, we have r_perp = r_parallel = 1 and t_perp = t_parallel = 0, i.e. total reflection."
+        }
+      },
+      {
+        "단계": "6. 진공입사 단순형",
+        "eq": "(128)",
+        "page": 46,
+        "설명": "eta_1 = 1 일 때의 축약형. ⭐이 (128) 이 회절 (146) 에서 쐐기면 반사계수로 재사용되는 바로 그 식이다."
+      },
+      {
+        "단계": "7. 2x2 대각행렬 적용",
+        "eq": "(129)(130)",
+        "page": 46,
+        "quote": "Putting everything together, we obtain the following relationships between incident, reflected, and transmitted waves:",
+        "설명": "[E_r⊥ ; E_r∥] = diag(r⊥, r∥) · W(...) · [E_i,s ; E_i,p] 이고 투과는 diag(t⊥, t∥). ⭐대각행렬이므로 이 상호작용 자체는 편파 간 결합(교차편파 생성)을 만들지 않는다. 편파 회전은 오직 기저변환 W 를 통해서만 들어온다."
+      }
+    ],
+    "⭐평면_무한대_가정": {
+      "page": 19,
+      "section": "3.1.3",
+      "quote": "Importantly, primitives that are coplanar (i.e., lie in the same plane) are treated as equivalent during hashing. This is because the image method assumes all reflection surfaces extend infinitely, making the exact in-plane position of a primitive irrelevant to the path geometry.",
+      "판정": "우리의 '국소 무한평면 취급' 주장은 이 문장으로 직접 뒷받침된다. 단 문맥은 image method 의 경로 기하 결정이며, 필드 계산이 유한 개구를 무시한다는 별도 진술은 아니다. 정확히는 '경로 기하가 무한평면 가정 위에 서 있다' 로 인용해야 한다."
+    },
+    "굴절_모델": {
+      "page": 9,
+      "section": "2.3",
+      "⭐quote": "Refraction (T): The wave propagates into the scattering medium. The solvers assume that object surfaces are thin enough that their effect on transmitted rays (i.e. rays that traverse the surfaces through double refraction) can be modeled by a single transmitted ray. The transmitted rays are traced without angular deflection. Surfaces like walls should be modeled as single flat surfaces, as illustrated in Figure 5c. However, when computing the transmitted and reflected fields, the thickness of the traversed object is considered.",
+      "재확인": {
+        "page": 19,
+        "quote": "Furthermore, refraction can be omitted from the hashing procedure since it does not change the ray direction and therefore does not alter the geometry of the path, as refraction is modeled without angular deflection."
+      },
+      "⭐요약": "투과광선은 **기하학적으로 꺾이지 않는다**(각편향 0). 벽을 두 면이 아니라 한 장의 평면으로 모델링해야 한다. 두께는 오직 '필드 계수' 에만 들어간다."
+    },
+    "A_7_1_슬래브_두께가_하는_일_⭐": {
+      "page": 47,
+      "eqs": "(131)(132)(133)",
+      "quote_도입": {
+        "page": "46–47",
+        "text": "The reflection and refraction coefficients described above assume that the object reflecting the wave or allowing it to penetrate is of infinite size (or thickness). However, since this is rarely the case, it is often more practical to assume that the object has a finite thickness. In such cases, the object can be modeled as a slab consisting of a single layer made of the same material, as shown in Figure 32. The reflection and transmission coefficients, which should be used instead of (128), are then computed as described in [33, Section 2.2.2.2]:"
+      },
+      "식": {
+        "(131)": "r = r' (1 - e^{-j2q}) / (1 - r'^2 e^{-j2q})",
+        "(132)": "t = (1 - r'^2) e^{-jq} / (1 - r'^2 e^{-j2q})",
+        "(133)": "q = (2 pi d / lambda) sqrt(eta - sin^2 theta_0)"
+      },
+      "quote_정의": {
+        "page": 47,
+        "text": "d [m] is the thickness of the slab, eta the complex relative permittivity as defined in (80), and r' denotes either r_perp or r_parallel from (128), depending on the polarization of the incident electric field."
+      },
+      "⭐두께가_하는_일": [
+        "d 는 오직 위상두께 q = 2 pi d sqrt(eta - sin^2 theta_0)/lambda 로만 들어간다.",
+        "이는 슬래브 내부 다중반사의 **무한 등비급수 합**(1 - r'^2 e^{-j2q} 분모)이다. 즉 두께에 따른 간섭 리플(에탈론 효과)이 재현된다.",
+        "결과적으로 반사/투과계수가 **주파수 의존**을 갖게 된다(q 에 1/lambda). ⭐이것이 기술보고서에서 재질 응답에 주파수가 들어가는 두 경로 중 하나다.",
+        "⚠주의: 슬래브는 단일층 단일재질이며, 다층벽·에어갭·내부구조는 지원 서술이 없다.",
+        "⚠주의: 두께는 필드에만 들어가고 기하(광선 오프셋, 굴절 편향)에는 전혀 반영되지 않는다."
+      ],
+      "출처": "[33, Section 2.2.2.2] = ITU-R P.2040-3 의 단일층 슬래브 절"
+    },
+    "⚠문서_내부_인용_불일치_발견": {
+      "위치": "p18, 식 (20) 아래 설명문",
+      "quote": "Here, r_perp, r_parallel, t_perp, and t_parallel are the Fresnel coefficients (131), S is the scattering coefficient (see Section A.9), and R is the reflection reduction factor (164).",
+      "문제": "(131) 은 slab **반사**계수 r 하나를 정의할 뿐 r⊥, r∥, t⊥, t∥ 네 개를 정의하지 않는다. 평면계면 Fresnel 4계수는 (127)/(128) 이고, slab 쌍은 (131)(132) 이다.",
+      "해석": "느슨한 인용으로 보이며, 실제 의도는 'A.7/A.7.1 에서 정의된 (두께가 지정되면 slab 판) 반사·투과계수' 로 읽힌다. ⭐우리가 이 문장을 인용할 때는 반드시 '보고서는 (131)로 표기하나 4계수는 (127)/(128)에 정의됨' 을 병기해야 한다. 버전 오인용과 같은 오류 계열이므로 기록해 둔다."
+    }
+  },
+  "Q3_material_and_ITU_P2040": {
+    "질문": "표면의 응답이 재질에서 어떻게 유도되는가? ITU-R P.2040 값은 어디로 들어오는가? 주파수 의존성은 어떻게 다루는가? 두께는 무엇을 하는가?",
+    "⭐헤드라인_정정": "우리가 'ITU-R P.2040 값(수치)이 들어온다' 고 생각했다면 그것은 **기술보고서가 아니라 창설논문**에 근거한 것이다. 기술보고서 Version 1.2 는 P.2040-3 을 **수식의 출처**로만 두 곳에서 인용하며(뒤쪽 참고문헌의 역참조가 정확히 'p44, p47' 두 곳뿐), 재질 파라미터 표도, 주파수 의존 피팅식(eps_r = a f^b, sigma = c f^d)도 **싣지 않는다**.",
+    "A_재질이_표면응답을_결정하는_경로": {
+      "개념정의": {
+        "page": 6,
+        "section": "1. Introduction (Figure 2 아키텍처 설명)",
+        "quote": "A scene represents a radio propagation environment, comprising a set of objects, radio materials, and radio devices. Each object acting as a scatterer is associated with a radio material that determines its interaction with incident radio waves. Multiple objects can share the same radio material. Radio materials are akin to bidirectional scattering distribution function (BSDF) in the field of computer graphics, see e.g. [7, Ch. 4.3.1]. Note that an object alone defines only the geometry of a scatterer and does not contain any information about the radio material.",
+        "⭐해석": "재질의 개념적 위상이 컴퓨터그래픽스의 BSDF 로 규정된다. BSDF 는 '입사 방사휘도를 출사 방사휘도로 매핑하는 정규화된 반사율 분포' 이지 물체의 절대 산란 단면적이 아니다. 이 한 문장이 A.9 의 정규화 조건 (171) 과 정확히 같은 철학을 드러낸다.",
+        "확장성_문장": {
+          "page": 6,
+          "quote": "While Sionna RT provides built-in solvers and radio material models, it is designed to facilitate the implementation of custom alternatives."
+        }
+      },
+      "실제_연결고리": [
+        "재질 → 복소 비유전율 eta (식 80, p40): eta = eps_r - j sigma/(eps_0 omega). ⭐기술보고서 전체에서 재질이 필드에 들어가는 유일한 물리 파라미터는 이 eta 하나다(+두께 d, +산란 파라미터 S, K_x, alpha_R, alpha_I, Lambda).",
+        "eta → Fresnel 계수 (127)(128) → 반사/굴절 2x2 (129)(130)",
+        "eta + 두께 d → 슬래브 계수 (131)(132)(133)",
+        "eta_0, eta_n (쐐기 두 면) → 회절행렬 R_nu (146) → 회절계수와 결합 (145)",
+        "S(산란계수) → 확산성분 (168) 및 R = sqrt(1 - S^2) 로 정반사 감쇠 (164)",
+        "S, |r|^2, |t|^2 → 상호작용 유형 샘플링 확률 (20)"
+      ],
+      "샘플링에서의_재질_역할": {
+        "page": 18,
+        "quote": "This approach ensures that interaction types responsible for scattering more energy are sampled more frequently—-a technique known as importance sampling [15, 16]. ... This demonstrates the benefit of selecting interactions according to the material properties of the scatterers.",
+        "⭐중요_단서": {
+          "page": 17,
+          "quote": "Importantly, the choice of distribution Q does not affect the calculation of the paths' electric fields, which are solely dependent on the propagation environment."
+        },
+        "해석": "재질은 (a) 필드 계산과 (b) 샘플링 효율 양쪽에 들어가지만, (b) 는 결과값에 영향을 주지 않는 분산감소용이다."
+      }
+    },
+    "B_ITU_R_P2040_이_들어오는_지점_전수": {
+      "참고문헌_원문": {
+        "page": 58,
+        "quote": "[33] ITU, \"Recommendation ITU-R P.2040-3: Effects of building materials and structures on radiowave propagation above about 100 MHz,\" International Telecommunication Union, Recommendation ITU-R P.2040-3, August 2023. [Online]. Available: https://www.itu.int/rec/R-REC-P.2040/en 44, 47"
+      },
+      "역참조_해석": "참고문헌 항목 끝의 '44, 47' 은 본문 역참조 쪽번호다. 즉 P.2040-3 은 문서 전체에서 **p44 와 p47 딱 두 곳**에서만 인용된다.",
+      "인용지점_1": {
+        "page": 44,
+        "맥락": "A.7 도입",
+        "quote": "...and follow the definitions as in [33].",
+        "역할": "반사/굴절 기하·표기·Fresnel 정의의 출처"
+      },
+      "인용지점_2": {
+        "page": 47,
+        "맥락": "A.7.1 슬래브",
+        "quote": "The reflection and transmission coefficients, which should be used instead of (128), are then computed as described in [33, Section 2.2.2.2]:",
+        "역할": "단일층 슬래브 (131)(132)(133) 의 출처"
+      },
+      "⭐없는_것": "기술보고서에는 concrete/glass/brick/wood/metal 등 어떤 재질의 eps_r, sigma 수치표도 없다. 전문 검색 결과 'concrete' 는 p44 예시 문장('e.g., air and concrete') 한 번, 'glass'/'metallic' 은 p18 Figure 15 실험 장면 묘사뿐이다. ITU 재질 카탈로그의 **값**은 이 문서의 범위 밖이다."
+    },
+    "C_주파수_의존성_⭐": {
+      "결론": "기술보고서 Version 1.2 는 재질 파라미터의 **주파수 의존 법칙을 제시하지 않는다**. 주파수는 오직 세 경로로 들어간다.",
+      "경로1_전도손실": {
+        "eq": "(80)",
+        "page": 40,
+        "quote": "The complex relative permittivity eta is given as [eq 80] where eps_r is the real relative permittivity of a non-conducting dielectric.",
+        "설명": "eta = eps_r - j sigma/(eps_0 omega). eps_r 과 sigma 자체는 상수로 두고, omega = 2 pi f 가 분모에 들어가 손실항이 1/f 로 변한다. ⭐즉 이것은 '재질 데이터의 주파수 의존' 이 아니라 Debye/도체 손실의 정의적 주파수 의존일 뿐이다."
+      },
+      "경로2_슬래브_위상두께": {
+        "eq": "(133)",
+        "page": 47,
+        "설명": "q = 2 pi d sqrt(eta - sin^2 theta_0)/lambda. 두께 대 파장 비를 통해 반사/투과계수가 주파수에 따라 리플을 갖는다. 실질적으로 가장 강한 주파수 의존."
+      },
+      "경로3_회절계수": {
+        "eqs": "(153)–(160)",
+        "page": 50,
+        "설명": "D_k ∝ 1/sqrt(k) 및 전이함수 F(kL a). UTD 고유의 주파수 스케일링."
+      },
+      "그_외": "자유공간 항 lambda/(4 pi) 는 (114) 의 경로계수 a_i 에 들어가고, 안테나·배열 응답 (36) 에도 lambda 가 들어간다. 그러나 이는 재질과 무관하다.",
+      "⚠기록해둘_것": "'Sionna 는 ITU-R P.2040 의 주파수 의존 재질 모델을 쓴다' 는 문장은 **기술보고서로는 뒷받침되지 않는다**. 창설논문 또는 소프트웨어 문서/코드를 근거로 대야 한다(아래 창설논문 대조 참조)."
+    },
+    "D_두께": {
+      "요약": "두께 d 는 (a) 광선 기하에는 전혀 영향을 주지 않고, (b) 슬래브 위상두께 q (133) 를 통해 반사·투과계수 (131)(132) 에만 들어간다. 벽은 단일 평면으로 모델링하고 두께는 파라미터로만 준다(p9 Refraction 서술).",
+      "관련_인용": {
+        "page": 9,
+        "quote": "However, when computing the transmitted and reflected fields, the thickness of the traversed object is considered."
+      }
+    },
+    "E_문서가_다루지_않는_재질_요소": {
+      "목록": [
+        "표면 거칠기(roughness): 기술보고서 전문에 'roughness' 0회. Rayleigh 거칠기 인자, Kirchhoff 스캐터링 감쇠 등 없음.",
+        "자성재질: p44 'both materials are uniform non-magnetic dielectrics, i.e. mu_r = 1' 로 mu_r = 1 고정.",
+        "다층/이방성/주파수분산 재질 모델: 서술 없음(단일층 슬래브만).",
+        "재질 수치 카탈로그: 없음."
+      ]
+    }
+  },
+  "B3_Q7_diffuse_scattering_model": {
+    "우리_기존_믿음": "확산반사는 경험적 산란계수 모델로 [42, Eq. 9] 를 인용하며, 정규화된 Lambertian/directive/backscattering 패턴이 p50–52 에 있다.",
+    "⭐검증결과": "맞다. 쪽수도 맞다(A.9 는 인쇄 p50–52). 인용도 정확히 '[42, Eq. 9]' 이다. 다만 인용 구조가 두 갈래임을 정정해 둘 필요가 있다 — **필드 표현식 (168) 은 [42, Eq. 9]**, **산란계수 개념 S 와 예시 패턴 (172)(173)(174) 은 [41]** 이다.",
+    "섹션": {
+      "A.9": "Diffuse Reflection, 인쇄 p50–52"
+    },
+    "A_산란계수_S_와_에너지_분배": {
+      "page": 50,
+      "quote": "Since most surfaces give both specular and diffuse reflections, we denote by S^2 the fraction of the reflected energy that is diffusely scattered, where S in [0, 1] is the so-called scattering coefficient [41]. Similarly, R^2 is the specularly reflected fraction of the reflected energy, where R in [0, 1] is the reflection reduction factor.",
+      "eq": "(164) R = sqrt(1 - S^2)",
+      "quote2": {
+        "page": 50,
+        "text": "Whenever a material has a scattering coefficient S > 0, the Fresnel reflection coefficients in (127) must be multiplied by (164)."
+      },
+      "⭐해석": "정반사와 확산반사 사이의 에너지 분배는 순수 **전력 예산 배분** 규칙이다. R^2 + S^2 = 1 이 강제될 뿐, 표면 미세구조로부터 S 가 유도되지 않는다. S 는 사용자가 넣는 자유 파라미터다."
+    },
+    "B_확산장_수식": {
+      "eq": "(168)",
+      "page": 51,
+      "⭐인용출처": {
+        "quote": "According to [42, Eq. 9], the diffusely scattered field Es(r) at the observation point r can be modeled as Es(r) = E_{s,theta} theta_hat(ks) + E_{s,phi} phi_hat(ks), where the orthogonal field components are computed as"
+      },
+      "형태": "[E_s,theta ; E_s,phi] = (S * Gamma / ||r - q||_2) * sqrt( f_s(k_i, k_s, n) * cos(theta_i) * dA ) * [[sqrt(1-Kx) e^{j chi1}, sqrt(Kx) e^{j chi2}],[-sqrt(Kx) e^{j chi1}, sqrt(1-Kx) e^{j chi2}]] * [E_i,theta ; E_i,phi]",
+      "구성요소": {
+        "Gamma": {
+          "eq": "(169)",
+          "page": 51,
+          "quote": "Here, Gamma^2 is the percentage of the incoming power that is reflected (specularly and diffuse), which can be computed as",
+          "설명": "Gamma = sqrt(|r⊥ E_i,⊥|^2 + |r∥ E_i,∥|^2) / ||E_i(q)||_2 — ⭐입사장에 의존하는 스칼라"
+        },
+        "chi1_chi2": {
+          "page": 51,
+          "quote": "chi_1, chi_2 in [0, 2 pi] are (optional) independent random phase shifts",
+          "⭐해석": "확산 성분의 위상은 **선택적 난수**다. 결정론적 EM 위상이 아니다."
+        },
+        "Kx_XPD": {
+          "eq": "(170)",
+          "page": 51,
+          "quote": "This quantity determines how much energy gets transferred from one polarization direction into the other through the scattering process.",
+          "설명": "XPD_s = 10 log10((1-Kx)/Kx). 교차편파는 물리로부터 유도되지 않고 사용자 파라미터 Kx 로 주입된다."
+        },
+        "dA": {
+          "page": 50,
+          "quote": "Also, the small surface element is related to the incident ray tube solid angle d_omega through dA = r^2 d_omega, where r is the ray tube length.",
+          "설명": "산란 면적요소는 광선관 입체각으로부터 만들어진다. 물체의 실제 기하 면적이 아니라 광선관 발자국이다."
+        },
+        "f_s": {
+          "page": 51,
+          "quote": "f_s(k_i, k_s, n) is the scattering pattern, which has similarities with the BSDF in computer graphics [7, Ch. 4.3.1]."
+        }
+      }
+    },
+    "C_⭐이_모델이_무엇을_위한_것인가_Q7": {
+      "질문": "이 모델은 채널 예산상의 에너지 보존을 위한 것인가, 아니면 절대 산란 예측인가?",
+      "증거1_정규화조건": {
+        "eq": "(171)",
+        "page": 51,
+        "⭐quote": "The scattering pattern must be normalized to satisfy the condition [eq 171] which ensures the power balance between the incoming, reflected, and refracted fields.",
+        "식": "∫_0^{pi/2} ∫_0^{2 pi} f_s(k_i, k_s, n) sin(theta_s) d phi_s d theta_s = 1",
+        "⭐판정": "결정적이다. 산란패턴의 존재 이유가 문서 자체에 명시되어 있고 그것은 **'incoming, reflected, refracted 필드 사이의 전력수지(power balance)를 보장한다'** 이다. 절대 산란 강도 예측이 아니라 **정규화된 재분배 커널**이다. 반구 적분이 1 로 강제되므로 f_s 는 '반사된 에너지를 어느 방향으로 나눠줄 것인가' 만 결정한다."
+      },
+      "증거2_전달행렬_비선형성": {
+        "page": 43,
+        "section": "A.5",
+        "⭐quote": "In some cases, e.g., for diffuse reflection (see (168) in Section A.9), the matrix T-tilde depends on the incoming field and is not a linear transformation.",
+        "판정": "⭐매우 강한 진술이다. 확산반사의 '전달행렬' 은 입사장에 의존하므로 **선형 EM 연산자가 아니다**(Gamma 식 169 가 입사장 크기에 의존하기 때문). 맥스웰 방정식의 선형성과 어긋나는 구성이며, 이는 이 모델이 물리적 산란 연산자가 아니라 전력수지 휴리스틱임을 저자 스스로 드러낸 것이다."
+      },
+      "증거3_전체_전력_상한": {
+        "page": 44,
+        "eq": "(111)",
+        "quote": "Note that the matrices T-tilde_i also ensure appropriate scaling so that the total received power can never be larger than the transmit power.",
+        "판정": "전달행렬 설계 목적이 '수신전력이 송신전력을 넘지 않도록' 임을 명시. 채널 예산 관점의 정합성이 설계 기준이다."
+      },
+      "증거4_절대정확도_주장의_부재": {
+        "⭐관찰": "기술보고서 59쪽 전체에 **실측 대조 검증 절이 없다**. 'measurement' 라는 단어는 거의 전부 radio map 의 'measurement surface/cell/point'(라디오맵 측정면) 라는 기하 용어이며, 실제 전파 측정 데이터와의 비교는 등장하지 않는다.",
+        "유일한_측정_언급": {
+          "page": 52,
+          "quote": "The authors of [41] derived several simple scattering patterns that were shown to achieve good agreement with measurements when correctly parametrized."
+        },
+        "⭐해석": "이 문장조차 (a) Sionna 의 결과가 아니라 **[41] Degli-Esposti 등의 원논문 결과**를 전한 것이고, (b) 'when correctly parametrized' 라는 조건이 붙어 있다. 즉 절대 정확도는 파라미터 튜닝에 의존한다고 명시된 셈이다.",
+        "문서_내_유일한_검증": {
+          "page": 36,
+          "quote": "The radio map obtained using the radio map solver aligns with the non-coherent summation of path coefficients calculated using the path solver, as anticipated.",
+          "판정": "이것은 **두 자체 솔버 간 내부 일관성 검사**일 뿐 외부 실측 검증이 아니다."
+        }
+      },
+      "⭐Q7_최종답": "기술보고서는 확산 산란 모델을 (i) [42, Eq.9] 의 경험식으로 도입하고, (ii) 정규화 조건 (171) 의 목적을 명시적으로 '전력수지 보장' 이라고 적으며, (iii) 확산 전달행렬이 입사장 의존이라 선형변환이 아님을 인정하고, (iv) 문서 어디에서도 절대 산란 정확도를 주장하거나 실측으로 검증하지 않는다. 따라서 **채널 예산상의 에너지 보존을 위한 재분배 모델이며 절대 산란 예측 모델이 아니다** 라고 원문에 근거해 말할 수 있다. ⭐이 문장이 우리 포지셔닝의 코어다."
+    },
+    "D_예시_산란패턴": {
+      "page": 52,
+      "제목": "Example scattering patterns",
+      "출처": {
+        "quote": "The authors of [41] derived several simple scattering patterns that were shown to achieve good agreement with measurements when correctly parametrized.",
+        "[41]": "V. Degli-Esposti, F. Fuschini, E. M. Vitucci, G. Falciasecca, 'Measurement and modelling of scattering from buildings', IEEE TAP 55(1), 143–153, 2007 (p59; 본문 인용 p50, p52)"
+      },
+      "패턴": [
+        {
+          "이름": "Lambertian",
+          "eq": "(172)",
+          "quote": "This model describes a perfectly diffuse scattering surface whose scattering radiation lobe has its maximum in the direction of the surface normal:",
+          "식": "f_s = (n^T k_s)/pi = cos(theta_s)/pi"
+        },
+        {
+          "이름": "Directive",
+          "eq": "(173)",
+          "quote": "This model assumes that the scattered field is concentrated around the direction of the specular reflection kr (defined in (126)). The width of the scattering lobe can be controlled via the integer parameter alpha_R = 1, 2, ...",
+          "식": "f_s = F_{alpha_R}(theta_i)^{-1} ((1 + kr^T ks)/2)^{alpha_R}; F_alpha 는 정규화상수, I_k 는 (173) 내 급수"
+        },
+        {
+          "이름": "Backscattering",
+          "eq": "(174)",
+          "quote": "This model adds a scattering lobe to the directive model described above which points toward the direction from which the incident wave arrives (i.e. -ki). The width of this lobe is controlled by the parameter alpha_I = 1, 2, ... . The parameter Lambda in [0, 1] determines the distribution of energy between both lobes. For Lambda = 1, this models reduces to the directive model."
+        }
+      ],
+      "⭐관찰": "세 패턴 모두 **정규화상수 F(theta_i)^{-1} 를 앞에 달고 있다**. 즉 (171) 을 만족시키기 위한 재규격화가 모델 정의의 일부다. 이것이 '흡수/투과를 제외한 반사 에너지를 어떻게 뿌릴지' 만 정하는 커널임을 다시 확인해 준다. backscattering 패턴의 -ki 로브는 후방산란 '경향' 을 파라미터 Lambda, alpha_I 로 넣어줄 수는 있으나, 그 세기는 여전히 반구 정규화에 묶여 있어 물체의 절대 후방산란 단면적과 무관하다.",
+      "⭐우리에게_직접적_함의_INFERENCE": "(추론 표시) 이 모델로는 표적의 절대 RCS 를 낼 수 없다. f_s 의 반구적분이 1 로 고정되어 있으므로, 어떤 alpha_R/alpha_I/Lambda 를 골라도 산란 전력은 '그 광선관이 표면에 실은 입사전력 x Gamma^2 x S^2' 의 재분배일 뿐이며, 표적 기하가 만드는 간섭성 산란(평판의 A^2/lambda^2 스케일링 등)은 표현되지 않는다. 원문에 이 결론이 문장으로 적혀 있는 것은 아니므로, 우리는 (171) 과 A.5 의 비선형 인정 문장을 근거로 '따라서' 형태로만 전개해야 한다."
+    }
+  },
+  "B4_four_interaction_types": {
+    "우리_기존_믿음": "상호작용은 반사·산란·투과·회절 (R/S/T/D) 네 가지뿐.",
+    "⭐검증결과": "정확히 맞다. 원문이 명시적으로 네 가지라고 못 박는다.",
+    "page": 9,
+    "section": "2.3 Interactions with Scene Objects",
+    "⭐quote_도입": "Sionna RT currently supports four types of interactions with scene objects:",
+    "네가지": [
+      {
+        "기호": "R",
+        "이름": "Specular reflection",
+        "quote": "The wave is reflected with a reflection angle equal to the incident angle, as illustrated in Figure 5a."
+      },
+      {
+        "기호": "S",
+        "이름": "Diffuse reflection",
+        "quote": "The wave is reflected in multiple directions, as illustrated in Figure 5a."
+      },
+      {
+        "기호": "T",
+        "이름": "Refraction",
+        "quote": "The wave propagates into the scattering medium. The solvers assume that object surfaces are thin enough that their effect on transmitted rays (i.e. rays that traverse the surfaces through double refraction) can be modeled by a single transmitted ray. The transmitted rays are traced without angular deflection."
+      },
+      {
+        "기호": "D",
+        "이름": "Diffraction",
+        "quote": "The wave encounters a wedge-shaped object and is diffracted, as shown in Figure 5b."
+      }
+    ],
+    "집합정의": {
+      "page": 9,
+      "quote": "The set of possible interaction types is denoted by I = {R, S, T, D}.",
+      "⚠추출주의": "fitz 추출본에서는 쉼표가 소실되어 '{R, S, TD}' 처럼 보인다. 원본 렌더링 기준으로는 네 원소 집합이다(바로 앞 단락에서 네 종류를 열거)."
+    },
+    "재확인": {
+      "page": 10,
+      "figure": "Figure 5 caption",
+      "quote": "Sionna RT currently supports specular reflection, diffuse reflection, refraction, and diffraction."
+    },
+    "파면_변형_구분": {
+      "page": 9,
+      "section": "2.4",
+      "⭐quote": "Importantly, specular reflection and refraction through planar surfaces only alter the ray direction. Diffuse reflection and diffraction alter the shape of the wavefront.",
+      "의의": "R/T 는 광선관을 휘게만 하고, S/D 는 파면 형상을 바꾼다. 라디오맵 절(p35)에서 '광선관을 새로 낳는 것은 소스와 확산반사점뿐' 이라는 진술과 짝을 이룬다: 'In the current propagation model of Sionna RT, only the source s and diffuse reflection points act as point sources that spawn new ray tubes, whereas specular reflection and refraction points merely deviate existing ray tubes rather than spawning new ones.'"
+    },
+    "⭐우리가_말할_수_있는_것": "'Sionna RT 가 표면에서 하는 일은 R/S/T/D 네 가지가 전부이며, 저자가 문서 본문에서 그렇게 열거한다(p9). 이 목록에 표면 전류 적분·물리광학·등가전류·PTD 는 없다.' 이는 term count 가 아니라 열거문 인용으로 뒷받침된다."
+  },
+  "FOUNDING_PAPER_contrast": {
+    "원칙": "아래 인용은 전부 창설논문(2303.11103v2, 2023-07-19, 5쪽)에서 온 것이며, 기술보고서 진술과 절대 혼용하지 않는다.",
+    "term_counts_창설논문": {
+      "Fresnel": 0,
+      "UTD": 0,
+      "slab": 0,
+      "thickness": 0,
+      "Lambert": 0,
+      "physical optics": 0,
+      "RCS": 0,
+      "cross section": 0,
+      "P.2040": 1,
+      "permittivity": 4,
+      "diffract*": 6,
+      "scatter*": 8
+    },
+    "⭐EM_수식_부재": "창설논문에는 Fresnel 식도, UTD 식도, slab 식도, Lambertian 식도 없다. EM 수식이 0 개라는 우리 기록과 부합한다. 따라서 '현재 솔버가 무엇을 계산하는가' 에 대한 근거로 창설논문을 쓰면 안 된다는 우리 지침은 유효하다.",
+    "⭐창설논문에만_있는_것_ITU_재질값": {
+      "page": 2,
+      "quote": "Sionna RT allows for the definition of arbitrary radio materials which are characterized by their relative permittivity eps_r, conductivity sigma, and several parameters related to scattering (scattering coefficient, pattern, cross polarization discrimination). Currently, only non-magnetic materials are supported, i.e., mu_r = 1. Radio materials can be defined by frequency-dependent functions, similar to the materials defined by the ITU in [29], which are already integrated into Sionna.",
+      "[29]": "ITU-R P.2040-2, Sep. 2021 (창설논문 참고문헌 [29]; ⚠기술보고서는 P.2040-**3**, Aug 2023 을 인용한다 — 판번호가 다르다)",
+      "⭐의의": "'ITU 재질의 주파수 의존 함수가 Sionna 에 이미 통합되어 있다' 는 진술은 **창설논문에만** 있다. 기술보고서에는 이 진술이 없다. 우리가 재질 수치·주파수 의존을 논할 때는 반드시 출처를 창설논문(v0.14/0.15 시절) 또는 소프트웨어 문서로 밝혀야 하며, 기술보고서 Version 1.2 를 근거로 대면 오인용이다."
+    },
+    "창설논문_기능목록": {
+      "page": 2,
+      "quote": "Sionna RT supports specular and diffuse reflections (i.e., scattering) as well as first-order diffraction.",
+      "quote2": "For future releases, it is planned to add refraction as well as support for RIS while still ensuring differentiability of all involved processing steps.",
+      "⭐정정": "우리 기록의 '창설논문은 v0.14 로 굴절(refraction)이 없다' 는 맞다. 그러나 **1차 회절은 창설논문 시점에 이미 있었다**. '창설논문에는 회절이 없다' 로 기억하고 있었다면 그것은 오류다.",
+      "roughness": {
+        "quote": "It is therefore important to develop techniques that automatically assign material properties, such as permittivity, conductivity, permeability, roughness, and scattering functions, to all objects in a scene.",
+        "메모": "창설논문은 roughness 를 재질 속성으로 한 번 언급하나, 기술보고서에는 'roughness' 가 0회다."
+      }
+    },
+    "⭐버전_타임라인_정리": [
+      "v0.14 (2023): Sionna RT 최초 도입. 정반사 + 확산반사 + 1차 회절. 굴절 없음. (창설논문)",
+      "v0.15: diffraction 과 diffuse reflection 지원 추가로 기술보고서 p5 가 기술 — ⚠창설논문(v0.14 라고 씀)과 미세한 불일치가 있으므로 '0.14/0.15 시기' 로 뭉뚱그려 쓰는 것이 안전하다. 기술보고서 p5 원문: 'we have expanded the capabilities of Sionna RT with additional features, including support for diffraction and diffuse reflection (version 0.15), mobility (version 0.17), and reflective intelligent surfaces (RISs) (version 0.18).'",
+      "v0.19.2: RIS 마지막 지원 버전 (기술보고서 p5 각주 1)",
+      "v1.0 (2025-04): 완전 재구축(Complete re-architecture). ⭐이 시점 재구축판에는 회절 없음.",
+      "v1.1 (2025-06): mesh 기반 measurement surface 지원",
+      "v1.2 (2025-09, 문서 2025-11-24판): ⭐1차 회절 및 path solver 개선 재도입. RIS 미지원."
+    ]
+  },
+  "CORRECTIONS_to_our_beliefs": [
+    {
+      "항목": "B2 쪽수",
+      "기존": "Fresnel 식 127/128, 2x2 129/130, slab 131-133 모두 'p46 근처'",
+      "정정": "Fresnel (127)(128) 과 2x2 (129)(130) 은 인쇄 p46. slab (131)(132)(133) 은 인쇄 **p47**. A.7.1 제목만 p46 끝에 걸려 있다.",
+      "심각도": "낮음(정밀도)"
+    },
+    {
+      "항목": "B3 인용",
+      "기존": "확산반사가 [42, Eq. 9] 를 인용",
+      "정정": "맞다. 다만 두 갈래다 — 확산장 식 (168) 은 [42, Eq. 9](Degli-Esposti 2011, 교차편파), 산란계수 S 개념과 예시 패턴 (172)(173)(174) 는 [41](Degli-Esposti 2007, 건물 산란 측정·모델링).",
+      "심각도": "낮음(정밀도)"
+    },
+    {
+      "항목": "Q3 ITU-R P.2040",
+      "기존": "(암묵) P.2040 값이 재질로 들어온다",
+      "⭐정정": "기술보고서 Version 1.2 에서 P.2040-3 은 **수식의 출처로만 p44, p47 두 곳** 인용된다. 재질 수치표도 주파수 의존 피팅식도 없다. 'ITU 재질 함수가 통합되어 있다' 는 진술은 **창설논문 p2** 에 있고 거기 인용은 P.2040-**2** 다.",
+      "심각도": "⭐높음(출처 오인용 위험)"
+    },
+    {
+      "항목": "창설논문 회절",
+      "기존": "(우리 기록 뉘앙스) 창설논문은 EM 이 빈약하다",
+      "정정": "EM 수식이 0 인 것은 맞으나, **기능으로서 1차 회절은 창설논문 시점에 이미 지원**되었다고 명시한다. 없었던 것은 refraction 이다.",
+      "심각도": "중간"
+    },
+    {
+      "항목": "PDF 버전",
+      "기존": "파일명 v1 이지만 내용은 v2(Version 1.2)",
+      "확인": "맞다. 표지 '2025-11-24 – Version 1.2', arXiv 스탬프 'arXiv:2504.21719v2 [cs.IT] 21 Nov 2025'. ⭐추가로 p56 Version History 는 소프트웨어 릴리스 이력이며 1.2 는 2025년 9월이다(표지 날짜 11-24 와 다름 — 둘 다 병기할 것).",
+      "심각도": "확인"
+    },
+    {
+      "항목": "문서 내부 오인용",
+      "발견": "p18 식 (20) 설명문이 'the Fresnel coefficients (131)' 이라 적었으나 (131) 은 slab 반사계수 하나만 정의한다. 4계수는 (127)/(128) 이다.",
+      "심각도": "낮음(그러나 우리가 인용할 때 병기 필요)"
+    }
+  ],
+  "QUOTE_BANK_for_reports": {
+    "설명": "리포트에 바로 붙일 수 있는 최소 인용 세트. 전부 Sionna RT Technical Report, Version 1.2 (arXiv:2504.21719v2) 이며 쪽수는 인쇄 쪽번호.",
+    "회절_정식화": "p47: \"While [36] deals with diffraction at edges of perfectly conducting surfaces, it was heuristically extended to finitely conducting wedges in [37]. This solution, which is also recomended by the ITU [38], is implemented in Sionna.\"",
+    "회절_1차한정": "p30: \"Regarding high-order diffraction, there are algorithms for determining the diffraction vertices [22]. However, calculating the electric field along these high-order diffraction paths remains an open problem, and as a result, high-order diffraction is not currently supported.\"",
+    "회절_확산_공존금지": "p29: \"The path solver supports only first-order diffraction and does not handle paths that contain both diffraction and diffuse reflection.\"",
+    "회절_엣지_취득": "p15: \"When tracing rays, the probability that a ray exactly intersects the edge of a wedge is zero. Therefore, when a ray intersects a primitive and diffraction is sampled ..., the intersection point ... is projected onto one of the primitive's edges\"",
+    "상호작용_4종": "p9: \"Sionna RT currently supports four types of interactions with scene objects:\" (R, S, T, D)",
+    "무한평면_가정": "p19: \"This is because the image method assumes all reflection surfaces extend infinitely, making the exact in-plane position of a primitive irrelevant to the path geometry.\"",
+    "굴절_무편향": "p9: \"The transmitted rays are traced without angular deflection.\" / \"However, when computing the transmitted and reflected fields, the thickness of the traversed object is considered.\"",
+    "Fresnel": "p46: \"The Fresnel equations provide relationships between the incident, reflected, and refracted field components ...\" (식 127; 진공입사 축약형 128; 2x2 적용 129–130)",
+    "slab": "p47: \"The reflection and transmission coefficients, which should be used instead of (128), are then computed as described in [33, Section 2.2.2.2]\" (식 131–133; q = 2*pi*d*sqrt(eta - sin^2 theta_0)/lambda)",
+    "⭐확산_목적_에너지보존": "p51: \"The scattering pattern must be normalized to satisfy the condition [(171)] which ensures the power balance between the incoming, reflected, and refracted fields.\"",
+    "⭐확산_비선형_인정": "p43: \"In some cases, e.g., for diffuse reflection (see (168) in Section A.9), the matrix T-tilde depends on the incoming field and is not a linear transformation.\"",
+    "⭐전력상한_설계": "p44: \"Note that the matrices T-tilde_i also ensure appropriate scaling so that the total received power can never be larger than the transmit power.\"",
+    "확산_패턴_출처와_조건": "p52: \"The authors of [41] derived several simple scattering patterns that were shown to achieve good agreement with measurements when correctly parametrized.\""
+  },
+  "OPEN_ITEMS": [
+    "⚠기술보고서는 메시의 어떤 엣지를 '진짜 쐐기' 로 인정하는지, 외부각 n*pi 를 삼각형 메시에서 어떻게 산출하는지 서술하지 않는다. 코드 확인이 필요한 항목.",
+    "⚠path solver 는 '교점을 엣지로 투영' 하고 radio map solver 는 '소스 근처 쐐기를 사전 검출' 한다. 두 경로의 쐐기 집합이 일치하는지 문서만으로는 알 수 없다.",
+    "⚠'문서에 없음 = 구현에 없음' 은 합리적 추정이나 증명은 아니다. PTD/등가전류 부재는 코드 검증으로 한 번 확정해 두면 인용 강도가 올라간다.",
+    "⚠재질 수치와 주파수 의존 함수의 실제 소스(소프트웨어 문서/코드의 ITU 재질 카탈로그)는 이 두 논문 밖에 있다. 기술보고서를 근거로 인용하면 안 된다.",
+    "⚠기술보고서에는 실측 대조 검증이 전혀 없다. 우리가 Sionna 를 앵커로 쓸 수 없다는 근거이자, 동시에 우리도 같은 잣대를 받아야 한다는 뜻이다."
+  ],
+  "_counts": {
+    "documents_read": 2,
+    "technical_report_pages_read_in_full": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      8,
+      9,
+      10,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      28,
+      29,
+      30,
+      33,
+      34,
+      35,
+      36,
+      40,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      55,
+      56,
+      57,
+      58,
+      59
+    ],
+    "technical_report_pages_read_count": 38,
+    "sections_covered": [
+      "2.1",
+      "2.3",
+      "2.4",
+      "3.1(Diffraction)",
+      "3.1.2",
+      "3.1.3",
+      "3.3.2",
+      "3.4",
+      "4.1",
+      "4.2",
+      "4.3",
+      "4.4",
+      "4.5",
+      "A.2",
+      "A.4",
+      "A.5",
+      "A.6",
+      "A.7",
+      "A.7.1",
+      "A.8",
+      "A.9",
+      "B",
+      "C",
+      "D",
+      "Version History",
+      "References"
+    ],
+    "questions_answered": [
+      "Q2",
+      "Q3",
+      "Q7"
+    ],
+    "beliefs_verified": [
+      "B2",
+      "B3",
+      "B4"
+    ],
+    "equations_cited": [
+      "(19)",
+      "(20)",
+      "(80)",
+      "(108)",
+      "(111)",
+      "(117)-(130)",
+      "(131)-(133)",
+      "(134)-(144)",
+      "(145)-(152)",
+      "(153)-(163)",
+      "(164)",
+      "(165)-(171)",
+      "(172)-(174)"
+    ],
+    "equation_numbers_count": 63,
+    "direct_quotes_recorded": 46,
+    "corrections_to_prior_beliefs": 6,
+    "open_items": 5,
+    "zero_hit_terms_in_technical_report": {
+      "physical optics": 0,
+      "PTD": 0,
+      "surface current": 0,
+      "equivalent current": 0,
+      "induced current": 0,
+      "RCS": 0,
+      "radar cross section": 0,
+      "dBsm": 0,
+      "roughness": 0,
+      "cross section (radar sense)": 0
+    },
+    "note": "'cross section' 문자열은 1회 존재하나 Figure 28 캡션의 '2D cross-section'(기하 단면도)이다.",
+    "equation_ranges_note": "본 문서에서 번호로 지칭한 식은 (19)(20)(80)(108)(111), (117)–(133), (134)–(163), (164)–(174) 로 총 63개."
+  }
+}

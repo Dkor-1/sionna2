@@ -1,0 +1,519 @@
+#!/usr/bin/env python3
+"""정정 전파 라운드 — 최종 산출물 outputs/correction_sweep.json 을 조립한다.
+
+benchmark/correction_sweep.py 가 만든 raw 히트에 **사람이 읽은 판정**을 붙이고,
+원문 재검증 결과 · 적용한 수정 · 빌더 패치목록 · 새 정정(A8~A11) · 입장 문단을 합친다.
+
+판정 어휘
+  SURVIVING  철회된 표현이 아직 그대로 살아 있다 → 고쳐야 한다
+  CORRECTED  이미 정정된 형태다 (금지문구 목록·정정 기록 포함) → 손대지 않는다
+  RECORD     "우리가 이렇게 말했었다" 는 변경 이력의 before 칸 → 남겨야 한다
+  FALSE_POS  패턴만 걸린 무관한 텍스트 (변수명·숫자 우연일치)
+
+usage:  PYTHONPATH=src:benchmark python benchmark/correction_sweep_report.py
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import time
+
+ROOT = "/home/yunjung/workspace/sionna2"
+RAW = os.path.join(ROOT, "outputs", "correction_sweep_raw.json")
+DEST = os.path.join(ROOT, "outputs", "correction_sweep.json")
+
+
+def git_rev():
+    try:
+        return subprocess.check_output(["git", "-C", ROOT, "rev-parse", "--short", "HEAD"],
+                                       text=True).strip()
+    except Exception:
+        return "unknown"
+
+
+# --------------------------------------------------------------------------- #
+#  1. 원문에서 직접 재검증한 것 — 이 라운드의 증거 바닥
+# --------------------------------------------------------------------------- #
+VERIFIED_FROM_SOURCE = {
+    "note": "전부 이 세션에서 PDF/코드를 열어 재계산했다. '확인했다' 가 아니라 숫자와 인용문이 있다.",
+
+    "R7_sbr_recount": {
+        "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/"
+               "2504.21719__sionna-rt-technical-report-v1.pdf",
+        "pages": 59,
+        "method": "PyMuPDF 전문 추출 후 정규식 계수",
+        "counts": {
+            "SBR_wholeword_case_sensitive": 44,
+            "SBR_wholeword_case_insensitive": 44,
+            "sbr_substring_case_insensitive": 45,
+            "shooting_and_bouncing": 3,
+            "physical_optics": 0,
+            "radar_cross_section": 0,
+            "diffraction": 106,
+        },
+        "verdict": "R7 확정 — 44 가 맞다. 48 은 이중계상이다.",
+        "why_48_is_wrong": (
+            "48 = 45(부분문자열, 독일어 'Ausbreitungsbedingungen' 오탐 1건 포함) + 3('shooting and "
+            "bouncing'). 그런데 그 3건은 **전부 같은 문장 안에서 '(SBR)' 을 달고 있다** — 즉 44 에 "
+            "이미 포함돼 있다. 더하면 중복이다."),
+        "the_three_shooting_and_bouncing_contexts": [
+            "3.1 Generating Candidates by Shooting and Bouncing of Rays (SBR)  [목차]",
+            "SBR shooting and bouncing of rays.  [약어표]",
+            "3.1. Generating Candidates by Shooting and Bouncing of Rays (SBR)  [본문 절 제목]",
+        ],
+        "bonus_confirmations": {
+            "R6_stock_sionna_HAS_diffraction": "'diffraction' 106회 → '회절이 없다' 는 확정적으로 거짓",
+            "our_scope_claim_holds": "'physical optics' 0회 · 'radar cross section' 0회 → "
+                                     "'없는 것은 PO 면적분과 RCS 출력' 이라는 우리 문장은 원문이 지지한다",
+        },
+    },
+
+    "R1_chen_recount": {
+        "pdf": "/data/public/sionna_jeong/reference_library/g1g2/chen2024_applsci_14_4282.pdf",
+        "pages": 20,
+        "counts": {"PRF": 0, "unambiguous": 1},
+        "verdict": "R1 확정 — Chen 2024 는 닫힌 식을 인쇄하지 않는다. 우선권은 Abratkiewicz JSTARS 2023 식(16).",
+        "stale_record_fixed": "docs/REFERENCE_LIBRARY.md 가 이 PDF 를 'MDPI 403 원문 미확보' 로 "
+                              "적고 있었다. 파일은 디스크에 있다 — 표기 폐기함.",
+    },
+
+    "A8_das_yuan_reconcile": {
+        "method": "PYTHONPATH=src python -c 'sigma_anchor.reconcile_das_yuan(...)' 직접 재실행",
+        "our_bands_ghz": [1.843, 3.5, 5.21],
+        "by_branch_our_bands": {
+            "exponential": {"offset_db": 2.5068157813, "resid_min_db": -0.2502, "resid_max_db": -0.1161,
+                            "resid_absmax_db": 0.2502},
+            "lognormal": {"offset_db": 3.1921, "resid_absmax_db": 0.9355},
+            "none_i_e_turn_it_off": {"offset_db": 0.0, "resid_min_db": 2.2566, "resid_max_db": 2.3908,
+                                     "resid_absmax_db": 2.3908},
+        },
+        "by_branch_full_band_1p8_18p2": {
+            "exponential": 0.4894, "lognormal": 1.1773, "none": 2.9963,
+        },
+        "physics_leg": {
+            "das_table2": "Phantom 3 최적적합 = Rician, d_AD 0.436",
+            "yuan_fig6a_verbatim": "The K factors vary around -10 dB at some frequencies, while the "
+                                   "others are significantly lower, falling below -30 dB.",
+            "reading": "K <= -10 dB 인 Rician = 레일리 진폭 = 지수 전력. +2.5068 이 정확한 자리다.",
+            "held_in": "outputs/validation_feasibility.json : 2_yuan_phantom3_measurement.quotes.K_factor",
+        },
+        "verdict": "지시('근거 없으니 끄라')가 틀렸다. 끄면 2.26~2.39 dB 어긋난다.",
+    },
+
+    "A10_ziganshin_two_versions": {
+        "journal": {
+            "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+            "pages": 11,
+            "sweep_quote": "The considered scenarios include two spherical cases with 720 angular "
+                           "points and two vehicle meshes with 360 angular points",
+            "parallel_quote": "Also, all observation locations are processed simultaneously (in "
+                              "parallel) within a single RT simulation.",
+            "table_II_vehicle_1496_facets_s": {"RT": 0.7, "+V": 3.6, "+EE": 10.2, "+EV/VE": 19.0},
+            "per_angular_point_ms": {"RT": 1.944, "+V": 10.0, "+EE": 28.33, "+EV/VE": 52.78},
+            "vehicle_validation": "백스캐터=실측(3 GHz HH) · 그림자=MLFMM(2 GHz VV, low-poly)",
+            "vehicle_units": "|E_sc| / |E_tot| in dB — ⭐ 저널판에는 dBsm 곡선이 아예 없다",
+            "mlfmm_time_quote": "each of the MLFMM simulations in this study took several hours",
+            "why_mlfmm_absent_from_backscatter": "MLFMM results are not included in this comparison "
+                                                 "because the available full-wave setup does not "
+                                                 "reproduce the measured antenna patterns, which "
+                                                 "would make a direct comparison misleading.",
+        },
+        "conference": {
+            "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/"
+                   "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+            "pages": 5,
+            "corpus_note": "⭐ arXiv id 가 아니라 **제목**으로 저장돼 있다. 파일명 검색으로는 안 나온다. "
+                           "'코퍼스에 없다' 는 앞선 판정은 틀렸다 — 내용 검색으로 찾았다(382 PDF 전수).",
+            "po_one_day_quote": "In each case, the simulation time for the PO solver is around one "
+                                "day, whereas the RT simulation takes only about two seconds",
+            "mlfmm_one_hour_quote": "The EM simulation with MLFMM solver takes around one hour, "
+                                    "while for the advanced RT tool with similar computational "
+                                    "facilities, it is less than a second.",
+            "mlfmm_one_hour_quote_2": "The EM simulation with MLFMM solver is still carried out in "
+                                      "around one hour, while it is around 5 seconds for RT.",
+            "sphere_720_points": "angular separation of 0.5 deg which gives 720 simulations in total",
+            "car_dbsm": "Fig. 6: RCS of the simplified car — 곡선 라벨 'EM (PO)' vs 'RT+UTD+VD'",
+            "abstract_respectively": "compared with simulations by MLFMM and PO solvers for "
+                                     "discretized spheres and a simplified car, respectively",
+            "mlfmm_why_not_car": "The usage of MLFMM is complicated for a car simulation due to the "
+                                 "tremendous amount of time and memory required for simulation, so "
+                                 "we use the PO solver.",
+        },
+        "verdict": [
+            "A5 는 **회의판 한정으로 참**이다 — 판본을 안 밝히면 맞는 저널판 기록을 틀리게 고치게 된다.",
+            "0.7/19.0 s 는 **360 각도점 전체 스윕** — per-pose 로 인용하면 360배 틀린다.",
+            "비율 15~27배는 척도 상쇄로 **그대로 유효**하다.",
+            "⭐ 'MLFMM 구 1스윕 ~1시간' 과 'PO 약 하루' 는 **회의판 축자로 확인됐다** — 근거 없는 수치가 아니다. "
+            "저널판의 'several hours' 로 그것을 정정하려 한 것이 판본 혼동이었다.",
+        ],
+    },
+
+    "A11_slope_census": {
+        "source": "src/sigma_anchor.py : SLOPE_CENSUS (코드가 이미 overlaps_our_band 필드를 들고 있었다)",
+        "overlapping_our_band_1p8_5p21": {
+            "rows": {"das_phantom3_mono": 0.21, "yuan_phantom3_az": 0.315,
+                     "yuan_phantom3_top": 0.231, "yuan_phantom3_bot": 0.175},
+            "range": [0.175, 0.315], "n": 4,
+            "caveat": "네 행 전부 Phantom 3 — A2 에 따라 **한 측정의 네 통계**다. 독립 4건이 아니다.",
+        },
+        "not_overlapping": {
+            "das_phantom2_mono": {"slope": 0.21, "band_ghz": [11.0, 26.0]},
+            "das_mini2_mono": {"slope": 0.07, "band_ghz": [21.0, 27.0]},
+            "das_m350rtk_mono": {"slope": 0.17, "band_ghz": [21.0, 27.0]},
+        },
+        "all_rows_range": [0.07, 0.315],
+        "das_table3_all_28_cells": [-0.13, 0.50],
+        "verdict": "A2 의 '0.07~0.315 가 옳다' 는 **전 기체 총람**으로는 옳고 **우리 대역 비교**로는 외삽이다. "
+                   "0.175~0.315 를 그냥 '폐기' 로 적은 것이 과잉정정이었다. 규칙은 **구간 명시**다.",
+    },
+}
+
+
+# --------------------------------------------------------------------------- #
+#  2. 패턴별 판정 (사람이 히트를 읽고 매긴 것)
+# --------------------------------------------------------------------------- #
+TRIAGE = {
+    "R1_chen_as_priority_holder": dict(
+        raw=60, surviving=13, verdict="부분 생존 — 벤치마크 스크립트 3개가 진원지였다",
+        surviving_list=[
+            "benchmark/geometry_benchmark.py:846  ✅ 수정함",
+            "benchmark/monostatic_prior.py:546    ✅ 수정함",
+            "benchmark/monostatic_prior.py:595    ✅ 수정함",
+            "benchmark/mono_vs_passive.py:1372 ('formula priority')  ✅ 수정함",
+            "docs/REFERENCE_LIBRARY.md:1715  ✅ 수정함",
+            "docs/REFERENCE_LIBRARY.md:1847  ✅ 수정함",
+            "outputs/geometry_benchmark.json:1121   ⟳ 위 .py 재실행 시 사라짐",
+            "outputs/monostatic_prior.json:531,558,564  ⟳ 재실행 시 사라짐",
+            "outputs/mono_vs_passive.json:964,982,1156  ⟳ 재실행 시 사라짐",
+            "outputs/reference_library.json:7307  ⚠ 생성기 없음(수기) — 아래 patch_list",
+            "outputs/reflib_sweep_geometry.json:1011 'priority holder for our formula'  ⚠ patch_list",
+            "outputs/reflib_sweep_geometry.json:1050  ⚠ patch_list",
+            "outputs/review_mobisys.json:53,85,104  ⚠ patch_list",
+        ],
+        already_correct_examples=[
+            "outputs/verify_chen.json:12,14 · outputs/deck_facts.json:414,1055,1070 · "
+            "docs/DECK_FACTS.md:261,545,554 — 전부 Abratkiewicz 로 정정된 형태",
+        ]),
+
+    "R1_velocity_law_ours_or_novel": dict(
+        raw=118, surviving=0,
+        verdict="생존 0 — 히트 대부분이 변수명(`ours_v_max_ms`, `ours_unambiguous`)이거나 "
+                "novelty_guard 금지목록 자체다. 법칙에 '최초/신규' 를 붙인 살아 있는 문장은 없다."),
+
+    "R6_stock_sionna_no_diffraction": dict(
+        raw=38, surviving=0,
+        verdict="생존 0 — 38건 전부 정정형 또는 ⛔금지문구 목록이다. "
+                "기술보고서 재계수 'diffraction' 106회로 이 라운드에서 한 번 더 확정했다.",
+        one_to_watch="outputs/psolve_diffraction.json:190 'Sionna RT 1.0.x 는 회절이 아예 없었다' — "
+                     "이건 우리 주장이 아니라 **다른 판본**에 대한 진술이라 R6 대상이 아니다. "
+                     "다만 미검증이므로 인용 전 확인 필요."),
+
+    "R7_sbr_48_occurrences": dict(
+        raw=41, surviving=9,
+        verdict="⭐ 생존 — 그리고 **빌더가 진원지**라 내가 못 고친다(patch_list 참조)",
+        root_cause="outputs/prior_settled_sionna.json 의 키 이름이 "
+                   "\"SBR or shooting-and-bouncing\": 48 인데, 옮겨지는 과정에서 라벨이 떨어지고 "
+                   "'SBR 이 48회' 가 됐다. 합성 카운트가 앵커로 승격된 사고다.",
+        surviving_list=[
+            "src/make_report02_target.py:1436  ⛔ 빌더 — patch_list",
+            "src/make_report02_target.py:1800  ⛔ 빌더 — patch_list",
+            "report02_target.ipynb (빌더 산출물)  ⛔ patch_list",
+            "outputs/paper_kit.json:908,1803  ⟳ 빌더 재실행 시 따라옴",
+            "outputs/prior_settled_sionna.json:313 headline · L88 키이름  ⚠ patch_list",
+            "outputs/reflib_sweep_geometry.json:10,1890  ⚠ patch_list",
+            "outputs/sionnart_solver.json:349  ⚠ patch_list",
+            "docs/REFERENCE_LIBRARY.md:1345,1363,1381 (`sbr_mentions_in_tech_report` = 48)  ⚠ patch_list",
+            "docs/references.bib:958 · outputs/reference_library.json:4917 ('합쳐 48회')  ⚠ patch_list",
+        ],
+        note="⭐ src/make_report01_prior.py:205 와 outputs/paper_kit.json:123 은 **이미 44** 를 쓴다. "
+             "즉 report01 과 report02 가 같은 사실에 다른 수를 인쇄하고 있다 — 내부 모순."),
+
+    "R8_19_papers_target_in_scene": dict(
+        raw=9, surviving=3,
+        surviving_list=[
+            "docs/RESUME_0731.md:201 ('씬에 표적을 세운 19편')  ⚠ 과거 재개문서 — patch_list",
+            "outputs/deepread_reconcile.json:285 claim_status.C1.our_text  ⚠ patch_list",
+            "outputs/deepread_w2.json:775 (우리 C1 문구를 19편으로 재인용)  ⚠ patch_list",
+        ],
+        not_a_hit="docs/DECK_FACTS.md:376 · outputs/deck_facts.json:668 의 19 는 **다른 코퍼스**"
+                  "(전문 판정 코퍼스 고유 저작 수)이고 본문이 스스로 '한 문장에 같이 넣으면 안 된다' 고 "
+                  "분리해 놨다. 정상."),
+
+    "A1_dihedral_minus_26_46_db": dict(
+        raw=1, surviving=0,
+        verdict="생존 0 — 유일한 히트(outputs/r2_read_w3.json:592)는 **우리 사건을 남의 논문 비판의 "
+                "비유로** 쓴 것이다. 오히려 정정이 내면화된 증거."),
+
+    "A2_slope_range_0175_0315": dict(
+        raw=14, surviving=0,
+        verdict="⭐ 판정 뒤집힘 — A11 참조. `0.175~0.315` 는 **우리 대역 비교에서는 오히려 옳다**. "
+                "A2 가 이것을 무조건 '폐기' 로 적은 것이 과잉정정이었다. "
+                "생존 인스턴스로 세지 않고, 대신 **구간 명시 규율**을 세 곳에 심었다.",
+        edits_made=["src/sigma_anchor.py:24 (범위 주석 추가)  ✅",
+                    "docs/ENGINE_VALIDATION.md:12  ✅",
+                    "docs/ENGINE_VALIDATION.md:57 (규율 인용블록 추가)  ✅"]),
+
+    "A2_das_yuan_two_independent": dict(
+        raw=5, surviving=0,
+        verdict="생존 0 — 5건 전부 '독립 2건이 아니다' 라는 정정형이다. 완전히 전파됨."),
+
+    "A3_plastic_eps_unsourced": dict(
+        raw=6, surviving=5,
+        verdict="⭐ 생존 — 그리고 이게 이번 스윕에서 가장 조용한 모순이다",
+        detail="docs/MATERIAL_SOURCES.md:21 · outputs/material_sources.json:15 · "
+               "outputs/engine_validation_verdict.json:324 · benchmark/material_sources.py:464 가 "
+               "'tier-2 무출처 값은 plastic(2.7/0.02)·carbon·absorber 셋뿐' 이라고 적는다. "
+               "그런데 A3 는 plastic 2.7 이 **출처 있다**(Zechmeister & Lacik, COMITE 2019, ABS 2.55-2.95)고 "
+               "확정했다. 같은 라운드의 두 산출물이 서로 어긋난다. "
+               "+ outputs/psolve_deep.json:1908 'no citation'.",
+        recommended="plastic 을 tier-2 목록에서 빼고 **셸 두께**를 넣는다. "
+                    "⚠ benchmark/material_sources.py 는 다른 워크플로 미추적 산출물이라 "
+                    "동시편집 위험 — patch_list 로 넘긴다."),
+
+    "A4_battery_eps_mixup": dict(
+        raw=14, surviving=0,
+        verdict="생존 0 — 전부 'FALSE → absorber 다' 정정형. drone_specs_2026.json 히트는 "
+                "무관한 배터리 문장(오탐)."),
+
+    "A5_ziganshin_mlfmm_validation": dict(
+        raw=38, surviving=0,
+        verdict="⭐ 판정 뒤집힘 — A10 참조. 저널판은 차량을 **실제로** MLFMM 과 대조한다(그림자 영역). "
+                "A5 는 **회의판 dBsm 곡선**에 한정해서 참이다. "
+                "'car vs MLFMM' 이라 적힌 기록들(psolve_deep.json:541,568 · psolve_diffraction.json:364)은 "
+                "**저널판 기술로서 옳다** — 고치면 안 된다. A5 에 판본 한정을 붙이는 것이 정답.",
+        ambiguous_lumping=["docs/REFERENCE_LIBRARY.md:1113,1786 · outputs/reference_library.json:3972 "
+                           "의 'PO/MLFMM 상용 솔버와 대조' 는 뭉뚱그림 — 구/차량을 나눠 쓰는 편이 낫다"]),
+
+    "A7_techreport_v1": dict(
+        raw=40, surviving=1,
+        surviving_list=["outputs/reflib_sweep_geometry.json:1898 'arXiv:2504.21719v1 held'  ⚠ patch_list"],
+        verdict="사실상 전파 완료 — 나머지 39건은 'v1.2'(옳은 판본 표기)가 정규식에 걸린 오탐."),
+
+    "NEW_phantom2_phantom3_inversion": dict(
+        raw=24, surviving=0,
+        verdict="⭐ 생존 0 — **브리프만 틀렸고 저장소는 처음부터 맞았다**. "
+                "src/sigma_anchor.py:490 · outputs/validation_feasibility.json:32 "
+                "('The premise of the whole brief inverts') 가 이미 잡아놨다. "
+                "RETRACTION_LOG 에 A9 로 **기록만** 추가했다."),
+
+    "NEW_ziganshin_runtime_per_pose": dict(
+        raw=15, surviving=2,
+        verdict="생존 2 — 둘 다 per-pose 기준선 **바로 옆에** 초 단위를 놓아 360배 오독을 부른다",
+        surviving_list=["docs/RESUME.md:64  ✅ 수정함",
+                        "docs/RETRACTION_LOG.md:170  ✅ 수정함(런타임 절 전체 교체)"],
+        already_correct=["docs/HOW_OTHERS_SOLVED_IT.md:18 은 '각도당 53 ms' 로 이미 옳게 적고 "
+                         "회의판/저널판도 행을 나눠 놨다 — 모범 사례",
+                         "outputs/psolve_signature.json:1090 'per angular sweep' — 옳음"],
+        ratio_is_fine="15~27배는 분자·분모가 같은 스윕이라 유효하다. 절대 초만 문제."),
+}
+
+
+# --------------------------------------------------------------------------- #
+#  3. 빌더·노트북 패치 목록 (⛔ 내가 고치지 않는다)
+# --------------------------------------------------------------------------- #
+PATCH_LIST = [
+    dict(id="P1", priority="HIGH", file="src/make_report02_target.py", lines=[1436, 1800],
+         defect="기술보고서 SBR 출현수를 **48** 로 인쇄한다 (R7: 정본 44)",
+         current="\"**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 \" "
+                 "+ ⟨outputs/prior_settled_sionna.json : "
+                 "word_counts_rerun_this_session…['SBR or shooting-and-bouncing']⟩",
+         fix="참조 키를 44 를 담은 것으로 바꾼다 — report01 이 이미 쓰는 "
+             "⟨outputs/prior_work_survey.json : engine.technical_report.term_counts.sbr⟩ 로 통일.",
+         evidence="PDF 재계수: `\\bSBR\\b` 44 (대소문자 무관 동일). 'shooting and bouncing' 3건은 "
+                  "전부 같은 문장의 '(SBR)' 이라 44 에 포함 — 더하면 이중계상.",
+         blast_radius="report02_target.ipynb · outputs/paper_kit.json:908,1803",
+         internal_contradiction="⭐ src/make_report01_prior.py:205 는 이미 **44** 를 인쇄한다. "
+                                "현재 report01 과 report02 가 서로 다른 수를 말하고 있다."),
+
+    dict(id="P2", priority="HIGH", file="outputs/prior_settled_sionna.json", lines=[88, 313],
+         defect="L88 키 이름 \"SBR or shooting-and-bouncing\": 48 (합성 카운트) + "
+                "L313 headline 'the technical report DOES use the acronym SBR, 48 times'",
+         fix="키를 `SBR_wholeword`: 44 와 `shooting_and_bouncing_already_inside_SBR`: 3 으로 **분리**하고 "
+             "headline 을 44 로 고친다. docs/SIONNA_RT_REFERENCE.md:848 이 이미 이 분리를 권고해 놨다.",
+         why="48 오류의 **뿌리**다. 여기를 고치지 않으면 빌더를 고쳐도 재발한다."),
+
+    dict(id="P3", priority="MED", file="outputs/reference_library.json", lines=[4917],
+         also="docs/references.bib:958",
+         defect="'SBR 44회 · 무시 45회 · shooting and bouncing 3회 → **합쳐 48회**'",
+         fix="'→ 합쳐 48회' 를 삭제. 3건은 44 안에 있다(중복). 45 의 1건은 독일어 "
+             "'Ausbreitungsbedingungen' 오탐이라고 명시."),
+
+    dict(id="P4", priority="MED", file="docs/REFERENCE_LIBRARY.md", lines=[1345, 1363, 1381],
+         defect="`sbr_mentions_in_tech_report` = 48",
+         fix="44 로. (같은 파일 L1962 는 이미 ⚠CORRECTED 로 사정을 적어놨다 — 수만 안 고쳤다.)"),
+
+    dict(id="P5", priority="MED", file="outputs/reflib_sweep_geometry.json",
+         lines=[10, 1011, 1050, 1890, 1898],
+         defect="① L1011 '⭐⭐ Chen 5G rotating target - **priority holder for our formula**' (R1) "
+                "② L10·L1890 'SBR=48' (R7) ③ L1898 'arXiv:2504.21719**v1** held' (A7)",
+         fix="① 우선권을 Abratkiewicz JSTARS 2023 식(16) 으로. Chen 행은 '닫힌 식 없음(PRF 0회)' 로. "
+             "② 44. ③ 'v1 파일명 / 내용은 v2 = Version 1.2'."),
+
+    dict(id="P6", priority="MED", file="outputs/review_mobisys.json", lines=[53, 85, 104],
+         defect="Chen 2024 를 v_max 식의 선행/우선권으로 세 곳에서 세운다 (R1)",
+         fix="Abratkiewicz JSTARS 2023 식(16) p.3476 으로 교체. "
+             "⭐ 논지는 오히려 **강해진다** — 그들 결론 p.3482 가 드론을 향후과제로 남겼다."),
+
+    dict(id="P7", priority="MED", file="outputs/deepread_reconcile.json", lines=[285],
+         also="outputs/deepread_w2.json:775 · docs/RESUME_0731.md:201",
+         defect="'Of **19 papers** that put a target in a Sionna scene…' (R8: 실제 7 히트 / 고유 6편)",
+         fix="'Of the **7** role_TARGET_IN_SCENE hits (**6 unique works**) …' 로. "
+             "⚠ DECK_FACTS 의 19 는 **다른 코퍼스**이므로 건드리지 말 것."),
+
+    dict(id="P8", priority="MED", file="benchmark/material_sources.py", lines=[460, 464],
+         also="docs/MATERIAL_SOURCES.md:21 · outputs/material_sources.json:15 · "
+              "outputs/engine_validation_verdict.json:324",
+         defect="tier-2 '무출처' 목록에 **plastic 2.7** 이 들어 있다 — A3 와 정면 충돌",
+         fix="plastic 을 목록에서 빼고 출처를 단다(Zechmeister & Lacik, COMITE 2019, 1–10 GHz, "
+             "ABS 2.55–2.95). 그 자리에 **셸 두께**를 넣는다 — 그게 진짜 무출처다.",
+         warning="⚠ 이 파일은 git 미추적(다른 워크플로 산출물)이라 동시편집 위험. 직접 안 고쳤다."),
+
+    dict(id="P9", priority="LOW", file="outputs/psolve_deep.json", lines=[1908],
+         defect="\"Our plastic eps_r 2.7 'literature value 2.6-3.0, **no citation**'\" (A3)",
+         fix="출처 있음으로. 무출처 항목은 셸 두께로 바꾼다."),
+
+    dict(id="P10", priority="LOW", file="docs/REFERENCE_LIBRARY.md", lines=[1113, 1786],
+         also="outputs/reference_library.json:3972",
+         defect="'PO/MLFMM 상용 솔버와 대조' — 구/차량을 뭉뚱그린다 (A5·A10)",
+         fix="'구는 MLFMM, 차량 dBsm 은 FEKO PO 솔버(회의판)' 로 나눠 적는다."),
+]
+
+
+# --------------------------------------------------------------------------- #
+#  4. 이번 라운드에 내가 실제로 고친 것
+# --------------------------------------------------------------------------- #
+EDITS_APPLIED = [
+    dict(file="docs/RETRACTION_LOG.md", what="⭐ A8~A11 절 신설 + '아직 답 못 한 공개 반론' 절을 "
+                                             "'✅ 2026-08-03 답변됨' 으로 교체(런타임 측정 결과 반영)"),
+    dict(file="benchmark/geometry_benchmark.py", line=846,
+         what="novelty_guard 의 Chen 우선권 → Abratkiewicz JSTARS 2023 식(16)"),
+    dict(file="benchmark/monostatic_prior.py", line=546,
+         what="must_stop_claiming 근거를 Chen → Abratkiewicz"),
+    dict(file="benchmark/monostatic_prior.py", line=595,
+         what="headline_of_this_file 3) 항의 Chen 귀속 철회 + 드론=향후과제 포지셔닝 추가"),
+    dict(file="benchmark/mono_vs_passive.py", line=1372,
+         what="'formula priority' 값을 Chen → Abratkiewicz (영문, 근거 포함)"),
+    dict(file="src/sigma_anchor.py", line=24,
+         what="0.175~0.315 에 밴드겹침 범위 주석 추가 (A11)"),
+    dict(file="docs/ENGINE_VALIDATION.md", line=12, what="0.175~0.315 에 '겹치는 4행' 한정 추가"),
+    dict(file="docs/ENGINE_VALIDATION.md", line=57, what="구간 표기 규율 인용블록 추가 (A11)"),
+    dict(file="docs/RESUME.md", line=64,
+         what="런타임을 '답 없음' → 측정값으로 교체 + A10 인용 규율(360 각도점·판본 구분) 추가"),
+    dict(file="docs/REFERENCE_LIBRARY.md", line=1715, what="Chen 행을 R1 정정형으로 (PRF 0회 증거 포함)"),
+    dict(file="docs/REFERENCE_LIBRARY.md", line=1847,
+         what="Chen 우선권 철회 + 'MDPI 403 원문 미확보' 표기 폐기(PDF 디스크에 있음)"),
+    dict(file="benchmark/correction_sweep.py", what="신규 — 전수 스윕기(JSON 문자열값만 검사)"),
+    dict(file="benchmark/correction_sweep_report.py", what="신규 — 판정·조립기(이 파일)"),
+]
+
+
+# --------------------------------------------------------------------------- #
+#  5. ⭐ 현재 입장 — 다음 리포트·덱의 첫 문단
+# --------------------------------------------------------------------------- #
+POSITION = {
+    "audience": "Abratkiewicz 2023 을 방금 읽었고 Ziganshin 의 반론도 아는 독자",
+    "paragraph_ko": (
+        "우리는 상시 5G/LTE/WiFi 조명원을 쓰는 패시브 바이스태틱 드론 **검출**을, 표적을 광선추적 씬 "
+        "안에 세우고 그 표면전류를 적분해 절대 σ(dBsm) 를 내는 방식으로 끝까지 계산한다. "
+        "빌린 것은 분명하다. 무모호 속도 한계 v_max = λ·PRF/4 는 **우리 것이 아니라 Abratkiewicz 외, "
+        "IEEE JSTARS 16:3469–3484 (2023) 식 (16) p.3476** 의 것이고, 반구간 규약까지 같다. "
+        "엔진은 NVIDIA Sionna RT 2.0.1 이며 그 안에는 SBR(기술보고서 59쪽에 44회)도 1차 UTD 쐐기회절도 "
+        "**이미 있다** — 없는 것은 PO 면적분과 RCS 출력('physical optics' 0회 · 'radar cross section' 0회)이고, "
+        "우리가 얹은 것이 정확히 그 두 층이다. 측정 앵커는 **한 건**이다: Das WCL 2026 은 Yuan EuCAP 2025 의 "
+        "원자료 재분석이므로 독립 2건이 아니라 DJI Phantom 3 한 기체·한 CATR 체인이다. "
+        "따라서 우리가 주장하는 것은 새 물리가 아니라 **닫힌 사슬**이다 — 기체 CAD 에서 재질 가중 PO 산란, "
+        "조명원 파형, 바이스태틱 링크, CFAR 검출까지 한 규약으로 이어붙이고 각 단을 공개 수치 옆에 세운 것. "
+        "Ziganshin 의 공개 반론 두 절반에는 이렇게 답한다. **그림자 영역**은 맞는 지적이지만 우리 주장 밖이다 "
+        "— 우리는 후방산란과 β ≤ 45° 에서만 말한다. **'PO 를 RT 뒤에 붙이면 RT 의 이점이 사라진다'** 는 절반은 "
+        "이제 측정으로 답한다: 우리 생산 per-pose 비용은 공유 RTX 4090 한 장에서 9.2~356 ms(중앙값 38 ms)이고, "
+        "**같은 카드**의 스톡 Sionna PathSolver 72.8~128.0 ms 보다 오히려 낮다. "
+        "우리 빌드에서 PO 가 RT 의 16배인 것은 사실이나 그것은 캐스케이드의 성질이 아니라 "
+        "**호스트 numpy 구현**의 성질이다 — GPU 상주 SBR+PO 인 SagittaSBR 는 PO 적분을 광선발사의 "
+        "1.9~6.5 %(Table 1, p.11)로 인쇄한다. "
+        "열린 채로 남은 것도 분명히 적는다. (1) 커널에 **PTD/프린지 항이 없어** 밴드 기울기가 측정보다 "
+        "3~8배 가파르다 — 이건 계통오차이고 앵커링으로 덮은 것이지 고친 것이 아니다. "
+        "(2) 절대 레벨의 유일한 **외부** 검증은 정확 Mie 대비 0.375~0.851 dB 이며, 나머지 자는 PO 로 PO 를 "
+        "채점한다. (3) 앵커의 통계 규약은 미해소다 — dB영역평균→선형평균 오프셋을 "
+        "**지수(+2.5068 dB)와 로그정규(+3.19 dB) 두 분기로 함께** 들고 다니고, 규약이 상쇄되는 **기울기**로 "
+        "이끈다. (4) 우리 커널은 아직 **모노스태틱 형태**이고 바이스태틱 PO obliquity 일반화가 남았다. "
+        "⭐ 그리고 Abratkiewicz 자신이 결론 p.3482 에서 *'small target detection, for instance, drones'* 를 "
+        "향후과제로 남겼다 — 우리 자리는 '우리가 처음' 이 아니라 **식의 저자가 직접 열어둔 자리**다."
+    ),
+    "one_line_ko": "빌린 법칙(Abratkiewicz 2023) · 빌린 엔진(Sionna RT, SBR·UTD 포함) 위에 "
+                   "PO 면적분과 RCS 출력 두 층을 얹어 조명원부터 검출까지 한 규약으로 닫았고, "
+                   "런타임은 잼(38 ms/pose, 같은 카드 스톡보다 빠름), PTD 결손은 남아 있다.",
+    "what_must_never_be_said": [
+        "⛔ 'v_max 법칙은 우리 것' / 'Chen 2024 가 우선권'  → Abratkiewicz JSTARS 2023 식(16)",
+        "⛔ '스톡 Sionna 에 회절이 없다'  → 1차 UTD 쐐기회절 있음(기본값만 off, 'diffraction' 106회)",
+        "⛔ '기술보고서에 SBR 48회'  → 44회",
+        "⛔ 'Das 와 Yuan 이라는 독립 앵커 2건'  → 한 측정의 두 통계",
+        "⛔ 'Ziganshin 은 pose 당 0.7~19.0 s'  → 360 각도점 전체 스윕(각도당 1.94~52.8 ms)",
+        "⛔ '앵커 오프셋 +2.5068 은 근거 없다'  → 끄면 Das·Yuan 이 2.26~2.39 dB 어긋난다",
+        "⛔ 'Phantom 2 가 광대역 원거리장 앵커'  → Phantom 3 다 (Phantom 2 는 11–26 GHz 근접장)",
+        "⛔ '우리 커널은 해석해로 검증됐다'(뭉뚱그림)  → 진짜 외부 자는 정확 Mie 하나뿐",
+    ],
+    "must_always_carry_scope": [
+        "밴드 기울기 구간 — '우리 대역 겹침 0.175~0.315' vs '전 기체 총람 0.07~0.315'",
+        "Ziganshin 수치 — **회의판**(PO 하루·MLFMM 1시간·dBsm Fig.6) vs **저널판**(Table II·MLFMM several hours)",
+        "앵커 오프셋 — exponential(+2.5068) / lognormal(+3.19) 두 분기",
+        "v_max 표 — 어느 c 를 썼는지(우리 표는 c = 3e8)",
+    ],
+}
+
+
+def main():
+    raw = json.load(open(RAW, encoding="utf-8"))
+    n_surv = sum(v.get("surviving", 0) for v in TRIAGE.values())
+    n_raw = sum(v.get("raw", 0) for v in TRIAGE.values())
+
+    out = {
+        "meta": {
+            "task": "정정 전파 — 철회된 표현의 생존 인스턴스 전수 조사 · 소유 파일 수정 · "
+                    "빌더 패치목록 · 신규 정정 A8~A11 · 입장 문단",
+            "generated": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "git_rev": git_rev(),
+            "scripts": ["benchmark/correction_sweep.py (스윕)",
+                        "benchmark/correction_sweep_report.py (판정·조립)"],
+            "raw_hits_file": "outputs/correction_sweep_raw.json",
+            "files_scanned": raw["meta"]["files_scanned"],
+            "gpu_calls": 0,
+            "gpu_note": "GPU 미사용. GPU2/rcs_anchor.py 및 outputs/rcs_anchor.json 미접근.",
+            "not_touched": ["outputs/r2_*.json", "outputs/quote_audit.json",
+                            "outputs/rcs_anchor.json", "src/make_report*.py", "*.ipynb",
+                            "/home/yunjung/workspace/team_meeting"],
+            "counts": {"patterns": len(TRIAGE), "raw_hits": n_raw,
+                       "surviving_after_triage": n_surv,
+                       "edits_applied": len(EDITS_APPLIED), "patch_items": len(PATCH_LIST)},
+        },
+        "headline": (
+            "생존 %d건 / 원시히트 %d건. ⭐ 그런데 이 라운드의 진짜 소득은 생존 인스턴스가 아니라 "
+            "**정정 지시 자체가 틀린 것 네 건**(A8~A11)이다 — 두 건은 근거 없이 끄라 했고"
+            "(+2.5068, 0.175~0.315), 두 건은 판본·범위를 떼어냈다(Ziganshin 회의판↔저널판, Phantom 2↔3). "
+            "R1~R8 의 실패는 '원문 안 읽고 단정' 이었고, A8~A11 의 실패는 '고치면서 범위를 잃음' 이다."
+            % (n_surv, n_raw)),
+        "verified_from_source": VERIFIED_FROM_SOURCE,
+        "triage_by_pattern": TRIAGE,
+        "patch_list_builders_and_notebooks": PATCH_LIST,
+        "edits_applied": EDITS_APPLIED,
+        "new_retractions_added": {
+            "where": "docs/RETRACTION_LOG.md",
+            "A8": "'+2.5068 dB 는 근거 없으니 끄라' 는 지시가 틀렸다 — 두 분기를 함께 들고, 기울기로 이끈다",
+            "A9": "Phantom 2 / Phantom 3 뒤집힘 — 브리프가 틀렸고 src/sigma_anchor.py 가 맞았다",
+            "A10": "Ziganshin 런타임 — 0.7/19.0 s 는 360각도점 전체 스윕 · 회의판↔저널판 분리 · "
+                   "EuCAP PDF 는 코퍼스에 **있다**(제목으로 저장)",
+            "A11": "A2 의 대체 구간 0.07~0.315 도 대역을 섞는다 — 구간을 명시한다",
+            "also": "'⚠ 아직 답 못 한 공개 반론'(런타임) 절을 '✅ 답변됨' 으로 교체",
+        },
+        "position_statement": POSITION,
+        "raw_hits_by_pattern": {k: len(v) for k, v in raw["hits"].items()},
+    }
+    with open(DEST, "w", encoding="utf-8") as fh:
+        json.dump(out, fh, ensure_ascii=False, indent=1)
+    print("wrote", DEST)
+    print("raw hits %d -> surviving %d" % (n_raw, n_surv))
+    print("edits applied:", len(EDITS_APPLIED), "| patch items:", len(PATCH_LIST))
+
+
+if __name__ == "__main__":
+    main()

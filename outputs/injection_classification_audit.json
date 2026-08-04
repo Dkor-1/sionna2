@@ -1,0 +1,207 @@
+{
+ "task": "Adversarial CLASSIFICATION AUDIT of outputs/injection_archive.json (10 claimed injection instances) - re-open every PDF, verify flavour, venue and status came off the page.",
+ "generated_utc": "2026-08-03T07:31:57.543358Z",
+ "audited_artifact": "/home/yunjung/workspace/sionna2/outputs/injection_archive.json (mtime 2026-08-03 06:23)",
+ "evidence_rule": "Every verdict below was produced by re-opening the PDF with PyMuPDF in this session and matching the exact string. Where a string could NOT be found, that is stated.",
+ "headline": {
+  "does_the_top_venue_answer_survive": "YES, and it is stronger than recorded. Zhang et al., IEEE JSAC vol.44 (2026) p.702, DOI 10.1109/JSAC.2025.3608732 is a genuine PATH-LEVEL injection - masthead, DOI and the full acceptance line ('Received 13 February 2025; revised 9 July 2025; accepted 5 September 2025') all read off page 1 - and the audit turned up a fact the census missed: p.7 states the model 'has been adopted by the 3GPP Technical Specification Group Radio Access Network Working Group 1 (TSG RAN1) during meeting #120 [41], and is now part of the official standard.' Injection is not merely publishable, it is standardised.",
+  "but_the_count_is_wrong": "The claimed 10 injection instances do not survive strict re-reading. 4 are confirmed injections, 3 are budget-level only, 3 are not injection at all. Peer-reviewed CONFIRMED injections fall from 5 to 3 (JSAC, J-STEAP, IET RSN).",
+  "and_the_census_missed_the_closest_relative": "Schuler, Becker, Wiesbeck, IEEE Trans. Antennas and Propagation 56(11):3543, Nov 2008 - signature computed in the authors' OWN 3-D ray tracer, validated against anechoic bistatic measurements, reduced to an aspect-indexed cluster model explicitly intended to 'be used in other radar simulations'. That is the closest published structural relative of outputs/report13_sigma_grid.*, at a top EM venue, and it is absent from injection_archive.json."
+ },
+ "verdicts": [
+  {
+   "id": "INJ-01-LAMBDA",
+   "verdict": "CONFIRMED - injection, path-level, preprint",
+   "checked": [
+    "p.3 quote exact ('Sionna RT [27] for material-aware ray tracing; and CADFEKO [28] for UAV radar cross-section (RCS) modeling').",
+    "p.7 quote exact ('the RCS term is obtained from CADFEKO simulations of the AirSim UAV model and queried according to the UAV attitude').",
+    "p.4 quote exact ('combines the Sionna RT multipath geometry with CADFEKO-derived UAV RCS information').",
+    "PREPRINT status re-verified independently: 0 occurrences of 'accepted', 0 of 'Digital Object', 0 of 'Scientific Data'; PDF creator field is 'arXiv GenPDF (tex2pdf:a6404ea)'.",
+    "The Nature Scientific Data heading set claimed by the census is really there (Background / Methods / Data Records / Technical Validation / Usage Notes, 1 occurrence each)."
+   ],
+   "correction": "None. This entry is sound.",
+   "flavour": "TIER A - external commercial solver -> per-path multiplication on a ray tracer's output. Still the only such case anywhere in the material examined."
+  },
+  {
+   "id": "INJ-02-ZHANG-JSAC",
+   "verdict": "CONFIRMED - injection, path-level, top venue",
+   "checked": [
+    "Masthead p.1 exact: '702 / IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 44, 2026' plus 'Digital Object Identifier 10.1109/JSAC.2025.3608732'.",
+    "Lookup-table quote exact and unique in the document (1 hit for 'lookup', 1 for 'consult').",
+    "Held-out-band quote exact ('we exclude the 28 GHz data when fitting the parameters A(f), B1(phi), B2').",
+    "PATH-LEVEL confirmed by a sentence the census did not quote, p.13: 'Apply RCS Pattern: During the generation process of small-scale parameters ... the RCS model uses B1 to capture the angular properties of the target ... and their impact on the strength of the multipath components, based on the AOD and AOA.' So the injected table modulates individual multipath components, not only the link budget.",
+    "IMT2023-vs-IMT2030 inconsistency recorded by the census is real (body p.13 vs reference [44])."
+   ],
+   "additions": [
+    "p.7: 'The proposed unified RCS modeling approach has been adopted by the 3GPP Technical Specification Group Radio Access Network Working Group 1 (TSG RAN1) during meeting #120 [41], and is now part of the official standard.' The census missed this; it is the single strongest sentence for the user's question.",
+    "The table is AZIMUTH-ONLY. p.7: 'this study focuses on two-dimensional RCS measurements in the horizontal plane, with the elevation angle fixed at 90 deg.' Our 9-elevation grid is a strictly larger object than the top-venue one."
+   ],
+   "provenance_nit": "The census's '801 frequency samples' is NOT in the published PDF (0 hits); it is in Table III of the arXiv copy 2505.20673 only, whose table extracts as text while the published copy's does not. Venue was taken from one file and measurement detail from another without saying so."
+  },
+  {
+   "id": "INJ-03-COSTA-JSTEAP",
+   "verdict": "CONFIRMED - injection, signal-model level, published",
+   "checked": [
+    "p.1 exact: 'Received 2 May 2025; revised 8 July 2025; accepted 19 August 2025. Date of publication 1 September 2025' and 'Digital Object Identifier 10.1109/JSTEAP.2025.3604407'.",
+    "Library quote exact on p.8, including the run-time selection step ('According to the desired geometry, we select the appropriate reflectivity profile from the library').",
+    "The substitute-a-solver sentence is exact: 'When measurements are not available, the static reflectivity of the drone body can also be generated using full-wave EM simulation.' Reinforced in the conclusion: 'requires multiple measurements, or at least an EM full-wave simulation, for each different target'."
+   ],
+   "caveat": "The journal NAME is printed only in the PDF metadata subject field ('IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation;2025;1;1;...'); page 1 prints the DOI and the acceptance line but not the journal title. The census said this; it holds."
+  },
+  {
+   "id": "INJ-04-DEEP-IET",
+   "verdict": "CONFIRMED as published, but RE-LABEL the flavour",
+   "checked": [
+    "Masthead exact: 'IET Radar, Sonar & Navigation - Research Article ... Accepted on 7th February 2020 ... doi: 10.1049/iet-rsn.2019.0471', running footer 'IET Radar Sonar Navig., 2020, Vol. 14 Iss. 6, pp. 833-844'.",
+    "In-house solver quote exact ('we developed our solver in-house in order to customise it for speed and efficiency').",
+    "NMSE <10% / SSIM >81% exact in the abstract."
+   ],
+   "correction": "The census calls this the closest relative of our architecture and files it as external-solver injection. Two qualifications must travel with it: (a) the solver is the authors' OWN ray tracer, so this is SELF-COMPUTED-signature injection, not third-party-solver injection - which is in fact exactly our case, so the relevance is real but the label 'external' is wrong; (b) there is NO propagation simulator anywhere in the paper - the signature is injected into a free-space FMCW point-scatterer signal model. It is not evidence that a reviewer accepted signature-into-ray-traced-channel."
+  },
+  {
+   "id": "INJ-05-RZEWUSKI-NATO",
+   "verdict": "DOWNGRADE - the injection link is broken in the paper itself",
+   "checked": [
+    "Venue confirmed: every page footer prints 'STO-MP-MSG-SET-183' with paper number 13 (13-1 ... 13-14); year 2021 only from the embedded creationDate D:20210630, as the census said.",
+    "FDTD quote exact (p.4). Mis-citation confirmed: 'confirmed by the measurements [3]' while the printed [3] is 'QuickWave-3D, QWED Sp. z o.o., 1997-2016' and the measurement paper is [2] (MIKON 2018)."
+   ],
+   "new_defect_found": "The coverage analysis does NOT use the FDTD table. Fig. 4 caption: 'RCSmin [dBsm] distribution for a drone with RCS 735cm2' and the text says 'The details of the RCS estimation and measurement can be found in [4]' and 'a drone with assumed RCS'. 735 cm2 = -11.3 dBsm, whereas the FDTD result quoted two pages earlier is '-40dBsm and 0dBsm (and average around -20dBsm)' in the WiFi band - a ~9 dB mismatch. The computed table is displayed; a different, assumed scalar is what enters the budget.",
+   "reclassify": "NOT a clean injection. External computation PRESENTED (Fig. 3) + assumed scalar USED (Fig. 4). At most partial, and it must not be cited as 'FDTD-computed drone RCS driving a passive-radar coverage analysis'."
+  },
+  {
+   "id": "INJ-06-DAS-WCL",
+   "verdict": "CONFIRMED published, DOWNGRADE the application tier",
+   "checked": [
+    "Masthead exact: 'IEEE WIRELESS COMMUNICATIONS LETTERS, VOL. 15, 2026' p.3731, 'Digital Object Identifier 10.1109/LWC.2026.3705634', acceptance line 'Received 3 March 2026; revised 13 May 2026; accepted 13 June 2026'.",
+    "The census's headline number is exact in print: 'Changing from monostatic to bistatic (90 deg) geometry increases the mean path-loss by only about 1-2 dB', and 'At 100 m ... the spread across AAVs can approach 30 dB'.",
+    "Calibration cylinder sigma_Cal = 2.8 dBsm confirmed."
+   ],
+   "correction": "TIER C. Nothing is injected into a simulator here: eq. (7)-(10) map the fitted RCS into a closed-form bistatic radar-equation path loss. The Gaussian-cluster model is OFFERED for 'geometry-based stochastic ISAC channel simulations' but no channel simulation is run in the letter. Counting it as an injection instance conflates 'usable as an injection table' with 'injected'."
+  },
+  {
+   "id": "INJ-07-COSTA-RADARCONF",
+   "verdict": "NOT AN INJECTION INSTANCE - remove from the count",
+   "checked": [
+    "The census's own field says 'N/A at this stage - no injected external signature yet', yet the entry is inside injection_instances and inside the count of 10.",
+    "Re-read of the PDF confirms it: 0 occurrences of FEKO, CST, HFSS, MoM, or 'library'. The conference version models rotating propellers analytically."
+   ],
+   "second_defect_opposite_direction": "The census recorded 'venue not printed on the copy we hold beyond the arXiv stamp; RadarConf24 known only from a third-party citation in Beuster'. That is wrong for the copy it lists first. /data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modelling_Micro-Doppler_Signature_of_Drone_Propellers_in_Distributed_ISAC.pdf carries the IEEE Xplore banner in-page: '2024 IEEE Radar Conference (RadarConf24) | 979-8-3503-2920-9/24/$31.00 (c)2024 IEEE | DOI: 10.1109/RADARCONF2458775.2024.10548468', plus 'Certified by IEEE PDFeXpress' in the creator field. Only the arXiv copy lacks it. The two copies are different files (md5 7c1893d8... vs a02353fd...)."
+  },
+  {
+   "id": "INJ-08-AZIM-INF",
+   "verdict": "CONFIRMED preprint, DOWNGRADE the application tier",
+   "checked": [
+    "All three copies: no masthead, no DOI, no acceptance line. Confirmed by direct search.",
+    "The 'Statistical RCS Integration to Target Channel Path Loss' section exists in ONE of the three (2411.03206) and not in the other two - the census cited 'p.12' without naming the file."
+   ],
+   "correction": "TIER C, same as Das - the fitted distributions are mapped into a two-way link-budget term, not applied to simulated paths.",
+   "bonus_evidence_found": "2505.08754 p.2 prints the provenance the census could only infer: 'the 3GPP-compliant parameters comprise A = -12.81 dBsm, B1 = 0 dB, and B2 = 3.74 dB ... The standardized parameters originate from the 3GPP evaluation framework'. This is the printed link between the Zhang A/B1/B2 decomposition and the -12.81 dBsm community default."
+  },
+  {
+   "id": "INJ-09-3GPP-SPEC-PARAMETER",
+   "verdict": "NOT INJECTION - it is abstraction by the task's own rule",
+   "checked": [
+    "2505.24763 p.5 quote exact; 2604.02205 p.4 quote exact; both PDFs are arXiv-only (0 hits for accepted/DOI/Digital Object).",
+    "Decisive detail the census recorded but did not act on: sigma_D = 1. The 3GPP model's DIRECTIONAL component is switched off, leaving a scalar mean plus a log-normal draw. There is no aspect table and the authors compute nothing."
+   ],
+   "correction": "The task's OUT rule is explicit: 'a target abstracted to a point scatterer or a primitive with an assumed sigma and no external computation - that is abstraction, not injection.' -12.81 dBsm with B1 = 0 dB is that. Keep it as the community-default comparison number (and note both papers are NIST/Blandino, one group), but it must not be counted as an injection instance."
+  },
+  {
+   "id": "INJ-10-BEUSTER-FRAMEWORK",
+   "verdict": "NOT A DEMONSTRATED INJECTION - and it is the warned-of false positive",
+   "checked": [
+    "The paper's ONLY solver sentence is a generic capability survey: 'The commercially available software suits for instance Ansys HFSS, Altair FEKO, and CST Studio Suit, can simulate the reflectivity of given complex object shapes ...'. One occurrence each of HFSS, FEKO, CST in the whole 6-page PDF. Nobody in this paper runs one.",
+    "Where the paper does run a simulation (p.5) the signature's origin is unstated: 'a 3d based reflectivity model with Micro-Doppler signature characterizes the target echo'. No external solver, no measurement campaign, no table is named as its source.",
+    "Fig. 3's 'simulated data' panel is credited to references [12],[17],[18], not to a solver named here."
+   ],
+   "correction": "Downgrade to architecture-level supporting evidence. It is a good citation for the CLAIM that the reflectivity block is swappable between measurement and simulation; it is not an instance of injection.",
+   "folder_label_correction": "The census said the IEEE_JCS_2024 folder label is 'OUR OWN annotation ... NOT supported by anything printed in the PDF'. The first half is right (md5 c9d8ff82... identical to the arXiv copy, no masthead). The second half oversells: our own /data/public/sionna_jeong/papers_isac_sionna/published_by_venue/INDEX.md records a specific external check - 'DOI 10.1109/JCS61227.2024.10646293 (IEEE Xplore 10646293; Fraunhofer publica)'. Correct statement: not printed in the PDF, but our index carries a DOI from a web check that cannot be re-verified offline."
+  }
+ ],
+ "corrected_tally": {
+  "confirmed_injection": [
+   "INJ-01 LAMBDA (preprint)",
+   "INJ-02 Zhang JSAC (published)",
+   "INJ-03 Costa J-STEAP (published)",
+   "INJ-04 Deep IET (published, self-computed signature, no propagation simulator)"
+  ],
+  "partial_budget_level_only": [
+   "INJ-05 Rzewuski (and its budget uses a different, assumed sigma)",
+   "INJ-06 Das WCL",
+   "INJ-08 Azim (preprints)"
+  ],
+  "not_injection": [
+   "INJ-07 Costa RadarConf (no external signature at all)",
+   "INJ-09 NIST -12.81 dBsm (abstraction)",
+   "INJ-10 Beuster (names solvers in a survey sentence)"
+  ],
+  "peer_reviewed_confirmed_injections": 3,
+  "census_claimed": {
+   "instances": 10,
+   "peer_reviewed": 5
+  }
+ },
+ "recall_misses": [
+  {
+   "paper": "Schuler, Becker, Wiesbeck, 'Extraction of Virtual Scattering Centers of Vehicles by Ray-Tracing Simulations'",
+   "venue_read_from_pdf": "Masthead p.3543: 'IEEE TRANSACTIONS ON ANTENNAS AND PROPAGATION, VOL. 56, NO. 11, NOVEMBER 2008'. Footer '0018-926X/$25.00 (c) 2008 IEEE'.",
+   "path": "/data/public/sionna_jeong/reference_library/injection/schuler2008_TAP_virtual_scattering_centers.pdf",
+   "flavour": "TIER D - table building in an in-house ray tracer, validated by measurement, with the downstream use stated in print: 'when the derived virtual scattering center model will be used in other radar simulations by calculating the aspect angles for each cluster and the attenuation'.",
+   "why_it_matters": "Closest published structural relative of outputs/report13_sigma_grid.* - our own ray engine computes the signature, the signature becomes an aspect-indexed model, a separate simulation consumes it - and it is at a top EM venue, 18 years old.",
+   "recall_trap": "the PDF hyphenates 'cluster data-base' across a line break, so a /database/ regex returns zero hits on this paper. Any keyword census over these archives inherits that blind spot."
+  },
+  {
+   "paper": "Potter et al., 'Multistatic-Radar RCS-Signature Recognition of Aerial Vehicles: A Bayesian Fusion Approach'",
+   "venue_read_from_pdf": "p.1 'Manuscript received February 29, 2024; revised May 31, 2024; accepted August 06, 2024'; footer 'Submitted for review to: IEEE Journal - Transactions on Aerospace and Electronics - 2024 / 0018-9251 (c) 2024 IEEE' (0018-9251 is the TAES ISSN). Volume/pages NOT in the PDF.",
+   "path": "/data/public/sionna_jeong/reference_library/injection/arxiv_2402.17987.pdf",
+   "flavour": "table-CONSUMING injection: 'The azimuth and elevation samples ... are mapped to a measured RCS signature sigma in R^F from [38], where we bilinearly interpolate the mapped RCS measurements for continuous azimuth and elevations not collected in [38]', driven by simulated random-walk poses.",
+   "why_it_matters": "The census screened OUT Semkin's 26-40 GHz drone RCS measurements as a signature that is 'never applied to simulated paths'. True of Semkin's own paper - but Semkin's table IS consumed downstream, at IEEE TAES. The screen-out reasoning was correct per document and wrong per architecture."
+  },
+  {
+   "paper": "Abadpour et al., 'Backscattering Behavior of Vulnerable Road Users Based on High-Resolution RCS Measurements'",
+   "venue_read_from_pdf": "p.1 running head 'IEEE TRANSACTIONS ON MICROWAVE THEORY AND TECHNIQUES' with 'This article has been accepted for inclusion in a future issue'. Volume 70(3) 2022 NOT printed on this copy.",
+   "path": "/data/public/sionna_jeong/reference_library/injection/kit_vru_rcs_TMTT2022.pdf",
+   "flavour": "TIER D - measured per-scattering-point RCS assigned to body regions; abstract says the models 'can be employed in the radar channel simulations' (future/possible, not demonstrated here)."
+  },
+  {
+   "gap": "11 PDFs in /data/public/sionna_jeong/reference_library/injection/ were never read by the census. That folder was created 2026-08-03 06:26-07:01 by a parallel workflow; injection_archive.json is timestamped 06:23. The census is stale, not wrong, on this point - but its headline sentence 'the strongest instance was already on our shelf, unrecognised' is now false: the strongest structural relative (Schuler TAP) was not on the shelf when the sweep ran.",
+   "files": [
+    "arxiv_2402.17987.pdf",
+    "arxiv_2408.11295.pdf",
+    "arxiv_2409.14441.pdf",
+    "arxiv_2504.09799__zhang_egbsm_dcn2025.pdf",
+    "arxiv_2505.10275__etsi_isac_channel_perspectives.pdf",
+    "arxiv_2512.03506__survey_rel19_isac_channel.pdf",
+    "arxiv_2606.07328__nycu_3gpp_isac_simulator_calibration.pdf",
+    "etsi_gr_isc_002_v1.1.1_2025-08.pdf",
+    "kit_vru_rcs_TMTT2022.pdf",
+    "schuler2008_TAP_virtual_scattering_centers.pdf",
+    "scichina2024_zhang_3gpp_isac_progress__PUBLISHED.pdf"
+   ]
+  }
+ ],
+ "reverse_check_no_further_misses": {
+  "method": "Independent recall sweep, different regex from the census: sentence- and 800/1400-char-window co-occurrence of (signature term) x (external-origin cue that does NOT require a tool name: 'measured RCS', 'from measurements', 'measurement-based', 'full-wave', 'EM simulation', 'pre-computed', 'look-up', 'library of', 'tabulated', 'interpolat') x (apply-to-simulator cue). Run over all 420 PDFs under the same 8 roots.",
+  "result": "Top 34 ranked documents all opened or already classified. No untool-named injection was found that the census missed inside those roots. The only misses came from the injection/ folder added after the census (above).",
+  "candidates_checked_and_cleared": [
+   {
+    "path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2507.12235__frequency-responsive-rcs-scaling_GLOBECOM-WS2024.pdf",
+    "verdict": "measurement characterisation only; 0 hits for CST/FEKO/HFSS/full-wave/simulat. NOTE: 0 occurrences of 'GLOBECOM' anywhere in the text - the venue lives in our filename only."
+   },
+   {
+    "path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+    "verdict": "measurement + model fit, no simulator run, no venue markers."
+   },
+   {
+    "path": "/data/public/OpenISAC (28 PDFs)",
+    "verdict": "census claim of 28/28 screened matches the shelf; my sweep scores 0/0 on every one."
+   }
+  ]
+ },
+ "hazards_for_the_next_pass": [
+  "FILENAME-ASSERTS-VENUE is systemic in this archive, not a one-off Beuster problem: '...GLOBECOM-WS2024.pdf' has no GLOBECOM in it, '...RadarConf24-conf.pdf' has no venue banner while the differently-named copy of the same paper does, '...__PUBLISHED.pdf' is a filename claim. Read page 1, always.",
+  "SAME PAPER, DIFFERENT COPIES, DIFFERENT EVIDENCE. Costa RadarConf: the Xplore-stamped copy proves the venue, the arXiv copy does not. Zhang JSAC: the published copy proves the venue, only the arXiv copy yields Table III as text. A per-paper verdict must name WHICH FILE each fact came from.",
+  "'CAN BE USED' IS NOT 'WAS USED'. Schuler ('will be used in other radar simulations'), Abadpour ('can be employed in the radar channel simulations'), Das ('suitable for geometry-based stochastic ISAC channel simulations') all state an intended downstream use that the paper does not perform. Three of the census's ten entries rest on sentences of this shape.",
+  "HYPHENATION BREAKS KEYWORD SCREENS ('data- base', 'look- up' across line breaks in two-column PDFs)."
+ ]
+}

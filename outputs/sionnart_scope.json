@@ -1,0 +1,295 @@
+{
+  "meta": {
+    "task": "Sionna RT Technical Report 정독 - 범위/이동성/저자 자신의 한계 (Q4, Q6, B1, B6)",
+    "date": "2026-08-03",
+    "scope_note": "이 파일은 Q4(도플러·이동성), Q6(저자 자신의 한계, §3.4), B1(용어 카운트, 특히 'target' 86회), B6(§3.4 전문)만 다룬다. Q1/Q2/Q3/Q5/Q7(표면 상호작용 체인, 회절 공식, 재질/P.2040, 출력물, 산란패턴)은 이 태스크의 범위가 아니며 다른 문서에서 다뤄야 한다.",
+    "house_rule": "모든 주장에 페이지 번호 + 원문 인용문 첨부. 식은 문서 내 번호로 인용. 기술보고서(technical report)와 창설논문(founding paper)을 매 문장에서 구별."
+  },
+
+  "documents": {
+    "technical_report": {
+      "path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+      "filename_says": "v1",
+      "actually_contains": "Version 1.2",
+      "cover_page_string_p1": "2025-11-24 – Version 1.2",
+      "arxiv_stamp_p1": "arXiv:2504.21719v2  [cs.IT]  21 Nov 2025",
+      "pdf_metadata_title": "Sionna RT: Technical Report",
+      "pdf_metadata_author": "Fayçal Aït Aoudia; Jakob Hoydis; Merlin Nimier-David; Baptiste Nicolet; Sebastian Cammerer; Alexander Keller",
+      "pages": 59,
+      "version_verdict": "⚠ 확인됨. 파일명은 'technical-report-v1'이지만 내용은 arXiv v2 = 문서 자체 버전 문자열 'Version 1.2' (2025-11-24). 인용할 때 반드시 'Sionna RT Technical Report, Version 1.2 (arXiv:2504.21719v2, 2025-11-24)'로 표기할 것. 파일명을 근거로 'v1'이라 쓰면 오인용이다.",
+      "describes_software_version": "Sionna 1.0 대개편 이후. 본문 각주 1(p5)이 'As of version 1.2, Sionna RT does not support RISs. It remains available as part of Sionna version 0.19.2.'라고 적어, 소프트웨어 기준선도 1.2대임을 스스로 밝힌다.",
+      "self_declared_purpose_p1_abstract": "\"This document details the algorithms employed by Sionna RT to simulate radio wave propagation efficiently, while also addressing their current limitations.\"",
+      "self_declared_contribution_p7": "\"Moreover, we include discussions on the limitations of the current algorithms and offer perspectives for future improvements.\""
+    },
+    "founding_paper": {
+      "path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__sionna-rt-founding.pdf",
+      "pages": 5,
+      "title": "Sionna RT: Differentiable Ray Tracing for Radio Propagation Modeling",
+      "describes_software_version": "v0.14",
+      "quote_p1": "\"Since release v0.14 it integrates a differentiable ray tracer (RT) for the simulation of radio wave propagation.\"",
+      "separation_verdict": "창설논문은 v0.14를 기술한다. 굴절 미지원이 원문에 명시되어 있으므로(아래 인용) 현행 솔버 동작의 근거로 절대 쓸 수 없다."
+    }
+  },
+
+  "B1_term_counts_technical_report": {
+    "method": "PyMuPDF get_text() 전체 59페이지 추출 후, (a) 단순 부분문자열 카운트와 (b) \\b 단어경계 정규식 카운트를 모두 수행하고 불일치를 개별 검증했다. 하이픈 줄바꿈('-\\n') 14건이 있으나 대상 용어를 쪼갠 사례는 0건(tar-\\nget 검색 0).",
+    "counts": {
+      "physical optics": 0,
+      "physical-optics": 0,
+      "radar cross section": 0,
+      "RCS": 0,
+      "dBsm": 0,
+      "radar": 0,
+      "sensing": 0,
+      "ISAC": 0,
+      "PTD": 0,
+      "cross-section": 1,
+      "SBR": 44,
+      "target/targets": 86,
+      "scatterer/scatterers": 23,
+      "Doppler": 9,
+      "velocity/velocities": 3,
+      "angular velocity": 0,
+      "mobility": 1,
+      "trajectory/trajectories": 2,
+      "time-varying": 0,
+      "rigid": 0,
+      "deform*": 0,
+      "diffraction*": 135,
+      "UTD": 2,
+      "GTD": 3,
+      "Lambertian": 1,
+      "P.2040": 3
+    },
+    "verdict_vs_our_records": {
+      "confirmed": [
+        "physical optics 0 — 확인",
+        "radar cross section 0 — 확인",
+        "RCS 0 — 확인 (대소문자 무시해도 0)",
+        "dBsm 0 — 확인",
+        "target 86 — 확인 (부분문자열 기준 86. 단어경계 정규식은 85가 나오는데, p13의 '𝑁𝑇targets at t𝑘' 한 건이 수학 첨자 문자와 붙어 있어 경계가 깨진 것뿐이며 실체는 86)",
+        "scatterer 23 — 확인"
+      ],
+      "corrected": [
+        "⚠ SBR = 44 이지 48이 아니다. 우리 기록 B1의 48은 과대계상. 부분문자열/단어경계/대소문자무시 모두 44로 일치. 페이지별 분포: p1×2, p2×1, p4×1, p7×3, p11×11, p12×5, p13×4, p14×2, p16×1, p17×1, p20×1, p21×1, p22×1, p25×2, p29×2, p31×1, p33×4, p34×1."
+      ],
+      "new_and_important": [
+        "⭐ radar 0회, sensing 0회, ISAC 0회. 창설논문에는 sensing이 5회, ISAC이 동기로 등장하지만, 59페이지 기술보고서 전체에서 radar/sensing/ISAC은 단 한 번도 나오지 않는다. 엔진의 자기서술 어휘에 센싱이라는 응용 자체가 없다.",
+        "⭐ 'cross-section' 1회는 RCS와 무관하다. p36 Figure 28 캡션의 '(b) 2D cross-section' — 그림의 단면도라는 기하학적 의미다.",
+        "angular velocity 0회, time-varying 0회, rigid 0회, deform* 0회 — Q4의 결론을 어휘 수준에서 미리 확정한다."
+      ]
+    },
+
+    "target_86_classification": {
+      "headline": "⭐ 86회 전부가 '경로의 수신단 끝점(path endpoint)' 또는 그 파생 의미다. 레이더적 의미('탐지 대상 물체')로 쓰인 사례는 0건이다.",
+      "definitional_quote_p6": "\"Throughout this document, the endpoints of a path will be referred to as sources and targets, which can be either radio devices or antennas.\" (p6) — 저자가 명시적으로 용어를 정의한다. target = 무선 기기 또는 안테나.",
+      "second_definitional_quote_p6": "\"Paths are determined between two endpoints: a source and a target. Ideally, paths would be traced between every pair of transmitter and receiver antennas, designating the sources and targets as the set of transmit and receive antennas, respectively.\" (p6)",
+      "geometric_quote_p8": "\"A path 𝑝(𝐿) with depth 𝐿∈N is a sequence of 𝐿+1 rays that connect a source point s ∈R3 to a target point t ∈R3\" (p8, 식 (6)) — target은 R3의 한 점(point)이다.",
+      "point_target_quote_p14": "\"Since targets are modeled as points, condition (12) effectively occurs with zero probability\" (p14) — ⭐ target은 부피도 표면적도 없는 점이다. 산란 단면적을 정의할 대상이 아니다.",
+      "point_target_quote_p16": "\"As with specular reflection and refraction, since targets are modeled as points, condition (16) is satisfied with zero probability for all 𝜑∈[0, 𝑛𝜋]\" (p16) — 회절에 대해서도 동일.",
+      "distribution": [
+        {"bucket": "A. 용어 정의 / 경로 끝점의 정의 그 자체", "count": 9, "pages": "p6(4), p8(2), p9(2), p11(1)", "example": "p6 'the endpoints of a path will be referred to as sources and targets'"},
+        {"bucket": "B. 경로 탐색 알고리즘 내부 기계장치 (LoS 가림 테스트, next-event estimation, 유효성 조건 (12)/(16), 이미지법 역추적, 해시 중복제거)", "count": 37, "pages": "p11(6), p12(3), p13(3), p14(3), p15(2), p16(3), p17(1), p18(3), p19(3), p21(1), p22(1), p23(3), p24(1), p25(2), p26(1), p27(1)", "example": "p11 'the solver checks whether there is a line-of-sight (LoS) to the target'"},
+        {"bucket": "C. 안테나 배열 처리 (수신 안테나 = target)", "count": 3, "pages": "p27(2), p28(1)", "example": "p27 'each transmit antenna is treated as a source and each receive antenna as a target'"},
+        {"bucket": "D. 도플러 (§3.3.2)", "count": 4, "pages": "p28(4)", "example": "p28 'v (s) ∈R3 and v (t) ∈R3 denote the velocity vectors of the source and target'"},
+        {"bucket": "E. §3.4 한계 절 — 'Handling Large Numbers of Targets and Sources' 확장성 논의", "count": 16, "pages": "p29(12), p30(4)", "example": "p29 'The current method for handling multiple targets involves iterating over all targets during each SBR loop iteration.'"},
+        {"bucket": "F. 라디오맵 솔버 (측정 셀 중앙에 target 점을 놓아 경로솔버와 대조)", "count": 9, "pages": "p31(2), p33(3), p35(1), p36(2), p37(1)", "example": "p31 'the solver estimates the average channel gain that would be observed by a target placed within that cell'"},
+        {"bucket": "G. 부록 C 1차 회절 폐형해 (모서리 둘레로 target을 회전시키는 기하 트릭)", "count": 8, "pages": "p53(1), p54(7)", "example": "p54 'rotating the target t about the edge does not alter the path length'"},
+        {"bucket": "H. 레이더적 의미 (탐지 대상 물체)", "count": 0, "pages": "-", "example": "없음"}
+      ],
+      "sum_check": "9+37+3+4+16+9+8 = 86 (일치). 페이지별 카운트와도 전부 대조 완료.",
+      "why_this_matters": "⭐ 이것이 '이 엔진의 어휘에는 피탐지 객체 개념이 없다'는 우리 주장의 가장 깔끔한 증거다. 지금까지는 카운트만으로 추정했으나, 86건 전수를 읽어 확인했다. 특히 p14/p16의 'targets are modeled as points'는 결정적이다 — target은 점이므로 정반사/회절 광선이 그것을 맞힐 확률이 0이고, 그래서 SBR 후단에 이미지법이 필요해진다. 즉 'target'이라는 단어는 물체를 가리키는 게 아니라 알고리즘이 도달해야 할 수학적 점을 가리킨다. 산란체는 이 문서에서 언제나 'scatterer'(23회)이며, scatterer는 재질을 통해 2×2 전달행렬 T로만 표현된다.",
+      "corollary_founding_paper": "창설논문 5페이지에서 'target' 계열은 단 1회('the targeted values indicated by dashed lines', p4)이며 그나마 학습 목표값이라는 뜻이다. 창설논문에는 경로 끝점을 target이라 부르는 용법조차 없다. 두 문서의 용어체계는 다르다."
+    }
+  },
+
+  "Q4_doppler_and_mobility": {
+    "where": "§3.3.2 'Doppler Shifts', p28 전부. 도플러/이동성에 관한 서술은 이 한 페이지가 전부다(문서 전체 Doppler 9회 중 목차 2회·§3.3 제목 1회를 빼면 실질 6회가 모두 p28).",
+    "radio_map_solver_has_no_doppler": "§4 라디오맵 솔버(§4.1~§4.6, p31~38)에는 Doppler/velocity가 단 한 번도 등장하지 않는다. 이동성은 경로 솔버 전용 기능이다.",
+
+    "two_supported_approaches": [
+      {
+        "id": "approach_1_resimulate",
+        "quote_p28": "\"The first approach involves moving objects in small incremental steps along their trajectories and recomputing the propagation paths at each step. While this method provides the highest accuracy, it is computationally expensive.\"",
+        "reading": "물체를 궤적을 따라 조금씩 옮기고 매 스텝 레이트레이싱을 다시 돌리는 것. 여기서 '움직인다'는 것은 씬 객체의 강체 변환(위치 갱신)을 사용자가 프레임마다 다시 지정한다는 뜻이며, 보고서는 이 재시뮬레이션 루프를 알고리즘으로 기술하지 않는다 — 정확도가 가장 높지만 비싸다는 한 문장뿐이다.",
+        "our_note": "우리 프로젝트가 마이크로도플러를 얻으려면 원리적으로 이 경로밖에 없는데, 보고서는 이 경로를 '비싸다'고만 말하고 회전 자세 갱신 API나 시간축 규약을 전혀 제공하지 않는다."
+      },
+      {
+        "id": "approach_2_velocity_vector",
+        "quote_p28": "\"In this alternative method, we assign a velocity vector v (𝑜) ∈R3 to each object 𝑜 and compute the time evolution by accumulating Doppler shifts along the propagation paths.\"",
+        "validity_condition_quote_p28": "\"However, when trajectory lengths are small (not exceeding a few wavelengths), a more efficient approach may be used.\"",
+        "figure_caption_p28": "Figure 22: \"Each object as well as the source and target has an associated velocity vector that contributes to the total Doppler shift. Shown in 2D for clarity.\"",
+        "equations": {
+          "eq_37": "객체 이동에 의한 누적 도플러: 𝜈(ℓ')_n = 0 (ℓ'=0), 그 외 𝜈(ℓ'−1)_n + v(𝑜(ℓ')_n)ᵀ(k̂(ℓ')_n − k̂(ℓ'−1)_n)/𝜆 for 1 ≤ ℓ' < ℓ. 즉 각 상호작용에서 '그 객체의 속도벡터'를 '입사방향과 산란방향의 차'에 투영해 더한다.",
+          "eq_38": "총 도플러: 𝜈_n = 𝜈(ℓ)_n + v(s)ᵀk̂(0)_n/𝜆 − v(t)ᵀk̂(ℓ)_n/𝜆. 'where v (s) ∈R3 and v (t) ∈R3 denote the velocity vectors of the source and target, respectively.'"
+        }
+      }
+    ],
+
+    "verification_of_our_claim": {
+      "our_record_said": "속도는 객체당 강체 1벡터",
+      "verdict": "✅ 확인. 원문 그대로 'we assign a velocity vector v (𝑜) ∈R3 to each object 𝑜' (p28). 객체 𝑜 하나당 R3 벡터 하나. 식 (37)에서도 v(𝑜(ℓ')_n)는 상호작용 지점이 아니라 '교차된 객체'의 인덱스로만 조회되므로, 같은 객체의 표면 어디를 맞아도 동일한 속도가 쓰인다.",
+      "rotation_representable": "❌ 아니다. 문서 전체에서 'angular velocity' 0회. 'rotat*' 12회는 전부 (a) 부록 A.1 좌표계 회전행렬 R(α,β,γ) — 안테나 지향의 정적 자세 변환(p39-40), (b) Rodrigues 회전공식(p40), (c) 부록 C에서 회절점 폐형해를 얻으려고 target 점을 모서리 둘레로 돌리는 순수 기하 트릭(p54)이다. 씬 객체의 회전 운동을 나타내는 용례는 0건이다.",
+      "time_varying_geometry": "❌ 'time-varying' 0회, 'deform*' 0회. approach_1의 '궤적을 따라 조금씩 옮기고 매 스텝 재계산'이 유일한 시간축 지원이며, 이는 엔진이 시간을 다루는 게 아니라 사용자가 정지 씬을 여러 번 푸는 것이다. approach_2는 정지 씬 한 번 풀고 도플러만 사후 누적한다('When replaying the valid paths using Algorithm 2, the Doppler shift for each path 𝑛 is computed by accumulating the contributions from individual objects', p28).",
+      "geometry_is_frozen_in_approach_2": "⭐ 중요: 식 (37)/(38)은 경로가 이미 확정된 뒤에 적용된다. 즉 approach_2에서 이동은 위상만 바꾸고 기하(경로 정점, 가림, 상호작용 순서)는 전혀 바꾸지 않는다. 저자 스스로 유효범위를 '궤적 길이가 몇 파장을 넘지 않을 때'로 못박았다.",
+      "consequence_for_us": "회전 프로펠러의 마이크로도플러는 (i) approach_2로는 원리적으로 불가능하다 — 블레이드는 객체이고 객체당 속도벡터는 1개이므로 블레이드 팁과 허브가 같은 속도를 갖는다. (ii) approach_1로는 원리적으로 가능하지만 보고서가 그 루프를 알고리즘으로 정의하지 않고 '비싸다'고만 적었으며, 회전 자세를 시간에 따라 갱신하는 어떤 규약도 문서에 없다. 우리 기록 'Paths.doppler는 있으나 속도는 객체당 강체 1벡터'는 기술보고서 v1.2로 정확히 뒷받침된다."
+    },
+
+    "founding_paper_contrast": {
+      "quote_p3": "\"The class method paths.apply_doppler() (line 2) can simulate the temporal evolution of the CIRs based on arbitrary velocity vectors of all transmitters and receivers.\"",
+      "code_listing_p3": "paths.apply_doppler(sampling_frequency=1e6, num_time_steps=14, tx_velocities=[3,0,0])",
+      "reading": "⭐ 창설논문(v0.14) 단계에서는 속도가 송수신기(transmitters and receivers)에만 있었다. 객체별 속도벡터 v(𝑜)는 기술보고서 v1.2의 것이다. 인트로 p5는 'mobility (version 0.17)'로 도입 시점을 밝힌다. 따라서 '객체 속도' 관련 서술을 창설논문으로 인용하면 오인용이다."
+    }
+  },
+
+  "Q6_B6_authors_own_limitations": {
+    "section": "§3.4 Current Limitations and Potential Improvements",
+    "location": "p28 하단 ~ p30 (본문), 그림 23은 p29, 그림 24는 p30",
+    "scoping_sentence_p28": "\"We discuss in this section some current limitations and potential improvements of the path solver.\"",
+    "scoping_note": "⭐ 이 절은 명시적으로 '경로 솔버(path solver)'의 한계만 다룬다. 라디오맵 솔버에는 대응하는 한계 절이 없고, §4.6 'Practical Notes'(p37-38)에 실무 주의사항이 흩어져 있다. 또한 이 절은 '수치 정확도'가 아니라 '알고리즘 효율/커버리지'의 한계 목록이다 — 전자기 모델의 정확도(예: PO 부재, RCS 부재)는 저자들이 한계로 열거하지 않는다. 애초에 그 범위 밖이라고 보기 때문이다.",
+
+    "items_verbatim": [
+      {
+        "n": 1,
+        "heading": "Sampling of Ray Directions",
+        "page": 29,
+        "full_text": "\"Improved sample efficiency could be achieved by sampling initial ray directions and scattered ray directions based on the transmit antenna pattern and the scattering pattern, respectively. This approach is motivated by the substantial sample efficiency gains shown in Section 3.1.2 through the use of importance sampling. By applying optimized sampling strategies for ray directions, further improvements may be realized, as illustrated in Figure 23.\"",
+        "figure_23_caption_p29": "\"Gain of the 3GPP TR 38.901 [21, Table 7.3-1] antenna pattern for each sample direction on a Fibonacci lattice with 104 points. The majority of sample directions exhibit low gain, indicating that importance sampling of ray directions may be beneficial.\"",
+        "korean": "초기 광선 방향과 산란 광선 방향을 각각 송신 안테나 패턴과 산란 패턴에 따라 중요도 표집하면 표본 효율이 개선될 수 있다는 것. 현재는 그렇게 하지 않고 있다(방향은 Fibonacci 격자 균일 표집). 상호작용 '유형'에는 이미 중요도 표집을 쓰지만 '방향'에는 안 쓴다.",
+        "relevance_to_us": "★★ 소형 표적에 직결. 방향 표집이 균일하면 드론처럼 작은 입체각을 차지하는 물체에 도달하는 광선 수가 표본 수에 선형으로만 늘어난다. 우리 SBR 표본 예산 논의의 저자측 근거."
+      },
+      {
+        "n": 2,
+        "heading": "Handling Large Numbers of Targets and Sources",
+        "page": 29,
+        "full_text": "\"The current method for handling multiple targets involves iterating over all targets during each SBR loop iteration. Figure 24b illustrates this, showing the compute time of the candidate generator and the average number of candidates per target found as the number of targets varies. In this experiment, the built-in Sionna RT scene “simple street canyon” depicted in Figure 24a, was used. Targets were sampled uniformly at random on a plane parallel to the ground at an elevation of 1.5 meters. The maximum depth 𝐿 was set to 5, diffuse reflections were disabled, and the number of samples 𝑁𝑆 was set to 106. As observed, the compute time increases with the number of targets due to the iteration over all targets in each SBR loop iteration. However, the number of candidates per target remains stable, although with variations due to hash collisions. Note that, as discussed in Section 3.2, most candidates do not result in valid paths. This approach may be optimized by selecting only targets near intersection points or the source, which will enhance scalability when dealing with a large number of targets. / Scaling with the number of sources presents its own set of challenges. When 𝑁𝑆 samples are generated per source, the total number of samples produced by the candidate generator becomes 𝑁𝑆·𝑁𝑂, where 𝑁𝑂 denotes the number of sources. This results in increased computation time as the number of sources grows, as illustrated in Figure 24c. However, the number of candidates per source remains stable. In this experiment, a single target is positioned at the center of the scene at an elevation of 1.5 meters, while sources are randomly sampled on a plane parallel to the ground at an elevation of 70 meters, above all buildings. Recall that variations in the number of candidates per source may occur due to collisions. For a comprehensive view, Figure 24d presents results where the total number of samples is kept constant at 106, resulting in 𝑁𝑆=⌊106/𝑁𝑂⌋ samples per source. In this scenario, the computation time increases at a much slower rate with the number of sources, but the number of candidates found per source decreases rapidly as the number of sources increases.\"",
+        "figure_24_caption_p30": "\"Computation time and number of candidates found as a function of the number of sources and targets. The experiments are conducted on an NVIDIA RTX 4090 GPU.\"",
+        "korean": "타깃(수신 끝점)이 많아지면 SBR 루프 매 반복마다 전체 타깃을 순회하므로 계산시간이 선형 증가한다. 소스가 많아지면 총 표본이 𝑁𝑆·𝑁𝑂로 늘어 역시 시간이 증가한다. 총 표본을 고정하면 시간 증가는 완만하지만 소스당 찾는 후보 수가 급감한다.",
+        "relevance_to_us": "★ 다중 Rx 벤치마크에 직결. 우리가 Rx를 늘릴 때 비용이 선형이라는 저자측 근거이고, '총 표본 고정 시 소스당 후보가 급감한다'는 경고는 다중 조명원 실험을 설계할 때 표본을 소스 수에 비례해 늘려야 한다는 뜻이다.",
+        "note": "⭐ 이 항목이 §3.4의 'target' 16회를 만든다. 여기서도 target은 수신 끝점이지 피탐지 물체가 아니다."
+      },
+      {
+        "n": 3,
+        "heading": "Higher-Order Diffraction and Diffuse Reflection",
+        "page": "29-30",
+        "full_text": "\"The path solver supports only first-order diffraction and does not handle paths that contain both diffraction and diffuse reflection. Enabling support for such combined paths would require the refinement of non-suffix path segments, which is computationally expensive and thus not implemented at present. However, these mixed paths typically transport a negligible amount of energy and therefore have little impact on the accuracy of the computed CIRs. / Regarding high-order diffraction, there are algorithms for determining the diffraction vertices [22]. However, calculating the electric field along these high-order diffraction paths remains an open problem, and as a result, high-order diffraction is not currently supported.\"",
+        "korean": "경로 솔버는 1차 회절만 지원하고, 회절과 확산반사가 함께 들어간 경로는 처리하지 않는다. 혼합 경로를 지원하려면 접미부가 아닌 구간까지 정련해야 해서 비싸다. 고차 회절은 회절 정점을 찾는 알고리즘은 있지만 '그 경로를 따라 전계를 계산하는 것이 아직 미해결 문제'라서 미지원이다.",
+        "relevance_to_us": "★★★ 최대 관심. 저자들이 직접 'calculating the electric field along these high-order diffraction paths remains an open problem'이라고 쓴 문장은, 회절 전계 모델링이 이 엔진의 미완 영역임을 저자 권위로 확정해 준다. 우리 대역 기울기 문제의 배후(PTD 부재)와 같은 계열의 공백이다. 다만 주의: 이 문장은 '고차 회절 전계'가 미해결이라는 말이지, 1차 회절 전계나 PO 표면전류적분에 대한 언급이 아니다. 과잉 인용 금지.",
+        "caution": "⚠ 저자들은 혼합 경로(D+S)에 대해 'typically transport a negligible amount of energy'라고 자평한다. 이 자평은 도시 매크로셀 맥락의 것이며, 무향실 내 소형 표적에는 그대로 이전되지 않는다. 인용할 때 이 조건을 함께 적을 것."
+      },
+      {
+        "n": 4,
+        "heading": "Collisions of Specular Chain Candidates",
+        "page": 30,
+        "full_text": "\"The path solver does not handle collisions of specular chain candidates. More precisely, when two different specular chains share the same index value in the hash array despite having a different hash due to the modulo operation (23), the path solver discards one of them. This could be avoided by using a collision resolution mechanism, and by dynamically adjusting the hash array size to reduce the probability of collisions. Currently, it is assumed that the hash array size is set to a sufficiently large value to make collisions negligible.\"",
+        "korean": "해시 배열 인덱스 충돌 시 두 정반사 사슬 중 하나를 그냥 버린다. 충돌 해소 기법이나 동적 배열 크기 조정으로 피할 수 있으나 현재는 '해시 배열이 충분히 커서 충돌이 무시할 만하다고 가정'한다.",
+        "relevance_to_us": "★ 경로 손실이 조용히 일어날 수 있다는 뜻이다. §3.4 항목 2에서 저자 스스로 '후보 수가 해시 충돌로 변동한다(variations due to hash collisions)'고 두 번 적었으므로, 충돌은 실제로 관측되는 현상이다. 재현성 있는 결과를 원하면 표본 수와 함께 해시 배열 크기를 기록해야 한다."
+      }
+    ],
+    "count": 4,
+    "completeness_check": "§3.4는 위 4개 소제목이 전부다. p28 마지막 줄에서 시작해 p30에서 끝나고 p31부터 §4 Radio Map Solver가 시작한다. 목차(p2)도 §3.4 다음이 §4임을 확인해 준다.",
+
+    "what_is_NOT_in_3_4": {
+      "headline": "⭐ 저자들이 §3.4에서 언급하지 않은 것들 — 우리 논지에 중요",
+      "items": [
+        "물리광학(PO)·표면전류적분의 부재 — 한계로 열거되지 않음. 문서 전체에 'physical optics' 0회.",
+        "RCS/산란단면 출력의 부재 — 한계로 열거되지 않음. 'RCS' 0회, 'radar cross section' 0회.",
+        "소형/파장급(few-λ) 물체 처리 — 한계로 열거되지 않음.",
+        "회전 물체·마이크로도플러 — 한계로 열거되지 않음.",
+        "절대 정확도 검증(측정 대조) — §3.4에 없음."
+      ],
+      "correct_interpretation": "⭐ 이것은 '저자들이 그 문제를 몰랐다'는 뜻이 아니라 '그 문제들이 이 도구의 문제 정의 밖에 있다'는 뜻으로 읽어야 한다. p5는 목적을 'The primary objective of Sionna RT is to identify the propagation paths that link radio devices within a given propagation environment'라고 못박는다. 링크는 radio devices 사이에 있고, 물체는 scatterer로서 2×2 전달행렬로만 개입한다. 우리가 인용할 때는 '저자들이 RCS를 한계라고 인정했다'가 아니라 '저자들의 한계 목록에 RCS가 없다는 사실 자체가, 물체 산란단면이 이 엔진의 문제 정의에 포함되지 않음을 보여준다'로 써야 한다. 전자는 오인용이다."
+    },
+
+    "additional_author_caveats_outside_3_4": [
+      {"page": 5, "quote": "\"As of version 1.2, Sionna RT does not support RISs. It remains available as part of Sionna version 0.19.2.\" (각주 1)", "korean": "v1.2에서 RIS 미지원. 기능이 후퇴한 사례."},
+      {"page": 9, "quote": "\"The solvers assume that object surfaces are thin enough that their effect on transmitted rays (i.e. rays that traverse the surfaces through double refraction) can be modeled by a single transmitted ray. The transmitted rays are traced without angular deflection. Surfaces like walls should be modeled as single flat surfaces\"", "korean": "투과는 각편향 없이 단일 광선으로 모델. 벽은 단일 평면으로 모델하라는 지침. ★★ 우리처럼 두께 있는 3D 메시를 다룰 때 직접적 제약."},
+      {"page": 9, "quote": "\"Note that modeling transmit antennas as point sources is a valid approximation when the distances to scatterers and targets are significantly greater than the wavelength of the propagating waves.\"", "korean": "점광원 근사의 유효조건을 '산란체·타깃까지 거리 ≫ 파장'으로 저자가 명시. ★★ 무향실 내 근거리·소형 표적 실험에서 반드시 확인해야 할 조건."},
+      {"page": 9, "quote": "\"Sionna RT currently supports four types of interactions with scene objects: Specular reflection (ℛ) ... Diffuse reflection (𝒮) ... Refraction (𝒯) ... Diffraction (𝒟) ... The set of possible interaction types is denoted by ℐ = {ℛ, 𝒮, 𝒯, 𝒟}.\"", "korean": "★ B4 확인. 상호작용은 정확히 4종이며 집합 ℐ로 형식화된다. 이 집합에 '표적 산란' 같은 항목은 없다."},
+      {"page": 16, "quote": "\"Moreover, Sionna RT currently supports only first-order diffraction, meaning that paths may contain at most one diffraction event.\"", "korean": "1차 회절 한정을 §3.4 밖에서도 재확인(p16, p23, p33, p35에서 반복)."},
+      {"page": 26, "quote": "\"the channel gain (5) observed at the target due to specular chains is accurate if all specular chains are identified by the path solver, which is assumed to be the case. This assumption will be reasonable if the number of samples 𝑁𝑆 is sufficiently large.\"", "korean": "★ 에너지 정확도가 '모든 정반사 사슬을 다 찾았다'는 가정 위에 서 있음을 저자가 명시. 표본 부족 시 조용히 틀린다."},
+      {"page": 27, "quote": "\"This method allows for efficient scaling with the number of antennas, but it is an approximation that is valid only when the transmitter and receiver array sizes are small relative to the distance from the radio devices to each other and to the scatterers.\"", "korean": "합성 배열 근사의 유효조건. ★ 다중 Rx/대형 배열 실험 시 확인 필요."},
+      {"page": 32, "quote": "\"Unlike in (4), the receive antenna pattern is not applied; instead, the squared norm of the electric field is used. This corresponds to assuming a receiver equipped with an isotropic antenna whose polarization is matched to the one of the incident wave.\"", "korean": "라디오맵은 등방·편파정합 수신기를 가정. 경로 솔버와 동일하지 않다."},
+      {"page": 36, "quote": "\"However, it only supports synthetic arrays.\"", "korean": "라디오맵 솔버는 합성 배열만 지원(경로 솔버는 비합성도 지원)."},
+      {"page": 38, "quote": "\"The Sionna RT solver currently supports the calculation of channel gain maps, which are radio maps that provide an estimate of the channel gain for each cell. It is possible to extend the solver to calculate other types of radio maps, such as root-mean-square delay spread maps and angular spread maps [27].\"", "korean": "★★ Q5에 직결. 라디오맵 솔버의 출력은 현재 '채널이득 맵' 하나뿐이다. 확장 가능한 후보로 저자가 든 것은 RMS 지연확산 맵과 각확산 맵이며, 산란단면 계열은 후보로도 언급되지 않는다."},
+      {"page": 38, "quote": "\"With gain thresholding, a path with ray tube length 𝑟 is deactivated when the squared amplitude of the electric field ‖E‖²₂ falls below a user-defined threshold. With Russian roulette, at each iteration, a path continues with a probability given by (63)\"", "korean": "라디오맵 솔버의 조기 종료 기법. 약한 경로는 의도적으로 버려진다 — 약산란체 연구에서 주의."}
+    ]
+  },
+
+  "cross_document_separation_table": [
+    {"claim": "경로 끝점을 'target'이라 부른다", "source": "technical report v1.2, p6", "founding_paper_supports": false, "note": "창설논문에는 이 용법이 없다"},
+    {"claim": "객체마다 속도벡터 v(o)∈R3 하나", "source": "technical report v1.2, p28, 식 (37)", "founding_paper_supports": false, "note": "창설논문은 tx/rx 속도만(p3, apply_doppler)"},
+    {"claim": "굴절(refraction) 지원", "source": "technical report v1.2, p9 (ℐ에 𝒯 포함)", "founding_paper_supports": false, "note": "창설논문 p3: 'For future releases, it is planned to add refraction as well as support for RIS' — v0.14에는 없었다"},
+    {"claim": "상호작용 4종 ℛ/𝒮/𝒯/𝒟", "source": "technical report v1.2, p9", "founding_paper_supports": false, "note": "창설논문 p4는 'only specular reflections are considered'라고 적는다"},
+    {"claim": "SBR + 이미지법 + 해시 중복제거", "source": "technical report v1.2, p1 abstract & p7", "founding_paper_supports": false, "note": "창설논문에 'SBR' 0회. Sionna 1.0 개편 산물이다"},
+    {"claim": "RIS 지원", "source": "technical report v1.2 각주1(p5): 지원 안 함(0.19.2에만 존재)", "founding_paper_supports": false, "note": "창설논문 p3은 '지원 예정'이라고 적었다. 시간 순서가 뒤집혀 있으므로 특히 주의"},
+    {"claim": "ISAC/센싱이 동기로 언급됨", "source": "founding paper p1 (sensing 5회)", "founding_paper_supports": true, "note": "⚠ 반대로 기술보고서 v1.2에는 sensing/ISAC/radar가 0회다. '센싱 동기'는 창설논문에서만 인용 가능하며, 그것도 응용 동기일 뿐 구현 근거가 아니다"}
+  ],
+
+  "usable_citations_for_our_reports": [
+    {
+      "purpose": "엔진 어휘에 피탐지 객체 개념이 없음",
+      "cite": "Sionna RT Technical Report v1.2 (arXiv:2504.21719v2), p6: \"Throughout this document, the endpoints of a path will be referred to as sources and targets, which can be either radio devices or antennas.\" 및 p14: \"Since targets are modeled as points, condition (12) effectively occurs with zero probability\"",
+      "supporting_count": "'target' 86회 전수 분류 결과 레이더적 용법 0건; 'radar' 0회, 'sensing' 0회, 'ISAC' 0회, 'RCS' 0회"
+    },
+    {
+      "purpose": "회전 프로펠러 마이크로도플러 불가",
+      "cite": "Sionna RT Technical Report v1.2, p28 §3.3.2: \"we assign a velocity vector v (𝑜) ∈R3 to each object 𝑜\" (식 37), 유효범위 \"when trajectory lengths are small (not exceeding a few wavelengths)\"; 'angular velocity' 0회",
+      "note": "대안으로 저자가 든 유일한 정확 경로는 p28 \"moving objects in small incremental steps along their trajectories and recomputing the propagation paths at each step ... computationally expensive\""
+    },
+    {
+      "purpose": "회절 전계 모델의 미완성",
+      "cite": "Sionna RT Technical Report v1.2, p30 §3.4: \"calculating the electric field along these high-order diffraction paths remains an open problem, and as a result, high-order diffraction is not currently supported.\"",
+      "caution": "고차 회절 전계에 한정된 진술이다. PO나 1차 회절로 확대 인용하지 말 것"
+    },
+    {
+      "purpose": "두꺼운 3D 메시를 다룰 때의 제약",
+      "cite": "Sionna RT Technical Report v1.2, p9: \"Surfaces like walls should be modeled as single flat surfaces\" / \"The transmitted rays are traced without angular deflection.\""
+    },
+    {
+      "purpose": "근거리·소형 표적에서의 점광원 근사 조건",
+      "cite": "Sionna RT Technical Report v1.2, p9: \"modeling transmit antennas as point sources is a valid approximation when the distances to scatterers and targets are significantly greater than the wavelength of the propagating waves.\""
+    },
+    {
+      "purpose": "라디오맵 출력이 채널이득 맵 하나뿐임 (Q5 보강)",
+      "cite": "Sionna RT Technical Report v1.2, p38 §4.6: \"The Sionna RT solver currently supports the calculation of channel gain maps ... It is possible to extend the solver to calculate other types of radio maps, such as root-mean-square delay spread maps and angular spread maps [27].\""
+    },
+    {
+      "purpose": "다중 Rx 확장 비용 (우리 벤치마크 설계 근거)",
+      "cite": "Sionna RT Technical Report v1.2, p29 §3.4: \"The current method for handling multiple targets involves iterating over all targets during each SBR loop iteration ... the compute time increases with the number of targets\""
+    }
+  ],
+
+  "corrections_to_our_records": [
+    {
+      "record": "B1: SBR 48회",
+      "actual": "44회",
+      "severity": "중간",
+      "action": "B1 항목의 SBR 카운트를 44로 정정. 페이지별 분포도 이 파일에 기록해 두었으므로 재검증 가능."
+    },
+    {
+      "record": "B1: target 86회",
+      "actual": "86회 (부분문자열 기준). 단순 \\b 정규식으로 세면 85가 나오므로 재검증 시 혼란 주의 — p13 '𝑁𝑇targets'가 수학 첨자와 붙어 있다.",
+      "severity": "낮음(수치는 맞음)",
+      "action": "카운트 방법을 함께 기록. 이번에 86건 전수를 읽어 분류까지 마쳤으므로 이후에는 카운트 재실행 불필요."
+    },
+    {
+      "record": "파일명 '...technical-report-v1.pdf'",
+      "actual": "내용은 arXiv v2 / 문서 버전 'Version 1.2' (2025-11-24)",
+      "severity": "높음",
+      "action": "인용 문자열을 'Sionna RT Technical Report, Version 1.2 (arXiv:2504.21719v2, 2025-11-24)'로 통일. 파일명을 근거로 버전을 적지 말 것."
+    },
+    {
+      "record": "'Paths.doppler는 있으나 속도는 객체당 강체 1벡터' (sionna-rt-doppler-velocity 메모)",
+      "actual": "기술보고서 v1.2 p28 식 (37)로 확인됨",
+      "severity": "확인",
+      "action": "메모에 출처(p28, eq.37/38)와 유효조건('궤적 길이 ≲ 몇 파장')을 덧붙일 것"
+    }
+  ],
+
+  "open_questions_for_other_readers": [
+    "Q1(표면 상호작용 체인), Q2(회절 공식의 정확한 형태 — UTD 2회·GTD 3회가 어디서 어떻게 쓰이는지, 부록 A.8), Q3(재질/P.2040 3회/슬래브), Q5(출력물 전수), Q7(산란패턴의 에너지 보존과 절대정확도 주장 여부, 부록 A.9)은 이 태스크 범위 밖이며 별도 정독이 필요하다.",
+    "부록 A.8 Diffraction(p47-50)과 A.9 Diffuse Reflection(p50-52)은 이 문서에서 읽지 않았다. §3.4의 'high-order diffraction 전계는 미해결' 진술과 A.8의 1차 회절 공식이 어떻게 맞물리는지는 Q2 담당이 확인해야 한다.",
+    "라디오맵 솔버에는 §3.4 같은 한계 절이 없다. §4.6 Practical Notes(p37-38)에서 뽑은 항목들을 이 파일 additional_author_caveats_outside_3_4에 담아두었으나, 전수는 아니다."
+  ]
+}

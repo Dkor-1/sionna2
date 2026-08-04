@@ -543,7 +543,9 @@ PRIORITY = {
     "verdict_for_our_paper": {
         "must_stop_claiming": [
             "무모호 속도가 상시 기준신호 반복률로 결정된다는 **사실**을 우리가 처음 지적했다는 어떤 형태의 주장",
-            "그 식의 바이스태틱 일반형(β, δ 포함)이 새롭다는 주장 — Chen 2024 가 같은 식을 쓴다",
+            # ⭐ 정정 R1 — 근거를 Chen 에서 Abratkiewicz 로 옮긴다(주장 자체는 그대로 금지).
+            "그 식의 바이스태틱 일반형(β, δ 포함)이 새롭다는 주장 — Abratkiewicz 외 JSTARS "
+            "2023 식 (16) 이 반구간 규약까지 같은 식을 이미 인쇄했다 (Chen 2024 는 닫힌 식 없음)",
             "'모노스태틱은 반복률을 자유롭게 고르므로 이 문제가 없다'는 문장 — 절반만 참이다",
         ],
         "can_still_claim": [
@@ -592,7 +594,11 @@ def main():
             "1) 프로젝트 메모는 옳았다 — LaSen 은 모노스태틱이고, 원문이 두 곳에서 그렇게 쓴다. "
             "2) 그러나 '모노스태틱은 반복률을 자유롭게 고른다'는 우리 프레이밍은 틀렸다 — 3GPP 가 sub-6 CSI-RS 에 500 Hz 천장을 걸었고 "
             "실측 상용 gNB 는 50~200 Hz 로 돈다. 모노스태틱의 진짜 탈출구는 반복률이 아니라 **데이터 심볼**이며, 그것은 트래픽에 종속된다. "
-            "3) 그리고 v_max = λ·PRF/(4cos(β/2)cosδ) 는 우리 것이 아니다 — Chen et al., Applied Sciences 2024 가 같은 기호로 먼저 냈다."
+            "3) 그리고 v_max = λ·PRF/(4cos(β/2)cosδ) 는 우리 것이 아니다 — ⭐ 우선권은 "
+            "**Abratkiewicz 외, IEEE JSTARS 16:3469-3484 (2023), 식 (16) p.3476** 이고 "
+            "반구간 규약까지 같다. (이전 기록의 'Chen 2024 가 같은 기호로 먼저 냈다' 는 "
+            "**철회됐다** — Chen 은 닫힌 식을 인쇄하지 않는다. docs/RETRACTION_LOG.md R1) "
+            "⭐ 대신 Abratkiewicz 결론 p.3482 가 드론을 향후과제로 명시한다 — 우리 자리다."
         ),
         "verification_of_our_law_against_prior_measurements": ver,
         "lasen": LASEN,

@@ -1,0 +1,262 @@
+{
+ "task": "SCOPE AUDIT of the injection-precedent verdict. Attack the coverage claim: which venues were genuinely searched, which returned nothing because the discovery tool cannot see them, and was the automotive-radar angle actually pursued.",
+ "generated_utc": "2026-08-03T07:40:00Z",
+ "audits": [
+  "/home/yunjung/workspace/sionna2/outputs/injection_archive.json",
+  "/home/yunjung/workspace/sionna2/outputs/injection_venues.json",
+  "/home/yunjung/workspace/sionna2/outputs/injection_verdict.json",
+  "/home/yunjung/workspace/sionna2/docs/INJECTION_PRECEDENT.md"
+ ],
+ "evidence_rule": "Every claim carries a resolvable DOI or an on-disk path, plus the sentence as printed. Where I read only an abstract via the Semantic Scholar API I say ABSTRACT ONLY. Where a venue comes from Crossref rather than a masthead I say so. Machine counts are labelled machine counts.",
+
+ "headline": {
+  "the_core_verdict_survives": "The answer to the user's question stays YES, and my sweep strengthens it rather than weakening it. Injection is in the venue record at IEEE TAP, TMTT, TAES and JSAC, and I independently re-verified the Schuler TAP masthead from the PDF.",
+  "the_coverage_claim_does_not_survive": "The verdict's load-bearing NEGATIVE claim is falsified. It states that no peer-reviewed venue paper computes a signature in a COMMERCIAL FULL-WAVE solver and multiplies it onto RAY-TRACED paths, and that LAMBDA is alone in doing so. I found that architecture published twice by the Sarris group at the University of Toronto, once at IEEE AP-S 2022 and once at IEEE TAP 2021, the second of which is a top venue. Both validate. Neither was seen by the sweep.",
+  "why_they_were_missed": "Not dblp. The sweep's discovery channel was WebSearch alone. Crossref and Semantic Scholar were used only to RESOLVE candidates WebSearch had already surfaced, never to DISCOVER. Crossref indexes IEEE TAP, TMTT, AP-Mag, EuCAP, EuRAD and IET RSN perfectly well - I ran 18 bibliographic queries against it in about two minutes and got 134 venue-filtered hits, including the two counterexamples.",
+  "automotive_verdict": "The automotive angle WAS pursued - injection_venues.json devotes a whole section to it and its conclusion is directionally right. But it is evidentially thin: exactly two automotive PDFs were opened (Schuler in full, Abadpour page 1 only), and the entire table-CONSUMING half it rests on - the four-item Buddendick line - is 100 percent NOT OPENED. A second IEEE TAP Buddendick paper was never surfaced at all, despite being cited inside a PDF already sitting on disk."
+ },
+
+ "counts": {
+  "crossref_discovery_queries_run_by_me": 18,
+  "venue_filtered_hits_returned": 134,
+  "hits_not_present_anywhere_in_the_three_prior_files": 62,
+  "new_injection_or_near_injection_instances_i_classified": 6,
+  "of_those_opened_in_full_from_the_pdf": 2,
+  "of_those_abstract_only": 4,
+  "falsified_claims_in_the_prior_verdict": 1,
+  "unsourced_claims_flagged": 1,
+  "metadata_errors_found": 1,
+  "prior_counts_i_reproduced_and_confirmed": 2
+ },
+
+ "PART_1_falsification_of_the_negative_claim": {
+  "the_claim_under_attack": {
+   "source": "outputs/injection_verdict.json search_coverage.scoped_negative_statements[0]",
+   "text": "No peer-reviewed venue paper was found that computes a target's RCS in a COMMERCIAL FULL-WAVE solver, tabulates it over aspect and frequency, and multiplies it onto RAY-TRACED propagation paths.",
+   "and_its_headline_form": "headline_answer.of_the_peer_reviewed_set_how_many_computed_the_table_in_a_commercial_full_wave_solver_and_multiplied_it_onto_ray_traced_paths = 0, the_single_paper_that_does_that = LAMBDA preprint"
+  },
+  "counterexample_1": {
+   "id": "SA-01-LIU-SARRIS-APS",
+   "citation": "Y. Liu and C. D. Sarris, 'Hybrid Full-Wave/Ray-Tracing Propagation Modeling of Reconfigurable Intelligent Surface-Enabled Communication Channels', 2022 IEEE International Symposium on Antennas and Propagation and USNC-URSI Radio Science Meeting (AP-S/URSI), pp. 1952-1953",
+   "doi": "10.1109/AP-S/USNC-URSI47032.2022.9887247",
+   "status": "OPENED IN FULL - 3-page postprint downloaded from the University of Toronto TSpace repository",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/aps2022_ris_hybrid.pdf",
+   "open_access_route": "https://utoronto.scholaris.ca/bitstreams/a7cfb9e3-6f78-429a-bf07-769e9e551e63/download",
+   "venue_source": "The TSpace cover sheet (PDF p.1) prints the full published citation and the DOI. The postprint itself carries no IEEE masthead - venue is established from the repository cover sheet plus Crossref, NOT from a masthead.",
+   "flavour": "IN, and it is the LAMBDA flavour: a COMMERCIAL full-wave solver computes the scatterer's complex RCS pattern, which is then consumed by a shooting-and-bouncing-rays ray tracer.",
+   "the_commercial_solver": "Ansys HFSS - reference [9] of the paper prints 'Ansys(R) High Frequency Structure Simulator, Release 21. R2'",
+   "quotes": [
+    {"page_pdf": 2, "text": "Full-wave simulation is used to obtain the radiation pattern of the transmitter and the complex radar cross-section (RCS) of the RIS, while a ray-tracer is employed to model the interaction between the RIS and the environment."},
+    {"page_pdf": 2, "text": "The complex RCS is used to implement the RIS as a secondary radiation source in the ray-tracer. This method can lead to large-scale simulations of RIS enabled-communication channels, as it enables the direct integration of RISs into ray-tracing."},
+    {"page_pdf": 3, "text": "3) We compute the complex RCS of the RIS using full-wave analysis."},
+    {"page_pdf": 3, "text": "The obtained patterns were imported into our ray-tracer based on the method of shooting and bouncing rays (SBR)."},
+    {"page_pdf": 3, "text": "where phi_sigma is the phase of the RCS, which can be obtained by full-wave simulation"}
+   ],
+   "table_axes": "Fig. 2 plots the RIS RCS in dB against angle over -90 to +90 degrees at a single carrier of 2.45 GHz. Aspect-indexed, single-frequency - NOT a frequency-swept table.",
+   "was_it_validated": "YES. The whole hybrid channel was compared against an Ansys-HFSS finite-element solution of the same channel: 'The proposed method is validated with a case study of a typical RIS-enabled communication channel that was modeled by the proposed hybrid method and by full-wave finite element analysis. Excellent agreement has been observed between the two methods.' (PDF p.2). Figs 3-4 overlay hybrid vs full-wave E-field.",
+   "the_honest_caveat_that_must_travel_with_this": "The scatterer is a RIS, not a radar TARGET, and the injected quantity is a complex RCS pattern used as a secondary-source gain rather than a sigma multiplied into a two-way radar echo. Under the strictest reading of our definition ('a target signature'), this is SCATTERER-signature injection. Do not overstate it as a drone-RCS paper.",
+   "why_it_still_kills_the_claim": "The claim as written is about the SOLVER->RAY-TRACER handoff, not about the object class. A commercial full-wave solver's complex RCS, tabulated over aspect, imported into an SBR ray tracer, validated - published at an IEEE AP-S symposium in 2022. The sentence 'LAMBDA is the only instance and it is a preprint' cannot stand."
+  },
+  "counterexample_2": {
+   "id": "SA-02-BAKIRTZIS-TAP",
+   "citation": "S. Bakirtzis, T. Hashimoto, C. D. Sarris, 'FDTD-Based Diffuse Scattering and Transmission Models for Ray Tracing of Millimeter-Wave Communication Systems', IEEE Transactions on Antennas and Propagation, vol. 69, no. 6, pp. 3389-3398, June 2021",
+   "doi": "10.1109/TAP.2020.3044373",
+   "status": "OPENED IN FULL - 10-page arXiv copy downloaded and grepped",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/bakirtzis_tap2021.pdf",
+   "open_access_route": "https://arxiv.org/pdf/2008.01688",
+   "venue_source": "MACHINE-RESOLVED from Crossref for DOI 10.1109/TAP.2020.3044373 (container 'IEEE Transactions on Antennas and Propagation', vol 69, issue 6, pp 3389-3398, 2021). The copy on disk is arXiv:2008.01688v1 and prints only the arXiv stamp - NO IEEE MASTHEAD. Venue is Crossref-established, not PDF-established.",
+   "venue_tier": "TOP - IEEE TAP, first on the user's named venue list",
+   "flavour": "IN. A full-wave solver (FDTD) computes an angle-dependent scattering/transmission signature offline, it is reduced to fitted compact models printed as parameter tables, and those are embedded into an SBR ray tracer that then traces the field components.",
+   "quotes": [
+    {"page_pdf": 1, "text": "the surface effectively acts as a secondary source, whose pattern is computed by full-wave analysis. Then, this pattern is embedded in a ray-tracer, enabling the computation and tracing of diffuse scattering field components."},
+    {"page_pdf": 2, "text": "we describe how we embedded the FDTD reflection and transmission coefficients in an RT simulator, and we provide results for an indoor propagation scenario at 28 GHz."},
+    {"section": "V. MAPPING FDTD RESULTS TO SCATTERING PATTERNS", "text": "The FDTD results can be embedded in compact models, representing the diffuse scattering properties of a given surface. These can be considered as macromodels of the FDTD simulations, which can be used to efficiently import the FDTD results to other propagation solvers."},
+    {"section": "VI. INTEGRATION WITH RAY-TRACING", "text": "To account for roughness, we assume that the illuminated rough surfaces act as secondary radiation sources, whose radiation pattern is computed by FDTD. To that end, the extracted diffuse reflection and transmission coefficients, R(theta), T(theta), are directly embedded into a shooting and bouncing ray tracing (SBR) simulator"}
+   ],
+   "table_form": "Tables III and IV print fitted model parameters (Ao, aA, aB, Lambda, thetaA) per surface material and per roughness sigma_h - the handoff object is a small parameter table, exactly the Zhang-JSAC 'Table V' pattern.",
+   "machine_count_on_the_pdf": "whole-PDF regex: 'FDTD' 36 occurrences, 'embedded in' 3, 'lookup/look-up/tabulat/precomput' 0 - the paper's own vocabulary is 'embedded' and 'macromodel', not 'lookup table'. THIS IS WHY KEYWORD SEARCH FOR 'RCS lookup table' NEVER FOUND IT.",
+   "the_honest_caveat": "The object is a building surface (wall, door, window), not a target. This is material/scatterer-signature injection. But it is the same architecture, in IEEE TAP, and it is the direct ancestor cited as [8] by counterexample 1.",
+   "companions_not_opened": [
+    {"citation": "'Ray-Tracing Simulations of mm-Wave Channels with FDTD-based Diffuse Scattering Models', IEEE AP-S/NARSM 2020, pp. 1831-1832", "doi": "10.1109/IEEECONF35879.2020.9329920", "status": "NOT OPENED, Crossref metadata only"},
+    {"citation": "'FDTD-based Extraction of Diffuse Scattering Models for Ray-Tracing', IEEE AP-S/NARSM 2020, pp. 1871-1872", "doi": "10.1109/IEEECONF35879.2020.9330358", "status": "NOT OPENED, Crossref metadata only"}
+   ]
+  },
+  "counterexample_3_journal_successor": {
+   "id": "SA-03-LIU-SARRIS-TAP2026",
+   "citation": "'Channel-Informed RIS Analysis and Optimization Using Hybrid Ray-Tracing and Full-Wave Simulation Framework', IEEE Transactions on Antennas and Propagation, 2026",
+   "doi": "10.1109/TAP.2025.3632298",
+   "status": "ABSTRACT ONLY via the Semantic Scholar API. FULL TEXT NOT OPENED - no open-access copy located.",
+   "quote_from_abstract": "This article introduces a hybrid approach combining ray-tracing (RT) and full-wave numerical analysis to evaluate and optimize reconfigurable intelligent surfaces (RISs) in deterministic channels ... our approach integrates RT for deterministic channel mapping and finite element method (FEM)-based simulations to assess RIS impacts in realistic, site-specific scenarios.",
+   "why_it_matters": "This is the journal-length successor of counterexample 1, in IEEE TAP, dated 2026, and it adds real-world measurements ('strong agreement between simulations and measurements'). If its mechanism matches the AP-S paper, the full-wave-into-ray-tracer architecture has a current top-venue journal paper. MECHANISM NOT ESTABLISHED - the abstract does not repeat the complex-RCS sentence.",
+   "action": "obtain and open before any citation"
+  },
+  "what_must_now_be_retracted": {
+   "retract": "'Commercial-solver RCS multiplied onto ray-traced paths is, as far as we have searched, still only a preprint (LAMBDA).' - stated in injection_venues.json headline, negative_result_stated_carefully, and what_this_means_for_us[0], and carried into injection_verdict.json headline and corrections C1.",
+   "replace_with": "The full-wave-solver-into-a-ray-tracer handoff IS published, including at IEEE TAP (Bakirtzis 2021) and IEEE AP-S (Liu and Sarris 2022), and both validate what they inject. What remains genuinely unpublished, over our coverage, is narrower still: that handoff applied to a MOVING RADAR TARGET's two-way echo rather than to a static environmental scatterer or a RIS. LAMBDA is the only instance of THAT, and it does not validate.",
+   "severity": "HIGH - this is the second time the same sentence has been narrowed. It was 'injection is only a preprint', then 'commercial-solver-into-ray-tracer is only a preprint', and it is now 'commercial-solver-into-ray-tracer FOR A RADAR TARGET is only a preprint'. Each narrowing came from looking somewhere new. That pattern is itself the finding: the claim has never been coverage-limited by the literature, only by the search."
+  }
+ },
+
+ "PART_2_how_the_venues_were_actually_searched": {
+  "the_claim_under_attack": {
+   "source": "injection_verdict.json search_coverage.venues_actually_queried",
+   "text": "a 17-item list headed 'venues_actually_queried' including IEEE TAP, TWC, JSAC, TVT, TAES, TMTT, IoT-J, Proceedings of the IEEE, ICASSP, INFOCOM, MobiCom, SenSys, MobiSys, EuCAP, EuRAD, IET RSN"
+  },
+  "what_actually_happened": {
+   "source": "injection_venues.json method.tools, quoted",
+   "text": "WebSearch and WebFetch for discovery; Crossref REST API (api.crossref.org) for authoritative venue / DOI / volume / pagination; Semantic Scholar Graph API for abstracts and open-access links.",
+   "reading": "Discovery was WebSearch only. The venue names were STRINGS INSIDE WEBSEARCH QUERIES, not queries against any index that indexes those venues. 'venues_actually_queried' overstates what was done - the honest label is 'venue names used as search terms'."
+  },
+  "the_demonstration": {
+   "what_i_did": "18 Crossref query.bibliographic discovery queries with injection vocabulary, results filtered locally to a 25-journal strong-venue list plus a conference-marker list (EuCAP, EuRAD, GeMiC, RadarConf, IRS, AP-S, ICMIM, IGARSS).",
+   "script": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/cr_discover.py",
+   "raw_results": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/cr_hits.json",
+   "elapsed": "about 2 minutes",
+   "venue_filtered_hits": 134,
+   "verdict": "Crossref indexes every venue the file called a blind spot. The blind spot was in the tool CHOICE, not in the indexes. This is a cheap, fully reproducible fix."
+  },
+  "the_dblp_premise_in_the_audit_brief": {
+   "premise": "dblp does not index IEEE TAP, AWPL, EuCAP, IET RSN or TMTT",
+   "my_test_1": "https://dblp.org/db/journals/tap/index.html - the dblp key 'journals/tap' resolves to ACM Transactions on Applied Perception, 23 volumes 2004-2026. It is NOT IEEE TAP.",
+   "my_test_2": "https://dblp.org/db/journals/tap/tap56.html returns HTTP 404 - there is no IEEE TAP volume 56 under that key.",
+   "my_test_3": "dblp publication search for the exact title 'Extraction of Virtual Scattering Centers of Vehicles' returns 'no matches', although the paper demonstrably exists (I read its IEEE TAP masthead off the PDF).",
+   "my_test_4": "https://dblp.org/pid/60/6372.html (Thomas F. Eibert, a TUM antennas professor) - the fetched page shows journal articles and arXiv preprints from 2019-2026 with no 'IEEE Trans. Antennas Propag.' entries and no EuCAP or GeMiC conference entries.",
+   "conclusion": "The premise is CONFIRMED for the antennas/microwave side. dblp's coverage is the CS/networking side - which is why the one dblp-sourced item in injection_venues.json is IEEE VNC 2010, a vehicular NETWORKING conference.",
+   "but_the_important_correction": "dblp is NOT why the counterexamples were missed - dblp was barely used. Do not let the dblp explanation be recycled as the diagnosis. The diagnosis is 'WebSearch was the only discovery channel'.",
+   "caveat_on_my_own_test": "WebFetch renders dblp pages through a markdown converter and the Eibert page may have been truncated. Tests 1-3 are unambiguous; test 4 is suggestive, not conclusive."
+  },
+  "the_keyword_trap_that_explains_the_misses": {
+   "finding": "Both counterexamples avoid every phrase the sweep searched for. Machine count on the Bakirtzis TAP PDF: 'lookup' 0, 'look-up' 0, 'tabulat' 0, 'precomput' 0. Its own words are 'embedded', 'macromodel' and 'imported'.",
+   "the_sweep_search_terms_for_comparison": "'RCS lookup table', 'precomputed RCS', 'external EM solver + ray tracing', 'FEKO + channel simulation', 'CST + ISAC channel', 'target signature injection', 'hybrid EM + RT', 'scattering center model + radar target simulator', 'virtual validation + precomputed RCS'",
+   "reading": "Only 'hybrid EM + RT' could plausibly have reached the Sarris line, and it did not. A vocabulary sweep is needed: embedded, imported, macromodel, secondary source, incorporated, hybrid full-wave/ray-tracing, pattern-based, equivalent source."
+  }
+ },
+
+ "PART_3_the_automotive_angle": {
+  "was_it_pursued": "YES. injection_venues.json carries a dedicated section 'the_deliberate_automotive_look' with a three-generation narrative, and injection_verdict.json's conclusion 2/3 and two next_steps derive from it. This audit does NOT find the automotive angle skipped.",
+  "but_how_deep": {
+   "automotive_pdfs_actually_opened_by_the_sweep": 2,
+   "detail": "Schuler TAP 2008 (full, and I re-verified the masthead) and Abadpour TMTT 2022 (PAGE 1 ONLY, self-declared: 'only page 1 was read in this pass - the rest of the 12-page PDF is NOT OPENED'). Deep IET RSN 2020 came from the archive sweep, not the automotive look.",
+   "the_load_bearing_half_is_unread": "The narrative's table-CONSUMING half rests entirely on the Buddendick line - AP-Mag 2012, VNC 2010, AP-S 2009, GeMiC 2010 - and all four are NOT OPENED. injection_venues.json itself flags this: 'Its CONTENT is NOT ESTABLISHED ... Do not cite the mechanism until the PDF is in hand.' That warning is correct and it means the automotive 'confirmed, mature' verdict is currently supported by one opened paper from 2008."
+  },
+  "my_own_read_of_abadpour_beyond_page_1": {
+   "what_i_did": "opened all 12 pages of /data/public/sionna_jeong/reference_library/injection/kit_vru_rcs_TMTT2022.pdf and extracted every simulation-context sentence plus the full reference list",
+   "the_injection_framing_HOLDS": "PDF p.2 prints 'High-resolution radar cross section (RCS) measurements in the radial and the angular domain can be used for backscattering models in the wave propagation simulations and thus speed up simulations.' The p.1 characterisation was not an over-read.",
+   "machine_count": "whole-PDF regex over 60,098 characters: FEKO 0, CST 0, HFSS 0, FDTD 0, MoM 0, 'lookup/look-up' 0. Confirms 'external source = measurement, no solver'."
+  },
+  "the_map_that_was_already_on_disk": {
+   "finding": "Abadpour PDF p.2 prints 'The implementation of the scattering process into the radar wave propagation simulation can be done in different ways as explained in [8]-[15] in detail and summarized in [8].' That single sentence is a curated bibliography of the automotive injection line, and it sat unread on a PDF the sweep had already downloaded.",
+   "what_refs_8_to_15_actually_are": [
+    "[8] S. Abadpour, A. Diewald, B. Nuss, M. Pauli, T. Zwick, 'Extraction of scattering centers using a greedy algorithm for traffic participants', Proc. 14th EuCAP, Mar. 2020, pp. 1-5  <-- EuCAP, the declared blind spot",
+    "[9] M. Chen and C.-C. Chen, 'RCS patterns of pedestrians at 76-77 GHz', IEEE Antennas Propag. Mag. 56(4):252-263, Aug. 2014",
+    "[10] T. Schipper, J. Fortuny-Guasch, D. Tarchi, L. Reichardt, T. Zwick, 'RCS measurement results for automotive related objects at 23-27 GHz', Proc. IEEE 5th EuCAP, Apr. 2011, pp. 683-686  <-- EuCAP",
+    "[11] H. Buddendick and T. F. Eibert, 'Incoherent scattering-center representations and parameterizations for automobiles', IEEE Antennas Propag. Mag. 54(1):140-148, Feb. 2012",
+    "[12] H. Buddendick and T. F. Eibert, 'Acceleration of ray-based radar cross section predictions using monostatic-bistatic equivalence', IEEE Trans. Antennas Propag. 58(2):531-539, Feb. 2010  <-- A SECOND IEEE TAP PAPER, NEVER SURFACED BY THE SWEEP",
+    "[13] K. Schuler, D. Becker, W. Wiesbeck, IEEE Trans. Antennas Propag. 56(11):3543-3551, Nov. 2008  <-- the one paper the sweep did open",
+    "[14] S. Abadpour, A. Diewald, M. Pauli, T. Zwick, 'Extraction of scattering centers using a 77 GHz FMCW radar', Proc. 12th GeMiC, Mar. 2019, pp. 79-82  <-- GeMiC, the declared blind spot",
+    "[15] S. Abadpour, A. Diewald, S. Marahrens, M. Pauli, T. Zwick, 'Back scattering of traffic participants based on an automotive radar measurement', Proc. 17th EuRAD, Jan. 2021, pp. 99-102  <-- EuRAD, the declared blind spot"
+   ],
+   "reading": "The sweep declared EuCAP/EuRAD/GeMiC 'the largest known blind spot, and it sits exactly where the automotive injection line lives' - and it was right. But the blind spot was closable at zero network cost by reading page 11 of a PDF already in hand. No backward-citation mining was performed on any held PDF, and no forward-citation traversal was run either (both self-declared)."
+  },
+  "the_new_ieee_tap_paper_this_surfaces": {
+   "id": "SA-04-BUDDENDICK-TAP2010",
+   "citation": "H. Buddendick and T. F. Eibert, 'Acceleration of Ray-Based Radar Cross Section Predictions Using Monostatic-Bistatic Equivalence', IEEE Transactions on Antennas and Propagation, vol. 58, no. 2, pp. 531-539, 2010",
+   "doi": "10.1109/TAP.2009.2037692",
+   "venue_source": "Crossref query.bibliographic exact-title match - container 'IEEE Transactions on Antennas and Propagation', vol 58, issue 2, pp 531-539, 2010. NOT OPENED; Semantic Scholar returned no abstract.",
+   "status": "NOT OPENED",
+   "why_it_matters_to_us_specifically": "It is an IEEE TAP paper about reusing a MONOSTATIC ray-based RCS prediction at BISTATIC angles. Our sigma grid is monostatic-only and our standing open question is exactly whether it may be reused at our chamber's bistatic angles - the Zhao SCIS '15-20 degrees' warning that injection_verdict.json next_steps[0] already flags as decisive. This paper is the antennas-community treatment of that identical question and it is not in any of our files.",
+   "priority": "HIGHEST of the unopened leads - it is both a venue-record item and a technical dependency"
+  },
+  "the_unsourced_claim_in_the_automotive_narrative": {
+   "claim": "injection_venues.json the_deliberate_automotive_look, generation 3: 'the commercial asymptotic solvers absorb the whole pipeline and the handoff disappears - HFSS SBR+, Remcom WaveFarer and Altair Feko run the scenario themselves, which converts the architecture from injection back into computed inside the engine.'",
+   "problem": "No citation. It names three vendor products and asserts a publication-trend conclusion from them. It is then escalated into 'the_uncomfortable_implication_for_us' and into injection_verdict.json next_steps[7] ('survival against an automotive-side reviewer'), where it drives how we are told to phrase our defence.",
+   "my_counter_evidence": "The injection architecture is still being published in the antennas community after 2018: Bakirtzis IEEE TAP 2021 and Liu/Sarris IEEE TAP 2026 both keep the handoff explicitly, and the 2026 one is in the top venue. The 'handoff disappears' story is at best domain-specific to automotive and is not established even there.",
+   "severity": "MEDIUM - the conclusion may still be right, but it is presented in the same register as the sourced findings and it is currently an inference from product names."
+  }
+ },
+
+ "PART_4_venues_never_searched_at_all": {
+  "the_sar_isar_omission": {
+   "finding": "The SAR / ISAR raw-signal-simulation literature is absent from every file. It appears in no venue list, no search term, and no screened-out row. This is arguably the OLDEST and most mature injection literature there is - externally computed target scattering fed into a simulated echo and then imaged - and IEEE TGRS is a top venue.",
+   "evidence_that_it_is_populated": [
+    {"citation": "'Bi-Directional Ray Tracing Enhanced Automatic Forward Parametric Scattering Model for Complex Coated Structure', IEEE Transactions on Geoscience and Remote Sensing, 2025", "doi": "10.1109/TGRS.2025.3547153", "status": "ABSTRACT ONLY, Semantic Scholar", "quote": "The model can accurately reconstruct the radar cross section (RCS) characteristics and the synthetic aperture radar (SAR) image signatures of targets ... The reconstructed SAR images utilizing the proposed model exhibit high similarity, surpassing 0.83, compared to those from actual measurements or multilevel fast multipole algorithm (MLFMA).", "note": "an attribute-scattering-center parametric model standing in for a full-wave solve, validated against MLFMA and measurement - structurally our Schuler/Deep flavour, in a top journal"},
+    {"citation": "'Ship Target SAR Dataset Generation Based on Ray Tracing Including Multiple Scattering', IEEE Access, 2025", "doi": "10.1109/ACCESS.2025.3575702", "status": "ABSTRACT ONLY", "note": "ray tracing plus a physical illumination model producing the raw echo, validated against real SAR images AND against mainstream commercial simulation software"},
+    {"citation": "'Fast raw signal simulation based on equivalent scatterer and subaperture processing for one-stationary bistatic SAR', IET International Radar Conference 2015", "doi": "10.1049/cp.2015.1030", "status": "NOT OPENED, Crossref metadata only"}
+   ],
+   "why_it_bears_on_us": "This community has spent decades on the exact question a reviewer will put to us - when may a precomputed scattering description substitute for a full solve, and how do you prove it - and it has settled metrics for it (SSIM against measured imagery). Our report13 validation currently borrows none of that vocabulary.",
+   "severity": "MEDIUM - it does not change the YES verdict, but 'we searched the strong venues' is not true while an entire top-venue literature was never in scope."
+  },
+  "other_venues_absent_from_the_queried_list": [
+   "IEEE Transactions on Radar Systems - launched 2023, the natural home for radar-simulation architecture papers, never named",
+   "IEEE Antennas and Wireless Propagation Letters - named in the audit brief, absent from the sweep's list. It is populated: 'Numerical Simulation and Experimental Analysis of Small Drone Rotor Blade Polarimetry Based on RCS and Micro-Doppler Signature', IEEE AWPL 2019, doi 10.1109/LAWP.2018.2885373 (ABSTRACT ONLY) - MoM-computed drone rotor RCS with measured confirmation. Flavour is the Ziganshin route (solver IS the simulator), so it is not an injection instance, but it is a directly relevant drone-RCS validation precedent we do not hold.",
+   "IEEE Radar Conference / RadarConf and International Radar Symposium (IRS) - the drone-signature-simulation community's main conferences, never named. My sweep returned a dozen, e.g. 'Multi-rotor Drone Micro-Doppler Simulation Incorporating Genuine Motor Speeds and Validation with L-band Staring Radar', RadarConf 2022, doi 10.1109/RadarConf2248738.2022.9764352 (ABSTRACT ONLY), whose abstract states 'The synthetic drone data was injected into a real radar background enabling a direct comparison of synthetic and real spectrograms'",
+   "IGARSS - never named",
+   "IEEE Open Journal of Antennas and Propagation - never named"
+  ],
+  "the_eucap_2025_uav_paper_we_should_have_had": {
+   "id": "SA-05-EUCAP2025-UAV-RCS",
+   "citation": "'On Experimental Analysis of Mono-Static 3D UAV RCS for ISAC Channel Modeling', 19th European Conference on Antennas and Propagation (EuCAP), 2025",
+   "doi": "10.23919/EuCAP63536.2025.10999912",
+   "status": "ABSTRACT ONLY via Semantic Scholar. FULL TEXT NOT OPENED.",
+   "quote_from_abstract": "we conduct mono-static UAV RCS measurements in an anechoic chamber, recording RCS covering frequency band of 1.8 ~18.2 GHz and azimuth angles of -90 deg ~90 deg (given the symmetry of the UAV) at three UAV elevation sides {90 deg, 0 deg, 180 deg} ... the measured RCS data is fitted using three well-known distributions, Rician, Gamma, and LogNormal ... Detailed distribution parameters are provided for UAV RCS realization.",
+   "why_this_one_stings": "The band 1.8-18.2 GHz is the SAME INTERVAL our own outputs/validate_measured_airframe.json uses as its anchor, recorded there as 'slope_measured_das_phantom3_1p8_18p2'. This EuCAP 2025 paper is very likely the conference precursor of Das WCL 2026, which injection_verdict.json calls 'our own external anchor'. It adds ELEVATION coverage (three elevation sides) that a letter would have had no room for.",
+   "action": "obtain it before the next anchoring pass - our grid is 9 elevations deep and we are currently anchoring elevation against a source that may not print elevation",
+   "caveat": "The link to Das is an INFERENCE from the matching band and target class. Author list NOT CHECKED - Semantic Scholar returned no authors for this DOI. Do not state the precursor relationship as fact until verified."
+  }
+ },
+
+ "PART_5_smaller_defects": {
+  "metadata_error": {
+   "where": "injection_venues.json BO-01 and injection_verdict.json bibliographic_only_NOT_OPENED[0]",
+   "recorded": "IEEE Antennas Propag. Mag. 54(3):140-148, 2012, sourced as 'Crossref record (container, volume, pages, year)'",
+   "actual": "Crossref for DOI 10.1109/MAP.2012.6202527 returns volume 54, ISSUE 1, published February 2012. Independently corroborated by the printed reference [11] in the Abadpour TMTT PDF, which also prints '54, no. 1, ... Feb. 2012'.",
+   "severity": "LOW in itself, but the file's evidence rule promises Crossref as the authority for volume and pagination, and this is the one place I checked it. Two of two other Crossref lookups I ran (Buddendick TAP 2010, Bakirtzis TAP 2021) were correct."
+  },
+  "venue_tier_pooling": {
+   "issue": "'peer_reviewed_instances: 10' pools IEEE TAP/TMTT/TAES/JSAC with NATO STO meeting proceedings (not peer-reviewed in the ordinary sense - the file itself notes the year is only in PDF metadata and its lone validation sentence mis-cites the solver as a measurement) and with IEEE J-STEAP Volume 1, a journal in its first year of publication.",
+   "consequence_for_answering_the_user": "For the question actually asked - is there even ONE top-venue paper - the honest core is four to five (TAP, TMTT, TAES, JSAC, and IET RSN as the architectural twin). That is still an unambiguous YES and it is more persuasive than a padded ten.",
+   "severity": "LOW"
+  },
+  "screen_outs_that_could_flip": {
+   "note": "Two screen-outs rest on abstracts only and the sweep flagged one itself.",
+   "items": [
+    "Ebrahimizadeh et al., IEEE TAP 72:3596-3606, 2024, doi 10.1109/TAP.2024.3365859 - screened OUT as abstraction. injection_venues.json already calls it 'the single most likely reclassification in this file'. NOT RE-CHECKED BY ME.",
+    "Magosi et al., Sensors 22:5693, 2022 survey - used to support the three-generation narrative, NOT OPENED, and injection_venues.json separately records that a quantitative sentence attributed to it could not be found in the fetched text and must be treated as UNSOURCED."
+   ]
+  }
+ },
+
+ "PART_6_what_held_up": [
+  "The core YES verdict. Injection is in the venue record, and my independent sweep adds to it rather than subtracting.",
+  "Schuler IEEE TAP 2008 - I re-read the PDF and the masthead prints 'IEEE TRANSACTIONS ON ANTENNAS AND PROPAGATION, VOL. 56, NO. 11, NOVEMBER 2008' at page 3543. The file's insistence on no. 11 over indexes citing no. 12 is correct.",
+  "Abadpour TMTT 2022 - the injection framing survives a full 12-page read, not just the page 1 the sweep managed. Machine count confirms no EM solver is involved anywhere in the paper.",
+  "Archive census counts reproduce. My recount of the 8 swept archives finds 420 PDFs today against the 409 recorded; the difference is exactly the 11 PDFs downloaded into reference_library/injection AFTER the archive sweep ran. OpenISAC is 28 PDFs, exactly as claimed.",
+  "The self-declared blind-spot list in injection_venues.json method.what_was_NOT_done is honest and accurate. Every hole I confirmed was one the file had already named - my contribution is showing the holes were cheap to close and that one of them contained a claim-falsifying paper.",
+  "The 'folder names lie' and 'our own Korean note ranked 6th' hygiene warnings are real and worth keeping."
+ ],
+
+ "PART_7_what_to_do": [
+  {"do": "Retract the 'only LAMBDA / only a preprint' sentence a second time and restate it at its true width: the full-wave-into-ray-tracer handoff is published at IEEE TAP; what is unpublished is that handoff applied to a moving radar target's two-way echo.", "priority": "HIGH", "where": "docs/INJECTION_PRECEDENT.md, report 01"},
+  {"do": "Open Buddendick IEEE TAP 58(2):531-539, 2010, doi 10.1109/TAP.2009.2037692 - monostatic-bistatic equivalence for ray-based RCS. It is both a missing venue-record item and the antennas-community treatment of our own open monostatic-grid-at-bistatic-angles question.", "priority": "HIGH", "where": "prior_work, and it feeds next_steps[0] of injection_verdict.json"},
+  {"do": "Obtain EuCAP 2025 doi 10.23919/EuCAP63536.2025.10999912 before the next anchoring pass - same 1.8-18.2 GHz band as our anchor, with three elevation sides, and our grid is 9 elevations deep.", "priority": "HIGH", "where": "outputs/validate_measured_airframe.json"},
+  {"do": "Re-run discovery through Crossref query.bibliographic and Semantic Scholar search rather than WebSearch, with the vocabulary the papers actually use - embedded, imported, macromodel, secondary source, incorporated, hybrid full-wave/ray-tracing. The script is written and takes two minutes.", "priority": "HIGH", "where": "scratchpad/cr_discover.py"},
+  {"do": "Mine backward citations of every injection PDF already on disk. Abadpour's refs [8]-[15] alone close most of the declared EuCAP/EuRAD/GeMiC blind spot at zero network cost.", "priority": "MEDIUM", "where": "prior_work"},
+  {"do": "Add the SAR/ISAR raw-signal-simulation literature to scope, starting at IEEE TGRS. Borrow its validation vocabulary - SSIM of reconstructed imagery against measurement or MLFMA - which is stronger than what we currently print.", "priority": "MEDIUM", "where": "report 06"},
+  {"do": "Label the automotive 'generation 3' story as an unsourced inference wherever it appears, or source it. Two IEEE TAP papers from 2021 and 2026 keep the handoff explicit, which cuts against it.", "priority": "MEDIUM", "where": "injection_venues.json, report 01"},
+  {"do": "Fix the Buddendick AP-Mag issue number to 54(1), Feb 2012.", "priority": "LOW", "where": "injection_venues.json BO-01, injection_verdict.json"},
+  {"do": "When answering the user, quote four to five genuinely top venues rather than a pooled ten. NATO STO proceedings and a Volume-1 journal weaken a claim that is already strong.", "priority": "LOW", "where": "the answer to the user"}
+ ],
+
+ "scope_of_this_audit": {
+  "what_i_did": "Read all three prior JSON files in full. Re-verified 2 PDFs already on disk (Schuler masthead, Abadpour all 12 pages). Ran 18 Crossref discovery queries and triaged 134 venue-filtered hits. Pulled 16 abstracts from Semantic Scholar. Downloaded and read 2 new PDFs in full (Liu/Sarris AP-S 2022, Bakirtzis TAP 2021). Ran 4 empirical tests of the dblp premise. Recounted the archive census.",
+  "what_i_did_NOT_do": [
+   "I did not re-verify the 10 injection instances in the prior master table - only Schuler and Abadpour.",
+   "I did not obtain any paywalled full text. IEEE TAP 2026, EuCAP 2025, AWPL 2019, Buddendick TAP 2010 and the SAR items are ABSTRACT ONLY or metadata only.",
+   "I did not check authorship of the EuCAP 2025 paper, so its claimed relationship to Das WCL 2026 remains an inference.",
+   "My 134 hits are a machine-filtered Crossref result, not a systematic review. A different query set would return a different 134.",
+   "I did not search non-English venues, Chinese journals (Journal of Radars), IEICE, or the defence/EW grey literature."
+  ],
+  "licensed_wording": "'Our discovery method could not see these venues, and when we looked with a tool that can, we found papers that falsify our negative claim.'",
+  "forbidden_wording": "'The search is now complete.' It is not - I widened it by one tool and immediately found a counterexample, which is evidence that the boundary is still search-limited, not literature-limited."
+ }
+}

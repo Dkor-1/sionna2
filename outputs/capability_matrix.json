@@ -1,0 +1,3903 @@
+{
+ "meta": {
+  "script": "benchmark/capability_matrix.py",
+  "generated": "2026-08-03T02:01:46",
+  "run": "cd /home/yunjung/workspace/sionna2 && PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/capability_matrix.py",
+  "purpose_ko": "사용자 추적표(Sionna RT | drone Mesh | material | Aspect/RCS | Rotor | diffraction)를 우리 포지셔닝에 필요한 3열(진폭검증·기하·무모호속도)로 확장한 능력 매트릭스.",
+  "house_rules": "산문 한국어, 그림 텍스트 영어. 인용은 게재처 + 게재상태 + 연도.",
+  "evidence_rule_ko": "한 칸은 (a) 내가 이번 실행에서 연 PDF 의 축자 인용(매 실행 재대조) 또는 (b) 디스크 JSON/PDF 전문 계수에서 우리가 계산한 값이어야 한다. 둘 다 아니면 UNVERIFIED 로 남기고 발표에 쓰지 않는다.",
+  "runtime_s": 8.25,
+  "inputs": [
+   "outputs/reference_library.json",
+   "outputs/verify_chen.json",
+   "outputs/sbr_kr_sweep.json",
+   "outputs/sigma_anchor.json",
+   "outputs/geometry_grid.json",
+   "outputs/verify_cfar.json"
+  ],
+  "pdfs_opened": 25,
+  "pdfs_missing": []
+ },
+ "columns": [
+  {
+   "id": "engine",
+   "header_en": "Ray engine",
+   "question_ko": "어떤 엔진에서 산란장이 계산되는가"
+  },
+  {
+   "id": "mesh",
+   "header_en": "Target mesh",
+   "question_ko": "표적이 3-D 표면 메시인가"
+  },
+  {
+   "id": "material",
+   "header_en": "Material model",
+   "question_ko": "재질이 부여되는가(부위별인가)"
+  },
+  {
+   "id": "aspect",
+   "header_en": "Aspect-resolved RCS",
+   "question_ko": "자세각에 따라 분해된 RCS/반사도인가"
+  },
+  {
+   "id": "rotor",
+   "header_en": "Rotor motion",
+   "question_ko": "회전 로터의 운동이 모형에 있는가"
+  },
+  {
+   "id": "diffraction",
+   "header_en": "Diffraction",
+   "question_ko": "회절 처리(UTD/PTD/정점/쐐기)가 있는가"
+  },
+  {
+   "id": "validation",
+   "header_en": "Amplitude validation",
+   "question_ko": "산란 '진폭'을 무엇과 대조했는가"
+  },
+  {
+   "id": "geometry",
+   "header_en": "Geometry mono/bi/multi",
+   "question_ko": "어느 기하를 다루는가"
+  },
+  {
+   "id": "vmax",
+   "header_en": "Unambiguous velocity",
+   "question_ko": "무모호 속도를 보고하는가"
+  }
+ ],
+ "mark_scale": {
+  "2": "FULL",
+  "1": "PARTIAL",
+  "0": "NONE",
+  "-1": "NOT_APPLICABLE"
+ },
+ "evidence_grades": {
+  "QUOTED": "내가 이번 실행에서 연 PDF 의 축자 문장이고, 스크립트가 재대조에 성공했다.",
+  "COMPUTED": "디스크의 JSON 또는 PDF 전문 용어 계수에서 우리가 계산했다. 재현 가능.",
+  "DERIVED": "'해당 없음' 판정 전용 — 같은 행의 인용된 칸에서 따라온다. derived_from 에 출처 칸을 적는다.",
+  "UNVERIFIED": "1차 출처로 확인하지 않았다. 발표에 쓰지 말 것."
+ },
+ "row_groups": {
+  "S": "Scattering computed from a target geometry",
+  "T": "Target inside a ray-traced scene, no scattering integral",
+  "M": "Measurement-based signature anchor",
+  "V": "Reports unambiguous velocity, no target scattering",
+  "O": "This work"
+ },
+ "rows": [
+  {
+   "group": "S",
+   "cells": {
+    "engine": {
+     "level": 2,
+     "label": "Sionna RT + author extension (UTD + vertex diffraction)",
+     "quote": "An open-source parallelizable framework, Sionna RT [11], is utilized to conduct simulations.",
+     "loc": "Sec. III",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "mesh": {
+     "level": 2,
+     "label": "faceted vehicle mesh (3.3x2.1x1.7 m)",
+     "quote": "An alternative approach, as mentioned before, is to dis- cretize the curved surface into flat and small polygons - usually triangles - called ”facets” and to apply conventional ray tracing techniques in combination with the Uniform Theory of Diffraction (UTD) under the assumption that facets are larger than the wavelength.",
+     "loc": "Sec. I",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "material": {
+     "level": 0,
+     "label": "PEC only, no per-part materials (the term appears in cited UTD titles)",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (5 pages, counted by this script): /\\bpermittivity\\b|\\bconductivity\\b|\\bPEC\\b|perfectly conducting|\\bdielectric\\b/ = 2 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "material",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "aspect": {
+     "level": 2,
+     "label": "scattered field vs angle 0-180 deg",
+     "quote": "0 20 40 60 80 100 120 140 160 180 Angle (deg) 40 35 30 25 20 15 10 5 0 |Escat| (dBV/m) EM (MLFMM) RT+UTD RT+UTD+VD Fig.",
+     "loc": "Fig. (results)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "rotor": {
+     "level": -1,
+     "label": "vehicle target, no rotor",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "mesh cell (quoted): faceted vehicle mesh",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "diffraction": {
+     "level": 2,
+     "label": "UTD + vertex diffraction (the point of the paper)",
+     "quote": "We show that more comprehensive diffraction methods are required to achieve realistic results: one of them is vertex diffraction, and its implementation in the RT framework is considered in this work.",
+     "loc": "Abstract",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "validation": {
+     "level": 2,
+     "label": "vs MLFMM (FEKO) and PO solvers",
+     "quote": "Simulations by thus augmented RT are compared with simulations by MLFMM and PO solvers for discretized spheres and a simplified car, respectively.",
+     "loc": "Abstract",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "geometry": {
+     "level": 2,
+     "label": "multistatic (title)",
+     "quote": "Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC",
+     "loc": "Title, p.1",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (5 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "ziganshin_multistatic_eucap25",
+   "citation": "A. Ziganshin et al., \"Ray-based simulation of multistatic scattering from target objects in ISAC,\" Proc. 19th European Conf. Antennas and Propagation (EuCAP), 2025, doi:10.23919/EuCAP63536.2025.10999367",
+   "venue": "EuCAP 2025",
+   "status": "PUBLISHED",
+   "year": 2025,
+   "short": "Ziganshin, EuCAP'25",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+   "order_index": 0
+  },
+  {
+   "group": "S",
+   "cells": {
+    "engine": {
+     "level": 2,
+     "label": "Sionna-RT v0.19, extended by the authors",
+     "quote": "Consequently, reference RT tools, such as the open-source, parallelizable framework Sionna-RT [19] and other tools [20], naturally support faceted geometries.",
+     "loc": "Sec. I",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "mesh": {
+     "level": 2,
+     "label": "faceted vehicle mesh; curvature-linked facet size rule",
+     "quote": "A discretization strategy linking facet size to local curvature and wavelength is proposed to balance geometric fidelity, diffraction modeling, and efficiency.",
+     "loc": "Abstract",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "material": {
+     "level": 0,
+     "label": "PEC assumed for every object",
+     "quote": "All objects considered in this work are assumed to be perfectly electrically conducting (PEC), as vehicle bodies can often be approximated by PEC boundary conditions.",
+     "loc": "Sec. (geometry)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "NONE"
+    },
+    "aspect": {
+     "level": 2,
+     "label": "backscattering and forward/shadow region vs angle",
+     "quote": "This work investigates ray-tracing-based modeling of near-field scattering from curved bodies, both in the backscattering and in the forward (shadow) region",
+     "loc": "Abstract",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "rotor": {
+     "level": -1,
+     "label": "vehicle target, no rotor",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "material cell (quoted): PEC vehicle bodies",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "diffraction": {
+     "level": 2,
+     "label": "UTD + vertex diffraction + double-bounce, heuristic edge/vertex combination",
+     "quote": "in the ray-tracing tool, diffraction is modeled according to the Uniform Theory of Diffraction (UTD), extended with vertex diffraction and double-bounce interactions",
+     "loc": "Abstract",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "validation": {
+     "level": 2,
+     "label": "analytical solutions + full-wave; vehicle vs bistatic measurement",
+     "quote": "Validation is initially performed against analytical solutions and full-wave simulations for canonical geometries (sphere and circular cylinder).",
+     "loc": "Abstract",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "geometry": {
+     "level": 2,
+     "label": "bistatic / multistatic near-field reflectivity",
+     "quote": "However, very few investigations have applied pure ray-based techniques to the multistatic solution of near-field reflectivity problems encountered in vehicular applications [12]–[14].",
+     "loc": "Sec. I",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (11 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "ziganshin_curved_arxiv26",
+   "citation": "A. Ziganshin et al., \"Ray-based simulation of scattering from discretized curved bodies,\" arXiv:2604.05991, 2026",
+   "venue": "arXiv 2604.05991",
+   "status": "PREPRINT",
+   "year": 2026,
+   "short": "Ziganshin, arXiv'26",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+   "order_index": 1
+  },
+  {
+   "group": "S",
+   "cells": {
+    "engine": {
+     "level": 2,
+     "label": "Predics: SBR (ray + field tracing), not Sionna",
+     "quote": "This PTD implementation is unique such a way that it is specially tailored to shooting and bouncing ray (SBR) technique via ray tracing and field tracing techniques.",
+     "loc": "Abstract",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "mesh": {
+     "level": 2,
+     "label": "CAD benchmark targets; edges/wedges auto-detected from the CAD file",
+     "quote": "Prior to PTD implementation, the edges and the wedges of the target’s CAD file should be identified.",
+     "loc": "Sec. 2",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "material": {
+     "level": 0,
+     "label": "PEC benchmark targets",
+     "quote": "For this purpose, a PEC plate of 15 cm x 15 cm is considered and the monostatic RCS simulation of horizontal polarization at 6 GHz was carried out at for the azimuth angles from -90° to 90° for a total of 361 discrete angle points.",
+     "loc": "Sec. 3",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "NONE"
+    },
+    "aspect": {
+     "level": 2,
+     "label": "monostatic RCS over 361 azimuth points",
+     "quote": "the monostatic RCS simulation of horizontal polarization at 6 GHz was carried out at for the azimuth angles from -90° to 90° for a total of 361 discrete angle points",
+     "loc": "Sec. 3",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "rotor": {
+     "level": -1,
+     "label": "canonical benchmark targets, no rotor",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "material cell (quoted): 15 cm PEC plate etc.",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "diffraction": {
+     "level": 2,
+     "label": "PTD bolted onto SBR - the entire contribution",
+     "quote": "Therefore, there is a need for improving the accuracy of SBR tools with the addition of diffracted field calculation from the wedges of the simulated targets.",
+     "loc": "Sec. 1",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "validation": {
+     "level": 2,
+     "label": "benchmark targets with analytical or measured RCS",
+     "quote": "The success and the validity of the proposed PTD implementation to the ray-launching RCS simulator have been tested with several benchmark targets that have either analytical or measured RCS values.",
+     "loc": "Abstract",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "geometry": {
+     "level": 1,
+     "label": "monostatic",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (14 pages, counted by this script): monostatic=6, bistatic=0, multistatic=0",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/sigma2019_kirik-ozdemir__ptd-into-sbr-predics.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (14 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/sigma2019_kirik-ozdemir__ptd-into-sbr-predics.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "kirik_ptd_sbr_sigma19",
+   "citation": "O. Kirik and O. Ozdemir, \"A compact PTD implementation for SBR-based RCS prediction (Predics),\" Sigma J. Eng. Nat. Sci., 2019",
+   "venue": "Sigma J. Eng. Nat. Sci. 2019",
+   "status": "PUBLISHED",
+   "year": 2019,
+   "short": "Kirik, Sigma'19",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/sigma2019_kirik-ozdemir__ptd-into-sbr-predics.pdf",
+   "order_index": 2
+  },
+  {
+   "group": "S",
+   "cells": {
+    "engine": {
+     "level": 2,
+     "label": "Mitsuba 3 (CUDA) + RF-Genesis pipeline, Fresnel, 4 bounces",
+     "quote": "The simulator builds on Mitsuba 3 [16] (cuda_ad_rgb variant, CUDA backend) and the RF-Genesis ray-tracing pipeline [6], with material physics replaced to follow ITU-R P.2040-4 [15] on a per-surface basis.",
+     "loc": "Sec. (simulator)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "mesh": {
+     "level": 2,
+     "label": "reconstructed real scene meshes (household objects)",
+     "quote": "Rays are cast once from the sensor position and Fresnel reflection is evaluated at every ray-surface intersection, recursing up to four bounces. The four-bounce limit is validated empirically",
+     "loc": "Sec. (simulator)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "material": {
+     "level": 2,
+     "label": "ITU-R P.2040-4 per-surface material physics",
+     "quote": "with material physics replaced to follow ITU-R P.2040-4 [15] on a per-surface basis",
+     "loc": "Sec. (simulator)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "aspect": {
+     "level": 2,
+     "label": "360-degree rotation sweep exposes shape via angular harmonics",
+     "quote": "Rotation sweeps the full 360◦aspect angle and exposes shape through the low-order angular harmonic ratio of the rotation enve- lope.",
+     "loc": "Sec. (dataset)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "rotor": {
+     "level": -1,
+     "label": "household objects, not drones",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "aspect cell (quoted): rotation sweep of cans/objects",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "validation": {
+     "level": 1,
+     "label": "paired real-vs-simulated measurement, but no absolute RCS anchor",
+     "quote": "The simulator sees the full mesh and can introduce a size-brightness trend that the real radar does not measure.",
+     "loc": "Sec. (findings)",
+     "computed": null,
+     "source": null,
+     "note": "⚠ reference_library.json 에 실린 같은 문장은 끝이 'that the real system cannot resolve' 로 적혀 있었다 — 원문과 다르다. 이번 재대조에서 잡아 고쳤다.",
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "geometry": {
+     "level": 1,
+     "label": "monostatic mmWave radar; angular response synthesized analytically",
+     "quote": "Each scatterer contributes its array-geometry phase offset per virtual channel, so the angular response is preserved analytically rather than by multistatic tracing.",
+     "loc": "Sec. (simulator)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "no diffraction treatment (term absent from the full text)",
+     "quote": null,
+     "loc": null,
+     "computed": "diffract*/UTD/PTD/GTD/wedge/creeping-wave = 0 occurrences in the full text layer (13 pages), scanned by this script",
+     "source": "/data/public/sionna_jeong/reference_library/2606.28396__radartwin.pdf",
+     "note": "⚠ '언급이 없다'와 '구현이 없다'는 다른 명제다. 여기서는 언급 부재를 적는다.",
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (13 pages)",
+     "source": "/data/public/sionna_jeong/reference_library/2606.28396__radartwin.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "radartwin_arxiv26",
+   "citation": "RadarTwin: paired real-simulated mmWave radar dataset, arXiv:2606.28396, 2026",
+   "venue": "arXiv 2606.28396",
+   "status": "PREPRINT",
+   "year": 2026,
+   "short": "RadarTwin, arXiv'26",
+   "pdf": "/data/public/sionna_jeong/reference_library/2606.28396__radartwin.pdf",
+   "order_index": 3
+  },
+  {
+   "group": "S",
+   "cells": {
+    "engine": {
+     "level": 2,
+     "label": "NVIDIA Sionna RT, interaction depth 3",
+     "quote": "The maximum interaction depth for Sionna is set to three, so each ray undergoes at most three interactions with scene objects.",
+     "loc": "Sec. (site-specific)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "mesh": {
+     "level": 2,
+     "label": "simplified 3-D UAV meshes imported into Sionna",
+     "quote": "The ToI and UAVs are modeled as simplified 3D mesh objects imported into Sionna.",
+     "loc": "Sec. (site-specific)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "material": {
+     "level": 2,
+     "label": "flexible per-object material assignment via Sionna XML",
+     "quote": "These meshes are obtained by simplifying publicly available 3D models in Blender and exporting them in Sionna’s XML format, which keeps the ray-tracing scene lightweight while enabling flexible material assignment.",
+     "loc": "Sec. (site-specific)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "aspect": {
+     "level": 1,
+     "label": "azimuth-only far-field specialization of the reflectivity",
+     "quote": "For simplicity, we will specialize to the far-field, single-polarization, azimuth- only case in which ϑ reduces to the scalar θ, representing the azimuth angle.",
+     "loc": "Sec. (model)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "no rotor model (the words appear, the model does not)",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (36 pages, counted by this script): /\\brotors?\\b|\\bpropellers?\\b|\\bblades?\\b|micro-?doppler/ = 2 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "rotor",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "diffraction named, no diffraction model (no UTD/PTD/GTD/wedge)",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text diffraction term counts (36 pages, counted by this script): diffract=2, UTD=0, PTD=0, GTD=0, wedge=0, creeping=0",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "diff",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "validation": {
+     "level": 0,
+     "label": "no amplitude validation at all - the word 'validat*' never appears",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (36 pages, counted by this script): /\\bvalidat\\w+/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+     "note": "이전 라운드에서 직접 셌고(reference_library intersection X02) 이번 계수도 같다.",
+     "derived_from": null,
+     "count": [
+      "validation",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "geometry": {
+     "level": 1,
+     "label": "monostatic developed; bistatic/multistatic as a remark",
+     "quote": "The same for- mulation extends to bistatic and multistatic operation when the illuminator and the sensing receiver are at different locations.",
+     "loc": "Remark 1",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "vmax": {
+     "level": 1,
+     "label": "ambiguity discussed (1 mentions) but no unambiguous-velocity figure quoted here",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' 1회 · 'aliasing' 0회 · 'Nyquist' 0회",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    }
+   },
+   "key": "clutteraware_procieee26",
+   "citation": "R. Liu, P. Li, M. Li, A. L. Swindlehurst, \"Clutter-aware integrated sensing and communication,\" Proc. IEEE 114(1), 2026",
+   "venue": "Proc. IEEE 2026",
+   "status": "PUBLISHED",
+   "year": 2026,
+   "short": "Clutter-Aware ISAC, ProcIEEE'26",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+   "order_index": 4
+  },
+  {
+   "group": "S",
+   "cells": {
+    "engine": {
+     "level": 2,
+     "label": "MoM full-wave solver (impedance matrix reused across rotation)",
+     "quote": "Therefore, using the relative angle between a rotating propeller and the incident field, mesh generation can be done just once along with the construction of the impedance and admittance matrices.",
+     "loc": "Sec. (method)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "mesh": {
+     "level": 1,
+     "label": "propeller CAD only - no airframe",
+     "quote": "It is well known that the impedance matrix in the MoM is constructed from the interaction among the mesh elements of a scatterer.",
+     "loc": "Sec. (method)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "material": {
+     "level": 0,
+     "label": "PEC assumed (carbon fiber approximated as PEC)",
+     "quote": "Because the dynamic RCSs of propellers with carbon fiber and a perfect electric conductor (PEC) are very similar in terms of RCS level and patterns [16, 17], the material of the propellers was simply assumed to be the PEC.",
+     "loc": "Sec. (model)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "NONE"
+    },
+    "aspect": {
+     "level": 2,
+     "label": "dynamic RCS over arbitrary azimuth angle",
+     "quote": "Dynamic RCS of Multiple Propellers in the Azimuth Plane Because a radar can be oriented in any direction, the RCS es- timation of multiple propellers for the arbitrary azimuth angle is needed.",
+     "loc": "Sec. (results)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "rotor": {
+     "level": 2,
+     "label": "rotation is the subject; rotation mapped onto incidence angle",
+     "quote": "Instead of rotating the propeller, if the incident azimuth angle, 𝜙inc, is rotated in the direction opposite to the rotation direction of the propeller, thus keeping the incident elevation angle, 𝜃inc, fixed",
+     "loc": "Sec. (method)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "validation": {
+     "level": 1,
+     "label": "full-wave MoM is itself the reference; no measurement comparison found",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (7 pages, counted by this script): /\\bvalidat\\w+/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/jees2021__dynamic-rcs-drone-mom.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "validation",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "geometry": {
+     "level": 1,
+     "label": "monostatic",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (7 pages, counted by this script): monostatic=2, bistatic=1, multistatic=0",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/jees2021__dynamic-rcs-drone-mom.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "no diffraction treatment (term absent from the full text)",
+     "quote": null,
+     "loc": null,
+     "computed": "diffract*/UTD/PTD/GTD/wedge/creeping-wave = 0 occurrences in the full text layer (7 pages), scanned by this script",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/jees2021__dynamic-rcs-drone-mom.pdf",
+     "note": "⚠ '언급이 없다'와 '구현이 없다'는 다른 명제다. 여기서는 언급 부재를 적는다.",
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (7 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/jees2021__dynamic-rcs-drone-mom.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "lee_dynamic_rcs_jees21",
+   "citation": "Dynamic RCS of drone propellers by MoM, J. Electromagn. Eng. Sci. 21(4), 2021",
+   "venue": "JEES 2021",
+   "status": "PUBLISHED",
+   "year": 2021,
+   "short": "Lee, JEES'21",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/jees2021__dynamic-rcs-drone-mom.pdf",
+   "order_index": 5
+  },
+  {
+   "group": "S",
+   "cells": {
+    "engine": {
+     "level": 2,
+     "label": "own GPU(+MPI) SBR with BVH, not Sionna",
+     "quote": "This work targets that dominant bottleneck by accelerating ray–triangle intersection with a bounding volume hierarchy (BVH), a hierarchical spatial data structure that reduces intersection cost by culling large portions of the mesh using bounding boxes [12].",
+     "loc": "Sec. (method)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "mesh": {
+     "level": 2,
+     "label": "PEC sphere + complex aircraft geometry (triangle mesh)",
+     "quote": "We validate against analytical Mie solutions for a per- fectly electrically conducting (PEC) sphere and demonstrate applicability to a complex aircraft geometry for monostatic radar cross-section prediction.",
+     "loc": "Abstract",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "material": {
+     "level": 0,
+     "label": "PEC only",
+     "quote": "Backscattering analysis for electrically large PEC objects (𝐷≫𝜆) necessitates asymptotic methods, as full- wave discretizations become computationally prohibitive.",
+     "loc": "Sec. 3",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "NONE"
+    },
+    "aspect": {
+     "level": 2,
+     "label": "RCS pattern vs angle (null structure discussed)",
+     "quote": "If Δ𝑠is too large relative to the wavelength, the discrete sum undersamples the phase variation across the surface and produces nonphysical oscillations and incorrect null structure in the RCS pattern.",
+     "loc": "Sec. (accuracy)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "rotor": {
+     "level": -1,
+     "label": "aircraft/sphere target, no rotor",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "mesh cell (quoted): PEC sphere + aircraft geometry",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "explicitly absent; named as a known limitation",
+     "quote": "A known modeling limitation of classical GO+PO SBR is the absence of diffraction mechanisms, which can be important near edges, tips, or shadow boundaries.",
+     "loc": "Sec. (limitations)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "NONE"
+    },
+    "validation": {
+     "level": 2,
+     "label": "analytical Mie solution for a PEC sphere",
+     "quote": "We validate accuracy against analytical Mie solutions for a perfectly conducting sphere and demonstrate applicability to a complex aircraft configuration for monostatic radar cross-section prediction.",
+     "loc": "Abstract",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "geometry": {
+     "level": 1,
+     "label": "monostatic only",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (14 pages, counted by this script): monostatic=12, bistatic=1, multistatic=0",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (14 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "sagitta_sbr_po_arxiv26",
+   "citation": "Sagitta: GPU/MPI shooting-and-bouncing-rays RCS solver, arXiv:2604.09243, 2026",
+   "venue": "arXiv 2604.09243",
+   "status": "PREPRINT",
+   "year": 2026,
+   "short": "Sagitta SBR, arXiv'26",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+   "order_index": 6
+  },
+  {
+   "group": "S",
+   "cells": {
+    "engine": {
+     "level": 2,
+     "label": "Sionna RT with conical (not spherical) ray sampling",
+     "quote": "In this study, the Sionna RT module is used to construct various simulation scenarios and obtain Channel State Information (CSI) data for analysis.",
+     "loc": "Sec. III",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "mesh": {
+     "level": 1,
+     "label": "one propeller (2 blades) in Blender - no airframe",
+     "quote": "The target consists of either Sionna’s built-in reflector model or a physical model of a propeller modeled using Blender.",
+     "loc": "Sec. III",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "material": {
+     "level": 1,
+     "label": "single material 'Wood', Sionna built-in EM parameters",
+     "quote": "The model’s coordinates are located at its geometric center, and electromagnetic parameters such as conductivity are based on Sionna’s built-in settings.",
+     "loc": "Sec. III",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "aspect": {
+     "level": 1,
+     "label": "azimuth-angle effect on the micro-Doppler signature, not on RCS level",
+     "quote": "We focus on analyzing the impact of azimuth angle and carrier frequency f on the Micro-Doppler signatures generated by the rotor.",
+     "loc": "Sec. IV",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "rotor": {
+     "level": 2,
+     "label": "rotor rotation is the subject of the paper",
+     "quote": "The feasibility of using Sionna RT to simulate micro-Doppler effects induced by UAV rotor motion is validated.",
+     "loc": "Sec. I (contributions)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "validation": {
+     "level": 0,
+     "label": "kinematics only - ridge position vs its own closed form; no amplitude",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (6 pages, counted by this script): /\\bdBsm\\b/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+     "note": "이전 정독(reference_library intersection X01)과 이번 계수가 일치한다.",
+     "derived_from": null,
+     "count": [
+      "dbsm",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "geometry": {
+     "level": 1,
+     "label": "monostatic (Tx and Rx at the same origin)",
+     "quote": null,
+     "loc": null,
+     "computed": "monostatic/bistatic 언급은 참고문헌 제목뿐; 기하는 본문 'transmitter and receiver remain stationary at origin Q'",
+     "source": "outputs/reference_library.json : intersection X01 quotes",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "no diffraction treatment (term absent from the full text)",
+     "quote": null,
+     "loc": null,
+     "computed": "diffract*/UTD/PTD/GTD/wedge/creeping-wave = 0 occurrences in the full text layer (6 pages), scanned by this script",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+     "note": "⚠ '언급이 없다'와 '구현이 없다'는 다른 명제다. 여기서는 언급 부재를 적는다.",
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (6 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "li_mdrt_icct25",
+   "citation": "C. Li et al., \"Micro-Doppler signature simulation of multirotor UAVs using ray tracing,\" Proc. IEEE ICCT, 2025, pp.359-364, doi:10.1109/ICCT67417.2025.11374154",
+   "venue": "IEEE ICCT 2025",
+   "status": "PUBLISHED",
+   "year": 2025,
+   "short": "Li (md-rt), ICCT'25",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+   "order_index": 7
+  },
+  {
+   "group": "S",
+   "cells": {
+    "engine": {
+     "level": 2,
+     "label": "QuickWave-3D FDTD (full-wave), outside any ray tracer",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json master_table.engine 및 참고문헌 [3] QuickWave-3D, QWED",
+     "source": "outputs/reference_library.json : rzewuski_nato21",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "mesh": {
+     "level": 2,
+     "label": "EM model of a real Parrot AR.Drone 2.0 airframe",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json target_representation: 실물 드론 + 그 드론의 EM 모델(폴리프로필렌 기체)",
+     "source": "outputs/reference_library.json : rzewuski_nato21",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "material": {
+     "level": 1,
+     "label": "polypropylene body stated, no per-part table found in the text layer",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (14 pages, counted by this script): /\\bpermittivity\\b|\\bconductivity\\b|\\bPEC\\b|perfectly conducting|\\bdielectric\\b/ = 0 occurrences",
+     "source": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "material",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "aspect": {
+     "level": 0,
+     "label": "no aspect-resolved RCS pattern in the text layer",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (14 pages, counted by this script): /\\baspect angle\\b|aspect-dependent|\\bRCS (?:pattern|versus|vs\\.?)/ = 0 occurrences",
+     "source": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "aspect",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "rotors named as the physics, not modelled",
+     "quote": "The algorithms implemented in such a system must distinguish between UAV’s and birds and the most promising methods will be based on analyse of micro-doppler signature of a bird wings and rotor propelled drone/UAV.",
+     "loc": "Sec. 1",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "NONE"
+    },
+    "validation": {
+     "level": 1,
+     "label": "RCS estimation/measurement deferred to a companion paper",
+     "quote": "The details of the RCS estimation and measurement can be found in [4].",
+     "loc": "Sec. (RCS)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "geometry": {
+     "level": 2,
+     "label": "bistatic passive radar (WiFi and DVB-T)",
+     "quote": "Crossambiguity function (WIFI signal – duty factor 18%) with drone present during flight.",
+     "loc": "Fig. caption",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "no diffraction treatment (term absent from the full text)",
+     "quote": null,
+     "loc": null,
+     "computed": "diffract*/UTD/PTD/GTD/wedge/creeping-wave = 0 occurrences in the full text layer (14 pages), scanned by this script",
+     "source": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+     "note": "⚠ '언급이 없다'와 '구현이 없다'는 다른 명제다. 여기서는 언급 부재를 적는다.",
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (14 pages)",
+     "source": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "rzewuski_nato21",
+   "citation": "S. Rzewuski et al., \"Drone detectability feasibility study using passive radars operating in WiFi and DVB-T band,\" NATO STO-MP-MSG-SET-183, 2021",
+   "venue": "NATO STO 2021",
+   "status": "PUBLISHED",
+   "year": 2021,
+   "short": "Rzewuski, NATO'21",
+   "pdf": "/data/public/jeong/papers/Wifi/21_Drone Detectability Feasibility Study using Passive Radars Operating in WIFI and DVB-T Band.pdf",
+   "order_index": 8
+  },
+  {
+   "group": "S",
+   "cells": {
+    "engine": {
+     "level": 1,
+     "label": "Sionna RT for propagation; UAV scattering from CADFEKO (injected)",
+     "quote": "In the RF channel and radar branch, the same UE5 assets are exported through Blender, converted into radio-scene meshes, assigned elec- tromagnetic material properties, and imported into Sionna RT for ray tracing and CSI generation.",
+     "loc": "Sec. (pipeline)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "mesh": {
+     "level": 2,
+     "label": "AirSim/UE5 UAV 3-D model exported as a radio-scene mesh",
+     "quote": "UE5 scene assets are exported through Blender, assigned customized electromagnetic material properties, and then imported into Sionna RT.",
+     "loc": "Sec. (pipeline)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "material": {
+     "level": 2,
+     "label": "customized EM material properties per scene object",
+     "quote": "It is generated through a high-fidelity digital-twin pipeline with detailed scene geometry, refined material assignment, and electromag- netic modeling of UAVs.",
+     "loc": "Abstract",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "aspect": {
+     "level": 1,
+     "label": "UAV reflection characteristics modelled externally; no aspect cut shown",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (20 pages, counted by this script): /\\baspect angle\\b|aspect-dependent|\\bRCS (?:pattern|versus|vs\\.?)/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "aspect",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "no rotor model",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (20 pages, counted by this script): /\\brotors?\\b|\\bpropellers?\\b|\\bblades?\\b|micro-?doppler/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "rotor",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "validation": {
+     "level": 0,
+     "label": "dataset-level validation only, no EM amplitude reference",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (20 pages, counted by this script): /\\bvalidat\\w+/ = 14 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "validation",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "geometry": {
+     "level": 0,
+     "label": "geometry configuration not stated",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (20 pages, counted by this script): monostatic=0, bistatic=0, multistatic=0",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "no diffraction treatment (term absent from the full text)",
+     "quote": null,
+     "loc": null,
+     "computed": "diffract*/UTD/PTD/GTD/wedge/creeping-wave = 0 occurrences in the full text layer (20 pages), scanned by this script",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+     "note": "⚠ '언급이 없다'와 '구현이 없다'는 다른 명제다. 여기서는 언급 부재를 적는다.",
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (20 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "lambda_dataset_arxiv26",
+   "citation": "LAMBDA: a low-altitude multimodal base dataset for UAV sensing and communication, arXiv:2607.03826, 2026",
+   "venue": "arXiv 2607.03826",
+   "status": "PREPRINT",
+   "year": 2026,
+   "short": "LAMBDA, arXiv'26",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+   "order_index": 9
+  },
+  {
+   "group": "S",
+   "cells": {
+    "engine": {
+     "level": 1,
+     "label": "Sionna RT re-implemented inside Unreal Engine (not Sionna itself)",
+     "quote": "This single-engine multimodal data twin platform reconstructs the ray-tracing computation of Sionna within Unreal Engine and is deeply integrated with autonomous driving tools.",
+     "loc": "Abstract",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "mesh": {
+     "level": 2,
+     "label": "realistic 3-D UAV models from Unreal assets",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json target_representation: 'Realistic 3D UAV models in Great-X' (Fig.1a)",
+     "source": "outputs/reference_library.json : greatx_arxiv25",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "material": {
+     "level": 1,
+     "label": "ITU parameter definitions for non-magnetic dielectrics; no per-part UAV table",
+     "quote": "For analysis, this paper assumes that both media are uniform and non-magnetic dielectrics and adopts the parameter definitions in ITU recommendations [14].",
+     "loc": "Sec. (propagation model)",
+     "computed": null,
+     "source": null,
+     "note": "⚠ 이 칸은 처음에 '재질 언급 없음(레벨 0)' 으로 적었다가 이번 실행의 용어 계수가 1 을 돌려주어 원문을 다시 열고 고쳤다 - 계수 검사가 잡아낸 오류다.",
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "aspect": {
+     "level": 0,
+     "label": "no aspect-resolved RCS",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (6 pages, counted by this script): /\\baspect angle\\b|aspect-dependent|\\bRCS (?:pattern|versus|vs\\.?)/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2507.08716__great-x_unreal-isac.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "aspect",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "no rotor model",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (6 pages, counted by this script): /\\brotors?\\b|\\bpropellers?\\b|\\bblades?\\b|micro-?doppler/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2507.08716__great-x_unreal-isac.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "rotor",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "validation": {
+     "level": 0,
+     "label": "cross-platform positioning error only, not amplitude",
+     "quote": "To assess the effectiveness of the simulation platform, we conducted a bidirectional cross-platform evaluation between Great-X and SionnaRT.",
+     "loc": "Sec. (evaluation)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "NONE"
+    },
+    "geometry": {
+     "level": 0,
+     "label": "geometry configuration not stated",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (6 pages, counted by this script): monostatic=0, bistatic=0, multistatic=0",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2507.08716__great-x_unreal-isac.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "no diffraction treatment (term absent from the full text)",
+     "quote": null,
+     "loc": null,
+     "computed": "diffract*/UTD/PTD/GTD/wedge/creeping-wave = 0 occurrences in the full text layer (6 pages), scanned by this script",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2507.08716__great-x_unreal-isac.pdf",
+     "note": "⚠ '언급이 없다'와 '구현이 없다'는 다른 명제다. 여기서는 언급 부재를 적는다.",
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (6 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2507.08716__great-x_unreal-isac.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "greatx_arxiv25",
+   "citation": "Great-X: \"Unreal is all you need\" multimodal ISAC data simulation, arXiv:2507.08716, 2025",
+   "venue": "arXiv 2507.08716",
+   "status": "PREPRINT",
+   "year": 2025,
+   "short": "Great-X, arXiv'25",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2507.08716__great-x_unreal-isac.pdf",
+   "order_index": 10
+  },
+  {
+   "group": "T",
+   "cells": {
+    "engine": {
+     "level": 1,
+     "label": "NVIDIA Sionna generates CIRs; detection is learned",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json quote: Sionna scene seed including material properties and shape information of the targets",
+     "source": "outputs/reference_library.json : wang_neural_isac_jsac25",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "mesh": {
+     "level": 1,
+     "label": "Blender scene seed exported as XML with shape information",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json target_representation: 메시(재질+형상 정보가 붙는다)",
+     "source": "outputs/reference_library.json : wang_neural_isac_jsac25",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "material": {
+     "level": 1,
+     "label": "material properties in the scene seed, no per-part drone table",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json quote 동일 문장",
+     "source": "outputs/reference_library.json : wang_neural_isac_jsac25",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "aspect": {
+     "level": 0,
+     "label": "no aspect-resolved RCS",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (18 pages, counted by this script): /\\baspect angle\\b|aspect-dependent|\\bRCS (?:pattern|versus|vs\\.?)/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/sionna_papers_by_task/isac_sensing_radar/2509.21118__wang-neural-isac-mimo-ofdm.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "aspect",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "no rotor",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (18 pages, counted by this script): /\\brotors?\\b|\\bpropellers?\\b|\\bblades?\\b|micro-?doppler/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/sionna_papers_by_task/isac_sensing_radar/2509.21118__wang-neural-isac-mimo-ofdm.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "rotor",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "diffraction": {
+     "level": 1,
+     "label": "diffraction claimed as included in CIR generation, no model given",
+     "quote": "The reﬂection, scattering, and diffraction effects are considered in CIR generation.",
+     "loc": "Sec. (simulation)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "validation": {
+     "level": 0,
+     "label": "joint sensing/communication performance, not amplitude",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json validated 필드",
+     "source": "outputs/reference_library.json : wang_neural_isac_jsac25",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "geometry": {
+     "level": 0,
+     "label": "geometry configuration not developed",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (18 pages, counted by this script): monostatic=0, bistatic=1, multistatic=0",
+     "source": "/data/public/sionna_jeong/sionna_papers_by_task/isac_sensing_radar/2509.21118__wang-neural-isac-mimo-ofdm.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (18 pages)",
+     "source": "/data/public/sionna_jeong/sionna_papers_by_task/isac_sensing_radar/2509.21118__wang-neural-isac-mimo-ofdm.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "wang_neural_isac_jsac25",
+   "citation": "Wang et al., neural ISAC MIMO-OFDM receiver, IEEE JSAC, to appear (arXiv:2509.21118)",
+   "venue": "IEEE JSAC",
+   "status": "ACCEPTED_TO_APPEAR",
+   "year": 2025,
+   "short": "Wang, JSAC (to appear)",
+   "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/isac_sensing_radar/2509.21118__wang-neural-isac-mimo-ofdm.pdf",
+   "order_index": 11
+  },
+  {
+   "group": "T",
+   "cells": {
+    "engine": {
+     "level": 1,
+     "label": "Sionna (RT + link/PHY) inside an AirSim co-simulation",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json quote: each UAV instantiated as a receiver in Sionna",
+     "source": "outputs/reference_library.json : caviar_arxiv24",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "mesh": {
+     "level": 1,
+     "label": "drone mesh present but decimated, and it is a terminal, not a target",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json quote: version used in Sionna does not use textures and underwent decimation in Blender",
+     "source": "outputs/reference_library.json : caviar_arxiv24",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "material": {
+     "level": 1,
+     "label": "ITU metal assigned to the drone (single material)",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json quote (Table V): 'Radio material (drone) ITU metal'",
+     "source": "outputs/reference_library.json : caviar_arxiv24",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "aspect": {
+     "level": 0,
+     "label": "no aspect-resolved RCS",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (14 pages, counted by this script): /\\baspect angle\\b|aspect-dependent|\\bRCS (?:pattern|versus|vs\\.?)/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "aspect",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "no rotor",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (14 pages, counted by this script): /\\brotors?\\b|\\bpropellers?\\b|\\bblades?\\b|micro-?doppler/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "rotor",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "validation": {
+     "level": 0,
+     "label": "beam-selection / mission performance, no scattering amplitude",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json validated: 빔 선택 정확도, RCS 0회",
+     "source": "outputs/reference_library.json : caviar_arxiv24",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "geometry": {
+     "level": 0,
+     "label": "geometry configuration not stated",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (14 pages, counted by this script): monostatic=0, bistatic=0, multistatic=0",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "diffraction named 1 time(s) but no diffraction-model term (UTD/PTD/GTD/wedge/creeping = 0)",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text diffraction term counts (14 pages, counted by this script): diffract=1, UTD=0, PTD=0, GTD=0, wedge=0, creeping=0",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (14 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "caviar_arxiv24",
+   "citation": "CAVIAR: co-simulation of 6G communications, 3D scenarios and AI, arXiv:2401.03310, 2024",
+   "venue": "arXiv 2401.03310",
+   "status": "PREPRINT",
+   "year": 2024,
+   "short": "CAVIAR, arXiv'24",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+   "order_index": 12
+  },
+  {
+   "group": "T",
+   "cells": {
+    "engine": {
+     "level": 1,
+     "label": "Sionna-based OFDM link-level simulation of a Blender scene",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json engine 필드; 표적은 사람 큐보이드",
+     "source": "outputs/reference_library.json : cellsense_arxiv26",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "mesh": {
+     "level": 0,
+     "label": "1.8 x 0.5 x 0.25 m cuboid standing in for a human (not a drone)",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json quote: 'we model a mobile object as a 1.8 m x 0.5 m x 0.25 m cuboid'",
+     "source": "outputs/reference_library.json : cellsense_arxiv26",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "material": {
+     "level": 0,
+     "label": "no material statement in the text layer",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (6 pages, counted by this script): /\\bpermittivity\\b|\\bconductivity\\b|\\bPEC\\b|perfectly conducting|\\bdielectric\\b/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2606.07900__cellsense.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "material",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "aspect": {
+     "level": 0,
+     "label": "no aspect-resolved RCS",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (6 pages, counted by this script): /\\baspect angle\\b|aspect-dependent|\\bRCS (?:pattern|versus|vs\\.?)/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2606.07900__cellsense.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "aspect",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "rotor": {
+     "level": -1,
+     "label": "human target, no rotor",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "mesh cell (computed): 1.8x0.5x0.25 m human cuboid",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "validation": {
+     "level": 0,
+     "label": "Pd/Pfa against a baseline method, not an amplitude reference",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json validated: Pd 0.74 / Pfa 0.10 vs baseline",
+     "source": "outputs/reference_library.json : cellsense_arxiv26",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "geometry": {
+     "level": 1,
+     "label": "bistatic BS-UE focal ellipse",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (6 pages, counted by this script): monostatic=0, bistatic=2, multistatic=1",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2606.07900__cellsense.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "no diffraction treatment (term absent from the full text)",
+     "quote": null,
+     "loc": null,
+     "computed": "diffract*/UTD/PTD/GTD/wedge/creeping-wave = 0 occurrences in the full text layer (6 pages), scanned by this script",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2606.07900__cellsense.pdf",
+     "note": "⚠ '언급이 없다'와 '구현이 없다'는 다른 명제다. 여기서는 언급 부재를 적는다.",
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (6 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2606.07900__cellsense.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "cellsense_arxiv26",
+   "citation": "CellSense: cellular ISAC sensing prototype, arXiv:2606.07900, 2026",
+   "venue": "arXiv 2606.07900",
+   "status": "PREPRINT",
+   "year": 2026,
+   "short": "CellSense, arXiv'26",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2606.07900__cellsense.pdf",
+   "order_index": 13
+  },
+  {
+   "group": "T",
+   "cells": {
+    "engine": {
+     "level": 1,
+     "label": "Sionna RT PathSolver (propagation paths, no scattering integral)",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json engine 필드 + 인용문(경로 유형 라벨을 Sionna 가 준다)",
+     "source": "outputs/reference_library.json : fwa_cube_arxiv26",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "mesh": {
+     "level": 0,
+     "label": "UAV replaced by a metallic cube",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json quote: 'The UAV is modeled as a metallic cube located at p = (x, y, 60)'",
+     "source": "outputs/reference_library.json : fwa_cube_arxiv26",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "material": {
+     "level": 0,
+     "label": "'metallic' only, no material table",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (13 pages, counted by this script): /\\bpermittivity\\b|\\bconductivity\\b|\\bPEC\\b|perfectly conducting|\\bdielectric\\b/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "material",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "aspect": {
+     "level": 0,
+     "label": "no aspect dependence (a cube stands in for the airframe)",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (13 pages, counted by this script): /\\baspect angle\\b|aspect-dependent|\\bRCS (?:pattern|versus|vs\\.?)/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "aspect",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "no rotor",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (13 pages, counted by this script): /\\brotors?\\b|\\bpropellers?\\b|\\bblades?\\b|micro-?doppler/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "rotor",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "validation": {
+     "level": 0,
+     "label": "labels come from Sionna's own path types, not from an EM reference",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json validated 필드: 경로 유형(확산 반사) 자체가 라벨",
+     "source": "outputs/reference_library.json : fwa_cube_arxiv26",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "geometry": {
+     "level": 1,
+     "label": "monostatic-ish cooperative FWA links",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (13 pages, counted by this script): monostatic=3, bistatic=0, multistatic=0",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "no diffraction treatment (term absent from the full text)",
+     "quote": null,
+     "loc": null,
+     "computed": "diffract*/UTD/PTD/GTD/wedge/creeping-wave = 0 occurrences in the full text layer (13 pages), scanned by this script",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+     "note": "⚠ '언급이 없다'와 '구현이 없다'는 다른 명제다. 여기서는 언급 부재를 적는다.",
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (13 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "fwa_cube_arxiv26",
+   "citation": "AI-empowered low-altitude economy: cooperative sensing with fixed wireless access, arXiv:2605.07623, 2026",
+   "venue": "arXiv 2605.07623",
+   "status": "PREPRINT",
+   "year": 2026,
+   "short": "FWA cube, arXiv'26",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+   "order_index": 14
+  },
+  {
+   "group": "T",
+   "cells": {
+    "engine": {
+     "level": 1,
+     "label": "Sionna RT used to generate a dual-band dataset",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json quote: dual-band UAV sensing dataset generated in a 1:1 digital twin using Sionna RT",
+     "source": "outputs/reference_library.json : dmsnet_arxiv26",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "mesh": {
+     "level": 0,
+     "label": "target representation never stated; signal model uses a complex coefficient",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json target_representation: 표적은 (r,v,theta) + 복소 산란계수 rho, RCS = |rho|^2",
+     "source": "outputs/reference_library.json : dmsnet_arxiv26",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "material": {
+     "level": 0,
+     "label": "no material statement",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (5 pages, counted by this script): /\\bpermittivity\\b|\\bconductivity\\b|\\bPEC\\b|perfectly conducting|\\bdielectric\\b/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2607.17655__dmsnet-crossband-multiband-isac.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "material",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "aspect": {
+     "level": 0,
+     "label": "no aspect dependence",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (5 pages, counted by this script): /\\baspect angle\\b|aspect-dependent|\\bRCS (?:pattern|versus|vs\\.?)/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2607.17655__dmsnet-crossband-multiband-isac.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "aspect",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "no rotor",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (5 pages, counted by this script): /\\brotors?\\b|\\bpropellers?\\b|\\bblades?\\b|micro-?doppler/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2607.17655__dmsnet-crossband-multiband-isac.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "rotor",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "validation": {
+     "level": 0,
+     "label": "detection/estimation benchmarks only",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json validated: EM 검증 없음, 개수추정 정확도 벤치마크",
+     "source": "outputs/reference_library.json : dmsnet_arxiv26",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "geometry": {
+     "level": 0,
+     "label": "geometry configuration not stated",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (5 pages, counted by this script): monostatic=0, bistatic=0, multistatic=0",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2607.17655__dmsnet-crossband-multiband-isac.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "no diffraction treatment (term absent from the full text)",
+     "quote": null,
+     "loc": null,
+     "computed": "diffract*/UTD/PTD/GTD/wedge/creeping-wave = 0 occurrences in the full text layer (5 pages), scanned by this script",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2607.17655__dmsnet-crossband-multiband-isac.pdf",
+     "note": "⚠ '언급이 없다'와 '구현이 없다'는 다른 명제다. 여기서는 언급 부재를 적는다.",
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (5 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/2607.17655__dmsnet-crossband-multiband-isac.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "dmsnet_arxiv26",
+   "citation": "DMSNet: cross-band learning for multi-target sensing in multi-band ISAC, arXiv:2607.17655, 2026",
+   "venue": "arXiv 2607.17655",
+   "status": "PREPRINT",
+   "year": 2026,
+   "short": "DMSNet, arXiv'26",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.17655__dmsnet-crossband-multiband-isac.pdf",
+   "order_index": 15
+  },
+  {
+   "group": "M",
+   "cells": {
+    "engine": {
+     "level": 1,
+     "label": "measurement + CST (ray tracing for the calibration cuboid, Integral Equation solver for drone parts)",
+     "quote": "To demonstrate the validity of the measurement setup, the RCS of an identical cuboid was calculated via electromagnetic simulations in the CST Microwave Studio ray tracing tool.",
+     "loc": "Sec. (measurement setup)",
+     "computed": null,
+     "source": null,
+     "note": "부품별 기여 추정은 같은 논문의 CST Integral Equation solver 절에서 나온다.",
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "mesh": {
+     "level": -1,
+     "label": "9 real airframes, no mesh of our own",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "material cell (quoted): measured drone groups",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "material": {
+     "level": 2,
+     "label": "CFRP vs plastic split is the paper's headline (7 dB)",
+     "quote": "Mean RCS values of Group II are roughly 7 dB higher than those of Group I. This is predictable, since drones from Group II are mostly made of carbon fiber reinforced polymer material (CFRP)",
+     "loc": "Sec. (results)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "aspect": {
+     "level": 2,
+     "label": "monostatic RCS vs azimuth AND elevation; spread sigma about 6 dB",
+     "quote": "Monostatic RCS of drones from Group II, with respect to the azimuth and elevation angles.",
+     "loc": "Fig. caption",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "static measurement - rotors present but not turning",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (13 pages, counted by this script): /\\brotors?\\b|\\bpropellers?\\b|\\bblades?\\b|micro-?doppler/ = 15 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/ieeeaccess2020_semkin__drone-rcs-mmwave-26-40ghz.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "rotor",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "diffraction": {
+     "level": -1,
+     "label": "measurement campaign - diffraction not a modelling choice here",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "engine cell (quoted): CST used only for the calibration cuboid / parts",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "validation": {
+     "level": 2,
+     "label": "measurement vs CST ray tracing of the same geometry",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json validated: 최대 10.2 dBsm 지점에서 일치, 정반사 밖에서는 점근 솔버 탓에 차이",
+     "source": "outputs/reference_library.json : semkin_drone_rcs_access20",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "geometry": {
+     "level": 1,
+     "label": "monostatic 26-40 GHz",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (13 pages, counted by this script): monostatic=16, bistatic=2, multistatic=0",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/ieeeaccess2020_semkin__drone-rcs-mmwave-26-40ghz.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (13 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/ieeeaccess2020_semkin__drone-rcs-mmwave-26-40ghz.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "semkin_drone_rcs_access20",
+   "citation": "V. Semkin et al., \"Analyzing radar cross section signatures of diverse drone models at mmWave frequencies,\" IEEE Access 8, 2020",
+   "venue": "IEEE Access 2020",
+   "status": "PUBLISHED",
+   "year": 2020,
+   "short": "Semkin, Access'20",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/ieeeaccess2020_semkin__drone-rcs-mmwave-26-40ghz.pdf",
+   "order_index": 16
+  },
+  {
+   "group": "M",
+   "cells": {
+    "engine": {
+     "level": 1,
+     "label": "analytic thin-wire scatterer model + BiRa measurement",
+     "quote": "We proposed the model of a single propeller in [35], that assumes each pro- peller blade behaving as a thin-wire scatterer with negligible thickness and uniform material properties.",
+     "loc": "Sec. (model)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "mesh": {
+     "level": 0,
+     "label": "no mesh - blades are thin wires, body is a simplified reflectivity",
+     "quote": "This is clearly a simplification, as real drone bodies exhibit intricate reflectivity patterns that depend on the shape, material and aspect angle.",
+     "loc": "Sec. (model)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "NONE"
+    },
+    "material": {
+     "level": 0,
+     "label": "uniform material properties assumed",
+     "quote": "This provides a computationally efficient approximation, though real-world blades exhibit material-dependent scattering effects that are not captured.",
+     "loc": "Sec. (model)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "NONE"
+    },
+    "aspect": {
+     "level": 1,
+     "label": "aspect dependence named as the thing the model does not capture",
+     "quote": "This is clearly a simplification, as real drone bodies exhibit intricate reflectivity patterns that depend on the shape, material and aspect angle.",
+     "loc": "Sec. (model)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "rotor": {
+     "level": 2,
+     "label": "multi-propeller bistatic micro-Doppler is the paper",
+     "quote": "To address this gap, this work introduces an OFDM- based bistatic micro-Doppler model for multi-propeller drones.",
+     "loc": "Abstract",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "diffraction explicitly not taken into account",
+     "quote": "Compared to these methods, the proposed model tends to be less accurate since it does not take into account some EM phenomena, such as diffraction and multipath.",
+     "loc": "Sec. (model)",
+     "computed": null,
+     "source": null,
+     "note": "⚠ arXiv 판(2504.05168)은 같은 문장을 'some electromagnetic phenomena' 로 적는다. 여기 인용은 게재판(JSTEAP) 문장이다 - 판본을 섞지 말 것.",
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "NONE"
+    },
+    "validation": {
+     "level": 1,
+     "label": "BiRa measurement gives ground truth for the signature, not for sigma",
+     "quote": "Measurements were performed to collect ground truth data for verification of the proposed model.",
+     "loc": "Sec. (measurement)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "geometry": {
+     "level": 2,
+     "label": "bistatic (74 mentions) in a distributed ISAC setting",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (15 pages, counted by this script): monostatic=12, bistatic=70, multistatic=5",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modeling_Micro-Doppler_Signature_of_Multi-Propeller_Drones_in_Distributed_ISAC.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (15 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modeling_Micro-Doppler_Signature_of_Multi-Propeller_Drones_in_Distributed_ISAC.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "costa_bistatic_md_jsteap25",
+   "citation": "H. C. A. Costa, S. J. Myint, C. Andrich, S. W. Giehl, M. Engelhardt, C. Schneider, and R. S. Thoma, \"Modeling micro-Doppler signature of multi-propeller drones in distributed ISAC,\" IEEE J. Sel. Topics Electromagn. Antennas Propag. (JSTEAP), vol. 1, pp. 208-, 2025, doi:10.1109/JSTEAP.2025.3604407 (published 1 Sep 2025, CC BY 4.0)",
+   "venue": "IEEE JSTEAP vol.1",
+   "status": "PUBLISHED",
+   "year": 2025,
+   "short": "Costa, JSTEAP'25",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modeling_Micro-Doppler_Signature_of_Multi-Propeller_Drones_in_Distributed_ISAC.pdf",
+   "order_index": 17
+  },
+  {
+   "group": "M",
+   "cells": {
+    "engine": {
+     "level": -1,
+     "label": "measurement (anechoic turntable), no ray engine",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "aspect cell (quoted): turntable S21 measurement",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "mesh": {
+     "level": -1,
+     "label": "real airframes, no mesh",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "aspect cell (quoted): the AAV is mounted on the turntable",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "material": {
+     "level": 1,
+     "label": "material response inherent in the measurement, not modelled",
+     "quote": "The lower bistatic values are likely due to directional scattering, reduced specular contributions, and aspect-dependent structural and material responses of the AAV, although isolating the contribution of each factor remains challenging.",
+     "loc": "Sec. (results)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "aspect": {
+     "level": 2,
+     "label": "azimuth phi swept for each bistatic angle theta_b",
+     "quote": "Target measurement: The AAV is mounted on the turntable, and its response SDUT 21 (θb, f, φ) is measured for each azimuth angle φ and bistatic angle θb.",
+     "loc": "Sec. II",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "rotor micro-Doppler explicitly excluded",
+     "quote": "This effect is not considered here because the proposed model focuses on RCS amplitude statistics, while the measurement system provides quasi- static AAV backscatter characterization and does not resolve rotor-induced micro-Doppler [6], [8].",
+     "loc": "Sec. (model)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "NONE"
+    },
+    "diffraction": {
+     "level": -1,
+     "label": "measurement - no EM model to carry diffraction",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "engine cell: measurement only",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "validation": {
+     "level": 2,
+     "label": "this IS the measurement anchor (calibrated, dBsm reported)",
+     "quote": "Furthermore, a measurement-validated Gaussian-cluster representation is proposed as a geometry-based stochastic model to reproduce angular AAV RCS fluctuations in ISAC channel simulations.",
+     "loc": "Abstract",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "geometry": {
+     "level": 2,
+     "label": "monostatic AND bistatic in one campaign",
+     "quote": "Since RCS is strongly aspect-dependent, ISAC channel models should account for both monostatic and bistatic configurations [1], [2].",
+     "loc": "Sec. I",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (5 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "das_multiband_wcl26",
+   "citation": "Das et al., \"Multiband monostatic and bistatic RCS characterization of AAVs for ISAC channel modeling,\" IEEE Wireless Commun. Lett. 15, pp.3731-3735, 2026",
+   "venue": "IEEE WCL 15:3731-3735",
+   "status": "PUBLISHED",
+   "year": 2026,
+   "short": "Das, WCL'26",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "order_index": 18
+  },
+  {
+   "group": "M",
+   "cells": {
+    "engine": {
+     "level": -1,
+     "label": "measurement + a fitted unified RCS model, no ray engine",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "validation cell (quoted): sphere calibration measurement",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "mesh": {
+     "level": -1,
+     "label": "real DJI M350, human and vehicle",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "validation cell (quoted): measured targets",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "material": {
+     "level": 1,
+     "label": "material discussed as a high-frequency-method issue, not per-part",
+     "quote": "High-frequency methods such as physical optics (PO) [20], geometric optics (GO) [21], and the physical theory of diffraction (PTD) [22] provide approximate solutions with reduced computational complexity but sacrifice accuracy and require corrections for specific scenarios.",
+     "loc": "Sec. II",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "aspect": {
+     "level": 2,
+     "label": "aspect-resolved RCS at 10/15/20/28/36 GHz",
+     "quote": null,
+     "loc": null,
+     "computed": "reference_library.json headline_numbers.frequencies_GHz + aspect 문장 8건",
+     "source": "outputs/reference_library.json : zhang_unified_rcs_jsac26",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "rotor arms described geometrically; no rotation model",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (15 pages, counted by this script): /\\brotors?\\b|\\bpropellers?\\b|\\bblades?\\b|micro-?doppler/ = 1 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "rotor",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "PTD cited as prior art only, not used in the model",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text diffraction term counts (15 pages, counted by this script): diffract=3, UTD=0, PTD=2, GTD=1, wedge=0, creeping=0",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "diff",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "validation": {
+     "level": 2,
+     "label": "0.5 m metal sphere: theory -7.07 dBsm vs measured -8.96 dBsm",
+     "quote": "RCS is -7.07 dBsm, while the measured average is -8.96 dBsm, with a discrepancy of less than 2 dBsm, confirming the high accuracy of the measurements.",
+     "loc": "Sec. (calibration)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "geometry": {
+     "level": 1,
+     "label": "monostatic dominant (bistatic mentioned)",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (15 pages, counted by this script): monostatic=8, bistatic=3, multistatic=0",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "unambiguous velocity not reported",
+     "quote": null,
+     "loc": null,
+     "computed": "'unambiguous' = 0 occurrences in the full text layer (15 pages)",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "zhang_unified_rcs_jsac26",
+   "citation": "Zhang et al., \"A unified RCS modeling of typical targets for 3GPP ISAC channel standardization,\" IEEE JSAC 44, 2026",
+   "venue": "IEEE JSAC 2026",
+   "status": "PUBLISHED",
+   "year": 2026,
+   "short": "Zhang (3GPP RCS), JSAC'26",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+   "order_index": 19
+  },
+  {
+   "group": "M",
+   "cells": {
+    "engine": {
+     "level": 1,
+     "label": "analytic echo model with time-varying RCS + ISAC testbed",
+     "quote": "This expression accounts for the time-varying radar cross section (RCS) induced by the UAV’s rotor rotation, which leads to periodic variations in rotor echo intensity.",
+     "loc": "Sec. II",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "mesh": {
+     "level": 0,
+     "label": "no geometry - rotor echo is analytic",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (17 pages, counted by this script): /\\bmesh\\b|\\bfacets?\\b|\\bCAD\\b|Blender|3-?D model/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "mesh",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "material": {
+     "level": 0,
+     "label": "no material model",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (17 pages, counted by this script): /\\bpermittivity\\b|\\bconductivity\\b|\\bPEC\\b|perfectly conducting|\\bdielectric\\b/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "material",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "aspect": {
+     "level": 0,
+     "label": "no aspect-resolved RCS",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (17 pages, counted by this script): /\\baspect angle\\b|aspect-dependent|\\bRCS (?:pattern|versus|vs\\.?)/ = 0 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "aspect",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "rotor": {
+     "level": 2,
+     "label": "rotor micro-Doppler extraction is the entire paper (rmD-NSP + SET)",
+     "quote": "A new mathematical model for UAV micro-Doppler in monostatic ISAC systems is proposed.",
+     "loc": "Sec. I (contributions)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "no diffraction (GTD appears once, in a reference title)",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text diffraction term counts (17 pages, counted by this script): diffract=0, UTD=0, PTD=0, GTD=1, wedge=0, creeping=0",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "diff",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "validation": {
+     "level": 1,
+     "label": "testbed evaluation of the extracted signature, not of amplitude",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (17 pages, counted by this script): /\\bvalidat\\w+/ = 8 occurrences",
+     "source": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "validation",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "geometry": {
+     "level": 1,
+     "label": "monostatic ISAC",
+     "quote": "A new mathematical model for UAV micro-Doppler in monostatic ISAC systems is proposed.",
+     "loc": "Sec. I",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "PARTIAL"
+    },
+    "vmax": {
+     "level": 0,
+     "label": "the word 'unambiguous' appears once, about features - not a velocity limit",
+     "quote": "In this sensing mode, the extracted micro-Doppler features are unambiguous.",
+     "loc": "Sec. (sensing mode)",
+     "computed": null,
+     "source": null,
+     "note": "⚠ 자동 계수만 보면 '무모호 언급 1회' 라 부분점수가 붙는다. 원문을 열어보면 속도 모호성이 아니라 특징의 모호성 얘기다 - 수동으로 0 으로 내렸다.",
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "NONE"
+    }
+   },
+   "key": "wei_rotor_md_twc25",
+   "citation": "J. Wei et al., \"UAV's rotor micro-Doppler feature extraction using ISAC signal,\" IEEE Trans. Wireless Commun. 24(12), 2025",
+   "venue": "IEEE TWC 24(12)",
+   "status": "PUBLISHED",
+   "year": 2025,
+   "short": "Wei, TWC'25",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+   "order_index": 20
+  },
+  {
+   "group": "V",
+   "cells": {
+    "engine": {
+     "level": -1,
+     "label": "measurement + signal processing (USRP X310), no ray engine",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "geometry cell: USRP X310 field measurement",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "mesh": {
+     "level": -1,
+     "label": "target was a car (Volvo XC90), no mesh",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "outputs/verify_chen.json A9 quote",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "material": {
+     "level": -1,
+     "label": "no EM model in the paper",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "outputs/verify_chen.json: abratkiewicz2023_DID_NOT",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "aspect": {
+     "level": 0,
+     "label": "no aspect-resolved RCS",
+     "quote": null,
+     "loc": null,
+     "computed": "산란 계산 자체가 없다",
+     "source": "outputs/verify_chen.json : what_they_did_and_did_not",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "no rotor; drones left as future work",
+     "quote": null,
+     "loc": null,
+     "computed": "결론에서 드론을 future work 로 남긴다(A10)",
+     "source": "outputs/verify_chen.json : quotes_abratkiewicz2023",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "diffraction": {
+     "level": -1,
+     "label": "no EM model",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "outputs/verify_chen.json: no electromagnetic simulation",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "validation": {
+     "level": -1,
+     "label": "no scattering amplitude to validate",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "outputs/verify_chen.json: no RCS computed",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "geometry": {
+     "level": 2,
+     "label": "passive bistatic 5G, GPS-synchronized",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (16 pages, counted by this script): monostatic=0, bistatic=29, multistatic=2",
+     "source": "/data/public/sionna_jeong/reference_library/g1g2/abratkiewicz2023_jstars.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "vmax": {
+     "level": 2,
+     "label": "eq.(16): Vb in [-lambda/(4T), +lambda/(4T)] - THE prior art for our law",
+     "quote": "The Doppler range is limited by T",
+     "loc": "Sec. IV, eq. (16), p.3476",
+     "computed": null,
+     "source": null,
+     "note": "⭐ 이 식이 우리 v_max = lambda*PRF/4 의 1차 출처다. 2023년 출판. ⚠ 같은 논문 eq.(18) 은 전폭 lambda/2T 를 Vmax 라 부른다 - 규약 이중성.",
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    }
+   },
+   "key": "abratkiewicz_ssb_jstars23",
+   "citation": "K. Abratkiewicz et al., \"SSB-based signal processing for passive radar using a 5G network,\" IEEE J. Sel. Topics Appl. Earth Observ. Remote Sens. 16, pp.3469-3484, 2023, doi:10.1109/JSTARS.2023.3262291",
+   "venue": "IEEE JSTARS 16:3469-3484",
+   "status": "PUBLISHED",
+   "year": 2023,
+   "short": "Abratkiewicz, JSTARS'23",
+   "pdf": "/data/public/sionna_jeong/reference_library/g1g2/abratkiewicz2023_jstars.pdf",
+   "order_index": 21
+  },
+  {
+   "group": "V",
+   "cells": {
+    "engine": {
+     "level": -1,
+     "label": "measurement (5G lab gNB + commercial gNB), no ray engine",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "outputs/verify_chen.json C6/C7 quotes",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "mesh": {
+     "level": -1,
+     "label": "stepper-motor rotating model, not a drone",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "outputs/verify_chen.json: chen2024_DID_NOT",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "material": {
+     "level": -1,
+     "label": "no EM model in the paper",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "outputs/verify_chen.json: chen2024_DID_NOT",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "aspect": {
+     "level": 0,
+     "label": "no aspect-resolved RCS",
+     "quote": null,
+     "loc": null,
+     "computed": "RCS/전자기 산란 계산이 없다",
+     "source": "outputs/verify_chen.json : what_they_did_and_did_not",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "rotor": {
+     "level": 1,
+     "label": "rotating target echo model; drone rotors are motivation only",
+     "quote": null,
+     "loc": null,
+     "computed": "표적은 스테퍼 모터 회전 모형; 드론 로터는 초록/서론의 동기",
+     "source": "outputs/verify_chen.json : what_they_did_and_did_not",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "diffraction": {
+     "level": -1,
+     "label": "no EM model",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "outputs/verify_chen.json: no RCS/EM scattering computation",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "validation": {
+     "level": -1,
+     "label": "no scattering amplitude to validate",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "outputs/verify_chen.json: chen2024_DID_NOT",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "geometry": {
+     "level": 2,
+     "label": "passive bistatic with CSI-RS, 4.5 m baseline",
+     "quote": null,
+     "loc": null,
+     "computed": "bistatic Doppler eq.(4) f_d=(2v/lambda)cos(beta/2)cos(delta)",
+     "source": "outputs/verify_chen.json : quotes_chen2024 C1",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "vmax": {
+     "level": 1,
+     "label": "numeric instantiation only - NO closed form is displayed",
+     "quote": null,
+     "loc": null,
+     "computed": "⭐ 우리 기록 정정: Chen 은 닫힌 식을 표시하지 않는다. 20 ms -> 50 Hz -> [-25,25] Hz -> 0.56 rps 라는 수치 대입뿐이다.",
+     "source": "outputs/verify_chen.json : what_they_did_and_did_not.chen2024_DID_NOT",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    }
+   },
+   "key": "chen_rotating_applsci24",
+   "citation": "P. Chen, L. Tian, Y. Bai, J. Wang, \"Rotating target detection using commercial 5G signal,\" Applied Sciences 14(10):4282, 2024, doi:10.3390/app14104282",
+   "venue": "Appl. Sci. 14(10):4282",
+   "status": "PUBLISHED",
+   "year": 2024,
+   "short": "Chen, Appl.Sci.'24",
+   "pdf": "/data/public/sionna_jeong/reference_library/g1g2/chen2024_applsci_14_4282.pdf",
+   "order_index": 22
+  },
+  {
+   "group": "V",
+   "cells": {
+    "engine": {
+     "level": -1,
+     "label": "ambiguity-function simulation, no ray engine",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "mesh cell: UAV is a simulated point target",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "mesh": {
+     "level": 0,
+     "label": "UAV is a simulated point target",
+     "quote": null,
+     "loc": null,
+     "computed": "산란 계산 없음(모호함수 해석)",
+     "source": "outputs/reference_library.json : geng_lte_multistatic_ietrsn20",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "material": {
+     "level": -1,
+     "label": "no EM model",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "mesh cell: point target",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "aspect": {
+     "level": 0,
+     "label": "no aspect dependence",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (10 pages, counted by this script): /\\baspect angle\\b|aspect-dependent|\\bRCS (?:pattern|versus|vs\\.?)/ = 0 occurrences",
+     "source": "/data/public/jeong/papers/LTE/20_LTE-based multistatic passive radar system for UAV detection.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "aspect",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "no rotor",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (10 pages, counted by this script): /\\brotors?\\b|\\bpropellers?\\b|\\bblades?\\b|micro-?doppler/ = 0 occurrences",
+     "source": "/data/public/jeong/papers/LTE/20_LTE-based multistatic passive radar system for UAV detection.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "rotor",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "diffraction": {
+     "level": -1,
+     "label": "no EM model",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "mesh cell: point target",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "validation": {
+     "level": -1,
+     "label": "no scattering amplitude to validate",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "mesh cell: point target",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "geometry": {
+     "level": 2,
+     "label": "LTE multistatic passive radar",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (10 pages, counted by this script): monostatic=8, bistatic=24, multistatic=12",
+     "source": "/data/public/jeong/papers/LTE/20_LTE-based multistatic passive radar system for UAV detection.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "vmax": {
+     "level": 2,
+     "label": "maximum unambiguous velocity reported explicitly (2647 m/s at 10 ms)",
+     "quote": "10 ms), the maximum unambiguous velocity (MUV) is 2647 m/s and the velocity resolution is 18 m/s (i.",
+     "loc": "Sec. (waveform analysis)",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    }
+   },
+   "key": "geng_lte_multistatic_ietrsn20",
+   "citation": "Geng et al., \"LTE-based multistatic passive radar system for UAV detection,\" IET Radar Sonar Navig. 14(7), 2020",
+   "venue": "IET RSN 14(7)",
+   "status": "PUBLISHED",
+   "year": 2020,
+   "short": "Geng, IET RSN'20",
+   "pdf": "/data/public/jeong/papers/LTE/20_LTE-based multistatic passive radar system for UAV detection.pdf",
+   "order_index": 23
+  },
+  {
+   "group": "V",
+   "cells": {
+    "engine": {
+     "level": -1,
+     "label": "point-target simulation + CRB, no ray engine",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "mesh cell: simulated point target",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "mesh": {
+     "level": 0,
+     "label": "simulated point target",
+     "quote": null,
+     "loc": null,
+     "computed": "표적은 점표적, 2D-FFT 추정기를 CRB 와 비교",
+     "source": "outputs/reference_library.json : jopanya_ssb_spawc25",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "material": {
+     "level": -1,
+     "label": "no EM model",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "mesh cell: point target",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "aspect": {
+     "level": 0,
+     "label": "no aspect dependence",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (5 pages, counted by this script): /\\baspect angle\\b|aspect-dependent|\\bRCS (?:pattern|versus|vs\\.?)/ = 0 occurrences",
+     "source": "/data/public/jeong/papers/5G/25_Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "aspect",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "no rotor",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term count (5 pages, counted by this script): /\\brotors?\\b|\\bpropellers?\\b|\\bblades?\\b|micro-?doppler/ = 0 occurrences",
+     "source": "/data/public/jeong/papers/5G/25_Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "rotor",
+      "zero"
+     ],
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "diffraction": {
+     "level": -1,
+     "label": "no EM model",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "mesh cell: point target",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "validation": {
+     "level": -1,
+     "label": "no scattering amplitude to validate",
+     "quote": null,
+     "loc": null,
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": "mesh cell: point target",
+     "count": null,
+     "grade": "DERIVED",
+     "mark": "NOT_APPLICABLE"
+    },
+    "geometry": {
+     "level": 2,
+     "label": "passive bistatic 5G SSB",
+     "quote": null,
+     "loc": null,
+     "computed": "full-text term counts (5 pages, counted by this script): monostatic=0, bistatic=9, multistatic=0",
+     "source": "/data/public/jeong/papers/5G/25_Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones.pdf",
+     "note": null,
+     "derived_from": null,
+     "count": [
+      "geo",
+      "report"
+     ],
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "vmax": {
+     "level": 2,
+     "label": "unambiguous velocity written as a closed form",
+     "quote": "The unambiguous velocity is the range of maximum and minimum relative radial velocities, which can be defined as |𝑣u| ≤𝜆𝑐𝑓Δ/2.",
+     "loc": "Sec. II",
+     "computed": null,
+     "source": null,
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "QUOTED",
+     "mark": "FULL"
+    }
+   },
+   "key": "jopanya_ssb_spawc25",
+   "citation": "Jopanya et al., \"Utilizing 5G NR SSB blocks for passive detection and localization of low-altitude drones,\" Proc. IEEE SPAWC, 2025",
+   "venue": "IEEE SPAWC 2025",
+   "status": "PUBLISHED",
+   "year": 2025,
+   "short": "Jopanya, SPAWC'25",
+   "pdf": "/data/public/jeong/papers/5G/25_Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones.pdf",
+   "order_index": 24
+  },
+  {
+   "group": "O",
+   "cells": {
+    "engine": {
+     "level": 2,
+     "label": "SBR on Sionna's Mitsuba ray engine + our PO surface integral",
+     "quote": null,
+     "loc": null,
+     "computed": "src/rcs_sbr.py - Mitsuba 광선이 맞은 지점에서 PO 표면적분. Sionna 기본 PathSolver 에는 산란적분 단계가 없다(benchmark/verify_rt_no_rcs.py).",
+     "source": "src/rcs_sbr.py · benchmark/verify_rt_no_rcs.py",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "mesh": {
+     "level": 2,
+     "label": "7 whole drone airframes, 13 per-part groups incl. internal scatterers",
+     "quote": null,
+     "loc": null,
+     "computed": "src/drones.py DRONES 에 기체 7종, drone_gamma_map 이 돌려주는 부위 그룹 13개(accent, arm, battery, body, camera, canopy, deck, fc, gear, gear_cf, motor, pcb, prop). 전부 이번 실행에서 소스를 import 해 센 값이다.",
+     "source": "src/drones.py : DRONES · build_frame",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "material": {
+     "level": 2,
+     "label": "per-part |Gamma| derived from materials.MATERIALS: accent 0.28, arm 0.90, battery 1.00, body 0.28, camera 0.85, canopy 0.28, deck 0.90, fc 0.80, gear 0.28, gear_cf 0.90, motor 1.00, pcb 0.80, prop 0.25",
+     "quote": null,
+     "loc": null,
+     "computed": "src/drones.py drone_gamma_map() 를 이번 실행에서 직접 호출해 얻은 그룹별 PO 진폭 반사계수다(하드코딩 아님). Sionna 와 같은 재질표에서 유도된다. 전부 PEC 로 두면 플라스틱 셸 기여가 과대계상된다.",
+     "source": "src/drones.py : drone_gamma_map · src/materials.py : MATERIALS",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "aspect": {
+     "level": 2,
+     "label": "sigma(phi, theta) per airframe per band; size exponent 1.24-1.32",
+     "quote": null,
+     "loc": null,
+     "computed": "outputs/sigma_anchor.json our_kernel_size_exponent.by_band",
+     "source": "outputs/sigma_anchor.json",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "rotor": {
+     "level": 0,
+     "label": "code exists but DEMOTED to future work - excluded from the reports",
+     "quote": null,
+     "loc": null,
+     "computed": "docs/PAPER_DRAFT.md N12: 마이크로도플러는 리포트에서 제외(코드 보존). 자체 검증 수단이 없고 Costa(JSTSP, 게재)가 해석 경로를 이미 갖는다.",
+     "source": "docs/PAPER_DRAFT.md : N12 · src/microdoppler.py",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "diffraction": {
+     "level": 0,
+     "label": "NONE - no PTD, no UTD, no creeping wave. THIS IS OUR GAP.",
+     "quote": null,
+     "loc": null,
+     "computed": "src/rcs_sbr.py + src/rcs_po.py 안에 회절 함수 정의 0개. 결과: 우리 밴드 기울기 +0.96~+1.40 dB/GHz 대 실측 0.210(Das) / 0.315(Yuan) dB/GHz - 3~8배 가파르다. PO 면적분만으로는 A^2/lambda^2(~f^2)로 스케일하고, 엣지 회절항이 저주파를 들어올려 기울기를 완만하게 만드는 물리가 빠져 있다.",
+     "source": "outputs/sigma_anchor.json · docs/AUDIT_FINDINGS_0722.md:348-351 · src/rcs_sbr.py · src/rcs_po.py",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "NONE"
+    },
+    "validation": {
+     "level": 1,
+     "label": "analytic PO sphere to 0.2006 dB (kr 1-100, 48 incidence dirs); NOT measurement-anchored in absolute level",
+     "quote": null,
+     "loc": null,
+     "computed": "outputs/sbr_kr_sweep.json summary_div16.max_abs_db_vs_po = 0.2005726179. ⚠ Mie 와 해석 PO 는 기준해이지 우리 출력이 아니다. 절대 레벨은 측정 앵커가 없다 - 앵커는 주파수 '기울기' 만 받고 레벨 이동은 0.00 dB.",
+     "source": "outputs/sigma_anchor.json · outputs/sbr_kr_sweep.json",
+     "note": null,
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "PARTIAL"
+    },
+    "geometry": {
+     "level": 2,
+     "label": "A active-monostatic / B passive quasi-monostatic / C passive bistatic, as one 3x3 grid with WiFi/LTE/5G",
+     "quote": null,
+     "loc": null,
+     "computed": "outputs/geometry_grid.json configurations_and_grid - 세 기하 x 세 조명원. 모노 v_max == 바이 beta=0 (차이 0 m/s) 이므로 우리 수치는 두 기하의 최악값.",
+     "source": "outputs/geometry_grid.json",
+     "note": "⚠ ⚠ 기하 축의 링크버짓 크기는 장면방위 φ 에 강하게 매달린다 — 헤드라인 φ=90° 에서 0.118 dB, φ 를 쓸면 23.2 dB. 지금까지의 결과가 전부 φ=90° 단일 방위였다는 것이 이 단계가 찾아낸 가장 큰 재계산 항목이다.",
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    },
+    "vmax": {
+     "level": 2,
+     "label": "cross-standard table under one stated convention, overlaid on published airframe maxima; CFAR-calibrated detection linked",
+     "quote": null,
+     "loc": null,
+     "computed": "benchmark/vmax_grid.py - LTE CRS 1 kHz @1.843 GHz, WiFi VHT-LTF 1 kHz @5.21 GHz, 5G SSB 50 Hz @3.5 GHz, WiFi beacon 9.77 Hz. CFAR 는 2717 s GPU 몬테카를로로 경험적 Pfa 에 교정했다.",
+     "source": "outputs/verify_cfar.json · outputs/geometry_grid.json",
+     "note": "⚠ 식 자체는 우리 것이 아니다 - Abratkiewicz, IEEE JSTARS 2023, eq.(16). 우리 몫은 표준 간 표와 기체 최고속도 겹침, 그리고 검출성능과의 연결.",
+     "derived_from": null,
+     "count": null,
+     "grade": "COMPUTED",
+     "mark": "FULL"
+    }
+   },
+   "key": "ours",
+   "citation": "This work (sionna2): SBR on Sionna's Mitsuba ray engine + our PO surface integral",
+   "venue": "unpublished",
+   "status": "IN PREPARATION",
+   "year": 2026,
+   "short": "OURS (sionna2)",
+   "pdf": null,
+   "order_index": 25
+  }
+ ],
+ "counts": {
+  "rows": 26,
+  "columns": 9,
+  "cells": 234,
+  "by_grade": {
+   "QUOTED": 80,
+   "COMPUTED": 123,
+   "DERIVED": 31,
+   "UNVERIFIED": 0
+  },
+  "by_column": {
+   "engine": {
+    "QUOTED": 13,
+    "COMPUTED": 7,
+    "DERIVED": 6,
+    "UNVERIFIED": 0
+   },
+   "mesh": {
+    "QUOTED": 10,
+    "COMPUTED": 11,
+    "DERIVED": 5,
+    "UNVERIFIED": 0
+   },
+   "material": {
+    "QUOTED": 13,
+    "COMPUTED": 9,
+    "DERIVED": 4,
+    "UNVERIFIED": 0
+   },
+   "aspect": {
+    "QUOTED": 11,
+    "COMPUTED": 15,
+    "DERIVED": 0,
+    "UNVERIFIED": 0
+   },
+   "rotor": {
+    "QUOTED": 6,
+    "COMPUTED": 14,
+    "DERIVED": 6,
+    "UNVERIFIED": 0
+   },
+   "diffraction": {
+    "QUOTED": 6,
+    "COMPUTED": 14,
+    "DERIVED": 6,
+    "UNVERIFIED": 0
+   },
+   "validation": {
+    "QUOTED": 10,
+    "COMPUTED": 12,
+    "DERIVED": 4,
+    "UNVERIFIED": 0
+   },
+   "geometry": {
+    "QUOTED": 7,
+    "COMPUTED": 19,
+    "DERIVED": 0,
+    "UNVERIFIED": 0
+   },
+   "vmax": {
+    "QUOTED": 4,
+    "COMPUTED": 22,
+    "DERIVED": 0,
+    "UNVERIFIED": 0
+   }
+  },
+  "unverified_fraction": 0.0,
+  "quote_selfcheck": {
+   "checked": 80,
+   "passed": 80,
+   "failed": [],
+   "count_claim_failures": []
+  }
+ },
+ "readiness": {
+  "presentable": true,
+  "rule_ko": "UNVERIFIED 비율 5% 이하 그리고 인용 재대조 실패 0건이면 발표 가능으로 본다. DERIVED 는 UNVERIFIED 로 세지 않되 수를 따로 보고한다.",
+  "verdict_ko": "발표 가능 — UNVERIFIED 0/234(0.0%), 인용 재대조 실패 0건."
+ },
+ "our_row_gaps_ko": [
+  "⭐ 회절 0 — PTD·UTD·크리핑파가 우리 커널에 없다. 이것이 우리 밴드 기울기가 실측의 3~8배로 가파른 이유의 가장 유력한 물리적 후보다(Kirik Sigma'19 이 PTD 가 저주파를 더 들어올린다는 그림을 준다). 매트릭스에서 우리 행이 이 열에서 비는 것은 사실이다.",
+  "진폭 검증이 해석 PO 구까지다 — 절대 레벨을 측정에 앵커링하지 않았다. 앵커는 주파수 기울기만 받고 레벨 이동은 0.00 dB.",
+  "로터 운동은 future work 로 강등했다(코드는 있으나 리포트에서 제외).",
+  "⚠ 지금까지의 검출 결과가 전부 장면방위 phi=90 도 단일 컷이다 (experiment_freespace_range.py:322,773 하드코딩)."
+ ],
+ "record_corrections_ko": [
+  "⭐ Costa 의 게재처는 IEEE JSTSP 가 아니라 **IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation (JSTEAP), vol.1, 2025** 다 — 게재판 1쪽의 'Digital Object Identifier 10.1109/JSTEAP.2025.3604407' 과 각 쪽 하단의 저널명을 이번에 직접 읽어 확인했다. outputs/reference_library.json 의 costa_bistatic_md_jsteap25.venue('IEEE J. Sel. Topics Signal Process.') 는 틀렸다. 사용자 추적표의 'IEEE JSTEAP 2025' 가 맞다.",
+  "⚠ Costa 는 arXiv 판과 게재판의 문장이 다르다 — 회절 문장이 arXiv 는 'some electromagnetic phenomena', 게재판은 'some EM phenomena' 다. 판본을 섞어 인용하면 축자 대조에서 걸린다(이번에 실제로 걸렸다).",
+  "⚠ reference_library 의 radartwin_arxiv26 인용문 끝이 'that the real system cannot resolve' 로 적혀 있는데 원문은 'that the real radar does not measure' 다. 재대조가 잡았다.",
+  "⚠ reference_library 의 semkin_drone_rcs_access20.pdf_paths[0] 은 Ezuma/Semkin 의 **다른 논문**(arXiv 2112.09774, Comparative Analysis of RCS Based UAV Classification)이다. IEEE Access 2020 본편은 pdf_paths[1] 이다.",
+  "⚠ Great-X(arXiv 2507.08716)의 재질 칸을 처음에 '언급 없음' 으로 적었다가, 이번 실행의 용어 계수가 1 을 돌려주어 원문을 열고 'ITU 권고의 파라미터 정의를 쓰는 비자성 유전체' 문장을 확인해 PARTIAL 로 고쳤다."
+ ],
+ "excluded_rows_ko": {
+  "kasdorf_sbr_coneangle": "SBR 정확도 개선 방법론이지만 표적이 없다(터널 전파). 방법 선례로만 인용.",
+  "maksymiuk_renyi_rs22": "실측 + 검출 적분 논문. 표적 산란 계산이 없다.",
+  "xu_ckm_clam_arxiv25": "점산란체 수준 시뮬레이션. 산란 계산 없음.",
+  "he_convex_clutter_arxiv25": "몬테카를로 무작위 표적. 산란 계산 없음.",
+  "azim_*/ezuma_*/yuan_uav_rcs_eucap25": "실측 RCS 앵커이지만 이번 매트릭스의 측정행 5편으로 대표시켰다. 필요하면 같은 스키마로 추가 가능."
+ },
+ "column_findings": {
+  "engine": {
+   "header_en": "Ray engine",
+   "n_full": 10,
+   "n_partial": 10,
+   "n_absent": 0,
+   "n_not_applicable": 6,
+   "rows_full": [
+    "Ziganshin, EuCAP'25",
+    "Ziganshin, arXiv'26",
+    "Kirik, Sigma'19",
+    "RadarTwin, arXiv'26",
+    "Clutter-Aware ISAC, ProcIEEE'26",
+    "Lee, JEES'21",
+    "Sagitta SBR, arXiv'26",
+    "Li (md-rt), ICCT'25",
+    "Rzewuski, NATO'21",
+    "OURS (sionna2)"
+   ],
+   "ours_level": "FULL"
+  },
+  "mesh": {
+   "header_en": "Target mesh",
+   "n_full": 10,
+   "n_partial": 4,
+   "n_absent": 7,
+   "n_not_applicable": 5,
+   "rows_full": [
+    "Ziganshin, EuCAP'25",
+    "Ziganshin, arXiv'26",
+    "Kirik, Sigma'19",
+    "RadarTwin, arXiv'26",
+    "Clutter-Aware ISAC, ProcIEEE'26",
+    "Sagitta SBR, arXiv'26",
+    "Rzewuski, NATO'21",
+    "LAMBDA, arXiv'26",
+    "Great-X, arXiv'25",
+    "OURS (sionna2)"
+   ],
+   "ours_level": "FULL"
+  },
+  "material": {
+   "header_en": "Material model",
+   "n_full": 5,
+   "n_partial": 7,
+   "n_absent": 10,
+   "n_not_applicable": 4,
+   "rows_full": [
+    "RadarTwin, arXiv'26",
+    "Clutter-Aware ISAC, ProcIEEE'26",
+    "LAMBDA, arXiv'26",
+    "Semkin, Access'20",
+    "OURS (sionna2)"
+   ],
+   "ours_level": "FULL"
+  },
+  "aspect": {
+   "header_en": "Aspect-resolved RCS",
+   "n_full": 10,
+   "n_partial": 4,
+   "n_absent": 12,
+   "n_not_applicable": 0,
+   "rows_full": [
+    "Ziganshin, EuCAP'25",
+    "Ziganshin, arXiv'26",
+    "Kirik, Sigma'19",
+    "RadarTwin, arXiv'26",
+    "Lee, JEES'21",
+    "Sagitta SBR, arXiv'26",
+    "Semkin, Access'20",
+    "Das, WCL'26",
+    "Zhang (3GPP RCS), JSAC'26",
+    "OURS (sionna2)"
+   ],
+   "ours_level": "FULL"
+  },
+  "rotor": {
+   "header_en": "Rotor motion",
+   "n_full": 4,
+   "n_partial": 1,
+   "n_absent": 15,
+   "n_not_applicable": 6,
+   "rows_full": [
+    "Lee, JEES'21",
+    "Li (md-rt), ICCT'25",
+    "Costa, JSTEAP'25",
+    "Wei, TWC'25"
+   ],
+   "ours_level": "NONE"
+  },
+  "diffraction": {
+   "header_en": "Diffraction",
+   "n_full": 3,
+   "n_partial": 1,
+   "n_absent": 16,
+   "n_not_applicable": 6,
+   "rows_full": [
+    "Ziganshin, EuCAP'25",
+    "Ziganshin, arXiv'26",
+    "Kirik, Sigma'19"
+   ],
+   "ours_level": "NONE"
+  },
+  "validation": {
+   "header_en": "Amplitude validation",
+   "n_full": 7,
+   "n_partial": 6,
+   "n_absent": 9,
+   "n_not_applicable": 4,
+   "rows_full": [
+    "Ziganshin, EuCAP'25",
+    "Ziganshin, arXiv'26",
+    "Kirik, Sigma'19",
+    "Sagitta SBR, arXiv'26",
+    "Semkin, Access'20",
+    "Das, WCL'26",
+    "Zhang (3GPP RCS), JSAC'26"
+   ],
+   "ours_level": "PARTIAL"
+  },
+  "geometry": {
+   "header_en": "Geometry mono/bi/multi",
+   "n_full": 10,
+   "n_partial": 11,
+   "n_absent": 5,
+   "n_not_applicable": 0,
+   "rows_full": [
+    "Ziganshin, EuCAP'25",
+    "Ziganshin, arXiv'26",
+    "Rzewuski, NATO'21",
+    "Costa, JSTEAP'25",
+    "Das, WCL'26",
+    "Abratkiewicz, JSTARS'23",
+    "Chen, Appl.Sci.'24",
+    "Geng, IET RSN'20",
+    "Jopanya, SPAWC'25",
+    "OURS (sionna2)"
+   ],
+   "ours_level": "FULL"
+  },
+  "vmax": {
+   "header_en": "Unambiguous velocity",
+   "n_full": 4,
+   "n_partial": 2,
+   "n_absent": 20,
+   "n_not_applicable": 0,
+   "rows_full": [
+    "Abratkiewicz, JSTARS'23",
+    "Geng, IET RSN'20",
+    "Jopanya, SPAWC'25",
+    "OURS (sionna2)"
+   ],
+   "ours_level": "FULL"
+  }
+ },
+ "headline_ko": [
+  "⭐ Diffraction 열: 26행 중 회절을 실제로 모형에 넣은 것은 3편(Ziganshin, EuCAP'25, Ziganshin, arXiv'26, Kirik, Sigma'19)뿐이다. 우리를 포함한 나머지는 이 열이 비어 있다 - 우리 약점인 동시에 이 분야 전체의 빈 칸이다.",
+  "아홉 열을 모두 채운 행은 0개다. 최다는 6/9 이고 거기 해당하는 행은 Ziganshin, EuCAP'25, Ziganshin, arXiv'26, OURS (sionna2) 다. 우리 행이 비는 열은 rotor, diffraction 이고 Amplitude validation 은 해석해까지라 부분이다.",
+  "무모호 속도(부분 이상)와 표적 메시를 동시에 가진 선행은 Clutter-Aware ISAC, ProcIEEE'26 뿐이고, 그 논문은 진폭 검증이 통째로 없다(validation=NONE). 무모호 속도가 FULL 인 선행 Abratkiewicz, JSTARS'23, Geng, IET RSN'20, Jopanya, SPAWC'25 은 전부 산란을 계산하지 않는다. ⚠ 식 자체는 우리 것이 아니다 - Abratkiewicz(IEEE JSTARS 16:3469-3484, 2023, PUBLISHED) eq.(16).",
+  "우리 행이 FULL 인 열 6개: engine, mesh, material, aspect, geometry, vmax."
+ ],
+ "figures": {
+  "full": {
+   "png": "outputs/figures/capability_matrix.png",
+   "pdf": "outputs/figures/capability_matrix.pdf"
+  },
+  "slide": {
+   "png": "outputs/figures/capability_matrix_slide.png",
+   "pdf": "outputs/figures/capability_matrix_slide.pdf"
+  }
+ },
+ "how_to_read_ko": [
+  "열은 '주장' 이 아니라 '능력' 이다. 채워진 칸은 그 논문이 그 능력을 실제로 행사했다는 뜻이고, 빈 칸은 그 논문이 나쁘다는 뜻이 아니라 그 축을 다루지 않았다는 뜻이다.",
+  "'?' 배지가 붙은 칸은 1차 출처로 확인하지 않은 칸이다. 발표에서 그 칸을 근거로 말하지 말 것.",
+  "⭐ Diffraction 열은 이 매트릭스에서 가장 정보량이 큰 열이다 — Ziganshin 두 편만 이 열에서 만점이고, 우리를 포함한 나머지는 대부분 비어 있다."
+ ]
+}

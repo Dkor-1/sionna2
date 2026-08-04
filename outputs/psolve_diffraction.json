@@ -1,0 +1,1136 @@
+{
+ "meta": {
+  "file": "/home/yunjung/workspace/sionna2/outputs/psolve_diffraction.json",
+  "generated": "2026-08-03",
+  "workflow": "P-SOLVE column P4 - DIFFRACTION AND EDGE TREATMENT",
+  "axis": "OUR PROBLEM P4 is the column. For each paper: did it meet the missing-edge-term problem on its own path, and what did it do.",
+  "evidence_rule": "Every claim about a paper carries (a) absolute PDF path, (b) PDF page index (1-based), (c) the quoted sentence from the text layer. Rows without all three are marked NOT_OPENED or MACHINE_COUNT.",
+  "tooling": "PyMuPDF (fitz) text layer, per page. Regex census over 218 unique PDFs (SHA1-deduplicated) across the three archives. Sionna 2.0.1 behaviour read from the INSTALLED SOURCE, not from documentation.",
+  "archives_scanned": [
+   "/data/public/sionna_jeong/sionna_papers_by_task",
+   "/data/public/sionna_jeong/papers_isac_sionna",
+   "/data/public/jeong/papers"
+  ],
+  "known_limits": [
+   "The census is a keyword census of the local archives. It is NOT an exhaustive census of the diffraction literature.",
+   "110 of the 140 Sionna-corpus papers were never read page by page in the earlier sweep; this workflow opened 20 of them and every unopened row says NOT_OPENED.",
+   "Regexes \\bUTD\\b \\bPTD\\b \\bGTD\\b are word-bounded. An earlier unbounded pattern matched 'utd' inside 'outdoor' and produced 6 phantom hits in Manukyan - that error was caught and the bounded census is the one reported.",
+   "One 10-page Korean-language file in the archive ('Sionna RT 드론 ISAC 연구.pdf', 43 Sionna mentions) is NOT a paper. It is a Korean-prose report inside our own curation folder. It is EXCLUDED from every count below. This is the exact failure mode the workflow was warned about - a keyword hit landing on our own notes."
+  ]
+ },
+ "our_p4_state_verified": {
+  "claim": "Our SBR+PO kernel contains no edge term of any kind.",
+  "evidence": {
+   "file": "/home/yunjung/workspace/sionna2/src/rcs_sbr.py",
+   "lines": 868,
+   "check": "grep -n 'edge|diffract|PTD|fringe|UTD' src/rcs_sbr.py -> 0 matches",
+   "kernel_quote_p_docstring": "모노스태틱 PO:   E(û) ∝ ∬_조명면 (n̂·û) · e^{j2k r·û} dS ... σ = (4π/λ²) · |E|²  (src/rcs_sbr.py module docstring)"
+  },
+  "band_slope": {
+   "source_file": "/home/yunjung/workspace/sionna2/outputs/report02_derived.json",
+   "key": "band_slope",
+   "fit_bands_ghz": [
+    1.843,
+    3.5,
+    5.21
+   ],
+   "span_ghz": 3.367,
+   "ours_db_per_ghz": {
+    "matrice4e": 0.9359,
+    "mavic4pro": 1.3111,
+    "mini5pro": 1.517,
+    "phantom4": 1.6994,
+    "s1000plus": 1.6038,
+    "typhoonh480": 1.1932,
+    "x500v2": 0.742
+   },
+   "ours_min_db_per_ghz": 0.742,
+   "ours_min_drone": "x500v2",
+   "ours_max_db_per_ghz": 1.699,
+   "ours_max_drone": "phantom4",
+   "lit_das_db_per_ghz": 0.21,
+   "lit_mono3d_db_per_ghz": 0.315,
+   "ratio_vs_das_min": 3.53,
+   "ratio_vs_das_max": 8.09,
+   "pure_f2_slope_over_this_band_db_per_ghz": 2.681,
+   "note": "Our slopes sit BETWEEN the measured anchors (0.07-0.315) and the pure-f^2 plate limit (2.681). Effective exponent p_eff = 0.55 (x500v2) to 1.27 (phantom4), not 2. So the PO integral is already not a single flat plate; the excess slope is partial, not total."
+  },
+  "measured_slope_census": {
+   "source_file": "/home/yunjung/workspace/sionna2/outputs/sigma_anchor.json",
+   "key": "slope_census",
+   "values_db_per_ghz": [
+    0.21,
+    0.21,
+    0.07,
+    0.17,
+    0.315,
+    0.231,
+    0.175
+   ]
+  }
+ },
+ "sionna_stock_D": {
+  "headline": "Sionna's D is first-order UTD WEDGE diffraction on SILHOUETTE edges, formulated as a shadow-boundary continuity fix for PROPAGATION. It is not a PTD/fringe correction to a scattering integral, and there is no scattering integral for it to correct.",
+  "primary_documents": [
+   {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "pages": 59,
+    "title": "Sionna RT: Technical Report",
+    "arxiv": "2504.21719v2",
+    "doc_version": "Version 1.2, dated Sept/Nov 2025"
+   },
+   {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__sionna-rt-founding.pdf",
+    "pages": 5,
+    "title": "Sionna RT: Differentiable Ray Tracing for Radio Propagation Modeling",
+    "arxiv": "2303.11103",
+    "venue": "IEEE Globecom Workshops 2023"
+   }
+  ],
+  "what_D_IS": [
+   {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "page": 9,
+    "quote": "Diffraction (D): The wave encounters a wedge-shaped object and is diffracted, as shown in Figure 5b. Diffraction occurs in all directions along the Keller cone [10], where the angle between the incident ray and the wedge edge, denoted by beta'_0, equals the angle between the diffracted ray and the wedge edge, denoted by beta_0. The wedge exterior angle is denoted by n*pi, such that n in [1,2]."
+   },
+   {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "page": 47,
+    "quote": "The uniform theory of diffraction (UTD) [36] alleviates this problem and provides solutions that are uniformly valid, even at shadow boundaries. ... While [36] deals with diffraction at edges of perfectly conducting surfaces, it was heuristically extended to finitely conducting wedges in [37]. This solution, which is also recomended by the ITU [38], is implemented in Sionna."
+   },
+   {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "page": 47,
+    "quote": "modern geometrical optics (GO) [34, 35] ... fail to account for the phenomenon of diffraction, e.g., bending of waves around corners. This leads to the undesired and physically incorrect effect that the field abruptly falls to zero at geometrical shadow boundaries (for incident and reflected fields)."
+   },
+   {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "page": 50,
+    "quote": "The diffraction coefficients D_1, ..., D_4 are computed as D_1 = -e^{-j pi/4} / (2n sqrt(2 pi k) sin(beta_0)) cot((pi + (phi - phi'))/(2n)) F(k L a^+(phi - phi'))   [and three companions]"
+   },
+   {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "page": 59,
+    "quote": "[38] ITU, 'Recommendation ITU-R P.526-15: Propagation by diffraction'"
+   },
+   {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "page": 57,
+    "quote": "[12] D. A. McNamara, C. W. I. Pistorius, and J. Malherbe, Introduction to the Uniform Geometrical Theory of Diffraction. Artech House, 1990."
+   }
+  ],
+  "what_D_IS_NOT": [
+   {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "page": 23,
+    "quote": "Since Sionna RT currently only supports first-order diffraction, each sample n contains at most a single diffracting edge",
+    "means": "no double/triple diffraction, no EE/EV/VE chains"
+   },
+   {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "page": 29,
+    "quote": "The path solver supports only first-order diffraction and does not handle paths that contain both diffraction and diffuse reflection.",
+    "means": "D and S cannot appear on the same path"
+   },
+   {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "page": 30,
+    "quote": "Regarding high-order diffraction, there are algorithms for determining the diffraction vertices [22]. However, calculating the electric field along these high-order diffraction paths remains an open problem, and as a result, high-order diffraction is not currently supported.",
+    "means": "NVIDIA states higher-order diffraction is an OPEN PROBLEM for them"
+   },
+   {
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "page": 17,
+    "quote": "Diffraction, on the other hand, is sampled using a fixed probability q(D) in [0,1]. This choice is motivated by the fact that diffraction typically carries much less energy compared to reflection and refraction",
+    "means": "D is treated as an energetically minor propagation term, which is the correct assumption for city propagation and the WRONG assumption for a faceted curved target"
+   },
+   {
+    "machine_count": true,
+    "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "fact": "In the 59-page technical report the strings 'PTD' 'physical theory of diffraction' 'vertex diffraction' 'creeping' 'fringe' 'equivalent current' each appear 0 times; 'GTD' appears 6 times and only as the historical predecessor of UTD; 'UTD' appears 3 times."
+   }
+  ],
+  "installed_source_verification": {
+   "sionna_version": "2.0.1",
+   "path": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt",
+   "path_solver_defaults": {
+    "file": "path_solvers/path_solver.py",
+    "lines": "154-156",
+    "quote": "diffraction: bool = False,\n                 edge_diffraction: bool = False,\n                 diffraction_lit_region: bool = True,",
+    "meaning": "D is OFF by default in Sionna 2.0.1. edge_diffraction (free-floating boundary edges) is also off by default. Diffraction in the LIT region is on when D is on."
+   },
+   "wedge_selection": {
+    "file": "utils/wedges.py",
+    "func": "sample_wedge_diffraction_point",
+    "quote": "ss = si.shape.primitive_silhouette_projection(viewpoint=viewpoint, si=si, flags=mi.DiscontinuityFlags.PerimeterType, sample=sample1, active=active)",
+    "and": "if not edge_diffraction:  valid &= wedges.primn != wedges.prim0",
+    "meaning": "Sionna does NOT diffract at every triangle edge. It samples the Mitsuba SILHOUETTE of the mesh as seen from an offset viewpoint, then takes the two adjacent facet normals as the 0-face and n-face. For a tessellated curved shell the silhouette IS a chain of tessellation seams whose wedge interior angle is near pi (n near 1) - which is exactly the regime Ziganshin shows classical UTD fails in.",
+    "wedge_angle_source": "wedge_interior_angle(n0, nn) = dr.safe_acos(-dr.dot(n0, nn))  - the wedge angle is read off the two facet normals, i.e. it is a property of the TESSELLATION, not of the real object."
+   }
+  },
+  "version_timeline": {
+   "quotes": [
+    {
+     "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+     "page": 5,
+     "quote": "we have expanded the capabilities of Sionna RT with additional features, including support for diffraction and diffuse reflection (version 0.15), mobility (version 0.17), and reflective intelligent surfaces (RISs) (version 0.18)."
+    },
+    {
+     "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+     "page": 56,
+     "quote": "Version History  1.2 September 2025 Support for first-order diffraction and path solver improvements | 1.1 June 2025 Support for mesh-based measurement surfaces | 1.0 April 2025 Major release: Complete re-architecture of Sionna RT"
+    },
+    {
+     "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__sionna-rt-founding.pdf",
+     "page": 3,
+     "quote": "Sionna RT supports specular and diffuse reflections (i.e., scattering) as well as first-order diffraction."
+    }
+   ],
+   "inferred_not_quoted": "D existed in 0.15-0.19, was DROPPED by the 1.0 re-architecture (April 2025), and returned only in Version 1.2 (September 2025). The Version History table lists diffraction as a 1.2 feature and lists nothing about diffraction for 1.0 or 1.1. Marked INFERRED - the report never says 'removed'.",
+   "why_it_matters": "Papers using Sionna RT 1.0.x had NO diffraction available at all. This explains the Manukyan row below without needing to accuse the authors of an omission."
+  }
+ },
+ "papers": [
+  {
+   "id": "D01",
+   "label": "ZIG-CONF",
+   "opened": "FULL (5/5 pages)",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+   "pages": 5,
+   "title": "Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC",
+   "authors": "A. Ziganshin, E. M. Vitucci, S. J. Myint, W. Kotterman, C. Schneider, V. Degli-Esposti, R. Thomae",
+   "venue": "EuCAP 2025, PUBLISHED",
+   "doi": "10.23919/EuCAP63536.2025.10999367",
+   "engine": "Sionna RT (version not stated in this document); Sionna mentioned 2x",
+   "class": "IMPLEMENTED_EXTENSION",
+   "was_P4_on_their_path": "YES, centrally. Their whole claim is that RT+UTD alone cannot produce a usable target signature from a faceted curved body.",
+   "formulation": "UTD wedge diffraction (Kouyoumjian-Pathak, their ref [12]) as provided by Sionna, PLUS vertex diffraction implemented by the authors per Albani, Capolino, Carluccio, Maci, IEEE TAP 57(12):3911-3925, 2009 (their ref [8]). Generalized Fresnel integral evaluated with the Capolino-Maci 1995 piecewise closed-form approximation (their ref [13]).",
+   "quotes": [
+    {
+     "page": 2,
+     "q": "An open-source parallelizable framework, Sionna RT [11], is utilized to conduct simulations. ... Wedge diffraction is implemented there using UTD [12]. This framework has been extended with Vertex Diffraction (VD) in accordance with [8]."
+    },
+    {
+     "page": 2,
+     "q": "UTD for a finite wedge introduces an error that progressively increases when Keller's cone reaches the end of the wedge. The vertex diffraction coefficient accurately compensates for the disappearance of Keller's cone and restores the continuity of the field."
+    },
+    {
+     "page": 2,
+     "q": "The structure of the equation to compute the vertex diffraction coefficient is similar to that of UTD. The VD coefficient for a single vertex is computed by adding up the individual components along each wedge the vertex is composed of. ... this allows data structures and code snippets used in wedge diffraction to be conveniently reused in the computations of the VD coefficient."
+    },
+    {
+     "page": 2,
+     "q": "Calculation of the vertex diffraction coefficient involves the computation of the generalized Fresnel integral (GFI). Fast computation of the GFI can be found, for example, in [13] where the whole range of values is split into several regions with its approximation function for each region."
+    }
+   ],
+   "what_it_bought": [
+    {
+     "page": 3,
+     "q": "It can be seen that the regular RT with UTD (red color) fails to predict the scattered field for most of the regions. Results are accurate around 20 - 65 degrees because of strong reflections and diffractions from wedges; outside of this range, either wedge diffraction points are close to the ends of the wedge or do not lie within the finite wedges, so the curve is not accurate and contains discontinuities. Applying the vertex diffraction model (green color) increases the overall accuracy and resolves most of the discontinuities"
+    },
+    {
+     "page": 4,
+     "q": "a significant offset up to 5 dB can be seen before the transition as well, beginning at 115 degrees"
+    },
+    {
+     "page": 5,
+     "q": "Although occasional offsets up to 10 dB can happen, results remain smooth and behave realistically."
+    }
+   ],
+   "what_it_did_NOT_buy": [
+    {
+     "page": 3,
+     "q": "The field is predicted inaccurately in the shadowed zone behind the sphere where other diffraction methods are required, such as creeping or slope diffraction, which have not yet been implemented in the RT tool."
+    }
+   ],
+   "runtime": [
+    {
+     "page": 4,
+     "q": "The EM simulation with MLFMM solver takes around one hour, while for the advanced RT tool with similar computational facilities, it is less than a second.",
+     "case": "under-discretized sphere, 80 facets, 720 RX"
+    },
+    {
+     "page": 4,
+     "q": "The EM simulation with MLFMM solver is still carried out in around one hour, while it is around 5 seconds for RT.",
+     "case": "over-discretized sphere, 4500 facets, 720 RX"
+    },
+    {
+     "page": 4,
+     "q": "In each case, the simulation time for the PO solver is around one day, whereas the RT simulation takes only about two seconds, highlighting a clear performance advantage for RT.",
+     "case": "simplified car, 16610 facets, 360 RX, 10 GHz - THIS is the sentence quoted in our P6 column"
+    }
+   ],
+   "validation": "FEKO MLFMM for the two discretized spheres (radius 12.8 lambda, 2 GHz); FEKO PO solver for the car (10 GHz). Analytical smooth-sphere solution also shown for the over-discretized case.",
+   "absolute_level": "Fig 6 is an RCS-in-dBsm plot for the far-field car case. The string 'dBsm' appears exactly ONCE in the whole 5-page document (machine count) - it is the Fig 6 y-axis. All other figures are |E_scat| in dBV/m.",
+   "materials": "All objects PEC. No dielectric, no material parameters. Directly relevant to our P2 - his route buys nothing there and in fact forfeits it.",
+   "drone_relevance": {
+    "page": 5,
+    "q": "The proposed solution can also be applied to compute scattering from other objects, such as drones, humans, and micro-Doppler effects, making it an important area for further investigation.",
+    "note": "Drones are FUTURE WORK in the published EuCAP version. Nobody in this corpus has done it."
+   },
+   "frequency_sweep": "NONE. Single frequencies only (2 GHz spheres, 10 GHz car). This document carries NO evidence about a band slope."
+  },
+  {
+   "id": "D02",
+   "label": "ZIG-JOUR",
+   "opened": "FULL (11/11 pages, incl. Appendix A)",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+   "pages": 11,
+   "title": "Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications",
+   "authors": "A. Ziganshin, E. M. Vitucci, W. Kotterman, R. Thomae, C. Schneider, V. Degli-Esposti (NOTE: S. J. Myint is NOT an author here)",
+   "venue": "arXiv:2604.05991v2, 2 Jul 2026 - PREPRINT submitted to IEEE OJAP, NOT accepted",
+   "status_quote": {
+    "page": 1,
+    "q": "This is a preprint version of a manuscript submitted to the IEEE Open Journal of Antennas and Propagation."
+   },
+   "engine": "Sionna-RT v0.19",
+   "class": "IMPLEMENTED_EXTENSION (superset of D01)",
+   "was_P4_on_their_path": "YES, it is the paper's subject.",
+   "formulation": {
+    "base": "Sionna-RT v0.19 stock UTD edge diffraction",
+    "added": [
+     "Vertex diffraction V (Albani et al. 2009, ref [22]) - D_V ~ sum_i B(Phi_i) T_GFI(b, a_i), replacing UTD's cotangent by B(Phi) and using the Generalized Fresnel Integral",
+     "Double-edge diffraction EE (Albani 2005, ref [23]) - two terms, tilde-D_EE with cot*cot and tilde-tilde-D_EE with csc^2*csc^2, hard and soft components respectively; RESTRICTED to coplanar/parallel adjacent edges because only that case has a closed-form diffraction-point solution",
+     "Cascaded edge-vertex EV and vertex-edge VE - HEURISTIC, no rigorous formulation exists in the literature; transition function T_EV built by interpolating between F(a)*T_GFI(c,b) outside the transition and F(a)*T_GFI(c, b/sqrt(1-w^2)) near it"
+    ],
+    "not_added": [
+     "creeping waves (explicitly rejected on cost)",
+     "vertex-vertex",
+     "third-order and higher",
+     "non-coplanar EE",
+     "the soft component of EV/VE"
+    ]
+   },
+   "quotes": [
+    {
+     "page": 3,
+     "q": "Sionna-RT (v0.19) [19] was used as a basic RT framework, which is open-source, parallelizable, differentiable, and provides efficient path tracing and electromagnetic field computation on triangulized geometries. The standard RT tool has been customized with several diffraction methods to achieve better accuracy for scattering computation from discretized curved objects. The modified implementation is publicly available at [29]."
+    },
+    {
+     "page": 2,
+     "q": "However, classical UTD assumes electrically large edges and may lose accuracy for the small facets that naturally arise in discretized curved meshes. Although advanced formulations such as vertex diffraction [22] ... and higher-order diffraction [23] are available in the literature, they are rarely integrated into practical propagation-oriented RT frameworks."
+    },
+    {
+     "page": 3,
+     "q": "Approximation of a double-curvature surface by a discretized mesh results in edges of electrically small length, for which regular edge UTD cannot yield an accurate field, as contribution from the endpoints is ignored - this is exactly what vertex diffraction is designed to fix."
+    },
+    {
+     "page": 5,
+     "q": "Standard RT corresponds to the default Sionna-RT implementation with specular reflections and single-bounce edge diffraction, without the proposed vertex and higher-order diffraction extensions."
+    },
+    {
+     "page": 3,
+     "q": "creeping-wave diffraction [25], [26] and higher-order diffraction. The former assumes propagation along a smooth surface and is not considered in this work due to its high computational complexity."
+    },
+    {
+     "page": 10,
+     "q": "These mixed diffraction interactions are usually neglected in standard RT tools, since no exact solution is available in the literature. However, in the present work we present a heuristic solution"
+    },
+    {
+     "page": 10,
+     "q": "A limitation of the proposed direct chaining method is that it can only describe the hard diffraction component, so at the moment the soft component cannot be represented."
+    }
+   ],
+   "accuracy_bought_numeric": [
+    {
+     "page": 6,
+     "table": "TABLE I - AVERAGE MAE IN THE SPHERE SHADOW REGION, discretizations E^2/(R*lambda) > 0.6, penalty 20 dB where no path exists",
+     "cells": {
+      "HH": {
+       "V": "7.3 dB",
+       "V+EE": "4.0 dB",
+       "V+EE+EV+VE": "3.0 dB"
+      },
+      "VV": {
+       "V": "8.3 dB",
+       "V+EE": "3.2 dB",
+       "V+EE+EV+VE": "2.7 dB"
+      }
+     }
+    },
+    {
+     "page": 5,
+     "q": "The inclusion of double-edge diffraction (green curve) improves the prediction from 2.3 to 0.8 dB of MAE",
+     "case": "cylinder shadow region, E^2/(R lambda)=1.39"
+    },
+    {
+     "page": 6,
+     "q": "The further inclusion of EV and VE interactions (green) provides additional refinement of the predicted field, and MAE improves from 3.5 to 2.2 dB",
+     "case": "sphere shadow, E^2/(R lambda)=1.34"
+    },
+    {
+     "page": 7,
+     "q": "Inclusion of EE (dashed orange) improves the shadow region results drastically. Inclusion of EV and VE combinations (green) helps further improve the result, MAE from 2.6 to 1.6 dB",
+     "case": "low-poly car (220 facets) shadow vs MLFMM, 2 GHz VV"
+    }
+   ],
+   "runtime_cost_numeric": {
+    "page": 8,
+    "table": "TABLE II - EXECUTION TIME (SECONDS), dual-socket AMD EPYC 7343, 32 physical cores, CPU only, mean of 5 runs",
+    "rows": {
+     "Sphere (156 facets)": {
+      "RT": 0.3,
+      "+V": 1.1,
+      "+EE": 1.8,
+      "+EV/VE": 4.6
+     },
+     "Sphere (346 facets)": {
+      "RT": 0.4,
+      "+V": 1.8,
+      "+EE": 3.1,
+      "+EV/VE": 6.8
+     },
+     "Vehicle (220 facets)": {
+      "RT": 0.4,
+      "+V": 0.9,
+      "+EE": 2.4,
+      "+EV/VE": 5.0
+     },
+     "Vehicle (1496 facets)": {
+      "RT": 0.7,
+      "+V": 3.6,
+      "+EE": 10.2,
+      "+EV/VE": 19.0
+     }
+    },
+    "multiplier": "Full extension costs 12x to 27x the bare RT runtime. Absolute cost is still seconds, and still orders of magnitude below MLFMM ('each of the MLFMM simulations in this study took several hours', p.8).",
+    "scaling_quote": {
+     "page": 4,
+     "q": "single-edge diffraction scales as O(Ne), while second-order diffraction scales as O(Ne^2), rapidly becoming prohibitive"
+    }
+   },
+   "discretization_criterion": {
+    "parameter": "E^2/(R*lambda), E = characteristic facet edge length, R = local radius of curvature",
+    "derivation_quote": {
+     "page": 4,
+     "q": "Assuming E << R, the deviation can be estimated from the geometric distance between a small arc and its corresponding chord of length E. It can be easily shown that the deviation scales as s ~ E^2/R. This leads to the parameter E^2/(R lambda)"
+    },
+    "utd_floor_quote": {
+     "page": 4,
+     "q": "In addition to the curvature-related metric, the facet size should be of several wavelengths in order to satisfy the UTD assumptions, typically E > 1.5 lambda."
+    },
+    "operating_range_quote": {
+     "page": 7,
+     "q": "when a single mesh simultaneously has to be used for both backscattering and shadow region prediction, the interval E^2/(R lambda) approx 0.6-0.9 provides a practical compromise"
+    },
+    "our_relevance": "This is a directly transferable mesh-quality metric that we currently do not compute for our drone meshes. It is cheap to evaluate and it is the one deliverable of the Ziganshin line that costs us nothing to adopt."
+   },
+   "validation": "FEKO MLFMM (canonical sphere/cylinder radius 7 lambda, low-poly car), analytical smooth-body solutions (Balanis), AND real bistatic measurement: BIRA spherical bistatic reflectivity setup, Mitsubishi i-MiEV, 2-18 GHz, comparison at 3 GHz, 1 deg resolution, 3.0 m range.",
+   "validation_caveat": {
+    "page": 7,
+    "q": "The comparison should be interpreted as a qualitative validation rather than an attempt to exactly reproduce the measurements. The present simulations assume PEC surfaces and neglect dielectric vehicle components."
+   },
+   "absolute_level": "'dBsm' appears ZERO times in the 11-page journal preprint (machine count). All plots are |E_sc| or |E_tot| in dB. The conference version is the one with the dBsm figure. DO NOT MERGE.",
+   "frequency_sweep": "NONE. 2 GHz and 3 GHz single points. This document carries NO evidence about a band slope either.",
+   "code": {
+    "reference_quote": {
+     "page": 11,
+     "q": "[29] A. Ziganshin, 'Sionna-RT Reflectivity,' https://github.com/AinurZiga/sionna-RT-reflectivity, 2026, accessed: 2026-03-31."
+    },
+    "live_check_2026_08_03": {
+     "exists": true,
+     "description": "Ray-based model to compute scattering (reflectivity) from objects",
+     "stars": 0,
+     "commits": "1 commit on main",
+     "license": "Apache-2.0 (SPDX header)",
+     "layout": "Full fork of the Sionna repository: doc/, examples/, sionna/, test/unit/, pyproject.toml, DOCKERFILE",
+     "declared_version": "sionna/__init__.py contains  __version__ = '0.17.0'",
+     "version_discrepancy": "The preprint text says Sionna-RT v0.19 (p.3). The repository's own __init__.py says 0.17.0. RECORDED AS A DISCREPANCY, not resolved.",
+     "framework": "TensorFlow-era Sionna. Install snippet: mamba create -n ENV_NAME 'tensorflow-gpu>=2.16' ... pip install numpy-stl trimesh ... pip install -e .",
+     "added_modules": [
+      "sionna/rt/vertex_diffraction.py (~1400 lines, class VertexDiffraction with tracing(), compute_fields(), _get_coefs_D2(); imports tensorflow, mitsuba, drjit, trimesh; calls t_gfi_full_approximated_capolino from diffraction_funcs)",
+      "sionna/rt/diffraction_funcs.py",
+      "sionna/rt/double_diffraction.py",
+      "sionna/rt/analytical_equations.py",
+      "sionna/rt/objects_geometry.py"
+     ],
+     "file_layout_evidence": "sionna/rt/ contains solver_base.py, solver_paths.py, coverage_map.py - the pre-1.0 layout. Sionna 2.0.1 has path_solvers/ and radio_map_solvers/ instead. The fork is NOT portable by patch."
+    }
+   }
+  },
+  {
+   "id": "D03",
+   "label": "KIRIK-OZDEMIR-2019",
+   "opened": "FULL (14/14 pages)",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/sigma2019_kirik-ozdemir__ptd-into-sbr-predics.pdf",
+   "pages": 14,
+   "title": "An Accurate and Effective Implementation of Physical Theory of Diffraction to the Shooting and Bouncing Ray Method via Predics Tool",
+   "authors": "Oe. Kirik, C. Oezdemir",
+   "venue": "Sigma Journal of Engineering and Natural Sciences 37(4):1153-1166, 2019",
+   "engine": "Predics, an in-house C#/.NET SBR+PO RCS code. Sionna mentioned 0 times.",
+   "class": "METHOD_SOURCE_NON_SIONNA - THE MOST DIRECTLY ADOPTABLE RECIPE IN THE WHOLE CORPUS",
+   "why_this_row_matters": "Its architecture is IDENTICAL to ours: ray-trace to find lit facets, PO surface integral for sigma. It then bolts PTD on. That is exactly the operation P4 asks for, written out as an algorithm.",
+   "was_P4_on_their_path": "YES - it is the entire paper.",
+   "problem_statement_quote": {
+    "page": 2,
+    "q": "It is known by the radar community that while SBR is really effective and very successful in estimating surface, single and/or multi-bounce scattering mechanisms, it has a drawback in predicting scattering from structures that have a significant amount of diffracted field energy. Therefore, there is a need for improving the accuracy of SBR tools with the addition of diffracted field calculation from the wedges of the simulated targets."
+   },
+   "algorithm_verbatim": [
+    {
+     "step": "i - edge identification",
+     "page": 2,
+     "q": "Prior to PTD implementation, the edges and the wedges of the target's CAD file should be identified. For this work, several tasks as applied in the following order: First, the neighboring triangular patches with at least two common vertices are identified. Then, the outward normal vectors of each neighboring patches are calculated. If these vectors are diverging from each other, this means that the edge is outward directed and should be involved in the PTD calculation. Finally, a maximum edge angle value has to be chosen for edges to be included in PTD calculation. This value is usually selected as 30 degrees in practice in order not to have almost zero PTD contribution energy."
+    },
+    {
+     "step": "ii - ray-to-edge distance",
+     "page": 2,
+     "q": "d_hit = |(P0 - P1) x (P0 - P2)| / |P2 - P1|"
+    },
+    {
+     "step": "iii - acceptance radius and equivalent edge length",
+     "page": 3,
+     "q": "the diffraction contribution of this particular ray is included in PTD result if d_hit is less than the maximum permitted distance of d_max = lambda/10 ... If d_hit <= d_max, an equivalent edge-length dl is defined ... dl = (1/rho_rd) * d_max * (cos theta_i1 + cos theta_i2) ... where rho_rd is the ray density of the ray-bunch in SBR implementation that is usually taken as one-tenth of the operational wavelength"
+    },
+    {
+     "step": "iv - diffracted field",
+     "page": 4,
+     "q": "E_d = e^{-jk|r-r'|} / (2 pi |r-r'|) * dl * { (D_m - D'_perp)(E_i . a_i_par) a_s_perp - (D_e - D'_par) (sin beta_s / sin beta_i)(E_i . a_i_par) a_s_par - (D_em sin beta' - D_x')(sin beta_s / sin beta_i)(E_i . a_i_perp) a_s_par }"
+    },
+    {
+     "step": "v - coefficients",
+     "page": 5,
+     "q": "D'_perp = -sin theta_s / (cos alpha_1 + cos theta_i);  D'_par = -sin theta_i / (cos alpha_1 + cos theta_i);  D'_x = -K cos theta_s / (cos alpha_1 + cos theta_i);  K = sin beta_s cot beta_i - sin beta_i cot beta_s"
+    }
+   ],
+   "the_key_structural_fact": "The primed coefficients D'_perp, D'_par, D'_x are the PO-BASED coefficients and they are SUBTRACTED. The PTD term is the FRINGE (difference) term, not an additive edge term. It removes the edge contribution PO already got wrong and puts the exact wedge answer in its place. It can therefore be of either sign.",
+   "validation": [
+    {
+     "page": 5,
+     "q": "a PEC plate of 15 cm x 15 cm ... monostatic RCS simulation of horizontal polarization at 6 GHz ... Almost perfect match between the measured RCS and the simulated RCS with PO+PTD solver"
+    },
+    {
+     "page": 7,
+     "q": "Very good agreement between the measured RCS results by [18] and the calculated RCS results is obvious from the figure",
+     "case": "dihedral corner reflector, Griesser measurement, VV"
+    },
+    {
+     "page": 9,
+     "q": "the backscattered RCS simulations at VV polarization have been carried out by using FEKO (UTD solver), CST (Asymptotic solver) and Predics (PO+SBR+PTD solver) for the frequencies between 1 GHz and 9 GHz",
+     "case": "trihedral corner reflector - a FREQUENCY SWEEP, but all three curves already include PTD, so it is not a with/without test"
+    },
+    {
+     "page": 11,
+     "case": "cone-sphere vs FEKO PO+PTD and CST"
+    }
+   ],
+   "the_only_with_without_frequency_test_in_the_corpus": {
+    "page": 11,
+    "q": "monostatic RCS simulation of the missile target has been performed from the nose-on case ... and the frequency is varied from 7.5 GHz to 12.5 GHz for a total of distinct 100 frequency points. In Fig. 8(b), RCS variation versus frequency is plotted both for (PO+SBR) solver and (PO+SBR+PTD solver) ... The amount of increase in the total RCS value of the target can be easily seen for the whole frequency band after adding the diffraction components thanks to the PTD solver.",
+    "what_we_can_and_cannot_take": "CAN take: adding PTD raised the RCS across a 5 GHz band for an edge-rich target. CANNOT take: any number. The paper gives no dB figure and no slope. The figure is not machine-readable from the text layer. This is the closest thing in 218 PDFs to evidence on our band-slope question and it is qualitative."
+   },
+   "diagnostic_technique_we_should_steal": {
+    "page": 12,
+    "q": "the range profile for (PO+SBR) solver is plotted as the blue dashed line and the range profile for (PO+SBR+PTD) solver is plotted red solid line. This figure exactly shows off the regions where on the target are responsible for the diffracted energies ... the PTD solver only increased the total range profile value only for the regions where there are edges as expected. ... The exact match between the locations of edge corners and the locations of RCS peaks demonstrates that the diffracted field phase calculation is perfectly successful.",
+    "our_use": "IFFT of sigma(f) into a range profile, with and without the new term, is a cheap and falsifiable self-test that the edge term lands on the right part of the airframe. We already sweep frequency, so we already have E_s(f)."
+   },
+   "honest_caveat": "This is a Turkish national journal (Sigma J Eng & Nat Sci), not IEEE. The formulation itself is standard Ufimtsev PTD; the contribution is the SBR bolt-on procedure. Grade the METHOD, not the venue."
+  },
+  {
+   "id": "D04",
+   "label": "OZTURK-2002-THESIS",
+   "opened": "PARTIAL (diffraction-bearing pages of 72; abstract, Ch.1, Ch.3 read)",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/bilkent_thesis__ptd-implementation-rcs.pdf",
+   "pages": 72,
+   "title": "Implementation of Physical Theory of Diffraction for Radar Cross Section Calculations",
+   "authors": "Alper Kursat Ozturk (supervisor Ayhan Altintas)",
+   "venue": "MSc thesis, Bilkent University, July 2002",
+   "engine": "standalone code. Sionna mentioned 0 times.",
+   "class": "METHOD_SOURCE_NON_SIONNA - the full derivation behind D03",
+   "was_P4_on_their_path": "YES - it is the entire thesis.",
+   "quotes": [
+    {
+     "page": 3,
+     "q": "A computer program which uses the Physical Theory of Diffraction (PTD) method to calculate the Radar Cross Section (RCS) of perfectly conducting targets with arbitrary shape is developed. ... If the surface has edges or wedges, diffractions originating from these edges play a significant role in the overall scattered field. This part of the diffracted field is calculated using PTD-EEC method."
+    },
+    {
+     "page": 17,
+     "q": "For edged bodies, PTD corrects the inaccurate diffraction coefficient obtained from the PO surface integration."
+    },
+    {
+     "page": 17,
+     "q": "According to the type of the field to which the approximation is being made, different types of EEC's are applied (PO-EEC for PO diffracted field, PTD-EEC for fringe wave diffracted field and GTD-EEC for the total diffracted field). In this thesis, PTD-EEC method is used to calculate the edge-diffracted fields."
+    },
+    {
+     "page": 47,
+     "q": "the induced current can be decomposed into PO and non-uniform (fringe) components, so that J_tot = J_PO + J_FW ... fringe wave current is a correcting contribution to the PO current to obtain the total current."
+    },
+    {
+     "page": 47,
+     "q": "E_s(r) ~ E_PO_s + j k zeta int int_{S_edge} R_hat x (R_hat x J_FW) e^{-jkR}/(4 pi R) ds'"
+    },
+    {
+     "page": 59,
+     "q": "¯Etot = ¯EPTDEEC + ¯EPO   (eq. 3.42; overbars are vector bars in the original)"
+    },
+    {
+     "page": 61,
+     "q": "Equivalent currents are assumed to exist at an edge segment if only it is illuminated."
+    },
+    {
+     "page": 16,
+     "q": "An empirical corner diffraction coefficient for PTD is reported by Hansen [3]."
+    }
+   ],
+   "closed_forms_available": "Equations 3.33/3.34 give I_f and M_f for a half-plane; 3.39/3.40 give the BACKSCATTERING specialisation with mu = sin(beta) cos(phi). Our monostatic sweep is exactly the backscattering case, so 3.39/3.40 is the equation we would code.",
+   "why_it_matters_to_us": "It states the PTD contract we would be signing: the fringe field is a LINE integral over illuminated edge segments added coherently to our existing surface integral, using the same lit/shadow test our SBR already performs. No new visibility machinery is needed."
+  },
+  {
+   "id": "D05",
+   "label": "SAGITTA-SBR",
+   "opened": "TARGETED (all diffraction-bearing sentences of 14 pages)",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+   "pages": 14,
+   "title": "(SBR RCS study, Sagitta airframe)",
+   "venue": "arXiv 2604.09243",
+   "engine": "own GO+PO SBR. Sionna mentioned 0 times.",
+   "class": "ACKNOWLEDGED_NOT_IMPLEMENTED - our nearest methodological twin, with the identical hole",
+   "was_P4_on_their_path": "YES. They state it as a known limitation of their own method and defer it.",
+   "quotes": [
+    {
+     "page": 2,
+     "q": "A known modeling limitation of classical GO+PO SBR is the absence of diffraction mechanisms, which can be important near edges, tips, or shadow boundaries."
+    },
+    {
+     "page": 2,
+     "q": "When edge and shadowing effects are important, SBR is often augmented with high-frequency diffraction theories such as GTD, and refinements such as UTD or PTD that improve behavior near shadow boundaries and enforce continuity between illuminated and shadowed regions [13-18]."
+    },
+    {
+     "page": 12,
+     "q": "Incorporating diffraction corrections (e.g., GTD/UTD/PTD) would improve fidelity in edge- and shadow-dominated configurations.",
+     "where": "future work"
+    }
+   ],
+   "value_to_us": "This is the citation that lets us say 'a contemporary SBR+PO RCS paper carries the same gap and defers it' rather than presenting the gap as ours alone. It does NOT give us a fix."
+  },
+  {
+   "id": "D06",
+   "label": "AIRMAP",
+   "opened": "TARGETED (pages 5-6)",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2511.05522__airmap-ai-radio-maps-dt.pdf",
+   "pages": null,
+   "title": "AirMap (AI radio maps / digital twin)",
+   "engine": "Sionna RT 1.2.1, NVIDIA L40S GPU",
+   "class": "STOCK_D_COST_MEASURED - the only paper in the corpus that puts a number on what Sionna's own D costs and buys",
+   "was_P4_on_their_path": "Their path is PROPAGATION radio maps, not target signature. But they are the only ones who benchmarked the D flag.",
+   "quotes": [
+    {
+     "page": 5,
+     "q": "Among various ray-tracing tools, we selected Sionna RT [19] (version 1.2.1) ... Fig. 6: Root Mean Squared Error (RMSE) versus runtime for varying ray-tracing configurations in Sionna RT (1.2.1). Marker labels denote maximum path depth (reflections)."
+    },
+    {
+     "page": 5,
+     "q": "The configuration with diffraction enabled and a maximum depth of 20 is used as the ground truth (maximum configuration)."
+    },
+    {
+     "page": 5,
+     "q": "As expected, enabling diffraction and increasing the maximum path depth both lead to longer runtimes. However, when diffraction is enabled, the RMSE levels off beyond a path depth of 14, indicating diminishing returns in accuracy."
+    },
+    {
+     "page": 5,
+     "q": "we identify a 'sweet spot' configuration - diffraction enabled with a path depth of 14 - that balances fidelity and efficiency, requiring approximately 0.265 seconds to generate each radio map."
+    },
+    {
+     "page": 6,
+     "q": "Fig. 7: Evolution of radio maps with increasing ray-tracing depth. ... Rows compare configurations with diffraction disabled (top) and enabled (bottom)."
+    }
+   ],
+   "numbers": {
+    "x_axis_of_fig6_elapsed_time_s": [
+     0.1,
+     0.3
+    ],
+    "sweet_spot_runtime_s": 0.265,
+    "hardware": "NVIDIA L40S",
+    "scenario": "Boston urban, 100 TX, 1 GHz"
+   },
+   "value_to_us": "Sionna's stock D is CHEAP at urban propagation scale - sub-second per radio map. Cost is not the reason nobody uses it on targets; applicability is."
+  },
+  {
+   "id": "D07",
+   "label": "HOYDIS-LEARN-RT",
+   "opened": "TARGETED",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2311.18558__hoydis_learning-radio-env.pdf",
+   "pages": 11,
+   "duplicate_path": "/data/public/sionna_jeong/papers_isac_sionna/published_by_venue/IEEE_TMLCN/2311.18558__hoydis_learning-radio-env.pdf",
+   "title": "Learning Radio Environments by Differentiable Ray Tracing",
+   "authors": "Hoydis, Ait Aoudia, Cammerer, Euchner, Nimier-David, ten Brink, Keller",
+   "venue": "IEEE TMLCN vol.2 pp.1527-1539, 2024",
+   "engine": "Sionna RT",
+   "class": "STOCK_D_DOCUMENTED (by the Sionna authors themselves)",
+   "was_P4_on_their_path": "No target signature. Their D is a propagation term to be calibrated.",
+   "quotes": [
+    {
+     "page": 3,
+     "q": "E. Diffraction  Diffraction is modeled according to the uniform theory of diffraction (UTD) by [42] (see [41] for an introduction) with the heuristic extension to finitely conducting wedges by [43] (adopted in [44]). We consider infinitely long wedges whose two faces can be made of possibly different materials"
+    },
+    {
+     "page": 4,
+     "q": "Only first-order diffraction (i.e., transmitter-diffraction-receiver) is assumed and refraction ignored."
+    }
+   ],
+   "value_to_us": "Independent confirmation from NVIDIA's own team that Sionna's D is (a) UTD, (b) INFINITE wedges, (c) first order only. 'Infinitely long wedges' is the assumption Ziganshin's vertex diffraction exists to repair."
+  },
+  {
+   "id": "D08",
+   "label": "ROPITAULT-NS3",
+   "opened": "TARGETED",
+   "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2508.04004__ropitault-sitespecific-cellular-ns3.pdf",
+   "pages": 6,
+   "title": "Site-specific cellular channel model for ns-3 using Sionna RT",
+   "engine": "Sionna RT",
+   "class": "STOCK_D_USED_AND_DOMINANT",
+   "was_P4_on_their_path": "Propagation only.",
+   "quotes": [
+    {
+     "page": 4,
+     "q": "Sionna RT generates the MPCs, configured to include diffraction and up to four orders of specular reflection"
+    },
+    {
+     "page": 5,
+     "q": "For the trace-based channel, we can observe that diffraction dominates, with specular reflections appearing only as the UE rounds the corner into Street B (around 53 s)."
+    },
+    {
+     "page": 5,
+     "q": "In the former interval, a single diffracted ray keeps the SINR stable around -15 dB, increasing slowly."
+    }
+   ],
+   "value_to_us": "Evidence that Sionna's stock D is real and load-bearing in the regime it was built for (street-canyon shadowing). It says nothing about faceted targets."
+  },
+  {
+   "id": "D09",
+   "label": "MANUKYAN-RT-LIMITS",
+   "opened": "FULL (6/6 pages)",
+   "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2507.19653__manukyan-rt-limitations-urban.pdf",
+   "pages": 6,
+   "title": "(realism of SIONNA v1.0.2 ray tracing for outdoor cellular links in central Rome)",
+   "engine": "SIONNA v1.0.2",
+   "class": "NEVER_MET - the feature did not exist in their version",
+   "machine_count": "'diffract' appears 0 times in 6 pages. \\bUTD\\b, \\bPTD\\b, \\bGTD\\b, 'wedge', 'creeping' all 0.",
+   "quotes": [
+    {
+     "page": 1,
+     "q": "We study the realism of SIONNA v1.0.2 ray-tracing for outdoor cellular links in central Rome."
+    },
+    {
+     "page": 1,
+     "q": "Using these fixed positions we systematically vary the main simulation parameters, including path depth, diffuse/specular/refraction flags, carrier frequency, as well as antenna's properties like its altitude, radiation pattern, and orientation."
+    },
+    {
+     "page": 3,
+     "q": "Four more settings: synthetic array, specular reflection, diffuse reflection and refraction are boolean."
+    },
+    {
+     "page": 3,
+     "q": "Surprisingly, the results were absolutely insensitive to the max_depth parameter."
+    },
+    {
+     "page": 3,
+     "q": "We tried both boolean values for all four configuration variables ... The results were identical."
+    }
+   ],
+   "reading": "A dedicated Sionna-realism study that sweeps R, S, T and depth and NEVER sweeps D - because Sionna RT 1.0.2 had no D. Diffraction re-entered at Version 1.2 (Sept 2025) per the technical report Version History. This row is a NEVER_MET, not an omission, and it is a caution: papers citing 'Sionna RT' without a version are unfalsifiable on this question.",
+   "was_P4_on_their_path": "It would have been - they are auditing simulator realism - but the feature was absent from their build."
+  },
+  {
+   "id": "D10",
+   "label": "CLUTTER-AWARE-ISAC",
+   "opened": "TARGETED (all diffraction-bearing pages of 36)",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+   "pages": 36,
+   "title": "Clutter-Aware ISAC",
+   "venue": "Proceedings of the IEEE (accepted), arXiv v2",
+   "engine": "Sionna (13 mentions)",
+   "class": "IGNORED_THOUGH_ON_PATH",
+   "machine_count": "'diffract' appears 2 times in 36 pages, BOTH inside the same figure caption/legend on page 21. Zero body sentences. \\bUTD\\b/\\bPTD\\b/\\bGTD\\b/'wedge' = 0.",
+   "quotes": [
+    {
+     "page": 21,
+     "q": "Line-of-sight  Specular reflection  Diffuse reflection  Refraction  Diffraction  BS  Target of interest  External emitter  Strong UAV targets",
+     "where": "figure legend only"
+    }
+   ],
+   "was_P4_on_their_path": "YES - they put UAV meshes inside a Sionna scene and read echoes off them. The edge question is on that path and is never raised, not even as a limitation.",
+   "value_to_us": "A Proc. IEEE paper drew diffraction in its own system figure and never discussed it in prose. Use this to show that the field's default is silence, not a solved problem."
+  },
+  {
+   "id": "D11",
+   "label": "LAMBDA-UAV-DATASET",
+   "opened": "MACHINE_COUNT ONLY (targeted regex over all 20 pages; not read page by page in this workflow)",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+   "pages": 20,
+   "engine": "Sionna RT (9 mentions) + CADFEKO for the UAV RCS",
+   "class": "NEVER_MET_BY_CONSTRUCTION",
+   "machine_count": "'diffract' 0 times in 20 pages. \\bUTD\\b/\\bPTD\\b/\\bGTD\\b/'wedge'/'creeping' all 0.",
+   "reading": "They split the problem: Sionna RT does propagation, CADFEKO does the UAV RCS. Whatever diffraction their UAV signature contains was computed inside FEKO and is never discussed. P4 was therefore off their path by design - which is itself the finding: the injection split makes the edge question invisible.",
+   "caution": "The 'Sionna RT [27] ... CADFEKO [28] for UAV radar cross-section (RCS) modeling' sentence is a KNOWN ANCHOR from an earlier workflow and was NOT re-verified here. Treat the split as established; treat the zero diffraction count as verified here."
+  },
+  {
+   "id": "D12",
+   "label": "MD-RT",
+   "opened": "MACHINE_COUNT ONLY (regex over all 6 pages)",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+   "pages": 6,
+   "engine": "Sionna (18 mentions), launcher modified to conical sampling",
+   "class": "NEVER_MET - claim scope excludes it",
+   "machine_count": "'diffract' 0 times in 6 pages. \\bUTD\\b/\\bPTD\\b/\\bGTD\\b/'wedge'/'vertex diffraction'/'creeping' all 0.",
+   "reading": "md-rt modified Sionna's ray launcher and derives micro-Doppler ridge POSITIONS analytically. Ridge position is set by kinematics, not by scattering amplitude, so the missing edge term does not touch their claim. This is a legitimate NEVER_MET, not a gap.",
+   "caution": "The engine-modification and 'Wood' propeller-material facts are KNOWN ANCHORS from an earlier workflow; only the diffraction count was verified here."
+  },
+  {
+   "id": "D13",
+   "label": "COSTA-MICRODOPPLER-JSTEAP",
+   "opened": "TARGETED",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.05168__costa_microdoppler-multiprop-drones_JSTEAP-journal.pdf",
+   "pages": 14,
+   "title": "Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC",
+   "venue": "IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation, 2025 (cited by ZIG-JOUR as ref [34])",
+   "engine": "analytical point-scatterer model. Sionna mentioned 0 times.",
+   "class": "EXPLICITLY_NEGLECTED - and names the PO+MEC alternative",
+   "quotes": [
+    {
+     "page": 10,
+     "q": "Compared to these methods, the proposed model tends to be less accurate since it does not take into account some electromagnetic phenomena, such as diffraction and multipath."
+    },
+    {
+     "page": 2,
+     "q": "[12] describes an application of Physical Optics (PO) and the Method of Equivalent Currents (MEC) to calculate the time-varying Radar Cross-Section (RCS) of a helicopter rotor. These methods have the advantage of taking into account the complex structures of the objects and reproducing effects such as diffraction and shadowing."
+    },
+    {
+     "page": 13,
+     "q": "[12] P. Pouliguen, L. Lucas, F. Muller, S. Quete, and C. Terret, 'Calculation and analysis of electromagnetic scattering by helicopter rotating blades,' IEEE Transactions on Antennas and Propagation, vol. 50, no. 10, 2002, doi: 10.1109/TAP.2002.800693."
+    }
+   ],
+   "lead_for_us": "Pouliguen 2002 IEEE TAP 50(10) is a PO + Method of Equivalent Currents treatment of ROTATING BLADES - it sits exactly on the P3 x P4 crossing (rotating geometry AND edge currents) and is the single best untouched lead in this column. NOT ON DISK - not opened, not verified beyond Costa's citation."
+  },
+  {
+   "id": "D14",
+   "label": "ZHANG-M350-UNIFIED-RCS",
+   "opened": "TARGETED (both copies)",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf",
+   "pages": 13,
+   "duplicate": "/data/public/.../A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+   "engine": "measurement + empirical decomposition. Sionna mentioned 0 times.",
+   "class": "SOLVED_BY_MEASUREMENT_NOT_PHYSICS",
+   "quotes": [
+    {
+     "page": 2,
+     "q": "High-frequency methods such as physical optics (PO) [20], geometric optics (GO) [21], and the physical theory of diffraction (PTD) [22] provide approximate solutions with reduced computational complexity but sacrifice accuracy and require corrections for specific scenarios."
+    },
+    {
+     "page": 5,
+     "q": "approximated by using high-frequency methods such as GO, PO, or Geometrical Theory of Diffraction (GTD)."
+    },
+    {
+     "page": 13,
+     "q": "Weinmann, 'Ray tracing with PO/PTD for RCS modeling of large complex objects,'",
+     "where": "reference list - IEEE TAP 54(6):1797-1806, 2006"
+    }
+   ],
+   "reading": "They name PTD only in related work. Their answer to the band-slope problem is EMPIRICAL: fit sigma = A(f) B1(phi) B2 to measured DJI M350 data, 10-36 GHz, with A(f) slope 0.31 dB/GHz. This is the same manoeuvre we perform in our anchor. So the one paper in the corpus that gets a defensible frequency dependence for a real drone gets it by measuring, not by adding edges.",
+   "cross_ref": "Weinmann 2006 IEEE TAP 54(6):1797 'Ray tracing with PO/PTD for RCS modeling of large complex objects' is cited by BOTH Zhang and ZIG-JOUR (as its ref [9]). It is the canonical SBR+PO+PTD reference and it is NOT ON DISK."
+  },
+  {
+   "id": "D15",
+   "label": "MC-SBR-FARFIELD",
+   "opened": "TARGETED",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2511.07586__monte-carlo-sbr-farfield-scattering.pdf",
+   "pages": 14,
+   "engine": "own Monte-Carlo SBR. Sionna 0 mentions.",
+   "class": "EXPLICITLY_NEGLECTED, with a stated route back",
+   "quotes": [
+    {
+     "page": 2,
+     "q": "Along boundaries between homogeneous regions, we compute the currents using PO and the Modified Equivalent Current Approximation (MECA) [24], [25]."
+    },
+    {
+     "page": 12,
+     "q": "We also did not discuss inclusion of additional phenomenology like edge diffraction, cavity responses, or creeping waves."
+    },
+    {
+     "page": 12,
+     "q": "In future work, higher order diffraction effects could even be easier to implement using our method."
+    }
+   ],
+   "value_to_us": "A second contemporary SBR+PO paper that omits edge diffraction and says so. MECA is used here for DIELECTRIC surface currents, not for edges - do not confuse MECA with MEC/PTD-EEC."
+  },
+  {
+   "id": "D16",
+   "label": "DIVA-CST-RCS-EVAL",
+   "opened": "TARGETED",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/diva_1595877__evaluation-cst-studio-rcs-simulation.pdf",
+   "pages": 23,
+   "engine": "CST Studio (I-Solver, A-Solver). Sionna 0 mentions.",
+   "class": "VALIDITY_FLOOR_STATED (crosses into our P7)",
+   "quotes": [
+    {
+     "page": 9,
+     "q": "the RCS of a sphere is independent of frequency according to the informal definition. However, this is only acceptable as long as lambda << r because otherwise creeping waves will be interfering with the result. The cut-off for creeping waves can be determined by the equation 2 pi r / lambda > 10 [11]."
+    }
+   ],
+   "value_to_us": "An independently stated high-frequency validity floor kr > 10, sitting right next to our own measured PO-vs-Mie floor kr >= 9.06. Our mini5pro at LTE is kr = 8.4, i.e. BELOW both. At the low band edge our error is partly a creeping-wave / resonance problem, which no amount of PTD fixes."
+  },
+  {
+   "id": "D17",
+   "label": "POFACETS-PO-LIMITS",
+   "opened": "TARGETED",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/gbppr__rcs-calculations-physical-optics-codes.pdf",
+   "pages": 11,
+   "title": "RCS Calculations Using the Physical Optics Codes (pomonostatic.m / pobistatic.m, POFACETS family)",
+   "class": "CANONICAL_STATEMENT_OF_OUR_OWN_LIMITATION",
+   "quotes": [
+    {
+     "page": 1,
+     "q": "the scattered field of each triangle is computed as if it were isolated and other triangles were not present; multiple reflections are not included; edge diffraction and surface waves are not included; shadowing is only approximately included by considering a facet to be completely illuminated or completely shadowed by the incident wave"
+    }
+   ],
+   "value_to_us": "The textbook enumeration of PO facet-code limitations. We have already fixed two of the four (our SBR does true occlusion and multi-bounce). Edge diffraction and surface waves remain. This is the cleanest single citation for stating our P4 limitation honestly."
+  },
+  {
+   "id": "D18",
+   "label": "OTHER_STOCK_D_FLAG_USERS",
+   "opened": "TARGETED (one sentence each)",
+   "class": "STOCK_D_AS_A_FLAG - propagation only, target signature never involved",
+   "rows": [
+    {
+     "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2601.03216__zhang-onetwin-online-digital-network-twin.pdf",
+     "page": 6,
+     "q": "We enable reflection and disable diffraction and scattering during the ray tracing, to trade off accuracy and computation complexity."
+    },
+    {
+     "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2512.12449__morais-stochastic-vs-raytracing-datasets.pdf",
+     "page": 3,
+     "q": "The high-density scenario in Task 2 does not include scattering events, only diffraction and reflections."
+    },
+    {
+     "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2403.12289__bostontwin.pdf",
+     "page": 5,
+     "q": "the point-to-point channel between each pair of devices can be computed with an arbitrary number of reflections, and with or without diffracted and scattered rays."
+    },
+    {
+     "pdf": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2508.14507__deeptelecom-digital-twin-dataset.pdf",
+     "page": 5,
+     "q": "We also apply the uniform theory of diffraction (UTD) to model how signals bend around sharp edges (e.g., building corners), using standard diffraction coefficients to capture those NLOS paths."
+    },
+    {
+     "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2312.03950__lee-scalable-pathloss-map-prediction.pdf",
+     "page": 3,
+     "q": "uniform theory of diffraction (UTD) for diffraction, and Kirchhoff scattering theory for diffuse scattering [22, Ch. 4]",
+     "engine_note": "uses Wireless Insite, not Sionna"
+    }
+   ]
+  }
+ ],
+ "machine_census": {
+  "LABEL": "THIS IS A MACHINE COUNT of the PDF text layer. It is not a reading. Every substantive claim above is backed by a quoted sentence instead.",
+  "corpus": "217 unique PDFs (SHA1-deduplicated) across the three archives, after excluding one Korean-prose non-paper file from our own curation folder.",
+  "mention_sionna": 140,
+  "by_term_papers_and_hits": {
+   "diffract*": [
+    72,
+    607
+   ],
+   "UTD (word-bounded)": [
+    10,
+    55
+   ],
+   "PTD (word-bounded)": [
+    6,
+    101
+   ],
+   "GTD (word-bounded)": [
+    8,
+    38
+   ],
+   "wedge": [
+    10,
+    80
+   ],
+   "vertex/corner/tip diffraction": [
+    3,
+    36
+   ],
+   "creeping wave": [
+    3,
+    5
+   ],
+   "edge/equivalent/fringe current, ILDC, MEC": [
+    8,
+    38
+   ],
+   "knife-edge / Fresnel integral / ITU-R P.526": [
+    7,
+    18
+   ]
+  },
+  "papers_with_any_high_frequency_diffraction_term": 21,
+  "sionna_using_and_mention_diffraction": 51,
+  "sionna_using_and_mention_UTD_PTD_GTD_or_vertex": 7,
+  "sionna_using_and_mention_PTD": 0,
+  "drone_sensing_corpus_crosscheck": {
+   "source": "outputs/reflib_sweep_venues.json entries (81)",
+   "pdf_on_disk_and_scanned": 37,
+   "listed_but_outside_scan_roots": 4,
+   "of_the_37_mentioning_diffraction_at_all": 12,
+   "of_the_37_treating_diffraction_substantively": 3,
+   "which_three": "Ziganshin conference (F08), Ziganshin journal preprint (F07), Sagitta SBR (F11) - and F07/F08 are ONE work",
+   "reading": "The user's split holds. The drone-sensing corpus is a structural model, not a source of P4 solutions. Its only substantive diffraction content is the Ziganshin work, which also sits in the Sionna corpus."
+  },
+  "the_headline_count": "Across 217 papers, the number that IMPLEMENT a diffraction mechanism beyond a stock on/off flag is FOUR DOCUMENTS covering THREE WORKS: Ziganshin (conference + journal preprint = one work, UTD+vertex+EE+EV/VE on Sionna), Kirik & Ozdemir 2019 (PTD into SBR, non-Sionna), Ozturk 2002 (PTD-EEC, non-Sionna). Plus NVIDIA's own technical report, which documents the tool rather than extending it."
+ },
+ "our_own_arithmetic_NOT_A_PAPER_CLAIM": {
+  "LABEL": "OUR ARITHMETIC, computed in this workflow from our own outputs/report02_derived.json band_slope numbers. No paper says this. It is a falsifiable sanity check on the P4 hypothesis, not a result.",
+  "hypothesis_tested": "The task brief states the mechanism as: PO keeps only the f^2 specular term while the edge term is frequency-independent. Test: how big would a frequency-FLAT power-additive edge term have to be to bring each airframe's slope down to the Das anchor of 0.21 dB/GHz over 1.843-5.21 GHz?",
+  "model": "sigma(f) = A f^p_eff + E, powers added, E frequency-flat. p_eff back-solved from our published slope.",
+  "per_airframe": {
+   "matrice4e": {
+    "our_slope_db_per_ghz": 0.936,
+    "p_eff": 0.698,
+    "flat_edge_term_over_PO_at_1p843GHz": 5.0,
+    "edge_share_of_total_at_1p843GHz": 0.834,
+    "edge_share_of_total_at_5p21GHz": 0.709,
+    "implied_level_rise_at_1p843GHz_dB": 7.8
+   },
+   "mavic4pro": {
+    "our_slope_db_per_ghz": 1.311,
+    "p_eff": 0.978,
+    "flat_edge_term_over_PO_at_1p843GHz": 9.0,
+    "edge_share_of_total_at_1p843GHz": 0.9,
+    "edge_share_of_total_at_5p21GHz": 0.765,
+    "implied_level_rise_at_1p843GHz_dB": 9.99
+   },
+   "mini5pro": {
+    "our_slope_db_per_ghz": 1.517,
+    "p_eff": 1.132,
+    "flat_edge_term_over_PO_at_1p843GHz": 11.7,
+    "edge_share_of_total_at_1p843GHz": 0.921,
+    "edge_share_of_total_at_5p21GHz": 0.783,
+    "implied_level_rise_at_1p843GHz_dB": 11.03
+   },
+   "phantom4": {
+    "our_slope_db_per_ghz": 1.699,
+    "p_eff": 1.268,
+    "flat_edge_term_over_PO_at_1p843GHz": 14.5,
+    "edge_share_of_total_at_1p843GHz": 0.935,
+    "edge_share_of_total_at_5p21GHz": 0.795,
+    "implied_level_rise_at_1p843GHz_dB": 11.89
+   },
+   "s1000plus": {
+    "our_slope_db_per_ghz": 1.604,
+    "p_eff": 1.197,
+    "flat_edge_term_over_PO_at_1p843GHz": 13.0,
+    "edge_share_of_total_at_1p843GHz": 0.928,
+    "edge_share_of_total_at_5p21GHz": 0.789,
+    "implied_level_rise_at_1p843GHz_dB": 11.45
+   },
+   "typhoonh480": {
+    "our_slope_db_per_ghz": 1.193,
+    "p_eff": 0.89,
+    "flat_edge_term_over_PO_at_1p843GHz": 7.6,
+    "edge_share_of_total_at_1p843GHz": 0.884,
+    "edge_share_of_total_at_5p21GHz": 0.751,
+    "implied_level_rise_at_1p843GHz_dB": 9.35
+   },
+   "x500v2": {
+    "our_slope_db_per_ghz": 0.742,
+    "p_eff": 0.554,
+    "flat_edge_term_over_PO_at_1p843GHz": 3.4,
+    "edge_share_of_total_at_1p843GHz": 0.773,
+    "edge_share_of_total_at_5p21GHz": 0.657,
+    "implied_level_rise_at_1p843GHz_dB": 6.43
+   }
+  },
+  "result": "E would have to be 3.4x (x500v2) to 14.5x (phantom4) the current PO sigma at 1.843 GHz - i.e. the edge term would carry 77% to 94% of the total sigma at the low band edge and 66% to 79% at the high edge, and would raise our absolute level at 1.843 GHz by 6.4 to 11.9 dB.",
+  "conclusion": "A missing frequency-flat edge term is NOT a sufficient explanation of our slope excess on its own. If PTD alone flattened our slope to the anchor, it would simultaneously blow our absolute level by 6-12 dB, which collides head-on with P5. Either our PO specular term is too large (over-smooth watertight shells, gamma_po choices, missing internal structure), or the measured anchors are shallow for reasons that are not edge physics (aspect-averaged small target near resonance, VV polarisation, chamber calibration), or both.",
+  "caveats_that_could_overturn_this": [
+   "PTD is a SIGNED fringe correction (Ozturk p.47: J_tot = J_PO + J_FW; Kirik eq.3 subtracts the PO coefficients D'), and it adds COHERENTLY in field, not in power. Power-addition is an order-of-magnitude sanity check, not a prediction. A coherent correction can change a slope with far less added energy than an incoherent one.",
+   "p_eff is fitted over only 3 frequency points (1.843, 3.5, 5.21 GHz). A 3-point slope is a weak statistic.",
+   "The measured anchors are Phantom 3 (Das/Yuan, 1.8-18.2 GHz) and M350 (Zhang, 10-36 GHz). Neither is one of our 7 airframes, and neither band matches our 1.8-5.2 GHz fit window."
+  ],
+  "weak_supporting_observation": "Our steepest slope is phantom4 (1.699, the most closed smooth shell) and our shallowest is x500v2 (0.742, an open tube frame). That ordering is consistent with 'slope tracks the fraction of large smooth plate-like surface', which points at our GEOMETRY/material treatment rather than at a missing edge term. Stated as an observation on 7 points, not a result."
+ },
+ "THE_ANSWER": {
+  "question": "Is there a diffraction correction we could actually adopt, and would it plausibly fix our slope?",
+  "verdict": "There is exactly ONE additive correction that is architecturally compatible with our kernel (PTD / PTD-EEC), and it is NOT the Ziganshin route. Whether it fixes the slope is UNPROVEN and our own arithmetic says it is unlikely to be the whole story. Recommendation: implement it as a DIAGNOSTIC first, not as a fix.",
+  "option_1_ziganshin_UTD_plus_vertex": {
+   "adopt": "NO - not as a correction.",
+   "why_not": [
+    "It is not additive to a PO integral. His pipeline has NO surface integral: the field is GO + UTD + VD + EE/EV/VE end to end. Adopting it means REPLACING our kernel, not correcting it.",
+    "PEC only. Both his documents state every object is PEC (ZIG-JOUR p.2, p.9). Our whole P2 story is per-part materials; his route forfeits it.",
+    "The published code is a fork of TensorFlow-era Sionna, __version__ = '0.17.0', with solver_paths.py / coverage_map.py. Our stack is Sionna 2.0.1 with path_solvers/ and radio_map_solvers/. There is no patch path; it is a parallel environment or a rewrite.",
+    "1 commit, 0 stars, no README documenting the modifications. Apache-2.0, so licence is not the obstacle.",
+    "Neither document sweeps frequency. There is ZERO evidence in either that UTD+VD changes a band slope."
+   ],
+   "adopt_anyway": [
+    "The discretization criterion E^2/(R*lambda) with the 0.6-0.9 practical window and the E > 1.5*lambda UTD floor (ZIG-JOUR p.4, p.7). Costs nothing, computes directly from our meshes, and we currently do not report it.",
+    "The framing sentence: classical UTD assumes electrically large edges and loses accuracy on the small facets of discretized curved meshes (ZIG-JOUR p.2). This is the correct reason NOT to just switch Sionna's diffraction=True on our drones.",
+    "The runtime pair for P6: PO solver ~one day vs RT ~two seconds (ZIG-CONF p.4) - already our anchor.",
+    "The drones-as-future-work sentence (ZIG-CONF p.5) - published, and still unclaimed by anyone in this corpus."
+   ]
+  },
+  "option_2_sionna_stock_D": {
+   "adopt": "NO for the target. It is already available (Sionna 2.0.1, PathSolver(diffraction=True)) and it is the wrong tool.",
+   "why_not": [
+    "Even with D on, Sionna still produces PATH COEFFICIENTS, not a sigma. P1 is unchanged - there is no scattering integral for D to feed.",
+    "Sionna's wedge angle is read off two adjacent facet normals (utils/wedges.py wedge_interior_angle). On a tessellated drone shell that angle is a property of our meshing, not of the drone. Refine the mesh and the diffraction answer changes.",
+    "First order only, no vertex diffraction, no D+S paths, higher order declared an open problem by NVIDIA (tech report p.29, p.30). This is precisely the configuration Ziganshin calls 'Standard RT' and shows failing on discretized curved bodies."
+   ],
+   "adopt_anyway": "Nothing for the RCS kernel. It IS the right tool if we ever model the chamber walls or a real outdoor field-test scene, and AirMap shows it costs ~0.265 s per urban radio map on an L40S."
+  },
+  "option_3_PTD_EEC_on_top_of_our_PO": {
+   "adopt": "YES, as the only architecturally compatible option - and as a DIAGNOSTIC before it is claimed as a fix.",
+   "recipe_source": "Kirik & Ozdemir 2019 (algorithm, SBR-specific) + Ozturk 2002 Ch.3 (derivation, backscattering closed forms 3.39/3.40). Neither uses Sionna; both use the SBR+PO architecture we already have.",
+   "what_it_would_cost_us": [
+    "Edge extraction: neighbouring triangles sharing two vertices, outward-diverging normals, dihedral threshold ~30 deg. Our meshes are watertight manifolds (trimesh + manifold3d), so adjacency is already available.",
+    "Acceptance test: d_hit <= lambda/10 from the ray hit point to the edge, with equivalent edge length dl = (1/rho_rd) d_max (cos th_i1 + cos th_i2). Our ray pitch is lambda/12, close enough to their lambda/10 that rho_rd is already defined.",
+    "Reuse of our existing lit/shadow test: Ozturk p.61 - equivalent currents exist only on ILLUMINATED edge segments. Our SBR first-hit test already gives that.",
+    "Honest blocker: the PTD coefficients are derived for PEC. Our gamma_po per-material scalars have no polarisation state (see outputs/sigma_anchor.json 'uncontrolled': polarisation UNRESOLVED). A PEC fringe term bolted onto a scalar-gamma PO integral is physically inconsistent and must be labelled as such."
+   ],
+   "the_test_that_decides_it": "Kirik p.11-12: run the SAME frequency sweep with and without the edge term and (a) compare the slope, (b) IFFT to a range profile and check the added energy lands on the airframe's actual edges. That is a falsifiable experiment we can run on one airframe in a day, and it either moves the slope or it does not.",
+   "prediction_we_are_committing_to": "Our arithmetic above predicts it will NOT close the 3.5-8x slope gap by itself, and will raise the absolute level. If it does close the gap, our arithmetic was wrong and that must be recorded."
+  },
+  "what_to_write_in_the_report_today": "Cite as a LIMITATION, not as a fix. The defensible sentence is: our kernel is GO+PO SBR without an edge term, which is the standard and stated limitation of PO facet codes (POFACETS doc p.1) and of contemporary SBR RCS work (Sagitta p.2, p.12); the one published route that adds diffraction on top of Sionna (Ziganshin, EuCAP 2025) replaces the surface integral rather than correcting it, is PEC-only, and was never frequency-swept, so it cannot be cited as a slope fix.",
+  "do_not_write": "Do NOT write that Ziganshin's UTD+vertex diffraction would fix our band slope. Neither of his documents contains a frequency sweep, and his method is not a correction to PO."
+ },
+ "not_opened_and_why": [
+  {
+   "item": "Weinmann, IEEE TAP 54(6):1797-1806, 2006, 'Ray tracing with PO/PTD for RCS modeling of large complex objects'",
+   "status": "NOT ON DISK",
+   "why_it_matters": "Cited by BOTH Zhang M350 (p.13) and ZIG-JOUR (ref [9]). It is the canonical SBR+PO+PTD paper for large complex targets and is the single most valuable missing document for this column."
+  },
+  {
+   "item": "Pouliguen et al., IEEE TAP 50(10), 2002, 'Calculation and analysis of electromagnetic scattering by helicopter rotating blades'",
+   "status": "NOT ON DISK",
+   "why_it_matters": "PO + Method of Equivalent Currents for ROTATING blades - sits on the P3 x P4 crossing. Known only from Costa's citation (D13 p.2, p.13)."
+  },
+  {
+   "item": "Albani, Capolino, Carluccio, Maci, IEEE TAP 57(12):3911-3925, 2009 (vertex diffraction coefficient)",
+   "status": "NOT ON DISK",
+   "why_it_matters": "The primary formulation Ziganshin implements. We have only his summary of it."
+  },
+  {
+   "item": "Albani, IEEE TAP 53(2):702-710, 2005 (double diffraction coefficient)",
+   "status": "NOT ON DISK"
+  },
+  {
+   "item": "Ufimtsev, Fundamentals of the Physical Theory of Diffraction (book)",
+   "status": "NOT ON DISK",
+   "note": "cited by ZIG-JOUR ref [8] and by Zhang"
+  },
+  {
+   "item": "Luebbers 1984 heuristic finitely-conducting wedge coefficient (Sionna tech report ref [37]) and ITU-R P.526-15 (ref [38])",
+   "status": "NOT ON DISK",
+   "why_it_matters": "These define what Sionna's D actually computes. We have NVIDIA's restatement (tech report pp.47-50) but not the primaries."
+  },
+  {
+   "item": "~110 of the 140 Sionna-corpus papers",
+   "status": "MACHINE_COUNT ONLY in the earlier sweep",
+   "note": "This workflow opened 20 documents in full or targeted form. Every one of the 51 Sionna papers whose diffraction mentions were only counted, and not read, is represented here only by its count."
+  }
+ ],
+ "cautions_recorded": [
+  "The two Ziganshin documents are kept strictly separate throughout. Author lists differ (S. J. Myint is on the conference paper only). 'dBsm' appears once in the conference paper and zero times in the journal preprint. Only the conference paper is published.",
+  "The repository declares __version__ = '0.17.0' while the preprint text says Sionna-RT v0.19. Discrepancy recorded, not resolved.",
+  "One archived file that a keyword census would count as a Sionna paper ('Sionna RT 드론 ISAC 연구.pdf', 43 Sionna mentions, 10 pages, Korean prose) is a note in our own curation folder, not a paper. Excluded from every count. This is the same failure mode that produced the retracted '22 of 81' claim.",
+  "The 'diffraction was neglected' rows come from a regex over 217 PDFs followed by reading each matched sentence. Sentences that turned out to be table-of-contents lines or figure captions were dropped rather than reported."
+ ]
+}

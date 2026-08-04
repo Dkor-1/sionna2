@@ -1,0 +1,1982 @@
+{
+ "meta": {
+  "file": "/home/yunjung/workspace/sionna2/outputs/psolve_deep.json",
+  "generated": "2026-08-03",
+  "task": "Page-by-page method extraction from the papers that FACED one of our eight blockers, deep enough to reimplement.",
+  "axis": "OUR eight problems are the columns. A paper appears here only if the blocker was on its own claim path. 'They did not do X' is recorded only with that flag set.",
+  "evidence_rule": "Every paper-level statement carries pdf_path + 1-based page + a verbatim quotation from the PDF text layer. Numbers taken from a table or a figure axis are labelled TABLE-READ / IMAGE-READ / AXIS-READ. Anything I derived is labelled OUR ARITHMETIC or OUR READING.",
+  "self_audit": "Every {page, q} pair in this file was re-checked programmatically against the PyMuPDF text of that exact page of that exact PDF: 141/141 verified, 0 failures.",
+  "papers_opened_this_pass": "14 WORKS, 15 PDF files (the Hoydis work exists as two different documents and both were opened)",
+  "reading_depth": "Cover to cover (9): Ziganshin journal, Ziganshin EuCAP, Sagitta, Kirik-Ozdemir, md-rt, Costa JSTEAP, jees2021 MoM, Das WCL, Kasdorf-Notaros. Targeted-deep on the method-bearing pages (5): Ozturk thesis Ch.3, Zhang M350, Monte-Carlo SBR, Hoydis (both documents), LAMBDA. No paper in this file was left unopened.",
+  "what_I_did_not_do": [
+   "No web search. This is the local archive only - three directories under /data/public/sionna_jeong. Any 'nobody has done X' must be phrased as 'nobody on our shelf'.",
+   "I did not re-derive any of the diffraction coefficients. Where a paper only gives the STRUCTURE of a coefficient (Ziganshin's Appendix A), this file says so rather than pretending the paper is self-contained.",
+   "I did not run any of the released code (SagittaSBR, sionna-RT-reflectivity). Code availability is recorded from the paper, not verified by cloning."
+  ]
+ },
+ "selection_who_actually_faced_what": {
+  "rule_applied": "a paper enters this file only if the blocker sits on the path to its own claim. Papers that merely mention the topic, or that avoided it by assumption, are named in the exclusions below.",
+  "matrix": {
+   "P1_no_scattering_integral": {
+    "faced_and_solved_inside_a_ray_engine": [
+     "ZIG-JOUR",
+     "ZIG-CONF",
+     "SAGITTA",
+     "MC-SBR-MECA"
+    ],
+    "faced_and_solved_by_buying_it": [
+     "LAMBDA-INJECTION"
+    ],
+    "faced_and_solved_by_measuring_it": [
+     "COSTA-JSTEAP (body only)"
+    ],
+    "faced_and_solved_by_a_different_solver": [
+     "JEES-2021-MOM",
+     "OZTURK-BILKENT-2002",
+     "KIRIK-OZDEMIR-2019"
+    ],
+    "faced_and_did_not_solve": [
+     "MD-RT - runs a drone rotor in Sionna and never claims an amplitude"
+    ]
+   },
+   "P2_material_parameters_no_source": {
+    "faced_and_solved": [
+     "HOYDIS-LEARN-RT - learn them from measurement by gradient descent",
+     "MC-SBR-MECA - derive both equivalent currents from (eps_r, sigma) via MECA instead of one scalar",
+     "JEES-2021-MOM - collapse carbon fibre to PEC WITH a citation"
+    ],
+    "faced_and_did_not_solve": [
+     "MD-RT - assigns stock ITU 'Wood' to a propeller with no source",
+     "COSTA-JSTEAP - the body-to-propeller amplitude ratio is 'manually adjusted'"
+    ],
+    "not_on_their_path": [
+     "ZIG-JOUR / ZIG-CONF / SAGITTA - everything is PEC by assumption"
+    ]
+   },
+   "P3_rotating_blades": {
+    "faced_and_solved_outside_the_engine": [
+     "COSTA-JSTEAP - closed-form thin wire, rotation lives in the signal model",
+     "JEES-2021-MOM - re-pose per phase in MoM, made cheap by matrix invariance"
+    ],
+    "faced_and_left_unspecified": [
+     "MD-RT - the analysis is rigid-body analytic, the tracer loop says only 'update velocity and position'"
+    ],
+    "expressed_inside_the_engine_by_anyone": "NOBODY, in any paper in this file"
+   },
+   "P4_no_diffraction_no_PTD": {
+    "faced_and_added_UTD_family": [
+     "ZIG-CONF (vertex only)",
+     "ZIG-JOUR (vertex + double edge + heuristic EV/VE)"
+    ],
+    "faced_and_added_PTD_family": [
+     "KIRIK-OZDEMIR-2019 (PTD into SBR, full algorithm)",
+     "OZTURK-BILKENT-2002 (PTD-EEC derivation and closed forms)"
+    ],
+    "faced_and_explicitly_declined": [
+     "SAGITTA - named as future work",
+     "MC-SBR-MECA - named as absent"
+    ],
+    "not_on_their_path": [
+     "DAS-WCL-2026, ZHANG-M350-JSAC - measurement papers",
+     "HOYDIS-LEARN-RT - calibrates a propagation tracer"
+    ]
+   },
+   "P5_absolute_level_unvalidated": {
+    "faced_with_a_calibration_standard": [
+     "DAS-WCL-2026 (2.8 dBsm cylinder)",
+     "ZHANG-M350-JSAC (0.5 m sphere, -7.07 dBsm theory vs -8.96 measured)"
+    ],
+    "faced_against_a_solver": [
+     "ZIG-CONF (FEKO PO solver for the car, MLFMM for the spheres)",
+     "SAGITTA (analytical Mie)",
+     "MC-SBR-MECA (analytical normal-incidence dielectric solution + deterministic SBR)",
+     "OZTURK-BILKENT-2002 (MoM and measurement from the literature)"
+    ],
+    "faced_against_measurement_and_downgraded_it": [
+     "ZIG-JOUR - 'a qualitative validation'"
+    ],
+    "faced_and_did_not_validate": [
+     "LAMBDA-INJECTION",
+     "MD-RT",
+     "COSTA-JSTEAP (shape and spread only, all metrics on normalised signatures)"
+    ]
+   },
+   "P6_runtime": {
+    "reported_numbers": [
+     "ZIG-JOUR (Table II)",
+     "ZIG-CONF (the one-day sentence)",
+     "SAGITTA (full GPU/MPI budget)",
+     "MC-SBR-MECA (Table I)",
+     "JEES-2021-MOM (Table 1)",
+     "KASDORF-NOTAROS-TAP-2021",
+     "HOYDIS-LEARN-RT (IEEE version only)"
+    ],
+    "claimed_efficiency_and_reported_nothing": [
+     "KIRIK-OZDEMIR-2019",
+     "COSTA-JSTEAP",
+     "MD-RT",
+     "LAMBDA-INJECTION"
+    ]
+   },
+   "P7_electrically_small_target": {
+    "stated_a_number": [
+     "SAGITTA - kr >= 30 at a 2% tolerance"
+    ],
+    "stated_a_trend_and_measured_it": [
+     "OZTURK-BILKENT-2002 - disc ka = 5, 10, 15, agreement improves with radius"
+    ],
+    "stated_a_taxonomy_only": [
+     "ZHANG-M350-JSAC - optical/Rayleigh/resonant on ka, no floor"
+    ],
+    "stated_a_facet_size_rule_instead": [
+     "ZIG-JOUR - E > 1.5 lambda and E^2/(R lambda) in 0.6-0.9"
+    ]
+   },
+   "P8_bistatic_reciprocity": {
+    "computed_bistatic_scattering_in_a_ray_engine": [
+     "ZIG-JOUR",
+     "ZIG-CONF"
+    ],
+    "computed_bistatic_scattering_analytically": [
+     "COSTA-JSTEAP"
+    ],
+    "measured_it": [
+     "DAS-WCL-2026 (7 angles, 4 platforms)",
+     "COSTA-JSTEAP (Ironman drone, 10-180 deg)"
+    ],
+    "met_it_and_declined_it_with_a_reason": [
+     "SAGITTA - footnote 1 on p4: bistatic needs an exit-visibility function that monostatic lets you skip"
+    ],
+    "ran_a_reciprocity_or_symmetry_check_on_their_own_kernel": "NOBODY, in any paper in this file"
+   }
+  },
+  "papers_examined_and_EXCLUDED_from_this_file": [
+   {
+    "id": "KASDORF-NOTAROS-TAP-2021",
+    "status": "included but flagged as ruled out",
+    "why": "its 'SBR accuracy' problem is reception-cone sizing for propagation SBR. Our kernel launches an orthographic aperture grid and integrates surface currents - no reception spheres, no wavefront double counting. Their fix does not transfer. Kept in the file so the next reader does not spend the same two hours on it."
+   },
+   {
+    "id": "CLUTTER-AWARE-ISAC (Proc. IEEE 2026)",
+    "why": "imports drone meshes into Sionna and accepts stock Fresnel; the amplitude question is never asked, so no blocker was faced. Fully characterised in outputs/psolve_signature.json."
+   },
+   {
+    "id": "2411.12284 DT-RaDaR",
+    "why": "64 'radar' hits are all the acronym in the title. No target, no echo, no signature. Recorded in the sweep as a caught false positive."
+   }
+  ]
+ },
+ "ZIGANSHIN_two_documents_kept_strictly_apart": {
+  "why_this_section_exists": "our records have twice been at risk of merging these. They are different in method, in geometry, in reference solver, in what they print, and in publication status.",
+  "table": {
+   "publication_status": {
+    "CONFERENCE": "PUBLISHED, EuCAP 2025, IEEE Xplore stamp on all 5 pages",
+    "JOURNAL": "PREPRINT, arXiv:2604.05991v2, 'submitted to the IEEE Open Journal of Antennas and Propagation'"
+   },
+   "diffraction_added": {
+    "CONFERENCE": "vertex diffraction ONLY (RT+UTD+VD)",
+    "JOURNAL": "vertex + double-edge (coplanar only) + heuristic edge-vertex / vertex-edge"
+   },
+   "sphere": {
+    "CONFERENCE": "radius 12.8 lambda; 80-facet and 4500-facet icospheres; RX at 20 lambda from centre",
+    "JOURNAL": "radius 7 lambda; 156-facet and 346-facet; RX at 40 lambda"
+   },
+   "vehicle": {
+    "CONFERENCE": "CAD 'simplified car', 16610 facets, 3.3x2.1x1.7 m, at 10 GHz",
+    "JOURNAL": "Mitsubishi i-MiEV, 1496-facet detailed and 220-facet low-poly, at 2-3 GHz"
+   },
+   "reference_solver": {
+    "CONFERENCE": "MLFMM for spheres, FEKO PO SOLVER for the car",
+    "JOURNAL": "MLFMM throughout, plus BIRA measurement for backscatter"
+   },
+   "prints_dBsm": {
+    "CONFERENCE": "YES - Fig. 6, the only dBsm axis in the 140-paper Sionna corpus",
+    "JOURNAL": "NO - machine count of 'dBsm' in the journal PDF is 0; it plots |E_sc| and |E_tot| in dB"
+   },
+   "MAE_numbers": {
+    "CONFERENCE": "none - only 'offsets up to 5 dB' and 'up to 10 dB'",
+    "JOURNAL": "Table I and four in-text MAE improvements, 0.8 to 8.3 dB"
+   },
+   "runtime": {
+    "CONFERENCE": "MLFMM ~1 h, RT <1 s and ~5 s; FEKO PO solver ~1 day, RT ~2 s; NO hardware named",
+    "JOURNAL": "Table II, 0.3-19.0 s on a dual AMD EPYC 7343 (32 cores), mean of 5 runs; MLFMM 'several hours'"
+   },
+   "code_link": {
+    "CONFERENCE": "not present",
+    "JOURNAL": "github.com/AinurZiga/sionna-RT-reflectivity"
+   },
+   "discretisation_rule": {
+    "CONFERENCE": "explicitly left open - 'how small the facets should be is still an open question'",
+    "JOURNAL": "E^2/(R lambda) in 0.6-0.9, and E > 1.5 lambda"
+   }
+  },
+  "the_two_sentences_our_reports_must_never_swap": {
+   "runtime_sentence": "'In each case, the simulation time for the PO solver is around one day, whereas the RT simulation takes only about two seconds' - CONFERENCE p4 ONLY. Verified absent from the journal PDF by direct string search.",
+   "critique_sentence": "'This SBR+PO approach, however, is limited to the illuminated region ... Furthermore, the need to cascade PO after RT negates the computational advantages of RT.' - JOURNAL pp.1-2 ONLY."
+  },
+  "the_scoping_our_own_brief_was_missing": "the 'one day' PO run is FEKO's commercial PO solver on a 16610-facet car at 10 GHz for 360 observation angles, and 'about two seconds' is his extended RT on the same case. It is not a general law about PO versus RT, and it is not a statement about a GPU PO kernel like ours. Sagitta's A380 - a bigger target at the same 10 GHz with 100 bounces - runs a full 125,000-angle PO sweep in 27 minutes.",
+  "what_he_never_did_that_would_matter_to_us": [
+   "no frequency sweep in either document, so neither can be cited for band-slope behaviour",
+   "no drone, no small target, no micro-Doppler - the conference conclusion names them as future work",
+   "no reciprocity or symmetry check on his own bistatic kernel",
+   "no non-PEC material anywhere, so P2 is untouched by his lineage"
+  ]
+ },
+ "claims_that_did_not_survive_reading": [
+  {
+   "claim": "Kirik & Ozdemir analyse 'a missile and a helicopter target' with and without PTD.",
+   "source_of_the_claim": "the paper's own abstract and introduction",
+   "what_reading_shows": "Section 4 presents ONLY the missile. 'Helicopter' occurs twice in the document, both in those promissory sentences, never in a result. No helicopter figure, table or number exists.",
+   "consequence": "if we cite this paper for 'PTD matters on complex aircraft', cite the missile only."
+  },
+  {
+   "claim": "md-rt validates Sionna RT for rotor micro-Doppler.",
+   "what_reading_shows": "the validation is against the authors' own analytical formula of Section II, and the three numbers involved do not close: 5 GHz with T = 0.04 s and a 10.55 cm propeller radius gives f_D,max = 552 Hz, not the 1562 Hz printed; the same paper also quotes a 1.055 m blade length, a factor of ten from its own Table I. OUR ARITHMETIC from their quoted inputs.",
+   "consequence": "cite md-rt for the cone-sampling engine change and for the precedent of a ridge-only claim. Do not cite any of its numbers."
+  },
+  {
+   "claim": "md-rt shows drone echo energy falls with carrier frequency.",
+   "what_reading_shows": "the paper attributes the fall to 'atmospheric absorption' and then to free-space path loss in the same sentence. Those are different mechanisms, and the Friis frequency term is an aperture convention, not absorption. It is a link-budget statement about their antenna model, not a target-scattering result.",
+   "consequence": "not usable as a P4 anchor in either direction."
+  },
+  {
+   "claim": "The single dBsm curve in the Sionna corpus was validated against full-wave.",
+   "what_reading_shows": "ZIG-CONF p3: 'The usage of MLFMM is complicated for a car simulation due to the tremendous amount of time and memory required for simulation, so we use the PO solver.' MLFMM validated the SPHERES. The car - the only dBsm figure - was compared to FEKO's PO solver, which the same paragraph calls less accurate near forward scattering.",
+   "consequence": "never write 'the dBsm result was validated against full-wave'."
+  },
+  {
+   "claim": "Zhang's unified model sums facet RCS coherently.",
+   "what_reading_shows": "equation (8) is coherent (it carries exp(j2k r.c_i) and a relative phase), but the sentence immediately after it says the total 'can be obtained by incoherently summing the contributions from all facets'. The paper contradicts itself in two consecutive sentences.",
+   "consequence": "cite the equation, not the sentence."
+  },
+  {
+   "claim": "Costa's Fig. 2 comparison is at a 60 degree bistatic angle (or at 30).",
+   "what_reading_shows": "the body text says 'a geometric configuration with bistatic angles of 60 deg'; the caption of the same figure says beta = 30 deg.",
+   "consequence": "do not quote a bistatic angle for that figure."
+  },
+  {
+   "claim": "Kasdorf/Notaros 'Advancing accuracy of SBR' is a lead for our SBR accuracy.",
+   "what_reading_shows": "their accuracy problem is reception-cone sizing and wavefront double counting in propagation SBR. Our kernel has neither construct.",
+   "consequence": "ruled out as a method source; kept only for its 19 h vs 1 min runtime contrast and its curvature warning."
+  },
+  {
+   "claim": "Monte-Carlo SBR models glass with eps_r = 1.5.",
+   "what_reading_shows": "1.5 is glass's optical refractive index; eps_r would be about 2.25 optically and 5-7 at microwave. Either the symbol or the value is mislabelled. OUR READING.",
+   "consequence": "borrow their MECA formulation and their sampling rule, not their material table."
+  }
+ ],
+ "corrections_to_our_own_records": [
+  {
+   "record": "memory note 'md-rt does the same thing analytically from rigid-body angular velocity, so we know at least one published paper took this route' (also in the task brief for P3)",
+   "correction": "half right. The analytic derivation is rigid-body (r(t) = R0 + Vt + exp(omega_hat t) r0, f_D = (2f/c)[V + omega x r]_radial). But the RAY-TRACING side of md-rt never states how the propeller advances - step (5) of their loop is only 'update the target's velocity and position'. So md-rt is not a precedent for re-posing a blade mesh per rotor phase. The real precedents for that are full-wave: Costa's refs [14] (MoM/PO, 512 positions), [15] (FEM/MoM, 512 positions), [16] (full-wave, half a rotation), and the jees2021 MoM paper."
+  },
+  {
+   "record": "outputs P4 anchor lit_das_db_per_ghz = 0.21",
+   "correction": "CONFIRMED at source - it is the Phantom 2 monostatic slope and the Phantom 3 slope at every bistatic angle in Das Table III. But Table III contains 28 cells spanning -0.13 to +0.50 dB/GHz, so 0.21 is a representative value, not the measured range. Report the range."
+  },
+  {
+   "record": "outputs P4 anchor lit_mono3d_db_per_ghz = 0.315",
+   "correction": "CONFIRMED at source as 0.31 dB/GHz - it is the A(f) slope of Zhang's fitted DJI M350 model, A = -9.26 + 0.31 f dBsm, fitted over 10-36 GHz. Our band is 1.8-5.2 GHz, so the comparison is an extrapolation of theirs, not an overlap."
+  },
+  {
+   "record": "the brief's P7 line 'PO versus exact Mie stays within 1 dB only from kr >= 9.06'",
+   "correction": "not contradicted by Sagitta's kr >= 30, because the tolerances differ: Sagitta's floor buys about 2% amplitude error (~0.17 dB) while ours buys 1 dB (26% in power). State both, with their tolerances attached. Under Sagitta's tolerance every one of our airframes below kr 30 - which includes mini5pro at LTE at kr 8.4 - is outside the validated regime."
+  },
+  {
+   "record": "the brief's P6 line quoting Ziganshin's runtime sentence",
+   "correction": "the quote is verbatim and correct, but it needs its scope: 'In each case' = the three CAR scenarios, 10 GHz, 16610 facets, 360 angles, and the 'PO solver' is FEKO's commercial solver. Quoting it as a general PO-versus-RT law would be the same error class this workflow exists to stop."
+  },
+  {
+   "record": "corpus bookkeeping",
+   "correction": "ZHANG-M350-JSAC and DAS-WCL-2026 contain zero 'Sionna' occurrences and belong to the SECONDARY drone/RCS archive, not to the 140-paper Sionna corpus. Two of the three most useful rows in this file are therefore outside the primary corpus - the split the user drew is real, but our best method sources sit on the other side of it."
+  }
+ ],
+ "answers_per_blocker": {
+  "P1": {
+   "question": "how did each paper obtain a target signature at all",
+   "answer": "Four routes, all now read at the source. (1) BUILD IT ON THE STACK: Sagitta and Monte-Carlo SBR both write their own PO/MECA integrator over a graphics tracer - and MC-SBR says in one sentence that Mitsuba has no surface-current or PO support, which is the published version of our P1 claim and the justification for our architecture. (2) EXTEND THE ENGINE'S RAY PHYSICS: Ziganshin, on Sionna-RT v0.19, keeps everything inside the ray formalism and buys the missing field with diffraction coefficients. (3) BUY IT: LAMBDA queries a CADFEKO RCS file by UAV attitude and multiplies it into every path. (4) MEASURE IT: Costa builds a bistatic reflectivity library S21(f) of a real drone body and injects it.",
+   "the_gap_that_is_still_ours": "route (1) has never been applied to a drone by anyone in this archive, and routes (3) and (4) both collapse the signature to something less than a per-path bistatic quantity."
+  },
+  "P2": {
+   "question": "where did each paper get its target material values, and did it cite a measurement",
+   "answer": "Nobody sourced a TARGET material from a measurement. Three papers do something better than guessing: Hoydis makes (sigma, eps_r, S, K_x) differentiable and fits them to channel measurements, and MEASURES the penalty for not doing so - 4.93 dB mean absolute level error with the stock ITU table, 2.16 dB after calibration, 1.00 dB with position-dependent neural materials. MC-SBR replaces a scalar reflection coefficient with MECA equivalent currents derived from the material constants. jees2021 collapses carbon fibre to PEC and CITES two papers showing the dynamic RCS is nearly identical. Against those, md-rt's stock 'Wood' propeller and Costa's hand-tuned body ratio are weaker than our own annotated values.",
+   "actionable": "the Hoydis route is directly available to us: our kernel is already differentiable in Mitsuba, and the X410 campaign will produce the measurements. Expected gain from the only published measurement of this effect: 2.7-3.9 dB of absolute level error."
+  },
+  "P3": {
+   "question": "who else met this, and did anyone express rotation INSIDE the engine",
+   "answer": "Nobody expressed rotation inside the engine. Two credible workarounds exist and we should say which one we use and why. (a) ANALYTIC: Costa keeps rotation entirely in the signal model with a closed-form bistatic thin-wire integral, which is exact for a wire, free of any tracer, and validated against measurement at r = 0.98 - but it cannot carry shape or shadowing. (b) RE-POSE PER PHASE: jees2021 does exactly what our pose_articulated() does, in MoM, and makes it 157x cheaper by never rebuilding the impedance matrix (rotate the incidence direction instead of the propeller) and by deriving the CCW propeller from the CW one by a sign flip on the cross-polar terms. The published phase count for a revolution in this literature is 512.",
+   "actionable": "the jees invariance trick maps onto our PO kernel: for a blade sub-mesh, rotating the blade equals counter-rotating the incident direction in the blade frame, so facet areas and local normals never need rebuilding - only the incidence vector and the hub phase."
+  },
+  "P4": {
+   "question": "who closed the diffraction gap, what did it cost, what did it buy, is any of it usable by us",
+   "answer": "TWO FAMILIES. UTD family (Ziganshin): buys shadow-region field where a specular-only method returns nothing, at 15-27x runtime, with a residual MAE of 1.6-3.0 dB; it is architecturally incompatible with our PO kernel because it replaces rather than corrects the surface integral, and neither of his documents contains a frequency sweep, so it is NOT evidence about our band slope. PTD family (Kirik-Ozdemir algorithm, Ozturk derivation): an ADDITIVE fringe correction, E_tot = E_PTDEEC + E_PO, computed per ray whose hit point falls within lambda/10 of a detected convex edge, with an equivalent edge length dl = (1/rho_rd) d_max (cos t_i1 + cos t_i2). That is the one that bolts onto what we already have.",
+   "the_experiment_that_settles_our_slope": "Kirik-Ozdemir ran it: the same monostatic sweep 7.5-12.5 GHz at 100 points, with and without PTD, then IFFT to a range profile to confirm the added energy sits at the edges. They report it only as a figure with no dB values, so the number we need does not exist in the literature - we have to run it ourselves.",
+   "honesty": "our own arithmetic (in outputs/psolve_diffraction.json) predicts a frequency-flat edge term cannot by itself close a 3.5-8x slope excess. Nothing in this deep read contradicts that, and nothing supports it either. The with/without sweep is the falsifiable test."
+  },
+  "P5": {
+   "question": "who validated an absolute level, against what reference, and to what accuracy",
+   "answer": "The best answers are in the measurement papers, not the simulation papers. Das anchors to a machined 2.8 dBsm cylinder through a three-measurement chain (background, calibration body, target) with coherent background subtraction, sixth-order Kaiser range gating and a peak-power ratio, citing IEEE Std 1502-2020. Zhang anchors to a 0.5 m sphere and reports the residual: theory -7.07 dBsm, measured -8.96 dBsm, under 2 dB. On the simulation side: Sagitta gets within +/-2% of analytical Mie; MC-SBR gets within 0.01 dBsm^2 of deterministic SBR above 10 rays/lambda and within 1-2 dB overall; Ziganshin's only absolute comparison against measurement he calls qualitative.",
+   "the_number_to_carry": "about 2 dB is what a careful chamber chain achieves on a canonical body. Any absolute claim we make should be quoted with an uncertainty no smaller than that, and we currently have none at all."
+  },
+  "P6": {
+   "question": "what runtime did each paper report, and what did they trade away",
+   "answer_table": [
+    {
+     "work": "SAGITTA",
+     "hardware": "8 LUMI nodes, 32 AMD MI250X",
+     "scene": "A380, 162k triangles, 10 GHz, 30k x 30k rays, 100 bounces",
+     "cost": "616 ms per angle, 27 min for 125,000 angles",
+     "traded_away": "all diffraction, all dielectrics, all bistatic"
+    },
+    {
+     "work": "SAGITTA kernel split",
+     "hardware": "1 NVIDIA A100",
+     "scene": "A380, 18k x 18k rays",
+     "cost": "ray launch 98.96 ms FP32, PO integral 6.43 ms",
+     "traded_away": "n/a - shows the PO integral is 3-6% of the cost"
+    },
+    {
+     "work": "MC-SBR-MECA",
+     "hardware": "RTX 2070 Super 8 GB",
+     "scene": "nested dielectric, 101 frequencies 1-3 GHz, 9 bounces",
+     "cost": "2.82 s vs 11.0 s deterministic; 24.2 MiB vs 348.2 MiB",
+     "traded_away": "Monte Carlo noise in phase-cancellation regions"
+    },
+    {
+     "work": "ZIG-JOUR",
+     "hardware": "dual AMD EPYC 7343, 32 cores, CPU",
+     "scene": "vehicle 1496 facets, 360 angles, 2 GHz",
+     "cost": "0.7 s RT -> 19.0 s with full diffraction",
+     "traded_away": "27x runtime for 1.0 dB of shadow-region MAE"
+    },
+    {
+     "work": "ZIG-CONF",
+     "hardware": "not stated",
+     "scene": "car 16610 facets, 10 GHz, 360 angles",
+     "cost": "RT ~2 s vs FEKO PO solver ~1 day",
+     "traded_away": "accuracy near shadow, offsets up to 10 dB"
+    },
+    {
+     "work": "JEES-2021-MOM",
+     "hardware": "Intel i7-8700, 64 GB, MATLAB",
+     "scene": "one Mavic 2 propeller, 3600 rotation angles, 9.65 GHz",
+     "cost": "20:01:12 -> 00:07:40 (157x)",
+     "traded_away": "nothing - it is an exact algebraic invariance"
+    },
+    {
+     "work": "KASDORF-NOTAROS",
+     "hardware": "single-GPU desktop vs multi-GPU cluster",
+     "scene": "mine tunnel, 915 MHz",
+     "cost": "under 1 min vs over 19 h for FMM-FFT-SIE",
+     "traded_away": "full-wave rigour"
+    },
+    {
+     "work": "HOYDIS (IEEE version only)",
+     "hardware": "RTX 4090",
+     "scene": "indoor hallway measurement dataset",
+     "cost": "14 h dataset generation, 8-15 min per calibration run",
+     "traded_away": "n/a"
+    },
+    {
+     "work": "HOYDIS (arXiv version only)",
+     "hardware": "RTX 3090",
+     "scene": "synthetic scene, 3000 training steps",
+     "cost": "about 10 min",
+     "traded_away": "n/a"
+    }
+   ],
+   "reading": "the honest positioning for our own runtime is against Sagitta's 616 ms/angle for a full PO sweep of a 162k-triangle aircraft, and against Ziganshin's 53 ms/angle for a 1496-facet car with full diffraction on CPU. Both are public, both are for bodies far larger than ours."
+  },
+  "P7": {
+   "question": "did anyone state a validity floor for their high-frequency approximation, or check it",
+   "answer": "One paper states a number and proves it: Sagitta sweeps a PEC sphere against Mie across four decades of electrical size and finds the optical region begins at kr ~ 30 with about 2.5% standard deviation, with an upper aliasing bound at kr ~ 8e3 for a fixed ray grid. Ozturk's thesis gives the same story for the EDGE term, measured on discs at ka = 5, 10, 15: agreement improves with radius because a small disc lets the fringe current re-diffract. Zhang states the ka taxonomy without a number. Ziganshin substitutes a FACET-size rule (E > 1.5 lambda) for a target-size rule, which is a different constraint.",
+   "consequence_for_us": "we now have three independent, citable floors of different kinds - target electrical size (kr), facet edge length (E > 1.5 lambda), and ray-grid spacing (lambda/5 or 10 rays/lambda). We should state all three for every airframe and every band, and name the ones we fail."
+  },
+  "P8": {
+   "question": "who computed bistatic scattering in a ray engine, and did they check reciprocity or symmetry",
+   "answer": "Ziganshin computed it (both documents, all bistatic angles, near and far field) and never checked reciprocity. Sagitta declined to compute it and said why, in footnote 1 on p4: a bistatic calculation needs a visibility function for shadowing between the reflection points and the receiver, which the monostatic case can omit because the scattering surfaces are by assumption visible to the co-located launcher and receiver. That footnote is the published diagnosis of our exit-visibility effect. Nobody in this file ran a reciprocity or symmetry test on their own scattering kernel.",
+   "what_the_measurements_say_about_the_bistatic_axis": "Das: monostatic mean RCS is consistently the highest, and going to 90 deg bistatic costs only about 1-2 dB of mean target path loss while frequency costs 3-15 dB and platform type up to 30 dB. Costa measured a full drone bistatic reflectivity surface from 10 to 180 deg at 5.78-8.22 GHz. So the bistatic dimension is real but shallow in the mean - which makes our beta <= 45 deg restriction cheap to defend and cheap to test."
+  }
+ },
+ "reimplementation_shortlist_ranked_by_value_over_effort": [
+  {
+   "rank": 1,
+   "item": "PTD-EEC additive edge term on our existing PO kernel",
+   "source": "KIRIK-OZDEMIR-2019 for the algorithm and the SBR-specific bookkeeping; OZTURK-BILKENT-2002 sections 3.3-3.4 for the backscattering closed forms and E_tot = E_PTDEEC + E_PO",
+   "effort": "edge extraction from our meshes (neighbouring facets sharing 2 vertices, diverging normals, 30 deg threshold) + a per-ray d_hit <= lambda/10 test + the fringe coefficient evaluation",
+   "first_deliverable": "not a fix - a DIAGNOSTIC: run our existing band sweep with and without the edge term and compare the slope, exactly as Kirik-Ozdemir Fig. 8(b), plus the range-profile check that the added energy lands on edges",
+   "risk": "equation (3) of Kirik-Ozdemir has a probable typesetting error in its polarization unit vectors; re-derive from Griesser & Balanis TAP 1987 first"
+  },
+  {
+   "rank": 2,
+   "item": "absolute-level anchoring against a canonical body",
+   "source": "DAS-WCL-2026 procedure + ZHANG-M350-JSAC residual",
+   "effort": "run our own kernel on a PEC sphere and a PEC cylinder of the calibration dimensions and compare against Mie and the closed form; in the field campaign, put a 2.8 dBsm cylinder on the pad",
+   "why_now": "our slope_only mode moves the level by exactly 0.0000 dB. Until a canonical body has been through the same kernel, the absolute sigma is unexamined, and the literature says even a good chamber chain lands about 2 dB off."
+  },
+  {
+   "rank": 3,
+   "item": "the three sampling / validity floors, evaluated per airframe per band",
+   "source": "SAGITTA (kr >= 30 at 2%; ds <= lambda/5), MC-SBR-MECA (10 rays/lambda strata), ZIG-JOUR (E > 1.5 lambda, E^2/(R lambda) in 0.6-0.9)",
+   "effort": "pure bookkeeping over meshes we already have",
+   "payoff": "converts P7 from an admission into a table, and tells us immediately whether our ray density is the reason for anything"
+  },
+  {
+   "rank": 4,
+   "item": "rotation-invariant re-posing for propeller phases",
+   "source": "JEES-2021-MOM",
+   "effort": "restructure pose_articulated so the blade sub-mesh geometry is built once and only the incidence direction and hub phase change; exploit the CW/CCW mirror relation",
+   "payoff": "their measured speedup on the analogous operation was 157x; ours will be smaller because PO is cheaper than a matrix fill, but the phase sweep is our dominant cost"
+  },
+  {
+   "rank": 5,
+   "item": "MECA instead of five hand-chosen gamma_po scalars",
+   "source": "MC-SBR-MECA",
+   "effort": "replace the scalar reflection coefficient with electric and magnetic equivalent currents derived from (eps_r, sigma) by the surface equivalence principle",
+   "payoff": "turns P2 from 'our own modelling choices' into 'standard dielectric PO with stated constants'; the constants remain unsourced, which is why Hoydis-style calibration is the follow-on"
+  },
+  {
+   "rank": 6,
+   "item": "differentiable material calibration once measurements exist",
+   "source": "HOYDIS-LEARN-RT",
+   "effort": "large - needs the X410 campaign first",
+   "payoff": "the only published measurement of the P2 penalty says 4.93 dB -> 2.16 dB -> 1.00 dB"
+  },
+  {
+   "rank": 7,
+   "item": "cone-restricted ray launch at the target",
+   "source": "MD-RT",
+   "effort": "small; we already aim an orthographic aperture at the AABB, so the gain over what we do is limited - but it is the published answer to 'too few rays hit a small target', and Sagitta's note that only 5-10% of rays hit is the same problem seen from the other side"
+  }
+ ],
+ "verification": {
+  "method": "for every {page, q} pair in the papers array, open the named PDF with PyMuPDF, extract that page's text, collapse whitespace on both sides, and require the quote to be a substring.",
+  "quotes_checked": 141,
+  "verified": 141,
+  "failed": 0,
+  "failures": [],
+  "page_corrections_made_during_verification": [
+   "ZIG-JOUR BIRA sentence: the word 'measurements' is hyphen-split across a line as 'mea-/surements'; quote adjusted, page 7 confirmed",
+   "ZIG-CONF sphere MLFMM one-hour sentence: originally recorded as p3, actually p4",
+   "ZIG-CONF 'offsets up to 10 dB': originally recorded as p4, actually p5",
+   "SAGITTA '+/-2% of the analytical solution': spans the p8/p9 break, the fragment is on p9",
+   "ZHANG sphere calibration sentence: a figure caption interleaves between 'The theoretical' and 'RCS is -7.07 dBsm' in the page's reading order, so the quote begins at 'RCS is'"
+  ],
+  "non_text_layer_evidence_declared": [
+   "DAS Table I and Table III have NO text layer. Their values in this file were read from 300 and 400 dpi renders of pages 2 and 4 of the PDF. Labelled IMAGE-READ. They are the P4 slope anchors, so this matters.",
+   "ZIG-JOUR Fig. 5 MAE range (0 to 8 dB) is read from axis tick labels in the text layer. Labelled AXIS-READ. Table I is the number to quote instead.",
+   "HOYDIS Table II values were matched by row order from bare tokens in the text layer. Labelled TABLE-READ.",
+   "KASDORF-NOTAROS equations (1)-(4) do not extract at all - the symbols are missing from the text layer. No equation from that paper is quoted here."
+  ]
+ },
+ "caveats": [
+  "SCOPE: local archive only. 14 works / 15 PDFs opened in this pass, out of roughly 220 unique PDFs on the shelf. Absence from this file is absence from our shelf, not from the literature.",
+  "Two of the three most useful method sources for us (Sagitta, Monte-Carlo SBR) and both measurement anchors (Das, Zhang) contain ZERO Sionna mentions. The user's corpus split is real, but it does not align with where the reusable method lives.",
+  "Nothing in this file resolves our P4 band slope. The only with/without-diffraction frequency experiment in the archive (Kirik-Ozdemir Fig. 8b) is reported without numbers. The experiment has to be ours.",
+  "No paper in this file ran a reciprocity check on its own kernel, so our P8 window has no precedent to be measured against - only Sagitta's stated reason for why bistatic is harder.",
+  "Every 'nobody did X' in this file is scoped to the 14 works opened here plus the machine census already recorded in outputs/psolve_signature.json, psolve_diffraction.json, psolve_material.json and psolve_motion.json."
+ ],
+ "papers": [
+  {
+   "id": "ZIG-JOUR",
+   "short": "Ziganshin et al., JOURNAL PREPRINT - Sionna-RT v0.19 extended with vertex + double-edge + heuristic edge-vertex diffraction",
+   "title": "Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications",
+   "authors": "A. Ziganshin, E. M. Vitucci, W. Kotterman, R. Thomae, C. Schneider, V. Degli-Esposti (TU Ilmenau + Univ. Bologna)",
+   "venue_status": "arXiv:2604.05991v2 [eess.SP] 2 Jul 2026; stated on p1 as 'a preprint version of a manuscript submitted to the IEEE Open Journal of Antennas and Propagation'. NOT published.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+   "duplicate_in_archive": {
+    "path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications .pdf",
+    "check": "sha1 of both files = dbf294e641e939d05c99b62480bd0dbf90b1e0ed - BYTE IDENTICAL, one work, not two"
+   },
+   "pages": 11,
+   "opened": "FULL - all 11 pages read line by line including Appendix A",
+   "blockers_faced": [
+    "P1 (needs a target signature)",
+    "P4 (diffraction - this IS the paper)",
+    "P5 (absolute level vs measurement + MLFMM)",
+    "P6 (runtime table)",
+    "P8 (bistatic, all angles)"
+   ],
+   "blockers_not_on_their_path": [
+    "P2 - everything is PEC, so no material parameters exist to source",
+    "P3 - static vehicle, no motion (listed as open challenge no.4)",
+    "P7 - a car at 2-10 GHz is never electrically small"
+   ],
+   "method_what_they_actually_implemented": {
+    "base": "Sionna-RT v0.19 (the pre-1.0 TensorFlow line). Stock capability they name: specular reflection + single-bounce UTD edge diffraction.",
+    "added": [
+     "V  - UTD VERTEX diffraction, coefficient of Albani/Capolino/Carluccio/Maci TAP 2009 [ref 22]",
+     "EE - double-edge diffraction, uniform coefficient of Albani TAP 2005 [ref 23], RESTRICTED to coplanar/parallel adjacent edges (closed-form diffraction points exist); non-coplanar case needs numerical optimisation and is NOT implemented",
+     "EV / VE - cascaded edge-vertex and vertex-edge, NO rigorous formulation exists in the literature, so a HEURISTIC cascade with an adjusted transition function is used",
+     "NOT implemented: vertex-vertex, creeping wave (rejected as too expensive), 3rd and higher order"
+    ],
+    "code": "https://github.com/AinurZiga/sionna-RT-reflectivity  (ref [29], 'accessed: 2026-03-31')",
+    "assumption": "everything PEC; omnidirectional antennas; windows, mirrors, wheels removed from the vehicle mesh"
+   },
+   "equations_as_printed_appendix_A": {
+    "note": "Appendix A gives the STRUCTURE of the coefficients, not full expressions. To reimplement you must go to refs [21][22][23]; the paper is explicit that it only 'emphasiz[es] the structure of the diffraction coefficients and associated transition functions'.",
+    "edge_UTD_eq1": "D_E ~ sum_{i=1..4} cot( Phi_i / 2n ) F(a_i);  Phi = pi +/- (phi -/+ phi'); wedge angle = (2-n)pi; F = UTD transition function",
+    "vertex_eq2": "D_V ~ sum_{i=1..4} B(Phi_i) T_GFI(b, a_i);  cot replaced by trigonometric B(Phi); T_GFI = Generalized Fresnel Integral; b = optical distance between vertex and edge rays, a as in edge case",
+    "double_edge_eq3": "D~_EE ~ sum_{i,j} cot(Phi_1i/2n1) cot(Phi_2j/2n2) T~(a_i,b_j,w)   [hard component]",
+    "double_edge_eq4": "D~~_EE ~ sum_{i,j} csc^2(Phi_1i/2n1) csc^2(Phi_2j/2n2) T~~(a_i,b_j,w)   [soft component; asymptotically weaker OUTSIDE transition regions but same order near double transitions]",
+    "edge_vertex_eq5": "D_EV ~ sum_{i,j} cot(Phi_1i/2n1) B(Phi_2j) T_EV(a_i, b, c_j, w)",
+    "the_heuristic_rule_verbatim_structure": "T_EV outside the transition region = F(a)*T_GFI(c,b); close to the edge transition = F(a)*T_GFI(c, b/sqrt(1-w^2)); LINEAR INTERPOLATION between the two regimes",
+    "stated_limitation_of_the_heuristic": "EV/VE chaining can only describe the HARD diffraction component; the soft component cannot be represented"
+   },
+   "discretisation_rule_the_transferable_part": {
+    "derivation": "facet chord of length E on a surface of local curvature radius R deviates from the arc by s ~ E^2/R; the EM-relevant quantity is the phase error 2*pi*s/lambda, so the mesh-computable proxy is E^2/(R*lambda)",
+    "operating_ranges_found_empirically": {
+     "backscatter": "accuracy improves as the mesh is refined but the gain becomes marginal once E^2/(R*lambda) ~ 0.5",
+     "shadow": "excessively fine meshes are COUNTERPRODUCTIVE (2nd-order diffraction cannot reach far enough); coarse meshes reproduce shadow behaviour well",
+     "single_mesh_for_both": "E^2/(R*lambda) approx 0.6 - 0.9",
+     "second_independent_rule": "E > 1.5*lambda so that the UTD large-edge assumption is not violated"
+    },
+    "remeshing_tool": "curvature-adaptive variational anisotropic remeshing, Levy & Bonneel, Int. Meshing Roundtable 2013 [ref 32]",
+    "why_we_care": "This is a citable, mesh-computable discretisation criterion. We currently have NO published criterion for our drone meshes. Note it is derived for UTD facet diffraction, NOT for PO integration - our sampling constraint is different (see SAGITTA lambda/5 and MC-SBR 10 rays/lambda)."
+   },
+   "validation_setups": {
+    "canonical": "PEC circular cylinder and sphere of radius 7*lambda at 2 GHz; plane-wave illumination; observation on a circle at 40.0*lambda, 0.5 deg step = 720 points; MAE in dB between angular field responses; 20 dB penalty assigned where the RT configuration predicts NO path at all",
+    "references_used": "analytical smooth-body solutions (Balanis) AND FEKO MLFMM on the SAME discretised mesh (which isolates the RT modelling error from the discretisation error)",
+    "vehicle_backscatter": "Mitsubishi i-MiEV measured on the BIRA bistatic reflectivity setup, 2-18 GHz, 1 deg resolution, antennas at 3.0 m, 0.75 m above the car bottom; post-processing = background subtraction + time-delay gating on the car dimensions + LOS calibration; comparison shown at 3 GHz HH only (band edges have calibration uncertainty). Detailed mesh 1496 facets, E^2/(R*lambda) approx 0.4-0.6 at 3 GHz; low-poly 220 facets",
+    "vehicle_shadow": "low-poly 220-facet car vs FEKO MLFMM, 2 GHz VV, source at 20 m, observation circle radius 20 m, 1 deg step, heights 0.6 m",
+    "why_MLFMM_not_used_for_the_measurement_comparison": "'the available full-wave setup does not reproduce the measured antenna patterns, which would make a direct comparison misleading' (p7)"
+   },
+   "accuracy_numbers": {
+    "cylinder_shadow_MAE_dB": {
+     "standard_RT": 2.3,
+     "plus_EE": 0.8,
+     "config": "coarse mesh E^2/(R*lambda)=1.39, HH"
+    },
+    "sphere_shadow_MAE_dB_fig4d": {
+     "V_plus_EE": 3.5,
+     "V_plus_EE_plus_EV_VE": 2.2,
+     "config": "E^2/(R*lambda)=1.34"
+    },
+    "sphere_shadow_MAE_dB_table_I": {
+     "HH": {
+      "V": 7.3,
+      "V+EE": 4.0,
+      "V+EE+EV+VE": 3.0
+     },
+     "VV": {
+      "V": 8.3,
+      "V+EE": 3.2,
+      "V+EE+EV+VE": 2.7
+     },
+     "scope": "average over discretisations with E^2/(R*lambda) > 0.6 only"
+    },
+    "vehicle_shadow_MAE_dB_vs_MLFMM": {
+     "V+EE": 2.6,
+     "V+EE+EV+VE": 1.6
+    },
+    "vehicle_backscatter_vs_measurement": "NO NUMBER GIVEN. The author downgrades it to a qualitative comparison.",
+    "fig5_MAE_curve": "MAE vs E^2/(R*lambda) for 4 curves spans roughly 0 to 8 dB - READ OFF THE AXIS TICK LABELS in the text layer, not from a table. Do not quote to a decimal."
+   },
+   "runtime_table_II_seconds": {
+    "hardware": "dual-socket AMD EPYC 7343, 32 physical cores, CPU only; mean of 5 independent runs; all observation points processed in parallel inside one RT run",
+    "columns": [
+     "RT",
+     "+V",
+     "+EE",
+     "+EV/VE"
+    ],
+    "Sphere_156_facets_720_pts": [
+     0.3,
+     1.1,
+     1.8,
+     4.6
+    ],
+    "Sphere_346_facets_720_pts": [
+     0.4,
+     1.8,
+     3.1,
+     6.8
+    ],
+    "Vehicle_220_facets_360_pts": [
+     0.4,
+     0.9,
+     2.4,
+     5.0
+    ],
+    "Vehicle_1496_facets_360_pts": [
+     0.7,
+     3.6,
+     10.2,
+     19.0
+    ],
+    "cost_of_the_physics": "full diffraction set costs 12.5x (vehicle 220) to 27x (vehicle 1496) the bare RT run; on the detailed vehicle the absolute cost is 19.0 s for 360 angles = 53 ms/angle",
+    "full_wave_contrast": "'each of the MLFMM simulations in this study took several hours' - no exact figure",
+    "complexity_law_stated": "single-edge diffraction O(Ne), second-order O(Ne^2)",
+    "caveat_the_author_puts_on_his_own_numbers": "runtimes are for the Sionna-RT v0 implementation; the Dr.Jit v2 rearchitecture is expected to speed this up"
+   },
+   "frequency_sweep": "NONE. Two single frequencies only (2 GHz canonical / shadow, 3 GHz measurement). There is NO band-slope evidence in this document. Do not cite it for P4 frequency behaviour.",
+   "prints_dBsm": false,
+   "dBsm_machine_count_in_this_document": 0,
+   "open_challenges_he_lists_p9": [
+    "more rigorous higher-order diffraction + transmission through dielectrics",
+    "extension to concave and non-PEC structures",
+    "hybrid deterministic-stochastic for large scale",
+    "modeling of time-varying substructures (micro-Doppler) - and he cites Costa's drone paper [34] for it",
+    "gradient-based calibration of digital environments from channel measurements - he cites Hoydis [35]"
+   ],
+   "what_transfers_to_us": [
+    "The E^2/(R*lambda) = 0.6-0.9 + E > 1.5*lambda discretisation criterion is directly computable on our drone meshes and is the only published mesh-quality rule in the corpus.",
+    "His penalty convention (20 dB where no path exists) is a fair way to score a method that can return nothing - our SBR returns zero energy in shadow and we currently have no scoring convention.",
+    "His validation ladder - analytical smooth body, then MLFMM on the SAME mesh, then measurement - separates discretisation error from method error. We have never run the middle rung.",
+    "His shadow-region MAE ladder gives us the honest expected accuracy of a ray method with full diffraction: 1.6-3.0 dB, not 0.5 dB."
+   ],
+   "direct_published_objection_to_our_architecture": {
+    "spans_page_break": "the sentence begins at the foot of p1 and completes at the head of p2 - cite as pp. 1-2",
+    "text": "This SBR+PO approach, however, is limited to the illuminated region and is not suitable to predict the scattered field in the shadow region of the obstacle. Furthermore, the need to cascade PO after RT negates the computational advantages of RT.",
+    "our_answer_should_be": "(a) forward-scatter/shadow is not our claim window - we compute a monostatic and restricted-bistatic signature, and Sagitta's footnote says the same about monostatic SBR; (b) the runtime objection is refutable with our own GPU numbers, and his own Table II shows his route costs 15-27x while ours amortises the PO integral over the same ray pass."
+   },
+   "quotes": [
+    {
+     "page": 1,
+     "q": "This SBR+PO approach, however,"
+    },
+    {
+     "page": 2,
+     "q": "is limited to the illuminated region and is not suitable to\npredict the scattered field in the shadow region of the obstacle."
+    },
+    {
+     "page": 2,
+     "q": "Furthermore, the need to cascade PO after RT negates the\ncomputational advantages of RT."
+    },
+    {
+     "page": 2,
+     "q": "All objects considered in this work\nare assumed to be perfectly electrically conducting (PEC)"
+    },
+    {
+     "page": 3,
+     "q": "Sionna-RT (v0.19) [19] was used as a basic RT framework"
+    },
+    {
+     "page": 3,
+     "q": "The standard RT tool has been\ncustomized with several diffraction methods"
+    },
+    {
+     "page": 3,
+     "q": "In this work, double-edge\ndiffraction is restricted to this case."
+    },
+    {
+     "page": 3,
+     "q": "Since a\nrigorous formulation of EV/VE diffraction is not available in\nthe literature, a heuristic cascading approach is adopted."
+    },
+    {
+     "page": 4,
+     "q": "the deviation can be estimated from the\ngeometric distance between a small arc and its corresponding\nchord of length E."
+    },
+    {
+     "page": 4,
+     "q": "In addition to the curvature-related metric, the facet size\nshould be of several wavelengths in order to satisfy the UTD\nassumptions, typically E > 1.5"
+    },
+    {
+     "page": 5,
+     "q": "Standard RT cor-\nresponds to the default Sionna-RT implementation with specu-\nlar reflections and single-bounce edge diffraction"
+    },
+    {
+     "page": 5,
+     "q": "Observation points are located on the circle around the object\nat a distance of 40.0"
+    },
+    {
+     "page": 5,
+     "q": "The inclusion of double-edge diffraction (green curve) improves\nthe prediction from 2.3 to 0.8 dB of MAE"
+    },
+    {
+     "page": 6,
+     "q": "MAE improves from 3.5 to 2.2 dB."
+    },
+    {
+     "page": 6,
+     "q": "For observation angles where\nno valid propagation path is predicted by the considered RT\nconfiguration, a penalty error of 20 dB is assigned."
+    },
+    {
+     "page": 7,
+     "q": "provides a practical compromise\nbetween accuracy in both regions"
+    },
+    {
+     "page": 7,
+     "q": "surements were performed using the BIRA bistatic\nreflectivity setup [4] with frequency range 2-18 GHz."
+    },
+    {
+     "page": 7,
+     "q": "The comparison should be interpreted as a qualitative val-\nidation rather than an attempt to exactly reproduce the mea-\nsurements."
+    },
+    {
+     "page": 7,
+     "q": "Inclusion of EV\nand VE combinations (green) helps further improve the result,\nMAE from 2.6 to 1.6 dB."
+    },
+    {
+     "page": 8,
+     "q": "The computational performance was evaluated on a\ndual-socket AMD EPYC 7343 CPU platform with 32 physical\ncores. Reported runtimes correspond to the average of 5\nindependent runs."
+    },
+    {
+     "page": 8,
+     "q": "each of the\nMLFMM simulations in this study took several hours."
+    },
+    {
+     "page": 8,
+     "q": "It should also be noted that the reported runtimes correspond\nto the current Sionna-RT v0 implementation."
+    },
+    {
+     "page": 10,
+     "q": "A limitation of the proposed direct chaining method is that it\ncan only describe the hard diffraction component, so at the\nmoment the soft component cannot be represented."
+    },
+    {
+     "page": 11,
+     "q": "https://github.com/AinurZiga/"
+    }
+   ]
+  },
+  {
+   "id": "ZIG-CONF",
+   "short": "Ziganshin et al., EuCAP 2025 CONFERENCE - PUBLISHED - vertex diffraction ONLY; the single dBsm curve in the whole Sionna corpus",
+   "title": "Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC",
+   "authors": "A. Ziganshin, E. M. Vitucci, S. J. Myint, W. Kotterman, C. Schneider, V. Degli-Esposti, R. Thomae",
+   "venue_status": "Proc. EuCAP 2025, pp. 1-5, IEEE. PUBLISHED. Every page carries an IEEE Xplore download stamp (DGIST, 23 Jul 2026). DOI 10.23919/EuCAP63536.2025.10999367 per our records (the DOI is not printed in the PDF text layer).",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+   "pages": 5,
+   "opened": "FULL - all 5 pages read line by line",
+   "blockers_faced": [
+    "P1",
+    "P4",
+    "P5 (vs FEKO, not vs measurement)",
+    "P6 (the famous runtime sentence)",
+    "P8"
+   ],
+   "method_what_they_actually_implemented": {
+    "base": "Sionna RT [ref 11 = Hoydis GLOBECOM 2023]. 'Wedge diffraction is implemented there using UTD'.",
+    "added": "Vertex Diffraction (VD) ONLY, per Albani TAP 2009. NO double-edge, NO EV/VE. That is the whole delta in this document.",
+    "implementation_notes_useful_for_reimplementation": [
+     "the VD coefficient for one vertex is the sum of per-wedge components over the wedges meeting at that vertex",
+     "the azimuth/elevation angle computation and the polarization dyadics are IDENTICAL to the regular wedge UTD, so wedge data structures and code are reused verbatim - this is why the extension was cheap",
+     "the Generalized Fresnel Integral is evaluated with the piecewise closed-form approximations of Capolino & Maci, MOTL 1995 [ref 13], which reduce the GFI to an ordinary Fresnel integral with known polynomial approximations"
+    ],
+    "code": "not cited in this document (the GitHub link appears only in the journal preprint)"
+   },
+   "geometries": {
+    "spheres": "icosphere generator github.com/vedranaa/icosphere [ref 10]; ORIGINAL sphere radius 12.8*lambda (NOT 7*lambda as in the journal); under-discretised = 80 facets / 120 edges / 42 vertices / avg facet 7.5*lambda; over-discretised = 4500 facets / 6750 edges / 2252 vertices / avg facet 1.0*lambda",
+    "car": "CAD-drawn simplified homogeneous car, no windows, no interior, 5264 vertices / 16610 facets / 21018 edges, avg facet ~2*lambda at 10 GHz, 3.3 x 2.1 x 1.7 m (LxWxH). THIS IS NOT THE i-MiEV MESH OF THE JOURNAL.",
+    "all_PEC": true,
+    "polarization": "vertical in all simulations"
+   },
+   "validation_setups": {
+    "spheres": "2 GHz, plane-wave incidence, RX on a circle at 20*lambda from the sphere CENTRE (7.2*lambda from its surface), 0.5 deg step, 720 points; reference = FEKO MLFMM, plus the analytical smooth-sphere solution for the over-discretised case",
+    "car": "10 GHz, RX on a circle, 1 deg step, 360 points, three cases: (1) 3.0 m distance, 1.2 m height; (2) 3.0 m distance, 0.6 m height; (3) far field both ends -> reflectivity becomes RCS. Reference = FEKO PO SOLVER",
+    "CRITICAL_SCOPE_NOTE": "MLFMM was used ONLY for the spheres. The car - i.e. the only object for which a dBsm curve is printed - was compared against FEKO's PO solver because 'the usage of MLFMM is complicated for a car simulation due to the tremendous amount of time and memory required'. NEVER write that the dBsm result was validated against full-wave."
+   },
+   "accuracy_numbers": {
+    "under_discretised_sphere": "RT+UTD alone is accurate only in roughly 20-65 deg where reflections and wedge diffraction are strong; elsewhere discontinuous. Adding VD 'increases the overall accuracy and resolves most of the discontinuities'. No MAE is reported anywhere in this document.",
+    "over_discretised_sphere": "'a significant offset up to 5 dB can be seen before the transition as well, beginning at 115 degrees'",
+    "car": "'occasional offsets up to 10 dB can happen'",
+    "shadow_region": "inaccurate in all cases - the paper says slope or creeping diffraction would be needed and is not implemented"
+   },
+   "runtime": {
+    "sphere_MLFMM": "around one hour",
+    "sphere_RT_under_discretised": "less than a second",
+    "sphere_RT_over_discretised": "around 5 seconds",
+    "car_FEKO_PO_solver": "around one day (per case, 3 cases)",
+    "car_RT": "about two seconds",
+    "hardware": "NOT STATED anywhere in this document - only 'similar computational facilities'",
+    "SCOPING_THE_FAMOUS_SENTENCE": "The sentence our records quote begins 'In each case,' - the cases are the three CAR scenarios at 10 GHz on a 16610-facet mesh with 360 observation angles, and the 'PO solver' is FEKO's commercial PO solver, not a research PO kernel. It is NOT a general statement that PO costs a day and RT costs seconds."
+   },
+   "prints_dBsm": true,
+   "dBsm_evidence": "Fig. 6 y-axis 'RCS (dBsm)' spanning -40 to +40, legend 'EM (PO)' vs 'RT+UTD+VD', caption 'Fig. 6: RCS of the simplified car'. Machine count over the 140-PDF Sionna corpus: 'dBsm' appears in exactly 1 document, this one.",
+   "the_sentence_that_points_at_us": "The conclusion says the method 'can also be applied to compute scattering from other objects, such as drones, humans, and micro-Doppler effects, making it an important area for further investigation.' As of this archive nobody, including him, has done the drone case.",
+   "quotes": [
+    {
+     "page": 1,
+     "q": "This is a key difference compared\nto Radar Cross-Section (RCS), which is a real-valued distance-\nindependent far-field power measure"
+    },
+    {
+     "page": 2,
+     "q": "The radius of an original sphere is chosen as 12.8"
+    },
+    {
+     "page": 2,
+     "q": "with 80 facets, 120 edges, and 42 vertices, with the resulting\naverage facet size around 7.5"
+    },
+    {
+     "page": 2,
+     "q": "The model\nconsists of 5264 vertices, 16610 facets, and 21018 edges."
+    },
+    {
+     "page": 2,
+     "q": "An open-source parallelizable framework, Sionna RT [11],\nis utilized to conduct simulations."
+    },
+    {
+     "page": 2,
+     "q": "This framework has been extended with Vertex\nDiffraction (VD) in accordance with [8]."
+    },
+    {
+     "page": 2,
+     "q": "Fast\ncomputation of the GFI can be found, for example, in [13]"
+    },
+    {
+     "page": 3,
+     "q": "The usage of MLFMM is complicated for a car simulation\ndue to the tremendous amount of time and memory required\nfor simulation, so we use the PO solver."
+    },
+    {
+     "page": 4,
+     "q": "The EM simulation\nwith MLFMM solver takes around one hour, while for the\nadvanced RT tool with similar computational facilities, it is\nless than a second."
+    },
+    {
+     "page": 4,
+     "q": "a\nsignificant offset up to 5 dB can be seen before the transition\nas well, beginning at 115 degrees."
+    },
+    {
+     "page": 4,
+     "q": "The EM simulation with MLFMM solver is still carried out\nin around one hour, while it is around 5 seconds for RT."
+    },
+    {
+     "page": 4,
+     "q": "In each case, the simulation time for the PO solver is around\none day, whereas the RT simulation takes only about two\nseconds, highlighting a clear performance advantage for RT."
+    },
+    {
+     "page": 5,
+     "q": "Although occasional offsets up to 10 dB\ncan happen, results remain smooth and behave realistically."
+    },
+    {
+     "page": 5,
+     "q": "RCS (dBsm)"
+    },
+    {
+     "page": 5,
+     "q": "Fig. 6: RCS of the simplified car"
+    },
+    {
+     "page": 5,
+     "q": "The third case assumes computing RCS by putting Tx\nand RXs in the far-field; RXs are elevated by 1.2 meters."
+    },
+    {
+     "page": 5,
+     "q": "The pro-\nposed solution can also be applied to compute scattering from\nother objects, such as drones, humans, and micro-Doppler\neffects"
+    }
+   ]
+  },
+  {
+   "id": "SAGITTA",
+   "short": "Pasquale, Hu, Pennati, Peng, Markidis (KTH) - a GO+PO SBR monostatic RCS engine with BVH, GPU and MPI. Architecturally OUR TWIN, and it has ZERO Sionna mentions.",
+   "title": "BVH-Accelerated Ray Tracing for High-Frequency Electromagnetic Backscattering",
+   "venue_status": "arXiv:2604.09243v1 [cs.CE] 10 Apr 2026; 'extended version of the paper accepted at the 26th International Conference on Computational Science (ICCS 2026)'",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+   "pages": 14,
+   "opened": "FULL - all 14 pages read",
+   "corpus": "SECONDARY (RCS/drone archive). Machine count: 'Sionna' 0, 'physical optics' 5, 'dBsm' 2.",
+   "blockers_faced": [
+    "P1 (they build the same signature kernel we do)",
+    "P4 (met it and DECLINED it, explicitly, as future work)",
+    "P6 (the only large GPU runtime budget in the archive)",
+    "P7 (the only quantified validity floor)",
+    "P8 (met it in a footnote and declined it)"
+   ],
+   "method_what_they_actually_implemented": {
+    "pipeline": "trace-then-integrate, four stages: (1) orthographic ray grid sampling, (2) BVH-accelerated intersection queries, (3) iterative multi-bounce transport writing a compact hit record, (4) PO accumulation as a reduction over VALID hit records only",
+    "ray_launch": "for each incident direction (theta,phi) an ORTHOGRAPHIC bundle from a virtual aperture plane orthogonal to k_inc; basis {u,v,k_inc}; aperture extents L_u, L_v from projecting the 8 corners of the mesh AABB onto u and v, inflated by (1+eta); Cartesian grid with spacing ds; N_rays = ceil(Lu~/ds)*ceil(Lv~/ds); each ray carries area weight dA = ds^2",
+    "PO_sum_eq7": "A = sum_i  [ j*k*dA/(4*pi) ] * 2 * ( n_i . (-k_inc) ) * Gamma^{N_i} * exp(-j*2*k*R_i);  sigma = 4*pi*|A|^2, reported as 10log10(sigma) dBsm",
+    "symbol_meanings": "n_i = surface normal at the FIRST interaction; R_i = accumulated optical path length INCLUDING reflections; N_i = number of reflections; Gamma = a reflection coefficient that may depend on polarization and incidence angle, raised to the power of the bounce count",
+    "PO_current": "J_s = 2 n x H_inc on the lit region, 0 in shadow (tangent-plane approximation); far field via Stratton-Chu",
+    "no_spreading_factors": "'Rather than tracking ray tube divergence through spreading factors, we control integration error through the density of the incident ray grid' - accuracy is converted into a pure resolution requirement",
+    "traversal": "explicit fixed-size stack, no recursion; specular update d_new = d - 2(d.n)n; origin offset by epsilon along the normal to avoid self-intersection; B_max bounces (100 used for the aircraft, to capture engine intakes)",
+    "BVH": "built once per mesh, reused for all angles; two split rules: median-of-centroids along the longest AABB axis, or binned Surface Area Heuristic C_SAH = C_T + (SA(L)/SA(P))*N_L*C_I + (SA(R)/SA(P))*N_R*C_I; nodes linearised preorder; leaves reference contiguous triangle ranges; built with OpenMP tasks and an atomic node pool",
+    "parallelism": "angular sweep distributed across MPI ranks (embarrassingly parallel); every rank holds the full mesh + BVH, so problem size is bounded by ONE GPU's memory",
+    "code": "https://github.com/marco-pas/SagittaSBR (C++/CUDA, HIP for AMD)"
+   },
+   "the_sampling_rule_we_should_adopt_or_refute": {
+    "rule": "ds <= lambda/5, i.e. at least five ray samples per wavelength across the incident aperture",
+    "failure_mode_it_prevents": "spatial ALIASING of the phase term in the discrete PO sum, which shows up as non-physical oscillations and incorrect nulls in the RCS pattern - and which they warn is routinely MISDIAGNOSED as floating-point precision loss",
+    "cost_law": "ray count grows O(ds^-2), quadratic in frequency",
+    "empirical_proof": "holding the grid fixed through a frequency sweep, the lambda/5 criterion is eventually violated and an aliasing instability appears at kr ~ 8e3",
+    "note_vs_MC_SBR": "the Monte-Carlo SBR paper independently recommends 10 rays per wavelength for its strata - a factor 2 stricter"
+   },
+   "validity_floor_P7": {
+    "statement": "'good agreement typically expected for kr >~ 30'; their own sweep shows excellent agreement with Mie 'beginning at an electrical size around kr ~ 30'",
+    "tolerance_attached": "~2.5% standard deviation in the optical region, and 'within +/-2% of the analytical solution' over more than two orders of magnitude in electrical size",
+    "upper_bound": "aliasing instability at kr ~ 8e3 with a fixed grid; they also state SBR is intended for kr <~ 1e5",
+    "how_this_relates_to_OUR_kr_9.06": "NOT A CONTRADICTION. Their floor is for a ~2% amplitude tolerance (about 0.17 dB); ours is for a 1 dB tolerance (26% in power). A tighter tolerance necessarily pushes the floor up. If we ever want to claim ~0.2 dB fidelity we must use their kr>=30, and mini5pro at LTE (kr 8.4) fails that by a factor of 3.6.",
+    "validation_config": "PEC sphere, 22,000 x 22,000 ray grid from a square aperture 2.05 m on a side; r = 1 m corresponds to ~1 GHz to ~300 GHz"
+   },
+   "runtime_and_hardware": {
+    "flagship": "A380, 162,000 triangles, 80x73x21 m, 10 GHz (lambda ~ 3 cm), 30,000 x 30,000 rays from a 90x90 m aperture, max 100 reflections, 500 phi x 250 theta = 125,000 angles, 1.125e14 rays total; 616.12 ms per angular position in FP32; total sweep ~27 minutes on 8 LUMI nodes (4 AMD MI250X per node)",
+    "kernel_split_table_I": {
+     "scene": "A380, 18,000 x 18,000 rays, 1 MPI process, 10 repetitions of a 600-angle scan",
+     "NVIDIA_A100_full": {
+      "ray_launch_ms": {
+       "FP32": 98.96,
+       "FP64": 151.3,
+       "delta": "+52.9%"
+      },
+      "PO_integral_ms": {
+       "FP32": 6.43,
+       "FP64": 6.01,
+       "delta": "-7.0%"
+      }
+     },
+     "AMD_MI250X_1_GCD": {
+      "ray_launch_ms": {
+       "FP32": 249.81,
+       "FP64": 198.7,
+       "delta": "-20.5%"
+      },
+      "PO_integral_ms": {
+       "FP32": 4.83,
+       "FP64": 7.41,
+       "delta": "+53.4%"
+      }
+     },
+     "reading": "the PO integral is 3-5% of the cost; intersection dominates. Our own optimisation effort should go to the tracer, not the integral."
+    },
+    "scaling": "strong ~88% at 256 GCDs; weak ~96%; base workload 45,000 x 45,000 rays per node",
+    "efficiency_note": "only 5-10% of launched rays hit the target at typical aspects; they accept the waste rather than pre-filter",
+    "precision_finding": "FP32 accumulates ~2-3% phase error after 100 reflections through catastrophic cancellation in exp(-j2kR); acceptable on a dBsm scale. FP32 vs FP64 preference is architecture-dependent (FP32 on A100, FP64 on MI250X). FP32 results are also non-deterministic run to run; they recommend repeating and averaging."
+   },
+   "what_they_did_NOT_do_and_said_so": [
+    "no diffraction of any kind - GTD/UTD/PTD listed as future work",
+    "no dielectrics, no full polarimetry - listed as future work",
+    "monostatic only, and the reason is stated in footnote 1 on p4: a bistatic calculation needs a VISIBILITY FUNCTION for shadowing between the reflection points and the receiver, which the monostatic case lets you skip because the scattering surfaces are by assumption visible to the co-located launcher/receiver"
+   ],
+   "why_this_is_the_most_important_row_for_us": [
+    "It is an independent, code-released implementation of exactly our kernel structure (GO+PO SBR, Gamma^N, exp(-j2kR), sigma=4pi|A|^2), which means our architecture is defensible by citation rather than by assertion.",
+    "Its footnote 1 is the published statement of OUR P8 problem: bistatic SBR needs an exit-visibility test. Our own multistatic check found an exit-visibility effect; this is the citation for why it exists.",
+    "It gives us a numeric sampling rule (lambda/5) and a numeric validity floor (kr>=30 at 2%) that we can either meet or explicitly declare we do not meet.",
+    "It gives the GPU cost of the honest version of our method at scale, so our own runtime can be positioned rather than floated."
+   ],
+   "quotes": [
+    {
+     "page": 1,
+     "q": "The method couples multi-reflection geometrical-optics ray transport with a physical\noptics surface integral discretized over ray tubes."
+    },
+    {
+     "page": 3,
+     "q": "In physical optics, the induced surface\ncurrent on a PEC surface is approximated by the tangent plane approximation"
+    },
+    {
+     "page": 4,
+     "q": "A bistatic scattering calculation would require a visibility function to account for shadow regions between the reflection points and\nthe final receiver. In a monostatic configuration this can be omitted"
+    },
+    {
+     "page": 4,
+     "q": "Rather than tracking ray tube divergence through spreading factors, we\ncontrol integration error through the density of the incident ray grid"
+    },
+    {
+     "page": 5,
+     "q": "To control this failure mode we enforce a conservative sampling rule"
+    },
+    {
+     "page": 5,
+     "q": "This criterion implies that at least five samples per wavelength\nare required to accurately capture the rapidly oscillating phase terms."
+    },
+    {
+     "page": 7,
+     "q": "and the monostatic RCS is"
+    },
+    {
+     "page": 8,
+     "q": "Our simulation results (Fig. 4) demonstrate excellent agreement with Mie theory beginning at an electrical\nsize around"
+    },
+    {
+     "page": 8,
+     "q": "In our\nsimulations, this phenomenon occurs at electrical sizes around"
+    },
+    {
+     "page": 9,
+     "q": "remaining within ±2% of the analytical solution"
+    },
+    {
+     "page": 9,
+     "q": "with an average computation time of 616.12 ms\nin FP32 per angular position with a total sweep time of ∼27 minutes on 8 LUMI nodes."
+    },
+    {
+     "page": 10,
+     "q": "Given that often only 5-10% of launched rays\nintersect the target"
+    },
+    {
+     "page": 10,
+     "q": "While FP32\nintroduces a slight phase accumulation error (∼2–3% deviation) after 100 reflections due to catastrophic\ncancellation"
+    },
+    {
+     "page": 12,
+     "q": "On the modeling side, classical GO+PO SBR is limited to\nspecular interactions."
+    }
+   ]
+  },
+  {
+   "id": "KIRIK-OZDEMIR-2019",
+   "short": "The ONLY complete, step-by-step recipe in the archive for bolting PTD onto an SBR/PO kernel. This is the algorithm we would implement for P4.",
+   "title": "An Accurate and Effective Implementation of Physical Theory of Diffraction to the Shooting and Bouncing Ray Method via Predics Tool",
+   "authors": "O. Kirik (Mersin Univ.), C. Ozdemir (Emtech IT)",
+   "venue_status": "Sigma Journal of Engineering and Natural Sciences 37(4), 2019, pp. 1153-1166. PUBLISHED.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/sigma2019_kirik-ozdemir__ptd-into-sbr-predics.pdf",
+   "pages": 14,
+   "opened": "FULL - all 14 pages read",
+   "corpus": "SECONDARY. No Sionna, no GPU, no drone.",
+   "blockers_faced": [
+    "P4 - this is the whole paper",
+    "P1 - their engine is a GO-PO ray launcher like ours",
+    "P5 - they validate absolute RCS against measurement"
+   ],
+   "the_algorithm_verbatim_structure": {
+    "step_i_edge_detection": [
+     "find neighbouring triangular patches sharing at least two vertices",
+     "compute the outward normals of both patches; if the normals DIVERGE the edge is outward-directed and enters the PTD sum (convex edges only)",
+     "apply a maximum edge-angle threshold, 'usually selected as 30 deg in practice in order not to have almost zero PTD contribution energy'"
+    ],
+    "step_ii_ray_to_edge_distance": "d_hit = |(P0-P1) x (P0-P2)| / |P2-P1|, with P0 the ray-hit point and P1,P2 the edge endpoints (perpendicular distance from the hit point to the edge line)",
+    "step_iii_inclusion_test_and_equivalent_length": {
+     "test": "include this ray's diffraction contribution iff d_hit <= d_max = lambda/10  (cited as a rule of thumb from Weinmann TAP 2006)",
+     "equivalent_edge_length": "dl = (1/rho_rd) * d_max * (cos(theta_i1) + cos(theta_i2))",
+     "rho_rd": "the ray density of the SBR ray bunch, 'usually taken as one-tenth of the operational wavelength' i.e. 10 rays per wavelength",
+     "theta_i1, theta_i2": "the ray incidence angles measured against the two faces of the wedge"
+    },
+    "step_iv_diffracted_field": "E_d = [exp(-jk|r-r'|)/(2 pi |r-r'|)] * dl * { (D_m - D'_perp)(E_i . a_i,par) a_s,perp  -  (D_e - D'_par)(sin b_s/sin b_i)(E_i . a_i,par) a_s,par  -  (D_em sin(b') - D'_x)(sin b_s/sin b_i)(E_i . a_i,perp) a_s,par }",
+    "unit_vectors": "a_i,perp = (t x i)/|t x i|, a_i,par = i x a_i,perp ; a_s,perp = (t x s)/|t x s|, a_s,par = s x a_s,perp ; t = edge direction unit vector, i and s the incident and scattered ray directions; b_i, b_s the incidence/scattering angles measured from t",
+    "coefficients": "D_e, D_m, D_em are the wedge diffraction coefficients (eq 5a) written in terms of n (wedge angle alpha = n*pi), theta_i, theta_s and the auxiliary angles alpha1, alpha2; D'_perp, D'_par, D'_x are the PO-based coefficients (eq 5b): D'_perp = -sin(theta_s)/(cos(alpha1)+cos(theta_i)), D'_par = -sin(theta_i)/(cos(alpha1)+cos(theta_i)), D'_x = -K cos(theta_s)/(cos(alpha1)+cos(theta_i))",
+    "auxiliaries_eq6": "K = sin(b_s) cot(b_i) - sin(b_i) cot(b_s);  sin(alpha1) = sqrt(sin^2 b_i - sin^2 b_i cos^2 theta_s)/sin(b_i);  sin(alpha2) = sqrt(sin^2 b_i - sin^2 b_s cos^2(n pi - theta_s))/sin(b_i)",
+    "the_essential_idea": "the SUBTRACTION D - D' is the fringe (PTD) correction: the full wedge coefficient minus its PO part, so that adding E_d to the PO surface integral does not double count.",
+    "implementation": "coded in C# / .NET as a module of the Predics (pRediCS) GO-PO ray launcher"
+   },
+   "TYPESETTING_CAUTION_DO_NOT_CODE_BLIND": "In equation (3) as typeset, the first two terms both project the incident field onto a_i,par while only the third uses a_i,perp. For a PTD fringe formulation one expects the soft/hard split to pair a_i,perp with a_s,perp. Treat this as a probable typo and re-derive from Griesser & Balanis, IEEE TAP 35(10):1137-1147, 1987 (their ref [18]) before implementing. THIS IS OUR READING, NOT A STATEMENT BY THE AUTHORS.",
+   "validation_ladder": [
+    {
+     "target": "PEC rectangular plate 15 cm x 15 cm",
+     "config": "6 GHz, HH, monostatic, azimuth -90..+90 deg, 361 points, ray density 10 rays/wavelength",
+     "reference": "(a) closed-form PO theory (Balanis) for the PO-only solver, (b) Griesser measured data for PO+PTD",
+     "result_stated": "'almost perfect agreement' / 'almost perfect match' - NO ERROR NUMBER GIVEN"
+    },
+    {
+     "target": "rectangular dihedral corner reflector, square plates a = b = 5.6088*lambda",
+     "config": "9.4 GHz, VV, full azimuth, PO+SBR+PTD",
+     "reference": "Griesser measurement",
+     "result_stated": "'very good agreement' - NO NUMBER"
+    },
+    {
+     "target": "trihedral corner reflector, 40 cm corner lengths",
+     "config": "VV, frequency sweep 1-9 GHz",
+     "reference": "FEKO and CST",
+     "result_stated": "'very good agreement' - NO NUMBER",
+     "internal_inconsistency": "the body says FEKO's UTD solver and CST's Asymptotic solver; the Fig. 6 caption says 'FEKO (PO+PTD), CST (Asympotic)'. The two disagree about which FEKO solver was used."
+    },
+    {
+     "target": "cone-sphere, sphere radius 74 mm, cone height 605 mm",
+     "config": "9 GHz, full azimuth",
+     "reference": "Griesser measurement + FEKO + CST",
+     "numbers_actually_printed": "flat ~-16 dBsm over the spherical-cap region (0 to -90 deg); specular peak from the cone side at -97 deg; in the diffraction-only region -100 to -180 deg the RCS fluctuates between -35 and -45 dBsm, about 45 dB below the peak; CST reads somewhat lower than FEKO and Predics there"
+    }
+   ],
+   "the_with_without_diagnostic_we_should_copy": {
+    "what_they_did": "generic navy missile, 2168 mm long, tail aperture 48 mm; nose-on monostatic RCS swept 7.5-12.5 GHz at 100 frequency points, run TWICE - PO+SBR and PO+SBR+PTD - then IFFT the backscattered field E_s(f) to a RANGE PROFILE and compare the two profiles",
+    "what_it_proved": "the PTD solver raises the total RCS across the whole band, and the range profile shows the added energy is localised exactly at the edges (from 50 cm to -108 along the range axis) with sharp peaks at the kinks of the edges - which validates the PHASE of the diffracted field, not just its magnitude",
+    "why_it_is_the_test_we_need": "it is the only frequency-sweep with/without-diffraction experiment in the whole archive, and it is the exact experiment that would settle whether a missing edge term explains OUR band-slope excess",
+    "HONESTY": "the paper gives NO dB numbers for the with/without difference. Fig. 8(b) is a figure with no tabulated values in the text layer. We cannot extract a dB/GHz slope change from this paper - only the qualitative direction (PTD adds RCS across the band)."
+   },
+   "claim_that_does_not_survive_reading": "The abstract and the introduction both promise 'a missile and a helicopter target'. Section 4 analyses ONLY the missile. The word 'helicopter' appears exactly twice in the document, both times in those forward-looking sentences, and never in the results. There is no helicopter figure, table or number.",
+   "runtime": "NONE. Zero time/performance numbers in 14 pages, despite the paper's premise being computational efficiency.",
+   "code_availability": "None. Predics is a commercial product of Emtech IT Technologies.",
+   "quotes": [
+    {
+     "page": 2,
+     "q": "the neighboring \ntriangular patches with at least two common vertices are identified"
+    },
+    {
+     "page": 2,
+     "q": "This \nvalue is usually selected as 30° in practice in order not to have almost zero PTD \ncontribution energy."
+    },
+    {
+     "page": 3,
+     "q": "is less than the maximum permitted distance of"
+    },
+    {
+     "page": 3,
+     "q": "is the ray density of the ray-bunch in SBR implementation that is usually taken as \none-tenth of the operational wavelength"
+    },
+    {
+     "page": 5,
+     "q": "a PEC plate of 15 cm x 15 cm is considered and the monostatic RCS simulation of horizontal \npolarization at 6 GHz was carried out"
+    },
+    {
+     "page": 5,
+     "q": "The ray density for the ray-launching process is chosen to be 10 \nrays/wavelength."
+    },
+    {
+     "page": 9,
+     "q": "the backscattered RCS simulations at VV polarization have been carried out by using FEKO (UTD solver), CST (Asymptotic solver) and \nPredics (PO+SBR+PTD solver) for the frequencies between 1 GHz and 9 GHz."
+    },
+    {
+     "page": 10,
+     "q": "RCS levels that are almost 45 dB less than the peak RCS value for this \nregion of look-angle are observed."
+    },
+    {
+     "page": 11,
+     "q": "the frequency is varied \nfrom 7.5 GHz to 12.5 GHz for a total of distinct 100 frequency points."
+    },
+    {
+     "page": 12,
+     "q": "the PTD solver only increased the total range profile value only for the regions \nwhere there are edges as expected."
+    },
+    {
+     "page": 12,
+     "q": "The exact match \nbetween the locations of edge corners and the locations of RCS peaks demonstrates that the \ndiffracted field phase calculation is perfectly successful."
+    },
+    {
+     "page": 1,
+     "q": "more realistic targets; namely a missile and a helicopter target are analyzed by comparing \nthe RCS results with and without PTD contributions."
+    }
+   ]
+  },
+  {
+   "id": "OZTURK-BILKENT-2002",
+   "short": "MSc thesis - the DERIVATION behind the PTD-EEC recipe, with the backscattering closed forms and the additive combination rule E_tot = E_PTDEEC + E_PO",
+   "title": "Implementation of Physical Theory of Diffraction for Radar Cross Section Calculations",
+   "venue_status": "MSc thesis, Bilkent University, 2002",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/bilkent_thesis__ptd-implementation-rcs.pdf",
+   "pages": 72,
+   "opened": "TARGETED - Ch.3 (pp. 45-60 of the PDF) read in full; Ch.1-2 skimmed for the PO baseline",
+   "blockers_faced": [
+    "P4 - equivalent edge currents",
+    "P7 - states an electrical-size validity trend and measures it"
+   ],
+   "method": {
+    "family": "Method of Equivalent Edge Currents (EEC). Fringe-wave currents from Michaeli's surface-current-based formulation.",
+    "decomposition": "the surface current is split into a PO part and a non-uniform FRINGE-WAVE part; the fringe part is the correction, so PO-EEC gives the PO diffracted field and PTD-EEC gives the fringe-wave diffracted field",
+    "combination_rule_eq_3_42": "E_tot = E_PTDEEC + E_PO - the edge-diffracted field is ADDED to the PO surface integral computed by the same program. This is the architecture that is compatible with our kernel.",
+    "backscattering_simplification": "for monostatic, beta = pi - beta', phi = phi'; then alpha1 = arccos(cos phi - 2 cot^2 beta) and alpha2 = arccos(cos(N pi - phi) - 2 cot^2 beta) (eqs 3.35/3.36), and the fringe current densities I^f (3.37) and M^f (3.38) written with these are SINGULARITY-FREE except in degenerate cases - which is why they are the ones coded",
+    "square_plate_specialisation": "with beta' = phi' = pi/2 and N = 2 the currents collapse to eqs (3.39)/(3.40) with mu = sin(beta) cos(phi)",
+    "order": "FIRST-ORDER diffraction only; the fringe current is assumed to travel to infinity as on a half plane, so re-diffraction at a second edge is neglected. The thesis says this can be mitigated by using a larger plate."
+   },
+   "validation": [
+    "square plate of area 36*lambda^2, sigma_phiphi vs theta, against MoM from Breinbjerg - deep nulls attributed to destructive interference of two orthogonal edges",
+    "disc, bistatic, phi-polarised normal incidence, ka = 5, 10, 15 against exact results - agreement IMPROVES WITH INCREASING DISC RADIUS, because the fringe current is strong enough to re-diffract across a small disc",
+    "cylinder l = 12.45/k, base radius a = 2.16/k, surface approximated with 950 triangles, 2.6 GHz, against Shaeffer's experimental data normalised to sigma_0 = 0.0052; PO-only and PO+PTD plotted separately"
+   ],
+   "the_P7_lesson_for_us": "This is a second, independent statement of the same electrical-size story as Sagitta, but for the EDGE term rather than the surface term: first-order PTD gets better as the body gets electrically larger, and degrades for small bodies where multiple edge interactions matter. Our drones at kr 8.4-80 sit in exactly the region where the thesis says a single-order edge correction is least trustworthy.",
+   "runtime": "none reported",
+   "code_availability": "none",
+   "quotes": [
+    {
+     "page": 56,
+     "q": "In the\nbackscattering case,"
+    },
+    {
+     "page": 56,
+     "q": "and are used in the\ncomputer program for the backscattering calculations."
+    },
+    {
+     "page": 57,
+     "q": "and ˆt is the direction of the equivalent currents."
+    },
+    {
+     "page": 58,
+     "q": "It is observed that the agreement between the results presented in Figure 3.8\nand the exact results, from Breinbjerg [8], improves with increasing disc radius."
+    },
+    {
+     "page": 59,
+     "q": "The surface of the cylinder is approximated with 950 triangles."
+    },
+    {
+     "page": 59,
+     "q": "Total scattered ﬁeld can be written as:"
+    }
+   ]
+  },
+  {
+   "id": "MD-RT",
+   "short": "The closest published work to ours by subject - a drone rotor micro-Doppler simulated INSIDE Sionna RT - and the row where the most claims fail on reading.",
+   "title": "Micro-Doppler Signature Simulation of Multirotor UAVs Using Ray Tracing",
+   "authors": "C. Li, S. Mu, J. Jiang, L. Feng, Y. Gao (Shanghai Univ.), S. Xu (XJTLU)",
+   "venue_status": "2025 IEEE 25th International Conference on Communication Technology (ICCT), pp. 359-364, DOI 10.1109/ICCT67417.2025.11374154. PUBLISHED.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+   "pages": 6,
+   "opened": "FULL - all 6 pages read",
+   "blockers_faced": [
+    "P3 - rotating blades",
+    "P1 - needs a target echo",
+    "P2 - had to assign a propeller material"
+   ],
+   "engine_modification_they_really_made": {
+    "what": "they replaced Sionna's isotropic/spherical ray launch with a CONE aimed at the target, because at range too few rays hit a small target and the spectrogram develops gaps",
+    "why_it_matters_to_us": "this is the same problem our small targets have, and it is an engine-level fix that is cheap and reimplementable",
+    "recipe": [
+     "Fibonacci sampling of N points on the unit square: x_i = (i/phi) mod 1, y_i = i/(N-1), phi = golden ratio",
+     "map to a cone about the local +z: v_local = (sin(t)cos(p), sin(t)sin(p), cos(t)) with cos(t) driven by S_x and p = 2 pi S_y",
+     "rotate to world with Mitsuba's Frame utility: v_world = R v_local"
+    ],
+    "TYPO_IN_THEIR_EQ_9": "as printed, 'cos theta = 1 - S_x (1 - cos theta)' is self-referential. The intended rule is the standard uniform-cone sampling cos(theta) = 1 - S_x (1 - cos(theta_max)). OUR READING, not the authors'."
+   },
+   "how_rotation_is_handled_READ_CAREFULLY": {
+    "in_the_analysis_section_II": "fully analytic and rigid-body: r(t) = R0 + V t + R(t) r0 with R(t) = exp(omega_hat t); f_D = (2f/c)[V + omega x r]_radial",
+    "in_the_ray_tracing_section": "the simulation loop is stated as six steps, of which step (5) is only 'Update the target's velocity and position, then repeat step 4'. THE PAPER NEVER STATES THAT THE BLADE MESH IS RE-POSED PER ROTOR PHASE, and it never states how the propeller geometry advances between snapshots.",
+    "correction_to_our_own_records": "our note that 'md-rt derives micro-Doppler analytically from rigid-body angular velocity' is right about Section II and says nothing about the tracer. The tracer side is UNSPECIFIED in the paper. Nobody in this corpus - including md-rt - gives a rotating body a representation inside the engine."
+   },
+   "materials_P2": {
+    "assignment": "Table I: 'Propeller material: Wood'. Prose: 'electromagnetic parameters such as conductivity are based on Sionna's built-in settings.'",
+    "source_given": "NONE. 'Wood' is a stock ITU RadioMaterial. No citation, no measurement, no justification for a carbon-fibre/plastic propeller.",
+    "reading": "This is the only propeller material assignment in the Sionna corpus and it is weaker than ours: we at least name a literature range for eps_r. Our P2 gap is real but we are not behind the field."
+   },
+   "parameters": "OFDM waveform, 2048 symbols, 50 us symbol duration, 1 rotating propeller, 2 blades, propeller radius 10.55 cm, 5 GHz carrier; carrier sweep 2.4/5/6/24/60/77 GHz; Euler-angle sweep with Tx/Rx at (10,0,-10), (5,0,-5), (7.071,7.071,-10), (5,0,-10), (10,0,-5), (7.071,7.071,-5)",
+   "validation": "ONLY against their own analytical formulas of Section II. No measurement, no EM solver, no amplitude in dB, no RCS, no dBsm anywhere in the paper.",
+   "runtime": "NONE. A full-text regex for a time word next to a number+unit returns zero hits in all 6 pages.",
+   "NUMBERS_THAT_DO_NOT_CLOSE_our_arithmetic": {
+    "label": "OUR ARITHMETIC from their quoted inputs - not a claim by the authors",
+    "their_inputs": "5 GHz carrier (p4); rotation period T = 2 pi / omega = 0.04 s (p4); propeller radius 10.55 cm (Table I, p3); blade length 1.055 m (p4, section IV-B)",
+    "their_output": "'the calculated maximum Micro-Doppler frequency shift is 1562 Hz' (p4)",
+    "check": "omega = 2 pi / 0.04 = 157.08 rad/s. With r = 0.1055 m the tip speed is 16.57 m/s and f_D,max = 2 f v / c = 552 Hz. With r = 1.055 m it is 5524 Hz. Neither is 1562 Hz; 1562 Hz would require a radius of 0.298 m at that period.",
+    "and_separately": "Table I says the propeller RADIUS is 10.55 cm while section IV-B says the blade LENGTH is 1.055 m - a factor of ten apart in the same paper.",
+    "what_this_means": "the closest published paper to ours validates its ray tracer against its own formula, and the three numbers it prints for that validation are mutually inconsistent. We should cite md-rt for the CONE-SAMPLING idea and for the fact that a ridge-only claim was publishable, and NOT for any quantitative result."
+   },
+   "claim_that_does_not_survive_reading_2": {
+    "their_claim": "'as the carrier frequency increases ... the echo energy of high-frequency signals significantly decreases. This reduction may be caused by atmospheric absorption. According to the free-space path loss formula, higher frequencies suffer greater path loss' (p6)",
+    "why_it_fails": "(a) atmospheric absorption and free-space path loss are different mechanisms and are conflated in one sentence; (b) the frequency dependence of the Friis FSPL term is an antenna-aperture convention, not an absorption; (c) their simulations span 2.4-77 GHz over metres of range, where gaseous absorption is negligible except at 60 GHz. The observed trend is a link-budget artefact of the antenna model, not target physics.",
+    "why_it_matters_to_us_P4": "this is the only other statement in the Sionna corpus about how a drone echo varies with frequency, and it points the OPPOSITE way to the PO f^2 specular trend that drives our band-slope problem. It is not evidence against us, because it is not a target-scattering measurement at all - it is a path-loss statement. Do not cite it as a frequency-dependence anchor in either direction."
+   },
+   "quotes": [
+    {
+     "page": 1,
+     "q": "We propose an improved directional ray-tracing strategy\nbased on Sionna RT, which replaces spherical sampling\nwith conical sampling"
+    },
+    {
+     "page": 2,
+     "q": "when the number of rays colliding with the target is small, gaps ap-\npear in the resulting time-frequency spectrogram."
+    },
+    {
+     "page": 3,
+     "q": "We utilize the built-in Fibonacci sampling function provided\nby the Sionna1 framework"
+    },
+    {
+     "page": 3,
+     "q": "Propeller material\nWood"
+    },
+    {
+     "page": 3,
+     "q": "Propeller radius\n10.55cm"
+    },
+    {
+     "page": 3,
+     "q": "electromagnetic parameters such as conductivity are based\non Sionna’s built-in settings."
+    },
+    {
+     "page": 3,
+     "q": "The\ntarget consists of either Sionna’s built-in reflector model or\na physical model of a propeller modeled using Blender."
+    },
+    {
+     "page": 3,
+     "q": "(5) Update the target’s velocity and position, then repeat\nstep 4;"
+    },
+    {
+     "page": 4,
+     "q": "the calculated maximum Micro-Doppler\nfrequency shift is 1562 Hz. The rotation period derived from\nthe angular velocity, T = 2π"
+    },
+    {
+     "page": 4,
+     "q": "considering that the minimum spatial resolution in Sionna\nis 0.01 m"
+    },
+    {
+     "page": 4,
+     "q": "Under the conditions of a blade length of 1.055\nmeters"
+    },
+    {
+     "page": 6,
+     "q": "This reduction may be\ncaused by atmospheric absorption."
+    }
+   ]
+  },
+  {
+   "id": "COSTA-JSTEAP",
+   "short": "Ilmenau's drone micro-Doppler model - NO ray tracer at all, but the only bistatic drone signature in the archive validated against a real bistatic measurement, and the source of a measured bistatic reflectivity library.",
+   "title": "Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC",
+   "authors": "H. C. A. Costa, S. J. Myint, C. Andrich, S. W. Giehl, M. Engelhardt, C. Schneider, R. S. Thomae (TU Ilmenau)",
+   "venue_status": "IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation, DOI 10.1109/JSTEAP.2025.3604407; arXiv:2504.05168v2, 10 Sep 2025. PUBLISHED (journal). A separate RadarConf24 conference paper (2401.14287) is the single-propeller precursor - DO NOT MERGE.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.05168__costa_microdoppler-multiprop-drones_JSTEAP-journal.pdf",
+   "pages": 14,
+   "opened": "FULL - all 14 pages read including Appendices A-D",
+   "blockers_faced": [
+    "P3 - rotating blades (solved analytically, outside any tracer)",
+    "P8 - bistatic geometry throughout",
+    "P5 - validated against measurement",
+    "P1 - needed a body signature and went and measured one"
+   ],
+   "engine": "NONE. Closed-form signal model in the delay/slow-time domain. No RT, no PO, no full wave.",
+   "P3_how_rotation_is_expressed": {
+    "model": "thin-wire: each blade is a rigid homogeneous line of infinitely many point scatterers from the hub to the tip, integrated in closed form",
+    "bistatic_range_of_a_rotating_point": "R_P(t) ~= R_O - A_B * l * cos(omega t + phi_B), with A_B = sqrt(4 cos^2(beta/2) - (cos beta_T + cos beta_R)^2) and phi_B = phi_T - arctan[ sin(beta_R) sin(phi_T - phi_R) / (sin beta_T + sin beta_R cos(phi_T - phi_R)) ]",
+    "no_restriction": "the formulation places NO restriction on the orientation of the rotation plane relative to Tx/Rx - which is exactly the generality the older discrete-point bistatic model lacked",
+    "HRR_extension": "integrating only over the part of the blade whose delay falls in the current range bin gives limits l1, l2 taken as the MEDIAN of a three-element set, and the blade response becomes (l2-l1)/2 * sinc(omega_n/c * dR-) * exp(j omega_n/c * dR+), with dR+ = (l2+l1)/2 * psi and dR- = (l2-l1)/2 * psi, psi = A_B cos(omega t + phi_B)",
+    "multi_propeller": "each propeller p gets its own centre O_p, its own omega_p, its own initial phase phi_0p ~ U(0,2 pi), its own speed; beta_Tp and beta_Rp are recomputed per propeller from the dot products. VTOL with a propeller orthogonal to the others is shown as a case.",
+    "OFDM": "the model is written directly for an OFDM symbol grid, x(mu,m) = sum_n D(n,m) exp(j omega_n (m + mu/N) T), and the per-subcarrier response is derived, so the output is a delay-Doppler cube not a single-tone Doppler trace",
+    "vibration": "body vibration added as a random-walk range perturbation D_v(t) = D_v(t-1) + D0 * U(-1,1) - and the paper shows it is REQUIRED to reproduce the measured body return in the HRR case",
+    "approximation_error_bound": "the far-field linearisation of the bistatic range has upper bound Err <= (l^2/2)(1/R_T + 1/R_R); for l = 0.1655 m and R_T = R_R = 3.43 m this is <= 8 mm, i.e. 0.12% of the bistatic range"
+   },
+   "P1_how_the_BODY_signature_is_obtained_two_options": {
+    "option_A_gaussian": "spread the body energy over range bins with a Gaussian centred on the mass centre, standard deviation d'_max = d_max cos(beta/2) with d_max the largest target dimension along the bistatic bisector; guard the forward-scatter singularity with d'_max = max(d_max cos(beta/2), (mu/N) T c). The overall body-to-propeller reflectivity ratio gamma'_n is 'manually adjusted' and taken frequency-flat.",
+    "option_B_measured_library": "measure S21(f) = |E_scat|^2/|E_inc|^2 of the static drone over many aspect and bistatic angles, build a library, select the profile for the desired geometry and sample it at f_n. 'When measurements are not available, the static reflectivity of the drone body can also be generated using full-wave electromagnetic (EM) simulation.'",
+    "the_measurement_itself": "Tarot IRON MAN 650 airframe with carbon-fibre propellers, measured on BIRA: 5.78 GHz : 10 MHz : 8.22 GHz, bistatic angles 10 deg : 5 deg : 180 deg, HH polarisation, with and without the drone for coherent background subtraction, then time-domain gating. Plotted as reflectivity in dB (about -60 to 0), NOT as dBsm.",
+    "why_this_matters_to_us": "this is the third P1 route in the archive and the only one that is neither a solver nor a stock material: MEASURE the static body once, inject it as a frequency-dependent complex profile, and model only the moving parts analytically. It is also an existence proof that a bistatic drone reflectivity dataset exists at 5.78-8.22 GHz."
+   },
+   "validation_numbers": {
+    "frequency_domain": "Pearson correlation 0.98 between simulated and measured micro-Doppler signatures across bistatic angles 30-180 deg (stated on p6); on p9 the same family of comparisons is reported as MSE below 0.01 and Pearson above 0.99 for all three models. The two statements are not identical - use the p9 figure-based statement with its scope.",
+    "range_Doppler": "the proposed model keeps its accuracy in range-Doppler while the single-point and discrete-point baselines fail there, 'simply because they were not created to support range-Doppler analysis'",
+    "what_is_NOT_validated": "no absolute level. The body-to-propeller amplitude ratio gamma'_n is hand-tuned, and all metrics are computed on signatures normalised between 0 and 1.",
+    "measurement_setups": {
+     "Setup_1": "3.7 GHz, 200 MHz BW, 1600 carriers (1280 with energy), 8 us symbol, 1 propeller, 2 blades, propeller radius 16.55 cm, 1500 rpm",
+     "Setup_2": "7 GHz, 2.46 GHz BW, 2500 carriers (2048 with energy), 1.02 us symbol, 2 propellers, 1500 and 2000 rpm",
+     "waveform": "Newman sequence (constant spectral magnitude, minimal crest factor); OFDM radar processing with a back-to-back reference for calibration; 16384 symbols, subsampling factor 8"
+    }
+   },
+   "internal_inconsistency_found": "Fig. 2 caption says beta = 30 deg while the body text describing that same figure says 'a geometric configuration with bistatic angles of 60 deg'. Do not quote a bistatic angle for Fig. 2.",
+   "runtime": "NONE. The paper repeatedly claims 'very low computational cost' and 'not requiring paid software frameworks or powerful servers or HPC systems' but reports no time, no hardware, and no comparison run. A full-text scan for a time word next to a number returns nothing.",
+   "code_availability": "none",
+   "useful_pointers_they_give_us": "their related-work paragraph names the full-wave re-pose route explicitly: ref [14] uses MoM and PO with 512 discrete propeller positions, ref [15] uses hybrid FEM/MoM with 512 uniformly spaced positions through 360 deg, ref [16] uses multiple full-wave runs for half a rotation. That is the published precedent for OUR pose_articulated() approach, and it sets the expected number of phases at ~512 per revolution.",
+   "quotes": [
+    {
+     "page": 2,
+     "q": "utilizes the Method of\nMoments (MoM) as well as the Physical Optics method to\nsimulate the micro-Doppler of a multi-propeller drone with\n512 discrete propeller positions."
+    },
+    {
+     "page": 3,
+     "q": "where AB ="
+    },
+    {
+     "page": 6,
+     "q": "This produces a cross-correlation coefficient of\n0.98 across the bistatic angles from 30◦to 180◦."
+    },
+    {
+     "page": 8,
+     "q": "The second strategy\ncarried out was to use static reflectivity values obtained from\nmeasurements."
+    },
+    {
+     "page": 8,
+     "q": "When measurements are not available, the static reflectivity\nof the drone body can also be generated using full-wave\nelectromagnetic (EM) simulation."
+    },
+    {
+     "page": 8,
+     "q": "this single value was manually adjusted, similarly\nto what is usually done in the single-point scatter method."
+    },
+    {
+     "page": 9,
+     "q": "all models achieve low MSE values (under 0.01), and high\nPearson correlation coefficients (above 0.99)"
+    },
+    {
+     "page": 10,
+     "q": "the proposed model tends to be less accurate since it does not\ntake into account some electromagnetic phenomena, such\nas diffraction and multipath."
+    },
+    {
+     "page": 11,
+     "q": "The reflectivity of Ironman Drone is measured with wide\nbandwidth (5.78 GHz:10 MHz:8.22 GHz) for multiple bistatic\nangle constellations (10°:5°:180°) in HH polarization."
+    },
+    {
+     "page": 12,
+     "q": "This case results in an error of range\nwith upper bound of Err ≤8 mm, which represents a relative\nerror of RErr ≤0.12% of the bistatic range."
+    }
+   ]
+  },
+  {
+   "id": "JEES-2021-MOM",
+   "short": "The P3 trick we should steal: re-pose a rotating propeller in a FULL-WAVE solver 157x faster by never rebuilding the impedance matrix.",
+   "title": "Dynamic RCS Estimation according to Drone Movement Using the MoM and Far-Field Approximation",
+   "authors": "Dong-Yeob Lee, Jae-In Lee, Dong-Wook Seo (Korea Maritime and Ocean University)",
+   "venue_status": "Journal of Electromagnetic Engineering and Science 21(4):322-328, Sep 2021, DOI 10.26866/jees.2021.4.r.40. PUBLISHED.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/jees2021__dynamic-rcs-drone-mom.pdf",
+   "pages": 7,
+   "opened": "FULL - all 7 pages read",
+   "blockers_faced": [
+    "P3 - rotating blades, met head on",
+    "P6 - the cost of re-posing",
+    "P2 - had to choose a propeller material and justified it with a citation"
+   ],
+   "method": {
+    "insight": "a rotating rigid propeller does not change shape, so the MoM impedance matrix - which depends only on the mesh - is INVARIANT under rotation. Build the mesh and the impedance/admittance matrices ONCE; instead of rotating the propeller, rotate the incident field's azimuth backwards and let the change land in the excitation vector.",
+    "second_trick": "drones carry mirror-image CW and CCW propellers. Their co-polar scattered fields are identical and their cross-polar fields differ by 180 deg: [S_tt, S_tp; S_pt, S_pp]_CW = [S_tt, -S_tp; -S_pt, S_pp]_CCW. So all four propellers follow from ONE simulated propeller.",
+    "third_trick": "far-field superposition with per-propeller phase offsets: E_P1(t) = sum_n E_Tn(t; theta_P1, phi_P1) exp(-j 2 k . r_n), r_n the propeller centre position; then RCS = lim 4 pi R^2 |E|^2/|E_i|^2",
+    "arbitrary_aspect": "changing observation azimuth does NOT require recomputation - only a shift of the rotation START angle, +phi_obs for CW propellers and -phi_obs for CCW, plus the updated wave vector",
+    "numerics": "MoM with RWG basis functions and EFIE, implemented in MATLAB; because only a single propeller's impedance matrix is inverted, plain Gauss elimination is used rather than an iterative solver"
+   },
+   "parameters": "DJI Mavic 2 propeller CAD, 20.32 cm long = about 6.5*lambda at 9.65 GHz; carrier 9.65 GHz; PRF 20 kHz; single propeller rotating once per second sampled at 0.1 deg intervals for one second (3600 phases); four-propeller cases at 156.6 Hz and 125.3 Hz rotation; incidence elevation 45 deg, azimuth 0 deg and 70 deg. BODY NOT MODELLED - propellers only.",
+   "P2_material_decision_with_a_citation": "'Because the dynamic RCSs of propellers with carbon fiber and a perfect electric conductor (PEC) are very similar in terms of RCS level and patterns [16, 17], the material of the propellers was simply assumed to be the PEC.' This is the cleanest published justification in the archive for collapsing a drone material choice, and it is exactly the kind of citation our gamma_po values lack.",
+   "validation": "against Altair FEKO - MoM solver for the single propeller, MLFMM for the four-propeller cases (MoM was too slow). Stated result: 'There was little deviation in the results' - NO ERROR NUMBER. The quantitative agreement shown is spectral: the first spectral peak lands at 313.2 Hz and 313.3 Hz for a 156.6 Hz rotation (exactly 2x, because both blade tips scatter) and at 250.6 Hz for 125.3 Hz.",
+   "runtime": {
+    "table_1": {
+     "conventional": "20:01:12",
+     "proposed": "00:07:40"
+    },
+    "speedup": "156.8x",
+    "hardware": "Intel Core i7-8700 at 3.20 GHz, 64 GB RAM, MATLAB",
+    "scope": "one rotating propeller, 3600 rotation angles at 9.65 GHz"
+   },
+   "what_transfers_to_us": "Our pose_articulated() rebuilds the whole mesh at every rotor phase. The same invariance applies to a PO/SBR kernel: for the propeller sub-mesh, rotating the blade about its own axis is identical to counter-rotating the incident direction in the blade frame, so the per-facet geometry (areas, normals in the local frame) never has to be rebuilt - only the incidence direction and the hub phase offset change. And the CW/CCW mirror relation halves the work again. Neither shortcut is in our code today.",
+   "quotes": [
+    {
+     "page": 2,
+     "q": "if the mesh is maintained\nwhile the scatterer is rotated, the impedance matrix does not\nchange."
+    },
+    {
+     "page": 2,
+     "q": "we reversely rotate the incident angle of the\nincident field in the rotation direction of the propeller instead of\nrotating the propeller, and its effect reflects on the excitation\nvector."
+    },
+    {
+     "page": 3,
+     "q": "the co-polarized components of the electric fields scattered from CW and CCW\npropellers are the same, and the cross-polarized components\nhave a phase difference of 180º."
+    },
+    {
+     "page": 4,
+     "q": "Each propeller was 20.32 cm long (which results in about\n6.5λ at 9.65 GHz) and was made of carbon fiber."
+    },
+    {
+     "page": 4,
+     "q": "Because the\ndynamic RCSs of propellers with carbon fiber and a perfect\nelectric conductor (PEC) are very similar in terms of RCS level\nand patterns [16, 17], the material of the propellers was simply\nassumed to be the PEC."
+    },
+    {
+     "page": 4,
+     "q": "We performed all the simulations using a PC with In-\ntel Core i7-8700 at 3.20 GHz and 64 GB RAM."
+    },
+    {
+     "page": 5,
+     "q": "Table 1. Calculation time for rotating propeller"
+    },
+    {
+     "page": 5,
+     "q": "Conventional \n20:01:12"
+    },
+    {
+     "page": 5,
+     "q": "Proposed \n00:07:40"
+    }
+   ]
+  },
+  {
+   "id": "DAS-WCL-2026",
+   "short": "The measured multiband monostatic AND bistatic drone RCS anchor. This is where our P4 slope anchor and our P5 calibration recipe come from - now read at the source, with the fit table recovered.",
+   "title": "Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling",
+   "authors": "S. Das, P. Zhang, V. Hovinen, M. E. Leinonen, A. Parssinen, P. Kyosti (Univ. Oulu / QUB / Keysight)",
+   "venue_status": "IEEE Wireless Communications Letters, vol. 15, 2026, pp. 3731-3735, DOI 10.1109/LWC.2026.3705634. PUBLISHED, open access.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "pages": 5,
+   "opened": "FULL - all 5 pages read; Tables I and III recovered by RENDERING the PDF page to an image because they carry no text layer",
+   "corpus": "SECONDARY. No Sionna, no simulation of any kind - pure measurement plus statistics.",
+   "blockers_faced": [
+    "P5 - absolute level, with a calibration standard",
+    "P8 - bistatic, 7 angles",
+    "P4 - frequency dependence, fitted linearly",
+    "P7 - implicitly, by working where the drone is electrically large"
+   ],
+   "the_P5_recipe_we_do_not_have": {
+    "standard": "a metallic cylinder, radius 5.5 cm, height 30 cm, known RCS sigma_Cal = 2.8 dBsm, placed at the turntable centre",
+    "three_measurements": "background S21_BG(theta_b, f) with nothing on the table; calibration S21_Cal(theta_b, f); target S21_DUT(theta_b, f, phi)",
+    "background_subtraction": "COHERENT, in the frequency domain, S21_bs = S21 - S21_BG, applied to both the calibration body and the target",
+    "range_gating": "sixth-order Kaiser window on the background-free range profile, gate width set from the AAV dimensions and its distance to the antennas",
+    "sub_band_processing_near_field_only": "segment into 200 MHz sub-bands giving 0.75 m range resolution, centres f_i = 11 GHz + 0.1*i GHz for i = 0..149, each processed independently through a passband FIR H(f_i), then IFFT. Because 0.75 m exceeds the Phantom 2's 0.35 m size, the target is point-like per sub-band and the sub-band responses may be treated as equivalent far-field responses.",
+    "the_ratio": "sigma_AAV(theta_b, f_i, phi) = [ max|s21_bs^DUT|^2 / max|s21_bs^Cal|^2 ] * sigma_Cal   - peak power ratio against a known standard",
+    "standard_cited": "IEEE Std 1502-2020, IEEE Recommended Practice for Radar Cross-Section Test Procedures",
+    "why_we_need_it": "our slope_only anchor moves the mean level by exactly 0.0000 dB, i.e. we have never anchored an absolute level to anything. This is the published procedure for doing it, and it needs only a machined cylinder."
+   },
+   "measurement_matrix_TABLE_I_recovered_by_rendering": {
+    "provenance": "Table I has no text layer. Values below were read from a 300 dpi render of page 2 of the PDF, clip Rect(150,75,600,190). Flagged as IMAGE-READ, not text-layer-verified.",
+    "DJI_Mini_2": {
+     "size": "15.9 cm x 20.3 cm",
+     "band": "21-27 GHz",
+     "freq_points": 501,
+     "azimuth": "0-360 deg step 0.5",
+     "distance": "far-field",
+     "env": "anechoic"
+    },
+    "DJI_M350_RTK": {
+     "size": "81 cm x 67 cm",
+     "band": "21-27 GHz",
+     "freq_points": 501,
+     "azimuth": "0-360 deg step 0.5",
+     "distance": "far-field",
+     "env": "anechoic"
+    },
+    "DJI_Phantom_2": {
+     "size": "35 cm x 20 cm",
+     "band": "11-26 GHz",
+     "freq_points": 2001,
+     "azimuth": "0-360 deg step 1",
+     "distance": "near-field, 2.6 m",
+     "env": "controlled non-anechoic, indoor"
+    },
+    "DJI_Phantom_3": {
+     "size": "35 cm x 20 cm",
+     "band": "1.8-18.2 GHz",
+     "freq_points": 2801,
+     "azimuth": "-90..+90 deg step 2",
+     "distance": "far-field",
+     "env": "anechoic"
+    },
+    "bistatic_angles": "theta_b = 0:15:90 deg (7 values); TX fixed, RX moved",
+    "polarization": "vertical, directional antennas both ends; Keysight PNA-X N5242B VNA",
+    "data_provenance": "the Phantom 2 dataset is new in this letter; Mini 2 / Phantom 3 / M350 RTK RCS data came from Wang et al., China Communications 2026 (their ref [7]), reprocessed here"
+   },
+   "the_P4_ANCHOR_TABLE_III_recovered_by_rendering": {
+    "provenance": "Table III has no text layer. Read from a 400 dpi render of page 4, clip Rect(30,60,570,170). IMAGE-READ.",
+    "form": "mean RCS mu(f) in dBsm and azimuthal spread epsilon(f) in dB, both linear in f [GHz], one pair per AAV per bistatic angle",
+    "Phantom_2": {
+     "mu": {
+      "0deg": "0.21f - 12.10",
+      "15deg": "0.50f - 19.31",
+      "30deg": "0.22f - 13.30",
+      "45deg": "0.21f - 14.76",
+      "60deg": "0.12f - 14.18",
+      "75deg": "-0.13f - 7.85",
+      "90deg": "0.08f - 10.40"
+     },
+     "eps": {
+      "0deg": "0.10f + 1.81",
+      "15deg": "0.07f + 2.73",
+      "30deg": "0.06f + 3.06",
+      "45deg": "0.07f + 2.87",
+      "60deg": "0.02f + 3.85",
+      "75deg": "0.08f + 2.80",
+      "90deg": "0.05f + 3.16"
+     }
+    },
+    "Phantom_3": {
+     "mu_slope_all_angles": 0.21,
+     "mu_intercepts": [
+      -19.19,
+      -19.23,
+      -19.33,
+      -19.48,
+      -19.64,
+      -19.77,
+      -19.82
+     ],
+     "eps_all_angles": "0.03f + 5.16"
+    },
+    "Mini_2": {
+     "mu_slope_all_angles": 0.07,
+     "mu_intercepts": [
+      -25.85,
+      -25.89,
+      -25.99,
+      -26.14,
+      -26.3,
+      -26.43,
+      -26.47
+     ],
+     "eps_all_angles": "0.01f + 5.47"
+    },
+    "M350_RTK": {
+     "mu_slope_all_angles": 0.17,
+     "mu_intercepts": [
+      -18.85,
+      -18.89,
+      -18.99,
+      -19.15,
+      -19.31,
+      -19.43,
+      -19.48
+     ],
+     "eps_all_angles": "0.01f + 6.61"
+    },
+    "FULL_RANGE_OF_MEASURED_SLOPES": "-0.13 to +0.50 dB/GHz across all 28 cells. Our stored anchor of 0.21 dB/GHz is CONFIRMED as the Phantom 2 monostatic value and the Phantom 3 value at every angle - but it is not the only measured slope, and one cell is NEGATIVE.",
+    "OUR_INFERENCE_NOT_THEIRS": "For Phantom 3, Mini 2 and M350 the slope AND the epsilon fit are byte-identical across all seven bistatic angles, and only the intercept moves (monotonically down by 0.6-0.7 dB from 0 to 90 deg). For the Phantom 2 - the one platform newly measured here - every angle has its own slope. The most likely explanation is a shared-slope constrained fit on the borrowed datasets. We should NOT claim 'the measured frequency slope is bistatic-angle invariant' as a physical finding on that basis.",
+    "SCOPE_WARNING_FOR_OUR_COMPARISON": "these slopes are fitted over 21-27 GHz (Mini 2, M350), 11-26 GHz (Phantom 2) and 1.8-18.2 GHz (Phantom 3). Our band slope is fitted over a 3.367 GHz span at 1.8-5.2 GHz. Comparing our 0.742-1.699 dB/GHz to their 0.21 is a comparison across different bands and different span lengths, and must be stated as such."
+   },
+   "other_numbers": {
+    "goodness_of_fit": "best-fit distribution is platform-dependent; mean Anderson-Darling statistic: log-normal best for M350 RTK (4.11) and Phantom 2 (1.04); Rician best for Mini 2 (0.532) and Phantom 3 (0.436). K = 360 azimuth samples per cell.",
+    "gaussian_cluster_model": "AAV as N i.i.d. point scatterers drawn from an isotropic 2-D Gaussian with sigma_s ~= D/4.3 (D = max dimension); RX at L >= 2D^2/lambda; h(phi) = sum_n a_n exp(j omega_n) exp(-j k d_n(phi)) with a_n = 1/sqrt(N), omega_n ~ U(-pi,pi); G(phi) = |h|^2. Compared against measurement as an empirical CDF with a 10-90% envelope at 21 GHz.",
+    "bistatic_vs_monostatic": "monostatic mean RCS is consistently higher; going from monostatic to 90 deg bistatic increases the mean target path loss by only about 1-2 dB, while frequency band accounts for 3-15 dB and platform type for up to 30 dB at 100 m."
+   },
+   "what_they_explicitly_did_NOT_do": "micro-Doppler. 'This effect is not considered here because the proposed model focuses on RCS amplitude statistics, while the measurement system provides quasi-static AAV backscatter characterization and does not resolve rotor-induced micro-Doppler.'",
+   "runtime": "not applicable - measurement paper",
+   "quotes": [
+    {
+     "page": 2,
+     "q": "A metallic cylinder with radius\n5.5 cm, height 30 cm, and known RCS σCal = 2.8 dBsm is\nplaced at the center of the turntable"
+    },
+    {
+     "page": 2,
+     "q": "range\ngating is applied to the background-free range proﬁles using a\nsixth-order Kaiser window."
+    },
+    {
+     "page": 2,
+     "q": "Since the sub-band range resolution exceeds\nthe maximum dimension of the Phantom 2 (≈0.35 m), the\ntarget is effectively point-like within each sub-band."
+    },
+    {
+     "page": 2,
+     "q": "This effect is not considered\nhere because the proposed model focuses on RCS amplitude\nstatistics"
+    },
+    {
+     "page": 3,
+     "q": "the mean RCS generally increases with\nfrequency, which is consistent with the AAV becoming elec-\ntrically larger at higher frequencies."
+    },
+    {
+     "page": 3,
+     "q": "the best-ﬁt RCS distribution is platform-\ndependent and no single distribution is suitable for all AAVs."
+    },
+    {
+     "page": 5,
+     "q": "Changing from\nmonostatic to bistatic (90◦) geometry increases the mean path-\nloss by only about 1–2 dB"
+    }
+   ]
+  },
+  {
+   "id": "ZHANG-M350-JSAC",
+   "short": "The 3GPP-facing unified RCS model, measured on a DJI M350 in an anechoic chamber, with a sphere-calibrated absolute level and a fitted A(f) we can compare against.",
+   "title": "A Unified RCS Modeling of Typical Targets for 3GPP ISAC Channel Standardization and Experimental Analysis",
+   "authors": "Yuxiang Zhang, Jianhua Zhang, et al. (BUPT)",
+   "venue_status": "IEEE J. Sel. Areas Commun. vol. 44, pp. 702-716, 2026 (per the citation in Das). arXiv:2505.20673. PUBLISHED.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf",
+   "pages": 13,
+   "opened": "TARGETED-DEEP - pages 4, 6, 7, 9, 11, 12 read in full",
+   "corpus": "SECONDARY. Machine count in this document: 'Sionna' 0, 'dBsm' 6. It is NOT part of the 140-paper Sionna corpus.",
+   "blockers_faced": [
+    "P5 - absolute level, validated against a sphere",
+    "P7 - states the ka taxonomy",
+    "P4 - fits a frequency slope",
+    "P1 - writes the facet-sum formula we use"
+   ],
+   "the_P5_number": {
+    "standard": "0.5 m diameter metal sphere on a foam support, in the optical region at 28 GHz",
+    "theoretical": "-7.07 dBsm (= 10log10(pi * 0.25^2), consistent with their Table II sigma = pi a^2)",
+    "measured_average": "-8.96 dBsm",
+    "discrepancy": "less than 2 dBsm, attributed to surface roughness and non-ideal reflectivity of the sphere",
+    "reading_for_us": "about 1.9 dB is what a careful anechoic VNA chain achieves on a canonical body. That is the realistic floor for any absolute-level claim, ours included, and it is a number we can quote when we state our own uncertainty budget."
+   },
+   "measurement_configuration": "VNA + power amplifiers + two horn antennas about 10 cm apart to emulate monostatic; 801 frequency samples; 3 GHz bandwidth; five carriers 10/15/20/28/36 GHz; TX/RX-to-target 6 m (UAV, sphere) and 12 m (human, vehicle); turntable 0-360 deg in 5 deg steps; TX/RX gain 13 or 25 dBi with 34 or 10 deg 3 dB beamwidth; vertical polarisation; elevation fixed at 90 deg so all results are the horizontal cut. Targets: DJI M350 (430 x 420 x 430 mm), a 180 cm / 70 kg human, a Volkswagen T-Cross (4.218 x 1.76 x 1.599 m), and the sphere.",
+   "processing_chain": "collect |S21| -> calibrate the system -> convert to time domain (CIR) -> windowing -> denoising -> echo power by summing squared amplitudes -> radar equation sigma = Pr (4 pi)^3 R1^2 R2^2 / (Pt Gt Gr lambda^2)",
+   "the_model": {
+    "form": "sigma(f, phi) = A(f) x B1(f, phi) x B2, decomposed into a large-scale power factor, a small-scale angular pattern, and a random fluctuation",
+    "B1_is_a_3GPP_antenna_pattern_in_disguise": "10 log10 B1(theta=90, phi) = -min{ 12 ((phi - phi_k)/phi_3dB,k)^2 + c_k , Ymax } - the same piecewise-quadratic form as the 3GPP radiation power pattern, one lobe per beam peak",
+    "fitted_parameters_UAV_DJI_M350_Table_V": {
+     "A": "A = -9.26 + 0.31*f  [dBsm, f in GHz]",
+     "lobes": [
+      {
+       "range": "[315,360) U [0,45]",
+       "phi_k": 0,
+       "phi_3dB": 20.84,
+       "c_k": 0.68
+      },
+      {
+       "range": "[45,135]",
+       "phi_k": 90,
+       "phi_3dB": 10.47,
+       "c_k": -6.52
+      },
+      {
+       "range": "[135,225]",
+       "phi_k": 180,
+       "phi_3dB": 15.41,
+       "c_k": -5.61
+      },
+      {
+       "range": "[225,315]",
+       "phi_k": 270,
+       "phi_3dB": 14.51,
+       "c_k": -12.3
+      }
+     ],
+     "Ymax": 4.47,
+     "B2": "log-normal, N(-0.52, 2.31^2) in dB"
+    },
+    "for_contrast": {
+     "vehicle": "A = 8.21 + 0.08*f, B2 ~ N(-0.53, 2.64^2)",
+     "human": "A = -4.68 + 0.16*f, B1 = 0 (isotropic), B2 ~ N(-0.77, 2.13^2)"
+    }
+   },
+   "P4_second_measured_slope": "0.31 dB/GHz for a DJI M350 over 10-36 GHz. This confirms our stored 'lit_mono3d_db_per_ghz = 0.315' at the source. Together with Das (-0.13 to +0.50 dB/GHz) the published measured range for drone mean RCS is roughly -0.1 to +0.5 dB/GHz, against our 0.742-1.699.",
+   "P4_SCOPE_WARNING": "A(f) here is fitted over 10-36 GHz. Extrapolating it down to our 1.8-5.2 GHz band is unsound - at 3 GHz it would predict -8.3 dBsm for an M350, which is an extrapolation seven times outside the fitted range.",
+   "P7": "three regions optical / Rayleigh / resonant keyed on ka = 2 pi a / lambda, with the claim that at GHz frequencies most practical targets are in the optical region ka >> 1. QUALITATIVE ONLY - no numeric floor, and no check that their own 0.43 m drone at 10 GHz satisfies it (it does: ka ~ 45).",
+   "internal_inconsistency_found": "Equation (8) is an explicitly COHERENT facet sum, sigma = |sum_i sqrt(sigma_i) exp(j 2 k r . c_i) exp(j phi_i)|^2, but the sentence immediately after it says 'If the RCS of each facet is known, the total RCS of the target can be obtained by incoherently summing the contributions from all facets.' Coherent and incoherent cannot both be right; the equation is the one to trust.",
+   "runtime": "none reported",
+   "quotes": [
+    {
+     "page": 4,
+     "q": "the total RCS can be determined\nas the vector sum of the contributions of the individual facets"
+    },
+    {
+     "page": 4,
+     "q": "If the RCS of each facet is known, the total\nRCS of the target can be obtained by incoherently summing\nthe contributions from all facets."
+    },
+    {
+     "page": 4,
+     "q": "RCS is\ntypically categorized into three regions-optical, Rayleigh, and\nresonant-based on the dimensionless size parameter"
+    },
+    {
+     "page": 4,
+     "q": "At GHz-level frequencies, most practical targets fall into\nthe optical region"
+    },
+    {
+     "page": 6,
+     "q": "The UAV used is the DJI M350, with four\nsymmetrically deployed rotor arms and approximate dimen-\nsions of 430 × 420 × 430 mm."
+    },
+    {
+     "page": 6,
+     "q": "The two horn antennas are positioned approximately\n10 cm apart to simulate monostatic sensing."
+    },
+    {
+     "page": 7,
+     "q": "RCS is -7.07 dBsm, while the measured average is -8.96\ndBsm, with a discrepancy of less than 2 dBsm, confirming the\nhigh accuracy of the measurements."
+    },
+    {
+     "page": 11,
+     "q": "A = −9.26 + 0.31 ∗f"
+    }
+   ]
+  },
+  {
+   "id": "MC-SBR-MECA",
+   "short": "The single most architecturally relevant paper we own: a PO/MECA SBR engine written on TOP of Mitsuba + Dr.Jit, exactly as we did, with an explicit statement that Mitsuba cannot do surface currents or PO.",
+   "title": "Accelerated, Memory-Efficient Far-Field Scattering Computation with Monte Carlo SBR",
+   "authors": "Samuel Audia, Dinesh Manocha, Matthias Zwicker (University of Maryland)",
+   "venue_status": "arXiv:2511.07586; 'submitted to the IEEE for possible publication' - PREPRINT, not published",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2511.07586__monte-carlo-sbr-farfield-scattering.pdf",
+   "pages": 14,
+   "opened": "TARGETED-DEEP - pages 1, 2, 3, 7, 8, 9 read in full; 4-6 skimmed for the estimator derivation",
+   "blockers_faced": [
+    "P1 - builds a signature engine on the same stack we use",
+    "P2 - handles DIELECTRICS properly via MECA, which is the principled version of our gamma_po",
+    "P6 - runtime and memory numbers on a consumer GPU",
+    "P4 - noted as absent, same as ours"
+   ],
+   "the_architectural_quote_that_backs_our_P1_claim": "'Our implementation is not simply a direct application of Mitsuba, which does not currently support surface current calculation or physical optics integration. We rather, implemented our own render[er] and utilized the lower level functionality such as GPU dispatch and random number generation.' (p7). This is an independent, citable confirmation that the Mitsuba/Dr.Jit stack underneath Sionna RT has no scattering integral and that writing your own PO layer on it is the accepted move - which is precisely our architecture.",
+   "method": {
+    "core_idea": "reformulate the SBR integral equations as a MONTE CARLO estimator and import variance-reduction machinery from photorealistic rendering (stratification, Russian roulette, Fresnel splitting), so the GPU runs a fixed pipeline instead of managing a recursive tree of reflected+refracted rays",
+    "why_deterministic_SBR_hurts_on_GPUs": "complex ray-tube intersection needs explicit double-count handling when tubes overlap; tracing both reflected and refracted rays builds a recursive tree with unpredictable memory; and much of that work is spent on low-energy paths",
+    "MECA": "Modified Equivalent Current Approximation extends the PO tangent-plane current to DIELECTRIC surfaces using the surface equivalence principle - both electric and magnetic equivalent currents from the Fresnel reflection of the incident field",
+    "convergence": "Monte Carlo variance falls linearly with sample count so error falls as 1/sqrt(N), independent of dimensionality - which is why it wins as the dielectric nesting depth (and hence the integral's dimensionality) grows",
+    "implementation": "built on the Mitsuba retargetable renderer over Dr.Jit with CUDA and OptiX; they use Mitsuba for Fresnel equations and ray-triangle intersection only"
+   },
+   "sampling_and_accuracy": {
+    "deterministic_baseline_density": "lambda/40",
+    "monte_carlo_config": "stratified beams at lambda/10 with 16 samples per stratum; equivalent deterministic density = density * sqrt(samples per pixel)",
+    "recommendation": "'sizing the strata areas to 10 rays per wavelength and draw multiple samples within these sub beams as needed' - strata density matters far more than in-stratum samples",
+    "agreement": "with at least 10 rays per wavelength the Monte Carlo and deterministic algorithms are within 0.01 dBsm^2 of each other; below that the estimate swings by up to 0.5 dBsm^2",
+    "headline_accuracy_claim": "'within 1-2 dB of average error compared to deterministic SBR'",
+    "known_weakness": "extra noise on the sphere, plate and PEC cube - exactly the regions where adjacent sources must cancel in phase"
+   },
+   "validation_setup": "flat plate, sphere, box, dihedral, nested dielectric, and an aircraft; 1-3 GHz in 20 MHz steps (101 frequencies); VV; range profiles by IFFT of the frequency data; sqrt(sigma) = lim 2 sqrt(pi) r E_s/|E_i|; dielectric cubes also compared to an ANALYTICAL normal-incidence solution obtained by phase matching at each boundary; Monte Carlo error characterised over 100 random seeds",
+   "runtime_and_memory_table_I": {
+    "hardware": "RTX 2070 Super, 8 GB",
+    "config": "single monostatic response at normal incidence, 101 frequencies 1-3 GHz, 20 samples per wavelength, max 9 bounces, 10 runs plus 3 warmups",
+    "Glass_Cube": {
+     "MC": "2.47 s / 10.8 MiB",
+     "deterministic": "2.70 s / 128.3 MiB (19.3 with copy-on-write)"
+    },
+    "PEC_Bottom": {
+     "MC": "2.78 s / 12.0 MiB",
+     "deterministic": "2.52 s / 128.3 MiB (19.3)"
+    },
+    "Nested": {
+     "MC": "2.82 s / 24.2 MiB",
+     "deterministic": "11.0 s / 348.2 MiB (88.8)"
+    },
+    "headline": "10-15x less memory, up to 4x faster, and the speed advantage only materialises for multilayer dielectrics"
+   },
+   "material_caution_P2": "'The glass cubes are represented as bulk materials with eps_r = 1.5.' For glass, 1.5 is the optical REFRACTIVE INDEX (eps_r would be about 2.25 at optical frequencies, and 5-7 at microwave). Either the label or the value is wrong. OUR READING, not the authors'. It is a reminder that material provenance is weak even in the paper we would borrow MECA from.",
+   "what_transfers_to_us": [
+    "MECA is the principled replacement for our five hand-chosen gamma_po effective reflection coefficients: it derives both equivalent currents from (eps_r, sigma) via the surface equivalence principle instead of collapsing a material to one scalar.",
+    "Their 10 rays/lambda strata recommendation is a second, independent sampling floor next to Sagitta's lambda/5, and it is the stricter of the two.",
+    "Their stratified estimator would let us trade rays for seeds on our GPU budget instead of scaling the grid quadratically with frequency."
+   ],
+   "quotes": [
+    {
+     "page": 2,
+     "q": "Our Monte Carlo SBR algorithm computes results within\n1−2dB of average error compared to deterministic SBR"
+    },
+    {
+     "page": 2,
+     "q": "MECA extends this idea to\ndielectric surfaces using the surface equivalence principle."
+    },
+    {
+     "page": 7,
+     "q": "Our implementation is not simply a direct application of Mitsuba, which does not currently support\nsurface current calculation or physical optics integration."
+    },
+    {
+     "page": 7,
+     "q": "All experiments are run using an RTX 2070 super\nGPU with 8 GB of video memory."
+    },
+    {
+     "page": 8,
+     "q": "The glass cubes are represented as bulk materials with ϵr = 1.5."
+    },
+    {
+     "page": 8,
+     "q": "We set the ray density to"
+    },
+    {
+     "page": 9,
+     "q": "once at least\n10 rays per wavelength are sampled, the variance is greatly\nreduced, and the two algorithms are within 0.01 dBsm2\nof error."
+    },
+    {
+     "page": 9,
+     "q": "we recommend sizing the strata areas to 10 rays per wavelength"
+    }
+   ]
+  },
+  {
+   "id": "KASDORF-NOTAROS-TAP-2021",
+   "short": "SBR accuracy for PROPAGATION - ray cones, undercounting, double counting. Read in full and then largely RULED OUT: their blocker is not on our path.",
+   "title": "Advancing Accuracy of Shooting and Bouncing Rays Method for Ray-Tracing Propagation Modeling Based on Novel Approaches to Ray Cone Angle Calculation",
+   "authors": "S. Kasdorf, B. Troksa, C. Key, J. Harmon, B. M. Notaros (Colorado State University)",
+   "venue_status": "IEEE Trans. Antennas Propag., accepted 2020, DOI 10.1109/TAP.2021.3060051. PUBLISHED (author's accepted version).",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/notaros_TAP__advancing-accuracy-sbr.pdf",
+   "pages": 8,
+   "opened": "FULL - all 8 pages read",
+   "blockers_faced": [
+    "none of P1-P8 directly"
+   ],
+   "why_it_is_here_and_why_it_is_ruled_out": "It is the most-cited recent work on 'SBR accuracy', so it looks like a P1/P4 lead. It is not. Its subject is the RECEPTION side of propagation SBR: rays are launched from a transmitter, each carries a growing reception cone, and the accuracy problem is choosing the cone angle so the cones tile the sphere without gaps (undercounting) or extra overlap (double counting). Our PO kernel launches an orthographic aperture grid at the target and integrates surface currents - there are no reception spheres and no double counting of wavefronts at a receiver. Their solution does not transfer.",
+   "what_they_did_anyway": "per-ray cone angle from the local neighbour set on a subdivided icosahedron (rather than one global maximum); an analytic optimal CONSTANT cone angle derived from the inscribed-sphere radius of a regular icosahedron via the golden ratio; and a double-count removal that exploits the fact that overlapping cones can only be ADJACENT rays, so the search is a neighbour-set lookup instead of a path-history search or a distance query.",
+   "TEXT_LAYER_WARNING": "the mathematical symbols in equations (1)-(4) of this PDF do not extract - they appear as blanks. We can describe the method but we CANNOT quote its equations from this file.",
+   "what_does_transfer": [
+    "the runtime contrast: an FMM-FFT accelerated surface-integral-equation solver takes over 19 hours on a multi-GPU cluster for a mine tunnel, versus under 1 minute for their SBR on a single-GPU desktop",
+    "a warning that matches Ziganshin's: 'the SBR methodology encounters difficulty when planar segments are used to approximate curvature, because many segments can lead to many non-physical images produced in the model'",
+    "their observation that undercounting is the dangerous failure because it cannot be detected in post-processing - a general lesson for any ray budget, including ours"
+   ],
+   "runtime": "FMM-FFT-SIE > 19 h on a multi-GPU cluster vs < 1 min for SBR on a single-GPU desktop (mine tunnel, 915 MHz)",
+   "validation": "vs image theory in a 4 m x 4 m x 1000 m dielectric waveguide at 1 GHz (eps_r and sigma of the walls stated but not text-extractable), and vs an FMM-FFT-SIE full-wave solution for an arched mine tunnel at 915 MHz",
+   "quotes": [
+    {
+     "page": 6,
+     "q": "the SBR \nmethodology encounters difficulty when planar segments are \nused to approximate curvature, because many segments can \nlead to many non-physical images produced in the model."
+    },
+    {
+     "page": 7,
+     "q": "over 19 hours to simulate this environment on a multi-GPU \ncluster [14], compared to less than 1 minute for the SBR \ntechnique on a modest single-GPU desktop."
+    },
+    {
+     "page": 4,
+     "q": "Undercounting is \nproblematic because it cannot be identified in post-processing."
+    }
+   ]
+  },
+  {
+   "id": "HOYDIS-LEARN-RT",
+   "short": "The only published answer to P2 in the Sionna corpus: stop guessing material parameters and LEARN them by gradient descent through the tracer. Two documents with different runtime numbers - keep them separate.",
+   "title": "Learning Radio Environments by Differentiable Ray Tracing",
+   "authors": "J. Hoydis, F. Ait Aoudia, S. Cammerer, F. Euchner, M. Nimier-David, S. ten Brink, A. Keller (NVIDIA + Univ. Stuttgart)",
+   "venue_status": "IEEE Trans. Mach. Learn. Commun. Netw., vol. 2, pp. 1527-1539, 2024. PUBLISHED. arXiv:2311.18558 is the preprint.",
+   "two_documents": {
+    "arXiv_2311.18558": {
+     "path": "/data/public/sionna_jeong/papers_isac_sionna/2311.18558__hoydis_learning-radio-env.pdf",
+     "pages": 11,
+     "unique_content": "'After around 3000 training steps (approx. 10 min on an NVDIA RTX 3090), all parameters have converged to the correct values.' (p6, synthetic dataset)"
+    },
+    "IEEE_version": {
+     "path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Learning_Radio_Environments_by_Differentiable_Ray_.pdf",
+     "pages": 12,
+     "unique_content": "'The dataset generation took around 14 h on an NVIDIA RTX 4090 graphics card, while each calibration run took between 8 min to 15 min.' (p7, measured dataset)"
+    },
+    "DO_NOT_MERGE": "the RTX 3090 / 10 min sentence exists ONLY in the arXiv preprint; the RTX 4090 / 14 h / 8-15 min sentence exists ONLY in the IEEE version. Verified by direct string search on both PDFs. This is the same trap as the two Ziganshin documents, in a second lineage."
+   },
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2311.18558__hoydis_learning-radio-env.pdf",
+   "opened": "TARGETED-DEEP on both files - arXiv pp. 1-3, 5-9 read; IEEE checked for the runtime delta",
+   "blockers_faced": [
+    "P2 - material parameters with no source, met head on",
+    "P5 - absolute level against measurement"
+   ],
+   "method": {
+    "parametrised_quantities": "each material is four numbers: conductivity sigma >= 0, relative permittivity eps_r >= 1, scattering coefficient S, cross-polarisation discrimination K_x; plus a differentiable scattering pattern and a differentiable antenna pattern",
+    "three_parametrisations_compared": [
+     "ITU Materials - the stock table, S = K_x = 0, i.e. what we and everyone else does today",
+     "Learned Materials - a per-material trainable embedding of L = 30 dimensions",
+     "Neural Materials - positional encoding of size 10 into an MLP with four hidden layers of 128 ReLU units, so material properties become a smooth function of POSITION on the surface"
+    ],
+    "training": "randomly initialise all trainable parameters, batch over measurement positions, Adam (learning rate 0.01 in the synthetic case), backpropagate through the ray tracer",
+    "key_property": "unlike a neural network, the calibrated parameters keep their physical meaning"
+   },
+   "validation": {
+    "synthetic": "a scene with ITU Concrete floor (eps_r 5.24, sigma 0.121, S 0.3, K_x 0.2), ITU Plasterboard walls (2.73, 0.027, 0.5, 0.4), ITU Ceiling board (1.48, 0.004, 0.8, 0.3), backscattering lobe model alpha_r = 5, alpha_i = 8, Lambda = 0.8; 256 random transmitter positions, up to three specular reflections plus first-order diffuse scattering and diffraction. All parameters recovered almost perfectly within 3000 iterations.",
+    "measured": "University of Stuttgart Institute of Telecommunications, 3.438 GHz, 50 MHz bandwidth, a dipole transmitter to two distributed 8x4 panels (64 receive antennas total) at opposite ends of a hallway about 50 m apart",
+    "metrics": "ALE = |mean P_dB - estimated mean P_dB| for the channel gain, RAE = |tau_RMS - estimate|/tau_RMS for the delay spread"
+   },
+   "THE_NUMBER_THAT_MATTERS_FOR_P2": {
+    "table_II_arXiv_p8": {
+     "ITU_Materials": {
+      "ALE_mean_dB": 4.93,
+      "ALE_std": 5.26,
+      "RAE_mean": 0.54,
+      "RAE_std": 0.23
+     },
+     "Learned_Materials": {
+      "ALE_mean_dB": 2.16,
+      "ALE_std": 1.69,
+      "RAE_mean": 0.24,
+      "RAE_std": 0.17
+     },
+     "Neural_Materials": {
+      "ALE_mean_dB": 1.0,
+      "ALE_std": 0.95,
+      "RAE_mean": 0.13,
+      "RAE_std": 0.12
+     }
+    },
+    "reading": "using the STOCK ITU material table costs about 4.9 dB of mean absolute level error in a real indoor scene. Calibrating the same four parameters against measurements cuts it to 2.2 dB, and letting them vary spatially cuts it to 1.0 dB. That is the size of the P2 penalty, measured, by the authors of Sionna itself.",
+    "provenance": "Table II values are read from the table region of p8 of the arXiv PDF text layer; the numbers appear as bare tokens without row labels adjacent, so they were matched by row order. TABLE-READ, not sentence-quoted."
+   },
+   "what_it_means_for_our_P2": "Our plastic eps_r 2.7 'literature value 2.6-3.0, no citation' and our five gamma_po choices are the same class of unsourced parameter this paper exists to fix. The honest options are (a) declare them as a modelling choice with a stated sensitivity, or (b) do what this paper does - make them differentiable and fit them to our own measurement when the X410 campaign produces data. Option (b) is now a concrete plan with a published recipe and a published expected gain of 2.7-3.9 dB.",
+   "quotes": [
+    {
+     "page": 1,
+     "q": "material characteristics requires precise calibration using channel\nmeasurements. We therefore introduce a novel gradient-based\ncalibration method"
+    },
+    {
+     "page": 3,
+     "q": "A material is described\nby four parameters, the conductivity"
+    },
+    {
+     "page": 6,
+     "q": "After around 3000\ntraining steps (approx. 10 min on an NVDIA RTX 3090), all\nparameters have converged to the correct values."
+    },
+    {
+     "page": 6,
+     "q": "Floor (ITU Concrete [39])\n5.24\n0.121\n0.3\n0.2"
+    },
+    {
+     "page": 7,
+     "q": "the transmitter to all 64 receive antennas across the two arrays."
+    },
+    {
+     "page": 8,
+     "q": "One can clearly see the benefits\nof “Learned Materials” in the left corridor where the ALE is\nsubstantially improved w.r.t. to the “ITU Materials”."
+    },
+    {
+     "page": 8,
+     "q": "TABLE II: Error statistics"
+    }
+   ]
+  },
+  {
+   "id": "LAMBDA-INJECTION",
+   "short": "The injection route stated outright - Sionna RT for propagation, CADFEKO for the UAV signature - read to find out exactly HOW the two are joined.",
+   "title": "LAMBDA: A Low-Altitude Multimodal Base Dataset for UAV Sensing and Communication",
+   "venue_status": "arXiv:2607.03826. PREPRINT.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+   "pages": 20,
+   "opened": "TARGETED-DEEP - pages 3, 4, 5, 7, 8 read",
+   "blockers_faced": [
+    "P1 - solved by buying the signature from a commercial full-wave solver",
+    "P2 - environment materials assigned semantically"
+   ],
+   "the_join_read_precisely": {
+    "what_the_tracer_gives": "path-level records from Sionna RT: complex path gains, delays, Doppler shifts, angles of departure and arrival, interaction labels, UAV position and velocity",
+    "what_CADFEKO_gives": "a UAV RCS file for the AirSim UAV model",
+    "how_they_are_combined": "the radar synthesis multiplies, per valid path, the complex CSI coefficient by the two-way delay, the Doppler shift, the virtual-array steering phase and a UAV-ORIENTATION-DEPENDENT RCS, plus optional receiver noise, to form a dechirped FMCW radar cube",
+    "THE_LIMITATION_THIS_EXPOSES": "the RCS is 'queried according to the UAV attitude' - one scalar per attitude, applied to every path. It is NOT indexed by the per-path bistatic angle pair. So the injected signature carries the target's orientation but not the geometry of each individual illumination/observation direction. Anyone who wants a truly bistatic signature cannot get it this way.",
+    "why_it_matters_to_us": "our SBR+PO computes a signature per illumination/observation pair, which is strictly more than an attitude-indexed lookup can express. That is a concrete, defensible advantage over the only injection pipeline in the corpus - provided our bistatic window is honest (P8)."
+   },
+   "validated_absolute_level": "NO. 'dBsm' appears 0 times in 20 pages; 'CADFEKO' appears 4 times, always as a tool name; there is no comparison of the injected RCS against measurement or any other solver anywhere in the document.",
+   "other_details": "frequencies 1.4, 3.5, 4.9, 5.9, 7, 28, 60, 77 GHz; frequency-dependent material and scattering settings above 28 GHz; ITU-R P.838-3 rain, P.840-9 fog, Gunn-East wet snow; UE5 + Cosys-AirSim + Blender + Sionna RT + CADFEKO; UAV speed bounded at 13.5 m/s horizontal and 6.0 m/s vertical",
+   "runtime": "none reported for either the tracing or the CADFEKO runs",
+   "quotes": [
+    {
+     "page": 3,
+     "q": "Sionna RT [27] for\nmaterial-aware ray tracing; and CADFEKO [28] for UAV radar cross-section (RCS) modeling."
+    },
+    {
+     "page": 4,
+     "q": "The radar synthesis module further combines the Sionna RT multipath geometry with CADFEKO-\nderived UAV RCS information to generate radar data."
+    },
+    {
+     "page": 7,
+     "q": "The synthesis combines the complex CSI coefficient of each valid path with its two-way delay,\nDoppler shift, virtual-array steering phase, UAV-orientation-dependent RCS, and optional receiver\nnoise."
+    },
+    {
+     "page": 7,
+     "q": "whereas the RCS term is obtained from CADFEKO simulations of the\nAirSim UAV model and queried according to the UAV attitude."
+    }
+   ]
+  }
+ ]
+}

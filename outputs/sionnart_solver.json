@@ -1,0 +1,400 @@
+{
+  "_doc": "Sionna RT Technical Report — PATH SOLVER 정독 레퍼런스 (Q1 / Q5 / B5 담당). 모든 주장에 페이지 번호와 원문 인용문, 식 번호를 붙였다. 기술보고서(technical report)와 창설논문(founding paper)을 문장마다 구별한다.",
+  "_task_scope": "TASK: 경로 솔버 front-to-back (Q1 표면 상호작용 전체 계산, Q5 출력 집합 양성 규명, B5 SBR→image method→해싱). Q2(회절 상세)·Q3(재질)·Q4(도플러)·Q6(3.4절 전문)·Q7(산란패턴)은 다른 담당의 소관이며 여기서는 경로솔버 서술에 필요한 만큼만 다룬다.",
+  "generated": "2026-08-03",
+  "reader": "path-solver agent",
+
+  "PRIMARY_SOURCE": {
+    "label_short": "TR",
+    "path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "pages": 59,
+    "pages_read": "1-59 전문 (본문 1-38, 부록 A-D 39-55, 참고문헌 56-59)",
+    "VERSION_VERIFIED": {
+      "verdict": "⚠ 파일명은 '...technical-report-v1.pdf' 이지만 내용은 v2 다. 우리 기록의 경고가 사실로 확인됨.",
+      "cover_line_p1": "2025-11-24 – Version 1.2",
+      "arxiv_stamp_p1": "arXiv:2504.21719v2  [cs.IT]  21 Nov 2025",
+      "citation_string_to_use": "F. Aït Aoudia, J. Hoydis, M. Nimier-David, B. Nicolet, S. Cammerer, A. Keller, \"Sionna RT: Technical Report\", Version 1.2, 2025-11-24, arXiv:2504.21719v2.",
+      "rule": "리포트·덱에서 인용할 때 파일명 'v1' 을 절대 그대로 쓰지 말 것. 반드시 Version 1.2 / arXiv v2 로 적는다.",
+      "internal_self_reference_p5_footnote": "1As of version 1.2, Sionna RT does not support RISs. It remains available as part of Sionna version 0.19.2. — 문서가 스스로를 version 1.2 로 지칭하는 두 번째 근거"
+    }
+  },
+
+  "SECONDARY_SOURCE": {
+    "label_short": "FP",
+    "path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__sionna-rt-founding.pdf",
+    "pages": 5,
+    "arxiv": "arXiv:2303.11103v2 [cs.IT] 19 Jul 2023",
+    "describes": "Sionna v0.14 의 RT 모듈",
+    "why_it_cannot_substitute": [
+      "FP 에는 'SBR' 이라는 용어가 0회 나온다(측정). 대신 '경험적 방법(heuristic method)' 이라고만 부른다.",
+      "FP p2 원문: \"Reflected paths are computed using the image method [30] by either exhaustive search, which does neither scale to large scenes nor to high reflection orders, or by a heuristic method. The heuristic method shoots a selected number of rays from the transmitter, whose directions are defined by a Fibonacci lattice on a sphere, which then propagate through the scene until the maximum number of reflections has been reached. For each resulting candidate path, i.e., an ordered list of scene primitives, the image method is applied to find specular paths that follow the identical list of primitives and arrive at the exact receiver location. Duplicate paths are removed and a possible LoS path is added.\"",
+      "→ FP 는 '중복 경로 제거' 를 한 줄로만 말하고 해싱 메커니즘을 전혀 서술하지 않는다. 해싱은 TR §3.1.3 의 신규 기여다(TR p7: \"it has been significantly refined in Sionna 1, notably by incorporating a hashing-based mechanism to efficiently remove duplicate paths\").",
+      "FP p2 원문: \"For future releases, it is planned to add refraction as well as support for RIS\" → 굴절이 없던 버전. 현재 솔버 거동의 근거로 쓸 수 없다.",
+      "FP 는 'coverage map' 이라는 용어를 쓰고 'radio map' 정의(TR §4.1 의 경로적분 정의)는 존재하지 않는다.",
+      "FP 용어 측정: radar 0, RCS 0, physical optics 0, cross section 0 — TR 과 동일하게 레이더 어휘 전무."
+    ],
+    "usage_rule": "FP 는 '2023년에 최초의 미분가능 전파 레이트레이서로 공개되었다' 같은 역사·포지셔닝 진술에만 쓴다. 솔버가 무엇을 계산하는가에 대한 모든 진술은 TR(Version 1.2)에서만 인용한다."
+  },
+
+  "B1_TERM_COUNT_VERIFICATION": {
+    "method": "PyMuPDF get_text() 로 59페이지 전문 추출 후 문자열/정규식 카운트. 대소문자 구분 명시.",
+    "results": {
+      "physical optics": {"count": 0, "believed": 0, "status": "CONFIRMED"},
+      "radar cross section": {"count": 0, "believed": 0, "status": "CONFIRMED"},
+      "RCS": {"count": 0, "believed": 0, "status": "CONFIRMED", "note": "대소문자 무시 0, 단어경계 정규식 \\bRCS\\b 도 0"},
+      "dBsm": {"count": 0, "believed": 0, "status": "CONFIRMED"},
+      "SBR": {"count": 44, "believed": 48, "status": "⚠ CORRECTED", "note": "대소문자 구분 'SBR' = 44회. 대소문자 무시하면 45회이지만 45번째는 참고문헌 [28] 의 독일어 단어 'Ausbreitungsbedingungen' 안의 sbr 로 오탐. 진짜 약어 등장은 44회. 우리 기록의 48 은 틀렸으므로 폐기."},
+      "target": {"count": 86, "believed": 86, "status": "CONFIRMED", "note": "target 64 + targets 21 + 나머지 복합형"},
+      "scatterer": {"count": 23, "believed": 23, "status": "CONFIRMED"}
+    },
+    "additional_counts_measured_here": {
+      "cross section": 0,
+      "radar": 0,
+      "monostatic": 0,
+      "bistatic": 0,
+      "sensing": 0,
+      "ISAC": 0,
+      "PTD": 0,
+      "radio map": 86,
+      "CIR": 17,
+      "impulse response": 7,
+      "Doppler": 9,
+      "velocity": 3,
+      "permittivity": 4,
+      "ITU-R": 4,
+      "P.2040": 3,
+      "UTD": 2,
+      "uniform theory": 1
+    },
+    "significance": "레이더 어휘 전체(radar/monostatic/bistatic/RCS/dBsm/cross section/sensing/ISAC)가 59페이지에서 0회다. 이는 단일 단어 부재가 아니라 어휘장 전체의 부재이며, 아래 Q5 의 '문서화된 출력 목록' 과 결합하면 추론이 아니라 진술이 된다."
+  },
+
+  "B1_STAR_ALL_86_TARGET_OCCURRENCES_READ": {
+    "verdict": "⭐ 우리 프레이밍 유지. 86회 전부 읽었고 레이더 의미로 쓰인 사례는 0건이다.",
+    "definition_quote_p6": "\"Paths are determined between two endpoints: a source and a target.\" / \"Throughout this document, the endpoints of a path will be referred to as sources and targets, which can be either radio devices or antennas.\"",
+    "usage_categories": [
+      {"category": "경로 종단점 정의", "pages": "6, 8, 9, 11, 22, 25", "example_p8": "\"A path p(L) with depth L ∈ N is a sequence of L+1 rays that connect a source point s ∈ R3 to a target point t ∈ R3\""},
+      {"category": "next-event estimation 의 가시선 검사 상대", "pages": "11-16", "example_p11": "\"the solver checks whether there is a line-of-sight (LoS) to the target, meaning that the ray segment from the interaction point to the target point is not occluded\""},
+      {"category": "N_T 개의 타깃, 해시 키에 붙는 타깃 인덱스 k", "pages": "12, 13, 19, 21", "example_p19": "\"the hash value of the candidate is paired with the target index k to form a new hash value\""},
+      {"category": "도플러 — 타깃은 수신 종단점", "pages": "28", "example_p28": "\"where v(s) ∈ R3 and v(t) ∈ R3 denote the velocity vectors of the source and target, respectively.\" (타깃 = 수신기, 산란체가 아님. 산란체 속도는 v(o) 로 따로 표기)"},
+      {"category": "확장성 실험에서 타깃 개수", "pages": "29, 30", "example_p29": "\"Targets were sampled uniformly at random on a plane parallel to the ground at an elevation of 1.5 meters.\" (= 지상 1.5m 사용자 단말 높이)"},
+      {"category": "radio map 셀 중심의 가상 수신점", "pages": "31, 33, 35, 36, 37", "example_p31": "\"For each cell, the solver estimates the average channel gain that would be observed by a target placed within that cell.\""},
+      {"category": "부록 C 회절점 기하", "pages": "53, 54", "example_p53": "\"Consider a source s, a target t, and an edge defined by its direction ê.\""}
+    ],
+    "closest_to_radar_sense_and_why_it_is_not": {
+      "page": 12,
+      "quote": "\"Alternative methods for identifying paths that include specular chains or specular suffixes may involve detection spheres centered at the targets to capture paths ending with a specular suffix\"",
+      "reading": "'detection sphere' 는 고전 ray-launching 문헌의 수신구(reception sphere) 기법을 가리키며, 여기서도 target 은 여전히 경로의 수신 종단점이다. 탐지되는 '표적' 이 아니다. TR 은 이 기법을 채택하지 않았다고 바로 이어서 비판한다: \"Such methods only approximate the path vertex locations and the directions of the scattered rays, yielding inaccurate path coefficients and resulting in incorrect CIRs.\""
+    },
+    "what_the_illuminated_object_is_called_instead": "scatterer (23회) / scene object / primitive. TR p5: \"a propagation environment is defined by a collection of scatterers.\" 즉 조명되는 물체는 항상 scatterer 이고, target 은 항상 수신단이다. 두 어휘가 문서 전체에서 한 번도 섞이지 않는다."
+  },
+
+  "Q1_WHAT_HAPPENS_AT_A_SURFACE_FULL_CHAIN": {
+    "_headline": "⭐ 표면에서 계산되는 것은 '교차점 1개 + 법선 1개 + 프리미티브 ID' 라는 국소 정보에 재질 계수 2×2 행렬을 곱하는 것이 전부다. 물체 표면 위 유도전류를 면적에 대해 적분하는 단계가 알고리즘 어디에도 존재하지 않는다. 경로당 전체 계산은 Algorithm 2(p26)에 통째로 들어 있고 그 루프는 상호작용 개수 ℓ 에 대해서만 돈다 — 면적에 대해 도는 루프가 없다.",
+
+    "step_1_geometry_test": {
+      "what": "레이–장면 교차 판정",
+      "page": 13,
+      "quote": "\"The first step of the SBR loop involves testing the intersection of the samples with the scene geometry. If a sample does not intersect any object, it has bounced out of the scene, and is deactivated.\"",
+      "outputs_of_the_test": [
+        "v(ℓ)_n ∈ R3 — 교차점",
+        "n̂(ℓ)_n ∈ R3, ‖n̂‖=1 — 원문 그대로: \"the surface normal at the intersection point oriented towards the half-space containing the incident field\" (즉 항상 입사 반공간을 향하도록 뒤집어 준다)",
+        "o(ℓ)_n — 교차한 객체 인덱스",
+        "m(ℓ)_n — 그 객체 안의 프리미티브(삼각형) 인덱스"
+      ],
+      "engine": "교차 판정 자체는 Mitsuba/Dr.Jit 에 위임된다. TR p5: \"Sionna RT is built on top of the just-in-time (JIT) compiler Dr.Jit [3] and the differentiable physically-based renderer Mitsuba [4].\"",
+      "STAR_implication": "이 단계에서 계산에 들어가는 기하 정보는 점 하나·법선 하나·삼각형 ID 뿐이다. 객체의 전체 형상·크기·곡률·유한성은 이 시점에 아예 전달되지 않는다. 이것이 아래 step_7 의 '정반사는 파면 곡률을 바꾸지 않는다' 와 정확히 맞물린다."
+    },
+
+    "step_2_interaction_type_sampling": {
+      "what": "교차점마다 상호작용 타입 하나만 무작위 선택 (분기 폭발 방지)",
+      "page": "11, 17",
+      "quote_p11": "\"Notably, at each interaction of a ray with a surface in the scene, only one scattered ray is spawned, as spawning multiple rays would result in an exponential increase in the number of rays, quickly overwhelming the available computational resources.\"",
+      "distribution_eq": "(19) Q = {q(R), q(S), q(T), q(D)}, Σq = 1",
+      "explicit_form_eq": "(20)",
+      "eq20_content": "q(R) = (1−q(D))·R²·(|r⊥|²+|r∥|²)/(|r⊥|²+|r∥|²+|t⊥|²+|t∥|²), q(S) = (1−q(D))·S²·(같은 분수), q(T) = (1−q(D))·(|t⊥|²+|t∥|²)/(같은 분모), q(D) ∈ [0,1] 고정",
+      "quote_p17_importance_sampling": "\"For specular reflection, diffuse reflection, and refraction, the probability of selecting each interaction type is proportional to the squared amplitudes of the corresponding reflection and refraction coefficients. Diffraction, on the other hand, is sampled using a fixed probability q(D) ∈ [0,1].\"",
+      "default": "TR p18: \"In Sionna RT, q(D) is set to 0.2.\"",
+      "components": "r⊥, r∥, t⊥, t∥ 는 Fresnel 계수 — ⚠ TR 본문은 이를 \"(131)\" 로 지시하는데 (131) 은 슬랩 반사계수 식이다. 자유 Fresnel 은 (127)/(128). 인용 시 (127)/(128) 을 쓰는 것이 안전. S 는 산란계수(§A.9), R 은 reflection reduction factor (164).",
+      "CRITICAL_quote_p17": "\"Importantly, the choice of distribution Q does not affect the calculation of the paths' electric fields, which are solely dependent on the propagation environment.\" — 샘플링 분포는 분산만 바꾸고 물리는 바꾸지 않는다는 저자 명시. 아래 step_7 의 1/√γ 재가중이 그 무편향성을 보장한다.",
+      "evidence_figure": "Figure 15 (p18): 금속 상자 + 유리 스크린 장면에서 importance sampling 이 uniform 대비 약 100배 적은 샘플로 수렴."
+    },
+
+    "step_3_validity_geometry_test_per_type": {
+      "diffuse_S": {
+        "test": "가시선 차폐 검사(next-event estimation). 통과하면 즉시 유효 경로 (11) 로 확정, image method 불필요.",
+        "eq": "(11) p(ℓ)_n = (s, v(1)_n, …, v(ℓ)_n, t_k)",
+        "next_ray": "k̂(ℓ)_n ~ U_2π(n̂(ℓ)_n) — 법선이 정의하는 반구에서 균일 무작위",
+        "quote_p11": "\"Next-event estimation is only possible for diffuse reflections that scatter energy into all directions.\""
+      },
+      "specular_R_and_refraction_T": {
+        "test_eq": "(12) (t_k − v(ℓ)_n)/‖t_k − v(ℓ)_n‖₂ = k̂(ℓ)_n",
+        "direction_eq": "(13) — R 이면 k̂(ℓ−1) − 2((k̂(ℓ−1))ᵀn̂(ℓ))n̂(ℓ) 를 정규화, T 이면 k̂(ℓ−1) 그대로(각편향 없음)",
+        "quote_p14": "\"Since targets are modeled as points, condition (12) effectively occurs with zero probability, and, consequently, the path (11) is not a valid path.\"",
+        "consequence": "→ specular suffix 를 image method 로 넘긴다 (14)."
+      },
+      "diffraction_D": {
+        "edge_projection": "레이가 모서리를 정확히 맞을 확률이 0이므로, 교차점을 프리미티브의 세 모서리 중 하나로 투영해 v(ℓ)_n 을 만든다. 모서리 인덱스 ι(ℓ)_n ∈ {0,1,2}. (Figure 13, p16)",
+        "test_eq": "(16) with (17) k̂(ℓ)_n = sin β0 cos φ t̂ + sin β0 sin φ n̂ + cos β0 ê — Keller 원뿔 위",
+        "quote_p16": "\"since targets are modeled as points, condition (16) is satisfied with zero probability for all φ ∈ [0, nπ], rendering the sampled path invalid.\"",
+        "continuation": "φ 를 [0, nπ] 에서 균일 샘플하여 레이 하나만 이어 쏜다."
+      },
+      "STAR_asymmetry": "정반사·굴절·회절은 전부 '확률 0' 이라서 SBR 만으로는 절대 유효 경로가 못 되고, 확산반사만 즉시 유효 경로가 된다. 이 비대칭이 SBR→image method 이중 구조의 존재 이유 전체다. TR p11: \"Since specular chains typically carry a significant amount of the transported energy, SBR alone is insufficient for computing CIRs.\""
+    },
+
+    "step_4_image_method_refinement": {
+      "scope": "specular chain 및 specular suffix 만 처리. ℓ_d > 0 이면 마지막 확산반사점 v(ℓ_d)_n 이 image method 의 '소스' 가 된다 (p22).",
+      "images_eq": "(26) — s(i) = s (i=0) / s(i−1) − 2((s(i−1) − p(i))ᵀn̂(i))n̂(i) (χ=R) / s(i−1) (χ=T, 위치 불변)",
+      "quote_p23_refraction_skip": "\"Since refracted paths are modeled without angular deflection, incorporating refraction into the image method is straightforward: refractions may simply be skipped when computing the source images, as they do not alter the ray's direction.\"",
+      "backtracking_eq": "(27) — 타깃에서 거꾸로, d̂(i) = (s(i) − ṽ(i+1))/‖·‖, ṽ(i) = intersection((ṽ(i+1), d̂(i)), (o(i), m(i)))",
+      "validity_quote_p23": "\"The path is considered valid only if two conditions are met: (i) each ray (ṽ(i+1), d̂(i)) successfully intersects a primitive that is coplanar with the primitive (o(i), m(i)), and (ii) the line segment between ṽ(i+1) and ṽ(i) is unobstructed by any other scene geometry. If either condition fails, then the path is discarded.\"",
+      "with_diffraction": {
+        "idea_quote_p23": "\"The core idea is to use image theory to compute the diffraction point in image space and subsequently map it back to the original space. The motivation for this approach is that, in the image space, all specular reflections and refractions are effectively 'removed', leaving only the diffraction event.\"",
+        "edge_images_eq": "(28) — 모서리 끝점 o_n 과 모서리 벡터 ê_n 을 각 반사면에 대해 반사",
+        "fermat_eq": "(29) L(x) = ‖t − ṽ‖ + ‖s(ℓ) − ṽ‖, (30) ṽ = o(ℓ) + x·ê(ℓ)",
+        "closed_form": "부록 C (p53-55), (183)-(192). \"As shown in [22], L(·) is strictly convex and thus has a unique minimizer.\"",
+        "intermediate_images_eq": "(31)"
+      },
+      "yield_statistic": {
+        "quote_p24": "\"Typically, most of the candidates are discarded by the image method.\"",
+        "figure": "Figure 20 (p25): N_S = 10⁶, 확산반사 off, 회절 on. 후보 수는 깊이에 따라 10²~10³ 대인데 유효 경로는 그보다 훨씬 적다.",
+        "our_use": "'RT 는 경로를 찾는 탐색기이지 산란장 계산기가 아니다' 라는 우리 주장의 정량적 근거."
+      },
+      "STAR_INFINITE_PLANE_QUOTE": {
+        "note": "⭐ 우리 프로젝트에서 가장 많이 쓰게 될 문장. '표면을 국소 무한 평면으로 취급한다' 를 부록이 아니라 솔버 본문에서 저자가 직접 말한다.",
+        "page": 19,
+        "quote": "\"Importantly, primitives that are coplanar (i.e., lie in the same plane) are treated as equivalent during hashing. This is because the image method assumes all reflection surfaces extend infinitely, making the exact in-plane position of a primitive irrelevant to the path geometry.\"",
+        "second_witness_page": 46,
+        "second_witness_quote": "\"The reflection and refraction coefficients described above assume that the object reflecting the wave or allowing it to penetrate is of infinite size (or thickness).\" (§A.7.1 도입부)",
+        "reading": "무한 평면 가정은 (a) 경로 기하(어느 삼각형이든 같은 평면이면 동일 경로), (b) 계수(Fresnel 자체가 무한 평면 유도) 두 곳 모두에 박혀 있다. 유한 크기 물체가 만드는 회절/발산 보정은 오직 D(모서리 UTD) 로만 들어오고, 면 자체의 유한성 보정(PO 적분·PTD)은 없다."
+      }
+    },
+
+    "step_5_coefficient_applied": {
+      "master_algorithm": "Algorithm 2 'Electric field computation' (p26). 경로 하나의 전체 계산이 30줄 안에 다 있다.",
+      "line_7": "T(ℓ')_n ← Evaluate_Material(o(ℓ')_n, χ(ℓ')_n, …)  — 교차 객체 인덱스와 상호작용 타입만 인자로 받는다",
+      "line_8": "E_n ← T(ℓ')_n E_n  — 2×2 복소 행렬을 2벡터 필드에 곱한다",
+      "quote_p27": "\"At each interaction, the electric field is updated by the transfer matrix T(ℓ')_n, which depends on the intersected object o(ℓ')_n, the interaction type χ(ℓ')_n, and other parameters (omitted for brevity).\"",
+      "per_type_matrix": {
+        "R_specular": {
+          "eq": "(129) [E_r,⊥; E_r,∥] = diag(r⊥, r∥) · W(ê_i,⊥, ê_i,∥, ê_i,s, ê_i,p) · [E_i,s; E_i,p]",
+          "coefficients": "(127) 일반 Fresnel, (128) 진공 입사 단순형",
+          "slab_variant": "(131) r = r'(1 − e^{−j2q}) / (1 − r'²e^{−j2q}), (133) q = (2πd/λ)√(η − sin²θ0), d = 두께",
+          "scattering_correction": "S > 0 이면 Fresnel 반사계수에 R = √(1−S²) (164) 를 곱한다. 원문 p50: \"Whenever a material has a scattering coefficient S > 0, the Fresnel reflection coefficients in (127) must be multiplied by (164).\"",
+          "polarisation_structure": "⭐ 대각행렬. 정반사는 (⊥,∥) 기저에서 편파를 섞지 않는다 = 탈편파 0."
+        },
+        "T_refraction": {
+          "eq": "(130) diag(t⊥, t∥) · W(...)",
+          "geometry": "각편향 없음. TR p9: \"The transmitted rays are traced without angular deflection.\"",
+          "thickness": "TR p9: \"However, when computing the transmitted and reflected fields, the thickness of the traversed object is considered.\" — 기하는 얇은 판, 계수는 슬랩(131)-(133).",
+          "polarisation_structure": "대각행렬. 탈편파 0."
+        },
+        "D_diffraction": {
+          "eq": "(145) [E_d,φ; E_d,β0](S) = −((D1+D2)I − D3·R_n − D4·R_0) [E_i,φ'; E_i,β0'](S') · √(1/(s's(s'+s))) · e^{−jk(s'+s)}",
+          "coefficients": "(153)-(156) D1..D4, cot(...)·F(kL a±(...)), (157) L, (158) a±, (159) N±, (160)/(163) 전이함수 F",
+          "face_reflection_matrices": "(146) R_ν = W(φ̂, β̂0, ê_r,⊥,ν, ê_r,∥,ν) diag(r⊥(θ_r,ν, η_ν), r∥(θ_r,ν, η_ν)) W(ê_i,⊥,ν, ê_i,∥,ν, φ̂', β̂0') — 즉 회절계수 안에 두 쐐기면의 Fresnel 반사계수가 들어간다",
+          "formulation": "UTD (Kouyoumjian–Pathak [36]) 를 유한도전 쐐기로 heuristic 확장한 [37]. TR p47: \"This solution, which is also recomended by the ITU [38], is implemented in Sionna.\" ([38] = ITU-R P.526-15)",
+          "polarisation_structure": "⭐ 비대각. R_n, R_0 항이 off-diagonal 을 만들므로 회절은 탈편파를 일으킨다."
+        },
+        "S_diffuse": {
+          "eq": "(168) [E_s,θ; E_s,φ] = (SΓ/‖r−q‖₂)·√(f_s(k̂i,k̂s,n̂) cos θ_i dA) · [[√(1−Kx)e^{jχ1}, −√Kx e^{jχ1}],[√Kx e^{jχ2}, √(1−Kx)e^{jχ2}]] [E_i,θ; E_i,φ]",
+          "provenance": "TR p51: \"According to [42, Eq. 9], the diffusely scattered field Es(r) at the observation point r can be modeled as …\" — 경험적 모델 인용",
+          "Gamma": "(169) Γ = √(|r⊥E_i,⊥|² + |r∥E_i,∥|²)/‖E_i(q)‖₂ — 반사되는 전력 비율",
+          "Kx": "(170) XPDs = 10log10((1−Kx)/Kx)",
+          "patterns": "(172) Lambertian, (173) Directive, (174) Backscattering",
+          "polarisation_structure": "비대각. Kx 로 명시적 탈편파.",
+          "NONLINEARITY_quote_p43": "⭐ \"In some cases, e.g., for diffuse reflection (see (168) in Section A.9), the matrix T̃ depends on the incoming field and is not a linear transformation.\" — 확산반사만 유일하게 입사장에 의존하는 비선형 항이다(Γ 가 E_i 를 포함하므로)."
+        }
+      },
+      "STAR_what_is_absent": "네 타입 어디에도 '물체 표면 위 유도전류 J_s = 2n̂ × H_i 를 조명 영역에 대해 적분' 하는 단계가 없다. PO 는 물론 그 어떤 면적분도 상호작용 계산에 등장하지 않는다. Evaluate_Material 의 인자는 (객체 인덱스, 상호작용 타입, …) 이고 면적·형상 인자가 아니다."
+    },
+
+    "step_6_polarisation_carriage": {
+      "field_representation": "E 는 2성분 복소 벡터. 초기값은 송신 안테나 패턴: Algorithm 2 line 1 \"E_n ← tx_pattern(k̂(0)_n)\".",
+      "basis_change_matrix": "(120) W(â, b̂, q̂, r̂) = [[âᵀq̂, âᵀr̂],[b̂ᵀq̂, b̂ᵀr̂]] — 임의의 전달 기저(s,p)와 국소 상호작용 기저(⊥,∥) 사이 회전. 각 상호작용마다 앞뒤로 끼워 넣는다((129),(130),(146)).",
+      "incidence_bases_eq": "(118)-(119) 입사, (123)-(126) 반사/투과 기저와 방향",
+      "diffraction_bases_eq": "(135)-(138) φ̂', β̂0', φ̂, β̂0 (edge-fixed 평면 기준)",
+      "diffuse_bases_eq": "(165)-(167) 동일 필드를 (s,p)/(⊥,∥)/(θ,φ) 세 기저로 표현",
+      "dual_polarisation": "TR p27: \"For dual polarization, two independent electric field vectors are tracked per path.\" (radio map 솔버도 동일: p37 \"The radio map solver supports dual-polarized transmit antennas by considering two independent electric field vectors for each path.\")",
+      "implementation_note": "복소수를 실수 블록으로 구현: (33) [[ℜT, −ℑT],[ℑT, ℜT]], (34) [ℜE; ℑE]. 미분가능성 확보용 표현.",
+      "coordinate_transform_machinery": "§A.1: (64) 구면 단위벡터, (66)/(67) yaw-pitch-roll 회전, (68) 각도 변환, (70) 벡터장 성분 변환, (72)-(75) Rodrigues.",
+      "summary": "편파는 경로 전체에 걸쳐 2벡터로 일관되게 운반되며, 기저 회전은 W 로만 처리된다. 탈편파는 확산반사(Kx)와 회절(off-diagonal)에서만 발생하고 정반사·굴절에서는 발생하지 않는다."
+    },
+
+    "step_7_energy_accounting": {
+      "_headline": "⭐ 확산 인자(spreading factor)를 상호작용마다가 아니라 경로 끝에서 한 번만 적용한다. 정반사·굴절은 파면 곡률을 전혀 바꾸지 않는다.",
+      "spreading_quote_p35": "\"In the current propagation model of Sionna RT, only the source s and diffuse reflection points act as point sources that spawn new ray tubes, whereas specular reflection and refraction points merely deviate existing ray tubes rather than spawning new ones.\" (§4.2, radio map 문맥이지만 'current propagation model of Sionna RT' 라고 명시하므로 전체 모델 진술)",
+      "algorithm2_bookkeeping": {
+        "r_n": "line 3 초기화 0, line 10 매 구간 길이 누적, line 14 확산반사에서 0 리셋, line 17 회절에서 0 리셋, line 21 마지막 구간 추가 — 즉 r_n 은 '현재 광선관이 태어난 뒤 진행한 거리'",
+        "s_n": "line 5 초기화 0, line 16 회절 직전의 r_n 을 저장 — 회절 확산인자용 입사 구간 길이",
+        "gamma_n": "line 4 초기화 1, line 9 γ ← γ·q(χ), line 12 확산반사에서 E ← E/√γ, line 13 γ ← 1",
+        "tau_n": "line 19 매 구간 길이/c 누적, line 22 마지막 구간 추가",
+        "final_coefficient": "line 24 a_n ← (λ/4π)(E_nᵀ E_n^rx); line 26 회절경로면 a_n ← a_n/√(s_n r_n (s_n + r_n)); line 28 아니면 a_n ← a_n/r_n; line 30 return a_n, τ_n"
+      },
+      "conservation_rationale_quotes": [
+        {"page": 26, "quote": "\"The remaining ray tubes must therefore compensate for the discarded ones to maintain energy conservation.\""},
+        {"page": 26, "quote": "\"Given that there is a finite number of specular chains with a specific depth, the channel gain (5) observed at the target due to specular chains is accurate if all specular chains are identified by the path solver, which is assumed to be the case. This assumption will be reasonable if the number of samples N_S is sufficiently large.\""},
+        {"page": 26, "quote": "\"on average, only a fraction Pr(χ(ℓ_d)_n) of the ray tubes that should reach the diffusely reflective surface are actually traced. To account for this, the electric field is scaled by 1/√Pr(χ(ℓ_d)_n) at the point of diffuse reflection.\""},
+        {"page": 51, "quote": "\"The scattering pattern must be normalized to satisfy the condition (171) … which ensures the power balance between the incoming, reflected, and refracted fields.\""},
+        {"page": 44, "quote": "\"Note that the matrices T̃_i also ensure appropriate scaling so that the total received power can never be larger than the transmit power.\" (§A.5, (111) 직후)"}
+      ],
+      "STAR_reading_for_our_project": [
+        "에너지 회계는 전부 '채널 예산' 수준의 진술이다: 수신전력이 송신전력을 넘지 않는다, 산란패턴 적분이 1이다, 버려진 광선관을 확률로 되살린다. 어디에도 '한 물체가 되돌리는 절대 산란량이 물리적으로 맞다' 는 주장이 없다.",
+        "정반사가 광선관을 새로 만들지 않는다는 것은 곧 발산인자(divergence factor)가 1 이라는 뜻이고, 이는 무한 평면 반사와 정확히 같다. 유한 크기·곡률을 가진 산란체(드론 동체·로터)가 만드는 파면 확산은 이 모델에 들어올 자리가 없다.",
+        "곡면/유한 산란체의 확산을 표현할 수 있는 유일한 통로는 diffuse reflection(S 계수)뿐인데, 그것은 (168)/[42, Eq. 9] 의 경험 모델이고 패턴은 (172)-(174) 의 Lambertian/Directive/Backscattering 세 가지 파라메트릭 형태다."
+      ]
+    },
+
+    "step_8_what_the_solver_never_does": {
+      "verified_absences": [
+        "표면 유도전류의 면적분(PO) — 'physical optics' 0회, 어떤 면적분도 상호작용 계산에 없음",
+        "PTD/fringe 전류 보정 — 'PTD' 0회. 회절은 모서리 UTD 계수 (153)-(156) 뿐이며, 이는 경로 기여이지 산란 단면적 보정이 아님",
+        "고차 회절 — §3.4 p30: \"calculating the electric field along these high-order diffraction paths remains an open problem, and as a result, high-order diffraction is not currently supported.\"",
+        "회절 + 확산반사 혼합 경로 — p16: \"the path solver prohibits sampling paths that contain both diffraction and diffuse reflection.\"",
+        "면의 유한성 보정 — 위 STAR_INFINITE_PLANE_QUOTE 참조",
+        "네 가지 외의 상호작용 — p9 §2.3: \"Sionna RT currently supports four types of interactions with scene objects\", ℐ = {R, S, T, D} (B4 확인)"
+      ]
+    }
+  },
+
+  "B5_SBR_IMAGE_HASHING_VERIFICATION": {
+    "claim_1_SBR_is_a_candidate_generator": {
+      "status": "CONFIRMED",
+      "quote_p11": "\"To compute paths ending with a specular suffix, including specular chains, the path solver uses an image method-based algorithm. However, a brute-force implementation of the image method that would test all possible combinations of primitives and wedges that constitute the scene is prohibitive even for moderately large scenes. Therefore, the path solver uses SBR as a heuristic to find path candidates. A path candidate consists of a sequence of primitives or wedges and interaction types ending with a specular reflection, refraction, or diffraction.\"",
+      "quote_p11_intuition": "\"Intuitively, SBR pre-selects path candidates in the vicinity of the transmitter and receiver for the image method to compute corresponding valid paths to be returned by the solver.\"",
+      "architecture_figure": "Figure 9 (p12) 'Main steps of the Sionna RT path solver'; 한 샘플의 알고리즘은 Figure 10 (p13).",
+      "initial_directions": "구면 Fibonacci 격자 (18), θ_n = arccos(2n/N_S), φ_n = 2πn/ϕ (ϕ = 황금비), n ∈ [−⌊N_S/2⌋, ⌈N_S/2⌉−1]. 광선관 개구각 ≈ 4π/N_S.",
+      "default_N_S": "TR p17: \"The Sionna RT path solver uses 10⁶ points as the default value for N_S, and higher values will ensure that more valid paths are found.\"",
+      "termination": "장면 밖으로 튕겨나감 / 최대 깊이 L 도달 / 기타 종료조건 (p11)"
+    },
+    "claim_2_hashing_deduplication": {
+      "status": "CONFIRMED, 상세 확보",
+      "why_needed_quote_p15": "\"if ℓ_d = 0, i.e. p(ℓ)_n is a specular chain, then further processing by the image method of multiple identical candidates (15) would result in multiple identical valid paths, which would lead to erroneous CIRs.\"",
+      "why_only_specular_chains_quote_p15": "\"However, when ℓ_d > 0, then v(ℓ_d)_n corresponds to a diffuse reflection point that is the result of a randomly sampled ray direction … Since the probability of two different paths having identical randomly sampled diffuse reflection points is effectively zero, path uniqueness is guaranteed in these cases without requiring the de-duplication mechanism.\"",
+      "candidate_signature_eq": "(21) c(ℓ)_n = (s, (o(1),m(1),ι(1),χ(1)), …, (o(ℓ),m(ℓ),ι(ℓ),χ(ℓ))) with χ ∈ {R, T, D}",
+      "algorithm": "Algorithm 1 (p20)",
+      "hash_plane": "법선 n 과 평면 오프셋 d = nᵀp 를 양자화 Q(·) 후 FNV-1a [17] 로 순차 결합. 큰 상수 H 로 시드.",
+      "hash_edge": "모서리 두 끝점 좌표 6성분을 FNV-1a 로 순차 결합",
+      "refraction_excluded_quote_p19": "\"Furthermore, refraction can be omitted from the hashing procedure since it does not change the ray direction and therefore does not alter the geometry of the path, as refraction is modeled without angular deflection.\"",
+      "coplanar_equivalence_quote_p19": "\"primitives that are coplanar (i.e., lie in the same plane) are treated as equivalent during hashing. This is because the image method assumes all reflection surfaces extend infinitely\" (Figure 16, p19 가 p1/p2 → 같은 p̃ 예시)",
+      "rolling_hash": "hash_update(curr, inter) = 1373·curr + inter — 소수 밑 1373 의 다항 롤링 해시 [18]",
+      "target_binding_eq": "(22) hash(ℓ)_{n,k} = FNV1a(hash(ℓ)_n, k) — 타깃마다 유일성 보장",
+      "array_index_eq": "(23) i(ℓ)_{n,k} = hash(ℓ)_{n,k} mod N_H",
+      "array_size_eq": "(24) N_H = max(N_B, 10⁶)",
+      "quantisation_LSH": "TR p22: 부동소수 경계 문제(Q(1.4999)=1 vs Q(1.5001)=2) 때문에 양자화 함수를 둘(rounding, floor) 써서 해시 두 개를 계산하고 \"A path is only considered unique if all of its corresponding hash values are unique.\" — locality-sensitive hashing [19] 의 일종이라고 저자가 명시.",
+      "buffer_policy_quote_p21": "\"If the buffer becomes full, any newly found paths or candidates are discarded. Discarding paths rather than overwriting existing ones is based on the reason that paths with lower depth, which are added to the buffer first as the SBR loop advances from ℓ=0 to ℓ=L, typically carry more energy and should not be replaced by higher depth paths when the buffer becomes full.\"",
+      "buffer_contents_quote_p21": "\"This buffer holds, for each path, the sequence of interaction types, vertices, intersected objects, primitives, and more.\"",
+      "collision_limitation_quote_p21": "\"It is important to note that the index i(ℓ)_{n,k} is not guaranteed to be unique for different specular chains. When two different specular chains share the same index value despite being different, the path solver will discard one of them. Such an event is referred to as a collision, and can result in the discarding of valid paths.\"",
+      "collision_in_3_4_quote_p30": "\"The path solver does not handle collisions of specular chain candidates. … This could be avoided by using a collision resolution mechanism, and by dynamically adjusting the hash array size to reduce the probability of collisions. Currently, it is assumed that the hash array size is set to a sufficiently large value to make collisions negligible.\"",
+      "API_MAPPING_ANOMALY": {
+        "flag": "⚠ 인용 주의 — 보고서 문장 자체가 뒤집힌 것으로 보인다.",
+        "verbatim_p22": "\"In the interface of the Sionna RT built-in path solver, N_B corresponds to the samples_per_src parameter, and N_H corresponds to max_num_paths_per_src.\"",
+        "problem": "N_B 는 경로 버퍼 크기, N_H 는 해시 배열 크기로 정의되었는데, API 이름 samples_per_src(쏘는 레이 수, 본문의 N_S)와 max_num_paths_per_src(저장 가능한 경로 수, 본문의 N_B)에 비추면 매핑이 서로 바뀐 것처럼 읽힌다.",
+        "action": "이 문장을 우리 리포트에 인용하지 말 것. 필요하면 실제 Sionna 2.0.1 소스에서 파라미터 의미를 실측해 별도 확인. 미해결로 남긴다."
+      }
+    },
+    "claim_3_radio_maps_purely_SBR": {
+      "status": "⚠ PARTIALLY TRUE — 정정 필요",
+      "abstract_claim_p1": "\"Radio maps are computed using a purely SBR-based approach.\"",
+      "but_body_says_p33": "\"However, SBR is not applicable to paths that include diffraction: as explained in Section 3.1, the probability of a ray intersecting an edge is zero. To address this, Sionna RT computes the radio map in two steps, as illustrated in Figure 26. First, the radio map is computed for all interaction types except diffraction using a single SBR loop; wedges near the source are detected and stored during this step. Second, only diffracted paths are computed. … The two radio maps are then summed to obtain the final result.\"",
+      "diffraction_map_is_not_SBR": "§4.3 (p35-36): 쐐기 위에서 x ~ U[0, L_E], φ ~ U[0, nπ] 를 직접 샘플하는 별도 몬테카를로. 추정기 (59), 야코비안 가중치 ‖δt/δx × δt/δφ‖₂ (부록 D).",
+      "correct_statement_for_our_reports": "'radio map 은 회절을 제외한 전 상호작용에 대해 단일 SBR 루프로 계산되고, 1차 회절만 별도의 모서리 샘플링 몬테카를로로 더해진다' 로 쓸 것. 'purely SBR' 은 초록의 요약 표현이며 본문과 엄밀히는 어긋난다.",
+      "no_image_method_in_radio_map": "radio map 솔버에는 image method 가 전혀 쓰이지 않는다. §4.1 p33: \"It is important to note that this analogy does not extend to the path solver, which is not concerned with evaluating an integral but rather with finding a set of paths, which are not aggregated into a single scalar value.\"",
+      "non_coherent_only": "§4.4 p36: \"The proposed definition of radio maps involves a non-coherent summation of path gains (43). As a result, it does not capture fast fading effects, which result from the constructive and destructive interference of multiple paths.\" (Figure 29 가 solver 맵 = 비간섭 합 ≠ 간섭 합 을 실증)"
+    }
+  },
+
+  "Q5_OUTPUT_SET_POSITIVE_ENUMERATION": {
+    "_headline": "⭐ '산란 단면적 출력이 없다' 를 단어 0회의 추론이 아니라, 문서화된 출력 목록이 닫혀 있고 그 목록에 없다는 진술로 승격한다.",
+    "solver_taxonomy_is_closed": {
+      "quote_p6": "\"Given the distinct algorithmic requirements for CIRs and radio maps, Sionna RT provides two types of solvers: • The path solver computes a set of paths connecting a source to a target, which can then be used to compute a CIR. • The radio map solver computes a radio map, a 2D grid of values that approximate the channel gain (5) that a receiver located on the grid would observe.\"",
+      "figure": "Figure 2 (p6) 아키텍처 도해 — Scene(objects/radio materials/radio devices) → Solver(두 종류) 가 전부",
+      "extensibility_caveat_quote_p7": "\"While Sionna RT provides built-in solvers and radio material models, it is designed to facilitate the implementation of custom alternatives.\" — 확장 가능성은 저자가 명시. 우리 주장은 '기본 솔버가 무엇을 내놓는가' 로 한정해야 한다."
+    },
+    "A_path_solver_outputs": [
+      {"n": 1, "item": "경로 기하 (path vertices / 상호작용 시퀀스 / 교차 객체·프리미티브)", "section": "§3.1, §3.2", "eq": "(7), (11), (14), (25)", "evidence": "버퍼 저장 내용 p21: \"This buffer holds, for each path, the sequence of interaction types, vertices, intersected objects, primitives, and more.\"", "note": "⚠ 'and more' 가 이 목록에서 유일하게 열린 표현이다. 정직하게 표기."},
+      {"n": 2, "item": "경로별 복소 채널계수 a_n", "section": "§3.3", "eq": "(4), Algorithm 2 line 24/26/28/30", "evidence": "Algorithm 2 line 30: \"return a_n, τ_n\""},
+      {"n": 3, "item": "경로별 전파 지연 τ_n", "section": "§3.3", "eq": "Algorithm 2 lines 19/22/30", "evidence": "같은 줄"},
+      {"n": 4, "item": "경로별 도플러 천이 ν_n", "section": "§3.3.2", "eq": "(37) 객체 기여 누적, (38) 소스·타깃 운동 포함 총합", "evidence": "p28"},
+      {"n": 5, "item": "출발/도착각 (θ_T,φ_T), (θ_R,φ_R)", "section": "§1, §3.3", "eq": "(4) 안에서 안테나 패턴 평가에 쓰임", "evidence": "p5-6: \"the antenna patterns are evaluated at the angles of departure and arrival of the paths\"", "note": "TR 은 이를 '출력' 으로 따로 열거하지 않는다. 계산 중간량으로만 등장. 사용자 API 가 노출하는지는 TR 범위 밖 — 정직하게 표기."},
+      {"n": 6, "item": "어레이 채널행렬 H_array,n (합성 어레이 위상 적용)", "section": "§3.3.1", "eq": "(35) H_array,n = a_n u_A^rx (u_A^tx)ᵀ, (36) 어레이 응답 벡터", "evidence": "p27-28"},
+      {"n": 7, "item": "채널 임펄스 응답 CIR h(τ)", "section": "§1, §A.6", "eq": "(2), (115); 기저대역 등가 (116)", "evidence": "p5, p44"},
+      {"n": 8, "item": "채널 주파수 응답 H(f)", "section": "§1, §A.6", "eq": "(1), (3), (112), (114)", "evidence": "p5, p44"},
+      {"n": 9, "item": "채널 이득 g = Σ|a_n|²", "section": "§1", "eq": "(5)", "evidence": "p6"},
+      {"n": 10, "item": "채널 탭 계수 h_i", "section": "§4.1 (경로적분 유비 문맥)", "eq": "(50)", "evidence": "p33: \"the definition of a channel tap coefficient [25, Eq. 2.36] can be rewritten as: (50)\"", "note": "path solver 의 산출물을 sinc 로 리샘플한 것. 별도 솔버가 아님."}
+    ],
+    "B_radio_map_solver_outputs": [
+      {"n": 11, "item": "채널 이득 맵 C_i (측정면 셀별 채널이득)", "section": "§4.1-4.2", "eq": "정의 (41)/(46)/(47), 몬테카를로 추정기 (52), 가중치 (53)", "evidence": "p31-35"},
+      {"n": 12, "item": "회절 기여 맵 C_i^(D) (1차 회절만), 위와 합산", "section": "§4.3", "eq": "(54), (58), 추정기 (59)", "evidence": "p35-36"},
+      {"n": 13, "item": "다중 송신안테나/프리코딩 반영 맵", "section": "§4.5", "eq": "(60), (61), (62) — 스칼라 α = (u_A^tx)ᵀ u_P 를 경로마다 미리 계산", "evidence": "p36-37"},
+      {"n": 14, "item": "메시 기반 측정면 위의 맵 (삼각형 하나 = 셀 하나)", "section": "§4.6 'Mesh-based Measurement Surface'", "eq": "-", "evidence": "p37"}
+    ],
+    "C_meta_output": [
+      {"n": 15, "item": "위 전부에 대한 그래디언트 (미분가능성)", "section": "초록, §1", "evidence": "p1 초록: \"enabling the calculation of gradients for the channel impulse responses (CIRs), radio maps, and other related metrics with respect to system and environmental parameters, such as material properties, antenna patterns, and array geometries.\"", "note": "'other related metrics' 는 열린 표현이지만, 미분 대상은 어디까지나 위 A/B 출력의 함수다."}
+    ],
+    "THE_CLOSING_QUOTE": {
+      "note": "⭐ 이 한 문장이 Q5 를 양성 진술로 만든다. 저자가 '현재 지원되는 radio map 은 채널이득맵 하나뿐' 이라고 못 박고, 확장 예시로 든 것이 지연확산·각확산 맵이지 산란 단면적류가 아니다.",
+      "page": 38,
+      "section": "§4.6 'Extension to other Types of Radio Maps'",
+      "quote": "\"The Sionna RT solver currently supports the calculation of channel gain maps, which are radio maps that provide an estimate of the channel gain for each cell. It is possible to extend the solver to calculate other types of radio maps, such as root-mean-square delay spread maps and angular spread maps [27].\""
+    },
+    "POSITIVE_STATEMENT_FOR_OUR_REPORTS": {
+      "ko": "Sionna RT 기술보고서(Version 1.2, arXiv:2504.21719v2)가 문서화한 내장 솔버의 출력 집합은 두 갈래로 닫혀 있다. (i) path solver: 경로 기하와 경로별 복소계수·지연·도플러, 그리고 이들로 조립되는 CIR·주파수응답·채널이득·어레이 채널행렬(식 2,3,4,5,35,37,38,114,115,116). (ii) radio map solver: 측정면 셀별 채널이득맵(식 41,46,52,59). 두 갈래 모두 '송신단에서 수신단까지의 채널량' 또는 그 채널량의 공간 지도이며, 어느 항목도 장면 내 개별 물체에 귀속되는 산란량이 아니다. 저자 스스로 §4.6 에서 현재 지원 radio map 은 채널이득맵뿐이며 확장 예시는 RMS 지연확산·각확산 맵이라고 적었다. 따라서 '기본 솔버는 물체의 산란 단면적을 출력하지 않는다' 는 진술은 'RCS' 라는 단어가 0회 등장한다는 사실이 아니라, 문서화된 출력 목록 자체에 그런 항목이 없다는 사실에 근거한다.",
+      "scope_guard": "이 진술은 '내장(built-in) 솔버' 에 대한 것이다. TR p7 은 커스텀 솔버·커스텀 재질 모델 구현을 용이하게 설계했다고 명시하므로, '원리적으로 불가능' 이 아니라 '기본 제공 출력에 없음' 으로만 쓴다.",
+      "what_would_be_needed_for_RCS": "물체 귀속 산란 단면적을 얻으려면 (a) 물체 표면 위 유도전류의 면적분, (b) 입사평면파 기준 정규화된 원거리장, (c) 4π r²|E_s|²/|E_i|² 형태의 비율량이 필요하다. TR 어디에도 (a)(b)(c) 어느 것도 없다. 산란체 상호작용은 전부 경로 위 국소 2×2 행렬로만 표현된다(Algorithm 2 line 7-8)."
+    }
+  },
+
+  "CORRECTIONS_TO_OUR_PRIOR_BELIEFS": [
+    {"id": "C1", "belief": "기술보고서 term count 'SBR' = 48", "verdict": "WRONG", "correct": "대소문자 구분 44회. 대소문자 무시 45회이나 1건은 독일어 'Ausbreitungsbedingungen' 오탐.", "impact": "낮음 — 단순 카운트지만 기록물에는 정정 반영할 것"},
+    {"id": "C2", "belief": "파일 '...technical-report-v1.pdf' 는 v1", "verdict": "CONFIRMED WRONG (기존 경고가 옳았음)", "correct": "Version 1.2, 2025-11-24, arXiv v2 (2025-11-21). 인용 문자열 고정 필요.", "impact": "높음 — 이 프로젝트가 반복적으로 맞는 오류 유형"},
+    {"id": "C3", "belief": "'Radio maps are computed using a purely SBR-based approach' (초록 인용)", "verdict": "PARTIALLY TRUE", "correct": "무회절 부분만 단일 SBR 루프. 1차 회절은 쐐기 위 직접 몬테카를로(§4.3, 식 59)로 별도 계산 후 합산.", "impact": "중간 — 인용 문장을 초록 대신 §4.1/§4.2/§4.3 본문으로 바꿀 것"},
+    {"id": "C4", "belief": "B4 상호작용 네 종류 = 반사/산란/투과/회절", "verdict": "CONFIRMED", "correct": "§2.3 p9, ℐ = {R, S, T, D}. 단 원문 용어는 'Refraction (T)' 이고 투과는 이중굴절을 단일 투과 레이로 모델링한 것.", "impact": "낮음"},
+    {"id": "C5", "belief": "B5 SBR = 후보 생성기 + image method + 해싱 중복 제거", "verdict": "CONFIRMED, 상세 확보", "correct": "위 B5 절 전체", "impact": "-"},
+    {"id": "C6", "belief": "'target' 86회는 전부 수신 종단점 의미", "verdict": "CONFIRMED (86/86 직접 확인)", "correct": "레이더 의미 0건. 조명되는 물체는 항상 'scatterer'.", "impact": "높음 — 우리 프레이밍의 핵심 근거"}
+  ],
+
+  "OPEN_ITEMS_AND_HONEST_GAPS": [
+    "TR p22 의 N_B ↔ samples_per_src / N_H ↔ max_num_paths_per_src 매핑 문장이 뒤집힌 것으로 읽힌다. 실제 Sionna 2.0.1 소스로 확인하기 전까지 인용 금지. (미해결)",
+    "Algorithm 2 line 24 는 a_n ← (λ/4π)(E_nᵀ E_n^rx) 로 전치(ᵀ)를 쓰는데 (4)/(114) 는 켤레전치(H, C_R^H)를 쓴다. 표기 불일치로 보이며 어느 쪽이 구현인지는 TR 만으로 판정 불가. 인용은 (4) 를 쓸 것. (미해결)",
+    "TR p17 은 Fresnel 계수를 '(131)' 로 지시하나 (131) 은 슬랩식이다. 자유공간 Fresnel 은 (127)/(128). 오탈자로 보이나 확정 불가. (미해결)",
+    "버퍼 저장 내용의 'and more'(p21)가 출력 목록에서 유일하게 열린 표현이다. 사용자 API 가 실제로 노출하는 필드 목록은 TR 범위 밖이며, Sionna 소스/문서로 별도 확인이 필요하다. (미해결)",
+    "출발/도착각은 계산 중간량으로만 서술되고 '출력' 으로 열거되지 않는다. Q5 목록에서 n=5 는 다른 항목보다 근거가 약하다고 표기해 둔다."
+  ],
+
+  "USABLE_QUOTES_FOR_OUR_REPORTS": [
+    {"tag": "무한평면", "page": 19, "quote": "the image method assumes all reflection surfaces extend infinitely, making the exact in-plane position of a primitive irrelevant to the path geometry", "use": "표면을 국소 무한 평면으로 취급한다는 근거 (솔버 본문)"},
+    {"tag": "무한평면-계수", "page": 46, "quote": "The reflection and refraction coefficients described above assume that the object reflecting the wave or allowing it to penetrate is of infinite size (or thickness).", "use": "같은 가정이 Fresnel 계수 쪽에도 박혀 있음"},
+    {"tag": "광선관-확산", "page": 35, "quote": "In the current propagation model of Sionna RT, only the source s and diffuse reflection points act as point sources that spawn new ray tubes, whereas specular reflection and refraction points merely deviate existing ray tubes rather than spawning new ones.", "use": "정반사에 발산인자가 없음 = 유한 산란체의 파면 확산 부재"},
+    {"tag": "확산반사-경험모델", "page": 51, "quote": "According to [42, Eq. 9], the diffusely scattered field Es(r) at the observation point r can be modeled as", "use": "확산 모델이 경험적 인용 모델임"},
+    {"tag": "확산반사-비선형", "page": 43, "quote": "In some cases, e.g., for diffuse reflection (see (168) in Section A.9), the matrix T̃ depends on the incoming field and is not a linear transformation.", "use": "확산반사만 입사장 의존 비선형"},
+    {"tag": "예산보존", "page": 44, "quote": "Note that the matrices T̃_i also ensure appropriate scaling so that the total received power can never be larger than the transmit power.", "use": "에너지 진술이 채널 예산 수준일 뿐 절대 산란 정확도가 아님 (Q7 지원)"},
+    {"tag": "출력-닫힘", "page": 38, "quote": "The Sionna RT solver currently supports the calculation of channel gain maps, which are radio maps that provide an estimate of the channel gain for each cell. It is possible to extend the solver to calculate other types of radio maps, such as root-mean-square delay spread maps and angular spread maps [27].", "use": "Q5 양성 진술의 핵심"},
+    {"tag": "솔버-두종류", "page": 6, "quote": "Given the distinct algorithmic requirements for CIRs and radio maps, Sionna RT provides two types of solvers", "use": "출력 분류가 닫혀 있음"},
+    {"tag": "확장성-단서", "page": 7, "quote": "While Sionna RT provides built-in solvers and radio material models, it is designed to facilitate the implementation of custom alternatives.", "use": "우리 주장을 '내장 솔버' 로 한정하는 안전장치 (반드시 병기)"},
+    {"tag": "SBR-후보생성기", "page": 11, "quote": "the path solver uses SBR as a heuristic to find path candidates", "use": "Sionna 의 SBR 은 산란장 계산기가 아니라 경로 후보 탐색기"},
+    {"tag": "경로탐색-vs-적분", "page": 33, "quote": "It is important to note that this analogy does not extend to the path solver, which is not concerned with evaluating an integral but rather with finding a set of paths, which are not aggregated into a single scalar value.", "use": "path solver 는 적분기가 아니라 탐색기임을 저자가 직접 진술"},
+    {"tag": "네가지상호작용", "page": 9, "quote": "Sionna RT currently supports four types of interactions with scene objects", "use": "B4"}
+  ],
+
+  "IMPLICATIONS_FOR_SIONNA2_PROJECT": [
+    "⭐ 용어 충돌 경고: 우리 rcs_sbr.py 의 SBR 은 '가림 판정 후 표면 유도전류를 PO 로 적분' 하는 SBR 이고, Sionna 의 SBR 은 '경로 후보를 찾는 탐색기' 다. 약어가 같고 역할이 완전히 다르다. 리포트에서 반드시 'Sionna 의 SBR(경로 후보 생성)' vs '우리 SBR(PO 적분용 광선 추적)' 로 구별해 쓸 것. 구별 없이 쓰면 '스톡 Sionna 도 SBR 이 있으니 RCS 를 낸다' 는 잘못된 반론을 자초한다.",
+    "'Sionna 기본 solver 에 산란적분이 없다' 는 우리 주장은 이번 정독으로 강화된다. 근거는 (a) Algorithm 2 가 경로당 계산의 전부이고 면적분 루프가 없음, (b) Evaluate_Material 인자가 (객체 인덱스, 상호작용 타입) 로 형상 인자가 아님, (c) 정반사가 광선관을 새로 만들지 않음(발산인자 1 = 무한 평면), (d) 문서화된 출력 목록이 채널량으로 닫혀 있음.",
+    "'RT 는 RCS 를 못 낸다' 로 과장하지 말 것(기록 sionna2-rt-rcs-claim-scope 준수). 올바른 형태: 'Sionna RT 기술보고서 Version 1.2 가 문서화한 내장 path/radio-map 솔버의 출력에는 물체 귀속 산란 단면적이 없으며, 표면 상호작용은 국소 무한 평면 + 2×2 재질 행렬로만 계산된다.'",
+    "우리 밴드 기울기가 3-8배 가파른 문제(PTD 부재)와 관련: TR 의 D 는 모서리 UTD 경로 기여이지 산란 단면적 보정이 아니고, 'PTD' 는 0회다. 즉 Sionna 쪽에서도 그 물리는 들어오지 않으므로, 우리 결손을 'Sionna 대비 결손' 이 아니라 'PO 계열 공통 결손' 으로 프레이밍해야 정확하다. (Q2 담당 결과와 대조 필요)",
+    "Figure 20 (p25) '대부분의 후보가 image method 에서 버려진다' 는 RT 가 탐색 문제를 푼다는 것을 보여주는 좋은 그림 근거."
+  ],
+
+  "COUNTS": {
+    "pages_in_pdf": 59,
+    "pages_read": 59,
+    "target_occurrences_individually_read": 86,
+    "equations_cited_by_number": 62,
+    "verbatim_quotes_recorded": 47,
+    "prior_beliefs_checked": 6,
+    "prior_beliefs_corrected": 2,
+    "prior_beliefs_partially_corrected": 1,
+    "open_unresolved_items": 5,
+    "outputs_enumerated_Q5": 15
+  }
+}

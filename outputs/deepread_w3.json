@@ -1,0 +1,2992 @@
+{
+ "meta": {
+  "wave": "WAVE_3 - diffraction / edge treatment deep-read",
+  "date": "2026-08-03",
+  "rule_ko": "모든 칸은 값 + 축자 인용문 + 쪽번호. 근거 없으면 UNVERIFIED 와 그 이유.",
+  "method_ko": "PDF 를 fitz 로 페이지 단위 정독, 그림은 PNG 렌더 후 판독. 인용문은 원문 축자.",
+  "papers_recorded": 17
+ },
+ "papers": [
+  {
+   "id": "ozturk2002_bilkent_ptd_eec",
+   "rank_for_us": 2,
+   "why_ranked_ko": "PTD-EEC(등가엣지전류) 를 삼각 메시 PO 적분 위에 얹는 전체 유도가 페이지 단위로 다 있다. Kirik 2019 가 '어디서 어떻게 부를지' 라면 이 학위논문은 '식 자체'. 게다가 얇은 와이어 산란(진행파) 까지 다뤄서 드론의 가는 구조물에 직결.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/bilkent_thesis__ptd-implementation-rcs.pdf",
+   "pages": 72,
+   "read_depth": "표지·초록·목차·1장 전문·3.4 수치결과 전문·4장·5장 결론·참고문헌 정독 + Fig.3.10(p62) 이미지 판독. 2장 PO 유도와 3.1-3.3 적분식 상세는 훑음.",
+   "prior_state_in_our_records": "mentioned_in_prose_only - 구조화 기록 어디에도 없었음. 이번이 첫 정독.",
+   "citation": "A. K. Öztürk, \"Implementation of Physical Theory of Diffraction for Radar Cross Section Calculations\", MSc thesis, Bilkent University, Dept. of Electrical and Electronics Engineering, July 2002 (supervisor: Prof. Ayhan Altıntaş)",
+   "venue": {
+    "value": "Bilkent University 석사학위논문 (회색문헌, 피어리뷰 저널/학회 아님)",
+    "quote": "a thesis submitted to the department of electrical and electronics engineering and the institute of engineering and sciences of bilkent university in partial fulfillment of the requirements for the degree of master of science By Alper Kürşat Öztürk July 2002",
+    "page": 1
+   },
+   "publication_status": {
+    "value": "GREY LITERATURE - 학위논문. arXiv ID 없음, DOI 없음. 심사위원 서명면은 있음(p2).",
+    "quote": "I certify that I have read this thesis and that in my opinion it is fully adequate, in scope and in quality, as a thesis for the degree of Master of Science. Prof. Dr. Ayhan Altıntaş (Supervisor)",
+    "page": 2
+   },
+   "engine": {
+    "value": "자작 MATLAB 코드 (상용 솔버 아님, 광선추적 SBR 아님 - 표면적분 + 선적분)",
+    "quote": "The computer code has been implemented in MATLAB.",
+    "page": 18
+   },
+   "engine_version": {
+    "value": "UNVERIFIED",
+    "why": "MATLAB 버전 표기 없음."
+   },
+   "target_representation": {
+    "value": "평면 삼각 메시. ⭐ 삼각형 면적을 0.005λ² 미만으로 강제 - 우리 메시보다 훨씬 촘촘하다.",
+    "quote": "Given an arbitrary surface, it is first meshed using planar triangles. The area of each triangle is restricted to be smaller than 0.005λ2 in order to obtain a good approximation to the actual surface.",
+    "page": 3,
+    "quote2": "The accuracy of the PO method depends on the size of the meshes. Triangles with area= 0.005λ2 are used for meshing. This mesh size is appropriate both in terms of accuracy and run-time of the program.",
+    "page2": 70,
+    "note_ko": "실측 비교에 쓴 실린더는 950 삼각형. 인용(p59): 'The surface of the cylinder is approximated with 950 triangles.'"
+   },
+   "material_model": {
+    "value": "PEC 전용. 유전체/코팅 없음.",
+    "quote": "A computer program which uses the Physical Theory of Diffraction (PTD) method to calculate the Radar Cross Section (RCS) of perfectly conducting targets with arbitrary shape is developed.",
+    "page": 3
+   },
+   "aspect_resolved_rcs": {
+    "value": "YES - 각도별 σ_φφ, σ_θθ 패턴(구·prolate/oblate spheroid·ogive·cone·사각평판·원판·실린더), 모노 및 바이스태틱 둘 다.",
+    "quote": "σθθ for a sphere with a radius of one meter (Bistatic scattering at 300MHz)",
+    "page": 10
+   },
+   "rotor_or_micromotion": {
+    "value": "NO - 정적 표적만.",
+    "why": "논문 전체에 도플러·회전·시간변화 서술 없음."
+   },
+   "diffraction_treatment": {
+    "value": "PTD-EEC (Ufimtsev fringe-wave 전류를 등가엣지전류로 표현해 엣지를 따라 선적분). GTD/UTD 는 배경설명으로만 다루고 채택하지 않음. 1차 회절만. 코너/정점 회절은 미구현(Hansen 의 경험식 존재만 언급).",
+    "quote": "In EEC, contributions from all edge points are taken into account explicitly. The diffraction from each edge point is expressed in terms of equivalent electric and magnetic currents which yields the total diffracted field after integration along the whole edge. The term equivalent here refers to the fact that the currents are not physical currents, but fictitious currents used as an analytical tool.",
+    "page": 17,
+    "quote2": "In this thesis, PTD-EEC method is used to calculate the edge-diffracted fields. The total scattered field is obtained by adding this edge diffracted field to the PO surface integral.",
+    "page2": 17,
+    "why_not_ray_optical_ko": "GTD/UTD 를 버린 이유가 명시돼 있고 이게 우리 선택에도 그대로 적용된다. 인용(p16): 'Since GTD is a purely ray optical theory, it fails within the transition regions adjacent to the shadow boundaries.' 그리고 caustic 3가지 실패조건 (i)(ii)(iii) 을 열거한 뒤 (p16-17): 'The solution to these discrepancies is to use the method of Equivalent Edge Currents (EEC) for edge-scattered fields and PO method for surface-scattered fields. This approach is the basis for PTD.'",
+    "explicit_limitations_ko": [
+     "1차 회절만. 인용(p57): 'as mentioned earlier only the first order diffractions are calculated in this work. Since the FW current is assumed to be travelling to infinity in accordance with the half plane geometry, diffraction caused by the same current at another edge is neglected (second-order diffraction).'",
+     "엣지 세그먼트는 조명될 때만 FW 전류를 가짐(그림자 처리). 인용(p61): 'Equivalent currents are assumed to exist at an edge segment if only it is illuminated. Otherwise no FW currents are induced at the edge point.'",
+     "고주파 근사 유효범위. 인용(p69): 'what restricts the application of this computer program is the fact that the size of the scatterer must be large in terms of the wavelength at the given frequency (e.g. ka> 10 for a sphere).'",
+     "특이점: 스침입사(φ'=π)와 엣지-온 입사(β→0 or π) 에서 식이 발산. 인용(p55): 'These expressions are singular for degenerate cases such as glancing incidence (φ′ = π) or edge-on incidence (β →0 or β →π).' 단, 후자는 방사적분에 넣으면 사라진다고 함."
+    ]
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "실린더(ka=2.16, kl_c=12.45, 2.6 GHz, 950 삼각형): PO 단독 vs PO+PTDEEC vs 실측 3곡선을 같은 축에 겹쳐 놓은, 우리가 필요로 하던 바로 그 그림.",
+     "quote": "In Figure 3.10, RCS obtained using only the PO component and RCS obtained using the total scattered field are plotted separately to observe the effect of edge diffraction. The experimental results (from Shaeffer [12]) are also plotted in Figure 3.10.",
+     "page": 59
+    },
+    {
+     "claim": "Fig.3.10 판독(내 눈금 읽기, 세로축 σ_φφ/0.0052 m² 로그): 사이드로브 구간 θ≈40°~70° 에서 PO 단독 피크가 약 0.6~0.9 인데 PO+PTDEEC 는 약 1.3 - 대략 +2~3 dB. 브로드사이드(θ≈0) 는 PO 4.0 → PO+PTD 4.5 로 +0.5 dB 남짓. 즉 ⭐PTD 의 이득은 정반사 피크가 아니라 널·사이드로브 구간에 몰린다.",
+     "quote": "Figure 3.10: RCS σφφ of a cylinder. ka=2.16,klc = 12.45",
+     "page": 62,
+     "caveat_ko": "⚠ 이 dB 값은 본문 문장이 아니라 내가 p62 를 170 dpi 로 렌더해 로그축을 읽은 것이다. 저자 숫자 아님."
+    },
+    {
+     "claim": "⚠ 반대 방향의 정직한 관측: PTD 를 넣고도 브로드사이드에서 실측(≈7.5)보다 시뮬(≈4.5)이 여전히 낮다(그림 판독, 약 2 dB). 저자도 전기적으로 더 컸으면 나았을 것이라고 인정.",
+     "quote": "The pattern depicted in Figure 3.10 shows a good agreement with the experimental results. Results of the computer program would be more accurate if the dimensions of the cylinder were electrically larger.",
+     "page": 61
+    },
+    {
+     "claim": "원판 바이스태틱: 원판이 커질수록(ka=5→10→15) 정확해진다 - 엣지 상호작용(2차 회절)이 줄기 때문.",
+     "quote": "It is observed that the agreement between the results presented in Figure 3.8 and the exact results, from Breinbjerg [8], improves with increasing disc radius. The edge interaction effects decrease as the disc size becomes larger.",
+     "page": 58
+    },
+    {
+     "claim": "얇은 와이어: 진행파 기반 폐형식이 MoM 과 '탁월한 일치'. 실린더+와이어 결합체에서 와이어 기여가 눈에 띈다.",
+     "quote": "These expressions yield excellent agreement with the moment method solution for an isolated thin wire (see Figure 4.2).",
+     "page": 70,
+     "quote2": "Scattering from the wire-cylinder configuration is calculated at 2.6 GHz using (4.7) instead of (4.2). The results are presented in Figure 4.4. The effect of the thin wire to the total backscattered field is noticeable.",
+     "page2": 67
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "3종: (a) MoM 참조해 - 사각평판 σ_φφ 는 Breinbjerg [8] MoM, 얇은 와이어는 MoM, (b) 정확해 - 원판 ka=5/10/15, (c) 실측 - 실린더 2.6 GHz (Shaeffer [12], σ0=0.0052 m² 로 정규화).",
+    "quote": "Experimental results are normalized to σ0 = 0.0052, and the measurement frequency is 2.6GHz. Thus, the output of the computer program is also normalized to the same value.",
+    "page": 59,
+    "quantitative_error_ko": "⚠ RMSE·최대편차 같은 정량 지표 없음. 전부 곡선 겹침 육안 비교('good agreement', 'excellent agreement')."
+   },
+   "geometry_configuration": {
+    "value": "모노스태틱(백스캐터)과 바이스태틱 둘 다. 백스캐터용 특이점 없는 폐형식을 따로 유도(식 3.35-3.38).",
+    "quote": "For monostatic RCS calculations, expressions for backscattering are derived using (3.23) through (3.28). ... Fringe current densities for backscattering are given by (3.37) and (3.38).",
+    "page": 56
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A - 도플러 없음.",
+    "why": "정적 RCS 전용."
+   },
+   "target_is_drone": false,
+   "sionna_related": false,
+   "breaks_our_claims": {
+    "H8": "무관",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "actionable_for_our_kernel_ko": [
+    "PTD-EEC 는 우리 커널 구조와 궁합이 더 좋다. 우리는 이미 삼각 메시 위 PO 표면적분을 돌리므로, 엣지 리스트에 대해 선적분 한 줄을 더하는 형태(식 3.42: E_tot = E_PTDEEC + E_PO)로 끝난다. Kirik 방식(광선당 게이팅)은 SBR 광선 루프 안에 들어가야 해서 침습적이다.",
+    "⭐ 우리에게 가장 쓸모 있는 정량 신호: PTD 의 이득이 정반사 피크가 아니라 널/사이드로브에 몰린다(Fig.3.10). 우리 대역기울기 문제는 저주파에서 PO 가 과소평가하는 구간, 즉 비정반사 구간에서 생기므로 방향이 맞는다.",
+    "메시 밀도 경고: 이 논문은 삼각형 면적 < 0.005λ²(≈ λ/14 변) 를 PO 적분 정확도 조건으로 못박는다. 우리 드론 메시가 이보다 성기면 PTD 를 넣기 전에 PO 자체가 틀린다. 우리 메시 밀도를 λ 기준으로 감사할 근거 문장이 생겼다.",
+    "미구현 항목 그대로 우리 로드맵: 2차(엣지-엣지) 회절, 코너/정점 회절(Hansen IEEE TAP 39(7):976-984, 1991 경험식). ka>10 유효범위는 우리 프로펠러(수 cm, 3.5 GHz 에서 ka~2) 에는 아슬아슬하다 - few-λ marginal 이라는 우리 기존 판단과 일치.",
+    "얇은 와이어 정식화(Hong IEEE TAP AP-16(3):338-342, 1968 / Shamansky IEEE TAP 37(8):1019-1025, 1989) 는 드론 안테나·랜딩기어 같은 가는 부재에 쓸 수 있다. 우리 메시는 이런 부재를 표면으로 다루는데, 이 논문은 '얇은 와이어는 메시가 불가능' 이라고 못박는다. 인용(p17): 'The above mentioned methods do not apply to such geometries, because the surface of a thin wire cannot be meshed.'"
+   ]
+  },
+  {
+   "id": "ziganshin2026_curved_bodies_preprint",
+   "rank_for_us": 3,
+   "why_ranked_ko": "회절 확장을 Sionna-RT 안에 직접 넣고 MAE(dB) 로 이득을 정량화한 유일한 문서. 게다가 코드가 공개돼 있다. 우리 회절 칸의 사실상 기준점.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+   "duplicate_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications .pdf (동일 파일, 11쪽, 동일 arXiv 스탬프)",
+   "pages": 11,
+   "read_depth": "전문 p1-11 정독(부록 A 회절계수 포함)",
+   "citation": "A. Ziganshin, E. M. Vitucci, W. Kotterman, R. Thomä, C. Schneider, V. Degli-Esposti, \"Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications\", arXiv:2604.05991v2 [eess.SP], 2 Jul 2026",
+   "venue": {
+    "value": "arXiv 프리프린트. IEEE Open Journal of Antennas and Propagation 에 '투고됨' 상태.",
+    "quote": "This is a preprint version of a manuscript submitted to the IEEE Open Journal of Antennas and Propagation.",
+    "page": 1
+   },
+   "publication_status": {
+    "value": "⭐ NOT PUBLISHED (투고 단계 프리프린트). 우리 기록에 '저널판' 이라고만 적혀 있던 것을 이 문장으로 확정한다.",
+    "quote": "arXiv:2604.05991v2  [eess.SP]  2 Jul 2026",
+    "page": 1
+   },
+   "companion_published_version": {
+    "value": "같은 저자군의 EuCAP 2025 회의판이 게재본. 이 프리프린트가 [24] 로 자기인용하며 서지사항을 확정해 준다.",
+    "quote": "A. Ziganshin, E. M. Vitucci, S. Myint, W. Kotterman, C. Schneider, V. Degli-Esposti, and R. Thomä, \"Ray-based simulation of multistatic scattering from target objects in ISAC,\" in Proc. Eur. Conf. Antennas Propag. (EuCAP). IEEE, 2025, pp. 1–5.",
+    "page": 11
+   },
+   "engine": {
+    "value": "⭐ Sionna-RT v0.19 를 개조. 개조본이 공개 저장소로 나와 있다.",
+    "quote": "Sionna-RT (v0.19) [19] was used as a basic RT framework, which is open-source, parallelizable, differentiable, and provides efficient path tracing and electromagnetic field computation on triangulized geometries. The standard RT tool has been customized with several diffraction methods to achieve better accuracy for scattering computation from discretized curved objects. The modified implementation is publicly available at [29].",
+    "page": 3,
+    "code_url": "https://github.com/AinurZiga/sionna-RT-reflectivity (참고문헌 [29], accessed 2026-03-31, p11)"
+   },
+   "engine_version": {
+    "value": "Sionna-RT v0.19 (v2 Dr.Jit 이전 세대). 저자도 v2 이관 시 속도 향상을 예상만 하고 실측하지 않음.",
+    "quote": "It should also be noted that the reported runtimes correspond to the current Sionna-RT v0 implementation. The recent migration of Sionna-RT to Dr.Jit-based architecture in the v2 release is expected to provide additional computational speedups.",
+    "page": 8
+   },
+   "target_representation": {
+    "value": "삼각 패싯 메시. 정준물체(반지름 7λ 구·원기둥) + 실제 차량(Mitsubishi i-MiEV) 상세메시 1496 패싯 / 저폴리 220 패싯. 곡률적응 리메싱(Lévy & Bonneel VPLE) 적용.",
+    "quote": "The detailed mesh with 1496 facets (6b) is employed for validation against measurement in backscattering. Although the mesh is detailed, it was simplified by removing several complex parts, such as wheels and other non-PEC elements. After that, it was curvature-adaptively remeshed [32]. The parameter E2/(Rλ) at 3 GHz is estimated as around 0.4 −0.6. The low-polygon representation (6c) consists of 220 facets and is used for the shadow region analysis.",
+    "page": 7
+   },
+   "material_model": {
+    "value": "PEC 전용. 유리·유전체·투과 전부 배제. 저자 스스로 한계로 명시.",
+    "quote": "All objects considered in this work are assumed to be perfectly electrically conducting (PEC), as vehicle bodies can often be approximated by PEC boundary conditions.",
+    "page": 2,
+    "quote2": "Nevertheless, the current study relies on several approximations, including the PEC surface and the neglect of transmission.",
+    "page2": 9
+   },
+   "aspect_resolved_rcs": {
+    "value": "각도분해 산란장 |E_sc|, |E_tot| (dB) 를 원주 관측선 720점(0.5° 간격)/차량 360점(1°) 으로. ⚠ dBsm 단위의 RCS 는 이 프리프린트에 없다(우리 C2 기록과 일치).",
+    "quote": "Observation points are located on the circle around the object at a distance of 40.0λ with angular separation 0.5◦, yielding 720 points.",
+    "page": 5
+   },
+   "rotor_or_micromotion": {
+    "value": "NO - 정적 차체만. 마이크로도플러는 미래과제 5개 중 4번으로만 언급하며 Costa 2025 를 참조.",
+    "quote": "4) Modeling of time-varying substructures (micro-Doppler) [34].",
+    "page": 9
+   },
+   "diffraction_treatment": {
+    "value": "⭐ UTD(Kouyoumjian-Pathak) 엣지회절 + 정점(vertex)회절(Albani IEEE TAP 57(12) 2009) + 2차 이중엣지회절(Albani IEEE TAP 53(2) 2005) + EV/VE 혼합 회절(휴리스틱, 문헌에 엄밀해 없음). creeping wave 는 계산량 이유로 제외. PTD 는 관련연구로만 언급하고 채택 안 함.",
+    "quote": "in the ray-tracing tool, diffraction is modeled according to the Uniform Theory of Diffraction (UTD), extended with vertex diffraction and double-bounce interactions, including a heuristic combination of edge and vertex diffraction.",
+    "page": 1,
+    "explicit_neglects_ko": [
+     "creeping wave 회절 제외. 인용(p3): 'The former assumes propagation along a smooth surface and is not considered in this work due to its high computational complexity.'",
+     "비공면 엣지쌍의 이중회절 제외(닫힌해 없음). 인용(p3): 'b) non-coplanar edges - no closed-form solution exists for determining diffraction points; the problem should be solved via numerical optimization, significantly increasing computational complexity [31]. This feature is not critical in the scope of the current work, as objects are primarily assumed to be convex, so this case is not considered.'",
+     "정점-정점 상호작용 제외. 인용(p10): '(and vertex-vertex interactions to a smaller extent, which are not considered in this work)'",
+     "EV/VE 는 hard 성분만 표현 가능. 인용(p10): 'A limitation of the proposed direct chaining method is that it can only describe the hard diffraction component, so at the moment the soft component cannot be represented.'",
+     "같은 패싯을 공유하고 같은 정점에서 끝나는 두 엣지 조합에서 수치 불안정. 인용(p10): 'the current double-diffraction formulation may also have numerical instabilities in configurations where the two edges involved in double-edge diffraction share the same facet and terminate at the same vertex.'"
+    ],
+    "baseline_definition_ko": "⭐ 우리에게 중요한 정의. 인용(p5): 'Standard RT corresponds to the default Sionna-RT implementation with specular reflections and single-bounce edge diffraction, without the proposed vertex and higher-order diffraction extensions.' 즉 스톡 Sionna-RT v0.19 는 1차 엣지 UTD 회절까지는 갖고 있다."
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "원기둥 그림자영역(E²/(Rλ)=1.39): 표준 RT → 이중엣지회절 추가로 MAE 2.3 dB → 0.8 dB",
+     "quote": "The standard RT approach (dashed purple) falls short in reproducing the field in the shadow accurately. The inclusion of double-edge diffraction (green curve) improves the prediction from 2.3 to 0.8 dB of MAE and reproduces the behaviour observed in the analytical solution.",
+     "page": 5
+    },
+    {
+     "claim": "구 그림자영역(E²/(Rλ)=1.34): V+EE → V+EE+EV+VE 로 MAE 3.5 dB → 2.2 dB",
+     "quote": "RT with EE diffraction (orange) enables propagation into the shadowed area. The further inclusion of EV and VE interactions (green) provides additional refinement of the predicted field, and MAE improves from 3.5 to 2.2 dB.",
+     "page": 6
+    },
+    {
+     "claim": "⭐ 표 I 구 그림자 평균 MAE(E²/(Rλ)>0.6): HH 는 V 7.3 → V+EE 4.0 → V+EE+EV+VE 3.0 dB, VV 는 8.3 → 3.2 → 2.7 dB. 즉 회절 확장 전체가 사 주는 것은 약 4~5.6 dB.",
+     "quote": "TABLE I AVERAGE MAE IN THE SPHERE SHADOW REGION FOR DIFFERENT RT CONFIGURATIONS AND POLARIZATIONS, WITH DISCRETIZATIONS E2/(Rλ) > 0.6. Polarization V V+EE V+EE+EV+VE HH 7.3 dB 4.0 dB 3.0 dB VV 8.3 dB 3.2 dB 2.7 dB",
+     "page": 6,
+     "note_ko": "경로가 아예 없는 관측각에는 20 dB 벌점을 준 값이다. 인용(p6): 'For observation angles where no valid propagation path is predicted by the considered RT configuration, a penalty error of 20 dB is assigned.' ⚠ 이 벌점이 V-only 열의 7.3/8.3 dB 를 부풀린다."
+    },
+    {
+     "claim": "실제 차량 저폴리 그림자(2 GHz, VV, MLFMM 기준): EE → EV+VE 추가로 MAE 2.6 dB → 1.6 dB",
+     "quote": "The single-bounce RT (dashed purple) cannot reach the deep shadow. Inclusion of EE (dashed orange) improves the shadow region results drastically. Inclusion of EV and VE combinations (green) helps further improve the result, MAE from 2.6 to 1.6 dB.",
+     "page": 7
+    },
+    {
+     "claim": "비용: 회절 확장은 런타임을 5~27배 늘린다. 차량 1496 패싯 기준 RT 0.7 s → +V 3.6 → +EE 10.2 → +EV/VE 19.0 s. 단, MLFMM 은 수 시간.",
+     "quote": "TABLE II EXECUTION TIME (IN SECONDS) ... Vehicle (1496 facets) 0.7 3.6 10.2 19.0",
+     "page": 8,
+     "quote2": "For instance, each of the MLFMM simulations in this study took several hours.",
+     "page2": 8
+    },
+    {
+     "claim": "⚠ 정점회절 없는 스톡 Sionna-RT 는 구 후방산란에서 '강한 불연속' 을 낸다 - 우리가 스톡 Sionna 로 곡면 표적을 다루면 안 되는 이유의 직접 근거.",
+     "quote": "The standard RT implementation (dashed purple) exhibits strong discontinuities and noticeable deviations from the analytical reference. The inclusion of vertex diffraction (green) significantly improves field continuity and leads to substantially better agreement with the analytical as well as MLFMM references.",
+     "page": 6
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "3층: (a) 해석해(매끈한 구·원기둥, Balanis), (b) FEKO MLFMM 풀웨이브(같은 이산화 메시 위에서 - RT 모델오차만 분리), (c) 실측 - BIRA 바이스태틱 반사도 측정 시스템, 2-18 GHz, Mitsubishi i-MiEV, 3 GHz HH 대표주파수, 거리 3.0 m.",
+    "quote": "The measurements were performed using the BIRA bistatic reflectivity setup [4] with frequency range 2-18 GHz. A small vehicle, Mitsubishi i-MiEV, depicted in Fig. 6a, was illuminated from the side, and the field was recorded over a wide angular range with 1◦resolution. The distance from the car to the antennas is 3.0 m; height from the car bottom is 0.75 m.",
+    "page": 7,
+    "honesty_note_ko": "⭐ 저자 스스로 실측 대조는 정성적이라고 못박는다. 인용(p7): 'The comparison should be interpreted as a qualitative validation rather than an attempt to exactly reproduce the measurements.' 즉 이 논문의 정량 MAE 는 전부 해석해/MLFMM 대비이지 실측 대비가 아니다. 우리가 '실측 대비 MAE 1.6 dB' 라고 쓰면 틀린다."
+   },
+   "geometry_configuration": {
+    "value": "바이스태틱/멀티스태틱. 관측점은 물체 주위 원(정준 40λ, 차량 20 m), 바이스태틱각 0°=전방정렬, 180°=반대편. 그림자영역 명시.",
+    "quote": "The object is illuminated under either plane-wave or near-field conditions, while observation points are placed on a circular trajectory around the object. The bistatic angle is defined between the incident and observation directions.",
+    "page": 5
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A - 도플러 처리 없음(정적 산란장만).",
+    "why": "본문 전체에 도플러 모호성·PRF 논의 없음. 마이크로도플러는 미래과제 항목."
+   },
+   "target_is_drone": false,
+   "sionna_related": true,
+   "breaks_our_claims": {
+    "H8": "⭐ 깨지지 않는다. 4-prong 중 2개만 만족(엔진 내부 계산 O, 진폭검증 O) - 표적이 드론 아닌 승용차이고, 게재본이 아니라 OJAP 투고 프리프린트다(p1 축자 문구로 확정).",
+    "C1": "깨지지 않음(드론 에어프레임 아님).",
+    "C2": "⭐ 보강된다. 이 프리프린트에는 dBsm 이 0회이고 |E_sc| (dB) 만 쓴다. 'Sionna 에서 dBsm 을 찍은 유일한 논문은 Ziganshin EuCAP 2025 회의판이고 그것은 자동차' 라는 기존 판정과 정확히 일치.",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "corrects_our_records_ko": [
+    "우리 기록은 이 파일을 '저널판' 으로 불러 왔는데, 정확히는 IEEE OJAP 에 '투고된' 프리프린트이고 게재 여부는 미확정이다. 인용 시 반드시 arXiv:2604.05991v2 (2026-07-02) 로 표기하고 '게재' 라고 쓰면 안 된다.",
+    "EuCAP 회의판의 정확한 서지가 이 프리프린트 [24] 에서 확정됐다: EuCAP 2025, IEEE, pp.1-5. 우리 기록의 'EuCAP 2025 게재' 는 맞다."
+   ],
+   "actionable_for_our_kernel_ko": [
+    "⭐ 코드가 공개다: github.com/AinurZiga/sionna-RT-reflectivity (참고문헌 [29]). Sionna-RT v0.19 위에 UTD 엣지+정점+이중엣지+EV/VE 가 들어간 구현이 그대로 있다. 우리 SBR 커널과 별개로, 회절 참조구현을 손에 넣을 수 있다는 뜻. ⚠ 다만 URL 접속·라이선스·실제 동작 여부는 아직 미확인.",
+    "⭐⭐ 우리 메시 규모에서 UTD 계열은 쓸 수 없다는 결정적 근거. 이 논문은 UTD 유효조건으로 패싯 변길이 E > 1.5λ 를 요구한다(인용 p4: 'In addition to the curvature-related metric, the facet size should be of several wavelengths in order to satisfy the UTD assumptions, typically E > 1.5λ.'). 3.5 GHz 에서 1.5λ ≈ 12.9 cm - Mavic 4 Pro 급 드론은 전장이 그 두어 배뿐이라 패싯 하나가 드론만 해져야 한다. 반면 Öztürk 2002 의 PTD-EEC 는 삼각형 면적 < 0.005λ² 를 요구한다(정반대 방향). 결론: 우리처럼 λ 이하 구조가 지배하는 드론에는 UTD 가 아니라 PTD-EEC 를 붙여야 한다. 이건 두 논문의 축자 문장을 나란히 놓아 도출한 것이고, 어느 논문도 이 결론을 직접 쓰지는 않았다.",
+    "이산화 지표 E²/(Rλ) 는 우리 곡면 부재(동체·짐벌 구)에 그대로 쓸 수 있는 메시 감사 척도다. 후방산란은 0.5 이하에서 포화, 그림자는 오히려 거친 메시가 낫고, 하나로 겸하려면 0.6-0.9. 인용(p7): 'the interval E2/(Rλ) ≈ 0.6−0.9 provides a practical compromise between accuracy in both regions and computational complexity.'",
+    "우리 바닥유령·차폐 서사에 붙일 수 있는 수치: 그림자영역은 회절을 안 넣으면 아예 경로가 없고(20 dB 벌점), 넣으면 MAE 1.6~3.0 dB 까지 내려간다."
+   ]
+  },
+  {
+   "id": "ziganshin2025_eucap_multistatic_published",
+   "rank_for_us": 4,
+   "why_ranked_ko": "C2 의 유일한 근거 논문이자, ⭐ '이 방법을 드론에 적용하는 것은 앞으로 할 일' 이라고 게재본 결론에 직접 적어 놓은 문서. 우리 포지셔닝 문장의 최고 인용감.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+   "pages": 5,
+   "read_depth": "전문 p1-5 정독",
+   "citation": "A. Ziganshin, E. M. Vitucci, S. J. Myint, W. Kotterman, C. Schneider, V. Degli-Esposti, R. Thomä, \"Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC\", Proc. European Conference on Antennas and Propagation (EuCAP), IEEE, 2025, pp.1-5",
+   "venue": {
+    "value": "EuCAP 2025 (IEEE). PDF 자체에는 학회명·연도 표기가 없고 IEEE Xplore 다운로드 워터마크만 있다. 서지는 저널 프리프린트의 자기인용 [24] 로 확정.",
+    "quote": "Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:43:43 UTC from IEEE Xplore.  Restrictions apply.",
+    "page": 1,
+    "cross_ref_quote": "A. Ziganshin, E. M. Vitucci, S. Myint, W. Kotterman, C. Schneider, V. Degli-Esposti, and R. Thomä, \"Ray-based simulation of multistatic scattering from target objects in ISAC,\" in Proc. Eur. Conf. Antennas Propag. (EuCAP). IEEE, 2025, pp. 1–5.",
+    "cross_ref_source": "arXiv:2604.05991v2 p11 참고문헌 [24]"
+   },
+   "publication_status": {
+    "value": "PUBLISHED (IEEE Xplore 수록). ⚠ 회의판과 저널 프리프린트는 내용이 다르다 - 아래 conference_vs_journal 참조.",
+    "quote": "Downloaded on July 23,2026 at 06:43:43 UTC from IEEE Xplore.",
+    "page": 1
+   },
+   "engine": {
+    "value": "Sionna RT (버전 미표기) + 자체 Vertex Diffraction 확장. 스톡 Sionna RT 의 회절이 UTD wedge 라는 확인 문장이 여기 있다.",
+    "quote": "An open-source parallelizable framework, Sionna RT [11], is utilized to conduct simulations. Parallelization and the possibility of using Graphics Processing Units (GPUs) are also crucial factors in rapid channel simulations, particularly in real-time ones. Wedge diffraction is implemented there using UTD [12]. This framework has been extended with Vertex Diffraction (VD) in accordance with [8].",
+    "page": 2
+   },
+   "engine_version": {
+    "value": "UNVERIFIED - 회의판에는 Sionna RT 버전 번호가 없다. 저널 프리프린트가 v0.19 라고 밝힌다.",
+    "why": "회의판 본문 어디에도 버전 표기 없음."
+   },
+   "target_representation": {
+    "value": "삼각 메시. 반지름 12.8λ 구 2종(80 패싯·평균 7.5λ / 4500 패싯·평균 1.0λ) + 단순화 승용차 CAD(16610 패싯, 5264 정점, 21018 엣지, 3.3×2.1×1.7 m, 10 GHz 에서 평균 패싯 ~2λ, 창문·내부 없음).",
+    "quote": "The model consists of 5264 vertices, 16610 facets, and 21018 edges. The car's shape is depicted on Figure 1c. The average facet size is around 2λ at a frequency of 10 GHz. The dimensions of this car model are around 3.3x2.1x1.7 (LxWxH) meters.",
+    "page": 2
+   },
+   "material_model": {
+    "value": "PEC 전용.",
+    "quote": "All are Perfect Electric Conductors (PECs) to facilitate simulations and comparison.",
+    "page": 2
+   },
+   "aspect_resolved_rcs": {
+    "value": "⭐ YES, 그리고 dBsm 축이 여기 있다. 그림 6 'RCS of the simplified car' 의 세로축이 RCS (dBsm), 곡선은 EM (PO) 와 RT+UTD+VD 둘. 원거리장 조건에서 반사도가 RCS 로 환원된다는 3번 시나리오.",
+    "quote": "3) RXs are elevated by 1.2 meters and located at a large distance, which implies a far field. The reflectivity with both TX and RX in the far-field transforms into RCS.",
+    "page": 4,
+    "quote2": "Fig. 6: RCS of the simplified car",
+    "page2": 5
+   },
+   "rotor_or_micromotion": {
+    "value": "NO - 정적 표적. 마이크로도플러는 결론에서 미래과제로만.",
+    "quote": "The proposed solution can also be applied to compute scattering from other objects, such as drones, humans, and micro-Doppler effects, making it an important area for further investigation.",
+    "page": 5
+   },
+   "diffraction_treatment": {
+    "value": "UTD wedge 회절(스톡 Sionna RT 제공) + Albani 2009 의 UTD 정점회절(저자 구현). 이중회절·slope diffraction·creeping wave 는 미구현이라고 명시.",
+    "quote": "In the RT tool we present here, vertex diffraction complements UTD.",
+    "page": 2,
+    "explicit_neglects_ko": [
+     "creeping/slope diffraction 미구현. 인용(p3): 'The field is predicted inaccurately in the shadowed zone behind the sphere where other diffraction methods are required, such as creeping or slope diffraction, which have not yet been implemented in the RT tool.'",
+     "결론에서도 재확인. 인용(p5): 'The results become less precise or completely inaccurate near and within the shadowed region of the object, indicating the need for slope diffraction methods.'"
+    ],
+    "implementation_note_ko": "정점회절 계수가 wedge UTD 와 같은 각도·좌표 변환을 재사용할 수 있다는 실용적 지적이 있다. 인용(p2): 'Thus, this allows data structures and code snippets used in wedge diffraction to be conveniently reused in the computations of the VD coefficient.' 일반화 프레넬적분(GFI)은 Capolino & Maci 1995 의 구간별 근사로 통상 프레넬적분으로 환원."
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "저이산화 구(패싯 7.5λ): RT+UTD 는 20-65° 밖에서 아예 실패하고 불연속을 낸다. VD 추가로 대부분 해소.",
+     "quote": "It can be seen that the regular RT with UTD (red color) fails to predict the scattered field for most of the regions. Results are accurate around 20 - 65 degrees because of strong reflections and diffractions from wedges; outside of this range, either wedge diffraction points are close to the ends of the wedge or do not lie within the finite wedges, so the curve is not accurate and contains discontinuities. Applying the vertex diffraction model (green color) increases the overall accuracy and resolves most of the discontinuities caused by the disappearance of wedge diffraction.",
+     "page": 3
+    },
+    {
+     "claim": "고이산화 구(패싯 1.0λ): VD 를 넣고도 115° 부터 전이 직전까지 최대 5 dB 오프셋(과대추정)이 남는다. 저자는 단일차수 회절만으로는 LOS/NLOS 전이 근처를 못 잡는다고 해석.",
+     "quote": "The field estimated in the shadowed region remains imprecise, and moreover, a significant offset up to 5 dB can be seen before the transition as well, beginning at 115 degrees. This offset before transition may be explained as diffraction being essential not only for the shadowed region but also in front of it to prevent overestimation of the field before transition.",
+     "page": 4
+    },
+    {
+     "claim": "승용차: PO 솔버 대비 최대 10 dB 오프셋이 가끔 발생하지만 곡선은 매끄럽고 물리적으로 타당.",
+     "quote": "Results for a car model show that the presented RT tool with vertex diffraction can produce good and fast predictions for backscattering. Although occasional offsets up to 10 dB can happen, results remain smooth and behave realistically.",
+     "page": 5
+    },
+    {
+     "claim": "속도: 구 MLFMM 약 1시간 vs RT 1초 미만(저이산화)/약 5초(고이산화). 승용차 PO 솔버 약 하루 vs RT 약 2초.",
+     "quote": "The EM simulation with MLFMM solver takes around one hour, while for the advanced RT tool with similar computational facilities, it is less than a second.",
+     "page": 4,
+     "quote2": "In each case, the simulation time for the PO solver is around one day, whereas the RT simulation takes only about two seconds, highlighting a clear performance advantage for RT.",
+     "page2": 4
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "⚠ 시뮬레이션 대비만. 구는 FEKO MLFMM(그리고 매끈한 구 해석해), 승용차는 FEKO PO 솔버. ⭐ 이 게재본에는 실측이 전혀 없다(실측은 미게재 저널 프리프린트에만 있다).",
+    "quote": "EM simulation is performed with the commercial FEKO package [15] in order to validate the accuracy of the RT tool. Since FEKO offers many solvers, we choose two of them: firstly, Multilevel Fast Multiple Method (MLFMM), which is an alternative and faster formulation of the Method of Moment (MoM) solver, and secondly, the Physical Optics (PO) solver [16].",
+    "page": 3,
+    "caveat_quote": "However, since the PO solver does not account for multiple interactions, deviations observed do not necessarily indicate that the RT results are inaccurate.",
+    "caveat_page": 4
+   },
+   "geometry_configuration": {
+    "value": "바이스태틱/멀티스태틱 근거리장. 물체 주위 원형 스캔(구는 중심에서 20λ, 0.5° 간격 720점; 차량은 1° 간격 360점, 거리 3.0 m, 높이 1.2/0.6 m), 원거리장 케이스에서만 RCS.",
+    "quote": "Receiving points are located at a circular scan around the sphere at a distance of 20λ from the sphere's center (or 7.2λ from its surface) with an angular separation of 0.5◦ which gives 720 simulations in total.",
+    "page": 3
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A - 도플러 없음.",
+    "why": "정적 반사도만 계산."
+   },
+   "target_is_drone": false,
+   "sionna_related": true,
+   "breaks_our_claims": {
+    "H8": "⭐ 깨지지 않고, 오히려 이 논문이 H8 을 저자 자신의 문장으로 지지한다: 드론 적용은 '앞으로 조사할 중요 영역' 이라고 결론에 적혀 있다(p5).",
+    "C1": "지지. 표적은 승용차 메시.",
+    "C2": "⭐ 확정 지지. Sionna 로 dBsm 을 찍은 게재 논문은 이것 하나이고 표적은 자동차다(Fig.6, p5).",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "conference_vs_journal_ko": [
+    "⭐⭐ 두 판본이 패싯 크기 조건에서 서로 다른 말을 한다. 회의판(게재, p1): 'The approach can yield realistic results even when facets are comparable to, or smaller than, the wavelength, as edge plus vertex UTD diffraction should still complement reflection in a consistent way to yield smooth, albeit approximate, field results.' 저널 프리프린트(미게재, p4): 'In addition to the curvature-related metric, the facet size should be of several wavelengths in order to satisfy the UTD assumptions, typically E > 1.5λ.' 회의판이 낙관적이고 저널판이 보수적이다. 우리가 어느 쪽을 인용하느냐로 결론이 갈리므로 반드시 판본을 명시해야 한다.",
+    "검증 근거가 다르다: 회의판=시뮬레이션(MLFMM·PO) 대비만, 저널 프리프린트=거기에 BIRA 실측 추가. '실측 검증된 Sionna 회절 확장' 은 게재본에 없다.",
+    "회의판에만 dBsm(그림 6)이 있고, 저널 프리프린트는 |E_sc| (dB) 만 쓴다.",
+    "회의판은 이중회절/EV/VE 가 없고 정점회절까지만. 저널 프리프린트가 EE·EV·VE 를 추가한 확장판이다."
+   ],
+   "actionable_for_our_kernel_ko": [
+    "⭐ 인용 자산: '드론은 앞으로 할 일' 문장(p5)은 우리 H8/C1 포지셔닝을 선행연구 저자 입으로 지지하게 해 준다. 게재본 문장이라 인용 등급도 최상.",
+    "스톡 Sionna RT 가 UTD wedge 회절을 갖고 있다는 것은 확인됐다(p2). 우리가 '스톡 Sionna 에는 회절이 없다' 고 쓰면 틀린다. 없는 것은 산란적분(RCS)이지 회절이 아니다.",
+    "패싯 ~1λ 급에서도 UTD+VD 가 5 dB 오프셋을 남긴다는 수치는, 우리 드론 메시(λ 이하 부재 다수)에서 UTD 계열의 기대치를 낮춰 준다."
+   ]
+  },
+  {
+   "id": "sionna_rt_technical_report_v1_2",
+   "rank_for_us": 5,
+   "why_ranked_ko": "우리가 쓰는 엔진 자신이 회절을 어디까지 하는지 공식 문서로 확정하는 항목. '스톡 Sionna 에는 회절이 없다' 는 잘못된 진술을 막는다.",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+   "pages": 59,
+   "read_depth": "회절 관련 절 집중 정독: 표지·§3.4 한계·§4.2/4.3 라디오맵 회절·부록 A.8 회절 전문·부록 C 1차회절 폐형식·버전 이력·참고문헌",
+   "citation": "F. Aït Aoudia, J. Hoydis, M. Nimier-David, B. Nicolet, S. Cammerer, A. Keller, \"Sionna RT: Technical Report\", Version 1.2, 2025-11-24, arXiv:2504.21719v2 [cs.IT], 21 Nov 2025",
+   "venue": {
+    "value": "NVIDIA 기술보고서 (arXiv 게시). 학회·저널 게재본 아님.",
+    "quote": "2025-11-24 – Version 1.2  Sionna RT: Technical Report",
+    "page": 1
+   },
+   "publication_status": {
+    "value": "PREPRINT / 기술문서. arXiv:2504.21719v2, 2025-11-21.",
+    "quote": "arXiv:2504.21719v2  [cs.IT]  21 Nov 2025",
+    "page": 1
+   },
+   "engine": {
+    "value": "Sionna RT 본체(이 문서가 곧 엔진 명세). SBR + image method 결합, 해싱으로 중복경로 제거, 라디오맵은 순수 SBR.",
+    "quote": "For CIRs, Sionna RT integrates shooting and bouncing of rays (SBR) with the image method and uses a hashing-based mechanism to efficiently eliminate duplicate paths. Radio maps are computed using a purely SBR-based approach.",
+    "page": 1
+   },
+   "diffraction_treatment": {
+    "value": "⭐ UTD wedge 회절. Kouyoumjian-Pathak 1974 의 PEC UTD 를 Luebbers 1984 가 유한도전율 wedge 로 휴리스틱 확장한 형태(ITU 권고와 같은 계열)를, 문서가 3차원으로 일반화해 구현. GTD 는 그림자경계 발산 때문에 쓰지 않는다고 명시.",
+    "quote": "While [36] deals with diffraction at edges of perfectly conducting surfaces, it was heuristically extended to finitely conducting wedges in [37]. This solution, which is also recomended by the ITU [38], is implemented in Sionna. However, both [37] and [38] only deal with two-dimensional scenes where source and observation lie in the same plane, orthogonal to the edge. We will provide below the three-dimensional version of [37], following the defintitions of [12, Ch. 6].",
+    "page": 47,
+    "references_verbatim": {
+     "[36]": "R. G. Kouyoumjian and P. H. Pathak, \"A uniform geometrical theory of diffraction for an edge in a perfectly conducting surface,\" Proceedings of the IEEE, vol. 62, no. 11, pp. 1448–1461, 1974.",
+     "[37]": "R. Luebbers, \"Finite conductivity uniform gtd versus knife edge diffraction in prediction of propagation path loss,\" IEEE Transactions on Antennas and Propagation, vol. 32, no. 1, pp. 70–76, 1984.",
+     "page": 58
+    },
+    "hard_limits_ko": [
+     "⭐ 1차 회절만. 경로 하나에 회절 사건은 최대 1개. 인용(p16): 'Moreover, Sionna RT currently supports only first-order diffraction, meaning that paths may contain at most one diffraction event.'",
+     "회절 + 확산반사 혼합 경로 미지원. 인용(p29): 'The path solver supports only first-order diffraction and does not handle paths that contain both diffraction and diffuse reflection. Enabling support for such combined paths would require the refinement of non-suffix path segments, which is computationally expensive and thus not implemented'",
+     "라디오맵도 1차 회절만이고, 회절 없는 맵과 회절 맵을 따로 계산해 더한다. 인용(p33): 'First, the radio map is computed for all interaction types except diffraction using a single SBR loop; wedges near the source are detected and stored during this step. Second, only diffracted paths are computed. Currently, Sionna RT supports only first-order diffraction for radio map computation, i.e., paths connecting the source to the measurement surface through a single diffracting wedge. The two radio maps are then summed to obtain the final result.'",
+     "정점(vertex)회절·slope 회절·creeping wave·PTD 는 문서 어디에도 없다(=미구현). 이것이 Ziganshin 이 직접 확장을 짠 이유다.",
+     "회절점은 Fermat 원리 최소화로 구하며 1차에 한해 닫힌해가 있다. 인용(p24): 'For first-order diffraction, this minimization has a closed-form solution (see Annex C).'"
+    ],
+    "when_added_ko": "1차 회절 지원은 재아키텍처 이후 비교적 최근에 들어왔다. 문서 버전이력 인용(p56): 'Version History  Version Date Description  1.2 September 2025 Support for first-order diffraction and path solver improvements  1.1 June 2025 Support for mesh-based measurement surfaces  1.0 April 2025 Major release: Complete re-architecture of Sionna RT'. ⚠ 이 표는 문서 버전이력이며 라이브러리 릴리스 번호와 1:1 대응한다고 단정할 수 없다. 우리 설치본(2.0.1)의 실제 회절 지원 여부는 소스 확인이 필요하다 - 이 문서만으로는 UNVERIFIED."
+   },
+   "target_representation": {
+    "value": "N/A - 표적 모델링 문서가 아니라 전파해석 엔진 명세. 산란은 재질 표면의 확산반사 패턴으로만 다루고 표적 RCS 개념이 없다.",
+    "why": "이 문서에는 RCS·dBsm 계산 절이 없다."
+   },
+   "material_model": {
+    "value": "복소 상대유전율 기반 Fresnel 반사/투과 + 단층 슬래브 다중반사 보정 + 확산반사 패턴. 회절 계수는 유한도전율 wedge(Luebbers).",
+    "quote": "the object can be modeled as a slab consisting of a single layer made of the same material, as shown in Figure 32.",
+    "page": 47
+   },
+   "aspect_resolved_rcs": {
+    "value": "NO",
+    "why": "엔진 문서에 RCS 산출 기능이 없다."
+   },
+   "rotor_or_micromotion": {
+    "value": "NO. 도플러는 객체당 강체 속도벡터 하나로만. 인용(p28): 'where v (s) ∈R3 and v (t) ∈R3 denote the velocity vectors of the source and target, respectively.'",
+    "note_ko": "우리 메모 [Sionna RT 도플러·속도 한계] 와 일치."
+   },
+   "amplitude_validated_against": {
+    "value": "UNVERIFIED - 이 기술보고서는 알고리즘 명세이지 검증 논문이 아니다. 실측/풀웨이브 대조 절이 없다.",
+    "why": "문서 목적이 '알고리즘과 그 한계 서술' 로 초록에 명시됨."
+   },
+   "geometry_configuration": {
+    "value": "임의 송수신 배치(CIR) 및 측정면 라디오맵. 바이스태틱 제약 없음.",
+    "quote": "Given that the computation of CIRs and radio maps requires distinct algorithms, these are detailed in separate sections.",
+    "page": 1
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A - 도플러 shift 계산식은 있으나 모호성/PRF 논의 없음.",
+    "why": "§3.3.2 는 경로별 도플러 shift 합산만 다룬다."
+   },
+   "target_is_drone": false,
+   "sionna_related": true,
+   "breaks_our_claims": {
+    "H8": "무관(표적 산란 계산 자체가 없음 - 오히려 H8 의 전제를 지지)",
+    "C1": "지지",
+    "C2": "지지(엔진 문서에 dBsm 이 없다)",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "actionable_for_our_kernel_ko": [
+    "'스톡 Sionna 에는 회절이 없다' 는 틀린 문장이다. 정확히는 '1차 UTD wedge 회절만 있고, 정점·2차·slope·creeping·PTD 는 없으며, 표적 산란적분(RCS)이 없다'. 우리 리포트 문구를 이 수준으로 정밀화해야 한다.",
+    "회절과 확산반사를 한 경로에 못 섞는다는 제약은 우리 바닥유령(표적경유 다중산란) 서사에 직접 영향을 준다 - 표적 회절 후 바닥 확산반사 경로는 스톡 엔진이 아예 만들지 않는다.",
+    "우리 설치본 Sionna 2.0.1 에서 first-order diffraction 이 실제로 켜지는지는 소스로 확인해야 한다(이 문서만으로는 미확정)."
+   ],
+   "our_installed_engine_check_ko": {
+    "checked": "2026-08-03, /home/yunjung/.venvs/py312 의 sionna 2.0.1",
+    "finding": "⭐ 우리 설치본 sionna.rt.PathSolver 는 회절을 실제로 갖고 있으나 기본값이 꺼져 있다.",
+    "verbatim_source": "sionna/rt/path_solvers/path_solver.py L154-173: 'diffraction: bool = False', 'edge_diffraction: bool = False', 'diffraction_lit_region: bool = True', ':param diffraction: Enables diffraction', ':param edge_diffraction: Enables diffraction on free floating edges', ':param diffraction_lit_region: Enables diffraction in the lit region'",
+    "implication_ko": "기술보고서의 '1차 UTD wedge 회절 지원' 이 2.0.1 에 실재함을 소스로 확정했다. 동시에 우리가 지금까지 PathSolver 를 기본값으로 돌렸다면 회절은 전부 꺼진 상태였다 - 우리 RT 결과 해석 시 반드시 확인할 항목."
+   }
+  },
+  {
+   "id": "pasquale2026_sagitta_sbr",
+   "rank_for_us": 6,
+   "why_ranked_ko": "우리 커널과 가장 닮은 문서 - 2026년 GPU SBR+PO 인데 회절이 없고, 저자들이 그것을 한계로 명시하고 미래과제로 미룬다. 우리 PTD 공백이 '우리만의 결함' 이 아니라 이 계열 전체의 알려진 한계임을 확정한다. 게다가 kr≳30 이라는 유효성 문턱을 축자로 준다.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+   "pages": 14,
+   "read_depth": "회절·검증·성능 절 집중 정독(p1-4, p7-12) + 참고문헌",
+   "citation": "M. Pasquale, A. Hu, L. Pennati, I. Peng, S. Markidis (KTH), \"BVH-Accelerated Ray Tracing for High-Frequency Electromagnetic Backscattering\", arXiv:2604.09243v1 [cs.CE], 10 Apr 2026",
+   "venue": {
+    "value": "arXiv 확장판. 원판은 ICCS 2026(26th International Conference on Computational Science) 채택.",
+    "quote": "Note. This manuscript is an extended version of the paper accepted at the 26th International Conference on Computational Science (ICCS 2026).",
+    "page": 1
+   },
+   "publication_status": {
+    "value": "회의 ACCEPTED(원판) + arXiv 확장 프리프린트(이 PDF). '게재' 라고 쓰려면 ICCS 2026 원판을 가리켜야 한다.",
+    "quote": "arXiv:2604.09243v1  [cs.CE]  10 Apr 2026",
+    "page": 1
+   },
+   "engine": {
+    "value": "SagittaSBR - 자작 GPU SBR+PO. BVH 가속, NVIDIA/AMD GPU, MPI 병렬. 코드 공개.",
+    "quote": "Software. The source code is available at: https://github.com/marco-pas/SagittaSBR",
+    "page": 1
+   },
+   "engine_version": {
+    "value": "UNVERIFIED - 버전 표기 없음(공개 저장소 커밋으로만 특정 가능)."
+   },
+   "target_representation": {
+    "value": "삼각 메시. PEC 구(Mie 검증) + A380 여객기 80×73×21 m, 삼각형 162,000 개, 12.2 MB.",
+    "quote": "Simulated A380 aircraft model with approximate dimensions of 80 × 73 × 21 m, discretized using 162,000 triangular elements, 12.2 MB.",
+    "page": 10
+   },
+   "material_model": {
+    "value": "PEC 전용, 스칼라 근사. 유전체·완전 편파(벡터) 산란은 미래과제로 명시.",
+    "quote": "More general interaction models, including dielectric materials and fully polarimetric (vector) scattering, are also of interest.",
+    "page": 12
+   },
+   "aspect_resolved_rcs": {
+    "value": "YES - A380 전구면 모노스태틱 스캔(φ 0-360° 500점 × θ 0-180° 250점, 10 GHz). RCS 는 σ=4π|A|², dBsm 표기.",
+    "quote": "For a PEC surface and monostatic backscatter we compute the complex amplitude, detailed in Eq. 7, and the monostatic RCS is 𝜎= 4𝜋|𝐴|2, which is evaluated in m2 and typically expressed in dBsm as 10 log10(𝜎).",
+    "page": 7
+   },
+   "rotor_or_micromotion": {
+    "value": "NO - 정적 기체.",
+    "why": "도플러·회전 서술 전무."
+   },
+   "diffraction_treatment": {
+    "value": "⭐ NONE. 순수 GO+PO SBR 로 정반사 상호작용만. GTD/UTD/PTD 는 '필요하면 붙일 수 있는 것' 으로 관련연구에만 등장하고 구현되지 않았다.",
+    "quote": "A known modeling limitation of classical GO+PO SBR is the absence of diffraction mechanisms, which can be important near edges, tips, or shadow boundaries. When needed, diffraction effects are incorporated via HF corrections such as the geometrical theory of diffraction (GTD) [13] and refinements such as the uniform theory of diffraction (UTD) [14–16] or the physical theory of diffraction (PTD) [17, 18].",
+    "page": "2-3",
+    "future_work_quote": "On the modeling side, classical GO+PO SBR is limited to specular interactions. Incorporating diffraction corrections (e.g., GTD/UTD/PTD) would improve fidelity in edge- and shadow-dominated configurations.",
+    "future_work_page": 12,
+    "structural_note_ko": "회절 확장이 계산 패턴을 바꾸지 않는다는 지적이 우리 설계에 유용하다. 인용(p3): 'These extensions introduce additional transport rules (e.g., edge-launched rays) while preserving the overall computational pattern of transport followed by accumulation.'",
+    "useful_reference_ko": "참고문헌 [18] 이 고차 등가엣지전류 원전이다: 'O. Breinbjerg. \"Higher order equivalent edge currents for fringe wave radar scattering by perfectly conducting polygonal plates\". IEEE Transactions on A...' (p13). Öztürk 2002 학위논문이 MoM 참조해로 쓴 Breinbjerg 와 같은 저자로, PTD-EEC 고차 항의 출처다."
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "⭐⭐ 광선법 유효 문턱: 전기적 크기 kr = 2πr/λ ≳ 30 부터 Mie 해석해와 잘 맞기 시작한다. kr=1 부근 Mie 공진영역에서는 광선법이 실패.",
+     "quote": "At 𝑘𝑟= 1, Mie resonances dominate and ray tracing methods fail, as wave effects cannot be neglected in this regime. Ray-based approximations become valid as frequency increases, with good agreement typically expected for 𝑘𝑟≳30. Our simulation results (Fig. 4) demonstrate excellent agreement with Mie theory beginning at an electrical size around 𝑘𝑟≈30.",
+     "page": 8
+    },
+    {
+     "claim": "광학영역에서의 정확도: 표준편차 약 2.5%.",
+     "quote": "followed by the optical region where the method accurately approximates scattering with a standard deviation of ∼2.5%",
+     "page": 8
+    },
+    {
+     "claim": "수치정밀도 대가: FP32 는 100회 반사 후 위상누적 오차 약 2-3%, dBsm 로그축에서는 통상 허용.",
+     "quote": "While FP32 introduces a slight phase accumulation error (∼2–3% deviation) after 100 reflections due to catastrophic cancellation in the 𝑒−𝑗2𝑘𝑅𝑖term, it is generally acceptable on logarithmic RCS (dBsm) scales.",
+     "page": 10
+    },
+    {
+     "claim": "성능: A380 각도 하나당 평균 616 ms(LUMI 8 노드 × AMD MI250X 4개, FP32), 30,000×30,000 광선을 90×90 m 격자에서 발사.",
+     "quote": "on a partition of eight LUMI nodes with four AMD MI250X GPUs per node, the average computation time is approximately 616 ms per angular position in FP32",
+     "page": 10
+    },
+    {
+     "claim": "고주파 실패모드는 정밀도가 아니라 공간 에일리어싱이다 - 광선밀도가 부족하면 PO 커널 적분오차가 난다.",
+     "quote": "While these are occasionally misidentified as precision issues due to the increasingly small phase terms, they are typically the result of spatial aliasing. Specifically, under-resolving the wave physics leads to integration errors in the PO kernel, as the discretized sum fails to accurately represent the continuous surface integral.",
+     "page": 8
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "PEC 구의 해석적 Mie 해. A380 은 검증이 아니라 시연(참조해 없음).",
+    "quote": "We validate against analytical Mie solutions for a perfectly electrically conducting (PEC) sphere and demonstrate applicability to a complex aircraft geometry for monostatic radar cross-section prediction.",
+    "page": 1
+   },
+   "geometry_configuration": {
+    "value": "모노스태틱 백스캐터 전용.",
+    "quote": "we present a shooting and bouncing rays (SBR) method for efficiently modeling electromagnetic backscattering of metallic objects in the high-frequency regime",
+    "page": 1
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A - 도플러 없음."
+   },
+   "target_is_drone": false,
+   "sionna_related": false,
+   "breaks_our_claims": {
+    "H8": "무관(Sionna 아님, 드론 아님)",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "actionable_for_our_kernel_ko": [
+    "⭐⭐ kr ≳ 30 문턱은 우리 표적 규모를 정직하게 자리매김하는 최고의 축자 근거다. 3.5 GHz(λ≈8.57 cm)에서 Mavic 급 동체 반경 r≈0.10 m 면 kr≈7.3, 로터 블레이드는 더 작다. 즉 우리 표적은 이 논문이 '광선법이 잘 맞는다' 고 말하는 영역의 1/4 지점에 있다. 우리 기존 판단('few-λ marginal')이 문헌 수치로 뒷받침된다.",
+    "우리 PTD 공백은 이 계열의 공통 결함이다. 2026년 KTH GPU SBR 도 회절이 없고 저자들이 그것을 한계·미래과제로 적는다. 우리 리포트에서 이 한계를 서술할 때 이 문장을 나란히 놓으면 방어된다.",
+    "회절 확장은 'transport → accumulation' 파이프라인 구조를 바꾸지 않는다는 지적(p3)은 우리 커널에 PTD 를 붙일 때의 설계 지침이다: 엣지발사 광선을 추가 transport 로 넣고 같은 누적단에 합치면 된다.",
+    "SagittaSBR 코드가 공개다(github.com/marco-pas/SagittaSBR). 우리 PO 커널 교차검증 후보로 RadarSimPy 옆에 놓을 만하다. ⚠ 접속·라이선스 미확인."
+   ]
+  },
+  {
+   "id": "ezuma2019_compact_range_drone_rcs_15_25ghz",
+   "rank_for_us": 7,
+   "why_ranked_ko": "⭐⭐ 우리 대역기울기 문제의 실측 앵커. 같은 드론 3대를 15 GHz 와 25 GHz 두 대역에서 무향실 컴팩트레인지로 재고, 그 주파수 증가를 '엣지 회절·산란 강화' 로 귀속한다. 회절 칸과 대역기울기 칸이 한 논문에서 만난다.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/1911.05926__ezuma_compact-range-rcs-small-drones-15-25ghz.pdf",
+   "pages": 4,
+   "read_depth": "전문 4쪽 정독",
+   "prior_state_in_our_records": "quoted_but_not_page_by_page - 이번에 전문 정독.",
+   "citation": "M. Ezuma, O. Ozdemir, C. K. Anjinappa, W. A. Gulzar, I. Guvenc (NC State + Ohio State ElectroScience Lab), \"Compact-Range RCS Measurements and Modeling of Small Drones at 15 GHz and 25 GHz\", arXiv:1911.05926",
+   "venue": {
+    "value": "UNVERIFIED - PDF 본문·헤더에 학회명/저널명이 없다. 4쪽 IEEE 2단 형식이고 NASA grant NNX17AJ94A 사사가 있다. arXiv 번호로만 특정 가능.",
+    "quote": "This work has been supported by the NASA grant NNX17AJ94A. Also, the authors are grateful to Mr. Kenneth Ayotte and the management of the Ohio State University Electroscience Laboratory for helping out with the experiments.",
+    "page": 4,
+    "why_unverified": "PDF 첫 장에 게재 정보 워터마크가 없고, 우리 아카이브 사본에 arXiv 스탬프도 보이지 않는다. 인용할 때 '학회 게재' 라고 쓰면 안 된다."
+   },
+   "publication_status": {
+    "value": "UNVERIFIED (arXiv:1911.05926 프리프린트로만 확인). ⚠ 게재 여부는 이 PDF 로 판정 불가.",
+    "why": "게재 표기가 PDF 안에 없다."
+   },
+   "engine": {
+    "value": "N/A - 시뮬레이터 아님. 실측 논문(컴팩트레인지 무향실).",
+    "quote": "The main functional components of the chamber include a 20 foot collimating parabolic reflector, Keysight E8362B programmable vector network analyzer (VNA), two H1498 broadband horn antennas (transmit (TX) and receive (RX) antennas), high performance pyramidal and wedge absorbers, a Styrofoam turntab[le]",
+    "page": 2
+   },
+   "target_representation": {
+    "value": "실물 드론 3대: Trimble zx5, DJI Inspire 1 Pro, DJI Phantom 4 Pro. 메시 아님.",
+    "quote": "Small drones considered: (a) Trimble zx5, (b) DJI Inspire 1 Pro, (c) DJI Phantom 4 Pro (DJI P4 Pro).",
+    "page": 3
+   },
+   "material_model": {
+    "value": "실물이라 모델 없음. 다만 저자가 낮은 RCS 원인을 재질로 귀속한다.",
+    "quote": "These low RCS values are primarily due to the low reflective materials (plastic and carbon fiber) used in the design of these small drones.",
+    "page": 3
+   },
+   "aspect_resolved_rcs": {
+    "value": "YES - 방위각 0-360° 폴라 플롯, 두 주파수 중첩(그림 4).",
+    "quote": "Fig. 4 shows in polar plot the measured RCS (dBsm) versus azimuth angle for each of the small drones.",
+    "page": 3
+   },
+   "rotor_or_micromotion": {
+    "value": "NO - 정지 드론을 스티로폼 턴테이블에 올려 회전. 로터 회전 없음.",
+    "why": "턴테이블 방위 스캔만. 마이크로도플러 서술 없음."
+   },
+   "diffraction_treatment": {
+    "value": "⭐ 계산이 아니라 해석으로서의 회절. 저자는 25 GHz 에서 RCS 가 더 큰 이유를 날카로운 엣지·모서리의 회절·산란 강화로 귀속한다. 회절 모델을 쓰지는 않는다.",
+    "quote": "This is because the very small wavelength (λ = 1.2 cm) of the 25 GHz radar enhances the effects of diffraction and scattering by sharp edges and corners on the drones.",
+    "page": 4,
+    "background_quote": "When a target is illuminated by radar, it scatters and diffracts the electromagnetic waves in all directions.",
+    "background_page": 2
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "⭐⭐ 실측 대역기울기. 15 GHz → 25 GHz 평균 RCS: Trimble zx5 -14.39 → -9.64 dBsm(+4.75 dB), DJI Inspire 1 -14.24 → -11.09(+3.15 dB), DJI Phantom 4 Pro -15.03 → -12.40(+2.63 dB).",
+     "quote": "At 15 GHz, the average RCS of the Trimble zx5, DJI Inspire 1, and DJI Phantom 4 Pro (DJI P4 Pro) are -14.39 dBsm (0.0364 m2), -14.24 dBsm (0.0377 m2), and -15.03 dBsm (0.0314 m2), respectively. At 25 GHz, the average RCS of the Trimble zx5, DJI Inspire 1, and DJI P4 Pro are -9.64 dBsm (0.1087 m2), -11.09 dBsm (0.0778 m2), and -12.40 (0.0576 m2), respectively.",
+     "page": 3,
+     "our_arithmetic_ko": "이 두 문장에서 우리가 계산한 지수(논문에 없는 우리 산술): 주파수비 25/15=1.667 이므로 σ ∝ f^n 에서 n = Δ(dB)/2.218. Trimble n=2.14, Inspire n=1.42, P4 Pro n=1.19. ⚠ 이 지수는 논문이 쓴 값이 아니라 우리가 두 평균값에서 유도한 값이다. 또한 대역 두 점뿐이라 기울기 추정의 신뢰구간이 없다."
+    },
+    {
+     "claim": "세 드론 모두 25 GHz 에서 RCS 가 더 크다. 저자는 이를 다른 실측 문헌[14](Nakamura, IEICE Comm. Express 7(9), 2018, 24/26/60/79 GHz)과 일치한다고 교차확인.",
+     "quote": "Moreover, for all three drones, the average RCS is higher at 25 GHz than at 15 GHz. This observation agrees with the conclusion in [14] which compares the RCS of a small drone measured at 24, 26, 60, and 79 GHz.",
+     "page": 3
+    },
+    {
+     "claim": "절대 앵커 교차검증: [14] 의 DJI Phantom 3 Pro 24 GHz 평균 -13 dBsm 이, 이 논문의 P4 Pro 25 GHz -12.40 dBsm 과 근접.",
+     "quote": "in [14], the average RCS of DJI Phantom 3 (DJI P3 Pro) measured at 24 GHz is given as -13 dBsm. ... Therefore, the average RCS value of the DJI P3 Pro measured at 24 GHz in [14] is close to the average RCS of the DJI P4 Pro which we have measured at 25 GHz as -12.40 dBsm.",
+     "page": 3
+    },
+    {
+     "claim": "통계모델: 대부분의 경우 일반화극값(GEV) 분포가 최적, 예외는 15 GHz 의 Inspire 1 과 P4 Pro 로 로그정규가 최적(AIC 기준, 표 I).",
+     "quote": "From the Table I, we see that in most cases, the extreme value distribution fits best with the RCS data. The exceptions occur for the RCS data of DJI Inspire 1 and DJI Phantom 4 Pro measured at 15 GHz where the log-normal distribution is most suitable.",
+     "page": 4
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "⭐ 절대 교정: 12인치 PEC 구, 광학영역 이론값 -11.37 dBsm 기준. 배경차감 + 소프트웨어 레인지게이팅(Tukey 창) + 교정.",
+    "quote": "since the RCS of an ideal PEC sphere is approximately constant in the optical region, the 12 inch PEC spheres with a known theoretical RCS of about -11.37 dBsm (in the optical region) is used to calibrate the drone RCS measurement in the compact range anechoic chamber.",
+    "page": 3
+   },
+   "geometry_configuration": {
+    "value": "모노스태틱, 무향실 컴팩트레인지(20 ft 포물면 콜리메이팅 반사경), 원거리장 조건. 바이스태틱 없음.",
+    "quote": "The 12 inch PEC sphere is used for experimental calibrations because the far-field monostatic RCS of a PEC sphere can be predicted using the closed-form analytical expression",
+    "page": 3
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A - 도플러 없음(VNA 주파수 스윕 정적 측정)."
+   },
+   "target_is_drone": true,
+   "sionna_related": false,
+   "breaks_our_claims": {
+    "H8": "무관(시뮬 아님)",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "actionable_for_our_kernel_ko": [
+    "⭐⭐ 우리 대역기울기를 대볼 실측 기준선이 생겼다: 소형 드론 3대의 15→25 GHz 실측 기울기는 σ ∝ f^1.19 ~ f^2.14(우리 산술). 순수 PO 평판극한 f^2 는 이 범위 안에 있다. 즉 '우리 기울기가 측정보다 3~8배 가파르다' 는 우리 내부 관측이 이 15/25 GHz 실측과 어떻게 맞는지 재검토가 필요하다 - 우리 문제는 저주파(1~3.5 GHz, 드론이 few-λ 인 영역)에서 생겼을 가능성이 크고, 이 논문의 15/25 GHz 는 드론이 이미 전기적으로 큰 영역이다.",
+    "⚠⚠ 내 자신의 추론 정정: Kirik 2019 그림 8(b)를 보고 나는 'PTD 를 넣으면 저주파를 더 올려 기울기가 완만해진다' 고 적었다. Ezuma 는 정반대로, 드론에서는 파장이 짧을수록(고주파일수록) 엣지 회절·산란 효과가 강해져 RCS 가 커진다고 해석한다(p4). 두 관측이 같은 표적군에 대한 것이 아니므로 모순이라고 단정할 수 없지만, 'PTD 가 우리 대역기울기를 완만하게 만들어 줄 것' 이라는 기대는 근거가 약하다. 실제로 붙여 보고 부호를 확인하기 전까지 이 방향 주장을 리포트에 쓰면 안 된다.",
+    "교정 절차가 우리 실측 계획에 그대로 쓸 만하다: 12인치 PEC 구(-11.37 dBsm) 절대교정 + 배경차감 + Tukey 창 레인지게이팅."
+   ]
+  },
+  {
+   "id": "kirik2019_ptd_sbr_predics",
+   "rank_for_us": 1,
+   "why_ranked_ko": "우리 커널에 PTD 가 없다는 정확히 그 구멍을 메우는 레시피가 통째로 들어 있는 유일한 문서. 엣지 검출 규칙·게이팅 거리·등가 엣지길이·PO 차감 계수까지 구현 단계로 적혀 있다.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/sigma2019_kirik-ozdemir__ptd-into-sbr-predics.pdf",
+   "pages": 14,
+   "read_depth": "full text p1-14 + Fig.8(b) 이미지 판독(p12 렌더)",
+   "citation": "Ö. Kırık, C. Özdemir, \"An Accurate and Effective Implementation of Physical Theory of Diffraction to the Shooting and Bouncing Ray Method via Predics Tool\", Sigma Journal of Engineering and Natural Sciences 37(4), pp.1153-1166, 2019",
+   "venue": {
+    "value": "Sigma J Eng & Nat Sci 37(4), 1153-1166 (Yildiz Technical Univ. journal)",
+    "quote": "Sigma J Eng & Nat Sci 37 (4), 2019, 1153-1166",
+    "page": 1
+   },
+   "publication_status": {
+    "value": "PUBLISHED (peer-reviewed journal, 게재확정일 PDF 에 명시)",
+    "quote": "Research Article ... Received: 11.04.2019   Revised: 10.08.2019   Accepted: 05.11.2019",
+    "page": 1
+   },
+   "engine": {
+    "value": "Predics / pRediCS - GO-PO 기반 자체 ray-launching RCS 시뮬레이터, C#/.NET, 멀티 CPU 병렬. 버전 표기 없음.",
+    "quote": "The above formulation of the PTD technique has been coded in Microsoft .NET framework with C# development environment and implemented to Predics.",
+    "page": 5
+   },
+   "engine_version": {
+    "value": "UNVERIFIED",
+    "why": "PDF 안 어디에도 Predics 버전 번호가 없다. 원 도구 논문은 Özdemir et al., Turkish J Elec Eng & Comp Sci 22:1255-1269 (2014) 로 참고문헌 [13] 에 있음."
+   },
+   "target_representation": {
+    "value": "삼각 패싯 CAD 메시 (평판, 이면체, 삼면체, cone-sphere, 제네릭 해군 미사일 2168mm)",
+    "quote": "Prior to PTD implementation, the edges and the wedges of the target's CAD file should be identified. For this work, several tasks as applied in the following order: First, the neighboring triangular patches with at least two common vertices are identified.",
+    "page": 2
+   },
+   "material_model": {
+    "value": "PEC 만. 유전체/코팅 모델 없음.",
+    "quote": "The most common target, often used in benchmarking tests, is the perfectly conducting rectangular plate whose geometry is shown in Fig. 4(a).",
+    "page": 5
+   },
+   "aspect_resolved_rcs": {
+    "value": "YES - 방위각 -90°~90° 를 361 점으로 스윕한 모노스태틱 RCS 곡선",
+    "quote": "the monostatic RCS simulation of horizontal polarization at 6 GHz was carried out at for the azimuth angles from -90° to 90° for a total of 361 discrete angle points",
+    "page": 5
+   },
+   "rotor_or_micromotion": {
+    "value": "NO - 정적 강체만. 초록이 헬리콥터를 약속하지만 본문에 없음(아래 defect 참조).",
+    "quote": "To better assess the effect of diffraction phenomenon to the total RCS value, more realistic targets; namely a missile and a helicopter target are analyzed by comparing the RCS results with and without PTD contributions.",
+    "page": 1
+   },
+   "diffraction_treatment": {
+    "value": "PTD (Ufimtsev 계열 fringe 전류), SBR 광선추적 안에 직접 삽입. Griesser & Balanis IEEE TAP 1987 [18] 의 계수식을 씀. UTD 아님.",
+    "quote": "In this paper, a compact and effective implementation of physical theory of diffraction (PTD) formulation is proposed. ... This PTD implementation is unique such a way that it is specially tailored to shooting and bouncing ray (SBR) technique via ray tracing and field tracing techniques.",
+    "page": 1,
+    "implementation_recipe_ko": [
+     "1) 엣지 검출: 최소 2개 정점을 공유하는 이웃 삼각형 쌍을 찾고 두 외향 법선이 서로 발산하면 외향 엣지로 PTD 대상. 인용(p2): 'If these vectors are diverging from each other, this means that the edge is outward directed and should be involved in the PTD calculation.'",
+     "2) 엣지 각도 임계: 실무상 30°. 인용(p2): 'Finally, a maximum edge angle value has to be chosen for edges to be included in PTD calculation. This value is usually selected as 30° in practice in order not to have almost zero PTD contribution energy.'",
+     "3) 광선-엣지 거리 게이팅: d_hit ≤ d_max = λ/10 인 광선만 기여. 인용(p3): 'the diffraction contribution of this particular ray is included in PTD result if 𝑑ℎ𝑖𝑡 is less than the maximum permitted distance of 𝑑𝑚𝑎𝑥= 𝜆/10 where 𝜆 is the operational wavelength.'",
+     "4) 등가 엣지길이 dl = (1/ρ_rd)·d_max·(cosθ_i1 + cosθ_i2), ρ_rd 는 SBR 광선밀도(통상 λ/10). 인용(p3): 'where 𝜌𝑟𝑑 is the ray density of the ray-bunch in SBR implementation that is usually taken as one-tenth of the operational wavelength'",
+     "5) 회절장 식 (3): {(D_m − D'_⊥), (D_e − D'_∥), (D_em·sinβ' − D'_x)} 형태로 전체 wedge 계수에서 PO 계수를 빼는 것이 곧 PTD fringe 항. 계수 정의는 (5a) 전체 wedge, (5b) PO 차감분, p4-5."
+    ],
+    "what_it_bought_numerically": [
+     {
+      "claim": "cone-sphere 그림자 영역(-100°~-180°)에서는 회절만 남고, 그 값이 피크 대비 약 45 dB 아래, 절대값 -35~-45 dBsm 으로 측정·FEKO 와 일치. PO 만으로는 이 영역이 사실상 0.",
+      "quote": "the sphere part of the geometry is not illuminated by the EM wave and the illuminated part (i.e., the cone) do not support the strong scattering mechanisms; rather, only the diffraction fields are generated that have significantly lower energy than the scattered fields. Therefore, RCS levels that are almost 45 dB less than the peak RCS value for this region of look-angle are observed. Similar to Altair FEKO, Predics's RCS simulation produces RCS values that fluctuate between -35 dBsm and -45dBsm.",
+      "page": 10
+     },
+     {
+      "claim": "제네릭 미사일 nose-on, 7.5-12.5 GHz 100 주파수점: PTD 추가로 대역 전체에서 RCS 상승. 본문은 수치를 안 주고 '전 대역 상승' 이라고만 함.",
+      "quote": "In Fig. 8(b), RCS variation versus frequency is plotted both for (PO+SBR) solver and (PO+SBR+PTD solver) that are plotted in blue dashed line and red solid line, respectively. The amount of increase in the total RCS value of the target can be easily seen for the whole frequency band after adding the diffraction components thanks to the PTD solver.",
+      "page": 11
+     },
+     {
+      "claim": "Fig.8(b) 그림 판독(본문 아닌 그림에서 내가 읽은 값, ±2 dB): PO+SBR 은 7.5-9.5 GHz 에서 -37~-50 dBsm 을 오가며 깊은 널이 많고, PO+SBR+PTD 는 같은 구간에서 -25~-35 dBsm. 저주파측 상승폭이 대략 +10~15 dB, 11.5-12.5 GHz 고주파측은 대략 +2~5 dB 로 줄어든다.",
+      "quote": "Figure 8. ... (b) monostatic RCS results for (PO+SBR) and (PO+SBR+PTD) solvers",
+      "page": 13,
+      "caveat_ko": "⚠ 이 dB 값들은 본문 문장이 아니라 내가 p12 를 160 dpi 로 렌더해 축을 눈으로 읽은 것이다. 저자가 쓴 숫자가 아니므로 인용 불가, 우리 내부 근사치로만 쓸 것."
+     },
+     {
+      "claim": "레인지 프로파일에서 PTD 상승분이 엣지가 있는 구간(+50 cm ~ -108 cm)에만 국한됨 = 위상까지 맞다는 증거.",
+      "quote": "One can easily notice from Fig. 8(c) that the PTD solver only increased the total range profile value only for the regions where there are edges as expected. This region spreads from 50 cm to -108 along the range axis.",
+      "page": 12
+     },
+     {
+      "claim": "저자 결론: 날카로운 엣지가 있으면 회절이 산란보다 더 클 수 있다.",
+      "quote": "Although the scattered fields seem to be significantly responsible for the total backscattered energy for practical targets of arbitrary shape, diffracted fields can contribute more than scattered fields when sharp edges/wedges are present within the geometry as demonstrated in missile example.",
+      "page": 13
+     }
+    ]
+   },
+   "amplitude_validated_against": {
+    "value": "3중 검증: (a) 평판 PO 해석해(Balanis), (b) Griesser & Balanis IEEE TAP 1987 의 실측 RCS - 평판 6 GHz HH, 이면체 9.4 GHz VV, cone-sphere 9 GHz, (c) 상용 솔버 FEKO(UTD) 와 CST(Asymptotic) 와의 교차비교(삼면체 1-9 GHz).",
+    "quote": "Having the PO solver exactness of Predics in hand, the performance after the PTD implementation is tested with real RCS measurement versus full PO+PTD solver of Predics. The measured data is gathered from [18] for the target shown in Fig 4(a).",
+    "page": 5,
+    "quote2": "the backscattered RCS simulations at VV polarization have been carried out by using FEKO (UTD solver), CST (Asymptotic solver) and Predics (PO+SBR+PTD solver) for the frequencies between 1 GHz and 9 GHz",
+    "page2": 9,
+    "quantitative_error_ko": "⚠ 정량 오차(RMSE, 최대편차 dB)는 논문 어디에도 없다. 전부 'almost perfect agreement', 'very good agreement', 'a fair comparison' 같은 정성 표현. 우리가 '몇 dB 이내 일치' 라고 인용하면 안 된다."
+   },
+   "geometry_configuration": {
+    "value": "모노스태틱 백스캐터만. 바이/멀티스태틱 결과 없음.",
+    "quote": "the monostatic RCS simulation of horizontal polarization at 6 GHz",
+    "page": 5
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A - 도플러/속도 전혀 다루지 않음. 정적 RCS·ISAR 레인지 프로파일만.",
+    "why": "논문 전체에 Doppler 관련 서술 없음."
+   },
+   "target_is_drone": false,
+   "sionna_related": false,
+   "breaks_our_claims": {
+    "H8": "무관(Sionna 아님)",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "defects_found_ko": [
+    "⚠ 초록과 서론이 '미사일과 헬리콥터 두 표적' 을 약속하지만(p1, p2) 4절과 그림 8 에는 미사일만 있고 헬리콥터 결과는 논문에 존재하지 않는다. 'helicopter' 문자열은 전체 14쪽에서 초록·서론 2회뿐. 이 논문을 근거로 '헬리콥터 PTD 결과' 를 인용하면 오류가 된다.",
+    "정량 검증 지표가 하나도 없다(전부 육안 곡선 비교). 이 논문은 '방법을 어떻게 넣는가' 의 출처이지 '몇 dB 좋아지는가' 의 출처가 아니다."
+   ],
+   "actionable_for_our_kernel_ko": [
+    "우리 SBR+PO 커널은 이미 삼각 메시와 광선-히트를 갖고 있으므로 위 1)~5) 단계가 그대로 이식 가능하다. 새로 필요한 것은 (a) 엣지 인접 삼각형 테이블, (b) 히트점-엣지 수직거리 d_hit, (c) 계수 (5a)-(5b), 셋뿐이다.",
+    "⭐ 대역기울기 가설과의 연결: 그림 8(b) 에서 PTD 는 저주파에서 더 크게 올려주고 고주파로 갈수록 덜 올려준다. 직선 엣지의 회절 RCS 는 선단 항이 λ 에 거의 무관한 반면 PO 평판 RCS 는 f^2 로 커지므로, PTD 를 넣으면 합성 스펙트럼 기울기가 완만해진다 - 우리 기울기가 측정보다 3~8배 가파른 방향과 부호가 맞는다. ⚠ 단, 'λ 무관' 은 내 EM 추론이지 이 논문의 문장이 아니다. 논문이 주는 것은 '전 대역 상승' 문장과 그림뿐이다.",
+    "게이팅 d_max=λ/10 과 광선밀도 10 rays/λ 는 우리 SBR 샘플링 밀도와 직접 연결된다. 우리 광선밀도가 이보다 성기면 dl 정규화가 깨진다."
+   ],
+   "SELF_CORRECTION_ko": {
+    "date": "2026-08-03, 같은 웨이브 안에서",
+    "what": "위 actionable 두 번째 항목('PTD 를 넣으면 대역기울기가 완만해진다')을 하향한다.",
+    "why": "Ezuma 외 arXiv:1911.05926 이 소형 드론 3대 실측에서 15→25 GHz 로 RCS 가 +2.63~+4.75 dB 커진다고 보고하고, 그 원인을 '짧은 파장이 날카로운 엣지·모서리의 회절·산란 효과를 강화한다'(p4 축자)고 해석한다. 즉 드론에서는 엣지 효과가 고주파에서 더 커진다는 정반대 해석이 문헌에 있다.",
+    "status": "내 λ-무관 추론은 미사일(긴 직선 엣지, 7.5-12.5 GHz)에서 읽은 그림 한 장에 기반한 것이고, 드론(수 λ 규모, 15-25 GHz)에 그대로 옮길 근거가 없다. 부호는 실제로 PTD 를 붙여서 확인하기 전까지 UNVERIFIED 로 둔다.",
+    "rule": "리포트에 'PTD 가 우리 기울기 문제를 고친다' 고 쓰지 말 것. 쓸 수 있는 것은 'PO 단독 SBR 은 회절이 없어 엣지·그림자 지배 구간에서 부정확하다' 는 문헌 공통 진술까지다."
+   }
+  },
+  {
+   "id": "ezuma2022_uav_rcs_statistical_recognition",
+   "rank_for_us": 8,
+   "why_ranked_ko": "Ezuma 2019 4쪽 예비판의 확장 저널판. 드론 6대 × 2주파수 × 2편파 실측이고, 저주파→고주파 RCS 상승을 '날카로운 모서리의 회절 효과' 로 다시 귀속한다. 우리 대역기울기 앵커의 넓은 판.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2102.11954__ezuma_uav-rcs-statistical-recognition.pdf",
+   "pages": 39,
+   "read_depth": "초록·측정설정(p14)·결과해석(p25) 표적 정독. 39쪽 분류기 성능부는 훑음.",
+   "citation": "M. Ezuma, C. K. Anjinappa, M. Funderburk, I. Guvenc, \"Radar Cross Section Based Statistical Recognition of UAVs at Microwave Frequencies\", arXiv:2102.11954",
+   "venue": {
+    "value": "UNVERIFIED - PDF 안에 저널·학회 표기 없음(프리프린트 조판).",
+    "why": "첫 장에 게재 정보가 없다. arXiv 번호로만 특정."
+   },
+   "publication_status": {
+    "value": "UNVERIFIED",
+    "why": "PDF 로 판정 불가. ⚠ 이 저자군 논문은 IEEE TAES 계열에 실린 것으로 알려져 있으나 이 파일로는 확인 안 됨 - 우리 기록에 '게재' 로 쓰면 안 된다."
+   },
+   "engine": {
+    "value": "N/A - 실측(컴팩트레인지 무향실).",
+    "quote": "the paper presents the results of the vertical (VV) and horizontal (HH) polarization RCS measurement of six commercial UAVs at 15 GHz and 25 GHz in a compact range anechoic chamber",
+    "page": 1
+   },
+   "target_representation": {
+    "value": "실물 드론 6대: DJI Matrice 600 Pro, DJI Matrice 100, Trimble zx5, DJI Mavic Pro 1, DJI Inspire 1 Pro, DJI Phantom 4 Pro.",
+    "quote": "for the small UAVs: (a) DJI Matrice 600 Pro, (b) DJI Matrice 100, (c) Trimble zx5, (d) DJI Mavic Pro 1, (e) DJI Inspire 1 Pro, (f) DJI Phantom 4 Pro",
+    "page": 25
+   },
+   "material_model": {
+    "value": "실물. 재질 해석: 큰 기체는 탄소섬유(반사율 높음), 작은 기체는 플라스틱.",
+    "quote": "This is probably because the arms and frames of these UAVs are designed with carbon fiber which can support the weight of large batteries and payload requirements of large UAVs. It is well known that carbon fiber has a higher reflectivity than plastics which is used in the design of the smaller UAVs.",
+    "page": 25
+   },
+   "aspect_resolved_rcs": {
+    "value": "YES - 방위각 스캔 RCS, VV/HH 두 편파, 15/25 GHz.",
+    "quote": "The measurement results show that the average RCS of the UAVs depends on shape, size, material composition of the target UAV as well as the azimuth angle, frequency, and polarization of the illuminating radar.",
+    "page": 1
+   },
+   "rotor_or_micromotion": {
+    "value": "NO - 정지 표적 턴테이블.",
+    "why": "마이크로도플러 서술 없음."
+   },
+   "diffraction_treatment": {
+    "value": "⭐ 계산 아님. 해석으로서의 회절 - 주파수가 올라갈 때 RCS 가 커지는 이유를 날카로운 모서리의 회절 효과로 귀속.",
+    "quote": "From these values, we observe that for each of the UAVs, the average VV polarized RCS measured at 25 GHz is greater than the value obtained at 15 GHz. This observation is also true about the average HH-polarized RCS values. This is probably due to the diffraction effects of sharp corners at higher frequencies.",
+    "page": 25,
+    "hedge_ko": "⚠ 저자 스스로 'probably' 라고 쓴다. 이것은 검증된 메커니즘 규명이 아니라 저자의 추정이다. 우리가 인용할 때 이 헤지를 지우면 안 된다."
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "25 GHz VV 평균 RCS 6대: Matrice 600 Pro -7.32, Matrice 100 -11.03, Trimble zx5 -9.64, Mavic Pro 1 -16.20, Inspire 1 Pro -11.09, Phantom 4 Pro -12.40 dBsm.",
+     "quote": "For the same UAV set, the average VV-polarized RCS, measured at 25 GHz are −7.32 dBsm, −11.03 dBsm, −9.64 dBsm, −16.20 dBsm, −11.09 dBsm, and −12.40 dBsm, respectively.",
+     "page": 25,
+     "note_ko": "⭐ Mavic Pro 1 이 -16.20 dBsm 으로 6대 중 가장 작다. 우리 주력 표적(Mavic 4 Pro)의 세대 선조에 해당하는 절대 앵커."
+    },
+    {
+     "claim": "VV·HH 모두 25 GHz > 15 GHz. 분류 성능은 SNR 10 dB 에서 평균 97.43% 이상.",
+     "quote": "At an SNR of 10 dB, the average classification accuracy of 97.43% or better is achievable.",
+     "page": 1
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "컴팩트레인지 무향실 실측 자체가 기준. 교정은 자매논문(1911.05926)과 같은 12인치 PEC 구 절차.",
+    "quote": "The chamber used in this study employs pyramidal and wedge-shaped extra high performance (EHP) RAM absorbers.",
+    "page": 14
+   },
+   "geometry_configuration": {
+    "value": "모노스태틱 무향실 컴팩트레인지."
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A"
+   },
+   "target_is_drone": true,
+   "sionna_related": false,
+   "breaks_our_claims": {
+    "H8": "무관",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "actionable_for_our_kernel_ko": [
+    "6대 × 2대역 절대 RCS 표는 우리 PO 커널의 절대값 앵커링에 바로 쓸 수 있다(우리 rcs_anchor.json 확장 후보).",
+    "⚠ 이 논문도 회절을 '계산' 하지 않는다. 회절은 관측 설명용 어휘로만 등장한다. 이것을 '문헌이 드론 엣지 회절을 정량화했다' 로 옮기면 과장이다."
+   ]
+  },
+  {
+   "id": "airmap2025_diffraction_on_off",
+   "rank_for_us": 9,
+   "why_ranked_ko": "⭐ '회절을 끄면 얼마나 틀리나' 를 Sionna RT 안에서 숫자로 보여 주는 몇 안 되는 문서. 우리가 PathSolver 기본값(diffraction=False)으로 돌렸을 때의 대가를 가늠하게 해 준다.",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2511.05522__airmap-ai-radio-maps-dt.pdf",
+   "pages": 15,
+   "read_depth": "§III 데이터셋 생성 절 정독 + 그림 6(p5) 200 dpi 렌더 판독. 나머지 DL 부는 훑음.",
+   "prior_state_in_our_records": "machine_census_only + TAIL('우리 주장 어디에도 안 닿음') 판정. ⭐ 이번 판독으로 회절 칸에서는 TAIL 이 아님이 드러났다 - 트리아지 정정 1건.",
+   "citation": "(AIRMAP) \"AI Radio Maps / Digital Twin\" 계열, arXiv:2511.05522",
+   "venue": {
+    "value": "UNVERIFIED - 첫 장에서 게재처 확인 못함.",
+    "why": "이번 정독은 §III 중심이었고 표지 게재정보를 축자로 확보하지 않았다. 인용 전 재확인 필요."
+   },
+   "publication_status": {
+    "value": "UNVERIFIED (arXiv:2511.05522)"
+   },
+   "engine": {
+    "value": "⭐ Sionna RT 버전 1.2.1, NVIDIA L40S GPU. Mitsuba 3 / Dr.Jit 위에 얹힌 세대.",
+    "quote": "Among various ray-tracing tools, we selected Sionna RT [19] (version 1.2.1) for its ease of automation, native Python interface, and GPU acceleration",
+    "page": 5
+   },
+   "target_representation": {
+    "value": "N/A - 표적 없음. BostonTwin 도시 지오메트리, 1 GHz 캐리어, 패스게인 라디오맵.",
+    "quote": "we load the scene geometry from the BostonTwin model [21] into Sionna RT with a carrier frequency of 1 GHz",
+    "page": 5
+   },
+   "material_model": {
+    "value": "BostonTwin 기본 재질(별도 서술 없음). UNVERIFIED."
+   },
+   "aspect_resolved_rcs": {
+    "value": "NO"
+   },
+   "rotor_or_micromotion": {
+    "value": "NO"
+   },
+   "diffraction_treatment": {
+    "value": "Sionna RT 내장 1차 UTD wedge 회절을 켜고/끄고 비교. 자체 회절 확장 없음.",
+    "quote": "The configuration with diffraction enabled and a maximum depth of 20 is used as the ground truth (maximum configuration). All other configurations are compared against this baseline to identify the most efficient setup that balances accuracy and simulation time.",
+    "page": 5
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "⭐ 회절을 켜면 경로깊이 14 이상에서 RMSE 가 포화(수확체감). 최적점 = 회절 ON + 깊이 14, 라디오맵 1장당 약 0.265초.",
+     "quote": "However, when diffraction is enabled, the RMSE levels off beyond a path depth of 14, indicating diminishing returns in accuracy. ... Based on this analysis, we identify a “sweet spot” configuration—diffraction enabled with a path depth of 14—that balances fidelity and efficiency, requiring approximately 0.265 seconds to generate each radio map.",
+     "page": 5
+    },
+    {
+     "claim": "그림 6 판독(내 눈금 읽기): 회절 OFF(빨강)는 반사깊이를 6→20 으로 아무리 올려도 RMSE 가 약 7.5 에서 바닥을 치고 더 안 내려간다. 회절 ON(파랑)은 깊이 12-14 에서 RMSE 약 0.5~1.0 까지 내려간다. 즉 회절을 끄면 반사깊이로 메울 수 없는 약 7 dB 급의 RMSE 바닥이 생긴다.",
+     "quote": "Fig. 6: Root Mean Squared Error (RMSE) versus runtime for varying ray-tracing configurations in Sionna RT (1.2.1). Marker labels denote maximum path depth (reflections).",
+     "page": 5,
+     "caveat_ko": "⚠⚠ 두 겹의 주의. (1) 이 RMSE 값들은 내가 p5 를 200 dpi 로 렌더해 축을 읽은 것이고 본문 숫자가 아니다. (2) 더 중요한 것 - 여기서 기준(ground truth)은 실측이 아니라 '회절 ON + 깊이 20' 시뮬레이션이다. 따라서 이 7.5 는 '실측 대비 오차' 가 아니라 '풀설정 시뮬 대비 편차' 다. 자기참조적 지표이므로 '회절을 끄면 실제와 7.5 dB 틀린다' 로 옮기면 틀린다."
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "USRP X410 기반 933 MHz 실측 캠페인이 논문 안에 있으나(표 I), 회절 ON/OFF 비교의 기준은 실측이 아니라 최대설정 시뮬레이션이다.",
+    "quote": "A total of 100 randomized scenarios were simulated with diffraction enabled and a TABLE I: Measurement Setup and Equipment TX RU Ettus USRP X410 ... Frequency 933 MHz Bandwidth 2 MHz",
+    "page": 4
+   },
+   "geometry_configuration": {
+    "value": "도시 매크로셀 라디오맵(단일 TX → 측정면)."
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A"
+   },
+   "target_is_drone": false,
+   "sionna_related": true,
+   "breaks_our_claims": {
+    "H8": "무관",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "actionable_for_our_kernel_ko": [
+    "우리 RT 실행에서 diffraction 플래그를 켜고/끄고 같은 형태의 곡선을 뽑으면, 챔버 시나리오에서 회절이 실제로 몇 dB 짜리인지 우리 손으로 확정할 수 있다. 비용은 이 논문 기준 라디오맵당 0.1초→0.265초 수준.",
+    "⭐ Sionna RT 1.2.1 에서 회절이 실사용된다는 독립 확인. 우리 2.0.1 소스 확인과 함께 '스톡에 회절이 있다' 를 이중으로 뒷받침."
+   ]
+  },
+  {
+   "id": "liu2025_target_environment_coupling_ked",
+   "rank_for_us": 10,
+   "why_ranked_ko": "⭐ 회절을 실제 계산에 쓰는 3GPP ISAC 채널 논문. 표적이 만드는 차폐를 4-엣지 나이프에지 회절(KED) 폐형식으로 모델링하고 실측으로 검증한다. 우리가 '표적 차폐/전방산란' 을 싸게 넣고 싶을 때 바로 쓸 수 있는 식이 있다.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2506.00480__target-environment-coupling-3gpp-isac.pdf",
+   "pages": 12,
+   "read_depth": "회절 관련 절(p2, p4-6, p8, p12) 정독.",
+   "prior_state_in_our_records": "mentioned_in_prose_only → 이번에 회절 칸 채움.",
+   "citation": "Y. Liu, J. Zhang, Y. Zhang, H. Xing, Y. Xiong, Z. Yuan, G. Liu, \"The Coupling Effect of Sensing Targets on the Environment for 3GPP ISAC Channels: Observation, Modeling, and Validation\", arXiv:2506.00480v1 [eess.SP], 31 May 2025",
+   "venue": {
+    "value": "arXiv 프리프린트(IEEE LaTeX 저널 템플릿 조판). 게재처 표기 없음.",
+    "quote": "arXiv:2506.00480v1  [eess.SP]  31 May 2025",
+    "page": 1
+   },
+   "publication_status": {
+    "value": "PREPRINT (게재 미확인)",
+    "quote": "JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021",
+    "page": 1
+   },
+   "engine": {
+    "value": "실측 기반 채널모델링(105 GHz 실내공장). 광선추적 엔진 아님."
+   },
+   "target_representation": {
+    "value": "실물 sensing target(ST). ST 의 높이·폭 네 모서리를 KED 의 네 엣지로 추상화.",
+    "quote": "the diffraction attenuation, which can serve as FS-CF values, for the path m in cluster n is expressed as: Ae1,n,m[dB] = −20 log10 (1 −(Fh1 + Fh2) (Fw1 + Fw2)) , (11) where Fh1, Fh2, Fw1, and Fw2 account for KED at the four edges corresponding to the heights and widths of t[he target]",
+    "page": 8
+   },
+   "material_model": {
+    "value": "KED 는 표적을 '완전흡수 얇은 판' 으로 가정 - 재질 없음.",
+    "quote": "the Knife-Edge Diffraction (KED) model—a commonly used blockage model that treats the obstruction as a perfectly absorbing thin plate—can be adopted to simplify the calculation.",
+    "page": 8
+   },
+   "aspect_resolved_rcs": {
+    "value": "NO - RCS 가 아니라 결합계수(BR-CF, FS-CF)."
+   },
+   "rotor_or_micromotion": {
+    "value": "NO"
+   },
+   "diffraction_treatment": {
+    "value": "⭐ Fresnel-Kirchhoff 회절적분을 먼저 세우고, 그 복잡도 때문에 4-엣지 KED 근사로 내려간다. 계산에 실제로 쓰이는 회절.",
+    "quote": "Assuming β0 ≈180◦and the ST integration surface is perpendicular to the L1L2 line, the electromagnetic field received at L2 can be derived using the Fresnel-Kirchhoff diffraction formula [29]: U = −E0 λ i r0s0 ZZ S eik(r+s)dS, (10) where k = 2π/λ. ... Given the excessive complexity of (10), the Knife-Edge Diffraction (KED) model ... can be adopted to simplify the calculation.",
+    "page": 8,
+    "reference_ko": "KED 4-엣지 모델의 원전이 참고문헌에 있다: 'Litjens, \"Four KnifeEdge Diffraction with antenna gain model for generic blockage modelling,\" IEEE Wireless Commun.' (p12)."
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "LoS 조건에서 측정한 BR-CF·FS-CF 값이 Fresnel 회절 이론과 일치, NLoS 조건에서는 정규분포를 따른다.",
+     "quote": "Under LoS conditions, BR-CF and FS-CF values align with Fresnel diffraction theory, while those under NLoS conditions follow a normal distribution.",
+     "page": 12
+    },
+    {
+     "claim": "표적 경유 경로의 물리적 정체를 명시: 표적 수평 엣지에서의 산란 또는 회절.",
+     "quote": "Simultaneously, Tx-ST-Rx paths (classified as direct paths), arising from scattering or diffraction at the ST’s horizontal edges, are labeled as red letter A.",
+     "page": 4
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "105 GHz 실내공장 ISAC 채널 실측. 시뮬↔실측 채널 유사도 분석으로 검증.",
+    "quote": "we first conduct ISAC channel measurements in an indoor factory scenario at 105 GHz, where the multipath power variations caused by the ST’s interaction with the environment are clearly observed",
+    "page": 1
+   },
+   "geometry_configuration": {
+    "value": "바이스태틱(Tx-ST-Rx), 실내공장, 차폐영역과 전방산란영역을 구분."
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A - 정적 채널 측정."
+   },
+   "target_is_drone": false,
+   "sionna_related": false,
+   "breaks_our_claims": {
+    "H8": "무관",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "⚠ 무관하지만 인접 - 표적이 환경과 결합하는 효과를 실측+모델로 다룬다. 우리 C4(교정된 오경보율에서의 다중조명원 통제비교)와는 다른 축."
+   },
+   "actionable_for_our_kernel_ko": [
+    "⭐ 우리 챔버에서 드론이 만드는 차폐/전방산란을 넣고 싶을 때, PTD 없이도 쓸 수 있는 가장 값싼 회절 모델이 식 (11) 이다: Ae1[dB] = −20 log10(1 − (Fh1+Fh2)(Fw1+Fw2)). 네 개 프레넬 항만 계산하면 된다.",
+    "우리 바닥유령 서사는 '표적 경유 다중경로' 인데, 이 논문은 그 경로가 표적 엣지의 산란 또는 회절에서 나온다고 실측으로 규정한다. 우리 스톡 Sionna 가 회절+확산 혼합경로를 못 만든다는 제약과 겹쳐 읽어야 한다."
+   ]
+  },
+  {
+   "id": "pofacets_manual_po_omissions",
+   "rank_for_us": 11,
+   "why_ranked_ko": "⭐ 순수 PO 패싯 코드가 무엇을 빠뜨리는지 네 줄로 못박는 문서. 우리 커널의 결함 목록과 글자 그대로 같다. 논문은 아니지만 우리 한계 서술의 가장 정확한 출처.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/gbppr__rcs-calculations-physical-optics-codes.pdf",
+   "pages": 11,
+   "read_depth": "p1 전문 정독(한계 목록·입력형식), 나머지는 코드 사용법이라 훑음.",
+   "doc_class": "NON-PAPER - MATLAB 코드(POFACETS 계열 pomonostatic.m / pobistatic.m) 사용설명서.",
+   "citation": "\"RCS Calculations Using the Physical Optics Codes\" (POFACETS 계열 MATLAB 코드 매뉴얼). 저자·기관·연도 표기 없음.",
+   "venue": {
+    "value": "NON-PAPER. 게재처 없음.",
+    "why": "사용설명서 문서."
+   },
+   "publication_status": {
+    "value": "N/A (비논문). ⚠ 인용 시 '논문' 으로 취급하면 안 되고, 도구 문서로만 인용해야 한다."
+   },
+   "engine": {
+    "value": "POFACETS 계열 MATLAB PO 코드. 삼각 패싯 배열 + 중첩.",
+    "quote": "pomonostatic.m is a simple RCS prediction code based on the physical optics approximation. Scattering objects are approximated by arrays of triangles (facets) and superposition is used to compute the total RCS of the object.",
+    "page": 1
+   },
+   "target_representation": {
+    "value": "삼각 패싯 메시(coordinates.m / facets.m 텍스트 입력)."
+   },
+   "material_model": {
+    "value": "PEC 가정(문서 p1 범위에서는 재질 파라미터 없음)."
+   },
+   "aspect_resolved_rcs": {
+    "value": "YES - 모노스태틱·바이스태틱 각도 스윕 둘 다 별도 코드로 제공."
+   },
+   "rotor_or_micromotion": {
+    "value": "NO"
+   },
+   "diffraction_treatment": {
+    "value": "⭐ NONE, 그리고 그 사실을 명시적으로 나열한다. 우리 커널 한계 목록의 축자 출처.",
+    "quote": "• the scattered field of each triangle is computed as if it were isolated and other triangles were not present  • multiple reflections are not included  • edge diffraction and surface waves are not included  • shadowing is only approximately included by considering a facet to be completely illuminated or completely shadowed by the incident wave (shadows on one part of the object cast by other parts of the object are not included)",
+    "page": 1,
+    "note_ko": "⚠ 우리 커널은 SBR 을 얹었으므로 '다중반사 없음' 과 '가림이 근사적' 두 항목은 우리에게 해당하지 않는다. 남는 두 항목 - 엣지 회절 없음, 표면파 없음 - 이 정확히 우리 결함이다."
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "수치 결과 없음(사용설명서).",
+     "quote": "N/A",
+     "page": null
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "N/A - 검증 절 없음."
+   },
+   "geometry_configuration": {
+    "value": "모노 + 바이스태틱 두 코드."
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A"
+   },
+   "target_is_drone": false,
+   "sionna_related": false,
+   "breaks_our_claims": {
+    "H8": "무관",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "actionable_for_our_kernel_ko": [
+    "우리 리포트의 '순수 PO 한계' 절에 붙일 축자 출처가 생겼다. 다만 비논문이므로 문헌 인용이 아니라 '도구 문서' 로 표기해야 한다.",
+    "‘facet 을 고립된 것처럼 계산’ 이라는 첫 항목은 우리 SBR 이 이미 넘어선 부분이므로, 우리 한계 서술이 과하게 겸손해지지 않도록 구분해 쓸 것."
+   ]
+  },
+  {
+   "id": "audia2025_montecarlo_sbr_meca",
+   "rank_for_us": 12,
+   "why_ranked_ko": "MECA(수정 등가전류 근사)를 유전체 경계에 쓰는 GPU SBR. 회절은 빠져 있지만, 저자들이 '우리 방식이면 고차 회절 넣기가 오히려 쉬울 것' 이라고 적는다. 우리와 같은 미해결 항목을 공유하는 최신 문서.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2511.07586__monte-carlo-sbr-farfield-scattering.pdf",
+   "pages": 14,
+   "read_depth": "초록·회절 관련 문장(p2, p12)·참고문헌 확인. 몬테카를로 분산감소 유도는 훑음.",
+   "prior_state_in_our_records": "bibliographic_only → 이번에 회절 칸만 채움. ⚠ 본문 전체 정독은 아직 아니다.",
+   "citation": "S. Audia, D. Manocha, M. Zwicker, \"Accelerated, Memory-Efficient Far-Field Scattering Computation with Monte Carlo SBR\", arXiv:2511.07586",
+   "venue": {
+    "value": "IEEE 저널 투고 상태의 프리프린트.",
+    "quote": "This work has been submitted to the IEEE for possible publication. Copyright may be transferred without notice, after which this version may no longer be accessible.",
+    "page": 1
+   },
+   "publication_status": {
+    "value": "NOT PUBLISHED (IEEE 투고중)."
+   },
+   "engine": {
+    "value": "자작 몬테카를로 SBR (GPU). 렌더링의 분산감소 기법을 SBR 적분에 이식.",
+    "quote": "We introduce a Monte Carlo integration-based Shooting and Bouncing Ray (SBR) algorithm for electromagnetic scattering, specifically targeting complex dielectric materials.",
+    "page": 1
+   },
+   "target_representation": {
+    "value": "정준 3D 형상 + 도체/유전체 항공기 모델(ISAR 영상까지)."
+   },
+   "material_model": {
+    "value": "⭐ 복합 유전체·다층 구조 지원이 핵심 기여. 경계에서 PO + MECA 로 전류를 구한다.",
+    "quote": "Along boundaries between homogeneous regions, we compute the currents using PO and the Modified Equivalent Current Approximation (MECA) [24], [25].",
+    "page": 2
+   },
+   "aspect_resolved_rcs": {
+    "value": "YES - 원거리장 산란 + ISAR."
+   },
+   "rotor_or_micromotion": {
+    "value": "NO"
+   },
+   "diffraction_treatment": {
+    "value": "NONE. 엣지 회절·공동응답·creeping wave 를 다루지 않았다고 명시하고, 고차 회절은 미래과제.",
+    "quote": "We also did not discuss inclusion of additional phenomenology like edge diffraction, cavity responses, or creeping waves.",
+    "page": 12,
+    "quote2": "In future work, higher order diffraction effects could even be easier to implement using our method.",
+    "page2": 12,
+    "note_ko": "⚠ MECA 는 이름에 'equivalent current' 가 들어가지만 엣지 등가전류(EEC/PTD)가 아니라 유전체 경계면의 표면 등가전류 근사다. 혼동 주의."
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "몬테카를로화로 메모리 10-15배 절감, 런타임 4배 가속(다층 유전체 구조 기준).",
+     "quote": "resulting in up to a 10–15× reduction in memory usage and a 4× speed up in runtime, particularly for multilayer dielectric structures",
+     "page": 1
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "정준 3D 형상 검증 + 도체/유전체 항공기 ISAR. 정량 오차지표는 이번 정독 범위에서 미확인(UNVERIFIED).",
+    "quote": "Verification on canonical 3D geometries and ISAR imaging of both conducting and dielectric representative aircraft models demonstrates that our Monte Carlo SBR achieves high accuracy while maintaining low noise",
+    "page": 1
+   },
+   "geometry_configuration": {
+    "value": "원거리장 산란(모노스태틱 중심). 상세 미확인."
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A"
+   },
+   "target_is_drone": false,
+   "sionna_related": false,
+   "breaks_our_claims": {
+    "H8": "무관",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "actionable_for_our_kernel_ko": [
+    "MECA 는 우리 재질가중 PO(GROUP_GAMMA)를 물리적으로 더 단단하게 바꿀 후보다. 우리는 지금 재질별 반사계수를 곱하는 방식인데, MECA 는 유전체 경계 등가전류를 직접 구한다.",
+    "'회절 없음' 이 2025-2026 최신 SBR 논문들의 공통 상태라는 세 번째 사례(Sagitta, POFACETS, 여기)."
+   ]
+  },
+  {
+   "id": "lindgren2021_umea_cst_vs_optiscat",
+   "rank_for_us": 13,
+   "why_ranked_ko": "⭐ 같은 차량을 'PO + 엣지회절 보정' 코드(OPTISCAT)와 'SBR' 코드(CST)로 각각 돌려 차이를 퍼센트로 보고한 드문 문서. 방법 선택이 얼마짜리인지 알려 준다.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/diva_1595877__evaluation-cst-studio-rcs-simulation.pdf",
+   "pages": 23,
+   "read_depth": "초록·이론절(§2.2 OPTISCAT, §2.3 CST)·creeping wave 판정 정독.",
+   "prior_state_in_our_records": "mentioned_in_prose_only → 이번에 회절 칸 채움.",
+   "citation": "J. Lindgren, \"Evaluation of CST Studio Suite for simulation of radar cross-section\", MSc thesis, Department of Physics, Umeå University, Autumn 2021",
+   "venue": {
+    "value": "Umeå University 석사학위논문 (회색문헌). 산업 파트너 BAE Systems Hägglunds.",
+    "quote": "Jonas Lindgren  Department of Physics  Umeå University  A thesis submitted for the degree of Master of Science in Engineering Physics  Autumn 2021",
+    "page": 1
+   },
+   "publication_status": {
+    "value": "GREY LITERATURE (학위논문). ⚠ 비교 기준이 된 OPTISCAT 결과는 2003년 Hägglunds 사내 '기밀' 기술보고서라 우리가 원천을 볼 수 없다.",
+    "quote": "The results from OPTISCAT that will be used for comparisons with CST are from a restricted technical report regarding the RCS of a CV90 done at Hägglunds, then Alvis, in 2003.",
+    "page": 5
+   },
+   "engine": {
+    "value": "두 엔진 비교: OPTISCAT(PO + 엣지회절 보정) vs CST Studio Suite(Asymptotic/SBR).",
+    "quote": "OPTISCAT utilizes an implementation of physical optics (PO) with correction for edge diffraction and provides both pre- and post-processing in addition to the solution solver. The simulation software is essentially a PO model of the surface integral representation of Maxwell's equations [10].",
+    "page": 7
+   },
+   "target_representation": {
+    "value": "구·슬래브(정준) + CV90 장갑차 CAD."
+   },
+   "material_model": {
+    "value": "미확인(UNVERIFIED) - 이번 정독 범위 밖."
+   },
+   "aspect_resolved_rcs": {
+    "value": "YES - 입사각 스윕 RCS, 스파이크 위치 비교."
+   },
+   "rotor_or_micromotion": {
+    "value": "NO"
+   },
+   "diffraction_treatment": {
+    "value": "⭐ 비교 대상 중 한쪽(OPTISCAT)이 PO + 엣지회절 보정을 갖고 있고, 다른 쪽(CST SBR)은 SBR 확장이다. 이 논문 자체가 회절을 구현하지는 않는다.",
+    "quote": "It is not surprising that the software does not match up perfectly since they use different theoretical approaches, OPTISCAT uses physical optics while CST an extension to physical optics called the Shooting Bouncing Ray method.",
+    "page": 3,
+    "creeping_wave_criterion_ko": "⭐ creeping wave 무시 가능 조건을 숫자로 준다. 인용(p9): 'However, this is only acceptable as long as 𝜆≪𝑟 because otherwise creeping waves will be interfering with the result.' 그리고 'The cut-off for creeping waves can be determined by the equation 2𝜋𝑟/𝜆> 10 [11].' 즉 kr > 10."
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "⭐ 정준물체에서는 CST 가 이론값 2% 이내. 그러나 같은 차량에서 두 소프트웨어의 RCS 차이는 3%~55%.",
+     "quote": "In this work, we show that CST obtains results within 2% of theoretical data when simulating a sphere and a slab. When simulating vehicles, the RCS difference between the two software is from 3% to 55% while showing similar general behavior.",
+     "page": 3
+    },
+    {
+     "claim": "결론은 '스파이크 위치가 비슷하면 실용적으로 대체 가능' 이라는 완만한 판정.",
+     "quote": "When looking at RCS the important part is the location of spikes and since they have similar general behavior, those spikes may still be possible to identify.",
+     "page": 3
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "구·슬래브 이론해 + 2003년 OPTISCAT 사내 결과.",
+    "quote": "CST obtains results within 2% of theoretical data when simulating a sphere and a slab",
+    "page": 3
+   },
+   "geometry_configuration": {
+    "value": "모노스태틱."
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A"
+   },
+   "target_is_drone": false,
+   "sionna_related": false,
+   "breaks_our_claims": {
+    "H8": "무관",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "actionable_for_our_kernel_ko": [
+    "⭐ kr > 10 이라는 creeping wave 무시 문턱은 Sagitta 의 kr≳30(광선법 신뢰) 과 함께 우리 표적을 자리매김하는 두 번째 숫자다. 3.5 GHz 드론 동체 kr≈7 은 이 문턱조차 못 넘는다 - creeping wave 를 무시할 수 없는 영역이라는 뜻.",
+    "복잡 표적에서 방법 선택(PO+엣지회절 vs SBR)이 3~55% 차이를 낳는다는 것은, 우리가 커널 결과를 상용 솔버와 대조할 때 기대해야 할 불일치 규모의 현실적 기준선이다."
+   ]
+  },
+  {
+   "id": "kasdorf_notaros_sbr_accuracy_tap",
+   "rank_for_us": 14,
+   "why_ranked_ko": "SBR 자체의 정확도(광선 원뿔각·이중계수)를 다루는 게재 논문. 회절 자체는 한 문장뿐이라 회절 칸 기여는 작지만, 우리 SBR 샘플링 규약을 점검할 근거가 있다.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/notaros_TAP__advancing-accuracy-sbr.pdf",
+   "pages": 8,
+   "read_depth": "초록·서론·회절 문장·참고문헌 확인. 광선원뿔각 유도는 훑음.",
+   "citation": "S. Kasdorf, B. Troksa, C. Key, J. Harmon, B. M. Notaroš (Colorado State University), SBR 정확도 향상 논문, IEEE Transactions on Antennas and Propagation (저자판)",
+   "venue": {
+    "value": "IEEE Transactions on Antennas and Propagation (저자 accepted 버전).",
+    "quote": "This is the author's version of an article that has been published in this journal.",
+    "page": 7
+   },
+   "publication_status": {
+    "value": "PUBLISHED (저자판 PDF). 접수 2020-01-09, 수정 2020-10-26.",
+    "quote": "Manuscript received January 9, 2020, revised October 26, 2020. This work was supported by the National Science Foundation under grant ECCS1646562.",
+    "page": 1
+   },
+   "engine": {
+    "value": "자작 SBR 광선추적(터널 전파 모델링). 이미지법(IT)과 정확도 비교."
+   },
+   "target_representation": {
+    "value": "터널 환경 지오메트리. 표적 산란 논문이 아님."
+   },
+   "material_model": {
+    "value": "미확인(UNVERIFIED)."
+   },
+   "aspect_resolved_rcs": {
+    "value": "NO - RCS 논문 아님."
+   },
+   "rotor_or_micromotion": {
+    "value": "NO"
+   },
+   "diffraction_treatment": {
+    "value": "NONE 구현. 회절은 'SBR 이면 확장할 수 있다' 는 한 문장으로만 등장.",
+    "quote": "Additionally, the SBR method allows for the extension of propagation to include refraction and diffraction, which IT alone cannot accomplish. This makes the SBR method much more efficient and versatile for use in large environments.",
+    "page": 2
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "광선당 원뿔각을 이웃 광선 집합으로 국소 계산하면 SBR 이 이미지법과 같은 정확도로 터널 전파를 모델링할 수 있다. (구체 수치는 이번 정독 범위 밖 - UNVERIFIED)",
+     "quote": "The results demonstrate that the advanced shooting and bouncing RT method––using both proposed ray cone generation approaches––can perform wireless propagation modeling of tunnel environments with the same accuracy as image theory RT, a dramatically less efficient but traditionally considerably more accurate solver.",
+     "page": 1
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "이미지법(IT) 광선추적 해와의 대조. 실측 아님.",
+    "quote": "with the same accuracy as image theory RT",
+    "page": 1
+   },
+   "geometry_configuration": {
+    "value": "터널 내 전파(송수신 링크)."
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A"
+   },
+   "target_is_drone": false,
+   "sionna_related": false,
+   "breaks_our_claims": {
+    "H8": "무관",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "actionable_for_our_kernel_ko": [
+    "광선당(글로벌 아님) 원뿔각 계산과 이중계수 광선 제거는 우리 SBR 광선밀도 규약에 직접 적용 가능한 두 기법이다. Kirik 의 PTD 등가엣지길이 dl 이 광선밀도 ρ_rd 에 정확히 비례하므로, 광선 원뿔이 부정확하면 PTD 진폭도 같이 틀어진다."
+   ]
+  },
+  {
+   "id": "costa2025_drone_microdoppler_diffraction_neglect",
+   "rank_for_us": 15,
+   "why_ranked_ko": "⭐ 드론 논문이 회절을 명시적으로 뺐다고 적는 사례이자, 회전 블레이드에 등가전류(MEC)를 적용한 선행연구로 가는 유일한 포인터.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.05168__costa_microdoppler-multiprop-drones_JSTEAP-journal.pdf",
+   "pages": 14,
+   "read_depth": "회절 관련 문장(p2, p10)과 참고문헌 [12] 확인 목적의 표적 정독. (전체 정독은 이전 웨이브에서 완료 - evidence_state=deep_read)",
+   "citation": "H. C. Costa, S. J. Myint, C. Andrich, S. W. Giehl, M. Engelhardt, C. Schneider, R. S. Thomä, \"Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC\", IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation (JSTEAP), 2025",
+   "venue": {
+    "value": "IEEE JSTEAP 2025. (서지는 Ziganshin 프리프린트 참고문헌 [34] 로 교차확인됨)",
+    "quote": "H. C. Costa, S. J. Myint, C. Andrich, S. W. Giehl, M. Engelhardt, C. Schneider, and R. S. Thomä, \"Modeling micro-doppler signature of multi-propeller drones in distributed ISAC,\" IEEE Journal of Selected Topics in Electromagnetics, Antennas and Propagation, 2025.",
+    "page": "교차출처: arXiv:2604.05991v2 p11 [34]"
+   },
+   "publication_status": {
+    "value": "PUBLISHED (IEEE JSTEAP 2025)."
+   },
+   "engine": {
+    "value": "해석적 마이크로도플러 모델(전자기 솔버 아님)."
+   },
+   "target_representation": {
+    "value": "다중 프로펠러 드론의 회전 블레이드. 상세는 이전 웨이브 기록 참조."
+   },
+   "material_model": {
+    "value": "해석모델이라 재질 없음."
+   },
+   "aspect_resolved_rcs": {
+    "value": "부분 - 시간변화 산란을 다루나 절대 RCS 검증은 아님(이전 기록 참조)."
+   },
+   "rotor_or_micromotion": {
+    "value": "⭐ YES - 이 논문의 주제 자체가 다중 프로펠러 마이크로도플러."
+   },
+   "diffraction_treatment": {
+    "value": "⭐ 명시적 배제. 저자가 자기 모델의 한계로 회절과 다중경로를 든다.",
+    "quote": "Compared to these methods, the proposed model tends to be less accurate since it does not take into account some electromagnetic phenomena, such as diffraction and multipath.",
+    "page": 10,
+    "conference_version_quote": "Among the disadvantages, it does not take into account some electromagnetic phenomena, such as diffraction and multipath, and it also cannot reproduce more complex phenomena such as frequency components due to vibration.",
+    "conference_version_page": "RadarConf24 회의판(2401.14287) p6",
+    "why_ct_matters_ko": "CAD 기반 전자기 시뮬은 '복잡한 구조와 회절·가림 효과를 반영한다' 고 저자가 인정한다. 인용(p2): 'These methods have the advantage of taking into account the complex structures of the objects and reproducing effects such as diffraction and shadowing.' 즉 회절을 넣는 것은 이 계열에서 명확한 우위로 인식된다."
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "이 논문 자체는 회절을 넣지 않았으므로 회절의 정량 이득 수치가 없다.",
+     "quote": "N/A",
+     "page": null
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "이전 웨이브 기록 참조(이번 정독은 회절 칸 한정)."
+   },
+   "geometry_configuration": {
+    "value": "분산 ISAC(바이스태틱/멀티스태틱)."
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "마이크로도플러 논문 - 이전 기록 참조."
+   },
+   "target_is_drone": true,
+   "sionna_related": false,
+   "breaks_our_claims": {
+    "H8": "무관(Sionna 아님)",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "MOST_IMPORTANT_POINTER_ko": {
+    "finding": "⭐⭐ 회전 블레이드 + 등가전류 회절의 선행연구가 존재하고, 우리는 그 PDF 를 갖고 있지 않다.",
+    "quote": "[12] describes an application of Physical Optics (PO) and the Method of Equivalent Currents (MEC) to calculate the time-varying Radar Cross-Section (RCS) of a helicopter rotor.",
+    "page": 2,
+    "full_citation_verbatim": "[12] P. Pouliguen, L. Lucas, F. Muller, S. Quete, and C. Terret, \"Calculation and analysis of electromagnetic scattering by helicopter rotating blades,\" IEEE Transactions on Antennas and Propagation, vol. 50, no. 10, 2002, doi: 10.1109/TAP.2002.800693.",
+    "full_citation_page": 13,
+    "bistatic_note_quote": "From all of these works, only the models presented in [12] and [22] cover bistatic geometry",
+    "bistatic_note_page": 2,
+    "why_ko": "MEC = Method of Equivalent Currents 는 Öztürk 2002 의 PTD-EEC 와 같은 등가엣지전류 계열이다. 즉 '회전하는 블레이드의 시간변화 RCS 를 PO + 등가엣지전류로, 그것도 바이스태틱으로' 계산한 2002년 IEEE TAP 게재 논문이 존재한다. 우리 회절 칸 × 로터 칸 × 바이스태틱 칸이 한 점에서 만나는 유일한 선행연구다.",
+    "archive_status": "⭐ 우리 아카이브 227편에 없다(파일명·제목 검색 0건). 획득 최우선순위."
+   },
+   "actionable_for_our_kernel_ko": [
+    "Pouliguen et al. IEEE TAP 50(10), 2002 를 구하는 것이 이 웨이브의 가장 값진 후속작업이다.",
+    "드론 마이크로도플러 선행연구의 정직한 한계가 '회절과 다중경로 없음' 이라는 점은, 우리가 PTD 를 붙이면 그 자체로 차별점이 된다는 뜻이기도 하다. 다만 아직 안 붙였으므로 지금은 같은 한계를 공유한다."
+   ]
+  },
+  {
+   "id": "ropitault2025_sitespecific_diffraction_dominated",
+   "rank_for_us": 16,
+   "why_ranked_ko": "Sionna RT 회절 경로가 링크를 지배하는 실례를 시간축 SINR 로 보여 준다. 회절을 끄면 무엇이 사라지는지에 대한 정성적 증거.",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2508.04004__ropitault-sitespecific-cellular-ns3.pdf",
+   "pages": 6,
+   "read_depth": "회절 문장 전수(p1, p3-6) 정독. 시스템 시뮬 세부는 훑음.",
+   "prior_state_in_our_records": "machine_census_only + TAIL 판정 → 회절 칸에서는 TAIL 아님(트리아지 정정 2건째).",
+   "citation": "T. Ropitault 외, site-specific cellular / ns-3 + Sionna RT 논문, arXiv:2508.04004",
+   "venue": {
+    "value": "UNVERIFIED - 이번 정독에서 표지 게재정보 축자 미확보."
+   },
+   "publication_status": {
+    "value": "UNVERIFIED (arXiv:2508.04004)"
+   },
+   "engine": {
+    "value": "Sionna RT(경로 생성) + ns-3(시스템 레벨). 버전 미확인.",
+    "quote": "Sionna RT extends it with GPU-accelerated 3D ray tracing that models reflection, diffraction and scattering under both LOS and NLOS conditions.",
+    "page": 3
+   },
+   "target_representation": {
+    "value": "N/A - 표적 없음. 도시 거리협곡 지오메트리."
+   },
+   "material_model": {
+    "value": "UNVERIFIED"
+   },
+   "aspect_resolved_rcs": {
+    "value": "NO"
+   },
+   "rotor_or_micromotion": {
+    "value": "NO"
+   },
+   "diffraction_treatment": {
+    "value": "Sionna RT 내장 회절을 켜고 최대 4차 정반사와 함께 사용.",
+    "quote": "Sionna RT generates the MPCs, configured to include diffraction and up to four orders of specular reflection, from the 3D environment and node trajectories.",
+    "page": 4
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "⭐ 거리협곡 시나리오에서 채널이 회절경로에 지배된다. 회절 광선 하나가 SINR 을 -15 dB 부근에서 안정적으로 유지한다.",
+     "quote": "For the trace-based channel, we can observe that diffraction dominates, with specular reflections appearing only as the UE rounds the corner into Street B (around 53 s).",
+     "page": 5,
+     "quote2": "In the former interval, a single diffracted ray keeps the SINR stable around −15 dB, increasing slowly.",
+     "page2": 5
+    },
+    {
+     "claim": "회절경로의 도래각이 배열 보어사이트와 정렬되는지에 따라 SINR 이 급등/급락한다 - 회절이 빔포밍 이득과 결합한다.",
+     "quote": "After 35 s, as the gNB nears the corner of Street A, the diffraction angle becomes more favorable: the AoA of the diffraction path aligns more closely with the boresight of the UE's PAA, resulting in a sharper SINR increase. On the contrary, after 197 s, the SINR sharply declines as the diffraction path's AoA steers the beam into the array's end-fire region, reducing significantly the azimuthal gain.",
+     "page": 5
+    },
+    {
+     "claim": "3GPP 통계모델은 이런 것을 못 낸다고 명시.",
+     "quote": "These are well suited to capture average behavior across many statistical realizations, but cannot reproduce sitespecific phenomena such as corner diffraction, street-canyon blockage, or deterministic line-of-sight conditions",
+     "page": 1
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "실측 아님 - 3GPP 통계모델과의 대조."
+   },
+   "geometry_configuration": {
+    "value": "도시 매크로 링크(gNB-UE), 시간축 궤적."
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A"
+   },
+   "target_is_drone": false,
+   "sionna_related": true,
+   "breaks_our_claims": {
+    "H8": "무관",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "actionable_for_our_kernel_ko": [
+    "우리 챔버는 벽이 흡수체라 회절 지배 상황은 아니지만, 표적(드론) 자체가 만드는 그림자 경계에서는 같은 구조가 생긴다. 회절 경로의 AoA 가 수신 배열 이득과 곱해진다는 관측은 우리 다중 Rx 벤치마크에 시사점이 있다."
+   ]
+  },
+  {
+   "id": "zhang2025_unified_rcs_3gpp_djiM350_diffraction_column",
+   "rank_for_us": 17,
+   "why_ranked_ko": "우리 B류 절대 앵커 논문의 회절 칸을 확정한다. 결론: 회절을 계산하지 않는다.",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf",
+   "pages": 13,
+   "read_depth": "회절 관련 문장(p2, p5)·참고문헌 확인 목적의 표적 정독(전체는 이전 웨이브에서 deep_read).",
+   "citation": "Y. Zhang, J. Zhang, X. Hu 외, \"A Unified RCS Modeling of Typical Targets for 3GPP ISAC Channel Standardization and Experimental Analysis\", arXiv:2505.20673",
+   "venue": {
+    "value": "UNVERIFIED - PDF 첫 장에 게재처 없음. 같은 제목의 별도 파일(paper_sionna_Ray_0723/A_Unified_RCS_...pdf, 15쪽)이 아카이브에 또 있다.",
+    "why": "두 판본 존재. 인용 전 어느 판본인지 명시 필요."
+   },
+   "publication_status": {
+    "value": "UNVERIFIED (arXiv:2505.20673)"
+   },
+   "engine": {
+    "value": "통계·파라메트릭 RCS 모델 + 실측. 전자기 솔버 아님.",
+    "quote": "this paper proposes a unified RCS modeling framework that consolidates these two aspects. The model decomposes RCS into three components: (1) a large-scale power factor representing overall scattering strength, (2) a small-scale angular-dependent component describing directional scattering, and (3) a random component accounting for variations across target instances.",
+    "page": 1
+   },
+   "target_representation": {
+    "value": "실물 표적(UAV=DJI M350, 사람, 차량) 실측. 메시 없음."
+   },
+   "material_model": {
+    "value": "없음(경험 모델)."
+   },
+   "aspect_resolved_rcs": {
+    "value": "YES - 각도의존 소규모 성분이 모델의 두 번째 항.",
+    "quote": "a small-scale angular-dependent component describing directional scattering",
+    "page": 1
+   },
+   "rotor_or_micromotion": {
+    "value": "NO - 정적 모노스태틱 실측.",
+    "quote": "We validate the model through mono-static RCS measurements for UAV, human, and vehicle targets across five frequency bands.",
+    "page": 1
+   },
+   "diffraction_treatment": {
+    "value": "⭐ NONE. PTD·GTD 는 관련연구 서술과 참고문헌에만 등장하고, 모델은 PO 평판 해석해를 기반으로 한다.",
+    "quote": "High-frequency methods such as physical optics (PO) [20], geometric optics (GO) [21], and the physical theory of diffraction (PTD) [22] provide approximate solutions with reduced computational complexity but sacrifice accuracy and require corrections for specific scenarios.",
+    "page": 2,
+    "quote2": "The rectangular plate serves as the basis for high-frequency scattering analysis. Its simple geometry allows for an analytical RCS solution using the PO approximation while capturing key scattering behaviors.",
+    "page2": 5,
+    "useful_references_ko": "참고문헌 두 개가 우리에게 유용하다. [20] F. Weinmann, 'Ray tracing with PO/PTD for RCS modeling of large complex objects,' IEEE Trans. Antennas Propag. 54(6):1797-1806, Jun. 2006 - Kirik 2019 가 게이팅 규칙의 출처로 삼은 바로 그 논문. [22] P. Y. Ufimtsev, 'Improved physical theory of diffraction: Removal of the grazing singularity,' IEEE Trans. Antennas Propag. 54(10):2698-2702, Oct. 2006 - Öztürk 2002 가 지적한 스침입사 특이점을 Ufimtsev 본인이 없앤 후속 논문. ⚠ 두 편 다 우리 아카이브에 없다."
+   },
+   "what_it_bought_numerically": [
+    {
+     "claim": "회절 관련 정량 이득 없음(회절 미구현).",
+     "quote": "N/A",
+     "page": null
+    }
+   ],
+   "amplitude_validated_against": {
+    "value": "5개 주파수 대역 모노스태틱 실측(UAV·사람·차량).",
+    "quote": "We validate the model through mono-static RCS measurements for UAV, human, and vehicle targets across five frequency bands.",
+    "page": 1
+   },
+   "geometry_configuration": {
+    "value": "모노스태틱만."
+   },
+   "unambiguous_velocity_or_doppler_ambiguity": {
+    "value": "N/A"
+   },
+   "target_is_drone": true,
+   "sionna_related": false,
+   "breaks_our_claims": {
+    "H8": "무관",
+    "C1": "무관",
+    "C2": "무관",
+    "C3": "무관",
+    "C4": "무관"
+   },
+   "actionable_for_our_kernel_ko": [
+    "⭐ 획득 대상 2건이 여기서 나온다: Weinmann IEEE TAP 54(6) 2006(PO/PTD 광선추적 원전, Kirik 의 λ/10 게이팅 규칙 출처)과 Ufimtsev IEEE TAP 54(10) 2006(스침입사 특이점 제거). 둘 다 우리 아카이브에 없다.",
+    "3GPP 표준화 트랙의 RCS 모델이 회절을 아예 안 다룬다는 사실은, 우리가 PTD 를 넣으면 표준 모델보다 물리적으로 앞선다는 포지셔닝 근거가 된다."
+   ]
+  },
+  {
+   "id": "TRIAGE_false_positives_edge_terms",
+   "rank_for_us": null,
+   "record_type": "TRIAGE - 회절 논문이 아닌데 용어검색에 걸린 문서들",
+   "why_ranked_ko": "기록 오염을 막기 위한 배제 목록. 나중에 누가 term-count 만 보고 '회절 다루는 논문' 으로 세지 않도록.",
+   "entries": [
+    {
+     "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2112.09774__semkin_comparative-rcs-uav-classification.pdf",
+     "true_title": "Comparative Analysis of Radar Cross Section Based UAV Classification Techniques",
+     "true_authors": "Martins Ezuma, Chethan Kumar Anjinappa, Vasilii Semkin (VTT), Ismail Guvenc",
+     "why_false_positive_ko": "'edge effect' 가 전자기 엣지가 아니라 커널밀도추정의 경계편향을 가리킨다. 'MEC' 도 없음. 인용(p4): 'kernel density estimators have a weakness when estimating densities with bounded support due to boundary/edge effects [44]'. 회절 문서 아님.",
+     "still_useful_ko": "단, 드론 6대 15/25 GHz VV/HH 실측 데이터를 공유하는 Ezuma 계열 논문이라 RCS 앵커로는 유효하다. 파일명이 3저자(Semkin)를 앞세워 오해를 부른다."
+    },
+    {
+     "pdf_paths": [
+      "2605.16547 wang-world-model",
+      "2505.16132 wang-codebook-aware-ckm",
+      "2602.04652 barker-gpu-accel-5g"
+     ],
+     "why_false_positive_ko": "'MEC' 가 Mobile Edge Computing 의 약어. 등가전류(Method of Equivalent Currents)와 무관."
+    },
+    {
+     "pdf_paths": [
+      "2606.02102 schosser",
+      "2303.14637 wang-ntscc",
+      "2605.19397 huang-perception-aware"
+     ],
+     "why_false_positive_ko": "'Michaeli' 가 참고문헌의 저자명(딥러닝 계열)일 뿐, PTD 의 Michaeli 등가전류와 무관."
+    }
+   ],
+   "method_note_ko": "전체 227편에 대해 diffraction 계열 미포함 엣지 용어(edge current, fringe, creeping wave, equivalent current, ILDC, Ufimtsev, Mitzner, Michaeli, knife-edge, shadow boundary, half-plane 등)를 별도 전수 스캔했고, 걸린 19문서 중 7문서가 '76편 목록 밖'이었으며 그 7건 전부가 위와 같은 오탐이었다. 즉 회절 계열 문서 76편 목록에 누락은 없다."
+  }
+ ],
+ "corpus_scan": {
+  "method_ko": "deepread_backlog.json 의 227편 중 diffraction/UTD/PTD/wedge/GTD 중 하나라도 1회 이상 나오는 문서를 전수 추출(76편), 각 문서에서 해당 용어를 포함한 문장을 쪽번호와 함께 뽑아 총 737 문장을 만들고, 그중 '무시/제외/미포함' 어휘가 붙은 문장을 가진 문서 8편을 명시적 배제 후보로 분리. 별도로 diffraction 이라는 낱말을 쓰지 않는 엣지 계열 용어(edge current, fringe, creeping wave, equivalent current, ILDC, Ufimtsev, Mitzner, Michaeli, knife-edge, half-plane, shadow boundary 등) 전수 스캔을 227편에 돌려 76편 목록 밖의 7문서를 찾았고 전부 오탐이었다.",
+  "counts": {
+   "docs_with_any_diffraction_family_term": 76,
+   "total_diffraction_sentences_extracted": 737,
+   "docs_with_explicit_neglect_wording": 8,
+   "docs_opened_and_read_in_wave3": 18,
+   "docs_left_unread_term_count_only": 58,
+   "edge_family_scan_docs_hit": 19,
+   "edge_family_scan_new_docs_outside_the_76": 7,
+   "edge_family_new_docs_that_were_real": 0
+  },
+  "honesty_ko": "⚠ 58편은 열어 보지 않았다. 그 문서들의 회절 칸은 UNVERIFIED 이며, 아래 표의 term count 는 '회절을 다룬다' 는 증거가 아니라 '그 낱말이 몇 번 나온다' 는 사실일 뿐이다. 대부분은 '광선추적은 반사·회절·산란을 모델링한다' 류의 상투구로 보이지만, 그것조차 확인하지 않았다.",
+  "table": [
+   {
+    "basename": "sigma2019_kirik-ozdemir__ptd-into-sbr-predics.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/sigma2019_kirik-ozdemir__ptd-into-sbr-predics.pdf",
+    "pages": 14,
+    "diffraction_family_counts": {
+     "diffraction": 27,
+     "utd": 1,
+     "ptd": 62,
+     "wedge": 11,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 68,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": true,
+    "record_id": "kirik2019_ptd_sbr_predics",
+    "tier": "READ"
+   },
+   {
+    "basename": "2504.21719__sionna-rt-technical-report-v1.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "pages": 59,
+    "diffraction_family_counts": {
+     "diffraction": 143,
+     "utd": 3,
+     "ptd": 0,
+     "wedge": 31,
+     "gtd": 6
+    },
+    "n_diffraction_sentences": 121,
+    "has_explicit_neglect_sentence": true,
+    "read_in_wave3": true,
+    "record_id": "sionna_rt_technical_report_v1_2",
+    "tier": "READ"
+   },
+   {
+    "basename": "2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pages": 11,
+    "diffraction_family_counts": {
+     "diffraction": 147,
+     "utd": 18,
+     "ptd": 4,
+     "wedge": 5,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 105,
+    "has_explicit_neglect_sentence": true,
+    "read_in_wave3": true,
+    "record_id": "ziganshin2026_curved_bodies_preprint",
+    "tier": "READ"
+   },
+   {
+    "basename": "Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications .pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications .pdf",
+    "pages": 11,
+    "diffraction_family_counts": {
+     "diffraction": 147,
+     "utd": 18,
+     "ptd": 4,
+     "wedge": 5,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 105,
+    "has_explicit_neglect_sentence": true,
+    "read_in_wave3": true,
+    "record_id": "ziganshin2026_curved_bodies_preprint (중복파일)",
+    "tier": "READ"
+   },
+   {
+    "basename": "bilkent_thesis__ptd-implementation-rcs.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/bilkent_thesis__ptd-implementation-rcs.pdf",
+    "pages": 72,
+    "diffraction_family_counts": {
+     "diffraction": 2,
+     "utd": 3,
+     "ptd": 22,
+     "wedge": 7,
+     "gtd": 14
+    },
+    "n_diffraction_sentences": 44,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": true,
+    "record_id": "ozturk2002_bilkent_ptd_eec",
+    "tier": "READ"
+   },
+   {
+    "basename": "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "pages": 5,
+    "diffraction_family_counts": {
+     "diffraction": 44,
+     "utd": 22,
+     "ptd": 0,
+     "wedge": 16,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 49,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": true,
+    "record_id": "ziganshin2025_eucap_multistatic_published",
+    "tier": "READ"
+   },
+   {
+    "basename": "2604.09243__sagitta-sbr.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf",
+    "pages": 14,
+    "diffraction_family_counts": {
+     "diffraction": 14,
+     "utd": 4,
+     "ptd": 6,
+     "wedge": 1,
+     "gtd": 7
+    },
+    "n_diffraction_sentences": 13,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": true,
+    "record_id": "pasquale2026_sagitta_sbr",
+    "tier": "READ"
+   },
+   {
+    "basename": "2311.18558__hoydis_learning-radio-env.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2311.18558__hoydis_learning-radio-env.pdf",
+    "pages": 11,
+    "diffraction_family_counts": {
+     "diffraction": 18,
+     "utd": 1,
+     "ptd": 0,
+     "wedge": 3,
+     "gtd": 3
+    },
+    "n_diffraction_sentences": 15,
+    "has_explicit_neglect_sentence": true,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "Learning_Radio_Environments_by_Differentiable_Ray_.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Learning_Radio_Environments_by_Differentiable_Ray_.pdf",
+    "pages": 12,
+    "diffraction_family_counts": {
+     "diffraction": 18,
+     "utd": 1,
+     "ptd": 0,
+     "wedge": 3,
+     "gtd": 3
+    },
+    "n_diffraction_sentences": 15,
+    "has_explicit_neglect_sentence": true,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf",
+    "pages": 13,
+    "diffraction_family_counts": {
+     "diffraction": 3,
+     "utd": 0,
+     "ptd": 4,
+     "wedge": 0,
+     "gtd": 2
+    },
+    "n_diffraction_sentences": 4,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": true,
+    "record_id": "zhang2025_unified_rcs_3gpp_djiM350_diffraction_column",
+    "tier": "READ"
+   },
+   {
+    "basename": "A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+    "pages": 15,
+    "diffraction_family_counts": {
+     "diffraction": 3,
+     "utd": 0,
+     "ptd": 3,
+     "wedge": 0,
+     "gtd": 2
+    },
+    "n_diffraction_sentences": 4,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2508.04004__ropitault-sitespecific-cellular-ns3.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2508.04004__ropitault-sitespecific-cellular-ns3.pdf",
+    "pages": 6,
+    "diffraction_family_counts": {
+     "diffraction": 15,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 15,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": true,
+    "record_id": "ropitault2025_sitespecific_diffraction_dominated",
+    "tier": "READ"
+   },
+   {
+    "basename": "2506.00480__target-environment-coupling-3gpp-isac.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2506.00480__target-environment-coupling-3gpp-isac.pdf",
+    "pages": 12,
+    "diffraction_family_counts": {
+     "diffraction": 12,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 12,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": true,
+    "record_id": "liu2025_target_environment_coupling_ked",
+    "tier": "READ"
+   },
+   {
+    "basename": "2508.14507__deeptelecom-digital-twin-dataset.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2508.14507__deeptelecom-digital-twin-dataset.pdf",
+    "pages": 6,
+    "diffraction_family_counts": {
+     "diffraction": 6,
+     "utd": 1,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 6,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2511.05522__airmap-ai-radio-maps-dt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2511.05522__airmap-ai-radio-maps-dt.pdf",
+    "pages": 15,
+    "diffraction_family_counts": {
+     "diffraction": 9,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 9,
+    "has_explicit_neglect_sentence": true,
+    "read_in_wave3": true,
+    "record_id": "airmap2025_diffraction_on_off",
+    "tier": "READ"
+   },
+   {
+    "basename": "2504.09849__ckmimagenet-channel-knowledge-map.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2504.09849__ckmimagenet-channel-knowledge-map.pdf",
+    "pages": 13,
+    "diffraction_family_counts": {
+     "diffraction": 9,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 8,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2501.06945__tadik-opengert-geometry-extraction.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2501.06945__tadik-opengert-geometry-extraction.pdf",
+    "pages": 9,
+    "diffraction_family_counts": {
+     "diffraction": 8,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 7,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2102.11954__ezuma_uav-rcs-statistical-recognition.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2102.11954__ezuma_uav-rcs-statistical-recognition.pdf",
+    "pages": 39,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 2,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 3,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": true,
+    "record_id": "ezuma2022_uav_rcs_statistical_recognition",
+    "tier": "READ"
+   },
+   {
+    "basename": "2503.12177__open-wireless-dt-oai-sionna-rt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2503.12177__open-wireless-dt-oai-sionna-rt.pdf",
+    "pages": 14,
+    "diffraction_family_counts": {
+     "diffraction": 7,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 4,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2312.03950__lee-scalable-pathloss-map-prediction.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2312.03950__lee-scalable-pathloss-map-prediction.pdf",
+    "pages": 13,
+    "diffraction_family_counts": {
+     "diffraction": 4,
+     "utd": 1,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 3,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2510.10190__beyraghi-datadriven-ris-deployment.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2510.10190__beyraghi-datadriven-ris-deployment.pdf",
+    "pages": 14,
+    "diffraction_family_counts": {
+     "diffraction": 7,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 7,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "Sionna RT 드론 ISAC 연구.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Sionna RT 드론 ISAC 연구.pdf",
+    "pages": 10,
+    "diffraction_family_counts": {
+     "diffraction": 4,
+     "utd": 1,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 4,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2303.11103__sionna-rt-founding.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__sionna-rt-founding.pdf",
+    "pages": 5,
+    "diffraction_family_counts": {
+     "diffraction": 6,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 6,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2412.20524__ns3-meets-sionna.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2412.20524__ns3-meets-sionna.pdf",
+    "pages": 9,
+    "diffraction_family_counts": {
+     "diffraction": 6,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 6,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2603.16126__luo-wireless-dt-calibration-dft.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2603.16126__luo-wireless-dt-calibration-dft.pdf",
+    "pages": 6,
+    "diffraction_family_counts": {
+     "diffraction": 6,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 5,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "1911.05926__ezuma_compact-range-rcs-small-drones-15-25ghz.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/1911.05926__ezuma_compact-range-rcs-small-drones-15-25ghz.pdf",
+    "pages": 4,
+    "diffraction_family_counts": {
+     "diffraction": 2,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 1,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 3,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": true,
+    "record_id": "ezuma2019_compact_range_drone_rcs_15_25ghz",
+    "tier": "READ"
+   },
+   {
+    "basename": "2605.21897__makvandi-adaptwin-multifidelity-dt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2605.21897__makvandi-adaptwin-multifidelity-dt.pdf",
+    "pages": 13,
+    "diffraction_family_counts": {
+     "diffraction": 5,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 5,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2507.19173__cazzella-hifi-rf-mapping-6g-dt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2507.19173__cazzella-hifi-rf-mapping-6g-dt.pdf",
+    "pages": 31,
+    "diffraction_family_counts": {
+     "diffraction": 4,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 4,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2312.11245__wisegrt-indoor-propagation-dataset.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2312.11245__wisegrt-indoor-propagation-dataset.pdf",
+    "pages": 5,
+    "diffraction_family_counts": {
+     "diffraction": 4,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 4,
+    "has_explicit_neglect_sentence": true,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2312.14303__geo2sigmap-rf-signal-mapping.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2312.14303__geo2sigmap-rf-signal-mapping.pdf",
+    "pages": 9,
+    "diffraction_family_counts": {
+     "diffraction": 4,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 3,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2601.20795__iudice-stacked-intelligent-metasurfaces-sdr.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2601.20795__iudice-stacked-intelligent-metasurfaces-sdr.pdf",
+    "pages": 8,
+    "diffraction_family_counts": {
+     "diffraction": 4,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 4,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2512.03506__survey-3gpp-rel19-isac-channel-modeling.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2512.03506__survey-3gpp-rel19-isac-channel-modeling.pdf",
+    "pages": 28,
+    "diffraction_family_counts": {
+     "diffraction": 3,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 3,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+    "pages": 17,
+    "diffraction_family_counts": {
+     "diffraction": 0,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 1
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2511.07586__monte-carlo-sbr-farfield-scattering.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2511.07586__monte-carlo-sbr-farfield-scattering.pdf",
+    "pages": 14,
+    "diffraction_family_counts": {
+     "diffraction": 3,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 6,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": true,
+    "record_id": "audia2025_montecarlo_sbr_meca",
+    "tier": "READ"
+   },
+   {
+    "basename": "2605.31267__effective-roughness-diffuse-scattering-polarimetric.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2605.31267__effective-roughness-diffuse-scattering-polarimetric.pdf",
+    "pages": 14,
+    "diffraction_family_counts": {
+     "diffraction": 3,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 3,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2409.17738__shabanpour-physically-consistent-ris.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2409.17738__shabanpour-physically-consistent-ris.pdf",
+    "pages": 6,
+    "diffraction_family_counts": {
+     "diffraction": 3,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 3,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2501.00372__pegurri-sionna-rt-ns3-digital-twin.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2501.00372__pegurri-sionna-rt-ns3-digital-twin.pdf",
+    "pages": 6,
+    "diffraction_family_counts": {
+     "diffraction": 3,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 3,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2505.14184__pegurri-van3twin-v2x-digital-twin.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2505.14184__pegurri-van3twin-v2x-digital-twin.pdf",
+    "pages": 16,
+    "diffraction_family_counts": {
+     "diffraction": 3,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 2,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2510.09478__beyraghi-site-specific-ris-deployment.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2510.09478__beyraghi-site-specific-ris-deployment.pdf",
+    "pages": 6,
+    "diffraction_family_counts": {
+     "diffraction": 3,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 3,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+    "pages": 36,
+    "diffraction_family_counts": {
+     "diffraction": 2,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2502.10324__lee-coverage-channelrank-prediction.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2502.10324__lee-coverage-channelrank-prediction.pdf",
+    "pages": 19,
+    "diffraction_family_counts": {
+     "diffraction": 2,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 2,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2504.05168__costa_microdoppler-multiprop-drones_JSTEAP-journal.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.05168__costa_microdoppler-multiprop-drones_JSTEAP-journal.pdf",
+    "pages": 14,
+    "diffraction_family_counts": {
+     "diffraction": 2,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 3,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": true,
+    "record_id": "costa2025_drone_microdoppler_diffraction_neglect",
+    "tier": "READ"
+   },
+   {
+    "basename": "Modeling_Micro-Doppler_Signature_of_Multi-Propeller_Drones_in_Distributed_ISAC.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modeling_Micro-Doppler_Signature_of_Multi-Propeller_Drones_in_Distributed_ISAC.pdf",
+    "pages": 15,
+    "diffraction_family_counts": {
+     "diffraction": 2,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 2,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2511.03487__multi-reference-point-monostatic-background-channel.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2511.03487__multi-reference-point-monostatic-background-channel.pdf",
+    "pages": 13,
+    "diffraction_family_counts": {
+     "diffraction": 2,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 2,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2603.00795__sari-titan-twin-topology-lawn.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2603.00795__sari-titan-twin-topology-lawn.pdf",
+    "pages": 12,
+    "diffraction_family_counts": {
+     "diffraction": 2,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 2,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2403.12289__bostontwin.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2403.12289__bostontwin.pdf",
+    "pages": 7,
+    "diffraction_family_counts": {
+     "diffraction": 2,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 2,
+    "has_explicit_neglect_sentence": true,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2507.08611__beyraghi-reconfig-intelligent-base-stations.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2507.08611__beyraghi-reconfig-intelligent-base-stations.pdf",
+    "pages": 5,
+    "diffraction_family_counts": {
+     "diffraction": 2,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2512.12449__morais-stochastic-vs-raytracing-datasets.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2512.12449__morais-stochastic-vs-raytracing-datasets.pdf",
+    "pages": 8,
+    "diffraction_family_counts": {
+     "diffraction": 2,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 2,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2601.03216__zhang-onetwin-online-digital-network-twin.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2601.03216__zhang-onetwin-online-digital-network-twin.pdf",
+    "pages": 10,
+    "diffraction_family_counts": {
+     "diffraction": 2,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 2,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2606.01261__yao-rfdt-channel-rgb-lidar-28ghz.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2606.01261__yao-rfdt-channel-rgb-lidar-28ghz.pdf",
+    "pages": 9,
+    "diffraction_family_counts": {
+     "diffraction": 2,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 2,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2606.04770__qiao-wiser-wireless-scene-encoder.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2606.04770__qiao-wiser-wireless-scene-encoder.pdf",
+    "pages": 13,
+    "diffraction_family_counts": {
+     "diffraction": 2,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 2,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2401.14287__costa_microdoppler-drone-propellers_RadarConf24-conf.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2401.14287__costa_microdoppler-drone-propellers_RadarConf24-conf.pdf",
+    "pages": 6,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "Modelling_Micro-Doppler_Signature_of_Drone_Propellers_in_Distributed_ISAC.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Modelling_Micro-Doppler_Signature_of_Drone_Propellers_in_Distributed_ISAC.pdf",
+    "pages": 6,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "diva_1595877__evaluation-cst-studio-rcs-simulation.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/diva_1595877__evaluation-cst-studio-rcs-simulation.pdf",
+    "pages": 23,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 4,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": true,
+    "record_id": "lindgren2021_umea_cst_vs_optiscat",
+    "tier": "READ"
+   },
+   {
+    "basename": "notaros_TAP__advancing-accuracy-sbr.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/notaros_TAP__advancing-accuracy-sbr.pdf",
+    "pages": 8,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": true,
+    "record_id": "kasdorf_notaros_sbr_accuracy_tap",
+    "tier": "READ"
+   },
+   {
+    "basename": "2401.03310__caviar-digital-twin.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+    "pages": 14,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 2,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2411.03206__statistical-rcs-indoor-factory.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2411.03206__statistical-rcs-indoor-factory.pdf",
+    "pages": 16,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2502.11540__rcs-characterization-isac-channel-modeling.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2502.11540__rcs-characterization-isac-channel-modeling.pdf",
+    "pages": 13,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2407.07023v2.pdf",
+    "pdf_path": "/data/public/sionna_jeong/reference_library/2407.07023v2.pdf",
+    "pages": 15,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2504.00825__benzaghta-datadriven-opt-transfer-cellular.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/beamforming_precoding/2504.00825__benzaghta-datadriven-opt-transfer-cellular.pdf",
+    "pages": 6,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2505.21249__benzaghta-cellular-mobility-bayesian-opt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2505.21249__benzaghta-cellular-mobility-bayesian-opt.pdf",
+    "pages": 15,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2511.07789__zhu-invehicular-channel-dt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2511.07789__zhu-invehicular-channel-dt.pdf",
+    "pages": 13,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2604.19599__pan-active-inference-agentic-isac.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/isac_sensing_radar/2604.19599__pan-active-inference-agentic-isac.pdf",
+    "pages": 5,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2605.13309__simart.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2605.13309__simart.pdf",
+    "pages": 7,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2411.12284__amatare-dt-radar-robot-navigation.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2411.12284__amatare-dt-radar-robot-navigation.pdf",
+    "pages": 15,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2504.05035__chege-position-aided-beam-selection.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/beamforming_precoding/2504.05035__chege-position-aided-beam-selection.pdf",
+    "pages": 5,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2509.01197__xu-fingerprint-positioning-imperfections.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/positioning_localization/2509.01197__xu-fingerprint-positioning-imperfections.pdf",
+    "pages": 7,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2509.21118__wang-neural-isac-mimo-ofdm.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/isac_sensing_radar/2509.21118__wang-neural-isac-mimo-ofdm.pdf",
+    "pages": 18,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2512.04966__liang-env-aware-channel-inference-crossmodal.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2512.04966__liang-env-aware-channel-inference-crossmodal.pdf",
+    "pages": 13,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2604.12888__stenhammar-network-dt-framework.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2604.12888__stenhammar-network-dt-framework.pdf",
+    "pages": 7,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2605.08772__zhou-fidelity-site-specific-dt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2605.08772__zhou-fidelity-site-specific-dt.pdf",
+    "pages": 13,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2605.29772__ariadne-airan-link-adaptation-dt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2605.29772__ariadne-airan-link-adaptation-dt.pdf",
+    "pages": 6,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2606.20098__beyraghi-sitespecific-mimo-diffusion-flow.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2606.20098__beyraghi-sitespecific-mimo-diffusion-flow.pdf",
+    "pages": 12,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2607.08141__ali-genai-dt-interference-mgmt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2607.08141__ali-genai-dt-interference-mgmt.pdf",
+    "pages": 6,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "2607.09334__delmoro-site-geometry-calibration-dt-ce.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2607.09334__delmoro-site-geometry-calibration-dt-ce.pdf",
+    "pages": 16,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": false,
+    "record_id": null,
+    "tier": "UNREAD - 용어 카운트만. 회절 칸 UNVERIFIED."
+   },
+   {
+    "basename": "gbppr__rcs-calculations-physical-optics-codes.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/gbppr__rcs-calculations-physical-optics-codes.pdf",
+    "pages": 11,
+    "diffraction_family_counts": {
+     "diffraction": 1,
+     "utd": 0,
+     "ptd": 0,
+     "wedge": 0,
+     "gtd": 0
+    },
+    "n_diffraction_sentences": 1,
+    "has_explicit_neglect_sentence": false,
+    "read_in_wave3": true,
+    "record_id": "pofacets_manual_po_omissions",
+    "tier": "READ"
+   }
+  ]
+ },
+ "status": "wave3_complete",
+ "acquisition_targets_ko": [
+  {
+   "rank": 1,
+   "cite": "P. Pouliguen, L. Lucas, F. Muller, S. Quete, C. Terret, \"Calculation and analysis of electromagnetic scattering by helicopter rotating blades\", IEEE Transactions on Antennas and Propagation, vol. 50, no. 10, 2002, doi: 10.1109/TAP.2002.800693 (게재)",
+   "why_ko": "⭐⭐ 회절(등가전류 MEC) × 회전 블레이드 × 바이스태틱이 한 논문에서 만나는 유일한 선행연구. 우리 아카이브에 없음.",
+   "source_of_citation": "Costa 외 JSTEAP 2025 참고문헌 [12] (PDF p13 축자)"
+  },
+  {
+   "rank": 2,
+   "cite": "F. Weinmann, \"Ray tracing with PO/PTD for RCS modeling of large complex objects\", IEEE Trans. Antennas Propag., vol. 54, no. 6, pp. 1797-1806, Jun. 2006 (게재)",
+   "why_ko": "Kirik 2019 가 광선-엣지 게이팅 규칙(d_max=λ/10)의 출처로 인용한 원전. PO/PTD 를 광선추적에 넣는 표준 참조.",
+   "source_of_citation": "Kirik & Özdemir 2019 참고문헌 [11] / Zhang 2025 참고문헌 [20]"
+  },
+  {
+   "rank": 3,
+   "cite": "P. Y. Ufimtsev, \"Improved physical theory of diffraction: Removal of the grazing singularity\", IEEE Trans. Antennas Propag., vol. 54, no. 10, pp. 2698-2702, Oct. 2006 (게재)",
+   "why_ko": "Öztürk 2002 가 남긴 스침입사(φ'=π) 특이점을 Ufimtsev 본인이 제거한 후속. 우리가 PTD-EEC 를 구현하면 바로 부딪칠 문제.",
+   "source_of_citation": "Zhang 2025 참고문헌 [22]"
+  },
+  {
+   "rank": 4,
+   "cite": "O. Breinbjerg, \"Higher order equivalent edge currents for fringe wave radar scattering by perfectly conducting polygonal plates\", IEEE Trans. Antennas Propag. (게재)",
+   "why_ko": "Öztürk 2002 가 1차 EEC 로 못 잡은 2차(엣지-엣지) 회절의 고차 EEC 정식화. 다각 평판 대상이라 프로펠러 블레이드에 직결.",
+   "source_of_citation": "Sagitta SBR 참고문헌 [18] (p13)"
+  },
+  {
+   "rank": 5,
+   "cite": "M. Albani, F. Capolino, G. Carluccio, S. Maci, \"UTD vertex diffraction coefficient for the scattering by perfectly conducting faceted structures\", IEEE Trans. Antennas Propag. 57(12):3911-3925, 2009 (게재)",
+   "why_ko": "Ziganshin 두 판본이 공통으로 구현한 정점회절의 원전. UTD 노선을 택할 경우 필수.",
+   "source_of_citation": "Ziganshin EuCAP 2025 [8] / arXiv:2604.05991 [22]"
+  },
+  {
+   "rank": 6,
+   "cite": "T. B. Hansen, \"Corner Diffraction Coefficients for the quarter plate\", IEEE Trans. Antennas Propag. 39(7):976-984, July 1991 (게재)",
+   "why_ko": "PTD 계열에서 코너 회절을 다루는 유일한 경험식. Öztürk 2002 가 미구현으로 남긴 항목.",
+   "source_of_citation": "Öztürk 2002 참고문헌 [3] (p71)"
+  },
+  {
+   "rank": 7,
+   "cite": "github.com/AinurZiga/sionna-RT-reflectivity (Sionna-RT v0.19 + UTD 엣지·정점·이중·EV/VE 회절 확장 구현) / github.com/marco-pas/SagittaSBR (GPU SBR+PO)",
+   "why_ko": "논문이 아니라 코드. 회절 참조구현과 SBR 교차검증 대상. ⚠ 접속·라이선스·동작 미확인.",
+   "source_of_citation": "각 논문 참고문헌 [29] / 표지 Software 항"
+  }
+ ],
+ "headline_ko": [
+  "우리 회절 칸에 실제로 쓸 수 있는 구현 레시피는 두 갈래뿐이다: PTD-EEC(Öztürk 2002 학위논문 식 + Kirik 2019 SBR 삽입 절차)와 UTD+정점회절(Ziganshin, Sionna-RT v0.19 위 구현, 코드 공개).",
+  "⭐ 우리 메시 규모에서는 UTD 노선이 막힌다. Ziganshin 저널 프리프린트가 UTD 가정을 만족하려면 패싯 변길이 E > 1.5λ 를 요구하고(p4), Öztürk 는 PO 적분 정확도를 위해 삼각형 면적 < 0.005λ² 를 요구한다(p3, p70). 두 요구가 정반대이므로, λ 이하 부재가 지배하는 드론에는 PTD-EEC 가 맞다.",
+  "⚠ 나 자신의 추론을 이 웨이브 안에서 정정했다. Kirik 그림 8(b)를 근거로 'PTD 가 대역기울기를 완만하게 만든다' 고 적었으나, Ezuma 는 드론 실측에서 고주파일수록 엣지 회절 효과가 커져 RCS 가 오른다고 해석한다. 부호는 미정이며 UNVERIFIED 로 되돌렸다."
+ ]
+}

@@ -1,0 +1,613 @@
+{
+ "_meta": {
+  "generated": "2026-08-03 04:16:59",
+  "generator": "benchmark/engine_validation_verdict.py",
+  "purpose": "엔진 검증 판정 + 리포트 순서 제안 + 재질 3층 + 비용",
+  "inputs": [
+   "outputs/validation_feasibility.json",
+   "outputs/material_sources.json",
+   "outputs/validate_measured_airframe.json"
+  ],
+  "gpu_used": "없음 — 이 단계는 선행 JSON 만 읽는다",
+  "house_rule": "이 파일 안에 손으로 적힌 수치 0 개"
+ },
+ "1_verdict": {
+  "one_line": "⚠ THE VALIDATION FAILS, AND IT FAILS IN A VERY SPECIFIC PLACE: our kernel is too LOW at the bottom of FR1 and the deficit closes as the frequency rises. Above ~6 GHz our band dependence agrees with the measurement; below it, it does not — and 1.8-6 GHz is the band this project actually works in.",
+  "sentence_the_project_can_use": "우리 σ 의 절대값은 5.21 GHz 에서 발표된 측정 봉투 안에 있고, 3.5 GHz 에서 1.20 dB, 1.843 GHz 에서 4.43 dB 낮다. 기체 1종 · 측정 체인 1개에 대한 대조이고, 커널의 절대 스케일 자체는 같은 측정의 교정구에서 0.851 dB 안에 든다.",
+  "status": "FAILED — 그리고 실패한 자리가 특정된다",
+  "table": [
+   {
+    "quantity": "교정 표적의 절대 σ (PEC 구 r = 17.8 cm, Yuan 자신의 교정 표준)",
+    "reproduced": "예",
+    "accuracy": "정확 Mie 대비 0.375~0.851 dB, ka = 6.88~19.44",
+    "src": "validate_measured_airframe.json : 2_calibration_sphere"
+   },
+   {
+    "quantity": "해석 PO 구 (커널 자체 수렴)",
+    "reproduced": "예",
+    "accuracy": "kr 1~100 · 입사 48방향에서 최대 0.2006 dB",
+    "src": "sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po"
+   },
+   {
+    "quantity": "측정 기체의 밴드 기울기 dμ/df, 6 GHz 위",
+    "reproduced": "예",
+    "accuracy": "우리 0.264 dB/GHz vs 측정 0.175~0.315 — 측정 구간 **안**",
+    "src": "validate_measured_airframe.json : 8_comparison._headline"
+   },
+   {
+    "quantity": "방위 산포 ε (Das Table III 와 같은 양)",
+    "reproduced": "부분",
+    "accuracy": "밴드별 차 -1.30~+1.16 dB. 측정은 세 밴드에서 5.22~5.32 dB 로 거의 평평하고 우리는 밴드마다 움직인다",
+    "src": "validate_measured_airframe.json : 8_comparison.C_azimuth_pattern_shape"
+   },
+   {
+    "quantity": "절대 σ 레벨, 5.21 GHz",
+    "reproduced": "예",
+    "accuracy": "-16.86 dBsm — 발표된 봉투 [-18.10, -14.51] **안**",
+    "src": "validate_measured_airframe.json : 8_comparison.A_absolute_level"
+   },
+   {
+    "quantity": "절대 σ 레벨, 3.5 GHz",
+    "reproduced": "아니오",
+    "accuracy": "-19.65 dBsm — 봉투 최근접변 대비 -1.20 dB, 기하정합 행 대비 -4.60 dB",
+    "src": "validate_measured_airframe.json : 8_comparison.A_absolute_level"
+   },
+   {
+    "quantity": "절대 σ 레벨, 1.843 GHz",
+    "reproduced": "아니오",
+    "accuracy": "-23.23 dBsm — 봉투 최근접변 대비 -4.43 dB, 기하정합 행 대비 -7.66 dB",
+    "src": "validate_measured_airframe.json : 8_comparison.A_absolute_level"
+   },
+   {
+    "quantity": "측정 기체의 밴드 기울기 dμ/df, 1.8~6 GHz (우리 운용 대역)",
+    "reproduced": "아니오",
+    "accuracy": "우리 1.540 dB/GHz vs 측정 0.210(Das) / 0.315(Yuan)",
+    "src": "validate_measured_airframe.json : 8_comparison.B_band_slope"
+   },
+   {
+    "quantity": "바이스태틱 각 의존성",
+    "reproduced": "대조 불가",
+    "accuracy": "Das 의 Phantom 3 행은 0~90° 전 구간 기울기·ε 가 동일하고 절편만 0.63 dB 움직인다 — 우리 div=12 격자 산포보다 작다",
+    "src": "validate_measured_airframe.json : 8_comparison.D_bistatic"
+   },
+   {
+    "quantity": "편파",
+    "reproduced": "대조 불가",
+    "accuracy": "측정은 VV 단독, 커널은 스칼라(편파 자유도 없음)",
+    "src": "validation_feasibility.json : 3_convention_audit.3c_polarisation"
+   }
+  ],
+  "where_it_fails": {
+   "band": "1.8~6 GHz",
+   "why_that_matters": "우리 세 밴드가 전부 그 안에 있다",
+   "above_6ghz": {
+    "ours_db_per_ghz": 0.26418698346256914,
+    "measured_range": [
+     0.175,
+     0.315
+    ],
+    "verdict": "측정 구간 안"
+   }
+  },
+  "correction_to_the_feasibility_phase": "The feasibility phase expected 'a 6.4x-9.5x steeper slope'. That ratio compared our 1.843-5.21 GHz slope with their 1.8-18.2 GHz slope. Fitted over the SAME interval the ratio is 2.1x against Das and 1.4x against Yuan, and above 6 GHz our slope is 0.264 dB/GHz against their 0.21-0.315 — i.e. INSIDE their range. The steepness is a low-frequency artefact, not a global band law.",
+  "mechanism": {
+   "claim": "낮은 ka 에서 PO 가 지는 것이지 밴드 법칙이 틀린 것이 아니다",
+   "in_house_control": {
+    "LTE 1.843 GHz": -0.8511794043608774,
+    "5G 3.5 GHz": -0.37484212539172646,
+    "WiFi 5.21 GHz": -0.4198079012506746
+   },
+   "control_ka": {
+    "LTE 1.843 GHz": 6.87550342831337,
+    "5G 3.5 GHz": 13.057114486758977,
+    "WiFi 5.21 GHz": 19.436447564575502
+   },
+   "airframe_gap": {
+    "LTE 1.843 GHz": -4.431483343844803,
+    "5G 3.5 GHz": -1.197338623223125,
+    "WiFi 5.21 GHz": 0.0
+   },
+   "reading": "교정구에서도 같은 부호·같은 모양의 결손이 나오고 크기만 약 5배 작다. 전기적으로 커질수록 오차가 줄어드는 것이 광학영역 아래에서 PO 가 지는 신호다"
+  },
+  "slope_budget_narrowband": {
+   "_interval": "1.843-5.21 GHz — the interval in which every term below was measured",
+   "gap_to_close_db_per_ghz": {
+    "vs_das": 1.6812054170704709,
+    "vs_yuan_azplane": 1.576205417070471
+   },
+   "directional_terms_db_per_ghz": {
+    "geometry idealisation (real 0.4 mm scan minus our parametric, both PEC)": -0.5189700625122299,
+    "azimuth-sector convention (front hemisphere instead of full 360)": -0.5138508861222046
+   },
+   "directional_total_db_per_ghz": -1.0328209486344346,
+   "unexplained_residual_db_per_ghz": {
+    "vs_das": 0.6483844684360363,
+    "vs_yuan_azplane": 0.5433844684360363,
+    "fraction_of_gap_vs_das": 0.3856664164013088
+   },
+   "two_sided_uncertainty_db_per_ghz": {
+    "material table bracket (V1/V2/V3)": 0.43012840567330324,
+    "ray-grid dither at div=16 (level effect, quoted for scale)": 1.7821516012275314
+   },
+   "how": "residual = (ours - measured) + (real geometry - our geometry) + (front-sector convention - full-circle convention). Both correction terms are MEASURED here, not assumed. What is left over is what no geometry fix and no convention alignment can reach — and the only mechanism remaining on the list is the absent edge-diffraction (PTD) term.",
+   "honesty": "⚠ The sector term is a CONVENTION alignment, not a model defect: it only applies if Yuan's -90:2:90 really is a front-hemisphere mean. The papers do not say. Quote the budget with and without it."
+  },
+  "error_bars": {
+   "calibration_scale (kernel vs exact Mie on Yuan's own standard)": {
+    "magnitude_db": 0.8511794043608774,
+    "signed": true,
+    "by_band": {
+     "LTE 1.843 GHz": -0.8511794043608774,
+     "5G 3.5 GHz": -0.37484212539172646,
+     "WiFi 5.21 GHz": -0.4198079012506746
+    },
+    "reading": "|dev| <= 0.85 dB and essentially frequency-flat, so neither the kernel's absolute scale nor a frequency bias of the kernel is the problem. Tightest bar in the exercise."
+   },
+   "mesh geometry fidelity (real 0.4 mm scan vs our parametric, both PEC)": {
+    "magnitude_db": 1.958590692297527,
+    "by_band": {
+     "LTE 1.843 GHz": 1.156084736404349,
+     "5G 3.5 GHz": 1.958590692297527,
+     "WiFi 5.21 GHz": -0.5739328677532285
+    },
+    "slope_effect_db_per_ghz": -0.5189700625122299,
+    "reading": "Measured on the SAME airframe family with materials removed, so it isolates geometry. If its slope effect is small, geometry idealisation is NOT what makes our band dependence steep."
+   },
+   "material table (defensible bracket V1/V2/V3)": {
+    "magnitude_db": 1.1356512535902628,
+    "slope_effect_db_per_ghz": 0.43012840567330324,
+    "reading": "every gamma_po is frequency-flat, so materials move the level, not the slope"
+   },
+   "ray-grid dither at div=16": {
+    "magnitude_db": 1.7821516012275314,
+    "signed": false,
+    "all_divs": {
+     "div8": 5.284270838913799,
+     "div12": 1.3734745431514732,
+     "div16": 1.7821516012275314,
+     "div24": 0.3422091164711472
+    },
+    "source": "outputs/report2_waveform_rcs.json sbr_validation.dither (single-grid p-p)",
+    "reading": "jitter=2 averages 2x2 sub-cell offsets, so the residual is smaller than this, but the repository has never re-measured the post-jitter residual — quoting the single-grid bound is the honest upper limit."
+   },
+   "polarisation (our scalar kernel vs their VV)": {
+    "magnitude_db": null,
+    "signed": "ours should read HIGH vs a VV measurement",
+    "reading": "Our |Gamma| is a scalar with no co/cross split, so we keep power a VV receiver would reject. ⭐ The sign matters: it CANNOT explain a reading that is too LOW, which is what we get at 1.843 GHz."
+   },
+   "the measurement's own spread eps": {
+    "magnitude_db": 5.265000000000001,
+    "reading": "Das Table III Phantom 3: eps(f) = 0.03f + 5.16 dB, i.e. the azimuth samples themselves scatter by >5 dB about mu. mu is a mean of a very broad distribution, not a tight number."
+   },
+   "literature envelope (measurement side alone)": {
+    "magnitude_db": 3.5870500000000014,
+    "reading": "two processings of ONE dataset differ by this much before we are mentioned"
+   },
+   "shape control (our P4 vs our P3, same materials/kernel)": {
+    "magnitude_db": 0.5859446559995476,
+    "by_band": {
+     "LTE 1.843 GHz": -0.5859446559995476,
+     "5G 3.5 GHz": -0.10798898797490253,
+     "WiFi 5.21 GHz": -0.20226666769501378
+    },
+    "reading": "⚠ small BY CONSTRUCTION — the P3 mesh inherits the P4 shell law. This bounds only the deltas we actually applied (height, sensor suite), NOT the shell shape uncertainty."
+   }
+  },
+  "cannot_establish": [
+   "that our absolute sigma is correct — one airframe, one measurement chain, two processings of the same raw data that disagree by ~2.3 dB",
+   "that our sigma is correct for our five production airframes — Phantom 3 is a 350 mm fixed-arm quad with a one-piece shell; Mini 5 Pro / Matrice 4E / S1000+ are different scattering topologies and the size-transfer exponent is unresolved",
+   "anything about polarisation, bistatic geometry, or spinning propellers",
+   "that our Phantom 3 SHELL is right — no P3 photograph exists here; the shell law is transferred from the P4 photo-audit"
+  ]
+ },
+ "2_report_order": {
+  "user_question": "어떤 RCS 검증 기체가 있는 기체를 우리 방식대로 mesh 를 만들어서 면밀하게 비교하는 작업을 앞쪽 레포트에 작성해서 레포트 순서를 변경하는 것은 어떻게 생각하니?",
+  "answer": "찬성한다. 다만 앞으로 옮기는 것은 한 편이 아니라 **한 편 + 그 앞의 교정구 절**이고, 앵커는 반대로 뒤로 민다.",
+  "argument": "검증은 신뢰성 게이트다. 엔진이 측정된 기체를 재현하면 그 뒤의 모든 편이 그 위에 설 수 있고, 재현하지 못하면 그 사실이 더 짓기 전에 알려져야 한다. 검증을 뒤에 두면 논리가 뒤집힌다 — 이미 다 지은 다음에 바닥을 검사하는 꼴이다.",
+  "old_order": [
+   "01 선행연구",
+   "02 표적 모델(메쉬·엔진·앵커)",
+   "03 조명원",
+   "04 검출기",
+   "05 검출 결과",
+   "06 실측 계획"
+  ],
+  "new_order": [
+   {
+    "no": "01",
+    "title": "선행연구 — 무엇이 가능하고 무엇이 아닌가",
+    "change": "변동 없음",
+    "why": "게재본 중 드론 메쉬에서 산란을 계산한 전례가 0편임을 먼저 확정해야, 뒤 편들이 무엇을 새로 하는지가 정의된다."
+   },
+   {
+    "no": "02",
+    "title": "표적 모델 — 메쉬와 산란 커널",
+    "change": "현 02 에서 §4 앵커·§5 σ오차를 뺀 것",
+    "why": "대조에 넣을 물건을 먼저 짓고, 커널은 해석해(구·이면각·kr 스윕)로만 게이트한다. 외부 측정은 아직 안 부른다."
+   },
+   {
+    "no": "03",
+    "title": "⭐ 측정 기체 대조 — DJI Phantom 3",
+    "change": "신설. validate_measured_airframe.json + validation_feasibility.json",
+    "why": "신뢰성 게이트. 교정구로 절대 스케일을 닫고, 실제로 측정된 기체를 우리 방식대로 지어 σ(f) 를 대조하고, 그 판정 위에 앵커를 세운다."
+   },
+   {
+    "no": "04",
+    "title": "조명원 — 세 파형과 그 대가",
+    "change": "현 03 이 번호만 이동",
+    "why": "점유·대역·PRF·λ² 는 σ 와 무관하게 정확한 양이다. 03 의 판정과 독립이므로 뒤에 와도 잃는 것이 없다."
+   },
+   {
+    "no": "05",
+    "title": "검출기 — ECA · 거리도플러 · CFAR 교정",
+    "change": "현 04 가 번호만 이동",
+    "why": "경험 Pfa 는 σ 와 독립으로 측정된다. 여기까지가 03 의 결과에 영향받지 않는 구간이다."
+   },
+   {
+    "no": "06",
+    "title": "검출 결과 — 모노/바이 × 근/원거리",
+    "change": "현 05 + 현 02 §5(σ 오차 강건성)",
+    "why": "03 의 앵커와 05 의 교정문턱을 함께 쓰는 유일한 편. 03 이 만든 밴드별 오차막대를 그대로 진다."
+   },
+   {
+    "no": "07",
+    "title": "실측 계획과 검증",
+    "change": "현 06 이 번호만 이동, 03 의 잔차를 계약 항목으로 받는다",
+    "why": "03 이 닫지 못한 항(편파·바이스태틱·FR1 저역 잔차)을 무엇을 재면 닫는지 결정표로 적는다."
+   }
+  ],
+  "content_moves": [
+   {
+    "what": "현 02 §1.1~§1.3 — 사진 대조 · 형상 검사 3종 · 부품별 재질",
+    "to": "새 02 §1",
+    "note": "§1.3 재질 절만 본 문서 §3 의 3층 표로 교체한다"
+   },
+   {
+    "what": "현 02 §2 — 엔진(광선 가림 + 재질 PO), §2.1 바이스태틱 출사 가시성",
+    "to": "새 02 §2",
+    "note": "변경 없음"
+   },
+   {
+    "what": "현 02 §3 — 기준해 셋(해석 PO 구 · Mie · PEC 이면각)",
+    "to": "새 02 §3",
+    "note": "교정구(r = 17.8 cm) 대조는 새 03 §1 로 승격 — 같은 커널이지만 그쪽에서는 '측정 체인과의 절대 대조'라는 다른 일을 한다"
+   },
+   {
+    "what": "현 02 §4 — 앵커(§4.1 모드 · §4.2 세 인자 · §4.3 원장 · §4.4 통제·잔여)",
+    "to": "새 03 §6",
+    "note": "⭐ 대조 **뒤**로. 앵커는 처방이고 처방은 증거보다 앞설 수 없다"
+   },
+   {
+    "what": "현 02 §5 — σ 오차를 넣어도 파형 순위가 서는 범위",
+    "to": "새 06 여는 절",
+    "note": "σ 불확도가 실제로 소비되는 곳"
+   },
+   {
+    "what": "현 03 · 04 · 05 · 06",
+    "to": "새 04 · 05 · 06 · 07",
+    "note": "내용 변경 없이 번호만 이동"
+   }
+  ],
+  "own_report_or_section_of_02": {
+   "answer": "⭐ 자기 편(새 03)이다. 02 의 절이 아니다.",
+   "reasons": [
+    {
+     "reason": "분량 규약이 강제한다",
+     "number": "03 이 답해야 하는 질문이 8개다 — 교정구, 레벨 봉투, 전대역 μ(f), 기울기 예산, 형상 충실도, 재질 브래킷, ε 대조, 방위섹터 규약. 하우스 규약 §5.7 의 상한이 편당 그림 8개이고, 02 의 메쉬·엔진 그림과 합치면 넘는다. §5.7 자신이 '넘치면 내용을 줄이지 말고 편을 쪼개라'고 정한다"
+    },
+    {
+     "reason": "주장의 종류가 다르다",
+     "number": "02 = '우리가 무엇을 지었나', 03 = '외부 측정과 얼마나 맞나'. 한 편 = 한 주장 규약을 지키면 갈라진다"
+    },
+    {
+     "reason": "순환을 막는다",
+     "number": "앵커는 대조 결과를 처방으로 바꾸는 절이다. 02 안에 다 넣으면 §1 메쉬 → §4 앵커 → 대조 순서가 되어 처방이 증거보다 앞선다 ⟨validation_feasibility.json : 7_report_ordering_recommendation.what_must_not_move_forward⟩"
+    },
+    {
+     "reason": "판정이 실패다",
+     "number": "1.843 GHz 에서 봉투 밖 -4.43 dB. 실패를 자기 편으로 세우면 읽는 사람이 그것을 찾을 수 있다. 02 의 소절로 넣으면 같은 편의 앵커가 그 실패를 가리려 고른 것처럼 읽힌다"
+    }
+   ],
+   "count_change": "6편 → 7편",
+   "cost_of_the_gate": "하우스 규약 §5.7 은 '6편 골격 유지'를 적었다. 이 제안은 그것을 한 편 넘긴다. 넘기는 이유는 분량이 아니라 주장의 종류가 하나 늘었기 때문이다 — '외부 측정과의 대조'는 새 주장 종류이고, 기존 6편은 각각 다른 주장을 이미 하나씩 지고 있다."
+  },
+  "what_must_not_move_forward": "지금의 sigma_anchor 재보정(re-levelling) 편. 그건 대조가 아니라 대조 '이후'의 처방이다. 대조편보다 앞에 오면 순환논증으로 읽힌다."
+ },
+ "3_materials": {
+  "user_question": "mesh 의 형상뿐만 아니라 재질도 현실적인 재질이니? 실제로 조사해서 기입한거야?",
+  "answer": "절반은 그렇고 절반은 아니다. eps_r 은 우리 대역을 덮는 측정 문헌으로 출처가 붙었고, gamma_po 실효값 5개는 출처가 없다 — 그 5개는 선언된 모델링 선택이고 총 σ 영향이 유계다. 그리고 셸 실효값 0.28 은 불확실한 정도가 아니라 부호가 틀렸다.",
+  "corrections_to_the_brief": [
+   {
+    "claim": "materials.py 에 battery eps_r 1.4 sigma 1.2 가 있다",
+    "status": "FALSE",
+    "truth": "eps_r=1.4, sigma=1.2 는 **absorber**(챔버 전파흡수체) 항목이다. battery 그룹은 DRONE_GROUP_MAT 에서 **ITU metal** 로 간다 — tier-2 가 아니라 tier-1.",
+    "consequence": "tier-2 무출처 값은 실제로 **plastic(2.7/0.02)·carbon(5.0/3e3)·absorber(1.4/1.2)** 세 개뿐이다. 리튬이온 유전율 문헌은 우리 모델에 들어오지 않는다(필요한 것은 '금속으로 봐도 되는가'의 표피깊이 논증)."
+   },
+   {
+    "claim": "FR-4 값이 모델에 쓰인다",
+    "status": "FALSE",
+    "truth": "pcb 그룹은 ITU metal + gamma_po=0.80 이다. FR-4 의 eps_r/tan_delta 는 코드 어디에서도 읽히지 않는다.",
+    "consequence": "FR-4 는 참고 기록으로만 남긴다. 검증 대상은 '구리 그라운드플레인 지배' 가정과 실효 0.80 이다."
+   }
+  ],
+  "tier1_standard": [
+   {
+    "item": "metal",
+    "value": "ITU-R P.2040 metal (1.0, 1e7 S/m)",
+    "source": "ITU-R P.2040 Table 3 — Sionna 2.0.1 설치본 소스에서 직접 확인"
+   },
+   {
+    "item": "concrete_light/dark",
+    "value": "ITU-R P.2040 concrete (5.24, 0.0462 f^0.7822)",
+    "source": "ITU-R P.2040 Table 3"
+   },
+   {
+    "item": "battery → metal",
+    "value": "ITU metal 로 사상",
+    "source": "⭐ **계산으로 정당화됨**(문헌 불필요): 파우치 셀 Al 배리어층은 업계 규격 15-70 um, 우리 대역 표피깊이는 1.18-1.98 um → 최소 두께 15 um 에서도 7-13 표피깊이, 편도 감쇠 >65 dB. 두께 규격 출처가 약해도 결론은 견고하다."
+   },
+   {
+    "item": "pcb 기저",
+    "value": "ITU metal (구리 그라운드플레인 지배)",
+    "source": "FR-4 의 eps_r/tan_delta 는 우리 모델이 읽지 않는다"
+   }
+  ],
+  "tier2_literature": [
+   {
+    "item": "plastic eps_r = 2.7",
+    "source": "J. Zechmeister, J. Lacik, 2019 Conference on Microwave Techniques (COMITE), pp. 1-4, 2019, doi:10.1109/COMITE.2019.8733590",
+    "measured_band_ghz": [
+     1.0,
+     10.0
+    ],
+    "reported": "eps_r' 2.55~2.95 (ABS 포함 5종)",
+    "verdict": "우리 2.7 은 그 구간의 한가운데. 교차확인: ITU-R P.2040 plasterboard 2.73"
+   },
+   {
+    "item": "carbon sigma",
+    "source": "G. Artner, P. K. Gentner, J. Nicolics, C. F. Mecklenbrauker, International Journal of Antennas and Propagation, vol. 2017, Art. 6152651, 11 pp., 2017, doi:10.1155/2017/6152651",
+    "measured_band_ghz": [
+     4.0,
+     6.0
+    ],
+    "reported": "shred-CFRP ~1e4 S/m (각도에 따라 10배 변동); 5.9 GHz 에서 1e4-8e4 S/m; twill-CFRP 는 1e3-1e6 S/m 축에 걸침",
+    "verdict": "⚠ 현행 3000 S/m 는 출처가 없고 대역 내 측정치보다 낮다. 제안 패치 3.0e3 → 1.0e4 — 총 RCS 영향은 무시 가능하고, 바꾸는 이유는 정확도가 아니라 출처가 생기기 때문이다"
+   },
+   {
+    "item": "plastic sigma = 0.02 S/m",
+    "source": "⚠ 출처 없음 — 가장 가까운 표준 대용은 ITU-R P.2040 plasterboard 식 (0.0085 f^0.9395 S/m)",
+    "reported": "문헌 ABS/PC tan_delta 0.005~0.008",
+    "verdict": "⚠ **출처 없음**. tan_delta 로 0.026-0.072 (밴드에 따라) — 문헌 ABS/PC 0.005-0.008 보다 4-14배 크다. ITU plasterboard 식(0.0085 f^0.9395)이 가장 가까운 표준 대용. |Gamma| 영향 <0.01 dB, 셸 흡수 0.03-0.10 dB → 총 RCS 영향 무시 가능"
+   },
+   {
+    "item": "absorber eps_r 1.4 / sigma 1.2",
+    "source": "⚠ 출처 없음 — note 가 이미 모델값이라 선언한다",
+    "reported": "—",
+    "verdict": "챔버 흡수체 전용 · 드론 σ 와 무관하다"
+   }
+  ],
+  "tier3_declared_choices": [
+   {
+    "item": "plastic gamma_po = 0.28 (셸)",
+    "bound_db": 1.1023111093849316,
+    "bound_where": "phantom4 · LTE 1.843 GHz · plastic=0.460",
+    "status": "⭐ 불확실한 것이 아니라 **부호가 틀렸다**",
+    "detail": "1~3 mm ABS 셸의 정면입사 박막 |Γ| 는 0.033~0.254 로 벌크 프레넬 0.244 **아래**다. 0.28 이 나오려면 셸이 9.7/5.1/3.4 mm 여야 한다",
+    "replaced_by_physics_db": 0.7831874878527856,
+    "replaced_where": "mini5pro · LTE 1.843 GHz"
+   },
+   {
+    "item": "carbon gamma_po = 0.90",
+    "bound_db": 1.2103192116525356,
+    "bound_where": "s1000plus · LTE 1.843 GHz · carbon=0.7000",
+    "status": "선언된 선택",
+    "detail": "주 스윕 세 기체에서 정확히 0.000 dB 인 것은 '무해'가 아니라 '해당 없음'이다 — 그 세 기체에 carbon 그룹이 없다. carbon 을 실제로 쓰는 기체(x500v2 · s1000plus)에서 0.70~1.0 구간의 총 σ 변화가 1.210 dB"
+   },
+   {
+    "item": "camera_assembly gamma_po = 0.85",
+    "bound_db": 1.809068690361869,
+    "bound_where": "mavic4pro · LTE 1.843 GHz · camera=0.50",
+    "status": "⭐ tier-3 중 가장 큰 항",
+    "detail": "prop 의 0.25→0.28 주장이 0.033 dB 인 데 비해 54 배"
+   },
+   {
+    "item": "pcb gamma_po = 0.80",
+    "bound_db": 0.04784845312998698,
+    "bound_where": "phantom4 · 5G 3.5 GHz · pcb=0.50",
+    "status": "선언된 선택",
+    "detail": "내부 부품이라 셸 투과 손실을 두 번 먹는다 — 0.5~1.0 전 구간에서 유계"
+   },
+   {
+    "item": "prop_plastic gamma_po = 0.25  (0.25→0.28 만 보면 0.033 dB)",
+    "bound_db": 0.2442867831130684,
+    "bound_where": "mavic4pro · WiFi 5.21 GHz · prop=0.460",
+    "status": "선언된 선택 · 근거 문장은 반증됨",
+    "detail": "note 의 '날개가 셸보다 얇다'를 우리 CAD 가 반증한다 — 시위평균 0.80~1.99 mm, s1000plus 최대 4.15 mm 로 셸 1~3 mm 를 넘는다. 결론은 살아남고 근거가 틀렸다"
+   }
+  ],
+  "bounded_total": {
+   "thin_slab_replacement_db": 0.8544550257841266,
+   "bracket_level_db": 1.1356512535902628,
+   "bracket_slope_db_per_ghz": 0.43012840567330324,
+   "reading": "재질은 레벨 문제이지 기울기 문제가 아니다. 모든 gamma_po 가 주파수 평탄한 실수 상수라서, 어떤 재질 편집도 밴드 의존성을 구제하지 못한다"
+  },
+  "proposed_patches": [
+   {
+    "target": "src/materials.py MATERIALS['carbon']['sigma']",
+    "current": "3.0e3",
+    "proposed": "1.0e4",
+    "why": "Artner et al. IJAP 2017 (4-6 GHz, 도파관 NRW) 가 우리 대역에서 직접 측정한 shred-CFRP 유효 도전율이 ~1e4 S/m 다. 3e3 은 그 아래에 있고 출처가 없다.",
+    "impact": "|Gamma|_bulk 0.9887 -> 0.9938 (+0.045 dB). 1 mm 벽 편도 감쇠 56 -> 102 dB (어느 쪽이든 불투명). **총 RCS 영향 무시 가능** — 값을 바꾸는 이유는 정확도가 아니라 **출처가 생기기 때문**이다.",
+    "risk": "낮음. 다만 carbon 은 gamma_po=0.90 오버라이드가 있어 PO 경로에는 애초에 안 들어간다 (Sionna RT 경로에만 영향)."
+   },
+   {
+    "target": "src/materials.py MATERIALS['plastic']['sigma'] (그리고 plastic_blue/prop_plastic)",
+    "current": "0.02 (상수)",
+    "proposed": "0.0085 * f_GHz**0.9395  (= ITU-R P.2040 plasterboard 식) 또는 tan_delta=0.006 등가",
+    "why": "현행 상수 0.02 S/m 는 tan_delta 로 환산하면 1.843 GHz 에서 0.072 다 — 문헌 ABS/PC (0.005-0.008)보다 9-14배 손실이 크다. ITU plasterboard 식을 쓰면 주파수 의존성까지 표준에서 온다(출처가 생긴다).",
+    "impact": "|Gamma| 에는 거의 영향 없음(<0.01 dB). 셸 흡수는 0.03-0.10 dB → 0.01 dB 미만으로 감소. **총 RCS 영향 무시 가능**.",
+    "risk": "낮음. 단 Sionna RT(전파) 쪽 투과손실은 바뀐다."
+   },
+   {
+    "target": "src/materials.py gamma_po() — plastic / prop_plastic 의 실효 상수",
+    "current": "plastic 0.28 (상수), prop_plastic 0.25 (상수)",
+    "proposed": "박막 프레넬에서 **주파수·두께 의존**으로 계산: gamma_po(mat, fc, d) = <|Gamma_slab(eps_c, d, theta)|>_투영가중.  두께는 선언된 모델링 선택으로 남긴다 (셸 2.0 mm, 프롭 = drone_cad 의 시위평균 두께).",
+    "why": "⭐ 현행 0.28 은 **어떤 두께에서도 우리 대역의 정면입사 박막값이 아니다** — 0.28 이 나오려면 셸이 1.843/3.5/5.21 GHz 에서 각각 9.7/5.1/3.4 mm 여야 한다 — **note 자신이 셸을 1-3 mm 라 적어놓았다**. note 의 '0.1~0.45 를 오간다'는 서술은 **두께를 1/4파장(8.8-24.7 mm)까지 키웠을 때**의 범위이지 1-3 mm 의 범위가 아니다. 1-3 mm 의 실제 범위는 0.033-0.254 (밴드 의존)다.",
+    "impact": "아래 impact_sweep 참조 — 총 RCS 변화는 밴드별로 유계다. **선언·유계이면 방어 가능**.",
+    "risk": "중간. 밴드마다 값이 달라지므로 밴드 기울기(우리 리포트의 헤드라인)가 움직인다 — 그 변화량도 impact_sweep.band_slope 에 있다."
+   },
+   {
+    "target": "src/materials.py gamma_po() — pcb 0.80 / camera_assembly 0.85",
+    "current": "0.80 / 0.85 (근거 note 는 있으나 출처 없음)",
+    "proposed": "**값을 바꾸지 말고 선언하라** — 'ITU metal 에 대한 개구율 보정, 출처 없는 모델링 선택, 총 RCS 영향 |x| dB (impact_sweep)' 라고 note 에 명시.",
+    "why": "이 둘은 복합 조립품(구리면+커넥터 / 금속하우징+유리렌즈+짐벌)이라 닫힌형 유도가 없다. 문헌도 없다. **없는 출처를 지어내는 대신 모델링 선택으로 선언하고 한계짓는 것**이 정직하다.",
+    "impact": "⭐ 그러나 **우선순위는 뒤집혀야 한다**: pcb 는 0.5-1.0 전 범위에서 총 sigma 를 0.05 dB 안쪽으로만 움직이는데(내부 부품이라 셸 투과 손실을 두 번 먹는다), camera_assembly 는 같은 범위에서 **최대 1.8 dB** 움직인다. note 분량은 정확히 반대로 배분돼 있다.",
+    "risk": "없음(값 불변). 다만 camera_assembly 는 **다음에 실물을 열어볼 때 최우선으로 확인할 부품**이다."
+   },
+   {
+    "target": "src/rcs_sbr.py / src/rcs_po.py — |Gamma| -> 복소 Gamma",
+    "current": "커널이 실수 |Gamma| 만 받는다(위상 0 으로 취급).",
+    "proposed": "복소 Gamma 를 받도록 확장. **박막 실효값을 도입할 거라면 이건 선택이 아니라 짝이다.**",
+    "why": "벌크만 쓸 때는 위상을 버려도 무해했다 — 금속(≈180 deg)과 플라스틱(≈178 deg)의 **상대**위상이 맞았기 때문이다. 박막 Gamma 는 위상이 −100~−116 deg 라 금속 대비 70 deg 가까이 어긋난다. 크기만 박막으로 고치면 상대위상이 새로 틀어진다.",
+    "impact": "셸 기여 자체가 작아서 총 sigma 영향은 impact_sweep 규모(<1 dB)를 넘지 않는다. 다만 **셸이 지배하는 자세**(정면에서 큰 평평한 셸면을 보는 각)에서는 국소적으로 더 클 수 있다.",
+    "risk": "중간-높음. 커널 시그니처가 바뀌고 구 검증(PEC, |Gamma|=1)은 실수 1.0 이라 무영향이지만 재질 표를 읽는 모든 경로를 손대야 한다."
+   },
+   {
+    "target": "src/materials.py MATERIALS['prop_plastic']['note']",
+    "current": "'날개가 셸(1~3 mm)보다 더 얇아 실효 |Γ| 가 낮다는 **방향**만 반영해 0.25 채택'",
+    "proposed": "이 문장을 **삭제하거나 정정**하라. 우리 CAD 자신이 반증한다.",
+    "why": "⭐ drone_cad 의 TC_ROOT/TC_TIP·CHORD_* 에서 유도한 날개 두께는 기종마다 시위평균 0.80-1.99 mm, 최대 1.66-4.15 mm 다. mini5pro 는 셸보다 얇지만 s1000plus(최대 4.15 mm)는 셸보다 **두껍다**. '항상 더 얇다'는 전제가 성립하지 않는다.",
+    "impact": "0.03 dB 주장 자체는 impact_sweep 이 검증한다(아래). 즉 **결론은 살아남고 근거가 틀렸다**.",
+    "risk": "없음(문서만)."
+   }
+  ],
+  "not_edited": "src/materials.py 는 손대지 않았다 — 패치 6건은 제안으로만 있다"
+ },
+ "4_is_a_valid_comparison_possible": {
+  "answer": "YES — but it is a CONSISTENCY CHECK against one airframe measured by one chain, not a validation of absolute sigma. Say that in the report title, not in a footnote.",
+  "so_this_document_reports_a_result_not_a_plan": true,
+  "airframe": "DJI Phantom 3.",
+  "blocking_question": {
+   "question": "Is Phantom 2 near-field, and does that force a pivot to Phantom 3?",
+   "answer": "⭐ Phantom 2 IS near-field (2.6 m, controlled non-anechoic indoor) — and it is ALSO out of band (11-26 GHz). No pivot is needed because Phantom 3 was the correct target from the start: anechoic, far-field, 1.8-18.2 GHz. The brief's band attribution was inverted (section 0).",
+   "settled": true
+  },
+  "measurement_that_would_close_the_rest": {
+   "minimum_viable": "Our own monostatic RCS measurement of ONE of our actual airframes over 1.8-5.3 GHz, calibrated against a PEC sphere whose exact Mie sigma we compute ourselves, with a background subtraction and a range gate. That converts every 'anchored' claim in the repo into a measured one.",
+   "why_our_own_and_not_more_literature": "No published measurement exists for any of our five airframes at our bands. The Sionna sensing survey (prior_work/sionna_sensing_survey.md) turned up a DJI M350 measurement at 21-27 GHz and nothing in FR1 for a small quad. More reading will not produce this number.",
+   "already_designed": "outputs/measurement_plan.json + docs measurement plan already compute the sphere set, the far-field distances, the point-target sub-band condition (Das §II-3c) and the ground-bounce separation for an outdoor range. The design exists; the measurement does not.",
+   "the_one_thing_that_would_change_the_verdict": "A PTD (physical theory of diffraction) edge term in the kernel. The slope gap is the signature of its absence, and it is the only defect in this list that is ours to fix in software rather than on a range."
+  },
+  "open_terms": [
+   "Which Phantom 3 variant Yuan measured (Standard / 4K / Advanced / Professional).",
+   "CATR quiet-zone diameter and amplitude/phase taper — not published; far-field validity for Phantom 3 is asserted, not verifiable.",
+   "Target mount: neither paper states what the airframe sat on (styrofoam column, pylon), nor its contribution after gating.",
+   "Propeller azimuthal phase during the measurement.",
+   "Whether Das's Phantom 3 row is a re-fit of Yuan's identical raw sweep or of a re-processed version via ref [7] (Wang et al., China Commun., 2026) — this is what makes the 2.5 dB convention/processing ambiguity irreducible from these two papers alone.",
+   "Cross-polar response of a Phantom-class airframe at 1.8-5.2 GHz — needed to bound our scalar kernel's bias against a VV measurement; not published anywhere we have found.",
+   "Size-transfer exponent n in {2, 4} for carrying a Phantom-3 anchor to our other airframes. Building the Phantom 3 itself is what lets us avoid deciding it for the headline comparison."
+  ]
+ },
+ "5_cost": {
+  "gpu_policy": "카드 0·1 은 타 사용자 점유 — 2·3 만 썼다",
+  "rows": [
+   {
+    "stage": "sphere+band",
+    "n_runs": 15,
+    "gpu_s": 296.0,
+    "how": "로그 실측(구 3건은 초 미기록)"
+   },
+   {
+    "stage": "sweep 1.8-18.2 GHz 21점",
+    "n_runs": 21,
+    "gpu_s": 2303.0,
+    "how": "로그 실측"
+   },
+   {
+    "stage": "group 분해",
+    "n_runs": 57,
+    "gpu_s": 762.2450318101548,
+    "how": "광선율 유도 k=6.014e-04 s/(ray·az)"
+   },
+   {
+    "stage": "material bracket",
+    "n_runs": 12,
+    "gpu_s": 160.47263827582208,
+    "how": "광선율 유도 k=6.014e-04 s/(ray·az)"
+   },
+   {
+    "stage": "scan 대조(3.09 M tri)",
+    "n_runs": 6,
+    "gpu_s": 170.09722900390625,
+    "how": "벽시계 상한(로그 mtime 차)"
+   }
+  ],
+  "comparison_phase": {
+   "n_runs": 111,
+   "gpu_s": 3691.814899089883,
+   "gpu_h": 1.0255041386360786
+  },
+  "materials_phase": {
+   "impact_sweep_s": 625.7306621074677,
+   "carbon_supplement_s": 397.4732913970947,
+   "gpu_s": 1023.2039535045624,
+   "gpu_h": 0.28422332041793397,
+   "n_runs_impact": null,
+   "note": "건수는 JSON 셀 수로 센다"
+  },
+  "feasibility_phase": {
+   "gpu_s": 0.0,
+   "note": "PDF 판독·회귀·규약 감사 — GPU 0"
+  },
+  "total": {
+   "gpu_s": 4715.018852594445,
+   "gpu_h": 1.3097274590540124
+  },
+  "rate_model": {
+   "k_s_per_ray_per_az": 0.0006013544521900607,
+   "how": "sweep 로그의 (rays/az, 초) 21쌍에 원점 통과 최소제곱",
+   "applies_to": "group · material bracket 단계(같은 커널 · n_az=360)"
+  },
+  "second_airframe": {
+   "gpu_s": 3521.717670085977,
+   "gpu_h": 0.9782549083572157,
+   "what_is_shared": "교정구 대조(측정 체인 공통), 문헌 회귀, 규약 감사",
+   "what_is_new": "메쉬 제작 · 밴드 3점 · 전대역 21점 · group 분해 · 재질 브래킷",
+   "scan_stage": "실물 레이저 스캔이 있는 기체에만 붙는다 — 현재 저장소에 있는 스캔은 Phantom 4 하나뿐이다",
+   "warning": "⚠ FR1 에서 우리 5기종에 대응하는 공개 측정이 없다. Das 의 나머지 세 기체는 11~27 GHz 다. 즉 두 번째 대조 기체는 GPU 시간으로 사는 것이 아니라 측정으로만 산다"
+  },
+  "what_it_bought": "판정 1건(실패, 자리 특정) + 기울기 예산 3항 + 오차막대 3종 + 재질 3층표 14행 + 제안 패치 6건"
+ },
+ "6_next": [
+  {
+   "do": "rcs_anchor.json 재생성",
+   "decides": "현재 저장값이 세 번째 독립 하네스와도 어긋난다 — -2.686~-1.658 dB. 03 의 그림을 그리기 전에 닫아야 하는 유일한 선행 작업",
+   "where": "benchmark/rcs_anchor.py"
+  },
+  {
+   "do": "PTD(모서리 회절) 항을 커널에 넣는다",
+   "decides": "좁은대역 기울기 잔차 0.648 dB/GHz (39%) 가 닫히는지. ⚠ 잔차는 재질 브래킷 0.430 dB/GHz 의 1.5 배뿐이라 지목은 지시적이지 확정이 아니다",
+   "where": "src/rcs_sbr.py"
+  },
+  {
+   "do": "Phantom 3 를 DRONES 레지스트리에 등록",
+   "decides": "03 을 재현 가능한 편으로 만든다. 패치 문자열은 validate_measured_airframe.json : 1_airframe.registration_patch 에 있다",
+   "where": "src/drones.py · src/drone_cad.py · benchmark/rcs_anchor.py"
+  },
+  {
+   "do": "복소 Γ 를 커널에 넣는다",
+   "decides": "박막 실효 Γ 를 도입하려면 위상이 짝이다 — 금속 대비 상대위상이 70° 어긋난다 ⟨material_sources.json : proposed_patch⟩",
+   "where": "src/rcs_sbr.py · src/rcs_po.py"
+  },
+  {
+   "do": "camera_assembly 를 실물에서 확인",
+   "decides": "tier-3 중 총 σ 를 가장 크게 움직이는 항 — 스윕 전 구간 0.50~1.00 에서 1.809 dB (mavic4pro · LTE 1.843 GHz · camera=0.50). 프로펠러 전 구간의 7.4 배",
+   "where": "실물 티어다운"
+  },
+  {
+   "do": "우리 기체 1종의 자체 모노스태틱 RCS 측정 (1.8~5.3 GHz, PEC 구 교정)",
+   "decides": "FR1 에서 우리 5기종에 대응하는 공개 측정이 없다 — 두 번째 대조 기체는 문헌이 아니라 측정에서만 나온다",
+   "where": "07편(실측 계획) · outputs/measurement_plan.json"
+  }
+ ]
+}

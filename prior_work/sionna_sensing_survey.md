@@ -15,7 +15,9 @@
 > 각 논문마다 특히 **RCS/표적 산란 공백을 어떻게 다뤘는지**(A1 외부EM · A2 Sionna확장 ·
 > B 외부통계 · C 메쉬반사우회 · D 미보고 — pw04 분류와 정합)를 기록한다.
 >
-> **진행 카운터**: rounds=**20** · papers=**19**(직접 Sionna 실사용; R20 신규 md-rt·clutter·zig-conf 승격) + 맥락 13편 + **덱 v6 대조 추가 2편**(Great-X=Sionna RT 재구현·LAMBDA=Sionna RT 확정) · last_updated=**2026-07-29** · ⚠ **"탐색 100% 소진" 판정은 R20 에서 철회됨** — 아래 참조
+> **진행 카운터**: rounds=**21** · papers=**20**(직접 Sionna 실사용; R20 신규 md-rt·clutter·zig-conf 승격 · **R21 신규 WiFi-JEPA**) + 맥락 13편 + **덱 v6 대조 추가 2편**(Great-X=Sionna RT 재구현·LAMBDA=Sionna RT 확정) · last_updated=**2026-08-04**
+>
+> **[R21] 2026-08-04 — 사용자 지목 1편 원문판정.** WiFi-JEPA(2607.11064)는 R20 이 «미커버» 로 남긴 후보였고 이번에 PDF 확보·fitz 전문추출로 판정했다. ⭐ **이 편의 값어치는 「Sionna 만으로 되는 실험」의 경계를 저자들이 직접 측정해 준 것**이다 — 기하 프리미티브가 사람 메쉬를 이긴다(100.1 vs 110.3 mm MPJPE). 즉 **표적 항이 절대값으로 필요 없는 과제에서는 표적 충실도가 오히려 무관하다.** 우리 결정표(리포트 00 §4)의 1차 사료. · ⚠ **"탐색 100% 소진" 판정은 R20 에서 철회됨** — 아래 참조
 >
 > **🔴🔴 R20 대정정(2026-07-29, 원문 전수검증):** R19 까지의 **"탐색 소진(5연속 dry)" 판정은 arXiv 편향의 산물이었다.** R1~R19 는 초록·메타데이터 검색이 주력이라 **(a) IEEE 유료 프로시딩 전용 논문**과 **(b) 초록에 'Sionna' 가 없고 본문에만 있는 논문**을 원리적으로 놓쳤다. R20 에서 후보 66편을 새로 건져 20편을 원문판정한 결과 **헤드라인 주장 2개가 무너졌다**(아래 [R20] 항목·정정 블록). 실물 증거: **md-rt(IEEE ICCT 2025)** 는 유료 프로시딩이라 19라운드 내내 안 걸렸고, **arXiv:2509.21118** 은 초록에 Sionna 가 없고 본문에만 14회 나와 안 걸렸다. 더 뼈아픈 것은 md-rt·zig-conf 두 편이 **2026-07-23 부터 `paper_sionna_Ray/` 에 원문 PDF 로 있었고 `docs/DRONE_ISAC_PRIOR_READING.md` 에 정독 노트까지 있었는데 이 파일에 흡수되지 않았다**는 점이다. → **기록 3갈래 분산이 서베이 오류의 직접 원인.** 아카이브 일원화를 R20 에서 수행.
 >
@@ -117,7 +119,7 @@
   - **⭐우리 주장을 보강한 1차 증거 4건**: Sionna RT 기술보고서(2504.21719) SBR 48회 vs `RCS`·`physical optics` **각 0회**, *"supports four types of interactions"* · Ziganshin 의 **Standard RT 정의** *"the default Sionna-RT implementation with specular reflections and single-bounce edge diffraction"* · UMD MC-SBR(2511.07586) *"Mitsuba … does not currently support surface current calculation or physical optics integration"* — **Sionna 가 올라탄 엔진에 PO 가 없다는 제3자 문서** · **Hoydis Discussion #1170(2026-06-25)** *"Sionna RT is currently not a really good fit to simulate reflections from small objects like drones for radar applications."* ← **우리 use case 를 정확히 지목한 2026년 발언, #844(2025-04)보다 인용가치 큼**.
   - **검색 사각지대 실물 증거 2건**: md-rt = IEEE 유료 프로시딩(19라운드 내내 미포착) · **arXiv:2509.21118**(Wang·Zumegen·Studer) = **초록에 `Sionna` 없고 본문에만 14회** → arXiv 초록검색의 원리적 한계.
   - **인접 대조군 신규**: Tsinghua Feifei Gao 3부작(2607.23789·2603.13112·2607.10319, Blender 드론 메쉬 + Wireless InSite + 드론·조류 분류) · Waterloo(Sayed/Shaker) 상세 CAD+SBR→RD맵→3종 드론 분류 논문군 · UMD MC-SBR(2511.07586, mesh+SBR+PO+RCS+ISAR, Mitsuba 사용하나 비-Sionna) · **arXiv:2401.14448 TU Ilmenau BiRa — DJI Phantom 2 바이스태틱 반사도 2–10 GHz 풀편파 실측**(우리에게 부족했던 바이스태틱 앵커).
-- **[R20] 미커버(다음 라운드 후보)**: **중국어 DB(CNKI·万方·百度학술) HTTP 403 — 미탐색 구멍** · IEEE Xplore 본문 다수(WebFetch 0바이트 / 418·403·502 / AWS WAF) · **NATO STO del-Rey-Maestre 드론 바이스태틱 UHF RCS(403, 우리와 가장 가까운 미확인 구멍)** · WiFi-JEPA(2607.11064)·RF-Vision(ICC 2025)·MILCOM 2024 데모편·Karlstad 학사논문 전문 · GitHub 코드검색 API 401(README 범위로만 대체).
+- **[R20] 미커버(다음 라운드 후보)**: **중국어 DB(CNKI·万方·百度학술) HTTP 403 — 미탐색 구멍** · IEEE Xplore 본문 다수(WebFetch 0바이트 / 418·403·502 / AWS WAF) · **NATO STO del-Rey-Maestre 드론 바이스태틱 UHF RCS(403, 우리와 가장 가까운 미확인 구멍)** · ~~WiFi-JEPA(2607.11064)~~ **→ [R21] 에서 원문 확보·판정 완료(2026-08-04)** · RF-Vision(ICC 2025)·MILCOM 2024 데모편·Karlstad 학사논문 전문 · GitHub 코드검색 API 401(README 범위로만 대체).
 <!-- 형식:
 ### <제목> (<저자 대표>, <venue> <year>)
 - **센싱 태스크**: …
@@ -267,6 +269,22 @@
 - **RCS/표적 산란 공백 처리**: **D(미보고)** — `mesh`/`Blender`/`CAD` 각 0회. 표적은 (r,v,θ)+스칼라 ρ 의 **자유공간 점산란체**, 환경·다중경로·클러터 항 없음(AWGN 만). ⚠ 이 논문이 디지털트윈을 표방하면서 배경 항이 없다는 사실은 메모의 "주류 h=h_bg+h_target" 를 **보편 규칙이 아니라 다수 경향**으로 하향해야 함을 보여준다.
 - **우리 관련성**: **표적 EM 모델링 선행으로 인용 금지.** 쓸모는 ① 베이스라인 목록 이식(CA-CFAR·ADVI-CFAR·CFARNet·Eigenvalue-1D-CNN·CSIYOLO) → report12 보강 후보 ② 다표적 지표 관례(Count Acc·Macro-F1·MAE) ③ 다중대역 상보성 인용문 *"a target weakly visible in one band may still be detectable in another band"* → 우리 9모드 서사의 외부 근거. 사과-대-사과 비교 불가(모노스태틱 능동·자유공간).
 - **출처**: https://arxiv.org/abs/2607.17655 (v1, 2026-07-20, 5쪽) · 아카이브 `papers_isac_sionna/2607.17655__dmsnet-crossband-multiband-isac.pdf`
+
+### [R21] WiFi-JEPA: Self-supervised Learning for WiFi-CSI 3D Human Pose Estimation (D. Kim·J. Lee·S. Kim·S.-h. Kim, 숭실대, arXiv 2026) — ⭐ **R20 이 «미커버» 로 남긴 구멍을 닫음**
+- **센싱 태스크**: WiFi CSI **3D 인체자세추정**(HPE). 자기지도(JEPA) 사전학습 → PiW3D 벤치마크 미세조정. SOTA **76.8 mm**(1인)·**93.5 mm**(다인) MPJPE.
+- **Sionna 사용**: ⭐ **Sionna RT 로 사전학습용 CSI 를 통째로 합성**한다(레퍼런스 [15] = Sionna RT arXiv:2303.11103). 2단계 —
+  ① 순수 파이썬 장면생성기(CPU, 클립당 <1 s): 방 **3–8 m × 2.5–4 m 높이** 무작위, 벽에 **ITU 표준재질**(concrete/plasterboard/wood/glass), 장면당 **기하 프리미티브 1–4개**(sphere·cube·cylinder·ellipsoid, 반경 0.1–0.5 m)가 **최대 3 m/s** 로 탄성반사 궤적.
+  ② Sionna RT — Tx 1 + Rx 3×3 = **9 링크**, **5.64 GHz**, 출력 `H ∈ C^{20×30×3×3}` → (60, 20, 9). **9만 프레임 / RTX 4090 한 장 / ~10 GPU-시간.**
+  ⭐⭐ **핵심 설계 = 프레임당 20회 독립 RT 패스**: *"each pass computes the channel for a static scene snapshot … **Without this, a single pass yields a near-constant time axis**, rendering temporal masking ineffective."* → **Sionna RT 가 정지 장면만 낸다**는 사실을 제3자가 문서화한 실물 증거이고, 시간축은 **자세를 바꿔 20번 다시 추적**해 만든다.
+- **RCS/표적 산란 공백 처리**: **C(메쉬반사우회)** — 프리미티브를 씬에 넣고 Sionna 반사로 채널을 얻는다. `RCS`·`radar cross` **본문 0회**. ⚠ 그런데 이 편은 **공백을 우회한 게 아니라 애초에 필요로 하지 않는다** — 목적함수가 절대 σ 가 아니라 표현학습이다.
+- **⭐⭐ 우리 관련성: 높음 — «Sionna 만으로 되는 실험» 의 결정적 사례**
+  · **표적 충실도가 필요 없음을 스스로 측정했다**: 프리미티브(**100.1 mm**)가 **사람 메쉬(110.3 mm)를 이긴다**. 저자들은 산란이 다르다는 것을 **알면서** 그렇게 한다 — *"At 5.64 GHz … **a sphere and a human body differ substantially in scattering behavior**—the body is articulated, non-convex, and has complex dielectric properties. Nevertheless, SSL pre-training may still succeed with geometric primitives, because the learning objective benefits from **diverse spatio-temporal channel variation, rather than faithful reproduction of body-specific multipath**."*
+  · ⇒ **판별 기준의 외부 근거**: 표적 항이 절대값으로 필요 없는 과제(표현학습·상대비교)는 Sionna 만으로 성립하고, 절대 σ 가 필요한 과제(검출거리·Pd)는 아니다. 우리 리포트 00 §4 결정표가 인용할 1차 사료.
+  · Sionna 를 **채널 생성기로 규정**하는 그들 자신의 문장: *"ray-tracing tools such as Sionna [15] and … DeepMIMO [1] can generate physically grounded channel data … **but not for self-supervised pretraining of sensing models**."*
+  · **20패스 트릭은 우리에게 이식 가능** — 우리 마이크로도플러가 블레이드 위상을 스텝하는 것과 같은 발상이다.
+  ⚠ **차이**: 라벨 없는 사전학습이라 표적 위치·절대 SNR·검출확률을 내지 않는다. 지표는 MPJPE(mm) 뿐 — **사과-대-사과 비교 불가.**
+- ⚠ **보고 누락(우리 검사 재적용)**: `max_depth`·`num_samples`·`diffraction`·Sionna **버전** 전부 **본문 0회**. 클러터 서베이(Proc. IEEE)에서 지적한 것과 **같은 누락 패턴**이 탑베뉴 밖에서도 반복된다.
+- **출처**: https://arxiv.org/abs/2607.11064 (2026-07-13, 17쪽) · 프로젝트 https://wifi-jepa.github.io/ · 아카이브 `papers_isac_sionna/2607.11064__kim_wifi-jepa-csi-pose.pdf` (md5 c8e1a55fb9e3044b5a6ea3f244e58a3d)
 
 ---
 

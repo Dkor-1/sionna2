@@ -1,0 +1,1015 @@
+{
+ "_meta": {
+  "generated": "2026-08-03 01:48:47",
+  "generator": "scratchpad/valfeas/build_valfeas.py (workflow: validation feasibility)",
+  "purpose": "메쉬를 만들기 전에, 실측 기체와의 RCS 대조가 **성립하는가**를 먼저 결판낸다.",
+  "sources": {
+   "das_pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "yuan_pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "das_citation": "S. Das, P. Zhang, V. Hovinen, M. E. Leinonen, A. Parssinen, P. Kyosti, \"Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling,\" IEEE Wireless Commun. Lett., vol. 15, pp. 3731-3735, 2026, doi:10.1109/LWC.2026.3705634",
+   "yuan_citation": "Z. Yuan, L. Yu, C. Li, W. Fan, \"On Experimental Analysis of Mono-Static 3D UAV RCS for ISAC Channel Modeling,\" 2025 19th European Conf. on Antennas and Propagation (EuCAP), doi:10.23919/EuCAP63536.2025.10999912",
+   "repo_json": [
+    "outputs/rcs_anchor.json",
+    "outputs/phantom4_scan_compare.json",
+    "outputs/mesh_compare_photo.json"
+   ],
+   "repo_code": [
+    "src/sigma_anchor.py",
+    "src/rcs_sbr.py",
+    "src/materials.py",
+    "benchmark/rcs_anchor.py"
+   ]
+  },
+  "table_extraction": "Das Table I and Table III have no text layer. Pages 2 and 4 were rendered at 350-400 dpi with PyMuPDF and transcribed by eye; Table III agrees cell-for-cell with the values already stored in src/sigma_anchor.py DAS, which is an independent check on both.",
+  "all_numbers_computed": "No literature or repo number below is hand-typed into the report layer; every value is read from the PDF transcription block or computed here."
+ },
+ "0_corrections_to_the_workflow_brief": [
+  {
+   "claim_in_brief": "DJI Phantom 2 — 35 cm x 20 cm, 1.8-18.2 GHz, 2801 frequency points",
+   "status": "FALSE",
+   "truth": "Das Table I: Phantom 2 = 11 GHz-26 GHz, 2001 frequency points, azimuth 0:1:360, near-field 2.6 m, controlled non-anechoic indoor. 1.8-18.2 GHz / 2801 points / azimuth -90:2:90 / far-field / anechoic is the **Phantom 3** column.",
+   "corroboration": "Das §II-3c writes the Phantom 2 sub-band centres as f_i = 11 GHz + 0.1 i GHz, i = 0..149 (= 11.0-25.9 GHz), and Fig. 2(a)/Fig. 3(a) x-axes run 11-26 GHz. Three independent places in the paper agree.",
+   "consequence": "⭐ The premise of the whole brief inverts. Phantom 2 does NOT overlap our bands at all (11-26 GHz vs our 1.843/3.5/5.21 GHz). Phantom 3 is the only band-overlapping platform AND it is the anechoic far-field one. The near-field blocking question therefore resolves in favour of Phantom 3 with no pivot needed.",
+   "repo_was_right": "src/sigma_anchor.py DAS['table1']['phantom2']['band_ghz'] = (11.0, 26.0) and SLOPE_CENSUS['das_phantom2_mono']['overlaps_our_band'] = False. The repository already had this correct; only the brief was wrong."
+  },
+  {
+   "claim_in_brief": "materials.py tier 2 ... battery eps_r 1.4 sigma 1.2",
+   "status": "FALSE (mislabelled)",
+   "truth": "eps_r 1.4 / sigma 1.2 is the **absorber** entry (chamber pyramidal absorber). The drone battery group maps to 'metal' (ITU) — DRONE_GROUP_MAT['battery'] = ('metal', 'battery pack (internal)').",
+   "consequence": "The battery is not an uncited literature value. The absorber IS, and its own note already says '⚠ not a measurement — a model value'."
+  },
+  {
+   "claim_in_brief": "our sigma_anchor.py adds a +2.5068 dB log-to-linear override that we established is UNSUPPORTED ... Confirm it must be OFF",
+   "status": "PARTLY FALSE — see section 3b",
+   "truth": "The brief is right that Das's 'scale adjustment' sentence does not license it (that sentence is about mapping Table III into log-normal distribution parameters, not about the definition of mu). But the offset is not justified by that sentence in our code either — it is justified empirically by reconcile_das_yuan(), and that check strongly SUPPORTS it: with the offset the two published processings of the same raw data agree to 0.25 dB over our bands; without it they disagree by 2.3 dB.",
+   "consequence": "'Turn it OFF' is the wrong instruction. The right instruction is 'never a silent single-valued default' — carry it as an explicit two-branch envelope, and lead with the band slope, in which it cancels exactly."
+  }
+ ],
+ "1_das_measurement_settings": {
+  "citation": "S. Das, P. Zhang, V. Hovinen, M. E. Leinonen, A. Parssinen, P. Kyosti, \"Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling,\" IEEE Wireless Commun. Lett., vol. 15, pp. 3731-3735, 2026, doi:10.1109/LWC.2026.3705634",
+  "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+  "table1_verbatim": {
+   "_transcription": "Table I has no text layer in the PDF; page 2 was rendered at 350 dpi (rect 40,55-575,175) and read off the image. Every cell below is verbatim.",
+   "_columns": [
+    "DJI Mini 2",
+    "DJI M350 RTK",
+    "DJI Phantom 2",
+    "DJI Phantom 3"
+   ],
+   "Dimension": [
+    "15.9 cm x 20.3 cm",
+    "81 cm x 67 cm",
+    "35 cm x 20 cm",
+    "35 cm x 20 cm"
+   ],
+   "Frequency Band": [
+    "21 GHz-27 GHz",
+    "21 GHz-27 GHz",
+    "11 GHz-26 GHz",
+    "1.8 GHz-18.2 GHz"
+   ],
+   "Frequency points": [
+    "501",
+    "501",
+    "2001",
+    "2801"
+   ],
+   "Azimuth resolution": [
+    "0 <= phi(= 0.5) <= 360",
+    "0 <= phi(= 0.5) <= 360",
+    "0 <= phi(= 1) <= 360",
+    "-90 <= phi(= 2) <= 90"
+   ],
+   "TX-RX distance": [
+    "Far-field",
+    "Far-field",
+    "Near-field, 2.6 m",
+    "Far-field"
+   ],
+   "Environment": [
+    "Anechoic",
+    "Anechoic",
+    "Controlled non-anechoic, indoor",
+    "Anechoic"
+   ]
+  },
+  "quotes": {
+   "abstract_environments": "…acquired across multiple frequency bands (1.8 GHz–27 GHz) and bistatic angles (0°:15°:90°) in both anechoic far-field and controlled indoor near-field environments.",
+   "contributions_per_platform": "The measurements cover anechoic far-field settings for the Phantom 3, Mini 2, and M350 RTK, and a controlled non-anechoic indoor near-field setting for the Phantom 2.",
+   "phantom2_only_nearfield": "Phantom 2 is the only platform measured in a controlled indoor non-anechoic near-field setting, with the corresponding measurement environment illustrated in Fig. 1. This setting is comparable to the scenario described in [6].",
+   "polarisation": "The setup uses vertically polarized directional antennas at both the transmitter (TX) and receiver (RX), while a Keysight PNA-X Network Analyzer (N5242B) records the channel frequency response S21(f).",
+   "calibration": "Calibration measurement: A metallic cylinder with radius 5.5 cm, height 30 cm, and known RCS σCal = 2.8 dBsm is placed at the center of the turntable, and its response SCal21(θb, f) is measured.",
+   "subband_farfield_equivalence": "For near-field measurements, the background-subtracted frequency response is segmented into 200 MHz sub-bands, yielding a range resolution of 0.75 m [6]. The sub-bands are centered at fi = 11 GHz + 0.1 i GHz, i = 0, …, 149, and processed independently using a passband FIR filter H(fi). Since the sub-band range resolution exceeds the maximum dimension of the Phantom 2 (≈0.35 m), the target is effectively point-like within each sub-band. Hence, the sub-band responses can be treated as equivalent far-field responses.",
+   "mean_definition": "The mean RCS is defined as σm^AAV(θb, fi) = (1/K) Σ_{k=1}^{K} σ^AAV(θb, fi, φk), where K is the number of azimuth scans for each θb and fi.",
+   "lognormal_3gpp_remark": "We adopt the log-normal distribution as the default 3GPP-aligned RCS model, since ISAC-oriented 3GPP RCS frameworks describe target-induced power fluctuations using log-normal statistics [1], [2]. … such that ln(σ^AAV(f)) ∼ N( (ln(10)/10)μ, ((ln(10)/10)ε)² ).",
+   "scale_adjustment_sentence": "The Rician parameters can be obtained using the procedure outlined in the supplementary material, while the log-normal parameters are directly obtained from Table III after the corresponding scale adjustment.",
+   "K_equals_360": "The measured RCS vector is σ^AAV(θb, fi) = [σ^AAV(θb, fi, φ1), …, σ^AAV(θb, fi, φK)]^T ∈ R^K, with K = 360 corresponding to the number of azimuth measurements.",
+   "phantom3_is_rician": "In contrast, the DJI Mini 2 and Phantom 3 RCS are better described by a specular component superimposed on a diffuse scattering background generated by multiple weak scatterers. For these platforms, the Rician distribution achieves the lowest mean dAD, namely 0.532 and 0.436.",
+   "data_provenance": "The authors would like to thank Prof. Wei Fan from Southeast University for providing the measured RCS data for the DJI Mini 2, DJI Phantom 3, and DJI M350 RTK.",
+   "gaussian_cluster_farfield": "The RX is located at R(φ) = L[cos φ, sin φ]^T, with L ≥ 2D²/λ …"
+  },
+  "per_platform_verdict": {
+   "DJI Mini 2": {
+    "environment": "Anechoic",
+    "distance": "Far-field",
+    "band_ghz": [
+     21.0,
+     27.0
+    ],
+    "overlaps_our_bands": false,
+    "usable_for_us": false,
+    "why": "Anechoic far-field, but 21-27 GHz — 4x above our top band. Using its slope (0.07 dB/GHz) at 1.8-5.2 GHz would be extrapolation, not anchoring."
+   },
+   "DJI M350 RTK": {
+    "environment": "Anechoic",
+    "distance": "Far-field",
+    "band_ghz": [
+     21.0,
+     27.0
+    ],
+    "overlaps_our_bands": false,
+    "usable_for_us": false,
+    "why": "Same band problem. Also 81x67 cm — a size transfer of 10*n*log10(D/D_ref) on top of a band extrapolation."
+   },
+   "DJI Phantom 2": {
+    "environment": "Controlled non-anechoic, indoor",
+    "distance": "Near-field, 2.6 m",
+    "band_ghz": [
+     11.0,
+     26.0
+    ],
+    "overlaps_our_bands": false,
+    "usable_for_us": false,
+    "why": "TWO disqualifiers, not one. (a) Band 11-26 GHz does not touch our bands. (b) It is genuinely near-field: 2D²/λ at its own band is 9.0-21.2 m against a 2.6 m range, i.e. 3.5x-8.1x short. Das's remedy (200 MHz sub-bands, 0.75 m range resolution > 0.35 m target) makes the target point-like IN RANGE; it does nothing about the transverse phase taper across a 0.35 m target at 2.6 m, which is the actual near-field defect. The 'equivalent far-field' claim is asserted, not demonstrated.",
+    "near_field_arithmetic": {
+     "11.0 GHz": {
+      "lambda_m": 0.02725,
+      "rayleigh_2D2_over_lambda_m": 8.99,
+      "measured_distance_m": 2.6,
+      "shortfall_factor": 3.46
+     },
+     "18.5 GHz": {
+      "lambda_m": 0.0162,
+      "rayleigh_2D2_over_lambda_m": 15.119,
+      "measured_distance_m": 2.6,
+      "shortfall_factor": 5.81
+     },
+     "26.0 GHz": {
+      "lambda_m": 0.01153,
+      "rayleigh_2D2_over_lambda_m": 21.248,
+      "measured_distance_m": 2.6,
+      "shortfall_factor": 8.17
+     }
+    }
+   },
+   "DJI Phantom 3": {
+    "environment": "Anechoic",
+    "distance": "Far-field",
+    "band_ghz": [
+     1.8,
+     18.2
+    ],
+    "overlaps_our_bands": true,
+    "usable_for_us": true,
+    "why": "⭐ The only platform that is anechoic AND far-field AND spans all three of our bands. Far-field is achieved by a CATR (Yuan §II-A), not by a long range — see section 3d."
+   }
+  },
+  "blocking_question_resolved": {
+   "question": "Is Phantom 2 near-field, and does that force a pivot to Phantom 3?",
+   "answer": "⭐ Phantom 2 IS near-field (2.6 m, controlled non-anechoic indoor) — and it is ALSO out of band (11-26 GHz). No pivot is needed because Phantom 3 was the correct target from the start: anechoic, far-field, 1.8-18.2 GHz. The brief's band attribution was inverted (section 0).",
+   "settled": true
+  }
+ },
+ "2_yuan_phantom3_measurement": {
+  "citation": "Z. Yuan, L. Yu, C. Li, W. Fan, \"On Experimental Analysis of Mono-Static 3D UAV RCS for ISAC Channel Modeling,\" 2025 19th European Conf. on Antennas and Propagation (EuCAP), doi:10.23919/EuCAP63536.2025.10999912",
+  "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+  "venue_from_pdf_metadata": "PDF metadata(subject='2025 19th European Conference on Antennas and Propagation') 로 게재확인. §IV 본문에 {a,b,c,d} 가 텍스트로 있어 그대로 추출.",
+  "quotes": {
+   "chamber": "A mono-static UAV RCS measurement campaign was recently conducted in an anechoic chamber, as shown in Fig. 1.",
+   "target": "The sensing target, referred to as the device-under-test (DUT), is the DJI Phantom 3, featuring four symmetrical rotors with a horizontal diagonal of 35 cm and a height of 20 cm.",
+   "angles": "The rotation spans from −90° to 90° (given the UAV's symmetry) in increments of 2°, i.e., ϕ = [−90°: 2°: 90°]. Three UAV elevation sides including the azimuth plane, top, and bottom, were considered in the measurements, i.e, θ = {90°, 0°, 180°}.",
+   "polarisation": "Both the transmitter and receiver (TX and RX) were equipped with vertically polarized directional antennas. Note that although the chosen step size may be too large at higher frequencies, and RCS measurements should be ideally taken across all polarization states, this configuration was set due to time constraints.",
+   "far_field_mechanism": "A compact antenna test range (CATR) scheme [16] was utilized to assess the far-field RCS of the UAV.",
+   "frequency": "We employed a 2-port vector network analyzer (VNA) to collect the channel frequency response (CFR) S21(f). The frequency sweep ranges from 1.8 GHz to 18.2 GHz, with 2801 frequency points recorded at each azimuth angle, yielding an ambiguity bound of 170.7 ns and a delay resolution of 0.06 ns (equating to 25.6 m and 0.009 m in range, respectively).",
+   "calibration_standard": "A metallic sphere with a radius of 17.8 cm (RCS as σCal = −10 dBsm) is positioned at the center of the turntable, and its frequency response SCal21 (f) is response;",
+   "sigma_extraction": "The absolute UAV RCS can be derived as the ratio of the received power with the DUT and that with the sphere above the reference sphere RCS [14], i.e. (expressed in absolute numerical values). σDUT(f, ϕ) = |SDUT21,bs,g(f, ϕ)|² / |SCal21,bs,g(f)|² · σCal.",
+   "gating": "a 6th-order Kaiser window function, defined by a predetermined delay range, is applied to the CIR, and the gated CIRs are then transformed back into the frequency domain.",
+   "static_target": "Note that the movement of the UAV's propeller blades will influence the observed RCS due to the Micro-Doppler effect [9]. This aspect is not addressed in the current study, as capturing measurements on moving rotor blades was impractical here given their very rapid motion relative to the VNA's lengthy sweep duration.",
+   "regression": "the regression parameters mean values {a, b, c, d} are calculated as {0.315, −16.15, 0.0045, 0.07}, {0.231, −17.92, 0.0024, 0.06}, and {0.175, −17.12, 0.0019, 0.07} for θ = 90°, θ = 0°, and θ = 180°, respectively.",
+   "rcs_range": "It is observed that the overall RCS values range from −40 dBsm to 5 dBsm, and the averaged RCS values at θ = 90° are slightly larger than those at θ = 0° and θ = 180°.",
+   "K_factor": "The K factors vary around -10 dB at some frequencies, while the others are significantly lower, falling below -30 dB."
+  },
+  "extracted": {
+   "chamber": "anechoic chamber, compact antenna test range (CATR) with parabolic reflector",
+   "distance": "not stated as a number — far-field is produced by the CATR, not by range",
+   "far_field_condition": "asserted via CATR; quiet-zone size and taper not published",
+   "polarisation": "VV (vertical at both TX and RX); the paper itself flags the missing polarisation states as a time-constrained compromise",
+   "frequency": "1.8-18.2 GHz, 2801 points, delta_f = 5.857 MHz, ambiguity 170.7 ns (25.6 m), delay resolution 0.06 ns (0.009 m)",
+   "azimuth": "-90:2:90 (91 points), three elevation sides theta = {90 (azimuth plane), 0 (top), 180 (bottom)}",
+   "sigma_extraction": "background subtraction (coherent, VNA S21) -> 6th-order Kaiser range gate -> sigma = |S_DUT|^2 / |S_Cal|^2 * sigma_Cal against a PEC sphere r = 17.8 cm, sigma_Cal = -10 dBsm",
+   "calibration_selfcheck": {
+    "pi_r_squared_dbsm": -10.02,
+    "stated_dbsm": -10.0,
+    "agreement_db": -0.02,
+    "note": "pi*r^2 optical-region value reproduces the paper's stated sigma_Cal to 0.02 dB — the calibration standard is internally consistent."
+   },
+   "rotors": "static. The VNA sweep is far slower than the blades, so the measurement is a quasi-static airframe. Our SBR is also static — this one matches."
+  },
+  "regression_abcd": {
+   "90": [
+    0.315,
+    -16.15,
+    0.0045,
+    0.07
+   ],
+   "0": [
+    0.231,
+    -17.92,
+    0.0024,
+    0.06
+   ],
+   "180": [
+    0.175,
+    -17.12,
+    0.0019,
+    0.07
+   ]
+  },
+  "epsilon_units_warning": "Das ε [dB]   : Table III 표제가 명시 — \"STANDARD DEVIATION eps [DB]\". Phantom 3 는 5.21~5.71 dB.\n               지수분포(Swerling I/II) 이론값 (10/ln10)*pi/sqrt(6) = 5.570 dB 와 7% 안에서 일치한다.\nYuan ε [선형] : 원문은 단위를 안 적는다. Fig.5 우축 눈금이 0~0.25 (무차원) 이고 값도 0.07~0.15 다.\n               검산: 레일리 진폭 가정에서 std(sqrt(sigma)) = sqrt(4/pi-1)*sqrt(pi/4*E[sigma]) 를\n               Yuan μ 로부터 예측하면 1.8~18.2 GHz 전 구간에서 ε 의 0.89~0.99 배가 된다\n               (dB 영역평균 가정은 1.19~1.23 배, 선형전력 표준편차 가정은 0.33~0.45 배로 어긋난다).\n               => Yuan ε 는 **선형 진폭 sqrt(sigma) 의 표준편차** 다.\n=> 두 ε 는 **다른 양이고 단위도 다르다**. 나란히 놓고 비교하면 안 된다."
+ },
+ "3_convention_audit": {
+  "3a_linear_azimuth_mean": {
+   "question": "Das's sigma_m = (1/K) sum_k sigma(phi_k) reported in dBsm  vs  our mean_dbsm = 10*log10(mean(sigma_linear)). Same quantity?",
+   "verdict": "CONFIRMED — identical quantity.",
+   "our_code": "benchmark/rcs_anchor.py:399  mean_dbsm=float(10*np.log10(np.mean(s)))  where s is sigma in m^2 (linear).",
+   "das_text": "The mean RCS is defined as σm^AAV(θb, fi) = (1/K) Σ_{k=1}^{K} σ^AAV(θb, fi, φk), where K is the number of azimuth scans for each θb and fi.",
+   "caveat_1": "Das's eq. (3) computes sigma in absolute (linear) units — P_DUT/P_Cal * sigma_Cal — so the average in §III-1 is unambiguously a LINEAR power average, then reported in dBsm. That is our quantity exactly.",
+   "caveat_2": "⚠ Das is internally inconsistent about K. §III-2 states K = 360, but Table I gives Phantom 3 azimuth as -90:2:90, i.e. K = 91. K = 360 fits the Phantom 2 column (0:1:360). The K = 360 sentence therefore does not describe the Phantom 3 fit. This does not change the definition of the mean, only how many samples back it.",
+   "caveat_3": "Our mean uses n_az = 720 over a full 360 deg; Yuan's uses 91 over 180 deg 'given the symmetry of the UAV'. For a 4-fold-symmetric quadrotor a 180 deg sector already covers two full symmetry periods, so the azimuth means are comparable. The 91-vs-720 sample count widens the measured mean's own sampling error, it does not bias it."
+  },
+  "3b_the_2p5068_dB_offset": {
+   "question": "Must the +2.5068 dB log-to-linear override be OFF for this comparison?",
+   "verdict": "⚠ THE BRIEF IS WRONG. Not 'off' — 'never a silent single value'. Report both branches; lead with the slope, in which the offset cancels identically.",
+   "constant": 2.506816,
+   "constant_definition": "10/ln(10) * gamma_Euler = E[10log10 X] -> 10log10 E[X] for X ~ Exponential (Swerling I/II, Rayleigh amplitude). Level- and frequency-independent.",
+   "why_the_brief_is_half_right": "The brief is correct that Das's 'scale adjustment' sentence does NOT license the offset. That sentence is about mapping Table III into log-normal DISTRIBUTION PARAMETERS (ln sigma ~ N((ln10/10)mu, ((ln10/10)eps)^2)); it says nothing about how mu itself was averaged. Anyone citing it for the offset should stop.",
+   "why_the_offset_nonetheless_survives": {
+    "evidence": "reconcile_das_yuan(): Das and Yuan process the SAME raw data (Das's own acknowledgement names Prof. Wei Fan, Yuan's corresponding author, as the source of the Phantom 3 data), so a correct convention transform must drive the residual to zero.",
+    "residual_over_our_three_bands": {
+     "exponential": {
+      "offset_db": 2.506815781348522,
+      "resid_min_db": -0.25023410830445414,
+      "resid_max_db": -0.1160571632064471,
+      "resid_rms_db": 0.19187983980633527,
+      "resid_absmax_db": 0.25023410830445414
+     },
+     "lognormal": {
+      "offset_db": 3.192051400169126,
+      "resid_min_db": -0.9354697271250583,
+      "resid_max_db": -0.8012927820270512,
+      "resid_rms_db": 0.8708525199422481,
+      "resid_absmax_db": 0.9354697271250583
+     }
+    },
+    "residual_over_full_anchor_band": {
+     "exponential": {
+      "offset_db": 2.506815781348522,
+      "resid_min_db": -0.2518864764262858,
+      "resid_max_db": 0.48944132645330996,
+      "resid_rms_db": 0.23755308234493586,
+      "resid_absmax_db": 0.48944132645330996
+     },
+     "lognormal": {
+      "offset_db": 3.4321872879150646,
+      "resid_min_db": -1.1772579829928294,
+      "resid_max_db": -0.4359301801132336,
+      "resid_rms_db": 0.8525836427125999,
+      "resid_absmax_db": 1.1772579829928294
+     }
+    },
+    "reading": "With the exponential offset the residual is 0.25 dB max over our bands (0.489 dB over 1.8-18.2 GHz). Without any offset the residual is the raw gap, 2.257 to 2.391 dB. The offset is the better hypothesis by an order of magnitude.",
+    "physics_check": "Phantom 3's own best-fit distribution supports the exponential constant specifically. Das Table II: Phantom 3 best fit is Rician (d_AD 0.436). Yuan Fig. 6(a): 'The K factors vary around -10 dB at some frequencies, while the others are significantly lower, falling below -30 dB.' A Rician with K <= -10 dB is Rayleigh amplitude to within 0.4 dB, i.e. exponential power — exactly the case for which +2.5068 dB is exact. So the brief's argument ('Phantom 3 is Rician, so the exponential constant does not apply') runs backwards: Phantom 3 is a Rician with a vanishing specular term, which IS the exponential case."
+   },
+   "the_irreducible_ambiguity": "⚠ The residual test cannot separate 'statistic convention' from 'processing-chain difference between the two papers' (different range gate, different sub-banding, Das re-processed via ref [7] Wang et al., China Commun. 2026). Both hypotheses produce the same ~2.5 dB. Therefore the offset must travel as an explicit branch.",
+   "operational_rule": "1) For any SLOPE comparison the offset is a constant and cancels exactly — use it, it is unconditionally safe. 2) For any LEVEL comparison quote the full literature envelope (section 3e), never a single anchor value. 3) Never let anchor_mu_dbsm(..., to_linear_mean=True) be the silent default in a figure that claims validation."
+  },
+  "3c_polarisation": {
+   "das_and_yuan": "VV. Both papers use vertically polarised directional antennas at TX and RX.",
+   "das_text": "The setup uses vertically polarized directional antennas at both the transmitter (TX) and receiver (RX), while a Keysight PNA-X Network Analyzer (N5242B) records the channel frequency response S21(f).",
+   "yuan_text": "Both the transmitter and receiver (TX and RX) were equipped with vertically polarized directional antennas. Note that although the chosen step size may be too large at higher frequencies, and RCS measurements should be ideally taken across all polarization states, this configuration was set due to time constraints.",
+   "our_kernel": "No polarisation degree of freedom. src/rcs_sbr.py integrates a SCALAR field E = sum_hits |Gamma_i| exp(j 2k p_i . u) d^2 with |Gamma| a real amplitude reflection coefficient per material group (materials.gamma_po). There is no vector direction, no co/cross split, and no polarisation-dependent Fresnel (the coefficient is the normal-incidence value, identical for TE and TM).",
+   "what_it_costs": [
+    "Our sigma is closest to an unpolarised / total-power quantity. Against a VV measurement it is biased HIGH by whatever cross-polar power the VV receiver would have rejected.",
+    "The bias is aspect- and structure-dependent, not a constant. Flat plates and the metal motor/battery blocks (which dominate our sigma) are strongly co-polar, so the bias is small there. Thin tilted structures — propeller blades, carbon arms, the landing legs — depolarise, so the bias concentrates exactly on the parts whose |Gamma| is least defensible (section 6).",
+    "At normal incidence TE and TM Fresnel coefficients coincide, so our scalar |Gamma| is exact for a broadside plate and increasingly wrong at grazing — the same aspects at which the missing PTD edge term also bites."
+   ],
+   "verdict": "Does NOT invalidate the comparison; it WIDENS the error bar and it does so asymmetrically (our sigma should sit above a VV measurement, not below). ⭐ It is not a free pass: because the bias is signed, a comparison that finds our sigma BELOW the measurement (which is what happens at 1.843 GHz, section 4) cannot be explained away by polarisation. Polarisation can only make that discrepancy worse.",
+   "cannot_be_quantified_here": "Neither paper publishes a cross-polar or HH channel, so the depolarisation ratio of a Phantom-class airframe at 1.8-5.2 GHz is not measurable from these two sources. It stays an uncontrolled term."
+  },
+  "3d_far_field": {
+   "rule": "Rayleigh criterion R >= 2D^2/lambda, with D the maximum target dimension.",
+   "D_conventions": {
+    "motor_to_motor_0p350_m": "the value both papers publish (Das Table I '35 cm x 20 cm', Yuan §II-A 'horizontal diagonal of 35 cm')",
+    "propeller_tip_span_0p590_m": "0.350 + 240 mm (DJI 9450 propeller) = the true maximum dimension of an assembled Phantom 3. Neither paper uses it, but it is what the Rayleigh criterion actually wants."
+   },
+   "phantom3_D_motor": {
+    "LTE 1.843 GHz": {
+     "lambda_m": 0.16267,
+     "rayleigh_m": 1.506,
+     "reactive_nearfield_bound_3lambda_m": 0.488,
+     "D_m": 0.35
+    },
+    "5G 3.5 GHz": {
+     "lambda_m": 0.08565,
+     "rayleigh_m": 2.86,
+     "reactive_nearfield_bound_3lambda_m": 0.257,
+     "D_m": 0.35
+    },
+    "WiFi 5.21 GHz": {
+     "lambda_m": 0.05754,
+     "rayleigh_m": 4.258,
+     "reactive_nearfield_bound_3lambda_m": 0.173,
+     "D_m": 0.35
+    },
+    "anchor top 18.2 GHz": {
+     "lambda_m": 0.01647,
+     "rayleigh_m": 14.874,
+     "D_m": 0.35
+    }
+   },
+   "phantom3_D_tip": {
+    "LTE 1.843 GHz": {
+     "lambda_m": 0.16267,
+     "rayleigh_m": 4.28,
+     "reactive_nearfield_bound_3lambda_m": 0.488,
+     "D_m": 0.59
+    },
+    "5G 3.5 GHz": {
+     "lambda_m": 0.08565,
+     "rayleigh_m": 8.128,
+     "reactive_nearfield_bound_3lambda_m": 0.257,
+     "D_m": 0.59
+    },
+    "WiFi 5.21 GHz": {
+     "lambda_m": 0.05754,
+     "rayleigh_m": 12.099,
+     "reactive_nearfield_bound_3lambda_m": 0.173,
+     "D_m": 0.59
+    },
+    "anchor top 18.2 GHz": {
+     "lambda_m": 0.01647,
+     "rayleigh_m": 42.265,
+     "D_m": 0.59
+    }
+   },
+   "phantom3_verdict": "⭐ The Rayleigh distance is NOT the binding test here, because Yuan does not use a direct range: 'A compact antenna test range (CATR) scheme was utilized to assess the far-field RCS of the UAV.' A CATR collimates the feed into a plane-wave quiet zone with a parabolic reflector, so the far-field condition is met BY CONSTRUCTION at a short physical distance. Das simply inherits this and writes 'Far-field' in Table I with no number.",
+   "phantom3_residual_risk": "⚠ What a CATR must instead satisfy is that the QUIET ZONE is larger than the target and flat enough in amplitude/phase across it. Neither paper gives the quiet-zone diameter, the reflector size, or the amplitude/phase taper. So far-field validity for Phantom 3 is ASSERTED BY THE AUTHORS AND NOT VERIFIABLE FROM THE PAPERS. It is a reasonable assertion (CATRs are the standard tool for exactly this) but it is not evidence we hold. If the quiet zone were sized to the 0.35 m body rather than the 0.59 m propeller span, the propeller tips would sit in the taper — and the propellers are precisely the structures whose contribution our kernel is least sure of.",
+   "phantom2_verdict": "FAILS by 3.5x-8.1x at its own band (see per_platform_verdict). Moot for us since 11-26 GHz does not overlap our bands.",
+   "our_own_side": "Our kernel has no range at all — rcs_sbr shoots a parallel ray grid, which is the exact plane-wave / infinite-range limit. So our side of the comparison is unconditionally far-field. Every far-field risk in this comparison lives on the measurement side."
+  },
+  "3e_literature_envelope": {
+   "what": "The four defensible published values for the SAME Phantom 3 airframe at each of our bands, plus the two elevation-side variants.",
+   "by_band": {
+    "LTE 1.843 GHz": {
+     "values_dbsm": {
+      "das_as_published": -18.803,
+      "das_plus_2p5068": -16.296,
+      "yuan_theta90_azplane": -15.569,
+      "yuan_theta0_top": -17.494,
+      "yuan_theta180_bottom": -16.797,
+      "yuan_elevation_pooled_linear": -16.546
+     },
+     "lo_dbsm": -18.803,
+     "hi_dbsm": -15.569,
+     "span_db": 3.234
+    },
+    "5G 3.5 GHz": {
+     "values_dbsm": {
+      "das_as_published": -18.455,
+      "das_plus_2p5068": -15.948,
+      "yuan_theta90_azplane": -15.047,
+      "yuan_theta0_top": -17.112,
+      "yuan_theta180_bottom": -16.508,
+      "yuan_elevation_pooled_linear": -16.134
+     },
+     "lo_dbsm": -18.455,
+     "hi_dbsm": -15.047,
+     "span_db": 3.408
+    },
+    "WiFi 5.21 GHz": {
+     "values_dbsm": {
+      "das_as_published": -18.096,
+      "das_plus_2p5068": -15.589,
+      "yuan_theta90_azplane": -14.509,
+      "yuan_theta0_top": -16.716,
+      "yuan_theta180_bottom": -16.208,
+      "yuan_elevation_pooled_linear": -15.705
+     },
+     "lo_dbsm": -18.096,
+     "hi_dbsm": -14.509,
+     "span_db": 3.587
+    }
+   },
+   "headline": "The measurement side alone spans 3.234-3.587 dB across our three bands, before our simulation is mentioned. That is the floor on any absolute-level claim.",
+   "why_it_is_this_wide": [
+    "Das and Yuan publish different linear fits of the same raw sweep: Das 0.21 dB/GHz with intercept -19.19, Yuan 0.315/0.231/0.175 dB/GHz with intercepts -16.15/-17.92/-17.12.",
+    "The statistic convention (dB-domain vs linear-domain azimuth mean) is worth 2.5068 dB and is not stated unambiguously in either paper.",
+    "Elevation side matters: Yuan's own theta=90 (azimuth plane) and theta=0 (top) differ by 2.065 dB on average over our bands."
+   ],
+   "which_row_matches_our_geometry": "yuan_theta90_azplane. Yuan's theta=90 IS the azimuth plane (§II-A: 'Three UAV elevation sides including the azimuth plane, top, and bottom … theta = {90, 0, 180}'), which is our el = 0 cut and our chamber geometry (TX/RX on side walls at drone height). Das's Phantom 3 row is an elevation-pooled refit and does NOT correspond to a single elevation."
+  },
+  "3f_source_independence": {
+   "verdict": "⚠ NOT two independent measurements. ONE airframe, ONE measurement chain.",
+   "evidence": [
+    "The authors would like to thank Prof. Wei Fan from Southeast University for providing the measured RCS data for the DJI Mini 2, DJI Phantom 3, and DJI M350 RTK.",
+    "Das Table I's Phantom 3 column (35x20 cm, 1.8-18.2 GHz, 2801 points, -90:2:90) matches Yuan §II-A character for character.",
+    "Wei Fan is Yuan's corresponding author (Southeast University)."
+   ],
+   "consequence": "Agreement between Das and Yuan is NOT independent replication. It is two statistics of one dataset — useful for back-solving the convention (section 3b) and useless as corroboration of the absolute level. Our entire absolute anchor rests on a single CATR at Southeast University."
+  }
+ },
+ "4_our_side": {
+  "kernel": {
+   "method": "SBR (Mitsuba ray grid) + monostatic PO surface integral, src/rcs_sbr.py",
+   "formula": "E = sum_hits |Gamma_i| * exp(j*2k*p_i . u) * d^2 ;  sigma = (4*pi/lambda^2)*|E|^2 ; the obliquity factor cancels because the integral is over the projected aperture",
+   "analytic_validation": "0.2006 dB vs analytic PO sphere at div=16 over kr 1..100, 48 incidence directions (outputs/sbr_kr_sweep.json)",
+   "grid_dither_db": {
+    "div8": 5.284,
+    "div12": 1.373,
+    "div16": 1.782,
+    "source": "outputs/report2_waveform_rcs.json sbr_validation.dither, peak-to-peak over sub-cell grid offsets",
+    "note": "⚠ not monotone in div; quote div alongside any number"
+   },
+   "missing_physics": [
+    "No PTD / no edge-diffraction term — the known cause of the steep band slope.",
+    "No polarisation (scalar |Gamma|).",
+    "|Gamma| is frequency-independent per material (section 6)."
+   ]
+  },
+  "calibration_sphere_traceability": {
+   "why": "⭐ Yuan's whole measurement chain is calibrated against a PEC sphere of r = 17.8 cm with sigma_Cal = -10 dBsm. We can run OUR kernel on THAT EXACT OBJECT. This is the one genuinely apples-to-apples ABSOLUTE comparison available to us, and it needs no mesh, no material table, and no convention transform.",
+   "yuan_stated_sigma_cal_dbsm": -10.0,
+   "pi_r_squared_dbsm": -10.02,
+   "pi_r_squared_vs_yuan_db": -0.02,
+   "our_kernel_by_band": {
+    "LTE 1.843 GHz": {
+     "ka": 6.876,
+     "exact_mie_dbsm": -9.948,
+     "analytic_po_dbsm": -10.616,
+     "our_sbr_dbsm": -10.799,
+     "dev_vs_mie_db": -0.851,
+     "dev_vs_yuan_stated_minus10_db": -0.799
+    },
+    "5G 3.5 GHz": {
+     "ka": 13.057,
+     "exact_mie_dbsm": -9.715,
+     "analytic_po_dbsm": -10.3,
+     "our_sbr_dbsm": -10.09,
+     "dev_vs_mie_db": -0.375,
+     "dev_vs_yuan_stated_minus10_db": -0.09
+    },
+    "WiFi 5.21 GHz": {
+     "ka": 19.436,
+     "exact_mie_dbsm": -9.893,
+     "analytic_po_dbsm": -10.228,
+     "our_sbr_dbsm": -10.313,
+     "dev_vs_mie_db": -0.42,
+     "dev_vs_yuan_stated_minus10_db": -0.313
+    }
+   },
+   "reading": "Our SBR reproduces Yuan's own calibration standard to 0.375-0.851 dB against exact Mie, and to 0.09-0.799 dB against the -10 dBsm the paper prints. So the absolute scale of our kernel and the absolute scale of the measurement chain agree on a canonical target to under 1 dB. Whatever goes wrong on the drone is NOT a calibration-scale error."
+  },
+  "phantom4_proxy": {
+   "caveat": "This is our DJI Phantom 4 mesh, not a Phantom 3. Same 350 mm diagonal, same 9450 240 mm propeller, same white one-piece shell family. Used here only to size the problem before any mesh work.",
+   "current_mesh_rerun_today": {
+    "mean_dbsm_el0": {
+     "LTE 1.843 GHz": -23.813,
+     "5G 3.5 GHz": -19.757,
+     "WiFi 5.21 GHz": -17.066
+    },
+    "three_band_slope_db_per_ghz": 2.002,
+    "n_az": 360,
+    "div": 16,
+    "source": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/valfeas/mat_sens.json (V0_baseline)"
+   },
+   "stored_json_stale": {
+    "mean_dbsm_el0": {
+     "LTE 1.843 GHz": -21.134,
+     "5G 3.5 GHz": -17.713,
+     "WiFi 5.21 GHz": -15.406
+    },
+    "mean_dbsm_el15": {
+     "LTE 1.843 GHz": -21.805,
+     "5G 3.5 GHz": -18.848,
+     "WiFi 5.21 GHz": -18.868
+    },
+    "three_band_slope_db_per_ghz": 1.699,
+    "regression_1p8_to_6p0_ghz": {
+     "slope_db_per_ghz": 1.411,
+     "intercept_dbsm": -23.469,
+     "R2": 0.888,
+     "n_points": 22
+    },
+    "source": "outputs/rcs_anchor.json (n_az=720, div=16, generated 2026-07-30 07:16:08, GPU 2)"
+   },
+   "staleness": {
+    "finding": "⚠⚠ outputs/rcs_anchor.json IS STALE and must be regenerated before any comparison figure is drawn.",
+    "rcs_anchor_json_generated": "2026-07-30 07:16:08",
+    "newer_inputs": {
+     "src/drones.py": "2026-07-31 06:49:04",
+     "src/drone_cad.py": "2026-07-31 08:04:01",
+     "src/rcs_sbr.py": "2026-07-30 10:40:03",
+     "benchmark/rcs_anchor.py": "2026-07-30 11:03:36"
+    },
+    "measured_drift": {
+     "LTE 1.843 GHz": -2.679,
+     "5G 3.5 GHz": -2.044,
+     "WiFi 5.21 GHz": -1.66
+    },
+    "slope_drift_db_per_ghz": 0.302,
+    "how_measured": "Today's rerun on the CURRENT mesh, phantom4, el=0, div=16, shell_groups default {body, canopy}.",
+    "verified_not_an_n_az_artifact": {
+     "LTE 1.843 GHz": {
+      "360": -23.813196234170885,
+      "720": -23.820397999844353
+     },
+     "5G 3.5 GHz": {
+      "360": -19.756766148048644,
+      "720": -19.76032761119803
+     },
+     "WiFi 5.21 GHz": {
+      "360": -17.06556840175765,
+      "720": -17.064350551058023
+     }
+    },
+    "verification_note": "Re-ran benchmark/rcs_anchor.py's OWN raw_sigma_az() — the exact function that produced the stored JSON — at both n_az = 360 and 720. The two differ by <= 0.007 dB, so sampling density explains none of the drift. The same values also reproduce this workflow's independent float-|Gamma| harness to 0.007 dB, so the harness is faithful. The remaining ~2 dB is a real mesh change.",
+    "consequence": "Every published number for our sigma — the mean levels, the 1.411 dB/GHz regression slope, the distribution fits — describes a mesh that no longer exists. The direction of the drift makes the case WORSE, not better: the current mesh is ~2 dB lower and its 3-band slope is steeper."
+   }
+  },
+  "mesh_fidelity_already_measured": {
+   "real_scan_vs_ours": {
+    "what": "Our PO kernel run on a 0.4 mm real Phantom 4 3D scan (3.09 M faces) vs on our spec-built mesh (15.2 k faces), same materials, same aspect set.",
+    "fc_ghz": 3.5,
+    "el_deg": 15.0,
+    "sigma_real_dbsm": -15.281,
+    "sigma_ours_dbsm": -17.28,
+    "delta_db": -2.0,
+    "rms_over_azimuth_db": 6.78,
+    "reading": "Geometry fidelity alone costs 2.0 dB in the azimuth mean and 6.8 dB RMS per-aspect at 3.5 GHz. This is a MESH error bar, independent of materials and of the missing PTD, and it is already comparable to the whole literature envelope."
+   },
+   "photo_silhouette": {
+    "best_iou": 0.546,
+    "best_file": "Phantom 4 pro + V2_1.png",
+    "contour_error_mm": 10.3,
+    "source": "outputs/mesh_compare_photo.json"
+   }
+  }
+ },
+ "5_verdict": {
+  "is_a_valid_comparison_possible": "YES — but it is a CONSISTENCY CHECK against one airframe measured by one chain, not a validation of absolute sigma. Say that in the report title, not in a footnote.",
+  "which_airframe_to_build": {
+   "answer": "DJI Phantom 3.",
+   "why": [
+    "It is the ONLY platform in either paper that is anechoic AND far-field AND spans all three of our bands (1.843 / 3.5 / 5.21 GHz all lie inside 1.8-18.2 GHz).",
+    "The near-field disqualifier lands on Phantom 2, which is also out-of-band (11-26 GHz), so nothing is lost by dropping it.",
+    "Size transfer is EXACTLY ZERO: Phantom 3's published 350 mm motor-to-motor diagonal is already our D convention (sigma_anchor.size_correction_db uses the motor diagonal). Every other candidate needs a 10*n*log10(D/D_ref) term with an unresolved n in {2, 4} — sigma_anchor's own comment calls that 'the anchor's weakest link'. Building Phantom 3 deletes that link entirely.",
+    "Marginal cost is low: we already hold a Phantom 4 mesh of the same family (350 mm diagonal, DJI 9450 240 mm propeller, one-piece white shell) plus a 0.4 mm real Phantom 4 3D scan. Phantom 3 is a shell/leg/gimbal revision of geometry we have already built and photo-checked."
+   ],
+   "do_not_use_phantom4_as_the_proxy": "Tempting (it exists, the diagonal matches) but wrong for a report that claims comparison against a measured airframe. P4 adds forward stereo obstacle sensors and a different shell/leg profile; at 5.21 GHz (lambda = 5.75 cm) those are lambda-scale features. Build the P3. Then run the P4 as a SHAPE-SENSITIVITY control — 'how much does the wrong airframe in the right family cost?' is itself a number worth publishing.",
+   "variant_ambiguity": "⚠ Yuan says only 'DJI Phantom 3'. The Standard / 4K / Advanced / Professional variants share the 350 mm diagonal and the shell, and differ in camera, gimbal and (Standard) motors and propeller. Record this as an uncontrolled term; do not silently pick one and call it 'the' Phantom 3."
+  },
+  "what_exactly_to_compare": {
+   "PRIMARY — band slope d(mu)/df": {
+    "rank": 1,
+    "status": "VIABLE AND DECISIVE",
+    "quantity": "least-squares slope of mu(f) = 10log10(mean_phi sigma) in dBsm vs f in GHz",
+    "ours": {
+     "ours_3band_current_mesh": 2.002,
+     "ours_3band_stale_json": 1.699,
+     "ours_22pt_1p8_to_6p0_stale_json": 1.411,
+     "das_phantom3_1p8_to_18p2": 0.21,
+     "yuan_phantom3_azplane": 0.315,
+     "yuan_phantom3_top": 0.231,
+     "yuan_phantom3_bottom": 0.175,
+     "ratio_ours22stale_over_das": 6.72,
+     "ratio_ours22stale_over_yuan90": 4.48,
+     "ratio_ours3band_current_over_das": 9.53,
+     "ratio_ours3band_current_over_yuan90": 6.35,
+     "gap_to_close_db_per_ghz": {
+      "vs_das": 1.792,
+      "vs_yuan90": 1.687
+     },
+     "convention_invariance": "⭐ A slope is invariant to the +2.5068 dB branch, to the sphere-calibration level, to any frequency-independent |Gamma|, and to any size-transfer constant. Every one of those cancels in a difference of two levels. That is why the slope is the primary comparable.",
+     "apples_to_apples_caveat": "⚠ Das's 0.21 and Yuan's 0.315 are fits over 1.8-18.2 GHz. Our 1.411 is a fit over 1.8-6.0 GHz. Neither paper publishes a 1.8-5.2 GHz sub-fit, and Das Fig. 3(b) shows the measured mean fluctuating by several dB over that narrow span, so a local sub-fit would be poorly determined. FIX: run our kernel over the full 1.8-18.2 GHz so the two slopes are fitted over the SAME interval. That run does not exist yet and is the single most valuable missing number in this whole exercise."
+    },
+    "why_primary": "Convention-invariant. The +2.5068 dB branch, the sphere calibration level, every frequency-flat |Gamma|, and any size-transfer constant all cancel exactly in a slope. It is the only quantity in this comparison that no unresolved question can move.",
+    "required_new_run": "⭐ Extend our kernel sweep to the anchor's full 1.8-18.2 GHz so both slopes are fitted over the SAME interval. Fitting ours over 1.8-6.0 and theirs over 1.8-18.2 is the one remaining apples-to-oranges term, and it is fixable with GPU time and nothing else.",
+    "expected_outcome": "A 6.4x-9.5x steeper slope (ours 2.00 dB/GHz on today's mesh vs measured 0.21 / 0.315), attributable to the missing PTD edge term. ⭐ This is a FINDING, not a failure — it is a quantitative measurement of what PO-without-PTD costs on a real airframe in FR1, and it is exactly what the brief said this comparison was for.",
+    "robustness": "The gap survives every knob we control: the material bracket moves the slope by at most 0.381 dB/GHz (section 6), the grid dither at div=16 is a level effect, and the +2.5068 dB convention branch cancels identically."
+   },
+   "SECONDARY — absolute level at each band, against an envelope": {
+    "rank": 2,
+    "status": "VIABLE ONLY AS AN ENVELOPE TEST",
+    "by_band": {
+     "LTE 1.843 GHz": {
+      "ours_dbsm": -23.813,
+      "envelope_lo": -18.803,
+      "envelope_hi": -15.569,
+      "inside_envelope": false,
+      "gap_to_nearest_db": -5.01,
+      "gap_to_yuan_azplane_db": -8.244,
+      "gap_to_das_as_published_db": -5.01
+     },
+     "5G 3.5 GHz": {
+      "ours_dbsm": -19.757,
+      "envelope_lo": -18.455,
+      "envelope_hi": -15.047,
+      "inside_envelope": false,
+      "gap_to_nearest_db": -1.302,
+      "gap_to_yuan_azplane_db": -4.71,
+      "gap_to_das_as_published_db": -1.302
+     },
+     "WiFi 5.21 GHz": {
+      "ours_dbsm": -17.066,
+      "envelope_lo": -18.096,
+      "envelope_hi": -14.509,
+      "inside_envelope": true,
+      "gap_to_nearest_db": 0.0,
+      "gap_to_yuan_azplane_db": -2.557,
+      "gap_to_das_as_published_db": 1.03
+     }
+    },
+    "rule": "Report 'inside / outside the published envelope', never a single Delta against a single anchor value. The envelope is 3.234-3.587 dB wide on the measurement side alone.",
+    "preview": "On the Phantom 4 proxy on today's mesh: LTE 1.843 GHz: -5.01 dB outside; 5G 3.5 GHz: -1.30 dB outside; WiFi 5.21 GHz: INSIDE. The sign matters — polarisation bias (section 3c) would push our sigma UP relative to a VV measurement, so it cannot explain a LOW reading. The low-band shortfall is the slope defect seen as a level."
+   },
+   "ANCILLARY — the calibration sphere": {
+    "rank": 3,
+    "status": "⭐ VIABLE, ABSOLUTE, AND AVAILABLE TODAY",
+    "what": {
+     "why": "⭐ Yuan's whole measurement chain is calibrated against a PEC sphere of r = 17.8 cm with sigma_Cal = -10 dBsm. We can run OUR kernel on THAT EXACT OBJECT. This is the one genuinely apples-to-apples ABSOLUTE comparison available to us, and it needs no mesh, no material table, and no convention transform.",
+     "yuan_stated_sigma_cal_dbsm": -10.0,
+     "pi_r_squared_dbsm": -10.02,
+     "pi_r_squared_vs_yuan_db": -0.02,
+     "our_kernel_by_band": {
+      "LTE 1.843 GHz": {
+       "ka": 6.876,
+       "exact_mie_dbsm": -9.948,
+       "analytic_po_dbsm": -10.616,
+       "our_sbr_dbsm": -10.799,
+       "dev_vs_mie_db": -0.851,
+       "dev_vs_yuan_stated_minus10_db": -0.799
+      },
+      "5G 3.5 GHz": {
+       "ka": 13.057,
+       "exact_mie_dbsm": -9.715,
+       "analytic_po_dbsm": -10.3,
+       "our_sbr_dbsm": -10.09,
+       "dev_vs_mie_db": -0.375,
+       "dev_vs_yuan_stated_minus10_db": -0.09
+      },
+      "WiFi 5.21 GHz": {
+       "ka": 19.436,
+       "exact_mie_dbsm": -9.893,
+       "analytic_po_dbsm": -10.228,
+       "our_sbr_dbsm": -10.313,
+       "dev_vs_mie_db": -0.42,
+       "dev_vs_yuan_stated_minus10_db": -0.313
+      }
+     },
+     "reading": "Our SBR reproduces Yuan's own calibration standard to 0.375-0.851 dB against exact Mie, and to 0.09-0.799 dB against the -10 dBsm the paper prints. So the absolute scale of our kernel and the absolute scale of the measurement chain agree on a canonical target to under 1 dB. Whatever goes wrong on the drone is NOT a calibration-scale error."
+    },
+    "why": "It is the only absolute number in this whole exercise that needs no mesh, no material table, no statistic convention and no size transfer. It should open the reordered report sequence: 'our kernel and their measurement chain agree to under 1 dB on the object their chain was calibrated with.' Everything after that is about the airframe, not about the physics engine."
+   },
+   "ANCILLARY — distribution shape": {
+    "rank": 4,
+    "status": "VIABLE, WEAK",
+    "what": "Das Table II ranks Phantom 3 best-fit = Rician (d_AD 0.436); Yuan reports Rician K from about -10 dB down to below -30 dB. We already fit Rician/Gamma/LogNormal in outputs/rcs_anchor.json (amplitude domain, per the distribution_variate caveat).",
+    "why_weak": "A distribution family is a coarse test — it discriminates 'many weak scatterers' from 'one dominant plate' and little else. Report it, do not headline it."
+   },
+   "NOT VIABLE — bistatic-angle curve": {
+    "status": "⛔ REJECT",
+    "why": [
+     "Das Table III's Phantom 3 row has the IDENTICAL slope (0.21) and the IDENTICAL epsilon (0.03f + 5.16) at all seven bistatic angles; only the intercept moves, from -19.19 to -19.82. Same for Mini 2 and M350 RTK. Only Phantom 2 — the platform Das measured himself — has genuinely per-angle slopes. The three Fan-supplied platforms read as an offset ladder applied to a single monostatic fit, not seven independent fits.",
+     "The total span is 0.63 dB across 0-90 degrees. That is BELOW our own kernel's grid dither at div=12 (1.373 dB peak-to-peak) and far below the 3+ dB literature envelope. There is no signal to test against.",
+     "Our kernel's bistatic path (rcs_sbr_multistatic) additionally still uses the monostatic obliquity convention — a separate change that would have to be made and verified first."
+    ]
+   },
+   "NOT VIABLE — azimuth pattern sigma(phi)": {
+    "status": "⛔ REJECT",
+    "why": [
+     "Neither paper publishes a numeric sigma(phi) trace for Phantom 3 — only Yuan's Fig. 3 heat maps and fitted distributions. Digitising a heat map to 1 dB is not a defensible comparison.",
+     "The propeller azimuthal phase at measurement time is unknown and unrecorded, and it is a first-order driver of per-aspect sigma.",
+     "Our own per-aspect RMS against a real 3D scan of the SAME airframe family is already 6.78 dB (section 4). Per-aspect comparison is below our geometric noise floor."
+    ]
+   }
+  },
+  "what_this_comparison_can_NOT_establish": [
+   "That our absolute sigma is correct. One airframe, one chain, two processings that disagree by 2.323 dB on average.",
+   "That our sigma is correct for OUR five airframes. Phantom 3 is a 350 mm fixed-arm quad with a one-piece shell. Mini 5 Pro (275 mm, folding), Matrice 4E (438 mm), S1000+ (1016 mm open carbon frame) are different scattering topologies, and the size-transfer exponent n in {2, 4} is unresolved — sigma_anchor.SIZE_LAWS carries both because neither has been decided.",
+   "Anything about polarisation, bistatic geometry, or moving propellers. Both measurements are VV, monostatic (Yuan) and static-rotor."
+  ],
+  "if_this_is_not_enough_what_measurement_is_needed": {
+   "minimum_viable": "Our own monostatic RCS measurement of ONE of our actual airframes over 1.8-5.3 GHz, calibrated against a PEC sphere whose exact Mie sigma we compute ourselves, with a background subtraction and a range gate. That converts every 'anchored' claim in the repo into a measured one.",
+   "why_our_own_and_not_more_literature": "No published measurement exists for any of our five airframes at our bands. The Sionna sensing survey (prior_work/sionna_sensing_survey.md) turned up a DJI M350 measurement at 21-27 GHz and nothing in FR1 for a small quad. More reading will not produce this number.",
+   "already_designed": "outputs/measurement_plan.json + docs measurement plan already compute the sphere set, the far-field distances, the point-target sub-band condition (Das §II-3c) and the ground-bounce separation for an outdoor range. The design exists; the measurement does not.",
+   "the_one_thing_that_would_change_the_verdict": "A PTD (physical theory of diffraction) edge term in the kernel. The slope gap is the signature of its absence, and it is the only defect in this list that is ours to fix in software rather than on a range."
+  }
+ },
+ "6_material_audit": {
+  "user_question": "mesh 의 형상뿐만 아니라 재질도 현실적인 재질이니? 실제로 조사해서 기입한거야?",
+  "short_answer": "부분적으로만. 형상은 사진·실물스캔과 대조한 기록이 있지만, RCS 에 실제로 들어가는 재질 숫자는 **전부 tier 3(손으로 정한 실효 |Gamma|)** 이고 외부 출처가 없다. 사용자의 지적이 맞다 — 그리고 어느 tier 가 문제인지까지 정확히 맞다.",
+  "which_tier_actually_reaches_our_sigma": {
+   "body": {
+    "material": "plastic",
+    "itu_builtin": null,
+    "has_explicit_gamma_po": true,
+    "gamma_po_value": 0.28,
+    "reaches_our_sigma_via": "hand-set gamma_po (TIER 3, no external source)"
+   },
+   "canopy": {
+    "material": "plastic",
+    "itu_builtin": null,
+    "has_explicit_gamma_po": true,
+    "gamma_po_value": 0.28,
+    "reaches_our_sigma_via": "hand-set gamma_po (TIER 3, no external source)"
+   },
+   "arm": {
+    "material": "carbon",
+    "itu_builtin": null,
+    "has_explicit_gamma_po": true,
+    "gamma_po_value": 0.9,
+    "reaches_our_sigma_via": "hand-set gamma_po (TIER 3, no external source)"
+   },
+   "motor": {
+    "material": "metal",
+    "itu_builtin": "metal",
+    "has_explicit_gamma_po": false,
+    "gamma_po_value": null,
+    "reaches_our_sigma_via": "ITU-R P.2040 Fresnel (TIER 1, standardised)"
+   },
+   "prop": {
+    "material": "prop_plastic",
+    "itu_builtin": null,
+    "has_explicit_gamma_po": true,
+    "gamma_po_value": 0.25,
+    "reaches_our_sigma_via": "hand-set gamma_po (TIER 3, no external source)"
+   },
+   "gear": {
+    "material": "plastic",
+    "itu_builtin": null,
+    "has_explicit_gamma_po": true,
+    "gamma_po_value": 0.28,
+    "reaches_our_sigma_via": "hand-set gamma_po (TIER 3, no external source)"
+   },
+   "camera": {
+    "material": "camera_assembly",
+    "itu_builtin": "metal",
+    "has_explicit_gamma_po": true,
+    "gamma_po_value": 0.85,
+    "reaches_our_sigma_via": "hand-set gamma_po (TIER 3, no external source)"
+   },
+   "accent": {
+    "material": "plastic",
+    "itu_builtin": null,
+    "has_explicit_gamma_po": true,
+    "gamma_po_value": 0.28,
+    "reaches_our_sigma_via": "hand-set gamma_po (TIER 3, no external source)"
+   },
+   "battery": {
+    "material": "metal",
+    "itu_builtin": "metal",
+    "has_explicit_gamma_po": false,
+    "gamma_po_value": null,
+    "reaches_our_sigma_via": "ITU-R P.2040 Fresnel (TIER 1, standardised)"
+   },
+   "pcb": {
+    "material": "pcb",
+    "itu_builtin": "metal",
+    "has_explicit_gamma_po": true,
+    "gamma_po_value": 0.8,
+    "reaches_our_sigma_via": "hand-set gamma_po (TIER 3, no external source)"
+   },
+   "deck": {
+    "material": "carbon",
+    "itu_builtin": null,
+    "has_explicit_gamma_po": true,
+    "gamma_po_value": 0.9,
+    "reaches_our_sigma_via": "hand-set gamma_po (TIER 3, no external source)"
+   },
+   "gear_cf": {
+    "material": "carbon",
+    "itu_builtin": null,
+    "has_explicit_gamma_po": true,
+    "gamma_po_value": 0.9,
+    "reaches_our_sigma_via": "hand-set gamma_po (TIER 3, no external source)"
+   },
+   "fc": {
+    "material": "pcb",
+    "itu_builtin": "metal",
+    "has_explicit_gamma_po": true,
+    "gamma_po_value": 0.8,
+    "reaches_our_sigma_via": "hand-set gamma_po (TIER 3, no external source)"
+   }
+  },
+  "finding_1_tier2_is_a_red_herring_for_RCS": "⭐ The uncited bulk values (plastic eps_r 2.7 / sigma 0.02, carbon eps_r 5.0 / sigma 3000, absorber eps_r 1.4 / sigma 1.2) DO NOT ENTER our drone sigma at all. Every drone material that has them also carries an explicit gamma_po which materials.gamma_po() returns INSTEAD of the Fresnel derivation. They enter only the Sionna RT propagation side, where they matter for the channel, not for the target's RCS. The absorber never touches a drone at all. So the RCS-side material problem is narrower than the brief states — but sharper.",
+  "finding_2_tier3_is_the_whole_input": "⭐ For a Phantom-class quadrotor, every group except motor and battery gets its |Gamma| from a hand-set effective value with a reasoning note and NO external source: plastic 0.28 (body/canopy/gear/accent), prop_plastic 0.25, carbon 0.90 (arms), pcb 0.80, camera_assembly 0.85. Motor and battery map to ITU 'metal' (|Gamma| = 0.9998), which is the only standardised input.",
+  "finding_3_gamma_is_frequency_flat": "⭐ Every gamma_po in the table is a bare float — materials.gamma_po() returns it unchanged for any fc. Therefore ANY revision of the material table shifts sigma(f) by an (almost) frequency-independent amount and CANNOT change the band slope. The material problem and the slope problem are ORTHOGONAL: materials set the level error bar, the missing PTD sets the slope error. See the measured sensitivity below for how nearly true 'almost' is.",
+  "honest_defect_1": "The prop_plastic note admits it outright: '정밀 두께 모델이 아니다' — the thin-film |Gamma| swings 0.1-0.45 with thickness, angle and frequency, DJI does not publish part thicknesses, and we apply one number (0.25) to every propeller on every airframe.",
+  "honest_defect_2": "src/materials.py::make_material() still silently falls back to plastic for an unknown key, while _spec() (the PO path) raises. The guard the file's docstring advertises is only half installed — the Sionna RT path can still take a silent plastic default.",
+  "what_a_sourced_table_would_need": [
+   "ABS/PC shell: a measured eps_r/tan-delta at 1-6 GHz with author, venue, year and the measured band — e.g. a cavity-perturbation or free-space transmission study of injection-moulded ABS. Then a THIN-SLAB (not half-space) reflection model at the measured wall thickness, which is what a 1-3 mm shell actually is.",
+   "Carbon-fibre arm: CFRP is anisotropic and weave-dependent; the right citation gives the surface impedance or effective sigma for a specific weave and ply count at GHz. Our sigma 3000 S/m is an order-of-magnitude placeholder.",
+   "Propeller: blade thickness profile. Absent DJI data, a micrometer measurement of a real 9450 blade at 3 stations would turn our 0.25 from a guess into a thin-slab computation.",
+   "Camera assembly and PCB: these are composite apertures, not materials. The defensible move is to model them geometrically (metal housing + glass window; copper plane + connector cutouts) and drop the effective coefficient entirely."
+  ],
+  "measured_sensitivity": {
+   "what": "phantom4, el=0, n_az=360, div=16, shell_groups = rcs_sbr default {body, canopy}. group_mat is given float |Gamma| directly so src/materials.py is never edited. V1 = every gamma_po replaced by its own bulk Fresnel value (plastic 0.28->0.2437, carbon 0.90->0.9887, pcb 0.80->0.9998, camera 0.85->0.9998). V2 / V3 = the plastic family driven to the thin-film bounds 0.10 / 0.45 that the prop_plastic note itself quotes. V4 = every non-shell group set to |Gamma| = 1 (PEC) — a deliberately absurd upper bound; the shells stay at baseline because rcs_sbr's dielectric-shell guard (SHELL_GAMMA_MAX 0.5) refuses an opaque shell.",
+   "variants": {
+    "V0_baseline": {
+     "mean_dbsm": {
+      "LTE 1.843 GHz": -23.813,
+      "5G 3.5 GHz": -19.757,
+      "WiFi 5.21 GHz": -17.066
+     },
+     "delta_vs_baseline_db": {
+      "LTE 1.843 GHz": 0.0,
+      "5G 3.5 GHz": 0.0,
+      "WiFi 5.21 GHz": 0.0
+     },
+     "slope_db_per_ghz": 2.002,
+     "slope_delta_vs_baseline": 0.0,
+     "gamma_at_3p5ghz": {
+      "body": 0.28,
+      "canopy": 0.28,
+      "arm": 0.9,
+      "motor": 0.9998,
+      "prop": 0.25,
+      "gear": 0.28,
+      "camera": 0.85,
+      "accent": 0.28,
+      "battery": 0.9998,
+      "pcb": 0.8,
+      "deck": 0.9,
+      "gear_cf": 0.9,
+      "fc": 0.8
+     }
+    },
+    "V1_bulk_fresnel_all": {
+     "mean_dbsm": {
+      "LTE 1.843 GHz": -23.247,
+      "5G 3.5 GHz": -19.4,
+      "WiFi 5.21 GHz": -16.925
+     },
+     "delta_vs_baseline_db": {
+      "LTE 1.843 GHz": 0.566,
+      "5G 3.5 GHz": 0.357,
+      "WiFi 5.21 GHz": 0.14
+     },
+     "slope_db_per_ghz": 1.875,
+     "slope_delta_vs_baseline": -0.126,
+     "gamma_at_3p5ghz": {
+      "body": 0.2437,
+      "canopy": 0.2437,
+      "arm": 0.9887,
+      "motor": 0.9998,
+      "prop": 0.2437,
+      "gear": 0.2437,
+      "camera": 0.9998,
+      "accent": 0.2437,
+      "battery": 0.9998,
+      "pcb": 0.9998,
+      "deck": 0.9887,
+      "gear_cf": 0.9887,
+      "fc": 0.9998
+     }
+    },
+    "V2_diel_0p10": {
+     "mean_dbsm": {
+      "LTE 1.843 GHz": -23.417,
+      "5G 3.5 GHz": -20.017,
+      "WiFi 5.21 GHz": -17.952
+     },
+     "delta_vs_baseline_db": {
+      "LTE 1.843 GHz": 0.396,
+      "5G 3.5 GHz": -0.26,
+      "WiFi 5.21 GHz": -0.887
+     },
+     "slope_db_per_ghz": 1.621,
+     "slope_delta_vs_baseline": -0.381,
+     "gamma_at_3p5ghz": {
+      "body": 0.1,
+      "canopy": 0.1,
+      "arm": 0.9,
+      "motor": 0.9998,
+      "prop": 0.1,
+      "gear": 0.1,
+      "camera": 0.85,
+      "accent": 0.1,
+      "battery": 0.9998,
+      "pcb": 0.8,
+      "deck": 0.9,
+      "gear_cf": 0.9,
+      "fc": 0.8
+     }
+    },
+    "V3_diel_0p45": {
+     "mean_dbsm": {
+      "LTE 1.843 GHz": -22.992,
+      "5G 3.5 GHz": -19.08,
+      "WiFi 5.21 GHz": -16.086
+     },
+     "delta_vs_baseline_db": {
+      "LTE 1.843 GHz": 0.822,
+      "5G 3.5 GHz": 0.676,
+      "WiFi 5.21 GHz": 0.98
+     },
+     "slope_db_per_ghz": 2.049,
+     "slope_delta_vs_baseline": 0.048,
+     "gamma_at_3p5ghz": {
+      "body": 0.45,
+      "canopy": 0.45,
+      "arm": 0.9,
+      "motor": 0.9998,
+      "prop": 0.45,
+      "gear": 0.45,
+      "camera": 0.85,
+      "accent": 0.45,
+      "battery": 0.9998,
+      "pcb": 0.8,
+      "deck": 0.9,
+      "gear_cf": 0.9,
+      "fc": 0.8
+     }
+    },
+    "V4_nonshell_pec": {
+     "mean_dbsm": {
+      "LTE 1.843 GHz": -19.882,
+      "5G 3.5 GHz": -14.865,
+      "WiFi 5.21 GHz": -12.443
+     },
+     "delta_vs_baseline_db": {
+      "LTE 1.843 GHz": 3.931,
+      "5G 3.5 GHz": 4.891,
+      "WiFi 5.21 GHz": 4.623
+     },
+     "slope_db_per_ghz": 2.205,
+     "slope_delta_vs_baseline": 0.204,
+     "gamma_at_3p5ghz": {
+      "body": 0.28,
+      "canopy": 0.28,
+      "arm": 1.0,
+      "motor": 1.0,
+      "prop": 1.0,
+      "gear": 1.0,
+      "camera": 1.0,
+      "accent": 1.0,
+      "battery": 1.0,
+      "pcb": 1.0,
+      "deck": 1.0,
+      "gear_cf": 1.0,
+      "fc": 1.0
+     }
+    }
+   },
+   "plausible_bracket": {
+    "variants": [
+     "V1_bulk_fresnel_all",
+     "V2_diel_0p10",
+     "V3_diel_0p45"
+    ],
+    "level_swing_db": 0.98,
+    "slope_swing_db_per_ghz": 0.381
+   },
+   "absurd_upper_bound": {
+    "variant": "V4_nonshell_pec",
+    "level_swing_db": 4.891,
+    "slope_swing_db_per_ghz": 0.204
+   },
+   "level_swing_db_all": 4.891,
+   "slope_swing_db_per_ghz_all": 0.381,
+   "verdict": "⭐ ANSWER TO THE USER'S MATERIAL QUESTION, IN NUMBERS. Across the defensible material bracket the azimuth-mean LEVEL moves by at most 0.98 dB and the 3-band SLOPE by at most 0.381 dB/GHz. Even the absurd all-PEC bound moves the slope by only 0.204 dB/GHz (while moving the level 4.9 dB). The slope gap that must be explained is 1.79 dB/GHz vs Das and 1.69 dB/GHz vs Yuan (ours 2.002 vs measured 0.210 / 0.315). ⇒ The unsourced material table is a REAL level-uncertainty problem of order 1 dB, and a NON-PROBLEM for the slope. Fixing the materials will not rescue the band dependence; only a PTD edge term can.",
+   "why_the_slope_barely_moves": "Every gamma_po is a bare float, so a material edit is a frequency-flat multiplier on each group's contribution. The only way it can tilt the band response at all is by re-weighting which GROUP dominates, and the dominant scatterers (metal motors, metal battery, PCB) are already near |Gamma| = 1 and cannot move up.",
+   "reproduce": "rcs_sbr.rcs_sbr_batch(build_drone(DRONES['phantom4']), gamma_at_3p5ghz, fc, az=linspace(0,360,360,endpoint=False), el_deg=0, spacing=lambda/16, cache_key=None) then 10*log10(mean(sigma)). The gamma_at_3p5ghz map above is the complete material input for each variant — nothing else was changed and src/materials.py was never edited.",
+   "source": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/valfeas/mat_sens.json"
+  }
+ },
+ "7_report_ordering_recommendation": {
+  "user_question": "어떤 RCS 검증 기체가 있는 기체를 우리 방식대로 mesh 를 만들어서 면밀하게 비교하는 작업을 앞쪽 레포트에 작성해서 레포트 순서를 변경하는 것은 어떻게 생각하니?",
+  "answer": "찬성 — 단, 제목이 '검증'이 아니라 '측정 기체와의 대조'여야 한다. 그리고 앞으로 옮길 것은 드론 대조 한 편이 아니라 **두 편**이다.",
+  "proposed_front_matter": [
+   "(a) 교정표적 대조 — Yuan 의 r=17.8 cm PEC 구(σ_Cal=-10 dBsm)에 우리 커널을 그대로 돌린다. 메쉬·재질·규약이 하나도 안 들어가는 유일한 절대 비교이고, 오늘 이미 숫자가 있다 (outputs/rcs_anchor.json sphere_calibration).",
+   "(b) Phantom 3 기체 대조 — 메쉬를 새로 만들고, 헤드라인은 **밴드 기울기**, 부록이 레벨 봉투. P4 를 형상 민감도 대조군으로 같이 돌린다."
+  ],
+  "why_two": "(a) 없이 (b) 만 앞에 두면, 기울기 불일치를 읽는 사람이 '이 엔진의 절대 스케일 자체가 틀린 것 아닌가' 라고 물을 수 있고 그 질문에 답할 자료가 뒤쪽에 흩어져 있다. (a) 가 그 질문을 한 페이지에서 닫는다.",
+  "what_must_not_move_forward": "지금의 sigma_anchor 재보정(re-levelling) 편. 그건 대조가 아니라 대조 '이후'의 처방이다. 대조편보다 앞에 오면 순환논증으로 읽힌다."
+ },
+ "8_open_and_uncontrolled_terms": [
+  "Which Phantom 3 variant Yuan measured (Standard / 4K / Advanced / Professional).",
+  "CATR quiet-zone diameter and amplitude/phase taper — not published; far-field validity for Phantom 3 is asserted, not verifiable.",
+  "Target mount: neither paper states what the airframe sat on (styrofoam column, pylon), nor its contribution after gating.",
+  "Propeller azimuthal phase during the measurement.",
+  "Whether Das's Phantom 3 row is a re-fit of Yuan's identical raw sweep or of a re-processed version via ref [7] (Wang et al., China Commun., 2026) — this is what makes the 2.5 dB convention/processing ambiguity irreducible from these two papers alone.",
+  "Cross-polar response of a Phantom-class airframe at 1.8-5.2 GHz — needed to bound our scalar kernel's bias against a VV measurement; not published anywhere we have found.",
+  "Size-transfer exponent n in {2, 4} for carrying a Phantom-3 anchor to our other airframes. Building the Phantom 3 itself is what lets us avoid deciding it for the headline comparison."
+ ]
+}

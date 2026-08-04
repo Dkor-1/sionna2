@@ -90,14 +90,74 @@ def _sig_key(drone_key, fc, az, el):
 
 
 def _sig_load():
+    """디스크 캐시를 올린다. **지문 없는 옛 키(`drone|fc|az|el`)는 올리면서 버린다.**
+
+    ⚠ 2026-08-03: 옛 키 형식에는 메쉬 지문이 없어 `_sig_key` 가 만드는 키와 **영원히 안 맞는다**
+      — 조회 히트는 0인데 파일 크기와 '엔트리 수'만 부풀린다(실측 2,000 중 650개가 이것이었다).
+      지문 불일치 키는 여기서 지우지 않는다(메쉬를 되돌리면 되살아나야 하므로) — 그건
+      `sigma_cache_prune()` 이 명시적으로 할 일이다. 이 드롭은 메모리에서만 하고 디스크는
+      건드리지 않는다(_SIG_DIRTY 를 세우지 않는다).
+    """
     global _SIG
     if _SIG is None:
         try:
             with open(SIGMA_CACHE) as f:
-                _SIG = json.load(f)
+                raw = json.load(f)
         except Exception:
-            _SIG = {}
+            raw = {}
+        _SIG = {k: v for k, v in raw.items() if "@" in str(k).split("|", 1)[0]}
     return _SIG
+
+
+def sigma_cache_prune(drones=None, apply=True, verbose=True):
+    """σ 디스크 캐시에서 **죽은 엔트리를 실제로 지운다** (유지보수용, 명시 호출).
+
+    지우는 것 두 종류:
+      · legacy : 키에 메쉬 지문이 없다 → `_sig_key` 와 영원히 안 맞는 순수 쓰레기.
+      · stale  : 지문이 있으나 **지금 메쉬의 지문이 아니다** → CAD 가 바뀌었다는 뜻.
+    남기는 것: 지금 메쉬 지문과 일치하는 엔트리, 그리고 `drones` 에 없는(=판단 불가) 기체의 엔트리.
+
+    반환 dict: {total, legacy, stale, live, kept, removed, fingerprints}
+    """
+    from drones import DRONES as _D
+    drones = list(drones or _D.keys())
+    fps = {d: _mesh_fp(d) for d in drones}
+    cur = {f"{d}@{fp}" for d, fp in fps.items()}
+    known = set(drones)
+    try:
+        with open(SIGMA_CACHE) as f:
+            raw = json.load(f)
+    except Exception:
+        raw = {}
+    keep, legacy, stale, live, unknown = {}, 0, 0, 0, 0
+    for k, v in raw.items():
+        head = str(k).split("|", 1)[0]
+        if "@" not in head:
+            legacy += 1
+            continue
+        dr = head.split("@", 1)[0]
+        if head in cur:
+            live += 1
+            keep[k] = v
+        elif dr in known:
+            stale += 1
+        else:
+            unknown += 1
+            keep[k] = v
+    out = dict(total=len(raw), legacy=legacy, stale=stale, live=live, unknown_drone=unknown,
+               kept=len(keep), removed=len(raw) - len(keep), fingerprints=fps)
+    if apply:
+        os.makedirs(_OUT, exist_ok=True)
+        tmp = SIGMA_CACHE + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(keep, f)
+        os.replace(tmp, SIGMA_CACHE)
+        global _SIG
+        _SIG = dict(keep)
+    if verbose:
+        print(f"[sigma cache] 총 {out['total']} → 남김 {out['kept']} "
+              f"(legacy {legacy} · stale {stale} · live {live} · 미상기체 {unknown})")
+    return out
 
 
 def sigma_cache_save():

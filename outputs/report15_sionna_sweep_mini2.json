@@ -1,0 +1,2168 @@
+{
+ "meta": {
+  "script": "benchmark/report15_sweep_mini2.py",
+  "drone": "mini2",
+  "question": "Sionna PathSolver 가 로터를 돌려가며 다시 추적했을 때 블레이드 마이크로도플러를 내는가 — 거리 1·3·10 m 스윕",
+  "observable": "h = Σ_p a_p·exp(−j2πf_c·τ_p) (코히런트) · P = Σ_p|a_p|² (위상무관 에너지). Paths.a 는 패스밴드라 전파위상이 없다. Paths.cir() 은 normalize_delays=True 로 절대위상을 지우므로 쓰지 않았다.",
+  "why_this_airframe": "mini2 = 검증된 기준자(Das 실측 4기체 대조 ΔL −0.51 dB 1위, 형상 근거 DJI 공표 GLB WM161 축척 +0.07 %) — 이상이 나오면 메쉬 탓인지 방법 탓인지 이 기체가 가른다.",
+  "why_near_range": "가까우면 (a) 입체각이 커서 광선이 많이 맞고 (b) 부위 경로가 분해되고 (c) Sionna 는 원래 구면파를 추적한다 → Sionna 에게 가장 유리한 조건.",
+  "null_design": "⭐ 2날 프롭은 형상이 180° 주기 → 온바퀴 64 스텝 FFT 의 **홀수 빈은 신호가 원리적으로 들어갈 수 없는 자리** = 같은 데이터 안의 잡음바닥.",
+  "fc_hz": 3500000000.0,
+  "lambda_m": 0.085654988,
+  "max_depth": 1,
+  "baseline_m": 0.2,
+  "ranges_m": [
+   1.0,
+   3.0,
+   10.0
+  ],
+  "aspects": [
+   {
+    "tag": "front",
+    "az": 0.0,
+    "el": 15.0,
+    "why": "하우스 기준 시선(정면·앙각 15°)"
+   },
+   {
+    "tag": "oblique",
+    "az": 45.0,
+    "el": 15.0,
+    "why": "비스듬 — 프롭 원판이 비대칭으로 보인다"
+   },
+   {
+    "tag": "side",
+    "az": 90.0,
+    "el": 15.0,
+    "why": "측면 — 동체 장축이 시선에 직교"
+   },
+   {
+    "tag": "hot",
+    "az": 0.0,
+    "el": 0.0,
+    "why": "탐침이 찾은 **유일한 정반사 보유 자세**(짐벌 렌즈면)"
+   }
+  ],
+  "n_phase_steps": 64,
+  "turn_deg": 360.0,
+  "seeds": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "spp_ref": 256000000,
+  "spp_conditions": [
+   "uniform",
+   "matched"
+  ],
+  "max_paths": 2000000,
+  "gpu": "3",
+  "materials": "production per-group (DRONE_GROUP_MAT)",
+  "prior": "WiFi-JEPA arXiv:2607.11064 — frame 당 20 pass 로 시간축 생성",
+  "related": [
+   "outputs/report15_probe.json",
+   "outputs/facet_count.json"
+  ],
+  "stamp": "2026-08-04 08:28:12"
+ },
+ "physics": {
+  "drone": "mini2",
+  "name": "DJI Mini 2",
+  "fc_hz": 3500000000.0,
+  "lambda_m": 0.085654988,
+  "span_m": [
+   0.203871,
+   0.285247,
+   0.0586936
+  ],
+  "D_horizontal_m": 0.28524685558503493,
+  "D_diag3d_m": 0.3554913161428532,
+  "D_prop_disc_m": 0.1191,
+  "diagonal_spec_mm": 213.0,
+  "n_rotors": 4,
+  "prop_blades": 2,
+  "hover_rpm": 9200.0,
+  "omega_rad_s": 963.4217471008699,
+  "v_tip_ms": 57.3717650398568,
+  "v_tip_mach": 0.16726462110745421,
+  "f_tip_hz": 1339.6012626808563,
+  "f_rev_hz": 153.33333333333334,
+  "f_flash_hz": 306.6666666666667,
+  "T_rev_s": 0.006521739130434782,
+  "farfield_bounds": {
+   "prop_disc": {
+    "D_m": 0.1191,
+    "fraunhofer_m": 0.3312080319245389,
+    "reactive_m": 0.08707289867085657
+   },
+   "horizontal": {
+    "D_m": 0.28524685558503493,
+    "fraunhofer_m": 1.899848929315121,
+    "reactive_m": 0.3227354401921047
+   },
+   "diag3d": {
+    "D_m": 0.3554913161428532,
+    "fraunhofer_m": 2.950769798788087,
+    "reactive_m": 0.44901293764632977
+   }
+  },
+  "per_range": {
+   "1.0": {
+    "range_m": 1.0,
+    "prop_disc": {
+     "fraunhofer_m": 0.3312080319245389,
+     "R_over_fraunhofer": 3.019250451715603,
+     "in_farfield": true,
+     "in_reactive": false
+    },
+    "horizontal": {
+     "fraunhofer_m": 1.899848929315121,
+     "R_over_fraunhofer": 0.5263576406364538,
+     "in_farfield": false,
+     "in_reactive": false
+    },
+    "diag3d": {
+     "fraunhofer_m": 2.950769798788087,
+     "R_over_fraunhofer": 0.3388946167236464,
+     "in_farfield": false,
+     "in_reactive": false
+    },
+    "curvature_err_m_horiz": 0.020341442155287444,
+    "curvature_phase_deg_horiz": 85.49320181918046,
+    "curvature_phase_deg_prop": 14.904361436604251,
+    "solid_angle_frac": 0.005085360538821861
+   },
+   "3.0": {
+    "range_m": 3.0,
+    "prop_disc": {
+     "fraunhofer_m": 0.3312080319245389,
+     "R_over_fraunhofer": 9.05775135514681,
+     "in_farfield": true,
+     "in_reactive": false
+    },
+    "horizontal": {
+     "fraunhofer_m": 1.899848929315121,
+     "R_over_fraunhofer": 1.5790729219093613,
+     "in_farfield": true,
+     "in_reactive": false
+    },
+    "diag3d": {
+     "fraunhofer_m": 2.950769798788087,
+     "R_over_fraunhofer": 1.0166838501709392,
+     "in_farfield": true,
+     "in_reactive": false
+    },
+    "curvature_err_m_horiz": 0.006780480718429148,
+    "curvature_phase_deg_horiz": 28.497733939726817,
+    "curvature_phase_deg_prop": 4.968120478868084,
+    "solid_angle_frac": 0.0005650400598690956
+   },
+   "10.0": {
+    "range_m": 10.0,
+    "prop_disc": {
+     "fraunhofer_m": 0.3312080319245389,
+     "R_over_fraunhofer": 30.19250451715603,
+     "in_farfield": true,
+     "in_reactive": false
+    },
+    "horizontal": {
+     "fraunhofer_m": 1.899848929315121,
+     "R_over_fraunhofer": 5.263576406364538,
+     "in_farfield": true,
+     "in_reactive": false
+    },
+    "diag3d": {
+     "fraunhofer_m": 2.950769798788087,
+     "R_over_fraunhofer": 3.388946167236464,
+     "in_farfield": true,
+     "in_reactive": false
+    },
+    "curvature_err_m_horiz": 0.0020341442155287445,
+    "curvature_phase_deg_horiz": 8.549320181918047,
+    "curvature_phase_deg_prop": 1.490436143660425,
+    "solid_angle_frac": 5.085360538821861e-05
+   }
+  },
+  "n_steps": 64,
+  "phase_step_deg": 5.625,
+  "slow_fs_hz": 9813.333333333334,
+  "slow_nyquist_hz": 4906.666666666667,
+  "doppler_bin_hz": 153.33333333333334,
+  "f_tip_in_bins": 8.736529974005585,
+  "aliased": false,
+  "alias_by_n_steps": {
+   "16": {
+    "n_steps": 16,
+    "turn_deg": 360.0,
+    "slow_fs_hz": 2453.3333333333335,
+    "nyquist_hz": 1226.6666666666667,
+    "aliased": true,
+    "margin": 0.9156953646130633,
+    "tip_travel_per_step_lambda": 0.2730165616876745
+   },
+   "32": {
+    "n_steps": 32,
+    "turn_deg": 360.0,
+    "slow_fs_hz": 4906.666666666667,
+    "nyquist_hz": 2453.3333333333335,
+    "aliased": false,
+    "margin": 1.8313907292261267,
+    "tip_travel_per_step_lambda": 0.13650828084383726
+   },
+   "64": {
+    "n_steps": 64,
+    "turn_deg": 360.0,
+    "slow_fs_hz": 9813.333333333334,
+    "nyquist_hz": 4906.666666666667,
+    "aliased": false,
+    "margin": 3.6627814584522533,
+    "tip_travel_per_step_lambda": 0.06825414042191863
+   }
+  },
+  "mesh_period_deg": 180.0,
+  "note_ko": "온바퀴 N 스텝 기록 → 슬로타임 표본률 N·f_rev, 도플러 빈 간격 f_rev. 2날 프롭은 형상 주기가 180° 라 h(φ) 는 **짝수 하모닉만** 가진다 → 홀수 빈은 그 자리에서 잡음바닥이 된다."
+ },
+ "materials": {
+  "by_group": {
+   "battery": {
+    "mat_key": "metal",
+    "itu": true,
+    "eps_r": 1.0,
+    "sigma_S_m": 10000000.0,
+    "scattering_coefficient_S": 0.0,
+    "gamma_bulk": 0.999803,
+    "gamma_bulk_db": -0.00171407,
+    "gamma_po": 0.999803,
+    "n_tris": 24,
+    "area_m2": 0.0200373,
+    "area_frac": 0.218748
+   },
+   "body": {
+    "mat_key": "plastic",
+    "itu": false,
+    "eps_r": 2.7,
+    "sigma_S_m": 0.02,
+    "scattering_coefficient_S": 0.2,
+    "gamma_bulk": 0.243687,
+    "gamma_bulk_db": -12.2634,
+    "gamma_po": 0.28,
+    "n_tris": 7757,
+    "area_m2": 0.0362985,
+    "area_frac": 0.396272
+   },
+   "camera": {
+    "mat_key": "camera_assembly",
+    "itu": true,
+    "eps_r": 1.0,
+    "sigma_S_m": 10000000.0,
+    "scattering_coefficient_S": 0.0,
+    "gamma_bulk": 0.999803,
+    "gamma_bulk_db": -0.00171407,
+    "gamma_po": 0.85,
+    "n_tris": 294,
+    "area_m2": 0.00609698,
+    "area_frac": 0.066561
+   },
+   "canopy": {
+    "mat_key": "plastic",
+    "itu": false,
+    "eps_r": 2.7,
+    "sigma_S_m": 0.02,
+    "scattering_coefficient_S": 0.2,
+    "gamma_bulk": 0.243687,
+    "gamma_bulk_db": -12.2634,
+    "gamma_po": 0.28,
+    "n_tris": 2240,
+    "area_m2": 0.00981365,
+    "area_frac": 0.107136
+   },
+   "gear": {
+    "mat_key": "plastic",
+    "itu": false,
+    "eps_r": 2.7,
+    "sigma_S_m": 0.02,
+    "scattering_coefficient_S": 0.2,
+    "gamma_bulk": 0.243687,
+    "gamma_bulk_db": -12.2634,
+    "gamma_po": 0.28,
+    "n_tris": 512,
+    "area_m2": 0.00158007,
+    "area_frac": 0.0172497
+   },
+   "motor": {
+    "mat_key": "metal",
+    "itu": true,
+    "eps_r": 1.0,
+    "sigma_S_m": 10000000.0,
+    "scattering_coefficient_S": 0.0,
+    "gamma_bulk": 0.999803,
+    "gamma_bulk_db": -0.00171407,
+    "gamma_po": 0.999803,
+    "n_tris": 2248,
+    "area_m2": 0.00363674,
+    "area_frac": 0.0397025
+   },
+   "pcb": {
+    "mat_key": "pcb",
+    "itu": true,
+    "eps_r": 1.0,
+    "sigma_S_m": 10000000.0,
+    "scattering_coefficient_S": 0.0,
+    "gamma_bulk": 0.999803,
+    "gamma_bulk_db": -0.00171407,
+    "gamma_po": 0.8,
+    "n_tris": 12,
+    "area_m2": 0.0044422,
+    "area_frac": 0.0484957
+   },
+   "prop": {
+    "mat_key": "prop_plastic",
+    "itu": false,
+    "eps_r": 2.7,
+    "sigma_S_m": 0.02,
+    "scattering_coefficient_S": 0.2,
+    "gamma_bulk": 0.243687,
+    "gamma_bulk_db": -12.2634,
+    "gamma_po": 0.25,
+    "n_tris": 12736,
+    "area_m2": 0.00969441,
+    "area_frac": 0.105834
+   }
+  },
+  "total_area_m2": 0.0915998,
+  "rotor_group": "prop",
+  "rotor_mat_key": "prop_plastic",
+  "rotor_is_metal": false,
+  "rotor_verdict": "mini2 의 로터는 그룹 'prop' → 재질 'prop_plastic' = **플라스틱 유전체**(εr=2.70, σ=0.02 S/m, 산란계수 S=0.20). 금속이 아니다. Sionna 가 보는 수직입사 벌크 |Γ| = 0.2437 (-12.26 dB) — 금속 (-0.00 dB) 대비 -12.26 dB. 게다가 S=0.20 라 반사전력의 일부가 **확산**으로 빠진다 — 블레이드 정반사 글린트를 기대할 근거가 재질 쪽에서도 약하다.",
+  "note_ko": "Sionna(전파)와 PO(RCS)는 같은 표(src/materials.py)에서 읽지만 프로펠러는 벌크 프레넬(Sionna)과 얇은날개 실효 |Γ|(PO)가 다르다. 이 실험은 Sionna 쪽."
+ },
+ "A_doppler": {
+  "n_paths": 98,
+  "doppler_nonzero": 0,
+  "doppler_max_abs_hz": 0.0,
+  "velocity_dof_per_object": {
+   "mini2_battery_A": 3,
+   "mini2_body_A": 3,
+   "mini2_camera_A": 3,
+   "mini2_canopy_A": 3,
+   "mini2_gear_A": 3,
+   "mini2_motor_A": 3,
+   "mini2_pcb_A": 3,
+   "mini2_prop_A": 3
+  },
+  "max_dof": 3,
+  "verdict": "SceneObject.velocity 는 객체당 3성분(강체 1벡터)뿐 — 회전 자유도가 없다. Paths.doppler 만으로는 블레이드 마이크로도플러가 원리적으로 불가. 그래서 ② 갈래(위상 스텝 + 재추적)만 남는다."
+ },
+ "B_period": {
+  "period_deg": 180.0,
+  "n_probe": 8,
+  "rows": [
+   {
+    "phase_deg": 0.0,
+    "setwise_max_dev_m": 3.103e-17,
+    "elementwise_max_dev_m": 0.1191
+   },
+   {
+    "phase_deg": 5.625,
+    "setwise_max_dev_m": 3.925e-17,
+    "elementwise_max_dev_m": 0.1191
+   },
+   {
+    "phase_deg": 11.25,
+    "setwise_max_dev_m": 5.594e-17,
+    "elementwise_max_dev_m": 0.1191
+   },
+   {
+    "phase_deg": 16.875,
+    "setwise_max_dev_m": 3.103e-17,
+    "elementwise_max_dev_m": 0.1191
+   },
+   {
+    "phase_deg": 22.5,
+    "setwise_max_dev_m": 4.443e-17,
+    "elementwise_max_dev_m": 0.1191
+   },
+   {
+    "phase_deg": 28.125,
+    "setwise_max_dev_m": 6.206e-17,
+    "elementwise_max_dev_m": 0.1191
+   },
+   {
+    "phase_deg": 33.75,
+    "setwise_max_dev_m": 3.469e-17,
+    "elementwise_max_dev_m": 0.1191
+   },
+   {
+    "phase_deg": 39.375,
+    "setwise_max_dev_m": 4.655e-17,
+    "elementwise_max_dev_m": 0.1191
+   }
+  ],
+  "period_symmetry_ok": true,
+  "max_setwise_dev_m": 6.206e-17,
+  "max_vertex_shift_m": 0.1191,
+  "max_vertex_shift_lambda": 1.39046,
+  "geom_excursion_m": 0.050863,
+  "geom_excursion_lambda": 0.593813,
+  "geom_excursion_roundtrip_phase_deg": 427.545,
+  "shift_by_phase": [
+   {
+    "phase_deg": 5.625,
+    "elementwise_m": 0.005844,
+    "hausdorff_m": 0.005271
+   },
+   {
+    "phase_deg": 11.25,
+    "elementwise_m": 0.01167,
+    "hausdorff_m": 0.01031
+   },
+   {
+    "phase_deg": 16.875,
+    "elementwise_m": 0.01748,
+    "hausdorff_m": 0.01516
+   },
+   {
+    "phase_deg": 22.5,
+    "elementwise_m": 0.02324,
+    "hausdorff_m": 0.01981
+   },
+   {
+    "phase_deg": 28.125,
+    "elementwise_m": 0.02894,
+    "hausdorff_m": 0.02418
+   },
+   {
+    "phase_deg": 33.75,
+    "elementwise_m": 0.03457,
+    "hausdorff_m": 0.02828
+   },
+   {
+    "phase_deg": 39.375,
+    "elementwise_m": 0.04012,
+    "hausdorff_m": 0.03206
+   },
+   {
+    "phase_deg": 45.0,
+    "elementwise_m": 0.04558,
+    "hausdorff_m": 0.03574
+   },
+   {
+    "phase_deg": 50.625,
+    "elementwise_m": 0.05092,
+    "hausdorff_m": 0.03903
+   },
+   {
+    "phase_deg": 56.25,
+    "elementwise_m": 0.05614,
+    "hausdorff_m": 0.04182
+   },
+   {
+    "phase_deg": 61.875,
+    "elementwise_m": 0.06123,
+    "hausdorff_m": 0.0441
+   },
+   {
+    "phase_deg": 67.5,
+    "elementwise_m": 0.06617,
+    "hausdorff_m": 0.04591
+   },
+   {
+    "phase_deg": 73.125,
+    "elementwise_m": 0.07095,
+    "hausdorff_m": 0.04775
+   },
+   {
+    "phase_deg": 78.75,
+    "elementwise_m": 0.07556,
+    "hausdorff_m": 0.04945
+   },
+   {
+    "phase_deg": 84.375,
+    "elementwise_m": 0.07998,
+    "hausdorff_m": 0.05086
+   },
+   {
+    "phase_deg": 90.0,
+    "elementwise_m": 0.08422,
+    "hausdorff_m": 0.05086
+   },
+   {
+    "phase_deg": 95.625,
+    "elementwise_m": 0.08825,
+    "hausdorff_m": 0.05084
+   },
+   {
+    "phase_deg": 101.25,
+    "elementwise_m": 0.09207,
+    "hausdorff_m": 0.05085
+   },
+   {
+    "phase_deg": 106.875,
+    "elementwise_m": 0.09566,
+    "hausdorff_m": 0.05086
+   },
+   {
+    "phase_deg": 112.5,
+    "elementwise_m": 0.09903,
+    "hausdorff_m": 0.05084
+   },
+   {
+    "phase_deg": 118.125,
+    "elementwise_m": 0.1022,
+    "hausdorff_m": 0.04993
+   },
+   {
+    "phase_deg": 123.75,
+    "elementwise_m": 0.105,
+    "hausdorff_m": 0.04753
+   },
+   {
+    "phase_deg": 129.375,
+    "elementwise_m": 0.1077,
+    "hausdorff_m": 0.0445
+   },
+   {
+    "phase_deg": 135.0,
+    "elementwise_m": 0.11,
+    "hausdorff_m": 0.04087
+   },
+   {
+    "phase_deg": 140.625,
+    "elementwise_m": 0.1121,
+    "hausdorff_m": 0.03671
+   },
+   {
+    "phase_deg": 146.25,
+    "elementwise_m": 0.114,
+    "hausdorff_m": 0.03214
+   },
+   {
+    "phase_deg": 151.875,
+    "elementwise_m": 0.1155,
+    "hausdorff_m": 0.02716
+   },
+   {
+    "phase_deg": 157.5,
+    "elementwise_m": 0.1168,
+    "hausdorff_m": 0.02191
+   },
+   {
+    "phase_deg": 163.125,
+    "elementwise_m": 0.1178,
+    "hausdorff_m": 0.01642
+   },
+   {
+    "phase_deg": 168.75,
+    "elementwise_m": 0.1185,
+    "hausdorff_m": 0.01106
+   },
+   {
+    "phase_deg": 174.375,
+    "elementwise_m": 0.119,
+    "hausdorff_m": 0.005675
+   },
+   {
+    "phase_deg": 180.0,
+    "elementwise_m": 0.1191,
+    "hausdorff_m": 3.103e-17
+   },
+   {
+    "phase_deg": 185.625,
+    "elementwise_m": 0.119,
+    "hausdorff_m": 0.005271
+   },
+   {
+    "phase_deg": 191.25,
+    "elementwise_m": 0.1185,
+    "hausdorff_m": 0.01031
+   },
+   {
+    "phase_deg": 196.875,
+    "elementwise_m": 0.1178,
+    "hausdorff_m": 0.01516
+   },
+   {
+    "phase_deg": 202.5,
+    "elementwise_m": 0.1168,
+    "hausdorff_m": 0.01981
+   },
+   {
+    "phase_deg": 208.125,
+    "elementwise_m": 0.1155,
+    "hausdorff_m": 0.02418
+   },
+   {
+    "phase_deg": 213.75,
+    "elementwise_m": 0.114,
+    "hausdorff_m": 0.02828
+   },
+   {
+    "phase_deg": 219.375,
+    "elementwise_m": 0.1121,
+    "hausdorff_m": 0.03206
+   },
+   {
+    "phase_deg": 225.0,
+    "elementwise_m": 0.11,
+    "hausdorff_m": 0.03574
+   },
+   {
+    "phase_deg": 230.625,
+    "elementwise_m": 0.1077,
+    "hausdorff_m": 0.03903
+   },
+   {
+    "phase_deg": 236.25,
+    "elementwise_m": 0.105,
+    "hausdorff_m": 0.04182
+   },
+   {
+    "phase_deg": 241.875,
+    "elementwise_m": 0.1022,
+    "hausdorff_m": 0.0441
+   },
+   {
+    "phase_deg": 247.5,
+    "elementwise_m": 0.09903,
+    "hausdorff_m": 0.04591
+   },
+   {
+    "phase_deg": 253.125,
+    "elementwise_m": 0.09566,
+    "hausdorff_m": 0.04775
+   },
+   {
+    "phase_deg": 258.75,
+    "elementwise_m": 0.09207,
+    "hausdorff_m": 0.04945
+   },
+   {
+    "phase_deg": 264.375,
+    "elementwise_m": 0.08825,
+    "hausdorff_m": 0.05086
+   },
+   {
+    "phase_deg": 270.0,
+    "elementwise_m": 0.08422,
+    "hausdorff_m": 0.05086
+   },
+   {
+    "phase_deg": 275.625,
+    "elementwise_m": 0.07998,
+    "hausdorff_m": 0.05084
+   },
+   {
+    "phase_deg": 281.25,
+    "elementwise_m": 0.07556,
+    "hausdorff_m": 0.05085
+   },
+   {
+    "phase_deg": 286.875,
+    "elementwise_m": 0.07095,
+    "hausdorff_m": 0.05086
+   },
+   {
+    "phase_deg": 292.5,
+    "elementwise_m": 0.06617,
+    "hausdorff_m": 0.05084
+   },
+   {
+    "phase_deg": 298.125,
+    "elementwise_m": 0.06123,
+    "hausdorff_m": 0.04993
+   },
+   {
+    "phase_deg": 303.75,
+    "elementwise_m": 0.05614,
+    "hausdorff_m": 0.04753
+   },
+   {
+    "phase_deg": 309.375,
+    "elementwise_m": 0.05092,
+    "hausdorff_m": 0.0445
+   },
+   {
+    "phase_deg": 315.0,
+    "elementwise_m": 0.04558,
+    "hausdorff_m": 0.04087
+   },
+   {
+    "phase_deg": 320.625,
+    "elementwise_m": 0.04012,
+    "hausdorff_m": 0.03671
+   },
+   {
+    "phase_deg": 326.25,
+    "elementwise_m": 0.03457,
+    "hausdorff_m": 0.03214
+   },
+   {
+    "phase_deg": 331.875,
+    "elementwise_m": 0.02894,
+    "hausdorff_m": 0.02716
+   },
+   {
+    "phase_deg": 337.5,
+    "elementwise_m": 0.02324,
+    "hausdorff_m": 0.02191
+   },
+   {
+    "phase_deg": 343.125,
+    "elementwise_m": 0.01748,
+    "hausdorff_m": 0.01642
+   },
+   {
+    "phase_deg": 348.75,
+    "elementwise_m": 0.01167,
+    "hausdorff_m": 0.01106
+   },
+   {
+    "phase_deg": 354.375,
+    "elementwise_m": 0.005844,
+    "hausdorff_m": 0.005675
+   }
+  ],
+  "max_shift_by_group_m": {
+   "battery": 0.0,
+   "body": 0.0,
+   "camera": 0.0,
+   "canopy": 0.0,
+   "gear": 0.0,
+   "motor": 0.0,
+   "pcb": 0.0,
+   "prop": 0.1191
+  },
+  "note_ko": "집합 일치(≈0)이고 색인만 다르다 → h(φ) 와 h(φ+180°) 는 **같은 기하**의 두 스냅샷이다. 따라서 온바퀴 FFT 의 홀수 빈은 신호가 원리적으로 들어갈 수 없는 자리 = 잡음바닥. ⚠ geom_excursion(집합 Hausdorff) 이 '기하가 실제로 변한 크기'이고, max_vertex_shift(색인별) 는 같은 형상의 정점 재배치까지 포함하므로 과대평가다."
+ },
+ "calibration": {
+  "spp_ref": 256000000,
+  "n_target": 630,
+  "by_cell": {
+   "R1/front": {
+    "range_m": 1.0,
+    "aspect": "front",
+    "n_at_ref": 5776,
+    "spp_matched": 27922438,
+    "n_target": 630
+   },
+   "R1/oblique": {
+    "range_m": 1.0,
+    "aspect": "oblique",
+    "n_at_ref": 5575,
+    "spp_matched": 28929148,
+    "n_target": 630
+   },
+   "R1/side": {
+    "range_m": 1.0,
+    "aspect": "side",
+    "n_at_ref": 6057,
+    "spp_matched": 26627043,
+    "n_target": 630
+   },
+   "R1/hot": {
+    "range_m": 1.0,
+    "aspect": "hot",
+    "n_at_ref": 5503,
+    "spp_matched": 29307650,
+    "n_target": 630
+   },
+   "R3/front": {
+    "range_m": 3.0,
+    "aspect": "front",
+    "n_at_ref": 630,
+    "spp_matched": 256000000,
+    "n_target": 630
+   },
+   "R3/oblique": {
+    "range_m": 3.0,
+    "aspect": "oblique",
+    "n_at_ref": 679,
+    "spp_matched": 237525773,
+    "n_target": 630
+   },
+   "R3/side": {
+    "range_m": 3.0,
+    "aspect": "side",
+    "n_at_ref": 721,
+    "spp_matched": 223689320,
+    "n_target": 630
+   },
+   "R3/hot": {
+    "range_m": 3.0,
+    "aspect": "hot",
+    "n_at_ref": 628,
+    "spp_matched": 256815287,
+    "n_target": 630
+   },
+   "R10/front": {
+    "range_m": 10.0,
+    "aspect": "front",
+    "n_at_ref": 56,
+    "spp_matched": 2880000000,
+    "n_target": 630
+   },
+   "R10/oblique": {
+    "range_m": 10.0,
+    "aspect": "oblique",
+    "n_at_ref": 55,
+    "spp_matched": 2932363636,
+    "n_target": 630
+   },
+   "R10/side": {
+    "range_m": 10.0,
+    "aspect": "side",
+    "n_at_ref": 73,
+    "spp_matched": 2209315068,
+    "n_target": 630
+   },
+   "R10/hot": {
+    "range_m": 10.0,
+    "aspect": "hot",
+    "n_at_ref": 62,
+    "spp_matched": 2601290323,
+    "n_target": 630
+   }
+  },
+  "note_ko": "거리가 멀면 드론이 차지하는 입체각이 작아 같은 spp 로도 경로가 훨씬 적게 잡힌다(∝1/R²). 'uniform' 조건은 광선예산을, 'matched' 조건은 **경로수**를 맞춘다 — 둘 다 남겨야 '거리 탓'과 '광선예산 탓'이 갈린다."
+ },
+ "L_ladder": {
+  "ladder": [
+   16000000,
+   64000000,
+   256000000,
+   1024000000,
+   3072000000
+  ],
+  "seeds": [
+   1,
+   2
+  ],
+  "phases_deg": [
+   0.0,
+   90.0
+  ],
+  "by_cell": {
+   "R1/front": {
+    "range_m": 1.0,
+    "aspect": "front",
+    "az_deg": 0.0,
+    "el_deg": 15.0,
+    "rows": [
+     {
+      "spp": 16000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 347.0,
+       "amp_db": -84.8866,
+       "energy_db": -96.5169,
+       "coh_over_incoh_db": 11.6303
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 312.0,
+       "amp_db": -85.8588,
+       "energy_db": -96.9288,
+       "coh_over_incoh_db": 11.07
+      },
+      "delta_amp_db": -0.9722,
+      "delta_energy_db": -0.4119
+     },
+     {
+      "spp": 64000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 1421.5,
+       "amp_db": -79.5304,
+       "energy_db": -96.525,
+       "coh_over_incoh_db": 16.9946
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 1334.0,
+       "amp_db": -80.4535,
+       "energy_db": -96.8197,
+       "coh_over_incoh_db": 16.3662
+      },
+      "delta_amp_db": -0.9231,
+      "delta_energy_db": -0.2947
+     },
+     {
+      "spp": 256000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 5727.5,
+       "amp_db": -73.22,
+       "energy_db": -96.4852,
+       "coh_over_incoh_db": 23.2652
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 5263.0,
+       "amp_db": -74.0596,
+       "energy_db": -96.8106,
+       "coh_over_incoh_db": 22.751
+      },
+      "delta_amp_db": -0.8396,
+      "delta_energy_db": -0.3254
+     },
+     {
+      "spp": 1024000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 22819.0,
+       "amp_db": -66.9868,
+       "energy_db": -96.5386,
+       "coh_over_incoh_db": 29.5518
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 21135.5,
+       "amp_db": -67.897,
+       "energy_db": -96.8501,
+       "coh_over_incoh_db": 28.9531
+      },
+      "delta_amp_db": -0.9102,
+      "delta_energy_db": -0.3115
+     },
+     {
+      "spp": 3072000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 67943.0,
+       "amp_db": -62.5306,
+       "energy_db": -96.5578,
+       "coh_over_incoh_db": 34.0272
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 62950.5,
+       "amp_db": -63.341,
+       "energy_db": -96.8655,
+       "coh_over_incoh_db": 33.5245
+      },
+      "delta_amp_db": -0.8104,
+      "delta_energy_db": -0.3077
+     }
+    ],
+    "slope_coh_pow_per_decade": 0.99238,
+    "slope_incoh_pow_per_decade": -0.00159758,
+    "slope_n_paths_per_decade": 1.00334,
+    "coherent_converges": false,
+    "incoherent_converges": true,
+    "delta_amp_db_range": 0.1618,
+    "delta_energy_db_range": 0.1172
+   },
+   "R1/oblique": {
+    "range_m": 1.0,
+    "aspect": "oblique",
+    "az_deg": 45.0,
+    "el_deg": 15.0,
+    "rows": [
+     {
+      "spp": 16000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 356.0,
+       "amp_db": -83.7549,
+       "energy_db": -96.1426,
+       "coh_over_incoh_db": 12.3877
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 355.0,
+       "amp_db": -83.5094,
+       "energy_db": -96.2851,
+       "coh_over_incoh_db": 12.7757
+      },
+      "delta_amp_db": 0.2455,
+      "delta_energy_db": -0.1425
+     },
+     {
+      "spp": 64000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 1416.5,
+       "amp_db": -78.634,
+       "energy_db": -96.1497,
+       "coh_over_incoh_db": 17.5158
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 1404.0,
+       "amp_db": -79.4493,
+       "energy_db": -96.3727,
+       "coh_over_incoh_db": 16.9233
+      },
+      "delta_amp_db": -0.8153,
+      "delta_energy_db": -0.223
+     },
+     {
+      "spp": 256000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 5636.0,
+       "amp_db": -72.0126,
+       "energy_db": -96.1229,
+       "coh_over_incoh_db": 24.1102
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 5539.0,
+       "amp_db": -72.6579,
+       "energy_db": -96.3405,
+       "coh_over_incoh_db": 23.6826
+      },
+      "delta_amp_db": -0.6453,
+      "delta_energy_db": -0.2176
+     },
+     {
+      "spp": 1024000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 22713.0,
+       "amp_db": -65.7981,
+       "energy_db": -96.0123,
+       "coh_over_incoh_db": 30.2142
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 22412.0,
+       "amp_db": -66.4075,
+       "energy_db": -96.2646,
+       "coh_over_incoh_db": 29.8571
+      },
+      "delta_amp_db": -0.6094,
+      "delta_energy_db": -0.2523
+     },
+     {
+      "spp": 3072000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 68269.0,
+       "amp_db": -61.0049,
+       "energy_db": -96.008,
+       "coh_over_incoh_db": 35.0031
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 67180.0,
+       "amp_db": -61.7054,
+       "energy_db": -96.2466,
+       "coh_over_incoh_db": 34.5412
+      },
+      "delta_amp_db": -0.7005,
+      "delta_energy_db": -0.2386
+     }
+    ],
+    "slope_coh_pow_per_decade": 1.01062,
+    "slope_incoh_pow_per_decade": 0.00704104,
+    "slope_n_paths_per_decade": 0.999933,
+    "coherent_converges": false,
+    "incoherent_converges": true,
+    "delta_amp_db_range": 1.0608,
+    "delta_energy_db_range": 0.1098
+   },
+   "R1/side": {
+    "range_m": 1.0,
+    "aspect": "side",
+    "az_deg": 90.0,
+    "el_deg": 15.0,
+    "rows": [
+     {
+      "spp": 16000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 395.5,
+       "amp_db": -82.2942,
+       "energy_db": -94.5595,
+       "coh_over_incoh_db": 12.2653
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 399.5,
+       "amp_db": -84.8406,
+       "energy_db": -94.6594,
+       "coh_over_incoh_db": 9.8188
+      },
+      "delta_amp_db": -2.5464,
+      "delta_energy_db": -0.0999
+     },
+     {
+      "spp": 64000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 1523.5,
+       "amp_db": -75.9446,
+       "energy_db": -94.6481,
+       "coh_over_incoh_db": 18.7036
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 1544.0,
+       "amp_db": -77.165,
+       "energy_db": -94.8889,
+       "coh_over_incoh_db": 17.7239
+      },
+      "delta_amp_db": -1.2204,
+      "delta_energy_db": -0.2408
+     },
+     {
+      "spp": 256000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 6115.0,
+       "amp_db": -69.5499,
+       "energy_db": -94.7507,
+       "coh_over_incoh_db": 25.2008
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 6203.5,
+       "amp_db": -71.1708,
+       "energy_db": -94.9524,
+       "coh_over_incoh_db": 23.7817
+      },
+      "delta_amp_db": -1.6209,
+      "delta_energy_db": -0.2017
+     },
+     {
+      "spp": 1024000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 24177.5,
+       "amp_db": -63.4216,
+       "energy_db": -94.8031,
+       "coh_over_incoh_db": 31.3815
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 24548.0,
+       "amp_db": -64.9065,
+       "energy_db": -95.0101,
+       "coh_over_incoh_db": 30.1036
+      },
+      "delta_amp_db": -1.4849,
+      "delta_energy_db": -0.207
+     },
+     {
+      "spp": 3072000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 72884.5,
+       "amp_db": -58.6962,
+       "energy_db": -94.7713,
+       "coh_over_incoh_db": 36.0751
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 73916.0,
+       "amp_db": -60.1801,
+       "energy_db": -94.9643,
+       "coh_over_incoh_db": 34.7841
+      },
+      "delta_amp_db": -1.4839,
+      "delta_energy_db": -0.193
+     }
+    ],
+    "slope_coh_pow_per_decade": 1.03539,
+    "slope_incoh_pow_per_decade": -0.0101985,
+    "slope_n_paths_per_decade": 0.993081,
+    "coherent_converges": false,
+    "incoherent_converges": true,
+    "delta_amp_db_range": 1.326,
+    "delta_energy_db_range": 0.1409
+   },
+   "R1/hot": {
+    "range_m": 1.0,
+    "aspect": "hot",
+    "az_deg": 0.0,
+    "el_deg": 0.0,
+    "rows": [
+     {
+      "spp": 16000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 334.0,
+       "amp_db": -42.7931,
+       "energy_db": -45.8641,
+       "coh_over_incoh_db": 3.07103
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 314.0,
+       "amp_db": -42.7974,
+       "energy_db": -45.8641,
+       "coh_over_incoh_db": 3.06667
+      },
+      "delta_amp_db": -0.0043,
+      "delta_energy_db": 0.0
+     },
+     {
+      "spp": 64000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 1316.5,
+       "amp_db": -42.7467,
+       "energy_db": -45.8641,
+       "coh_over_incoh_db": 3.11743
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 1211.0,
+       "amp_db": -42.7576,
+       "energy_db": -45.8641,
+       "coh_over_incoh_db": 3.10654
+      },
+      "delta_amp_db": -0.0109,
+      "delta_energy_db": 0.0
+     },
+     {
+      "spp": 256000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 5433.0,
+       "amp_db": -42.6446,
+       "energy_db": -45.8641,
+       "coh_over_incoh_db": 3.21946
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 4974.0,
+       "amp_db": -42.6667,
+       "energy_db": -45.8641,
+       "coh_over_incoh_db": 3.19736
+      },
+      "delta_amp_db": -0.0221,
+      "delta_energy_db": 0.0
+     },
+     {
+      "spp": 1024000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 21572.5,
+       "amp_db": -42.4428,
+       "energy_db": -45.8641,
+       "coh_over_incoh_db": 3.42131
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 19794.0,
+       "amp_db": -42.4872,
+       "energy_db": -45.8641,
+       "coh_over_incoh_db": 3.37695
+      },
+      "delta_amp_db": -0.0444,
+      "delta_energy_db": 0.0
+     },
+     {
+      "spp": 3072000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 64669.0,
+       "amp_db": -42.1272,
+       "energy_db": -45.8641,
+       "coh_over_incoh_db": 3.73692
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 59259.0,
+       "amp_db": -42.2041,
+       "energy_db": -45.8641,
+       "coh_over_incoh_db": 3.66003
+      },
+      "delta_amp_db": -0.0769,
+      "delta_energy_db": 0.0
+     }
+    ],
+    "slope_coh_pow_per_decade": 0.0279302,
+    "slope_incoh_pow_per_decade": 2.86169e-17,
+    "slope_n_paths_per_decade": 1.00311,
+    "coherent_converges": true,
+    "incoherent_converges": true,
+    "delta_amp_db_range": 0.0726,
+    "delta_energy_db_range": 0.0
+   },
+   "R3/front": {
+    "range_m": 3.0,
+    "aspect": "front",
+    "az_deg": 0.0,
+    "el_deg": 15.0,
+    "rows": [
+     {
+      "spp": 16000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 45.5,
+       "amp_db": -114.595,
+       "energy_db": -115.181,
+       "coh_over_incoh_db": 0.586001
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 40.5,
+       "amp_db": -116.375,
+       "energy_db": -115.32,
+       "coh_over_incoh_db": -1.0551
+      },
+      "delta_amp_db": -1.78,
+      "delta_energy_db": -0.139
+     },
+     {
+      "spp": 64000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 151.5,
+       "amp_db": -110.681,
+       "energy_db": -115.713,
+       "coh_over_incoh_db": 5.03204
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 139.0,
+       "amp_db": -111.647,
+       "energy_db": -115.918,
+       "coh_over_incoh_db": 4.27066
+      },
+      "delta_amp_db": -0.966,
+      "delta_energy_db": -0.205
+     },
+     {
+      "spp": 256000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 660.0,
+       "amp_db": -103.887,
+       "energy_db": -115.452,
+       "coh_over_incoh_db": 11.5647
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 619.0,
+       "amp_db": -104.877,
+       "energy_db": -115.697,
+       "coh_over_incoh_db": 10.8198
+      },
+      "delta_amp_db": -0.99,
+      "delta_energy_db": -0.245
+     },
+     {
+      "spp": 1024000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 2624.0,
+       "amp_db": -98.2509,
+       "energy_db": -115.292,
+       "coh_over_incoh_db": 17.0407
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 2477.0,
+       "amp_db": -98.9759,
+       "energy_db": -115.485,
+       "coh_over_incoh_db": 16.5093
+      },
+      "delta_amp_db": -0.725,
+      "delta_energy_db": -0.193
+     },
+     {
+      "spp": 3072000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 7808.0,
+       "amp_db": -93.0975,
+       "energy_db": -115.356,
+       "coh_over_incoh_db": 22.2586
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 7285.5,
+       "amp_db": -93.9553,
+       "energy_db": -115.612,
+       "coh_over_incoh_db": 21.6571
+      },
+      "delta_amp_db": -0.8578,
+      "delta_energy_db": -0.256
+     }
+    ],
+    "slope_coh_pow_per_decade": 0.958956,
+    "slope_incoh_pow_per_decade": 0.00112095,
+    "slope_n_paths_per_decade": 0.988818,
+    "coherent_converges": false,
+    "incoherent_converges": true,
+    "delta_amp_db_range": 1.055,
+    "delta_energy_db_range": 0.117
+   },
+   "R3/oblique": {
+    "range_m": 3.0,
+    "aspect": "oblique",
+    "az_deg": 45.0,
+    "el_deg": 15.0,
+    "rows": [
+     {
+      "spp": 16000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 41.5,
+       "amp_db": -114.269,
+       "energy_db": -114.98,
+       "coh_over_incoh_db": 0.711335
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 42.5,
+       "amp_db": -114.979,
+       "energy_db": -115.127,
+       "coh_over_incoh_db": 0.147664
+      },
+      "delta_amp_db": -0.71,
+      "delta_energy_db": -0.147
+     },
+     {
+      "spp": 64000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 163.5,
+       "amp_db": -107.113,
+       "energy_db": -115.332,
+       "coh_over_incoh_db": 8.21933
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 168.5,
+       "amp_db": -107.563,
+       "energy_db": -114.984,
+       "coh_over_incoh_db": 7.42118
+      },
+      "delta_amp_db": -0.45,
+      "delta_energy_db": 0.348
+     },
+     {
+      "spp": 256000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 679.5,
+       "amp_db": -99.2873,
+       "energy_db": -115.015,
+       "coh_over_incoh_db": 15.7277
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 664.5,
+       "amp_db": -100.907,
+       "energy_db": -115.274,
+       "coh_over_incoh_db": 14.3675
+      },
+      "delta_amp_db": -1.6197,
+      "delta_energy_db": -0.259
+     },
+     {
+      "spp": 1024000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 2645.0,
+       "amp_db": -94.2771,
+       "energy_db": -115.167,
+       "coh_over_incoh_db": 20.89
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 2615.5,
+       "amp_db": -95.3873,
+       "energy_db": -115.381,
+       "coh_over_incoh_db": 19.9938
+      },
+      "delta_amp_db": -1.1102,
+      "delta_energy_db": -0.214
+     },
+     {
+      "spp": 3072000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 8049.5,
+       "amp_db": -89.4834,
+       "energy_db": -115.069,
+       "coh_over_incoh_db": 25.5854
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 8006.5,
+       "amp_db": -90.6713,
+       "energy_db": -115.258,
+       "coh_over_incoh_db": 24.5867
+      },
+      "delta_amp_db": -1.1879,
+      "delta_energy_db": -0.189
+     }
+    ],
+    "slope_coh_pow_per_decade": 1.08346,
+    "slope_incoh_pow_per_decade": -0.000397861,
+    "slope_n_paths_per_decade": 1.00234,
+    "coherent_converges": false,
+    "incoherent_converges": true,
+    "delta_amp_db_range": 1.1697,
+    "delta_energy_db_range": 0.607
+   },
+   "R3/side": {
+    "range_m": 3.0,
+    "aspect": "side",
+    "az_deg": 90.0,
+    "el_deg": 15.0,
+    "rows": [
+     {
+      "spp": 16000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 53.5,
+       "amp_db": -104.113,
+       "energy_db": -112.878,
+       "coh_over_incoh_db": 8.76494
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 54.0,
+       "amp_db": -104.365,
+       "energy_db": -112.776,
+       "coh_over_incoh_db": 8.41138
+      },
+      "delta_amp_db": -0.252,
+      "delta_energy_db": 0.102
+     },
+     {
+      "spp": 64000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 180.5,
+       "amp_db": -104.258,
+       "energy_db": -113.408,
+       "coh_over_incoh_db": 9.14978
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 192.5,
+       "amp_db": -105.653,
+       "energy_db": -113.495,
+       "coh_over_incoh_db": 7.84189
+      },
+      "delta_amp_db": -1.395,
+      "delta_energy_db": -0.087
+     },
+     {
+      "spp": 256000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 734.0,
+       "amp_db": -96.5708,
+       "energy_db": -113.52,
+       "coh_over_incoh_db": 16.9487
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 739.5,
+       "amp_db": -97.7753,
+       "energy_db": -113.657,
+       "coh_over_incoh_db": 15.8816
+      },
+      "delta_amp_db": -1.2045,
+      "delta_energy_db": -0.137
+     },
+     {
+      "spp": 1024000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 2771.0,
+       "amp_db": -93.5626,
+       "energy_db": -113.871,
+       "coh_over_incoh_db": 20.3083
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 2806.0,
+       "amp_db": -94.6353,
+       "energy_db": -114.033,
+       "coh_over_incoh_db": 19.3981
+      },
+      "delta_amp_db": -1.0727,
+      "delta_energy_db": -0.162
+     },
+     {
+      "spp": 3072000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 8529.5,
+       "amp_db": -87.6346,
+       "energy_db": -113.694,
+       "coh_over_incoh_db": 26.0593
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 8677.0,
+       "amp_db": -88.814,
+       "energy_db": -113.87,
+       "coh_over_incoh_db": 25.0561
+      },
+      "delta_amp_db": -1.1794,
+      "delta_energy_db": -0.176
+     }
+    ],
+    "slope_coh_pow_per_decade": 0.751796,
+    "slope_incoh_pow_per_decade": -0.036982,
+    "slope_n_paths_per_decade": 0.968299,
+    "coherent_converges": false,
+    "incoherent_converges": true,
+    "delta_amp_db_range": 1.143,
+    "delta_energy_db_range": 0.278
+   },
+   "R3/hot": {
+    "range_m": 3.0,
+    "aspect": "hot",
+    "az_deg": 0.0,
+    "el_deg": 0.0,
+    "rows": [
+     {
+      "spp": 16000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 41.5,
+       "amp_db": -52.7023,
+       "energy_db": -55.7169,
+       "coh_over_incoh_db": 3.01459
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 38.0,
+       "amp_db": -52.7037,
+       "energy_db": -55.7169,
+       "coh_over_incoh_db": 3.01318
+      },
+      "delta_amp_db": -0.0014,
+      "delta_energy_db": 0.0
+     },
+     {
+      "spp": 64000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 158.5,
+       "amp_db": -52.7053,
+       "energy_db": -55.7169,
+       "coh_over_incoh_db": 3.01153
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 144.5,
+       "amp_db": -52.7056,
+       "energy_db": -55.7169,
+       "coh_over_incoh_db": 3.01131
+      },
+      "delta_amp_db": -0.0003,
+      "delta_energy_db": 0.0
+     },
+     {
+      "spp": 256000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 639.5,
+       "amp_db": -52.699,
+       "energy_db": -55.7169,
+       "coh_over_incoh_db": 3.01789
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 593.5,
+       "amp_db": -52.6996,
+       "energy_db": -55.7169,
+       "coh_over_incoh_db": 3.01727
+      },
+      "delta_amp_db": -0.0006,
+      "delta_energy_db": 0.0
+     },
+     {
+      "spp": 1024000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 2506.0,
+       "amp_db": -52.6955,
+       "energy_db": -55.7169,
+       "coh_over_incoh_db": 3.02138
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 2316.0,
+       "amp_db": -52.6963,
+       "energy_db": -55.7169,
+       "coh_over_incoh_db": 3.02056
+      },
+      "delta_amp_db": -0.0008,
+      "delta_energy_db": 0.0
+     },
+     {
+      "spp": 3072000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 7544.0,
+       "amp_db": -52.6918,
+       "energy_db": -55.7169,
+       "coh_over_incoh_db": 3.02501
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 6983.5,
+       "amp_db": -52.6918,
+       "energy_db": -55.7169,
+       "coh_over_incoh_db": 3.02503
+      },
+      "delta_amp_db": 0.0,
+      "delta_energy_db": 0.0
+     }
+    ],
+    "slope_coh_pow_per_decade": 0.000529659,
+    "slope_incoh_pow_per_decade": -6.27781e-19,
+    "slope_n_paths_per_decade": 0.990746,
+    "coherent_converges": true,
+    "incoherent_converges": true,
+    "delta_amp_db_range": 0.0014,
+    "delta_energy_db_range": 0.0
+   },
+   "R10/front": {
+    "range_m": 10.0,
+    "aspect": "front",
+    "az_deg": 0.0,
+    "el_deg": 15.0,
+    "rows": [
+     {
+      "spp": 16000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 3.0,
+       "amp_db": -135.452,
+       "energy_db": -136.827,
+       "coh_over_incoh_db": 1.37483
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 3.5,
+       "amp_db": -135.157,
+       "energy_db": -136.229,
+       "coh_over_incoh_db": 1.07227
+      },
+      "delta_amp_db": 0.295,
+      "delta_energy_db": 0.598
+     },
+     {
+      "spp": 64000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 12.5,
+       "amp_db": -134.356,
+       "energy_db": -137.048,
+       "coh_over_incoh_db": 2.69144
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 9.5,
+       "amp_db": -135.123,
+       "energy_db": -137.966,
+       "coh_over_incoh_db": 2.84295
+      },
+      "delta_amp_db": -0.767,
+      "delta_energy_db": -0.918
+     },
+     {
+      "spp": 256000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 51.5,
+       "amp_db": -138.795,
+       "energy_db": -137.241,
+       "coh_over_incoh_db": -1.55342
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 48.0,
+       "amp_db": -139.576,
+       "energy_db": -137.139,
+       "coh_over_incoh_db": -2.43677
+      },
+      "delta_amp_db": -0.781,
+      "delta_energy_db": 0.102
+     },
+     {
+      "spp": 1024000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 240.5,
+       "amp_db": -130.882,
+       "energy_db": -136.184,
+       "coh_over_incoh_db": 5.30251
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 227.5,
+       "amp_db": -132.933,
+       "energy_db": -136.455,
+       "coh_over_incoh_db": 3.52263
+      },
+      "delta_amp_db": -2.051,
+      "delta_energy_db": -0.271
+     },
+     {
+      "spp": 3072000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 709.0,
+       "amp_db": -124.397,
+       "energy_db": -136.078,
+       "coh_over_incoh_db": 11.6808
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 681.5,
+       "amp_db": -124.57,
+       "energy_db": -136.235,
+       "coh_over_incoh_db": 11.665
+      },
+      "delta_amp_db": -0.173,
+      "delta_energy_db": -0.157
+     }
+    ],
+    "slope_coh_pow_per_decade": 0.430294,
+    "slope_incoh_pow_per_decade": 0.0403853,
+    "slope_n_paths_per_decade": 1.04541,
+    "coherent_converges": false,
+    "incoherent_converges": true,
+    "delta_amp_db_range": 2.346,
+    "delta_energy_db_range": 1.516
+   },
+   "R10/oblique": {
+    "range_m": 10.0,
+    "aspect": "oblique",
+    "az_deg": 45.0,
+    "el_deg": 15.0,
+    "rows": [
+     {
+      "spp": 16000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 4.0,
+       "amp_db": -138.277,
+       "energy_db": -137.657,
+       "coh_over_incoh_db": -0.619936
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 3.5,
+       "amp_db": -142.825,
+       "energy_db": -138.465,
+       "coh_over_incoh_db": -4.36013
+      },
+      "delta_amp_db": -4.548,
+      "delta_energy_db": -0.808
+     },
+     {
+      "spp": 64000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 13.5,
+       "amp_db": -135.801,
+       "energy_db": -137.763,
+       "coh_over_incoh_db": 1.96213
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 14.5,
+       "amp_db": -133.965,
+       "energy_db": -136.456,
+       "coh_over_incoh_db": 2.491
+      },
+      "delta_amp_db": 1.836,
+      "delta_energy_db": 1.307
+     },
+     {
+      "spp": 256000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 56.5,
+       "amp_db": -134.005,
+       "energy_db": -136.284,
+       "coh_over_incoh_db": 2.27895
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 60.5,
+       "amp_db": -132.549,
+       "energy_db": -135.824,
+       "coh_over_incoh_db": 3.27573
+      },
+      "delta_amp_db": 1.456,
+      "delta_energy_db": 0.46
+     },
+     {
+      "spp": 1024000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 271.0,
+       "amp_db": -125.155,
+       "energy_db": -135.728,
+       "coh_over_incoh_db": 10.5733
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 269.5,
+       "amp_db": -125.95,
+       "energy_db": -135.9,
+       "coh_over_incoh_db": 9.9505
+      },
+      "delta_amp_db": -0.795,
+      "delta_energy_db": -0.172
+     },
+     {
+      "spp": 3072000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 716.5,
+       "amp_db": -120.471,
+       "energy_db": -136.261,
+       "coh_over_incoh_db": 15.7906
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 729.5,
+       "amp_db": -120.891,
+       "energy_db": -136.259,
+       "coh_over_incoh_db": 15.3674
+      },
+      "delta_amp_db": -0.42,
+      "delta_energy_db": 0.002
+     }
+    ],
+    "slope_coh_pow_per_decade": 0.796281,
+    "slope_incoh_pow_per_decade": 0.0853165,
+    "slope_n_paths_per_decade": 1.00703,
+    "coherent_converges": false,
+    "incoherent_converges": true,
+    "delta_amp_db_range": 6.384,
+    "delta_energy_db_range": 2.115
+   },
+   "R10/side": {
+    "range_m": 10.0,
+    "aspect": "side",
+    "az_deg": 90.0,
+    "el_deg": 15.0,
+    "rows": [
+     {
+      "spp": 16000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 5.5,
+       "amp_db": -131.862,
+       "energy_db": -133.156,
+       "coh_over_incoh_db": 1.29386
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 5.0,
+       "amp_db": -132.671,
+       "energy_db": -133.288,
+       "coh_over_incoh_db": 0.617207
+      },
+      "delta_amp_db": -0.809,
+      "delta_energy_db": -0.132
+     },
+     {
+      "spp": 64000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 20.5,
+       "amp_db": -133.223,
+       "energy_db": -133.171,
+       "coh_over_incoh_db": -0.0512456
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 21.5,
+       "amp_db": -137.069,
+       "energy_db": -133.551,
+       "coh_over_incoh_db": -3.51739
+      },
+      "delta_amp_db": -3.846,
+      "delta_energy_db": -0.38
+     },
+     {
+      "spp": 256000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 73.0,
+       "amp_db": -129.691,
+       "energy_db": -134.441,
+       "coh_over_incoh_db": 4.74963
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 72.0,
+       "amp_db": -131.767,
+       "energy_db": -134.63,
+       "coh_over_incoh_db": 2.86297
+      },
+      "delta_amp_db": -2.076,
+      "delta_energy_db": -0.189
+     },
+     {
+      "spp": 1024000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 253.0,
+       "amp_db": -123.72,
+       "energy_db": -134.855,
+       "coh_over_incoh_db": 11.1351
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 258.0,
+       "amp_db": -125.012,
+       "energy_db": -135.089,
+       "coh_over_incoh_db": 10.0767
+      },
+      "delta_amp_db": -1.292,
+      "delta_energy_db": -0.234
+     },
+     {
+      "spp": 3072000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 767.0,
+       "amp_db": -118.744,
+       "energy_db": -134.566,
+       "coh_over_incoh_db": 15.8227
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 787.0,
+       "amp_db": -118.956,
+       "energy_db": -134.675,
+       "coh_over_incoh_db": 15.7189
+      },
+      "delta_amp_db": -0.212,
+      "delta_energy_db": -0.109
+     }
+    ],
+    "slope_coh_pow_per_decade": 0.612329,
+    "slope_incoh_pow_per_decade": -0.0792984,
+    "slope_n_paths_per_decade": 0.931783,
+    "coherent_converges": false,
+    "incoherent_converges": true,
+    "delta_amp_db_range": 3.634,
+    "delta_energy_db_range": 0.271
+   },
+   "R10/hot": {
+    "range_m": 10.0,
+    "aspect": "hot",
+    "az_deg": 0.0,
+    "el_deg": 0.0,
+    "rows": [
+     {
+      "spp": 16000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 7.5,
+       "amp_db": -63.2808,
+       "energy_db": -66.2904,
+       "coh_over_incoh_db": 3.00964
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 7.5,
+       "amp_db": -63.2808,
+       "energy_db": -66.2904,
+       "coh_over_incoh_db": 3.00964
+      },
+      "delta_amp_db": 0.0,
+      "delta_energy_db": 0.0
+     },
+     {
+      "spp": 64000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 16.5,
+       "amp_db": -63.2817,
+       "energy_db": -66.2904,
+       "coh_over_incoh_db": 3.00873
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 15.5,
+       "amp_db": -63.2818,
+       "energy_db": -66.2904,
+       "coh_over_incoh_db": 3.00867
+      },
+      "delta_amp_db": -0.0001,
+      "delta_energy_db": 0.0
+     },
+     {
+      "spp": 256000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 54.0,
+       "amp_db": -63.2784,
+       "energy_db": -66.2904,
+       "coh_over_incoh_db": 3.01204
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 47.5,
+       "amp_db": -63.2791,
+       "energy_db": -66.2904,
+       "coh_over_incoh_db": 3.01135
+      },
+      "delta_amp_db": -0.0007,
+      "delta_energy_db": 0.0
+     },
+     {
+      "spp": 1024000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 234.5,
+       "amp_db": -63.2839,
+       "energy_db": -66.2904,
+       "coh_over_incoh_db": 3.00652
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 223.0,
+       "amp_db": -63.2834,
+       "energy_db": -66.2904,
+       "coh_over_incoh_db": 3.00701
+      },
+      "delta_amp_db": 0.0005,
+      "delta_energy_db": 0.0
+     },
+     {
+      "spp": 3072000000,
+      "phase0": {
+       "phase_deg": 0.0,
+       "n_paths": 685.5,
+       "amp_db": -63.2811,
+       "energy_db": -66.2904,
+       "coh_over_incoh_db": 3.00933
+      },
+      "phase1": {
+       "phase_deg": 90.0,
+       "n_paths": 637.0,
+       "amp_db": -63.2806,
+       "energy_db": -66.2904,
+       "coh_over_incoh_db": 3.00984
+      },
+      "delta_amp_db": 0.0005,
+      "delta_energy_db": 0.0
+     }
+    ],
+    "slope_coh_pow_per_decade": -5.08266e-05,
+    "slope_incoh_pow_per_decade": -4.86593e-16,
+    "slope_n_paths_per_decade": 0.877159,
+    "coherent_converges": true,
+    "incoherent_converges": true,
+    "delta_amp_db_range": 0.0012,
+    "delta_energy_db_range": 0.0
+   }
+  },
+  "note_ko": "기울기는 **decade 당 dB/10** 이 아니라 '광선예산 10 배당 전력 몇 decade' 로 읽는다. 1.0 이면 예산 10 배에 전력 10 배 = 랜덤워크 누적(비수렴), 0.0 이면 수렴."
+ }
+}

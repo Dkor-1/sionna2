@@ -843,8 +843,11 @@ def contribution():
         novelty_guard=[
             "Rzewuski(NATO STO 2021)가 드론 바이스태틱 RCS → 커버리지 → 50 m 실외 검출을 이미 닫았다 — "
             "'최초' 류를 쓰지 않는다",
-            "v_max = λ·PRF/(4cos(β/2)cosδ) 는 Chen et al. Applied Sciences 2024 가 먼저 냈다 · "
-            "Abratkiewicz 2023 이 5G SSB 에 적용했다",
+            # ⭐ 정정 R1 (docs/RETRACTION_LOG.md) — 우선권은 Chen 이 아니다.
+            "v_max = λ·PRF/(4cos(β/2)cosδ) 의 우선권은 **Abratkiewicz 외, IEEE JSTARS "
+            "16:3469-3484 (2023), 식 (16) p.3476** 이다 — 반구간 규약까지 같다. "
+            "Chen 2024(Appl. Sci. 14:4282)는 **닫힌 식이 없다**('PRF' 0회) — 우리 이전 기록의 "
+            "Chen 귀속은 철회됐다",
             "v·R = c·λ/8 은 Skolnik 의 고전 결과다",
         ])
 

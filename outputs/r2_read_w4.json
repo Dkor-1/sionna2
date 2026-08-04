@@ -1,0 +1,1186 @@
+{
+ "meta": {
+  "file": "outputs/r2_read_w4.json",
+  "wave": "WAVE 4 (deepread_backlog ranks 19-24) - 전편 정독 + H8/C2/C4 적대적 검증",
+  "instruction_ko": "새로운 논문 검색도 더 하고 선행 연구 한 편 한 편 다 제대로 읽고 검증하고 적대적 검증도 하고",
+  "rule_ko": "주장에는 PDF 경로 + 페이지 + 축자 인용문이 붙는다. 못 붙이면 UNVERIFIED 이고 UNVERIFIED 는 정직한 결과다. 칸을 그럴듯하게 채우는 것이 이 라운드가 막으려는 실패다.",
+  "page_convention": "page 는 1-base (PDF 첫 장 = 1). 인용문은 fitz get_text 추출본 기준.",
+  "claims_under_test": {
+   "H8": "출판된 논문 중 드론 MESH 의 산란 서명을 Sionna 급 GPU 광선 엔진 '안에서' 계산하고 진폭까지 검증한 사례 0 (4갈래 전부 충족해야 반증)",
+   "C2": "Sionna 파이프라인에서 dBsm 을 찍은 논문은 Ziganshin EuCAP 2025 단 한 편이고 대상은 자동차",
+   "C4": "교정된 오경보율에서 조명원(illuminator)을 통제 비교한 사례 없음"
+  },
+  "generated": "2026-08-03T05:39:00",
+  "records": 8,
+  "papers_read_completely": 8,
+  "pdf_pages_read": 108,
+  "gate_result": "benchmark/verify_quotes_tool.py --only r2_read_w4.json --gate -> 137/137 verbatim, exit 0"
+ },
+ "papers": [
+  {
+   "rank": 21,
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2402.16591__beuster_multisensor-isac-drone.pdf",
+   "title": "Sounding-Based Evaluation of Multi-Sensor ISAC Networks for Drone Applications: Measurement and Simulation Perspectives",
+   "authors": "J. Beuster, C. Smeenk, S. J. Myint, R. Faramarzahangari, C. Andrich, S. Giehl, C. Schneider, R. S. Thoma (TU Ilmenau / Fraunhofer IIS)",
+   "venue": {
+    "value": "UNVERIFIED - PDF 본문에 학회/저널 표기가 없다. arXiv 스탬프만 있다. 우리 docs/PRIOR_WORK_COMPARISON.md 는 'JC&S 2024' 로 적어두었으나 그 근거는 이 PDF 안에 없다.",
+    "quote": "arXiv:2402.16591v1  [eess.SP]  26 Feb 2024",
+    "page": 1
+   },
+   "publication_status": "preprint (arXiv:2402.16591v1, 2024-02-26). 본문 내 게재정보 없음.",
+   "pages_read": "1-6 전부 (참고문헌 포함)",
+   "what_it_actually_does_ko": "TU Ilmenau 그룹의 데이터 획득 개관 논문. (1) BiRa 바이스태틱 실험실 시설로 드론 반사도/마이크로도플러 측정, (2) 3.75 GHz 80 MHz OFDM 4노드(1Tx 3Rx) 옥상 필드테스트로 헥사콥터 추적, (3) 두 데이터셋 공개. 새 산란 계산은 이 논문에 없고 시뮬 결과는 전부 참고문헌 [17][18][25] 로 넘긴다.",
+   "H8_screen": {
+    "prong_published": "preprint only (본문에 게재정보 없음)",
+    "prong_drone_surface_mesh": "UNVERIFIED - mesh/CAD 라는 말이 이 PDF 에 없다('mesh' 1회는 'meshed ISAC system' 즉 망 구조 뜻). Fig.3 의 simulated 곡선이 메쉬 기반인지 이 논문만으로는 알 수 없다.",
+    "prong_computed_inside_engine": "NO - 'Sionna' 0회, 'shooting' 0회, 'GPU' 0회, 'ray' 1회(광선추적 아님). 산란 시뮬 언급은 상용 솔버 일반 서술뿐이고 그것도 그들이 쓴 솔버라고 말하지 않는다.",
+    "prong_amplitude_validated": "PARTIAL - Fig.3 은 같은 Phantom 2 에 대해 measured(우상)와 simulated(우하)를 나란히 놓는다. 그러나 수치 일치도(dB 오차)는 이 논문에 없다.",
+    "verdict": "H8 을 반증하지 않는다. 다만 '엔진' 갈래 하나로만 버틴다 - 물리(드론 산란 시뮬 vs 측정 대조)는 이미 출판돼 있다.",
+    "evidence": [
+     {
+      "page": 3,
+      "quote": "The commercially available software suits for instance Ansys HFSS, Altair FEKO, and CST Studio Suit, can simulate the reflectivity of given complex object shapes and material compositions and to some extent micro-Doppler with software add-ons.",
+      "reading_ko": "이건 상용툴 일반 서베이 문장이다. 주어가 'The commercially available software suits' 이지 저자들이 아니다. 우리 기존 정정이 옳았음을 원문에서 재확인."
+     },
+     {
+      "page": 3,
+      "quote": "Their accuracy mainly depends on the implemented EM solvers, such as method of moments (MoM), finite element method (FEM) and physical optics (PO).",
+      "reading_ko": "PO 를 3대 솔버 중 하나로 언급만 한다. 어떤 솔버로 Fig.3 을 냈는지는 안 밝힌다."
+     },
+     {
+      "page": 3,
+      "quote": "This allows to analyze and characterize a multitude of objects as cars [19], cyclists [22], and UAVs [17], [18] without the need for cost-intensive measurement campaigns, even though a comparison with measurements is inevitable for validation and optimization of simulation models, as shown in Fig. 3.",
+      "reading_ko": "⭐ Fig.3 simulated 곡선의 출처가 [17](Costa 외, WSA 2024)·[18](Costa 외, RadarConf24, arXiv:2401.14287) 임을 이 문장이 지목한다. H8 을 진짜로 시험할 대상은 Beuster 가 아니라 Costa 두 편이다."
+     },
+     {
+      "page": 3,
+      "quote": "the bi-static reflectivity of a small quad-copter, namely a DJI Phantom 2, with propellers at standstill (upper right plot with measured data, lower right plot with simulated data) over the frequency range 2 to 18 GHz",
+      "reading_ko": "Fig.3 캡션. 2-18 GHz 라는 넓은 대역에서 드론 바이스태틱 반사도 측정+시뮬 대조가 이미 출판돼 있다. 우리 대역기울기 서사에 직결되는 잠재 앵커이나 이 논문에는 수치가 없다(그림뿐)."
+     }
+    ]
+   },
+   "C2_screen": {
+    "verdict": "무해 - dBsm 0회, RCS 0회, radar cross 0회. Sionna 파이프라인 자체가 없다.",
+    "machine_evidence": "전문 term count: 'dBsm' 0, 'RCS' 0, 'radar cross' 0, 'Sionna' 0"
+   },
+   "C4_screen": {
+    "verdict": "C4 를 반증하지 않는다. 조명원은 3.75 GHz OFDM 단일이고 조명원 비교가 없다. CFAR 는 쓰지만 오경보율을 수치로 교정하지 않는다('false alarm' 1회, 그것도 MTT 가 오경보를 걸러낸다는 서술).",
+    "evidence": [
+     {
+      "page": 5,
+      "quote": "3) object detection to classify echo components as targets by applying the threshold detector CA-CFAR,",
+      "reading_ko": "CA-CFAR 를 쓴다고만 하고 Pfa 값·설계 규약을 안 준다."
+     },
+     {
+      "page": 4,
+      "quote": "measurement setup:\n   - 4 stationary nodes (1 Tx, 3 Rx)\n   - OFDM signal\n       - center frequency 3.75 GHz\n       - bandwidth 80 MHz",
+      "reading_ko": "Fig.5 캡션. 단일 조명원."
+     }
+    ]
+   },
+   "facts_worth_borrowing_ko": [
+    {
+     "fact": "1Tx 3Rx 분산 노드 + 3.75 GHz / 80 MHz OFDM 으로 시연된 레이더 사거리 230 m (헥사콥터, 옥상, 도심 클러터)",
+     "page": 5,
+     "quote": "The scenario was tailored to provide conditions and signal parameters similar to those present in 5G UE in FR1 and the demonstrated radar range in this scenario was up to 230 m.",
+     "our_use_ko": "우리 챔버(L~15 m)와는 규모가 다르지만 '멀티 Rx 로 바이스태틱 다양성을 산다'는 우리 report12 서사의 실측 선례로 인용 가능."
+    },
+    {
+     "fact": "시뮬 delay-Doppler map 과 실측 delay-Doppler map 을 같은 처리사슬에 통과시켜 나란히 비교(Fig.6)",
+     "page": 5,
+     "quote": "Fig. 6 shows the results from applying exemplary signal pro-\ncessing steps to detect and track the UAV in one selected flight\ntrack of the scenario shown in Fig. 5 using the framework and\nalgorithm introduced in Fig. 4 [25] with measurement and\nsimulation data.",
+     "our_use_ko": "⭐ 우리가 report12 에서 하려는 '동일 검출기를 시뮬/실측에 똑같이 물린다'의 정확한 선례. 다만 그들은 정량 일치도를 보고하지 않는다."
+    },
+    {
+     "fact": "정지 프로펠러 / 회전 블레이드 1장 분리 보고",
+     "page": 3,
+     "quote": "target: quad-copters with\n        - standing propeller blades\n        - one rotating propeller blade",
+     "our_use_ko": "report03 은 정지 메쉬로 sigma, 회전은 report08 - 이 분리의 선례로 인용."
+    },
+    {
+     "fact": "그들 시뮬 채널은 표적 산란을 '3d 기반 반사도 모델'로 주입한다 - 즉 h = h_bg + h_target 아키텍처",
+     "page": 5,
+     "quote": "For the simulated data, the channel considers\na multi-path model, antenna and UAV positions are defined by\nthe measurements, a 3d based reflectivity model with Micro-\nDoppler signature characterizes the target echo, and multiple\nuniform distributed cluster components are modeling the static\nclutter.",
+     "our_use_ko": "주류 h=h_bg+h_target 서사의 추가 실증. 표적 산란이 엔진 밖에서 만들어져 주입된다는 우리 포지셔닝을 지지."
+    }
+   ],
+   "adversarial_notes_ko": [
+    "적대적 질문: 'Fig.3 이 이미 드론 메쉬 산란을 측정 대조까지 했으면 우리 기여는 무엇인가?' 답은 이 논문 안에 있지 않다 - 시뮬 출처가 [17][18] 이므로 그 두 편을 열기 전에는 우리 기여를 방어할 수도 무너뜨릴 수도 없다. 지금 상태는 '미해결', 확인할 대상은 Costa 외 WSA 2024(아카이브 미보유로 보임) 와 arXiv:2401.14287(아카이브 보유).",
+    "적대적 질문: '230 m 사거리가 우리 링크버짓과 모순되나?' 다른 체계다 - 그들은 능동 사운더(제어된 Tx)이고 우리는 패시브다. 직접 비교 불가."
+   ],
+   "what_this_record_does_not_claim_ko": [
+    "Fig.3 의 simulated 곡선을 어떤 솔버가 냈는지 - 이 PDF 는 말하지 않는다.",
+    "게재 학회 - 이 PDF 는 말하지 않는다.",
+    "측정 대 시뮬의 정량 오차 - 이 PDF 에 없다."
+   ]
+  },
+  {
+   "rank": 24,
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2112.09774__semkin_comparative-rcs-uav-classification.pdf",
+   "title": "Comparative Analysis of Radar Cross Section Based UAV Classification Techniques",
+   "authors": "Martins Ezuma, Chethan Kumar Anjinappa, Vasilii Semkin, Ismail Guvenc (NC State / VTT)",
+   "venue": {
+    "value": "UNVERIFIED - PDF 안에 학회/저널 표기가 없다. arXiv 스탬프만 있다. (우리 outputs/prior_hunt_1.json 은 IEEE Sensors Journal 로 게재되며 제목이 'Recognition' 으로 바뀌었다고 적어두었으나 그 근거는 이 PDF 밖이다.)",
+    "quote": "arXiv:2112.09774v1  [eess.SP]  17 Dec 2021",
+    "page": 1
+   },
+   "publication_status": "preprint (arXiv:2112.09774v1, 2021-12-17)",
+   "pages_read": "1-16 전부 (참고문헌 포함)",
+   "what_it_actually_does_ko": "측정된 드론 RCS 로 15종 분류기(통계 5 + 머신러닝 6 + 딥러닝 4)를 학습·비교한다. RCS 측정 자체는 이 논문이 아니라 [11](Ezuma 외, IEEE TAP 2021)의 것을 재사용한다. 산란 시뮬레이션은 전혀 없다.",
+   "filename_attribution_correction_ko": {
+    "issue": "우리 아카이브 파일명이 'semkin_...' 이라 Semkin 논문처럼 보인다. 제1저자는 Ezuma 이고 Semkin 은 제3저자다.",
+    "page": 1,
+    "quote": "Martins Ezuma∗, Chethan Kumar Anjinappa∗, Vasilii Semkin†, and Ismail Guvenc∗",
+    "status": "우리 outputs/capability_matrix.json 과 docs/PRIOR_READING_LOG.md 가 이미 같은 정정을 적어두었다. 원문으로 재확인만 했다."
+   },
+   "H8_screen": {
+    "verdict": "무관 - 시뮬레이션이 없다. 메쉬 0, 광선엔진 0, Sionna 0. 순수 실측+분류.",
+    "machine_evidence": "전문 term count: 'Sionna' 0, 'mesh' 0, 'ray tracing' 0, 'physical optics' 0"
+   },
+   "C2_screen": {
+    "verdict": "무해 - 'dBsm' 은 전문에 딱 1회, Fig.3 캡션의 축 단위로만 나온다. 본문·표에 절대 sigma 수치가 없다.",
+    "page": 4,
+    "quote": "Fig. 3. The measured RCS (dBsm) versus azimuth angles",
+    "consequence_ko": "⚠ 이 PDF 를 근거로 어떤 드론의 dBsm 값을 인용하면 그 순간 UNVERIFIED 다. 수치는 [11](Ezuma 외, IEEE TAP 2021 = 우리 아카이브 2102.11954)과 [17](Semkin 외, IEEE Access 8:48958-48969, 2020 = 우리 아카이브 ieeeaccess2020_semkin__drone-rcs-mmwave-26-40ghz.pdf)에 있다."
+   },
+   "C4_screen": {
+    "verdict": "C4 를 반증하지 않는다. 15 vs 25 GHz, VV vs HH 를 비교하지만 (i) 조명원 비교가 아니라 주파수/편파 비교이고 (ii) 성능축이 오경보율이 아니라 SNR 대 분류정확도다. CFAR·Pfa·오경보 단어가 전문에 없다.",
+    "machine_evidence": "전문 term count: 'CFAR' 0, 'false alarm' 0, 'Pfa' 0, 'probability of detection' 0",
+    "reading_ko": "검출 논문이 아니라 분류 논문이다. 우리 C4 축(교정된 오경보율에서의 조명원 비교)과는 축 자체가 다르다."
+   },
+   "R1_genealogy_finding_ko": {
+    "why_it_matters": "⭐ 우리 무모호 속도 우선권 라운드(R1)에서 세었던 관례는 두 가지였다 - Abratkiewicz 2023 의 half-window (lambda*PRF/4) 와 Chen 2024(Appl. Sci.)의 무공식. 이 논문은 세 번째 관례를 명시적으로 인용한다: 마이크로도플러용 4배 오버샘플 규칙.",
+    "page": 2,
+    "quote": "For example, to generate a high-resolution micro-Doppler of a rotating propeller, one needs to generate a pulse repetition frequency that is at least four times the maximum Doppler shift induced by the propeller [32].",
+    "cited_source": "[32] V. C. Chen, The micro-Doppler effect in radar. Norwood, MA: Artech House, Feb. 2019.",
+    "arithmetic_ko": "PRF >= 4*f_d,max 이고 f_d,max = 2 v_max / lambda 이면 v_max <= lambda*PRF/8 이 된다. 즉 이 관례는 Abratkiewicz 의 half-window(lambda*PRF/4)보다 2배 더 보수적이다. 같은 '4' 라는 숫자가 서로 다른 자리에 붙는다 - 하나는 나이퀴스트 반구간의 분모, 하나는 오버샘플 배수.",
+    "⚠_confusion_hazard_ko": "V. C. Chen(마이크로도플러 교과서 저자, Artech House 2019)과 Chen 2024(Appl. Sci. 14:4282, 회전표적 5G 검출)는 다른 사람·다른 문헌이다. R20 대정정에서 이미 데인 '같은 이름 다른 판' 함정과 같은 모양이므로 우리 기록에서 절대 합치면 안 된다.",
+    "status": "이 인용문은 이 PDF 에서 축자 확인됐다. 그러나 V. C. Chen 책 원문은 우리가 보유하지 않았으므로 '책이 실제로 4배를 말하는가' 는 UNVERIFIED 로 남는다."
+   },
+   "measurement_protocol_facts_ko": [
+    {
+     "fact": "오하이오주립대 ElectroScience Lab 컴팩트레인지 무향실, 20피트 포물면 반사판으로 평면파 조명(프라운호퍼 원거리조건 충족)",
+     "page": 3,
+     "quote": "The parabolic reflector ensures that the target UAV is illuminated by plane waves, thus satisfying the Fraunhofer far-field condition [11]."
+    },
+    {
+     "fact": "방위 2도 스텝 전방위 360도",
+     "page": 3,
+     "quote": "The rotation is done in steps of 2° until the entire azimuth plane of the target is covered."
+    },
+    {
+     "fact": "주파수영역 -> 시간영역 변환 후 time gating 으로 잔여 다중경로 제거",
+     "page": 3,
+     "quote": "After the measurement is completed, the captured data is transformed from the frequency domain to the time domain for further post-processing using a time gating technique."
+    },
+    {
+     "fact": "흡수체 + 피라미드 구조로 벽/천장/바닥/파일런 반사 억제",
+     "page": 3,
+     "quote": "To minimize or eliminate multipath reflections from the walls, pylon turntable stand, ceiling, and floor, low reflective radar-absorbing materials and pyramidal-shaped radar-absorbing structures are used."
+    },
+    {
+     "fact": "표적 6종: DJI Matrice 600 Pro, Matrice 100, Trimble zx5, Mavic Pro, Inspire 1 Pro, Phantom 4 Pro. 카메라 외 페이로드 없음",
+     "page": 2,
+     "quote": "The UAVs are DJI Matrice 600 Pro, DJI Matrice 100, Trimble zx5, DJI Mavic Pro, DJI Inspire 1 Pro, and DJI Phantom 4 Pro. Besides the onboard camera, no other payload is placed on the UAV during measurement."
+    },
+    {
+     "fact": "15/25 GHz 를 고른 이유가 물리가 아니라 상용 대드론 레이더 제품군(Fortem 15 GHz, Luswave 25 GHz)이다",
+     "page": 1,
+     "quote": "The reason we measured the UAV RCS at 15 and 25 GHz is mainly informed by the trend in the commercial counter-UAV radar industry and academic research."
+    }
+   ],
+   "methodology_we_could_borrow_ko": [
+    {
+     "fact": "실측 RCS 에 AWGN 을 주입해 SNR 축을 합성하고 그 위에서 알고리즘을 비교한다 - 잡음전력을 평균 후방산란전력에 SNR 로 스케일",
+     "page": 11,
+     "quote": "After estimating σ2\nN, we add the appropriate AWGN noise to the experimental RCS data to generate noisy RCS samples which are used to evaluate the algorithms.",
+     "our_use_ko": "우리 report12 의 몬테카를로 SNR 스윕과 정확히 같은 장치다. '실측을 앵커로 두고 SNR 을 합성한다' 를 선행 관례로 인용할 수 있다."
+    },
+    {
+     "fact": "전방위 데이터와 120도 섹터(-60~+60도)만 볼 때를 나눠 성능을 다시 낸다",
+     "page": 14,
+     "quote": "we decide to evaluate the performance of the classification algorithms in the case where the radar only captures RCS data from a 120◦segment of the target.",
+     "our_use_ko": "우리 관측가능성/자세각 스윕(report11)의 선례. 그들의 결론은 '전방위가 낫다' 이고 5 dB SNR 에서 분류트리 100% -> 87.33% 로 떨어진다(p.14)."
+    }
+   ],
+   "adversarial_notes_ko": [
+    "적대적 질문: '15 GHz 와 25 GHz 를 같은 6대에 대고 쟀으니 측정 대역기울기 앵커 아닌가?' 답: 이 PDF 에는 절대 dBsm 수치가 없다. 그림뿐이고 그림은 텍스트 레이어가 없다. 따라서 이 논문에서 기울기를 뽑는 것은 불가능하다. 뽑으려면 [11](2102.11954) 이나 1911.05926 을 열어야 한다 - 후자가 마침 wave 2 배정본이다.",
+    "적대적 질문: '분류정확도 98.66% 가 우리 검출 성능과 비교되나?' 아니다. 분류(6클래스 식별) 대 검출(있다/없다)이고 그들의 SNR 은 실측 RCS 에 인공잡음을 넣어 정의한 것이다. 링크버짓이 아니다.",
+    "이 논문의 실측 자체는 [11] 의 재사용이므로 '앵커 수'를 셀 때 [11]/1911.05926/2112.09774 를 독립 3건으로 세면 안 된다 - Das/Yuan 에서 이미 한 번 데인 재사용 함정과 같은 모양이다."
+   ],
+   "what_this_record_does_not_claim_ko": [
+    "어떤 드론의 절대 RCS 값 - 이 PDF 에 없다.",
+    "게재 학회/저널 - 이 PDF 에 없다.",
+    "V. C. Chen 책이 실제로 '최대 도플러의 4배' 를 말하는지 - 책 원문 미보유."
+   ]
+  },
+  {
+   "rank": 20,
+   "pdf_path": "/data/public/jeong/papers/5G/23_5G Network-Based Passive Radar for Drone Detection.pdf",
+   "title": "5G Network-Based Passive Radar for Drone Detection",
+   "authors": "Radoslaw Maksymiuk, Marek Plotka, Karol Abratkiewicz, Piotr Samczynski (Warsaw University of Technology)",
+   "venue": {
+    "value": "The International Radar Symposium IRS 2023, May 24-26, 2023, Berlin (DGON), ISBN 978-3-944976-34-1. IEEE Xplore 배포본.",
+    "quote": "The International Radar Symposium IRS 2023, May 24-26, 2023, Berlin\n978-3-944976-34-1 ©2022 DGON",
+    "page": 1
+   },
+   "publication_status": "published (conference, IRS 2023)",
+   "pages_read": "1-10 전부 (참고문헌 포함)",
+   "what_it_actually_does_ko": "실제 운용중인 5G NR 망(폴란드 우치)을 조명원으로 쓰는 패시브 바이스태틱 레이더로 span 약 1 m 드론을 검출한 현장실험. 핵심 장치는 Renyi 엔트로피로 '자원 점유가 충분한 순간'만 골라 적분하는 적응적 적분 결정이다.",
+   "Q_E_GENEALOGY_CLOSED_ONE_STEP": {
+    "what_we_needed": "Samczynski et al., '5G network-based passive radar', IEEE TGRS - 연도/권/쪽이 2021인지 2022인지 미확정이었고 원문 미확보였다.",
+    "what_this_paper_gives": "저자 본인 그룹이 자기 논문을 인용한 참고문헌 항목. 서지가 축자로 확정된다.",
+    "page": 9,
+    "quote": "[8] P. Samczy´nski et al. 5G Network-Based Passive Radar. IEEE Transactions on Geoscience and\nRemote Sensing, 60:1–9, 2022.",
+    "resolved_ko": "IEEE Transactions on Geoscience and Remote Sensing, vol. 60, pp. 1-9, 2022 (게재). ⭐ 연도는 2022 이다. 우리 기록이 '2021/2022' 로 흔들리던 것을 이 인용으로 확정한다.",
+    "still_open_ko": "PDF 는 여전히 미확보다(아카이브 4곳 전수 검색 0건). 따라서 '그 논문이 Chen 의 바이스태틱 도플러식의 실제 출처인가' 는 여전히 UNVERIFIED - 이 IRS 논문은 [8] 에 도플러식을 귀속시키지 않는다.",
+    "what_this_paper_actually_attributes_to_[8]": [
+     {
+      "page": 3,
+      "quote": "As mentioned in [8], for the time division duplex (TDD), the signal has to be void of uplink transmission since it works at the same carrier frequency as the downlink.",
+      "reading_ko": "TDD 상향링크 제거 필요성 - 도플러식이 아니다."
+     },
+     {
+      "page": 2,
+      "quote": "This issue was presented in [8] in the context of a passive radar based on a real cooperative 5G network. This work also presents other difficulties arising from using these signals in real-world conditions but allowing the detection of a target such as a car.",
+      "reading_ko": "가변 점유 문제 제기 + 자동차 검출 - 도플러식이 아니다."
+     }
+    ]
+   },
+   "C4_screen": {
+    "verdict": "C4 를 반증하지 않는다. 오히려 C4 를 강화한다.",
+    "reasons_ko": [
+     "조명원이 5G 하나뿐이다. 비교 대상 조명원이 없다.",
+     "CFAR 를 쓰긴 하되 'e.g.' 로 예시처럼 언급하고 Pfa 값도, 검출확률 곡선도, 몬테카를로도 없다. 결과는 CAF 스냅샷 2장 + GPS 십자 대조뿐이다.",
+     "term count: 'Pfa' 0, 'probability of detection' 0, 'Monte' 0, 'SNR' 0."
+    ],
+    "evidence": [
+     {
+      "page": 4,
+      "quote": "First, CAF thresholding is performed based on the estimated noise level (e.g. using the constant false alarm rate (CFAR) algorithm [17]).",
+      "reading_ko": "⭐ 'e.g.' - 자기들이 어떤 검출기를 실제로 썼는지조차 확정하지 않는다. 교정된 오경보율은 이 논문에 없다."
+     }
+    ]
+   },
+   "H8_C2_screen": {
+    "verdict": "무관 - 시뮬레이션·메쉬·산란계산이 전무한 순수 현장실험. term count: 'Sionna' 0, 'ray tracing' 0, 'mesh' 0, 'dBsm' 0, 'simulat*' 1(그것도 선행연구 서술).",
+    "rcs_mentions": "'RCS' 2회 - 둘 다 '낮은 RCS 표적' 이라는 정성 표현이고 수치가 없다."
+   },
+   "STRONGEST_POSITIONING_FINDING_ko": {
+    "headline": "⭐ 이들은 5G 가변 점유 문제를 '벤치마크' 하지 않고 '회피' 한다. 점유가 높은 순간만 골라 적분한다.",
+    "why_it_matters_ko": "우리 report12 는 점유 3단(G1/G2/G3)을 가로질러 성능을 재는 벤치마크다. 이 논문은 같은 문제를 만나 반대 방향으로 간다 - 최대 점유 99% 문턱을 넘는 구간만 쓴다. 즉 우리 축(점유가 낮을 때 무슨 일이 생기는가)은 이 선행에서 의도적으로 비워둔 칸이다. 이건 우리 포지셔닝의 직접 근거이고 인용문으로 세울 수 있다.",
+    "evidence": [
+     {
+      "page": 3,
+      "quote": "Also, due to the content-dependent transmission, only signal parts with a high resource allocation and duration can be used for radar pro-\ncessing."
+     },
+     {
+      "page": 5,
+      "quote": "For the purpose\nof drone detection, it was assumed that radar processing would be done when an average of\n100 ms of R´enyi entropy passes the threshold of 99% of the maximum value, in this case, 25.41."
+     },
+     {
+      "page": 5,
+      "quote": "It can be seen that when there is no traffic in the network, the entropy is low.\nWhen traffic is more intensive, the entropy increases, reaching (while the resources are fully\nallocated) the maximum possible value, which was 25.67 in this case."
+     }
+    ],
+    "⚠_honest_caveat_ko": "그들은 '점유가 낮으면 성능이 이만큼 나쁘다' 를 재지 않았다. 따라서 우리가 '선행은 낮은 점유에서 실패한다' 라고 쓰면 그것은 그들이 하지 않은 실험을 대신 주장하는 것이다. 쓸 수 있는 문장은 '선행은 낮은 점유 구간을 처리대상에서 배제한다' 뿐이다.",
+    "⚠_SELF_CORRECTION_SAME_SESSION": {
+     "what_i_first_wrote": "'그들은 점유가 낮으면 성능이 이만큼 나쁘다를 재지 않았다. 따라서 우리가 선행은 낮은 점유에서 실패한다 라고 쓰면 그것은 그들이 하지 않은 실험을 대신 주장하는 것이다.'",
+     "why_it_was_wrong": "IRS 2023 논문 안에서는 참이지만, 같은 저자들이 1년 앞선 Remote Sensing 14:6146 (2022) 에서 정확히 그 실험을 했다. 점유율 0-100% 대 검출확률을, Pfa = 1e-4/1e-6/1e-8 에서.",
+     "corrected_statement_ko": "바르샤바 그룹은 (i) 2022 저널판에서 시뮬레이션으로 점유-대-Pd 를 교정된 Pfa 에서 냈고, (ii) 2023 IRS 판에서는 그 결과를 전제로 고점유 구간만 골라 실측했다. 따라서 '그들은 점유를 벤치마크하지 않았다' 는 거짓이다. 참인 문장은 '실측에서는 고점유 구간만 처리한다' 뿐이다.",
+     "corrected_by": "/data/public/jeong/papers/5G/22_Rényi Entropy-Based Adaptive Integration Method for 5G-Based Passive Radar Drone Detection.pdf",
+     "lesson_ko": "한 편만 읽고 '그들은 안 했다' 라고 쓰면 안 된다. 부재 주장은 그 그룹의 계보 전체를 열기 전에는 세울 수 없다."
+    }
+   },
+   "RANGE_RESOLUTION_CONVENTION_ko": {
+    "headline": "⭐ 우리 dR_b = c/B 규약을 지지하는 출판된 패시브 바이스태틱 선례를 찾았다.",
+    "page": 5,
+    "quote": "It operates at a 3.44 GHz carrier frequency with\n38.16 MHz of maximum bandwidth, which gives a maximum bistatic range resolution of ap-\nproximately 7.8 m.",
+    "our_arithmetic_ko": "c/B = 3e8 / 38.16e6 = 7.86 m -> '약 7.8 m' 와 일치. c/(2B) = 3.93 m 로 그들의 값의 절반이다. 따라서 이 그룹은 바이스태틱 거리분해능을 c/B 로 쓴다.",
+    "status": "⚠ 산술은 우리 것이다. 그들이 'c/B' 라는 수식을 적어놓지는 않았다. 인용할 때 '그들이 준 두 수치(38.16 MHz, 7.8 m)가 c/B 와 일치한다' 로 써야 정직하다."
+   },
+   "experiment_facts_ko": [
+    {
+     "fact": "장소·기하: 폴란드 우치, 5G 기지국은 건물 옥상, 레이더는 기지국에서 60 m 지상",
+     "page": 5,
+     "quote": "The 5G base station was located on the top of a\nbuilding, and the radar system was located on the ground 60 m away from the base station."
+    },
+    {
+     "fact": "수신기: 지향성 안테나 2개(기준/감시) + LNA + USRP SDR 녹화",
+     "page": 5,
+     "quote": "radar system consisted of two directional antennas and low-noise amplifiers. The signals were\nrecorded using a Universal Software Radio Peripheral (USRP) (software-defined radio (SDR)\nequipment) recorder and stored on PC SSD disks for further processing."
+    },
+    {
+     "fact": "표적: 스팬 약 1 m 드론, GPS 로거 부착(협조표적)",
+     "page": 5,
+     "quote": "The target under test\nwas a drone, depicted in Figure 3a, with a GPS logger attached. Its span was about 1 m."
+    },
+    {
+     "fact": "검출 2건: 바이스태틱 -7 m/s @ 150 m, +7 m/s @ 60 m",
+     "page": 6,
+     "quote": "This\nrelates to the object with −7 m/s bistatic velocity and 150 m bistatic range in Figure 5a and\n7 m/s bistatic velocity and 60 m bistatic range in Figure 5b."
+    },
+    {
+     "fact": "적분시간 100 ms, 엔트로피는 20 ms 조각마다, Renyi 차수 gamma=3",
+     "page": 4,
+     "quote": "In this paper, this value is fixed to γ = 3 since this ensures stable results\nand is the best choice for information analysis [16]. Also, due to the possible high variability of\nthe 5G downlink content, the analyzed signal slots were divided into 20 ms parts on which the\ncontents are analyzed using (4)."
+    },
+    {
+     "fact": "⭐ 수신기 교정법: 대용량 파일을 내려받아 시간/대역 점유를 강제 최대화해 최대 엔트로피를 잰다",
+     "page": 4,
+     "quote": "Moreover, the radar receiver may require calibration relying on\nforcing maximum time and bandwidth occupation through downloading massive files from the\n5G network."
+    }
+   ],
+   "processing_chain_ko": {
+    "order": "주파수동기 -> 프레임동기 -> 상향링크 제거 -> 스펙트로그램 -> Renyi 엔트로피 -> 적분 여부 결정 -> 필터링/클러터 제거 -> CAF -> 검출 -> 추출 -> 파라미터 추정 -> 추적",
+    "page": 3,
+    "quote": "Frequency\nsynchronization\nFrame\nsynchronization\nUplink\ncancelation\nSpectrogram\ncalculation",
+    "our_comparison_ko": "우리 passive_process.py 사슬(ECA -> CAF -> CFAR)과 비교하면 그들은 앞단에 '5G 특유' 두 블록(상향링크 제거, 점유 판정)을 더 얹는다. 우리 챔버 실험은 TDD 상향링크가 없어 첫 블록이 비활성이지만, 점유 판정 블록은 우리 G1/G2/G3 서사와 정확히 같은 자리에 있다."
+   },
+   "adversarial_notes_ko": [
+    "적대적 질문: '이게 우리 C4 를 깨나?' 아니다. 단일 조명원 + Pfa 미교정 + 검출 스냅샷 2장. 오히려 C4 의 '아직 아무도 안 했다' 를 강화한다.",
+    "적대적 질문: '이들이 우리보다 먼저 점유를 다뤘으니 우리 점유 서사가 새롭지 않은가?' 부분적으로 맞다 - 점유가 5G 패시브의 핵심 문제라는 지적은 [8] 2022 와 [13] 2022 가 선점했다. 새로운 것은 '점유를 축으로 놓고 교정된 오경보율에서 성능을 비교' 하는 부분이고 그건 이 논문에 없다. 우리 문장은 반드시 이 구별을 유지해야 한다.",
+    "적대적 질문: '협조표적(GPS 로거) + 협조망(cooperative 5G network) 이면 진짜 패시브인가?' 그들 스스로 'cooperative 5G network as a source of illumination'(p.1 초록) 이라고 쓴다. 우리 실측계획도 같은 형태가 될 가능성이 높으므로 이 용어를 그대로 빌려 쓰는 것이 정직하다.",
+    "⚠ 같은 그룹 함정: 이 논문의 공저자 Karol Abratkiewicz 는 우리 R1 정정의 진짜 출처(IEEE JSTARS 16:3469-3484, 2023)의 저자다. 바르샤바 그룹 논문을 셀 때 '독립 선행 3편' 처럼 세면 안 된다 - [8] TGRS 2022, [13] Remote Sensing 2022, 이 IRS 2023, Abratkiewicz JSTARS 2023 은 한 그룹의 연속물이다."
+   ],
+   "acquisition_targets_ko": [
+    "[8] Samczynski et al., IEEE TGRS 60:1-9, 2022 - 여전히 미확보. 아카이브 4곳 검색 0건.",
+    "⭐ [13] Maksymiuk, Abratkiewicz, Samczynski, Plotka, Remote Sensing 14(23), 2022 - 우리가 이미 보유하고 있다: /data/public/jeong/papers/5G/22_Renyi Entropy-Based Adaptive Integration Method for 5G-Based Passive Radar Drone Detection.pdf. 이 IRS 논문이 '첫 해법' 이라 부르는 본편이므로 이어서 정독한다."
+   ],
+   "what_this_record_does_not_claim_ko": [
+    "Samczynski TGRS 2022 의 내용 - 원문 미확보.",
+    "낮은 점유에서 그들의 성능 - 그들이 재지 않았다.",
+    "이 실험의 Pfa 나 검출확률 - 논문에 없다."
+   ]
+  },
+  {
+   "rank": 22,
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+   "title": "UAV's Rotor Micro-Doppler Feature Extraction Using Integrated Sensing and Communication Signal: Algorithm Design and Testbed Evaluation",
+   "authors": "Jiachen Wei, Dingyou Ma, Feiyang He, Qixun Zhang, Zhiyong Feng, Zhengfeng Liu, Taohong Liang (BUPT)",
+   "venue": {
+    "value": "IEEE Transactions on Wireless Communications, vol. 24, no. 12, December 2025, pp. 10166-10182. DOI 10.1109/TWC.2025.3578033",
+    "quote": "10166\nIEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 24, NO. 12, DECEMBER 2025",
+    "page": 1
+   },
+   "publication_status": "published (journal). 접수 2024-08-02, 수정 2025-02-24, 채택 2025-05-31, 게재 2025-07-10.",
+   "pages_read": "1-17 전부 (부록 A/B, 참고문헌, 저자약력 포함)",
+   "what_it_actually_does_ko": "모노스태틱 ISAC 기지국(전이중)이 5G NR PDSCH 를 센싱 심볼로 써서 드론 로터의 마이크로도플러를 뽑아낸다. 핵심 기여는 (1) DDDSU 프레임 구조로 센싱 심볼 밀도를 확보하고 (2) rmD-NSP 라는 연산자 기반 신호분해로 로터 성분만 영공간으로 분리하고 (3) SET 로 시간주파수 능선을 집중시킨다. 시뮬 + 3.5 GHz 하드웨어 테스트베드(중국 닝보) 양쪽에서 검증.",
+   "H8_screen": {
+    "verdict": "H8 을 반증하지 않는다. 오히려 '선행은 드론을 점산란체로 환원한다'는 우리 서사의 가장 깨끗한 인용문을 준다.",
+    "decisive_quote": {
+     "page": 3,
+     "quote": "For simplicity, the UAV is modeled as a set of\npoint scatterers, which are the primary reflecting points on the\ntarget."
+    },
+    "second_quote": {
+     "page": 4,
+     "quote": "To simplify matters, we can allocate the RCS of\neach blade to the blade’s tip [29]."
+    },
+    "machine_evidence": "전문 term count: 'Sionna' 0, 'ray tracing' 0, 'ray-tracing' 0, 'mesh' 0, 'physical optics' 0, 'diffraction' 0, 'dBsm' 0.",
+    "reading_ko": "AirGuard(실제 .obj 메쉬를 로드한 뒤 등방성 점산란 점군으로 환원)와 같은 축소를 이 논문은 아예 처음부터 한다. 메쉬가 없다."
+   },
+   "C2_screen": {
+    "verdict": "무해 - dBsm 0회, Sionna 0회. RCS 는 해석식(급수)으로 들어오지 파이프라인이 찍어내지 않는다."
+   },
+   "C4_screen": {
+    "verdict": "C4 를 반증하지 않는다. 검출기 자체가 없다 - CFAR 0회, false alarm 0회, probability of detection 0회. 성능축은 분해 RMSE 다.",
+    "their_metric": {
+     "page": 13,
+     "quote": "It can be observed\nthat under a 30 dB SNR condition, the rmD-NSP algorithm\nachieves the lowest RMSE of only 0.07, compared to 0.17\nfor AM-FM NSP and 0.38 for NSP. Even at a SNR of 5 dB,\nthe rmD-NSP algorithm maintains strong performance with an\nRMSE of 0.34, outperforming the other two algorithms."
+    },
+    "reading_ko": "SNR -10~30 dB 를 1 dB 씩 훑지만 재는 것은 '참 로터 신호 대비 추출 오차' 이지 검출확률이 아니다. 조명원도 5G 하나뿐."
+   },
+   "R2_PRESSURE_ON_OUR_500HZ_CEILING": {
+    "headline": "⭐ 우리 R2 정정('모노스태틱이 PRF 를 자유롭게 고른다'는 거짓, 3GPP 가 sub-6 CSI-RS 를 500 Hz 로 묶는다)은 반드시 'CSI-RS 에 한해' 로 좁혀 써야 한다. 이 TWC 논문은 같은 sub-6 모노스태틱에서 DMRS 로 10 kHz, PDSCH 전량으로 30 kHz 를 낸다.",
+    "evidence": [
+     {
+      "page": 3,
+      "quote": "During DL slots, the\nBS utilizes all physical downlink shared channel (PDSCH)\nsignals as sensing symbols, resulting in the shortest pulse\nrepetition interval (PRI) of 33.3 µs.",
+      "arithmetic_ko": "PRI 33.3 us -> 30 kHz. 우리가 CSI-RS 로 세운 500 Hz 천장의 60배다."
+     },
+     {
+      "page": 9,
+      "quote": "If DMRS signals are used as sensing symbols [44],\n[45], [46], the downlink sensing symbol interval would be\n1×10−4 s, which might appear to satisfy the PRI requirement.",
+      "arithmetic_ko": "DMRS 로도 10 kHz. 다만 그들은 이것으로도 부족하다고 본다."
+     },
+     {
+      "page": 9,
+      "quote": "However, because the complete ISAC process includes uplink\nslots-during which no sensing symbols are transmitted-the\noverall sensing symbol density is insufficient for accurate\nmicro-Doppler extraction.",
+      "reading_ko": "⭐ 진짜 제약은 명목 PRF 가 아니라 TDD 상향 슬롯이 만드는 '샘플 구멍' 이다. 균일 PRF 가 아니라 게이트된 샘플링이다. 우리가 '천장' 을 말할 때 이 구별을 빼면 부정확해진다."
+     }
+    ],
+    "our_action_ko": "docs 에서 '3GPP 가 500 Hz 로 묶는다' 를 쓸 때 반드시 (i) 신호 종류를 CSI-RS 로 명시하고 (ii) PDSCH/DMRS 재사용은 모노스태틱 전용 경로임을 붙인다. 후자는 우리 LaSen 메모(PDSCH 재활용은 패시브 바이스태틱에 이전 불가)와 정확히 같은 결론이다.",
+    "⚠_what_i_did_not_verify": "3GPP TS 38.211/38.214 원문은 여전히 안 읽었다. 이 논문은 TS 38.211 을 [39] 로 인용만 한다."
+   },
+   "AMBIGUITY_CONVENTION_FOURTH_FORM": {
+    "headline": "⭐ 무모호 속도 관례의 네 번째 형태를 이 논문이 명시한다: PRF >= 2 f_mD,max (평범한 나이퀴스트 전폭).",
+    "page": 9,
+    "quote": "To ensure that these features are preserved, the pulse repetition frequency (PRF)\nmust be at least twice the maximum micro-Doppler frequency,\ni.e., PRF ≥2f max\nmD , where the maximum micro-Doppler\nfrequency is given by f max\nmD\n=\n2πfrL\nλ\n.",
+    "worked_example_from_the_paper": {
+     "page": 9,
+     "quote": "For example, using\nour hardware test parameters (fr = 80 r/s and L = 0.5 m),\nwe obtain fmD = 2934 Hz, which requires a PRF of at least\n5868 Hz (corresponding to a PRI of less than 1.7 × 10−4 s).",
+     "our_check_ko": "2*pi*80*0.5 = 251.3 이고 251.3/lambda = 2934 -> lambda = 0.0857 m -> 3.50 GHz. 그들의 테스트베드 반송파(3.5 GHz)와 일치한다. 산술 자체가 맞다."
+    },
+    "convention_ledger_ko": [
+     "(a) Abratkiewicz JSTARS 2023 eq.(16): half-window, v_max = lambda*PRF/4 - 우리 R1 정정의 진짜 출처.",
+     "(b) Ezuma 2112.09774 p.2 (V. C. Chen 책 인용): 마이크로도플러용 PRF >= 4 * f_d,max 오버샘플 - 실질 v_max <= lambda*PRF/8.",
+     "(c) 이 논문 p.9: PRF >= 2 * f_mD,max 나이퀴스트 전폭.",
+     "⭐ 셋은 같은 물리에 서로 다른 안전계수를 붙인 것이고 수치는 2배씩 어긋난다. 우리가 선행값과 나란히 놓을 때 어느 관례인지 반드시 표기해야 한다.",
+     "⚠ 또한 f_mD 는 로터 첨단 속도 기반이라 기체 병진속도 기반 v_max 와 축이 다르다. 두 축을 한 표에 섞으면 안 된다."
+    ]
+   },
+   "dynamic_RCS_model_ko": {
+    "what": "로터 RCS 를 시간의 급수식(식 6)으로 놓고 계수 a_i, b_i, c_i 를 재질별로 둔다. 계수는 [40] 에서 가져온 탄소섬유 블레이드 값이다.",
+    "page": 9,
+    "quote": "The method that combines the integral model with the\nmethod of moments (MoM) to calculate the RCS of UAV\nrotors was proposed in [40]. It provides an analytical expres-\nsion for the RCS of rotating blades, validated through both\nsimulations and experiments. Additionally, [40] presents the\nrelevant coefficients used in RCS calculations for carbon fiber\nblades, specifically the coefficients ai, bi, and ci in (6) and (7).",
+    "cited_source": "[40] T. Li, B. Wen, Y. Tian, S. Wang, Y. Yin, 'Optimized radar waveform parameter design for small drone detection based on echo modeling and experimental analysis,' IEEE Access, vol. 7, pp. 101527-101538, 2019.",
+    "coefficients_printed_page_9": {
+     "quote": "a = [1.133, 0.425, 0.7121, −0.1588, 0.1046, 0.0027],\nb = [356.8, 1445, 608, 1946, 2236, 3513],\nc = [−0.1997, −2.464, 1.695, 1.319, −0.1277,\n−0.2433].",
+     "our_use_ko": "우리 재질가중 PO 의 GROUP_GAMMA 와 '재질이 계수를 바꾼다'는 같은 취지를 공유하지만, 이들은 형상적분을 하지 않고 실측 피팅 계수를 쓴다. 우리 방법과 비교표에 올릴 때 '해석식+피팅 계수 vs 메쉬+PO' 로 축을 갈라야 한다.",
+     "acquisition_ko": "⚠ [40] IEEE Access 2019 는 아카이브 미보유로 보인다(파일명 검색 0건). 확보하면 우리 재질 앵커의 독립 교차검증이 될 수 있다."
+    }
+   },
+   "testbed_facts_ko": [
+    {
+     "fact": "테스트베드: 5G NR, 3.5 GHz RF, sub-6 ISAC, 중국 닝보",
+     "page": 13,
+     "quote": "The proposed algorithm is validated on the Sub-6G ISAC\nhardware testbed. The ISAC system is based on the 5G\nNR protocol and consists of UL and DL baseband signal\nprocessing, intermediate frequency modulation, 3.5 GHz RF\nmodulation, and antenna modules."
+    },
+    {
+     "fact": "표적: DJI M300 RTK, 로터 길이 0.5 m, 동체 면적 0.26 m x 0.13 m, 반경방향 5 m/s 등속비행",
+     "page": 14,
+     "quote": "The DJI M300 RTK UAV has a rotor length of 0.5 m, and\na body area is 0.26 m × 0.13 m. The UAV was controlled to\nfly uniformly along the radial direction of the BS at a speed\nof 5 m/s"
+    },
+    {
+     "fact": "0.1 s 관측창에서 로터 8회전 관측",
+     "page": 14,
+     "quote": "observation period of 0.1 s, eight rotations are clearly observed\nin the spectrogram, which is consistent with the software sim-\nulation results shown in Fig. 8(b).",
+     "note_ko": "원 문장의 첫 두 단어('Within the')는 조판상 Fig.16 캡션 앞 단 끝에 걸려 있어 연속 인용에서 잘라냈다."
+    },
+    {
+     "fact": "간섭 시나리오를 새/차량/보행자로 층층이 쌓아 검증. 새 파라미터 10 m/s, 날갯짓 8 Hz, 진폭 0.3 m, RCS 0.1 m^2",
+     "page": 10,
+     "quote": "The bird parameters are set as vbird = 10 m/s,\nflapping frequency fflap = 8 Hz, flapping amplitude Dflap =\n0.3 m and RCS σbird = 0.1 m2."
+    },
+    {
+     "fact": "알고리즘 실행시간 0.84 s (M=1680, i9-13900HX 2.20 GHz, 16 GB RAM), 복잡도 O(M^3+M)",
+     "page": 15,
+     "quote": "During our hardware tests, the value of M was 1680.\nWe conducted algorithm runtime simulations on a machine\nequipped with a 13th Gen Intel R\n⃝CoreTM i9-13900HX proces-\nsor at 2.20 GHz with 16.0 GB of RAM (15.8 GB available).\nThe experimental results show that the algorithm execution\ntime is approximately 0.84 seconds."
+    }
+   ],
+   "Q_B_relevance_ko": {
+    "verdict": "Q-B(광선추적 런타임 기준선)에는 쓸 수 없다. 0.84 s 는 신호분해 알고리즘 실행시간이지 전파 시뮬 시간이 아니다. 우리 런타임 표에 섞으면 사과-대-오렌지가 된다.",
+    "note_ko": "다만 '실시간성 논거를 이렇게 쓴다'는 서술 관례(복잡도 + 실측 실행시간 + 하드웨어 명시)는 우리 report 에 그대로 빌릴 수 있다."
+   },
+   "adversarial_notes_ko": [
+    "적대적 질문: '이들이 실제 5G 망 하드웨어로 드론 로터를 잡았으면 우리 시뮬은 무엇을 더하나?' 그들은 모노스태틱·협조 기지국·전이중이고 우리는 패시브 바이스태틱이다. 또 그들은 표적을 점산란체로 놓아 자세각 의존성이 아예 없다. 우리 축(메쉬 기반 자세각 sigma + 패시브 조명원 비교)은 이 논문이 비운 칸이다.",
+    "적대적 질문: 'Table I 의 시스템 파라미터로 우리 링크버짓과 대조할 수 있나?' 불가. Table I 은 텍스트 레이어가 없는 이미지다(9쪽 단어 701개 중 표 내용 0). 어떤 수치도 이 표에서 인용하면 안 된다.",
+    "⚠ 이 논문은 Costa 외 RadarConf24 를 [30] 으로 인용한다 - Beuster 가 Fig.3 시뮬 출처로 지목한 바로 그 논문이다. 두 계보가 여기서 만난다.",
+    "⚠ 'PRF >= 2 f_mD' 는 로터 첨단 마이크로도플러 축이다. 우리 report11 의 저속·분해능 논의에서 기체 병진 v_max 와 한 문장에 넣으면 독자가 두 축을 혼동한다."
+   ],
+   "what_this_record_does_not_claim_ko": [
+    "Table I 의 어떤 값도 - 이미지라 읽을 수 없다.",
+    "[40] T. Li IEEE Access 2019 의 내용 - 원문 미확보.",
+    "3GPP TS 38.211 의 실제 조문 - 이 논문은 인용만 한다.",
+    "그들의 검출 성능 - 검출기가 없다."
+   ]
+  },
+  {
+   "rank": 23,
+   "pdf_path": "/data/public/sionna_jeong/reference_library/2408.00667v2.pdf",
+   "title": "Leveraging PRS and PDSCH for Integrated Sensing and Communication Systems",
+   "authors": "Keivan Khosroshahi (Univ. Paris-Saclay/CentraleSupelec + Nokia Standards), Philippe Sehier, Sami Mekki (Nokia Standards)",
+   "venue": {
+    "value": "UNVERIFIED - PDF 안에 학회/저널 표기가 없다. arXiv 스탬프뿐이다.",
+    "quote": "arXiv:2408.00667v2  [eess.SP]  2 Aug 2024",
+    "page": 1
+   },
+   "publication_status": "preprint (arXiv:2408.00667v2, 2024-08-02)",
+   "pages_read": "1-6 전부 (참고문헌 포함)",
+   "what_it_actually_does_ko": "5G NR 하향링크에서 PRS 를 센싱용, PDSCH 를 통신용으로 쓰되 PRS 콤 패턴이 만드는 거리 모호(유령표적)를 PDSCH 안의 DMRS 로 지운다. 콤 2/4 용 알고리즘 1(하다마르 곱)과 콤 6/12 용 알고리즘 2(정규화 후 합산 IFFT) 두 가지. 마지막에 PRS/PDSCH 자원배분의 파레토 최적점을 구한다. MATLAB 5G Toolbox 시뮬레이션만이고 실측·표적 메쉬 없음.",
+   "⚠_NAME_COLLISION_WARNING_ko": {
+    "headline": "⭐ 이 논문의 'ghost target' 은 우리 report09 의 '바닥 유령' 과 완전히 다른 현상이다. 같은 단어를 우리 기록에서 섞으면 즉시 오귀속이 된다.",
+    "theirs": "PRS 콤 패턴의 빈 RE 때문에 자기상관이 주기적으로 반복되고, 그 반복이 거리 프로파일에 가짜 봉우리를 만든다. 순수 파형 모호성이다.",
+    "ours": "표적을 경유해 바닥에서 반사돼 돌아오는 실제 다중경로 에코. 기하학적 현상이다.",
+    "evidence": {
+     "page": 1,
+     "quote": "More precisely, empty REs in the structure of PRS\nwould lead to ambiguity in range estimation. Such ambiguity\nmakes the distinction between real and ghost targets quite\nchallenging."
+    },
+    "term_count": "'ghost' 24회 - 전부 콤 모호성 맥락."
+   },
+   "RANGE_RESOLUTION_CONVENTION_SECOND_SUPPORT": {
+    "headline": "⭐ 우리 dR_b = c/B 규약의 두 번째 출판 근거. 이번엔 수식으로 명시돼 있다(Maksymiuk 은 수치 일치였다).",
+    "page": 3,
+    "quote": "The range resolution can be calculated as follows\n∆R =\nc\n∆fM ,",
+    "reading_ko": "Delta_f * M = 총 대역폭 B 이므로 dR = c/B 다. 그리고 이 dR 이 붙는 거리는 바이스태틱 총경로다 - 바로 앞 식 (9) 에서 'Rtot_k 는 바이스태틱 거리, 즉 gNB 에서 표적까지 그리고 수신기까지의 거리' 라고 정의한다.",
+    "supporting_quote": {
+     "page": 3,
+     "quote": "We replaced τk = Rtot\nk\nc\nwhile Rtot\nk\nis the bistatic range, i.e., distance from gNB to the target and\nthen to the receiver, c is the light speed."
+    },
+    "our_use_ko": "report11/12 의 'dR_b = c/B (바이스태틱 총경로 기준)' 규약을 이제 출판된 두 출처로 세울 수 있다: (i) 이 논문 식(10)+식(9), (ii) Maksymiuk IRS 2023 의 38.16 MHz -> 7.8 m 수치."
+   },
+   "PRS_AMBIGUITY_TABLE_ko": {
+    "headline": "PRS 콤 크기와 SCS 별 거리 모호 간격 표 - 우리 G3(PRS) 모드 설계에 직접 쓸 수 있는 수치표이고 텍스트 레이어가 있다.",
+    "formula": {
+     "page": 4,
+     "quote": "∆Rambiguity =\nc\n2KP RS\ncomb∆f ,",
+     "note_ko": "K_comb 는 PRS 콤 크기."
+    },
+    "table_page": 4,
+    "table_quote": "comb 2\ncomb 4\ncomb 6\ncomb 12\nSCS = 15 kHz\n4996\n2498\n1665\n832\nSCS = 30 kHz\n2498\n1249\n832\n416\nSCS = 60 kHz\n1250\n624\n416\n208\nSCS = 120 kHz\n624\n312\n208\n104\nSCS = 240 kHz\n312\n156\n104\n52",
+    "our_arithmetic_check_ko": "c=299792458 으로 c/(2*2*15e3) = 4996.5 -> 표의 4996 과 일치. c/(2*12*240e3) = 52.05 -> 표의 52 와 일치. 표는 자기 식과 자기모순이 없다.",
+    "⚠_two_way_vs_one_way": {
+     "page": 4,
+     "quote": "Notably, for one-way propagation delay,\nambiguity intervals are twice the values indicated in Table I.",
+     "reading_ko": "표는 왕복(2배 경로) 기준이다. 우리가 바이스태틱 총경로로 옮길 때 어느 쪽인지 반드시 명시해야 한다. 이 한 문장을 놓치면 정확히 2배 틀린다."
+    }
+   },
+   "ADVERSARIAL_FINDING_bistatic_doppler_ko": {
+    "headline": "⭐ 적대적 발견: 이들은 거리를 바이스태틱 총경로로 정의해놓고 도플러->속도 변환에는 모노스태틱 인수 2 를 그대로 쓴다.",
+    "their_range": {
+     "page": 3,
+     "quote": "Rtot\nk\nis the bistatic range, i.e., distance from gNB to the target and\nthen to the receiver"
+    },
+    "their_velocity": {
+     "page": 4,
+     "quote": "The velocity can be obtained from Doppler as follows [2]\nv = cfd,k\n2fc\n,"
+    },
+    "why_it_is_a_problem_ko": "바이스태틱에서 f_d = (1/lambda) d(R_tot)/dt 이므로 d(R_tot)/dt = c*f_d/f_c 다. 그들의 v = c*f_d/(2 f_c) 는 d(R_tot)/dt 의 절반이고, 이는 R_tot = 2R 인 모노스태틱에서만 표적속도와 같아진다. 진짜 바이스태틱이면 1/(cos(beta/2) cos delta) 인수가 더 붙어야 한다. 그 인수가 논문 어디에도 없다.",
+    "provenance_ko": "식 (17) 은 [2](Wei 외, IEEE TVT 72(3):3250-3263, 2022, 'PRS-based sensing')를 인용한다. 즉 모노스태틱 계보의 식을 바이스태틱 기하에 그대로 옮겨온 모양이다.",
+    "⚠_honesty_ko": "그들이 '모노스태틱' 이라고 쓴 적은 없다(term count 'monostatic' 0). 내가 말할 수 있는 것은 '식(9)는 바이스태틱 총경로인데 식(17)에는 바이스태틱 보정인수가 없다' 라는 사실 관계뿐이다. 그들의 Fig.2 는 gNB 와 Rx 를 분리해 그린다.",
+    "our_own_history_ko": "우리도 report04 에서 바이스태틱 도플러 부호를 뒤집는 버그를 냈다가 고쳤다. 같은 함정이 출판물에도 있다는 증거이므로 우리 규약 절에 '선행에서도 흔히 빠지는 인수' 로 인용할 수 있다."
+   },
+   "C4_screen": {
+    "verdict": "⭐ C4 를 반증하지 않는다. 그러나 C4 의 '조명원' 이라는 단어가 왜 하중을 지는지 두 번째 실례를 준다.",
+    "reasoning_ko": [
+     "그들은 PRS 단독 vs PRS+DMRS 를 비교한다 - Taylor & Poullin(IEEE TAES 61(4) 2025)이 LTE 하향링크 안에서 심볼 부분집합을 비교한 것과 같은 모양이다. 조명원은 여전히 하나(5G gNB)다.",
+     "성능축이 오경보율이 아니다. CFAR 0회, false alarm 0회, Pfa 0회, Monte 0회, threshold 0회. 결과는 정규화된 거리 프로파일 그림 두 쌍(Fig.4, Fig.5)과 파레토 그림 하나뿐이다.",
+     "표적은 점표적 2개, SNR 은 '검출에 충분할 만큼' 이라고만 한다."
+    ],
+    "damning_quote": {
+     "page": 5,
+     "quote": "SNR should be enough to be able to detect PRS\nand DMRS, fc = 28GHz and SCS equals to 120kHz.",
+     "reading_ko": "⭐ SNR 값을 아예 주지 않는다. 검출 성능 논문이 아니라 모호성 제거 논문이다."
+    }
+   },
+   "H8_C2_screen": {
+    "verdict": "무관 - 'RCS' 0회, 'dBsm' 0회, 'mesh' 0회, 'Sionna' 0회, 'drone'/'UAV' 0회. 표적은 감쇠계수 beta_k 인 점표적이다.",
+    "quote": {
+     "page": 2,
+     "quote": "a gNB transmits signals\ntoward a sensing area containing K point-like targets."
+    }
+   },
+   "3GPP_facts_secondhand_ko": {
+    "note": "Q-F(38.211/38.214 직독 미완)에 대한 부분적 도움. 다만 이것은 2차 출처이지 조문이 아니다.",
+    "items": [
+     {
+      "claim": "PRS 는 주파수축 콤 2/4/6/12, 시간축 심볼 1/2/4/6/12 를 지원한다",
+      "page": 2,
+      "quote": "PRS supports four comb patterns—Comb\n2/4/6/12—in the frequency domain and five symbol number\nconfigurations—Symbol 1/2/4/6/12—in the time domain."
+     },
+     {
+      "claim": "PRS 는 SCS 에 따라 최소 24 PRB, 최대 272 PRB 를 점유",
+      "page": 2,
+      "quote": "Depending on the subcarrier\nspacing, the PRS in 5G NR can occupy a minimum of 24\nPRBs and a maximum of 272 PRBs."
+     },
+     {
+      "claim": "PRS 는 3GPP Release 16 에서 도입",
+      "page": 1,
+      "quote": "PRS, introduced in\n3rd generation partnership project (3GPP) Release 16, holds\nsignificant promise for sensing applications"
+     },
+     {
+      "claim": "인용된 규격판: TS 38.211 v18.2.0 (2024), TS 38.214 v18.2.0 (2024)",
+      "page": 6,
+      "quote": "[10] ——, “NR; physical channels and modulation,” 3rd Generation Partner-\nship Project (3GPP), Technical Specification (TS) 38.211, 2024, v18.2.0."
+     }
+    ],
+    "⚠": "이 값들은 Khosroshahi 외가 규격을 읽고 요약한 것이다. 우리 기록에 쓸 때 출처는 '이 논문' 이지 '3GPP' 가 아니다."
+   },
+   "narrative_support_for_our_G3_PRS_mode_ko": {
+    "headline": "우리 '상시 기준신호 서사'(패시브는 상시 신호만, PRS 는 측위 세션 옵션)와 이 논문의 산업 관점이 정확히 맞물린다.",
+    "quote": {
+     "page": 1,
+     "quote": "From the industrial standpoint on integrated sensing\nand communication (ISAC), the preference lies in augmenting\nexisting infrastructure with sensing services while minimizing\nnetwork changes and leveraging available resources."
+    },
+    "reading_ko": "노키아 표준부서 저자들이 '망 변경 최소화' 를 제1원칙으로 놓는다. 우리가 G3(PRS)를 '최선이지만 세션 의존' 으로 다루는 논리와 같은 방향이고, 그들조차 PRS 를 그냥 켜는 게 아니라 PDSCH 와 자원을 나눠야 한다고 본다.",
+    "⚠": "다만 이들은 모노/바이 구분 없이 다운링크 ISAC 이고 패시브 레이더가 아니다. '패시브' 라는 단어가 이 논문에 나오지만 'passive targets'(비협조 표적) 뜻이지 패시브 레이더가 아니다."
+   },
+   "adversarial_notes_ko": [
+    "적대적 질문: '이 논문의 PRS 유령 제거가 우리 report09 바닥유령 대책과 겹치나?' 전혀 아니다. 위 name-collision 절 참조. 겹친다고 쓰면 즉시 오귀속이다.",
+    "적대적 질문: 'Table I 로 우리 G3 PRS 모드의 모호거리를 바로 인용해도 되나?' 조건부로 가능하다 - (i) 왕복 기준임을 명시하고 (ii) 우리 챔버는 최대 바이스태틱 경로가 수십 m 라 콤 12/SCS 240 kHz 의 52 m 조차 챔버보다 크므로 모호가 실무상 문제되지 않는다는 점까지 같이 써야 정직하다.",
+    "적대적 질문: '이들이 PRS vs DMRS 를 비교했으니 C4 가 깨지나?' 아니다. 조명원이 아니라 같은 gNB 안의 기준신호 종류이고, 오경보율 교정이 전혀 없다. C4 의 '조명원' 과 '교정된 오경보율' 두 단어가 모두 살아있다."
+   ],
+   "what_this_record_does_not_claim_ko": [
+    "게재 여부/학회 - PDF 에 없다.",
+    "그들의 검출 성능이나 SNR - 논문이 값을 주지 않는다.",
+    "3GPP 조문 자체 - 이 논문은 요약본이다.",
+    "그들이 자기 도플러 변환을 모노스태틱이라고 자인했다는 것 - 그런 문장은 없다."
+   ]
+  },
+  {
+   "rank": 19,
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2601.20817__eca-passive-radar-imperfect-reference.pdf",
+   "title": "Statistical Analysis of the Extensive Cancellation Algorithm for Passive Radar Using an Imperfect Reference Signal",
+   "authors": "Mats Viberg (Blekinge Institute of Technology / Chalmers), Daniele Gerosa, Tomas McKelvey, Thomas Eriksson (Chalmers)",
+   "venue": {
+    "value": "UNVERIFIED - PDF 안에 학회/저널 표기가 없다. arXiv 스탬프뿐이다.",
+    "quote": "arXiv:2601.20817v2  [eess.SP]  6 Jul 2026",
+    "page": 1
+   },
+   "publication_status": "preprint (arXiv:2601.20817v2, 2026-07-06)",
+   "pages_read": "1-13 전부 (부록 A/B/C 증명, 참고문헌 포함)",
+   "what_it_actually_does_ko": "ECA(Colone 외 2009)를 근사 최대우도 추정기로 재해석하고, 기준채널(RC)이 잡음으로 오염됐을 때 표적 파라미터 추정 오차의 공분산을 1차 근사로 유도한다. 결과는 '완벽한 기준신호를 가정한 CRLB + RC 잡음이 만드는 초과항' 의 합 형태다. 새 알고리즘을 제안하지 않고 성능만 특성화한다.",
+   "⭐_WHY_THIS_MATTERS_MOST_TO_US": {
+    "our_open_question": "우리 메모 '패시브 CAF 보류질문': report12 의 헤드라인 벤치마크는 이상적 기준신호 정합필터 SNR 을 쓴다. 현실적 2채널 승격은 열린 과제였고 '얼마나 낙관적인가' 를 정량화할 근거가 없었다.",
+    "what_this_paper_gives": "그 이상화의 대가를 dB 로 준다.",
+    "headline_quote": {
+     "page": 10,
+     "quote": "In a studied scenario, it is found that for moderate clutter, the excess error\ndue to noise in the RC can only be neglected if the SNR in the\nRC is about 60 dB higher than that in the SC."
+    },
+    "sufficient_condition": {
+     "page": 7,
+     "quote": "(L + 1) |bk|2 + |dk|2 + ∥ck∥2\nσ2e\n≪|ak|2\nσ2n\n.",
+     "reading_ko": "우변이 RC 의 SNR, 좌변이 SC 의 총 간섭대잡음비 상한에 간섭 부분공간 차원 (L+1) 을 곱한 것이다. 그들의 해설: '우변은 RC 의 SNR 이고 좌변은 SC 총 간섭대잡음비의 상한이다.'",
+     "supporting_quote": {
+      "page": 7,
+      "quote": "The right-hand side of (34) is the SNR in the RC, and the left-\nhand side is an upper bound on the total interference-to-noise\nratio in the SC. Thus, we conclude that the requirement on\nthe SNR in the RC to be able to ignore the RC noise depends\non the powers of the DPI, the target and the clutter, and they\nare all scaled by the dimension of the interference subspace."
+     }
+    },
+    "our_action_ko": "report12 의 이상적 기준신호 가정을 각주로 방어할 때 이 논문을 인용하고 '완벽 기준 CRLB 에 도달하려면 RC SNR 이 SC SNR 보다 약 60 dB(중간 클러터 기준) 높아야 한다' 를 조건으로 명시한다. 우리 챔버는 TX 가 벽면 고정이고 기준안테나를 직접 겨눌 수 있으므로 이 조건을 실제로 만족시킬 여지가 있다 - 그러나 그건 실측으로 확인할 일이지 지금 주장할 일이 아니다."
+   },
+   "⚠_PRESSURE_ON_OUR_OWN_CLAIM_static_clutter_dead": {
+    "our_claim": "우리 메모 'sionna2 챔버 바닥·유령': 정적 클러터는 죽은 파라미터다(ECA 삼중차단).",
+    "what_this_paper_says": "완벽한 기준신호 아래에서만 그렇다. 기준신호가 오염되면 클러터 소거가 불완전해지고, 클러터 전력이 커질수록 RC SNR 요구가 더 엄격해진다.",
+    "quote": {
+     "page": 10,
+     "quote": "However, as the\npower of the clutter interference is increased beyond a certain\ncritical value, the requirement on the SNR in the RC relative\nto that in the SC becomes even more strict. This is natural\nsince the ability to cancel clutter depends on the accuracy\nof the interference subspace estimate, and the requirement\nshould become stricter with increasing clutter power."
+    },
+    "second_quote": {
+     "page": 9,
+     "quote": "For low or moderate clutter, the transition occurs at a\nconstant SC SNR value around 0 dB. As the clutter power\nincreases beyond a critical value, the transition occurs at an\nincreasingly lower SNR in the SC."
+    },
+    "verdict_ko": "우리 주장은 틀리지 않았지만 범위가 붙어야 한다: '이상적 기준신호 아래에서 정적 클러터는 죽은 파라미터다'. 범위를 빼고 쓰면 이 논문이 반례다. 이건 우리 기록에 대한 실질 정정 사항이다."
+   },
+   "ECA_PROVENANCE_ko": {
+    "headline": "우리 ECA 구현의 계보를 축자로 못박는다.",
+    "page": 12,
+    "quote": "[1] F. Colone, D. W. O’Hagan, P. Lombardo, and C. J. Baker, “A Multistage\nProcessing Algorithm for Disturbance Removal and Target Detection in\nPassive Bistatic Radar,” IEEE Trans. Aerosp. Electron. Syst., vol. 45,\nno. 2, pp. 698–722, 2009.",
+    "how_this_paper_labels_it": {
+     "page": 1,
+     "quote": "our focus is on the seminal Extensive\nCancellation Algorithm (ECA) [1]"
+    },
+    "ECA_B_note": {
+     "page": 6,
+     "quote": "we remark that [1] also introduces the ECA-\nB version, where data is processed in batches. This reduces\nthe computational cost and memory requirements at the RNs,"
+    }
+   },
+   "CFAR_NORMALIZATION_FINDING_ko": {
+    "headline": "⭐ 정규화된 CAF 의 분모가 CFAR 문턱으로 흡수된다는 명시 - 우리 report10 CFAR 교정 절의 이론 근거로 쓸 수 있다.",
+    "page": 5,
+    "quote": "The denominator does not depend on the SC data, and\ncan be absorbed into the threshold of a Constant False Alarm\nRate (CFAR) detector. For most practical IO waveforms, the\ndenominator is nearly independent of the target parameters\nwhen |ωk| ≫0 or if τk is far from the range of clutter delays.\nHowever, for a slow moving target within the clutter range,\nthe full form of (19) will improve the estimation performance\nover the 2D CAF without normalization.",
+    "our_use_ko": "⭐⭐ 우리 report11 의 '저속 표적' 축과 정확히 맞물린다: 느린 표적이 클러터 거리 안에 있을 때는 정규화하지 않은 2D CAF 보다 정규화형이 낫다고 명시한다. 우리 hover blind 서사에 붙일 수 있는 이론 근거다."
+   },
+   "C4_screen": {
+    "verdict": "C4 를 반증하지 않는다. 저자들이 검출 문제를 다루지 않겠다고 명시한다.",
+    "decisive_quote": {
+     "page": 3,
+     "quote": "In the present contribution we do not address the detection\nproblem, and assume knowledge of the presence of exactly one\ntarget."
+    },
+    "term_counts_wordboundary": "'CFAR' 1, 'false alarm' 1(그것도 CFAR 풀어쓴 것), 'probability of detection' 0. 조명원은 한 개(NI = 1)로 고정한다."
+   },
+   "H8_C2_screen": {
+    "verdict": "무관 - 'Sionna' 0, 'mesh' 0, 'drone' 0, 'UAV' 0, 'dBsm' 0, 'RCS' 1(모델식에서 '바이스태틱 RCS' 라는 단어로 한 번). 표적은 복소 진폭 d_k 하나다.",
+    "quote": {
+     "page": 3,
+     "quote": "The\ncomplex target amplitude dk accounts for propagation\nattenuation, bi-static Radar Cross Section (RCS) as well as\nantenna and receiver gain."
+    }
+   },
+   "simulation_setup_facts_ko": [
+    {
+     "fact": "파형: 16 MHz 대역 대역제한 정상 가우시안 과정, 반송파 600 MHz, 25 MSps 표본화. 스웨덴 예테보리 Brudaremossen TV 송신탑 실특성을 본뜬 값",
+     "page": 7,
+     "quote": "the baseband IO sensing waveform is chosen to be a band-\nlimited, stationary Gaussian process with 16 MHz bandwidth\nand unit variance. The waveform is subsequently up- and\ndown-converted to and from Radio Frequency (RF) using a\ncarrier of 600 MHz. Each RN samples the incoming wave-\nform at 25 MSps."
+    },
+    {
+     "fact": "⭐ 표적 RCS 약 0.02 m^2 (= -17.0 dBsm), 속도 약 200 m/s, 관측 N=2^13 표본 = 약 0.33 ms",
+     "page": 8,
+     "quote": "A single target is present, with\nradar cross-section ≈0.02 m2, and moving at constant speed\nof ≈200 m/s (with constant velocity vector (70, −190) m/s\nand corresponding to ≈1320 rad/sec in our bistatic setup).\nThe acquisition time equals N = 213 samples, corresponding\nto approximately 0.33 ms of data at the sampling rate Fs =\n1/∆T = 25 MSps.",
+     "our_note_ko": "0.02 m^2 는 -17.0 dBsm 이고 소형 드론 규모와 겹친다. 다만 그들은 드론이라고 부르지 않는다('drone' 0회, 'UAV' 0회)."
+    },
+    {
+     "fact": "클러터: FIR 길이 L=70, 클러터대잡음비 평균 약 100 dB(V-A/V-D), 약 60 dB(V-B)",
+     "page": 8,
+     "quote": "All “empirical” numerical simulations include a clutter area\nwith a clutter filter of length L = 70, whose taps are generated\nat random at each RN. The clutter area is assumed to be made\nof strongly reflecting elements so that the clutter-to-noise ratio\nis ∼100 dB on average in Sections V-A and V-D, ∼60 dB\nin Section V-B, whereas it is varied in V-C."
+    },
+    {
+     "fact": "이론-실험 일치 문턱: 시간지연 추정에서 SC SNR -15 dB 또는 RC SNR 55 dB",
+     "page": 8,
+     "quote": "It\ncan be seen that the theory agrees well with the empirical\nresults above a certain threshold, which in this case is −15\ndB in the SC (Figure 2a) or 55 dB in the RC (Figure 2c)\nfor the time-delay estimate."
+    },
+    {
+     "fact": "멀티스태틱 기하: RN 4개를 (±300, ±300) m 에, IO 를 원점에 둔다",
+     "page": 8,
+     "quote": "but with K = 4 RNs, located\nat (−300, 300), (300, 300), (300, −300) and (−300, −300)\nmeters respectively, while the IO sits at (0, 0)"
+    },
+    {
+     "fact": "몬테카를로 6000 회, Nelder-Mead 로 참값에서 출발해 전역최적의 품질만 본다",
+     "page": 8,
+     "quote": "The empirical RMSE\n(Root-Mean-Square-Error) values are based on 6000 noise\ninstances, and in each the criterion function (21) is maximized\nusing the Nelder-Mead algorithm with the “true” parameter\nvalues θ0 as starting point."
+    }
+   ],
+   "methodology_we_could_borrow_ko": [
+    "우리 report12 의 다중 Rx 융합은 '국소 추정 전송(2단계)' 인데, 이 논문은 '전체 우도 전송(DPD)' 이 상한임을 보이고 고 SNR 에서는 2단계가 같은 점근성능을 낼 수 있다고 적는다(EXIP 인용). 우리 '코히어런트 + 10log10(N) 이상적 상한' 서사와 정확히 같은 자리의 논거다.",
+    "잡음 없는 극한에서의 일관성(consistency)을 파형의 확률과정 클래스로 증명하는 절차 - 우리는 이런 형식 증명을 하지 않지만 '왜 CAF 최대점이 참값인가' 를 한 줄로 인용할 수 있다."
+   ],
+   "adversarial_notes_ko": [
+    "적대적 질문: '60 dB 는 우리 챔버에서 달성 가능한가?' 모른다. 그들의 60 dB 는 그들의 시나리오(TV 송신탑, 16 MHz, 클러터 60-100 dB CNR)에서 나온 수치다. 우리 무향실은 CNR 이 훨씬 낮으므로 요구가 완화될 여지가 있으나, 그건 우리가 계산해야 할 값이지 이 논문에서 가져올 값이 아니다.",
+    "적대적 질문: '이 논문이 우리 ECA 삼중차단 주장을 깨나?' 부분적으로 그렇다 - 이상적 기준 가정을 빼면 클러터 전력이 다시 살아난다. 우리 문장에 범위를 붙이는 것이 정직한 대응이다.",
+    "적대적 질문: '이 논문의 결과를 5G/LTE 패시브에 그대로 옮겨도 되나?' 안 된다. 그들의 파형은 대역제한 가우시안 확률과정이고 Theorem 1 의 유일성 증명이 바로 그 가정 위에 서 있다. OFDM 처럼 결정적 파일럿 구조가 있는 신호에는 정리의 전제가 그대로 적용되지 않는다. 'LTE' 단어 0회, '5G' 0회다.",
+    "⚠ 페이지 7 의 식 (34) 는 충분조건이지 필요조건이 아니라고 저자들이 명시한다(p.8: 'this condition is sufficient but not necessary'). 우리가 '60 dB 가 필요하다' 로 옮기면 과장이다."
+   ],
+   "what_this_record_does_not_claim_ko": [
+    "게재 여부/학회 - PDF 에 없다.",
+    "우리 챔버에서 필요한 RC SNR 값 - 이 논문에서 계산되지 않는다.",
+    "OFDM/5G 파형에 대한 적용 가능성 - 그들의 정리는 가우시안 확률과정 가정 위에 있다.",
+    "검출 성능(Pd/Pfa) - 저자들이 명시적으로 다루지 않는다."
+   ]
+  },
+  {
+   "rank": "BONUS-1 (wave 4 배정 밖, H8/C2/Q-A 반례 사냥으로 직접 골라 읽음)",
+   "why_i_picked_it_ko": "Beuster 를 읽다가 Fig.3 의 드론 바이스태틱 반사도 측정이 BiRa 시설에서 나온 것임을 확인했고, 아카이브에 2026-08-03 자로 새로 들어온 BiRa 시설 본편이 있었다. '측정+시뮬 대조로 드론 산란을 이미 검증한 출판물' 이 있다면 H8/C2 를 깨는 가장 유력한 후보였다.",
+   "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/tap2026__bira-spherical-bistatic-reflectivity.pdf",
+   "title": "BIRA: A Spherical Bistatic Radar Reflectivity Measurement System",
+   "authors": "C. Andrich, T. F. Nowack, A. Ihlow, S. Giehl, M. Engelhardt, G. Sommerkorn, A. Schwind, W. Hofmann, C. Bornkessel, M. A. Hein, R. S. Thoma (TU Ilmenau / ThIMo)",
+   "venue": {
+    "value": "IEEE Transactions on Antennas and Propagation, 2026 (게재 확정, 권/호/쪽 미배정). DOI 10.1109/TAP.2026.3659989. 프리프린트는 arXiv:2407.13749v5.",
+    "quote": "To be published in IEEE Transactions on Antennas and Propagation, vol. nn,\nno. n, pp. nnnn – nnnn, Month 2026. DOI: 10.1109/TAP.2026.3659989.",
+    "page": 1
+   },
+   "publication_status": "accepted / to be published (IEEE TAP 2026). ⚠ 권·호·쪽이 아직 없으므로 우리 하우스 규칙(venue+status+year)을 지키려면 '게재 확정, 쪽 미배정' 으로 적어야 한다.",
+   "second_venue_quote": {
+    "page": 1,
+    "quote": "arXiv:2407.13749v5  [eess.SP]  3 Apr 2026"
+   },
+   "pages_read": "1-15 전부 (표 I/II/III, 측정예제 5종, 참고문헌 포함)",
+   "what_it_actually_does_ko": "TU Ilmenau 의 BiRa 바이스태틱 반사도 측정시설을 소개하는 시설 논문. 8자유도 갠트리 2대 + 턴테이블로 조명각/관측각을 독립적으로 구면 배치한다. 측정예제 5종: (1) 금속구 바이스태틱 RCS 검증, (2) 광대역 안테나 교정/디컨볼루션, (3) 이중구 확장표적, (4) 보행자 더미 마이크로도플러, (5) 안테나 지향패턴.",
+   "H8_screen": {
+    "verdict": "H8 을 반증하지 않는다. 이 논문에는 드론 측정이 없다.",
+    "evidence_ko": "측정 대상은 금속구(30 cm), 금속구 2개, VRU 보행자 더미, 안테나뿐이다. 'drone' 은 전문 7회 등장하는데 전부 (i) 연구소 소개 문장, (ii) 참고문헌 제목이다. 'UAS' 도 마찬가지로 [40]-[43] 인용에만 나온다.",
+    "quote": {
+     "page": 12,
+     "quote": "Similarly, other\ntarget objects are identifiable via their unique micro-Doppler\nsignature, e.g., UAS [40]–[43]."
+    },
+    "consequence_ko": "드론 산란 측정은 이 그룹의 다른 논문들([40]-[43], Costa 계열)에 있다. H8 의 진짜 시험대는 여전히 그 논문들이다."
+   },
+   "C2_screen": {
+    "verdict": "C2 는 문자 그대로 살아남는다 - 'Sionna' 0회. 그러나 C2 를 넓게 읽으면 위험하다.",
+    "what_they_print": "금속구 30 cm 의 바이스태틱 RCS 를 dBsm 으로, 측정(BiRa) / 시뮬(ANSYS HFSS SBR+) / 해석해(Mie) 세 곡선을 같은 극좌표에 겹쳐 찍는다.",
+    "quote": {
+     "page": 9,
+     "quote": "Fig. 10. Bistatic RCS in dBsm (measured with BIRA, simulated with HFSS,\nand analytically calculated) of a metallic sphere with 30 cm diameter at 6 GHz\nalong bistatic azimuth angle φill −φobs, fixed co-elevation θ = 90°."
+    },
+    "⭐_scoping_lesson_ko": "'SBR 계열 솔버가 바이스태틱 dBsm 을 찍고 측정과 맞춘다' 는 전혀 새롭지 않다. 우리 novelty 문장은 반드시 (i) Sionna 급 GPU 광선엔진 안에서, (ii) 드론 메쉬로 라는 두 한정어를 달고 있어야 한다. 한정어를 빼는 순간 이 TAP 논문이 반례다."
+   },
+   "⭐⭐_Q_A_EVIDENCE_BOTH_WAYS": {
+    "question": "Q-A: Ziganshin 저널판(arXiv:2604.05991v2)의 반론 - 'SBR+PO 는 조명영역에 한정되고 그림자영역 산란장 예측에 부적합하다'. 이 논문은 양쪽 모두에 증거를 준다.",
+    "half_1_SUPPORTS_ziganshin": {
+     "finding_ko": "그림자영역 물리가 실제로 측정된다. 구를 감고 도는 creeping wave 가 거리분해 반사도에 별개 경로로 찍힌다. PO 는 원리상 이 성분을 만들지 못한다.",
+     "page": 10,
+     "quote": "The close path (diamonds) represents the tangential reflection and the distant path (circles) the creeping wave diffracted around\nthe sphere as illustrated in Fig. 13.",
+     "second_quote": {
+      "page": 10,
+      "quote": "Fig. 13.\nBistatic path model for the radar reflectivity of a metal sphere\ncomprising reflection at bisector of bistatic azimuth angle and diffraction\naround the sphere."
+     },
+     "third_quote_extended_target": {
+      "page": 11,
+      "quote": "The smaller sphere reflection path matches\nthe geometric LoS model, unless shadowed by the larger\nsphere, where diffraction causes both interference patterns and\nprolonged paths (Fig. 14 c⃝)."
+     },
+     "our_reading_ko": "⭐ 즉 Ziganshin 의 '그림자영역' 절반은 실측으로 뒷받침된다. 우리는 이것을 반박하려 들지 말고 우리 커널의 한계로 명시해야 한다. 다만 그들의 예제는 30 cm 금속구(6 GHz 에서 D/lambda = 6)라 creeping wave 가 강하게 살아나는 매끄러운 볼록체다 - 프로펠러·다면체 드론 기체에서 같은 세기인지는 이 논문이 말하지 않는다."
+    },
+    "half_2_PARTIALLY_REBUTS": {
+     "finding_ko": "SBR 계열 솔버(ANSYS HFSS SBR+)를 바이스태틱 검증 기준으로 삼고, 측정과 '값과 특성 패턴 모두에서 훌륭히 일치' 한다고 적는다. 전방산란 영역까지 포함한 방위 전구간 컷이다.",
+     "page": 9,
+     "quote": "Comparing the\nsimulations with the measurement data, we find an excellent\nmatching in the values and the characteristic patterns.",
+     "setup_quote": {
+      "page": 9,
+      "quote": "To validate the measurement results, we look at both the\nanalytical solution [39] and electromagnetic simulations with\nANSYS HFSS SBR+ as reference."
+     }
+    },
+    "⚠⚠_PRECISION_TRAP_ko": {
+     "trap": "이 논문의 '0.7 dB / 1.3 dB' 는 시뮬 대 측정이 아니다. 해석해 대 HFSS SBR+ 의 차이다. 시뮬 대 측정은 수치 없이 'excellent matching' 이라는 정성 표현뿐이다.",
+     "quote": {
+      "page": 9,
+      "quote": "The calculated and simulated curves show good agree-\nment, with up to 0.7 dB difference for θ polarization and 1.3 dB\nfor φ polarization in the backscatter region (0°...±90°)."
+     },
+     "why_this_matters_ko": "우리 철회 기록의 전형적 실패 양식이다. 'SBR 이 측정과 1 dB 이내로 맞는다' 라고 쓰면 이 논문이 하지 않은 주장을 대신 하는 것이다. 쓸 수 있는 문장은 두 개로 갈라야 한다: (a) 해석해 대 SBR+ 는 후방산란 영역에서 0.7-1.3 dB, (b) SBR+ 대 측정은 정성적으로 '훌륭히 일치'(수치 없음)."
+    }
+   },
+   "⭐_RANGE_RESOLUTION_THIRD_SUPPORT": {
+    "headline": "우리 dR = c/B 규약의 세 번째 출판 근거. 이번엔 측정시설 논문의 실측 분해능이다.",
+    "page": 12,
+    "quote": "The 2 GHz instantaneous measurement bandwidth of our\nSDR measurement system enables a high range resolution of\n15 cm.",
+    "our_arithmetic_ko": "c/B = 3e8 / 2e9 = 0.15 m = 15 cm. 정확히 일치. c/(2B) 였다면 7.5 cm 였을 것이다.",
+    "second_datum": {
+     "page": 5,
+     "quote": "We typically use 10 MHz\nfrequency steps for a 30 m range ambiguity.",
+     "our_arithmetic_ko": "c/df = 3e8/1e7 = 30 m. Khosroshahi 식 (11) R_max = c/Delta_f 와 같은 규약이다."
+    },
+    "ledger_ko": "이제 c/B 규약을 세우는 출판 출처가 넷이다: (1) Maksymiuk IRS 2023 수치일치, (2) Khosroshahi arXiv:2408.00667 식(10)+식(9), (3) 이 TAP 2026 의 15 cm, (4) 같은 논문의 30 m 모호거리(=c/df)."
+   },
+   "facility_facts_worth_recording_ko": [
+    {
+     "fact": "무향실 유효 내부 13 m x 9 m x 7.5 m, 턴테이블 지름 6.5 m / 하중 3000 kg, 표적 거리 최대 3.5 m",
+     "page": 3,
+     "quote": "VISTA comprises a\nshielded, anechoic chamber with 13 m × 9 m × 7.5 m of usable\ninterior volume, a turntable with 6.5 m diameter for loads up to\n3000 kg",
+     "our_note_ko": "⭐ 우리 시뮬 챔버(30 x 20 x 11 m)가 세계 최고급 실물 바이스태틱 시설보다 크다. report01 에서 챔버 크기를 정당화할 때 이 사실을 정직하게 적어야 한다 - 우리 챔버는 '있을 법한 시설' 이 아니라 '설계된 실험장' 이다."
+    },
+    {
+     "fact": "주파수 0.7-260 GHz, VNA 는 2-18 GHz 를 10 MHz 스텝, SDR 은 순시대역 최대 4 GHz",
+     "page": 1,
+     "quote": "with almost continuous\nfrequency coverage from 0.7 up to 260 GHz. Currently, BIRA\nis the only bistatic measurement facility capable of unrestricted\nISAC research: In addition to vector network analysis, it employs\nadvanced wideband transceiver technology with an instantaneous\nbandwidth of up to 4 GHz."
+    },
+    {
+     "fact": "금속구 RCS 측정 절차: 배경차감 + 시간영역 게이팅 + 기준구(10 cm) 대조",
+     "page": 9,
+     "quote": "Postprocessing involved background subtraction (measure-\nment without target) from the target measurement and time-\ndomain gating to reduce parasitic reflections."
+    },
+    {
+     "fact": "보행자 더미 마이크로도플러: 11-13 GHz OFDM(가상 6G FR3), 팔·다리 3개 사지를 거리-도플러에서 개별 분해, 화소 15 cm x 25 cm/s",
+     "page": 12,
+     "quote": "(b) Micro-Doppler signature: All three moving limbs\ncan be individually identified in the ranger-Doppler\nplot by their peaks. The SDR system achieves a\nresolution (size of one pixel) of 15 cm by 25 cm s–1."
+    },
+    {
+     "fact": "위치정확도: 방위축 0.02도(재조립 후 0.05도), 앙각축 0.006도(재조립 후 0.02도)",
+     "page": 4,
+     "quote": "These measurements have demonstrated\na repeatable positioning accuracy for the azimuth axis of\n0.02° (0.05° after reassembly) and for the elevation axes\nof 0.006° (0.02° after reassembly)."
+    }
+   ],
+   "⚠_TITLE_DRIFT_UNRESOLVED": {
+    "issue_ko": "Costa 그룹의 '드론 정적/바이스태틱 반사도' 논문이 두 개의 서로 다른 서지로 인용된다. 같은 논문의 제목·학회 표류인지 별개 두 편인지 이 두 PDF 만으로는 판정 불가다.",
+    "record_A": {
+     "source": "Beuster arXiv:2402.16591 참고문헌 [17]",
+     "page": 6,
+     "quote": "[17] H. C. A. Costa, S. J. Myint, C. Andrich, S. W. Giehl, C. Schneider,\nand R. S. Thomä, “Static Reflectivity and Micro-Doppler Signatures\nof Drones for Distributed ICAS,” in WSA 2024; 27th International\nWorkshop on Smart Antennas, 2024, pp. 1–6.",
+     "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2402.16591__beuster_multisensor-isac-drone.pdf"
+    },
+    "record_B": {
+     "source": "이 TAP 2026 논문 참고문헌 [40]",
+     "page": 15,
+     "quote": "[40] H. C. Alves Costa, S. J. Myint, C. Andrich, S. W. Giehl, C. Schneider,\nand R. S. Thomä, “Bistatic Reflectivity and Micro-Doppler Signa-\ntures of Drones for Integrated Communication and Sensing,” in 2024\n25th International Radar Symposium (IRS), 2024, pp. 194–199, doi:\n10.48550/arXiv.2401.14448."
+    },
+    "difference_ko": "제목 첫 단어가 Static vs Bistatic, 학회가 WSA 2024 vs IRS 2024, 쪽수가 1-6 vs 194-199. 저자 6인은 동일.",
+    "verdict": "UNRESOLVED. 우리 기록에 하나로 합치면 안 된다. arXiv:2401.14448 을 확보하면 판정된다.",
+    "our_precedent_ko": "R20 대정정에서 Ziganshin 저널판/회의판을 섞어 데인 것과 같은 모양이다."
+   },
+   "acquisition_targets_ko": [
+    "⭐ arXiv:2401.14448 - Costa 외, IRS 2024 pp.194-199, '드론의 바이스태틱 반사도와 마이크로도플러'. H8 의 진짜 시험대이자 위 제목 표류를 푸는 열쇠. 아카이브 미보유.",
+    "Costa 외, WSA 2024 'Static Reflectivity...' pp.1-6. 아카이브 미보유.",
+    "arXiv:2510.16094 - 광대역 안테나 디컨볼루션([9]). 우리 실측계획의 교정 절차에 직결.",
+    "Costa 외, GeMiC 2025 pp.506-509, VTOL 드론 바이스태틱 마이크로도플러([42]). 아카이브 미보유."
+   ],
+   "adversarial_notes_ko": [
+    "적대적 질문: '세계 최고 바이스태틱 시설도 표적거리 3.5 m 인데 우리 30 m 챔버 시뮬은 비현실적 아닌가?' 정당한 지적이다. 다만 그들의 제약은 기계적(갠트리 반경)이지 물리적이 아니고, 우리 챔버는 무향실이 아니라 '통제된 실내 전파환경' 을 뜻한다. 그래도 report01 에서 이 대조를 숨기면 안 된다.",
+    "적대적 질문: '이 논문이 우리 SBR+PO 를 정당화하나?' 절반만. HFSS SBR+ 가 기준 솔버로 쓰인다는 사실은 SBR 계열의 신뢰성에 대한 간접 지지다. 그러나 (i) HFSS SBR+ 는 상용 구현이고 creeping wave/PTD 보정을 포함할 수 있어 우리 순수 SBR+PO 와 같지 않으며 (ii) 대상이 매끄러운 금속구다. '우리 커널이 검증됐다' 로 옮기면 비약이다.",
+    "적대적 질문: 'creeping wave 가 드론에서도 중요한가?' 이 논문은 답하지 않는다. 우리 커널의 한계로 적되 '드론에서 몇 dB 인지는 모른다' 를 같이 적는 것이 정직하다."
+   ],
+   "what_this_record_does_not_claim_ko": [
+    "드론에 대한 어떤 측정값 - 이 논문에 드론 측정이 없다.",
+    "HFSS SBR+ 시뮬과 측정의 정량 오차 - 논문이 수치를 주지 않는다(0.7/1.3 dB 는 해석해 대 시뮬이다).",
+    "creeping wave 의 절대 세기 - 그림에서만 보이고 수치가 없다.",
+    "TAP 권/호/쪽 - 아직 배정되지 않았다."
+   ]
+  },
+  {
+   "rank": "BONUS-2 (wave 4 배정 밖). wave-4 의 Maksymiuk IRS 2023 이 '첫 해법' 이라 부른 본편이라 이어서 읽었다.",
+   "pdf_path": "/data/public/jeong/papers/5G/22_Rényi Entropy-Based Adaptive Integration Method for 5G-Based Passive Radar Drone Detection.pdf",
+   "title": "Renyi Entropy-Based Adaptive Integration Method for 5G-Based Passive Radar Drone Detection",
+   "authors": "Radoslaw Maksymiuk, Karol Abratkiewicz, Piotr Samczynski, Marek Plotka (Warsaw University of Technology)",
+   "venue": {
+    "value": "Remote Sensing (MDPI), 2022, vol. 14, art. 6146. 접수 2022-10-04, 채택 2022-12-01, 게재 2022-12-04. 오픈액세스(CC BY).",
+    "quote": "Rényi Entropy-Based\nAdaptive Integration Method for\n5G-Based Passive Radar Drone\nDetection. Remote Sens. 2022, 14, 6146.",
+    "page": 1
+   },
+   "publication_status": "published (journal, MDPI Remote Sensing 2022)",
+   "pages_read": "1-25 전부 (참고문헌 포함)",
+   "⭐⭐_THIS_RECORD_CORRECTS_A_RECORD_I_WROTE_TODAY": {
+    "what_i_wrote": "이 파일의 Maksymiuk IRS 2023 레코드에서 나는 '⚠ 그들은 점유가 낮으면 성능이 이만큼 나쁘다를 재지 않았다' 라고 적었다. IRS 2023 논문 안에서는 참이다.",
+    "what_is_actually_true": "같은 저자들이 1년 앞선 이 저널판에서 정확히 그것을 쟀다. 자원 점유율(signal filling)을 0-100% 로 훑으며 검출확률 Pd 를 Pfa = 1e-4 / 1e-6 / 1e-8 세 값에서, SNR 0/10/20/30/40 dB 로 낸다.",
+    "quote": {
+     "page": 16,
+     "quote": "The same simulated echo signals were applied to measure the probability of detection\n(Pd) in 5G-based passive radar as a function of signal ﬁlling. Signals were processed\naccording to [9] with the following steps: uplink cancellation, signal ﬁltering and clutter\nremoval, CAF calculation and target detection (using classical CFAR algorithm)."
+    },
+    "second_quote": {
+     "page": 17,
+     "quote": "presented in Figures 15–17 for different probabilities of false alarm Pfa = 10−4, Pfa = 10−6,\nand Pfa = 10−8, respectively."
+    },
+    "third_quote": {
+     "page": 17,
+     "quote": "Figure 15. Probability of detection (Pd) as a function of signal ﬁlling (Pfa = 10−4)."
+    },
+    "action_taken": "이 파일의 IRS 2023 레코드에 corrected_by 필드를 넣어 정정했다. 한 편만 읽고 '그들은 안 했다' 라고 쓰면 안 된다는 것이 이번 라운드의 교훈 그대로다."
+   },
+   "⭐⭐_C4_NARROWING_MOST_IMPORTANT": {
+    "verdict": "C4 는 살아남는다. 그러나 '조명원' 이라는 단어 하나에만 매달려 살아남는다.",
+    "what_they_did": "교정된 오경보율(Pfa 3값)에서 점유율을 축으로 검출확률을 낸다 - 우리 report12 의 G1/G2/G3 점유 벤치마크와 축이 같다.",
+    "what_they_did_not_do": "조명원은 5G 하나뿐이다. WiFi/LTE/5G 를 나란히 놓고 같은 Pfa 에서 비교하지 않는다. 그들이 다른 파형을 언급하는 대목은 '이 기법을 LTE 등 다른 content-dependent 전송에도 쓸 수 있다' 는 전망뿐이다.",
+    "quote_of_the_transfer_claim": {
+     "page": 23,
+     "quote": "be widely used in content-dependent wireless transmissions, e.g., LTE, used for passive\nradar purposes.",
+     "note_ko": "문장은 22-23쪽 경계에 걸린다. 22쪽 끝의 'It must also be highlighted that the proposed method can' 다음이 이 부분이다."
+    },
+    "⚠_novelty_impact_on_us_ko": [
+     "우리 report12 의 '점유를 축으로 교정된 오경보율에서 검출성능을 잰다' 는 축 자체는 새롭지 않다. Maksymiuk 외 2022 가 시뮬레이션으로 선행한다.",
+     "우리에게 남는 것: (i) 조명원 간 비교(WiFi/LTE/5G), (ii) 기준신호 종류 구분(SSB vs CRS vs PRS), (iii) 드론 메쉬 기반 에코 합성. 이 셋이 novelty 문장의 전부여야 한다.",
+     "C4 를 인용할 때마다 이 논문을 같이 각주로 달아야 정직하다 - '점유 축의 Pfa 교정 벤치마크는 이미 있다, 없는 것은 조명원 축이다'.",
+     "⚠ 우리 C4 문장에서 'illuminator' 를 뺀 어떤 변형도 이 논문에 의해 즉시 반증된다. Taylor & Poullin(심볼 부분집합)에 이어 두 번째 경고다."
+    ],
+    "their_simulation_setup": {
+     "page": 16,
+     "quote": "The signal parameters were set as follows: channel\nbandwidth: 40 MHz, sampling rate: 61.44 MHz and subcarrier spacing = 30 kHz. A time\ndelay and Doppler shift were added to simulate the reﬂection of a single moving target.\nWhite Gaussian noise was added with a power level referring to SNR values of 0, 10, 20, 30,\nand 40 dB. The time interval for each calculation was 20 ms.",
+     "our_note_ko": "표적은 '단일 이동 표적' 의 지연+도플러 주입이다. 즉 산란 모델이 없다 - 우리가 report12 에서 드론 메쉬 sigma 를 넣는 자리가 그들에게는 비어 있다."
+    },
+    "their_finding": {
+     "page": 18,
+     "quote": "The results clearly show a leverage of the signal ﬁlling on the possibility of target\ndetection. In line with expectations, the higher the resource allocation, the better the\ndetection performance. Furthermore, the differences between high SNRs (especially those\ngreater than 20 dB) are marginal, and one can assume that such values can be relatively\neasily achieved in short-range 5G-based PCL applications."
+    }
+   },
+   "⭐⭐_A_PUBLISHED_STATEMENT_OF_THE_GAP_WE_FILL": {
+    "headline": "패시브 5G 드론 검출 실험 논문이, 자기 표적의 RCS 를 모른다고 명시하고 '특성화가 필요하다' 고 적는다. 우리 RCS 작업의 존재이유를 선행이 직접 말해준다.",
+    "page": 18,
+    "quote": "The target of interest was a\ndrone (DJI M600 PRO), illustrated in Figure 18b. Its size was ca. 1 m in width and length,\nca. 40 cm in height and was made of plastic. The target’s RCS, for the operating frequency\nof about 3.44 GHz, is not known and needs to be characterized [45].",
+    "what_ref_45_is": {
+     "page": 25,
+     "quote": "45.\nEzuma, M.; Anjinappa, C.K.; Funderburk, M.; Guvenc, I. Radar Cross Section Based Statistical Recognition of UAVs at Microwave\nFrequencies. IEEE Trans. Aerosp. Electron. Syst. 2022, 58, 27–46. [CrossRef]"
+    },
+    "⚠_venue_discrepancy_found": {
+     "issue_ko": "같은 논문(Ezuma 외의 RCS 통계인식 본편)이 두 출처에서 다른 학술지로 인용된다.",
+     "source_A": {
+      "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2112.09774__semkin_comparative-rcs-uav-classification.pdf",
+      "page": 15,
+      "quote": "[11] M. Ezuma, C. K. Anjinappa, M. Funderburk, and I. Guvenc, “Radar\ncross section based statistical recognition of UAVs at microwave fre-\nquencies,” IEEE Trans. Antennas Propag., pp. 1–18, July 2021, IEEE\nearly access."
+     },
+     "source_B": "위 [45] 인용문 - IEEE Trans. Aerosp. Electron. Syst. 2022, 58, 27-46",
+     "our_reading_ko": "2021년 프리프린트 시점에는 TAP early access 로 적혔고 2022년에는 TAES 58:27-46 로 확정 인용된다. 어느 쪽이 최종인지는 두 인용문만으로 못 정한다. 우리 기록에는 두 인용문을 나란히 남기고 '최종 확정 미검증' 으로 둔다.",
+     "verdict": "UNRESOLVED - 그러나 우리가 이 논문을 인용할 때 학술지를 하나만 단언하면 안 된다는 것은 확정이다."
+    },
+    "our_use_ko": "report06/08 의 '왜 드론 RCS 를 우리가 계산해야 하는가' 절에 이 인용문을 세우면, 우리 동기가 우리 주장이 아니라 선행의 자백이 된다. 가장 강한 형태의 근거다."
+   },
+   "Q_E_GENEALOGY_FULLY_SPECIFIED": {
+    "headline": "Samczynski TGRS 논문의 전체 저자·권·쪽·연도가 이제 축자로 확정됐다(IRS 2023 은 'et al.' 이었다).",
+    "page": 23,
+    "quote": "9.\nSamczy´nski, P.; Abratkiewicz, K.; Płotka, M.; Zieli´nski, T.P.; Wszołek, J.; Hausman, S.; Korbel, P.; Ksi˛e˙zyk, A. 5G Network-Based\nPassive Radar. IEEE Trans. Geosci. Remote Sens. 2022, 60, 1–9. [CrossRef]",
+    "resolved_ko": "Samczynski, Abratkiewicz, Plotka, Zielinski, Wszolek, Hausman, Korbel, Ksiezyk, '5G Network-Based Passive Radar', IEEE TGRS, vol. 60, pp. 1-9, 2022 (게재).",
+    "still_open_ko": "PDF 는 여전히 미확보. 이 논문이 [9] 에 귀속시키는 것은 '같은 협조 5G 망으로 자동차를 패시브 검출했다' 와 '5G 패시브의 난제들을 제기했으나 풀지는 않았다' 이다.",
+    "attribution_quote": {
+     "page": 2,
+     "quote": "In [9], a passive detection of a car was obtained employing the same\ncooperative 5G network as in the present article. In [9], many challenges and difﬁculties\nconnected with 5G passive radar systems were addressed, but none of them were solved."
+    }
+   },
+   "⭐_R1_PROVENANCE_VENUE_DRIFT_CONFIRMED": {
+    "headline": "우리 R1 정정의 진짜 출처(Abratkiewicz 외 SSB 논문)가 2022년 시점에는 IEEE TAES 심사중으로 인용된다. 최종 게재는 JSTARS 였다. 투고지와 게재지가 다르다는 것이 원문으로 확인된다.",
+    "page": 24,
+    "quote": "35.\nAbratkiewicz, K.; Płotka, M.; Samczy´nski, P.; Wszołek, J.; Zieli´nski, T.P. SSB-based Signal Processing for Passive Radar Using a 5G\nNetwork. IEEE Trans. Aerosp. Electron. Syst. 2022, under review.",
+    "our_action_ko": "우리 기록의 'Abratkiewicz et al., IEEE JSTARS 16:3469-3484 (2023)' 은 그대로 두되, 'TAES 심사판으로 인용된 사례가 있다' 를 각주로 남긴다. 같은 논문을 두 학술지로 만나면 즉시 혼동이 생긴다 - R20 대정정의 재발 방지."
+   },
+   "⭐_SSB_PERIODICITY_5_TO_160ms": {
+    "headline": "우리 G1(SSB) 모드의 반복률을 세우는 출판 문장.",
+    "page": 23,
+    "quote": "However, the pro-\nposed approach is functional as long as the content is present in the downlink transmission.\nOtherwise, the 5G network only generates synchronization pulses with a relatively low\nrepetition rate (from 5 to 160 ms), which entails signiﬁcant limitations [35].",
+    "our_arithmetic_ko": "5-160 ms -> 6.25-200 Hz. 우리 R2 논의(3GPP CSI-RS 500 Hz 천장)와 나란히 놓으면 '상시 신호만 쓰는 패시브는 SSB 기준 6.25-200 Hz 밖에 못 얻는다' 가 된다. 이건 TWC 2025 의 모노스태틱 PDSCH 30 kHz 와 정확히 대비되는 축이다.",
+    "⚠": "이 문장은 주기를 [35](Abratkiewicz SSB 논문)에 귀속시킨다. 3GPP 조문 직독은 아니다."
+   },
+   "link_budget_and_convention_facts_ko": [
+    {
+     "fact": "그들의 패시브 레이더 방정식: R_e = sqrt(R1*R2) <= sqrt(PT GT GR S0 lambda^2 Tint / ((4pi)^3 L0 D0 k T0))",
+     "page": 14,
+     "quote": "Re <\ns\nPTGTGRS0λ2Tint\n(4π)3L0D0kT0\n,",
+     "our_note_ko": "적분시간 Tint 가 분자에 선형으로 들어간다 - 점유가 왜 사거리를 지배하는지의 전부다. 우리 report05 링크버짓과 형태가 같다."
+    },
+    {
+     "fact": "시뮬 파라미터: 3.44 GHz, EIRP 73 dBm, Gr 10 dBi, 검출문턱 D0 11 dB, Tint 20 ms, 총손실 10 dB, 유효잡음온도 493 K, RCS 1/10/50/100 m^2",
+     "page": 16,
+     "quote": "Center Frequency\n3.44 GHz\nEIRP (PtGt)\n73 dBm\nReceiver antenna gain Gr\n10 dBi\nThreshold D0\n11 dB\nIntegration time Tint\n20 ms\nTotal losses L0\n10 dB\nEffective noise temperature of the receiver T0\n493 K\nRadar cross-section S0\n1, 10, 50, 100 m2",
+     "⚠_ko": "⭐ 사거리 계산에 쓴 RCS 는 1-100 m^2 다. 실제 표적인 DJI M600 PRO 는 그보다 훨씬 작다(그들 스스로 'low-RCS' 라 부른다). 즉 Figure 14 의 사거리 곡선은 드론 사거리가 아니다. 우리가 이 그림에서 드론 사거리를 읽어오면 오독이다."
+    },
+    {
+     "fact": "바이스태틱 속도 정의 Vb = -lambda*fd",
+     "page": 3,
+     "quote": "Vb = −λ fd,",
+     "our_note_ko": "부호가 음이다. 우리 report04 의 바이스태틱 도플러 부호 정정과 같은 규약. 인용해 둘 만하다."
+    },
+    {
+     "fact": "실측 최대 엔트로피 25.67, 문턱 25.5 (IRS 2023 판은 같은 25.67 에 문턱 25.41 = 99%)",
+     "page": 20,
+     "quote": "The reference maximum value was 25.67 (see Figure 20). For further analysis, it was\nassumed that the threshold above which the signal is suitable for radar processing is 25.5.",
+     "our_note_ko": "⭐ 같은 캠페인인데 문턱이 25.5(2022) -> 25.41(2023) 로 바뀐다. 우리가 '그들의 문턱' 을 인용할 때 어느 판인지 명시해야 한다."
+    },
+    {
+     "fact": "수신기: USRP X310 + GPS 동기, Intel i7-9700 32GB, 채널당 별도 SSD, 오프라인 처리",
+     "page": 19,
+     "quote": "passed through to the SDR based on the Ettus USRP X310, digitized and stored on the\nhard drive. To ensure frequency synchronization, the GPS signal is used.",
+     "our_note_ko": "우리 실측계획의 X410 과 같은 계열. 그들도 오프라인 처리다."
+    },
+    {
+     "fact": "감시안테나를 벽 뒤에 숨겨 DPI 누설을 줄인다",
+     "page": 18,
+     "quote": "The surveillance antenna was\nhidden behind the wall to minimize the inﬂuence of the reference signal in the surveillance\nchannel (DPI leakage).",
+     "our_note_ko": "⭐ 우리 챔버 기하(벽면 TX/RX)에 그대로 옮길 수 있는 실무 기법."
+    },
+    {
+     "fact": "1분 비행 전체 구간 검출, Tint 100 ms, SNR 문턱 15 dB",
+     "page": 21,
+     "quote": "Integration time was set to 100 ms. This value provides sufﬁcient\nvelocity resolution and a convenient refresh rate for detection plots for the purposes of\ntarget tracking."
+    }
+   ],
+   "H8_C2_screen": {
+    "verdict": "무관 - 'Sionna' 0회, 'dBsm' 0회, 메쉬·광선추적 없음. RCS 는 링크버짓의 스칼라 S0 로만 들어간다.",
+    "reinforces_our_gap_ko": "오히려 우리 공백을 강화한다: 실측 표적의 RCS 를 모른다고 스스로 적고 문헌 인용으로 넘긴다."
+   },
+   "adversarial_notes_ko": [
+    "적대적 질문: '이 논문이 우리 report12 를 선점했나?' 점유 축은 선점당했다. 조명원 축과 산란 모델은 비어 있다. 우리 문장을 그 두 가지로 좁히면 살아남는다.",
+    "적대적 질문: '그들의 Pd-대-점유 곡선을 우리 결과와 나란히 놓을 수 있나?' 조건부다. 그들의 SNR 정의는 합성 잡음 주입이고 표적은 점표적 지연·도플러다. 우리 SNR 은 챔버 링크버짓 + 메쉬 sigma 에서 나온다. 같은 그림에 겹치면 사과-대-오렌지다. 겹치려면 '같은 Pfa, 같은 CFAR 계열' 이라는 축만 공유하고 절대 SNR 축은 분리해야 한다.",
+    "적대적 질문: '그들이 첫 5G 패시브 드론 검출이라는 주장은 참인가?' 그들 스스로 'to the best of the authors knowledge' 로 한정한다(p.2, p.22). 우리도 같은 한정을 써야 한다.",
+    "⚠ 이 논문·IRS 2023·Samczynski TGRS 2022·Abratkiewicz SSB 는 전부 바르샤바 한 그룹의 연속물이다. '독립 선행 4편' 처럼 세면 안 된다."
+   ],
+   "what_this_record_does_not_claim_ko": [
+    "Figure 15-17 의 구체적 Pd 값 - 그림에 텍스트 레이어가 없어 읽을 수 없다. 읽을 수 있는 것은 축의 정의와 Pfa 세 값뿐이다.",
+    "DJI M600 PRO 의 RCS - 그들도 모른다고 적는다.",
+    "Samczynski TGRS 2022 의 내용 - 원문 미확보.",
+    "Ezuma 본편의 최종 학술지 - 두 출처가 다르게 적는다."
+   ]
+  }
+ ],
+ "corrections_to_our_records": [
+  {
+   "target": "docs/PRIOR_WORK_COMPARISON.md (Beuster 절, 약 186행)",
+   "our_text": "\"헥사콥터\"(원문 0회, BiRa 대상은 Phantom 2 단독)",
+   "verdict": "부분적으로 거짓. 'hexa-copter' 는 Beuster 원문에 2회 나온다(4쪽 Fig.5 캡션 'target: UAV (hexa-copter)', 5쪽 본문 'The target was a medium-sized hexa-copter'). 참인 것은 'BiRa 실험실 표적이 Phantom 2 이고 헥사콥터는 옥상 필드테스트 표적' 이라는 구별뿐이다.",
+   "evidence": {
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2402.16591__beuster_multisensor-isac-drone.pdf",
+    "page": 5,
+    "quote": "The\ntarget was a medium-sized hexa-copter flying in parallel and\nperpendicular trajectories in arrival and departure situations\nabove and below system level, as shown in Fig. 5."
+   },
+   "fix_ko": "'원문 0회' 를 삭제하고 '헥사콥터는 BiRa 표적이 아니라 필드테스트 표적' 으로 고친다. 과잉정정도 정정이다."
+  },
+  {
+   "target": "우리 메모 'sionna2 챔버 바닥·유령' 의 '정적 클러터는 죽은 파라미터(ECA 삼중차단)'",
+   "verdict": "범위 누락. 이상적 기준신호 아래에서만 참이다.",
+   "evidence": {
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2601.20817__eca-passive-radar-imperfect-reference.pdf",
+    "page": 10,
+    "quote": "This is natural\nsince the ability to cancel clutter depends on the accuracy\nof the interference subspace estimate, and the requirement\nshould become stricter with increasing clutter power."
+   },
+   "fix_ko": "'이상적 기준신호 아래에서' 를 문장 앞에 붙인다."
+  },
+  {
+   "target": "우리 R2 정정 '3GPP 가 sub-6 CSI-RS 를 500 Hz 로 묶는다' 의 일반화",
+   "verdict": "CSI-RS 에 한정해서만 써야 한다. 같은 sub-6 모노스태틱에서 DMRS 10 kHz, PDSCH 전량 30 kHz 가 출판돼 있다.",
+   "evidence": {
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+    "page": 3,
+    "quote": "During DL slots, the\nBS utilizes all physical downlink shared channel (PDSCH)\nsignals as sensing symbols, resulting in the shortest pulse\nrepetition interval (PRI) of 33.3 µs."
+   },
+   "fix_ko": "신호 종류를 명시하고, PDSCH/DMRS 재사용은 모노스태틱 전용 경로임을 붙인다(우리 LaSen 메모와 같은 결론)."
+  },
+  {
+   "target": "이 파일의 Maksymiuk IRS 2023 레코드(같은 세션 내 자가정정)",
+   "verdict": "'그들은 점유를 벤치마크하지 않았다' 는 거짓. Remote Sens. 14:6146 (2022) 이 Pfa 3값에서 점유-대-Pd 를 낸다.",
+   "evidence": {
+    "pdf_path": "/data/public/jeong/papers/5G/22_Rényi Entropy-Based Adaptive Integration Method for 5G-Based Passive Radar Drone Detection.pdf",
+    "page": 17,
+    "quote": "Figure 15. Probability of detection (Pd) as a function of signal ﬁlling (Pfa = 10−4)."
+   },
+   "fix_ko": "적용 완료(레코드 내 ⚠_SELF_CORRECTION_SAME_SESSION)."
+  }
+ ],
+ "claim_status_after_wave4_ko": {
+  "H8": {
+   "verdict": "SURVIVES. 8편 중 어느 편도 4갈래를 모두 채우지 않는다.",
+   "closest_pressure": "Beuster 2402.16591 이 드론(Phantom 2) 바이스태틱 반사도의 측정 대 시뮬 대조 그림을 싣는다. 그러나 (i) 시뮬 솔버가 명시되지 않고 (ii) Sionna 급 GPU 광선엔진이 아니며 (iii) 출처는 Costa [17]/[18] 이다. 진짜 시험대는 Costa 계열이고 그중 arXiv:2401.14448 은 아직 미확보다.",
+   "second_pressure": "BiRa TAP 2026 은 ANSYS HFSS SBR+ 로 바이스태틱 dBsm 을 찍고 측정과 대조한다. 대상은 금속구다. 'SBR 계열이 dBsm 을 찍고 측정과 맞춘다' 는 새롭지 않다는 뜻이므로 우리 novelty 문장에서 '드론 메쉬'와 'Sionna 급 엔진' 두 한정어를 절대 뺄 수 없다.",
+   "reinforcement": "TWC 2025 는 '단순화를 위해 UAV 를 점산란체 집합으로 모델링한다' 고 명시한다 - AirGuard 와 같은 축소가 최상위 저널에서도 표준임을 보인다."
+  },
+  "C2": {
+   "verdict": "SURVIVES 문자 그대로. 8편 중 'Sionna' 등장 0편.",
+   "warning_ko": "넓은 형태('SBR 파이프라인에서 dBsm 을 찍은 것은 우리뿐')로 쓰면 BiRa TAP 2026 이 즉시 반례다."
+  },
+  "C4": {
+   "verdict": "SURVIVES - 그러나 이번 라운드에서 두 번째로 좁아졌다.",
+   "narrowing_ko": "Maksymiuk 외, Remote Sens. 14:6146 (2022) 가 Pfa = 1e-4/1e-6/1e-8 에서 '자원 점유율 대 검출확률' 을 낸다. 즉 '교정된 오경보율에서의 통제 비교' 자체는 이미 있다. 없는 것은 조명원 축뿐이다.",
+   "load_bearing_words": [
+    "multi-ILLUMINATOR (Taylor&Poullin 은 LTE 내 심볼 부분집합, Maksymiuk 은 5G 내 점유율)",
+    "calibrated false-alarm rate (이건 이제 선행에도 있으므로 우리 차별점이 아니다)"
+   ],
+   "action_ko": "C4 문장을 '조명원 축' 하나로 좁히고, 점유 축은 Maksymiuk 2022 를 선행으로 명시 인용한다."
+  }
+ },
+ "open_questions_progress_ko": {
+  "Q_A": "부분 진전. BiRa TAP 2026 이 양쪽 증거를 준다 - creeping wave(그림자영역 회절)가 실측으로 분해되어 Ziganshin 의 '조명영역 한정' 절반을 뒷받침하고, 동시에 HFSS SBR+ 가 바이스태틱 검증 기준 솔버로 쓰인다. ⚠ 런타임 절반(RT 의 계산 이점을 무효화한다)에 대해서는 이번 8편에서 아무 자료도 나오지 않았다.",
+  "Q_B": "진전 없음. 이번 8편에 광선추적 런타임 수치가 없다. TWC 의 0.84 s 는 신호분해 알고리즘 시간이므로 섞으면 안 된다.",
+  "Q_C": "진전 없음(PTD 는 wave 2 담당).",
+  "Q_D": "미착수(/data/public/OpenISAC 28편).",
+  "Q_E": "⭐ 서지 확정. Samczynski, Abratkiewicz, Plotka, Zielinski, Wszolek, Hausman, Korbel, Ksiezyk, '5G Network-Based Passive Radar', IEEE TGRS 60:1-9, 2022 (게재). 두 출처(IRS 2023 [8], Remote Sens 2022 [9])에서 축자 확인. PDF 는 여전히 미확보이고, 이 논문이 Chen 의 바이스태틱 도플러식의 출처인지는 두 인용 논문 어느 쪽도 그렇게 귀속시키지 않으므로 UNVERIFIED 로 남는다.",
+  "Q_F": "간접 진전만. Khosroshahi 가 TS 38.211/38.214 v18.2.0 (2024) 을 인용하며 PRS 콤 2/4/6/12, 심볼 1/2/4/6/12, 24-272 PRB, Release 16 도입을 요약한다. 이건 2차 출처이지 조문이 아니다. 직독은 여전히 미완."
+ },
+ "range_resolution_convention_ledger_ko": {
+  "our_convention": "dR_b = c/B (바이스태틱 총경로 기준)",
+  "published_support": [
+   {
+    "source": "Maksymiuk 외, IRS 2023",
+    "how": "38.16 MHz -> '약 7.8 m'. c/B = 7.86 m 와 일치(c/2B 는 3.93 m)",
+    "pdf_path": "/data/public/jeong/papers/5G/23_5G Network-Based Passive Radar for Drone Detection.pdf",
+    "page": 5,
+    "quote": "38.16 MHz of maximum bandwidth, which gives a maximum bistatic range resolution of ap-\nproximately 7.8 m."
+   },
+   {
+    "source": "Khosroshahi 외, arXiv:2408.00667v2",
+    "how": "식 (10) dR = c/(df*M) = c/B, 그리고 식(9)가 그 거리를 바이스태틱 총경로로 정의",
+    "pdf_path": "/data/public/sionna_jeong/reference_library/2408.00667v2.pdf",
+    "page": 3,
+    "quote": "The range resolution can be calculated as follows\n∆R =\nc\n∆fM ,"
+   },
+   {
+    "source": "Andrich 외, IEEE TAP 2026 (BiRa)",
+    "how": "순시대역 2 GHz -> 거리분해능 15 cm. c/B = 15 cm",
+    "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/tap2026__bira-spherical-bistatic-reflectivity.pdf",
+    "page": 12,
+    "quote": "The 2 GHz instantaneous measurement bandwidth of our\nSDR measurement system enables a high range resolution of\n15 cm."
+   }
+  ],
+  "note_ko": "세 출처 모두 c/B 다. 우리 규약이 고립된 선택이 아님을 이제 인용문으로 세울 수 있다."
+ },
+ "ambiguity_convention_ledger_ko": {
+  "why": "R1 철회 이후 무모호 속도 관례를 한 표에 모은다. 셋은 서로 2배씩 어긋나므로 나란히 놓을 때 관례 표기가 필수다.",
+  "entries": [
+   {
+    "convention": "v_max = lambda*PRF/4 (half-window)",
+    "source": "Abratkiewicz 외, IEEE JSTARS 16:3469-3484 (2023), eq.(16) p.3476",
+    "status": "우리 R1 정정의 진짜 출처"
+   },
+   {
+    "convention": "PRF >= 4 * f_d,max (오버샘플) -> 실질 v_max <= lambda*PRF/8",
+    "source": "Ezuma 외 arXiv:2112.09774 p.2, V. C. Chen 교과서(Artech House 2019) 인용",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2112.09774__semkin_comparative-rcs-uav-classification.pdf",
+    "page": 2,
+    "quote": "one needs to generate a pulse repetition frequency that is at least four times the maximum Doppler shift induced by the propeller [32]."
+   },
+   {
+    "convention": "PRF >= 2 * f_mD,max (나이퀴스트 전폭), f_mD,max = 2*pi*fr*L/lambda",
+    "source": "Wei 외, IEEE TWC 24(12):10166-10182 (2025) p.9",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf",
+    "page": 9,
+    "quote": "must be at least twice the maximum micro-Doppler frequency,"
+   }
+  ],
+  "⚠_axis_warning_ko": "앞의 하나는 기체 병진속도 축이고 뒤의 둘은 로터 첨단 마이크로도플러 축이다. 한 표에 섞으려면 축을 열로 갈라야 한다."
+ },
+ "acquisition_targets_ko": [
+  "⭐ arXiv:2401.14448 - Costa 외, IRS 2024 pp.194-199. H8 의 진짜 시험대(드론 바이스태틱 반사도 측정+시뮬).",
+  "Costa 외, WSA 2024 'Static Reflectivity and Micro-Doppler Signatures of Drones for Distributed ICAS' pp.1-6. 위와 같은 논문인지 별개인지 미해결.",
+  "Samczynski 외, IEEE TGRS 60:1-9 (2022) '5G Network-Based Passive Radar'. Q-E 의 마지막 한 걸음.",
+  "T. Li 외, IEEE Access 7:101527-101538 (2019). TWC 2025 의 재질별 동적 RCS 계수 출처(MoM+실험 검증). 우리 재질 앵커의 독립 교차검증 후보.",
+  "V. C. Chen, The Micro-Doppler Effect in Radar, Artech House 2019. '4배' 관례의 원출처 확인용.",
+  "Ezuma 외 본편 - 학술지가 TAP(2021 early access) vs TAES 58:27-46(2022) 로 엇갈린다. 확정 필요.",
+  "arXiv:2510.16094 - 광대역 안테나 디컨볼루션(BiRa [9]). 우리 실측 교정 절차용."
+ ]
+}

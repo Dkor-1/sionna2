@@ -1,0 +1,650 @@
+{
+ "task": "Standards / channel-model angle on RCS INJECTION: is 'compute or measure the target elsewhere, then hand a model to the channel simulator' the STANDARDS-TRACK approach? Which papers supply a target RCS model FOR others to inject, at what venue, and did they validate what they handed over?",
+ "generated_utc": "2026-08-03T06:59:53.167482Z",
+ "evidence_rule": "Every claim below carries the artefact path (or a resolvable DOI/TDoc number), the clause/page/line, and the sentence as printed. Where a venue or bibliographic detail was taken from a publisher listing rather than from the PDF I opened, that is stated explicitly. Machine counts are labelled as machine counts. Anything not opened is marked NOT OPENED.",
+ "method": {
+  "primary_artefacts_opened": [
+   "3GPP TR 38.901 V19.4.0 (2026-06), downloaded from www.3gpp.org/ftp/Specs/archive/38_series/38.901/38901-j40.zip, .docx text extracted with python zipfile+ElementTree INCLUDING OMML math runs (m:t) so the equations and symbol names are recoverable",
+   "3GPP TR 38.901 V19.0.0 (38901-j00) and V18.1.0 (38901-i10) for the before/after comparison",
+   "RAN1 TDocs R1-2504948 (+ its attached xlsx), R1-2501002, R1-2503152, R1-2502419, R1-2500660, R1-2410235, R1-2409609, R1-2410136 - all downloaded from the 3GPP ftp meeting folders and text-extracted the same way",
+   "ETSI GR ISC 002 V1.1.1 (2025-08) PDF (already on the shelf)",
+   "IEEE JSAC 44:702 published PDF (Zhang unified RCS), Sci China Inf Sci 67(11):217301 PDF, arXiv 2504.09799 (DCN), arXiv 2512.03506 (Rel-19 ISAC survey), arXiv 2606.07328 (3GPP-compliant simulator calibration), arXiv 2505.10275 (ETSI perspectives), arXiv 2409.14441 (BUPTCMCC-6G-CMG+)"
+  ],
+  "how_venue_was_decided": "From the artefact itself where possible (spec cover page, journal masthead, DOI line, arXiv stamp). Where only a publisher listing was available (DCN volume/pages, SCIS volume/article number) that is flagged in the record.",
+  "downloads_this_run": "/data/public/sionna_jeong/reference_library/injection/ (see files_added). SOURCES.md in that directory already existed from a parallel agent; I APPENDED a section rather than overwriting it.",
+  "not_done": [
+   "ITU-R WP5D working documents (membership-restricted; not opened - see open_questions)",
+   "ATIS Next G Alliance Phase 2 report (not opened)",
+   "IEEE 802.11bf TGbf sensing channel-model documents (not opened)"
+  ]
+ },
+ "headline_answer": {
+  "question": "Is 'compute or measure the target elsewhere, then hand a model to the channel simulator' the standards-track approach?",
+  "verdict": "YES, and not loosely - it is written into the specification. 3GPP TR 38.901 V19.4.0 clause 7.9.2.1 'RCS of a sensing target' defines the target signature as sigma_RCS = sigma_M * sigma_D * sigma_S, ships the numbers as Tables 7.9.2.1-1 through -7, and multiplies them into the simulated channel in two named places: the per-path power in Step 10 and the target-channel scaling in Step 15 of clause 7.9.4.1. Nothing in the channel generator computes a scattering integral; the sigma arrives from outside as a parameter set. By the definition in force here (signature computed OUTSIDE the propagation simulator, then applied to simulated paths as sigma) the 3GPP ISAC channel model IS injection, and it is the mainstream, not a fringe workaround.",
+  "who_computes_the_table_in_the_standards_track": "A pooled mix. Of the 38 target-signature evidence rows the moderator collected in R1-2504948, 27 are measurement campaigns, 9 are ray-tracing simulations and 2 are commercial EM-solver simulations (machine count by me from the attached xlsx). Both routes - measurement and external solver - were admitted on equal footing, and the final standardized numbers are an AVERAGE ACROSS COMPANIES of both.",
+  "consequence_for_our_positioning": "Our sigma grid (9 el x 120 az x 3 bands per airframe, computed by our own SBR+PO on Sionna's ray engine, then multiplied into simulated paths) is the same architecture as the standard's, differing only in that we keep the full angular grid instead of collapsing it to a fitted pattern, and we keep a frequency axis, which 3GPP dropped.",
+  "one_thing_reviewers_will_still_ask": "Not 'why inject' - that fight is over. They will ask what the injected number was checked against. Every strong instance answers that question; the 3GPP spec itself answers it only by pointing at a company source list."
+ },
+ "the_specification": {
+  "document": "3GPP TR 38.901 V19.4.0 (2026-06), 'Study on channel model for frequencies from 0.5 to 100 GHz (Release 19)'",
+  "local_copies": [
+   "/data/public/sionna_jeong/reference_library/injection/3gpp_tr38901_v19.4.0_2026-06_rel19.zip",
+   "/data/public/sionna_jeong/reference_library/injection/3gpp_tr38901_v19.4.0_extracted_text.txt"
+  ],
+  "how_isac_entered": {
+   "quote_line_361": "At TSG RAN #102 meeting the Study Item Description “Study on channel modelling for Integrated Sensing And Communication (ISAC) for NR” was approved. The findings from this study item are captured in Clause 7.9. The ISAC channel model was developed considering new measurements and information in the literature. The RCS validation results are obtained based on certain object sizes. An overview list of the sources is available in [27].",
+   "reference_26": "3GPP TD RP-242348: \"Study on channel modelling for Integrated Sensing And Communication (ISAC) for NR\"",
+   "reference_27": "3GPP TD R1-2504948: \"Information on validations for ISAC\"",
+   "before_and_after": "Machine count by me on the extracted text (python re, whole-word RCS, case sensitive; plus a case-insensitive line scan): in V18.1.0 the token appears on only 2 lines - the abbreviation list ('RCSRadar cross-section') and one METIS reference ('RCS-based scattering coefficient [6]'). In V19.4.0 it appears 59 times across 41 lines. The target-signature model is new in Release 19."
+  },
+  "the_injection_model_as_printed": {
+   "clause": "7.9.2.1 RCS of a sensing target",
+   "decomposition_quote": "The RCS related coefficient sigma_RCS of a SPST for a pair of incident/scattered angles is composed of a first component sigma_M which is included in the large-scale parameters (described in Step 15 in Clause 7.9.4.1), and a second component sigma_D and third component sigma_S which are both included in the small-scale parameters (described in Step 10 in Clause 7.9.4.1), i.e., sigma_RCS = sigma_M sigma_D sigma_S. sigma_M is a deterministic value for the SPST. sigma_D can be fixed to 1 or can be angular dependent. sigma_S follows log-normal distribution.",
+   "component_meanings": "sigma_M = deterministic mean linear monostatic RCS; sigma_D = deterministic angular pattern; sigma_S = log-normal random component with mu_dB = -(ln10/20) * sigma_dB^2 (eq. 7.9.2-1), i.e. constrained so the linear mean is preserved.",
+   "rcs_model_1_equation_7.9.2-2": "sigma_MD_dB(theta_i,phi_i,theta_s,phi_s) = max( 10lg(sigma_M) - 3 sin(beta/2), sigma_FS(...) ), where beta in [0,180] is the bistatic angle and sigma_FS (forward scattering) is set to -infinity.",
+   "rcs_model_2_equation_7.9.2-3": "sigma_MD_dB = max( G_max - min( -(sigma_VdB(theta)+sigma_HdB(phi)), sigma_max - k1 sin^k2(beta/2) + 5 log10 cos(beta/2) ), G_max - sigma_max, sigma_FS ), with sigma_VdB / sigma_HdB the 3GPP-style parabolic beam terms in zenith and azimuth about (theta_center, phi_center) with 3 dB widths, and k1/k2 per target: k1=6.05,k2=1.33 (UAV large), k1=0.5714,k2=0.1 (human model 2), k1=6,k2=1.65 (vehicle), k1=12,k2=1.45 (AGV).",
+   "the_lookup_step_quote": "For a ST with single scattering point, N_sp >= 1 sets of parameters phi_center, phi_3dB, theta_center, theta_3dB, G_max, sigma_max, Range of theta and Range of phi are defined. The bisector angle (theta,phi) is used to index one set from the N_sp sets of parameters, and determine sigma_MD_dB(theta_i,phi_i,theta_s,phi_s) of the ST consequently.",
+   "note_this_is_a_lookup": "Index-by-angle-sector into a parameter table is exactly the table-lookup step of injection; the table is compressed into sector parameters rather than shipped as raw dBsm per angle."
+  },
+  "the_shipped_numbers": {
+   "table_7.9.2.1-1": {
+    "caption": "Parameters on RCS for the STs with angular independent monostatic RCS values",
+    "UAV with small size": {
+     "10lg(sigma_M)_dBsm": -12.81,
+     "sigma_S_std_dB": 3.74
+    },
+    "Human with RCS model 1": {
+     "10lg(sigma_M)_dBsm": -1.37,
+     "sigma_S_std_dB": 3.94
+    }
+   },
+   "table_7.9.2.1-2_UAV_large": {
+    "caption": "Parameters on RCS for UAV with large size",
+    "structure": "six sectors - Left, Back, Right, Front, Bottom, Roof - each with phi_center, phi_3dB, theta_center, theta_3dB, G_max, sigma_max and the theta/phi ranges that index it",
+    "values_as_printed": {
+     "Left": {
+      "phi_center_deg": 90,
+      "phi_3dB_deg": 7.13,
+      "theta_center_deg": 90,
+      "theta_3dB_deg": 8.68,
+      "Gmax": 7.43,
+      "sigma_max": 14.3,
+      "range_theta": "[45,135)",
+      "range_phi": "[45,135)",
+      "extra_cols": [
+       -5.85,
+       2.5
+      ]
+     },
+     "Back": {
+      "phi_center_deg": 180,
+      "phi_3dB_deg": 10.09,
+      "theta_center_deg": 90,
+      "theta_3dB_deg": 11.43,
+      "Gmax": 3.99,
+      "sigma_max": 10.86,
+      "range_theta": "[45,135)",
+      "range_phi": "[135,225)"
+     },
+     "Right": {
+      "phi_center_deg": 270,
+      "phi_3dB_deg": 7.13,
+      "theta_center_deg": 90,
+      "theta_3dB_deg": 8.68,
+      "Gmax": 7.43,
+      "sigma_max": 14.3,
+      "range_theta": "[45,135)",
+      "range_phi": "[225,315)"
+     },
+     "Front": {
+      "phi_center_deg": 0,
+      "phi_3dB_deg": 14.19,
+      "theta_center_deg": 90,
+      "theta_3dB_deg": 16.53,
+      "Gmax": 1.02,
+      "sigma_max": 7.89,
+      "range_theta": "[45,135)",
+      "range_phi": "[-45,45)"
+     },
+     "Bottom": {
+      "theta_center_deg": 180,
+      "theta_3dB_deg": 4.93,
+      "Gmax": 13.55,
+      "sigma_max": 20.42,
+      "range_theta": "[135,180]",
+      "range_phi": "[0,360)"
+     },
+     "Roof": {
+      "theta_center_deg": 0,
+      "theta_3dB_deg": 4.93,
+      "Gmax": 13.55,
+      "sigma_max": 20.42,
+      "range_theta": "[0,45)",
+      "range_phi": "[0,360)"
+     }
+    },
+    "caveat": "Column-to-value alignment was recovered from a linearised docx table; the sector names, angles and ranges are as printed, but I did not re-derive which numeric column is G_max vs sigma_max from the header row for every sector. Treat the per-sector numbers as indicative and re-read the table before publishing any of them.",
+    "note_as_printed": "NOTE: When theta is in the range [0,45] or [135,180], (the azimuth term is not applied)."
+   },
+   "other_tables": "7.9.2.1-3 human model 2, -4 vehicle single scattering point, -5 vehicle multiple scattering points, -6 AGV single, -7 AGV multiple."
+  },
+  "where_the_sigma_multiplies_in": {
+   "step_10_quote": "Step 10: Obtain the power for all generated paths. The power of a path is given by (7.9.4-1) where (sigma_D, sigma_S) are the second and third component of RCS at the SPST p for a path are derived by the incident angle, i.e., AOA, ZOA of the ray in the STX-SPST link and the scattered angle, i.e., AOD, ZOD of the ray in the SPST-SRX link, referring to the RCS model defined in Clause 7.9.2.1 for the SPST.",
+   "step_15_quote": "Step 15: Apply pathloss, shadowing, the first component of RCS for the channel coefficients. The target channel for ST k is formed by summing the channel coefficients of the P SPST respectively scaled by the pathloss, shadowing and the first component of RCS sigma_M of the P SPST.",
+   "coupling_loss_formula_in_calibration_table": "L_TX-SPST-RX = PL_dB(d1) + PL_dB(d2) + 10lg( (c/(4 pi f))^2 )^-1 - 10lg(sigma_RCS,A) + SF_dB,1 + SF_dB,2  (as printed in Table 7.9.6.1-1; the sign convention is the bistatic radar equation with the RCS entering as a subtraction from loss)",
+   "plain_reading": "The channel generator never solves for scattering. It generates two link geometries (Tx-target and target-Rx), couples their rays, and multiplies in a sigma that was determined elsewhere. That is injection."
+  },
+  "what_the_standard_deliberately_left_out": {
+   "no_frequency_axis": "The standardized sigma_M values carry no frequency argument. -12.81 dBsm is used across the TR's whole 0.5-100 GHz scope. The calibration tables (7.9.6.1-1) apply the same -12.81 dBsm at FR1 6 GHz and FR2 30 GHz.",
+   "mono_equals_bi_in_calibration": "Table 7.9.6.1-1 prints, for the UAV case: 'The same values are used for monostatic RCS and bistatic RCS' (the bistatic dependence enters only through the -3 sin(beta/2) / k1,k2 terms of the model, not through separate parameters).",
+   "far_field_only": "Clause 4 applicability list: 'The sensing target is assumed in the far field of the sensing transmitter/receiver for the channel model(s) for ISAC in Clause 7.9.'",
+   "why_this_matters_to_us": "Our grid keeps both axes the standard collapsed - angle (9 x 120 samples rather than 6 sectors) and frequency (3 bands rather than one number). Against the standard we are strictly finer-grained, which is a defensible position, not a deficiency."
+  }
+ },
+ "provenance_of_the_standardized_numbers": {
+  "the_source_list": {
+   "tdoc": "R1-2504948, 'Information on validations for ISAC', Moderator (Xiaomi), 3GPP TSG RAN WG1 #121, St Julian's, Malta, 19-23 May 2025",
+   "local_copy": "/data/public/sionna_jeong/reference_library/injection/3gpp_R1-2504948.zip (+ the attached workbook saved as 3gpp_R1-2504948_validation_sources.xlsx)",
+   "cover_quote": "This document is the coversheet for the excel sheet collecting the information on all validation results for ISAC channel model submitted by companies within the study item. ... The references to the proposals in moderator's summaries are also included from which companies can understand how each validation information (results from companies) was considered in the study towards obtaining the RCS and background channel included in TR38.901.",
+   "machine_count_by_me": {
+    "note": "Counted by me with openpyxl over the workbook's target sheets; FL-summary rows excluded from the method tallies.",
+    "UAV": {
+     "evidence_rows": 12,
+     "Measurement": 7,
+     "RT simulation": 3,
+     "EM simulation based on Method of moments (MoM)": 2
+    },
+    "Human": {
+     "evidence_rows": 12,
+     "Measurement": 8,
+     "RT simulation": 3,
+     "Ray-tracing simulation": 1
+    },
+    "Vehicle": {
+     "evidence_rows": 7,
+     "Measurement": 5,
+     "RT simulation": 2
+    },
+    "AGV": {
+     "evidence_rows": 3,
+     "Measurement": 3
+    },
+    "Other objects": {
+     "evidence_rows": 4,
+     "Measurement": 4
+    },
+    "total": {
+     "evidence_rows": 38,
+     "measurement": 27,
+     "ray_tracing_simulation": 9,
+     "EM_solver_simulation": 2
+    }
+   },
+   "UAV_rows_verbatim": [
+    {
+     "tdoc": "R1-2502417",
+     "companies": "CALTTA, ZTE Corporation, Sanechips",
+     "method": "RT simulation",
+     "size": "0.3m x 0.4m x 0.2m",
+     "freq": "4.9 GHz",
+     "geometry": "15m"
+    },
+    {
+     "tdoc": "R1-2502452",
+     "companies": "Xiaomi, BJTU, BUPT",
+     "method": "Measurement",
+     "size": "0.81m x 0.67m x 0.43m",
+     "freq": "28 GHz",
+     "bw": "3 GHz",
+     "geometry": "6 m"
+    },
+    {
+     "tdoc": "R1-2406975",
+     "companies": "Huawei",
+     "method": "Measurement",
+     "size": "0.35m x 0.28m x 0.1m",
+     "freq": "4.9 GHz",
+     "geometry": "monostatic, radius 3m"
+    },
+    {
+     "tdoc": "R1-2408658",
+     "companies": "Samsung",
+     "method": "RT simulation",
+     "size": "0.16 m x 0.16 m x 0.1 m (as printed: '0.16 mm' typo in the sheet)",
+     "freq": "3.5 GHz",
+     "geometry": "2 m, monostatic RCS"
+    },
+    {
+     "tdoc": "R1-2409609",
+     "companies": "Samsung",
+     "method": "RT simulation",
+     "size": "1.6 m x 1.6 m x 0.5 m",
+     "freq": "3.5 GHz",
+     "geometry": "25 m, monostatic RCS"
+    },
+    {
+     "tdoc": "R1-2503859",
+     "companies": "BUPT, CMCC, vivo, X-Net",
+     "method": "Measurement",
+     "size": "0.81m x 0.67m x 0.43m",
+     "freq": "24 GHz",
+     "bw": "3 GHz",
+     "geometry": "bistatic, Tx-ST 3m, ST-Rx 3m"
+    },
+    {
+     "tdoc": "R1-2502419",
+     "companies": "BUPT, CMCC, vivo, X-Net",
+     "method": "Measurement",
+     "size": "0.81m x 0.67m x 0.43m",
+     "freq": "28 GHz",
+     "bw": "3 GHz",
+     "geometry": "monostatic, Tx/Rx-ST 6m"
+    },
+    {
+     "tdoc": "R1-2405010",
+     "companies": "Ericsson",
+     "method": "Measurement",
+     "size": "171 x 245 x 62 mm",
+     "freq": "3.8 GHz",
+     "bw": "100 MHz",
+     "geometry": "44-52 m, bistatic RCS"
+    },
+    {
+     "tdoc": "R1-2502726",
+     "companies": "Ericsson",
+     "method": "Measurement",
+     "original_source_named_in_sheet": "Rahman, S., Robertson, D.A. 'Radar micro-Doppler signatures of drones and birds at K-band and W-band', Sci Rep 8, 17396 (2018), doi 10.1038/s41598-018-35880-9",
+     "targets": "DJI Phantom Standard 3, DJI Inspire 1, DJI S900",
+     "freq": "24 GHz, 94 GHz",
+     "geometry": "170 m, Doppler signatures"
+    },
+    {
+     "tdoc": "R1-2410136",
+     "companies": "NIST",
+     "method": "Measurement",
+     "size": "1.1 x 1.2 x 0.5 m",
+     "freq": "28.5 GHz",
+     "bw": "2 GHz",
+     "geometry": "Tx-ST 4m, ST-Rx 4m, monostatic and bistatic RCS"
+    },
+    {
+     "tdoc": "R1-2500660",
+     "companies": "Sony",
+     "method": "EM simulation based on Method of moments (MoM)",
+     "size": "0.4 m x 0.3 m x 0.2 m",
+     "freq": "3.5 GHz",
+     "geometry": "ideal plane wave, >100 m, both monostatic and bistatic RCS"
+    },
+    {
+     "tdoc": "R1-2410235",
+     "companies": "Sony",
+     "method": "EM simulation based on Method of moments (MoM)",
+     "size": "1.6 m x 1.5 m x 0.7 m",
+     "freq": "3.5 GHz",
+     "geometry": "ideal plane wave, >100 m, both monostatic and bistatic RCS"
+    }
+   ],
+   "cross_SDO_row_worth_noting": "On the Human sheet, TDoc R1-2501370 is credited to 'ETSI ISG ISAC' and appears twice, once as 'Measurement' and once as 'RT simulation' - i.e. another standards body fed both flavours into RAN1."
+  },
+  "how_the_number_was_actually_produced": {
+   "tdoc": "R1-2501002, 'Summary on ISAC CM' (v041), Moderator (Xiaomi), RAN1 #120, Athens, 17-21 Feb 2025",
+   "local_copy": "/data/public/sionna_jeong/reference_library/injection/3gpp_R1-2501002.zip",
+   "the_decisive_quote": "[Moderator's note] Based on inputs, merged values of RCS model component A, B2 for UAV of small size UAV are obtained by averaging the values from all companies.",
+   "company_submissions_as_printed": [
+    {
+     "company": "ZTE",
+     "A_dBsm": -12.74,
+     "B2_mu_dB": -1.45,
+     "B2_sigma_dB": 3.6
+    },
+    {
+     "company": "LGE",
+     "A_dBsm": -10,
+     "B1": "0 dB (per agreement)",
+     "B2_mu": "-0.85 dBsm",
+     "note": "'We only need mu as sigma can be calculated from mu: sigma^2 = -(20/ln10) mu'"
+    },
+    {
+     "company": "CATT, CICTCI",
+     "A_dBsm": -12.4,
+     "B2_mu_dB": -1.1064,
+     "B2_sigma_dB": 3.1
+    },
+    {
+     "company": "Samsung",
+     "A_dBsm": -13.02,
+     "as_printed": "-13.02 (if consider only one zenith angle (perpendicular with target))",
+     "B2_mu_dB": -1.25,
+     "B2_sigma_dB": 3.3
+    },
+    {
+     "company": "BUPT",
+     "A_dBsm": "A_small UAV = 0.2133*frequency - 22.04 (typical 15 GHz: -18.8405 dB)",
+     "B1": "0 dB",
+     "B2": "mu = -0.4605 unconstrained / -0.4331 constrained; sigma = 1.9467 unconstrained / 1.9396 constrained"
+    },
+    {
+     "company": "Ericsson (bistatic table)",
+     "A_times_B1": "spherical harmonics expansion, c_{0,0,0,0} = 0.14 (-17 dBsm in power scale) and c = 0 for all other indices; 5 scattering centres randomly placed in a volume of 2 dm^2 each with a scattering gain of 1/5"
+    }
+   ],
+   "the_merge_trail": "[H][FL2] Proposal 4.4-1 gave A = -13.40 dBsm, B2 mean -1.02 dB, std 2.93 dB. Then '[Moderator's note] Updated results with inputs from QC and HW' and Proposal 4.4-1-rev1 gave A = -12.81 dBsm, mean -1.61 dB, std 3.74 dB. Then '[Moderator's note] Agreement at Thursday online session' followed by the Agreement text: 'For mono-static, the following values of component A, B2 are agreed for UAV of small size: Component A: -12.81 dBsm; Component B1: 0 dB (already agreed in RAN1#118bis); Component B2: standard deviation: 3.74 dB'.",
+   "the_same_agreement_reproduced_independently": "R1-2502419 (BUPT, CMCC, VIVO, X-Net, RAN1 #120bis, Wuhan, 7-11 Apr 2025) reprints it verbatim as 'Agreement-10' - which is how I cross-checked that the -12.81 in the TR is the RAN1 agreement and not a company's private number.",
+   "what_this_means": "The de-facto community default sigma for a small UAV is a consensus arithmetic average over a heterogeneous pool - anechoic measurements, ray-tracing runs and commercial EM-solver runs - and one contributor (BUPT) even supplied a frequency-dependent formula that the average threw away. This is the single most useful fact in this report: the number everyone injects was itself produced by averaging simulated and measured signatures together."
+  },
+  "external_solver_evidence_inside_the_standards_process": [
+   {
+    "id": "STD-SOLVER-01",
+    "company": "Sony",
+    "tdocs": [
+     "R1-2500660 (RAN1 #120, Athens, Feb 2025)",
+     "R1-2410235 (RAN1 #119, Orlando, 18-22 Nov 2024)"
+    ],
+    "local_copies": [
+     "/data/public/sionna_jeong/reference_library/injection/3gpp_R1-2500660.zip",
+     "/data/public/sionna_jeong/reference_library/injection/3gpp_R1-2410235.zip"
+    ],
+    "quote": "The simulation is performed using software CST Studio Suite with ray tracing as solver. The signal source was assumed to be in far-field location, with the carrier frequency set to 3.5 GHz. In the simulation, the four different polarized RCS components: RCS_V-V, RCS_H-H, RCS_V-H, RCS_H-V, along with the co-polarization and cross-polarization phases are generated. Additionally, to study the angle dependency, we simulated the RCS at different azimuth angles theta and zenith angles phi, with the angular granularity of 1 degree.",
+    "target": "x-copter class UAV mesh scaled to 0.4m x 0.3m x 0.2m, 'assumed to be made of metal with a homogeneous surface'",
+    "products": "Table 1 of R1-2500660: A = -19.78 dBsm, B1 = 0 dB, std(B2) = 6.01 dB, alpha_i,1 (v-v) 0 dB, alpha_i,2 (h-h) -0.25 dB, beta_i,1 (v-h) -5.37 dB; plus a fitted RCS angular correlation corr(theta) = exp(-dtheta/theta_corr) with theta_corr = 6.87 deg for the small UAV.",
+    "discrepancy_recorded": "The moderator's validation sheet labels both Sony rows 'EM simulation based on Method of moments (MoM)', but Sony's own documents say CST Studio Suite with a RAY-TRACING solver. Quote both; do not describe Sony's input as MoM on this evidence.",
+    "why_it_matters_to_us": "A commercial EM solver's 1-degree RCS grid of a metal drone mesh was submitted to, discussed in, and averaged into a 3GPP specification. That is the exact operation our SBR+PO pipeline performs, done by a standards participant, accepted by the standards process."
+   },
+   {
+    "id": "STD-SOLVER-02",
+    "company": "Samsung",
+    "tdoc": "R1-2409609 (RAN1 #119, Orlando, Nov 2024)",
+    "local_copy": "/data/public/sionna_jeong/reference_library/injection/3gpp_R1-2409609.zip",
+    "quote": "To verify the angle dependency of parameters B1/B2, we conducted a simulation using a large UAV model (1600 x 1600 x 300 mm) in the HFSS simulator [4] with simulation setup as shown in Figure 10. The results indicate that, for the large UAV, a more jagged RCS pattern with large variance emerges as the elevation angle increases...",
+    "reference_as_printed": "[4] ANSYS, Inc. 'Getting Started with HFSS: Radar Cross Section', January 2020",
+    "note": "The validation sheet files Samsung's UAV rows as 'RT simulation'; the document names Ansys HFSS for the large-UAV angular study. Both are external solvers."
+   },
+   {
+    "id": "STD-SOLVER-03",
+    "company": "Xiaomi",
+    "tdoc": "quoted inside R1-2501002 (company comment column)",
+    "quote": "Our RT simulation results also exhibit that large fluctuation occurs between adjacent angle, e.g., human monostatic RCS with 1 degree simulation step."
+   },
+   {
+    "id": "STD-SOLVER-04",
+    "company": "Apple",
+    "tdoc": "quoted inside R1-2501002 (company comment column)",
+    "quote": "Although from our measurement and electromagnetic simulations, there is quite a lot of fluctuation in the value of the RCS across angle, we think this is a lower priority issue."
+   },
+   {
+    "id": "STD-PRINCIPLE-01",
+    "company": "Samsung",
+    "tdoc": "quoted inside R1-2501002 (company comment column)",
+    "quote": "Moreover, the current RCS modeling approach in RAN1 is based on stochastic characteristics derived from companies' measurement and ray-tracing results. Introducing angular correlation in this context would not align with the philosophy of defining RCS as a stochastic characteristic.",
+    "why_it_matters": "A one-sentence, in-record statement that the standard's RCS is derived from measurement AND ray-tracing results. If a reviewer challenges the legitimacy of a ray-traced signature, this is the sentence to put in front of them."
+   },
+   {
+    "id": "STD-PRINCIPLE-02",
+    "company": "Samsung",
+    "tdoc": "R1-2409609",
+    "quote": "Option 2: Experimental results to validate a ray-tracing model, then the ray-tracing based results to validate the ISAC channel model.",
+    "also": "Proposal 24: RAN1 to study how to validate ISAC channel, e.g., real-world measurement, ray tracing, hybrid method.",
+    "why_it_matters": "This is the validation chain we should adopt verbatim: measurement validates the ray tracer; the validated ray tracer validates the channel/detection model. It was proposed inside 3GPP, by a major vendor, for exactly this problem."
+   },
+   {
+    "id": "STD-COUNTERPOINT-01",
+    "company": "Ericsson",
+    "tdoc": "quoted inside R1-2501002",
+    "quote": "If companies don't observe any continuity in B2 it is clear evidence that that their measurements are done with too coarse angular sampling. While it is common understanding that B1 captures slower variations of the RCS over angle, the variations captured by B2 are fast, but not infinitely fast.",
+    "why_it_matters": "An adversarial reading of our own grid: 3 degrees in azimuth, 9 elevations. Ericsson's argument says angular sampling that is too coarse manufactures apparent randomness. We should be able to state our angular correlation length (Sony measured 6.87 deg for a small UAV) against our 3 degree azimuth step."
+   }
+  ]
+ },
+ "second_standards_body_ETSI": {
+  "document": "ETSI GR ISC 002 V1.1.1 (2025-08), 'Integrated Sensing And Communications (ISAC); Channel Modelling, Measurements and Evaluation Methodology', GROUP REPORT, ETSI ISG ISAC",
+  "local_copy": "/data/public/sionna_jeong/reference_library/injection/etsi_gr_isc_002_v1.1.1_2025-08.pdf",
+  "status": "Published ETSI Group Report (62 pages). It is an ISG deliverable, i.e. a standards-body publication, not a peer-reviewed paper.",
+  "the_key_sentence_for_us": {
+   "clause": "5.2.4 RCS Modelling Approaches",
+   "page": 23,
+   "quote": "In the top-down approach, the RCS model is generated based on measuring the ratio between the scattered and incident electric fields from the object. The values of the scattered and incident electric fields can be obtained from measurement campaigns, numerical simulations, or ray-tracing tools.",
+   "reading": "A standards body puts ray-tracing tools on the same line as measurement campaigns as an admissible source of the target RCS model. This is the cleanest published sentence licensing our route."
+  },
+  "other_quotes": [
+   {
+    "clause": "5.2.4",
+    "page": 23,
+    "quote": "To obtain practical results, bottom-up approach may calibrate the generated RCS model using the obtained results from measurement campaigns or electromagnetic numerical simulations."
+   },
+   {
+    "clause": "5.2.5 Multipoint target modelling",
+    "page": 23,
+    "quote": "The evaluated object RCS using segmentation can be further calibrated through either measurement results or electromagnetic numerical simulation tools such CST."
+   },
+   {
+    "clause": "5.2.9 Views on RCS incorporation in ETSI TR 138 901",
+    "page": 26,
+    "quote": "Figure 5.2-4 highlights the amended blocks to integrate the RCS model with its two components RCS_LS and RCS_SS. The first amended block is the Path Loss (PL) model to integrate the slow-fading component of the RCS as: PL_dB = PL_dB - A_dBsm ... The last block to be amended is the channel coefficient generation, where the RCS_SS two components can be integrated into equations (7.5-28) and (7.5-29) in ETSI TR 138 901 in the form of a diagonal matrix.",
+    "reading": "An explicit, printed recipe for injecting an externally-obtained RCS into the 38.901 channel-coefficient generator - the same two insertion points (large-scale path loss, small-scale per-path coefficient) that 3GPP eventually standardised."
+   },
+   {
+    "clause": "5.2.10 Electromagnetic based RCS Modelling",
+    "pages": "27-30",
+    "quote": "Since incident angle also affects RCS, the discrepancy between segmentation and EM-based models is quantified over multiple angles using the RMSE ... RMSE = 3.02/d + 1.76 + eps_model (d in millimetres) ... The standard deviation of delta reaches 1,82 dB in indoor office scenarios, which is significantly higher than the 1,35 dB observed in UMi environments.",
+    "reading": "ETSI validates one RCS construction against another (segmentation vs a coupled EM model) with an RMSE over angle - a model-vs-model check, not against measurement."
+   }
+  ],
+  "cross_reference_inside_3GPP": "TR 38.901 clause 6.1 lists ETSI ISG ISAC among channel-modelling work outside 3GPP: 'ETSI ISG ISAC plans to publish Group Report (GR) /ISC-002 that provides information on advanced ISAC channel modeling concepts and their validation through measurement...'. And R1-2501370 in the validation sheet is credited to ETSI ISG ISAC. The two bodies are coupled."
+ },
+ "papers_that_supply_a_model_for_others_to_inject": [
+  {
+   "id": "SUP-01",
+   "paper": "A Unified RCS Modeling of Typical Targets for 3GPP ISAC Channel Standardization and Experimental Analysis",
+   "authors": "Yuxiang Zhang, Jianhua Zhang, Huiwen Gong, Xidong Hu, Jiwei Zhang, Hongbo Xing, Shilin Luo, Yifeng Xiong, Li Yu, Zhiqiang Yuan, Guangyi Liu, Tao Jiang (BUPT / CMCC)",
+   "venue_read_from_pdf": "IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. 44, 2026, p.702; 'Digital Object Identifier 10.1109/JSAC.2025.3608732'",
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/A_Unified_RCS_Modeling_of_Typical_Targets_for_3GPP_ISAC_Channel_Standardization_and_Experimental_Analysis.pdf",
+   "flavour": "MEASUREMENT CAMPAIGN -> fitted three-component model -> lookup table -> 3GPP-style channel simulator. Injection.",
+   "standards_track_proof_quote": {
+    "page": 7,
+    "text": "The proposed unified RCS modeling approach has been adopted by the 3GPP Technical Specification Group Radio Access Network Working Group 1 (TSG RAN1) during meeting #120 [41], and is now part of the official standard."
+   },
+   "and_reference_41_is": "'Chair Notes, 3GPP TSG RAN WG1 #120 ... R1-2501002' - the very moderator summary I downloaded and read. The citation chain closes on a primary document I hold.",
+   "the_lookup_quote": {
+    "page": 12,
+    "text": "Target RCS Configuration: Based on the target type and frequency band specified in the simulation configuration, the corresponding RCS statistical parameters are obtained by consulting a lookup table (e.g., Table V)."
+   },
+   "validation_of_what_it_handed_over": {
+    "verdict": "YES - the strongest of any item in this report",
+    "evidence": [
+     "Absolute calibration: 'A 0.5-meter-diameter metal sphere is used as a calibration target to ensure the accuracy of the RCS measurements and subsequent data analysis' and 'The deviation observed in the sphere measurement is used as a calibration offset, which is subsequently applied to correct the measured RCS values of other targets' (pp.7-8, read by me from the PDF).",
+     "Held-out band test: 'In this experiment, we exclude the 28 GHz data when fitting the parameters A(f), B1(phi), B2, and use the obtained model to predict the RCS at 28 GHz.' (p.11, read by me)."
+    ]
+   },
+   "relevance": "This is the answer to the venue question in one line: the injection architecture, with an explicit table lookup, at a top-tier IEEE journal, and the model it supplies is now in the specification."
+  },
+  {
+   "id": "SUP-02",
+   "paper": "Latest progress for 3GPP ISAC channel modeling standardization",
+   "authors": "Yuxiang Zhang, Jianhua Zhang, Yuanpeng Pei, Yameng Liu, Tao Jiang (BUPT / CMCC)",
+   "venue_read_from_pdf": "SCIENCE CHINA Information Sciences, November 2024, Vol. 67, Iss. 11, 217301:1-217301:2, doi 10.1007/s11432-024-4172-8, section 'NEWS & VIEWS'. Received 27 Aug 2024 / accepted 9 Oct 2024 / published online 22 Oct 2024.",
+   "local_copy": "/data/public/sionna_jeong/reference_library/injection/scichina2024_zhang_3gpp_isac_progress__PUBLISHED.pdf",
+   "flavour": "Standards reportage; states the RCS construction plainly.",
+   "quote": "The RCS value can be generated by combining deterministic and random components. For a specific ST, the deterministic component represents the average value from multiple measurements, while the random component is a statistical random variable fitted based on these results, following a certain distribution.",
+   "also": "'STs such as unmanned aerial vehicles (UAVs) and humans exhibit similar omnidirectional scattering properties, making the deterministic component angle-independent [9]. However, STs such as vehicles display notably increased RCS values at angles near 0, 90, 180, and 270 degrees, indicating an angle-dependent deterministic component [9].' - the printed justification for why UAVs got RCS model 1 (sigma_D = 1) and vehicles got model 2.",
+   "use_for_us": "A short, citable, published statement that in the standards track the target signature is a measured/simulated average plus a fitted random term - i.e. a handed-over model."
+  },
+  {
+   "id": "SUP-03",
+   "paper": "Research and Experimental Validation for 3GPP ISAC Channel Modeling Standardization",
+   "authors": "Yuxiang Zhang, Jianhua Zhang, Jiwei Zhang, Yuanpeng Pei, Yameng Liu, Lei Tian, Tao Jiang, Guangyi Liu (BUPT / CMCC)",
+   "copy_i_opened": "/data/public/sionna_jeong/reference_library/injection/arxiv_2504.09799__zhang_egbsm_dcn2025.pdf - the page-1 banner reads 'Digital Communications and Networks(DCN) journal homepage: www.elsevier.com/locate/dcan' and the page-1 footer reads 'arXiv:2504.09799v1 [eess.SP] 14 Apr 2025'.",
+   "venue_status": "PUBLISHED per the publisher record: Digital Communications and Networks, 2025, Vol. 11(5), pp. 1601-1613, doi 10.1016/j.dcan.2025.06.006. The DOI resolves (HTTP 302) to Elsevier PII S2352864825000811. VOLUME/PAGES COME FROM THE PUBLISHER LISTING, NOT FROM THE COPY I OPENED.",
+   "flavour": "Supplies the E-GBSM target-channel concatenation model in which the RCS is the multiplicative target term, and validates it by measurement.",
+   "the_finding_that_matters_most_to_us": {
+    "page": 8,
+    "quote": "For further quantitative analysis, the RCS of the RIS is calculated using the physical optics method from [33], and the differences between the theoretical concatenated power and the measured power are compared. By comparing the calculated concatenated power with the actual measured power, it is observed that the difference does not exceed 7dB, with the smallest being only 0.11dB. Considering an angular measurement interval of 5 degrees, which leads to a maximum angular error of 2.5 degrees at theta_out, and given the significant fluctuation range of the RCS of RIS, a certain level of difference is considered acceptable.",
+    "reading": "A PHYSICAL-OPTICS-COMPUTED sigma was injected into the standards-track target-channel path-power equation and checked against a measured channel. Spread 0.11 to 7 dB, and the authors argue the residual is explained by 2.5 degrees of angular quantisation. This is the closest published precedent for our own PO-computed sigma being taken seriously, and it also sets a realistic accuracy expectation: single-digit dB, angle-quantisation-limited."
+   },
+   "path_loss_form_as_printed": "PL_tar = PL_Tx-ST(d1) + PL_ST-Rx(d2) + 10 log10(lambda^2/4pi) - sigma_RCS (their eq. 6), with the concatenated path power P_conv = P_n1 + P_n2 + sigma_RCS(theta_out, theta_in) - 10 log10(lambda^2/4pi) (eq. 9).",
+   "other_validation": "Field measurements in seven scenarios - metal plate (InH), RIS (InF), human (InH), UAV (UMi), vehicle (outdoor), human (outdoor), indoor hall - used to validate the concatenation property and the direct/indirect path power split."
+  },
+  {
+   "id": "SUP-04",
+   "paper": "BUPTCMCC-6G-CMG+: A GBSM-Based ISAC Standard Channel Model Generator",
+   "authors": "Changsheng Zhao, Jianhua Zhang, Yuxiang Zhang, Lei Tian, Heng Wang, Hanyuan Jiang, Yameng Liu, Wenjun Chen, Tao Jiang, Guangyi Liu (BUPT / CMCC)",
+   "copy_i_opened": "/data/public/sionna_jeong/reference_library/injection/arxiv_2409.14441.pdf - page 1 carries the 'SCIENCE CHINA Information Sciences . RESEARCH PAPER .' template and the stamp 'arXiv:2409.14441v5 [eess.SP] 18 Apr 2025'. No DOI or volume is printed on this copy.",
+   "venue_status": "PUBLISHED per the publisher record: Sci China Inf Sci vol. 68, article 150304 (2025), doi 10.1007/s11432-024-4378-0 (from the Springer listing found by web search, NOT from the PDF I opened).",
+   "flavour": "The CONSUMER end of injection - a channel model generator that takes the RCS model as an input block.",
+   "quotes": [
+    "A unified RCS simulation model is introduced, which considers the progress of the RAN1 #116-118bis meetings and incorporates our team's RCS measurement results.",
+    "The RCS of humans and small UAVs can be modeled using A and B2 with a log-normal distribution, in which the mean mu and variance sigma are determined from empirical measurements.",
+    "This theorem demonstrates that the Bi-static RCS can be approximated by the Mono-static RCS measured at a frequency scaled by cos(beta/2) on the bisector of the Bi-static angle beta (the monostatic-to-bistatic equivalence theorem, citing Kell, Proc. IEEE 1965)."
+   ],
+   "relevance": "Shows the full loop closing in one research group: measure the target, fit a model, get it agreed in RAN1, implement it in a public channel-model generator. That loop is the template for what a complete injection story looks like in this field."
+  },
+  {
+   "id": "SUP-05",
+   "paper": "A Comprehensive Survey of 3GPP Release 19 ISAC Channel Modeling: From Empirical Features to Unified Methodology and Standardized Simulator",
+   "authors": "Yameng Liu, Yuxiang Zhang, Jianhua Zhang, Yuanpeng Pei, Changsheng Zhao, Shilin Luo, Lei Tian, Yingyang Li, Wei Hong, Jianming Wu, Guangyi Liu, Yan Li, Tao Jiang, Chuangxin Jiang, Junchen Liu, Yongqiang Fei, Woo-Suk Ko, Jing Xu, Bin Liang, Takahiro Tomie",
+   "venue_read_from_pdf": "None. The running head is the LaTeX template placeholder 'JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021'. PREPRINT (arXiv:2512.03506) on the copy I hold.",
+   "local_copy": "/data/public/sionna_jeong/reference_library/injection/arxiv_2512.03506__survey_rel19_isac_channel.pdf",
+   "why_it_is_here": "Its Table I, 'Target RCS measurement and simulation campaigns in 3GPP Release 19', is an independent published-literature confirmation of the pooled provenance I established from the TDocs. As printed: monostatic UAV small size - 'BUPT, Huawei, vivo, ZTE, Samsung, CATT, LGE, QC'; monostatic UAV large size - 'BUPT, Xiaomi, NIST, Samsung'; bistatic UAV small size - 'BUPT, vivo'; bistatic UAV large size - 'BUPT'.",
+   "also_quotes": [
+    "To address the challenges of RCS modeling, computational electromagnetic (CEM) methods, including finite difference time domain (FDTD), the moment method (MoM), and the finite element method (FEM) are applied to solve Maxwell's equations to emulate electromagnetic interactions with targets.",
+    "However, as for the typical STs such as UAVs, humans, and vehicles, the high computational complexity of electromagnetic simulations limits their applicability in standardized models, making it a key challenge to develop a generalized and scalable RCS modeling approach.",
+    "By the final #121 meeting in May 2025, the monostatic and bistatic RCS models and parameters for typical STs were agreed upon."
+   ],
+   "note_for_us": "The survey states the standards community's reason for NOT using full-wave EM inside the model: cost. It does not say the physics is wrong. Our position - compute the grid once offline, inject it - is precisely the escape from that cost objection."
+  },
+  {
+   "id": "SUP-06",
+   "paper": "Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling",
+   "authors": "Shrayan Das, Peize Zhang, Veikko Hovinen, Marko E. Leinonen, Aarno Parssinen, Pekka Kyosti (Oulu)",
+   "venue": "IEEE WIRELESS COMMUNICATIONS LETTERS, VOL. 15, 2026, p.3731, doi 10.1109/LWC.2026.3705634 (established in the archive sweep; PDF at /data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf)",
+   "role_here": "The title is literally 'for ISAC Channel Modeling' - a measured signature packaged as fitted distributions and a Gaussian-cluster representation to be dropped into geometry-based stochastic ISAC channel simulations. Same supplier role as Zhang, from an independent European group, at an IEEE journal.",
+   "not_re_read_this_run": "I did not re-open this PDF in this run; the venue and content are carried from outputs/injection_archive.json, which read it directly."
+  },
+  {
+   "id": "SUP-07",
+   "paper": "Azim et al. (NYU Abu Dhabi / NYU WIRELESS) indoor-factory RCS characterization line, incl. '3GPP-Compliant Radar Cross Section Characterization of Indoor Factory Targets'",
+   "venue": "PREPRINT on the copies we hold (arXiv:2411.03206v4, 2502.11540, 2505.08754v1) - no masthead, no DOI, no acceptance line.",
+   "role_here": "Explicitly writes its measured RCS statistics into a 3GPP-shaped target-channel path-loss term. A supplier, but not established as published.",
+   "not_re_read_this_run": true
+  },
+  {
+   "id": "SUP-08",
+   "paper": "ISAC Channel Modelling - Perspectives from ETSI",
+   "authors": "Mohammad Heggo, Arman Shojaeifard, Alain Mourad (InterDigital); Chuangxin Jiang, Ruiqi Liu, Junchen Liu (ZTE)",
+   "venue_read_from_pdf": "arXiv:2505.10275v1 [eess.SP] 15 May 2025. PREPRINT.",
+   "local_copy": "/data/public/sionna_jeong/reference_library/injection/arxiv_2505.10275__etsi_isac_channel_perspectives.pdf",
+   "role_here": "Academic-facing companion to ETSI GR ISC 002. Held for context; I did not mine it line-by-line this run."
+  }
+ ],
+ "downstream_consumers_who_inject_the_standard_number": [
+  {
+   "id": "CON-01",
+   "paper": "Implementation and Calibration of 3GPP-Compliant ISAC Channel Simulator",
+   "authors": "Chien-Han Wu, Ming-Chun Lee, Ta-Sung Lee (National Yang Ming Chiao Tung University, Taiwan)",
+   "venue_read_from_pdf": "arXiv:2606.07328v1 only. No masthead, no DOI, no acceptance statement. PREPRINT.",
+   "local_copy": "/data/public/sionna_jeong/reference_library/injection/arxiv_2606.07328__nycu_3gpp_isac_simulator_calibration.pdf",
+   "quotes": [
+    "In step 10, the power of each coupled path is generated based on the ray powers of the STX to SPST and SPST to SRX links, as well as the RCSs of the STs.",
+    "We compare the simulation results with the reference results reported by companies in 3GPP and discuss several key implementation details...",
+    "The corresponding calibration methodology and reference results were then released in 2025, providing a baseline for validating the 3GPP-compliant ISAC channel simulations.",
+    "To facilitate reproducibility and further research, the developed simulator, together with the relevant datasets and calibration results, has been released as an open-source project on GitHub."
+   ],
+   "reading": "An independent group implements the standard, injects the agreed sigma, and checks its CDFs against the companies' reference curves. This is what 'validation' means downstream of a standard: cross-implementation agreement, not physics."
+  },
+  {
+   "id": "CON-02",
+   "paper": "NIST 5G-NR radar papers using sigma_M = -12.81 dBsm",
+   "status": "carried from outputs/injection_archive.json (INJ-09); not re-opened this run",
+   "note": "The two NIST instances share authors, so they are one group, not two independent adopters."
+  }
+ ],
+ "validation_audit": {
+  "question": "Did the model-suppliers validate what they handed over, and against what?",
+  "rows": [
+   {
+    "who": "3GPP TR 38.901 V19.4.0 itself",
+    "validated": "NOT IN THE SPECIFICATION",
+    "detail": "The only validation statement printed in the TR is the Introduction pointer: 'The RCS validation results are obtained based on certain object sizes. An overview list of the sources is available in [27].' Searching the extracted text, the word 'validat' does not appear anywhere inside clause 7.9 apart from that pointer. What clause 7.9.6 provides is CALIBRATION - simulation assumptions so different companies' simulators produce the same CDFs - which is cross-implementation agreement, not a physical check of -12.81 dBsm against a held-out measurement.",
+    "importance": "State this precisely if we cite 3GPP. The standard's number is a consensus average, quality-controlled by inter-simulator calibration. It is not itself a validated measurement."
+   },
+   {
+    "who": "Zhang et al., IEEE JSAC 44:702 (2026)",
+    "validated": "YES",
+    "against": "a 0.5 m metal sphere for absolute calibration (closed-form RCS), and a held-out 28 GHz band predicted from a model fitted without it"
+   },
+   {
+    "who": "Zhang et al., DCN 2025 (E-GBSM)",
+    "validated": "YES",
+    "against": "channel measurements in seven indoor/outdoor scenarios; for the RIS target the injected sigma came from a PHYSICAL OPTICS calculation and the concatenated path power matched measurement to within 7 dB, best case 0.11 dB"
+   },
+   {
+    "who": "Sony (CST), Samsung (HFSS), Xiaomi/ZTE/CALTTA/OPPO (RT)",
+    "validated": "NO INDEPENDENT CHECK IN THE CONTRIBUTIONS I OPENED",
+    "detail": "The solver outputs are presented as evidence; nothing in R1-2500660, R1-2410235 or R1-2409609 compares them against a measurement of the same airframe. Their quality control was the standards process itself: many parties' numbers were tabled side by side and averaged. The spread that survived is instructive - submitted A values for the same small-UAV size class ran from -10 dBsm (LGE) to -19.78 dBsm (Sony, CST) around the agreed -12.81 dBsm.",
+    "importance": "This is roughly a 10 dB spread between independent estimates of the same quantity in a standards body. It is the fairest available yardstick for what 'agreement' means in this field, and it is far looser than a reviewer might assume."
+   },
+   {
+    "who": "ETSI GR ISC 002",
+    "validated": "MODEL vs MODEL",
+    "against": "its coupled EM cylinder model, via RMSE over angle and separation, with a fitted RMSE = 3.02/d + 1.76 (dB, d in mm); no measurement comparison in that clause"
+   },
+   {
+    "who": "NYCU simulator (arXiv 2606.07328)",
+    "validated": "AGAINST 3GPP COMPANY REFERENCE CURVES",
+    "against": "the calibration reference results reported by companies in 3GPP - i.e. agreement with other implementations, not with physics"
+   }
+  ],
+  "the_pattern": "Everyone who claims a physical validation validates the CHAIN (predicted received power or signature vs measured), not the sigma in isolation. Nobody in the standards track validates the averaged sigma against a held-out target. The one paper that validates the sigma itself is JSAC, and it does so by held-out band prediction plus sphere calibration. That defines two achievable bars for us: (bar 1) sphere/canonical-target calibration of the solver, (bar 2) end-to-end predicted-vs-measured power on a real link."
+ },
+ "what_this_means_for_us": [
+  "The user's question - has injection been published at a strong venue - now has a stronger answer than the archive sweep gave. Not only has it been published; it has been STANDARDISED. TR 38.901 clause 7.9.2.1 is an injection interface with an angle lookup and a per-path multiply, and every 6G ISAC simulator on the planet will use it.",
+  "Reposition the architecture section: our sigma grid is not 'a workaround because Sionna has no scattering integral'. It is the same layering the 3GPP ISAC channel model uses - propagation engine and target signature are separate blocks, joined by an angle-indexed sigma. What differs is only who fills the block, and 3GPP admits both measurement and ray-traced simulation (Samsung's sentence in R1-2501002).",
+  "We are FINER than the standard on both axes it collapsed: 9 x 120 angular samples versus 6 sectors, and 3 bands versus one frequency-independent number. Say so, and note that one contributor (BUPT) proposed a frequency-dependent A = 0.2133 f - 22.04 which the consensus average discarded - so frequency dependence is a known, deliberately dropped refinement, not an exotic claim.",
+  "Adopt Samsung's printed validation chain as our own framing: measurement validates the ray tracer, then the validated ray tracer validates the channel/detection model (R1-2409609, Option 2 and Proposal 24). It came from inside the standards process, so it is not something we invented to excuse ourselves.",
+  "Put -12.81 dBsm in every comparison table, but describe it correctly: '3GPP TR 38.901 V19.4.0 Table 7.9.2.1-1, small UAV, a consensus average across company measurements and simulations, frequency-independent, sigma_S std 3.74 dB'. Do NOT call it a measured value.",
+  "Use the company spread (-10 to -19.78 dBsm around -12.81 for the same size class) as the honest reference for how much disagreement is normal. If our SBR+PO grid lands within a few dB of the standard's value at a comparable aspect, that is as good as the standards body's own internal agreement.",
+  "Two adversarial points we should pre-empt: (a) Ericsson's argument that discontinuous angular RCS means the angular sampling was too coarse - our 3 degree azimuth step should be checked against a measured/simulated angular correlation length (Sony reports 6.87 degrees for a small UAV, which would make 3 degrees adequate but not generous); (b) the far-field assumption the standard states explicitly, which our chamber geometry has to satisfy per band and per airframe."
+ ],
+ "explicit_corrections_to_earlier_project_claims": [
+  {
+   "claim": "'Only LAMBDA, a preprint, does injection.'",
+   "status": "Already retracted by the archive sweep. This run adds the decisive reason: injection is not merely published, it is the 3GPP standardised interface for ISAC target channels.",
+   "evidence": "TR 38.901 V19.4.0 clause 7.9.2.1 + Steps 10/15 of 7.9.4.1."
+  },
+  {
+   "claim": "The -12.81 dBsm value is 'the 3GPP measured UAV RCS'.",
+   "status": "WRONG if stated that way. It is a moderator's average across company submissions that mixed anechoic measurements, ray-tracing runs and commercial EM-solver runs.",
+   "evidence": "R1-2501002: '[Moderator's note] Based on inputs, merged values of RCS model component A, B2 for UAV of small size UAV are obtained by averaging the values from all companies.'"
+  },
+  {
+   "claim": "Sony's 3GPP input was a Method-of-Moments computation.",
+   "status": "UNSETTLED - the moderator's sheet says MoM, Sony's own documents say CST Studio Suite with a ray-tracing solver. Quote both, assert neither."
+  }
+ ],
+ "open_questions_not_opened": [
+  "ITU-R WP5D IMT-2030 evaluation-methodology working documents: the draft new Report is said to introduce ISAC-specific channel models, and ATIS NGA is said to have submitted on sensing test environments to WP5D #47 (per ETSI GR ISC 002 clause 4.4.1). WP5D input documents are membership-restricted. NOT OPENED - do not claim an ITU-R RCS model exists.",
+  "ATIS Next G Alliance Phase 2 report ([i.58] in ETSI GR ISC 002), described there as including 'RCS characterization of targets such as vehicles, drones, humans, and robotic arms'. NOT OPENED.",
+  "IEEE 802.11bf / TGbf WLAN-sensing channel models - whether they define a target RCS the way 3GPP does. NOT OPENED.",
+  "The remaining RCS parameter tables in TR 38.901 (7.9.2.1-3 human model 2, -4/-5 vehicle, -6/-7 AGV) were located but not transcribed cell by cell.",
+  "Whether any strong-venue paper injects a COMMERCIAL-solver RCS table specifically into a RAY TRACER (the LAMBDA configuration) remains unresolved; the standards track uses stochastic geometry-based simulators, not ray tracers, as the consumer. The automotive-radar RT-simulator literature is the place to look next and was only skimmed in search results here, not opened."
+ ],
+ "files_added_this_run": {
+  "directory": "/data/public/sionna_jeong/reference_library/injection/",
+  "files": [
+   "3gpp_tr38901_v19.4.0_2026-06_rel19.zip (the specification, .docx inside)",
+   "3gpp_tr38901_v19.4.0_extracted_text.txt (full text incl. OMML math runs, so equations are searchable)",
+   "3gpp_R1-2504948.zip + 3gpp_R1-2504948_validation_sources.xlsx (the ISAC validation source list referenced as [27] by the TR)",
+   "3gpp_R1-2501002.zip (moderator summary: the averaging note and the company-by-company RCS table)",
+   "3gpp_R1-2503152.zip (post-120bis moderator email summary)",
+   "3gpp_R1-2502419.zip (BUPT/CMCC/vivo/X-Net measurement contribution; reprints Agreement-10)",
+   "3gpp_R1-2500660.zip, 3gpp_R1-2410235.zip (Sony, CST Studio Suite RCS at 1 degree granularity)",
+   "3gpp_R1-2409609.zip (Samsung, HFSS large-UAV RCS + the measurement-validates-RT-validates-model proposal)",
+   "3gpp_R1-2410136.zip (NIST measurement contribution)",
+   "scichina2024_zhang_3gpp_isac_progress__PUBLISHED.pdf",
+   "arxiv_2504.09799__zhang_egbsm_dcn2025.pdf",
+   "arxiv_2512.03506__survey_rel19_isac_channel.pdf",
+   "arxiv_2606.07328__nycu_3gpp_isac_simulator_calibration.pdf",
+   "arxiv_2505.10275__etsi_isac_channel_perspectives.pdf"
+  ],
+  "sources_md": "Appended a '3GPP / ETSI standards-track injection' section to the existing SOURCES.md (which a parallel agent had already created); the file was appended to, not overwritten."
+ }
+}

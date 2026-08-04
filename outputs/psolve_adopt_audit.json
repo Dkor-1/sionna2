@@ -1,0 +1,110 @@
+{
+  "meta": {
+    "file": "/home/yunjung/workspace/sionna2/outputs/psolve_adopt_audit.json",
+    "generated": "2026-08-03",
+    "task": "ADOPTION-REALISM AUDIT of outputs/psolve_adopt.json — is each 'adoptable' item really adoptable, is anything dismissed that is actually cheap, and is the 'what this changes' section honest.",
+    "rule": "논문 진술은 pdf_path + 1-based page + 축자 인용. 저장소 사실은 file:line. 내가 이번에 실행해 잰 것은 MEASURED_THIS_ROUND 로 표시하고 명령을 적는다.",
+    "audited_file": "/home/yunjung/workspace/sionna2/outputs/psolve_adopt.json",
+    "nothing_in_src_was_edited": true
+  },
+
+  "measured_this_round": {
+    "runtime_drone_sbr": {
+      "how": "PYTHONPATH=src:benchmark python -> rcs_sbr.DEFAULT_DIV=16; rcs_sbr_batch(phantom4, 3.5e9, az=0..33 step3, jitter=2, penetrate=True)",
+      "n_tri": 28402,
+      "ms_per_angle_cold": 85.9,
+      "ms_per_angle_warm": 22.9,
+      "rays_per_angle": 78400,
+      "rays_note": "n=ceil(2*Rout/d)=140 -> 140^2 grid x J^2=4 jitter offsets; penetrate=True doubles the ray_intersect calls",
+      "gpu": "1장",
+      "why_it_matters": "psolve_adopt P6 'ours' 는 구 스윕의 87 ms 를 드론 논문의 런타임으로 인용한다. 실제 드론 숫자가 이제 있다."
+    },
+    "microdoppler_cost_split": {
+      "how": "pose_articulated(phantom4, phase) vs rcs_sbr.sbr_field(same mesh) 각 4회 평균, 워밍업 후",
+      "pose_articulated_ms_per_phase": 1531.4,
+      "sbr_field_ms_per_phase": 53.0,
+      "build_frame_ms": 890.7,
+      "build_propeller_ms": 278.0,
+      "build_propeller_mirror_ms": 309.1,
+      "transform_and_merge_only_ms": 18.8,
+      "speedup_of_pose_step_if_phase_independent_parts_cached": 81.5,
+      "end_to_end_speedup_estimate": "약 22배 (1584 ms -> 72 ms per phase), 물리 변경 0",
+      "why_it_matters": "채택목록 rank4 는 회전불변성(물리 근사 동반)을 제안하지만, 비용의 96.6% 는 위상마다 build_frame/build_propeller 를 다시 만드는 순수 numpy CAD 재구축이다. 이것은 근사 없이 사라진다."
+    },
+    "edge_set_for_PTD": {
+      "how": "인접 삼각형 법선 발산 30deg 문턱 (KIRIK 알고리즘 그대로) 을 우리 메쉬에 적용",
+      "phantom4": {"shared_edges": 42603, "edges_over_30deg": 3532, "median_sharp_edge_len_mm": 2.33,
+                   "pct_sharp_shorter_than_half_lambda": {"LTE": 99.4, "5G": 98.8, "WiFi": 98.6},
+                   "prop_group_sharp_edges": 1512, "prop_group_median_sharp_len_mm": 0.76},
+      "x500v2": {"shared_edges": 28224, "edges_over_30deg": 3678, "median_sharp_edge_len_mm": 2.22,
+                 "pct_sharp_shorter_than_half_lambda": {"LTE": 99.1, "5G": 98.6, "WiFi": 96.1}},
+      "manifoldness": "phantom4·x500v2·mini5pro 모두 모든 공유 edge 의 다중도가 정확히 2 — 인접성 전제는 참이다",
+      "why_it_matters": "PTD/ILDC 는 λ 대비 긴 edge 를 전제한다. 30deg 문턱이 뽑는 것은 중앙값 2 mm, 99% 가 λ/2 미만인 곡면 테셀레이션 조각이다. 물리 feature curve 추출·병합·쐐기각 결정이 선행 작업으로 빠져 있다."
+    },
+    "kr_metric": {
+      "definition_in_repo": "outputs/report02_derived.json _meta.definitions: 'kr_* = 2*pi*r_encl/lambda', r_encl = 외접구 반경",
+      "floor_reference_body": "po_floor 는 구(sphere)의 해석 PO 대 정확 Mie 차이에서 나온다",
+      "cells_below_sagitta_kr30": 14,
+      "cells_total": 21,
+      "cells_below_list": [["Mini 5 Pro","LTE",8.4],["Mini 5 Pro","5G",15.9],["Mini 5 Pro","WiFi",23.7],["Phantom 4","LTE",12.0],["Phantom 4","5G",22.8],["X500 V2","LTE",15.1],["X500 V2","5G",28.6],["Mavic 4 Pro","LTE",13.9],["Mavic 4 Pro","5G",26.4],["Matrice 4E","LTE",13.8],["Matrice 4E","5G",26.3],["Typhoon H","LTE",15.0],["Typhoon H","5G",28.5],["S1000+","LTE",28.2]],
+      "local_feature_kr_prop_group": {"LTE": "0.27 급", "5G": "0.51 급", "WiFi": "0.75 급",
+        "how": "그룹 최소 치수의 절반을 국소 곡률반경 대용으로 삼은 것 — 이것도 대용치이지 참값이 아니다"},
+      "why_it_matters": "r_encl 로 색인한 표는 구에서 유도한 바닥을 다중스케일 기체에 매핑한다. 그 매핑은 검증된 적이 없고 방향은 우리에게 유리하다."
+    },
+    "calibration_cylinder_frequency": {
+      "das_spec": "r=5.5 cm, h=30 cm, sigma_Cal = 2.8 dBsm (DAS p2)",
+      "das_subbands": "fi = 11 GHz + 0.1 i GHz, i=0..149 -> 11 ~ 25.9 GHz (DAS p2)",
+      "sigma_from_2_pi_r_L2_over_lambda": {"1.843GHz": -7.19, "3.5GHz": -4.40, "5.21GHz": -2.67, "18.4GHz": 2.81},
+      "validity": {"1.843GHz": "ka=2.12, L=1.84 lambda — 광학식 자체가 성립하지 않음", "3.5GHz": "ka=4.03, L=3.50 lambda", "5.21GHz": "ka=6.01, L=5.21 lambda"},
+      "why_it_matters": "2.8 dBsm 은 그 원통의 성질이 아니라 약 18 GHz 에서의 값이다. 우리 밴드로 그대로 옮기면 5G 에서 7.2 dB 어긋나고 LTE 에서는 표준체로 쓸 수 없다."
+    },
+    "differentiability": {
+      "claim_audited": "psolve_adopt rank6: '우리 커널은 이미 Mitsuba 위에서 미분가능하고'",
+      "evidence_against": [
+        "src/rcs_sbr.py:234-235, 423-424 — si.p / si.n 을 즉시 np.asarray 로 빼낸다. AD 그래프가 여기서 끊긴다.",
+        "src/*.py 전체에 dr.enable_grad / dr.backward / dr.forward 호출 0건",
+        "가시성 마스크가 np.where 이산 마스크다 — reparameterization 없이는 미분 자체가 정의되지 않는다",
+        "src/materials.py:181-182 gamma_po 는 override 가 있으면 상수를 돌려주고 fc 를 쓰지 않는다. 드론 5재질 전부 override 가 있으므로 eps_r/sigma 는 sigma 계산에 아예 들어가지 않는다"
+      ],
+      "consequence": "Hoydis 식 경사하강 재질보정은 (a) 커널을 Dr.Jit AD 로 다시 쓰고 (b) rank5(MECA) 를 먼저 넣어 eps_r/sigma 가 sigma 에 들어가게 만든 뒤에야 의미가 있다. 채택목록은 두 선행조건을 적지 않고 비용을 캠페인 쪽에 돌렸다."
+    },
+    "material_frequency_freeze": {
+      "fact": "src/materials.py:181-182 — gamma_po override 는 주파수 무관 상수. plastic 0.28 / prop 0.25 / carbon 0.90 / pcb 0.80 / camera 0.85 전부 override.",
+      "self_contradiction_in_our_own_note": "같은 파일 plastic note: '셸이 1~3 mm 박막이라 앞뒷면 간섭으로 |Γ| 가 0.1~0.45 를 오간다'",
+      "my_quick_slab_calc_LABEL_OUR_ARITHMETIC": {
+        "model": "2 mm ABS 슬래브, eps_r 2.7, 수직입사, 2계면 간섭 Γ = r(1-e^{-2jδ})/(1-r²e^{-2jδ})",
+        "gamma_abs": {"1.843GHz": 0.065, "3.5GHz": 0.123, "5.21GHz": 0.179},
+        "implied_extra_slope_db_per_ghz": 2.6,
+        "direction": "기울기를 더 가파르게 만든다 — 즉 P4 격차를 좁히는 게 아니라 넓힌다",
+        "caveat": "단일 두께·수직입사·단일 재질의 손계산이다. 결과가 아니라 방향 표시일 뿐이고, 제대로 하려면 각도평균·두께분포로 3밴드 스윕을 다시 돌려야 한다(수시간)."
+      },
+      "why_it_matters": "P4 회절 판정은 밴드 기울기 초과의 후보로 edge 항과 기하/재질 처리만 놓았다. 재질 응답이 얼어 있다는 사실 자체가 세 번째 후보이고 PTD 보다 훨씬 싸게 검사된다."
+    }
+  },
+
+  "paper_quotes_re_verified": [
+    {"work": "SAGITTA", "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf", "page": 8,
+     "quote": "the optical region where the method accurately approximates scattering with a standard deviation of ∼2.5%",
+     "verdict": "VERIFIED — 우리 1.55%(div12) / 1.83%(div16) 와 같은 양(구, Mie 대비)"},
+    {"work": "SAGITTA", "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf", "page": 9,
+     "quote": "30,000 × 30,000 rays are launched from a 90 × 90 m grid, with an average computation time of 616.12 ms in FP32 per angular position with a total sweep time of ∼27 minutes on 8 LUMI nodes",
+     "verdict": "VERIFIED, 그러나 채택목록의 인용은 하드웨어를 뺐다"},
+    {"work": "SAGITTA", "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf", "page": 10,
+     "quote": "on a partition of eight LUMI nodes with four AMD MI250X GPUs per node",
+     "verdict": "VERIFIED — 32 MI250X. 616 ms 는 1 GPU 숫자가 아니다"},
+    {"work": "ZIG-JOUR", "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf", "page": 8,
+     "quote": "two vehicle meshes with 360 angular points",
+     "verdict": "VERIFIED — Table II 의 19.0 s 를 360 으로 나눈 '각도당 53 ms' 유도는 옳다. CPU 32 코어."},
+    {"work": "DAS", "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf", "page": 2,
+     "quote": "A metallic cylinder with radius 5.5 cm, height 30 cm, and known RCS σCal = 2.8 dBsm",
+     "verdict": "VERIFIED — 그러나 같은 쪽이 서브밴드를 11~25.9 GHz 로 못박는다. 2.8 dBsm 은 밴드 조건부 값이다."},
+    {"work": "MC-SBR", "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2511.07586__monte-carlo-sbr-farfield-scattering.pdf", "page": 7,
+     "quote": "direct application of Mitsuba, which does not currently support surface current calculation or physical optics integration. We rather, implemented our own render",
+     "verdict": "VERIFIED. ⚠ Dr.Jit 은 본문 진술이 아니라 참고문헌 [34] 에만 나온다 — '같은 Dr.Jit 스택' 은 추론이다."},
+    {"work": "KIRIK", "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/sigma2019_kirik-ozdemir__ptd-into-sbr-predics.pdf", "page": 3,
+     "quote": "is the ray density of the ray-bunch in SBR implementation that is usually taken as",
+     "verdict": "상류가 기록한 30deg 문턱을 우리 메쉬에 적용한 결과가 measured_this_round.edge_set_for_PTD"}
+  ],
+
+  "verdict": "ISSUES_FOUND — 9개 항목 중 4개가 표시된 비용으로는 채택 불가하고(rank2·rank3·rank5·rank6), 목록에 없는 값싼 항목이 3개 있다(마이크로도플러 캐싱 · 드론 런타임 인쇄 · 재질 주파수응답 검사). 'what this changes' 절의 상반성 novelty 는 이 워크플로 자신의 규칙을 어긴다."
+}

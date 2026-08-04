@@ -70,6 +70,19 @@ TAP_SPAN_M = 60.0
 CANON_VIEW = "equal_psd"                  # 점유·전력규약 정본 뷰
 CANON_REF = "full_waveform_capture"       # 기준채널 정본
 
+# ── ⭐ 장면방위 φ — 2026-08-03 결함 D-A 수리 ────────────────────────────────────
+#  결함: `stage_solve`/`stage_baseline_walls` 의 φ 기본인자가 **리터럴 90.0** 이었고,
+#  발표된 검지 수치가 전부 그 한 컷에서 나왔다. φ=90° 는 베이스라인의 **수직이등분선**이라
+#  R1≈R2 가 **구조적으로** 성립한다 — 기하 차이가 나타날 수 없는 유일한 방위다.
+#  실측(outputs/geometry_grid.json:range_normalisation.N2_equal_R2.by_phi):
+#    확산항 차 |20log10(R2/R1)| = **0.118 dB @ φ=90°** vs **23.17 dB @ φ=180°**.
+#  수리 방침: 리터럴을 지우고 (a) 헤드라인 값은 `freespace_scene.PHI_HEADLINE_DEG`(=90.0)
+#  단일 진리원으로, (b) φ 를 **스윕 축**으로 승격(`stage_phi_sweep`, `--stage phi`).
+#  φ=90° 는 기본값으로 **그대로 남는다** — 옛 숫자를 언제든 재현·대조할 수 있어야 한다.
+PHI_HEADLINE_DEG = float(fss.PHI_HEADLINE_DEG)      # =90.0, 재현 가능한 특수 케이스
+PHI_SWEEP_DEG = tuple(float(v) for v in range(0, 360, 5))    # 정본 스윕축(72점, 90° 포함)
+PHI_SWEEP_COARSE_DEG = tuple(float(v) for v in range(0, 360, 15))   # 보조 드론용(24점)
+
 # ── 모드 → (표준, 점유) 매핑. 헤드라인 상시 3인방 W1·L1·G1 ──
 MODE_STD = {"W1": ("wifi", "G1"), "W2": ("wifi", "G2"), "W3": ("wifi", "G3"),
             "L1": ("lte", "G1"), "L2": ("lte", "G2"), "L3": ("lte", "G3"),
@@ -296,8 +309,16 @@ def _sigma_at(lookup, az_look, el_look, fallback=0.01, warn=True):
 
     → 이제 격자 범위를 벗어나면 **경고하고 세어서** `SIGMA_OOR` 에 남긴다. 값 자체는
       여전히 최근접을 쓰지만(중단시키면 스윕이 죽는다), **산출물이 그 사실을 갖고 다닌다.**
-      근본 해결은 σ 격자의 el 범위를 −75° 까지 넓히는 것이다(생산자
-      `src/experiment_freespace_sigma.py` 의 el 목록).
+
+    ⭐ **2026-08-03 근본 수리 — 생산자 el 축을 −90° 까지 넓혔다.**
+      `experiment_freespace_sigma.EL_GRID` 가 9행 → **23행**(0…−20 에 −24 −28 −33 −38 −44
+      −50 −57 −64 −71 −78 −81 −84 −87 −90 추가)이 됐다. 새 격자로 계산한 산출물은
+      `outputs/report13_sigma_grid_elext.json` 이고, 그걸 쓰면 공표 스윕(alt 60·120 m)에서
+      **격자 밖 조회가 0** 이다(11.9 %/23.7 % → 0 %). 이 함수의 경고·계수는 **옛 9행 격자를
+      읽었을 때를 위해 남겨 둔다** — 여전히 유효한 방어선이다.
+      클램프가 얼마나 틀렸는지는 `outputs/sigma_el_extend_verify.json`:
+      점조회 rms 6.2 dB(대부분 널패턴 탈상관), 방위평균 레벨만 봐도 rms 2.2 dB,
+      −57° 아래는 **전 기체가 클램프행보다 밝다**(−71°에서 평균 +4.1 dB).
     """
     if lookup is None:
         return float(fallback)
@@ -319,14 +340,20 @@ def _sigma_at(lookup, az_look, el_look, fallback=0.01, warn=True):
 
 
 def stage_solve(mode="L1", drone="mini5pro", L=500.0, alt=60.0, speed=5.0, T_cpi=0.1,
-                N=1, snr90_db=None, sig_json=None, d_grid=None, psi_n=72, phi_deg=90.0,
+                N=1, snr90_db=None, sig_json=None, d_grid=None, psi_n=72,
+                phi_deg=PHI_HEADLINE_DEG,
                 eca_depth_grid=(40.0, 60.0, 90.0, None), smoke=False, verbose=True) -> dict:
     """닫힌형 **검지거리 역해** + 커버리지 + 감도 + FS-3 + 벽 지도 (§7.3~7.5, §8).
 
     SNR(d) 를 닫힌형(freespace_link.snr_rd_db)으로 d 격자 위에 평가 → **최외곽 하강교차**
     (freespace_link.solve_range, S6) → R. σ 는 격자에서 (az_look, el_look(d)) 최근접 조회.
     커버리지 C(d)=(1−b_blind)·P_ψ[Pd≥.9|비블라인드] (S3), E_ψ[Pd] (S4). FS-3 는 2-ray F⁴(R1).
-    벽 라벨은 classify_limit(§8, dpi_residual 포함) — 어느 하나를 헤드라인으로 세우지 않는다."""
+    벽 라벨은 classify_limit(§8, dpi_residual 포함) — 어느 하나를 헤드라인으로 세우지 않는다.
+
+    ⭐ `phi_deg` 는 **자유축**이다(2026-08-03, D-A). 기본값 `PHI_HEADLINE_DEG`(=90.0)는
+      옛 숫자를 재현하기 위한 특수 케이스로 남겨두지만, φ=90° 는 R1≈R2 가 구조적으로
+      성립하는 유일한 방위라 **기하 차이가 나타날 수 없다**. φ 축 전체는
+      `stage_phi_sweep()` 이 스윕한다(σ 격자 재계산 없음 — 기하만 다시 푼다)."""
     std, occ = MODE_STD[mode]
     bname, fc, bw = _BAND_BY_STD[std]
     lam = C0 / fc
@@ -511,6 +538,165 @@ def _look_az(u1, u2):
     az = np.degrees(np.arctan2(look[..., 1], look[..., 0]))
     el = np.degrees(np.arcsin(np.clip(look[..., 2], -1.0, 1.0)))
     return np.atleast_1d(az), np.atleast_1d(el)
+
+
+# --------------------------------------------------------------------------- #
+#  stage 3b — ⭐ 장면방위 φ 스윕 (D-A 수리). σ 격자는 **재계산하지 않는다.**
+# --------------------------------------------------------------------------- #
+def _geom_at_d(d, phi_deg, L, alt, fc):
+    """단일 (d, φ) 의 기하 사실 dict — R1·R2·확산항 20log10(R2/R1)·β·el·κ."""
+    tgt = fss.target_pos(float(d), float(phi_deg), float(L), float(alt))
+    p = fss.fs_params(fss.FS_TX, fss.FS_RX(float(L)), tgt, (0.0, 0.0, 0.0), float(fc))
+    R1 = float(np.ravel(p["R1"])[0]); R2 = float(np.ravel(p["R2"])[0])
+    az, _ = _look_az(p["u1"], p["u2"])
+    return dict(R1_m=R1, R2_m=R2,
+                spread_db=float(20.0 * np.log10(max(R2, 1e-9) / max(R1, 1e-9))),
+                r1_over_r2=float(R1 / max(R2, 1e-9)),
+                beta_deg=float(np.ravel(p["beta"])[0]),
+                el_look_deg=float(np.ravel(p["el_deg"])[0]),
+                az_look_deg=float(np.ravel(az)[0]),
+                kappa_m2=float(np.ravel(p["kappa"])[0]),
+                R_eq_m=float(np.ravel(p["R_eq"])[0]))
+
+
+def stage_phi_sweep(sig_json, modes=("W1", "L1", "G1"), drone="mini5pro",
+                    snr90_by_mode=None, phi_grid=PHI_SWEEP_DEG, L=500.0, alt=60.0,
+                    speed=5.0, T_cpi=0.1, N=1, psi_n=72, smoke=False,
+                    verbose=True, save_cb=None) -> dict:
+    """⭐ **장면방위 φ 를 스윕한다** — D-A(φ=90° 단일 컷) 의 수리이자 계량.
+
+    왜: φ=90° 는 베이스라인의 수직이등분선이라 R1≈R2 가 **구조적으로** 성립한다. 확산항
+    차 |20log10(R2/R1)| 는 거기서 0.118 dB 뿐이고 φ 를 쓸면 23.17 dB 까지 벌어진다
+    (outputs/geometry_grid.json:range_normalisation.N2_equal_R2.by_phi). 즉 **기하 차이가
+    나타날 수 없는 유일한 방위**에서 발표 수치 전부가 나왔다.
+
+    무엇을 다시 계산하나 — **기하만**:
+      · σ 격자(`outputs/report13_sigma_grid.json`)는 **읽기만** 한다. φ 가 바꾸는 것은
+        조회 좌표 (az_look, el_look) 이지 격자 자체가 아니다. GPU 0회.
+      · `stage_threshold` 의 SNR90(측정 전이곡선)도 재사용한다(`snr90_by_mode`) — 전이곡선은
+        **출력 SNR 의 함수라 거리·방위 불변**이다(모듈 docstring 함정 1).
+
+    ⚠ φ 를 쓸면 이등분선 앙각 el_look 이 σ 격자(0~−20°) 밖으로 더 자주 나간다(표적이
+      TX/RX 바로 위를 지나는 방위). 그 횟수를 φ 마다 세어 `sigma_oor_n` 에 싣는다 —
+      **그 φ 의 σ 는 클램프된 값**이라는 뜻이고, 캡션에 그렇게 적어야 한다.
+
+    반환: dict(meta, by_mode[mode] = 축·지표·φ=90 대비 델타·요약).
+    `save_cb(partial)` 를 주면 모드마다 호출한다(장시간 스윕의 증분 저장)."""
+    phi_grid = [float(v) for v in phi_grid]
+    if PHI_HEADLINE_DEG not in phi_grid:                 # 특수 케이스는 항상 격자 안에
+        phi_grid = sorted(phi_grid + [PHI_HEADLINE_DEG])
+    snr90_by_mode = dict(snr90_by_mode or {})
+    oor_saved = dict(SIGMA_OOR)                          # 스윕이 전역 카운터를 오염시키지 않게
+
+    out = dict(meta=dict(
+        phi_grid_deg=phi_grid, n_phi=len(phi_grid), headline_phi_deg=PHI_HEADLINE_DEG,
+        drone=drone, modes=list(modes), L_m=float(L), alt_m=float(alt),
+        speed_mps=float(speed), T_cpi_s=float(T_cpi), N=int(N), psi_n=int(psi_n),
+        sigma_file=SIGMA_JSON,
+        sigma_grid_generated=((sig_json or {}).get("meta", {}) or {}).get("generated"),
+        sigma_grid_git_rev=((sig_json or {}).get("meta", {}) or {}).get("git_rev"),
+        snr90_by_mode=snr90_by_mode,
+        recomputed="geometry only (sigma grid re-read, never re-run; detector transfer curve "
+                   "reused because Pd is a function of output SNR, not of range or azimuth)",
+        gpu_calls=0), by_mode={})
+
+    std0 = None
+    for mode in modes:
+        std, occ = MODE_STD[mode]
+        bname, fc, bw = _BAND_BY_STD[std]
+        std0 = std
+        rows = []
+        for phi in phi_grid:
+            n0 = SIGMA_OOR["n"]
+            res = stage_solve(mode=mode, drone=drone, L=L, alt=alt, speed=speed, T_cpi=T_cpi,
+                              N=N, snr90_db=snr90_by_mode.get(mode), sig_json=sig_json,
+                              psi_n=psi_n, phi_deg=phi, smoke=smoke, verbose=False)
+            Rm = res["R_m"]
+            g = _geom_at_d(Rm if (Rm is not None and np.isfinite(Rm)) else L, phi, L, alt, fc)
+            cov = res["coverage"]
+            rows.append(dict(
+                phi_deg=float(phi), R90_m=_flt(Rm), R_eq_m=_flt(res["R_eq_m"]),
+                kappa_at_R=_flt(res["kappa_at_R"]), n_local_at_R=_flt(res["n_local_at_R"]),
+                snr_ceiling_db=_flt(res["snr_ceiling_db"]),
+                snr_peak_d_m=_flt(res["snr_peak_d_m"]),
+                frac_never_detectable=_flt(res["frac_never_detectable"]),
+                monotone_ok=bool(res["monotone_ok"]),
+                geometry_nonlinear=bool(res["geometry_nonlinear"]),
+                grid_limited=bool(res["grid_limited"]), n_crossings=int(res["n_crossings"]),
+                coverage_C=_flt(cov["C"]), E_psi_Pd=_flt(cov["E_psi_Pd"]),
+                blind_frac=_flt(cov["blind_frac"]), factor_blind=_flt(cov["factor_blind"]),
+                factor_sigma=_flt(cov["factor_sigma"]), limit=res["limit"],
+                spread_db_at_R=g["spread_db"], r1_over_r2_at_R=g["r1_over_r2"],
+                beta_deg_at_R=g["beta_deg"], el_look_at_R_deg=g["el_look_deg"],
+                az_look_at_R_deg=g["az_look_deg"],
+                sigma_oor_n=int(SIGMA_OOR["n"] - n0)))
+            if verbose:
+                print(f"    [phi] {mode} φ={phi:5.1f}°  R90={_f(Rm)}m  "
+                      f"spread={g['spread_db']:+7.3f}dB  blind={cov['blind_frac']:.3f}  "
+                      f"C={cov['C']:.3f}  oor={SIGMA_OOR['n'] - n0}", flush=True)
+
+        head = next(r for r in rows if abs(r["phi_deg"] - PHI_HEADLINE_DEG) < 1e-9)
+        Rs = np.array([r["R90_m"] if r["R90_m"] is not None else np.nan for r in rows], float)
+        fin = np.isfinite(Rs)
+        Rh = head["R90_m"]
+        node = dict(band=bname, fc_hz=float(fc), rows=rows, headline=head,
+                    axis=dict(phi_deg=[r["phi_deg"] for r in rows],
+                              R90_m=[r["R90_m"] for r in rows],
+                              coverage_C=[r["coverage_C"] for r in rows],
+                              blind_frac=[r["blind_frac"] for r in rows],
+                              E_psi_Pd=[r["E_psi_Pd"] for r in rows],
+                              spread_db_at_R=[r["spread_db_at_R"] for r in rows],
+                              sigma_oor_n=[r["sigma_oor_n"] for r in rows]))
+        node["delta_vs_headline"] = dict(
+            phi_deg=[r["phi_deg"] for r in rows],
+            dR90_m=[(None if (r["R90_m"] is None or Rh is None) else r["R90_m"] - Rh)
+                    for r in rows],
+            dR90_pct=[(None if (r["R90_m"] is None or not Rh) else
+                       100.0 * (r["R90_m"] - Rh) / Rh) for r in rows],
+            dR90_db=[(None if (not r["R90_m"] or not Rh) else
+                      40.0 * float(np.log10(r["R90_m"] / Rh))) for r in rows],
+            dblind_frac=[(None if (r["blind_frac"] is None or head["blind_frac"] is None)
+                          else r["blind_frac"] - head["blind_frac"]) for r in rows],
+            dcoverage_C=[(None if (r["coverage_C"] is None or head["coverage_C"] is None)
+                          else r["coverage_C"] - head["coverage_C"]) for r in rows],
+            dR90_db_note="dR90_db = 40log10(R/R90) — R∝(SNR)^¼ 규약에서 SNR 등가 dB")
+        if fin.any():
+            imin, imax = int(np.nanargmin(Rs)), int(np.nanargmax(Rs))
+            node["summary"] = dict(
+                R90_at_phi90_m=Rh, R90_min_m=float(Rs[imin]), R90_max_m=float(Rs[imax]),
+                phi_at_R90_min_deg=rows[imin]["phi_deg"], phi_at_R90_max_deg=rows[imax]["phi_deg"],
+                R90_span_pct=float(100.0 * (Rs[imax] - Rs[imin]) / max(Rh or np.nan, 1e-9)),
+                R90_span_db=float(40.0 * np.log10(Rs[imax] / max(Rs[imin], 1e-9))),
+                R90_worst_vs_phi90_pct=float(100.0 * (Rs[imin] - (Rh or np.nan)) /
+                                             max(Rh or np.nan, 1e-9)),
+                R90_best_vs_phi90_pct=float(100.0 * (Rs[imax] - (Rh or np.nan)) /
+                                            max(Rh or np.nan, 1e-9)),
+                R90_mean_m=float(np.nanmean(Rs)), R90_median_m=float(np.nanmedian(Rs)),
+                phi90_percentile=float(100.0 * np.mean(Rs[fin] <= (Rh or np.nan))),
+                n_phi_finite=int(fin.sum()), n_phi=len(rows),
+                blind_frac_at_phi90=head["blind_frac"],
+                blind_frac_min=float(np.nanmin([r["blind_frac"] for r in rows])),
+                blind_frac_max=float(np.nanmax([r["blind_frac"] for r in rows])),
+                coverage_C_at_phi90=head["coverage_C"],
+                coverage_C_min=float(np.nanmin([r["coverage_C"] for r in rows])),
+                coverage_C_max=float(np.nanmax([r["coverage_C"] for r in rows])),
+                spread_db_at_phi90=head["spread_db_at_R"],
+                spread_db_absmax=float(np.nanmax(np.abs(
+                    [r["spread_db_at_R"] for r in rows]))),
+                sigma_oor_at_phi90=head["sigma_oor_n"],
+                sigma_oor_total=int(sum(r["sigma_oor_n"] for r in rows)),
+                n_phi_with_sigma_oor=int(sum(1 for r in rows if r["sigma_oor_n"] > 0)),
+                limits_seen=sorted({r["limit"] for r in rows}))
+        out["by_mode"][mode] = node
+        if save_cb is not None:
+            save_cb(out)
+
+    SIGMA_OOR.update(oor_saved)                          # 전역 카운터 원복(감사 추적성)
+    out["meta"]["sigma_oor_note"] = (
+        "sigma_oor_n counts sigma-grid lookups whose bisector elevation fell outside the stored "
+        "el rows (0..-20 deg) and were clamped to the nearest row. phi away from 90 deg drives "
+        f"the target over TX/RX, so el_look dives; those phi are sigma-unreliable. std={std0}")
+    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -770,10 +956,13 @@ def _flt(x):
 
 
 def stage_baseline_walls(sig_json, ref_drone, modes, alt=60.0, speed=5.0,
-                         T_cpi=0.1, phi_deg=90.0, snr90=12.0) -> dict:
+                         T_cpi=0.1, phi_deg=PHI_HEADLINE_DEG, snr90=12.0) -> dict:
     """F11 벽 지도: 밴드별 **R vs 베이스라인 L** (thermal / ADC DR74 / DPI잔류60dB / walk).
     닫힌형·GPU 0회. σ 는 `ref_drone` 격자에서 조회(대표 밝기 — 벽 **랭킹**은 σ 절대값에 둔감).
-    walk 벽 = CPI 를 T_max=ΔR_b/v_r=(c/B_ref)/speed 로 상한(§8.7): 광대역일수록 이른 벽."""
+    walk 벽 = CPI 를 T_max=ΔR_b/v_r=(c/B_ref)/speed 로 상한(§8.7): 광대역일수록 이른 벽.
+
+    ⭐ `phi_deg` 기본값은 리터럴이 아니라 `PHI_HEADLINE_DEG`(=90.0)다(D-A). 벽 **지도 전체가
+      한 방위 컷**이라는 사실은 산출물 `meta.phi` 가 갖고 다닌다."""
     L_grid = np.geomspace(50.0, 3000.0, 24)
     band_of = {"W1": "wifi", "L1": "lte", "G1": "nr"}
     from waveforms import all_waveforms
@@ -820,21 +1009,36 @@ def stage_baseline_walls(sig_json, ref_drone, modes, alt=60.0, speed=5.0,
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="report13 자유공간 검지거리 4-stage")
-    ap.add_argument("--stage", default="all", choices=["threshold", "calib", "solve", "verify", "all"])
+    ap.add_argument("--stage", default="all",
+                    choices=["threshold", "calib", "solve", "verify", "phi", "all"])
     ap.add_argument("--mode", default="L1", help="쉼표목록(예 W1,L1,G1). 헤드라인=L1")
     ap.add_argument("--drone", default="mini5pro")
     ap.add_argument("--out", default=FREESPACE_JSON)
     ap.add_argument("--sigma", default=SIGMA_JSON, help="σ 격자 JSON(solve 의 σ 조회)")
+    ap.add_argument("--phi", type=float, default=PHI_HEADLINE_DEG,
+                    help="장면방위 φ[deg] — 기본 90°(수직이등분선, 재현용 특수 케이스)")
+    ap.add_argument("--phi-grid", default="",
+                    help="'--stage phi' 의 φ 격자. 빈값=PHI_SWEEP_DEG(0:5:355), "
+                         "'coarse'=15° 간격, 그 외 쉼표목록(예 0,45,90,135)")
     ap.add_argument("--smoke", action="store_true")
     args = ap.parse_args(argv)
 
-    from gpu import pick
-    pick(verbose=True)
+    if args.stage != "phi":                 # φ 스윕은 닫힌형이라 GPU 를 잡지 않는다(GPU 0회)
+        from gpu import pick
+        pick(verbose=True)
+    else:
+        os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
 
     modes = tuple(m.strip() for m in args.mode.split(",") if m.strip())
     sig_json = _load(args.sigma)
     out = _load(args.out) or {}
     out["meta"] = _meta(args.smoke, modes)
+    out["meta"]["phi_deg"] = float(args.phi)
+    out["meta"]["phi_headline_deg"] = PHI_HEADLINE_DEG
+    out["meta"]["phi_note"] = (
+        "phi is a swept axis (stage_phi_sweep / --stage phi); 90 deg is the reproducible "
+        "special case where R1~=R2 holds structurally, so no geometry difference can appear "
+        "there (spread term 0.118 dB at phi=90 vs 23.17 dB across phi).")
 
     t0 = time.time()
     snr90 = None
@@ -854,10 +1058,32 @@ def main(argv=None):
         _save(args.out, out)
     if args.stage in ("solve", "all"):
         out["solve"] = {m: stage_solve(mode=m, drone=args.drone, snr90_db=snr90,
-                                       sig_json=sig_json, smoke=args.smoke) for m in modes}
+                                       sig_json=sig_json, phi_deg=float(args.phi),
+                                       smoke=args.smoke) for m in modes}
         _save(args.out, out)
     if args.stage in ("verify", "all"):
         out["verify"] = stage_verify(modes=modes, smoke=args.smoke)
+        _save(args.out, out)
+    # ── ⭐ stage 3b: φ 스윕 (D-A). GPU 0회 — σ 격자·전이곡선을 **재사용**한다. ──
+    if args.stage == "phi":
+        g = args.phi_grid.strip().lower()
+        grid = (PHI_SWEEP_DEG if not g else
+                PHI_SWEEP_COARSE_DEG if g == "coarse" else
+                tuple(float(v) for v in args.phi_grid.split(",") if v.strip()))
+        s90 = {m: snr90 for m in modes} if snr90 is not None else {}
+        if not s90:                                     # 저장된 solve 의 측정 SNR90 재사용
+            for m in modes:
+                v = ((out.get("solve") or {}).get(m) or {}).get("snr90_db")
+                if v is not None:
+                    s90[m] = float(v)
+
+        def _phi_cb(partial):                            # 모드마다 증분 저장
+            out["phi_sweep"] = partial
+            _save(args.out, out)
+
+        out["phi_sweep"] = stage_phi_sweep(
+            sig_json, modes=modes, drone=args.drone, snr90_by_mode=s90, phi_grid=grid,
+            smoke=args.smoke, save_cb=_phi_cb)
         _save(args.out, out)
 
     # ── §10 정본 스키마 조립(add-only) — 소비자가 읽는 키로 매핑 ──
@@ -867,10 +1093,11 @@ def main(argv=None):
         try:
             ref = ("mini5pro" if _sigma_lookup(sig_json, "mini5pro", "LTE 1.8 GHz")
                    else args.drone)
-            base = stage_baseline_walls(sig_json, ref, modes)
+            base = stage_baseline_walls(sig_json, ref, modes, phi_deg=float(args.phi))
             if base:
                 out.setdefault("sensitivity", {})["baseline"] = base
-                out["sensitivity"].setdefault("baseline_meta", {})["ref_drone"] = ref
+                out["sensitivity"].setdefault("baseline_meta", {}).update(
+                    ref_drone=ref, phi_deg=float(args.phi))
                 _save(args.out, out)
                 if args.smoke or True:
                     print(f"  [F11] 벽지도 baseline (ref={ref}, {len(base)}밴드) 산출")

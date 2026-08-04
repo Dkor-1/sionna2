@@ -1,0 +1,599 @@
+{
+  "_meta": {
+    "what": "실측 3층 설계의 새 층에 필요한 숫자. §4 AUTO 계산표(1층 σ(f) 레인지)를 대체하지 않고 보완한다.",
+    "generator": "benchmark/measurement_layers.py",
+    "consumed_by": "docs/MEASUREMENT_PLAN.md",
+    "measures_nothing": true,
+    "uses_gpu": false
+  },
+  "repo_duty_table": {
+    "W1": {
+      "std": "wifi",
+      "occ": "G1",
+      "prf_hz": 1000.0,
+      "M": 100,
+      "T_ref_s": 5.2e-05,
+      "duty_db": -12.839966563652007
+    },
+    "W2": {
+      "std": "wifi",
+      "occ": "G2",
+      "prf_hz": 1000.0,
+      "M": 100,
+      "T_ref_s": 5.2e-05,
+      "duty_db": -12.839966563652007
+    },
+    "W3": {
+      "std": "wifi",
+      "occ": "G3",
+      "prf_hz": 1000.0,
+      "M": 100,
+      "T_ref_s": 5.2e-05,
+      "duty_db": -12.839966563652007
+    },
+    "L1": {
+      "std": "lte",
+      "occ": "G1",
+      "prf_hz": 1000.0,
+      "M": 100,
+      "T_ref_s": 0.001,
+      "duty_db": 0.0
+    },
+    "L2": {
+      "std": "lte",
+      "occ": "G2",
+      "prf_hz": 6.25,
+      "M": 2,
+      "T_ref_s": 0.001,
+      "duty_db": -16.989700043360187
+    },
+    "L3": {
+      "std": "lte",
+      "occ": "G3",
+      "prf_hz": 6.25,
+      "M": 2,
+      "T_ref_s": 0.001,
+      "duty_db": -16.989700043360187
+    },
+    "G1": {
+      "std": "nr",
+      "occ": "G1",
+      "prf_hz": 50.0,
+      "M": 5,
+      "T_ref_s": 0.0005,
+      "duty_db": -16.020599913279625
+    },
+    "G2": {
+      "std": "nr",
+      "occ": "G2",
+      "prf_hz": 200.0,
+      "M": 20,
+      "T_ref_s": 0.0005,
+      "duty_db": -10.0
+    },
+    "G3": {
+      "std": "nr",
+      "occ": "G3",
+      "prf_hz": 200.0,
+      "M": 20,
+      "T_ref_s": 0.0005,
+      "duty_db": -10.0
+    }
+  },
+  "layer1_at_ism": {
+    "fc_hz": 5800000000.0,
+    "lambda_m": 0.05168835482758621,
+    "span_hz": 150000000.0,
+    "airframes": {
+      "matrice4e": {
+        "name": "DJI Matrice 4E",
+        "D_bbox_m": 0.5947407225247171,
+        "D_over_lambda": 11.506280757214244,
+        "farfield_m": 13.686507462235696,
+        "az_step_nyquist_deg": 2.4897610584184138,
+        "az_step_recommended_deg": 1.2448805292092069,
+        "N_over_180deg_nyquist": 73,
+        "N_over_180deg_recommended": 145,
+        "N_anchor_2deg": 91,
+        "point_target": {
+          "B=150MHz": {
+            "range_res_m": 0.9993081933333333,
+            "point_like": true,
+            "margin_m": 0.4045674708086162
+          },
+          "B=100MHz": {
+            "range_res_m": 1.49896229,
+            "point_like": true,
+            "margin_m": 0.9042215674752828
+          },
+          "B=80MHz": {
+            "range_res_m": 1.8737028625,
+            "point_like": true,
+            "margin_m": 1.2789621399752829
+          },
+          "B=50MHz": {
+            "range_res_m": 2.99792458,
+            "point_like": true,
+            "margin_m": 2.4031838574752826
+          },
+          "B=25MHz": {
+            "range_res_m": 5.99584916,
+            "point_like": true,
+            "margin_m": 5.4011084374752825
+          }
+        }
+      },
+      "mini5pro": {
+        "name": "DJI Mini 5 Pro",
+        "D_bbox_m": 0.36042401608557495,
+        "D_over_lambda": 6.973021627169603,
+        "farfield_m": 5.0264889182320776,
+        "az_step_nyquist_deg": 4.108389631966413,
+        "az_step_recommended_deg": 2.0541948159832066,
+        "N_over_180deg_nyquist": 44,
+        "N_over_180deg_recommended": 88,
+        "N_anchor_2deg": 91,
+        "point_target": {
+          "B=150MHz": {
+            "range_res_m": 0.9993081933333333,
+            "point_like": true,
+            "margin_m": 0.6388841772477584
+          },
+          "B=100MHz": {
+            "range_res_m": 1.49896229,
+            "point_like": true,
+            "margin_m": 1.138538273914425
+          },
+          "B=80MHz": {
+            "range_res_m": 1.8737028625,
+            "point_like": true,
+            "margin_m": 1.5132788464144251
+          },
+          "B=50MHz": {
+            "range_res_m": 2.99792458,
+            "point_like": true,
+            "margin_m": 2.6375005639144247
+          },
+          "B=25MHz": {
+            "range_res_m": 5.99584916,
+            "point_like": true,
+            "margin_m": 5.635425143914425
+          }
+        }
+      }
+    },
+    "_rule": "§A/§C 는 1.843/3.5/5.21 GHz 만 덮는다. 2층을 ISM 5.8 GHz 에 놓기로 확정했으므로 같은 규약을 그 반송파에서 다시 계산한 것이다."
+  },
+  "angular_sampling": {
+    "anchor_step_deg": 2.0,
+    "anchor_N": 91,
+    "span_deg": 180.0,
+    "by_drone": {
+      "matrice4e": {
+        "D_bbox_m": 0.5947407225247171,
+        "by_band": {
+          "LTE 1.843 GHz": {
+            "step_recommended_deg": 3.917692387093543,
+            "N_required": 46,
+            "anchor_2deg_sufficient": true
+          },
+          "5G 3.5 GHz": {
+            "step_recommended_deg": 2.062944876975257,
+            "N_required": 88,
+            "anchor_2deg_sufficient": true
+          },
+          "WiFi 5.21 GHz": {
+            "step_recommended_deg": 1.3858554835726296,
+            "N_required": 130,
+            "anchor_2deg_sufficient": false
+          },
+          "ISM 5.8 GHz": {
+            "step_recommended_deg": 1.2448805292092069,
+            "N_required": 145,
+            "anchor_2deg_sufficient": false
+          }
+        }
+      },
+      "mini5pro": {
+        "D_bbox_m": 0.36042401608557495,
+        "by_band": {
+          "LTE 1.843 GHz": {
+            "step_recommended_deg": 6.4646391387425926,
+            "N_required": 28,
+            "anchor_2deg_sufficient": true
+          },
+          "5G 3.5 GHz": {
+            "step_recommended_deg": 3.4040942664864566,
+            "N_required": 53,
+            "anchor_2deg_sufficient": true
+          },
+          "WiFi 5.21 GHz": {
+            "step_recommended_deg": 2.286819564818157,
+            "N_required": 79,
+            "anchor_2deg_sufficient": true
+          },
+          "ISM 5.8 GHz": {
+            "step_recommended_deg": 2.0541948159832066,
+            "N_required": 88,
+            "anchor_2deg_sufficient": true
+          }
+        }
+      }
+    },
+    "anchor_2deg_too_coarse_at": [
+      "matrice4e @ WiFi 5.21 GHz",
+      "matrice4e @ ISM 5.8 GHz"
+    ],
+    "N_required_range": [
+      28,
+      145
+    ],
+    "_rule": "⭐ 앵커가 스스로 밝힌 한계(*'the chosen step size may be too large at higher frequencies'*) 가 우리 기체에서 실제로 무는 자리를 이 표가 지목한다. 그 자리 밖에서는 2° 로 충분하고, 오히려 우리 요구가 더 성기다."
+  },
+  "doppler_carrier_coupling": {
+    "formula": "v_max = lambda * PRF / 4   (unambiguous, half-interval convention)",
+    "c_used_m_per_s": 299792458.0,
+    "provenance": "Abratkiewicz et al., IEEE JSTARS 16:3469-3484 (2023), eq. (16) p.3476. PRF·듀티는 freespace_link.duty_terms (3GPP/IEEE 자원격자) 에서 읽었다.",
+    "rows": {
+      "W1": {
+        "prf_hz": 1000.0,
+        "duty_db": -12.839966563652007,
+        "std": "wifi",
+        "occ": "G1",
+        "v_max_ms": {
+          "LTE 1.843 GHz": 40.66636706456864,
+          "5G 3.5 GHz": 21.413747,
+          "WiFi 5.21 GHz": 14.385434644913628,
+          "ISM 5.8 GHz": 12.922088706896552
+        }
+      },
+      "W2": {
+        "prf_hz": 1000.0,
+        "duty_db": -12.839966563652007,
+        "std": "wifi",
+        "occ": "G2",
+        "v_max_ms": {
+          "LTE 1.843 GHz": 40.66636706456864,
+          "5G 3.5 GHz": 21.413747,
+          "WiFi 5.21 GHz": 14.385434644913628,
+          "ISM 5.8 GHz": 12.922088706896552
+        }
+      },
+      "W3": {
+        "prf_hz": 1000.0,
+        "duty_db": -12.839966563652007,
+        "std": "wifi",
+        "occ": "G3",
+        "v_max_ms": {
+          "LTE 1.843 GHz": 40.66636706456864,
+          "5G 3.5 GHz": 21.413747,
+          "WiFi 5.21 GHz": 14.385434644913628,
+          "ISM 5.8 GHz": 12.922088706896552
+        }
+      },
+      "L1": {
+        "prf_hz": 1000.0,
+        "duty_db": 0.0,
+        "std": "lte",
+        "occ": "G1",
+        "v_max_ms": {
+          "LTE 1.843 GHz": 40.66636706456864,
+          "5G 3.5 GHz": 21.413747,
+          "WiFi 5.21 GHz": 14.385434644913628,
+          "ISM 5.8 GHz": 12.922088706896552
+        }
+      },
+      "L2": {
+        "prf_hz": 6.25,
+        "duty_db": -16.989700043360187,
+        "std": "lte",
+        "occ": "G2",
+        "v_max_ms": {
+          "LTE 1.843 GHz": 0.254164794153554,
+          "5G 3.5 GHz": 0.13383591875,
+          "WiFi 5.21 GHz": 0.08990896653071018,
+          "ISM 5.8 GHz": 0.08076305441810344
+        }
+      },
+      "L3": {
+        "prf_hz": 6.25,
+        "duty_db": -16.989700043360187,
+        "std": "lte",
+        "occ": "G3",
+        "v_max_ms": {
+          "LTE 1.843 GHz": 0.254164794153554,
+          "5G 3.5 GHz": 0.13383591875,
+          "WiFi 5.21 GHz": 0.08990896653071018,
+          "ISM 5.8 GHz": 0.08076305441810344
+        }
+      },
+      "G1": {
+        "prf_hz": 50.0,
+        "duty_db": -16.020599913279625,
+        "std": "nr",
+        "occ": "G1",
+        "v_max_ms": {
+          "LTE 1.843 GHz": 2.033318353228432,
+          "5G 3.5 GHz": 1.07068735,
+          "WiFi 5.21 GHz": 0.7192717322456814,
+          "ISM 5.8 GHz": 0.6461044353448275
+        }
+      },
+      "G2": {
+        "prf_hz": 200.0,
+        "duty_db": -10.0,
+        "std": "nr",
+        "occ": "G2",
+        "v_max_ms": {
+          "LTE 1.843 GHz": 8.133273412913727,
+          "5G 3.5 GHz": 4.2827494,
+          "WiFi 5.21 GHz": 2.8770869289827257,
+          "ISM 5.8 GHz": 2.58441774137931
+        }
+      },
+      "G3": {
+        "prf_hz": 200.0,
+        "duty_db": -10.0,
+        "std": "nr",
+        "occ": "G3",
+        "v_max_ms": {
+          "LTE 1.843 GHz": 8.133273412913727,
+          "5G 3.5 GHz": 4.2827494,
+          "WiFi 5.21 GHz": 2.8770869289827257,
+          "ISM 5.8 GHz": 2.58441774137931
+        }
+      }
+    },
+    "lambda_transfer_from_ISM58": {
+      "LTE 1.843 GHz": 3.1470428648941944,
+      "5G 3.5 GHz": 1.6571428571428573,
+      "WiFi 5.21 GHz": 1.1132437619961613,
+      "ISM 5.8 GHz": 1.0
+    },
+    "exact_under_transfer": "unambiguous velocity ceiling (pure sampling fact)",
+    "NOT_exact_under_transfer": "SNR / detection range — sigma(f), antenna gain and path loss are all functions of carrier and do not scale as lambda",
+    "_rule": "⭐ 2층을 ISM 한 곳에서만 재는 대가는 이 표로 **계산해서** 갚는다. 다른 반송파의 v_max 는 측정하지 않고 λ 비로 옮긴다. ⛔ 같은 방식으로 SNR 을 옮기면 안 된다."
+  },
+  "calibration_convention_gap": {
+    "radius_m": 0.178,
+    "anchor_declared_sigma_cal_dbsm": -10.0,
+    "anchor_quote": "A metallic sphere with a radius of 17.8 cm (RCS as sigma_Cal = -10 dBsm) is positioned at the center of the turntable",
+    "anchor_quote_source": "Yuan et al., EuCAP 2025, On Experimental Analysis of Mono-Static 3D UAV RCS for ISAC Channel Modeling, Sec. II-B, p.2 (verbatim)",
+    "pir2_dbsm": -10.020101226880783,
+    "anchor_used_optical_pir2": true,
+    "by_band": {
+      "LTE 1.843 GHz": {
+        "ka": 6.87550342831337,
+        "mie_dbsm": -9.947801906565351,
+        "go_pir2_dbsm": -10.020101226880783,
+        "mie_minus_pir2_db": 0.07229932031543207
+      },
+      "5G 3.5 GHz": {
+        "ka": 13.057114486758977,
+        "mie_dbsm": -9.714981483167634,
+        "go_pir2_dbsm": -10.020101226880783,
+        "mie_minus_pir2_db": 0.3051197437131492
+      },
+      "WiFi 5.21 GHz": {
+        "ka": 19.436447564575502,
+        "mie_dbsm": -9.892896717770148,
+        "go_pir2_dbsm": -10.020101226880783,
+        "mie_minus_pir2_db": 0.1272045091106353
+      },
+      "ISM 5.8 GHz": {
+        "ka": 21.63750400662916,
+        "mie_dbsm": -9.84156018702181,
+        "go_pir2_dbsm": -10.020101226880783,
+        "mie_minus_pir2_db": 0.17854103985897218
+      }
+    },
+    "our_sigma_shift_if_we_use_mie_db": {
+      "LTE 1.843 GHz": 0.07229932031543207,
+      "5G 3.5 GHz": 0.3051197437131492,
+      "WiFi 5.21 GHz": 0.1272045091106353,
+      "ISM 5.8 GHz": 0.17854103985897218
+    },
+    "_rule": "⭐ 우리가 정확 Mie 로 교정하면 우리 σ 는 앵커 규약 대비 이 표만큼 **위로** 뜬다. 앵커와 사과-대-사과로 대조할 때는 이 항을 먼저 되돌리고 비교한다. ⛔ 이 항은 σ_DUT/σ_Cal 비에서 소거되지 않는다 — 분모의 규약 그 자체다."
+  },
+  "layer2_waveform_axis": {
+    "carrier_hz": 5800000000.0,
+    "span_hz": 150000000.0,
+    "structures": {
+      "W1": {
+        "label": "WiFi-like (dense OFDM burst)",
+        "repo_mode": "W1",
+        "std": "wifi",
+        "occ": "G1",
+        "occupied_bw_hz": 80000000.0,
+        "prf_hz": 1000.0,
+        "M_per_cpi": 100,
+        "T_ref_s": 5.2e-05,
+        "duty_db": -12.839966563652007,
+        "range_res_m": 1.8737028625,
+        "v_max_at_ism_ms": 12.922088706896552,
+        "fits_in_ism_span": true
+      },
+      "L1": {
+        "label": "LTE-CRS-like (comb reference, always-on)",
+        "repo_mode": "L1",
+        "std": "lte",
+        "occ": "G1",
+        "occupied_bw_hz": 20000000.0,
+        "prf_hz": 1000.0,
+        "M_per_cpi": 100,
+        "T_ref_s": 0.001,
+        "duty_db": 0.0,
+        "range_res_m": 7.49481145,
+        "v_max_at_ism_ms": 12.922088706896552,
+        "fits_in_ism_span": true
+      },
+      "G1": {
+        "label": "5G-SSB-like (sparse burst)",
+        "repo_mode": "G1",
+        "std": "nr",
+        "occ": "G1",
+        "occupied_bw_hz": 100000000.0,
+        "prf_hz": 50.0,
+        "M_per_cpi": 5,
+        "T_ref_s": 0.0005,
+        "duty_db": -16.020599913279625,
+        "range_res_m": 1.49896229,
+        "v_max_at_ism_ms": 0.6461044353448275,
+        "fits_in_ism_span": true
+      }
+    },
+    "metric": "SNR_out / E_tx  (output SNR normalised by transmitted energy)",
+    "why_one_carrier": "면허. 2.1 GHz 야외 송신은 허가가 필요하고 '2.1 GHz 의 WiFi' 는 세상에 없는 인공물이다. 반송파를 고정하면 파형 구조만 남는다.",
+    "what_this_costs": "반송파축을 잃는다. 그 대가는 (a) 검증 3점의 실제 배치신호 수신과 (b) doppler_carrier_coupling 표의 계산으로 갚는다.",
+    "_warn": "⚠ 세 구조가 ISM span 안에서 **서로 다른 주파수 조각**을 차지하면 σ(f) 가 평평하지 않으므로 비(ratio) 소거가 깨진다 (§7 B11). 같은 서브밴드 중심에 겹쳐 놓는 판을 반드시 함께 잰다."
+  },
+  "validation_three_points": {
+    "points": {
+      "lte": {
+        "label": "LTE 1.843 GHz",
+        "carrier_hz": 1843000000.0,
+        "occupied_bw_hz": 20000000.0,
+        "repo_mode": "L1",
+        "prf_hz": 1000.0,
+        "duty_db": 0.0,
+        "range_res_m": 7.49481145,
+        "v_max_ms": 40.66636706456864,
+        "transmit_required": false,
+        "licence_required": false
+      },
+      "nr": {
+        "label": "5G NR 3.5 GHz",
+        "carrier_hz": 3500000000.0,
+        "occupied_bw_hz": 100000000.0,
+        "repo_mode": "G1",
+        "prf_hz": 50.0,
+        "duty_db": -16.020599913279625,
+        "range_res_m": 1.49896229,
+        "v_max_ms": 1.07068735,
+        "transmit_required": false,
+        "licence_required": false
+      },
+      "wifi": {
+        "label": "WiFi 5.21 GHz",
+        "carrier_hz": 5210000000.0,
+        "occupied_bw_hz": 80000000.0,
+        "repo_mode": "W1",
+        "prf_hz": 1000.0,
+        "duty_db": -12.839966563652007,
+        "range_res_m": 1.8737028625,
+        "v_max_ms": 14.385434644913628,
+        "transmit_required": false,
+        "licence_required": false
+      }
+    },
+    "receive_only": true,
+    "channels": "reference + surveillance = 2 channels on a common clock (NOT 4 simultaneous channels - see RETRACTION_LOG)",
+    "role": "1층(σ(f)) × 2층(파형) 의 예측을 이 3점으로 **검증**한다. 3점은 교차설계의 대각선이 아니라 **독립 검사점**이다.",
+    "_warn": "⚠ 여기서 σ 는 **바이스태틱**이다. 1층이 낸 것은 준모노스태틱 σ 다. 둘은 다른 물리량이므로 예측을 옮길 때 그 변환을 명시해야 한다 (§7 B4)."
+  },
+  "layer3_flight": {
+    "geometry": "active monostatic",
+    "carrier": "single band (ISM 5.8 GHz, same as layer 2)",
+    "headline": "Pd vs range at fixed Pfa",
+    "pfa_is": "CFAR design value, not a measurement",
+    "target_state": "in flight (rotors spinning) - the only layer where rotors turn",
+    "what_it_does_NOT_give": "절대 σ. 비행 표적은 자세·거리·속도가 동시에 변하므로 σ 를 분리할 수 없다. σ 는 1층에서만 나온다.",
+    "ties_back_to": "1층의 P(sigma) 를 Swerling 틀로 넣으면 Pd(range) 가 예측된다. 3층은 그 예측의 검사다."
+  },
+  "gate_wide_evaluate_narrow": {
+    "gate_bw_hz": 400000000.0,
+    "eval_bw_hz": 50000000.0,
+    "by_drone": {
+      "matrice4e": {
+        "D_bbox_m": 0.5947407225247171,
+        "gate_range_res_m": 0.3747405725,
+        "gate_resolves_target": true,
+        "eval_range_res_m": 2.99792458,
+        "eval_point_like": true,
+        "n_subbands": 8
+      },
+      "mini5pro": {
+        "D_bbox_m": 0.36042401608557495,
+        "gate_range_res_m": 0.3747405725,
+        "gate_resolves_target": false,
+        "eval_range_res_m": 2.99792458,
+        "eval_point_like": true,
+        "n_subbands": 8
+      }
+    },
+    "why_subband_is_not_only_about_point_targets": "우리 커널이 이미 대역평균 σ 를 낸다 — rcs_po.drone_rcs_pattern_bw(key, fc, bw_hz, ...), viz_radar.BW_HZ=100e6 주석 축자 '레이더가 실제로 보는 값'. 따라서 σ 의 정의 대역폭은 **검출기가 적분하는 대역폭**이어야 하고, 그것이 서브밴드를 고르는 1차 이유다. 점표적 조건은 2차다.",
+    "binding_condition": "⚠ 점표적 조건(ΔR > D)이 실제로 무는 자리는 '거리프로파일 peak 을 σ 로 읽을 때' 다. 게이팅 후 주파수마다 비를 취하는 앵커식으로 읽으면 peak 법이 아니므로 그 조건은 다르게 작동한다. 어느 읽기법을 쓸지 프로토콜에 박아야 한다.",
+    "anchor_quote": "a 6th-order Kaiser window function, defined by a predetermined delay range, is applied to the CIR, and the gated CIRs are then transformed back into the frequency domain",
+    "anchor_quote_source": "Yuan et al., EuCAP 2025, Sec. II-C-2, p.3 (verbatim)"
+  },
+  "stale_table_drift": {
+    "what": "§4 AUTO 표(07-30 생성) vs 현재 메쉬(07-31 개편 이후)의 D_bbox 드리프트",
+    "rows": {
+      "matrice4e": {
+        "D_bbox_printed_m": 0.5993,
+        "D_bbox_current_m": 0.5947407225247171,
+        "delta_mm": -4.559277475282952,
+        "by_band": {
+          "LTE 1.843 GHz": {
+            "farfield_printed_m": 4.415940197334785,
+            "farfield_current_m": 4.349005733258688,
+            "farfield_delta_m": -0.06693446407609738,
+            "az_step_printed_deg": 3.887887870731849,
+            "az_step_current_deg": 3.917692387093543,
+            "printed_is_conservative": true
+          },
+          "5G 3.5 GHz": {
+            "farfield_printed_m": 8.386213071444248,
+            "farfield_current_m": 8.25909933065947,
+            "farfield_delta_m": -0.1271137407847771,
+            "az_step_printed_deg": 2.0472506702167994,
+            "az_step_current_deg": 2.062944876975257,
+            "printed_is_conservative": true
+          },
+          "WiFi 5.21 GHz": {
+            "farfield_printed_m": 12.48347717206415,
+            "farfield_current_m": 12.294259289353098,
+            "farfield_delta_m": -0.189217882711052,
+            "az_step_printed_deg": 1.3753123504335505,
+            "az_step_current_deg": 1.3858554835726296,
+            "printed_is_conservative": true
+          }
+        }
+      },
+      "mini5pro": {
+        "D_bbox_printed_m": 0.376,
+        "D_bbox_current_m": 0.36042401608557495,
+        "delta_mm": -15.575983914425052,
+        "by_band": {
+          "LTE 1.843 GHz": {
+            "farfield_printed_m": 1.7382423142879733,
+            "farfield_current_m": 1.597210185569262,
+            "farfield_delta_m": -0.1410321287187113,
+            "az_step_printed_deg": 6.196838300344673,
+            "az_step_current_deg": 6.4646391387425926,
+            "printed_is_conservative": true
+          },
+          "5G 3.5 GHz": {
+            "farfield_printed_m": 3.301057026591376,
+            "farfield_current_m": 3.0332260713469434,
+            "farfield_delta_m": -0.26783095524443246,
+            "az_step_printed_deg": 3.2630779964386383,
+            "az_step_current_deg": 3.4040942664864566,
+            "printed_is_conservative": true
+          },
+          "WiFi 5.21 GHz": {
+            "farfield_printed_m": 4.913859173868877,
+            "farfield_current_m": 4.515173666205022,
+            "farfield_delta_m": -0.39868550766385535,
+            "az_step_printed_deg": 2.1920869457841143,
+            "az_step_current_deg": 2.286819564818157,
+            "printed_is_conservative": true
+          }
+        }
+      }
+    },
+    "printed_table_is_conservative_everywhere": true,
+    "regenerate_cmd": "PYTHONPATH=src:benchmark SIONNA2_CPU=1 ~/.venvs/py312/bin/python -c \"import sigma_anchor as S; S.write_measurement_plan()\"",
+    "_rule": "⛔ 이 라운드에서는 §4 를 재생성하지 않는다(보존 지시). 대신 드리프트를 여기 남긴다. §A/§C 숫자를 인쇄할 때 '07-30 생성, 07-31 메쉬 개편 이전' 을 함께 적는다."
+  }
+}

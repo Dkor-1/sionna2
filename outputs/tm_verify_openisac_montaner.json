@@ -1,0 +1,322 @@
+{
+  "generated": "2026-08-03",
+  "task": "OpenISAC + Montaner RF-DT: tm_claims.json claims + targeted probes checked verbatim against source PDFs",
+  "verifier_note": "team_meeting/ was read-only throughout; no git operations. Text extracted with PyMuPDF into scratchpad only.",
+  "sources": {
+    "openisac_journal": {
+      "path": "/home/yunjung/workspace/team_meeting/2607/OpenISAC_Open-Source-Realtime-OFDM-ISAC-Platform.pdf",
+      "md5": "56c57f9a49f0940041b9f5611a3c72df",
+      "pages": 15,
+      "identity": "IEEE Internet of Things Journal ACCEPTED AUTHOR VERSION (IEEE Xplore early-access PDF)",
+      "doi_in_pdf": true,
+      "doi": "10.1109/JIOT.2026.3710751",
+      "doi_footer_occurrences": 15,
+      "xplore_stamp": "Authorized licensed use limited to: DGIST. Downloaded on July 21,2026 at 13:13:01 UTC from IEEE Xplore. Restrictions apply.",
+      "footer_verbatim": "This article has been accepted for publication in IEEE Internet of Things Journal. This is the author's version which has not been fully edited and content may change prior to final publication. Citation information: DOI 10.1109/JIOT.2026.3710751 (C) 2026 IEEE.",
+      "page_numbering": "PDF page == printed page number"
+    },
+    "openisac_preprint": {
+      "path": "/data/public/sionna_jeong/papers_isac_sionna/2601.03535__openisac.pdf",
+      "md5": "1168dc26e0d1b21b6532491d8b6b21f3",
+      "pages": 16,
+      "identity": "arXiv:2601.03535v2 [eess.SP] 6 Jul 2026 (v1: 7 Jan 2026)",
+      "doi_in_pdf": false,
+      "arxiv_comments_field": "Accepted by IEEE Internet of Things Journal",
+      "note": "DIFFERENT FILE from the team_meeting copy. Same technical content on every point checked (Table III numbers identical), but no DOI and no IEEE acceptance footer inside the PDF body."
+    },
+    "montaner": {
+      "path_team_meeting": "/home/yunjung/workspace/team_meeting/2607/Montaner_EuCAP2026_Deterministic-ISAC-Channels-RF-Digital-Twin.pdf",
+      "path_archive": "/data/public/sionna_jeong/papers_isac_sionna/deck_teammeeting_0721/2603.28736__deterministic-modeling-isac-dt.pdf",
+      "md5": "5207916f1ba8a94c6d69da2e82ebbe5a",
+      "identical_copies": true,
+      "pages": 5,
+      "identity": "arXiv:2603.28736v1 [eess.SP] 30 Mar 2026 (preprint PDF)",
+      "title": "Deterministic Modeling of Dynamic ISAC Channels in RF Digital Twin Environments",
+      "authors": "Cesar Montaner, Saul Fenollosa, Andres Ortega, Hugo Beltran, Narcis Cardona (iTEAM, Universitat Politecnica de Valencia)",
+      "doi_in_pdf": false,
+      "venue_stated_in_pdf": false,
+      "arxiv_comments_field": "5 pages, 6 figures, 2 tables. Accepted for publication at the 2026 20th European Conference on Antennas and Propagation (EuCAP)"
+    }
+  },
+
+  "n": 20,
+  "wrong": 1,
+  "wrong_items": [
+    {
+      "id": "P2",
+      "paper": "OpenISAC",
+      "our_record": "100~200 MHz 에서 host-only 실시간 붕괴",
+      "verdict": "WRONG",
+      "correction": "붕괴는 200 MHz 단독. 50 MHz 와 100 MHz 는 둘 다 드롭 0 의 안정 동작점이다.",
+      "source_verbatim": "The results show that the proportionally scaled 50 MHz and 100 MHz configurations are stable operating points, whereas the 200 MHz/4096-FFT configuration exceeds the real-time capacity of the current host-only demodulator path. In this case, the demodulator processing load rises above 100% and the RX frame queue reports more than 1600 dropped frames, indicating persistent backlog buildup and practical frame drops.",
+      "locator": "IoT-J version p.12-13, Sec. V-B; arXiv v2 same wording",
+      "table_iii_verbatim": {
+        "caption": "TABLE III REPRESENTATIVE HOST-SIDE PROCESSING TIME AND NORMALIZED PROCESSING LOAD FOR THE MODULATOR AND DEMODULATOR",
+        "locator": "IoT-J p.13",
+        "rows": [
+          {"sample_rate": "50 MHz", "mod_time_ms": 0.21, "mod_load": "8.9%", "demod_time_ms": 0.81, "demod_load": "35.3%", "rx_queue_drops": "0"},
+          {"sample_rate": "100 MHz", "mod_time_ms": 0.42, "mod_load": "18.1%", "demod_time_ms": 1.95, "demod_load": "84.7%", "rx_queue_drops": "0"},
+          {"sample_rate": "200 MHz", "mod_time_ms": 1.10, "mod_load": "47.8%", "demod_time_ms": 3.95, "demod_load": "171.5%", "rx_queue_drops": "> 1600"}
+        ]
+      },
+      "supporting_verbatim": "For the modulator, the CPU load of the signal-processing thread increases from 11.3% at 50 MHz to 50.4% at 200 MHz. In contrast, the demodulator exhibits a steeper rise in CPU load, climbing from 42.3% to 100.5%, indicating that the receive-side signal processing path is the dominant bottleneck and determines the practical real-time boundary of the current host-based implementation. (p.12)",
+      "residual_truth": "'100 MHz 에서도 흔들린다' 는 다른 축에서만 참이다 — 센싱 스레드는 100 MHz/FFT1024 에서 stride M_D=1 이면 4개 모드 중 3개에서 프레임 드롭, FFT+MTI 전처리 모드는 M_D=2 에서도 드롭. M_D>=5 는 전부 무드롭. (Table IV, p.13) 즉 demodulator 경로는 100 MHz 에서 안정, sensing 경로는 stride 로 사야 한다. 기록은 이 둘을 뭉갰다.",
+      "table_iv_verbatim": "The low-stride cases reveal the real-time boundary: MD = 1 causes dropped frames in three of the four modes, and the full-processing case with FFT and MTI enabled still exhibits drops at MD = 2. By contrast, all tested cases with MD >= 5 complete without recorded drop events. (p.13)"
+    }
+  ],
+
+  "claims_verified": [
+    {
+      "idx": 147,
+      "deck": "0721",
+      "slide_n": 13,
+      "paper_referred": "Deterministic-Model (2026)",
+      "resolved_paper": "Montaner et al., arXiv:2603.28736 (EuCAP 2026)",
+      "claim_type": "capability",
+      "claim_text": "Table row: Deterministic-Model (2026) - sensed = vehicles; RCS via 'Surface-scatter, tuned to data'; family = 'Material setting'",
+      "verdict": "CORRECT_WITH_CAVEAT",
+      "checks": {
+        "sensed_vehicles": {
+          "verdict": "CORRECT",
+          "evidence": "Only vehicles are sensed. 'a Nissan Micra follows an approximately linear trajectory parallel to a facade' (p.2); 'The UE is roof-mounted on a moving KIA Xceed' (p.2). Term counts across whole paper: vehicle 10, car 8, drone 0, UAV 0, pedestrian 0, human 0."
+        },
+        "rcs_via_surface_scatter": {
+          "verdict": "CORRECT",
+          "evidence": "No RCS anywhere; target response comes entirely from mesh surfaces plus a specular/diffuse split. 'a diffuse scattering abstraction is therefore adopted in Sionna RT [8], splitting incident power into specular and diffuse components with conservation R2 + S2 = 1, where R is reflection reduction and S the scattering coefficient' (p.2). 'The diffuse lobe is directive around the specular direction ... with alpha_s controlling lobe sharpness' (p.2)."
+        },
+        "tuned_to_data": {
+          "verdict": "IMPRECISE",
+          "evidence": "Verbatim is 'Material-dependent S values, informed by empirical data [13], are assigned to typical urban surfaces (glass, concrete, metal, brick).' (p.2). [13] is Guo et al., WCNC 2025 - a THIRD-PARTY mmWave surface-scattering measurement study, not this paper's own campaign.",
+          "gap": "The paper reports NO material parameter table, NO S/alpha_s values, NO fitting procedure, NO before/after calibration comparison. It has only 2 tables (I: sensor specs, II: measurement config). 'tuned to data' is defensible only because the paper's own headline word is 'calibrate' ('a methodology to calibrate Radio-Frequency Digital Twins', abstract) - but the calibration itself is never shown."
+        },
+        "family_material_setting": {"verdict": "CORRECT", "evidence": "Material-dependent S assignment is exactly a material-setting family."}
+      }
+    },
+    {
+      "idx": 167, "deck": "0728", "slide_n": 14, "paper_referred": "OpenISAC", "claim_type": "venue",
+      "claim_text": "'Paper 2: OpenISAC - an open-source OFDM-ISAC implementation. A real-time USRP-based platform.'",
+      "verdict": "CORRECT",
+      "evidence": "Title: 'OpenISAC: An Open-Source Real-Time Experimentation Platform for OFDM-ISAC'. Abstract: 'a versatile and high-performance open-source platform for real-time ISAC experimentation ... leveraging the universal software radio peripheral (USRP) hardware driver (UHD) library' (p.1)."
+    },
+    {
+      "idx": 187, "deck": "0728", "slide_n": 21, "paper_referred": "OpenISAC", "claim_type": "venue",
+      "claim_text": "'A first-pass overview of a professor-suggested open-source OFDM-ISAC platform'",
+      "verdict": "NOT_A_SOURCE_CLAIM",
+      "evidence": "Deck self-description of its own reading depth; nothing to check against the paper."
+    },
+    {
+      "idx": 188, "deck": "0728", "slide_n": 22, "paper_referred": "OpenISAC", "claim_type": "capability",
+      "claim_text": "'Open-source real-time OFDM-ISAC platform: USRP hardware -> C++ baseband -> Python sensing -> delay-Doppler map'",
+      "verdict": "CORRECT",
+      "evidence": "'The physical layer modulator and demodulator are implemented with C++ for high-speed processing, while the sensing data is streamed to a Python environment, providing a user-friendly interface for rapid prototyping and validation of sensing signal processing algorithms.' (abstract, p.1). Pipeline figure: 'CP Removal & IFFT / Sensing Frame Repacking / Clutter Suppression / Element-wise Division / Delay-Doppler Processing / Micro-Doppler Processing' (Fig. 4, p.5)."
+    },
+    {
+      "idx": 189, "deck": "0728", "slide_n": 22, "paper_referred": "OpenISAC", "claim_type": "capability",
+      "claim_text": "'Host-based real-time OFDM sensing, from radio samples to a delay-Doppler map'",
+      "verdict": "CORRECT",
+      "evidence": "'It is implemented as a fully open-source host-based real-time platform that combines high-speed C++ baseband processing with a Python interface for rapid prototyping, without relying on proprietary software or specialized FPGA development.' (abstract, p.1). 'The entire physical layer is implemented on a host CPU using the USRP Hardware Driver (UHD) C++ API' (p.2)."
+    },
+    {
+      "idx": 190, "deck": "0728", "slide_n": 22, "paper_referred": "OpenISAC", "claim_type": "capability",
+      "claim_text": "'Continuous-wave OFDM rather than packet-based transmission'",
+      "verdict": "CORRECT",
+      "evidence": "'OpenISAC adopts a continuous-wave (CW) OFDM transmission scheme with a flexible frame structure, which greatly simplifies cross-frame sensing operations such as Doppler and micro-Doppler extraction.' (p.2). 'Guided by these considerations, OpenISAC adopts the CW scheme to enable more accurate and flexible Doppler sensing.' (p.4). Fig. 2 (p.4) is captioned 'Comparison between packet radio and CW radio.'",
+      "bonus": "The paper's stated reason is directly relevant to us: 'without inter-frame processing, the curtailed coherent accumulation lowers Doppler resolution and micro-Doppler fidelity; with inter-frame processing, the unequal spacing and inaccurate inter-frame interval readings often induce Doppler-domain artifacts and estimation errors. By contrast, for CW radios such as LTE or NR, sensing OFDM symbols can be chosen with deterministic and uniform intervals, enabling longer, cleaner coherent integration' (p.4)."
+    },
+    {
+      "idx": 191, "deck": "0728", "slide_n": 22, "paper_referred": "OpenISAC", "claim_type": "capability",
+      "claim_text": "'Delay-Doppler sensing with optional over-the-air synchronization'",
+      "verdict": "CORRECT",
+      "evidence": "'It also includes practical features such as continuous-wave operation, flexible OFDM parameterization, and an optional over-the-air (OTA) synchronization capability for bistatic sensing without wired clock distribution.' (abstract, p.1)."
+    },
+    {
+      "idx": 192, "deck": "0728", "slide_n": 22, "paper_referred": "OpenISAC", "claim_type": "capability",
+      "claim_text": "'Supports X400-series radios, while the prototype uses X310 and B210'",
+      "verdict": "CORRECT",
+      "flag": "WATCHED_ITEM_CLEARED",
+      "evidence_support_claim": "'It supports a wide range of software-defined radios, from the cost-effective USRP B200 series to the high-performance X400 series.' (abstract, p.1). 'The platform supports a wide range of software-defined radios, from cost-effective USRP B200-series devices to high-performance X400-series hardware, and performs communication and sensing in real time.' (p.2-3).",
+      "evidence_actual_hardware": "'The prototype uses two hardware nodes, as shown in Fig. 9. The BS employs a Luowave USRP-LW X310 connected to an Intel Core i7-10700 host over 10GbE, together with separate horn antennas for transmission and monostatic sensing reception, and an external OCXO (DAPU O23B-HCDD) as the reference clock. The UE uses a TQTT Tiny B210 connected to an Intel Core Ultra5 225H host over USB 3.0, a single omnidirectional receive antenna, and a Morion MV197 OCXO disciplined by a USB DAC.' (p.11-12).",
+      "evidence_authors_own_hedge": "'Although this setup uses a high-end X310 at the BS, OpenISAC is hardware-agnostic and also supports lower-cost B200-series devices.' (p.12) - the paper defends the hardware-agnostic claim only DOWNWARD to B200. X400 is never exercised.",
+      "x400_mention_audit": "X400 appears exactly 2x in the whole paper (abstract p.1, intro p.3), both as a support assertion. Zero measurements, zero figures, zero table rows use an X4xx radio. Same in arXiv v2.",
+      "conclusion": "우리 기록 '(X400 지원 주장하나 실증은 X310/B210)' 은 원문 그대로 맞다."
+    },
+    {
+      "idx": 193, "deck": "0728", "slide_n": 22, "paper_referred": "OpenISAC", "claim_type": "capability",
+      "claim_text": "Notes: 'the paper states it runs on the host CPU (no FPGA) and that real-time operation is stable at low bandwidth'",
+      "verdict": "CORRECT_WITH_CAVEAT",
+      "checks": {
+        "no_fpga": {
+          "verdict": "IMPRECISE",
+          "evidence": "The paper's wording is narrower: 'without relying on proprietary software or specialized FPGA development' (abstract, p.1). The USRP's stock FPGA image is still in the chain; what is avoided is custom FPGA development. Table I (p.2) classifies OpenISAC's processing platform as 'Host'.",
+          "fix": "'no custom FPGA development' 로 쓸 것. 'no FPGA' 는 과장."
+        },
+        "stable_at_low_bandwidth": {
+          "verdict": "IMPRECISE_UNDERSTATEMENT",
+          "evidence": "Stable at 50 MHz AND 100 MHz with zero RX queue drops (Table III, p.13). Only 200 MHz breaks.",
+          "fix": "'stable up to 100 MHz, breaks at 200 MHz' 로 구체화. 100 MHz 를 'low bandwidth' 라 부르는 것은 플랫폼을 깎아내린다."
+        }
+      }
+    },
+    {
+      "idx": 194, "deck": "0728", "slide_n": 23, "paper_referred": "OpenISAC", "claim_type": "capability",
+      "claim_text": "'Released platform: open-source code, X400-series support, experimental validation'",
+      "verdict": "CORRECT_WITH_CAVEAT",
+      "evidence_code": "'The source code and a detailed user guide for OpenISAC are publicly available at https://github.com/zhouzhiwen2000/OpenISAC' (p.1 footnote).",
+      "evidence_validation": "'Experimental results validate the system's capabilities in both monostatic and bistatic scenarios, demonstrating accurate delay-Doppler detection and clear micro-Doppler signature extraction.' (p.15, conclusion).",
+      "caveat": "As written, the three items read as one released-and-validated bundle. They are not: the experimental validation is X310+B210 only, and X400-series support is an untested compatibility assertion. Rewrite as 'open-source code + claimed X400-series support (untested) + X310/B210 experimental validation'."
+    },
+    {
+      "idx": 195, "deck": "0728", "slide_n": 23, "paper_referred": "OpenISAC", "claim_type": "capability",
+      "claim_text": "'Signal processing: continuous OFDM waveform, synchronization, delay-Doppler processing'",
+      "verdict": "CORRECT",
+      "evidence": "Matches Sec. III-IV: CW frame structure (eq. 4-5, p.4), ZC-based sync with peak-to-average ratio threshold rho_th = 100 (eq. 25-27, p.7), periodogram delay-Doppler (eq. 20-21, p.6-7), plus a micro-Doppler STFT branch (eq. 22-23, p.7) that the bullet omits."
+    }
+  ],
+
+  "probes": [
+    {
+      "id": "P1",
+      "paper": "OpenISAC",
+      "probe": "하드웨어: 우리 기록 'X400 지원 주장하나 실증은 X310/B210'",
+      "verdict": "CORRECT",
+      "detail": "See claim idx 192. Support claim in abstract (p.1) and intro (p.2-3); prototype is Luowave USRP-LW X310 (BS, 10GbE, i7-10700, DAPU O23B-HCDD OCXO) + TQTT Tiny B210 (UE, USB 3.0, Core Ultra5 225H, Morion MV197 OCXO), p.11-12. X400 count = 2, both assertions. Identical in arXiv v2."
+    },
+    {
+      "id": "P2",
+      "paper": "OpenISAC",
+      "probe": "'100~200 MHz 에서 host-only 실시간 붕괴' 축자 확인",
+      "verdict": "WRONG",
+      "detail": "See wrong_items[0]. 붕괴 지점은 200 MHz 뿐. 100 MHz demod load 84.7%, drops 0."
+    },
+    {
+      "id": "P3",
+      "paper": "OpenISAC",
+      "probe": "CFAR/Pd 부재 - 정말 0회인가?",
+      "verdict": "CORRECT",
+      "term_counts_both_versions": {
+        "CFAR": 0, "false alarm": 0, "detection probability": 0, "probability of detection": 0,
+        "ROC curve": 0, "Pd/P_d": 0, "Neyman": 0, "miss detection": 0, "detector": 0, "threshold": 4
+      },
+      "threshold_disambiguation": "All 4 'threshold' hits are non-detection: (a) sync loss-of-lock threshold (p.7), (b) ZC peak-to-average ratio threshold rho_th = 100, described as 'selected above the noise-only correlation floor to avoid false synchronization' (p.7) - note this is FALSE SYNCHRONIZATION, not false alarm, (c) SIO loop step-size threshold of 0.1 samples (p.10).",
+      "important_nuance": "The paper is NOT metric-free. It reports BER/BLER/EVM vs receive SNR (Fig. 11, p.13), MTI suppression ratio MSR (eq. 61, p.14) with 17-22 dB improvement around +/-0.5 ppm clock error (p.14), CPU load and processing time (Tables III-IV). What is absent is specifically a DETECTION statistic: no CFAR, no Pfa, no Pd, no ROC, no threshold-vs-SNR detection curve. Detection claims are visual only: 'The resulting map reveals a distinct target return at (-32.3 Hz, 49.7 ns), demonstrating that the proposed OTA synchronization enables practical real-time bistatic sensing.' (p.14). Phrase our record as 'no detection statistics (CFAR/Pfa/Pd/ROC): 0 occurrences', not 'no quantitative evaluation'."
+    },
+    {
+      "id": "P4",
+      "paper": "OpenISAC",
+      "probe": "마이크로도플러 판독 3규약 축자",
+      "verdict": "CORRECT",
+      "locator": "IoT-J p.13, Fig. 13 discussion (Fig. 13 = monostatic micro-Doppler spectrum of a hovering DJI Mavic Air 3S)",
+      "verbatim": "Fig. 13 illustrates the monostatic micro-Doppler spectrogram of a hovering Mavic Air 3S. The zero-Doppler return represents quasi-static scattering from the UAV body. Symmetric, equidistant ridges correspond to the rotating rotor blades. The spacing between these ridges reflects the rotor angular velocity, while the overall Doppler spread indicates the maximum radial velocity of the blade tips.",
+      "three_conventions": [
+        "zero-Doppler return = quasi-static scattering from the UAV body",
+        "spacing between symmetric equidistant ridges = rotor angular velocity",
+        "overall Doppler spread = maximum radial velocity of the blade tips"
+      ],
+      "fourth_maneuver_reading_bonus": "'The yellow box highlights a descent maneuver, where a reduction and subsequent restoration of lift leads to blade deceleration and re-acceleration, visible as a contraction-expansion of the micro-Doppler ridges. Conversely, the red box marks an ascent [maneuver, with the] expansion-contraction pattern.' (p.13-14) - a 4th, maneuver-level convention our 3-item record omits.",
+      "bistatic_repeat": "'Fig. 16a displays the micro-Doppler spectrum of a hovering UAV, clearly exhibiting the characteristic symmetric blade ridges consistent with monostatic observations (Fig. 13).' (p.14)"
+    },
+    {
+      "id": "P5",
+      "paper": "OpenISAC",
+      "probe": "게재 상태 - 저널판인가 프리프린트인가? DOI 가 PDF 안에 있는가?",
+      "verdict": "ANSWERED - JOURNAL VERSION, DOI PRESENT",
+      "answer": "team_meeting/2607/ 사본은 저널판이다. IEEE IoT-J accepted author version 이고 15쪽 전 페이지 각주에 'Citation information: DOI 10.1109/JIOT.2026.3710751' 이 찍혀 있다. IEEE Xplore 다운로드 스탬프도 있다: 'Authorized licensed use limited to: DGIST. Downloaded on July 21,2026 at 13:13:01 UTC from IEEE Xplore.'",
+      "two_files_hazard": "/data/public/sionna_jeong 아카이브 사본은 같은 논문이 아니라 다른 파일이다 - arXiv:2601.03535v2 (6 Jul 2026, 16쪽), DOI 없음, IEEE 각주 없음. md5 도 다름. 인용/쪽수 표기는 반드시 어느 판인지 밝힐 것. 이번 검증의 모든 쪽수는 IoT-J 판 기준이다.",
+      "content_delta_checked": "Table III (50/100/200 MHz, 171.5%, >1600 drops), X400 언급 2회, Sionna 언급 4회, CFAR 0회 - 확인한 모든 항목에서 두 판이 일치. 서식만 다르다(IEEE 2단 최종 서식 vs arXiv 서식).",
+      "arxiv_metadata": "arXiv comments field: 'Accepted by IEEE Internet of Things Journal' (v1 2026-01-07, v2 2026-07-06)."
+    },
+    {
+      "id": "P6",
+      "paper": "Montaner",
+      "probe": "'Sionna RT 는 delay·power 만, Doppler 안 줌 -> 후처리 합성' 축자",
+      "verdict": "CORRECT_FOR_THIS_PAPER_BUT_DO_NOT_GENERALIZE",
+      "locator": "p.3, Sec. II-F Alignment and Comparison Protocol",
+      "verbatim": "On the simulation side, the RT engine provides path delays and powers synchronized to the chirp grid; Doppler shifts nu_n are computed from instantaneous radial velocities of the corresponding rays and used to modulate each path across the N chirps, yielding delay-Doppler spectra consistent with (7).",
+      "mechanism": "Doppler enters as a post-hoc per-path phase modulation over N=128 chirps (T_w ~ 16 ms), not as an RT solver output. The synthesis target is eq. (7): H(nu,tau) ~ sum_n a_n e^{j phi_n} . delta(tau - tau_n) . T_w . sinc((nu_n - nu) T_w), i.e. an analytic delay-impulse x sinc-Doppler-profile model, with the sinc arising from the finite-window Fourier integral (eq. 6).",
+      "counter_evidence_to_weigh": "p.3, Sec. II-D ends with 'Motion updates delays, angles, and Doppler at the chirp rate for Scenarios B/C.' Read alone this sounds like the RT engine emits Doppler. Sec. II-F is the operative, more specific statement and it governs.",
+      "scope_warning": "이 문장은 '이 논문이 그렇게 했다' 는 사실이지 'Sionna RT 가 Doppler 를 못 준다' 는 도구 주장이 아니다. Sionna RT 의 Paths 는 doppler 필드를 갖는다(객체당 강체 속도 1벡터 한계는 별건). 우리 R20 정정 교훈대로 도구 능력 주장으로 승격시키지 말 것. 안전한 문장: 'Montaner 는 RT 로부터 지연·전력만 받아 쓰고 도플러는 광선의 순간 반경속도로부터 따로 계산해 체프 축으로 위상변조해 합성한다.'"
+    },
+    {
+      "id": "P7",
+      "paper": "Montaner",
+      "probe": "'RCS/PO/SBR 0회' 재확인",
+      "verdict": "CORRECT",
+      "term_counts_full_paper": {
+        "RCS": 0, "radar cross": 0, "physical optics": 0, "PO (standalone)": 0,
+        "shooting and bouncing": 0, "SBR": 0
+      },
+      "what_replaces_it": "Sionna RT 의 directive/diffuse scattering abstraction. 'splitting incident power into specular and diffuse components with conservation R2 + S2 = 1' (eq. 1, p.2); directive lobe f_s(k_s) ~ ((1 + k_r^T k_s)/2)^{alpha_s(S)} (eq. 2, p.2); 'Material-dependent S values, informed by empirical data [13], are assigned to typical urban surfaces (glass, concrete, metal, brick).' (p.2); 'interaction order captures dominant specular plus first-order diffuse paths while avoiding path explosion' (p.3).",
+      "why_it_works_for_them": "Targets are cars (metres across) at 79 GHz, i.e. thousands of wavelengths - facet-level specular+diffuse is adequate and no scattering integral is needed. This is exactly the regime our few-lambda drone problem is NOT in, so this paper does not contradict our 'stock Sionna has no scattering integral for small targets' position; it is a case where the abstraction suffices.",
+      "meshing_rationale_verbatim": "Purely specular RT on low-polygon meshes underestimates power at mmWave/sub-THz due to electromagnetic roughness; direct meshing at O(lambda/10) is infeasible at E-band [12]. (p.2)"
+    },
+    {
+      "id": "P8",
+      "paper": "Montaner",
+      "probe": "검증 빈약 - '맞춘 봉우리 단 1개: 2.1 m/s / 62 ns'",
+      "verdict": "CORRECT_AND_UNDERSTATED",
+      "locator": "p.4, Sec. III-C Doppler Validation",
+      "verbatim": "In both measurement and simulation, a strong ridge centered at zero Doppler is visible, reflecting the contribution of static scatterers such as walls and lamp posts. More importantly, both spectra show a distinct moving component at approximately 2.1 m/s and 62 ns delay, which corresponds to the trajectory of the vehicle. The ability of the RF-DT to reproduce this peak demonstrates that the simulator correctly maps object motions into Doppler shifts, as predicted by the theoretical model of (7).",
+      "audit": {
+        "matched_moving_peak_count": 1,
+        "occurrences_of_2.1_m_per_s": 1,
+        "occurrences_of_62_ns": 1,
+        "doppler_figures": "Fig. 6 only (Scenario B, measurement vs simulation). Scenario C has NO Doppler figure - Sec. III-B reports PDPs only.",
+        "error_metrics_in_whole_paper": {"RMSE": 0, "correlation": 0, "accuracy": 0, "the word 'error'": 0, "dB error": 0},
+        "tables": "2 total (I sensor specs, II measurement config). Neither reports a validation result.",
+        "figures": "6 total; Figs. 4-5 are qualitative side-by-side PDPs (top: measurement, bottom: simulation) with no quantified agreement."
+      },
+      "strengthened_finding": "논문 전체에 'error' 라는 단어가 단 한 번도 나오지 않는다. 정량 검증은 2.1 m/s / 62 ns 봉우리 위치 일치 1건이 전부이고, 나머지는 전부 시각적 판정 어휘다 - 'consistently observed', 'faithfully reproduces their relative delays', 'well reproduced by the simulation', 'close agreement'. 게다가 도플러 검증은 시나리오 B 한 건뿐이다(시나리오 C 는 지연만). '검증 빈약' 기록은 맞고, 오히려 약하게 적혀 있다.",
+      "fairness_note": "5쪽 컨퍼런스 논문임을 감안할 것. 다만 제목·초록이 내세우는 'calibrate' 를 뒷받침하는 보정 전/후 비교나 보정값 표가 하나도 없다는 점은 분량과 무관한 구멍이다."
+    },
+    {
+      "id": "P9",
+      "paper": "Montaner",
+      "probe": "게재 상태",
+      "verdict": "CORRECT_BUT_PROVENANCE_IS_NOT_THE_PDF",
+      "answer": "EuCAP 2026 채택은 사실이나, PDF 본문 어디에도 그 정보가 없다. PDF 는 arXiv:2603.28736v1 [eess.SP] 30 Mar 2026 프리프린트이고, DOI 없음, 학회명 진술 없음, IEEE 저작권 각주 없음. 논문 안의 'EuCAP' 문자열 1회는 참고문헌 [4] (Pascual-Garcia et al., EuCAP 2015) 이지 자기 게재지가 아니다.",
+      "actual_provenance": "arXiv abstract page comments field: '5 pages, 6 figures, 2 tables. Accepted for publication at the 2026 20th European Conference on Antennas and Propagation (EuCAP)'.",
+      "hazard": "team_meeting 파일명 'Montaner_EuCAP2026_...' 이 PDF 자체에서 검증되지 않는다. 덱에 EuCAP 2026 으로 인용할 때 근거는 arXiv comments 필드임을 알고 쓸 것. 최종 EuCAP 판이 나오면 쪽수가 달라질 수 있다(현 쪽수는 arXiv v1 기준).",
+      "openisac_contrast": "OpenISAC 은 정반대다 - Xplore 판이 손에 있고 DOI 가 각주에 박혀 있다. 두 논문의 인용 신뢰도가 같지 않다."
+    }
+  ],
+
+  "collateral_findings": [
+    {
+      "topic": "OpenISAC 가 Sionna 를 어떻게 위치시키는가 (우리 포지셔닝에 직결)",
+      "locator": "IoT-J p.2, Sec. II related work",
+      "verbatim": "NVIDIA Sionna and the Sionna Research Kit are also important open-source tools for wireless communication research, including ray-tracing-based channel modeling and SDR-enabled communication prototyping [19]. However, they primarily target communication-system simulation and prototyping rather than a complete end-to-end ISAC sensing pipeline. In contrast, OpenISAC provides a compact and generic OFDM-ISAC implementation.",
+      "why_it_matters": "우리 prior_work 포지셔닝(스톡 Sionna 는 센싱 파이프라인을 안 준다)을 제3자 저널 논문이 그대로 지지한다. 인용 가능한 문장이다. 참고문헌 [19] 는 Sionna version 2.0.1 로 명시되어 있어 우리 스택 버전과 일치한다."
+    },
+    {
+      "topic": "OpenISAC 의 RCS 취급",
+      "locator": "IoT-J p.4, eq. (3)",
+      "verbatim": "For a specific reflection p with radar cross section (RCS) sigma_RCS,p, range d_s,p, and radial velocity v_s,p, the complex scattering coefficient, round-trip delay, and two-way Doppler shift are modeled as beta_p = sqrt( c^2 sigma_RCS,p / ((4pi)^3 d_p^4 f_c^2) ) e^{j phi_p}, tau_s,p = 2 d_p / c, f_D,s,p = 2 v_p f_c / c",
+      "reading": "RCS 는 해석적 레이더방정식의 자유 파라미터로 3회 등장할 뿐, 계산되지도 측정되지도 않는다. OpenISAC 은 실측 플랫폼이라 sigma 를 알 필요가 없다. 즉 '실측 플랫폼은 RCS 를 안 푼다 / 시뮬은 RCS 가 있어야 한다' 는 분업 구도가 두 논문 대조로 선명해진다."
+    },
+    {
+      "topic": "OpenISAC 실험 조건 (우리 챔버 실험과 대조용)",
+      "facts": [
+        "표적: DJI Mavic Air 3S (모노스태틱 마이크로도플러 Fig. 13, 바이스태틱 검증 Fig. 16) - p.12",
+        "환경: 'The over-the-air measurements are conducted in an outdoor open-area environment.' - p.12 (무향실 아님, 우리 실측=외부 방침과 같음)",
+        "기하: 'The UE antenna is placed approximately 1.4 m to the front-left side of the BS transmit antenna.' - p.12 (바이스태틱 베이스라인 1.4 m, 사실상 준-모노스태틱)",
+        "기본 파라미터: f_c = 3.1 GHz, B = 50 MHz, N = 1024, N_CP = 128, M = 100, M_s = 100, M_D = 20, M_w = 256, M_H = 64 - p.12 Table II",
+        "SI 처리: 송/수신 혼 안테나 물리 격리 + MTI 만. 'this simple SI handling is not a replacement for active analog SI cancellation. It cannot address strong SI that saturates or clips the ADC' - p.12",
+        "바이스태틱 결과: 'The resulting map reveals a distinct target return at (-32.3 Hz, 49.7 ns)' - p.14, 단 'the UAV was moved slowly to ensure visibility after MTI filtering' (MTI 통과를 위해 일부러 움직였다 - 우리 hover blind 서사와 같은 현상)",
+        "SISO 한계: 'Future versions of OpenISAC will extend the current SISO prototype toward multi-antenna operation.' - p.15 (각도 센싱 없음, 우리 다중Rx 벤치마크와 비교 불가)"
+      ]
+    },
+    {
+      "topic": "우리 X410 계획에 대한 직접 함의",
+      "note": "X410 은 400 MHz 급이고 OpenISAC 의 host-only 복조 경로는 200 MHz 에서 이미 171.5% / >1600 드롭으로 무너진다(Table III). 즉 OpenISAC 을 X410 에 얹어 광대역으로 쓰려면 (a) 대역을 100 MHz 이하로 낮추거나 (b) 호스트 복조 경로를 손봐야 한다. 게다가 X400 계열은 이 논문에서 한 번도 돌려본 적이 없으므로, 우리가 X410 에서 돌리면 그 조합의 첫 실증이 된다 - 리스크이자 동시에 보고할 거리다."
+    }
+  ],
+
+  "record_updates_recommended": [
+    "OpenISAC 실시간 한계 기록을 '100~200 MHz 붕괴' -> '50/100 MHz 안정(드롭 0), 200 MHz/4096-FFT 붕괴(복조 부하 171.5%, 드롭 >1600); 별도로 센싱 스레드는 100 MHz 에서 stride M_D<=2 이면 드롭' 으로 교체.",
+    "OpenISAC 인용 시 IoT-J 판(DOI 10.1109/JIOT.2026.3710751, 15쪽)을 정본으로 고정하고, 아카이브의 arXiv v2(16쪽)와 쪽수를 섞지 말 것.",
+    "'no FPGA' -> 'no custom FPGA development' 로 표현 교정.",
+    "'CFAR/Pd 없음' 은 유지하되 '검출 통계가 없다'로 한정하고, BER/BLER/EVM/MSR 은 있다는 점을 함께 적을 것.",
+    "Montaner 의 Doppler 후처리 사실을 Sionna RT 도구 능력 주장으로 승격시키지 말 것(R20 정정 교훈).",
+    "Montaner 를 EuCAP 2026 으로 인용하는 근거는 arXiv comments 필드이며 PDF 본문에는 없음을 provenance 에 명기."
+  ]
+}

@@ -1,0 +1,323 @@
+{
+  "task": "VENUE-DIRECTED SEARCH: has the INJECTION architecture (target signature computed outside the propagation simulator, stored as a table over aspect/frequency, then applied to simulated paths) been published at a strong venue? Deliberate emphasis on the automotive-radar simulation literature.",
+  "generated_utc": "2026-08-03T06:43:34.977154Z",
+  "companion_file": "/home/yunjung/workspace/sionna2/outputs/injection_archive.json (archive sweep; this file is the LITERATURE sweep and does not repeat its 10 instances except by cross-reference)",
+  "evidence_rule": "Every claim below carries either (a) a PDF path on disk plus the page and the quoted sentence, or (b) an explicit NOT OPENED / BIBLIOGRAPHIC-ONLY label with the resolvable DOI and the metadata source. Venue and pagination are taken from the PDF masthead when the PDF was opened, and from the Crossref record otherwise - the source is named in each entry. Search-engine prose summaries are never treated as evidence of a paper's content.",
+  "headline_answer": {
+    "question_from_user": "저것을 활용한 논문이 혹시 탑 베뉴에 하나라도 있니? (Is there even one top-venue paper that uses that [injection] approach?)",
+    "answer": "YES - and the venue-directed search adds three more top-venue instances that the archive sweep could not see, two of them on the user's own named list. The injection ARCHITECTURE is not a preprint curiosity: it is thirty years of settled practice in automotive radar simulation and it lives in IEEE TAP, IEEE TMTT, IEEE TAES, IEEE JSAC, IEEE AP-Magazine and IET RSN. What is NOT in the venue record - after deliberately hunting for it across TAP, TWC, JSAC, TVT, TAES, TMTT, IoT-J, ICASSP, INFOCOM, MobiCom, SenSys, MobiSys, EuCAP, EuRAD and IET RSN - is LAMBDA's exact move: buying a COMMERCIAL full-wave solver's RCS table and multiplying it onto RAY-TRACED propagation paths. Every peer-reviewed instance found sources the table from a measurement campaign or from the authors' OWN asymptotic/ray solver.",
+    "the_split_that_matters": "The venue record splits on WHO COMPUTES THE TABLE, not on whether tabulating is allowed. Authors' own solver: Schuler TAP 2008, Deep IET RSN 2020 (from archive sweep). Measurement campaign: Abadpour TMTT 2022, Potter TAES 2025, Zhang JSAC 2026 (archive), Zhao SCIS 2025, Das WCL 2026 (archive), Costa J-STEAP 2025 (archive). Commercial full-wave solver into a ray tracer: LAMBDA only, still a preprint; Rzewuski NATO STO 2021 uses a commercial FDTD solver but feeds a link budget, not ray-traced paths.",
+    "why_this_is_good_news_for_us": "Our outputs/report13_sigma_grid.* is a 9 elevation x 120 azimuth x 3 band table per airframe computed by OUR OWN SBR+PO on Sionna's ray engine. That is the Schuler/Deep flavour - the flavour with an IEEE TAP paper and an IET RSN paper behind it - not the LAMBDA flavour. The architecture is not the thing a reviewer will contest.",
+    "the_thing_a_reviewer_will_contest": "In every strong-venue instance the tabulated signature is anchored to an independent reference before it is reused: Schuler validates his ray-traced signature against anechoic bistatic measurements at the EC Joint Research Centre before reducing it to clusters, and validates the reduced 10-cluster model back against the full ray-trace; Potter's table IS measurement; Abadpour's IS measurement. The preprint (LAMBDA) does not validate. So the reviewer question is anchoring, not architecture."
+  },
+  "counts": {
+    "new_strong_venue_injection_instances_found_and_opened": 4,
+    "of_which_on_the_user_named_venue_list": 3,
+    "new_instances_bibliographic_only_not_opened": 7,
+    "screened_out_after_checking": 6,
+    "pdfs_downloaded_this_run": 6,
+    "instances_carried_over_from_archive_sweep_not_re_verified_here": 10
+  },
+  "venue_hits_opened": [
+    {
+      "id": "VH-01-SCHULER-TAP",
+      "status": "OPENED - full PDF on disk, read",
+      "pdf_path": "/data/public/sionna_jeong/reference_library/injection/schuler2008_TAP_virtual_scattering_centers.pdf",
+      "citation": "K. Schuler, D. Becker, W. Wiesbeck, 'Extraction of Virtual Scattering Centers of Vehicles by Ray-Tracing Simulations', IEEE Transactions on Antennas and Propagation, vol. 56, no. 11, pp. 3543-3551, November 2008.",
+      "doi": "10.1109/TAP.2008.2005436",
+      "venue_source": "Read from the PDF masthead, p.3543: 'IEEE TRANSACTIONS ON ANTENNAS AND PROPAGATION, VOL. 56, NO. 11, NOVEMBER 2008'. NOTE: the MDPI survey (Sensors 22:5693) and some indexes cite this as no. 12 - the PDF itself says no. 11, and the PDF wins.",
+      "venue_tier": "TOP - IEEE TAP, first on the user's requested list",
+      "open_access_route": "KIT institutional repository, https://publikationen.bibliothek.kit.edu/1000010323/688457",
+      "flavour": "IN - signature computed OUTSIDE the downstream simulator, in the authors' own 3-D ray-tracing tool (IHE Karlsruhe), validated against measurement, then reduced to a REUSABLE TABLE (cluster database) indexed by aspect angle. This is the table-BUILDING half of injection; the paper states the downstream consumption as its purpose rather than demonstrating it.",
+      "external_solver": "In-house IHE 3-D ray-tracing tool (ray-optical, multiple reflections + UTD wedge diffraction + modified Fresnel coefficients for roughness). Explicitly NOT a commercial full-wave package - p.3544: 'Simulations of vehicles with commercial FDTD simulation tools are not feasible at frequencies of 24 GHz or 76 GHz, as they are specified for automotive radar applications.'",
+      "target": "Ford Focus design CAD model, 12,100 triangles, each face >= 25 lambda^2",
+      "table_axes_and_resolution": "Monostatic reflection coefficient along azimuth at 1 degree step width on a circle of fixed radius, both vertical and horizontal polarization; reduced to 10 clusters each carrying its own aspect-dependent scattering characteristic",
+      "quotes": [
+        {
+          "page": 3543,
+          "text": "The scope of this work is to present a technique to generate a significantly simplified RCS model of the vehicle with a limited number of virtual scattering centers, each with its own scattering characteristic, and how to group these scattering centers in a cluster database. The work is based on ray-tracing simulations of complex vehicle models. The ray-tracing simulations have been validated by measurements."
+        },
+        {
+          "page": 3546,
+          "text": "The position and the amplitude of the scattering centers depend on the radius and the azimuth angle during ray-tracing simulation. This fact has to be taken into account when the derived virtual scattering center model will be used in other radar simulations by calculating the aspect angles for each cluster and the attenuation."
+        },
+        {
+          "page": 3550,
+          "text": "This is important, since only by reducing the complexity of large objects it becomes possible to simulate superior problems like automotive radar scenarios in realistic traffic situations. The herein presented monostatic model offers a proven base for such simulations."
+        }
+      ],
+      "was_the_tabulated_signature_validated": "YES, twice. (1) Against measurement: 'The verification measurements were performed in the anechoic chamber of the European Commission Joint Research Center (JRC), located at Ispra in northern Italy' (p.3546), bistatic coupling coefficient, front and rear illumination, both polarizations, 5 degree steps. (2) Against the un-reduced source: the 10-cluster model's monostatic reflection coefficient is compared back to the original full ray-trace, p.3549: 'Considering the first 10 clusters, the agreement between virtual scattering center representation and original ray-tracing simulation is very good for the whole azimuth angle.'",
+      "honest_caveat": "The paper builds and validates the table; it does not itself run the downstream traffic-scenario simulation that consumes it. Do not cite it as 'injected into a propagation simulator' - cite it as 'computed a reusable aspect-indexed vehicle signature in a ray solver, validated it, and published it in IEEE TAP for exactly that downstream use'.",
+      "relevance_to_us": "STRONGEST STRUCTURAL PRECEDENT FOUND. Same three steps as ours in the same order: own ray/asymptotic solver -> aspect-indexed signature table -> handoff to a system-level simulator. It is 18 years old and it is in IEEE TAP."
+    },
+    {
+      "id": "VH-02-POTTER-TAES",
+      "status": "OPENED - arXiv v3 PDF on disk, read",
+      "pdf_path": "/data/public/sionna_jeong/reference_library/injection/arxiv_2402.17987.pdf",
+      "citation": "M. Potter, M. Akcakaya, M. Necsoiu, G. Schirner, D. Erdogmus, T. Imbiriba, 'Multistatic-Radar RCS-Signature Recognition of Aerial Vehicles: A Bayesian Fusion Approach', IEEE Transactions on Aerospace and Electronic Systems, vol. 61, pp. 151-161, 2025.",
+      "doi": "10.1109/TAES.2024.3445323",
+      "venue_source": "Volume/pages/year from the Crossref record for DOI 10.1109/TAES.2024.3445323 (MACHINE-RESOLVED, container 'IEEE Transactions on Aerospace and Electronic Systems'). The PDF on disk is arXiv:2402.17987v3, whose p.1 prints the running head 'IEEE TRANSACTIONS ON AEROSPACE AND ELECTRONIC SYSTEMS VOL. XX, No. XX XXXXX 2024' and the acceptance line 'Manuscript received February 29, 2024; revised May 31, 2024; accepted August 06, 2024.' Acceptance is established from the PDF; the volume and pagination are from Crossref, not from the PDF.",
+      "venue_tier": "TOP - IEEE TAES, on the user's requested list",
+      "flavour": "IN - measurement campaign as the external source; table over (azimuth, elevation, frequency) per airframe; queried by the target's instantaneous aspect angle and injected into a simulated multistatic radar observation model.",
+      "external_solver": "NONE - the external source is an anechoic-chamber measurement campaign (Semkin et al., 'Analyzing Radar Cross Section Signatures of Diverse Drone Models at mmWave Frequencies', IEEE Access vol. 8, pp. 48958-48969, 2020, DOI 10.1109/ACCESS.2020.2979339 - cited as their ref [38]; that citation resolved via Crossref, the Semkin paper itself NOT OPENED).",
+      "target": "Seven airframes: F450, Heli, Hexa, M100, P4P, Walkera, Y600 - non-operational (propellers static) during the measurement",
+      "table_axes_and_resolution": "15 frequencies 26-40 GHz in 1 GHz steps; azimuth 0 to 180 degrees and elevation -95 to +95 degrees, both in 1 degree increments",
+      "how_applied_to_paths": "Aspect angles of the drone relative to each radar's line of sight are computed from a random-walk kinematic pose model (yaw, pitch, roll, translation), the table is queried at those angles with bilinear interpolation for off-grid angles, and Gaussian noise is added to produce the per-radar observation. There is no propagation channel - the geometry-to-signature map IS the simulator.",
+      "quotes": [
+        {
+          "page": 1,
+          "text": "To evaluate the proposed approach, we simulate random walk trajectories for seven drones and correspond the target's aspect angles to Radar Cross Section (RCS) measurements acquired in an anechoic chamber."
+        },
+        {
+          "page": 3,
+          "text": "This section outlines the process of mapping simulated azimuth and elevation angles to RCS data measured in an anechoic chamber. This involves calculating the target UAV aspect angles (azimuth and elevation) relative to the Radar Line Of Sight (RLOS) while considering the target UAV pose (yaw, pitch, roll and translation)."
+        },
+        {
+          "page": 4,
+          "text": "The azimuth and elevation samples, phi and theta respectively, are mapped to a measured RCS signature sigma in R^F from [38], where we bilinearly interpolate the mapped RCS measurements for continuous azimuth and elevations not collected in [38]."
+        }
+      ],
+      "was_the_tabulated_signature_validated": "The table IS the measurement, so no separate anchoring step is needed. The paper is explicit that the drones were static during measurement, so the table carries no micro-Doppler and no rotor modulation.",
+      "relevance_to_us": "This is the closest published analogue of how we USE our grid: an aspect-indexed, multi-frequency sigma table per airframe, interpolated at run time from a simulated trajectory, in a multistatic geometry. IEEE TAES accepted it with a measured table and no propagation channel at all. Our version substitutes a computed table and adds the channel."
+    },
+    {
+      "id": "VH-03-ABADPOUR-TMTT",
+      "status": "OPENED - accepted-version PDF on disk (CC-BY), read p.1",
+      "pdf_path": "/data/public/sionna_jeong/reference_library/injection/kit_vru_rcs_TMTT2022.pdf",
+      "citation": "S. Abadpour, S. Marahrens, M. Pauli, J. Siska, N. Pohl, T. Zwick, 'Backscattering Behavior of Vulnerable Road Users Based on High-Resolution RCS Measurements', IEEE Transactions on Microwave Theory and Techniques, vol. 70, no. 3, pp. 1582-1593, 2022.",
+      "doi": "10.1109/TMTT.2021.3131156",
+      "venue_source": "Journal name read from the PDF p.1 running head: 'IEEE TRANSACTIONS ON MICROWAVE THEORY AND TECHNIQUES'. The copy on disk is the accepted version and prints 'Content is final as presented, with the exception of pagination', so VOLUME AND PAGES ARE FROM CROSSREF, NOT FROM THE PDF.",
+      "venue_tier": "TOP - IEEE TMTT, on the user's requested list",
+      "open_access_route": "KIT repository, https://publikationen.bibliothek.kit.edu/1000141739/139723377 , licensed CC-BY 4.0 (stated on p.1)",
+      "flavour": "IN - measurement campaign as the external source; per-scattering-point RCS assigned to body regions; explicitly built to be reused in radar channel simulation. Table-BUILDING half, like Schuler.",
+      "external_solver": "NONE - high radial and high angular resolution radar measurements of real persons plus a size-matched dummy",
+      "target": "Pedestrians / vulnerable road users",
+      "quotes": [
+        {
+          "page": 1,
+          "text": "Relying on that, a backscattering model of complex traffic targets can be generated from the reflected signals of their scattering points (SPs). These models can be employed in the radar channel simulations for verification methods of advanced driver assistance systems."
+        },
+        {
+          "page": 1,
+          "text": "Based on the measurement results, not only accurate models of road users can be derived, but also the measurement results can be employed for calculating wave propagation in traffic scenarios."
+        }
+      ],
+      "honest_caveat": "Like Schuler, this paper produces the reusable signature and states the downstream simulation use as its purpose; it does not run the downstream propagation simulation. Only page 1 was read in this pass - the rest of the 12-page PDF is NOT OPENED.",
+      "relevance_to_us": "Second independent confirmation that IEEE's microwave/antenna transactions accept a paper whose whole product is a reusable target-signature table earmarked for a downstream channel simulator."
+    },
+    {
+      "id": "VH-04-ZHAO-SCIS",
+      "status": "OPENED - arXiv PDF on disk, read",
+      "pdf_path": "/data/public/sionna_jeong/reference_library/injection/arxiv_2409.14441.pdf",
+      "citation": "C. Zhao, J. Zhang, Y. Zhang, L. Tian, H. Wang, H. Jiang, Y. Liu, W. Chen, 'BUPTCMCC-6G-CMG+: a GBSM-based ISAC standard channel model generator', Science China Information Sciences, vol. 68, 2025.",
+      "doi": "10.1007/s11432-024-4378-0",
+      "venue_source": "Journal, volume and year from the Crossref record for DOI 10.1007/s11432-024-4378-0. The PDF on disk is the arXiv:2409.14441 preprint whose page footer prints the journal template string 'Author A, et al. Sci China Inf Sci' but carries no masthead or acceptance line - so PUBLICATION IS ESTABLISHED FROM CROSSREF, NOT FROM THE PDF.",
+      "venue_tier": "STRONG journal (Science China Information Sciences), not on the user's named list. Same BUPT/CMCC group as the JSAC instance already on our shelf (INJ-02 in injection_archive.json).",
+      "flavour": "IN - anechoic measurement campaign -> fitted log-normal parameters -> REFERENCE TABLES -> consumed by a GBSM channel-model generator that produces the ISAC channel. This is the table-CONSUMING half, in a channel simulator.",
+      "external_solver": "NONE - anechoic chamber measurement, VNA + two horns 10 cm apart emulating monostatic, target on an automatic turntable",
+      "table_axes_and_resolution": "Carrier 10 / 15 / 20 / 28 / 36 GHz, 3 GHz bandwidth, vertical polarization, Tx/Rx at 6 m and 12 m, turntable 360 degrees clockwise in 5 degree increments; targets human, vehicle, UAV",
+      "quotes": [
+        {
+          "page": 14,
+          "text": "Based on the measurement results, we provide reference tables for the fitted mu and sigma values of humans and UAVs under various conditions."
+        },
+        {
+          "page": 14,
+          "text": "This advancement accelerates the standardization of the 6G ISAC channel model and the evaluation of novel algorithms, as it enables the utilization of existing 5G standard parameter tables alongside the proposed cascading model and measured RCS data to simulate ISAC channels."
+        },
+        {
+          "page": 8,
+          "text": "Different from the human body and small UAV, vehicle RCS and large UAV exhibit spiking characteristics that render them unsuitable for modeling with omnidirectional patterns."
+        }
+      ],
+      "was_the_tabulated_signature_validated": "The table is measurement; the paper validates the generator's output RCS CDF against the measured CDF (Figure 7: CDF of the measured RCS of human, vehicle, and UAV at different frequencies).",
+      "known_limitation_stated_in_the_paper": "p.9: the monostatic-to-bistatic equivalence theorem 'remains reliable only for Bi-static angles less than 15-20 degrees' - a direct warning for anyone reusing a monostatic table in a bistatic geometry, which is exactly our situation.",
+      "relevance_to_us": "Directly relevant twice over: it is the consuming half of injection inside a channel generator, and it prints the bistatic-angle validity limit on a monostatic table."
+    }
+  ],
+  "venue_hits_bibliographic_only_NOT_OPENED": [
+    {
+      "id": "BO-01-BUDDENDICK-APMAG",
+      "citation": "H. Buddendick, T. F. Eibert, 'Incoherent scattering-center representations and parameterizations for automobiles [EM Programmer's Notebook]', IEEE Antennas and Propagation Magazine, vol. 54, no. 3, pp. 140-148, 2012.",
+      "doi": "10.1109/MAP.2012.6202527",
+      "metadata_source": "Crossref record (container, volume, pages, year) + Semantic Scholar (authors, venue 'IEEE Antennas & Propagation Magazine'). NOT OPENED - IEEE Xplore returned no content to the fetcher and no open copy was located; the TUM mediaTUM repository returned HTTP 403.",
+      "why_it_matters": "This is the strongest candidate for the table-CONSUMING half of injection in an IEEE AP-family venue: an asymptotic PO solver parameterizes vehicle scattering centers offline, and those parameterizations drive radio channel simulations. It would complete the pair with Schuler (who builds the table).",
+      "status_warning": "Its CONTENT is NOT ESTABLISHED. The descriptions circulating in search-engine summaries are consistent with injection, but no primary sentence has been read. Do not cite the mechanism until the PDF is in hand.",
+      "venue_tier_caveat": "IEEE AP-Magazine's 'EM Programmer's Notebook' is a column. It is an IEEE AP-family venue but should not be described as a peer-reviewed Transactions paper without checking."
+    },
+    {
+      "id": "BO-02-BUDDENDICK-VNC",
+      "citation": "H. Buddendick, T. F. Eibert, 'Parallelized Physical Optics computations for Scattering Center Models in radio channel simulations', 2010 IEEE Vehicular Networking Conference (VNC), pp. 64-71.",
+      "doi": "10.1109/VNC.2010.5698234",
+      "metadata_source": "Crossref + dblp. NOT OPENED.",
+      "why_it_matters": "Title alone states the full injection pipeline: PO computes scattering-center models, which are then used in radio channel simulations."
+    },
+    {
+      "id": "BO-03-BUDDENDICK-APS",
+      "citation": "H. Buddendick, T. F. Eibert, 'Radio channel simulations using multiple scattering center models', 2009 IEEE Antennas and Propagation Society International Symposium.",
+      "doi": "10.1109/APS.2009.5172257",
+      "metadata_source": "Crossref. NOT OPENED."
+    },
+    {
+      "id": "BO-04-BUDDENDICK-GEMIC",
+      "citation": "H. Buddendick, T. F. Eibert, J. Hasch, 'Bistatic scattering center models for the simulation of wave propagation in automotive radar systems', German Microwave Conference (GeMiC), 2010.",
+      "doi": "NOT RESOLVED - Crossref returned no matching record",
+      "metadata_source": "Web search summaries only. NOT OPENED. Venue and year are second-hand.",
+      "note": "Commonly cited as the origin of the phrase 'directional, bistatic scattering intensities that can be computed for isolated complex objects in advance'. That phrase was NOT read in a primary source."
+    },
+    {
+      "id": "BO-05-ICMMT-ECHO",
+      "citation": "'Echo simulation method for arbitrary radar system with wide-band RCS data of scattering scene', 2021 International Conference on Microwave and Millimeter Wave Technology (ICMMT), pp. 1-3.",
+      "doi": "10.1109/ICMMT52847.2021.9618539",
+      "metadata_source": "Crossref. NOT OPENED.",
+      "why_it_matters": "Search-engine summary describes exactly the injection multiply: frequency-domain RCS data from EM simulation tools multiplied with the transmitted signal spectrum, then inverse-Fourier-transformed to the echo. That mechanism is NOT ESTABLISHED from a primary source.",
+      "venue_tier": "Modest (ICMMT)."
+    },
+    {
+      "id": "BO-06-SCHROEDER-SPIE",
+      "citation": "A. Schroeder, U. Aulenbacher, M. Renker, U. Boeniger, R. Oechslin, A. Murk, P. Wellig, 'Numerical RCS and micro-Doppler investigations of a consumer UAV', Proc. SPIE 9997, Target and Background Signatures II, 999704, 2016.",
+      "doi": "10.1117/12.2241298",
+      "metadata_source": "SPIE Digital Library listing + ADS. NOT OPENED.",
+      "note": "This is 'ref [14] of Costa' from the archive sweep's open-leads list, now venue-resolved. LIKELY NOT INJECTION by our strict definition: the EM solver appears to BE the radar simulator (it produces the micro-Doppler directly), which is the same route as Ziganshin. Flavour NOT ESTABLISHED."
+    },
+    {
+      "id": "BO-07-SANDIA-RCS-FORMAT",
+      "citation": "'A File Format and API for Dynamic Radar Cross Section Data', Sandia/OSTI technical report, 2020.",
+      "doi": "10.2172/1664641",
+      "metadata_source": "Crossref. NOT OPENED. NOT a venue paper - a national-laboratory report.",
+      "why_it_matters_anyway": "Its existence is evidence that injection is institutionalised enough to have a standard interchange format for aspect-indexed RCS tables. Weak evidence, listed for completeness."
+    }
+  ],
+  "screened_out_after_checking": [
+    {
+      "paper": "J. Ebrahimizadeh, A. Madannejad, X. Cai, E. Vinogradov, G. A. E. Vandenbosch, 'RCS-Based 3-D Millimeter-Wave Channel Modeling Using Quasi-Deterministic Ray Tracing', IEEE Transactions on Antennas and Propagation, vol. 72, pp. 3596-3606, 2024",
+      "doi": "10.1109/TAP.2024.3365859",
+      "conference_precursor": "'RCS-based Quasi-Deterministic Ray Tracing for Statistical Channel Modeling', 2023 53rd European Microwave Conference (EuMC), pp. 717-720, DOI 10.23919/EuMC58039.2023.10290597",
+      "verdict": "OUT - abstraction, not injection. This was the most tempting false positive of the run: an IEEE TAP paper with 'RCS' in the title that models car and pedestrian bistatic RCS. But the RCS is a STATISTICAL DISTRIBUTION substituted FOR external computation, not the product of one.",
+      "quote_from_abstract": "'This model uses a statistical distribution to model the bistatic radar cross section (RCS) of irregular objects, such as cars and pedestrians, instead of a deterministic propagation model, i.e., applying the exact values of bistatic RCSs.'",
+      "evidence_level": "Abstract only, via Semantic Scholar for the DOI. FULL TEXT NOT OPENED - if the fitted distribution turns out to be fitted TO an external deterministic computation, this would flip to IN. Flagged as the single most likely reclassification in this file."
+    },
+    {
+      "paper": "D. He, K. Guan, B. Ai, Z. Zhong, J. Kim, H. Chung, A. Hrovat, 'Channel Measurement and Ray-Tracing Simulation for 77 GHz Automotive Radar', IEEE Transactions on Intelligent Transportation Systems, vol. 24, pp. 7746-7756, 2023",
+      "doi": "10.1109/TITS.2022.3208008",
+      "verdict": "OUT - the RCS is an OUTPUT of the ray tracer, not an input to it. They estimate EM material parameters so that the RT-simulated RCS matches measurement. That is calibration of the engine, the opposite direction of flow from injection.",
+      "evidence_level": "Abstract only via Semantic Scholar. NOT OPENED."
+    },
+    {
+      "paper": "'Channel Modeling Framework for Both Communications and Bistatic Sensing Under 3GPP Standard', IEEE Journal of Selected Areas in Sensors, vol. 1, pp. 166-176, 2024",
+      "doi": "10.1109/JSAS.2024.3451411",
+      "arxiv": "2408.11295",
+      "pdf_path": "/data/public/sionna_jeong/reference_library/injection/arxiv_2408.11295.pdf",
+      "verdict": "OUT - textbook abstraction. Point or extended target with an ASSUMED sigma and no external computation.",
+      "quote": {
+        "page": 5,
+        "text": "For outdoor radar sensing, the received power of a target is related to both the range and radar cross section (RCS). Different targets usually have different RCSs. For example, the typical value of RCS for a man and automobile is 0 dBsm and 20 dBsm, respectively."
+      },
+      "evidence_level": "OPENED (arXiv PDF on disk, grepped). Venue from Crossref."
+    },
+    {
+      "paper": "A. Ziganshin, E. M. Vitucci, W. Kotterman, R. Thomae, C. Schneider, V. Degli-Esposti, 'Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications', arXiv:2604.05991",
+      "verdict": "OUT - the other route. Scattering is computed INSIDE the ray tracer (planar-facet approximation plus UTD with vertex diffraction and double bounce); full-wave and analytical solutions are used only as VALIDATION references.",
+      "quote_from_fetch": "'Validation is initially performed against analytical solutions and full-wave simulations for canonical geometries (sphere and circular cylinder).'",
+      "evidence_level": "arXiv abstract page fetched, full text NOT OPENED. Consistent with the archive sweep's classification of the Ziganshin line."
+    },
+    {
+      "paper": "Z. F. Magosi, A. Eichberger, 'A Novel Approach for Simulation of Automotive Radar Sensors Designed for Systematic Support of Vehicle Development', Sensors, vol. 23, no. 6, art. 3227, 2023",
+      "doi": "10.3390/s23063227",
+      "verdict": "BORDERLINE, leaning OUT. Semi-physical: the radar equation plus statistical error models fitted from on-road measurements. Measurement-derived, which our definition admits, but what is fitted is sensor-level error behaviour, not an aspect-indexed target signature. Not the same object as a sigma table.",
+      "evidence_level": "Abstract only via Semantic Scholar. NOT OPENED."
+    },
+    {
+      "paper": "O. Chipengo et al., 'High Fidelity Physics Simulation-Based Convolutional Neural Network for Automotive Radar Target Classification Using Micro-Doppler', IEEE Access, vol. 9, pp. 82597-82617, 2021 (and the earlier Modelling and Simulation in Engineering 2018 paper, DOI 10.1155/2018/4239725)",
+      "doi": "10.1109/ACCESS.2021.3085985",
+      "verdict": "OUT - the Ziganshin route. HFSS SBR+ is itself an asymptotic ray engine, so the signature is computed inside the propagation simulator rather than injected into it. No handoff, no table.",
+      "evidence_level": "Crossref metadata + vendor/search descriptions. NOT OPENED."
+    }
+  ],
+  "context_not_a_venue_paper_but_worth_holding": [
+    {
+      "id": "CTX-01-ETSI",
+      "document": "ETSI GR ISC 002 V1.1.1 (2025-08), Integrated Sensing And Communications (ISAC)",
+      "pdf_path": "/data/public/sionna_jeong/reference_library/injection/etsi_gr_isc_002_v1.1.1_2025-08.pdf",
+      "status": "OPENED - 62-page PDF on disk, grepped",
+      "quote": {
+        "page": 23,
+        "text": "The evaluated object RCS using segmentation can be further calibrated through either measurement results or electromagnetic numerical simulation tools such CST."
+      },
+      "why_it_matters": "A European standards deliverable, published August 2025, names an external commercial EM solver as an acceptable source for the target RCS that goes into an ISAC channel model. That is institutional endorsement of the injection source, sitting one level above any single paper. It is a Group Report, not a peer-reviewed venue paper - label it as such."
+    }
+  ],
+  "the_deliberate_automotive_look": {
+    "user_hypothesis": "'The automotive-radar simulation literature is the most likely place to find a MATURE version of this ... it may be far better established than in the drone literature.'",
+    "verdict": "CONFIRMED, and it is older and more settled than expected. The automotive line is where the vocabulary itself comes from: 'scattering center model', 'cluster database', 'bistatic RCS table look-ups'.",
+    "what_the_automotive_line_looks_like": "Three generations. (1) 2008-2012, KIT and TUM/Bosch build the method: Schuler TAP 2008 extracts an aspect-indexed virtual-scattering-center table from a ray solver validated at the EC JRC anechoic chamber; Buddendick and Eibert parameterize the same object with parallelized physical optics and feed it to radio channel simulations (AP-S 2009, VNC 2010, GeMiC 2010, AP-Magazine 2012). (2) 2015-2022, the practice hardens into virtual-validation infrastructure for autonomous driving: measured signature tables (Abadpour TMTT 2022), radar target simulators and over-the-air vehicle-in-the-loop rigs (Buddappagari EuRAD 2021, DOI 10.1109/EuRAD48048.2021.00078), and a survey that treats the precomputed-signature approach as one of the standard model classes (Magosi et al., Sensors 22:5693, 2022, DOI 10.3390/s22155693). (3) 2018-present, the commercial asymptotic solvers absorb the whole pipeline and the handoff disappears - HFSS SBR+, Remcom WaveFarer and Altair Feko run the scenario themselves, which converts the architecture from 'injection' back into 'computed inside the engine'.",
+    "the_uncomfortable_implication_for_us": "Generation 3 is why nobody publishes LAMBDA's move at a venue any more in automotive: if you already own an asymptotic ray solver that can do the scenario, you do not export a table and multiply it in. Our position is defensible only because Sionna's stock solver has no scattering integral - i.e. our justification for injecting is a property of OUR engine, not a general claim that injection is the right architecture. Expect a reviewer from the automotive side to make exactly this point.",
+    "quantitative_claim_seen_but_NOT_SOURCED": "A search-engine summary of the Magosi survey states 'System simulation complexity has been reduced from approximately 100,000 triangles per vehicle object down to 80 triangles plus additional bistatic RCS table look-ups.' The WebFetch of the survey (PMC9370944) did NOT return that sentence, and it is not in the Schuler PDF (whose model is 12,100 triangles reduced to 10 clusters). TREAT AS UNSOURCED - most likely it belongs to the Buddendick line. Do not quote it."
+  },
+  "negative_result_stated_carefully": {
+    "what_was_hunted": "A peer-reviewed venue paper doing LAMBDA's exact move: a COMMERCIAL full-wave EM solver (FEKO / CST / HFSS) computes a target's RCS, the result is stored as a table over aspect and frequency, and that table is multiplied onto RAY-TRACED propagation paths.",
+    "how_hard": "Five distinct query formulations across WebSearch, plus Crossref title resolution for every candidate that surfaced, plus targeted probes at ieeexplore, EuCAP/EuRAD proceedings, the ACM mobile-systems venues, and the Sionna-specific literature.",
+    "result": "NOT FOUND. Every strong-venue instance located sources the table from a measurement campaign or from the authors' own asymptotic/ray solver, and the two commercial-solver instances known to us are LAMBDA (arXiv:2607.03826, preprint, ray-traced paths) and Rzewuski (NATO STO-MP-MSG-SET-183, published, but a link budget rather than ray-traced paths).",
+    "what_this_does_and_does_not_license": "It licenses: 'we searched the strong venues for the commercial-solver-into-a-ray-tracer combination and did not find it.' It does NOT license: 'it has never been published.' Conference proceedings behind paywalls (EuCAP, EuRAD, GeMiC, ICMIM) are poorly indexed by general web search, and seven candidate items in this file are bibliographic-only. The honest statement is bounded by the method."
+  },
+  "what_this_means_for_us": [
+    "RETRACT the framing 'injection appears only in a preprint'. Injection has IEEE TAP (2008), IEEE TMTT (2022), IEEE TAES (2025), IEEE JSAC (2026), IET RSN (2020) and NATO STO behind it. The correct narrow claim is about ONE flavour: commercial-solver-RCS multiplied onto ray-traced paths is, as far as we have searched, still only a preprint.",
+    "Our architecture's nearest published relatives are Schuler (IEEE TAP 2008) and Deep (IET RSN 2020) - both compute the signature in their OWN ray/SBR solver, both validate it, both hand a reduced table to a downstream simulator. Cite these two as the architectural precedent, in that order.",
+    "The differentiator to prepare for review is ANCHORING, not architecture. Schuler validated against an anechoic bistatic campaign at the EC JRC before reducing; Potter's and Abadpour's tables ARE measurements. Our report13_sigma_grid needs its own independent anchor, and outputs/rcs_anchor.json (running now on GPU2) is precisely the artefact that discharges this obligation.",
+    "Zhao SCIS 2025 hands us a citable warning that applies directly to our own pipeline: monostatic-to-bistatic equivalence is 'reliable only for Bi-static angles less than 15-20 degrees'. Our chamber geometry needs to be checked against that number, and it connects to the standing 'RCS methodology' memo that our grid is monostatic-only.",
+    "The automotive generation-3 observation is the sharpest incoming criticism: modern asymptotic solvers do the scenario themselves, so injection there is a legacy pattern. Our defence has to be engine-specific - Sionna's stock PathSolver has no scattering integral - and must not be phrased as a general claim that injection is superior.",
+    "Table-BUILDING alone is publishable at a top venue. Two of the four new hits (Schuler TAP, Abadpour TMTT) produce a reusable signature table and state the downstream use as motivation without running it. That is a lower bar than we had assumed for report13's contribution."
+  ],
+  "downloads": {
+    "directory": "/data/public/sionna_jeong/reference_library/injection",
+    "sources_md": "/data/public/sionna_jeong/reference_library/injection/SOURCES.md",
+    "files": [
+      "schuler2008_TAP_virtual_scattering_centers.pdf - IEEE TAP 2008, open access via KIT repository",
+      "kit_vru_rcs_TMTT2022.pdf - IEEE TMTT 2022 accepted version, CC-BY via KIT repository",
+      "arxiv_2402.17987.pdf - preprint of the IEEE TAES 2025 paper",
+      "arxiv_2409.14441.pdf - preprint of the Science China Inf. Sci. 2025 paper",
+      "arxiv_2408.11295.pdf - preprint of the IEEE JSAS 2024 paper, kept as the canonical SCREENED-OUT abstraction example",
+      "etsi_gr_isc_002_v1.1.1_2025-08.pdf - ETSI Group Report, the standards-level endorsement"
+    ]
+  },
+  "method": {
+    "tools": "WebSearch and WebFetch for discovery; Crossref REST API (api.crossref.org) for authoritative venue / DOI / volume / pagination; Semantic Scholar Graph API for abstracts and open-access links; curl for PDF retrieval; PyMuPDF for text extraction and keyword-in-context grepping.",
+    "venues_targeted_explicitly": [
+      "IEEE TAP",
+      "IEEE TWC",
+      "IEEE JSAC",
+      "IEEE TVT",
+      "IEEE TAES",
+      "IEEE TMTT",
+      "IEEE IoT-J",
+      "Proceedings of the IEEE",
+      "ICASSP",
+      "INFOCOM",
+      "MobiCom",
+      "SenSys",
+      "MobiSys",
+      "EuCAP",
+      "EuRAD",
+      "IET Radar Sonar and Navigation",
+      "ISAC special issues"
+    ],
+    "search_terms_combined": [
+      "RCS lookup table",
+      "precomputed RCS",
+      "external EM solver + ray tracing",
+      "FEKO + channel simulation",
+      "CST + ISAC channel",
+      "target signature injection",
+      "hybrid EM + RT",
+      "scattering center model + radar target simulator",
+      "virtual validation + precomputed RCS"
+    ],
+    "what_was_NOT_done": [
+      "No paywalled full texts were obtained. IEEE Xplore returned nothing to the fetcher; only open-access mirrors (KIT repository, arXiv, ETSI, MDPI/PMC) were read.",
+      "EuCAP, EuRAD, GeMiC and ICMIM proceedings were not searched inside their own indexes - only through general web search and Crossref title matching. This is the largest known blind spot and it sits exactly where the automotive injection line lives.",
+      "The ACM venues (MobiCom, SenSys, MobiSys, INFOCOM) were probed once each and produced no injection instance; that is a shallow pass, not a clean sweep.",
+      "The 10 instances in outputs/injection_archive.json were NOT re-verified here; they are cross-referenced, not re-derived.",
+      "No citation-graph traversal (forward citations of Schuler 2008 would very likely surface more consumers of the table, and was not run)."
+    ]
+  }
+}

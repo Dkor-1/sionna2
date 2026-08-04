@@ -1,0 +1,354 @@
+{
+ "meta": {
+  "file": "/home/yunjung/workspace/sionna2/outputs/r2_attack_selfconsistency.json",
+  "generated": "2026-08-03",
+  "lens": "SELF-CONSISTENCY ATTACK on round 2",
+  "task_ko": "라운드 2 산출물을 우리 기존 기록물(reference_library / capability_matrix / prior_settled_* / deepread_* / deck_facts / RETRACTION_LOG / 2026-08-04 덱)에 대고 교차검증한다. 우리 파일 둘이 서로 다르면 그것이 발견이다. R1~R8 철회가 모든 곳에 적용됐는지도 검사한다.",
+  "rule_ko": "모든 주장은 파일 경로 + 줄/키 + 인용문 또는 내가 직접 돌린 산술을 달고 있다. 원문 대조 없이 단정하지 않는다.",
+  "scope_scanned": {
+   "outputs_json": 129,
+   "docs_md": 30,
+   "prior_work": "prior_work/*.md, *.ipynb, src/",
+   "deck": "decks/teammeeting_0804_v1.pptx (22 슬라이드, 저장소 사본 — 읽기만 함)",
+   "primary_sources_reopened": [
+    "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "/data/public/sionna_jeong/reference_library/new_0803/pier2011__sbr-twildcs-cpu-gpu-fast-rcs.pdf",
+    "/data/public/sionna_jeong/reference_library/new_0803/remcom_mukherjee__blockage-ked-utd-po-60ghz.pdf",
+    "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "/data/public/sionna_jeong/reference_library/3gpp/38104-i80.zip (TS 38.104 v18.8.0, Table 5.3.5-1)"
+   ]
+  },
+  "what_this_file_is_not": "새 논문 발굴이 아니다. 라운드 2 가 만든 것과 우리가 이미 갖고 있던 것 사이의 모순만 다룬다."
+ },
+
+ "counts": {
+  "findings_total": 12,
+  "severity_high": 6,
+  "severity_medium": 4,
+  "severity_low": 2,
+  "our_files_in_direct_contradiction_pairs": 9,
+  "retracted_claims_still_live_in_files": 4,
+  "round2_claims_independently_confirmed_by_me": 5,
+  "round2_claims_narrowed_by_me": 2,
+  "primary_pdfs_reopened": 5
+ },
+
+ "F1_deliverable_destroyed": {
+  "severity": "high",
+  "title_ko": "라운드 2 검사기의 산출물이 같은 라운드 안에서 덮어써져 사라졌다",
+  "what_the_report_claims": "outputs/quote_audit.json = 3.9 MB, 삼중항 2,769건 수집, 2,495건 채점(verbatim 1,857 / verbatim_doc 443 / reconstructed 122 / unverified 73), 오귀속 3건·판본혼동 5건·reference_library 불일치 4건을 '목록화했다'",
+  "what_is_on_disk": {
+   "path": "/home/yunjung/workspace/sionna2/outputs/quote_audit.json",
+   "size_bytes": 181289,
+   "mtime": "2026-08-03 05:56",
+   "meta.runtime_s": 0.1,
+   "counts.records_total": 151,
+   "counts.graded": 139,
+   "counts.by_source_json": "r2_read_w2.json 단 하나",
+   "counts.distinct_pdfs": 7,
+   "unverified_cases": "[] (빈 배열)",
+   "inferred_source_mismatches": "[] (빈 배열)",
+   "wrong_or_missing_page_cases": "[] (빈 배열)",
+   "unresolved_sources": "{} (빈 객체)"
+  },
+  "mechanism": "benchmark/verify_quotes_tool.py L1345-1346: --only 는 입력만 거르고 --out 은 기본값 OUT_PATH(outputs/quote_audit.json) 그대로다. 05:56 의 게이트 실행(--only r2_read_w2.json)이 전수 감사 결과를 같은 경로에 덮어썼다.",
+  "verification": "백업 없음 — outputs/ 에 2 MB 이상·8월 3일자 json 0건, git 미추적(?? outputs/), /tmp 스크래치 비어 있음.",
+  "consequence_ko": "라운드 2 헤드라인 수치(2,769 / 2,495 / 73 / 오귀속 3건)는 지금 어떤 파일로도 재현되지 않는다. 특히 '남은 73건을 목록화했다'는 목록이 존재하지 않고, 다음 라운드 작업으로 넘긴 '73건 전수 원문대조'의 대상 목록도 함께 사라졌다.",
+  "fix_ko": "① --only 를 쓸 때 --out 을 강제하거나 게이트 모드에서 기본 출력 경로 쓰기를 금지한다. ② 전수 감사를 다시 돌려 outputs/quote_audit_full.json 으로 분리 저장하고, 게이트는 outputs/quote_gate_<target>.json 으로 뺀다. ③ 재실행 전까지 '검사기를 돌렸다'는 문장은 '한 파일에 대해 돌렸다'로만 쓴다."
+ },
+
+ "F2_deck_slope_contradicted_by_newer_files": {
+  "severity": "high",
+  "title_ko": "2026-08-04 덱의 회절 슬라이드 헤드라인이, 두 시간 앞서 만든 우리 자신의 사과-대-사과 검증에 정면으로 어긋난다",
+  "deck_says": {
+   "file": "decks/teammeeting_0804_v1.pptx (mtime 05:56, commit f8baaaf 05:57)",
+   "slide12": "The consequence we print: our frequency slope is 0.74 to 1.70 dB per GHz against 0.07 to 0.315 measured, which is 3.5 to 8.1 times the Das anchor",
+   "slide21": "Our frequency slope is 3.5 to 8.1 times the measured anchor, and whether an edge term narrows it is untested"
+  },
+  "our_newer_files_say": [
+   {
+    "file": "outputs/validate_measured_airframe.json",
+    "mtime": "2026-08-03 03:55",
+    "key": "8_comparison.B_band_slope",
+    "numbers": {
+     "ours_fitted_over_the_papers_exact_interval_1p8_18p2_ghz": 0.4354702600783367,
+     "n_points": 21,
+     "ratio_vs_das_0p21": 2.0736679051349367,
+     "ratio_vs_yuan_0p315": 1.3824452700899579,
+     "ours_above_6ghz": 0.26418698346256914
+    },
+    "verbatim_field": "full_band_1p8_18p2 is fitted over EXACTLY the papers' interval — this run is what removes the last apples-to-oranges term"
+   },
+   {
+    "file": "outputs/engine_validation_verdict.json",
+    "mtime": "2026-08-03 04:16",
+    "key": "1_verdict.correction_to_the_feasibility_phase",
+    "verbatim": "Fitted over the SAME interval the ratio is 2.1x against Das and 1.4x against Yuan, and above 6 GHz our slope is 0.264 dB/GHz against their 0.21-0.315 - i.e. INSIDE their range. The steepness is a low-frequency artefact, not a global band law."
+   },
+   {
+    "file": "outputs/validation_comparability.json",
+    "mtime": "2026-08-03 04:36",
+    "key": "headline",
+    "verbatim_ko": "주파수 기울기 비교만은 같은 양이 아니다. 공표된 0.21/0.315 dB/GHz 는 1.8~18.2 GHz 전대역 추세이고 우리 2.0 dB/GHz 는 3.4 GHz 폭 3점 국소도함수다. 같은 창에서 다시 재면 측정 기울기는 -0.61 ~ +0.56 dB/GHz 로 부호까지 바뀐다.",
+    "extra": "single_most_useful_new_number: 우리 창에서 잰 측정 기울기 θ90 +0.406 / θ0 -0.078 / θ180 -0.614 dB/GHz, 고도 산포 1.02 dB/GHz 가 격차 1.00 과 같아 '이 창에서 기울기는 판별력이 0'"
+   }
+  ],
+  "my_arithmetic": "0.74/0.21 = 3.53, 1.70/0.21 = 8.09 → 덱 수치는 우리 3밴드(1.843-5.21 GHz) 적합을 그들의 1.8-18.2 GHz 적합에 나눈 값이다. 이것이 바로 validate_measured_airframe 이 제거하려고 만든 구간 불일치 그 자체다.",
+  "also_wrong_on_the_measured_side": "덱의 '0.07 to 0.315 measured' 는 밴드를 섞는다. validate_measured_airframe.slope_census 가 직접 표시한다 — das_mini2 0.07 은 21-27 GHz 로 overlaps_our_band=false, das_m350rtk 0.17 도 false. 우리 밴드와 겹치는 측정은 das_phantom3 0.21 · yuan 0.315/0.231/0.175 넷뿐이다. RETRACTION_LOG A2 가 '0.175~0.315 → 0.07~0.315' 로 고친 것은 한 밴드혼합을 다른 밴드혼합으로 바꾼 셈이다.",
+  "consequence_ko": "발표 다음날 슬라이드 12(우리 최대 약점 고백)와 슬라이드 21(다음 과제 B의 근거)이 우리 최신 검증보다 3~4배 부풀린 격차를 인쇄한다. 방향이 우리에게 불리하지 않고 오히려 '우리 결손을 과장'하는 쪽이지만, 청중이 engine_validation_verdict 를 열면 즉시 모순이다.",
+  "prescribed_ko": "슬라이드는 두 수를 다 적어야 한다 — '같은 구간에서 2.1배(1.8-18.2 GHz 적합), 우리 운용 밴드 1.8-6 GHz 로 자르면 1.54 dB/GHz 로 7배. 격차는 밴드 법칙이 아니라 저주파 현상이다.'"
+ },
+
+ "F3_break1_not_propagated": {
+  "severity": "high",
+  "title_ko": "같은 라운드가 04:56 에 만든 BREAK-1 이 05:56 에 만든 덱에 반영되지 않았고, '0/5 커버' 헤드라인이 규격상 4/5 로 뒤집힌다",
+  "break_source": "outputs/r2_hunt_genealogy.json : B_3gpp_specs.B1_csirs_periodicity.BREAK_1 (mtime 04:56)",
+  "i_verified_the_spec_myself": {
+   "doc": "3GPP TS 38.104 v18.8.0, Table 5.3.5-1, /data/public/sionna_jeong/reference_library/3gpp/38104-i80.zip",
+   "method": "docx word/document.xml 을 ElementTree 로 파싱, n78 블록의 세 부행을 직접 출력",
+   "rows_extracted": [
+    ["", "15", "…10,15,20,25,30,40,50"],
+    ["n78", "30", "…10,15,20,25,30,40,50,60,70,80,90,100"],
+    ["", "60", "…10,15,20,25,30,40,50,60,70,80,90,100"]
+   ],
+   "verdict": "CONFIRMED — n78 은 15/30/60 kHz 세 numerology 를 모두 허용한다. 라운드 2 의 이 주장은 참이다."
+  },
+  "my_arithmetic": {
+   "min_csirs_period": "4 슬롯 (TS 38.331 CSI-ResourcePeriodicityAndOffset, slots4)",
+   "60khz_slot_ms": 0.25,
+   "prf_hz": 1000,
+   "vmax_at_3p5ghz": {"c=3e8": 21.4286, "exact_c": 21.4137},
+   "airframe_max_speeds_ms": {"typhoonh480": 13.5, "mini5pro": 19.0, "phantom4": 20.0, "matrice4e": 21.0, "mavic4pro": 25.0},
+   "covered_at_500hz_10p71": 0,
+   "covered_at_1000hz_21p41": 4,
+   "which_are_covered": ["typhoonh480", "mini5pro", "phantom4", "matrice4e"],
+   "which_survives": "mavic4pro 25.0 m/s 만 여전히 못 덮는다"
+  },
+  "files_still_carrying_0_of_5": [
+   "docs/RETRACTION_LOG.md L44 (R2 항목 본문)",
+   "docs/RESUME_0731.md L161 ('직접 검산함' 이라고 적혀 있다)",
+   "docs/DECK_FACTS.md L93, L212, L215, L614",
+   "outputs/deck_facts.json retractions[1].now_ko, facts F03 claim_ko/claim_en, recomputed L1648",
+   "outputs/mono_vs_passive.json L469 airframes_covered_by_monostatic_ceiling='0/5', L471 verdict_ko, headline_ko, headline_en",
+   "decks/teammeeting_0804_v1.pptx slide 8 ('the active ceiling covers 0 of 5')"
+  ],
+  "second_half_of_the_break": {
+   "deck_slide16": "We quote that 500 Hz from 3GPP TS 38.331 at second hand. It is also the value least favourable to our own argument",
+   "deck_slide20": "The 500 Hz reference-signal ceiling is quoted from 3GPP TS 38.331 at second hand. We have not opened the specification ourselves.",
+   "why_both_are_now_false": "① 규격은 04:31-04:34 에 실제로 받아 열었다(/data/public/sionna_jeong/reference_library/3gpp/ 9개 zip). ② 500 Hz 는 '우리에게 가장 불리한 값'이 아니다 — 같은 규칙이 60 kHz 에서 1000 Hz 를 주고 그쪽이 더 불리하다.",
+   "note_ko": "덱은 규격을 연 지 1시간 뒤에 빌드됐다. 시간 순서상 반영할 수 있었다."
+  },
+  "honest_rewrite_ko": "'3GPP 는 CSI-RS 주기를 최소 4 슬롯으로 제한한다. 절대 반복률은 DL BWP 의 numerology 가 정하므로 15/30/60 kHz 에서 각각 250/500/1000 Hz 다. 우리 0/5 결론은 n78 상용 관행인 30 kHz SCS 가정 아래의 결론이고, 규격이 허용하는 60 kHz 에서는 4/5 가 덮인다 — 그래도 가장 빠른 기체는 못 덮는다.' ⚠ '상용 n78 = 30 kHz' 는 우리 기록 스스로 '통념일 뿐 근거 없음'이라고 적어 두었다."
+ },
+
+ "F4_ziganshin_status_oscillation": {
+  "severity": "high",
+  "title_ko": "Ziganshin 저널판 게재 여부를 우리 기록이 나흘 동안 네 번 뒤집었고, 라운드 2 는 그 마지막 뒤집기를 '새 발견'으로 보고했다",
+  "timeline": [
+   {"when": "2026-07-31 03:00", "file": "outputs/prior_settled_ziganshin.json items[X-C5]", "verdict": "REFUTED", "basis": "PDF 본문 — 'This is a preprint version of a manuscript submitted to the IEEE Open Journal of Antennas and Propagation', 문서 내 '10.1109/OJAP' 0회, '3717211' 0회", "action_ordered": "prior_work/sionna_sensing_survey.md L248,L274 의 '게재확정 + DOI' 를 '투고 프리프린트'로 고칠 것. DOI 는 'web-only 표시 또는 삭제', 'must NOT be used to move this paper into the published column of any table'"},
+   {"when": "2026-07-31 03:35-03:36", "file": "outputs/prior_hunt_0.json items[X-C5]", "verdict": "SETTLED - IT IS PUBLISHED. The DOI is real.", "basis": "api.crossref.org/works/10.1109/OJAP.2026.3717211 → journal-article, IEEE OJAP, 2026, 저자 6인 일치, page '1-1' = Early Access", "extra_verbatim": "arXiv does NOT carry the DOI - which is exactly why our files disagreed."},
+   {"when": "2026-07-31 (같은 날)", "file": "outputs/reflib_sweep_geometry.json L1644", "record": "new_0731/SOURCES.md: 'Crossref 10.1109/OJAP.2026.3717211 - Ziganshin, IEEE OJAP, 2026, early access (page 1-1)'"},
+   {"when": "2026-07-31 04:09", "file": "prior_work/sionna_sensing_survey.md L255", "state_now": "삭제 지시가 실제로 집행됐다 — 현재 본문은 '웹에서 본 DOI 10.1109/OJAP.2026.3717211 은 PDF 밖 출처이므로 게재 열로 옮기는 근거가 되지 않는다'"},
+   {"when": "2026-08-03 01:47", "file": "outputs/deepread_w3.json", "verdict": "다시 프리프린트 — '게재 여부는 미확정이다. 인용 시 … 게재 라고 쓰면 안 된다'"},
+   {"when": "2026-08-03 05:00", "file": "outputs/r2_hunt_recent.json status_corrections[SC-1]", "verdict": "게재다 — '최대 소득' 으로 보고. 근거는 다시 Crossref, 다시 early access, 다시 'arXiv 에 journal_ref 가 안 붙어 있어서 놓쳤다'"},
+   {"when": "2026-08-03 05:49", "file": "outputs/r2_read_w3.json QA_evidence.objection_source", "verdict": "혼합 — '프리프린트 판. 게재판은 IEEE OJAP 2026'"}
+  ],
+  "the_finding_ko": "라운드 2 의 SC-1 은 새 사실이 아니라 우리가 사흘 전에 이미 같은 API 로 같은 결론에 도달했던 것의 재발견이다. 그리고 그 사이에 우리는 옳은 정보를 서베이에서 지웠다 — 'PDF 본문이 웹 메타데이터를 이긴다'는 판정 규칙이 참인 사실을 삭제하는 방향으로 작동했다.",
+  "why_it_matters_ko": "Q-A 의 공개 반론 문장(SBR+PO 는 그림자역에 못 쓰고 RT 의 계산 이점을 없앤다)이 프리프린트의 문장인지 동료심사 게재문의 문장인지는 우리 아키텍처 방어의 무게를 바꾼다. 그 판정이 네 번 뒤집혔고 지금도 26개 파일이 '프리프린트'라고 적고 있다.",
+  "files_still_saying_preprint": 26,
+  "sample_files": ["outputs/prior_census.json", "outputs/prior_work_claims.json", "outputs/psolve_deep.json", "outputs/psolve_diffraction.json", "outputs/psolve_material.json", "outputs/psolve_motion.json", "outputs/psolve_signature.json", "outputs/paper_kit.json", "outputs/capability_matrix.json rows[ziganshin_curved_arxiv26].status='PREPRINT'", "outputs/reference_library.json", "docs/REFERENCE_LIBRARY.md", "docs/PRIOR_WORK_COMPARISON.md", "docs/PAPER_DRAFT.md", "docs/DRONE_ISAC_PRIOR_READING.md", "docs/PRIOR_READING_LOG.md", "prior_work/sionna_sensing_survey.md"],
+  "prescribed_ko": "'회의판 EuCAP 2025(게재) / 저널판 IEEE OJAP 2026(게재, Early Access, DOI 10.1109/OJAP.2026.3717211, 보유 사본은 arXiv:2604.05991v2 프리프린트 PDF)' — 판 분리는 유지하되 양쪽 다 '게재'다. 인용문 귀속은 우리가 가진 arXiv 사본 페이지로 하고, 그 사실을 밝힌다(게재본 대조 미실시).",
+  "meta_lesson_ko": "판정 규칙 자체가 오류원이었다. 'PDF 본문에 없으면 채택 안 함' 은 Early Access 라는 실재 상태를 표현할 수 없다. 서지 상태에는 PDF 층과 등록기관 층 두 증거층이 있고, 둘이 다를 때 지우는 쪽이 아니라 둘 다 적는 쪽이 맞다."
+ },
+
+ "F5_retraction_id_collision": {
+  "severity": "high",
+  "title_ko": "철회 번호 R6·R7·R8 이 두 정본에서 서로 다른 사건을 가리킨다",
+  "canonical_doc": {"file": "docs/RETRACTION_LOG.md", "mtime": "2026-08-03 03:39", "self_description": "'단일 정본' · '정정 전 표현이 아직 살아 있는 파일을 찾을 때 이 문서를 grep 한다'", "ids": "R1~R8 + A1~A7"},
+  "other_doc": {"file": "outputs/deck_facts.json retractions[] (및 docs/DECK_FACTS.md)", "mtime": "2026-08-03 02:32", "ids": "R1~R10"},
+  "collision_table": [
+   {"id": "R1", "log": "v_max 우선권 (Abratkiewicz 2023)", "deck_facts": "같음", "collides": false},
+   {"id": "R2", "log": "모노스태틱 PRF 자유도", "deck_facts": "같음", "collides": false},
+   {"id": "R3", "log": "5G 커버리지 0", "deck_facts": "같음", "collides": false},
+   {"id": "R4", "log": "σ 앵커가 레벨을 옮긴다", "deck_facts": "같음", "collides": false},
+   {"id": "R5", "log": "상반성 위반 13.7 dB", "deck_facts": "같음", "collides": false},
+   {"id": "R6", "log": "'스톡 Sionna 에 회절이 없다'", "deck_facts": "Costa 게재처·RadarTwin 인용문·Semkin PDF 경로 오류", "collides": true},
+   {"id": "R7", "log": "SBR 48회 (44 아님)", "deck_facts": "회절 용어 계수를 코퍼스별로 분리", "collides": true},
+   {"id": "R8", "log": "'19편이 표적을 씬에 세웠다'", "deck_facts": "10log10(N) 결합이득은 선행(Taylor & Poullin TAES 2025 p.8814)", "collides": true},
+   {"id": "R9", "log": "없음", "deck_facts": "메시를 씬에 넣은 선행 존재 → H8 문장을 '산란적분' 주어로 이동", "collides": false},
+   {"id": "R10", "log": "없음", "deck_facts": "Chen 전문에 'PRF' 0회 → '같은 기호' 라는 우리 서술이 거짓", "collides": false}
+  ],
+  "consequence_ko": "① 'R8 을 반영했나' 라는 질문에 두 개의 답이 있다. ② 정본이 deck_facts 의 R6·R7·R8·R9·R10 다섯 건을 담지 않아, 정본을 grep 하는 규정된 절차로는 10log10(N) 선행성과 Chen-PRF-0 정정을 못 찾는다. ③ 2026-08-04 덱 슬라이드 18 은 deck_facts 번호계로 4건을 고르므로, 정본 번호계로 읽는 사람과 서로 다른 목록을 본다.",
+  "fix_ko": "정본에 R9·R10 을 편입하고 deck_facts 의 R6·R7 을 R11·R12 로 재배정한다. 번호는 한 번 부여하면 재사용 금지."
+ },
+
+ "F6_live_retracted_claims": {
+  "severity": "high",
+  "title_ko": "철회된 표현이 아직 살아 있는 파일 4건 — 정본 grep 절차로는 안 잡힌 것들",
+  "items": [
+   {
+    "retraction": "R7 (정본) — SBR 은 44회이지 48회가 아니다",
+    "still_live_in": [
+     "outputs/prior_settled_sionna.json L88 ('SBR or shooting-and-bouncing': 48) 및 L313 headline 'the technical report DOES use the acronym SBR, 48 times'",
+     "outputs/reflib_sweep_geometry.json L10, L1890, L1921, L1922, L2232 — 그중 L1922 는 이 수를 'anchor F10' 으로 승격시킨다"
+    ],
+    "i_recounted_it": {
+     "pdf": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+     "pages": 59,
+     "SBR_case_sensitive": 44,
+     "SBR_case_insensitive": 45,
+     "physical_optics": 0,
+     "radar_cross_section": 0,
+     "diffraction": 106
+    },
+    "note_ko": "정정 방향은 우리에게 무해하다(44 든 48 이든 'Sionna 에 SBR 이 있다'는 결론은 같다). 문제는 틀린 수가 '앵커'로 승격돼 다른 문서가 그것을 인용한다는 점이다."
+   },
+   {
+    "retraction": "R8 (정본) — 'Sionna 씬에 표적을 세운 19편' 은 실제로 role_TARGET_IN_SCENE_any=7, 고유 저작 6편",
+    "still_live_in": ["docs/RESUME_0731.md L201 — '⭐⭐ 씬에 표적을 세운 19편 중 드론 전기체 메시를 산란적분에 통과시킨 것 0편(직접 검산)'"],
+    "note_ko": "'직접 검산' 이라는 신뢰표지까지 달려 있어 더 위험하다. deck_facts 는 6/19 혼동을 이미 분리해 놓았는데(deck_facts.json L667-668) RESUME 만 옛 문구를 유지한다."
+   },
+   {
+    "retraction": "R1 (정본) — 'Chen 2024 가 같은 기호로 먼저 냈다' 는 두 번째 오답이다. 진짜 우선권은 Abratkiewicz JSTARS 2023 식 (16)",
+    "still_live_in": [
+     "outputs/monostatic_prior.json L20 headline_of_this_file (3번 항목), L531 what_this_does_to_our_claim ('Chen 2024 가 2년 먼저, 같은 기호로, 실측까지 붙여 냈다'), L564",
+     "outputs/mono_vs_passive.json L964, L982 ('Chen … — same equation, same symbols, two years earlier')",
+     "outputs/review_mobisys.json L53, L85 ('novelty_guard 에 Chen 2024 를 즉시 추가해야 한다')"
+    ],
+    "why_it_is_wrong": "정본 R1 과 deck_facts R10: Chen 20쪽 전문에 'PRF' 0회, 'pulse repetition' 0회, 닫힌형 식 없음. 공유하는 것은 eq.(4) 의 β·δ 기호뿐이다.",
+    "aggravating_ko": "mono_vs_passive.json 은 덱이 인용하는 헤드라인 파일이고, review_mobisys.json 은 아직 '즉시 추가해야 한다' 는 미이행 지시를 담고 있어 다음 사람이 그대로 집행하면 철회된 주장이 novelty_guard 에 들어간다."
+   },
+   {
+    "retraction": "A2 (정본) — 측정 밴드기울기 범위 0.175~0.315 는 폐기",
+    "still_live_in": ["outputs/engine_validation_verdict.json L34 ('우리 0.264 dB/GHz vs 측정 0.175~0.315 — 측정 구간 안') 및 L86 where_it_fails.above_6ghz.measured_range=[0.175,0.315]"],
+    "timing_ko": "이 파일은 04:16 생성으로 정본(03:39)보다 37분 늦다 — 즉 철회 후에 다시 등장했다.",
+    "但_ko": "⚠ 공정하게 적자면 이 문맥에서는 0.175~0.315 쪽이 오히려 정확하다. Das mini2 의 0.07 은 21-27 GHz 값이라 6-18.2 GHz 비교에 넣으면 안 된다(validate_measured_airframe.slope_census 가 overlaps_our_band=false 로 표시). 즉 A2 의 대체값 자체가 밴드혼합이며, 정본 A2 를 다시 손봐야 한다."
+   }
+  ],
+  "retractions_i_could_not_find_any_residue_of": ["R3 (5G 커버리지 0) — 잔존 없음, 모든 출현이 '철회됨' 문맥", "R4 (σ 앵커 레벨) — 잔존 없음", "R5 (13.7 dB) — 잔존 없음", "R6 (Sionna 회절 없음) — 잔존 없음, 오히려 금지문구로 3곳에 명시돼 있다"]
+ },
+
+ "F7_gao_number_is_the_favourable_half": {
+  "severity": "medium",
+  "title_ko": "Q-C 의 새 답(회절 보정이 +4.6%)은 같은 표의 두 수 중 우리에게 유리한 쪽만 인용한다",
+  "round2_claim": "outputs/r2_hunt_recent.json — 'Gao 외 PIER 122:137-154 (게재, 2012) 가 GPU SBR 에 PTD/ILDC 계열 보정을 얹고 비용을 +4.6~17.2% 로 인쇄한다. Ziganshin 의 15-27배와 두 자릿수 차이'",
+  "i_reopened_the_pdf": {
+   "path": "/data/public/sionna_jeong/reference_library/new_0803/pier2011__sbr-twildcs-cpu-gpu-fast-rcs.pdf",
+   "front_matter_verbatim": "Progress In Electromagnetics Research, Vol. 122, 137–154, 2012",
+   "quote_p14_verbatim": "The efficiency decreases by only 4.6% for aircraft A as compared to the GPU-based SBR, however, the value is 17.2% for the aircraft B.",
+   "quote_p11_verbatim_fragment": "can not be ignored in the case of weak scattering",
+   "verdict": "인용문과 페이지 모두 실재한다 — 라운드 2 의 인용은 진짜다"
+  },
+  "what_the_same_paper_also_prints": {
+   "table1_p14": {"aircraft_A": {"heterogeneous_total_s": 1371.4, "gpu_sbr_alone_s": 1311}, "aircraft_B": {"heterogeneous_total_s": 2699.9, "gpu_sbr_alone_s": 2302.7}},
+   "table2_p15": {"serial_version_s": {"aircraft_A": 2230.8, "aircraft_B": 4712.2}},
+   "my_arithmetic": {"overlap_overhead_A": "+4.61%", "overlap_overhead_B": "+17.25%", "serial_overhead_A": "+70.2%", "serial_overhead_B": "+104.6%"}
+  },
+  "the_attack_ko": "+4.6% 는 '회절 물리의 한계비용' 이 아니라 '놀고 있던 CPU 에 ILDC 를 얹어 GPU SBR 뒤에 숨겼을 때의 잔여비용' 이다. 이 논문의 기여 자체가 그 은닉(동적 부하분산)이고, 저자들은 최대 speedup 이 2 에 점근한다고 명시한다. 물리를 그냥 더한 직렬 비용은 같은 논문 Table 2 에 +70~105% 로 인쇄돼 있다.",
+  "does_it_break_Q_C": "아니다 — 조건화한다. 정직한 문장: '문헌이 주는 PTD/ILDC 보정 비용은 직렬로 +70~105%(Gao Table 2), CPU-GPU 중첩 구조를 쓰면 +4.6~17.2%(Table 1) 이고, Ziganshin 의 12.5~27배는 32코어 CPU 전용 구현이다. 단일 배수로 말할 수 있는 양이 아니다.'",
+  "our_own_file_already_had_it": "outputs/r2_read_w3.json runtime_table_QB[1].time_printed 이 '직렬 구현은 2230.8 / 4712.2 s' 를 이미 적어 두었다. 즉 라운드 2 안에서도 두 파일의 강조가 다르다.",
+  "extra_caveat_ko": "표적은 13,050 / 20,120 삼각형 항공기(10 GHz ISAR)다. 우리 드론 메시의 few-λ 영역으로 비용비를 옮길 근거는 없다.",
+  "filename_defect": "디스크 파일명이 pier2011__ 인데 내용은 Vol.122 (2012) 다 — 파일명↔내용 연도 불일치 1건."
+ },
+
+ "F8_ziganshin_runtime_multiplier_four_ways": {
+  "severity": "medium",
+  "title_ko": "같은 Table II 에서 우리 파일들이 서로 다른 배수 네 개를 뽑아 썼고, 그중 하나는 산술이 틀렸다",
+  "i_read_the_table": {
+   "pdf": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf p.8 TABLE II",
+   "rows_verbatim": [
+    {"scenario": "Sphere (156 facets)", "RT": 0.3, "+V": 1.1, "+EE": 1.8, "+EV/VE": 4.6},
+    {"scenario": "Sphere (346 facets)", "RT": 0.4, "+V": 1.8, "+EE": 3.1, "+EV/VE": 6.8},
+    {"scenario": "Vehicle (220 facets)", "RT": 0.4, "+V": 0.9, "+EE": 2.4, "+EV/VE": 5.0},
+    {"scenario": "Vehicle (1496 facets)", "RT": 0.7, "+V": 3.6, "+EE": 10.2, "+EV/VE": 19.0}
+   ],
+   "my_ratios_full_diffraction": {"sphere156": 15.33, "sphere346": 17.0, "vehicle220": 12.5, "vehicle1496": 27.14},
+   "plus_V_only_vehicle1496": 5.14,
+   "platform_verbatim": "All simulations were performed on a CPU platform. … dual-socket AMD EPYC 7343 CPU platform with 32 physical cores. Reported runtimes correspond to the average of 5 independent runs."
+  },
+  "how_our_files_state_it": [
+   {"file": "outputs/psolve_signature.json L768", "text": "adding vertex + second-order diffraction multiplies runtime by 15x on the fine vehicle mesh (0.7 s -> 19.0 s)", "verdict": "⛔ 산술 오류 — 0.7→19.0 은 27.1배다. 15배는 다른 행(구 156면)의 값이다"},
+   {"file": "outputs/psolve_adopt.json L450", "text": "회절 전체의 값은 12.5-27배", "verdict": "차량 두 행만 — 라벨만 붙이면 정당"},
+   {"file": "outputs/deepread_w3.json L229", "text": "5~27배", "verdict": "하한이 +V 단독(5.14배)이고 상한이 전 회절(27.1배) — 서로 다른 물리를 한 범위에 넣었다"},
+   {"file": "브리프 · outputs/r2_read_w3.json", "text": "15~27배", "verdict": "전 4행의 min~max — 가장 방어 가능하지만 '어느 표적인지' 없이 쓰면 오해된다"},
+   {"file": "outputs/psolve_signature.json L1090", "text": "0.3-19.0 s per angular sweep on 32 CPU cores", "verdict": "정확"}
+  ],
+  "prescribed_ko": "'전 회절(V+EE+EV/VE)의 대가는 표적에 따라 12.5~27.1배(차량 220면 → 1496면), 정점회절만이면 2.3~5.1배. 32코어 CPU, 각도당 53 ms(19.0 s / 360각).' 배수를 쓸 때 반드시 행 이름을 붙인다.",
+  "cross_lens_note_ko": "⚠ Q-A 답변에서 이 CPU 숫자를 스톡 Sionna 의 GPU 숫자(0.06~0.29 s)와 나란히 놓으면 사과-대-오렌지다. Ziganshin 자신이 'they do not significantly benefit from GPU acceleration' 이라고 적었다."
+ },
+
+ "F9_per_pose_unit_unsourced": {
+  "severity": "medium",
+  "title_ko": "'스톡 Sionna 0.06~0.29 s/pose' 의 단위를 어떤 원문도 인쇄하지 않는다 — 우리 자신의 라운드 2 파일이 그렇게 적었는데 정본은 안 고쳤다",
+  "canonical_still_says": "docs/RETRACTION_LOG.md L115 — '⭐ 런타임 기준선은 잡혀 있다 — 스톡 Sionna 0.06~0.29 s/pose(독립 3편)'",
+  "round2_caught_it": "outputs/r2_read_w3.json runtime_table_QB[4].caveat — \"⚠ '포즈당' 이라는 단위가 논문에 없다. 우리 Q-B 문장의 'per pose' 를 고치거나 단서를 달아야 한다.\"",
+  "consequence_ko": "Q-B 전체가 '포즈당 비용' 축 위에 세워져 있는데 그 축의 단위가 출처 없이 우리가 붙인 것이다. Ziganshin 의 '각도당 53 ms' 는 진짜 각도당이고(19.0 s / 360각), DeepRT-E 0.286 s 는 실내 전파 채널 1회 solve 다 — 같은 축이 아니다.",
+  "fix_ko": "정본 L115 를 '스톡 Sionna 실내 채널 solve 1회 0.06~0.29 s(포즈당이라는 단위는 원문에 없음)' 로 고친다."
+ },
+
+ "F10_stale_blocker_inside_the_same_round": {
+  "severity": "low",
+  "title_ko": "라운드 2 가 '다음 라운드 최우선' 으로 올린 미입수 논문이 같은 라운드 안에서 이미 입수됐다",
+  "reported_blocker": "outputs/r2_hunt_recent.json problems[0] — 'Mukherjee 외, IEEE Access 10:133643-133654, 게재, 2022, DOI 10.1109/ACCESS.2022.3231812 (KED vs UTD vs PO vs 60 GHz 실측) 를 못 받았다. 다음 라운드 최우선.'",
+  "actual_state": {
+   "path": "/data/public/sionna_jeong/reference_library/new_0803/remcom_mukherjee__blockage-ked-utd-po-60ghz.pdf",
+   "mtime": "2026-08-03 05:27",
+   "front_matter_verbatim": "Digital Object Identifier 10.1109/ACCESS.2022.3231812 / Scalable Modeling of Human Blockage at Millimeter-Wave: A Comparative Analysis of Knife-Edge Diffraction, the Uniform Theory of Diffraction, and Physical Optics Against 60 GHz Channel Measurements",
+   "pages": 12,
+   "already_read_in": "outputs/r2_read_w3.json runtime_table_QB[3] — Table 4 의 PO ~8 s / UTD ~2 s / TKED ~0.1 s 까지 인용돼 있다"
+  },
+  "note_ko": "시간 순서상 모순은 아니다(hunt 05:00, PDF 05:27). 문제는 라운드 보고서가 닫힌 블로커를 최우선 미결로 인계한다는 것. Q-A 전반부(그림자역)를 판정할 유일 후보라고 적혀 있으므로, 다음 사람이 이미 있는 PDF 를 다시 찾으러 간다.",
+  "bonus_ko": "이 논문은 Q-A 전반부에 실제로 닿는다 — PO/UTD/KED 를 60 GHz 실측에 대고 비교한다. 다음 라운드는 '입수' 가 아니라 '판독' 부터 시작하면 된다."
+ },
+
+ "F11_priority_endpoint_disagrees": {
+  "severity": "low",
+  "title_ko": "v_max 우선권의 최종 답이 두 갈래다 — 'Abratkiewicz 의 것' 대 '누구의 것도 아니다'",
+  "position_A": {"files": ["docs/RETRACTION_LOG.md R1", "outputs/deck_facts.json retractions[0].now_ko", "decks/teammeeting_0804_v1.pptx slide 7 'The law belongs to Abratkiewicz and colleagues'"], "claim": "우선권은 Abratkiewicz 외 JSTARS 2023 식 (16) 에 있고 우리는 재현자다"},
+  "position_B": {"files": ["outputs/deepread_reconcile.json L167"], "claim": "'교과서 Nyquist 귀결이라 누구의 기여도 아니다' 가 정답이다"},
+  "why_it_matters_ko": "슬라이드 7 은 '우선권을 밝히는 것' 이 이 발표의 도덕적 중심이라고 선언한다. 그 자리에 '남의 것' 과 '아무의 것도 아님' 두 답이 병존하면, 청중 질문 한 번에 갈라진다.",
+  "my_reading_ko": "둘은 배타적이지 않다 — 결과는 교과서 Nyquist 귀결이지만, 기준신호 반복률 축에 그것을 처음 인쇄한 문헌은 Abratkiewicz 다. 한 문장으로 합쳐야 한다: '수학은 Nyquist 이고, 이 축에 그것을 처음 인쇄한 것은 Abratkiewicz 2023 이며, 우리는 재현자다.'"
+ },
+
+ "F12_matrix_and_deck_agree": {
+  "severity": "low",
+  "title_ko": "역량 매트릭스와 덱은 서로 맞는다 — 확인",
+  "checks": [
+   {"deck": "18 of 26 rows shown / 0 cells unverified / 80 quotes", "file": "outputs/capability_matrix.json counts", "actual": {"rows": 26, "columns": 9, "cells": 234, "QUOTED": 80, "COMPUTED": 123, "DERIVED": 31, "UNVERIFIED": 0, "quote_selfcheck": "checked 80 / passed 80 / failed []"}, "verdict": "일치"},
+   {"deck_slide5": "LTE CRS 1000 Hz @1.843 GHz = 40.70 / WiFi VHT-LTF 1000 Hz @5.21 = 14.40 / 5G SSB 50 Hz @3.5 = 1.07 / WiFi beacon 9.77 Hz @5.21 = 0.14, 289배", "my_recompute_c3e8": [40.6945, 14.3954, 1.0714, 0.1406], "spread": 289.4, "verdict": "일치 (c=3e8 규약 명시돼 있음)"},
+   {"deck_slide11": "Ziganshin 회의판을 '가장 가까운 경쟁자, 6 of 9, 차량' 으로 적음", "file": "outputs/capability_matrix.json rows", "note": "회의판(EuCAP 2025, PUBLISHED)과 저널판(arXiv 2604.05991, PREPRINT)이 별개 행으로 유지된다 — 하우스 룰 준수. 단 저널판 status 는 F4 에 따라 PUBLISHED 로 고쳐야 한다"}
+  ]
+ },
+
+ "round2_claims_i_independently_confirmed": [
+  "TS 38.104 v18.8.0 Table 5.3.5-1 의 n78 블록에 15/30/60 kHz 세 부행이 모두 존재 — docx XML 직접 파싱으로 확인. BREAK-1 의 규격 근거는 참이다.",
+  "Gao PIER 122:137-154 (2012) p.14 의 '4.6% … 17.2%' 인용문 실재 — 표제지 'Progress In Electromagnetics Research, Vol. 122, 137–154, 2012' 로 서지도 확인. r2_hunt_recent 의 서지가 옳고 디스크 파일명(pier2011)이 틀렸다.",
+  "Gao p.11 의 'can not be ignored in the case of weak scattering' 실재.",
+  "Ziganshin Table II 의 네 행 수치 전부 실재(0.3/1.1/1.8/4.6 · 0.4/1.8/3.1/6.8 · 0.4/0.9/2.4/5.0 · 0.7/3.6/10.2/19.0), '15~27배' 는 전 4행 min~max 로 방어 가능.",
+  "Mukherjee IEEE Access 2022 PDF 가 디스크에 실재하고 DOI 10.1109/ACCESS.2022.3231812 로 확인됨."
+ ],
+
+ "round2_claims_i_narrowed": [
+  "Q-C 의 '+4.6~17.2%' 는 CPU-GPU 중첩 구조의 잔여비용이다. 같은 논문 Table 2 의 직렬 비용은 +70~105% 이고, 그것이 '회절 물리를 더하는 값' 에 더 가깝다 (F7).",
+  "SC-1(Ziganshin 게재)은 새 정정이 아니라 2026-07-31 prior_hunt_0.json X-C5 가 이미 같은 Crossref 근거로 내린 판정의 재발견이다 (F4)."
+ ],
+
+ "what_this_attack_did_not_do": [
+  "H8·C2·C4 에 대한 BREAK 은 없다. 이 렌즈는 외부 문헌이 아니라 우리 파일 간 모순만 봤다.",
+  "quote_audit 전수 감사를 다시 돌리지 않았다 — 도구는 있으나 실행 비용(냉캐시 196초)과 다른 세션의 동시 쓰기 위험 때문에 보고만 한다.",
+  "outputs/*.json 129개 중 숫자 대조는 밴드기울기·v_max·런타임·논문계수 네 축에만 했다. 링크버짓·CFAR·메시 축은 손대지 않았다.",
+  "reference_library.json 439 KB 의 서지 항목 전수 대조는 하지 않았다 — Ziganshin 축만 봤다.",
+  "덱 pptx 는 읽기만 했고 수정하지 않았다. teammeeting_0804 워크스페이스는 건드리지 않았다."
+ ],
+
+ "recommended_order_ko": [
+  "1) quote_audit 전수 감사 재실행 + --out 분리 (F1). 이것이 없으면 라운드 2 의 대표 성과가 문서로 남지 않는다.",
+  "2) 덱 슬라이드 12·21 의 '3.5~8.1배' 를 '같은 구간 2.1배 / 우리 밴드 7배' 로 고친다 (F2). 발표가 내일이다.",
+  "3) 슬라이드 8·16·20 의 '0 of 5' 와 '규격을 열지 않았다' 를 numerology 조건부로 고친다 (F3).",
+  "4) RETRACTION_LOG 에 R9·R10 편입, deck_facts R6·R7 재번호 (F5).",
+  "5) monostatic_prior / mono_vs_passive / review_mobisys 의 Chen 우선권 문장 제거 (F6).",
+  "6) Ziganshin 저널판 status 를 26개 파일에서 PUBLISHED(OJAP 2026, Early Access)로 통일 (F4)."
+ ],
+
+ "status": "DONE"
+}

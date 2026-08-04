@@ -1,0 +1,431 @@
+{
+  "meta": {
+    "task": "R2 HUNT — CLOSE THE GENEALOGY AND THE SPEC GAPS (Q-E, Q-F)",
+    "generated": "2026-08-03",
+    "agent": "genealogy/spec subagent",
+    "scope_ko": "(a) Samczyński TGRS 원문 확보 시도 + 무모호 속도에 대해 무엇을 말하는지 확정, (b) 3GPP TS 38.331/38.213/38.214 원문에서 CSI-RS 500 Hz 천장과 ssb-PeriodicityServingCell 값집합·기본값 확인, (c) Księżyk IEEE AESS Mag 2023 확보 시도",
+    "house_rules_applied": [
+      "인용문은 (문서, 위치, 문장) 삼중항으로만 기록했고 22건 전부 기계 검증했다",
+      "얻지 못한 문서는 UNVERIFIED 로 남기고 거기 걸린 주장을 강등했다",
+      "인용 = 기원 이 아니다 — 인용 사슬과 실제 기원을 분리해 기록했다",
+      "규격 원문에 없는 문장은 '유도'로 표시했고 규격 문장처럼 쓰지 않았다"
+    ],
+    "verification_tooling": {
+      "verifier": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/verify.py",
+      "note_ko": "기존 benchmark/verify_quotes_tool.py 는 PDF 전용이라 .docx(3GPP)·.xml(Europe PMC) 출처를 채점할 수 없다. 같은 정규화 규칙(따옴표·대시·ﬁ리거처·공백)을 쓰는 검증기를 새로 짜서 docx/xml/pdf/txt 를 모두 채점했다.",
+      "positive_result": "22/22 verbatim",
+      "negative_controls": "6/6 정확히 거부 — 날조 문장 2건, 단어 1개 치환 1건, 다른 문서 귀속 2건, 그럴듯한 창작 1건",
+      "why_negative_controls_matter_ko": "⭐ NEG1(‘Sub-6 CSI-RS 최대 반복률은 500 Hz’를 38.331 안에서 찾기)이 FAIL 한 것이 곧 아래 BREAK-1 의 증명이다. 통과만 하는 검사기는 검사기가 아니다."
+    }
+  },
+
+  "headline_ko": "Q-F 는 규격 원문으로 완전히 닫혔고, 그 과정에서 우리 주장 2건이 깨졌다. ⭐ BREAK-1: 3GPP 는 sub-6 CSI-RS 에 500 Hz 천장을 걸지 않는다 — 규격은 주기를 오직 '슬롯'으로만 말하고(38.331 최소 slots4), 절대시간은 DL BWP 의 numerology 가 정한다(38.214 §5.2.1.2). 500 Hz 는 30 kHz SCS 에서만 나오는 값이고, n78 은 38.104 표 5.3.5-1 에서 15/30/60 kHz 를 다 허용하므로 60 kHz 면 천장은 1000 Hz(= n78 에서 21.41 m/s)다. 규격 4종 어디에도 CSI-RS 문맥에 Hz 단위 문장이 0건이다. ⭐ BREAK-2: SSB '20 ms 기본값'은 규격의 기본값이 아니다 — 38.331 은 필드 부재 시 ms5 를 적용하라고 쓰고, 20 ms 는 38.213 §4.1 의 '초기 셀선택 시 UE 가 가정해도 되는' 탐색 가정이다. ⭐ Q-E 는 원문 없이 닫혔다: Chen 이 식(4)의 출처로 든 Samczyński TGRS 는 기원이 아니다 — 같은 바르샤바 그룹이(Samczyński 본인 공저) Asilomar 2025 에서 똑같은 식을 Skolnik 『Radar Handbook』 3판에 귀속한다. 계보의 끝은 교과서이지 TGRS 가 아니다. TGRS·Księżyk·TRS2025 세 편은 전부 closed 이고 Unpaywall OA 위치 0건이라 합법 확보가 불가능하다.",
+
+  "headline_en": "Q-F is closed against the spec text, and closing it broke two of our claims. BREAK-1: 3GPP does not cap sub-6 CSI-RS at 500 Hz. The spec states periodicity only in SLOTS (38.331 minimum slots4) and the absolute time follows the DL BWP numerology (38.214 5.2.1.2). 500 Hz is the 30 kHz-SCS value; n78 legally permits 15/30/60 kHz per 38.104 Table 5.3.5-1, so 60 kHz gives 1000 Hz, i.e. 21.41 m/s at n78. Across four spec documents there are ZERO Hz-unit statements anywhere in a CSI-RS context. BREAK-2: the SSB '20 ms default' is not the spec default; 38.331 says the UE applies ms5 when the field is absent, and 20 ms is the 38.213 4.1 initial-cell-selection search assumption. Q-E closed WITHOUT the paywalled paper: the Warsaw group itself attributes the bistatic Doppler equation to Skolnik's Radar Handbook 3rd ed., not to their own TGRS paper, so the genealogy terminates at a textbook.",
+
+  "counts": {
+    "quotes_recorded": 22,
+    "quotes_verbatim": 22,
+    "negative_controls_run": 6,
+    "negative_controls_correctly_rejected": 6,
+    "spec_documents_obtained": 9,
+    "papers_newly_obtained_lawfully": 4,
+    "papers_confirmed_unobtainable": 3,
+    "breaks_of_our_own_claims": 2,
+    "corrections_short_of_a_break": 3,
+    "open_questions_resolved": 2,
+    "new_threats_to_novelty_found": 2,
+    "archive_pdfs_scanned_for_citation_census": 398
+  },
+
+  "A_samczynski_tgrs": {
+    "target": "Samczyński, P.; Abratkiewicz, K.; Płotka, M.; Zieliński, T.P.; Wszołek, J.; Hausman, S.; Korbel, P.; Księżyk, A., \"5G Network-Based Passive Radar\", IEEE Transactions on Geoscience and Remote Sensing, vol. 60, 2022, Art. no. 5108209 (published)",
+    "identifiers_settled": {
+      "doi": "10.1109/TGRS.2021.3137904",
+      "xplore_document": "9661315",
+      "article_number": "5108209",
+      "volume_year_note_ko": "온라인 게재 2021-12, 권-연도는 vol.60 (2022). 그래서 문헌마다 2021/2022 가 섞인다 — 우리 표기는 'IEEE TGRS 60:5108209 (2022), online 2021' 로 고정할 것.",
+      "citation_form_errors_found_ko": [
+        "Chen 2024 ref[16] 은 저널명을 'IEEE Trans. Geosci.' 로 잘라 쓰고 쪽을 '1–9' 로 적었다 — Art. no. 5108209 이 정확하다",
+        "IRS 2023 ref[8] 도 '60:1–9, 2022'",
+        "Sensing in Bistatic ISAC(OpenISAC 21) ref[25] 는 '2021'",
+        "우리 기록은 article number 형을 써야 한다"
+      ]
+    },
+    "acquisition": {
+      "status": "UNOBTAINABLE — 합법 경로 없음",
+      "evidence": [
+        "Unpaywall v2 10.1109/TGRS.2021.3137904 → is_oa=false, oa_status=closed, oa_locations=[] (빈 배열)",
+        "OpenAlex → open_access.is_oa=false, oa_status=closed, any_repository_has_fulltext=false",
+        "repo.pw.edu.pl(바르샤바공대 기관 리포지터리) 검색 → 전문 없음",
+        "IEEE Xplore 는 fetch 차단(418)"
+      ],
+      "conclusion_ko": "⛔ 합법적으로 못 받는다. 이 문서에 걸린 모든 주장은 UNVERIFIED 로 유지한다."
+    },
+    "QE_ANSWERED_WITHOUT_THE_PAPER": {
+      "verdict_ko": "⭐ 계보는 원문 없이 닫혔다. 그리고 결론은 우리 예상과 다르다 — TGRS 는 기원이 아니다.",
+      "the_question_as_posed_ko": "과제 브리프는 TGRS 를 'Chen 이 바이스태틱 도플러 식의 출처로 든 실제 근원'이라 했다. 앞부분(Chen 이 인용한다)은 맞고, 뒷부분(근원이다)은 틀렸다.",
+      "chain": [
+        {"step": 1, "ko": "Chen 2024 §4.1.1 식(4) f_d = (2v/λ)cos(δ)cos(β/2) 를 [16]=Samczyński TGRS 에 귀속한다", "quote_id": "CHEN2-eq4-cite16", "status": "VERIFIED"},
+        {"step": 2, "ko": "⭐ 그런데 같은 바르샤바 그룹이(Samczyński 본인 공저) Asilomar 2025 에서 문자 그대로 같은 식(4)을 [12]=Skolnik 『Radar Handbook』 3판(McGraw-Hill, 2008)에 귀속한다", "quote_id": "ASIL1-skolnik-doppler, ASIL2-skolnik-ref", "status": "VERIFIED"},
+        {"step": 3, "ko": "따라서 이 식은 교과서 결과이고, TGRS 는 경유지이지 근원이 아니다. Chen 의 [16] 인용은 예의상/간접 인용이다.", "status": "INFERENCE — 두 개의 검증된 인용문에서 따라나오지만 TGRS 원문을 못 봤으므로 '기원이 아님'은 강한 정황이지 증명은 아니다"},
+        {"step": 4, "ko": "보강: Chen 은 바이스태틱 기하 Figure 3 자체는 [16] 이 아니라 [15]=Núñez-Ortuño, Sensors 23(7):3435 (2023, MDPI OA) 에 귀속한다. 즉 Chen 의 바이스태틱 모델 출처는 두 갈래이고 어느 쪽도 TGRS 고유 기여로 제시되지 않는다.", "status": "VERIFIED"}
+      ],
+      "does_tgrs_state_anything_about_unambiguous_velocity": {
+        "answer_ko": "확인 불가(UNVERIFIED). 다만 강한 음성 증거가 있다.",
+        "negative_evidence": [
+          "우리 아카이브 398편 전수 스캔 결과, TGRS 를 인용하면서 무모호 속도(unambiguous velocity)를 그것에 귀속한 문헌이 0건이다",
+          "⭐ 같은 그룹의 후속작 Abratkiewicz JSTARS 16:3476 (2023) 의 식(16) V_b ∈ [−λ/(4T), +λ/(4T)] 에는 인용이 붙어 있지 않다. 바로 옆 문장은 [45] 를 인용하므로 '인용을 안 붙이는 논문'이 아니다 — 저자 자신의 진술로 제시된 것이다",
+          "JSTARS 는 TGRS 를 [15] 로 인용하되 대역폭 B=61.44 MHz 와 '자동차 관측' 조건에만 인용한다"
+        ],
+        "impact_on_R1_ko": "⭐ 우리 R1 귀속(v_max = λ·PRF/4 는 Abratkiewicz JSTARS 2023 식(16), p.3476)은 이번 라운드에서 살아남았다. TGRS 로 한 단계 더 밀릴 위험이 있었는데, 밀리지 않는다는 정황이 세 갈래로 모였다."
+      },
+      "what_tgrs_contains_per_second_hand_attestation": {
+        "note_ko": "원문을 못 보므로 전부 2차 증언이다. 다만 증언자가 같은 그룹(공저자 겹침)이라 신뢰도가 높다.",
+        "items": [
+          {"claim_ko": "TGRS 의 표적은 드론이 아니라 자동차다", "source": "IRS 2023 p.2 (Maksymiuk·Płotka·Abratkiewicz·Samczyński)", "quote_id": "IRS1-tgrs-is-car", "status": "VERIFIED (2차)"},
+          {"claim_ko": "TGRS 측정 캠페인의 수신 대역폭은 61.44 MHz 다", "source": "Abratkiewicz JSTARS 2023 p.3476 'B = 61.44 MHz [15]'", "status": "VERIFIED (2차)"},
+          {"claim_ko": "TGRS 는 실제 협력 5G 망에서 가변 자원할당 문제를 제기했고 그것이 후속 Rényi-entropy 연구의 출발점이다", "source": "IRS 2023 p.2", "status": "VERIFIED (2차)"}
+        ]
+      }
+    }
+  },
+
+  "B_3gpp_specs": {
+    "status": "⭐ COMPLETE — 규격 원문 확보 및 인용 성공",
+    "how_obtained_ko": "3GPP 는 규격을 공개 배포한다(www.3gpp.org/ftp/Specs/archive/38_series/). Rel-15 와 Rel-18 을 둘 다 받아 '값집합이 8년간 안 바뀌었다'를 보였다. zip 안은 .docx 이고 외부 변환도구 없이 python zipfile+ElementTree 로 w:t / m:t 를 뽑았다.",
+    "documents": [
+      {"spec": "TS 38.331 (RRC)", "versions": ["v15.8.0 (38331-f80)", "v18.8.0 (38331-i80)"]},
+      {"spec": "TS 38.211 (Physical channels)", "versions": ["v15.8.0", "v18.8.0"]},
+      {"spec": "TS 38.213 (PHY procedures for control)", "versions": ["v15.8.0", "v18.8.0"]},
+      {"spec": "TS 38.214 (PHY procedures for data)", "versions": ["v15.8.0", "v18.8.0"]},
+      {"spec": "TS 38.104 (BS radio Tx/Rx)", "versions": ["v18.8.0"]}
+    ],
+    "stored_at": "/data/public/sionna_jeong/reference_library/3gpp/ (+ SOURCES.md)",
+    "caveat_ko": "⚠ .docx 의 OMML 수식은 텍스트층에 없다. 수식이 걸린 문장(예: TRS 주기 2^μ·X_p)은 '재구성'으로 표시했고 verbatim 으로 쓰지 않았다.",
+
+    "B1_csirs_periodicity": {
+      "our_prior_claim": "3GPP caps sub-6 CSI-RS at 500 Hz (출처: LaSen SenSys'26 §1 이 TS 38.331 을 인용한 문장 + Chen 2024 의 슬롯 목록 + 산술)",
+      "spec_says": {
+        "value_set": {
+          "quote_id": "SPEC1a-csirs-set-R15 / SPEC1b-csirs-set-R18",
+          "doc": "3GPP TS 38.331, clause 6.3.2, IE CSI-ResourcePeriodicityAndOffset",
+          "quote": "both, the periodicity and the offset are given in number of slots. The periodicity value slots4 corresponds to 4 slots, value slots5 corresponds to 5 slots, and so on.",
+          "asn1_choice": ["slots4", "slots5", "slots8", "slots10", "slots16", "slots20", "slots32", "slots40", "slots64", "slots80", "slots160", "slots320", "slots640"],
+          "identical_in": ["v15.8.0 (Rel-15)", "v18.8.0 (Rel-18)"],
+          "resolves_ko": "⭐ outputs/mono_vs_passive.json open_questions[0] 해소. 우리가 '규격 원문에서 확인하지 못했다'고 유보했던 사다리의 중간 단이 이제 전부 확인됐다. Chen 2024 §3.3 의 목록(4,5,8,10,16,20,32,40,64,80,160,320,640)은 규격과 정확히 일치한다 — Chen 의 이 목록은 신뢰해도 된다."
+        },
+        "numerology_binding": {
+          "quote_id": "SPEC2-numerology-R15 / SPEC2b-numerology-R18",
+          "doc": "3GPP TS 38.214, clause 5.2.1.2 (Resource settings)",
+          "quote": "For periodic and semi-persistent CSI Resource Settings, the configured periodicity and slot offset is given in the numerology of its associated DL BWP, as given by BWP-id.",
+          "identical_in": ["v15.8.0", "v18.8.0"],
+          "why_decisive_ko": "⭐ 이 문장이 BREAK-1 의 핵심이다. 슬롯 수는 절대시간이 아니다 — DL BWP 의 numerology 가 슬롯 길이를 정한다."
+        },
+        "absence_proof": {
+          "method_ko": "38.331/38.214 의 Rel-15·Rel-18 4개 문서 전문에서 (a) 문자열 '500 Hz' 검색, (b) 모든 'CSI-RS' 출현 뒤 900자 안의 Hz 토큰 검색",
+          "result": {
+            "literal_500_Hz_occurrences": 0,
+            "CSI-RS_windows_containing_any_Hz_token": 0,
+            "note_ko": "네 문서 모두 0. 규격은 CSI-RS 주기를 Hz 로 말한 적이 아예 없다. 문서에 나오는 Hz 토큰은 전부 subcarrier spacing(15/30/60/120/240/480/960 kHz)과 채널대역폭이다."
+          },
+          "negative_control_link": "NEG1 이 바로 이 검사다 — 날조 문장 'The maximum configurable repetition frequency for Sub-6 GHz CSI-RS is 500 Hz.' 를 38.331 에 대고 채점해 FAIL 을 확인했다"
+        },
+        "fr1_scs_options": {
+          "doc": "3GPP TS 38.104 v18.8.0, Table 5.3.5-1 (BS channel bandwidths and SCS per operating band in FR1)",
+          "n78_row_ko": "n78 은 15, 30, 60 kHz 세 numerology 를 모두 허용한다(n77·n79 도 동일)",
+          "status": "VERIFIED — 표 본문에서 n78 행에 15/30/60 세 줄이 모두 존재",
+          "resolves_ko": "⭐ outputs/mono_vs_passive.json open_questions[3] 절반 해소. '어느 밴드가 어느 numerology 를 쓰는가'의 **규격상 허용범위**는 확정됐다. 다만 상용망이 실제로 무엇을 쓰는지(n78 = 30 kHz 관행)는 여전히 UNVERIFIED 다."
+        }
+      },
+      "BREAK_1": {
+        "id": "BREAK-1",
+        "severity": "우리 헤드라인 문구를 고쳐야 함",
+        "broken_claim": "\"3GPP caps at 500 Hz for sub-6 CSI-RS\" / \"3GPP 가 sub-6 CSI-RS 에 500 Hz 천장을 걸었다\"",
+        "where_it_lives": [
+          "outputs/mono_vs_passive.json : headline_ko / headline_en / L4_boundary_verdict / L2.D7_verdict / L5 patch_1·patch_3",
+          "outputs/mono_vs_passive.json : figures.mono_vs_passive_f2_boundary.caption",
+          "outputs/mono_vs_passive.json : sources.csirs_ceiling_500hz"
+        ],
+        "why_it_is_wrong_ko": "규격이 거는 천장은 '4 슬롯'이지 '500 Hz' 가 아니다. 500 Hz 는 30 kHz SCS 를 대입해야 나오는 유도값이고, 규격은 CSI-RS 주기를 Hz 로 표현하지 않는다(위 absence_proof). n78 에서 60 kHz SCS 는 합법이므로 같은 4-슬롯 최소값이 1000 Hz 를 준다.",
+        "the_ladder": [
+          {"scs_khz": 15, "mu": 0, "slot_ms": 1.0, "min_period_ms": 4.0, "prf_hz": 250.0, "vmax_ms_at_3p5GHz": 5.353},
+          {"scs_khz": 30, "mu": 1, "slot_ms": 0.5, "min_period_ms": 2.0, "prf_hz": 500.0, "vmax_ms_at_3p5GHz": 10.707},
+          {"scs_khz": 60, "mu": 2, "slot_ms": 0.25, "min_period_ms": 1.0, "prf_hz": 1000.0, "vmax_ms_at_3p5GHz": 21.414}
+        ],
+        "consequence_for_the_headline_ko": "⭐ 방향이 우리에게 불리하다. 60 kHz SCS 면 n78 무모호 속도가 21.41 m/s 가 되어 '가장 느린 기체 최고속도 13.5 m/s' 를 **넘는다**. 따라서 'NEITHER lane measures a drone's top speed unambiguously at 3.5 GHz using reference signals alone' 은 무조건 참이 아니다 — 30 kHz SCS 라는 배치 가정 아래에서만 참이다. (가장 빠른 25 m/s 는 60 kHz 에서도 여전히 못 넘는다.)",
+        "partially_self_caught_ko": "⚠ 공정하게 적자면 우리 기록은 이 축을 절반은 이미 잡고 있었다. L2.D3_carrier_axis.scs_dependence 가 '500 Hz 는 30 kHz SCS 값이고 15 kHz 면 250 Hz' 라고 아래쪽 방향을 명시했다. 놓친 것은 (i) 위쪽 방향(60 kHz → 1000 Hz)과 (ii) 그럼에도 헤드라인은 여전히 '3GPP 가 500 Hz 천장을 걸었다' 라고 단정한 것이다.",
+        "prescribed_rewrite_ko": "'3GPP 는 CSI-RS 주기를 최소 4 슬롯으로 제한한다(TS 38.331 CSI-ResourcePeriodicityAndOffset). 절대 반복률은 DL BWP 의 numerology 가 정하므로(TS 38.214 §5.2.1.2) 같은 규칙이 15/30/60 kHz 에서 각각 250/500/1000 Hz 를 준다. 우리 수치는 n78 상용 배치의 관행인 30 kHz SCS 를 가정한 500 Hz 이다.' — 이렇게 쓰면 규격 진술과 배치 가정이 분리된다.",
+        "collateral_ko": "⚠ LaSen(SenSys'26, published) §1 의 'The maximum configurable repetition frequency for Sub-6 GHz CSI-RS is 500 Hz [3]' 도 같은 결함을 가진다(numerology 를 고정하지 않고 규격 인용처럼 씀). 우리는 LaSen 을 인용하되 그 문장을 규격 진술로 재인용해서는 안 된다."
+      },
+      "residual_open": [
+        "NZP CSI-RS 자원세트를 여러 개 엮어 500 Hz 를 넘길 수 있는가 — 여전히 미해결(기존 open_questions[1]). 38.331 은 세트당 주기만 규정하고 총 샘플률 상한을 쓰지 않는다.",
+        "⭐ 새로 발견: TRS(CSI-RS for tracking)는 훨씬 빡빡하다. TS 38.214 §5.1.6.1.1 은 tracking 용 주기를 10/20/40/80 ms 계열로 제한한다(수식이 OMML 이라 verbatim 인용 불가 — 재구성: '2^μ·X_p slots where X_p = 10, 20, 40, or 80'). 센싱에 TRS 를 쓴다는 서사를 쓸 거면 이 제약을 먼저 확인해야 한다.",
+        "상용 n78 셀이 실제로 30 kHz 를 쓴다는 근거는 여전히 없다 — 통념이다."
+      ]
+    },
+
+    "B2_ssb_periodicity": {
+      "status": "⭐ COMPLETE — 값집합과 기본값 모두 규격 원문 확정",
+      "legal_value_set": {
+        "finding_ko": "⭐ IE 가 두 개이고 철자와 값집합이 다르다. 이 구별은 문헌이 흔히 뭉갠다.",
+        "variants": [
+          {
+            "ie": "ServingCellConfigCommonSIB (SIB1 브로드캐스트)",
+            "spelling": "ssb-PeriodicityServingCell (대문자 P)",
+            "quote_id": "SPEC6-ssb-enum-sib",
+            "quote": "ssb-PeriodicityServingCell          ENUMERATED {ms5, ms10, ms20, ms40, ms80, ms160},",
+            "values": ["ms5", "ms10", "ms20", "ms40", "ms80", "ms160"],
+            "spares": 0,
+            "optionality": "필수(mandatory, OPTIONAL 표시 없음)"
+          },
+          {
+            "ie": "ServingCellConfigCommon (전용 RRC)",
+            "spelling": "ssb-periodicityServingCell (소문자 p)",
+            "quote_id": "SPEC7-ssb-enum-dedicated",
+            "quote": "ssb-periodicityServingCell          ENUMERATED { ms5, ms10, ms20, ms40, ms80, ms160, spare2, spare1 }",
+            "values": ["ms5", "ms10", "ms20", "ms40", "ms80", "ms160"],
+            "spares": 2,
+            "optionality": "OPTIONAL, -- Need S"
+          }
+        ],
+        "identical_in": ["v15.8.0 (Rel-15)", "v18.8.0 (Rel-18)"],
+        "note_ko": "38.213 은 본문에서 소문자 철자(ssb-periodicityServingCell)로 쓴다. 우리 문서는 어느 IE 를 말하는지 밝히고 그 IE 의 철자를 따를 것.",
+        "resolves_ko": "⭐ outputs/mono_vs_passive.json figures caption 의 '다른 legal ssb-Periodicity 값들'(빈 원)이 이제 규격으로 뒷받침된다 — 6개 값이 맞다."
+      },
+      "the_default": {
+        "finding_ko": "⭐ '기본값'이라는 말이 세 갈래로 갈리고, 우리가 쓰던 20 ms 는 그중 규격 기본값이 **아니다**.",
+        "three_distinct_things": [
+          {
+            "which": "RRC 필드 부재 시의 기본값",
+            "value": "ms5 (5 ms)",
+            "quote_id": "SPEC3-ssb-default-ms5",
+            "doc": "3GPP TS 38.331 v18.8.0, ServingCellConfigCommon field descriptions, ssb-periodicityServingCell",
+            "quote": "The SSB periodicity in ms for the rate matching purpose. If the field is absent, the UE applies the value ms5.",
+            "caveat_ko": "⚠ 이건 **rate matching 목적**의 UE 가정이지, 망이 실제로 5 ms 로 쏜다는 뜻이 아니다. 규격은 전송 주기를 강제하지 않는다."
+          },
+          {
+            "which": "RRC 설정이 없을 때 UE 의 half-frame 가정",
+            "value": "half frame (5 ms)",
+            "quote_id": "SPEC5-ssb-halfframe-default",
+            "doc": "3GPP TS 38.213 v15.8.0, clause 4.1 (Cell search)",
+            "quote": "If the UE is not configured a periodicity of the half frames for receptions of the SS/PBCH blocks, the UE assumes a periodicity of a half frame."
+          },
+          {
+            "which": "⭐ 초기 셀선택 시 UE 의 탐색 가정 — 흔히 '20 ms 기본값'이라 잘못 불리는 것",
+            "value": "2 frames = 20 ms",
+            "quote_id": "SPEC4-ssb-initial-20ms",
+            "doc": "3GPP TS 38.213 v15.8.0, clause 4.1 (Cell search)  [v18.8.0 도 동일]",
+            "quote": "For initial cell selection, a UE may assume that half frames with SS/PBCH blocks occur with a periodicity of 2 frames.",
+            "modal_verb_note_ko": "'may assume' 이다 — 허용이지 의무가 아니다"
+          }
+        ],
+        "BREAK_2": {
+          "id": "BREAK-2",
+          "severity": "출처를 바꿔 달아야 함(수치는 유지 가능)",
+          "broken_claim": "\"5G SSB, 20 ms default\" — 20 ms 를 규격 기본값처럼 제시한 것",
+          "where_it_lives": [
+            "outputs/mono_vs_passive.json : figures.mono_vs_passive_f2_boundary.caption ('5G SSB, 20 ms default, filled circle')",
+            "20 ms → 1.07 m/s 로 이어지는 모든 패시브 기준점"
+          ],
+          "why_it_is_wrong_ko": "규격이 '기본값(default)'이라는 말을 쓰는 곳은 ms5 이고(38.331), 20 ms 는 38.213 §4.1 의 초기 셀선택 탐색 가정이다. 두 개는 다른 문서·다른 문맥·다른 강제력이다.",
+          "where_our_20ms_actually_came_from_ko": "⭐ Abratkiewicz JSTARS 2023 p.3476 이 'the default value of T_dist^SSB = 20 ms' 라고 쓴다. 우리는 그 단어를 그대로 물려받았다. 즉 우리 잘못이라기보다 **출처가 규격이 아니라 논문**이었는데 규격인 것처럼 읽힌 것이다.",
+          "the_better_wording_found_ko": "⭐ 같은 주제의 더 정확한 표현을 새로 확보했다: Wypich & Zieliński, Sensors 26(4):1317 (2026) 은 'a commonly used repetition period of 20 ms' 라고 쓴다 — 'default' 가 아니라 'commonly used'. 우리는 이 표현을 채택할 것.",
+          "prescribed_rewrite_ko": "'5G SSB, 상용망에서 흔히 쓰이는 20 ms (Wypich & Zieliński, Sensors 26(4):1317, 2026, 출판됨; Abratkiewicz 외, IEEE JSTARS 16:3476, 2023, 출판됨). ⚠ 규격의 기본값은 아니다 — TS 38.331 은 필드 부재 시 ms5 를 적용하라 하고, 20 ms 는 TS 38.213 §4.1 의 초기 셀선택 가정이다.'",
+          "why_20ms_is_still_the_right_operating_point_ko": "⭐ 적대적으로 자문했다: 그럼 20 ms 를 버려야 하나? 아니다. 초기 셀선택 UE 가 20 ms 를 가정해도 된다는 것은, 셀정의 SSB(CD-SSB)를 그보다 드물게 쏘면 초기 접속이 상한다는 뜻이다. 그래서 20 ms 는 CD-SSB 의 **사실상 최악값(느린 쪽 끝)** 으로 기능한다. 패시브 수신기 관점에서 '보장되는 최악'이 20 ms, '운 좋을 때 최선'이 ms5 라는 우리 서사는 그대로 성립한다. 바뀌는 것은 단어와 출처뿐이다."
+        },
+        "cross_check_with_abratkiewicz": {
+          "ko": "⭐ 규격의 최소값 ms5 와 Abratkiewicz 의 진술이 정확히 맞물린다.",
+          "quote_id": "JSTARS3-min-5ms",
+          "quote": "The SSB periodicity can be decreased to the minimum value when a cooperative network is considered.",
+          "and_then_ko": "그 다음 문장에서 T=5 ms 로 ±4.3605 m/s 를 계산한다. 즉 그들이 말한 '최소값'이 규격의 ms5 다 — 논문과 규격이 독립적으로 일치한다."
+        },
+        "forensic_bonus_ko": "⭐ Abratkiewicz 의 수치(20 ms→±1.0901, 10 ms→±2.1802, 5 ms→±4.3605)를 재현해 보니 c=3×10^8 m/s, fc=3.44 GHz 를 쓰면 소수 4자리까지 정확히 재현된다(λ=0.0872093). c=299792458 을 쓰면 1.0894 가 나온다. 즉 그들의 식은 v_max = λ/(4T) 가 맞고 우리 해석에 오독이 없다."
+      },
+      "ssb_vmax_ladder_at_3p5GHz": {
+        "ms5": 4.2827, "ms10": 2.1414, "ms20": 1.0707, "ms40": 0.5353, "ms80": 0.2677, "ms160": 0.1338,
+        "unit": "m/s (v_max = lambda/(4T), lambda=0.085655 m at 3.5 GHz)"
+      }
+    }
+  },
+
+  "C_ksiezyk": {
+    "target": "Księżyk, A.; Płotka, M.; Abratkiewicz, K.; Maksymiuk, R.; Wszołek, J.; Samczyński, P.; Zieliński, T.P., \"Opportunities and Limitations in Radar Sensing Based on 5G Broadband Cellular Networks\", IEEE Aerospace and Electronic Systems Magazine, vol. 38, no. 9, pp. 4-21, 2023 (published)",
+    "identifiers_settled": {
+      "doi": "10.1109/MAES.2023.3267061",
+      "xplore_document": "10101848",
+      "issue_ko": "⭐ 호수 확정: vol.38, **no.9**, Sept. 2023. Chen 2024 ref[7] 은 호수를 빼고 '38, 4–21' 로만 적었다. 우리 브리프도 호수가 없었다. 확인 출처 2곳: OpenAlex biblio(volume 38, issue 9), 그리고 Brunner 외 OpenISAC-20 ref[7] 이 'vol. 38, no. 9, pp. 4–21, Sept. 2023' 로 표기."
+    },
+    "acquisition": {
+      "status": "UNOBTAINABLE — 합법 경로 없음",
+      "evidence": [
+        "Unpaywall v2 10.1109/MAES.2023.3267061 → is_oa=false, oa_status=closed, oa_locations=[] (빈 배열)",
+        "OpenAlex → oa_status=closed, any_repository_has_fulltext=false",
+        "IEEE Xplore fetch 차단"
+      ],
+      "conclusion_ko": "⛔ Chen 의 ref[7] 은 여전히 미확보다. 여기 걸린 것은 UNVERIFIED 로 유지한다."
+    },
+    "second_hand_attestation": {
+      "note_ko": "원문 대신, 이 논문을 인용한 문헌이 그것을 무엇이라 부르는지만 기록한다.",
+      "items": [
+        {"source": "Chen 2024 §1 (Appl. Sci. 14:4282, 출판됨)", "says_ko": "'Księżyk 외는 5G 센싱의 기본 원리를 자세히 소개하고 개념검증을 수행했으며, 5G 사용의 타당성과 한계를 설명했다'", "status": "VERIFIED (2차)"},
+        {"source": "Maksymiuk 외 Asilomar 2025 ref[9] (출판됨)", "says_ko": "5G 를 패시브 조명원으로 쓰는 일반 참조로 인용", "status": "VERIFIED (2차)"},
+        {"source": "Wypich & Zieliński Sensors 26:1317 (2026) ref[7] (출판됨, OA)", "says_ko": "능동 센싱(기지국이 레이더 펄스를 송수신)과 패시브 센싱(독립 ISAC 수신기가 5G 하향을 듣는다) 두 응용을 논한 문헌으로 인용", "status": "VERIFIED (2차)"}
+      ],
+      "what_remains_unverified_ko": "⚠ 이 논문이 무모호 속도/주기/점유율에 대해 무엇을 수치로 말하는지는 전혀 모른다. Chen 이 [7] 로 지지한 어떤 진술도 우리가 재인용하면 안 된다."
+    }
+  },
+
+  "D_corrections_short_of_a_break": [
+    {
+      "id": "CORR-1",
+      "topic": "바이스태틱 거리분해능 규약 — 우리 ΔR_b = c/B 는 옳지만 문헌에 경쟁 규약이 있고 2·cos(β/2) 만큼 다르다",
+      "importance_ko": "⭐ 선행연구와 수치를 나란히 놓을 때 2배 어긋날 수 있는 함정이다(메모 'sionna2 detection benchmark' 의 ΔR_b=c/B 규약에 직결).",
+      "convention_A": {
+        "form": "ΔR_b = c/B",
+        "meaning_ko": "바이스태틱 거리 좌표 R_b = R1+R2−L (즉 지연축) 에서의 분해능. Δτ=1/B 이고 R_b=cτ 이므로 ΔR_b=c/B.",
+        "sources": [
+          {"doc": "Abratkiewicz 외, IEEE JSTARS 16:3476 (2023), 출판됨, 식(15)", "quote_id": "JSTARS1-eq15-malanowski", "quote": "one can obtain bistatic range resolution deﬁned as [(2.8) in [2]]", "provenance_ko": "⭐ 그 [2] 가 Malanowski, 『Signal Processing for Passive Bistatic Radar』, Artech House, 2019 의 식 (2.8) 이다 — 우리 규약의 뿌리가 책의 식 번호까지 확정됐다"},
+          {"doc": "Maksymiuk·Abratkiewicz·Samczyński, Asilomar 2025, p.1640, 식(5)", "form": "ΔRb = c/B", "note_ko": "같은 그룹이 2년 뒤에도 같은 규약. 자기정합성 확인: B=100 MHz→'approx. 3 meters', B=400 MHz→'ca. 75 cm', B=38.16 MHz→'approx. 7.8 m' 세 값 모두 c/B 로 재현된다(2.998 m, 0.749 m, 7.856 m)"}
+        ]
+      },
+      "convention_B": {
+        "form": "ΔR = c / (2B cos(β/2))",
+        "meaning_ko": "바이스태틱 이등분선 방향으로 **나란히 놓인 두 표적**을 분해하는 물리적 거리. 두 표적이 이등분선 방향으로 d 만큼 떨어지면 (R1+R2) 가 약 2d·cos(β/2) 변하므로 d ≥ c/(2B cos(β/2)).",
+        "sources": [
+          {"doc": "Núñez-Ortuño 외, Sensors 23(7):3435 (2023), MDPI OA, 출판됨, 식(1)", "quote_id": "NUNEZ1-bisector", "quote": "the minimum range separation required between two targets is called range resolution", "key_ko": "⭐ 바로 이어서 'where two targets are assumed to be co-linear with the bistatic bisector' 라고 명시한다 — 축을 스스로 밝힌다"},
+          {"doc": "Costa 외, IEEE JSTEAP (journal) 및 RadarConf24 (conf)", "note_ko": "'the range resolution in the direction of the bistatic bisector is given by ΔR = c/[2B cos(β/2)]' 로 축을 명시"},
+          {"doc": "arXiv 2412.20788 / 그 저널판 'An Experimental Study of Passive UAV Tracking...'", "note_ko": "같은 형태, 5 MHz 에서 β=0 시 30 m"}
+        ]
+      },
+      "reconciliation_ko": "⭐ 둘은 모순이 아니라 **다른 축**이다. c/B 는 RD 맵의 지연축 눈금, c/(2B cos(β/2)) 는 지면 위 물리적 분리거리. β=0 에서 정확히 2배 차이난다.",
+      "velocity_axis_confirms_it_ko": "⭐ 같은 패턴이 속도축에도 그대로 나온다. Warsaw(Asilomar 식6): ΔV_b = λ/T_int. Núñez-Ortuño(식2): Δv = λ/(2 T_CPI cos(β/2)). 역시 정확히 2cos(β/2) 배. 두 축 모두에서 같은 인자가 나온다는 것이 이 해석의 결정적 근거다.",
+      "action_ko": "우리 ΔR_b = c/B 는 **유지**한다(RD 맵 축 규약이고 Malanowski 2.8 에 뿌리가 있다). 다만 리포트에 '우리는 지연축 규약을 쓴다. 이등분선 물리거리 규약(c/2Bcos(β/2))을 쓰는 문헌과 비교할 때는 2cos(β/2) 를 곱해 맞춘다' 를 한 줄 넣을 것.",
+      "warning_ko": "⚠ 메모의 'LTE 8.3 m' 같은 수치를 선행연구와 비교할 때 주의. Núñez-Ortuño 은 β=60° 에서 LTE 를 '9 m' 라 한다(c/(2·20MHz·cos30°)=8.66 m). 우리 8.3 m 는 다른 규약·다른 대역폭 가정이다. 사과-대-사과가 아니다."
+    },
+    {
+      "id": "CORR-2",
+      "topic": "⚠ 바르샤바 그룹 자신이 V_b 를 두 가지 뜻으로 쓴다 — 우리 v_max 식을 그들의 ΔV_b 와 절대 섞으면 안 된다",
+      "finding_ko": "⭐ 같은 그룹의 세 논문에서 기호 V_b 의 정의가 2배 어긋난다.",
+      "evidence": [
+        "IRS 2023 식(5) 와 Asilomar 2025 식(1) 의 CAF 커널은 exp(−j2π(V_b/λ)t) 이다 → 이 V_b 는 λ·f_b, 즉 β=δ=0 에서 물리 속도의 **2배**",
+        "그에 맞춰 Asilomar 식(6) ΔV_b = λ/T_int 도 그 2배 단위",
+        "그런데 JSTARS 2023 식(16) 은 V_b ∈ [−λ/(4T), +λ/(4T)] 로, 이건 f=2v/λ 를 써야 나오는 **물리 속도** 단위다"
+      ],
+      "status": "INFERENCE — 세 편의 검증된 식에서 따라나오는 우리 추론이다. 어느 논문도 이 불일치를 인정하지 않았다.",
+      "impact_on_us_ko": "⭐ 우리 v_max = λ·PRF/4 는 **물리 속도** 기준이고, 우리 산술감사 A1/A2 가 f_d=(2v/λ)cos(β/2)cosδ 를 항등식으로 확인했으므로 내부정합하다. 즉 우리 식은 JSTARS 식(16)과 같은 단위이고 안전하다.",
+      "action_ko": "리포트에서 바르샤바 논문의 ΔV_b(=λ/T_int) 를 우리 v_max 와 나란히 놓지 말 것. 굳이 비교하려면 인자 2 를 명시하고 어느 정의인지 밝힐 것."
+    },
+    {
+      "id": "CORR-3",
+      "topic": "TGRS 서지 표기 통일",
+      "action_ko": "'IEEE TGRS 60:5108209 (2022, online Dec 2021), DOI 10.1109/TGRS.2021.3137904' 로 고정. 'pp. 1–9' 표기는 여러 인용문헌의 관행이지 정확한 형태가 아니다. Księżyk 은 'IEEE AESS Magazine 38(9):4–21 (2023)' 로 호수를 포함할 것."
+    }
+  ],
+
+  "E_new_threats_found_while_hunting": {
+    "note_ko": "⚠ 과제 범위 밖이지만 발견 즉시 기록한다. 둘 다 우리 novelty 에 직접 닿는다.",
+    "T1_wypich_2026": {
+      "paper": "Wypich, M.; Zieliński, T.P., \"Experimental Evaluation of 5G NR OFDM-Based Passive Radar Exploiting Reference, Control, and User Data\", Sensors (Basel) 26(4):1317, 2026, MDPI CC BY (published)",
+      "doi": "10.3390/s26041317",
+      "obtained": "/data/public/sionna_jeong/reference_library/genealogy/wypich_zielinski_sensors2026_5gnr_ref_ctrl_userdata.xml (Europe PMC PMC12944637 fullTextXML)",
+      "what_it_does_ko": "실측 5G 링크에서 하향 구성요소(PSS·SSS·PBCH·PDCCH·PDSCH·PBCH DM-RS·PDCCH DM-RS·PDSCH DM-RS·CSI-RS)를 **통제 비교**하고, CA-CFAR 로 검출한 뒤 POD 와 PNFR 로 순위를 매긴다. 고속도로 차량 표적. 통계검정(Friedman, signrank, Fisher, bootstrap)까지 붙였다.",
+      "quote_id": "WYP4-pod",
+      "quote": "improves the probability of detection (POD) from approximately 24-32% (using only pilots or a control) to 77-78% (using all components)",
+      "impact_on_C4_ko": "⭐ C4('아무도 교정된 오경보율에서 통제된 다중 **조명원** 비교를 하지 않았다')는 **살아남되 두 번째로 좁혀진다**. 이건 5G 한 조명원 **안**의 구성요소 비교다 — Taylor & Poullin 이 LTE 한 링크 안의 심볼 부분집합으로 한 것과 같은 패턴이 이번엔 5G 에서, 실측으로, CFAR 과 통계검정까지 붙어서 반복됐다. 'illuminator' 라는 단어는 이제 두 번 하중을 받는다.",
+      "what_still_survives_ko": "(i) 표준을 **가로지르는** 비교(WiFi vs LTE vs 5G)는 여전히 없다. (ii) Wypich 은 CFAR 을 쓰지만 Pfa 를 명시하지 않는다 — 전문에 'Pfa' 토큰 0건이고, 대신 genie-aided 기준 + 휴리스틱 일관성 검사(연속 2프레임, Δv<2 m/s, ΔR<30 m)를 쓴다. '교정된 오경보율'은 아직 우리 쪽 차별점이다.",
+      "action_ko": "⚠ report12 novelty 문장을 다시 쓸 때 이 논문을 반드시 인용하고 '표준 횡단 + 교정된 Pfa' 로 좁혀 말할 것."
+    },
+    "T2_wei_prs_ranking": {
+      "finding_ko": "⭐ 우리 report12 의 '9 모드' 순서(G1 SSB 최악 ↔ G3 PRS 최고)가 이미 선행연구에 있다.",
+      "quote_id": "WYP3-prs-superiority",
+      "quote": "superiority of the 5G PRS, compared with a PSS, SSS, DM-RS and CSI-RS, in range and velocity estimation.",
+      "quote_source": "Wypich & Zieliński, Sensors 26(4):1317 (2026), sec.1 — 이것은 Wei 외를 요약한 문장이다",
+      "primary_paper": "Wei, Z. 외, \"5G PRS-Based Sensing: A Sensing Reference Signal Approach for Joint Sensing and Communication System\", IEEE Trans. Veh. Technol. 72(3):3250-3263, 2023 (published)",
+      "status": "⚠ 우리 아카이브 미보유. 아직 원문을 못 봤으므로 '이미 있다'는 결론은 2차 요약에 근거한 PLAUSIBLE 이다.",
+      "action_ko": "다음 라운드 최우선 확보 대상. PRS > CSI-RS > DM-RS > SSS/PSS 순위가 원문에 있으면 우리 G1/G3 서사는 '확인' 이지 '발견' 이 아니다."
+    },
+    "T3_missed_cluster_ko": "⚠ Wypich 참고문헌에서 우리가 한 편도 갖고 있지 않은 5G 기준신호 비교 클러스터가 드러났다. 미보유 확인: Wei TVT 2023[14], Bednarz & Zieliński Sensors 25:337 2025[15], Khosroshahi 외 VTC2024-Fall 'Doppler Ambiguity Elimination Using 5G Signals'[16], Nataraja 외 IEEE TVT 74:6121-6137 2025[17]. ⭐ 특히 [16] 은 제목부터 우리 무모호 속도 문제 그 자체다."
+  },
+
+  "F_new_acquisitions": {
+    "stored_at": "/data/public/sionna_jeong/reference_library/genealogy/ (+ SOURCES.md), /data/public/sionna_jeong/reference_library/3gpp/ (+ SOURCES.md)",
+    "policy_note_ko": "전부 합법 공개본(3GPP 공개배포·MDPI CC BY·저자 배포본)만 받았다. IEEE 유료본은 받지 않았다. 홈 파티션이 아니라 아카이브에 저장했다.",
+    "items": [
+      {"what": "3GPP TS 38.331 / 38.211 / 38.213 / 38.214 각 Rel-15(v15.8.0)·Rel-18(v18.8.0), TS 38.104 v18.8.0", "count": 9, "why_ko": "Q-F 의 1차 출처. Rel 두 개를 받은 이유는 값집합 불변을 보이기 위해서다."},
+      {"what": "Núñez-Ortuño 외, Sensors 23(7):3435 (2023) — Chen ref[15]", "why_ko": "Chen 의 바이스태틱 기하 Figure 3 출처이자 경쟁 분해능 규약의 명시적 출처"},
+      {"what": "Wypich & Zieliński, Sensors 26(4):1317 (2026)", "why_ko": "⭐ C4 재축소 + '5G 상시 기준신호 없음' 서사의 외부 확증"},
+      {"what": "Nataraja 외, IEEE TVT 74(4):6121-6137 (2025) — 저자 배포본", "why_ko": "5G 파일럿(CSI-RS·DM-RS·PT-RS·TRS·PRS) 특성 비교 + 실측 차량 검출"},
+      {"what": "Bednarz & Zieliński, Sensors 25:337 (2025)", "why_ko": "PRS 기반 센싱 — 우리 G3 모드의 선행"}
+    ]
+  },
+
+  "G_supporting_finding_for_our_narrative": {
+    "id": "SUPPORT-1",
+    "topic": "⭐ 메모 'sionna2 상시 기준신호 서사'(패시브는 상시 신호만 쓴다 — LTE CRS vs 5G SSB, 5G 의 이중고)가 출판된 공개 문헌으로 직접 확증됐다",
+    "quote_id": "WYP1-no-alwayson",
+    "doc": "Wypich & Zieliński, Sensors 26(4):1317 (2026), sec.3.1 (MDPI CC BY, published)",
+    "quote": "5G does not include any always-on reference signals for channel estimation.",
+    "full_context_ko": "'Unlike 4G LTE, where cell-specific reference signals (CRSs) were continuously transmitted at fixed positions across the entire OFDM grid, 5G does not include any always-on reference signals for channel estimation.'",
+    "why_it_matters_ko": "⭐ 우리 서사의 핵심 전제(LTE 는 CRS 가 상시, 5G 는 상시 기준신호가 없어서 SSB 에 의존)를 우리가 아니라 **출판된 제3자**가 같은 문장으로 말한다. 지금까지 이 전제는 우리 내부 논증이었다. 이제 인용 가능하다.",
+    "additional_ko": "같은 절에서 Wypich 은 SRS·PT-RS·TRS 를 연구범위에서 제외하며 그 이유를 'they are rarely transmitted by base stations, which typically minimize non-data signaling to maximize throughput' 라고 쓴다 — 우리 '점유 대가' 서사와도 맞물린다."
+  },
+
+  "H_quotes": {
+    "verification_summary": "22/22 verbatim, 음성대조 6/6 정확히 거부",
+    "records": [
+      {"id": "SPEC1a-csirs-set-R15", "doc": "3GPP TS 38.331 v15.8.0 (Rel-15), clause 6.3.2, IE CSI-ResourcePeriodicityAndOffset", "path": "/data/public/sionna_jeong/reference_library/3gpp/f80/38331-f80.docx", "locator_type": "clause (docx has no fixed pagination)", "quote": "both, the periodicity and the offset are given in number of slots. The periodicity value slots4 corresponds to 4 slots, value slots5 corresponds to 5 slots, and so on.", "verdict": "verbatim"},
+      {"id": "SPEC1b-csirs-set-R18", "doc": "3GPP TS 38.331 v18.8.0 (Rel-18), clause 6.3.2, IE CSI-ResourcePeriodicityAndOffset", "path": "/data/public/sionna_jeong/reference_library/3gpp/i80/38331-i80.docx", "locator_type": "clause", "quote": "both, the periodicity and the offset are given in number of slots. The periodicity value slots4 corresponds to 4 slots, value slots5 corresponds to 5 slots, and so on.", "verdict": "verbatim"},
+      {"id": "SPEC2-numerology-R15", "doc": "3GPP TS 38.214 v15.8.0, clause 5.2.1.2 Resource settings", "path": "/data/public/sionna_jeong/reference_library/3gpp/ex_38214-f80/38214-f80.docx", "locator_type": "clause", "quote": "For periodic and semi-persistent CSI Resource Settings, the configured periodicity and slot offset is given in the numerology of its associated DL BWP, as given by BWP-id.", "verdict": "verbatim"},
+      {"id": "SPEC2b-numerology-R18", "doc": "3GPP TS 38.214 v18.8.0, clause 5.2.1.2 Resource settings", "path": "/data/public/sionna_jeong/reference_library/3gpp/ex_38214-i80/38214-i80.docx", "locator_type": "clause", "quote": "For periodic and semi-persistent CSI Resource Settings, the configured periodicity and slot offset is given in the numerology of its associated DL BWP, as given by BWP-id.", "verdict": "verbatim"},
+      {"id": "SPEC3-ssb-default-ms5", "doc": "3GPP TS 38.331 v18.8.0, ServingCellConfigCommon field descriptions, ssb-periodicityServingCell", "path": "/data/public/sionna_jeong/reference_library/3gpp/i80/38331-i80.docx", "locator_type": "IE field description", "quote": "The SSB periodicity in ms for the rate matching purpose. If the field is absent, the UE applies the value ms5.", "verdict": "verbatim", "note_ko": "v15.8.0 에도 동일 문장 존재"},
+      {"id": "SPEC4-ssb-initial-20ms", "doc": "3GPP TS 38.213 v15.8.0, clause 4.1 Cell search", "path": "/data/public/sionna_jeong/reference_library/3gpp/ex_38213-f80/38213-f80.docx", "locator_type": "clause", "quote": "For initial cell selection, a UE may assume that half frames with SS/PBCH blocks occur with a periodicity of 2 frames.", "verdict": "verbatim", "note_ko": "v18.8.0 에도 동일"},
+      {"id": "SPEC5-ssb-halfframe-default", "doc": "3GPP TS 38.213 v15.8.0, clause 4.1 Cell search", "path": "/data/public/sionna_jeong/reference_library/3gpp/ex_38213-f80/38213-f80.docx", "locator_type": "clause", "quote": "If the UE is not configured a periodicity of the half frames for receptions of the SS/PBCH blocks, the UE assumes a periodicity of a half frame.", "verdict": "verbatim"},
+      {"id": "SPEC6-ssb-enum-sib", "doc": "3GPP TS 38.331 v18.8.0, IE ServingCellConfigCommonSIB, ASN.1", "path": "/data/public/sionna_jeong/reference_library/3gpp/i80/38331-i80.docx", "locator_type": "ASN.1 block", "quote": "ssb-PeriodicityServingCell          ENUMERATED {ms5, ms10, ms20, ms40, ms80, ms160},", "verdict": "verbatim"},
+      {"id": "SPEC7-ssb-enum-dedicated", "doc": "3GPP TS 38.331 v18.8.0, IE ServingCellConfigCommon, ASN.1", "path": "/data/public/sionna_jeong/reference_library/3gpp/i80/38331-i80.docx", "locator_type": "ASN.1 block", "quote": "ssb-periodicityServingCell          ENUMERATED { ms5, ms10, ms20, ms40, ms80, ms160, spare2, spare1 }", "verdict": "verbatim"},
+      {"id": "ASIL1-skolnik-doppler", "doc": "Maksymiuk, Abratkiewicz, Samczyński, \"UAV Intrusion Detection with Passive Radar Based on the 5G Network\", 2025 59th Asilomar Conference on Signals, Systems and Computers, pp.1639-1643, DOI 10.1109/IEEECONF67917.2025.11443758 (published)", "path": "/data/public/jeong/papers/5G/25_UAV Intrusion Detection with Passive Radar Based on the 5G Network.pdf", "locator_type": "printed page 1640 (pdf index 1)", "quote": "Alternatively, it can be expressed using the bistatic velocity Vb and geometric angles as follows [12]:", "verdict": "verbatim", "significance_ko": "⭐ Q-E 계보 종결의 핵심 인용"},
+      {"id": "ASIL2-skolnik-ref", "doc": "같은 논문, 참고문헌 [12]", "path": "/data/public/jeong/papers/5G/25_UAV Intrusion Detection with Passive Radar Based on the 5G Network.pdf", "locator_type": "printed page 1643 (pdf index 4)", "quote": "M. Skolnik, Radar Handbook, Third Edition, ser. Electronics electrical", "verdict": "verbatim", "full_ref": "M. Skolnik, Radar Handbook, Third Edition, McGraw-Hill Education, 2008"},
+      {"id": "JSTARS1-eq15-malanowski", "doc": "Abratkiewicz 외, IEEE JSTARS 16:3469-3484 (2023), 출판됨, p.3476 식(15)", "path": "/data/public/sionna_jeong/reference_library/g1g2/abratkiewicz2023_jstars.pdf", "locator_type": "printed page 3476 (pdf index 7)", "quote": "one can obtain bistatic range resolution deﬁned as [(2.8) in [2]]", "verdict": "verbatim", "significance_ko": "⭐ [2] = Malanowski, Signal Processing for Passive Bistatic Radar, Artech House 2019, 식(2.8) — 우리 ΔR_b=c/B 규약의 뿌리"},
+      {"id": "JSTARS2-20ms-default", "doc": "같은 논문 p.3476", "path": "/data/public/sionna_jeong/reference_library/g1g2/abratkiewicz2023_jstars.pdf", "locator_type": "printed page 3476 (pdf index 7)", "quote": "assuming the default value of T SSB\ndist = 20 ms and for the given carrier frequency, one can obtain the maximum unam- biguous bistatic velocity of ±1.0901 m/s.", "verdict": "verbatim (줄바꿈·하이픈은 PDF 원문 그대로)", "significance_ko": "⭐ 우리 '20 ms default' 어법의 실제 출처. BREAK-2 참조"},
+      {"id": "JSTARS3-min-5ms", "doc": "같은 논문 p.3476", "path": "/data/public/sionna_jeong/reference_library/g1g2/abratkiewicz2023_jstars.pdf", "locator_type": "printed page 3476 (pdf index 7)", "quote": "The SSB periodicity can be decreased to the minimum value when a cooperative network is considered.", "verdict": "verbatim"},
+      {"id": "IRS1-tgrs-is-car", "doc": "Maksymiuk, Płotka, Abratkiewicz, Samczyński, \"5G Network-Based Passive Radar for Drone Detection\", International Radar Symposium IRS 2023, Berlin, May 24-26 2023, DGON, DOI 10.23919/IRS57608.2023.10172437 (published)", "path": "/data/public/jeong/papers/5G/23_5G Network-Based Passive Radar for Drone Detection.pdf", "locator_type": "printed page 2 (pdf index 1)", "quote": "This work also presents other difficulties arising from using these signals in real-world conditions but allowing the detection of a target such as a car.", "verdict": "verbatim", "significance_ko": "⭐ TGRS 의 표적이 자동차임을 같은 그룹이 증언 — C2/H8 서사에 쓸 수 있는 2차 증언"},
+      {"id": "NUNEZ1-bisector", "doc": "Núñez-Ortuño 외, \"Beamforming Techniques for Passive Radar: An Overview\", Sensors 23(7):3435 (2023), MDPI CC BY (published), 식(1) 문맥", "path": "/data/public/sionna_jeong/reference_library/genealogy/nunez_ortuno_sensors2023_beamforming_passive_radar.xml", "locator_type": "section 1 (JATS XML, 페이지 없음)", "quote": "the minimum range separation required between two targets is called range resolution", "verdict": "verbatim", "note_ko": "이어지는 원문: 'ΔR, where two targets are assumed to be co-linear with the bistatic bisector.'"},
+      {"id": "WYP1-no-alwayson", "doc": "Wypich & Zieliński, Sensors 26(4):1317 (2026), MDPI CC BY (published), sec.3.1", "path": "/data/public/sionna_jeong/reference_library/genealogy/wypich_zielinski_sensors2026_5gnr_ref_ctrl_userdata.xml", "locator_type": "section 3.1", "quote": "5G does not include any always-on reference signals for channel estimation.", "verdict": "verbatim"},
+      {"id": "WYP2-20ms-commonly", "doc": "같은 논문 sec.3.1", "path": "/data/public/sionna_jeong/reference_library/genealogy/wypich_zielinski_sensors2026_5gnr_ref_ctrl_userdata.xml", "locator_type": "section 3.1", "quote": "These bursts are periodically repeated, with a commonly used repetition period of 20 ms", "verdict": "verbatim", "significance_ko": "⭐ 'default' 가 아니라 'commonly used' — BREAK-2 의 권장 대체 표현"},
+      {"id": "WYP3-prs-superiority", "doc": "같은 논문 sec.1 (Wei 외 TVT 2023 을 요약한 문장)", "path": "/data/public/sionna_jeong/reference_library/genealogy/wypich_zielinski_sensors2026_5gnr_ref_ctrl_userdata.xml", "locator_type": "section 1", "quote": "superiority of the 5G PRS, compared with a PSS, SSS, DM-RS and CSI-RS, in range and velocity estimation.", "verdict": "verbatim", "warning_ko": "⚠ 이건 Wei 원문이 아니라 Wypich 의 요약이다. Wei TVT 2023 을 직접 읽기 전에는 이 문장을 Wei 의 진술로 인용하지 말 것."},
+      {"id": "WYP4-pod", "doc": "같은 논문, contributions 절", "path": "/data/public/sionna_jeong/reference_library/genealogy/wypich_zielinski_sensors2026_5gnr_ref_ctrl_userdata.xml", "locator_type": "contributions", "quote": "improves the probability of detection (POD) from approximately 24-32% (using only pilots or a control) to 77-78% (using all components)", "verdict": "verbatim (원문 en-dash 를 정규화 규칙에 따라 하이픈으로 대조)"},
+      {"id": "CHEN1-slotlist", "doc": "Chen 외, Appl. Sci. 14:4282 (2024), MDPI (published), sec.3.3", "path": "/data/public/sionna_jeong/reference_library/g1g2/chen2024_applsci_14_4282.pdf", "locator_type": "pdf index 4 (printed p.5)", "quote": "The period of CSI-RS can be 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160, 320, and 640 time slots", "verdict": "verbatim", "now_confirmed_ko": "⭐ 규격 ASN.1 과 정확히 일치 — Chen 의 이 목록은 정확하다"},
+      {"id": "CHEN2-eq4-cite16", "doc": "같은 논문 sec.4.1.1 식(4)", "path": "/data/public/sionna_jeong/reference_library/g1g2/chen2024_applsci_14_4282.pdf", "locator_type": "pdf index 5 (printed p.6)", "quote": "the Doppler frequency shift generated by the moving target can be expressed as [16]", "verdict": "verbatim", "significance_ko": "[16] = Samczyński TGRS. Q-E 의 출발점"}
+    ]
+  },
+
+  "I_negative_controls": [
+    {"id": "NEG1", "kind": "날조 문장 (규격에 없음)", "src": "TS 38.331 v18.8.0", "quote": "The maximum configurable repetition frequency for Sub-6 GHz CSI-RS is 500 Hz.", "result": "정확히 거부", "doubles_as_ko": "⭐ BREAK-1 의 증명"},
+    {"id": "NEG2", "kind": "날조 기본값", "src": "TS 38.331 v18.8.0", "quote": "If the field is absent, the UE applies the value ms20.", "result": "정확히 거부", "doubles_as_ko": "⭐ BREAK-2 의 증명"},
+    {"id": "NEG3", "kind": "실제 문장에서 단어 1개 치환(slots4→slots2)", "src": "TS 38.331 v18.8.0", "result": "정확히 거부"},
+    {"id": "NEG4", "kind": "실제 38.331 문장을 38.213 에 귀속", "src": "TS 38.213 v15.8.0", "result": "정확히 거부"},
+    {"id": "NEG5", "kind": "그럴듯한 창작(λPRF/4 를 산문으로)", "src": "Asilomar 2025 PDF", "result": "정확히 거부"},
+    {"id": "NEG6", "kind": "실제 Wypich 문장을 IRS2023 에 귀속", "src": "IRS 2023 PDF", "result": "정확히 거부"}
+  ],
+
+  "J_open_questions_after_this_round": [
+    "⛔ Samczyński TGRS 60:5108209 (2022) 본문 — closed. 여기 걸린 모든 것은 UNVERIFIED 유지. 기관 구독이 생기면 최우선.",
+    "⛔ Księżyk, IEEE AESS Mag 38(9):4-21 (2023) — closed. Chen 의 [7] 지지 진술은 재인용 금지.",
+    "⛔ Wypich, Maksymiuk, Zieliński, IEEE Trans. Radar Syst. 3:511-519 (2025) 'Channel Response Estimated via Reference Signals' — closed. ⚠ 제목이 우리 주제 정중앙이다.",
+    "⭐ Wei 외, IEEE TVT 72(3):3250-3263 (2023) PRS 센싱 — 미보유. 우리 G1/G3 순위 서사의 선행 여부가 여기 걸려 있다. 다음 라운드 1순위.",
+    "⭐ Khosroshahi 외, VTC2024-Fall 'Doppler Ambiguity Elimination Using 5G Signals in ISAC' — 미보유. 우리 v_max 서사의 정면 선행 후보.",
+    "TRS(2^μ·X_p, X_p∈{10,20,40,80}) 제약은 OMML 때문에 verbatim 인용을 못 했다. 이 제약에 결론을 걸려면 ETSI HTML 판이나 다른 판본으로 재확인 필요.",
+    "상용 n78 셀이 실제로 어떤 SCS/SSB 주기를 쓰는지 — 규격상 허용범위는 확정됐지만 배치 실태는 여전히 UNVERIFIED(통념).",
+    "우리 500 Hz 를 재인용한 LaSen 문장 자체가 numerology 미고정 결함을 가진다 — LaSen 을 인용할 때 그 문장을 규격 진술로 승격시키지 말 것."
+  ],
+
+  "K_what_this_round_did_not_do": [
+    "TGRS·Księżyk 원문을 읽지 않았다(합법 경로 없음). 그 두 편에 대한 모든 기술은 2차 증언이다.",
+    "새로 받은 4편(Wypich·Nataraja·Bednarz·Núñez-Ortuño) 중 Wypich 만 정독했다. Nataraja·Bednarz 는 확보만 하고 읽지 않았다.",
+    "Skolnik 『Radar Handbook』 3판 원문을 직접 확인하지 않았다 — 식이 실제로 거기 있는지는 Asilomar 논문의 귀속을 믿은 것이다. 'Skolnik 이 기원'은 VERIFIED 가 아니라 '같은 그룹이 교과서에 귀속한다'가 VERIFIED 다.",
+    "CORR-2(V_b 정의 2배 불일치)는 우리 추론이고 어느 저자에게도 확인받지 않았다.",
+    "38.101-1(UE 측 RF)은 받지 않았다. FR1 SCS 는 38.104(BS 측)로만 확인했다."
+  ],
+
+  "status": "done"
+}

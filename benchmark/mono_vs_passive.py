@@ -1369,9 +1369,12 @@ def main():
                 "outputs/monostatic_prior.json",
             "traffic sparsity < 5% above 7.1% RE":
                 "LaSen (SenSys '26, published) §4.2.1, recorded in outputs/monostatic_prior.json",
-            "formula priority": "Chen et al., Applied Sciences 14(10):4282, 2024 (MDPI, "
-                                "published, open access) — outputs/monostatic_prior.json "
-                                "priority_check.hits[0]",
+            # ⭐ 정정 R1 (docs/RETRACTION_LOG.md) — Chen 귀속은 두 번째 오답이었다.
+            "formula priority": "Abratkiewicz et al., IEEE JSTARS 16:3469-3484 (2023), "
+                                "eq. (16) p.3476 (published) — identical half-window "
+                                "convention. NOT Chen 2024, which prints no closed form "
+                                "('PRF' appears 0 times); the earlier Chen attribution is "
+                                "RETRACTED. See docs/RETRACTION_LOG.md R1",
         },
     )
     out["meta"]["runtime_s"] = time.time() - t0

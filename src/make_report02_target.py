@@ -38,6 +38,13 @@ make_report02_target.py — 리포트 02 「표적 모델」 빌더  →  report
   outputs/rcs_anchor.json · sigma_anchor.json · sbr_kr_sweep.json · sbr_defect_fixes.json
   outputs/real_cad_compare.json · community_compare.json · phantom4_scan_compare.json
 
+  ⭐ 다른 워크플로가 낸 원장 — **읽기만** 한다(계산도 덮어쓰기도 하지 않는다)
+  outputs/facet_count.json · facet_mechanism.json    ← §2 스톡 경로 솔버가 같은 메쉬에서 내는 것
+  outputs/runtime_benchmark.json                     ← §2 · §6 같은 카드 런타임
+  outputs/p3_ours.json · p3_validation.json          ← §4.5 Phantom 3 눈감기 산출과 봉인 해제
+  outputs/ptd_defect_fixes.json · ptd_wiring.json    ← 여는 블록 «모서리 회절» · §6 PTD 행
+  outputs/s2r_assets_verify.json                     ← §6 σ 격자 동일설정 재생성 대조
+
 무결성 장치
   · `derive()` 는 밴드 정의를 `rcs_anchor.json:meta.bands` 와 대조하고, 자체 적합한 밴드 기울기를
     `sigma_anchor.json` 이 독립으로 적합한 값과 대조한다. 어긋나면 **거기서 멈춘다**.
@@ -87,6 +94,19 @@ J_MATERIAL = "outputs/mesh_compare_material.json"
 #: ⭐ σ 오차 → 파형 순위 강건성 원장(별도 워크플로 `benchmark/sigma_sensitivity.py` 산출).
 #:   §5 가 통째로 여기서 나온다 — 이 편은 집계만 한다.
 J_SIGSENS = "outputs/sigma_sensitivity.json"
+
+#: 다른 워크플로가 낸 원장들 — 이 편은 **인용만** 한다(계산·덮어쓰기 없음).
+#:   §2  스톡 엔진 실측(경로/정반사·판 크기 불변) · 런타임 벤치
+#:   §4.5 Phantom 3 눈감기 산출과 봉인 해제 대조
+#:   §6  PTD 배선 상태 · σ 격자 동일설정 재생성 대조
+J_FACET_COUNT = "outputs/facet_count.json"
+J_FACET_MECH = "outputs/facet_mechanism.json"
+J_RUNTIME = "outputs/runtime_benchmark.json"
+J_P3_OURS = "outputs/p3_ours.json"
+J_P3_VALID = "outputs/p3_validation.json"
+J_PTD_FIX = "outputs/ptd_defect_fixes.json"
+J_PTD_WIRE = "outputs/ptd_wiring.json"
+J_REGEN = "outputs/s2r_assets_verify.json"
 
 #: 리포트 전체가 쓰는 세 밴드. 값은 rcs_anchor.json:meta.bands 와 같아야 하며 아래서 검사한다.
 BANDS = {"LTE": 1.843e9, "5G": 3.500e9, "WiFi": 5.210e9}
@@ -300,9 +320,15 @@ def _stamp_of(rel: str) -> tuple[str, str]:
 
 
 def _mesh_table(G, air) -> dict:
-    """기체별 기하 — `outputs/mesh_gallery.json` 을 표 행으로. r 은 우리 계산과 대조한다."""
+    """기체별 기하 — `outputs/mesh_gallery.json` 을 표 행으로. r 은 우리 계산과 대조한다.
+
+    ⭐ 표의 **모집단은 이 편의 표적 목록**(`DRONE_ORDER`, = `air`)이고, 원장은 값만 준다.
+       원장은 정의상 레지스트리 전 기종을 담는다(`viz_mesh_gallery.measure()` 는 부분 계측을
+       거부한다) — 그래서 레지스트리에 검증 전용 기체가 들어오면 원장이 먼저 커진다.
+       모집단을 원장에서 읽으면 그때 표가 조용히 같이 커진다. 순서만 원장의 크기순을 쓴다.
+    """
     rows, worst = [], 0.0
-    for k in G["order_by_size"]:
+    for k in [k for k in G["order_by_size"] if k in air]:
         g = G["airframes"][k]
         L, W, H = g["lwh_full_mm"]
         worst = max(worst, abs(g["r_encl_m"] - air[k]["r_encl_m"]) / air[k]["r_encl_m"])
@@ -1158,10 +1184,19 @@ def blocks(J):
     RCAD = from_json("outputs/real_cad_compare.json")
     COM = from_json("outputs/community_compare.json")
     PH4 = from_json("outputs/phantom4_scan_compare.json")
-    SA = from_json("outputs/sigma_anchor.json")
+    from_json("outputs/sigma_anchor.json")     # §4.3 표가 경로로 직접 읽는다 — 존재 검사만
     #: Sionna RT 원문(기술보고서 v1.2 · 59쪽)의 낱말 재계수 — §2 의 엔진 문장이 여기서 나온다.
     PS = from_json("outputs/prior_settled_sionna.json")
     SIG = from_json(J_SIGSENS)
+    #: 다른 워크플로의 원장 — 값만 읽는다.
+    FC = from_json(J_FACET_COUNT)     # 스톡 경로 솔버가 같은 메쉬에서 내는 것
+    FM = from_json(J_FACET_MECH)      # 그 기전(이미지법 진폭의 크기 불변)
+    RB = from_json(J_RUNTIME)         # 같은 카드에서 잰 런타임
+    P3O = from_json(J_P3_OURS)        # Phantom 3 눈감기 산출
+    P3V = from_json(J_P3_VALID)       # 봉인 해제 대조
+    PTF = from_json(J_PTD_FIX)        # PTD 항의 정직한 이름
+    PTW = from_json(J_PTD_WIRE)       # PTD 배선 상태
+    RGN = from_json(J_REGEN)          # σ 격자 동일설정 재생성 대조
     WC = "word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p"
 
     #: f-string 안에서 포맷 문자열을 쪼개면 중괄호가 충돌한다 — 먼저 문자열로 만들어 둔다.
@@ -1223,14 +1258,18 @@ def blocks(J):
             f"해석해 8πa²b²/λ² 와 변 길이 4점 전부에서 "
             f"{F.num('d3_multibounce_phase.max_abs_err_db', fmt='{:.3f}', unit='dB')} 안에서 맞는다.",
 
-            f"**주파수 의존성 A(f) 만 Das 측정(IEEE WCL 2026 15:3731)에 맞췄다** — 기울기 "
-            f"{A.num('literature.mu_eps.multiband_phantom3.mu_a', 0.21, '{:.3f}', 'dB/GHz')}, "
-            f"그때 기체 {D.num('anchor_modes.n_airframes', fmt='{:.0f}')}종의 평균 레벨이동은 "
-            f"{D.num('anchor_modes.level_shift_abs_max_db', fmt='{:.2f}', unit='dB')}, "
-            f"정규화 각도패턴 이동은 "
-            f"{D.num('anchor.shape_invariance_max_abs_db', fmt='{:.1e}', unit='dB')} 다.",
+            f"**주파수 의존성 A(f) 만 Das 측정(IEEE WCL 2026 15:3731)에 맞췄고, 같은 기체를 눈감고 "
+            f"돌려 봉인을 풀었다**(§4.5) — 기울기 "
+            f"{A.num('literature.mu_eps.multiband_phantom3.mu_a', 0.21, '{:.3f}', 'dB/GHz')} 에 맞출 때 "
+            f"기체 {D.num('anchor_modes.n_airframes', fmt='{:.0f}')}종의 평균 레벨이동은 "
+            f"{D.num('anchor_modes.level_shift_abs_max_db', fmt='{:.2f}', unit='dB')} 이고, 눈감기 "
+            f"Phantom 3 는 고도정합 실측곡선 대비 레벨 "
+            f"{P3V.num('residual.vs_yuan_theta90_measured_curve.mean_db', fmt='{:+.2f}', unit='dB')} · "
+            f"기울기 {P3V.num('slope.ratios.ours_over_yuan_theta90', fmt='{:.2f}')}배 다.",
         ],
         method=[
+            ("분업", "σ 의 각도구조와 가림은 이 커널이 낸다 · 경로와 환경은 Sionna 광선엔진이 낸다 "
+                     "— 레이다식에서 원래 갈라져 있는 두 양이다"),
             ("메쉬", "제원(공식 외형 L×W×H · 모터 대각 · 프롭 지름)과 제조사 CAD 치수표에서 "
                      "세우고 부품을 재질 그룹으로 유지 (`src/drone_cad.py`, "
                      "`src/drones.py:822` build_drone)"),
@@ -1239,6 +1278,11 @@ def blocks(J):
             ("가림", "Sionna 의 Mitsuba/OptiX 광선엔진으로 면별 first-hit 판정 "
                      "(`src/rcs_sbr.py:184`)"),
             ("σ", "조명면 위 PO 표면적분, 부품별 |Γ| 가중 + 얇은 셸 뒤 금속의 코히런트 합"),
+            ("모서리 회절", f"1차 PTD 항({PTF.num('naming_correction.honest_name')})이 커널 세 "
+                          f"진입점에 배선돼 있고 생산 기본값은 끔이다 — ptd=False 에서 σ 변화는 "
+                          f"{PTW.num('verdict.max_abs_delta_sigma_ptd_false', fmt='{:.1f}', unit='dB')} "
+                          f"(`src/rcs_sbr.py` 의 `rcs_sbr_batch` · `rcs_sbr_multistatic` · "
+                          f"`sbr_field`)"),
             ("검증", "기준해 셋과 대조 — 해석 PO 구 · 정확 Mie 구 · PEC 이면각 닫힌형 "
                      "(`benchmark/mie_pec_sphere.py`, `benchmark/verify_sbr_defect_fixes.py`)"),
             ("절대 레벨", "우리 PO 면적분 출력 그대로 — 재보정(`slope_only`)은 밴드평균 레벨을 "
@@ -1424,7 +1468,8 @@ def blocks(J):
         "## §2. 엔진 — 광선으로 조명면을 찾고 그 위에서 PO 를 적분한다", "",
         "상용 고주파 RCS 솔버(FEKO/CST SBR+)의 순서 그대로다: **① 광선으로 실제 조명면을 찾고 "
         "② 그 위에서 PO 표면적분**(`src/rcs_sbr.py:184`). ① 은 Sionna 가 이미 들고 있는 "
-        "Mitsuba/OptiX 엔진을 그대로 부른다.", "",
+        "Mitsuba/OptiX 엔진을 그대로 부른다. 레이다식이 표적 산란과 전파 경로를 두 양으로 쓰는 "
+        "그대로 — **σ 는 이 커널이, 경로와 환경은 그 엔진이 낸다**.", "",
         table(["단계", "무엇을", "누가"],
               [["첫 충돌 탐색 · 가림", "어느 면이 실제로 조명되는가",
                 "🟢 Sionna 의 Mitsuba/OptiX 광선엔진"],
@@ -1446,7 +1491,31 @@ def blocks(J):
         f"산란 모델이 금속에서 내놓는 항은 0 이고, 우리 σ 는 면적분에서 창발한다. 금속 4그룹"
         f"(모터·배터리·PCB·카메라)만 남긴 메쉬의 방위평균 σ 는 전체의 "
         f"{R3.num('C_metal.metal_share_pct', fmt='{:.0f}', unit='%')} 다 — 코히런트 합이라 "
-        f"100 % 를 넘는다."))
+        f"100 % 를 넘는다.", "",
+        f"같은 메쉬를 스톡 경로 솔버에 그대로 넣고 무엇이 나오는지 쟀다 — 삼각형 "
+        f"{FC.num('levels[0].n_tri', 29932, '{:,.0f}')}개(mavic4pro)에서 광선 예산 "
+        f"{FC.num('meta.spp_main', fmt='{:.1e}')} spp 일 때 경로는 자세당 "
+        f"{FC.num('levels[0].rt_n_paths_mean', fmt='{:.1f}')}개이고, 이미지법 정반사 경로는 "
+        f"{FC.num('levels[0].spec_n_aspects', 36, '{:.0f}')}자세를 통틀어 "
+        f"{FC.num('levels[0].spec_n_paths_total', 2, '{:.0f}')}개"
+        f"(자세 {FC.num('levels[0].spec_n_aspects_nonzero', 1, '{:.0f}')}개)다 — 나머지 진폭은 "
+        f"확산 항이 낸다. 평판 대조군에서 그 정반사 진폭은 무한거울 값 "
+        f"{FM.num('theory.amp_image_source_db', fmt='{:.2f}', unit='dB')} 에 고정되어 판 크기를 "
+        f"{FM.num('VERDICT.plate_size_invariance.size_ratio_max', 40, '{:.0f}')}배로 키워도 "
+        f"{FM.num('VERDICT.plate_size_invariance.rt_spread_db', fmt='{:.1e}', unit='dB')} 안에 머물고, "
+        f"면 수가 표적 에코를 지배한다는 가설은 스톡 기울기 "
+        f"{FC.num('slopes.stock_incoh', fmt='{:.3f}')} dB/decade 로 "
+        f"{FC.num('verdict.result')} 다.", "",
+        f"런타임도 같은 카드에서 나란히 쟀다 — 스톡 PathSolver 가 "
+        f"{RB.num('answer.same_card_control.stock_sionna_pathsolver_ms.min', fmt='{:.1f}')}~"
+        f"{RB.num('answer.same_card_control.stock_sionna_pathsolver_ms.max', fmt='{:.1f}', unit='ms')}"
+        f"({RB.num('answer.same_card_control.stock_sionna_pathsolver_ms.n_configs', 12, '{:.0f}')}설정)"
+        f"일 때 우리 per-pose 는 중앙값 "
+        f"{RB.num('production_per_pose.summary_ms.median', fmt='{:.1f}', unit='ms')} 다. 그 비용의 "
+        f"{RB.num('answer.cost_structure.host_side_pct', fmt='{:.1f}', unit='%')} 가 호스트에 있고 "
+        f"GPU 광선추적은 "
+        f"{RB.num('production_per_pose.stage_pct_median_over_configs.rt_trace', fmt='{:.1f}', unit='%')} "
+        f"다."))
 
     B.append(md(
         "![lit versus shadowed](outputs/figures/mesh_compare_material_shadow.png)", "",
@@ -1627,6 +1696,45 @@ def blocks(J):
         f"최대치 {D.num('anchor.correction_abs_max_db', fmt='{:.2f}', unit='dB')} 보다 크다. "
         f"그래서 커널은 그대로 두고 **원장으로만** 적용한다 — 05편이 이 표를 함께 읽는다."))
 
+    # ── §4.5 ⭐ 눈감기 대조 — 앵커 기체를 문헌값을 보지 않고 낸 뒤 봉인을 풀었다 ─────
+    #    정본 대조는 전대역 대 전대역이다. 부분대역 행은 μ(f) 의 곡률을 보이는 설명이고,
+    #    우리 운용 밴드 셋이 전부 그 저주파 구간에 있다는 사실을 같은 셀에서 적는다.
+    B.append(md(
+        "### §4.5 ⭐ 눈감기 대조 — Phantom 3 를 문헌값을 보지 않고 내고 봉인을 풀었다", "",
+        f"앵커 기체와 같은 기체(DJI Phantom 3)를 같은 창 1.8~18.2 GHz 에서 우리 커널로 돌렸다"
+        f"(`benchmark/p3_ours.py`, {P3O.num('meta.runtime_s_total_process', fmt='{:.0f}', unit='s')}). "
+        f"산출 과정은 문헌 상수를 한 번도 읽지 않았고 봉인은 별도 스크립트가 풀었다"
+        f"(`benchmark/p3_validation.py`). 적합 창은 Das Table III · Yuan §IV 와 같다"
+        f"(일치 {P3V.num('window.same_window')}).", "",
+        "이 대조가 재는 것은 절대 레벨과 주파수 의존 두 스칼라이고, 각도패턴은 우리 기하에서 나온 "
+        "그대로다. Das 의 Phantom 3 행은 Yuan 원자료의 재분석이라 독립 2건이 아니다.", "",
+        table(["대조 상대", "고도 · 창", "기울기 [dB/GHz]", "우리와의 거리"],
+              [["우리 el=0 전대역 (눈감기 산출)", "el=0 · 1.8–18.2 GHz",
+                f"{P3V.num('slope.ours_el0_full_band.a', fmt='{:.3f}')} ± "
+                f"{P3V.num('slope.ours_el0_full_band.se_a', fmt='{:.3f}')} "
+                f"(양 끝점 제외 "
+                f"{P3V.num('slope.ours_slope_robustness.drop_both_endpoints', fmt='{:.3f}')})", "—"],
+               ["Das 공표 (IEEE WCL 2026)", "고도풀링 · 같은 창",
+                f"{P3V.num('slope.das_published.a', 0.21, '{:.2f}')}",
+                f"{P3V.num('slope.ratios.ours_over_das', fmt='{:.2f}')}배 · "
+                f"{P3V.num('slope.significance.z_vs_das_0p21', fmt='{:.1f}')}σ"],
+               ["Yuan θ=90° 실측곡선 (EuCAP 2025)", "고도정합 · 같은 창",
+                f"{P3V.num('slope.yuan_theta90_published.a', 0.315, '{:.3f}')}",
+                f"{P3V.num('slope.ratios.ours_over_yuan_theta90', fmt='{:.2f}')}배 · "
+                f"{P3V.num('slope.significance.z_vs_yuan_theta90_0p315', fmt='{:.1f}')}σ · 레벨 "
+                f"{P3V.num('residual.vs_yuan_theta90_measured_curve.mean_db', fmt='{:+.2f}', unit='dB')}"],
+               ["부분대역 1.8–6.0 GHz (설명)", "el=0 · 실측곡선 대조",
+                f"우리 {P3O.num('subband_fits.by_aspect.el0.1.8-6.0 GHz.a', fmt='{:.2f}')} vs 측정 "
+                f"{P3V.num('our_operating_band.measured_theta90_curve_dense.a', fmt='{:.2f}')}",
+                f"{P3V.num('our_operating_band.slope_ratio', fmt='{:.2f}')}배 · 1.8 GHz 레벨 "
+                f"{P3V.num('our_operating_band.level_error_db.at_1p8', fmt='{:+.2f}', unit='dB')}"]]), "",
+        f"정본 대조는 전대역 대 전대역이다 — 부분대역 행은 우리 μ(f) 가 "
+        f"{P3O.num('subband_fits.by_aspect.el0.1.8-6.0 GHz.a', fmt='{:.2f}')}(1.8–6.0 GHz)에서 "
+        f"{P3O.num('subband_fits.by_aspect.el0.6.0-18.2 GHz.a', fmt='{:.2f}', unit='dB/GHz')}"
+        f"(6.0–18.2 GHz)로 꺾인다는 것을 보이는 설명이다.", "",
+        "⚠ **우리 세 밴드(LTE 1.843 · 5G 3.5 · WiFi 5.21 GHz)가 전부 그 저주파 구간 안에 있고, "
+        "거기서 우리 σ 가 실측곡선보다 낮다** — 05편의 검출 결과는 그만큼 보수적인 쪽으로 선다."))
+
     # ── §5  ⭐ 이 편이 논문에 주는 두 번째 물건 — σ 오차 아래의 순위 강건성 ───────
     B.append(md(
         "## §5. σ 오차를 넣어도 파형 순위가 서는 범위", "",
@@ -1672,27 +1780,8 @@ def blocks(J):
                         "flip_single_db": "{:.2f}", "flip_aspect_avg_db": "{:.2f}",
                         "band_sigma_spread_db": "{:.1f}", "p_order_1db": "{:.3f}"})))
 
-    B.append(md(
-        "### §5.1 이 표를 논문이 쓰는 법", "",
-        f"뒤집힘을 정하는 것은 기체 크기가 아니라 **밴드간 σ 산포**다 — 가장 작은 "
-        f"{D.num('sigma_sens.flip_single_max_name')} 가 문턱 "
-        f"{D.num('sigma_sens.flip_single_max_db', fmt='{:.2f}', unit='dB')} 로 가장 견고하고, "
-        f"{D.num('sigma_sens.flip_single_min_name')} 가 {D.num('sigma_sens.flip_single_min_db', fmt='{:.2f}', unit='dB')} "
-        f"로 가장 예민하다.", "",
-        f"앵커 전 차분 폭은 {D.num('sigma_sens.realistic_span_db', fmt='{:.2f}', unit='dB')}"
-        f"(생산 기울기 − 측정 기울기 × 밴드 스팬)이고, 그 폭 안에서 순위가 바뀌는 기체가 "
-        f"{D.num('sigma_sens.n_flip_inside_realistic', fmt='{:.0f}')}대다. 그래서 인용 규약을 둘로 고정한다 "
-        f"— **자세평균 σ 로 인용하고, `modes.slope_only.delta_db` 를 적용한 뒤 읽는다**.", "",
-        f"R90 사슬(`src/experiment_freespace_sigma.py`)은 σ 격자를 앵커 전 값으로 읽는다. 지금 "
-        f"델타를 적용하면 {D.num('sigma_sens.n_airframes', fmt='{:.0f}')}기체 중 "
-        f"{D.num('sigma_sens.anchor_not_applied_n_order_changed', fmt='{:.0f}')}대의 순위가 바뀐다 — "
-        f"적용 지점은 §6 표 첫 줄이고, 05편이 그 위에서 밴드를 읽는다.", "",
-        f"σ 격자가 바뀌면 결과도 바뀐다는 것을 크기로 적는다 — 07-24 격자와 07-29 블레이드 갱신본 "
-        f"사이에서 R90 이 최대 {D.num('sigma_sens.blade_update_max_range_pct', fmt='{:.1f}', unit='%')} "
-        f"움직이고 순위쌍 {D.num('sigma_sens.blade_update_n_orders_changed', fmt='{:.0f}')}개가 "
-        f"뒤집힌다. 자세평균 자체는 방위 격자에 둔감하다 — 120점과 720점 격자의 방위평균 차이가 "
-        f"{SA.num('drones.mini5pro.grid_vs_720az_db.LTE 1.843 GHz', fmt='{:.3f}', unit='dB')} "
-        f"(Mini 5 Pro @ LTE) 다."))
+    #  §5.1 «이 표를 논문이 쓰는 법» 은 셀 [25] 논문블록과 01편 §4.1.1 이 같은 말을 들므로 뺐다.
+    #  인용 규약(자세평균 · slope_only 델타 적용)은 §5 본문과 §6 첫 줄이 그대로 든다.
 
     # ── 재현용 코드 셀 ─────────────────────────────────────────────────────
     B.append(code(
@@ -1719,17 +1808,32 @@ def blocks(J):
          f"바뀐다",
          "`src/experiment_freespace_sigma.py` → 05편 §5"),
         ("자세 패턴과 부품별 스트립을 현재 메쉬로 다시 재어 이 편에 되싣는다",
-         "07-31 기하 위의 자세 패턴 σ 가 확정된다",
+         f"현재 기하 위의 자세 패턴 σ 가 확정된다 — 동일설정 재생성 대조에서 기체당 최대 "
+         f"{RGN.num('overstated[0].결과_표[0].max_abs_delta_db', 22.36, '{:.2f}')} · rms "
+         f"{RGN.num('overstated[0].결과_표[0].rms_delta_db', 10.82, '{:.2f}', 'dB')} 가 움직인다",
          "`src/viz_report2.py` → `outputs/report2_waveform_rcs.json`"),
         ("§4 의 앵커 사슬(rcs_anchor → sigma_anchor)을 현재 메쉬로 다시 돌린다",
-         "밴드 기울기와 재보정 원장이 현재 기하 위에 선다",
+         f"밴드 기울기와 재보정 원장이 현재 기하 위에 선다 — 재생성 평균이 기체마다 "
+         f"{RGN.num('overstated[0].결과_표[0].mean_delta_db', -5.7, '{:+.2f}')} ~ "
+         f"{RGN.num('overstated[0].결과_표[2].mean_delta_db', 3.18, '{:+.2f}', 'dB')} 로 반대 방향이다",
          "`benchmark/rcs_anchor.py` → `src/sigma_anchor.py`"),
+        (f"생산 σ 를 `ptd=True` 로 다시 낸다 (세 진입점 배선 완료 · 기본 꺼짐 · 비용 "
+         f"+{PTW.num('verdict.cost_increase_pct', fmt='{:.1f}', unit='%')})",
+         "밴드 기울기를 기하만으로 세울 수 있는지 결정된다 — 지금 생산 σ 는 PO 면적분 항만 든다",
+         "`benchmark/rcs_anchor.py --ptd` → `outputs/rcs_anchor_ptd.json`"),
+        ("Phantom 3 큐브·박스 대조군을 같은 눈감기 절차로 돌린다",
+         "메쉬 작업이 큐브 대비 무엇을 사는지가 dB 로 확정된다 — §4.5 의 레벨·기울기 거리가 "
+         "형상 해상도의 함수가 된다",
+         "`benchmark/p3_validation.py` 확장 → 02편 §4.5"),
+        (f"PO 면적분을 디바이스 커널로 옮긴다 (지금 호스트 몫 "
+         f"{RB.num('answer.cost_structure.host_side_pct', fmt='{:.1f}', unit='%')} · PO 단계 "
+         f"{RB.num('production_per_pose.stage_pct_median_over_configs.po', fmt='{:.1f}', unit='%')})",
+         f"전격자 재생성 비용이 결정된다 — 현재 추정 "
+         f"{RB.num('production_per_pose.whole_published_grid.projected_hours', fmt='{:.2f}', unit='h')}",
+         "`src/rcs_sbr.py` → `outputs/runtime_benchmark.json` 재측정"),
         ("§1 의 그림 넷을 게재 규격(벡터 + 300 dpi · 8 pt)으로 다시 그린다",
          "원고 그림 전부가 2단 조판 축소에서 살아남는다",
          "`src/viz_mesh_gallery.py` · `src/viz_mesh_material.py` → `paper_kit.save_figure`"),
-        ("PO 면적분에 등가 모서리 전류(PTD)를 더한다",
-         "밴드 기울기를 기하만으로 세울 수 있는지 결정된다",
-         "`src/rcs_sbr.py:184` → 02편 §4 기울기 재측정"),
         ("Matrice 4E · Mini 5 Pro 의 짐벌·착륙장치를 사진 실루엣에 맞춘다",
          "실측 두 기체의 IoU 가 상한 대비 어디까지 오르는지 결정된다",
          "`src/drone_cad.py` → §1.1 재측정"),

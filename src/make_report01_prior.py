@@ -12,6 +12,8 @@ make_report01_prior.py — 리포트 01 「선행연구」 빌더  →  report01
 이 편이 한 일 하나
     **아카이브 문서 21건의 전문을 판정해, 각 편이 표적 서명을 어디서 조달했고 그 조달처가
     무슨 주장을 사 주었는지 카탈로그로 만들고, H8 을 네 관문으로 후보별 판정했다.**
+    §3.4 는 그 카탈로그를 아카이브 전수(고유문서 327편)로 한 번 더 세어 **주입의 좁은/넓은 정의**와
+    **게재본이 인쇄한 검증**을 갈라 적는다.
 
 이 편이 먹이는 논문 절 (PAPER_SPEC §3)
     **I. Introduction / II. Related Work** — 조달전략 카탈로그 · 신규성 문단 · H8 4관문 ·
@@ -23,6 +25,13 @@ make_report01_prior.py — 리포트 01 「선행연구」 빌더  →  report01
     `outputs/report01_paper.json`      — 논문 파생 원장: 4관문 집계 12편 · 인용 21건 · 갈래별 게재수
                                           (`src/report01_paper_facts.py`)
     `outputs/sbr_kr_sweep.json` · `outputs/verify_cfar.json` — §4.2 가 인용하는 다른 편의 근거
+
+조사 원장 (다른 워크플로 산출 · 이 빌더는 **읽기만** 한다)
+    `outputs/injection_archive.json` · `injection_classification_audit.json` ·
+    `injection_verdict.json` · `injection_validation_hunt.json` — §3.4 주입 3갈래
+    `outputs/facet_attack.json`  — §3.4 클러터 서베이 41쪽 전문 계수
+    `outputs/s2r_prior.json`     — §4 · §5 sim-to-real 조합 센서스
+    `outputs/tm_claims.json` · `tm_verify_rest.json` — 여는 블록 «검증 규약» · §5 정정 전파
 
 그림 4장은 `src/figs_report01.py` 가 게재 규격(벡터 PDF + 400 dpi PNG · 9 pt · 색+해치)으로 그린다.
 
@@ -60,6 +69,19 @@ PAPER = "outputs/report01_paper.json"
 KR = "outputs/sbr_kr_sweep.json"
 CFAR = "outputs/verify_cfar.json"
 NB_OUT = os.path.join(_ROOT, "report01_prior.ipynb")
+
+#: §3.4 · §4 · 여는 블록이 읽는 조사 원장 — 전부 다른 워크플로가 낸 산출물이고 여기서는 인용만 한다.
+#:   주입 3갈래 : 인구조사(archive) → 재판독 감사(classification_audit) → 검증 사냥(validation_hunt)
+#:   클러터 서베이 전문 계수 : facet_attack.attack_5_clutter_survey
+#:   sim-to-real 센서스 : s2r_prior · 덱 축자 감사 : tm_claims · tm_verify_rest
+INJ_ARCHIVE = "outputs/injection_archive.json"
+INJ_AUDIT = "outputs/injection_classification_audit.json"
+INJ_VERDICT = "outputs/injection_verdict.json"
+INJ_HUNT = "outputs/injection_validation_hunt.json"
+CLUTTER = "outputs/facet_attack.json"
+S2R = "outputs/s2r_prior.json"
+TM_CLAIMS = "outputs/tm_claims.json"
+TM_VERIFY = "outputs/tm_verify_rest.json"
 
 FIGS = {
     "funnel": "outputs/figures/report01_p1_funnel.png",
@@ -219,6 +241,16 @@ def defence_rows(P, C, V):
 def blocks(P, C, S, V):
     B = []
 
+    #: 이번 편이 인용하는 조사 원장 — 값만 읽는다(계산 없음).
+    IA = from_json(INJ_AUDIT)      # 주입 인구조사 재판독 감사
+    IV = from_json(INJ_VERDICT)    # 주입 사례 마스터표(넓은 정의)
+    IH = from_json(INJ_HUNT)       # 주입 σ 검증 사냥(좁은 정의)
+    IR = from_json(INJ_ARCHIVE)    # 주입 인구조사(모집단 크기)
+    CL = from_json(CLUTTER)        # 클러터 서베이 전문 계수
+    SR = from_json(S2R)            # sim-to-real 센서스
+    TC = from_json(TM_CLAIMS)      # 덱 주장 추출
+    TV = from_json(TM_VERIFY)      # 덱 주장 축자 판정
+
     # ── 여는 블록 + 논문 대응(셀 +0) ────────────────────────────────────────
     hdr = header(
         num=1,
@@ -249,6 +281,14 @@ def blocks(P, C, S, V):
                      f"{C.num('corpus.documents', 21, '{:.0f}')}건을 전문 판정했다"),
             ("귀속", f"판정마다 축자 인용을 PDF 그 쪽에서 기계가 찾는다 — 못 찾으면 빌드가 죽는다 "
                      f"(`prior_work/src/build_prior_survey.py:85`)"),
+            ("검증 규약", f"남의 논문 주장은 원문 축자로 판정한다 — 덱 "
+                         f"{TC.num('n_claims', 197, '{:.0f}')}건 중 범위 안 "
+                         f"{TV.num('counts.n_claims_in_scope', 165, '{:.0f}')}건을 대조해 "
+                         f"{TV.num('counts.wrong', 18, '{:.0f}')}건이 틀렸고, 부재주장은 "
+                         f"{TV.num('counts.absence_claims_in_scope', 41, '{:.0f}')}건 중 "
+                         f"{TV.num('counts.absence_claims_wrong', 12, '{:.0f}')}건이다. 그래서 이 편의 "
+                         f"부재 진술은 모집단을 문장 안에 적는다 "
+                         f"(`docs/TEAMMEETING_PRIORWORK_AUDIT.md` §5)"),
             ("게재상태", "PDF 메타데이터 `subject`(IEEE 조판이 박는 \"게재처;연도;권;호;DOI\") · "
                         "지면 스탬프 · arXiv 스탬프로 문서마다 확정했다. 본문에 지면 채택을 적은 "
                         "arXiv 원고는 `일부` 로 세고 프리프린트로 남긴다"),
@@ -395,9 +435,59 @@ def blocks(P, C, S, V):
         f"{P.num('counts.zero_cfar_and_false_alarm', 14, '{:.0f}')}편이다. 오경보 바닥을 명목값에 "
         f"고정하는 것은 잡음·클러터 분포를 통제하는 시뮬이 하는 일이고, 그 자리가 04편이다."))
 
+    # ── §3.4 ⭐ 엔진 밖 조달의 두 갈래(주입 · 통계추출)를 아카이브 전수로 다시 셌다 ──
+    #    §3 카탈로그는 전문 판정 21건 안에서 세고, 이 절은 아카이브 전수 재판독이다 —
+    #    모집단이 다르므로 두 정의를 한 문장에 섞지 않는다.
+    B.append(md(
+        "### §3.4. ⭐ 엔진 밖에서 조달한 게재본 — 주입은 게재돼 있고, 값은 검증이 치른다", "",
+        f"주입(엔진 밖에서 만든 σ 표를 자세로 조회해 시뮬 경로에 곱하는 구조)을 아카이브 고유문서 "
+        f"{IR.num('method.unique_documents_after_text_hash_dedup', 327, '{:.0f}')}편(텍스트 해시 "
+        f"중복 제거 후) 위에서 다시 셌다. 정의를 둘로 갈라 적는다 — 좁은 정의는 `외부 상용 솔버 → "
+        f"광선추적 경로계수`, 넓은 정의는 `외부 서명표 → 시뮬 경로·링크` 다. 아래 계수의 모집단은 "
+        f"이 아카이브이고, §3 표(전문 판정 21건)와 다르다.", "",
+        table(["갈래 · 정의", "이 조사가 센 것", "게재", "인쇄된 검증 · 파라미터"],
+              [["좁은 정의 — 외부 상용 솔버 → 광선추적 경로계수",
+                f"{IV.num('headline_answer.the_single_paper_that_does_that')}",
+                f"{IV.num('headline_answer.of_the_peer_reviewed_set_how_many_computed_the_table_in_a_commercial_full_wave_solver_and_multiplied_it_onto_ray_traced_paths', 0, '{:.0f}')}편",
+                f"실측 · 독립솔버 · 해석해 대조 판정 "
+                f"{IH.num('answer.strict_verdict')}"],
+               ["넓은 정의 — 외부 서명표 → 시뮬 경로·링크",
+                f"{IV.num('counts.injection_instances_in_the_master_table', 16, '{:.0f}')}건",
+                f"{IV.num('counts.peer_reviewed', 10, '{:.0f}')}편 (프리프린트 "
+                f"{IV.num('counts.preprint_only', 6, '{:.0f}')}편)",
+                f"{IH.num('answer.broad_verdict')} — 금속구 · held-out 밴드 · 하드웨어 대조"],
+               ["재판독 감사 — 인구조사를 PDF 로 다시 열어 판정",
+                f"인구조사 {IA.num('corrected_tally.census_claimed.instances', 10, '{:.0f}')}건 재판독",
+                f"{IA.num('corrected_tally.peer_reviewed_confirmed_injections', 3, '{:.0f}')}편 "
+                f"(인구조사 주장 "
+                f"{IA.num('corrected_tally.census_claimed.peer_reviewed', 5, '{:.0f}')}편)",
+                "확정 주입 · 예산수준 · 주입 아님 셋으로 갈린다"],
+               ["통계 추출 — 표적 진폭을 식 (108) CN(0, σ²) 에서 뽑는다",
+                "클러터 서베이 41쪽 전문 계수",
+                "Proc. IEEE 114(1)",
+                f"`physical optics` "
+                f"{CL.num('attack_5_clutter_survey.what_is_genuinely_unreported.fulltext_counts_41p.physical_optics', 0, '{:.0f}')} · "
+                f"`dBsm` "
+                f"{CL.num('attack_5_clutter_survey.what_is_genuinely_unreported.fulltext_counts_41p.dBsm', 0, '{:.0f}')} · "
+                f"`max_depth` "
+                f"{CL.num('attack_5_clutter_survey.what_is_genuinely_unreported.fulltext_counts_41p.max_depth', 0, '{:.0f}')} · "
+                f"`mesh` "
+                f"{CL.num('attack_5_clutter_survey.what_is_genuinely_unreported.fulltext_counts_41p.mesh', 2, '{:.0f}')} · "
+                f"`Blender` "
+                f"{CL.num('attack_5_clutter_survey.what_is_genuinely_unreported.fulltext_counts_41p.Blender', 1, '{:.0f}')}"]]), "",
+        "⭐ **게재된 주입 사례가 인쇄한 것은 아키텍처가 아니라 검증이다** — 0.5 m 금속구와 28 GHz "
+        "held-out 밴드(Zhang, IEEE JSAC), 77 GHz 자동차 레이다 end-to-end(Deep, IET RSN), 정규화 "
+        "서명 상관(Costa, IEEE J-STEAP). 입장료가 거기 있으므로 우리도 §4.2 와 06편에서 같은 값을 치른다.", "",
+        "클러터 서베이가 표적 축을 비운 것은 그 편의 설계다 — 표적 진폭은 통계 추출이고 광선추적은 "
+        "건물 클러터에 쓴다. 그 빈 칸이 우리 자리이고, 메쉬 해상도·광선예산·기종을 인쇄하는 것이 "
+        "이 편의 재현성 규약이다."))
+
     # ── §4 ─────────────────────────────────────────────────────────────────
     B.append(md(
         "## §4. 우리가 선 자리", "",
+        f"실측 전이까지 보는 축으로 좁히면 모집단이 달라진다 — sim-to-real 정찰의 센서스가 그 범위를 "
+        f"문장 안에 적는다: {SR.num('combo_verdict.statement')} (세 요소 = 사이트트윈 · 계산 σ · "
+        f"분류, 거기에 실측 전이 보고까지. 최근접은 LAMBDA 다).", "",
         "### §4.1. H8 판정 — 네 관문을 그대로 나른다", "",
         f"**H8**: 드론 메쉬에서 계산한 산란 서명을 Sionna 계열 엔진 안에서 검증한 **게재** 논문은 "
         f"{C.num('h8.n_passing_all_prongs', 0, '{:.0f}')}편이다. 네 관문으로 쪼개 후보마다 따로 "
@@ -423,7 +513,12 @@ def blocks(P, C, S, V):
         "풀어 WiFi 대역 −40~0 dBsm 을 보고하고(p.5), 패시브 커버리지 예산을 세워 바이스태틱 50 m "
         "실측 검출까지 닫았다(p.9) ⟨outputs/report01_paper.json : h8.q1_counter_paper⟩.", "",
         "**Q2 근거** — Ziganshin 저널판은 검증을 저자 스스로 정성적이라 적는다(p.7) "
-        "⟨outputs/prior_settled_h8.json : h8_candidates⟩."))
+        "⟨outputs/prior_settled_h8.json : h8_candidates⟩.", "",
+        f"**주입 근거** — 주입 아키텍처 자체는 이미 게재돼 있다(§3.4). 재판독으로 확정된 게재 주입 "
+        f"{IA.num('corrected_tally.peer_reviewed_confirmed_injections', 3, '{:.0f}')}편은 전부 자기 "
+        f"서명을 실측 또는 기준체와 맞대고 수치를 인쇄했고, 검증량은 σ 자체(Zhang: 금속구 + held-out "
+        f"밴드)에서 서명 형태(Costa: 정규화 서명 상관)까지 갈린다.", "",
+        "그래서 이 문단이 세는 것은 아키텍처가 아니라 네 관문이고, 검증 칸은 P4 다."))
 
     B.append(md(
         "### §4.2. 우리 파이프라인이 각 축에서 한 일", "",
@@ -440,7 +535,11 @@ def blocks(P, C, S, V):
                ["바이스태틱", "수신기 방향 그림자 광선으로 출사쪽 가시성 판정", "β ≤ 45°", "02"],
                ["검출", "경험 Pfa 로 CFAR 문턱 교정",
                 f"GPU 몬테카를로 {V.num('meta.runtime_s', fmt='{:.0f}', unit='s')}", "04"],
-               ["파형 비교", "한 표적 · 한 검출기로 LTE · 5G · WiFi", "점유 · 대역폭 · PRF", "03 · 05"]])))
+               ["파형 비교", "한 표적 · 한 검출기로 LTE · 5G · WiFi", "점유 · 대역폭 · PRF", "03 · 05"],
+               ["조달", "σ 를 광선엔진 안에서 계산해 같은 엔진의 경로에 싣는다",
+                f"게재 확정 주입 "
+                f"{IA.num('corrected_tally.peer_reviewed_confirmed_injections', 3, '{:.0f}')}편은 σ 를 "
+                f"낸 곳과 쓰는 곳이 다른 엔진이다", "01 §3.4"]])))
 
     B.append(md(
         "### §4.3. 앵커의 세 문헌, 그리고 규약이 갈리는 자리", "",
@@ -493,6 +592,14 @@ def blocks(P, C, S, V):
         ("Costa(JSTEAP, 게재)의 해석 마이크로도플러 경로를 우리 기하 위에서 재현한다",
          "마이크로도플러를 어느 편의 근거로 올릴지 결정된다",
          "future work — `src/rcs_sbr.py` 위 별건"),
+        ("sim-to-real 센서스를 실측 사이트 축으로 좁혀 다시 건다",
+         "사이트트윈 + 계산 σ + 검출 조합의 최근친이 확정된다 — 지금 센서스는 분류 축에서 닫혀 있다",
+         "`outputs/s2r_prior.json` → 01편 §4"),
+        (f"덱 축자 감사가 낸 정정 "
+         f"{TV.num('counts.wrong', 18, '{:.0f}')}건을 §2 · §3 카탈로그 행에 전파한다",
+         "선행 서술이 원문 축자와 한 축에 선다 — LaSen 서사 · CISSIR 행 · LIPASE GT · OpenISAC "
+         "붕괴 지점이 대상이다",
+         "`docs/TEAMMEETING_PRIORWORK_AUDIT.md` §3 → `src/make_report01_prior.py`"),
     ], sec="§5."))
 
     return B

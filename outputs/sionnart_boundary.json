@@ -1,0 +1,1122 @@
+{
+ "_meta": {
+  "task": "경계 확정 — 엔진이 계산하는 것 / 안 하는 것 / 우리가 얹은 것 / 양쪽 모두 안 덮는 것",
+  "date": "2026-08-03",
+  "role": "선행 3편(sionnart_scope / sionnart_em / sionnart_solver)의 정독 결과를 하나의 경계표로 합치고, 우리 리포트가 실제로 쓰고 있는 문장들을 원문에 대조해 정정한다. 이 파일이 앞으로 Sionna 인용의 단일 진리원이다.",
+  "sibling_files": [
+   "outputs/sionnart_scope.json  — Q4 도플러·이동성, Q6 §3.4 전문, B1 target 86회 분류",
+   "outputs/sionnart_em.json     — Q2 회절, Q3 재질/ITU, Q7 산란패턴, B2 Fresnel, B3 확산, B4 4종",
+   "outputs/sionnart_solver.json — Q1 표면 상호작용 사슬, Q5 출력 전수, B5 SBR/image/해싱"
+  ],
+  "house_rules_applied": [
+   "본문은 한국어, 인용문은 원문 영어 그대로.",
+   "모든 주장에 인쇄 쪽번호 + 원문 문장. 식은 문서 내 번호로만 지칭.",
+   "기술보고서(TR)와 창설논문(FP)을 문장마다 구별. 어느 쪽에서 온 진술인지 항상 명시.",
+   "'문서에 없다'와 '구현에 없다'를 구별한다. 후자는 코드 실측이 필요한 별도 명제다."
+  ],
+  "page_convention": {
+   "rule": "인쇄 쪽번호 = PDF 쪽번호(1-indexed). 본 세션에서 직접 확인했다.",
+   "check": "PDF 5·9·19·30·35·38·46·51·59쪽의 푸터가 각각 5·9·19·30·35·38·46·51·59로 인쇄되어 있다."
+  },
+  "verification_done_here": [
+   "PDF 59쪽 전문 재추출 후, 아래 인용문 20건의 소재 쪽을 문자열 검색으로 독립 재확인했다(전건 일치).",
+   "term count 재계수: SBR 44(대소문자 구분) / shooting and bouncing 4 / physical optics 0 / radar cross section 0 / RCS 0 / dBsm 0 / surface current 0 / surface integral 1 / target 86 / scatterer 23 / empirical 0 / validation 0 / roughness 0.",
+   "우리 저장소(sionna2) 안의 Sionna 인용 문자열을 grep 으로 전수 훑어 원문 대조했다."
+  ]
+ },
+ "SOURCE_IDENTITY": {
+  "primary": {
+   "label": "TR",
+   "cite_string": "Sionna RT Technical Report, Version 1.2 (2025-11-24), arXiv:2504.21719v2",
+   "authors": "F. Aït Aoudia, J. Hoydis, M. Nimier-David, B. Nicolet, S. Cammerer, A. Keller",
+   "path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+   "pages": 59,
+   "cover_p1": "2025-11-24 – Version 1.2",
+   "arxiv_stamp_p1": "arXiv:2504.21719v2  [cs.IT]  21 Nov 2025",
+   "filename_trap": "⚠ 파일명은 '...technical-report-v1.pdf' 이지만 내용은 arXiv v2 = 문서 Version 1.2 다. 파일명을 근거로 'v1' 이라 적으면 오인용이며, 이 프로젝트가 반복해 맞아온 오류 유형이다.",
+   "software_baseline": "각주 1(p5): \"As of version 1.2, Sionna RT does not support RISs. It remains available as part of Sionna version 0.19.2.\" — 문서가 스스로를 소프트웨어 v1.2 기준으로 지칭한다. 우리 스택은 Sionna 2.0.1 이므로 ⚠ 버전 간극이 존재한다(아래 OPEN_ITEMS).",
+   "self_declared_purpose_p1": "\"This document details the algorithms employed by Sionna RT to simulate radio wave propagation efficiently, while also addressing their current limitations.\""
+  },
+  "secondary": {
+   "label": "FP",
+   "cite_string": "Sionna RT founding paper, arXiv:2303.11103v2 (2023-07-19), 5p, describes v0.14",
+   "path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__sionna-rt-founding.pdf",
+   "usage_rule": "역사·포지셔닝 진술에만 쓴다('2023년에 공개된 최초의 미분가능 전파 레이트레이서'). 솔버가 무엇을 계산하는가에 대한 진술은 절대 FP 로 인용하지 않는다 — FP 에는 EM 수식이 0개이고 굴절이 없던 세대다.",
+   "what_only_FP_has": "⭐ 'ITU 재질의 주파수 의존 함수가 Sionna 에 통합되어 있다'는 진술은 FP p2 에만 있고 거기 인용판은 P.2040-2 다. TR v1.2 에는 이 진술이 없고 P.2040-3 은 수식 출처로만 p44·p47 두 곳에서 인용된다."
+  },
+  "citation_string_rule": "리포트·덱·논문에서는 반드시 다음 형태로 적는다 — \"Sionna RT: Technical Report, Version 1.2, arXiv:2504.21719v2, 2025-11-24\". 쪽수를 붙일 때는 인쇄 쪽번호를 쓴다."
+ },
+ "SECTION_1_BOUNDARY_TABLE": {
+  "_how_to_read": "행 = 물리 기전 하나. 열 = (a) 엔진이 계산하는 것 (b) 엔진이 하지 않는 것 (c) 우리가 위에 얹은 것 (d) 양쪽 모두 덮지 못하는 것. (a)(b)는 전부 TR 원문 인용으로 뒷받침되고, (c)는 우리 저장소의 모듈로 특정되며, (d)는 우리가 지금 정직하게 열어두는 구멍이다.",
+  "_column_d_warning": "⭐ (d)열은 논문에서 '한계' 절로 그대로 나가야 하는 목록이다. 이 열이 비어 있는 행은 하나도 없다.",
+  "rows": [
+   {
+    "n": 1,
+    "mechanism": "정반사 (specular reflection, ℛ)",
+    "engine_computes": {
+     "summary": "이미지법으로 경로 기하를 확정하고, 교차점에서 (⊥,∥) 기저의 2×2 대각 Fresnel 행렬을 필드에 곱한다.",
+     "equations": [
+      "(12)(13) 유효성/방향",
+      "(26)(27) 이미지·역추적",
+      "(127)(128) Fresnel",
+      "(129) 2×2 적용",
+      "(164) S>0 이면 R=√(1−S²) 곱"
+     ],
+     "quotes": [
+      {
+       "page": 9,
+       "text": "Specular reflection (ℛ): The wave is reflected with a reflection angle equal to the incident angle"
+      },
+      {
+       "page": 46,
+       "text": "The Fresnel equations provide relationships between the incident, reflected, and refracted field components"
+      },
+      {
+       "page": 19,
+       "text": "the image method assumes all reflection surfaces extend infinitely, making the exact in-plane position of a primitive irrelevant to the path geometry"
+      }
+     ],
+     "polarisation": "대각행렬 (129) → 탈편파 0."
+    },
+    "engine_does_not": {
+     "items": [
+      "면의 유한 크기 보정. p19(기하)와 p46(계수) 양쪽에 무한평면 가정이 박혀 있다.",
+      "곡률·유한 개구에 의한 파면 확산. p35: \"only the source s and diffuse reflection points act as point sources that spawn new ray tubes, whereas specular reflection and refraction points merely deviate existing ray tubes rather than spawning new ones.\" → 정반사의 발산인자가 1 = 무한평면 반사와 동치.",
+      "표적에 귀속되는 산란량. 우리 자체 실측(docs/VERIFY_RT_VS_PO.md §4[A]): 금속 평판 변을 0.2→4 m 로 키워 σ 를 52 dB 바꿔도 RT 진폭비는 −7.91 dB 로 불변(산포 0.00 dB), 이론 image-source 값 −7.88 dB 와 일치."
+     ]
+    },
+    "we_added": {
+     "module": "src/rcs_sbr.py (+ src/rcs_po.py 가 그 전신)",
+     "what": "Mitsuba 광선의 first-hit 으로 '실제 조명된 면'을 찾은 뒤, 그 면들 위에서 PO 표면적분을 수행한다. 투영면 변수변환으로 obliquity 가 상쇄되므로 평행 광선 균일격자(간격 d=λ/12)가 그대로 구적이 된다: E = Σ_hits |Γ_i| e^{j2k p_i·û} d², σ = (4π/λ²)|E|². 가림은 first-hit 이 공짜로 처리하고, 오목부 다중반사는 max_bounce 로 옵션.",
+     "why_it_is_not_redundant": "엔진의 정반사는 경로를 하나 더 만들 뿐 σ 를 만들지 않는다. σ 는 적분에서 나온다."
+    },
+    "uncovered_by_either": [
+     "매끄러운 볼록체 그림자 경계를 감아 도는 크리핑파/표면파 — TR 에 없고 우리 PO 에도 없다.",
+     "우리 SBR 의 ≥2-bounce 출사 가시성 미검사(src/rcs_sbr.py:555-557). 생산 σ 는 전부 1-bounce 라 현재는 무해하나 바이스태틱 확장 시 열린다.",
+     "PO 자체의 절대레벨 격자 불확실성: 서브셀 오프셋 산포가 λ/8 5.284 dB · λ/12 1.373 dB · λ/16 1.782 dB (단조 수렴이 아니다). 출처: outputs/report2_waveform_rcs.json sbr_validation.dither."
+    ]
+   },
+   {
+    "n": 2,
+    "mechanism": "굴절·투과 (refraction / transmission, 𝒯)",
+    "engine_computes": {
+     "summary": "투과 광선을 각편향 없이 직진시키고, 필드에만 투과계수를 곱한다. 두께가 지정되면 단일층 슬래브 식으로 대체한다.",
+     "equations": [
+      "(121)(122) Snell",
+      "(126) 투과 방향",
+      "(127)(128) t⊥,t∥",
+      "(130) 2×2 적용",
+      "(131)(132)(133) 슬래브"
+     ],
+     "quotes": [
+      {
+       "page": 9,
+       "text": "The solvers assume that object surfaces are thin enough that their effect on transmitted rays (i.e. rays that traverse the surfaces through double refraction) can be modeled by a single transmitted ray. The transmitted rays are traced without angular deflection. Surfaces like walls should be modeled as single flat surfaces"
+      },
+      {
+       "page": 9,
+       "text": "However, when computing the transmitted and reflected fields, the thickness of the traversed object is considered."
+      },
+      {
+       "page": 47,
+       "text": "The reflection and transmission coefficients, which should be used instead of (128), are then computed as described in [33, Section 2.2.2.2]"
+      }
+     ],
+     "thickness_role": "d 는 오직 위상두께 q = 2πd√(η−sin²θ₀)/λ (133) 로만 들어가 슬래브 내부 다중반사의 등비급수 합(에탈론 리플)을 만든다. 기하에는 전혀 영향이 없다."
+    },
+    "engine_does_not": {
+     "items": [
+      "기하학적 굴절 편향·광선 오프셋. p19 에서 해싱조차 굴절을 건너뛴다: \"refraction can be omitted from the hashing procedure since it does not change the ray direction\".",
+      "다층벽·에어갭·이방성 재질. 슬래브는 단일층 단일재질뿐이다.",
+      "⭐ 무한 '측방 크기' 가정의 완화. A.7.1 은 두께만 유한으로 바꾼다 — p46: \"assume that the object ... is of infinite size (or thickness). However, since this is rarely the case, it is often more practical to assume that the object has a finite thickness.\" 즉 완화되는 것은 thickness 이고 size 는 그대로 무한이다. Figure 32 도 측방 무한 슬래브다."
+     ]
+    },
+    "we_added": {
+     "module": "src/rcs_sbr.py (_DIELECTRIC_SHELLS / _resolve_shells / SHELL_GAMMA_MAX)",
+     "what": "유전체 셸(body·canopy)을 왕복 투과 τ=1−|Γ|² 로 통과시키고, 내부 패스에서는 그 그룹을 씬에서 빼서 배터리·PCB·모터 같은 내부 금속이 보이게 하는 2-패스 근사. 셸 선언은 이름 규약에 기대지 않고 |Γ|≤0.5 검사로 강제한다(카본 데크를 body 로 넣으면 즉시 예외).",
+     "why": "SBR first-hit 은 셸을 불투명 처리해 내부 금속을 삭제하는데, 재질 모델의 전제가 '반투명 셸 통과 → 내부 금속 지배'이므로 투과를 넣지 않으면 엔진이 자기모순이 된다(직접 검증: battery/pcb 히트 0)."
+    },
+    "uncovered_by_either": [
+     "셸 내부 흡수손실. 우리 τ=1−|Γ|² 는 반사되지 않은 전력이 전부 통과한다고 본다 — 유전손실을 무시하는 상한이다.",
+     "다층 CFRP·허니컴 같은 실제 기체 구조의 층간 간섭. TR 은 단일층뿐이고 우리 모델은 아예 층 개념이 없다.",
+     "내부 캐비티 공진(동체 안쪽 금속 상자들 사이의 다중산란) — TR 은 각편향이 없어 원리적으로 못 하고, 우리 SBR 도 max_bounce 로 근사할 뿐이다."
+    ]
+   },
+   {
+    "n": 3,
+    "mechanism": "확산산란 (diffuse reflection, 𝒮)",
+    "engine_computes": {
+     "summary": "반사 에너지를 S²:R² 로 쪼갠 뒤, 정규화된 산란패턴 f_s 를 따라 반구로 재분배한다. 교차편파는 파라미터 Kx 로 주입한다.",
+     "equations": [
+      "(164) R=√(1−S²)",
+      "(168) 확산장 [42, Eq. 9]",
+      "(169) Γ",
+      "(170) Kx/XPD",
+      "(171) 정규화",
+      "(172) Lambertian",
+      "(173) Directive",
+      "(174) Backscattering"
+     ],
+     "quotes": [
+      {
+       "page": 50,
+       "text": "we denote by S² the fraction of the reflected energy that is diffusely scattered, where S ∈ [0, 1] is the so-called scattering coefficient [41]"
+      },
+      {
+       "page": 51,
+       "text": "According to [42, Eq. 9], the diffusely scattered field Es(r) at the observation point r can be modeled as"
+      },
+      {
+       "page": 51,
+       "text": "The scattering pattern must be normalized to satisfy the condition [(171)] which ensures the power balance between the incoming, reflected, and refracted fields."
+      },
+      {
+       "page": 51,
+       "text": "f_s(k_i, k_s, n) is the scattering pattern, which has similarities with the BSDF in computer graphics [7, Ch. 4.3.1]."
+      },
+      {
+       "page": 43,
+       "text": "In some cases, e.g., for diffuse reflection (see (168) in Section A.9), the matrix T̃ depends on the incoming field and is not a linear transformation."
+      }
+     ]
+    },
+    "engine_does_not": {
+     "items": [
+      "S 를 표면 미세구조에서 유도하지 않는다. TR 59쪽에 'roughness' 0회 — 거칠기 통계가 모델에 아예 없다. S 는 사용자 자유 파라미터다.",
+      "절대 산란량을 주장하지 않는다. (171)의 반구적분이 1로 고정되므로 f_s 는 '반사 에너지를 어느 방향으로 나눌지'만 정한다.",
+      "결정론적 위상. p51: χ₁, χ₂ 는 \"(optional) independent random phase shifts\" 다.",
+      "선형 EM 연산자이기를 포기했다(p43 위 인용). Γ (169)가 입사장에 의존하기 때문이다."
+     ]
+    },
+    "we_added": {
+     "module": "src/materials.py (의도적 비사용) + src/rcs_sbr.py",
+     "what": "⭐ 우리는 표적 산란에 S 를 쓰지 않는다. 표적의 σ 는 PO 적분에서 나오고, 재질은 (εr,σ)→Fresnel |Γ| 로만 개입한다. materials.py 가 Sionna RadioMaterial 과 PO |Γ| 의 단일 진리원이라 두 엔진이 같은 표를 본다.",
+     "why_not_S": "S 로 표적을 맞추는 것은 순환논법이다 — 같은 금속구에서 S 만 0.2→1.0 으로 올리면 진폭비가 +15.8 dB 이동하고(S² 법칙), 이론값에 맞추려면 S≈0.85 가 필요하다. 게다가 ITU metal 은 S=0 이라 모터·배터리·PCB 같은 지배적 산란체가 확산에 기여 0 이 되고, 물리적으로 옳은 PEC 구(S=0)에서는 RT 가 경로를 아예 만들지 못한다(반지름 0.3/1/3 m, spp 1M~16M 전 조건에서 0개). 출처: docs/VERIFY_RT_VS_PO.md, benchmark/verify_rt_no_rcs.py, src/materials.py."
+    },
+    "uncovered_by_either": [
+     "실제 거친 표면의 산란 물리(Kirchhoff 근사·소섭동법). TR 은 roughness 0회, 우리 PO 는 매끈한 패싯만 본다. 양쪽 모두 없다.",
+     "표적 표면의 부분 결맞음(partial coherence) — 완전 결맞음(PO)과 완전 비결맞음(Lambertian) 사이가 양쪽 모두 비어 있다."
+    ]
+   },
+   {
+    "n": 4,
+    "mechanism": "회절 (diffraction, 𝒟)",
+    "engine_computes": {
+     "summary": "무한히 긴 유한도전율 쐐기에 대한 1차 UTD 엣지 회절. Kouyoumjian–Pathak UTD 를 Luebbers 가 유한도전율로 휴리스틱 확장한 판을 McNamara 교재의 3D 형태로 구현했다. 재질은 두 쐐기면의 평면 Fresnel 반사계수로만 들어온다.",
+     "equations": [
+      "(145) 2×2 회절행렬",
+      "(146) R_ν (쐐기면 Fresnel)",
+      "(147)(148) 각도",
+      "(153)–(156) D1..D4",
+      "(157) L",
+      "(158)(159) a±, N±",
+      "(160)(163) 전이함수 F"
+     ],
+     "quotes": [
+      {
+       "page": 47,
+       "text": "While [36] deals with diffraction at edges of perfectly conducting surfaces, it was heuristically extended to finitely conducting wedges in [37]. This solution, which is also recomended by the ITU [38], is implemented in Sionna."
+      },
+      {
+       "page": 48,
+       "text": "We consider an infinitely long wedge with unit norm edge vector ê"
+      },
+      {
+       "page": 15,
+       "text": "the intersection point between the ray ... and the primitive ... is projected onto one of the primitive's edges, yielding the vertex v(ℓ)_n"
+      }
+     ],
+     "sampling": "회절만 계수 기반이 아니라 고정 확률로 뽑는다 — p18: \"In Sionna RT, q(D) is set to 0.2.\"",
+     "frequency_scaling": "D_k ∝ 1/√k, 전이함수 인자에도 k. UTD 고유의 스케일링뿐이다."
+    },
+    "engine_does_not": {
+     "items": [
+      "PTD 프린지파 보정, 등가 엣지 전류, 코너/꼭짓점 회절, slope diffraction, 크리핑파 — TR 59쪽에 'PTD' 0회이고, A.8 은 (134)~(163)으로 끝나며 (145)의 D1~D4 외에 어떤 보정항도 도입하지 않는다(부재는 카운트가 아니라 A.8 전문 정독으로 확인).",
+      "2차 이상 회절 — p30: \"calculating the electric field along these high-order diffraction paths remains an open problem, and as a result, high-order diffraction is not currently supported.\"",
+      "회절+확산반사 혼합 경로 — p16: \"the path solver prohibits sampling paths that contain both diffraction and diffuse reflection.\"",
+      "메시의 어떤 엣지를 '진짜 쐐기'로 인정하는지, 외부각 nπ 를 삼각형 메시에서 어떻게 얻는지에 대한 서술 자체가 없다(⚠ 미서술이지 미구현은 아니다)."
+     ]
+    },
+    "we_added": {
+     "module": "없음",
+     "what": "⭐ 정직하게: 우리 SBR+PO 커널에는 엣지 회절 항이 아예 없다. PO 표면적분 하나뿐이다."
+    },
+    "uncovered_by_either": [
+     "⭐⭐ 표적 σ 에 대한 PTD 프린지 보정. 이것이 우리 밴드 기울기가 3~8배 가파른 문제의 배후로 지목되어 온 기전이다.",
+     "⚠ 프레이밍 정정(이 문서의 핵심 산출물 중 하나): 이 결손은 'Sionna 대비 결손'이 아니라 **PO 계열 공통 결손**이다. Sionna 의 D 는 씬 쐐기 위에서 경로 필드를 만드는 UTD 이고, 우리에게 필요한 것은 표적 σ 의 엣지 보정항이다. 같은 물리(엣지 회절)의 서로 다른 사용처이므로, Sionna 의 D 를 가져와도 우리 결손은 메워지지 않는다.",
+     "⚠ 금지 문장 2개: (a) 'Sionna 에는 회절이 없다' — 거짓. (b) 'Sionna 의 UTD 를 쓰면 우리 PTD 결손이 메워진다' — 거짓(용도가 다름).",
+     "선행 반증 1건: Ziganshin 외(EuCAP 2025)는 Sionna RT 위에 UTD+정점 회절+고차 회절을 저자들이 직접 얹어 dBsm 을 냈다. 즉 이 경계는 넘을 수 있는 경계이고, 우리가 안 넘은 것은 부재가 아니라 비용 선택이다(docs/REFERENCE_LIBRARY.md ziganshin_multistatic_eucap25)."
+    ]
+   },
+   {
+    "n": 5,
+    "mechanism": "표면전류 적분 (surface-current / physical-optics integration)",
+    "engine_computes": {
+     "summary": "⭐ 아무것도 하지 않는다. 이것이 경계의 중심선이다.",
+     "positive_evidence_not_term_count": [
+      "(a) 경로 하나의 계산 전체가 Algorithm 2(p26) 30줄 안에 들어 있고, 그 루프는 상호작용 인덱스 ℓ 에 대해서만 돈다 — 면적에 대해 도는 루프가 없다.",
+      "(b) 재질 평가의 인자가 형상이 아니다 — p27: \"the electric field is updated by the transfer matrix T(ℓ′)_n, which depends on the intersected object o(ℓ′)_n, the interaction type χ(ℓ′)_n, and other parameters\". 면적·곡률·크기는 인자가 아니다.",
+      "(c) 교차 판정이 산출하는 기하 정보는 점 1개·법선 1개·객체 ID·프리미티브 ID 뿐이다(§3.1, p13).",
+      "(d) 상호작용 집합이 닫혀 있다 — p9: \"Sionna RT currently supports four types of interactions with scene objects\", ℐ = {ℛ, 𝒮, 𝒯, 𝒟}.",
+      "(e) 출력 목록이 채널량으로 닫혀 있다(아래 SECTION_3 참조)."
+     ],
+     "term_counts_as_corroboration_only": {
+      "physical optics": 0,
+      "surface current": 0,
+      "induced current": 0,
+      "equivalent current": 0,
+      "radar cross section": 0,
+      "RCS": 0,
+      "dBsm": 0,
+      "radar": 0,
+      "monostatic": 0,
+      "bistatic": 0,
+      "sensing": 0,
+      "ISAC": 0,
+      "PTD": 0,
+      "roughness": 0,
+      "empirical": 0,
+      "validation": 0,
+      "surface integral": 1
+     },
+     "surface_integral_disambiguation": "⭐ 유일한 'surface integral' 1회는 참고문헌 [26] Wikipedia 항목이며, 본문 역참조는 p35 다. 그 자리(식 (57)(58))에서 쓰임새는 라디오맵 회절 적분의 변수변환 야코비안 ‖δt/δx × δt/δφ‖₂ 로, 측정면 위의 기하학적 면적분이지 유도전류 적분이 아니다. 직접 확인: p35 \"accounts for the change of variables [26]\"."
+    },
+    "engine_does_not": {
+     "items": [
+      "물체 표면 위 유도전류 J_s = 2n̂ × H_i 를 조명영역에 대해 적분하는 단계가 알고리즘 어디에도 없다.",
+      "입사평면파 기준으로 정규화된 원거리 산란장을 만들지 않는다.",
+      "σ = 4πr²|E_s|²/|E_i|² 형태의 물체 귀속 비율량을 정의하지 않는다."
+     ]
+    },
+    "we_added": {
+     "module": "src/rcs_sbr.py (주력) · src/rcs_po.py (전신) · src/materials.py (재질 단일 진리원)",
+     "what": "⭐ 정확히 이 빠진 층. 상용 EM 솔버(FEKO/CST/HFSS SBR+)의 표준 고주파 기법 그대로 — ① 광선(GO)으로 어느 면이 실제 조명되는지 찾고 ② 그 면들 위에서 PO 표면적분을 해 σ 를 낸다. 산출물은 스칼라 σ 뿐 아니라 복소장 E 이므로 위상·주파수 의존까지 채널에 주입할 수 있다.",
+     "verification_targets": "PEC 구(해석 PO + Mie) · PEC 평판(4πA²/λ²) · 직각 이면반사체(8πa²b²/λ²). ⚠ 평판 정면입사는 위상항이 상수라 커널 버그를 못 잡는 항등식이므로 근거로 쓰지 않는다 — 구 검증만이 커널을 시험한다. 커널 대 해석 PO 최대 편차 0.201 dB (kr 1~100, 21점, 입사 48방향; outputs/sbr_kr_sweep.json)."
+    },
+    "uncovered_by_either": [
+     "완전파(MoM/MLFMM/FDTD) 정확도. PO 는 few-λ 표적에서 marginal 이고, 우리는 이것을 best-fit 이라 부르지 정확도라 부르지 않는다.",
+     "PO 자신의 O(1/ka) 항과 그림자 경계 오차 — 해석 PO 조차 GO 대비 +0.35/−0.01/−0.06 dB (1.84/3.5/5.21 GHz, r=0.5 m).",
+     "절대 σ 의 1차 실측 앵커. 우리 앵커는 공개 문헌 RCS 이지 자체 측정이 아니다."
+    ]
+   },
+   {
+    "n": 6,
+    "mechanism": "편파 (polarisation)",
+    "engine_computes": {
+     "summary": "⭐ 이 행에서는 엔진이 우리보다 강하다. 필드를 경로 전체에 걸쳐 2성분 복소벡터로 일관되게 운반한다.",
+     "equations": [
+      "(117)(118) 임의 직교 편파 → TE/TM",
+      "(119)(120) 기저변환 W",
+      "(129)(130) 정반사·굴절 대각",
+      "(145)(146) 회절 비대각",
+      "(168)(170) 확산 Kx",
+      "(33)(34) 미분가능 실수블록 표현"
+     ],
+     "quotes": [
+      {
+       "page": 45,
+       "text": "where the former is orthogonal to the plane of incidence and called transverse electric (TE) polarization (left), and the latter is parallel to the plane of incidence and called transverse magnetic (TM) polarization (right)."
+      },
+      {
+       "page": 27,
+       "text": "For dual polarization, two independent electric field vectors are tracked per path."
+      }
+     ],
+     "depolarisation_map": "탈편파는 회절 (145)의 비대각 R_n/R_0 항과 확산 (168)의 Kx 항에서만 생긴다. 정반사·굴절은 대각행렬이라 탈편파 0."
+    },
+    "engine_does_not": {
+     "items": [
+      "정반사·굴절에서의 탈편파(곡면·비등방 표면이 만드는 것) — 구조적으로 대각행렬이라 표현할 수 없다.",
+      "표적의 편파산란행렬(polarimetric scattering matrix). 애초에 표적 귀속량 자체가 없다(5행)."
+     ]
+    },
+    "we_added": {
+     "module": "없음 — ⚠ 오히려 후퇴다",
+     "what": "⭐⭐ 정직하게 기록한다: 우리 PO/SBR 커널은 **스칼라** |Γ| 가중 합이다(materials.gamma_po → rcs_sbr._lit_g_phase). 편파 기저도, 2×2 전달행렬도, 탈편파도 없다. 이 행에서 우리 층은 엔진보다 명백히 빈약하다.",
+     "consequence": "우리가 주입하는 표적 에코는 편파적으로 중립이다. 편파 다이버시티·편파 기반 판별을 다루는 실험은 현재 커널로는 지지되지 않는다."
+    },
+    "uncovered_by_either": [
+     "⭐ 표적의 바이스태틱 편파산란행렬 S_b = [[S_θθ, S_θφ],[S_φθ, S_φφ]] — 이상적인 주입 형태이고 선행(3GPP·NIST 5GNRad 계열)이 지향하는 형태인데, TR 은 그런 출력을 정의하지 않고 우리 커널은 스칼라다. 양쪽 모두 없다.",
+     "우리 커널의 복소장 E 는 이미 스칼라RCS 주입보다는 앞서 있으나(위상 보존), 편파는 여전히 결손이다 — 향후 작업 후보 1순위."
+    ]
+   },
+   {
+    "n": 7,
+    "mechanism": "이동성·도플러 (mobility and Doppler)",
+    "engine_computes": {
+     "summary": "경로가 확정된 뒤 사후적으로 도플러를 누적한다. 객체마다 R³ 속도벡터 하나.",
+     "equations": [
+      "(37) 객체 기여 누적",
+      "(38) 소스·타깃 운동 포함 총합"
+     ],
+     "quotes": [
+      {
+       "page": 28,
+       "text": "In this alternative method, we assign a velocity vector v(o) ∈ R3 to each object o and compute the time evolution by accumulating Doppler shifts along the propagation paths."
+      },
+      {
+       "page": 28,
+       "text": "However, when trajectory lengths are small (not exceeding a few wavelengths), a more efficient approach may be used."
+      },
+      {
+       "page": 28,
+       "text": "The first approach involves moving objects in small incremental steps along their trajectories and recomputing the propagation paths at each step. While this method provides the highest accuracy, it is computationally expensive."
+      }
+     ],
+     "scope": "라디오맵 솔버에는 Doppler/velocity 가 단 한 번도 등장하지 않는다 — 이동성은 경로 솔버 전용이다."
+    },
+    "engine_does_not": {
+     "items": [
+      "각속도. TR 59쪽에 'angular velocity' 0회. 'rotat*' 12회는 전부 좌표계 회전·Rodrigues·부록 C 의 회절점 기하 트릭이며 씬 객체의 회전운동 용례는 0건이다.",
+      "객체 내부의 속도장. 식 (37)의 v(o(ℓ')_n) 은 '교차된 객체' 인덱스로만 조회되므로 같은 객체의 표면 어디를 맞아도 동일 속도다 — 블레이드 팁과 허브가 같은 속도를 갖는다.",
+      "approach_2 에서 기하 갱신. 도플러는 위상만 바꾸고 경로 정점·가림·상호작용 순서는 전혀 바뀌지 않는다."
+     ],
+     "consequence": "⭐ 회전 프로펠러의 마이크로도플러는 approach_2 로는 원리적으로 불가능하다. approach_1 은 원리적으로 가능하지만 TR 은 그 루프를 알고리즘으로 정의하지 않고 '비싸다'고만 적었으며, 회전 자세를 시간에 따라 갱신하는 규약이 문서에 없다."
+    },
+    "we_added": {
+     "module": "src/microdoppler.py (+ src/sionna_chain.py 로 주입)",
+     "what": "분절 드론 모델(drones.pose/build_frame/build_propeller)을 슬로타임 표본마다 다시 자세시켜 PO 커널에 넣는다. 구현은 '블레이드를 돌리는 대신 시선을 반대로 돌리는' 등가표현 v(t)=Rz(−θ(t))·û 로 벡터화한다. 결과: 블레이드 플래시 주기 줄무늬 + ±f_tip (f_tip ≈ 2ωR_blade/λ·cos el). 즉 TR 의 approach_1(스텝-앤-리시뮬)을 Sionna 경로솔버가 아니라 **우리 PO 커널에** 적용한 것이다.",
+     "chain": "sionna_chain.py 가 시간 의존 a(t) 를 Sionna PHY 의 cir_to_time_channel 로 넘겨 sinc 펄스정형까지 맡긴다."
+    },
+    "uncovered_by_either": [
+     "블레이드 공탄성 변형·진동·기체 자세 흔들림. 우리 모델은 강체 블레이드의 순수 회전만 본다.",
+     "표적 운동이 CPI 안에서 환경 경로까지 바꾸는 결합 효과 — 우리는 환경 경로를 CPI 동안 얼려 둔다.",
+     "⚠ 시스템 제약(모델 결손 아님): f_tip 이 수백~수천 Hz 라 모호 없이 보려면 PRF ≳ 2·f_tip 이 필요한데, 5G SSB(50 Hz)·CSI-RS(200 Hz)·LTE CRS(1 kHz) 같은 상시 파일럿 반복률로는 접힌다."
+    ]
+   },
+   {
+    "n": 8,
+    "mechanism": "시변 기하 (time-varying geometry)",
+    "engine_computes": {
+     "summary": "⭐ 엔진 안에 시간축이 없다. TR 이 제공하는 유일한 통로는 '사용자가 정지 씬을 여러 번 푸는 것'이다.",
+     "quotes": [
+      {
+       "page": 28,
+       "text": "The first approach involves moving objects in small incremental steps along their trajectories and recomputing the propagation paths at each step."
+      }
+     ],
+     "term_evidence": "'time-varying' 0회 · 'deform*' 0회 · 'rigid' 0회 · 'trajectory/trajectories' 2회(둘 다 p28) · 'mobility' 1회."
+    },
+    "engine_does_not": {
+     "items": [
+      "시변 기하를 알고리즘으로 정의하지 않는다. approach_1 은 한 문장으로만 언급되고 재시뮬 루프·시간축 규약·자세 갱신 API 가 서술되지 않는다.",
+      "변형체(deformable)·관절체(articulated) 개념이 없다."
+     ]
+    },
+    "we_added": {
+     "module": "src/microdoppler.py · src/drones.py(pose/build_frame/build_propeller)",
+     "what": "관절형 드론 메시를 슬로타임마다 재자세시켜 PO 커널을 반복 호출한다. 곧 approach_1 의 정신을 표적 산란 계산에 옮긴 것이다.",
+     "boundary_of_what_we_did": "⚠ 이 재자세는 **Sionna 경로솔버 바깥**에서 일어난다. Sionna 씬 기하는 우리 파이프라인에서도 여전히 정지 상태다."
+    },
+    "uncovered_by_either": [
+     "⭐ 표적과 환경의 결합 시변 다중경로. 표적이 움직이면 바닥유령 경로의 기하도 함께 변해야 하는데, TR 의 approach_2 는 기하를 얼리고 우리 주입은 환경 경로를 얼린다. 양쪽 모두 이 결합을 다루지 않는다.",
+     "장면 전체의 시변 재시뮬(approach_1 을 Sionna 경로솔버에 진짜로 적용) — 비용 문제로 아무도(TR 저자 포함) 정식화하지 않았다."
+    ]
+   }
+  ]
+ },
+ "SECTION_2_OUR_CLAIMS_REEXAMINED": {
+  "_purpose": "⭐ 이 절이 이 태스크의 존재 이유다. 59쪽이 지지하지 않는 문장은 여기서 정정한다.",
+  "claims": [
+   {
+    "id": "CLAIM-1",
+    "our_wording": "\"Sionna 는 표면을 국소 무한평면으로 취급하고 Fresnel 계수를 적용한다\"",
+    "verdict": "⚠ 지지되지만 **우리 표현이다** — 문서의 표현이 아니다. 두 군데를 합쳐서 만든 요약이다.",
+    "what_the_document_actually_says": [
+     {
+      "page": 19,
+      "scope": "경로 기하",
+      "text": "Importantly, primitives that are coplanar (i.e., lie in the same plane) are treated as equivalent during hashing. This is because the image method assumes all reflection surfaces extend infinitely, making the exact in-plane position of a primitive irrelevant to the path geometry."
+     },
+     {
+      "page": 46,
+      "scope": "계수",
+      "text": "The reflection and refraction coefficients described above assume that the object reflecting the wave or allowing it to penetrate is of infinite size (or thickness)."
+     },
+     {
+      "page": 44,
+      "scope": "A.7 전제",
+      "text": "When a plane wave hits a plane interface which separates two materials, e.g., air and concrete, a part of the wave gets reflected and the other refracted"
+     },
+     {
+      "page": 48,
+      "scope": "회절 기하",
+      "text": "We consider an infinitely long wedge with unit norm edge vector ê"
+     }
+    ],
+    "the_word_locally": "⭐ 'locally' 는 문서에 2회뿐이고 둘 다 우리 뜻이 아니다 — p8 은 프리미티브 엣지 인덱스가 'identified locally' 라는 말이고, p50 은 입사파가 \"an incoming locally planar linearly polarized wave\" 라는 말이다. **평면인 것은 파(wave)이지 표면이 아니다.** 문서는 표면에 대해서는 조건 없이 'extend infinitely' / 'of infinite size' 라고 쓴다.",
+    "the_slab_nuance": "⭐ A.7.1 슬래브가 완화하는 것은 **두께뿐이다**. p46-47: \"...is of infinite size (or thickness). However, since this is rarely the case, it is often more practical to assume that the object has a finite thickness.\" 측방 크기는 끝까지 무한으로 남는다(Figure 32).",
+    "corrected_wording": "⭐ 앞으로 이렇게 쓴다 — \"Sionna RT 는 반사면이 무한히 뻗어 있다고 가정한다. 이 가정은 두 층에 각각 박혀 있다: 경로 기하(이미지법, p19)와 반사·굴절 계수(무한 크기 평면 Fresnel, p46). 단일층 슬래브(식 131–133)는 이 중 **두께만** 유한으로 바꾸고 측방 크기는 여전히 무한이다.\" '국소 무한평면'이라는 축약을 쓰려면 그것이 우리 요약임을 밝히고 위 두 인용을 함께 단다.",
+    "extra_support_found": "발산인자 쪽 증거를 추가로 확보했다 — p35: \"only the source s and diffuse reflection points act as point sources that spawn new ray tubes, whereas specular reflection and refraction points merely deviate existing ray tubes rather than spawning new ones.\" 정반사가 광선관을 새로 만들지 않는다 = 발산인자 1 = 무한평면 반사와 동치. 계수뿐 아니라 **에너지 회계에서도** 같은 가정이 확인된다."
+   },
+   {
+    "id": "CLAIM-2",
+    "our_wording": "\"Sionna 에는 SBR 이 없다\"",
+    "verdict": "❌ 거짓. 이미 알고 있었으나 이번에 정확한 참 문장과 카운트를 확정한다.",
+    "the_true_sentence": "⭐ \"Sionna RT 에는 SBR 이 있다. 다만 그 역할은 **경로 후보를 찾는 탐색기**이지 산란장 계산기가 아니다.\"",
+    "citations": [
+     {
+      "page": 12,
+      "kind": "절 제목",
+      "text": "3.1. Generating Candidates by Shooting and Bouncing of Rays (SBR)"
+     },
+     {
+      "page": 11,
+      "kind": "본문",
+      "text": "Therefore, the path solver uses SBR as a heuristic to find path candidates. A path candidate consists of a sequence of primitives or wedges and interaction types ending with a specular reflection, refraction, or diffraction."
+     },
+     {
+      "page": 1,
+      "kind": "초록",
+      "text": "For CIRs, Sionna RT integrates shooting and bouncing of rays (SBR) with the image method and uses a hashing-based mechanism to efficiently eliminate duplicate paths."
+     },
+     {
+      "page": 33,
+      "kind": "저자 자신의 구별",
+      "text": "It is important to note that this analogy does not extend to the path solver, which is not concerned with evaluating an integral but rather with finding a set of paths, which are not aggregated into a single scalar value."
+     }
+    ],
+    "term_count_correction": {
+     "our_records_said": 48,
+     "plain_SBR_count": 44,
+     "where_48_came_from": "⭐ 원인을 찾았다. outputs/prior_settled_sionna.json 의 항목명이 \"SBR or shooting-and-bouncing\": 48 이다. 즉 44(약어 'SBR') + 4('shooting and bouncing') 의 합성 카운트인데, 라벨이 유실된 채 '기술보고서에 SBR 이 48회'로 옮겨 적혔다.",
+     "why_48_overcounts": "⚠ 그 4건은 전부 같은 문장 안에 '(SBR)' 을 달고 있어 이미 44 에 포함된 언급이다 — p1 \"shooting and bouncing of rays (SBR)\", p2 목차 \"...of Rays (SBR)\", p4 약어표 \"SBR shooting and bouncing of rays\", p12 절 제목 \"...of Rays (SBR)\". 따라서 48 은 별개 언급 수를 과대계상한다. **정본은 44 다.**",
+     "action": "docs/PAPER_DRAFT.md D14 와 prior_work/sionna_sensing_survey.md 의 '48' 을 44 로 고친다(아래 CORRECTIONS_TO_REPO)."
+    },
+    "terminology_collision_warning": "⭐ 우리 rcs_sbr.py 의 SBR(가림 판정 후 PO 면적분)과 Sionna 의 SBR(경로 후보 탐색)은 약어만 같고 역할이 다르다. 구별 없이 쓰면 '스톡 Sionna 도 SBR 이 있으니 RCS 를 낸다'는 잘못된 반론을 자초한다. 리포트에서는 항상 'Sionna 의 SBR(경로 후보 생성)' vs '우리 SBR(PO 적분용 평행광선 격자)' 로 적는다."
+   },
+   {
+    "id": "CLAIM-3",
+    "our_wording": "\"물리광학 표면전류 적분이 없고 RCS 출력이 없다\"",
+    "verdict": "✅ 지지된다. 그리고 ⭐ 이번 정독으로 **낱말 카운트의 추론에서 출력 목록의 진술로 승격**되었다.",
+    "the_upgrade": {
+     "before": "'RCS' 0회, 'physical optics' 0회 → 따라서 없을 것이다 (부재로부터의 추론)",
+     "after": "저자가 문서화한 출력 집합이 닫혀 있고 그 목록에 없다 (양성 진술)"
+    },
+    "positive_enumeration": {
+     "solver_taxonomy_p6": "\"Given the distinct algorithmic requirements for CIRs and radio maps, Sionna RT provides two types of solvers: • The path solver computes a set of paths connecting a source to a target, which can then be used to compute a CIR. • The radio map solver computes a radio map, a 2D grid of values that approximate the channel gain (5) that a receiver located on the grid would observe.\"",
+     "path_solver_outputs": [
+      "경로 기하 — 상호작용 유형 시퀀스, 정점, 교차 객체·프리미티브 (p21 버퍼 내용, ⚠ 'and more' 라는 열린 표현 포함)",
+      "경로별 복소 채널계수 a_n (식 4; Algorithm 2 line 30 \"return a_n, τ_n\")",
+      "경로별 지연 τ_n (동일)",
+      "경로별 도플러 ν_n (식 37, 38)",
+      "어레이 채널행렬 H_array,n (식 35, 36)",
+      "CIR h(τ) (식 115), 기저대역 등가 (식 116)",
+      "채널 주파수응답 H(f) (식 1, 3, 112, 114)",
+      "채널 이득 g = Σ|a_n|² (식 5)"
+     ],
+     "radio_map_solver_outputs": [
+      "셀별 채널이득 맵 C_i (식 41, 46, 47; 추정기 52, 가중치 53)",
+      "1차 회절 기여 맵 C_i^(D) 와 합산 (식 54, 58, 59)",
+      "프리코딩 반영 맵 (식 60, 61, 62)",
+      "메시 기반 측정면 위의 맵 (§4.6)"
+     ],
+     "meta_output": "위 전부에 대한 그래디언트 — p1 초록: \"enabling the calculation of gradients for the channel impulse responses (CIRs), radio maps, and other related metrics with respect to system and environmental parameters\""
+    },
+    "the_closing_quote": {
+     "page": 38,
+     "section": "§4.6 Extension to other Types of Radio Maps",
+     "text": "The Sionna RT solver currently supports the calculation of channel gain maps, which are radio maps that provide an estimate of the channel gain for each cell. It is possible to extend the solver to calculate other types of radio maps, such as root-mean-square delay spread maps and angular spread maps [27].",
+     "why_decisive": "⭐ 저자가 '현재 지원되는 것'을 스스로 열거하고 '확장 가능한 것'의 예시까지 들었는데, 확장 예시조차 지연확산·각확산 맵이지 산란단면적류가 아니다. 부재가 우리 추론이 아니라 저자의 목록이 된다."
+    },
+    "corrected_wording": "⭐ 앞으로 이렇게 쓴다 — \"Sionna RT 기술보고서 Version 1.2 가 문서화한 내장 솔버의 출력 집합은 두 갈래로 닫혀 있다: 경로 솔버의 경로별 (a_n, τ_n, ν_n) 과 이들로 조립되는 CIR·H(f)·채널이득, 그리고 라디오맵 솔버의 셀별 채널이득 맵이다(p6, p38). 두 갈래 모두 송신단↔수신단 사이의 채널량이며, 장면 내 개별 물체에 귀속되는 산란량은 어느 항목에도 없다. 표면 상호작용은 국소 2×2 재질 행렬 곱으로만 계산되고(p27, 식 129·130·145·168) 면적분 단계가 존재하지 않는다.\"",
+    "mandatory_scope_guard": "⭐ 반드시 병기할 것 — p7: \"While Sionna RT provides built-in solvers and radio material models, it is designed to facilitate the implementation of custom alternatives.\" 즉 우리 주장은 **내장 솔버**에 대한 것이지 '원리적 불가능'이 아니다. 기록 sionna2-rt-rcs-claim-scope 의 규율을 그대로 따른다.",
+    "one_more_disambiguation": "⚠ 'surface integral' 1회를 '면적분이 있다'는 반론으로 오독할 여지가 있으므로 미리 막아둔다: 그것은 참고문헌 [26](Wikipedia, Surface integral)이고 본문 역참조 p35 에서 라디오맵 회절 적분의 변수변환 야코비안에 쓰인다. 측정면 위 기하 면적분이지 유도전류 적분이 아니다."
+   },
+   {
+    "id": "CLAIM-4",
+    "our_wording": "\"Sionna 의 확산 모델은 예측적이 아니라 경험적이다\"",
+    "verdict": "✅ 실질적으로 지지된다. 다만 ⚠ **'empirical' 은 문서에 0회** — 우리 낱말이다. 더 강하고 정확한 표현으로 바꾼다.",
+    "evidence_chain": [
+     {
+      "page": 51,
+      "role": "모델의 출처",
+      "text": "According to [42, Eq. 9], the diffusely scattered field Es(r) at the observation point r can be modeled as"
+     },
+     {
+      "page": 50,
+      "role": "S 는 자유 파라미터",
+      "text": "we denote by S² the fraction of the reflected energy that is diffusely scattered, where S ∈ [0, 1] is the so-called scattering coefficient [41]"
+     },
+     {
+      "page": 51,
+      "role": "⭐ 목적의 명시",
+      "text": "The scattering pattern must be normalized to satisfy the condition [(171)] which ensures the power balance between the incoming, reflected, and refracted fields."
+     },
+     {
+      "page": 51,
+      "role": "패턴의 신분",
+      "text": "f_s(k_i, k_s, n) is the scattering pattern, which has similarities with the BSDF in computer graphics [7, Ch. 4.3.1]."
+     },
+     {
+      "page": 51,
+      "role": "위상이 물리가 아님",
+      "text": "χ1, χ2 ∈ [0, 2π] are (optional) independent random phase shifts"
+     },
+     {
+      "page": 51,
+      "role": "교차편파가 파라미터",
+      "text": "This quantity determines how much energy gets transferred from one polarization direction into the other through the scattering process."
+     },
+     {
+      "page": 43,
+      "role": "⭐ 저자의 자인",
+      "text": "In some cases, e.g., for diffuse reflection (see (168) in Section A.9), the matrix T̃ depends on the incoming field and is not a linear transformation."
+     },
+     {
+      "page": 44,
+      "role": "설계 기준이 예산",
+      "text": "Note that the matrices T̃_i also ensure appropriate scaling so that the total received power can never be larger than the transmit power."
+     },
+     {
+      "page": 52,
+      "role": "정확도의 조건부성",
+      "text": "The authors of [41] derived several simple scattering patterns that were shown to achieve good agreement with measurements when correctly parametrized."
+     }
+    ],
+    "no_validation_in_the_document": "⭐ TR 59쪽 전체에 실측 대조 검증 절이 없다 — 'validation' 0회, 'measurement campaign' 0회. 'measurement' 는 거의 전부 라디오맵의 measurement surface/cell 이라는 기하 용어다. p52 의 유일한 측정 언급조차 Sionna 결과가 아니라 [41] 원논문 결과이고 'when correctly parametrized' 조건이 붙어 있다. 문서 내 유일한 일치 확인은 p36 의 자체 두 솔버 간 내부 일관성 검사다.",
+    "no_microstructure": "'roughness' 0회. S 가 표면 미세구조에서 유도되지 않는다는 것은 낱말 부재만이 아니라 A.9 전문에 유도 경로가 없다는 사실로 확인된다.",
+    "corrected_wording": "⭐ 앞으로 이렇게 쓴다 — \"Sionna RT 의 확산 산란 모델은 문헌 모델([42, Eq. 9])을 가져온 **전력 정규화 재분배 커널**이다. 산란패턴의 반구적분이 1 로 강제되며(식 171) 저자가 그 목적을 \\\"ensures the power balance between the incoming, reflected, and refracted fields\\\" 라고 명시한다(p51). 자유 파라미터 S·Kx·α_R·α_I·Λ·χ₁·χ₂ 는 표면 기하나 재질 미세구조에서 유도되지 않고 사용자가 준다. 저자 스스로 이 전달행렬이 입사장에 의존해 선형변환이 아님을 인정한다(p43). 따라서 이 모델은 채널 예산상의 에너지 재분배를 위한 것이지 절대 산란 예측을 위한 것이 아니며, 기술보고서 어디에도 절대 정확도 주장이나 실측 검증이 없다.\"",
+    "why_this_wording_is_better": "'경험적'이라는 한 낱말은 반박하기 쉽다(어떤 EM 모델이든 경험 파라미터가 있다). 위 표현은 문서 자신의 문장 두 개(171 의 목적 + A.5 의 비선형 자인)에 못을 박으므로 반박 여지가 훨씬 좁다."
+   }
+  ],
+  "additional_corrections_found_this_pass": [
+   {
+    "id": "EXTRA-1",
+    "issue": "초록의 \"Radio maps are computed using a purely SBR-based approach\"(p1)를 인용하면 본문과 어긋난다.",
+    "body_says_p33": "However, SBR is not applicable to paths that include diffraction: as explained in Section 3.1, the probability of a ray intersecting an edge is zero. To address this, Sionna RT computes the radio map in two steps ... First, the radio map is computed for all interaction types except diffraction using a single SBR loop; wedges near the source are detected and stored during this step. Second, only diffracted paths are computed.",
+    "correct_wording": "\"라디오맵은 회절을 제외한 모든 상호작용에 대해 단일 SBR 루프로 계산되고, 1차 회절만 쐐기 위의 별도 몬테카를로(식 59)로 계산해 더한다. 라디오맵 솔버에는 이미지법이 쓰이지 않으며 합은 비간섭적이다(§4.4, p36).\""
+   },
+   {
+    "id": "EXTRA-2",
+    "issue": "우리 report01 이 인용한 문자열 \"SBR + image method\" 는 원문에 0 hit 이다(docs/AUDIT_FINDINGS_0722.md 가 이미 지적).",
+    "the_real_string_p1": "For CIRs, Sionna RT integrates shooting and bouncing of rays (SBR) with the image method and uses a hashing-based mechanism to efficiently eliminate duplicate paths.",
+    "action": "축자 인용 자리에는 위 원문을 쓰고, 'SBR + image method' 는 우리 요약임을 표시한 채로만 쓴다."
+   },
+   {
+    "id": "EXTRA-3",
+    "issue": "'창설논문에는 회절이 없다'는 기억은 틀렸다.",
+    "founding_paper_p2": "Sionna RT supports specular and diffuse reflections (i.e., scattering) as well as first-order diffraction.",
+    "what_was_actually_missing": "굴절(refraction)이다 — FP p2: \"For future releases, it is planned to add refraction as well as support for RIS\"."
+   },
+   {
+    "id": "EXTRA-4",
+    "issue": "'ITU-R P.2040 재질 값이 Sionna 에 들어온다'를 기술보고서로 인용하면 오인용이다.",
+    "fact": "TR v1.2 에서 P.2040-3 의 본문 역참조는 정확히 p44·p47 두 곳이고 둘 다 **수식의 출처**다(A.7 정의, A.7.1 슬래브 §2.2.2.2). 재질 수치표도 주파수 의존 피팅식도 TR 에 없다.",
+    "where_the_claim_belongs": "FP p2 — \"Radio materials can be defined by frequency-dependent functions, similar to the materials defined by the ITU in [29], which are already integrated into Sionna.\" 거기 인용판은 P.2040-**2** 다.",
+    "our_code_note": "src/materials.py 는 값을 Sionna 런타임에서 읽어 온다(scene.frequency 를 주고 값을 읽는 방식). 즉 우리 근거는 소프트웨어 동작이지 TR 문장이 아니다 — 리포트에 그렇게 적어야 한다."
+   },
+   {
+    "id": "EXTRA-5",
+    "issue": "'target' 이 레이더적 의미로 쓰인 곳이 있는지 확인 필요(우리 프레이밍의 뿌리).",
+    "verdict": "✅ 86회 전수 확인 결과 레이더 의미 0건. 조명되는 물체는 예외 없이 'scatterer'(23회)다. 두 어휘가 문서 전체에서 한 번도 섞이지 않는다.",
+    "decisive_quotes": [
+     {
+      "page": 6,
+      "text": "Throughout this document, the endpoints of a path will be referred to as sources and targets, which can be either radio devices or antennas."
+     },
+     {
+      "page": 14,
+      "text": "Since targets are modeled as points, condition (12) effectively occurs with zero probability"
+     }
+    ],
+    "closest_false_positive": "p12 \"detection spheres centered at the targets\" — 고전 ray-launching 의 수신구 기법이며 저자가 곧바로 기각한다. 레이더 표적이 아니다."
+   }
+  ]
+ },
+ "SECTION_3_THE_GAP_IN_THE_DOCUMENTS_OWN_TERMS": {
+  "_framing": "⭐ 이 절은 '엔진이 못한다'가 아니라 '엔진의 문제 정의가 다르다'로 쓴다. 그것이 원문에 충실하고, 동시에 우리 기여의 자리를 더 정확히 만든다.",
+  "what_the_document_says_it_is_for": [
+   {
+    "page": 5,
+    "text": "The primary objective of Sionna RT is to identify the propagation paths that link radio devices within a given propagation environment. As depicted in Figure 1, a propagation environment is defined by a collection of scatterers."
+   },
+   {
+    "page": 6,
+    "text": "Each object acting as a scatterer is associated with a radio material that determines its interaction with incident radio waves. ... Radio materials are akin to bidirectional scattering distribution function (BSDF) in the field of computer graphics"
+   },
+   {
+    "page": 6,
+    "text": "Paths are determined between two endpoints: a source and a target."
+   }
+  ],
+  "the_four_structural_facts": [
+   "링크가 **radio device 사이**에 정의된다(p5). 물체는 링크의 양 끝이 아니라 그 사이의 산란체다.",
+   "산란체는 **BSDF 유비의 재질**로만 개입한다(p6) — BSDF 는 정규화된 반사율 분포이지 물체의 절대 단면적이 아니다.",
+   "경로 종단점인 target 은 **점**이다(p14, p16) — 부피도 면적도 없으므로 애초에 단면적을 정의할 대상이 아니다.",
+   "출력이 **채널량**으로 닫혀 있다(p6, p38) — 물체 귀속량이 목록에 없다."
+  ],
+  "what_a_sensing_application_needs_that_this_does_not_provide": {
+   "quantity": "물체 하나에 귀속되는, 절대 레벨을 가진 방향·주파수·자세 의존 산란 단면적 σ(û_i, û_s; f, pose) — 그리고 그 위상까지 보존한 복소 산란장.",
+   "why_it_is_needed": "레이더 방정식을 세워 SNR 을 계산하고, CFAR 임계를 걸고, Pd/Pfa 를 내려면 표적의 절대 산란량이 있어야 한다. 채널이득 g = Σ|a_n|² 는 링크 전체의 합이라 표적 기여를 분리해 주지 않는다.",
+   "why_the_engine_cannot_supply_it_by_construction": [
+    "표면 계산이 국소 2×2 행렬 곱이라 형상 인자가 들어갈 자리가 없다(p27 Evaluate_Material 인자).",
+    "정반사가 광선관을 새로 낳지 않아 발산인자가 1 이다(p35) — 유한 크기·곡률의 파면 확산이 표현되지 않는다.",
+    "확산 경로는 반구적분 1 로 정규화되어 있어(식 171) 어떤 파라미터를 골라도 절대 후방산란량이 되지 않는다.",
+    "우리 자체 실측이 이를 확인한다: 평판 크기를 바꿔 σ 를 52 dB 움직여도 정반사 진폭비 불변(−7.91 dB, 산포 0.00 dB); 확산 경로는 S² 에 비례해 움직인다(S 0.2→1.0 에서 +15.8 dB); PEC 구(S=0)에서는 경로가 0개. (docs/VERIFY_RT_VS_PO.md)"
+   ]
+  },
+  "why_this_is_a_scope_decision_not_a_defect": {
+   "argument": "저자들이 §3.4 'Current Limitations and Potential Improvements' 에서 스스로 든 한계는 네 개뿐이고, 전부 **알고리즘 효율·커버리지**에 관한 것이다: (1) 광선 방향 표집 효율, (2) 다수 타깃·소스 확장성, (3) 고차 회절과 회절+확산 혼합 경로, (4) 정반사 사슬 해시 충돌. PO 부재·RCS 부재·소형 표적·회전 물체·절대 정확도 검증은 **한계 목록에 없다**.",
+   "the_correct_reading": "⭐ 이것을 '저자들이 그 문제를 몰랐다'로 읽으면 안 된다. '그 문제들이 이 도구의 문제 정의 밖에 있다'로 읽어야 한다. p5 의 목적 선언과 정확히 일치한다.",
+   "the_forbidden_sentence": "⚠ '저자들이 §3.4 에서 RCS 가 없다는 한계를 인정했다' — **거짓이며 인용 위조에 해당한다**. 절대 쓰지 않는다.",
+   "the_permitted_sentence": "✅ '저자들의 한계 목록에 표적 산란단면이 없다는 사실 자체가, 물체 귀속 산란량이 이 엔진의 문제 정의에 포함되지 않음을 보여준다.'",
+   "the_extensibility_counterweight": "그리고 저자들은 확장을 명시적으로 초대한다 — p7: \"While Sionna RT provides built-in solvers and radio material models, it is designed to facilitate the implementation of custom alternatives.\" 따라서 우리 기여의 정확한 형태는 '엔진의 결함을 고쳤다'가 아니라 '엔진이 초대한 확장 지점에 센싱용 층을 얹었다'이다."
+  },
+  "our_layer_stated_precisely": {
+   "one_sentence": "우리는 Sionna RT 가 계산하는 채널량 위에, 표적 표면의 PO 적분으로 얻은 물체 귀속 복소 산란장을 얹고, 그것을 다시 Sionna PHY 채널에 주입한다.",
+   "pipeline": "메시(drone_cad/drones) → 재질 단일 진리원(materials) → Mitsuba 광선 first-hit 으로 조명면 판정 → PO 표면적분(rcs_sbr) → 복소 (a, τ, ν) → Sionna PHY cir_to_time_channel 주입(sionna_chain) → ECA·거리도플러·CFAR(passive_process/radar_process).",
+   "the_hybrid_justification": "⭐ 정당화의 근거는 '표준 관행이라서'가 아니라 '내장 path solver 에 산란적분 단계가 없어 σ 가 창발하지 않기 때문'이다. 따라서 검증축은 RT↔PO 대조가 아니라 PO↔해석해 및 PO↔문헌 실측 앵커로 간다.",
+   "what_we_do_not_claim": [
+    "'레이트레이싱은 RCS 를 못 낸다' — 거짓. SBR(GO+PO)은 상용 EM 솔버의 표준 고주파 기법이고 우리가 쓰는 것이 바로 그것이다.",
+    "'Sionna 로는 원리적으로 불가능하다' — 거짓. p7 이 커스텀 확장을 초대하고, Ziganshin 외(EuCAP 2025)가 실제로 UTD·정점 회절을 얹어 dBsm 을 냈다.",
+    "'우리 σ 가 정확하다' — PO 는 few-λ 표적에서 best-fit 이지 정확도가 아니다. 절대 앵커는 공개 문헌 RCS 다."
+   ]
+  }
+ },
+ "SECTION_4_CITATION_SET": {
+  "_rule": "⭐ 우리 리포트가 Sionna 에 대해 하는 모든 주장은 아래 표의 한 줄에 대응해야 한다. 대응하는 줄이 없으면 그 주장은 아직 근거가 없는 것이다. TR 인용에는 항상 \"Sionna RT Technical Report, Version 1.2 (2025-11-24), arXiv:2504.21719v2\" 를 달고, FP 인용에는 항상 v0.14 세대임을 병기한다.",
+  "entries": [
+   {
+    "claim": "Sionna RT 의 목적은 무선기기 사이의 전파 경로를 찾는 것이다",
+    "document": "TR",
+    "page": 5,
+    "quote": "The primary objective of Sionna RT is to identify the propagation paths that link radio devices within a given propagation environment."
+   },
+   {
+    "claim": "장면의 물체는 산란체이고 재질은 BSDF 유비다",
+    "document": "TR",
+    "page": 6,
+    "quote": "Each object acting as a scatterer is associated with a radio material that determines its interaction with incident radio waves. ... Radio materials are akin to bidirectional scattering distribution function (BSDF) in the field of computer graphics"
+   },
+   {
+    "claim": "경로의 끝점을 source/target 이라 부른다 — target 은 레이더 표적이 아니다",
+    "document": "TR",
+    "page": 6,
+    "quote": "Throughout this document, the endpoints of a path will be referred to as sources and targets, which can be either radio devices or antennas.",
+    "guard": "86회 전수 확인 결과 레이더 의미 0건. 조명되는 물체는 항상 'scatterer'."
+   },
+   {
+    "claim": "target 은 점이다 — 면적도 부피도 없다",
+    "document": "TR",
+    "page": 14,
+    "quote": "Since targets are modeled as points, condition (12) effectively occurs with zero probability"
+   },
+   {
+    "claim": "솔버는 두 종류이고 출력 분류가 닫혀 있다",
+    "document": "TR",
+    "page": 6,
+    "quote": "Given the distinct algorithmic requirements for CIRs and radio maps, Sionna RT provides two types of solvers"
+   },
+   {
+    "claim": "⭐ 커스텀 확장을 저자가 초대한다 (우리 주장을 '내장 솔버'로 한정하는 안전장치)",
+    "document": "TR",
+    "page": 7,
+    "quote": "While Sionna RT provides built-in solvers and radio material models, it is designed to facilitate the implementation of custom alternatives.",
+    "guard": "⭐ CLAIM-3 계열 주장을 쓸 때 반드시 병기한다."
+   },
+   {
+    "claim": "표면 상호작용은 정확히 네 종류다",
+    "document": "TR",
+    "page": 9,
+    "quote": "Sionna RT currently supports four types of interactions with scene objects:",
+    "equations": [
+     "ℐ = {ℛ, 𝒮, 𝒯, 𝒟}"
+    ]
+   },
+   {
+    "claim": "투과는 각편향 없이 단일 광선으로, 두께는 필드에만",
+    "document": "TR",
+    "page": 9,
+    "quote": "The transmitted rays are traced without angular deflection. Surfaces like walls should be modeled as single flat surfaces ... However, when computing the transmitted and reflected fields, the thickness of the traversed object is considered."
+   },
+   {
+    "claim": "점광원 근사의 유효조건 (근거리·소형표적 실험에서 확인 필요)",
+    "document": "TR",
+    "page": 9,
+    "quote": "Note that modeling transmit antennas as point sources is a valid approximation when the distances to scatterers and targets are significantly greater than the wavelength of the propagating waves."
+   },
+   {
+    "claim": "R/T 는 방향만 바꾸고 S/D 만 파면을 바꾼다",
+    "document": "TR",
+    "page": 9,
+    "quote": "Importantly, specular reflection and refraction through planar surfaces only alter the ray direction. Diffuse reflection and diffraction alter the shape of the wavefront."
+   },
+   {
+    "claim": "⭐ SBR 은 경로 후보 탐색기다 (산란장 계산기가 아니다)",
+    "document": "TR",
+    "page": 11,
+    "quote": "Therefore, the path solver uses SBR as a heuristic to find path candidates.",
+    "guard": "절 제목도 같은 말이다 — p12 \"3.1. Generating Candidates by Shooting and Bouncing of Rays (SBR)\". 카운트는 44 회."
+   },
+   {
+    "claim": "회절점은 삼각형 프리미티브의 엣지로 교점을 투영해 만든다",
+    "document": "TR",
+    "page": 15,
+    "quote": "the intersection point between the ray ... and the primitive ... is projected onto one of the primitive's edges, yielding the vertex v(ℓ)_n"
+   },
+   {
+    "claim": "회절과 확산반사는 한 경로에 공존할 수 없다 / 1차 회절만",
+    "document": "TR",
+    "page": 16,
+    "quote": "the path solver prohibits sampling paths that contain both diffraction and diffuse reflection. ... Moreover, Sionna RT currently supports only first-order diffraction, meaning that paths may contain at most one diffraction event."
+   },
+   {
+    "claim": "회절은 계수가 아니라 고정 확률로 표집된다",
+    "document": "TR",
+    "page": 18,
+    "quote": "In Sionna RT, q(D) is set to 0.2."
+   },
+   {
+    "claim": "⭐ 반사면은 무한히 뻗어 있다고 가정한다 (경로 기하)",
+    "document": "TR",
+    "page": 19,
+    "quote": "Importantly, primitives that are coplanar (i.e., lie in the same plane) are treated as equivalent during hashing. This is because the image method assumes all reflection surfaces extend infinitely, making the exact in-plane position of a primitive irrelevant to the path geometry.",
+    "guard": "⭐ CLAIM-1 의 1차 근거. 부록이 아니라 솔버 본문이다."
+   },
+   {
+    "claim": "경로 버퍼가 담는 것",
+    "document": "TR",
+    "page": 21,
+    "quote": "This buffer holds, for each path, the sequence of interaction types, vertices, intersected objects, primitives, and more.",
+    "guard": "⚠ 'and more' 가 출력 목록에서 유일하게 열린 표현이다. 인용 시 그대로 둘 것."
+   },
+   {
+    "claim": "해시 충돌로 유효 경로가 조용히 버려질 수 있다",
+    "document": "TR",
+    "page": 21,
+    "quote": "When two different specular chains share the same index value despite being different, the path solver will discard one of them. Such an event is referred to as a collision, and can result in the discarding of valid paths."
+   },
+   {
+    "claim": "에너지 정확도가 '모든 정반사 사슬을 다 찾았다'는 가정 위에 있다",
+    "document": "TR",
+    "page": 26,
+    "quote": "the channel gain (5) observed at the target due to specular chains is accurate if all specular chains are identified by the path solver, which is assumed to be the case. This assumption will be reasonable if the number of samples N_S is sufficiently large."
+   },
+   {
+    "claim": "⭐ 재질 평가의 인자에 형상이 없다",
+    "document": "TR",
+    "page": 27,
+    "quote": "the electric field is updated by the transfer matrix T(ℓ′)_n, which depends on the intersected object o(ℓ′)_n, the interaction type χ(ℓ′)_n, and other parameters (omitted for brevity).",
+    "guard": "⭐ '면적분 없음'의 양성 근거 (b)."
+   },
+   {
+    "claim": "합성 배열 근사의 유효조건",
+    "document": "TR",
+    "page": 27,
+    "quote": "This method allows for efficient scaling with the number of antennas, but it is an approximation that is valid only when the transmitter and receiver array sizes are small relative to the distance from the radio devices to each other and to the scatterers."
+   },
+   {
+    "claim": "⭐ 속도는 객체당 R³ 벡터 하나 (회전 프로펠러 불가의 근거)",
+    "document": "TR",
+    "page": 28,
+    "quote": "In this alternative method, we assign a velocity vector v(o) ∈ R3 to each object o and compute the time evolution by accumulating Doppler shifts along the propagation paths.",
+    "equations": [
+     "(37)",
+     "(38)"
+    ],
+    "guard": "유효범위도 함께: \"when trajectory lengths are small (not exceeding a few wavelengths)\". 'angular velocity' 는 문서에 0회."
+   },
+   {
+    "claim": "정확한 대안은 스텝-앤-리시뮬뿐이고 비싸다",
+    "document": "TR",
+    "page": 28,
+    "quote": "The first approach involves moving objects in small incremental steps along their trajectories and recomputing the propagation paths at each step. While this method provides the highest accuracy, it is computationally expensive."
+   },
+   {
+    "claim": "다중 Rx 비용은 타깃 수에 선형이다 (우리 벤치마크 설계 근거)",
+    "document": "TR",
+    "page": 29,
+    "quote": "The current method for handling multiple targets involves iterating over all targets during each SBR loop iteration."
+   },
+   {
+    "claim": "⭐ 고차 회절의 전계 계산은 미해결 문제다",
+    "document": "TR",
+    "page": 30,
+    "quote": "Regarding high-order diffraction, there are algorithms for determining the diffraction vertices [22]. However, calculating the electric field along these high-order diffraction paths remains an open problem, and as a result, high-order diffraction is not currently supported.",
+    "guard": "⚠ 고차 회절 전계에 한정된 진술이다. PO 나 1차 회절로 확대 인용 금지."
+   },
+   {
+    "claim": "해시 충돌을 해결하지 않는다 (저자 자신의 한계 4번)",
+    "document": "TR",
+    "page": 30,
+    "quote": "The path solver does not handle collisions of specular chain candidates. ... Currently, it is assumed that the hash array size is set to a sufficiently large value to make collisions negligible."
+   },
+   {
+    "claim": "⭐ 경로 솔버는 적분기가 아니라 탐색기다 (저자 직접 진술)",
+    "document": "TR",
+    "page": 33,
+    "quote": "It is important to note that this analogy does not extend to the path solver, which is not concerned with evaluating an integral but rather with finding a set of paths, which are not aggregated into a single scalar value."
+   },
+   {
+    "claim": "라디오맵은 'purely SBR' 이 아니다 — 회절은 별도 계산이다",
+    "document": "TR",
+    "page": 33,
+    "quote": "However, SBR is not applicable to paths that include diffraction ... Sionna RT computes the radio map in two steps ... First, the radio map is computed for all interaction types except diffraction using a single SBR loop ... Second, only diffracted paths are computed.",
+    "guard": "⚠ 초록 p1 의 \"Radio maps are computed using a purely SBR-based approach\" 대신 이 본문을 인용한다."
+   },
+   {
+    "claim": "⭐ 정반사는 광선관을 새로 만들지 않는다 (발산인자 1 = 무한평면)",
+    "document": "TR",
+    "page": 35,
+    "quote": "In the current propagation model of Sionna RT, only the source s and diffuse reflection points act as point sources that spawn new ray tubes, whereas specular reflection and refraction points merely deviate existing ray tubes rather than spawning new ones."
+   },
+   {
+    "claim": "라디오맵 합은 비간섭이라 페이딩을 못 담는다",
+    "document": "TR",
+    "page": 36,
+    "quote": "The proposed definition of radio maps involves a non-coherent summation of path gains (43). As a result, it does not capture fast fading effects"
+   },
+   {
+    "claim": "⭐⭐ 출력 집합의 닫힘 (Q5 의 결정적 근거)",
+    "document": "TR",
+    "page": 38,
+    "quote": "The Sionna RT solver currently supports the calculation of channel gain maps, which are radio maps that provide an estimate of the channel gain for each cell. It is possible to extend the solver to calculate other types of radio maps, such as root-mean-square delay spread maps and angular spread maps [27].",
+    "guard": "⭐ '산란단면 출력 없음'을 낱말 카운트가 아니라 저자의 목록으로 말하게 해 주는 문장."
+   },
+   {
+    "claim": "⭐ 확산 전달행렬은 선형변환이 아니다 (저자 자인)",
+    "document": "TR",
+    "page": 43,
+    "quote": "In some cases, e.g., for diffuse reflection (see (168) in Section A.9), the matrix T̃ depends on the incoming field and is not a linear transformation."
+   },
+   {
+    "claim": "전달행렬 설계 기준은 전력 예산이다",
+    "document": "TR",
+    "page": 44,
+    "quote": "Note that the matrices T̃_i also ensure appropriate scaling so that the total received power can never be larger than the transmit power."
+   },
+   {
+    "claim": "A.7 의 전제 — 평면파가 평면 계면을 때린다, 비자성 유전체",
+    "document": "TR",
+    "page": 44,
+    "quote": "When a plane wave hits a plane interface which separates two materials, e.g., air and concrete, a part of the wave gets reflected and the other refracted ... We assume in the following description that both materials are uniform non-magnetic dielectrics, i.e. μr = 1, and follow the definitions as in [33].",
+    "guard": "[33] = ITU-R P.2040-3. 여기서는 **정의·표기의 출처**로만 인용된다."
+   },
+   {
+    "claim": "Fresnel 식과 2×2 대각 적용",
+    "document": "TR",
+    "page": 46,
+    "quote": "The Fresnel equations provide relationships between the incident, reflected, and refracted field components",
+    "equations": [
+     "(127) 일반",
+     "(128) 진공입사 축약",
+     "(129) 반사 2×2 대각",
+     "(130) 투과 2×2 대각"
+    ]
+   },
+   {
+    "claim": "⭐ 계수도 무한 크기를 가정한다 / 슬래브는 두께만 완화한다",
+    "document": "TR",
+    "page": 46,
+    "quote": "The reflection and refraction coefficients described above assume that the object reflecting the wave or allowing it to penetrate is of infinite size (or thickness). However, since this is rarely the case, it is often more practical to assume that the object has a finite thickness.",
+    "equations": [
+     "(131) r",
+     "(132) t",
+     "(133) q = 2πd√(η−sin²θ₀)/λ"
+    ],
+    "guard": "⭐ CLAIM-1 의 2차 근거이자 '완화되는 것은 두께뿐'의 근거."
+   },
+   {
+    "claim": "⭐ 회절 정식화의 계보 (UTD → Luebbers 휴리스틱 유한도전율 확장)",
+    "document": "TR",
+    "page": 47,
+    "quote": "While [36] deals with diffraction at edges of perfectly conducting surfaces, it was heuristically extended to finitely conducting wedges in [37]. This solution, which is also recomended by the ITU [38], is implemented in Sionna.",
+    "equations": [
+     "(145) 회절행렬",
+     "(146) 쐐기면 Fresnel",
+     "(153)–(156) D1..D4"
+    ],
+    "guard": "'UTD 를 쓴다'고만 적으면 부정확하다. [36]=Kouyoumjian–Pathak 1974, [37]=Luebbers 1984, [38]=ITU-R P.526-15."
+   },
+   {
+    "claim": "회절 기하는 무한히 긴 쐐기를 가정한다",
+    "document": "TR",
+    "page": 48,
+    "quote": "We consider an infinitely long wedge with unit norm edge vector ê"
+   },
+   {
+    "claim": "S 는 자유 파라미터이며 반사 에너지를 쪼갤 뿐이다",
+    "document": "TR",
+    "page": 50,
+    "quote": "we denote by S² the fraction of the reflected energy that is diffusely scattered, where S ∈ [0, 1] is the so-called scattering coefficient [41]",
+    "equations": [
+     "(164) R = √(1−S²)"
+    ]
+   },
+   {
+    "claim": "확산장 식은 문헌 모델을 가져온 것이다",
+    "document": "TR",
+    "page": 51,
+    "quote": "According to [42, Eq. 9], the diffusely scattered field Es(r) at the observation point r can be modeled as",
+    "equations": [
+     "(168)",
+     "(169) Γ",
+     "(170) Kx"
+    ]
+   },
+   {
+    "claim": "⭐⭐ 산란패턴 정규화의 목적은 전력수지다 (Q7 의 결정타)",
+    "document": "TR",
+    "page": 51,
+    "quote": "The scattering pattern must be normalized to satisfy the condition [(171)] which ensures the power balance between the incoming, reflected, and refracted fields.",
+    "equations": [
+     "(171)"
+    ]
+   },
+   {
+    "claim": "확산 위상은 선택적 난수다",
+    "document": "TR",
+    "page": 51,
+    "quote": "χ1, χ2 ∈ [0, 2π] are (optional) independent random phase shifts"
+   },
+   {
+    "claim": "예시 산란패턴의 출처와 조건부 정확도",
+    "document": "TR",
+    "page": 52,
+    "quote": "The authors of [41] derived several simple scattering patterns that were shown to achieve good agreement with measurements when correctly parametrized.",
+    "equations": [
+     "(172) Lambertian",
+     "(173) Directive",
+     "(174) Backscattering"
+    ],
+    "guard": "⚠ 이것은 Sionna 결과가 아니라 [41] 원논문 결과이며 'when correctly parametrized' 조건이 붙는다."
+   },
+   {
+    "claim": "[FP] 창설논문의 기능 목록 (v0.14 세대 — 굴절 없음)",
+    "document": "FP",
+    "page": 2,
+    "quote": "Sionna RT supports specular and diffuse reflections (i.e., scattering) as well as first-order diffraction. ... For future releases, it is planned to add refraction as well as support for RIS",
+    "guard": "⚠ 솔버 거동 인용에는 쓰지 않는다. 역사·계보 진술 전용."
+   },
+   {
+    "claim": "[FP] ITU 재질 함수 통합 진술 — 이 진술은 창설논문에만 있다",
+    "document": "FP",
+    "page": 2,
+    "quote": "Radio materials can be defined by frequency-dependent functions, similar to the materials defined by the ITU in [29], which are already integrated into Sionna.",
+    "guard": "⚠ 거기 인용판은 P.2040-**2** 다. TR v1.2 는 P.2040-3 을 수식 출처로만 인용하고 이 진술이 없다."
+   }
+  ],
+  "zero_hit_ledger": {
+   "_use": "'문서에 없다'를 주장할 때 쓰는 재계수 결과. ⚠ 반드시 '기술보고서 v1.2 59쪽 전문 기준'이라고 범위를 밝힌다.",
+   "counts": {
+    "physical optics": 0,
+    "physical-optics": 0,
+    "surface current": 0,
+    "induced current": 0,
+    "equivalent current": 0,
+    "radar cross section": 0,
+    "RCS": 0,
+    "dBsm": 0,
+    "radar": 0,
+    "monostatic": 0,
+    "bistatic": 0,
+    "sensing": 0,
+    "ISAC": 0,
+    "PTD": 0,
+    "roughness": 0,
+    "empirical": 0,
+    "validation": 0,
+    "angular velocity": 0,
+    "time-varying": 0,
+    "rigid": 0,
+    "deform*": 0,
+    "far-field": 0,
+    "SBR": 44,
+    "shooting and bouncing": 4,
+    "target": 86,
+    "scatterer": 23,
+    "surface integral": 1,
+    "Doppler": 9,
+    "UTD": 2,
+    "GTD": 3,
+    "P.2040": 3,
+    "Lambertian": 1
+   },
+   "caveats": [
+    "SBR 44 는 대소문자 구분. 대소문자 무시하면 45 인데 1건은 참고문헌 [28] 의 독일어 'Ausbreitungsbedingungen' 오탐이다.",
+    "shooting and bouncing 4건은 전부 같은 문장에 '(SBR)' 을 달고 있어 44 에 이미 포함된 언급이다 — 더해서 48 로 쓰면 과대계상.",
+    "target 86 은 부분문자열 기준. 단어경계 정규식은 85 인데 p13 의 '𝑁𝑇targets' 가 수학 첨자와 붙어 있어서다.",
+    "surface integral 1 은 참고문헌 [26](Wikipedia)이며 본문 역참조 p35 의 변수변환 야코비안이다 — PO 적분이 아니다.",
+    "⚠ '문서에 없다'는 '구현에 없다'와 동일하지 않다. 다만 문서가 스스로를 \"details the algorithms employed by Sionna RT\"(p1)라 규정하므로 합리적 추정이다. 확정하려면 Sionna 2.0.1 소스 실측이 필요하다."
+   ]
+  }
+ },
+ "CORRECTIONS_TO_REPO": [
+  {
+   "severity": "중간",
+   "file": "docs/PAPER_DRAFT.md",
+   "line": 397,
+   "current": "D14 … \"기술보고서(v1.2 · 59쪽)에 SBR 은 48회 나오고…\"",
+   "fix": "48 → 44. 같은 파일 98행은 이미 44 로 적혀 있어 문서 내부에서 자기모순이다.",
+   "root_cause": "outputs/prior_settled_sionna.json 의 \"SBR or shooting-and-bouncing\": 48 이라는 **합성 카운트**의 라벨이 유실된 채 옮겨졌다."
+  },
+  {
+   "severity": "중간",
+   "file": "prior_work/sionna_sensing_survey.md",
+   "line": 117,
+   "current": "\"Sionna RT 기술보고서(2504.21719) SBR 48회 vs RCS·physical optics 각 0회\"",
+   "fix": "48 → 44."
+  },
+  {
+   "severity": "낮음(라벨)",
+   "file": "outputs/prior_settled_sionna.json",
+   "line": null,
+   "current": "word_counts_rerun_this_session … \"SBR or shooting-and-bouncing\": 48",
+   "fix": "수치는 그 정의대로 맞다. 다만 이 항목을 인용할 때는 반드시 합성 카운트임을 밝히고, 단독 'SBR' 카운트로 옮겨 적지 않는다. 가능하면 44 와 4 를 분리 기록한다."
+  },
+  {
+   "severity": "중간",
+   "file": "docs/PRIOR_WORK_COMPARISON.md",
+   "line": 352,
+   "current": "\"유일한 `surface integral` 은 라디오맵 면적분용 참고문헌(p.35)\"",
+   "fix": "정확하지만 표현을 다듬는다 — 문자열 자체는 참고문헌 목록(p58)의 [26] Wikipedia 항목이고, **본문 역참조가 p35**(식 57/58 변수변환 야코비안)다. 지금 표현은 문자열이 p35 에 있다고 읽힐 수 있다."
+  },
+  {
+   "severity": "중간",
+   "file": "src/make_report01_prior.py",
+   "line": 132,
+   "current": "축자 인용 자리에 \"SBR + image method\" 형태의 문자열 사용(docs/AUDIT_FINDINGS_0722.md 가 이미 0 hit 로 지적)",
+   "fix": "원문 축자는 p1 \"For CIRs, Sionna RT integrates shooting and bouncing of rays (SBR) with the image method and uses a hashing-based mechanism to efficiently eliminate duplicate paths.\" 로 쓴다. ⚠ 이 파일은 편집 금지 목록이므로 담당자에게 넘긴다."
+  },
+  {
+   "severity": "낮음",
+   "file": "리포트 전반",
+   "current": "'국소 무한평면' 이라는 축약",
+   "fix": "우리 요약임을 밝히고 p19(기하) + p46(계수) 두 인용을 함께 단다. 'locally' 는 문서에서 표면이 아니라 **입사파**에 붙는 낱말이다(p50)."
+  },
+  {
+   "severity": "낮음",
+   "file": "리포트 전반",
+   "current": "'확산 모델은 경험적이다'",
+   "fix": "'empirical' 은 문서에 0회다. CLAIM-4 의 corrected_wording(전력 정규화 재분배 커널 + 식 171 목적 + p43 비선형 자인)으로 교체한다."
+  },
+  {
+   "severity": "높음(습관)",
+   "file": "리포트·덱 전반",
+   "current": "파일명을 근거로 'v1' 표기",
+   "fix": "\"Sionna RT: Technical Report, Version 1.2, arXiv:2504.21719v2, 2025-11-24\" 로 통일."
+  }
+ ],
+ "OPEN_ITEMS": [
+  "⚠ 버전 간극: TR 은 Sionna RT **1.2** 를 기술하고 우리 스택은 **2.0.1** 이다. 두 버전 사이에 솔버가 바뀌었을 가능성은 문서로 배제할 수 없다. 리포트에서 '우리가 쓰는 엔진이 이렇게 동작한다'고 쓸 때는 TR v1.2 인용 + 우리 2.0.1 실측(benchmark/verify_rt_no_rcs.py)을 **함께** 대야 한다.",
+  "⚠ TR p22 의 'N_B corresponds to the samples_per_src … N_H corresponds to max_num_paths_per_src' 는 정의에 비추면 매핑이 뒤집혀 보인다. 소스 실측 전까지 인용 금지.",
+  "⚠ Algorithm 2 line 24 는 전치(ᵀ)를, 식 (4)/(114) 는 켤레전치(H)를 쓴다. 표기 불일치이며 TR 만으로 어느 쪽이 구현인지 판정 불가. 인용은 (4) 를 쓴다.",
+  "⚠ TR p17/p18 이 Fresnel 4계수를 '(131)'(슬래브식)로 지시한다. 자유공간 4계수는 (127)/(128) 이다. 오탈자로 보이나 확정 불가.",
+  "⚠ 경로 버퍼 내용의 'and more'(p21)가 출력 목록의 유일한 열린 표현이다. 사용자 API 노출 필드는 TR 범위 밖이며 Sionna 소스로 별도 확인이 필요하다.",
+  "⚠ TR 은 메시의 어떤 엣지를 '진짜 쐐기'로 인정하는지, 외부각 nπ 를 삼각형 메시에서 어떻게 얻는지 서술하지 않는다. 곡면을 잘게 테셀레이션한 우리 드론 메시에서 인공 엣지가 회절 후보가 되는지는 **문서로 답할 수 없다** — 주장하려면 '보고서에 서술이 없다' 형태로만 쓴다.",
+  "⚠ 우리 커널의 편파 결손(6행)은 이 정독이 새로 드러낸 항목이다. 향후 작업 후보 1순위로 올려 둔다 — 표적 편파산란행렬 S_b.",
+  "⚠ TR 에는 실측 대조 검증이 전혀 없다. 이는 우리가 Sionna 를 절대 앵커로 쓸 수 없다는 근거인 동시에, 우리도 같은 잣대를 받아야 한다는 뜻이다."
+ ],
+ "_COUNTS": {
+  "boundary_table_rows": 8,
+  "claims_reexamined": 4,
+  "additional_corrections_found": 5,
+  "citation_entries": 44,
+  "repo_corrections": 8,
+  "open_items": 8,
+  "quotes_independently_reverified_this_pass": 39,
+  "reverification_note": "선행 3편이 기록한 인용문을 이 세션에서 PDF 재추출본에 대고 문자열 검색으로 다시 찾았다 — 39건 전건 일치, 소재 쪽도 일치. 추가로 우리 저장소가 인용해 온 문자열 8건을 대조해 그중 1건('SBR + image method')이 0 hit 임을 확인했다. 우리 측 수치 인용(sbr_kr_sweep 0.201 dB / dither λ8·λ12·λ16 = 5.284·1.373·1.782 dB)도 해당 JSON 에서 직접 읽어 확인했다.",
+  "source_pages": 59
+ }
+}

@@ -1,0 +1,2546 @@
+{
+ "meta": {
+  "purpose": "철회 R1~R8 · 정정 A1~A7 (+신규) 의 생존 인스턴스 전수 조사",
+  "root": "/home/yunjung/workspace/sionna2",
+  "files_scanned": 395,
+  "json_policy": "JSON 은 파싱 후 문자열 값·키만 검사 (숫자 배열 오탐 제거)",
+  "excluded": [
+   "benchmark/correction_sweep.py",
+   "docs/RETRACTION_LOG.md",
+   "outputs/correction_sweep.json"
+  ]
+ },
+ "patterns": [
+  {
+   "id": "R1_chen_as_priority_holder",
+   "description": "Chen 2024 를 무모호 속도식 우선권 보유자로 세운 표현 (정본: Abratkiewicz IEEE JSTARS 2023 식(16) p.3476)",
+   "n_hits": 60
+  },
+  {
+   "id": "R1_velocity_law_ours_or_novel",
+   "description": "속도식에 '우리 것/최초/신규' 를 붙인 표현",
+   "n_hits": 118
+  },
+  {
+   "id": "R6_stock_sionna_no_diffraction",
+   "description": "스톡 Sionna 에 회절이 없다는 표현 (정본: 1차 UTD 쐐기회절 구현됨, 기본값만 꺼져 있음)",
+   "n_hits": 38
+  },
+  {
+   "id": "R7_sbr_48_occurrences",
+   "description": "기술보고서 SBR 48 회 (정본: 44 회)",
+   "n_hits": 41
+  },
+  {
+   "id": "R8_19_papers_target_in_scene",
+   "description": "표적을 씬에 세운 저작 19 편 (정본: 7 히트 / 고유 6 편)",
+   "n_hits": 9
+  },
+  {
+   "id": "A1_dihedral_minus_26_46_db",
+   "description": "이면각 오차 −26.46 dB (정본: 출처 없음)",
+   "n_hits": 1
+  },
+  {
+   "id": "A2_slope_range_0175_0315",
+   "description": "측정 기울기 구간 0.175~0.315 (정본: 0.07~0.315)",
+   "n_hits": 14
+  },
+  {
+   "id": "A2_das_yuan_two_independent",
+   "description": "Das·Yuan 을 독립 앵커 2 건으로 센 표현 (정본: Das 는 Yuan 원자료의 재분석 = 측정 1 건)",
+   "n_hits": 5
+  },
+  {
+   "id": "A3_plastic_eps_unsourced",
+   "description": "plastic εr 2.7 무출처 표현 (정본: Zechmeister & Lacik COMITE 2019. 무출처인 건 셸 두께)",
+   "n_hits": 6
+  },
+  {
+   "id": "A4_battery_eps_mixup",
+   "description": "εr 1.4 / σ 1.2 를 배터리로 귀속 (정본: 챔버 흡수체)",
+   "n_hits": 14
+  },
+  {
+   "id": "A5_ziganshin_mlfmm_validation",
+   "description": "Ziganshin 차량 dBsm 을 MLFMM 대조로 표기 (정본: FEKO PO 솔버)",
+   "n_hits": 38
+  },
+  {
+   "id": "A7_techreport_v1",
+   "description": "기술보고서를 v1 으로 표기 (정본: arXiv:2504.21719v2 / Version 1.2)",
+   "n_hits": 40
+  },
+  {
+   "id": "NEW_phantom2_phantom3_inversion",
+   "description": "Phantom 2 를 1.8~18.2 GHz 원거리장 기체로 표기 (정본: Phantom 2 = 11~26 GHz 근거리장, Phantom 3 = 1.8~18.2 GHz 무향실)",
+   "n_hits": 24
+  },
+  {
+   "id": "NEW_ziganshin_runtime_per_pose",
+   "description": "Ziganshin 0.7→19.0 s 를 per-pose 로 읽히게 표기 (정본: 360 각도점 전체 스윕. per point 1.94 → 52.8 ms)",
+   "n_hits": 15
+  }
+ ],
+ "hits": {
+  "R1_chen_as_priority_holder": [
+   {
+    "file": "outputs/deepread_reconcile.json",
+    "line": 167,
+    "json_path": ".headline_ko[1]",
+    "text": "⭐⭐ 대신 '우리 것' 하나가 더 깨졌다 - 우리 오류기록 1번의 정정('Chen 2024 가 먼저 냈다')이 다시 틀렸다. Abratkiewicz 외(IEEE JSTARS 16:3469-3484, 2023, 게재) 식 (16) 이 p.8 에 ±λ/(4·T_SSB) 를 인쇄한다 - Chen 보다 1년 앞서고, 축(기준신호 반복 주기)까지 우리와 같다. 반대로 Chen 전문에 'PRF' 기호는 0회이므로 '같은 기호' 라는 우리 서술도 거짓이다. 우선권 서사는 두 번 틀렸고, 이제 '교과서 Nyquist 귀결이라 누구의 기여도 아니다' 가 정답이다."
+   },
+   {
+    "file": "outputs/deepread_reconcile.json",
+    "line": 404,
+    "json_path": ".corrections_patchlist.items[0].we_said",
+    "text": "claimed v_max = lambda*PRF/4 as our finding -> Chen et al. 2024 published it first, same symbols  /  reflib_sweep_geometry: \"⭐⭐ YES - our equation, our symbols, two years earlier\""
+   },
+   {
+    "file": "outputs/reflib_sweep_geometry.json",
+    "line": 1011,
+    "json_path": ".entries[26].short",
+    "text": "⭐⭐ Chen 5G rotating target - priority holder for our formula"
+   },
+   {
+    "file": "outputs/reflib_sweep_geometry.json",
+    "line": 1050,
+    "json_path": ".entries[26].citable_ko",
+    "text": "무모호 속도가 기준신호 반복 주기로 묶인다는 명제는 Chen 외(Applied Sciences 2024)가 상용 5G CSI-RS 실측으로 이미 보였고, LaSen(SenSys 2026)이 그 우선권을 명시적으로 인정한다."
+   },
+   {
+    "file": "outputs/deepread_backlog.json",
+    "line": 0,
+    "json_path": ".headline_findings_ko[0]",
+    "text": "⭐⭐ 정정 1건: Chen 외, \"Rotating Target Detection Using Commercial 5G Signal\", Applied Sciences (MDPI) 14(10):4282, 2024 (게재, DOI 10.3390/app14104282) 의 PDF 는 우리 아카이브에 있다. 기록은 \"PDF NOT held - quotes inherited\" 라고 적고 있었다. 인계받은 인용문 4개를 오늘 원문과 대조했고 전부 축자 일치했다(p.13, p.13, p.1, p.6). 우리 오류기록 1번(무모호 속도식 우선권)의 근거가 이제 원문 대조로 확정됐다."
+   },
+   {
+    "file": "outputs/r2_read_w4.json",
+    "line": 152,
+    "json_path": ".papers[1].R1_genealogy_finding_ko.why_it_matters",
+    "text": "⭐ 우리 무모호 속도 우선권 라운드(R1)에서 세었던 관례는 두 가지였다 - Abratkiewicz 2023 의 half-window (lambda*PRF/4) 와 Chen 2024(Appl. Sci.)의 무공식. 이 논문은 세 번째 관례를 명시적으로 인용한다: 마이크로도플러용 4배 오버샘플 규칙."
+   },
+   {
+    "file": "outputs/r2_read_w4.json",
+    "line": 236,
+    "json_path": ".papers[2].Q_E_GENEALOGY_CLOSED_ONE_STEP.still_open_ko",
+    "text": "PDF 는 여전히 미확보다(아카이브 4곳 전수 검색 0건). 따라서 '그 논문이 Chen 의 바이스태틱 도플러식의 실제 출처인가' 는 여전히 UNVERIFIED - 이 IRS 논문은 [8] 에 도플러식을 귀속시키지 않는다."
+   },
+   {
+    "file": "outputs/r2_read_w4.json",
+    "line": 1122,
+    "json_path": ".open_questions_progress_ko.Q_E",
+    "text": "⭐ 서지 확정. Samczynski, Abratkiewicz, Plotka, Zielinski, Wszolek, Hausman, Korbel, Ksiezyk, '5G Network-Based Passive Radar', IEEE TGRS 60:1-9, 2022 (게재). 두 출처(IRS 2023 [8], Remote Sens 2022 [9])에서 축자 확인. PDF 는 여전히 미확보이고, 이 논문이 Chen 의 바이스태틱 도플러식의 출처인지는 두 인용 논문 어느 쪽도 그렇게 귀속시키지 않으므로 UNVERIFIED 로 남는다."
+   },
+   {
+    "file": "outputs/geometry_benchmark.json",
+    "line": 1121,
+    "json_path": ".contribution.novelty_guard[1]",
+    "text": "v_max = λ·PRF/(4cos(β/2)cosδ) 는 Chen et al. Applied Sciences 2024 가 먼저 냈다 · Abratkiewicz 2023 이 5G SSB 에 적용했다"
+   },
+   {
+    "file": "outputs/mono_vs_passive.json",
+    "line": 964,
+    "json_path": ".L4_boundary_verdict.novelty_position.must_stop_claiming[1]",
+    "text": "그 식의 바이스태틱 일반형(β, δ 포함)이 새롭다는 주장 — Chen 2024 가 같은 식을 쓴다"
+   },
+   {
+    "file": "outputs/mono_vs_passive.json",
+    "line": 982,
+    "json_path": ".L4_boundary_verdict.novelty_position.priority_holder.formula",
+    "text": "Chen, Tian, Bai, Wang, Applied Sciences 14(10):4282, 2024 (MDPI, published, open access) — same equation, same symbols, two years earlier"
+   },
+   {
+    "file": "outputs/monostatic_prior.json",
+    "line": 20,
+    "json_path": ".headline_of_this_file",
+    "text": "1) 프로젝트 메모는 옳았다 — LaSen 은 모노스태틱이고, 원문이 두 곳에서 그렇게 쓴다. 2) 그러나 '모노스태틱은 반복률을 자유롭게 고른다'는 우리 프레이밍은 틀렸다 — 3GPP 가 sub-6 CSI-RS 에 500 Hz 천장을 걸었고 실측 상용 gNB 는 50~200 Hz 로 돈다. 모노스태틱의 진짜 탈출구는 반복률이 아니라 **데이터 심볼**이며, 그것은 트래픽에 종속된다. 3) 그리고 v_max = λ·PRF/(4cos(β/2)cosδ) 는 우리 것이 아니다 — Chen et al., Applied Sciences 2024 가 같은 기호로 먼저 냈다."
+   },
+   {
+    "file": "outputs/monostatic_prior.json",
+    "line": 531,
+    "json_path": ".priority_check.hits[0].what_this_does_to_our_claim",
+    "text": "⭐ 'v_max = λ·PRF_ref/(4 cos(β/2) cos δ) 라는 식' 자체는 **우리 것이 아니다**. Chen 2024 가 2년 먼저, 같은 기호로, 실측까지 붙여 냈다. novelty_guard 에 Abratkiewicz 2023 만 적혀 있고 Chen 2024 는 없다 — 즉시 추가해야 한다. 우리가 여전히 새로 놓는 것은 (a) 근거 붙은 **교차표준** 표, (b) 실기체 최고속도 겹치기, (c) 설계규칙 역산, (d) 인프라 이전 서사, (e) 검출성능(블라인드/접힘/CPI 독립성)까지의 연결이다. 식은 '우리가 정리한 형태'로 쓰되 '우리가 처음'이라고 쓰면 안 된다."
+   },
+   {
+    "file": "outputs/monostatic_prior.json",
+    "line": 558,
+    "json_path": ".priority_check.hits[4].status",
+    "text": "⭐ SenSys 2026 논문이 '무모호 속도는 CSI-RS 반복주기가 정한다'는 명제의 **우선권을 명시적으로 Chen 2024 에 돌린다**. 우리가 그 명제의 최초 제기자라고 쓸 여지는 없다."
+   },
+   {
+    "file": "outputs/monostatic_prior.json",
+    "line": 564,
+    "json_path": ".priority_check.verdict_for_our_paper.must_stop_claiming[1]",
+    "text": "그 식의 바이스태틱 일반형(β, δ 포함)이 새롭다는 주장 — Chen 2024 가 같은 식을 쓴다"
+   },
+   {
+    "file": "outputs/lit_verify_lasen_priority.json",
+    "line": 86,
+    "json_path": ".C_priority.answer",
+    "text": "최소 3편이 먼저 했고, 그중 Chen 2024 는 우리 헤드라인 숫자까지 같다. 그리고 그 식은 셋 다 남의 것으로 돌린다."
+   },
+   {
+    "file": "outputs/lit_verify_lasen_priority.json",
+    "line": 174,
+    "json_path": ".E_what_survives_of_our_contribution.dead[0]",
+    "text": "무모호 속도가 상시 기준신호 반복률로 정해진다는 **사실** - Abratkiewicz 2023, Chen 2024, LaSen 2026 이 먼저"
+   },
+   {
+    "file": "outputs/reference_library.json",
+    "line": 7307,
+    "json_path": ".related_work_skeleton[4].guards_ko[0]",
+    "text": "⚠⚠ 식 자체의 우선권은 우리 것이 아니다. Chen 외(Appl. Sci. 14(10):4282, 2024)가 성분(반복률 x cos(beta/2) x cos delta)을 기호까지 같게 쓰고 LaSen 이 우선권을 그 논문에 명시적으로 돌린다. ⚠ 그 논문은 MDPI 403 으로 원문 미확보 상태이므로 인용 시 반드시 'LaSen 이 그렇게 요약한다' 로 표기(E4/E6)."
+   },
+   {
+    "file": "outputs/r2_read_w3.json",
+    "line": 1047,
+    "json_path": ".records[9].Q_E_genealogy_progress.value_ko",
+    "text": "⭐ Q-E(‘Chen 의 바이스태틱 도플러 식의 실제 출처는 Samczyński 의 TGRS 인가’)에 한 걸음. Samczyński 본인이 공저자인 이 2025 논문은 f_b = (2V_b/λ)cos(δ)cos(β/2) 를 **Skolnik, Radar Handbook, 3rd ed., McGraw-Hill, 2008 [12]** 에 귀속한다. 자기 그룹의 TGRS 논문이 아니다."
+   },
+   {
+    "file": "outputs/review_mobisys.json",
+    "line": 53,
+    "json_path": ".version_A_simulation_only.why[2]",
+    "text": "게다가 그 식은 선행이다 — Chen et al., Applied Sci. 14(10):4282, 2024 가 패시브 바이스태틱 5G 로 같은 기호(β 이중기저각, δ)로 먼저 냈고 상용 gNB 실측까지 붙였다. 우리 저장소가 스스로 그것을 확인한다 ⟨outputs/monostatic_prior.json : priority_check.hits[0]⟩ 및 우리 법칙이 그들 숫자를 rel_err 3.0e-05 로 재현한다 ⟨…: verification_of_our_law_against_prior_measurements.chen2024_rotation⟩"
+   },
+   {
+    "file": "outputs/review_mobisys.json",
+    "line": 85,
+    "json_path": ".novelty_reality_check.the_formula_is_not_ours",
+    "text": "⭐ outputs/monostatic_prior.json : priority_check.hits[0] 이 명시한다 — 'v_max = λ·PRF_ref/(4 cos(β/2) cos δ) 라는 식 자체는 우리 것이 아니다'. novelty_guard 에 Chen 2024 를 즉시 추가해야 한다"
+   },
+   {
+    "file": "outputs/review_mobisys.json",
+    "line": 104,
+    "json_path": ".advice_to_authors.split_question_implication",
+    "text": "⭐ ICASSP 에 v_max 를 먼저 내면 SenSys 펀치가 빠진다는 걱정은 과대평가다. SenSys 급 기여는 애초에 법칙이 아니라 시스템이 될 것이고, 법칙은 이미 Chen 2024·Abratkiewicz 2023 이 절반을 갖고 있다. 즉 분리의 비용이 생각보다 훨씬 싸다 — 분석은 지금 ICASSP/JSTARS 로 내보내고, 1년은 시스템(path 1 또는 2)에 쓰는 것이 옳다."
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 212,
+    "json_path": ".F6_live_retracted_claims.items[2].retraction",
+    "text": "R1 (정본) — 'Chen 2024 가 같은 기호로 먼저 냈다' 는 두 번째 오답이다. 진짜 우선권은 Abratkiewicz JSTARS 2023 식 (16)"
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 215,
+    "json_path": ".F6_live_retracted_claims.items[2].still_live_in[1]",
+    "text": "outputs/mono_vs_passive.json L964, L982 ('Chen … — same equation, same symbols, two years earlier')"
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 121,
+    "json_path": ".retractions[0].we_said",
+    "text": "⑴ 'v_max = λ·PRF/4 는 우리 발견이다' → ⑵ '우리 것이 아니다, Chen 외 Applied Sciences 2024 가 같은 기호로 먼저 냈다'"
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 270,
+    "json_path": ".retractions[9].we_said",
+    "text": "Chen 2024 가 v_max 를 우리와 **같은 기호로** 먼저 냈다."
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 414,
+    "json_path": ".facts[6].claim_ko",
+    "text": "⚠ 우리 이전 기록이 우선권을 돌렸던 Chen 2024 는 **닫힌 식을 표시하지 않는다** — 20 ms → 50 Hz → [-25,25] Hz → 0.56 rps 라는 수치 대입만 있고, λ·PRF/4 도 cos(β/2)cos(δ) 합성형도 표시 식으로 없다."
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 1055,
+    "json_path": ".open_gaps[0].what_it_changed",
+    "text": "⭐ 두 가지가 바뀌었다. ⑴ Chen 은 닫힌 식을 표시하지 않는다 — 우리가 Chen 에게 돌렸던 우선권이 틀렸다. ⑵ Chen 의 표적은 스테퍼 모터 회전 모형이고 드론 로터는 동기로만 나온다."
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 1070,
+    "json_path": ".open_gaps[1].what_it_changed",
+    "text": "⭐⭐ 이 라운드의 헤드라인. 우리 v_max 법칙의 진짜 주인이고, 우리가 기록해둔 Chen 귀속조차 한 세대 늦었음이 드러났다. 동시에 그들이 드론을 future work 로 남겼다는 문장을 얻었다."
+   },
+   {
+    "file": "outputs/r2_hunt_genealogy.json",
+    "line": 22,
+    "json_path": ".headline_ko",
+    "text": "Q-F 는 규격 원문으로 완전히 닫혔고, 그 과정에서 우리 주장 2건이 깨졌다. ⭐ BREAK-1: 3GPP 는 sub-6 CSI-RS 에 500 Hz 천장을 걸지 않는다 — 규격은 주기를 오직 '슬롯'으로만 말하고(38.331 최소 slots4), 절대시간은 DL BWP 의 numerology 가 정한다(38.214 §5.2.1.2). 500 Hz 는 30 kHz SCS 에서만 나오는 값이고, n78 은 38.104 표 5.3.5-1 에서 15/30/60 kHz 를 다 허용하므로 60 kHz 면 천장은 1000 Hz(= n78 에서 21.41 m/s)다. 규격 4종 어디에도 CSI-RS 문맥에 Hz 단위 문장이 0건이다. ⭐ BREAK-2: SSB '20 ms 기본값'은 규격의 기본값이 아니다 — 38.3"
+   },
+   {
+    "file": "outputs/r2_hunt_genealogy.json",
+    "line": 69,
+    "json_path": ".A_samczynski_tgrs.QE_ANSWERED_WITHOUT_THE_PAPER.chain[0].ko",
+    "text": "Chen 2024 §4.1.1 식(4) f_d = (2v/λ)cos(δ)cos(β/2) 를 [16]=Samczyński TGRS 에 귀속한다"
+   },
+   {
+    "file": "outputs/verify_chen.json",
+    "line": 12,
+    "json_path": ".headline_ko[1]",
+    "text": "2) ⭐⭐ 우리 v_max = lambda*PRF_ref/4 는 Abratkiewicz 외 JSTARS 2023 의 eq.(16) 과 **문자 그대로 같은 식**이다 — 반쪽 구간 규약까지 같고, 그들은 5G SSB 에 대해 2023 년에 냈다. Chen(2024)보다 1 년 빠르다."
+   },
+   {
+    "file": "outputs/verify_chen.json",
+    "line": 14,
+    "json_path": ".headline_ko[3]",
+    "text": "4) 따라서 이전 라운드 기록(outputs/monostatic_prior.json)의 'Chen 이 같은 기호로 먼저 냈다' 는 **부분적으로 틀렸다** — 인용문 자체는 전부 정확했으나(축자 대조 완료), 우선권은 Chen 이 아니라 Abratkiewicz 2023 이고 Chen 에는 합성된 닫힌 식이 없다."
+   },
+   {
+    "file": "outputs/verify_chen.json",
+    "line": 574,
+    "json_path": ".corrections_to_our_records[1].was",
+    "text": "'v_max = lambda*PRF/(4cos(beta/2)cos delta) 는 우리 것이 아니다 — Chen et al., Applied Sciences 2024 가 같은 기호로 먼저 냈다' (headline 3)"
+   },
+   {
+    "file": "outputs/deepread_w4.json",
+    "line": 161,
+    "json_path": ".papers[0].impact_on_our_claims.our_error_record_item_1.our_text",
+    "text": "'claimed v_max = lambda*PRF/4 as our finding -> Chen et al. 2024 published it first, same symbols'"
+   },
+   {
+    "file": "outputs/deepread_w4.json",
+    "line": 167,
+    "json_path": ".papers[0].impact_on_our_claims.deeper_correction_ko.text_ko",
+    "text": "더 정직한 진술은 '누가 먼저냐'가 아니다. 이 논문은 그 식을 Nyquist 표본화 정리의 직접 귀결로 유도하고 그렇게 쓴다 - 즉 교과서 결과이지 어느 논문의 기여가 아니다. 우리가 '우리 발견'이라 부른 것도, 'Chen 이 최초'라고 정정한 것도 둘 다 과잉 주장이다. 남는 우리 몫은 식이 아니라 '5G 상시신호 축에서 이 천장이 드론 속도 대역과 어디서 충돌하는가'라는 수치적 사례다."
+   },
+   {
+    "file": "outputs/deepread_w4.json",
+    "line": 299,
+    "json_path": ".papers[1].convention_audit.what_our_record_got_slightly_wrong_ko",
+    "text": "우리 기록(outputs/monostatic_prior.json)은 'v_max = λ·PRF/(4cos(β/2)cosδ) 를 Chen 이 같은 기호로 먼저 냈다'고 적었다. 정확히는 Chen 은 그 닫힌 형태의 식을 인쇄하지 않는다. 인쇄된 것은 (a) 식 (4)의 f_d = (2v/λ)cos(β/2)cosδ 와 (b) 문장으로 준 [-25,25] Hz 구간이다. 합성식은 우리(또는 독자)의 유도다. 기호가 같다는 부분만 참이다."
+   },
+   {
+    "file": "outputs/deepread_w4.json",
+    "line": 329,
+    "json_path": ".papers[1].impact_on_our_claims.priority_of_the_formula.verdict_ko",
+    "text": "⭐ Chen 2024 는 우리 무모호속도식의 '최초'가 아니다. 같은 아카이브의 Abratkiewicz 외 IEEE JSTARS 2023(게재, 2023-03-28) 이 ±λ/(4T) 를 기준신호 반복 주기 축에서 먼저 인쇄했다. Chen 의 고유 기여는 그 식이 아니라 cos(β/2)cos(δ) 를 붙인 바이스태틱 형태와 회전 표적 적용이다."
+   },
+   {
+    "file": "outputs/deepread_w1.json",
+    "line": 25,
+    "json_path": ".wave_summary.headline_findings_ko[4]",
+    "text": "⭐⭐ 우리 오류기록 1번의 표현이 과장이었다 — reflib_sweep_geometry.json 의 chen2024appliedsci 헤드라인은 'our equation, our symbols, two years earlier' 라고 적지만, 원문 20쪽 전문에 'PRF' 라는 기호가 0회이고 v_max 의 닫힌 기호식도 없다. 같은 레코드의 note 필드는 이미 바르게 적고 있어 헤드라인과 본문이 모순이다(R20 novelty 오류와 같은 구조). 우선권은 Chen 에게 있으므로 '처음 제기'는 여전히 쓸 수 없지만, '같은 기호'는 철회해야 한다."
+   },
+   {
+    "file": "outputs/deepread_w1.json",
+    "line": 34,
+    "json_path": ".wave_summary.corrections_to_existing_records_ko[0]",
+    "text": "outputs/reflib_sweep_geometry.json / chen2024appliedsci.ambiguity.reports: 'our equation, our symbols, two years earlier' → 'our result and our components, numerically, two years earlier; 기호식은 인쇄되지 않았고 PRF 기호는 0회' 로 수정 필요."
+   },
+   {
+    "file": "outputs/deepread_w1.json",
+    "line": 255,
+    "json_path": ".records[1].corrections_to_our_records_ko[0]",
+    "text": "⭐ 정정 1 (우리 오류기록 1번의 표현 과장) — outputs/reflib_sweep_geometry.json 의 chen2024appliedsci.ambiguity.reports 가 '⭐⭐ YES - our equation, our symbols, two years earlier' 라고 적혀 있다. 원문 대조 결과 'PRF' 라는 기호는 전문에 0회이고, v_max 의 닫힌 기호식도 없다. 같은 파일의 note 필드는 이미 '식을 기호적으로 닫지 않고 수치로 조립한다'고 바르게 적고 있어 헤드라인과 본문이 서로 모순이다(R20 novelty 오류와 같은 구조). 정확한 진술은: Chen 외는 사슬(기준신호 주기 → 무모호 도플러 폭 → 최대 측정 회전속도)을 수치로 제시하고 실측으로 파괴까지 보였으나 "
+   },
+   {
+    "file": "docs/REFERENCE_LIBRARY.md",
+    "line": 1715,
+    "text": "| 2 | `chen2024appliedsci` | Applied Sciences 2024 - 우리 식의 성분(반복률 x cos(beta/2) x cos delta)을 기호까지 같게 쓴다. LaSen 이 우선권을 명시적으로 이 논문에 돌린다. | 식 자체의 우선권은 우리 것이 아니다. novelty 는 교차표·설계역산·검출률 귀결로 재정의해야 한다. |"
+   },
+   {
+    "file": "docs/REFERENCE_LIBRARY.md",
+    "line": 1847,
+    "text": "- ⚠⚠ 식 자체의 우선권은 우리 것이 아니다. Chen 외(Appl. Sci. 14(10):4282, 2024)가 성분(반복률 x cos(beta/2) x cos delta)을 기호까지 같게 쓰고 LaSen 이 우선권을 그 논문에 명시적으로 돌린다. ⚠ 그 논문은 MDPI 403 으로 원문 미확보 상태이므로 인용 시 반드시 'LaSen 이 그렇게 요약한다' 로 표기(E4/E6)."
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 81,
+    "text": "- **우리가 말했던 것** — ⑴ 'v_max = λ·PRF/4 는 우리 발견이다' → ⑵ '우리 것이 아니다, Chen 외 Applied Sciences 2024 가 같은 기호로 먼저 냈다'"
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 171,
+    "text": "- **우리가 말했던 것** — Chen 2024 가 v_max 를 우리와 **같은 기호로** 먼저 냈다."
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 261,
+    "text": "#### F07 · ⚠ 우리 이전 기록이 우선권을 돌렸던 Chen 2024 는 **닫힌 식을 표시하지 않는다** — 20 ms → 50 Hz → [-25,25] Hz → 0.56 rps 라는 수치 대입만 있고, λ·PRF/4 도 cos(β/2)cos(δ) 합성형도 표시 식으로 없다."
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 545,
+    "text": "- **무엇이 바뀌었는가** — ⭐ 두 가지가 바뀌었다. ⑴ Chen 은 닫힌 식을 표시하지 않는다 — 우리가 Chen 에게 돌렸던 우선권이 틀렸다. ⑵ Chen 의 표적은 스테퍼 모터 회전 모형이고 드론 로터는 동기로만 나온다."
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 554,
+    "text": "- **무엇이 바뀌었는가** — ⭐⭐ 이 라운드의 헤드라인. 우리 v_max 법칙의 진짜 주인이고, 우리가 기록해둔 Chen 귀속조차 한 세대 늦었음이 드러났다. 동시에 그들이 드론을 future work 로 남겼다는 문장을 얻었다."
+   },
+   {
+    "file": "docs/PRIOR_READING_LOG.md",
+    "line": 42,
+    "text": "우리는 \"v_max = λ·PRF/4 를 우리 발견이라 주장했다 → Chen et al. 2024 가 먼저 냈고 기호까지 같다\""
+   },
+   {
+    "file": "docs/GEOMETRY_BENCHMARK.md",
+    "line": 169,
+    "text": "**신규성 경계** — Rzewuski(NATO STO 2021)가 드론 바이스태틱 RCS → 커버리지 → 50 m 실외 검출을 이미 닫았다 — '최초' 류를 쓰지 않는다 · v_max = λ·PRF/(4cos(β/2)cosδ) 는 Chen et al. Applied Sciences 2024 가 먼저 냈다 · Abratkiewicz 2023 이 5G SSB 에 적용했다 · v·R = c·λ/8 은 Skolnik 의 고전 결과다"
+   },
+   {
+    "file": "benchmark/monostatic_prior.py",
+    "line": 540,
+    "text": "\"status\": \"⭐ SenSys 2026 논문이 '무모호 속도는 CSI-RS 반복주기가 정한다'는 명제의 **우선권을 명시적으로 Chen 2024 에 돌린다**. 우리가 그 명제의 최초 제기자라고 쓸 여지는 없다.\","
+   },
+   {
+    "file": "benchmark/monostatic_prior.py",
+    "line": 546,
+    "text": "\"그 식의 바이스태틱 일반형(β, δ 포함)이 새롭다는 주장 — Chen 2024 가 같은 식을 쓴다\","
+   },
+   {
+    "file": "benchmark/monostatic_prior.py",
+    "line": 595,
+    "text": "\"3) 그리고 v_max = λ·PRF/(4cos(β/2)cosδ) 는 우리 것이 아니다 — Chen et al., Applied Sciences 2024 가 같은 기호로 먼저 냈다.\""
+   },
+   {
+    "file": "benchmark/mono_vs_passive.py",
+    "line": 1372,
+    "text": "\"formula priority\": \"Chen et al., Applied Sciences 14(10):4282, 2024 (MDPI, \""
+   },
+   {
+    "file": "benchmark/verify_chen.py",
+    "line": 162,
+    "text": "\"2) ⭐⭐ 우리 v_max = lambda*PRF_ref/4 는 Abratkiewicz 외 JSTARS 2023 의 eq.(16) 과 **문자 그대로 같은 식**이다 — 반쪽 구간 규약까지 같고, 그들은 5G SSB 에 대해 2023 년에 냈다. Chen(2024)보다 1 년 빠르다.\","
+   },
+   {
+    "file": "benchmark/verify_chen.py",
+    "line": 164,
+    "text": "\"4) 따라서 이전 라운드 기록(outputs/monostatic_prior.json)의 'Chen 이 같은 기호로 먼저 냈다' 는 **부분적으로 틀렸다** — 인용문 자체는 전부 정확했으나(축자 대조 완료), 우선권은 Chen 이 아니라 Abratkiewicz 2023 이고 Chen 에는 합성된 닫힌 식이 없다.\","
+   },
+   {
+    "file": "benchmark/verify_chen.py",
+    "line": 439,
+    "text": "\"was\": \"'v_max = lambda*PRF/(4cos(beta/2)cos delta) 는 우리 것이 아니다 — Chen et al., Applied Sciences 2024 가 같은 기호로 먼저 냈다' (headline 3)\","
+   },
+   {
+    "file": "benchmark/deck_facts.py",
+    "line": 773,
+    "text": "claim_ko=\"⚠ 우리 이전 기록이 우선권을 돌렸던 Chen 2024 는 **닫힌 식을 표시하지 않는다** — 20 ms → 50 Hz → \""
+   },
+   {
+    "file": "benchmark/deck_facts.py",
+    "line": 1566,
+    "text": "\"we_said\": \"Chen 2024 가 v_max 를 우리와 **같은 기호로** 먼저 냈다.\","
+   },
+   {
+    "file": "benchmark/geometry_benchmark.py",
+    "line": 846,
+    "text": "\"v_max = λ·PRF/(4cos(β/2)cosδ) 는 Chen et al. Applied Sciences 2024 가 먼저 냈다 · \""
+   }
+  ],
+  "R1_velocity_law_ours_or_novel": [
+   {
+    "file": "outputs/deepread_reconcile.json",
+    "line": 405,
+    "json_path": ".corrections_patchlist.items[0].paper_says_ko",
+    "text": "(a) Chen 2024 전문 20쪽에 'PRF' 기호는 0회이고 v_max 의 닫힌 기호식도 없다 - 수치로만 조립한다. (b) 그리고 Chen 은 최초가 아니다. Abratkiewicz 외가 1년 앞서 같은 축(기준신호 반복 주기)에서 같은 반폭 규약을 식 번호까지 붙여 인쇄했다."
+   },
+   {
+    "file": "outputs/reflib_sweep_geometry.json",
+    "line": 2248,
+    "json_path": ".actions_ranked[0].action",
+    "text": "⭐⭐ Abratkiewicz et al., IEEE JSTARS 16:3469-3484, 2023 (SSB-based passive radar) PDF 확보. 서베이와 Wu 외 2건이 'SSB 반복 주기가 무모호 속도를 심하게 제약한다'와 'two-snapshot 으로 도플러 모호를 푼다'를 이 논문에 귀속한다. 확보 전까지 우리 novelty 문장 확정 불가. DOI 10.1109/JSTARS.2023.3262291."
+   },
+   {
+    "file": "outputs/deepread_backlog.json",
+    "line": 2493,
+    "json_path": ".entries[9].manual_link.why_ko",
+    "text": "우리 오류기록 1번(v_max = lambda*PRF/4 를 우리 발견이라 주장한 건)의 우선권 보유 논문이다. 그 판정이 원문 없이 내려져 있었는데, 이제 원문 대조로 확정됐다."
+   },
+   {
+    "file": "outputs/geometry_benchmark.json",
+    "line": 37,
+    "json_path": ".headline",
+    "text": "지도가 채워졌다. 6칸을 가르는 것은 확산항이 아니라 **간섭항과 통제권**이다 — 검지 한계에서 기하 0.441 dB · 조명원 4.97 dB · 상호작용 0.11 dB · 간섭 47.1 dB. 무모호 속도의 바닥은 기하와 무관하고(차이 0 m/s), 속도창의 동적범위 M/(2·bins) 에서도 기하가 소거된다 — 기하는 창을 통째로 밀고 CPI 가 폭을 정한다. 주장 18개 + 신규 4개 중 both 13 · monostatic only 3 · passive only 1 · bistatic only 1 · neither 4 이고, C16(자세분해 σ)이 바이에서 drop 이면서 모노에서 서는 유일한 승격 항목이다."
+   },
+   {
+    "file": "outputs/geometry_benchmark.json",
+    "line": 779,
+    "json_path": ".readjudication.claims[1].claim",
+    "text": "속도 동적범위 v_max/v_guard 는 기하와 무관하다 (신규)"
+   },
+   {
+    "file": "outputs/mono_vs_passive.json",
+    "line": 380,
+    "json_path": ".L2_design_freedom.D1_discrete_ladder.ceiling_repo_parity.ours_v_max_ms",
+    "text": "ours_v_max_ms"
+   },
+   {
+    "file": "outputs/mono_vs_passive.json",
+    "line": 963,
+    "json_path": ".L4_boundary_verdict.novelty_position.must_stop_claiming[0]",
+    "text": "무모호 속도가 상시 기준신호 반복률로 결정된다는 **사실**을 우리가 처음 지적했다는 어떤 형태의 주장"
+   },
+   {
+    "file": "outputs/mono_vs_passive.json",
+    "line": 984,
+    "json_path": ".L4_boundary_verdict.novelty_position.priority_holder.action_required",
+    "text": "outputs/refrate_law.json novelty_guard 에 이 항목이 없다 — §5 패치"
+   },
+   {
+    "file": "outputs/mono_vs_passive.json",
+    "line": 989,
+    "json_path": ".L5_refrate_law_handoff.why_a_patch_and_not_an_edit",
+    "text": "benchmark/refrate_law.py 와 outputs/refrate_law.json 은 git 미추적(??) 상태의 **다른 워크플로 작업물**이다. 동시편집으로 그 라운드를 깨지 않기 위해 여기서는 패치만 넘긴다. 적용하면 refrate_law.json 에 law.monostatic 이 생기고 novelty_guard 에 Chen 2024 가 들어간다."
+   },
+   {
+    "file": "outputs/monostatic_prior.json",
+    "line": 531,
+    "json_path": ".priority_check.hits[0].what_this_does_to_our_claim",
+    "text": "⭐ 'v_max = λ·PRF_ref/(4 cos(β/2) cos δ) 라는 식' 자체는 **우리 것이 아니다**. Chen 2024 가 2년 먼저, 같은 기호로, 실측까지 붙여 냈다. novelty_guard 에 Abratkiewicz 2023 만 적혀 있고 Chen 2024 는 없다 — 즉시 추가해야 한다. 우리가 여전히 새로 놓는 것은 (a) 근거 붙은 **교차표준** 표, (b) 실기체 최고속도 겹치기, (c) 설계규칙 역산, (d) 인프라 이전 서사, (e) 검출성능(블라인드/접힘/CPI 독립성)까지의 연결이다. 식은 '우리가 정리한 형태'로 쓰되 '우리가 처음'이라고 쓰면 안 된다."
+   },
+   {
+    "file": "outputs/monostatic_prior.json",
+    "line": 537,
+    "json_path": ".priority_check.hits[1].status",
+    "text": "이미 outputs/refrate_law.json novelty_guard 에 기록되어 있다. 이번 라운드에서 새로 확인한 것: 후속 문헌이 이 논문을 바로 그 논거로 인용한다 - Wu et al. arXiv:2511.14529 (2025): 'the study also highlighted that the maximum unambiguous velocity of PCL is severely constrained by the SSB's long transmission periodicity (e.g., 10 ms minimum)'."
+   },
+   {
+    "file": "outputs/monostatic_prior.json",
+    "line": 558,
+    "json_path": ".priority_check.hits[4].status",
+    "text": "⭐ SenSys 2026 논문이 '무모호 속도는 CSI-RS 반복주기가 정한다'는 명제의 **우선권을 명시적으로 Chen 2024 에 돌린다**. 우리가 그 명제의 최초 제기자라고 쓸 여지는 없다."
+   },
+   {
+    "file": "outputs/monostatic_prior.json",
+    "line": 563,
+    "json_path": ".priority_check.verdict_for_our_paper.must_stop_claiming[0]",
+    "text": "무모호 속도가 상시 기준신호 반복률로 결정된다는 **사실**을 우리가 처음 지적했다는 어떤 형태의 주장"
+   },
+   {
+    "file": "outputs/lit_verify_lasen_priority.json",
+    "line": 125,
+    "json_path": ".C_priority.hit_3_lasen.implication",
+    "text": "게재된 SenSys 논문이 '무모호 속도는 CSI-RS 반복주기가 정한다' 를 Chen 2024 의 발견으로 기록해 두었다. 우리가 그 명제의 최초 제기자라고 쓸 자리는 문헌상 남아 있지 않다."
+   },
+   {
+    "file": "outputs/lit_verify_lasen_priority.json",
+    "line": 129,
+    "json_path": ".C_priority.hit_4_jopanya.our_current_record",
+    "text": "refrate_law.json novelty_guard 는 arXiv 번호만 적어 하우스 규칙(venue+status+year)을 어기고 있다"
+   },
+   {
+    "file": "outputs/lit_verify_lasen_priority.json",
+    "line": 192,
+    "json_path": ".F_actions[0].target",
+    "text": "outputs/refrate_law.json novelty_guard"
+   },
+   {
+    "file": "outputs/lit_verify_lasen_priority.json",
+    "line": 193,
+    "json_path": ".F_actions[1].target",
+    "text": "outputs/refrate_law.json novelty_guard[1].prior"
+   },
+   {
+    "file": "outputs/reference_library.json",
+    "line": 7305,
+    "json_path": ".related_work_skeleton[4].thesis_ko",
+    "text": "패시브 드론 문헌은 CAF·CFAR·CPI 를 다 갖추고도 무모호 속도 칸을 대체로 비워 둔다. 비어 있지 않은 몇 편은 규약(전폭/반폭)과 슬로타임 축(심볼 간격/기준신호 반복 주기)이 서로 다르며, 그 차이가 우리 기여의 자리다."
+   },
+   {
+    "file": "outputs/review_mobisys.json",
+    "line": 85,
+    "json_path": ".novelty_reality_check.the_formula_is_not_ours",
+    "text": "⭐ outputs/monostatic_prior.json : priority_check.hits[0] 이 명시한다 — 'v_max = λ·PRF_ref/(4 cos(β/2) cos δ) 라는 식 자체는 우리 것이 아니다'. novelty_guard 에 Chen 2024 를 즉시 추가해야 한다"
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 121,
+    "json_path": ".retractions[0].we_said",
+    "text": "⑴ 'v_max = λ·PRF/4 는 우리 발견이다' → ⑵ '우리 것이 아니다, Chen 외 Applied Sciences 2024 가 같은 기호로 먼저 냈다'"
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 594,
+    "json_path": ".facts[14].claim_en",
+    "text": "Ours is the only row FULL on engine+mesh+material+aspect+geometry+vmax simultaneously; the only other row full on the first four (RadarTwin, arXiv'26) is empty on vmax and geometry."
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 1708,
+    "json_path": ".self_check.checks[18].detail",
+    "text": "engine+mesh+material+aspect+geometry+vmax 6열 FULL 인 행: ['OURS (sionna2)']"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[0].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[1].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[2].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[3].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[4].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[5].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[6].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[7].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[8].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[9].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[10].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[11].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[12].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[13].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[14].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[15].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[16].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[17].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[18].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[19].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[20].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[21].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[22].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[23].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[24].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[25].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[26].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[27].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[28].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[29].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[30].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[31].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[32].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[33].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[34].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[35].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[36].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[37].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[38].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[39].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[40].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[41].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[42].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[43].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[44].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[45].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[46].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[47].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[48].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[49].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[50].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[51].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[52].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/vmax_grid.json",
+    "line": 4356,
+    "json_path": ".drone_overlay.cross_check_vs_vmax_hardening_E5.rows[53].ours_unambiguous",
+    "text": "ours_unambiguous"
+   },
+   {
+    "file": "outputs/verify_chen.json",
+    "line": 135,
+    "json_path": ".quotes_abratkiewicz2023[12].why_ko",
+    "text": "그들의 novelty 주장 원문 — 'SSB 를 조명원으로 쓰는 것' 이지 '무모호 속도 식' 이 아니다."
+   },
+   {
+    "file": "outputs/deepread_w4.json",
+    "line": 329,
+    "json_path": ".papers[1].impact_on_our_claims.priority_of_the_formula.verdict_ko",
+    "text": "⭐ Chen 2024 는 우리 무모호속도식의 '최초'가 아니다. 같은 아카이브의 Abratkiewicz 외 IEEE JSTARS 2023(게재, 2023-03-28) 이 ±λ/(4T) 를 기준신호 반복 주기 축에서 먼저 인쇄했다. Chen 의 고유 기여는 그 식이 아니라 cos(β/2)cos(δ) 를 붙인 바이스태틱 형태와 회전 표적 적용이다."
+   },
+   {
+    "file": "outputs/deepread_w1.json",
+    "line": 25,
+    "json_path": ".wave_summary.headline_findings_ko[4]",
+    "text": "⭐⭐ 우리 오류기록 1번의 표현이 과장이었다 — reflib_sweep_geometry.json 의 chen2024appliedsci 헤드라인은 'our equation, our symbols, two years earlier' 라고 적지만, 원문 20쪽 전문에 'PRF' 라는 기호가 0회이고 v_max 의 닫힌 기호식도 없다. 같은 레코드의 note 필드는 이미 바르게 적고 있어 헤드라인과 본문이 모순이다(R20 novelty 오류와 같은 구조). 우선권은 Chen 에게 있으므로 '처음 제기'는 여전히 쓸 수 없지만, '같은 기호'는 철회해야 한다."
+   },
+   {
+    "file": "outputs/deepread_w1.json",
+    "line": 255,
+    "json_path": ".records[1].corrections_to_our_records_ko[0]",
+    "text": "⭐ 정정 1 (우리 오류기록 1번의 표현 과장) — outputs/reflib_sweep_geometry.json 의 chen2024appliedsci.ambiguity.reports 가 '⭐⭐ YES - our equation, our symbols, two years earlier' 라고 적혀 있다. 원문 대조 결과 'PRF' 라는 기호는 전문에 0회이고, v_max 의 닫힌 기호식도 없다. 같은 파일의 note 필드는 이미 '식을 기호적으로 닫지 않고 수치로 조립한다'고 바르게 적고 있어 헤드라인과 본문이 서로 모순이다(R20 novelty 오류와 같은 구조). 정확한 진술은: Chen 외는 사슬(기준신호 주기 → 무모호 도플러 폭 → 최대 측정 회전속도)을 수치로 제시하고 실측으로 파괴까지 보였으나 "
+   },
+   {
+    "file": "docs/PAPER_DRAFT.md",
+    "line": 115,
+    "text": "| \"SSB 반복률이 속도 모호를 만든다는 것을 처음 지적했다\" | Abratkiewicz 외, *IEEE JSTARS* 16:3469–3484, 2023 | 법칙 자체에 선행이 있다 ⟨`refrate_law.json : novelty_guard[0]`⟩ |"
+   },
+   {
+    "file": "docs/PAPER_DRAFT.md",
+    "line": 116,
+    "text": "| \"무모호 속도 공식이 새롭다\" | Jopanya & Osorio, arXiv:2504.02641 — 한계가 `\\|v_u\\| ≤ λ·SCS/2`, **버스트 내부** 축 | 같은 신호의 **다른 축**. 교환관계를 함께 적는 것이 기여의 일부 ⟨`refrate_law.json : novelty_guard[1]`⟩ |"
+   },
+   {
+    "file": "docs/PAPER_DRAFT.md",
+    "line": 117,
+    "text": "| \"도플러 모호가 패시브에서 새 문제다\" | *FITEE*, DOI 10.1631/FITEE.2000143 (LTE 내부) | 표준 **사이**의 선택 기준으로 올린다 ⟨`refrate_law.json : novelty_guard[2]`⟩ |"
+   },
+   {
+    "file": "docs/PAPER_DRAFT.md",
+    "line": 499,
+    "text": "법칙 쪽 3건([32]~[34])은 `refrate_law.json : novelty_guard` 에만 있다."
+   },
+   {
+    "file": "docs/REFERENCE_LIBRARY.md",
+    "line": 1828,
+    "text": "**논지** — 패시브 드론 문헌은 CAF·CFAR·CPI 를 다 갖추고도 무모호 속도 칸을 대체로 비워 둔다. 비어 있지 않은 몇 편은 규약(전폭/반폭)과 슬로타임 축(심볼 간격/기준신호 반복 주기)이 서로 다르며, 그 차이가 우리 기여의 자리다."
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 81,
+    "text": "- **우리가 말했던 것** — ⑴ 'v_max = λ·PRF/4 는 우리 발견이다' → ⑵ '우리 것이 아니다, Chen 외 Applied Sciences 2024 가 같은 기호로 먼저 냈다'"
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 352,
+    "text": "- **EN** Ours is the only row FULL on engine+mesh+material+aspect+geometry+vmax simultaneously; the only other row full on the first four (RadarTwin, arXiv'26) is empty on vmax and geometry."
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 354,
+    "text": "- **수치** `{\"rows_full_on_six\": [\"OURS (sionna2)\"], \"rows_full_on_first_four\": [\"RadarTwin, arXiv'26\", \"OURS (sionna2)\"], \"rows_with_vmax_and_mesh\": [[\"Clutter-Aware ISAC, ProcIEEE'26\", 1, 2, 0], [\"OURS (sionna2)\", 2, 2, 1]]}`"
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 626,
+    "text": "| `F15.unique` | ✅ | engine+mesh+material+aspect+geometry+vmax 6열 FULL 인 행: ['OURS (sionna2)'] |"
+   },
+   {
+    "file": "docs/PRIOR_READING_LOG.md",
+    "line": 42,
+    "text": "우리는 \"v_max = λ·PRF/4 를 우리 발견이라 주장했다 → Chen et al. 2024 가 먼저 냈고 기호까지 같다\""
+   },
+   {
+    "file": "docs/GEOMETRY_BENCHMARK.md",
+    "line": 103,
+    "text": "| C0b | 속도 동적범위 v_max/v_guard 는 기하와 무관하다 (신규) | **both** | closed_form M/(2·guard_bins) · wifi_lte_x 33.33 | 지도의 '사용가능 속도창' 열이 이 항등식 위에 선다 |"
+   },
+   {
+    "file": "docs/GEOMETRY_BENCHMARK.md",
+    "line": 169,
+    "text": "**신규성 경계** — Rzewuski(NATO STO 2021)가 드론 바이스태틱 RCS → 커버리지 → 50 m 실외 검출을 이미 닫았다 — '최초' 류를 쓰지 않는다 · v_max = λ·PRF/(4cos(β/2)cosδ) 는 Chen et al. Applied Sciences 2024 가 먼저 냈다 · Abratkiewicz 2023 이 5G SSB 에 적용했다 · v·R = c·λ/8 은 Skolnik 의 고전 결과다"
+   },
+   {
+    "file": "docs/GEOMETRY_BENCHMARK.md",
+    "line": 266,
+    "text": "**절대 자르지 않는 것**: v_max 법칙과 12종 교차표준 표 · 탈출구 6판정 · Pfa 교정 · ⭐ 신규: 통제 축(A 는 PRF 를 고르고 B·C 는 망이 준 값을 받는다)"
+   },
+   {
+    "file": "docs/PAPER_POSITION.md",
+    "line": 68,
+    "text": "| C10 | **버스트 내부 ↔ 버스트 간 교환관계** | 버스트 내부: 무모호 1285 m/s · 분해능 300 m/s. 버스트 간: 무모호 1.07 m/s · 분해능 0.43 m/s ⟨`refrate_law.json : scope.intra_burst_alternative`⟩ | 없다. 두 축을 함께 적는 것이 Jopanya 와의 관계를 정확히 놓는 유일한 방법이다 | **defensible** (신규성 문단 필수 부품) |"
+   },
+   {
+    "file": "docs/PAPER_POSITION.md",
+    "line": 148,
+    "text": "| 1 | **\"Abratkiewicz 2023 이 이미 말한 것 아닌가?\"** | 맞다. 법칙 자체는 선행이다. 우리가 놓는 것은 **교차표준 표 · 기체 판정행렬 · 역산 설계규칙 · 탈출구 6 전수폐쇄** 넷이다. 특히 탈출구 폐쇄는 선행에 없다 | `refrate_law.json : novelty_guard`, `contribution` · `vmax_hardening.json : verdict.escapes` |"
+   },
+   {
+    "file": "docs/PAPER_SPEC.md",
+    "line": 139,
+    "text": "| \"SSB 반복률이 속도 모호를 만든다는 것을 처음 지적했다\" | Abratkiewicz 외, *IEEE JSTARS* 16:3469–3484, 2023 (DOI 10.1109/JSTARS.2023.3262291) — SSB 기반 5G PCL 사슬을 세우고 \"SSB periodicity limits the velocity ambiguity\" 를 명시, 단일표적 해모호를 제안, 실측 5G 로 검증 | **법칙 자체는 선행이 있다** ⟨`refrate_law.json : novelty_guard[0]`⟩ |"
+   },
+   {
+    "file": "benchmark/monostatic_prior.py",
+    "line": 71,
+    "text": "ours = vmax(5.8e9, 200.0)"
+   },
+   {
+    "file": "benchmark/monostatic_prior.py",
+    "line": 519,
+    "text": "\"status\": \"이미 outputs/refrate_law.json novelty_guard 에 기록되어 있다. 이번 라운드에서 새로 확인한 것: 후속 문헌이 이 논문을 바로 그 논거로 인용한다 - Wu et al. arXiv:2511.14529 (2025): 'the study also highlighted that the maximum unambiguous velocity of PCL is severely constrained by the SSB's long transmission periodicity (e.g., 10 ms minimum)'.\","
+   },
+   {
+    "file": "benchmark/monostatic_prior.py",
+    "line": 540,
+    "text": "\"status\": \"⭐ SenSys 2026 논문이 '무모호 속도는 CSI-RS 반복주기가 정한다'는 명제의 **우선권을 명시적으로 Chen 2024 에 돌린다**. 우리가 그 명제의 최초 제기자라고 쓸 여지는 없다.\","
+   },
+   {
+    "file": "benchmark/monostatic_prior.py",
+    "line": 545,
+    "text": "\"무모호 속도가 상시 기준신호 반복률로 결정된다는 **사실**을 우리가 처음 지적했다는 어떤 형태의 주장\","
+   },
+   {
+    "file": "benchmark/mono_vs_passive.py",
+    "line": 446,
+    "text": "repo_v_max_ms=par[\"v_max_ms\"], ours_v_max_ms=v_ceiling,"
+   },
+   {
+    "file": "benchmark/mono_vs_passive.py",
+    "line": 928,
+    "text": "action_required=\"outputs/refrate_law.json novelty_guard 에 이 항목이 없다 — §5 패치\"),"
+   },
+   {
+    "file": "benchmark/verify_chen.py",
+    "line": 57,
+    "text": "ours_exact = vmax_half(3.44e9, prf, C_EXACT)"
+   },
+   {
+    "file": "benchmark/verify_chen.py",
+    "line": 58,
+    "text": "ours_round = vmax_half(3.44e9, prf, C_ROUND)"
+   },
+   {
+    "file": "benchmark/verify_chen.py",
+    "line": 250,
+    "text": "\"why_ko\": \"그들의 novelty 주장 원문 — 'SSB 를 조명원으로 쓰는 것' 이지 '무모호 속도 식' 이 아니다.\"},"
+   },
+   {
+    "file": "benchmark/capability_matrix.py",
+    "line": 1322,
+    "text": "if k != \"ours\" and lv(k, \"vmax\") >= 1 and lv(k, \"mesh\") >= 1]"
+   },
+   {
+    "file": "benchmark/capability_matrix.py",
+    "line": 1324,
+    "text": "if k != \"ours\" and rows[k][\"group\"] == \"S\" and lv(k, \"vmax\") >= 1]"
+   },
+   {
+    "file": "benchmark/capability_matrix.py",
+    "line": 1338,
+    "text": "if k != \"ours\" and lv(k, \"vmax\") == 2) or \"없음\"),"
+   },
+   {
+    "file": "benchmark/deck_facts.py",
+    "line": 128,
+    "text": "\"ours_c3e8_ms\": vmax_half(C_ROUND / 3.44e9, prf),"
+   },
+   {
+    "file": "benchmark/deck_facts.py",
+    "line": 129,
+    "text": "\"ours_cexact_ms\": vmax_half(C_EXACT / 3.44e9, prf),"
+   },
+   {
+    "file": "benchmark/deck_facts.py",
+    "line": 948,
+    "text": "claim_en=\"Ours is the only row FULL on engine+mesh+material+aspect+geometry+vmax \""
+   },
+   {
+    "file": "benchmark/deck_facts.py",
+    "line": 1355,
+    "text": "\"we_said\": \"⑴ 'v_max = λ·PRF/4 는 우리 발견이다' → ⑵ '우리 것이 아니다, Chen 외 Applied Sciences 2024 가 \""
+   },
+   {
+    "file": "benchmark/geometry_benchmark.py",
+    "line": 390,
+    "text": "C(\"C0b\", \"속도 동적범위 v_max/v_guard 는 기하와 무관하다 (신규)\","
+   },
+   {
+    "file": "benchmark/vmax_grid.py",
+    "line": 677,
+    "text": "du = abs(ours[\"unambiguous_frac\"] - row[\"unambiguous_frac\"])"
+   },
+   {
+    "file": "benchmark/vmax_grid.py",
+    "line": 678,
+    "text": "do = abs(ours[\"observable_frac\"] - row[\"detectable_and_unambiguous_frac\"])"
+   },
+   {
+    "file": "benchmark/vmax_grid.py",
+    "line": 682,
+    "text": "ours_unambiguous=ours[\"unambiguous_frac\"],"
+   },
+   {
+    "file": "benchmark/vmax_grid.py",
+    "line": 834,
+    "text": "ours_alias_frac=float(1.0 - ours[\"unambiguous_frac\"]),"
+   },
+   {
+    "file": "benchmark/vmax_grid.py",
+    "line": 836,
+    "text": "abs(ref[\"alias_frac\"] - (1.0 - ours[\"unambiguous_frac\"])))),"
+   }
+  ],
+  "R6_stock_sionna_no_diffraction": [
+   {
+    "file": "outputs/deepread_reconcile.json",
+    "line": 170,
+    "json_path": ".headline_ko[4]",
+    "text": "⭐ 회절 - 우리 커널에 PTD 가 없는 것은 뒤처진 것이 아니라 이 분야의 기본값이다. 2026년 KTH GPU SBR(Sagitta), 2026년 Monte-Carlo SBR, 3GPP Rel-19 표준 RCS 모델, Sionna RT 재구현(Great-X)이 전부 회절 없이 나온다. 반대로 '스톡 Sionna 에는 회절이 없다' 는 우리 쪽 문장이 틀렸다 - 1차 UTD wedge 회절이 있고, 우리 설치본 2.0.1 의 PathSolver 인자 diffraction/edge_diffraction 이 기본 False 일 뿐이다."
+   },
+   {
+    "file": "outputs/deepread_reconcile.json",
+    "line": 475,
+    "json_path": ".corrections_patchlist.items[4].we_said",
+    "text": "(구두·산문 층에서 반복돼 온) '스톡 Sionna 에는 회절이 없다'"
+   },
+   {
+    "file": "outputs/deepread_reconcile.json",
+    "line": 4085,
+    "json_path": ".capability_matrix_rows_proposed.rows[30].note_ko",
+    "text": "⭐ 우리가 쓰는 엔진 자신의 공식 명세. '스톡 Sionna 에는 회절이 없다' 를 막는 근거이자, 없는 것이 산란적분임을 확정하는 근거. 우리 설치본 2.0.1 에서 PathSolver 인자 diffraction/edge_diffraction 이 기본 False 임을 오늘 직접 확인했다."
+   },
+   {
+    "file": "outputs/prior_settled_sionna.json",
+    "line": 307,
+    "json_path": ".findings[5].quote",
+    "text": "p9: 'Sionna RT currently supports four types of interactions with scene objects: Specular reflection (R) ... Diffuse reflection (S) ... Refraction (T) ... Diffraction (D)'.  p29 (Sec 3.4 Current Limitations): 'The path solver supports only first-order diffraction and does not handle paths that contain both diffraction and diffuse reflection.' and 'calculating the electric field along these high-or"
+   },
+   {
+    "file": "outputs/deepread_wave5.json",
+    "line": 154,
+    "json_path": ".papers[2].conflicts_with_our_records_ko[0]",
+    "text": "우리 기록과 정면 충돌은 없다. 다만 한 가지 - 우리는 'PathSolver 기본 diffraction=False 라 회절을 안 켰다' 를 한계로 적어 왔는데, 이 논문은 회절·엣지회절을 켜고 산란을 껐다. 즉 문헌의 기본값은 하나가 아니다. '회절 없이 돌리는 것이 이 분야 기본값' 이라는 우리 reconcile 문장은 이 편 앞에서 약해진다 - 회절을 켠 Sionna 연구가 실재한다."
+   },
+   {
+    "file": "outputs/deepread_w3.json",
+    "line": 236,
+    "json_path": ".papers[1].what_it_bought_numerically[5].claim",
+    "text": "⚠ 정점회절 없는 스톡 Sionna-RT 는 구 후방산란에서 '강한 불연속' 을 낸다 - 우리가 스톡 Sionna 로 곡면 표적을 다루면 안 되는 이유의 직접 근거."
+   },
+   {
+    "file": "outputs/deepread_w3.json",
+    "line": 394,
+    "json_path": ".papers[2].actionable_for_our_kernel_ko[1]",
+    "text": "스톡 Sionna RT 가 UTD wedge 회절을 갖고 있다는 것은 확인됐다(p2). 우리가 '스톡 Sionna 에는 회절이 없다' 고 쓰면 틀린다. 없는 것은 산란적분(RCS)이지 회절이 아니다."
+   },
+   {
+    "file": "outputs/deepread_w3.json",
+    "line": 401,
+    "json_path": ".papers[3].why_ranked_ko",
+    "text": "우리가 쓰는 엔진 자신이 회절을 어디까지 하는지 공식 문서로 확정하는 항목. '스톡 Sionna 에는 회절이 없다' 는 잘못된 진술을 막는다."
+   },
+   {
+    "file": "outputs/deepread_w3.json",
+    "line": 433,
+    "json_path": ".papers[3].diffraction_treatment.hard_limits_ko[2]",
+    "text": "라디오맵도 1차 회절만이고, 회절 없는 맵과 회절 맵을 따로 계산해 더한다. 인용(p33): 'First, the radio map is computed for all interaction types except diffraction using a single SBR loop; wedges near the source are detected and stored during this step. Second, only diffracted paths are computed. Currently, Sionna RT supports only first-order diffraction for radio map computation, i.e., paths connecting the source to the measurem"
+   },
+   {
+    "file": "outputs/deepread_w3.json",
+    "line": 479,
+    "json_path": ".papers[3].actionable_for_our_kernel_ko[0]",
+    "text": "'스톡 Sionna 에는 회절이 없다' 는 틀린 문장이다. 정확히는 '1차 UTD wedge 회절만 있고, 정점·2차·slope·creeping·PTD 는 없으며, 표적 산란적분(RCS)이 없다'. 우리 리포트 문구를 이 수준으로 정밀화해야 한다."
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 175,
+    "json_path": ".F5_retraction_id_collision.collision_table[5].log",
+    "text": "'스톡 Sionna 에 회절이 없다'"
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 228,
+    "json_path": ".F6_live_retracted_claims.retractions_i_could_not_find_any_residue_of[3]",
+    "text": "R6 (Sionna 회절 없음) — 잔존 없음, 오히려 금지문구로 3곳에 명시돼 있다"
+   },
+   {
+    "file": "outputs/sionnart_em.json",
+    "line": 216,
+    "json_path": ".Q2_diffraction.F_우리_PTD_결손과의_대조.⚠우리가_하면_안되는_주장",
+    "text": "'Sionna 에는 회절이 없다' 는 거짓. 'Sionna 의 UTD 를 쓰면 우리 PO 의 PTD 결손이 메워진다' 도 거짓(용도가 다름). 'Sionna 의 회절도 우리와 같은 이유로 밴드 기울기가 틀린다' 는 미검증 주장."
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 64,
+    "json_path": ".position.do_not_say[6]",
+    "text": "⛔ 'Sionna 에는 회절이 없다' — 1차 UTD 쐐기 회절이 있다."
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 71,
+    "json_path": ".position.do_not_say[13]",
+    "text": "⛔ '스톡 Sionna 에 회절이 없다' — 1차 UTD 쐐기 회절이 있고 PathSolver 기본값이 False 일 뿐이다."
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 757,
+    "json_path": ".facts[21].claim_ko",
+    "text": "⚠ 반대로 'Sionna 에 회절이 없다' 고 말하면 틀린다 — Sionna 는 1차 UTD **쐐기** 회절을 구현하고 기술보고서가 ITU-R P.526 권고 해를 쓴다고 명시한다. 다만 그것은 전파용 그림자경계 보정이지 산란적분에 붙는 PTD/fringe 보정이 아니다."
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 1017,
+    "json_path": ".facts[30].claim_ko",
+    "text": "Sionna 2.0.1 의 PathSolver 는 diffraction=False · edge_diffraction=False 가 **기본값**이다. 즉 '스톡 Sionna 에 회절이 없다' 가 아니라 '기본으로 꺼져 있다' 가 참이다."
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 1026,
+    "json_path": ".facts[30].answer",
+    "text": "켜도 σ 는 안 나온다(F21·F22). 그리고 우리 커널에 없는 것은 UTD 쐐기항이 아니라 **PO 적분에 더해지는 PTD/fringe 항**이라 종류가 다르다. 다만 우리 쪽 표현이 부정확했던 것은 맞고, '스톡 Sionna 에 회절이 없다' 는 문장은 금지 목록에 넣었다."
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 1738,
+    "json_path": ".self_check.checks[24].detail",
+    "text": "sionna.rt 2.0.1: 'diffract*' 550회 (있다 — 회절이 없다고 말하면 안 된다)"
+   },
+   {
+    "file": "outputs/sionnart_boundary.json",
+    "line": 247,
+    "json_path": ".SECTION_1_BOUNDARY_TABLE.rows[3].uncovered_by_either[2]",
+    "text": "⚠ 금지 문장 2개: (a) 'Sionna 에는 회절이 없다' — 거짓. (b) 'Sionna 의 UTD 를 쓰면 우리 PTD 결손이 메워진다' — 거짓(용도가 다름)."
+   },
+   {
+    "file": "outputs/sionnart_scope.json",
+    "line": 0,
+    "json_path": ".usable_citations_for_our_reports[2].cite",
+    "text": "Sionna RT Technical Report v1.2, p30 §3.4: \"calculating the electric field along these high-order diffraction paths remains an open problem, and as a result, high-order diffraction is not currently supported.\""
+   },
+   {
+    "file": "outputs/psolve_diffraction.json",
+    "line": 190,
+    "json_path": ".sionna_stock_D.version_timeline.why_it_matters",
+    "text": "Papers using Sionna RT 1.0.x had NO diffraction available at all. This explains the Manukyan row below without needing to accuse the authors of an omission."
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 45,
+    "text": "- ⛔ 'Sionna 에는 회절이 없다' — 1차 UTD 쐐기 회절이 있다."
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 52,
+    "text": "- ⛔ '스톡 Sionna 에 회절이 없다' — 1차 UTD 쐐기 회절이 있고 PathSolver 기본값이 False 일 뿐이다."
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 418,
+    "text": "#### F22 · ⚠ 반대로 'Sionna 에 회절이 없다' 고 말하면 틀린다 — Sionna 는 1차 UTD **쐐기** 회절을 구현하고 기술보고서가 ITU-R P.526 권고 해를 쓴다고 명시한다. 다만 그것은 전파용 그림자경계 보정이지 산란적분에 붙는 PTD/fringe 보정이 아니다."
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 518,
+    "text": "#### F31 · Sionna 2.0.1 의 PathSolver 는 diffraction=False · edge_diffraction=False 가 **기본값**이다. 즉 '스톡 Sionna 에 회절이 없다' 가 아니라 '기본으로 꺼져 있다' 가 참이다."
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 526,
+    "text": "- **우리 답** — 켜도 σ 는 안 나온다(F21·F22). 그리고 우리 커널에 없는 것은 UTD 쐐기항이 아니라 **PO 적분에 더해지는 PTD/fringe 항**이라 종류가 다르다. 다만 우리 쪽 표현이 부정확했던 것은 맞고, '스톡 Sionna 에 회절이 없다' 는 문장은 금지 목록에 넣었다."
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 632,
+    "text": "| `F22.has_diffraction` | ✅ | sionna.rt 2.0.1: 'diffract*' 550회 (있다 — 회절이 없다고 말하면 안 된다) |"
+   },
+   {
+    "file": "docs/SIONNA_RT_REFERENCE.md",
+    "line": 770,
+    "text": "| \"Sionna 에는 회절이 없다\" | \"1차 UTD 엣지 회절이 있다 (145)(146). 없는 것은 PTD·고차 회절이다\" |"
+   },
+   {
+    "file": "docs/PRIOR_READING_LOG.md",
+    "line": 111,
+    "text": "### P05 · HIGH — \"스톡 Sionna 에는 회절이 없다\" 는 우리 쪽 문장이 틀렸다"
+   },
+   {
+    "file": "docs/PRIOR_READING_LOG.md",
+    "line": 245,
+    "text": "3GPP Rel-19 표준 RCS 모델, Sionna RT 재구현(Great-X)이 **전부 회절 없이** 나온다."
+   },
+   {
+    "file": "docs/DRONE_ISAC_PRIOR_READING.md",
+    "line": 539,
+    "text": "| 6 | **회절이 없다** (에지·정점) | zig-journal/zig-conf 가 UTD + 정점회절 + 이중반사를 Sionna-RT 에 구현 |"
+   },
+   {
+    "file": "benchmark/deck_facts.py",
+    "line": 475,
+    "text": "f\"sionna.rt {ver}: 'diffract*' {n_diff}회 (있다 — 회절이 없다고 말하면 안 된다)\","
+   },
+   {
+    "file": "benchmark/deck_facts.py",
+    "line": 1099,
+    "text": "claim_ko=\"⚠ 반대로 'Sionna 에 회절이 없다' 고 말하면 틀린다 — Sionna 는 1차 UTD **쐐기** 회절을 구현하고 \""
+   },
+   {
+    "file": "benchmark/deck_facts.py",
+    "line": 1308,
+    "text": "\"diffraction=False · edge_diffraction=False 가 **기본값**이다. 즉 '스톡 Sionna 에 회절이 없다' 가 아니라 \""
+   },
+   {
+    "file": "benchmark/deck_facts.py",
+    "line": 1321,
+    "text": "\"'스톡 Sionna 에 회절이 없다' 는 문장은 금지 목록에 넣었다.\","
+   },
+   {
+    "file": "benchmark/deck_facts.py",
+    "line": 1761,
+    "text": "\"⛔ 'Sionna 에는 회절이 없다' — 1차 UTD 쐐기 회절이 있다.\","
+   },
+   {
+    "file": "benchmark/deck_facts.py",
+    "line": 1770,
+    "text": "\"⛔ '스톡 Sionna 에 회절이 없다' — 1차 UTD 쐐기 회절이 있고 PathSolver 기본값이 False 일 뿐이다.\","
+   }
+  ],
+  "R7_sbr_48_occurrences": [
+   {
+    "file": "report02_target.ipynb",
+    "cell": 0,
+    "cell_line": 10,
+    "line": 0,
+    "text": "4. 커널이 해석 PO 기준해와 kr 1 ⟨outputs/sbr_kr_sweep.json : summary_div16.kr_min⟩~100 ⟨outputs/sbr_kr_sweep.json : summary_div16.kr_max⟩ 전 구간에서 최대 0.201 dB ⟨outputs/sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po⟩ 안에서 일치하고 (kr 21 ⟨outputs/sbr_kr_sweep.json : summary_div16.n_points⟩점 × 입사 48 ⟨outputs/sbr_kr_sweep.json : meta.n_incidence⟩방향), 다중반사 위상은 PEC 이면각 해석해 8πa²b²/λ² 와 변 길이 4점 전부에서 0.556 dB ⟨output"
+   },
+   {
+    "file": "report02_target.ipynb",
+    "cell": 8,
+    "cell_line": 12,
+    "line": 0,
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.physical optics⟩회 · `radar cross section` 0 ⟨outputs/prior_se"
+   },
+   {
+    "file": "report02_target.ipynb",
+    "cell": 25,
+    "cell_line": 9,
+    "line": 0,
+    "text": "<!--pk:defence {\"kind\": \"defence\", \"report\": \"report02_target\", \"rows\": [{\"주장\": \"표적 σ 는 부품별 재질 메쉬 위의 PO 면적분으로 계산하고, 커널은 해석 PO 기준해와 kr 1~100 전 구간에서 0.201 dB ⟨outputs/sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po⟩ 안에서 맞는다\", \"근거\": \"그림 5 · 표 §3.1 · `outputs/sbr_kr_sweep.json:summary_div16.max_abs_db_vs_po`\", \"공격\": \"PO 는 few-λ 표적에서 부정확하다 — 드론이 바로 그 크기다\", \"답\": \"PO 모델 자체의 간극을 정확 Mie 기준해로 따로 쟀다 — kr "
+   },
+   {
+    "file": "report02_target.ipynb",
+    "cell": 25,
+    "cell_line": 15,
+    "line": 0,
+    "text": "| 가림 판정은 Sionna 의 Mitsuba/OptiX 광선엔진이 하고, 표면전류 적분과 σ 출력을 우리가 얹었다 | §2 표 · `outputs/prior_settled_sionna.json:word_counts_rerun_this_session` | Sionna 에도 SBR 이 있으니 엔진 기여는 이미 그 안에 있다 | 기술보고서(v1.2, 59쪽)에 SBR 은 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 쓴다. 같은 문서에서 `physical optics` 0 ⟨output"
+   },
+   {
+    "file": "report01_prior.ipynb",
+    "cell": 20,
+    "cell_line": 7,
+    "line": 0,
+    "text": "| 자세 패턴 | 광선엔진 first-hit 가림 + 조명면 PO 적분, 부품별 재질 | 해석 PO 구 대비 0.201 dB ⟨outputs/sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po⟩, 입사 48 ⟨outputs/sbr_kr_sweep.json : meta.n_incidence⟩방향 | 02 |"
+   },
+   {
+    "file": "outputs/reflib_sweep_geometry.json",
+    "line": 10,
+    "json_path": ".meta.builds_on_do_not_redo[1]",
+    "text": "outputs/prior_settled_sionna.json  (Sionna RT 단어수, SBR=48)"
+   },
+   {
+    "file": "outputs/reflib_sweep_geometry.json",
+    "line": 1890,
+    "json_path": ".entries[53].short",
+    "text": "⭐ Sionna RT technical report - the SBR=48 fact (anchor F10)"
+   },
+   {
+    "file": "outputs/prior_settled_sionna.json",
+    "line": 313,
+    "json_path": ".findings[6].headline",
+    "text": "SCOPE GUARD: the technical report DOES use the acronym SBR, 48 times - but as a candidate generator, never as SBR+PO."
+   },
+   {
+    "file": "outputs/reference_library.json",
+    "line": 4917,
+    "json_path": ".master_table[89].bibtex_comment",
+    "text": "PREPRINT. ⭐ 2026-07-31 재계수(59쪽 전문): 'SBR' 44회(대소문자 구분) · 대소문자 무시 45회 · 'shooting and bouncing' 3회 → 합쳐 48회. 'physical optics' 0회 · 'radar cross section' 0회 · 'RCS' 0회. 즉 'Sionna 에 SBR 이 없다' 는 거짓이고, 없는 것은 표면전류 PO 적분과 RCS 출력이다(F10). ⚠ '48' 은 SBR 단독이 아니라 두 표현의 합계다 — 단독 수치로 인용하면 부정확. ⚠ 디스크 파일명은 '-v1' 이지만 실제로는 arXiv v2."
+   },
+   {
+    "file": "outputs/reference_library.json",
+    "line": 7780,
+    "json_path": ".verification_today.checks[1].verdict",
+    "text": "⚠ CORRECTED. 48 은 'SBR 단독' 이 아니라 'SBR 또는 shooting-and-bouncing' 을 대소문자 무시로 합친 값이다(45+3). 결론('Sionna 는 SBR 을 한다, PO 표면적분과 RCS 출력이 없다')은 그대로 유지되지만, 숫자를 인용할 때는 계수 규칙을 함께 적어야 한다."
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 192,
+    "json_path": ".F6_live_retracted_claims.items[0].still_live_in[0]",
+    "text": "outputs/prior_settled_sionna.json L88 ('SBR or shooting-and-bouncing': 48) 및 L313 headline 'the technical report DOES use the acronym SBR, 48 times'"
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 204,
+    "json_path": ".F6_live_retracted_claims.items[0].note_ko",
+    "text": "정정 방향은 우리에게 무해하다(44 든 48 이든 'Sionna 에 SBR 이 있다'는 결론은 같다). 문제는 틀린 수가 '앵커'로 승격돼 다른 문서가 그것을 인용한다는 점이다."
+   },
+   {
+    "file": "outputs/sionnart_boundary.json",
+    "line": 0,
+    "json_path": ".SECTION_2_OUR_CLAIMS_REEXAMINED.claims[1].term_count_correction.where_48_came_from",
+    "text": "⭐ 원인을 찾았다. outputs/prior_settled_sionna.json 의 항목명이 \"SBR or shooting-and-bouncing\": 48 이다. 즉 44(약어 'SBR') + 4('shooting and bouncing') 의 합성 카운트인데, 라벨이 유실된 채 '기술보고서에 SBR 이 48회'로 옮겨 적혔다."
+   },
+   {
+    "file": "outputs/sionnart_boundary.json",
+    "line": 1038,
+    "json_path": ".SECTION_4_CITATION_SET.zero_hit_ledger.caveats[1]",
+    "text": "shooting and bouncing 4건은 전부 같은 문장에 '(SBR)' 을 달고 있어 44 에 이미 포함된 언급이다 — 더해서 48 로 쓰면 과대계상."
+   },
+   {
+    "file": "outputs/sionnart_boundary.json",
+    "line": 0,
+    "json_path": ".CORRECTIONS_TO_REPO[0].root_cause",
+    "text": "outputs/prior_settled_sionna.json 의 \"SBR or shooting-and-bouncing\": 48 이라는 **합성 카운트**의 라벨이 유실된 채 옮겨졌다."
+   },
+   {
+    "file": "outputs/sionnart_boundary.json",
+    "line": 0,
+    "json_path": ".CORRECTIONS_TO_REPO[2].current",
+    "text": "word_counts_rerun_this_session … \"SBR or shooting-and-bouncing\": 48"
+   },
+   {
+    "file": "outputs/prior_work_claims.json",
+    "line": 3216,
+    "json_path": ".claims[109].assertion",
+    "text": "PathSolver = image method + SBR for path enumeration + specular/diffuse/first-order-diffraction/refraction coefficients, with Fresnel equations (127)(128), and NO PO surface-current integral; SBR appears 48 times while 'RCS' and 'physical optics' appear 0 times"
+   },
+   {
+    "file": "outputs/prior_work_claims.json",
+    "line": 3239,
+    "json_path": ".claims[109].verify",
+    "text": "CORRECTION AVAILABLE: our docs grade this [W] 'no local PDF / second-hand note', but the PDF IS on disk at the path above. Open it, verify eqs (127)(128) and the SBR=48 / RCS=0 / physical-optics=0 counts, and upgrade the grade to [P]."
+   },
+   {
+    "file": "outputs/sionnart_solver.json",
+    "line": 349,
+    "json_path": ".CORRECTIONS_TO_OUR_PRIOR_BELIEFS[0].belief",
+    "text": "기술보고서 term count 'SBR' = 48"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 790,
+    "json_path": ".sections.I. Introduction.facts[24].context",
+    "text": "| 자세 패턴 | 광선엔진 first-hit 가림 + 조명면 PO 적분, 부품별 재질 | 해석 PO 구 대비 0.201 dB ⟨outputs/sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po⟩, 입사 48 ⟨outputs/sbr_kr_sweep.json : meta.n_incidence⟩방향 | 02 |"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 790,
+    "json_path": ".sections.I. Introduction.facts[25].context",
+    "text": "| 자세 패턴 | 광선엔진 first-hit 가림 + 조명면 PO 적분, 부품별 재질 | 해석 PO 구 대비 0.201 dB ⟨outputs/sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po⟩, 입사 48 ⟨outputs/sbr_kr_sweep.json : meta.n_incidence⟩방향 | 02 |"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 908,
+    "json_path": ".sections.III-A. Target Model.defence[1].답",
+    "text": "기술보고서(v1.2, 59쪽)에 SBR 은 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 쓴다. 같은 문서에서 `physical optics` 0 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.physical optics⟩회 · `radar cross section` 0 ⟨outputs/prior_settled_sionna.json : word_co"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".sections.III-A. Target Model.facts[69].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".sections.III-A. Target Model.facts[70].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".sections.III-A. Target Model.facts[71].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".sections.III-A. Target Model.facts[72].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 790,
+    "json_path": ".reports.report01_prior.ipynb.facts[24].context",
+    "text": "| 자세 패턴 | 광선엔진 first-hit 가림 + 조명면 PO 적분, 부품별 재질 | 해석 PO 구 대비 0.201 dB ⟨outputs/sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po⟩, 입사 48 ⟨outputs/sbr_kr_sweep.json : meta.n_incidence⟩방향 | 02 |"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 790,
+    "json_path": ".reports.report01_prior.ipynb.facts[25].context",
+    "text": "| 자세 패턴 | 광선엔진 first-hit 가림 + 조명면 PO 적분, 부품별 재질 | 해석 PO 구 대비 0.201 dB ⟨outputs/sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po⟩, 입사 48 ⟨outputs/sbr_kr_sweep.json : meta.n_incidence⟩방향 | 02 |"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 908,
+    "json_path": ".reports.report02_target.ipynb.defence[1].답",
+    "text": "기술보고서(v1.2, 59쪽)에 SBR 은 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 쓴다. 같은 문서에서 `physical optics` 0 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.physical optics⟩회 · `radar cross section` 0 ⟨outputs/prior_settled_sionna.json : word_co"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".reports.report02_target.ipynb.facts[69].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".reports.report02_target.ipynb.facts[70].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".reports.report02_target.ipynb.facts[71].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".reports.report02_target.ipynb.facts[72].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1389,
+    "json_path": ".reports.report02_target.ipynb.results[3]",
+    "text": "커널이 해석 PO 기준해와 kr 1 ⟨outputs/sbr_kr_sweep.json : summary_div16.kr_min⟩~100 ⟨outputs/sbr_kr_sweep.json : summary_div16.kr_max⟩ 전 구간에서 최대 0.201 dB ⟨outputs/sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po⟩ 안에서 일치하고 (kr 21 ⟨outputs/sbr_kr_sweep.json : summary_div16.n_points⟩점 × 입사 48 ⟨outputs/sbr_kr_sweep.json : meta.n_incidence⟩방향), 다중반사 위상은 PEC 이면각 해석해 8πa²b²/λ² 와 변 길이 4점 전부에서 0.556 dB ⟨outputs/s"
+   },
+   {
+    "file": "outputs/validation_feasibility.json",
+    "line": 435,
+    "json_path": ".4_our_side.kernel.analytic_validation",
+    "text": "0.2006 dB vs analytic PO sphere at div=16 over kr 1..100, 48 incidence directions (outputs/sbr_kr_sweep.json)"
+   },
+   {
+    "file": "docs/REFERENCE_LIBRARY.md",
+    "line": 1345,
+    "text": "- **핵심 수치** — `sbr_mentions_in_tech_report` = 48, `interaction_types` = 4"
+   },
+   {
+    "file": "docs/REFERENCE_LIBRARY.md",
+    "line": 1363,
+    "text": "- **핵심 수치** — `sbr_mentions_in_tech_report` = 48, `interaction_types` = 4"
+   },
+   {
+    "file": "docs/REFERENCE_LIBRARY.md",
+    "line": 1381,
+    "text": "- **핵심 수치** — `sbr_mentions_in_tech_report` = 48, `interaction_types` = 4"
+   },
+   {
+    "file": "docs/REFERENCE_LIBRARY.md",
+    "line": 1962,
+    "text": "- **판정** — ⚠ CORRECTED. 48 은 'SBR 단독' 이 아니라 'SBR 또는 shooting-and-bouncing' 을 대소문자 무시로 합친 값이다(45+3). 결론('Sionna 는 SBR 을 한다, PO 표면적분과 RCS 출력이 없다')은 그대로 유지되지만, 숫자를 인용할 때는 계수 규칙을 함께 적어야 한다."
+   },
+   {
+    "file": "docs/SIONNA_RT_REFERENCE.md",
+    "line": 848,
+    "text": "| 낮음 | `outputs/prior_settled_sionna.json` | `\"SBR or shooting-and-bouncing\": 48` — **합성 카운트**. 44 와 4 로 분리 기록 권장 (48 오류의 뿌리) |"
+   },
+   {
+    "file": "docs/references.bib",
+    "line": 958,
+    "text": "%% PREPRINT. ⭐ 2026-07-31 재계수(59쪽 전문): 'SBR' 44회(대소문자 구분) · 대소문자 무시 45회 · 'shooting and bouncing' 3회 → 합쳐 48회. 'physical optics' 0회 · 'radar cross section' 0회 · 'RCS' 0회. 즉 'Sionna 에 SBR 이 없다' 는 거짓이고, 없는 것은 표면전류 PO 적분과 RCS 출력이다(F10). ⚠ '48' 은 SBR 단독이 아니라 두 표현의 합계다 — 단독 수치로 인용하면 부정확. ⚠ 디스크 파일명은 '-v1' 이지만 실제로는 arXiv v2."
+   }
+  ],
+  "R8_19_papers_target_in_scene": [
+   {
+    "file": "outputs/deepread_w2.json",
+    "line": 775,
+    "json_path": ".records[5].claim_checks.C1",
+    "text": "무관 - Sionna 씨를 쓰지 않는다. 다만 ⚠ 우리 C1 의 문구('Sionna 씬에 표적을 넣은 19편')를 넓혀 'Mitsuba 급 GPU 레이트레이서' 로 잡으면 이 논문이 들어오고, 그 경우에도 통과하는 것은 산란적분이 아니라 Fresnel 반사다. C1 의 취지는 유지된다."
+   },
+   {
+    "file": "outputs/deepread_reconcile.json",
+    "line": 285,
+    "json_path": ".claim_status.C1.our_text",
+    "text": "Of 19 papers that put a target in a Sionna scene, zero put a WHOLE DRONE AIRFRAME mesh through a scattering integral."
+   },
+   {
+    "file": "outputs/deepread_reconcile.json",
+    "line": 285,
+    "json_path": ".corrections_patchlist.items[3].we_said",
+    "text": "Of 19 papers that put a target in a Sionna scene, zero put a WHOLE DRONE AIRFRAME mesh through a scattering integral. (그리고 센서스는 CAVIAR·Cazzella·VaN3Twin·Great-X 를 'none stated - propagation use only' 로 적었다)"
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 177,
+    "json_path": ".F5_retraction_id_collision.collision_table[7].log",
+    "text": "'19편이 표적을 씬에 세웠다'"
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 207,
+    "json_path": ".F6_live_retracted_claims.items[1].retraction",
+    "text": "R8 (정본) — 'Sionna 씬에 표적을 세운 19편' 은 실제로 role_TARGET_IN_SCENE_any=7, 고유 저작 6편"
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 208,
+    "json_path": ".F6_live_retracted_claims.items[1].still_live_in[0]",
+    "text": "docs/RESUME_0731.md L201 — '⭐⭐ 씬에 표적을 세운 19편 중 드론 전기체 메시를 산란적분에 통과시킨 것 0편(직접 검산)'"
+   },
+   {
+    "file": "outputs/deck_facts.json",
+    "line": 668,
+    "json_path": ".facts[16].answer",
+    "text": "섞어 말한 것이 맞고, 그래서 이번에 분리했다. 6편 = **Sionna 씬 안에 표적을 세운 고유 저작** (reflib_sweep_sionna.json). 19편 = **전문 판정 코퍼스의 고유 저작 수**(report01_paper.json, 문서 21건). 서로 다른 두 코퍼스이고, 한 문장에 같이 넣으면 안 된다."
+   },
+   {
+    "file": "docs/DECK_FACTS.md",
+    "line": 376,
+    "text": "- **우리 답** — 섞어 말한 것이 맞고, 그래서 이번에 분리했다. 6편 = **Sionna 씬 안에 표적을 세운 고유 저작** (reflib_sweep_sionna.json). 19편 = **전문 판정 코퍼스의 고유 저작 수**(report01_paper.json, 문서 21건). 서로 다른 두 코퍼스이고, 한 문장에 같이 넣으면 안 된다."
+   },
+   {
+    "file": "docs/RESUME_0731.md",
+    "line": 201,
+    "text": "- ⭐⭐ **씬에 표적을 세운 19편 중 드론 전기체 메시를 산란적분에 통과시킨 것 0편**(직접 검산)"
+   }
+  ],
+  "A1_dihedral_minus_26_46_db": [
+   {
+    "file": "outputs/r2_read_w3.json",
+    "line": 592,
+    "json_path": ".records[4].bistatic_advantage_claim.ATTACK_on_this_claim_ko",
+    "text": "⚠⚠ 이 표의 숫자는 계산도 실측도 아니다. 본문이 −40 dBsm 을 [49] 에 귀속하는데 [49] 는 C. Kopp, 'Evolving technological strategy in advanced air defense systems', Joint Force Quarterly 57:86-93, 2010 — **국방정책 저널**이지 전자기 측정 문헌이 아니다. 표 각주도 'All values assume clean aircraft configuration' 처럼 조건만 달고 출처를 달지 않는다. 우리가 이 숫자를 인용하면 정책지에 실린 수치를 두 다리 건너 옮기는 것이 된다. (우리 자신의 '−26.46 dB dihedral 무출처' 사건과 같은 유형이 게재 전이라도 남의 논문에도 있다는 확인.)"
+   }
+  ],
+  "A2_slope_range_0175_0315": [
+   {
+    "file": "outputs/engine_validation_verdict.json",
+    "line": 34,
+    "json_path": ".1_verdict.table[2].accuracy",
+    "text": "우리 0.264 dB/GHz vs 측정 0.175~0.315 — 측정 구간 **안**"
+   },
+   {
+    "file": "outputs/ptd_kernel_anatomy.json",
+    "line": 236,
+    "json_path": ".ptd_ildc_status.documented_symptom",
+    "text": "src/sigma_anchor.py:24-27 — our sigma(f) slope is 0.742-1.699 dB/GHz (3 bands, el=0) vs measured 0.175-0.315 dB/GHz (Yuan) / 0.21 dB/GHz (Das), i.e. 3-8x too steep; cause stated as PO keeping only the specular (f^2) term and discarding the frequency-independent edge-diffraction term. Called a SYSTEMATIC error, not random."
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 97,
+    "json_path": ".F2_deck_slope_contradicted_by_newer_files.also_wrong_on_the_measured_side",
+    "text": "덱의 '0.07 to 0.315 measured' 는 밴드를 섞는다. validate_measured_airframe.slope_census 가 직접 표시한다 — das_mini2 0.07 은 21-27 GHz 로 overlaps_our_band=false, das_m350rtk 0.17 도 false. 우리 밴드와 겹치는 측정은 das_phantom3 0.21 · yuan 0.315/0.231/0.175 넷뿐이다. RETRACTION_LOG A2 가 '0.175~0.315 → 0.07~0.315' 로 고친 것은 한 밴드혼합을 다른 밴드혼합으로 바꾼 셈이다."
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 222,
+    "json_path": ".F6_live_retracted_claims.items[3].retraction",
+    "text": "A2 (정본) — 측정 밴드기울기 범위 0.175~0.315 는 폐기"
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 223,
+    "json_path": ".F6_live_retracted_claims.items[3].still_live_in[0]",
+    "text": "outputs/engine_validation_verdict.json L34 ('우리 0.264 dB/GHz vs 측정 0.175~0.315 — 측정 구간 안') 및 L86 where_it_fails.above_6ghz.measured_range=[0.175,0.315]"
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 225,
+    "json_path": ".F6_live_retracted_claims.items[3].但_ko",
+    "text": "⚠ 공정하게 적자면 이 문맥에서는 0.175~0.315 쪽이 오히려 정확하다. Das mini2 의 0.07 은 21-27 GHz 값이라 6-18.2 GHz 비교에 넣으면 안 된다(validate_measured_airframe.slope_census 가 overlaps_our_band=false 로 표시). 즉 A2 의 대체값 자체가 밴드혼합이며, 정본 A2 를 다시 손봐야 한다."
+   },
+   {
+    "file": "outputs/psolve_adopt.json",
+    "line": 251,
+    "json_path": ".matrix.P4.our_problem",
+    "text": "우리 커널에 edge 항이 전혀 없다. src/rcs_sbr.py 868줄에서 edge|diffract|PTD|fringe|UTD 매치 0건. 밴드 기울기 0.742-1.699 dB/GHz 대 측정 0.175-0.315."
+   },
+   {
+    "file": "outputs/psolve_adopt.json",
+    "line": 0,
+    "json_path": ".corrections[1].what",
+    "text": "과제 브리프의 P4 문장 \"our band slope runs 0.74-1.70 dB/GHz against measured 0.175-0.315\""
+   },
+   {
+    "file": "outputs/psolve_motion.json",
+    "line": 373,
+    "json_path": ".papers[9].P8.why_this_closes_a_loop",
+    "text": "P4 (band slope 0.74-1.70 dB/GHz vs measured 0.175-0.315, mechanism = missing frequency-independent edge term) and P8 (reciprocity violated off-specular) are THE SAME MISSING TERM. Adding PTD/edge currents is one fix that pays both. Our own plate check independently reproduces the PO obliquity law -20log10(cos beta) with residuals of 0.03-0.15 dB, which is what a correct PO implementation with the "
+   },
+   {
+    "file": "docs/HOW_OTHERS_SOLVED_IT.md",
+    "line": 190,
+    "text": "| 과제 브리프 P4 의 \"measured 0.175–0.315\" | Das Table III 28칸의 실제 범위는 **−0.13 ~ +0.50 dB/GHz** 이고 한 칸은 음수다. 0.21 은 대표값이지 범위가 아니다 |"
+   },
+   {
+    "file": "docs/ENGINE_VALIDATION.md",
+    "line": 12,
+    "text": "밴드 기울기는 6 GHz 위에서 0.264 dB/GHz 로 측정 구간 0.175~0.315 안에 들고,"
+   },
+   {
+    "file": "docs/ENGINE_VALIDATION.md",
+    "line": 40,
+    "text": "| 측정 기체의 밴드 기울기 dμ/df, 6 GHz 위 | 예 | 우리 0.264 dB/GHz vs 측정 0.175~0.315 — 측정 구간 **안** | validate_measured_airframe.json : 8_comparison._headline |"
+   },
+   {
+    "file": "docs/ENGINE_VALIDATION.md",
+    "line": 57,
+    "text": "불일치는 **1.8~6 GHz** 에 몰려 있고, 우리 세 밴드가 전부 그 안에 있다. 6 GHz 위에서 우리 기울기 0.264 dB/GHz 는 측정 구간 0.175~0.315 **안**에 든다."
+   },
+   {
+    "file": "src/sigma_anchor.py",
+    "line": 24,
+    "text": "**측정** 기울기는 0.175~0.315 dB/GHz (Yuan θ별) 또는 0.21 dB/GHz (Das) 다. 3~8배 가파르다."
+   }
+  ],
+  "A2_das_yuan_two_independent": [
+   {
+    "file": "outputs/validation_comparability.json",
+    "line": 497,
+    "json_path": ".G_confirmed.source_not_independent",
+    "text": "Das ACKNOWLEDGMENT 가 Wei Fan(=Yuan 교신저자) 을 Phantom 3 자료 제공자로 명시. 독립 재현 아님."
+   },
+   {
+    "file": "outputs/sigma_anchor.json",
+    "line": 0,
+    "json_path": ".sources.source_relation",
+    "text": "Das 의 Phantom 3 행은 **Yuan 의 원자료를 재분석한 것**이다. 독립 2건이 아니다.\n  근거 1  Das Table I 의 Phantom 3 열 = 35x20 cm · 1.8~18.2 GHz · 2801 주파수점 ·\n          방위 -90:2:90 — Yuan §II-A 의 설정과 **글자 단위로 같다**.\n  근거 2  Das ACKNOWLEDGMENT: \"thank Prof. Wei Fan from Southeast University for providing the\n          measured RCS data for the DJI Mini 2, DJI Phantom 3, and DJI M350 RTK.\"\n          Wei Fan 은 Yuan 논문의 교신저자다.\n=>"
+   },
+   {
+    "file": "outputs/sigma_anchor.json",
+    "line": 0,
+    "json_path": ".uncontrolled[3].detail",
+    "text": "Das 의 Phantom 3 행은 **Yuan 의 원자료를 재분석한 것**이다. 독립 2건이 아니다.\n  근거 1  Das Table I 의 Phantom 3 열 = 35x20 cm · 1.8~18.2 GHz · 2801 주파수점 ·\n          방위 -90:2:90 — Yuan §II-A 의 설정과 **글자 단위로 같다**.\n  근거 2  Das ACKNOWLEDGMENT: \"thank Prof. Wei Fan from Southeast University for providing the\n          measured RCS data for the DJI Mini 2, DJI Phantom 3, and DJI M350 RTK.\"\n          Wei Fan 은 Yuan 논문의 교신저자다.\n=>"
+   },
+   {
+    "file": "docs/RESUME.md",
+    "line": 156,
+    "text": "5. 정정 A1~A7 을 리포트·JSON 에 전파 — 특히 **Das = Yuan 재분석**(독립 앵커 2건이 아니라 측정 1건)"
+   },
+   {
+    "file": "src/sigma_anchor.py",
+    "line": 131,
+    "text": "Das 의 Phantom 3 행은 **Yuan 의 원자료를 재분석한 것**이다. 독립 2건이 아니다."
+   }
+  ],
+  "A3_plastic_eps_unsourced": [
+   {
+    "file": "outputs/engine_validation_verdict.json",
+    "line": 324,
+    "json_path": ".3_materials.corrections_to_the_brief[0].consequence",
+    "text": "tier-2 무출처 값은 실제로 **plastic(2.7/0.02)·carbon(5.0/3e3)·absorber(1.4/1.2)** 세 개뿐이다. 리튬이온 유전율 문헌은 우리 모델에 들어오지 않는다(필요한 것은 '금속으로 봐도 되는가'의 표피깊이 논증)."
+   },
+   {
+    "file": "outputs/psolve_deep.json",
+    "line": 1908,
+    "json_path": ".papers[12].what_it_means_for_our_P2",
+    "text": "Our plastic eps_r 2.7 'literature value 2.6-3.0, no citation' and our five gamma_po choices are the same class of unsourced parameter this paper exists to fix. The honest options are (a) declare them as a modelling choice with a stated sensitivity, or (b) do what this paper does - make them differentiable and fit them to our own measurement when the X410 campaign produces data. Option (b) is now a"
+   },
+   {
+    "file": "outputs/material_sources.json",
+    "line": 15,
+    "json_path": ".corrections_to_brief[0].consequence",
+    "text": "tier-2 무출처 값은 실제로 **plastic(2.7/0.02)·carbon(5.0/3e3)·absorber(1.4/1.2)** 세 개뿐이다. 리튬이온 유전율 문헌은 우리 모델에 들어오지 않는다(필요한 것은 '금속으로 봐도 되는가'의 표피깊이 논증)."
+   },
+   {
+    "file": "docs/RESUME.md",
+    "line": 112,
+    "text": "⚠ 진짜 출처 없는 건 **셸 두께**다. `plastic εr 2.7` 은 출처 있다(Zechmeister & Lacik, COMITE 2019)."
+   },
+   {
+    "file": "docs/MATERIAL_SOURCES.md",
+    "line": 21,
+    "text": "결과: tier-2 무출처 값은 실제로 **plastic(2.7/0.02)·carbon(5.0/3e3)·absorber(1.4/1.2)** 세 개뿐이다. 리튬이온 유전율 문헌은 우리 모델에 들어오지 않는다(필요한 것은 '금속으로 봐도 되는가'의 표피깊이 논증)."
+   },
+   {
+    "file": "benchmark/material_sources.py",
+    "line": 464,
+    "text": "consequence=\"tier-2 무출처 값은 실제로 **plastic(2.7/0.02)·carbon(5.0/3e3)·\""
+   }
+  ],
+  "A4_battery_eps_mixup": [
+   {
+    "file": "outputs/engine_validation_verdict.json",
+    "line": 321,
+    "json_path": ".3_materials.corrections_to_the_brief[0].claim",
+    "text": "materials.py 에 battery eps_r 1.4 sigma 1.2 가 있다"
+   },
+   {
+    "file": "outputs/engine_validation_verdict.json",
+    "line": 323,
+    "json_path": ".3_materials.corrections_to_the_brief[0].truth",
+    "text": "eps_r=1.4, sigma=1.2 는 **absorber**(챔버 전파흡수체) 항목이다. battery 그룹은 DRONE_GROUP_MAT 에서 **ITU metal** 로 간다 — tier-2 가 아니라 tier-1."
+   },
+   {
+    "file": "outputs/validation_feasibility.json",
+    "line": 36,
+    "json_path": ".0_corrections_to_the_workflow_brief[1].claim_in_brief",
+    "text": "materials.py tier 2 ... battery eps_r 1.4 sigma 1.2"
+   },
+   {
+    "file": "outputs/validation_feasibility.json",
+    "line": 38,
+    "json_path": ".0_corrections_to_the_workflow_brief[1].truth",
+    "text": "eps_r 1.4 / sigma 1.2 is the **absorber** entry (chamber pyramidal absorber). The drone battery group maps to 'metal' (ITU) — DRONE_GROUP_MAT['battery'] = ('metal', 'battery pack (internal)')."
+   },
+   {
+    "file": "outputs/material_sources.json",
+    "line": 12,
+    "json_path": ".corrections_to_brief[0].claim",
+    "text": "materials.py 에 battery eps_r 1.4 sigma 1.2 가 있다"
+   },
+   {
+    "file": "outputs/material_sources.json",
+    "line": 14,
+    "json_path": ".corrections_to_brief[0].truth",
+    "text": "eps_r=1.4, sigma=1.2 는 **absorber**(챔버 전파흡수체) 항목이다. battery 그룹은 DRONE_GROUP_MAT 에서 **ITU metal** 로 간다 — tier-2 가 아니라 tier-1."
+   },
+   {
+    "file": "docs/ENGINE_VALIDATION.md",
+    "line": 176,
+    "text": "- **materials.py 에 battery eps_r 1.4 sigma 1.2 가 있다** → FALSE. eps_r=1.4, sigma=1.2 는 **absorber**(챔버 전파흡수체) 항목이다. battery 그룹은 DRONE_GROUP_MAT 에서 **ITU metal** 로 간다 — tier-2 가 아니라 tier-1."
+   },
+   {
+    "file": "docs/drone_specs_2026.json",
+    "line": 0,
+    "json_path": ".specs[0].gazebo_px4",
+    "text": "공개된 값 (그대로 쓸 것):\n- 질량 m = 0.2499 kg (±4 g). C1 구성(Plus 배터리) 시 0.355 kg.\n- 프롭: D = 0.1524 m, 피치 2.8 in (0.0711 m), 2엽, 개당 2.8 g.\n- 최대 프롭 회전수: 7800 rpm (817 rad/s) @249.9 g 구성 / 11200 rpm (1173 rad/s) @355 g 구성 — 매뉴얼 C0/C1 인증표.\n- 최대 수평속도 19 m/s, 최대 상승 10 m/s, 최대 하강 8 m/s, 최대 피치각 38°, 내풍 12 m/s (→ SITL 튜닝 검증용 타깃).\n- 배터리: 2S Li-ion, 7.0 V 공칭 / 8.6 V 만충, 2788 mAh, 19.52 Wh (PX4 battery param: CELLS=2)."
+   },
+   {
+    "file": "docs/drone_specs_2026.json",
+    "line": 114,
+    "json_path": ".specs[2].gazebo_px4",
+    "text": "DJI 는 관성모멘트·모터 상수·추력계수를 **일절 공개하지 않는다.** 아래는 공개된 실측값(질량, 프롭 지름, 대각거리, 최대 RPM)에서 유도한 **추정 파라미터 세트**이며, 각각 어떻게 얻었는지 적는다.\n\n[확정 입력 (공식)]\n- m = 1.219 kg (표준프롭 TOW), MTOM 1.430 kg\n- 대각거리 l_diag = 0.4388 m → 로터 암 길이(CG→모터축) L = 0.2194 m\n- D = 0.274 m, 2엽, 프롭 질량 13.7 g/개\n- 최대 프롭 회전수 6130 RPM = 642.0 rad/s (C2 인증 공식값)\n- 배터리 145.47×60.6×46.3 mm / 0.400 kg (질량의 33%!)\n- 최대 피치각 35°, 최대 수평 21 m/s, 상승 10 / 하강 8 "
+   },
+   {
+    "file": "docs/drone_specs_2026.json",
+    "line": 226,
+    "json_path": ".verification[0].corrections",
+    "text": "이 조사는 예상보다 훨씬 정확했다. 1차 소스(사용자 매뉴얼 PDF를 직접 다운로드해 PyMuPDF로 텍스트 추출, p.85-87)로 검증한 결과 다음이 **한 글자도 안 틀리고 확인**됨: MT5MFND / MTOM 249.9g(C0)·355g(C1) / \"Maximum Propeller Speed 7800 RPM\"(C0)·\"11200 RPM\"(C1) / \"Sound Power Level 81 dB\"(C1에만 존재, C0에는 없음) / 프롭 6028F \"152.4×71.1 mm (diameter×thread pitch)\" 2.8g each / 배터리 BWXNN5-2788-7.0 \"86.10×54.89×24.85 mm\" 71.2g, Plus BWXNN5-4680-7.16 동일 외형 117g / \"Landin"
+   },
+   {
+    "file": "docs/drone_specs_2026.json",
+    "line": 0,
+    "json_path": ".verification[4].corrections",
+    "text": "핵심 숫자는 대부분 1차 출처로 확인됨(아래 CONFIRMED). 고칠 것 6건:\n\n1) [신뢰도 상향 = 캐비엇 오류] \"289.5×289.5×196 mm 는 DJI 1차 확인 아님(manua.ls 3자 출처)\" → 틀림. **DJI 공식 Quick Start Guide v1.2 (dl.djicdn.com/downloads/phantom_4/en/Phantom_4_Quick_Start_Guide_v1.2_en_160317.pdf)** 에 289.5×289.5×196 mm 가 실려 있다(P4 Pro QSG 도 동일). unknown #1 의 \"3자 출처\" 서술을 \"DJI 매뉴얼 1차 확인\"으로 수정.\n\n2) [라벨 오류] max_rpm_estimate 8500 은 **추정이 아니라 DJI 공식값**. DJI"
+   },
+   {
+    "file": "docs/MATERIAL_SOURCES.md",
+    "line": 19,
+    "text": "- **FALSE** — 주장: \"materials.py 에 battery eps_r 1.4 sigma 1.2 가 있다\""
+   },
+   {
+    "file": "docs/MATERIAL_SOURCES.md",
+    "line": 20,
+    "text": "사실: eps_r=1.4, sigma=1.2 는 **absorber**(챔버 전파흡수체) 항목이다. battery 그룹은 DRONE_GROUP_MAT 에서 **ITU metal** 로 간다 — tier-2 가 아니라 tier-1."
+   },
+   {
+    "file": "benchmark/material_sources.py",
+    "line": 460,
+    "text": "dict(claim=\"materials.py 에 battery eps_r 1.4 sigma 1.2 가 있다\","
+   }
+  ],
+  "A5_ziganshin_mlfmm_validation": [
+   {
+    "file": "outputs/psolve_signature.json",
+    "line": 550,
+    "json_path": ".P5_absolute_level.target_signature_amplitude_validated_against_a_reference[0].accuracy[0].note",
+    "text": "shadow region vs MLFMM, low-poly vehicle, 2 GHz"
+   },
+   {
+    "file": "outputs/psolve_signature.json",
+    "line": 1090,
+    "json_path": ".P6_runtime.what_the_table_says_about_where_we_sit[1]",
+    "text": "Ziganshin's extended-diffraction RT costs 0.3-19.0 s per angular sweep on 32 CPU cores, i.e. 1-2 orders above the floor, and buys MAE 1.6-2.6 dB against MLFMM in the shadow region."
+   },
+   {
+    "file": "outputs/psolve_signature.json",
+    "line": 1380,
+    "json_path": ".corrections_and_warnings[2]",
+    "text": "The one dBsm curve in the corpus (Ziganshin EuCAP Fig. 6, car) is validated against FEKO's PO solver, not against MLFMM. Calling it 'validated against full-wave' would be wrong - the spheres were, the car was not."
+   },
+   {
+    "file": "outputs/reference_library.json",
+    "line": 3970,
+    "json_path": ".master_table[73].validated",
+    "text": "산란 결과 ↔ ⭐ MLFMM(구)과 PO 솔버(차량) - 상용 EM 대조"
+   },
+   {
+    "file": "outputs/reference_library.json",
+    "line": 3972,
+    "json_path": ".master_table[73].related_work_sentence_ko",
+    "text": "Sionna RT 에 UTD 와 정점 회절을 더해 차량의 다중정적 산란을 계산하고 이를 PO/MLFMM 상용 솔버와 대조한 선례가 있으며, PO 가 하루 걸리는 계산을 광선추적은 2초에 끝낸다(Ziganshin 외, EuCAP 2025)."
+   },
+   {
+    "file": "outputs/reference_library.json",
+    "line": 5362,
+    "json_path": ".sionna_table.rows[9].why_ko",
+    "text": "⭐ 이 스윕 140편 중 Sionna 기반으로 dBsm 을 실제로 찍은 유일한 논문이며, 게재도 확정(EuCAP 2025, DOI 확인)이다. 우리 SBR+PO 와 가장 가까운 선례이자 직접 비교 대상: (a) 표적을 씬에 넣고, (b) 엔진에 회절을 더하고, (c) PO/MLFMM 상용 대조로 검증하고, (d) RT 2초 대 PO 1일이라는 비용 논거를 세웠다. 차이는 표적이 차량(10 GHz, 패싯 2λ)이고 드론이 아니라는 점, 그리고 검출(CFAR·Pd)로 이어지지 않는다는 점이다."
+   },
+   {
+    "file": "outputs/reference_library.json",
+    "line": 3972,
+    "json_path": ".related_work_skeleton[2].papers[8].sentence_ko",
+    "text": "Sionna RT 에 UTD 와 정점 회절을 더해 차량의 다중정적 산란을 계산하고 이를 PO/MLFMM 상용 솔버와 대조한 선례가 있으며, PO 가 하루 걸리는 계산을 광선추적은 2초에 끝낸다(Ziganshin 외, EuCAP 2025)."
+   },
+   {
+    "file": "outputs/r2_read_w3.json",
+    "line": 152,
+    "json_path": ".records[0].validated_against_what_amplitude.note_ko",
+    "text": "⭐ C2 대비 참고: 이 논문은 MLFMM(진짜 풀웨이브)에 대고 검증했다. Ziganshin EuCAP 2025(게재)는 FEKO 의 PO 솔버에 대고 검증했다. 두 검증의 등급이 다르다는 우리 기록이 이 대비로 더 선명해진다."
+   },
+   {
+    "file": "outputs/r2_read_w3.json",
+    "line": 304,
+    "json_path": ".records[1].validated_against_what_amplitude.grade_note_ko",
+    "text": "⭐ C2 정합성: 이 논문은 MLFMM 과 실측에 대고 검증했다. Ziganshin EuCAP 2025(게재)는 FEKO 의 PO 솔버에 대고 검증했다. ‘풀웨이브 대조’ 라는 표현을 붙일 수 있는 쪽은 이쪽이지 Ziganshin 이 아니다."
+   },
+   {
+    "file": "outputs/r2_read_w3.json",
+    "line": 1290,
+    "json_path": ".breaks_or_narrowings[1].why",
+    "text": "Tao 2008 과 Gao 2012 는 MLFMM(진짜 풀웨이브)에 대고 검증했고 Tao 2008 은 실측까지 갔다. Ziganshin EuCAP 2025 는 FEKO 의 PO 솔버에 대고 검증했다. '풀웨이브 대조' 라는 표현이 붙는 쪽이 어디인지 이제 대조군이 있다."
+   },
+   {
+    "file": "outputs/injection_validation_hunt.json",
+    "line": 196,
+    "json_path": ".ingredient_validated_elsewhere_but_never_inside_an_injection_pipeline.cases[1].what",
+    "text": "Sionna-RT 확장으로 산란을 엔진 '안에서' 계산하고 FEKO MLFMM·해석해(구·원통)·차량 바이스태틱 실측과 대조. FEKO 는 주입원이 아니라 기준해다."
+   },
+   {
+    "file": "outputs/capability_matrix.json",
+    "line": 175,
+    "json_path": ".rows[0].cells.validation.quote",
+    "text": "Simulations by thus augmented RT are compared with simulations by MLFMM and PO solvers for discretized spheres and a simplified car, respectively."
+   },
+   {
+    "file": "outputs/reflib_sweep_sionna.json",
+    "line": 12,
+    "json_path": ".meta.headline_distinction",
+    "text": "PROPAGATION vs TARGET SCATTERING. Sionna is used for propagation in the overwhelming majority. A target object standing inside the ray-traced scene is rare. An ABSOLUTE target signature in dBsm coming out of a Sionna-based tracer occurs exactly ONCE in this sweep (Ziganshin, EuCAP 2025), and only after the authors added UTD + vertex diffraction and validated against PO/MLFMM solvers."
+   },
+   {
+    "file": "outputs/reflib_sweep_sionna.json",
+    "line": 2367,
+    "json_path": ".papers[29].quotes[3].q",
+    "text": "Simulations by thus augmented RT are compared with simulations by MLFMM and PO solvers for discretized spheres and a simplified car, respectively."
+   },
+   {
+    "file": "outputs/reflib_sweep_sionna.json",
+    "line": 2374,
+    "json_path": ".papers[29].why_it_matters_ko",
+    "text": "⭐ 이 스윕 140편 중 Sionna 기반으로 dBsm 을 실제로 찍은 유일한 논문이며, 게재도 확정(EuCAP 2025, DOI 확인)이다. 우리 SBR+PO 와 가장 가까운 선례이자 직접 비교 대상: (a) 표적을 씬에 넣고, (b) 엔진에 회절을 더하고, (c) PO/MLFMM 상용 대조로 검증하고, (d) RT 2초 대 PO 1일이라는 비용 논거를 세웠다. 차이는 표적이 차량(10 GHz, 패싯 2λ)이고 드론이 아니라는 점, 그리고 검출(CFAR·Pd)로 이어지지 않는다는 점이다."
+   },
+   {
+    "file": "outputs/reflib_read.json",
+    "line": 2635,
+    "json_path": ".records[37].validated.against",
+    "text": "⭐ MLFMM(구)과 PO 솔버(차량) - 상용 EM 대조"
+   },
+   {
+    "file": "outputs/reflib_read.json",
+    "line": 2669,
+    "json_path": ".records[37].related_work_sentence_ko",
+    "text": "Sionna RT 에 UTD 와 정점 회절을 더해 차량의 다중정적 산란을 계산하고 이를 PO/MLFMM 상용 솔버와 대조한 선례가 있으며, PO 가 하루 걸리는 계산을 광선추적은 2초에 끝낸다(Ziganshin 외, EuCAP 2025)."
+   },
+   {
+    "file": "outputs/prior_settled_ziganshin.json",
+    "line": 335,
+    "json_path": ".items[8].action",
+    "text": "Whenever the 1-day-vs-2-seconds figure is quoted, attach 'car, 16610 facets, 10 GHz, 360 RX, hardware unstated'. Do not generalise it to the sphere cases, which have their own (MLFMM, not PO) timings."
+   },
+   {
+    "file": "outputs/psolve_diffraction.json",
+    "line": 364,
+    "json_path": ".papers[1].accuracy_bought_numeric[3].case",
+    "text": "low-poly car (220 facets) shadow vs MLFMM, 2 GHz VV"
+   },
+   {
+    "file": "outputs/psolve_diffraction.json",
+    "line": 418,
+    "json_path": ".papers[1].validation",
+    "text": "FEKO MLFMM (canonical sphere/cylinder radius 7 lambda, low-poly car), analytical smooth-body solutions (Balanis), AND real bistatic measurement: BIRA spherical bistatic reflectivity setup, Mitsubishi i-MiEV, 2-18 GHz, comparison at 3 GHz, 1 deg resolution, 3.0 m range."
+   },
+   {
+    "file": "outputs/verify_quotes.json",
+    "line": 449,
+    "json_path": ".entries[7].geometry",
+    "text": "bistatic near-field scattering of a PEC vehicle + canonical PEC sphere/cylinder; validated against BIRA bistatic measurements 2-18 GHz and MLFMM"
+   },
+   {
+    "file": "outputs/prior_work_claims.json",
+    "line": 521,
+    "json_path": ".claims[9].assertion",
+    "text": "Canonical sphere/cylinder validated against analytic solutions and FEKO-MLFMM first, then i-MiEV against BiRa measurement; facility band is 2-18 GHz but the actual vehicle comparison is at 3 GHz and the canonical validation at 2 GHz"
+   },
+   {
+    "file": "outputs/psolve_deep.json",
+    "line": 244,
+    "json_path": ".claims_that_did_not_survive_reading[3].what_reading_shows",
+    "text": "ZIG-CONF p3: 'The usage of MLFMM is complicated for a car simulation due to the tremendous amount of time and memory required for simulation, so we use the PO solver.' MLFMM validated the SPHERES. The car - the only dBsm figure - was compared to FEKO's PO solver, which the same paragraph calls less accurate near forward scattering."
+   },
+   {
+    "file": "outputs/psolve_deep.json",
+    "line": 541,
+    "json_path": ".papers[0].validation_setups.vehicle_shadow",
+    "text": "low-poly 220-facet car vs FEKO MLFMM, 2 GHz VV, source at 20 m, observation circle radius 20 m, 1 deg step, heights 0.6 m"
+   },
+   {
+    "file": "outputs/psolve_deep.json",
+    "line": 568,
+    "json_path": ".papers[0].accuracy_numbers.vehicle_shadow_MAE_dB_vs_MLFMM",
+    "text": "vehicle_shadow_MAE_dB_vs_MLFMM"
+   },
+   {
+    "file": "outputs/psolve_deep.json",
+    "line": 767,
+    "json_path": ".papers[1].validation_setups.CRITICAL_SCOPE_NOTE",
+    "text": "MLFMM was used ONLY for the spheres. The car - i.e. the only object for which a dBsm curve is printed - was compared against FEKO's PO solver because 'the usage of MLFMM is complicated for a car simulation due to the tremendous amount of time and memory required'. NEVER write that the dBsm result was validated against full-wave."
+   },
+   {
+    "file": "outputs/r2_hunt_recent.json",
+    "line": 374,
+    "json_path": ".new_papers[7].why_it_matters",
+    "text": "⭐⭐ Q-C 의 답이 여기 있다. (1) 얹을 수 있는 PTD 계열 보정이 실재하고 MLFMM 으로 검증돼 있다. (2) 비용이 인쇄돼 있다 — SBR 대비 +4.6 %(항공기 A) / +17.2 %(항공기 B). Ziganshin 의 15-27 배와 두 자릿수 차이다. (3) 효과가 나타나는 지점이 '약산란 각도' 다 — 소형 드론의 비정합·비스펙큘러 영역이 바로 거기다."
+   },
+   {
+    "file": "outputs/prior_hunt_1.json",
+    "line": 407,
+    "json_path": ".downloads[9].why_relevant",
+    "text": "A head-to-head of CST's full-wave I-solver (MoM/MLFMM) against its asymptotic A-solver (SBR) on canonical shapes and then on a CV90 vehicle, with timings. This is the exact experiment shape we would need to justify our own asymptotic choice."
+   },
+   {
+    "file": "docs/REFERENCE_LIBRARY.md",
+    "line": 931,
+    "text": "| `ziganshin_multistatic_eucap25` ⭐⭐⭐ | Ray-Based Simulation of Multistatic Scattering from Target Objects in ISAC | Proc. 19th European Conf. Antennas and Propag…<br>*PUBLISHED* | 2025 | 없음 (수치 EM) | ⭐ 차량 - 드론이 아니다 · 단순화 차량 메시 3.3 x 2.1 x 1.7 m, 평균 패싯 크기 약 2 lambda… | ⭐ Sionna RT + UTD + vertex diffraction + 고차 회절을 저자들이 얹었다 | 산란 결과 ↔ ⭐ MLFMM(구)과 PO 솔버(차량) - 상용 EM 대조 | ⭐⭐ E. Sionna 코퍼스 140편 중 Sion"
+   },
+   {
+    "file": "docs/REFERENCE_LIBRARY.md",
+    "line": 1104,
+    "text": "- **무엇을 무엇에 대해 검증했나** — 산란 결과 ↔ ⭐ MLFMM(구)과 PO 솔버(차량) - 상용 EM 대조"
+   },
+   {
+    "file": "docs/REFERENCE_LIBRARY.md",
+    "line": 1113,
+    "text": "- **초안 문장** — Sionna RT 에 UTD 와 정점 회절을 더해 차량의 다중정적 산란을 계산하고 이를 PO/MLFMM 상용 솔버와 대조한 선례가 있으며, PO 가 하루 걸리는 계산을 광선추적은 2초에 끝낸다(Ziganshin 외, EuCAP 2025)."
+   },
+   {
+    "file": "docs/REFERENCE_LIBRARY.md",
+    "line": 1786,
+    "text": "| `ziganshin_multistatic_eucap25` | Proc. 19th European Conf. Antennas an… 2025 | P | Sionna RT 에 UTD 와 정점 회절을 더해 차량의 다중정적 산란을 계산하고 이를 PO/MLFMM 상용 솔버와 대조한 선례가 있으며, PO 가 하루 걸리는 계산을 광선추적은 2초에 끝낸다(Ziganshin 외, EuCAP 2025). |"
+   },
+   {
+    "file": "docs/RESUME_0723.md",
+    "line": 216,
+    "text": "| **Ziganshin** 학회판 (다중정적) | RT+UTD+VD vs **PO 솔버 vs MLFMM** 속도·정확도. MLFMM ~1시간 / PO ~1일 / RT ~2초. 차량 RCS 최대 **10 dB** 오프셋 |"
+   },
+   {
+    "file": "docs/PRIOR_WORK_COMPARISON.md",
+    "line": 420,
+    "text": "| Ziganshin 외 arXiv:2604.05991v2 (저널판, **OJAP 투고 프리프린트**) | [P] | 정준 구+원통을 해석해 + FEKO-MLFMM 과 먼저 대조 후 i-MiEV 를 BiRa 실측(설비 2–18 GHz, p.7; **실제 대조 3 GHz**)과. **Fig.5 는 후방산란 MAE 를 E²/(Rλ) 함수로 직접 그린다** — 후방산란 정확도는 **E²/(Rλ) ≈ 0.5** 를 지나면 개선 미미, 실용 절충대 0.6–0.9 | `papers_isac_sionna/2604.05991__*.pdf` |"
+   },
+   {
+    "file": "docs/DRONE_ISAC_PRIOR_READING.md",
+    "line": 46,
+    "text": "| 9 | **zig-journal** — Ziganshin·Vitucci·Kotterman·Thomä·Schneider·Degli-Esposti, *Ray-Based Simulation of Scattering from Discretized Curved Bodies for Vehicular and ISAC Applications*, arXiv:2604.05991v2 | 곡면을 패싯으로 쪼갤 때의 이산화 품질 지표 **E²/(Rλ)** 를 제안하고, Sionna-RT 에 UTD + 정점회절 + 이중반사를 확장해 구·원기둥·차량을 MLFMM/PO/실측과 대조 | 시뮬(+바이스태틱 실측 대조) | **사용** (솔버를 직접 확장) |"
+   },
+   {
+    "file": "benchmark/capability_matrix.py",
+    "line": 321,
+    "text": "quote=\"Simulations by thus augmented RT are compared with simulations by MLFMM and PO solvers for discretized spheres and a simplified car, respectively.\","
+   },
+   {
+    "file": "prior_work/pw04_rcs_solution_by_target.ipynb",
+    "cell": 2,
+    "cell_line": 8,
+    "line": 0,
+    "text": "| 2026 | **Ziganshin — Discretized Curved Bodies (확장판)**<br>`2604.05991` | Sionna RT(v0.19)를 **기반 엔진**으로만 사용(오픈소스·미분가능 path tracing) | 표준 Sionna 는 faceted 정반사·기본 UTD 만으로 곡면 표적의 그림자·bistatic reflectivity 를 못 살림 | vertex/finite-edge diffraction·edge–vertex·double-bounce 를 **직접 추가**. 곡면을 파장연동 facet 으로 이산화해 산란 복소장 계산. 구·원통 해석해·MLFMM·실측 차량과 대조 | 가장 강한 오픈소스 접근. far-field 스칼라 RCS 주입 없이 복소 reflectivity 계산"
+   },
+   {
+    "file": "prior_work/src/pw04_data.py",
+    "line": 58,
+    "text": "how=\"vertex/finite-edge diffraction·edge–vertex·double-bounce 를 **직접 추가**. 곡면을 파장연동 facet 으로 이산화해 산란 복소장 계산. 구·원통 해석해·MLFMM·실측 차량과 대조\","
+   }
+  ],
+  "A7_techreport_v1": [
+   {
+    "file": "report02_target.ipynb",
+    "cell": 8,
+    "cell_line": 12,
+    "line": 0,
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.physical optics⟩회 · `radar cross section` 0 ⟨outputs/prior_se"
+   },
+   {
+    "file": "report02_target.ipynb",
+    "cell": 25,
+    "cell_line": 9,
+    "line": 0,
+    "text": "<!--pk:defence {\"kind\": \"defence\", \"report\": \"report02_target\", \"rows\": [{\"주장\": \"표적 σ 는 부품별 재질 메쉬 위의 PO 면적분으로 계산하고, 커널은 해석 PO 기준해와 kr 1~100 전 구간에서 0.201 dB ⟨outputs/sbr_kr_sweep.json : summary_div16.max_abs_db_vs_po⟩ 안에서 맞는다\", \"근거\": \"그림 5 · 표 §3.1 · `outputs/sbr_kr_sweep.json:summary_div16.max_abs_db_vs_po`\", \"공격\": \"PO 는 few-λ 표적에서 부정확하다 — 드론이 바로 그 크기다\", \"답\": \"PO 모델 자체의 간극을 정확 Mie 기준해로 따로 쟀다 — kr "
+   },
+   {
+    "file": "report02_target.ipynb",
+    "cell": 25,
+    "cell_line": 15,
+    "line": 0,
+    "text": "| 가림 판정은 Sionna 의 Mitsuba/OptiX 광선엔진이 하고, 표면전류 적분과 σ 출력을 우리가 얹었다 | §2 표 · `outputs/prior_settled_sionna.json:word_counts_rerun_this_session` | Sionna 에도 SBR 이 있으니 엔진 기여는 이미 그 안에 있다 | 기술보고서(v1.2, 59쪽)에 SBR 은 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 쓴다. 같은 문서에서 `physical optics` 0 ⟨output"
+   },
+   {
+    "file": "report01_prior.ipynb",
+    "cell": 22,
+    "cell_line": 9,
+    "line": 0,
+    "text": "<!--pk:defence {\"kind\": \"defence\", \"report\": \"report01_prior\", \"rows\": [{\"주장\": \"표적 서명의 조달처는 일곱 갈래이고, 고른 갈래가 그 편이 낼 수 있는 주장의 크기를 정한다\", \"근거\": \"그림 2 · `outputs/report01_paper.json:route_status`\", \"공격\": \"일곱 갈래는 저자가 사후에 만든 범주다\", \"답\": \"갈래마다 그 편의 축자 인용을 PDF 쪽 번호와 함께 붙였고, 인용 46 ⟨outputs/prior_work_survey.json : counts.quotes_verified⟩건은 빌드가 그 쪽에서 다시 찾는다\"}, {\"주장\": \"드론 표면메쉬의 산란 진폭을 Sionna 급 광선엔진 안에서 계산해 검증한"
+   },
+   {
+    "file": "report01_prior.ipynb",
+    "cell": 22,
+    "cell_line": 21,
+    "line": 0,
+    "text": "| Sionna RT 스톡 솔버는 광선을 쏘고 튕기며, 표면전류 면적분은 그 위에 얹히는 층이다 | §1 · `outputs/prior_work_survey.json:engine.technical_report.term_counts.sbr` | 'Sionna 에 SBR 이 없다' 고 적은 자료를 봤다 | 기술보고서 v1.2 전문에서 `SBR` 을 세면 44 ⟨outputs/prior_work_survey.json : engine.technical_report.term_counts.sbr⟩회다. 스톡에 없는 것은 면적분과 RCS 출력이고, 그 두 층이 우리가 얹은 것이다 |"
+   },
+   {
+    "file": "outputs/reflib_sweep_geometry.json",
+    "line": 1898,
+    "json_path": ".entries[53].source.version",
+    "text": "arXiv:2504.21719v1 held; v2 word counts also recorded in prior_settled_sionna.json"
+   },
+   {
+    "file": "outputs/prior_work_survey.json",
+    "line": 1599,
+    "json_path": ".engine.founding_paper.use_ko",
+    "text": "출처 표기용으로만 인용한다. 솔버 거동은 기술보고서 v1.2 에서 인용한다 — 우리 스택이 2.0.1 이다"
+   },
+   {
+    "file": "outputs/sionnart_boundary.json",
+    "line": 1001,
+    "json_path": ".SECTION_4_CITATION_SET.zero_hit_ledger._use",
+    "text": "'문서에 없다'를 주장할 때 쓰는 재계수 결과. ⚠ 반드시 '기술보고서 v1.2 59쪽 전문 기준'이라고 범위를 밝힌다."
+   },
+   {
+    "file": "outputs/sionnart_boundary.json",
+    "line": 0,
+    "json_path": ".CORRECTIONS_TO_REPO[0].current",
+    "text": "D14 … \"기술보고서(v1.2 · 59쪽)에 SBR 은 48회 나오고…\""
+   },
+   {
+    "file": "outputs/sionnart_scope.json",
+    "line": 135,
+    "json_path": ".Q4_doppler_and_mobility.verification_of_our_claim.consequence_for_us",
+    "text": "회전 프로펠러의 마이크로도플러는 (i) approach_2로는 원리적으로 불가능하다 — 블레이드는 객체이고 객체당 속도벡터는 1개이므로 블레이드 팁과 허브가 같은 속도를 갖는다. (ii) approach_1로는 원리적으로 가능하지만 보고서가 그 루프를 알고리즘으로 정의하지 않고 '비싸다'고만 적었으며, 회전 자세를 시간에 따라 갱신하는 어떤 규약도 문서에 없다. 우리 기록 'Paths.doppler는 있으나 속도는 객체당 강체 1벡터'는 기술보고서 v1.2로 정확히 뒷받침된다."
+   },
+   {
+    "file": "outputs/sionnart_scope.json",
+    "line": 141,
+    "json_path": ".Q4_doppler_and_mobility.founding_paper_contrast.reading",
+    "text": "⭐ 창설논문(v0.14) 단계에서는 속도가 송수신기(transmitters and receivers)에만 있었다. 객체별 속도벡터 v(𝑜)는 기술보고서 v1.2의 것이다. 인트로 p5는 'mobility (version 0.17)'로 도입 시점을 밝힌다. 따라서 '객체 속도' 관련 서술을 창설논문으로 인용하면 오인용이다."
+   },
+   {
+    "file": "outputs/sionnart_scope.json",
+    "line": 226,
+    "json_path": ".cross_document_separation_table[6].note",
+    "text": "⚠ 반대로 기술보고서 v1.2에는 sensing/ISAC/radar가 0회다. '센싱 동기'는 창설논문에서만 인용 가능하며, 그것도 응용 동기일 뿐 구현 근거가 아니다"
+   },
+   {
+    "file": "outputs/sionnart_scope.json",
+    "line": 284,
+    "json_path": ".corrections_to_our_records[3].actual",
+    "text": "기술보고서 v1.2 p28 식 (37)로 확인됨"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 123,
+    "json_path": ".sections.I. Introduction.defence[7].답",
+    "text": "기술보고서 v1.2 전문에서 `SBR` 을 세면 44 ⟨outputs/prior_work_survey.json : engine.technical_report.term_counts.sbr⟩회다. 스톡에 없는 것은 면적분과 RCS 출력이고, 그 두 층이 우리가 얹은 것이다"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 908,
+    "json_path": ".sections.III-A. Target Model.defence[1].답",
+    "text": "기술보고서(v1.2, 59쪽)에 SBR 은 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 쓴다. 같은 문서에서 `physical optics` 0 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.physical optics⟩회 · `radar cross section` 0 ⟨outputs/prior_settled_sionna.json : word_co"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".sections.III-A. Target Model.facts[69].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".sections.III-A. Target Model.facts[70].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".sections.III-A. Target Model.facts[71].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".sections.III-A. Target Model.facts[72].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 123,
+    "json_path": ".reports.report01_prior.ipynb.defence[7].답",
+    "text": "기술보고서 v1.2 전문에서 `SBR` 을 세면 44 ⟨outputs/prior_work_survey.json : engine.technical_report.term_counts.sbr⟩회다. 스톡에 없는 것은 면적분과 RCS 출력이고, 그 두 층이 우리가 얹은 것이다"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 908,
+    "json_path": ".reports.report02_target.ipynb.defence[1].답",
+    "text": "기술보고서(v1.2, 59쪽)에 SBR 은 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 쓴다. 같은 문서에서 `physical optics` 0 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.physical optics⟩회 · `radar cross section` 0 ⟨outputs/prior_settled_sionna.json : word_co"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".reports.report02_target.ipynb.facts[69].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".reports.report02_target.ipynb.facts[70].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".reports.report02_target.ipynb.facts[71].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "outputs/paper_kit.json",
+    "line": 1803,
+    "json_path": ".reports.report02_target.ipynb.facts[72].context",
+    "text": "**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 48 ⟨outputs/prior_settled_sionna.json : word_counts_rerun_this_session.sionna_rt_technical_report_v2_59p.SBR or shooting-and-bouncing⟩회 나오고 우리도 그 엔진을 그대로 부른다. 같은 문서에서 `physical optics` 0 ⟨ou"
+   },
+   {
+    "file": "docs/PAPER_DRAFT.md",
+    "line": 98,
+    "text": "| Sionna RT 기술보고서의 `SBR` 출현 44회 (v1.2 전문) | `prior_work_survey.json : engine.technical_report.term_counts.sbr` |"
+   },
+   {
+    "file": "docs/PAPER_DRAFT.md",
+    "line": 397,
+    "text": "| D14 | III-A | \"Sionna 에도 SBR 이 있으니 엔진 기여는 이미 그 안에 있다\" | 기술보고서(v1.2 · 59쪽)에 SBR 은 48회 나오고 우리도 그 엔진을 그대로 쓴다. 같은 문서에서 `physical optics` 0회 · `radar cross section` 0회다 — **더한 것은 표면적분과 σ 출력**이다 ⟨`prior_settled_sionna.json : word_counts_rerun_this_session`⟩ |"
+   },
+   {
+    "file": "docs/PAPER_DRAFT.md",
+    "line": 426,
+    "text": "| D38 | I | \"'Sionna 에 SBR 이 없다'고 적은 자료를 봤다\" | 기술보고서 v1.2 전문에서 `SBR` 은 44회다. 스톡에 없는 것은 **면적분과 RCS 출력**이고 그 두 층이 우리가 얹은 것이다 |"
+   },
+   {
+    "file": "docs/PRIOR_WORK_COMPARISON.md",
+    "line": 75,
+    "text": "| Hoydis 외, Sionna RT 창설논문 arXiv:2303.11103 — **5쪽, v0.14 세대** | [P] | 미분가능 RT 의 창설 서술(*\"Since release v0.14 it integrates a differentiable ray tracer\"*, p.1). EM 식이 없어 **솔버 거동 인용에는 쓰지 않는다** — 거동은 기술보고서 v1.2 에서 인용한다 | `/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2303.11103__*.pdf` (원문 정독, 2026-07-31) |"
+   },
+   {
+    "file": "src/make_report02_target.py",
+    "line": 1162,
+    "text": "#: Sionna RT 원문(기술보고서 v1.2 · 59쪽)의 낱말 재계수 — §2 의 엔진 문장이 여기서 나온다."
+   },
+   {
+    "file": "src/make_report02_target.py",
+    "line": 1436,
+    "text": "f\"**Sionna 는 광선을 쏘고 튀긴다** — 기술보고서(v1.2, 59쪽)에 SBR 이 \""
+   },
+   {
+    "file": "src/make_report02_target.py",
+    "line": 1800,
+    "text": "\"기술보고서(v1.2, 59쪽)에 SBR 은 \""
+   },
+   {
+    "file": "src/make_report01_prior.py",
+    "line": 205,
+    "text": "f\"기술보고서 v1.2 전문에서 `SBR` 을 세면 \""
+   },
+   {
+    "file": "prior_work/pw01_sionna_isac_papers.ipynb",
+    "cell": 19,
+    "cell_line": 5,
+    "line": 0,
+    "text": "- **표적 산란 처리**: 기술보고서 v1.2 축자: 경로는 *\"integrates shooting and bouncing of rays (SBR) with the image method\"*(p.1), 면 상호작용은 정반사·확산반사·굴절·1차회절 4종(p.9, p.16), 정반사는 프레넬 계수 곱(식 127–130, p.46), 확산반사는 산란계수 S 와 정규화 산란패턴(p.50–52). 59쪽 전문에 `physical optics` 0회 · `radar cross section`/`RCS` 0회 · `dBsm` 0회. **표적 표면전류 PO 적분과 RCS 출력이 없다**"
+   },
+   {
+    "file": "prior_work/pw01_sionna_isac_papers.ipynb",
+    "cell": 19,
+    "cell_line": 7,
+    "line": 0,
+    "text": "- **우리와의 관계**: ⭐ **우리 엔진 주장의 1차 근거**(더 이상 2차 인용이 아니다). 문구 규율: \"PO 면적분과 RCS 출력이 없다\" 로 쓰고 \"SBR 이 없다\" 로는 쓰지 않는다 — `SBR` 은 44회 나온다. 창설 논문은 v0.14 를 서술하므로 **출처 표기용**으로만 쓰고, 솔버 거동은 기술보고서 v1.2 에서 인용한다"
+   },
+   {
+    "file": "prior_work/pw01_sionna_isac_papers.ipynb",
+    "cell": 20,
+    "cell_line": 1,
+    "line": 0,
+    "text": "**⚠ 2026-07-31 정정. 이전 판은 Montaner 의 문장에서 대역 한정을 떼고 report06 의 지지로 제시했다. 원문 p.2 §II-D 는 *\"Purely specular RT on low-polygon meshes underestimates power at mmWave/sub-THz due to electromagnetic roughness; direct meshing at O(λ/10) is infeasible at E-band\"* 이고, 논문은 77–81 GHz 로 스코프된다(p.1). 3.5 GHz 에서 λ/10 = 8.6 mm 는 실현 가능하므로 **우리 대역에서 이 논거는 뒤집힌다**. 우리 엔진 주장의 지지는 Montaner 가 아니라 Sionna RT 기술보고서 v1.2 자체다"
+   },
+   {
+    "file": "prior_work/outputs/prior_work.json",
+    "line": 0,
+    "json_path": ".papers[7].target_scatter",
+    "text": "기술보고서 v1.2 축자: 경로는 *\"integrates shooting and bouncing of rays (SBR) with the image method\"*(p.1), 면 상호작용은 정반사·확산반사·굴절·1차회절 4종(p.9, p.16), 정반사는 프레넬 계수 곱(식 127–130, p.46), 확산반사는 산란계수 S 와 정규화 산란패턴(p.50–52). 59쪽 전문에 `physical optics` 0회 · `radar cross section`/`RCS` 0회 · `dBsm` 0회. **표적 표면전류 PO 적분과 RCS 출력이 없다**"
+   },
+   {
+    "file": "prior_work/outputs/prior_work.json",
+    "line": 0,
+    "json_path": ".papers[7].vs_us",
+    "text": "⭐ **우리 엔진 주장의 1차 근거**(더 이상 2차 인용이 아니다). 문구 규율: \"PO 면적분과 RCS 출력이 없다\" 로 쓰고 \"SBR 이 없다\" 로는 쓰지 않는다 — `SBR` 은 44회 나온다. 창설 논문은 v0.14 를 서술하므로 **출처 표기용**으로만 쓰고, 솔버 거동은 기술보고서 v1.2 에서 인용한다"
+   },
+   {
+    "file": "prior_work/outputs/prior_work.json",
+    "line": 414,
+    "json_path": ".synthesis.support_for_our_claim",
+    "text": "⚠ 2026-07-31 정정. 이전 판은 Montaner 의 문장에서 대역 한정을 떼고 report06 의 지지로 제시했다. 원문 p.2 §II-D 는 *\"Purely specular RT on low-polygon meshes underestimates power at mmWave/sub-THz due to electromagnetic roughness; direct meshing at O(λ/10) is infeasible at E-band\"* 이고, 논문은 77–81 GHz 로 스코프된다(p.1). 3.5 GHz 에서 λ/10 = 8.6 mm 는 실현 가능하므로 **우리 대역에서 이 논거는 뒤집힌다**. 우리 엔진 주장의 지지는 Montaner 가 아니라 Sionna RT 기술보고서 v1.2 자체다 —"
+   },
+   {
+    "file": "prior_work/src/build_prior_survey.py",
+    "line": 462,
+    "text": "use_ko=\"출처 표기용으로만 인용한다. 솔버 거동은 기술보고서 v1.2 에서 인용한다 — 우리 스택이 2.0.1 이다\","
+   }
+  ],
+  "NEW_phantom2_phantom3_inversion": [
+   {
+    "file": "outputs/engine_validation_verdict.json",
+    "line": 492,
+    "json_path": ".4_is_a_valid_comparison_possible.blocking_question.answer",
+    "text": "⭐ Phantom 2 IS near-field (2.6 m, controlled non-anechoic indoor) — and it is ALSO out of band (11-26 GHz). No pivot is needed because Phantom 3 was the correct target from the start: anechoic, far-field, 1.8-18.2 GHz. The brief's band attribution was inverted (section 0)."
+   },
+   {
+    "file": "outputs/prior_settled_anchor.json",
+    "line": 178,
+    "json_path": ".items[5].quote",
+    "text": "Mini 2: 15.9 cm x 20.3 cm | 21-27 GHz | 501 | 0 <= phi(=0.5) <= 360 | Far-field | Anechoic ;; M350 RTK: 81 cm x 67 cm | 21-27 GHz | 501 | 0 <= phi(=0.5) <= 360 | Far-field | Anechoic ;; Phantom 2: 35 cm x 20 cm | 11-26 GHz | 2001 | 0 <= phi(=1) <= 360 | Near-field, 2.6 m | Controlled non-anechoic, indoor"
+   },
+   {
+    "file": "outputs/prior_settled_anchor.json",
+    "line": 268,
+    "json_path": ".items[13].topic",
+    "text": "'The Phantom 2 measurement violates the far-field condition and the paper admits it'"
+   },
+   {
+    "file": "outputs/prior_settled_anchor.json",
+    "line": 274,
+    "json_path": ".items[13].paper_says",
+    "text": "Das labels the Phantom 2 range 'Near-field, 2.6 m' in Table I and then argues the OPPOSITE of an admission: 'Since the sub-band range resolution exceeds the maximum dimension of the Phantom 2 (approx 0.35 m), the target is effectively point-like within each sub-band. Hence, the sub-band responses can be treated as equivalent far-field responses.'"
+   },
+   {
+    "file": "outputs/prior_settled_anchor.json",
+    "line": 275,
+    "json_path": ".items[13].action",
+    "text": "Delete the 'the paper admits it' wording. Correct statement: Das declares the Phantom 2 geometry near-field and claims sub-band equivalence to far-field; the 9.1 m figure is OUR computation. Nothing downstream changes - we do not anchor on the Phantom 2 row."
+   },
+   {
+    "file": "outputs/reference_library.json",
+    "line": 3288,
+    "json_path": ".master_table[63].target_representation",
+    "text": "실물 드론 4종 · DJI Phantom 2, Phantom 3, Mini 2, M350 RTK · 실물. Phantom 3/Mini 2/M350 은 무향 원거리장, Phantom 2 는 통제된 비무향 실내 근거리장."
+   },
+   {
+    "file": "outputs/reflib_read.json",
+    "line": 1919,
+    "json_path": ".records[28].target.representation",
+    "text": "실물. Phantom 3/Mini 2/M350 은 무향 원거리장, Phantom 2 는 통제된 비무향 실내 근거리장."
+   },
+   {
+    "file": "outputs/validation_comparability.json",
+    "line": 494,
+    "json_path": ".G_confirmed.blocking_question",
+    "text": "Das 부대역 중심 f_i = 11 + 0.1i GHz, i=0..149 (→11.0~25.9 GHz) 는 근거리장 처리 문단 안에 있다. = Phantom 2 밴드. Phantom 3 은 1.8~18.2 GHz 원거리장 무향실. 표 렌더 없이 **본문 텍스트만으로** 재확인. 피벗 불필요."
+   },
+   {
+    "file": "outputs/prior_work_claims.json",
+    "line": 1198,
+    "json_path": ".claims[34].assertion",
+    "text": "The Phantom 2 measurement violates the far-field condition (D = 0.35 m at 2.6 m range needs 9.1 m at 11 GHz) and the paper admits it"
+   },
+   {
+    "file": "outputs/psolve_deep.json",
+    "line": 1466,
+    "json_path": ".papers[8].the_P5_recipe_we_do_not_have.sub_band_processing_near_field_only",
+    "text": "segment into 200 MHz sub-bands giving 0.75 m range resolution, centres f_i = 11 GHz + 0.1*i GHz for i = 0..149, each processed independently through a passband FIR H(f_i), then IFFT. Because 0.75 m exceeds the Phantom 2's 0.35 m size, the target is point-like per sub-band and the sub-band responses may be treated as equivalent far-field responses."
+   },
+   {
+    "file": "outputs/psolve_deep.json",
+    "line": 1573,
+    "json_path": ".papers[8].the_P4_ANCHOR_TABLE_III_recovered_by_rendering.SCOPE_WARNING_FOR_OUR_COMPARISON",
+    "text": "these slopes are fitted over 21-27 GHz (Mini 2, M350), 11-26 GHz (Phantom 2) and 1.8-18.2 GHz (Phantom 3). Our band slope is fitted over a 3.367 GHz span at 1.8-5.2 GHz. Comparing our 0.742-1.699 dB/GHz to their 0.21 is a comparison across different bands and different span lengths, and must be stated as such."
+   },
+   {
+    "file": "outputs/sigma_anchor.json",
+    "line": 560,
+    "json_path": ".uncontrolled[5].detail",
+    "text": "Phantom 3 자료는 무향실 CATR **원거리장** 이다(Das Table I·Yuan §II-A). Das 의 Phantom 2 만 근접장 2.6 m 비무향이고, 우리는 그 행을 앵커로 쓰지 않는다."
+   },
+   {
+    "file": "outputs/validation_feasibility.json",
+    "line": 28,
+    "json_path": ".0_corrections_to_the_workflow_brief[0].claim_in_brief",
+    "text": "DJI Phantom 2 — 35 cm x 20 cm, 1.8-18.2 GHz, 2801 frequency points"
+   },
+   {
+    "file": "outputs/validation_feasibility.json",
+    "line": 30,
+    "json_path": ".0_corrections_to_the_workflow_brief[0].truth",
+    "text": "Das Table I: Phantom 2 = 11 GHz-26 GHz, 2001 frequency points, azimuth 0:1:360, near-field 2.6 m, controlled non-anechoic indoor. 1.8-18.2 GHz / 2801 points / azimuth -90:2:90 / far-field / anechoic is the **Phantom 3** column."
+   },
+   {
+    "file": "outputs/validation_feasibility.json",
+    "line": 32,
+    "json_path": ".0_corrections_to_the_workflow_brief[0].consequence",
+    "text": "⭐ The premise of the whole brief inverts. Phantom 2 does NOT overlap our bands at all (11-26 GHz vs our 1.843/3.5/5.21 GHz). Phantom 3 is the only band-overlapping platform AND it is the anechoic far-field one. The near-field blocking question therefore resolves in favour of Phantom 3 with no pivot needed."
+   },
+   {
+    "file": "outputs/validation_feasibility.json",
+    "line": 98,
+    "json_path": ".1_das_measurement_settings.quotes.contributions_per_platform",
+    "text": "The measurements cover anechoic far-field settings for the Phantom 3, Mini 2, and M350 RTK, and a controlled non-anechoic indoor near-field setting for the Phantom 2."
+   },
+   {
+    "file": "outputs/validation_feasibility.json",
+    "line": 102,
+    "json_path": ".1_das_measurement_settings.quotes.subband_farfield_equivalence",
+    "text": "For near-field measurements, the background-subtracted frequency response is segmented into 200 MHz sub-bands, yielding a range resolution of 0.75 m [6]. The sub-bands are centered at fi = 11 GHz + 0.1 i GHz, i = 0, …, 149, and processed independently using a passband FIR filter H(fi). Since the sub-band range resolution exceeds the maximum dimension of the Phantom 2 (≈0.35 m), the target is effec"
+   },
+   {
+    "file": "outputs/validation_feasibility.json",
+    "line": 179,
+    "json_path": ".1_das_measurement_settings.blocking_question_resolved.answer",
+    "text": "⭐ Phantom 2 IS near-field (2.6 m, controlled non-anechoic indoor) — and it is ALSO out of band (11-26 GHz). No pivot is needed because Phantom 3 was the correct target from the start: anechoic, far-field, 1.8-18.2 GHz. The brief's band attribution was inverted (section 0)."
+   },
+   {
+    "file": "docs/REFERENCE_LIBRARY.md",
+    "line": 946,
+    "text": "- **표적 표현** — 실물 드론 4종 · DJI Phantom 2, Phantom 3, Mini 2, M350 RTK · 실물. Phantom 3/Mini 2/M350 은 무향 원거리장, Phantom 2 는 통제된 비무향 실내 근거리장."
+   },
+   {
+    "file": "docs/RESUME.md",
+    "line": 90,
+    "text": "| Phantom 2 | **11–26 GHz** | 근거리장 2.6 m, 비무향 실내 → **이중 부적격** |"
+   },
+   {
+    "file": "docs/ENGINE_VALIDATION.md",
+    "line": 236,
+    "text": "타당성 단계의 차단 질문(‘Phantom 2 의 수치가 근거리장이면 비교가 무너진다’)은 **불필요했다**. Das Table I 을 350 dpi 렌더에서 직접 읽으면 1.8~18.2 GHz · 2801점 · 원거리장 · 무향은 **Phantom 3** 열이고, Phantom 2 는 11~26 GHz · 2001점 · 근거리장 2.6 m 다. Phantom 2 는 대역 밖이라 애초에 후보가 아니었다 ⟨`validation_feasibility.json : 0_corrections_to_the_workflow_brief`⟩."
+   },
+   {
+    "file": "docs/DRONE_ISAC_PRIOR_READING.md",
+    "line": 71,
+    "text": "| **multiband** Table III (p.3734) — Phantom 3, θb=0° | DJI Phantom 3 (350×200 mm) | μ=0.21f−19.19 → **−18.80 / −18.46 / −18.10** @1.843/3.5/5.21 GHz | 모노스태틱, 무향실 **far-field** | 논문에 없음 (V 는 Phantom 2 셋업에만 명시) | 수평면(el=0), 방위 −90°:2°:+90°, 로터 정지 | 위 세 값 | **phantom4 (350 mm)** el=15°(JSON): **−21.69 / −18.85 / −18.90** → Δ **−2.89 / −0.40 / −0.81** · el=0°(재실행): **−21.10 / −17.72 / −15.42** → Δ **"
+   },
+   {
+    "file": "docs/DRONE_ISAC_PRIOR_READING.md",
+    "line": 397,
+    "text": "| multiband Phantom 2 | 0.35 m | 2.6 m | 9.1 m @11 GHz | Table I 이 \"Near-field, 2.6 m\" 라 적고 서브밴드 등가 원거리장을 주장한다 — *\"the target is effectively point-like within each sub-band. Hence, the sub-band responses can be treated as equivalent far-field responses\"*(p.3732). 9.1 m 은 **우리 계산**이고 논문에 `violat`·`Fraunhofer` 는 0회다 |"
+   },
+   {
+    "file": "src/sigma_anchor.py",
+    "line": 490,
+    "text": "\"Das 의 Phantom 2 만 근접장 2.6 m 비무향이고, 우리는 그 행을 앵커로 쓰지 않는다.\"),"
+   }
+  ],
+  "NEW_ziganshin_runtime_per_pose": [
+   {
+    "file": "outputs/runtime_benchmark.json",
+    "line": 4490,
+    "json_path": ".answer.cost_drivers.facet_count.finding",
+    "text": "⭐ cost is NEARLY FLAT in facet count: 16x the triangles on the identical surface changes the pose cost by +18%. Our cost is set by RAY COUNT, not mesh complexity. This is the sharpest comparability point against Ziganshin, whose diffraction ladder is edge/vertex combinatorial and whose own table shows the 1496-facet car costing 3.8x the 220-facet car at +EV/VE (19.0 s vs 5.0 s)."
+   },
+   {
+    "file": "outputs/psolve_signature.json",
+    "line": 768,
+    "json_path": ".P6_runtime.the_rows_that_bear_on_a_SIGNATURE_pipeline[1].cost_of_the_added_physics",
+    "text": "adding vertex + second-order diffraction multiplies runtime by 15x on the fine vehicle mesh (0.7 s -> 19.0 s). That is the price of closing the diffraction gap inside the ray formalism."
+   },
+   {
+    "file": "outputs/psolve_signature.json",
+    "line": 1090,
+    "json_path": ".P6_runtime.what_the_table_says_about_where_we_sit[1]",
+    "text": "Ziganshin's extended-diffraction RT costs 0.3-19.0 s per angular sweep on 32 CPU cores, i.e. 1-2 orders above the floor, and buys MAE 1.6-2.6 dB against MLFMM in the shadow region."
+   },
+   {
+    "file": "outputs/psolve_signature.json",
+    "line": 1397,
+    "json_path": ".twelve_things_worth_carrying_into_the_reports[11]",
+    "text": "Ziganshin journal Table II p8: adding vertex + second-order diffraction takes a 1496-facet vehicle from 0.7 s to 19.0 s - the measured price of closing the diffraction gap the ray way."
+   },
+   {
+    "file": "outputs/r2_read_w3.json",
+    "line": 462,
+    "json_path": ".records[3].Q_A_half2_runtime.how_this_calibrates_ziganshin_ko",
+    "text": "Ziganshin 이 보고한 회절 오버헤드는 15~27배(0.7 s → 19.0 s, 1496면 차량)다. 여기서 PO 오버헤드는 UTD 대비 최대 5배(8000면 팬텀)다. Gao 2012 의 회절 오버헤드는 잘 겹치면 4.6~17.2%다. 즉 ‘RT 뒤에 붙는 물리 보정의 대가’ 는 문헌에서 0.05배부터 27배까지 세 자릿수 범위로 흩어져 있고, 단일 배수로 말할 수 있는 양이 아니다. 우리 답변은 이 산포 자체를 보여주는 것이어야 한다."
+   },
+   {
+    "file": "outputs/deepread_w3.json",
+    "line": 229,
+    "json_path": ".papers[1].what_it_bought_numerically[4].claim",
+    "text": "비용: 회절 확장은 런타임을 5~27배 늘린다. 차량 1496 패싯 기준 RT 0.7 s → +V 3.6 → +EE 10.2 → +EV/VE 19.0 s. 단, MLFMM 은 수 시간."
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 234,
+    "json_path": ".F7_gao_number_is_the_favourable_half.round2_claim",
+    "text": "outputs/r2_hunt_recent.json — 'Gao 외 PIER 122:137-154 (게재, 2012) 가 GPU SBR 에 PTD/ILDC 계열 보정을 얹고 비용을 +4.6~17.2% 로 인쇄한다. Ziganshin 의 15-27배와 두 자릿수 차이'"
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 270,
+    "json_path": ".F8_ziganshin_runtime_multiplier_four_ways.how_our_files_state_it[0].text",
+    "text": "adding vertex + second-order diffraction multiplies runtime by 15x on the fine vehicle mesh (0.7 s -> 19.0 s)"
+   },
+   {
+    "file": "outputs/r2_attack_selfconsistency.json",
+    "line": 327,
+    "json_path": ".round2_claims_i_independently_confirmed[3]",
+    "text": "Ziganshin Table II 의 네 행 수치 전부 실재(0.3/1.1/1.8/4.6 · 0.4/1.8/3.1/6.8 · 0.4/0.9/2.4/5.0 · 0.7/3.6/10.2/19.0), '15~27배' 는 전 4행 min~max 로 방어 가능."
+   },
+   {
+    "file": "outputs/psolve_deep.json",
+    "line": 312,
+    "json_path": ".answers_per_blocker.P4.answer",
+    "text": "TWO FAMILIES. UTD family (Ziganshin): buys shadow-region field where a specular-only method returns nothing, at 15-27x runtime, with a residual MAE of 1.6-3.0 dB; it is architecturally incompatible with our PO kernel because it replaces rather than corrects the surface integral, and neither of his documents contains a frequency sweep, so it is NOT evidence about our band slope. PTD family (Kirik-O"
+   },
+   {
+    "file": "outputs/psolve_deep.json",
+    "line": 349,
+    "json_path": ".answers_per_blocker.P6.answer_table[3].cost",
+    "text": "0.7 s RT -> 19.0 s with full diffraction"
+   },
+   {
+    "file": "outputs/r2_hunt_recent.json",
+    "line": 374,
+    "json_path": ".new_papers[7].why_it_matters",
+    "text": "⭐⭐ Q-C 의 답이 여기 있다. (1) 얹을 수 있는 PTD 계열 보정이 실재하고 MLFMM 으로 검증돼 있다. (2) 비용이 인쇄돼 있다 — SBR 대비 +4.6 %(항공기 A) / +17.2 %(항공기 B). Ziganshin 의 15-27 배와 두 자릿수 차이다. (3) 효과가 나타나는 지점이 '약산란 각도' 다 — 소형 드론의 비정합·비스펙큘러 영역이 바로 거기다."
+   },
+   {
+    "file": "outputs/r2_hunt_recent.json",
+    "line": 468,
+    "json_path": ".open_questions_progress.Q-A_published_objection.half_2_runtime.evidence_against_the_objection.reading",
+    "text": "고차 산란 보정을 SBR 위에 얹는 비용이 잘 병렬화하면 +4.6~17.2 % 다. Ziganshin 이 보고한 15-27 배는 그의 구현의 성질이지 '광선추적 뒤에 물리광학/회절을 붙이면 이점이 사라진다' 는 일반 명제의 증거가 아니다."
+   },
+   {
+    "file": "docs/HOW_OTHERS_SOLVED_IT.md",
+    "line": 18,
+    "text": "| **Ziganshin** 저널 프리프린트 | 엔진 확장: Sionna-RT v0.19 에 UTD | PEC 전제 · 현실 재질은 future work | 경로 밖(정지 차량) | **UTD+V+EE+EV/VE**. 그림자 MAE 2.6→1.6 dB | 유일한 측정 대조 · **저자가 정성적이라 격하** | Table II 0.7→19.0 s, 각도당 53 ms, CPU | 면 규칙 E>1.5λ · E²/(Rλ) 0.6–0.9 | 전 각도 계산 · **검사 안 함**(reciproc 0회) |"
+   },
+   {
+    "file": "docs/RESUME.md",
+    "line": 64,
+    "text": "기준선은 잡혀 있다: **스톡 Sionna 0.06~0.29 s/pose**(독립 3편) · Ziganshin 회절 추가 0.7→19.0 s"
+   }
+  ]
+ }
+}

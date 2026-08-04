@@ -75,7 +75,10 @@ ROOT = os.path.abspath(os.path.join(_HERE, ".."))
 
 # 근거 JSON — 이 편의 모든 숫자가 여기서 나온다
 J_FS = "outputs/report13_freespace.json"      # 자유공간 검지거리 4단계
-J_SG = "outputs/report13_sigma_grid.json"     # σ 격자(자세 × 밴드)
+J_SG = "outputs/report13_sigma_grid.json"     # σ 격자(자세 × 밴드) — 현재판(앙각 확장 후)
+#: ⭐ 발표된 solve 가 실제로 읽은 σ 격자판. 현재판은 2026-08-03 재생성으로 앙각이 −90° 까지
+#:   넓어졌지만 이 편의 검지거리는 그 전 판 위에서 풀렸다 — 유효창은 그 판을 인용한다(§1.1).
+J_SG_USED = "outputs/archive/report13_sigma_grid_pre0803.json"
 J_RX = "outputs/detection_rx_sweep.json"      # 파형 9모드 × 수신소자 N 몬테카를로
 J_VF = "outputs/verify_freespace.json"        # 기하·규약 게이트
 J_LB = "outputs/verify_linkbudget.json"       # 사슬 항등식 · 파형별 손실항
@@ -84,6 +87,10 @@ J_DF = "outputs/sbr_defect_fixes.json"        # 상반성 잔차(β 창의 근�
 J_SS = "outputs/sigma_sensitivity.json"       # σ 민감도 · 순위 강건성 · 격차 분해
 J_CG = "outputs/cpi_guard_sweep.json"         # 5G 도플러 가드 CPI 스윕
 J_DV = "outputs/report05_derived.json"        # 이 빌더가 쓰는 파생 원장(아래 derived())
+J_TM = "outputs/tm_result.json"               # 표적모형 민감도 — 3모형 × 환경(§3.7)
+J_TA = "outputs/tm_attack.json"               # 그 실험의 적대검증 — 추정량 · 낙차 소유권(§3.7)
+J_PH = "outputs/phi_sweep.json"               # 장면 방위 φ 전수 스윕(§1.1)
+J_SV = "outputs/s2r_assets_verify.json"       # σ 격자 재생성 1:1 대조(여는 블록 · 다음 단계)
 
 FIGDIR = "outputs/figures"
 MODES = ("W1", "L1", "G1")
@@ -148,8 +155,17 @@ def derived() -> dict:
     D["d_beta45"] = float(np.interp(45.0, beta[::-1], d[::-1]))
     D["snr_at_beta45"] = float(np.interp(D["d_beta45"], d, snr))
     D["d_el20"] = float(np.interp(-20.0, el, d))
-    D["el_grid_min"] = float(min(fetch((J_SG, "meta.el_deg"))))
-    D["n_el"] = len(fetch((J_SG, "meta.el_deg")))
+    #  ⭐ 유효창은 **이 편의 결과가 실제로 읽은 격자**를 말한다 — 디스크의 최신 파일이 아니다.
+    #     σ 격자는 2026-08-03 에 앙각 −90° 까지 확장돼 재생성됐고, 그 새 격자 위에서 다시
+    #     푸는 일은 §1.1 끝 문단과 `다음 단계` 표에 걸려 있다. 발표된 solve 가 읽은 판은
+    #     아카이브에 그대로 있고, 그 신원은 `phi_sweep.json : meta.sigma_file_generated` 와
+    #     `meta.generated` 가 일치하는 것으로 확정된다(아래 assert 가 매 빌드 확인한다).
+    used_gen = fetch((J_SG_USED, "meta.generated"))
+    assert used_gen == fetch((J_PH, "meta.sigma_file_generated")), (
+        f"발표 solve 가 읽은 σ 격자를 특정하지 못했다: 아카이브 {used_gen} vs "
+        f"φ 스윕 기록 {fetch((J_PH, 'meta.sigma_file_generated'))}")
+    D["el_grid_min"] = float(min(fetch((J_SG_USED, "meta.el_deg"))))
+    D["n_el"] = len(fetch((J_SG_USED, "meta.el_deg")))
     D["beta_at_R"] = float(np.interp(fetch((J_FS, "solve.W1.R_m")), d, beta))
 
     # ── 상반성 rms 잔차: β≤45° 안 / 창 밖 ──────────────────────────────────
@@ -300,7 +316,10 @@ def derived() -> dict:
     D["pfa_g1_ratio"] = 1.0 / fetch((J_FS, "threshold.pfa.G1.ratio_emp_over_nominal"))
 
     # ── 재현 소요: 측정치 + 선언 예산 ────────────────────────────────────────
-    D["t_sigma_grid"] = fetch((J_SG, "meta.runtime_s"))
+    #  ⚠ σ 격자는 2026-08-03 재생성부터 **샤드 워커**로 돈다 — 생산자가 기록하는 양이
+    #     벽시계 `runtime_s` 에서 워커 CPU 시간 `worker_cpu_hours` 로 바뀌었다.
+    #     둘은 다른 양이라 이름도 바꿔 싣는다(재현 블록이 "워커 CPU" 라고 말한다).
+    D["t_sigma_grid"] = fetch((J_SG, "meta.worker_cpu_hours")) * 3600.0
     D["t_range_drone"] = fetch((J_FS, "meta.runtime_s"))
     D["t_verify"] = fetch((J_VF, "meta.runtime_s"))
     D["t_cpi_sweep"] = fetch((J_CG, "meta.runtime_s"))
@@ -561,6 +580,13 @@ def build_blocks(D: dict):
     FS, RX, AN = from_json(J_FS), from_json(J_RX), from_json(J_AN)
     VF, SS, CG = from_json(J_VF), from_json(J_SS), from_json(J_CG)
     DV = from_json(J_DV)
+    TM, TA, PH, SV = (from_json(J_TM), from_json(J_TA),
+                      from_json(J_PH), from_json(J_SV))
+
+    #: φ 스윕에서 이 편이 읽는 가지 — 경로가 길어 한 번만 적는다
+    PHC = "verdict.claims[2].range_over_phi"
+    #: 표적모형 세 팔의 요구 추가이득 경로(추정량별)
+    TAE = "Q1_normalisation.recomputed_spread_db_by_matching_estimator"
 
     SRC_R = f"출처 ⟨{J_FS} : " + CELL.format(d="*", m="*") + ".R90_C50_m⟩"
     SRC_A = f"출처 ⟨{J_AN} : drones.*.modes.slope_only.delta_db⟩"
@@ -621,6 +647,17 @@ def build_blocks(D: dict):
              "원장 위에서 한다. 절대 레벨은 우리 PO 출력이고, 생산 모드 `slope_only` 의 세 밴드 평균 "
              "레벨이동은 " + DV.num("anchor_scope.level_shift_abs_max_db", None, "{:.2f}", "dB")
              + " 다(02 §4)"),
+            ("σ 격자 출처",
+             "R90 은 " + FS.num("meta.generated", None)
+             + " 산출이고 그때의 `outputs/report13_sigma_grid.json` 을 읽었다"
+             + f"(⟨{J_FS} : meta.sigma_file⟩). 같은 설정으로 재생성한 1:1 대조에서 기체당 최대 "
+             + SV.num("overstated[0].결과_표[0].max_abs_delta_db", None, "{:.2f}", "dB")
+             + " · rms " + SV.num("overstated[0].결과_표[0].rms_delta_db", None, "{:.2f}", "dB")
+             + " 로 갈리고, 평균이동은 기체마다 "
+             + SV.num("overstated[0].결과_표[0].mean_delta_db", None, "{:+.2f}") + " ~ "
+             + SV.num("overstated[0].결과_표[2].mean_delta_db", None, "{:+.2f}", "dB")
+             + " 로 방향이 갈린다 — 그래서 절대 R90 과 기체간 순위는 재생성 격자 위에서 다시 "
+             "세운다(다음 단계). 순위 비교의 규약과 봉투는 §3.4 가 든다"),
             ("순위",
              "**자세평균 σ + 측정 기울기** 설정에서 읽는다. 단일 자세·듀티 적용 등 5개 설정의 "
              "순위와 뒤집힘 문턱을 §3.4 표가 나란히 싣는다"),
@@ -663,7 +700,7 @@ def build_blocks(D: dict):
                  "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report05_paper.py",
                  "PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report05_results.py"],
             out=[J_FS, J_SG, J_RX, J_VF, J_LB, J_DF, J_AN, J_SS, J_CG, J_DV],
-            runtime="① " + DV.num("runtime.sigma_grid_s", None, "{:.0f}", "s")
+            runtime="① 워커 CPU " + DV.num("runtime.sigma_grid_s", None, "{:.0f}", "s")
                     + " · ② 기종당 " + DV.num("runtime.range_per_drone_s", None, "{:.0f}", "s")
                     + f" × {DV.num('runtime.n_drones', None, '{:.0f}')}기종"
                     + f"(GPU {FS.num('meta.gpus', None)}장) · ③ "
@@ -718,12 +755,13 @@ def build_blocks(D: dict):
                 + dnum(D["recip_out"], "{:.2f}", "dB", f"{J_DF} : d2_reciprocity_drone.rows",
                        "β>45 행 최대")],
                ["σ 격자 앙각",
-                "el ≥ " + dnum(D["el_grid_min"], "{:.0f}", "°", f"{J_SG} : meta.el_deg", "최솟값")
+                "el ≥ " + dnum(D["el_grid_min"], "{:.0f}", "°",
+                               f"{J_SG_USED} : meta.el_deg", "최솟값")
                 + " (`d` ≥ "
                 + dnum(D["d_el20"], "{:.0f}", "m", f"{J_FS} : solve.W1.el_look_deg", "el=−20° 보간")
                 + ")",
                 "격자 앙각 행 "
-                + dnum(D["n_el"], "{:.0f}", "개", f"{J_SG} : meta.el_deg", "길이")
+                + dnum(D["n_el"], "{:.0f}", "개", f"{J_SG_USED} : meta.el_deg", "길이")
                 + ", 헤드라인 거리의 el = "
                 + num(None, (J_FS, "meta.ranges_el_look_deg"), "{:.2f}", "°")],
                ["β = 45° 지점",
@@ -731,7 +769,26 @@ def build_blocks(D: dict):
                                 "β=45° 보간"),
                 "그 지점의 SNR = "
                 + dnum(D["snr_at_beta45"], "{:.0f}", "dB", f"{J_FS} : solve.W1.snr_d_db",
-                       "d=β45 에서 보간")]]),
+                       "d=β45 에서 보간")],
+               ["장면 방위 φ",
+                PH.num("meta.n_phi", None, "{:.0f}") + "방위 전수 — 5° 간격의 전 원주",
+                "σ 를 고정한 순수기하에서 R90 span "
+                + PH.num(f"{PHC}.constant_sigma_control.W1.span_pct_of_phi90", None,
+                         "{:.2f}", "%")
+                + "(" + PH.num(f"{PHC}.constant_sigma_control.W1.span_db_equiv", None,
+                               "{:.3f}", "dB")
+                + " 등가) · 자세평균 "
+                + PH.num(f"{PHC}.aspect_averaged.W1.span_pct_of_phi90", None, "{:.2f}", "%")
+                + " · 세 팔 모두 φ=90° 가 "
+                + PH.num(f"{PHC}.constant_sigma_control.W1.phi90_is", None)
+                + " 이라 이 편의 φ 는 보수적인 끝이다"]]),
+        "",
+        f"같은 스윕이 σ 조회의 앙각도 잰다 — 스윕이 읽은 격자"
+        f"(생성 {PH.num('meta.sigma_file_generated', None)}, 앙각 0~−20°)에서 조회의 "
+        f"{PH.num('geometry.rows[18].frac_el_outside_sigma_grid', None, '{:.1%}')}(φ=90°) ~ "
+        f"{PH.num('geometry.rows[0].frac_el_outside_sigma_grid', None, '{:.1%}')}(φ=0°) 가 "
+        f"경계 행으로 클램프됐다. 근거리 SNR 천장이 그 조회 위에 서므로, 확장된 앙각 격자 위에서 "
+        f"다시 푸는 일을 다음 단계에 건다.",
     ))
 
     # ── §2 감도사슬 ───────────────────────────────────────────────────────── #
@@ -989,9 +1046,7 @@ def build_blocks(D: dict):
                      "5기체 최소") + " ~ "
                 + dnum(D["mc_p2db_max"], "{:.2f}", "",
                        f"{J_SS} : monte_carlo_per_band_error", "5기체 최대")]]),
-    ))
-
-    blocks.append(md(
+        "",
         f"취약성을 정하는 것은 기체 크기가 아니라 **밴드 간 σ 로브 산포**다 — 가장 작은 "
         f"{SS.num('size_vs_fragility.smallest_airframe', None)}(전장 "
         f"{SS.num('size_vs_fragility.by_drone.mini5pro.extent_m', None, '{:.3f}', 'm')}, LTE 에서 "
@@ -1129,6 +1184,49 @@ def build_blocks(D: dict):
         "묶었으므로 여기서 읽는 것은 **파형 축 하나**의 상대 비교다.",
     ))
 
+    # ── §3.7 표적모형 민감도 — 이 순위표가 서 있는 표적 가정 ────────────────── #
+    blocks.append(md(
+        "### §3.7 표적모형이 검출을 얼마나 바꾸나",
+        "",
+        f"같은 기하·같은 검출기·같은 동작점에서 표적만 세 모형으로 갈아끼웠다 — 자세무관 평판 "
+        f"σ {TM.num('protocol.operating_point.sigma_reference_dbsm', None, '{:.2f}', 'dBsm')}(3GPP, "
+        f"M1) · 정육면체(M2) · 우리 SBR+PO 격자(M3). 자세 앙상블은 셀당 "
+        f"{TM.num('statistics.n_aspect_realisations_per_cell', None, '{:.0f}')}자세 전수, (기체×밴드) "
+        f"셀은 {TM.num('statistics.n_drone_band_cells', None, '{:.0f}')}개이고, 자세평균을 맞춘 뒤 "
+        f"남는 **요구 추가이득**을 추정량별로 적는다(재현편차 "
+        f"{TA.num('meta.reproduction.E0_extra_gain_max_abs_dev_db', None, '{:.2f}', 'dB')}).",
+        "",
+        table(["무엇을 맞추나", "M1 평판 [dB]", "M2 정육면체 [dB]", "M3 우리 격자 [dB]"],
+              [[nm,
+                TA.num(f"{TAE}.{k}.per_model_extra_gain_db.M1", None, "{:+.2f}"),
+                TA.num(f"{TAE}.{k}.per_model_extra_gain_db.M2", None, "{:+.2f}"),
+                TA.num(f"{TAE}.{k}.per_model_extra_gain_db.M3", None, "{:+.2f}")]
+               for nm, k in (("선형평균 — 이 실험의 규약", "mean_lin"),
+                             ("중앙값", "median"),
+                             ("dB 평균", "mean_db"),
+                             ("p10 — 검출기가 읽는 분위수", "p10"))]),
+        "",
+        f"낙차의 소유자는 정육면체다 — 자유공간에서 최대가 M2 인 셀이 "
+        f"{TA.num('Q3_staleness.argmax_argmin_counts.E0_freespace.argmax_counts.M2', None, '{:.0f}')}개, "
+        f"최소가 M1 인 셀이 "
+        f"{TA.num('Q3_staleness.argmax_argmin_counts.E0_freespace.argmin_counts.M1', None, '{:.0f}')}개로 "
+        f"전수이고, M3 몫은 다섯 앙상블에서 "
+        f"{TA.num('Q3_staleness.argmax_argmin_counts.E2_outdoor_canyon.m3_share_of_spread', None, '{:.1%}')} ~ "
+        f"{TA.num('Q3_staleness.argmax_argmin_counts.E1_chamber_floor.m3_share_of_spread', None, '{:.1%}')} 다. "
+        f"각 다양성이 그 낙차를 줄인다 — 각 다양성이 0 인 자유공간(N_eff "
+        f"{TM.num('verdicts.Q3_environment_dependence.predictor.E0_freespace.n_eff_pairs', None, '{:.1f}')})에서 "
+        f"{TM.num('verdicts.Q3_environment_dependence.pure_pattern_spread_db_by_env.E0_freespace', None, '{:.2f}', 'dB')}, "
+        f"각 다양성이 가장 큰 앙상블(N_eff "
+        f"{TM.num('verdicts.Q3_environment_dependence.predictor.E2b_outdoor_shadowed.n_eff_pairs', None, '{:.2f}')})에서 "
+        f"{TM.num('verdicts.Q3_environment_dependence.pure_pattern_spread_db_by_env.E2b_outdoor_shadowed', None, '{:.2f}', 'dB')} 다.",
+        "",
+        f"⚠ 크기는 **추정량이 정한다** — 검출기가 읽는 p10 에서 맞추면 낙차가 "
+        f"{TA.num(f'{TAE}.p10.spread_mean', None, '{:.2f}', 'dB')} 로 줄고 세 팔의 순서가 뒤집혀 "
+        f"M1 이 가장 어려운 팔이 된다. 문턱은 잡음전력 기지 이상문턱이고 CA-CFAR 문턱은 세 팔에 "
+        f"같은 오프셋을 주므로, 04 의 교정표는 세 팔의 절대 소요이득만 옮긴다"
+        f"(⟨{J_TM} : protocol.pfa_convention⟩).",
+    ))
+
     # ── §4 다중 수신기 ────────────────────────────────────────────────────── #
     blocks.append(md(
         "## §4. 수신소자를 늘리면",
@@ -1201,6 +1299,28 @@ def build_blocks(D: dict):
         ("파형·수신소자 스윕을 §1 자유공간 기하와 물리 PRF 로 옮긴다",
          "§3.6 · §4 의 절대 SNR 이 이 편의 거리와 같은 축에 놓인다",
          "`src/experiment_detection.py` 의 X410Scenario → `src/freespace_scene.py`"),
+        ("σ 전격자를 현재 메쉬로 재생성해 `--stage solve` 를 다시 돌린다",
+         "절대 R90 · 백분위 · 기체간 순위가 현재 기하 위에 선다 — 동일설정 재생성 대조에서 "
+         "기체당 최대 "
+         + SV.num("overstated[0].결과_표[0].max_abs_delta_db", None, "{:.2f}", "dB")
+         + " · rms " + SV.num("overstated[0].결과_표[0].rms_delta_db", None, "{:.2f}", "dB")
+         + " 다",
+         "`src/experiment_freespace_sigma.py` → 05편 §3.3"),
+        ("앙각을 확장한 σ 격자 위에서 R90 과 SNR 천장을 다시 푼다",
+         "φ 축에서 "
+         + PH.num("geometry.rows[18].frac_el_outside_sigma_grid", None, "{:.1%}") + " ~ "
+         + PH.num("geometry.rows[0].frac_el_outside_sigma_grid", None, "{:.1%}")
+         + " 이던 클램프 조회가 격자 안으로 들어오고, 근거리 SNR 천장이 격자 위에 선다",
+         "`src/experiment_freespace_sigma.py` 의 el 축 → "
+         "`src/experiment_freespace_range.py --stage solve`"),
+        ("표적모형 민감도의 M3 팔을 재생성 격자로 다시 푼다",
+         "우리 팔의 요구 추가이득 "
+         + TA.num("Q3_staleness.m3_own_number.base_db", None, "{:.2f}", "dB")
+         + " 와 낙차 몫 "
+         + TA.num("Q3_staleness.argmax_argmin_counts.E0_freespace.m3_share_of_spread", None,
+                  "{:.1%}")
+         + " 가 현재 메쉬 위에 선다",
+         "`scratchpad/tm_result.py` → 05편 §3.7"),
         ("기준 구를 함께 재서 자체 앵커를 세운다",
          "지금 우리 PO 출력인 σ 절대 레벨이 측정에 앵커되고, 크기전이 항 "
          + DV.num("anchor_scope.size_law_spread_max_db", None, "{:.2f}", "dB") + " 가 닫힌다",

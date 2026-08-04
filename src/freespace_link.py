@@ -83,7 +83,8 @@ __all__ = [
     "eca_depth_required_db", "n0_effective", "classify_limit",
     "snr_rd_terms_db", "range_factor", "fresnel_gamma", "two_ray_path_diff",
     "two_ray_f4_db", "D_GRID_DEFAULT", "LIMIT_ENUM",
-    "dnr_vs_noise_db", "duty_db_from_cpi",
+    "dnr_vs_noise_db", "duty_db_from_cpi", "duty_terms",
+    "DUTY_POLICY_DEFAULT", "DUTY_POLICIES",
     "GROUND_REPO_CONCRETE", "GROUND_FS3_SOIL",
 ]
 
@@ -320,9 +321,123 @@ def duty_db_from_cpi(M, T_ref_s, T_cpi_s):
     return float(10.0 * np.log10(max(float(M) * float(T_ref_s) / float(T_cpi_s), 1e-30)))
 
 
+# --------------------------------------------------------------------------- #
+#  2b. ⭐ 듀티 **정책 스위치** (결함 D-C 수리, 2026-08-03)
+# --------------------------------------------------------------------------- #
+#  왜 이 절이 생겼나 — `duty_db_from_cpi` 는 **정의만 돼 있었다.**
+#    · 저장소 전체 문자열 등장 25회 중 실제 파이썬 호출은 3곳뿐이고
+#      (`benchmark/mono_link.py:119` · `benchmark/sigma_sensitivity.py:523` ·
+#       `benchmark/geometry_grid.py:183`) 셋 다 **표를 찍기 위해 값만 계산**한다.
+#    · 그 값이 SNR 로 들어갈 수 있는 유일한 자리는 `mono_link.scene_arm(..., duty_on=False)`
+#      인데 9개 호출부가 **전부 기본값 False** 다(`duty_on=True` 는 저장소에 0회).
+#    · R90 생산경로(`src/experiment_freespace_range.stage_solve`)는 값을 계산조차 안 한다.
+#    ⇒ 즉 **어떤 SNR 에도 한 번도 도달한 적이 없다.** 크기는 σ 와 완전히 무관한
+#      W1 −12.84 / L1 0.00 / G1 −16.02 dB 로, 반송파 λ² 축(9.03 dB)보다 크다.
+#
+#  ⚠⚠ **이중계상 금지**(`experiment_freespace_range._power_normalization_facts` 의 경고와 짝):
+#    점유율 파생 평균방사전력 감쇠(`radiated_power_frac_db_vs_g3`, = `deploy` 뷰)와 이 듀티항은
+#    **같은 물리손실의 대체 파라미터화**다. 둘을 곱하면 이중계상이다.
+#    정본 뷰가 `equal_psd`(= 밴드별 per-RE 전력 동일, 평균전력 감쇠 미적용)인 동안에만
+#    듀티를 켠다. `deploy` 뷰로 옮기면 듀티를 꺼야 한다 — `duty_policy="off"`.
+#
+#: 정책 기본값. **리포트가 이미 선언한 규약**(EIRP = in-burst peak, 듀티 별도; 스펙 §3/F13,
+#: report03 조명원 원장의 "WiFi 패킷 듀티 −12.84 dB" 행)이 곧 `"cpi_on_fraction"` 이다.
+DUTY_POLICY_DEFAULT = "cpi_on_fraction"
+DUTY_POLICIES = ("cpi_on_fraction", "off")
+
+#: 모드라벨 첫 글자 → 표준. `experiment_freespace_range.MODE_STD` 의 **거울**이며,
+#: `duty_terms()` 가 그 모듈을 import 할 수 있으면 런타임에 대조해 불일치를 예외로 띄운다
+#: (freespace_link 는 하위 계층이라 상위 실험모듈을 정적 의존하지 않는다).
+_DUTY_STD_OF = {"W": "wifi", "L": "lte", "G": "nr"}
+
+
+def duty_terms(mode, T_cpi_s=0.1, policy=None, wifi_packet_rate_hz=1000.0,
+               strict=True) -> dict:
+    """(D-C) 모드 라벨 → **듀티 항과 그 유래**. 값은 전부 저장소 단일진리원에서 읽는다.
+
+        PRF   ← `freespace_scene.prf_hz(std, mode, wifi_packet_rate_hz)`   (3GPP/IEEE 자원격자)
+        M     ← `freespace_scene.M_from_prf(T_CPI, PRF)`
+        T_ref ← `waveforms.all_waveforms(occ)[std]` 의 `len(tx)/fs_hz`     (**선언값**)
+        duty  ← `duty_db_from_cpi(M, T_ref, T_CPI)`  (policy="cpi_on_fraction")
+                또는 0.0                              (policy="off", 수리 전 거동)
+
+    ★재현(T_CPI=0.1 s, wifi_packet_rate=1000): W1 −12.8400 / L1 +0.0000 / G1 −16.0206 dB
+      — `outputs/sigma_sensitivity.json : unapplied_duty_axis.duty_db` 와 같은 값이고,
+      WiFi 는 `outputs/report4_fixups.json : packet_duty_db` 와도 일치한다(독립 산출물 2건).
+
+    ⚠ `duty_db > 0` 은 물리적으로 불가능하다(기준신호가 CPI 보다 오래 켜져 있다는 뜻).
+      `strict=True` 면 예외, False 면 0 으로 clip 하고 `clipped=True` 를 남긴다.
+    반환 dict: std, occ, prf_hz, M, T_ref_s, T_cpi_s, duty_db, policy, provenance, clipped
+    """
+    pol = DUTY_POLICY_DEFAULT if policy is None else str(policy)
+    if pol not in DUTY_POLICIES:
+        raise ValueError(f"모르는 duty_policy={pol!r} — {DUTY_POLICIES} 중 하나여야 한다")
+    m = str(mode).upper()
+    if len(m) != 2 or m[0] not in _DUTY_STD_OF or m[1] not in "123":
+        raise ValueError(f"모드 라벨은 W/L/G + 1/2/3 이어야 한다 — {mode!r}")
+    std, occ = _DUTY_STD_OF[m[0]], "G" + m[1]
+    try:                                  # 상위 모듈이 있으면 매핑을 대조한다(정적 의존 아님)
+        import experiment_freespace_range as _efr
+        if _efr.MODE_STD[m] != (std, occ):
+            raise ValueError(
+                f"모드 매핑 불일치 — freespace_link 는 {(std, occ)}, "
+                f"experiment_freespace_range.MODE_STD 는 {_efr.MODE_STD[m]}")
+    except ImportError:
+        pass
+    from freespace_scene import prf_hz, M_from_prf          # noqa: E402  (하위→상위 아님)
+    from waveforms import all_waveforms                     # noqa: E402
+    wf = all_waveforms(occ)[std]
+    prf = float(prf_hz(std, m, wifi_packet_rate_hz))
+    M = int(M_from_prf(float(T_cpi_s), prf))
+    t_ref = float(len(wf.tx) / float(wf.fs_hz))
+    duty = duty_db_from_cpi(M, t_ref, float(T_cpi_s)) if pol == "cpi_on_fraction" else 0.0
+    clipped = False
+    if duty > 0.0:
+        if strict:
+            raise ValueError(
+                f"duty_db={duty:+.3f} dB > 0 — 기준신호 점등시간 M·T_ref={M * t_ref:.6g}s 가 "
+                f"T_CPI={float(T_cpi_s):.6g}s 보다 길다. 물리적으로 불가능하다.")
+        duty, clipped = 0.0, True
+    return dict(mode=m, std=std, occ=occ, prf_hz=prf, M=M, T_ref_s=t_ref,
+                T_cpi_s=float(T_cpi_s), duty_db=float(duty), policy=pol, clipped=clipped,
+                wifi_packet_rate_hz=float(wifi_packet_rate_hz),
+                provenance=dict(
+                    prf="freespace_scene.prf_hz (3GPP/IEEE resource grid; wifi packet rate is a "
+                        "declared free parameter, spec F9)",
+                    M="freespace_scene.M_from_prf(T_cpi, prf)",
+                    T_ref="waveforms.all_waveforms(occ)[std]: len(tx)/fs_hz (declared)",
+                    duty="freespace_link.duty_db_from_cpi(M, T_ref, T_cpi)"),
+                double_count_guard=("MUST NOT be combined with the 'deploy' occupancy-derived "
+                                    "average-radiated-power derating (radiated_power_frac_db_vs_g3) "
+                                    "— same physical loss, alternative parameterisation. Canonical "
+                                    "view is equal_psd, where duty is the only time-domain term."))
+
+
+def _resolve_duty(duty_db, mode, duty_policy, T, wifi_packet_rate_hz=1000.0):
+    """(내부) `snr_rd_db`/`snr_rd_terms_db` 의 듀티 인자 해석 — **한 자리에서만** 판단한다.
+
+    · `mode is None`  → `duty_db` 를 **그대로** 쓴다(기본 0.0). 즉 기존 호출부는 **비트 불변**이다.
+      (다른 세션이 돌리고 있는 산출물 숫자가 이 수리로 조용히 움직이면 안 된다.)
+    · `mode` 를 주면 `duty_terms(mode, T, duty_policy)` 로 정책에서 해석한다. 이때 `duty_db` 를
+      **동시에** 0 이 아닌 값으로 주면 이중계상이므로 예외.
+    """
+    if mode is None:
+        if duty_policy is not None:
+            raise ValueError("duty_policy 를 주려면 mode 도 줘야 한다 — 정책은 모드에서 값을 만든다")
+        return float(duty_db), None
+    if float(duty_db) != 0.0:
+        raise ValueError(
+            f"mode={mode!r} 와 duty_db={duty_db} 를 동시에 줬다 — 이중계상이다. "
+            "정책으로 풀려면 duty_db 를 생략하고, 손으로 넣으려면 mode 를 생략할 것.")
+    t = duty_terms(mode, T_cpi_s=(float(np.asarray(T).ravel()[0]) if np.ndim(T) else float(T)),
+                   policy=duty_policy, wifi_packet_rate_hz=wifi_packet_rate_hz)
+    return float(t["duty_db"]), t
+
+
 def snr_rd_db(eirp, grx, lam, sigma, R1, R2, nf=5.0, eta_ref=0.0, T=0.1,
               losses=0.0, k_mode=0.0, n0_extra=0.0, sys_loss=0.0,
-              eta_ref_is_db=True, duty_db=0.0):
+              eta_ref_is_db=True, duty_db=0.0, mode=None, duty_policy=None,
+              wifi_packet_rate_hz=1000.0):
     """**RD 맵 출력 SNR [dB]** — 닫힌형(설계 §2.5, 스펙 §7.6).
 
         SNR_RD = 10log10(P_echo / N0_eff) + 10log10(η_ref) + 10log10(T_CPI) + duty
@@ -340,10 +455,17 @@ def snr_rd_db(eirp, grx, lam, sigma, R1, R2, nf=5.0, eta_ref=0.0, T=0.1,
     · `n0_extra`: 열잡음 위에 더할 PSD [W/Hz] (`n0_quant + n0_dpi + n0_inr`).
     · `duty_db` : **듀티 항**(감사 ⑪, 기본 0 = 연속조명). `duty_db_from_cpi(M, T_ref, T_CPI)`.
                   9모드에 T=0.1 만 넣고 이 항을 0 으로 두면 F1 의 SSB 핸디갭이 SNR 에서 사라진다.
+    · `mode`/`duty_policy` : ⭐**듀티 정책 스위치**(결함 D-C 수리). `mode="W1"/"L1"/"G1"…` 을 주면
+                  `duty_terms()` 가 저장소 단일진리원(PRF·M·T_ref)에서 듀티를 만들어 넣는다
+                  (기본 정책 `DUTY_POLICY_DEFAULT="cpi_on_fraction"` = **켬**, 리포트가 이미
+                  선언한 규약). `duty_policy="off"` 로 끈다. `mode=None`(기본)이면 옛 거동 그대로
+                  `duty_db` 만 쓴다 — **기존 호출부의 숫자는 비트 불변**이다.
+                  ⚠ `mode` 와 `duty_db≠0` 을 동시에 주면 이중계상이라 예외.
 
     ★자기검증: `k_mode=0, losses=0, η=1` 이면 이 값은 `10log10(E_echo/N0)` 그 자체이고,
       LinkBudget 물리량[W]에서 직접 나오므로 설계 §2.5 손식의 30 dB 모호성이 없다.
     """
+    duty_db, _ = _resolve_duty(duty_db, mode, duty_policy, T, wifi_packet_rate_hz)
     Pe = echo_power_w(eirp, grx, lam, sigma, R1, R2, sys_loss_db=sys_loss)
     n0 = np.asarray(n0_thermal(nf, 1.0), float) + np.asarray(n0_extra, float)
     eta_db = float(eta_ref) if eta_ref_is_db else float(lin2db(eta_ref))
@@ -355,14 +477,18 @@ def snr_rd_db(eirp, grx, lam, sigma, R1, R2, nf=5.0, eta_ref=0.0, T=0.1,
 
 def snr_rd_terms_db(eirp, grx, lam, sigma, R1, R2, nf=5.0, eta_ref=0.0, T=0.1,
                     losses=0.0, k_mode=0.0, n0_extra=0.0, sys_loss=0.0,
-                    eta_ref_is_db=True, duty_db=0.0):
+                    eta_ref_is_db=True, duty_db=0.0, mode=None, duty_policy=None,
+                    wifi_packet_rate_hz=1000.0):
     """(보조) F2 폭포그림용 **예산 항목 분해** — `ranges..budget_terms_db` 스키마 그대로.
 
     keys: eirp, grx, lambda2, sigma, spread(−30log10(4π)−20log10R1−20log10R2), n0,
           eta_ref, t_cpi, duty, losses, k_mode, total.
     합이 `snr_rd_db` 와 같아야 한다(★스모크: sys_loss∈{0,3}×σ∈{0.01,0.5}×duty∈{0,−16} 전조합에서
     |Δ| ≤ 3e-14 dB).
+    `mode`/`duty_policy` 는 `snr_rd_db` 와 **같은 뜻**이다(D-C 스위치). 폭포의 `duty` 칸이
+    정책에서 온 값으로 채워지므로 그림이 스스로 근거를 들고 다닌다.
     """
+    duty_db, _ = _resolve_duty(duty_db, mode, duty_policy, T, wifi_packet_rate_hz)
     R1a, R2a = np.asarray(R1, float), np.asarray(R2, float)
     n0 = np.asarray(n0_thermal(nf, 1.0), float) + np.asarray(n0_extra, float)
     t = dict(

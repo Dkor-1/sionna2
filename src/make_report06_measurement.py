@@ -73,6 +73,8 @@ R6 = os.path.join(_ROOT, "outputs", "report06_measurement.json")
 MP = os.path.join(_ROOT, "outputs", "measurement_plan.json")
 SA = os.path.join(_ROOT, "outputs", "sigma_anchor.json")
 SS = os.path.join(_ROOT, "outputs", "sigma_sensitivity.json")
+#: 실측 3층 설계 — 1층 σ(f) 레인지 · 2층 ISM 파형축 · 검증 3점 · 3층 비행검출
+ML = os.path.join(_ROOT, "outputs", "measurement_layers.json")
 
 #: 세션 드리프트 예산 [dB] — 교정구를 세션 시작·끝에 재고 두 값의 차가 이 안에 든 세션만 자료로 쓴다.
 #: 설계 상수라서 여기 한 곳에만 있고, 파생 JSON 을 통해 리포트로 나간다.
@@ -278,13 +280,67 @@ def derive(verbose=True) -> dict:
                    "common_mode_slope_db_per_db = σ 를 세 밴드 공통으로 1 dB 옮길 때 "
                    "절대거리가 움직이는 dB — 순위는 그 이동에서 불변이다.")
 
+    # ── 실측 3층 — 층마다 다른 축을 연다 (outputs/measurement_layers.json) ────
+    #   1층이 σ(f) 를 내고, 2층이 파형 구조를 한 반송파에서 가르고, 3층이 비행 검출을 잰다.
+    #   ⭐ 1층이 내는 것은 점별 패턴이 아니라 **분포 P(σ)** 다 — 검출확률이 그 분포의 함수다.
+    ml = _load(ML)
+    l2, v3, l3 = (ml["layer2_waveform_axis"], ml["validation_three_points"],
+                  ml["layer3_flight"])
+    ang, cal = ml["angular_sampling"], ml["calibration_convention_gap"]
+    gate = ml["gate_wide_evaluate_narrow"]
+    bands_l1 = " · ".join(v3["points"][k]["label"] for k in ("lte", "nr", "wifi"))
+    layers = dict(
+        rows=[
+            dict(layer="1층 — σ(f) 레인지",
+                 measures="정지 표적 · 턴테이블 방위컷 · 교정구 · 배경 코히런트 차감",
+                 carrier=f"{bands_l1} (§2)",
+                 product="σ(f, φ) 의 분포 P(σ)"),
+            dict(layer="2층 — 파형축",
+                 measures="세 파형 구조를 같은 서브밴드 중심에 겹쳐 송신",
+                 carrier=f"ISM {l2['carrier_hz'] / 1e9:.1f} GHz 단일 "
+                         f"(span {l2['span_hz'] / 1e6:.0f} MHz)",
+                 product="SNR_out / E_tx"),
+            dict(layer="3층 — 비행 검출",
+                 measures="로터가 도는 비행 표적 — 로터가 도는 유일한 층",
+                 carrier=f"ISM {l2['carrier_hz'] / 1e9:.1f} GHz",
+                 product="고정 Pfa 에서 Pd(range)")],
+        carrier_ism_ghz=l2["carrier_hz"] / 1e9,
+        span_ism_mhz=l2["span_hz"] / 1e6,
+        validation_points=bands_l1,
+        validation_receive_only=bool(v3["receive_only"]),
+        n_channels=2,
+        channels=v3["channels"],
+        layer3_headline=l3["headline"],
+        layer3_ties_back_to=l3["ties_back_to"],
+        #  ⚠ 이 값은 **bbox 정의**의 2D²/λ 다 — §2-1 이 채택한 env 정의와 섞지 않는다.
+        farfield_ism_bbox_max_m=max(ml["layer1_at_ism"]["airframes"][k]["farfield_m"]
+                                    for k in AIR),
+        anchor_step_deg=ang["anchor_step_deg"],
+        anchor_N=ang["anchor_N"],
+        anchor_too_coarse_1=ang["anchor_2deg_too_coarse_at"][0],
+        anchor_too_coarse_2=ang["anchor_2deg_too_coarse_at"][1],
+        N_required_min=ang["N_required_range"][0],
+        N_required_max=ang["N_required_range"][1],
+        cal_anchor_declared_dbsm=cal["anchor_declared_sigma_cal_dbsm"],
+        cal_pir2_dbsm=cal["pir2_dbsm"],
+        mie_shift_min_db=min(cal["our_sigma_shift_if_we_use_mie_db"].values()),
+        mie_shift_max_db=max(cal["our_sigma_shift_if_we_use_mie_db"].values()),
+        gate_bw_mhz=gate["gate_bw_hz"] / 1e6,
+        eval_bw_mhz=gate["eval_bw_hz"] / 1e6,
+        n_subbands=gate["by_drone"][AIR[0]]["n_subbands"],
+        definition="1층 = σ(f) 레인지(§2), 2층 = ISM 한 반송파의 파형축, 3층 = 비행 검출. "
+                   "값은 outputs/measurement_layers.json 에서 옮기거나 단위만 바꿨다. "
+                   "n_channels = 기준 1 + 감시 1 (공통 클럭, 수신전용) — 하드웨어 사양의 "
+                   "4 RX 와 구별한다.")
+
     J = {
         "_meta": {
             "generated": time.strftime("%Y-%m-%d %H:%M:%S"),
             "generator": "src/make_report06_measurement.py :: derive()",
             "purpose": "리포트 06 이 인용하는 **설계값**. 측정값은 하나도 없다.",
             "inputs": ["outputs/report06_measurement.json", "outputs/measurement_plan.json",
-                       "outputs/sigma_anchor.json", "outputs/sigma_sensitivity.json"],
+                       "outputs/sigma_anchor.json", "outputs/sigma_sensitivity.json",
+                       "outputs/measurement_layers.json"],
             "paper_section": "VI. Validation",
             "definitions": {
                 "R_ff": "2*D^2/lambda. D 정의 3종: env(로터 디스크 포함 외접상자 3D 대각) · "
@@ -299,6 +355,7 @@ def derive(verbose=True) -> dict:
                 "modes": modes["definition"],
                 "path_diff_m": "2hH/R — 표적경유 지면반사와 직접 표적경로의 경로차 [m].",
                 "ranking_validation": ranking["definition"],
+                "layers": layers["definition"],
             },
             "runtime_s": None,
         },
@@ -327,6 +384,7 @@ def derive(verbose=True) -> dict:
         "modes": modes,
         "slope": slope,
         "ranking_validation": ranking,
+        "layers": layers,
         "ground_bounce": gb_rows,
         "ground_bounce_ref_bw_MHz": gb_ref_bw,
         "ground_bounce_n_geom": len(gb_rows),
@@ -348,6 +406,10 @@ def derive(verbose=True) -> dict:
         print(f"  순위 뒤집힘 폭  : {ranking['flip_span_min_db']:.2f} dB "
               f"({ranking['flip_span_min_airframe']}) · 드리프트 여유 "
               f"{ranking['drift_margin_db']:+.2f} dB")
+        print(f"  실측 3층        : 2층 반송파 {layers['carrier_ism_ghz']:.1f} GHz · "
+              f"검증 3점 수신 {layers['n_channels']}채널(공통 클럭) · "
+              f"교정 규약차 {layers['mie_shift_min_db']:+.2f}~"
+              f"{layers['mie_shift_max_db']:+.2f} dB")
         print(f"✅ 파생값 저장 → outputs/report06_derived.json "
               f"({J['_meta']['runtime_s']} s)")
     return J
@@ -629,6 +691,9 @@ def blocks(J) -> list:
     M = from_json("outputs/report06_measurement.json")
     A = from_json("outputs/sigma_anchor.json")
     V = from_json("outputs/verify_cfar.json")
+    P3 = from_json("outputs/p3_validation.json")          # 눈감기 대조 — 레벨 사전값
+    S2A = from_json("outputs/s2r_attack.json")            # sim-to-real 설계 적대검증
+    PW = from_json("outputs/ptd_wiring.json")             # PTD 배선 상태(02편 §6)
     B: list = []
 
     # ── 여는 블록 — 한 일 / 결과 / 방법 / 재현 / 앞 편에서 (§5.2) ─────────────
@@ -668,6 +733,15 @@ def blocks(J) -> list:
             ("판정 대상",
              "자세평균 σ 위의 파형 순위 뒤집힘 폭을 캠페인 요구치로 삼음 — "
              "`benchmark/sigma_sensitivity.py:470`"),
+            ("3층 설계",
+             "1층 σ(f) 레인지(§2) · 2층 ISM "
+             + D.num("layers.carrier_ism_ghz", fmt="{:.1f}", unit="GHz")
+             + " 한 반송파의 파형축 · 3층 비행 검출로 나눈다 — 층마다 여는 축이 다르고 §2-6 이 "
+               "그 분업과 대가를 적는다"),
+            ("수신 채널",
+             "검증 3점은 수신전용이고 기준 1 + 감시 1 = "
+             + D.num("layers.n_channels", fmt="{:.0f}", unit="채널")
+             + " 을 같은 클럭에서 쓴다 — 하드웨어 사양의 4 RX 와 구별한다"),
             ("원거리장 요구거리",
              "메쉬 외접상자(회전 로터 디스크 포함)의 3D 대각 D 를 세 밴드 λ 에 넣어 2D²/λ 로 "
              "계산 — `benchmark/plan_measurement.py`"),
@@ -719,7 +793,9 @@ def blocks(J) -> list:
     B.append(md(
         "## §1. 하드웨어 — X410 한 대가 기준과 감시를 동시에 든다",
         "",
-        "TX 4채널 · RX 4채널을 **RX0 = 기준(직접파)** 과 **RX1~3 = 감시 배열**로 배분했다.",
+        "세션은 **RX0 = 기준(직접파)** 과 **RX1 = 감시** 두 채널을 **같은 클럭**에서 쓴다"
+        "⟨outputs/measurement_layers.json : validation_three_points.channels⟩ — 사양의 4 RX 는 "
+        "각도축을 여는 예비다.",
         "사양은 `src/experiment_x410.py:61`, 기하 배치는 `src/experiment_x410.py:100` 한 곳에 있다.",
         "",
         f"12-bit ADC 의 동적범위 "
@@ -730,7 +806,8 @@ def blocks(J) -> list:
         table(["항목", "값", "무엇을 제약하나"], [
             ["TX / RX 채널",
              M.num("hw.n_tx", fmt="{:.0f}") + " / " + M.num("hw.n_rx", fmt="{:.0f}"),
-             "기준 1 + 감시 3 배분"],
+             "세션은 기준 1 + 감시 1 = "
+             + D.num("layers.n_channels", fmt="{:.0f}", unit="채널") + " 을 공통 클럭에서 쓴다"],
             ["채널당 순시대역", M.num("hw.max_bw_mhz", fmt="{:.0f}", unit="MHz"),
              "거리분해능과 점표적 서브밴드(§2-3)"],
             ["주파수 범위", D.num("hw_span.f_lo_mhz", fmt="{:.0f}", unit="MHz") + " ~ "
@@ -738,7 +815,7 @@ def blocks(J) -> list:
             ["ADC 동적범위", M.num("hw.dynamic_range_db", fmt="{:.2f}", unit="dB"),
              "직접파 제거의 천장"],
             ["감시배열 AoA 빔폭", M.num("hw.aoa_beamwidth_deg", fmt="{:.1f}", unit="°"),
-             "각도 관측 — 디텍션 이후의 확장축"],
+             "네 RX 를 전부 감시로 쓸 때 열리는 각도축 — 디텍션 이후의 확장축"],
             ["최대대역 바이스태틱 ΔR",
              M.num("hw.range_res_bistatic_m_at_max_bw", fmt="{:.3f}", unit="m"),
              "표적이 퍼지는 폭(§2-3)"]]),
@@ -828,7 +905,16 @@ def blocks(J) -> list:
         "단일 출처는 `benchmark/mie_pec_sphere.py:207` 이고 자체검증 `selfcheck()` 을 갖고 있다.",
         "",
         "세션 **시작과 끝에 한 번씩** 잰다. 두 값의 차가 그 세션의 드리프트 예산이고,",
-        "그 차가 목표 정확도(≤ 1 dB) 안에 들어온 세션만 자료로 쓴다."))
+        "그 차가 목표 정확도(≤ 1 dB) 안에 들어온 세션만 자료로 쓴다.",
+        "",
+        f"앵커 사슬은 같은 반경의 금속구를 σ_cal "
+        f"{D.num('layers.cal_anchor_declared_dbsm', fmt='{:.2f}', unit='dBsm')} 로 선언했다 — "
+        f"πr² 광학값 {D.num('layers.cal_pir2_dbsm', fmt='{:.2f}', unit='dBsm')} 이다"
+        f"⟨outputs/measurement_layers.json : calibration_convention_gap.anchor_quote⟩. 우리가 "
+        f"정확 Mie 로 교정하면 우리 σ 는 그 규약 대비 밴드에 따라 "
+        f"{D.num('layers.mie_shift_min_db', fmt='{:+.2f}')} ~ "
+        f"{D.num('layers.mie_shift_max_db', fmt='{:+.2f}', unit='dB')} 위로 뜬다 — 앵커와 "
+        f"사과-대-사과로 견줄 때 이 항을 먼저 되돌린다."))
 
     B.append(md(
         D.table("calibration",
@@ -868,7 +954,13 @@ def blocks(J) -> list:
                  ("Mini 5 Pro", "mini5pro_ok"), ("여유", "mini5pro_margin_m")],
                 fmt={"B_MHz": "{:.0f} MHz", "dR_m": "{:.3f} m",
                      "matrice4e_margin_m": "{:+.3f} m",
-                     "mini5pro_margin_m": "{:+.3f} m"})))
+                     "mini5pro_margin_m": "{:+.3f} m"}),
+        "",
+        f"게이팅은 넓게, 평가는 좁게 한다 — 앵커는 6차 Kaiser 창으로 CIR 을 게이팅한 뒤 주파수축으로 "
+        f"되돌리고⟨outputs/measurement_layers.json : gate_wide_evaluate_narrow.anchor_quote⟩, 우리는 "
+        f"{D.num('layers.gate_bw_mhz', fmt='{:.0f}', unit='MHz')} 전대역에서 게이팅한 뒤 σ 는 "
+        f"{D.num('layers.eval_bw_mhz', fmt='{:.0f}', unit='MHz')} 서브밴드 "
+        f"{D.num('layers.n_subbands', fmt='{:.0f}')} 개로 평가한다."))
 
     # ── §2-4 자세 통제 ─────────────────────────────────────────────────────
     B.append(md(
@@ -879,8 +971,18 @@ def blocks(J) -> list:
         f"(`{D.get('aspect_finest_airframe')}` · `{D.get('aspect_finest_band')}`)이고, "
         f"한 바퀴에 {D.num('aspect_n_az_max', fmt='{:.0f}')} 표본이다.",
         "",
-        "앵커 문헌은 밴드와 무관하게 2° 고정을 썼고, 우리는 밴드마다 λ/4D 를 따라간다.",
+        f"앵커 문헌은 밴드와 무관하게 "
+        f"{D.num('layers.anchor_step_deg', fmt='{:.2f}', unit='°')} 고정(반원 "
+        f"{D.num('layers.anchor_N', fmt='{:.0f}', unit='점')})을 썼고, 우리는 밴드마다 λ/4D 를 "
+        f"따라간다 — 요구 표본수는 반원당 "
+        f"{D.num('layers.N_required_min', fmt='{:.0f}')} ~ "
+        f"{D.num('layers.N_required_max', fmt='{:.0f}')} 점이다.",
         "표의 마지막 열이 밴드별 대소를 그대로 싣는다.",
+        "",
+        f"앵커는 높은 주파수에서 그 고정 간격이 성기다고 스스로 적었고"
+        f"⟨outputs/measurement_layers.json : angular_sampling._rule⟩, 우리 기체에서 그 자리는 "
+        f"`{D.get('layers.anchor_too_coarse_1')}` 와 `{D.get('layers.anchor_too_coarse_2')}` 두 "
+        f"칸이다. 나머지 칸에서는 2° 가 우리 요구보다 촘촘하다.",
         "",
         "로터는 **정지**시키고 블레이드 방위를 기록한다 — 앵커가 회전 성분을 뺐으므로 그 규약에 맞춘다."))
 
@@ -909,6 +1011,29 @@ def blocks(J) -> list:
         f"비율은 {D.num('ground_bounce_sep_frac_200MHz', fmt='{:.0%}')} 다. "
         f"부지 선정은 그림 4 에서 분해능 선 위에 오는 (h, H, R) 조합으로 한다."))
 
+    # ── §2-6 실측 3층 — 이 §2 는 1층이다 ────────────────────────────────────
+    B.append(md(
+        "### §2-6. 세 층 — §2 는 1층이고, 파형축과 비행검출이 그 위에 선다",
+        "",
+        D.table("layers.rows",
+                [("층", "layer"), ("무엇을 재나", "measures"), ("반송파", "carrier"),
+                 ("산출", "product")]),
+        "",
+        f"2층을 한 반송파에 고정하는 이유는 면허다 — 2.1 GHz 야외 송신은 허가가 필요하고 "
+        f"'2.1 GHz 의 WiFi' 라는 배치신호는 세상에 존재하지 않는 인공물이다"
+        f"⟨outputs/measurement_layers.json : layer2_waveform_axis.why_one_carrier⟩. 잃는 반송파축은 "
+        f"수신전용 검증 3점({D.num('layers.validation_points')})의 실제 배치신호와 v_max 의 λ 비 "
+        f"이전으로 갚는다 — 그 3점은 교차설계의 대각선이 아니라 독립 검사점이다.",
+        "",
+        f"1층이 내는 것은 점별 패턴이 아니라 **분포 P(σ)** 다 — 검출확률이 σ 분포의 함수이므로, "
+        f"그 분포를 Swerling 틀에 넣어 3층의 "
+        f"`{D.get('layers.layer3_headline')}` 를 예측하고 3층이 그 예측을 검사한다"
+        f"⟨outputs/measurement_layers.json : layer3_flight.ties_back_to⟩. 2층·3층의 ISM 원거리장은 "
+        f"bbox 정의로 최대 "
+        f"{D.num('layers.farfield_ism_bbox_max_m', fmt='{:.2f}', unit='m')} 이고, §2-1 이 채택한 "
+        f"세션 거리 {D.num('farfield_adopted.R_ff_max_m', fmt='{:.2f}', unit='m')}(env 정의) 안에 "
+        f"든다."))
+
     # ── §3 시뮬과 실측 ─────────────────────────────────────────────────────
     B.append(md(
         "## §3. ⭐ 시뮬과 실측 — 캠페인이 결판내는 양은 순위다",
@@ -928,7 +1053,8 @@ def blocks(J) -> list:
         "절대 σ 는 §2 여섯 항목을 다 채운 세션이 다음 라운드에서 만든다.",
         "",
         table(["설계상 같게 맞춘 축", "설계상 다르게 둔 축"], [
-            ["바이스태틱 구조 — 기준 1 + 감시 3", "환경 — 시뮬은 자유공간, 실측은 지면반사·다중경로"],
+            ["바이스태틱 구조 — 기준 1 + 감시 1, 공통 클럭",
+             "환경 — 시뮬은 자유공간, 실측은 지면반사·다중경로"],
             ["같은 기체 2종 (Matrice 4E · Mini 5 Pro)", "클러터 — 실측 부지의 정적 산란체"],
             ["같은 세 파형 (LTE · 5G · WiFi)", "동적범위 — 시뮬 ECA 는 float64, 실측은 12-bit"],
             ["같은 검출기 사슬 (ECA → 거리도플러 → CA-CFAR)", "자세 — 시뮬은 각도격자, 비행 중에는 자유"],
@@ -988,7 +1114,14 @@ def blocks(J) -> list:
              "표적과 같은 자리에서 교정구 + 배경 코히런트 차감 — **레벨의 첫 측정 앵커**",
              f"교정구 여유 ≥ "
              f"{D.num('calibration_margin_min_db', fmt='{:+.2f}', unit='dB')}, 세션 드리프트 ≤ "
-             f"{D.num('ranking_validation.drift_budget_db', fmt='{:.2f}', unit='dB')} (§2-2)",
+             f"{D.num('ranking_validation.drift_budget_db', fmt='{:.2f}', unit='dB')} (§2-2). "
+             f"눈감기 사전값 — 고도정합 실측곡선 대비 밴드평균 "
+             f"{P3.num('residual.vs_yuan_theta90_measured_curve.mean_db', fmt='{:+.2f}', unit='dB')}",
+             "결판"],
+            ["모서리 회절 — 1차 PTD 항이 커널에 있고 생산 기본값은 끔이다 (02)",
+             "모서리가 많은 표준체(평판·이면각)를 같은 세션에서 함께 측정",
+             f"위상까지 정합해 부호를 심판한다 — 평판 RMS 시험은 위상맹목이다. 켠 비용은 "
+             f"{PW.num('verdict.cost_increase_pct', fmt='{:+.1f}', unit='%')} (§5)",
              "결판"],
             [f"밴드 기울기는 Das 의 "
              f"{D.num('slope.anchor_db_per_ghz', fmt='{:.3f}')} dB/GHz 로 맞췄다",
@@ -1041,11 +1174,9 @@ def blocks(J) -> list:
         f"{D.num('slope.anchor_db_per_ghz', fmt='{:.3f}')} dB/GHz 다. 대역 "
         f"{D.num('slope.span_ghz', fmt='{:.3f}', unit='GHz')} 를 지나며 두 가설이 "
         f"{D.num('slope.gap_db_min', fmt='{:.2f}')} ~ "
-        f"{D.num('slope.rows[1].gap_db', fmt='{:.2f}')} dB 벌어진다.",
+        f"{D.num('slope.rows[1].gap_db', fmt='{:.2f}')} dB 벌어진다. 기울기의 정의는 하나로 "
+        f"고정한다 — {D.num('slope.fit_note_short')}.",
         "",
-        f"기울기의 정의는 하나로 고정한다 — {D.num('slope.fit_note_short')}."))
-
-    B.append(md(
         "### §4-2. 크기법칙 — 두 기체를 함께 사는 이유",
         "",
         str(figure_md("outputs/figures/report06_size_law.png", 6,
@@ -1068,8 +1199,17 @@ def blocks(J) -> list:
             "measured with a USRP X410 (4 TX / 4 RX, "
             f"{M.num('hw.max_bw_mhz', fmt='{:.0f}', unit='MHz')} instantaneous bandwidth per "
             f"channel, 12-bit ADC giving "
-            f"{M.num('hw.dynamic_range_db', fmt='{:.2f}', unit='dB')} of dynamic range), RX0 "
-            "carrying the reference channel and RX1-3 the surveillance array. The session range "
+            f"{M.num('hw.dynamic_range_db', fmt='{:.2f}', unit='dB')} of dynamic range), each "
+            "session receiving on two channels driven by a common clock, RX0 as the reference "
+            "and RX1 as the surveillance channel. The campaign is organised in three layers: a "
+            "static cross-section range that yields sigma(f) and its distribution over aspect, a "
+            f"waveform axis measured at a single ISM carrier of "
+            f"{D.num('layers.carrier_ism_ghz', fmt='{:.1f}', unit='GHz')} because outdoor "
+            "transmission at the cellular carriers is licensed, and a flight-detection layer that "
+            "reads Pd against range at a fixed CFAR design Pfa; the carrier axis given up in the "
+            "second layer is recovered by receiving the three deployed signals "
+            f"({D.get('layers.validation_points')}) and by transferring the unambiguous velocity "
+            "with the wavelength ratio. The session range "
             f"is {D.num('farfield_adopted.R_ff_max_m', fmt='{:.2f}', unit='m')}, the largest "
             "2D^2/lambda over both airframes and all three bands with D taken as the "
             "enclosing-box diagonal including the rotor discs. Absolute level is tied to a "
@@ -1207,6 +1347,19 @@ def blocks(J) -> list:
         ("β ≤ 45° 안에서 송수신 분리각별 기하를 §2-1·§2-5 방식으로 계산한다",
          "바이스태틱 세션의 원거리장 거리와 게이팅 임계가 정해진다",
          "`benchmark/plan_measurement.py` 확장"),
+        ("같은 세션에서 모서리가 많은 표준체(평판·이면각)를 함께 잰다",
+         f"1차 PTD 항의 부호와 크기를 실측이 심판한다 — 평판 RMS 시험은 위상맹목이고, 켠 비용은 "
+         f"{PW.num('verdict.cost_increase_pct', fmt='{:+.1f}', unit='%')} 다",
+         "06편 §2-2 확장 · §4 결정표 → `benchmark/ptd_plate_validation.py`"),
+        ("자세축과 로터위상축을 σ 생산자에 배선한 뒤 sim-to-sim ablation 을 돌린다",
+         f"우리 σ 가 (σ̄, τ_decorr, 분포형) 3개 수로 환원되는지가 실측 없이 판정된다 — 태스크는 "
+         f"분류가 아니라 **검출**로 고정한다(통계 RCS 와 큐브에는 로터가 없어 분류는 로터 유무를 "
+         f"재는 실험이 된다)",
+         "`docs/SIM2REAL_PLAN.md` → `outputs/s2r_protocol.json`"),
+        ("3팔 실측 ablation 설계를 검출 태스크와 supervision 사다리로 다시 짠다",
+         f"현 설계 판정 {S2A.num('verdict')} 의 근거가 닫힌다 — 자세축·로터위상축을 배선하기 "
+         f"전에는 세 팔이 분포형·상관시간 두 수로 환원되어 판정이 설계로 보장된다",
+         "`outputs/s2r_attack.json` → `docs/SIM2REAL_PLAN.md`"),
         ("정지 로터 세션과 별도로 회전 세션을 잡는다",
          "마이크로도플러가 앵커와의 사과-대-사과를 깨지 않고 들어온다",
          "06편 §2-4 → future work"),

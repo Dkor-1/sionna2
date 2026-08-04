@@ -1,0 +1,1548 @@
+{
+ "meta": {
+  "task": "Q-D  /data/public/OpenISAC 28편 미분류 선반 전수 트리아지 + 축(패시브 바이스태틱·드론/소형표적·클록 비동기·통제된 조명원 비교)에 닿는 편 정독",
+  "date": "2026-08-03",
+  "agent": "r2_hunt_openisac",
+  "shelf": "/data/public/OpenISAC/",
+  "n_pdf": 28,
+  "page_convention": "page 는 **PDF 1-based** 쪽번호다(PDF 첫 장 = 1). 인쇄면 쪽번호와 다를 수 있으며, 그때는 printed_page 를 따로 적었다.",
+  "rule_ko": "모든 값은 (pdf_path, page, quote) 삼중항을 달고 다닌다. 인용문 없이 채운 칸은 UNVERIFIED 로 남긴다. 빈칸을 그럴듯하게 채우는 것이 이 라운드가 막으려는 실패다.",
+  "method_ko": "28편 전부 fitz 로 전문 추출 → 축별 용어 계수로 트리아지 → 상위 12편 쪽 단위 정독, 나머지는 초록/설정/결론 스캔.",
+  "gotcha_ko": "추출 텍스트에 NUL 이 섞여 있어 `grep` 이 -a 없이는 '바이너리'로 판정하고 **아무 것도 출력하지 않는다**(조용한 0건). 07번에서 실제로 당했다 — grep 0건을 '없음'으로 읽으면 안 된다. 계수는 전부 파이썬으로 다시 셌다."
+ },
+ "shelf_provenance_correction": {
+  "finding_ko": "OpenISAC/README.md 는 28편 전부를 ✅ 로 적고 DOI(게재본)를 붙여 놓았지만, **8편은 실제로 arXiv 프리프린트 PDF** 다. 게재본이 아니므로 쪽번호·문구·표번호가 게재본과 다를 수 있고, 우리 하우스 규칙(게재 상태 명시·프리프린트는 arXiv ID)에 따라 인용할 때 반드시 구분해야 한다.",
+  "preprint_files": [
+   {
+    "file": "02_A_tutorial_on_MIMO-OFDM_ISAC_From_far-field_to_near-field.pdf",
+    "arxiv": "arXiv:2504.19091v2 (2025-12-31)",
+    "readme_doi": "10.1109/comst.2025.3650568 (IEEE COMST)"
+   },
+   {
+    "file": "03_CP-OFDM_achieves_the_lowest_average_ranging_sidelobe_under_QAMPSK_constellations.pdf",
+    "arxiv": "arXiv:2407.06691v3 (2025-07-21)",
+    "readme_doi": "10.1109/tit.2025.3591267 (IEEE Trans. Inf. Theory)"
+   },
+   {
+    "file": "06_Millimeterwave_mobile_sensing_and_environment_mapping_Models_algorithms_and_validation.pdf",
+    "arxiv": "arXiv:2102.11593v3 (2022-01-19)",
+    "readme_doi": "10.1109/tvt.2022.3146003 (IEEE TVT)"
+   },
+   {
+    "file": "07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf",
+    "arxiv": "arXiv:1908.03418v1 (2019-08-09)",
+    "readme_doi": "10.1109/tmtt.2019.2930510 (IEEE TMTT)"
+   },
+   {
+    "file": "09_JCR70_A_low-complexity_millimeter-wave_proof-of-concept_platform_for_a_fully-digital_SIMO_.pdf",
+    "arxiv": "arXiv:2006.13344v1 (2020-06-23)",
+    "readme_doi": "10.1109/ojvt.2021.3069946 (IEEE OJVT)"
+   },
+   {
+    "file": "18_ESPARGOS_Phase-coherent_WiFi_CSI_datasets_for_wireless_sensing_research.pdf",
+    "arxiv": "arXiv:2408.16377v1 (2024-08-29)",
+    "readme_doi": "10.23919/ieeeconf64570.2024.10739065"
+   },
+   {
+    "file": "20_Bistatic_OFDM-based_ISAC_with_over-the-air_synchronization_System_concept_and_performance_.pdf",
+    "arxiv": "arXiv:2405.04962v1 (2024-05-08)",
+    "readme_doi": "10.1109/tmtt.2024.3487295 (IEEE TMTT)"
+   },
+   {
+    "file": "24_Practical_issues_and_challenges_in_CSI-based_integrated_sensing_and_communication.pdf",
+    "arxiv": "arXiv:2204.03535v1 (2022-03-18)",
+    "readme_doi": "10.1109/iccworkshops53468.2022.9814523"
+   }
+  ],
+  "evidence": {
+   "20": {
+    "page": 2,
+    "quote": "This work has been submitted to the IEEE for possible publication. Copyright may be transferred"
+   },
+   "07": {
+    "page": 1,
+    "quote": "arXiv:1908.03418v1  [eess.SP]  9 Aug 2019"
+   }
+  },
+  "note_ko": "19번(Sionna RT Technical Report)은 README 가 스스로 '원 인용은 Sionna 웹사이트이나 arXiv 2504.21719v2 로 대체' 라고 밝혀 두었으므로 이 목록에 포함하지 않는다. 05번은 텍스트 레이어가 없는 스캔 합본(0 chars)이라 인용 불가.",
+  "no_text_layer": [
+   "05_A_USRP-based_testbed_for_OFDM-based_radar_and_communication_systems.pdf (0 chars, 6 pages, 화면캡처 합본)",
+   "33_ML_estimation_of_time_and_frequency_offset_in_OFDM_systems.pdf (889 chars / 7 pages — 사실상 이미지 스캔, 본문 인용 불가)"
+  ]
+ },
+ "triage_all_28": [
+  {
+   "file": "01_Framework_and_overall_objectives_of_the_future_development_of_IMT_for_2030_and_beyond.pdf",
+   "pages": 21,
+   "venue_and_status": "ITU-R M.2160-0 (11/2023) 권고",
+   "category": "표준·비전",
+   "axis_verdict": "OFF-AXIS",
+   "why_ko": "IMT-2030 6대 시나리오 문서. ISAC 을 시나리오로 세우는 근거로만 쓰인다. 우리 축(패시브·드론·클록·조명원비교) 어디에도 수치가 없다.",
+   "read_depth": "skim"
+  },
+  {
+   "file": "02_A_tutorial_on_MIMO-OFDM_ISAC_From_far-field_to_near-field.pdf",
+   "pages": 38,
+   "venue_and_status": "IEEE COMST 게재(DOI 10.1109/comst.2025.3650568) — 확보본은 arXiv:2504.19091v2 프리프린트",
+   "category": "이론 튜토리얼",
+   "axis_verdict": "PARTIAL",
+   "why_ko": "근·원거리장 경계를 **배열 개구** D 의 Rayleigh 거리 2D²/λ 로 잡는다. 우리 챔버의 far-field 질문은 **표적 크기** D 기준이라 직접 이식 불가. 바이스태틱 40회는 대부분 개념 서술.",
+   "read_depth": "skim"
+  },
+  {
+   "file": "03_CP-OFDM_achieves_the_lowest_average_ranging_sidelobe_under_QAMPSK_constellations.pdf",
+   "pages": 17,
+   "venue_and_status": "IEEE Trans. Inf. Theory 게재(DOI 10.1109/tit.2025.3591267) — 확보본은 arXiv:2407.06691v3",
+   "category": "이론",
+   "axis_verdict": "ON-AXIS",
+   "why_ko": "랜덤 데이터 심볼이 만드는 **거리 사이드로브 바닥**의 이론 하한. Mercier 의 pedestal·Braun 의 spur 와 같은 1/N 구조.",
+   "read_depth": "deep"
+  },
+  {
+   "file": "05_A_USRP-based_testbed_for_OFDM-based_radar_and_communication_systems.pdf",
+   "pages": 6,
+   "venue_and_status": "화면캡처 6장 합본(텍스트 레이어 0 chars)",
+   "category": "테스트베드",
+   "axis_verdict": "UNREADABLE",
+   "why_ko": "텍스트가 없어 인용 불가. 제목 외 어떤 주장도 이 파일로 세울 수 없다.",
+   "read_depth": "none"
+  },
+  {
+   "file": "06_Millimeterwave_mobile_sensing_and_environment_mapping_Models_algorithms_and_validation.pdf",
+   "pages": 16,
+   "venue_and_status": "IEEE TVT 게재(DOI 10.1109/tvt.2022.3146003) — 확보본은 arXiv:2102.11593v3",
+   "category": "RT 검증",
+   "axis_verdict": "ON-AXIS",
+   "why_ko": "Wireless Insite RT 를 28 GHz 실측과 대조. 단 검증 대상은 **산란체 위치(GOSPA)** 이지 진폭/RCS 가 아니다 → C2 지지 사례.",
+   "read_depth": "deep"
+  },
+  {
+   "file": "07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf",
+   "pages": 13,
+   "venue_and_status": "IEEE TMTT 67(10) 2019 게재(DOI 10.1109/tmtt.2019.2930510) — 확보본은 arXiv:1908.03418v1",
+   "category": "능동 모노스태틱 실측",
+   "axis_verdict": "⭐ON-AXIS",
+   "why_ko": "LTE20/NR20/NR40/NR100 을 **고정 PFA,tot=10%** 에서 PD 로 비교 + **실측 DJI Inspire-2 ROC**. C4 를 좁힌다.",
+   "read_depth": "deep"
+  },
+  {
+   "file": "08_Experimental_results_for_OFDM_WiFi-based_passive_bistatic_radar.pdf",
+   "pages": 6,
+   "venue_and_status": "IEEE Radar Conf. 2010, pp.516-521 게재",
+   "category": "패시브 바이스태틱 실측",
+   "axis_verdict": "⭐ON-AXIS",
+   "why_ko": "WiFi PBR 정전. ECA-B·2D-CCF·AF 사이드로브·DC 캐리어 27 dB 한계·비콘 1 ms·유선(방향성 결합기) 기준채널.",
+   "read_depth": "deep"
+  },
+  {
+   "file": "09_JCR70_A_low-complexity_millimeter-wave_proof-of-concept_platform_for_a_fully-digital_SIMO_.pdf",
+   "pages": 14,
+   "venue_and_status": "IEEE OJVT 2021 게재(DOI 10.1109/ojvt.2021.3069946) — 확보본은 arXiv:2006.13344v1",
+   "category": "테스트베드",
+   "axis_verdict": "OFF-AXIS",
+   "why_ko": "71-76 GHz 풀디지털 MIMO JCR, 2-4비트 ADC 양자화. 모노스태틱 full-duplex, 드론 없음. 우리 축과 주파수·구성 모두 다르다.",
+   "read_depth": "skim"
+  },
+  {
+   "file": "10_Networking_based_ISAC_hardware_testbed_and_performance_evaluation.pdf",
+   "pages": 7,
+   "venue_and_status": "IEEE Commun. Mag. 2023 게재(DOI 10.1109/mcom.005.2200440)",
+   "category": "네트워크 ISAC",
+   "axis_verdict": "PARTIAL",
+   "why_ko": "다중노드 협력 감지로 측위오차 61% 감소 주장. 기준신호 매핑 패턴을 바꿔 통신/감지 트레이드오프를 본다는 점만 우리 점유모드와 닿는다.",
+   "read_depth": "skim"
+  },
+  {
+   "file": "11_Prototype_of_real-time_integrated_sensing_and_communication_with_millimeter-wave_OFDM.pdf",
+   "pages": 2,
+   "venue_and_status": "IEEE ICCC 2023 데모 논문(2쪽)",
+   "category": "데모",
+   "axis_verdict": "OFF-AXIS",
+   "why_ko": "2쪽 데모 초록. 수치가 없다.",
+   "read_depth": "skim"
+  },
+  {
+   "file": "14_White_paper_on_network-collaborative_integrated_sensing_and_communication_technology_in_ch.pdf",
+   "pages": 33,
+   "venue_and_status": "중국이동 백서 2023(중국어)",
+   "category": "백서",
+   "axis_verdict": "PARTIAL",
+   "why_ko": "저공경제(低空经济)·드론 감지를 6G 통감 응용으로 세우는 산업 문서. 우리 서사의 '왜 드론인가' 배경으로만 쓸 수 있다.",
+   "read_depth": "skim"
+  },
+  {
+   "file": "15_5G-compliant_integrated_sensing_and_communication_at_sub-6_GHz_Experiments_with_SDRs_and_O.pdf",
+   "pages": 6,
+   "venue_and_status": "학회 게재(확보본에 arXiv 표식 없음; README DOI 미기재)",
+   "category": "5G 실측 테스트베드",
+   "axis_verdict": "⭐ON-AXIS",
+   "why_ko": "USRP X410 + OpenAirInterface 풀스택 모노스태틱. **표적 반향을 수치로 합성 주입**했다. SI 제거 메모리 K 가 정적표적 최소탐지거리를 정한다.",
+   "read_depth": "deep"
+  },
+  {
+   "file": "16_Downlink_ISAC_with_a_full-stack_5G-compliant_experimental_testbed_Communication_vs._contro.pdf",
+   "pages": 6,
+   "venue_and_status": "IEEE 게재 2026(DOI 10.1109/jcs69321.2026.11366013)",
+   "category": "5G 실측 테스트베드",
+   "axis_verdict": "⭐⭐ON-AXIS",
+   "why_ko": "**상시(control) 신호 vs 통신(payload) 신호**를 고정 Pfa=1e-3 에서 다중표적 검출로 비교. 우리 점유모드 서사와 정면으로 같은 실험.",
+   "read_depth": "deep"
+  },
+  {
+   "file": "17_openwifi_a_free_and_open-source_IEEE802.11_SDR_implementation_on_SoC.pdf",
+   "pages": 2,
+   "venue_and_status": "IEEE VTC2020-Spring 게재(DOI 10.1109/vtc2020-spring48590.2020.9128614)",
+   "category": "오픈소스 SDR",
+   "axis_verdict": "PARTIAL",
+   "why_ko": "Zynq SoC 위 802.11a/g/n 풀스택. SIFS 10/16 µs 때문에 PC 기반 SDR 은 불가하다는 지연 논거. 우리 실측 계획의 WiFi 조명원 구현 선택지.",
+   "read_depth": "skim"
+  },
+  {
+   "file": "18_ESPARGOS_Phase-coherent_WiFi_CSI_datasets_for_wireless_sensing_research.pdf",
+   "pages": 4,
+   "venue_and_status": "IEEE Asilomar 2024 게재 — 확보본은 arXiv:2408.16377v1",
+   "category": "데이터셋",
+   "axis_verdict": "PARTIAL",
+   "why_ko": "위상 코히어런트 다중안테나 WiFi 채널사운더 + 공개 CSI 데이터셋. 상용 칩 CSI 가 위상동기·공간다양성이 부족하다는 문제제기가 우리 다중Rx 논의와 닿는다.",
+   "read_depth": "skim"
+  },
+  {
+   "file": "19_Sionna_RT_Technical_Report.pdf",
+   "pages": 59,
+   "venue_and_status": "arXiv:2504.21719v2 (2025-11-21) 기술보고서 — README 가 스스로 대체본이라 명시",
+   "category": "엔진 문서",
+   "axis_verdict": "⭐ON-AXIS",
+   "why_ko": "Q-A(회절)·Q-B(런타임)에 직결. 1차 회절만 지원·고차 회절은 '열린 문제'·RTX 4090 런타임.",
+   "read_depth": "deep"
+  },
+  {
+   "file": "20_Bistatic_OFDM-based_ISAC_with_over-the-air_synchronization_System_concept_and_performance_.pdf",
+   "pages": 12,
+   "venue_and_status": "IEEE TMTT 게재(DOI 10.1109/tmtt.2024.3487295) — 확보본은 arXiv:2405.04962v1 프리프린트",
+   "category": "바이스태틱 OTA 동기",
+   "axis_verdict": "⭐⭐ON-AXIS",
+   "why_ko": "OTA 동기 후 **잔여 FO < 50 Hz, 잔여 SFO < 0.1 ppm**. 파일럿전용 vs 풀프레임 처리이득/무모호 차이.",
+   "read_depth": "deep"
+  },
+  {
+   "file": "21_Sensing_in_bistatic_ISAC_systems_with_clock_asynchronism_A_signal_processing_perspective.pdf",
+   "pages": 13,
+   "venue_and_status": "IEEE Signal Process. Mag. 41(5), Sep. 2024, pp.31-43 게재",
+   "category": "클록 비동기 서베이",
+   "axis_verdict": "⭐⭐ON-AXIS",
+   "why_ko": "Wu et al. 서베이. TO/CFO/위상오프셋 3종 분류·시간척도·CACC/CASR/SHARP/JUMP 비교표·열린문제.",
+   "read_depth": "deep"
+  },
+  {
+   "file": "22_Bi-static_ISAC_with_asynchronous_transceivers_Mechanism_solution_and_field_test.pdf",
+   "pages": 18,
+   "venue_and_status": "IEEE Internet Things J. 12(17), 1 Sep. 2025, pp.35923-35939 게재",
+   "category": "클록 비동기 실측",
+   "axis_verdict": "⭐⭐ON-AXIS",
+   "why_ko": "TD(타이밍 드리프트)가 delay-Doppler 스펙트럼을 분산시킨다. 실측 TD 0.0523 ppm, 0.3 m 금속구 표적, cm급 측위.",
+   "read_depth": "deep"
+  },
+  {
+   "file": "23_Doppler_frequency_sidelobes_level_control_for_WiFi-based_passive_bistatic_radar.pdf",
+   "pages": 6,
+   "venue_and_status": "IEEE Radar Conf. 2011, pp.435-440 게재",
+   "category": "패시브 바이스태틱 실측",
+   "axis_verdict": "⭐⭐ON-AXIS",
+   "why_ko": "WiFi PRT 는 랜덤이다 — **실측 평균 2.31 ms(σ 1.77), 최악 13 ms**. 우리 WiFi PRF 가정에 직결.",
+   "read_depth": "deep"
+  },
+  {
+   "file": "24_Practical_issues_and_challenges_in_CSI-based_integrated_sensing_and_communication.pdf",
+   "pages": 6,
+   "venue_and_status": "IEEE ICC Workshops 2022 게재 — 확보본은 arXiv:2204.03535v1",
+   "category": "CSI 센싱 실무",
+   "axis_verdict": "⭐ON-AXIS",
+   "why_ko": "SSB 를 '상시(always-on)' 신호로 명시하고 CSI 샘플링률=SSB 주기라고 못박는다. WiFi 는 저샘플링(비콘) 또는 불균등(데이터).",
+   "read_depth": "deep"
+  },
+  {
+   "file": "25_Sencom_Integrated_sensing_and_communication_with_practical_WIFI.pdf",
+   "pages": 16,
+   "venue_and_status": "ACM MobiCom 2023 게재(DOI 10.1145/3570361.3613274)",
+   "category": "WiFi 센싱 실측",
+   "axis_verdict": "⭐ON-AXIS",
+   "why_ko": "**표준 WiFi 비콘 간격은 100 ms** 이고 실트래픽 CSI 율은 13.3~503.3 packets/s. 우리 WiFi 1 kHz 가정의 정체를 밝힌다.",
+   "read_depth": "deep"
+  },
+  {
+   "file": "28_AFF3CT_A_fast_forward_error_correction_toolbox.pdf",
+   "pages": 7,
+   "venue_and_status": "SoftwareX 10:100345 (2019) 게재",
+   "category": "툴",
+   "axis_verdict": "OFF-AXIS",
+   "why_ko": "FEC 툴박스. OpenISAC 이 채널코딩에 쓴 라이브러리라서 인용됐을 뿐, 우리 축과 무관.",
+   "read_depth": "skim"
+  },
+  {
+   "file": "29_OFDM_radar_algorithms_in_mobile_communication_networks.pdf",
+   "pages": 195,
+   "venue_and_status": "Martin Braun, KIT 박사학위논문 2014, Forschungsberichte Bd.31, ISSN 1433-3821 (출판)",
+   "category": "OFDM 레이다 정전",
+   "axis_verdict": "⭐⭐ON-AXIS",
+   "why_ko": "CFAR 문턱 유도(프레임당 Pfa)·DC 캐리어 spur 바닥과 27 dB 동적범위 한계·비연속 부반송파 배치의 결과.",
+   "read_depth": "deep"
+  },
+  {
+   "file": "30_Comparison_of_correlation-based_OFDM_radar_receivers.pdf",
+   "pages": 18,
+   "venue_and_status": "IEEE TAES 56(6), Dec. 2020, pp.4796-4813 게재",
+   "category": "수신기 비교",
+   "axis_verdict": "⭐⭐ON-AXIS",
+   "why_ko": "PBR·RadCom 상관수신기 5종을 복잡도·SINR·클러터 내성 3축에서 통제 비교. 데이터심볼 pedestal 이 백색이 아님을 증명.",
+   "read_depth": "deep"
+  },
+  {
+   "file": "32_Robust_frequency_and_timing_synchronization_for_OFDM.pdf",
+   "pages": 9,
+   "venue_and_status": "Schmidl & Cox, IEEE Trans. Commun. 45(12), Dec. 1997, pp.1613-1621 게재",
+   "category": "동기 고전",
+   "axis_verdict": "PARTIAL",
+   "why_ko": "수식·CRB 값이 전부 이미지로 조판돼 인용 가능한 수치가 없다. 질적 근거(수백~수천 부반송파 평균 → 유효 SNR 높음)만 취한다.",
+   "read_depth": "deep-limited"
+  },
+  {
+   "file": "33_ML_estimation_of_time_and_frequency_offset_in_OFDM_systems.pdf",
+   "pages": 7,
+   "venue_and_status": "van de Beek et al., IEEE Trans. Signal Process. 45(7) 1997 게재",
+   "category": "동기 고전",
+   "axis_verdict": "UNREADABLE",
+   "why_ko": "텍스트 레이어 889 chars — 사실상 이미지 스캔. 본문 인용 불가.",
+   "read_depth": "none"
+  },
+  {
+   "file": "34_Estimating_frequency_by_interpolation_using_Fourier_coefficients.pdf",
+   "pages": 5,
+   "venue_and_status": "B. G. Quinn, IEEE Trans. Signal Process. 42(5), May 1994, pp.1264-1268 게재",
+   "category": "주파수추정 고전",
+   "axis_verdict": "PARTIAL",
+   "why_ko": "DFT 보간 주파수추정. Wu et al.[21] 계열 CFO 제거의 기반. ⚠ PDF 1쪽에 **앞 논문(순환정상성 블라인드 식별)의 결론절이 함께 실려 있다** — 그 쪽에서 인용을 뜨면 조용한 오귀속이 난다.",
+   "read_depth": "deep-limited"
+  }
+ ],
+ "triage_counts": {
+  "total": 28,
+  "deep_read": 13,
+  "deep_limited": 2,
+  "skim": 9,
+  "unreadable_no_text_layer": 2,
+  "axis": {
+   "ON-AXIS(⭐/⭐⭐)": 12,
+   "PARTIAL": 7,
+   "OFF-AXIS": 5,
+   "UNREADABLE": 2
+  },
+  "note_ko": "deep+deep-limited = 15편을 쪽 단위로 읽었다. ON-AXIS 12편은 전부 정독했다."
+ },
+ "deep_read_records": [
+  {
+   "key": "08_Falcone2010_WiFiPBR",
+   "file": "08_Experimental_results_for_OFDM_WiFi-based_passive_bistatic_radar.pdf",
+   "cite": "P. Falcone, F. Colone, C. Bongioanni, P. Lombardo, \"Experimental Results for OFDM WiFi-Based Passive Bistatic Radar,\" IEEE Radar Conference 2010, pp.516-521 — 게재(published), 2010",
+   "read_scope_ko": "6쪽 전문 정독",
+   "why_it_matters_ko": "WiFi 패시브 바이스태틱 레이더의 정전(canonical). 우리 파이프라인(ECA → 2D-CCF → 검출)의 원형이고, 우리 WiFi PRF 가정의 출처이기도 하다.",
+   "findings": [
+    {
+     "claim_ko": "⭐ 패시브 레이더 설계자는 PRF 를 못 고른다 — 2010년에 이미 명시적으로 적혀 있다. 우리 리포트의 '패시브는 점 하나, 능동은 구간' 헤드라인에 붙일 수 있는 가장 이른 1차 출처.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/08_Experimental_results_for_OFDM_WiFi-based_passive_bistatic_radar.pdf",
+      "page": 4,
+      "quote": "such tapering functions are ineffective against Doppler ambiguities resulting from a large temporal separation between the integrated pulses, namely a low equivalent PRF, which is not within the control of the radar designer"
+     }
+    },
+    {
+     "claim_ko": "⭐ 우리 WiFi PRF=1000 Hz 의 실제 출처 조건: 저자들이 AP 를 **1 ms 간격으로 비콘을 쏘도록 설정**했다. 즉 1 kHz 는 '기회의 조명원' 값이 아니라 '실험을 위해 재설정한 AP' 값이다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/08_Experimental_results_for_OFDM_WiFi-based_passive_bistatic_radar.pdf",
+      "page": 5,
+      "quote": "It was set up to roam for connected devices emitting a regular Beacon signal exploiting an OFDM modulation at 1 ms intervals."
+     }
+    },
+    {
+     "claim_ko": "⭐ 기준채널을 **20 dB 방향성 결합기로 송신기에서 유선으로** 뽑았다. 정전 실험조차 기준을 공중에서 받지 않았다 — 우리 '이상적 기준(full-waveform capture)' 가정의 선례이자 동시에 그 한계의 증거.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/08_Experimental_results_for_OFDM_WiFi-based_passive_bistatic_radar.pdf",
+      "page": 5,
+      "quote": "a -20dB fraction of the transmitted signal was gathered in a dedicated receiving channel (reference channel) by using a directional coupler"
+     }
+    },
+    {
+     "claim_ko": "DC 부반송파를 비우는 바람에 PSLR 이 이론값(>40 dB)이 아니라 약 27 dB 로 묶인다. Braun 이 4년 뒤 이것을 유도했다(29번 참조).",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/08_Experimental_results_for_OFDM_WiFi-based_passive_bistatic_radar.pdf",
+      "page": 4,
+      "quote": "in OFDM-WiFi system, the central sub-carrier at k=0 is never used thus yielding a"
+     }
+    },
+    {
+     "claim_ko": "설정: ISM 채널7(2.442 GHz), CIT 0.25 s → 도플러 분해능 4 Hz(0.88 km/h), ECA-B 배치 62.5 ms, 취소 구간 0~175 m, 표적은 차량+주행 중인 사람(≈25 km/h). 준모노스태틱 안테나 배치.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/08_Experimental_results_for_OFDM_WiFi-based_passive_bistatic_radar.pdf",
+      "page": 5,
+      "quote": "a quasi-monostatic configuration was adopted for the two antennas which were mounted one on top of the other"
+     },
+     "status": "verbatim"
+    }
+   ]
+  },
+  {
+   "key": "23_Falcone2011_DopplerSidelobes",
+   "file": "23_Doppler_frequency_sidelobes_level_control_for_WiFi-based_passive_bistatic_radar.pdf",
+   "cite": "P. Falcone, F. Colone, P. Lombardo, \"Doppler Frequency Sidelobes Level Control for WiFi-Based Passive Bistatic Radar,\" IEEE Radar Conference 2011, pp.435-440 — 게재(published), 2011",
+   "read_scope_ko": "6쪽 전문 정독",
+   "why_it_matters_ko": "우리가 균일 PRF 를 가정하는 것이 실측과 얼마나 다른지 알려주는 유일한 실측 통계.",
+   "findings": [
+    {
+     "claim_ko": "⭐⭐ WiFi PBR 의 PRT 는 균일하지 않고 랜덤이다. 이것이 이 논문의 출발 명제다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/23_Doppler_frequency_sidelobes_level_control_for_WiFi-based_passive_bistatic_radar.pdf",
+      "page": 1,
+      "quote": "a WiFi-based PBR can be assumed to operate with variable energy pulses transmitted at a randomly-varying Pulse Repetition Time (PRT)."
+     }
+    },
+    {
+     "claim_ko": "⭐⭐ **실측 PRT 통계**: 실험 A 평균 2.31 ms(σ 1.77 ms), 실험 B 평균 1.62 ms(σ 0.98 ms). 공칭 비콘 간격이 1 ms 인데도 실제 간격은 대부분 1 ms 보다 크고 최악은 A 13 ms / B 7 ms. 원인은 다른 무선연결과의 충돌회피(CSMA).",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/23_Doppler_frequency_sidelobes_level_control_for_WiFi-based_passive_bistatic_radar.pdf",
+      "page": 4,
+      "quote": "the temporal separation between consecutive pulses is usually higher than 1 ms (the nominal Beacon repetition interval) and reaches 13 ms for Experiment A"
+     }
+    },
+    {
+     "claim_ko": "결과: 랜덤 PRT 가 만드는 도플러 모호는 ±8 m/s 에 나타나고 해밍창을 써도 PSR 이 12 dB 밖에 안 된다(이론값 43 dB). 저자들이 제안한 최적화 창(ODWN)으로 12 dB 개선해도 여전히 이론값에 한참 못 미친다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/23_Doppler_frequency_sidelobes_level_control_for_WiFi-based_passive_bistatic_radar.pdf",
+      "page": 4,
+      "quote": "gives rise to a strong ambiguity corresponding to a monostatic velocity of about ±8 m/s with a PSR of 12 dB"
+     },
+     "status": "verbatim"
+    },
+    {
+     "claim_ko": "⚠ 규약 불일치(우리 것과 4배 차이). 저자들은 PRT 2 ms → 무모호 도플러 구간 500 Hz → λ≈12 cm 에서 '약 60 m/s 의 바이스태틱 속도' 라고 적는다. 우리 규약(v_max = λ·PRF/4, β=0 반쪽구간)으로는 15 m/s 다. 이 문장은 **인용해도 되지만 그 속도값은 절대 가져오면 안 된다**.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/23_Doppler_frequency_sidelobes_level_control_for_WiFi-based_passive_bistatic_radar.pdf",
+      "page": 2,
+      "quote": "This would allow a maximum observable non-ambiguous Doppler extent of 500 Hz. At the typical WiFi wavelength of about 12 cm, such a value corresponds to about 60 m/s of bistatic velocity"
+     },
+     "our_check_ko": "0.12 m × 500 Hz = 60 m/s 는 f_D=v/λ(편도) 를 쓰고 구간 전체를 한쪽으로 읽어야 나온다. 바이스태틱 β=0 에서 f_D=2v/λ 이므로 반쪽구간은 λ·PRF/4 = 15 m/s, 전체 폭이라도 30 m/s 다."
+    }
+   ]
+  },
+  {
+   "key": "25_He2023_SenCom",
+   "file": "25_Sencom_Integrated_sensing_and_communication_with_practical_WIFI.pdf",
+   "cite": "Y. He, J. Liu, M. Li, G. Yu, J. Han, K. Ren, \"SenCom: Integrated Sensing and Communication with Practical WiFi,\" ACM MobiCom 2023, pp.903-916(추정), DOI 10.1145/3570361.3613274 — 게재(published), 2023",
+   "read_scope_ko": "초록·문제정의(4쪽)·평가(10쪽) 정독, 나머지 스캔",
+   "why_it_matters_ko": "'상용 WiFi 를 그대로 두면 감지용 샘플률이 얼마인가' 에 대한 실측 답.",
+   "findings": [
+    {
+     "claim_ko": "⭐⭐⭐ **표준 WiFi 의 비콘 간격은 100 ms** 다(=10 Hz). 비콘만으로는 감지가 불가능하다고 못박는다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/25_Sencom_Integrated_sensing_and_communication_with_practical_WIFI.pdf",
+      "page": 4,
+      "quote": "sensing only depends on bea- con packets is impractical as the interval between beacon packets is typically set to 100 ms in existing WiFi systems"
+     }
+    },
+    {
+     "claim_ko": "⭐ 실트래픽에서 관측된 CSI 샘플률 중앙값: 동영상 20.0, 웹서핑 13.3, 온라인게임 30.0, 다운로드 503.3 packets/s (간격 50.0 / 75.0 / 33.3 / 2.0 ms).",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/25_Sencom_Integrated_sensing_and_communication_with_practical_WIFI.pdf",
+      "page": 10,
+      "quote": "the medians of CSI sampling rate for the four communication tasks are 20.0 packets/s, 13.3 packets/s, 30.0 packets/s, and 503.3 packets/s"
+     }
+    },
+    {
+     "claim_ko": "전통적 WiFi 센싱은 AP 에 균일·짧은 간격(보통 20 ms 미만)의 탐침 패킷을 쏘게 '설정' 해서 이 문제를 피해 왔다 — 즉 문헌의 높은 PRF 는 조명원을 통제했을 때의 값이다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/25_Sencom_Integrated_sensing_and_communication_with_practical_WIFI.pdf",
+      "page": 4,
+      "quote": "Traditional WiFi sensing systems achieve this by configuring the AP to send probing packets at even and short time inter- vals [82] (usually less than 20 ms)"
+     },
+     "status": "verbatim"
+    }
+   ]
+  },
+  {
+   "key": "24_Zhang2022_CSI_ISAC_issues",
+   "file": "24_Practical_issues_and_challenges_in_CSI-based_integrated_sensing_and_communication.pdf",
+   "cite": "D. Zhang, D. Wu, K. Niu, X. Wang, F. Zhang, J. Yao, D. Jiang, F. Qin, \"Practical Issues and Challenges in CSI-based Integrated Sensing and Communication,\" IEEE ICC Workshops 2022 — 게재(published), 2022. 확보본은 arXiv:2204.03535v1 프리프린트",
+   "read_scope_ko": "6쪽 전문 정독",
+   "findings": [
+    {
+     "claim_ko": "⭐⭐ **SSB 를 '상시(always-on)' 신호로 명시**하고, 감지 샘플률이 SSB 주기로 결정된다고 적는다. 우리 '상시 기준신호' 서사에 붙는 1차 출처.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/24_Practical_issues_and_challenges_in_CSI-based_integrated_sensing_and_communication.pdf",
+      "page": 3,
+      "quote": "For SSB, since it is an “always-on” signal, CSI sampling depends on the conﬁgured SSB periodicity."
+     }
+    },
+    {
+     "claim_ko": "⭐ WiFi 의 두 갈래 병: 비콘에서 뽑으면 **샘플률이 낮고**, 데이터 프레임에서 뽑으면 **간격이 불균등하다**. 25번(He 2023)·23번(Falcone 2011)과 완전히 일치.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/24_Practical_issues_and_challenges_in_CSI-based_integrated_sensing_and_communication.pdf",
+      "page": 3,
+      "quote": "WiFi CSI sampling may suffer from problems of low sampling rate (extracting CSI from AP beacon) or uneven sampling interval (extracting CSI from data frames)."
+     }
+    },
+    {
+     "claim_ko": "5G TDD 에서 하향/상향 슬롯이 불연속이라 주기 최대 10 ms → CSI 샘플률 100 Hz. FDD 에서 1 ms 마다면 1000 Hz.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/24_Practical_issues_and_challenges_in_CSI-based_integrated_sensing_and_communication.pdf",
+      "page": 3,
+      "quote": "which has a maximum value of 10ms. Assuming the signals for sensing are transmitted in one symbol every downlink-"
+     },
+     "status": "verbatim"
+    },
+    {
+     "claim_ko": "⚠ R2(우리 철회건: 3GPP 가 sub-6 CSI-RS 를 500 Hz 로 묶는다) 와의 관계: 이 논문은 상한을 적지 않고 'gNB 가 CSI-RS·SSB 주기를 유연하게 설정할 수 있다' 고만 한다. 우리 500 Hz 천장을 **지지하지도 반박하지도 않는다**.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/24_Practical_issues_and_challenges_in_CSI-based_integrated_sensing_and_communication.pdf",
+      "page": 4,
+      "quote": "gNB can ﬂexibly conﬁgure the periodicity of some signals, e.g., CSI-RS or SSB"
+     },
+     "status": "verbatim"
+    }
+   ]
+  },
+  {
+   "key": "21_Wu2024_ClockAsync_survey",
+   "file": "21_Sensing_in_bistatic_ISAC_systems_with_clock_asynchronism_A_signal_processing_perspective.pdf",
+   "cite": "K. Wu, J. Pegoraro, F. Meneghello, J. A. Zhang, J. O. Lacruz, J. Widmer, F. Restuccia, M. Rossi, X. Huang, D. Zhang, G. Caire, Y. J. Guo, \"Sensing in Bistatic ISAC Systems With Clock Asynchronism: A signal processing perspective,\" IEEE Signal Processing Magazine 41(5), Sep. 2024, pp.31-43 — 게재(published), 2024",
+   "read_scope_ko": "13쪽 전문 정독(표 1 포함)",
+   "why_it_matters_ko": "과제가 이름으로 지목한 논문. 클록 비동기 문헌의 지도 그 자체.",
+   "findings": [
+    {
+     "claim_ko": "⭐ 핵심 위험: 잔여 CFO 가 추정하려는 도플러와 **같은 크기일 수 있다**. 그러면 도플러 추정이 크게 틀린다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/21_Sensing_in_bistatic_ISAC_systems_with_clock_asynchronism_A_signal_processing_perspective.pdf",
+      "page": 4,
+      "quote": "The residual CFO may have a close value to the Doppler shifts to be estimated, causing large Doppler estimation errors if not handled properly."
+     }
+    },
+    {
+     "claim_ko": "시간척도 분리: CFO 는 분~시간 단위로 드리프트하지만 보상 후 잔여 CFO 는 ms 단위로 변한다. TO 는 ms~s, 위상오프셋은 µs.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/21_Sensing_in_bistatic_ISAC_systems_with_clock_asynchronism_A_signal_processing_perspective.pdf",
+      "page": 3,
+      "quote": "CFO changes on a time scale of minutes to hours due to gradual factors like temperature changes and component aging, but residual CFO after compensation can change on a millisecond time scale."
+     },
+     "status": "verbatim"
+    },
+    {
+     "claim_ko": "⭐ 우리 설정에 유리한 조건: 검토된 세 계열 기법 **전부가 Tx·Rx 정지를 전제**한다. 우리 챔버는 Tx/Rx 가 벽에 고정이라 이 전제를 만족한다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/21_Sensing_in_bistatic_ISAC_systems_with_clock_asynchronism_A_signal_processing_perspective.pdf",
+      "page": 12,
+      "quote": "the assumption that the Tx and Rx are static is critical to all three phase offset removal techniques"
+     }
+    },
+    {
+     "claim_ko": "⭐⭐ 우리 다중Rx 상한에 대한 직격: **위상동기된 다중 Rx 를 코히어런트 결합하는 알고리즘은 아직 개발되어야 할 열린 문제**로 명시된다. report12 의 10log10(N) 상한은 '이상적 상한' 이라는 딱지를 절대 뗄 수 없다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/21_Sensing_in_bistatic_ISAC_systems_with_clock_asynchronism_A_signal_processing_perspective.pdf",
+      "page": 12,
+      "quote": "To fully exploit the potential of pervasive ISAC, algorithms that combine the information from multiple phase-synchronized Rxs need to be developed."
+     }
+    },
+    {
+     "claim_ko": "하드웨어 해법의 값: 타이밍 정확도 5.5 ns 급 GPSDO 가 US$1,000. 개방된 하늘이 필요하고 크기가 커서 모든 단말에 넣을 수 없다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/21_Sensing_in_bistatic_ISAC_systems_with_clock_asynchronism_A_signal_processing_perspective.pdf",
+      "page": 4,
+      "quote": "A GPSDO with a timing accuracy of up to 5.5 ns can cost US$1,000"
+     }
+    },
+    {
+     "claim_ko": "⭐ 저자들 스스로 이동 노드 문제의 해법을 **패시브 레이더 문헌에서 가져오라**고 권한다 — 즉 이 서베이는 패시브 레이더를 별개의(더 성숙한) 계보로 취급한다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/21_Sensing_in_bistatic_ISAC_systems_with_clock_asynchronism_A_signal_processing_perspective.pdf",
+      "page": 12,
+      "quote": "Possible approaches to tackle this problem may come from the passive radar literature"
+     }
+    },
+    {
+     "claim_ko": "표 1 의 기법 11종(IndoTrack·WiDFS·CACC·FarSense·CASR·SHARP·multiSense·JUMP 등)은 전부 **단일노드 CSI 기반**이다. 기준채널을 따로 받는 2채널 패시브 레이더 구조는 표에 없다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/21_Sensing_in_bistatic_ISAC_systems_with_clock_asynchronism_A_signal_processing_perspective.pdf",
+      "page": 10,
+      "quote": "S: spatial; D: delay; F: frequency; OTA: over the air."
+     },
+     "status": "verbatim"
+    },
+    {
+     "claim_ko": "⚠ 이 논문에는 드론이 없다. 트리아지 용어계수 drone_small=18 은 전부 'micro-Doppler'(사람 대상) 매칭이었다.",
+     "evidence": null,
+     "status": "UNVERIFIED-by-design (부재 증명은 인용문으로 세울 수 없다; 'drone'/'UAV'/'unmanned aerial' 전문 계수 0)"
+    }
+   ]
+  },
+  {
+   "key": "20_Brunner2024_OTAsync",
+   "file": "20_Bistatic_OFDM-based_ISAC_with_over-the-air_synchronization_System_concept_and_performance_.pdf",
+   "cite": "D. Brunner, L. Giroto de Oliveira, C. Muth, S. Mandelli, M. Henninger, A. Diewald, Y. Li, M. B. Alabd, L. Schmalen, T. Zwick, B. Nuss, \"Bistatic OFDM-based ISAC with Over-the-Air Synchronization: System Concept and Performance Analysis\" — 게재본은 IEEE TMTT (DOI 10.1109/TMTT.2024.3487295). ⚠ **확보본은 arXiv:2405.04962v1 (2024-05-08) 프리프린트**이며 쪽번호는 프리프린트 기준이다.",
+   "read_scope_ko": "12쪽 전문 정독",
+   "why_it_matters_ko": "과제가 이름으로 지목한 Brunner 논문. OTA 동기 후 잔여 오프셋의 **수치**를 주는 유일한 편.",
+   "findings": [
+    {
+     "claim_ko": "⭐⭐ OTA 동기 후 **잔여 주파수오차 < 50 Hz, 잔여 SFO < 0.1 ppm**. 이것이 우리 잔여 CFO 가정(40 Hz)을 괄호에 넣는 첫 번째 published 값이다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/20_Bistatic_OFDM-based_ISAC_with_over-the-air_synchronization_System_concept_and_performance_.pdf",
+      "page": 10,
+      "quote": "the remaining frequency and sampling frequency errors are in a range smaller than 50 Hz and 0.1 ppm"
+     }
+    },
+    {
+     "claim_ko": "실측(79 GHz, RFSoC 2대, 서로 다른 기준클록)에서 추정된 FO = −102.56 kHz, SFO = 102.56 ppm. 즉 보정 전 원 오프셋은 100 kHz 급이고, 위의 50 Hz 는 보정 후 잔여다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/20_Bistatic_OFDM-based_ISAC_with_over-the-air_synchronization_System_concept_and_performance_.pdf",
+      "page": 11,
+      "quote": "The estimates for FO and SFO are −102.56 kHz and 102.56 ppm, respectively."
+     }
+    },
+    {
+     "claim_ko": "⭐⭐ **희소 기준(파일럿 전용) vs 풀프레임의 대가를 수치로 준다** — 우리 점유모드와 같은 구조. 표 II: 처리이득 48.80 dB(파일럿) vs 60.21 dB(풀프레임) = **11.41 dB 차**, 무모호 도플러 27.90 kHz vs 195.31 kHz = **7배 차**(파일럿 시간간격 Mt=7), 무모호 거리 306.99 m vs 613.97 m = **2배 차**(파일럿 주파수간격 Nf=2).",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/20_Bistatic_OFDM-based_ISAC_with_over-the-air_synchronization_System_concept_and_performance_.pdf",
+      "page": 5,
+      "quote": "However, the processing gain is reduced, as well as the unambiguous range and Doppler shift."
+     },
+     "our_check_ko": "11.41 dB 는 파일럿 밀도 1/(Nf·Mt)=1/14 의 10log10(14)=11.46 dB 와 0.05 dB 안에서 일치한다 — 즉 '희소 기준의 대가 = 10log10(1/점유율)' 이라는 우리 규약이 이 논문에서 그대로 성립한다."
+    },
+    {
+     "claim_ko": "⭐ 풀프레임 처리는 통신 복호가 무오류여야 하고, 복호 오류는 **레이다 영상에 유령 표적(ghost targets)** 을 만든다. 우리 '바닥 유령' 과는 기전이 다르지만(우리는 기하, 이쪽은 복호오류), '기준 재구성 실패 = 유령' 이라는 축이 하나 더 있다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/20_Bistatic_OFDM-based_ISAC_with_over-the-air_synchronization_System_concept_and_performance_.pdf",
+      "page": 11,
+      "quote": "The achieved results showed that bit errors after decod- ing causes visible degradation of the obtained bistatic radar images, eventually leading to ghost targets."
+     },
+     "status": "verbatim"
+    },
+    {
+     "claim_ko": "⭐ 유령의 두 갈래를 구분해 놓았다: 잘못 재구성된 심볼 블록이 **불규칙**하면 줄무늬와 잡음바닥 상승이 되고, **규칙적**이면 유령 표적이 선다. 우리 '바닥 유령'(기하 기원)과는 다른 축이지만 '기준 재구성 실패 → 맵 위의 가짜' 라는 세 번째 경로다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/20_Bistatic_OFDM-based_ISAC_with_over-the-air_synchronization_System_concept_and_performance_.pdf",
+      "page": 6,
+      "quote": "If, on the other hand, the blocks are regularly distributed in the OFDM frame, ghost targets occur."
+     }
+    }
+   ]
+  },
+  {
+   "key": "22_Ding2025_AsyncFieldTest",
+   "file": "22_Bi-static_ISAC_with_asynchronous_transceivers_Mechanism_solution_and_field_test.pdf",
+   "cite": "S. Ding, B. Chen, D. Jiang, J. Tan, Y. Yuan, J. Li, J. Yao, F. Qin, D. Zhang, C.-L. I, \"Bi-Static ISAC With Asynchronous Transceivers: Mechanism, Solution, and Field Test,\" IEEE Internet of Things Journal 12(17), 1 Sep. 2025, pp.35923-35939 — 게재(published), 2025",
+   "read_scope_ko": "18쪽 중 1-5, 13-17쪽 정독 + 전문 스캔",
+   "findings": [
+    {
+     "claim_ko": "⭐⭐ **실측 타이밍 드리프트 0.0523 ppm 만으로도 delay-Doppler 스펙트럼이 무너진다**. 통신에는 무해한 크기가 감지에는 치명적이라는 것이 이 논문의 핵심 관측.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/22_Bi-static_ISAC_with_asynchronous_transceivers_Mechanism_solution_and_field_test.pdf",
+      "page": 14,
+      "quote": "the TD variation is about 0.0523 ppm, which is a very small number and has rare inﬂuences on communication performance. Nevertheless, such a subtle TD can still critically impact on the sensing performance"
+     }
+    },
+    {
+     "claim_ko": "⭐ 시뮬레이션에서 쓴 오프셋 값: **TO 7.65 ns, CFO 60 Hz**, TD 는 8 ns 미만(NR 규격 요구 충족). 우리 잔여 CFO 가정(40 Hz)을 괄호에 넣는 두 번째 published 값.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/22_Bi-static_ISAC_with_asynchronous_transceivers_Mechanism_solution_and_field_test.pdf",
+      "page": 5,
+      "quote": "the TO and CFO are set to be 7.65 ns and 60 Hz respectively in the simulation."
+     }
+    },
+    {
+     "claim_ko": "⭐ 방법론 선례: **완벽 동기 모노스태틱을 기준선(baseline)** 으로 놓고 비동기 바이스태틱을 그 옆에 세운다. 표적은 직경 0.3 m 금속구를 2.82 m 레일 위에서 왕복시킨 것. Tx 1안테나 / Rx 8안테나 USRP.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/22_Bi-static_ISAC_with_asynchronous_transceivers_Mechanism_solution_and_field_test.pdf",
+      "page": 14,
+      "quote": "The metallic sphere is 0.3 m in diameter, and the effective length of the rail is 2.82 m."
+     }
+    },
+    {
+     "claim_ko": "⭐⭐ **바이스태틱 RCS 가 모노스태틱보다 큰 경우가 많다**는 published 주장. 우리 RCS 방법론이 현재 모노스태틱 PO 만 있다는 점(메모: sionna2-rcs-methodology)의 정확한 반대편 증거다. 근거는 자기 인용 [12] = G. Liu et al., IEEE JSAC 42(10):2863-2876, Oct. 2024 — **우리가 아직 확보 못 한 논문**.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/22_Bi-static_ISAC_with_asynchronous_transceivers_Mechanism_solution_and_field_test.pdf",
+      "page": 1,
+      "quote": "bi-static sensing can beneﬁt from improved received power of sensing signal, due to the larger radar cross section (RCS) compared with mono-static sensing in many scenar-"
+     }
+    },
+    {
+     "claim_ko": "기존 TD 제거법 4계열(안테나영역 CACC/CASR · 지연영역 · 공간영역 · 리샘플링)의 한계를 정리: 각각 큰 대역폭 / 큰 배열 / LOS / 높은 연산력을 요구한다. ADD 알고리즘은 그 전제 없이 동작한다고 주장.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/22_Bi-static_ISAC_with_asynchronous_transceivers_Mechanism_solution_and_field_test.pdf",
+      "page": 16,
+      "quote": "the ADD algorithm does not depend on large bandwidth, large antenna array, LOS condition and high computational capability"
+     },
+     "status": "verbatim"
+    },
+    {
+     "claim_ko": "⚠ 표 II(신호 파라미터)·표 IV(RMSE)는 **이미지로 조판돼 텍스트 레이어에 없다**. 반송파·대역폭·정확한 RMSE 수치는 이 파일에서 인용할 수 없다.",
+     "evidence": null,
+     "status": "UNVERIFIED (표가 이미지)"
+    }
+   ]
+  },
+  {
+   "key": "07_BaqueroBarneto2019_FD_OFDM_LTE_NR",
+   "file": "07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf",
+   "cite": "C. Baquero Barneto, T. Riihonen, M. Turunen, L. Anttila, M. Fleischer, K. Stadius, J. Ryynänen, M. Valkama, \"Full-Duplex OFDM Radar With LTE and 5G NR Waveforms: Challenges, Solutions, and Measurements\" — 게재본은 IEEE TMTT 67(10), Oct. 2019 (DOI 10.1109/TMTT.2019.2930510). ⚠ **확보본은 arXiv:1908.03418v1 (2019-08-09) 프리프린트**.",
+   "read_scope_ko": "13쪽 전문 정독",
+   "why_it_matters_ko": "⭐ C4 를 좁히는 편이자, 드론을 실제로 잰 편.",
+   "findings": [
+    {
+     "claim_ko": "⭐⭐ **C4 NARROWING**: LTE 20 / NR 20 / NR 40 / NR 100 을 3.5 GHz 에서 **고정 PFA,tot = 10%** 로 두고 PD-vs-SNR 곡선을 그린다. '교정된 오경보율에서의 통제된 다중 파형 비교' 는 2019년에 이미 있었다. 우리 C4 가 살아남으려면 **패시브·바이스태틱·서로 다른 조명원** 세 낱말이 전부 필요하다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf",
+      "page": 5,
+      "quote": "The detection threshold Tth is set such that PFA,tot = 10%."
+     }
+    },
+    {
+     "claim_ko": "⭐⭐ **같은 대역폭이면 LTE 와 NR 은 성능이 사실상 같다** — 그래프에서 LTE 20 을 아예 뺐다. 즉 '표준이 다르면 감지가 다르다' 는 명제는 거짓이고, 참인 명제는 '**쓸 수 있는 기준신호의 점유가 다르면 다르다**' 이다. 우리 report12 서사를 정확히 이 방향으로 좁혀야 한다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf",
+      "page": 5,
+      "quote": "LTE 20 MHz is eventually not shown since its performance is essentially identical to NR 20 MHz."
+     }
+    },
+    {
+     "claim_ko": "표 I(3.5 GHz): LTE20 거리분해능 8.3 m / 최대거리 700 m / 최대속도 ±64 m/s, NR100 거리분해능 1.5 m / ±128 m/s. ⚠ 표 I 은 텍스트 레이어에 있으므로 인용 가능. **우리 SPECS 의 'LTE 8.3 m' 는 여기와 일치한다**(모노 c/2B, B=18 MHz).",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf",
+      "page": 4,
+      "quote": "Distance resolution (m)"
+     },
+     "status": "verbatim (표 헤더). 수치 8.3/1.5/±64/±128 은 같은 쪽 표 본문에 텍스트로 존재."
+    },
+    {
+     "claim_ko": "⭐ 최대속도의 천장이 PRF 가 아니라 **ICI 규칙(부반송파 간격의 ±10%)** 인 경우가 있다 — 능동 모노스태틱 OFDM 레이다의 실용 한계.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf",
+      "page": 5,
+      "quote": "velocities up to a Doppler shift of ±10% of the subcarrier spacing"
+     }
+    },
+    {
+     "claim_ko": "처리이득 규약 Γ_P = 10 log10(R × S) (심볼수 × 부반송파수) — 우리 규약과 같은 형태.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf",
+      "page": 5,
+      "quote": "the subcarrier-based radar processing provides a processing gain of"
+     }
+    },
+    {
+     "claim_ko": "⭐⭐ **실측 드론**: DJI Inspire-2 를 2.4 GHz ISM, NR 40 MHz, +20 dBm, 혼 10 dBi, 서큘레이터 25 dB 격리로 40 m 에서 관측. ⚠ 다만 드론이 **레트로리플렉터(다면 반사체)를 달고** 있다 — 맨몸 기체의 RCS 를 잰 것이 아니다. 우리 σ 앵커링에 이 편을 끌어올 때 반드시 붙여야 하는 단서.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf",
+      "page": 8,
+      "quote": "together with a drone (DJI Insipire-2) carrying a retro-reﬂector"
+     }
+    },
+    {
+     "claim_ko": "⭐ **프로펠러 마이크로도플러를 실측으로 봤다**: 정지 호버링인데도 40 m 거리에 0이 아닌 속도 성분이 나타난다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf",
+      "page": 9,
+      "quote": "These are stemming from the propellers' rotation, i.e., reﬂect the micro-Doppler phenomenon."
+     }
+    },
+    {
+     "claim_ko": "⭐ **실측 ROC**: 드론 없는 영상 100장(H0) + 드론 있는 영상 100장(H1) 의 경험분포로 문턱을 쓸어 ROC 를 그린다. 우리 report12 의 몬테카를로 ROC 와 같은 프로토콜이며, 실측으로 그렇게 한 선례다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf",
+      "page": 10,
+      "quote": "We ﬁrst measure 100 radar images without the drone (hypothesis H0) and another 100 radar images with the drone (hypothesis H1)."
+     }
+    }
+   ]
+  },
+  {
+   "key": "16_Carbonara2026_CommVsControl",
+   "file": "16_Downlink_ISAC_with_a_full-stack_5G-compliant_experimental_testbed_Communication_vs._contro.pdf",
+   "cite": "S. Carbonara, D. Pugliese, A. Fascista, A. Coluccia, G. Boggia, \"Downlink ISAC with a Full-Stack 5G-Compliant Experimental Testbed: Communication vs. Control Signals for Multi-Target Detection,\" IEEE(게재, DOI 10.1109/jcs69321.2026.11366013), 2026",
+   "read_scope_ko": "6쪽 전문 정독",
+   "why_it_matters_ko": "⭐⭐⭐ 이번 라운드 최대 수확. 우리 점유모드(G1 상시 vs G3 풀) 서사와 **같은 실험을 실측으로 이미 했다**.",
+   "findings": [
+    {
+     "claim_ko": "⭐⭐⭐ **우리 점유 서사의 선행 실험**: 상시(control) 신호 vs 통신(payload) 신호를 5G 풀스택 실측 테스트베드에서 다중표적 검출로 비교한다. 결론도 우리와 같다 — 통신신호가 우월하지만 상시신호는 사용자가 없어도 항상 있다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/16_Downlink_ISAC_with_a_full-stack_5G-compliant_experimental_testbed_Communication_vs._contro.pdf",
+      "page": 1,
+      "quote": "Experimental results reveal excellent sensing performance when communication signals are employed, owing to their larger bandwidth and longer transmission duration."
+     }
+    },
+    {
+     "claim_ko": "⭐⭐⭐ **점유 대가의 독립 수치**: SIB tda=5 상시신호는 통신신호 대비 부반송파의 17%, OFDM 심볼의 8% 만 쓴다. 곱하면 **1.31%** → 10log10(1/0.0131) = **18.8 dB**. 우리 G1(nr) occupancy_frac = 1.447% → **18.4 dB** 와 0.4 dB 안에서 만난다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/16_Downlink_ISAC_with_a_full-stack_5G-compliant_experimental_testbed_Communication_vs._contro.pdf",
+      "page": 6,
+      "quote": "which amounts to only 17% of the active subcarriers and 8% of the OFDM symbols used by the communication signals."
+     },
+     "apples_to_apples_ko": "⚠ 분모가 다르다. 이들 분모는 '통신 프레임(3276×156)' 이고, 10 ms 격자 전체(3276×280)를 분모로 쓰면 0.73% → 21.4 dB 가 된다. 또 이들 상시신호는 SSB 단독이 아니라 SSB+CORESET#0+SIB1 묶음이다. 따라서 '18 dB 가 일치한다' 가 아니라 '**두 독립 계산이 같은 자릿수(18~21 dB)에 떨어진다**' 로 적어야 한다."
+    },
+    {
+     "claim_ko": "본문 주장으로는 5G NR 의 제어신호가 시간-주파수 자원의 10~15%, 페이로드가 85% 라고 한다(이 값끼리의 비는 8.3 dB). 위의 실측 프레임 값(1.31%)과 자릿수가 다르다 — **논문 안에서도 '10-15% 개괄값' 과 '실측 단일프레임 값' 이 따로 논다**. 인용할 때 어느 쪽인지 반드시 밝혀야 한다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/16_Downlink_ISAC_with_a_full-stack_5G-compliant_experimental_testbed_Communication_vs._contro.pdf",
+      "page": 1,
+      "quote": "control signals, which are always-on, occupy only a limited portion of time-frequency resources, typically around 10–15% in 5G New Radio (NR)"
+     }
+    },
+    {
+     "claim_ko": "⭐⭐ **우리 실측계획에 대한 경고**: USRP X410(최대 23 dBm)로 실험실에서 하려다 **표적 반사가 너무 약해 신뢰성 있게 검출되지 않아** Keysight PROPSIM FS16 채널 에뮬레이터로 갈아탔다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/16_Downlink_ISAC_with_a_full-stack_5G-compliant_experimental_testbed_Communication_vs._contro.pdf",
+      "page": 3,
+      "quote": "the power limitations of the SDR hardware — resulting in target reflections that are too weak to be reliably detected"
+     }
+    },
+    {
+     "claim_ko": "⭐ CFAR 를 **분포 무가정(distribution-agnostic)** 으로 잡는다: 카이제곱을 가정하지 않고 잡음영역(최대탐지거리 R_max=cT_CP/2 너머 5000행)에서 CDF 를 경험적으로 추정해 문턱을 세운다. 우리 CFAR 라운드가 '명목 Pfa 가 아니라 경험 Pfa' 로 간 것과 같은 판단.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/16_Downlink_ISAC_with_a_full-stack_5G-compliant_experimental_testbed_Communication_vs._contro.pdf",
+      "page": 3,
+      "quote": "we instead adopt a distribution-agnostic approach and treat the distribution of z as unknown; accordingly, the CDF Fz (and thus its inverse) will be empirically estimated from the periodogram"
+     }
+    },
+    {
+     "claim_ko": "Pfa 는 맵 전체(SM 셀)에 대해 고정: Pfa = 1-(1-Pfa_CUT)^{SM}, Pfa = 1e-3. 표적/속도: R=20/40/20 m, V=-37.5/-37.5/+48.8 m/s, RCS 10 m², 안테나 30 dBi, 반송파 3.995 GHz(n77), SCS 30 kHz, B=100 MHz, 프레임 10 ms.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/16_Downlink_ISAC_with_a_full-stack_5G-compliant_experimental_testbed_Communication_vs._contro.pdf",
+      "page": 5,
+      "quote": "Then, we fix a Pfa = 10−3 and compute η using"
+     }
+    },
+    {
+     "claim_ko": "⭐ 희소 기준(더 희소한 SIB tda=1: 438 SC × 14 심볼)일수록 **사이드로브와 잔차가 만드는 오경보가 늘어난다** — 우리 G1 이 왜 나쁜지의 실측 기전.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/16_Downlink_ISAC_with_a_full-stack_5G-compliant_experimental_testbed_Communication_vs._contro.pdf",
+      "page": 6,
+      "quote": "the number of false alarms generated by sidelobes and residuals is higher than in the SIB tda=5 case"
+     }
+    },
+    {
+     "claim_ko": "⚠ C4 에 대한 영향: 이 편은 **모노스태틱**이고, 비교 대상이 서로 다른 조명원이 아니라 **한 5G 하향링크 안의 신호 종류**다. 따라서 C4 의 'illuminator' 는 여전히 살아 있다. 다만 '점유 비교 자체' 의 신규성은 이제 없다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/16_Downlink_ISAC_with_a_full-stack_5G-compliant_experimental_testbed_Communication_vs._contro.pdf",
+      "page": 1,
+      "quote": "we investigate monostatic downlink ISAC using a sub-6 GHz, full-"
+     },
+     "status": "verbatim"
+    }
+   ]
+  },
+  {
+   "key": "15_Carbonara2025_OAI_X410",
+   "file": "15_5G-compliant_integrated_sensing_and_communication_at_sub-6_GHz_Experiments_with_SDRs_and_O.pdf",
+   "cite": "S. Carbonara, D. Pugliese, A. Fascista, A. Coluccia, G. Boggia, \"5G-Compliant Integrated Sensing and Communication at Sub-6 GHz: Experiments with SDRs and OpenAirInterface\" — 게재(published, 학회명 미표기; 16번의 선행편 [12])",
+   "read_scope_ko": "6쪽 전문 정독",
+   "findings": [
+    {
+     "claim_ko": "⭐⭐ **같은 그룹의 앞선 편도 표적 반향을 수치로 합성 주입했다**: 송신출력 한계와 실험실 크기 때문에 실제 표적을 못 쓰고 y[n] 에 지연·도플러·감쇠를 넣어 더했다. 즉 X410 급 SDR 로 **실제 표적을 잡은 5G 모노스태틱 실측은 이 계보에 아직 없다**.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/15_5G-compliant_integrated_sensing_and_communication_at_sub-6_GHz_Experiments_with_SDRs_and_O.pdf",
+      "page": 5,
+      "quote": "we synthetically add Ntarget target returns in the received signal"
+     }
+    },
+    {
+     "claim_ko": "⭐ 자기간섭(SI) 제거 필터 메모리 K 가 **정적 표적의 최소 탐지거리**를 정한다: 대략 c/2 · K/fs 까지 지운다. fs=122.88 MHz, K=20 → 약 25 m 가 통째로 죽고 20 m 표적이 사라진다. 우리 ECA 탭 길이가 만드는 눈먼 구간과 동일한 구조.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/15_5G-compliant_integrated_sensing_and_communication_at_sub-6_GHz_Experiments_with_SDRs_and_O.pdf",
+      "page": 5,
+      "quote": "the latter cancels contributions from ranges up to approximately"
+     }
+    },
+    {
+     "claim_ko": "하드웨어: USRP X410 2대(UE·gNB), gNB 는 LP0965 로그주기 PCB 안테나 ~6 dBi, OctoClock-G CDA-2990 로 SDR 동기(단 저자들은 '이 장치 없이도 동작한다' 고 명시).",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/15_5G-compliant_integrated_sensing_and_communication_at_sub-6_GHz_Experiments_with_SDRs_and_O.pdf",
+      "page": 3,
+      "quote": "an OctoClock-G CDA-2990 broadcasts precise reference sig- nals to synchronize the SDRs"
+     },
+     "status": "verbatim"
+    }
+   ]
+  },
+  {
+   "key": "29_Braun2014_thesis",
+   "file": "29_OFDM_radar_algorithms_in_mobile_communication_networks.pdf",
+   "cite": "Martin Braun, \"OFDM Radar Algorithms in Mobile Communication Networks,\" Dissertation, Karlsruher Institut für Technologie (KIT), Forschungsberichte aus dem Institut für Nachrichtentechnik, Band 31, 2014, ISSN 1433-3821 — 출판(published dissertation)",
+   "read_scope_ko": "195쪽 중 목차 + §3.3.6 신호검출·오경보율(PDF 72-74) + §3.3.7 다중표적(75-80) + §3.3.8 비연속 부반송파(81-91) 정독, 나머지 스캔",
+   "why_it_matters_ko": "⭐⭐ OFDM 레이다 CFAR·점유·spur 의 정전. 우리 CFAR 교정 라운드와 점유모드 양쪽의 이론적 뿌리.",
+   "findings": [
+    {
+     "claim_ko": "⭐ **오경보율의 시간축을 '프레임당' 으로 못박는다**(초당이 아니라). 그러면 갱신율과 무관해진다. 우리 Pfa 규약(맵당 vs 셀당) 논쟁의 원조 정의.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/29_OFDM_radar_algorithms_in_mobile_communication_networks.pdf",
+      "page": 73,
+      "quote": "the false alarm rate (FAR) is the expected number of detections per processing of one frame, for the case that only noise was present."
+     },
+     "printed_page": 54
+    },
+    {
+     "claim_ko": "문턱식: p_FA,bin = exp(-η/σ_N²), p_FA = 1-(1-p_FA,bin)^{NM}. 16번(Carbonara 2026)이 12년 뒤 그대로 쓴다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/29_OFDM_radar_algorithms_in_mobile_communication_networks.pdf",
+      "page": 74,
+      "quote": "To achieve a certain per-bin false alarm rate, solve"
+     },
+     "status": "verbatim",
+     "printed_page": 55
+    },
+    {
+     "claim_ko": "⭐⭐⭐ **DC 부반송파를 비우면 거리-도플러 맵에 1/N 짜리 상수 spur 바닥이 깔린다**. 그 결과 peak-to-spur ratio 가 동적범위의 천장이 되고, **802.11a + 해밍창에서 그 값이 약 27 dB** 다. Falcone(08번)이 2010년에 관측만 하고 설명 못 한 그 27 dB 를 여기서 유도한다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/29_OFDM_radar_algorithms_in_mobile_communication_networks.pdf",
+      "page": 87,
+      "quote": "For a Hamming window and the carrier setup of IEEE 802.11a, PSR is approx. 27 dB. This was ﬁrst observed (but not explained) by Falcone et al."
+     },
+     "printed_page": 67,
+     "genealogy_ko": "Braun 의 [38] = 'P. Falcone, F. Colone, C. Bongioanni, and P. Lombardo, Experimental results for OFDM WiFi-based passive bistatic radar, Radar Conference, 2010 IEEE' = 이 선반의 08번 파일. 계보가 이 선반 안에서 닫힌다."
+    },
+    {
+     "claim_ko": "⭐⭐ 그 결과의 의미: **동적범위 손실**. 같은 도플러의 두 표적은 그 PSR 이상 세기 차이가 나면 약한 쪽을 못 본다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/29_OFDM_radar_algorithms_in_mobile_communication_networks.pdf",
+      "page": 87,
+      "quote": "For the radar, this means a loss of dynamic range."
+     },
+     "printed_page": 67
+    },
+    {
+     "claim_ko": "⭐⭐⭐ **불규칙(랜덤) 부반송파 배치는 표적 주변에 랜덤한 spur 바닥을 만든다**. 그 모양은 어느 부반송파를 골랐는지에 따라 달라진다. 5G SSB/CRS/PRS 처럼 격자에 듬성듬성 박힌 기준신호가 정확히 이 경우다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/29_OFDM_radar_algorithms_in_mobile_communication_networks.pdf",
+      "page": 91,
+      "quote": "Unlike with the missing DC carrier, the exact shape of the spur ﬂoors is random as it depends on the choice of"
+     },
+     "printed_page": 71
+    },
+    {
+     "claim_ko": "⭐ **규약 함정**: '규칙적으로 U 칸마다 부반송파를 쓰면 무모호 거리만 1/U 로 줄고 총 수신에너지와 주기도는 그대로' — 부반송파당 송신전력이 U 배 올라가기 때문이다. 20번(Brunner)의 '파일럿 전용이면 처리이득 11.4 dB 손해' 와 **정반대로 보이지만 모순이 아니다**: Braun 은 송신기가 U 칸만 쓰는 경우(전력 재분배), Brunner 는 송신은 전대역인데 수신에서 파일럿만 쓰는 경우다. 우리 report5 의 'tx 정규화' 규약이 바로 이 갈림길이다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/29_OFDM_radar_algorithms_in_mobile_communication_networks.pdf",
+      "page": 88,
+      "quote": "a regular sub-carrier spacing only modiﬁes the unam- biguous range, the total received energy stays the same"
+     },
+     "printed_page": 68
+    },
+    {
+     "claim_ko": "다중표적 검출은 successive cancellation 2종(binary / coherent). coherent 쪽은 CLEAN 과 사실상 같다고 스스로 적는다. 16번(2026)의 검출기가 이 알고리즘이다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/29_OFDM_radar_algorithms_in_mobile_communication_networks.pdf",
+      "page": 82,
+      "quote": "Coherent successive target cancellation is very similar to the CLEAN algorithm"
+     },
+     "status": "verbatim",
+     "printed_page": 62
+    }
+   ]
+  },
+  {
+   "key": "30_Mercier2020_receiver_comparison",
+   "file": "30_Comparison_of_correlation-based_OFDM_radar_receivers.pdf",
+   "cite": "S. Mercier, S. Bidon, D. Roque, C. Enderli, \"Comparison of Correlation-Based OFDM Radar Receivers,\" IEEE Transactions on Aerospace and Electronic Systems 56(6), Dec. 2020, pp.4796-4813 — 게재(published), 2020",
+   "read_scope_ko": "18쪽 중 1-2, 6-8, 11-13쪽 정독 + 전문 스캔",
+   "findings": [
+    {
+     "claim_ko": "⭐ **패시브(PBR)와 능동(RadCom)의 상관수신기 문헌을 하나로 합쳐야 한다**고 선언하고 실제로 합친다. 우리가 '패시브 문헌만 본다' 고 스코프를 좁히면 놓치는 것이 있다는 경고.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/30_Comparison_of_correlation-based_OFDM_radar_receivers.pdf",
+      "page": 12,
+      "quote": "Overlapping processings have especially been evidenced between PBR and RadCom authors, thereby justifying our attempt to unify this framework."
+     }
+    },
+    {
+     "claim_ko": "⭐⭐ **데이터 심볼이 만드는 pedestal 은 백색이 아니다** — 백색인 것은 순환상관 계열(PMF-CC·PRF-CC)뿐이고, 나머지는 표적 셀에서 멀어질수록 커진다. 우리 CFAR 가 백색 잡음 위에서 교정됐다면 수신기 선택에 따라 그 교정이 무너진다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/30_Comparison_of_correlation-based_OFDM_radar_receivers.pdf",
+      "page": 7,
+      "quote": "whiteness is veriﬁed only for the PMF-CC and PRF-CC"
+     }
+    },
+    {
+     "claim_ko": "⭐⭐ **수치**: 강한 확장 지상클러터가 있는 항공 시나리오에서 pedestal 평균이 모든 필터에서 −110 dB 를 넘고, 이는 이론적 후처리 백색잡음보다 **약 20 dB 높다**. 즉 그 상황의 검출 바닥은 열잡음이 아니다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/30_Comparison_of_correlation-based_OFDM_radar_receivers.pdf",
+      "page": 12,
+      "quote": "the average pedestal level exceeds −110 dB for all filters, that is roughly 20 dB more than the theoretical postprocessing white noise power"
+     }
+    },
+    {
+     "claim_ko": "평가 3축(연산복잡도 · SINR · 지상클러터 내성)에서 어느 필터도 만장일치로 우월하지 않지만 순환상관 계열이 전반적으로 유리하다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/30_Comparison_of_correlation-based_OFDM_radar_receivers.pdf",
+      "page": 1,
+      "quote": "Although simulations show that none of the ﬁlters performs unanimously better, the ones employing circular correlations globally evidence attractive results."
+     },
+     "status": "verbatim"
+    }
+   ]
+  },
+  {
+   "key": "03_Liu2025_CPOFDM_sidelobe",
+   "file": "03_CP-OFDM_achieves_the_lowest_average_ranging_sidelobe_under_QAMPSK_constellations.pdf",
+   "cite": "F. Liu, Y. Zhang, Y. Xiong, S. Li, W. Yuan, F. Gao, S. Jin, G. Caire, \"CP-OFDM Achieves the Lowest Average Ranging Sidelobe Under QAM/PSK Constellations\" — 게재본은 IEEE Trans. Inf. Theory (DOI 10.1109/TIT.2025.3591267). ⚠ 확보본은 arXiv:2407.06691v3 프리프린트.",
+   "read_scope_ko": "정리 1·2 와 명제 1·2 중심 정독",
+   "findings": [
+    {
+     "claim_ko": "⭐ CP 를 쓰는 모든 통신파형 중 **OFDM 이 P-ACF 사이드로브(EISL)를 최소화하는 유일한 파형**이며, 나아가 **모든 지연 lag 에서** 평균 사이드로브가 최소다. 즉 데이터가 실린 기준신호의 pedestal 은 파형을 바꿔서는 더 못 낮춘다 — 그것이 하한이다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/03_CP-OFDM_achieves_the_lowest_average_ranging_sidelobe_under_QAMPSK_constellations.pdf",
+      "page": 6,
+      "quote": "OFDM is the only waveform that achieves the lowest average sidelobe level at every delay index k of the P-ACF for sub-Gaussian constellations."
+     }
+    },
+    {
+     "claim_ko": "⚠⚠ **내가 첫 초안에서 틀렸던 것을 정정한다.** 나는 '데이터 심볼 pedestal 바닥이 peak 대비 1/N' 이라고 적었다가, 원문을 다시 열어 그것이 **CP-SC(단일반송파)** 의 값이지 CP-OFDM 의 값이 아님을 확인했다. CP-OFDM 의 P-ACF EISL 하한은 (μ4−1)·N(N−1) 이고, **정모듈러 성상(PSK, μ4=1)에서는 0** 이다 — 즉 PSK-OFDM 기준신호는 주기 자기상관에서 데이터 pedestal 이 없다. 16QAM(μ4=1.32)·64QAM(μ4≈1.381)에서만 유한하다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/03_CP-OFDM_achieves_the_lowest_average_ranging_sidelobe_under_QAMPSK_constellations.pdf",
+      "page": 6,
+      "quote": "From Theorem 1 it is obvious that for μ4 < 2 we have"
+     },
+     "the_1_over_N_belongs_to": {
+      "what": "CP-SC(단일반송파)",
+      "evidence": {
+       "pdf": "/data/public/OpenISAC/03_CP-OFDM_achieves_the_lowest_average_ranging_sidelobe_under_QAMPSK_constellations.pdf",
+       "page": 7,
+       "quote": "This implies that using CP-SC signaling results in a ranging EISL of N(N −1), and a uniform sidelobe level"
+      }
+     },
+     "consequence_for_us_ko": "이 정정은 우리에게 **유리한 쪽**이다. 우리 G1 기준신호(PSS/SSS·PBCH-DMRS·VHT-LTF)는 결정적 정모듈러 시퀀스이고, G3 의 PRS 도 QPSK 기반이다. 따라서 '데이터 심볼 pedestal' 은 우리 기준신호에는 거의 붙지 않는다. **남는 세 기전 중 실제로 우리를 때리는 것은 Braun 의 DC-spur / 희소배치 spur 이지 Mercier 의 데이터 pedestal 이 아니다.**"
+    }
+   ]
+  },
+  {
+   "key": "06_BaqueroBarneto2022_RT_validation",
+   "file": "06_Millimeterwave_mobile_sensing_and_environment_mapping_Models_algorithms_and_validation.pdf",
+   "cite": "C. Baquero Barneto, E. Rastorgueva-Foi, M. F. Keskin, T. Riihonen, M. Turunen, J. Talvitie, H. Wymeersch, M. Valkama, \"Millimeter-wave Mobile Sensing and Environment Mapping: Models, Algorithms and Validation\" — 게재본 IEEE TVT (DOI 10.1109/TVT.2022.3146003). ⚠ 확보본은 arXiv:2102.11593v3.",
+   "read_scope_ko": "§V 평가환경·§VI 결과 정독 + 전문 스캔",
+   "findings": [
+    {
+     "claim_ko": "⭐ **C2 지지 사례**: 레이트레이싱(Wireless Insite)을 28 GHz 실측과 대조하지만, 검증되는 것은 **산란체 위치(GOSPA)** 이지 산란 진폭·RCS 가 아니다. σ_RCS 는 경로이득 모델의 입력 파라미터로만 등장한다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/06_Millimeterwave_mobile_sensing_and_environment_mapping_Models_algorithms_and_validation.pdf",
+      "page": 12,
+      "quote": "Utilization of ray-tracing data enables extraction of ground- truth information, including the interaction coordinates of single-bounce radio paths at different walls."
+     }
+    },
+    {
+     "claim_ko": "RT 설정: 시뮬레이션당 최대 15 rays, 6 반사 + 1 회절, ITU 층상 재질, Lambertian 확산산란 계수 0.2 / 교차편파 0.4.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/06_Millimeterwave_mobile_sensing_and_environment_mapping_Models_algorithms_and_validation.pdf",
+      "page": 9,
+      "quote": "The ray-tracing engine is conﬁgured to consider a maximum of 15 rays per simulation, and the number of allowed inter- actions is limited to six reﬂections and one diffraction."
+     }
+    },
+    {
+     "claim_ko": "⭐ **재질 파라미터가 fudge 라고 스스로 적는다**: 확산산란이 '환경 모델링의 합리적 단순화를 보상한다'. 우리 재질 파라미터 겸손함(eps_r·두께 미출처)에 붙일 수 있는 선례.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/06_Millimeterwave_mobile_sensing_and_environment_mapping_Models_algorithms_and_validation.pdf",
+      "page": 9,
+      "quote": "the diffuse scattering compensates for the reasonable simpliﬁcations in the environment modeling"
+     }
+    }
+   ]
+  },
+  {
+   "key": "19_SionnaRT_TR",
+   "file": "19_Sionna_RT_Technical_Report.pdf",
+   "cite": "NVIDIA, \"Sionna RT: Technical Report,\" arXiv:2504.21719v2 (2025-11-21), 59 pp. — 프리프린트(technical report)",
+   "read_scope_ko": "Q-A(회절)·Q-B(런타임) 관련 절만 표적 정독(PDF 29-30, 36-38쪽)",
+   "findings": [
+    {
+     "claim_ko": "⭐⭐ **Q-A 대칭 논거**: Ziganshin 은 'SBR+PO 는 그림자 영역을 못 낸다' 고 우리를 친다. 그런데 스톡 Sionna RT 역시 **1차 회절까지만** 지원하고, 회절+확산 조합 경로는 다루지 않는다. 즉 그림자 영역 문제는 우리만의 것이 아니다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/19_Sionna_RT_Technical_Report.pdf",
+      "page": 29,
+      "quote": "The path solver supports only first-order diffraction and does not handle paths that contain both diffraction and diffuse reflection."
+     }
+    },
+    {
+     "claim_ko": "⭐⭐ 엔진 저자들 스스로 **고차 회절의 전계 계산은 '열린 문제'** 라고 적는다. 이것은 Q-A 의 '그림자 영역' 절반에 대한 가장 강한 대칭 반박 재료다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/19_Sionna_RT_Technical_Report.pdf",
+      "page": 30,
+      "quote": "calculating the electric field along these high-order diffraction paths remains an open problem, and as a result, high-order diffraction is not currently supported."
+     }
+    },
+    {
+     "claim_ko": "저자들의 완화 논거: 그 혼합 경로들은 보통 에너지가 무시할 만해서 CIR 정확도에 거의 영향이 없다. ⚠ 이 논거는 **통신 CIR** 에 대한 것이지 표적 RCS 에 대한 것이 아니다 — 우리가 인용할 때 이 구분을 빠뜨리면 안 된다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/19_Sionna_RT_Technical_Report.pdf",
+      "page": 29,
+      "quote": "these mixed paths typically transport a negligible amount of energy and therefore have little impact on the accuracy of the"
+     }
+    },
+    {
+     "claim_ko": "⭐ **Q-B 런타임 4번째 독립 출처**(그리고 가장 권위 있는 것): 라디오맵 솔버가 RTX 4090 한 장에서 10⁹ 샘플까지 돌고, **가장 힘든 설정에서만 1초를 넘는다**. 경로 솔버 쪽 그림(Fig.24, PDF 30쪽)은 소스/타깃 10³ 까지 축이 0-200 ms / 0-300 ms 범위다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/19_Sionna_RT_Technical_Report.pdf",
+      "page": 37,
+      "quote": "The computation time increases with both the number of samples and antennas, exceeding one second only for the most demanding computations."
+     },
+     "figure_read_status": "Fig.24·Fig.30 의 구체적 축 값은 **그림에서 눈으로 읽은 것**이라 인용문이 아니다 → reconstructed. '0.06-0.29 s/pose' 라는 기존 3개 출처와 같은 자릿수라는 것까지만 말할 수 있다."
+    }
+   ]
+  },
+  {
+   "key": "32_34_sync_classics",
+   "file": "32_Robust_frequency_and_timing_synchronization_for_OFDM.pdf / 34_Estimating_frequency_by_interpolation_using_Fourier_coefficients.pdf",
+   "cite": "T. M. Schmidl & D. C. Cox, IEEE Trans. Commun. 45(12), Dec. 1997, pp.1613-1621 — 게재 / B. G. Quinn, IEEE Trans. Signal Process. 42(5), May 1994, pp.1264-1268 — 게재",
+   "read_scope_ko": "두 편 모두 정독 시도, 인용 가능성 확인까지",
+   "findings": [
+    {
+     "claim_ko": "⚠ **인용 불가 판정**: Schmidl-Cox 는 CRB 식과 수치가 전부 이미지로 조판돼 텍스트 레이어에 없다. 질적 근거만 취할 수 있다 — '주파수 오프셋 추정을 수백~수천 부반송파에 걸쳐 평균하므로 유효 SNR 이 매우 높다'.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/32_Robust_frequency_and_timing_synchronization_for_OFDM.pdf",
+      "page": 8,
+      "quote": "Since the frequency offset estimate is made by averaging over hundreds or thousands of subcarriers, the effective SNR is usually very high."
+     },
+     "status": "verbatim"
+    },
+    {
+     "claim_ko": "⚠⚠ **인용 검사기용 함정 보고**: 34번 PDF 의 1쪽에는 Quinn 논문의 시작과 함께 **앞 논문(순환정상성 기반 블라인드 채널식별)의 결론절**이 같은 지면에 실려 있다. 그 쪽에서 인용을 뜨면 기계는 verbatim 을 주지만 귀속은 틀린다 — 조용한 오귀속의 교과서적 사례.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/34_Estimating_frequency_by_interpolation_using_Fourier_coefficients.pdf",
+      "page": 1,
+      "quote": "The cyclostationarity of the QAM channel output can be used for blind identification of unknown channels."
+     },
+     "status": "verbatim (단, 이 문장은 Quinn 의 것이 아니다)"
+    }
+   ]
+  }
+ ],
+ "claims_under_test": {
+  "H8": {
+   "statement": "Sionna 급 GPU 광선엔진 안에서 드론 MESH 로부터 진폭이 검증된 산란 시그니처를 계산한 published 논문 0편 (4중 조건: published / 드론 표면 메시 / 엔진 내부 계산 / 진폭 검증)",
+   "verdict": "NOT BROKEN — 이 선반에 광선엔진으로 드론 메시를 산란시킨 편이 없다",
+   "why_ko": "28편 중 광선추적을 쓰는 것은 06번(Wireless Insite, 실내 매핑)과 19번(Sionna RT 기술보고서)뿐이다. 06 은 표적 메시가 아니라 건물 벽/사물함을 다루고 검증 대상도 **산란체 위치**이지 진폭이 아니다. 19 는 엔진 문서라 표적이 없다. 07번은 드론을 실제로 쟀지만 광선엔진이 아니라 실측이고, 게다가 레트로리플렉터를 달았다.",
+   "narrowing_pressure": "없음. 다만 07번 때문에 '아무도 드론 산란을 측정하지 않았다' 류의 말은 절대 쓰면 안 된다 — 2019년에 TMTT 에서 DJI Inspire-2 를 40 m 에서 재고 ROC 까지 그렸다."
+  },
+  "C2": {
+   "statement": "Sionna 파이프라인에서 dBsm 을 찍은 논문은 단 한 편(Ziganshin EuCAP 2025, 자동차)",
+   "verdict": "NOT BROKEN — 지지 사례가 하나 늘었다",
+   "why_ko": "06번이 반례가 아니라 오히려 지지다: RT 를 실측으로 검증하되 검증량이 위치(GOSPA)이고 σ_RCS 는 모델 입력 파라미터로만 나온다. 즉 'RT 를 실측 검증했다' 는 문헌이 있어도 그 검증이 **진폭 검증은 아니다**.",
+   "evidence": {
+    "pdf": "/data/public/OpenISAC/06_Millimeterwave_mobile_sensing_and_environment_mapping_Models_algorithms_and_validation.pdf",
+    "page": 12,
+    "quote": "Utilization of ray-tracing data enables extraction of ground- truth information, including the interaction coordinates of single-bounce radio paths at different walls."
+   }
+  },
+  "C4": {
+   "statement": "교정된 오경보율에서 통제된 다중 조명원(illuminator) 비교를 한 사람이 없다",
+   "verdict": "⚠⚠ 심각하게 좁혀짐 — 'illuminator' 에 더해 '패시브' 와 '바이스태틱' 이 전부 load-bearing 이 되었다",
+   "new_priors_found": [
+    {
+     "who": "Baquero Barneto et al., IEEE TMTT 67(10) 2019 (게재; 확보본 arXiv:1908.03418v1)",
+     "what_ko": "LTE 20 / NR 20 / NR 40 / NR 100 을 **고정 PFA,tot = 10%** 에서 PD-vs-SNR 로 비교. 표준을 가로지르는(LTE↔NR) 비교이며 오경보율이 교정되어 있다.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf",
+      "page": 5,
+      "quote": "The detection threshold Tth is set such that PFA,tot = 10%."
+     },
+     "what_still_separates_us_ko": "능동 full-duplex 모노스태틱이고, 한 노드가 파형을 바꿔 쏘는 것이지 서로 다른 조명원이 아니다."
+    },
+    {
+     "who": "Carbonara et al., IEEE 2026 (게재, DOI 10.1109/jcs69321.2026.11366013)",
+     "what_ko": "5G 풀스택 실측에서 **상시(control) 신호 vs 통신(payload) 신호**를 고정 Pfa=1e-3 다중표적 검출로 비교.",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/16_Downlink_ISAC_with_a_full-stack_5G-compliant_experimental_testbed_Communication_vs._contro.pdf",
+      "page": 5,
+      "quote": "Then, we fix a Pfa = 10−3 and compute η using"
+     },
+     "what_still_separates_us_ko": "모노스태틱이고, 한 5G 하향링크 안의 신호 종류 비교다."
+    },
+    {
+     "who": "Brunner et al., IEEE TMTT (게재; 확보본 arXiv:2405.04962v1)",
+     "what_ko": "파일럿 전용 vs 풀프레임 처리를 처리이득·무모호거리·무모호도플러 세 축에서 비교(수치 표 II).",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/20_Bistatic_OFDM-based_ISAC_with_over-the-air_synchronization_System_concept_and_performance_.pdf",
+      "page": 5,
+      "quote": "However, the processing gain is reduced, as well as the unambiguous range and Doppler shift."
+     },
+     "what_still_separates_us_ko": "바이스태틱이긴 하나 협력형(자기 신호를 아는) ISAC 이고, 오경보율 교정 비교가 아니다."
+    }
+   ],
+   "surviving_form_ko": "⭐ C4 가 살아남는 유일한 문장: **서로 다른 조명원(WiFi AP · LTE eNB · 5G gNB — 우리가 통제하지 않는 별개 송신원)을 하나의 패시브 바이스태틱 기하 위에서, 교정된 오경보율에서 나란히 비교한 published 연구가 없다.** '점유 비교' 만으로는 이제 아무 신규성도 없다 — 같은 비교를 Taylor & Poullin(2025, LTE 심볼 부분집합), Brunner(파일럿 vs 풀프레임), Carbonara(제어 vs 통신) 세 팀이 이미 했다.",
+   "must_stop_saying_ko": "'점유가 검출성능을 얼마나 깎는지 아무도 안 봤다' — 거짓이다. Carbonara 2026 이 실측으로 봤고 그 값(17% SC × 8% 심볼)이 우리 G1 점유율과 같은 자릿수다."
+  }
+ },
+ "Q_D_clock_asynchrony": {
+  "question_ko": "우리 시뮬은 완벽 동기를 가정한다. 잔여 CFO 가 WiFi 무모호 도플러 구간의 4%, 5G SSB 의 80% 를 먹는다고 계산해 두었다. 문헌은 이 문제를 어떻게 다루는가.",
+  "step1_what_our_4_and_80_percent_imply": {
+   "reverse_engineered_residual_cfo_hz": 40.0,
+   "arithmetic_ko": "WiFi PRF 1000 Hz → 무모호 도플러 구간 폭 1000 Hz, 40/1000 = 4.0%. 5G SSB PRF 50 Hz(SS 버스트 20 ms) → 구간 폭 50 Hz, 40/50 = 80.0%. 두 값이 동시에 맞으려면 가정된 잔여 CFO 는 정확히 **40 Hz** 다.",
+   "source_of_prf_ko": "src/waveforms.py 의 PILOT_RATE_HZ (LTE CRS 1 kHz, NR SSB 50 Hz) 와 outputs/verify_ambiguity.json 의 wifi prf_hz=1000.0."
+  },
+  "step2_published_brackets": {
+   "finding_ko": "⭐ 우리 40 Hz 가정을 **두 개의 published 값이 위아래로 감싼다**. 둘 다 40 Hz 보다 크다 — 즉 우리 가정은 낙관적인 쪽이다.",
+   "values": [
+    {
+     "hz": 50,
+     "who": "Brunner et al. (TMTT 게재; 확보본 preprint), OTA 동기 후 잔여",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/20_Bistatic_OFDM-based_ISAC_with_over-the-air_synchronization_System_concept_and_performance_.pdf",
+      "page": 10,
+      "quote": "the remaining frequency and sampling frequency errors are in a range smaller than 50 Hz and 0.1 ppm"
+     },
+     "caveat_ko": "79 GHz 반송파, 1 GHz 대역, 프리앰블 기반 추정기. 3.5 GHz 패시브 수신기로 그대로 이식되지 않는다."
+    },
+    {
+     "hz": 60,
+     "who": "Ding et al., IEEE IoT J. 12(17) 2025 (게재), NR 시뮬레이션 설정값",
+     "evidence": {
+      "pdf": "/data/public/OpenISAC/22_Bi-static_ISAC_with_asynchronous_transceivers_Mechanism_solution_and_field_test.pdf",
+      "page": 5,
+      "quote": "the TO and CFO are set to be 7.65 ns and 60 Hz respectively in the simulation."
+     },
+     "caveat_ko": "실측 잔여가 아니라 시뮬레이션에 넣은 값이다."
+    }
+   ],
+   "recomputed_table": [
+    {
+     "illuminator": "WiFi (PRF 1000 Hz, λ=5.755 cm)",
+     "cfo_40": "4.0%",
+     "cfo_50": "5.0%",
+     "cfo_60": "6.0%",
+     "v_bias_at_50hz_ms": 1.44
+    },
+    {
+     "illuminator": "LTE CRS (PRF 1000 Hz, λ=11.5 cm)",
+     "cfo_40": "4.0%",
+     "cfo_50": "5.0%",
+     "cfo_60": "6.0%",
+     "v_bias_at_50hz_ms": 2.88
+    },
+    {
+     "illuminator": "5G SSB (PRF 50 Hz, λ=8.57 cm)",
+     "cfo_40": "80.0%",
+     "cfo_50": "100.0%",
+     "cfo_60": "120.0%",
+     "v_bias_at_50hz_ms": 2.14
+    }
+   ],
+   "headline_ko": "⭐⭐ published 잔여 CFO 값을 쓰면 **5G SSB 패시브 수신기의 잔여 반송파 오프셋이 무모호 도플러 구간 전체와 같거나 그보다 크다**(50 Hz → 100%, 60 Hz → 120%). 도플러축이 '나빠지는' 것이 아니라 **오프셋 제거단 없이는 존재하지 않는다**. 우리가 적어둔 80% 는 하한이었다."
+  },
+  "step3_but_the_architecture_matters": {
+   "our_own_analysis_not_a_citation": true,
+   "argument_ko": "⭐⭐⭐ 이 라운드의 가장 중요한 구분. 20/21/22/24번이 다루는 것은 **단일채널 CSI/통신수신기 기반** 바이스태틱 감지다 — 기준신호가 '복호해서 아는 것' 이라 송신기 LO 와 수신기 LO 의 차이가 그대로 도플러축에 실린다. 우리 구조는 **2채널 패시브 레이더**(기준채널 + 감시채널)이고, CAF 는 χ(τ,f)=∫ r_surv(t)·r_ref*(t−τ)·e^{−j2πft} dt 이다. 두 채널이 같은 LO 로 하향변환되면 조명원의 CFO Δf 는 곱에서 e^{j2πΔf t}·e^{−j2πΔf(t−τ)} = e^{j2πΔf τ} 로 **지연에만 의존하는 상수 위상**이 되어 도플러축에서 완전히 사라진다.",
+   "architectural_anchor": {
+    "who": "Falcone et al. 2010",
+    "evidence": {
+     "pdf": "/data/public/OpenISAC/08_Experimental_results_for_OFDM_WiFi-based_passive_bistatic_radar.pdf",
+     "page": 5,
+     "quote": "The receiving system uses a single fully coherent down conversion stage for the two channels"
+    },
+    "note_ko": "정전 실험이 실제로 두 채널을 **하나의 코히어런트 하향변환단**으로 받았다 — 공통모드 상쇄가 성립하는 조건."
+   },
+   "what_survives_ko": [
+    "(a) 두 수신 체인 사이의 **차등** 위상잡음(같은 LO 면 매우 작다).",
+    "(b) 기준채널 오염(다중경로·잡음) — 패시브 레이더의 진짜 병이고 CFO 가 아니다.",
+    "(c) ⭐ **기준과 감시가 서로 다른 수신기에 있을 때**(=분산 다중 Rx) 비동기가 그대로 되살아난다. 그리고 그것이 바로 문헌이 열린 문제라고 부르는 지점이다."
+   ],
+   "the_open_problem": {
+    "evidence": {
+     "pdf": "/data/public/OpenISAC/21_Sensing_in_bistatic_ISAC_systems_with_clock_asynchronism_A_signal_processing_perspective.pdf",
+     "page": 12,
+     "quote": "To fully exploit the potential of pervasive ISAC, algorithms that combine the information from multiple phase-synchronized Rxs need to be developed."
+    }
+   },
+   "verdict_ko": "⭐ 정확한 우리 입장: **단일 Rx 패시브 챔버 벤치마크는 클록 비동기에 구조적으로 면역**이다(공통모드 상쇄). **다중 Rx 코히어런트 결합 상한(+10log10 N)은 정확히 문헌이 미해결이라고 적은 곳**에 서 있다. report12 의 '이상적 상한' 딱지는 수사가 아니라 문헌이 요구하는 정직성이다.",
+   "self_check_ko": "⚠ 단, 우리 헤드라인 벤치마크는 CAF 를 쓰지 않고 '이상적 기준 정합필터 SNR' 을 쓴다(메모: sionna2-passive-caf-open). 이상적 기준에서는 CFO 가 아예 등장하지 않으므로 위 상쇄 논거는 **구조적 정당화이지 우리 코드가 그것을 보여준 것이 아니다**. src/passive_process.py 의 range_doppler(surv, ref, ...) 는 진짜 2채널 CAF 이므로 구조는 맞다."
+  },
+  "step4_what_the_literature_actually_does": {
+   "taxonomy_ko": "Wu et al. 서베이 표 1 기준 3계열: (I) 오프셋 상쇄 — 공간영역 CACC/CASR(IndoTrack·WiDFS·FarSense·Widar), 지연영역 SHARP; (II) 오프셋 추정·억제 — multiSense 등; (III) 하이브리드 — JUMP(802.11ay 60 GHz).",
+   "evidence": {
+    "pdf": "/data/public/OpenISAC/21_Sensing_in_bistatic_ISAC_systems_with_clock_asynchronism_A_signal_processing_perspective.pdf",
+    "page": 10,
+    "quote": "S: spatial; D: delay; F: frequency; OTA: over the air."
+   },
+   "hardware_route_ko": "GPSDO(5.5 ns, US$1,000) 또는 OctoClock 류 공통 기준분배. 15번은 OctoClock-G CDA-2990 을 쓰되 '없어도 동작한다' 고 명시.",
+   "field_result_ko": "Ding et al. 은 ADD(지연스펙트럼 정렬 + 위상보상)로 cm급 측위를 얻고 완벽동기 기준선에 근접했다. 다만 필드테스트는 TO 를 피하려고 LOS 에서만 했다."
+  },
+  "step5_the_number_the_literature_gives_that_we_did_not_have": {
+   "finding_ko": "⭐⭐ 통신에는 무해한 크기의 타이밍 드리프트가 감지에는 치명적이라는 **실측 문턱값**: 0.0523 ppm.",
+   "evidence": {
+    "pdf": "/data/public/OpenISAC/22_Bi-static_ISAC_with_asynchronous_transceivers_Mechanism_solution_and_field_test.pdf",
+    "page": 14,
+    "quote": "the TD variation is about 0.0523 ppm, which is a very small number and has rare inﬂuences on communication performance. Nevertheless, such a subtle TD can still critically impact on the sensing performance"
+   }
+  }
+ },
+ "adversarial_attacks_on_our_own_work": [
+  {
+   "rank": 1,
+   "target": "WiFi PRF = 1000 Hz (src/waveforms.py PILOT_RATE_HZ, outputs/verify_ambiguity.json wifi prf_hz)",
+   "attack_ko": "⭐ 상용 AP 의 비콘 간격은 100 ms(=10 Hz)이고, 1 ms 비콘은 **실험을 위해 AP 를 재설정했을 때** 나오는 값이다. 게다가 그렇게 설정해도 CSMA 충돌회피 때문에 실제 도착 간격은 평균 1.62~2.31 ms, 최악 7~13 ms 로 흩어진다.",
+   "evidence": [
+    {
+     "pdf": "/data/public/OpenISAC/25_Sencom_Integrated_sensing_and_communication_with_practical_WIFI.pdf",
+     "page": 4,
+     "quote": "sensing only depends on bea- con packets is impractical as the interval between beacon packets is typically set to 100 ms in existing WiFi systems"
+    },
+    {
+     "pdf": "/data/public/OpenISAC/08_Experimental_results_for_OFDM_WiFi-based_passive_bistatic_radar.pdf",
+     "page": 5,
+     "quote": "It was set up to roam for connected devices emitting a regular Beacon signal exploiting an OFDM modulation at 1 ms intervals."
+    },
+    {
+     "pdf": "/data/public/OpenISAC/23_Doppler_frequency_sidelobes_level_control_for_WiFi-based_passive_bistatic_radar.pdf",
+     "page": 4,
+     "quote": "For Experiment A, the mean value of the obtained PRT is 2.31 ms with a standard deviation of 1.77 ms."
+    },
+    {
+     "pdf": "/data/public/OpenISAC/24_Practical_issues_and_challenges_in_CSI-based_integrated_sensing_and_communication.pdf",
+     "page": 3,
+     "quote": "WiFi CSI sampling may suffer from problems of low sampling rate (extracting CSI from AP beacon) or uneven sampling interval (extracting CSI from data frames)."
+    }
+   ],
+   "verdict_ko": "⚠ **BREAK 아님 — 우리는 이미 알고 있었고, 다만 출처가 없었다.** src/viz_report2.py 274-276행에 'WiFi 의 1000 Hz 는 CONGESTED-AP rate 이지 idle 이 아니다; 비콘 전용 WiFi 는 ~9.8 Hz(v_max ~0.14 m/s)로 5G 보다 나쁘다' 는 caveat 이 이미 박혀 있다. 이번 라운드가 한 일은 그 caveat 에 **published 앵커 3개를 붙인 것**이다.",
+   "required_edit_ko": "caveat 문구를 한 낱말 고쳐야 한다: 1 kHz 가 나오는 경로는 '혼잡(congested)' **또는** '재설정(reconfigured)' 두 가지이고 Falcone 2010 은 후자다. 그리고 우리가 아직 모델링하지 않은 것은 **PRT 의 랜덤성 자체**다 — 우리는 균일 PRF 를 쓴다."
+  },
+  {
+   "rank": 2,
+   "target": "검출 벤치마크의 '바닥'을 열잡음으로 놓는 것 (report10 CFAR / report12)",
+   "attack_ko": "거리-도플러 맵의 바닥을 열잡음이 아니게 만드는 **서로 다른 세 기전**이 published 로 있다. (a) DC 부반송파를 비우면 1/N 짜리 상수 spur 바닥이 깔리고 802.11a+해밍에서 동적범위가 **27 dB** 로 묶인다. (b) 희소·불규칙 부반송파 배치(=우리 G1/G2 기준신호의 모양)는 **랜덤한 spur 바닥**을 만들고 그 모양은 어느 부반송파를 골랐는지에 따라 달라진다. (c) 랜덤 데이터 심볼은 pedestal 을 만드는데 **순환상관 계열 수신기가 아니면 백색이 아니고**, 강한 확장 클러터에서는 열잡음보다 약 20 dB 높다.",
+   "evidence": [
+    {
+     "pdf": "/data/public/OpenISAC/29_OFDM_radar_algorithms_in_mobile_communication_networks.pdf",
+     "page": 87,
+     "quote": "For a Hamming window and the carrier setup of IEEE 802.11a, PSR is approx. 27 dB. This was ﬁrst observed (but not explained) by Falcone et al."
+    },
+    {
+     "pdf": "/data/public/OpenISAC/29_OFDM_radar_algorithms_in_mobile_communication_networks.pdf",
+     "page": 91,
+     "quote": "Unlike with the missing DC carrier, the exact shape of the spur ﬂoors is random as it depends on the choice of"
+    },
+    {
+     "pdf": "/data/public/OpenISAC/30_Comparison_of_correlation-based_OFDM_radar_receivers.pdf",
+     "page": 7,
+     "quote": "whiteness is veriﬁed only for the PMF-CC and PRF-CC"
+    },
+    {
+     "pdf": "/data/public/OpenISAC/30_Comparison_of_correlation-based_OFDM_radar_receivers.pdf",
+     "page": 12,
+     "quote": "the average pedestal level exceeds −110 dB for all filters, that is roughly 20 dB more than the theoretical postprocessing white noise power"
+    }
+   ],
+   "verdict_ko": "⚠ **부분적으로 이미 방어됨.** outputs/verify_cfar.json 을 열어보니 우리 CFAR 는 백색잡음 위에서만 교정한 것이 아니라 **실제 파형 + DPI(DNR 41.6 dB) + ECA 를 통과한 체인 맵 10,000장**으로 경험 Pfa 를 잰다. whitened-MF / rect-window 두 대조군까지 두어 '어긋남의 원인이 RD 맵 셀간 상관' 임을 증명해 두었다. (a)(b)는 실제 파형을 합성하는 한 자동으로 맵에 들어와 있다.",
+   "what_is_genuinely_missing_ko": "⭐ 남는 구멍 하나: 체인 맵은 **H0(표적 없음)** 이다. Mercier 의 pedestal 은 **표적/클러터 자신의 전력에 비례**하므로 H0 맵에는 없다. 강한 표적이나 강한 바닥유령이 자기 pedestal 로 근처 셀의 문턱을 밀어올리는 효과는 우리 Pd 계산에 없다. 무향실이라 작을 가능성이 높지만 **'작다' 고 말하려면 재봐야 한다**.",
+   "actionable_ko": "verify_cfar 에 '강한 표적 1개 + 그 pedestal' 조건의 맵을 추가하는 실험 하나면 정리된다.",
+   "correction_applied_ko": "⚠ 정정(2차 확인): (c) 데이터 심볼 pedestal 은 **CP-OFDM + 정모듈러(PSK) 기준신호에서는 사라진다**(Liu et al. 정리 1: EISL 하한 (μ4−1)N(N−1), PSK 는 μ4=1 → 0). 우리 G1/G3 기준신호는 결정적 PSK 계열이므로 (c)는 우리를 거의 때리지 못한다. 실제로 남는 것은 (a) DC-spur 바닥과 (b) 희소·불규칙 배치의 랜덤 spur 바닥이다."
+  },
+  {
+   "rank": 3,
+   "target": "다중 Rx 코히어런트 결합 상한 +10log10(N) (report12)",
+   "attack_ko": "위상동기된 다중 Rx 의 코히어런트 결합은 **문헌이 아직 개발되어야 한다고 적은 열린 문제**다. 서베이의 미래 연구 절 제목이 그대로 'Coherently Combine Multiple Rxs' 다.",
+   "evidence": [
+    {
+     "pdf": "/data/public/OpenISAC/21_Sensing_in_bistatic_ISAC_systems_with_clock_asynchronism_A_signal_processing_perspective.pdf",
+     "page": 12,
+     "quote": "To fully exploit the potential of pervasive ISAC, algorithms that combine the information from multiple phase-synchronized Rxs need to be developed."
+    }
+   ],
+   "verdict_ko": "우리 표기(이상적 상한)가 옳다. 다만 본문에서 '상한' 이라는 낱말을 절대 빼면 안 되고, 근거로 이 서베이를 달아야 한다. 그 위치가 클록 비동기가 되살아나는 지점이라는 것도 함께 적어야 한다."
+  },
+  {
+   "rank": 4,
+   "target": "σ 앵커링에 드론 실측 문헌을 끌어올 때",
+   "attack_ko": "IEEE TMTT 의 드론 실측(DJI Inspire-2, 40 m, NR 40 MHz)은 드론이 **레트로리플렉터를 달고** 있었다. 맨몸 기체의 산란이 아니다.",
+   "evidence": [
+    {
+     "pdf": "/data/public/OpenISAC/07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf",
+     "page": 8,
+     "quote": "together with a drone (DJI Insipire-2) carrying a retro-reﬂector"
+    }
+   ],
+   "verdict_ko": "이 편을 'OFDM 파형으로 드론을 검출한 실측' 으로 인용하는 것은 정당하지만 **RCS 앵커로 쓰면 안 된다**. 우리 σ 앵커 목록에 들어가면 즉시 오류다."
+  },
+  {
+   "rank": 5,
+   "target": "실측 계획(docs/MEASUREMENT_PLAN.md, X410 4RX)",
+   "attack_ko": "⭐ 같은 하드웨어(USRP X410, 최대 23 dBm)로 5G 모노스태틱 ISAC 을 한 두 편이 **두 번 다 실제 표적 반향을 못 잡아** 한 번은 수치 합성 주입으로, 한 번은 Keysight PROPSIM 채널 에뮬레이터로 도망갔다.",
+   "evidence": [
+    {
+     "pdf": "/data/public/OpenISAC/16_Downlink_ISAC_with_a_full-stack_5G-compliant_experimental_testbed_Communication_vs._contro.pdf",
+     "page": 3,
+     "quote": "the power limitations of the SDR hardware — resulting in target reflections that are too weak to be reliably detected"
+    },
+    {
+     "pdf": "/data/public/OpenISAC/15_5G-compliant_integrated_sensing_and_communication_at_sub-6_GHz_Experiments_with_SDRs_and_O.pdf",
+     "page": 5,
+     "quote": "we synthetically add Ntarget target returns in the received signal"
+    }
+   ],
+   "verdict_ko": "⚠ 우리 실측 링크버짓에 대한 가장 구체적인 경고다. 저들은 30 dBi 안테나·RCS 10 m² 를 가정하고도 실물로 못 잡았다. 우리 표적(드론 RCS ≈ −10 dBsm 급)은 그보다 40 dB 작다. '외부 필드테스트 + 실제 드론' 은 이 두 편보다 훨씬 어려운 조건이라는 것을 계획서에 명시해야 한다.",
+   "caveat_ko": "⚠ 공정하게: 저들은 모노스태틱 full-duplex(자기간섭 지옥)이고 우리는 패시브 바이스태틱이라 SI 문제가 없다. 저들의 제약은 '실험실 크기' 이기도 하다. 그래도 X410 23 dBm 이라는 공통 숫자는 남는다."
+  },
+  {
+   "rank": 6,
+   "target": "WiFi 파형의 도플러 사이드로브를 균일 PRF 의 sinc 로 두는 것",
+   "attack_ko": "실측 WiFi 는 PRT 가 랜덤이라 도플러 응답이 sinc 가 아니고 6 dB/octave 로 떨어지지도 않는다. ±8 m/s 에 강한 모호가 서고 해밍창으로도 PSR 12 dB 밖에 안 나온다(이론 43 dB).",
+   "evidence": [
+    {
+     "pdf": "/data/public/OpenISAC/23_Doppler_frequency_sidelobes_level_control_for_WiFi-based_passive_bistatic_radar.pdf",
+     "page": 4,
+     "quote": "gives rise to a strong ambiguity corresponding to a monostatic velocity of about ±8 m/s with a PSR of 12 dB"
+    }
+   ],
+   "verdict_ko": "우리 WiFi 검출 성능은 이 항목에서 낙관적일 가능성이 있다. 다만 우리 기준신호는 비콘이 아니라 VHT-LTF 프리앰블이고 CPI 안에서 균일 PRF 를 가정한 것이므로, 정직한 문장은 '우리 WiFi 숫자는 균일-PRT 이상화 아래의 값이다' 이다."
+  }
+ ],
+ "corroborations_of_our_work": [
+  {
+   "rank": 1,
+   "our_claim": "점유 대가 ≈ 18 dB (report5) / G1(nr) occupancy_frac = 1.447%",
+   "independent_number_ko": "⭐⭐⭐ Carbonara et al. 2026 의 5G 풀스택 실측: 상시 제어신호(SIB tda=5)가 통신신호 대비 부반송파 17% × OFDM 심볼 8% = **1.31%** → 10log10(1/0.0131) = **18.8 dB**. 우리 1.447% → 18.4 dB.",
+   "evidence": {
+    "pdf": "/data/public/OpenISAC/16_Downlink_ISAC_with_a_full-stack_5G-compliant_experimental_testbed_Communication_vs._contro.pdf",
+    "page": 6,
+    "quote": "which amounts to only 17% of the active subcarriers and 8% of the OFDM symbols used by the communication signals."
+   },
+   "apples_to_apples_check_ko": "⚠ 단서 3개. (1) 분모가 다르다 — 저들 분모는 '통신 프레임(3276×156)', 10 ms 격자 전체(3276×280)로 바꾸면 0.73% → 21.4 dB. (2) 저들 상시신호는 SSB 단독이 아니라 SSB+CORESET#0+SIB1 묶음. (3) 저들 본문 개괄값 '제어 10-15% vs 페이로드 85%'(=8.3 dB)는 자기 실측값과 자릿수가 다르다. 결론은 '**두 독립 산정이 18~21 dB 대에 함께 떨어진다**' 이지 '18 dB 가 일치한다' 가 아니다."
+  },
+  {
+   "rank": 2,
+   "our_claim": "희소 기준의 대가 = 10log10(1/점유율)",
+   "independent_number_ko": "Brunner 표 II: 처리이득 48.80 dB(파일럿) vs 60.21 dB(풀프레임) = 11.41 dB. 파일럿 밀도 1/(Nf·Mt)=1/14 → 10log10(14) = 11.46 dB. **0.05 dB 안에서 일치**.",
+   "evidence": {
+    "pdf": "/data/public/OpenISAC/20_Bistatic_OFDM-based_ISAC_with_over-the-air_synchronization_System_concept_and_performance_.pdf",
+    "page": 5,
+    "quote": "However, the processing gain is reduced, as well as the unambiguous range and Doppler shift."
+   }
+  },
+  {
+   "rank": 3,
+   "our_claim": "패시브는 PRF 를 못 고른다(무모호 속도의 '점 하나')",
+   "independent_ko": "⭐ 2010년 Falcone 이 한 문장으로 적어 두었다: 낮은 등가 PRF 가 만드는 도플러 모호는 tapering 으로 못 잡고, 그 PRF 는 '레이더 설계자의 통제 밖' 이다.",
+   "evidence": {
+    "pdf": "/data/public/OpenISAC/08_Experimental_results_for_OFDM_WiFi-based_passive_bistatic_radar.pdf",
+    "page": 4,
+    "quote": "such tapering functions are ineffective against Doppler ambiguities resulting from a large temporal separation between the integrated pulses, namely a low equivalent PRF, which is not within the control of the radar designer"
+   }
+  },
+  {
+   "rank": 4,
+   "our_claim": "'상시 기준신호' 서사(LTE CRS vs 5G SSB, PRS 는 세션 옵션)",
+   "independent_ko": "Zhang et al. 2022 가 SSB 를 명시적으로 'always-on' 이라 부르고 감지 샘플률 = SSB 주기라고 적는다. Carbonara 2026 은 제목에서부터 always-on control signals 로 부른다.",
+   "evidence": {
+    "pdf": "/data/public/OpenISAC/24_Practical_issues_and_challenges_in_CSI-based_integrated_sensing_and_communication.pdf",
+    "page": 3,
+    "quote": "For SSB, since it is an “always-on” signal, CSI sampling depends on the conﬁgured SSB periodicity."
+   }
+  },
+  {
+   "rank": 5,
+   "our_claim": "CFAR 는 명목이 아니라 경험 분포로 교정해야 한다",
+   "independent_ko": "Carbonara 2026 이 카이제곱 가정을 버리고 잡음영역에서 CDF 를 경험 추정해 문턱을 세운다. Braun 2014 은 오경보율의 시간축을 '프레임당' 으로 정의하고 Pfa=1-(1-Pfa_bin)^{NM} 을 준다.",
+   "evidence": {
+    "pdf": "/data/public/OpenISAC/16_Downlink_ISAC_with_a_full-stack_5G-compliant_experimental_testbed_Communication_vs._contro.pdf",
+    "page": 3,
+    "quote": "we instead adopt a distribution-agnostic approach and treat the distribution of z as unknown; accordingly, the CDF Fz (and thus its inverse) will be empirically estimated from the periodogram"
+   }
+  },
+  {
+   "rank": 6,
+   "our_claim": "ECA 탭 길이가 눈먼 최소거리를 만든다",
+   "independent_ko": "Carbonara 2025 의 SI 제거 필터 메모리 K 가 c/2·K/fs 까지 통째로 지우고 K=20(fs=122.88 MHz)에서 20 m 표적이 사라진다. 같은 구조.",
+   "evidence": {
+    "pdf": "/data/public/OpenISAC/15_5G-compliant_integrated_sensing_and_communication_at_sub-6_GHz_Experiments_with_SDRs_and_O.pdf",
+    "page": 5,
+    "quote": "the latter cancels contributions from ranges up to approximately"
+   }
+  },
+  {
+   "rank": 7,
+   "our_claim": "LTE 거리분해능 8.3 m (SPECS)",
+   "independent_ko": "Baquero Barneto 표 I(3.5 GHz, LTE 20 MHz, 통과대역 18 MHz): Distance resolution 8.3 m. 모노스태틱 c/2B 규약으로 정확히 일치.",
+   "evidence": {
+    "pdf": "/data/public/OpenISAC/07_Full-duplex_OFDM_radar_with_LTE_and_5G_NR_waveforms_Challenges_solutions_and_measurements.pdf",
+    "page": 4,
+    "quote": "Distance resolution (m)"
+   }
+  }
+ ],
+ "other_open_questions_touched": {
+  "Q_A_ziganshin_objection": {
+   "half_1_shadow_region": {
+    "new_material_ko": "⭐ **대칭 반박 재료**: 스톡 Sionna RT 도 1차 회절까지만 지원하고, 고차 회절의 전계 계산은 엔진 저자들 스스로 '열린 문제' 라고 적는다. 즉 '그림자 영역을 못 낸다' 는 SBR+PO 만의 죄가 아니다.",
+    "evidence": [
+     {
+      "pdf": "/data/public/OpenISAC/19_Sionna_RT_Technical_Report.pdf",
+      "page": 29,
+      "quote": "The path solver supports only first-order diffraction and does not handle paths that contain both diffraction and diffuse reflection."
+     },
+     {
+      "pdf": "/data/public/OpenISAC/19_Sionna_RT_Technical_Report.pdf",
+      "page": 30,
+      "quote": "calculating the electric field along these high-order diffraction paths remains an open problem, and as a result, high-order diffraction is not currently supported."
+     }
+    ],
+    "caveat_ko": "⚠ 엔진 저자들의 '무시할 만하다' 는 **통신 CIR** 에 대한 말이지 표적 RCS 에 대한 말이 아니다. 이 구분을 빼고 인용하면 새 철회거리가 된다.",
+    "evidence_for_caveat": {
+     "pdf": "/data/public/OpenISAC/19_Sionna_RT_Technical_Report.pdf",
+     "page": 29,
+     "quote": "these mixed paths typically transport a negligible amount of energy and therefore have little impact on the accuracy of the"
+    }
+   },
+   "half_2_runtime": {
+    "new_material_ko": "이 선반에는 SBR+PO 캐스케이드의 런타임을 직접 재는 편이 없다. Ziganshin 의 런타임 절반은 이번 라운드로 **여전히 답할 수 없다**.",
+    "status": "UNANSWERED"
+   }
+  },
+  "Q_B_runtime_baselines": {
+   "new_source_ko": "⭐ 4번째(그리고 가장 권위 있는) 출처 = Sionna RT 공식 기술보고서. RTX 4090 한 장에서 라디오맵 솔버가 10⁹ 샘플까지 돌고 가장 힘든 설정에서만 1초를 넘는다. 경로 솔버는 소스/타깃 10³ 규모에서 그림 축이 0-200 ms / 0-300 ms.",
+   "evidence": {
+    "pdf": "/data/public/OpenISAC/19_Sionna_RT_Technical_Report.pdf",
+    "page": 37,
+    "quote": "The computation time increases with both the number of samples and antennas, exceeding one second only for the most demanding computations."
+   },
+   "status_ko": "그림 축 값은 눈으로 읽은 것이라 reconstructed. 기존 3개 출처(DeepRT-E Table I, oneTwin p8, Luo p5)의 0.06-0.29 s/pose 와 같은 자릿수라는 데까지만 말할 수 있다."
+  },
+  "Q_C_PTD": {
+   "new_material_ko": "없음. 이 선반에 PTD/GTD/UTD 를 다루는 편이 없다.",
+   "status": "UNTOUCHED"
+  },
+  "Q_E_samczynski": {
+   "status_ko": "미확보 유지. 다만 **같은 종류의 새 미확보 리드 하나를 발견**했다 — G. Liu et al., 'Cooperative sensing for 6G mobile cellular networks: Feasibility, performance, and field trial,' IEEE JSAC 42(10):2863-2876, Oct. 2024. Ding et al.(22번)이 '**바이스태틱 RCS 가 모노스태틱보다 큰 경우가 많다**' 는 주장의 유일한 근거로 이것을 인용한다. 우리 RCS 방법론(현재 모노스태틱 PO 만)에 직결되므로 우선순위가 높다.",
+   "evidence": {
+    "pdf": "/data/public/OpenISAC/22_Bi-static_ISAC_with_asynchronous_transceivers_Mechanism_solution_and_field_test.pdf",
+    "page": 1,
+    "quote": "bi-static sensing can beneﬁt from improved received power of sensing signal, due to the larger radar cross section (RCS) compared with mono-static sensing in many scenar-"
+   },
+   "also_seen_in_archive_ko": "패시브 5G 드론 탐지 편이 아카이브에 이미 하나 있다: /data/public/jeong/papers/5G/25_UAV Intrusion Detection with Passive Radar Based on the 5G Network.pdf — 이 선반 밖이라 이번 과제 범위는 아니지만 backlog 우선순위에 올릴 값어치가 있다."
+  },
+  "Q_F_3gpp_specs": {
+   "status_ko": "이 선반에 38.331/38.214 원문이 없다. 24번이 'gNB 가 CSI-RS·SSB 주기를 유연하게 설정한다' 고만 적어 R2(500 Hz 천장)를 지지도 반박도 하지 않는다.",
+   "status_flag": "UNTOUCHED"
+  }
+ },
+ "method_traps_found": [
+  "⚠ 추출 텍스트에 NUL 바이트가 섞이면 `grep` 이 파일을 바이너리로 보고 **아무 것도 출력하지 않는다**(오류도 안 낸다). 07번 파일에 'drone' 이 14회 있는데 grep 이 0건을 냈다. `grep -a` 를 쓰거나 파이썬으로 세야 한다. grep 0건을 '없음' 으로 읽는 것이 이번 라운드에서 가장 가까웠던 실수다.",
+  "⚠ 34번 PDF 1쪽에는 Quinn(1994) 논문의 시작과 **앞 논문(순환정상성 블라인드 채널식별)의 결론절**이 함께 실려 있다. 그 쪽에서 뜬 인용문은 기계 검사기에서 verbatim 을 받지만 저자 귀속은 틀린다. 학술지 PDF 에서 논문 경계가 쪽 중간에 있으면 전부 이 위험이 있다.",
+  "⚠ 22번의 표 II·표 IV, 07번의 그림, 32/33번의 수식은 **이미지로 조판**되어 텍스트 레이어에 없다. 이 값들은 인용문으로 세울 수 없고 reconstructed 로만 기록해야 한다.",
+  "⚠ 선반 README 가 28편 전부를 게재 DOI 와 함께 ✅ 로 적었으나 **8편은 arXiv 프리프린트 PDF** 다. 쪽번호가 게재본과 다르므로 게재본 쪽번호를 붙이면 즉시 검증 실패한다.",
+  "⚠ 용어계수 트리아지의 오탐: 21번의 drone_small=18 은 전부 'micro-Doppler'(사람 대상) 매칭, 07번의 uav=1 은 참고문헌 제목이었다. 용어 계수는 인용과 계산을 구별하지 못한다(backlog 의 알려진 결함이 여기서도 재현)."
+ ],
+ "headline_ko": [
+  "⭐ BREAK 보고: H8·C2 는 깨지지 않았다. **C4 는 크게 좁혀졌다** — '교정된 오경보율에서의 통제된 파형 비교' 자체는 2019년 IEEE TMTT(LTE/NR 4종, PFA,tot=10%)와 2026년 IEEE 실측(상시 vs 통신, Pfa=1e-3)이 이미 했다. 우리에게 남는 문장은 '**서로 다른 조명원**을 **패시브 바이스태틱** 기하 위에서 교정된 오경보율로 나란히 놓은 연구가 없다' 뿐이며, 세 낱말이 전부 load-bearing 이다.",
+  "⭐⭐⭐ 이번 라운드 최대 수확 — Carbonara et al.(IEEE 2026, 게재)이 5G 풀스택 실측 테스트베드에서 **상시(control) 신호 vs 통신(payload) 신호**를 다중표적 검출로 비교했고, 그 자원 비율이 부반송파 17% × 심볼 8% = 1.31% → **18.8 dB**. 우리 G1 점유율 1.447% → 18.4 dB. 두 독립 산정이 18~21 dB 대에 함께 떨어진다(분모 규약 차이는 단서로 기록).",
+  "⭐⭐ 클록 비동기 질문의 답은 '고쳐라' 가 아니라 '**구조가 다르다**' 였다. 20/21/22/24번이 다루는 것은 기준이 '복호해서 아는 것' 인 단일채널 CSI 기반 감지다. 우리는 2채널 패시브 레이더이고 CAF 에서 조명원 CFO 는 두 채널 공통이라 e^{j2πΔfτ}(지연 의존 상수 위상)로 축약되어 **도플러축에서 사라진다**. Falcone 2010 이 실제로 두 채널을 하나의 코히어런트 하향변환단으로 받았다.",
+  "⭐⭐ 그 면역이 끝나는 지점이 정확히 우리 다중 Rx 상한이다. Wu et al.(IEEE SPM 2024)의 미래 연구 절 제목이 그대로 'Coherently Combine Multiple Rxs' 이고 '아직 개발되어야 한다' 고 적혀 있다. report12 의 +10log10(N) 에서 '이상적 상한' 딱지를 떼면 안 되는 published 근거가 생겼다.",
+  "⭐⭐ 우리 4%/80% 를 역산하면 가정된 잔여 CFO 는 정확히 40 Hz 다. published 값 둘이 그 위를 감싼다 — Brunner 의 OTA 동기 후 잔여 <50 Hz, Ding 의 NR 시뮬 설정 60 Hz. 그 값을 쓰면 **5G SSB 의 잔여 CFO 가 무모호 도플러 구간 전체와 같거나(100%) 그보다 크다(120%)**. 우리 80% 는 하한이었다.",
+  "⭐⭐ WiFi PRF 1000 Hz 는 '기회의 조명원' 값이 아니다. 상용 AP 비콘 간격은 100 ms(10 Hz)이고, Falcone 2010 은 AP 를 1 ms 비콘으로 **재설정**했으며, 그래도 실측 PRT 는 평균 1.62~2.31 ms·최악 7~13 ms 로 흩어졌다. ⚠ 다만 우리 src/viz_report2.py 에 '비콘 전용이면 ~9.8 Hz' caveat 이 이미 있었다 — 이번에 붙인 것은 그 caveat 의 **출처 3개**다.",
+  "⭐⭐ Braun(KIT 학위논문 2014)이 Falcone(2010)의 미해결 관측을 유도해 놓았다: **DC 부반송파를 비우면 1/N 짜리 상수 spur 바닥**이 깔리고 802.11a+해밍에서 peak-to-spur = 약 27 dB 가 동적범위의 천장이 된다. 그리고 **불규칙·희소 부반송파 배치(= 우리 G1/G2 기준신호)는 랜덤한 spur 바닥**을 만든다. 계보가 이 선반 안에서 닫힌다.",
+  "⭐ 우리 CFAR 는 이 공격을 대체로 견딘다 — 실제 파형 + DPI(41.6 dB) + ECA 를 통과한 체인 맵 10,000장으로 경험 Pfa 를 재고 대조군 둘을 두었다. 진짜 남는 구멍은 하나: 체인 맵이 H0 라서 **표적 자신의 pedestal**(Mercier: 순환상관 아니면 비백색, 강클러터에서 열잡음+20 dB)이 없다. 실험 하나면 정리된다.",
+  "⭐⭐ 실측계획 경고 — 같은 USRP X410(23 dBm)으로 5G 모노스태틱을 한 두 편이 **둘 다 실제 표적 반향을 못 잡아** 수치 합성 주입과 Keysight 채널 에뮬레이터로 물러섰다. 저들은 30 dBi 안테나·RCS 10 m² 를 가정하고도 그랬다. 우리 드론은 40 dB 작다.",
+  "⭐ '같은 대역폭이면 LTE 와 NR 은 성능이 같다'(TMTT 2019, LTE20 곡선을 아예 뺐다). 따라서 우리 report12 헤드라인의 참인 형태는 '표준이 다르면 다르다' 가 아니라 '**쓸 수 있는 상시 기준신호의 점유가 다르면 다르다**' 이다.",
+  "⭐ 드론 관련 정정: TMTT 2019 는 DJI Inspire-2 를 40 m 에서 재고 실측 ROC 까지 그렸다 — 다만 **레트로리플렉터를 달았다**. 'OFDM 파형 드론 검출 실측' 으로는 인용해도 되지만 **σ 앵커로 쓰면 즉시 오류**다. 프로펠러 마이크로도플러는 같은 측정에서 실제로 관측됐다.",
+  "⚠ 기록물 정정 — OpenISAC/README.md 가 28편 전부를 게재 DOI 와 ✅ 로 적었으나 **8편(02·03·06·07·09·18·20·24)은 arXiv 프리프린트 PDF** 다. 2편(05·33)은 텍스트 레이어가 없어 인용 불가. 그리고 34번은 1쪽에 앞 논문 결론절이 섞여 있어 조용한 오귀속 위험이 있다.",
+  "⚠ 자기정정 1건 — 초안에서 '데이터 심볼 pedestal 바닥 = peak 대비 1/N' 이라고 적었다가 원문을 다시 열어 그것이 **CP-SC 값**이고 CP-OFDM 은 (μ4−1)N(N−1)(PSK 면 0)임을 확인해 고쳤다. 우리 기준신호가 결정적 PSK 계열이라 이 정정은 우리에게 유리하다. 남는 위협은 Braun 의 DC-spur/희소배치 spur 쪽이다."
+ ],
+ "status": "COMPLETE — 28편 트리아지 완료, 15편 쪽 단위 정독(ON-AXIS 12편 전부), 인용문 전부 기계 검사 통과"
+}

@@ -68,7 +68,27 @@ _BAND_BY_STD = {"lte": BANDS[0], "nr": BANDS[1], "wifi": BANDS[2]}
 
 AZ_GRID = np.arange(0.0, 360.0, 3.0)          # 0…357°, 3° (120점) — 스펙 §6.1
 # el 음수 확정(★A2/S8): 지상 TX/RX + 공중 표적 이등분선 el 전구간 음수. 유효도메인에 조밀.
-EL_GRID = np.array([0.0, -0.5, -1.0, -2.0, -3.5, -5.0, -8.0, -12.0, -20.0])
+#
+# ⭐ 2026-08-03 **고도축 확장 — −20° 클램프 제거** (φ 스윕 라운드가 찾은 결함)
+#   무엇이 문제였나 : 격자가 −20° 에서 끊겨 있었는데 소비자의 이등분선 앙각은 훨씬 아래로
+#     내려간다. 공표된 φ 스윕(L=500 m·alt=60 m·d 100…20 km·φ 전주기)에서 **조회의 11.9 %**,
+#     고도 120 m 변형에서는 **23.7 %** 가 −20° 밖이었고 전부 −20° 행으로 **말없이 클램프**됐다
+#     (최저 −88.1°, d=100 m·φ=180°). `experiment_freespace_range._sigma_at` 이 그 사실을
+#     세기만 하고 값은 그대로 썼다.
+#   새 점을 왜 여기 두는가 (근거는 측정 두 가지, 짐작 아님)
+#     ① 조회밀도 : −20° 밖 조회의 31 % 가 [−25,−20), 17.6 % 가 [−30,−25) 에 몰린다. 위쪽은
+#        촘촘히(4°), 가운데는 7° 로 벌린다.
+#     ② σ(el) 곡률 : 2.5° 미세 스캔(outputs/partial/sigma_regen_0803/probe)에서 −20~−60° 는
+#        2.5° 당 0.2~1 dB 로 완만하지만 −78° 아래는 천정 실루엣이 급변해 2.5° 당 4~10 dB 까지
+#        뛴다. 그래서 −78° 아래는 3° 로 다시 좁힌다.
+#   +el 을 넣지 않는 이유 : 표적이 조명원 마스트(25 m)와 수신기(3 m) **둘 다보다 높으면**
+#     이등분선 z 성분이 항등적으로 음수다(관측 최대 −0.13°). +el 은 표적 고도가 25 m 아래로
+#     내려갈 때만 생기는데 report13 장면은 그런 고도를 쓰지 않는다.
+#   ⚠ el=−90° 행은 시선벡터가 방위와 무관해(û=(0,0,−1)) **한 값이 az 전체에 복제**된다.
+#     모노스태틱 물리로는 옳지만 방위평균이 없는 행이라 방위 통계를 인용하면 안 된다.
+EL_GRID = np.array([0.0, -0.5, -1.0, -2.0, -3.5, -5.0, -8.0, -12.0, -20.0,
+                    -24.0, -28.0, -33.0, -38.0, -44.0, -50.0, -57.0, -64.0,
+                    -71.0, -78.0, -81.0, -84.0, -87.0, -90.0])
 N_F = 3                                        # 반송파 ±1.5% 3점 대역평균 (스펙 §6.1)
 FRAC_BW = 0.015                                # ±1.5%
 DIV = 16                                       # ★report2 와 div=16 일치(A17)
@@ -168,6 +188,166 @@ def _sigma_grid_one(drone, fc, bw, az_grid, el_grid, n_f=N_F, div=DIV,
 
 def _dbsm(x):
     return float(10.0 * np.log10(np.maximum(x, 1e-30)))
+
+
+# --------------------------------------------------------------------------- #
+#  ⭐ 측정 앵커 → 검출사슬 (결함 D-B 수리, 2026-08-03)
+# --------------------------------------------------------------------------- #
+#  왜 이 절이 생겼나 — **앵커는 리포트 계층에만 있었다.**
+#    `src/experiment_freespace_sigma.py` 와 `src/experiment_freespace_range.py` 에
+#    `sigma_anchor` 참조가 **0건**이었다. 즉 "앵커링된 밴드 비교" 는 리포트의 참이고
+#    검출수치(R90)의 거짓이었다. 생산 σ 는 우리 PO 원시출력 그대로였다.
+#
+#  ■ 어떻게 도달시키나 — **σ 격자에 밴드당 스칼라 Δ_b 를 실어 보낸다**
+#    앵커 분해형은 `σ(f,φ,θ) = A(f)·B1(φ,θ)·B2` 다(`src/sigma_anchor.py`). 재보정은
+#    **밴드당 스칼라 곱** 하나이므로 밴드 안의 각도구조·널 위치·정규화 잔차분포(B1·B2)는
+#    비트단위로 불변이다. 그래서 σ 격자 JSON 에 `anchor.delta_db[drone][band]` 를 add-only
+#    로 실으면 소비자(`experiment_freespace_range._sigma_at`)는 조회값에 곱하기만 하면 된다.
+#    ⇒ 앵커가 **el 격자 전체**(우리 배(belly) 시선 포함)에 같은 스칼라로 걸린다. 이것이
+#      "각도패턴은 우리 기하, 레벨·기울기는 측정" 이라는 분해형의 정의 그대로다.
+#
+#  ■ ⚠⚠ **두 가지(branch)를 반드시 함께 들고 다닌다** (2026-08-03 검증 워크플로 정정)
+#    Das μ 를 우리 선형평균 규약으로 옮기는 +2.5068 dB(=10/ln10·γ, 지수분포/Swerling I·II)를
+#    "근거 없으니 끄라" 던 지시가 **그 자체로 틀렸다**:
+#      · 넣으면 Das↔Yuan 이 우리 대역에서 0.25 dB 안에서 일치한다.
+#      · 빼면 2.26~2.39 dB 어긋난다(같은 원자료인데!).
+#      · Yuan Fig 6a 의 Rician K 가 −10 dB 아래 = 사실상 지수분포 = +2.5068 이 정확한 자리.
+#    그래도 **조용한 단일값은 금지**다. `conv_on`/`conv_off` 두 갈래를 항상 같이 낸다.
+#    ★그리고 이 갈래는 **순위를 바꿀 수 없다** — 아래 `ANCHOR_BRANCH_NOTE` 참조.
+ANCHOR_MODE_DEFAULT = "slope_only"          # R4: 레벨은 우리 것 보존, 기울기만 측정 (크기가정 불필요)
+ANCHOR_MODES = ("slope_only", "level_and_slope")
+ANCHOR_BRANCHES = ("conv_on", "conv_off")   # +2.5068 dB 규약변환 켬/끔
+ANCHOR_BRANCH_DEFAULT = "conv_on"
+ANCHOR_EL_REF_DEG = 0.0                     # Δ_b 를 재는 앙각 컷 (앵커의 방위면과 고도정합)
+
+ANCHOR_BRANCH_NOTE = (
+    "The +2.5068 dB statistic-convention offset is a PURE LEVEL knob: it enters anchor_mu_dbsm "
+    "as the same constant in every band. Under mode='slope_only' the production default it "
+    "cancels EXACTLY (target = mu_anchor + (mean(mu_our) - mean(mu_anchor))), so both branches "
+    "give bit-identical deltas. Under 'level_and_slope' it shifts every band by the same "
+    "+2.5068 dB, i.e. it moves absolute R but cannot change which waveform wins. Report both "
+    "branches anyway and lead with the slope, where it cancels.")
+
+
+def _anchor_target_dbsm(f_ghz, mu_our_dbsm, drone_key, mode, branch, anchor_name,
+                        size_law="L2", allow_extrapolation=False):
+    """(내부) 재보정 목표 레벨 A(f) [dBsm] — `sigma_anchor.relevel` 의 target 식을 갈래별로.
+
+    `relevel()` 은 `to_linear_mean=True` 를 하드코딩하므로 `conv_off` 갈래를 낼 수 없다.
+    그래서 target 식만 여기서 갈래별로 만들고, `conv_on` 결과가 `relevel()` 과 같은지
+    `anchor_deltas()` 가 **매번 대조**한다(우리 계산이 아니라 생산함수가 정답이다)."""
+    import sigma_anchor as SA
+    f = np.asarray(f_ghz, float)
+    mu_a = np.asarray(SA.anchor_mu_dbsm(f, anchor=anchor_name,
+                                        to_linear_mean=(branch == "conv_on"),
+                                        allow_extrapolation=allow_extrapolation), float)
+    mu_our = np.asarray(mu_our_dbsm, float)
+    if mode == "slope_only":
+        return mu_a + (mu_our.mean() - mu_a.mean()), 0.0
+    dsize = float(SA.size_correction_db(drone_key, size_law, SA.ANCHORS[anchor_name]["D_ref_m"]))
+    return mu_a + dsize, dsize
+
+
+def anchor_deltas(grid, drones=None, bands=None, el_ref_deg=ANCHOR_EL_REF_DEG,
+                  modes=ANCHOR_MODES, branches=ANCHOR_BRANCHES, anchor_name=None,
+                  size_law="L2", use_smooth=True) -> dict:
+    """⭐ σ 격자 → **밴드당 재보정량 Δ_b [dB]** (두 갈래 × 두 모드). GPU 불필요.
+
+    인자
+      grid : `build_sigma_grid()["grid"]` 또는 산출물 JSON 의 `sigma.grid`
+      el_ref_deg : Δ 를 재는 앙각 컷. 기본 0° — 앵커가 방위면 측정이라 **고도정합**이 된다
+                   (`sigma_anchor.ANCHORS['yuan_phantom3_azplane'].elevation`). 곱은 스칼라라
+                   격자 전체 el 에 같은 값이 걸린다(분해형 정의).
+    반환 dict:
+      by_drone[drone][mode][branch] = {delta_db{band}, mu_our_dbsm{band}, mu_after_dbsm{band},
+                                       slope_before/after/anchor_db_per_ghz, size_correction_db}
+      relevel_crosscheck : 생산함수 `sigma_anchor.relevel` 과의 최대 |Δ| [dB] (0 이어야 한다)
+      branch_cancellation : 갈래 차 |Δ_on − Δ_off| 의 모드별 최대 [dB]
+    """
+    import sigma_anchor as SA
+    anchor_name = anchor_name or SA.DEFAULT_ANCHOR
+    drones = list(drones or grid.keys())
+    out, xchk, bcan = {}, [], {m: [] for m in modes}
+    for dr in drones:
+        node = grid.get(dr)
+        if not isinstance(node, dict):
+            continue
+        bnames = list(bands or node.keys())
+        key = "sigma_smooth_dbsm" if use_smooth else "sigma_dbsm"
+        sig_by_band, f_by_band = {}, {}
+        for b in bnames:
+            el = np.asarray(node[b]["el_deg"], float)
+            i = int(np.argmin(np.abs(el - float(el_ref_deg))))
+            if abs(el[i] - float(el_ref_deg)) > 1e-6:
+                raise ValueError(f"{dr}/{b}: el={el_ref_deg}° 행이 격자에 없다 (가장 가까운 {el[i]}°)")
+            sig_by_band[b] = 10.0 ** (np.asarray(node[b][key], float)[i] / 10.0)
+            f_by_band[b] = float(node[b]["fc_hz"]) / 1e9
+        f = np.array([f_by_band[b] for b in bnames])
+        mu_our = np.array([SA.linear_mean_dbsm(sig_by_band[b]) for b in bnames])
+        out[dr] = {}
+        for mode in modes:
+            out[dr][mode] = {}
+            dd = {}
+            for br in branches:
+                target, dsize = _anchor_target_dbsm(f, mu_our, dr, mode, br, anchor_name,
+                                                    size_law=size_law)
+                delta = target - mu_our
+                dd[br] = delta
+                a_bef, _ = SA.fit_slope_db_per_ghz(f, mu_our)
+                a_aft, _ = SA.fit_slope_db_per_ghz(f, target)
+                out[dr][mode][br] = dict(
+                    delta_db={b: float(delta[i]) for i, b in enumerate(bnames)},
+                    mu_our_dbsm={b: float(mu_our[i]) for i, b in enumerate(bnames)},
+                    mu_after_dbsm={b: float(target[i]) for i, b in enumerate(bnames)},
+                    f_ghz={b: float(f[i]) for i, b in enumerate(bnames)},
+                    slope_before_db_per_ghz=float(a_bef), slope_after_db_per_ghz=float(a_aft),
+                    slope_anchor_db_per_ghz=float(SA.ANCHORS[anchor_name]["a"]),
+                    size_correction_db=float(dsize), size_law=(size_law if mode == "level_and_slope" else None))
+            if set(branches) == set(ANCHOR_BRANCHES):
+                bcan[mode].append(float(np.max(np.abs(dd["conv_on"] - dd["conv_off"]))))
+            # 생산함수 대조 — conv_on 은 relevel() 과 **같아야** 한다
+            rl = SA.relevel(sig_by_band, f_by_band, dr, mode=mode, anchor=anchor_name,
+                            size_law=size_law)
+            if "conv_on" in out[dr][mode]:
+                mine = out[dr][mode]["conv_on"]["delta_db"]
+                xchk.append(float(max(abs(mine[b] - rl["delta_db"][b]) for b in bnames)))
+    return dict(
+        by_drone=out, anchor=anchor_name, el_ref_deg=float(el_ref_deg),
+        statistic=("azimuth LINEAR mean (10log10 mean sigma_m2) at el_ref, "
+                   "sigma_anchor.linear_mean_dbsm"),
+        relevel_crosscheck_max_abs_db=(float(max(xchk)) if xchk else None),
+        relevel_crosscheck_note=("conv_on branch must equal sigma_anchor.relevel() exactly; "
+                                 "the production function is the oracle, not this replica"),
+        branch_cancellation_max_abs_db={m: (float(max(v)) if v else None) for m, v in bcan.items()},
+        branch_note=ANCHOR_BRANCH_NOTE,
+        smooth=bool(use_smooth), source="src/sigma_anchor.py (Das/Yuan Phantom 3, ONE measurement)")
+
+
+def apply_anchor(sigma_m2, delta_db):
+    """앵커 Δ [dB] 를 σ[m²] 에 건다 — **스칼라 곱 하나**. 각도구조는 비트 불변.
+
+    검출사슬(`experiment_freespace_range._sigma_at`)이 조회한 σ 에 이걸 곱하면 앵커가
+    R90 에 도달한다. `delta_db=0.0` 이면 항등(수리 전 거동)."""
+    return np.asarray(sigma_m2, float) * 10.0 ** (float(delta_db) / 10.0)
+
+
+def anchored_grid(grid, deltas, mode=ANCHOR_MODE_DEFAULT, branch=ANCHOR_BRANCH_DEFAULT):
+    """σ 격자에 Δ 를 **실체화**해 `sigma_anchored_dbsm` 를 add-only 로 붙인다(선택).
+
+    기본 생산경로는 배열을 복제하지 않고 `anchor.delta_db` 만 실어 보낸다(스칼라 하나면
+    충분하고 JSON 이 두 배가 되지 않는다). 소비자가 배열을 원할 때만 이걸 쓴다."""
+    by = deltas["by_drone"]
+    for dr, node in grid.items():
+        if dr not in by:
+            continue
+        dm = by[dr][mode][branch]["delta_db"]
+        for b, bn in node.items():
+            if b not in dm:
+                continue
+            bn["anchor_delta_db"] = float(dm[b])
+            bn["sigma_anchored_dbsm"] = [[v + float(dm[b]) for v in row]
+                                         for row in bn["sigma_smooth_dbsm"]]
+    return grid
 
 
 def _stats(sig_m2):
@@ -459,8 +639,12 @@ def main(argv=None):
     ap.add_argument("--out", default=SIGMA_JSON)
     ap.add_argument("--smoke", action="store_true", help="스모크(az 8·el 3·n_f 1·no multistatic 스윕)")
     ap.add_argument("--force", action="store_true", help="이미 있는 드론도 재계산")
-    ap.add_argument("--parts", default="grid,confidence",
-                    help="쉼표목록: grid,multistatic,confidence,counterfactual,perturbation")
+    ap.add_argument("--parts", default="grid,confidence,anchor",
+                    help="쉼표목록: grid,multistatic,confidence,counterfactual,perturbation,anchor")
+    ap.add_argument("--anchor-mode", default=ANCHOR_MODE_DEFAULT, choices=list(ANCHOR_MODES))
+    ap.add_argument("--anchor-branch", default=ANCHOR_BRANCH_DEFAULT, choices=list(ANCHOR_BRANCHES))
+    ap.add_argument("--materialize-anchor", action="store_true",
+                    help="sigma_anchored_dbsm 배열까지 실체화(기본은 delta_db 스칼라만)")
     args = ap.parse_args(argv)
 
     # GPU — mitsuba import 전에 pick (SIONNA2_GPU 존중). direct backend 는 이 한 장만 쓴다.
@@ -510,6 +694,26 @@ def main(argv=None):
     if "perturbation" in parts:
         out["perturbation"] = perturbation_grid(drones, bands, backend=args.backend)
         _save(args.out, out)
+
+    # ── ⭐ 앵커(D-B): 밴드당 Δ 를 격자에 실어 검출사슬로 보낸다 (add-only, GPU 0회) ──
+    if "anchor" in parts:
+        try:
+            g = out["sigma"]["grid"]
+            dl = anchor_deltas(g, drones=[d for d in drones if d in g])
+            out["sigma"]["anchor"] = dl
+            out["sigma"]["anchor"]["applied_default"] = dict(
+                mode=args.anchor_mode, branch=args.anchor_branch,
+                consumer=("experiment_freespace_range._sigma_at 가 조회 σ 에 "
+                          "experiment_freespace_sigma.apply_anchor(sigma, delta_db) 를 곱한다"),
+                switch="anchor_on (기본 켬); 끄면 delta=0 = 수리 전 거동")
+            if args.materialize_anchor:
+                anchored_grid(g, dl, mode=args.anchor_mode, branch=args.anchor_branch)
+            _save(args.out, out)
+            print(f"  [anchor] Δ 산출 (mode={args.anchor_mode} branch={args.anchor_branch}) "
+                  f"relevel 대조 max|Δ|={dl['relevel_crosscheck_max_abs_db']:.2e} dB")
+        except Exception as e:
+            print(f"  [anchor] skip: {type(e).__name__}: {e}  "
+                  f"(앵커는 3밴드 전부 있는 격자에서만 낼 수 있다 — --band 로 한 밴드만 돌린 경우 정상)")
 
     # ── 파생 평탄 구조(add-only) — 소비자 F6/F9/F14c 가 읽는 sigma.stats·multistatic 평탄 ──
     _derive_aggregates(out)

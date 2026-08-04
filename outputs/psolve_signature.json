@@ -1,0 +1,1399 @@
+{
+ "meta": {
+  "task": "P1 + P5 + P6 - how did the Sionna corpus obtain a target signature, who validated an absolute level, and what did it cost",
+  "generated": "2026-08-03 01:52",
+  "corpus": "outputs/reflib_sweep_sionna.json, 140 PDFs, all re-extracted from the text layer for this pass",
+  "axis": "OUR eight problems are the columns. A paper is only interesting on a column if that column was on its path.",
+  "evidence_rule": "Every paper-level statement carries pdf_path + page + verbatim quote. Numbers produced by regex over PDF text are labelled MACHINE COUNT. No claim here is derived from grepping our own notes or our own JSON.",
+  "what_I_did_not_do": [
+   "I did not read all 140 papers page by page. I re-extracted all 1444 pages and regex-screened them; I then OPENED and read every paper that scored on any target/RCS/sensing/runtime/validation marker (about 30), plus a random check of false positives.",
+   "The 126 papers with no RCS/dBsm/micro-Doppler term were not read. I claim only what a term count supports for them.",
+   "I did not use the 81-paper drone-sensing corpus for P1/P5/P6, per the workflow's split."
+  ],
+  "self_audit": "Every {page, q} pair in this file was re-checked programmatically against the PyMuPDF text of that exact page of that exact PDF. Script: scratchpad/psolve/verify.py. Result on the final build: 101 of 101 quotes found on the page they are attributed to, 0 failures. The first run failed 6 - a page-spanning sentence, an elided table row, a wrong page number, a page-break continuation, a quote that lived in a DUPLICATE file, and a unicode artifact - all corrected before this file was finalised."
+ },
+ "machine_census": {
+  "corpus": "the 140 PDFs listed in outputs/reflib_sweep_sionna.json (every archived PDF whose text layer contains 'Sionna')",
+  "method": "PyMuPDF text layer of every page, de-hyphenated, regex counted. THIS IS A MACHINE COUNT, not a reading.",
+  "documents_of_140_containing_the_term": {
+   "utd_gtd": 6,
+   "diffraction": 52,
+   "validat": 97,
+   "runtime_word": 44,
+   "sionna": 140,
+   "sensing": 76,
+   "radar": 30,
+   "uav_drone": 31,
+   "speedup": 10,
+   "cst_hfss": 3,
+   "rcs": 14,
+   "point_target": 2,
+   "microdoppler": 6,
+   "bistatic": 9,
+   "monostatic": 8,
+   "physical_optics": 2,
+   "feko": 3,
+   "mlfmm_mom": 2,
+   "anechoic": 3,
+   "dbsm": 1
+  },
+  "regexes_used": {
+   "rcs": "\\bRCS\\b|radar cross[- ]?section",
+   "dbsm": "\\bdBsm\\b|dBm2|dB\\s?m\\s?2\\b|dBsqm",
+   "physical_optics": "physical optics",
+   "feko": "\\bFEKO\\b|CADFEKO",
+   "cst_hfss": "\\bCST\\b|\\bHFSS\\b|Ansys|COMSOL|\\bWIPL",
+   "mlfmm_mom": "\\bMLFMM\\b|method of moments|\\bMoM\\b",
+   "utd_gtd": "\\bUTD\\b|\\bGTD\\b|\\bPTD\\b|uniform theory of diffraction"
+  },
+  "headline_machine_numbers": {
+   "documents_mentioning_RCS_at_all": 14,
+   "documents_mentioning_dBsm_at_all": 1,
+   "documents_mentioning_physical_optics_at_all": 2,
+   "documents_mentioning_FEKO": 3,
+   "documents_mentioning_MLFMM_or_MoM": 2,
+   "documents_mentioning_UTD_GTD_PTD": 6,
+   "documents_mentioning_micro_Doppler": 6,
+   "documents_mentioning_anechoic": 3
+  },
+  "caveat": "A term count proves the WORD is present or absent. It does not by itself prove what the paper did. Every route classification below is backed by an opened page and a quote; where a paper was not opened its row says NOT_OPENED.",
+  "the_raw_count_needed_a_second_pass": {
+   "why": "14 documents contain the string RCS. I opened the occurrence context in every one of the 14 rather than reporting 14 as the finding.",
+   "documents_where_RCS_appears_only_in_a_bibliography_entry_or_an_author_biography": [
+    {
+     "id": "2503.12177",
+     "page": 14,
+     "q": "the IEICE RCS Outstanding Researcher Award in 2018",
+     "note": "RCS here is the IEICE Radio Communication Systems technical committee. An author biography. Nothing to do with scattering."
+    },
+    {
+     "id": "2502.10324",
+     "page": 19,
+     "q": "Shooting and bouncing rays: Calculating the RCS of an arbitrarily shaped cavity, IEEE Trans. Antennas and Propag., vol. 37, no. 2, pp. 194-205, 1989.",
+     "note": "reference [38] title only"
+    },
+    {
+     "id": "2607.11743",
+     "page": 5,
+     "q": "An accelerated shooting and bouncing ray method based on GPU and virtual ray tube for fast RCS prediction, IEEE Antennas and Wireless Propagation Letters, vol. 20, no. 9, pp. 1839-1843, Sep. 2021.",
+     "note": "reference [13] title only"
+    },
+    {
+     "id": "2605.31267",
+     "page": 13,
+     "q": "Measuring the RCS of multipoint-scattering targets in JCAS channel sounding, in 2025 19th European Conference on Antennas and Propagation (EuCAP), 2025, pp. 1-5.",
+     "note": "reference [36] title only"
+    }
+   ],
+   "corrected_numbers": {
+    "documents_containing_the_string_RCS": 14,
+    "documents_that_discuss_RCS_in_their_own_prose_or_equations": 10,
+    "of_those_10_documents_that_actually_COMPUTE_a_target_signature": 2,
+    "which_2": "both are Ziganshin: 2604.05991 (journal preprint) and the EuCAP 2025 conference PDF. They are one lineage, so this is ONE work.",
+    "of_those_10_documents_that_IMPORT_a_signature_from_an_external_solver": 1,
+    "which_1": "2607.03826 LAMBDA, via CADFEKO",
+    "remaining_7": "use RCS as an abstract scalar in a signal model (openisac, cissir, temporal-gnn, dmsnet, clutter-aware x2) or only as motivation in the introduction (md-rt)"
+   },
+   "lesson": "The honest headline is not '14 of 140 papers deal with RCS'. It is 'one work in 140 computes a target signature from a Sionna-based tracer, and its target is a car'."
+  }
+ },
+ "disjointness_of_the_two_literatures": {
+  "claim": "The RCS/signature literature in these archives and the Sionna literature are almost disjoint sets.",
+  "evidence": [
+   "220 unique PDF basenames exist across the three archives; 140 contain the string 'Sionna'; 80 do not.",
+   "Directly counted with fitz: /data/public/sionna_jeong/papers_isac_sionna/2604.09243__sagitta-sbr.pdf -> 'Sionna' 0 times, 'physical optics' 5, 'dBsm' 2.",
+   "Directly counted with fitz: /data/public/sionna_jeong/papers_isac_sionna/2505.20673__zhang_unified-rcs-3gpp-djiM350.pdf -> 'Sionna' 0 times, 'physical optics' 1, 'dBsm' 6.",
+   "Every UAV-RCS measurement paper in the archive (Semkin, Ezuma, the 3GPP RCS-modelling papers, the PTD/SBR method papers) sits in the 80 that never mention Sionna."
+  ],
+  "so_what": "Nobody in these archives has put a measured or full-wave UAV signature and a Sionna-based tracer in the same paper. Ziganshin is the only author who joins a target signature to Sionna at all, and his target is a CAR."
+ },
+ "P1_signature_routes": {
+  "route_definitions": {
+   "ENGINE_EXTENDED_BY_AUTHORS": "the authors added scattering physics the stock engine does not have, and the signature comes out of the tracer",
+   "GEOMETRY_IN_SCENE_STOCK_MATERIAL": "a mesh of the target stands in the traced scene and the signature is whatever stock Fresnel/diffuse reflection returns - no signature model, no dBsm",
+   "INJECTED_EXTERNAL": "the signature is computed by a separate EM solver and multiplied into the ray-traced path coefficients",
+   "ABSTRACTED_POINT_OR_PRIMITIVE": "the target is a point scatterer, a constant sigma, or a canonical primitive (cube/sphere) - no shape-dependent signature",
+   "MEASURED_HARDWARE": "the signature never gets simulated; a real target is illuminated by real hardware",
+   "NO_TARGET": "the task needs no echo from a physical object at all"
+  },
+  "headline": "Of 140 Sionna papers, exactly ONE lineage (Ziganshin, two documents) computes a target signature inside a Sionna-based tracer, and only after adding UTD vertex diffraction; exactly ONE (LAMBDA) injects a signature from an external full-wave solver; the rest either abstract the target to a point/cube/constant sigma, drop an untreated mesh in the scene and accept stock Fresnel, measure a real drone with real hardware, or have no target at all.",
+  "records": [
+   {
+    "id": "2604.05991",
+    "file": "2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pages": 11,
+    "short": "Ziganshin JOURNAL PREPRINT (arXiv:2604.05991v2, 2 Jul 2026) - extended Sionna-RT v0.19 with vertex + higher-order UTD diffraction",
+    "opened": "OPENED - pages 1,2,3,5,7,8,9,11 read",
+    "task_requires_signature": "YES - the whole paper is about predicting scattering from a vehicle",
+    "route": "ENGINE_EXTENDED_BY_AUTHORS",
+    "quotes": [
+     {
+      "page": 3,
+      "q": "Sionna-RT (v0.19) [19] was used as a basic RT framework, which is open-source, parallelizable, differentiable, and provides efficient path tracing and electromagnetic field computation on triangulized geometries. The standard RT tool has been customized with several diffraction methods to achieve be..."
+     },
+     {
+      "page": 5,
+      "q": "Standard RT corresponds to the default Sionna-RT implementation with specular reflections and single-bounce edge diffraction, without the proposed vertex and higher-order diffraction extensions."
+     },
+     {
+      "page": 2,
+      "q": "All objects considered in this work are assumed to be perfectly electrically conducting (PEC), as vehicle bodies can often be approximated by PEC boundary conditions."
+     }
+    ],
+    "engine_modification": "vertex diffraction (V), edge-edge (EE), edge-vertex and vertex-edge (EV/VE) second-order terms added on top of Sionna-RT's specular + single-bounce edge diffraction. Code released: https://github.com/AinurZiga/sionna-RT-reflectivity (ref [29], accessed 2026-03-31).",
+    "why_it_matters_for_us": "This is the ONLY route in the corpus that is an alternative to ours: instead of cascading a PO surface integral after the tracer, he keeps everything inside the ray formalism and buys back the missing physics with diffraction coefficients. Our P4 gap (no diffraction, no PTD) is exactly what he closed - and he closed it with UTD, not PTD.",
+    "direct_critique_of_our_method": {
+     "page": 2,
+     "page_note": "the sentence starts at the foot of page 1 and completes at the head of page 2, across the arXiv stamp - cite as pp. 1-2",
+     "q": "is limited to the illuminated region and is not suitable to predict the scattered field in the shadow region of the obstacle. Furthermore, the need to cascade PO after RT negates the computational advantages of RT.",
+     "q_full_with_page_break": "This SBR+PO approach, however, [p1|p2] is limited to the illuminated region and is not suitable to predict the scattered field in the shadow region of the obstacle. Furthermore, the need to cascade PO after RT negates the computational advantages of RT.",
+     "note": "A published critique of exactly our architecture (SBR then PO). We should quote it and answer it rather than let a reviewer find it."
+    }
+   },
+   {
+    "id": "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC",
+    "file": "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "pages": 5,
+    "short": "Ziganshin EuCAP 2025 CONFERENCE version (IEEE Xplore stamp on every page) - same lineage, DIFFERENT document",
+    "opened": "OPENED - all 5 pages read",
+    "task_requires_signature": "YES",
+    "route": "ENGINE_EXTENDED_BY_AUTHORS",
+    "quotes": [
+     {
+      "page": 2,
+      "q": "An open-source parallelizable framework, Sionna RT [11], is utilized to conduct simulations. Parallelization and the possibility of using Graphics Processing Units (GPUs) are also crucial factors in rapid channel simulations, particularly in real-time ones."
+     },
+     {
+      "page": 5,
+      "q": "The third case assumes computing RCS by putting Tx and RXs in the far-field; RXs are elevated by 1.2 meters."
+     },
+     {
+      "page": 1,
+      "q": "This is a key difference compared to Radar Cross-Section (RCS), which is a real-valued distance-independent far-field power measure [6]."
+     }
+    ],
+    "produces_dbsm": true,
+    "dbsm_evidence": {
+     "page": 5,
+     "q": "0 25 50 75 100 125 150 175 Angle (deg) 40 30 20 10 0 10 20 30 40 RCS (dBsm) EM (PO) RT+UTD+VD Fig. 6: RCS of the simplified car",
+     "note": "Fig. 6 axis label. This is the ONLY dBsm axis in the whole 140-paper corpus - confirmed by machine count: 1 of 140 documents contains the string 'dBsm'."
+    },
+    "geometry": "under-discretized sphere (80 facets, avg facet 7.5 lambda), over-discretized sphere (4500 facets, avg facet 1.0 lambda), simplified car (5264 vertices / 16610 facets / 21018 edges, avg facet ~2 lambda at 10 GHz, 3.3 x 2.1 x 1.7 m)",
+    "do_not_merge": "The runtime sentence about the PO solver taking one day exists ONLY in this conference version, not in arXiv:2604.05991. Never attribute it to the preprint."
+   },
+   {
+    "id": "2607.03826",
+    "file": "2607.03826__lambda-uav-dataset.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2607.03826__lambda-uav-dataset.pdf",
+    "pages": 20,
+    "short": "LAMBDA UAV dataset - the injection split, stated outright",
+    "opened": "OPENED - pages 3,4,7,8,10 read",
+    "task_requires_signature": "YES - it ships a 4D radar branch for UAV targets",
+    "route": "INJECTED_EXTERNAL",
+    "quotes": [
+     {
+      "page": 3,
+      "q": "LAMBDA is generated on a digital-twin platform that integrates Unreal Engine 5 (UE5) [23] for high-fidelity scene construction; Cosys-AirSim [24,25] for UAV motion control and synchronized sensor support for RGB, depth, LiDAR, pose, and IMU streams; Blender [26] for scene-mesh conversion; Sionna RT [27] for material-aware ray tracing; and CADFEKO [28] for UAV radar cross-section (RCS) modeling."
+     },
+     {
+      "page": 7,
+      "q": "The complex-valued CSI coefficient captures the propagation effects computed by the ray-tracing channel generator, whereas the RCS term is obtained from CADFEKO simulations of the AirSim UAV model and queried according to the UAV attitude."
+     },
+     {
+      "page": 4,
+      "q": "The radar synthesis module further combines the Sionna RT multipath geometry with CADFEKO-derived UAV RCS information to generate radar data."
+     }
+    ],
+    "why_it_matters_for_us": "The clearest published statement that Sionna cannot produce a UAV signature: the authors pay for a commercial full-wave licence to fill the hole. Our position is that we compute the signature ourselves instead of buying it - which is a real contribution, but only if our absolute level is defensible (P5), and theirs is CADFEKO's.",
+    "validated_absolute_level": "NO - the paper reports no comparison of its RCS against measurement or another solver anywhere."
+   },
+   {
+    "id": "2602.10537",
+    "file": "2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+    "pages": 36,
+    "short": "Clutter-Aware ISAC (Proc. IEEE 2026, accepted; a byte-identical twin exists in the archive as Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf)",
+    "opened": "OPENED - pages 4,5,6,10,12,19,20,24,25 read",
+    "task_requires_signature": "YES - it makes range-Doppler maps with UAV echoes",
+    "route": "GEOMETRY_IN_SCENE_STOCK_MATERIAL (site-specific arm) + ABSTRACTED_POINT_OR_PRIMITIVE (stochastic arm)",
+    "quotes": [
+     {
+      "page": 20,
+      "q": "The ToI and UAVs are modeled as simplified 3D mesh objects imported into Sionna."
+     },
+     {
+      "page": 20,
+      "q": "These meshes are obtained by simplifying publicly available 3D models in Blender and exporting them in Sionna's XML format, which keeps the ray-tracing scene lightweight while enabling flexible material assignment."
+     },
+     {
+      "page": 4,
+      "q": "We model the scene as a collection of discrete scatterers, each with its own radar cross-section (RCS), propagation delay, Doppler shift, and direction."
+     },
+     {
+      "page": 19,
+      "q": "For the stochastic clutter examples in Figs. 4, 5, 8, and 10, the cold clutter is modeled as a collection of C = 100 scatterers uniformly distributed over four iso-range rings whose radii bracket the target range, with two rings on the near-range side and two on the far-range side."
+     },
+     {
+      "page": 20,
+      "q": "Sionna defines the LoS as a direct Tx-Rx path, so for monostatic sensing the target echoes appear as reflected and scattered paths that interact with the target object, even when a geometric LoS exists."
+     }
+    ],
+    "what_they_did_NOT_do": "They never turn the mesh into a signature. RCS appears only as an abstract coefficient in the signal model (alpha, beta), never as a number computed from the geometry, and 'dBsm' appears 0 times in the 36-page document (machine count).",
+    "why_it_matters_for_us": "This is a Proceedings of the IEEE paper doing exactly our scene setup - drone meshes inside Sionna - and simply accepting whatever stock Fresnel returns. It shows the amplitude question is routinely skipped at the top of the field, which is both our opening and our warning."
+   },
+   {
+    "id": "Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing",
+    "file": "Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+    "pages": 6,
+    "short": "md-rt (IEEE ICCT 2025) - the only other UAV-in-Sionna paper; rotating blades handled analytically, amplitude never claimed",
+    "opened": "OPENED - all 6 pages scanned, pages 1-4 read",
+    "task_requires_signature": "PARTLY - it needs a micro-Doppler RIDGE, not an absolute level",
+    "route": "GEOMETRY_IN_SCENE_STOCK_MATERIAL",
+    "quotes": [
+     {
+      "page": 3,
+      "q": "The target consists of either Sionna's built-in reflector model or a physical model of a propeller modeled using Blender."
+     },
+     {
+      "page": 3,
+      "q": "In the physical modeling, both built-in objects in Sionna and rotor models created in Blender are employed."
+     },
+     {
+      "page": 2,
+      "q": "Meanwhile, when the number of rays colliding with the target is small, gaps appear in the resulting time-frequency spectrogram."
+     },
+     {
+      "page": 4,
+      "q": "It is worth noting that when the range resolution is smaller than the physical size of the target, which means in the high range resolution (HRR) scenario, the target is no longer regarded as a point scatterer, but rather forms an extended response along the range dimension."
+     }
+    ],
+    "validated_absolute_level": "NO. Their only check is against their own closed-form micro-Doppler formulas: p3 'The simulated results are compared with the analytical formulas derived in Section II using identical target models and micromotion parameters.' No measurement, no EM solver, no dB number anywhere.",
+    "runtime_reported": "NONE. The full-text runtime regex (a time word paired with a number+unit) returns zero hits in all 6 pages.",
+    "why_it_matters_for_us": "The closest published work to ours by subject, and it deliberately claims only ridge POSITIONS. That is the fallback claim available to us if our absolute level cannot be defended - and it is worth noting that a published paper found that claim sufficient."
+   },
+   {
+    "id": "2509.21118",
+    "file": "2509.21118__wang-neural-isac-mimo-ofdm.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/isac_sensing_radar/2509.21118__wang-neural-isac-mimo-ofdm.pdf",
+    "pages": 18,
+    "short": "Neural ISAC MIMO-OFDM - target is a cube with a hand-set scattering coefficient",
+    "opened": "OPENED - pages 1,4,6,11,12,15 read",
+    "task_requires_signature": "YES - it maps target occupancy from echoes",
+    "route": "ABSTRACTED_POINT_OR_PRIMITIVE",
+    "quotes": [
+     {
+      "page": 11,
+      "q": "The targets are cubes with a Lambertian scattering pattern and a scattering coefficient of 1."
+     },
+     {
+      "page": 11,
+      "q": "The target is a 0.5 m x 0.5 m x 0.5 m cube, represented by the blue cube in Fig 5."
+     },
+     {
+      "page": 11,
+      "q": "The ISAC transceivers, two UEs, and one target are enclosed in a 5 m x 5 m x 3 m concrete box whose geometric center is placed at (0, 0, 1.5) m."
+     },
+     {
+      "page": 6,
+      "q": "In our implementation, the Sionna scene seed is generated by Blender and exported as an XML file."
+     }
+    ],
+    "note_for_P2": "scattering coefficient set to 1 with no source cited - the same unsourced-material problem as our gamma_po, in a paper that never flags it."
+   },
+   {
+    "id": "2605.07623",
+    "file": "2605.07623__lowalt-cooperative-cube-csi.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2605.07623__lowalt-cooperative-cube-csi.pdf",
+    "pages": 13,
+    "short": "Low-altitude cooperative UAV detection from CSI - UAV is a metal cube",
+    "opened": "OPENED - pages 3,8,9 read",
+    "task_requires_signature": "YES - it detects a UAV from the perturbation the UAV causes",
+    "route": "ABSTRACTED_POINT_OR_PRIMITIVE",
+    "quotes": [
+     {
+      "page": 8,
+      "q": "The UAV is modeled as a metallic cube located at p = (x, y, 60), where x, y ~ U[-75, 75]."
+     },
+     {
+      "page": 8,
+      "q": "The dataset is generated through ray-tracing, using OpenStreetMap (OSM), Blender, and Sionna RT [39]."
+     }
+    ],
+    "why_it_matters_for_us": "A whole UAV-detection paper whose drone is a cube. Our airframe-shaped, material-weighted mesh is a genuine step up in geometric fidelity - which is worth claiming precisely because the amplitude claim (P5) is the one we cannot yet make."
+   },
+   {
+    "id": "2604.08306",
+    "file": "2604.08306__temporal-gnn-isac.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.08306__temporal-gnn-isac.pdf",
+    "pages": 4,
+    "short": "Temporal GNN ISAC tracking - explicit point-scatterer assumption",
+    "opened": "OPENED - pages 1,2,3,4 read",
+    "task_requires_signature": "PARTLY - it needs delay/Doppler, not amplitude",
+    "route": "ABSTRACTED_POINT_OR_PRIMITIVE",
+    "quotes": [
+     {
+      "page": 2,
+      "q": "For a target-related path l-hat, alpha_l-hat incorporates Tx and Rx antenna radiation patterns, propagation path loss, and the radar cross section (RCS) of the target."
+     },
+     {
+      "page": 2,
+      "q": "The bi-static RCS relies on the assumption that the target is a point scatterer [13]."
+     }
+    ],
+    "note": "The cleanest one-sentence statement of the abstraction that our whole PO kernel exists to escape."
+   },
+   {
+    "id": "2502.10371",
+    "file": "2502.10371__cissir.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2502.10371__cissir.pdf",
+    "pages": 15,
+    "short": "CISSIR (self-interference cancellation for ISAC) - target RCS is a constant in a table",
+    "opened": "OPENED - pages 6,7,8,10,11 read",
+    "task_requires_signature": "PARTLY - it needs a target return power to size the link budget",
+    "route": "ABSTRACTED_POINT_OR_PRIMITIVE",
+    "quotes": [
+     {
+      "page": 8,
+      "q": "Target azimuth -39 ° Target distance 40 m Target radar cross section 1 m2 Target RX power -81.0 dBm Thermal noise -90.8 dBm",
+      "note": "verbatim run from the sensing-parameters table on p8"
+     }
+    ],
+    "note": "sigma = 1 m^2, no citation, no shape. The 'Target RX power -81.0 dBm' line shows the whole sensing link is a radar-equation scalar sitting beside a Sionna-traced communication channel."
+   },
+   {
+    "id": "2601.03535",
+    "file": "2601.03535__openisac.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2601.03535__openisac.pdf",
+    "pages": 16,
+    "short": "OpenISAC testbed (USRP X310 + OAI) - the signature is a real drone, not a simulation",
+    "opened": "OPENED - pages 1,2,3,4,6,9,12,13,15,16 scanned",
+    "task_requires_signature": "YES - and they get it from hardware",
+    "route": "MEASURED_HARDWARE (+ ABSTRACTED_POINT_OR_PRIMITIVE in the signal model)",
+    "quotes": [
+     {
+      "page": 12,
+      "q": "A DJI Mavic Air 3S UAV is used as the target in the monostatic micro-Doppler measurement in Fig. 13 and the bistatic UAV sensing validation in Fig. 16."
+     },
+     {
+      "page": 4,
+      "q": "For a specific reflection p with radar cross section (RCS) sigma_RCS,p, range d_s,p, and radial velocity v_s,p, the complex scattering coefficient, round-trip delay, and two-way Doppler shift are modeled as ... (3)"
+     },
+     {
+      "page": 12,
+      "q": "The BS employs a Luowave USRP-LW X310 connected to an Intel Core i7-10700 host over 10GbE, together with separate horn antennas for transmission and monostatic sensing reception, and an external OCXO (DAPU O23B-HCDD) as the reference clock."
+     }
+    ],
+    "sionna_role": "CITE_ONLY - 'Sionna' appears twice in 16 pages, once in prose (p2, listed as an open-source tool) and once in the bibliography (p16, 'version 2.0.1'). Sionna computes nothing in this paper.",
+    "why_it_matters_for_us": "Our closest sibling in intent (X410 field measurement) resolves the signature question by not simulating it. It is the honest fallback and also the eventual anchor for our absolute level."
+   },
+   {
+    "id": "2507.08716",
+    "file": "2507.08716__great-x_unreal-isac.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2507.08716__great-x_unreal-isac.pdf",
+    "pages": 6,
+    "short": "Great-X - reimplements Sionna RT's formulas inside Unreal Engine, UAV mesh in scene, stock reflection/scattering split",
+    "opened": "OPENED - pages 1,2,3,4 read",
+    "task_requires_signature": "PARTLY - CSI-based UAV positioning, no explicit signature",
+    "route": "GEOMETRY_IN_SCENE_STOCK_MATERIAL",
+    "quotes": [
+     {
+      "page": 4,
+      "q": "Based on the aforementioned ray tracing-based channel simulation methodology, we utilized the Great-X to import a 3D model of a UAV, simulate its flight trajectory, and record multimodal data including CSI, RGB images, depth maps, and positional metadata."
+     },
+     {
+      "page": 3,
+      "q": "Considering that most actual surfaces will simultaneously produce specular reflection and diffuse reflection, we use S2 to represent the energy of the diffuse reflection part, where S in [0, 1] is the scattering coefficient; correspondingly, R2 represents the energy of the specular reflection part, where R in [0, 1] is the specular reflection attenuation factor."
+     },
+     {
+      "page": 2,
+      "q": "The following formulas are referenced from SionnaRT [13]."
+     }
+    ],
+    "note": "Their only cross-check is platform-vs-platform, not physics: p4 'When evaluated on 10 unseen test trajectories generated by the SionnaRT, it achieves an average positioning error of 8.107 meters'."
+   },
+   {
+    "id": "2606.07900",
+    "file": "2606.07900__cellsense.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2606.07900__cellsense.pdf",
+    "pages": 6,
+    "short": "CellSense - target tracking; the target is a scene object but its signature is never characterised",
+    "opened": "OPENED - pages 1,2,3,4,6 read",
+    "task_requires_signature": "PARTLY - needs a detectable reflection, not a level",
+    "route": "GEOMETRY_IN_SCENE_STOCK_MATERIAL",
+    "quotes": [
+     {
+      "page": 4,
+      "q": "For simulation study, we utilize a cross-platform framework: Blender is employed to render multiple realistic environments, shown in Fig. 3b, including an indoor warehouse, an outdoor area (Oval at Centennial Campus, NC State University), and an open environment consisting of only the UE, BS, and target on a concrete floor, while the Sionna ray-tracing library generates site-specific wireless channel impulse responses."
+     },
+     {
+      "page": 4,
+      "q": "Notably, the target is not visible to the BS for the entire trajectory; detection and localization is only performed for segments where a reflected signal from the object reaches the BS."
+     }
+    ],
+    "note": "machine count: 'RCS' 0 times, 'dBsm' 0 times in 6 pages."
+   },
+   {
+    "id": "2505.14184",
+    "file": "2505.14184__pegurri-van3twin-v2x-digital-twin.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2505.14184__pegurri-van3twin-v2x-digital-twin.pdf",
+    "pages": 16,
+    "short": "VAN3Twin (V2X digital twin) - full vehicle meshes as metal scatterers. Machine-classified in the prior sweep; I opened it and the classification needs a note.",
+    "opened": "OPENED - pages 3,4,5,9,12 read (prior sweep had this as machine-census-only)",
+    "task_requires_signature": "NO - vehicles are blockers/scatterers in a communication link, not sensing targets",
+    "route": "GEOMETRY_IN_SCENE_STOCK_MATERIAL",
+    "quotes": [
+     {
+      "page": 5,
+      "q": "Vehicles were included as full 3D meshes with metallic bodies to account for their scattering contribution."
+     },
+     {
+      "page": 3,
+      "q": "The ray tracer operates within a Three Dimensional (3D) scenario that includes both static and dynamic objects, each represented by a 3D mesh."
+     }
+    ],
+    "correction_to_prior_sweep": "role_class in reflib_sweep_sionna.json is PROPAGATION_ONLY with machine_classified=true. That is right about the TASK but understates the setup: physical vehicle meshes with metal materials do stand inside the traced scene. Worth listing under 'who puts objects in a Sionna scene', not under 'who computes a signature'."
+   },
+   {
+    "id": "2411.12284",
+    "file": "2411.12284__amatare-dt-radar-robot-navigation.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2411.12284__amatare-dt-radar-robot-navigation.pdf",
+    "pages": 15,
+    "short": "DT-RaDaR - A FALSE POSITIVE I CAUGHT. 'radar' occurs 64 times and every one is the acronym.",
+    "opened": "OPENED - pages 1-14 scanned",
+    "task_requires_signature": "NO",
+    "route": "NO_TARGET",
+    "quotes": [
+     {
+      "page": 1,
+      "q": "DT-RaDaR: Digital Twin Assisted Robot Navigation using Differential Ray-Tracing"
+     },
+     {
+      "page": 1,
+      "q": "In this paper, we propose DT-RaDaR, a robust privacy-preserving, deep reinforcement learning-based framework for robot navigation that leverages RF ray-tracing in both static and dynamic indoor scenarios as well as in smart cities."
+     }
+    ],
+    "warning": "My own keyword screen ranked this paper #6 in the corpus on 'radar' hits. Reading it took two minutes and removed it entirely. This is the exact failure mode the workflow was set up to prevent - do not let a keyword count become a finding."
+   },
+   {
+    "id": "2501.17881",
+    "file": "2501.17881__rayloc.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2501.17881__rayloc.pdf",
+    "pages": 14,
+    "short": "RayLoc - names a Sionna limitation that bears on target modelling",
+    "opened": "OPENED - pages 1,2,3,4,5,6,12 read",
+    "task_requires_signature": "PARTLY - device-free localization by inverse differentiable RT",
+    "route": "GEOMETRY_IN_SCENE_STOCK_MATERIAL (target geometry is a scene parameter to be optimised)",
+    "quotes": [
+     {
+      "page": 2,
+      "q": "However, Sionna does not support full differentiability with respect to target locations, forbidding inferring locations using the inverse process."
+     },
+     {
+      "page": 1,
+      "q": "The oversimplification inherent in these parameter-constrained approaches can neglect details and misrepresent the sensing scene, particularly when dealing with targets that cannot be adequately represented as point reflectors."
+     }
+    ],
+    "note": "Independent corroboration that the stock engine's target handling is thin enough that authors keep having to rebuild around it."
+   }
+  ],
+  "no_target_group": {
+   "group": "papers whose task does not require a target signature",
+   "how_established": "MACHINE SCAN of the full text layer, plus reading of every paper that scored on any sensing/radar/RCS marker. A paper enters this group only if it has 0 hits on 'RCS|radar cross section' AND 0 on 'dBsm' AND 0 on 'micro-Doppler' AND its Sionna use is propagation/link-level.",
+   "count_machine": 126,
+   "count_note": "140 total minus the 14 documents that mention RCS at all. Of those 14, three are false or near-false positives (2502.10324, 2503.12177, 2607.11743 each mention RCS exactly once, in a citation title or an aside) and were checked individually.",
+   "representative_examples_opened": [
+    {
+     "id": "2604.19599",
+     "file": "2604.19599__pan-active-inference-agentic-isac.pdf",
+     "page": 4,
+     "q": "We consider the Sionna [15] street canyon scene. The training dataset consists of 20,000 randomly sampled ME positions generated via Sionna ray tracing with up to 3 interaction bounces and diffraction enabled.",
+     "note": "'sensing' 78 times, 'radar' 0, 'RCS' 0. The sensed quantity is the mobile entity's own channel, not an echo. No target signature is needed and none is computed."
+    },
+    {
+     "id": "2605.13309",
+     "file": "2605.13309__simart.pdf",
+     "page": 4,
+     "q": "Material properties are assigned to OSM objects such as buildings, roads, and ground surfaces in Blender, following the material model adopted by Sionna RT.",
+     "note": "ISAC dataset tooling; scene materials only, no target."
+    }
+   ],
+   "honesty": "These 126 were NOT read page by page. Their term counts are in outputs/psolve_signature.json under machine_census and in the per-paper table of the prior sweep. I assert only what a term count can support: none of them prints an RCS or a dBsm."
+  }
+ },
+ "P5_absolute_level": {
+  "question": "who validated an ABSOLUTE amplitude (not a shape, not a position, not a ridge) against an external reference, and to what accuracy?",
+  "machine_screen": {
+   "rule": "a sentence naming an amplitude quantity (path gain / RSRP / RSSI / field magnitude / RCS / reflectivity) AND an external reference (measurement / ground truth / FEKO / MLFMM / analytic) AND a number (dB, RMSE, MAE, %)",
+   "papers_matching_of_140": 6,
+   "note": "The screen has false negatives - it missed Ziganshin's MAE sentences, which name the metric but not the quantity in the same sentence. Corrected by hand below."
+  },
+  "target_signature_amplitude_validated_against_a_reference": [
+   {
+    "id": "2604.05991",
+    "file": "2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pages": 11,
+    "who": "Ziganshin journal preprint",
+    "what_was_validated": "the modulus of the scattered field |E_sc| from a real vehicle, and |E_tot| in the shadow region",
+    "against": [
+     "BIRA bistatic reflectivity MEASUREMENT of a Mitsubishi i-MiEV, 2-18 GHz, comparison made at 3 GHz HH",
+     "FEKO MLFMM full-wave, 2 GHz VV, shadow region",
+     "closed-form analytical solutions for canonical PEC sphere and cylinder"
+    ],
+    "accuracy": [
+     {
+      "page": 7,
+      "q": "Inclusion of EV and VE combinations (green) helps further improve the result, MAE from 2.6 to 1.6 dB.",
+      "note": "shadow region vs MLFMM, low-poly vehicle, 2 GHz"
+     },
+     {
+      "page": 5,
+      "q": "The agreement between RT and reference solutions is quantified using the mean absolute error (MAE) between the angular field responses in dB.",
+      "note": "the metric definition, p5; Fig. 5 on p7 plots MAE 0-8 dB against the discretisation parameter E^2/(R lambda) for sphere and cylinder, backscatter and shadow"
+     }
+    ],
+    "the_honest_caveat_they_themselves_wrote": {
+     "page": 7,
+     "q": "The comparison should be interpreted as a qualitative validation rather than an attempt to exactly reproduce the measurements. The present simulations assume PEC surfaces and neglect dielectric vehicle components. Additional discrepancies may also arise from measurement uncertainty, background subtraction, antenna pattern inaccuracies, and positioning errors."
+    },
+    "measurement_setup_detail": {
+     "page": 7,
+     "q": "The measurements were performed using the BIRA bistatic reflectivity setup [4] with frequency range 2-18 GHz. A small vehicle, Mitsubishi i-MiEV, depicted in Fig. 6a, was illuminated from the side, and the field was recorded over a wide angular range with 1 deg resolution. The distance from the car to the antennas is 3.0 m; height from the car bottom is 0.75 m."
+    },
+    "verdict_for_us": "This is the single strongest absolute-level validation in the corpus, and even its author downgrades it to qualitative. The bar we have to clear on P5 is therefore lower than it looks - but the honesty standard is high, and he sets it."
+   },
+   {
+    "id": "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC",
+    "file": "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "pages": 5,
+    "who": "Ziganshin EuCAP 2025 conference version",
+    "what_was_validated": "|E_scat| in dBV/m for two discretized spheres; RCS in dBsm for a simplified car",
+    "against": [
+     "FEKO MLFMM (spheres) - a true full-wave reference",
+     "FEKO PO solver (car) - NOTE: a high-frequency approximation, not full-wave",
+     "the analytical smooth-sphere solution"
+    ],
+    "accuracy": [
+     {
+      "page": 5,
+      "q": "Results for a car model show that the presented RT tool with vertex diffraction can produce good and fast predictions for backscattering. Although occasional offsets up to 10 dB can happen, results remain smooth and behave realistically."
+     },
+     {
+      "page": 5,
+      "q": "Comparison with the MoM results demonstrates that the advanced RT tool can produce good results, at least for some regions, even when dealing with electrically small facets and edges; however, how small the facets should be is still an open question."
+     }
+    ],
+    "critical_nuance": "The dBsm figure (Fig. 6) is validated against FEKO's PO SOLVER, not against MLFMM. So the one dBsm curve in the corpus is checked against another high-frequency approximation - it is a consistency check of the same physics family, not an independent absolute anchor. Do not describe it as 'validated against full-wave'.",
+    "solver_choice_reason": {
+     "page": 3,
+     "q": "The usage of MLFMM is complicated for a car simulation due to the tremendous amount of time and memory required for simulation, so we use the PO solver."
+    }
+   }
+  ],
+  "propagation_amplitude_validated_against_measurement": [
+   {
+    "id": "2605.10352",
+    "file": "2605.10352__sionna-rt-kpi-deviations-oai-testbed.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2605.10352__sionna-rt-kpi-deviations-oai-testbed.pdf",
+    "pages": 6,
+    "who": "Rauf et al., Ruhr-Universitaet Bochum - Sionna RT channels vs VNA-measured channels through a 5G OAI hardware-in-the-loop testbed",
+    "what": "RSRP, PUCCH SNR, SINR at 20 Rx positions in an indoor lab, 3.349 GHz, 100 MHz",
+    "accuracy": [
+     {
+      "page": 5,
+      "q": "Fig. 6: Spatial distribution of absolute prediction errors |RT - Measured| for (a) SNR PUCCH, (b) SINR, and (c) RSRP across 20 receiver positions in the indoor laboratory environment.",
+      "note": "colour-bar ranges read off the axis text: SNR PUCCH 0-5 dB, SINR 0-8 dB, RSRP 0-12 dBm"
+     },
+     {
+      "page": 5,
+      "q": "The cupboards are constructed from lighter and thinner wood than conventional furniture, yet are classified as standard wood in the Sionna RT scene for implementation convenience."
+     }
+    ],
+    "why_it_matters_for_us": "P2 and P5 in one experiment: they attribute their absolute-level error to unsourced material assignment, in a controlled indoor lab with a VNA. That is our chamber, our material problem, and the error magnitude is 5-12 dB on a link that has no target in it at all."
+   },
+   {
+    "id": "2607.04400",
+    "file": "2607.04400__saribekyan_sim2real-positioning.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2607.04400__saribekyan_sim2real-positioning.pdf",
+    "pages": 8,
+    "who": "Saribekyan et al., sim2real positioning, Rome network",
+    "accuracy": [
+     {
+      "page": 4,
+      "q": "A typical per-BS systematic offset of ~31 dB between simulated and measured RSSI reflects a strong structural mismatch between Sionna RT and the real Rome network."
+     }
+    ],
+    "note": "The largest absolute-level discrepancy stated anywhere in the corpus. Uncalibrated Sionna RT against a live network."
+   },
+   {
+    "id": "2511.05522",
+    "file": "2511.05522__airmap-ai-radio-maps-dt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2511.05522__airmap-ai-radio-maps-dt.pdf",
+    "pages": 15,
+    "who": "AIRMap",
+    "accuracy": [
+     {
+      "page": 12,
+      "q": "In contrast, the Calibrated U-Net model successfully produced RSRP patterns closely matching empirical measurements, with an RMSE of 8.86 dBm."
+     }
+    ]
+   },
+   {
+    "id": "2510.10190",
+    "file": "2510.10190__beyraghi-datadriven-ris-deployment.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2510.10190__beyraghi-datadriven-ris-deployment.pdf",
+    "pages": 14,
+    "who": "Beyraghi et al., data-driven RIS deployment",
+    "accuracy": [
+     {
+      "page": 10,
+      "q": "Target regions with initial RSRP discrepancies exceeding 25 dB between measurement and simulation are declared outliers-such mismatches are associated with missing geometry-and excluded."
+     }
+    ],
+    "note": "They do not fix the 25 dB cases, they discard them."
+   },
+   {
+    "id": "2312.14303",
+    "file": "2312.14303__geo2sigmap-rf-signal-mapping.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2312.14303__geo2sigmap-rf-signal-mapping.pdf",
+    "pages": 9,
+    "who": "Geo2SigMap",
+    "accuracy": [
+     {
+      "page": 7,
+      "q": "Fig. 6: RMSE of the predicted RSRP maps for individual PCIs achieved by GEO2SIGMAP compared to the baselines.",
+      "note": "Sionna appears as one of the baselines in that figure; y-axis RMSE 0-20 dB"
+     }
+    ]
+   }
+  ],
+  "headline": "Across 140 Sionna papers, absolute-level validation of a TARGET signature happens exactly ONCE (Ziganshin, in two documents, on a car), and its own author calls the measurement comparison qualitative. Everything else that validates an absolute level validates PROPAGATION - path gain, RSRP, RSSI - and those errors run 5 dB to 31 dB.",
+  "consequence_for_our_P5": "Our slope_only anchor moving the mean level by 0.0000 dB is not an outlier in this literature; it is the norm dressed honestly. But the literature also shows the size of the risk: uncalibrated Sionna-family absolute levels are wrong by 5-31 dB on links whose physics is far simpler than a drone echo."
+ },
+ "P6_runtime": {
+  "question": "what runtime did each paper report, on what hardware, for what scene, and what did they trade away?",
+  "machine_screen": {
+   "rule": "per page, a sentence containing a time/performance word AND a number with a time unit",
+   "papers_of_140_with_at_least_one_numeric_runtime_sentence": 30,
+   "papers_of_140_naming_specific_hardware": 41,
+   "note": "So roughly 4 in 5 Sionna papers never state how long anything took. Runtime is not a reported quantity in this literature except where it is the contribution."
+  },
+  "the_rows_that_bear_on_a_SIGNATURE_pipeline": [
+   {
+    "id": "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "who": "Ziganshin EuCAP 2025 conference (PUBLISHED, DOI 10.23919/EuCAP63536.2025.10999367)",
+    "rows": [
+     {
+      "page": 4,
+      "q": "The EM simulation with MLFMM solver takes around one hour, while for the advanced RT tool with similar computational facilities, it is less than a second.",
+      "scene": "under-discretized sphere, 80 facets, 720 receive points on a 20-lambda circle, 2 GHz"
+     },
+     {
+      "page": 4,
+      "q": "The EM simulation with MLFMM solver is still carried out in around one hour, while it is around 5 seconds for RT.",
+      "scene": "over-discretized sphere, 4500 facets, same 720 points"
+     },
+     {
+      "page": 4,
+      "q": "In each case, the simulation time for the PO solver is around one day, whereas the RT simulation takes only about two seconds, highlighting a clear performance advantage for RT.",
+      "scene": "simplified car, 16610 facets, 10 GHz"
+     }
+    ],
+    "hardware": "not stated beyond 'with similar computational facilities'",
+    "trade": "he trades exactness for four to five orders of magnitude, and pays for it in the shadow region, which his own conclusion says is 'less precise or completely inaccurate'."
+   },
+   {
+    "id": "2604.05991",
+    "file": "2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pages": 11,
+    "who": "Ziganshin journal preprint - the measured version of the same claim",
+    "hardware": {
+     "page": 8,
+     "q": "The computational performance was evaluated on a dual-socket AMD EPYC 7343 CPU platform with 32 physical cores. Reported runtimes correspond to the average of 5 independent runs."
+    },
+    "cpu_only_note": {
+     "page": 8,
+     "q": "All simulations were performed on a CPU platform. Since the considered scenarios involve a relatively small number of computational tasks, they do not significantly benefit from GPU acceleration."
+    },
+    "table_II_execution_time_seconds": {
+     "columns": [
+      "RT",
+      "+V",
+      "+EE",
+      "+EV/VE"
+     ],
+     "Sphere (156 facets)": [
+      0.3,
+      1.1,
+      1.8,
+      4.6
+     ],
+     "Sphere (346 facets)": [
+      0.4,
+      1.8,
+      3.1,
+      6.8
+     ],
+     "Vehicle (220 facets)": [
+      0.4,
+      0.9,
+      2.4,
+      5.0
+     ],
+     "Vehicle (1496 facets)": [
+      0.7,
+      3.6,
+      10.2,
+      19.0
+     ],
+     "source_page": 8,
+     "workload": "two sphere cases at 720 angular points, two vehicle meshes at 360 angular points"
+    },
+    "full_wave_reference_cost": {
+     "page": 8,
+     "q": "Although a detailed comparison with full-wave electromagnetic solvers is beyond the scope of this work, it should be emphasized that MLFMM simulations are considerably more computationally demanding. For instance, each of the MLFMM simulations in this study took several hours."
+    },
+    "version_caveat_they_state": {
+     "page": 8,
+     "page_note": "sentence completes on p9",
+     "q": "It should also be noted that the reported runtimes correspond to the current Sionna-RT v0 implementation.",
+     "q_continuation_p9": "The recent migration of Sionna-RT to Dr.Jit-based architecture in the v2 release is expected to provide additional computational speedups."
+    },
+    "cost_of_the_added_physics": "adding vertex + second-order diffraction multiplies runtime by 15x on the fine vehicle mesh (0.7 s -> 19.0 s). That is the price of closing the diffraction gap inside the ray formalism."
+   },
+   {
+    "id": "2607.11743",
+    "file": "2607.11743__deeprt-engine-sbr-im-hybrid.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2607.11743__deeprt-engine-sbr-im-hybrid.pdf",
+    "pages": 5,
+    "who": "DeepRT-E - the only head-to-head runtime benchmark that includes stock Sionna",
+    "hardware": {
+     "page": 3,
+     "q": "The simulations were conducted on a server platform equipped with dual Intel Xeon Gold 6330 CPUs (2.00 GHz) and an NVIDIA GeForce RTX 4090 GPU."
+    },
+    "table_I": {
+     "page": 4,
+     "q": "TABLE I RUNTIME COMPARISON OF DIFFERENT RT IMPLEMENTATIONS. Algorithm DeepRT-E serial hybrid RT Wireless InSite Sionna Runtime 0.148 s 3.981 s 2.804 s 0.286 s"
+    },
+    "scene": {
+     "page": 4,
+     "q": "a comparative study was conducted in the indoor scenario shown in Fig. 4(a) at a carrier frequency of 28 GHz, using ray tracing results obtained from Wireless InSite and Sionna, both of which are based on RL algorithm."
+    },
+    "accuracy_context": {
+     "page": 4,
+     "q": "However, Wireless InSite presents a residual error of approximately 0.55 dB upon convergence, as shown in Table II."
+    },
+    "convergence": {
+     "page": 4,
+     "q": "the proposed DeepRT-E exhibits the fastest convergence rate and stabilizes at approximately n = 10 (corresponding to roughly 1,000 launched rays). In contrast, Sionna converges more slowly and requires approximately n = 30 to reach a stable state."
+    },
+    "why_it_matters_for_us": "0.286 s is the reference cost of a stock Sionna propagation solve on an RTX 4090 for an indoor 28 GHz scene. Any per-pose cost we report for our SBR+PO kernel should be quoted against this number, not against nothing."
+   },
+   {
+    "id": "2603.16126",
+    "file": "2603.16126__luo-wireless-dt-calibration-dft.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2603.16126__luo-wireless-dt-calibration-dft.pdf",
+    "pages": 6,
+    "who": "Luo et al., wireless DT calibration",
+    "rows": [
+     {
+      "page": 5,
+      "q": "The findings indicate that the computation time for ray tracing using Sionna RT (0.0592 seconds per sample) is much lower than that of Wireless Insite (1.2019 seconds per sample)."
+     }
+    ],
+    "hardware": {
+     "page": 5,
+     "q": "we analyze the computation time required for the steps involved in the process, which is conducted on an Nvidia RTX A5000 GPU."
+    },
+    "note": "A second independent Sionna-vs-Wireless InSite number, ~20x, on a different GPU and scene. Consistent in direction with DeepRT-E's ~10x."
+   },
+   {
+    "id": "2504.21719",
+    "file": "2504.21719__sionna-rt-technical-report-v1.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "pages": 59,
+    "who": "Sionna RT Technical Report (the vendor document; arXiv 2504.21719v2)",
+    "hardware": "NVIDIA RTX 4090 throughout",
+    "rows": [
+     {
+      "page": 30,
+      "q": "Figure 24: Computation time and number of candidates found as a function of the number of sources and targets. The experiments are conducted on an NVIDIA RTX 4090 GPU.",
+      "note": "axis text gives 0-200 ms for 1 to 1000 'targets', where 'target' means a path endpoint, not a physical object"
+     },
+     {
+      "page": 37,
+      "q": "Notably, the radio map solver can compute radio maps with 10^9 samples on a single NVIDIA RTX 4090 GPU."
+     },
+     {
+      "page": 38,
+      "q": "Figure 30: Computation time for calculating radio maps using an NVIDIA RTX 4090 GPU for a single transmitter with a linear array of 1 to 1024 antennas.",
+      "note": "axis text: 10^6 to 10^9 samples against 10^1 to 10^3 ms"
+     }
+    ],
+    "the_point": "The vendor's own performance envelope is milliseconds for propagation. Nothing in the 59-page document costs anything, because nothing in it computes a scattering integral - 'physical optics' 0 times, 'RCS' 0 times, 'dBsm' 0 times, 'surface current' 0 times, 'induced current' 0 times, all verified by direct fitz count."
+   },
+   {
+    "id": "2412.20524",
+    "file": "2412.20524__ns3-meets-sionna.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2412.20524__ns3-meets-sionna.pdf",
+    "pages": 9,
+    "who": "ns-3 meets Sionna",
+    "rows": [
+     {
+      "page": 4,
+      "q": "Table I COMPUTATION TIME FOR SINGLE CSI ON DIFFERENT PLATFORMS ... Average P2P channel computation time [s] Environment Ryzen9 Ryzen7 Ryzen7+GPU Free-space 0.03 0.06 0.09 Indoor (simple room) 0.9 1.2 7.7 Outdoor (Munich) 4.54 5.32 18.46"
+     },
+     {
+      "page": 4,
+      "q": "Finally, it is interesting to see that there is no advantage in using GPUs like the NVIDIA RTX 3060."
+     },
+     {
+      "page": 4,
+      "q": "The calculation time is 3.5-6.5x slower compared to using a CPU with AMD Ryzen 5."
+     }
+    ],
+    "note": "A useful counterweight to 'GPU always wins'. For small per-call scenes the launch overhead dominates - relevant to us because our per-rotor-phase re-mesh makes many small calls."
+   },
+   {
+    "id": "2311.18558",
+    "file": "2311.18558__hoydis_learning-radio-env.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2311.18558__hoydis_learning-radio-env.pdf",
+    "pages": 11,
+    "who": "Hoydis et al. (NVIDIA), Learning Radio Environments by Differentiable Ray Tracing",
+    "rows": [
+     {
+      "page": 6,
+      "q": "After around 3000 training steps (approx. 10 min on an NVDIA RTX 3090), all parameters have converged to the correct values."
+     }
+    ],
+    "second_file_same_work": {
+     "id": "Learning_Radio_Environments_by_Differentiable_Ray_",
+     "file": "Learning_Radio_Environments_by_Differentiable_Ray_.pdf",
+     "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Learning_Radio_Environments_by_Differentiable_Ray_.pdf",
+     "page": 7,
+     "q": "The dataset generation took around 14 h on an NVIDIA RTX 4090 graphics card, while each calibration run took between 8 min to 15 min.",
+     "note": "TWO FILES, SAME WORK, DIFFERENT CONTENT. Verified by regex over both text layers: this sentence is present in Learning_Radio_Environments_by_Differentiable_Ray_.pdf p7 and ABSENT from 2311.18558__hoydis_learning-radio-env.pdf. Cite the file you actually opened - the same trap as the two Ziganshin documents."
+    }
+   },
+   {
+    "id": "2601.03216",
+    "file": "2601.03216__zhang-onetwin-online-digital-network-twin.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2601.03216__zhang-onetwin-online-digital-network-twin.pdf",
+    "pages": 10,
+    "who": "oneTwin",
+    "rows": [
+     {
+      "page": 8,
+      "q": "Specifically, we observe that the execution of Sionna RT requires 0.204 seconds on average, which totals 0.204 x 25 = 5.1 seconds during material tuning"
+     }
+    ],
+    "hardware": {
+     "page": 6,
+     "q": "We implement the oneTwin system on a workstation with Intel i7-14700K (64G RAM), NVIDIA RTX 4090 (24G RAM), and Ubuntu 22.04."
+    },
+    "note": "A third independent per-call Sionna RT cost on an RTX 4090: 0.204 s. Together with DeepRT-E's 0.286 s this brackets the stock cost well."
+   },
+   {
+    "id": "2501.00372",
+    "file": "2501.00372__pegurri-sionna-rt-ns3-digital-twin.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2501.00372__pegurri-sionna-rt-ns3-digital-twin.pdf",
+    "pages": 6,
+    "who": "Pegurri et al., Sionna RT + ns-3 digital twin",
+    "rows": [
+     {
+      "page": 3,
+      "q": "In terms of computational time, this workflow takes an average of 7.2 milliseconds using an NVIDIA A40 GPU."
+     }
+    ]
+   },
+   {
+    "id": "2511.05522",
+    "file": "2511.05522__airmap-ai-radio-maps-dt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2511.05522__airmap-ai-radio-maps-dt.pdf",
+    "pages": 15,
+    "who": "AIRMap - the strongest 'replace RT with a network' claim",
+    "rows": [
+     {
+      "page": 1,
+      "q": "Trained on 1.2M Boston-area samples and validated across four distinct urban and rural environments with varying terrain and building density, AIRMap predicts path gain with under 4 dB RMSE in 4 ms per inference on an NVIDIA L40S -over 100x faster than GPU-accelerated ray tracing based radio maps."
+     },
+     {
+      "page": 12,
+      "q": "After warm-up, each step is processed in 0.75 ms, and full radio map generation (200x200 points) takes 280 ms (284 ms including radio map processing), enabling real-time operation."
+     }
+    ],
+    "hardware": {
+     "page": 5,
+     "q": "All simulations are conducted using Sionna RT on an NVIDIA L40S GPU."
+    }
+   },
+   {
+    "id": "2503.12177",
+    "file": "2503.12177__open-wireless-dt-oai-sionna-rt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2503.12177__open-wireless-dt-oai-sionna-rt.pdf",
+    "pages": 14,
+    "who": "Open wireless DT (OAI + Sionna RT)",
+    "rows": [
+     {
+      "page": 6,
+      "q": "The total computation time for ray tracing across all snapshots was 13.5 s for Shin-nakano and 8.9 s for Shibuya."
+     }
+    ],
+    "hardware": {
+     "page": 4,
+     "q": "The server was equipped with an Intel(R) Xeon(R) Silver 4310 @ 2.10 GHz CPU, 256 GiB RAM, an NVIDIA A100 GPU (80 GB), and ran Ubuntu 22.04.4 LTS."
+    }
+   },
+   {
+    "id": "2411.12284",
+    "file": "2411.12284__amatare-dt-radar-robot-navigation.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2411.12284__amatare-dt-radar-robot-navigation.pdf",
+    "pages": 15,
+    "who": "DT-RaDaR (no radar; see P1 correction)",
+    "rows": [
+     {
+      "page": 13,
+      "q": "The end-to-end delay is calculated based on the two measurements: (a) the ray-tracing time per step, which is 16ms and (b) the inference time to generate the next action for the robot, which is 17ms."
+     }
+    ]
+   },
+   {
+    "id": "2601.18242",
+    "file": "2601.18242__kang_vlm-material-estimation.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2601.18242__kang_vlm-material-estimation.pdf",
+    "pages": 11,
+    "who": "Kang et al., VLM-based material estimation - the closest analogue to iterating a scene many times",
+    "rows": [
+     {
+      "page": 7,
+      "q": "While the total runtime and number of iterations vary across ray counts, the per-iteration computation time remains constant (around 3.3 s), indicating that the computational cost of each optimization step scales well with the number of rays."
+     },
+     {
+      "page": 6,
+      "q": "The average time to process queries for parameter initialization and measurement position selection is around 3.8s and 50.1s, respectively."
+     }
+    ],
+    "hardware": {
+     "page": 5,
+     "q": "The simulation environment is running on the NVIDIA Sionna differentiable RT engine running and one Intel Core Ultra 9 Processor 285K CPU with one Geforce RTX 5090 GPU."
+    }
+   },
+   {
+    "id": "2603.00795",
+    "file": "2603.00795__sari-titan-twin-topology-lawn.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2603.00795__sari-titan-twin-topology-lawn.pdf",
+    "pages": 12,
+    "who": "TITAN twin topology",
+    "rows": [
+     {
+      "page": 9,
+      "q": "Optimizing with a lower-fidelity DT reduces the time to complete all Niter = 150 optimization iterations from ~23.1 s to ~12.9 s (approximately 1.8x faster"
+     }
+    ],
+    "note": "and the trade is stated: 'it significantly underestimates interference and coverage, leading to notably inferior placement outcomes'."
+   },
+   {
+    "id": "2605.21897",
+    "file": "2605.21897__makvandi-adaptwin-multifidelity-dt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2605.21897__makvandi-adaptwin-multifidelity-dt.pdf",
+    "pages": 13,
+    "who": "AdaPTwin - multi-fidelity mesh LOD, the same trade we make when we decimate",
+    "rows": [
+     {
+      "page": 9,
+      "q": "Real-time deadline is determined by the prediction horizon, which is considered 1s for simulations."
+     }
+    ],
+    "mesh_fidelity": {
+     "page": 5,
+     "q": "Notably, detailed 3D models of vehicles are simplified into several levels of fidelity using low-poly meshes in Blender."
+    }
+   },
+   {
+    "id": "2401.03310",
+    "file": "2401.03310__caviar-digital-twin.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+    "pages": 14,
+    "who": "CAVIAR - states an explicit runtime REQUIREMENT, which is rare and useful framing",
+    "rows": [
+     {
+      "page": 3,
+      "q": "Besides, the simulation cannot require specialized hardware to reach a reasonable Tp (for instance, no longer than one hour for simulating Tv = 60 seconds on a high-performance personal computer) [36]."
+     },
+     {
+      "page": 12,
+      "q": "Fig. 12: Total wall-clock time for executing 60 seconds of simulation without executing any rescue, and considering a sampling interval of 500 ms.",
+      "note": "y-axis 400-1000 seconds for 1 to 5 connected UAVs"
+     }
+    ],
+    "hardware": {
+     "page": 10,
+     "q": "TABLE VIII: Simulation hardware specifications CPU Intel® Core™i7-8700 CPU @ 3.20GHz x 12 RAM 32.0 GiB GPU NVIDIA GeForce RTX 2060 Rev.A Storage SSD WD blue SATA 3.0"
+    }
+   },
+   {
+    "id": "2607.04400",
+    "file": "2607.04400__saribekyan_sim2real-positioning.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2607.04400__saribekyan_sim2real-positioning.pdf",
+    "pages": 8,
+    "who": "Saribekyan sim2real - the largest RT workload stated in the corpus",
+    "rows": [
+     {
+      "page": 5,
+      "q": "Throughput is roughly 9 s per 256UE batch and about 15 h per patch on an NVIDIA H100, parallelized across 24 patch-range shards."
+     }
+    ]
+   },
+   {
+    "id": "2501.05817",
+    "file": "2501.05817__guneser-ris-optimization-sionna-rt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2501.05817__guneser-ris-optimization-sionna-rt.pdf",
+    "pages": 6,
+    "who": "Guneser RIS optimization",
+    "rows": [
+     {
+      "page": 5,
+      "q": "Their computation times are 0.019 s and 1.219 s, respectively, excluding pilot transmissions and focusing on algorithm processing."
+     },
+     {
+      "page": 5,
+      "q": "In contrast, the iterative method 25.861 s requires broadcast instants equal to RIS unit cells and recalculates the channel gain for each transmission, leading to significantly higher computation time."
+     }
+    ]
+   }
+  ],
+  "papers_where_runtime_would_have_mattered_and_is_absent": [
+   {
+    "id": "md-rt",
+    "file": "Micro-Doppler_Signature_Simulation_of_Multirotor_UAVs_Using_Ray_Tracing.pdf",
+    "why_on_their_path": "they re-trace the scene once per rotor phase - the same loop that dominates our cost - and report no runtime at all. Zero hits from the runtime regex across all 6 pages."
+   },
+   {
+    "id": "2607.03826",
+    "file": "2607.03826__lambda-uav-dataset.pdf",
+    "why_on_their_path": "they run CADFEKO over UAV attitudes to build an RCS table, which is the expensive step, and never say what it cost. Runtime regex hits: none in 20 pages."
+   },
+   {
+    "id": "2602.10537",
+    "file": "2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+    "why_on_their_path": "36 pages of site-specific Sionna scenes with drone meshes and no runtime figure."
+   }
+  ],
+  "what_the_table_says_about_where_we_sit": [
+   "Stock Sionna propagation on a modern GPU costs 0.2-0.3 s per scene solve (DeepRT-E 0.286 s RTX 4090; oneTwin 0.204 s RTX 4090; Luo 0.0592 s per sample RTX A5000). That is the floor.",
+   "Ziganshin's extended-diffraction RT costs 0.3-19.0 s per angular sweep on 32 CPU cores, i.e. 1-2 orders above the floor, and buys MAE 1.6-2.6 dB against MLFMM in the shadow region.",
+   "A commercial PO surface integral over a car costs ~1 day (EuCAP), and MLFMM costs ~1 hour per sphere sweep / several hours per vehicle case.",
+   "So the interesting axis is not 'is PO slow' - it is that Ziganshin's published objection is architectural: 'the need to cascade PO after RT negates the computational advantages of RT'. Our answer has to be a measured per-pose number on our own hardware placed next to the 0.2-0.3 s stock floor and the ~1 day commercial PO figure. We do not currently publish that number."
+  ],
+  "flat_table_every_runtime_number": [
+   {
+    "who": "Ziganshin EuCAP 2025 conference (PUBLISHED, DOI 10.23919/EuCAP63536.2025.10999367)",
+    "file": "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "page": 4,
+    "quote": "The EM simulation with MLFMM solver takes around one hour, while for the advanced RT tool with similar computational facilities, it is less than a second.",
+    "scene": "under-discretized sphere, 80 facets, 720 receive points on a 20-lambda circle, 2 GHz",
+    "hardware": "not stated beyond 'with similar computational facilities'"
+   },
+   {
+    "who": "Ziganshin EuCAP 2025 conference (PUBLISHED, DOI 10.23919/EuCAP63536.2025.10999367)",
+    "file": "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "page": 4,
+    "quote": "The EM simulation with MLFMM solver is still carried out in around one hour, while it is around 5 seconds for RT.",
+    "scene": "over-discretized sphere, 4500 facets, same 720 points",
+    "hardware": "not stated beyond 'with similar computational facilities'"
+   },
+   {
+    "who": "Ziganshin EuCAP 2025 conference (PUBLISHED, DOI 10.23919/EuCAP63536.2025.10999367)",
+    "file": "Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Ray-Based_Simulation_of_Multistatic_Scattering_from_Target_Objects_in_ISAC.pdf",
+    "page": 4,
+    "quote": "In each case, the simulation time for the PO solver is around one day, whereas the RT simulation takes only about two seconds, highlighting a clear performance advantage for RT.",
+    "scene": "simplified car, 16610 facets, 10 GHz",
+    "hardware": "not stated beyond 'with similar computational facilities'"
+   },
+   {
+    "who": "Ziganshin journal preprint - the measured version of the same claim",
+    "file": "2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "page": 8,
+    "quote": "Table II row 'Sphere (156 facets)': RT/+V/+EE/+EV-VE = [0.3, 1.1, 1.8, 4.6] seconds",
+    "scene": "two sphere cases at 720 angular points, two vehicle meshes at 360 angular points",
+    "hardware": "The computational performance was evaluated on a dual-socket AMD EPYC 7343 CPU platform with 32 physical cores. Reported runtimes correspond to the average of 5 independent runs."
+   },
+   {
+    "who": "Ziganshin journal preprint - the measured version of the same claim",
+    "file": "2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "page": 8,
+    "quote": "Table II row 'Sphere (346 facets)': RT/+V/+EE/+EV-VE = [0.4, 1.8, 3.1, 6.8] seconds",
+    "scene": "two sphere cases at 720 angular points, two vehicle meshes at 360 angular points",
+    "hardware": "The computational performance was evaluated on a dual-socket AMD EPYC 7343 CPU platform with 32 physical cores. Reported runtimes correspond to the average of 5 independent runs."
+   },
+   {
+    "who": "Ziganshin journal preprint - the measured version of the same claim",
+    "file": "2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "page": 8,
+    "quote": "Table II row 'Vehicle (220 facets)': RT/+V/+EE/+EV-VE = [0.4, 0.9, 2.4, 5.0] seconds",
+    "scene": "two sphere cases at 720 angular points, two vehicle meshes at 360 angular points",
+    "hardware": "The computational performance was evaluated on a dual-socket AMD EPYC 7343 CPU platform with 32 physical cores. Reported runtimes correspond to the average of 5 independent runs."
+   },
+   {
+    "who": "Ziganshin journal preprint - the measured version of the same claim",
+    "file": "2604.05991__ziganshin_curved-body-scattering.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2604.05991__ziganshin_curved-body-scattering.pdf",
+    "page": 8,
+    "quote": "Table II row 'Vehicle (1496 facets)': RT/+V/+EE/+EV-VE = [0.7, 3.6, 10.2, 19.0] seconds",
+    "scene": "two sphere cases at 720 angular points, two vehicle meshes at 360 angular points",
+    "hardware": "The computational performance was evaluated on a dual-socket AMD EPYC 7343 CPU platform with 32 physical cores. Reported runtimes correspond to the average of 5 independent runs."
+   },
+   {
+    "who": "DeepRT-E - the only head-to-head runtime benchmark that includes stock Sionna",
+    "file": "2607.11743__deeprt-engine-sbr-im-hybrid.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2607.11743__deeprt-engine-sbr-im-hybrid.pdf",
+    "page": 4,
+    "quote": "TABLE I RUNTIME COMPARISON OF DIFFERENT RT IMPLEMENTATIONS. Algorithm DeepRT-E serial hybrid RT Wireless InSite Sionna Runtime 0.148 s 3.981 s 2.804 s 0.286 s",
+    "scene": "a comparative study was conducted in the indoor scenario shown in Fig. 4(a) at a carrier frequency of 28 GHz, using ray tracing results obtained from Wireless InSite and Sionna, both of which are based on RL algorithm.",
+    "hardware": "The simulations were conducted on a server platform equipped with dual Intel Xeon Gold 6330 CPUs (2.00 GHz) and an NVIDIA GeForce RTX 4090 GPU."
+   },
+   {
+    "who": "Luo et al., wireless DT calibration",
+    "file": "2603.16126__luo-wireless-dt-calibration-dft.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2603.16126__luo-wireless-dt-calibration-dft.pdf",
+    "page": 5,
+    "quote": "The findings indicate that the computation time for ray tracing using Sionna RT (0.0592 seconds per sample) is much lower than that of Wireless Insite (1.2019 seconds per sample).",
+    "scene": null,
+    "hardware": "we analyze the computation time required for the steps involved in the process, which is conducted on an Nvidia RTX A5000 GPU."
+   },
+   {
+    "who": "Sionna RT Technical Report (the vendor document; arXiv 2504.21719v2)",
+    "file": "2504.21719__sionna-rt-technical-report-v1.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "page": 30,
+    "quote": "Figure 24: Computation time and number of candidates found as a function of the number of sources and targets. The experiments are conducted on an NVIDIA RTX 4090 GPU.",
+    "scene": "axis text gives 0-200 ms for 1 to 1000 'targets', where 'target' means a path endpoint, not a physical object",
+    "hardware": "NVIDIA RTX 4090 throughout"
+   },
+   {
+    "who": "Sionna RT Technical Report (the vendor document; arXiv 2504.21719v2)",
+    "file": "2504.21719__sionna-rt-technical-report-v1.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "page": 37,
+    "quote": "Notably, the radio map solver can compute radio maps with 10^9 samples on a single NVIDIA RTX 4090 GPU.",
+    "scene": null,
+    "hardware": "NVIDIA RTX 4090 throughout"
+   },
+   {
+    "who": "Sionna RT Technical Report (the vendor document; arXiv 2504.21719v2)",
+    "file": "2504.21719__sionna-rt-technical-report-v1.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/channel_modeling_raytracing/2504.21719__sionna-rt-technical-report-v1.pdf",
+    "page": 38,
+    "quote": "Figure 30: Computation time for calculating radio maps using an NVIDIA RTX 4090 GPU for a single transmitter with a linear array of 1 to 1024 antennas.",
+    "scene": "axis text: 10^6 to 10^9 samples against 10^1 to 10^3 ms",
+    "hardware": "NVIDIA RTX 4090 throughout"
+   },
+   {
+    "who": "ns-3 meets Sionna",
+    "file": "2412.20524__ns3-meets-sionna.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2412.20524__ns3-meets-sionna.pdf",
+    "page": 4,
+    "quote": "Table I COMPUTATION TIME FOR SINGLE CSI ON DIFFERENT PLATFORMS ... Average P2P channel computation time [s] Environment Ryzen9 Ryzen7 Ryzen7+GPU Free-space 0.03 0.06 0.09 Indoor (simple room) 0.9 1.2 7.7 Outdoor (Munich) 4.54 5.32 18.46",
+    "scene": null,
+    "hardware": null
+   },
+   {
+    "who": "ns-3 meets Sionna",
+    "file": "2412.20524__ns3-meets-sionna.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2412.20524__ns3-meets-sionna.pdf",
+    "page": 4,
+    "quote": "Finally, it is interesting to see that there is no advantage in using GPUs like the NVIDIA RTX 3060.",
+    "scene": null,
+    "hardware": null
+   },
+   {
+    "who": "ns-3 meets Sionna",
+    "file": "2412.20524__ns3-meets-sionna.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2412.20524__ns3-meets-sionna.pdf",
+    "page": 4,
+    "quote": "The calculation time is 3.5-6.5x slower compared to using a CPU with AMD Ryzen 5.",
+    "scene": null,
+    "hardware": null
+   },
+   {
+    "who": "Hoydis et al. (NVIDIA), Learning Radio Environments by Differentiable Ray Tracing",
+    "file": "2311.18558__hoydis_learning-radio-env.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2311.18558__hoydis_learning-radio-env.pdf",
+    "page": 6,
+    "quote": "After around 3000 training steps (approx. 10 min on an NVDIA RTX 3090), all parameters have converged to the correct values.",
+    "scene": null,
+    "hardware": null
+   },
+   {
+    "who": "oneTwin",
+    "file": "2601.03216__zhang-onetwin-online-digital-network-twin.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2601.03216__zhang-onetwin-online-digital-network-twin.pdf",
+    "page": 8,
+    "quote": "Specifically, we observe that the execution of Sionna RT requires 0.204 seconds on average, which totals 0.204 x 25 = 5.1 seconds during material tuning",
+    "scene": null,
+    "hardware": "We implement the oneTwin system on a workstation with Intel i7-14700K (64G RAM), NVIDIA RTX 4090 (24G RAM), and Ubuntu 22.04."
+   },
+   {
+    "who": "Pegurri et al., Sionna RT + ns-3 digital twin",
+    "file": "2501.00372__pegurri-sionna-rt-ns3-digital-twin.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2501.00372__pegurri-sionna-rt-ns3-digital-twin.pdf",
+    "page": 3,
+    "quote": "In terms of computational time, this workflow takes an average of 7.2 milliseconds using an NVIDIA A40 GPU.",
+    "scene": null,
+    "hardware": null
+   },
+   {
+    "who": "AIRMap - the strongest 'replace RT with a network' claim",
+    "file": "2511.05522__airmap-ai-radio-maps-dt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2511.05522__airmap-ai-radio-maps-dt.pdf",
+    "page": 1,
+    "quote": "Trained on 1.2M Boston-area samples and validated across four distinct urban and rural environments with varying terrain and building density, AIRMap predicts path gain with under 4 dB RMSE in 4 ms per inference on an NVIDIA L40S -over 100x faster than GPU-accelerated ray tracing based radio maps.",
+    "scene": null,
+    "hardware": "All simulations are conducted using Sionna RT on an NVIDIA L40S GPU."
+   },
+   {
+    "who": "AIRMap - the strongest 'replace RT with a network' claim",
+    "file": "2511.05522__airmap-ai-radio-maps-dt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2511.05522__airmap-ai-radio-maps-dt.pdf",
+    "page": 12,
+    "quote": "After warm-up, each step is processed in 0.75 ms, and full radio map generation (200x200 points) takes 280 ms (284 ms including radio map processing), enabling real-time operation.",
+    "scene": null,
+    "hardware": "All simulations are conducted using Sionna RT on an NVIDIA L40S GPU."
+   },
+   {
+    "who": "Open wireless DT (OAI + Sionna RT)",
+    "file": "2503.12177__open-wireless-dt-oai-sionna-rt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/link_adaptation_scheduling/2503.12177__open-wireless-dt-oai-sionna-rt.pdf",
+    "page": 6,
+    "quote": "The total computation time for ray tracing across all snapshots was 13.5 s for Shin-nakano and 8.9 s for Shibuya.",
+    "scene": null,
+    "hardware": "The server was equipped with an Intel(R) Xeon(R) Silver 4310 @ 2.10 GHz CPU, 256 GiB RAM, an NVIDIA A100 GPU (80 GB), and ran Ubuntu 22.04.4 LTS."
+   },
+   {
+    "who": "DT-RaDaR (no radar; see P1 correction)",
+    "file": "2411.12284__amatare-dt-radar-robot-navigation.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2411.12284__amatare-dt-radar-robot-navigation.pdf",
+    "page": 13,
+    "quote": "The end-to-end delay is calculated based on the two measurements: (a) the ray-tracing time per step, which is 16ms and (b) the inference time to generate the next action for the robot, which is 17ms.",
+    "scene": null,
+    "hardware": null
+   },
+   {
+    "who": "Kang et al., VLM-based material estimation - the closest analogue to iterating a scene many times",
+    "file": "2601.18242__kang_vlm-material-estimation.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2601.18242__kang_vlm-material-estimation.pdf",
+    "page": 7,
+    "quote": "While the total runtime and number of iterations vary across ray counts, the per-iteration computation time remains constant (around 3.3 s), indicating that the computational cost of each optimization step scales well with the number of rays.",
+    "scene": null,
+    "hardware": "The simulation environment is running on the NVIDIA Sionna differentiable RT engine running and one Intel Core Ultra 9 Processor 285K CPU with one Geforce RTX 5090 GPU."
+   },
+   {
+    "who": "Kang et al., VLM-based material estimation - the closest analogue to iterating a scene many times",
+    "file": "2601.18242__kang_vlm-material-estimation.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2601.18242__kang_vlm-material-estimation.pdf",
+    "page": 6,
+    "quote": "The average time to process queries for parameter initialization and measurement position selection is around 3.8s and 50.1s, respectively.",
+    "scene": null,
+    "hardware": "The simulation environment is running on the NVIDIA Sionna differentiable RT engine running and one Intel Core Ultra 9 Processor 285K CPU with one Geforce RTX 5090 GPU."
+   },
+   {
+    "who": "TITAN twin topology",
+    "file": "2603.00795__sari-titan-twin-topology-lawn.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2603.00795__sari-titan-twin-topology-lawn.pdf",
+    "page": 9,
+    "quote": "Optimizing with a lower-fidelity DT reduces the time to complete all Niter = 150 optimization iterations from ~23.1 s to ~12.9 s (approximately 1.8x faster",
+    "scene": null,
+    "hardware": null
+   },
+   {
+    "who": "AdaPTwin - multi-fidelity mesh LOD, the same trade we make when we decimate",
+    "file": "2605.21897__makvandi-adaptwin-multifidelity-dt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/digital_twin/2605.21897__makvandi-adaptwin-multifidelity-dt.pdf",
+    "page": 9,
+    "quote": "Real-time deadline is determined by the prediction horizon, which is considered 1s for simulations.",
+    "scene": null,
+    "hardware": null
+   },
+   {
+    "who": "CAVIAR - states an explicit runtime REQUIREMENT, which is rare and useful framing",
+    "file": "2401.03310__caviar-digital-twin.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+    "page": 3,
+    "quote": "Besides, the simulation cannot require specialized hardware to reach a reasonable Tp (for instance, no longer than one hour for simulating Tv = 60 seconds on a high-performance personal computer) [36].",
+    "scene": null,
+    "hardware": "TABLE VIII: Simulation hardware specifications CPU Intel® Core™i7-8700 CPU @ 3.20GHz x 12 RAM 32.0 GiB GPU NVIDIA GeForce RTX 2060 Rev.A Storage SSD WD blue SATA 3.0"
+   },
+   {
+    "who": "CAVIAR - states an explicit runtime REQUIREMENT, which is rare and useful framing",
+    "file": "2401.03310__caviar-digital-twin.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2401.03310__caviar-digital-twin.pdf",
+    "page": 12,
+    "quote": "Fig. 12: Total wall-clock time for executing 60 seconds of simulation without executing any rescue, and considering a sampling interval of 500 ms.",
+    "scene": "y-axis 400-1000 seconds for 1 to 5 connected UAVs",
+    "hardware": "TABLE VIII: Simulation hardware specifications CPU Intel® Core™i7-8700 CPU @ 3.20GHz x 12 RAM 32.0 GiB GPU NVIDIA GeForce RTX 2060 Rev.A Storage SSD WD blue SATA 3.0"
+   },
+   {
+    "who": "Saribekyan sim2real - the largest RT workload stated in the corpus",
+    "file": "2607.04400__saribekyan_sim2real-positioning.pdf",
+    "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2607.04400__saribekyan_sim2real-positioning.pdf",
+    "page": 5,
+    "quote": "Throughput is roughly 9 s per 256UE batch and about 15 h per patch on an NVIDIA H100, parallelized across 24 patch-range shards.",
+    "scene": null,
+    "hardware": null
+   },
+   {
+    "who": "Guneser RIS optimization",
+    "file": "2501.05817__guneser-ris-optimization-sionna-rt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2501.05817__guneser-ris-optimization-sionna-rt.pdf",
+    "page": 5,
+    "quote": "Their computation times are 0.019 s and 1.219 s, respectively, excluding pilot transmissions and focusing on algorithm processing.",
+    "scene": null,
+    "hardware": null
+   },
+   {
+    "who": "Guneser RIS optimization",
+    "file": "2501.05817__guneser-ris-optimization-sionna-rt.pdf",
+    "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/ris_metasurface/2501.05817__guneser-ris-optimization-sionna-rt.pdf",
+    "page": 5,
+    "quote": "In contrast, the iterative method 25.861 s requires broadcast instants equal to RIS unit cells and recalculates the channel gain for each transmission, leading to significantly higher computation time.",
+    "scene": null,
+    "hardware": null
+   }
+  ],
+  "flat_table_row_count": 31
+ },
+ "corrections_and_warnings": [
+  "DT-RaDaR (2411.12284) scores 64 hits on 'radar' and has nothing to do with radar - 'RaDaR' is the system acronym for Robot navigation using Differential Ray-tracing. Caught by opening the paper. This is the workflow's warned-about failure mode and it fired on the very first keyword ranking.",
+  "The two Ziganshin documents must never be merged. The 'PO solver around one day' sentence is on page 4 of the EuCAP 2025 CONFERENCE PDF only. The journal preprint arXiv:2604.05991v2 does not contain it; its runtime evidence is Table II on page 8 plus 'each of the MLFMM simulations in this study took several hours'.",
+  "The one dBsm curve in the corpus (Ziganshin EuCAP Fig. 6, car) is validated against FEKO's PO solver, not against MLFMM. Calling it 'validated against full-wave' would be wrong - the spheres were, the car was not.",
+  "2602.10537 and Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf are the same work in two files; page numbers differ (p20 vs p23 for the mesh sentence). Cite the arXiv-v2 file and state the page you used.",
+  "VAN3Twin (2505.14184) is marked PROPAGATION_ONLY + machine_classified in the prior sweep. I opened it: it does put full metallic vehicle meshes in the traced scene (p5). The role is right about the task but the row should not be used to claim 'nobody puts solid objects in Sionna scenes'.",
+  "My own P5 regex screen returned 6 papers and MISSED Ziganshin, because his MAE sentences name the metric but not the amplitude quantity in the same sentence. Screens undercount; the number 6 is a screen result, not a census."
+ ],
+ "twelve_things_worth_carrying_into_the_reports": [
+  "Ziganshin journal p1: 'This SBR+PO approach, however, is limited to the illuminated region and is not suitable to predict the scattered field in the shadow region of the obstacle. Furthermore, the need to cascade PO after RT negates the computational advantages of RT.' - a published, citable objection to our exact architecture.",
+  "LAMBDA p3: Sionna RT for propagation, CADFEKO for RCS, stated in one sentence. The clearest evidence that the hole we are filling is real.",
+  "Clutter-Aware ISAC p20: drone meshes imported into Sionna, stock materials, and 'dBsm' 0 times in 36 pages - at Proceedings of the IEEE level.",
+  "2605.07623 p8: 'The UAV is modeled as a metallic cube.'",
+  "2604.08306 p2: 'The bi-static RCS relies on the assumption that the target is a point scatterer.'",
+  "2502.10371 p8: 'Target radar cross section 1 m2' in a parameter table.",
+  "2509.21118 p11: 'The targets are cubes with a Lambertian scattering pattern and a scattering coefficient of 1.'",
+  "Ziganshin journal p7: he calls his own measurement comparison 'a qualitative validation rather than an attempt to exactly reproduce the measurements'. That is the honesty bar.",
+  "2607.04400 p4: '~31 dB between simulated and measured RSSI' - uncalibrated Sionna absolute level against a live network.",
+  "2605.10352 p5: RSRP error up to 12 dBm vs VNA in an indoor lab, attributed to material assignment - our P2 and P5 in someone else's experiment.",
+  "DeepRT-E p4 Table I: stock Sionna 0.286 s vs Wireless InSite 2.804 s on RTX 4090 - the runtime floor our per-pose cost should be quoted against.",
+  "Ziganshin journal Table II p8: adding vertex + second-order diffraction takes a 1496-facet vehicle from 0.7 s to 19.0 s - the measured price of closing the diffraction gap the ray way."
+ ]
+}

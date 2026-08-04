@@ -1,0 +1,2348 @@
+{
+ "1_airframe": {
+  "airframe": "DJI Phantom 3",
+  "module": "benchmark/airframe_phantom3.py",
+  "built": {
+   "frame_lwh_mm": [
+    283.8873863220215,
+    283.8873863220215,
+    200.0
+   ],
+   "full_lwh_mm": [
+    435.38490170003786,
+    462.61107746862956,
+    204.96822337037025
+   ],
+   "wheelbase_opposite_mm": 350.0,
+   "wheelbase_spec_mm": 350.0,
+   "wheelbase_err_pct": 0.0,
+   "height_mm": 200.0,
+   "height_paper_mm": 200.0,
+   "prop_disc_span_mm": 487.4873734152917,
+   "prop_tip_clearance_adjacent_mm": 7.487373415291614,
+   "fit_scale": [
+    1.0,
+    1.0,
+    0.9587180703825764
+   ],
+   "n_tris": 28200,
+   "groups": [
+    "battery",
+    "body",
+    "camera",
+    "canopy",
+    "gear",
+    "motor",
+    "pcb",
+    "prop"
+   ],
+   "facets": {
+    "n_tris": 28200,
+    "area_m2": 0.33543211486418023,
+    "median_edge_mm": 5.845294717685809,
+    "p90_edge_mm": 9.391994905383596,
+    "lambda_over_median_edge": {
+     "1.843 GHz": 27.828445974863502,
+     "3.500 GHz": 14.653664551906695,
+     "5.210 GHz": 9.844112462893174,
+     "10.000 GHz": 5.128782593167343,
+     "18.200 GHz": 2.8180124138282103
+    },
+    "per_group": {
+     "battery": {
+      "n_tris": 24,
+      "area_m2": 0.057954997244637846,
+      "median_edge_mm": 99.81412696706501
+     },
+     "body": {
+      "n_tris": 7062,
+      "area_m2": 0.10186866883039872,
+      "median_edge_mm": 6.2407061744536065
+     },
+     "camera": {
+      "n_tris": 398,
+      "area_m2": 0.03330069298030777,
+      "median_edge_mm": 6.529791353965881
+     },
+     "canopy": {
+      "n_tris": 2240,
+      "area_m2": 0.031674914691542065,
+      "median_edge_mm": 6.764393873799363
+     },
+     "gear": {
+      "n_tris": 3696,
+      "area_m2": 0.04604951967005847,
+      "median_edge_mm": 2.2656022727610376
+     },
+     "motor": {
+      "n_tris": 2016,
+      "area_m2": 0.01242200823627938,
+      "median_edge_mm": 4.40925956480041
+     },
+     "pcb": {
+      "n_tris": 12,
+      "area_m2": 0.012800697905312458,
+      "median_edge_mm": 66.72955565428661
+     },
+     "prop": {
+      "n_tris": 12752,
+      "area_m2": 0.03936061530564349,
+      "median_edge_mm": 5.847465004159776
+     }
+    }
+   }
+  },
+  "primary_dimension_constraint": {
+   "source": "the measurement papers themselves",
+   "das_table1": "DJI Phantom 3 — 35 cm x 20 cm",
+   "yuan_II_A": "the DJI Phantom 3, featuring four symmetrical rotors with a horizontal diagonal of 35 cm and a height of 20 cm",
+   "our_wheelbase_mm": 350.0,
+   "our_height_mm": 200.0,
+   "wheelbase_err_pct": 0.0,
+   "height_err_pct": 0.0
+  },
+  "manufacturer_crosschecks": {
+   "diagonal_350mm": "DJI support pages for Phantom 3 Professional / Advanced / Standard: 'Diagonal Size (Propellers Excluded) 350 mm'",
+   "weight_1280g": "DJI Phantom 3 Professional/Advanced: 1280 g (battery+propellers)",
+   "propeller_9450": "DJI 9450 self-tightening, DJI propeller table 24 x 12.7 cm => 240 mm diameter, 5.0 in pitch. SAME PART as the Phantom 4.",
+   "prop_independent": "NASA/US Army measured hover C_T on a 'DJI Phantom 3 + 9450 prop' (Russell, Jung, Willink, Glasner, AHS Forum 72, 2016) — already cited in this repo for matrice4e/s1000plus."
+  },
+  "independent_span_check": {
+   "what": "A third-party compilation (engabao.com 'Phantom 3 size: complete measurements') lists 29x29 cm without props, 49x49 cm with props, 19.3 cm high. ⚠ WEAK SOURCE — the page itself says the author 'got the info here and there' and cites nothing. Used only as a sanity span, never as a dimension input.",
+   "ours_frame_span_mm": 283.8873863220215,
+   "third_party_no_props_mm": 290.0,
+   "ours_prop_disc_span_mm": 487.4873734152917,
+   "third_party_with_props_mm": 490.0,
+   "span_err_pct_no_props": -2.1077978199925917,
+   "span_err_pct_with_props": -0.5127809356547552,
+   "reading": "Both spans land within ~2% of a source that had no access to our build. The prop-disc span in particular is a pure consequence of diagonal 350 + prop 240 + 45 deg X, so it tests the whole layout."
+  },
+  "what_is_measured_vs_inherited": {
+   "MEASURED/PUBLISHED (VERIFIED)": [
+    "motor-to-motor diagonal 350 mm (both papers + DJI, 3 variants)",
+    "height 200 mm (both papers)",
+    "propeller DJI 9450, 240 mm diameter, 5.0 in pitch (DJI part table)",
+    "4 rotors, fixed 45 deg X layout, one-piece white shell, arch landing legs"
+   ],
+   "INHERITED FROM THE PHANTOM 4 PHOTO-AUDIT (⚠ dominant uncertainty)": [
+    "shell cross-section law _SHELL_SHAPE['phantom4'] (fl/fw/fh/hw/hh/ndrop/npow)",
+    "arm width table _ARM_WIDTH['phantom4'] = 45 -> 30 mm and section (0.98, 0.40)",
+    "arch-leg proportions (_gear_arch), leg height 0.58*H",
+    "gimbal block 52 x 48 x 56 mm",
+    "internal scatterer layout (battery box, PCB plate, magnesium plate)"
+   ],
+   "REMOVED because it is Phantom-4-only hardware": [
+    "forward + backward obstacle-sensing stereo camera pairs (4 units)",
+    "side 3D infrared modules (2 units)",
+    "top GPS/compass puck"
+   ],
+   "ADDED because the Phantom 3 Pro/Adv has it": [
+    "downward Vision Positioning System: 2 cameras + 2 ultrasonic transducers"
+   ],
+   "UNCONTROLLED": [
+    "which Phantom 3 variant was measured (Standard / 4K / Advanced / Professional)",
+    "no Phantom 3 photograph exists in this repository, so the shell law is transferred, not verified"
+   ]
+  },
+  "shape_control": {
+   "what": "our DJI Phantom 4 mesh, same 350 mm diagonal, same 9450 propeller",
+   "p4_diagonal_mm": 350,
+   "p4_prop_mm": 240,
+   "p4_height_mm": 196,
+   "⚠ caveat": "This control does NOT bound the shape uncertainty, because the P3 mesh INHERITS the P4 shell law. It bounds only the parts that differ (height 200 vs 196 mm, the sensor suite, the leg scale). The real geometry bar comes from the 0.4 mm scan (stage 'scan')."
+  },
+  "registration_patch": "# --- src/drones.py : DRONES 레지스트리에 추가 -------------------------------\n#   benchmark/airframe_phantom3.PHANTOM3 을 그대로 붙여넣으면 된다(DroneSpec 리터럴).\n#   ⚠ key='phantom3' 은 drone_cad.build_frame_cad 에 분기가 없어 NotImplementedError 로\n#     죽는다 → 아래 둘 중 하나가 **반드시** 함께 들어가야 한다.\n# --- src/drone_cad.py : build_frame_cad 의 짐벌 분기 ------------------------\n#   elif key in ('phantom4', 'phantom3'):\n#       for g, m in _gimbal_hanging(0.052, 0.048, 0.056, nose_x * 0.62, -0.62 * bh, n_lens=1):\n#           A.add(m, g)\n#       if key == 'phantom4':\n#           ... (전/후방 스테레오 4 · 측면 3D IR 2 · 상단 GPS 퍽 = P4 전용 부품)\n#       else:   # phantom3 — VPS 만\n#           for dy in (-0.14, 0.14):\n#               A.add(cyl(0.005, 0.006, center=(0.06*bl, dy*bw, -0.46*bh), axis='z', seg=10), 'camera')\n#           for dy in (-0.26, 0.26):\n#               A.add(cyl(0.008, 0.007, center=(0.02*bl, dy*bw, -0.46*bh), axis='z', seg=16), 'camera')\n#   그리고 _SHELL_SHAPE / _ARM_WIDTH / _ARM_SECTION 에 'phantom3' 키를 넣지 **않으면**\n#   _SHELL_DEFAULT 로 떨어져 형상이 달라진다 → phantom4 값을 명시 복사하거나\n#   `_SHELL_SHAPE['phantom3'] = _SHELL_SHAPE['phantom4']` 로 **상속을 눈에 보이게** 적을 것.\n# --- benchmark/rcs_anchor.py : DRONE_KEYS 에 'phantom3' 추가 ----------------\n# --- src/gazebo_export.py DENSITY · viz 팔레트는 그룹이 기존과 같아 수정 불필요 ---\n",
+  "anchor_override": "OFF — sigma_anchor.relevel() is never called anywhere in this file."
+ },
+ "2_calibration_sphere": {
+  "what": "Yuan's own calibration standard. No mesh, no material table, no statistic convention, no size transfer — the only fully apples-to-apples ABSOLUTE comparison available between our kernel and their measurement chain.",
+  "yuan_quote": "A metallic sphere with a radius of 17.8 cm (RCS as sigma_Cal = -10 dBsm) is positioned at the center of the turntable",
+  "yuan_stated_dbsm": -10.0,
+  "by_band": {
+   "LTE 1.843 GHz": {
+    "fc_ghz": 1.843,
+    "div": 16,
+    "spheres": [
+     {
+      "radius_m": 0.178,
+      "r_over_lambda": 1.0942703568613457,
+      "ka": 6.87550342831337,
+      "mie_dbsm": -9.947801906565351,
+      "po_dbsm": -10.615635675649752,
+      "go_dbsm": -10.020101226880783,
+      "asymptote_err_db": 0.07229932031543207,
+      "sbr_dbsm": -10.798981310926228,
+      "dev_db_vs_mie": -0.8511794043608774,
+      "dev_db_vs_po": -0.18334563527647596,
+      "dev_db_vs_go": -0.7788800840454453,
+      "pass_lt2db": true,
+      "pass_ref": "exact Mie"
+     }
+    ],
+    "reference_note": "dev_db_vs_mie = 절대 판정(정확 Mie) · dev_db_vs_po = 수치수렴(해석 PO, 커널이 PO다) · dev_db_vs_go = πr² 점근(문헌 관례 비교용)"
+   },
+   "5G 3.5 GHz": {
+    "fc_ghz": 3.5,
+    "div": 16,
+    "spheres": [
+     {
+      "radius_m": 0.178,
+      "r_over_lambda": 2.078104313084487,
+      "ka": 13.057114486758977,
+      "mie_dbsm": -9.714981483167634,
+      "po_dbsm": -10.29976589344428,
+      "go_dbsm": -10.020101226880783,
+      "asymptote_err_db": 0.3051197437131492,
+      "sbr_dbsm": -10.08982360855936,
+      "dev_db_vs_mie": -0.37484212539172646,
+      "dev_db_vs_po": 0.20994228488491906,
+      "dev_db_vs_go": -0.06972238167857725,
+      "pass_lt2db": true,
+      "pass_ref": "exact Mie"
+     }
+    ],
+    "reference_note": "dev_db_vs_mie = 절대 판정(정확 Mie) · dev_db_vs_po = 수치수렴(해석 PO, 커널이 PO다) · dev_db_vs_go = πr² 점근(문헌 관례 비교용)"
+   },
+   "WiFi 5.21 GHz": {
+    "fc_ghz": 5.21,
+    "div": 16,
+    "spheres": [
+     {
+      "radius_m": 0.178,
+      "r_over_lambda": 3.093406706048622,
+      "ka": 19.436447564575502,
+      "mie_dbsm": -9.892896717770148,
+      "po_dbsm": -10.227514665913498,
+      "go_dbsm": -10.020101226880783,
+      "asymptote_err_db": 0.1272045091106353,
+      "sbr_dbsm": -10.312704619020822,
+      "dev_db_vs_mie": -0.4198079012506746,
+      "dev_db_vs_po": -0.08518995310732436,
+      "dev_db_vs_go": -0.2926033921400393,
+      "pass_lt2db": true,
+      "pass_ref": "exact Mie"
+     }
+    ],
+    "reference_note": "dev_db_vs_mie = 절대 판정(정확 Mie) · dev_db_vs_po = 수치수렴(해석 PO, 커널이 PO다) · dev_db_vs_go = πr² 점근(문헌 관례 비교용)"
+   }
+  }
+ },
+ "3_bands": {
+  "gamma_at_3p5ghz_production": {
+   "body": 0.28,
+   "canopy": 0.28,
+   "arm": 0.9,
+   "motor": 0.9998026802895116,
+   "prop": 0.25,
+   "gear": 0.28,
+   "camera": 0.85,
+   "accent": 0.28,
+   "battery": 0.9998026802895116,
+   "pcb": 0.8,
+   "deck": 0.9,
+   "gear_cf": 0.9,
+   "fc": 0.8
+  },
+  "div": 16,
+  "jitter": 2,
+  "n_az": 720,
+  "phantom3": {
+   "LTE 1.843 GHz": {
+    "el0": {
+     "mean_dbsm": -23.234453343844805,
+     "median_dbsm": -24.32810878046347,
+     "dbmean_dbsm": -25.176460758231133,
+     "eps_db": 4.477223702521501,
+     "peak_dbsm": -16.442318161582907,
+     "min_dbsm": -39.912609435548774,
+     "n": 720,
+     "distributions": {
+      "power": {
+       "N": 720,
+       "fits": {
+        "rician": {
+         "params": [
+          3.1534948785578315e-05,
+          0.0,
+          0.0046442903873309144
+         ],
+         "d_AD": 2003.7231288882908,
+         "d_AD_textbook": 173.39646967201975,
+         "d_C": 5.076362099167181
+        },
+        "gamma": {
+         "params": [
+          1.2587061948514269,
+          0.0,
+          0.0037725090994777766
+         ],
+         "d_AD": 710.865729186022,
+         "d_AD_textbook": 4.513792539377164,
+         "d_C": 0.8534753188772323
+        },
+        "lognormal": {
+         "params": [
+          1.0309188555425615,
+          0.0,
+          0.00303636463281514
+         ],
+         "d_AD": 745.5681449451438,
+         "d_AD_textbook": 5.940777812533838,
+         "d_C": 1.0757539231678213
+        }
+       },
+       "best_by_AD": "gamma",
+       "best_by_CvM": "gamma",
+       "variate": "power sigma [m^2]"
+      },
+      "amplitude": {
+       "N": 720,
+       "fits": {
+        "rician": {
+         "params": [
+          1.1250828891134905,
+          0.0,
+          0.03813154029389012
+         ],
+         "d_AD": 608.5370924825206,
+         "d_AD_textbook": 6.177692740348334,
+         "d_C": 0.9796242896121081
+        },
+        "gamma": {
+         "params": [
+          4.281101673734105,
+          0.0,
+          0.014531413137542136
+         ],
+         "d_AD": 723.2117774994097,
+         "d_AD_textbook": 3.1024260252962677,
+         "d_C": 0.7609041829768622
+        },
+        "lognormal": {
+         "params": [
+          0.5154594277712807,
+          0.0,
+          0.05510321798965229
+         ],
+         "d_AD": 745.5681449451436,
+         "d_AD_textbook": 5.940777812533838,
+         "d_C": 1.0757539231678217
+        }
+       },
+       "best_by_AD": "gamma",
+       "best_by_CvM": "gamma",
+       "variate": "amplitude sqrt(sigma) — matches literature Rician / scipy.stats.rice"
+      }
+     }
+    },
+    "el15": {
+     "mean_dbsm": -22.68313439739378,
+     "median_dbsm": -24.42248078904973,
+     "dbmean_dbsm": -25.278313705330838,
+     "eps_db": 5.256959931219967,
+     "peak_dbsm": -16.16675574207851,
+     "min_dbsm": -41.85673658783215,
+     "n": 720
+    }
+   },
+   "5G 3.5 GHz": {
+    "el0": {
+     "mean_dbsm": -19.652338623223127,
+     "median_dbsm": -20.85073198974105,
+     "dbmean_dbsm": -21.16317932292239,
+     "eps_db": 3.96521071908194,
+     "peak_dbsm": -12.5052973368173,
+     "min_dbsm": -42.66276547112465,
+     "n": 720,
+     "distributions": {
+      "power": {
+       "N": 720,
+       "fits": {
+        "rician": {
+         "params": [
+          0.00013716403854480814,
+          0.0,
+          0.009971645652444065
+         ],
+         "d_AD": 1568.0094123406561,
+         "d_AD_textbook": 87.23666508714473,
+         "d_C": 3.6354871406300004
+        },
+        "gamma": {
+         "params": [
+          1.5833615292421264,
+          0.0,
+          0.0068420469337766516
+         ],
+         "d_AD": 714.2011368618437,
+         "d_AD_textbook": 2.7541673427002706,
+         "d_C": 0.6500005021997113
+        },
+        "lognormal": {
+         "params": [
+          0.9130235092338275,
+          0.0,
+          0.007650363446452024
+         ],
+         "d_AD": 751.480005562139,
+         "d_AD_textbook": 4.26997745819142,
+         "d_C": 0.7829519721842119
+        }
+       },
+       "best_by_AD": "gamma",
+       "best_by_CvM": "gamma",
+       "variate": "power sigma [m^2]"
+      },
+      "amplitude": {
+       "N": 720,
+       "fits": {
+        "rician": {
+         "params": [
+          1.850474574919376,
+          0.0,
+          0.04469043877690399
+         ],
+         "d_AD": 660.9759680803945,
+         "d_AD_textbook": 4.096754128192742,
+         "d_C": 0.74390175709295
+        },
+        "gamma": {
+         "params": [
+          5.472881198398924,
+          0.0,
+          0.017559262926196778
+         ],
+         "d_AD": 728.1662979135506,
+         "d_AD_textbook": 2.489322593017164,
+         "d_C": 0.6172144502632536
+        },
+        "lognormal": {
+         "params": [
+          0.45651175461691373,
+          0.0,
+          0.0874663560830793
+         ],
+         "d_AD": 751.4800055621386,
+         "d_AD_textbook": 4.269977458191306,
+         "d_C": 0.7829519721842121
+        }
+       },
+       "best_by_AD": "gamma",
+       "best_by_CvM": "gamma",
+       "variate": "amplitude sqrt(sigma) — matches literature Rician / scipy.stats.rice"
+      }
+     }
+    },
+    "el15": {
+     "mean_dbsm": -20.01766236880156,
+     "median_dbsm": -22.278882817467192,
+     "dbmean_dbsm": -22.795602635434545,
+     "eps_db": 5.751725554754699,
+     "peak_dbsm": -14.36683919029119,
+     "min_dbsm": -43.695455029269816,
+     "n": 720
+    }
+   },
+   "WiFi 5.21 GHz": {
+    "el0": {
+     "mean_dbsm": -16.86208388336301,
+     "median_dbsm": -21.180987306507895,
+     "dbmean_dbsm": -20.962188454736534,
+     "eps_db": 6.481237518790272,
+     "peak_dbsm": -8.500651383756155,
+     "min_dbsm": -45.71242203372938,
+     "n": 720,
+     "distributions": {
+      "power": {
+       "N": 720,
+       "fits": {
+        "rician": {
+         "params": [
+          0.00018104946133802363,
+          0.0,
+          0.02621535052147062
+         ],
+         "d_AD": 4104.43230620187,
+         "d_AD_textbook": 764.198291011284,
+         "d_C": 9.214452842635456
+        },
+        "gamma": {
+         "params": [
+          0.647279642585405,
+          0.0,
+          0.03181996248646268
+         ],
+         "d_AD": 706.0356510101615,
+         "d_AD_textbook": 15.788443993343549,
+         "d_C": 1.691499900306967
+        },
+        "lognormal": {
+         "params": [
+          1.4923600894920195,
+          0.0,
+          0.008012741913001723
+         ],
+         "d_AD": 735.5007449742757,
+         "d_AD_textbook": 2.708151035203514,
+         "d_C": 0.5852573259777865
+        }
+       },
+       "best_by_AD": "lognormal",
+       "best_by_CvM": "lognormal",
+       "variate": "power sigma [m^2]"
+      },
+      "amplitude": {
+       "N": 720,
+       "fits": {
+        "rician": {
+         "params": [
+          0.00020141527659790114,
+          0.0,
+          0.10148007942769292
+         ],
+         "d_AD": 1192.884669161674,
+         "d_AD_textbook": 54.51105183457855,
+         "d_C": 3.1527293515901373
+        },
+        "gamma": {
+         "params": [
+          2.0993367498178443,
+          0.0,
+          0.05511714073504418
+         ],
+         "d_AD": 707.566972730785,
+         "d_AD_textbook": 5.62612361170693,
+         "d_C": 0.9333119871061708
+        },
+        "lognormal": {
+         "params": [
+          0.7461800447460097,
+          0.0,
+          0.08951392021915766
+         ],
+         "d_AD": 735.5007449742757,
+         "d_AD_textbook": 2.708151035203514,
+         "d_C": 0.5852573259777866
+        }
+       },
+       "best_by_AD": "lognormal",
+       "best_by_CvM": "lognormal",
+       "variate": "amplitude sqrt(sigma) — matches literature Rician / scipy.stats.rice"
+      }
+     }
+    },
+    "el15": {
+     "mean_dbsm": -19.82856077158322,
+     "median_dbsm": -24.181691360701407,
+     "dbmean_dbsm": -24.142064977836476,
+     "eps_db": 6.730864957167635,
+     "peak_dbsm": -11.727862953659244,
+     "min_dbsm": -45.946382822083045,
+     "n": 720
+    }
+   }
+  },
+  "phantom4_control": {
+   "LTE 1.843 GHz": {
+    "el0": {
+     "mean_dbsm": -23.820397999844353,
+     "median_dbsm": -25.35237443550553,
+     "dbmean_dbsm": -25.741574092740645,
+     "eps_db": 4.398438926961995,
+     "peak_dbsm": -16.605441900816654,
+     "min_dbsm": -41.84460117164399,
+     "n": 720,
+     "distributions": {
+      "power": {
+       "N": 720,
+       "fits": {
+        "rician": {
+         "params": [
+          8.636723105949305e-05,
+          0.0,
+          0.004171163660577383
+         ],
+         "d_AD": 2043.5201498651309,
+         "d_AD_textbook": 196.14853458290747,
+         "d_C": 5.636802147315471
+        },
+        "gamma": {
+         "params": [
+          1.2710913518665798,
+          0.0,
+          0.0032642501752218277
+         ],
+         "d_AD": 703.6438785574978,
+         "d_AD_textbook": 6.5709749512983535,
+         "d_C": 1.0354668576625956
+        },
+        "lognormal": {
+         "params": [
+          1.0127779905667416,
+          0.0,
+          0.0026658922414207263
+         ],
+         "d_AD": 744.4548881641808,
+         "d_AD_textbook": 5.710338304582365,
+         "d_C": 0.9790246450991787
+        }
+       },
+       "best_by_AD": "lognormal",
+       "best_by_CvM": "lognormal",
+       "variate": "power sigma [m^2]"
+      },
+      "amplitude": {
+       "N": 720,
+       "fits": {
+        "rician": {
+         "params": [
+          0.006306708841926573,
+          0.0,
+          0.04554710420958824
+         ],
+         "d_AD": 525.2236251960865,
+         "d_AD_textbook": 10.757227626474446,
+         "d_C": 1.3279005069192644
+        },
+        "gamma": {
+         "params": [
+          4.404666900368336,
+          0.0,
+          0.013187534564715407
+         ],
+         "d_AD": 717.7289144472975,
+         "d_AD_textbook": 3.464146322482975,
+         "d_C": 0.7390723018635362
+        },
+        "lognormal": {
+         "params": [
+          0.5063889952833708,
+          0.0,
+          0.05163227906475489
+         ],
+         "d_AD": 744.4548881641808,
+         "d_AD_textbook": 5.710338304582365,
+         "d_C": 0.9790246450991787
+        }
+       },
+       "best_by_AD": "gamma",
+       "best_by_CvM": "gamma",
+       "variate": "amplitude sqrt(sigma) — matches literature Rician / scipy.stats.rice"
+      }
+     }
+    },
+    "el15": {
+     "mean_dbsm": -22.888396406693285,
+     "median_dbsm": -24.87569696160108,
+     "dbmean_dbsm": -25.948713751786677,
+     "eps_db": 5.782426022628197,
+     "peak_dbsm": -16.029496280517595,
+     "min_dbsm": -42.53049107605936,
+     "n": 720
+    }
+   },
+   "5G 3.5 GHz": {
+    "el0": {
+     "mean_dbsm": -19.76032761119803,
+     "median_dbsm": -20.667136577579246,
+     "dbmean_dbsm": -21.649375488523507,
+     "eps_db": 4.538436260576383,
+     "peak_dbsm": -12.101785345085524,
+     "min_dbsm": -39.96161762262932,
+     "n": 720,
+     "distributions": {
+      "power": {
+       "N": 720,
+       "fits": {
+        "rician": {
+         "params": [
+          0.00019806818309347655,
+          0.0,
+          0.010274721255844213
+         ],
+         "d_AD": 1938.1299029640668,
+         "d_AD_textbook": 133.18228381185452,
+         "d_C": 4.298588203266339
+        },
+        "gamma": {
+         "params": [
+          1.29071876327146,
+          0.0,
+          0.008187204067848657
+         ],
+         "d_AD": 713.5042226794383,
+         "d_AD_textbook": 1.834894676988938,
+         "d_C": 0.49029758201810925
+        },
+        "lognormal": {
+         "params": [
+          1.0450135679106818,
+          0.0,
+          0.006840100002195776
+         ],
+         "d_AD": 755.1903073842573,
+         "d_AD_textbook": 9.751669187495054,
+         "d_C": 1.3063696911240474
+        }
+       },
+       "best_by_AD": "gamma",
+       "best_by_CvM": "gamma",
+       "variate": "power sigma [m^2]"
+      },
+      "amplitude": {
+       "N": 720,
+       "fits": {
+        "rician": {
+         "params": [
+          1.3876970429921123,
+          0.0,
+          0.05188311324140871
+         ],
+         "d_AD": 650.6304110860731,
+         "d_AD_textbook": 2.5843923051095317,
+         "d_C": 0.5613853420062815
+        },
+        "gamma": {
+         "params": [
+          4.310549001980412,
+          0.0,
+          0.02164272573019957
+         ],
+         "d_AD": 730.7691169922291,
+         "d_AD_textbook": 3.719632709972416,
+         "d_C": 0.8034469601811787
+        },
+        "lognormal": {
+         "params": [
+          0.5225067839553409,
+          0.0,
+          0.0827048970871482
+         ],
+         "d_AD": 755.1903073842573,
+         "d_AD_textbook": 9.751669187495054,
+         "d_C": 1.3063696911240474
+        }
+       },
+       "best_by_AD": "rician",
+       "best_by_CvM": "rician",
+       "variate": "amplitude sqrt(sigma) — matches literature Rician / scipy.stats.rice"
+      }
+     }
+    },
+    "el15": {
+     "mean_dbsm": -20.130622603534924,
+     "median_dbsm": -23.094155265927256,
+     "dbmean_dbsm": -23.171548976062674,
+     "eps_db": 5.779578089854795,
+     "peak_dbsm": -13.290529296867303,
+     "min_dbsm": -45.15174477871846,
+     "n": 720
+    }
+   },
+   "WiFi 5.21 GHz": {
+    "el0": {
+     "mean_dbsm": -17.064350551058023,
+     "median_dbsm": -20.670357236891462,
+     "dbmean_dbsm": -21.306448851542893,
+     "eps_db": 6.802262698805116,
+     "peak_dbsm": -8.241242765071394,
+     "min_dbsm": -42.821749519450236,
+     "n": 720,
+     "distributions": {
+      "power": {
+       "N": 720,
+       "fits": {
+        "rician": {
+         "params": [
+          0.00017690833422978153,
+          0.0,
+          0.025070653056460196
+         ],
+         "d_AD": 4194.609095657325,
+         "d_AD_textbook": 738.5543029028411,
+         "d_C": 8.966674990030443
+        },
+        "gamma": {
+         "params": [
+          0.6283090751684478,
+          0.0,
+          0.031288994885115544
+         ],
+         "d_AD": 708.1969648600968,
+         "d_AD_textbook": 9.284196370138147,
+         "d_C": 1.2836513011925543
+        },
+        "lognormal": {
+         "params": [
+          1.5662788688898106,
+          0.0,
+          0.007402102844086891
+         ],
+         "d_AD": 742.2347260953425,
+         "d_AD_textbook": 2.492424018016095,
+         "d_C": 0.5680315927010424
+        }
+       },
+       "best_by_AD": "lognormal",
+       "best_by_CvM": "lognormal",
+       "variate": "power sigma [m^2]"
+      },
+      "amplitude": {
+       "N": 720,
+       "fits": {
+        "rician": {
+         "params": [
+          0.00020570171025619208,
+          0.0,
+          0.09914423577721826
+         ],
+         "d_AD": 1241.6973512172976,
+         "d_AD_textbook": 49.03622283047173,
+         "d_C": 2.9026037178152118
+        },
+        "gamma": {
+         "params": [
+          1.9861452298367415,
+          0.0,
+          0.056880341407057965
+         ],
+         "d_AD": 712.9956161996545,
+         "d_AD_textbook": 2.1240354696167287,
+         "d_C": 0.5397687209148051
+        },
+        "lognormal": {
+         "params": [
+          0.7831394344449053,
+          0.0,
+          0.08603547433522343
+         ],
+         "d_AD": 742.2347260953425,
+         "d_AD_textbook": 2.492424018016095,
+         "d_C": 0.568031592701043
+        }
+       },
+       "best_by_AD": "gamma",
+       "best_by_CvM": "gamma",
+       "variate": "amplitude sqrt(sigma) — matches literature Rician / scipy.stats.rice"
+      }
+     }
+    },
+    "el15": {
+     "mean_dbsm": -19.99465397418062,
+     "median_dbsm": -23.339552950793827,
+     "dbmean_dbsm": -23.49710238857548,
+     "eps_db": 6.322825490757422,
+     "peak_dbsm": -13.03323450611641,
+     "min_dbsm": -45.438472178073035,
+     "n": 720
+    }
+   }
+  }
+ },
+ "5_group_decomposition": {
+  "note": "sigma is a COHERENT sum, so isolated group sigmas do not add up to the total and leave-one-out deltas do not partition it. Read this as 'which group carries the band dependence', not as an exact power budget.",
+  "baseline_float_gamma": {
+   "LTE 1.843 GHz": -23.23452966666749,
+   "5G 3.5 GHz": -19.656243797587262,
+   "WiFi 5.21 GHz": -16.862668913502986,
+   "slope_db_per_ghz": 1.891065483127912,
+   "exponent_p": 1.4118515071712723
+  },
+  "isolate": {
+   "battery": {
+    "LTE 1.843 GHz": -24.10942378766454,
+    "5G 3.5 GHz": -22.02749270923938,
+    "WiFi 5.21 GHz": -20.557981132285352,
+    "slope_db_per_ghz": 1.0537381204814058,
+    "exponent_p": 0.7869145073735732
+   },
+   "body": {
+    "LTE 1.843 GHz": -31.356391998804924,
+    "5G 3.5 GHz": -29.96034257133659,
+    "WiFi 5.21 GHz": -29.056135880447314,
+    "slope_db_per_ghz": 0.6823539234521466,
+    "exponent_p": 0.5096815817844483
+   },
+   "camera": {
+    "LTE 1.843 GHz": -27.608835468086212,
+    "5G 3.5 GHz": -26.84304075038552,
+    "WiFi 5.21 GHz": -25.307910042047844,
+    "slope_db_per_ghz": 0.6845179024530954,
+    "exponent_p": 0.5098298843124613
+   },
+   "canopy": {
+    "LTE 1.843 GHz": -300.0,
+    "5G 3.5 GHz": -300.0,
+    "WiFi 5.21 GHz": -300.0,
+    "slope_db_per_ghz": 7.554503404511922e-15,
+    "exponent_p": 0.0
+   },
+   "gear": {
+    "LTE 1.843 GHz": -31.377182575170544,
+    "5G 3.5 GHz": -27.6536894574315,
+    "WiFi 5.21 GHz": -24.62352665311824,
+    "slope_db_per_ghz": 2.0045917893576113,
+    "exponent_p": 1.4964481588412326
+   },
+   "motor": {
+    "LTE 1.843 GHz": -33.154451024081354,
+    "5G 3.5 GHz": -30.744311105349137,
+    "WiFi 5.21 GHz": -29.184081162607917,
+    "slope_db_per_ghz": 1.1777792839986698,
+    "exponent_p": 0.8797387278378187
+   },
+   "pcb": {
+    "LTE 1.843 GHz": -48.181567574851044,
+    "5G 3.5 GHz": -47.686747025909135,
+    "WiFi 5.21 GHz": -45.25335567848898,
+    "slope_db_per_ghz": 0.8726287250002736,
+    "exponent_p": 0.6488215200155515
+   },
+   "prop": {
+    "LTE 1.843 GHz": -45.40386226003918,
+    "5G 3.5 GHz": -44.05153799185606,
+    "WiFi 5.21 GHz": -44.37054264918995,
+    "slope_db_per_ghz": 0.3042665652894413,
+    "exponent_p": 0.22895884051492824
+   }
+  },
+  "leaveout": {
+   "battery": {
+    "LTE 1.843 GHz": -25.496955569158807,
+    "5G 3.5 GHz": -22.34691813765105,
+    "WiFi 5.21 GHz": -20.452278442556867,
+    "slope_db_per_ghz": 1.4961906654343553,
+    "exponent_p": 1.1177794494093698,
+    "contribution_db": {
+     "LTE 1.843 GHz": 2.262425902491316,
+     "5G 3.5 GHz": 2.6906743400637865,
+     "WiFi 5.21 GHz": 3.589609529053881
+    }
+   },
+   "body": {
+    "LTE 1.843 GHz": -22.815945300716564,
+    "5G 3.5 GHz": -18.664279982175323,
+    "WiFi 5.21 GHz": -17.193182511196113,
+    "slope_db_per_ghz": 1.665647351932993,
+    "exponent_p": 1.2458693663241835,
+    "contribution_db": {
+     "LTE 1.843 GHz": -0.4185843659509274,
+     "5G 3.5 GHz": -0.991963815411939,
+     "WiFi 5.21 GHz": 0.3305135976931268
+    }
+   },
+   "camera": {
+    "LTE 1.843 GHz": -24.106963844244046,
+    "5G 3.5 GHz": -21.1563538988738,
+    "WiFi 5.21 GHz": -17.968829131838756,
+    "slope_db_per_ghz": 1.8232464439512246,
+    "exponent_p": 1.3600634227020396,
+    "contribution_db": {
+     "LTE 1.843 GHz": 0.8724341775765545,
+     "5G 3.5 GHz": 1.5001101012865377,
+     "WiFi 5.21 GHz": 1.10616021833577
+    }
+   },
+   "canopy": {
+    "LTE 1.843 GHz": -23.23452966666749,
+    "5G 3.5 GHz": -19.656243797587262,
+    "WiFi 5.21 GHz": -16.862668913502986,
+    "slope_db_per_ghz": 1.891065483127912,
+    "exponent_p": 1.4118515071712723,
+    "contribution_db": {
+     "LTE 1.843 GHz": 0.0,
+     "5G 3.5 GHz": 0.0,
+     "WiFi 5.21 GHz": 0.0
+    }
+   },
+   "gear": {
+    "LTE 1.843 GHz": -22.829264092251904,
+    "5G 3.5 GHz": -20.791189190054183,
+    "WiFi 5.21 GHz": -17.86902649490216,
+    "slope_db_per_ghz": 1.4744479891631708,
+    "exponent_p": 1.099069675097315,
+    "contribution_db": {
+     "LTE 1.843 GHz": -0.4052655744155871,
+     "5G 3.5 GHz": 1.1349453924669213,
+     "WiFi 5.21 GHz": 1.0063575813991754
+    }
+   },
+   "motor": {
+    "LTE 1.843 GHz": -23.23895616144182,
+    "5G 3.5 GHz": -20.137751688051075,
+    "WiFi 5.21 GHz": -17.130333302740933,
+    "slope_db_per_ghz": 1.8139668292992728,
+    "exponent_p": 1.3535243037937543,
+    "contribution_db": {
+     "LTE 1.843 GHz": 0.00442649477432866,
+     "5G 3.5 GHz": 0.4815078904638135,
+     "WiFi 5.21 GHz": 0.26766438923794666
+    }
+   },
+   "pcb": {
+    "LTE 1.843 GHz": -23.24111467781104,
+    "5G 3.5 GHz": -19.77752994127391,
+    "WiFi 5.21 GHz": -16.87439058857943,
+    "slope_db_per_ghz": 1.8898894765613101,
+    "exponent_p": 1.410713345651988,
+    "contribution_db": {
+     "LTE 1.843 GHz": 0.00658501114354948,
+     "5G 3.5 GHz": 0.1212861436866497,
+     "WiFi 5.21 GHz": 0.011721675076444171
+    }
+   },
+   "prop": {
+    "LTE 1.843 GHz": -23.332259426073193,
+    "5G 3.5 GHz": -19.74615649083162,
+    "WiFi 5.21 GHz": -16.85258490809962,
+    "slope_db_per_ghz": 1.923227196205579,
+    "exponent_p": 1.4357404514272964,
+    "contribution_db": {
+     "LTE 1.843 GHz": 0.09772975940570205,
+     "5G 3.5 GHz": 0.08991269324435791,
+     "WiFi 5.21 GHz": -0.010084005403367513
+    }
+   }
+  },
+  "no_internal_metal": {
+   "LTE 1.843 GHz": -25.330676106495005,
+   "5G 3.5 GHz": -22.419893069514636,
+   "WiFi 5.21 GHz": -20.38950798538807,
+   "slope_db_per_ghz": 1.4660353361415197,
+   "exponent_p": 1.0948443365631975
+  },
+  "shell_and_arms_only": {
+   "LTE 1.843 GHz": -31.356391998804924,
+   "5G 3.5 GHz": -29.96034257133659,
+   "WiFi 5.21 GHz": -29.056135880447314,
+   "slope_db_per_ghz": 0.6823539234521466,
+   "exponent_p": 0.5096815817844483
+  }
+ },
+ "7_material_bracket": {
+  "V0_production": {
+   "LTE 1.843 GHz": -23.23424762886632,
+   "5G 3.5 GHz": -19.656243797587262,
+   "WiFi 5.21 GHz": -16.862865488703886,
+   "slope_db_per_ghz": 1.8909234798343355,
+   "exponent_p": 1.4117454580100461,
+   "gamma_map": {
+    "body": "plastic",
+    "canopy": "plastic",
+    "arm": "carbon",
+    "motor": "metal",
+    "prop": "prop_plastic",
+    "gear": "plastic",
+    "camera": "camera_assembly",
+    "accent": "plastic",
+    "battery": "metal",
+    "pcb": "pcb",
+    "deck": "carbon",
+    "gear_cf": "carbon",
+    "fc": "pcb"
+   }
+  },
+  "V1_bulk_fresnel": {
+   "LTE 1.843 GHz": -22.77585457148543,
+   "5G 3.5 GHz": -19.325366822014626,
+   "WiFi 5.21 GHz": -16.789162403825856,
+   "slope_db_per_ghz": 1.7764778423609695,
+   "exponent_p": 1.3265073872938735,
+   "gamma_map": {
+    "body": 0.24368705289517903,
+    "canopy": 0.24368705289517903,
+    "arm": 0.9886696922019683,
+    "motor": 0.9998026802895116,
+    "prop": 0.24368705289517903,
+    "gear": 0.24368705289517903,
+    "camera": 0.9998026802895116,
+    "accent": 0.24368705289517903,
+    "battery": 0.9998026802895116,
+    "pcb": 0.9998026802895116,
+    "deck": 0.9886696922019683,
+    "gear_cf": 0.9886696922019683,
+    "fc": 0.9998026802895116
+   }
+  },
+  "V2_diel_0p10": {
+   "LTE 1.843 GHz": -22.847081308735795,
+   "5G 3.5 GHz": -19.889506286147814,
+   "WiFi 5.21 GHz": -17.922978032071974,
+   "slope_db_per_ghz": 1.4607950741610323,
+   "exponent_p": 1.091063176352707,
+   "gamma_map": {
+    "body": 0.1,
+    "canopy": 0.1,
+    "arm": 0.9,
+    "motor": 0.9998026802895116,
+    "prop": 0.1,
+    "gear": 0.1,
+    "camera": 0.85,
+    "accent": 0.1,
+    "battery": 0.9998026802895116,
+    "pcb": 0.8,
+    "deck": 0.9,
+    "gear_cf": 0.9,
+    "fc": 0.8
+   }
+  },
+  "V3_diel_0p45": {
+   "LTE 1.843 GHz": -22.516691333499615,
+   "5G 3.5 GHz": -18.9244425422948,
+   "WiFi 5.21 GHz": -15.727214235113623,
+   "slope_db_per_ghz": 2.015694647084344,
+   "exponent_p": 1.50438527230848,
+   "gamma_map": {
+    "body": 0.45,
+    "canopy": 0.45,
+    "arm": 0.9,
+    "motor": 0.9998026802895116,
+    "prop": 0.45,
+    "gear": 0.45,
+    "camera": 0.85,
+    "accent": 0.45,
+    "battery": 0.9998026802895116,
+    "pcb": 0.8,
+    "deck": 0.9,
+    "gear_cf": 0.9,
+    "fc": 0.8
+   }
+  },
+  "_bracket": {
+   "level_swing_db": 1.1356512535902628,
+   "slope_swing_db_per_ghz": 0.43012840567330324
+  }
+ },
+ "6_geometry_fidelity": {
+  "real": {
+   "LTE 1.843 GHz": -15.864065635141632,
+   "5G 3.5 GHz": -13.520819383141909,
+   "WiFi 5.21 GHz": -13.208539998477747,
+   "slope_db_per_ghz": 0.7854620471368862,
+   "exponent_p": 0.5884007855309552
+  },
+  "ours": {
+   "LTE 1.843 GHz": -17.02015037154598,
+   "5G 3.5 GHz": -15.479410075439436,
+   "WiFi 5.21 GHz": -12.634607130724518,
+   "slope_db_per_ghz": 1.304432109649116,
+   "exponent_p": 0.9717311903345534
+  },
+  "n_faces": [
+   3086679,
+   15156
+  ],
+  "bbox_mm": [
+   [
+    348.70296716690063,
+    348.99795055389404,
+    184.73593890666962
+   ],
+   [
+    289.49999809265137,
+    289.49999809265137,
+    195.99999487400055
+   ]
+  ],
+  "delta_db_by_band": {
+   "LTE 1.843 GHz": 1.156084736404349,
+   "5G 3.5 GHz": 1.958590692297527,
+   "WiFi 5.21 GHz": -0.5739328677532285
+  },
+  "delta_slope_db_per_ghz": -0.5189700625122299,
+  "n_az": 96,
+  "what_this_isolates": "Both meshes are driven with |Gamma| = 1 everywhere, so materials, the shell transmission model and the internal-scatterer table are all removed. What is left is GEOMETRY. The real mesh is a 0.4 mm laser scan of an actual DJI Phantom 4 (NeverDun 2016, Thingiverse thing:1456295, CC-BY), 3.09 M triangles, propellers and gimbal absent; ours is the spec-built Phantom 4 with the same two groups removed.",
+  "caveats": [
+   "Azimuth registration differs: the scan was PCA-aligned so its arms lie along +-x/+-y (bbox 348.7 mm = motor-to-motor), while our mesh has arms at 45 deg (bbox 289.5 mm). The FULL-360 azimuth mean is invariant to that rotation, which is why only the mean is quoted here — a per-aspect comparison would be meaningless.",
+   "Height differs: scan 184.7 mm vs ours 196.0 mm (-5.8%). At el = 0 the side projection is height-dominated, so part of the level delta is that, not shape.",
+   "This is a Phantom 4 scan, not a Phantom 3 — no Phantom 3 scan exists."
+  ]
+ },
+ "4_fullband_sweep": {
+  "why": "Das and Yuan fit mu(f) over 1.8-18.2 GHz. Our stored regression was fitted over 1.8-6.0 GHz. Fitting the two over different intervals was the last remaining apples-to-oranges term; this run removes it.",
+  "f_ghz": [
+   1.8,
+   2.62,
+   3.44,
+   4.26,
+   5.08,
+   5.9,
+   6.72,
+   7.54,
+   8.36,
+   9.18,
+   10.0,
+   10.82,
+   11.64,
+   12.46,
+   13.28,
+   14.1,
+   14.92,
+   15.74,
+   16.56,
+   17.38,
+   18.2
+  ],
+  "mu_dbsm": [
+   -22.881266660297275,
+   -20.59090447151558,
+   -19.691455394851737,
+   -18.84486701765645,
+   -16.960886551530244,
+   -16.389582504613823,
+   -16.866588052773533,
+   -16.421564263157524,
+   -16.431484934060972,
+   -14.358223891670077,
+   -17.247908307332494,
+   -15.327048496435577,
+   -14.755191631870964,
+   -13.80679061098771,
+   -13.18105942291126,
+   -15.54420284728463,
+   -13.837069610668413,
+   -15.466989749035866,
+   -14.320180604223472,
+   -13.930621699352912,
+   -12.835462595173526
+  ],
+  "eps_db": [
+   4.4510748262003155,
+   5.218030313995308,
+   3.801635344084916,
+   5.572761916544778,
+   6.376978585142812,
+   7.053069254377858,
+   6.496372434324489,
+   6.612230264394709,
+   5.956177857226113,
+   7.0695490453570935,
+   6.4692511026197765,
+   6.281770282382917,
+   6.523778421700924,
+   6.630422007218735,
+   6.996922322039348,
+   6.34646339268631,
+   6.633670791940794,
+   6.700663158060027,
+   6.543133064555318,
+   7.385969484359623,
+   7.002352296183166
+  ],
+  "n_az": 360,
+  "div": 16,
+  "el_deg": 0.0,
+  "fit_full": {
+   "slope_db_per_ghz": 0.4354702600783367,
+   "intercept_dbsm": -20.53038590161213,
+   "R2": 0.7382699637362515,
+   "n": 21,
+   "f_lo_ghz": 1.8,
+   "f_hi_ghz": 18.2
+  },
+  "fit_sub_1p8_5p21": {
+   "slope_db_per_ghz": 1.6569265452918505,
+   "intercept_dbsm": -25.493703334974224,
+   "R2": 0.9662866520867738,
+   "n": 5,
+   "f_lo_ghz": 1.8,
+   "f_hi_ghz": 5.08
+  },
+  "eps_fit_full": {
+   "slope_db_per_ghz": 0.11919993469292726,
+   "intercept_dbsm": 5.099537613327646,
+   "R2": 0.4759141978368835,
+   "n": 21,
+   "f_lo_ghz": 1.8,
+   "f_hi_ghz": 18.2
+  }
+ },
+ "8_comparison": {
+  "_headline": {
+   "one_line": "⚠ THE VALIDATION FAILS, AND IT FAILS IN A VERY SPECIFIC PLACE: our kernel is too LOW at the bottom of FR1 and the deficit closes as the frequency rises. Above ~6 GHz our band dependence agrees with the measurement; below it, it does not — and 1.8-6 GHz is the band this project actually works in.",
+   "level_by_band": {
+    "LTE 1.843 GHz": {
+     "ours_dbsm": -23.234453343844805,
+     "envelope": [
+      -18.802970000000002,
+      -15.569454999999998
+     ],
+     "inside": false,
+     "gap_to_envelope_db": -4.431483343844803,
+     "gap_to_geometry_matched_row_db": -7.6649983438448075
+    },
+    "5G 3.5 GHz": {
+     "ours_dbsm": -19.652338623223127,
+     "envelope": [
+      -18.455000000000002,
+      -15.0475
+     ],
+     "inside": false,
+     "gap_to_envelope_db": -1.197338623223125,
+     "gap_to_geometry_matched_row_db": -4.604838623223127
+    },
+    "WiFi 5.21 GHz": {
+     "ours_dbsm": -16.86208388336301,
+     "envelope": [
+      -18.0959,
+      -14.508849999999999
+     ],
+     "inside": true,
+     "gap_to_envelope_db": 0.0,
+     "gap_to_geometry_matched_row_db": -2.3532338833630106
+    }
+   },
+   "slope_ours_1p8_6_ghz": 1.5398976625633634,
+   "slope_ours_6_18p2_ghz": 0.26418698346256914,
+   "slope_ours_full_1p8_18p2": 0.4354702600783367,
+   "slope_ours_three_band_only": 1.8912054170704709,
+   "slope_measured_1p8_18p2": {
+    "das_phantom3_1p8_18p2": 0.21,
+    "yuan_azplane_1p8_18p2": 0.315,
+    "yuan_top_1p8_18p2": 0.231,
+    "yuan_bottom_1p8_18p2": 0.175
+   },
+   "ratio_same_interval_vs_das": 2.0736679051349367,
+   "ratio_narrowband_vs_das": 9.005740081287957,
+   "correction_to_the_feasibility_phase": "The feasibility phase expected 'a 6.4x-9.5x steeper slope'. That ratio compared our 1.843-5.21 GHz slope with their 1.8-18.2 GHz slope. Fitted over the SAME interval the ratio is 2.1x against Das and 1.4x against Yuan, and above 6 GHz our slope is 0.264 dB/GHz against their 0.21-0.315 — i.e. INSIDE their range. The steepness is a low-frequency artefact, not a global band law.",
+   "exponent_ours": 0.7107603707522298,
+   "exponent_measured": {
+    "das_phantom3_1p8_18p2": 0.34275515813896895,
+    "yuan_azplane_1p8_18p2": 0.5141327372084534,
+    "yuan_top_1p8_18p2": 0.3770306739528659,
+    "yuan_bottom_1p8_18p2": 0.2856292984491408
+   },
+   "absolute_scale_is_fine": "our SBR reproduces Yuan's own calibration sphere to 0.85 dB against exact Mie, and reproduces it FLAT across the three bands — so neither the absolute scale nor a frequency bias of the kernel is the problem",
+   "what_it_means": "A FAILED validation, reported as such. Every FR1 absolute-sigma claim and every 1.8-vs-5.2 GHz band comparison in this repository inherits a low-frequency deficit of about 4.4 dB at 1.843 GHz shrinking to 0 dB at 5.21 GHz (against the nearest edge of the published envelope; 7.7 -> 2.4 dB against the geometry-matched Yuan azimuth-plane row)."
+  },
+  "A_absolute_level": {
+   "rule": "report inside/outside the published envelope, never a single Delta against a single anchor — the measurement side alone spans 3.587 dB",
+   "by_band": {
+    "LTE 1.843 GHz": {
+     "values_dbsm": {
+      "das_as_published": -18.802970000000002,
+      "das_plus_2p5068": -16.29615421865148,
+      "yuan_theta90_azplane": -15.569454999999998,
+      "yuan_theta0_top": -17.494267,
+      "yuan_theta180_bottom": -16.797475000000002,
+      "yuan_elevation_pooled": -16.546388326955935
+     },
+     "lo_dbsm": -18.802970000000002,
+     "hi_dbsm": -15.569454999999998,
+     "span_db": 3.233515000000004,
+     "ours_el0_dbsm": -23.234453343844805,
+     "ours_el15_dbsm": -22.68313439739378,
+     "inside_envelope": false,
+     "gap_to_nearest_db": -4.431483343844803,
+     "gap_to_yuan_azplane_db": -7.6649983438448075,
+     "gap_to_das_as_published_db": -4.431483343844803
+    },
+    "5G 3.5 GHz": {
+     "values_dbsm": {
+      "das_as_published": -18.455000000000002,
+      "das_plus_2p5068": -15.94818421865148,
+      "yuan_theta90_azplane": -15.0475,
+      "yuan_theta0_top": -17.111500000000003,
+      "yuan_theta180_bottom": -16.5075,
+      "yuan_elevation_pooled": -16.13356826511142
+     },
+     "lo_dbsm": -18.455000000000002,
+     "hi_dbsm": -15.0475,
+     "span_db": 3.4075000000000024,
+     "ours_el0_dbsm": -19.652338623223127,
+     "ours_el15_dbsm": -20.01766236880156,
+     "inside_envelope": false,
+     "gap_to_nearest_db": -1.197338623223125,
+     "gap_to_yuan_azplane_db": -4.604838623223127,
+     "gap_to_das_as_published_db": -1.197338623223125
+    },
+    "WiFi 5.21 GHz": {
+     "values_dbsm": {
+      "das_as_published": -18.0959,
+      "das_plus_2p5068": -15.589084218651479,
+      "yuan_theta90_azplane": -14.508849999999999,
+      "yuan_theta0_top": -16.71649,
+      "yuan_theta180_bottom": -16.20825,
+      "yuan_elevation_pooled": -15.705141381857926
+     },
+     "lo_dbsm": -18.0959,
+     "hi_dbsm": -14.508849999999999,
+     "span_db": 3.5870500000000014,
+     "ours_el0_dbsm": -16.86208388336301,
+     "ours_el15_dbsm": -19.82856077158322,
+     "inside_envelope": true,
+     "gap_to_nearest_db": 0.0,
+     "gap_to_yuan_azplane_db": -2.3532338833630106,
+     "gap_to_das_as_published_db": 1.2338161166369908
+    }
+   },
+   "geometry_matched_row": "yuan_theta90_azplane is Yuan's azimuth-plane cut, i.e. our el=0 — that is the apples-to-apples elevation"
+  },
+  "B_band_slope": {
+   "why_primary": "A slope is invariant to the +2.5068 dB convention branch, to the sphere-calibration level, to any frequency-flat |Gamma| and to any size-transfer constant. Nothing unresolved can move it.",
+   "ours": {
+    "three_band_1p843_5p21": {
+     "slope_db_per_ghz": 1.8912054170704709,
+     "intercept_dbsm": -26.568922205591875,
+     "R2": 0.9935001378515477,
+     "n": 3,
+     "f_lo_ghz": 1.843,
+     "f_hi_ghz": 5.21
+    },
+    "full_band_1p8_18p2": {
+     "slope_db_per_ghz": 0.4354702600783367,
+     "intercept_dbsm": -20.53038590161213,
+     "R2": 0.7382699637362515,
+     "n": 21,
+     "f_lo_ghz": 1.8,
+     "f_hi_ghz": 18.2
+    },
+    "sub_band_1p8_5p21": {
+     "slope_db_per_ghz": 1.6569265452918505,
+     "intercept_dbsm": -25.493703334974224,
+     "R2": 0.9662866520867738,
+     "n": 5,
+     "f_lo_ghz": 1.8,
+     "f_hi_ghz": 5.08
+    },
+    "note": "full_band_1p8_18p2 is fitted over EXACTLY the papers' interval — this run is what removes the last apples-to-oranges term"
+   },
+   "measured": {
+    "das_phantom3_1p8_18p2": 0.21,
+    "yuan_azplane_1p8_18p2": 0.315,
+    "yuan_top_1p8_18p2": 0.231,
+    "yuan_bottom_1p8_18p2": 0.175
+   },
+   "measured_band_ghz": [
+    1.8,
+    18.2
+   ],
+   "ratio_ours_over_measured": {
+    "das_phantom3_1p8_18p2": 2.0736679051349367,
+    "yuan_azplane_1p8_18p2": 1.3824452700899579,
+    "yuan_top_1p8_18p2": 1.8851526410317607,
+    "yuan_bottom_1p8_18p2": 2.488401486161924
+   },
+   "gap_db_per_ghz": {
+    "das_phantom3_1p8_18p2": 0.22547026007833673,
+    "yuan_azplane_1p8_18p2": 0.12047026007833672,
+    "yuan_top_1p8_18p2": 0.2044702600783367,
+    "yuan_bottom_1p8_18p2": 0.26047026007833673
+   },
+   "slope_census": {
+    "das_phantom3_mono": {
+     "slope": 0.21,
+     "band_ghz": [
+      1.8,
+      18.2
+     ],
+     "overlaps_our_band": true
+    },
+    "das_phantom2_mono": {
+     "slope": 0.21,
+     "band_ghz": [
+      11.0,
+      26.0
+     ],
+     "overlaps_our_band": false
+    },
+    "das_mini2_mono": {
+     "slope": 0.07,
+     "band_ghz": [
+      21.0,
+      27.0
+     ],
+     "overlaps_our_band": false
+    },
+    "das_m350rtk_mono": {
+     "slope": 0.17,
+     "band_ghz": [
+      21.0,
+      27.0
+     ],
+     "overlaps_our_band": false
+    },
+    "yuan_phantom3_az": {
+     "slope": 0.315,
+     "band_ghz": [
+      1.8,
+      18.2
+     ],
+     "overlaps_our_band": true
+    },
+    "yuan_phantom3_top": {
+     "slope": 0.231,
+     "band_ghz": [
+      1.8,
+      18.2
+     ],
+     "overlaps_our_band": true
+    },
+    "yuan_phantom3_bot": {
+     "slope": 0.175,
+     "band_ghz": [
+      1.8,
+      18.2
+     ],
+     "overlaps_our_band": true
+    }
+   },
+   "fitting_interval_matters": {
+    "headline": "⭐⭐ THE 6x-9x SLOPE RATIO IN THE FEASIBILITY PHASE WAS AN ARTEFACT OF COMPARING OUR NARROW-BAND SLOPE WITH THEIR WIDE-BAND SLOPE. Fitted over the SAME 1.8-18.2 GHz interval the ratio drops sharply.",
+    "ours_slope_over_1p843_5p21": 1.8912054170704709,
+    "ours_slope_over_1p8_18p2": 0.4354702600783367,
+    "ratio_narrow_over_wide": 4.3429037306250535,
+    "ratio_vs_das_narrowband": 9.005740081287957,
+    "ratio_vs_das_same_interval": 2.0736679051349367,
+    "our_curve_is_not_a_straight_line": {
+     "R2_of_our_full_fit": 0.7382699637362515,
+     "slope_1p8_to_6": 1.5398976625633634,
+     "slope_6_to_18p2": 0.26418698346256914,
+     "reading": "Our mu(f) rises steeply to ~6 GHz and then flattens. The measured mu(f) is a straight line with a small slope over the whole range (that is what a single {a,b} fit means). So the disagreement is CONCENTRATED AT THE BOTTOM OF THE BAND — see F_diagnosis.po_low_ka_deficit — and a single slope number is a poor summary of it."
+    },
+    "what_to_quote": "Quote the same-interval ratio for the headline and the narrow-band slope only when explicitly labelled as an FR1-only figure with the measurement having no FR1-only fit to compare against."
+   }
+  },
+  "C_azimuth_pattern_shape": {
+   "what_is_comparable": "Neither paper publishes a numeric sigma(phi) trace, so the pattern itself cannot be compared. What IS numeric is the azimuth SPREAD: Das Table III gives eps(f) = 0.03f + 5.16 dB and its header says 'STANDARD DEVIATION eps [DB]', which is the same quantity as our std of 10log10(sigma) over azimuth.",
+   "ours_eps_db": {
+    "LTE 1.843 GHz": 4.477223702521501,
+    "5G 3.5 GHz": 3.96521071908194,
+    "WiFi 5.21 GHz": 6.481237518790272
+   },
+   "das_eps_db": {
+    "LTE 1.843 GHz": 5.21529,
+    "5G 3.5 GHz": 5.265000000000001,
+    "WiFi 5.21 GHz": 5.3163
+   },
+   "delta_db": {
+    "LTE 1.843 GHz": -0.7380662974784995,
+    "5G 3.5 GHz": -1.2997892809180605,
+    "WiFi 5.21 GHz": 1.1649375187902722
+   },
+   "exponential_theory_db": 5.570043140052503,
+   "theory_note": "(10/ln10)*pi/sqrt(6) = 5.570 dB is the dB-domain std of an exponential (Swerling I/II) power distribution — the value a many-weak-scatterer target must approach.",
+   "our_convention_gap_db": {
+    "LTE 1.843 GHz": 1.9420074143863282,
+    "5G 3.5 GHz": 1.510840699699262,
+    "WiFi 5.21 GHz": 4.1001045713735245
+   },
+   "convention_gap_reading": "⭐ 10log10(E[sigma]) - E[10log10 sigma] measured on OUR OWN azimuth samples. For an exponential (Rayleigh-amplitude) target it is exactly 2.5068 dB — the constant the whole Das/Yuan convention argument turns on. Ours is NOT that constant and it is NOT monotone: it runs below 2.5068 at the two lower bands and well above it at 5.21 GHz, tracking our eps. So our azimuth statistics are not Rayleigh, and the +2.5068 dB conversion would be wrong if applied to OUR data — it is a statement about the measured target, not about ours.",
+   "eps_reading": "Our eps is BELOW the measured value at 1.843 and 3.5 GHz (too smooth, too few effective scatterers) and ABOVE it at 5.21 GHz (too spiky: a few strong specular flashes with deep nulls between them). The measured eps is nearly constant at 5.2-5.3 dB and sits just under the many-weak-scatterer limit of 5.570 dB at every band — a real airframe behaves like a rich, stationary scattering ensemble across the band, and ours does not.",
+   "distribution": {
+    "ours": {
+     "LTE 1.843 GHz": "gamma",
+     "5G 3.5 GHz": "gamma",
+     "WiFi 5.21 GHz": "lognormal"
+    },
+    "das_table2": "Phantom 3 best fit = Rician, mean d_AD = 0.436",
+    "yuan_K_factor": "K around -10 dB at some frequencies, below -30 dB at others",
+    "reading": "A Rician with K <= -10 dB is Rayleigh amplitude to within 0.4 dB, i.e. exponential power — the many-weak-scatterer case."
+   },
+   "yuan_eps_warning": "Yuan's eps is the std of the linear AMPLITUDE sqrt(sigma), a different quantity in different units. Do not put it in this table."
+  },
+  "D_bistatic": {
+   "status": "⛔ NOT COMPARABLE — and the reason is in the measurement, not in us",
+   "das_phantom3_row": {
+    "0": [
+     0.21,
+     -19.19,
+     0.03,
+     5.16
+    ],
+    "15": [
+     0.21,
+     -19.23,
+     0.03,
+     5.16
+    ],
+    "30": [
+     0.21,
+     -19.33,
+     0.03,
+     5.16
+    ],
+    "45": [
+     0.21,
+     -19.48,
+     0.03,
+     5.16
+    ],
+    "60": [
+     0.21,
+     -19.64,
+     0.03,
+     5.16
+    ],
+    "75": [
+     0.21,
+     -19.77,
+     0.03,
+     5.16
+    ],
+    "90": [
+     0.21,
+     -19.82,
+     0.03,
+     5.16
+    ]
+   },
+   "evidence": [
+    "Das's Phantom 3 row has the IDENTICAL slope 0.21 and the IDENTICAL eps 0.03f+5.16 at all seven bistatic angles; only the intercept moves, -19.19 -> -19.82.",
+    "Total span over 0-90 deg = 0.63 dB, which is BELOW our own ray-grid dither at div=12 (1.373 dB p-p) and far below the literature envelope.",
+    "Our rcs_sbr_multistatic additionally still uses the monostatic obliquity convention and its lit-PO gate returns sigma=0 in forward scatter — a separate change that would have to be made and verified first."
+   ]
+  },
+  "E_error_bars": {
+   "calibration_scale (kernel vs exact Mie on Yuan's own standard)": {
+    "magnitude_db": 0.8511794043608774,
+    "signed": true,
+    "by_band": {
+     "LTE 1.843 GHz": -0.8511794043608774,
+     "5G 3.5 GHz": -0.37484212539172646,
+     "WiFi 5.21 GHz": -0.4198079012506746
+    },
+    "reading": "|dev| <= 0.85 dB and essentially frequency-flat, so neither the kernel's absolute scale nor a frequency bias of the kernel is the problem. Tightest bar in the exercise."
+   },
+   "mesh geometry fidelity (real 0.4 mm scan vs our parametric, both PEC)": {
+    "magnitude_db": 1.958590692297527,
+    "by_band": {
+     "LTE 1.843 GHz": 1.156084736404349,
+     "5G 3.5 GHz": 1.958590692297527,
+     "WiFi 5.21 GHz": -0.5739328677532285
+    },
+    "slope_effect_db_per_ghz": -0.5189700625122299,
+    "reading": "Measured on the SAME airframe family with materials removed, so it isolates geometry. If its slope effect is small, geometry idealisation is NOT what makes our band dependence steep."
+   },
+   "material table (defensible bracket V1/V2/V3)": {
+    "magnitude_db": 1.1356512535902628,
+    "slope_effect_db_per_ghz": 0.43012840567330324,
+    "reading": "every gamma_po is frequency-flat, so materials move the level, not the slope"
+   },
+   "ray-grid dither at div=16": {
+    "magnitude_db": 1.7821516012275314,
+    "signed": false,
+    "all_divs": {
+     "div8": 5.284270838913799,
+     "div12": 1.3734745431514732,
+     "div16": 1.7821516012275314,
+     "div24": 0.3422091164711472
+    },
+    "source": "outputs/report2_waveform_rcs.json sbr_validation.dither (single-grid p-p)",
+    "reading": "jitter=2 averages 2x2 sub-cell offsets, so the residual is smaller than this, but the repository has never re-measured the post-jitter residual — quoting the single-grid bound is the honest upper limit."
+   },
+   "polarisation (our scalar kernel vs their VV)": {
+    "magnitude_db": null,
+    "signed": "ours should read HIGH vs a VV measurement",
+    "reading": "Our |Gamma| is a scalar with no co/cross split, so we keep power a VV receiver would reject. ⭐ The sign matters: it CANNOT explain a reading that is too LOW, which is what we get at 1.843 GHz."
+   },
+   "the measurement's own spread eps": {
+    "magnitude_db": 5.265000000000001,
+    "reading": "Das Table III Phantom 3: eps(f) = 0.03f + 5.16 dB, i.e. the azimuth samples themselves scatter by >5 dB about mu. mu is a mean of a very broad distribution, not a tight number."
+   },
+   "literature envelope (measurement side alone)": {
+    "magnitude_db": 3.5870500000000014,
+    "reading": "two processings of ONE dataset differ by this much before we are mentioned"
+   },
+   "shape control (our P4 vs our P3, same materials/kernel)": {
+    "magnitude_db": 0.5859446559995476,
+    "by_band": {
+     "LTE 1.843 GHz": -0.5859446559995476,
+     "5G 3.5 GHz": -0.10798898797490253,
+     "WiFi 5.21 GHz": -0.20226666769501378
+    },
+    "reading": "⚠ small BY CONSTRUCTION — the P3 mesh inherits the P4 shell law. This bounds only the deltas we actually applied (height, sensor suite), NOT the shell shape uncertainty."
+   }
+  },
+  "F_diagnosis": {
+   "the_question": "where does the disagreement come from, and how much is unexplained?",
+   "level_vs_slope": {
+    "das_phantom3_1p8_18p2|as_published": {
+     "slope_error_db_per_ghz": 0.22547026007833673,
+     "level_error_at_3p518ghz_db": -0.547256683409902,
+     "f0_ghz": 3.517666666666667,
+     "note": "level_error is Delta(f0) = ours(f0) - measured(f0) with both fitted over 1.8-18.2 GHz; slope_error is d/df of the same difference. The two are orthogonal by construction."
+    },
+    "das_phantom3_1p8_18p2|plus_2p5068": {
+     "slope_error_db_per_ghz": 0.22547026007833673,
+     "level_error_at_3p518ghz_db": -3.0540724647584234,
+     "f0_ghz": 3.517666666666667,
+     "note": "level_error is Delta(f0) = ours(f0) - measured(f0) with both fitted over 1.8-18.2 GHz; slope_error is d/df of the same difference. The two are orthogonal by construction."
+    },
+    "yuan_azplane_1p8_18p2|as_published": {
+     "slope_error_db_per_ghz": 0.12047026007833672,
+     "level_error_at_3p518ghz_db": -3.9566116834099034,
+     "f0_ghz": 3.517666666666667,
+     "note": "level_error is Delta(f0) = ours(f0) - measured(f0) with both fitted over 1.8-18.2 GHz; slope_error is d/df of the same difference. The two are orthogonal by construction."
+    },
+    "yuan_azplane_1p8_18p2|plus_2p5068": {
+     "slope_error_db_per_ghz": 0.12047026007833672,
+     "level_error_at_3p518ghz_db": -3.9566116834099034,
+     "f0_ghz": 3.517666666666667,
+     "note": "level_error is Delta(f0) = ours(f0) - measured(f0) with both fitted over 1.8-18.2 GHz; slope_error is d/df of the same difference. The two are orthogonal by construction."
+    },
+    "yuan_top_1p8_18p2|as_published": {
+     "slope_error_db_per_ghz": 0.2044702600783367,
+     "level_error_at_3p518ghz_db": -1.891127683409902,
+     "f0_ghz": 3.517666666666667,
+     "note": "level_error is Delta(f0) = ours(f0) - measured(f0) with both fitted over 1.8-18.2 GHz; slope_error is d/df of the same difference. The two are orthogonal by construction."
+    },
+    "yuan_top_1p8_18p2|plus_2p5068": {
+     "slope_error_db_per_ghz": 0.2044702600783367,
+     "level_error_at_3p518ghz_db": -1.891127683409902,
+     "f0_ghz": 3.517666666666667,
+     "note": "level_error is Delta(f0) = ours(f0) - measured(f0) with both fitted over 1.8-18.2 GHz; slope_error is d/df of the same difference. The two are orthogonal by construction."
+    },
+    "yuan_bottom_1p8_18p2|as_published": {
+     "slope_error_db_per_ghz": 0.26047026007833673,
+     "level_error_at_3p518ghz_db": -2.494138350076568,
+     "f0_ghz": 3.517666666666667,
+     "note": "level_error is Delta(f0) = ours(f0) - measured(f0) with both fitted over 1.8-18.2 GHz; slope_error is d/df of the same difference. The two are orthogonal by construction."
+    },
+    "yuan_bottom_1p8_18p2|plus_2p5068": {
+     "slope_error_db_per_ghz": 0.26047026007833673,
+     "level_error_at_3p518ghz_db": -2.494138350076568,
+     "f0_ghz": 3.517666666666667,
+     "note": "level_error is Delta(f0) = ours(f0) - measured(f0) with both fitted over 1.8-18.2 GHz; slope_error is d/df of the same difference. The two are orthogonal by construction."
+    }
+   },
+   "two_intervals": {
+    "why": "The published model is a single straight line valid 1.8-18.2 GHz, so it can legitimately be evaluated over our narrow band; but OUR mu(f) is not a straight line, so our slope depends strongly on the interval. Both budgets are therefore reported and must never be mixed.",
+    "narrowband_1p843_5p21": {
+     "ours": 1.8912054170704709,
+     "gap_vs_das": 1.6812054170704709,
+     "gap_vs_yuan_azplane": 1.576205417070471,
+     "ratio_vs_das": 9.005740081287957
+    },
+    "same_interval_1p8_18p2": {
+     "ours": 0.4354702600783367,
+     "gap_vs_das": 0.22547026007833673,
+     "gap_vs_yuan_azplane": 0.12047026007833672,
+     "ratio_vs_das": 2.0736679051349367
+    }
+   },
+   "narrowband_slope_budget": {
+    "_interval": "1.843-5.21 GHz — the interval in which every term below was measured",
+    "gap_to_close_db_per_ghz": {
+     "vs_das": 1.6812054170704709,
+     "vs_yuan_azplane": 1.576205417070471
+    },
+    "directional_terms_db_per_ghz": {
+     "geometry idealisation (real 0.4 mm scan minus our parametric, both PEC)": -0.5189700625122299,
+     "azimuth-sector convention (front hemisphere instead of full 360)": -0.5138508861222046
+    },
+    "directional_total_db_per_ghz": -1.0328209486344346,
+    "unexplained_residual_db_per_ghz": {
+     "vs_das": 0.6483844684360363,
+     "vs_yuan_azplane": 0.5433844684360363,
+     "fraction_of_gap_vs_das": 0.3856664164013088
+    },
+    "two_sided_uncertainty_db_per_ghz": {
+     "material table bracket (V1/V2/V3)": 0.43012840567330324,
+     "ray-grid dither at div=16 (level effect, quoted for scale)": 1.7821516012275314
+    },
+    "how": "residual = (ours - measured) + (real geometry - our geometry) + (front-sector convention - full-circle convention). Both correction terms are MEASURED here, not assumed. What is left over is what no geometry fix and no convention alignment can reach — and the only mechanism remaining on the list is the absent edge-diffraction (PTD) term.",
+    "honesty": "⚠ The sector term is a CONVENTION alignment, not a model defect: it only applies if Yuan's -90:2:90 really is a front-hemisphere mean. The papers do not say. Quote the budget with and without it."
+   },
+   "effective_exponent": {
+    "what": "sigma ∝ f^p. p=2 is flat-plate specular (4*pi*A^2/lambda^2), p=0 is frequency-independent (sphere specular, straight-edge diffraction). This is the physically-readable form of the slope and it is convention- and size-invariant.",
+    "ours_3band": 1.411964224510908,
+    "ours_1p8_18p2": 0.999782567065792,
+    "ours_1p8_18p2_from_fit": 0.7107603707522298,
+    "measured": {
+     "das_phantom3_1p8_18p2": 0.34275515813896895,
+     "yuan_azplane_1p8_18p2": 0.5141327372084534,
+     "yuan_top_1p8_18p2": 0.3770306739528659,
+     "yuan_bottom_1p8_18p2": 0.2856292984491408
+    },
+    "reading": "Our kernel scatters like a collection of flat plates; the real airframe scatters almost frequency-independently. That is the whole finding, in one number."
+   },
+   "canonical_exponents_for_the_azimuth_MEAN": {
+    "derivation": "For a scatterer whose specular flash has peak sigma_pk and angular width dphi, the azimuth mean is ~ sigma_pk * dphi / (2*pi). flat plate: sigma_pk = 4*pi*A^2/lambda^2 (∝f^2), dphi ~ lambda/L (∝1/f)  =>  MEAN ∝ f^1. cylinder: sigma_pk = 2*pi*a*L^2/lambda (∝f), dphi ~ lambda/L =>  MEAN ∝ f^0. sphere / doubly-curved: sigma_pk = pi*a^2, no flash  =>  f^0. straight edge (PTD): sigma_pk ~ L^2/pi (f^0), dphi ~ lambda/L =>  MEAN ∝ f^-1.",
+    "flat_plate": 1.0,
+    "cylinder": 0.0,
+    "sphere": 0.0,
+    "straight_edge_PTD": -1.0,
+    "reading": "⭐ This is the ruler. Measured p = 0.16-0.24 says the real airframe's azimuth mean is dominated by CURVED specular with a small plate component. Our p is well ABOVE the pure-plate value of 1.0, which cannot be explained by missing PTD alone — missing PTD removes a p = -1 term, it does not push p above 1. Something in our geometry is MORE frequency-sensitive than a flat plate."
+   },
+   "azimuth_sector_convention": {
+    "LTE 1.843 GHz": {
+     "full_360_dbsm": -23.234453343844805,
+     "sector_m90_p90_dbsm": -23.285520847074224,
+     "rear_hemisphere_dbsm": -23.183699801788702,
+     "delta_sector_minus_full_db": -0.051067503229418776
+    },
+    "5G 3.5 GHz": {
+     "full_360_dbsm": -19.652338623223127,
+     "sector_m90_p90_dbsm": -19.96586875337378,
+     "rear_hemisphere_dbsm": -19.358351987783777,
+     "delta_sector_minus_full_db": -0.313530130150653
+    },
+    "WiFi 5.21 GHz": {
+     "full_360_dbsm": -16.86208388336301,
+     "sector_m90_p90_dbsm": -18.637138732526864,
+     "rear_hemisphere_dbsm": -15.599568750725116,
+     "delta_sector_minus_full_db": -1.7750548491638547
+    },
+    "_slope_full_360": 1.8912054170704709,
+    "_slope_sector": 1.3773545309482662,
+    "_slope_delta_db_per_ghz": -0.5138508861222046,
+    "_verdict": "⚠ NOT a negligible convention. On our mesh the front-sector mean sits BELOW the full-360 mean and the gap GROWS with frequency, so the choice of sector moves both the level and the slope. Neither paper states whether its azimuth mean is over a hemisphere or over the full circle, and for a Phantom the 'symmetry' argument only supports mirror symmetry, not 4-fold. This term was not on the feasibility phase's list and it is the same order as the material bracket."
+   },
+   "group_decomposition": {
+    "battery": {
+     "LTE 1.843 GHz": -24.10942378766454,
+     "5G 3.5 GHz": -22.02749270923938,
+     "WiFi 5.21 GHz": -20.557981132285352,
+     "slope_db_per_ghz": 1.0537381204814058,
+     "exponent_p": 0.7869145073735732
+    },
+    "body": {
+     "LTE 1.843 GHz": -31.356391998804924,
+     "5G 3.5 GHz": -29.96034257133659,
+     "WiFi 5.21 GHz": -29.056135880447314,
+     "slope_db_per_ghz": 0.6823539234521466,
+     "exponent_p": 0.5096815817844483
+    },
+    "camera": {
+     "LTE 1.843 GHz": -27.608835468086212,
+     "5G 3.5 GHz": -26.84304075038552,
+     "WiFi 5.21 GHz": -25.307910042047844,
+     "slope_db_per_ghz": 0.6845179024530954,
+     "exponent_p": 0.5098298843124613
+    },
+    "canopy": {
+     "LTE 1.843 GHz": -300.0,
+     "5G 3.5 GHz": -300.0,
+     "WiFi 5.21 GHz": -300.0,
+     "slope_db_per_ghz": 7.554503404511922e-15,
+     "exponent_p": 0.0
+    },
+    "gear": {
+     "LTE 1.843 GHz": -31.377182575170544,
+     "5G 3.5 GHz": -27.6536894574315,
+     "WiFi 5.21 GHz": -24.62352665311824,
+     "slope_db_per_ghz": 2.0045917893576113,
+     "exponent_p": 1.4964481588412326
+    },
+    "motor": {
+     "LTE 1.843 GHz": -33.154451024081354,
+     "5G 3.5 GHz": -30.744311105349137,
+     "WiFi 5.21 GHz": -29.184081162607917,
+     "slope_db_per_ghz": 1.1777792839986698,
+     "exponent_p": 0.8797387278378187
+    },
+    "pcb": {
+     "LTE 1.843 GHz": -48.181567574851044,
+     "5G 3.5 GHz": -47.686747025909135,
+     "WiFi 5.21 GHz": -45.25335567848898,
+     "slope_db_per_ghz": 0.8726287250002736,
+     "exponent_p": 0.6488215200155515
+    },
+    "prop": {
+     "LTE 1.843 GHz": -45.40386226003918,
+     "5G 3.5 GHz": -44.05153799185606,
+     "WiFi 5.21 GHz": -44.37054264918995,
+     "slope_db_per_ghz": 0.3042665652894413,
+     "exponent_p": 0.22895884051492824
+    }
+   },
+   "group_leaveout": {
+    "battery": {
+     "LTE 1.843 GHz": -25.496955569158807,
+     "5G 3.5 GHz": -22.34691813765105,
+     "WiFi 5.21 GHz": -20.452278442556867,
+     "slope_db_per_ghz": 1.4961906654343553,
+     "exponent_p": 1.1177794494093698,
+     "contribution_db": {
+      "LTE 1.843 GHz": 2.262425902491316,
+      "5G 3.5 GHz": 2.6906743400637865,
+      "WiFi 5.21 GHz": 3.589609529053881
+     }
+    },
+    "body": {
+     "LTE 1.843 GHz": -22.815945300716564,
+     "5G 3.5 GHz": -18.664279982175323,
+     "WiFi 5.21 GHz": -17.193182511196113,
+     "slope_db_per_ghz": 1.665647351932993,
+     "exponent_p": 1.2458693663241835,
+     "contribution_db": {
+      "LTE 1.843 GHz": -0.4185843659509274,
+      "5G 3.5 GHz": -0.991963815411939,
+      "WiFi 5.21 GHz": 0.3305135976931268
+     }
+    },
+    "camera": {
+     "LTE 1.843 GHz": -24.106963844244046,
+     "5G 3.5 GHz": -21.1563538988738,
+     "WiFi 5.21 GHz": -17.968829131838756,
+     "slope_db_per_ghz": 1.8232464439512246,
+     "exponent_p": 1.3600634227020396,
+     "contribution_db": {
+      "LTE 1.843 GHz": 0.8724341775765545,
+      "5G 3.5 GHz": 1.5001101012865377,
+      "WiFi 5.21 GHz": 1.10616021833577
+     }
+    },
+    "canopy": {
+     "LTE 1.843 GHz": -23.23452966666749,
+     "5G 3.5 GHz": -19.656243797587262,
+     "WiFi 5.21 GHz": -16.862668913502986,
+     "slope_db_per_ghz": 1.891065483127912,
+     "exponent_p": 1.4118515071712723,
+     "contribution_db": {
+      "LTE 1.843 GHz": 0.0,
+      "5G 3.5 GHz": 0.0,
+      "WiFi 5.21 GHz": 0.0
+     }
+    },
+    "gear": {
+     "LTE 1.843 GHz": -22.829264092251904,
+     "5G 3.5 GHz": -20.791189190054183,
+     "WiFi 5.21 GHz": -17.86902649490216,
+     "slope_db_per_ghz": 1.4744479891631708,
+     "exponent_p": 1.099069675097315,
+     "contribution_db": {
+      "LTE 1.843 GHz": -0.4052655744155871,
+      "5G 3.5 GHz": 1.1349453924669213,
+      "WiFi 5.21 GHz": 1.0063575813991754
+     }
+    },
+    "motor": {
+     "LTE 1.843 GHz": -23.23895616144182,
+     "5G 3.5 GHz": -20.137751688051075,
+     "WiFi 5.21 GHz": -17.130333302740933,
+     "slope_db_per_ghz": 1.8139668292992728,
+     "exponent_p": 1.3535243037937543,
+     "contribution_db": {
+      "LTE 1.843 GHz": 0.00442649477432866,
+      "5G 3.5 GHz": 0.4815078904638135,
+      "WiFi 5.21 GHz": 0.26766438923794666
+     }
+    },
+    "pcb": {
+     "LTE 1.843 GHz": -23.24111467781104,
+     "5G 3.5 GHz": -19.77752994127391,
+     "WiFi 5.21 GHz": -16.87439058857943,
+     "slope_db_per_ghz": 1.8898894765613101,
+     "exponent_p": 1.410713345651988,
+     "contribution_db": {
+      "LTE 1.843 GHz": 0.00658501114354948,
+      "5G 3.5 GHz": 0.1212861436866497,
+      "WiFi 5.21 GHz": 0.011721675076444171
+     }
+    },
+    "prop": {
+     "LTE 1.843 GHz": -23.332259426073193,
+     "5G 3.5 GHz": -19.74615649083162,
+     "WiFi 5.21 GHz": -16.85258490809962,
+     "slope_db_per_ghz": 1.923227196205579,
+     "exponent_p": 1.4357404514272964,
+     "contribution_db": {
+      "LTE 1.843 GHz": 0.09772975940570205,
+      "5G 3.5 GHz": 0.08991269324435791,
+      "WiFi 5.21 GHz": -0.010084005403367513
+     }
+    }
+   },
+   "group_baseline": {
+    "LTE 1.843 GHz": -23.23452966666749,
+    "5G 3.5 GHz": -19.656243797587262,
+    "WiFi 5.21 GHz": -16.862668913502986,
+    "slope_db_per_ghz": 1.891065483127912,
+    "exponent_p": 1.4118515071712723
+   },
+   "no_internal_metal": {
+    "LTE 1.843 GHz": -25.330676106495005,
+    "5G 3.5 GHz": -22.419893069514636,
+    "WiFi 5.21 GHz": -20.38950798538807,
+    "slope_db_per_ghz": 1.4660353361415197,
+    "exponent_p": 1.0948443365631975
+   },
+   "shell_and_arms_only": {
+    "LTE 1.843 GHz": -31.356391998804924,
+    "5G 3.5 GHz": -29.96034257133659,
+    "WiFi 5.21 GHz": -29.056135880447314,
+    "slope_db_per_ghz": 0.6823539234521466,
+    "exponent_p": 0.5096815817844483
+   },
+   "mesh_facet_scale": {
+    "what": "median triangle edge of the P3 mesh vs wavelength (measured, not typed)",
+    "n_tris": 28200,
+    "area_m2": 0.33543211486418023,
+    "median_edge_mm": 5.845294717685809,
+    "p90_edge_mm": 9.391994905383596,
+    "lambda_over_median_edge": {
+     "1.843 GHz": 27.828445974863502,
+     "3.500 GHz": 14.653664551906695,
+     "5.210 GHz": 9.844112462893174,
+     "10.000 GHz": 5.128782593167343,
+     "18.200 GHz": 2.8180124138282103
+    },
+    "per_group": {
+     "battery": {
+      "n_tris": 24,
+      "area_m2": 0.057954997244637846,
+      "median_edge_mm": 99.81412696706501
+     },
+     "body": {
+      "n_tris": 7062,
+      "area_m2": 0.10186866883039872,
+      "median_edge_mm": 6.2407061744536065
+     },
+     "camera": {
+      "n_tris": 398,
+      "area_m2": 0.03330069298030777,
+      "median_edge_mm": 6.529791353965881
+     },
+     "canopy": {
+      "n_tris": 2240,
+      "area_m2": 0.031674914691542065,
+      "median_edge_mm": 6.764393873799363
+     },
+     "gear": {
+      "n_tris": 3696,
+      "area_m2": 0.04604951967005847,
+      "median_edge_mm": 2.2656022727610376
+     },
+     "motor": {
+      "n_tris": 2016,
+      "area_m2": 0.01242200823627938,
+      "median_edge_mm": 4.40925956480041
+     },
+     "pcb": {
+      "n_tris": 12,
+      "area_m2": 0.012800697905312458,
+      "median_edge_mm": 66.72955565428661
+     },
+     "prop": {
+      "n_tris": 12752,
+      "area_m2": 0.03936061530564349,
+      "median_edge_mm": 5.847465004159776
+     }
+    },
+    "caveat": "⚠ Above ~10 GHz the shell facets are only a few wavelengths across, so the full-band sweep's high end is faceting-limited. The chordal error is second order (h^2/8R = 45 um for h=6 mm on R=0.1 m, i.e. 0.03 rad of phase at 18.2 GHz) so this is unlikely to drive the slope, but the 1.8-5.21 GHz sub-fit is the version of our slope that carries no faceting caveat at all — quote that one when in doubt.",
+    "the_real_flat_plates": "⭐ battery and pcb are literal rectangular boxes: 24 and 12 triangles, edges 85-105 mm. They are not a discretisation artefact, they are the model. A real LiPo pack in a shell is a rounded pouch and a real ESC board is populated and partly shadowed by wiring."
+   },
+   "where_the_disagreement_lives": {
+    "headline": "⭐⭐ ABOVE ~6 GHz OUR BAND DEPENDENCE AGREES WITH THE MEASUREMENT. The whole disagreement is confined to 1.8-6 GHz — which is exactly our operating band, and exactly where the target is electrically small.",
+    "ours_slope_1p8_6_ghz": 1.5398976625633634,
+    "ours_slope_6_18p2_ghz": 0.26418698346256914,
+    "measured_slope": {
+     "das_phantom3_1p8_18p2": 0.21,
+     "yuan_azplane_1p8_18p2": 0.315,
+     "yuan_top_1p8_18p2": 0.231,
+     "yuan_bottom_1p8_18p2": 0.175
+    },
+    "delta_vs_das_dbsm": [
+     {
+      "f_ghz": 1.8,
+      "ours": -22.881266660297275,
+      "das_as_published": -18.812,
+      "das_plus_2p5068": -16.30518421865148,
+      "yuan_azplane": -15.582999999999998,
+      "d_vs_das_pub": -4.069266660297274,
+      "d_vs_yuan_az": -7.298266660297276
+     },
+     {
+      "f_ghz": 2.62,
+      "ours": -20.59090447151558,
+      "das_as_published": -18.6398,
+      "das_plus_2p5068": -16.13298421865148,
+      "yuan_azplane": -15.324699999999998,
+      "d_vs_das_pub": -1.9511044715155776,
+      "d_vs_yuan_az": -5.2662044715155805
+     },
+     {
+      "f_ghz": 3.44,
+      "ours": -19.691455394851737,
+      "das_as_published": -18.4676,
+      "das_plus_2p5068": -15.96078421865148,
+      "yuan_azplane": -15.066399999999998,
+      "d_vs_das_pub": -1.2238553948517357,
+      "d_vs_yuan_az": -4.6250553948517386
+     },
+     {
+      "f_ghz": 4.26,
+      "ours": -18.84486701765645,
+      "das_as_published": -18.2954,
+      "das_plus_2p5068": -15.78858421865148,
+      "yuan_azplane": -14.8081,
+      "d_vs_das_pub": -0.5494670176564505,
+      "d_vs_yuan_az": -4.036767017656452
+     },
+     {
+      "f_ghz": 5.08,
+      "ours": -16.960886551530244,
+      "das_as_published": -18.1232,
+      "das_plus_2p5068": -15.61638421865148,
+      "yuan_azplane": -14.549799999999998,
+      "d_vs_das_pub": 1.1623134484697566,
+      "d_vs_yuan_az": -2.4110865515302464
+     },
+     {
+      "f_ghz": 5.9,
+      "ours": -16.389582504613823,
+      "das_as_published": -17.951,
+      "das_plus_2p5068": -15.444184218651479,
+      "yuan_azplane": -14.2915,
+      "d_vs_das_pub": 1.561417495386177,
+      "d_vs_yuan_az": -2.0980825046138243
+     },
+     {
+      "f_ghz": 6.72,
+      "ours": -16.866588052773533,
+      "das_as_published": -17.7788,
+      "das_plus_2p5068": -15.271984218651479,
+      "yuan_azplane": -14.033199999999999,
+      "d_vs_das_pub": 0.9122119472264671,
+      "d_vs_yuan_az": -2.8333880527735342
+     },
+     {
+      "f_ghz": 7.54,
+      "ours": -16.421564263157524,
+      "das_as_published": -17.6066,
+      "das_plus_2p5068": -15.099784218651479,
+      "yuan_azplane": -13.774899999999999,
+      "d_vs_das_pub": 1.185035736842476,
+      "d_vs_yuan_az": -2.6466642631575255
+     },
+     {
+      "f_ghz": 8.36,
+      "ours": -16.431484934060972,
+      "das_as_published": -17.4344,
+      "das_plus_2p5068": -14.927584218651479,
+      "yuan_azplane": -13.516599999999999,
+      "d_vs_das_pub": 1.0029150659390282,
+      "d_vs_yuan_az": -2.9148849340609733
+     },
+     {
+      "f_ghz": 9.18,
+      "ours": -14.358223891670077,
+      "das_as_published": -17.2622,
+      "das_plus_2p5068": -14.755384218651479,
+      "yuan_azplane": -13.258299999999998,
+      "d_vs_das_pub": 2.903976108329923,
+      "d_vs_yuan_az": -1.0999238916700786
+     },
+     {
+      "f_ghz": 10.0,
+      "ours": -17.247908307332494,
+      "das_as_published": -17.09,
+      "das_plus_2p5068": -14.583184218651478,
+      "yuan_azplane": -12.999999999999998,
+      "d_vs_das_pub": -0.1579083073324945,
+      "d_vs_yuan_az": -4.247908307332496
+     },
+     {
+      "f_ghz": 10.82,
+      "ours": -15.327048496435577,
+      "das_as_published": -16.9178,
+      "das_plus_2p5068": -14.410984218651478,
+      "yuan_azplane": -12.741699999999998,
+      "d_vs_das_pub": 1.590751503564423,
+      "d_vs_yuan_az": -2.5853484964355786
+     },
+     {
+      "f_ghz": 11.64,
+      "ours": -14.755191631870964,
+      "das_as_published": -16.745600000000003,
+      "das_plus_2p5068": -14.238784218651482,
+      "yuan_azplane": -12.483399999999998,
+      "d_vs_das_pub": 1.9904083681290388,
+      "d_vs_yuan_az": -2.2717916318709666
+     },
+     {
+      "f_ghz": 12.46,
+      "ours": -13.80679061098771,
+      "das_as_published": -16.5734,
+      "das_plus_2p5068": -14.066584218651478,
+      "yuan_azplane": -12.225099999999998,
+      "d_vs_das_pub": 2.76660938901229,
+      "d_vs_yuan_az": -1.581690610987712
+     },
+     {
+      "f_ghz": 13.28,
+      "ours": -13.18105942291126,
+      "das_as_published": -16.401200000000003,
+      "das_plus_2p5068": -13.894384218651481,
+      "yuan_azplane": -11.9668,
+      "d_vs_das_pub": 3.2201405770887437,
+      "d_vs_yuan_az": -1.21425942291126
+     },
+     {
+      "f_ghz": 14.1,
+      "ours": -15.54420284728463,
+      "das_as_published": -16.229000000000003,
+      "das_plus_2p5068": -13.722184218651481,
+      "yuan_azplane": -11.708499999999999,
+      "d_vs_das_pub": 0.6847971527153724,
+      "d_vs_yuan_az": -3.8357028472846313
+     },
+     {
+      "f_ghz": 14.92,
+      "ours": -13.837069610668413,
+      "das_as_published": -16.056800000000003,
+      "das_plus_2p5068": -13.549984218651481,
+      "yuan_azplane": -11.450199999999999,
+      "d_vs_das_pub": 2.2197303893315894,
+      "d_vs_yuan_az": -2.3868696106684144
+     },
+     {
+      "f_ghz": 15.74,
+      "ours": -15.466989749035866,
+      "das_as_published": -15.8846,
+      "das_plus_2p5068": -13.37778421865148,
+      "yuan_azplane": -11.191899999999999,
+      "d_vs_das_pub": 0.4176102509641346,
+      "d_vs_yuan_az": -4.2750897490358675
+     },
+     {
+      "f_ghz": 16.56,
+      "ours": -14.320180604223472,
+      "das_as_published": -15.712400000000002,
+      "das_plus_2p5068": -13.205584218651481,
+      "yuan_azplane": -10.933599999999998,
+      "d_vs_das_pub": 1.3922193957765305,
+      "d_vs_yuan_az": -3.3865806042234734
+     },
+     {
+      "f_ghz": 17.38,
+      "ours": -13.930621699352912,
+      "das_as_published": -15.540200000000002,
+      "das_plus_2p5068": -13.03338421865148,
+      "yuan_azplane": -10.6753,
+      "d_vs_das_pub": 1.6095783006470903,
+      "d_vs_yuan_az": -3.255321699352912
+     },
+     {
+      "f_ghz": 18.2,
+      "ours": -12.835462595173526,
+      "das_as_published": -15.368000000000002,
+      "das_plus_2p5068": -12.86118421865148,
+      "yuan_azplane": -10.416999999999998,
+      "d_vs_das_pub": 2.532537404826476,
+      "d_vs_yuan_az": -2.418462595173528
+     }
+    ],
+    "reading": "Read the d_vs_* column down the table: our deficit is worst at 1.8 GHz and closes monotonically-on-average as the frequency rises. That is a LOW-FREQUENCY VALIDITY problem, not a slope law."
+   },
+   "po_low_ka_deficit": {
+    "claim": "⭐ THE SLOPE ERROR IS A LOW-FREQUENCY LEVEL ERROR IN DISGUISE. Our error against the measurement is not a uniform tilt — it collapses as the target gets electrically larger, which is the textbook signature of physical optics failing below the optical region, not of a f^p law.",
+    "evidence_1_on_the_sphere": {
+     "what": "Yuan's own calibration sphere, where the truth is exact Mie. Our SBR under-reads MOST at the lowest ka and the deficit shrinks with ka.",
+     "ka": {
+      "LTE 1.843 GHz": 6.87550342831337,
+      "5G 3.5 GHz": 13.057114486758977,
+      "WiFi 5.21 GHz": 19.436447564575502
+     },
+     "dev_vs_exact_mie_db": {
+      "LTE 1.843 GHz": -0.8511794043608774,
+      "5G 3.5 GHz": -0.37484212539172646,
+      "WiFi 5.21 GHz": -0.4198079012506746
+     }
+    },
+    "evidence_2_on_the_airframe": {
+     "what": "our gap to the nearest edge of the published envelope, band by band",
+     "ka_body": {
+      "LTE 1.843 GHz": 5.482777241325789,
+      "5G 3.5 GHz": 10.412219394812945,
+      "WiFi 5.21 GHz": 15.499332299135842
+     },
+     "gap_db": {
+      "LTE 1.843 GHz": -4.431483343844803,
+      "5G 3.5 GHz": -1.197338623223125,
+      "WiFi 5.21 GHz": 0.0
+     },
+     "gap_to_yuan_azplane_db": {
+      "LTE 1.843 GHz": -7.6649983438448075,
+      "5G 3.5 GHz": -4.604838623223127,
+      "WiFi 5.21 GHz": -2.3532338833630106
+     }
+    },
+    "reading": "Both curves have the same shape and the same sign: worst at the bottom of the band, gone at the top. On the canonical sphere the deficit is 0.85 dB at the lowest band; on the airframe it is 4.43 dB — about 5x larger, which is what an airframe full of edges and wedges should cost when the edge term is missing and a smooth sphere should not.",
+    "why_the_azimuth_MEAN_is_the_worst_case": "PO is accurate near specular and degrades off-specular, where the return is carried by edge currents that PO does not model. An azimuth MEAN is dominated by the off-specular majority of the circle, so it is precisely the statistic that the missing edge term damages most — and that damage grows as lambda grows relative to the target, because the edge contribution scales as f^-1 in the mean while the facet contribution scales as f^+1.",
+    "consequence": "Reporting our band dependence as a slope in dB/GHz is therefore slightly misleading about the mechanism. The honest statement is: our kernel is progressively too low as the frequency falls, and it reaches the measured envelope only at the top of FR1."
+   },
+   "sphere_control": {
+    "what": "A PEC sphere is frequency-flat in truth (p=0 in the optical region). Our kernel reproduces it flat, so the steep drone slope is NOT a kernel artefact — it is what our GEOMETRY + PO-without-PTD produces.",
+    "our_sbr_dbsm": {
+     "LTE 1.843 GHz": -10.798981310926228,
+     "5G 3.5 GHz": -10.08982360855936,
+     "WiFi 5.21 GHz": -10.312704619020822
+    },
+    "our_p": 0.10774725107229333
+   }
+  },
+  "G_what_this_cannot_establish": [
+   "that our absolute sigma is correct — one airframe, one measurement chain, two processings of the same raw data that disagree by ~2.3 dB",
+   "that our sigma is correct for our five production airframes — Phantom 3 is a 350 mm fixed-arm quad with a one-piece shell; Mini 5 Pro / Matrice 4E / S1000+ are different scattering topologies and the size-transfer exponent is unresolved",
+   "anything about polarisation, bistatic geometry, or spinning propellers",
+   "that our Phantom 3 SHELL is right — no P3 photograph exists here; the shell law is transferred from the P4 photo-audit"
+  ],
+  "H_statistic_convention": {
+   "f_ghz": [
+    1.8,
+    18.2
+   ],
+   "by_kind": {
+    "exponential": {
+     "offset_db": 2.506815781348522,
+     "resid_min_db": -0.2518864764262858,
+     "resid_max_db": 0.48944132645330996,
+     "resid_rms_db": 0.23755308234493586,
+     "resid_absmax_db": 0.48944132645330996
+    },
+    "lognormal": {
+     "offset_db": 3.4321872879150646,
+     "resid_min_db": -1.1772579829928294,
+     "resid_max_db": -0.4359301801132336,
+     "resid_rms_db": 0.8525836427125999,
+     "resid_absmax_db": 1.1772579829928294
+    }
+   },
+   "best_kind": "exponential",
+   "spread_between_kinds_db": 0.9253715065665427,
+   "note": "잔차가 가장 작은 kind 가 Das 의 실제 μ 규약이다. 두 kind 의 차이는 미해소 불확도."
+  },
+  "I_crosschecks": {
+   "harness_vs_feasibility_phase": {
+    "what": "This workflow's harness reproduces the feasibility phase's independent rerun of our phantom4 mesh, which itself reproduced benchmark/rcs_anchor.raw_sigma_az().",
+    "ours_p4_el0": {
+     "LTE 1.843 GHz": -23.820397999844353,
+     "5G 3.5 GHz": -19.76032761119803,
+     "WiFi 5.21 GHz": -17.064350551058023
+    },
+    "feasibility_p4_el0": {
+     "LTE 1.843 GHz": -23.813,
+     "5G 3.5 GHz": -19.757,
+     "WiFi 5.21 GHz": -17.066
+    },
+    "max_abs_delta_db": 0.007397999844354075,
+    "stored_rcs_anchor_json": {
+     "LTE 1.843 GHz": -21.134,
+     "5G 3.5 GHz": -17.713,
+     "WiFi 5.21 GHz": -15.406
+    },
+    "staleness_confirmed_db": {
+     "LTE 1.843 GHz": -2.6863979998443526,
+     "5G 3.5 GHz": -2.0473276111980283,
+     "WiFi 5.21 GHz": -1.6583505510580228
+    },
+    "reading": "⚠ outputs/rcs_anchor.json is STALE — a third independent harness now agrees. Every published number for our sigma describes a mesh that no longer exists, and the drift makes the case WORSE (lower level, steeper slope)."
+   },
+   "kernel_cache_hazard": "⚠⚠ rcs_sbr._scene_for() folds only (cache_key, fc_MHz, exclude) into its cache — NOT group_mat. Passing a different material map under the same cache_key silently reuses the first |Gamma| set, with no warning. This workflow hit it: the first group-isolation run returned all eight groups bit-identical to the baseline. Every material-sensitivity caller must fold the material map into cache_key (as _gm_key does here) or pass cache_key=None.",
+   "canopy_is_dead_geometry": "In the Phantom family the 'canopy' group is fully enclosed by the 'body' shell (_canopy sits at z = 0.30*H_canopy with half-height 0.24*H_canopy, so its crown reaches 0.27*bh against the body crown at 0.50*bh, with _SHELL_SHAPE['phantom4'] cfh = 0.50). Isolating it returns exactly zero at all three bands. It is not a sigma error — a buried part should be shadowed — but the canopy's material assignment has no effect on sigma for this airframe, and anyone reading the material table would not know that."
+  },
+  "_provenance": {
+   "das": "DAS Table III, theta_b=0",
+   "das_citation": "S. Das, P. Zhang, V. Hovinen, M. E. Leinonen, A. Parssinen, P. Kyosti, \"Multiband Monostatic and Bistatic RCS Characterization of AAVs for ISAC Channel Modeling,\" IEEE Wireless Commun. Lett., vol. 15, pp. 3731-3735, 2026, doi:10.1109/LWC.2026.3705634",
+   "yuan_citation": "YUAN §IV, theta=90 (azimuth plane)",
+   "kernel": "src/rcs_sbr.py rcs_sbr_batch, div=16, jitter=2, penetrate=True",
+   "statistic": "10*log10(mean_phi(sigma_linear)) = Das eq (5) exactly",
+   "anchor_override": "OFF — sigma_anchor.relevel() is never called in this file",
+   "n_az": 720,
+   "generated": "2026-08-03 03:55:51"
+  }
+ }
+}

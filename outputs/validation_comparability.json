@@ -1,0 +1,518 @@
+{
+ "_meta": {
+  "generated": "2026-08-03 04:36:25",
+  "lens": "COMPARABILITY — 측정량과 계산량이 같은 양인가",
+  "generator": "benchmark/verify_comparability_yuan.py + scratchpad/build_comparability.py",
+  "sources": {
+   "yuan_pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/On_Experimental_Analysis_of_Mono-Static_3D_UAV_RCS_for_ISAC_Channel_Modeling.pdf",
+   "das_pdf": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Multiband_Monostatic_and_Bistatic_RCS_Characterization_of_AAVs_for_ISAC_Channel_Modeling.pdf",
+   "repo": [
+    "src/sigma_anchor.py",
+    "benchmark/rcs_anchor.py",
+    "benchmark/validate_measured_airframe.py",
+    "outputs/rcs_anchor.json",
+    "outputs/validation_feasibility.json"
+   ]
+  },
+  "new_asset": "Yuan Fig.5 의 **측정 μ(f) 곡선** 을 PDF 벡터경로에서 복원했다. 지금까지 저장소는 두 논문의 전대역 선형회귀 계수(a,b)만 갖고 있었다."
+ },
+ "digitisation_selfcheck": {
+  "method": "Yuan 논문 4쪽 Fig.5 는 벡터 그래픽. MATLAB 기본 파란색 실선 = 범례 'Measured' 를 축 눈금 라벨로 보정해 (f, μ) 로 환산.",
+  "validation": "같은 축에 함께 그려진 파선 = 'Mean-fre. fit' (논문 회귀직선) 을 똑같이 복원해 공표 (a,b) 와 대조했고, 복원곡선 자체를 전대역 재회귀해 한 번 더 대조했다.",
+  "per_theta": {
+   "90": {
+    "tick_fit_resid_db": 0.0021704536013089637,
+    "fitline_nonlinearity_db": 7.312190814801056e-05,
+    "fitline_a": 0.3150837003465925,
+    "fitline_b": -16.047423853894884,
+    "fitline_da": 8.370034659249681e-05,
+    "fitline_db": 0.10257614610511467,
+    "refit_a": 0.31482957217484003,
+    "refit_b": -15.999223707131877,
+    "refit_da": -0.0001704278251599689,
+    "refit_db": 0.15077629286812133,
+    "published_a": 0.315,
+    "published_b": -16.15,
+    "n_points": 700
+   },
+   "0": {
+    "tick_fit_resid_db": 0.0021704536013018583,
+    "fitline_nonlinearity_db": 5.639865693574109e-05,
+    "fitline_a": 0.23145034903295456,
+    "fitline_b": -17.83051918952316,
+    "fitline_da": 0.00045034903295454454,
+    "fitline_db": 0.08948081047684298,
+    "refit_a": 0.2314501041234162,
+    "refit_b": -17.830516488248577,
+    "refit_da": 0.00045010412341620065,
+    "refit_db": 0.08948351175142477,
+    "published_a": 0.231,
+    "published_b": -17.92,
+    "n_points": 700
+   },
+   "180": {
+    "tick_fit_resid_db": 0.0021704536013018583,
+    "fitline_nonlinearity_db": 5.5898324658798515e-05,
+    "fitline_a": 0.17532181622440157,
+    "fitline_b": -17.030139660496218,
+    "fitline_da": 0.0003218162244015832,
+    "fitline_db": 0.08986033950378314,
+    "refit_a": 0.1765694869163797,
+    "refit_b": -17.186063760783913,
+    "refit_da": 0.0015694869163797032,
+    "refit_db": -0.06606376078391207,
+    "published_a": 0.175,
+    "published_b": -17.12,
+    "n_points": 687
+   }
+  },
+  "verdict": "기울기 재현오차 ≤ 0.0016 dB/GHz, 레벨 재현오차 ≤ 0.151 dB. 복원은 신뢰할 수 있다."
+ },
+ "A_slope_comparand": {
+  "claim_under_test": "validation_feasibility.json 5_verdict: 'PRIMARY — 밴드 기울기를 비교하라. 우리 2.002 vs Das 0.21 / Yuan 0.315 → 6.4~9.5배 가파르다.'",
+  "measured_slope_by_window": {
+   "our_band_1.8_5.21": {
+    "theta90": {
+     "slope_db_per_ghz": 0.5587296551672459,
+     "intercept_dbsm": -16.855817561183827,
+     "R2": 0.12594113251392658
+    },
+    "theta0": {
+     "slope_db_per_ghz": 0.26235925592991827,
+     "intercept_dbsm": -17.565454130532064,
+     "R2": 0.035617736404394584
+    },
+    "theta180": {
+     "slope_db_per_ghz": -0.5626569044467167,
+     "intercept_dbsm": -13.696655410682101,
+     "R2": 0.1738639433325052
+    },
+    "pooled": {
+     "slope_db_per_ghz": 0.04689628924591372,
+     "intercept_dbsm": -15.767253780983534,
+     "R2": 0.0017779845315523124
+    }
+   },
+   "our_regression_window_1.8_6.0": {
+    "theta90": {
+     "slope_db_per_ghz": 0.40553184476406495,
+     "intercept_dbsm": -16.38455953590599,
+     "R2": 0.12183407746833375
+    },
+    "theta0": {
+     "slope_db_per_ghz": -0.07796682013052109,
+     "intercept_dbsm": -16.537576155665057,
+     "R2": 0.004593386239112429
+    },
+    "theta180": {
+     "slope_db_per_ghz": -0.6141718131941419,
+     "intercept_dbsm": -13.55916850854354,
+     "R2": 0.2849930358876871
+    },
+    "pooled": {
+     "slope_db_per_ghz": -0.08288138023336972,
+     "intercept_dbsm": -15.381333296378466,
+     "R2": 0.009251844577115587
+    }
+   },
+   "anchor_full_band_1.8_18.2": {
+    "theta90": {
+     "slope_db_per_ghz": 0.3130248441664408,
+     "intercept_dbsm": -15.981635013478854,
+     "R2": 0.7508360869767792
+    },
+    "theta0": {
+     "slope_db_per_ghz": 0.23440383766400336,
+     "intercept_dbsm": -17.868841898745437,
+     "R2": 0.5593193983055916
+    },
+    "theta180": {
+     "slope_db_per_ghz": 0.17584700814962648,
+     "intercept_dbsm": -17.185078728342035,
+     "R2": 0.346743440504376
+    },
+    "pooled": {
+     "slope_db_per_ghz": 0.24699829441084598,
+     "intercept_dbsm": -16.828797296178866,
+     "R2": 0.7237074679353801
+    }
+   }
+  },
+  "measured_three_point_slope": {
+   "theta90": {
+    "mu_at_bands_dbsm": {
+     "LTE 1.843 GHz": -15.102,
+     "5G 3.5 GHz": -12.68,
+     "WiFi 5.21 GHz": -15.079
+    },
+    "three_point_slope_db_per_ghz": -0.0008222853958839177
+   },
+   "theta0": {
+    "mu_at_bands_dbsm": {
+     "LTE 1.843 GHz": -15.818,
+     "5G 3.5 GHz": -15.836,
+     "WiFi 5.21 GHz": -17.974
+    },
+    "three_point_slope_db_per_ghz": -0.6435459457553219
+   },
+   "theta180": {
+    "mu_at_bands_dbsm": {
+     "LTE 1.843 GHz": -15.387,
+     "5G 3.5 GHz": -14.793,
+     "WiFi 5.21 GHz": -17.616
+    },
+    "three_point_slope_db_per_ghz": -0.6672389840448119
+   },
+   "pooled": {
+    "mu_at_bands_dbsm": {
+     "LTE 1.843 GHz": -15.919,
+     "5G 3.5 GHz": -14.255,
+     "WiFi 5.21 GHz": -16.679
+    },
+    "three_point_slope_db_per_ghz": -0.23210165539792804
+   }
+  },
+  "ours_1p8_6p0_ghz_22pt_el0": {
+   "matrice4e": {
+    "slope_db_per_ghz": 1.1640230434425125,
+    "R2": 0.8712466651551569,
+    "eps_at_band_db": 5.661358240898347,
+    "n_points": 22
+   },
+   "mavic4pro": {
+    "slope_db_per_ghz": 0.9586804798404873,
+    "R2": 0.8032836292924486,
+    "eps_at_band_db": 5.528020577359496,
+    "n_points": 22
+   },
+   "mini5pro": {
+    "slope_db_per_ghz": 1.0666157392172597,
+    "R2": 0.8223664756154544,
+    "eps_at_band_db": 5.247407090473828,
+    "n_points": 22
+   },
+   "phantom4": {
+    "slope_db_per_ghz": 1.4105233519468743,
+    "R2": 0.8878247480858046,
+    "eps_at_band_db": 5.7286301845110525,
+    "n_points": 22
+   },
+   "s1000plus": {
+    "slope_db_per_ghz": 1.5421589150245456,
+    "R2": 0.92058364912588,
+    "eps_at_band_db": 6.149383379356202,
+    "n_points": 22
+   },
+   "typhoonh480": {
+    "slope_db_per_ghz": 1.3178556981757104,
+    "R2": 0.8296082430604066,
+    "eps_at_band_db": 6.34158698469354,
+    "n_points": 22
+   },
+   "x500v2": {
+    "slope_db_per_ghz": 1.0407900979670541,
+    "R2": 0.615584839505955,
+    "eps_at_band_db": 5.914417872206687,
+    "n_points": 22
+   }
+  },
+  "ours_three_point_stored": {
+   "matrice4e": {
+    "mu_at_bands_dbsm": [
+     -21.559,
+     -21.379,
+     -18.423
+    ],
+    "three_point_slope_db_per_ghz": 0.9358698306274642
+   },
+   "mavic4pro": {
+    "mu_at_bands_dbsm": [
+     -17.681,
+     -16.741,
+     -13.279
+    ],
+    "three_point_slope_db_per_ghz": 1.3110883410656062
+   },
+   "mini5pro": {
+    "mu_at_bands_dbsm": [
+     -24.771,
+     -21.775,
+     -19.659
+    ],
+    "three_point_slope_db_per_ghz": 1.5170442793984567
+   },
+   "phantom4": {
+    "mu_at_bands_dbsm": [
+     -21.134,
+     -17.713,
+     -15.406
+    ],
+    "three_point_slope_db_per_ghz": 1.6994008126771427
+   },
+   "s1000plus": {
+    "mu_at_bands_dbsm": [
+     -16.498,
+     -13.997,
+     -11.099
+    ],
+    "three_point_slope_db_per_ghz": 1.6037946605260234
+   },
+   "typhoonh480": {
+    "mu_at_bands_dbsm": [
+     -13.69,
+     -13.765,
+     -9.694
+    ],
+    "three_point_slope_db_per_ghz": 1.1932246730776375
+   },
+   "x500v2": {
+    "mu_at_bands_dbsm": [
+     -19.316,
+     -16.645,
+     -16.802
+    ],
+    "three_point_slope_db_per_ghz": 0.7419970017631432
+   }
+  },
+  "finding": "공표된 0.21 / 0.315 는 **1.8~18.2 GHz 전대역** 추세다. 같은 측정곡선을 우리 창에서 다시 재면 부호까지 달라진다.",
+  "apples_to_apples_1p8_6p0": {
+   "ours_phantom4": 1.4105233519468743,
+   "measured_theta90": 0.40553184476406495,
+   "difference_db_per_ghz": 1.0049915071828093,
+   "measured_elevation_spread_db_per_ghz": 1.0197036579582068,
+   "measured_elevation_spread_full_band_db_per_ghz": 0.1371778360168143
+  },
+  "ripple": {
+   "detrended_rms_db": 1.2892331256578557,
+   "autocorr_half_width_mhz": 329.0000000000011,
+   "peak_to_peak_db": 6.584250878279828,
+   "our_channel_bandwidths_mhz": {
+    "LTE": 20,
+    "5G NR": 100,
+    "WiFi": 160
+   }
+  }
+ },
+ "B_level_envelope": {
+  "claim_under_test": "3e_literature_envelope: 측정측 폭은 우리 3밴드에서 3.234~3.587 dB 다.",
+  "by_band": {
+   "LTE 1.843 GHz": {
+    "values_dbsm": {
+     "measured_curve_theta90": -15.102,
+     "measured_curve_pooled": -15.919,
+     "yuan_theta90_LINEAR_MODEL": -15.569,
+     "das_as_published": -18.803,
+     "das_plus_2p5068": -16.296
+    },
+    "model_minus_curve_theta90_db": -0.4678159761967198,
+    "envelope_span_db": 3.701330976196724,
+    "prior_json_envelope_span_db": 3.234
+   },
+   "5G 3.5 GHz": {
+    "values_dbsm": {
+     "measured_curve_theta90": -12.68,
+     "measured_curve_pooled": -14.255,
+     "yuan_theta90_LINEAR_MODEL": -15.047,
+     "das_as_published": -18.455,
+     "das_plus_2p5068": -15.948
+    },
+    "model_minus_curve_theta90_db": -2.367169031651903,
+    "envelope_span_db": 5.774669031651905,
+    "prior_json_envelope_span_db": 3.408
+   },
+   "WiFi 5.21 GHz": {
+    "values_dbsm": {
+     "measured_curve_theta90": -15.079,
+     "measured_curve_pooled": -16.679,
+     "yuan_theta90_LINEAR_MODEL": -14.509,
+     "das_as_published": -18.096,
+     "das_plus_2p5068": -15.589
+    },
+    "model_minus_curve_theta90_db": 0.570266829331004,
+    "envelope_span_db": 3.5870500000000014,
+    "prior_json_envelope_span_db": 3.587
+   }
+  },
+  "finding": "그 봉투는 두 논문의 **선형모델**만으로 만들었다. 선형모델은 우리 대역 안에서 rms 1.29 dB 를 설명하지 못한다(R² 는 위 A 절 참조)."
+ },
+ "C_convention_degeneracy": {
+  "claim_under_test": "3b: reconcile_das_yuan 잔차가 지수분포 오프셋(+2.5068 dB)을 지지한다.",
+  "hypotheses": {
+   "elevation_pooled+exponential": {
+    "our_bands": {
+     "resid_min_db": 0.066160104639156,
+     "resid_max_db": 0.6076644243427243,
+     "resid_absmax_db": 0.6076644243427243
+    },
+    "full_band": {
+     "resid_min_db": -0.07568630109088659,
+     "resid_max_db": 0.5214661707001653,
+     "resid_absmax_db": 0.5214661707001653
+    },
+    "offset_at_3p5_db": 2.5068157813485215
+   },
+   "elevation_pooled+lognormal": {
+    "our_bands": {
+     "resid_min_db": -0.6809274984325029,
+     "resid_max_db": -0.01864259738209384,
+     "resid_absmax_db": 0.6809274984325029
+    },
+    "full_band": {
+     "resid_min_db": -0.7134488509275432,
+     "resid_max_db": -0.6997576445567404,
+     "resid_absmax_db": 0.7134488509275432
+    },
+    "offset_at_3p5_db": 3.191408842972045
+   },
+   "azimuth_plane_only+exponential": {
+    "our_bands": {
+     "resid_min_db": 0.4864657057337496,
+     "resid_max_db": 1.6442481608890027,
+     "resid_absmax_db": 1.6442481608890027
+    },
+    "full_band": {
+     "resid_min_db": 0.8962661606471993,
+     "resid_max_db": 2.559087145493553,
+     "resid_absmax_db": 2.559087145493553
+    },
+    "offset_at_3p5_db": 2.5068157813485215
+   },
+   "azimuth_plane_only+lognormal": {
+    "our_bands": {
+     "resid_min_db": -0.13984131599106853,
+     "resid_max_db": 0.8971605578173438,
+     "resid_absmax_db": 0.8971605578173438
+    },
+    "full_band": {
+     "resid_min_db": 0.2699591389223812,
+     "resid_max_db": 1.3241721238658446,
+     "resid_absmax_db": 1.3241721238658446
+    },
+    "offset_at_3p5_db": 3.191408842972045
+   }
+  },
+  "note": "reconcile_das_yuan() 은 Das 를 **고도풀링** Yuan 과만 맞춘다. Das 는 Phantom 3 적합에 어느 고도측면을 넣었는지 적지 않았다(Table I 은 방위각만 준다). 풀링 가정을 풀면 네 가지 가설이 생긴다."
+ },
+ "D_offset_code_path": {
+  "question": "비교 당시 +2.5068 dB 오버라이드가 실제로 꺼져 있었나 — 코드로 확인.",
+  "measured_behaviour": {
+   "LTE 1.843 GHz": {
+    "das_to_linear_mean_False": -18.802970000000002,
+    "das_DEFAULT_call": -16.29615421865148,
+    "delta_applied_by_default_db": 2.5068157813485215,
+    "yuan_DEFAULT_call": -15.569454999999998,
+    "yuan_delta_db": 0.0
+   },
+   "5G 3.5 GHz": {
+    "das_to_linear_mean_False": -18.455000000000002,
+    "das_DEFAULT_call": -15.94818421865148,
+    "delta_applied_by_default_db": 2.5068157813485215,
+    "yuan_DEFAULT_call": -15.0475,
+    "yuan_delta_db": 0.0
+   },
+   "WiFi 5.21 GHz": {
+    "das_to_linear_mean_False": -18.0959,
+    "das_DEFAULT_call": -15.589084218651479,
+    "delta_applied_by_default_db": 2.5068157813485215,
+    "yuan_DEFAULT_call": -14.508849999999999,
+    "yuan_delta_db": 0.0
+   }
+  },
+  "call_sites": {
+   "validate_measured_airframe_582_587": "das_as_published 는 to_linear_mean=False 를 **명시**, das_plus_2p5068 은 별도 키로 병기",
+   "validate_measured_airframe_797_803": "d_vs_das_pub 은 to_linear_mean=False, d_vs_yuan_az 는 Yuan(to_linear_kind='none' → 0 dB)"
+  },
+  "verdict_comparison": "CLEAN — 비교 수치에 오프셋이 몰래 들어가지 않았다. 두 가지가 라벨을 달고 병기됐다.",
+  "verdict_library": "LOADED — src/sigma_anchor.py:313 anchor_mu_dbsm 의 기본값이 to_linear_mean=True 이고 DEFAULT_ANCHOR='das_phantom3_mono' 의 to_linear_kind='exponential' 이다. 키워드를 빠뜨린 호출은 조용히 +2.5068 dB 를 받는다.",
+  "DEFAULT_ANCHOR": "das_phantom3_mono",
+  "default_to_linear_kind": "exponential"
+ },
+ "E_calibration": {
+  "das_cylinder": {
+   "r_m": 0.055,
+   "h_m": 0.3,
+   "paper_sigma_cal_dbsm": 2.8,
+   "broadside_sigma_dbsm_2pi_r_h2_over_lambda": {
+    "11.0 GHz": 0.5735704952198123,
+    "18.5 GHz": 2.8313609276677,
+    "26.0 GHz": 4.309377123345741
+   },
+   "frequency_where_2p8_is_exact_ghz": 18.366890450040582,
+   "das_own_band_ghz": [
+    11.0,
+    26.0
+   ],
+   "induced_slope_bias_db_per_ghz": 0.24905377520839522,
+   "das_published_phantom2_slope": 0.21,
+   "finding": "Das eq.(3) 는 σ_Cal 을 주파수 인자 없이 쓴다. 하지만 광폭 원기둥 σ=2πrh²/λ 는 f 에 비례한다. +2.8 dBsm 은 Das 자신의 밴드 산술중심에서만 맞다."
+  },
+  "yuan_sphere": {
+   "pi_r2_dbsm": -10.020101226880783,
+   "paper_sigma_cal_dbsm": -10.0,
+   "mie_minus_pir2_db_range": [
+    -0.8948255828850371,
+    0.9349220437868215
+   ],
+   "at_our_bands_db": {
+    "LTE 1.843 GHz": 0.07229932031543207,
+    "5G 3.5 GHz": 0.3051197437131492,
+    "WiFi 5.21 GHz": 0.1272045091106353
+   },
+   "above_8ghz_absmax_db": 0.09586775370144274,
+   "slope_bias_our_band_db_per_ghz": 0.01494165522001915
+  }
+ },
+ "F_estimator_definition": {
+  "yuan_eq2": "sigma(f,phi) = |S_DUT_bs,g(f,phi)|^2 / |S_Cal_bs,g(f)|^2 * sigma_Cal  — 단일주파수 CW 비",
+  "das_eq3": "sigma(theta_b,f_i,phi) = P_DUT_bs/P_Cal_bs * sigma_Cal,  P = max_t |s_21,bs(t)|^2 — 200 MHz 부대역 시간영역 **피크**",
+  "ours": "rcs_sbr: 단일 fc 에서 PO 적분 → 단일주파수 σ. **Yuan 의 정의와 같고 Das 의 피크 추정량과는 다르다.**",
+  "note": "Das 의 부대역 처리 문단은 'For near-field measurements' 로 한정된다 → Phantom 3(원거리장) 에 피크 추정량이 쓰였는지는 원문에 없다.",
+  "consequence": "DEFAULT_ANCHOR 가 Das 인 것은 추정량 정합이 더 나쁜 쪽을 기본경로에 둔 것이다."
+ },
+ "G_confirmed": {
+  "our_statistic": "benchmark/rcs_anchor.py:399 mean_dbsm = 10*log10(mean(sigma_linear)) — 방위 **선형평균**. Das §III-1 정의와 같은 양.",
+  "yuan_mu_is_linear_mean": "독립 재유도: 레일리 진폭에서 std(sqrt(σ))/ε 는 선형평균 해석이면 0.89~0.99, dB영역평균 해석이면 1.19~1.23. K≥0 인 Rician 은 레일리보다 산포가 **작아야** 하므로 비 >1 은 물리적으로 불가능 → dB영역평균 해석은 배제된다.",
+  "eps_units": {
+   "ours_std_of_dbsm_db": {
+    "matrice4e": 5.661358240898347,
+    "mavic4pro": 5.528020577359496,
+    "mini5pro": 5.247407090473828,
+    "phantom4": 5.7286301845110525,
+    "s1000plus": 6.149383379356202,
+    "typhoonh480": 6.34158698469354,
+    "x500v2": 5.914417872206687
+   },
+   "das_eps_at_our_bands_db": [
+    5.215,
+    5.265,
+    5.316
+   ],
+   "exponential_theory_db": 5.570043140052503,
+   "yuan_eps": "선형 진폭 std, 0.07~0.15 (무차원) — 우리 ε 과 **다른 양**",
+   "verdict": "우리 ε 과 Das ε 은 같은 양이고 0.41 dB 안에서 일치한다. Yuan ε 과는 나란히 놓으면 안 된다."
+  },
+  "blocking_question": "Das 부대역 중심 f_i = 11 + 0.1i GHz, i=0..149 (→11.0~25.9 GHz) 는 근거리장 처리 문단 안에 있다. = Phantom 2 밴드. Phantom 3 은 1.8~18.2 GHz 원거리장 무향실. 표 렌더 없이 **본문 텍스트만으로** 재확인. 피벗 불필요.",
+  "K_count": "Das eq.(5) 는 K=360 이라 적지만 Table I 의 Phantom 3 방위는 -90:2:90. Yuan §IV 는 'where N = 91 denotes the number of angles' 라고 **직접** 적는다 → K=360 은 Phantom 2 설명이다.",
+  "elevation_match": "Yuan §II-A: 'Three UAV elevation sides including the azimuth plane, top, and bottom, i.e, theta = {90, 0, 180}' → θ=90 이 우리 el=0.",
+  "source_not_independent": "Das ACKNOWLEDGMENT 가 Wei Fan(=Yuan 교신저자) 을 Phantom 3 자료 제공자로 명시. 독립 재현 아님.",
+  "far_field": "Yuan §II-A 'A compact antenna test range (CATR) scheme was utilized' → Rayleigh 거리는 구속조건이 아니다. 우리 쪽은 평행광선 격자 = 정확한 평면파 극한."
+ },
+ "_verdict": {
+  "headline": "측정량과 계산량이 **같은 양인지** 를 다시 물었다. 통계량·편파·원거리장·교정은 대체로 정합하지만, **주파수 기울기 비교만은 같은 양이 아니다**. 공표된 0.21/0.315 dB/GHz 는 1.8~18.2 GHz 전대역 추세이고 우리 2.0 dB/GHz 는 3.4 GHz 폭 3점 국소도함수다. 같은 창에서 다시 재면 측정 기울기는 -0.61 ~ +0.56 dB/GHz 로 부호까지 바뀐다.",
+  "what_survives": [
+   "방위 선형평균 규약(우리=Das §III-1=Yuan)",
+   "ε 단위 판별(우리≡Das, Yuan은 다른 양)",
+   "Phantom 2 근거리장 배제(본문 텍스트로 재확인)",
+   "고도 정합(Yuan θ=90 = 우리 el=0)",
+   "원거리장(우리 쪽은 정확한 평면파 극한)",
+   "출처 비독립성(한 기체·한 체인)",
+   "비교 수치에 +2.5068 dB 가 몰래 들어가지 않았음(코드로 확인)"
+  ],
+  "what_breaks": [
+   "'6.4~9.5배 가파르다' 는 국소도함수 ÷ 전대역추세 = 정의되지 않은 비율",
+   "레벨 봉투 3.23~3.59 dB 는 선형모델로만 만든 것 — 실측곡선 기준 5.77 dB",
+   "규약 판정의 마진(0.19~0.69 dB)이 판정 대상(0.68 dB)과 같은 크기"
+  ],
+  "single_most_useful_new_number": "우리 창(1.8~6.0 GHz)에서 같은 방식으로 잰 측정 기울기 = θ90 +0.406 / θ0 -0.078 / θ180 -0.614 dB/GHz. 고도 산포 1.02 dB/GHz 가 우리-측정 격차 1.00 dB/GHz 와 같다 → 이 창에서 기울기는 **판별력이 0** 이다."
+ }
+}
