@@ -232,6 +232,38 @@ def phi_spectrum(E, span_deg, rot_hz, f_tip_hz, flash_hz, top_k=8,
     return out
 
 
+def spectrum_agreement(sp_a, sp_b, label_a="ours", label_b="sionna", m_show=6):
+    """두 φ-스펙트럼의 **하모닉별** 대조. 같은 φ 격자·같은 span 일 때만 의미가 있다.
+
+    ⭐ 왜 필요한가: AC 상관 하나는 "파형이 닮았다" 까지만 말한다. 그 닮음이 **어느 하모닉**에서
+      오는지는 말하지 않는다. 변조가 m=±1(=블레이드 플래시 기본파) 하나뿐이면 그것은
+      '회전하는 물체가 있다' 는 정보이지 **블레이드 도플러 확산**이 아니다. 그래서 하모닉별
+      전력분율을 나란히 놓는다."""
+    fa = np.asarray(sp_a.get("spectrum_f_hz", []), float)
+    fb = np.asarray(sp_b.get("spectrum_f_hz", []), float)
+    if fa.size == 0 or fa.size != fb.size or float(np.max(np.abs(fa - fb))) > 1e-6:
+        return dict(applicable=False, reason="하모닉 축이 다르다 — 비교 불가")
+    pa = 10.0 ** (np.asarray(sp_a["spectrum_db_rel_peak"], float) / 10.0)
+    pb = 10.0 ** (np.asarray(sp_b["spectrum_db_rel_peak"], float) / 10.0)
+    pa, pb = pa / pa.sum(), pb / pb.sum()
+    df = float(sp_a["harmonic_df_hz"])
+    m = np.round(fa / df).astype(int)
+    rows = []
+    for mm in range(1, int(m_show) + 1):
+        sel = np.abs(m) == mm
+        if sel.any():
+            rows.append(dict(abs_m=int(mm), f_hz=float(mm * df),
+                             frac_a=float(pa[sel].sum()), frac_b=float(pb[sel].sum())))
+    return dict(applicable=True, label_a=label_a, label_b=label_b,
+                pearson_r_power=float(np.corrcoef(pa, pb)[0, 1])
+                if pa.std() > 0 and pb.std() > 0 else None,
+                pearson_r_db=float(np.corrcoef(np.asarray(sp_a["spectrum_db_rel_peak"], float),
+                                               np.asarray(sp_b["spectrum_db_rel_peak"], float))[0, 1]),
+                harmonic_df_hz=df, by_abs_harmonic=rows,
+                frac_a_in_first_harmonic=rows[0]["frac_a"] if rows else None,
+                frac_b_in_first_harmonic=rows[0]["frac_b"] if rows else None)
+
+
 def compare(Ea, Eb, label_a="a", label_b="b"):
     """두 φ-파형의 **형상 일치도**. 상수 복소배(이득·위상)에 불변인 양만 쓴다."""
     a = np.asarray(Ea, complex)
@@ -270,11 +302,22 @@ def _po_frame_field(spec, wavefront, A_t, A_s, R_t, R_s, u_t, u_s, disc):
 
 def arm_po(spec, az, el, *, wavefront, bistatic, n_phase, disc, rng=RANGE_M,
            baseline=BASELINE_M):
-    """PO 팔 하나 → (phis, E_all, E_prop, info). E_prop = E_all − E_frame (해석적 분리)."""
+    """PO 팔 하나 → (phis, E_all, E_prop, info). E_prop = E_all − E_frame (해석적 분리).
+
+    bistatic=True  : TX/RX 를 probe.place() 와 **같은 좌표**에 놓는다 (Sionna 기하와 동일).
+    bistatic=False : 안테나 1개를 **시선(보어사이트) 위**에 놓는다 — SBR 팔의 û 와 같은 방향이라
+                     '가림 효과' 대조가 각도 어긋남 없이 성립한다. (TX 위치를 쓰면 baseline 때문에
+                     보어사이트에서 atan(0.1/R) 만큼 밀려 거리마다 자세가 달라진다 — 실제로
+                     초안이 그 함정에 빠져 거리수렴이 가짜로 나빠졌다.)"""
     tx, rx = antennas(az, el, rng, baseline)
-    r_t, az_t, el_t = sph_from_xyz(tx)
-    r_r, az_r, el_r = sph_from_xyz(rx)
-    kw = dict(rx_range_m=r_r, rx_az_deg=az_r, rx_el_deg=el_r) if bistatic else {}
+    if bistatic:
+        r_t, az_t, el_t = sph_from_xyz(tx)
+        r_r, az_r, el_r = sph_from_xyz(rx)
+        kw = dict(rx_range_m=r_r, rx_az_deg=az_r, rx_el_deg=el_r)
+    else:
+        r_t, az_t, el_t = float(rng), float(az), float(el)
+        tx = rx = mnf.antenna_pos(r_t, az_t, el_t)
+        kw = {}
     t0 = time.time()
     phis, tab, info = mnf.phase_table(
         spec, FC, r_t, az_t, el_t, wavefront=wavefront, n_phase=int(n_phase),
@@ -576,6 +619,11 @@ def run_airframe(key, J_probe, n_phase=N_PHASE, n_fine=N_PHASE_FINE, divs=SBR_DI
                 ptp_db_a=float(pa.max() - pa.min()), ptp_db_b=float(pb.max() - pb.min()),
                 note="Sionna 는 prop 채널의 위상을 남기지 않았다 — 복소 상관 불가")
         rec["vs_our_kernel"] = vs
+        #  ⭐ 하모닉별 대조 — 닮음이 어느 주파수에서 오는가
+        rec["spectrum_agreement"] = {
+            arm: spectrum_agreement(results[f"{lab}/{arm}"]["matched32"]["spectrum"],
+                                    rec["spectrum_seed_mean"], arm, "sionna")
+            for arm in ("po_spherical_bistatic", f"sbr_div{divs[0]}")}
         sio[lab] = rec
 
     #  ── 세밀 φ 격자 (PO 전용) — 진짜 스펙트럼의 꼬리 ──
@@ -608,20 +656,32 @@ def run_airframe(key, J_probe, n_phase=N_PHASE, n_fine=N_PHASE_FINE, divs=SBR_DI
     #  ── 거리 스윕 (구면파 팔) ──
     rng_sweep = {}
     if do_range:
+        #  ⚠ 평면파 기준은 **모노스태틱**이다. 그래서 거리수렴은 모노 팔로 봐야 요인이 하나다
+        #    (바이스태틱 팔을 평면파 모노와 대면 3.8° 오프셋 효과가 섞인다).
         ref_plane = arms[("ref", "po_plane_mono")]["E_all"]
         for R in RANGE_SWEEP_M:
-            phis, Ea, Ep, inf = arm_po(spec, AZ_DEG, EL_DEG, wavefront="spherical",
-                                       bistatic=True, n_phase=n_phase, disc=PO_MATCHED, rng=R)
+            _, Em, _, infm = arm_po(spec, AZ_DEG, EL_DEG, wavefront="spherical",
+                                    bistatic=False, n_phase=n_phase, disc=PO_MATCHED, rng=R)
+            _, Eb, _, infb = arm_po(spec, AZ_DEG, EL_DEG, wavefront="spherical",
+                                    bistatic=True, n_phase=n_phase, disc=PO_MATCHED, rng=R)
             rng_sweep[f"{R:g}"] = dict(
                 range_m=float(R),
                 range_over_farfield=float(R / ph_matched["farfield_m"]),
                 in_farfield=bool(R >= ph_matched["farfield_m"]),
-                wave=wave_metrics(Ea, keep_series=False),
-                spectrum=phi_spectrum(Ea, 360.0, rot_hz, f_tip, flash, keep_arrays=False),
-                vs_plane_limit=compare(Ea, ref_plane, f"spherical R={R:g} m", "plane limit"),
-                seconds=float(inf["seconds"]))
-        print(f"      [po/{key}/range] AC corr vs 평면파: " +
-              "  ".join(f"{k}m={v['vs_plane_limit']['ac_corr_abs']:.3f}"
+                wave_mono=wave_metrics(Em, keep_series=False),
+                wave_bistatic=wave_metrics(Eb, keep_series=False),
+                spectrum_mono=phi_spectrum(Em, 360.0, rot_hz, f_tip, flash, keep_arrays=False),
+                vs_plane_limit_mono=compare(Em, ref_plane, f"spherical mono R={R:g} m",
+                                            "plane mono"),
+                vs_plane_limit_bistatic=compare(Eb, ref_plane, f"spherical bist R={R:g} m",
+                                                "plane mono"),
+                mono_vs_bistatic=compare(Em, Eb, f"mono R={R:g} m", f"bistatic R={R:g} m"),
+                seconds=float(infm["seconds"] + infb["seconds"]))
+        print(f"      [po/{key}/range] AC corr vs 평면파(모노): " +
+              "  ".join(f"{k}m={v['vs_plane_limit_mono']['ac_corr_abs']:.3f}"
+                        for k, v in rng_sweep.items()), flush=True)
+        print(f"      [po/{key}/range] 모노 vs 바이스태틱: " +
+              "  ".join(f"{k}m={v['mono_vs_bistatic']['ac_corr_abs']:.3f}"
                         for k, v in rng_sweep.items()), flush=True)
 
     #  ── 헤드라인 판정 (⛔ 손으로 고르지 않는다) ──
@@ -675,6 +735,115 @@ def run_airframe(key, J_probe, n_phase=N_PHASE, n_fine=N_PHASE_FINE, divs=SBR_DI
 
 
 # --------------------------------------------------------------------------- #
+#  후처리 — "두 엔진의 불일치를 Sionna 의 몬테카를로 잡음 탓으로 돌릴 수 있는가"
+# --------------------------------------------------------------------------- #
+def add_disattenuation(J):
+    """⭐ 잡음을 **완전히** 걷어냈을 때의 두 엔진 상관 상한(disattenuated bound).
+
+    모형: Sionna 시드 i 의 AC 파형 x_i = s + n_i  (s = 재현되는 참 파형, n_i 는 독립·등분산).
+        시드쌍 상관        r  = |s|²/(|s|²+|n|²)              → SNR = r/(1−r)
+        시드평균과 s 의 상관 = sqrt(K·SNR/(K·SNR+1))            (K = 시드 수)
+        관측된 corr(ours, x̄) = corr(ours, s) · sqrt(K·SNR/(K·SNR+1))
+    ⇒ corr_true = corr_obs / sqrt(K·SNR/(K·SNR+1))
+
+    이 상한이 **여전히 낮으면** 불일치는 잡음이 아니라 **물리(엔진 차이)** 다.
+    (우리 커널은 결정론적이라 우리 쪽 잡음 항은 없다 — 그 가정도 여기 적어 둔다.)"""
+    for key, R in J.get("airframes", {}).items():
+        for lab, S in (R.get("sionna") or {}).items():
+            sr = (S or {}).get("seed_reproducibility") or {}
+            r = sr.get("ac_corr_mean")
+            K = len(S.get("seeds") or [])
+            h = (R.get("headline") or {}).get(lab)
+            if h is None:
+                continue
+            if r is None or not (0.0 < r < 1.0) or K < 2:
+                h["disattenuation"] = dict(applicable=False,
+                                           reason="시드쌍 상관 또는 시드 수가 부족")
+                continue
+            snr = r / (1.0 - r)
+            att = math.sqrt(K * snr / (K * snr + 1.0))
+            out = dict(applicable=True, seed_pair_corr=float(r), n_seeds=int(K),
+                       implied_snr=float(snr), attenuation_factor=float(att),
+                       note=("attenuation_factor 는 '시드평균이 참 파형을 얼마나 잘 대표하는가' 다. "
+                             "1 에 가까우면 잡음은 이미 평균으로 지워졌고, 남은 불일치는 물리다."))
+            for arm, v in (S.get("vs_our_kernel") or {}).items():
+                c = v.get("ac_corr_abs")
+                if c is not None:
+                    out[f"{arm}_corr_disattenuated"] = float(min(1.0, c / att))
+            h["disattenuation"] = out
+            h["ours_vs_sionna_ac_corr_disattenuated"] = out.get(
+                "po_spherical_bistatic_corr_disattenuated")
+    return J
+
+
+def add_blade_electrical_size(J):
+    """⭐ 도플러 확산의 **실제** 상한은 f_tip 이 아니라 **블레이드의 전기적 크기**다.
+
+    f_tip = 2·v_tip/λ 는 '팁에 점산란체가 하나 있다면' 의 운동학 상한이다. 실제 산란체는 길이
+    L 의 블레이드이고, 그 각도폭 ~λ/(2L) 안에서만 위상정합이 되므로 L 이 λ 수준이면 플래시가
+    **날카로워지지 않는다** → 스펙트럼이 f_tip 까지 못 간다. 그래서 prop_radius/λ 를 함께 남긴다
+    (전부 physics 에 이미 있는 값의 비율이다 — 손으로 적을 숫자가 아니다)."""
+    for key, R in J.get("airframes", {}).items():
+        p = (R.get("physics") or {}).get("matched32") or {}
+        lam = p.get("lambda_m")
+        rr = p.get("prop_radius_m")
+        if not lam or not rr:
+            continue
+        R["physics"]["blade_electrical_size"] = dict(
+            prop_radius_m=float(rr), lambda_m=float(lam),
+            prop_radius_over_lambda=float(rr / lam),
+            flash_beamwidth_deg=float(np.degrees(lam / (2.0 * rr))),
+            note_ko=("prop_radius/λ 가 1 언저리면 블레이드는 전기적으로 '점' 에 가깝다 — "
+                     "플래시 각폭이 넓어 도플러가 f_tip 까지 퍼지지 않는다. "
+                     "flash_beamwidth 는 λ/(2L) 의 각도 환산(거친 눈금)이다."))
+    return J
+
+
+def add_arm_cross_matrix(J):
+    """⭐ **모든 팔 × Sionna** 의 AC 상관 행렬 — 저장된 파형에서 다시 만든다.
+
+    `arms[...]['matched32']['wave']` 는 amp_db·phase_deg 를 그대로 갖고 있으므로 복소 파형을
+    되살릴 수 있다(광선을 다시 쏘지 않는다). 본문 factor_comparison 은 대표 쌍만 담았는데,
+    거기서 SBR 은 λ/12(저장소 기본) 하나뿐이라 **SBR 의 미수렴이 '가림 효과' 로 오독될** 수 있다.
+    수렴된 λ/48 을 포함한 전 쌍을 여기서 채운다. 파생값이니 손으로 옮겨 적을 일이 없다."""
+    def _w(d):
+        if not d or "amp_db" not in d or "phase_deg" not in d:
+            return None
+        a = np.asarray(d["amp_db"], float)
+        p = np.radians(np.asarray(d["phase_deg"], float))
+        return 10.0 ** (a / 20.0) * np.exp(1j * p)
+
+    for key, R in J.get("airframes", {}).items():
+        out = {}
+        for lab in (R.get("aspects") or {}):
+            W = {}
+            for name, a in (R.get("arms") or {}).items():
+                if not name.startswith(f"{lab}/"):
+                    continue
+                v = _w(((a.get("matched32") or {}).get("wave")))
+                if v is not None:
+                    W[name.split("/", 1)[1]] = v
+            sm = _w(((R.get("sionna") or {}).get(lab) or {}).get("wave_seed_mean"))
+            if sm is not None:
+                W["sionna"] = sm
+            names = sorted(W)
+            mat = {}
+            for i, na in enumerate(names):
+                for nb in names[i + 1:]:
+                    mat[f"{na} | {nb}"] = compare(W[na], W[nb], na, nb)["ac_corr_abs"]
+            po_ref = None
+            if "po_spherical_bistatic" in W and "po_spherical_bistatic_refined" in W:
+                po_ref = mat.get("po_spherical_bistatic | po_spherical_bistatic_refined")
+            out[lab] = dict(
+                arms=names, ac_corr_pairs=mat,
+                po_only_refine_corr=po_ref,
+                note=("po_* 끼리는 점구름 이산화, sbr_div* 끼리는 광선격자 이산화 대조다. "
+                      "sbr_div12 는 저장소 기본값이지만 얇은 블레이드에서는 수렴하지 않는다 — "
+                      "'가림 효과' 를 논할 때는 반드시 수렴된 div 로 볼 것."))
+        R["arm_cross_matrix"] = out
+    return J
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--drones", default=",".join(KEYS))
@@ -684,7 +853,22 @@ def main():
     ap.add_argument("--no-range", action="store_true")
     ap.add_argument("--no-fine", action="store_true")
     ap.add_argument("--quick", action="store_true")
+    #  ⭐ 이미 만든 JSON 에 **파생 절**(disattenuation · 팔 교차행렬)만 다시 채운다. 광선을 다시
+    #     쏘지 않는다 — 파생값은 전부 저장된 파형에서 나오므로 결과가 달라지지 않는다.
+    ap.add_argument("--post-only", action="store_true")
     a = ap.parse_args()
+
+    if a.post_only:
+        with open(OUT_JSON) as f:
+            Jp = json.load(f)
+        add_disattenuation(Jp)
+        add_arm_cross_matrix(Jp)
+        add_blade_electrical_size(Jp)
+        Jp["meta"]["post_stamp"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        with open(OUT_JSON, "w") as f:
+            json.dump(_j(Jp), f, ensure_ascii=False, indent=1)
+        print(f"✅ 파생 절 갱신 → {OUT_JSON}")
+        return Jp
 
     divs = tuple(int(x) for x in a.divs.split(",") if x.strip())
     n_phase, n_fine = int(a.n_phase), int(a.n_fine)
@@ -743,6 +927,9 @@ def main():
         R = run_airframe(key, J_probe, n_phase=n_phase, n_fine=n_fine, divs=divs,
                          do_range=not a.no_range, do_fine=not a.no_fine)
         J["airframes"][key] = R
+        add_disattenuation(J)
+        add_arm_cross_matrix(J)
+        add_blade_electrical_size(J)
         def _p(v, fmt="%.2f"):
             return (fmt % v) if isinstance(v, (int, float)) else "n/a"
         for lab, h in R["headline"].items():

@@ -32,12 +32,15 @@ report15_sweep_matrice4e.py — **matrice4e 거리 스윕: 스톡 Sionna PathSol
        판정은 (i) 수렴하는 E_inc, (ii) 결정론적인 정반사 채널, (iii) 대칭 널(아래)에
        근거해서만 내린다.
 
-⭐ **대칭 널(이 실험의 급소)** — 2날 프로펠러는 φ 와 φ+180° 에서 형상이 **집합으로 동일**하다
-   (§1 에서 1e−16 m 로 실측). 그래서 한 바퀴(360°)를 64 스텝으로 돌면
-     · 회전당 **짝수** 조화(2,4,6,…) = 물리가 실을 수 있는 유일한 자리
-     · 회전당 **홀수** 조화(1,3,5,…) = 기하가 0 을 보장 → **그 자리에 있는 것은 전부 잡음**
-   잡음바닥을 따로 가정할 필요가 없다. **같은 격자 안에 내장된 널**이다.
-   추가로 (φ, φ+180°) 짝을 같은 시드로 직접 빼서 짝지은 널도 낸다.
+⭐ **주기 확인이 먼저다(§1)** — 2날 프로펠러는 φ 와 φ+180° 에서 형상이 **집합으로 동일**하다
+   (정점 배열 순서는 다르다: 원소별 최대차 0.26 m, 집합 최근접 1.6e−16 m). 그리고 RT 결과가
+   **비트 단위로 같다**는 것을 §1b 에서 실측한다. 두 가지 뜻이 있다:
+     ① 실제 주기는 360° 가 아니라 **180°** 다 → 한 바퀴 64 스텝은 절반이 중복이다.
+        그래서 이 파일은 **한 주기(180°)를 64 스텝**으로 돈다(= 회전당 128 스텝, 지시 이상).
+     ② 파이프라인은 **기하가 같으면 결과가 같다** — 정점 순서·OBJ 바이트가 달라도 같다.
+        따라서 위상 스텝 사이의 차이는 전부 **기하의 차이**다(재조립 잡음이 아니다).
+   ⚠ 그 대가로 '홀수 조화 = 내장 잡음' 이라는 널은 **쓸 수 없다**(모든 시드에서 정확히 0 이다).
+     잡음바닥은 **시드 재추첨**으로만 잰다 — 조화 분해에도 시드 기반 널을 쓴다(§3).
 
 ⭐ **왜 정반사가 없는가(§6 기구)** — 준-모노스태틱에서 평면 조각(변 d)이 정반사를 내려면
    그 법선이 이등분선에서 δ_acc ≈ atan(d/2R) 안에 들어야 한다(평판 사다리로 실측).
@@ -61,7 +64,13 @@ import shutil
 import sys
 import time
 
+import warnings
+
 import numpy as np
+
+#  경로가 0 인 칸이 섞이면 nanmean/nanstd 가 빈 슬라이스를 만난다 — 값은 NaN 으로 두고
+#  저장 직전에 None 으로 바꾼다(_clean). 경고만 끈다.
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(_HERE, ".."))
@@ -88,7 +97,10 @@ LAM = C0 / FC
 NO_OBJ = 4294967295                       # Sionna 의 '상호작용 없음' 표식 (uint32 −1)
 KEY = "matrice4e"
 BASELINE_M = 0.20                         # 준-모노스태틱 송수신 간격 (탐침·facet_count 와 같은 규약)
-MAX_PATHS = 50_000_000
+MAX_PATHS = 8_000_000
+#  ⚠ 이 값은 상한이 아니라 **버퍼 할당 크기**다 — 크게 잡으면 경로가 적어도 GPU 를 먹고 OOM 난다
+#     (50M 으로 뒀다가 4.096G spp/R=1 m 에서 죽었다). 실측 최대 경로수는 R=1 m·el 75° 에서
+#     ~6e5 개이므로 8e6 은 13배 여유다. 잘렸는지는 trace() 가 truncated 로 기록한다.
 
 #  ⚠ samples_per_src 는 uint32 로 넘어간다 — 2³²−1 을 넘으면 Sionna 가 TypeError 를 던진다
 #    (실측: 16.384e9 에서 죽음). 그래서 실용 최대치를 4.096e9 로 둔다.
@@ -102,8 +114,10 @@ RANGES = (1.0, 3.0, 10.0)                 # ⭐ 근거리 강조
 #            있어야 한다면 물리적으로 여기 있어야 한다. 없으면 그것이 결론이다.
 ASPECTS = (("nose", 0.0, 15.0), ("oblique", 45.0, 15.0), ("side", 90.0, 15.0),
            ("hot", 0.0, 0.0), ("disc", 0.0, 75.0))
-N_PHASE = 64                              # 한 바퀴(360°) 를 64 스텝 → 주기(180°)당 32
-SEEDS = (1, 2, 3)
+#  ⭐ 한 **주기**(=360/n_blades=180°)를 64 스텝. 실제 주기가 180° 임을 §1·§1b 에서 확인했으므로
+#     한 바퀴를 64 스텝으로 도는 것은 절반이 중복이다 → 같은 비용으로 회전당 128 스텝을 얻는다.
+N_PHASE = 64
+SEEDS = (1, 2, 3, 4, 5)          # ⭐ 잡음바닥이 이 실험의 급소다 — 칸마다 5회 반복
 MODES = (("spec", False), ("prod", True))
 
 OUT_JSON = os.path.join(ROOT, "outputs", "report15_sionna_sweep_matrice4e.json")
@@ -222,10 +236,11 @@ def trace(scene, spp, seed, diffuse, id2grp, max_depth=1, want_groups=False):
     O = np.asarray(p.objects)[:, 0, 0, :]
     hit = (O != NO_OBJ).any(axis=0)
     ph = np.exp(-1j * 2.0 * np.pi * FC * tau)
-    gm = np.full(O.shape, "", dtype=object)
-    for oid, g in id2grp.items():
-        gm[O == oid] = g
-    pm = (gm == "prop").any(axis=0)
+    #  ⚠ 부위 마스크는 **정수 id 로** 만든다. 예전엔 object-dtype 문자열 배열을 깔았는데
+    #    R=1 m 에서 경로가 60만 개까지 나오므로 파이썬 객체 60만 개를 만드느라 추적보다
+    #    후처리가 더 오래 걸렸다. np.isin 은 정수 비교라 수백 배 빠르다.
+    prop_ids = np.array([oid for oid, g in id2grp.items() if g == "prop"], dtype=np.int64)
+    pm = np.isin(O, prop_ids).any(axis=0) if prop_ids.size else np.zeros(P, bool)
     s = complex(np.sum(a[hit] * ph[hit])) if hit.any() else 0j
     sp = complex(np.sum(a[pm] * ph[pm])) if pm.any() else 0j
     out.update(n=int(hit.sum()), n_prop=int(pm.sum()),
@@ -239,9 +254,13 @@ def trace(scene, spp, seed, diffuse, id2grp, max_depth=1, want_groups=False):
                         if hit.any() else None),
                truncated=bool(P >= MAX_PATHS))
     if want_groups:
-        out["groups"] = {g: int((gm == g).any(axis=0).sum())
-                         for g in sorted(set(id2grp.values()))
-                         if (gm == g).any()}
+        gg = {}
+        for g in sorted(set(id2grp.values())):
+            ids = np.array([o for o, gv in id2grp.items() if gv == g], dtype=np.int64)
+            c = int(np.isin(O, ids).any(axis=0).sum())
+            if c:
+                gg[g] = c
+        out["groups"] = gg
         out["a_imag_absmax"] = float(np.abs(np.imag(a)).max())
         out["tau_min_ns"] = float(tau[hit].min() * 1e9) if hit.any() else None
         out["tau_ptp_ns"] = float(np.ptp(tau[hit]) * 1e9) if hit.any() else None
@@ -271,8 +290,10 @@ def sec0_physics(n_phase: int) -> dict:
     flash = blades * rpm / 60.0
     rev_hz = rpm / 60.0
     ff_h, ff_3 = 2.0 * D_h * D_h / LAM, 2.0 * D_3 * D_3 / LAM
-    #  한 바퀴 n_phase 스텝 → 등가 슬로타임 샘플률 = n_phase · rev_hz
-    prf = float(n_phase) * rev_hz
+    #  ⭐ n_phase 는 **한 주기(=360/blades)** 의 스텝 수다(§1·§1b 에서 주기를 확인했다).
+    #     따라서 회전당 스텝 = n_phase × blades 이고 등가 슬로타임 샘플률도 그것으로 정해진다.
+    steps_per_rev = float(n_phase) * blades
+    prf = steps_per_rev * rev_hz
     per_range = {}
     for R in RANGES:
         tau = 2.0 * R / C0
@@ -304,18 +325,23 @@ def sec0_physics(n_phase: int) -> dict:
         v_tip_ms=v_tip, v_tip_mach=float(v_tip / 343.0),
         f_tip_hz=f_tip, flash_hz=flash,
         phase_period_deg=float(360.0 / blades),
-        n_phase_steps_per_rev=int(n_phase),
-        n_phase_steps_per_period=int(n_phase // blades),
+        n_phase_steps_per_period=int(n_phase),
+        n_phase_steps_per_rev=float(steps_per_rev),
         equivalent_prf_hz=prf, prf_min_hz=2.0 * f_tip,
         aliased=bool(prf < 2.0 * f_tip), alias_margin=float(prf / (2.0 * f_tip)),
         n_steps_min_for_nyquist=int(math.ceil(2.0 * f_tip / rev_hz)),
-        tip_travel_per_step_m=float(prop_R * 2 * math.pi / n_phase),
-        tip_travel_per_step_lambda=float(prop_R * 2 * math.pi / n_phase / LAM),
+        n_steps_min_for_nyquist_per_period=int(math.ceil(2.0 * f_tip / rev_hz / blades)),
+        instructed_steps_per_rev=64,
+        instructed_64_per_rev_aliased=bool(64.0 * rev_hz < 2.0 * f_tip),
+        tip_travel_per_step_m=float(prop_R * 2 * math.pi / steps_per_rev),
+        tip_travel_per_step_lambda=float(prop_R * 2 * math.pi / steps_per_rev / LAM),
         max_roundtrip_phase_swing_deg=float(360.0 * 2.0 * (2.0 * prop_R) / LAM),
         by_range=per_range,
-        note_ko=("한 바퀴 N 스텝 = 등가 슬로타임 샘플률 N·rev_hz. f_tip 을 접지 않으려면 "
-                 "N ≥ 2·f_tip/rev_hz. 원거리장 경계는 **기체 크기로 정해지므로 기체마다 다르다** "
-                 "— farfield_table 참조."))
+        note_ko=("회전당 N 스텝 = 등가 슬로타임 샘플률 N·rev_hz. f_tip 을 접지 않으려면 "
+                 "N ≥ 2·f_tip/rev_hz = n_steps_min_for_nyquist. ⚠ 지시받은 '한 바퀴 64 스텝' 은 "
+                 "이 기체에서 **접힌다**(instructed_64_per_rev_aliased) — 주기가 180° 임을 확인했으므로 "
+                 "한 주기를 64 스텝(=회전당 128)으로 돌아 접힘을 없앴다. "
+                 "원거리장 경계는 **기체 크기로 정해지므로 기체마다 다르다** — farfield_table 참조."))
 
 
 def sec0_farfield_table() -> dict:
@@ -444,21 +470,91 @@ def sec1_period() -> dict:
         max_roundtrip_phase_45deg_deg=float(360.0 * 2.0 * d45.max() / LAM),
         n_moved_vertices=int(np.count_nonzero(d45 > 1e-9)),
         max_shift_by_group_m=moved,
-        note_ko=("φ↔φ+180° 가 '집합은 같고 정점 순서는 다르다' 는 것이 핵심이다. OBJ 바이트가 "
-                 "달라 BVH·표본이 독립이므로, 두 값의 차이는 **기하가 0 을 보장하는 순수 잡음**이다. "
-                 "→ 회전당 홀수 조화 = 잡음, 짝수 조화 = 물리가 실을 수 있는 자리."))
+        note_ko=("φ↔φ+180° 는 '집합은 같고 정점 순서는 다르다'(원소별 0.26 m, 집합 1.6e−16 m). "
+                 "따라서 OBJ 바이트가 다르다. 그런데도 RT 결과가 같은지는 §1b 에서 직접 잰다."))
+
+
+def sec1b_rt_periodicity(spp=SPP_MAIN, phases=(0.0, 11.25, 33.75, 78.75),
+                         seeds=(1, 2, 3)) -> dict:
+    """⭐ **φ 와 φ+180° 를 RT 로 직접 비교**한다. 두 가지를 한꺼번에 결정한다.
+
+      ① 실제 주기가 180° 인가 (그러면 한 바퀴 스윕은 절반이 중복 → 한 주기를 촘촘히 도는 게 맞다)
+      ② 파이프라인이 **기하에 대해 결정론적**인가 — 정점 순서·OBJ 바이트가 달라도 같은가.
+         같다면 위상 스텝 사이 차이는 전부 기하의 차이다(OBJ 재작성·씬 재조립 잡음이 아니다).
+    """
+    rows = []
+    for i, phd in enumerate(phases):
+        s0, d0 = build_posed_scene(float(phd), f"P{i}A")
+        s1, d1 = build_posed_scene(float(phd) + 180.0, f"P{i}B")
+        g0, g1 = id_to_group(s0), id_to_group(s1)
+        for R in RANGES:
+            place(s0, 0.0, 15.0, R); place(s1, 0.0, 15.0, R)
+            for sd in seeds:
+                a_ = trace(s0, spp, sd, True, g0)
+                b_ = trace(s1, spp, sd, True, g1)
+                rows.append(dict(
+                    phase_deg=float(phd), range_m=float(R), seed=int(sd),
+                    n_a=a_["n"], n_b=b_["n"], dn=int(b_["n"] - a_["n"]),
+                    d_amp_db=(float(db_amp(b_["hr"], b_["hi"]) - db_amp(a_["hr"], a_["hi"]))
+                              if a_["n"] and b_["n"] else None),
+                    d_inc_db=(float(b_["inc"] - a_["inc"]) if a_["inc"] is not None
+                              and b_["inc"] is not None else None),
+                    rel_complex_diff=(float(abs(complex(b_["hr"], b_["hi"])
+                                                - complex(a_["hr"], a_["hi"]))
+                                            / (abs(complex(a_["hr"], a_["hi"])) + 1e-300))
+                                      if a_["n"] and b_["n"] else None)))
+        drop(d0); drop(d1)
+    return _periodicity_verdict(rows, phases, seeds, spp)
+
+
+def _periodicity_verdict(rows, phases, seeds, spp) -> dict:
+    """§1b 의 판정만 따로 — 기록된 rows 에서 순수 유도된다(RT 재실행 불필요).
+
+    ⚠ '경로수가 정확히 같아야 한다' 는 너무 엄하다: 수천 개 중 1 개 차이는 float32 반올림이
+      경계 경로 하나를 살렸다 죽였다 하는 것이고, 그때도 복소 상대차는 −100 dB 대다.
+      그래서 판정은 **상대량**으로 한다(절대 0 은 bit_identical 에 따로 남긴다)."""
+    dn = [abs(r["dn"]) for r in rows]
+    dnr = [abs(r["dn"]) / max(1, r["n_a"]) for r in rows]
+    rel = [r["rel_complex_diff"] for r in rows if r["rel_complex_diff"] is not None]
+    damp = [abs(r["d_amp_db"]) for r in rows if r["d_amp_db"] is not None]
+    dinc = [abs(r["d_inc_db"]) for r in rows if r["d_inc_db"] is not None]
+    mrel = float(max(rel)) if rel else None
+    return dict(
+        phases_deg=[float(x) for x in phases], seeds=[int(s) for s in seeds], spp=int(spp),
+        n_pairs=len(rows), max_abs_dn=int(max(dn)) if dn else None,
+        max_rel_complex_diff=mrel,
+        max_rel_complex_diff_db=(float(20 * math.log10(mrel + 1e-300)) if mrel else None),
+        max_abs_d_amp_db=float(max(damp)) if damp else None,
+        max_abs_d_inc_db=float(max(dinc)) if dinc else None,
+        max_rel_dn=float(max(dnr)) if dnr else None,
+        path_count_identical=bool(dn and max(dn) == 0),
+        bit_identical=bool(dn and max(dn) == 0 and mrel is not None and mrel < 1e-12),
+        functionally_identical=bool(dnr and max(dnr) < 1e-3
+                                    and mrel is not None and mrel < 1e-3
+                                    and damp and max(damp) < 1e-3),
+        rows=rows,
+        note_ko=("경로수가 전부 같고 복소 상대차가 1e−3 아래면 (i) 주기는 180° 가 맞고 "
+                 "(ii) 파이프라인은 기하에 대해 결정론적이다 — 정점 순서·OBJ 바이트가 달라도 "
+                 "같은 답을 낸다. 남는 차이는 float32 반올림뿐이고, 그 크기(max_rel_complex_diff_db)를 "
+                 "시드 잡음과 비교하면 '재조립 잡음' 이 무시 가능한지 바로 판정된다. "
+                 "⚠ 그래서 '홀수 조화 널' 은 쓸 수 없다(모든 시드에서 사실상 0). 잡음바닥은 "
+                 "시드 재추첨으로만 잰다."))
 
 
 # --------------------------------------------------------------------------- #
 #  §2 — ⭐ 본 격자
 # --------------------------------------------------------------------------- #
 def sec2_grid(n_phase=N_PHASE, seeds=SEEDS, spp=SPP_MAIN, ranges=RANGES,
-              aspects=ASPECTS, modes=MODES) -> dict:
+              aspects=ASPECTS, modes=MODES, sink=None, save=None) -> dict:
     """(거리 × 자세 × 위상 × 시드 × 채널) 마다 **복소 h 와 경로수**를 남긴다.
+
+    ⭐ 위상축은 **한 주기(180°)** 를 n_phase 등분한다(§1 에서 주기를 확인했다). 한 바퀴로 돌면
+    절반이 정확히 중복이라 분해능만 절반이 된다.
 
     루프 순서는 **위상이 바깥**이다 — 씬 조립(메쉬+OBJ 쓰기)이 가장 비싸므로 위상당 한 번만
     만들고 그 안에서 TX/RX 만 옮긴다. 시드 목록을 모든 칸에 똑같이 써서 짝지은 분석이 된다."""
-    phis = np.arange(n_phase) * (360.0 / n_phase)
+    period = 360.0 / int(_SPEC.prop_blades)
+    phis = np.arange(n_phase) * (period / n_phase)
     keys = [(f"{R:g}", nm) for R in ranges for nm, _, _ in aspects]
     blocks = {f"{rk}/{ak}/{mn}": dict(
         range_m=float(rk), aspect=ak, mode=mn, diffuse=bool(df),
@@ -499,50 +595,88 @@ def sec2_grid(n_phase=N_PHASE, seeds=SEEDS, spp=SPP_MAIN, ranges=RANGES,
         el_ = time.time() - t0
         print(f"    φ={phd:7.3f}°  ({i+1}/{n_phase})  누적 {n_trace} 추적  "
               f"{el_:6.0f}s  (예상 총 {el_/(i+1)*n_phase:6.0f}s)", flush=True)
+        #  긴 실행이 날아가지 않게 위상마다 중간 저장 (덮어쓰기는 우리 새 파일 하나뿐이다)
+        if sink is not None and save is not None and ((i + 1) % 8 == 0 or i + 1 == n_phase):
+            sink.update(phases_done=int(i + 1), n_phase_total=int(n_phase),
+                        blocks=blocks, n_traces=int(n_trace),
+                        seconds_so_far=float(el_), complete=False)
+            save()
     for gk, dv in gsum.items():
         blocks[gk]["groups_n_mean"] = {g: float(np.mean(v)) for g, v in sorted(dv.items())}
-    return dict(phases_deg=[float(x) for x in phis], seeds=[int(s) for s in seeds],
+    return dict(phases_deg=[float(x) for x in phis], phase_span_deg=float(period),
+                phase_step_deg=float(period / n_phase),
+                steps_per_revolution=float(n_phase * 360.0 / period),
+                seeds=[int(s) for s in seeds],
                 spp=int(spp), ranges=[float(r) for r in ranges],
                 aspects=[dict(name=n, az_deg=a, el_deg=e) for n, a, e in aspects],
                 modes=[m for m, _ in modes], max_depth=1, baseline_m=BASELINE_M,
                 geometry=geo, n_traces=int(n_trace), seconds=float(time.time() - t0),
+                phases_done=int(n_phase), n_phase_total=int(n_phase), complete=True,
                 blocks=blocks)
 
 
 # --------------------------------------------------------------------------- #
 #  §3 — 격자 분석: 경로수 거동 · 0-경로 비율 · 잡음바닥 · 대칭 널 · 조화
 # --------------------------------------------------------------------------- #
-def _harmonics(z: np.ndarray) -> dict:
-    """한 바퀴 N 표본의 복소열 → 회전당 조화 분해.
-    ⭐ 2날 대칭 때문에 **홀수 조화는 기하가 0 을 보장**한다 → 그것이 잡음바닥이다."""
-    N = z.shape[0]
-    Z = np.fft.fft(z) / N
-    k = np.arange(N)
-    mag = np.abs(Z)
+def _harm_seeded(X: np.ndarray) -> dict:
+    """⭐ **시드 기반 널을 쓴 조화 분해.**  X = [phase, seed] (복소 또는 실수).
+
+    한 주기 N 표본 → 빈 k = **주기당 k 사이클 = 회전당 k·n_blades 사이클**.
+    k=1 이 블레이드 플래시(회전당 2회)다.
+
+    ⚠ '홀수 조화가 널' 이라는 흔한 요령은 **여기서 못 쓴다** — 파이프라인이 기하에 대해
+      완전 결정론적이라(§1b) φ 와 φ+180° 가 비트단위로 같고, 따라서 회전당 홀수 조화는
+      어느 시드에서나 정확히 0 이다. 잡음을 담지 않으므로 널이 아니다.
+      → 널은 **시드 재추첨**에서 온다:
+          신호  S(k) = |⟨Z_j(k)⟩_j|²
+          잡음  N(k) = Var_j(Z_j(k)) / S_seed        (평균의 분산)
+          SNR(k) = S(k)/N(k)   (F 분포 꼴, 자유도 (2, 2(S_seed−1)))
+    """
+    N, S = X.shape
+    Z = np.fft.fft(X, axis=0) / N                     # [k, seed]
     ny = N // 2
-    ev = [i for i in range(1, ny + 1) if i % 2 == 0]
-    od = [i for i in range(1, ny + 1) if i % 2 == 1]
-    pe = float(np.sum(mag[ev] ** 2)); po = float(np.sum(mag[od] ** 2))
-    #  홀수 조화 1개당 평균 전력 = 잡음 1빈 전력 → 짝수 빈에서 그만큼 빼면 순 신호
-    n1 = po / max(1, len(od))
-    net = max(0.0, pe - n1 * len(ev))
-    top = int(ev[int(np.argmax(mag[ev]))]) if ev else None
+    Zm = Z.mean(axis=1)
+    if S > 1:
+        var = np.sum(np.abs(Z - Zm[:, None]) ** 2, axis=1) / (S - 1)   # 성분당 분산 합
+        nse = var / S
+    else:
+        nse = np.zeros(N)
+    sig = np.abs(Zm) ** 2
+    ks = list(range(1, ny + 1))
+    #  ⚠ **널이 퇴화하는 경우**를 조용히 넘기면 안 된다. 정반사 채널은 몬테카를로가 아니라
+    #    결정론적이라 시드를 바꿔도 값이 **정확히 같다** → 분산 0 → SNR 이 무한대로 뜬다.
+    #    그건 '신호가 세다' 가 아니라 '이 널이 그 채널에 안 맞는다' 는 뜻이다. 그래서 표시하고 뺀다.
+    ac = float(np.mean(sig[1:ny + 1])) if ks else 0.0
+    nmean = float(np.mean(nse[1:ny + 1])) if ks else 0.0
+    degen = bool(S < 2 or nmean <= 1e-12 * max(ac, float(sig[0]), 1e-300))
+    snr = sig / (nse + 1e-300)
+    top = int(ks[int(np.argmax(snr[1:ny + 1]))]) if ks else None
+    f = (lambda x: None) if degen else (lambda x: float(10 * np.log10(x + 1e-300)))
     return dict(
-        n_samples=int(N), dc_abs=float(mag[0]),
-        even_power=pe, odd_power=po,
-        even_over_odd_db=float(10 * np.log10((pe + 1e-300) / (po + 1e-300))),
-        net_even_power=net,
-        net_even_over_odd_db=float(10 * np.log10((net + 1e-300) / (po + 1e-300))),
-        snr_even_vs_oddbin_db=float(10 * np.log10((net / max(1, len(ev)) + 1e-300)
-                                                  / (n1 + 1e-300))),
-        dominant_even_harmonic=top,
-        dominant_even_over_noisebin_db=(float(20 * np.log10((mag[top] + 1e-300)
-                                                            / (math.sqrt(n1) + 1e-300)))
-                                        if top else None),
-        harm_abs_rel_dc=[float(mag[i] / (mag[0] + 1e-300)) for i in range(0, ny + 1)],
-        harm_index=[int(i) for i in range(0, ny + 1)],
-        note_ko=("빈 k = 회전당 k 사이클. 2날이면 물리는 짝수 k 에만 실릴 수 있다(블레이드 "
-                 "플래시 = k=2). 홀수 k 의 전력은 **기하가 0 을 보장한 자리**라 잡음의 직접 측정이다."))
+        n_samples=int(N), n_seeds=int(S), dc_abs=float(np.abs(Zm[0])),
+        harm_index=ks,
+        harm_abs=[float(np.abs(Zm[k])) for k in ks],
+        harm_abs_rel_dc=[float(np.abs(Zm[k]) / (np.abs(Zm[0]) + 1e-300)) for k in ks],
+        harm_snr_db=(None if degen else [float(10 * np.log10(snr[k] + 1e-300)) for k in ks]),
+        noise_per_bin_abs=float(np.sqrt(nmean)),
+        noise_degenerate=degen,
+        blade_flash_bin=1,
+        blade_flash_snr_db=(f(snr[1]) if ny >= 1 else None),
+        blade_flash_rel_dc=(float(np.abs(Zm[1]) / (np.abs(Zm[0]) + 1e-300)) if ny >= 1 else None),
+        dominant_bin=top,
+        dominant_snr_db=(f(snr[top]) if top else None),
+        total_ac_over_noise_db=(None if degen else float(10 * np.log10(
+            (float(np.sum(sig[1:ny + 1])) + 1e-300) / (float(np.sum(nse[1:ny + 1])) + 1e-300)))),
+        n_bins_snr_gt_10db=(None if degen
+                            else int(np.sum(np.array([snr[k] for k in ks]) > 10.0))),
+        #  ⭐ 조화가 고차까지 퍼지는가 — 이상적 블레이드 변조의 지문(§7 과 같은 잣대)
+        highest_bin_above_1pct=int(max([k for k in ks
+                                        if np.abs(Zm[k]) / (np.abs(Zm[0]) + 1e-300) > 0.01],
+                                       default=0)),
+        note_ko=("빈 k = 주기당 k 사이클 = 회전당 k·n_blades 사이클. k=1 이 블레이드 플래시. "
+                 "SNR 은 시드 재추첨 분산(평균의 분산)을 널로 쓴 값이다. "
+                 "noise_degenerate=True 면 그 채널은 결정론적이라 시드 널이 성립하지 않는다 — "
+                 "SNR 을 쓰지 말고 절대 변조량(modulation_ptp_db)으로 판단할 것."))
 
 
 def _stat_block(B, n_phase, n_seed, channel="all") -> dict:
@@ -593,78 +727,84 @@ def _stat_block(B, n_phase, n_seed, channel="all") -> dict:
                phase_mean_amp_db=[float(x) for x in pm_amp],
                phase_mean_inc_db=[float(x) for x in pm_inc])
 
-    #  ⭐ 대칭 널 — φ 와 φ+180° 는 기하가 같다. 같은 시드로 뺀 차이 = 순수 잡음.
-    half = n_phase // 2
-    if n_phase % 2 == 0:
-        d_amp = amp[:half, :] - amp[half:, :]
-        out["sym_null_rms_db"] = float(np.sqrt(np.nanmean(d_amp ** 2)))
-        out["sym_null_ptp_db"] = float(np.nanmax(np.abs(d_amp)))
-        d_n = n[:half, :] - n[half:, :]
-        out["sym_null_n_paths_rms"] = float(np.sqrt(np.mean(d_n ** 2)))
-        d_inc = inc[:half, :] - inc[half:, :]
-        out["sym_null_inc_rms_db"] = float(np.sqrt(np.nanmean(d_inc ** 2)))
-        #  신호 대 널: 반주기 평균끼리의 변동 vs 대칭 널 변동
-        sig = np.nanstd(np.nanmean(amp, axis=1), ddof=1)
-        out["signal_std_over_symnull_rms"] = float(sig / (out["sym_null_rms_db"] /
-                                                          math.sqrt(2) + 1e-300))
-
-    #  ⭐ 조화 분해 — 시드별로 하고 평균 (시드 잡음을 섞지 않는다)
-    H = [_harmonics(z[:, j]) for j in range(z.shape[1]) if np.all(n[:, j] > 0)]
-    if H:
-        out["harmonics_complex"] = dict(
-            even_over_odd_db=float(np.mean([h["even_over_odd_db"] for h in H])),
-            net_even_over_odd_db=float(np.mean([h["net_even_over_odd_db"] for h in H])),
-            snr_even_vs_oddbin_db=float(np.mean([h["snr_even_vs_oddbin_db"] for h in H])),
-            dominant_even_harmonic=int(np.median([h["dominant_even_harmonic"] for h in H])),
-            per_seed=[{k: h[k] for k in ("even_over_odd_db", "net_even_over_odd_db",
-                                         "dominant_even_harmonic",
-                                         "dominant_even_over_noisebin_db")} for h in H],
-            harm_abs_rel_dc_mean=[float(x) for x in
-                                  np.mean([h["harm_abs_rel_dc"] for h in H], axis=0)],
-            harm_index=H[0]["harm_index"])
-    #  dB 열(진폭만)의 조화 — 코히런트 위상에 의존하지 않는 관점
-    ad = np.where(np.isfinite(amp), amp, 0.0)
-    Ha = [_harmonics(ad[:, j] - ad[:, j].mean()) for j in range(ad.shape[1])]
-    out["harmonics_absdb"] = dict(
-        even_over_odd_db=float(np.mean([h["even_over_odd_db"] for h in Ha])),
-        net_even_over_odd_db=float(np.mean([h["net_even_over_odd_db"] for h in Ha])),
-        dominant_even_harmonic=int(np.median([h["dominant_even_harmonic"] for h in Ha])))
-    idb = np.where(np.isfinite(inc), inc, 0.0)
-    Hi = [_harmonics(idb[:, j] - idb[:, j].mean()) for j in range(idb.shape[1])]
-    out["harmonics_incdb"] = dict(
-        even_over_odd_db=float(np.mean([h["even_over_odd_db"] for h in Hi])),
-        net_even_over_odd_db=float(np.mean([h["net_even_over_odd_db"] for h in Hi])),
-        dominant_even_harmonic=int(np.median([h["dominant_even_harmonic"] for h in Hi])))
+    #  ⭐ 조화 분해 — 시드 재추첨을 널로 쓴다. 세 관측량을 **따로** 본다:
+    #    · complex : h_coh 자체 (⚠ spp 에 수렴하지 않는 추정량 — §4)
+    #    · absdb   : 20log10|h_coh| (코히런트 크기만)
+    #    · incdb   : 10log10 Σ|a|²  (⭐ **수렴하는** 물리량 — 여기 변조가 있으면 진짜 진폭변조)
+    if np.all(n > 0):
+        out["harm_complex"] = _harm_seeded(z)
+        out["harm_absdb"] = _harm_seeded(amp - np.nanmean(amp))
+        out["harm_incdb"] = _harm_seeded(inc - np.nanmean(inc))
 
     #  ANOVA: 위상간 분산 / 위상내(시드) 분산
     per = [amp[i, np.isfinite(amp[i])] for i in range(n_phase)]
     per = [g for g in per if g.size]
     k_, nn_ = len(per), int(sum(g.size for g in per))
-    grand = float(np.mean(np.concatenate(per)))
-    ssb = float(sum(g.size * (g.mean() - grand) ** 2 for g in per))
-    ssw = float(sum(float(np.sum((g - g.mean()) ** 2)) for g in per))
     dfb, dfw = k_ - 1, nn_ - k_
-    F = ((ssb / dfb) / (ssw / dfw)) if (dfw > 0 and ssw > 0) else (0.0 if ssb <= 1e-30
-                                                                  else float("inf"))
-    p = None
-    try:
-        from scipy.stats import f as _fd
-        p = float(_fd.sf(F, dfb, dfw)) if np.isfinite(F) and dfw > 0 else (1.0 if F == 0 else 0.0)
-    except Exception:
-        pass
-    out["anova"] = dict(F=float(F), df_between=int(dfb), df_within=int(dfw), p_value=p)
+    F, p = None, None
+    if dfb > 0 and dfw > 0:
+        grand = float(np.mean(np.concatenate(per)))
+        ssb = float(sum(g.size * (g.mean() - grand) ** 2 for g in per))
+        ssw = float(sum(float(np.sum((g - g.mean()) ** 2)) for g in per))
+        F = ((ssb / dfb) / (ssw / dfw)) if ssw > 0 else (0.0 if ssb <= 1e-30 else float("inf"))
+        try:
+            from scipy.stats import f as _fd
+            p = float(_fd.sf(F, dfb, dfw)) if np.isfinite(F) else (1.0 if F == 0 else 0.0)
+        except Exception:
+            pass
+    out["anova"] = dict(F=(float(F) if F is not None and np.isfinite(F) else None),
+                        F_infinite=bool(F is not None and not np.isfinite(F)),
+                        df_between=int(dfb), df_within=int(dfw), p_value=p,
+                        usable=bool(dfb > 0 and dfw > 0))
 
-    #  판정 — 세 검정을 **모두** 통과해야 '유의'
+    #  ⭐ 판정 — 두 층으로 나눈다. 섞으면 결론이 과장된다.
+    #    층 1 (추정량이 움직이나): ANOVA — 위상간 변동이 시드 변동보다 큰가.
+    #    층 2 (⭐ **물리량이 움직이나**): 수렴하는 Σ|a|² 가 블레이드 조화(k=1)에서 유의한가.
+    #         h_coh 는 spp 에 수렴하지 않으므로(§4) 그것만으로는 '물리적 변조' 라 부를 수 없다.
+    #  ⚠ 수치바닥: §1b 에서 잰 float32 재조립 차이가 ~1e−5 상대(≈1e−4 dB)다.
+    #    그보다 작은 '변조' 는 물리가 아니라 반올림이다.
+    FLOOR_DB = 1e-3
     ok_anova = bool(p is not None and p < 1e-3)
-    ok_sym = bool(out.get("signal_std_over_symnull_rms", 0.0) > 3.0)
-    ok_harm = bool(out.get("harmonics_complex", {}).get("net_even_over_odd_db", -99) > 4.77)
-    out.update(test_anova_pass=ok_anova, test_symmetry_null_pass=ok_sym,
-               test_even_harmonic_pass=ok_harm,
-               modulation_above_noise=bool(ok_anova and ok_sym and ok_harm),
-               verdict=("유의 — 세 검정 통과(위상 변동이 대칭 널·조화 널을 넘는다)"
-                        if (ok_anova and ok_sym and ok_harm) else
-                        ("경계 — 일부 검정만 통과" if (ok_anova or ok_sym or ok_harm)
-                         else "잡음과 구별 안 됨")), ok=True)
+    hc = out.get("harm_complex") or {}
+    hi = out.get("harm_incdb") or {}
+    hf_inc, hf_coh = hi.get("blade_flash_snr_db"), hc.get("blade_flash_snr_db")
+    degen = bool(hi.get("noise_degenerate") or hc.get("noise_degenerate"))
+    ok_inc_flash = bool(hf_inc is not None and hf_inc > 10.0)
+    ok_coh_flash = bool(hf_coh is not None and hf_coh > 10.0)
+    ok_inc_amp = bool((out.get("inc_modulation_ptp_db") or 0.0) > FLOOR_DB and
+                      (out.get("inc_modulation_ptp_db") or 0.0) >
+                      3.0 * (out.get("seed_noise_inc_std_db") or 1e9))
+    if degen:
+        #  결정론적 채널(정반사) — 시드 널이 없다. 절대 변조량만으로 판단한다.
+        moved = bool((out.get("modulation_ptp_db") or 0.0) > FLOOR_DB)
+        out.update(deterministic_channel=True,
+                   test_anova_pass=ok_anova,
+                   test_blade_flash_coherent_pass=None,
+                   test_blade_flash_incoherent_pass=None,
+                   test_incoherent_amplitude_pass=bool(
+                       (out.get("inc_modulation_ptp_db") or 0.0) > FLOOR_DB),
+                   estimator_moves_with_phase=moved,
+                   physical_modulation_above_noise=moved,
+                   modulation_above_noise=moved,
+                   numerical_floor_db=FLOOR_DB,
+                   verdict=("결정론적 채널에서 변조 있음(시드 널 불필요)" if moved else
+                            "결정론적 채널이나 위상 변조가 수치바닥 이하 — 사실상 정지"),
+                   ok=True)
+        return out
+    out.update(
+        deterministic_channel=False, numerical_floor_db=FLOOR_DB,
+        test_anova_pass=ok_anova,
+        test_blade_flash_coherent_pass=ok_coh_flash,
+        test_blade_flash_incoherent_pass=ok_inc_flash,
+        test_incoherent_amplitude_pass=ok_inc_amp,
+        estimator_moves_with_phase=ok_anova,
+        physical_modulation_above_noise=bool(ok_inc_flash and ok_inc_amp),
+        modulation_above_noise=bool(ok_anova and ok_coh_flash),
+        verdict=(
+            "물리 변조 유의 — 수렴량 Σ|a|² 가 블레이드 조화에서 잡음 위"
+            if (ok_inc_flash and ok_inc_amp) else
+            ("추정량만 움직임 — h_coh 는 위상에 반응하나 수렴량 Σ|a|² 는 잡음과 구별 안 됨"
+             if (ok_anova or ok_coh_flash) else "잡음과 구별 안 됨")), ok=True)
     return out
 
 
@@ -820,16 +960,23 @@ def _plate(side, u, tilt_deg=0.0):
     return m
 
 
-def _cylinder(radius, length, nseg):
-    """축이 y 인 원기둥(곡면). nseg 로 테셀레이션을, radius 로 곡률반경을 조절한다."""
+def _cylinder(radius, length, nseg, el_deg=15.0):
+    """축이 y 인 원기둥(곡면) — **접점이 원점에 오도록** 밀어 놓는다.
+
+    ⚠ 이 이동이 없으면 실험이 성립하지 않는다: 원기둥을 원점 중심으로 두면 곡률반경을
+      키울수록 표면이 레이다 쪽으로 튀어나와(또는 레이다를 삼켜) 거리·가림이 같이 변한다.
+      법선이 정확히 이등분선을 향하는 접점을 원점에 고정해야 **곡률만** 바뀐다.
+      (az=0 이므로 접점의 방위각은 0, 고도각은 el_deg 이다.)"""
     m = Mesh("cyl")
+    e = math.radians(el_deg)
+    off = np.array([radius * math.cos(e), 0.0, radius * math.sin(e)])   # 접점 → 원점 이동량
     for k in range(nseg):
         a0 = 2 * math.pi * k / nseg
         a1 = 2 * math.pi * (k + 1) / nseg
-        p = [m.add_vertex(radius * math.cos(a0), -length / 2, radius * math.sin(a0)),
-             m.add_vertex(radius * math.cos(a1), -length / 2, radius * math.sin(a1)),
-             m.add_vertex(radius * math.cos(a1), length / 2, radius * math.sin(a1)),
-             m.add_vertex(radius * math.cos(a0), length / 2, radius * math.sin(a0))]
+        def V(ang, y):
+            return m.add_vertex(radius * math.cos(ang) - off[0], y,
+                                radius * math.sin(ang) - off[2])
+        p = [V(a0, -length / 2), V(a1, -length / 2), V(a1, length / 2), V(a0, length / 2)]
         m.add_quad(*p, group="cyl")
     return m
 
@@ -906,21 +1053,29 @@ def sec6_mechanism(spp=1_024_000_000) -> dict:
         note_ko=("곡률반경 5 cm 고정, 테셀레이션만 32~512배. Δθ/δ_acc = 2R/ρ 는 nseg 가 "
                  "약분되므로 **아무리 잘게 쪼개도 달라지지 않아야** 한다."))
 
-    c2 = {}
+    c2, hits, misses = {}, [], []
     for R in RANGES:
-        for rho in (0.05, 0.2, 1.0, 2.0, 5.0, 20.0, 100.0):
-            sc, d = _one_obj_scene(_cylinder(rho, 0.20, 256), f"CR{int(rho*100)}_{int(R)}")
+        for rho in (0.05, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 200.0):
+            sc, d = _one_obj_scene(_cylinder(rho, 0.60, 256), f"CR{int(rho*100)}_{int(R)}")
             place(sc, 0.0, 15.0, R)
-            #  원기둥 표면이 원점에 오도록 — 표면 최상단을 시선 쪽으로 두려면 중심을 밀어야 하나,
-            #  여기서는 반경을 키우면 표면이 멀어지므로 정반사 유무만 본다(거리 변화는 기록).
-            c2[f"{R:g}/rho{rho:g}"] = dict(n_specular=int(_n_spec(sc, spp)),
-                                           ratio_2R_over_rho=float(2 * R / rho),
-                                           predicted_specular=bool(2 * R / rho <= 1.0))
+            ns = int(_n_spec(sc, spp))
+            ratio = float(2 * R / rho)
+            c2[f"{R:g}/rho{rho:g}"] = dict(range_m=float(R), rho_m=float(rho),
+                                           n_specular=ns, ratio_2R_over_rho=ratio,
+                                           predicted_specular=bool(ratio <= 1.0))
+            (hits if ns > 0 else misses).append(ratio)
             drop(d)
+    thr = (math.sqrt(max(hits) * min(misses)) if (hits and misses) else None)
     out["c2_curvature_law"] = dict(
-        by_case=c2, nseg=256, length_m=0.20,
-        note_ko=("예측: 2R/ρ ≤ 1 (즉 R ≤ ρ/2) 일 때만 정반사가 산다. "
-                 "⚠ 반경을 키우면 표면이 원점에서 멀어지므로 이 사다리는 '유무'만 읽는다."))
+        by_case=c2, nseg=256, length_m=0.60,
+        max_ratio_with_specular=(float(max(hits)) if hits else None),
+        min_ratio_without_specular=(float(min(misses)) if misses else None),
+        empirical_threshold_ratio=(float(thr) if thr else None),
+        law_holds=bool(hits and misses and max(hits) < min(misses)),
+        note_ko=("2R/ρ 가 문턱 아래일 때만 정반사가 산다. 접점을 원점에 고정했으므로 거리·가림은 "
+                 "그대로이고 **곡률만** 변한다. ⭐ 핵심은 문턱값이 아니라 **테셀레이션이 약분된다**는 "
+                 "것이다(c1 참조) — 아무리 잘게 쪼개도 곡면은 정반사를 못 낸다. 문턱은 "
+                 "empirical_threshold_ratio 로 **측정해서** 적는다(1 이라고 손으로 쓰지 않는다)."))
 
     m = posed_mesh(0.0)
     V = np.asarray(m.v, float); F = np.asarray(m.f, int); G = np.asarray(m.g, dtype=object)
@@ -949,16 +1104,21 @@ def sec6_mechanism(spp=1_024_000_000) -> dict:
                 acceptance_deg=float(math.degrees(math.atan((np.median(d_eq) / 2) / R))),
                 sep_over_acceptance=(float(np.median(sep) /
                                            math.degrees(math.atan((np.median(d_eq) / 2) / R)))
-                                     if sep is not None else None),
-                specular_possible=bool(sep is not None and
-                                       np.median(sep) <=
-                                       math.degrees(math.atan((np.median(d_eq) / 2) / R))))
+                                     if sep is not None else None))
                 for R in RANGES})
+    #  ⭐ 측정한 문턱을 프롭 통계에 대입해 **거리별 예측**을 낸다(손으로 고르지 않는다).
+    thr2 = out["c2_curvature_law"]["empirical_threshold_ratio"]
+    if thr2 and "prop" in prop_stat:
+        for R in RANGES:
+            v = prop_stat["prop"]["by_range"][f"{R:g}"]
+            v["predicted_specular_possible"] = bool(v["sep_over_acceptance"] is not None
+                                                    and v["sep_over_acceptance"] <= thr2)
     out["d_prop_facet_stats"] = dict(
-        by_group=prop_stat,
-        note_ko=("법선간격/수용각 > 1 이면 '이등분선을 만족하는 면이 메쉬에 존재하지 않는다' — "
-                 "즉 정반사가 원리적으로 안 나온다. camera 는 **평면**이라 이 비가 정의되지 않거나 "
-                 "매우 작다(그래서 유일하게 글린트가 난다)."))
+        by_group=prop_stat, threshold_ratio_used=thr2,
+        note_ko=("법선간격/수용각 이 문턱을 넘으면 '이등분선을 만족하는 면이 메쉬에 존재하지 않는다' — "
+                 "즉 그 거리에서 정반사가 사실상 안 나온다. camera 는 **완전 평면**이라 법선간격이 "
+                 "정확히 0 이다 → 어느 거리에서나 글린트가 난다(그래서 이 기체에서 정반사를 내는 "
+                 "부위가 카메라뿐인 것이다)."))
     return out
 
 
@@ -975,7 +1135,8 @@ def sec7_ideal(n_phase=N_PHASE) -> dict:
     blades = int(_SPEC.prop_blades)
     rr = np.linspace(0.25 * Rp, Rp, 12)            # 날개 스팬 위 점산란자
     w = rr / rr.sum()                              # 팁쪽 가중(면적·속도 대리)
-    phis = np.arange(n_phase) * (360.0 / n_phase)
+    period = 360.0 / blades
+    phis = np.arange(n_phase) * (period / n_phase)
     res = {}
     for R in RANGES:
         for ak, az, el in ASPECTS:
@@ -994,22 +1155,28 @@ def sec7_ideal(n_phase=N_PHASE) -> dict:
                         rng = (np.linalg.norm(tx - P, axis=1) + np.linalg.norm(rx - P, axis=1))
                         s += complex(np.sum(w * np.exp(-1j * k * rng)))
                 z[i] = s
-            H = _harmonics(z)
+            H = _harm_seeded(z[:, None])
             adb = 20 * np.log10(np.abs(z) + 1e-300)
-            Ha = _harmonics(adb - adb.mean())
+            Ha = _harm_seeded((adb - adb.mean())[:, None])
             res[f"{R:g}/{ak}"] = dict(
                 range_m=float(R), aspect=ak,
-                even_over_odd_db=H["even_over_odd_db"],
-                net_even_over_odd_db=H["net_even_over_odd_db"],
-                dominant_even_harmonic=H["dominant_even_harmonic"],
-                harm_abs_rel_dc=H["harm_abs_rel_dc"],
+                harm_index=H["harm_index"], harm_abs_rel_dc=H["harm_abs_rel_dc"],
+                blade_flash_rel_dc=H["blade_flash_rel_dc"],
+                dominant_bin=int(np.argmax(H["harm_abs"]) + 1),
+                #  ⭐ '고차까지 퍼지는가' 가 블레이드 변조의 지문이다 — DC 대비 1% 를 넘는
+                #     최고 조화 차수로 잰다(손으로 눈대중하지 않기 위해).
+                highest_bin_above_1pct=int(max([i + 1 for i, v in
+                                                enumerate(H["harm_abs_rel_dc"]) if v > 0.01],
+                                               default=0)),
+                spread_index=float(np.sum(np.array(H["harm_abs_rel_dc"]) > 0.01)),
                 absdb_ptp=float(adb.max() - adb.min()),
-                absdb_even_over_odd_db=Ha["even_over_odd_db"])
-    return dict(model="등방 점산란자 12개/날 × 2날 × 4로터, 가중 ∝ 반경",
-                n_phase=int(n_phase), by_cell=res,
-                note_ko=("이상적 블레이드 변조는 **짝수 조화가 홀수 조화를 압도**하고 고차까지 "
-                         "퍼진다(팁 왕복위상 스윙이 λ 를 여러 번 넘기 때문). RT 결과의 조화 "
-                         "구조를 이것과 비교하면 '블레이드 같은가' 를 눈이 아니라 수로 말할 수 있다."))
+                absdb_harm_rel=Ha["harm_abs_rel_dc"][:8])
+    return dict(model="등방 점산란자 12개/날 × 2날 × 4로터, 가중 ∝ 반경 (RT 아님)",
+                n_phase=int(n_phase), phase_span_deg=float(period), by_cell=res,
+                note_ko=("이상적 블레이드 변조의 지문은 **조화가 고차까지 퍼지는 것**이다 — 팁의 "
+                         "왕복위상 스윙이 λ 를 여러 번 넘기 때문(physics.max_roundtrip_phase_swing_deg). "
+                         "RT 결과의 harm_abs_rel_dc 를 이것과 나란히 놓으면 '블레이드 같은가' 를 "
+                         "눈이 아니라 수로 말할 수 있다. ⚠ 등방 점산란자 가정이라 진리가 아니라 기준선이다."))
 
 
 # --------------------------------------------------------------------------- #
@@ -1018,7 +1185,11 @@ def sec7_ideal(n_phase=N_PHASE) -> dict:
 def sec8_baseline_control(spp=SPP_MAIN, n_phase=16, seeds=(1, 2)) -> dict:
     """고정 기선 0.2 m 는 거리에 따라 바이스태틱 각이 변한다(R=1 에서 11.4°, R=10 에서 1.15°).
     거리 추세가 그 탓이 아님을 보이려면 **바이스태틱 각을 고정**한 대조가 필요하다 —
-    기선을 R 에 비례시켜 R=3 의 각도로 맞춘다."""
+    기선을 R 에 비례시켜 R=3 의 각도로 맞춘다.
+
+    ⚠ 위상축 규약: 여기는 **한 바퀴(360°)** 를 n_phase 등분한다(본 격자는 한 주기 180°). 주기가
+      180° 이므로 이 대조는 같은 형상을 두 번 훑는다 — 거리 추세만 보는 용도라 무해하지만,
+      본 격자와 **분해능 규약이 다르다**는 것을 JSON 에 적어 둔다(phase_span_deg)."""
     phis = np.arange(n_phase) * (360.0 / n_phase)
     base_at3 = BASELINE_M
     out = {}
@@ -1065,16 +1236,21 @@ def headline(J: dict) -> dict:
     ph = J["physics"]
     sc = J["specular_census"]["production"]
     sig = sorted([k for k, v in A.items() if v.get("modulation_above_noise")])
+    phys = sorted([k for k, v in A.items() if v.get("physical_modulation_above_noise")])
     per_cell = {}
     for k, v in A.items():
         if v.get("ok"):
             per_cell[k] = dict(
                 n_paths_behaviour=v["n_paths_behaviour"],
                 zero_path_cell_frac=v["zero_path_cell_frac"],
+                n_paths_step_max_frac=v.get("n_paths_step_max_frac"),
                 modulation_ptp_db=v.get("modulation_ptp_db"),
                 seed_noise_std_db=v.get("seed_noise_std_db"),
-                sym_null_rms_db=v.get("sym_null_rms_db"),
-                net_even_over_odd_db=(v.get("harmonics_complex") or {}).get("net_even_over_odd_db"),
+                inc_modulation_ptp_db=v.get("inc_modulation_ptp_db"),
+                seed_noise_inc_std_db=v.get("seed_noise_inc_std_db"),
+                blade_flash_snr_coh_db=(v.get("harm_complex") or {}).get("blade_flash_snr_db"),
+                blade_flash_snr_inc_db=(v.get("harm_incdb") or {}).get("blade_flash_snr_db"),
+                harm_bins_snr_gt10_coh=(v.get("harm_complex") or {}).get("n_bins_snr_gt_10db"),
                 verdict=v["verdict"])
     cv = J["convergence"]["by_range"]
     return dict(
@@ -1090,9 +1266,15 @@ def headline(J: dict) -> dict:
         farfield_2D2_lam_m=ph["farfield_2D2_lam_m"] if "farfield_2D2_lam_m" in ph
         else ph["by_range"]["3"]["farfield_2D2_lam_m"],
         in_farfield_by_range={k: v["in_farfield"] for k, v in ph["by_range"].items()},
-        # ⭐ 주기
+        # ⭐ 주기 — 지시는 '한 바퀴 64 스텝' 이었으나 실제 주기는 180° 임을 확인해
+        #    한 주기를 64 스텝(=회전당 128 스텝)으로 돌았다.
         rotor_period_deg=ph["phase_period_deg"],
-        symmetry_null_valid=J["period_check"]["symmetry_null_valid"],
+        phase_steps_per_period=int(ph["n_phase_steps_per_period"]),
+        phase_steps_per_revolution=float(ph["n_phase_steps_per_rev"]),
+        period_confirmed_by_rt=J["rt_periodicity"]["functionally_identical"],
+        pipeline_deterministic_in_geometry=J["rt_periodicity"]["functionally_identical"],
+        rebuild_noise_db=J["rt_periodicity"]["max_abs_d_amp_db"],
+        instructed_64_per_rev_aliased=ph["instructed_64_per_rev_aliased"],
         aliased=ph["aliased"], alias_margin=ph["alias_margin"],
         n_steps_min_for_nyquist=ph["n_steps_min_for_nyquist"],
         # ⭐ 정반사
@@ -1106,8 +1288,16 @@ def headline(J: dict) -> dict:
         coherent_slope_by_range={k: v["coh_slope_log10h_per_log10N"] for k, v in cv.items()},
         incoherent_converged_by_range={k: v["inc_converged"] for k, v in cv.items()},
         coherent_converged_by_range={k: v["coh_converged"] for k, v in cv.items()},
-        # ⭐ 판정
-        channels_significant=sig, n_channels_significant=len(sig),
+        # ⭐ 기구
+        specular_acceptance_law="δ_max ≈ atan((facet_edge/2)/R)  ·  곡면: 2R/ρ ≲ 1 이어야 정반사",
+        curvature_law_holds=J["mechanism"]["c2_curvature_law"]["law_holds"],
+        curvature_max_ratio_with_specular=J["mechanism"]["c2_curvature_law"]["max_ratio_with_specular"],
+        prop_facet_sep_over_acceptance={
+            k: v["sep_over_acceptance"]
+            for k, v in J["mechanism"]["d_prop_facet_stats"]["by_group"]["prop"]["by_range"].items()},
+        # ⭐ 판정 — 두 층
+        channels_estimator_moves=sig, n_channels_estimator_moves=len(sig),
+        channels_physical_modulation=phys, n_channels_physical_modulation=len(phys),
         n_channels_total=len(A),
         by_cell=per_cell)
 
@@ -1163,9 +1353,24 @@ def main():
         related=["outputs/report15_probe.json", "outputs/facet_count.json"],
         stamp=time.strftime("%Y-%m-%d %H:%M:%S")))
 
+    def _clean(o):
+        """NaN/Inf → None. 엄격한 JSON 파서가 읽을 수 있게(그리고 '값이 없다' 를 정직하게)."""
+        if isinstance(o, dict):
+            return {k: _clean(v) for k, v in o.items()}
+        if isinstance(o, (list, tuple)):
+            return [_clean(v) for v in o]
+        if isinstance(o, (float, np.floating)):
+            f = float(o)
+            return None if (math.isnan(f) or math.isinf(f)) else f
+        if isinstance(o, (np.integer,)):
+            return int(o)
+        if isinstance(o, (np.bool_,)):
+            return bool(o)
+        return o
+
     def save():
         with open(OUT_JSON, "w") as f:
-            json.dump(J, f, ensure_ascii=False, indent=1)
+            json.dump(_clean(J), f, ensure_ascii=False, indent=1, allow_nan=False)
 
     print("\n§0  물리·재질·기하 …", flush=True)
     J["physics"] = sec0_physics(n_phase)
@@ -1188,8 +1393,21 @@ def main():
     J["period_check"] = sec1_period()
     pc = J["period_check"]
     print(f"    원소별 0↔180 최대차 {pc['elementwise_max_dev_0_vs_180_m']:.3e} m / "
-          f"집합 {pc['setwise_max_dev_0_vs_180_m']:.3e} m → 대칭 널 유효={pc['symmetry_null_valid']}  "
+          f"집합 {pc['setwise_max_dev_0_vs_180_m']:.3e} m  "
           f"(0↔360 원소별 {pc['elementwise_max_dev_0_vs_360_m']:.3e} m)", flush=True)
+    save()
+
+    print("\n§1b ⭐ RT 로 주기·결정성 직접 확인 (φ vs φ+180°) …", flush=True)
+    J["rt_periodicity"] = sec1b_rt_periodicity(spp=spp,
+                                               phases=(0.0, 11.25, 33.75, 78.75)
+                                               if not a.quick else (0.0,),
+                                               seeds=seeds)
+    rp = J["rt_periodicity"]
+    print(f"    쌍 {rp['n_pairs']}개  Δ경로수 최대 {rp['max_abs_dn']}  "
+          f"상대 복소차 최대 {rp['max_rel_complex_diff']:.3e} "
+          f"({rp['max_rel_complex_diff_db']:.1f} dB)  |Δ|h|| 최대 {rp['max_abs_d_amp_db']:.2e} dB  "
+          f"→ 경로수동일={rp['path_count_identical']} 기능적동일={rp['functionally_identical']} "
+          f"비트동일={rp['bit_identical']}", flush=True)
     save()
 
     print("\n§4  ⭐ 수렴성 (코히런트 합이 수렴하나) …", flush=True)
@@ -1240,7 +1458,9 @@ def main():
     if not a.skip_grid:
         print(f"\n§2  ⭐ 본 격자 — {len(RANGES)}거리 × {len(ASPECTS)}자세 × {n_phase}위상 × "
               f"{len(seeds)}시드 × {len(MODES)}채널 …", flush=True)
-        J["grid"] = sec2_grid(n_phase=n_phase, seeds=seeds, spp=spp)
+        J["grid"] = dict(complete=False)
+        J["grid"] = sec2_grid(n_phase=n_phase, seeds=seeds, spp=spp,
+                              sink=J["grid"], save=save)
         save()
         print("\n§3  격자 분석 …", flush=True)
         J["grid_analysis"] = sec3_analyze(J["grid"])
@@ -1248,10 +1468,13 @@ def main():
             if not v.get("ok"):
                 print(f"    {k:34s}  {v['verdict']}  (0경로 {100*v['zero_path_cell_frac']:.0f}%)")
                 continue
-            print(f"    {k:34s}  n̄={v['n_paths_mean']:9.1f}  ptp={v['modulation_ptp_db']:6.3f} dB  "
-                  f"시드σ={v['seed_noise_std_db']:6.3f}  대칭널={v['sym_null_rms_db']:6.3f}  "
-                  f"짝/홀={v['harmonics_complex']['net_even_over_odd_db']:7.2f} dB  → {v['verdict']}",
-                  flush=True)
+            f = lambda x, d="%6.3f": (d % x) if isinstance(x, float) else "   n/a"  # noqa: E731
+            hc = (v.get("harm_complex") or {}).get("blade_flash_snr_db")
+            hi = (v.get("harm_incdb") or {}).get("blade_flash_snr_db")
+            print(f"    {k:32s} n̄={v['n_paths_mean']:8.1f} |h|ptp={f(v.get('modulation_ptp_db'))} "
+                  f"σ={f(v.get('seed_noise_std_db'))} ‖ Σ|a|²ptp={f(v.get('inc_modulation_ptp_db'))} "
+                  f"σ={f(v.get('seed_noise_inc_std_db'))} ‖ flashSNR coh={f(hc, '%7.1f')} "
+                  f"inc={f(hi, '%7.1f')} dB → {v['verdict']}", flush=True)
         print(f"    0-경로 인구조사: {J['grid_analysis']['zero_path_census']}", flush=True)
         save()
 

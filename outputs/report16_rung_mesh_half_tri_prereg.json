@@ -1,0 +1,155 @@
+{
+ "rung": "mesh_half_tri",
+ "model_ko": "삼각형 절반 메쉬 (프로펠러 CAD 메쉬를 QEM 으로 50% 간략화)",
+ "written_at": "2026-08-04T11:40:03",
+ "written_before_compute": true,
+ "git_rev": "052ea44",
+ "producer": "benchmark/report16_rung_mesh_half_tri.py --prereg",
+ "baseline_from_base_json": {
+  "file": "outputs/report16_base.json",
+  "paired_slab_minus_mesh": {
+   "mini2": {
+    "n_eff_orders": {
+     "mean": 1.625637333638031,
+     "sd": 1.261247090442173,
+     "frac_positive": 0.9166666666666666,
+     "n": 24
+    },
+    "flash_contrast_db": {
+     "mean": 1.4144311591791834,
+     "sd": 2.0528739389293276,
+     "frac_positive": 0.75,
+     "n": 24
+    },
+    "dc_ac_db": {
+     "mean": 0.5129645710291401,
+     "sd": 2.7741342716814064,
+     "frac_positive": 0.5416666666666666,
+     "n": 24
+    },
+    "width_ratio": {
+     "mean": 0.09874974994748237,
+     "sd": 0.11935530454935506,
+     "frac_positive": 0.4166666666666667,
+     "n": 24
+    }
+   },
+   "matrice4e": {
+    "n_eff_orders": {
+     "mean": 3.904327850299048,
+     "sd": 1.3701361781589034,
+     "frac_positive": 1.0,
+     "n": 24
+    },
+    "flash_contrast_db": {
+     "mean": -0.4806386014050827,
+     "sd": 3.1806344282502743,
+     "frac_positive": 0.5,
+     "n": 24
+    },
+    "dc_ac_db": {
+     "mean": 4.969237656689011,
+     "sd": 1.5325041408644855,
+     "frac_positive": 1.0,
+     "n": 24
+    },
+    "width_ratio": {
+     "mean": 0.09013978087359424,
+     "sd": 0.04619557694786156,
+     "frac_positive": 0.8333333333333334,
+     "n": 24
+    }
+   }
+  },
+  "azimuth_sd_of_flash_contrast_db": {
+   "mini2": 2.2542394198648457,
+   "matrice4e": 2.5107719396474946
+  },
+  "note_ko": "이 단의 «뒤집힘» 은 이 값들의 **부호가 바뀌는 것**을 뜻한다."
+ },
+ "predictions": {
+  "P1_primitive_richness_verdict_survives": {
+   "claim_ko": "base 의 헤드라인 판정 — «평판 프리미티브가 CAD 메쉬보다 하모닉 차수가 더 풍부하다» — 는 삼각형을 절반으로 줄여도 **살아남는다**.",
+   "test": "paired(slab − mesh_half_tri).n_eff_orders : mean > 0 (두 기체 모두) AND frac_positive >= 0.75 (matrice4e)",
+   "reason_ko": "평판이 풍부한 이유가 «CAD 가 덜 촘촘해서» 가 아니라 «평판이 팁까지 각진 채로 잘려 있어서(테이퍼·둥근 팁이 없어서)» 라고 보기 때문이다. 그렇다면 CAD 쪽 해상도를 낮춰도 방향은 안 바뀐다.",
+   "flip_means_ko": "⚠ 뒤집히면 base 결론은 메쉬 해상도의 산물이므로 철회해야 한다.",
+   "thresholds": {
+    "mean_gt": 0.0,
+    "frac_positive_ge": 0.75
+   }
+  },
+  "P2_half_mesh_moves_n_eff_little": {
+   "claim_ko": "삼각형을 절반으로 줄여도 n_eff_orders 는 거의 안 움직인다.",
+   "test": "|paired(mesh_half_tri − mesh).n_eff_orders.mean| <= 1.0 (두 기체 모두)",
+   "reason_ko": "절반으로 줄여도 점 간격은 여전히 λ/50 수준으로 λ/4 보다 훨씬 촘촘하다 — 수렴 영역 안이다. 그리고 QEM 은 부피·면적을 보존한다.",
+   "thresholds": {
+    "abs_mean_le": 1.0
+   }
+  },
+  "P3_half_mesh_moves_flash_little": {
+   "claim_ko": "플래시 대조비도 자세 산포보다 훨씬 덜 움직인다.",
+   "test": "|paired(mesh_half_tri − mesh).flash_contrast_db.mean| <= 1.5 dB (두 기체 모두)",
+   "reason_ko": "플래시는 «블레이드 면이 시선에 수직으로 서는 순간» 이 만든다 — 그 순간의 투영 면적은 삼각형 개수가 아니라 형상이 정한다.",
+   "context_azimuth_sd_db": {
+    "mini2": 2.2542394198648457,
+    "matrice4e": 2.5107719396474946
+   },
+   "thresholds": {
+    "abs_mean_le": 1.5
+   }
+  },
+  "P4_half_mesh_moves_dc_ac_little": {
+   "claim_ko": "동체 대 블레이드 세기비(dc_ac_db)도 1 dB 안으로 움직인다.",
+   "test": "|paired(mesh_half_tri − mesh).dc_ac_db.mean| <= 1.0 dB (두 기체 모두)",
+   "reason_ko": "프레임(동체)은 그대로 두고 프로펠러만 줄였고, QEM 이 블레이드 면적을 보존하므로 두 항 모두 거의 그대로여야 한다.",
+   "thresholds": {
+    "abs_mean_le": 1.0
+   }
+  },
+  "P5_waveform_stays_correlated": {
+   "claim_ko": "파형 자체(AC 복소상관)가 0.90 이상으로 유지된다.",
+   "test": "mean_az corr_AC(mesh_half_tri, mesh) >= 0.90 (두 기체 모두)",
+   "reason_ko": "07-27→08-03 은 블레이드를 **다시 설계**해서 상관이 0.505 까지 떨어졌지만, 간략화는 같은 표면을 성기게 표현할 뿐이다. 다만 얇은 뒷전(trailing edge)이 뭉개질 수 있어 1.00 은 예상하지 않는다.",
+   "thresholds": {
+    "mean_ge": 0.9
+   }
+  },
+  "P6_half_mesh_stays_in_band": {
+   "claim_ko": "절반 메쉬의 AC 전력은 여전히 운동학 가능대역 안에 있다(이산화 잔차가 안 샌다).",
+   "test": "mean_az in_band_ac_frac(mesh_half_tri) >= 0.99 (두 기체 모두)",
+   "reason_ko": "점 간격이 커져도 여전히 λ/50 수준이라 팁속도 위 대역으로 새어 나갈 만큼 거칠지 않다.",
+   "thresholds": {
+    "mean_ge": 0.99
+   }
+  },
+  "P7_cad_dc_ac_advantage_survives": {
+   "claim_ko": "base 에서 CAD 가 이긴 유일한 지표 — «진짜 블레이드가 평판보다 동체 대비 더 세게 돌아온다»(matrice4e +4.97 dB, 24/24) — 도 절반 메쉬에서 살아남는다.",
+   "test": "paired(slab − mesh_half_tri).dc_ac_db : mean > 0 AND frac_positive >= 0.75 (matrice4e)",
+   "reason_ko": "블레이드 면적과 재질 가중이 보존되므로 AC 세기의 절대 수준이 유지된다.",
+   "thresholds": {
+    "mean_gt": 0.0,
+    "frac_positive_ge": 0.75
+   }
+  },
+  "P8_degradation_is_monotone": {
+   "claim_ko": "4분의 1로 줄이면 절반보다 더 많이 어긋난다(해상도에 단조).",
+   "test": "mean corr_AC(mesh_quarter_tri, mesh) < mean corr_AC(mesh_half_tri, mesh) (두 기체 모두)",
+   "reason_ko": "단조가 아니면 그것은 수렴이 아니라 우연이라는 뜻이므로, 이 검사 자체가 실험의 신뢰성 점검이다.",
+   "thresholds": {
+    "strict_less": true
+   }
+  },
+  "P9_point_count_is_not_the_driver": {
+   "claim_ko": "절반 메쉬에 점을 4배 촘촘히 깔아도 지표가 되돌아오지 않는다 — 즉 «표본이 절반이라서» 가 아니라 «형상이 뭉개져서» 다.",
+   "test": "|paired(mesh_half_tri_fine − mesh_fine).n_eff_orders.mean| 이 |paired(mesh_half_tri − mesh).n_eff_orders.mean| 의 0.5배 이상으로 남는다",
+   "reason_ko": "점밀도를 4배로 올리면 삼각형당 표본이 여러 개가 되어 «표본 절반» 효과는 사라진다. 그래도 차이가 남으면 원인은 형상이다.",
+   "note_ko": "⚠ 두 차이가 모두 아주 작으면(≤0.2) 이 검정은 판정력이 없다 — 그때는 INCONCLUSIVE 로 적는다.",
+   "thresholds": {
+    "ratio_ge": 0.5,
+    "both_small_abs": 0.2
+   }
+  }
+ },
+ "how_graded_ko": "계산이 끝나면 이 파일을 다시 읽어 자동 채점한다(PASS/FAIL/INCONCLUSIVE). 결과 JSON 에 이 파일의 sha256 과 mtime 을 박아 순서를 증명한다.",
+ "honesty_note_ko": "⚠ 예측이 틀리는 것이 이 라운드의 실패가 아니다. P1 이나 P7 이 FAIL 이면 base 의 결론을 철회해야 한다는 **중요한 결과**다."
+}

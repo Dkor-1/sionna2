@@ -759,6 +759,43 @@ def compare(arms_out: dict) -> dict:
     return out
 
 
+def reproducibility(J: dict, prev_path: str) -> dict:
+    """⭐ **프로세스를 새로 띄워도 같은 숫자가 나오나** — 이전 실행본과 팔별 headline 을 대조한다.
+
+    시드는 고정이지만 GPU 는 다른 작업과 공유되고 커널 스케줄도 매번 다르다. 재현되지 않으면
+    '널이 조용했다' 는 관측 자체가 우연일 수 있다. 손으로 옮겨 적지 않고 여기서 계산한다."""
+    if not os.path.exists(prev_path):
+        return dict(available=False, path=prev_path)
+    with open(prev_path) as f:
+        prev = json.load(f)
+    keys = ("level_db", "noise_floor_db", "modulation_ptp_db", "modulation_ptp_db_prop",
+            "ptp_over_noise_se", "surface_shift_max_lambda", "vertex_shift_max_lambda")
+    rows, worst = {}, dict(delta=0.0, arm=None, field=None)
+    for grp in ("arms", "arms_hot"):
+        for k, v in (J.get(grp) or {}).items():
+            p = ((prev.get(grp) or {}).get(k) or {}).get("headline")
+            if not p:
+                continue
+            h = v["headline"]
+            d = {}
+            for kk in keys:
+                a, b = h.get(kk), p.get(kk)
+                if a is None or b is None:
+                    continue
+                d[kk] = float(abs(a - b))
+                if d[kk] > worst["delta"]:
+                    worst = dict(delta=d[kk], arm=f"{grp}/{k}", field=kk)
+            same_v = (h.get("modulation_above_noise") == p.get("modulation_above_noise"))
+            rows[f"{grp}/{k}"] = dict(max_abs_delta=(max(d.values()) if d else None),
+                                      verdict_identical=bool(same_v))
+    return dict(available=True, path=prev_path, n_arms_compared=len(rows),
+                max_abs_delta_any=float(worst["delta"]), worst=worst,
+                all_verdicts_identical=bool(all(r["verdict_identical"] for r in rows.values())),
+                bitwise_identical=bool(worst["delta"] == 0.0), by_arm=rows,
+                note_ko=("새 프로세스·다른 GPU 점유 상황에서 다시 돌린 결과와의 차이. "
+                         "0 이면 이 실험의 모든 숫자가 프로세스 간 결정적이다."))
+
+
 def overall_verdict(cmp_: dict, arms_out: dict) -> dict:
     """⭐ 이 실험이 판정을 통과시키는가 — 조건을 코드에 박아 둔다(사후 해석 금지)."""
     floor = cmp_.get("artifact_floor") or {}
@@ -791,6 +828,8 @@ def main():
     ap.add_argument("--arms", default="full,norotor,disc,half,yaw,sphere")
     ap.add_argument("--hot", default="full_mini2,norotor_mini2,disc_mini2,sphere_mini2_carbon",
                     help="정반사가 살아 있는 자세에서 다시 돌릴 팔 (빈 문자열이면 생략)")
+    ap.add_argument("--compare-to", default="",
+                    help="이전 실행본 JSON 경로 — 프로세스 간 재현성을 계산해 담는다")
     ap.add_argument("--quick", action="store_true")
     a = ap.parse_args()
 
@@ -908,6 +947,13 @@ def main():
         J["probe_reference"] = {k: v.get("headline")
                                 for k, v in probe.get("airframes", {}).items()}
         J["probe_reference"]["blockers_source"] = "outputs/report15_probe.json"
+    if a.compare_to:
+        J["reproducibility"] = reproducibility(J, a.compare_to)
+        r = J["reproducibility"]
+        if r.get("available"):
+            print(f"  재현성: 팔 {r['n_arms_compared']}개 대조, 최대 |Δ| = "
+                  f"{r['max_abs_delta_any']:.3e}  판정 전부 동일 = "
+                  f"{r['all_verdicts_identical']}", flush=True)
     J["meta"]["seconds_total"] = float(time.time() - t0)
     _save()
 

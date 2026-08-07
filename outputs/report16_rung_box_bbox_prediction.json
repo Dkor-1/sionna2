@@ -1,0 +1,90 @@
+{
+ "_what": "pre-registered prediction, written BEFORE any micro-Doppler was computed",
+ "written_at": "2026-08-04T11:42:50",
+ "rung": "box_bbox (axis-aligned bounding box of build_drone mesh, PEC)",
+ "stated_by_task_ko": "과제문이 준 사전 예측: «큐브와 비슷하되 종횡비가 달라 주기가 다르게 나올 수 있다». 아래는 그 예측을 검사 가능한 형태로 쪼갠 것이다.",
+ "geometry_inputs": {
+  "mini2": {
+   "mesh_bbox_mm": [
+    203.87094686923112,
+    285.24685558503495,
+    58.69364747970069
+   ],
+   "aspect_xy": 1.3991540234911486,
+   "cube_eqvol_side_mm": 77.86199529578269,
+   "bbox_fill_fraction": 0.13829589248853277,
+   "mesh_bbox_center_offset_from_spin_axis_mm": 24.961779300674614,
+   "r_corner_over_prop_radius": 2.94384978326739
+  },
+  "matrice4e": {
+   "mesh_bbox_mm": [
+    476.2069215316429,
+    594.7407225247171,
+    149.5
+   ],
+   "aspect_xy": 1.2489123858423337,
+   "cube_eqvol_side_mm": 138.23814894388912,
+   "bbox_fill_fraction": 0.062390599287140844,
+   "mesh_bbox_center_offset_from_spin_axis_mm": 14.036627502488471,
+   "r_corner_over_prop_radius": 2.780652022321394
+  }
+ },
+ "items": {
+  "P1_box_is_not_a_null": {
+   "claim_ko": "상자는 회전대칭이 아니므로 **변조가 0 이 아니다**. 등가부피 구(널 팔)보다 in_band_ac_over_dc_db 가 압도적으로 크다.",
+   "test": "box_bbox.in_band_ac_over_dc_db  >>  sphere.in_band_ac_over_dc_db",
+   "threshold_db": 20.0,
+   "confidence": "high"
+  },
+  "P2_period_180_not_90": {
+   "claim_ko": "⭐ 과제문 예측의 알맹이. 정육면체는 방위 90° 대칭이라 AC 선이 **4의 배수 차수**에 선다. 경계상자는 x·y 변 길이가 달라(종횡비 mini2 1.399 · matrice4e 1.249) 90° 대칭이 깨지고 **180° 대칭만** 남는다 → 4의 배수가 아닌 **짝수 차수(2,6,10…)** 가 새로 생기고 dominant_order 가 4 → 2 로 내려간다. 즉 «주기가 다르다» 가 맞다.",
+   "test": "cube_eqvol: sym_corr_90 ≈ 1 이고 order_class mod4==2 몫이 작다;  box_bbox_axis: sym_corr_90 이 뚜렷이 낮고 sym_corr_180 ≈ 1, mod4==2 몫이 크다",
+   "threshold": {
+    "cube_sym90_min": 0.9,
+    "box_sym90_max": 0.5,
+    "box_sym180_min": 0.9
+   },
+   "confidence": "high"
+  },
+  "P2b_offaxis_gives_odd_orders": {
+   "claim_ko": "경계상자의 중심은 회전축에서 벗어나 있다(mini2 25.0 mm · matrice4e 14.0 mm). 축을 벗어난 강체가 돌면 위상중심이 원을 그리므로 **홀수 차수(특히 1차)** 가 생긴다. 축 위에 올린 box_bbox_axis 에서는 그 홀수 성분이 사라져야 한다.",
+   "test": "odd_order_frac(box_bbox) > odd_order_frac(box_bbox_axis), 후자는 ~0",
+   "confidence": "high"
+  },
+  "P3_width_exceeds_prop_tip": {
+   "claim_ko": "상자 모서리 회전반경이 프롭 반경보다 크다(mini2 2.94× · matrice4e 2.78×). 도플러 폭은 회전반경에 비례하므로 width_ratio(프롭 f_tip 기준)가 **1 을 크게 넘는다** — 상자는 «너무 넓은» 마이크로도플러를 낸다. 상한은 모서리비 그 자체다.",
+   "test": "1.0 < width_ratio(box_bbox) <= r_corner_over_prop_radius (오차 1차수 이내)",
+   "predicted_upper": {
+    "mini2": 2.94384978326739,
+    "matrice4e": 2.780652022321394
+   },
+   "confidence": "high"
+  },
+  "P4_in_band_gate_will_misjudge_the_box": {
+   "claim_ko": "⭐ 지표 자체에 대한 예측. report16_base 의 in_band 판정기는 대역을 1.5·β(프롭 반경 기준)로 잡는다. 상자의 진짜 내용은 그보다 바깥에 있으므로 판정기가 상자를 «해석 불가(이산화 잔차)» 로 잘못 찍을 것이다. 상자 자신의 β(모서리 기준)로 다시 재면 in_band 가 회복돼야 한다 — 즉 이 판정기는 «표적 반경 = 프롭 반경» 을 암묵적으로 가정하고 있다.",
+   "test": "in_band_ac_frac(protocol gauge) < 0.5  이면서  in_band_ac_frac(own gauge) > 0.9",
+   "confidence": "medium"
+  },
+  "P5_flash_not_smaller_than_mesh": {
+   "claim_ko": "상자의 평평한 옆면은 시선과 수직이 되는 순간 통짜 정반사를 낸다. 진짜 블레이드는 비틀림·캠버·테이퍼 때문에 스팬이 동시에 정렬되지 못해 봉우리가 번진다. 따라서 flash_contrast_db 는 상자가 CAD 메쉬보다 **작지 않을** 것이다(크거나 비슷).",
+   "test": "paired(box_bbox − mesh).flash_contrast_db 의 mean ≥ 0",
+   "confidence": "low",
+   "why_low_ko": "메쉬 팔은 정적 프레임의 큰 DC 를 갖고 있어 flash_contrast 의 바닥(median)이 다르게 잡힌다. 방향이 뒤집힐 여지가 있다."
+  },
+  "P6_blade_comb_cannot_tell_them_apart": {
+   "claim_ko": "⚠ 함정 예고. blade_comb_frac 은 «블레이드 수의 배수 차수» 에 실린 몫인데, 블레이드가 2장이라 그 빗은 «짝수 차수» 다. 그런데 축 위의 상자도 180° 대칭이라 짝수 차수에만 선다 → **상자의 blade_comb_frac 도 1 에 가깝게 나온다**. 즉 이 지표는 «돌아가는 상자» 와 «진짜 블레이드» 를 구별하지 못한다.",
+   "test": "blade_comb_frac(box_bbox_axis) > 0.9  이고  |blade_comb_frac(box) − mesh| < 0.2",
+   "confidence": "high"
+  },
+  "P7_direction_of_richness_unknown": {
+   "claim_ko": "⛔ 방향을 미리 정하지 않는 항목. 기준 라운드에서 «평판 프리미티브가 CAD 메쉬보다 n_eff_orders 가 컸다»(matrice4e +3.90, 24/24 방위). 상자에서도 프리미티브가 더 풍부할 수 있다. 어느 쪽이든 그대로 적는다 — 상자가 더 풍부하면 «형상 정밀도가 마이크로도플러를 더해 주지 않는다» 는 뜻이고, 그것은 교수 지적을 뒷받침한다.",
+   "test": "부호를 예측하지 않는다. paired(box − mesh).n_eff_orders 의 frac_positive 를 그대로 기록",
+   "confidence": "none (deliberately unpredicted)"
+  },
+  "P8_kernel_comfort_asymmetry": {
+   "claim_ko": "상자의 면은 어느 대역에서도 파장보다 훨씬 크므로 PO 유효 무릎 위에 있다. 진짜 블레이드는 3.5 GHz 에서 무릎 아래다. 따라서 3.5 GHz 결과는 «상자에 유리한 판» 이고, 15.86 GHz 에서 두 대역의 방향이 일치해야 형상 효과라고 부를 수 있다.",
+   "test": "hi_band 에서 paired 차이의 부호가 main 과 같은가",
+   "confidence": "medium"
+  }
+ }
+}

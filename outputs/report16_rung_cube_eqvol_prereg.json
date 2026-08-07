@@ -1,0 +1,146 @@
+{
+ "geometry_note_ko": "이 값들은 메쉬 부피와 파장만으로 나온다 — 산란 계산이 전혀 들어가지 않는다. 그래서 예측으로 미리 적을 자격이 있다.",
+ "geometry_only_predictions": {
+  "matrice4e": {
+   "cube_rmax_inplane_m": 0.09774913253689997,
+   "cube_side_m": 0.13823814894388914,
+   "drone_solid_volume_m3": 0.0026417014189455343,
+   "hi": {
+    "beta_blade": 87.97447612082047,
+    "beta_cube_predicted": 62.76955274597387,
+    "blade_fundamental_order": 2,
+    "cube_fundamental_order": 4,
+    "cube_side_over_lambda": 7.313249495589652,
+    "f_rot_hz": 63.333333333333336,
+    "fc_hz": 15860000000.0,
+    "lambda_m": 0.018902424842370744,
+    "n_phase": 1024,
+    "predicted_edge_order_cube": 62.76955274597387,
+    "predicted_edge_order_cube_quantised_to_multiple_of_4": 64,
+    "predicted_fd_edge_cube_hz": 3975.405007245012,
+    "ratio_beta_cube_over_blade": 0.7134973177875908
+   },
+   "hover_rpm": 3800.0,
+   "main": {
+    "beta_blade": 19.41429170383806,
+    "beta_cube_predicted": 13.852045057434337,
+    "blade_fundamental_order": 2,
+    "cube_fundamental_order": 4,
+    "cube_side_over_lambda": 1.6138949076017515,
+    "f_rot_hz": 63.333333333333336,
+    "fc_hz": 3500000000.0,
+    "lambda_m": 0.085654988,
+    "n_phase": 256,
+    "predicted_edge_order_cube": 13.852045057434337,
+    "predicted_edge_order_cube_quantised_to_multiple_of_4": 12,
+    "predicted_fd_edge_cube_hz": 877.2961869708414,
+    "ratio_beta_cube_over_blade": 0.7134973177875911
+   },
+   "prop_blades": 2,
+   "prop_tip_radius_m": 0.137,
+   "sphere_r_equal_volume_m": 0.085756103558366
+  },
+  "mini2": {
+   "cube_rmax_inplane_m": 0.055056744870363,
+   "cube_side_m": 0.0778619952957827,
+   "drone_solid_volume_m3": 0.00047203759211010706,
+   "hi": {
+    "beta_blade": 38.24000038682378,
+    "beta_cube_predicted": 35.35465902837849,
+    "blade_fundamental_order": 2,
+    "cube_fundamental_order": 4,
+    "cube_side_over_lambda": 4.11915380937006,
+    "f_rot_hz": 153.33333333333334,
+    "fc_hz": 15860000000.0,
+    "lambda_m": 0.018902424842370744,
+    "n_phase": 512,
+    "predicted_edge_order_cube": 35.35465902837849,
+    "predicted_edge_order_cube_quantised_to_multiple_of_4": 36,
+    "predicted_fd_edge_cube_hz": 5421.047717684703,
+    "ratio_beta_cube_over_blade": 0.9245465133562216
+   },
+   "hover_rpm": 9200.0,
+   "main": {
+    "beta_blade": 8.438839934040557,
+    "beta_cube_predicted": 7.802100037788445,
+    "blade_fundamental_order": 2,
+    "cube_fundamental_order": 4,
+    "cube_side_over_lambda": 0.9090188103906184,
+    "f_rot_hz": 153.33333333333334,
+    "fc_hz": 3500000000.0,
+    "lambda_m": 0.085654988,
+    "n_phase": 128,
+    "predicted_edge_order_cube": 7.802100037788445,
+    "predicted_edge_order_cube_quantised_to_multiple_of_4": 8,
+    "predicted_fd_edge_cube_hz": 1196.3220057942283,
+    "ratio_beta_cube_over_blade": 0.9245465133562217
+   },
+   "prop_blades": 2,
+   "prop_tip_radius_m": 0.05955,
+   "sphere_r_equal_volume_m": 0.04830172700414557
+  }
+ },
+ "prediction": {
+  "P1_cube_modulates_at_all": {
+   "claim_ko": "정육면체는 구와 달리 실제로 변조를 낸다. 구 팔(등가부피 구)이 주는 «계산기 바닥» 보다 한참 위여야 한다.",
+   "direction": "greater",
+   "statistic": "in_band_ac_over_dc_db(cube) - in_band_ac_over_dc_db(sphere)",
+   "threshold_db": 20.0,
+   "why_ko": "구는 회전대칭이라 물리적 변조가 0 이다 — 남는 값은 수치잡음뿐이다."
+  },
+  "P2_period_is_90deg_not_180deg": {
+   "claim_ko": "정육면체를 z 축으로 돌리면 90° 마다 똑같은 모양이 된다(4겹 대칭). 그래서 AC 전력은 **4의 배수 차수**에만 실려야 한다. 나머지는 점 깔기(이산화)가 남긴 찌꺼기여야 하고, 점을 4배 촘촘히 깔면 줄어야 한다.",
+   "direction": "greater",
+   "secondary": "dominant AC order must be a multiple of 4",
+   "statistic": "AC power fraction on orders with |m| mod 4 == 0",
+   "threshold": 0.95,
+   "why_ko": "정육면체 옆면 4장이 차례로 돌아오기 때문이다. 위·아래 면은 삼각형 2장으로 쪼개져 있어 **점 배치만** 2겹 대칭이다 — 여기서 작은 order-2 찌꺼기가 나올 수 있다."
+  },
+  "P3_blade_line_is_absent": {
+   "claim_ko": "진짜 드론의 으뜸 블레이드 선은 **차수 2**(블레이드 2장 → 180° 주기)다. 정육면체는 그 자리에 선을 세울 수 없다.",
+   "direction_a": "greater",
+   "direction_b": "less",
+   "direction_c": "less",
+   "statistic_a": "AC power fraction on orders |m| mod 4 == 2, CAD mesh (blades spinning)",
+   "statistic_b": "AC power fraction on orders |m| mod 4 == 2, cube",
+   "statistic_c": "|AC waveform correlation| between cube and CAD mesh, mean over 24 azimuths",
+   "threshold_a": 0.1,
+   "threshold_b": 0.05,
+   "threshold_c": 0.3
+  },
+  "P4_width_is_set_by_its_own_corner_radius": {
+   "band": [
+    0.4,
+    1.3
+   ],
+   "claim_ko": "스펙트럼 폭은 **자기 모서리 반경**이 정한다 — 프로펠러 팁이 아니다. 회전축에서 가장 먼 점이 정육면체는 모서리(a/√2), 드론은 블레이드 팁(R)이다.",
+   "formula": "beta_cube = 2*k*(a/sqrt(2))*cos(el) ,  beta_blade = 2*k*R*cos(el)",
+   "note_ko": "a/√2 < R 인 matrice4e 에서는 정육면체 쪽이 뚜렷이 좁아야 하고, 둘이 비슷한 mini2 에서는 비슷해야 한다.",
+   "statistic": "order_edge_20db(cube) / beta_cube",
+   "why_ko": "모든 산란점의 왕복 위상이 회전각에 대해 변하는 속도의 상한이 2k·ρ_max·cos(el) 이고, ρ_max 가 곧 회전축에서 가장 먼 거리다. 이 값이 베셀 차수 절단이자 f_tip/f_rot 이다."
+  },
+  "P5_azimuth_ensemble_is_degenerate_for_a_rigid_spinner": {
+   "claim_ko": "⭐ 온몸이 도는 물체는 «보는 방위를 바꾸는 것» 과 «회전 위상을 옮기는 것» 이 같은 조작이다. 그래서 24 방위 앙상블이 서로 **독립이 아니다** — 같은 신호를 시간축에서 밀어 본 것뿐이다. 스펙트럼 크기 지표는 방위에 따라 정확히 불변이어야 한다.",
+   "consequence_ko": "이 사실이 이 단의 핵심 함의다: **온몸 회전 프리미티브의 마이크로도플러는 그 물체의 정적 방위 패턴을 회전 속도로 읽은 것과 같다.** 즉 ε(방위 산포) 축과 마이크로도플러 축이 **같은 축**이다 — 새 정보가 아니다. 진짜 드론은 몸통이 돌지 않으므로 두 축이 다르다.",
+   "contrast": "same statistic for the real drone (blades spinning) is not degenerate",
+   "direction": "less",
+   "statistic": "sd over 24 azimuths of n_eff_orders (cube)",
+   "threshold": 1e-06
+  },
+  "P6_mechanism_identity": {
+   "claim_ko": "위 P5 의 기계적 증명. 도는 정육면체의 위상표 E(φ) 는 **가만히 있는** 정육면체를 방위 −φ 에서 본 값과 부동소수 오차까지 같아야 한다.",
+   "direction": "less",
+   "statistic": "max relative difference between rotating table and static azimuth cut",
+   "threshold": 1e-12
+  },
+  "one_line_ko": "변조는 나온다. 다만 블레이드가 만든 변조가 아니라 **모서리·면이 만든 변조**라서 주기와 모양이 달라야 한다.",
+  "thresholds_are_prereg_ko": "문턱값(20 dB · 0.95 · 0.10 · 0.05 · 0.30 · [0.40,1.30] · 1e-6 · 1e-12)은 계산 전에 사람이 정한 **판정선**이다. 측정값·예측값은 전부 계산 결과다.",
+  "what_would_falsify_ko": "P2 가 깨지면(4의 배수 밖에 전력이 많으면) «모서리 변조» 라는 그림 자체가 틀린 것이다. P3-c 의 상관이 높게 나오면 정육면체가 블레이드 신호를 흉내낸다는 뜻이고, 그러면 «마이크로도플러에서는 형상이 값어치가 있다» 는 우리 기대가 무너진다 — 그 결과도 그대로 적는다.",
+  "written_before_any_field_computation": true
+ },
+ "producer": "benchmark/report16_rung_cube_eqvol.py :: write_prereg()",
+ "sha256_of_body": "09ca80adc6630bfad1ddd38df6eec728d9447b3fa92e61cb3b6e2000b93701aa",
+ "what": "report16 사다리 — 등가부피 정육면체 마이크로도플러. ⭐ 이 파일은 어떤 전자기 계산보다 **먼저** 기록된다.",
+ "written_at": "2026-08-04T12:11:36",
+ "written_at_epoch": 1785845496.811394
+}
