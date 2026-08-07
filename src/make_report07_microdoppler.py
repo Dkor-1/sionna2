@@ -1,0 +1,227 @@
+# -*- coding: utf-8 -*-
+"""
+make_report07_microdoppler.py — 리포트 07 「마이크로도플러」 → report07_microdoppler.ipynb
+==========================================================================================
+⭐ 이 편의 중심 메시지 **하나**
+
+    도는 로터가 만드는 무늬는 **회전수·가림·자세** 가 정한다.
+    그 셋을 안 흔들면 무늬는 시간에 따라 **변할 수 없다** — 그건 물리가 아니라 가정의 성질이다.
+
+왜 새 편인가
+------------
+이 내용은 리포트 00 §4a 에 한 셀로 눌려 있었다. 2026-08-07 재계산으로 근거가 세 배로 늘어
+한 셀에 안 들어간다. `docs/REPORTS_RESTRUCTURE.md` 가 마이크로도플러를 **부 7(편 33~36)** 로
+독립시키라고 적어 뒀고(그 표에 «JSON 만 있고 서술 문서 없음»이라 표시돼 있다), 이 편이 그 첫 걸음이다.
+사용자 지시 — *"뭘 빼지말고 리포트를 재구성해서 더 여러개로 만들거나해"* · *"한 리포트 당 하나의 중심 메시지"*.
+
+근거 파일
+    outputs/report00_microdoppler.json   — 두 엔진 대조 + 정반사 인구조사(2026-08-04)
+    outputs/report15b_microdoppler.json  — ⭐재계산(로터별 rpm · 가림 단일축 · 긴 창, 2026-08-07)
+    outputs/md_range_sweep.json          — 상시 기준신호 반복률 대 필요 PRF
+
+그림
+    outputs/figures/report15b_f1.png   스펙트로그램 — 회전수가 같을 때 ↔ 흩어질 때
+    outputs/figures/report15b_f2.png   가림 단일축 — 동체가 막을 때 ↔ 안 막을 때
+    outputs/figures/report15b_f3.png   자세·기체별 요약
+    outputs/figures/report15b_f1b.png  같은 그림, DJI Mini 5 Pro (⚠메쉬에 겹침 잔존)
+
+실행
+    cd /home/yunjung/workspace/sionna2
+    PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report07_microdoppler.py
+
+⚠ GPU 도 Sionna 도 필요 없다 — JSON 을 읽어 노트북을 조립할 뿐이다.
+"""
+from __future__ import annotations
+
+import os
+import sys
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_ROOT = os.path.abspath(os.path.join(_HERE, ".."))
+for _p in (_HERE, os.path.join(_ROOT, "benchmark")):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+from report_style import (build_notebook, caption, fetch, header, md,     # noqa: E402
+                          next_steps, num)
+
+MDP = "outputs/report00_microdoppler.json"
+MDB = "outputs/report15b_microdoppler.json"
+RNG = "outputs/md_range_sweep.json"
+
+NB_OUT = os.path.join(_ROOT, "report07_microdoppler.ipynb")
+FIG = "outputs/figures"
+
+LEAD = "cells.matrice4e/belly"      # 헤드라인 칸 — 메쉬가 깨끗하고(겹침 0.01%) 1차 실측 표적
+
+
+def _n(key: str, src: str, fmt: str | None = None, unit: str = "") -> str:
+    return num(None, (src, key), fmt, unit)
+
+
+def _fig(no: int, stem: str, question: str) -> list[str]:
+    return [f"![{stem}]({FIG}/{stem}.png)", "", caption(no, question)]
+
+
+def blocks():
+    return [
+        header(
+            num=7,
+            title="마이크로도플러: 도는 로터가 만드는 무늬를 무엇이 정하는가",
+            did="로터를 돌려가며 매 시간표본마다 다시 추적해 슬로타임 복소열을 만들고, "
+                "회전수·가림·자세 셋을 각각 단일축으로 흔들어 무늬가 어떻게 바뀌는지를 쟀다.",
+            results=[
+                f"네 로터를 **같은 회전수로** 돌리면 반창 스펙트럼 상관이 "
+                f"{_n(LEAD + '.findings.rpm_spread_makes_it_time_varying.locked_half_corr', MDB, '{:.4f}')} "
+                f"다 — 신호가 완전한 주기함수라 스펙트로그램이 창 내내 같은 모습으로 선다. "
+                f"로터마다 흩뜨리면 "
+                f"{_n(LEAD + '.findings.rpm_spread_makes_it_time_varying.spread_half_corr', MDB, '{:.4f}')} "
+                f"로 내려가고 그때 줄무늬가 숨쉰다.",
+
+                f"동체가 날개를 가리면 변조 깊이가 "
+                f"{_n(LEAD + '.findings.occlusion_ptp_db', MDB, '{:+.2f}', 'dB')}, 레벨이 "
+                f"{_n(LEAD + '.findings.occlusion_level_db', MDB, '{:+.2f}', 'dB')} 바뀐다 — "
+                f"광선 엔진·재질·기하·운동학·광선 격자를 전부 같게 두고 «동체가 막느냐» 만 다르게 한 값이다.",
+
+                f"프로펠러가 동체 위에 있어 **위에서 보면 날개가 통째로 드러난다**. "
+                f"지상 레이더는 기체를 아래에서 보므로 앙각이 음수다 — 그래서 이 편의 자세는 배 쪽이다.",
+
+                f"자세×로터위상 {_n('specular_census.total.n_cells', MDP, '{:,.0f}', '칸')} 전수에서 "
+                f"프로펠러에 떨어진 정반사 경로는 "
+                f"{_n('specular_census.total.n_with_prop_specular', MDP, '{:.0f}', '칸')} 이다 — "
+                f"위상은 광선 엔진이, 세기는 PO 커널이 맡는 이유가 여기 있다.",
+
+                f"⚠ 상시 기준신호로는 **날개끝 도플러를 못 본다**. 필요 표본율이 "
+                f"{_n('cells[0].prf_feasibility.LTE CRS.required_prf_hz', RNG, '{:.0f}', 'Hz')} 인데 "
+                f"LTE CRS 는 {_n('cells[0].prf_feasibility.LTE CRS.mode_prf_hz', RNG, '{:.0f}', 'Hz')} 다. "
+                f"살아남는 것은 **블레이드 통과율(플래시선)** 뿐이다.",
+            ],
+            method=[
+                ("슬로타임 복소열",
+                 "시간표본마다 로터 위상을 다시 놓고 광선을 다시 쏜다 — "
+                 "위상 하나짜리 표를 쓰지 않으므로 로터마다 회전수를 다르게 줄 수 있다"),
+                ("무엇이 그것을 가능하게 했나",
+                 "`src/articulated_fast.py` — 드론을 한 번 짓고 위상마다 행렬곱만 한다. "
+                 "정점 배열이 옛 함수와 비트 단위로 같다"),
+                ("가림 단일축",
+                 "한쪽은 동체를 완전흡수(Γ=0)로 두어 막되 산란은 안 하게 하고, "
+                 "다른 쪽은 동체 면만 빼되 정점은 남겨 광선 격자를 같게 유지한다"),
+                ("도플러 분해능",
+                 "창에 든 블레이드 주기 수가 정한다. 표본 수를 늘려도 안 좋아진다"),
+                ("헤드라인 기체 선택",
+                 "DJI Matrice 4E — 프롭·벨 겹침이 0.01 % 로 정리됐고 1차 실측 표적이다. "
+                 "Mini 5 Pro 는 겹침이 남아 있어 따로 싣는다"),
+            ],
+            repro=dict(
+                cmd=[
+                    "PYTHONPATH=src python benchmark/report15b_microdoppler_recompute.py",
+                    "PYTHONPATH=src python benchmark/report15b_stamp_provenance.py",
+                    "PYTHONPATH=src python benchmark/build_report15b_figs.py",
+                    "PYTHONPATH=src python src/make_report07_microdoppler.py",
+                ],
+                out=[MDB, "outputs/report15b_series.npz"],
+                runtime="약 25분 (GPU 1장 — 광선 추적이 6칸 × 4팔)",
+                note="산출물이 자기가 어떤 메쉬로 계산됐는지 지문을 함께 적는다"
+                     "(`mesh_provenance`) — 계산 도중 메쉬가 바뀌면 스스로 경고한다"),
+        ),
+
+        # ═══ §1 ════════════════════════════════════════════════════════════
+        md("## §1. 무엇을 재는가 — 슬로타임 복소열", "",
+           "표적이 제자리에 떠 있어도 날개는 돈다. 날개 표면의 점들이 시간에 따라 자리를 바꾸므로 "
+           "왕복 위상이 변조되고, 그것이 되돌아오는 신호의 느린 시간축에 실린다. "
+           "우리는 그 열을 **시간표본마다 자세를 새로 놓고 광선을 다시 쏘아** 만든다.", "",
+           "왜 그렇게까지 하는가. 로터마다 회전수를 다르게 주려면 드론 전체 자세가 각도 하나의 "
+           "함수가 아니게 되고, 그러면 «위상 하나짜리 표를 미리 만들어 두고 조회한다» 는 지름길이 "
+           "막힌다. 조립을 싸게 만들어 그 지름길을 버렸다.", "",
+           f"이 편의 헤드라인 칸은 {_n(LEAD + '.name', MDB)} 를 배 쪽에서 본 것이다 — "
+           f"방위 {_n(LEAD + '.az_deg', MDB, '{:.0f}', '도')} · 앙각 "
+           f"{_n(LEAD + '.el_deg', MDB, '{:.0f}', '도')}, "
+           f"호버 {_n(LEAD + '.physics.rpm', MDB, '{:.0f}', 'rpm')}, "
+           f"운동학이 예측하는 날개끝 주파수 "
+           f"{_n(LEAD + '.physics.f_tip', MDB, '{:.0f}', 'Hz')}, "
+           f"블레이드 통과율 {_n(LEAD + '.physics.f_flash', MDB, '{:.1f}', 'Hz')}."),
+
+        # ═══ §2 ════════════════════════════════════════════════════════════
+        md("## §2. 회전수가 같으면 무늬는 시간에 못 변한다", "",
+           *_fig(1, "report15b_f1",
+                 "네 로터가 같은 회전수로 돌 때와 흩어질 때, 무늬가 시간에 따라 어떻게 다른가?"),
+           f"왼쪽은 네 로터를 같은 회전수로 돌린 것이다. 줄무늬가 시간축 내내 **같은 자리에 선다**. "
+           f"창을 반으로 갈라 두 스펙트럼의 상관을 재면 "
+           f"{_n(LEAD + '.findings.rpm_spread_makes_it_time_varying.locked_half_corr', MDB, '{:.4f}')} "
+           f"다. 우연이 아니라 **원리**다 — 네 로터가 같은 속도로 위상까지 맞춰 돌면 신호가 "
+           f"완전한 주기함수가 되고, 주기함수의 스펙트로그램은 창 내내 자기 모습을 지킨다.", "",
+           f"오른쪽은 로터마다 회전수를 "
+           f"{_n('_meta.rpm_spread_frac', MDB, '{:.0%}')} 흩뜨린 것이다. 상관이 "
+           f"{_n(LEAD + '.findings.rpm_spread_makes_it_time_varying.spread_half_corr', MDB, '{:.4f}')} "
+           f"로 내려가고 줄이 숨쉬듯 흔들린다.", "",
+           f"⚠ 흩어짐 폭은 **선언된 가정**이다 — 실측 비행 로그는 앞으로 확보한다. "
+           f"실제 기체는 무게중심 치우침과 요 토크 균형 때문에 네 모터가 서로 다른 추력을 내고 "
+           f"그만큼 회전수가 갈린다. 그 폭은 우리 표적에서 측정 대기 상태다. "
+           f"근거는 `{MDB} : _meta.spread_is_declared_ko` 에 적었다."),
+
+        # ═══ §3 ════════════════════════════════════════════════════════════
+        md("## §3. 동체가 날개를 가리면", "",
+           *_fig(2, "report15b_f2",
+                 "같은 광선·같은 메쉬·같은 운동에서 동체가 막으면 무엇이 달라지는가?"),
+           "가림만 남기고 다른 것을 전부 묶었다. 한쪽은 동체를 완전흡수로 두어 **광선은 막되 "
+           "산란은 안 하게** 하고, 다른 쪽은 동체 면만 빼되 정점 배열은 남겨 두었다 — "
+           "정점을 남기면 경계상자가 같아서 두 팔의 광선 수와 간격이 같아진다. "
+           "정점을 빼면 «가림» 과 «표본화» 가 섞인다.", "",
+           f"결과는 변조 깊이 "
+           f"{_n(LEAD + '.findings.occlusion_ptp_db', MDB, '{:+.2f}', 'dB')} · 레벨 "
+           f"{_n(LEAD + '.findings.occlusion_level_db', MDB, '{:+.2f}', 'dB')} 다. "
+           f"같은 그림의 오른쪽에서 운동학이 예측한 날개끝 주파수 안쪽에 빗살이 서고 "
+           f"바깥에서 떨어지는 것도 읽힌다.", "",
+           f"⚠ 부호를 물리로 단정하지 않는다. 합이 코히런트라 항이 줄어도 남은 항끼리 상쇄가 "
+           f"덜 되면 레벨이 **올라갈 수 있다** — 실제로 그런 칸이 있다. "
+           f"근거는 `{MDB} : cells.*.findings.occlusion_sign_note_ko`."),
+
+        # ═══ §4 ════════════════════════════════════════════════════════════
+        md("## §4. 자세가 답을 바꾼다", "",
+           *_fig(3, "report15b_f3", "기체와 자세를 바꾸면 가림과 시간변동성이 어떻게 달라지는가?"),
+           "프로펠러는 동체 **위**에 있다. 그래서 위에서 내려다보면 날개가 통째로 드러나고, 그 자세에서 "
+           "가림은 0 에 가깝다. 지상 레이더는 비행 중인 기체를 **아래에서** 보므로 기체 좌표계로 "
+           "앙각이 음수이고, 거기서 가림이 문다.", "",
+           "이것은 우리 자유공간 명세가 이미 적어 둔 것과 같은 결론이다 — 자유공간 바이스태틱의 "
+           "이등분선 앙각은 전 구간 음수라 우리는 드론 배를 본다. 자세 스윕이 그 문장에 "
+           "독립적인 근거를 붙였다.", "",
+           f"⚠ Mini 5 Pro 는 프로펠러와 모터 벨이 겹친 삼각형이 남아 있어 헤드라인에서 뺐다. "
+           f"같은 그림을 그 기체로도 그려 `{FIG}/report15b_f1b.png` · `report15b_f2b.png` 에 뒀다 — "
+           f"겹침이 정리되기 전 값이라는 것을 알고 읽어야 한다."),
+
+        # ═══ §5 ════════════════════════════════════════════════════════════
+        md("## §5. 상시 신호로는 어디까지 보이는가", "",
+           f"패시브 레이더는 남이 쏘는 신호를 쓴다. 그 신호가 얼마나 자주 반복되는지가 "
+           f"우리가 볼 수 있는 도플러의 상한을 정한다. 날개끝 도플러를 접힘 없이 보려면 "
+           f"표본율이 그 두 배는 돼야 하는데, "
+           f"{_n('cells[0].prf_feasibility.LTE CRS.required_prf_hz', RNG, '{:.0f}', 'Hz')} 가 필요한 자리에 "
+           f"LTE CRS 는 {_n('cells[0].prf_feasibility.LTE CRS.mode_prf_hz', RNG, '{:.0f}', 'Hz')}, "
+           f"5G SSB 는 {_n('cells[0].prf_feasibility.5G SSB.mode_prf_hz', RNG, '{:.0f}', 'Hz')} 다.", "",
+           f"⚠ 그래서 상시 신호가 주는 것은 **블레이드 통과율까지**다. "
+           f"헤드라인 기체의 "
+           f"{_n(LEAD + '.physics.f_flash', MDB, '{:.1f}', 'Hz')} 는 LTE·WiFi 의 나이퀴스트 안에 든다. "
+           f"5G 쪽 두 모드에서는 그 통과율마저 접힌다.", "",
+           "⭐ 이 구분이 실험 설계를 바꾼다. 날개끝 확산을 보려면 기준 안테나가 **풀 파형을 "
+           "받아야** 하고, 그건 «상시 신호만 쓴다» 와 다른 조건이다. "
+           "통과율만으로 무엇을 할 수 있는지가 별도 질문으로 남는다."),
+
+        next_steps([
+            ("비행 로그의 모터별 회전수를 넣는다",
+             "지금 선언된 가정으로 둔 흩어짐 폭이 측정값으로 바뀐다",
+             "실측 1차 · Matrice 4E"),
+            ("가림을 자세 전면으로 넓힌다",
+             "어느 자세에서 얼마나 무는지의 지도가 서고, 그 지도가 분류기의 입력이 된다",
+             "이 편 §3 을 격자로"),
+            ("통과율만 보이는 조건에서 탐지·분류를 돌린다",
+             "상시 신호만으로 어디까지 가는지가 수치로 갈린다",
+             "이 편 §5"),
+            ("지면 반사가 만드는 선을 블레이드 선과 대조한다",
+             "환경이 이 무늬를 훼손하는지, 가짜 선이 구별되는지가 정해진다",
+             "야외 사이트 트윈"),
+        ]),
+    ]
+
+
+if __name__ == "__main__":
+    rep = build_notebook(NB_OUT, blocks(), strict=True)
+    print(f"\n→ {os.path.basename(NB_OUT)}  ({rep})")

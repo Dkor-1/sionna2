@@ -70,6 +70,7 @@ EVD = "outputs/report00_evidence.json"
 POC = "outputs/report00_po_case.json"
 DEC = "outputs/report00_decision_map.json"
 MDP = "outputs/report00_microdoppler.json"
+MDB = "outputs/report15b_microdoppler.json"   # 2026-08-07 재계산(로터별 rpm·가림 단일축)
 
 NB_OUT = os.path.join(_ROOT, "report00_foundations.ipynb")
 FIG = "outputs/figures"
@@ -90,6 +91,11 @@ def _n(key: str, src: str, fmt: str | None = None, unit: str = "") -> str:
 def _fig(no: int, name: str, question: str) -> list[str]:
     """그림 한 장 = 마크다운 이미지 + 질문 캡션 한 줄(§5.6-2)."""
     return [f"![report00 {name}]({FIG}/report00_{name}.png)", "", caption(no, question)]
+
+
+def _ext_fig(no: int, stem: str, question: str) -> list[str]:
+    """report00 이 아닌 다른 산출물의 그림을 싣는다(파일명이 report00_* 가 아닌 것)."""
+    return [f"![{stem}]({FIG}/{stem}.png)", "", caption(no, question)]
 
 
 # --------------------------------------------------------------------------- #
@@ -370,31 +376,9 @@ def blocks():
            "다중경로에서는 직접파와 바닥 반사가 서로 다른 방향에서 동시에 표적을 때리므로 "
            "표적 항이 방향마다 달라진다. 커널의 "
            f"{_n('s2_our_kernel.derivation[7].statement', POC)} 가 보여주듯 "
-           "각 조명 방향마다 다른 E 가 나온다. 그때는 오른쪽 칸의 실험도 왼쪽으로 이사한다."),
-
-        # ═══ §4a ═══════════════════════════════════════════════════════════
-        md("## §4a. 결정표를 한 사례로 시험한다 — 마이크로도플러", "",
-           "날개가 도는 것을 보는 일은 **비율**만 필요하므로 표의 오른쪽 칸에 앉아야 한다. "
-           "로터를 같은 각도씩 돌리고 매번 처음부터 다시 계산한 세 팔을 나란히 놓았다 — "
-           "거리·자세·재질·주파수가 전부 같고, ③ 은 널 대조다(구는 어느 방향에서 봐도 같은 "
-           "모양이라 변조가 원리적으로 0 이다).",
-           *_fig(5, "f5", "같은 로터를 두 엔진으로 돌리면 무늬가 닮는가, 그리고 구는 조용한가?"),
-           "| 기체 | ① Sionna | ② 우리 PO 커널 | ③ 같은 부피의 구 |",
-           "|---|---|---|---|",
-           f"| DJI Mini 2 | {_n('rows[0].ptp_sionna_db', MDP, '{:.2f}', 'dB')} | "
-           f"{_n('rows[0].ptp_po_db', MDP, '{:.2f}', 'dB')} | "
-           f"**{_n('rows[0].ptp_sphere_db', MDP, '{:.2f}', 'dB')}** |",
-           f"| DJI Matrice 4E | {_n('rows[1].ptp_sionna_db', MDP, '{:.2f}', 'dB')} | "
-           f"{_n('rows[1].ptp_po_db', MDP, '{:.2f}', 'dB')} | "
-           f"**{_n('rows[1].ptp_sphere_db', MDP, '{:.2f}', 'dB')}** |",
-           "⭐ ①②의 무늬가 닮고 ③ 이 검게 남는다 — **Sionna 는 도는 기하의 왕복 위상을 따라간다**.", "",
-           f"⚠ 다만 세기의 출처가 다르다. 자세×로터위상 "
-           f"{_n('specular_census.total.n_cells', MDP, '{:,.0f}', '칸')} 전수에서 Sionna 의 거울반사는 "
-           f"{_n('specular_census.total.n_with_specular', MDP, '{:.0f}', '칸')}(전부 짐벌 렌즈면)이고, "
-           f"프로펠러에서는 {_n('specular_census.total.n_with_prop_specular', MDP, '{:.0f}', '칸')} 이다"
-           f"(대조 금속평판은 경로 {_n('specular_census.plate_control.n_paths', MDP, '{:.0f}', '개')}로 정상). "
-           f"위상은 Sionna 가, 세기는 PO 커널이 맡는 이유가 여기 있다 — 단서는 "
-           f"`{MDP} : caveats_ko` 에 넷으로 적었다."),
+           "각 조명 방향마다 다른 E 가 나온다. 그때는 오른쪽 칸의 실험도 왼쪽으로 이사한다. "
+           "⭐ 이 표를 한 사례로 시험한 것이 **리포트 07 「마이크로도플러」** 다 — "
+           "도는 로터는 비율만 필요하므로 오른쪽 칸에 앉는다."),
 
         # ═══ §5 ════════════════════════════════════════════════════════════
         md("## §5. 그래서 왜 PO 인가 — 다섯 갈래의 지도", "",
