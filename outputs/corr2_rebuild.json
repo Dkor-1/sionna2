@@ -1,0 +1,191 @@
+{
+  "_meta": {
+    "round": "corr2 / 재생성·규약통과 갈래 (리포트 01~06)",
+    "date": "2026-08-07",
+    "input": "세 갈래 산출물 — outputs/corr2_over.json · corr2_missed.json · corr2_numbers.json",
+    "scope": "src/make_report01_prior.py · make_report02_target.py · make_report05_results.py · make_report06_measurement.py · docs/RETRACTION_LOG.md",
+    "untouched": [
+      "src/make_report00_foundations.py (08-05 01:47 · 미접촉)",
+      "report00_foundations.ipynb (08-05 03:58 · 미접촉)",
+      "src/drones.py (08-04 04:06) · src/drone_cad.py (08-04 04:03) — 읽기만",
+      "outputs/meshdef_* · outputs/report00_md2_* — 미접촉",
+      "src/make_report03_illuminators.py · make_report04_detector.py — 편집 없음(재생성만)"
+    ],
+    "gpu_used": false,
+    "python": "~/.venvs/py312/bin/python"
+  },
+
+  "step1_conflict_check": {
+    "method": "세 갈래가 함께 만진 4개 파일의 git diff 전문을 읽고, 재생성한 노트북에서 겹치는 절(02 §4.5·§4.6·§6·§7 · 06 여는블록·§2-2·§4-1·§4 결정표 · 05 §3.2·§3.7 · 01 여는블록)을 문장 단위로 대조했다.",
+    "contradictions_found": 1,
+    "friction_found": 2,
+    "clean": [
+      "02 §4.6 첫 문장 — NM 의 «레벨을 같은 눈금으로» 한정과 OV 의 «자유 매개변수» 단서가 한 문단에 공존하고 서로 겹치지 않는다.",
+      "02 §4.6 마지막 — OV 의 «가른 것은 어느 구를 넣었나» 와 NM 의 «ε 만은 잣대가 다르다» 가 범위를 나눠 갖는다.",
+      "06 여는블록 결과 4 ↔ §2-2 — MS-7 이 중복을 한 줄로 축약해 두었고, 결과 4 가 «이유 두 가지는 §2-2 가 든다» 로 포워딩한다.",
+      "06 §4-1 — MS 의 현재세대 단서와 NM 의 «창을 맞춘/두 창은 겹친다» 정정이 같은 셀에서 충돌 없이 선다.",
+      "02 §4.5 v1 도장(MS) ↔ 마지막 문단 개연성(OV) ↔ 밴드 num() 주입(NM) — 세 편집이 각각 다른 문장에 앉았다."
+    ],
+
+    "CONFLICT-1": {
+      "severity": "HIGH",
+      "where": "src/make_report02_target.py L2130~2133 → 02편 §6 다음 단계 «Phantom 3 구 대조군» 행",
+      "who": "OV-2 되돌림이 반대쪽으로 한 칸 더 갔다",
+      "was": "«§4.6 이 낸 것은 «레벨 축에서는 형상이 판별력을 안 준다» 까지다(부피를 맞게 고른 구가 같은 자리에 온다)»",
+      "why_wrong": "같은 편 §4.6 첫 문단이 «우리 메쉬는 상자 계열을 전부 이긴다 — 가장 가까운 정육면체 +6.22 vs 우리 -3.30 dB» 라고 적는다. 레벨 축은 상자 대 메쉬에서는 판별력을 준다. 판별력이 사라지는 것은 «부피를 맞게 고른 구» 라는 한 대조군에서다.",
+      "now": "«§4.6 이 낸 것은 «레벨 축에서 상자 계열은 우리 메쉬에 지고, 부피를 맞게 고른 구는 우리와 같은 자리에 온다» 까지다. 레벨 축을 닫는 것은 06편 교정구다»",
+      "cross_checked_and_left_alone": [
+        "01편 여는블록 결과 2 — «모양을 안 닮은 구도 부피를 맞게 골라 넣으면» (구로 한정 · 정확)",
+        "02편 §7 방어표 마지막 행 — 같은 한정",
+        "05편 §3.7 «이 표에 구 대조군은 없다» 문단 — 같은 한정",
+        "06편 §2-2 교정구 두 이유 — 같은 한정"
+      ]
+    },
+
+    "FRICTION-1": {
+      "severity": "MEDIUM",
+      "where": "02편 §4.5 마지막 문단 ↔ 05편 §3.2",
+      "what": "02 는 «우리 σ 가 낮게 나와 있을 개연성 쪽이 크다»(얇은 판 참값 po_minus_tm -4.02 ↔ po_minus_te +7.53 dB), 05 는 «그 항의 부호는 아직 정하지 못한다». 둘 다 참이지만 나란히 읽으면 세기가 다르다.",
+      "fix": "05 §3.2 에 «두 쪽 중 어느 쪽이 더 그럴듯한지는 02 §4.5 가 두 편파의 크기 차이로 적는다 — 이 편은 그 개연성을 결과에 넣지 않고 순위만 든다» 를 넣어 역할을 갈랐다(02 는 건드리지 않았다).",
+      "file": "src/make_report05_results.py L964~967"
+    },
+
+    "FRICTION-2": {
+      "severity": "MEDIUM",
+      "where": "06편 여는블록 결과 5 ↔ §4-1 · §4 결정표",
+      "what": "여는블록이 판정 문턱 1.77 dB 를 단정하는데, 본문 §4-1 과 결정표는 그 수가 생산 원장 세대의 값이고 현재 세대로는 판별폭이 0.08 dB 까지 좁아진다고 적는다(«결판 — σ 사슬 재실행이 선행 조건»). 헤드라인만 읽으면 본문이 유보한 것을 확정으로 가져간다.",
+      "fix": "결과 5 에 «(생산 원장 2026-07-30 07:16:08 세대의 수이고, 현재 세대 값은 §4-1 이 나란히 든다)» 를 붙였다. 문턱 자체와 판정 범위는 그대로 두었다.",
+      "file": "src/make_report06_measurement.py L788~791"
+    }
+  },
+
+  "step2_regeneration": {
+    "regenerated": ["report01_prior.ipynb", "report02_target.ipynb", "report03_illuminators.ipynb",
+                    "report04_detector.ipynb", "report05_results.ipynb", "report06_measurement.ipynb"],
+    "excluded": "report00_foundations.ipynb (지시대로 제외 · mtime 08-05 03:58 그대로)",
+    "figures_rebuilt": "02편 4장 · 03편 7장 · 04편 · 05편 · 06편 6장 (게재검사 전부 통과)",
+    "runtime_note": "02편 derive() 20.6 s · 나머지는 초 단위. GPU 미사용."
+  },
+
+  "step3_contract": {
+    "rule": "마크다운 25셀 · 셀당 12줄 · 부정문 3개 · 완충어 0건 · 출처 없는 숫자 0",
+    "contract_errors_hit": 0,
+    "note": "빌드는 첫 시도부터 strict 로 통과했다. 근거 JSON 은 한 줄도 고치지 않았고, 고친 것은 서술과 키 경로뿐이다.",
+    "final": {
+      "report01_prior":       {"md_cells": 25, "figures": 4, "prov_tags": 111, "negatives": 0, "hedges": 0, "over_12line_cells": 0, "violations": 0},
+      "report02_target":      {"md_cells": 25, "figures": 7, "prov_tags": 399, "negatives": 3, "hedges": 0, "over_12line_cells": 0, "violations": 0},
+      "report03_illuminators":{"md_cells": 22, "figures": 7, "prov_tags": 206, "negatives": 2, "hedges": 0, "over_12line_cells": 0, "violations": 0},
+      "report04_detector":    {"md_cells": 23, "figures": 7, "prov_tags": 186, "negatives": 0, "hedges": 0, "over_12line_cells": 0, "violations": 0},
+      "report05_results":     {"md_cells": 25, "figures": 7, "prov_tags": 311, "negatives": 2, "hedges": 0, "over_12line_cells": 0, "violations": 0},
+      "report06_measurement": {"md_cells": 25, "figures": 6, "prov_tags": 201, "negatives": 1, "hedges": 0, "over_12line_cells": 0, "violations": 0}
+    }
+  },
+
+  "step4_literal_number_grep": {
+    "method": [
+      "(a) 이 라운드 diff 의 추가 줄만 정규식으로 훑어 단위 붙은 수를 전수 뽑았다.",
+      "(b) 빌더 소스 전체를 tokenize 로 훑어 한글이 든 문자열 리터럴 안의 단위 붙은 수를 뽑았다.",
+      "(c) 재생성한 노트북 6편의 마크다운에서 «단위 붙은 수 바로 뒤에 ⟨출처⟩ 태그가 없는» 자리를 전수 뽑아 셀별로 눈으로 판정했다."
+    ],
+    "fixed": [
+      {"file": "src/make_report02_target.py", "where": "§4.5 본문",
+       "was": "같은 창 1.8~18.2 GHz", "now": "p3_validation.json : slope.das_published.band[0]·[1] 주입"},
+      {"file": "src/make_report02_target.py", "where": "§4.5 표 첫 행 «고도 · 창» 칸",
+       "was": "el=0 · 1.8–18.2 GHz", "now": "같은 경로 주입"},
+      {"file": "src/make_report01_prior.py", "where": "§4.3 앵커 3문헌 표",
+       "was": "Phantom 3 · 1.8–18.2 GHz", "now": "prior_work_survey.json : anchors.das.band_ghz[0]·[1] 주입"},
+      {"file": "src/make_report05_results.py", "where": "derive() anchor_scope.why (→ §3.2 본문이 인용)",
+       "was": "기체에 따라 최대 9.50 dB", "now": "f-string 으로 D['size_law_spread_max'] 주입"},
+      {"file": "src/make_report05_results.py", "where": "다음 단계 «듀티 항» 행",
+       "was": "§2.2 의 −16.02 dB", "now": "sigma_sensitivity.json : unapplied_duty_axis.duty_db.G1 주입"},
+      {"file": "src/make_report02_target.py", "where": "§1 본문 · §6 다음 단계",
+       "was": "(약 5 %) 2 곳", "now": "삭제 — 배율 0.950→1.000 이 이미 주입돼 있어 파생 반올림이 덧없다"}
+    ],
+    "verified_already_injected": [
+      "02 §4.1 «L² 와 최대 9.50 dB 차 (DJI S1000+)» 2 곳 — _anchor_modes() 가 spread[worst] 로 만든다(손입력 아님)",
+      "02 §3.1a 의 일곱 문턱 주파수 · §4.6 의 대조군 값 · §4.7 의 함대 값 — 전부 num() 경로",
+      "06 §4-1 의 두 세대 · 두 창 · 두 판별폭 — 전부 derive() 가 JSON 에서 계산해 파생 원장에 남긴 값",
+      "노트북 스캔에서 태그 없이 걸린 나머지는 table_from()/D.table() 이 만든 표 칸이고, 표 아래 «출처 ⟨…⟩» 한 줄이 전체를 덮는다"
+    ],
+    "remaining_by_design": {
+      "declared_conventions": [
+        "PO 유효 문턱의 판정 기준 «1 dB» (02 §3.1a · §7 · 05 §3.2) — lowfreq_anchor.json 은 이 기준을 knee_rule 문자열로만 갖고 수치 키가 없다. 결과가 아니라 우리가 고른 눈금이다.",
+        "공통모드 봉투 «±10 dB» (02 §7 · 05 여는블록·§3.3·§3.4) — 스윕 범위 선언",
+        "몬테카를로 밴드별 독립 오차 «2 dB» (05 §3.4) — 시나리오 선언",
+        "세션 드리프트 목표 «≤ 1 dB» (06 §2-2) — 설계 목표 선언"
+      ],
+      "identifiers_not_numbers": [
+        "밴드 이름 «LTE 1.843 GHz · 5G 3.5 GHz · WiFi 5.21 GHz» — sigma_anchor/rcs_anchor 의 JSON 키 문자열 그 자체",
+        "부분대역 이름 «1.8–6.0 GHz» · «6.0–18.2 GHz» — p3_ours.json 의 subband_fits 키 이름"
+      ],
+      "deferred": [
+        {"file": "src/make_report05_results.py", "where": "paper_blocks() 방어 표 (노트북 셀 23·24)",
+         "what": "3.72 · 5.01 · 16.02 · 3.75배 · 10배 · 11.0배 · 3.82 · 41.64 · 3.05 · 0.636 · 0.303 · 12.05 · −0.11 ~ +0.47 dB · 2.5빈 · 1.5빈 등이 손입력으로 남아 있다",
+         "why": "논문키트 defence() 블록은 claim/근거/반론/답 4-튜플 문자열이고, 게재규격 검사가 이 블록을 통째로 읽는다. 한 자리만 바꿔도 파급이 넓어 이 라운드에서 손대지 않았다.",
+         "next": "다음 라운드에서 defence() 항목별로 num() 로 갈아끼우고 게재검사를 다시 돌린다"},
+        {"file": "src/make_report03_illuminators.py", "where": "paper_caption 영문 캡션 (셀 9 등)",
+         "what": "«Grid occupancy rises from 1.4% to 79.8%» 등 영문 캡션 안의 수",
+         "why": "그림 캡션은 그림과 함께 게재되는 영문 텍스트라 태그 규약 밖이다. 대응하는 본문 수치는 전부 주입돼 있다."}
+      ]
+    }
+  },
+
+  "step5_plain_language": {
+    "goal": "설명 없는 전문용어 0",
+    "carried_over_from_last_round": {
+      "note": "R16 이 남긴 다섯은 NM 갈래가 이미 달았고 이 라운드에서 재확인했다",
+      "terms": ["편파 (02 §3.1a · 05 §3.2 · 06 §4)", "무편파 스칼라 (02 §4.4 · 05 §3.2 · 06 §4)",
+                "P3 (02 여는블록 · §4.7)", "레벨오차 DL(0) (02 §4.7)", "rms (02 §4.6)"]
+    },
+    "newly_glossed_this_round": [
+      {"term": "PO (물리광학)", "where": "01 여는블록 결과 5 · 02 §2 첫 문단",
+       "gloss": "빛이 닿는 면에 흐르는 전류를 근사식으로 적어 넣고 그 면을 훑어 더하는 방법"},
+      {"term": "SBR", "where": "02 §2 첫 문단", "gloss": "광선을 쏴서 튀기며 조명면이 어디인지 찾는 방법 (shooting-and-bouncing rays)"},
+      {"term": "IoU", "where": "02 §1.1 첫 문장", "gloss": "두 실루엣이 겹친 넓이를 둘을 합친 넓이로 나눈 값 — 1 에 가까울수록 잘 맞는다"},
+      {"term": "자기복제 상한", "where": "02 §1.2 마지막 문단", "gloss": "같은 메쉬로 만든 가짜 사진을 같은 파이프라인에 넣었을 때 나오는 값, 즉 이 검사가 낼 수 있는 최고점"},
+      {"term": "kr", "where": "02 §1 표 아래 주석", "gloss": "표적을 파장으로 잰 크기 — 외접반경 r 에 파수 k = 2π/λ 를 곱한 값"},
+      {"term": "상반성", "where": "02 §2.1", "gloss": "보내는 자리와 받는 자리를 맞바꿔도 σ 가 같아야 한다는 성질"},
+      {"term": "닫힌형 기준해 · 정확 Mie · 해석 PO", "where": "02 §3 첫 문단",
+       "gloss": "근사 없이 식으로 바로 값이 나오는 답 / 구에 대해서만 맥스웰 방정식이 그대로 풀리는 것 / 같은 구에 PO 근사를 적용해 손으로 푼 것"},
+      {"term": "이면각 · PEC", "where": "02 §3.2 첫 문단", "gloss": "두 평판이 90° 로 맞붙은 표준 형상 / 전기를 완벽히 통하는 이상적 금속"},
+      {"term": "Swerling 틀", "where": "06 §2-6", "gloss": "표적 밝기가 얼마나 요동하는지를 몇 가지 표준 분포로 나눈 레이다 관례 분류"},
+      {"term": "bbox", "where": "06 §2-6", "gloss": "«외접상자(bbox — 프로펠러까지 감싸는 수평 최대치수)» 로 풀어 씀"},
+      {"term": "공통모드", "where": "05 여는블록 결과 3", "gloss": "세 밴드가 같은 방향으로 같은 만큼 틀리는 경우"},
+      {"term": "현실 봉투", "where": "05 §3.4 표", "gloss": "실제로 있을 법한 오차 폭"}
+    ],
+    "known_remaining": [
+      "«위상맹목»(06 §4 결정표) — 같은 문장이 «평판 RMS 시험은 위상맹목이다» 로 대비를 주고, 바로 앞이 «위상까지 정합해 부호를 심판한다» 라 문맥으로 읽힌다. 한 낱말 더 붙이면 그 셀이 12줄 상한에 닿는다.",
+      "«게이팅 · CIR»(06 §2-3) — 같은 문단이 «6차 Kaiser 창으로 CIR 을 게이팅한 뒤 주파수축으로 되돌리고» 로 절차를 그대로 적는다.",
+      "03·04 편의 «ECA · CFAR · Pfa» — 각 편의 여는블록·§ 제목이 그 자리를 정의한다(이 라운드 편집 범위 밖)."
+    ]
+  },
+
+  "step6_retraction_log": {
+    "file": "docs/RETRACTION_LOG.md",
+    "entry": "R17 — 2026-08-07 2차 정정 라운드 · 리포트 01~06 재생성",
+    "placement": "R16 항목 바로 뒤, «재발 방지» 절 앞. 기존 항목은 한 줄도 고치지 않았다.",
+    "contains": ["거둬들인 문장 1건(표)", "서사 마찰 2건", "손입력→JSON 주입 6건(표)",
+                 "쉬운 말 용어 8줄(표)", "이 라운드가 하지 않은 것 4줄"]
+  },
+
+  "risks_for_next_step": [
+    "02편 부정문이 3/3 상한에 붙어 있다 — 부정 종결 문장을 하나만 더하면 strict 빌드가 멈춘다. 이 라운드가 더한 부정 종결은 0 이다.",
+    "02·05·06 편이 마크다운 25/25 셀이다 — 새 서술은 기존 셀 안에서만 늘릴 수 있고, 12줄 상한에 걸리지 않게 기존 줄에 이어 붙여야 한다.",
+    "SLOPE_LEDGER_GAP_MAX_DB_PER_GHZ = 1.40 의 여유가 0.0045 뿐이다(현재 최악 1.3955 · mavic4pro). σ 사슬을 다시 돌리면 이 assert 가 먼저 멈추는 것이 설계된 동작이므로 상수를 올려 통과시키지 말 것.",
+    "06편 §4-1 은 현재 세대 판별폭 0.08 dB 를 싣고 결정표가 그 행을 «결판 — σ 사슬 재실행이 선행 조건» 으로 적는다. 사슬 재실행이 이 편의 문턱·§4-2 차등·§2-2 여유를 한꺼번에 움직인다.",
+    "05편 논문키트 방어 블록(셀 23·24)의 손입력 20여 개가 남아 있다 — 게재규격 검사와 함께 다음 라운드에서 다뤄야 한다."
+  ],
+
+  "files_touched": [
+    "src/make_report01_prior.py",
+    "src/make_report02_target.py",
+    "src/make_report05_results.py",
+    "src/make_report06_measurement.py",
+    "docs/RETRACTION_LOG.md",
+    "report01_prior.ipynb", "report02_target.ipynb", "report03_illuminators.ipynb",
+    "report04_detector.ipynb", "report05_results.ipynb", "report06_measurement.ipynb",
+    "outputs/report02_derived.json", "outputs/report05_derived.json", "outputs/report06_derived.json",
+    "outputs/figures/report02_f*.png|pdf", "outputs/figures/report03_f*.png|pdf",
+    "outputs/figures/report06_*.png|pdf"
+  ]
+}

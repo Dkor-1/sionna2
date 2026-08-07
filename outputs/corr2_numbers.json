@@ -1,0 +1,196 @@
+{
+ "_meta": {
+  "generated": "2026-08-07",
+  "what": "리포트 정정 2차 라운드 · 숫자 불일치 갈래(NM-1~4) + 남은 전문용어 5개. outputs/report_correction_attack.json 의 number_mismatches · jargon_detail 를 그대로 따라간다.",
+  "scope_respected": "src/make_report00_foundations.py · report00_foundations.ipynb 미열람/미수정 · src/drones.py · src/drone_cad.py 미수정 · outputs/meshdef_* · report00_md2_* 미수정 · 리포트/노트북 재생성 안 함(다음 단계가 한 번에 한다) · GPU 미사용",
+  "convention": "숫자 손입력 0 — 새로 인쇄한 값은 전부 report_style.num() 으로 JSON 에서 주입했다. 본문 한국어, 그림은 건드리지 않았다.",
+  "concurrent_edits_seen": "src/make_report02_target.py 는 이 라운드 도중 다른 갈래가 §3.1a(기체 하나 치수 단서)와 §4.6(OV-1 «어느 구를 넣었나») 를 고쳤다. 매 편집 전 재확인하고 최소 편집만 했다 — 충돌 없음."
+ },
+ "NM_1": {
+  "severity": "HIGH",
+  "status": "FIXED",
+  "claim_that_was_wrong": "「프로펠러·모터·캐노피·PCB 가 18.2 GHz 까지 전 대역에서 문턱 아래」",
+  "direct_recomputation": {
+   "rule": "f_knee = (a/λ)_knee · c / a,  (a/λ)_knee = 0.7288815751523454 ⟨outputs/lowfreq_anchor.json : thin_plate.truth_2d_mom_fine_width_grid.knee_a_over_lam⟩",
+   "my_values_ghz": {
+    "body_81.51mm": 2.68,
+    "arm_root_45mm": 4.86,
+    "arm_tip_30mm": 7.28,
+    "prop_blade_13.78mm": 15.86,
+    "motor_13.68mm": 15.97,
+    "canopy_6.22mm": 35.13,
+    "pcb_2.99mm": 73.08
+   },
+   "json_table_values_ghz": {
+    "body_81.51mm": 2.68,
+    "arm_root_45mm": 4.86,
+    "arm_tip_30mm": 7.28,
+    "prop_blade_13.78mm": 15.86,
+    "motor_13.68mm": 15.97,
+    "canopy_6.22mm": 35.13,
+    "pcb_2.99mm": 73.08,
+    "units": "GHz"
+   },
+   "agreement": "전 항목 소수 둘째자리까지 일치",
+   "conclusion": "18.2 GHz 까지 줄곧 문턱 아래인 것은 캐노피(35.13)와 PCB(73.08)뿐이다. 프로펠러(15.86)·모터(15.97)는 18.2 GHz 에 닿기 전에 문턱을 넘는다."
+  },
+  "edits": [
+   {
+    "file": "src/make_report02_target.py",
+    "site": "§3.1a 두 번째 문단 (‘우리 생산 3 밴드…’ 블록)",
+    "before": "프로펠러·모터·캐노피·PCB 는 문헌 측정의 위쪽 끝(18.2 GHz)까지 대역 전체에서 아래에 머문다.",
+    "after": "문헌 측정의 위쪽 끝(18.2 GHz)까지 **줄곧** 문턱 아래에 남는 부품은 캐노피와 PCB 둘뿐이고(각각 35.13 · 73.08 GHz 에서 비로소 넘는다), 프로펠러와 모터는 그 끝에 닿기 전인 15.86 · 15.97 GHz 에서 문턱을 넘는다 — 문헌 대역의 맨 위 토막에서만 넘는 셈이다.",
+    "injection": "네 값 모두 LFA.num(...recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.*), 18.2 는 PV2.num('slope.das_published.band[1]') — 손입력 0",
+    "why": "바로 위 문장이 주입한 자기 숫자(프로펠러 15.86 · 모터 15.97)와 정면으로 어긋났다. 자기 숫자와 모순되는 문장은 같은 절의 다른 결론까지 깎는다."
+   },
+   {
+    "file": "src/make_report02_target.py",
+    "site": "§3.1a 금칙 목록 두 번째 항목 (「고대역은 검증됐다」)",
+    "before": "프로펠러·모터·캐노피·PCB 는 문헌 측정 대역의 위쪽 끝까지 문턱 아래에 있다",
+    "after": "캐노피·PCB 는 문헌 측정 대역의 위쪽 끝까지 문턱 아래에 머물고, 프로펠러·모터도 그 끝 바로 아래(15.86 · 15.97 GHz)에서야 문턱을 넘는다 — 대역의 대부분에서 이 부품들은 여전히 문턱 아래다",
+    "why": "금칙의 취지(«고대역이 깨끗하다» 고 말하지 말 것)는 그대로 서고, 근거 문장만 표에 맞춘다. 취지가 약해지지 않는다는 점을 확인했다 — 6~15.9 GHz 는 여전히 문턱 아래다."
+   },
+   {
+    "file": "outputs/lowfreq_attack.json",
+    "site": "q5_blast_radius.po_validity_blast_radius_the_real_one.⭐_the_uncomfortable_corollary · q5_blast_radius.what_must_not_be_said[1]",
+    "before": "「그리고 prop·motor·canopy·pcb 는 **18.2 GHz 까지 대역 전체**에서 무릎 아래다.」 / 「… prop·motor·canopy·pcb 는 그 대역 전체에서 PO 무릎 아래다.」",
+    "after": "canopy·pcb 는 18.2 GHz 까지 대역 전체에서 무릎 아래이고 prop·motor 는 15.86 · 15.97 GHz 에서야 넘는다(문헌 대역의 맨 위 토막에서만 넘는다) — 두 문장 모두 같은 객체의 recomputed_by_me 표에 맞췄다.",
+    "extra": "같은 객체에 _correction_2026_08_07 키를 새로 넣어 고치기 전 원문·정정 근거·날짜를 남겼다. JSON 은 원본 서식을 보존하려고 통짜 재직렬화 대신 문자열 최소 치환으로 고쳤다(diff 3+/2−).",
+    "why": "리포트가 이 문장을 근거로 인용한다. 리포트만 고치면 인용이 틀린 문장을 가리키게 된다. 근거 JSON 자신이 내부 모순(산문 ↔ 표)이었고, 재검산 결과 표가 옳다."
+   }
+  ]
+ },
+ "NM_2": {
+  "severity": "MEDIUM",
+  "status": "FIXED",
+  "problem": "§4.6 이 「같은 눈금(Yuan θ90 복원 실측곡선 …)」 으로 절을 열고, 같은 절에서 ε 를 「실측 대비」 라 부르며 들었다. 그 ε 는 필드명이 eps_err_vs_das_db 로 **Das Table III 의 5.46 dB** 기준이다.",
+  "edits": [
+   {
+    "file": "src/make_report02_target.py",
+    "site": "§4.6 첫 문단 첫 문장",
+    "before": "같은 눈금(Yuan θ90 복원 실측곡선 기준 밴드평균 잔차)으로 Phantom 3 를 상자·정육면체·구로 바꿔 넣고 다시 채점했다.",
+    "after": "**레벨을** 같은 눈금(Yuan θ90 복원 실측곡선 기준 밴드평균 잔차)으로 놓고 Phantom 3 를 상자·정육면체·구로 바꿔 넣어 다시 채점했다(다음 문단의 ε 는 잣대가 다르다 — 거기서 밝힌다).",
+    "why": "「같은 눈금」 의 적용 범위를 레벨로 한정한다. 절 첫 줄에서 독자에게 ε 가 예외임을 예고한다."
+   },
+   {
+    "file": "src/make_report02_target.py",
+    "site": "§4.6 두 번째 문단 ε 문장",
+    "before": "구는 방위에 따라 σ 가 그대로라 방위 산포 ε 를 0.00 dB 로 낸다 — 우리는 실측 대비 +1.42, 상자 계열은 +3.98~+4.52 dB 다.",
+    "after": "구는 방위에 따라 σ 가 그대로라 방위 산포 ε(같은 기체를 여러 방위에서 볼 때 σ 가 얼마나 흩어지는지, dB)를 0.00 dB 로 낸다 — ⚠ **ε 만은 잣대가 다르다**: ε 의 비교 상대는 위 레벨이 쓴 Yuan 곡선이 아니라 Das Table III 가 준 5.46 dB 다(레벨은 Yuan 잣대, ε 는 Das 잣대). 그 Das 잣대에서 우리는 +1.42, 상자 계열은 +3.98~+4.52 dB 다.",
+    "injection": "5.46 은 PV2.num('v1_vs_v2.eps_db.das_mean') — 손입력 0. 확인: eps_mean(6.877) − 5.46 = 1.417 = eps_err_vs_das_db ✓",
+    "why": "OC-02(잣대를 밝혀라)를 절 안에서 지킨다. 「실측 대비」 라는 뭉뚱그린 표현을 잣대 이름으로 바꿨다."
+   }
+  ],
+  "note": "절 끝의 «잣대를 Das Table III 로 바꾸면» 문장은 이 라운드의 다른 갈래(OV-1)가 이미 «두 채점을 가른 것은 잣대가 아니라 어느 구를 넣었는가» 로 고쳐 놓았다. 내 ε 문장은 그것과 범위가 겹치지 않게 «ε 만은» 으로 한정했다."
+ },
+ "NM_3": {
+  "severity": "LOW",
+  "status": "FIXED",
+  "problem": "「이 캠페인과 **창이 같은** 저대역 적합값」 — 캠페인 창 1.843~5.21 GHz 와 앵커 적합 창 1.8~6.0 GHz 는 같지 않고 겹칠 뿐이다(위쪽이 더 넓다).",
+  "edits": [
+   {
+    "file": "src/make_report06_measurement.py",
+    "site": "§4-1 첫 문단",
+    "before": "이 캠페인과 **창이 같은** 저대역 적합값 0.411 dB/GHz(Yuan theta=90 복원 실측곡선, 1.8~6.0 GHz)다.",
+    "after": "이 캠페인에 **창을 맞춘** 저대역 적합값 0.411 dB/GHz(…, 1.8~6.0 GHz)다. ⚠ 두 창은 **같지 않고 겹친다** — 앵커 창이 이 캠페인의 창(1.843~5.21 GHz)을 덮되 위쪽이 더 넓다. 전대역 앵커(위)와 견주면 훨씬 가깝다는 뜻이지 같은 창이라는 뜻이 아니다.",
+    "why": "같은 라운드가 02편 §4 에서 «두 수는 창이 다르다» 를 지적해 놓고 06편에서 같은 느슨함을 남겼다. 판정 문턱(1.77 dB)이 이 앵커에서 나오므로 창의 정체는 문턱의 정체다."
+   },
+   {
+    "file": "src/make_report06_measurement.py",
+    "site": "derive() :: slope 딕셔너리",
+    "before": "(없음)",
+    "after": "campaign_window_ghz=[report06_measurement.json:slope_discrimination.f_lo_ghz, .f_hi_ghz] = [1.843, 5.21] 을 새로 기록",
+    "why": "본문이 캠페인 창을 손으로 적지 않고 num() 으로 주입할 수 있게 하려면 파생 원장에 스칼라가 있어야 한다. derive() 는 다음 단계의 리포트 재생성 때 이 필드를 쓴다."
+   }
+  ],
+  "arithmetic_recheck": "matrice4e (0.9359−0.4107)×3.367 = 1.768 ✓ · mini5pro (1.5170−0.4107)×3.367 = 3.725 ✓ — 값은 맞고 틀린 것은 창을 부르는 말뿐이었다."
+ },
+ "NM_4": {
+  "severity": "INFO",
+  "status": "NO_ACTION_NEEDED",
+  "finding": "표본 8건은 전부 JSON 과 자릿값까지 일치한다(공격 보고서가 직접 대조). num() 이 value=None 이면 JSON 값을 그대로 찍고 불일치 시 예외를 던지므로 자릿값 불일치는 원리적으로 생기지 않는다. 이 라운드의 위험은 값이 아니라 경로 선택과 그 값을 감싼 산문이고, 그것이 NM-1~3 이다.",
+  "verified_by_me": "이번에 새로 주입한 경로 6개를 report_style.num() 으로 실제 호출해 값과 출처표기를 확인했다 — v1_vs_v2.eps_db.das_mean(5.46) · KNEE 네 항목(15.86/15.97/35.13/73.08) · slope.das_published.band[1](18.2)."
+ },
+ "jargon_removed": [
+  {
+   "term": "편파",
+   "status": "FIXED",
+   "where_fixed": [
+    "src/make_report02_target.py §3.1a (02편 첫 등장)",
+    "src/make_report05_results.py §3.2 (05편 첫 등장)",
+    "src/make_report06_measurement.py §4 결정표 머리말 (06편 첫 등장)"
+   ],
+   "gloss": "02: 「두 편파(전파의 전기장이 흔들리는 방향 — 판의 긴 축과 나란한 쪽을 TM, 그에 수직인 쪽을 TE 라 부른다)」 / 05: 「편파(전파의 전기장이 흔들리는 방향)」 + 부호를 못 정하는 이유를 한 문장으로 풀어씀 / 06: 표 앞에 「세워 보내고 세워 받으면 VV, 눕히면 HH, 한쪽만 눕히면 VH·HV」 까지 풀어 놓음",
+   "why": "이번 라운드의 핵심 논거(§4.5 의 방향 철회 · 06편 결정표 마지막 행)가 이 낱말 없이는 안 읽힌다."
+  },
+  {
+   "term": "스칼라 / 무편파 스칼라",
+   "status": "FIXED",
+   "where_fixed": [
+    "02 §4.4 「편파를 가르지 않는 스칼라(방향 구분 없이 세기 하나만 내는 양)」",
+    "05 §3.2 「밴드별 스칼라(방향 구분 없이 값 하나) Δσ」",
+    "06 §4 머리말 「그 방향을 가르지 않고 세기 값 하나만 내므로 무편파 스칼라라 부른다」"
+   ],
+   "why": "「방향 구분 없이 세기 하나」 로 풀면 같은 뜻이고, 편파 설명과 짝을 이룬다."
+  },
+  {
+   "term": "P3 (판정 문자열 «NOT_VALIDATED (P3 산포)» 의 P3)",
+   "status": "FIXED",
+   "where_fixed": [
+    "02 여는 블록 결과 5",
+    "02 §4.7 첫 문단"
+   ],
+   "gloss": "「괄호 안의 P3 은 봉인한 합격조건 넷 중 **세 번째**를 가리키는 이름이고 기체 Phantom 3 가 아니다」",
+   "why": "⭐ 이 저장소에서 P3 는 보통 Phantom 3 를 뜻하고, 바로 옆 문장이 Phantom 3 이야기다 — 뜻이 반대로 읽힌다. 근거: das_fleet_prereg.json:pass_rule.primary_gate_level_at_theta_b_0 이 P1~P4 를 정의한다."
+  },
+  {
+   "term": "레벨오차 / DL(0)",
+   "status": "FIXED",
+   "where_fixed": [
+    "02 §4.7 첫 문단(정의 삽입)",
+    "02 여는 블록 결과 5(짧은 괄호 풀이)"
+   ],
+   "gloss": "「레벨오차 DL(0) 는 바이스태틱각 0°(송신기와 수신기가 같은 자리에 있는 배치)에서 측정 대비 우리 σ 가 몇 dB 높거나 낮은가다 — 양수면 우리가 더 밝게 냈다는 뜻이다」",
+   "why": "−0.51 · −1.47 · −7.19 · +9.08 네 수가 무엇의 차이인지 절 안에서 정의되지 않았다."
+  },
+  {
+   "term": "rms",
+   "status": "FIXED",
+   "where_fixed": [
+    "02 §4.6 (구의 rms 1.98 dB)"
+   ],
+   "gloss": "「주파수 전체에 걸친 평균 오차 크기(rms)」",
+   "why": "다른 곳은 「자세별 RMS」 처럼 대상을 붙여 쓰는데 여기만 맨 rms 였다."
+  },
+  {
+   "term": "무릎 (덤으로 발견)",
+   "status": "FIXED",
+   "where_fixed": [
+    "02 §3.1a — 다른 갈래가 새로 넣은 문장에 한 번 남아 있었다"
+   ],
+   "gloss": "같은 절이 일관되게 쓰는 「문턱」 으로 바꿈(낱말 하나만 최소 치환)",
+   "why": "같은 것을 두 이름으로 부르면 독자가 다른 개념으로 읽는다."
+  }
+ ],
+ "files_touched": [
+  "src/make_report02_target.py",
+  "src/make_report05_results.py",
+  "src/make_report06_measurement.py",
+  "outputs/lowfreq_attack.json"
+ ],
+ "not_touched_on_purpose": [
+  "src/make_report00_foundations.py · report00_foundations.ipynb (다른 라운드가 §4a 그림 교체 대기)",
+  "src/drones.py · src/drone_cad.py (읽기만)",
+  "outputs/meshdef_* · report00_md2_*",
+  "노트북·그림 일체 — 재생성은 다음 단계"
+ ],
+ "verification_run": [
+  "python -m py_compile 세 빌더 전부 통과",
+  "report_style.num() 으로 새 주입 경로 6개 실제 호출 — 값·출처표기 확인",
+  "outputs/lowfreq_attack.json json.load 파싱 통과 · git diff 3 insert / 2 delete (서식 churn 없음)"
+ ],
+ "left_for_the_next_step": [
+  "리포트 재생성(02·05·06) — derive() 가 slope.campaign_window_ghz 를 쓰기 시작하므로 06편은 반드시 다시 돌려야 한다",
+  "MS-1 · MS-2 · MS-3 · OV-1 은 다른 갈래 소관 — 여기서 건드리지 않았다"
+ ]
+}

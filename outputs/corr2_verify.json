@@ -1,0 +1,285 @@
+{
+  "_meta": {
+    "generated": "2026-08-07",
+    "what": "corr2 재생성·규약통과 갈래(outputs/corr2_rebuild.json)에 대한 2차 적대검증. 1차 적대검증(outputs/report_correction_attack.json)과 **같은 질문 Q1~Q6** 를 그대로 다시 물었다.",
+    "method": [
+      "① 1차 산출물의 15건(OV-1~4 · MS-1~7 · NM-1~4)을 목록으로 놓고, 각 자리를 재생성된 노트북 텍스트에서 직접 찾아 닫힘/미닫힘을 판정했다.",
+      "② 노트북 6편의 마크다운을 텍스트로 뽑아 주제어(구 대조군 · v1/v2 · 형상 정정 · 세대 · 창 · 무릎 · 잣대)로 전수 grep 했다.",
+      "③ 본문이 인용한 수 21개를 근거 JSON 에서 직접 읽어 자릿값까지 대조했다.",
+      "④ 저장소 전체에서 rcs_anchor · sigma_anchor · sigma_sensitivity · das_fleet · σ 격자를 인용하는 셀을 프로버넌스 태그로 기계 열거하고, 각 셀에 «메쉬 정정 이전» 표시가 있는지 판정했다.",
+      "⑤ 전문용어 57개의 첫 등장 자리를 기계로 뽑아 뜻풀이 유무를 눈으로 판정했다.",
+      "⑥ git diff 로 RETRACTION_LOG · lowfreq_attack.json 의 실제 변경을 확인했다."
+    ],
+    "scope_respected": "src/make_report00_foundations.py · report00_foundations.ipynb 미열람/미수정(mtime 08-05 그대로 확인) · src/drones.py · src/drone_cad.py 읽지 않음 · outputs/meshdef_* · report00_md2_* 미접촉 · 이 산출물 외 어떤 파일도 수정하지 않음 · GPU 미사용"
+  },
+
+  "verdict": "PREMATURE",
+  "verdict_reasoning": "1차가 남긴 15건은 **15/15 전부 닫혔고**, 닫힌 방식도 근거 JSON 과 맞는다(Q6). 이 라운드가 새로 고친 자리 중 원래가 맞았던 것은 없다(Q1 — 과잉정정 0). 표본 21건은 자릿값까지 전부 일치한다(Q3). CONFLICT-1 을 스스로 잡아낸 것은 이 라운드의 실적이고, 그 판단은 §4.6 원문과 대조해 옳다. 그러나 SOUND 는 아니다 — (1) Q2 가 명시적으로 물은 «낡은 수치 저장소 전수» 에서 HIGH 두 자리가 남았다: 05편 전체와 06편의 헤드라인 결과 1·2 가 `sigma_anchor`/`sigma_sensitivity`(meshfix_attack 이 **critical** 로 분류한 사슬)를 인용하면서 «형상 정정 이전» 표시가 하나도 없고, 같은 사슬을 02편은 네 자리에서 표시한다. 특히 06편 결과 2 의 «설계가 판정 대상과 맞는다(여유 +0.30 dB)» 는 02 §5 가 «형상 정정 전 값» 이라 도장 찍은 바로 그 Matrice 4E 행 위에 서 있다. (2) Q4 의 목표 0 이 안 됐다 — 뜻을 한 번도 안 푼 용어가 9 개 남았고(그중 3 개는 이 라운드가 편집한 06편 안에 있다), 여는 블록이 먼저 쓰고 뜻은 몇 절 뒤에 나오는 용어가 6 개 더 있다. (3) 라운드가 근거 JSON(`outputs/lowfreq_attack.json`)을 실제로 고쳤는데 `corr2_rebuild.json` 헤드라인은 «근거 JSON 은 한 줄도 안 고쳤다» 라 적고 RETRACTION_LOG R17 은 그 편집을 아예 적지 않았다.",
+
+  "Q1_overcorrection": {
+    "question": "이번에 고친 것 중 원래가 맞았던 것이 있는가",
+    "answer": "없다 — 되돌릴 편집 0건.",
+    "checked_each_edit": [
+      {
+        "edit": "CONFLICT-1 — 02 §6 다음 단계 «구 대조군» 행",
+        "verdict": "고친 쪽이 옳다",
+        "why": "옛 문장 «레벨 축에서는 형상이 판별력을 안 준다» 는 §4.6 첫 문단(정육면체 +6.22 vs 우리 -3.30 dB)과 정면으로 어긋난다. 레벨 축은 상자 대 메쉬에서 9.5 dB 의 판별력을 준다. ⭐ 이 문장은 **1차 적대검증이 OV-2 의 권고 수정문으로 직접 제안한 문구**였다 — 즉 이 라운드는 1차의 권고가 틀렸음을 잡아냈다.",
+        "leftover_check": "저장소 전체에서 «이미 닫았다» · «판별력을 안 준다» 잔존 0건(노트북 7편 grep)."
+      },
+      {
+        "edit": "OV-3 — 인과를 «잣대» 에서 «어느 구» 로",
+        "verdict": "정확",
+        "why": "das_fleet 의 sphere_eqvol 과 p3_validation_v2 의 sphere_vol_v2 는 둘 다 반경 78.1 mm 로 실제로 같은 구다(desc 원문 대조). Yuan 잣대 -4.47 · Das 잣대 -2.59 로 두 잣대 모두 우리(-3.30 · -1.47)보다 나쁘다. 새 문장이 «그쪽 표는 πa² 광학근사, 이 표는 정확 Mie — 반지름은 같다» 를 함께 실은 것은 과잉이 아니라 필요한 단서다."
+      },
+      {
+        "edit": "OV-4 — 비대칭(우리 σ 가 낮을 개연성) 되살리기",
+        "verdict": "정확 · 반대방향 과잉도 없다",
+        "why": "po_minus_tm=-4.0222 · po_minus_te=+7.5348 · tm_minus_te=11.5570 (lowfreq_anchor thin_plate.truth_2d_mom['0.15']) 전부 일치. 같은 문장이 «레벨을 만드는 굵은 부품일수록 어긋남이 작아 이 항이 설명하는 몫은 관측 낙차보다 작다» 를 함께 실어 방향 확정으로 넘어가지 않는다."
+      },
+      {
+        "edit": "NM-1 — 금칙 두 번째 항목 재서술",
+        "verdict": "정확 · 금칙의 취지 유지",
+        "why": "새 근거문 «대역의 대부분에서 이 부품들은 여전히 문턱 아래다» 는 산술로 맞는다 — 고대역 6.0~18.2 GHz 중 prop 이 문턱 아래인 구간은 6.0~15.86 GHz, 즉 81 %."
+      },
+      {
+        "edit": "MS-6 — 삼각형 수 → z 배율",
+        "verdict": "정확",
+        "why": "meshfix_applied 원문 대조: matrice4e z 0.950166→0.999873 · mini2 0.905897→1.00126 · x500v2 1.0→1.0 (삼각형 18,816→19,030). 본문의 괄호 «X500 V2 는 배율 대신 삼각형이 바뀐 쪽» 이 정확하다."
+      },
+      {
+        "edit": "FRICTION-1 — 05 §3.2 에 역할 분담 문장",
+        "verdict": "정확",
+        "why": "가리키는 곳(02 §4.5 마지막 문단)에 실제로 개연성 진술이 있다. 02 를 안 건드린 판단도 옳다 — 두 편은 같은 사실을 다른 세기로 쓰되 서로를 가리킨다."
+      },
+      {
+        "edit": "«(약 5 %)» 2곳 삭제",
+        "verdict": "규약상 맞지만 쉬운 말에서는 한 칸 손해",
+        "severity": "LOW",
+        "why": "MS-6 의 취지가 «낡음의 크기가 실제보다 작아 보이지 않게 하라» 였는데, 이제 독자가 0.950→1.000 을 스스로 백분율로 바꿔야 한다. 되돌릴 필요는 없고, meshfix 파생 키에 `z_scale_shift_pct` 를 하나 만들어 주입하면 두 규약을 다 지킨다."
+      }
+    ],
+    "minor_note": {
+      "what": "«부피를 맞게 고른 구는 우리와 **같은 자리에 온다**» 라는 다섯 자리의 표현",
+      "severity": "LOW",
+      "detail": "§4.6 은 «구가 우리보다 낫다»(레벨오차 +0.96 vs -3.30 dB, 2.3 dB 차)라고 적는데 인용 다섯 자리는 «같은 자리» 로 부른다. 우리 쪽에 유리한 쪽으로 약간 뭉갠다. 이 라운드가 만든 표현은 아니고 1차 이전부터 있었으므로 되돌림 대상은 아니지만, 다음 라운드에서 «레벨에서는 오히려 그 구가 앞선다» 로 맞추면 §4.6 과 한 목소리가 된다."
+    }
+  },
+
+  "Q2_missed_stale_numbers": {
+    "question": "F(낡은 수치)를 저장소 전체 grep 으로 다시 훑어라 — rcs_anchor · das_fleet · σ 격자를 인용하면서 «메쉬 정정 이전» 표시가 없는 자리",
+    "method": "노트북 7편의 마크다운 셀마다 프로버넌스 태그를 파싱해 해당 사슬을 인용하는 셀을 전수 열거하고(총 28 셀), 각 셀 또는 그 셀을 명시적으로 덮는 문장에 형상 정정 표시가 있는지 판정했다.",
+    "chain_definition": "outputs/meshfix_attack.json : Q6_invalidated_outputs.critical 이 **critical** 로 분류한 것 — rcs_anchor.json · sigma_anchor.json · sigma_sensitivity.json · report13_sigma_grid*.json · das_fleet_*.json",
+
+    "F-1": {
+      "severity": "HIGH",
+      "where": "report05_results.ipynb — 여는 블록 결과 3 · §2 감도사슬 · §3.2(Δσ 표, matrice4e 행 포함) · §3.3(R90 표, matrice4e 행 포함) · §3.4(뒤집힘 문턱 0.61~7.42 dB · MC 0.28~0.82) · §방법 «밴드 비교» 행 · 다음 단계",
+      "what": "05편 전체에서 «형상 정정» 이라는 낱말이 **0회** 나온다(grep 확인). 그런데 위 자리들은 `sigma_anchor.json` · `sigma_sensitivity.json` 을 인용하고, 두 파일 다 meshfix_attack 이 critical 로 분류한 것이다(사유: «matrice4e(및 mini2) 형상을 먹는 σ 캐시·민감도»).",
+      "why_the_existing_caveat_does_not_cover_it": "05편의 유일한 낡음 단서는 §방법 «σ 격자 출처» 행이고, 그 문장은 «이 격자는 두 세대 낡았고» 로 대상을 `outputs/report13_sigma_grid.json` **하나**로 못 박는다. 바로 위 «밴드 비교» 행(기울기 앵커 원장 = sigma_anchor)에는 단서가 없다.",
+      "asymmetry_with_report02": "같은 `sigma_sensitivity.json` 표를 02편 §5 는 「⚠ Matrice 4E 행은 2026-08-04 형상 정정 전 값이다 — 이 표를 낸 outputs/sigma_sensitivity.json 가 그 기체의 형상을 먹는다」 로 도장 찍는다. 05 §3.4 의 «뒤집힘 문턱 0.61 dB» 하한이 정확히 그 Matrice 4E 행에서 온다.",
+      "evidence": {
+        "outputs/meshfix_attack.json:Q6_invalidated_outputs.critical[3].output": "outputs/sigma_anchor.json · sigma_sensitivity.json · sigma_robust_summary.json · sigma_sbr_cache.json · sigma_regen_impact.json",
+        "report05 '형상 정정' 등장 횟수": 0,
+        "report02 '형상 정정' 등장 횟수": 7,
+        "05 §3.4 하한 0.61 dB 의 출처": "sigma_sensitivity : differential.by_drone.matrice4e (02 §5 표의 «단일자세 0.61» 과 같은 칸)"
+      },
+      "fix": "05편 §방법 «밴드 비교» 행 끝에 한 절을 더한다 — 「⚠ 이 앵커 원장(sigma_anchor)과 §3.4 의 민감도(sigma_sensitivity)도 2026-08-04 형상 정정 전 메쉬 위에 있다 — 다섯 기체 중 Matrice 4E 가 그 정정을 받았다(02 §4.2 · §5)」. 셀 추가 없이 기존 표 칸에 들어간다."
+    },
+
+    "F-2": {
+      "severity": "HIGH",
+      "where": "report06_measurement.ipynb — 여는 블록 결과 1 · 결과 2 · §방법 «판정 대상» 행 · paper_map claim · §3(셀 16) · §4 결정표 «파형 상대순위» 행 · 방어표 · 다음 단계 (총 8 자리)",
+      "what": "「순위를 뒤집는 폭은 최소 **1.30 dB**」 와 「세션 드리프트 예산 1.00 dB 가 그 폭 아래에 있다 — 여유 **+0.30 dB**. 설계가 판정 대상과 맞는다」 가 세대·형상 표시 없이 서 있다. 이 1.30 dB 는 `sigma_sensitivity.json : aspect_averaged.by_drone.matrice4e.smallest_flip_span_db = 1.297853…` 이고, 02편 §5 가 「형상 정정 전 값」 이라고 도장 찍은 바로 그 기체 행이다.",
+      "why_it_is_worse_than_F-1": "여유가 0.30 dB 뿐이라 판정 대상 적합성 주장 자체가 이 한 수에 얹혀 있다. 게다가 방어표의 답 칸이 「여유 0.30 dB 는 얇다」 는 반론에 「좁은 쪽은 **Matrice 4E 하나**이고 Mini 5 Pro 는 2.95 dB 다」 라고 답한다 — 방어의 근거가 정확히 그 형상 정정을 받은 기체다.",
+      "why_the_existing_caveat_does_not_cover_it": "06편의 형상 정정 표시 두 곳은 §2-2(교정구 여유)와 §3-2(셀 19)다. §3-2 의 문장은 「⚠ **위 두 표**는 rcs_anchor → sigma_anchor 사슬 위에 서 있고 … 예상 σ · 교정구 여유 · 크기법칙 차등이 전부 그 아래에 있으므로」 로 대상을 §3-1 앵커 표와 크기전이 표 둘로 한정한다. 순위 뒤집힘 폭은 그 열거 밖이다. §4-1 의 세대 단서는 **기울기 행**에만 붙었다.",
+      "evidence": {
+        "outputs/report06_derived.json:ranking_validation.flip_span_min_db": 1.297853547927232,
+        "outputs/report06_derived.json:ranking_validation.flip_span_min_airframe": "matrice4e",
+        "outputs/report06_derived.json:ranking_validation.drift_margin_db": 0.29785354792723195,
+        "report02 §5 표 도장": "⚠ Matrice 4E 행은 2026-08-04 형상 정정 전 값이다",
+        "06편에서 1.30 dB 가 나오는 자리 수": 8
+      },
+      "fix": "06편 여는 블록 결과 2 끝에 「(그 폭을 정하는 Matrice 4E 행은 2026-08-04 형상 정정 전 메쉬 값이다 — 02 §5)」 를 붙이고, §4 결정표 «파형 상대순위» 행의 판정 기준 칸에 같은 단서를 넣는다. §4-1 이 기울기 행에 한 것과 같은 처리다."
+    },
+
+    "F-3": {
+      "severity": "MEDIUM",
+      "where": "report02_target.ipynb 여는 블록 결과 5",
+      "what": "「사전등록 대조 판정은 NOT_VALIDATED (P3 산포) … 네 기체 레벨오차 산포 16.27 dB」 — 이 산포에 들어가는 Mini 2 행(-0.51 dB)이 형상 정정을 받은 기체다. §4.7 본문은 「Mini 2 행은 §1 과 같은 형상 정정 전 메쉬에서 나온 값이다」 로 정확히 적지만 헤드라인에는 없다. 결과 1 의 형상 단서는 «§1 의 형상 원장 넷» 에만 걸린다.",
+      "evidence": {
+        "outputs/meshfix_attack.json:Q6_invalidated_outputs.critical[0].consequence": "'메쉬 방법 검증 N=4' 라는 저장소의 핵심 주장이 재계산 전까지 보류다",
+        "report02 §4.7 원문": "⚠ M350 RTK 값은 … Mini 2 행은 §1 과 같은 형상 정정 전 메쉬에서 나온 값이다 — 둘 다 재집계를 기다린다"
+      },
+      "downgrade_reason": "본문 §4.7 이 명시적으로 적고 헤드라인이 (§4.7) 로 포워딩하므로 HIGH 는 아니다. 다만 헤드라인만 인용되는 자리(덱·초록)에서 위험하다.",
+      "fix": "결과 5 의 «네 기체» 뒤에 «(그중 Mini 2 는 형상 정정 전 메쉬 — §4.7)» 한 구절."
+    },
+
+    "swept_and_clean": [
+      "02편 §4.2 · §4.3 · §4.4 · §5 · §1 · §2 · §4.7 — 전부 형상 정정 표시 있음(MS-4·MS-6 이 닫은 자리 포함) ✓",
+      "02편 §4 도입 — §4.2 의 단서가 「§4 도입의 기울기와 §4.1·§4.3·§4.4 의 표도 같은 사슬 위에 있다」 로 명시적으로 덮는다 ✓",
+      "06편 §2-2 · §3-1 · §3-2 · §4-1 ✓",
+      "01편 — 이 사슬의 **수치**를 인용하지 않는다(hit 3건은 전부 다음 단계 표의 파일 이름이고 값은 prior_work_survey 에서 온다) ✓",
+      "03·04편 — 이 사슬 인용 0건 ✓",
+      "00편 — 이 사슬 인용 0건(미접촉 확인) ✓",
+      "05편 §방법 «σ 격자 출처» 행 — report13_sigma_grid 에 대해서는 두 세대 낡음이 정확히 적혀 있다 ✓"
+    ],
+    "correction_to_the_round_ledger": "corr2_missed.json 의 `swept_and_already_marked.sites` 는 「01·03·04편 — 이 사슬의 값을 인용하지 않는다(grep 결과 rcs_anchor/sigma_anchor/das_fleet/p3_* 인용 0건)」 라고 적었으나 01편에는 rcs_anchor 1 · sigma_anchor 2 건이 있다. 결론(수치 인용은 없다)은 맞고 세는 방식만 틀렸다."
+  },
+
+  "Q3_numbers": {
+    "question": "표본 10건을 근거 JSON 과 직접 대조하라",
+    "sampled": 21,
+    "mismatches": 0,
+    "table": [
+      {"본문": "02 §4.5 «전력을 만드는 쪽 기준 -4.02 dB»", "JSON": "lowfreq_anchor.json:thin_plate.truth_2d_mom['0.15'].po_minus_tm_db = -4.022224316343777", "판정": "OK"},
+      {"본문": "02 §4.5 «약한 쪽 기준 +7.53 dB»", "JSON": "같은 객체 po_minus_te_db = 7.534819540071847", "판정": "OK"},
+      {"본문": "02 §4.5 «σ 가 11.56 dB 큰 쪽»", "JSON": "같은 객체 tm_minus_te_db = 11.557043856415623", "판정": "OK"},
+      {"본문": "02 §3.1a «폭 ≥ 0.729 λ»", "JSON": "lowfreq_anchor.json:thin_plate.truth_2d_mom_fine_width_grid.knee_a_over_lam = 0.7288815751523454", "판정": "OK"},
+      {"본문": "02 §3.1a «프로펠러 15.86 · 모터 15.97 · 캐노피 35.13 · PCB 73.08 GHz»", "JSON": "lowfreq_attack.json:q5_blast_radius…recomputed_by_me… (재검산 f=knee·c/a 로 소수 둘째자리까지 독립 확인)", "판정": "OK"},
+      {"본문": "02 §4.6 «Das Table III 가 준 5.46 dB»", "JSON": "p3_validation_v2.json:v1_vs_v2.eps_db.das_mean = 5.46", "판정": "OK"},
+      {"본문": "02 §4.6 «우리는 +1.42»", "JSON": "controls.table.ours_phantom3_mesh_v2.eps_err_vs_das_db = 1.4173657189226647 (교차검산 6.877−5.46=1.417 ✓)", "판정": "OK"},
+      {"본문": "02 §4.6 «v1→v2 는 -4.91 → -3.30 dB»", "JSON": "v1_vs_v2.level_db.v1 = -4.9131282182585565 / .v2 = -3.3044217649092373", "판정": "OK"},
+      {"본문": "02 §4.6 «정육면체 +6.22 · 메쉬부피 구 -4.47 · 상자부피 구 +0.96 / rms 1.98»", "JSON": "controls.table.cube_vol_v2 6.221586761967582 · sphere_vol_v2 -4.46549554827176 · sphere_eqvol_paperbox 0.9552777162627922 / 1.9822749548280734", "판정": "OK"},
+      {"본문": "02 §4.5 표 «1.8–18.2 GHz» (주입 전환분)", "JSON": "p3_validation.json:slope.das_published.band = [1.8, 18.2]", "판정": "OK"},
+      {"본문": "01 §4.3 «Phantom 3 · 1.8–18.2 GHz» (주입 전환분)", "JSON": "prior_work_survey.json:anchors.das.band_ghz = [1.8, 18.2]", "판정": "OK · 02 와 동일값"},
+      {"본문": "02 §4.2 «최대 1.396 dB/GHz 갈린다»", "JSON": "report02_derived.json:anchor.slope_ledger_gap_max_db_per_ghz = 1.3955392678117424", "판정": "OK"},
+      {"본문": "02 §4.2 «2026-07-30 07:16:08 세대»", "JSON": "report02_derived.json:anchor.slope_ledger_source_generation", "판정": "OK"},
+      {"본문": "02 §1 «z 배율 0.950→1.000 · Mini 2 0.906→1.001 · X500 V2 18,816→19,030»", "JSON": "meshfix_applied.json:per_drone (matrice4e 0.950166→0.999873 · mini2 0.905897→1.00126 · x500v2 z 1.0→1.0, ntri 18816→19030)", "판정": "OK · 괄호 서술까지 정확"},
+      {"본문": "05 §3.2 «L² 와 L⁴ 가 최대 9.50 dB» (주입 전환분)", "JSON": "report05_derived.json:anchor_scope.size_law_spread_max_db", "판정": "OK · 태그 확인"},
+      {"본문": "05 다음 단계 «§2.2 의 -16.02 dB» (주입 전환분)", "JSON": "sigma_sensitivity.json:unapplied_duty_axis.duty_db.G1 = -16.020599913279625", "판정": "OK · 태그 확인"},
+      {"본문": "06 결과 5 · §4-1 «문턱 1.77 dB»", "JSON": "report06_derived.json:slope.threshold_db = 1.7683725038495934", "판정": "OK"},
+      {"본문": "06 §4-1 «현재 세대 판별폭 0.08 dB»", "JSON": "report06_derived.json:slope.discrimination_min_abs_db_current_generation = 0.07819481748206211", "판정": "OK · 1차 공격의 재계산 0.078 과 일치"},
+      {"본문": "06 §4-1 «Matrice 4E 0.936 → 0.233 dB/GHz»", "JSON": "sigma_anchor.json:drones.matrice4e.slope_ours_3band_db_per_ghz = 0.9358698306274642 / report02_derived.json:band_slope.ours_db_per_ghz.matrice4e = 0.23322388401605645", "판정": "OK · 두 세대가 실제로 두 파일에서 온다"},
+      {"본문": "06 §4-1 «캠페인 창 1.843~5.21 GHz»", "JSON": "report06_derived.json:slope.campaign_window_ghz = [1.843, 5.21] (NM-3 이 새로 심은 키가 디스크에 실재)", "판정": "OK"},
+      {"본문": "06 결과 5 «생산 원장 2026-07-30 07:16:08 세대»", "JSON": "report06_derived.json:slope.ledger_generation", "판정": "OK"}
+    ],
+    "note": "report_style.num() 이 value=None 이면 JSON 값을 그대로 찍고 불일치 시 예외를 던지므로 자릿값 불일치는 원리적으로 안 생긴다 — 1차와 같은 결론이다. 이번에 실제로 검사한 것은 **경로 선택**(어느 세대·어느 잣대·어느 구·어느 기체)이고, 21건 전부 본문 서술과 맞는 경로였다.",
+    "leftover_hand_typed": [
+      {"where": "01편 §3.1 카탈로그 표 «1.8–18.2 GHz»", "severity": "LOW", "what": "이 라운드가 §4.3 의 쌍둥이 값을 주입으로 바꾸면서 §3.1 의 같은 값은 손입력으로 남겼다. 표 아래 «출처 ⟨prior_work_survey : papers⟩» 가 덮지만 값 자체는 태그가 없다."},
+      {"where": "01편 §3.1·§3.3·다음 단계 «−40~0 dBsm»(Rzewuski) · «50 m» · «0.5 m 금속구» · «28 GHz» · «77 GHz»", "severity": "LOW", "what": "선행연구 서술값들이 손입력이다. corr2_rebuild 의 「남은 것은 선언 규약뿐」 은 이 자리들을 세지 않았다."},
+      {"where": "05편 논문키트 방어 블록(셀 23)", "severity": "INFO", "what": "태그 없는 단위 붙은 수가 **41 개**다(라운드는 «20여 개» 로 적었다). 다음 라운드로 미룬 판단 자체는 타당하다 — 게재규격 검사가 이 블록을 통째로 읽는다."}
+    ]
+  },
+
+  "Q4_jargon": {
+    "question": "설명 없이 쓰인 용어를 세라 — 목표 0",
+    "goal": 0,
+    "found": 9,
+    "method": "용어 57개의 첫 등장 자리를 노트북 6편에서 기계로 뽑고, 그 문장 ±120 자에 뜻풀이가 있는지 판정한 뒤 전부 눈으로 재확인했다.",
+    "verified_glossed_this_round": {
+      "note": "라운드가 달았다고 적은 것 중 실제로 확인한 것 — 전부 있다",
+      "terms": ["PO(물리광학) 01 결과5·02 §2", "SBR 02 §2", "IoU 02 §1.1", "자기복제 상한 02 §1.2", "kr 02 §1 표 아래", "상반성 02 §2.1", "닫힌형/정확 Mie/해석 PO 02 §3", "이면각·PEC 02 §3.2", "Swerling 틀 06 §2-6", "bbox→외접상자 06 §2-6", "공통모드 05 결과3", "현실 봉투 05 §3.4", "자유 매개변수 02 §4.6", "편파·무편파 스칼라 02 §3.1a·05 §3.2·06 §4", "P3 02 결과5·§4.7", "레벨오차 DL(0) 02 §4.7", "rms 02 §4.6", "2D 적률법 MoM 02 §3.1a", "equal_psd 05 §2", "R90 05 방법"]
+    },
+    "still_unglossed": [
+      {"term": "위상맹목", "where": "06 §4 결정표", "in_this_round_edit_scope": true, "note": "라운드도 인정한 자리. 12줄 상한 때문이라 했으나 같은 셀에 「위상까지 정합해」 가 이미 있으므로 「(신호의 마루·골 위치를 안 보는)」 6자면 들어간다."},
+      {"term": "CIR", "where": "06 §2-3 · 01 §3.2 표", "in_this_round_edit_scope": true, "note": "저장소 어디에서도 풀지 않는다. 「채널 임펄스 응답(CIR — 한 번 때린 신호가 되돌아오는 모양)」."},
+      {"term": "게이팅", "where": "06 §2-3", "in_this_round_edit_scope": true, "note": "「시간창으로 잘라내기(게이팅)」."},
+      {"term": "로브 · 널 깊이", "where": "02 §1.3 · 05 §2·§3.4 · 06 §4 결정표", "in_this_round_edit_scope": true, "note": "⭐ 05 §3.4 의 결론(「취약성을 정하는 것은 기체 크기가 아니라 밴드 간 σ 로브 산포다」)이 이 낱말 위에 서는데 한 번도 안 푼다. 「방위를 돌릴 때 σ 가 솟는 봉우리(로브)와 꺼지는 골(널)」."},
+      {"term": "dBsm", "where": "01 결과4 · 02 §2 표 · 05 §3.6 · 06 §2-2", "in_this_round_edit_scope": true, "note": "단위인데 한 번도 안 편다. 「1 m² 를 0 으로 잡은 dB 눈금(dBsm)」."},
+      {"term": "first-hit", "where": "01 §4.2 · 02 방법 표", "in_this_round_edit_scope": true, "note": "「광선이 처음 부딪히는 면만 조명면으로 치는 판정(first-hit)」."},
+      {"term": "클램프", "where": "05 §1", "in_this_round_edit_scope": true, "note": "「격자 밖 값을 가장자리 값으로 눌러 붙였다(클램프)」."},
+      {"term": "CFAR · CA-CFAR", "where": "04 제목·방법 · 05 §방법 · 06 §3", "in_this_round_edit_scope": false, "note": "04 는 Pfa 를 「경험적 오경보율」 로 풀지만 CFAR 자체는 안 편다. 「오경보율을 일정하게 유지하는 문턱(CFAR)」."},
+      {"term": "ECA", "where": "04 방법 · 05 앞편에서 표 · 06 §3", "in_this_round_edit_scope": false, "note": "「직접파와 정적 산란을 빼내는 소거기(ECA)」."}
+    ],
+    "glossed_but_too_late": {
+      "severity": "MEDIUM",
+      "what": "여는 블록·방법 표가 먼저 쓰고 뜻은 몇 절 뒤에 나오는 용어 6개 — 사용자 지시가 「처음에 뜻을 푼다」 이므로 절 단위로는 지켰어도 첫 등장 기준으로는 안 지킨 것이다.",
+      "terms": [
+        "kr — 02 결과 1 이 먼저 쓰고 뜻은 §1 표 아래",
+        "IoU — 02 결과 2 가 먼저 쓰고 뜻은 §1.1",
+        "자기복제 상한 — 02 결과 2 가 먼저 쓰고 뜻은 §1.2",
+        "PEC · 이면각 — 02 결과 4 가 먼저 쓰고 뜻은 §3.2",
+        "해석 PO · 정확 Mie — 02 결과 4 · 방법 표가 먼저 쓰고 뜻은 §3",
+        "상반성 — 02 방법 표 계열이 먼저, 뜻은 §2.1"
+      ],
+      "fix": "여는 블록의 첫 등장에 4~10 자 괄호만 붙이면 된다(셀 추가 없음). 예: 「전기적 크기 kr(표적을 파장으로 잰 크기)」."
+    }
+  },
+
+  "Q5_cross_report_contradictions": {
+    "question": "같은 사실을 두 편이 다르게 적고 있지 않은가",
+    "numeric_agreement": {
+      "checked": ["Das 기울기 0.210 dB/GHz (01·02·05·06)", "Yuan 0.315 (01·02)", "레벨 -4.91 / -3.30 (02·06)", "문턱 1.77 (06)", "뒤집힘 1.30 (02·06)", "뒤집힘 3.72 (02·05)", "크기법칙 9.50 (02·05·06)", "공통모드 ±10 dB · 거리 -43%/+76% (02·05)", "PO 문턱 0.729 λ (02·05)", "산포 16.27 (02)"],
+      "conflicts": 0,
+      "note": "겹치는 열 개 값 전부가 편끼리 같은 수를 쓴다. 1차가 지적한 §4.5(v1) ↔ §4 도입(v2) 의 같은 양 두 수는 세대 도장으로 갈렸다(MS-1)."
+    },
+    "found": [
+      {
+        "id": "X-1",
+        "severity": "HIGH",
+        "what": "같은 사실의 **표시 유무**가 편마다 다르다 — 02편은 `sigma_anchor`/`sigma_sensitivity` 를 「형상 정정 전」 으로 네 자리에서 도장 찍는데, 같은 파일을 쓰는 05편(0회)·06편 순위 절(0회)은 안 찍는다. 독자가 05·06 만 읽으면 그 사슬이 현재 형상 위에 있다고 읽는다.",
+        "same_as": "Q2 의 F-1 · F-2"
+      },
+      {
+        "id": "X-2",
+        "severity": "LOW",
+        "what": "02 §4.6 은 「레벨 하나만 보면 부피를 맞게 고른 구가 **우리보다 낫다**」, 인용 다섯 자리(01 결과2 · 02 §6·§7 · 05 §3.7 · 06 §2-2)는 「우리와 **같은 자리에 온다**」. 실제 격차는 +0.96 vs -3.30 dB(2.3 dB)라 «같은 자리» 는 우리 쪽에 유리하게 뭉갠 표현이다.",
+        "fix": "인용 다섯 자리를 「레벨에서는 오히려 그 구가 앞선다」 로 맞춘다 — 단서는 이미 붙어 있으므로 낱말만 바꾸면 된다."
+      },
+      {
+        "id": "X-3",
+        "severity": "LOW",
+        "what": "라운드 자체 기록 세 갈래의 «쉬운 말» 건수가 서로 다르다 — corr2_rebuild.json 은 「용어 12개」, RETRACTION_LOG R17 표제는 「용어 8개」, 그 표의 행은 9 개다.",
+        "fix": "R17 표제를 표 행 수에 맞춘다."
+      }
+    ],
+    "resolved_this_round": [
+      "02 §4.5 「낮게 나와 있을 개연성 쪽이 크다」 ↔ 05 §3.2 「부호는 아직 정하지 못한다» — 05 에 역할 분담 문장이 들어가 서로를 가리킨다 ✓",
+      "06 여는 블록 결과 5 의 1.77 dB 단정 ↔ §4-1·결정표의 재실행 대기 — 결과 5 에 세대 도장이 붙었고 결정표 판정 범위가 「결판 — σ 사슬 재실행이 선행 조건」 으로 바뀌었다 ✓",
+      "02 §6 다음 단계 ↔ §4.6 — CONFLICT-1 로 해소, 잔존 0건 ✓"
+    ]
+  },
+
+  "Q6_fifteen_items": {
+    "question": "1차에서 남은 15건 각각의 닫힘/미닫힘",
+    "closed": 15,
+    "not_closed": 0,
+    "items": [
+      {"id": "OV-1", "severity": "HIGH", "status": "CLOSED", "verified_at": ["report01 여는블록 결과2", "report02 §4.6 도입구 + «자유 매개변수» 풀이", "report02 §7 방어표 마지막 행(pk:defence JSON 과 렌더 표 둘 다)", "report05 §3.7", "report06 §2-2"], "evidence": "다섯 자리 전부에 「그 부피는 결과를 보고 고를 수 있는 값이고, 메쉬 부피로 잡은 구는 두 잣대 모두에서 우리보다 나쁘다」 계열 단서가 실제로 들어 있다. 05 의 최상급 «가장 잘 맞추는» 은 «부피를 맞게 고르면 … 맞출 수 있는» 으로 내려갔다. 06 여는블록 결과 4 는 MS-7 로 한 줄 요약이 되어 주장 자체를 안 하므로 단서 불필요."},
+      {"id": "OV-2", "severity": "HIGH", "status": "CLOSED", "verified_at": ["report02 §6 다음 단계 «구 대조군» 행"], "evidence": "「레벨 축은 §4.6 이 이미 닫았다」 잔존 0건(7편 grep). 현재 문장은 「§4.6 이 낸 것은 «레벨 축에서 상자 계열은 우리 메쉬에 지고, 부피를 맞게 고른 구는 우리와 같은 자리에 온다» 까지다. 레벨 축을 닫는 것은 06편 교정구다」. ⭐ 1차가 권고한 대체문(«레벨 축에서는 형상이 판별력을 안 준다»)이 §4.6 과 어긋나는 것을 이 라운드가 잡아 더 좁혔다 — 그 판단은 §4.6 원문 대조로 옳다."},
+      {"id": "OV-3", "severity": "MEDIUM", "status": "CLOSED", "verified_at": ["report02 §4.6 마지막 문장"], "evidence": "인과가 «잣대» → «어느 구» 로 바뀌었고, 두 표의 구 모형 차이(πa² 광학근사 ↔ 정확 Mie)와 반지름 동일(78.1 mm)이 본문에 실렸다. 두 JSON 의 desc 원문으로 반지름 동일을 확인했다."},
+      {"id": "OV-4", "severity": "MEDIUM", "status": "CLOSED", "verified_at": ["report02 §4.5 마지막 문단"], "evidence": "비대칭이 -4.02 / +7.53 / 11.56 dB 로 되살아났고 세 값 다 lowfreq_anchor 와 일치. 「굵은 부품일수록 어긋남이 작아 이 항의 몫은 낙차보다 작다」 가 같은 문장에 있어 방향 확정으로 넘어가지 않는다. 05 §3.2 가 역할 분담을 적어 두 편이 부딪히지 않는다."},
+      {"id": "MS-1", "severity": "HIGH", "status": "CLOSED", "verified_at": ["report02 결과5", "report02 §4.5 표제 «(v1 메쉬)» + 도입 경고", "report02 §4 도입 «v2 메쉬»", "report02 §4.6 첫 문단(v1→v2 잇는 새 문단)", "report06 §4 결정표 «절대 레벨» 행"], "evidence": "다섯 자리 전부 확인. §4.6 새 문단이 v1→v2 를 레벨 -4.91→-3.30 · 기울기 0.420→0.519(조밀곡선 0.316) · 삼각형 28,160→28,366 · IoU 상한대비 77.9→86.9 % 로 잇고 「레벨은 가까워지고 기울기는 멀어졌다」 로 갈린 결과를 함께 싣는다."},
+      {"id": "MS-2", "severity": "HIGH", "status": "CLOSED", "verified_at": ["report06 derive() 새 키 4종", "report06 §4-1 본문", "report06 §4 결정표 «밴드 기울기» 행", "report06 다음 단계 새 행"], "evidence": "report06_derived.json 에 slope.ledger_generation · current_generation · discrimination_min_abs_db_current_generation(0.0782) 이 실재한다. §4-1 이 0.936→0.233 · 2.44→0.08 dB 를 나란히 싣고 「«결판» 유지의 선행 조건은 σ 사슬 재실행」 을 적는다. 결정표 판정 범위가 「결판 — σ 사슬 재실행이 선행 조건」 으로 바뀌었다. 1차가 계산한 0.078 과 빌더 산출 0.0782 가 일치한다."},
+      {"id": "MS-3", "severity": "HIGH", "status": "CLOSED", "verified_at": ["src/make_report02_target.py L146 상수", "L276 assert", "L51 모듈 docstring", "report02 §4.2 본문"], "evidence": "SLOPE_LEDGER_GAP_MAX_DB_PER_GHZ = 1.40 이 이름 붙은 상한으로 있고 `assert worst <= …` 가 실재한다(실패 메시지가 사슬 재실행 명령을 적는다). docstring 의 거짓 서술(「어긋나면 거기서 멈춘다」)이 「세대 차이만큼은 상수까지 통과시키고 그보다 벌어지면 멈춘다」 로 정정됐다. §4.2 본문이 「생산 원장(2026-07-30 07:16:08 세대 · 재실행 대기)에서」 로 시작한다 — 공격이 요구한 두 장치 모두 적용. 여유 0.0045 는 설계된 동작이며 상수를 올려 통과시킨 흔적 없음."},
+      {"id": "MS-4", "severity": "MEDIUM", "status": "CLOSED", "verified_at": ["report02 §4.2 새 문단", "§4.3 도입", "§4.4 도입", "report06 §2-2(공격 목록 밖 추가 자리)"], "evidence": "세 절 전부에 「2026-08-04 형상 정정 전 메쉬」 가 붙었고, §4.2 의 문장이 「이 축은 위 문단의 세대 축과 별개다」 로 두 축을 명시적으로 갈랐다 — 공격이 지적한 «두 축이 섞여 읽힌다» 를 정확히 겨눈다."},
+      {"id": "MS-5", "severity": "MEDIUM", "status": "CLOSED", "verified_at": ["report02 §3.1a 부품 치수 목록"], "evidence": "「**Phantom 3 급 한 기체의** 부품 치수」 로 바뀌었고, 뒤에 「이 목록은 기체 하나의 치수이고 7기체 공통이 아니다 — §1 의 크기 폭 4.66 배 안에서 …」 와 「치수 자체도 Phantom 3 를 사진 실측으로 다시 짓기 전 스윕에서 인용한 값이다」 두 단서가 다 붙었다."},
+      {"id": "MS-6", "severity": "LOW", "status": "CLOSED", "verified_at": ["report02 §1 형상 정정 단서", "report02 §6 다음 단계"], "evidence": "대표값이 z 축 배율(0.950→1.000 · Mini 2 0.906→1.001)과 메쉬 지문으로 바뀌었고 meshfix_applied 값과 일치한다. X500 V2 만 배율이 1.0→1.0 이라 삼각형 수를 남긴 예외 처리도 데이터와 맞다. ⚠ 부수적으로 «(약 5 %)» 가 삭제되어 크기 감각이 한 칸 약해졌다(LOW, Q1 참조)."},
+      {"id": "MS-7", "severity": "LOW", "status": "CLOSED", "verified_at": ["report06 여는블록 결과4"], "evidence": "「⭐ 이 항목이 캠페인에서 값어치가 가장 크다 — 그 이유 두 가지는 §2-2 가 든다.」 한 줄로 줄었고, 긴 판은 §2-2 에만 있다(글자 그대로 중복 0건). 남긴 §2-2 판이 OV-1 정정을 담고 있어 더 정확한 쪽이 남았다."},
+      {"id": "NM-1", "severity": "HIGH", "status": "CLOSED", "verified_at": ["report02 §3.1a 둘째 문단", "report02 §3.1a 금칙 두 번째 항목", "outputs/lowfreq_attack.json 두 문장"], "evidence": "본문이 「18.2 GHz 까지 줄곧 문턱 아래에 남는 부품은 캐노피와 PCB 둘뿐 … 프로펠러와 모터는 15.86 · 15.97 GHz 에서 문턱을 넘는다」 로 표와 맞았다. 근거 JSON 자신의 내부 모순도 고쳤고 `_correction_2026_08_07` 키에 고치기 전 원문·근거·날짜를 남겼다(git diff 3+/2−). 무릎 주파수는 f=knee·c/a 로 독립 재검산해 일치."},
+      {"id": "NM-2", "severity": "MEDIUM", "status": "CLOSED", "verified_at": ["report02 §4.6 첫 문장", "report02 §4.6 ε 문장"], "evidence": "첫 문장이 「**레벨을** 같은 눈금으로 … (다음 문단의 ε 는 잣대가 다르다 — 거기서 밝힌다)」 로 범위를 한정하고, ε 문장이 「⚠ **ε 만은 잣대가 다르다**: … Das Table III 가 준 5.46 dB 다(레벨은 Yuan 잣대, ε 는 Das 잣대)」 로 잣대를 명시한다. 5.46 은 주입값이고 6.877−5.46=1.417 = eps_err_vs_das_db 로 자기정합."},
+      {"id": "NM-3", "severity": "LOW", "status": "CLOSED", "verified_at": ["report06 §4-1 첫 문단", "report06_derived.json:slope.campaign_window_ghz"], "evidence": "「창이 같은」 → 「창을 **맞춘**」 + 「⚠ 두 창은 같지 않고 겹친다 — 앵커 창이 이 캠페인의 창(1.843~5.21 GHz)을 덮되 위쪽이 더 넓다」. 파생 원장에 campaign_window_ghz=[1.843, 5.21] 이 실제로 생겼다(손입력 아님)."},
+      {"id": "NM-4", "severity": "INFO", "status": "CLOSED (조치 불필요 · 재확인함)", "evidence": "1차의 표본 8건에 더해 이번에 21건을 독립 대조했다 — 불일치 0. num() 이 불일치 시 예외를 던지므로 자릿값 오류는 원리적으로 안 생기고, 위험은 경로 선택에 있다는 1차 결론이 그대로 유효하다."}
+    ]
+  },
+
+  "what_this_round_got_right": [
+    "⭐ CONFLICT-1 — 1차 적대검증이 OV-2 의 수정문으로 **직접 권고한 문구**가 §4.6 과 어긋난다는 것을 스스로 잡아냈다. 권고를 그대로 받아 적지 않고 원문과 대조한 결과다. §4.6 첫 문단(정육면체 +6.22 vs 우리 -3.30)으로 재확인했다.",
+    "MS-3 을 «print 로 낮춘 것을 되살려라» 와 «세대 딱지를 박아라» 중 하나만 고르지 않고 **둘 다** 했고, 1e-6 으로 되돌려 빌드를 죽이는 대신 이름 붙은 상한 + 재실행 명령이 적힌 실패 메시지로 되살렸다. 여유가 0.0045 뿐인 것을 위험으로 스스로 적었다.",
+    "NM-1 에서 리포트만 고치지 않고 근거 JSON 의 내부 모순까지 고치되 `_correction_…` 키로 고치기 전 원문을 남겼다 — 정정 흔적을 지우지 않는 처리다.",
+    "MS-2 를 «문턱을 바꾼다» 가 아니라 «생산 문턱은 그대로 두고 현재 세대 값을 나란히 싣는다» 로 처리했다. 결과가 아니라 서술만 움직였고, 파생 원장에 현재 세대 키를 새로 남겨 다음 라운드가 손입력 없이 쓸 수 있게 했다.",
+    "재생성이 첫 시도부터 strict 로 통과했고(ContractError 0) 근거 JSON 을 고쳐서 규약을 통과시킨 흔적이 없다 — 25/22/23/25/25 셀·부정문 상한·완충어 0 을 노트북에서 직접 세어 확인했다.",
+    "OV-4 에서 비대칭을 되살리되 같은 파일의 «크기는 부족하다» 를 함께 실어 반대 방향 과잉(«우리는 확실히 보수적이다»)으로 넘어가지 않았다."
+  ],
+
+  "required_before_this_round_is_called_done": [
+    "F-2(HIGH): 06편 여는 블록 결과 2 와 §4 결정표 «파형 상대순위» 행에 「그 폭을 정하는 Matrice 4E 행은 형상 정정 전 메쉬 값이다(02 §5)」 를 붙인다 — 여유가 0.30 dB 뿐이라 설계 적합성 주장 자체가 이 한 수 위에 있다.",
+    "F-1(HIGH): 05편 §방법 «밴드 비교» 행에 sigma_anchor · sigma_sensitivity 의 형상 정정 단서를 넣는다 — 05편 전체에 그 낱말이 0회다. 셀 추가 없이 기존 표 칸에 들어간다.",
+    "Q4: 06편 안의 세 용어(위상맹목 · CIR · 게이팅)와 저장소 전반의 로브·널 깊이·dBsm 에 뜻을 단다. 로브는 05 §3.4 의 결론 문장이 그 낱말 위에 서 있어 가장 급하다.",
+    "Q4-2: 02편 여는 블록의 kr · IoU · 자기복제 상한 · PEC · 이면각 · 해석 PO 에 4~10 자 괄호를 붙인다(뜻은 이미 뒤 절에 있으므로 «처음에» 만 지키면 된다).",
+    "기록 정합: RETRACTION_LOG R17 에 `outputs/lowfreq_attack.json` 편집을 적고, corr2_rebuild.json 의 「근거 JSON 은 한 줄도 안 고쳤다」 를 「규약을 통과시키려고 고친 근거 JSON 은 없다 — NM-1 이 lowfreq_attack.json 의 자기모순 두 문장을 표에 맞춰 고쳤고 원문은 `_correction_2026_08_07` 에 남겼다」 로 정확히 고친다."
+  ],
+
+  "risks_carried_forward": [
+    "02편 부정문 3/3 · 02·05·06 마크다운 25/25 셀 — 위 조치는 전부 기존 셀 안의 구절 추가로 설계했다(셀 추가 0 · 부정 종결 0).",
+    "06 §4-1 셀이 12/12 줄로 꽉 찼다 — F-2 조치는 여는 블록 결과 2 와 §4 결정표 칸에 넣는다.",
+    "SLOPE_LEDGER_GAP_MAX_DB_PER_GHZ = 1.40 의 여유 0.0045 — σ 사슬 재실행 시 이 assert 가 먼저 멈추는 것이 설계된 동작이다. 상수를 올려 통과시키지 말 것(이 라운드도 안 올렸다).",
+    "05편 논문키트 방어 블록(셀 23)의 태그 없는 수는 20여 개가 아니라 41 개다 — 다음 라운드 견적을 그만큼 잡을 것."
+  ],
+
+  "files_read_not_modified": [
+    "report00~06 노트북 7편", "src/make_report01_prior.py · 02 · 05 · 06",
+    "docs/RETRACTION_LOG.md",
+    "outputs/report_correction_attack.json · corr2_over.json · corr2_missed.json · corr2_numbers.json · corr2_rebuild.json",
+    "outputs/p3_validation.json · p3_validation_v2.json · das_fleet_validation.json · lowfreq_anchor.json · lowfreq_attack.json · meshfix_applied.json · meshfix_attack.json · sigma_anchor.json · sigma_sensitivity.json · prior_work_survey.json · report02_derived.json · report05_derived.json · report06_derived.json"
+  ]
+}

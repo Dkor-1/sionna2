@@ -36,6 +36,7 @@ make_report06_measurement.py — 리포트 06 「실측」 빌더  →  report06
   outputs/report06_measurement.json  ← benchmark/plan_measurement.py
   outputs/measurement_plan.json      ← src/sigma_anchor.py :: write_measurement_plan()
   outputs/sigma_anchor.json          ← src/sigma_anchor.py
+  outputs/rcs_anchor.json            ← benchmark/rcs_anchor.py (§4-1 이 두 세대를 나란히 싣는다)
 
 ⚠ numpy/scipy + Mie 기준해만 쓴다 — CPU 로 약 10 초.
 ⚠ 이 편이 담는 것은 **계산된 설계값**이다: 원거리장 · 교정구 · 서브밴드 · 각도표본 · 판정 임계.
@@ -72,6 +73,9 @@ NB_OUT = os.path.join(_ROOT, "report06_measurement.ipynb")
 R6 = os.path.join(_ROOT, "outputs", "report06_measurement.json")
 MP = os.path.join(_ROOT, "outputs", "measurement_plan.json")
 SA = os.path.join(_ROOT, "outputs", "sigma_anchor.json")
+#: 앵커 사슬의 **원본** — 생산 원장(sigma_anchor)이 서 있는 판보다 새 세대일 수 있다.
+#: §4-1 이 두 세대를 나란히 싣기 위해 여기서 직접 읽는다(읽기만 한다).
+RA = os.path.join(_ROOT, "outputs", "rcs_anchor.json")
 SS = os.path.join(_ROOT, "outputs", "sigma_sensitivity.json")
 #: 실측 3층 설계 — 1층 σ(f) 레인지 · 2층 ISM 파형축 · 검증 3점 · 3층 비행검출
 ML = os.path.join(_ROOT, "outputs", "measurement_layers.json")
@@ -221,8 +225,59 @@ def derive(verbose=True) -> dict:
         a = sa["drones"][dk]["slope_ours_3band_db_per_ghz"]
         slope_rows.append(dict(airframe=dk, ours_db_per_ghz=a, anchor_db_per_ghz=a_anchor,
                                ratio_over_anchor=a / a_anchor, gap_db=(a - a_anchor) * span))
+    #  ⭐ 밴드정합 앵커 — 이 캠페인의 창(1.843~5.21 GHz)과 **같은 창**에서 적합한 측정 기울기.
+    #     생산 앵커(Das, 1.8~18.2 GHz 전대역)는 그대로 두고 **나란히** 싣는다. 판정 문턱은
+    #     둘 중 좁은 쪽으로 잡는다 — 창을 맞춘 앵커가 우리 값에 가까워 요구 재현성이 빡빡하다.
+    p3v2 = _load(os.path.join(_ROOT, "outputs", "p3_validation_v2.json"))
+    a_bm = float(p3v2["our_operating_band"]["measured_theta90_curve_dense"]["a"])
+    bm_band = p3v2["our_operating_band"]["band_ghz"]
+    for r in slope_rows:
+        r["anchor_band_matched_db_per_ghz"] = a_bm
+        r["gap_db_band_matched"] = (r["ours_db_per_ghz"] - a_bm) * span
+    #  ⭐⭐ 위 두 줄의 «우리 기울기» 는 생산 원장 `sigma_anchor.json` 에서 온다. 그 원장은 한 세대
+    #      앞선 `rcs_anchor.json`(2026-07-30 판) 위에 서 있고, 디스크의 현재 `rcs_anchor.json` 으로
+    #      같은 정의(세 밴드 방위평균 μ 를 f[GHz] 에 1차 적합, el=0)를 다시 적합하면 값이 크게
+    #      움직인다. 그 「현재 세대」 값과 그때의 판별폭을 **함께 남긴다** — 본문 §4-1 이 든다.
+    #      ⛔ 문턱(threshold_db)은 생산 원장 값으로 그대로 두고, 현재 세대 값은 나란히만 싣는다.
+    #         문턱을 갈아끼우려면 σ 사슬 전체를 한 세대로 다시 돌려야 한다(02편 §4.2·§6).
+    ra = _load(RA)
+    fb_cur = np.array([ra["meta"]["bands"][k] / 1e9 for k in ra["meta"]["bands"]], float)
+    cur = {k: float(np.polyfit(fb_cur,
+                               np.array([rec["bands"][b]["el0"]["mean_dbsm"]
+                                         for b in ra["meta"]["bands"]], float), 1)[0])
+           for k, rec in ra["drones"].items()}
+    for r in slope_rows:
+        a_cur = cur.get(r["airframe"])
+        r["ours_current_generation_db_per_ghz"] = a_cur
+        r["gap_db_current_generation"] = None if a_cur is None else (a_cur - a_anchor) * span
+        r["gap_db_band_matched_current_generation"] = (
+            None if a_cur is None else (a_cur - a_bm) * span)
+    gaps_cur = [abs(r[k]) for r in slope_rows
+                for k in ("gap_db_current_generation", "gap_db_band_matched_current_generation")
+                if r[k] is not None]
     slope = dict(rows=slope_rows, span_ghz=span, anchor_db_per_ghz=a_anchor,
+                 ledger_generation=str(sa["meta"]["source_anchor_json_generated"]),
+                 current_generation=str(ra["meta"]["generated"]),
+                 discrimination_min_abs_db_current_generation=(min(gaps_cur) if gaps_cur
+                                                               else None),
+                 generation_note="rows.ours_db_per_ghz 는 생산 원장(sigma_anchor.json, "
+                                 "ledger_generation 판 rcs_anchor 위) 값이고, "
+                                 "rows.ours_current_generation_db_per_ghz 는 디스크의 현재 "
+                                 "rcs_anchor.json(current_generation 판)에서 같은 정의로 다시 "
+                                 "적합한 값이다. 두 세대 **모두** 2026-08-04 형상 정정 전 메쉬다.",
                  gap_db_min=min(r["gap_db"] for r in slope_rows),
+                 anchor_band_matched_db_per_ghz=a_bm,
+                 anchor_band_matched_window_ghz=bm_band,
+                 #  ⭐ 캠페인 창과 밴드정합 앵커 창은 **같지 않고 겹친다** — 앵커 창이 캠페인 창을
+                 #     덮되 위쪽이 더 넓다. 두 창을 나란히 인쇄해 「같다」 로 읽히지 않게 한다.
+                 campaign_window_ghz=[float(r6["slope_discrimination"]["f_lo_ghz"]),
+                                      float(r6["slope_discrimination"]["f_hi_ghz"])],
+                 anchor_window_ghz=list(p3v2["slope"]["das_published"]["band"]),
+                 anchor_band_matched_source="Yuan theta=90 복원 실측곡선 (EuCAP 2025)",
+                 gap_db_min_band_matched=min(r["gap_db_band_matched"] for r in slope_rows),
+                 threshold_db=min(min(r["gap_db"] for r in slope_rows),
+                                  min(r["gap_db_band_matched"] for r in slope_rows)),
+                 threshold_rule="두 앵커가 주는 판별폭 중 **좁은 쪽**을 세션 재현성 요구로 쓴다",
                  fit_note_short="세 밴드 방위평균 μ 를 f[GHz] 에 1차 적합(el=0)",
                  definition="ours = sigma_anchor.json:drones.<k>.slope_ours_3band_db_per_ghz "
                             "(세 밴드 방위평균 mu 를 f[GHz] 에 1차 적합, el=0). "
@@ -694,6 +749,9 @@ def blocks(J) -> list:
     P3 = from_json("outputs/p3_validation.json")          # 눈감기 대조 — 레벨 사전값
     S2A = from_json("outputs/s2r_attack.json")            # sim-to-real 설계 적대검증
     PW = from_json("outputs/ptd_wiring.json")             # PTD 배선 상태(02편 §6)
+    MFX = from_json("outputs/meshfix_applied.json")       # 형상 정정 — 설계값 신선도 단서
+    from_json("outputs/lowfreq_attack.json")              # §4 결정표가 경로로 가리킨다 — 존재 검사
+    PV2 = from_json("outputs/p3_validation_v2.json")      # §4-1 밴드정합 앵커 · v2 메쉬 레벨
     B: list = []
 
     # ── 여는 블록 — 한 일 / 결과 / 방법 / 재현 / 앞 편에서 (§5.2) ─────────────
@@ -724,10 +782,14 @@ def blocks(J) -> list:
             f"두 기체·세 밴드에서 예상 σ 보다 최소 "
             f"{D.num('calibration_margin_min_db', fmt='{:+.2f}', unit='dB')} 밝고, 이 구가 "
             f"지금 우리 PO 출력인 **절대 레벨을 측정에 앵커한다**(생산 모드의 평균 레벨이동 "
-            f"{D.num('modes.level_shift_production_abs_max_db', fmt='{:.2f}', unit='dB')}).",
+            f"{D.num('modes.level_shift_production_abs_max_db', fmt='{:.2f}', unit='dB')}). "
+            f"⭐ 이 항목이 캠페인에서 값어치가 가장 크다 — 그 이유 두 가지는 §2-2 가 든다.",
             f"기울기 판정 문턱은 세션간 진폭 재현성 "
-            f"{D.num('slope.gap_db_min', fmt='{:.2f}', unit='dB')}, 크기법칙 판정은 두 기체의 "
-            f"차등신호 {D.num('size_law.differential_db', fmt='{:.2f}', unit='dB')} 의 부호다.",
+            f"{D.num('slope.threshold_db', fmt='{:.2f}', unit='dB')} — 앵커 두 개(전대역 Das · "
+            f"창을 맞춘 저대역 Yuan) 중 **좁은 쪽**이다(생산 원장 "
+            f"{D.num('slope.ledger_generation')} 세대의 수이고, 현재 세대 값은 §4-1 이 나란히 "
+            f"든다). 크기법칙 판정은 두 기체의 차등신호 "
+            f"{D.num('size_law.differential_db', fmt='{:.2f}', unit='dB')} 의 부호다.",
         ],
         method=[
             ("판정 대상",
@@ -893,7 +955,11 @@ def blocks(J) -> list:
         "",
         f"세션 거리는 최대값 "
         f"{D.num('farfield_adopted.R_ff_max_m', fmt='{:.2f}', unit='m')} 로 잡는다 — "
-        f"그 한 거리가 두 기체 세 밴드를 전부 덮는다."))
+        f"그 한 거리가 두 기체 세 밴드를 전부 덮는다.", "",
+        f"⚠ §2-1 표와 이 그림의 D 는 Matrice 4E 메쉬의 외접상자에서 나오고, 그 형상은 "
+        f"{MFX.num('_meta.date')} 에 공식 CAD 실측으로 정정됐다 — 표의 값은 **정정 전** 메쉬 "
+        f"기준이다(⟨outputs/meshfix_applied.json : per_drone.matrice4e⟩). 로터 디스크를 포함한 "
+        f"대각이라 변화 폭은 작게 잡히지만, 그 크기는 재계산이 정한다."))
 
     # ── §2-2 교정 기준체 ───────────────────────────────────────────────────
     B.append(md(
@@ -914,7 +980,13 @@ def blocks(J) -> list:
         f"정확 Mie 로 교정하면 우리 σ 는 그 규약 대비 밴드에 따라 "
         f"{D.num('layers.mie_shift_min_db', fmt='{:+.2f}')} ~ "
         f"{D.num('layers.mie_shift_max_db', fmt='{:+.2f}', unit='dB')} 위로 뜬다 — 앵커와 "
-        f"사과-대-사과로 견줄 때 이 항을 먼저 되돌린다."))
+        f"사과-대-사과로 견줄 때 이 항을 먼저 되돌린다.",
+        "",
+        "⭐ 이 구가 캠페인에서 값어치가 가장 큰 이유는 두 가지다 — 절대 레벨만 보면 모양을 안 "
+        "닮은 구도 부피를 맞게 골라 넣으면 우리 메쉬와 같은 자리에 오고(02 §4.6 — 그 부피는 "
+        "결과를 보고 고를 수 있는 값이라, 메쉬 부피로 잡은 구는 도로 우리보다 나쁘다), 우리 세 "
+        "밴드는 전부 PO 근사의 "
+        "유효 문턱 아래에 부품을 남긴다(02 §3.1a). **계산으로 닫히지 않는 축을 이 구가 닫는다.**"))
 
     B.append(md(
         D.table("calibration",
@@ -937,7 +1009,11 @@ def blocks(J) -> list:
         "",
         f"교정구가 기체보다 최소 "
         f"{D.num('calibration_margin_min_db', fmt='{:+.2f}', unit='dB')} 밝으므로 같은 이득 "
-        f"설정으로 둘 다 잡히고, 그래야 두 응답의 비율이 그대로 σ 비율이 된다."))
+        f"설정으로 둘 다 잡히고, 그래야 두 응답의 비율이 그대로 σ 비율이 된다. ⚠ 이 여유가 견주는 "
+        f"«기체 예상 σ» 는 `rcs_anchor → sigma_anchor` 사슬에서 오고, 그 사슬은 "
+        f"{MFX.num('_meta.date')} 형상 정정 전 메쉬 위에 있다(§3-2) — 반경 선택은 여유가 "
+        f"{D.num('calibration_margin_min_db', fmt='{:+.2f}', unit='dB')} 라 그 정도 이동에는 "
+        f"버틴다."))
 
     # ── §2-3 점표적 서브밴드 ───────────────────────────────────────────────
     B.append(md(
@@ -1026,10 +1102,11 @@ def blocks(J) -> list:
         f"이전으로 갚는다 — 그 3점은 교차설계의 대각선이 아니라 독립 검사점이다.",
         "",
         f"1층이 내는 것은 점별 패턴이 아니라 **분포 P(σ)** 다 — 검출확률이 σ 분포의 함수이므로, "
-        f"그 분포를 Swerling 틀에 넣어 3층의 "
+        f"그 분포를 Swerling 틀(표적 밝기가 얼마나 요동하는지를 몇 가지 표준 분포로 나눈 레이다 "
+        f"관례 분류)에 넣어 3층의 "
         f"`{D.get('layers.layer3_headline')}` 를 예측하고 3층이 그 예측을 검사한다"
         f"⟨outputs/measurement_layers.json : layer3_flight.ties_back_to⟩. 2층·3층의 ISM 원거리장은 "
-        f"bbox 정의로 최대 "
+        f"외접상자(bbox — 프로펠러까지 감싸는 수평 최대치수) 정의로 최대 "
         f"{D.num('layers.farfield_ism_bbox_max_m', fmt='{:.2f}', unit='m')} 이고, §2-1 이 채택한 "
         f"세션 거리 {D.num('farfield_adopted.R_ff_max_m', fmt='{:.2f}', unit='m')}(env 정의) 안에 "
         f"든다."))
@@ -1096,7 +1173,13 @@ def blocks(J) -> list:
              A.num("drones.mini5pro.comparability.size_corr_L4_db", fmt="{:+.2f}", unit="dB")]]),
         "",
         "두 기체 다 등급이 `scaled` 다 — 앵커 기체와 같은 4로터 위상이고 대각만 다르다.",
-        "이 원장의 각 행이 §4 결정표 왼쪽 열과 1:1 로 붙는다."))
+        "이 원장의 각 행이 §4 결정표 왼쪽 열과 1:1 로 붙는다.",
+        "",
+        f"⚠ 위 두 표는 `rcs_anchor → sigma_anchor` 사슬 위에 서 있고, 그 사슬은 "
+        f"{MFX.num('_meta.date')} 형상 정정 **전** 메쉬로 돌린 것이다 — 다섯 앵커 기체 중 "
+        f"Matrice 4E 가 그 정정을 받았다"
+        f"(⟨outputs/meshfix_attack.json : Q6_invalidated_outputs.critical[1]⟩). 예상 σ · 교정구 "
+        f"여유 · 크기법칙 차등이 전부 그 아래에 있으므로, 사슬 재실행 뒤에 이 표를 다시 읽는다."))
 
     # ── §4 결정표 ──────────────────────────────────────────────────────────
     B.append(md(
@@ -1104,6 +1187,10 @@ def blocks(J) -> list:
         "",
         "네 번째 열이 **판정 범위**다 — `결판`(이 캠페인이 정한다) · `사슬 확인`(설계값과 대조한다) · "
         "`이 캠페인 밖`(다음 라운드나 통제 시뮬이 정한다). 세 번째 값을 그대로 적는 것이 이 표의 핵심이다.",
+        "",
+        "표에 나오는 **편파**는 전파의 전기장이 흔들리는 방향을 말한다 — 세워서 보내고 세워서 받는 "
+        "조합을 VV, 눕혀 보내고 눕혀 받는 조합을 HH, 한쪽만 눕힌 조합을 VH·HV 라 적는다. 우리 커널은 "
+        "그 방향을 가르지 않고 세기 값 하나만 내므로 **무편파 스칼라**라고 부른다.",
         "",
         table(["02편의 주장", "이를 결정하는 측정", "판정 기준", "판정 범위"], [
             ["자세 패턴 B1(φ) 을 SBR+PO 기하에서 계산했다",
@@ -1116,24 +1203,32 @@ def blocks(J) -> list:
              f"{D.num('calibration_margin_min_db', fmt='{:+.2f}', unit='dB')}, 세션 드리프트 ≤ "
              f"{D.num('ranking_validation.drift_budget_db', fmt='{:.2f}', unit='dB')} (§2-2). "
              f"눈감기 사전값 — 고도정합 실측곡선 대비 밴드평균 "
-             f"{P3.num('residual.vs_yuan_theta90_measured_curve.mean_db', fmt='{:+.2f}', unit='dB')}",
+             f"{P3.num('residual.vs_yuan_theta90_measured_curve.mean_db', fmt='{:+.2f}', unit='dB')}"
+             f"(v1 메쉬 · 사진 실측 v2 메쉬에서는 "
+             f"{PV2.num('v1_vs_v2.level_db.v2', fmt='{:+.2f}', unit='dB')}, 02편 §4.6)",
              "결판"],
             ["모서리 회절 — 1차 PTD 항이 커널에 있고 생산 기본값은 끔이다 (02)",
-             "모서리가 많은 표준체(평판·이면각)를 같은 세션에서 함께 측정",
+             "모서리가 많은 표준체(평판·이면각)를 같은 세션에서 함께 측정하되 **정면입사만 "
+             "재지 않는다** — 1차 모서리 항은 정면입사에서 두 편파에 같은 값을 주므로 그 "
+             "각도에서는 판별력이 0 이다 ⟨outputs/lowfreq_attack.json : "
+             "what_survives_the_attack[3]⟩. 비스듬한 입사와 모서리 방향 입사를 함께 잰다",
              f"위상까지 정합해 부호를 심판한다 — 평판 RMS 시험은 위상맹목이다. 켠 비용은 "
              f"{PW.num('verdict.cost_increase_pct', fmt='{:+.1f}', unit='%')} (§5)",
              "결판"],
             [f"밴드 기울기는 Das 의 "
              f"{D.num('slope.anchor_db_per_ghz', fmt='{:.3f}')} dB/GHz 로 맞췄다",
              "세 밴드를 같은 세션에서 측정",
-             f"세션 재현성 < {D.num('slope.gap_db_min', fmt='{:.2f}', unit='dB')} (§4-1)",
-             "결판"],
+             f"세션 재현성 < {D.num('slope.threshold_db', fmt='{:.2f}', unit='dB')} "
+             f"— 창을 맞춘 앵커 기준 (§4-1). ⚠ 생산 원장 세대의 수이고, 현재 세대로는 판별폭이 "
+             f"{D.num('slope.discrimination_min_abs_db_current_generation', fmt='{:.2f}', unit='dB')} "
+             f"까지 좁아진다 (§4-1)",
+             "결판 — σ 사슬 재실행이 선행 조건"],
             [f"크기전이는 L² 와 L⁴ 를 괄호로 함께 싣는다 "
              f"({D.num('size_law.uncontrolled_size_db', fmt='{:.2f}', unit='dB')})",
              "두 기체를 한 캠페인에서 측정",
              f"차등 {D.num('size_law.differential_db', fmt='{:.2f}', unit='dB')} 의 부호 (§4-2)",
              "결판"],
-            ["편파: VV 단일, 커널은 무편파 스칼라",
+            ["편파: 앵커 측정은 VV 하나, 커널은 무편파 스칼라",
              "VV / VH / HV / HH 4조합",
              "무편파 모형과 VV 측정의 차를 dB 로 확정", "결판"]])))
 
@@ -1170,12 +1265,46 @@ def blocks(J) -> list:
                       paper_caption=CAP_EN["slope"], report="report06_measurement")),
         "",
         f"우리 커널은 {D.num('slope.rows[0].ours_db_per_ghz', fmt='{:.3f}')} ~ "
-        f"{D.num('slope.rows[1].ours_db_per_ghz', fmt='{:.3f}')} dB/GHz 이고 앵커는 "
-        f"{D.num('slope.anchor_db_per_ghz', fmt='{:.3f}')} dB/GHz 다. 대역 "
-        f"{D.num('slope.span_ghz', fmt='{:.3f}', unit='GHz')} 를 지나며 두 가설이 "
-        f"{D.num('slope.gap_db_min', fmt='{:.2f}')} ~ "
-        f"{D.num('slope.rows[1].gap_db', fmt='{:.2f}')} dB 벌어진다. 기울기의 정의는 하나로 "
-        f"고정한다 — {D.num('slope.fit_note_short')}.",
+        f"{D.num('slope.rows[1].ours_db_per_ghz', fmt='{:.3f}')} dB/GHz 다. 앵커는 **두 개를 "
+        f"나란히** 쓴다 — 전대역 적합값 "
+        f"{D.num('slope.anchor_db_per_ghz', fmt='{:.3f}')} dB/GHz(Das, "
+        f"{D.num('slope.anchor_window_ghz[0]', fmt='{:.1f}')}~"
+        f"{D.num('slope.anchor_window_ghz[1]', fmt='{:.1f}')} GHz)와, 이 "
+        f"캠페인에 **창을 맞춘** 저대역 적합값 "
+        f"{D.num('slope.anchor_band_matched_db_per_ghz', fmt='{:.3f}')} dB/GHz"
+        f"({D.num('slope.anchor_band_matched_source')}, "
+        f"{D.num('slope.anchor_band_matched_window_ghz[0]', fmt='{:.1f}')}~"
+        f"{D.num('slope.anchor_band_matched_window_ghz[1]', fmt='{:.1f}')} GHz)다. ⚠ 두 창은 "
+        f"**같지 않고 겹친다** — 앵커 창이 이 캠페인의 창("
+        f"{D.num('slope.campaign_window_ghz[0]', fmt='{:.3f}')}~"
+        f"{D.num('slope.campaign_window_ghz[1]', fmt='{:.2f}')} GHz)을 덮되 위쪽이 더 넓다. "
+        f"전대역 앵커(위)와 견주면 훨씬 가깝다는 뜻이지 같은 창이라는 뜻이 아니다. 대역 "
+        f"{D.num('slope.span_ghz', fmt='{:.3f}', unit='GHz')} 를 지나며 두 가설이 벌리는 폭은 "
+        f"전대역 앵커에서 {D.num('slope.gap_db_min', fmt='{:.2f}')} ~ "
+        f"{D.num('slope.rows[1].gap_db', fmt='{:.2f}')} dB, 창을 맞춘 앵커에서 "
+        f"{D.num('slope.gap_db_min_band_matched', fmt='{:.2f}')} ~ "
+        f"{D.num('slope.rows[1].gap_db_band_matched', fmt='{:.2f}')} dB 다.",
+        "",
+        f"**판정 문턱은 둘 중 좁은 쪽 "
+        f"{D.num('slope.threshold_db', fmt='{:.2f}', unit='dB')} 로 잡는다** — 창을 맞춘 앵커가 "
+        f"우리 값에 더 가까워서 요구 재현성이 그만큼 빡빡하다"
+        f"(⟨outputs/p3_validation_v2.json : our_operating_band⟩). 기울기의 정의는 하나로 "
+        f"고정한다 — {D.num('slope.fit_note_short')}. "
+        f"⚠⚠ **이 문턱은 생산 원장 세대의 수다.** 위의 «우리 커널» 값은 생산 원장"
+        f"(`sigma_anchor.json`, {D.num('slope.ledger_generation')} 판 `rcs_anchor.json` 위)에서 "
+        f"왔고, 디스크의 현재 `rcs_anchor.json`({D.num('slope.current_generation')} 판)으로 같은 "
+        f"정의를 다시 적합하면 Matrice 4E 가 "
+        f"{D.num('slope.rows[0].ours_db_per_ghz', fmt='{:.3f}')} → "
+        f"{D.num('slope.rows[0].ours_current_generation_db_per_ghz', fmt='{:.3f}', unit='dB/GHz')} "
+        f"로 내려가, 전대역 앵커와의 판별폭이 "
+        f"{D.num('slope.rows[0].gap_db', fmt='{:.2f}')} → "
+        f"{D.num('slope.rows[0].gap_db_current_generation', fmt='{:.2f}', unit='dB')} 가 된다. "
+        f"그 세대에서 가장 좁은 판별폭은 "
+        f"{D.num('slope.discrimination_min_abs_db_current_generation', fmt='{:.2f}', unit='dB')} "
+        f"로, 세션 진폭 재현성이 닿는 범위 밖이다 — 이 행을 «결판» 으로 유지하려면 σ 사슬 "
+        f"재실행(02편 §4.2 · §6)이 선행 조건이다. 그리고 두 세대 모두 "
+        f"{MFX.num('_meta.date')} 형상 정정 전 메쉬 위에 서 있고, 앵커 5기체 중 Matrice 4E 가 그 "
+        f"정정을 받았다.",
         "",
         "### §4-2. 크기법칙 — 두 기체를 함께 사는 이유",
         "",
@@ -1255,7 +1384,7 @@ def blocks(J) -> list:
              f"이고, 빼면 기체 예상 σ 가 내려가 여유가 그만큼 넓어진다. 생산 σ 는 "
              f"{D.num('modes.production_mode')} 라 기울기만 받는다."),
             ("세 밴드를 한 세션에서 재어 밴드별 σ 오차를 진폭 재현성으로 묶는다.",
-             "그림 5 · outputs/report06_derived.json:slope.gap_db_min",
+             "그림 5 · outputs/report06_derived.json:slope.threshold_db",
              f"밴드별 독립 σ 오차 1 dB 에서 단일자세 순위 보존확률이 "
              f"{D.num('ranking_validation.p_order_preserved_at_1db.matrice4e', fmt='{:.2f}')} "
              f"로 떨어진다.",
@@ -1333,9 +1462,16 @@ def blocks(J) -> list:
         ("기체 2종을 입고하고 §2 체크리스트 6항목대로 세션을 돌린다",
          "우리 기체의 절대 σ(f, φ) 가 외부 앵커 없이 자체 측정으로 선다",
          "`outputs/measured_sigma.json` → `src/sigma_anchor.py:255` 앵커 등록"),
+        ("σ 사슬(rcs_anchor → sigma_anchor)을 한 세대로 다시 돌린 뒤 §4-1 문턱을 다시 낸다",
+         f"기울기 판별폭이 현재 기하 위에서 확정된다 — 지금은 세대를 바꾸는 것만으로 "
+         f"{D.num('slope.rows[0].gap_db', fmt='{:.2f}')} → "
+         f"{D.num('slope.rows[0].gap_db_current_generation', fmt='{:.2f}', unit='dB')}"
+         f"(Matrice 4E · 전대역 앵커)로 움직인다",
+         "`benchmark/rcs_anchor.py` → `src/sigma_anchor.py` → 06편 §4-1 · 02편 §4.2"),
         ("세 밴드를 같은 세션에서 재고 세션간 진폭 재현성을 기록한다",
          f"밴드 기울기가 우리 커널 값과 앵커 "
-         f"{D.num('slope.anchor_db_per_ghz', fmt='{:.3f}')} dB/GHz 중 어디에 앉는지 결정된다",
+         f"{D.num('slope.anchor_db_per_ghz', fmt='{:.3f}')} dB/GHz 중 어디에 앉는지 결정된다 — "
+         f"위 사슬 재실행이 이 판정의 선행 조건이다",
          "06편 §4-1 → 02편 §4 재기술"),
         ("두 기체를 한 캠페인에서 재고 μ 차이의 부호를 본다",
          f"크기전이 법칙 L² vs L⁴ (원장 "
@@ -1347,8 +1483,10 @@ def blocks(J) -> list:
         ("β ≤ 45° 안에서 송수신 분리각별 기하를 §2-1·§2-5 방식으로 계산한다",
          "바이스태틱 세션의 원거리장 거리와 게이팅 임계가 정해진다",
          "`benchmark/plan_measurement.py` 확장"),
-        ("같은 세션에서 모서리가 많은 표준체(평판·이면각)를 함께 잰다",
-         f"1차 PTD 항의 부호와 크기를 실측이 심판한다 — 평판 RMS 시험은 위상맹목이고, 켠 비용은 "
+        ("같은 세션에서 모서리가 많은 표준체(평판·이면각)를 **정면입사 밖의 각도까지** 함께 "
+         "잰다",
+         f"1차 PTD 항의 부호와 크기를 실측이 심판한다 — 정면입사에서 1차 항은 두 편파에 같은 "
+         f"값을 주므로 그 각도만으로는 판별력이 0 이고, 평판 RMS 시험은 위상맹목이다. 켠 비용은 "
          f"{PW.num('verdict.cost_increase_pct', fmt='{:+.1f}', unit='%')} 다",
          "06편 §2-2 확장 · §4 결정표 → `benchmark/ptd_plate_validation.py`"),
         ("자세축과 로터위상축을 σ 생산자에 배선한 뒤 sim-to-sim ablation 을 돌린다",

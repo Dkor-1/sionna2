@@ -91,6 +91,9 @@ J_TM = "outputs/tm_result.json"               # 표적모형 민감도 — 3모�
 J_TA = "outputs/tm_attack.json"               # 그 실험의 적대검증 — 추정량 · 낙차 소유권(§3.7)
 J_PH = "outputs/phi_sweep.json"               # 장면 방위 φ 전수 스윕(§1.1)
 J_SV = "outputs/s2r_assets_verify.json"       # σ 격자 재생성 1:1 대조(여는 블록 · 다음 단계)
+#: ⭐ 2026-08-04 라운드 — σ 불확도의 **출처**를 밝히는 두 원장(인용만 한다).
+J_LFA = "outputs/lowfreq_attack.json"         # PO 유효 하한과 그 파급 · 금칙(§3.2 · §3.3)
+J_MFX = "outputs/meshfix_applied.json"        # 형상 정정이 σ 격자를 몇 세대 낡게 했나(방법 표)
 
 FIGDIR = "outputs/figures"
 MODES = ("W1", "L1", "G1")
@@ -383,9 +386,10 @@ def write_derived(D: dict, t0: float) -> str:
             production_mode="slope_only",
             level_shift_abs_max_db=D["level_shift_abs_max"],
             size_law_spread_max_db=D["size_law_spread_max"],
-            why="레벨까지 앵커에 맞추려면 크기전이 법칙을 하나 골라야 하고, 그 선택이 "
-                "기체에 따라 최대 9.50 dB 를 정한다. 측정이 그 대가 없이 제약하는 양은 "
-                "기울기뿐이므로 기울기만 받는다 (02 §4.1 과 같은 문장)."),
+            why=("레벨까지 앵커에 맞추려면 크기전이 법칙을 하나 골라야 하고, 그 선택이 "
+                 f"기체에 따라 최대 {D['size_law_spread_max']:.2f} dB 를 정한다. 측정이 그 "
+                 "대가 없이 제약하는 양은 기울기뿐이므로 기울기만 받는다 "
+                 "(02 §4.1 과 같은 문장).")),
         "gap_1km": dict(
             d_ref_m=D["budget"]["W1"]["d_ref_m"],
             drone="mavic4pro",
@@ -512,9 +516,15 @@ def paper_blocks(D: dict):
         ("공통모드 σ 오차 ±10 dB 에서 순위는 15칸 전부 유지되고 절대거리만 dB/4 로 움직인다.",
          "그림 5(a) · `outputs/sigma_sensitivity.json:common_mode.order_invariant_everywhere`",
          "σ 절대레벨이 측정으로 검증되지 않았는데 거리를 인용할 수 있나",
-         "절대 오차는 세 밴드 공통이라 순위에서 상쇄되고 거리만 옮긴다 — ±10 dB 에서 "
-         "−43.3%/+76.4% 다 ⟨outputs/sigma_sensitivity.json : common_mode."
-         "abs_range_shift_at_10db_pct⟩. 그래서 km 표는 이 봉투와 함께 읽는다"),
+         "공통으로 움직이는 부분은 순위에서 상쇄되고 거리만 옮긴다 — ±10 dB 에서 "
+         + num(None, (J_SS, "common_mode.abs_range_shift_at_10db_pct.minus10"), "{:+.1f}", "%")
+         + " / "
+         + num(None, (J_SS, "common_mode.abs_range_shift_at_10db_pct.plus10"), "{:+.1f}", "%")
+         + " 다. ⚠ 다만 σ 오차를 **완전한** 공통모드로 볼 근거는 아직 "
+         "얇다 — PO 근사가 무너지는 문턱은 부품마다 다른 주파수에 있어서(02 §3.1a) 밴드마다 "
+         "다르게 들어간다 ⟨outputs/lowfreq_attack.json : q5_blast_radius."
+         "po_validity_blast_radius_the_real_one⟩. 그 밴드 간 차이의 크기를 재는 것이 06편 "
+         "캠페인 §4-1 이고, 그때까지 km 표는 순위용으로만 읽는다"),
         ("밴드별 차분 σ 오차가 순위를 뒤집는 문턱은 기체 속성이고 자세평균 앵커 설정에서 "
          "3.72 dB 다.",
          "그림 5(b) · `outputs/sigma_sensitivity.json:configurations.by_config."
@@ -582,6 +592,7 @@ def build_blocks(D: dict):
     DV = from_json(J_DV)
     TM, TA, PH, SV = (from_json(J_TM), from_json(J_TA),
                       from_json(J_PH), from_json(J_SV))
+    LFA, MFX = from_json(J_LFA), from_json(J_MFX)
 
     #: φ 스윕에서 이 편이 읽는 가지 — 경로가 길어 한 번만 적는다
     PHC = "verdict.claims[2].range_over_phi"
@@ -614,7 +625,8 @@ def build_blocks(D: dict):
             f"자세평균 σ 와 측정 기울기 위에서 다섯 기체가 하나의 순위 "
             f"({DV.num('ranking.consensus_order_aspect_avg', None)}) 에 합의한다 — 단일 자세에서는 "
             f"{SS.num('ranking_consensus.single_aspect_n_distinct', None, '{:.0f}')}가지 순위가 나온다.",
-            f"그 순위는 공통모드 σ 오차 ±10 dB 에서 15칸 전부 유지되고, 절대거리만 "
+            f"그 순위는 공통모드(세 밴드가 같은 방향으로 같은 만큼 틀리는 경우) σ 오차 "
+            f"±10 dB 에서 15칸 전부 유지되고, 절대거리만 "
             f"{SS.num('common_mode.abs_range_shift_at_10db_pct.minus10', None, '{:+.1f}', '%')} ~ "
             f"{SS.num('common_mode.abs_range_shift_at_10db_pct.plus10', None, '{:+.1f}', '%')} 움직인다. "
             f"밴드별 차분 오차의 뒤집힘 문턱은 "
@@ -657,7 +669,11 @@ def build_blocks(D: dict):
              + SV.num("overstated[0].결과_표[0].mean_delta_db", None, "{:+.2f}") + " ~ "
              + SV.num("overstated[0].결과_표[2].mean_delta_db", None, "{:+.2f}", "dB")
              + " 로 방향이 갈린다 — 그래서 절대 R90 과 기체간 순위는 재생성 격자 위에서 다시 "
-             "세운다(다음 단계). 순위 비교의 규약과 봉투는 §3.4 가 든다"),
+             "세운다(다음 단계). ⚠ 그 뒤로 형상 정정이 한 번 더 있었다("
+             + MFX.num("_meta.date", None)
+             + ", Matrice 4E · Mini 2 · X500 V2). 즉 이 격자는 **두 세대** 낡았고, 다섯 기체 중 "
+             "Matrice 4E 가 그 정정을 받은 기체다 ⟨outputs/meshfix_applied.json : per_drone⟩. "
+             "순위 비교의 규약과 봉투는 §3.4 가 든다"),
             ("순위",
              "**자세평균 σ + 측정 기울기** 설정에서 읽는다. 단일 자세·듀티 적용 등 5개 설정의 "
              "순위와 뒤집힘 문턱을 §3.4 표가 나란히 싣는다"),
@@ -933,12 +949,24 @@ def build_blocks(D: dict):
         + DV.num("anchor_scope.size_law_spread_max_db", None, "{:.2f}", "dB")
         + " 갈리므로, 측정이 그 대가 없이 제약하는 기울기만 받는다(02 §4.1).",
         "",
-        f"재보정은 밴드별 스칼라 Δσ 하나씩이고, 정규화 각도 패턴은 "
+        f"재보정은 밴드별 스칼라(방향 구분 없이 값 하나) Δσ 하나씩이고, 정규화 각도 패턴은 "
         f"{AN.num('drones.phantom4.shape_invariance_max_abs_db', None, '{:.1e}', 'dB')} "
-        "안에서 그대로 남는다. 앵커가 통제한 것 밖의 항은 규약 불확도 "
+        "안에서 그대로 남는다. 앵커가 통제한 것 밖의 항은 **셋**이다 — 규약 불확도 "
         + num(None, (J_AN, "uncontrolled[1].size_db"), "{:.2f}", "dB")
-        + " 와 크기전이 항이고, 편파는 VV 측정 대 무편파 커널이라는 사실로 기록되어 있다"
-        + f"(⟨{J_AN} : uncontrolled⟩).",
+        + ", 크기전이 항, 그리고 **PO 유효성 항**이다"
+        + f"(⟨{J_AN} : uncontrolled⟩). 세 번째가 이번에 크기를 얻었다 — PO 오차가 1 dB 아래로 "
+        + "내려가려면 부품의 폭이 파장의 "
+        + num(None, ("outputs/lowfreq_anchor.json",
+                     "thin_plate.truth_2d_mom_fine_width_grid.knee_a_over_lam"), "{:.3f}")
+        + " 배 이상이어야 하는데, 우리 세 밴드는 전부 그 문턱 아래에 부품을 남긴다(02 §3.1a). "
+        + "그 항의 **부호는 아직 정하지 못한다** — 우리 적분이 편파(전파의 전기장이 흔들리는 방향)를 "
+        + "가르지 않기 때문이다"
+        + f"(⟨{J_LFA} : q5_blast_radius.po_validity_blast_radius_the_real_one⟩). "
+        + "참값은 두 편파에서 서로 다른 값을 주는데 우리 커널은 그 둘을 구분 없이 하나로 내므로, "
+        + "한쪽 편파를 기준으로 보면 낮고 다른 쪽을 기준으로 보면 높다. 두 쪽 중 어느 쪽이 더 "
+        + "그럴듯한지는 02 §4.5 가 두 편파의 크기 차이로 적는다 — 이 편은 그 개연성을 결과에 "
+        + "넣지 않고 순위만 든다. 이 사실은 원장에 "
+        + "「VV 측정 대 무편파 커널」 로 기록되어 있다.",
         "<!--cell-->",
         table_from(f"{J_AN}:drones",
                    [("기체", None),
@@ -972,7 +1000,11 @@ def build_blocks(D: dict):
         "**§3.4 의 민감도 봉투와 함께 읽는다** — 공통모드 σ 오차 ±10 dB 가 이 열 전체를 "
         + SS.num("common_mode.abs_range_shift_at_10db_pct.minus10", None, "{:+.1f}", "%")
         + " ~ " + SS.num("common_mode.abs_range_shift_at_10db_pct.plus10", None, "{:+.1f}", "%")
-        + " 옮긴다.",
+        + " 옮긴다. ⚠ 그 봉투가 어디서 오는지도 함께 적는다 — 우리 세 밴드는 전부 PO 근사가 "
+        "1 dB 안에 든다고 보장되는 부품 폭 문턱 아래에 부품을 남긴다(02 §3.1a). 즉 σ 절대 "
+        "레벨의 불확도는 **선언된 ±10 dB 봉투와 별개로 크기가 아직 정해지지 않은 항**을 하나 더 "
+        f"갖는다(⟨{J_LFA} : q5_blast_radius.po_validity_blast_radius_the_real_one⟩). 그래서 아래 "
+        "km 열은 **순위를 읽는 표**로 쓴다.",
         "",
         table(["기체"] + [MODE_NAME[m] for m in MODES] + ["앵커 비교가능성"],
               [[dr] + [f"{D['R90_anch'][(dr, m)]:.2f} km" for m in MODES]
@@ -1038,7 +1070,7 @@ def build_blocks(D: dict):
                 + SS.num("differential.smallest_flip_span_db_overall", None, "{:.2f}")
                 + " ~ "
                 + SS.num("differential.largest_flip_span_db_overall", None, "{:.2f}", "dB")
-                + " (현실 봉투 "
+                + " (현실 봉투 — 실제로 있을 법한 오차 폭 "
                 + SS.num("differential.realistic_span_db", None, "{:.2f}", "dB") + ")"],
                ["밴드별 독립 오차 2 dB (몬테카를로)",
                 "순위 보존 확률",
@@ -1225,6 +1257,12 @@ def build_blocks(D: dict):
         f"M1 이 가장 어려운 팔이 된다. 문턱은 잡음전력 기지 이상문턱이고 CA-CFAR 문턱은 세 팔에 "
         f"같은 오프셋을 주므로, 04 의 교정표는 세 팔의 절대 소요이득만 옮긴다"
         f"(⟨{J_TM} : protocol.pfa_convention⟩).",
+        "",
+        "⚠ 이 표에 **구 대조군은 없다.** 02 §4.6 이 보인 것처럼 구는 **부피를 맞게 고르면** σ 의 "
+        "절대 레벨을 맞출 수 있는 단순 모형이면서 자세에 따른 변화를 0 으로 낸다 — 레벨에서 우리 "
+        "메쉬를 앞선 그 구는 논문이 적어 둔 상자 치수로 잡은 부피이고, 메쉬 부피로 잡으면 두 잣대 "
+        "모두에서 우리 메쉬보다 나쁘다. 그래서 이 표의 낙차는 «자세 구조를 얼마나 담는가» 의 "
+        "낙차로 읽는다. 구 팔을 넣는 일은 다음 단계에 있다.",
     ))
 
     # ── §4 다중 수신기 ────────────────────────────────────────────────────── #
@@ -1282,7 +1320,9 @@ def build_blocks(D: dict):
          "5G 의 R90 이 자기 문턱 위에 서고, 세 밴드가 문턱을 공유하는 §3.1 의 행이 닫힌다",
          "`src/experiment_freespace_range.py:856` → 05편 §3.1"),
         ("듀티 항을 R90 경로에 켜고 세 밴드를 다시 푼다",
-         "§2.2 의 −16.02 dB 가 순위에 주는 영향이 확정되고, §3.3 표의 듀티 행이 실측값이 된다",
+         "§2.2 의 "
+         + SS.num("unapplied_duty_axis.duty_db.G1", None, "{:.2f}", "dB")
+         + " 가 순위에 주는 영향이 확정되고, §3.3 표의 듀티 행이 실측값이 된다",
          "`src/freespace_link.py` 의 duty_db_from_cpi → 05편 §3.3"),
         ("자세평균 σ 격자로 `--stage solve` 를 다시 돌린다",
          "합의 순위가 국소 지수 1차 전이 없이 정본 경로에서 확정된다",
@@ -1320,6 +1360,10 @@ def build_blocks(D: dict):
          + TA.num("Q3_staleness.argmax_argmin_counts.E0_freespace.m3_share_of_spread", None,
                   "{:.1%}")
          + " 가 현재 메쉬 위에 선다",
+         "`scratchpad/tm_result.py` → 05편 §3.7"),
+        ("표적모형 민감도에 **구 팔(M4)** 을 더한다",
+         "레벨만 맞추는 모형과 자세 구조를 담는 모형의 검출 낙차가 갈라진다 — 02 §4.6 이 σ 쪽에서 "
+         "보인 것을 검출 쪽에서 다시 읽는다",
          "`scratchpad/tm_result.py` → 05편 §3.7"),
         ("기준 구를 함께 재서 자체 앵커를 세운다",
          "지금 우리 PO 출력인 σ 절대 레벨이 측정에 앵커되고, 크기전이 항 "

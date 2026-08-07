@@ -1,0 +1,261 @@
+{
+  "_meta": {
+    "generated": "2026-08-04",
+    "what": "2026-08-04 리포트 정정 라운드(A~G)에 대한 적대검증. 대상은 미커밋 diff — src/make_report01_prior.py · make_report02_target.py · make_report05_results.py · make_report06_measurement.py 와 그것이 낸 report01/02/05/06 노트북.",
+    "method": "① 4개 빌더 diff 를 전문 정독 ② 노트북 7편의 마크다운을 텍스트로 뽑아 A~G 각 주제어로 전수 grep ③ 새로 주입된 num() 경로를 근거 JSON 에서 직접 대조 ④ 근거 JSON(p3_validation_v2 · das_fleet_validation/attack/prereg · lowfreq_anchor/attack · meshfix_applied/attack · sigma_anchor · rcs_anchor · sigma_sensitivity · report0N_derived)의 원문 판정·caveat 와 본문 문장을 맞댐",
+    "scope_respected": "outputs/report15_* · benchmark/report15_* 미열람 · src/drones.py · src/drone_cad.py 읽기만 · report00 범위 밖 · 어떤 파일도 수정하지 않음(이 산출물 제외)"
+  },
+
+  "verdict": "PREMATURE",
+  "verdict_reasoning": "라운드가 세운 네 기둥(§3.1a PO 유효 문턱 · §4.6 대조군 · §4.7 사전등록 N=4 · 형상 정정 신선도 단서)은 전부 근거 JSON 이 실제로 지지한다. 방향 단정을 거둔 C-01 도 근거가 맞다(참값이 0.15λ 에서 편파로 11.56 dB 갈라지는데 관측 낙차는 5.16 dB 뿐이라, 낙차가 편파 모호성 안에 통째로 들어간다). BROKEN 이 아니다. 그러나 SOUND 도 아니다 — (1) 새로 쓴 §3.1a 한 문단이 자기가 주입한 숫자와 정면으로 모순되고, (2) A(구 대조군) 의 결론이 다섯 자리로 퍼지면서 OC-01 이 요구한 «구의 부피가 자유 매개변수» 단서가 02편 §4.6 한 곳에만 남았으며, (3) 같은 라운드가 report02 §4 도입에 v2 원장을 끌어와 바로 아래 §4.5 의 v1 원장과 같은 양에 서로 다른 수를 나란히 세웠고, (4) 두 앵커 원장이 최대 1.396 dB/GHz 갈리는 사실을 발견해 놓고 그 사실이 결판을 내는 06편 §4-1 에는 단서를 달지 않았다. 정정이 낳은 새 모순이 정정이 닫은 구멍만큼 있다.",
+
+  "overcorrections": [
+    {
+      "id": "OV-1",
+      "severity": "HIGH",
+      "sites": [
+        "src/make_report05_results.py :: §3.7 표적모형 표 아래 단서 (report05_results.ipynb 렌더 316행)",
+        "src/make_report01_prior.py :: 여는 블록 결과 2 (report01_prior.ipynb 9행)",
+        "src/make_report02_target.py :: §7 방어표 마지막 행 · §6 다음 단계 «구 대조군» 행",
+        "src/make_report06_measurement.py :: 여는 블록 결과 4 · §2-2"
+      ],
+      "claim_as_written": "「부피등가 구는 σ 의 절대 레벨을 **가장 잘 맞추는** 단순 모형」(05) · 「모양을 안 닮은 등가부피 구도 같은 자리에 온다」(01·02 §7·06×2)",
+      "why_overcorrected": "레벨에서 우리를 이긴 구는 **논문표기 상자(350×350×200 mm)와 부피가 같은 구**(r=145.7 mm · V=12.95 L, +0.96 dB) 하나뿐이다. 자연스러운 선택인 **메쉬 부피 등가 구**(r=78.1 mm · V=2.00 L)는 p3_validation_v2 에서 −4.47 dB 로 우리(−3.30)보다 나쁘고, das_fleet_validation 의 Das 잣대에서도 −2.59 로 우리(−1.47)보다 나쁘다 — 즉 **두 잣대 모두에서** 메쉬부피 구는 진다. 이기는 구는 반지름을 1.87 배 키운 구다. OC-01 이 요구한 «부피 선택이 자유 매개변수» 단서는 02편 §4.6 에만 있고, 그 결론을 인용한 다섯 자리에는 하나도 안 붙었다. 특히 05편은 «가장 잘 맞추는» 이라는 최상급을 단서 없이 썼고, 01편은 그 한 기체·한 잣대·한 반지름 결과로 **선행연구 편의 헤드라인 결과 문장**을 약화시켰다.",
+      "evidence": {
+        "outputs/p3_validation_v2.json:controls.table.sphere_eqvol_paperbox.level_err_db": 0.9552777162627922,
+        "outputs/p3_validation_v2.json:controls.table.sphere_vol_v2.level_err_db": -4.46549554827176,
+        "outputs/p3_validation_v2.json:controls.table.ours_phantom3_mesh_v2.level_err_db": -3.3044217649092373,
+        "outputs/das_fleet_validation.json:box_control.phantom3.controls.sphere_eqvol.DL_db": -2.591749953852597,
+        "outputs/das_fleet_validation.json:box_control.phantom3.ours_DL_db": -1.469546268476721,
+        "outputs/das_fleet_validation.json:box_control.phantom3.beats_best_control": true
+      },
+      "fix": "다섯 자리 전부에 한 구절을 붙인다 — 「(그 구는 논문표기 상자 부피로 잡은 구다. 메쉬 부피로 잡으면 두 잣대 모두에서 우리보다 나쁘다)」. 05편의 «가장 잘 맞추는» 은 «부피를 맞게 고르면 레벨을 맞출 수 있는» 으로 바꾼다."
+    },
+    {
+      "id": "OV-2",
+      "severity": "HIGH",
+      "sites": ["src/make_report02_target.py :: §6 다음 단계 «Phantom 3 구 대조군…» 행 (report02 렌더 392행)"],
+      "claim_as_written": "「레벨 축은 §4.6 이 이미 닫았다(구가 우리와 같은 자리에 온다)」",
+      "why_overcorrected": "N=1 기체·N=1 잣대·반지름이 자유인 대조군 하나로 «레벨 축이 닫혔다» 고 선언했다. 같은 리포트 §4.6 의 마지막 문장이 「절대 레벨은 06편 교정구가 측정으로 앵커한다」 고 적고, 06편 §2-2 와 05편 다음 단계 「기준 구를 함께 재서 자체 앵커를 세운다」 가 레벨 축이 **안 닫혔기 때문에** 존재한다. 한 리포트 안에서 «닫혔다»와 «06편이 닫는다»가 두 문단 거리에 같이 서 있다.",
+      "evidence": {
+        "report02 §4.6 마지막": "절대 레벨은 06편 교정구가 측정으로 앵커한다(06 §2-2)",
+        "report05 다음 단계": "기준 구를 함께 재서 자체 앵커를 세운다 — 지금 우리 PO 출력인 σ 절대 레벨이 측정에 앵커되고",
+        "report06 §2-2": "계산으로 닫히지 않는 축을 이 구가 닫는다"
+      },
+      "fix": "「레벨 축은 §4.6 이 이미 닫았다」 → 「레벨 축에서는 형상이 판별력을 안 준다는 것이 §4.6 에서 나왔다(닫는 것은 06편 교정구다)」."
+    },
+    {
+      "id": "OV-3",
+      "severity": "MEDIUM",
+      "sites": ["src/make_report02_target.py :: §4.6 마지막 문장 (report02 렌더 334행)"],
+      "claim_as_written": "「⚠ 잣대를 Das Table III 로 바꾸면 같은 Phantom 3 에서 우리(−1.47)가 구(−2.59)를 이긴다 — 두 결과는 잣대와 함께 읽는다」",
+      "why_overcorrected": "숫자는 맞지만 **인과가 틀렸다.** 두 결과가 갈린 원인은 잣대(Yuan θ90 곡선 ↔ Das Table III)가 아니라 **어느 구를 넣었는가** 다. das_fleet 이 넣은 구는 메쉬부피 등가 구(r=78.1 mm)이고, p3_validation_v2 의 같은 구(sphere_vol_v2)도 Yuan 잣대에서 −4.47 로 우리보다 나쁘다. 즉 메쉬부피 구는 **두 잣대 모두에서** 진다. das_fleet 은 논문상자부피 구(r=145.7 mm)를 아예 돌리지 않았다. OC-02(잣대를 밝혀라)를 지키려다 잣대에 없는 인과를 실었고, 그 결과 우리 쪽에 유리한 반대 사례가 실제보다 강하게 읽힌다.",
+      "evidence": {
+        "outputs/p3_validation_v2.json:controls.table.sphere_vol_v2 desc": "PEC 구 r=78.1 mm (부피 2.00 L 등가)",
+        "outputs/das_fleet_validation.json:box_control.phantom3.controls.sphere_eqvol.desc": "메쉬와 부피가 같은 PEC 구(반경 78.1 mm)",
+        "same_sphere": true
+      },
+      "fix": "「잣대를 바꾸면」 → 「같은 구(메쉬부피 등가, r=78.1 mm)를 Das Table III 잣대로 다시 재도 우리가 이긴다(−1.47 vs −2.59) — 두 잣대 모두에서 지는 것은 메쉬부피 구이고, 이기는 것은 반지름을 1.87 배 키운 논문상자부피 구뿐이다」."
+    },
+    {
+      "id": "OV-4",
+      "severity": "MEDIUM",
+      "sites": ["src/make_report02_target.py :: §4.5 마지막 문단 (C-01)"],
+      "claim_as_written": "「한쪽 편파 기준으로 낮게 다른 쪽 기준으로 높게 나온다 … 방향은 결과 밖에 둔다」",
+      "why_overcorrected": "방향 철회 자체는 옳다(편파 갈림 11.56 dB > 관측 낙차 5.16 dB). 그러나 근거 파일이 같은 자리에서 적어 둔 **비대칭**을 통째로 버렸다 — lowfreq_attack 은 「지배채널(TM) 기준 PO 는 얇은 특징을 과소평가한다(prop 0.083λ 에서 −7.25 dB). 따라서 우리 저주파 σ 는 낮게 나와 있을 **개연성이 높고** 검출 산출물은 보수적 쪽으로 틀렸을 것이다」 라고 적고, lowfreq_anchor caveat 도 「얇은 띠에서 σ_TM ≫ σ_TE 라 절대 레벨은 TM 이 만든다」 고 적는다. 본문은 두 편파를 대칭으로 그려 놓아, 근거보다 **더 모른다** 고 말한다. 정직성 규약(모르면 모른다)의 반대 방향 위반이다.",
+      "evidence": {
+        "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.sign_of_the_error": "지배채널(TM) 기준 PO 는 얇은 특징을 과소평가한다 … 보수적(비관적) 쪽으로 틀렸을 것이다. 단, 스칼라 PO 는 편파를 못 가르므로 TE 채널 기준으로는 부호가 반대다",
+        "outputs/lowfreq_anchor.json:caveats[7]": "얇은 띠에서 σ_TM ≫ σ_TE 라 절대 레벨은 TM 이 만들지만, 약한 TE 채널만 보면 기울기 초과의 부호가 반대다"
+      },
+      "fix": "한 문장 되살린다 — 「전력을 지배하는 쪽(TM)만 보면 우리가 낮게 나와 있을 개연성이 높지만, 약한 쪽(TE) 기준으로는 부호가 반대라 방향을 결과로 못 박지 않는다」."
+    }
+  ],
+
+  "missed_sites": [
+    {
+      "id": "MS-1",
+      "theme": "F (낡은 수치)",
+      "severity": "HIGH",
+      "where": "src/make_report02_target.py :: 여는 블록 결과 5 · §4.5 전체(표 4행 + 부분대역 해설)",
+      "what": "이 라운드가 §4.6·§4.7 을 p3_validation_v2(사진 실측 재구축 Phantom 3 메쉬, 28,366 삼각형) 위에 세우면서, 바로 위 §4.5 와 헤드라인 결과 5 는 p3_validation.json·p3_ours.json(**v1 메쉬**, phantom4 형상표 상속 28,160 삼각형) 그대로 두었다. 두 세대를 구분하는 표시가 본문 어디에도 없다 — 오직 provenance 태그의 파일명만 다르다.",
+      "consequence": "같은 리포트가 같은 양에 두 수를 싣는다: 우리 Phantom 3 전대역 기울기 §4.5 표 **0.420** vs §4 도입 **0.519** / 저대역(1.8–6.0 GHz) 기울기 §4.5 표 **1.56** vs §4 도입 **1.018** / Yuan θ90 곡선 대비 레벨 헤드라인·§4.5 **−4.91 dB** vs §4.6 **−3.30 dB** / 기울기 배수 헤드라인 **1.33배** vs v2 **1.647배**. 이 모순은 이번 라운드의 C-02 편집이 v2 값을 §4 도입에 끌어오면서 **새로 만들어졌다**.",
+      "evidence": {
+        "outputs/p3_validation.json (v1) slope.ours_el0_full_band.a": 0.420,
+        "outputs/p3_validation_v2.json slope.ours_el0_full_band.a": 0.5188199109025231,
+        "outputs/p3_ours.json (v1) subband_fits.by_aspect.el0.1.8-6.0 GHz.a": 1.56,
+        "outputs/p3_validation_v2.json our_operating_band.ours.a": 1.0177906169052546,
+        "outputs/p3_validation.json residual.vs_yuan_theta90_measured_curve.mean_db": -4.91,
+        "outputs/p3_validation_v2.json controls.table.ours_phantom3_mesh_v2.level_err_db": -3.3044217649092373,
+        "das_fleet_validation.json:ruler_mismatch.what": "p3_ours.json 은 08:34 에 v1 메쉬로 … 즉 네 기체 중 통제군 하나만 다른 자로 쟀다"
+      },
+      "fix": "§4.5 를 v2 로 재계산하거나(원장은 이미 있다), 최소한 §4.5 표제·헤드라인 결과 5 에 「(v1 메쉬 기준 — v2 재제작 값은 §4.6)」 를 붙이고 §4.6 에서 v1→v2 이동(−4.91→−3.30 dB, 1.33→1.65배)을 한 줄로 잇는다."
+    },
+    {
+      "id": "MS-2",
+      "theme": "F (낡은 수치) + C (창)",
+      "severity": "HIGH",
+      "where": "src/make_report06_measurement.py :: §4-1 · §4 결정표 「밴드 기울기」 행 · 다음 단계",
+      "what": "이 라운드가 report02 §4.2 에 새로 적은 사실 — 「생산 앵커 원장(sigma_anchor)은 2026-07-30 판 rcs_anchor 위에 서 있고, 디스크의 현재 rcs_anchor(2026-08-03)와 겹치는 5기체에서 밴드 기울기가 최대 1.396 dB/GHz 갈린다」 — 가 06편에는 전혀 전달되지 않았다. 06편 §4-1 의 「우리 커널 0.936~1.517 dB/GHz」 는 바로 그 **낡은 세대**(sigma_anchor.drones.*.slope_ours_3band_db_per_ghz) 값이다.",
+      "consequence": "현재 세대 rcs_anchor 로는 matrice4e 기울기가 0.936 이 아니라 **0.233** dB/GHz 다. 그러면 span 3.367 GHz 에서 앵커 0.210 과의 격차가 2.44 dB 가 아니라 **0.08 dB** 가 되어, 06편 §4-1 이 「결판」 으로 분류한 가설 판별이 통째로 무너진다(요구 재현성 1.77 dB → 사실상 판별 불가). 이 라운드가 새로 정한 판정 문턱 threshold_db=1.77 도 같은 낡은 수 위에 서 있다.",
+      "evidence": {
+        "outputs/sigma_anchor.json:drones.matrice4e.slope_ours_3band_db_per_ghz": 0.9358698306274642,
+        "outputs/report02_derived.json:band_slope.ours_db_per_ghz.matrice4e": 0.23322388401605645,
+        "outputs/report02_derived.json:anchor.slope_ledger_gap_max_db_per_ghz": 1.3955392678117424,
+        "outputs/report02_derived.json:anchor.slope_ledger_source_generation": "2026-07-30 07:16:08",
+        "outputs/rcs_anchor.json:meta.generated": "2026-08-03 05:49:19",
+        "recomputed_gap_if_current_generation_db": 0.078
+      },
+      "fix": "06편 §4-1 에 report02 §4.2 와 같은 세대 단서를 달고, 「이 수는 사슬 재실행에서 크게 움직일 수 있다 — 현재 세대 rcs_anchor 로는 matrice4e 가 0.233 dB/GHz 라 판별폭이 0.08 dB 로 줄어든다」 를 명시한다. 판정 문턱을 «결판» 으로 유지하려면 사슬 재실행이 선행 조건이다."
+    },
+    {
+      "id": "MS-3",
+      "theme": "G/보증 (검증 스위치)",
+      "severity": "HIGH",
+      "where": "src/make_report02_target.py :: _anchor_ledger() — `assert worst < 1e-6` → `if worst >= 1e-6: print(...)`",
+      "what": "두 앵커 원장의 밴드 기울기가 어긋나면 **빌드를 멈추던** 계약 검사를 경고 print 로 낮췄다. 이 변경은 선언된 정정 목록(A~C)에 설명이 없고, 실제로 검사는 지금 1.396 dB/GHz 로 실패 중이다.",
+      "consequence": "1.396 dB/GHz 는 이 편이 측정에서 받아 오는 앵커 값(0.210 dB/GHz)의 6.6 배다. 즉 «우리 두 원장의 불일치» 가 «측정에서 받아 오는 양» 보다 훨씬 크다. report_style.num() 의 설계 철학(「검증을 끄는 스위치는 없다 — 거짓말할 수 있는 출처 표시는 없느니만 못하다」)과 정면으로 어긋난다. 본문 §4.2 가 이 수를 정직하게 싣는 것은 좋으나, 같은 §4.2 표는 여전히 「정렬 후 7기종 기울기가 모두 0.210 위에 선다」 를 **현재 결과처럼** 제시한다.",
+      "evidence": {
+        "diff": "src/make_report02_target.py @@ -237,10 +250,20 @@",
+        "outputs/report02_derived.json:anchor.n_slope_crosschecked": 5,
+        "outputs/report02_derived.json:anchor.in_sigma_anchor_only": "typhoonh480, x500v2",
+        "das_anchor_slope_db_per_ghz": 0.21,
+        "ratio_gap_over_anchor": 6.65
+      },
+      "fix": "print 로 낮추는 대신 **문턱을 명시한 assert**(예: 재실행 전까지 허용하는 상한을 코드에 적고 그 위면 정지)로 되돌리거나, 최소한 §4.2 표 제목에 「(2026-07-30 세대 · 재실행 대기)」 를 박아 표 자체가 현재 결과로 읽히지 않게 한다."
+    },
+    {
+      "id": "MS-4",
+      "theme": "F (낡은 수치)",
+      "severity": "MEDIUM",
+      "where": "src/make_report02_target.py :: §4.2 · §4.3 · §4.4 (앵커·비교가능성·미통제항 표 3개)",
+      "what": "meshfix_attack 이 `outputs/rcs_anchor.json` 과 `outputs/sigma_anchor.json` 을 **critical** 낡음으로 분류했다(rcs_anchor.py 의 DRONE_KEYS 5기체 중 matrice4e 가 정정 대상). 이 라운드는 §1·§2·§5·§4.7 에는 형상 정정 단서를 달았고 06편 §3 에도 달았는데, 정작 그 사슬을 표로 싣는 02편 §4.2~§4.4 에는 안 달았다. §4.2 에 새로 넣은 단서는 «두 원장의 세대 차이» 이야기이고 형상 정정 이야기가 아니다 — 두 축이 섞여서 읽는 사람은 형상 축이 이미 처리된 줄 안다.",
+      "evidence": {
+        "outputs/meshfix_attack.json:Q6_invalidated_outputs.critical[1].output": "outputs/rcs_anchor.json",
+        "outputs/meshfix_attack.json:Q6_invalidated_outputs.critical[3].output": "outputs/sigma_anchor.json · sigma_sensitivity.json · …",
+        "marked_sections_in_report02": ["§1", "§2", "§4.7", "§5", "§6"],
+        "unmarked_sections_using_the_same_chain": ["§4.2", "§4.3", "§4.4"]
+      },
+      "fix": "§4.2 의 세대 단서에 한 절 추가 — 「그리고 두 세대 **모두** 2026-08-04 형상 정정 전 메쉬다(matrice4e 가 5기체 중 하나다)」."
+    },
+    {
+      "id": "MS-5",
+      "theme": "D (PO 유효 문턱) 의 적용범위",
+      "severity": "MEDIUM",
+      "where": "src/make_report02_target.py :: §3.1a 부품 치수 목록",
+      "what": "「이 문턱을 **우리 부품 치수**로 옮기면」 이라고 쓰고 동체 81.51 · 암뿌리 45 · 암끝 30 · 프롭 13.78 · 모터 13.68 · 캐노피 6.22 · PCB 2.99 mm 를 든다. 이 치수는 lowfreq_grid 가 쓴 **한 기체(Phantom 3 계열)** 것이고 7기체 공통이 아니다. §1 이 스스로 「크기 폭이 4.66 배」 라고 적으므로, S1000+ 와 Mini 2 의 무릎 주파수는 이 목록과 크게 다르다. 게다가 근거 파일이 「그 스윕 이후 Phantom 3 CAD 가 개정됐다 … 이 라운드는 드론을 다시 재지 않았다」 는 caveat 를 달아 두었는데, **새로 쓴 §3.1a 에는 신선도 단서가 없다** — F 라운드가 §1·§2·§5 에 붙인 것과 같은 종류의 단서가 정작 이번에 새로 쓴 절에 빠졌다.",
+      "evidence": {
+        "outputs/lowfreq_anchor.json:consistency_with_drone.drone.source": "outputs/lowfreq_grid.json",
+        "outputs/lowfreq_anchor.json:consistency_with_drone.drone.feature_mm_at_1p8ghz": {"prop": 13.78, "arm_tip": 30.0, "arm_root": 45.0, "body": 81.51},
+        "outputs/lowfreq_anchor.json:caveats[-1]": "드론 쪽 숫자는 outputs/lowfreq_grid.json 에서 그대로 인용했다 … 그 스윕 이후 Phantom 3 CAD 가 개정됐다는 경고가 여기에도 그대로 적용된다"
+      },
+      "fix": "「우리 부품 치수」 → 「Phantom 3 급 한 기체의 부품 치수(크기 폭 4.66 배인 다른 기체는 무릎이 그만큼 옮겨간다)」 + 「이 치수는 Phantom 3 재제작 전 스윕에서 인용했다」 한 줄."
+    },
+    {
+      "id": "MS-6",
+      "theme": "F (낡은 수치) 의 크기 표현",
+      "severity": "LOW",
+      "where": "src/make_report02_target.py :: §1 단서 · §6 다음 단계 «형상 원장 넷을 다시 돌린다» 행",
+      "what": "형상 정정이 옮긴 양의 대표값으로 **삼각형 수**(Matrice 4E 30,712→30,734 = +22, 0.07%)를 골랐다. 같은 원장이 적은 실제 이동은 z 축 맞춤 배율 0.950166→0.999873(약 5%)과 착지·암 형상 변경이다. 삼각형 수는 변화를 가장 작아 보이게 만드는 지표라, 「그만큼 어긋나 있다」 라는 문장이 낡음의 크기를 실제보다 작게 읽히게 한다.",
+      "evidence": {
+        "outputs/meshfix_applied.json:per_drone.matrice4e.n_tri_before": 30712,
+        "outputs/meshfix_applied.json:per_drone.matrice4e.n_tri_after": 30734,
+        "outputs/meshfix_applied.json:per_drone.matrice4e.fit_scale_before[2]": 0.950166,
+        "outputs/meshfix_applied.json:per_drone.matrice4e.fit_scale_after[2]": 0.999873
+      },
+      "fix": "삼각형 수 대신 z 배율(0.950→1.000) 또는 메쉬 지문(sha) 변경을 대표값으로 쓴다."
+    },
+    {
+      "id": "MS-7",
+      "theme": "A (구 대조군)",
+      "severity": "LOW",
+      "where": "src/make_report06_measurement.py :: 여는 블록 결과 4 와 §2-2",
+      "what": "「⭐ 이 구가 캠페인에서 값어치가 가장 큰 이유는 두 가지다 — … 계산으로 닫히지 않는 축을 이 구가 닫는다.」 문장이 두 곳에 **글자 그대로 중복**된다.",
+      "fix": "한 곳(§2-2)만 남기고 여는 블록은 한 줄로 줄인다."
+    }
+  ],
+
+  "number_mismatches": [
+    {
+      "id": "NM-1",
+      "severity": "HIGH",
+      "where": "src/make_report02_target.py :: §3.1a 두 번째 문단 · 같은 절의 금칙 두 번째 항목",
+      "written": "「프로펠러·모터·캐노피·PCB 는 문헌 측정의 위쪽 끝(18.2 GHz)까지 대역 전체에서 아래에 머문다」 / 「프로펠러·모터·캐노피·PCB 는 문헌 측정 대역의 위쪽 끝까지 문턱 아래에 있다」",
+      "contradicted_by": "**바로 위 문장이 주입한 자기 숫자** — 프로펠러 15.86 GHz · 모터 15.97 GHz 에서 이미 무릎을 넘는다. 18.2 GHz 까지 아래에 머무는 것은 캐노피(35.13)와 PCB(73.08)뿐이다.",
+      "evidence": {
+        "outputs/lowfreq_attack.json:q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee": {"prop_blade_13.78mm": 15.86, "motor_13.68mm": 15.97, "canopy_6.22mm": 35.13, "pcb_2.99mm": 73.08}
+      },
+      "root_cause": "근거 JSON 자신이 내부 모순이다 — `⭐_the_uncomfortable_corollary` 와 `what_must_not_be_said[1]` 이 「prop·motor·canopy·pcb 는 18.2 GHz 까지 무릎 아래」 라고 적는데 같은 객체의 재계산 표가 그것을 반증한다. 리포트가 그 산문을 검증 없이 옮겼다.",
+      "fix": "「캐노피·PCB 는 18.2 GHz 까지 아래에 머물고, 프로펠러·모터는 15.9~16.0 GHz 에서 무릎을 넘는다」 로 고친다. lowfreq_attack.json 의 두 문장도 정정 대상이다."
+    },
+    {
+      "id": "NM-2",
+      "severity": "MEDIUM",
+      "where": "src/make_report02_target.py :: §4.6 두 번째 문단",
+      "written": "「같은 눈금(Yuan θ90 복원 실측곡선 기준 밴드평균 잔차)으로 … 다시 채점했다」 로 절을 열고, 같은 절에서 「우리는 **실측 대비** +1.42, 상자 계열은 +3.98~+4.52」 를 든다",
+      "problem": "그 ε 수치들의 필드명은 `eps_err_vs_das_db` 로 **Das Table III 의 ε(5.46 dB)** 기준이다. 레벨은 Yuan 잣대, ε 는 Das 잣대인데 문단은 「같은 눈금」 이라고 선언하고 시작한다. 그 다음 문장이 「잣대를 Das Table III 로 바꾸면」 이라고 이어져, 앞이 전부 Yuan 잣대였다는 잘못된 인상을 굳힌다. OC-02(잣대를 밝혀라)가 요구한 것을 절 안에서 어겼다.",
+      "evidence": {
+        "outputs/p3_validation_v2.json:controls.scoring": "Yuan θ90 복원 실측곡선 기준 밴드평균 잔차",
+        "field_used_for_eps": "controls.table.*.eps_err_vs_das_db",
+        "outputs/p3_validation_v2.json:_meta.eps_units": "Das ε [dB] : Table III 표제가 명시 … Phantom 3 는 5.21~5.71 dB",
+        "implied_das_eps_db": 5.46
+      },
+      "fix": "ε 문장에 「(ε 는 Das Table III 의 5.46 dB 기준이다 — 레벨과 잣대가 다르다)」 를 넣는다."
+    },
+    {
+      "id": "NM-3",
+      "severity": "LOW",
+      "where": "src/make_report06_measurement.py :: §4-1 (C-03)",
+      "written": "「이 캠페인과 **창이 같은** 저대역 적합값 0.411 dB/GHz … 1.8~6.0 GHz」",
+      "problem": "캠페인 창은 1.843~5.21 GHz 이고 앵커 적합 창은 1.8~6.0 GHz 다 — 같지 않고 **겹칠 뿐**이다(상단이 15% 넓다). 이 라운드가 C-02 에서 «창이 다르다» 를 지적한 바로 그 종류의 느슨함이 같은 라운드의 C-03 에 남았다. 다만 본문이 두 창을 다 인쇄하므로 독자가 확인은 할 수 있다.",
+      "evidence": {
+        "outputs/report06_derived.json:slope.anchor_band_matched_window_ghz": [1.8, 6.0],
+        "campaign_bands_ghz": [1.843, 3.5, 5.21],
+        "arithmetic_check_ok": "matrice4e (0.936−0.411)×3.367 = 1.77 ✓ · mini5pro (1.517−0.411)×3.367 = 3.72 ✓"
+      },
+      "fix": "「창이 같은」 → 「창을 맞춘(1.8~6.0 GHz — 캠페인 1.843~5.21 GHz 를 덮는다)」."
+    },
+    {
+      "id": "NM-4",
+      "severity": "INFO",
+      "where": "표본 8건 직접 대조 결과",
+      "verified_ok": [
+        "p3_validation_v2:controls.table.cube_vol_v2.level_err_db = 6.2216 → «+6.22» ✓ 이며 실제로 상자 계열 최소치(beats_all_boxes=true) ✓",
+        "p3_validation_v2:controls.table.ours_phantom3_mesh_v2.level_err_db = −3.3044 → «−3.30» ✓",
+        "p3_validation_v2:controls.table.sphere_eqvol_paperbox.{level_err_db, rms_db} = 0.9553 / 1.9823 → «+0.96 / 1.98» ✓",
+        "p3_validation_v2:controls.table.sphere_vol_v2.level_err_db = −4.4655 → «−4.47» ✓",
+        "das_fleet_validation:prereg_judgement.{verdict, P3_spread_db, spread_predicted_db} = NOT_VALIDATED (P3 산포) / 16.2677 / 1.0 → «NOT_VALIDATED (P3 산포) / 16.27 / 1.0» ✓",
+        "das_fleet_validation:degrees_of_freedom.evidence_split.gap_db = 5.7222 → «5.72» ✓ 이며 well/weakly 분할이 사전등록에 적혀 있음 ✓",
+        "lowfreq_anchor:thin_plate.truth_2d_mom_fine_width_grid.knee_a_over_lam = 0.72888 → «0.729» ✓ (규칙 = worst-pol 이 1 dB 를 마지막으로 가로지르는 점 — 본문 서술과 일치 ✓)",
+        "lowfreq_anchor:thin_plate.truth_2d_mom.0.15.tm_minus_te_db = 11.5570 → «11.56» ✓ · per_width.0.15.max_abs_vs_po_two_finest_db = 0.01493 → «0.015» ✓",
+        "sigma_sensitivity:common_mode.abs_range_shift_at_10db_pct = −43.312/+76.390 → 05편에서 손타이핑 «−43.3%/+76.4%» 를 num() 주입으로 교체 ✓ (규약 준수)",
+        "meshfix_applied:per_drone.{matrice4e,x500v2}.n_tri_{before,after} = 30712/30734 · 18816/19030 ✓"
+      ],
+      "note": "report_style.num() 은 value=None 이면 JSON 값을 그대로 찍고 불일치 시 예외를 던지므로 **자릿값 불일치는 원리적으로 생기지 않는다.** 이번 라운드의 위험은 값이 아니라 **경로 선택(어느 세대·어느 잣대·어느 구)** 과 그 값을 감싼 산문이며, 위 NM-1~3 · MS-1~2 가 전부 그 종류다."
+    }
+  ],
+
+  "jargon_left": 5,
+  "jargon_detail": [
+    {"term": "편파", "where": "02 §3.1a·§4.4·§4.5 · 05 §3.2·§3.4 · 06 §4 결정표", "why": "이번 라운드의 핵심 논거인데 한 번도 뜻을 안 풀었다. 「전파가 흔들리는 방향(편파)」 처럼 첫 등장에서 한 번 풀어야 한다 — 특히 §4.5 의 방향 철회는 편파 개념 없이는 전혀 안 읽힌다."},
+    {"term": "스칼라 (「편파를 가르지 않는 스칼라」)", "where": "02 §4.4·§4.5 · 05 §3.2", "why": "「방향 구분 없이 세기 하나만 내는」 으로 풀면 같은 뜻이 된다."},
+    {"term": "P3 (판정 문자열 «NOT_VALIDATED (P3 산포)»)", "where": "02 여는 블록 결과 5 · §4.7", "why": "⭐ 이 저장소에서 P3 는 **Phantom 3** 를 뜻한다. 여기서는 사전등록 합격조건 세 번째를 가리키는데 그 뜻을 어디에도 안 적었고, 바로 옆 문장이 Phantom 3 이야기다 — 뜻이 반대로 읽힌다."},
+    {"term": "레벨오차 / DL(0)", "where": "02 §4.7 (−0.51 · −1.47 · −7.19 · +9.08)", "why": "네 수가 무엇의 차이인지(바이스태틱각 0° 에서 측정 대비 우리 σ 의 dB 차) 절 안에서 정의되지 않는다."},
+    {"term": "rms", "where": "02 §4.6 («rms 1.98 dB»)", "why": "다른 곳은 「자세별 RMS」 처럼 대상을 붙여 쓰는데 여기만 맨 rms 다. 「주파수 전체에 걸친 평균 오차 크기(rms)」 로 풀 것."}
+  ],
+
+  "what_the_round_got_right": [
+    "C-01 의 방향 철회는 **근거가 맞다** — 관측 낙차(1.8~6.0 GHz 평균 −5.16 dB)가 참값의 편파 갈림(0.15λ 에서 11.56 dB)보다 작아 낙차가 모호성 안에 통째로 들어간다. 과잉정정이 아니다(비대칭을 지운 것만 OV-4).",
+    "§4.7 이 사전등록 합격규칙 원문을 인용하고 NOT_VALIDATED 를 헤드라인에 올린 것, 예측 반증(1.0 → 16.27 dB)을 스스로 적은 것, M350 RTK 스냅샷·Mini 2 형상 정정 전 메쉬를 병기한 것은 OC-03·OC-09 를 정확히 지켰다.",
+    "§3.1a 가 «PO 오차의 세 번째 눈금은 기체 크기(kr)가 아니라 부품 폭» 이라고 눈금을 갈아끼운 것은 근거(구 caveat: 「구는 특징 치수가 반경 하나뿐 … 그래서 얇은 판을 반드시 같이 본다」)와 정확히 맞는다.",
+    "05편의 손타이핑 «−43.3%/+76.4%» 를 num() 주입으로 바꾼 것은 숫자 규약을 지킨 개선이다.",
+    "§4.6 이 「우리 메쉬가 상자 계열을 전부 이긴다」 와 「레벨만 보면 구가 낫다」 를 같은 문단에 세운 것은 Q1 이 걱정한 «메쉬는 쓸모없다» 로 미끄러지지 않았다 — 방위 산포 ε 축(우리 +1.42 vs 구 −5.46)이 정확히 그 자리에 있다."
+  ],
+
+  "required_before_this_round_is_called_done": [
+    "NM-1 을 고친다(자기 숫자와 모순되는 문장은 다른 모든 결론의 신뢰를 깎는다).",
+    "MS-1: §4.5/헤드라인의 Phantom 3 v1 값에 세대 표시를 달거나 v2 로 재계산한다.",
+    "MS-2: 06편 §4-1 에 앵커 원장 세대 단서를 달고 「결판」 분류를 재검토한다.",
+    "OV-1: 「등가부피 구」 를 인용한 다섯 자리 전부에 부피 선택이 자유 매개변수라는 단서를 붙인다.",
+    "MS-3: assert 를 되살리거나 §4.2 표에 세대 딱지를 박는다."
+  ]
+}

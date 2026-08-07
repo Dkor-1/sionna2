@@ -1,0 +1,441 @@
+{
+ "_meta": {
+  "task": "2026-08-04 반증 A~G 를 리포트 01~06 본문에 전파(구조 개편 없음)",
+  "generated": "2026-08-04 11:21:59",
+  "ledger": "outputs/report_correction_ledger.json (36 자리)",
+  "rule": "숫자는 전부 report_style.num()/table_from() 이 JSON 에서 주입한다 — 손입력 0",
+  "scope_kept": "리포트 구조는 그대로 두었다. 신설한 것은 §3.1a · §4.6 · §4.7 · 금칙 박스 넷뿐이고, 마크다운 셀 상한(25)을 지키려고 §1.1+§1.2 와 §2.1+§3 를 각각 한 셀로 합쳤다.",
+  "not_touched": [
+   "outputs/report15_*",
+   "benchmark/report15_*",
+   "src/drones.py",
+   "src/drone_cad.py",
+   "report00_foundations.ipynb",
+   "src/make_report00_foundations.py"
+  ]
+ },
+ "edits": [
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "A-01",
+   "verdict": "CONTRADICTED",
+   "before": "§6 다음 단계: 「Phantom 3 큐브·박스 대조군을 같은 눈감기 절차로 돌린다」가 미완료 항목으로 남아 있었다",
+   "after": "그 줄을 지우고 §4.6 을 신설했다 — 상자 계열은 전부 이기지만(정육면체 +6.22 vs 우리 −3.30 dB) 논문표기 상자 부피 등가 구는 레벨에서 우리를 이긴다(+0.96 · rms 1.98 dB). ⛔ OC-01 대로 «구의 부피 선택 자체가 자유 매개변수»(메쉬부피 등가 구는 −4.47 dB 로 우리보다 나쁘다)를 같은 문장에 적었고, ⛔ OC-02 대로 잣대(Yuan θ90 곡선)를 밝히고 Das Table III 잣대에서는 우리가 구를 이긴다(−1.47 vs −2.59 dB)는 반대 결과를 병기했다. 다음 단계에는 «구 대조군을 ε 축까지 다섯 기체로 넓힌다» 를 새로 넣었다. 모든 수는 p3_validation_v2.json · das_fleet_validation.json 주입"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "A-02",
+   "verdict": "WEAKENED",
+   "before": "§방어 표 기여 행: 기여 목록만 있고 «메쉬가 무엇을 사 주는가» 가 없었다",
+   "after": "같은 칸에 한 문장 추가 — 「메쉬가 사 주는 것은 σ 의 절대 크기가 아니라 각도에 따른 구조다. 레벨만 보면 모양을 안 닮은 부피등가 구도 같은 자리에 오고(§4.6), 구는 방위 산포를 원리적으로 0 으로 낸다」"
+  },
+  {
+   "file": "src/make_report01_prior.py",
+   "report": "report01_prior",
+   "site": "A-03",
+   "verdict": "WEAKENED",
+   "before": "결과 2번: 「엔진 안 산란 구현은 메쉬에서 낸 RCS 를 산다」",
+   "after": "「… 메쉬에서 낸 RCS 의 **각도 구조**를 산다(§3). 절대 크기는 모양을 안 닮은 등가부피 구도 같은 자리에 오므로 측정이 앵커한다(02 §4.6)」"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "report": "report05_results",
+   "site": "A-04",
+   "verdict": "WEAKENED",
+   "before": "§3.7 표적모형 세 팔(M1 평판·M2 정육면체·M3 우리 격자) 표에 구 대조군이 없다는 사실이 안 적혀 있었다",
+   "after": "표 아래 단서 한 줄 신설 — 「이 표에 구 대조군은 없다. 부피등가 구는 절대 레벨을 가장 잘 맞추면서 자세 변화를 0 으로 내므로, 이 표의 낙차는 «자세 구조를 얼마나 담는가» 의 낙차로 읽는다」 + 다음 단계에 «구 팔(M4) 을 더한다» 행 추가"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "B-01",
+   "verdict": "WEAKENED",
+   "before": "헤드라인 결과 5번: 눈감기 대조가 Phantom 3 한 대뿐인 것처럼 읽혔다",
+   "after": "결과 5번 끝에 N=4 사전등록 판정을 붙였다 — 「같은 잣대를 네 기체로 넓힌 사전등록 대조의 판정은 NOT_VALIDATED (P3 산포) 다(§4.7). 네 기체 레벨오차 산포 16.27 dB 가 계산 전에 봉인한 문턱 위에 있고, 갈린 축은 그 기체 자체의 형상 증거 유무다」 (결과 3~5줄 규약 때문에 6번을 새로 달지 않고 5번을 넓혔다)"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "B-02",
+   "verdict": "WEAKENED",
+   "before": "§4.5 뒤에 N=4 라운드가 어디에도 없었다",
+   "after": "§4.7 신설 — 봉인한 합격규칙 원문(das_fleet_prereg.json 의 pass_rule)을 그대로 인용하고, 판정·산포·네 기체 ΔL(0)·형상 증거 유무로 갈리는 5.72 dB 빈 구간·봉인 예측 산포 1.0 dB 를 실었다. ⛔ OC-09 대로 «예측이 반증된 사실과 일치도가 메쉬 구속도를 따라간다는 사실»을 함께 적었고, ⛔ OC-03 대로 M350 RTK 는 미완성 스냅샷·Mini 2 행은 형상 정정 전 메쉬임을 병기했다"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "B-03",
+   "verdict": "WEAKENED",
+   "before": "재현 블록에 das_fleet · p3_validation_v2 사슬이 빠져 있었다",
+   "after": "재현 명령에 benchmark/p3_validation_v2.py · benchmark/das_fleet_sigma.py 를 넣고, 출력 목록에 p3_validation_v2.json · das_fleet_validation.json · lowfreq_anchor.json · lowfreq_attack.json · meshfix_applied.json 을 더했다(존재 검사를 header() 가 한다)"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "C-01",
+   "verdict": "WEAKENED",
+   "before": "§4.5 경고문: 「세 밴드가 저주파 구간 안이고 거기서 우리 σ 가 낮다 — 05편 검출 결과는 그만큼 보수적인 쪽으로 선다」",
+   "after": "낙차 관측은 그대로 두고 **방향 단정만** 거둬들였다 — 「이 낙차의 방향은 결과 밖에 둔다. 우리 PO 적분은 편파를 가르지 않는 스칼라라서 한쪽 편파 기준으로 낮게 다른 쪽 기준으로 높게 나온다. 지금 정확히 말할 수 있는 것은 저주파 σ 의 불확도가 지금 선언된 것보다 크고 그 크기를 아직 못 정했다는 것이다」 (⛔ OC-04 — 방향을 뒤집지도 않았다)"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "C-02",
+   "verdict": "WEAKENED",
+   "before": "§4 도입: 우리 3밴드 기울기와 Das 0.210 · Yuan 0.315 를 창을 밝히지 않고 나란히 놓았다",
+   "after": "⚠ 창 단서 추가 — 우리 값은 생산 3밴드, 측정 두 값은 1.8~18.2 GHz 전대역이다. 같은 커널로도 창을 바꾸면 달라진다(우리 Phantom 3: 저대역 1.018 vs 전대역 0.519 dB/GHz)는 사실을 p3_validation_v2 에서 주입"
+  },
+  {
+   "file": "src/make_report06_measurement.py",
+   "report": "report06_measurement",
+   "site": "C-03",
+   "verdict": "WEAKENED",
+   "before": "§4-1: 「우리 커널 0.936~1.517, 앵커 0.210 dB/GHz. 두 가설이 2.44~4.40 dB 벌어진다」 — 창이 어긋난 앵커 하나만 썼다",
+   "after": "앵커 두 개 병기 + 문턱 재계산. derive() 에 밴드정합 앵커(Yuan θ=90 곡선 0.411 dB/GHz, 1.8~6.0 GHz)를 넣어 gap_db_band_matched · threshold_db 를 계산하고, **판정 문턱을 둘 중 좁은 쪽 2.44 → 1.77 dB** 로 내렸다. §4 결정표·여는 블록·방어 표의 문턱 인용도 threshold_db 로 옮겼다. ⛔ OC-10 — 생산 앵커(Das 0.210)는 그대로 두었다"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "report": "report05_results",
+   "site": "C-04",
+   "verdict": "WEAKENED",
+   "before": "§3.2: 「앵커 밖의 항은 규약 불확도 0.93 dB 와 크기전이 항이고, 편파는 사실로 기록되어 있다」 — PO 유효성 항이 빠져 있었다",
+   "after": "항목이 **셋**이 됐다 — 규약 불확도 · 크기전이 · **PO 유효성 항**. 세 번째의 크기(부품 폭 ≥ 0.729 λ)를 lowfreq_anchor 에서 주입하고, 「그 항의 부호는 아직 정하지 못한다 — 우리 적분이 편파를 가르지 않기 때문이다」를 붙였다"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "D-01",
+   "verdict": "CONTRADICTED",
+   "before": "§3.1 표 아래: 「기체 7 × 밴드 3 = 21 조합 중 1 개가 1 dB 문턱 아래이고 그것이 Mini 5 Pro 다」 — 눈금이 kr(기체 전체 크기)뿐이었다",
+   "after": "그 문장을 「⚠ 이 kr 눈금은 매끄러운 구에서만 맞는 눈금이다 — PO 가 어긋나는 자리를 정하는 것은 부품 하나의 폭이다」로 바꾸고 **§3.1a 를 신설**했다: 얇은 판 참값(2D MoM) 기준 문턱 폭 ≥ 0.729 λ, 부품별 무릎 주파수(동체 2.68 · 암뿌리 4.86 · 암끝 7.28 · 프로펠러 15.86 · 모터 15.97 · 캐노피 35.13 · PCB 73.08 GHz), 그리고 «생산 3 밴드가 전부 그 문턱 아래에 부품을 남긴다». ⛔ OC-06 대로 (커널−해석 PO) 분해는 지우지 않고 «다른 것을 잰다»로 갈라 적었다"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "D-02",
+   "verdict": "CONTRADICTED",
+   "before": "§방어 표 1행 few-λ 답: 「kr ≥ 9.06 에서 1 dB … 21 조합 중 1 개가 문턱 아래이고 그 자리를 §4 앵커가 잡는다」",
+   "after": "「눈금 두 개로 나눠 답한다. (1) 매끄러운 구에서는 kr ≥ 9.06 에서 1 dB 안이다. (2) 드론에 맞는 눈금은 그것이 아니다 — 얇은 판 참값으로 재면 문턱이 부품 폭 ≥ 0.729 λ 이고 우리 세 밴드는 전부 그 아래다(§3.1a). 그래서 이 편은 σ 의 절대 크기를 주장하지 않고 각도 구조와 밴드 간 상대 순위를 주장한다. 절대 레벨은 06편 교정구가 측정으로 앵커한다」 (앵커가 레벨을 잡는다는 부정확한 답도 함께 거둬들였다)"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "report": "report05_results",
+   "site": "D-03",
+   "verdict": "WEAKENED",
+   "before": "§3.3 km 표 앞: 단서가 «±10 dB 봉투» 하나뿐이라 봉투의 출처가 안 적혀 있었다",
+   "after": "봉투의 출처를 명시 — 「우리 세 밴드는 전부 PO 근사가 1 dB 안에 든다고 보장되는 부품 폭 문턱 아래에 부품을 남긴다(02 §3.1a). 즉 σ 절대 레벨의 불확도는 선언된 ±10 dB 봉투와 별개로 크기가 아직 정해지지 않은 항을 하나 더 갖는다. 그래서 이 km 열은 순위를 읽는 표로 쓴다」"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "report": "report05_results",
+   "site": "D-04",
+   "verdict": "WEAKENED",
+   "before": "§방어 표 3행: 「절대 오차는 세 밴드 공통이라 순위에서 상쇄되고 거리만 옮긴다」",
+   "after": "「공통으로 움직이는 부분은 상쇄된다」로 좁히고, ⚠ 「σ 오차를 완전한 공통모드로 볼 근거는 아직 얇다 — PO 근사가 무너지는 문턱은 부품마다 다른 주파수에 있어서 밴드마다 다르게 들어간다. 그 차이의 크기를 재는 것이 06편 §4-1 이다」를 붙였다(⛔ «순위가 뒤집힌다» 로 나아가지 않았다)"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "D-05",
+   "verdict": "WEAKENED",
+   "before": "§방어 표 3행(02편의 같은 방어): 「공통모드 σ 오차는 15셀 전부에서 순위를 그대로 둔다」",
+   "after": "D-04 와 같은 단서를 이 칸에도 넣었다 — 「PO 근사의 유효 문턱이 부품마다 다른 주파수에 있어서 밴드마다 다르게 들어간다. 그 크기는 06편 캠페인 §4-1 이 잰다」"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "D-06",
+   "verdict": "WEAKENED",
+   "before": "§4.4 표: 「polarisation | UNRESOLVED | 미상」 — 편파 항의 크기가 비어 있었다",
+   "after": "표는 원장(sigma_anchor.json) 그대로 두고 표 아래에 크기를 적었다 — 「얇은 판 참값에서 폭 0.15 λ 일 때 두 편파가 11.56 dB 갈리는데 우리 면적분은 편파를 가르지 않는 스칼라다. 그 낙차가 이 항의 크기이고 부호는 06편 VV/HH 측정이 정한다」(lowfreq_anchor 주입)"
+  },
+  {
+   "file": "src/make_report06_measurement.py",
+   "report": "report06_measurement",
+   "site": "D-07",
+   "verdict": "WEAKENED",
+   "before": "§0 결과 4번 / §2-2: 교정구가 절대 레벨을 앵커한다는 사실만 있고 그 항목이 왜 최우선인지가 없었다",
+   "after": "여는 블록 결과 4번과 §2-2 본문 양쪽에 이유를 붙였다 — 「절대 레벨만 보면 등가부피 구도 우리 메쉬와 같은 자리에 오고(02 §4.6), 우리 세 밴드는 전부 PO 근사의 유효 문턱 아래에 부품을 남긴다(02 §3.1a). 계산으로 닫히지 않는 축을 이 구가 닫는다」"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "E-01",
+   "verdict": "WEAKENED",
+   "before": "세 금칙 표현이 리포트에 실려 있지는 않았으나 어디에도 명시적으로 못 박혀 있지 않았다",
+   "after": "§3.1a 끝에 금칙 박스 신설 — ✗「저주파 σ 가 틀렸다」(맞는 말: 불확도가 선언된 것보다 크고 크기를 아직 못 정했다) · ✗「고대역은 검증됐다」(프로펠러·모터·캐노피·PCB 는 대역 전체에서 문턱 아래) · ✗「격자를 조이면 σ 가 고쳐진다」(정반대다 — 조일수록 저대역 기울기가 더 가팔라진다). 셋 다 lowfreq_attack.json 의 what_must_not_be_said · sampling_blast_radius_actual 을 가리킨다"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "F-01",
+   "verdict": "CONTRADICTED",
+   "before": "§1 도입: 「아래 넷은 전부 **현재 메쉬**를 다시 재서 그린 것이다」",
+   "after": "「아래 넷은 형상 원장에서 그대로 옮긴 것이다. ⚠ 이 그림 넷과 §1 의 표는 2026-08-04 형상 정정 전 메쉬 기준이다 — 그날 Matrice 4E · Mini 2 · X500 V2 의 형상 상수가 공식 CAD 실측으로 정정되면서 삼각형 수가 Matrice 4E 30,712→30,734 · X500 V2 18,816→19,030 으로 달라졌다. 원장 재실행은 §6 표 첫 줄이다」 (수치는 meshfix_applied.json 주입)"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "F-02",
+   "verdict": "CONTRADICTED",
+   "before": "결과 1번 + §1 표: 삼각형 207,032개 · Matrice 4E 30,712 · X500 V2 18,816 (정정 전 값)",
+   "after": "`src/viz_mesh_gallery.py` 를 다시 돌려 **outputs/mesh_gallery.json 을 재생성**했다(44.4 s, 그림 11장 포함). §1 표의 삼각형·부품·외접반경·kr 이 num() 으로 현재 형상 값을 받는다(Matrice 4E 30,734 · X500 V2 19,030). 손으로 고친 수는 0 개다"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "F-03",
+   "verdict": "CONTRADICTED",
+   "before": "결과 2번 + §1.1·§1.2: 사진 IoU · CAD 치수 편차가 정정 전 메쉬이고 사진 등록부도 넓어졌는데 재생성되지 않았다",
+   "after": "mesh_compare_photo(50분) · mesh_compare_cad 재생성은 이번 라운드 밖으로 두고, §1 도입의 ⚠ 단서가 이 표들을 덮도록 했다. §6 다음 단계에 「§1 의 형상 원장 넷을 정정된 메쉬로 다시 돌린다」 행을 신설했다"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "F-04",
+   "verdict": "CONTRADICTED",
+   "before": "결과 3번 + §2 가림 표: 가림 최대 6.63 dB(Matrice 4E) · 생산 σ 열이 정정 전 메쉬 값이다",
+   "after": "§2 가림 표 아래에 ⚠ 단서 신설 — 「이 표와 그림 4 도 형상 정정 전 메쉬 기준이다. 가림 최대치를 내는 Matrice 4E 와 X500 V2 가 그 정정을 받은 기체이고, 닫힌 동체의 가림은 셸 형상에 직접 걸린다. 생산 σ 열도 같은 이유로 재계산 대상이다」"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "F-05",
+   "verdict": "CONTRADICTED",
+   "before": "방법 표 비고: 「메쉬 소스 최신 편집 2026-08-03 08:00:02 … 15개 중 1개가 그보다 새것이다」",
+   "after": "빌더가 mtime 을 다시 재어 자동 갱신됐다 — 「메쉬 소스 최신 편집 2026-08-04 04:06:02 (src/drones.py) … 15개 중 새것 1 · 옛것 14」. 그중 새것 1 개는 mesh_gallery.json(이번에 재생성)이다"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "F-06",
+   "verdict": "WEAKENED",
+   "before": "§5 뒤집힘 문턱 표: Matrice 4E 행(최대치수 0.587 m · 밴드간 σ 산포 5.5 dB)이 정정 전 값이다",
+   "after": "표 아래 ⚠ 한 줄 — 「Matrice 4E 행은 형상 정정 전 값이다. 재계산은 §6 표에 있고, 이 표가 사는 주장(뒤집힘 문턱은 크기가 아니라 로브 산포가 정한다)은 한 기체 값이 움직여도 그대로 선다」"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "report": "report05_results",
+   "site": "F-07",
+   "verdict": "WEAKENED",
+   "before": "방법 표 σ 격자 출처: 07-24 격자가 낡았다고만 적혀 있었다",
+   "after": "「⚠ 그 뒤로 형상 정정이 한 번 더 있었다(2026-08-04, Matrice 4E · Mini 2 · X500 V2). 즉 이 격자는 **두 세대** 낡았고, 다섯 기체 중 Matrice 4E 가 그 정정을 받은 기체다」"
+  },
+  {
+   "file": "src/make_report06_measurement.py",
+   "report": "report06_measurement",
+   "site": "F-08",
+   "verdict": "WEAKENED",
+   "before": "§2-1 원거리장 표: D 가 Matrice 4E 메쉬 외접상자에서 나오는데 그 형상이 바뀐 사실이 없었다",
+   "after": "그림 2 아래에 ⚠ 단서 — 「§2-1 표와 이 그림의 D 는 Matrice 4E 메쉬의 외접상자에서 나오고, 그 형상은 2026-08-04 에 공식 CAD 실측으로 정정됐다. 표의 값은 정정 전 메쉬 기준이다. 로터 디스크를 포함한 대각이라 변화 폭은 작게 잡히지만 그 크기는 재계산이 정한다」"
+  },
+  {
+   "file": "src/make_report06_measurement.py",
+   "report": "report06_measurement",
+   "site": "F-09",
+   "verdict": "WEAKENED",
+   "before": "§3-2 재보정 모드 표 · §3-3 비교가능성 원장: rcs_anchor→sigma_anchor 사슬이 정정 전 메쉬임이 안 적혀 있었다",
+   "after": "§3-3 표 아래 ⚠ 단서 — 「위 두 표는 rcs_anchor → sigma_anchor 사슬 위에 서 있고, 그 사슬은 2026-08-04 형상 정정 전 메쉬로 돌린 것이다. 다섯 앵커 기체 중 Matrice 4E 가 그 정정을 받았다. 예상 σ · 교정구 여유 · 크기법칙 차등이 전부 그 아래에 있으므로 사슬 재실행 뒤에 이 표를 다시 읽는다」"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "F-10",
+   "verdict": "WEAKENED",
+   "before": "§6 다음 단계: 자세 패턴 재측정 · 앵커 사슬 재실행 두 줄에 **순서**가 없었다",
+   "after": "두 줄 앞에 관문 줄을 신설 — 「σ 를 다시 돌리기 전에 형상 관문을 통과시킨다 — 선언된 기하 결함을 끄거나 고치고, σ 캐시 키에 메쉬 지문을 넣고, 봉인해 둔 예측과 대조해 **틀린 것을 먼저 기록**한다 | 새 σ 가 형상 정정 때문에 움직인 것인지 다른 것 때문인지 구별된다 — 그 전에는 형상 정정을 σ 의 의미로 말하지 않는다」(⛔ OC-08). 형상 원장 넷 재생성 줄도 함께 신설했다"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "G-01",
+   "verdict": "UNAFFECTED",
+   "before": "방법 표 모서리 회절 줄 — 정직한 이름(untruncated Michaeli PTD-EEC (first order))과 «생산 기본값 끔»이 이미 주입돼 있다",
+   "after": "수정 없음. 철회 대상인 «대역기울기 4.54→4.08배» 는 리포트 01~06 어디에도 실려 있지 않다(docs 에만 있었고 docs/RETRACTION_LOG.md R16 에 기록)"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "G-02",
+   "verdict": "WEAKENED",
+   "before": "§6 PTD 줄: 「밴드 기울기를 기하만으로 세울 수 있는지 결정된다」 — «켜면 해결된다»로 읽혔다",
+   "after": "「모서리 항이 밴드 기울기를 얼마나 옮기는지가 수치로 남는다 — ⚠ 저대역 격차를 이 항이 메울 것으로 기대하지 않는다: 얇은 판 참값 대조에서 1차 항은 정면입사의 두 편파를 똑같이 두고, 한쪽 편파를 고치는 대신 다른 쪽을 더 멀어지게 한다」(lowfreq_attack what_survives_the_attack[3] 지시)"
+  },
+  {
+   "file": "src/make_report06_measurement.py",
+   "report": "report06_measurement",
+   "site": "G-03",
+   "verdict": "WEAKENED",
+   "before": "§4 결정표 PTD 줄: 「모서리가 많은 표준체를 같은 세션에서 함께 측정」→ 「결판」 — 정면입사만으로는 결판이 안 난다",
+   "after": "측정 설계를 고쳤다 — 「… 함께 측정하되 **정면입사만 재지 않는다** — 1차 모서리 항은 정면입사에서 두 편파에 같은 값을 주므로 그 각도에서는 판별력이 0 이다. 비스듬한 입사와 모서리 방향 입사를 함께 잰다」"
+  },
+  {
+   "file": "src/make_report06_measurement.py",
+   "report": "report06_measurement",
+   "site": "G-04",
+   "verdict": "WEAKENED",
+   "before": "§5 다음 단계 PTD 줄: G-03 과 같은 설계 결함",
+   "after": "같은 단서를 넣었다 — 「모서리가 많은 표준체를 **정면입사 밖의 각도까지** 함께 잰다 … 정면입사에서 1차 항은 두 편파에 같은 값을 주므로 그 각도만으로는 판별력이 0 이고, 평판 RMS 시험은 위상맹목이다」"
+  },
+  {
+   "file": "(없음)",
+   "report": "report03_illuminators",
+   "site": "U-01",
+   "verdict": "UNAFFECTED",
+   "before": "§0 「이 편의 수치는 표적 산란을 곱하기 앞 단계에서 닫힌다」",
+   "after": "한 글자도 고치지 않았다(⛔ OC-07). 재빌드 결과 report03_illuminators.ipynb 는 바이트 동일이다"
+  },
+  {
+   "file": "(없음)",
+   "report": "report04_detector",
+   "site": "U-02",
+   "verdict": "UNAFFECTED",
+   "before": "편 전체 — 04편은 σ 를 쓰지 않고 잡음 위 오경보율만 잰다",
+   "after": "한 글자도 고치지 않았다(⛔ OC-07). 재빌드 결과 report04_detector.ipynb 는 바이트 동일이다"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "U-03",
+   "verdict": "UNAFFECTED",
+   "before": "결과 4번: 커널이 해석 PO 와 최대 0.201 dB 안에서 일치 · 이면각 0.556 dB",
+   "after": "깎지 않았다(⛔ OC-06). §3.1a 에서 «이 눈금은 §3.1 의 두 눈금과 다른 것을 잰다» 로 갈라 적고, 얇은 판에서도 격자를 조이면 0.015 dB 로 수렴한다는 사실을 **더했다**"
+  },
+  {
+   "file": "src/make_report02_target.py",
+   "report": "report02_target",
+   "site": "NEW-01 (원장 밖 · 빌드가 잡았다)",
+   "verdict": "CONTRADICTED",
+   "before": "§4.2·§4.3 은 sigma_anchor.json(07-31) 위에 서 있고 §4 도입의 우리 기울기는 rcs_anchor.json 에서 다시 적합하는데, 그 rcs_anchor.json 이 08-03 12:36 에 새로 쓰였다(기체 7→5종 · σ 재계산) — 두 원장이 한 세대 어긋난 채 한 절에 섞여 있었다. 빌더의 교차검사가 여기서 멈췄다",
+   "after": "멈추는 대신 **수로 남기고 본문이 들도록** 바꿨다. report02_derived.json 에 anchor.slope_ledger_gap_max_db_per_ghz(=1.396, mavic4pro) · n_slope_crosschecked · slope_ledger_source_generation 을 신설하고, §4.2 에 ⚠ 문단을 넣었다 — 「이 표와 §4 도입의 우리 기울기는 σ 사슬의 서로 다른 세대다 … 생산 앵커는 이 라운드에서 그대로 두고 사슬 재실행은 §6 표에 둔다」(⛔ OC-10 — 생산 앵커를 갈아끼우지 않았다)"
+  }
+ ],
+ "rebuilt": [
+  "report01_prior.ipynb",
+  "report02_target.ipynb",
+  "report03_illuminators.ipynb",
+  "report04_detector.ipynb",
+  "report05_results.ipynb",
+  "report06_measurement.ipynb"
+ ],
+ "contract_errors_fixed": 5,
+ "hardcoded_numbers": 0,
+ "contract_errors_detail": [
+  {
+   "error": "KeyError: 'multiband_phantom3'",
+   "where": "src/make_report02_target.py:derive()",
+   "cause": "outputs/rcs_anchor.json 이 08-03 12:36 에 문헌 앵커 키를 바꿨다",
+   "fix": "키 경로를 literature.mu_eps.das_phantom3_mono 로 바로잡았다(JSON 은 손대지 않았다) — 3 자리"
+  },
+  {
+   "error": "KeyError: 'mono3d_theta90'",
+   "where": "src/make_report02_target.py:derive() · blocks()",
+   "cause": "같은 재작성",
+   "fix": "literature.mu_eps.yuan_phantom3_azplane 으로 바로잡았다 — 1 자리"
+  },
+  {
+   "error": "AssertionError: 외접반경이 갤러리 원장과 어긋난다: 최대 0.57%",
+   "where": "src/make_report02_target.py:_mesh_table()",
+   "cause": "형상 정정으로 실제 메쉬가 바뀌었는데 outputs/mesh_gallery.json 이 08-03 판이었다",
+   "fix": "가드를 풀지 않고 **원장을 재생성**했다(src/viz_mesh_gallery.py, 44.4 s)"
+  },
+  {
+   "error": "KeyError: 'typhoonh480'",
+   "where": "src/make_report02_target.py:_anchor_ledger()",
+   "cause": "rcs_anchor.json 은 5기체, sigma_anchor.json 은 7기체 — 집합이 갈렸다",
+   "fix": "겹치는 기체에서만 대조하고 겹치지 않은 기체를 n_in_sigma_anchor_only 로 남겼다"
+  },
+  {
+   "error": "AssertionError: 밴드 기울기 불일치: 최대 1.396e+00 dB/GHz",
+   "where": "src/make_report02_target.py:_anchor_ledger()",
+   "cause": "두 앵커 원장이 한 세대 어긋났다(NEW-01)",
+   "fix": "멈추는 대신 수로 남기고 본문 §4.2 가 들도록 했다 — 조용히 넘기지도, 리포트를 못 내지도 않는다"
+  }
+ ],
+ "hardcoded_numbers_check": {
+  "method": "① 빌더 diff 의 추가 줄에서 리터럴 숫자 grep ② 생성된 노트북 diff 의 추가 줄에서 출처태그(⟨…json : key⟩)와 그 앞 값을 지운 뒤 남는 맨숫자 grep",
+  "result": 0,
+  "residuals_and_why": [
+   "절 번호(§3.1a · §4.6) · 그림 번호 · 인용 연도(2021·2025·2026) · DOI/논문 권호(15:3731) — 규약상 손으로 적는 것",
+   "table_from() 이 뽑은 표의 칸(§1 메쉬 표 등) — JSON 에서 뽑았고 표 하나에 출처 태그 하나가 붙는다",
+   "das_fleet_prereg.json 의 합격규칙 원문 안에 든 '6.0 dB' — num() 이 문자열째 주입한 축자 인용",
+   "kr 1~100 · ±10 dB 같은 스윕 범위 표기 — 이번 라운드가 손대지 않은 기존 문장"
+  ]
+ },
+ "regenerated_ledgers": [
+  {
+   "file": "outputs/mesh_gallery.json",
+   "why": "F-02 — 형상 정정 후 §1 표를 현재 메쉬로 세우기 위해",
+   "runtime_s": 44.4,
+   "figures": "outputs/figures/mesh_gallery_*.png 11장"
+  }
+ ],
+ "deferred_regeneration": [
+  "outputs/mesh_compare_photo.json (07-31 · 재생성 약 50분 · 사진 등록부도 3→17 장으로 넓어져 다른 실험이 된다)",
+  "outputs/mesh_compare_cad.json · mesh_compare_material.json (07-31)",
+  "outputs/rcs_anchor.json → sigma_anchor.json 사슬 (세대 정합 · 05편 전체가 먹는 값이라 별도 라운드)",
+  "outputs/report13_sigma_grid.json 계열 σ 격자 (meshfix_attack 의 형상 관문 통과가 선행)",
+  "outputs/das_fleet_* (m350rtk 재집계 + mini2 형상 정정 반영)"
+ ],
+ "budget_after": {
+  "report01_prior.ipynb": {
+   "md_cells": 25,
+   "figures": 4,
+   "negatives": 0,
+   "hedges": 0,
+   "ok": true
+  },
+  "report02_target.ipynb": {
+   "md_cells": 25,
+   "figures": 7,
+   "negatives": 2,
+   "hedges": 0,
+   "ok": true
+  },
+  "report03_illuminators.ipynb": {
+   "md_cells": 22,
+   "figures": 7,
+   "negatives": 2,
+   "hedges": 0,
+   "ok": true,
+   "note": "바이트 동일 — 손대지 않았다"
+  },
+  "report04_detector.ipynb": {
+   "md_cells": 23,
+   "figures": 7,
+   "negatives": 0,
+   "hedges": 0,
+   "ok": true,
+   "note": "바이트 동일 — 손대지 않았다"
+  },
+  "report05_results.ipynb": {
+   "md_cells": 25,
+   "figures": 7,
+   "negatives": 2,
+   "hedges": 0,
+   "ok": true
+  },
+  "report06_measurement.ipynb": {
+   "md_cells": 25,
+   "figures": 6,
+   "negatives": 0,
+   "hedges": 0,
+   "ok": true
+  }
+ },
+ "retraction_log": "docs/RETRACTION_LOG.md :: R16 (기존 항목은 건드리지 않았다)",
+ "overcorrection_guards_honoured": [
+  "OC-01",
+  "OC-02",
+  "OC-03",
+  "OC-04",
+  "OC-05",
+  "OC-06",
+  "OC-07",
+  "OC-08",
+  "OC-09",
+  "OC-10"
+ ]
+}

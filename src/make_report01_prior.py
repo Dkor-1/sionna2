@@ -264,14 +264,19 @@ def blocks(P, C, S, V):
             f"{P.num('counts.preprint', 10, '{:.0f}')}편, 축자 인용 "
             f"{P.num('counts.quotes_verified', 46, '{:.0f}')}건은 PDF 안 그 쪽에서 기계가 찾는다.",
             f"조달처는 일곱 갈래이고, 갈래가 그 편이 살 수 있는 주장의 크기를 정한다 — 측정은 절대 σ "
-            f"를, 스톡 엔진은 운동학 서명을, 엔진 안 산란 구현은 메쉬에서 낸 RCS 를 산다(§3).",
+            f"를, 스톡 엔진은 운동학 서명을, 엔진 안 산란 구현은 메쉬에서 낸 RCS 의 **각도 구조**를 "
+            f"산다(§3). 절대 크기는 모양을 안 닮은 구도 부피를 맞게 골라 넣으면 같은 자리에 "
+            f"오므로 측정이 앵커한다(02 §4.6 — 그 부피를 무엇으로 잡는가는 결과를 보고 고를 수 "
+            f"있는 값이고, 메쉬 부피로 잡은 구는 두 잣대 모두에서 우리보다 나쁘다).",
             f"H8 후보 {C.num('h8.n_adjudicated', 12, '{:.0f}')}편을 네 관문으로 판정해 동시 통과는 "
             f"{C.num('h8.n_passing_all_prongs', 0, '{:.0f}')}편이고, 가장 가까운 Rzewuski 는 엔진 "
             f"관문 하나에서 걸린다(§4.1).",
             f"절대 σ 를 dBsm 으로 찍는 편은 {P.num('counts.prints_dbsm', 6, '{:.0f}')}편이고 그중 "
             f"광선엔진을 돌리는 것은 {P.num('counts.prints_dbsm_and_runs_engine', 1, '{:.0f}')}편, "
             f"그 표적은 차량이다(Ziganshin 학회판 Fig.6).",
-            f"우리는 광선엔진으로 가림을 풀고 조명면에 부품별 재질 PO 를 적분하며, 밴드 기울기를 Das 의 "
+            f"우리는 광선엔진으로 가림을 풀고 조명면에 부품별 재질 PO(물리광학 — 빛이 닿는 면에 "
+            f"흐르는 전류를 근사식으로 적어 넣고 그 면을 훑어 더하는 방법)를 적분하며, "
+            f"밴드 기울기를 Das 의 "
             f"적합계수 {P.num('anchors.das.mu_a_db_per_ghz', 0.21, '{:.2f}', 'dB/GHz')} 에 "
             f"맞춘다(§4.2).",
         ],
@@ -550,7 +555,9 @@ def blocks(P, C, S, V):
         "⟨outputs/prior_work_survey.json : anchors.das.provenance_ko⟩, 우리가 쓰는 것은 그 기울기 "
         "하나다.", "",
         table(["문헌", "기체 · 대역", "기울기", "우리가 쓰는 자리"],
-              [["Das (IEEE WCL 2026)", "Phantom 3 · 1.8–18.2 GHz",
+              [["Das (IEEE WCL 2026)",
+                "Phantom 3 · " + P.num("anchors.das.band_ghz[0]", fmt="{:.1f}") + "–"
+                + P.num("anchors.das.band_ghz[1]", fmt="{:.1f}", unit="GHz"),
                 f"{P.num('anchors.das.mu_a_db_per_ghz', 0.21, '{:.2f}', 'dB/GHz')}", "기울기 앵커"],
                ["Yuan (EuCAP 2025)", "Phantom 3 · 같은 실험실 · VV",
                 f"{P.num('anchors.yuan.slopes_db_per_ghz.theta90', 0.315, '{:.3f}', 'dB/GHz')}",

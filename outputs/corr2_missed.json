@@ -1,0 +1,294 @@
+{
+  "_meta": {
+    "generated": "2026-08-07",
+    "round": "2026-08-07 정정 2차 — 놓친 자리(MS-1~7) 닫기",
+    "input": "outputs/report_correction_attack.json : missed_sites (7건)",
+    "what": "1차 정정 라운드가 일부 절에만 달고 빠뜨린 자리를 빌더 소스에서 직접 닫았다. 새 주장은 넣지 않았고, 숫자는 전부 report_style.num() 으로 JSON 에서 주입했다.",
+    "files_edited": [
+      "src/make_report02_target.py",
+      "src/make_report06_measurement.py"
+    ],
+    "not_touched": [
+      "src/make_report00_foundations.py · report00_foundations.ipynb (금지)",
+      "src/drones.py · src/drone_cad.py (읽지도 않음)",
+      "outputs/meshdef_* · report00_md2_* (금지)",
+      "report02_target.ipynb · report06_measurement.ipynb (재생성은 다음 단계)",
+      "outputs/figures/* (그림 재생성 없음)"
+    ],
+    "verification": "스크래치 경로로만 두 빌더를 돌려 계약을 검사했다(파생 JSON 은 백업 후 원상복구, md5 일치 확인). report02 ✅ 25/25셀 · 그림 7/8 · 부정문 3/3 · 완충어 0, report06 ✅ 25/25셀 · 그림 6/8 · 부정문 1/3 · 완충어 0. 노트북·그림은 건드리지 않았다.",
+    "concurrency": "라운드 중 다른 갈래가 같은 두 파일을 편집했다(용어 풀이·과잉정정 정정). 매 편집 직전에 재독하고 최소 앵커로만 고쳤다 — 충돌 0건."
+  },
+
+  "missed_sites_closed": [
+    {
+      "id": "MS-1",
+      "severity": "HIGH",
+      "theme": "F (낡은 수치) — v1/v2 메쉬 두 세대가 같은 리포트에 표시 없이 섞여 있었다",
+      "status": "CLOSED",
+      "edits": [
+        {
+          "file": "src/make_report02_target.py",
+          "site": "여는 블록 결과 5 (header results[4])",
+          "before": "… 눈감기 Phantom 3 는 고도정합 실측곡선 대비 레벨 -4.91 dB · 기울기 1.33배 다. (세대 표시 없음)",
+          "after": "… 기울기 1.33배 다(**v1 메쉬 기준** — 사진 실측으로 다시 지은 v2 메쉬에서는 레벨 -3.30 dB · 기울기 1.65배 이고, 두 판의 이동은 §4.6 첫 문단이 잇는다).",
+          "numbers_from": [
+            "outputs/p3_validation_v2.json : v1_vs_v2.level_db.v2",
+            "outputs/p3_validation_v2.json : slope.ratios.ours_over_yuan_theta90"
+          ],
+          "why": "헤드라인이 v1 수치를 세대 표시 없이 들고 있었고 §4.6 은 v2 수치를 들어, 같은 편이 같은 양에 두 수를 실었다."
+        },
+        {
+          "file": "src/make_report02_target.py",
+          "site": "§4.5 표제 + 도입 문단",
+          "before": "### §4.5 ⭐ 눈감기 대조 — Phantom 3 를 문헌값을 보지 않고 내고 봉인을 풀었다 / 도입에 세대 표시 없음",
+          "after": "표제에 «(v1 메쉬)» 를 붙이고, 도입 끝에 「⚠ 이 절의 표 네 행은 전부 v1 메쉬 산출이다 — … v2 메쉬의 같은 두 스칼라는 §4.6 첫 문단이 잇는다」 를 달았다.",
+          "why": "표 네 행(0.420 · 1.56 · -4.91 · 1.33)이 전부 v1 산출인데 provenance 태그의 파일명만 다르고 본문에 표시가 없었다."
+        },
+        {
+          "file": "src/make_report02_target.py",
+          "site": "§4 도입 — 창 비교 괄호",
+          "before": "(우리 Phantom 3: 저대역 창 1.018 vs 전대역 0.519 dB/GHz)",
+          "after": "(우리 Phantom 3 **v2 메쉬** — 사진 실측으로 다시 지은 쪽이다: 저대역 창 1.018 vs 전대역 0.519 dB/GHz)",
+          "why": "이 두 수는 v2 산출인데 바로 아래 §4.5 표는 v1 산출이다. 세대를 밝히지 않으면 두 수가 모순으로 읽힌다."
+        },
+        {
+          "file": "src/make_report02_target.py",
+          "site": "§4.6 — v1→v2 잇는 문단 신설",
+          "before": "(없음)",
+          "after": "⭐ 이 절의 «우리» 는 v2 메쉬이고 §4.5 표의 «우리» 는 v1 메쉬다. 같은 Yuan θ90 곡선 잣대에서 v1→v2 는 레벨오차 -4.91 → -3.30 dB, 기울기 0.420 → 0.519 dB/GHz(촘촘하게 되살린 실측곡선 0.316), 삼각형 28,160→28,366, 실루엣 IoU 천장대비 77.9→86.9 % 다. 헤드라인 결과 5 와 §4.5 는 v1 값을 든다.",
+          "numbers_from": [
+            "outputs/p3_validation_v2.json : v1_vs_v2.level_db.v1 / .v2",
+            "outputs/p3_validation_v2.json : v1_vs_v2.slope_db_per_ghz.v1 / .v2 / .measured_comparand_dense",
+            "outputs/p3_validation_v2.json : v1_vs_v2.mesh.v1_n_tri / .v2_n_tri",
+            "outputs/p3_validation_v2.json : v1_vs_v2.mesh.silhouette_iou_pct_of_ceiling.old / .new"
+          ],
+          "why": "공격이 요구한 «v1→v2 이동을 한 줄로 잇기». 레벨은 가까워지고 기울기는 멀어졌다는 갈린 결과를 한 문장에 같이 실었다."
+        },
+        {
+          "file": "src/make_report06_measurement.py",
+          "site": "§4 결정표 «절대 레벨» 행 — 눈감기 사전값 (MS-1 파급, 공격 목록 밖 · grep 으로 찾음)",
+          "before": "눈감기 사전값 — 고도정합 실측곡선 대비 밴드평균 -4.91 dB",
+          "after": "… -4.91 dB(v1 메쉬 · 사진 실측 v2 메쉬에서는 -3.30 dB, 02편 §4.6)",
+          "why": "06편도 같은 v1 수치를 세대 표시 없이 인용하고 있었다. PV2 를 존재검사에서 실제 인용으로 승격했다."
+        }
+      ]
+    },
+    {
+      "id": "MS-2",
+      "severity": "HIGH",
+      "theme": "F + C — 06편 §4-1 이 낡은 세대 기울기 위에서 «결판» 을 선언",
+      "status": "CLOSED",
+      "edits": [
+        {
+          "file": "src/make_report06_measurement.py",
+          "site": "derive() :: 기울기 판별폭 블록 + 모듈 상수 RA",
+          "before": "우리 기울기는 sigma_anchor.json(생산 원장) 하나만 읽었다.",
+          "after": "outputs/rcs_anchor.json 을 직접 읽어(RA 상수 신설) 02편과 **같은 정의**(세 밴드 방위평균 μ 를 f[GHz] 에 1차 적합, el=0)로 현재 세대 기울기를 다시 적합하고, rows 마다 ours_current_generation_db_per_ghz · gap_db_current_generation · gap_db_band_matched_current_generation 을 남긴다. slope 에 ledger_generation · current_generation · discrimination_min_abs_db_current_generation · generation_note 추가.",
+          "why": "본문이 들 수 있는 «현재 세대 값» 을 손입력 없이 디스크에 남기기 위해. 문턱(threshold_db)은 생산 원장 값 그대로 두고 나란히만 싣는다."
+        },
+        {
+          "file": "src/make_report06_measurement.py",
+          "site": "§4-1 본문",
+          "before": "판정 문턱은 둘 중 좁은 쪽 1.77 dB … (세대 표시 없음)",
+          "after": "같은 문단에 이어서: ⚠⚠ 이 문턱은 생산 원장 세대의 수다. 현재 rcs_anchor(2026-08-03 판)로 다시 적합하면 Matrice 4E 가 0.936 → 0.233 dB/GHz 로 내려가 전대역 앵커와의 판별폭이 2.44 → 0.08 dB 가 되고, 그 세대에서 가장 좁은 판별폭 0.08 dB 는 세션 진폭 재현성이 닿는 범위 밖이다 — «결판» 유지의 선행 조건은 σ 사슬 재실행(02편 §4.2·§6)이다. 두 세대 모두 2026-08-04 형상 정정 전 메쉬다.",
+          "recomputed_check": {
+            "attack_expected_gap_db": 0.078,
+            "builder_output_gap_db": 0.08,
+            "match": true
+          },
+          "why": "공격이 지적한 대로 «결판» 분류가 낡은 수 위에 서 있었다. 문턱은 그대로 두되 현재 세대의 판별폭을 같은 자리에 실어 독자가 두 수를 함께 읽게 했다."
+        },
+        {
+          "file": "src/make_report06_measurement.py",
+          "site": "§4 결정표 «밴드 기울기» 행",
+          "before": "판정 기준: 세션 재현성 < 1.77 dB — 창을 맞춘 앵커 기준 (§4-1) / 판정 범위: 결판",
+          "after": "판정 기준에 «⚠ 생산 원장 세대의 수이고, 현재 세대로는 판별폭이 0.08 dB 까지 좁아진다 (§4-1)» 추가, 판정 범위를 «결판 — σ 사슬 재실행이 선행 조건» 으로 바꿈",
+          "why": "결정표가 판정 범위를 파는 자리다. 조건 없는 «결판» 은 낡은 수를 현재 결과로 읽히게 한다."
+        },
+        {
+          "file": "src/make_report06_measurement.py",
+          "site": "다음 단계 표",
+          "before": "(사슬 재실행 행 없음) · «세 밴드를 같은 세션에서 재고…» 행에 선행 조건 없음",
+          "after": "새 행 「σ 사슬(rcs_anchor → sigma_anchor)을 한 세대로 다시 돌린 뒤 §4-1 문턱을 다시 낸다 — 지금은 세대를 바꾸는 것만으로 2.44 → 0.08 dB(Matrice 4E) 로 움직인다」 를 앞에 넣고, 기존 행에 «위 사슬 재실행이 이 판정의 선행 조건이다» 를 달았다.",
+          "why": "판정 문턱의 재실행 의존을 실행 가능한 항목으로 남긴다."
+        }
+      ]
+    },
+    {
+      "id": "MS-3",
+      "severity": "HIGH",
+      "theme": "G/보증 — 검증 스위치가 꺼져 있었다",
+      "status": "CLOSED — 되살렸다(판정: 되살린다)",
+      "judgement": "assert 를 되살리되 **1e-6 이 아니라 문턱을 명시한 assert** 로 되살렸다. 1e-6 으로 되돌리면 지금 즉시 빌드가 멈춰 리포트가 안 나오고(그 사실은 이미 §4.2 가 본문에 싣는다), print 로 두면 원장이 조용히 더 어긋날 수 있다. 알려진 격차만 통과시키고 그 위는 멈춘다.",
+      "edits": [
+        {
+          "file": "src/make_report02_target.py",
+          "site": "모듈 상수 (ANCHOR_MODE 아래)",
+          "before": "(없음)",
+          "after": "SLOPE_LEDGER_GAP_MAX_DB_PER_GHZ = 1.40 — 「사슬을 한 세대로 다시 돌린 뒤에는 0 에 가깝게 되돌린다. 검사를 끄는 스위치로 쓰지 않는다」 주석 포함",
+          "why": "허용 상한을 코드에 이름으로 박아 둔다. 현재 격차 1.3955 dB/GHz 라 여유는 0.0045 뿐이다."
+        },
+        {
+          "file": "src/make_report02_target.py",
+          "site": "_anchor_ledger()",
+          "before": "if worst >= 1e-6: print(경고)   # assert 없음",
+          "after": "경고 print 는 유지하고 그 아래에 assert worst <= SLOPE_LEDGER_GAP_MAX_DB_PER_GHZ (실패 메시지가 사슬 재실행 명령까지 적어 준다)",
+          "test": "상한을 0.5 로 낮춰 실제로 AssertionError 가 나는 것을 확인했다(현재 값 1.396 > 0.500)."
+        },
+        {
+          "file": "src/make_report02_target.py",
+          "site": "모듈 docstring «무결성 장치»",
+          "before": "「어긋나면 **거기서 멈춘다**」 (실제로는 멈추지 않았다 — 거짓 서술)",
+          "after": "「두 원장의 세대 차이만큼은 SLOPE_LEDGER_GAP_MAX_DB_PER_GHZ 까지 통과시키고(그 값을 §4.2 가 본문에 싣는다), 그보다 벌어지면 **거기서 멈춘다**」"
+        },
+        {
+          "file": "src/make_report02_target.py",
+          "site": "§4.2 본문 — 표가 현재 결과로 읽히던 문장",
+          "before": "정렬 후 7기종 기울기가 모두 0.210 dB/GHz 위에 서고 …",
+          "after": "생산 원장(2026-07-30 07:16:08 세대 · 재실행 대기)에서 정렬 후 7기종 기울기가 모두 … (세대 도장은 num() 으로 JSON 에서 주입)",
+          "why": "공격이 요구한 두 번째 장치. assert 와 함께 둘 다 적용했다."
+        }
+      ]
+    },
+    {
+      "id": "MS-4",
+      "severity": "MEDIUM",
+      "theme": "F — 형상 정정 단서가 §4.2~§4.4 에 없었다(두 축이 섞여 처리된 줄 읽힘)",
+      "status": "CLOSED",
+      "edits": [
+        {
+          "file": "src/make_report02_target.py",
+          "site": "§4.2 끝 — 새 문단",
+          "before": "세대 축(2026-07-30 vs 2026-08-03) 이야기만 있었다.",
+          "after": "⚠ **그리고 두 세대 모두 2026-08-04 형상 정정 전 메쉬 위에 서 있다** — 이 축은 위 문단의 세대 축과 별개다. 앵커 5기체 중 Matrice 4E 가 그 정정을 받았고, §4 도입의 기울기와 §4.1·§4.3·§4.4 의 표도 같은 사슬 위에 있다 ⟨outputs/meshfix_attack.json : Q6_invalidated_outputs.critical[1]⟩.",
+          "why": "공격 지적 그대로 — 세대 축과 형상 축은 다른 축인데 한 축만 적혀 있어 다른 축이 처리된 줄 읽혔다. §4.1 은 공격 목록에 없었으나 같은 사슬(sigma_anchor 모드 표)이라 열거에 포함했다."
+        },
+        {
+          "file": "src/make_report02_target.py",
+          "site": "§4.3 도입",
+          "after": "⚠ 이 표도 §4.2 와 같은 생산 원장 세대이고 2026-08-04 형상 정정 전 메쉬 위에 있다 — Matrice 4E 행이 그 정정을 받은 기체다."
+        },
+        {
+          "file": "src/make_report02_target.py",
+          "site": "§4.4 도입",
+          "after": "⚠ 이 표도 §4.2·§4.3 과 같은 사슬 위에 있다 — 생산 원장 세대이고 2026-08-04 형상 정정 전 메쉬다."
+        },
+        {
+          "file": "src/make_report06_measurement.py",
+          "site": "§2-2 교정구 여유 문단 (공격 목록 밖 · grep 으로 찾음)",
+          "before": "교정구가 기체보다 최소 +3.73 dB 밝으므로 …",
+          "after": "… ⚠ 이 여유가 견주는 «기체 예상 σ» 는 rcs_anchor → sigma_anchor 사슬에서 오고, 그 사슬은 2026-08-04 형상 정정 전 메쉬 위에 있다(§3-2) — 반경 선택은 여유가 +3.73 dB 라 그 정도 이동에는 버틴다.",
+          "why": "1차가 06편 §3-2 에만 달고 §2-2 의 같은 사슬 표를 빠뜨렸다."
+        }
+      ]
+    },
+    {
+      "id": "MS-5",
+      "severity": "MEDIUM",
+      "theme": "D 의 적용범위 — 부품 치수 목록을 7기체 공통처럼 썼고 신선도 단서가 없었다",
+      "status": "CLOSED",
+      "edits": [
+        {
+          "file": "src/make_report02_target.py",
+          "site": "§3.1a 부품 치수 목록",
+          "before": "이 문턱을 우리 부품 치수로 옮기면 … 동체 81.51 · 암뿌리 45 · … (범위·신선도 표시 없음)",
+          "after": "이 문턱을 **Phantom 3 급 한 기체의 부품 치수**로 옮기면 … 목록 뒤에 「⚠ 이 목록은 **기체 하나**의 치수이고 7기체 공통이 아니다 — §1 의 크기 폭 4.66배 안에서 S1000+ 처럼 큰 기체는 이 문턱이 그만큼 낮은 주파수로, Mini 급은 그만큼 높은 주파수로 옮겨간다. 치수 자체도 Phantom 3 를 사진 실측으로 다시 짓기 전 스윕에서 인용한 값이다 ⟨outputs/lowfreq_anchor.json : consistency_with_drone.drone.source⟩.」",
+          "numbers_from": ["outputs/report02_derived.json : mesh.span_ratio"],
+          "why": "치수는 lowfreq_grid 의 한 기체(Phantom 3 계열) 것이고, 근거 파일 자체가 «그 스윕 이후 Phantom 3 CAD 가 개정됐다» 는 caveat 를 달고 있다. 1차가 §1·§2·§5 에 붙인 종류의 단서가 정작 새로 쓴 절에 빠져 있었다."
+        }
+      ]
+    },
+    {
+      "id": "MS-6",
+      "severity": "LOW",
+      "theme": "F 의 크기 표현 — 대표값으로 삼각형 수(+0.07 %)를 골라 낡음이 작아 보였다",
+      "status": "CLOSED",
+      "edits": [
+        {
+          "file": "src/make_report02_target.py",
+          "site": "§1 형상 정정 단서",
+          "before": "… 삼각형 수가 Matrice 4E 30,712→30,734 · X500 V2 18,816→19,030 로 달라졌다",
+          "after": "… 몸통을 공표 높이에 맞추던 z 축 배율이 Matrice 4E 0.950→1.000(약 5 %) · Mini 2 0.906→1.001 로 움직였고 세 기체의 메쉬 지문(꼭짓점과 삼각형 전체를 한 값으로 요약한 것)이 셋 다 달라졌다(X500 V2 는 배율 대신 삼각형이 18,816→19,030 로 바뀐 쪽이다)",
+          "numbers_from": [
+            "outputs/meshfix_applied.json : per_drone.matrice4e.fit_scale_before[2] / fit_scale_after[2]",
+            "outputs/meshfix_applied.json : per_drone.mini2.fit_scale_before[2] / fit_scale_after[2]",
+            "outputs/meshfix_applied.json : per_drone.x500v2.n_tri_before / n_tri_after"
+          ],
+          "why": "z 배율이 실제 이동(약 5 %)이고 삼각형 수는 변화를 가장 작아 보이게 만드는 지표다. X500 V2 는 z 배율이 1.0→1.0 이라 그 기체만 삼각형 수를 남겼다."
+        },
+        {
+          "file": "src/make_report02_target.py",
+          "site": "§6 다음 단계 — «§1 의 형상 원장 넷을 다시 돌린다» 행",
+          "before": "지금은 삼각형 수부터 30,712→30,734(Matrice 4E) 만큼 어긋나 있다",
+          "after": "지금은 z 축 배율부터 0.950→1.000(Matrice 4E · 약 5 %) 만큼 어긋나 있고 세 기체의 메쉬 지문이 전부 다르다"
+        }
+      ]
+    },
+    {
+      "id": "MS-7",
+      "severity": "LOW",
+      "theme": "A — 교정구 서술이 여는 블록과 §2-2 에 글자 그대로 중복",
+      "status": "CLOSED",
+      "edits": [
+        {
+          "file": "src/make_report06_measurement.py",
+          "site": "여는 블록 결과 4",
+          "before": "⭐ 이 항목이 캠페인에서 값어치가 가장 큰 이유는 두 가지다 — 절대 레벨만 보면 … (02 §4.6) … (02 §3.1a). **계산으로 닫히지 않는 축을 이 구가 닫는다.** [§2-2 와 동일 문장]",
+          "after": "⭐ 이 항목이 캠페인에서 값어치가 가장 크다 — 그 이유 두 가지는 §2-2 가 든다.",
+          "why": "공격 권고대로 §2-2 만 남기고 여는 블록은 한 줄로 줄였다. 남긴 §2-2 판은 다른 갈래가 방금 고친 «구의 부피는 골라 넣을 수 있는 값» 정정을 담고 있어 그쪽이 더 정확하다."
+        }
+      ]
+    }
+  ],
+
+  "extra_sites_found_by_grep": [
+    "06편 §4 결정표 «절대 레벨» 행의 눈감기 사전값 -4.91 dB — v1 표시 + v2 병기 (MS-1 안에 기록)",
+    "06편 §2-2 교정구 여유 문단 — 형상 정정 사슬 단서 (MS-4 안에 기록)",
+    "02편 §4.1 — 같은 sigma_anchor 사슬이라 §4.2 단서의 열거에 포함시켰다"
+  ],
+
+  "swept_and_already_marked": {
+    "note": "grep 으로 훑어 이미 단서가 붙어 있음을 확인한 자리 — 이번 라운드에서 손대지 않았다.",
+    "sites": [
+      "02편 §1 그림 넷·표 (형상 정정 전) · §2 가림 표 · §4.7 Mini 2 행 · §5 sigma_sensitivity 표",
+      "05편 방법 블록 «σ 격자 출처» — 두 세대 낡음이 이미 명시돼 있다",
+      "06편 §2-1 원거리장 표·그림 2 · §3-2 비교가능성 표",
+      "01·03·04편 — 이 사슬의 값을 인용하지 않는다(grep 결과 rcs_anchor/sigma_anchor/das_fleet/p3_* 인용 0건, 01편은 다음 단계에 규약 통일 행 하나뿐)"
+    ]
+  },
+
+  "risks_for_next_step": [
+    {
+      "what": "report02 노트북의 부정문이 3/3 으로 상한에 붙어 있다",
+      "detail": "셀 19 «독립 2건이 아니다» · 셀 20 «Phantom 3 를 뜻하지 않는다»(다른 갈래의 용어 풀이) · 셀 24 «σ 의 의미로 말하지 않는다». 이번 라운드가 더한 부정문은 0 이지만, 다음 갈래가 부정 종결 문장을 하나만 더 넣어도 strict 빌드가 멈춘다.",
+      "action": "다음 단계에서 report02 빌드가 «부정문 4개 > 상한 3» 으로 멈추면 위 셋 중 하나를 긍정문으로 다시 쓰면 된다."
+    },
+    {
+      "what": "report02·report06 둘 다 마크다운 25/25 셀 — 셀 추가 여지가 0 이다",
+      "action": "다음 라운드의 새 서술은 반드시 기존 셀 안에 넣어야 한다(셀당 실질 12줄 상한도 06편 §4-1 셀이 12/12 로 꽉 찼다)."
+    },
+    {
+      "what": "SLOPE_LEDGER_GAP_MAX_DB_PER_GHZ = 1.40 의 여유가 0.0045 dB/GHz 뿐이다",
+      "detail": "현재 격차 1.3955(mavic4pro). rcs_anchor 나 sigma_anchor 중 하나라도 다시 돌리면 이 assert 가 먼저 멈춘다 — 설계된 동작이다(멈추면 사슬을 한 세대로 맞추고 상수를 0 에 가깝게 되돌린다).",
+      "action": "빌드가 여기서 멈추면 그것이 «사슬을 다시 돌렸다» 는 신호다. 상수를 올려서 통과시키는 것은 이 장치의 취지를 되돌리는 일이다."
+    }
+  ],
+
+  "self_check": {
+    "hand_typed_numbers": 0,
+    "note": "이번 라운드가 본문에 넣은 수치는 전부 num() 을 통과한다. 예외는 문장 속 «약 5 %»(0.950→1.000 배율의 반올림 설명)와 §3.1a 의 «기체 하나» 같은 서술어뿐이고, 두 배율 값 자체는 JSON 에서 온다.",
+    "new_derived_keys": [
+      "outputs/report06_derived.json : slope.rows[*].ours_current_generation_db_per_ghz",
+      "outputs/report06_derived.json : slope.rows[*].gap_db_current_generation",
+      "outputs/report06_derived.json : slope.rows[*].gap_db_band_matched_current_generation",
+      "outputs/report06_derived.json : slope.ledger_generation · current_generation · discrimination_min_abs_db_current_generation · generation_note"
+    ],
+    "derived_json_state": "검증은 스크래치에서 했고 outputs/report02_derived.json · report06_derived.json 은 md5 일치로 원상복구했다. 위 새 키는 **다음 단계의 재생성에서** 디스크에 생긴다(derive() 가 blocks() 보다 먼저 돈다).",
+    "jargon_introduced_and_explained": [
+      "v1/v2 메쉬 → «기체 형상표를 물려받아 지은 판» / «사진 실측으로 다시 지은 판»",
+      "z 축 배율 → «몸통을 공표 높이에 맞추던 z 축 배율»",
+      "메쉬 지문 → «꼭짓점과 삼각형 전체를 한 값으로 요약한 것»",
+      "조밀곡선 → «촘촘하게 되살린 실측곡선» 으로 바꿔 씀"
+    ]
+  }
+}

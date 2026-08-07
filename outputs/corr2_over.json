@@ -1,0 +1,183 @@
+{
+  "_meta": {
+    "round": "corr2 / 과잉정정 갈래 (OV-1~4)",
+    "date": "2026-08-07",
+    "input": "outputs/report_correction_attack.json : overcorrections",
+    "scope": "src/make_report01_prior.py · make_report02_target.py · make_report05_results.py · make_report06_measurement.py (report00 은 손대지 않음)",
+    "regenerated_notebooks": false,
+    "note": "리포트 재생성은 다음 단계가 한 번에 한다. 모든 숫자는 report_style.num() 으로 JSON 에서 주입했고 손입력 숫자는 0 이다."
+  },
+
+  "evidence_recheck": {
+    "outputs/p3_validation_v2.json:controls.scoring": "Yuan θ90 복원 실측곡선 기준 밴드평균 잔차",
+    "outputs/p3_validation_v2.json:controls.table.sphere_eqvol_paperbox": {
+      "what": "PEC 구 r=145.7 mm (부피 12.95 L 등가), 정확 Mie",
+      "level_err_db": 0.9552777162627922, "rms_db": 1.9822749548280734, "eps_mean_db": 0.0
+    },
+    "outputs/p3_validation_v2.json:controls.table.sphere_vol_v2": {
+      "what": "PEC 구 r=78.1 mm (부피 2.00 L 등가), 정확 Mie",
+      "level_err_db": -4.46549554827176, "rms_db": 4.810033339565018
+    },
+    "outputs/p3_validation_v2.json:controls.table.ours_phantom3_mesh_v2.level_err_db": -3.3044217649092373,
+    "outputs/das_fleet_validation.json:box_control.phantom3.controls.sphere_eqvol": {
+      "desc": "메쉬와 부피가 같은 PEC 구(반경 78.1 mm), σ=πa² 광학영역",
+      "DL_db": -2.591749953852597
+    },
+    "outputs/das_fleet_validation.json:box_control.phantom3.ours_DL_db": -1.469546268476721,
+    "내가 확인한 것": [
+      "das_fleet 의 구와 p3_validation_v2 의 sphere_vol_v2 는 **반지름이 같다**(78.1 mm, 메쉬 부피 등가). 다만 das_fleet 은 σ=πa² 광학근사, p3_validation_v2 는 정확 Mie 로 낸다.",
+      "따라서 두 결과가 갈린 원인은 잣대(Yuan θ90 ↔ Das Table III)가 아니라 **어느 구를 넣었는가** 다 — 잣대 교체는 우리와 구를 거의 같은 폭으로 옮긴다(ours−sphere 격차: Yuan 에서 +1.16, Das 에서 +1.12 dB).",
+      "레벨에서 우리를 앞선 구는 논문표기 상자(350×350×200 mm) 부피 등가 구 하나뿐이고, 그 반지름은 메쉬부피 구보다 크다.",
+      "OV-4 근거: lowfreq_anchor.thin_plate.truth_2d_mom.0.15 에서 po_minus_tm=-4.02 dB · po_minus_te=+7.53 dB · tm_minus_te=11.56 dB 이고, lowfreq_attack 은 «지배채널(TM) 기준 PO 는 얇은 특징을 과소평가한다 … 단 TE 기준으로는 부호가 반대» 라고 적는다. 동시에 같은 파일이 «B 는 부호가 맞고 크기가 부족하다(레벨을 만드는 body 의 지배채널 오차는 작다)» 고 적는다 — 두 가지를 함께 실었다."
+    ]
+  },
+
+  "judgements": [
+    {
+      "id": "OV-1",
+      "severity": "HIGH",
+      "verdict": "CONFIRMED_OVERCORRECTION → 다섯 자리 전부에 단서를 붙이고 최상급을 제거했다(주장 자체는 유지 — 레벨 축에서 구가 우리와 겨룬다는 관측은 사실이다)",
+      "reasoning": "레벨에서 우리를 앞선 구는 논문표기 상자 부피 등가 구 하나뿐이고, 자연스러운 선택인 메쉬 부피 등가 구는 Yuan 잣대(-4.47 vs 우리 -3.30)와 Das 잣대(-2.59 vs 우리 -1.47) **두 잣대 모두에서** 우리보다 나쁘다. 즉 구의 부피 선택이 결과를 보고 고를 수 있는 값이다. 그 단서가 02편 §4.6 에만 있고 그 결론을 인용한 다섯 자리에는 없었다."
+    },
+    {
+      "id": "OV-2",
+      "severity": "HIGH",
+      "verdict": "CONFIRMED_OVERCORRECTION → 되돌렸다(«레벨 축은 §4.6 이 이미 닫았다» 삭제)",
+      "reasoning": "N=1 기체·N=1 잣대·부피가 자유인 대조군 하나로 축이 닫혔다고 선언한 자리다. 같은 리포트 §4.6 마지막이 «절대 레벨은 06편 교정구가 앵커한다» 이고 05·06 편의 다음 단계가 레벨 앵커를 세우려고 존재한다 — 한 리포트 안에서 «닫혔다» 와 «06편이 닫는다» 가 두 문단 거리에 서 있었다."
+    },
+    {
+      "id": "OV-3",
+      "severity": "MEDIUM",
+      "verdict": "CONFIRMED_OVERCORRECTION(숫자는 맞고 인과가 틀렸다) → 인과를 «잣대» 에서 «어느 구» 로 바꿔 다시 썼다",
+      "reasoning": "das_fleet 이 넣은 구는 메쉬부피 등가 구(r=78.1 mm)이고, 같은 구는 Yuan 잣대에서도 -4.47 로 우리보다 나쁘다. 논문상자부피 구는 das_fleet 이 아예 돌리지 않았다. 잣대를 바꾸면 우리와 구가 거의 같은 폭으로 함께 이동한다. 옛 문장은 우리 쪽에 유리한 반대 사례를 실제보다 강하게 읽히게 했다.",
+      "extra_honesty": "두 표가 구를 다르게 모형화한다는 사실(das_fleet=광학근사 πa², §4.6=정확 Mie, 반지름은 같음)을 새 문장에 함께 적었다."
+    },
+    {
+      "id": "OV-4",
+      "severity": "MEDIUM",
+      "verdict": "PARTIALLY_CONFIRMED → 방향 철회는 유지하고, 근거 파일이 적어 둔 **비대칭**을 한 덩어리 되살렸다",
+      "reasoning": "편파 갈림 11.56 dB > 관측 낙차이므로 방향을 결과로 선언하지 않는 것은 옳다. 그러나 근거 파일은 (a) 전력을 만드는 쪽 기준이면 우리 PO 가 -4.02 dB 낮다 (b) 약한 쪽 기준이면 +7.53 dB 높다 (c) 그러므로 낮게 나와 있을 개연성이 크고 검출 산출물은 보수적 쪽으로 틀렸을 것이다 — 를 함께 적는데, 본문은 두 편파를 대칭으로 그려 근거보다 **더 모른다** 고 말했다. 되살리되, 같은 파일이 적은 «레벨을 만드는 굵은 부품에서는 이 어긋남이 작아 낙차 전부를 이 항으로 돌릴 수 없다» 도 같은 문장에 실어 반대 방향 과잉(=우리가 확실히 보수적이다)을 막았다."
+    }
+  ],
+
+  "edits": [
+    {
+      "id": "OV-4",
+      "file": "src/make_report02_target.py",
+      "site": "§4.5 마지막 문단(우리 세 밴드 · 방향 철회)",
+      "before": "이 낙차의 **방향은 결과 밖에 둔다** — 우리 PO 적분은 편파를 가르지 않는 스칼라라서, 참값이 편파에 따라 갈리는 구간에서는 한쪽 편파 기준으로 낮게 다른 쪽 기준으로 높게 나온다 ⟨lowfreq_attack : what_survives_the_attack[4]⟩. 지금 정확히 말할 수 있는 것은 …",
+      "after": "이 낙차의 **방향은 결과 밖에 둔다**(어느 쪽이 더 그럴듯한지는 아래에 적는다) — … ⭐ 다만 두 쪽의 크기는 서로 다르다 — 얇은 판 참값에서 **전력을 만드는 쪽**(두 편파 중 σ 가 11.56 dB 큰 쪽) 기준이면 우리 PO 는 -4.02 dB(음수 = 우리가 낮다), 약한 쪽 기준이면 +7.53 dB 다. 그래서 **우리 σ 가 낮게 나와 있을 개연성 쪽이 크고**, 그 방향이라면 05편 검출 산출물은 보수적인(비관적인) 쪽으로 틀린 것이다. 다만 레벨을 만드는 굵은 부품일수록 이 어긋남이 작아서, 이 항이 설명하는 몫은 관측된 낙차보다 작다 ⟨lowfreq_attack : q4_…my_crude_budget.reading⟩ — 그래서 방향은 여기까지, 개연성으로만 적는다. 지금 정확히 말할 수 있는 것은 …",
+      "why": "근거 파일의 비대칭(지배 채널 기준 과소평가)을 버린 자리를 되살리되, 같은 파일의 «크기는 부족하다» 를 함께 실어 방향 확정으로 넘어가지 않게 했다.",
+      "numbers_from": [
+        "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.0.15.tm_minus_te_db",
+        "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.0.15.po_minus_tm_db",
+        "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.0.15.po_minus_te_db"
+      ]
+    },
+    {
+      "id": "OV-3",
+      "file": "src/make_report02_target.py",
+      "site": "§4.6 마지막 문장",
+      "before": "⚠ 잣대를 Das Table III 로 바꾸면 같은 Phantom 3 에서 우리(-1.47)가 구(-2.59 dB)를 이긴다 — 두 결과는 잣대와 함께 읽는다.",
+      "after": "⭐ **레벨에서 구가 이겼는지 졌는지를 가른 것은 잣대가 아니라 어느 구를 넣었는가** 다 — 메쉬 부피로 잡은 같은 반지름의 구를 레벨까지 Das Table III 잣대로 다시 채점해도 같은 Phantom 3 에서 우리(-1.47)가 구(-2.59 dB)를 이긴다(그쪽 표는 구의 σ 를 단면적 πa² 로 굳힌 근사로, 이 표는 정확해(Mie)로 낸다 — 반지름은 같다). 즉 **두 잣대 모두에서 지는 것은 메쉬 부피로 잡은 구**이고, 레벨에서 우리를 앞선 것은 반지름을 그보다 키운 논문표기 상자부피 구 하나다. 두 결과는 «어느 부피를 골랐나» 와 함께 읽는다.",
+      "why": "인과를 잣대에서 구 선택으로 정정. 숫자(-1.47 / -2.59)는 그대로 유지했고 잣대 표기도 유지했다.",
+      "numbers_from": [
+        "outputs/das_fleet_validation.json:box_control.phantom3.ours_DL_db",
+        "outputs/das_fleet_validation.json:box_control.phantom3.controls.sphere_eqvol.DL_db"
+      ]
+    },
+    {
+      "id": "OV-1",
+      "file": "src/make_report02_target.py",
+      "site": "§4.6 «레벨 하나만 보면 …» 도입구 + 자유 매개변수 용어",
+      "before": "⚠ 그런데 **레벨 하나만 보면 부피등가 구가 우리보다 낫다** … ⭐ 다만 **그 구의 부피를 무엇으로 잡는가가 자유 매개변수**다",
+      "after": "⚠ 그런데 **레벨 하나만 보면 부피를 맞게 고른 구가 우리보다 낫다** … ⭐ 다만 **그 구의 부피를 무엇으로 잡는가가 자유 매개변수**(결과를 보고 골라 넣을 수 있는 값)다",
+      "why": "«부피등가» 는 어느 부피인지 말하지 않는다 — 조건을 도입구에 넣고, 전문용어 «자유 매개변수» 를 첫 등장에서 풀었다."
+    },
+    {
+      "id": "OV-2",
+      "file": "src/make_report02_target.py",
+      "site": "§6 다음 단계 «Phantom 3 구 대조군을 다섯 기체로 넓힌다» 행",
+      "before": "형상 모형이 각도 구조를 사는 폭이 기체마다 확정된다 — 레벨 축은 §4.6 이 이미 닫았다(구가 우리와 같은 자리에 온다)",
+      "after": "형상 모형이 각도 구조를 사는 폭이 기체마다 확정된다 — §4.6 이 낸 것은 «레벨 축에서는 형상이 판별력을 안 준다» 까지다(부피를 맞게 고른 구가 같은 자리에 온다). 레벨 축을 닫는 것은 06편 교정구다",
+      "why": "«닫았다» 선언 철회 + 어느 구인지 조건 부착. 같은 리포트 §4.6 · 05·06 편 다음 단계와의 모순 제거."
+    },
+    {
+      "id": "OV-1",
+      "file": "src/make_report02_target.py",
+      "site": "§7 방어표 마지막 행(답 칸)",
+      "before": "레벨만 보면 모양을 전혀 안 닮은 부피등가 구도 같은 자리에 오고(§4.6), 구는 방위 산포를 원리적으로 0 으로 낸다.",
+      "after": "레벨만 보면 모양을 전혀 안 닮은 구도 부피를 맞게 골라 넣으면 같은 자리에 오고(§4.6: 그 구는 논문이 적어 둔 상자 치수로 잡은 부피다. 메쉬 부피로 잡으면 두 잣대 모두에서 우리보다 나쁘다), 구는 방위 산포를 원리적으로 0 으로 낸다.",
+      "why": "논문에 그대로 나갈 칸이다 — 조건 없는 인용이 가장 위험한 자리라 단서를 본문에 넣었다."
+    },
+    {
+      "id": "OV-1",
+      "file": "src/make_report05_results.py",
+      "site": "§3.7 표적모형 표 아래 단서",
+      "before": "02 §4.6 이 보인 것처럼 부피등가 구는 σ 의 절대 레벨을 **가장 잘 맞추는** 단순 모형이면서 자세에 따른 변화를 0 으로 낸다",
+      "after": "02 §4.6 이 보인 것처럼 구는 **부피를 맞게 고르면** σ 의 절대 레벨을 맞출 수 있는 단순 모형이면서 자세에 따른 변화를 0 으로 낸다 — 레벨에서 우리 메쉬를 앞선 그 구는 논문이 적어 둔 상자 치수로 잡은 부피이고, 메쉬 부피로 잡으면 두 잣대 모두에서 우리 메쉬보다 나쁘다.",
+      "why": "최상급(«가장 잘 맞추는»)을 조건문으로 낮추고 단서를 붙였다. 이 절의 결론(«낙차는 자세 구조로 읽는다»)은 그대로 산다."
+    },
+    {
+      "id": "OV-1",
+      "file": "src/make_report01_prior.py",
+      "site": "여는 블록 결과 2",
+      "before": "절대 크기는 모양을 안 닮은 등가부피 구도 같은 자리에 오므로 측정이 앵커한다(02 §4.6).",
+      "after": "절대 크기는 모양을 안 닮은 구도 부피를 맞게 골라 넣으면 같은 자리에 오므로 측정이 앵커한다(02 §4.6 — 그 부피를 무엇으로 잡는가는 결과를 보고 고를 수 있는 값이고, 메쉬 부피로 잡은 구는 두 잣대 모두에서 우리보다 나쁘다).",
+      "why": "한 기체·한 잣대·한 반지름 결과로 선행연구 편의 헤드라인을 약화시킨 자리 — 결론(측정이 레벨을 앵커한다)은 유지하고 조건을 명시했다."
+    },
+    {
+      "id": "OV-1",
+      "file": "src/make_report06_measurement.py",
+      "site": "여는 블록 결과 4(교정 기준체)",
+      "before": "절대 레벨만 보면 모양을 안 닮은 등가부피 구도 우리 메쉬와 같은 자리에 오고(02 §4.6)",
+      "after": "절대 레벨만 보면 모양을 안 닮은 구도 부피를 맞게 골라 넣으면 우리 메쉬와 같은 자리에 오고(02 §4.6 — 그 부피는 결과를 보고 고를 수 있는 값이라, 메쉬 부피로 잡은 구는 도로 우리보다 나쁘다)",
+      "why": "교정구의 값어치 논거는 그대로 서지만, 근거 문장이 조건 없이 인용돼 있었다."
+    },
+    {
+      "id": "OV-1",
+      "file": "src/make_report06_measurement.py",
+      "site": "§2-2 교정구 절",
+      "before": "절대 레벨만 보면 모양을 안 닮은 등가부피 구도 우리 메쉬와 같은 자리에 오고(02 §4.6)",
+      "after": "절대 레벨만 보면 모양을 안 닮은 구도 부피를 맞게 골라 넣으면 우리 메쉬와 같은 자리에 오고(02 §4.6 — 그 부피는 결과를 보고 고를 수 있는 값이라, 메쉬 부피로 잡은 구는 도로 우리보다 나쁘다)",
+      "why": "여는 블록과 같은 문장의 두 번째 사본 — 한쪽만 고치면 리포트 안에서 두 말이 된다."
+    }
+  ],
+
+  "not_changed": [
+    {
+      "what": "«레벨 축에서 형상이 판별력을 안 준다» 는 관측 자체",
+      "why": "반대 방향 과잉정정을 만들지 말라는 지시대로, 낙차 관측(구가 레벨에서 우리와 겨룬다 · 구의 방위 산포는 0)은 사실이므로 유지했다. 바꾼 것은 «어느 구인가» 라는 조건과 «축이 닫혔다» 는 선언뿐이다."
+    },
+    {
+      "what": "§4.6 의 구 대조군 숫자·잣대 표기",
+      "why": "숫자와 잣대 표기는 1차 라운드가 옳게 넣었다. OC-02 가 요구한 잣대 명시는 그대로 산다."
+    }
+  ],
+
+  "residuals": [
+    "das_fleet 은 논문상자부피 구(r=145.7 mm)를 돌리지 않았다 — «Das 잣대에서 그 구는 어디에 서는가» 는 아직 빈칸이다. 다음 단계 후보: benchmark/das_fleet_*.py 에 sphere_eqvol_paperbox 행 추가.",
+    "두 표의 구 모형이 다르다(das_fleet=σ=πa² 광학근사, p3_validation_v2=정확 Mie). 반지름이 같다는 것만으로 대조가 성립하는지의 정량 대조는 이 라운드에서 계산하지 않았다(숫자 손입력 금지 규약 때문에 새 수치를 만들지 않음).",
+    "OV-4 로 되살린 «낮게 나와 있을 개연성» 은 얇은 판 참값(2D MoM, 정면입사, 단일 스트립) 기준이다. 드론 방위평균에서의 지분 가중은 lowfreq_attack 이 «두 파일이 반드시 계산했어야 할 것» 으로 남긴 빈칸이며 여기서도 계산하지 않았다."
+  ],
+
+  "collision_watch": [
+    "src/make_report02_target.py §4.5~§4.6 은 같은 시각에 다른 갈래(MS-1 낡은 수치 v1/v2 세대 구분 · rms/ε 잣대 용어풀이)가 편집 중이었다 — 편집 직전에 매번 다시 읽고 최소 편집으로 넣었고, 마지막 상태에서 py_compile 통과를 확인했다.",
+    "src/make_report06_measurement.py 여는 블록 결과 4 · §2-2 는 MS-7 갈래와 같은 자리다."
+  ],
+
+  "verification": {
+    "py_compile": "make_report01_prior.py · make_report02_target.py · make_report05_results.py · make_report06_measurement.py 전부 통과",
+    "num_paths_resolved": [
+      "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.0.15.tm_minus_te_db → 11.56 dB",
+      "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.0.15.po_minus_tm_db → -4.02 dB",
+      "outputs/lowfreq_anchor.json:thin_plate.truth_2d_mom.0.15.po_minus_te_db → +7.53 dB",
+      "outputs/das_fleet_validation.json:box_control.phantom3.ours_DL_db → -1.47",
+      "outputs/das_fleet_validation.json:box_control.phantom3.controls.sphere_eqvol.DL_db → -2.59 dB"
+    ],
+    "tone_check_on_new_prose": "grep_hedges 0건 · 부정 종결 0건(내가 쓴 문장 기준)",
+    "hand_typed_numbers": 0,
+    "unexplained_jargon_added": 0,
+    "jargon_glossed_here": ["자유 매개변수 → «결과를 보고 골라 넣을 수 있는 값»", "정확해 → «정확해(Mie)»"]
+  }
+}
