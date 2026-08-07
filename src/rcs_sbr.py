@@ -72,6 +72,17 @@ import sionna.rt as _rt  # noqa: E402,F401  (mitsuba variant 를 sionna 와 동�
 from geom import Mesh                                # noqa: E402
 from materials import gamma_po                       # noqa: E402  (Sionna 와 같은 재질 표)
 
+# ─────────────────────────────────────────────────────────────────────────── #
+#  ⭐ 각도의존 반사계수 스위치 (2026-08-07)
+# ─────────────────────────────────────────────────────────────────────────── #
+#  옛 커널은 재질마다 **수직입사 |Γ| 하나**를 모든 입사각에 썼다. 실제 프레넬은 각도에 따라
+#  커진다 — 3.5 GHz 에서 플라스틱이 75°에 +6.67 dB, 85°에 +10.22 dB (전력평균 TE·TM).
+#  ⭐ 프로펠러가 그 플라스틱이고 도는 날개는 큰 입사각을 오래 본다 → 마이크로도플러가 정면으로 영향.
+#  (선행 확인: 선배 홍지혁 PO 커널은 `fresnel_te_vec(cos_i, …)` 로 각도를 받는다.)
+#
+#  ⚠ False 로 두면 이 인자가 없던 때와 **비트 단위로 같다**. 회귀 검사를 그렇게 한다.
+ANGLE_GAMMA = bool(int(os.environ.get("SIONNA2_ANGLE_GAMMA", "1")))
+
 C0 = 299792458.0
 
 #  광선 격자 간격 = λ / DEFAULT_DIV.
@@ -138,7 +149,7 @@ def _mi_scene_from_mesh(mesh: Mesh, group_mat: dict, fc: float = 3.5e9, exclude=
     F = np.asarray(mesh.f, np.uint32)
     G = np.asarray(mesh.g)
 
-    shapes_d, gammas = {}, []
+    shapes_d, gammas, mat_keys = {}, [], []
     for gi, grp in enumerate(sorted(set(G.tolist()))):
         if grp in exclude:
             continue
@@ -155,8 +166,9 @@ def _mi_scene_from_mesh(mesh: Mesh, group_mat: dict, fc: float = 3.5e9, exclude=
         shapes_d[f"s_{gi}"] = m
         val = group_mat.get(grp, "plastic")             # 누락 그룹은 안전 기본(plastic) — KeyError 방지
         gammas.append(float(val) if not isinstance(val, str) else gamma_po(val, fc))
+        mat_keys.append(val if isinstance(val, str) else None)   # ⭐각도 모양용 재질 키
     scene = mi.load_dict({"type": "scene", **shapes_d})
-    return scene, list(scene.shapes()), np.asarray(gammas, float)
+    return scene, list(scene.shapes()), np.asarray(gammas, float), list(mat_keys)
 
 
 def _look(az_deg, el_deg):
@@ -171,6 +183,7 @@ _SCENE_CACHE: dict = {}
 
 
 def _scene_for(mesh: Mesh, group_mat: dict, key=None, fc: float = 3.5e9, exclude=()):
+    # 반환은 (scene, shapes, gammas, mat_keys) 4-튜플이다 — mat_keys 는 각도의존 Γ 용.
     """씬 재사용 — 같은 메쉬로 방위각을 스윕할 때 매번 다시 만들지 않는다.
     ⚠ gammas 는 fc 의존이므로 캐시키에 fc(MHz)·exclude 를 접어 넣는다(과거엔 stale 위험)."""
     ck = (key, round(float(fc) / 1e6), tuple(sorted(exclude))) if key is not None else None
@@ -207,7 +220,7 @@ def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
     k = 2.0 * np.pi / lam
     d = float(spacing) if spacing else lam / DEFAULT_DIV
 
-    scene, shapes, gammas = _scene_for(mesh, group_mat, cache_key, fc)
+    scene, shapes, gammas, matk = _scene_for(mesh, group_mat, cache_key, fc)
     shape_ptrs = [mi.ShapePtr(s) for s in shapes]
 
     # 유전체 셸 투과 준비 — 셸 shape 위치(=그룹 정렬순) + 셸 제거한 '내부 씬'
@@ -217,7 +230,7 @@ def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
     do_pen = penetrate and len(shell_pos) > 0
     if do_pen:
         ck_i = (cache_key, "noshell") if cache_key is not None else None
-        scene_i, shapes_i, gammas_i = _scene_for(mesh, group_mat, ck_i, fc, exclude=_shells)
+        scene_i, shapes_i, gammas_i, matk_i = _scene_for(mesh, group_mat, ck_i, fc, exclude=_shells)
         shptr_i = [mi.ShapePtr(s) for s in shapes_i]
 
     V = np.asarray(mesh.v, float)
@@ -241,11 +254,26 @@ def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
         P = np.asarray(mi.Point3f(si.p)).T
         Nn = np.asarray(mi.Vector3f(si.n)).T
         g = np.zeros(P.shape[0])
-        for sp, gm in zip(shptr, gam):
-            g = np.where(np.asarray(si.shape == sp).astype(bool), gm, g)
+        which = np.full(P.shape[0], -1, int)
+        for _i, (sp, gm) in enumerate(zip(shptr, gam)):
+            hit = np.asarray(si.shape == sp).astype(bool)
+            g = np.where(hit, gm, g)
+            which = np.where(hit, _i, which)
         sgn = np.sign(np.einsum("ij,ij->i", Nn, -D)); sgn[sgn == 0] = 1.0
         Nn = Nn * sgn[:, None]
-        lit = valid & (np.einsum("ij,ij->i", Nn, U) > 1e-6)      # 조명·수신 게이트
+        cos_i = np.einsum("ij,ij->i", Nn, U)                     # ⭐국소 입사 코사인
+        lit = valid & (cos_i > 1e-6)                             # 조명·수신 게이트
+        # ⭐ 각도의존 Γ (2026-08-07) — 수직입사 보정값은 그대로 두고 **상대 각도 모양**만 곱한다.
+        #   ANGLE_GAMMA=False 면 이 블록을 건너뛰어 예전과 비트 동일하다.
+        if False:  # (batch 경로는 아래 _mk 배선 뒤 활성화)
+            from materials import gamma_shape as _gsh
+            for _i, _key in enumerate(_mk):
+                if _key is None:                                  # float 로 넘어온 재질은 상수
+                    continue
+                sel = (which == _i) & lit
+                if sel.any():
+                    g = g.copy() if g.base is not None else g
+                    g[sel] = g[sel] * _gsh(_key, fc, cos_i[sel])
         phase = np.exp(1j * 2.0 * k * np.einsum("ij,ij->i", P - ctr, U))  # 중심감산(float32 안정·σ 불변)
         return lit, g, phase, valid, si
 
@@ -573,7 +601,7 @@ def rcs_sbr_multistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s_list,
     U_s = np.atleast_2d(np.asarray(u_s_list, float))
     U_s = U_s / np.linalg.norm(U_s, axis=1, keepdims=True)
 
-    scene, shapes, gammas = _scene_for(mesh, group_mat, cache_key, fc)
+    scene, shapes, gammas, matk = _scene_for(mesh, group_mat, cache_key, fc)
     shape_ptrs = [mi.ShapePtr(s) for s in shapes]
     group_names = sorted(set(np.asarray(mesh.g).tolist()))
     _shells = _resolve_shells(group_names, group_mat, shell_groups)
@@ -581,7 +609,7 @@ def rcs_sbr_multistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s_list,
     do_pen = penetrate and len(shell_pos) > 0
     if do_pen:
         ck_i = (cache_key, "noshell") if cache_key is not None else None
-        scene_i, shapes_i, gammas_i = _scene_for(mesh, group_mat, ck_i, fc, exclude=_shells)
+        scene_i, shapes_i, gammas_i, matk_i = _scene_for(mesh, group_mat, ck_i, fc, exclude=_shells)
         shptr_i = [mi.ShapePtr(s) for s in shapes_i]
 
     V = np.asarray(mesh.v, float)
@@ -693,7 +721,7 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
     d = float(spacing) if spacing else lam / DEFAULT_DIV
     u = np.asarray(u, float); u = u / np.linalg.norm(u)
 
-    scene, shapes, gammas = _scene_for(mesh, group_mat, cache_key, fc)
+    scene, shapes, gammas, matk = _scene_for(mesh, group_mat, cache_key, fc)
     shape_ptrs = [mi.ShapePtr(s) for s in shapes]
     group_names = sorted(set(np.asarray(mesh.g).tolist()))
     _shells = _resolve_shells(group_names, group_mat, shell_groups)
@@ -701,7 +729,7 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
     do_pen = penetrate and len(shell_pos) > 0
     if do_pen:
         ck_i = (cache_key, "noshell") if cache_key is not None else None
-        scene_i, shapes_i, gammas_i = _scene_for(mesh, group_mat, ck_i, fc, exclude=_shells)
+        scene_i, shapes_i, gammas_i, matk_i = _scene_for(mesh, group_mat, ck_i, fc, exclude=_shells)
         shptr_i = [mi.ShapePtr(s) for s in shapes_i]
 
     V = np.asarray(mesh.v, float)
@@ -718,27 +746,39 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
     ray = mi.Ray3f(o=mi.Point3f(*O.T.astype(np.float32)),
                    d=mi.Vector3f(*D.T.astype(np.float32)))
 
-    def _field(sc, shptr, gam):
+    def _field(sc, shptr, gam, mk=None):
         si = sc.ray_intersect(ray)
         valid = np.asarray(si.is_valid()).astype(bool)
         P = np.asarray(mi.Point3f(si.p)).T
         Nn = np.asarray(mi.Vector3f(si.n)).T
         g = np.zeros(P.shape[0])
-        for sp, gm in zip(shptr, gam):
-            g = np.where(np.asarray(si.shape == sp).astype(bool), gm, g)
+        which = np.full(P.shape[0], -1, int)
+        for _i, (sp, gm) in enumerate(zip(shptr, gam)):
+            hit = np.asarray(si.shape == sp).astype(bool)
+            g = np.where(hit, gm, g)
+            which = np.where(hit, _i, which)
         sgn = np.sign(Nn @ u); sgn[sgn == 0] = 1.0        # 법선을 광선 오는 쪽(û)으로 정렬
         Nn = Nn * sgn[:, None]
-        lit = valid & ((Nn @ u) > 1e-6)
+        cos_i = Nn @ u                                    # ⭐국소 입사 코사인
+        lit = valid & (cos_i > 1e-6)
+        if ANGLE_GAMMA and mk is not None:                # ⭐각도 모양을 곱한다
+            from materials import gamma_shape as _gsh
+            for _i, _key in enumerate(mk):
+                if _key is None:
+                    continue
+                sel = (which == _i) & lit
+                if sel.any():
+                    g[sel] = g[sel] * _gsh(_key, fc, cos_i[sel])
         return valid, lit, g, np.exp(1j * 2.0 * k * ((P - ctr) @ u)), si
 
-    valid, lit, g, phase, si = _field(scene, shape_ptrs, gammas)
+    valid, lit, g, phase, si = _field(scene, shape_ptrs, gammas, matk)
     E = np.sum(np.where(lit, g, 0.0) * phase)
     if do_pen:
         tau = np.zeros(valid.shape[0])
         for i in shell_pos:
             tau = np.where(np.asarray(si.shape == shape_ptrs[i]).astype(bool),
                            1.0 - gammas[i] ** 2, tau)
-        _, lit2, g2, phase2, _ = _field(scene_i, shptr_i, gammas_i)
+        _, lit2, g2, phase2, _ = _field(scene_i, shptr_i, gammas_i, matk_i)
         E = E + np.sum(np.where(lit2 & (tau > 0), tau * g2, 0.0) * phase2)
     Etot = complex(E) * d * d                                 # 면적분 [m²]
     if ptd:
@@ -771,7 +811,7 @@ def rcs_sbr(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
     k = 2.0 * np.pi / lam
     d = float(spacing) if spacing else lam / DEFAULT_DIV
 
-    scene, shapes, gammas = _mi_scene_from_mesh(mesh, group_mat)
+    scene, shapes, gammas, matk = _mi_scene_from_mesh(mesh, group_mat)
     shape_ptrs = [mi.ShapePtr(s) for s in shapes]
 
     V = np.asarray(mesh.v, float)
