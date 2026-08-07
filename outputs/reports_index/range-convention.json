@@ -1,0 +1,36 @@
+{
+ "no": "47",
+ "part": 8,
+ "title": "바이스태틱 거리 분해능은 c/B, 잡음대역은 √(B/fs) 로 고정한다",
+ "short": "바이스태틱 거리 분해능은 c/B",
+ "file": "47_range-convention.ipynb",
+ "evidence": [
+  "outputs/report03_illuminators.json",
+  "outputs/report4_fixups.json",
+  "outputs/verify_ambiguity.json"
+ ],
+ "from_cells": [
+  "report03:c11",
+  "report03:c12"
+ ],
+ "anchor": "range-convention",
+ "figures": [],
+ "md_cells": 6,
+ "provenance_tags": 20,
+ "repro": {
+  "cmd": [
+   "cd /home/yunjung/workspace/sionna2",
+   "~/.venvs/py312/bin/python src/viz_report2.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_ambiguity.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/report4_fixups.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part08_illuminators.py"
+  ],
+  "out": [
+   "outputs/report03_illuminators.json",
+   "outputs/report4_fixups.json",
+   "outputs/verify_ambiguity.json"
+  ],
+  "snippet": "# 대가 원장을 JSON 에서 그대로 읽어 찍는다 — 본문 숫자에 하드코딩이 없음을 확인한다.\nimport json\nL = json.load(open('outputs/report03_illuminators.json'))\nprint('점유 대가', f\"{L['occupancy_cost']['value_db']:+.1f} dB\")\nfor k in ('wifi', 'lte', 'nr'):\n    g1 = L['grids']['G1'][k]\n    print(f\"{k:5s} B_ref={g1['ref_bw_hz']/1e6:6.2f} MHz  dRb={g1['drb_m']:6.2f} m\")"
+ },
+ "builder": "src/build_part08_illuminators.py"
+}

@@ -248,7 +248,7 @@ def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
         per_az_bytes = rays_per_az * 160 * (2 if do_pen else 1)   # 투과 패스면 광선 2배
         chunk_az = int(max(1, min(len(az), budget_mb() * 1024 * 1024 * 0.85 / per_az_bytes)))
 
-    def _lit_g_phase(si, shptr, gam, D, U):
+    def _lit_g_phase(si, shptr, gam, D, U, _mk=None):
         """히트 → (lit 마스크, g[|Γ|], 위상, valid). 외부/내부 패스 공통."""
         valid = np.asarray(si.is_valid()).astype(bool)
         P = np.asarray(mi.Point3f(si.p)).T
@@ -265,14 +265,13 @@ def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
         lit = valid & (cos_i > 1e-6)                             # 조명·수신 게이트
         # ⭐ 각도의존 Γ (2026-08-07) — 수직입사 보정값은 그대로 두고 **상대 각도 모양**만 곱한다.
         #   ANGLE_GAMMA=False 면 이 블록을 건너뛰어 예전과 비트 동일하다.
-        if False:  # (batch 경로는 아래 _mk 배선 뒤 활성화)
+        if ANGLE_GAMMA and _mk is not None:
             from materials import gamma_shape as _gsh
             for _i, _key in enumerate(_mk):
                 if _key is None:                                  # float 로 넘어온 재질은 상수
                     continue
                 sel = (which == _i) & lit
                 if sel.any():
-                    g = g.copy() if g.base is not None else g
                     g[sel] = g[sel] * _gsh(_key, fc, cos_i[sel])
         phase = np.exp(1j * 2.0 * k * np.einsum("ij,ij->i", P - ctr, U))  # 중심감산(float32 안정·σ 불변)
         return lit, g, phase, valid, si
@@ -319,7 +318,7 @@ def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
             ray = mi.Ray3f(o=mi.Point3f(*O.T.astype(np.float32)),
                            d=mi.Vector3f(*D.T.astype(np.float32)))
             si = scene.ray_intersect(ray)
-            lit, g, phase, valid, si = _lit_g_phase(si, shape_ptrs, gammas, D, U)
+            lit, g, phase, valid, si = _lit_g_phase(si, shape_ptrs, gammas, D, U, matk)
             contrib = np.where(lit, g, 0.0) * phase
 
             # ── 유전체 셸 투과: 셸 맞은 광선만 내부 금속을 τ 가중 코히런트 가산 ──
@@ -329,7 +328,7 @@ def rcs_sbr_batch(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
                     tau = np.where(np.asarray(si.shape == shape_ptrs[i]).astype(bool),
                                    1.0 - gammas[i] ** 2, tau)
                 si2 = scene_i.ray_intersect(ray)
-                lit2, g2, phase2, _, _ = _lit_g_phase(si2, shptr_i, gammas_i, D, U)
+                lit2, g2, phase2, _, _ = _lit_g_phase(si2, shptr_i, gammas_i, D, U, matk_i)
                 contrib = contrib + np.where(lit2 & (tau > 0), tau * g2, 0.0) * phase2
 
             E = np.zeros(len(sub), complex)

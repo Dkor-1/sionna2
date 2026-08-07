@@ -1,0 +1,39 @@
+{
+ "no": "53",
+ "part": 9,
+ "title": "운용 형상에서 경험 Pfa 를 재니 명목값의 1.52~2.66 배였다",
+ "short": "운용 형상에서 경험 Pfa 를 재니 명목값의…",
+ "file": "53_cfar-calib.ipynb",
+ "evidence": [
+  "outputs/verify_cfar.json",
+  "outputs/prior_census.json"
+ ],
+ "from_cells": [
+  "report04:c9",
+  "report04:c10",
+  "report04:c11",
+  "report04:c12"
+ ],
+ "anchor": "cfar-calib",
+ "figures": [
+  "report04_f4_pfa"
+ ],
+ "md_cells": 8,
+ "provenance_tags": 49,
+ "repro": {
+  "cmd": [
+   "cd /home/yunjung/workspace/sionna2",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_cfar.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_eca.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_observability.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report04_detector.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part09_detector.py"
+  ],
+  "out": [
+   "outputs/verify_cfar.json",
+   "outputs/prior_census.json"
+  ],
+  "snippet": "# 교정표를 실제로 소비하는 지점 — src/passive_process.py:283,338\nimport os, sys\nsys.path.insert(0, os.path.join(os.getcwd(), 'src'))\nfrom passive_process import pfa_nominal_for\n\nfor std in ('wifi', 'lte', 'nr'):\n    print(f'{std:4s}  경험 1e-4 목표 → 명목 {pfa_nominal_for(std, 1e-4):.3e}')"
+ },
+ "builder": "src/build_part09_detector.py"
+}
