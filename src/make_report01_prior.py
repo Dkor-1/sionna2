@@ -139,22 +139,30 @@ NOVELTY = [
 ]
 
 #: PAPER_SPEC §4.4 — 논문에 그대로 옮기는 재현 가능한 방법 한 문단(영문).
-METHOD_PARA = (
-    "Literature adjudication. We term-swept n_pdfs=178 paper PDFs across two ISAC/Sionna archives "
-    "and a passive-radar corpus with PyMuPDF 1.28.0, extracted the full text of n_documents=21 of "
-    "them, and adjudicated each against four prongs: (P1) published in a venue of record, (P2) the "
-    "UAV carried as a 3-D surface mesh, (P3) the scattered field computed inside a Sionna-class "
-    "differentiable GPU ray engine, (P4) the computed amplitude compared against measurement or a "
-    "reference solution. Every factual line carries a verbatim quotation that the build re-locates "
-    "on the named PDF page and the build aborts when a quotation is not found there; n_quotes=46 "
-    "quotations currently re-locate. Publication status was fixed per document from the PDF "
-    "metadata subject field written by IEEE typesetting, from the page footer stamp, and from the "
-    "arXiv stamp; an acceptance sentence inside the body of an arXiv manuscript scores partial and "
-    "the document remains a preprint, which is the rule under which every count in this report was "
-    "computed. Engine facts were read first-hand from the Sionna RT technical report (document "
-    "Version 1.2, 59 pages) and from the installed Sionna 2.0.1 package, whose sionna.rt namespace "
-    "was enumerated programmatically."
-)
+#  ⭐ 문단 안의 수는 전부 `prior_work_survey.json` 에서 받는다 — 손으로 적으면 원장이 바뀔 때
+#     이 문단만 조용히 옛 수를 들고 남는다. 그래서 상수가 아니라 함수다.
+def method_para(P) -> str:
+    return (
+        f"Literature adjudication. We term-swept n_pdfs={P.get('meta.corpus_swept_pdfs'):.0f} "
+        "paper PDFs across two ISAC/Sionna archives "
+        "and a passive-radar corpus with PyMuPDF 1.28.0, extracted the full text of "
+        f"n_documents={P.get('counts.papers'):.0f} of "
+        "them, and adjudicated each against four prongs: (P1) published in a venue of record, (P2) the "
+        "UAV carried as a 3-D surface mesh, (P3) the scattered field computed inside a Sionna-class "
+        "differentiable GPU ray engine, (P4) the computed amplitude compared against measurement or a "
+        "reference solution. Every factual line carries a verbatim quotation that the build re-locates "
+        "on the named PDF page and the build aborts when a quotation is not found there; "
+        f"n_quotes={P.get('counts.quotes_verified'):.0f} "
+        "quotations currently re-locate. Publication status was fixed per document from the PDF "
+        "metadata subject field written by IEEE typesetting, from the page footer stamp, and from the "
+        "arXiv stamp; an acceptance sentence inside the body of an arXiv manuscript scores partial and "
+        "the document remains a preprint, which is the rule under which every count in this report was "
+        "computed. Engine facts were read first-hand from the Sionna RT technical report (document "
+        f"Version {P.get('engine.technical_report.version')}, "
+        f"{P.get('engine.technical_report.pages'):.0f} pages) and from the installed Sionna 2.0.1 "
+        "package, whose sionna.rt namespace "
+        "was enumerated programmatically."
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -271,7 +279,8 @@ def blocks(P, C, S, V):
             f"H8 후보 {C.num('h8.n_adjudicated', 12, '{:.0f}')}편을 네 관문으로 판정해 동시 통과는 "
             f"{C.num('h8.n_passing_all_prongs', 0, '{:.0f}')}편이고, 가장 가까운 Rzewuski 는 엔진 "
             f"관문 하나에서 걸린다(§4.1).",
-            f"절대 σ 를 dBsm 으로 찍는 편은 {P.num('counts.prints_dbsm', 6, '{:.0f}')}편이고 그중 "
+            f"절대 σ 를 dBsm(1 m² 를 0 으로 잡은 dB 눈금)으로 찍는 편은 "
+            f"{P.num('counts.prints_dbsm', 6, '{:.0f}')}편이고 그중 "
             f"광선엔진을 돌리는 것은 {P.num('counts.prints_dbsm_and_runs_engine', 1, '{:.0f}')}편, "
             f"그 표적은 차량이다(Ziganshin 학회판 Fig.6).",
             f"우리는 광선엔진으로 가림을 풀고 조명면에 부품별 재질 PO(물리광학 — 빛이 닿는 면에 "
@@ -338,7 +347,8 @@ def blocks(P, C, S, V):
     B.append(md(
         "## §1. 표적 서명이 쓰는 양, Sionna RT 가 계산하는 양", "",
         f"Sionna RT 기술보고서 {P.num('engine.technical_report.version')} 를 열어 스톡 솔버가 "
-        f"무엇을 계산하는지 1차 사료로 확인했다. 경로는 SBR 로 후보를 만들고 이미지법으로 확정하며, "
+        f"무엇을 계산하는지 1차 사료로 확인했다. 경로는 SBR(광선을 쏴서 튀기며 부딪히는 면을 "
+        f"찾는 방법)로 후보를 만들고 이미지법으로 확정하며, "
         f"면과의 상호작용은 네 가지다(p.9).", "",
         table(["스톡 솔버가 계산하는 것", "표적 서명이 쓰는 것"],
               [["정반사 — 프레넬 계수 곱 (식 127–130, p.46)", "조명면 위의 위상 코히런트 면적분"],
@@ -388,6 +398,7 @@ def blocks(P, C, S, V):
 
     B.append(md(
         "### §2.2. 게재본 — 광선엔진을 직접 돌리는 쪽", "",
+        "아래 표의 `PEC` 는 전기를 완벽히 통하는 이상적 금속이다.", "",
         table_from((SURVEY, "papers"), CENSUS_COLS, order=PUB_ENGINE)))
 
     B.append(md(
@@ -415,7 +426,8 @@ def blocks(P, C, S, V):
     B.append(md(
         "## §3. ⭐ 조달 카탈로그 — 표적 서명을 어디서 가져왔고, 그것이 무슨 주장을 사 주었나", "",
         "편마다 표적 서명의 조달처를 골랐고, 고른 조달처가 그 편이 낼 수 있는 주장의 크기를 정한다. "
-        "갈래는 7개이고, 갈래마다 게재본 수를 함께 센다.", "",
+        "갈래는 7개이고, 갈래마다 게재본 수를 함께 센다. 아래 세 표에 나오는 `CIR` 은 채널 임펄스 "
+        "응답, 즉 한 번 때린 신호가 되돌아오는 모양이다.", "",
         table_from((PAPER, "route_status"), ROUTE_COLS, key_col="갈래")))
 
     B.append(md(
@@ -436,7 +448,8 @@ def blocks(P, C, S, V):
         f"{P.num('counts.prints_dbsm', 6, '{:.0f}')}편, 그중 광선엔진을 돌리는 것은 "
         f"{P.num('counts.prints_dbsm_and_runs_engine', 1, '{:.0f}')}편이고 그 표적은 차량이다. "
         f"나머지는 무향실 측정 · FDTD · Sionna 밖 자체 솔버가 낸 값이다.", "",
-        f"CFAR 도 false alarm 도 전문에 0회인 논문이 "
+        f"CFAR(잡음을 보고 스스로 올라가 오경보율을 일정하게 붙잡는 문턱)도 false alarm 도 "
+        f"전문에 0회인 논문이 "
         f"{P.num('counts.zero_cfar_and_false_alarm', 14, '{:.0f}')}편이다. 오경보 바닥을 명목값에 "
         f"고정하는 것은 잡음·클러터 분포를 통제하는 시뮬이 하는 일이고, 그 자리가 04편이다."))
 
@@ -527,20 +540,22 @@ def blocks(P, C, S, V):
 
     B.append(md(
         "### §4.2. 우리 파이프라인이 각 축에서 한 일", "",
-        "우리는 Sionna 의 Mitsuba/OptiX 광선엔진으로 first-hit 가림을 풀고, 조명면 위에 부품별 "
+        "우리는 Sionna 의 Mitsuba/OptiX 광선엔진으로 first-hit(광선이 처음 부딪히는 면만 조명면으로 "
+        "치는 판정) 가림을 풀고, 조명면 위에 부품별 "
         "재질 PO 를 적분한다. 레벨과 주파수 의존성은 측정 적합계수에서 받는다.", "",
         table(["축", "우리가 한 일", "값", "편"],
               [["자세 패턴", "광선엔진 first-hit 가림 + 조명면 PO 적분, 부품별 재질",
-                f"해석 PO 구 대비 "
+                f"해석 PO 구(공식으로 손수 푼 PO 답) 대비 "
                 f"{S.num('summary_div16.max_abs_db_vs_po', None, '{:.3f}', 'dB')}, "
                 f"입사 {S.num('meta.n_incidence', None, '{:.0f}')}방향", "02"],
                ["절대 레벨 · 밴드 기울기",
                 "A(f)·B1(φ)·B2 분해로 Das 적합계수에 정렬 (Zhang, IEEE JSAC 2026 의 3GPP 채택 분해)",
                 f"{P.num('anchors.das.mu_a_db_per_ghz', 0.21, '{:.2f}', 'dB/GHz')}", "02"],
                ["바이스태틱", "수신기 방향 그림자 광선으로 출사쪽 가시성 판정", "β ≤ 45°", "02"],
-               ["검출", "경험 Pfa 로 CFAR 문턱 교정",
+               ["검출", "경험 Pfa(실제로 울린 오경보율)로 CFAR 문턱 교정",
                 f"GPU 몬테카를로 {V.num('meta.runtime_s', fmt='{:.0f}', unit='s')}", "04"],
-               ["파형 비교", "한 표적 · 한 검출기로 LTE · 5G · WiFi", "점유 · 대역폭 · PRF", "03 · 05"],
+               ["파형 비교", "한 표적 · 한 검출기로 LTE · 5G · WiFi",
+                "점유 · 대역폭 · PRF(펄스 반복 주파수)", "03 · 05"],
                ["조달", "σ 를 광선엔진 안에서 계산해 같은 엔진의 경로에 싣는다",
                 f"게재 확정 주입 "
                 f"{IA.num('corrected_tally.peer_reviewed_confirmed_injections', 3, '{:.0f}')}편은 σ 를 "
@@ -573,7 +588,7 @@ def blocks(P, C, S, V):
     # ── 논문 부속(방어선 · 방법 문단 · 인용) — 셀 하나 ─────────────────────
     B.append(paper_appendix(
         defence_block=defence(defence_rows(P, C, V), sec="§4.4", report="report01_prior"),
-        methods_block=methods(METHOD_PARA,
+        methods_block=methods(method_para(P),
                               tools=["PyMuPDF 1.28.0", "Sionna 2.0.1", "Python 3.12"],
                               report="report01_prior", sec="§4.5"),
         citations=citations(C), sec="§4.6"))
@@ -593,7 +608,8 @@ def blocks(P, C, S, V):
         ("Xplore 본문 검색 권한으로 ICCT · EuRAD · RadarConf 프로시딩을 같은 관문에 통과시킨다",
          "유료 프로시딩까지 포함한 H8 의 관문 통과 편수가 확정된다",
          "`prior_work/src/build_prior_survey.py:PAPERS`"),
-        ("Wypich & Zielinski(원문 미확보 · 표적은 차량 5.8 GHz)를 입수해 ECA→CFAR 선례를 재검증한다",
+        ("Wypich & Zielinski(원문 미확보 · 표적은 차량 5.8 GHz)를 입수해 "
+         "ECA(직접파를 빼내는 소거기)→CFAR 선례를 재검증한다",
          "우리 하드웨어 선례가 인용 가능한지 확정된다",
          "`prior_work/outputs/prior_work.json`"),
         ("Costa(JSTEAP, 게재)의 해석 마이크로도플러 경로를 우리 기하 위에서 재현한다",

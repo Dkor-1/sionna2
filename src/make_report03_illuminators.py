@@ -194,10 +194,12 @@ def build_ledger(path: str = J_LED) -> dict:
             ref_bw_G1_mhz=float(r1["ref_bw_mhz"]), ref_bw_G3_mhz=float(r3["ref_bw_mhz"]),
             occ_frac_G1=float(r1["occupancy_frac"]), occ_frac_G3=float(r3["occupancy_frac"]),
             n_trials=int(r1["N"]), drone=str(r1["drone"]), scen=str(r1["scen"]),
-            defn="5G 100 MHz, 상시(G1=SSB) 가 풀로드(G3=NR-PRS) 와 같은 Pd 를 내려면 "
-                 "EIRP 를 얼마나 더 써야 하나. 같은 표적·같은 기하의 차라서 σ 가 상쇄된다. "
-                 "⚠ 이 격차에는 기준신호 대역(7.2→98.28 MHz)과 점유율이 함께 들어 있다 — "
-                 "'점유만'의 값이 아니다.",
+            #  ⭐ 대역 두 수는 바로 위 `ref_bw_*_mhz` 와 같은 값이어야 한다 — 손으로 적지 않는다.
+            defn=f"5G 100 MHz, 상시(G1=SSB) 가 풀로드(G3=NR-PRS) 와 같은 Pd 를 내려면 "
+                 f"EIRP 를 얼마나 더 써야 하나. 같은 표적·같은 기하의 차라서 σ 가 상쇄된다. "
+                 f"⚠ 이 격차에는 기준신호 대역({float(r1['ref_bw_mhz']):.4g}→"
+                 f"{float(r3['ref_bw_mhz']):.4g} MHz)과 점유율이 함께 들어 있다 — "
+                 f"'점유만'의 값이 아니다.",
             precision="검출 몬테카를로의 EIRP 격자에서 읽은 값이다 — value_db 는 격자점 차이이고 "
                       "참값은 [bracket_lo_db, bracket_hi_db] 안에 있다. interp_db 는 그 구간 안의 "
                       "Pd 선형보간. 시행 n_trials 회가 각 격자점의 Pd 를 정한다.",
@@ -741,15 +743,18 @@ def build_blocks(led, caps):
     hdr = header(
         num=3,
         title="조명원: 세 파형이 무는 대가를 dB 원장으로 닫았다",
-        did="패시브가 빌려 쓰는 상시 기준신호를 WiFi · LTE · 5G NR 세 표준의 자원격자에서 "
+        did="패시브가 빌려 쓰는 상시 기준신호를 WiFi · LTE · 5G NR 세 표준의 "
+            "자원격자(시간·주파수 칸으로 나눈 표준의 자원 배치)에서 "
             "세우고, 조명원 선택이 무는 대가를 dB 원장으로 닫았다.",
         results=[
             f"원장 항목마다 분자와 분모가 같은 표적·같은 기하라서 표적 σ 가 상쇄된다 — "
             f"반송파 λ² {L('lambda2.span_db', '{:.2f}', 'dB')}(밴드 양끝) · "
             f"WiFi 패킷 듀티 {F('wifi_pilot_fraction.packet_duty_db', '{:.2f}', 'dB')} · "
-            f"CPI 규약 {F('cpi_asymmetry.span_db', '{:.2f}', 'dB')} 는 자원격자 · 반송파 · "
+            f"CPI(한 번에 모아 처리하는 관측시간) 규약 "
+            f"{F('cpi_asymmetry.span_db', '{:.2f}', 'dB')} 는 자원격자 · 반송파 · "
             f"관측시간에서 닫히는 **닫힌형**이다.",
-            f"점유 대가는 검출 몬테카를로의 EIRP 격자에서 **읽은** 값이다 — 격자점 차 "
+            f"점유 대가는 검출 몬테카를로의 EIRP(안테나 이득까지 친 실효 송신전력) 격자에서 "
+            f"**읽은** 값이다 — 격자점 차 "
             f"{L('occupancy_cost.value_db', '{:.0f}', 'dB')}, 구간 "
             f"{L('occupancy_cost.bracket_lo_db', '{:.0f}')}~"
             f"{L('occupancy_cost.bracket_hi_db', '{:.0f}', 'dB')}, Pd 선형보간 "
@@ -765,8 +770,10 @@ def build_blocks(led, caps):
             f"{L('ratios.drb_nr_over_lte', '{:.1f}')}배이고, SSB 물리 PRF "
             f"{W1('nr.prf_hz', '{:.0f}', 'Hz')} 가 무모호 속도를 "
             f"{W1('nr.vmax_ms', '{:.2f}', 'm/s')} 로 정한다.",
-            f"변조 단계는 Sionna PHY 독립 구현과 상관 {X('nr.corr', '{:.4f}')} · NMSE "
-            f"{X('nr.nmse_db', '{:.1f}', 'dB')} 로 일치하고(G3 격자, 세 파형), 모호함수는 "
+            f"변조 단계는 Sionna PHY 독립 구현과 상관 {X('nr.corr', '{:.4f}')} · "
+            f"NMSE(정규화 평균제곱오차) "
+            f"{X('nr.nmse_db', '{:.1f}', 'dB')} 로 일치하고(G3 격자, 세 파형), "
+            f"모호함수(기준신호 하나가 거리-도플러 평면에 만드는 응답)는 "
             f"검출기 거리도플러 출력과 최대 "
             f"{L('detector_af_max_err_db.value', '{:.3f}', 'dB')} 안에서 같다"
             f"({L('detector_af_max_err_db.n_cases', '{:.0f}')}개 경우, −45 dB 이상 셀).",
@@ -1064,10 +1071,12 @@ def build_blocks(led, caps):
         "",
         "### §4.1 주엽 — 닫힌형과 대조",
         "",
-        f"거리 주엽은 $c/B_{{ref}}$ 예측의 {A('wifi_G1.dR_ratio', '{:.0%}')} ~ "
+        f"거리 주엽(응답에서 가장 높이 솟은 가운데 봉우리)은 "
+        f"$c/B_{{ref}}$ 예측의 {A('wifi_G1.dR_ratio', '{:.0%}')} ~ "
         f"{A('nr_G1.dR_ratio', '{:.0%}')} 다(G1 세 파형). 도플러 주엽은 여섯 경우 모두 "
         f"$1/T_{{CPI}}$ 의 {A('wifi_G1.dF_ratio', '{:.2f}')}배 근처이고, 이 배수는 파형이 아니라 "
-        f"**slow-time Hann 창**이 정한다(`src/passive_process.py:142`).",
+        f"**slow-time Hann 창**(펄스와 펄스 사이 축에 씌워 가장자리를 깎는 창)이 "
+        f"정한다(`src/passive_process.py:142`).",
     ))
 
     blocks.append(_figblock(6, "report03_f6_af_mainlobe",
@@ -1174,7 +1183,8 @@ def build_blocks(led, caps):
              f"값은 풀캡처 기준신호를 가진 체제의 값이고, 상시 SSB 체제의 값이 "
              f"{W1('nr.dR_m', '{:.1f}', 'm')} 다 "
              f"⟨outputs/report2_waveform_rcs.json : reference.G1.nr.chan_dR_m⟩."),
-            ("점유 대가는 같은 표적·같은 기하에서 $P_d$ 0.5 를 넘기는 EIRP 차 "
+            (f"점유 대가는 같은 표적·같은 기하에서 $P_d$ "
+             f"{L('occupancy_cost.pd_threshold', '{:.1f}')} 를 넘기는 EIRP 차 "
              f"{L('occupancy_cost.value_db', '{:.0f}', 'dB')} 다.",
              "그림 4 · `outputs/report03_illuminators.json:occupancy_cost`",
              "EIRP 격자에서 읽은 값이라 유효숫자가 없다.",
@@ -1215,7 +1225,8 @@ def build_blocks(led, caps):
              f"{A('nr_G1.physical.fd_aliased_phys_hz', '{:.1f}', 'Hz')} 로 접힌다. CPI 가 정하는 "
              f"것은 도플러 가드 폭이고 그 스윕은 05편이 싣는다 "
              f"⟨outputs/verify_ambiguity.json : waveforms.nr_G1.physical.fd_aliased_phys_hz⟩."),
-            ("변조 단계는 Sionna PHY 독립 구현과 상관 1.0000 · NMSE −135 dB 로 일치한다.",
+            (f"변조 단계는 Sionna PHY 독립 구현과 상관 {X('nr.corr', '{:.4f}')} · NMSE "
+             f"{X('nr.nmse_db', '{:.1f}', 'dB')} 로 일치한다.",
              f"§3.1 표 · 그림 5 · `outputs/report2_waveform_rcs.json:crosscheck`",
              "두 구현이 같은 오해를 공유하면 대조가 통과해도 의미가 없다.",
              f"심볼별 CP 배열 규칙을 뺀 대조군에서 LTE·5G 상관이 "

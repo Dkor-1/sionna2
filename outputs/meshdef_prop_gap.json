@@ -949,7 +949,16 @@
     "r50mm": 18.2
    },
    "verdict": "블레이드 중립면(허브 근처 r 20~30 mm) = z **+15.2~+15.7 mm**. CAD 의 최상단 회전면 +15.31 mm 와 **0.4 mm 안에서 일치**한다 — 서로 독립인 두 출처(STEP · 제품 렌더)가 같은 답을 낸다.",
-   "reading_error_mm": 1.5
+   "reading_error_mm": 1.5,
+   "view_correction_2026_08_07": {
+    "verdict_ko": "이 절이 쓴 p01 은 **좌측면이 아니라 후면 3/4** 다(게이트 ①, outputs/meshgate_fisheye.json). 실루엣 IoU 로 p05·matrice 4E_2 와 같은 시선임이 확인됐고(0.991/0.989) 화면에 짐벌이 없다.",
+    "what_survives_ko": "세로(z) 값과 세로 축척 앵커(캔 높이 12.22 mm → 6.3011 px/mm)는 산다 — 방위로 회전해도 안 변한다. 결론(블레이드 중립면 +15.2~15.7 ↔ CAD +15.31)도 안 뒤집힌다.",
+    "what_wobbles_ko": [
+     "가까운 벨이 **뒤 모터**인데 CAD 비교 대상은 앞 로터 스택이었다(benchmark/meshdef_attack_verdict.py A10 지적).",
+     "blade_neutral_plane_z_mm 의 r20…r50 라벨은 **화면 가로 거리**라 후면 3/4 에서는 그만큼 단축돼 있다. 블레이드면이 r 과 함께 올라가므로 z 는 과대평가 방향이다 — 「0.4 mm 일치」는 낙관적으로 읽어야 한다."
+    ],
+    "not_remeasured_ko": "재측정은 게이트 ① 범위 밖이었고 이 적용 라운드도 하지 않았다. 이 절의 숫자를 인용할 때 위 두 줄을 함께 적을 것."
+   }
   },
   "phantom3_independent_check": {
    "source": "src/drones.py:696-699 (직전 라운드가 남긴 선언) + drone_cad.py:334-336",

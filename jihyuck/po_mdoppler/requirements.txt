@@ -1,0 +1,26 @@
+# po_mdoppler runtime dependencies (versions verified working: sionna_env, py3.11)
+# install:  pip install -r requirements.txt
+#
+# Core simulation
+numpy==1.26.4
+pandas==3.0.0
+scipy==1.17.0
+plyfile==1.1.3
+
+# Occlusion (Embree ray-casting). embreex is the pip-installable Embree backend
+# that trimesh.ray.ray_pyembree uses — NO separate system Embree / old pyembree needed.
+trimesh==4.11.5
+embreex==2.17.7.post7
+rtree==1.4.1
+
+# Plotting + example notebooks
+matplotlib==3.10.8
+jupyterlab==4.5.6
+ipykernel==7.2.0
+nbformat==5.10.4
+nbconvert==7.17.1
+
+# NOTE: these are the exact tested pins. If a version is unavailable on the
+# target machine, the code is not version-sensitive — relaxing to a nearby
+# release (e.g. numpy>=1.24, trimesh>=4.0) generally works. embreex is the one
+# to keep, since occlusion depends on it.

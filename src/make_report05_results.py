@@ -94,6 +94,7 @@ J_SV = "outputs/s2r_assets_verify.json"       # σ 격자 재생성 1:1 대조(�
 #: ⭐ 2026-08-04 라운드 — σ 불확도의 **출처**를 밝히는 두 원장(인용만 한다).
 J_LFA = "outputs/lowfreq_attack.json"         # PO 유효 하한과 그 파급 · 금칙(§3.2 · §3.3)
 J_MFX = "outputs/meshfix_applied.json"        # 형상 정정이 σ 격자를 몇 세대 낡게 했나(방법 표)
+J_MFX_ATK = "outputs/meshfix_attack.json"     # 그 정정이 어느 산출물을 낡게 했나(앵커 사슬 단서)
 
 FIGDIR = "outputs/figures"
 MODES = ("W1", "L1", "G1")
@@ -450,6 +451,16 @@ def paper_blocks(D: dict):
     SS, CG = from_json(J_SS), from_json(J_CG)
     DV, RX = from_json(J_DV), from_json(J_RX)
 
+    #: 방어선 표가 쓰는 파생 두 개 — 값은 전부 JSON 에서 읽어 계산한다(손입력 0).
+    #  ① 공통모드 봉투가 순위를 지키는 칸 수 = 기체 수 × 밴드 수
+    n_cm_cells = len(SS.get("common_mode.by_drone")) * len(MODES)
+    #  ② R90 경로가 실제로 적용한 듀티 항 — 세 밴드가 같은 값이라는 것까지 확인하고 쓴다
+    duty_applied = [fetch((J_FS, CELL.format(d="mavic4pro", m=m) + ".budget_terms_db.duty"))
+                    for m in MODES]
+    assert len(set(duty_applied)) == 1, f"듀티 항이 밴드마다 다르다: {duty_applied}"
+    SRC_DUTY = (f"{J_FS} : " + CELL.format(d="mavic4pro", m="*")
+                + ".budget_terms_db.duty")
+
     pmap = paper_map(
         "V. Results",
         claim="같은 표적·같은 기하·하나의 교정 문턱에서 세 조명원을 비교하면, 자세평균 σ 와 "
@@ -461,12 +472,16 @@ def paper_blocks(D: dict):
                   "outputs/cpi_guard_sweep.json:equal_cpi_penalty[0].ratio_G1_over_W1"],
         qualifications=[
             "순위는 **자세평균 + 기울기 앵커** 설정의 것이다 — 단일 자세에서는 다섯 기체가 "
-            "3가지 순위를 낸다 ⟨outputs/sigma_sensitivity.json : ranking_consensus⟩",
+            + SS.num("ranking_consensus.single_aspect_n_distinct", None, "{:.0f}")
+            + " 가지 순위를 낸다",
             "밴드별 차분 σ 오차가 "
             + SS.num("configurations.by_config.aspect_avg_anchored.worst_flip_span_db", None,
                      "{:.2f}", "dB")
             + " 를 넘으면 순위가 바뀐다 — 기체별 문턱을 §3.4 표에 싣는다",
-            "듀티 축을 켠 설정은 순위 합의가 2가지로 갈린다 — 그 크기를 §2.2 에 적는다",
+            "듀티 축을 켠 설정은 순위 합의가 "
+            + SS.num("configurations.by_config.aspect_avg_anchored_duty.n_distinct_orders",
+                     None, "{:.0f}")
+            + " 가지로 갈린다 — 그 크기를 §2.2 에 적는다",
             "바이스태틱은 β ≤ 45° 에서 성립한다"],
         report="report05_results")
 
@@ -489,7 +504,9 @@ def paper_blocks(D: dict):
         "and the threshold measured for WiFi is shared by all three solves. Cross "
         "sections come from a per-part material physical-optics kernel with ray-traced "
         "occlusion evaluated on an aspect grid; the frequency slope of the azimuth-mean "
-        "level is anchored to the measured 0.210 dB/GHz of Das et al. while the aspect "
+        "level is anchored to the measured "
+        f"{fetch((J_AN, 'sources.anchors.das_phantom3_mono.a')):.3f} dB/GHz of Das et al. "
+        "while the aspect "
         "pattern and the three-band mean level are computed. Bistatic results hold for "
         "beta <= 45 deg. Doppler blindness is evaluated over "
         f"{fetch((J_CG, 'meta.psi_n_fine')):.0f} headings at "
@@ -505,15 +522,21 @@ def paper_blocks(D: dict):
          "그림 1 · `outputs/report05_derived.json:gap_1km.by_pair`",
          "점유·듀티 대가를 뺀 비교이므로 SSB 의 낮은 점유가 5G 에 유리하게 작용했다",
          "이 사슬은 기준신호가 CPI 전체를 채운다는 규약에서 풀려 듀티 항이 세 밴드 모두 "
-         "0 dB 다. 그 항을 켜면 5G 가 LTE 대비 16.02 dB 를 더 치르고, 그 설정의 순위까지 "
-         "§3.3 표가 든다 ⟨outputs/sigma_sensitivity.json : unapplied_duty_axis⟩"),
+         + dnum(duty_applied[0], "{:.0f}", "dB", SRC_DUTY, "세 밴드 같은 값")
+         + " 다. 그 항을 켜면 5G 가 LTE 대비 "
+         + SS.num("unapplied_duty_axis.pair_gaps_db.L1-G1", None, "{:.2f}", "dB")
+         + " 를 더 치르고, 그 설정의 순위까지 §3.3 표가 든다 "
+         "⟨outputs/sigma_sensitivity.json : unapplied_duty_axis⟩"),
         ("자세평균 σ 와 측정 기울기 위에서 다섯 기체가 하나의 파형 순위에 합의한다.",
          "그림 4 · `outputs/sigma_sensitivity.json:aspect_averaged.all_drones_agree`",
          "단일 자세 결과에서는 기체마다 순위가 달랐다 — 어느 쪽이 결론인가",
-         "결론은 자세평균 설정의 순위다. 단일 자세는 3가지 순위를 내고, 그 차이를 만드는 것이 "
-         "자세별 로브 구조라는 것을 같은 표가 보여준다 "
-         "⟨outputs/sigma_sensitivity.json : ranking_consensus.single_aspect_n_distinct⟩"),
-        ("공통모드 σ 오차 ±10 dB 에서 순위는 15칸 전부 유지되고 절대거리만 dB/4 로 움직인다.",
+         "결론은 자세평균 설정의 순위다. 단일 자세는 "
+         + SS.num("ranking_consensus.single_aspect_n_distinct", None, "{:.0f}")
+         + " 가지 순위를 내고, 그 차이를 만드는 것이 "
+         "자세별 로브 구조라는 것을 같은 표가 보여준다"),
+        ("공통모드 σ 오차 ±10 dB 에서 순위는 "
+         + dnum(n_cm_cells, "{:.0f}", "", f"{J_SS} : common_mode.by_drone", "기체 × 밴드")
+         + " 칸 전부 유지되고 절대거리만 dB/4 로 움직인다.",
          "그림 5(a) · `outputs/sigma_sensitivity.json:common_mode.order_invariant_everywhere`",
          "σ 절대레벨이 측정으로 검증되지 않았는데 거리를 인용할 수 있나",
          "공통으로 움직이는 부분은 순위에서 상쇄되고 거리만 옮긴다 — ±10 dB 에서 "
@@ -526,47 +549,94 @@ def paper_blocks(D: dict):
          "po_validity_blast_radius_the_real_one⟩. 그 밴드 간 차이의 크기를 재는 것이 06편 "
          "캠페인 §4-1 이고, 그때까지 km 표는 순위용으로만 읽는다"),
         ("밴드별 차분 σ 오차가 순위를 뒤집는 문턱은 기체 속성이고 자세평균 앵커 설정에서 "
-         "3.72 dB 다.",
+         + SS.num("configurations.by_config.aspect_avg_anchored.worst_flip_span_db", None,
+                  "{:.2f}", "dB")
+         + " 다.",
          "그림 5(b) · `outputs/sigma_sensitivity.json:configurations.by_config."
          "aspect_avg_anchored.worst_flip_span_db`",
-         "현실 차분오차 봉투 5.01 dB 가 그 문턱보다 크다",
-         "그래서 순위를 기체별 문턱과 함께 싣는다 — 다섯 중 둘이 그 봉투 안에 들어가고, "
+         "현실 차분오차 봉투 "
+         + SS.num("differential.realistic_span_db", None, "{:.2f}", "dB")
+         + " 가 그 문턱보다 크다",
+         "그래서 순위를 기체별 문턱과 함께 싣는다 — 그 봉투 안에 들어가는 것은 다섯 중 "
+         + SS.num("configurations.by_config.aspect_avg_anchored."
+                  "n_drones_flipping_inside_realistic", None, "{:.0f}")
+         + " 기체이고, "
          "몬테카를로 순위보존 확률이 같은 순서를 준다 "
-         "⟨outputs/sigma_sensitivity.json : monte_carlo_per_band_error⟩"),
+         "⟨outputs/sigma_sensitivity.json : monte_carlo_per_band_error⟩. ⚠ 이 문턱들은 "
+         + num(None, (J_MFX, "_meta.date"))
+         + " 형상 정정 전 메쉬 위의 값이다 — 다섯 기체 중 Matrice 4E 가 그 정정을 받았다"
+         "(방법 «밴드 비교» · 02 §5)"),
         ("5G 의 도플러 가드 대가는 CPI 의 함수이고 전 헤딩 블라인드는 M ≤ 2g 에서 성립한다.",
          "그림 6 · `outputs/cpi_guard_sweep.json:structural.formula`",
-         "CPI 0.1 s 한 점에서 커버리지 0 이라고 적은 결과는 규약이 만든 인공물이다",
-         "그 점은 2.5빈 선언가드에서 성립하고, 검출기가 적용하는 1.5빈 규약에서는 같은 CPI "
-         "에서 0.636, CPI 0.2 s 에서 0.303 이다 — WiFi 대비 배수 12.05 는 CPI 전 구간에 "
-         "남으므로 스윕으로 싣는다 ⟨outputs/cpi_guard_sweep.json : equal_cpi_penalty⟩"),
-        ("5G 가 WiFi 수준의 헤딩 커버리지에 도달하려면 CPI 1.0 s 가 필요하고, 그 CPI 는 "
-         "표적 속도 20 m/s 까지 코히어런스 한계 안에 있다.",
+         "CPI " + CG.num("equal_cpi_penalty[0].T_cpi_s", None, "{:.1f}", "s")
+         + " 한 점에서 커버리지 0 이라고 적은 결과는 규약이 만든 인공물이다",
+         "그 점은 " + CG.num("structural.guard_bins_declared", None, "{:.1f}")
+         + " 빈 선언가드에서 CPI "
+         + CG.num("structural.by_mode.G1.T_max_total_blind_declared_s", None, "{:.2f}", "s")
+         + " 이하일 때 성립하고, 검출기가 적용하는 "
+         + CG.num("structural.guard_bins_hard", None, "{:.1f}")
+         + " 빈 규약에서는 같은 CPI 에서 가려지는 헤딩 비율이 "
+         + CG.num("verdict.artifact.blind_hard_same_cpi", None, "{:.3f}")
+         + ", CPI " + CG.num("equal_cpi_penalty[1].T_cpi_s", None, "{:.1f}", "s")
+         + " 에서 " + CG.num("verdict.artifact.blind_hard_at_200ms", None, "{:.3f}")
+         + " 다 — WiFi 대비 배수 "
+         + CG.num("equal_cpi_penalty[0].ratio_G1_over_W1", None, "{:.2f}")
+         + " 는 CPI 전 구간에 남으므로 스윕으로 싣는다"),
+        ("5G 가 WiFi 수준의 헤딩 커버리지에 도달하려면 CPI "
+         + CG.num("cost_of_long_cpi.required_cpi_s.to_WiFi_parity", None, "{:.1f}", "s")
+         + " 가 필요하고, 그 CPI 는 표적 속도 "
+         + CG.num("cost_of_long_cpi.by_speed[6].speed_ms", None, "{:.0f}", "m/s")
+         + " 까지 코히어런스 한계 안에 있다.",
          "그림 6(b) · `outputs/cpi_guard_sweep.json:cost_of_long_cpi`",
          "CPI 를 늘리면 되는 문제라면 구조적 대가가 아니다",
-         "대가는 재방문 시간이다 — LTE 패리티에 3.75배, WiFi 패리티에 10배의 경과시간을 "
-         "치르고, 25 m/s 이상에서 WiFi 패리티는 코히어런스 한계를 넘어선다 "
-         "⟨outputs/cpi_guard_sweep.json : cost_of_long_cpi.by_speed⟩"),
-        ("수신소자 이득은 열잡음 코히어런트 상한 10log₁₀N 위에 −0.11 ~ +0.47 dB 로 앉는다.",
+         "대가는 재방문 시간이다 — LTE 패리티에 "
+         + CG.num("cost_of_long_cpi.at_required_cpi.v5_LTE_parity.elapsed_vs_headline",
+                  None, "{:.2f}")
+         + " 배, WiFi 패리티에 "
+         + CG.num("cost_of_long_cpi.at_required_cpi.v5_WiFi_parity.elapsed_vs_headline",
+                  None, "{:.0f}")
+         + " 배의 경과시간을 치르고, "
+         + CG.num("cost_of_long_cpi.by_speed[7].speed_ms", None, "{:.0f}", "m/s")
+         + " 이상에서 WiFi 패리티는 코히어런스 한계를 넘어선다"),
+        ("수신소자 이득은 열잡음 코히어런트 상한 10log₁₀N 위에 "
+         + DV.num("rx_gain.excess_min_db", None, "{:+.2f}")
+         + " ~ " + DV.num("rx_gain.excess_max_db", None, "{:+.2f}", "dB")
+         + " 로 앉는다.",
          "그림 7 · `outputs/report05_derived.json:rx_gain.excess_max_db`",
          "상한을 넘는 이득은 계산 오류다",
          "그 상한은 열잡음만 상대할 때의 값이고, ECA 잔차가 N 에 무관하게 고정이라 √N 이 "
          "잔차 대비로도 표적을 올린다(`src/experiment_detection.py:284`). 최대 초과분은 "
-         "SNR50 몬테카를로 표준편차의 11.0배이고 로지스틱 재적합에서도 같은 부호다"),
-        ("상시 기준신호만 쓰는 제약의 대가는 5G 에서 3.82 dB 이고 거리분해능 41.64 m 대 "
-         "3.05 m 다.",
+         "SNR50 몬테카를로 표준편차의 "
+         + DV.num("rx_gain.excess_in_sigma", None, "{:.1f}")
+         + " 배이고 로지스틱 재적합에서도 같은 부호다"),
+        ("상시 기준신호만 쓰는 제약의 대가는 5G 에서 "
+         + DV.num("always_on_cost.G.cost_db", None, "{:.2f}", "dB")
+         + " 이고 거리분해능 "
+         + DV.num("always_on_cost.G.dr_g1_m", None, "{:.2f}", "m") + " 대 "
+         + DV.num("always_on_cost.G.dr_g3_m", None, "{:.2f}", "m") + " 다.",
          "그림 2(b) · `outputs/report05_derived.json:always_on_cost.G`",
          "그 벤치는 단일 반송파·단일 σ 라 자유공간 결과와 축이 다르다",
          "그래서 그 절은 파형 축 하나의 상대 비교로 읽는다 — 표적·기하·σ 를 한 값으로 묶은 "
          "배치를 §3.6 이 밝힌다 ⟨outputs/report05_derived.json : bench⟩"),
-        ("바이스태틱 결과는 β ≤ 45° 에서 성립하고 헤드라인 거리의 β 는 3° 대다.",
+        ("바이스태틱 결과는 β ≤ 45° 에서 성립하고 헤드라인 거리의 β 는 "
+         + dnum(D["beta_at_R"], "{:.2f}", "°", f"{J_FS} : solve.W1.beta_deg", "R90 에서 보간")
+         + " 다.",
          "표 · `outputs/sbr_defect_fixes.json:d2_reciprocity_drone.rows`",
          "β 창 밖의 자세는 어떻게 되나",
-         "β 60~90° 에서 상반성 rms 잔차가 창 안의 값보다 크므로 그 창을 방법 조건으로 "
+         "창 밖(β > 45°) 행에서 상반성 rms 잔차가 최대 "
+         + dnum(D["recip_out"], "{:.2f}", "dB", f"{J_DF} : d2_reciprocity_drone.rows",
+                "β>45 행 최대")
+         + " 로 창 안의 "
+         + dnum(D["recip_in"], "{:.2f}", "dB", f"{J_DF} : d2_reciprocity_drone.rows",
+                "β≤45 행 최대")
+         + " 보다 크므로 그 창을 방법 조건으로 "
          "명시하고, 창을 넓히는 일을 다음 단계 표에 둔다"),
     ], report="report05_results")
 
     cites = [
-        cite_ref("das", note="Table III · 0.210 dB/GHz 기울기 앵커 (§3.2)"),
+        cite_ref("das", note="Table III · "
+                 f"{fetch((J_AN, 'sources.anchors.das_phantom3_mono.a')):.3f} dB/GHz "
+                 "기울기 앵커 (§3.2)"),
         cite("3GPP", "Evolved Universal Terrestrial Radio Access (E-UTRA); "
                      "Physical channels and modulation", "3GPP TS 36.211",
              status="standard",
@@ -593,6 +663,7 @@ def build_blocks(D: dict):
     TM, TA, PH, SV = (from_json(J_TM), from_json(J_TA),
                       from_json(J_PH), from_json(J_SV))
     LFA, MFX = from_json(J_LFA), from_json(J_MFX)
+    from_json(J_MFX_ATK)              # 형상 정정 단서가 경로로 가리킨다 — 존재 검사
 
     #: φ 스윕에서 이 편이 읽는 가지 — 경로가 길어 한 번만 적는다
     PHC = "verdict.claims[2].range_over_phi"
@@ -630,7 +701,9 @@ def build_blocks(D: dict):
             f"{SS.num('common_mode.abs_range_shift_at_10db_pct.minus10', None, '{:+.1f}', '%')} ~ "
             f"{SS.num('common_mode.abs_range_shift_at_10db_pct.plus10', None, '{:+.1f}', '%')} 움직인다. "
             f"밴드별 차분 오차의 뒤집힘 문턱은 "
-            f"{SS.num('configurations.by_config.aspect_avg_anchored.worst_flip_span_db', None, '{:.2f}', 'dB')} 다.",
+            f"{SS.num('configurations.by_config.aspect_avg_anchored.worst_flip_span_db', None, '{:.2f}', 'dB')} 다. "
+            f"⚠ 위 세 줄이 든 σ 민감도와 §3.2·§3.3 의 앵커 σ 는 {MFX.num('_meta.date', None)} 형상 정정 "
+            f"전 메쉬 위에 있다 — 다섯 기체 중 Matrice 4E 가 그 정정을 받았다(방법 «밴드 비교»).",
             f"5G SSB 의 눈먼 헤딩 비율은 CPI "
             f"{CG.num('equal_cpi_penalty[0].T_cpi_s', None, '{:.1f}', 's')} 에서 "
             f"{CG.num('verdict.artifact.blind_hard_same_cpi', None, '{:.3f}')}, CPI "
@@ -649,16 +722,27 @@ def build_blocks(D: dict):
         ],
         method=[
             ("R90 정의",
-             "공칭 헤딩 ψ=0 의 σ 로 SNR(d) 를 만들고, 유효 게이트(β≤90°·원거리장)를 통과한 칸에서 "
+             "공칭 헤딩 ψ=0 의 σ 로 SNR(d) 를 만들고, 유효 게이트"
+             "(β≤90°·원거리장 — 파면이 평면으로 보일 만큼 먼 거리)를 통과한 칸에서 "
              "교정 문턱과의 **최외곽 하강교차**를 찾는다 — 헤딩 축은 §3.5 의 CPI 스윕이 든다"),
+            #: ⭐ 이 다섯 수는 영문 방법 문단이 쓰는 것과 같은 원장 자리에서 받는다 — 손입력 0.
             ("검출거리",
-             "선언 예산(EIRP 63 dBm · 수신이득 10 dBi · NF 5 dB) · 베이스라인 500 m · "
-             "CPI 0.1 s 아래에서 푼다"),
+             "선언 예산(EIRP "
+             + FS.num("meta.link_budget.eirp_dbm", None, "{:.0f}", "dBm") + " · 수신이득 "
+             + FS.num("meta.link_budget.rx_gain_dbi", None, "{:.0f}", "dBi") + " · NF "
+             + FS.num("meta.link_budget.noise_figure_db", None, "{:.0f}", "dB")
+             + " — NF 는 수신기가 스스로 더하는 잡음의 양) · 베이스라인 "
+             + FS.num("solve.W1.L_m", None, "{:.0f}", "m") + " · CPI "
+             + FS.num("solve.W1.T_cpi_s", None, "{:.1f}", "s") + " 아래에서 푼다"),
             ("밴드 비교",
              "σ = A(f)·B₁(φ,θ) 에서 **A(f) 의 기울기만** Das 측정(IEEE WCL 2026 15:3731)에 맞춘 "
              "원장 위에서 한다. 절대 레벨은 우리 PO 출력이고, 생산 모드 `slope_only` 의 세 밴드 평균 "
              "레벨이동은 " + DV.num("anchor_scope.level_shift_abs_max_db", None, "{:.2f}", "dB")
-             + " 다(02 §4)"),
+             + f" 다(02 §4). ⚠ **이 앵커 원장(`{J_AN}`)과 순위 민감도(`{J_SS}`)도 "
+             + MFX.num("_meta.date", None)
+             + " 형상 정정 전 메쉬 위에 서 있다** — 다섯 기체 중 Matrice 4E 가 그 정정을 받았고, "
+             "§2 의 σ 항 · §3.2 의 Δσ 표 · §3.3 의 R90 표 · §3.4 의 뒤집힘 문턱이 같은 사슬 "
+             f"위에 있다(02 §4.2 · §5) ⟨{J_MFX_ATK} : Q6_invalidated_outputs.critical[3]⟩"),
             ("σ 격자 출처",
              "R90 은 " + FS.num("meta.generated", None)
              + " 산출이고 그때의 `outputs/report13_sigma_grid.json` 을 읽었다"
@@ -803,7 +887,8 @@ def build_blocks(D: dict):
         f"(생성 {PH.num('meta.sigma_file_generated', None)}, 앙각 0~−20°)에서 조회의 "
         f"{PH.num('geometry.rows[18].frac_el_outside_sigma_grid', None, '{:.1%}')}(φ=90°) ~ "
         f"{PH.num('geometry.rows[0].frac_el_outside_sigma_grid', None, '{:.1%}')}(φ=0°) 가 "
-        f"경계 행으로 클램프됐다. 근거리 SNR 천장이 그 조회 위에 서므로, 확장된 앙각 격자 위에서 "
+        f"경계 행으로 클램프됐다 — 격자 밖 값을 가장자리 값으로 눌러 붙였다는 뜻이다. "
+        f"근거리 SNR 천장이 그 조회 위에 서므로, 확장된 앙각 격자 위에서 "
         f"다시 푸는 일을 다음 단계에 건다.",
     ))
 
@@ -813,7 +898,7 @@ def build_blocks(D: dict):
         "",
         f"d = 1 km · Mavic 4 Pro · 수신소자 1개. 점유 규약은 "
         f"{FS.num('meta.link_budget.power_normalization.canonical_occupancy', None)}"
-        "(같은 RE 당 전력)이고, σ 항은 기울기 앵커의 밴드별 Δσ 를 더한 값이다. **세 밴드에서 "
+        "(자원요소 RE 하나당 같은 전력)이고, σ 항은 기울기 앵커의 밴드별 Δσ 를 더한 값이다. **세 밴드에서 "
         "값이 다른 항은 λ² 와 σ 둘뿐이다** — 나머지는 세 밴드가 같은 값을 쓴다.",
         "",
         table(["항", "WiFi", "LTE", "5G"],
@@ -826,7 +911,8 @@ def build_blocks(D: dict):
     ))
 
     blocks.append(md(
-        "밴드 쌍의 격차를 그 두 항으로 쪼갠다. λ² 는 정의로 정확하고, σ 는 자세 로브 구조가 만든다.",
+        "밴드 쌍의 격차를 그 두 항으로 쪼갠다. λ² 는 정의로 정확하고, σ 는 자세 로브 구조"
+        "(방위를 돌릴 때 σ 가 솟는 봉우리와 꺼지는 골)가 만든다.",
         "",
         table(["쌍", "출력 SNR 차", "λ² 항", "σ 항"],
               [[p,
@@ -966,7 +1052,12 @@ def build_blocks(D: dict):
         + "한쪽 편파를 기준으로 보면 낮고 다른 쪽을 기준으로 보면 높다. 두 쪽 중 어느 쪽이 더 "
         + "그럴듯한지는 02 §4.5 가 두 편파의 크기 차이로 적는다 — 이 편은 그 개연성을 결과에 "
         + "넣지 않고 순위만 든다. 이 사실은 원장에 "
-        + "「VV 측정 대 무편파 커널」 로 기록되어 있다.",
+        + "「VV 측정 대 무편파 커널」 로 기록되어 있다. "
+        + f"⚠ 이 절이 든 앵커 수(정규화 잔차 · 아래 Δσ 표)와 §3.3 의 R90 표는 `{J_AN}` 에서 "
+        + "오고, 그 사슬은 "
+        + MFX.num("_meta.date", None)
+        + " 형상 정정 전 메쉬 위에 서 있다 — 다섯 기체 중 Matrice 4E 가 그 정정을 받았다"
+        + f"(02 §4.2 · §5) ⟨{J_MFX_ATK} : Q6_invalidated_outputs.critical[3]⟩.",
         "<!--cell-->",
         table_from(f"{J_AN}:drones",
                    [("기체", None),
@@ -994,7 +1085,7 @@ def build_blocks(D: dict):
         "### §3.3 기울기 앵커 σ 위의 R90",
         "",
         f"Δσ 를 R90 근방 국소 지수 "
-        f"{dnum(D['n_local'], '{:.2f}', '', f'{J_FS} : ranges.*.n_local_at_R90', '15칸 평균')}"
+        f"{dnum(D['n_local'], '{:.2f}', '', f'{J_FS} : ' + CELL.format(d='*', m='*') + '.n_local_at_R90', '15칸 평균')}"
         " 로 옮긴다 — `d` 축에서 국소적으로 $R \\propto \\sigma^{1/n}$ 이다"
         "(`src/freespace_scene.py:56`). 아래 표의 R90 은 전부 공칭 헤딩 ψ=0 의 수이고, "
         "**§3.4 의 민감도 봉투와 함께 읽는다** — 공통모드 σ 오차 ±10 dB 가 이 열 전체를 "
@@ -1092,7 +1183,13 @@ def build_blocks(D: dict):
                f"{J_SS} : staleness_and_mesh_update.by_drone", "5기체 max_range_change_pct 최대")
         + f" 움직이고 순위쌍 "
         f"{SS.num('staleness_and_mesh_update.n_orders_changed', None, '{:.0f}')}개가 바뀌었다 "
-        f"— 통제되지 않은 σ 변화의 파급을 관측한 값이다.",
+        f"— 통제되지 않은 σ 변화의 파급을 관측한 값이다. ⚠ 그리고 위 표의 뒤집힘 문턱은 "
+        f"{MFX.num('_meta.date', None)} 형상 정정 전 메쉬 위에 있다 — 하한 "
+        f"{SS.num('differential.smallest_flip_span_db_overall', None, '{:.2f}', 'dB')} 를 내는 "
+        f"행이 그 정정을 받은 Matrice 4E 다(02 §5 · 방법 «밴드 비교»). 이 하한은 **단일 자세** 기준이고, "
+        f"같은 기체를 **자세평균**으로 읽으면 "
+        f"{SS.num('aspect_averaged.by_drone.matrice4e.smallest_flip_span_db', None, '{:.2f}', 'dB')} "
+        f"다 — 06편 §3 이 캠페인 판정 문턱으로 드는 수가 그것이다.",
         "",
         figure_md(PF["robust"], 5,
                   "σ 오차가 공통모드일 때와 밴드별일 때 순위는 각각 어디까지 버티는가?",
@@ -1115,7 +1212,10 @@ def build_blocks(D: dict):
         f"{CG.num('structural.two_mechanisms.observed.L1.hard.T_max_total_blind_s', None, '{:.3f}', 's')}"
         " 에서 전 헤딩 블라인드가 된다.",
         "",
-        table(["모드", "PRF", "CPI 0.1 s 의 M", "접힘 축 ±", "블라인드(1.5빈)", "블라인드(2.5빈)"],
+        #  ⭐ 열 이름의 CPI 와 아래 문장의 CPI 는 같은 원장 자리에서 받는다.
+        table(["모드", "PRF",
+               f"CPI {fetch((J_CG, 'equal_cpi_penalty[0].T_cpi_s')):.1f} s 의 M",
+               "접힘 축 ±", "블라인드(1.5빈)", "블라인드(2.5빈)"],
               [[MODE_NAME[m],
                 CG.num(f"waveform_facts.{m}.prf_hz", None, "{:.0f}", "Hz"),
                 CG.num(f"anchor.reproduction.{m}.M", None, "{:.0f}"),
@@ -1128,7 +1228,7 @@ def build_blocks(D: dict):
         f"{CG.num('structural.by_mode.G1.T_max_total_blind_declared_s', None, '{:.2f}', 's')} 에서 "
         f"성립한다. 검출기가 적용하는 1.5빈 규약의 경계는 "
         f"{CG.num('structural.by_mode.G1.T_max_total_blind_hard_s', None, '{:.2f}', 's')} 이고, "
-        f"CPI 0.1 s 의 블라인드율은 "
+        f"CPI {CG.num('equal_cpi_penalty[0].T_cpi_s', None, '{:.1f}', 's')} 의 블라인드율은 "
         f"{CG.num('verdict.artifact.blind_hard_same_cpi', None, '{:.3f}')} 다.",
     ))
 

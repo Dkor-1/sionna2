@@ -541,6 +541,83 @@ R16 이 남겼던 다섯(편파 · 무편파 스칼라 · P3 · 레벨오차 DL(
 
 ---
 
+## ⭐⭐ R18 — 2026-08-07 3차 정정 라운드 · 리포트 01~06 재생성 (`outputs/corr3_rebuild.json`)
+
+R17 이 남긴 세 구멍을 세 갈래가 동시에 고쳤고(낡은 수치 F · 용어 Q4 · 논문키트 숫자 N),
+이 항목은 그 셋을 **한 번에 재생성해 규약을 통과시킨 단계**를 적는다. 여섯 편 전부 위반 0 이다
+(마크다운 25/25 · 22 · 23 · 25 · 25 셀, 부정문 0·3·2·0·2·1, 완충어 0). ⛔ 00 편 ·
+`drones.py` · `drone_cad.py` · `meshgate_*` · `meshdef_*` 는 열지도 않았다. GPU 는 안 썼다.
+
+### 세 갈래가 부딪힌 자리 — **모순 0, 애매함 1**
+
+세 갈래가 05·06 을 동시에 고쳤으나 사실이 어긋난 곳은 없었다. 인용 키를 전부 원장에 맞대
+확인했다 — `meshfix_applied.json:per_drone` 은 실제로 `matrice4e · mini2 · x500v2` 이고,
+F 갈래가 이름으로 가리킨 `meshfix_attack.json:Q6_invalidated_outputs.critical[3]` 은 실제로
+`sigma_anchor · sigma_sensitivity` 사슬이며 `critical[1]` 은 `rcs_anchor` 다.
+
+**애매함 1건** — F 갈래가 05 와 06 양쪽에서 「그 폭을 정하는 것은 Matrice 4E」라고 적었는데,
+두 편이 드는 수가 다르다. 05 §3.4 의 하한 **0.61 dB** 는 `differential.*`(**단일 자세** 기준,
+5기체 최소)이고, 06 §3 의 **1.30 dB** 는 `aspect_averaged.by_drone.matrice4e`(**자세평균** 기준,
+구매 2기체 최소)다. 둘 다 참이고 둘 다 Matrice 4E 지만, 나란히 읽으면 한 기체에 두 수가 붙는다
+→ 05 §3.4 에 「이 하한은 **단일 자세** 기준이고, 같은 기체를 **자세평균**으로 읽으면 1.30 dB 다
+— 06편 §3 이 캠페인 판정 문턱으로 드는 수가 그것이다」를 붙여 두 수를 한 문장에서 이었다.
+다리는 **05 쪽에만** 놓았다(두 수가 함께 나오는 편이 05 다. 06 에 같은 말을 되풀이하면 §3 셀이
+줄 상한에 걸린다).
+
+### 출처 태그 전수 검사 — 1503개 중 안 풀리는 것 **0개**
+
+저장소 자신의 walker(`report_style._walk`)로 노트북 6편의 `⟨경로 : 키⟩` 를 전부 다시 풀어 봤다.
+⚠ `num()` 이 만든 태그는 빌드가 검증하지만, **손으로 적은 태그는 아무도 검사하지 않는다** —
+그 구멍에서 1건이 나왔다.
+
+| 어디 | 무엇이 틀렸나 | 무엇으로 바꿨나 |
+|---|---|---|
+| 05 §3.3 (국소 지수 3.99) | `ranges.*.n_local_at_R90` — 층이 두 개 빠져 있어 이 경로로는 값이 안 나온다. 같은 셀의 표는 옳은 경로를 쓰고 있었다 | `CELL.format(d='*', m='*') + '.n_local_at_R90'` — 같은 셀의 표와 같은 규약 |
+
+### 손입력 숫자를 JSON 주입으로 바꾼 곳 12건
+
+빌더 6개의 **문자열 상수 안 숫자**를 AST 로 전부 뽑아 갈래를 나눴다(209개 → 36개).
+
+| 어디 | 손입력 | 주입 경로 |
+|---|---|---|
+| 01 방법 문단(영문) | `n_pdfs=178` · `n_documents=21` · `n_quotes=46` · `Version 1.2, 59 pages` | `prior_work_survey.json` 의 `meta.corpus_swept_pdfs` · `counts.papers` · `counts.quotes_verified` · `engine.technical_report.{version,pages}` — 상수 `METHOD_PARA` 를 함수 `method_para(P)` 로 바꿨다 |
+| 02 방법 문단(영문) | `0.210 dB/GHz` · `kr = 1 to 100` · `21 points` · `48 directions` | `sigma_anchor.json : sources.anchors.das_phantom3_mono.a` · `sbr_kr_sweep.json` 의 `summary_div16.{kr_min,kr_max,n_points}` · `meta.n_incidence` |
+| 02 그림 5 캡션 · §7 방어표 | 같은 `kr 1~100 (21점 · 48방향)` | 같은 원장 |
+| 02 §5 뜻풀이(파생 JSON) | `3.367 GHz` 밴드 스팬 | `sigma_sensitivity.json : _meta.span_ghz` |
+| 03 §6 방어표 | 상관 `1.0000` · NMSE `−135 dB` | `report2_waveform_rcs.json : crosscheck.nr.{corr,nmse_db}` (같은 편 여는 블록이 이미 쓰던 경로) |
+| 03 §6 방어표 | `$P_d$ 0.5` | `report03_illuminators.json : occupancy_cost.pd_threshold` |
+| 03 점유대가 뜻풀이(원장) | `7.2→98.28 MHz` | 같은 dict 가 바로 위에서 계산하는 `ref_bw_G1_mhz` · `ref_bw_G3_mhz` |
+| 05 방법 표 «검출거리» | `63 dBm · 10 dBi · 5 dB · 500 m · 0.1 s` | `report13_freespace.json` 의 `meta.link_budget.*` · `solve.W1.{L_m,T_cpi_s}` — **영문 방법 문단은 이미 같은 자리에서 받고 있었다**(한글 표만 손입력이었다) |
+| 05 §3.5 표 머리 · 본문 | `CPI 0.1 s` (2 곳) | `cpi_guard_sweep.json : equal_cpi_penalty[0].T_cpi_s` |
+| 06 그림 2 · 그림 3 이름표 | `r = 17.8 cm` · `r = 25 cm` | 같은 파일의 `SPHERES` 상수 하나에서 |
+| 06 그림 5 이름표 | `Measurement anchor, 0.21 dB/GHz` | `report06_derived.json : slope.anchor_db_per_ghz` |
+
+⭐ 주입 뒤 파생 원장 셋(`report02/05/06_derived.json`)의 diff 가 **생성시각 두 줄뿐**이었다 —
+바꾼 값이 전부 손입력과 같았다는 뜻이고, 곧 이 라운드는 **틀린 수를 고친 게 아니라 앞으로
+틀릴 자리를 막았다**.
+
+### 남은 36개는 데이터 숫자가 아니다
+
+**선행연구가 쓴 사실**(01 의 `0.5 m 금속구 · 28 GHz`, `차량 5.8 GHz`, `식 (108)`) ·
+**우리가 고른 눈금**(PO 문턱 `1 / 0.5 / 0.2 dB`, `Pd = 0.5`, `Pd ≥ 0.9`, 다음 단계의 `CPI
+0.1~1.0 s`) · **JSON 키 자체인 밴드 이름**(`LTE 1.843 GHz`, `1.8–6.0 GHz`, `5G 100 MHz`) ·
+**수학적 상한**(`IoU 1.0`, `100 %`) · **PAPER_SPEC 절 번호** · 06 §2-6 의 **가상 반례**
+(`'2.1 GHz 의 WiFi' 는 세상에 없다`). 즉 **결과에서 온 손입력은 0** 이다.
+
+### ⛔ 이 라운드가 **하지 않은** 것
+
+- 근거 JSON 을 한 줄도 고치지 않았다. 파생 원장 셋은 빌더가 다시 쓴 산출물이고 값 변화는 0 이다.
+- `SLOPE_LEDGER_GAP_MAX_DB_PER_GHZ = 1.40` 을 건드리지 않았다 — 여유 0.0045 는 그대로다.
+- `report_style.py` 의 `_PROV_VALUE` 를 고치지 않았다. 그 정규식의 단위 문자군이
+  `[A-Za-z·/]` 라 **한글 단위를 모르고**, 그래서 `12.05 배 ⟨…⟩` 처럼 태그가 멀쩡한 숫자도
+  §5.6-1 권고에 잡힌다. 고치면 저장소 전체의 권고 집계가 바뀌므로 이 라운드에서는 글 쪽에서
+  피했다(N 갈래 판단). 권고는 위반이 아니라 빌드는 그대로 통과한다.
+- 02 편은 부정문 **3/3 상한에 붙어 있다.** 이번 라운드가 더한 부정 종결은 0 이다.
+- 형상 정정 단서가 05 에 5 곳 · 06 에 5 곳으로 되풀이된다. 되풀이를 줄이지 않았다 — F 갈래가
+  일부러 각 인용 자리마다 단 것이고, 지우면 F-1 · F-2 가 다시 열린다.
+
+---
+
 ## 재발 방지
 
 1. **주장 전 원문** — 에이전트 보고를 그대로 옮기지 않는다. 파일명까지 틀린 적이 있다(R1 확인 중).

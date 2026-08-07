@@ -544,7 +544,9 @@ def fig_farfield(J):
     T = ["Far-field distance 2D^2/lambda, D = envelope diagonal incl. rotor discs",
          "Required range [m]", "Band",
          "D = bbox max horizontal extent", "D = motor-to-motor diagonal",
-         "Calibration sphere r = 17.8 cm", "DJI Matrice 4E", "DJI Mini 5 Pro"]
+         #  ⭐ 그려지는 구는 SPHERES[0] 이다 — 이름표도 같은 상수에서 뽑아 둘이 갈라지지 않게 한다.
+         f"Calibration sphere r = {float(SPHERES[0]) * 100:.1f} cm",
+         "DJI Matrice 4E", "DJI Mini 5 Pro"]
     assert_fig_text(*T)
     r6 = _load(R6)
     bands = list(r6["bands"].keys())
@@ -587,7 +589,8 @@ def fig_calibration(J):
     T = ["Calibration sphere: exact Mie sigma against the expected drone level",
          "Sphere radius [m]", "sigma [dBsm]", "Optical limit pi*r^2",
          "Matrice 4E, expected (anchor, L^2)", "Mini 5 Pro, expected (anchor, L^2)",
-         "r = 17.8 cm", "r = 25 cm"]
+         #  ⭐ 두 후보 반경은 SPHERES 하나가 정한다 — 이름표를 손으로 적지 않는다.
+         *(f"r = {float(s) * 100:g} cm" for s in SPHERES)]
     assert_fig_text(*T)
     r6, mp = _load(R6), _load(MP)
     bands = list(r6["bands"].keys())
@@ -665,7 +668,8 @@ def fig_slope(J):
     T = ["Frequency-slope hypotheses across the measured band span\n"
          "Arrows give the gap the two hypotheses open at the top of the span",
          "Frequency [GHz]", "mu, referenced to the low band [dB]",
-         "Measurement anchor, 0.21 dB/GHz", "SBR+PO kernel",
+         #  ⭐ 앵커 기울기는 원장이 정한다 — 이름표에 손으로 적지 않는다.
+         f"Measurement anchor, {J['slope']['anchor_db_per_ghz']:.2f} dB/GHz", "SBR+PO kernel",
          "Matrice 4E", "Mini 5 Pro", ""]
     assert_fig_text(*T)
     span = J["slope"]["span_ghz"]
@@ -771,8 +775,10 @@ def blocks(J) -> list:
             f"{D.num('ranking_validation.drift_budget_db', fmt='{:.2f}', unit='dB')} 가 그 폭 "
             f"아래에 있다 — 여유 "
             f"{D.num('ranking_validation.drift_margin_db', fmt='{:+.2f}', unit='dB')}. "
-            f"설계가 판정 대상과 맞는다.",
-            f"원거리장은 최대 "
+            f"설계가 판정 대상과 맞는다. ⚠ **그 폭을 정하는 것은 Matrice 4E 행이고, 그 행은 "
+            f"{MFX.num('_meta.date')} 형상 정정 전 메쉬 값이다**(02 §5) — 여유가 그것뿐이라 "
+            f"σ 사슬을 다시 돌려 그 행이 여유만큼만 움직여도 이 «맞는다» 판정이 뒤집힌다.",
+            f"원거리장(파면이 평면으로 보일 만큼 먼 거리)은 최대 "
             f"{D.num('farfield_adopted.R_ff_max_m', fmt='{:.2f}', unit='m')}, 점표적 서브밴드는 "
             f"{D.num('point_target_max_bw_MHz', fmt='{:.0f}', unit='MHz')}, 방위 표본은 "
             f"{D.num('aspect_finest_deg', fmt='{:.2f}', unit='°')} 다 — 기체 2종 × 3밴드 전부를 "
@@ -848,6 +854,9 @@ def blocks(J) -> list:
             "절대 탐지거리와 Pfa 교정은 §4 표에서 '이 캠페인 밖' 으로 표시한다 — "
             "환경 공통항과 통제 몬테카를로가 각각 정한다",
             "σ 절대레벨은 교정구가 세션 안에서 앵커한다 (§2-2). 기울기 앵커는 Das 측정이다",
+            f"뒤집힘 폭의 최솟값은 `sigma_sensitivity.json` 에서 오고 그 값을 내는 Matrice 4E "
+            f"행은 {MFX.num('_meta.date')} 형상 정정 전 메쉬 위에 있다 (02 §5) — "
+            f"σ 사슬을 다시 돌리면 이 폭과 여유가 함께 움직인다",
         ],
         report="report06_measurement")))
 
@@ -860,7 +869,7 @@ def blocks(J) -> list:
         "각도축을 여는 예비다.",
         "사양은 `src/experiment_x410.py:61`, 기하 배치는 `src/experiment_x410.py:100` 한 곳에 있다.",
         "",
-        f"12-bit ADC 의 동적범위 "
+        f"12-bit ADC(아날로그 신호를 숫자로 바꾸는 변환기)의 동적범위 "
         f"{M.num('hw.dynamic_range_db', fmt='{:.2f}', unit='dB')} 가 직접파 제거의 천장이고,",
         "직접파를 양자화한 뒤 남는 잔차를 `src/experiment_x410.py:83` 의 `adc_quantize()` 가 모델에 넣는다."))
 
@@ -1032,7 +1041,9 @@ def blocks(J) -> list:
                      "matrice4e_margin_m": "{:+.3f} m",
                      "mini5pro_margin_m": "{:+.3f} m"}),
         "",
-        f"게이팅은 넓게, 평가는 좁게 한다 — 앵커는 6차 Kaiser 창으로 CIR 을 게이팅한 뒤 주파수축으로 "
+        f"게이팅(되돌아온 신호에서 필요한 시간 구간만 창으로 잘라내기)은 넓게, 평가는 좁게 한다 — "
+        f"앵커는 6차 Kaiser 창(가장자리를 부드럽게 깎는 시간창)으로 "
+        f"CIR(채널 임펄스 응답 — 한 번 때린 신호가 되돌아오는 모양)을 게이팅한 뒤 주파수축으로 "
         f"되돌리고⟨outputs/measurement_layers.json : gate_wide_evaluate_narrow.anchor_quote⟩, 우리는 "
         f"{D.num('layers.gate_bw_mhz', fmt='{:.0f}', unit='MHz')} 전대역에서 게이팅한 뒤 σ 는 "
         f"{D.num('layers.eval_bw_mhz', fmt='{:.0f}', unit='MHz')} 서브밴드 "
@@ -1126,7 +1137,9 @@ def blocks(J) -> list:
         f"{D.num('ranking_validation.drift_budget_db', fmt='{:.2f}', unit='dB')}(§2-2)가 그 폭 "
         f"아래에 있으므로(여유 "
         f"{D.num('ranking_validation.drift_margin_db', fmt='{:+.2f}', unit='dB')}) 이 캠페인은 "
-        f"**검출 사슬과 파형 순위**를 결판낸다.",
+        f"**검출 사슬과 파형 순위**를 결판낸다. ⚠ 두 이동폭은 `sigma_sensitivity.json` 에서 오고, "
+        f"좁은 쪽 Matrice 4E 행은 {MFX.num('_meta.date')} 형상 정정 전 메쉬 값이다(02 §5) — "
+        f"그 행이 여유만큼만 움직여도 이 «결판낸다» 판정이 함께 움직인다.",
         "절대 σ 는 §2 여섯 항목을 다 채운 세션이 다음 라운드에서 만든다.",
         "",
         table(["설계상 같게 맞춘 축", "설계상 다르게 둔 축"], [
@@ -1195,7 +1208,8 @@ def blocks(J) -> list:
         table(["02편의 주장", "이를 결정하는 측정", "판정 기준", "판정 범위"], [
             ["자세 패턴 B1(φ) 을 SBR+PO 기하에서 계산했다",
              "턴테이블 방위컷, 로터 정지",
-             f"Δφ ≤ {D.num('aspect_finest_deg', fmt='{:.2f}', unit='°')} 로 재고 로브 위치 대조 (§2-4)",
+             f"Δφ ≤ {D.num('aspect_finest_deg', fmt='{:.2f}', unit='°')} 로 재고 "
+             f"로브(σ 가 솟는 봉우리) 위치 대조 (§2-4)",
              "결판"],
             ["절대 레벨은 우리 PO 출력이다 (앵커는 기울기만 옮긴다)",
              "표적과 같은 자리에서 교정구 + 배경 코히런트 차감 — **레벨의 첫 측정 앵커**",
@@ -1212,7 +1226,8 @@ def blocks(J) -> list:
              "재지 않는다** — 1차 모서리 항은 정면입사에서 두 편파에 같은 값을 주므로 그 "
              "각도에서는 판별력이 0 이다 ⟨outputs/lowfreq_attack.json : "
              "what_survives_the_attack[3]⟩. 비스듬한 입사와 모서리 방향 입사를 함께 잰다",
-             f"위상까지 정합해 부호를 심판한다 — 평판 RMS 시험은 위상맹목이다. 켠 비용은 "
+             f"위상까지 정합해 부호를 심판한다 — 평판 RMS 시험은 위상맹목(마루·골의 위치는 빼고 "
+             f"크기만 본다)이다. 켠 비용은 "
              f"{PW.num('verdict.cost_increase_pct', fmt='{:+.1f}', unit='%')} (§5)",
              "결판"],
             [f"밴드 기울기는 Das 의 "
@@ -1240,7 +1255,10 @@ def blocks(J) -> list:
             [f"파형 상대순위 `{' > '.join(D.get('ranking_validation.consensus_order'))}` (05)",
              "야외 고정기하 탐지시험 · 방위 스윕으로 자세평균",
              f"순서 일치 · 뒤집힘 폭 "
-             f"{D.num('ranking_validation.flip_span_min_db', fmt='{:.2f}', unit='dB')} (§3)",
+             f"{D.num('ranking_validation.flip_span_min_db', fmt='{:.2f}', unit='dB')} (§3). "
+             f"⚠ 이 폭을 정하는 Matrice 4E 행은 {MFX.num('_meta.date')} 형상 정정 전 메쉬 "
+             f"값이고(02 §5), 드리프트 예산과의 여유는 "
+             f"{D.num('ranking_validation.drift_margin_db', fmt='{:+.2f}', unit='dB')} 다",
              "결판"],
             ["자유공간 절대 탐지거리 (05)",
              "환경 공통항(지면·클러터)이 정한다",
@@ -1375,7 +1393,9 @@ def blocks(J) -> list:
              f"얇다.",
              f"좁은 쪽은 Matrice 4E 하나이고 Mini 5 Pro 는 "
              f"{D.num('ranking_validation.flip_span_db.mini5pro', fmt='{:.2f}', unit='dB')} 다. "
-             f"두 기체를 함께 재어 넓은 쪽이 좁은 쪽의 판정을 받쳐 준다."),
+             f"두 기체를 함께 재어 넓은 쪽이 좁은 쪽의 판정을 받쳐 준다. ⚠ 그 좁은 쪽 값은 "
+             f"{MFX.num('_meta.date')} 형상 정정 전 메쉬에서 온다(02 §5) — 이 답의 근거가 정확히 "
+             f"그 정정을 받은 기체이므로, σ 사슬 재실행 뒤에 여유를 다시 읽는다."),
             ("교정구를 표적 자리에서 세션 시작·끝에 재어 절대 레벨의 첫 측정 앵커를 세운다.",
              "그림 3 · outputs/report06_derived.json:calibration_margin_min_db",
              "그 여유는 앵커 절대레벨 위의 설계값이고, 앵커 절편에는 통계 규약 변환 상수가 들어 있다.",
@@ -1451,7 +1471,8 @@ def blocks(J) -> list:
          f"파형 상대순위 "
          f"`{' > '.join(D.get('ranking_validation.consensus_order'))}` 가 실측에서 확인된다 — "
          f"판정 문턱은 뒤집힘 폭 "
-         f"{D.num('ranking_validation.flip_span_min_db', fmt='{:.2f}', unit='dB')} 다",
+         f"{D.num('ranking_validation.flip_span_min_db', fmt='{:.2f}', unit='dB')} 이고, 그 폭은 "
+         f"{MFX.num('_meta.date')} 형상 정정 전 메쉬 세대의 수다(02 §5)",
          "06편 §3 · §4 → 05편 결과와 대조"),
         ("교정구를 표적과 같은 자리·같은 높이에서 세션 시작과 끝에 잰다",
          f"지금 우리 PO 출력인 절대 레벨이 처음으로 측정에 앵커된다 — "

@@ -92,7 +92,7 @@ def measure(n_az=N_AZ, force=False) -> dict:
 
     from drones import (DRONES, DRONE_GROUP_MAT, build_drone, build_frame, build_propeller,
                         rotor_layout, frame_fit_scale, _build_frame_raw, _drone_dims,
-                        motor_angles, drone_gamma_map)
+                        motor_angles, drone_gamma_map, _arm_motor_dims)
     from geom import Mesh, translate, rotate
     from materials import gamma_bulk, gamma_po
     from rcs_sbr import rcs_sbr_batch, rcs_sbr, validate as sbr_validate
@@ -183,9 +183,13 @@ def measure(n_az=N_AZ, force=False) -> dict:
         m = _build_frame_raw(spec)
         prop = build_propeller(spec)
         diag, r, prop_r, bh, body_l, body_w, body_z = _drone_dims(spec)
-        arm_t = (0.08 if spec.fixed_arm else 0.045) * diag
-        motor_h = 0.045 * diag
-        prop_z = motor_h + arm_t / 2 + 0.006
+        #  ⭐ 2026-08-07 — 여기 있던 세 줄은 `drones._arm_motor_dims` 식의 **하드코딩 사본**이었다.
+        #    이 그림이 보이려는 것은 «공식 외형 맞춤(frame_fit_scale) 하나»의 효과인데, 사본이
+        #    낡으면 그 차이에 **프롭 장착 규칙의 변경분까지 섞여** 캡션이 거짓이 된다.
+        #    2026-08-07 에 prop_z 가 «벨 윗면 + 스탠드오프» 로 바뀌면서 실제로 갈라졌다.
+        #    → 지금 식을 import 해서 쓴다. 이 함수가 재현하는 «수정 전» 은 **외형 맞춤이 없던
+        #      상태** 하나다.
+        arm_t, motor_h, prop_z = _arm_motor_dims(spec, diag)
         for k, ang in enumerate(motor_angles(spec)):
             ca, sa = math.cos(math.radians(ang)), math.sin(math.radians(ang))
             M = translate(r * ca, r * sa, prop_z) @ rotate("z", ang + 12.0)

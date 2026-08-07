@@ -665,7 +665,9 @@ def _sigma_sens(SS, air) -> dict:
             "공통모드 = 한 기체의 세 밴드를 같은 dB 로 옮긴 뒤 R90 순위를 다시 매긴 것. "
             "차분 = 밴드에 따라 다르게 옮긴 것(기울기 오차 모양). 뒤집힘 문턱 = 순위가 처음 "
             "바뀌는 차분 폭 [dB]. 현실 폭 = 우리 생산 기울기와 측정 기울기의 차이가 밴드 스팬 "
-            "3.367 GHz 위에서 만드는 dB 폭. MC = 밴드별 독립 N(0, σ_e) 오차에서의 순위 보존 확률."),
+            #  ⭐ 스팬은 민감도 원장이 정한다 — 뜻풀이에도 손으로 적지 않는다.
+            f"{SS['_meta']['span_ghz']:.3f} GHz 위에서 만드는 dB 폭. "
+            "MC = 밴드별 독립 N(0, σ_e) 오차에서의 순위 보존 확률."),
         "reads": SS["_meta"]["reads"],
     }
 
@@ -1043,7 +1045,9 @@ def fig_reference_gap(J, kr_grid, d_db):
         fig, "report02_f5_reference_gap",
         "Our physical-optics kernel against two closed-form reference solutions on a PEC "
         f"sphere: it tracks the analytic PO reference to within "
-        f"{S['summary_div16']['max_abs_db_vs_po']:.3f} dB over kr = 1 to 100 (21 points, 48 "
+        f"{S['summary_div16']['max_abs_db_vs_po']:.3f} dB over kr = "
+        f"{S['summary_div16']['kr_min']:.0f} to {S['summary_div16']['kr_max']:.0f} "
+        f"({S['summary_div16']['n_points']:.0f} points, {S['meta']['n_incidence']:.0f} "
         f"incidence directions), while the analytic PO reference itself departs from the "
         f"exact Mie solution by more than 1 dB below kr = {F['kr_below_1p0_db']:.2f}, "
         "the band into which one of the twenty-one airframe-band combinations falls.")
@@ -1230,7 +1234,7 @@ def blocks(J):
     RCAD = from_json("outputs/real_cad_compare.json")
     COM = from_json("outputs/community_compare.json")
     PH4 = from_json("outputs/phantom4_scan_compare.json")
-    from_json("outputs/sigma_anchor.json")     # §4.3 표가 경로로 직접 읽는다 — 존재 검사만
+    SA = from_json("outputs/sigma_anchor.json")   # §4.3 표는 경로로 직접 읽고, 방법 문단은 값을 받는다
     #: Sionna RT 원문(기술보고서 v1.2 · 59쪽)의 낱말 재계수 — §2 의 엔진 문장이 여기서 나온다.
     PS = from_json("outputs/prior_settled_sionna.json")
     SIG = from_json(J_SIGSENS)
@@ -1272,7 +1276,8 @@ def blocks(J):
         num=2,
         title="표적 모델: 메쉬 7종을 짓고 사진·공식 CAD·기준해로 재고, σ 의 주파수 축을 측정에 맞췄다",
         did="드론 7종의 메쉬를 제원과 제조사 CAD 치수에서 세워 사진 실루엣·공식 CAD 치수와 "
-            "맞대고, 그 메쉬에 Sionna 광선엔진의 가림 판정과 부품별 재질 PO 면적분을 걸어 RCS 를 "
+            "맞대고, 그 메쉬에 Sionna 광선엔진의 가림 판정과 부품별 재질 PO(물리광학) 면적분을 걸어 "
+            "RCS 를 "
             "계산한 뒤, σ 의 주파수 의존성을 Das 측정에 맞췄다.",
         results=[
             f"**기체 {D.num('mesh.n', fmt='{:.0f}')}종의 메쉬를 지었다**(§1 그림 1) — "
@@ -1281,15 +1286,17 @@ def blocks(J):
             f"{D.num('mesh.largest_span_mm', fmt='{:.0f}', unit='mm')} 까지 "
             f"{D.num('mesh.span_ratio', fmt='{:.2f}')}배, 부품 "
             f"{D.num('mesh.n_parts_total', fmt='{:.0f}')}개 · 삼각형 "
-            f"{D.num('mesh.n_tris_total', fmt='{:.0f}')}개, 전기적 크기 kr "
+            f"{D.num('mesh.n_tris_total', fmt='{:.0f}')}개, 전기적 크기 kr(표적을 파장으로 잰 크기) "
             f"{D.num('electrical.kr_min', fmt='{:.1f}')}~"
             f"{D.num('electrical.kr_max', fmt='{:.1f}')}. "
             f"⚠ §1 의 형상 원장 넷은 "
             f"{MFX.num('_meta.date')} 형상 정정 **전** 메쉬 기준이다(§1).",
 
             f"**사진 {D.num('photo.n_pairs', fmt='{:.0f}')}장과 실루엣으로 맞댔다**(그림 2) — "
-            f"IoU 는 {D.num('photo.best')} {D.num('photo.best_iou', fmt='{:.3f}')}"
-            f"(자기복제 상한의 {D.num('photo.best_pct', fmt='{:.0f}', unit='%')})부터 "
+            f"IoU(두 실루엣이 겹친 넓이의 비)는 "
+            f"{D.num('photo.best')} {D.num('photo.best_iou', fmt='{:.3f}')}"
+            f"(자기복제 상한, 즉 이 검사가 낼 수 있는 최고점 대비 "
+            f"{D.num('photo.best_pct', fmt='{:.0f}', unit='%')})부터 "
             f"{D.num('photo.worst')} {D.num('photo.worst_iou', fmt='{:.3f}')}"
             f"({D.num('photo.worst_pct', fmt='{:.0f}', unit='%')})까지, 외곽오차는 "
             f"{D.num('photo.contour_min_mm', fmt='{:.1f}')}~"
@@ -1305,12 +1312,13 @@ def blocks(J):
             f"{D.num('occlusion.max_db', fmt='{:.2f}', unit='dB')}"
             f"({D.num('occlusion.max_drone')}) 내려간다.",
 
-            f"커널이 해석 PO 기준해와 kr "
+            f"커널이 해석 PO(구에 PO 를 손으로 푼 답) 기준해와 kr "
             f"{S.num('summary_div16.kr_min', fmt='{:.0f}')}~"
             f"{S.num('summary_div16.kr_max', fmt='{:.0f}')} 전 구간에서 최대 "
             f"{S.num('summary_div16.max_abs_db_vs_po', 0.201, '{:.3f}', 'dB')} 안에서 "
             f"일치하고 (kr {S.num('summary_div16.n_points', 21, '{:.0f}')}점 × 입사 "
-            f"{S.num('meta.n_incidence', 48, '{:.0f}')}방향), 다중반사 위상은 PEC 이면각 "
+            f"{S.num('meta.n_incidence', 48, '{:.0f}')}방향), 다중반사 위상은 PEC(완벽한 금속) "
+            f"이면각(직각으로 맞붙은 두 평판) "
             f"해석해 8πa²b²/λ² 와 변 길이 4점 전부에서 "
             f"{F.num('d3_multibounce_phase.max_abs_err_db', fmt='{:.3f}', unit='dB')} 안에서 맞는다.",
 
@@ -1514,7 +1522,8 @@ def blocks(J):
                 f"{COM.num('m600.d_sigma_db', fmt='{:+.2f}', unit='dB')}",
                 f"자세별 RMS {PH4.num('d_sigma_rms_db', fmt='{:.1f}')}~"
                 f"{COM.num('m600.d_sigma_rms_db', fmt='{:.1f}', unit='dB')}"]]), "",
-        f"**이 표가 σ 의 인용 단위를 정한다** — 방위평균과 로브 위치로 인용하고, 널 깊이는 "
+        f"**이 표가 σ 의 인용 단위를 정한다** — 방위평균과 **로브**(방위를 돌릴 때 σ 가 솟는 봉우리) "
+        f"위치로 인용하고, **널 깊이**(그 봉우리 사이에서 σ 가 꺼지는 골이 얼마나 깊은지)는 "
         f"메쉬 세부에 걸리므로 자세별 RMS 열에 그 크기가 그대로 적혀 있다. IoU 에는 눈금이 "
         f"붙어 있다 — 표 오른쪽 끝의 **자기복제 상한**은 같은 메쉬로 만든 가짜 사진을 같은 "
         f"파이프라인에 넣었을 때 나오는 값, 즉 이 검사가 낼 수 있는 최고점이다. 그 값이 "
@@ -2040,7 +2049,8 @@ def blocks(J):
     # ── §5  ⭐ 이 편이 논문에 주는 두 번째 물건 — σ 오차 아래의 순위 강건성 ───────
     B.append(md(
         "## §5. σ 오차를 넣어도 파형 순위가 서는 범위", "",
-        f"σ 오차를 두 갈래로 나눠 검출거리 R90 순위에 넣었다(`benchmark/sigma_sensitivity.py`, "
+        f"σ 오차를 두 갈래로 나눠 검출거리 R90(검출확률 90 % 문턱을 마지막으로 넘는 거리) 순위에 "
+        f"넣었다(`benchmark/sigma_sensitivity.py`, "
         f"기체 {D.num('sigma_sens.n_airframes', fmt='{:.0f}')} × 밴드 {D.num('sigma_sens.n_bands', fmt='{:.0f}')} = "
         f"{D.num('sigma_sens.n_cells', fmt='{:.0f}')}셀). **공통모드**는 한 기체의 세 밴드를 같은 dB 로 "
         f"옮기고(절대 레벨 오차의 모양), **차분**은 밴드마다 다르게 옮긴다(기울기 오차의 모양).", "",
@@ -2195,9 +2205,13 @@ def blocks(J):
         "bistatic pair a second shadow ray is cast from every hit point toward the "
         "receiver. The kernel is checked against three closed-form reference solutions - "
         "the analytic physical-optics sphere, the exact Mie PEC sphere and the PEC "
-        "dihedral 8 pi a^2 b^2 / lambda^2 - over kr = 1 to 100 at 21 points and 48 "
+        #  ⭐ 이 문단의 수도 손입력 0 — 본문과 같은 원장에서 받는다.
+        f"dihedral 8 pi a^2 b^2 / lambda^2 - over kr = {S.get('summary_div16.kr_min'):.0f} "
+        f"to {S.get('summary_div16.kr_max'):.0f} at {S.get('summary_div16.n_points'):.0f} "
+        f"points and {S.get('meta.n_incidence'):.0f} "
         "incidence directions. The absolute level of sigma is the kernel output; only the "
-        "frequency slope is re-anchored, onto the measured 0.210 dB/GHz of Das et al., "
+        "frequency slope is re-anchored, onto the measured "
+        f"{SA.get('sources.anchors.das_phantom3_mono.a'):.3f} dB/GHz of Das et al., "
         "which rotates sigma(f) about the band-mean level and leaves the normalised "
         "aspect pattern unchanged. Software: Sionna 2.0.1, Sionna-RT 2.0.1, Mitsuba 3.8.0, "
         "Dr.Jit 1.3.1, NumPy 2.5.0, Python 3.12.")
@@ -2208,7 +2222,8 @@ def blocks(J):
                               report="report02_target", sec="§7."),
         defence_block=defence([
             ("표적 σ 는 부품별 재질 메쉬 위의 PO 면적분으로 계산하고, 커널은 해석 PO 기준해와 "
-             "kr 1~100 전 구간에서 "
+             "kr " + S.num("summary_div16.kr_min", fmt="{:.0f}") + "~"
+             + S.num("summary_div16.kr_max", fmt="{:.0f}") + " 전 구간에서 "
              + S.num("summary_div16.max_abs_db_vs_po", fmt="{:.3f}", unit="dB") + " 안에서 맞는다",
              "그림 5 · 표 §3.1 · `outputs/sbr_kr_sweep.json:summary_div16.max_abs_db_vs_po`",
              "PO 는 few-λ 표적에서 부정확하다 — 드론이 바로 그 크기다",
