@@ -170,6 +170,10 @@ TAG_LIMITS = "limits"            # 폐지된 옛 태그. 옛 노트북을 **식�
 #  `src/paper_kit.py` 가 단다. 방어선 표가 길어서 **12줄 상한만** 면제한다 —
 #  셀 수(§5.7)·톤(§5.8)·출처(§5.6-1) 검사는 다른 셀과 똑같이 받는다.
 TAG_PAPER = "paper"
+#: 편 끝의 «출처» 표. `build_notebook()` 이 **자동으로** 붙인다 — 손으로 쓰지 않는다.
+#  본문의 출처 태그를 각주 번호로 바꾸고 그 원장을 여기 싣는다(§5.6-3).
+#  12줄 상한·톤 검사·출처 없는 숫자 권고에서 면제된다: 이 셀은 산문이 아니라 기계 원장이다.
+TAG_SOURCES = "sources"
 _TAG_RE = re.compile(r"^<!--rs:([a-z_]+)-->\s*\n?")
 
 KERNEL = {"display_name": "py312", "language": "python", "name": "py312"}
@@ -555,7 +559,7 @@ def count_negatives(nb: Any) -> dict:
     """
     hits = []
     for i, c in enumerate(_as_cells(nb)):
-        if c.get("cell_type") != "markdown":
+        if c.get("cell_type") != "markdown" or _has_tag(c, TAG_SOURCES):
             continue
         for s in _segments(_cell_text(c)):
             e = _ends_negative(s)
@@ -577,7 +581,7 @@ def grep_hedges(nb: Any) -> dict:
     """
     hits = []
     for i, c in enumerate(_as_cells(nb)):
-        if c.get("cell_type") != "markdown":
+        if c.get("cell_type") != "markdown" or _has_tag(c, TAG_SOURCES):
             continue
         for s in _segments(_cell_text(c)):
             for pat, fix in _HEDGES:
@@ -1071,13 +1075,110 @@ def _to_cells(blocks: Iterable) -> list[dict]:
     return cells
 
 
+# --------------------------------------------------------------------------- #
+#  6b) 출처를 각주로 — 화면 글자의 37.9%가 출처 태그였다
+#      본문의 `값 ⟨outputs/x.json : key⟩` 를 `값[^7]` 로 바꾸고, 편 끝에 «출처» 표를 붙인다.
+#      ⭐ 검증은 1비트도 안 약해진다 — `num()` 이 이미 JSON 을 열어 값을 대조했고,
+#         여기서 **한 번 더** 열어 각주 표의 값을 채운다(왕복 검사). 키가 안 풀리면 빌드가 멈춘다.
+#      같은 (파일, 키) 는 같은 번호다 — 재인용이 번호를 새로 먹지 않는다.
+# --------------------------------------------------------------------------- #
+#: `⟨outputs/x.json : a.b.c⟩` 를 경로와 키로 가른다.
+_PROV_PARTS = re.compile(r"⟨\s*([^⟩:]+?\.(?:json|npz))\s*:\s*([^⟩]+?)\s*⟩")
+
+#: 각주 번호 표시. 본문에서 출처 태그를 대신한다.
+_FOOTMARK = re.compile(r"\[\^(\d+)\]")
+
+
+def _foot_value(v: Any) -> str:
+    """각주 표의 «값» 칸. 스칼라는 그대로, 묶음은 크기만 적는다(본문에 붓지 않는다)."""
+    v = _py(v)
+    if v is None:
+        return "null"
+    if isinstance(v, dict):
+        return f"({len(v)}항목 묶음)"
+    if isinstance(v, (list, tuple)) or getattr(v, "ndim", 0):
+        n = len(v) if hasattr(v, "__len__") else "?"
+        return f"({n}행 표)"
+    s = _auto_fmt(v)
+    return s if len(s) <= 56 else s[:55].rstrip() + "…"
+
+
+def _resolve_cite(path: str, key: str) -> str:
+    """출처 하나를 **다시 열어** 각주 표의 «값» 칸을 만든다. 못 열면 `ContractError`.
+
+    키에는 두 가지 파생 표기가 섞여 있다 — 둘 다 «어느 칸에서 왔나» 를 그대로 적은 것이다.
+      `a.b → 15칸 평균`   기준 키를 연 뒤 사람이 한 연산. **기준 키까지는 검사한다.**
+      `ranges.*.*.R90_m`  기체·밴드를 가로지르는 칸 묶음. 파일이 열리는지까지 검사한다.
+    """
+    base = key.split("→")[0].strip()
+    doc = load_json(path)                       # 파일이 없으면 여기서 터진다
+    if "*" in base:
+        return "(여러 칸)"
+    v = _foot_value(_walk(doc, base, [])[0])
+    return f"{v} (파생)" if base != key.strip() else v
+
+
+def _footnote_pass(cells: list[dict]) -> list[dict]:
+    """마크다운 셀의 출처 태그 → 각주 번호. 편 끝에 «출처» 표 셀을 붙여 돌려준다.
+
+    태그가 하나도 없으면 아무것도 하지 않는다(옛 노트북·표지 편이 그렇다).
+    """
+    order: list[tuple[str, str]] = []
+    seen: dict[tuple[str, str], int] = {}
+
+    def _mark(m: re.Match) -> str:
+        key = (m.group(1).strip(), m.group(2).strip())
+        n = seen.get(key)
+        if n is None:
+            order.append(key)
+            n = seen[key] = len(order)
+        return f"[^{n}]"
+
+    out: list[dict] = []
+    for c in cells:
+        if c.get("cell_type") != "markdown":
+            out.append(c)
+            continue
+        text = _cell_text(c)
+        if "⟨" in text:
+            text = _PROV_PARTS.sub(_mark, text)
+            # ⚠ `[^7](mavic4pro)` 는 마크다운이 **링크로 읽는다**. 한 칸 띄워 끊는다.
+            text = re.sub(r"(\[\^\d+\])\(", r"\1 (", text)
+            c = dict(c, source=text.splitlines(keepends=True))
+        out.append(c)
+
+    if not order:
+        return out
+
+    rows = []
+    for n, (p, k) in enumerate(order, 1):
+        try:                       # ⭐ 왕복 검사 — 각주 표의 값은 JSON 을 **다시 읽어** 채운다
+            shown = _resolve_cite(p, k)
+        except ContractError as e:
+            raise ContractError(
+                f"각주 {n} 의 출처를 다시 열 수 없다 — ⟨{p} : {k}⟩\n  {e}\n"
+                f"  → 태그의 파일·키를 고쳐라. 못 여는 출처는 출처가 아니다.") from None
+        rows.append(f"| [^{n}] | `{_md_escape_cell(p)}` | `{_md_escape_cell(k)}` | "
+                    f"{_md_escape_cell(shown)} |")
+
+    body = "\n".join(
+        [f"<!--rs:{TAG_SOURCES}-->",
+         "## 출처", "",
+         f"본문의 `[^n]` 은 아래 {len(order)}개 중 하나를 가리킨다. 값은 이 표를 만들 때 "
+         f"JSON 을 다시 열어 채웠다 — 본문 숫자와 같은 파일, 같은 키다.", "",
+         "| | 파일 | 키 | 값 |", "|---|---|---|---|"] + rows)
+    out.append({"cell_type": "markdown", "metadata": {"tags": [TAG_SOURCES]},
+                "source": body.splitlines(keepends=True)})
+    return out
+
+
 def build_notebook(path: str, blocks: Iterable, kernel: dict | None = None,
                    strict: bool = False, quiet: bool = False) -> dict:
     """블록 리스트 → `.ipynb` 파일. 쓰고 나서 §5.7 예산 + §5.8 톤을 검사해 결과를 돌려준다.
 
     strict=True 면 위반 시 **예외**(파일은 이미 쓰인 뒤이므로 확인 후 고치면 된다).
     """
-    cells = _to_cells(blocks)
+    cells = _footnote_pass(_to_cells(blocks))
     nb = {"cells": cells,
           "metadata": {"kernelspec": kernel or KERNEL,
                        "language_info": {"name": "python"}},
@@ -1107,15 +1208,19 @@ _SAVEFIG = re.compile(r"\b(?:savefig|plt\.show)\s*\(")
 #: 리포트는 미리 그려둔 PNG 를 마크다운으로 끼워 넣는다 — 그것도 '그림'으로 센다.
 _MD_IMG = re.compile(r"!\[[^\]]*\]\(\s*([^)\s]+)[^)]*\)|<img[^>]+src=[\"']([^\"']+)[\"']")
 _PROV = re.compile(r"⟨[^⟩]+?\.(?:json|npz)\s*:\s*[^⟩]+⟩")
-#: 출처 태그 **와 그 앞의 값**(단위 포함)을 통째로 지운다 — 그 숫자는 손으로 친 게 아니다.
-_PROV_VALUE = re.compile(r"[-+]?[\d][\d,.eE+\-]*\s*(?:[%°]|[A-Za-z·/]{0,8})?\s*"
-                         r"⟨[^⟩]+?\.(?:json|npz)\s*:\s*[^⟩]+⟩")
+#: 출처 한 개 — 옛 표기(⟨…⟩)와 각주 표기(`[^7]`) 둘 다. 각주는 렌더만 바뀐 같은 물건이다.
+_CITE = r"(?:⟨[^⟩]+?\.(?:json|npz)\s*:\s*[^⟩]+⟩|\[\^\d+\])"
+#: 출처 표시 **와 그 앞의 값**(단위 포함)을 통째로 지운다 — 그 숫자는 손으로 친 게 아니다.
+#  ⚠ 단위에 한글이 붙는 자리(`296 개[^3]`)까지 함께 잡는다.
+_PROV_VALUE = re.compile(r"[-+]?[\d][\d,.eE+\-]*\s*"
+                         r"(?:[%°]|[A-Za-z·/]{0,8}|[가-힣]{1,3})?\s*" + _CITE)
 # 산문 속 '손으로 친 숫자' 후보 — 소수점이 있거나 3자리 이상. §·그림·리포트 번호 등은 뺀다.
 _BARE_NUM = re.compile(r"(?<![\w.\-/])(\d+\.\d+|\d{3,})(?![\w.])")
 _YEAR = re.compile(r"^(?:19|20)\d{2}$")          # 인용 연도는 손으로 적는 게 맞다
 
 #: `table_from()` 이 표 밑에 붙이는 출처 한 줄. 그 표의 숫자는 JSON 에서 뽑은 것이다.
-_TABLE_SRC = re.compile(r"^\s*출처\s*⟨[^⟩]+?\.(?:json|npz)\s*:\s*[^⟩]+⟩\s*$")
+#  각주로 바뀐 뒤에도 같은 줄이다 — 표기만 `출처 [^7]` 로 달라진다.
+_TABLE_SRC = re.compile(r"^\s*출처\s*" + _CITE + r"(?:\s*[·,]\s*" + _CITE + r")*\s*$")
 
 #: 폐지된 옛 계약의 흔적 — 남아 있으면 위반이고, 무엇으로 바꾸는지 알려준다.
 _LEGACY_MARKS = [
@@ -1198,7 +1303,9 @@ def check_budget(nb_path: str) -> dict:
                                os.path.join(ROOT, src)])
                 if not any(os.path.exists(x) for x in cands):
                     missing_imgs.append(f"셀 {i}: {src}")
-            prov_tags += len(_PROV.findall(t))
+            if _has_tag(c, TAG_SOURCES):
+                continue          # 각주 원장 — 인용이 아니라 인용의 목록이다(아래 검사 전부 면제)
+            prov_tags += len(_PROV.findall(t)) + len(_FOOTMARK.findall(t))
             exempt = (_has_tag(c, TAG_HEADER) or _has_tag(c, TAG_NEXT)
                       or _has_tag(c, TAG_LIMITS) or _has_tag(c, TAG_PAPER))
             if not exempt and ("| ✅" in t or "다음에 할 일" in t):   # 태그 없는 손편집 대비
@@ -1227,7 +1334,8 @@ def check_budget(nb_path: str) -> dict:
 
     figures = max(len(fig_ids), savefigs, img_outs, len(md_imgs))
 
-    all_md = "\n".join(_cell_text(c) for c in md_cells)
+    all_md = "\n".join(_cell_text(c) for c in md_cells
+                       if not _has_tag(c, TAG_SOURCES))
     has_header = any(_has_tag(c, TAG_HEADER) for c in md_cells) or "### 한 일" in all_md
     has_next = (any(_has_tag(c, TAG_NEXT) for c in md_cells)
                 or "다음에 할 일" in all_md)

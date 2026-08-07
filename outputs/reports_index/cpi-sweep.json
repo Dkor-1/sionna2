@@ -1,15 +1,37 @@
 {
  "no": "62",
- "anchor": "cpi-sweep",
  "part": 10,
- "part_name": "검출 결과",
  "title": "CPI 를 늘리면 세 파형 모두 블라인드율이 내려간다",
- "file": "reports/62_cpi-sweep.ipynb",
- "builder": "src/build_part10_results.py",
- "md_cells": 6,
- "figures": 0,
- "provenance_tags": 65,
- "negatives": 0,
- "hedges": 0,
- "ok": true
+ "short": "CPI 를 늘리면 세 파형 모두 블라인드율이…",
+ "file": "62_cpi-sweep.ipynb",
+ "evidence": [
+  "outputs/cpi_guard_sweep.json"
+ ],
+ "from_cells": [
+  "report05:c16",
+  "report05:c17"
+ ],
+ "anchor": "cpi-sweep",
+ "figures": [],
+ "md_cells": 8,
+ "provenance_tags": 62,
+ "repro": {
+  "cmd": [
+   "cd /home/yunjung/workspace/sionna2",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
+   "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
+   "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
+   "    --stage all --mode W1,L1,G1 --drone $D; done",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_freespace.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_detection.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/sigma_anchor.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+  ],
+  "out": [
+   "outputs/cpi_guard_sweep.json"
+  ]
+ },
+ "builder": "src/build_part10_results.py"
 }

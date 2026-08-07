@@ -481,6 +481,39 @@ def blocks_32() -> list:
            "정밀하냐» 는 한 자릿수 dB 안에서 논다.** 지도교수의 지적은 앞쪽이 아니라 뒤쪽을 "
            "겨눈 것이고, 뒤쪽에서는 지적이 맞는다."),
 
+        md("## 지도교수 지적에 답한다 — 네 축", "",
+           table(["축", "무엇을 쟀나", "결과"], [
+               ["① 절대 세기", "실측 앵커 대비 rms",
+                "자유 모수 "
+                + _n("professor_answer.axis1_absolute_level.equal_volume_sphere.n_free_params",
+                     "{:.0f}", "개")
+                + " 짜리 등가부피 구가 우리 메쉬를 rms "
+                + _n("professor_answer.axis1_absolute_level.sphere_beats_mesh_by_rms_db",
+                     "{:.2f}", "dB") + " 이긴다"],
+               ["② 방위 산포", "실측 대비 오차",
+                "우리 메쉬 "
+                + _n("professor_answer.axis2_azimuth_spread.eps_err_vs_das_db.our_mesh",
+                     "{:+.2f}", "dB") + " · 구 "
+                + _n("professor_answer.axis2_azimuth_spread.eps_err_vs_das_db.equal_volume_sphere",
+                     "{:+.2f}", "dB") + " · 상자 "
+                + _n("professor_answer.axis2_azimuth_spread.eps_err_vs_das_db.bounding_box",
+                     "{:+.2f}", "dB")],
+               ["③ 시간 변조", "메쉬 − 구 간격",
+                _n(A3 + ".modulation_gap_mesh_minus_sphere_db.min", "{:.1f}") + "~"
+                + _n(A3 + ".modulation_gap_mesh_minus_sphere_db.max", "{:.1f}", "dB")
+                + " 중 CAD 정밀도 단독 몫은 "
+                + _n(A3 + ".but_how_much_of_that_gap_is_cad_precision.cad_precision_only_db.mini2",
+                     "{:.2f}") + "~"
+                + _n(A3 + ".but_how_much_of_that_gap_is_cad_precision.cad_precision_only_db.matrice4e",
+                     "{:.2f}", "dB")],
+               ["④ 단순화의 값", "교정 사다리", "위 두 표가 그 답이다"],
+           ]), "",
+           "① 에서는 지적이 맞는다. ② 는 구가 원리적으로 못 내는 축이다 — 구의 방위 산포는 "
+           "«작다» 가 아니라 정확히 0 이고, 회전대칭이라 만들 방법이 막혀 있다. ③ 의 큰 간격은 "
+           "«메쉬가 정밀해서» 가 아니라 «회전대칭이 아니라서» 번 것이다.", "",
+           "⭐ 그래서 다시 잡아야 할 방향은 «정밀도» 가 아니라 «무엇이 도는가» 다"
+           "(" + ref("ladder-three", "사다리가 셋이었다") + ")."),
+
         md("## 자기반증 — 이 «공짜» 가 어디까지 참인가", "",
            f"이 커널에서 동체는 AC 에 정확히 0 을 기여한다. 동체를 아무리 깎아도 마이크로도플러 "
            f"지표가 눈금 하나 움직이지 않는 것은 형상의 성질이 아니라 **가림 없는 커널의 성질**이다.",
@@ -647,6 +680,53 @@ def blocks_33() -> list:
     ]
 
 
+# --------------------------------------------------------------------------- #
+#  색인 샤드 — 편마다 하나. W0 이 `outputs/reports_index.json` 으로 병합한다.
+#  ⚠ 편마다 따로 쓰므로 부 에이전트가 동시에 돌아도 안 부딪친다.
+# --------------------------------------------------------------------------- #
+_SHARD_DIR = os.path.join(_ROOT, "outputs", "reports_index")
+
+
+def _plan_meta(anchor: str) -> dict:
+    with open(_PLAN, encoding="utf-8") as f:
+        plan = json.load(f)
+    for r in plan["reports"]:
+        if r["anchor"] == anchor:
+            return r
+    return {}
+
+
+def _part_name(part: int) -> str:
+    with open(_PLAN, encoding="utf-8") as f:
+        plan = json.load(f)
+    for p in plan["parts"]:
+        if int(p["part"]) == part:
+            return p["name"]
+    return ""
+
+
+def write_shard(no: str, anchor: str, rep: dict, part: int) -> None:
+    meta = _plan_meta(anchor)
+    title = REG[anchor][1]
+    short = title.split("—")[0].split(",")[0].strip()
+    if len(short) > 26:
+        short = short[:25].rstrip() + "…"
+    shard = dict(
+        no=no, anchor=anchor, part=part, part_name=_part_name(part),
+        title=title, short=short,
+        file=f"reports/{no}_{anchor}.ipynb",
+        builder=f"src/{os.path.basename(__file__)}",
+        in_plan=bool(meta),
+        evidence=list(meta.get("evidence_json") or []),
+        from_cells=list(meta.get("from_cells") or []),
+        md_cells=rep["md_cells"], figures=rep["figures"],
+        provenance_tags=rep["provenance_tags"],
+        negatives=rep["n_negatives"], hedges=rep["n_hedges"], ok=rep["ok"])
+    os.makedirs(_SHARD_DIR, exist_ok=True)
+    with open(os.path.join(_SHARD_DIR, f"{anchor}.json"), "w", encoding="utf-8") as f:
+        json.dump(shard, f, ensure_ascii=False, indent=1)
+
+
 # =========================================================================== #
 REPORTS = [
     ("30", "ladder-three", blocks_30),
@@ -661,7 +741,8 @@ def main() -> None:
     print("── 부 6 「표적 사다리」 빌드 ──")
     for no, anchor, fn in REPORTS:
         path = os.path.join(OUT, f"{no}_{anchor}.ipynb")
-        build_notebook(path, fn(), strict=True)
+        rep = build_notebook(path, fn(), strict=True)
+        write_shard(no, anchor, rep, 6)
     print(f"✅ {len(REPORTS)} 편 → {os.path.relpath(OUT, _ROOT)}/")
 
 

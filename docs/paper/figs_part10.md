@@ -1,7 +1,10 @@
+<!-- 생성물 — `src/make_fig_captions_part10.py` 가 쓴다. -->
+<!-- from: 옛 src/make_report05_results.py 의 figure_md(paper_caption=…) -->
+
 # 논문 조각 — 부 10 그림 캡션
 
-리포트 본문은 그림마다 **질문 캡션** 한 줄을 단다(하우스 규약). 논문에 그대로 붙일 
-**완결 문장 캡션**은 본문에서 빠지므로 여기 모은다 — 출처는 옛 `src/make_report05_results.py` 의 `figure_md(paper_caption=…)` 다.
+리포트 본문은 그림마다 **질문 캡션** 한 줄을 단다(하우스 규약). 논문에 그대로 붙일
+**완결 문장 캡션**은 본문에서 빠지므로 여기 모은다.
 
 <!-- from: 편 57 sensitivity-chain · 그림 1 · outputs/figures/report05_pf1_gap.png -->
 **Fig. (57-1)** Per-band cost decomposition on one target and one geometry: only the wavelength term and the target cross section differ between the three illuminators, and the cross-section difference dominates 9 of 15 band pairs.

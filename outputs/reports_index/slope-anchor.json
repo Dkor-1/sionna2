@@ -1,15 +1,47 @@
 {
  "no": "59",
- "anchor": "slope-anchor",
  "part": 10,
- "part_name": "검출 결과",
  "title": "레벨을 맞추려면 크기전이 법칙을 골라야 하므로 기울기만 받는다",
- "file": "reports/59_slope-anchor.ipynb",
- "builder": "src/build_part10_results.py",
- "md_cells": 8,
- "figures": 1,
- "provenance_tags": 16,
- "negatives": 1,
- "hedges": 0,
- "ok": true
+ "short": "레벨을 맞추려면 크기전이 법칙을 골라야 하므로…",
+ "file": "59_slope-anchor.ipynb",
+ "evidence": [
+  "outputs/sigma_anchor.json",
+  "outputs/lowfreq_attack.json",
+  "outputs/lowfreq_anchor.json",
+  "outputs/report05_derived.json",
+  "outputs/meshfix_applied.json"
+ ],
+ "from_cells": [
+  "report05:c11",
+  "report05:c12"
+ ],
+ "anchor": "slope-anchor",
+ "figures": [
+  "report05_pf7_anchor"
+ ],
+ "md_cells": 10,
+ "provenance_tags": 18,
+ "repro": {
+  "cmd": [
+   "cd /home/yunjung/workspace/sionna2",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
+   "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
+   "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
+   "    --stage all --mode W1,L1,G1 --drone $D; done",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_freespace.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_detection.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/sigma_anchor.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+  ],
+  "out": [
+   "outputs/sigma_anchor.json",
+   "outputs/lowfreq_attack.json",
+   "outputs/lowfreq_anchor.json",
+   "outputs/report05_derived.json",
+   "outputs/meshfix_applied.json"
+  ]
+ },
+ "builder": "src/build_part10_results.py"
 }

@@ -12,7 +12,7 @@ report_registry.py — 앵커(anchor) 사전과 편 사이 참조 문법
     ref("kernel-what")          → [편 18 «가림 판정은 …»](18_kernel-what.ipynb)
     ref("kernel-what", short=1) → [편 18 «커널이 하는 일»](18_kernel-what.ipynb)   ← 표 칸 안
     ref_fig("kernel-what", 2)   → 편 18 그림 2
-    ref_part(4)                 → [부 4 «산란 커널»](README.md#부-4-산란-커널)
+    ref_part(4)                 → [부 4 «산란 커널»](../README.md#부-4-산란-커널)
     ref_paper("02_target")      → [docs/paper/02_target.md](../docs/paper/02_target.md)
 
 ⭐ 없는 앵커를 부르면 `ContractError` 로 빌드가 멈춘다. 끊긴 링크는 조용히 실패하고,
@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Any
 
 from report_style import ContractError
@@ -52,25 +53,80 @@ def _short(title: str, width: int = 26) -> str:
     return t
 
 
+#: 편 머리 «# 리포트 18 — 제목» 에서 제목만.
+_H1 = re.compile(r'"#\s+(?:리포트|편)?\s*(\d{2})\s*[—–-]\s*(.*?)\\n"')
+
+#: 계획에 없는 편(부 담당이 «한 편 = 한 메시지» 를 지키려고 새로 쪼갠 편)이 사는 곳.
+SHARDS = os.path.join(ROOT, "outputs", "reports_index")
+
+
+def _built_title(fname: str) -> str | None:
+    """지어진 노트북의 H1 제목. 없으면 None.
+
+    ⭐ **지어진 편이 있으면 그 제목이 정본이다.** 계획 JSON 이 아니라 노트북이 정본인 이유는
+       하나다 — `ref()` 가 만든 링크의 글자와 독자가 열어서 보는 제목이 어긋나면, 링크가
+       조용히 거짓말을 한다. 계획의 `titles_needing_fix` 를 빌더가 반영한 편이 실제로 넷 있다.
+    """
+    p = os.path.join(REPORT_DIR, fname)
+    if not os.path.exists(p):
+        return None
+    with open(p, encoding="utf-8") as f:
+        head = f.read(4000)              # 첫 셀이면 충분하다 — 여는 블록이 맨 앞이다(§5.2)
+    m = _H1.search(head)
+    if not m:
+        return None
+    try:
+        return json.loads(f'"{m.group(2)}"').strip() or None
+    except json.JSONDecodeError:
+        return None
+
+
 def _load() -> tuple[dict[str, dict], dict[int, dict]]:
     with open(PLAN, encoding="utf-8") as f:
         plan = json.load(f)
     reports: dict[str, dict] = {}
     for r in plan["reports"]:
         a = r["anchor"]
+        fname = f"{r['no']}_{a}.ipynb"
+        title = _built_title(fname) or r["title_ko"]
         reports[a] = dict(
             no=str(r["no"]),
             part=int(r["part"]),
-            title=r["title_ko"],
-            short=_short(r["title_ko"]),
-            file=f"{r['no']}_{a}.ipynb",
+            title=title,
+            short=_short(title),
+            file=fname,
             evidence=list(r.get("evidence_json") or []),
             from_cells=list(r.get("from_cells") or []),
-            planned=True,          # 실제로 지어지면 built_anchors() 가 False 로 읽는다
+            planned=True,          # 실제로 지어지면 exists() 가 True 로 읽는다
         )
+
+    # ── 계획 밖에서 새로 쪼갠 편을 샤드에서 주워 온다 ─────────────────────────
+    #    ⚠ 계획 JSON 은 여러 갈래가 동시에 읽으므로 손대지 않는다. 대신 이미 지어진
+    #      편의 샤드를 읽어 사전을 늘린다 — 그래야 `ref()` 가 그 편도 가리킬 수 있다.
+    if os.path.isdir(SHARDS):
+        for fn in sorted(os.listdir(SHARDS)):
+            if not fn.endswith(".json"):
+                continue
+            a = fn[:-5]
+            if a in reports:
+                continue
+            with open(os.path.join(SHARDS, fn), encoding="utf-8") as f:
+                sh = json.load(f)
+            fname = os.path.basename(sh.get("file") or "") or f"{sh.get('no', '??')}_{a}.ipynb"
+            title = _built_title(fname) or sh.get("title") or a
+            reports[a] = dict(no=str(sh.get("no", "??")), part=int(sh.get("part", -1)),
+                              title=title, short=_short(title), file=fname,
+                              evidence=list(sh.get("evidence") or []),
+                              from_cells=list(sh.get("from_cells") or []),
+                              planned=False)
+
     parts = {int(p["part"]): dict(name=p["name"], question=p["question"],
                                  reports=list(p["reports"]))
              for p in plan["parts"]}
+    for a, r in reports.items():                 # 계획 밖 편을 자기 부의 목록 끝에 붙인다
+        p = parts.get(r["part"])
+        if p is not None and r["no"] not in p["reports"]:
+            p["reports"].append(r["no"])
     return reports, parts
 
 
@@ -112,7 +168,8 @@ def ref_part(n: int) -> str:
     if p is None:
         raise ContractError(f"모르는 부다 — {n!r} (0~{max(PARTS)})")
     slug = f"부-{int(n)}-" + p["name"].replace(" ", "-")
-    return f"[부 {int(n)} «{p['name']}»](README.md#{slug})"
+    # ⚠ 편은 `reports/` 안에 살고 README 는 리포지토리 루트에 있다 — 한 칸 올라가야 한다.
+    return f"[부 {int(n)} «{p['name']}»](../README.md#{slug})"
 
 
 def ref_paper(doc: str) -> str:

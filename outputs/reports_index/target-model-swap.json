@@ -1,15 +1,38 @@
 {
  "no": "65",
- "anchor": "target-model-swap",
  "part": 10,
- "part_name": "검출 결과",
  "title": "평판·큐브·우리 격자를 같은 동작점에서 갈아끼우면 요구 이득이 이만큼 달라진다",
- "file": "reports/65_target-model-swap.ipynb",
- "builder": "src/build_part10_results.py",
- "md_cells": 6,
- "figures": 0,
+ "short": "평판·큐브·우리 격자를 같은 동작점에서 갈아끼…",
+ "file": "65_target-model-swap.ipynb",
+ "evidence": [
+  "outputs/tm_result.json",
+  "outputs/tm_attack.json"
+ ],
+ "from_cells": [
+  "report05:c20"
+ ],
+ "anchor": "target-model-swap",
+ "figures": [],
+ "md_cells": 9,
  "provenance_tags": 39,
- "negatives": 1,
- "hedges": 0,
- "ok": true
+ "repro": {
+  "cmd": [
+   "cd /home/yunjung/workspace/sionna2",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
+   "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
+   "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
+   "    --stage all --mode W1,L1,G1 --drone $D; done",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_freespace.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_detection.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/sigma_anchor.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+  ],
+  "out": [
+   "outputs/tm_result.json",
+   "outputs/tm_attack.json"
+  ]
+ },
+ "builder": "src/build_part10_results.py"
 }

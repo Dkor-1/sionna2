@@ -37,7 +37,7 @@ _ROOT = os.path.abspath(os.path.join(_HERE, ".."))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
-from report_registry import index_shard, nb_path, ref, ref_doc  # noqa: E402
+from report_registry import index_shard, nb_path, ref  # noqa: E402
 from report_style import (build_notebook, caption, fetch, header, md,  # noqa: E402
                           next_steps, num, table)
 
@@ -234,15 +234,15 @@ def r45():
         md("## 속도 축의 대가는 접힘으로 나타난다", "",
            f"SSB 의 반복률 {W1('nr.prf_hz', '{:.0f}', 'Hz')} 는 걷는 속도의 드론에서도 도플러를 "
            f"접는다. 그 접힘을 실제 커널에서 잰 값이 "
-           f"{ref('doppler-fold')} 에 있다.", "",
+           f"{ref('doppler-fold', short=True)} 에 있다.", "",
            f"거리 축의 대가는 조명원 선택의 dB 원장에 다른 항목과 함께 들어간다 — "
-           f"{ref('cost-ledger')}."),
+           f"{ref('cost-ledger', short=True)}."),
 
         next_steps([
             ("PRS 를 켠 체제에서 같은 두 축을 다시 잰다",
              "낙관적 상한과 상시 기준선이 거리·속도 축에서 각각 몇 배 갈리는지 확정된다",
              "`src/waveforms.py:370` → " + ref("cost-ledger", short=True)),
-            ("06편 측정 설계에서 수신 안테나를 확정하고 $\\lambda^2$ 항의 전제를 다시 잰다",
+            ("실측 설계에서 수신 안테나를 확정하고 $\\lambda^2$ 항의 전제를 다시 잰다",
              f"$\\lambda^2$ {L('lambda2.span_db', '{:.2f}', 'dB')} 의 부호가 실제 안테나에서 확정된다",
              "`src/freespace_link.py:371` → " + ref("hardware", short=True)),
         ]),
@@ -698,8 +698,8 @@ def r50():
            f"{ref('5g-double-cost')} 가 든 두 축의 뒤쪽이 여기다.", "",
            f"접힘을 정하는 것은 물리 반복률 "
            f"{A('nr_G1.physical.prf_physical_hz', '{:.0f}', 'Hz')} 하나이고, CPI 가 정하는 것은 "
-           f"도플러 가드 폭이다. 그 CPI 스윕은 {ref('cpi-sweep')} 가 싣고, CPI 로도 안 움직이는 "
-           f"잔여분은 {ref('cpi-residual')} 가 든다."),
+           f"도플러 가드 폭이다. 그 CPI 스윕은 {ref('cpi-sweep', short=True)} 가 싣고, CPI 로도 안 움직이는 "
+           f"잔여분은 {ref('cpi-residual', short=True)} 가 든다."),
 
         next_steps([
             (f"검출기 CPI {A('nr_G1.physical.cpi_model_ms', '{:.0f}', 'ms')} 를 스윕해 SSB 도플러 "

@@ -1,15 +1,47 @@
 {
  "no": "60",
- "anchor": "r90",
  "part": 10,
- "part_name": "검출 결과",
  "title": "앵커 σ 위의 R90 은 3.69~11.10 km 이고, 밴드 순서는 기체마다 바뀐다",
- "file": "reports/60_r90.ipynb",
- "builder": "src/build_part10_results.py",
- "md_cells": 7,
- "figures": 1,
- "provenance_tags": 31,
- "negatives": 0,
- "hedges": 0,
- "ok": true
+ "short": "앵커 σ 위의 R90 은 3.69~11.10…",
+ "file": "60_r90.ipynb",
+ "evidence": [
+  "outputs/report13_freespace.json",
+  "outputs/sigma_anchor.json",
+  "outputs/sigma_sensitivity.json",
+  "outputs/report05_derived.json",
+  "outputs/s2r_assets_verify.json"
+ ],
+ "from_cells": [
+  "report05:c13",
+  "report05:c14"
+ ],
+ "anchor": "r90",
+ "figures": [
+  "report05_pf2_ranking"
+ ],
+ "md_cells": 11,
+ "provenance_tags": 29,
+ "repro": {
+  "cmd": [
+   "cd /home/yunjung/workspace/sionna2",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
+   "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
+   "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
+   "    --stage all --mode W1,L1,G1 --drone $D; done",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_freespace.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_detection.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/sigma_anchor.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+  ],
+  "out": [
+   "outputs/report13_freespace.json",
+   "outputs/sigma_anchor.json",
+   "outputs/sigma_sensitivity.json",
+   "outputs/report05_derived.json",
+   "outputs/s2r_assets_verify.json"
+  ]
+ },
+ "builder": "src/build_part10_results.py"
 }

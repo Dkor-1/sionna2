@@ -1,15 +1,47 @@
 {
  "no": "57",
- "anchor": "sensitivity-chain",
  "part": 10,
- "part_name": "검출 결과",
  "title": "세 밴드에서 값이 다른 항은 λ² 와 σ 둘뿐이다",
- "file": "reports/57_sensitivity-chain.ipynb",
- "builder": "src/build_part10_results.py",
- "md_cells": 8,
- "figures": 1,
+ "short": "세 밴드에서 값이 다른 항은 λ² 와 σ 둘뿐…",
+ "file": "57_sensitivity-chain.ipynb",
+ "evidence": [
+  "outputs/report13_freespace.json",
+  "outputs/verify_linkbudget.json",
+  "outputs/sigma_sensitivity.json",
+  "outputs/report05_derived.json"
+ ],
+ "from_cells": [
+  "report05:c4",
+  "report05:c5",
+  "report05:c6",
+  "report05:c7"
+ ],
+ "anchor": "sensitivity-chain",
+ "figures": [
+  "report05_pf1_gap"
+ ],
+ "md_cells": 9,
  "provenance_tags": 47,
- "negatives": 0,
- "hedges": 0,
- "ok": true
+ "repro": {
+  "cmd": [
+   "cd /home/yunjung/workspace/sionna2",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
+   "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
+   "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
+   "    --stage all --mode W1,L1,G1 --drone $D; done",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_freespace.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_detection.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/sigma_anchor.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+  ],
+  "out": [
+   "outputs/report13_freespace.json",
+   "outputs/verify_linkbudget.json",
+   "outputs/sigma_sensitivity.json",
+   "outputs/report05_derived.json"
+  ]
+ },
+ "builder": "src/build_part10_results.py"
 }

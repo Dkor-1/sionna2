@@ -1,15 +1,38 @@
 {
  "no": "63",
- "anchor": "cpi-residual",
  "part": 10,
- "part_name": "검출 결과",
- "title": "모호속도는 표본화율의 성질이라 CPI 로 바뀌지 않는다 — 5G 1.07 m/s",
- "file": "reports/63_cpi-residual.ipynb",
- "builder": "src/build_part10_results.py",
- "md_cells": 6,
- "figures": 1,
- "provenance_tags": 31,
- "negatives": 1,
- "hedges": 0,
- "ok": true
+ "title": "모호속도는 표본화율의 성질이라 CPI 와 무관한 상한이다",
+ "short": "모호속도는 표본화율의 성질이라 CPI 와 무관…",
+ "file": "63_cpi-residual.ipynb",
+ "evidence": [
+  "outputs/cpi_guard_sweep.json"
+ ],
+ "from_cells": [
+  "report05:c18"
+ ],
+ "anchor": "cpi-residual",
+ "figures": [
+  "report05_pf4_cpi"
+ ],
+ "md_cells": 8,
+ "provenance_tags": 32,
+ "repro": {
+  "cmd": [
+   "cd /home/yunjung/workspace/sionna2",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
+   "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
+   "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
+   "    --stage all --mode W1,L1,G1 --drone $D; done",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_freespace.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_detection.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/sigma_anchor.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+  ],
+  "out": [
+   "outputs/cpi_guard_sweep.json"
+  ]
+ },
+ "builder": "src/build_part10_results.py"
 }

@@ -1,15 +1,42 @@
 {
  "no": "58",
- "anchor": "shared-threshold",
  "part": 10,
- "part_name": "검출 결과",
  "title": "자유공간 형상에서 문턱을 다시 재니 세 밴드가 SNR90 하나를 공유한다",
- "file": "reports/58_shared-threshold.ipynb",
- "builder": "src/build_part10_results.py",
- "md_cells": 6,
- "figures": 1,
- "provenance_tags": 29,
- "negatives": 0,
- "hedges": 0,
- "ok": true
+ "short": "자유공간 형상에서 문턱을 다시 재니 세 밴드가…",
+ "file": "58_shared-threshold.ipynb",
+ "evidence": [
+  "outputs/report13_freespace.json",
+  "outputs/report05_derived.json"
+ ],
+ "from_cells": [
+  "report05:c8",
+  "report05:c9",
+  "report05:c10"
+ ],
+ "anchor": "shared-threshold",
+ "figures": [
+  "report05_pf6_detector"
+ ],
+ "md_cells": 8,
+ "provenance_tags": 30,
+ "repro": {
+  "cmd": [
+   "cd /home/yunjung/workspace/sionna2",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
+   "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
+   "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
+   "    --stage all --mode W1,L1,G1 --drone $D; done",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_freespace.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_detection.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/sigma_anchor.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+  ],
+  "out": [
+   "outputs/report13_freespace.json",
+   "outputs/report05_derived.json"
+  ]
+ },
+ "builder": "src/build_part10_results.py"
 }

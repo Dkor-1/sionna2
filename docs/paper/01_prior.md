@@ -1,0 +1,8 @@
+<!-- from: 부 2 선행연구 (구 report01_prior.ipynb c23 methods) -->
+# 방법 문단 — Literature adjudication
+
+도구: PyMuPDF 1.28.0 · Sionna 2.0.1 · Python 3.12
+
+Literature adjudication. We term-swept n_pdfs=178 ⟨outputs/prior_work_survey.json : meta.corpus_swept_pdfs⟩ paper PDFs across two ISAC/Sionna archives and a passive-radar corpus with PyMuPDF 1.28.0, extracted the full text of n_documents=21 ⟨outputs/prior_work_survey.json : counts.papers⟩ of them, and adjudicated each against four prongs: (P1) published in a venue of record, (P2) the UAV carried as a 3-D surface mesh, (P3) the scattered field computed inside a Sionna-class differentiable GPU ray engine, (P4) the computed amplitude compared against measurement or a reference solution. Every factual line carries a verbatim quotation that the build re-locates on the named PDF page and the build aborts when a quotation is not found there; n_quotes=46 ⟨outputs/prior_work_survey.json : counts.quotes_verified⟩ quotations currently re-locate. Publication status was fixed per document from the PDF metadata subject field written by IEEE typesetting, from the page footer stamp, and from the arXiv stamp; an acceptance sentence inside the body of an arXiv manuscript scores partial and the document remains a preprint, which is the rule under which every count in this report was computed. Engine facts were read first-hand from the Sionna RT technical report (document Version 1.2 (2025-11-24) ⟨outputs/prior_work_survey.json : engine.technical_report.version⟩, 59 ⟨outputs/prior_work_survey.json : engine.technical_report.pages⟩ pages) and from the installed Sionna 2.0.1 package, whose sionna.rt namespace was enumerated programmatically.
+
+생성기: `src/build_part02_prior_work.py:write_paper_docs`

@@ -1,0 +1,2443 @@
+{
+ "_meta": {
+  "generator": "src/make_reports_index.py",
+  "what": "편마다 근거 JSON · 그림 · 재현 명령. 정본은 각 편의 여는 블록이다.",
+  "n_reports": 78,
+  "n_parts": 12
+ },
+ "parts": [
+  {
+   "part": 0,
+   "name": "지도",
+   "question": "어느 편이 어느 질문에 답하나",
+   "reports": [
+    "00"
+   ]
+  },
+  {
+   "part": 1,
+   "name": "스톡 엔진이 하는 일과 안 하는 일",
+   "question": "Sionna RT 가 스스로 계산하는 양은 어디서 끝나나",
+   "reports": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07"
+   ]
+  },
+  {
+   "part": 2,
+   "name": "선행연구",
+   "question": "남들은 표적 신호를 어디서 얻었나",
+   "reports": [
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14"
+   ]
+  },
+  {
+   "part": 3,
+   "name": "표적 메쉬",
+   "question": "기체 7종을 무엇에서 지었고 실물과 얼마나 맞나",
+   "reports": [
+    "15",
+    "16",
+    "17"
+   ]
+  },
+  {
+   "part": 4,
+   "name": "산란 커널",
+   "question": "우리 커널이 무엇을 계산하고 기준해와 얼마나 맞나",
+   "reports": [
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23"
+   ]
+  },
+  {
+   "part": 5,
+   "name": "앵커와 검증",
+   "question": "σ 의 어느 축을 측정에서 받고, 그 판정이 함대에서 버티나",
+   "reports": [
+    "24",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29"
+   ]
+  },
+  {
+   "part": 6,
+   "name": "표적 사다리",
+   "question": "드론을 얼마나 거칠게 그려도 되나",
+   "reports": [
+    "30",
+    "31",
+    "32",
+    "33"
+   ]
+  },
+  {
+   "part": 7,
+   "name": "마이크로도플러",
+   "question": "도는 로터가 만드는 무늬를 무엇이 정하나",
+   "reports": [
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39",
+    "40",
+    "41",
+    "42",
+    "43"
+   ]
+  },
+  {
+   "part": 8,
+   "name": "조명원",
+   "question": "세 파형이 무는 대가",
+   "reports": [
+    "44",
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50"
+   ]
+  },
+  {
+   "part": 9,
+   "name": "검출기",
+   "question": "수신 신호가 판정이 되기까지",
+   "reports": [
+    "51",
+    "52",
+    "53",
+    "54",
+    "55"
+   ]
+  },
+  {
+   "part": 10,
+   "name": "검출 결과",
+   "question": "어느 조명원으로 어디까지 보이나",
+   "reports": [
+    "56",
+    "57",
+    "58",
+    "59",
+    "60",
+    "61",
+    "62",
+    "63",
+    "64",
+    "65",
+    "66"
+   ]
+  },
+  {
+   "part": 11,
+   "name": "실측 설계",
+   "question": "무엇을 재면 어느 주장이 결판나나",
+   "reports": [
+    "67",
+    "68",
+    "69",
+    "70",
+    "71",
+    "72",
+    "73",
+    "74",
+    "75",
+    "76",
+    "77"
+   ]
+  }
+ ],
+ "reports": [
+  {
+   "no": "00",
+   "anchor": "map",
+   "part": 0,
+   "part_name": "지도",
+   "title": "읽는 목적이 셋이면 읽는 순서도 셋이다",
+   "file": "reports/00_map.ipynb",
+   "md_cells": 10,
+   "figures": [],
+   "evidence": [
+    "outputs/reports_index.json",
+    "outputs/restruct_diagnose.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python src/make_reports_index.py",
+     "PYTHONPATH=src python src/build_part00_map.py",
+     "PYTHONPATH=src python benchmark/check_report_links.py"
+    ],
+    "out": [
+     "outputs/reports_index.json"
+    ],
+    "runtime": "약 5초 (GPU 0장)",
+    "note": "편이 늘거나 줄면 색인을 다시 만들고 이 편을 다시 조립한다"
+   }
+  },
+  {
+   "no": "01",
+   "anchor": "stock-says",
+   "part": 1,
+   "part_name": "스톡 엔진이 하는 일과 안 하는 일",
+   "title": "Sionna 기술보고서 59쪽에 physical optics 는 0회, SBR 은 44회 나온다",
+   "file": "reports/01_stock-says.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/prior_work_survey.json"
+   ],
+   "repro": {
+    "cmd": [
+     "~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py",
+     "PYTHONPATH=src python src/build_part01_stock_engine.py"
+    ],
+    "out": [
+     "outputs/prior_work_survey.json"
+    ],
+    "runtime": "약 1분 (CPU 만 쓴다)",
+    "note": "아카이브 파일이름은 v1 이지만 내용은 Version 1.2 다 — 그 함정을 근거 JSON 이 `filename_trap` 으로 들고 있다"
+   }
+  },
+  {
+   "no": "02",
+   "anchor": "engine-paths",
+   "part": 1,
+   "part_name": "스톡 엔진이 하는 일과 안 하는 일",
+   "title": "경로는 SBR 과 이미지법이 정한다",
+   "file": "reports/02_engine-paths.ipynb",
+   "md_cells": 8,
+   "figures": [],
+   "evidence": [
+    "outputs/report00_evidence.json",
+    "outputs/report00_sionna_anatomy.json",
+    "outputs/report00_sionna_probe.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python src/build_part01_stock_engine.py"
+    ],
+    "out": [
+     "outputs/report00_sionna_anatomy.json",
+     "outputs/report00_sionna_probe.json",
+     "outputs/report00_evidence.json"
+    ],
+    "runtime": "약 1분 (GPU 0장 — JSON 읽기다)",
+    "note": "anatomy · probe 두 JSON 은 설치본 해부와 실행 프로브의 산출물이고, 각 파일의 `_meta` 가 자기 생성기 경로를 들고 있다"
+   }
+  },
+  {
+   "no": "03",
+   "anchor": "engine-amplitude",
+   "part": 1,
+   "part_name": "스톡 엔진이 하는 일과 안 하는 일",
+   "title": "진폭은 국소 평면파–평면경계 해 하나로 만들어진다",
+   "file": "reports/03_engine-amplitude.ipynb",
+   "md_cells": 9,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report00_sionna_anatomy.json",
+    "outputs/report00_sionna_probe.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python src/figs_report00.py",
+     "PYTHONPATH=src python src/build_part01_stock_engine.py"
+    ],
+    "out": [
+     "outputs/report00_sionna_anatomy.json",
+     "outputs/report00_sionna_probe.json"
+    ],
+    "runtime": "약 1분 (GPU 0장)",
+    "note": "그림은 게재 규격(벡터 PDF + 400 dpi PNG · 9 pt · 색+해치)으로 `src/figs_report00.py` 가 그린다"
+   }
+  },
+  {
+   "no": "04",
+   "anchor": "eight-factors",
+   "part": 1,
+   "part_name": "스톡 엔진이 하는 일과 안 하는 일",
+   "title": "필드 갱신 인자 여덟 개에 면적·곡률·치수·λ 가 없다",
+   "file": "reports/04_eight-factors.ipynb",
+   "md_cells": 10,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report00_evidence.json",
+    "outputs/report00_po_case.json",
+    "outputs/report00_sionna_anatomy.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python src/figs_report00.py",
+     "PYTHONPATH=src python src/build_part01_stock_engine.py"
+    ],
+    "out": [
+     "outputs/report00_sionna_anatomy.json",
+     "outputs/report00_evidence.json",
+     "outputs/report00_po_case.json"
+    ],
+    "runtime": "약 1분 (GPU 0장)",
+    "note": ""
+   }
+  },
+  {
+   "no": "05",
+   "anchor": "size-sweep",
+   "part": 1,
+   "part_name": "스톡 엔진이 하는 일과 안 하는 일",
+   "title": "면적을 1600배로 키워도 경로 진폭은 7.4e-07 dB 움직인다",
+   "file": "reports/05_size-sweep.ipynb",
+   "md_cells": 8,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report00_evidence.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python src/figs_report00.py",
+     "PYTHONPATH=src python src/build_part01_stock_engine.py"
+    ],
+    "out": [
+     "outputs/report00_evidence.json"
+    ],
+    "runtime": "약 1분 (GPU 0장 — JSON 읽기와 그림 그리기다)",
+    "note": ""
+   }
+  },
+  {
+   "no": "06",
+   "anchor": "decision-table",
+   "part": 1,
+   "part_name": "스톡 엔진이 하는 일과 안 하는 일",
+   "title": "표적 항이 비에서 소거되는가와 절대값이 필요한가, 두 물음이 실험을 네 칸으로 가른다",
+   "file": "reports/06_decision-table.ipynb",
+   "md_cells": 9,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report00_decision_map.json",
+    "outputs/report00_po_case.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python benchmark/build_report00_decision_map.py",
+     "PYTHONPATH=src python src/figs_report00.py",
+     "PYTHONPATH=src python src/build_part01_stock_engine.py"
+    ],
+    "out": [
+     "outputs/report00_decision_map.json",
+     "outputs/report00_po_case.json"
+    ],
+    "runtime": "약 1분 (GPU 0장)",
+    "note": ""
+   }
+  },
+  {
+   "no": "07",
+   "anchor": "why-po",
+   "part": 1,
+   "part_name": "스톡 엔진이 하는 일과 안 하는 일",
+   "title": "완전파는 정확도의 과녁이고, SBR+PO 는 표를 만들 수 있는 유일한 비용대다",
+   "file": "reports/07_why-po.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/report00_po_case.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python benchmark/build_report00_po_case.py",
+     "PYTHONPATH=src python src/build_part01_stock_engine.py"
+    ],
+    "out": [
+     "outputs/report00_po_case.json"
+    ],
+    "runtime": "약 1분 (GPU 0장 — JSON 읽기다)",
+    "note": ""
+   }
+  },
+  {
+   "no": "08",
+   "anchor": "census-published",
+   "part": 2,
+   "part_name": "선행연구",
+   "title": "게재본 중 드론 메쉬에서 산란을 계산한 것은 0편이다",
+   "file": "reports/08_census-published.ipynb",
+   "md_cells": 8,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/prior_work_survey.json",
+    "outputs/report01_paper.json"
+   ],
+   "repro": {
+    "cmd": [
+     "~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py",
+     "PYTHONPATH=src python src/report01_paper_facts.py",
+     "PYTHONPATH=src python src/figs_report01.py",
+     "PYTHONPATH=src python src/build_part02_prior_work.py"
+    ],
+    "out": [
+     "outputs/prior_work_survey.json",
+     "outputs/report01_paper.json"
+    ],
+    "runtime": "근거 5 s [^13] · 나머지 각 수 초 · CPU 만 쓴다",
+    "note": "아카이브는 /data/public/sionna_jeong/papers_isac_sionna 와 sionna_papers_by_task, 패시브 코퍼스는 /data/public/jeong/papers 다"
+   }
+  },
+  {
+   "no": "09",
+   "anchor": "census-preprint",
+   "part": 2,
+   "part_name": "선행연구",
+   "title": "프리프린트는 따로 세고, Ziganshin 은 두 판을 구별해 인용한다",
+   "file": "reports/09_census-preprint.ipynb",
+   "md_cells": 8,
+   "figures": [],
+   "evidence": [
+    "outputs/prior_work_survey.json",
+    "outputs/report01_paper.json"
+   ],
+   "repro": {
+    "cmd": [
+     "~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py",
+     "PYTHONPATH=src python src/report01_paper_facts.py",
+     "PYTHONPATH=src python src/build_part02_prior_work.py"
+    ],
+    "out": [
+     "outputs/prior_work_survey.json",
+     "outputs/report01_paper.json"
+    ],
+    "runtime": "약 1분 (CPU 만 쓴다)",
+    "note": ""
+   }
+  },
+  {
+   "no": "10",
+   "anchor": "procurement",
+   "part": 2,
+   "part_name": "선행연구",
+   "title": "표적 서명을 어디서 조달했는지가 그 논문이 낼 수 있는 주장의 크기를 정한다",
+   "file": "reports/10_procurement.ipynb",
+   "md_cells": 7,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/prior_work_survey.json",
+    "outputs/verify_cfar.json"
+   ],
+   "repro": {
+    "cmd": [
+     "~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py",
+     "PYTHONPATH=src python src/report01_paper_facts.py",
+     "PYTHONPATH=src python src/figs_report01.py",
+     "PYTHONPATH=src python src/build_part02_prior_work.py"
+    ],
+    "out": [
+     "outputs/prior_work_survey.json",
+     "outputs/report01_paper.json"
+    ],
+    "runtime": "약 1분 (CPU 만 쓴다)",
+    "note": ""
+   }
+  },
+  {
+   "no": "11",
+   "anchor": "procurement-catalog",
+   "part": 2,
+   "part_name": "선행연구",
+   "title": "조달처 일곱 갈래 R1~R7 을 전수로 적었다",
+   "file": "reports/11_procurement-catalog.ipynb",
+   "md_cells": 8,
+   "figures": [],
+   "evidence": [
+    "outputs/prior_work_survey.json",
+    "outputs/report01_paper.json"
+   ],
+   "repro": {
+    "cmd": [
+     "~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py",
+     "PYTHONPATH=src python src/report01_paper_facts.py",
+     "PYTHONPATH=src python src/build_part02_prior_work.py"
+    ],
+    "out": [
+     "outputs/prior_work_survey.json",
+     "outputs/report01_paper.json"
+    ],
+    "runtime": "약 1분 (CPU 만 쓴다)",
+    "note": ""
+   }
+  },
+  {
+   "no": "12",
+   "anchor": "injection",
+   "part": 2,
+   "part_name": "선행연구",
+   "title": "외부 σ 주입은 게재돼 있고, 그 값의 대가는 검증이 치른다",
+   "file": "reports/12_injection.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/facet_attack.json",
+    "outputs/injection_archive.json",
+    "outputs/injection_classification_audit.json",
+    "outputs/injection_validation_hunt.json",
+    "outputs/injection_verdict.json",
+    "outputs/report01_paper.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python src/build_part02_prior_work.py"
+    ],
+    "out": [
+     "outputs/injection_archive.json",
+     "outputs/injection_classification_audit.json",
+     "outputs/injection_verdict.json",
+     "outputs/injection_validation_hunt.json"
+    ],
+    "runtime": "약 1분 (CPU 만 쓴다 — 다른 워크플로의 원장을 읽는다)",
+    "note": "네 원장은 다른 워크플로의 산출물이고 이 빌더는 값만 읽는다"
+   }
+  },
+  {
+   "no": "13",
+   "anchor": "where-we-stand",
+   "part": 2,
+   "part_name": "선행연구",
+   "title": "네 관문을 동시에 통과한 게재본은 0편이고, 최근접 3편은 각각 다른 관문에서 걸린다",
+   "file": "reports/13_where-we-stand.ipynb",
+   "md_cells": 9,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/injection_classification_audit.json",
+    "outputs/prior_work_survey.json",
+    "outputs/report01_paper.json",
+    "outputs/s2r_prior.json",
+    "outputs/sbr_kr_sweep.json",
+    "outputs/verify_cfar.json"
+   ],
+   "repro": {
+    "cmd": [
+     "~/.venvs/py312/bin/python prior_work/src/build_prior_survey.py",
+     "PYTHONPATH=src python src/report01_paper_facts.py",
+     "PYTHONPATH=src python src/figs_report01.py",
+     "PYTHONPATH=src python src/build_part02_prior_work.py"
+    ],
+    "out": [
+     "outputs/prior_work_survey.json",
+     "outputs/report01_paper.json",
+     "outputs/sbr_kr_sweep.json",
+     "outputs/verify_cfar.json",
+     "outputs/s2r_prior.json"
+    ],
+    "runtime": "약 1분 (CPU 만 쓴다)",
+    "note": "신규성 문단과 방법 문단은 리포트에서 빼서 docs/paper/ 로 옮겼다"
+   }
+  },
+  {
+   "no": "14",
+   "anchor": "borrowed",
+   "part": 2,
+   "part_name": "선행연구",
+   "title": "선행에서 빌린 절차와 아직 안 빌린 절차를 비용과 함께 센다",
+   "file": "reports/14_borrowed.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/prior_work_survey.json",
+    "outputs/report00_po_case.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python benchmark/build_report00_po_case.py",
+     "PYTHONPATH=src python src/build_part02_prior_work.py"
+    ],
+    "out": [
+     "outputs/report00_po_case.json"
+    ],
+    "runtime": "약 1분 (GPU 0장 — JSON 읽기다)",
+    "note": ""
+   }
+  },
+  {
+   "no": "15",
+   "anchor": "mesh-build",
+   "part": 3,
+   "part_name": "표적 메쉬",
+   "title": "기체 7종을 제원과 제조사 CAD 치수에서 세우고 부품을 재질 그룹으로 유지했다",
+   "file": "reports/15_mesh-build.ipynb",
+   "md_cells": 8,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/report02_derived.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python src/make_report02_target.py --derive-only",
+     "PYTHONPATH=src python src/viz_mesh_gallery.py",
+     "PYTHONPATH=src python src/build_part03_target_mesh.py"
+    ],
+    "out": [
+     "outputs/report02_derived.json",
+     "outputs/meshfix_applied.json"
+    ],
+    "runtime": "약 2분 (GPU 0장 — 메쉬 조립과 렌더다)",
+    "note": "메쉬 지문(꼭짓점과 삼각형 전체를 한 값으로 요약한 것)이 `outputs/meshfix_applied.json:edits` 에 기록된다"
+   }
+  },
+  {
+   "no": "16",
+   "anchor": "mesh-vs-real",
+   "part": 3,
+   "part_name": "표적 메쉬",
+   "title": "메쉬 외형이 실제 기체와 얼마나 맞는지를 사진 IoU·CAD 치수·실물 스캔 세 자로 쟀다",
+   "file": "reports/16_mesh-vs-real.ipynb",
+   "md_cells": 8,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/community_compare.json",
+    "outputs/phantom4_scan_compare.json",
+    "outputs/real_cad_compare.json",
+    "outputs/report02_derived.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python src/make_report02_target.py --derive-only",
+     "PYTHONPATH=src python src/viz_mesh_photo.py",
+     "PYTHONPATH=src python src/build_part03_target_mesh.py"
+    ],
+    "out": [
+     "outputs/report02_derived.json",
+     "outputs/phantom4_scan_compare.json",
+     "outputs/real_cad_compare.json",
+     "outputs/community_compare.json"
+    ],
+    "runtime": "약 3분 (GPU 0장 — 사진 정합과 표 조립이다)",
+    "note": "자료 규칙에 걸린 사진은 사유와 함께 원장에 남긴다"
+   }
+  },
+  {
+   "no": "17",
+   "anchor": "materials",
+   "part": 3,
+   "part_name": "표적 메쉬",
+   "title": "도전성 재질이 면적의 45.3% 로 Σ|Γ|A 의 73.5% 를 낸다",
+   "file": "reports/17_materials.ipynb",
+   "md_cells": 8,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report02_derived.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python src/make_report02_target.py --derive-only",
+     "PYTHONPATH=src python src/viz_mesh_material.py",
+     "PYTHONPATH=src python src/build_part03_target_mesh.py"
+    ],
+    "out": [
+     "outputs/report02_derived.json"
+    ],
+    "runtime": "약 2분 (GPU 0장)",
+    "note": "재질 표의 정의는 `outputs/report02_derived.json:material.definition` 에 문장으로 적혀 있다"
+   }
+  },
+  {
+   "no": "18",
+   "anchor": "kernel-what",
+   "part": 4,
+   "part_name": "산란 커널",
+   "title": "가림 판정은 Sionna 광선엔진이 하고, 면적분은 우리 커널이 한다",
+   "file": "reports/18_kernel-what.ipynb",
+   "md_cells": 10,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/prior_settled_sionna.json",
+    "outputs/report02_derived.json",
+    "outputs/report3_rt.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python src/make_report02_target.py --derive-only",
+     "PYTHONPATH=src python src/build_part04_kernel.py"
+    ],
+    "out": [
+     "outputs/report02_derived.json",
+     "outputs/prior_settled_sionna.json",
+     "outputs/report3_rt.json"
+    ],
+    "runtime": "약 2분 (GPU 0장 — 원장 조립이다)",
+    "note": "σ 격자 자체의 재생성은 `benchmark/rcs_anchor.py` 가 맡는다"
+   }
+  },
+  {
+   "no": "19",
+   "anchor": "kernel-vs-stock",
+   "part": 4,
+   "part_name": "산란 커널",
+   "title": "스톡 솔버와 맞대면 «면이 많아서 느리다» 가설은 반증되고, 런타임의 96.9% 는 호스트가 쓴다",
+   "file": "reports/19_kernel-vs-stock.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/facet_count.json",
+    "outputs/facet_mechanism.json",
+    "outputs/runtime_benchmark.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python benchmark/facet_count.py",
+     "PYTHONPATH=src python benchmark/runtime_benchmark.py",
+     "PYTHONPATH=src python src/build_part04_kernel.py"
+    ],
+    "out": [
+     "outputs/facet_count.json",
+     "outputs/facet_mechanism.json",
+     "outputs/runtime_benchmark.json"
+    ],
+    "runtime": "약 40분 (GPU 1장 — 스톡 솔버와 우리 커널을 같은 카드에서 돌린다)",
+    "note": "런타임은 같은 카드·같은 세션에서 재야 비교가 선다"
+   }
+  },
+  {
+   "no": "20",
+   "anchor": "bistatic-exit",
+   "part": 4,
+   "part_name": "산란 커널",
+   "title": "수신 방향 그림자 광선을 켜면 상반성 위반이 9.69 → 8.24 dB 로 내려간다",
+   "file": "reports/20_bistatic-exit.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/sbr_defect_fixes.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python benchmark/verify_sbr_defect_fixes.py",
+     "PYTHONPATH=src python src/build_part04_kernel.py"
+    ],
+    "out": [
+     "outputs/sbr_defect_fixes.json"
+    ],
+    "runtime": "약 25분 (GPU 1장)",
+    "note": "상반성은 정리(theorem)라 위반량이 그대로 모형오차의 하한이다"
+   }
+  },
+  {
+   "no": "21",
+   "anchor": "kernel-vs-reference",
+   "part": 4,
+   "part_name": "산란 커널",
+   "title": "해석 PO 구 대비 구현오차는 kr 전 구간에서 0.201 dB 안이다",
+   "file": "reports/21_kernel-vs-reference.ipynb",
+   "md_cells": 10,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report00_po_case.json",
+    "outputs/report02_derived.json",
+    "outputs/sbr_defect_fixes.json",
+    "outputs/sbr_kr_sweep.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python benchmark/sbr_kr_sweep.py",
+     "PYTHONPATH=src python benchmark/verify_sbr_defect_fixes.py",
+     "PYTHONPATH=src python src/build_part04_kernel.py"
+    ],
+    "out": [
+     "outputs/sbr_kr_sweep.json",
+     "outputs/sbr_defect_fixes.json",
+     "outputs/report00_po_case.json",
+     "outputs/report02_derived.json"
+    ],
+    "runtime": "약 1시간 (GPU 1장 — kr 스윕이 대부분이다)",
+    "note": "두 기준해는 우리 출력이 아니라 과녁이다"
+   }
+  },
+  {
+   "no": "22",
+   "anchor": "po-knee",
+   "part": 4,
+   "part_name": "산란 커널",
+   "title": "PO 유효 무릎을 부품 폭으로 옮기면 어느 부품이 어느 밴드에서 떨어지는지가 보인다",
+   "file": "reports/22_po-knee.ipynb",
+   "md_cells": 9,
+   "figures": [],
+   "evidence": [
+    "outputs/lowfreq_anchor.json",
+    "outputs/lowfreq_attack.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/ptd_wiring.json",
+    "outputs/report00_po_case.json",
+    "outputs/report02_derived.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python benchmark/lowfreq_anchor.py",
+     "PYTHONPATH=src python src/build_part04_kernel.py"
+    ],
+    "out": [
+     "outputs/lowfreq_anchor.json",
+     "outputs/lowfreq_attack.json",
+     "outputs/report00_po_case.json",
+     "outputs/report02_derived.json"
+    ],
+    "runtime": "약 15분 (GPU 0장 — 2D MoM 은 CPU 다)",
+    "note": "치수는 Phantom 3 를 사진 실측으로 다시 짓기 전 스윕에서 인용한 값이다"
+   }
+  },
+  {
+   "no": "23",
+   "anchor": "kernel-open-items",
+   "part": 4,
+   "part_name": "산란 커널",
+   "title": "커널이 아직 못 하는 것은 편파·PTD·재테셀레이션 셋이고, 각각의 크기를 적었다",
+   "file": "reports/23_kernel-open-items.ipynb",
+   "md_cells": 6,
+   "figures": [],
+   "evidence": [
+    "outputs/ptd_wiring.json",
+    "outputs/report00_evidence.json",
+    "outputs/report00_po_case.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python src/build_part04_kernel.py"
+    ],
+    "out": [
+     "outputs/report00_po_case.json",
+     "outputs/ptd_wiring.json",
+     "outputs/report00_evidence.json"
+    ],
+    "runtime": "약 1분 (GPU 0장 — 이미 잰 값을 모은 표다)",
+    "note": "각 행의 크기는 그 항을 실제로 켜거나 끄고 잰 대조에서 왔다"
+   }
+  },
+  {
+   "no": "24",
+   "anchor": "anchor-mode",
+   "part": 5,
+   "part_name": "앵커와 검증",
+   "title": "σ = A(f)·B₁·B₂ 에서 A(f) 의 기울기만 측정에서 받고, 레벨과 각패턴은 우리 PO 출력이다",
+   "file": "reports/24_anchor-mode.ipynb",
+   "md_cells": 11,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/rcs_anchor.json",
+    "outputs/report02_derived.json",
+    "outputs/s2r_assets_verify.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python src/make_report02_target.py --derive-only",
+     "PYTHONPATH=src python benchmark/rcs_anchor.py",
+     "PYTHONPATH=src python src/build_part05_anchor.py"
+    ],
+    "out": [
+     "outputs/report02_derived.json",
+     "outputs/rcs_anchor.json",
+     "outputs/sigma_anchor.json"
+    ],
+    "runtime": "약 3분 (GPU 0장 — 이미 낸 σ 격자에 적합을 다시 건다)",
+    "note": "PO 면적분은 f² 로 커지는 정반사항을 담는다 — 그 기울기를 측정과 맞춘다"
+   }
+  },
+  {
+   "no": "25",
+   "anchor": "anchor-ledger",
+   "part": 5,
+   "part_name": "앵커와 검증",
+   "title": "앵커가 통제한 항목과 남은 항목의 크기를 기체별 원장으로 적었다",
+   "file": "reports/25_anchor-ledger.ipynb",
+   "md_cells": 8,
+   "figures": [],
+   "evidence": [
+    "outputs/lowfreq_anchor.json",
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/report02_derived.json",
+    "outputs/sigma_anchor.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python src/make_report02_target.py --derive-only",
+     "PYTHONPATH=src python src/build_part05_anchor.py"
+    ],
+    "out": [
+     "outputs/sigma_anchor.json",
+     "outputs/report02_derived.json",
+     "outputs/lowfreq_anchor.json"
+    ],
+    "runtime": "약 2분 (GPU 0장)",
+    "note": "두 표 모두 생산 원장 세대이고 2026-08-04 [^10] 형상 정정 전 메쉬 위에 있다"
+   }
+  },
+  {
+   "no": "26",
+   "anchor": "blind-p3",
+   "part": 5,
+   "part_name": "앵커와 검증",
+   "title": "Phantom 3 를 문헌값을 보지 않고 내고 봉인을 풀었다",
+   "file": "reports/26_blind-p3.ipynb",
+   "md_cells": 8,
+   "figures": [],
+   "evidence": [
+    "outputs/lowfreq_anchor.json",
+    "outputs/lowfreq_attack.json",
+    "outputs/p3_ours.json",
+    "outputs/p3_validation.json",
+    "outputs/report02_derived.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python benchmark/p3_ours.py",
+     "PYTHONPATH=src python benchmark/p3_validation.py",
+     "PYTHONPATH=src python src/build_part05_anchor.py"
+    ],
+    "out": [
+     "outputs/p3_ours.json",
+     "outputs/p3_validation.json",
+     "outputs/lowfreq_anchor.json",
+     "outputs/lowfreq_attack.json"
+    ],
+    "runtime": "약 4시간 (GPU 1장 — 전대역 σ 를 다시 낸다)",
+    "note": "이 절의 표 네 행은 전부 v1 메쉬 산출이다 — v2 는 다음 편이 잇는다"
+   }
+  },
+  {
+   "no": "27",
+   "anchor": "box-sphere-control",
+   "part": 5,
+   "part_name": "앵커와 검증",
+   "title": "메쉬가 사는 축은 절대 크기가 아니라 각도 구조다",
+   "file": "reports/27_box-sphere-control.ipynb",
+   "md_cells": 8,
+   "figures": [],
+   "evidence": [
+    "outputs/das_fleet_validation.json",
+    "outputs/p3_validation_v2.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python benchmark/p3_validation_v2.py",
+     "PYTHONPATH=src python src/build_part05_anchor.py"
+    ],
+    "out": [
+     "outputs/p3_validation_v2.json",
+     "outputs/das_fleet_validation.json"
+    ],
+    "runtime": "약 2시간 (GPU 1장 — 대조군 형상마다 σ 를 다시 낸다)",
+    "note": "구는 방위에 따라 σ 가 그대로라 ε 를 0 으로 낸다"
+   }
+  },
+  {
+   "no": "28",
+   "anchor": "fleet-prereg",
+   "part": 5,
+   "part_name": "앵커와 검증",
+   "title": "같은 잣대를 네 기체로 넓히면 판정이 NOT_VALIDATED 로 갈린다",
+   "file": "reports/28_fleet-prereg.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/das_fleet_attack.json",
+    "outputs/das_fleet_prereg.json",
+    "outputs/das_fleet_validation.json",
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python benchmark/das_fleet_validation.py",
+     "PYTHONPATH=src python src/build_part05_anchor.py"
+    ],
+    "out": [
+     "outputs/das_fleet_validation.json",
+     "outputs/das_fleet_prereg.json",
+     "outputs/das_fleet_attack.json"
+    ],
+    "runtime": "약 3시간 (GPU 1장 — 네 기체를 문헌 격자에서 다시 낸다)",
+    "note": "봉인 파일은 채점 전 커밋에 그대로 있다"
+   }
+  },
+  {
+   "no": "29",
+   "anchor": "sigma-robustness",
+   "part": 5,
+   "part_name": "앵커와 검증",
+   "title": "공통모드 σ 오차는 파형 순위를 안 건드리고, 차분 오차가 뒤집는다",
+   "file": "reports/29_sigma-robustness.ipynb",
+   "md_cells": 10,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/report02_derived.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src python benchmark/sigma_sensitivity.py",
+     "PYTHONPATH=src python src/build_part05_anchor.py"
+    ],
+    "out": [
+     "outputs/sigma_sensitivity.json",
+     "outputs/report02_derived.json"
+    ],
+    "runtime": "약 20분 (GPU 1장 — 검출 사슬을 오차마다 다시 푼다)",
+    "note": "논문이 절대 σ 에 기대는 곳은 공통모드 문단에서 끝난다"
+   }
+  },
+  {
+   "no": "30",
+   "anchor": "ladder-three",
+   "part": 6,
+   "part_name": "표적 사다리",
+   "title": "사다리가 하나가 아니라 셋이었다 — 여섯 단이 서로 다른 운동학을 쓰고 있었다",
+   "file": "reports/30_ladder-three.ipynb",
+   "md_cells": 10,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report16_synthesis.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_synthesis.py"
+    ],
+    "out": [
+     "outputs/report16_synthesis.json"
+    ],
+    "runtime": "약 3 초 (CPU — 저장된 위상표 후처리)",
+    "note": ""
+   }
+  },
+  {
+   "no": "31",
+   "anchor": "ladder-calibrated",
+   "part": 6,
+   "part_name": "표적 사다리",
+   "title": "몸통은 진짜 CAD, 프로펠러만 갈아 끼운 교정 사다리가 답할 자격이 있는 유일한 축이다",
+   "file": "reports/31_ladder-calibrated.ipynb",
+   "md_cells": 8,
+   "figures": [],
+   "evidence": [
+    "outputs/report16_synthesis.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_synthesis.py"
+    ],
+    "out": [
+     "outputs/report16_synthesis.json"
+    ],
+    "runtime": "약 3 초 (CPU — 저장된 위상표 후처리)",
+    "note": ""
+   }
+  },
+  {
+   "no": "32",
+   "anchor": "ladder-answer",
+   "part": 6,
+   "part_name": "표적 사다리",
+   "title": "모양의 유무는 수십 dB 를 가르고, 모양의 정밀도는 한 자릿수 dB 안에서 논다",
+   "file": "reports/32_ladder-answer.ipynb",
+   "md_cells": 12,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report16_synthesis.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_synthesis.py"
+    ],
+    "out": [
+     "outputs/report16_synthesis.json"
+    ],
+    "runtime": "약 3 초 (CPU — 저장된 위상표 후처리)",
+    "note": ""
+   }
+  },
+  {
+   "no": "33",
+   "anchor": "ladder-premature",
+   "part": 6,
+   "part_name": "표적 사다리",
+   "title": "이 답을 아직 결론이라고 부를 수 없는 이유가 일곱 가지이고, 그중 둘이 치명적이다",
+   "file": "reports/33_ladder-premature.ipynb",
+   "md_cells": 9,
+   "figures": [],
+   "evidence": [
+    "outputs/report16_synthesis.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_verify_tautology.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_verify_kernel.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_verify_detector.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report16_synthesis.py"
+    ],
+    "out": [
+     "outputs/report16_verify_tautology.json",
+     "outputs/report16_verify_kernel.json",
+     "outputs/report16_verify_detector.json",
+     "outputs/report16_synthesis.json"
+    ],
+    "runtime": "약 40 분 (GPU 1장 — 커널 렌즈의 가림 재계산이 대부분)",
+    "note": ""
+   }
+  },
+  {
+   "no": "34",
+   "anchor": "md-paths-doppler",
+   "part": 7,
+   "part_name": "마이크로도플러",
+   "title": "스톡 Paths.doppler 로는 블레이드 변조가 안 나온다 — SceneObject.velocity 가 객체당 강체 1벡터다",
+   "file": "reports/34_md-paths-doppler.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/report15_probe.json",
+    "outputs/report15_verdict.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_probe.py"
+    ],
+    "out": [
+     "outputs/report15_probe.json"
+    ],
+    "runtime": "약 7 분 (GPU 1장)",
+    "note": ""
+   }
+  },
+  {
+   "no": "35",
+   "anchor": "md-slowtime",
+   "part": 7,
+   "part_name": "마이크로도플러",
+   "title": "시간표본마다 자세를 새로 놓고 다시 쏘아 슬로타임 복소열을 만든다",
+   "file": "reports/35_md-slowtime.ipynb",
+   "md_cells": 9,
+   "figures": [],
+   "evidence": [
+    "outputs/report15b_microdoppler.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_microdoppler_recompute.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_stamp_provenance.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report15b_figs.py"
+    ],
+    "out": [
+     "outputs/report15b_microdoppler.json",
+     "outputs/report15b_series.npz"
+    ],
+    "runtime": "약 25 분 (GPU 1장 — 광선 추적이 6칸 × 4팔)",
+    "note": "산출물이 자기가 어떤 메쉬로 계산됐는지 지문을 함께 적는다(`mesh_provenance`) — 계산 도중 메쉬가 바뀌면 스스로 경고한다"
+   }
+  },
+  {
+   "no": "36",
+   "anchor": "md-two-engines",
+   "part": 7,
+   "part_name": "마이크로도플러",
+   "title": "두 엔진이 날개끝 주파수 아래에서 겹치고 그 위에서 갈린다",
+   "file": "reports/36_md-two-engines.ipynb",
+   "md_cells": 8,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report00_microdoppler.json",
+    "outputs/report15_verdict.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_po_control.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_verdict_geomref.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_verdict.py"
+    ],
+    "out": [
+     "outputs/report15_po_control.json",
+     "outputs/report15_verdict_geomref.json",
+     "outputs/report15_verdict.json"
+    ],
+    "runtime": "약 30 분 (GPU 1장)",
+    "note": ""
+   }
+  },
+  {
+   "no": "37",
+   "anchor": "md-rpm",
+   "part": 7,
+   "part_name": "마이크로도플러",
+   "title": "네 로터가 같은 회전수로 돌면 무늬는 시간에 못 변한다",
+   "file": "reports/37_md-rpm.ipynb",
+   "md_cells": 7,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report15b_microdoppler.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_microdoppler_recompute.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_stamp_provenance.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report15b_figs.py"
+    ],
+    "out": [
+     "outputs/report15b_microdoppler.json",
+     "outputs/report15b_series.npz"
+    ],
+    "runtime": "약 25 분 (GPU 1장 — 광선 추적이 6칸 × 4팔)",
+    "note": "산출물이 자기가 어떤 메쉬로 계산됐는지 지문을 함께 적는다(`mesh_provenance`) — 계산 도중 메쉬가 바뀌면 스스로 경고한다"
+   }
+  },
+  {
+   "no": "38",
+   "anchor": "md-occlusion",
+   "part": 7,
+   "part_name": "마이크로도플러",
+   "title": "동체가 날개를 가리면 변조 깊이와 레벨이 함께 바뀐다",
+   "file": "reports/38_md-occlusion.ipynb",
+   "md_cells": 7,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report15b_microdoppler.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_microdoppler_recompute.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_stamp_provenance.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report15b_figs.py"
+    ],
+    "out": [
+     "outputs/report15b_microdoppler.json",
+     "outputs/report15b_series.npz"
+    ],
+    "runtime": "약 25 분 (GPU 1장 — 광선 추적이 6칸 × 4팔)",
+    "note": "산출물이 자기가 어떤 메쉬로 계산됐는지 지문을 함께 적는다(`mesh_provenance`) — 계산 도중 메쉬가 바뀌면 스스로 경고한다"
+   }
+  },
+  {
+   "no": "39",
+   "anchor": "md-blade-vs-body",
+   "part": 7,
+   "part_name": "마이크로도플러",
+   "title": "블레이드 신호는 약하지 않다 — 동체 정적 반사가 덮고 있을 뿐이다",
+   "file": "reports/39_md-blade-vs-body.ipynb",
+   "md_cells": 7,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report15b_microdoppler.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_microdoppler_recompute.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_stamp_provenance.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report15b_figs.py"
+    ],
+    "out": [
+     "outputs/report15b_microdoppler.json",
+     "outputs/report15b_series.npz"
+    ],
+    "runtime": "약 25 분 (GPU 1장 — 광선 추적이 6칸 × 4팔)",
+    "note": "산출물이 자기가 어떤 메쉬로 계산됐는지 지문을 함께 적는다(`mesh_provenance`) — 계산 도중 메쉬가 바뀌면 스스로 경고한다"
+   }
+  },
+  {
+   "no": "40",
+   "anchor": "md-attitude",
+   "part": 7,
+   "part_name": "마이크로도플러",
+   "title": "지상 레이더는 기체를 아래에서 보므로 가림이 무는 자세가 우리 자세다",
+   "file": "reports/40_md-attitude.ipynb",
+   "md_cells": 7,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report15b_microdoppler.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_microdoppler_recompute.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_stamp_provenance.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report15b_figs.py"
+    ],
+    "out": [
+     "outputs/report15b_microdoppler.json",
+     "outputs/report15b_series.npz"
+    ],
+    "runtime": "약 25 분 (GPU 1장 — 광선 추적이 6칸 × 4팔)",
+    "note": "산출물이 자기가 어떤 메쉬로 계산됐는지 지문을 함께 적는다(`mesh_provenance`) — 계산 도중 메쉬가 바뀌면 스스로 경고한다"
+   }
+  },
+  {
+   "no": "41",
+   "anchor": "md-calibration",
+   "part": 7,
+   "part_name": "마이크로도플러",
+   "title": "판정 잣대를 널 팔 15 칸과 이상 점산란자로 먼저 교정했다",
+   "file": "reports/41_md-calibration.ipynb",
+   "md_cells": 9,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report15_attack_stats.json",
+    "outputs/report15_null_control.json",
+    "outputs/report15_verdict.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_null_control_v2.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_verdict_geomref.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_verdict.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_attack_stats.py"
+    ],
+    "out": [
+     "outputs/report15_null_control.json",
+     "outputs/report15_verdict_geomref.json",
+     "outputs/report15_verdict.json",
+     "outputs/report15_attack_stats.json"
+    ],
+    "runtime": "약 35 분 (GPU 1장 — 널 팔 20 개)",
+    "note": ""
+   }
+  },
+  {
+   "no": "42",
+   "anchor": "md-ray-budget",
+   "part": 7,
+   "part_name": "마이크로도플러",
+   "title": "두 기체가 갈리는 이유는 메쉬 품질이 아니라 표적 크기 대비 광선예산이다",
+   "file": "reports/42_md-ray-budget.ipynb",
+   "md_cells": 9,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report15_attack_stats.json",
+    "outputs/report15_verdict.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_attack_spp_ladder.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_attack_stats.py"
+    ],
+    "out": [
+     "outputs/report15_attack_spp_ladder.json",
+     "outputs/report15_attack_stats.json"
+    ],
+    "runtime": "약 36 분 (GPU 1장 — 사다리 전량 재추적)",
+    "note": ""
+   }
+  },
+  {
+   "no": "43",
+   "anchor": "md-prf",
+   "part": 7,
+   "part_name": "마이크로도플러",
+   "title": "상시 기준신호가 주는 것은 날개끝 확산이 아니라 블레이드 통과율까지다",
+   "file": "reports/43_md-prf.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/md_range_sweep.json",
+    "outputs/report15b_microdoppler.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_md_range.py"
+    ],
+    "out": [
+     "outputs/md_range_sweep.json"
+    ],
+    "runtime": "약 12 분 (GPU 1장)",
+    "note": ""
+   }
+  },
+  {
+   "no": "44",
+   "anchor": "illuminators",
+   "part": 8,
+   "part_name": "조명원",
+   "title": "상시이면서 내용을 미리 아는 신호는 표준마다 하나씩 있다",
+   "file": "reports/44_illuminators.ipynb",
+   "md_cells": 8,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report2_waveform_rcs.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "~/.venvs/py312/bin/python src/viz_report2.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part08_illuminators.py"
+    ],
+    "out": [
+     "outputs/report2_waveform_rcs.json",
+     "outputs/report03_illuminators.json"
+    ],
+    "runtime": "① 3412 s [^11] (대부분 같은 스크립트의 RCS 스윕) · ② CPU 20초 안쪽",
+    "note": ""
+   }
+  },
+  {
+   "no": "45",
+   "anchor": "5g-double-cost",
+   "part": 8,
+   "part_name": "조명원",
+   "title": "5G 는 좁고 드물다 — 두 배의 대가를 치른다",
+   "file": "reports/45_5g-double-cost.ipynb",
+   "md_cells": 8,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report03_illuminators.json",
+    "outputs/report2_waveform_rcs.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "~/.venvs/py312/bin/python src/viz_report2.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part08_illuminators.py"
+    ],
+    "out": [
+     "outputs/report2_waveform_rcs.json",
+     "outputs/report03_illuminators.json"
+    ],
+    "runtime": "CPU 20초 안쪽 (JSON 을 읽어 노트북을 조립한다)",
+    "note": ""
+   }
+  },
+  {
+   "no": "46",
+   "anchor": "cost-ledger",
+   "part": 8,
+   "part_name": "조명원",
+   "title": "여섯 항목은 닫힌형이고, 점유 대가만 몬테카를로 격자에서 읽는다",
+   "file": "reports/46_cost-ledger.ipynb",
+   "md_cells": 11,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report03_illuminators.json",
+    "outputs/report4_fixups.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "~/.venvs/py312/bin/python src/viz_report2.py",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_ambiguity.py",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/report4_fixups.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part08_illuminators.py"
+    ],
+    "out": [
+     "outputs/report2_waveform_rcs.json",
+     "outputs/report4_fixups.json",
+     "outputs/report5_results.json",
+     "outputs/report03_illuminators.json"
+    ],
+    "runtime": "③ 556 s [^15] · ④ CPU 20초 안쪽",
+    "note": "`outputs/report5_results.json` 는 검출 몬테카를로가 이미 남긴 것이다 — 이 편은 그중 `A_occupancy` 만 인용한다(재실행 불필요)."
+   }
+  },
+  {
+   "no": "47",
+   "anchor": "range-convention",
+   "part": 8,
+   "part_name": "조명원",
+   "title": "바이스태틱 거리 분해능은 c/B, 잡음대역은 √(B/fs) 로 고정한다",
+   "file": "reports/47_range-convention.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/report4_fixups.json",
+    "outputs/verify_ambiguity.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_ambiguity.py",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/report4_fixups.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part08_illuminators.py"
+    ],
+    "out": [
+     "outputs/verify_ambiguity.json",
+     "outputs/report4_fixups.json"
+    ],
+    "runtime": "② GPU 1장 수 분 · ③ 556 s [^11]",
+    "note": ""
+   }
+  },
+  {
+   "no": "48",
+   "anchor": "waveform-check",
+   "part": 8,
+   "part_name": "조명원",
+   "title": "같은 자원격자를 독립 변조기에 넣어 상관 1.0000 을 얻었다",
+   "file": "reports/48_waveform-check.ipynb",
+   "md_cells": 8,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report2_waveform_rcs.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "~/.venvs/py312/bin/python src/viz_report2.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part08_illuminators.py"
+    ],
+    "out": [
+     "outputs/report2_waveform_rcs.json"
+    ],
+    "runtime": "① 3412 s [^12] · ② CPU 20초 안쪽",
+    "note": ""
+   }
+  },
+  {
+   "no": "49",
+   "anchor": "ambiguity",
+   "part": 8,
+   "part_name": "조명원",
+   "title": "검출기가 실제로 쓰는 커널 그대로 모호함수를 그렸다",
+   "file": "reports/49_ambiguity.ipynb",
+   "md_cells": 9,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report03_illuminators.json",
+    "outputs/verify_ambiguity.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_ambiguity.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part08_illuminators.py"
+    ],
+    "out": [
+     "outputs/verify_ambiguity.json",
+     "outputs/report03_illuminators.json"
+    ],
+    "runtime": "② GPU 1장 수 분 · ④ CPU 20초 안쪽",
+    "note": ""
+   }
+  },
+  {
+   "no": "50",
+   "anchor": "doppler-fold",
+   "part": 8,
+   "part_name": "조명원",
+   "title": "5G SSB 는 걷는 드론에서 접힌다",
+   "file": "reports/50_doppler-fold.ipynb",
+   "md_cells": 8,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/verify_ambiguity.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_ambiguity.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part08_illuminators.py"
+    ],
+    "out": [
+     "outputs/verify_ambiguity.json"
+    ],
+    "runtime": "② GPU 1장 수 분 · ④ CPU 20초 안쪽",
+    "note": ""
+   }
+  },
+  {
+   "no": "51",
+   "anchor": "chain",
+   "part": 9,
+   "part_name": "검출기",
+   "title": "수신 → ECA → 거리도플러 → CFAR, 사슬의 형상은 파형이 정한다",
+   "file": "reports/51_chain.ipynb",
+   "md_cells": 8,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/verify_cfar.json",
+    "outputs/verify_eca.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_eca.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report04_detector.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part09_detector.py"
+    ],
+    "out": [
+     "outputs/verify_eca.json"
+    ],
+    "runtime": "ECA 검증 · 그림은 각각 수 분 (GPU 1장)",
+    "note": ""
+   }
+  },
+  {
+   "no": "52",
+   "anchor": "eca",
+   "part": 9,
+   "part_name": "검출기",
+   "title": "탭을 늘리면 환경이 정한 바닥에서 멈추고, 그 대가가 0-도플러 노치다",
+   "file": "reports/52_eca.ipynb",
+   "md_cells": 9,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/verify_eca.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_eca.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report04_detector.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part09_detector.py"
+    ],
+    "out": [
+     "outputs/verify_eca.json"
+    ],
+    "runtime": "ECA 검증 · 그림은 각각 수 분 (GPU 1장)",
+    "note": ""
+   }
+  },
+  {
+   "no": "53",
+   "anchor": "cfar-calib",
+   "part": 9,
+   "part_name": "검출기",
+   "title": "운용 형상에서 경험 Pfa 를 재니 명목값의 1.52~2.66 배였다",
+   "file": "reports/53_cfar-calib.ipynb",
+   "md_cells": 9,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/prior_census.json",
+    "outputs/verify_cfar.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_cfar.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report04_detector.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part09_detector.py"
+    ],
+    "out": [
+     "outputs/verify_cfar.json",
+     "outputs/prior_census.json"
+    ],
+    "runtime": "CFAR 측정이 2717 s [^1] (GPU 1장)",
+    "note": "맵 수는 `--maps` / `--white` 로 줄인다. 줄이면 신뢰구간이 넓어진다."
+   }
+  },
+  {
+   "no": "54",
+   "anchor": "cfar-why",
+   "part": 9,
+   "part_name": "검출기",
+   "title": "그 배율의 원인은 셀 상관이고, 교정표는 형상마다 다시 재야 한다",
+   "file": "reports/54_cfar-why.ipynb",
+   "md_cells": 9,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/verify_cfar.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_cfar.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report04_detector.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part09_detector.py"
+    ],
+    "out": [
+     "outputs/verify_cfar.json"
+    ],
+    "runtime": "CFAR 측정이 2717 s [^6] (GPU 1장)",
+    "note": ""
+   }
+  },
+  {
+   "no": "55",
+   "anchor": "observability",
+   "part": 9,
+   "part_name": "검출기",
+   "title": "한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 위치가 풀린다",
+   "file": "reports/55_observability.ipynb",
+   "md_cells": 10,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/verify_observability.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_observability.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_report04_detector.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part09_detector.py"
+    ],
+    "out": [
+     "outputs/verify_observability.json"
+    ],
+    "runtime": "관측가능성 계산 · 그림은 각각 수 분",
+    "note": ""
+   }
+  },
+  {
+   "no": "56",
+   "anchor": "geometry",
+   "part": 10,
+   "part_name": "검출 결과",
+   "title": "TX·RX·표적 배치와 β·앙각·원거리장이 유효창을 연다",
+   "file": "reports/56_geometry.ipynb",
+   "md_cells": 8,
+   "figures": [],
+   "evidence": [
+    "outputs/archive/report13_sigma_grid_pre0803.json",
+    "outputs/phi_sweep.json",
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json",
+    "outputs/sbr_defect_fixes.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
+     "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
+     "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
+     "    --stage all --mode W1,L1,G1 --drone $D; done",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+    ],
+    "out": [
+     "outputs/report13_freespace.json",
+     "outputs/verify_freespace.json",
+     "outputs/sbr_defect_fixes.json",
+     "outputs/phi_sweep.json"
+    ],
+    "runtime": "σ 격자 · 검지거리 4단계 · 검증 · 스윕을 합쳐 7.8 h [^12] (GPU 2 [^13]장). 이 빌더 자신은 CPU 수 초다",
+    "note": ""
+   }
+  },
+  {
+   "no": "57",
+   "anchor": "sensitivity-chain",
+   "part": 10,
+   "part_name": "검출 결과",
+   "title": "세 밴드에서 값이 다른 항은 λ² 와 σ 둘뿐이다",
+   "file": "reports/57_sensitivity-chain.ipynb",
+   "md_cells": 9,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json",
+    "outputs/sigma_anchor.json",
+    "outputs/sigma_sensitivity.json",
+    "outputs/verify_linkbudget.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
+     "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
+     "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
+     "    --stage all --mode W1,L1,G1 --drone $D; done",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+    ],
+    "out": [
+     "outputs/report13_freespace.json",
+     "outputs/verify_linkbudget.json",
+     "outputs/sigma_sensitivity.json",
+     "outputs/report05_derived.json"
+    ],
+    "runtime": "σ 격자 · 검지거리 4단계 · 검증 · 스윕을 합쳐 7.8 h [^12] (GPU 2 [^13]장). 이 빌더 자신은 CPU 수 초다",
+    "note": ""
+   }
+  },
+  {
+   "no": "58",
+   "anchor": "shared-threshold",
+   "part": 10,
+   "part_name": "검출 결과",
+   "title": "자유공간 형상에서 문턱을 다시 재니 세 밴드가 SNR90 하나를 공유한다",
+   "file": "reports/58_shared-threshold.ipynb",
+   "md_cells": 8,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
+     "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
+     "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
+     "    --stage all --mode W1,L1,G1 --drone $D; done",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+    ],
+    "out": [
+     "outputs/report13_freespace.json",
+     "outputs/report05_derived.json"
+    ],
+    "runtime": "σ 격자 · 검지거리 4단계 · 검증 · 스윕을 합쳐 7.8 h [^10] (GPU 2 [^11]장). 이 빌더 자신은 CPU 수 초다",
+    "note": ""
+   }
+  },
+  {
+   "no": "59",
+   "anchor": "slope-anchor",
+   "part": 10,
+   "part_name": "검출 결과",
+   "title": "레벨을 맞추려면 크기전이 법칙을 골라야 하므로 기울기만 받는다",
+   "file": "reports/59_slope-anchor.ipynb",
+   "md_cells": 10,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/lowfreq_anchor.json",
+    "outputs/lowfreq_attack.json",
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json",
+    "outputs/sigma_anchor.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/sigma_anchor.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+    ],
+    "out": [
+     "outputs/sigma_anchor.json",
+     "outputs/lowfreq_attack.json",
+     "outputs/report05_derived.json"
+    ],
+    "runtime": "σ 격자 · 검지거리 4단계 · 검증 · 스윕을 합쳐 7.8 h [^6] (GPU 2 [^7]장). 이 빌더 자신은 CPU 수 초다",
+    "note": ""
+   }
+  },
+  {
+   "no": "60",
+   "anchor": "r90",
+   "part": 10,
+   "part_name": "검출 결과",
+   "title": "앵커 σ 위의 R90 은 3.69~11.10 km 이고, 밴드 순서는 기체마다 바뀐다",
+   "file": "reports/60_r90.ipynb",
+   "md_cells": 11,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/lowfreq_attack.json",
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json",
+    "outputs/s2r_assets_verify.json",
+    "outputs/sigma_anchor.json",
+    "outputs/sigma_sensitivity.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
+     "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
+     "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
+     "    --stage all --mode W1,L1,G1 --drone $D; done",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/sigma_anchor.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+    ],
+    "out": [
+     "outputs/report13_freespace.json",
+     "outputs/sigma_anchor.json",
+     "outputs/sigma_sensitivity.json",
+     "outputs/report05_derived.json"
+    ],
+    "runtime": "σ 격자 · 검지거리 4단계 · 검증 · 스윕을 합쳐 7.8 h [^8] (GPU 2 [^9]장). 이 빌더 자신은 CPU 수 초다",
+    "note": ""
+   }
+  },
+  {
+   "no": "61",
+   "anchor": "rank-durability",
+   "part": 10,
+   "part_name": "검출 결과",
+   "title": "그 순위는 자세평균이면 σ 오차 아래에서 하나로 모인다",
+   "file": "reports/61_rank-durability.ipynb",
+   "md_cells": 9,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json",
+    "outputs/sigma_sensitivity.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_detection.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+    ],
+    "out": [
+     "outputs/sigma_sensitivity.json"
+    ],
+    "runtime": "σ 격자 · 검지거리 4단계 · 검증 · 스윕을 합쳐 7.8 h [^10] (GPU 2 [^11]장). 이 빌더 자신은 CPU 수 초다",
+    "note": ""
+   }
+  },
+  {
+   "no": "62",
+   "anchor": "cpi-sweep",
+   "part": 10,
+   "part_name": "검출 결과",
+   "title": "CPI 를 늘리면 세 파형 모두 블라인드율이 내려간다",
+   "file": "reports/62_cpi-sweep.ipynb",
+   "md_cells": 8,
+   "figures": [],
+   "evidence": [
+    "outputs/cpi_guard_sweep.json",
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+    ],
+    "out": [
+     "outputs/cpi_guard_sweep.json"
+    ],
+    "runtime": "σ 격자 · 검지거리 4단계 · 검증 · 스윕을 합쳐 7.8 h [^9] (GPU 2 [^10]장). 이 빌더 자신은 CPU 수 초다",
+    "note": ""
+   }
+  },
+  {
+   "no": "63",
+   "anchor": "cpi-residual",
+   "part": 10,
+   "part_name": "검출 결과",
+   "title": "모호속도는 표본화율의 성질이라 CPI 와 무관한 상한이다",
+   "file": "reports/63_cpi-residual.ipynb",
+   "md_cells": 8,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/cpi_guard_sweep.json",
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+    ],
+    "out": [
+     "outputs/cpi_guard_sweep.json"
+    ],
+    "runtime": "σ 격자 · 검지거리 4단계 · 검증 · 스윕을 합쳐 7.8 h [^11] (GPU 2 [^12]장). 이 빌더 자신은 CPU 수 초다",
+    "note": ""
+   }
+  },
+  {
+   "no": "64",
+   "anchor": "sigma-free-axis",
+   "part": 10,
+   "part_name": "검출 결과",
+   "title": "σ 를 곱하기 전에 이미 세 파형의 순서를 정하는 축이 있다",
+   "file": "reports/64_sigma-free-axis.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_detection.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+    ],
+    "out": [
+     "outputs/detection_rx_sweep.json",
+     "outputs/report05_derived.json"
+    ],
+    "runtime": "σ 격자 · 검지거리 4단계 · 검증 · 스윕을 합쳐 7.8 h [^9] (GPU 2 [^10]장). 이 빌더 자신은 CPU 수 초다",
+    "note": ""
+   }
+  },
+  {
+   "no": "65",
+   "anchor": "target-model-swap",
+   "part": 10,
+   "part_name": "검출 결과",
+   "title": "평판·큐브·우리 격자를 같은 동작점에서 갈아끼우면 요구 이득이 이만큼 달라진다",
+   "file": "reports/65_target-model-swap.ipynb",
+   "md_cells": 9,
+   "figures": [],
+   "evidence": [
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json",
+    "outputs/tm_attack.json",
+    "outputs/tm_result.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+    ],
+    "out": [
+     "outputs/tm_result.json",
+     "outputs/tm_attack.json"
+    ],
+    "runtime": "σ 격자 · 검지거리 4단계 · 검증 · 스윕을 합쳐 7.8 h [^10] (GPU 2 [^11]장). 이 빌더 자신은 CPU 수 초다",
+    "note": ""
+   }
+  },
+  {
+   "no": "66",
+   "anchor": "rx-elements",
+   "part": 10,
+   "part_name": "검출 결과",
+   "title": "코히어런트 배열이득은 10log₁₀N 상한에 −0.11~+0.47 dB 로 붙는다",
+   "file": "reports/66_rx-elements.ipynb",
+   "md_cells": 9,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/detection_rx_sweep.json",
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json"
+   ],
+   "repro": {
+    "cmd": [
+     "cd /home/yunjung/workspace/sionna2",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_detection.py",
+     "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+    ],
+    "out": [
+     "outputs/detection_rx_sweep.json",
+     "outputs/report05_derived.json"
+    ],
+    "runtime": "σ 격자 · 검지거리 4단계 · 검증 · 스윕을 합쳐 7.8 h [^9] (GPU 2 [^10]장). 이 빌더 자신은 CPU 수 초다",
+    "note": ""
+   }
+  },
+  {
+   "no": "67",
+   "anchor": "hardware",
+   "part": 11,
+   "part_name": "실측 설계",
+   "title": "X410 의 12-bit ADC 동적범위가 직접파 제거의 천장이다",
+   "file": "reports/67_hardware.ipynb",
+   "md_cells": 7,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/measurement_layers.json",
+    "outputs/report06_derived.json",
+    "outputs/report06_measurement.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/plan_measurement.py",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c \"import sigma_anchor as S; S.write_measurement_plan()\"",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py"
+    ],
+    "out": [
+     "outputs/report06_measurement.json",
+     "outputs/measurement_plan.json",
+     "outputs/report06_derived.json"
+    ],
+    "runtime": "약 10 초 (CPU)",
+    "note": "산문판 설계서는 `docs/MEASUREMENT_PLAN.md` 이고, 그 안의 수치표는 `src/sigma_anchor.py:939` 가 자동 주입한다"
+   }
+  },
+  {
+   "no": "68",
+   "anchor": "sigma-checklist",
+   "part": 11,
+   "part_name": "실측 설계",
+   "title": "교정된 절대 σ 를 만드는 조건은 여섯 항목이 전부다",
+   "file": "reports/68_sigma-checklist.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/report06_derived.json",
+    "outputs/report06_measurement.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/plan_measurement.py",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c \"import sigma_anchor as S; S.write_measurement_plan()\"",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py"
+    ],
+    "out": [
+     "outputs/report06_measurement.json",
+     "outputs/measurement_plan.json",
+     "outputs/report06_derived.json"
+    ],
+    "runtime": "약 10 초 (CPU)",
+    "note": "산문판 설계서는 `docs/MEASUREMENT_PLAN.md` 이고, 그 안의 수치표는 `src/sigma_anchor.py:939` 가 자동 주입한다"
+   }
+  },
+  {
+   "no": "69",
+   "anchor": "site-geometry",
+   "part": 11,
+   "part_name": "실측 설계",
+   "title": "가장 보수적인 D 정의로도 세션 거리 하나가 두 기체 세 밴드를 덮는다",
+   "file": "reports/69_site-geometry.ipynb",
+   "md_cells": 9,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/meshfix_applied.json",
+    "outputs/report06_derived.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/plan_measurement.py",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c \"import sigma_anchor as S; S.write_measurement_plan()\"",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py"
+    ],
+    "out": [
+     "outputs/report06_measurement.json",
+     "outputs/measurement_plan.json",
+     "outputs/report06_derived.json"
+    ],
+    "runtime": "약 10 초 (CPU)",
+    "note": "산문판 설계서는 `docs/MEASUREMENT_PLAN.md` 이고, 그 안의 수치표는 `src/sigma_anchor.py:939` 가 자동 주입한다"
+   }
+  },
+  {
+   "no": "70",
+   "anchor": "calibration-sphere",
+   "part": 11,
+   "part_name": "실측 설계",
+   "title": "구가 σ 를 절대량으로 만들고, 반경 17.8 cm 를 고른다",
+   "file": "reports/70_calibration-sphere.ipynb",
+   "md_cells": 9,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/measurement_layers.json",
+    "outputs/meshfix_applied.json",
+    "outputs/report06_derived.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/plan_measurement.py",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c \"import sigma_anchor as S; S.write_measurement_plan()\"",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py"
+    ],
+    "out": [
+     "outputs/report06_measurement.json",
+     "outputs/measurement_plan.json",
+     "outputs/report06_derived.json"
+    ],
+    "runtime": "약 10 초 (CPU)",
+    "note": "산문판 설계서는 `docs/MEASUREMENT_PLAN.md` 이고, 그 안의 수치표는 `src/sigma_anchor.py:939` 가 자동 주입한다"
+   }
+  },
+  {
+   "no": "71",
+   "anchor": "subband",
+   "part": 11,
+   "part_name": "실측 설계",
+   "title": "표적을 한 거리빈에 넣는 최대 대역은 200 MHz 다",
+   "file": "reports/71_subband.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/measurement_layers.json",
+    "outputs/report06_derived.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/plan_measurement.py",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c \"import sigma_anchor as S; S.write_measurement_plan()\"",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py"
+    ],
+    "out": [
+     "outputs/report06_measurement.json",
+     "outputs/measurement_plan.json",
+     "outputs/report06_derived.json"
+    ],
+    "runtime": "약 10 초 (CPU)",
+    "note": "산문판 설계서는 `docs/MEASUREMENT_PLAN.md` 이고, 그 안의 수치표는 `src/sigma_anchor.py:939` 가 자동 주입한다"
+   }
+  },
+  {
+   "no": "72",
+   "anchor": "attitude",
+   "part": 11,
+   "part_name": "실측 설계",
+   "title": "각도표본을 λ/4D 로 잡아 앵커 문헌의 고정 2° 보다 촘촘하게 간다",
+   "file": "reports/72_attitude.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/measurement_layers.json",
+    "outputs/report06_derived.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/plan_measurement.py",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c \"import sigma_anchor as S; S.write_measurement_plan()\"",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py"
+    ],
+    "out": [
+     "outputs/report06_measurement.json",
+     "outputs/measurement_plan.json",
+     "outputs/report06_derived.json"
+    ],
+    "runtime": "약 10 초 (CPU)",
+    "note": "산문판 설계서는 `docs/MEASUREMENT_PLAN.md` 이고, 그 안의 수치표는 `src/sigma_anchor.py:939` 가 자동 주입한다"
+   }
+  },
+  {
+   "no": "73",
+   "anchor": "three-layers",
+   "part": 11,
+   "part_name": "실측 설계",
+   "title": "σ(f) 레인지·파형축·비행검출로 층을 나눈다",
+   "file": "reports/73_three-layers.ipynb",
+   "md_cells": 7,
+   "figures": [],
+   "evidence": [
+    "outputs/measurement_layers.json",
+    "outputs/report06_derived.json",
+    "outputs/s2r_attack.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/plan_measurement.py",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c \"import sigma_anchor as S; S.write_measurement_plan()\"",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py"
+    ],
+    "out": [
+     "outputs/report06_measurement.json",
+     "outputs/measurement_plan.json",
+     "outputs/report06_derived.json"
+    ],
+    "runtime": "약 10 초 (CPU)",
+    "note": "산문판 설계서는 `docs/MEASUREMENT_PLAN.md` 이고, 그 안의 수치표는 `src/sigma_anchor.py:939` 가 자동 주입한다"
+   }
+  },
+  {
+   "no": "74",
+   "anchor": "sim-vs-meas",
+   "part": 11,
+   "part_name": "실측 설계",
+   "title": "캠페인이 결판내는 양은 절대값이 아니라 순위다",
+   "file": "reports/74_sim-vs-meas.ipynb",
+   "md_cells": 9,
+   "figures": [],
+   "evidence": [
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/report06_derived.json",
+    "outputs/sigma_anchor.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/plan_measurement.py",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c \"import sigma_anchor as S; S.write_measurement_plan()\"",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py"
+    ],
+    "out": [
+     "outputs/report06_measurement.json",
+     "outputs/measurement_plan.json",
+     "outputs/report06_derived.json"
+    ],
+    "runtime": "약 10 초 (CPU)",
+    "note": "산문판 설계서는 `docs/MEASUREMENT_PLAN.md` 이고, 그 안의 수치표는 `src/sigma_anchor.py:939` 가 자동 주입한다"
+   }
+  },
+  {
+   "no": "75",
+   "anchor": "decision-matrix",
+   "part": 11,
+   "part_name": "실측 설계",
+   "title": "주장마다 판정 범위를 결판·사슬확인·캠페인 밖으로 적었다",
+   "file": "reports/75_decision-matrix.ipynb",
+   "md_cells": 9,
+   "figures": [],
+   "evidence": [
+    "outputs/lowfreq_attack.json",
+    "outputs/p3_validation.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/ptd_wiring.json",
+    "outputs/report06_derived.json",
+    "outputs/report06_measurement.json",
+    "outputs/verify_cfar.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/plan_measurement.py",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c \"import sigma_anchor as S; S.write_measurement_plan()\"",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py"
+    ],
+    "out": [
+     "outputs/report06_measurement.json",
+     "outputs/measurement_plan.json",
+     "outputs/report06_derived.json"
+    ],
+    "runtime": "약 10 초 (CPU)",
+    "note": "산문판 설계서는 `docs/MEASUREMENT_PLAN.md` 이고, 그 안의 수치표는 `src/sigma_anchor.py:939` 가 자동 주입한다"
+   }
+  },
+  {
+   "no": "76",
+   "anchor": "session-drift",
+   "part": 11,
+   "part_name": "실측 설계",
+   "title": "기울기 판정의 문턱은 세션간 진폭 재현성이고, σ 사슬 세대를 바꾸면 그 문턱이 손닿는 범위 밖으로 좁아진다",
+   "file": "reports/76_session-drift.ipynb",
+   "md_cells": 8,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/meshfix_applied.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/report06_derived.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/plan_measurement.py",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c \"import sigma_anchor as S; S.write_measurement_plan()\"",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py"
+    ],
+    "out": [
+     "outputs/report06_measurement.json",
+     "outputs/measurement_plan.json",
+     "outputs/report06_derived.json"
+    ],
+    "runtime": "약 10 초 (CPU)",
+    "note": "산문판 설계서는 `docs/MEASUREMENT_PLAN.md` 이고, 그 안의 수치표는 `src/sigma_anchor.py:939` 가 자동 주입한다"
+   }
+  },
+  {
+   "no": "77",
+   "anchor": "size-law-differential",
+   "part": 11,
+   "part_name": "실측 설계",
+   "title": "두 기체를 함께 재면 크기전이 법칙이 차등신호의 부호 하나로 갈린다",
+   "file": "reports/77_size-law-differential.ipynb",
+   "md_cells": 7,
+   "figures": [
+    "reports"
+   ],
+   "evidence": [
+    "outputs/report06_derived.json"
+   ],
+   "repro": {
+    "cmd": [
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/plan_measurement.py",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python -c \"import sigma_anchor as S; S.write_measurement_plan()\"",
+     "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py"
+    ],
+    "out": [
+     "outputs/report06_measurement.json",
+     "outputs/measurement_plan.json",
+     "outputs/report06_derived.json"
+    ],
+    "runtime": "약 10 초 (CPU)",
+    "note": "산문판 설계서는 `docs/MEASUREMENT_PLAN.md` 이고, 그 안의 수치표는 `src/sigma_anchor.py:939` 가 자동 주입한다"
+   }
+  }
+ ]
+}

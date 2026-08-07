@@ -1,15 +1,45 @@
 {
  "no": "56",
- "anchor": "geometry",
  "part": 10,
- "part_name": "검출 결과",
  "title": "TX·RX·표적 배치와 β·앙각·원거리장이 유효창을 연다",
- "file": "reports/56_geometry.ipynb",
- "builder": "src/build_part10_results.py",
- "md_cells": 6,
- "figures": 0,
- "provenance_tags": 36,
- "negatives": 0,
- "hedges": 0,
- "ok": true
+ "short": "TX·RX·표적 배치와 β·앙각·원거리장이 유…",
+ "file": "56_geometry.ipynb",
+ "evidence": [
+  "outputs/report13_freespace.json",
+  "outputs/verify_freespace.json",
+  "outputs/sbr_defect_fixes.json",
+  "outputs/phi_sweep.json",
+  "outputs/archive/report13_sigma_grid_pre0803.json"
+ ],
+ "from_cells": [
+  "report05:c2",
+  "report05:c3"
+ ],
+ "anchor": "geometry",
+ "figures": [],
+ "md_cells": 8,
+ "provenance_tags": 38,
+ "repro": {
+  "cmd": [
+   "cd /home/yunjung/workspace/sionna2",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py",
+   "for D in mini5pro mavic4pro matrice4e phantom4 s1000plus; do \\",
+   "  PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_range.py \\",
+   "    --stage all --mode W1,L1,G1 --drone $D; done",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/verify_freespace.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_detection.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/sigma_sensitivity.py",
+   "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/cpi_guard_sweep.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/sigma_anchor.py",
+   "PYTHONPATH=src ~/.venvs/py312/bin/python src/build_part10_results.py"
+  ],
+  "out": [
+   "outputs/report13_freespace.json",
+   "outputs/verify_freespace.json",
+   "outputs/sbr_defect_fixes.json",
+   "outputs/phi_sweep.json",
+   "outputs/archive/report13_sigma_grid_pre0803.json"
+  ]
+ },
+ "builder": "src/build_part10_results.py"
 }
