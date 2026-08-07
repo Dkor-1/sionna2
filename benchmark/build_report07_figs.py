@@ -86,9 +86,12 @@ def _half_corr(E):
     return float(np.corrcoef(S1, S2)[0, 1])
 
 
-def _plain_spec(E, prf, f_flash, min_periods=8, zero_pad=4):
-    """⭐ 0 도플러를 **지우지 않는** 스펙트로그램 — OpenISAC Fig.13 처럼 동체 선을 남긴다.
-    창 함수 + 제로패딩은 그대로 쓴다(원문 식 20 의 w[n,m], N_Per ≥ N)."""
+def _plain_spec(E, prf, f_flash, min_periods=8, zero_pad=1):
+    """⭐ 0 도플러를 **지우지 않는** 스펙트로그램 — 동체 선을 읽기의 기준으로 남긴다.
+
+    ⚠ zero_pad 를 1 로 둔다. 4배로 하면 표시 범위에 빈이 1,461개 들어가는데 패널 폭이
+      화면에서 ~950 화소라 렌더러가 솎아내며 **얼룩(모아레)** 이 생긴다.
+      1배여도 능선 사이에 13 빈이 들어 빗살은 그대로 분리된다."""
     from scipy.signal import spectrogram as _sp
     E = np.asarray(E, complex)
     nper = int(2 ** np.ceil(np.log2(max(16.0, min_periods * prf / f_flash))))
@@ -147,39 +150,32 @@ def fig1_prop_spectrogram():
     fig, axes = plt.subplots(1, 2, figsize=(9.8, 4.0), sharey=True)
     fig.subplots_adjust(top=0.80)
     for ax, (arm, ttl, f, t, S, per, E) in zip(axes, got):
+        # ⚠ 색역 60 dB 로 두면 빗살 **사이의 바닥**(빗살보다 23 dB 아래)까지 다 보여
+        #   화면이 얼룩진다. 능선만 남게 35 dB 로 좁힌다.
         m = ax.pcolormesh(t * 1e3, f, 20 * np.log10(S / vmax + 1e-12),
-                          cmap="turbo", vmin=-60, vmax=0, shading="auto")
+                          cmap="turbo", vmin=-35, vmax=0, shading="auto")
         for sgn in (+1, -1):
-            ax.axhline(sgn * ftip, color="w", ls="--", lw=1.2, alpha=0.95)
+            ax.axhline(sgn * ftip, color="w", ls="--", lw=1.1, alpha=0.9)
         hc = _half_corr(E)
         ax.set_title(f"{ttl}\nhalf-window spectrum correlation {hc:.4f}", fontsize=FS)
         ax.set_xlabel("Time [ms]")
         ax.set_ylim(-1.45 * ftip, 1.45 * ftip)
     axes[0].set_ylabel("Doppler [Hz]")
 
-    # 원문이 읽는 세 가지를 그림 위에 이름으로
-    ax = axes[0]
-    ax.annotate("body — quasi-static, zero Doppler", xy=(t[2] * 1e3, 0),
-                xytext=(t[2] * 1e3, 0.42 * ftip), fontsize=FS - 2.2, color="w",
-                arrowprops=dict(arrowstyle="->", color="w", lw=1.1))
-    ax.annotate("", xy=(t[-3] * 1e3, ffl), xytext=(t[-3] * 1e3, 2 * ffl),
-                arrowprops=dict(arrowstyle="<->", color="w", lw=1.2))
-    ax.text(t[-3] * 1e3 - 8, 1.5 * ffl, f"ridge spacing\n= {ffl:.0f} Hz",
-            fontsize=FS - 2.2, color="w", ha="right", va="center")
-    ax.text(0.03, 0.955, f"blade-tip spread   $f_{{tip}}$ = {ftip:.0f} Hz (white dashed)",
-            transform=ax.transAxes, fontsize=FS - 2.2, color="w", va="top")
-
     fig.colorbar(m, ax=axes, pad=0.015).set_label("Magnitude [dB]", fontsize=FS)
     fig.suptitle(f"{c['name']} — hovering, belly view "
                  f"(az {c['az_deg']:.0f}, el {c['el_deg']:.0f}), 3.5 GHz.   "
                  f"Figure flow after OpenISAC arXiv:2601.03535 Fig. 13",
                  fontsize=FS + 0.5, y=1.13)
-    fig.text(0.5, 1.055,
-             f"{per['nperseg']}-sample Hann segments ({per['seg_periods']:.0f} blade periods, "
+    fig.text(0.5, 1.05,
+             f"Zero Doppler = body.   Symmetric ridges = blades, spaced by "
+             f"$f_{{flash}}$ = {ffl:.0f} Hz.   White dashed = blade-tip spread "
+             f"$f_{{tip}}$ = {ftip:.0f} Hz.\n"
+             f"{per['nperseg']}-sample Hann segments "
+             f"({per['seg_periods']:.0f} blade periods, "
              f"{per['bins_between_harmonics']:.0f} bins between ridges), "
-             f"{per['zero_pad']}x zero-padded, {per['n_segments']} time slots.  "
-             f"Zero Doppler is kept on purpose — it is the body reference.",
-             ha="center", va="top", fontsize=FS - 2.2, color="#455a64")
+             f"{per['n_segments']} time slots, both panels on one reference.",
+             ha="center", va="top", fontsize=FS - 2.0, color="#455a64")
     _save(fig, "report07_f1")
 
 

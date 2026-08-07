@@ -1,0 +1,4301 @@
+{
+ "_meta": {
+  "generated": "2026-08-07T10:46:30",
+  "generator": "scratchpad/mkplan.py — 계획만 쓴다(빌더·노트북·report_style 무수정)",
+  "supersedes": "docs/REPORTS_RESTRUCTURE.md §1 편성표의 번호와 부 7 구성",
+  "inputs": [
+   "outputs/restruct_design.json",
+   "outputs/restruct_survey.json",
+   "outputs/restruct_diagnose.json",
+   "src/make_report00..07_*.py (읽기)",
+   "docs/TARGET_LADDER.md (읽기)"
+  ],
+  "n_reports": 77,
+  "n_parts": 12,
+  "what_changed_from_design": [
+   "부 4 에 편 23(kernel-open-items)을 신설했다 — 설계가 report00:c23(§8 아직 못 하는 것, 1,342자)을 어느 편에도 안 붙여 뒀다",
+   "부 7(마이크로도플러)을 설계의 4편에서 10편으로 재편했다 — 설계는 옛 report15_* 라운드를 보고 짰고, 그 뒤 2026-08-07 에 report07 이 report15b 재계산으로 지어졌다. 두 근거를 한 부에 합쳤다",
+   "그래서 편 번호가 설계의 00~69(70편)에서 00~76(77편)으로 늘었다. 부 5 이후가 +1, 부 8 이후가 +7 이다",
+   "코드셀 4개(report02:c23·report03:c12·report04:c12·report06:c24)를 편에서 빼 docs/REPRODUCE.md 로 돌렸다 — 설계 로스터는 report03:c12 와 report04:c12 를 편 40·46 에 넣어 뒀는데 R9 와 어긋난다",
+   "report04:c16 은 survey 가 memo_repro 로 분류했지만 내용이 «교정표가 성립하는 범위» 라 편 54 에 남긴다"
+  ],
+  "what_i_decided_myself": [
+   "report_style.py 의 MAX_MD_CELLS·MAX_LINES_PER_CELL·MAX_FIGURES·MAX_NEGATIVES 를 **하나도 안 건드린다**. 설계는 이 상한들을 버리라고 했지만, 편을 쪼개면 아무도 그 상한에 안 닿는다 — report07 이 11셀·5그림·부정문 2 로 통과한 것이 그 증거다. 새 검사(화면 줄·표 칸·§참조 금지)만 얹으면 상한은 조여지기만 하고, «상한을 올리지 마라» 와도 정면으로 맞는다",
+   "출처 태그는 각주로 옮긴다(진단 1위, 화면 글자의 37.9%). report_style.py 에 각주 엔진이 들어가는데 이건 상한 조작이 아니다. 대신 번호는 num() 이 쓴 순서로 자동 생성하고 라운드트립 검사를 붙인다",
+   "번호는 평면 00~76 을 쓰되 **앵커가 1차 키**다. 편 사이 참조는 번호가 아니라 앵커로만 하고, 번호는 표시 라벨이다. 그래야 편이 하나 늘어도 참조가 안 끊긴다",
+   "새 노트북은 reports/ 아래에 짓는다. 옛 8편은 마지막 단계까지 제자리에 둔다 — 되돌리기는 reports/ 삭제다",
+   "표 칸 상한은 100 화면 칸에서 위반, 60 칸에서 권고. 진단의 60칸 초과 695칸을 전부 위반으로 잡으면 S4 가 규약과 싸우다 끝난다. 100칸 = 화면 한 줄이고, 그것을 넘는 칸이 «표가 아니라 문단» 이다",
+   "«다음 단계» 행 중 어느 편에도 안 앉는 것은 docs/NEXT_STEPS.md 로 모은다 — 한 행도 안 버리기 위한 배수구다"
+  ]
+ },
+ "numbering": {
+  "scheme": "reports/NN_<anchor>.ipynb — NN 은 00~76 평면 번호, <anchor> 는 영문 슬러그",
+  "primary_key": "anchor",
+  "why": [
+   "번호는 사람이 순서를 읽는 라벨이고, 앵커는 기계가 거는 키다. 참조를 전부 앵커로 걸면 편이 하나 늘어도 끊기는 것은 파일 이름뿐이고 그건 스크립트로 고친다",
+   "설계·읽기경로·section_map 이 이미 평면 번호로 쓰여 있다. 부-내 번호(예 p04-02)로 바꾸면 그 세 문서를 전부 다시 매핑해야 하는데 얻는 것이 없다"
+  ],
+  "files": {
+   "notebook": "reports/NN_<anchor>.ipynb",
+   "builder": "src/build_partNN_<slug>.py  (부 하나가 편 여러 개를 뱉는다 — 파일 77개를 만들지 않는다)",
+   "index_shard": "outputs/reports_index/<anchor>.json  (편마다 하나 — 부 에이전트가 동시에 써도 안 부딪친다)",
+   "index_merged": "outputs/reports_index.json  (src/make_reports_index.py 가 병합)",
+   "registry": "src/report_registry.py  (anchor → no·part·title·file 사전 — 번호의 유일한 정본)"
+  },
+  "renumber_procedure": [
+   "① src/report_registry.py 의 REPORTS 사전에서 번호만 고친다",
+   "② PYTHONPATH=src python src/reports_renumber.py — git mv 로 파일명을 맞추고 README·읽기경로를 다시 뽑는다",
+   "③ 본문은 손대지 않는다. 본문에 번호가 박혀 있지 않기 때문이다(ref() 가 렌더할 때 사전에서 읽는다)"
+  ],
+  "report07_disposition": {
+   "verdict": "report07_microdoppler 는 부 7 이 되고, 그 §들이 편 35~40·43 으로 나뉜다",
+   "why": "report07 은 새 규약의 **문체** 본보기이지 **크기** 본보기가 아니다. 11셀·5그림에 중심 메시지가 일곱(슬로타임·두 엔진·전처리·회전수·가림·자세·PRF) 들어 있어 R1 을 못 지킨다",
+   "how": [
+    "src/make_report07_microdoppler.py → src/_legacy_builders/ 로 옮긴다",
+    "report07_microdoppler.ipynb 은 S7 까지 제자리에 둔다(되돌리기 지점)",
+    "그림 report07_f1~f4 는 그대로 쓴다 — 다시 그리지 않는다"
+   ],
+   "keep_as_exemplar": "src/build_part07_microdoppler.py 의 첫 편(35 md-slowtime)을 report07 §1 의 문체 그대로 옮겨 다른 부가 참조할 본보기로 삼는다"
+  }
+ },
+ "anchor_syntax": {
+  "in_builder": {
+   "ref(anchor)": "→ `[편 18 «가림 판정은 Sionna 광선엔진이 하고, 면적분은 우리 커널이 한다»](18_kernel-what.ipynb)`",
+   "ref(anchor, short=True)": "→ `[편 18 «커널이 하는 일»](18_kernel-what.ipynb)` — 표 칸 안에서 쓴다(100칸 규칙)",
+   "ref_fig(anchor, k)": "→ `편 18 그림 2` — 그림 번호는 편 안에서 1부터 다시 센다",
+   "ref_part(n)": "→ `[부 4 «산란 커널»](README.md#부-4-산란-커널)`",
+   "ref_paper(doc)": "→ `[docs/paper/02_target.md](../docs/paper/02_target.md)`"
+  },
+  "resolution": "src/report_registry.py 의 REPORTS 사전. 없는 앵커면 ContractError 로 빌드가 멈춘다",
+  "stop_the_build": {
+   "decision": "예 — 없는 앵커는 빌드를 멈춘다",
+   "why": "끊긴 링크는 조용히 실패한다. 고치는 값은 사전 한 줄이고, 안 잡으면 77편에 흩어져 남는다",
+   "escape": "아직 안 지은 편을 미리 참조해야 하면 REPORTS 사전에 planned=True 로 올려 둔다 — 그러면 링크는 걸리고 «아직 없는 편» 이라는 각주가 붙는다. S7 이 planned 잔량 0 을 확인한다"
+  },
+  "banned": {
+   "pattern": "문장 안의 §숫자 (예 «§3.1 참조»)",
+   "check": "check_budget: 줄이 '#'{2,4} + §' 로 시작하는 제목이 아닌데 §\\d 가 있으면 위반",
+   "why": "편을 쪼개면 §번호가 전부 끊긴다. 설계가 403건을 세었고 그중 4건은 아예 자기 편에 없는 번호였다",
+   "exception": "3GPP·IEEE 규격 절 번호는 § 없이 적는다 — «TS 38.211 5.3.1» 이지 «§5.3.1» 이 아니다. 설계가 report05 §5.3.1·§6.10.1.2·§6.10.4.2·§21.3.7 을 그 오식으로 찾아냈다"
+  },
+  "section_map_source": "outputs/restruct_design.json : cross_reference_map.section_map (117행) — 옛 §참조 403건이 이미 편으로 매핑돼 있다. 번호는 이 계획의 shift() 로 옮긴다"
+ },
+ "readability_prescription": {
+  "rank1_source_tags": {
+   "diagnosis": "출처 태그 1,421개가 화면 글자의 37.9%(94,984/250,425자). 태그를 지우면 문장이 183 → 76자",
+   "decision": "A(각주) + E(재인용은 같은 번호) + 표 안은 B(칸에서 빼고 표 밑 «출처» 줄)",
+   "render": "본문 `12.3 dB[^7]` · 편 끝 «출처» 표 `| [^7] | sbr_kr_sweep.json | summary_div16.max_abs_db_vs_po | 0.201 |`",
+   "api": {
+    "begin_report(anchor)": "빌더의 blocks() 첫 줄. 각주 원장을 초기화한다. 이걸 안 부르고 build_notebook 을 부르면 ContractError",
+    "num(...)": "검증은 그대로(JSON 을 열어 값을 대조한다). 찍는 문자열만 `[^n]` 으로 바뀐다",
+    "footnote_table()": "build_notebook 이 편 끝에 자동으로 붙인다 — 손으로 번호를 매기지 않는다",
+    "dedup": "같은 (파일, 키) 는 같은 번호. 진단이 센 재인용 454회가 여기서 사라진다"
+   },
+   "roundtrip_check": "각주 표의 값 = JSON 을 다시 읽은 값. 어긋나면 빌드 정지. 번호 밀림이 이 라운드가 새로 만드는 유일한 실패 모드라 검사를 같이 넣는다",
+   "migration_hazard": "⚠ check_budget 의 _PROV_VALUE 정규식이 «값+⟨태그⟩» 를 지워 «손으로 친 숫자» 를 가려낸다. 각주로 바꾸면 `[-+]?[\\d…]\\s*\\[\\^\\d+\\]` 도 같이 지워야 한다. 안 고치면 각주 붙은 숫자가 전부 권고로 뜬다 — S1 의 필수 항목",
+   "cost": "각주 표 77개가 새로 생긴다(≈41,650자). 그래도 «흐르는 본문» 은 250,182 → 128,755자(−48.5%)",
+   "accepted_loss": "숫자 옆에서 출처가 한 눈금 멀어진다. 편이 1,400자라 각주 표가 같은 화면에 든다"
+  },
+  "rank2_no_conclusion": {
+   "diagnosis": "클러스터 71개 중 결론 셀이 있는 것 20개. report02 는 여는 셀 뒤 53,234자 동안 결론 문장이 없다",
+   "decision": [
+    "편 제목이 곧 결론 문장이다 — header(title=) 가 «…다» 로 끝나고 물음표를 금지한다(새 검사)",
+    "header() 에 evidence=[JSON 목록] 인자를 **필수**로 넣는다. 그 줄이 편 머리의 «근거» 한 줄이 되고, 동시에 outputs/reports_index/<anchor>.json 의 입력이 된다",
+    "편 하나가 1,400자라 결론까지의 거리 자체가 사라진다 — 이게 진짜 처방이다"
+   ]
+  },
+  "rank3_table_cells": {
+   "diagnosis": "본문의 47.7%가 표. 표 칸 2,732개 중 60칸 초과 695 · 120칸 초과 220 · 최대 996",
+   "decision": "표 칸 100 화면 칸 초과 = 위반, 60칸 초과 = 권고. 넘치면 그 칸을 표 밖 문단으로 내린다",
+   "why_100_not_60": "최악 6개 중 5개가 «주장|근거|공격|답» 논문 방어선 표인데 그건 docs/paper 로 빠진다. 남는 것에 60칸을 걸면 S4 가 규약과 싸우다 끝난다. 100칸 = 화면 한 줄이고 그걸 넘는 칸이 «표가 아니라 문단 격자» 다",
+   "recalibrate_at": "S3 파일럿이 부 4 에서 실제 위반 수를 세어 보고한다. 100 이 헐거우면 80 으로 조인다"
+  },
+  "rank4_screen_lines": {
+   "diagnosis": "12줄 검사를 통과하면서 화면(폭 100칸)에서 12줄을 넘는 셀 105/170개. 중앙 배율 2.0배",
+   "decision": "MAX_LINES_PER_CELL=12 는 **그대로 두고** «화면 줄 ≤ 15 · 셀 렌더 글자 ≤ 700» 검사를 얹는다",
+   "why": "상한을 올리는 것이 아니라 새 축으로 조이는 것이다. 두 검사를 다 통과해야 한다",
+   "exempt": "header·next_steps 블록은 지금처럼 면제. 그림 셀은 캡션만 세므로 영향 없다"
+  },
+  "caps_untouched": {
+   "MAX_MD_CELLS": 25,
+   "MAX_LINES_PER_CELL": 12,
+   "MAX_FIGURES": 8,
+   "MAX_NEGATIVES": 3,
+   "MAX_HEDGES": 0,
+   "note": "이 다섯은 손대지 않는다. 새 편은 중앙 6셀·0~2그림이라 애초에 안 닿는다. 설계의 R11(그림 ≤3)·R12(부정문 ≤1)는 **권고**로 낮춘다 — 상한을 내리면 report07 이 깨진다"
+  }
+ },
+ "paper_and_repro": {
+  "user_directive": "논문 작성 측면·재현 관련은 아예 별도로 각각 따로 메모하고 리포트에 쓸 필요 없다",
+  "targets": [
+   {
+    "path": "docs/paper/README.md",
+    "what": "논문 조각 지도 — 어느 조각이 어느 편에서 왔나",
+    "generator": "src/make_paper_docs.py"
+   },
+   {
+    "path": "docs/paper/00_novelty.md",
+    "from": [
+     "report01:c20"
+    ],
+    "chars": 2652,
+    "generator": "src/make_paper_docs.py"
+   },
+   {
+    "path": "docs/paper/01_prior.md",
+    "from": [
+     "report01:c23"
+    ],
+    "chars": 8215,
+    "generator": "src/make_paper_docs.py"
+   },
+   {
+    "path": "docs/paper/02_target.md",
+    "from": [
+     "report02:c25"
+    ],
+    "chars": 7496,
+    "generator": "src/make_paper_docs.py"
+   },
+   {
+    "path": "docs/paper/03_illuminators.md",
+    "from": [
+     "report03:c2",
+     "report03:c21"
+    ],
+    "chars": 8721,
+    "generator": "src/make_paper_docs.py"
+   },
+   {
+    "path": "docs/paper/04_detector.md",
+    "from": [
+     "report04:c22"
+    ],
+    "chars": 7606,
+    "generator": "src/make_paper_docs.py"
+   },
+   {
+    "path": "docs/paper/05_results.md",
+    "from": [
+     "report05:c23"
+    ],
+    "chars": 7554,
+    "generator": "src/make_paper_docs.py"
+   },
+   {
+    "path": "docs/paper/06_measurement.md",
+    "from": [
+     "report06:c23"
+    ],
+    "chars": 6137,
+    "generator": "src/make_paper_docs.py"
+   },
+   {
+    "path": "docs/REPRODUCE.md",
+    "what": "편 앵커 | 무엇을 돌리나 | 명령 | 출력 JSON | 소요 | GPU (77행)",
+    "from": [
+     "report0N:c1 의 재현 bash 7개",
+     "코드셀 4개",
+     "각 편 header(repro=)"
+    ],
+    "generator": "src/make_reproduce.py + src/repro_registry.py(손으로 유지하는 명령표)"
+   },
+   {
+    "path": "docs/GLOSSARY.md",
+    "what": "용어 풀이 35개",
+    "from": [
+     "outputs/corr3_terms.json"
+    ],
+    "generator": "src/make_glossary.py"
+   },
+   {
+    "path": "docs/NEXT_STEPS.md",
+    "what": "어느 편에도 안 앉은 «다음 단계» 행의 배수구",
+    "from": [
+     "report0N 꼬리 «다음 단계» 셀 7개"
+    ],
+    "generator": "src/make_next_steps.py"
+   },
+   {
+    "path": "outputs/reports_index.json",
+    "what": "편 → 제목·앵커·근거 JSON·각주·그림·재현 명령",
+    "generator": "src/make_reports_index.py (outputs/reports_index/*.json 을 병합)"
+   }
+  ],
+  "why_new_module_not_paper_kit": "설계는 src/paper_kit.py 를 고쳐 파일을 쓰게 하라고 했다. paper_kit 은 93 KB 이고 지금 <!--pk:--> 주석을 다는 일을 하고 있다 — 그 동작을 바꾸면 옛 8편이 같이 흔들린다. 새 모듈 src/make_paper_docs.py 가 paper_kit 을 읽기 전용으로 쓴다",
+  "traceability_four_layers": [
+   "편 머리 «근거» 한 줄 — header(evidence=) 가 낸다. 리포트에 남는다",
+   "편 끝 «출처» 각주 표 — num() 이 쓴 순서로 자동 생성",
+   "outputs/reports_index.json — 기계 판독 색인",
+   "논문 조각마다 <!-- from: 편 NN <anchor> --> 역방향 표시"
+  ]
+ },
+ "stages": [
+  {
+   "stage": "S0",
+   "agents": 1,
+   "hours": 0.5,
+   "name": "동결·스냅샷",
+   "do": [
+    "빌더 8개 mtime 이 5분 이상 안 움직이는지 확인(다른 라운드 종료)",
+    "git tag restruct-before-0807 로 현 상태를 고정",
+    "옛 빌더 8개를 src/_legacy_builders/ 로 **복사**(옮기지 않는다 — S7 까지 둘 다 산다)",
+    "scratchpad/survey2.py 를 다시 돌려 셀 인덱스가 이 계획과 같은지 대조"
+   ],
+   "blocks": [
+    "S1"
+   ]
+  },
+  {
+   "stage": "S1",
+   "agents": 1,
+   "hours": 5,
+   "name": "report_style v2 — 각주·앵커·검사",
+   "do": [
+    "각주 엔진: begin_report(anchor) · num() 의 [^n] 렌더 · footnote_table() 자동 생성 · 라운드트립 검사",
+    "_PROV_VALUE 정규식에 [^n] 형태를 추가(미조치 시 각주 숫자가 전부 권고로 뜬다)",
+    "화면 줄(폭 100) ≤ 15 · 셀 렌더 글자 ≤ 700 검사 추가 (기존 12줄 상한은 그대로)",
+    "표 칸 100 화면 칸 초과 = 위반 · 60 초과 = 권고",
+    "문장 안 §숫자 참조 금지 검사(제목 줄은 면제)",
+    "src/report_registry.py + ref()·ref_fig()·ref_part()·ref_paper()",
+    "header() 에 evidence= 필수 인자 · title 검사(«다» 종결·물음표 금지)",
+    "build_notebook 이 outputs/reports_index/<anchor>.json 샤드를 쓴다"
+   ],
+   "must_not": [
+    "MAX_MD_CELLS·MAX_LINES_PER_CELL·MAX_FIGURES·MAX_NEGATIVES·MAX_HEDGES 를 바꾸지 않는다",
+    "outputs/*.json 근거 파일을 고치지 않는다"
+   ],
+   "gate": "src/report_style.py 의 _selftest() 통과 + 옛 8편이 여전히 build 된다(구 API 호환)",
+   "blocks": [
+    "W1"
+   ]
+  },
+  {
+   "stage": "S2",
+   "agents": 1,
+   "hours": 3,
+   "name": "논문·재현·용어 추출",
+   "do": [
+    "src/make_paper_docs.py → docs/paper/ 8파일",
+    "src/repro_registry.py + src/make_reproduce.py → docs/REPRODUCE.md",
+    "src/make_glossary.py → docs/GLOSSARY.md",
+    "src/make_next_steps.py → docs/NEXT_STEPS.md(뼈대)"
+   ],
+   "parallel_with": [
+    "S1"
+   ],
+   "note": "건드리는 파일이 S1 과 겹치지 않는다"
+  },
+  {
+   "stage": "S3",
+   "agents": 1,
+   "hours": 4,
+   "name": "파일럿 = W1(부 4)",
+   "gate": "6편이 strict=True 로 서고, 사람이 읽어 «편 하나 = 메시지 하나» 가 느껴진다. 표 칸 위반 수를 세어 100칸 눈금을 재교정한다",
+   "blocks": [
+    "S4"
+   ]
+  },
+  {
+   "stage": "S4",
+   "agents": 6,
+   "hours": 6,
+   "name": "대량 이전 = W2·W3·W4·W7·W8·W9",
+   "note": "부 단위 빌더가 편 여러 개를 뱉는다. 에이전트 6개가 동시에 돈다"
+  },
+  {
+   "stage": "S5",
+   "agents": 1,
+   "hours": 4,
+   "name": "W0 — 00 지도 + README + 색인 병합",
+   "do": [
+    "src/make_reports_index.py 로 샤드 77개 병합",
+    "README 를 reports_index 에서 다시 뽑는다(읽기 경로 3갈래 포함)",
+    "앵커 미해결 0 · planned 잔량 0 확인"
+   ],
+   "depends_on": [
+    "S4",
+    "S6"
+   ]
+  },
+  {
+   "stage": "S6",
+   "agents": 2,
+   "hours": 6,
+   "name": "신규 2부 = W5(사다리) · W6(마이크로도플러)",
+   "parallel_with": [
+    "S3",
+    "S4"
+   ],
+   "depends_on": [
+    "S1"
+   ]
+  },
+  {
+   "stage": "S7",
+   "agents": 2,
+   "hours": 3,
+   "name": "적대 검증 + 커밋",
+   "do": [
+    "각주 라운드트립 전수 · 앵커 미해결 0 · 상한 위반 0",
+    "셀 대응표 전수 대조 — md 170 + 코드 4 가 정확히 한 번씩 갔는가",
+    "읽기 경로 3갈래 실주행(링크가 다 열리는가)",
+    "옛 8편 삭제 + src/make_report0N_*.py → src/_legacy_builders/ 로 이동",
+    "README·docs/RESUME 갱신 후 커밋"
+   ],
+   "depends_on": [
+    "S5"
+   ]
+  }
+ ],
+ "totals": {
+  "agent_hours": 70.5,
+  "agents_peak": 6,
+  "n_work_bundles": 10,
+  "n_downstream_agents": 10,
+  "note": "뒤 단계 작업 묶음은 W0~W9 의 10개(부 12개를 10 에이전트로 묶었다)이고 동시 최대는 6이다. S1(규약 코드화)·S2(논문·재현 추출)는 그 앞에 서는 선행 단계라 따로 센다"
+ },
+ "work_bundles": [
+  {
+   "id": "W1",
+   "parts": [
+    4
+   ],
+   "stage": "S3",
+   "agents": 1,
+   "name": "파일럿 — 부 4 산란 커널",
+   "builder_out": "src/build_part04_kernel.py",
+   "sources": [
+    "src/make_report02_target.py (c7~c13)",
+    "src/make_report00_foundations.py (c19·c20·c23)"
+   ],
+   "depends_on": [
+    "S1"
+   ],
+   "blocks": [
+    "W2..W9"
+   ],
+   "note": "사람이 읽어 규약을 교정하는 자리다. 여기서 안 맞으면 나머지를 시작하지 않는다",
+   "n_reports": 6,
+   "reports": [
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23"
+   ],
+   "evidence_json": [
+    "outputs/facet_count.json",
+    "outputs/facet_mechanism.json",
+    "outputs/lowfreq_anchor.json",
+    "outputs/lowfreq_attack.json",
+    "outputs/meshfix_applied.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/prior_settled_sionna.json",
+    "outputs/ptd_wiring.json",
+    "outputs/report00_po_case.json",
+    "outputs/report02_derived.json",
+    "outputs/report3_rt.json",
+    "outputs/runtime_benchmark.json",
+    "outputs/sbr_defect_fixes.json",
+    "outputs/sbr_kr_sweep.json"
+   ]
+  },
+  {
+   "id": "W2",
+   "parts": [
+    1
+   ],
+   "stage": "S4",
+   "agents": 1,
+   "name": "부 1 스톡 엔진",
+   "builder_out": "src/build_part01_stock_engine.py",
+   "sources": [
+    "src/make_report00_foundations.py (c2~c18)",
+    "src/make_report01_prior.py (c2·c3)"
+   ],
+   "depends_on": [
+    "W1"
+   ],
+   "blocks": [],
+   "n_reports": 7,
+   "reports": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07"
+   ],
+   "evidence_json": [
+    "outputs/prior_work_survey.json",
+    "outputs/report00_decision_map.json",
+    "outputs/report00_evidence.json",
+    "outputs/report00_microdoppler.json",
+    "outputs/report00_po_case.json",
+    "outputs/report00_sionna_anatomy.json",
+    "outputs/report00_sionna_probe.json"
+   ]
+  },
+  {
+   "id": "W3",
+   "parts": [
+    2
+   ],
+   "stage": "S4",
+   "agents": 1,
+   "name": "부 2 선행연구",
+   "builder_out": "src/build_part02_prior.py",
+   "sources": [
+    "src/make_report01_prior.py (c4~c22)",
+    "src/make_report00_foundations.py (c21·c22)"
+   ],
+   "depends_on": [
+    "W1"
+   ],
+   "blocks": [],
+   "n_reports": 7,
+   "reports": [
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14"
+   ],
+   "evidence_json": [
+    "outputs/facet_attack.json",
+    "outputs/injection_archive.json",
+    "outputs/injection_classification_audit.json",
+    "outputs/injection_validation_hunt.json",
+    "outputs/injection_verdict.json",
+    "outputs/prior_work_survey.json",
+    "outputs/report00_po_case.json",
+    "outputs/report01_paper.json",
+    "outputs/s2r_prior.json",
+    "outputs/sbr_kr_sweep.json",
+    "outputs/verify_cfar.json"
+   ]
+  },
+  {
+   "id": "W4",
+   "parts": [
+    3,
+    5
+   ],
+   "stage": "S4",
+   "agents": 1,
+   "name": "부 3 표적 메쉬 + 부 5 앵커와 검증",
+   "builder_out": "src/build_part03_mesh.py · src/build_part05_anchor.py",
+   "sources": [
+    "src/make_report02_target.py (c2~c6 · c14~c22)"
+   ],
+   "depends_on": [
+    "W1"
+   ],
+   "blocks": [],
+   "note": "부 3 과 부 5 는 같은 빌더 파일(make_report02)에서 오고 근거 JSON 이 겹친다",
+   "n_reports": 9,
+   "reports": [
+    "15",
+    "16",
+    "17",
+    "24",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29"
+   ],
+   "evidence_json": [
+    "outputs/community_compare.json",
+    "outputs/das_fleet_attack.json",
+    "outputs/das_fleet_prereg.json",
+    "outputs/das_fleet_validation.json",
+    "outputs/lowfreq_anchor.json",
+    "outputs/lowfreq_attack.json",
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/p3_ours.json",
+    "outputs/p3_validation.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/phantom4_scan_compare.json",
+    "outputs/rcs_anchor.json",
+    "outputs/real_cad_compare.json",
+    "outputs/report02_derived.json",
+    "outputs/sigma_anchor.json",
+    "outputs/sigma_sensitivity.json"
+   ]
+  },
+  {
+   "id": "W5",
+   "parts": [
+    6
+   ],
+   "stage": "S6",
+   "agents": 1,
+   "name": "부 6 표적 사다리 (신규)",
+   "builder_out": "src/build_part06_ladder.py",
+   "sources": [
+    "docs/TARGET_LADDER.md"
+   ],
+   "depends_on": [
+    "S1"
+   ],
+   "blocks": [],
+   "note": "기존 빌더가 없다. 서술 원천은 TARGET_LADDER.md 이고 숫자는 report16_*.json 이다. 판정이 PREMATURE 이므로 33편이 인용 조건이다 — 그 편 없이 30~32 를 인용하지 못하게 한다",
+   "n_reports": 4,
+   "reports": [
+    "30",
+    "31",
+    "32",
+    "33"
+   ],
+   "evidence_json": [
+    "outputs/report16_base.json",
+    "outputs/report16_metric_box_bbox.json",
+    "outputs/report16_metric_cube_eqvol.json",
+    "outputs/report16_metric_mesh_full.json",
+    "outputs/report16_metric_mesh_half_tri.json",
+    "outputs/report16_metric_mesh_no_rotor.json",
+    "outputs/report16_metric_sphere_eqvol.json",
+    "outputs/report16_rung_box_bbox.json",
+    "outputs/report16_rung_cube_eqvol.json",
+    "outputs/report16_rung_mesh_full.json",
+    "outputs/report16_rung_mesh_half_tri.json",
+    "outputs/report16_rung_mesh_no_rotor.json",
+    "outputs/report16_rung_sphere_eqvol.json",
+    "outputs/report16_synthesis.json",
+    "outputs/report16_verify_detector.json",
+    "outputs/report16_verify_kernel.json",
+    "outputs/report16_verify_tautology.json"
+   ]
+  },
+  {
+   "id": "W6",
+   "parts": [
+    7
+   ],
+   "stage": "S6",
+   "agents": 1,
+   "name": "부 7 마이크로도플러 (report07 분해 + 신규)",
+   "builder_out": "src/build_part07_microdoppler.py",
+   "sources": [
+    "src/make_report07_microdoppler.py"
+   ],
+   "depends_on": [
+    "S1"
+   ],
+   "blocks": [],
+   "note": "⭐ report07 은 새 규약의 문체 본보기다. 그 빌더를 src/_legacy_builders/ 로 옮기고 35~40·43 이 그 §들을 그대로 받는다. 34·41·42 는 report15_*.json 에서 새로 쓴다",
+   "n_reports": 10,
+   "reports": [
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39",
+    "40",
+    "41",
+    "42",
+    "43"
+   ],
+   "evidence_json": [
+    "outputs/md_range_sweep.json",
+    "outputs/report00_microdoppler.json",
+    "outputs/report15_attack_spp_ladder.json",
+    "outputs/report15_attack_spp_ladder_mini2.json",
+    "outputs/report15_attack_stats.json",
+    "outputs/report15_null_control.json",
+    "outputs/report15_null_control_run1.json",
+    "outputs/report15_po_control.json",
+    "outputs/report15_po_control_audit.json",
+    "outputs/report15_probe.json",
+    "outputs/report15_sionna_sweep_matrice4e.json",
+    "outputs/report15_sionna_sweep_mini2.json",
+    "outputs/report15_verdict.json",
+    "outputs/report15_verdict_geomref.json",
+    "outputs/report15_verdict_nulls_vs_range.json",
+    "outputs/report15b_microdoppler.json"
+   ]
+  },
+  {
+   "id": "W7",
+   "parts": [
+    8,
+    9
+   ],
+   "stage": "S4",
+   "agents": 1,
+   "name": "부 8 조명원 + 부 9 검출기",
+   "builder_out": "src/build_part08_illuminators.py · src/build_part09_detector.py",
+   "sources": [
+    "src/make_report03_illuminators.py",
+    "src/make_report04_detector.py"
+   ],
+   "depends_on": [
+    "W1"
+   ],
+   "blocks": [],
+   "n_reports": 12,
+   "reports": [
+    "44",
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50",
+    "51",
+    "52",
+    "53",
+    "54",
+    "55"
+   ],
+   "evidence_json": [
+    "outputs/prior_census.json",
+    "outputs/report03_illuminators.json",
+    "outputs/report2_waveform_rcs.json",
+    "outputs/report4_fixups.json",
+    "outputs/verify_ambiguity.json",
+    "outputs/verify_cfar.json",
+    "outputs/verify_eca.json",
+    "outputs/verify_observability.json"
+   ]
+  },
+  {
+   "id": "W8",
+   "parts": [
+    10
+   ],
+   "stage": "S4",
+   "agents": 1,
+   "name": "부 10 검출 결과",
+   "builder_out": "src/build_part10_results.py",
+   "sources": [
+    "src/make_report05_results.py"
+   ],
+   "depends_on": [
+    "W1"
+   ],
+   "blocks": [],
+   "note": "11편으로 가장 크다. 설계가 R05-F·R05-G 를 쪼개 둔 자리를 그대로 따른다",
+   "n_reports": 11,
+   "reports": [
+    "56",
+    "57",
+    "58",
+    "59",
+    "60",
+    "61",
+    "62",
+    "63",
+    "64",
+    "65",
+    "66"
+   ],
+   "evidence_json": [
+    "outputs/archive/report13_sigma_grid_pre0803.json",
+    "outputs/cpi_guard_sweep.json",
+    "outputs/detection_rx_sweep.json",
+    "outputs/lowfreq_anchor.json",
+    "outputs/lowfreq_attack.json",
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/phi_sweep.json",
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json",
+    "outputs/report4_fixups.json",
+    "outputs/sbr_defect_fixes.json",
+    "outputs/sigma_anchor.json",
+    "outputs/sigma_sensitivity.json",
+    "outputs/tm_attack.json",
+    "outputs/tm_result.json",
+    "outputs/verify_linkbudget.json"
+   ]
+  },
+  {
+   "id": "W9",
+   "parts": [
+    11
+   ],
+   "stage": "S4",
+   "agents": 1,
+   "name": "부 11 실측 설계",
+   "builder_out": "src/build_part11_measurement.py",
+   "sources": [
+    "src/make_report06_measurement.py"
+   ],
+   "depends_on": [
+    "W1"
+   ],
+   "blocks": [],
+   "n_reports": 10,
+   "reports": [
+    "67",
+    "68",
+    "69",
+    "70",
+    "71",
+    "72",
+    "73",
+    "74",
+    "75",
+    "76"
+   ],
+   "evidence_json": [
+    "outputs/lowfreq_attack.json",
+    "outputs/measurement_layers.json",
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/p3_validation.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/ptd_wiring.json",
+    "outputs/report06_derived.json",
+    "outputs/report06_measurement.json",
+    "outputs/sigma_anchor.json",
+    "outputs/verify_cfar.json"
+   ]
+  },
+  {
+   "id": "W0",
+   "parts": [
+    0
+   ],
+   "stage": "S5",
+   "agents": 1,
+   "name": "부 0 지도 + README + 재배선 검사",
+   "builder_out": "src/build_part00_map.py",
+   "sources": [
+    "README.md",
+    "각 편의 header(did/results)"
+   ],
+   "depends_on": [
+    "W2",
+    "W3",
+    "W4",
+    "W5",
+    "W6",
+    "W7",
+    "W8",
+    "W9"
+   ],
+   "blocks": [
+    "S7"
+   ],
+   "note": "00 지도 편은 다른 편이 다 서고 outputs/reports_index.json 이 병합된 뒤에 조립된다",
+   "n_reports": 1,
+   "reports": [
+    "00"
+   ],
+   "evidence_json": [
+    "outputs/reports_index.json"
+   ]
+  }
+ ],
+ "reports": [
+  {
+   "no": "00",
+   "design_no": "00",
+   "part": 0,
+   "anchor": "map",
+   "title_ko": "읽는 목적이 셋이면 읽는 순서도 셋이다",
+   "question_ko": "무엇부터 읽어야 하나?",
+   "from_now": "신규 — README + 각 편 여는 문장에서 조립",
+   "from_cells": [],
+   "evidence_json": [
+    "outputs/reports_index.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 0,
+   "chars_after_clean": 1200,
+   "reading_minutes": 2.4,
+   "has_next_steps": false,
+   "maturity": "new"
+  },
+  {
+   "no": "01",
+   "design_no": "01",
+   "part": 1,
+   "anchor": "stock-says",
+   "title_ko": "Sionna 기술보고서 59쪽에 physical optics 는 0회, SBR 은 44회 나온다",
+   "question_ko": "스톡 Sionna RT 는 스스로 무엇을 계산한다고 말하나?",
+   "from_now": "report01 R01-B",
+   "from_cells": [
+    "report01:c2",
+    "report01:c3"
+   ],
+   "evidence_json": [
+    "outputs/prior_work_survey.json"
+   ],
+   "est_md_cells": 4,
+   "est_figures": 0,
+   "chars_after_clean": 852,
+   "reading_minutes": 1.7,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "02",
+   "design_no": "02",
+   "part": 1,
+   "anchor": "engine-paths",
+   "title_ko": "경로는 SBR 과 이미지법이 정한다",
+   "question_ko": "광선이 어디로 가는지는 무엇이 정하나?",
+   "from_now": "report00 R00-B",
+   "from_cells": [
+    "report00:c2",
+    "report00:c3"
+   ],
+   "evidence_json": [
+    "outputs/report00_po_case.json",
+    "outputs/report00_sionna_anatomy.json",
+    "outputs/report00_sionna_probe.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 0,
+   "chars_after_clean": 1801,
+   "reading_minutes": 3.6,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "03",
+   "design_no": "03",
+   "part": 1,
+   "anchor": "engine-amplitude",
+   "title_ko": "진폭은 국소 평면파–평면경계 해 하나로 만들어진다",
+   "question_ko": "경로 하나가 진폭 하나가 되는 자리는 어디인가?",
+   "from_now": "report00 R00-B",
+   "from_cells": [
+    "report00:c4",
+    "report00:c5",
+    "report00:c6"
+   ],
+   "evidence_json": [
+    "outputs/report00_po_case.json",
+    "outputs/report00_sionna_anatomy.json",
+    "outputs/report00_sionna_probe.json"
+   ],
+   "est_md_cells": 7,
+   "est_figures": 1,
+   "chars_after_clean": 1874,
+   "reading_minutes": 3.7,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "04",
+   "design_no": "04",
+   "part": 1,
+   "anchor": "eight-factors",
+   "title_ko": "필드 갱신 인자 여덟 개에 면적·곡률·치수·λ 가 없다",
+   "question_ko": "그 수식에 없는 양은 무엇인가?",
+   "from_now": "report00 R00-C",
+   "from_cells": [
+    "report00:c7",
+    "report00:c8",
+    "report00:c9",
+    "report00:c10"
+   ],
+   "evidence_json": [
+    "outputs/report00_evidence.json",
+    "outputs/report00_po_case.json",
+    "outputs/report00_sionna_anatomy.json"
+   ],
+   "est_md_cells": 8,
+   "est_figures": 1,
+   "chars_after_clean": 2329,
+   "reading_minutes": 4.7,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "05",
+   "design_no": "05",
+   "part": 1,
+   "anchor": "size-sweep",
+   "title_ko": "면적을 1600배로 키워도 경로 진폭은 7.4e-07 dB 움직인다",
+   "question_ko": "표적을 키우면 무엇이 움직이고 무엇이 그대로인가?",
+   "from_now": "report00 R00-D",
+   "from_cells": [
+    "report00:c11",
+    "report00:c12"
+   ],
+   "evidence_json": [
+    "outputs/report00_evidence.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1162,
+   "reading_minutes": 2.3,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "06",
+   "design_no": "06",
+   "part": 1,
+   "anchor": "decision-table",
+   "title_ko": "표적 항이 비에서 소거되는가와 절대값이 필요한가, 두 물음이 실험을 네 칸으로 가른다",
+   "question_ko": "어느 실험이 표적 모델을 요구하나?",
+   "from_now": "report00 R00-E · report00 R00-F",
+   "from_cells": [
+    "report00:c13",
+    "report00:c14",
+    "report00:c15",
+    "report00:c16"
+   ],
+   "evidence_json": [
+    "outputs/report00_decision_map.json",
+    "outputs/report00_microdoppler.json",
+    "outputs/report00_po_case.json"
+   ],
+   "est_md_cells": 10,
+   "est_figures": 2,
+   "chars_after_clean": 2789,
+   "reading_minutes": 5.6,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "07",
+   "design_no": "07",
+   "part": 1,
+   "anchor": "why-po",
+   "title_ko": "완전파는 정확도의 과녁이고, SBR+PO 는 표를 만들 수 있는 유일한 비용대다",
+   "question_ko": "왜 PO 를 골랐나?",
+   "from_now": "report00 R00-G",
+   "from_cells": [
+    "report00:c17",
+    "report00:c18"
+   ],
+   "evidence_json": [
+    "outputs/report00_po_case.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 0,
+   "chars_after_clean": 1288,
+   "reading_minutes": 2.6,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "08",
+   "design_no": "08",
+   "part": 2,
+   "anchor": "census-published",
+   "title_ko": "게재본 중 드론 메쉬에서 산란을 계산한 것은 0편이다",
+   "question_ko": "게재본은 어느 엔진에서 무슨 표적을 썼나?",
+   "from_now": "report01 R01-C",
+   "from_cells": [
+    "report01:c4",
+    "report01:c5",
+    "report01:c6",
+    "report01:c7"
+   ],
+   "evidence_json": [
+    "outputs/prior_work_survey.json",
+    "outputs/report01_paper.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1547,
+   "reading_minutes": 3.1,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "09",
+   "design_no": "09",
+   "part": 2,
+   "anchor": "census-preprint",
+   "title_ko": "프리프린트는 따로 세고, Ziganshin 은 두 판을 구별해 인용한다",
+   "question_ko": "프리프린트를 같은 표에 넣어도 되나?",
+   "from_now": "report01 R01-C",
+   "from_cells": [
+    "report01:c8",
+    "report01:c9",
+    "report01:c10"
+   ],
+   "evidence_json": [
+    "outputs/prior_work_survey.json",
+    "outputs/report01_paper.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 0,
+   "chars_after_clean": 1503,
+   "reading_minutes": 3.0,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "10",
+   "design_no": "10",
+   "part": 2,
+   "anchor": "procurement",
+   "title_ko": "표적 서명을 어디서 조달했는지가 그 논문이 낼 수 있는 주장의 크기를 정한다",
+   "question_ko": "조달처가 무슨 주장을 사 주었나?",
+   "from_now": "report01 R01-D",
+   "from_cells": [
+    "report01:c11",
+    "report01:c12",
+    "report01:c16"
+   ],
+   "evidence_json": [
+    "outputs/prior_work_survey.json",
+    "outputs/report01_paper.json"
+   ],
+   "est_md_cells": 7,
+   "est_figures": 2,
+   "chars_after_clean": 1398,
+   "reading_minutes": 2.8,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "11",
+   "design_no": "11",
+   "part": 2,
+   "anchor": "procurement-catalog",
+   "title_ko": "조달처 일곱 갈래 R1~R7 을 전수로 적었다",
+   "question_ko": "조달처에는 어떤 갈래가 있나?",
+   "from_now": "report01 R01-D",
+   "from_cells": [
+    "report01:c13",
+    "report01:c14",
+    "report01:c15"
+   ],
+   "evidence_json": [
+    "outputs/prior_work_survey.json",
+    "outputs/report01_paper.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 0,
+   "chars_after_clean": 2138,
+   "reading_minutes": 4.3,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "12",
+   "design_no": "12",
+   "part": 2,
+   "anchor": "injection",
+   "title_ko": "외부 σ 주입은 게재돼 있고, 그 값의 대가는 검증이 치른다",
+   "question_ko": "외부 값을 가져다 쓰는 것은 전례가 있나?",
+   "from_now": "report01 R01-E",
+   "from_cells": [
+    "report01:c17"
+   ],
+   "evidence_json": [
+    "outputs/facet_attack.json",
+    "outputs/injection_archive.json",
+    "outputs/injection_classification_audit.json",
+    "outputs/injection_validation_hunt.json",
+    "outputs/injection_verdict.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 0,
+   "chars_after_clean": 1118,
+   "reading_minutes": 2.2,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "13",
+   "design_no": "13",
+   "part": 2,
+   "anchor": "where-we-stand",
+   "title_ko": "네 관문을 동시에 통과한 게재본은 0편이고, 최근접 3편은 각각 다른 관문에서 걸린다",
+   "question_ko": "우리는 어디에 서 있나?",
+   "from_now": "report01 R01-F",
+   "from_cells": [
+    "report01:c18",
+    "report01:c19",
+    "report01:c21",
+    "report01:c22"
+   ],
+   "evidence_json": [
+    "outputs/injection_classification_audit.json",
+    "outputs/prior_work_survey.json",
+    "outputs/report01_paper.json",
+    "outputs/s2r_prior.json",
+    "outputs/sbr_kr_sweep.json",
+    "outputs/verify_cfar.json"
+   ],
+   "est_md_cells": 9,
+   "est_figures": 1,
+   "chars_after_clean": 2509,
+   "reading_minutes": 5.0,
+   "has_next_steps": true,
+   "maturity": "existing"
+  },
+  {
+   "no": "14",
+   "design_no": "14",
+   "part": 2,
+   "anchor": "borrowed",
+   "title_ko": "선행에서 빌린 절차와 아직 안 빌린 절차를 비용과 함께 센다",
+   "question_ko": "무엇을 빌렸고 무엇이 남았나?",
+   "from_now": "report00 R00-I",
+   "from_cells": [
+    "report00:c21",
+    "report00:c22"
+   ],
+   "evidence_json": [
+    "outputs/report00_po_case.json"
+   ],
+   "est_md_cells": 7,
+   "est_figures": 0,
+   "chars_after_clean": 1929,
+   "reading_minutes": 3.9,
+   "has_next_steps": true,
+   "maturity": "existing"
+  },
+  {
+   "no": "15",
+   "design_no": "15",
+   "part": 3,
+   "anchor": "mesh-build",
+   "title_ko": "기체 7종을 제원과 제조사 CAD 치수에서 세우고 부품을 재질 그룹으로 유지했다",
+   "question_ko": "메쉬를 무엇에서 지었나?",
+   "from_now": "report02 R02-B",
+   "from_cells": [
+    "report02:c2",
+    "report02:c3"
+   ],
+   "evidence_json": [
+    "outputs/meshfix_applied.json",
+    "outputs/report02_derived.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1595,
+   "reading_minutes": 3.2,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "16",
+   "design_no": "16",
+   "part": 3,
+   "anchor": "mesh-vs-real",
+   "title_ko": "메쉬 외형이 실제 기체와 얼마나 맞는지를 사진 IoU·CAD 치수·실물 스캔 세 자로 쟀다",
+   "question_ko": "메쉬가 실물과 얼마나 맞나?",
+   "from_now": "report02 R02-C",
+   "from_cells": [
+    "report02:c4"
+   ],
+   "evidence_json": [
+    "outputs/community_compare.json",
+    "outputs/phantom4_scan_compare.json",
+    "outputs/real_cad_compare.json",
+    "outputs/report02_derived.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1185,
+   "reading_minutes": 2.4,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "17",
+   "design_no": "17",
+   "part": 3,
+   "anchor": "materials",
+   "title_ko": "도전성 재질이 면적의 45.3% 로 Σ|Γ|A 의 73.5% 를 낸다",
+   "question_ko": "PO 적분에 들어가는 물리 입력은 무엇인가?",
+   "from_now": "report02 R02-D",
+   "from_cells": [
+    "report02:c5",
+    "report02:c6"
+   ],
+   "evidence_json": [
+    "outputs/report02_derived.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 1,
+   "chars_after_clean": 1061,
+   "reading_minutes": 2.1,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "18",
+   "design_no": "18",
+   "part": 4,
+   "anchor": "kernel-what",
+   "title_ko": "가림 판정은 Sionna 광선엔진이 하고, 면적분은 우리 커널이 한다",
+   "question_ko": "우리 커널은 정확히 무엇을 계산하나?",
+   "from_now": "report02 R02-E",
+   "from_cells": [
+    "report02:c7(×0.5)",
+    "report02:c8"
+   ],
+   "evidence_json": [
+    "outputs/facet_count.json",
+    "outputs/facet_mechanism.json",
+    "outputs/meshfix_applied.json",
+    "outputs/prior_settled_sionna.json",
+    "outputs/report02_derived.json",
+    "outputs/report3_rt.json",
+    "outputs/runtime_benchmark.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1160,
+   "reading_minutes": 2.3,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "19",
+   "design_no": "19",
+   "part": 4,
+   "anchor": "kernel-vs-stock",
+   "title_ko": "스톡 솔버와 맞대면 «면이 많아서 느리다» 가설은 반증되고, 런타임의 96.9% 는 호스트가 쓴다",
+   "question_ko": "우리 커널과 스톡 솔버를 나란히 돌리면 무엇이 갈리나?",
+   "from_now": "report02 R02-E",
+   "from_cells": [
+    "report02:c7(×0.5)",
+    "report02:c9"
+   ],
+   "evidence_json": [
+    "outputs/facet_count.json",
+    "outputs/facet_mechanism.json",
+    "outputs/meshfix_applied.json",
+    "outputs/prior_settled_sionna.json",
+    "outputs/report02_derived.json",
+    "outputs/report3_rt.json",
+    "outputs/runtime_benchmark.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 0,
+   "chars_after_clean": 1652,
+   "reading_minutes": 3.3,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "20",
+   "design_no": "20",
+   "part": 4,
+   "anchor": "bistatic-exit",
+   "title_ko": "수신 방향 그림자 광선을 켜면 상반성 위반이 9.69 → 8.24 dB 로 내려간다",
+   "question_ko": "바이스태틱으로 넓히면 무엇을 더 계산해야 하나?",
+   "from_now": "report02 R02-F",
+   "from_cells": [
+    "report02:c10"
+   ],
+   "evidence_json": [
+    "outputs/sbr_defect_fixes.json"
+   ],
+   "est_md_cells": 4,
+   "est_figures": 0,
+   "chars_after_clean": 842,
+   "reading_minutes": 1.7,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "21",
+   "design_no": "21",
+   "part": 4,
+   "anchor": "kernel-vs-reference",
+   "title_ko": "해석 PO 구 대비 구현오차는 kr 전 구간에서 0.201 dB 안이다",
+   "question_ko": "커널이 기준해와 얼마나 맞나?",
+   "from_now": "report00 R00-H · report02 R02-G",
+   "from_cells": [
+    "report00:c19",
+    "report02:c11",
+    "report02:c13"
+   ],
+   "evidence_json": [
+    "outputs/lowfreq_anchor.json",
+    "outputs/lowfreq_attack.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/report00_po_case.json",
+    "outputs/report02_derived.json",
+    "outputs/sbr_defect_fixes.json",
+    "outputs/sbr_kr_sweep.json"
+   ],
+   "est_md_cells": 7,
+   "est_figures": 1,
+   "chars_after_clean": 1938,
+   "reading_minutes": 3.9,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "22",
+   "design_no": "22",
+   "part": 4,
+   "anchor": "po-knee",
+   "title_ko": "PO 유효 무릎을 부품 폭으로 옮기면 어느 부품이 어느 밴드에서 떨어지는지가 보인다",
+   "question_ko": "PO 가 유효한 하한은 어디이고, 그 아래에 무엇이 있나?",
+   "from_now": "report00 R00-H · report02 R02-G",
+   "from_cells": [
+    "report00:c20",
+    "report02:c12"
+   ],
+   "evidence_json": [
+    "outputs/lowfreq_anchor.json",
+    "outputs/lowfreq_attack.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/report00_po_case.json",
+    "outputs/report02_derived.json",
+    "outputs/sbr_defect_fixes.json",
+    "outputs/sbr_kr_sweep.json"
+   ],
+   "est_md_cells": 8,
+   "est_figures": 0,
+   "chars_after_clean": 2202,
+   "reading_minutes": 4.4,
+   "has_next_steps": true,
+   "maturity": "existing"
+  },
+  {
+   "no": "23",
+   "design_no": null,
+   "part": 4,
+   "anchor": "kernel-open-items",
+   "title_ko": "커널이 아직 못 하는 것은 편파·PTD·재테셀레이션 셋이고, 각각의 크기를 적었다",
+   "question_ko": "우리 커널의 열린 항목은 무엇이고 얼마나 큰가?",
+   "from_now": "report00 R00-J (c23)",
+   "from_cells": [
+    "report00:c23"
+   ],
+   "evidence_json": [
+    "outputs/report00_po_case.json",
+    "outputs/ptd_wiring.json",
+    "outputs/sbr_defect_fixes.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 0,
+   "chars_after_clean": 1342,
+   "reading_minutes": 2.7,
+   "has_next_steps": true,
+   "maturity": "existing"
+  },
+  {
+   "no": "24",
+   "design_no": "23",
+   "part": 5,
+   "anchor": "anchor-mode",
+   "title_ko": "σ = A(f)·B₁·B₂ 에서 A(f) 의 기울기만 측정에서 받고, 레벨과 각패턴은 우리 PO 출력이다",
+   "question_ko": "무엇을 측정에서 받고 무엇을 우리가 내나?",
+   "from_now": "report02 R02-H",
+   "from_cells": [
+    "report02:c14",
+    "report02:c15",
+    "report02:c16"
+   ],
+   "evidence_json": [
+    "outputs/lowfreq_anchor.json",
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/rcs_anchor.json",
+    "outputs/report02_derived.json",
+    "outputs/sigma_anchor.json"
+   ],
+   "est_md_cells": 8,
+   "est_figures": 1,
+   "chars_after_clean": 2386,
+   "reading_minutes": 4.8,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "25",
+   "design_no": "24",
+   "part": 5,
+   "anchor": "anchor-ledger",
+   "title_ko": "앵커가 통제한 항목과 남은 항목의 크기를 기체별 원장으로 적었다",
+   "question_ko": "앵커가 안 닫은 것은 얼마나 큰가?",
+   "from_now": "report02 R02-H",
+   "from_cells": [
+    "report02:c17",
+    "report02:c18"
+   ],
+   "evidence_json": [
+    "outputs/lowfreq_anchor.json",
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/rcs_anchor.json",
+    "outputs/report02_derived.json",
+    "outputs/sigma_anchor.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 0,
+   "chars_after_clean": 1502,
+   "reading_minutes": 3.0,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "26",
+   "design_no": "25",
+   "part": 5,
+   "anchor": "blind-p3",
+   "title_ko": "Phantom 3 를 문헌값을 보지 않고 내고 봉인을 풀었다",
+   "question_ko": "우리 σ 를 눈감고 내면 문헌값과 얼마나 맞나?",
+   "from_now": "report02 R02-I",
+   "from_cells": [
+    "report02:c19"
+   ],
+   "evidence_json": [
+    "outputs/das_fleet_attack.json",
+    "outputs/das_fleet_prereg.json",
+    "outputs/das_fleet_validation.json",
+    "outputs/lowfreq_anchor.json",
+    "outputs/lowfreq_attack.json",
+    "outputs/meshfix_attack.json",
+    "outputs/p3_ours.json",
+    "outputs/p3_validation.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/report02_derived.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 0,
+   "chars_after_clean": 1613,
+   "reading_minutes": 3.2,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "27",
+   "design_no": "26",
+   "part": 5,
+   "anchor": "box-sphere-control",
+   "title_ko": "메쉬가 사는 축은 절대 크기가 아니라 각도 구조다",
+   "question_ko": "상자·구로 바꾸면 무엇이 무너지나?",
+   "from_now": "report02 R02-I",
+   "from_cells": [
+    "report02:c20(×0.55)"
+   ],
+   "evidence_json": [
+    "outputs/das_fleet_attack.json",
+    "outputs/das_fleet_prereg.json",
+    "outputs/das_fleet_validation.json",
+    "outputs/lowfreq_anchor.json",
+    "outputs/lowfreq_attack.json",
+    "outputs/meshfix_attack.json",
+    "outputs/p3_ours.json",
+    "outputs/p3_validation.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/report02_derived.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 0,
+   "chars_after_clean": 1245,
+   "reading_minutes": 2.5,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "28",
+   "design_no": "27",
+   "part": 5,
+   "anchor": "fleet-prereg",
+   "title_ko": "같은 잣대를 네 기체로 넓히면 판정이 NOT_VALIDATED 로 갈린다",
+   "question_ko": "사전등록한 합격조건을 함대에 걸면 통과하나?",
+   "from_now": "report02 R02-I",
+   "from_cells": [
+    "report02:c20(×0.45)"
+   ],
+   "evidence_json": [
+    "outputs/das_fleet_attack.json",
+    "outputs/das_fleet_prereg.json",
+    "outputs/das_fleet_validation.json",
+    "outputs/lowfreq_anchor.json",
+    "outputs/lowfreq_attack.json",
+    "outputs/meshfix_attack.json",
+    "outputs/p3_ours.json",
+    "outputs/p3_validation.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/report02_derived.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 0,
+   "chars_after_clean": 1018,
+   "reading_minutes": 2.0,
+   "has_next_steps": true,
+   "maturity": "existing"
+  },
+  {
+   "no": "29",
+   "design_no": "28",
+   "part": 5,
+   "anchor": "sigma-robustness",
+   "title_ko": "공통모드 σ 오차는 파형 순위를 안 건드리고, 차분 오차가 뒤집는다",
+   "question_ko": "σ 가 틀리면 결론이 뒤집히나?",
+   "from_now": "report02 R02-J",
+   "from_cells": [
+    "report02:c21",
+    "report02:c22"
+   ],
+   "evidence_json": [
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/report02_derived.json",
+    "outputs/sigma_sensitivity.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1343,
+   "reading_minutes": 2.7,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "30",
+   "design_no": "29",
+   "part": 6,
+   "anchor": "ladder-three",
+   "title_ko": "사다리가 하나가 아니라 셋이었다 — 여섯 단이 서로 다른 운동학을 쓰고 있었다",
+   "question_ko": "«형상만 바꿨다» 는 말이 사실인가?",
+   "from_now": "신규 — docs/TARGET_LADDER.md §1·§2·§3(A/B/C 표)",
+   "from_cells": [
+    "TARGET_LADDER:§1",
+    "TARGET_LADDER:§2",
+    "TARGET_LADDER:§3"
+   ],
+   "evidence_json": [
+    "outputs/report16_synthesis.json",
+    "outputs/report16_base.json",
+    "outputs/report16_rung_mesh_full.json",
+    "outputs/report16_rung_mesh_half_tri.json",
+    "outputs/report16_rung_mesh_no_rotor.json",
+    "outputs/report16_rung_box_bbox.json",
+    "outputs/report16_rung_cube_eqvol.json",
+    "outputs/report16_rung_sphere_eqvol.json"
+   ],
+   "est_md_cells": 7,
+   "est_figures": 1,
+   "chars_after_clean": 1800,
+   "reading_minutes": 3.6,
+   "has_next_steps": false,
+   "maturity": "new"
+  },
+  {
+   "no": "31",
+   "design_no": "30",
+   "part": 6,
+   "anchor": "ladder-calibrated",
+   "title_ko": "몸통은 진짜 CAD, 프로펠러만 갈아 끼운 교정 사다리가 답할 자격이 있는 유일한 축이다",
+   "question_ko": "형상 효과를 운동학과 어떻게 갈랐나?",
+   "from_now": "신규 — docs/TARGET_LADDER.md §3C·§6",
+   "from_cells": [
+    "TARGET_LADDER:§3C",
+    "TARGET_LADDER:§6"
+   ],
+   "evidence_json": [
+    "outputs/report16_synthesis.json",
+    "outputs/report16_base.json",
+    "outputs/report16_rung_mesh_full.json",
+    "outputs/report16_rung_mesh_half_tri.json",
+    "outputs/report16_rung_mesh_no_rotor.json",
+    "outputs/report16_rung_box_bbox.json",
+    "outputs/report16_rung_cube_eqvol.json",
+    "outputs/report16_rung_sphere_eqvol.json",
+    "outputs/report16_metric_mesh_full.json",
+    "outputs/report16_metric_mesh_half_tri.json",
+    "outputs/report16_metric_mesh_no_rotor.json",
+    "outputs/report16_metric_box_bbox.json",
+    "outputs/report16_metric_cube_eqvol.json",
+    "outputs/report16_metric_sphere_eqvol.json"
+   ],
+   "est_md_cells": 7,
+   "est_figures": 1,
+   "chars_after_clean": 2200,
+   "reading_minutes": 4.4,
+   "has_next_steps": false,
+   "maturity": "new"
+  },
+  {
+   "no": "32",
+   "design_no": "31",
+   "part": 6,
+   "anchor": "ladder-answer",
+   "title_ko": "모양의 유무는 수십 dB 를 가르고, 모양의 정밀도는 한 자릿수 dB 안에서 논다",
+   "question_ko": "드론을 얼마나 거칠게 그려도 되나?",
+   "from_now": "신규 — docs/TARGET_LADDER.md §4·§5·§5b·§7",
+   "from_cells": [
+    "TARGET_LADDER:§4",
+    "TARGET_LADDER:§5",
+    "TARGET_LADDER:§5b",
+    "TARGET_LADDER:§7"
+   ],
+   "evidence_json": [
+    "outputs/report16_synthesis.json",
+    "outputs/report16_base.json",
+    "outputs/report16_rung_mesh_full.json",
+    "outputs/report16_rung_mesh_half_tri.json",
+    "outputs/report16_rung_mesh_no_rotor.json",
+    "outputs/report16_rung_box_bbox.json",
+    "outputs/report16_rung_cube_eqvol.json",
+    "outputs/report16_rung_sphere_eqvol.json",
+    "outputs/report16_metric_mesh_full.json",
+    "outputs/report16_metric_mesh_half_tri.json",
+    "outputs/report16_metric_mesh_no_rotor.json",
+    "outputs/report16_metric_box_bbox.json",
+    "outputs/report16_metric_cube_eqvol.json",
+    "outputs/report16_metric_sphere_eqvol.json"
+   ],
+   "est_md_cells": 9,
+   "est_figures": 2,
+   "chars_after_clean": 2600,
+   "reading_minutes": 5.2,
+   "has_next_steps": false,
+   "maturity": "new"
+  },
+  {
+   "no": "33",
+   "design_no": "32",
+   "part": 6,
+   "anchor": "ladder-premature",
+   "title_ko": "이 답을 아직 결론이라고 부를 수 없는 이유가 일곱 가지이고, 그중 둘이 치명적이다",
+   "question_ko": "이 사다리를 인용해도 되나?",
+   "from_now": "신규 — docs/TARGET_LADDER.md §8·§9",
+   "from_cells": [
+    "TARGET_LADDER:§8",
+    "TARGET_LADDER:§9"
+   ],
+   "evidence_json": [
+    "outputs/report16_verify_kernel.json",
+    "outputs/report16_verify_detector.json",
+    "outputs/report16_verify_tautology.json",
+    "outputs/report16_synthesis.json"
+   ],
+   "est_md_cells": 8,
+   "est_figures": 0,
+   "chars_after_clean": 2400,
+   "reading_minutes": 4.8,
+   "has_next_steps": true,
+   "maturity": "new"
+  },
+  {
+   "no": "34",
+   "design_no": null,
+   "part": 7,
+   "anchor": "md-paths-doppler",
+   "title_ko": "스톡 Paths.doppler 로는 블레이드 변조가 안 나온다 — SceneObject.velocity 가 객체당 강체 1벡터다",
+   "question_ko": "스톡 도플러 기능으로 블레이드 변조가 나오나?",
+   "from_now": "신규 — 설계 33 + Sionna 설치본 실측",
+   "from_cells": [],
+   "evidence_json": [
+    "outputs/report00_microdoppler.json",
+    "outputs/report15_probe.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 0,
+   "chars_after_clean": 1400,
+   "reading_minutes": 2.8,
+   "has_next_steps": false,
+   "maturity": "new"
+  },
+  {
+   "no": "35",
+   "design_no": null,
+   "part": 7,
+   "anchor": "md-slowtime",
+   "title_ko": "시간표본마다 자세를 새로 놓고 다시 쏘아 슬로타임 복소열을 만든다",
+   "question_ko": "블레이드 변조를 무엇으로 만드나?",
+   "from_now": "report07 §1 · §1b (make_report07_microdoppler.py)",
+   "from_cells": [
+    "report07:§1",
+    "report07:§1b"
+   ],
+   "evidence_json": [
+    "outputs/report15b_microdoppler.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 0,
+   "chars_after_clean": 1500,
+   "reading_minutes": 3.0,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "36",
+   "design_no": null,
+   "part": 7,
+   "anchor": "md-two-engines",
+   "title_ko": "두 엔진이 날개끝 주파수 아래에서 겹치고 그 위에서 갈린다",
+   "question_ko": "우리 커널과 스톡 엔진이 같은 로터에서 같은 무늬를 내나?",
+   "from_now": "report07 §1a + 설계 34",
+   "from_cells": [
+    "report07:§1a"
+   ],
+   "evidence_json": [
+    "outputs/report00_microdoppler.json",
+    "outputs/report15_sionna_sweep_matrice4e.json",
+    "outputs/report15_sionna_sweep_mini2.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1600,
+   "reading_minutes": 3.2,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "37",
+   "design_no": null,
+   "part": 7,
+   "anchor": "md-rpm",
+   "title_ko": "네 로터가 같은 회전수로 돌면 무늬는 시간에 못 변한다",
+   "question_ko": "무늬가 시간에 따라 변하려면 무엇이 필요한가?",
+   "from_now": "report07 §2",
+   "from_cells": [
+    "report07:§2"
+   ],
+   "evidence_json": [
+    "outputs/report15b_microdoppler.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1500,
+   "reading_minutes": 3.0,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "38",
+   "design_no": null,
+   "part": 7,
+   "anchor": "md-occlusion",
+   "title_ko": "동체가 날개를 가리면 변조 깊이와 레벨이 함께 바뀐다",
+   "question_ko": "가림 하나만 흔들면 무엇이 달라지나?",
+   "from_now": "report07 §3",
+   "from_cells": [
+    "report07:§3"
+   ],
+   "evidence_json": [
+    "outputs/report15b_microdoppler.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1400,
+   "reading_minutes": 2.8,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "39",
+   "design_no": null,
+   "part": 7,
+   "anchor": "md-blade-vs-body",
+   "title_ko": "블레이드 신호는 약하지 않다 — 동체 정적 반사가 덮고 있을 뿐이다",
+   "question_ko": "블레이드는 약한가, 덮여 있는가?",
+   "from_now": "report07 §4a",
+   "from_cells": [
+    "report07:§4a"
+   ],
+   "evidence_json": [
+    "outputs/report15b_microdoppler.json",
+    "outputs/report00_microdoppler.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 1,
+   "chars_after_clean": 1200,
+   "reading_minutes": 2.4,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "40",
+   "design_no": null,
+   "part": 7,
+   "anchor": "md-attitude",
+   "title_ko": "지상 레이더는 기체를 아래에서 보므로 가림이 무는 자세가 우리 자세다",
+   "question_ko": "자세가 답을 얼마나 바꾸나?",
+   "from_now": "report07 §4",
+   "from_cells": [
+    "report07:§4"
+   ],
+   "evidence_json": [
+    "outputs/report15b_microdoppler.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 1,
+   "chars_after_clean": 1200,
+   "reading_minutes": 2.4,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "41",
+   "design_no": null,
+   "part": 7,
+   "anchor": "md-calibration",
+   "title_ko": "판정 잣대를 널 팔 15칸과 이상 점산란자로 먼저 교정했다",
+   "question_ko": "«나왔다» 를 무엇으로 판정했나?",
+   "from_now": "신규 — 설계 35",
+   "from_cells": [],
+   "evidence_json": [
+    "outputs/report15_null_control.json",
+    "outputs/report15_null_control_run1.json",
+    "outputs/report15_verdict_geomref.json",
+    "outputs/report15_po_control.json",
+    "outputs/report15_po_control_audit.json"
+   ],
+   "est_md_cells": 7,
+   "est_figures": 1,
+   "chars_after_clean": 1800,
+   "reading_minutes": 3.6,
+   "has_next_steps": false,
+   "maturity": "new"
+  },
+  {
+   "no": "42",
+   "design_no": null,
+   "part": 7,
+   "anchor": "md-ray-budget",
+   "title_ko": "두 기체가 갈리는 이유는 메쉬 품질이 아니라 표적 크기 대비 광선예산이다",
+   "question_ko": "왜 mini2 와 matrice4e 의 판정이 다른가?",
+   "from_now": "신규 — 설계 36",
+   "from_cells": [],
+   "evidence_json": [
+    "outputs/report15_verdict.json",
+    "outputs/report15_verdict_nulls_vs_range.json",
+    "outputs/report15_attack_stats.json",
+    "outputs/report15_attack_spp_ladder.json",
+    "outputs/report15_attack_spp_ladder_mini2.json"
+   ],
+   "est_md_cells": 8,
+   "est_figures": 1,
+   "chars_after_clean": 2200,
+   "reading_minutes": 4.4,
+   "has_next_steps": false,
+   "maturity": "new"
+  },
+  {
+   "no": "43",
+   "design_no": null,
+   "part": 7,
+   "anchor": "md-prf",
+   "title_ko": "상시 기준신호가 주는 것은 날개끝 확산이 아니라 블레이드 통과율까지다",
+   "question_ko": "상시 신호로 마이크로도플러를 어디까지 보나?",
+   "from_now": "report07 §5",
+   "from_cells": [
+    "report07:§5"
+   ],
+   "evidence_json": [
+    "outputs/md_range_sweep.json",
+    "outputs/report15b_microdoppler.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 0,
+   "chars_after_clean": 1300,
+   "reading_minutes": 2.6,
+   "has_next_steps": true,
+   "maturity": "existing"
+  },
+  {
+   "no": "44",
+   "design_no": "37",
+   "part": 8,
+   "anchor": "illuminators",
+   "title_ko": "상시이면서 내용을 미리 아는 신호는 표준마다 하나씩 있다",
+   "question_ko": "무엇을 조명원으로 쓸 수 있나?",
+   "from_now": "report03 R03-C",
+   "from_cells": [
+    "report03:c3",
+    "report03:c4"
+   ],
+   "evidence_json": [
+    "outputs/report03_illuminators.json",
+    "outputs/report2_waveform_rcs.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1232,
+   "reading_minutes": 2.5,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "45",
+   "design_no": "38",
+   "part": 8,
+   "anchor": "5g-double-cost",
+   "title_ko": "5G 는 좁고 드물다 — 두 배의 대가를 치른다",
+   "question_ko": "5G 기준신호는 왜 불리한가?",
+   "from_now": "report03 R03-C",
+   "from_cells": [
+    "report03:c5",
+    "report03:c6"
+   ],
+   "evidence_json": [
+    "outputs/report03_illuminators.json",
+    "outputs/report2_waveform_rcs.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 1,
+   "chars_after_clean": 1048,
+   "reading_minutes": 2.1,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "46",
+   "design_no": "39",
+   "part": 8,
+   "anchor": "cost-ledger",
+   "title_ko": "여섯 항목은 닫힌형이고, 점유 대가만 몬테카를로 격자에서 읽는다",
+   "question_ko": "조명원 선택의 대가를 어떻게 닫았나?",
+   "from_now": "report03 R03-D",
+   "from_cells": [
+    "report03:c7",
+    "report03:c8",
+    "report03:c9",
+    "report03:c10"
+   ],
+   "evidence_json": [
+    "outputs/report03_illuminators.json",
+    "outputs/report4_fixups.json"
+   ],
+   "est_md_cells": 9,
+   "est_figures": 2,
+   "chars_after_clean": 2359,
+   "reading_minutes": 4.7,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "47",
+   "design_no": "40",
+   "part": 8,
+   "anchor": "range-convention",
+   "title_ko": "바이스태틱 거리 분해능은 c/B, 잡음대역은 √(B/fs) 로 고정한다",
+   "question_ko": "거리와 잡음대역을 어느 규약으로 쓰나?",
+   "from_now": "report03 R03-E",
+   "from_cells": [
+    "report03:c11",
+    "report03:c12"
+   ],
+   "evidence_json": [
+    "outputs/report03_illuminators.json",
+    "outputs/report4_fixups.json",
+    "outputs/verify_ambiguity.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 0,
+   "chars_after_clean": 1355,
+   "reading_minutes": 2.7,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "48",
+   "design_no": "41",
+   "part": 8,
+   "anchor": "waveform-check",
+   "title_ko": "같은 자원격자를 독립 변조기에 넣어 상관 1.0000 을 얻었다",
+   "question_ko": "우리 파형이 표준과 맞나?",
+   "from_now": "report03 R03-F",
+   "from_cells": [
+    "report03:c13",
+    "report03:c14",
+    "report03:c15"
+   ],
+   "evidence_json": [
+    "outputs/report2_waveform_rcs.json"
+   ],
+   "est_md_cells": 7,
+   "est_figures": 1,
+   "chars_after_clean": 1730,
+   "reading_minutes": 3.5,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "49",
+   "design_no": "42",
+   "part": 8,
+   "anchor": "ambiguity",
+   "title_ko": "검출기가 실제로 쓰는 커널 그대로 모호함수를 그렸다",
+   "question_ko": "검출기의 눈은 어떻게 생겼나?",
+   "from_now": "report03 R03-G",
+   "from_cells": [
+    "report03:c16",
+    "report03:c17",
+    "report03:c18"
+   ],
+   "evidence_json": [
+    "outputs/report03_illuminators.json",
+    "outputs/verify_ambiguity.json"
+   ],
+   "est_md_cells": 7,
+   "est_figures": 1,
+   "chars_after_clean": 1672,
+   "reading_minutes": 3.3,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "50",
+   "design_no": "43",
+   "part": 8,
+   "anchor": "doppler-fold",
+   "title_ko": "5G SSB 는 걷는 드론에서 접힌다 — 무모호 속도 1.07 m/s",
+   "question_ko": "느린 표적에서 무엇이 무너지나?",
+   "from_now": "report03 R03-G",
+   "from_cells": [
+    "report03:c19",
+    "report03:c20"
+   ],
+   "evidence_json": [
+    "outputs/report03_illuminators.json",
+    "outputs/verify_ambiguity.json"
+   ],
+   "est_md_cells": 7,
+   "est_figures": 1,
+   "chars_after_clean": 1166,
+   "reading_minutes": 2.3,
+   "has_next_steps": true,
+   "maturity": "existing"
+  },
+  {
+   "no": "51",
+   "design_no": "44",
+   "part": 9,
+   "anchor": "chain",
+   "title_ko": "수신 → ECA → 거리도플러 → CFAR, 사슬의 형상은 파형이 정한다",
+   "question_ko": "수신 신호가 판정이 되기까지 무엇을 지나나?",
+   "from_now": "report04 R04-B",
+   "from_cells": [
+    "report04:c2",
+    "report04:c3",
+    "report04:c4"
+   ],
+   "evidence_json": [
+    "outputs/verify_cfar.json",
+    "outputs/verify_eca.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 1,
+   "chars_after_clean": 878,
+   "reading_minutes": 1.8,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "52",
+   "design_no": "45",
+   "part": 9,
+   "anchor": "eca",
+   "title_ko": "탭을 늘리면 환경이 정한 바닥에서 멈추고, 그 대가가 0-도플러 노치다",
+   "question_ko": "직접파를 얼마나 지우고 무엇을 대가로 내나?",
+   "from_now": "report04 R04-C",
+   "from_cells": [
+    "report04:c5",
+    "report04:c6",
+    "report04:c7",
+    "report04:c8"
+   ],
+   "evidence_json": [
+    "outputs/verify_eca.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 2,
+   "chars_after_clean": 770,
+   "reading_minutes": 1.5,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "53",
+   "design_no": "46",
+   "part": 9,
+   "anchor": "cfar-calib",
+   "title_ko": "운용 형상에서 경험 Pfa 를 재니 명목값의 1.52~2.66 배였다",
+   "question_ko": "CFAR 명목 Pfa 는 실제 Pfa 와 얼마나 다른가?",
+   "from_now": "report04 R04-D",
+   "from_cells": [
+    "report04:c9",
+    "report04:c10",
+    "report04:c11",
+    "report04:c12"
+   ],
+   "evidence_json": [
+    "outputs/prior_census.json",
+    "outputs/verify_cfar.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1373,
+   "reading_minutes": 2.7,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "54",
+   "design_no": "47",
+   "part": 9,
+   "anchor": "cfar-why",
+   "title_ko": "그 배율의 원인은 셀 상관이고, 교정표는 형상마다 다시 재야 한다",
+   "question_ko": "왜 어긋나고, 그 교정표는 어디까지 쓰이나?",
+   "from_now": "report04 R04-D",
+   "from_cells": [
+    "report04:c13",
+    "report04:c14",
+    "report04:c15",
+    "report04:c16"
+   ],
+   "evidence_json": [
+    "outputs/prior_census.json",
+    "outputs/verify_cfar.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1296,
+   "reading_minutes": 2.6,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "55",
+   "design_no": "48",
+   "part": 9,
+   "anchor": "observability",
+   "title_ko": "한 순간의 (R_b, f_d) 는 랭크 2 이고, 수신기를 하나 더하면 위치가 풀린다",
+   "question_ko": "한 번의 검출로 무엇까지 알 수 있나?",
+   "from_now": "report04 R04-E",
+   "from_cells": [
+    "report04:c17",
+    "report04:c18",
+    "report04:c19",
+    "report04:c20",
+    "report04:c21"
+   ],
+   "evidence_json": [
+    "outputs/verify_observability.json"
+   ],
+   "est_md_cells": 8,
+   "est_figures": 2,
+   "chars_after_clean": 1500,
+   "reading_minutes": 3.0,
+   "has_next_steps": true,
+   "maturity": "existing"
+  },
+  {
+   "no": "56",
+   "design_no": "49",
+   "part": 10,
+   "anchor": "geometry",
+   "title_ko": "TX·RX·표적 배치와 β·앙각·원거리장이 유효창을 연다",
+   "question_ko": "어떤 기하에서 잰 값인가?",
+   "from_now": "report05 R05-B",
+   "from_cells": [
+    "report05:c2",
+    "report05:c3"
+   ],
+   "evidence_json": [
+    "outputs/archive/report13_sigma_grid_pre0803.json",
+    "outputs/phi_sweep.json",
+    "outputs/report13_freespace.json",
+    "outputs/sbr_defect_fixes.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 0,
+   "chars_after_clean": 1228,
+   "reading_minutes": 2.5,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "57",
+   "design_no": "50",
+   "part": 10,
+   "anchor": "sensitivity-chain",
+   "title_ko": "세 밴드에서 값이 다른 항은 λ² 와 σ 둘뿐이다",
+   "question_ko": "밴드 격차는 무엇으로 만들어지나?",
+   "from_now": "report05 R05-C",
+   "from_cells": [
+    "report05:c4",
+    "report05:c5",
+    "report05:c6",
+    "report05:c7"
+   ],
+   "evidence_json": [
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json",
+    "outputs/report4_fixups.json",
+    "outputs/sigma_anchor.json",
+    "outputs/sigma_sensitivity.json",
+    "outputs/verify_linkbudget.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1641,
+   "reading_minutes": 3.3,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "58",
+   "design_no": "51",
+   "part": 10,
+   "anchor": "shared-threshold",
+   "title_ko": "자유공간 형상에서 문턱을 다시 재니 세 밴드가 SNR90 하나를 공유한다",
+   "question_ko": "비교의 문턱은 어디에서 왔나?",
+   "from_now": "report05 R05-D",
+   "from_cells": [
+    "report05:c8",
+    "report05:c9",
+    "report05:c10"
+   ],
+   "evidence_json": [
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 1,
+   "chars_after_clean": 975,
+   "reading_minutes": 1.9,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "59",
+   "design_no": "52",
+   "part": 10,
+   "anchor": "slope-anchor",
+   "title_ko": "레벨을 맞추려면 크기전이 법칙을 골라야 하므로 기울기만 받는다",
+   "question_ko": "밴드 비교의 바닥에 무엇을 깔았나?",
+   "from_now": "report05 R05-E",
+   "from_cells": [
+    "report05:c11",
+    "report05:c12"
+   ],
+   "evidence_json": [
+    "outputs/lowfreq_anchor.json",
+    "outputs/lowfreq_attack.json",
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/report05_derived.json",
+    "outputs/sigma_anchor.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1527,
+   "reading_minutes": 3.1,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "60",
+   "design_no": "53",
+   "part": 10,
+   "anchor": "r90",
+   "title_ko": "앵커 σ 위의 R90 은 3.69~11.10 km 이고, 밴드 순서는 기체마다 바뀐다",
+   "question_ko": "어느 조명원으로 어디까지 보이나?",
+   "from_now": "report05 R05-F",
+   "from_cells": [
+    "report05:c13",
+    "report05:c14"
+   ],
+   "evidence_json": [
+    "outputs/lowfreq_attack.json",
+    "outputs/meshfix_applied.json",
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json",
+    "outputs/sigma_anchor.json",
+    "outputs/sigma_sensitivity.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 1242,
+   "reading_minutes": 2.5,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "61",
+   "design_no": "54",
+   "part": 10,
+   "anchor": "rank-durability",
+   "title_ko": "그 순위는 자세평균이면 σ 오차 아래에서 하나로 모인다",
+   "question_ko": "밴드 순위가 σ 오차를 견디나?",
+   "from_now": "report05 R05-F",
+   "from_cells": [
+    "report05:c15"
+   ],
+   "evidence_json": [
+    "outputs/lowfreq_attack.json",
+    "outputs/meshfix_applied.json",
+    "outputs/report05_derived.json",
+    "outputs/report13_freespace.json",
+    "outputs/sigma_anchor.json",
+    "outputs/sigma_sensitivity.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 1,
+   "chars_after_clean": 993,
+   "reading_minutes": 2.0,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "62",
+   "design_no": "55",
+   "part": 10,
+   "anchor": "cpi-sweep",
+   "title_ko": "CPI 를 늘리면 세 파형 모두 블라인드율이 내려간다",
+   "question_ko": "적분 시간을 늘리면 5G 가 따라잡나?",
+   "from_now": "report05 R05-G",
+   "from_cells": [
+    "report05:c16",
+    "report05:c17"
+   ],
+   "evidence_json": [
+    "outputs/cpi_guard_sweep.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 0,
+   "chars_after_clean": 1214,
+   "reading_minutes": 2.4,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "63",
+   "design_no": "56",
+   "part": 10,
+   "anchor": "cpi-residual",
+   "title_ko": "모호속도는 표본화율의 성질이라 CPI 로 바뀌지 않는다 — 5G 1.07 m/s",
+   "question_ko": "CPI 로도 못 지우는 것은 무엇인가?",
+   "from_now": "report05 R05-G",
+   "from_cells": [
+    "report05:c18"
+   ],
+   "evidence_json": [
+    "outputs/cpi_guard_sweep.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 1,
+   "chars_after_clean": 629,
+   "reading_minutes": 1.3,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "64",
+   "design_no": "57",
+   "part": 10,
+   "anchor": "sigma-free-axis",
+   "title_ko": "σ 를 곱하기 전에 이미 세 파형의 순서를 정하는 축이 있다",
+   "question_ko": "표적 모델과 무관하게 정해지는 것은 무엇인가?",
+   "from_now": "report05 R05-H",
+   "from_cells": [
+    "report05:c19"
+   ],
+   "evidence_json": [
+    "outputs/report05_derived.json"
+   ],
+   "est_md_cells": 4,
+   "est_figures": 0,
+   "chars_after_clean": 607,
+   "reading_minutes": 1.2,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "65",
+   "design_no": "58",
+   "part": 10,
+   "anchor": "target-model-swap",
+   "title_ko": "평판·큐브·우리 격자를 같은 동작점에서 갈아끼우면 요구 이득이 이만큼 달라진다",
+   "question_ko": "표적 모형을 바꾸면 검출이 얼마나 달라지나?",
+   "from_now": "report05 R05-I",
+   "from_cells": [
+    "report05:c20"
+   ],
+   "evidence_json": [
+    "outputs/tm_attack.json",
+    "outputs/tm_result.json"
+   ],
+   "est_md_cells": 4,
+   "est_figures": 0,
+   "chars_after_clean": 1098,
+   "reading_minutes": 2.2,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "66",
+   "design_no": "59",
+   "part": 10,
+   "anchor": "rx-elements",
+   "title_ko": "코히어런트 배열이득은 10log₁₀N 상한에 −0.11~+0.47 dB 로 붙는다",
+   "question_ko": "수신소자를 늘리면 얼마나 좋아지나?",
+   "from_now": "report05 R05-J",
+   "from_cells": [
+    "report05:c21",
+    "report05:c22"
+   ],
+   "evidence_json": [
+    "outputs/detection_rx_sweep.json",
+    "outputs/report05_derived.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 1,
+   "chars_after_clean": 956,
+   "reading_minutes": 1.9,
+   "has_next_steps": true,
+   "maturity": "existing"
+  },
+  {
+   "no": "67",
+   "design_no": "60",
+   "part": 11,
+   "anchor": "hardware",
+   "title_ko": "X410 의 12-bit ADC 동적범위가 직접파 제거의 천장이다",
+   "question_ko": "하드웨어가 무엇을 제약하나?",
+   "from_now": "report06 R06-B",
+   "from_cells": [
+    "report06:c2",
+    "report06:c3",
+    "report06:c4"
+   ],
+   "evidence_json": [
+    "outputs/measurement_layers.json",
+    "outputs/report06_derived.json",
+    "outputs/report06_measurement.json"
+   ],
+   "est_md_cells": 5,
+   "est_figures": 1,
+   "chars_after_clean": 1018,
+   "reading_minutes": 2.0,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "68",
+   "design_no": "61",
+   "part": 11,
+   "anchor": "sigma-checklist",
+   "title_ko": "교정된 절대 σ 를 만드는 조건은 여섯 항목이 전부다",
+   "question_ko": "무엇을 갖추면 절대 σ 가 되나?",
+   "from_now": "report06 R06-C",
+   "from_cells": [
+    "report06:c5"
+   ],
+   "evidence_json": [
+    "outputs/report06_derived.json",
+    "outputs/report06_measurement.json"
+   ],
+   "est_md_cells": 4,
+   "est_figures": 0,
+   "chars_after_clean": 838,
+   "reading_minutes": 1.7,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "69",
+   "design_no": "62",
+   "part": 11,
+   "anchor": "site-geometry",
+   "title_ko": "가장 보수적인 D 정의로도 세션 거리 하나가 두 기체 세 밴드를 덮는다",
+   "question_ko": "얼마나 멀리서, 어떤 바닥에서 재나?",
+   "from_now": "report06 R06-D · report06 R06-H",
+   "from_cells": [
+    "report06:c6",
+    "report06:c7",
+    "report06:c14"
+   ],
+   "evidence_json": [
+    "outputs/meshfix_applied.json",
+    "outputs/report06_derived.json"
+   ],
+   "est_md_cells": 7,
+   "est_figures": 2,
+   "chars_after_clean": 1351,
+   "reading_minutes": 2.7,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "70",
+   "design_no": "63",
+   "part": 11,
+   "anchor": "calibration-sphere",
+   "title_ko": "구가 σ 를 절대량으로 만들고, 반경 17.8 cm 를 고른다",
+   "question_ko": "무엇을 기준체로 쓰나?",
+   "from_now": "report06 R06-E",
+   "from_cells": [
+    "report06:c8",
+    "report06:c9",
+    "report06:c10"
+   ],
+   "evidence_json": [
+    "outputs/measurement_layers.json",
+    "outputs/meshfix_applied.json",
+    "outputs/report06_derived.json"
+   ],
+   "est_md_cells": 7,
+   "est_figures": 1,
+   "chars_after_clean": 1665,
+   "reading_minutes": 3.3,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "71",
+   "design_no": "64",
+   "part": 11,
+   "anchor": "subband",
+   "title_ko": "표적을 한 거리빈에 넣는 최대 대역은 200 MHz 다",
+   "question_ko": "순시대역을 얼마나 쪼개야 하나?",
+   "from_now": "report06 R06-F",
+   "from_cells": [
+    "report06:c11"
+   ],
+   "evidence_json": [
+    "outputs/measurement_layers.json",
+    "outputs/report06_derived.json"
+   ],
+   "est_md_cells": 4,
+   "est_figures": 0,
+   "chars_after_clean": 718,
+   "reading_minutes": 1.4,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "72",
+   "design_no": "65",
+   "part": 11,
+   "anchor": "attitude",
+   "title_ko": "각도표본을 λ/4D 로 잡아 앵커 문헌의 고정 2° 보다 촘촘하게 간다",
+   "question_ko": "자세를 어떻게 통제하나?",
+   "from_now": "report06 R06-G",
+   "from_cells": [
+    "report06:c12",
+    "report06:c13"
+   ],
+   "evidence_json": [
+    "outputs/measurement_layers.json",
+    "outputs/report06_derived.json"
+   ],
+   "est_md_cells": 4,
+   "est_figures": 0,
+   "chars_after_clean": 831,
+   "reading_minutes": 1.7,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "73",
+   "design_no": "66",
+   "part": 11,
+   "anchor": "three-layers",
+   "title_ko": "σ(f) 레인지·파형축·비행검출로 층을 나눈다",
+   "question_ko": "캠페인을 어떻게 층으로 쌓나?",
+   "from_now": "report06 R06-I",
+   "from_cells": [
+    "report06:c15"
+   ],
+   "evidence_json": [
+    "outputs/measurement_layers.json",
+    "outputs/report06_derived.json"
+   ],
+   "est_md_cells": 4,
+   "est_figures": 0,
+   "chars_after_clean": 910,
+   "reading_minutes": 1.8,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "74",
+   "design_no": "67",
+   "part": 11,
+   "anchor": "sim-vs-meas",
+   "title_ko": "캠페인이 결판내는 양은 절대값이 아니라 순위다",
+   "question_ko": "실측이 시뮬의 무엇을 결판내나?",
+   "from_now": "report06 R06-J",
+   "from_cells": [
+    "report06:c16",
+    "report06:c17",
+    "report06:c18",
+    "report06:c19"
+   ],
+   "evidence_json": [
+    "outputs/meshfix_applied.json",
+    "outputs/meshfix_attack.json",
+    "outputs/report06_derived.json",
+    "outputs/sigma_anchor.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 0,
+   "chars_after_clean": 2153,
+   "reading_minutes": 4.3,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "75",
+   "design_no": "68",
+   "part": 11,
+   "anchor": "decision-matrix",
+   "title_ko": "주장마다 판정 범위를 결판·사슬확인·캠페인 밖으로 적었다",
+   "question_ko": "어느 측정이 어느 주장을 결판내나?",
+   "from_now": "report06 R06-K",
+   "from_cells": [
+    "report06:c20",
+    "report06:c21"
+   ],
+   "evidence_json": [
+    "outputs/lowfreq_attack.json",
+    "outputs/meshfix_applied.json",
+    "outputs/p3_validation.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/ptd_wiring.json",
+    "outputs/report06_derived.json",
+    "outputs/report06_measurement.json",
+    "outputs/verify_cfar.json"
+   ],
+   "est_md_cells": 6,
+   "est_figures": 0,
+   "chars_after_clean": 1976,
+   "reading_minutes": 4.0,
+   "has_next_steps": false,
+   "maturity": "existing"
+  },
+  {
+   "no": "76",
+   "design_no": "69",
+   "part": 11,
+   "anchor": "session-drift",
+   "title_ko": "세션 재현성 1.00 dB 가 판정 문턱이고, 뒤집힘 폭 1.30 dB 가 그보다 크다",
+   "question_ko": "그 판정이 세션 드리프트를 이기나?",
+   "from_now": "report06 R06-K",
+   "from_cells": [
+    "report06:c22"
+   ],
+   "evidence_json": [
+    "outputs/lowfreq_attack.json",
+    "outputs/meshfix_applied.json",
+    "outputs/p3_validation.json",
+    "outputs/p3_validation_v2.json",
+    "outputs/ptd_wiring.json",
+    "outputs/report06_derived.json",
+    "outputs/report06_measurement.json",
+    "outputs/verify_cfar.json"
+   ],
+   "est_md_cells": 8,
+   "est_figures": 2,
+   "chars_after_clean": 1416,
+   "reading_minutes": 2.8,
+   "has_next_steps": true,
+   "maturity": "existing"
+  }
+ ],
+ "parts": [
+  {
+   "part": 0,
+   "name": "지도",
+   "question": "어느 편이 어느 질문에 답하나",
+   "reports": [
+    "00"
+   ],
+   "n": 1
+  },
+  {
+   "part": 1,
+   "name": "스톡 엔진이 하는 일과 안 하는 일",
+   "question": "Sionna RT 가 스스로 계산하는 양은 어디서 끝나나",
+   "reports": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07"
+   ],
+   "n": 7
+  },
+  {
+   "part": 2,
+   "name": "선행연구",
+   "question": "남들은 표적 신호를 어디서 얻었나",
+   "reports": [
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14"
+   ],
+   "n": 7
+  },
+  {
+   "part": 3,
+   "name": "표적 메쉬",
+   "question": "기체 7종을 무엇에서 지었고 실물과 얼마나 맞나",
+   "reports": [
+    "15",
+    "16",
+    "17"
+   ],
+   "n": 3
+  },
+  {
+   "part": 4,
+   "name": "산란 커널",
+   "question": "우리 커널이 무엇을 계산하고 기준해와 얼마나 맞나",
+   "reports": [
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23"
+   ],
+   "n": 6
+  },
+  {
+   "part": 5,
+   "name": "앵커와 검증",
+   "question": "σ 의 어느 축을 측정에서 받고, 그 판정이 함대에서 버티나",
+   "reports": [
+    "24",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29"
+   ],
+   "n": 6
+  },
+  {
+   "part": 6,
+   "name": "표적 사다리",
+   "question": "드론을 얼마나 거칠게 그려도 되나",
+   "reports": [
+    "30",
+    "31",
+    "32",
+    "33"
+   ],
+   "n": 4
+  },
+  {
+   "part": 7,
+   "name": "마이크로도플러",
+   "question": "도는 로터가 만드는 무늬를 무엇이 정하나",
+   "reports": [
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39",
+    "40",
+    "41",
+    "42",
+    "43"
+   ],
+   "n": 10
+  },
+  {
+   "part": 8,
+   "name": "조명원",
+   "question": "세 파형이 무는 대가",
+   "reports": [
+    "44",
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50"
+   ],
+   "n": 7
+  },
+  {
+   "part": 9,
+   "name": "검출기",
+   "question": "수신 신호가 판정이 되기까지",
+   "reports": [
+    "51",
+    "52",
+    "53",
+    "54",
+    "55"
+   ],
+   "n": 5
+  },
+  {
+   "part": 10,
+   "name": "검출 결과",
+   "question": "어느 조명원으로 어디까지 보이나",
+   "reports": [
+    "56",
+    "57",
+    "58",
+    "59",
+    "60",
+    "61",
+    "62",
+    "63",
+    "64",
+    "65",
+    "66"
+   ],
+   "n": 11
+  },
+  {
+   "part": 11,
+   "name": "실측 설계",
+   "question": "무엇을 재면 어느 주장이 결판나나",
+   "reports": [
+    "67",
+    "68",
+    "69",
+    "70",
+    "71",
+    "72",
+    "73",
+    "74",
+    "75",
+    "76"
+   ],
+   "n": 10
+  }
+ ],
+ "cell_disposition": {
+  "report01:c2": {
+   "kind": "move",
+   "targets": [
+    "01"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c3": {
+   "kind": "move",
+   "targets": [
+    "01"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c2": {
+   "kind": "move",
+   "targets": [
+    "02"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c3": {
+   "kind": "move",
+   "targets": [
+    "02"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c4": {
+   "kind": "move",
+   "targets": [
+    "03"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c5": {
+   "kind": "move",
+   "targets": [
+    "03"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c6": {
+   "kind": "move",
+   "targets": [
+    "03"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c7": {
+   "kind": "move",
+   "targets": [
+    "04"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c8": {
+   "kind": "move",
+   "targets": [
+    "04"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c9": {
+   "kind": "move",
+   "targets": [
+    "04"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c10": {
+   "kind": "move",
+   "targets": [
+    "04"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c11": {
+   "kind": "move",
+   "targets": [
+    "05"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c12": {
+   "kind": "move",
+   "targets": [
+    "05"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c13": {
+   "kind": "move",
+   "targets": [
+    "06"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c14": {
+   "kind": "move",
+   "targets": [
+    "06"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c15": {
+   "kind": "move",
+   "targets": [
+    "06"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c16": {
+   "kind": "move",
+   "targets": [
+    "06"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c17": {
+   "kind": "move",
+   "targets": [
+    "07"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c18": {
+   "kind": "move",
+   "targets": [
+    "07"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c4": {
+   "kind": "move",
+   "targets": [
+    "08"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c5": {
+   "kind": "move",
+   "targets": [
+    "08"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c6": {
+   "kind": "move",
+   "targets": [
+    "08"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c7": {
+   "kind": "move",
+   "targets": [
+    "08"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c8": {
+   "kind": "move",
+   "targets": [
+    "09"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c9": {
+   "kind": "move",
+   "targets": [
+    "09"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c10": {
+   "kind": "move",
+   "targets": [
+    "09"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c11": {
+   "kind": "move",
+   "targets": [
+    "10"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c12": {
+   "kind": "move",
+   "targets": [
+    "10"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c16": {
+   "kind": "move",
+   "targets": [
+    "10"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c13": {
+   "kind": "move",
+   "targets": [
+    "11"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c14": {
+   "kind": "move",
+   "targets": [
+    "11"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c15": {
+   "kind": "move",
+   "targets": [
+    "11"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c17": {
+   "kind": "move",
+   "targets": [
+    "12"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c18": {
+   "kind": "move",
+   "targets": [
+    "13"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c19": {
+   "kind": "move",
+   "targets": [
+    "13"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c21": {
+   "kind": "move",
+   "targets": [
+    "13"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report01:c22": {
+   "kind": "move",
+   "targets": [
+    "13"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c21": {
+   "kind": "move",
+   "targets": [
+    "14"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c22": {
+   "kind": "move",
+   "targets": [
+    "14"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c2": {
+   "kind": "move",
+   "targets": [
+    "15"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c3": {
+   "kind": "move",
+   "targets": [
+    "15"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c4": {
+   "kind": "move",
+   "targets": [
+    "16"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c5": {
+   "kind": "move",
+   "targets": [
+    "17"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c6": {
+   "kind": "move",
+   "targets": [
+    "17"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c7": {
+   "kind": "split",
+   "targets": [
+    "18",
+    "19"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c8": {
+   "kind": "move",
+   "targets": [
+    "18"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c9": {
+   "kind": "move",
+   "targets": [
+    "19"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c10": {
+   "kind": "move",
+   "targets": [
+    "20"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c19": {
+   "kind": "move",
+   "targets": [
+    "21"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c11": {
+   "kind": "move",
+   "targets": [
+    "21"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c13": {
+   "kind": "move",
+   "targets": [
+    "21"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c20": {
+   "kind": "move",
+   "targets": [
+    "22"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c12": {
+   "kind": "move",
+   "targets": [
+    "22"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c23": {
+   "kind": "move",
+   "targets": [
+    "23"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c14": {
+   "kind": "move",
+   "targets": [
+    "24"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c15": {
+   "kind": "move",
+   "targets": [
+    "24"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c16": {
+   "kind": "move",
+   "targets": [
+    "24"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c17": {
+   "kind": "move",
+   "targets": [
+    "25"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c18": {
+   "kind": "move",
+   "targets": [
+    "25"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c19": {
+   "kind": "move",
+   "targets": [
+    "26"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c20": {
+   "kind": "split",
+   "targets": [
+    "27",
+    "28"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c21": {
+   "kind": "move",
+   "targets": [
+    "29"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report02:c22": {
+   "kind": "move",
+   "targets": [
+    "29"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c3": {
+   "kind": "move",
+   "targets": [
+    "44"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c4": {
+   "kind": "move",
+   "targets": [
+    "44"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c5": {
+   "kind": "move",
+   "targets": [
+    "45"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c6": {
+   "kind": "move",
+   "targets": [
+    "45"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c7": {
+   "kind": "move",
+   "targets": [
+    "46"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c8": {
+   "kind": "move",
+   "targets": [
+    "46"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c9": {
+   "kind": "move",
+   "targets": [
+    "46"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c10": {
+   "kind": "move",
+   "targets": [
+    "46"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c11": {
+   "kind": "move",
+   "targets": [
+    "47"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c12": {
+   "kind": "memo_repro",
+   "targets": [
+    "docs/REPRODUCE.md"
+   ],
+   "note": "⚠ 설계 로스터가 이 코드셀을 편에 넣어 뒀다. R9(재현은 리포트 밖) 에 따라 docs/REPRODUCE.md 로 돌린다"
+  },
+  "report03:c13": {
+   "kind": "move",
+   "targets": [
+    "48"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c14": {
+   "kind": "move",
+   "targets": [
+    "48"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c15": {
+   "kind": "move",
+   "targets": [
+    "48"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c16": {
+   "kind": "move",
+   "targets": [
+    "49"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c17": {
+   "kind": "move",
+   "targets": [
+    "49"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c18": {
+   "kind": "move",
+   "targets": [
+    "49"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c19": {
+   "kind": "move",
+   "targets": [
+    "50"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report03:c20": {
+   "kind": "move",
+   "targets": [
+    "50"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c2": {
+   "kind": "move",
+   "targets": [
+    "51"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c3": {
+   "kind": "move",
+   "targets": [
+    "51"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c4": {
+   "kind": "move",
+   "targets": [
+    "51"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c5": {
+   "kind": "move",
+   "targets": [
+    "52"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c6": {
+   "kind": "move",
+   "targets": [
+    "52"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c7": {
+   "kind": "move",
+   "targets": [
+    "52"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c8": {
+   "kind": "move",
+   "targets": [
+    "52"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c9": {
+   "kind": "move",
+   "targets": [
+    "53"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c10": {
+   "kind": "move",
+   "targets": [
+    "53"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c11": {
+   "kind": "move",
+   "targets": [
+    "53"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c12": {
+   "kind": "memo_repro",
+   "targets": [
+    "docs/REPRODUCE.md"
+   ],
+   "note": "⚠ 설계 로스터가 이 코드셀을 편에 넣어 뒀다. R9(재현은 리포트 밖) 에 따라 docs/REPRODUCE.md 로 돌린다"
+  },
+  "report04:c13": {
+   "kind": "move",
+   "targets": [
+    "54"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c14": {
+   "kind": "move",
+   "targets": [
+    "54"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c15": {
+   "kind": "move",
+   "targets": [
+    "54"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c16": {
+   "kind": "move",
+   "targets": [
+    "54"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c17": {
+   "kind": "move",
+   "targets": [
+    "55"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c18": {
+   "kind": "move",
+   "targets": [
+    "55"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c19": {
+   "kind": "move",
+   "targets": [
+    "55"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c20": {
+   "kind": "move",
+   "targets": [
+    "55"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report04:c21": {
+   "kind": "move",
+   "targets": [
+    "55"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c2": {
+   "kind": "move",
+   "targets": [
+    "56"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c3": {
+   "kind": "move",
+   "targets": [
+    "56"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c4": {
+   "kind": "move",
+   "targets": [
+    "57"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c5": {
+   "kind": "move",
+   "targets": [
+    "57"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c6": {
+   "kind": "move",
+   "targets": [
+    "57"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c7": {
+   "kind": "move",
+   "targets": [
+    "57"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c8": {
+   "kind": "move",
+   "targets": [
+    "58"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c9": {
+   "kind": "move",
+   "targets": [
+    "58"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c10": {
+   "kind": "move",
+   "targets": [
+    "58"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c11": {
+   "kind": "move",
+   "targets": [
+    "59"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c12": {
+   "kind": "move",
+   "targets": [
+    "59"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c13": {
+   "kind": "move",
+   "targets": [
+    "60"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c14": {
+   "kind": "move",
+   "targets": [
+    "60"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c15": {
+   "kind": "move",
+   "targets": [
+    "61"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c16": {
+   "kind": "move",
+   "targets": [
+    "62"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c17": {
+   "kind": "move",
+   "targets": [
+    "62"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c18": {
+   "kind": "move",
+   "targets": [
+    "63"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c19": {
+   "kind": "move",
+   "targets": [
+    "64"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c20": {
+   "kind": "move",
+   "targets": [
+    "65"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c21": {
+   "kind": "move",
+   "targets": [
+    "66"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report05:c22": {
+   "kind": "move",
+   "targets": [
+    "66"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c2": {
+   "kind": "move",
+   "targets": [
+    "67"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c3": {
+   "kind": "move",
+   "targets": [
+    "67"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c4": {
+   "kind": "move",
+   "targets": [
+    "67"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c5": {
+   "kind": "move",
+   "targets": [
+    "68"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c6": {
+   "kind": "move",
+   "targets": [
+    "69"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c7": {
+   "kind": "move",
+   "targets": [
+    "69"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c14": {
+   "kind": "move",
+   "targets": [
+    "69"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c8": {
+   "kind": "move",
+   "targets": [
+    "70"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c9": {
+   "kind": "move",
+   "targets": [
+    "70"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c10": {
+   "kind": "move",
+   "targets": [
+    "70"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c11": {
+   "kind": "move",
+   "targets": [
+    "71"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c12": {
+   "kind": "move",
+   "targets": [
+    "72"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c13": {
+   "kind": "move",
+   "targets": [
+    "72"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c15": {
+   "kind": "move",
+   "targets": [
+    "73"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c16": {
+   "kind": "move",
+   "targets": [
+    "74"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c17": {
+   "kind": "move",
+   "targets": [
+    "74"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c18": {
+   "kind": "move",
+   "targets": [
+    "74"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c19": {
+   "kind": "move",
+   "targets": [
+    "74"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c20": {
+   "kind": "move",
+   "targets": [
+    "75"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c21": {
+   "kind": "move",
+   "targets": [
+    "75"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report06:c22": {
+   "kind": "move",
+   "targets": [
+    "76"
+   ],
+   "note": "설계 로스터 그대로"
+  },
+  "report00:c0": {
+   "kind": "fanout",
+   "targets": [
+    "00",
+    "04",
+    "05",
+    "06",
+    "07"
+   ],
+   "note": "여는 블록 «한 일·결과» — 결과 줄마다 그 주장을 담당하는 편의 header(results=) 로. 편 전체 요약 한 줄은 00 지도 편의 그 부 소개로"
+  },
+  "report00:c1": {
+   "kind": "fanout",
+   "targets": [
+    "00",
+    "04",
+    "05",
+    "06",
+    "07",
+    "docs/REPRODUCE.md"
+   ],
+   "note": "여는 블록 «방법»(표 행 → 담당 편 header(method=)) + «재현» bash → docs/REPRODUCE.md"
+  },
+  "report01:c0": {
+   "kind": "fanout",
+   "targets": [
+    "00",
+    "08",
+    "10",
+    "13"
+   ],
+   "note": "여는 블록 «한 일·결과» — 결과 줄마다 그 주장을 담당하는 편의 header(results=) 로. 편 전체 요약 한 줄은 00 지도 편의 그 부 소개로"
+  },
+  "report01:c1": {
+   "kind": "fanout",
+   "targets": [
+    "00",
+    "08",
+    "10",
+    "13",
+    "docs/REPRODUCE.md"
+   ],
+   "note": "여는 블록 «방법»(표 행 → 담당 편 header(method=)) + «재현» bash → docs/REPRODUCE.md"
+  },
+  "report02:c0": {
+   "kind": "fanout",
+   "targets": [
+    "00",
+    "15",
+    "18",
+    "21",
+    "24",
+    "26"
+   ],
+   "note": "여는 블록 «한 일·결과» — 결과 줄마다 그 주장을 담당하는 편의 header(results=) 로. 편 전체 요약 한 줄은 00 지도 편의 그 부 소개로"
+  },
+  "report02:c1": {
+   "kind": "fanout",
+   "targets": [
+    "00",
+    "15",
+    "18",
+    "21",
+    "24",
+    "26",
+    "docs/REPRODUCE.md"
+   ],
+   "note": "여는 블록 «방법»(표 행 → 담당 편 header(method=)) + «재현» bash → docs/REPRODUCE.md"
+  },
+  "report03:c0": {
+   "kind": "fanout",
+   "targets": [
+    "00",
+    "44",
+    "45",
+    "46",
+    "50"
+   ],
+   "note": "여는 블록 «한 일·결과» — 결과 줄마다 그 주장을 담당하는 편의 header(results=) 로. 편 전체 요약 한 줄은 00 지도 편의 그 부 소개로"
+  },
+  "report03:c1": {
+   "kind": "fanout",
+   "targets": [
+    "00",
+    "44",
+    "45",
+    "46",
+    "50",
+    "docs/REPRODUCE.md"
+   ],
+   "note": "여는 블록 «방법»(표 행 → 담당 편 header(method=)) + «재현» bash → docs/REPRODUCE.md"
+  },
+  "report04:c0": {
+   "kind": "fanout",
+   "targets": [
+    "00",
+    "51",
+    "52",
+    "53",
+    "54"
+   ],
+   "note": "여는 블록 «한 일·결과» — 결과 줄마다 그 주장을 담당하는 편의 header(results=) 로. 편 전체 요약 한 줄은 00 지도 편의 그 부 소개로"
+  },
+  "report04:c1": {
+   "kind": "fanout",
+   "targets": [
+    "00",
+    "51",
+    "52",
+    "53",
+    "54",
+    "docs/REPRODUCE.md"
+   ],
+   "note": "여는 블록 «방법»(표 행 → 담당 편 header(method=)) + «재현» bash → docs/REPRODUCE.md"
+  },
+  "report05:c0": {
+   "kind": "fanout",
+   "targets": [
+    "00",
+    "57",
+    "58",
+    "60",
+    "61"
+   ],
+   "note": "여는 블록 «한 일·결과» — 결과 줄마다 그 주장을 담당하는 편의 header(results=) 로. 편 전체 요약 한 줄은 00 지도 편의 그 부 소개로"
+  },
+  "report05:c1": {
+   "kind": "fanout",
+   "targets": [
+    "00",
+    "57",
+    "58",
+    "60",
+    "61",
+    "docs/REPRODUCE.md"
+   ],
+   "note": "여는 블록 «방법»(표 행 → 담당 편 header(method=)) + «재현» bash → docs/REPRODUCE.md"
+  },
+  "report06:c0": {
+   "kind": "fanout",
+   "targets": [
+    "00",
+    "67",
+    "69",
+    "74",
+    "76"
+   ],
+   "note": "여는 블록 «한 일·결과» — 결과 줄마다 그 주장을 담당하는 편의 header(results=) 로. 편 전체 요약 한 줄은 00 지도 편의 그 부 소개로"
+  },
+  "report06:c1": {
+   "kind": "fanout",
+   "targets": [
+    "00",
+    "67",
+    "69",
+    "74",
+    "76",
+    "docs/REPRODUCE.md"
+   ],
+   "note": "여는 블록 «방법»(표 행 → 담당 편 header(method=)) + «재현» bash → docs/REPRODUCE.md"
+  },
+  "report00:c24": {
+   "kind": "fanout",
+   "targets": [
+    "23",
+    "14",
+    "docs/NEXT_STEPS.md"
+   ],
+   "note": "«다음 단계» 표 행을 전수로 옮긴다 — 담당 편의 next_steps() 로, 어느 편에도 안 앉는 행은 docs/NEXT_STEPS.md 로(한 행도 버리지 않는다)"
+  },
+  "report01:c24": {
+   "kind": "fanout",
+   "targets": [
+    "13",
+    "14",
+    "docs/NEXT_STEPS.md"
+   ],
+   "note": "«다음 단계» 표 행을 전수로 옮긴다 — 담당 편의 next_steps() 로, 어느 편에도 안 앉는 행은 docs/NEXT_STEPS.md 로(한 행도 버리지 않는다)"
+  },
+  "report02:c24": {
+   "kind": "fanout",
+   "targets": [
+    "22",
+    "28",
+    "docs/NEXT_STEPS.md"
+   ],
+   "note": "«다음 단계» 표 행을 전수로 옮긴다 — 담당 편의 next_steps() 로, 어느 편에도 안 앉는 행은 docs/NEXT_STEPS.md 로(한 행도 버리지 않는다)"
+  },
+  "report03:c22": {
+   "kind": "fanout",
+   "targets": [
+    "50",
+    "43",
+    "docs/NEXT_STEPS.md"
+   ],
+   "note": "«다음 단계» 표 행을 전수로 옮긴다 — 담당 편의 next_steps() 로, 어느 편에도 안 앉는 행은 docs/NEXT_STEPS.md 로(한 행도 버리지 않는다)"
+  },
+  "report04:c23": {
+   "kind": "fanout",
+   "targets": [
+    "55",
+    "docs/NEXT_STEPS.md"
+   ],
+   "note": "«다음 단계» 표 행을 전수로 옮긴다 — 담당 편의 next_steps() 로, 어느 편에도 안 앉는 행은 docs/NEXT_STEPS.md 로(한 행도 버리지 않는다)"
+  },
+  "report05:c24": {
+   "kind": "fanout",
+   "targets": [
+    "66",
+    "docs/NEXT_STEPS.md"
+   ],
+   "note": "«다음 단계» 표 행을 전수로 옮긴다 — 담당 편의 next_steps() 로, 어느 편에도 안 앉는 행은 docs/NEXT_STEPS.md 로(한 행도 버리지 않는다)"
+  },
+  "report06:c25": {
+   "kind": "fanout",
+   "targets": [
+    "76",
+    "docs/NEXT_STEPS.md"
+   ],
+   "note": "«다음 단계» 표 행을 전수로 옮긴다 — 담당 편의 next_steps() 로, 어느 편에도 안 앉는 행은 docs/NEXT_STEPS.md 로(한 행도 버리지 않는다)"
+  },
+  "report01:c20": {
+   "kind": "memo_paper",
+   "targets": [
+    "docs/paper/00_novelty.md"
+   ],
+   "note": "논문 원고 — 리포트 본문에서 빠진다(사용자 지시). 조각마다 <!-- from: 편 NN anchor --> 를 박는다"
+  },
+  "report01:c23": {
+   "kind": "memo_paper",
+   "targets": [
+    "docs/paper/01_prior.md"
+   ],
+   "note": "논문 원고 — 리포트 본문에서 빠진다(사용자 지시). 조각마다 <!-- from: 편 NN anchor --> 를 박는다"
+  },
+  "report02:c25": {
+   "kind": "memo_paper",
+   "targets": [
+    "docs/paper/02_target.md"
+   ],
+   "note": "논문 원고 — 리포트 본문에서 빠진다(사용자 지시). 조각마다 <!-- from: 편 NN anchor --> 를 박는다"
+  },
+  "report03:c2": {
+   "kind": "memo_paper",
+   "targets": [
+    "docs/paper/03_illuminators.md#가져가는-것"
+   ],
+   "note": "논문 원고 — 리포트 본문에서 빠진다(사용자 지시). 조각마다 <!-- from: 편 NN anchor --> 를 박는다"
+  },
+  "report03:c21": {
+   "kind": "memo_paper",
+   "targets": [
+    "docs/paper/03_illuminators.md"
+   ],
+   "note": "논문 원고 — 리포트 본문에서 빠진다(사용자 지시). 조각마다 <!-- from: 편 NN anchor --> 를 박는다"
+  },
+  "report04:c22": {
+   "kind": "memo_paper",
+   "targets": [
+    "docs/paper/04_detector.md"
+   ],
+   "note": "논문 원고 — 리포트 본문에서 빠진다(사용자 지시). 조각마다 <!-- from: 편 NN anchor --> 를 박는다"
+  },
+  "report05:c23": {
+   "kind": "memo_paper",
+   "targets": [
+    "docs/paper/05_results.md"
+   ],
+   "note": "논문 원고 — 리포트 본문에서 빠진다(사용자 지시). 조각마다 <!-- from: 편 NN anchor --> 를 박는다"
+  },
+  "report06:c23": {
+   "kind": "memo_paper",
+   "targets": [
+    "docs/paper/06_measurement.md"
+   ],
+   "note": "논문 원고 — 리포트 본문에서 빠진다(사용자 지시). 조각마다 <!-- from: 편 NN anchor --> 를 박는다"
+  },
+  "report02:c23": {
+   "kind": "memo_repro",
+   "targets": [
+    "docs/REPRODUCE.md"
+   ],
+   "note": "재현 코드셀 — R9 에 따라 리포트 밖으로"
+  },
+  "report06:c24": {
+   "kind": "memo_repro",
+   "targets": [
+    "docs/REPRODUCE.md"
+   ],
+   "note": "재현 코드셀 — R9 에 따라 리포트 밖으로"
+  }
+ },
+ "cell_coverage": {
+  "n_md_cells": 170,
+  "n_code_cells": 4,
+  "n_disposed": 174,
+  "missing": [],
+  "duplicated_beyond_planned_splits": [],
+  "by_kind": {
+   "move": 139,
+   "split": 2,
+   "memo_repro": 4,
+   "fanout": 21,
+   "memo_paper": 8
+  },
+  "planned_splits": [
+   "report02:c7",
+   "report02:c20"
+  ],
+  "verdict": "누락 0 · 중복 0 — 계획된 분할 2건(report02:c7 → 18·19 · report02:c20 → 27·28)만 한 셀이 두 편으로 간다"
+ },
+ "reading_paths": [
+  {
+   "name": "① 빨리 훑기 — 30분",
+   "who": "이 저장소가 무엇을 해냈는지만 알면 되는 사람",
+   "route": [
+    "00",
+    "06",
+    "13",
+    "16",
+    "21",
+    "24",
+    "32",
+    "46",
+    "53",
+    "60",
+    "74"
+   ],
+   "rule": "각 부에서 결론 편 하나씩. 제목만 읽어도 되고, 막히면 그 편만 연다",
+   "minutes_est": 30
+  },
+  {
+   "name": "② 왜 믿을 수 있나 — 2시간",
+   "who": "판정을 검사하려는 사람(심사·적대검증)",
+   "route": [
+    "01",
+    "04",
+    "05",
+    "21",
+    "22",
+    "26",
+    "27",
+    "28",
+    "29",
+    "33",
+    "41",
+    "53",
+    "54",
+    "61",
+    "76"
+   ],
+   "rule": "검증·대조·반증 편만 모았다. 눈감기(25)·사전등록(27)·PREMATURE(32)·널 교정(35) 이 뼈대다"
+  },
+  {
+   "name": "③ 다시 돌리기",
+   "who": "숫자를 재생산하려는 사람",
+   "route": [
+    "docs/REPRODUCE.md",
+    "outputs/reports_index.json"
+   ],
+   "rule": "리포트를 읽지 않는다. 편 번호 → 명령 → 출력 JSON → 소요시간 표 하나면 끝난다"
+  },
+  {
+   "name": "④ 논문 쓰는 사람 (보너스)",
+   "who": "원고에 옮기려는 사람",
+   "route": [
+    "docs/paper/README.md",
+    "docs/paper/PART_*.md"
+   ],
+   "rule": "리포트 본문에는 논문 문장이 없다. 전부 여기 있고, 조각마다 «어느 편에서 왔나» 가 붙어 있다"
+  }
+ ],
+ "titles_needing_fix": [
+  {
+   "no": "50",
+   "title": "5G SSB 는 걷는 드론에서 접힌다 — 무모호 속도 1.07 m/s",
+   "why": "꼬리에 사실 조각이 붙어 «…다» 로 안 끝난다 — 그 조각을 편 머리 «결과» 첫 줄로 내리고 제목은 «…다» 로 닫는다"
+  },
+  {
+   "no": "63",
+   "title": "모호속도는 표본화율의 성질이라 CPI 로 바뀌지 않는다 — 5G 1.07 m/s",
+   "why": "꼬리에 사실 조각이 붙어 «…다» 로 안 끝난다 — 그 조각을 편 머리 «결과» 첫 줄로 내리고 제목은 «…다» 로 닫는다"
+  }
+ ],
+ "open_risks": [
+  {
+   "risk": "각주 번호 밀림",
+   "where": "S1",
+   "mitigation": "각주 표를 num() 이 쓴 순서로 자동 생성 + 라운드트립 검사(표의 값 = JSON 값). 손으로 번호를 매기는 경로를 아예 만들지 않는다"
+  },
+  {
+   "risk": "report02:c7·c20 의 셀 안 분할이 편 하나를 800자 아래로 떨어뜨릴 수 있다",
+   "where": "W1(c7 → 18·19) · W4(c20 → 27·28)",
+   "mitigation": "설계의 글자 배분(0.5/0.5 · 0.55/0.45)은 추정치다. 실제로 갈라 보고 한쪽이 짧으면 합치지 말고 그 편의 근거 표를 그 편으로 몰아 준다"
+  },
+  {
+   "risk": "표 칸 100 화면 칸 검사가 S4 에서 대량으로 터진다",
+   "where": "S3 → S4",
+   "mitigation": "S3 파일럿이 부 4 에서 실제 위반 수를 세고 눈금을 재교정한다. 고치는 방법은 상한을 올리는 것이 아니라 그 칸을 표 밖 문단으로 내리는 것이다"
+  },
+  {
+   "risk": "부 7 재편이 오늘 지은 report07 을 되돌리는 것으로 보일 수 있다",
+   "where": "W6",
+   "mitigation": "그림·숫자·문장은 그대로 옮긴다. 바뀌는 것은 셀이 어느 노트북에 앉는가뿐이고 빌더는 src/_legacy_builders/ 에 남는다"
+  },
+  {
+   "risk": "옛 8편과 새 77편이 동시에 사는 구간에서 README 링크가 어느 쪽을 가리키는지 헷갈린다",
+   "where": "S4~S6",
+   "mitigation": "새 편은 reports/ 아래에만 짓고 README 는 S5 에서 한 번에 바꾼다. 그 전까지 README 는 옛 8편을 가리킨다"
+  },
+  {
+   "risk": "77편의 근거 JSON 이 옛 8편과 같은 파일을 공유한다 — 한 JSON 이 바뀌면 여러 편이 흔들린다",
+   "where": "상시",
+   "mitigation": "outputs/reports_index.json 이 역방향(JSON → 편) 색인을 같이 낸다. 이 라운드에서는 근거 JSON 을 한 줄도 고치지 않는다"
+  }
+ ]
+}
