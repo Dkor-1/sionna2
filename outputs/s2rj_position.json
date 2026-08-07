@@ -1,0 +1,1544 @@
+{
+ "_meta": {
+  "title": "우리 델타를 정하고 3편 사슬로 배치한다",
+  "date": "2026-08-07",
+  "round_id": "s2rj_position",
+  "role": "종합·결정 라운드. 앞선 다섯 라운드(sweep 4 + compare 1)의 위에 쌓는다.",
+  "input": [
+   "outputs/s2rj_compare.json",
+   "outputs/s2rj_useful_ssl_rf.json",
+   "outputs/s2rj_useful_sim2real_radar.json",
+   "outputs/s2rj_useful_drone_dl.json",
+   "outputs/s2rj_useful_domain_rand.json",
+   "outputs/s2r_prior.json",
+   "docs/SIM2REAL_PLAN.md",
+   "docs/TARGET_LADDER.md",
+   "docs/MEASUREMENT_PLAN.md",
+   "outputs/facet_attack.json",
+   "outputs/report15_verdict.json",
+   "outputs/md_range_sweep.json",
+   "prior_work/sionna_sensing_survey.md"
+  ],
+  "files_written": [
+   "outputs/s2rj_position.json",
+   "docs/S2R_JEPA_POSITION.md"
+  ],
+  "files_not_touched": [
+   "src/**",
+   "reports/**",
+   "benchmark/**",
+   "노트북 빌더 전부",
+   "docs/SIM2REAL_PLAN.md (개정 제안만 §4-3 에 목록으로)",
+   "동시 진행 라운드 산출물(corr2_*, corr3_*, p3_*, tm_*)"
+  ],
+  "gpu_used": false,
+  "language_policy": "본문 한국어, 논문·지표·식별자는 영어",
+  "quote_policy": "⭐ 이 파일의 축자 인용은 전부 내가 이번 라운드에 PyMuPDF 로 직접 열어 쪽수까지 재확인했다(PDF 13편). 형제 라운드에서 인계받았고 내가 안 연 것은 §9 로 격리했다.",
+  "how_to_read": "§1 정정을 먼저 읽어라 — 내 과제 지시문 2건과 형제 라운드 1건이 틀렸다. 그다음 §2(델타) → §5(공격 지도) → §3(3편) 순."
+ },
+ "0_verification_this_round": {
+  "method": "PyMuPDF(fitz) 로 PDF 를 쪽 단위로 열어 공백 정규화 후 부분문자열 탐색. 저장소 JSON 은 python 으로 직접 재집계.",
+  "pdfs_i_opened_myself": [
+   {
+    "paper": "Clutter-Aware ISAC — ⭐ 사용자 지정 주 레퍼런스 ①",
+    "editions_compared": 2,
+    "paths": [
+     "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf (36 p)",
+     "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Clutter-Aware_Integrated_Sensing_and_Communication_Models_Methods_and_Future_Directions.pdf (41 p)"
+    ],
+    "confirmed": [
+     "α_t,n ∼ CN(0, σ²_t,n) 'represents the target RCS together with the associated path loss' — arXiv v2 **p.24** / 게재판 **p.28** (식 108 직후)",
+     "'The ToI and UAVs are modeled as simplified 3-D mesh objects imported into Sionna … simplifying publicly available 3-D models in Blender … keeps the ray-tracing scene lightweight' — arXiv v2 **p.20** / 게재판 **p.23**",
+     "'estimated directly from secondary data collected during quiet periods where only the interference is present' + 같은 절 'For non-cooperative emitters, the interference waveform is unknown at the BS' — arXiv v2 **p.16** / 게재판 **p.19**",
+     "'self-supervised adaptation can enable continual refinement without labels, physics-informed learning can impose Doppler and geometry consistency …' — arXiv v2 **p.32** / 게재판 **p.36**",
+     "'Environment-aware training, and leveraging ray-tracing simulations or large-scale multipath datasets …' — arXiv v2 **p.32** / 게재판 **p.37**"
+    ],
+    "word_counts_i_computed": {
+     "arXiv_v2_36p": {
+      "max depth": 0,
+      "num_samples": 0,
+      "samples per": 0,
+      "physical optics": 0,
+      "dBsm": 0,
+      "drone": 0,
+      "DJI": 0,
+      "launch": 0,
+      "ray budget": 0,
+      "probability of detection": 0,
+      "ROC": 0,
+      "receiver operating": 0,
+      "false alarm": 3,
+      "classif*": 0,
+      "CFAR": 4,
+      "diffraction": 2,
+      "micro-Doppler": 2,
+      "Sionna": 13,
+      "UAV": 40,
+      "Blender": 1,
+      "quiet period": 2
+     },
+     "proc_ieee_41p": {
+      "max depth": 0,
+      "num_samples": 0,
+      "samples per": 0,
+      "physical optics": 0,
+      "dBsm": 0,
+      "drone": 0,
+      "DJI": 0,
+      "launch": 0,
+      "ray budget": 0,
+      "probability of detection": 0,
+      "ROC": 0,
+      "receiver operating": 0,
+      "false alarm": 3,
+      "classif*": 4,
+      "CFAR": 4,
+      "diffraction": 0,
+      "micro-Doppler": 1,
+      "Sionna": 13,
+      "UAV": 35,
+      "Blender": 1,
+      "quiet period": 2
+     },
+     "figures": "두 판본 모두 Fig.1~Fig.12 — **12장**"
+    }
+   },
+   {
+    "paper": "WiFi-JEPA — ⭐ 사용자 지정 주 레퍼런스 ②",
+    "id": "arXiv:2607.11064",
+    "pages": 17,
+    "path": "/data/public/sionna_jeong/papers_isac_sionna/2607.11064__kim_wifi-jepa-csi-pose.pdf",
+    "confirmed": [
+     "'…because the learning objective benefits from diverse spatio-temporal channel variation, rather than faithful reproduction of body-specific multipath' — **p.5**",
+     "'…may matter more than geometric realism' — **p.3** (기여 요약)",
+     "'…so the comparison isolates the effect of scene content' + 'lack the trajectory variation' — **p.13**",
+     "'directly supports' — **p.13** (본문은 요약보다 강한 어조)",
+     "100.1 / 110.3 mm MPJPE — **p.3 · p.13**",
+     "'A critical design choice is performing 20 independent ray-tracing passes per frame' — 본문 **p.6** (Fig.2 캡션은 p.5)"
+    ],
+    "word_counts_i_computed": {
+     "max_depth": 0,
+     "num_samples": 0,
+     "diffraction": 0,
+     "micro-Doppler": 0,
+     "RCS": 0,
+     "UAV|drone": 0,
+     "Sionna": 5
+    }
+   },
+   {
+    "paper": "DivNet (Seyfioglu/Gurbuz, IEEE TAES)",
+    "id": "arXiv:1811.08361",
+    "pages": 15,
+    "path": "<scratchpad>/pdfs/1811.08361.pdf",
+    "confirmed": [
+     "Table V **p.11** 원문 그대로: DivNet-15 97/89/85 · ResNet-50 95/88/85 · VGGnet 94/87/86 · Baseline CNN 86/70/69 (40/30/15 dB)",
+     "'…the baseline 4-layer CNN conventionally trained with measured data only … results in the worst performance with an accuracy of 86%' — **p.10**",
+     "'…outperforms all other methods with 97% test accuracy' — **p.10**",
+     "'474 samples of measured data spanning 7 target classes' — **p.10**",
+     "⭐ 새로 뽑음: 'When noise is relatively high, such as at 15 dB SNR, **all transfer learning methods perform roughly the same**, greatly surpassing the baseline CNN by about 15%.' — **p.10**"
+    ]
+   },
+   {
+    "paper": "Transfer to Sky",
+    "id": "arXiv:2602.10736",
+    "pages": 6,
+    "path": "<scratchpad>/pdf/2602.10736.pdf",
+    "confirmed": [
+     "⭐ 태스크 확인(초록 p.1): 'route-level radio map prediction' · 'Route RSRP' — **통신 링크품질 회귀이지 센싱이 아니다**",
+     "'Removing the simulation pretraining stage leads to a sharp increase in error (mean RMSE rises from 5.3 to 9.5 dB)' — **p.5**",
+     "Table II p.5: Kriging 12.1 · GP 11.5 · Autoencoder 10.2 · Proposed 5.3 (mean RMSE dB)",
+     "Table I p.5: 'Max path depth 2 / Diffraction False / Refraction False' — RT 설정 보고의 반례"
+    ]
+   },
+   {
+    "paper": "White 2023 (IEEE Trans. Radar Systems)",
+    "pages": 15,
+    "path": "<scratchpad>/pdfs/white2023_trs.pdf",
+    "confirmed": [
+     "'…injecting the simulated target into a real background' — **p.11**",
+     "⭐ 'The weather conditions and locations could be altered to yield varied backgrounds for training data but this lies outside the scope of the current study.' — **p.11** (저자 자백)",
+     "⭐ '…synthetic parameter values were set so that sidebands were always visible in the synthetic data.' — **p.12** (저자 자백)",
+     "'the fixed-speeds fell significantly further' — **p.13**"
+    ]
+   },
+   {
+    "paper": "Costa 2025 (JSTEAP 저널판)",
+    "id": "arXiv:2504.05168",
+    "pages": 14,
+    "path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.05168__costa_microdoppler-multiprop-drones_JSTEAP-journal.pdf",
+    "confirmed": [
+     "⭐⭐ 'Future work can comprise the use of simulated data using this proposed model to train target classification algorithms and the validation of this training method using measurement data.' — **p.10** (저자가 우리 자리를 정확히 비웠다)",
+     "'…it requires measurements, or at least full-wave EM simulation, for each target to be modeled. The other is that it is unfeasible to perform static reflectivity measurements for all possible geometric constellations, i.e., all possible combinations of bistatic angles.' — **p.9** (⚠ 이건 **우리를 겨눈 반박**이다)",
+     "⭐ 새로 뽑음: 실측 기체가 상용 드론이 아니다 — '…it is desirable to have full control over the rotors' rotation, which is not feasible with most standard commercial drones. Therefore, a custom-built system was assembled … Tarot IRON MAN 650' — **p.11**"
+    ]
+   },
+   {
+    "paper": "Beuster 2024 (BiRa)",
+    "id": "arXiv:2402.16591",
+    "pages": 6,
+    "path": "/data/public/sionna_jeong/papers_isac_sionna/2402.16591__beuster_multisensor-isac-drone.pdf",
+    "confirmed": [
+     "'…characterizing the bi-static reflectivity of a small quad-copter, namely a DJI Phantom 2, with propellers at standstill … 2 to 18 GHz for different bi-static angels 10° to 180° and the Micro-Doppler signature of a quad-copter **with one rotating propeller blade**' — **p.3**",
+     "'Selected sets of the recorded BiRa measurement data are publicly available at [11]' — **p.3**"
+    ],
+    "my_new_caveat": "⭐ 마이크로도플러 부분은 **날개 한 장만 회전**이다. 형제 라운드가 «프로펠러 정지 + 회전 블레이드 마이크로도플러» 로 요약했는데, 4로터 동시 회전 데이터가 아니다. 우리 사다리 2(로터별 위상·rpm 분산)의 앵커로는 못 쓴다."
+   },
+   {
+    "paper": "Huang MLSP 2025",
+    "id": "arXiv:2501.03461",
+    "pages": 6,
+    "path": "<scratchpad>/pdf/2501.03461.pdf",
+    "confirmed": [
+     "'…17.5%, 6.3%, and 4.3% increases in 1-shot, 5-shot, and 10-shot performance for ResNet1D' — **p.3**",
+     "⭐⭐ 새로 뽑음: 'In the most demanding fine-tuning configuration (i.e., 1-shot), ResNet1D shows a performance boost ranging from **11.3% to 25.7% as SNR increases from −20 to 20 dB**' + '…at lower SNRs, random noise dominates, making reconstruction more challenging.' — **p.4**"
+    ]
+   },
+   {
+    "paper": "RadarTwin",
+    "id": "arXiv:2606.28396",
+    "pages": 13,
+    "path": "<scratchpad>/pdfs/2606.28396.pdf",
+    "confirmed": [
+     "'…because absolute radiometry does not survive the sim-to-real gap: system gain and room-dependent multipath compression shift every level, and the simulator over-separates material contrast.' — **p.9** ⚠ PDF 에서 'sim-to-'/'real' 이 줄바꿈으로 갈라져 있다. 문자열 검색 시 하이픈 처리 필요",
+     "'Pooling distances inflates sim-real feature correlations (to ∼0.8) … Distance-matched, per-feature correlations peak near 0.5' — **p.11**"
+    ]
+   },
+   {
+    "paper": "RF 드론 벤치마크 leakage",
+    "id": "arXiv:2607.01025",
+    "pages": 11,
+    "path": "<scratchpad>/pdf/2607.01025.pdf",
+    "confirmed": [
+     "'…a classifier can memorise the recording-to-label map exactly while the number of independent recordings R is small relative to the feature dimension d (specifically while 2R ≲ d), so that naive accuracy approaches 1 …' — **p.1**"
+    ]
+   },
+   {
+    "paper": "Trinh 2026 (CDR)",
+    "id": "arXiv:2601.17871",
+    "pages": 5,
+    "path": "<scratchpad>/pdf/2601.17871.pdf",
+    "confirmed": [
+     "'…balanced accuracy close to 50% (chance-level for a binary task)' — **p.3**",
+     "'…balanced accuracy near 33% (random guessing)' — **p.3**"
+    ]
+   },
+   {
+    "paper": "CSI-JEPA",
+    "id": "arXiv:2605.14171",
+    "pages": 11,
+    "path": "<scratchpad>/pdf/2605.14171.pdf",
+    "confirmed": [
+     "'…reducing the matched labeled budget by up to 98.0%' — **p.2**"
+    ],
+    "not_rechecked": "Table III 의 Loc −1.75 pp · 라벨절감 0.0% 는 compare 라운드가 p.8 에서 확인. 나는 이번에 재확인 안 함."
+   },
+   {
+    "paper": "SAR-JEPA",
+    "id": "arXiv:2311.15153",
+    "pages": 15,
+    "path": "<scratchpad>/pdf/2311.15153.pdf",
+    "confirmed": [
+     "'Another direction is to use the simulated data for SSL.' — **p.13**"
+    ]
+   },
+   {
+    "paper": "JEPA-for-6G",
+    "id": "arXiv:2607.09798",
+    "pages": 12,
+    "path": "<scratchpad>/pdf/2607.09798.pdf",
+    "confirmed": [
+     "'…evaluation on ray-traced or measured datasets remains future work' — **p.9**"
+    ]
+   }
+  ],
+  "repo_tallies_i_recomputed_myself": [
+   {
+    "what": "상시 기준신호 PRF 실현가능성",
+    "src": "outputs/md_range_sweep.json (9 셀 × 4 모드 전수)",
+    "result": "**0/36 모드-셀**, 어느 셀도 통과 모드 없음(0/9). 필요 PRF **1195.4 ~ 4822.2 Hz**. 플래시선 **120.0 ~ 183.3 Hz**.",
+    "flash_survival_i_computed": {
+     "WiFi VHT-LTF 1000 Hz": "9/9 접힘 없음",
+     "LTE CRS 1000 Hz": "9/9 접힘 없음",
+     "5G NR-PRS 200 Hz": "0/9",
+     "5G SSB 50 Hz": "0/9"
+    }
+   },
+   {
+    "what": "report15 경로수 인구조사",
+    "src": "outputs/report15_verdict.json : path_count_census.summary",
+    "result": "확산 60/60 칸 연속(빈 칸 0·껐다켜짐 0, 최대 스윙 1.105) / 정반사 60 칸 중 **50 칸 공백**, 연속 6, 껐다켜짐 4, 최대 스윙 **64.0배**"
+   },
+   {
+    "what": "report15 프로펠러 채널 판정",
+    "src": "outputs/report15_verdict.json : verdict.by_airframe",
+    "result": "두 기체 headline 전부 SIONNA_NATIVE_OK. (예: mini2 apriori_flash 칸 a_margin 24.62 dB · null margin 60.64 dB)"
+   }
+  ]
+ },
+ "1_corrections_before_anything_else": {
+  "note": "⚠ 내 과제 지시문 2건과 형제 라운드 1건이 틀렸다. 셋 다 서론 문장과 공격 지도를 직접 바꾸므로 먼저 적는다. compare 라운드가 이미 잡은 C1(«정반사 0» 오류)·C2(DivNet ImageNet 오독)는 승계하고 반복하지 않는다.",
+  "items": [
+   {
+    "id": "N1",
+    "rank": "⭐⭐ 가장 중요",
+    "무엇이_틀렸나": "내 과제 지시문의 Clutter-Aware ISAC 사실 요약 — «그림 11장 중 4장이 Sionna 산출물» · «Pd/Pfa/ROC 0회» · «본문 12회»",
+    "실제_내가_계수": {
+     "그림": "**12장**(Fig.1~Fig.12), 두 판본 모두. 11 이 아니다. (⚠ 그중 몇 장이 Sionna 산출인지는 캡션 판독이 필요하고 나는 재확인 안 했다 → §9 격리)",
+     "Pfa": "⚠ **'false alarm' 은 0회가 아니라 3회다**(두 판본 모두, CFAR 설명 문단: arXiv v2 p.9 / 게재판 p.10–11). 0회인 것은 'probability of detection'(0) · 'ROC'(0) · 'receiver operating characteristic'(0) 이다.",
+     "Sionna": "**13회**(두 판본 모두). 12 가 아니다.",
+     "분류": "'classif*' 가 arXiv v2 는 **0회**, 게재판은 **4회** — 그러나 4회 전부가 MUSIC(multiple signal classification) 또는 인용문헌 [124] 이고 **분류 태스크는 없다**. 결론은 유지되나 낱말 계수로 말하면 판본에 따라 틀린다."
+    },
+    "그래서_쓸_수_있는_문장": "«이 서베이는 검출확률 곡선이나 ROC 를 인쇄하지 않는다(두 판본 전문에서 'probability of detection'·'ROC' 각 0회, 내가 계수)». ⛔ «오경보를 안 다룬다» 는 거짓이다 — CFAR 절이 있다.",
+    "왜_중요한가": "심사자가 CFAR 절을 펴면 바로 반증된다. 우리 G1(검출 지표 부재) 공격은 «곡선이 없다» 로만 성립한다."
+   },
+   {
+    "id": "N2",
+    "rank": "⭐⭐",
+    "무엇이_틀렸나": "판본 혼용. 저장소가 «41쪽» 과 arXiv v2 를 섞어 쓰고 있고, 두 판본은 **쪽수도 표기법도 다르다**.",
+    "내가_확정한_대응표": {
+     "α_t,n ∼ CN(0,σ²) (식 108)": "arXiv v2 **p.24** ↔ 게재판 **p.28**",
+     "simplified 3-D mesh / Blender": "arXiv v2 **p.20** ↔ 게재판 **p.23**",
+     "quiet periods secondary data": "arXiv v2 **p.16** ↔ 게재판 **p.19**",
+     "self-supervised adaptation (future directions)": "arXiv v2 **p.32** ↔ 게재판 **p.36**",
+     "leveraging ray-tracing simulations (future directions)": "arXiv v2 **p.32** ↔ 게재판 **p.37**"
+    },
+    "표기_차이": "arXiv v2 는 '3D'·'path-loss'(하이픈), 게재판은 '3-D'·'path loss'. **축자 인용은 판본을 밝히지 않으면 문자열이 안 맞는다.**",
+    "규칙": "논문·덱에는 **게재판(Proc. IEEE 114(1):52–91, 41 p)** 쪽수를 쓰고, 아카이브 검증 기록에는 판본을 병기한다. docs/SIM2REAL_PLAN.md 부록 A-1/A-1b 는 이미 게재판 기준이라 맞다."
+   },
+   {
+    "id": "N3",
+    "rank": "⭐⭐ 이 라운드 최대 소득이자 최대 경고",
+    "무엇이_틀렸나": "compare 라운드의 F 대면 헤드라인 — «DivNet 이득이 **SNR 이 낮을수록 커진다**»",
+    "실제": "Table V(p.11, 내가 직접 읽음)에서 실측전용 기준선 대비 이득은 40/30/15 dB 에서 **+11 / +19 / +16 pp** 로 **단조가 아니다**. 중간 SNR 에서 최대이고 15 dB 에서는 도로 줄어든다.",
+    "더_중요한_것": "⭐⭐ 같은 쪽(p.10)에 저자 자신의 문장이 있다 — *'When noise is relatively high, such as at 15 dB SNR, **all transfer learning methods perform roughly the same**, greatly surpassing the baseline CNN by about 15%.'* 즉 **저 SNR 에서는 «어떤» 사전학습이냐가 안 중요해진다**(DivNet 85 ≈ ResNet-50 85 ≈ VGGnet 86).",
+    "두_번째_독립_증거": "Huang MLSP p.4(내가 직접 열람) — 마스크복원 SSL 이득이 **SNR 이 내려갈수록 줄어든다**: 1-shot 에서 −20 dB 11.3% → +20 dB 25.7%. 저자 설명은 *'at lower SNRs, random noise dominates, making reconstruction more challenging'*.",
+    "우리에게_무슨_뜻인가": "⚠⚠ **우리 패시브 바이스태틱은 저 SNR 영역이고, 거기가 바로 «물리적으로 정확한 합성 코퍼스» 의 이점이 가장 안 보이는 자리다.** 두 편이 서로 다른 모달리티에서 같은 방향을 가리킨다. compare 라운드는 이 표를 F 를 이기는 근거로 읽었는데, 같은 표가 **우리 σ 커널의 값어치 주장을 저 SNR 에서 깎는다**.",
+    "그래서_쓸_수_있는_문장": "✅ «실측전용 학습 대비 합성 사전학습의 이득은 우리 모달리티에서 40/30/15 dB 에 걸쳐 +11~+19 pp 로 보고됐고, **15 dB 에서도 사라지지 않는다**»(사전학습 유무의 이득). ⛔ «SNR 이 낮을수록 이득이 커진다» ⛔ «저 SNR 에서 물리적으로 정확한 코퍼스가 더 유리하다» — 후자는 같은 표가 반증한다.",
+    "설계_반영": "§6 위험 R2 로 승격했고, K11(새 kill 조건)을 만들었다."
+   },
+   {
+    "id": "N4",
+    "rank": "⭐",
+    "무엇이_틀렸나": "compare 라운드가 Transfer to Sky 를 «실측 운용 UAV 데이터로 끝까지 닫은 사례» 로 F 대면 근거(F+2)에 넣었다.",
+    "실제": "내가 초록(p.1)을 열어 확인했다 — 태스크는 **route-level radio map / Route RSRP 예측**, 즉 **UAV 통신 링크품질 회귀**다. 탐지도 분류도 아니고 표적 산란과 무관하다.",
+    "정확한_진술": "«시뮬 사전학습이 유일한 큰 레버였다»(5.3→9.5 dB)는 **UAV RF 도메인의 회귀 태스크**에서 나온 관측이다. 우리 태스크로 옮길 때는 «같은 모달리티» 가 아니라 «인접 도메인의 구성요소 제거표 형식» 으로만 인용해야 한다.",
+    "남는_값어치": "형식(구성요소 제거표)과 RT 설정 보고 반례(Table I, p.5)는 그대로 유효하다."
+   },
+   {
+    "id": "N5",
+    "rank": "⭐",
+    "무엇이_틀렸나": "형제 라운드가 BiRa 를 «프로펠러 정지 + 회전 블레이드 마이크로도플러» 로 요약해 우리 바이스태틱 앵커 1순위로 올렸다.",
+    "실제": "Beuster p.3(내가 직접): 마이크로도플러는 *'a quad-copter with **one rotating propeller blade**'* 다. 4로터 동시 회전이 아니다. 그리고 반사도 측정 쪽은 *'with propellers at standstill'*.",
+    "그래서": "BiRa 는 **(a) 정지 로터 바이스태틱 반사도 앵커**로는 1급이고(2–18 GHz · β 10°–180°), **(b) 사다리 2(로터별 위상·rpm 분산)의 앵커로는 못 쓴다**. 우선순위는 유지하되 용도를 좁힌다."
+   }
+  ]
+ },
+ "2_delta": {
+  "note": "⭐⭐ 지시대로 후보 델타를 먼저 공격했고, **기각했다**. 대신 다른 델타를 세운다. 후보는 부차 기여로 강등해 살린다.",
+  "2_1_candidate_from_the_brief": {
+   "후보": "«그들(WiFi-JEPA)은 다양성이 사실성보다 중요하다고 **주장**했고, 우리는 그 **요구량을 쟀다** — 모양이 있느냐 54 dB ↔ 얼마나 정밀하냐 0~7 dB. 즉 우리 사다리가 시뮬 설계를 정당화한다.»",
+   "내가_이_후보를_공격한다": [
+    {
+     "id": "X1",
+     "무게": "⭐⭐⭐ 치명",
+     "공격": "**우리는 아직 안 쟀다.** 54 dB 와 0~7 dB 는 신호영역 지표(검출 단면적 오차·템플릿 손실)이지 전이 성능이 아니다. «코퍼스에 표적 물리가 얼마나 필요한가» 는 코퍼스를 학습기에 통과시켜 실측 성능으로 읽어야 답이 나온다 — 그게 아직 0 줄이다(s2r_assets: 데이터셋 층 800~1,200 LOC 미착수).",
+     "함의": "지금 이 문장을 쓰면 **측정하지 않은 것을 측정했다고 쓰는 것**이다. 이 저장소가 R20 에서 정확히 그 이유로 헤드라인 2건을 철회했다."
+    },
+    {
+     "id": "X2",
+     "무게": "⭐⭐⭐ 치명",
+     "공격": "**54 dB 는 측정이 아니라 기하학적 동어반복이다.** TARGET_LADDER §8-P1 이 자기 반증으로 적었다 — 디테일이 0 인 평판 두 장이 그 간격의 **93.5~99.2%** 를 이미 산다. 즉 그 숫자가 지지하는 명제는 «회전대칭이 아니어야 한다» 까지이고, 그건 White 2023 의 thin-wire 가 **비용 0 으로 이미 만족**한다. 우리 σ 커널을 정당화하지 못한다.",
+     "함의": "이 숫자를 델타로 걸면 심사자가 «그럼 thin-wire 로 충분하다» 로 되받고, 우리 대답이 없다."
+    },
+    {
+     "id": "X3",
+     "무게": "⭐⭐",
+     "공격": "**재는 도구가 저장소 자체 판정으로 PREMATURE 다**(적대검증 3렌즈 3/3). 가림 없음 → 헤드라인 대조 4/4 부호 반전, PO 유효하한 4.53배 부족, AC 지표가 안 도는 동체를 원리적으로 못 봄(9.7e-15). TARGET_LADDER 자신의 규칙이 «부호와 자릿수만, 소수점 금지» 다."
+    },
+    {
+     "id": "X4",
+     "무게": "⭐⭐",
+     "공격": "**두 명제가 같은 단위가 아니다.** WiFi-JEPA 의 «다양성 > 충실도» 는 **표현학습 코퍼스 구성**에 관한 진술이고, 우리 사다리는 **순방향 모형의 신호 충실도** 진술이다. 전자를 후자로 답했다고 주장하면 범주 오류다.",
+     "그들의_실제_문장": "p.5 '…benefits from diverse spatio-temporal channel variation, rather than faithful reproduction of body-specific multipath' (내가 확인)"
+    },
+    {
+     "id": "X5",
+     "무게": "⭐",
+     "공격": "**저 SNR 에서 되받힌다.** N3 — DivNet p.10 이 15 dB 에서 모든 전이법이 동률이라고 적었고, Huang p.4 는 SSL 이득이 저 SNR 에서 줄어든다고 적었다. 우리 영역이 거기다. «충실도가 얼마나 필요한가» 의 답이 «우리 동작점에서는 별로» 로 나올 개연성이 실재한다."
+    }
+   ],
+   "판정": "⛔ **델타로 못 쓴다.** 다섯 공격 중 X1·X2 만으로도 무너진다.",
+   "그러나_살리는_법": "⭐ **부차 기여로 강등하고 범위를 좁히면 산다.** 살아남는 형태 두 가지:",
+   "살아남는_형태": [
+    {
+     "형태": "S-A — «가격표는 태스크마다 다르다»",
+     "문장": "같은 표적 단순화 사다리가 **검출축과 파형축에서 다른 값을 매긴다** — matrice4e 의 «회전반경 위의 공» 팔은 검출 단면적이 +2.03 dB 로 맞는데 파형 상관 0.224 라 템플릿 손실이 13.00 dB 다. **레벨이 맞았다고 신호가 맞은 것이 아니다.**",
+     "왜_사나": "이건 우리가 실제로 계산한 것이고, 두 축의 불일치는 남의 «한 쌍 비교»(WiFi-JEPA 프리미티브 100.1 vs 사람 메쉬 110.3 mm)로는 원리적으로 안 보인다.",
+     "⚠단서": "여전히 **신호영역 가격표**다. «전이 요구량» 이라 부르지 마라."
+    },
+    {
+     "형태": "S-B — «관측 가능성이 먼저다»",
+     "문장": "표적 충실도를 논하기 전에 **조명 신호의 반복률이 무엇을 볼 수 있게 하는가** 를 정해야 한다 — 우리가 계산한 9개 (기체×대역) 조합에서 블레이드 팁 도플러는 상시 기준신호 네 모드 **어디에서도 접히지 않고 담기지 않고**(0/36 모드-셀, 필요 1195~4822 Hz), 플래시선(120~183 Hz)만 LTE/WiFi 1 kHz 규약에서 **9/9 살아남는다**(5G NR-PRS·SSB 에서는 0/9).",
+     "왜_사나": "내가 이번에 재계산했고, 완결된 사실이며, **어느 학습 갈래를 골라도 지켜야 하는 물리**다.",
+     "⚠단서": "우리 약점이기도 하다. 남을 치는 데만 쓰면 정직하지 않다."
+    }
+   ]
+  },
+  "2_2_the_delta": {
+   "한_문장_ko": "⭐⭐ **선행은 드론 표적을 스칼라·통계 산란체로 흡수하거나(Proc. IEEE 클러터 서베이 식 108: α_t,n ∼ CN(0,σ²_t,n), 게재판 p.28), 산란모형을 고정한 채 로터 *운동학*만 사다리로 놓았다(White 2023: 모터속도 시간구조를 바꾸면 드론 recall 88.4 → 74.5%). 우리는 *표적 산란 표현 자체를 통제변수*로 놓고 — 회전대칭 원판 → 통계 σ → 큐브 → 평판 날개 → 자세·로터위상 분해 재질가중 σ — 같은 씬·같은 파형·같은 검출기에서 그 선택이 *패시브 바이스태틱 탐지확률과 마이크로도플러 상태분류*를 얼마나 움직이는지를 재고, 같은 비교를 USRP X410 실측으로 옮긴다.**",
+   "한_문장_en": "Prior work either absorbs the drone target into a scalar or statistical scatterer, or ladders the *rotor kinematics* while holding the scattering model fixed; we instead put the *target scattering representation itself* on a controlled axis and read it out as passive-bistatic detection probability and micro-Doppler state classification under an identical scene, waveform and detector, then carry the same comparison to USRP X410 measurements.",
+   "왜_이것이_델타인가": [
+    {
+     "근거": "가장 가까운 선행 두 편이 **정확히 반대쪽 절반씩** 갖고 있다.",
+     "상세": "Costa 2025 = 드론 + 바이스태틱 산란모형 + 실측 검증, **학습 0**(저자 자백 p.10, 그리고 형제 라운드 계수 CNN 0·neural 0·accuracy 0·trained 0). White 2023 = 드론 마이크로도플러 + 합성학습 + 실측 시험, **계산된 산란 0**(thin-wire). 같은 태스크에서 두 절반이 따로 존재하고, **우리가 원문을 연 범위에서** 그 둘을 붙인 저작을 찾지 못했다(⚠ 범위 단서는 §2-3 과 같다)."
+    },
+    {
+     "근거": "그 축은 클러터 서베이의 프레임 안에서는 **원리적으로 존재할 수 없다**.",
+     "상세": "표적 진폭이 자유 파라미터가 아니라 추출된 통계이므로 자세·회전·형상이 결과에 들어갈 통로가 없다. 이건 그들의 오류가 아니라 범위 선언이고, 그래서 **반박당하지 않는 공격**이다."
+    },
+    {
+     "근거": "⭐⭐ **null 도 결과다** — 이게 이 델타의 가장 좋은 성질이다.",
+     "상세": "선행이 표적을 서로 다른 값으로 놓고 있다(σ=0 dBsm · σ=−17 dBsm · Swerling 1 · CN(0,σ²) · Gaussian body — 다섯 편, 쪽수 확인됨). 다들 «중요하지 않다» 를 **가정**하고 있을 뿐 아무도 재지 않았다. 우리가 재서 «레벨만 맞추면 같다»(N1 정합에서 차이 소멸) 가 나오면 그건 **ISAC 모델링 관행에 대한 실용적 결론**이지 실패가 아니다. 후보 델타(요구량 측정)는 양성 결과일 때만 논문이 되는데, 이 델타는 **양쪽 다 인쇄된다**."
+    },
+    {
+     "근거": "우리 조건에만 있는 축이 하나 더 붙는다 — **조명원 점유 9모드와 PRF 규약**.",
+     "상세": "능동 모노스태틱 레이다에 존재하지 않는 무작위화 축이고, 우리는 그 축의 관측가능성 표를 이미 갖고 있다(0/36 · 9/9 · 0/9)."
+    }
+   ],
+   "⚠_이_델타의_가장_약한_고리": "**K8** — Trinh 2026 이 배경 정렬 하나로 chance 50% → 97% 를 만들었다. 배경을 맞추면 표적 표현 축이 통째로 묻힐 수 있다. 그래서 G(배경 주입)를 **먼저** 붙이고 그 위에서 사다리를 돈다. G 를 나중에 붙이면 «G 를 안 해서 차이가 났던 것» 이라는 반박에 답할 수 없다.",
+   "⚠_두_번째_약한_고리": "N3 — 우리 동작점(저 SNR)이 사전학습·충실도 이득이 가장 안 보이는 자리일 수 있다. 그래서 **SNR 계단마다** 사다리를 인쇄하고, 축이 좁아지는 지점을 결과로 적는다.",
+   "⛔_델타를_이렇게_쓰지_마라": [
+    "«우리가 σ 를 정확히 냈다» — 사용자 지시 위반이고 RadarTwin p.9 가 절대 레벨 전이를 반증했다.",
+    "«표적 충실도가 전이에 중요함을 우리가 처음 보였다» — K1 판정 전에는 못 쓴다.",
+    "«조합(사이트 트윈 + 계산된 σ + 분류) 자체가 새롭다» — LAMBDA 가 이미 조합을 갖췄다(s2r_prior)."
+   ]
+  },
+  "2_3_combo_found_recheck": {
+   "질문": "s2r_prior.json 의 combo_found=False 가 이번 다섯 라운드 조사로 뒤집히나?",
+   "판정": "⛔ **뒤집히지 않는다. 유지.** 다만 **표현을 바꿔야 한다** — «33편 중 0편» 보다 훨씬 센 프레임이 생겼다.",
+   "이번에_새로_검사한_후보": [
+    {
+     "후보": "Transfer to Sky (2602.10736)",
+     "왜_후보였나": "UAV + 시뮬 사전학습 + 실측 전이 3자를 갖췄다",
+     "기각_사유": "태스크가 **route-level RSRP 회귀**(통신)다. 센싱 아님. 내가 p.1 초록에서 직접 확인.",
+     "verified": "MYSELF"
+    },
+    {
+     "후보": "WiFi-JEPA (2607.11064)",
+     "기각_사유": "표적 = 사람, 태스크 = 자세추정. 전문에 UAV|drone 0회·RCS 0회·micro-Doppler 0회(내가 계수).",
+     "verified": "MYSELF"
+    },
+    {
+     "후보": "Costa 2025 (2504.05168)",
+     "기각_사유": "분류기를 학습하지 않는다 — **저자가 직접 future work 로 남겼다**(p.10).",
+     "verified": "MYSELF"
+    },
+    {
+     "후보": "Beuster/BiRa (2402.16591)",
+     "기각_사유": "측정 인프라 논문. 학습 없음. 마이크로도플러는 **날개 한 장** 회전.",
+     "verified": "MYSELF"
+    },
+    {
+     "후보": "RadarTwin (2606.28396)",
+     "기각_사유": "표적이 실내 생활물체. 드론 아님. σ 도 산란적분이 아니라 RT+VLM 재질.",
+     "verified": "부분(p.9·p.11만 내가 확인)"
+    },
+    {
+     "후보": "Clutter-Aware ISAC",
+     "기각_사유": "분류 태스크 없음(두 판본 계수), 표적은 CN(0,σ²).",
+     "verified": "MYSELF"
+    }
+   ],
+   "⭐_더_센_새_프레임": "«N편 중 0편» 대신 **«두 절반이 따로 있고 아무도 붙이지 않았다»** 로 쓴다. Costa = 산란모형 + 실측, 학습 0. White = 학습 + 실측, 계산된 산란 0. **둘은 같은 태스크(드론 마이크로도플러)에 있고 서로를 인용할 만큼 가깝다.** 이 프레임은 (a) 부재 계수에 의존하지 않아 검색 커버리지 공격을 안 받고, (b) 두 논문의 쪽수 있는 축자로만 서고, (c) 심사자가 즉시 이해한다.",
+   "⚠_범위_단서_필수": "IEEE Xplore 유료 프로시딩 · CNKI/万方/百度학술(403) · IET RSN(402) · MDPI(403) 은 미탐색. 특히 IET RSN 2025 의 LTE450 패시브 편은 우리 기하와 가장 닮았고 아직 못 열었다 — **확보 전에는 최종본에 부재 문장을 넣지 않는다.**"
+  }
+ },
+ "3_three_paper_chain": {
+  "⛔_최상위_제약": "**RCS 를 헤드라인으로 쓰는 편은 없다**(사용자 지시). 세 편 모두에서 σ 는 «표적 항을 어떻게 얻었나» 절(약 1 쪽)로만 등장하고, 주장은 Pd 와 분류 성능에서 나온다.",
+  "사슬_논리_한_줄": "1편이 **무엇을 재야 하는지**를 정하고, 2편이 **그 격자를 실측으로 채우며**, 3편이 **시뮬로 학습해 그 실측을 맞힌다**. 앞 편의 산출물이 뒤 편의 **입력 파일**이 되도록 설계했다 — 서사가 아니라 자료 의존이다.",
+  "papers": [
+   {
+    "id": "P1",
+    "부제": "시뮬만",
+    "제목_초안_ko": "패시브 바이스태틱 드론 탐지에서 표적 산란 표현이 검출 결론을 얼마나 바꾸는가 — 관측가능성 한계와 통제 ablation",
+    "제목_초안_en": "How Much Does the Target Scattering Representation Change Passive Bistatic Drone Detection? An Observability Bound and a Controlled Ablation",
+    "무엇을_주장하나": [
+     "⭐ **주장 1(헤드라인)** — 같은 씬·같은 조명 파형·같은 검출기(ECA→CAF→CA-CFAR, 설계 Pfa 고정)에서 표적 산란 표현만 5팔로 바꾸면 Pd@설계Pfa 와 **pass 단위 검출 연속성·최장 드롭아웃**이 X 만큼 움직인다. 두 정규화(N1 자세평균 정합 / N2 무정합)를 병행 인쇄한다.",
+     "⭐ **주장 2(관측가능성)** — 상시 기준신호의 반복률이 무엇을 볼 수 있게 하는지의 표. 팁선은 **0/36 모드-셀**에서 담기지 않고(필요 1195.4~4822.2 Hz), 플래시선(120.0~183.3 Hz)은 LTE CRS·WiFi VHT-LTF 1 kHz 에서 **9/9**, NR-PRS 200 Hz·SSB 50 Hz 에서 **0/9** 살아남는다. → **5G 이중고** 서사가 여기서 정량으로 선다.",
+     "⭐ **주장 3(규약)** — 검출축과 분류축에 무작위화 범위를 **다르게** 거는 규약(N-1), 그리고 RT/PO 설정 전면 공개표(Transfer to Sky Table I 형식).",
+     "⚠ **안 주장하는 것**: 절대 검출거리, σ 정확도, 사다리 숫자의 소수점(TARGET_LADDER 자신의 규칙: 부호와 자릿수만)."
+    ],
+    "무엇이_필요한가": {
+     "코드": "공통 배관 800~1,200 LOC(T1 데이터셋 층 300~500 · T2 궤적 200~300 · T3 시간가변 σ(t) 주입 150~250 · T4 표적모형 어댑터 ~150) + T5 정규화 ~80 + **G 배경정렬 훅 50~130** + **I ADC 배선 ~30** + 무작위화 파라미터화 100~200",
+     "GPU": "중 — 큐브 σ 격자 굽기(저면수라 쌈) + 자세축 배선 후 격자 재생성(자세 1상태당 ≈ 8 h/1카드, 6~7 상태) + 검출 MC. 저장소 실적으로 4.86 M CPI 시행은 이미 돌려봤다.",
+     "실측": "**0**. ⭐ 단 배경 녹음이 있으면 G 팔을 «합성 배경» 이 아니라 «실측 배경» 으로 돌릴 수 있어 훨씬 세진다 — 반나절짜리이므로 **P1 집필 전에 확보를 시도한다**(비행 허가·기체 불필요).",
+     "게이트": "K1(사다리 null) · K8(G 붙이면 null) · K10(로터 시간구조가 분류에 안 실림) 을 **실측 전에** 판정한다."
+    },
+    "어느_학회": {
+     "1순위": "**IEEE Radar Conference 2027** — 우리 이웃이 전부 여기 계열이다(White = IEEE Trans. Radar Systems, Costa = IEEE RadarConf/JSTEAP, Beuster = IEEE 통신·센싱 계열). 통제 ablation + 관측가능성 표는 회의 분량에 맞다.",
+     "2순위": "**EuRAD 2027**(유럽 레이다 — BiRa/TU Ilmenau 커뮤니티가 여기 있다. 우리 바이스태틱 서사와 청중이 겹친다)",
+     "저널_대안": "**IEEE Trans. Radar Systems** — 마감이 없고, 사다리 두 개를 다 넣으면 분량이 회의를 넘는다.",
+     "⛔_제외": "SenSys·MobiSys·ICASSP(SIM2REAL_PLAN §4 결정 승계 — 인용 그래프가 전부 IEEE 레이다·전파·통신)"
+    },
+    "언제": {
+     "선행조건": "P0 배관 2~3주 → P1 게이트 2~3주 → P2 생산 3~4주 = **7~10주**",
+     "결과_확보": "2026-10 중순 ~ 2026-11 초",
+     "집필": "3~4주",
+     "투고": "⭐ **2026-12 ~ 2027-01** (RadarConf 2027 마감 창). 저널로 가면 2027-01 이후 아무 때나.",
+     "⚠": "게이트에서 NO-GO 가 나오면 P1 은 «관측가능성 + null ablation» 편으로 축소된다. 그래도 편은 남는다 — 주장 2·3 이 사다리와 독립이기 때문이다."
+    },
+    "⭐_이_편이_다음_편의_무엇을_정당화하나": [
+     "**측정 격자를 정한다.** 어느 자세·거리·rpm·조명 모드에서 팔 간 차이가 최대인지가 P1 에서 나오고, **P2 는 그 점들을 우선 녹화한다.** 이게 없으면 실측 격자가 근거 없는 임의 선택이 된다.",
+     "**규약을 정한다.** 설계 Pfa 값, CFAR guard/train, ECA 탭수, CPI 길이, 대역평균 규약 — P2·P3 가 그대로 물려받아야 사과-대-사과가 된다.",
+     "**T2 의 캡처 규약을 강제한다.** 0/36 이므로 마이크로도플러 분류는 풀 웨이브폼 캡처가 필요하다 → **P2 캠페인에 풀캡처 세션을 반드시 넣어야 한다**(안 넣으면 P3 의 분류 헤드라인이 원천 불가).",
+     "**실측 예산을 태우기 전에 죽일 기회를 준다**(K1·K8·K10)."
+    ]
+   },
+   {
+    "id": "P2",
+    "부제": "실측 비교",
+    "제목_초안_ko": "셀룰러 조명 패시브 바이스태틱 드론 계측 — 무엇이 시뮬에서 실측으로 전이되고 무엇이 안 되는가",
+    "제목_초안_en": "Passive Bistatic Drone Measurements under Cellular Illumination: Which Axes Transfer from Simulation and Which Do Not",
+    "무엇을_주장하나": [
+     "⭐ **주장 1(헤드라인)** — 예측 대비 달성. 우리 링크버짓·σ 로 예측한 SINR-vs-거리 곡선을 실측 산점도 위에 겹쳐 **dB 오프셋**으로 인쇄하고, 그 오프셋을 물리 원인(하드웨어 이득·지면 유령·자세)에 귀속한다. **가장 값싼 sim-to-real 헤드라인**이고 학습이 필요 없다.",
+     "⭐ **주장 2(전이 축 분해)** — RadarTwin 이 실내 mmWave 에서 한 분해를 **패시브 바이스태틱 드론 기하에서 처음** 한다: 상대 순서·각도 구조는 전이되고 절대 레벨은 안 된다는 가설을 우리 데이터로 검사. ⚠ 우리는 **그들 결론을 받아들이고 시작**하지 반박하지 않는다.",
+     "⭐ **주장 3(눈금)** — real↔real2(안테나 위치만 바꾼 반복 수집)가 격차의 바닥선을 준다. 이게 없으면 어떤 격차 수치도 «크다/작다» 를 말할 수 없다.",
+     "⭐ **주장 4(공개 자산)** — 셀룰러 조명 패시브 바이스태틱 드론 에코 데이터셋. ⚠ **«벤치마크» 라 부르지 말고 «데이터셋» 이라 불러라**(규모가 Karlsson 75,868 · AirGuard 237,600 과 자릿수가 다르다).",
+     "⚠ **안 주장하는 것**: 비행 표적에서 σ 를 역산하지 않는다(MEASUREMENT_PLAN §7 규칙). 절대 σ 는 1층 교정표적 세션에서만 나온다."
+    ],
+    "무엇이_필요한가": {
+     "실측": "MEASUREMENT_PLAN 3층 + 검증층 전부. **0단계 배경 녹음(기하당 반나절)** → **1단계 교정표적(세션당 1회)** → **파일럿(2종×5비행, R≈10)** → **본 캠페인(사이트 2곳 × 기체 2종 × 10~15비행, R≈40~60, 거리 3점 이상, real↔real2 1세트)**",
+     "장비": "USRP X410(4RX·400 MHz·12 bit), 기준+감시 2채널 같은 클럭, RTK + 기체 로그",
+     "코드": "실측 수집·동기·메타데이터 스키마 + 오프라인 ECA/CAF/CFAR 재사용(이미 있음)",
+     "GPU": "낮음",
+     "⚠_계획_구멍": "§4-3 D9 참조 — 현재 MEASUREMENT_PLAN 은 **비행 검출 헤드라인(3층)을 능동 모노스태틱**에 두고, 패시브 바이스태틱은 «검증 3점»(수신전용) 층에만 둔다. **P2 의 주장 1·2·4 는 전부 패시브 바이스태틱 비행이 필요하다.** 이 층을 승격해야 한다."
+    },
+    "어느_학회": {
+     "1순위": "**IEEE Transactions on Radar Systems** — White 2023 이 여기 실렸고 우리 태스크·모달리티가 가장 가깝다. 계측 중심 논문에 분량이 맞다.",
+     "2순위": "**IEEE TAES**(CageDroneRF 가 여기)",
+     "3순위": "**IEEE 통신·센싱 저널 계열**(Beuster 의 게재지) — ⚠ 정확한 저널 명칭은 확인 필요(§9 격리)",
+     "⚠": "데이터셋 공개를 헤드라인으로 걸려면 Scientific Data 급도 후보지만, 규모가 작아 권하지 않는다."
+    },
+    "언제": {
+     "선행조건": "P1 결과(격자 설계) + 사이트 확보 + 비행 허가. **임계경로는 GPU 가 아니라 날씨·사이트·허가다.**",
+     "실측": "파일럿 4~6주 → 본 캠페인 6~8주 → 분석 4주",
+     "투고": "⭐ **2027-06 ~ 2027-08**",
+     "⚠_조기_착수_가능분": "**배경 녹음은 지금 당장 가능하다** — 송신 안 함(면허 불필요), 기체 불필요, 허가 불필요. P1 집필 중에 찍어 둔다."
+    },
+    "⭐_이_편이_다음_편의_무엇을_정당화하나": [
+     "**G(실측 배경 주입)의 재료를 공급한다.** Trinh 이 무라벨 10초/100프레임으로 chance→97% 를 만든 그 재료다. P3 의 1단이 이 파일들 위에서만 돌아간다.",
+     "**절대 눈금 하나를 준다**(교정표적). 이게 없으면 P3 의 dBsm 이 어떤 눈금에도 안 걸린다.",
+     "**실측 테스트셋과 R 값을 확정한다.** R 이 확정되어야 2R ≲ d 제약으로 P3 의 특징차원 d 상한이 정해진다(현재 예상 d ≤ 64).",
+     "**격차의 크기와 원인을 미리 알려준다.** P3 가 어느 정렬 부품에 투자할지가 여기서 정해진다 — 오프셋이 하드웨어 쪽이면 I, 배경 쪽이면 G, 각도 구조 쪽이면 자세축."
+    ]
+   },
+   {
+    "id": "P3",
+    "부제": "sim-to-real 학습",
+    "제목_초안_ko": "합성 코퍼스로 학습한 패시브 드론 탐지·상태분류의 실측 전이 — 정렬 부품과 코퍼스 내용의 몫을 가른다",
+    "제목_초안_en": "Sim-to-Real Transfer of Passive Drone Detection and State Classification: Separating the Contribution of Alignment Components from Corpus Content",
+    "무엇을_주장하나": [
+     "⭐ **주장 1(헤드라인)** — 정렬 부품 스택(G 배경 주입 → I 하드웨어 모델 → C 무작위화 → B 지도 사전학습+DA)을 쌓았을 때 합성학습 검출기·분류기가 실측에서 실측학습 기준선 대비 Δ 이내에 든다. **구성요소 제거표**로 각 부품의 몫을 인쇄한다(Transfer to Sky Table III 형식 — 그들 표에서 레버는 하나뿐이었다).",
+     "⭐ **주장 2(코퍼스 내용)** — P1 의 사다리를 **학습 축으로 다시 돌린다**. 「신호영역 가격표(검출축 0.01~8.66 dB ↔ 파형축 0.00~13.00 dB)에서 잰 순서가 실측 전이 성능에서도 같은 순서인가」. ⭐ **이게 후보 델타(요구량 측정)가 정당하게 부활하는 유일한 자리다** — 여기서는 실제로 전이 성능으로 잰다.",
+     "⭐ **주장 3(태스크 분해)** — T1 탐지(상시 기준신호 규약)와 T2 마이크로도플러 상태분류(풀 웨이브폼 + 2채널 CAF 규약)를 **다른 무작위화 표**로 학습하고 따로 인쇄. 그리고 탐지→분류 사슬에서 **조건부·무조건부 정확도를 둘 다** 인쇄(N-2 규약).",
+     "⭐ **주장 4(정직성 장치)** — recording-grouped 분할 + **표에 R 과 d 를 나란히 인쇄** + 선형평가·미세조정 병기 + 대조군 정찬(F 실측만 · H 무학습 CFAR · 값싼 트리 ML · 무보정 합성만 · scratch).",
+     "⚠ **A(SSL)는 백본이 아니라 한 팔이자 반증장치**로만 들어간다. 시작은 JEPA 가 아니라 **masked recovery**."
+    ],
+    "무엇이_필요한가": {
+     "코드": "학습 스택 400~800 LOC(마스킹·인코더·사전학습 루프·DA 헤드 150) + 대조군 sklearn 경로 ~80 + 선형평가 30~80",
+     "GPU": "사전학습 코퍼스 1팔 ≈ 1.7~14 GPU-h(위상표 600장 기준). ⚠ **GPU 를 더 긴 학습에 쓰지 말고 더 많은 장면·기하에 써라**(규모 스케일링 무효 사례 2건, §9 미검증).",
+     "실측": "P2 산출 전부",
+     "⚠_전제": "P2 의 R 이 40~60 에 들어야 한다. 한 자리로 끝나면 §6-R3 의 갈아타기(A 를 헤드라인으로, d ≤ 16, H 를 승격)"
+    },
+    "어느_학회": {
+     "1순위": "**IEEE TAES** 또는 **IEEE Trans. Radar Systems**",
+     "2순위": "**IEEE JSTSP / JSAC ISAC 특집** — Proc. IEEE 클러터 서베이가 future directions 에서 self-supervised adaptation 과 ray-tracing 학습데이터를 **직접 지목했다**(게재판 p.36·p.37, 내가 확인). 그 특집의 «왜 지금» 재료가 된다.",
+     "⛔": "«JEPA 를 드론에 적용» 을 제목에 걸지 마라 — JEPA×무선이 2026 상반기에만 최소 7편이다."
+    },
+    "언제": {
+     "선행조건": "P2 데이터 + 학습 스택",
+     "투고": "⭐ **2027-11 ~ 2028-01**",
+     "⚠": "P2 가 밀리면 그대로 밀린다. 학습 스택은 P2 실측 대기 중에 시뮬 데이터로 미리 세워 둘 수 있다."
+    },
+    "⭐_앞_편들이_이_편의_무엇을_정당화하나": [
+     "P1 → 사다리 정의·공정성 규약·관측가능성 한계·게이트 통과 사실. **«이 축이 신호에서 실재한다» 를 P1 이 먼저 보였기 때문에 P3 에서 학습 축으로 올릴 수 있다.**",
+     "P2 → 배경 코퍼스·절대 눈금·R·격차 크기·전이되는 축의 사전 지식. **«무보정 RT 는 chance 붕괴가 기본값» 을 P2 가 미리 알려주므로 P3 는 정렬 부품부터 쌓는다.**",
+     "⭐ 그리고 P1+P2 가 있으면 P3 의 실패도 논문이 된다 — «부품을 다 쌓아도 안 됐다» 는 P2 의 격차 귀속 위에서만 해석 가능한 결과다."
+    ]
+   }
+  ],
+  "⛔_이것들은_편이_아니다": [
+   {
+    "항목": "σ 정확도 / 메쉬 정밀화 편",
+    "이유": "사용자 지시로 메인에서 내렸고, RadarTwin·Manukyan·Saribekyan·oneTwin 네 편이 절대 레벨 전이를 독립적으로 반증했다. **σ 는 세 편 모두에서 «어떻게 얻었나» 절이다.**"
+   },
+   {
+    "항목": "JEPA 이식 편",
+    "이유": "방법 novelty 가 없다(JEPA×무선 최소 7편). P3 의 한 팔로만."
+   },
+   {
+    "항목": "기종 분류 편",
+    "이유": "실측 기체 2종. 같은 녹화에 2-class 헤드를 붙여 **한계 패널로만** 인쇄한다."
+   },
+   {
+    "항목": "PRF 관측가능성 단독 편",
+    "이유": "표 한 장짜리다. **P1 의 §II** 로 넣으면 P1 을 «ablation 만 있는 편» 에서 «관측가능성 + 민감도» 편으로 격상시킨다."
+   }
+  ]
+ },
+ "4_align_now": {
+  "왜_지금인가": "3편(sim-to-real)은 «시뮬 격자와 실측 격자가 같은 좌표로 대응되는가» 에 전부 걸려 있다. 실측을 찍고 나서 좌표를 맞출 방법은 없다 — 다시 날려야 한다. 아래는 **첫 비행 전에 확정해야 하는 것**만 적었다.",
+  "4_1_measurement_campaign": {
+   "M0_분석단위": {
+    "규칙": "⭐⭐ **분석 단위는 pass(=독립 녹화)** 다. CPI 도 프레임도 아니다.",
+    "근거": "arXiv:2607.01025 p.1(내가 확인) — '…while the number of independent recordings R is small relative to the feature dimension d (specifically while 2R ≲ d), so that naive accuracy approaches 1'",
+    "기록물": "모든 pass 에 **불변 ID** 를 부여하고, 분할·집계·통계가 전부 그 ID 로 묶인다. **표에 R 과 d 를 나란히 인쇄**한다.",
+    "목표": "파일럿 R ≈ 10(성능 아님, 분산 추정 전용) → 본 캠페인 **R = 40~60** → 유도되는 제약 **d ≤ 64**"
+   },
+   "M1_시각동기": {
+    "무엇": "X410 은 GPS 규율 클럭, 기체 로그는 자체 시계. **두 시계의 오프셋과 잔차를 세션마다 기록**한다.",
+    "요구": "잔차 < 1 CPI. 안 되면 라벨이 CPI 경계를 넘나들어 T2 가 오염된다.",
+    "절차": "세션 시작·종료에 **동기 이벤트**를 하나씩 넣는다(예: 지정 시각의 급격한 스로틀 계단 또는 기체 앞 금속판 스윙). 사후 정렬의 기준점이 된다.",
+    "비용": "회당 1분"
+   },
+   "M2_자세_기록": {
+    "무엇": "기체 로그의 body roll/pitch/yaw(≥10 Hz) + RTK 위치. TX/RX 좌표를 알면 **기체 좌표계에서의 시선각 (az, el)** 을 계산할 수 있다 — 그게 우리 σ 격자의 색인축이다.",
+    "⚠_현재_구멍": "σ 격자에 **기체 자세축이 없다**(수평 호버·위상 0 하나뿐). pose_articulated 는 존재하나 σ 생산자에 미배선.",
+    "결정": "⭐ **자세는 무조건 기록한다(비용 0).** 배선은 P2 생산 단계에서 50~100 LOC + 자세 1상태당 격자 1벌(≈8 h/1카드). 배선 전에는 **수평 호버 구간만** σ 정합 비교에 쓰고, 나머지는 나중을 위해 저장만 한다.",
+    "격자_요구": "⭐ **정지 호버에서 헤딩을 고정해 도는 세션을 반드시 넣는다** — 바이스태틱 이등분선 기준 0/45/90/135/180°. 시뮬의 방위축에 대응하는 유일한 실측 축이고, 비용은 «호버 + 요» 라 거의 0 이다. 이게 없으면 «자세분해 σ» 주장이 실측과 접점을 갖지 못한다."
+   },
+   "M3_rpm_라벨": {
+    "⚠_열린_질문_K1": "DJI 로그가 **per-motor RPM** 을 내주는가. **아무 라운드도 검증하지 않았다.** 이 한 사실이 사다리 2(로터 운동학) 라벨의 공짜 여부를 정한다.",
+    "결정": "⭐ **로그에 의존하지 않는 설계로 간다.** 세 겹으로 건다 —",
+    "겹": [
+     "(1) **실험자 통제** — 탑재중량 계단(0/200/400/600 g, Matrice 4E 만. Mini 5 Pro 는 249.9 g 이라 못 단다). Dhulashia 선례가 정확히 이 방식이고, 기체 2대로 IEEE 논문이 됐다.",
+     "(2) ⭐ **독립 rpm 기준 채널** — 기체에 광다이오드(블레이드 통과 계수) 또는 지향성 마이크를 붙여 rpm 을 **직접** 잰다. 로그와 무관하게 참값을 준다. 부품값 수천 원, 배선 반나절. **아무 라운드도 제안하지 않았는데 이게 가장 싼 보험이다.**",
+     "(3) **로그 per-motor RPM** — 나오면 공짜 보너스. **전제로 삼지 않는다.**"
+    ],
+    "왜_중요": "사다리 2 가 T2(사용자 지정 메인)의 축이다. 라벨이 없으면 축이 없다.",
+    "지금_할_일": "P1 집필 전에 (3)을 확인하고 (2)를 발주한다. 며칠이면 닫힌다."
+   },
+   "M4_거리_격자": {
+    "규칙": "⭐ **거리 매칭 상태에서만 sim-real 비교.** 거리를 pool 하면 상관이 ~0.8 로 부풀고 매칭하면 ~0.5 로 떨어진다(RadarTwin p.11, 내가 확인).",
+    "요구": "거리 구간을 **미리** 정하고(최소 3점) RTK 로 그 지점을 지킨다. 시뮬 격자도 같은 구간을 굽는다.",
+    "⚠": "구간 폭도 규약이다 — 폭이 넓으면 매칭이 무의미하다. 시뮬의 거리 해상도(ΔR_b = c/B)와 같은 자리에 맞춘다."
+   },
+   "M5_배경_녹음": {
+    "무엇": "**조명원 ON · 드론 OFF**. 기하마다.",
+    "우선순위": "⭐⭐ **실측 항목 전체에서 1순위.** 비행 허가·기체·송신 면허가 전부 불필요하다 — 지금 당장 가능한 유일한 실측이다.",
+    "양": "Trinh 은 무라벨 10초/100프레임으로 chance→97% 를 만들었다(p.2·p.3, 내가 확인). 우리는 여유롭게 기하당 반나절.",
+    "네_곳에_쓰인다": [
+     "G 분포정렬(P3 1단)",
+     "hot-clutter 공분산 대용(quiet period 우회)",
+     "CFAR 문턱 교정",
+     "음성 클래스(드론 대 클러터)"
+    ],
+    "⚠_정직하게": "우리가 얻는 것은 «표적 없는 배경» 이지 «간섭 없는 잡음» 이 아니다. 조명원이 상시 ON 이라 **quiet period 가 없다**(Clutter-Aware ISAC 게재판 p.19 처방과의 구조적 불일치). 해소가 아니라 **우회**이고 그렇게 적는다."
+   },
+   "M6_교정표적": {
+    "무엇": "금속구 또는 코너리플렉터, **세션당 1회, 같은 기하에서**",
+    "라벨": "불필요",
+    "왜": "우리 dBsm 이 어떤 눈금에 걸리는 **유일한** 자리. 절대 주장은 여기 하나로 한정한다.",
+    "비용": "가장 싼 칸"
+   },
+   "M7_real_real2": {
+    "무엇": "같은 기종·같은 배치를 **안테나 위치만 바꿔** 다시 수집, 최소 1세트",
+    "왜": "이게 없으면 sim-real 격차의 «크다/작다» 를 말할 수 없다. 그리고 **공정한 눈금은 «같은 실측으로 학습» 이 아니라 «다른 조건의 실측으로 학습»** 이다."
+   },
+   "M8_두_캡처_규약": {
+    "⚠⚠": "**한 세션에서 둘 다 찍어야 한다.**",
+    "(a) 상시 기준신호 규약": "LTE CRS·WiFi VHT-LTF·5G SSB/NR-PRS 채널화 — **T1 탐지** 용. 플래시선까지 산다(LTE/WiFi 9/9).",
+    "(b) 풀 웨이브폼 캡처 + 2채널 CAF": "**T2 마이크로도플러 상태분류** 용. 팁선을 보려면 이것뿐이다(상시 모드는 0/36).",
+    "근거": "내가 재계산 — 필요 PRF 1195.4~4822.2 Hz vs LTE/WiFi 1000 · NR-PRS 200 · SSB 50 Hz.",
+    "⛔_실패_모드": "(a) 만 찍으면 **P3 의 T2 헤드라인이 원천 불가**다. 이건 되돌릴 수 없는 실수다.",
+    "저장소_방침과의_정합": "메모 [[sionna2-detection-benchmark]] 에 «X410 = 제어 = 풀모드» 가 이미 적혀 있어 모순이 아니다. 서사(«상시 신호만 쓴다»)는 **T1 에서 유지**하고 T2 는 규약 분리로 명시한다."
+   },
+   "M9_사이트": {
+    "요구": "**2곳**(개활 1 + 반사체 많은 곳 1)",
+    "왜": "1곳이면 «전이가 환경 의존» 이라는 발견 자체가 불가능",
+    "외부_눈금": "실내→실외 이동만으로 기종식별 42.07% 로 떨어진 실측 선례(§9 미검증 — CageDroneRF)"
+   },
+   "M10_메타데이터_스키마": {
+    "⭐": "이걸 첫 비행 전에 못 박아야 한다. 사후 복구 불가능한 항목이 절반이다.",
+    "필드": [
+     "pass_id(불변)",
+     "site_id · TX/RX/표적 좌표(측량값)",
+     "band · 점유 모드 · 캡처 규약(a/b)",
+     "airframe · 탑재중량 · 배터리 상태",
+     "지령 기동(호버/병진/선회) · 지령 헤딩",
+     "rpm 출처(로그 / 광다이오드 / 없음) · rpm 시계열 파일 ID",
+     "자세·RTK 로그 파일 ID · 시각동기 잔차",
+     "배경 파일 ID · 교정표적 파일 ID",
+     "날씨(풍속·기온·강수) · 시각",
+     "수신기 설정(이득·샘플레이트·비트수) · 클럭원",
+     "real2 짝 ID(있으면)"
+    ],
+    "왜_날씨까지": "White p.11 이 «weather conditions and locations … lies outside the scope» 라고 자백한 자리다(내가 확인). 기록만 해 두면 그 칸을 우리가 채운다."
+   }
+  },
+  "4_2_sim_generation_protocol": {
+   "얼마나": {
+    "규모_기준": "**표본 수가 아니라 R 이 병목이다**(실측 쪽). 시뮬 쪽 R 은 사실상 무한이므로 «얼마나» 는 GPU 예산 문제로 축소된다.",
+    "1팔당": "사전학습 코퍼스 ≈ **1.7~14 GPU-h**(위상표 600장 기준, 저장소 실측 처리율). 위상표가 서면 CPI 합성은 ms 라 무라벨 표본은 사실상 공짜.",
+    "셀_수": "코퍼스 5팔 × 목적함수 4종 × 태스크 2 = 40 조합이지만 **12~16 셀이면 핵심 주장이 선다**(P4×S1, P4×S2, P0×S2, P1×S1 + S0/S3 기준선)",
+    "⚠": "**GPU 를 더 긴 학습에 쓰지 마라. 더 많은 장면·기하에 써라.** 규모 스케일링이 무효였다는 사례 2건이 있다(§9 미검증)."
+   },
+   "무엇을_무작위화": {
+    "판단_기준": "⭐ «중요한가» 가 아니라 **«운용 시점에 알 수 있는가»**. 알 수 없는 것만 흔든다.",
+    "⭐⭐_표가_두_장이다": {
+     "왜": "SNR 무작위화가 Pd 헤드라인과 정면 충돌한다. 클러터 레벨을 흔드는 것이 분류기를 견고하게 만드는 바로 그 조치인데, 검출 문턱의 뜻을 파괴한다. 한 데이터셋으로 두 태스크를 하면 한쪽이 반드시 망가진다.",
+     "검출축(T1) 표": "클러터·잡음을 **규약값으로 고정**, 표적 SNR 만 스윕 → Pd(SNR) 곡선이 뜻을 갖는다",
+     "분류축(T2) 표": "클러터·잡음·점유모드·rpm 시간구조·자세를 **넓게 흔든다**",
+     "대가": "데이터 생성 비용 2배. «한 데이터셋으로 두 태스크» 라는 깔끔함을 포기한다.",
+     "기여성": "형제 라운드 21편 범위에서 신호 모달리티의 선례를 못 찾았다. ⚠ «21편 범위» 한정을 절대 빼지 마라."
+    },
+    "축_판정": [
+     {
+      "축": "배경 클러터 레벨·분포",
+      "알수있나": "아니오",
+      "판정": "무작위화(양쪽 표)"
+     },
+     {
+      "축": "열잡음",
+      "알수있나": "부분(NF 는 안다, 간섭은 모른다)",
+      "판정": "검출축 고정 / 분류축 무작위화"
+     },
+     {
+      "축": "조명원 점유 9모드",
+      "알수있나": "아니오(비협조)",
+      "판정": "무작위화 — ⭐ 능동 모노스태틱에 없는 축"
+     },
+     {
+      "축": "기체 자세 roll/pitch/yaw",
+      "알수있나": "아니오",
+      "판정": "무작위화 ⚠ **오늘은 못 한다**(σ 격자 자세축 미배선). P2 생산에서 배선"
+     },
+     {
+      "축": "rpm",
+      "알수있나": "아니오",
+      "판정": "⭐ **값이 아니라 시간 구조를 흔든다** — 고정 → pass당 → CPI당 → sub-CPI → 로터별 분산"
+     },
+     {
+      "축": "PRF·캡처 모드",
+      "알수있나": "우리가 고르지만 조명원이 정한다",
+      "판정": "**축으로 승격**(0/36 때문)"
+     },
+     {
+      "축": "하드웨어 손상(ADC·잡음바닥·수신이득)",
+      "알수있나": "부분",
+      "판정": "무작위화 — adc_quantize() 배선 ≈30 LOC"
+     },
+     {
+      "축": "바이스태틱각 β · 기저선",
+      "알수있나": "예(우리가 배치)",
+      "판정": "**스윕**(무작위 아님). β≲90° 게이트를 하드코딩하고 걸린 표본 수를 로그로 인쇄"
+     },
+     {
+      "축": "거리",
+      "알수있나": "아니오지만 측정 가능",
+      "판정": "스윕 + **거리 매칭 비교 강제**"
+     },
+     {
+      "축": "표적 형상·재질",
+      "알수있나": "예(기종을 안다고 가정)",
+      "판정": "⛔ **무작위화 금지 — 물리로 계산.** 이게 통제변수다"
+     }
+    ],
+    "⚠_CFAR_문턱": "커리큘럼·무작위화가 학습 클러터 분포를 바꾸면 시험 시점 Pfa 가 안 지켜진다. **문턱 교정은 학습 분포와 분리된 고정 규약 집합에서만** 하고, 커리큘럼은 분류축에만 건다."
+   },
+   "어느_엔진": {
+    "결정": "⭐ **둘을 합친다 — σ 는 PO 커널, 환경은 Sionna.** 저장소 방침 [[sionna2-frame-correction-0803]] 과 같은 방향.",
+    "⛔_주장하지_않는_것": "«두 엔진을 합쳐서 좋아졌다». 두 엔진 prop 채널 복소 AC 상관이 0.857~0.978 이라 «다른 패러다임» 이라 부를 근거가 없다.",
+    "✅_주장하는_것": "**분업의 근거표** — 각 엔진이 무엇에 권위가 있고 무엇에 없는지.",
+    "⭐⭐_비워서_인쇄하는_칸": "**블레이드 절대 진폭 — 어느 엔진도 권위가 없다.** Sionna 확산 채널 변조는 몬테카를로 표본합이라 σ 로 못 읽고, PO 커널은 날개 폭 0.161λ 로 유효하한에 4.53배 부족하다. 이 칸을 비워 두는 것이 가장 정직한 한 줄이고, 동시에 실측 1층이 왜 필요한지의 설명이다.",
+    "⭐_엔진_자체를_한_축으로": "같은 표적·같은 하류에서 Sionna-only 코퍼스와 합침 코퍼스를 각각 학습시켜 다운스트림 차이를 잰다. **차이가 없으면 그것도 결과**이고 우리 커널의 값어치 주장을 그만큼 좁힌다.",
+    "⛔_쓰면_안_되는_논거": "«스톡 Sionna 로는 블레이드 마이크로도플러가 원리적으로 안 나온다» — 우리 report15_verdict 가 반증한다(두 기체 headline 전부 SIONNA_NATIVE_OK). 쓸 수 있는 것은 «정반사 채널 60칸 중 50칸 공백, 켜지는 4칸은 연속 변조가 아니라 껐다켜짐(최대 스윙 64배)» 뿐이다(내가 재집계)."
+   },
+   "챔버_방침": {
+    "결정": "⭐ **대체가 아니라 추가.** ① 챔버 = 통제군이자 **상한** — 클러터 없는 조건에서 표적모형 효과의 최대치. 챔버 실험 전부 그대로. ② **야외 기하 1종 추가** — 지면 반사 + 개활지 + 원거리 바이스태틱. 전이 시험대는 이쪽. ③ 두 도메인의 격차 자체를 결과로 인쇄.",
+    "왜": "챔버만 두면 chamber→field 와 sim→real **두 격차를 한 번에 건너게** 되고, 그러면 표적모형 축이 배경 유무 하나에 파묻힌다.",
+    "비용": "씬 1종 300~600 LOC + 메쉬 자산(assets/scenes/ 현재 비어 있음). P3(실측 파일럿) 단계의 주 비용.",
+    "⚠_사용자_확인": "SIM2REAL_PLAN §6-5 가 이미 확인 대기로 걸어 둔 항목이고 상시 챔버 방침을 건드린다. 나는 «추가» 로 읽어 진행 가능하다고 판단하지만 되돌리기 비용이 있어 명시적으로 올린다. 반대하시면 챔버만 남기면 되고, 그 경우 잃는 것은 **전이 주장의 범위**(P2·P3 의 주장 2)다."
+   }
+  }
+ },
+ "4_3_sim2real_plan_divergences": {
+  "판정": "⭐⭐ **고쳐야 한다.** 다만 이 라운드에서는 **안 고친다** — 조사·설계 라운드이고 다른 라운드 셋이 돌고 있다. 아래는 개정 항목 목록이고, 다음 편집 세션이 그대로 집으면 된다.",
+  "왜_고쳐야_하나": "그 문서의 §1-2 가 태스크를 «(a) 유무 검출 단독» 으로 확정했는데, 사용자가 마이크로도플러 분류를 메인으로 못박았다. 이건 뉘앙스 차이가 아니라 **문서의 뼈대(§2 ablation 설계 전체)가 그 결정 위에 서 있다.** 고치지 않으면 다음 세션이 문서를 읽고 굳는다.",
+  "긴급도_순": [
+   {
+    "id": "D1",
+    "긴급": "⭐⭐⭐",
+    "위치": "§1-2 · §1-1 표",
+    "어긋남": "태스크를 «(a) 유무 검출» **단독**으로 확정. (b)(c)(d) 를 «세 팔이 비교 불가» 라는 이유로 기각.",
+    "실제": "사용자 지시 = 탐지 + 마이크로도플러 상태분류 둘 다. 그리고 기각 논거(«통계팔·큐브팔에 로터가 없다»)는 **사다리 1 에만** 해당한다.",
+    "고칠_것": "⭐ **사다리를 둘로 쪼갠다.** 사다리 1(표적 표현: S-I/S-II/C/K/O) → **T1 탐지 전용**. 사다리 2(로터 운동학: 고정 rpm → pass당 → CPI당 → sub-CPI → 로터별 분산) → **T2 분류 전용**. 사다리 2 는 모든 팔에 로터가 있어 퇴화하지 않는다.",
+    "외부_근거": "White 2023 p.13(내가 확인) — 'the fixed-speeds fell significantly further'. 이건 우리가 지어낸 축이 아니라 그들이 실측으로 이미 잰 축이다(드론 recall 88.4 → 74.5%).",
+    "⭐우리_위치": "report15 caveat 이 «네 로터를 같은 위상으로 돌린다» 를 현재 한계로 적어 뒀다 — **우리는 지금 사다리 2 의 맨 아래 칸에 있고 올라가는 것 자체가 작업**이다."
+   },
+   {
+    "id": "D2",
+    "긴급": "⭐⭐⭐",
+    "위치": "§6-3 실측 3층 · MEASUREMENT_PLAN §0-2 · §7",
+    "어긋남": "⚠⚠ **비행 검출 헤드라인(3층)이 능동 모노스태틱**이고, 패시브 바이스태틱은 «검증 실제 3점»(수신전용) 층에만 있다. 그런데 논문 세 편의 주장은 전부 **패시브 바이스태틱**이다.",
+    "왜_구멍인가": "P2 의 주장 1(예측 대비 달성)·2(전이 축 분해)·4(데이터셋)와 P3 의 실측 테스트셋이 **패시브 바이스태틱 비행**을 요구한다. 지금 계획으로는 헤드라인 Pd 곡선이 다른 기하에서 나온다.",
+    "고칠_것": "⭐ **«검증 3점» 층을 «패시브 바이스태틱 비행 검출» 층으로 승격**한다. 이게 오히려 싸다 — **송신을 안 하므로 면허가 불필요**하다(MEASUREMENT_PLAN §0-2 자신이 적어 둔 성질). 능동 모노스태틱 3층은 폐기가 아니라 **링크버짓 교차검사**로 배치를 옮긴다.",
+    "⚠": "이건 캠페인 설계 변경이라 되돌리기 비용이 있다. 그러나 **첫 비행 전에 안 고치면 P2 를 다시 날려야 한다.**"
+   },
+   {
+    "id": "D3",
+    "긴급": "⭐⭐",
+    "위치": "§2-2 세 팔",
+    "어긋남": "팔이 S / C / O 셋이다.",
+    "고칠_것": "**다섯 팔로 확장** — {S-I(pass당 1회 추출), S-II(CPI마다 독립), C(큐브, 같은 커널), K(Costa 신호모델), O(우리 σ)}. ⚠ 형제 라운드 지적: «점산란체» 와 «통계 CN» 은 검출 하류에서 구분이 안 된다(둘 다 각도무관 스칼라). K 팔은 **Costa 의 Gaussian body / 다중 프로펠러 신호모델**로 두는 것이 구별 가능하다.",
+    "⭐왜_K_인가": "Costa 가 우리를 겨눈 반박을 갖고 있다(p.9, 내가 확인: 반사도 모형은 표적마다 측정·풀웨이브 시뮬이 필요하고 모든 바이스태틱각 조합은 unfeasible). **그 반박에 답하는 유일한 방법이 그들 모형을 팔로 넣고 나란히 재는 것**이다."
+   },
+   {
+    "id": "D4",
+    "긴급": "⭐⭐",
+    "위치": "§2-6 · §3-1 T1~T8",
+    "어긋남": "정렬 부품이 없다 — **G(실측 배경 주입)** 와 **I(하드웨어 모델 배선)** 이 계획 어디에도 없다.",
+    "왜_치명": "무보정 RT 합성으로 학습하면 실측에서 **chance 붕괴가 기본값**이다(Trinh p.3, 내가 확인: 50% / 33%). 그리고 K8 — G 를 나중에 붙이면 «G 를 안 해서 차이가 났던 것» 이라는 반박에 답할 수 없다.",
+    "고칠_것": "T 목록에 **T9 = 배경 주입·분포정렬 훅(50~130 LOC)**, **T10 = adc_quantize() 검출경로 배선(≈30 LOC)** 을 추가하고, **T8(sim-to-sim 3×3)을 G-on / G-off 두 벌**로 돌린다.",
+    "근거": "src/experiment_x410.py 에 X410(adc_bits=12, 동적범위 74 dB) 과 adc_quantize() 가 **이미 있는데 검출 경로에 호출자가 0** 이다. 같은 파일 :37 주석이 이걸 «시뮬↔실측 간극의 첫 후보» 로 적어 뒀다."
+   },
+   {
+    "id": "D5",
+    "긴급": "⭐⭐",
+    "위치": "§5 실패 조건 K1~K7",
+    "고칠_것": "**K8·K9·K10 을 승계 추가**(compare 라운드) + ⭐ **K11 을 신규 추가**(이 라운드).",
+    "K11": {
+     "조건": "SNR 을 낮출수록 사다리 팔 간 차이와 방법 간 차이가 **함께** 좁아지고, 우리 동작점(패시브 바이스태틱 저 SNR)에서 통계적으로 구분되지 않는다",
+     "뜻": "우리 동작점이 «표적 충실도가 안 중요한 영역» 이다",
+     "외부_예고": "DivNet p.10(내가 확인) — 15 dB 에서 모든 전이법 동률(85/85/86). Huang p.4(내가 확인) — SSL 이득이 −20 dB 11.3% → +20 dB 25.7%.",
+     "시점": "**P1, 실측 전에 판정 가능**",
+     "대응": "사다리를 SNR 계단마다 인쇄하고, 축이 살아 있는 SNR 구간을 결과로 명시한다. 그 구간이 우리 운용 구간 밖이면 논문의 실용 주장을 **«어느 SNR 이상에서만»** 으로 좁힌다."
+    }
+   },
+   {
+    "id": "D6",
+    "긴급": "⭐",
+    "위치": "§2-4 인쇄물",
+    "고칠_것": [
+     "**조건부·무조건부 분류 정확도 병기**(N-2) — 검출 통과 CPI 만 분류하면 어려운 표본이 앞에서 걸러져 숫자가 부풀려진다",
+     "**표에 R 과 d 를 나란히 인쇄** + recording-grouped 분할",
+     "**선형평가와 미세조정 둘 다 인쇄** — 선형에서 이기고 미세조정에서 비기면 이득의 정체는 «표현» 이 아니라 «초기화» 다(30~80 LOC)",
+     "**SNR 계단마다 accuracy·precision·recall·F1·FPR 전 지표**"
+    ]
+   },
+   {
+    "id": "D7",
+    "긴급": "⭐",
+    "위치": "§4 투고처",
+    "어긋남": "«IEEE 레이다 계열» 한 줄뿐. 세 편의 배치가 없다.",
+    "고칠_것": "§3 의 3편 표를 그대로 붙인다(P1 RadarConf/EuRAD 또는 T-RS · P2 T-RS/TAES · P3 TAES/T-RS 또는 JSTSP ISAC 특집)."
+   },
+   {
+    "id": "D8",
+    "긴급": "⭐",
+    "위치": "부록 A-1 / A-1b",
+    "어긋남": "쪽수가 **게재판(41 p) 기준**인데 저장소 다른 곳은 arXiv v2(36 p)를 인용한다.",
+    "고칠_것": "§1-N2 의 판본 대응표를 부록에 붙이고, **인용 시 판본 명시** 규칙을 못 박는다. (문서 자체의 쪽수는 맞다 — 게재판 기준이다.)"
+   },
+   {
+    "id": "D9",
+    "긴급": "⭐",
+    "위치": "§0 · §2-1",
+    "어긋남": "«같은 사이트 트윈» 이 챔버를 가정한다.",
+    "고칠_것": "§4-2 챔버 방침 결정을 반영 — **챔버는 통제군·상한으로 유지 + 야외 기하 1종 추가**. §6-5 의 사용자 확인 항목은 그대로 열어 둔다."
+   },
+   {
+    "id": "D10",
+    "긴급": "낮음",
+    "위치": "부록 C 부재주장 원장",
+    "고칠_것": "⭐ «33편 중 0편» 계수를 **더 센 프레임으로 교체** — «Costa = 산란모형 + 실측, 학습 0 / White = 학습 + 실측, 계산된 산란 0. 두 절반이 같은 태스크에 따로 있고 아무도 붙이지 않았다.» 부재 계수에 의존하지 않아 검색 커버리지 공격을 안 받는다."
+   }
+  ],
+  "⛔_고치지_말_것": [
+   "§2-3 N1/N2 병행 규약 — 이 문서에서 가장 좋은 부분이다. 그대로 둔다.",
+   "§3-2 sim-to-sim 이 «필요조건 검사» 라는 성격 규정 — 정확하다.",
+   "§2-2 Arm C 의 «엔진 고정» 공정성 규칙 — 사다리가 성립하는 유일한 이유다.",
+   "§6-6 novelty 문장의 자리 — 이번 라운드 델타와 같은 방향이다."
+  ]
+ },
+ "5_attack_map": {
+  "작성_규칙": "⚠ «아무도 안 했다» 는 이 파일 어디에도 없다. 모든 부재 진술은 **모집단을 밝힌 «N편 범위에서 못 찾았다»** 형태다(R20 대정정의 교훈). 각 행의 verified 필드는 **내가 이번 라운드에 직접 열었는가**를 뜻한다.",
+  "모집단_선언": {
+   "POP-1": "/data/public/sionna_jeong 아카이브 고유 PDF 전문 정규식 스캔 — 라운드마다 256~372편(라운드별로 다르게 셌다. 인용 시 그 라운드의 수를 쓴다)",
+   "POP-2": "다섯 라운드에서 **누군가 원문을 연** 논문 약 60편",
+   "POP-3": "**내가 이번 라운드에 직접 연** 13편",
+   "POP-4": "s2r_prior 정독 33편",
+   "⛔_밖": "IEEE Xplore 유료 프로시딩 · CNKI/万方/百度학술(403) · IET RSN(402) · MDPI(403) · Wiley. ⚠ 특히 **IET RSN 2025 LTE450 패시브** 편은 우리 기하와 가장 닮았고 아직 못 열었다."
+  },
+  "rows": [
+   {
+    "id": "AT1",
+    "빈_곳": "표적이 **스칼라·통계 산란체로 흡수**되어 자세·회전·형상이 결과에 들어갈 통로가 없다",
+    "누가": "Clutter-Aware ISAC (R. Liu·P. Li·M. Li·A.L. Swindlehurst, Proc. IEEE 114(1):52–91, 2026 · arXiv:2602.10537) 식 (108) · Fuse-then-Detect(σ=0 dBsm) · Nokia(σ=−17 dBsm 문헌값) · SPAWC(Swerling 1) · Costa(Gaussian body)",
+    "근거": "축자(내가 확인) — 'αt,n ∼ CN(0, σ²t,n) represents the target RCS together with the associated path loss' (게재판 **p.28** / arXiv v2 **p.24**). 나머지 넷은 형제 라운드가 쪽수까지 확인.",
+    "verified": "MYSELF(클러터 서베이) / INHERITED(나머지 4편)",
+    "우리가_채우는_정도": "**전부** — 이게 우리 통제축 그 자체다",
+    "어느_편": "P1(헤드라인) · P3(전이에서 재확인)",
+    "⭐지지축으로도": "같은 논문이 **환경·클러터를 Sionna RT 로 내는 것이 Proc. IEEE 급에서 정당하다**는 최상위 근거다(Sionna 13회, Fig.1~12 중 다수가 RT 산출). 우리 «환경이 마이크로도플러를 훼손한다» 서사의 상위 인용원.",
+    "⚠공격을_이렇게_하지_마라": "«메쉬를 단순화했으니 표적 에코가 틀렸다» — **대상 오인**이다. 그들 표적 진폭은 애초에 RT 산출물이 아니다. 그리고 그들 프레임(클러터 하 검출·추정 알고리즘 설계) 안에서 CN(0,σ²) 은 **옳다**. **결함이 아니라 범위**라고 써라."
+   },
+   {
+    "id": "AT2",
+    "빈_곳": "**모델링과 학습 사이의 사슬을 저자가 스스로 비웠다**",
+    "누가": "Costa 외 2025 (arXiv:2504.05168, IEEE JSTEAP 저널판)",
+    "근거": "축자(내가 확인, **p.10**) — 'Future work can comprise the use of simulated data using this proposed model to train target classification algorithms and the validation of this training method using measurement data.' + 형제 라운드 전문 계수: CNN 0 · neural 0 · accuracy 0 · trained 0",
+    "verified": "MYSELF(축자) / INHERITED(계수)",
+    "우리가_채우는_정도": "**전부** — 시뮬 데이터로 분류기를 학습하고 실측으로 검증하는 것이 P3 다",
+    "어느_편": "P1 → P3 (사슬 전체)",
+    "⚠그들이_우리를_되받는_지점": "같은 논문 **p.9**(내가 확인) — 반사도 기반 모형은 '…requires measurements, or at least full-wave EM simulation, for each target to be modeled … unfeasible to perform static reflectivity measurements for all possible geometric constellations, i.e., all possible combinations of bistatic angles.' **우리 σ 격자 방식을 정확히 겨눈다.** 우리 답: (a) 우리는 측정이 아니라 계산이라 표적당 비용이 GPU 시간이다, (b) 바이스태틱 조합 문제는 실재하고 **우리도 아직 못 풀었다**(모노스태틱만, β≲90° 게이트, 전방산란 σ≡0) — 그래서 그들 모형을 **K 팔로 나란히 놓고 잰다**."
+   },
+   {
+    "id": "AT3",
+    "빈_곳": "드론 마이크로도플러 합성학습에서 **배경 다양화가 안 됐다**",
+    "누가": "White 외 2023 (IEEE Trans. Radar Systems)",
+    "근거": "저자 자백 축자(내가 확인, **p.11**) — 'The weather conditions and locations could be altered to yield varied backgrounds for training data but this lies outside the scope of the current study.' 같은 논문 p.11 은 배경을 **한 개의 실측 배경**으로만 주입한다.",
+    "verified": "MYSELF",
+    "우리가_채우는_정도": "**부분** — Sionna 장면 무작위화 + 실측 배경 주입 + 사이트 2곳. ⚠ 날씨 축은 우리도 통제 못 한다(기록만 한다)",
+    "어느_편": "P2(배경 수집) · P3(주입·정렬)"
+   },
+   {
+    "id": "AT4",
+    "빈_곳": "합성 학습셋이 **항상 관측 가능하게** 만들어져 붕괴점을 못 잰다",
+    "누가": "White 외 2023",
+    "근거": "저자 자백 축자(내가 확인, **p.12**) — 'The simulation model presented in this paper does not attempt to model such fluctuations and synthetic parameter values were set so that sidebands were always visible in the synthetic data.'",
+    "verified": "MYSELF",
+    "우리가_채우는_정도": "**전부** — SNR 을 낮춰가며 무너지는 지점을 Pd(SNR) 곡선으로 인쇄",
+    "어느_편": "P1(시뮬) · P3(실측)",
+    "⚠공정하게": "«그들이 게을렀다» 가 아니라 **«그들 태스크가 분류라서 필요 없었다»** 로 적어라. 그편이 심사에서 강하다."
+   },
+   {
+    "id": "AT5",
+    "빈_곳": "합성·무작위화 학습 계열에 **검출 지표(고정 Pfa 에서의 Pd · ROC)** 가 없다",
+    "누가": "형제 라운드가 정독한 21편 전부",
+    "근거": "형제 라운드 전문 계수 — 'probability of detection' 0/21 · 'ROC' 0/21 · CFAR 는 1편(그 편은 학습을 안 한다). ⭐ 내가 재확인: 그 1편(클러터 서베이) 두 판본 모두 'probability of detection' 0 · 'ROC' 0 · 'receiver operating' 0.",
+    "verified": "INHERITED(21편) / MYSELF(클러터 서베이 재확인)",
+    "⚠중요한_단서": "⭐ **«오경보를 안 다룬다» 는 거짓이다.** White p.7 은 한 동작점의 오경보를 적었고(형제 라운드 확인), 클러터 서베이는 'false alarm' 이 3회 나오는 CFAR 절을 갖고 있다(내가 계수). **없는 것은 «곡선» 이다.**",
+    "우리가_채우는_정도": "**전부** — 배관이 이미 있다(passive_process.ca_cfar_2d · experiment_detection.gpu_montecarlo, 4.86 M CPI 시행 실적)",
+    "어느_편": "P1 · P3"
+   },
+   {
+    "id": "AT6",
+    "빈_곳": "**RT 설정 미보고**(광선 예산·max_depth·회절/굴절·메쉬 해상도·버전)",
+    "누가": "Clutter-Aware ISAC (R. Liu·P. Li·M. Li·A.L. Swindlehurst, Proc. IEEE 114(1):52–91, 2026 · arXiv:2602.10537) · WiFi-JEPA (arXiv:2607.11064)",
+    "근거": "⭐ 내가 두 편을 직접 계수했다 — 클러터 서베이 **두 판본 모두** max depth 0 · num_samples 0 · samples per 0 · physical optics 0 · ray budget 0. WiFi-JEPA 17쪽 전문 max_depth 0 · num_samples 0 · diffraction 0.",
+    "verified": "MYSELF(두 편 다)",
+    "⚠반례": "⭐ **Transfer to Sky 는 표로 보고했다** — Table I p.5(내가 확인): 'Max path depth 2 / Diffraction False / Refraction False / Grid cell size (10 m, 10 m) / Samples per transmitter 10'. **따라서 «선행은 RT 설정을 안 밝힌다» 로 일반화하면 즉시 틀린다.** 반드시 «우리가 전문을 연 이 두 편은» 으로 한정하라.",
+    "우리가_채우는_정도": "**전부** — 설정 전면 공개표(비용 1일, 값은 이미 outputs/*.json 에 있다)",
+    "어느_편": "세 편 모두의 부록",
+    "왜_우리에게_중요": "우리 하네스에서 그 부류의 미보고 파라미터 하나(평면 삼각화 세밀도)가 단일 평면판 수신전력을 최대 **9.54 dB** 움직인다(outputs/facet_attack.json). **이건 재현성 요구이지 오류 지적이 아니다.**"
+   },
+   {
+    "id": "AT7",
+    "빈_곳": "**조명원이 상시 ON 인 패시브 조건**에서 hot-clutter 통계를 어떻게 잡는가",
+    "누가": "Clutter-Aware ISAC (R. Liu·P. Li·M. Li·A.L. Swindlehurst, Proc. IEEE 114(1):52–91, 2026 · arXiv:2602.10537)",
+    "근거": "축자(내가 확인, 게재판 **p.19** / arXiv v2 **p.16**) — '…can be estimated directly from secondary data collected during quiet periods where only the interference is present.' 같은 절 바로 앞: 'For non-cooperative emitters, the interference waveform is unknown at the BS.'",
+    "verified": "MYSELF",
+    "우리가_채우는_정도": "**우회** — 배경을 «간섭 없음» 이 아니라 **«조명원 ON · 표적 없음»** 으로 재정의한다. 남는 항(직접파 잔차 + 정적 클러터)이 공분산 추정을 얼마나 편향시키는지 잰다.",
+    "어느_편": "P2(수집) · P3(사용)",
+    "⚠⚠이건_우리_약점이기도_하다": "⭐⭐ **그들 cold/hot 분류상 패시브·비협조 조명원이면 우리 표적 에코와 바닥 유령이 전부 hot clutter 이고, 처방(quiet period)이 우리에게는 실행 불가능하다.** 해소가 아니라 우회이고, 그렇게 적어야 한다. 남을 치는 칸이 아니라 **우리가 먼저 답해야 하는 숙제** 칸이다."
+   },
+   {
+    "id": "AT8",
+    "빈_곳": "**상시 조명원의 반복률이 블레이드 도플러를 담을 수 있는가** 를 계산해 보고한 사례",
+    "누가": "우리가 읽은 범위에서 미발견. ⚠ 근거가 약하다 — OFDM 논문들은 같은 개념을 프레임 주기·심볼 길이로 부른다. **낱말 부재를 개념 부재로 읽지 않는다.**",
+    "근거": "⭐ 우리 산출(내가 재계산) — outputs/md_range_sweep.json 9셀 × 4모드 = **0/36 모드-셀**. 필요 PRF **1195.4~4822.2 Hz** vs LTE CRS 1000 · WiFi VHT-LTF 1000 · NR-PRS 200 · SSB 50 Hz. 플래시선 **120.0~183.3 Hz** 는 LTE/WiFi 에서 **9/9** 생존, NR-PRS·SSB 에서 **0/9**.",
+    "verified": "MYSELF(우리 계산 재수행)",
+    "우리가_채우는_정도": "**전부** — 표 한 장. 이미 계산돼 있다",
+    "어느_편": "P1 §II",
+    "⚠⚠이건_우리_약점이기도_하다": "이 표가 **우리 실험 설계를 강제**한다(T2 는 풀캡처 규약). 남을 치는 데만 쓰면 되받힌다. ⭐ 다만 «5G 이중고» 서사는 오히려 **강해진다** — SSB 50 Hz·PRS 200 Hz 에서는 플래시선마저 접히기 때문이다."
+   },
+   {
+    "id": "AT9",
+    "빈_곳": "**표적 산란 표현을 통제축으로 놓은** 실험(운동학이 아니라)",
+    "누가": "White 2023(운동학 사다리는 있으나 산란모형 thin-wire 고정) · DivNet(운동학 다양화 + MoCap 점산란체) · WiFi-JEPA(scene content 를 한 쌍만, 게다가 교란)",
+    "근거": "WiFi-JEPA **p.13** 축자(내가 확인) — '…so the comparison isolates the effect of scene content: geometric primitives with randomized physics trajectories (sim-object) versus animated human meshes with motion-capture sequences (sim-human).' ⭐ 그 «scene content» 안에 **산란체 기하와 운동 분포가 함께 묶여 있고**, 같은 쪽에서 저자가 원인을 운동 쪽으로 돌린다('…lack the trajectory variation…').",
+    "verified": "MYSELF",
+    "우리가_채우는_정도": "**전부** — 궤적·씬·조명 파형·검출기·5 seeds 를 고정하고 표적항만 5팔로 바꾼다. **교란을 제거한 판이 우리 실험이다.**",
+    "어느_편": "P1(신호) · P3(전이)",
+    "⚠정직하게": "그들이 옳을 수 있다(프리미티브 100.1 vs 사람 메쉬 110.3 mm — 프리미티브가 이겼다). sim-to-sim 게이트 K1 이 실측 전에 잰다."
+   },
+   {
+    "id": "AT10",
+    "빈_곳": "**수신단 하드웨어 손상**을 전이의 통제축으로 켜고 끈 실험",
+    "누가": "arXiv:2509.25793(4축을 분해하고 hardware 를 큰 축으로 세지만 태스크가 CSI 압축) · BatStation(붕괴 원인을 hardware 로 **귀속만** 함)",
+    "근거": "축자 ① p.3 — 'we identify that 3D geometry, ray tracing, and hardware model are the key factors…' ② BatStation p.11 — 'unseen hardware parameters on the experimental BS hardware (e.g., noise floor, receiving gain)'",
+    "verified": "INHERITED (⚠ 나는 두 편 다 안 열었다)",
+    "우리가_채우는_정도": "**부분** — adc_quantize()(12 bit, 74 dB) 배선 ≈30 LOC 는 오늘 가능. 위상잡음·LO 드리프트·IQ 불균형은 코드 전체 히트 0 이라 신규 ≈150 LOC",
+    "어느_편": "P3",
+    "⭐부수효과": "**BatStation 반박의 답이 여기서 나온다** — «학습형은 안 된다» 가 아니라 «하드웨어를 안 넣어서 안 됐다» 라는 검증가능 가설."
+   },
+   {
+    "id": "AT11",
+    "빈_곳": "**recording-grouped 평가**를 쓴 드론 RF/레이다 논문",
+    "누가": "arXiv:2607.01025 가 그 부재 자체를 논문으로 만들었다",
+    "근거": "축자(내가 확인, **p.1**) — '…while 2R ≲ d, so that naive accuracy approaches 1…' + 형제 라운드 계수: 아카이브 317편 전문에서 'recording-grouped|leave-one-recording|recording-level split|session-wise split' 히트 **0편**",
+    "verified": "MYSELF(축자) / INHERITED(계수)",
+    "⚠계수의_한계": "그 논문 자신이 아카이브 밖이다 — 이 계수는 «세상에 없다» 가 아니라 **«우리 서가에 없다»** 다.",
+    "우리가_채우는_정도": "**전부** — 규약으로 채택. ⚠ 이건 «답» 이 아니라 «복종» 이고 **우리 수치를 낮게 만든다.** 그래도 한다.",
+    "어느_편": "P2 · P3"
+   },
+   {
+    "id": "AT12",
+    "빈_곳": "**패시브 바이스태틱 셀룰러 조명 드론 에코**의 공개 실측 데이터셋",
+    "누가": "해당 없음(부재 자체가 항목)",
+    "근거": "형제 라운드가 접근성까지 확인한 공개셋 9건이 전부 **능동 모노스태틱**(TSMS·Karlsson 77 GHz·DIAT-µSAT·Ezuma/Semkin 무향실) 또는 **드론 방출 신호**(RFUAV·KU Leuven·UAVSig·CageDroneRF)",
+    "verified": "INHERITED",
+    "우리가_채우는_정도": "**부분** — 파일럿 규모라도 유일하다. ⚠ 규모가 선행과 자릿수가 다르다(Karlsson 75,868 · AirGuard 237,600 vs 우리 비행 수십 회). **«벤치마크» 라 부르지 말고 «데이터셋» 이라 불러라.**",
+    "어느_편": "P2"
+   },
+   {
+    "id": "AT13",
+    "빈_곳": "**회전 로터를 포함한** σ 를 공개 실측 RCS 로 앵커한 사례",
+    "누가": "Potter 2024 / Ezuma 2021 — 무향실 자세분해 RCS(1° 격자)를 쓰지만 **프로펠러 정지** 측정. BiRa 도 반사도는 정지 로터이고 마이크로도플러는 **날개 한 장** 회전(내가 확인).",
+    "근거": "Potter p.3 — 'UAVs were non-operational during the data collection process, and therefore the measured RCS signature of the drones in flight may slightly change due to the rotating propellers.'(INHERITED) / Beuster p.3 — '…with propellers at standstill …' + '…with one rotating propeller blade'(MYSELF)",
+    "verified": "INHERITED(Potter) / MYSELF(Beuster)",
+    "우리가_채우는_정도": "**부분** — 정지 로터로 커널을 앵커하고, 회전 항은 그 위에 얹은 뒤 **회전이 만드는 차이만** 따로 인쇄. 앵커 자체는 남의 데이터다(정직히 적는다).",
+    "어느_편": "P2",
+    "우리_기여": "«그들이 slightly 라고 적은 그 차이가 탐지·분류에서 얼마나 큰가»"
+   },
+   {
+    "id": "AT14",
+    "빈_곳": "**자기지도 무선센싱 문헌의 절대 레벨 태스크**(탐지) 결과",
+    "누가": "SkySense · CSI-JEPA · WiFi-JEPA · JEPA-MSAC · Huang MLSP — 전부 레벨 무관 태스크(측위·자세·빔·신호인식)",
+    "근거": "형제 라운드 계수: SkySense 6쪽 전문 ROC 0 · false alarm 0 · probability of detection 0 · Doppler 0 / CSI-JEPA 11쪽 ROC 0 · false alarm 0 · micro-Doppler 0. ⭐ 내가 확인: WiFi-JEPA 17쪽 micro-Doppler 0 · RCS 0 · UAV|drone 0.",
+    "verified": "INHERITED(둘) / MYSELF(WiFi-JEPA)",
+    "우리가_채우는_정도": "**부분** — 백본으로 채택하지 않고 **한 팔**로만. 어느 결과든 인쇄(음성 결과 포함)",
+    "어느_편": "P3",
+    "⚠": "«JEPA 를 레이다에 쓴 사람이 없다» 는 **거짓**이다 — 2026 상반기에만 최소 7편."
+   }
+  ],
+  "⭐_가장_방어하기_좋은_셋": {
+   "선정_기준": "(a) 저자 자신이 한계로 적었나 (b) 우리가 실제로 채우나 (c) 채운 것을 잴 수 있나 — 셋 다 만족해야 한다.",
+   "고른_것": [
+    {
+     "1순위": "AT2 — Costa 의 future work 자백",
+     "(a)": "완벽 — 저자가 «이 모형으로 만든 시뮬 데이터로 분류기를 학습하고 실측으로 검증하는 것» 을 정확히 그 문장으로 남겼다(p.10)",
+     "(b)": "P1→P3 사슬 전체가 그것이다",
+     "(c)": "macro-F1 · Pd@설계Pfa — 잴 수 있다",
+     "⭐추가_강점": "**같은 논문이 우리를 되받는 문장도 갖고 있다(p.9)** — 그걸 K 팔로 나란히 놓으면 «우리가 그들의 비판을 알고 있고 실험으로 답했다» 가 된다. 심사에서 이보다 강한 구조가 드물다."
+    },
+    {
+     "2순위": "AT3 + AT4 — White 의 두 자백",
+     "(a)": "완벽 — 배경 다양화(p.11)와 저 SNR 붕괴점(p.12) 둘 다 저자가 «범위 밖» 이라고 명시",
+     "(b)": "배경 주입·무작위화는 P2·P3, Pd(SNR) 곡선은 P1",
+     "(c)": "배경 유무 대비 ΔPd · SNR 계단별 곡선 — 잴 수 있다",
+     "⭐추가_강점": "White 은 **우리와 태스크가 가장 가깝고 우리가 방법을 가장 많이 빌리는 논문**이다(배경 주입 M1 · 운동학 사다리). 빌리면서 채우는 구조라 적대적이지 않다."
+    },
+    {
+     "3순위": "AT1 — 표적을 통계로 흡수",
+     "(a)": "자백은 아니지만 **의도적 범위 선언**이라 반박당하지 않는다 — 그들 프레임 안에서 CN(0,σ²) 은 옳다",
+     "(b)": "정확히 그 자리가 우리 통제축이다",
+     "(c)": "팔 간 ΔPd · Δmacro-F1 — 잴 수 있다",
+     "⭐추가_강점": "**Proc. IEEE 급 정본이 근거**라 «관행이다» 를 한 줄로 증명한다. 그리고 같은 논문이 우리 환경 서사의 상위 지지 근거이기도 해서, 공격과 인용을 한 문단에서 할 수 있다."
+    }
+   ],
+   "왜_다른_것을_안_골랐나": [
+    {
+     "뺀_것": "AT6(RT 설정 미보고)",
+     "이유": "⚠ **반례가 있다**(Transfer to Sky Table I). 일반화 불가이고, 채워도 «재현성 요구» 일 뿐 결과가 아니다. 부록으로 내린다."
+    },
+    {
+     "뺀_것": "AT8(PRF 표)",
+     "이유": "⚠ **우리 약점과 한 몸**이다. 남을 치는 데 쓰면 «그럼 너희는 어떻게 보느냐» 로 즉시 되받힌다. 공격이 아니라 **설계 제약**으로 인쇄한다."
+    },
+    {
+     "뺀_것": "AT12(공개 데이터셋 부재)",
+     "이유": "데이터셋 검색은 논문 검색보다 커버리지가 나쁘다. 그리고 우리 규모가 자릿수로 작다."
+    },
+    {
+     "뺀_것": "AT14(SSL 문헌의 검출 지표)",
+     "이유": "빈칸이지만 **novelty 로 팔 수 없다** — JEPA×무선이 붐빈다. 그리고 우리 자신이 SSL 을 한 팔로만 쓴다."
+    }
+   ]
+  },
+  "⚠_우리가_못_채우는_것": [
+   {
+    "항목": "**기종 분류**",
+    "왜": "실측 기체 2종(Matrice 4E → Mini 5 Pro)이 상한. 5-class 는 기체 3종 추가 구매가 필요하다.",
+    "대응": "같은 녹화에 2-class 헤드를 붙여 **한계 패널로만** 인쇄하고 novelty 로 팔지 않는다. ⭐ 시뮬에서는 5종 격자가 있으므로 **기종 분류는 sim-only 결과로만** 낸다."
+   },
+   {
+    "항목": "**바이스태틱 σ 전 텐서**",
+    "왜": "우리 PO 는 β≲90° 에서만 유효하고 전방산란 σ≡0. 전 텐서가 저장돼 있지도 않다(통계만). Costa p.9 가 정확히 이 지점을 지적한다.",
+    "대응": "β 게이트를 하드코딩하고 **걸린 표본 수를 로그로 인쇄**. BiRa 로 정지 로터 바이스태틱 앵커를 시도(β 10°–180°)."
+   },
+   {
+    "항목": "**rpm 정밀 제어**",
+    "왜": "Costa 는 Tarot IRON MAN 650 커스텀 기체로 로터 각속도를 원격 설정했다(p.11, 내가 확인). 상용 DJI 로는 불가능하다.",
+    "대응": "실험자 통제(탑재 계단) + 독립 rpm 기준 채널(광다이오드/마이크). ⚠ **«rpm 을 설정했다» 가 아니라 «rpm 을 측정했다» 로만** 쓴다."
+   },
+   {
+    "항목": "**절대 검출거리 주장**",
+    "왜": "RadarTwin p.9 가 절대 밝기 전이 실패를 실측으로 보였고, 우리 PO 커널은 블레이드에서 유효범위 밖(4.53배).",
+    "대응": "상대 비교로 대체(파형 간·점유 간·환경 유무·팔 간·Rx 수 간). **절대 눈금은 교정표적 세션 하나로 한정.** ⚠ 절대 검출거리가 없는 레이다 논문은 그만큼 약하다 — 대가를 인정하고 간다."
+   },
+   {
+    "항목": "**블레이드 절대 진폭**",
+    "왜": "어느 엔진도 권위가 없다(§4-2).",
+    "대응": "**표에서 그 칸을 비워 인쇄한다.** 이게 가장 정직한 한 줄이고 실측 1층이 왜 필요한지의 설명이다."
+   },
+   {
+    "항목": "**조류 판별**",
+    "왜": "조류는 통제 불가. 대리물(보행자·회전 코너리플렉터·투척물)을 쓰면 «조류 판별» 주장 불가.",
+    "대응": "**드론 대 클러터**로 태스크를 바꾼다 — 배경 녹음이 음성 클래스를 공짜로 준다."
+   },
+   {
+    "항목": "**대규모 공개 벤치마크**",
+    "왜": "Karlsson 75,868 · AirGuard 237,600 대 우리 비행 수십 회.",
+    "대응": "«데이터셋» 으로 부르고 **R 을 정직하게 인쇄**한다."
+   },
+   {
+    "항목": "**날씨 축**",
+    "왜": "야외 실측에서 통제 불가. White 이 비운 칸의 절반만 채운다(장소는 채우고 날씨는 못 채운다).",
+    "대응": "메타데이터로 **기록만** 한다. 그러면 사후 층화가 가능해진다."
+   }
+  ]
+ },
+ "5_9_intro_paragraph_draft": {
+  "규칙": "⭐ 각 문장에 근거 파일·논문·쪽수를 달았다. 근거 없는 문장은 안 썼다. 제출본은 EN 이고 KO 는 대조용이다.",
+  "구조": "A(선행이 한 것) · B(선행이 한 다른 것) · C(비어 있는 것) · D(우리가 그것을 무엇으로 채우나)",
+  "ko": [
+   {
+    "문장": "패시브 ISAC 문헌에서 드론 표적은 대개 각도도 회전도 없는 스칼라·통계 산란체로 들어간다 — 예컨대 클러터-인지 ISAC 튜토리얼은 표적 반사진폭을 α_t,n ∼ CN(0, σ²_t,n) 로 둔다.",
+    "근거": "Proc. IEEE 114(1):52–91, 2026, 게재판 p.28 식 (108) 직후 — 내가 직접 열람. 같은 관행이 넷 더 있다(Fuse-then-Detect σ=0 dBsm · Nokia σ=−17 dBsm · SPAWC Swerling 1 · Costa Gaussian body, 쪽수 확인됨).",
+    "role": "A"
+   },
+   {
+    "문장": "그 프레임 안에서 그 선택은 옳다 — 표적은 검출·추정 알고리즘의 입력 통계이지 자유 변수가 아니다. 다만 그러면 자세·회전·형상이 결과에 들어갈 통로가 없다.",
+    "근거": "같은 논문의 범위 선언. ⚠ **비판이 아니라 범위**로 적는다.",
+    "role": "A"
+   },
+   {
+    "문장": "반대편에서, 드론 마이크로도플러를 합성해 분류기를 학습시킨 연구는 산란모형을 얇은 도선으로 고정한 채 로터 운동학만 사다리로 놓았고, 배경 다양화와 저신호대잡음 붕괴점은 스스로 범위 밖이라 적었다.",
+    "근거": "White 외, IEEE Trans. Radar Systems 2023 — p.13(모터속도 시간구조: 드론 recall 88.4 → 74.5%) · p.11('…lies outside the scope of the current study') · p.12('…sidebands were always visible in the synthetic data') — 셋 다 내가 직접 열람.",
+    "role": "B"
+   },
+   {
+    "문장": "두 갈래 사이에서, 바이스태틱 다중 프로펠러 마이크로도플러를 모델링하고 실측으로 검증한 연구는 «이 모형으로 만든 시뮬 데이터로 분류기를 학습하고 실측으로 검증하는 일» 을 명시적으로 향후 과제로 남겼다.",
+    "근거": "Costa 외 2025(IEEE JSTEAP), p.10 축자 — 내가 직접 열람. 같은 논문 전문에 CNN·neural·accuracy·trained 가 각 0회(형제 라운드 계수).",
+    "role": "C"
+   },
+   {
+    "문장": "우리는 그 자리를 채운다 — 같은 씬·같은 조명 파형·같은 검출기 위에서 표적 산란 표현만을 통제변수로 바꾸고(회전대칭 원판 → 통계 σ → 큐브 → 평판 날개 → 자세·로터위상 분해 재질가중 σ), 그 선택이 패시브 바이스태틱 검출확률과 마이크로도플러 상태분류를 얼마나 움직이는지를 재며, 같은 비교를 USRP X410 실측으로 옮긴다.",
+    "근거": "우리 설계(§2-2 · §3). 배관 실적: outputs/detection_rx_sweep.json — 9모드×4Rx×15SNR×K=6000 ≈ 4.86 M CPI 시행.",
+    "role": "D"
+   },
+   {
+    "문장": "아울러 조명 신호의 반복률이 무엇을 볼 수 있게 하는지를 함께 인쇄한다 — 우리가 계산한 아홉 개 (기체×대역) 조합에서 블레이드 팁 도플러는 상시 기준신호 네 모드 어디에서도 접히지 않고 담기지 않지만(필요 1.2~4.8 kHz), 블레이드 플래시선(120~183 Hz)은 LTE·WiFi 급 1 kHz 규약에서 아홉 조합 모두 살아남고 5G SSB(50 Hz)·NR-PRS(200 Hz)에서는 모두 접힌다.",
+    "근거": "outputs/md_range_sweep.json 전수 재집계 — 내가 이번에 직접 돌렸다(0/36 모드-셀, 9/9, 0/9).",
+    "role": "D"
+   },
+   {
+    "문장": "⚠ 마지막 문장(선택) — 이 비교의 결과가 «표적 표현을 바꿔도 검출이 안 바뀐다» 로 나와도 인쇄한다. 선행이 서로 다른 표적 값을 쓰면서 그 선택이 무해하다고 가정해 왔기 때문이다.",
+    "근거": "다섯 편의 서로 다른 표적 항 정의(§5 AT1). ⭐ **null 도 결과** — 이 델타의 가장 좋은 성질.",
+    "role": "D"
+   }
+  ],
+  "en_submission_draft": "In passive ISAC, the drone target is usually admitted as a scalar or statistical scatterer with neither aspect nor rotation: the clutter-aware ISAC tutorial, for instance, writes the target return amplitude as alpha_{t,n} ~ CN(0, sigma^2_{t,n}) [Proc. IEEE 114(1), p. 28, eq. (108)]. Within that frame the choice is correct - the target is an input statistic to a detector, not a free variable - but it leaves no channel through which aspect, rotation or shape can reach the result. On the other side, the work that trains a drone micro-Doppler classifier on synthetic spectrograms ladders the rotor kinematics while holding the scattering model fixed at a thin-wire approximation, and explicitly defers background variation and the low-SNR breakdown point as out of scope [White et al., IEEE T-RS 2023, pp. 11-13]. Between the two, the study that models bistatic multi-propeller micro-Doppler and validates it against measurements leaves \"the use of simulated data using this proposed model to train target classification algorithms and the validation of this training method using measurement data\" as future work [Costa et al., p. 10]. We fill that place: holding the scene, the illumination waveform, the trajectory set and the detector fixed, we vary only the target scattering representation - rotationally symmetric disc, statistical sigma, cube, flat-slab blades, and an aspect- and rotor-phase-resolved material-weighted sigma computed on the ray engine - and read the choice out as passive-bistatic detection probability and micro-Doppler state classification, then carry the same comparison to USRP X410 measurements. We also print what the illuminator makes observable: across the nine airframe-band combinations we evaluated, blade-tip Doppler is aliased under every one of the four always-on reference signals (1.2 to 4.8 kHz would be required), whereas the blade flash line at 120 to 183 Hz survives in all nine under the 1 kHz LTE and Wi-Fi references and in none under 5G SSB (50 Hz) or NR-PRS (200 Hz).",
+  "⚠_문장별_금지어": [
+   "«아무도 안 했다»",
+   "«우리가 처음»",
+   "«σ 를 정확히 냈다»",
+   "«메쉬 단순화 때문에 틀렸다»",
+   "«스톡 Sionna 는 블레이드를 못 만든다»",
+   "«SNR 이 낮을수록 사전학습 이득이 커진다»"
+  ]
+ },
+ "6_risks": {
+  "note": "다섯 개로 자르고 각각 **조기 경보 신호**를 붙였다. 경보는 전부 «실측 전에 볼 수 있는 것» 을 우선했다.",
+  "items": [
+   {
+    "id": "R1",
+    "순위": "⭐⭐⭐ 가장 위험",
+    "위험": "**G(실측 배경 주입·분포정렬)를 붙이면 사다리 팔 간 차이가 사라진다** — 격차는 배경 하나였고 표적모형은 무관했다는 결말(K8)",
+    "누가_예고": "Trinh 2026 (arXiv:2601.17871) — 배경 통계 정렬만으로 chance 50%→97%. 표적모형은 손도 안 댔다. (내가 확인한 것은 붕괴 쪽 50%/33%, p.3. **97% 회복 수치는 미확인** → §9)",
+    "조기_경보": [
+     "sim-to-sim 3×3 을 **G-on / G-off 두 벌**로 돌렸을 때 G-on 에서 비대각−대각 Δ 의 95% CI 가 0 을 포함하기 시작",
+     "G-on 에서 팔 간 분산 / 시드 간 분산 비가 1 에 접근",
+     "N1(정합) 에서 차이가 사라지고 N2(무정합)에서만 남는다(K2)"
+    ],
+    "⭐대비": "**G 를 나중이 아니라 먼저 붙이고 그 위에서 사다리를 돈다.** 나중에 붙이면 «G 를 안 해서 차이가 났던 것» 이라는 반박에 답할 수 없다.",
+    "발동시": "논문이 «표적모형 민감도» 에서 «배경 정렬이 지배한다는 것을 패시브 바이스태틱에서 확인» 으로 바뀐다. **더 작지만 여전히 논문이다.**"
+   },
+   {
+    "id": "R2",
+    "순위": "⭐⭐⭐ 이번 라운드 신규",
+    "위험": "**우리 동작점(저 SNR)이 «충실도가 안 중요한 영역» 이다** — 사다리 축과 사전학습 이점이 함께 사라진다(K11)",
+    "누가_예고": [
+     "DivNet p.10(내가 확인) — 'When noise is relatively high, such as at 15 dB SNR, all transfer learning methods perform roughly the same' (85/85/86)",
+     "Huang MLSP p.4(내가 확인) — 1-shot SSL 이득이 −20 dB 11.3% → +20 dB 25.7%, 'at lower SNRs, random noise dominates, making reconstruction more challenging'"
+    ],
+    "왜_우리_문제": "패시브 바이스태틱 + 상시 조명원 + hover penalty 25.4~38.7 dB → 우리는 낮은 SNR 쪽에 산다",
+    "조기_경보": [
+     "sim-to-sim 에서 SNR 을 낮출수록 팔 간 Δ 가 단조 감소",
+     "T2 에서 masked recovery 손실이 저 SNR 구간에서 잡음 재구성으로 수렴(재구성 목표가 잡음을 배운다)",
+     "H(무학습 CFAR)와 학습형의 격차가 저 SNR 에서 먼저 사라진다"
+    ],
+    "⭐대비": "**사다리를 SNR 계단마다 인쇄**하고, 축이 살아 있는 구간을 결과로 명시한다. 그리고 T2 목표를 원신호 복원이 아니라 **물리로 규정된 특징**(플래시선 위치·배음 구조)으로 두어 잡음 재구성을 피한다.",
+    "발동시": "실용 주장을 «어느 SNR 이상에서만» 으로 좁히고, 그 문턱 자체를 결과로 판다."
+   },
+   {
+    "id": "R3",
+    "순위": "⭐⭐",
+    "위험": "**실측 독립 녹화 수 R 이 부족해 어떤 학습 수치도 못 믿는다**(2R ≲ d, K9)",
+    "근거": "arXiv:2607.01025 p.1(내가 확인). 파일럿 R≈10(2R=20)은 **어떤 학습 특징으로도 문턱 안**이다. 본 캠페인 R=40~60 이라야 d ≤ 64 로 문턱 밖.",
+    "조기_경보": [
+     "파일럿 종료 시 R < 20",
+     "d 를 64 로 묶으면 성능이 무너진다",
+     "날씨·허가로 비행 회차가 계획의 절반 이하"
+    ],
+    "⭐대비": [
+     "**분석 단위를 pass 로 못 박고 R·d 를 표에 인쇄**(수치가 낮아져도 한다)",
+     "**H(무학습 물리 검출기)를 상시 병기** — 특징차원이 작아 이 함정 밖에 있는 유일한 팔",
+     "R 이 한 자리로 끝나면 **A(SSL)를 헤드라인으로 승격**(Huang 1-shot 영역) + d ≤ 16"
+    ],
+    "발동시": "학습형을 부록으로 내리고 «예측-대-달성 링크버짓» 을 헤드라인으로."
+   },
+   {
+    "id": "R4",
+    "순위": "⭐⭐",
+    "위험": "**분류 과제가 빈약하다** — 실측 기체가 둘뿐이라 클래스 축이 얇다",
+    "상세": "§7 에서 정면으로 다룬다",
+    "조기_경보": [
+     "파일럿에서 상태 간 혼동행렬이 대각을 거의 못 만든다",
+     "탑재중량 계단이 Matrice 4E 에만 걸려 클래스 수가 3~4 로 주저앉는다(Mini 5 Pro 249.9 g)",
+     "⭐ **rpm 라벨 출처가 없다** — K1(DJI 로그 per-motor RPM)이 닫히지 않은 채로 캠페인이 시작된다"
+    ],
+    "⭐대비": "§7-3 의 세 겹(실험자 통제 + 독립 rpm 기준 채널 + 로그) 과 클래스 축 겹치기"
+   },
+   {
+    "id": "R5",
+    "순위": "⭐⭐",
+    "위험": "**무학습 물리 검출기(H)가 모든 학습형을 실측에서 이긴다**(K7)",
+    "누가_예고": "BatStation — 합성학습 DL 이 실측에서 11.18%/49.33% 로 붕괴하는 동안 4,560 파라미터 템플릿이 압도 (⚠ 미검증 → §9). 그리고 Ezuma 의 값싼 트리 ML 이 4종 DL 을 이겼다(미검증).",
+    "조기_경보": [
+     "파일럿 실측에서 H 가 학습형과 동률 이상",
+     "학습형이 시뮬에서만 이기고 실측에서 순위가 뒤집힘",
+     "합성학습 검출기의 실측 Pfa 가 설계값을 크게 벗어남(문턱이 도메인을 안 넘음)"
+    ],
+    "⭐대비": [
+     "**H 는 비용 0 이므로 무조건 표의 고정 열**로 둔다",
+     "⭐ BatStation 자신이 붕괴 원인을 하드웨어로 귀속했다 → **I(ADC·잡음바닥·수신이득 배선)로 그 가설을 시험**한다. «학습형은 안 된다» 를 «하드웨어를 안 넣어서 안 됐다» 로 바꾸는 검증가능 가설."
+    ],
+    "발동시": "**kill 이 아니라 피벗** — ML 프레이밍을 접고 «예측-대-달성 링크버짓» 논문으로. K7 이 이미 그렇게 정의돼 있다."
+   }
+  ],
+  "⚠_배경으로_깔리는_여섯째": {
+   "위험": "K3 — 실측에서 모든 팔이 chance 근처로 붕괴",
+   "왜_따로_안_셌나": "⚠ **이게 기본값**이다(무보정 RT 는 chance 가 표준 결말). R1~R5 는 전부 이 기본값을 피하는 장치들이다.",
+   "판정_시점": "P4~P5"
+  }
+ },
+ "7_classification_thinness_confrontation": {
+  "질문": "⚠ 실측 기체가 둘뿐이다. **상태 분류만으로 논문이 서는가?**",
+  "판정": "⭐ **선다. 단 조건이 셋이다.** 아래 (i)(ii)(iii) 을 다 만족하지 않으면 안 선다.",
+  "7_1_선다고_보는_근거": [
+   {
+    "근거": "**선례가 있다 — 기체 2대로 IEEE 논문이 됐다.**",
+    "상세": "Dhulashia 2021 — 기체 2대(DJI Spark + Phantom 2)에 **실험자가 매단 0~600 g 탑재중량**을 라벨로 삼아 다중스태틱 S/C/W 노드에서 80.95% / 72.50% / 86.05%. 딥러닝도 시뮬도 없이 KNN 6특징.",
+    "verified": "INHERITED (형제 라운드가 p.2·p.4·p.5 확인). ⚠ 나는 원문 미개봉 → §9",
+    "읽는_법": "**클래스 축은 «기체 종류» 가 아니라 «기체 상태» 로도 만들 수 있고, 그게 이미 게재됐다.**"
+   },
+   {
+    "근거": "**우리 헤드라인 태스크는 어차피 탐지다.**",
+    "상세": "메모 [[sionna2-main-task-detection]] — 분류는 두 번째 절이고, 사용자 지시도 «탐지 · 마이크로도플러 패턴을 통한 분류» 순이다. 분류가 논문 전체를 혼자 지탱할 필요가 없다."
+   },
+   {
+    "근거": "**음성 클래스가 공짜다.**",
+    "상세": "배경 녹음(조명원 ON·드론 OFF)이 그대로 «드론 대 클러터» 의 음성 클래스가 된다. 측정 부담 0."
+   },
+   {
+    "근거": "⭐ **시뮬에서는 기체 수 제한이 없다.**",
+    "상세": "5종 격자를 이미 갖고 있다. **기종 분류는 sim-only 결과로 인쇄**하고 실측에서는 2-class 한계 패널로만 낸다. 사다리 논문에서는 이게 오히려 자연스러운 형태다 — 시뮬이 넓고 실측이 앵커다."
+   }
+  ],
+  "7_2_그래서_필요한_조건_셋": [
+   {
+    "조건": "(i) **클래스 축을 두 개 이상 겹친다**",
+    "무엇": "기동(호버 / 병진 / 선회) × 탑재중량 계단(0/200/400/600 g) × [가능하면] rpm 구간",
+    "왜": "축 하나면 3~4 클래스로 주저앉는다. 둘을 겹치면 9~12 클래스가 되고 혼동행렬이 뜻을 갖는다.",
+    "⚠": "탑재는 **Matrice 4E 에만** 걸 수 있다(Mini 5 Pro 249.9 g). 즉 축을 겹칠 수 있는 기체가 사실상 하나다. → 그래서 (ii) 가 필요하다."
+   },
+   {
+    "조건": "(ii) **환경 축을 클래스 축처럼 쓴다**",
+    "무엇": "사이트 2곳 × 거리 3점 × 조명원 점유 모드. 같은 상태를 다른 조건에서 재는 것이 «일반화» 축이 된다.",
+    "왜": "CageDroneRF 의 계층 결과가 **입도가 거칠수록 도메인 격차가 작다**를 보였다(Modulation 69.95 > Protocol 66.11 > Model 42.07, 미검증 §9). 우리 태스크는 거친 쪽이므로 환경을 흔들어도 살아남을 여지가 있고, 살아남는 정도 자체가 결과다."
+   },
+   {
+    "조건": "(iii) **rpm 라벨의 출처를 캠페인 전에 확정한다**",
+    "무엇": "§4-1 M3 의 세 겹 — (1) 실험자 통제 탑재 계단 (2) ⭐ **독립 rpm 기준 채널(광다이오드 또는 마이크)** (3) 로그 per-motor RPM",
+    "왜": "사다리 2(로터 운동학)가 T2 의 축이다. 라벨이 없으면 축이 없다. **그리고 K1(로그 접근성)은 아무 라운드도 검증하지 않았다.**",
+    "비용": "(2) 부품값 수천 원 + 배선 반나절. **이 목록에서 비용대비 이득 1위**이고 아무도 제안하지 않았다."
+   }
+  ],
+  "7_3_안_서면_무엇을_더하나": {
+   "순서": "싼 것부터. 위에서 아래로 내려가며 필요한 만큼만 집는다.",
+   "사다리": [
+    {
+     "p": 1,
+     "무엇": "**비행 모드 다양화**",
+     "비용": "0 — 같은 기체, 같은 세션",
+     "상세": "호버 / 등속 병진 / 선회 / 상승·하강 / 급기동. 클래스 수를 늘리는 가장 싼 방법이고 로터 시간구조가 실제로 달라진다(White 의 축과 같은 방향).",
+     "⚠": "«기동» 라벨은 지령값이지 실현값이 아니다. RTK 로 실현 궤적을 붙여 라벨을 사후 정제한다."
+    },
+    {
+     "p": 2,
+     "무엇": "**드론 대 클러터 음성 클래스 강화**",
+     "비용": "거의 0",
+     "상세": "배경 녹음 + 지나가는 차량·보행자·나뭇잎 흔들림 구간을 라벨링. 「탐지 사슬의 실제 오경보원」이라 실무 값어치가 크다."
+    },
+    {
+     "p": 3,
+     "무엇": "**대리 클러터 표적**",
+     "비용": "낮음",
+     "상세": "회전 코너리플렉터(로터 없는 마이크로도플러 유사물) · 투척물 · 보행자.",
+     "⭐왜_좋은가": "⭐ **회전 코너리플렉터는 «회전대칭이 아닌 회전체» 라 우리 사다리의 낭떠러지 칸(회전대칭 원판)을 실측에서 직접 시험한다.** 시뮬 사다리와 실측이 만나는 유일하게 값싼 지점이다.",
+     "⚠": "«조류 판별» 주장 불가. 대리물이라고 명시."
+    },
+    {
+     "p": 4,
+     "무엇": "**세 번째 기체 임차**(구매 아님)",
+     "비용": "중간",
+     "상세": "기종 축을 2 → 3 으로. ⚠ 3-class 도 여전히 얇다. **구매는 권하지 않는다** — 기종 분류를 novelty 로 팔지 않기로 이미 정했다."
+    },
+    {
+     "p": 5,
+     "무엇": "**공개 데이터셋으로 분류 축을 보강**",
+     "비용": "낮음(데이터 확보만)",
+     "상세": "BiRa(DJI Phantom 2, 바이스태틱 2–18 GHz) · TSMS · DIAT-µSAT. ⚠ **전부 능동 모노스태틱이거나 기하가 다르다** — 우리 실측 대체가 아니라 **커널 검증 앵커**로만."
+    }
+   ],
+   "⭐판정": "**(i)+(ii)+(iii) 에 p1·p2 를 얹으면 상태 분류만으로 P3 의 두 번째 절이 선다.** p3(회전 코너리플렉터)를 더하면 사다리와 실측이 만나므로 **강권한다**. p4(기체 구매)는 하지 않는다."
+  },
+  "⚠_정직하게": "위 판정은 선례(Dhulashia)와 우리 축 설계에 근거한 것이지 검정력 계산이 아니다. **파일럿에서 상태 간 혼동행렬을 먼저 보고 본 캠페인 클래스 설계를 확정한다.**"
+ },
+ "8_decisions_i_made": {
+  "note": "⭐⭐ 사용자 지시대로 미루지 않고 정했다. 이유와 반대근거를 같이 적는다.",
+  "items": [
+   {
+    "n": 1,
+    "결정": "⛔ **과제 지시문이 준 후보 델타(«요구량을 쟀다»)를 기각한다.** 대신 «표적 산란 표현을 통제축으로 놓고 탐지·분류로 읽는다» 를 델타로 세운다.",
+    "이유": "후보는 (a) 아직 안 잰 것이고(전이 성능이 아니라 신호 지표), (b) 54 dB 는 기하학적 동어반복이며(평판 두 장이 93.5~99.2% 를 이미 산다), (c) 재는 도구가 저장소 자체 판정 PREMATURE 다.",
+    "반대근거": "⚠ 후보 델타가 «남의 주장에 답한다» 는 서사적 매력이 크다. → **P3 의 주장 2 로 부활시킨다** — 거기서는 실제로 전이 성능으로 재므로 정당하다."
+   },
+   {
+    "n": 2,
+    "결정": "**null 을 논문의 성질로 설계에 박는다** — 사다리가 null 이어도 인쇄한다.",
+    "이유": "선행 다섯 편이 표적을 서로 다른 값으로 놓으면서 그 선택이 무해하다고 **가정**만 하고 있다. 「무해함을 측정했다」는 ISAC 모델링 관행에 대한 실용적 결론이다.",
+    "반대근거": "⚠ null 논문은 게재가 어렵다. → 그래서 관측가능성 표(주장 2)와 규약(주장 3)을 같은 편에 넣어 **사다리와 독립인 기여를 두 개** 확보한다."
+   },
+   {
+    "n": 3,
+    "결정": "**P1 의 제목에 «관측가능성» 을 넣는다** — ablation 만 있는 편으로 만들지 않는다.",
+    "이유": "0/36 · 9/9 · 0/9 는 완결된 사실이고 게이트 결과와 무관하게 산다. K1 이 NO-GO 여도 P1 이 남는다.",
+    "반대근거": "⚠ 두 주제가 한 편에 들어가면 초점이 흐려질 수 있다. → 관측가능성을 §II(설계 제약)로 배치해 ablation 의 **전제**가 되게 한다."
+   },
+   {
+    "n": 4,
+    "결정": "⭐ **독립 rpm 기준 채널(광다이오드/마이크)을 캠페인 필수 장비로 올린다.**",
+    "이유": "K1(DJI 로그 per-motor RPM 접근성)이 열려 있고 아무 라운드도 검증 안 했다. 부품값 수천 원으로 그 의존을 끊을 수 있다. **T2 전체가 이 라벨에 걸려 있다.**",
+    "반대근거": "⚠ 기체에 부착물이 붙으면 σ 가 아주 조금 바뀐다. → 부착 유무 대조 세션을 1회 넣어 크기를 잰다."
+   },
+   {
+    "n": 5,
+    "결정": "⭐ **회전 코너리플렉터를 대리 표적 목록의 1순위로 올린다.**",
+    "이유": "우리 사다리의 낭떠러지 칸(회전대칭 → 변조 불가)을 **실측에서 직접 시험**하는 유일하게 값싼 물체다. 시뮬 사다리와 실측이 만나는 접점.",
+    "반대근거": "⚠ 드론이 아니므로 «드론 대 클러터» 의 클러터 쪽으로만 쓸 수 있다."
+   },
+   {
+    "n": 6,
+    "결정": "**MEASUREMENT_PLAN 의 «검증 3점» 층을 패시브 바이스태틱 비행 검출 층으로 승격하도록 제안한다**(D2).",
+    "이유": "논문 세 편의 주장이 전부 패시브 바이스태틱인데 헤드라인 Pd 층이 능동 모노스태틱이다. 그리고 승격이 오히려 싸다 — **송신을 안 하므로 면허 불필요**.",
+    "반대근거": "⚠ 캠페인 설계 변경이라 되돌리기 비용이 있다. 그러나 **첫 비행 전에 안 고치면 다시 날려야 한다.**"
+   },
+   {
+    "n": 7,
+    "결정": "**Costa 의 신호모형을 사다리의 K 팔로 넣는다**(3팔 → 5팔).",
+    "이유": "그 논문이 우리를 겨눈 반박(p.9)과 우리 자리를 비운 문장(p.10)을 동시에 갖고 있다. **반박에 답하는 유일한 방법이 그들 모형을 나란히 재는 것**이다.",
+    "반대근거": "⚠ 구현 비용이 든다(그들 모형 재현). → 이미 우리 아카이브에 저널판·회의판이 다 있고 모형이 닫힌 형태다."
+   },
+   {
+    "n": 8,
+    "결정": "**combo_found=False 를 «두 절반» 프레임으로 교체한다**(계수 프레임 폐기).",
+    "이유": "부재 계수는 검색 커버리지 공격을 받는다(R20 이 정확히 그렇게 무너졌다). Costa/White 두 편의 쪽수 있는 축자만으로 서는 프레임이 훨씬 강하다.",
+    "반대근거": "⚠ 계수 프레임이 더 «넓게» 들린다. → 넓게 들리는 것이 위험의 원천이다."
+   },
+   {
+    "n": 9,
+    "결정": "⛔ **docs/SIM2REAL_PLAN.md 를 이 라운드에서 고치지 않는다.** 개정 항목 10건을 §4-3 에 목록으로만 남긴다.",
+    "이유": "이 라운드는 조사·설계이고 다른 라운드 셋이 돌고 있다(과제 지시).",
+    "반대근거": "⚠ 그 문서의 §1-2 가 사용자 지시와 어긋난 채로 남는다. → **D1·D2 를 다음 편집 세션의 1·2순위로 못 박았다.**"
+   }
+  ],
+  "⛔_내가_결정하지_않은_것": [
+   {
+    "항목": "야외 사이트 트윈 씬의 최종 승인",
+    "이유": "챔버 상시 방침을 건드리고 되돌리기 비용이 300~600 LOC + 메쉬다. SIM2REAL_PLAN §6-5 가 이미 사용자 확인 대기로 걸어 둔 항목이다. **나는 «추가» 로 읽어 진행 가능하다고 판단했고 근거를 §4-2 에 적었지만, 명시적으로 올린다.**"
+   },
+   {
+    "항목": "세 번째 기체 임차 여부",
+    "이유": "예산 결정이고, 파일럿 혼동행렬을 보고 정하는 것이 옳다(§7-3 p4)."
+   },
+   {
+    "항목": "P1 을 회의로 낼지 저널로 낼지",
+    "이유": "게이트 결과에 달렸다 — 사다리가 살면 분량이 저널급, null 이면 회의급이다."
+   }
+  ]
+ },
+ "9_unverified_quarantine": {
+  "note": "⚠ 내가 이번 라운드에 원문을 **안 연** 것. 인용 전 원문 확인 필요. 형제 라운드의 격리 목록을 승계하고 이번에 닫힌 것은 뺐다.",
+  "closed_this_round": [
+   "Clutter-Aware ISAC 의 쪽수·낱말 계수 — ⭐ **두 판본 다 내가 직접 열어 닫았다**(§0). 다만 «그림 11장 중 4장이 Sionna 산출» 은 여전히 미확인(그림은 12장으로 정정, 캡션 판독은 안 했다)",
+   "WiFi-JEPA 축자 6건 + 낱말 계수 — 내가 직접 닫았다",
+   "Costa 축자 3건 · Beuster 축자 2건 — 내가 직접 닫았다",
+   "DivNet Table V · p.10 축자 — 내가 직접 닫았다",
+   "md_range_sweep 0/36 · 플래시선 9/9·0/9 — 내가 재계산해 닫았다"
+  ],
+  "still_open": [
+   {
+    "claim": "클러터 서베이 그림 12장 중 **몇 장이 Sionna 산출인가**",
+    "why": "캡션·본문 대조가 필요한데 안 했다",
+    "action": "인용하려면 Fig.6~9 캡션을 직접 읽어라. ⚠ 지시문의 «11장 중 4장» 은 그림 수부터 틀렸다"
+   },
+   {
+    "claim": "BatStation 11.18% / 49.33% · 4,560 파라미터",
+    "why": "형제 라운드 인계",
+    "action": "arXiv:2509.06898 — **H 열과 R5 의 근거**라 우선순위 높음"
+   },
+   {
+    "claim": "CageDroneRF 42.07% / 69.63% / 계층 결과",
+    "why": "형제 라운드 인계(SIM2REAL_PLAN 부록 A-8 에 축자 기록은 있다)",
+    "action": "챔버 방침·§7-2(ii) 의 근거이므로 재확인 권장"
+   },
+   {
+    "claim": "Trinh 의 **97% 회복** 수치",
+    "why": "붕괴 쪽(50%/33%, p.3)은 내가 확인했으나 회복 쪽은 못 찾았다",
+    "action": "⚠ **R1 의 핵심 수치다.** 회복 수치를 인용하기 전에 반드시 확인"
+   },
+   {
+    "claim": "Dhulashia 2021 — 기체 2대 · 0~600 g · 80.95/72.50/86.05%",
+    "why": "형제 라운드 인계",
+    "action": "⭐ **§7 «상태 분류만으로 논문이 선다» 의 유일한 선례다.** 최우선 확인"
+   },
+   {
+    "claim": "Potter 2024 — 'UAVs were non-operational during the data collection process'",
+    "why": "형제 라운드 인계",
+    "action": "AT13 의 근거"
+   },
+   {
+    "claim": "arXiv:2509.25793 p.3 'hardware model are the key factors' · BatStation p.11 hardware 귀속",
+    "why": "형제 라운드 인계",
+    "action": "AT10 의 근거 2편 — 나는 둘 다 안 열었다"
+   },
+   {
+    "claim": "Saribekyan 79.5 M 쌍 스케일링 무효 · AudioPG epoch 역전 · oneTwin 7.81 dB · Manukyan 2배 잔차",
+    "why": "형제 라운드 인계",
+    "action": "«GPU 를 더 긴 학습에 쓰지 마라»·«D 를 내린다» 의 근거"
+   },
+   {
+    "claim": "Ezuma 트리 ML 98.66% @3 dB · IRASNet 96.72/92.79% · mmSimPrior 24 paired",
+    "why": "형제 라운드 인계",
+    "action": "기준선 열의 근거"
+   },
+   {
+    "claim": "CSI-JEPA Table III (Loc −1.75 pp · 라벨절감 0.0%)",
+    "why": "compare 라운드가 p.8 에서 확인. 나는 이번에 p.2 만 재확인",
+    "action": "A 를 백본에서 내리는 근거 — 재확인 권장"
+   },
+   {
+    "claim": "공개 데이터셋 9건이 전부 능동 모노 또는 드론 방출",
+    "why": "형제 라운드가 포털을 직접 확인했다고 기록",
+    "action": "AT12 의 근거"
+   },
+   {
+    "claim": "Beuster 게재지의 정확한 저널 명칭(«IEEE JC&S»)",
+    "why": "형제 라운드 표기가 축약형이다",
+    "action": "P2 투고처 후보에 넣으려면 정확한 명칭 확인"
+   },
+   {
+    "claim": "report15_sionna_sweep_matrice4e.json 의 specular_census 960/480 칸 세부",
+    "why": "compare 라운드가 집계. 나는 report15_verdict 의 60칸 census 만 재확인",
+    "action": "«1.9% / 10 m 0/320» 을 인용하려면 재집계"
+   }
+  ]
+ },
+ "10_next_actions_ranked": [
+  {
+   "p": 1,
+   "action": "⭐⭐ **K1 을 닫는다 — DJI 로그가 per-motor RPM 을 내주는가**, 그리고 독립 rpm 기준 채널(광다이오드/마이크) 발주",
+   "why": "T2(사용자 지정 메인)의 라벨 축 전체가 여기 걸려 있는데 다섯 라운드 중 아무도 확인 안 했다. 며칠이면 닫힌다.",
+   "gpu": 0,
+   "실측": 0
+  },
+  {
+   "p": 2,
+   "action": "⭐⭐ **배경 녹음 현장 반나절 — «조명원 ON · 드론 OFF»**",
+   "why": "실측 항목 중 **지금 당장 가능한 유일한 것**(면허·기체·허가 전부 불필요). 한 번 찍어 네 곳에 쓴다. 그리고 P1 의 G 팔을 «합성 배경» 이 아니라 «실측 배경» 으로 만들어 편을 세게 한다.",
+   "실측": "반나절, 라벨 0"
+  },
+  {
+   "p": 3,
+   "action": "⭐⭐ **공통 배관 착수** — T1 데이터셋 층(300~500) → T3 σ(t) 주입(150~250) → T2 궤적(200~300) → T4 어댑터(~150) → T5 정규화(~80)",
+   "why": "갈래·편과 무관하게 필요하고 오늘 0 줄이다. 이게 없으면 오늘 나오는 샘플이 0 개다.",
+   "gpu": 0,
+   "실측": 0
+  },
+  {
+   "p": 4,
+   "action": "⭐ **T9 배경 주입 훅(50~130 LOC) + T10 adc_quantize() 검출경로 배선(≈30 LOC)**",
+   "why": "K8 대비(G 를 먼저 붙인다) + 비용대비 이득 1위. src/experiment_x410.py:37 주석이 이미 이걸 «간극의 첫 후보» 로 적어 뒀다.",
+   "gpu": 0,
+   "실측": 0
+  },
+  {
+   "p": 5,
+   "action": "⭐ **sim-to-sim 게이트 — 사다리 1(5팔) × T1 을 G-on / G-off 두 벌로**",
+   "why": "K1 과 K8 을 **동시에** 판정한다. ⭐ 그리고 **SNR 계단마다** 인쇄해 K11 도 같이 본다.",
+   "gpu": "중",
+   "실측": 0
+  },
+  {
+   "p": 6,
+   "action": "**자세축·로터축을 σ 생산자에 배선(50~100 LOC)** — pose_articulated → experiment_freespace_sigma",
+   "why": "사다리 2 와 자세 무작위화가 **둘 다 여기 걸려 있다.** 지금은 «수평 호버·위상 0» 하나뿐.",
+   "gpu": "자세 1상태당 격자 1벌 ≈ 8 h/1카드"
+  },
+  {
+   "p": 7,
+   "action": "사다리 2(로터 운동학) × T2 를 sim-to-sim 으로 — **K10 판정**",
+   "why": "실측 전에 «우리 시뮬의 로터 시간구조가 분류에 실리는가» 를 답한다. White 이 실측 눈금을 준다(88.4 → 74.5%).",
+   "gpu": "중"
+  },
+  {
+   "p": 8,
+   "action": "⭐ **MEASUREMENT_PLAN D2 개정 — «검증 3점» 층을 패시브 바이스태틱 비행 검출 층으로 승격**",
+   "why": "첫 비행 전에 안 고치면 P2 를 다시 날려야 한다. 승격이 오히려 싸다(송신 없음 = 면허 불필요).",
+   "⚠": "사용자 확인 후"
+  },
+  {
+   "p": 9,
+   "action": "**§9 격리 중 우선 3건 원문 확인** — Dhulashia(§7 의 유일한 선례) · Trinh 97% (R1 핵심 수치) · BatStation(H 열 근거)",
+   "why": "이 셋은 각각 하나의 판정을 혼자 지탱하고 있다.",
+   "gpu": 0
+  },
+  {
+   "p": 10,
+   "action": "**BiRa 데이터셋 확보**(github.com/EMS-TU-Ilmenau/bira-dataset)",
+   "why": "정지 로터 바이스태틱 앵커(2–18 GHz · β 10°–180°)로 우리 최대 구멍을 메운다. ⚠ 마이크로도플러는 **날개 한 장**뿐이니 사다리 2 앵커로는 쓰지 마라.",
+   "gpu": 0
+  },
+  {
+   "p": 11,
+   "action": "**docs/SIM2REAL_PLAN.md 개정 D1~D10 반영**",
+   "why": "다음 편집 세션이 문서를 읽고 굳지 않게. D1·D2 가 1·2순위.",
+   "⚠": "이 라운드에서는 안 한다(다른 라운드 진행 중)"
+  }
+ ],
+ "_one_paragraph_for_the_caller": "⭐⭐ **과제 지시문이 준 후보 델타를 기각했다.** «그들은 다양성이 중요하다고 주장했고 우리는 요구량을 쟀다(54 dB ↔ 0~7 dB)» 는 델타가 못 된다 — (a) 그 숫자는 신호영역 지표이지 전이 성능이 아니고 우리는 아직 안 쟀으며, (b) 54 dB 는 측정이 아니라 기하학적 동어반복이다(TARGET_LADDER §8-P1 이 자기반증으로 «디테일 0 인 평판 두 장이 그 간격의 93.5~99.2% 를 이미 산다» 고 적었다 — 즉 그 숫자는 White 의 thin-wire 로도 비용 0 에 만족된다), (c) 재는 도구가 저장소 자체 판정 PREMATURE 다. 대신 세운 델타는 **«표적 산란 표현 자체를 통제축으로 놓고 탐지 Pd 와 마이크로도플러 상태분류로 읽는다»** 이고, 근거는 **가장 가까운 선행 두 편이 정확히 반대쪽 절반씩 갖고 있다**는 것이다 — Costa 2025 는 드론 바이스태틱 산란모형 + 실측 검증을 갖췄으나 학습이 0 이고 그 문장을 **스스로 future work 로 남겼다**(p.10, 내가 직접 열람), White 2023 은 학습 + 실측을 갖췄으나 산란모형을 thin-wire 로 고정하고 **운동학만** 사다리로 놓았다. 그래서 combo_found=False 는 유지하되 «33편 중 0편» 계수 프레임을 버리고 **«두 절반이 같은 태스크에 따로 있고 아무도 붙이지 않았다»** 로 바꿨다 — 부재 계수는 검색 커버리지 공격을 받고 R20 이 정확히 그렇게 무너졌다. ⭐ 이 델타의 가장 좋은 성질은 **null 도 결과**라는 것이다: 선행 다섯 편이 표적을 σ=0 dBsm · σ=−17 dBsm · Swerling 1 · CN(0,σ²) · Gaussian body 로 **서로 다르게** 놓으면서 그 선택이 무해하다고 가정만 하고 있으므로, 무해함을 재는 것 자체가 ISAC 모델링 관행에 대한 결론이다. ⭐⭐ **이번 라운드에서 새로 찾은 가장 중요한 사실은 우리에게 불리하다.** DivNet p.10 이 «15 dB SNR 에서는 모든 전이법이 거의 같다»(85/85/86)고 적었고, Table V 의 이득은 40/30/15 dB 에서 +11/+19/+16 pp 로 **단조가 아니다** — compare 라운드의 «SNR 이 낮을수록 이득이 커진다» 는 오독이다. Huang MLSP p.4 는 독립적으로 같은 방향을 가리킨다(1-shot SSL 이득이 −20 dB 에서 11.3%, +20 dB 에서 25.7%). **우리 패시브 바이스태틱 저 SNR 영역이 바로 «표적 충실도가 가장 안 보이는 자리» 일 수 있다** — K11 로 신규 kill 조건을 만들고 사다리를 SNR 계단마다 인쇄하기로 했다. 클러터 서베이는 두 판본을 다 열어 계수를 정정했다: 그림은 11장이 아니라 **12장**, 'false alarm' 은 0회가 아니라 **3회**(CFAR 절이 있다 — 없는 것은 «곡선» 이다), Sionna 는 12회가 아니라 **13회**, 그리고 **판본마다 쪽수와 표기가 달라**(α 인용이 arXiv v2 p.24 ↔ 게재판 p.28) 판본을 안 밝히면 문자열이 안 맞는다. 공격 지점은 지시대로 «RT 설정 미보고» 와 «표적을 통계로 흡수» 둘로 한정했고, 같은 칸에 그 논문이 우리 환경 서사의 **상위 지지 근거**라는 것과 **quiet period 처방이 우리에게 실행 불가능하다는 우리 쪽 약점**을 같이 적었다. 3편 사슬은 P1(시뮬만 — 표적 표현 민감도 + 관측가능성 한계, RadarConf/EuRAD, 2026-12~2027-01) → P2(실측 — 예측 대비 달성과 전이 축 분해, IEEE T-RS/TAES, 2027-06~08) → P3(sim-to-real 학습 — 정렬 부품과 코퍼스 내용의 몫, TAES 또는 JSTSP ISAC 특집, 2027-11~2028-01)이고, **앞 편의 산출물이 뒤 편의 입력 파일이 되도록** 짰다(P1 이 측정 격자와 규약을 정하고, P2 가 배경 코퍼스·절대 눈금·R 을 공급한다). ⭐ 그리고 **캠페인 설계에 진짜 구멍을 하나 찾았다** — MEASUREMENT_PLAN 은 비행 검출 헤드라인(3층)을 **능동 모노스태틱**에 두는데 세 편의 주장은 전부 패시브 바이스태틱이다. «검증 3점» 층을 패시브 바이스태틱 비행 검출 층으로 승격해야 하고, **송신을 안 하므로 그게 오히려 싸다**. 그밖에 첫 비행 전에 못 박아야 할 것: 분석단위 = pass(R·d 인쇄), 시각동기 잔차 < 1 CPI, 호버 헤딩 5점(시뮬 방위축의 유일한 실측 대응물, 비용 거의 0), 거리 매칭 강제, **한 세션에서 상시 규약과 풀캡처 규약을 둘 다** 찍기(안 찍으면 T2 헤드라인이 원천 불가), 배경·교정표적·real↔real2. ⭐ 새 제안 둘: **독립 rpm 기준 채널(광다이오드/마이크, 부품값 수천 원)** — K1(DJI 로그 per-motor RPM 접근성)을 아무 라운드도 확인 안 했는데 T2 전체가 거기 걸려 있다; 그리고 **회전 코너리플렉터** — 우리 사다리의 낭떠러지 칸(회전대칭은 변조를 못 만든다)을 실측에서 직접 시험하는 유일하게 값싼 물체다. 분류 빈약 위험은 정면으로 답했다 — **선다, 단 (i) 클래스 축 두 개 겹치기(기동 × 탑재) (ii) 환경을 축으로 쓰기(사이트 2 × 거리 3 × 점유 모드) (iii) rpm 라벨 출처 확정** 셋을 만족할 때이고, 선례는 기체 2대로 게재된 Dhulashia 2021 이다(⚠ 미검증 — 최우선 확인 대상). SIM2REAL_PLAN 은 **고쳐야 한다**고 판정했고(개정 10건, D1 태스크 단독 확정 · D2 기하 불일치가 1·2순위) 이 라운드에서는 지시대로 **안 고치고 목록만** 남겼다."
+}

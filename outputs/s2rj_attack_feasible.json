@@ -1,0 +1,609 @@
+{
+  "_meta": {
+    "title": "S2R-JEPA 적대검증 — 실현 가능성 렌즈",
+    "date": "2026-08-07",
+    "round_id": "s2rj_attack_feasible",
+    "stance": "기본 입장 «이 방향은 아직 이르다». 반증되면 그대로 적는다.",
+    "input": [
+      "outputs/s2rj_position.json (127 KB)",
+      "docs/S2R_JEPA_POSITION.md (58 KB)",
+      "outputs/s2rj_compare.json (참고)"
+    ],
+    "files_written": ["outputs/s2rj_attack_feasible.json"],
+    "files_not_touched": ["src/**", "benchmark/**", "report*.ipynb", "docs/** (기존 전부)", "outputs/s2rj_position.json", "docs/S2R_JEPA_POSITION.md"],
+    "gpu_used": false,
+    "language_policy": "본문 한국어 · 논문/지표/식별자 영어",
+    "number_policy": "⭐ 내가 이번에 새로 만든 숫자는 전부 CRUDE 로 표시했다. 저장소가 이미 잰 값은 MEASURED, 내가 PDF 를 열어 확인한 축자는 VERIFIED_QUOTE.",
+    "how_to_read": "0 절(전제 정정) → 4 절(급소) → 7 절(판정) 순서로 읽으면 가장 빠르다."
+  },
+
+  "0_premise_corrections": {
+    "note": "⭐⭐ 지시문의 전제 세 개를 먼저 고친다. 하나는 방향이 반대였다.",
+    "items": [
+      {
+        "id": "PC1",
+        "무게": "⭐⭐⭐",
+        "지시문_전제": "«그들은 실 9만 프레임을 썼다. 우리가 그 1/10 도 못 얻으면 미세조정이 성립하나?»",
+        "실제": "출처는 WiFi-JEPA (arXiv:2607.11064) 이고, 90K 는 **두 군데에 다 나온다** — 실측 PiW3D 학습셋 89,946 프레임(p.9), 그리고 그들이 **Sionna 로 만든 시뮬 90K 프레임**(p.6). 그런데 시뮬 쪽 문장이 이 라운드에서 가장 쓸모 있는 숫자다.",
+        "verified_quote": [
+          "p.6: 'The real PiW3D training set contains ∼90K frames; our 90K simulated frames thus constitute a comparable pre-training corpus.'",
+          "p.6: 'Generating 90K frames takes ∼10 GPU-hours on one RTX 4090.'",
+          "p.9: 'The training set contains 89,946 frames; the test set contains 7,824 frames'"
+        ],
+        "왜_전제가_무너지나": "⭐ 그들의 «프레임» 은 **50 ms 짜리 CSI 창**이다(p.6: '20 sub-frame locations within each measurement window (∼50 ms)'). 즉 **90,000 프레임 = 녹화 75 분**이다. 7 명 × 8 동작 × 3 개 방에서 Intel 5300 CSI 로거로 모은 것이고, 장비는 X410 이 아니라 공짜 CSI 툴이다.",
+        "함의": "«9만 프레임» 은 우리에게 큰 수가 아니다. 아래 2 절에서 재는 대로 **우리 한 필드데이의 절반**이면 넘는다. 이 질문은 기각이 아니라 **해소**된다 — 다만 진짜 병목이 다른 곳에 있다는 뜻이지 방향이 쉽다는 뜻은 아니다.",
+        "verified_by": "MYSELF — /data/public/sionna_jeong/papers_isac_sionna/2607.11064__kim_wifi-jepa-csi-pose.pdf, PyMuPDF, p.6·p.9"
+      },
+      {
+        "id": "PC2",
+        "무게": "⭐",
+        "지시문_전제": "«X410 4채널로 하루에 몇 프레임을 얻나»",
+        "실제": "저장소 자체 계획이 4채널을 안 쓴다. docs/MEASUREMENT_PLAN.md §2-1: «⛔ '4채널 동시포착' 은 우리 설계가 아니다. 패시브에 필요한 최소 구성은 **2채널**(기준 1 + 감시 1)이고, 그 둘이 같은 클럭을 물어야 코히런트 처리가 성립한다.»",
+        "함의": "프레임 수 계산은 4채널이 아니라 **2채널 기준**으로 해야 한다. 남는 2채널은 편파·공간 다이버시티 선택지이지 처리량 배수가 아니다(코히런트 결합은 SNR 을 올리지 그 자체로 프레임을 늘리지 않는다).",
+        "verified_by": "MYSELF — docs/MEASUREMENT_PLAN.md L287~299 직독"
+      },
+      {
+        "id": "PC3",
+        "무게": "⭐⭐⭐",
+        "지시문_전제": "(암묵) POSITION 의 «사전학습 코퍼스 1팔 ≈ 1.7~14 GPU-h» 가 오늘 파이프라인의 비용이다",
+        "실제": "그 숫자는 **위상표(phase table) 트릭**을 전제로 한다. 출처를 역추적했다 — outputs/s2r_assets.json: «위상표 1장 = n_phase × per-pose(측정 per-pose 중앙 38 ms) → mavic4pro@3.5GHz 240위상 ≈ 9.1 s / s1000plus@5.2GHz ≈ 85 s. 표가 있으면 E(t)·스펙트로그램은 ms». 600 장 × 9.1~85 s = 1.5~14.2 GPU-h. 숫자 자체는 맞다.",
+        "왜_문제인가": "⭐⭐ **위상표는 네 로터가 위상 하나를 공유할 때만 성립한다.** 전체 자세가 단일 각 φ 의 함수여야 1 차원 표로 자를 수 있기 때문이다(src/microdoppler.py:148-151 주석). 그런데 **같은 날 07:00 에 끝난 report15b 라운드가 바로 그 가정을 «옛 가정» 이라고 폐기했다** — outputs/report15b_microdoppler.json meta: «① 로터별 rpm — 옛 코드는 네 로터가 위상 하나를 공유했다(microdoppler.py:158)». 그래서 arm B(SBR·로터별 rpm)는 표를 못 쓰고 **슬로타임 표본마다 sbr_field 를 다시 부른다**(benchmark/report15b_microdoppler_recompute.py:164 `for i in range(phys['n_t']): E[i] = sbr_field(...)`).",
+        "시간_관계": "report15b 산출물 generated=2026-08-07 07:00:22, s2rj_position.json generated 07:28. **28 분 차이다.** POSITION 은 자기 저장소가 30 분 전에 무효화한 지름길로 예산을 짰다.",
+        "정량": "3 절에 계산했다 — 오늘 파이프라인 기준으로 **4.4배~1083배 과소평가**. 다만 3-4 절에 적은 수리(로터별 가림 위상표)로 대부분 회수된다.",
+        "verified_by": "MYSELF — outputs/report15b_microdoppler.json, benchmark/report15b_microdoppler_recompute.py, src/microdoppler.py, outputs/s2r_assets.json 직독"
+      }
+    ]
+  },
+
+  "1_verification_this_round": {
+    "method": "PyMuPDF(fitz) 로 PDF 를 직접 열어 쪽 단위 텍스트를 공백 정규화한 뒤 인용문을 부분문자열로 확인. 저장소 JSON·소스는 python 으로 직접 집계. 초록·형제 라운드 요약은 근거로 쓰지 않았다.",
+    "pdfs_i_opened_myself": [
+      {
+        "paper": "WiFi-JEPA",
+        "id": "arXiv:2607.11064",
+        "path": "/data/public/sionna_jeong/papers_isac_sionna/2607.11064__kim_wifi-jepa-csi-pose.pdf",
+        "pages_read": [6, 9, 10, 11, 12, 13, 14],
+        "new_quotes_this_round": [
+          "p.6 'Generating 90K frames takes ∼10 GPU-hours on one RTX 4090.'",
+          "p.6 'The real PiW3D training set contains ∼90K frames; our 90K simulated frames thus constitute a comparable pre-training corpus.'",
+          "p.6 'Each scene contains 1–4 geometric primitives (sphere, cube, cylinder, ellipsoid; radius 0.1–0.5 m)'",
+          "p.6 'performing 20 independent ray-tracing passes per frame … within each measurement window (∼50 ms)'",
+          "p.9 'The training set contains 89,946 frames; the test set contains 7,824 frames'",
+          "p.13 Table 5 원문 그대로: 'None (scratch) — — 102.4 — / sim-object — 90K 100.1 −2.3 / sim-human — 90K 110.3 +7.9 / Real only 90K — 97.1 −5.3 / Real + sim-object 45K 45K 97.2 −5.2 / Real + sim-object 90K 90K 93.5 −8.9'",
+          "p.13 'Because sim-human uses anatomically realistic scatterers yet performs worse, the result directly supports the hypothesis that trajectory diversity … is more important than scatterer realism for CSI pre-training.'",
+          "p.14 Table 8 'MPJPE↓ 111.85 (w/o csi-tok) → 97.10 (w/ csi-tok)' · Table 7 'Random 105.14 / Multi-block 102.06 / Time 104.24 / Link 97.10'"
+        ]
+      },
+      {
+        "paper": "White 2023 (IEEE TRS, Urban Bird-Drone Classification with Synthetic Micro-Doppler Spectrograms)",
+        "id": "white2023_trs",
+        "path": "<scratchpad>/pdfs/white2023_trs.pdf",
+        "pages_read": [5, 6, 7, 9, 10, 13],
+        "new_quotes_this_round": [
+          "⭐⭐ p.9 'The model outlined in Section II treats the drone blades as a series of infinite point reflectors. It produces accurate frequency modulation of returns but very poorly captures the amplitude modulation of the sidebands, especially in our setup where the size of the radiation wavelength and drone blade are similar. The thin wire simulation model as used produces sidebands that are too strong and too numerous in comparison with the real data.'",
+          "⭐⭐ p.9 'At short ranges from the radar the two larger drone models exhibit typically 3-5 pairs of sidebands, with a SNR reduction of 5-10 dB compared to the main body and 3-8 dB for each subsequent sideband harmonic, whereas the thin wire simulation shows up to 10 pairs of sidebands with very little fall off in signal power until the final harmonics.'",
+          "⭐⭐ p.9 'To remedy this, the sidebands of the simulation were artificially attenuated to approximately match the number and signal power fall off observed in real data. … With this, the factors S_Body and S_Blade were applied to ensure the body and blade SNR in the simulated data was similar to that of the experimental data.'",
+          "p.10 Table IV — S_body / S_blade / α 가 **Radar#1·Radar#2 × Matrice·Inspire 마다 따로** Min/Max 로 적혀 있다. α 는 '5/40', '5/35', '7/32, 5/32', S_body 는 'E−5/2.5E−1' 부터 'E−13/5E−2' 까지",
+          "p.6 Table III (실측 데이터 규모) 'Training 3625 Birds 3631 Drones 7256 Total / Testing 1818 Birds 1818 Drones 3632 Total / Validation 371 Birds 342 Drones 713 Total'",
+          "p.5 Table I 'Operating Frequency L-Band / Bandwidth ~2 MHz / Transmit Power 2 kW / Range Resolution ~80 m / PRF ~7.3 kHz / Doppler Resolution 4 Hz'",
+          "p.5 'Drone data was collected over fourteen measurement campaigns occurring at different locations, at different times of year and in a variety of weather'",
+          "p.5 '~20cm radius, plastic blades. This measurement is similar to the radar's operational wavelength, so the near resonant scattering of the blades produces μDoppler sidebands that are often large and can come with significant fluctuations.'",
+          "p.7 'The duration of each spectrogram as input to the classifier was 5.6 s.' · 'The real dataset achieved a 89.7 % classification accuracy'",
+          "p.11 'the real data came from regular intervals over a two-year period and the background data came from a single period in March 2022'"
+        ]
+      },
+      {
+        "paper": "DivNet (Seyfioglu, IEEE TAES)",
+        "id": "arXiv:1811.08361",
+        "path": "<scratchpad>/pdfs/1811.08361.pdf",
+        "pages_read": [7, 8, 10, 11, 12, 13],
+        "new_quotes_this_round": [
+          "⭐ p.8 'such a diversified dataset of 32,000 samples is generated using the methodology outlined in Section II from 55 original Kinect-based MOCAP measurements of 5 test subjects'",
+          "⭐⭐ p.12 'increasing the training sample support from 15,000 to 30,000 samples results in only a 1% increase in test accuracy.' · 'However, even 2500 samples are seen to be producing relevant results.' · 'For the 7-class and 11-class cases, the difference in having 30,000 samples versus just 2,500 samples is as much as 13% and 14%, respectively.'",
+          "p.10 'When noise is relatively high, such as at 15 dB SNR, all transfer learning methods perform roughly the same, greatly surpassing the baseline CNN by about 15%.'",
+          "p.11 Table V 'DivNet-15 97% 89% 85% / ResNet-50 95% 88% 85% / VGGnet 94% 87% 86% / Baseline CNN 86% 70% 69%' (40/30/15 dB)",
+          "p.13 'just 474 measured samples were needed to fine-tune the network and achieve a high classification accuracy of 97% for a 7-class activity recognition problem.'",
+          "p.7 7-class 측정 수 'walking (71), jogging (72), limping (104), walking while using a cane (123), walking while using a walker (121), falling forward from a standing position (53), and sitting (50)'"
+        ],
+        "재확인": "⭐ POSITION 의 «DivNet 이득은 40/30/15 dB 에서 +11/+19/+16 pp 로 단조가 아니다» 는 내가 Table V 를 직접 열어 **맞다고 확인**했다. compare 라운드의 «SNR 이 낮을수록 이득이 커진다» 는 오독이 맞다."
+      }
+    ],
+    "repo_tallies_i_recomputed_myself": [
+      {
+        "what": "상시 기준신호 PRF 관측가능성",
+        "src": "outputs/md_range_sweep.json (9 셀 × 4 모드 전수 재집계)",
+        "result": "팁 도플러 **0/36 모드-셀**. 필요 PRF **1195.4 ~ 4822.2 Hz**. f_flash **120.0 ~ 183.3 Hz**. 플래시선 생존 — LTE CRS 9/9 · WiFi VHT-LTF 9/9 · 5G NR-PRS 0/9 · 5G SSB 0/9.",
+        "verdict": "POSITION 의 0/36 · 9/9 · 0/9 는 **전부 재현됐다**. 이 부분은 흠이 없다."
+      },
+      {
+        "what": "⭐ 내가 새로 센 것 — 1 kHz 나이퀴스트 아래 살아남는 플래시선 배음 수",
+        "계산": "floor((PRF/2) / f_flash)",
+        "result": "셀별로 **2 ~ 4 개**(mini5pro·phantom4 = 2, matrice4e = 3, mavic4pro·s1000plus = 4). f_tip/f_flash 비는 5.0 ~ 20.1.",
+        "왜_중요": "T2 가 쓸 수 있는 특징이 «배음 2~4 개의 위치와 상대세기» 로 줄어든다는 뜻이다. POSITION 은 «9/9 살아남는다» 까지만 적고 **몇 개가 살아남는지는 안 적었다**.",
+        "grade": "CRUDE (규약 하나로 센 것 — 창 길이·SNR 은 안 봤다)"
+      },
+      {
+        "what": "시뮬 생성 처리율",
+        "src": "outputs/report15b_microdoppler.json (2026-08-07 07:00, 6 셀 × 6 팔)",
+        "result": "슬로타임 표본 1 개당 — B_sbr_spread(가림 O·로터별 rpm) **23.07 / 29.16 / 33.37 ms** (min/mean/max), D_po_spread(가림 X) **3.72 / 4.43 / 5.09 ms**, F_blade_occ 12.54/15.74/18.13 ms.",
+        "grade": "MEASURED (저장소가 GPU 2 번에서 잰 벽시계)"
+      },
+      {
+        "what": "동체가 블레이드를 덮는 양",
+        "src": "outputs/report15b_microdoppler.json level_db (B − F)",
+        "result": "**22.76 ~ 39.54 dB** (6 셀 전수)",
+        "grade": "MEASURED"
+      },
+      {
+        "what": "단일축 가림 시험(F − G: 동체 있음/없음, 나머지 비트 동일)이 블레이드 변조깊이를 얼마나 움직이나",
+        "result": "**|F−G| = 0.00 ~ 12.36 dB**, 그리고 **부호가 6 셀 중 3 셀에서 음수**(가림이 변조를 키우기도 한다)",
+        "grade": "MEASURED (부호 해석 금지는 저장소 자신의 주의문)"
+      },
+      {
+        "what": "엔진 묶음 불일치(B − D)가 변조깊이를 얼마나 움직이나",
+        "result": "**1.84 ~ 11.63 dB**",
+        "grade": "MEASURED",
+        "⚠": "B−D 는 단일축이 아니다(가림 외에 다중반사·투과·표본화도 다르다). 저장소 자신의 주의문이다."
+      },
+      {
+        "what": "dc_over_ac (DC 제거 후 분류기가 실제로 먹는 입력 스케일)",
+        "result": "전 팔·전 셀에서 **0.010 ~ 87.25 (8,779배)**. 같은 셀에서 SBR 팔 대 PO 팔만 비교해도 **33 ~ 2,239배**.",
+        "grade": "MEASURED"
+      }
+    ]
+  },
+
+  "2_q1_real_frame_budget": {
+    "질문": "X410 로 하루에 몇 프레임을 얻나. 그들의 1/10 도 못 얻으면 미세조정이 성립하나.",
+    "⭐한_줄_답": "**프레임 수는 병목이 아니다.** 우리는 반나절이면 WiFi-JEPA 의 실측 코퍼스를 넘고, 미세조정 요구량(수백 개)은 그보다 훨씬 작다. 병목은 POSITION 이 이미 옳게 지목한 **R(독립 녹화 수)** 이고, 이 렌즈가 새로 찾은 병목은 **저장 용량**과 **CPI 길이**다.",
+
+    "2_1_외부_눈금_두_개_실제_크기": {
+      "WiFi-JEPA (실측 PiW3D)": {
+        "프레임": "89,946",
+        "프레임_1개의_길이": "≈50 ms (p.6)",
+        "⭐환산": "**총 녹화 75 분**",
+        "다양성": "7 명 × 8 동작 × 3 개 방 = 168 조합",
+        "장비": "Intel 5300 CSI, 5.64 GHz, 30 subcarrier, 3 Rx × 3 ant",
+        "grade": "VERIFIED_QUOTE + 내 곱셈(CRUDE 아님, 단순 산술)"
+      },
+      "White 2023 (실측)": {
+        "이미지": "11,601 (train 7,256 · test 3,632 · val 713)",
+        "이미지_1개의_길이": "5.6 s (p.7)",
+        "⭐환산": "**총 18.0 시간** (겹침 무시)",
+        "다양성": "674 비행(드론 183) · **14 회 측정 캠페인** · **2 년** · 도시 환경 2 곳 · 고정 타워 레이다 2 대(176 m·186 m AMSL) · 날씨 범위 «calm and warm to strong winds of 17 knots and light rain»",
+        "grade": "VERIFIED_QUOTE + 내 곱셈"
+      }
+    },
+
+    "2_2_우리_하루_CRUDE": {
+      "grade": "⚠ 전부 CRUDE — 검정력 계산이 아니라 현장 상식으로 세운 예산이다. 파일럿 한 번이면 실측으로 갈아끼울 수 있다.",
+      "가정": [
+        "현장 8 h/일",
+        "설치·측량·교정표적 2.0 h",
+        "배경 녹음(조명원 ON · 드론 OFF) 1.0 h",
+        "→ 비행 창 5.0 h",
+        "운용 가동률 45~60% (기하 변경·RTK 재획득·로그 내리기·배터리 교체와 냉각·바람 대기·조종사 휴식)"
+      ],
+      "결과": {
+        "공중_녹화시간": "**2.25 ~ 3.00 h / 일 / 기체**",
+        "프레임(0.5 s CPI, 50% 겹침)": "**32,000 ~ 43,000 / 일 / 기체**",
+        "프레임(5.6 s 이미지, White 단위)": "**1,450 ~ 1,930 / 일 / 기체**",
+        "독립 pass": "5.0 h ÷ 35 분 주기 = **약 8.6 pass / 일 / 기체**"
+      },
+      "눈금에_대면": {
+        "WiFi-JEPA 실측 코퍼스(75 분)": "**0.42 ~ 0.56 필드데이** — 반나절",
+        "White 실측 코퍼스(18.0 h)": "**6.0 ~ 8.0 필드데이 / 기체**",
+        "POSITION 의 R = 40~60": "**4.7 ~ 7.0 기체-일** — POSITION 계획과 정합한다"
+      },
+      "미세조정_요구량": "DivNet 이 7-class 97% 를 **474 개 측정 표본**으로 냈다(p.13, VERIFIED_QUOTE). 우리 T2 클래스 수는 그보다 적다. **한 필드데이의 1/20 이면 나온다.** «1/10 도 못 얻으면» 이라는 걱정은 산술적으로 성립하지 않는다."
+    },
+
+    "2_3_그래서_진짜_병목_셋": [
+      {
+        "id": "B1",
+        "병목": "R(독립 녹화 수) — 프레임이 아니다",
+        "근거": "arXiv:2607.01025 p.1 «2R ≲ d» (POSITION 이 이미 인용, 나는 재확인 안 함 → §10)",
+        "판정": "⭐ POSITION 이 **옳게 잡았다.** 이 렌즈에서 반박할 것이 없다. 계산도 맞다(R=40~60 → 4.7~7.0 기체-일).",
+        "⚠내가_덧붙이는_것": "WiFi-JEPA 자신이 이 문턱 안쪽에 있을 수 있다 — 168 조합이면 2R = 336, 인코더 차원 512. **다만 PiW3D 의 train/test 분할이 프레임 단위인지 세션 단위인지 나는 확인하지 못했다.** 세션 단위면 문제없다. 단정하지 않고 열린 질문으로 남긴다."
+      },
+      {
+        "id": "B2",
+        "병목": "⭐⭐ **저장 용량 — POSITION 의 M8 이 값을 안 매겼다**",
+        "왜": "M8 은 «한 세션에서 (a) 상시 기준신호 + (b) 풀 웨이브폼 캡처 둘 다 찍는다» 고 못 박았는데(⛔ (a) 만 찍으면 T2 헤드라인 원천 불가), **(b) 의 데이터 양을 어디에도 안 적었다.**",
+        "계산_CRUDE": {
+          "가정": "2 채널(기준+감시), sc16 = 4 B/표본, 연속 녹화 3.0 h/일",
+          "LTE 20 MHz @ 30.72 MS/s": "245.8 MB/s → **2.65 TB / 필드데이**",
+          "WiFi 80 MHz @ 100 MS/s": "800.0 MB/s → **8.64 TB / 필드데이**",
+          "5G NR 100 MHz @ 122.88 MS/s": "983.0 MB/s → **10.62 TB / 필드데이**",
+          "세 대역 한 세션": "**약 22 TB / 필드데이**",
+          "X410 최대(400 MHz @ 491.52 MS/s)": "3.93 GB/s → **42.5 TB / 필드데이** — 연속 녹화는 사실상 불가"
+        },
+        "5일_캠페인": "**약 110 TB.** 현장 NVMe 어레이 + 매일 밤 오프로드 계획이 필요하다. 저장소 어디에도 이 계획이 없다.",
+        "⭐대안": "**버스트 캡처** — (b) 를 연속이 아니라 10 s 씩 60 s 간격으로 찍으면 6배 줄어 세 대역 합쳐 3.7 TB/일. T2 는 어차피 0.5 s CPI 단위라 연속일 필요가 없다. **이 한 줄이 M8 을 실현 가능하게 만든다.**",
+        "grade": "CRUDE (샘플레이트는 대역별 표준값, X410 상수는 src/experiment_x410.py:61-68 실측 독)"
+      },
+      {
+        "id": "B3",
+        "병목": "⭐⭐ **CPI 길이 — 로터별 rpm 산포가 «선언된 가정» 이라 T2 축이 아직 없을 수도 있다**",
+        "무엇": "report15b 의 헤드라인은 «로터별 rpm 산포가 신호를 시간에 따라 변하게 만든다»(half_window_spectrum_corr 0.9968 → 0.7847). 그런데 **±2% 는 실측이 아니다.** report15b meta 자신이 적었다 — «±2% 는 **선언된 가정**이다. 실측 로그가 아직 없다. 선배가 준 PX4 SITL 로그는 모터간 산포가 **0.07~0.29%**뿐이라 이 질문에 못 쓴다.»",
+        "내_계산_CRUDE": {
+          "규칙": "로터 간 플래시선 간격 = f_flash × 2 × spread, 분해하려면 CPI > 1/간격",
+          "±2.00% (선언된 가정)": "f_flash 120~183 Hz → 간격 4.80~7.33 Hz → **CPI > 0.14 ~ 0.21 s** (report15b 의 0.505 s 로 충분)",
+          "±0.29% (PX4 SITL 최대)": "간격 0.70~1.06 Hz → **CPI > 0.94 ~ 1.44 s**",
+          "±0.07% (PX4 SITL 최소)": "간격 0.17~0.26 Hz → **CPI > 3.90 ~ 5.95 s**"
+        },
+        "⭐왜_이게_아픈가": [
+          "실제 산포가 SITL 수준이면 CPI 를 **3~11배 늘려야** 한다. 5.6 s 코히런트 적분은 (i) 표적 이동에 따른 거리 이동(15 m/s × 5.6 s = 84 m ≫ ΔR_b), (ii) 바이스태틱 두 국의 서로 다른 클럭 위상 안정도, 둘 다에 걸린다. 저장소는 이미 클럭 비동기를 어려운 문제로 등록해 두었다(passive_isac_testbed 에 전용 논문 2 편).",
+          "그러면 T2 는 **호버 근처로 강제**되는데, 호버는 hover blind(영-도플러 실명)가 가장 심한 자리다. 즉 **T2 가 성립하는 구간과 T1 이 성립하는 구간이 서로 밀어낸다.**",
+          "반대로 산포가 정말 작으면 신호가 거의 완전 주기가 되어 위상표가 **다시 유효**해진다(비용은 좋아진다). 즉 이 한 사실이 **비용과 과학성을 반대 방향으로 흔든다.**"
+        ],
+        "⭐첫_비행_전에_닫아야_할_것": "POSITION 의 M3 «독립 rpm 기준 채널(광다이오드/마이크, 수천 원)» 이 정확히 이걸 닫는 장치다. **다만 POSITION 이 «rpm 참값» 용으로만 제안했는데, 실제 가치는 «산포의 크기» 를 재는 데 있다.** 그리고 광다이오드 1 개는 자기 로터만 본다 — **로터별 산포를 보려면 4 개**이거나, 마이크 1 개로 받아 스펙트럼에서 4 선을 분리해야 한다(그것도 위 CPI 조건과 같은 분해능이 필요하다).",
+        "grade": "CRUDE (내 계산) + MEASURED(report15b 의 ±2% 선언 및 SITL 0.07~0.29% 는 저장소 원문)"
+      }
+    ]
+  },
+
+  "3_q2_sim_generation_cost": {
+    "질문": "우리 커널로 9만 프레임이면 GPU 몇 시간인가.",
+    "⭐한_줄_답": "**오늘 있는 파이프라인으로는 74 ~ 1,842 GPU-h**(캡처 규약에 따라). POSITION 이 적은 1.7~14 GPU-h 는 **위상표 트릭 전제**이고, 그 트릭은 같은 날 30 분 전에 저장소 자신이 폐기했다. 다만 **50~100 LOC 짜리 수리로 대부분 회수된다** — 그래서 이건 kill 이 아니라 «P1 집필 전에 반드시 고칠 것» 이다.",
+
+    "3_1_기준_처리율": {
+      "출처": "outputs/report15b_microdoppler.json (2026-08-07 07:00, GPU 2번), 6 셀 전수. 내가 seconds/n_t 로 나눠 계산.",
+      "grade": "MEASURED",
+      "값": {
+        "B_sbr_spread (가림 O · 로터별 rpm — T2 에 물리적으로 필요한 팔)": "23.07 / **29.16** / 33.37 ms per 슬로타임 표본",
+        "D_po_spread (가림 X)": "3.72 / **4.43** / 5.09 ms",
+        "A_sbr_locked (옛 가정)": "29.08 / 32.91 / 37.37 ms"
+      },
+      "⭐대조_눈금": "WiFi-JEPA 는 90K 프레임을 10 GPU-h 로 만들었다 = **400 ms/프레임**, 프레임당 20 회 RT → **20 ms per Sionna RT pass**(p.6, VERIFIED_QUOTE). 우리 커널의 20 표본 등가는 **583 ms** — **겨우 1.5배**다. ⭐ **즉 비싼 것은 우리 커널이 아니라 «마이크로도플러가 요구하는 슬로타임 밀도» 다.** 자세추정은 50 ms 창에 20 표본이면 되지만, 플래시선을 보려면 0.5 s 창에 100~2,526 표본이 필요하다."
+    },
+
+    "3_2_프레임_1개_비용": {
+      "설정": "T = 0.5053 s (report15b 의 N_FLASH_PERIODS=64 규약)",
+      "grade": "CRUDE (내 곱셈, 처리율은 MEASURED)",
+      "행": [
+        {"캡처규약": "(a) 상시 LTE CRS / WiFi VHT-LTF, PRF 1000 Hz", "n_t": 505, "SBR팔": "14.7 s", "PO팔": "2.2 s"},
+        {"캡처규약": "(a) 5G NR-PRS, PRF 200 Hz", "n_t": 101, "SBR팔": "2.9 s", "PO팔": "0.4 s"},
+        {"캡처규약": "(b) 풀 웨이브폼, PRF 5000 Hz (≈4×f_tip)", "n_t": 2526, "SBR팔": "73.7 s", "PO팔": "11.2 s"}
+      ],
+      "⚠규약_주의": "관측될 PRF 로 **직접** 계산하는 것이 맞다 — sbr_field 를 t_i = i/PRF 에서 부르면 팁 도플러의 접힘(aliasing)이 물리적으로 옳게 재현된다. 고 PRF 로 만들고 데시메이션할 필요가 없다."
+    },
+
+    "3_3_코퍼스_비용": {
+      "grade": "CRUDE",
+      "표": [
+        {"코퍼스": "15,000 (DivNet 포화점 — 15k→30k 가 +1%p, p.12 VERIFIED_QUOTE)", "(a)1kHz": "61 GPU-h", "(a)5G 200Hz": "12 GPU-h", "(b)5kHz": "307 GPU-h"},
+        {"코퍼스": "32,000 (DivNet 실제 코퍼스, p.8 VERIFIED_QUOTE)", "(a)1kHz": "131 GPU-h", "(a)5G 200Hz": "26 GPU-h", "(b)5kHz": "655 GPU-h"},
+        {"코퍼스": "90,000 (WiFi-JEPA 동급)", "(a)1kHz": "**368 GPU-h**", "(a)5G 200Hz": "74 GPU-h", "(b)5kHz": "**1,842 GPU-h**"}
+      ],
+      "4장_환산": "4×4090 을 다 쓰면 90K·(b) = **19 일**, 90K·(a) = **3.8 일**, 15K·(a) = **15 시간**.",
+      "POSITION_과의_격차": "1.7~14 GPU-h 대비 **4.4배 ~ 1,083배 과소평가**(코퍼스·규약 조합에 따라).",
+      "⭐그러나_먼저_말해야_할_것": "**9만 프레임을 만들 이유가 없다.** DivNet p.12 가 «15,000 → 30,000 은 +1%» 라고 적었고, «2,500 표본도 의미 있는 결과» 라고 적었다. 정직한 목표는 **15K** 이고 그건 (a) 규약에서 4 장 15 시간이다. 이 사실만으로 «9만 프레임이면 GPU 몇 시간인가» 라는 질문은 **잘못된 목표를 전제**한다."
+    },
+
+    "3_4_수리_로터별_가림_위상표": {
+      "⭐제안": "네 로터 각각에 대해 **동체를 씬에 둔 채** φ 스윕 표를 하나씩 만든다(총 4 장). 프레임 합성은 네 표를 각자의 φ_m(t) 로 조회해 더한다. 로터별 rpm 산포가 그대로 들어간다.",
+      "포기하는_것": "로터↔로터 상호 그림자와 다중반사. **동체↔로터 가림은 유지된다**(그게 F−G 축이 잰 것이다).",
+      "경제성_CRUDE": {
+        "표_비용": "4 로터 × 600 위상 × 29.2 ms = **70.1 s / (기체·대역·시선각) 1회**",
+        "손익분기": "(a) 1 kHz 에서 **시선각당 4.75 프레임**, (b) 5 kHz 에서 **0.95 프레임** — 즉 거의 항상 표가 이긴다",
+        "코퍼스 15,000 프레임 / 300 시선각": "**5.8 GPU-h** (per-sample 61 GPU-h 대비 10.5배 절감)",
+        "코퍼스 90,000 프레임 / 900 시선각": "**17.5 GPU-h** (per-sample 368 GPU-h 대비 21배 절감)"
+      },
+      "판정": "⭐ **이 수리를 하면 POSITION 의 1.7~14 GPU-h 가 대략 맞는 숫자가 된다.** 비용은 50~100 LOC 와 검증 1 셀(전체 per-sample 팔과 대조, 약 85 s). **P1 집필 전에 해야 하고, 안 하면 예산이 100배 틀린 채로 논문에 들어간다.**",
+      "⚠검증_필수": "근사의 오차를 **반드시 재서 인쇄**해야 한다. 6 셀 중 1 셀이면 충분하고 비용은 무시할 수 있다. 안 재고 쓰면 이 저장소가 R20 에서 겪은 종류의 철회가 반복된다."
+    },
+
+    "3_5_안_센_비용": [
+      "**환경 채널(Sionna) 몫.** POSITION 은 «σ 는 PO 커널, 환경은 Sionna» 로 합치기로 했다. WiFi-JEPA 눈금으로 RT 1 pass ≈ 20 ms 이고, 배경은 준정적이라 프레임당 20 pass 면 충분하다 → **프레임당 +0.4 s**(실내 소형 씬 기준). 야외 사이트 트윈은 더 비싸다 — CRUDE 로 **0.05~0.3 s/pass → 프레임당 +1~6 s**. 15K·(a) 기준 **+4~25 GPU-h**. 결정적이지 않다.",
+      "**⚠ 표가 두 장이라는 결정의 대가.** POSITION 스스로 «데이터 생성 비용 2배» 라고 적었다. 위 숫자에 **×2** 를 해야 한다.",
+      "**⚠ 자세축 배선.** POSITION M2 가 «자세 1 상태당 격자 1 벌 ≈ 8 h/1카드» 라고 적었다. 자세를 무작위화 축으로 올리면 여기가 곱해진다. 자세 5 상태면 +40 GPU-h.",
+      "**야외 씬 자산.** POSITION 이 300~600 LOC + 메쉬로 잡았다. assets/scenes/ 가 현재 비어 있다(s2r_assets 확인). GPU 시간이 아니라 사람 시간이고, 이 렌즈에서 가장 낙관적으로 잡힌 칸이다."
+    ],
+
+    "판정": "⚠ **결함이지만 kill 은 아니다.** 절대량(수리 후 6~35 GPU-h, 수리 전에도 최악 1,842 GPU-h = 4장 19일)이 감당 가능하고, 수리 경로가 구체적이고 싸다. 다만 POSITION 의 «무라벨 표본은 사실상 공짜» 와 «GPU 예산 문제로 축소된다» 는 **오늘 파이프라인에서 거짓**이므로 그 문장을 고쳐야 한다."
+  },
+
+  "4_q3_blade_flash_the_vital_point": {
+    "질문": "블레이드 번쩍임이 없는(또는 틀린) 데이터로 학습하면 실측에서 무엇이 어긋나나.",
+    "⭐한_줄_답": "**이게 급소가 맞다.** 그리고 계산으로 갈 수 있는 종류의 문제가 아니다. 우리 패시브 기하가 볼 수 있는 유일한 마이크로도플러 특징(플래시선)이, 하필 우리 커널이 가장 못 만드는 특징이고, 하필 가장 가까운 선행이 **실측에 대고 손으로 맞춰야** 했던 특징이다.",
+
+    "4_1_집게_다섯_개": [
+      {
+        "id": "V1",
+        "제목": "볼 수 있는 것이 플래시선 배음 2~4 개뿐이다",
+        "숫자": "팁 도플러 0/36 모드-셀(필요 1195.4~4822.2 Hz). 플래시선 120.0~183.3 Hz 는 LTE·WiFi 1 kHz 에서 9/9 생존, 5G NR-PRS·SSB 에서 0/9. ⭐ 1 kHz 나이퀴스트(500 Hz) 아래 살아남는 **배음은 셀별 2~4 개**(내가 새로 셈, CRUDE).",
+        "함의": "T2 의 특징 공간은 «배음 2~4 개의 위치와 상대세기». 위치는 운동학이 정하고 **세기는 산란이 정한다** — 그리고 세기가 아래 V2~V4 에서 무너진다."
+      },
+      {
+        "id": "V2",
+        "제목": "⭐⭐ 우리 커널의 블레이드 진폭은 눈금이 없다",
+        "숫자": "블레이드 폭 13.78 mm = 3.5 GHz 에서 **0.161 λ**. PO 가 1 dB 안으로 맞으려면 **0.729 λ** 이상 → **4.53배 부족**, 문턱을 넘는 주파수는 15.86 GHz (docs/TARGET_LADDER.md L203, 저장소 원문).",
+        "저장소_자신의_규칙": "«부호와 자릿수만 쓰고 소수점은 쓰지 않는다»",
+        "POSITION_도_인정": "«⭐⭐ 비워서 인쇄하는 칸 — **블레이드 절대 진폭, 어느 엔진도 권위가 없다**»",
+        "이_렌즈의_추가": "POSITION 은 이걸 **정직성 각주**로 다뤘다. 실제로는 **T2 축의 존재 조건**이다."
+      },
+      {
+        "id": "V3",
+        "제목": "⭐⭐ 엔진 선택만으로 변조깊이가 1.84~11.63 dB 움직이고, 단일축 가림만으로도 0.00~12.36 dB 움직이며 부호가 뒤집힌다",
+        "숫자": {
+          "엔진 묶음(B_sbr_spread − D_po_spread), 같은 표적·같은 시선·같은 운동학": "**1.84 ~ 11.63 dB** (ptp 비로는 2.0~8.9배)",
+          "단일축 가림(F − G: 동체 있음/없음, 나머지 비트 동일)": "**0.00 ~ 12.36 dB**, 6 셀 중 **3 셀에서 부호가 음수**",
+          "grade": "MEASURED (report15b)"
+        },
+        "⭐⭐대비할_것": "TARGET_LADDER 가 재려는 **정보량 있는 사다리 칸들은 0.01 ~ 6.2 dB** 다(삼각형 절반 0.01 dB, 평판 날개 6.2 dB 안, CAD 정밀도 단독 0.51~4.97 dB).",
+        "결론": "**통제하려는 축(형상 정밀도)보다 통제 안 된 축(엔진·가림)이 더 크게 움직인다.** 사다리를 돌려서 나온 차이를 형상 탓으로 돌릴 수 없다. 이것이 이 라운드에서 내가 찾은 가장 단단한 정량 결함이다."
+      },
+      {
+        "id": "V4",
+        "제목": "⭐ 동체가 블레이드를 22.76~39.54 dB 덮고, DC 를 지우고 나면 분류기가 먹는 스케일이 33~2,239배 흔들린다",
+        "숫자": {
+          "동체+블레이드 대 블레이드 단독 레벨 차": "**22.76 ~ 39.54 dB** (6 셀)",
+          "dc_over_ac 전 범위": "0.010 ~ 87.25 (**8,779배**)",
+          "같은 셀에서 SBR 팔 대 PO 팔": "**33 ~ 2,239배**",
+          "grade": "MEASURED"
+        },
+        "왜_문제": "우리 스펙트로그램은 remove_dc=True 로 동체 0-도플러를 지운다(ECA 대응). 그러면 **분류기 입력의 스케일이 곧 dc_over_ac** 다. PO 팔로 학습(dc/ac 13~87)하고 SBR 같은 현실에서 시험(dc/ac 0.03~0.72)하면 입력 분포가 1.5~3 자릿수 어긋난다."
+      },
+      {
+        "id": "V5",
+        "제목": "⭐⭐⭐ 가장 가까운 선행이 이 칸을 **실측에 대고 손으로 맞췄다**",
+        "verified_quote": "White 2023 p.9 — '…very poorly captures the amplitude modulation of the sidebands, **especially in our setup where the size of the radiation wavelength and drone blade are similar**. The thin wire simulation model as used produces sidebands that are too strong and too numerous in comparison with the real data.' / 'To remedy this, the sidebands of the simulation were **artificially attenuated** to approximately match the number and signal power fall off observed in real data. … the factors S_Body and S_Blade were applied to ensure the body and blade SNR in the simulated data was similar to that of the experimental data.'",
+        "정량": "실측 대 thin-wire — 실측은 근거리에서 sideband 쌍 **3~5 개**, 첫 쌍이 동체 대비 **5~10 dB** 아래, 이후 배음마다 **3~8 dB** 감쇠. thin-wire 는 **최대 10 쌍**에 거의 감쇠 없음. Table IV(p.10)에서 S_body·S_blade·α 가 **레이다별·기체별로 따로** 적합됐고 α 는 5/40 범위, S_body 는 E−13 ~ 2.5E−1 범위.",
+        "세_가지_함의": [
+          "① **우리 편이다** — White 자신이 실패 원인을 «파장과 날개 크기가 비슷해서» 라고 적었다. 그게 정확히 few-λ 문제이고 우리 커널이 겨냥한 자리다. 델타의 동기로는 이보다 좋은 인용이 없다.",
+          "② ⭐⭐ **동시에 우리를 친다** — 그들은 **실측을 먼저 봐야** 합성학습이 돌았다. 즉 그 파이프라인은 «시뮬이 실측 부담을 줄인다» 가 아니라 «실측이 시뮬을 교정한다» 였다. 우리도 S_blade 를 맞추게 되면 T2 의 «계산된 산란» 주장이 «계산된 기하 + 적합된 진폭» 으로 내려앉는다 — **그건 White 의 방법에 비용만 더한 것이다.**",
+          "③ 그렇게 손으로 맞추고도 합성학습 최고가 **86.x%**, 실측학습이 **89.7%** 였다(p.7·p.13). **3 %p 격차가 진폭을 적합한 뒤의 값이다.**"
+        ]
+      }
+    ],
+
+    "4_2_그래서_실측에서_구체적으로_무엇이_어긋나나": [
+      {
+        "어긋남": "① sideband 개수와 감쇠 기울기",
+        "상세": "실측 규범은 3~5 쌍 · 첫 쌍 −5~10 dB · 배음마다 −3~8 dB(White p.9, 실측). thin-wire 는 10 쌍·거의 평탄. 우리 PO 는 유효하한 아래라 방향조차 예측 못 한다. 분류기는 «배음 몇 개가 얼마나 빨리 죽는가» 를 곧바로 특징으로 쓰고, 그 특징이 시뮬↔실측에서 통째로 이동한다.",
+        "관측_가능": "⭐ **파일럿 배경+비행 한 세션이면 잰다.** 실측 배음 개수와 감쇠 기울기를 우리 시뮬과 나란히 인쇄하는 것이 첫 번째 sanity check 여야 한다."
+      },
+      {
+        "어긋남": "② 문턱과 Pfa 가 도메인을 안 넘는다",
+        "상세": "V4 의 dc_over_ac 이동은 곧 ECA 잔차 스케일 이동이다. 시뮬 분포에서 교정한 CFAR 문턱이 실측에서 설계 Pfa 를 안 지킨다. POSITION 이 이미 «문턱 교정은 학습 분포와 분리된 고정 규약 집합에서만» 이라고 적었는데, **그 고정 규약 집합 자체가 시뮬이면 소용이 없다.** 교정은 **실측 배경 녹음(M5)** 위에서만 뜻이 있다.",
+        "판정": "⭐ POSITION 의 M5(배경 녹음 1순위)가 이 구멍을 절반 막는다. 나머지 절반은 «문턱은 시뮬에서 교정하지 않는다» 를 명시적 규약으로 올리면 닫힌다."
+      },
+      {
+        "어긋남": "③ ⭐⭐ 분류기가 동체 도플러로 후퇴하고 T2 가 T1 로 붕괴한다",
+        "상세": "시뮬 플래시가 너무 약하면(우리 PO 팔의 ptp 0.33~1.97 dB) 남는 판별축은 동체 도플러와 레벨뿐이다. 그건 CFAR 검출기가 이미 주는 것이라 «상태 분류» 라는 기여가 사라진다.",
+        "⭐⭐그리고_이게_델타의_자랑을_깬다": "POSITION 은 «**null 도 결과다**» 를 이 델타의 가장 좋은 성질로 걸었다. 그런데 **눈금 없는 블레이드 진폭 때문에 생긴 null 은 ISAC 모델링 관행에 대한 진술이 아니라 우리 커널에 대한 진술이다.** «표적 표현이 안 중요하다» 와 «우리 블레이드 진폭이 틀렸다» 를 구별할 방법이 없다. **null 이 결과가 되려면 블레이드 진폭이 독립적으로 앵커링돼 있어야 한다** — 그게 이 델타의 미기재 전제다."
+      },
+      {
+        "어긋남": "④ 그리고 그것을 고치는 유일한 길이 순서를 뒤집는다",
+        "상세": "S_blade 를 앵커링하려면 실측 플래시선이 먼저 있어야 한다. 그러면 P3(학습)의 주장이 P2(실측)에 종속되고, **T2 에서는 «시뮬 사전학습이 실측 부담을 줄인다» 를 주장할 수 없다.** 3 편 사슬의 논리가 T2 갈래에서만 끊긴다."
+      }
+    ],
+
+    "4_3_⭐⭐_이분법_델타의_T2_절반을_양쪽에서_죽인다": {
+      "구조": "T2 가 무엇을 특징으로 쓰는지 둘 중 하나여야 하는데, 둘 다 델타를 깬다.",
+      "뿔_1": "**진폭을 쓴다** → 우리 커널이 그 자리에서 4.53배 유효하한 아래이고(V2), 엔진 선택이 사다리 칸보다 크게 흔들며(V3), 선행은 그걸 손으로 맞췄다(V5). **통제축이 성립하지 않는다.**",
+      "뿔_2": "**선 위치·배음 구조만 쓴다**(POSITION 의 R2 대비책이 정확히 이 길이다 — «T2 목표를 물리로 규정된 특징(플래시선 위치·배음 구조)으로 두어 잡음 재구성을 피한다») → 선 위치는 f_flash = n_blades × rpm/60 으로 **운동학이 전부 정한다.** 산란 표현은 거의 안 들어간다. **그러면 그건 White 2023 의 thin-wire 자리이고, 우리 델타의 통제축(표적 산란 표현)이 태스크에 닿지 못한다.**",
+      "판정": "⭐⭐ **POSITION 은 두 뿔을 각각 다른 절에서 밟았는데 둘이 같은 대상을 향한다는 것을 못 봤다.** R2 대비책(뿔 2)이 델타 본문(뿔 1)을 무효화한다. 이건 이 라운드의 새 발견이다.",
+      "빠져나가는_유일한_문": "⭐ **T1(탐지)로 무게를 옮긴다.** 탐지는 동체가 지배하고, 동체는 2.68 GHz 부터 PO 유효하므로 3.5 GHz 에서 통과한다(TARGET_LADDER L203). 사다리의 큰 칸(회전대칭 원판 −54~−56 dB)도 검출 단면적 축에서 잰 것이다. **T1 갈래에서는 델타가 온전히 산다.**"
+    },
+
+    "4_4_POSITION_의_두_제안을_이_렌즈로_본다": [
+      {
+        "제안": "회전 코너리플렉터 (POSITION 이 «사다리의 낭떠러지 칸을 실측에서 직접 시험하는 유일하게 값싼 물체» 라고 자평)",
+        "판정": "⚠ **좋은 물건인데 이 구멍은 못 막는다.** 코너리플렉터가 밝은 이유가 many-λ 이기 때문이고, 우리 문제는 sub-λ 날개다. 즉 **기하·운동학·수신체인·동기·처리사슬을 전부 검증하지만, 유일하게 깨진 칸(few-λ 블레이드 진폭)만 검증 못 한다.**",
+        "⭐그래도_하라": "위 다섯 가지를 한 번에 닫는 물건은 이것뿐이고 값이 거의 0 이다. 다만 **«블레이드 진폭을 검증했다» 로 쓰면 안 된다.**",
+        "⭐대안_한_줄": "코너리플렉터 대신(또는 함께) **실제 프로펠러 한 짝만 모터에 달아 회전시키는 지그**를 놓으면 few-λ 날개를 직접 잰다. 기체도 비행 허가도 필요 없고, 부품값은 코너리플렉터급이다. **이게 S_blade 를 앵커링하는 가장 싼 자리다.** POSITION 도 이 라운드들도 제안하지 않았다."
+      },
+      {
+        "제안": "독립 rpm 기준 채널(광다이오드/마이크)",
+        "판정": "⭐ **좋다. 그리고 POSITION 이 적은 것보다 더 중요하다.** POSITION 은 «라벨 참값» 용으로 걸었는데, 실제 가치는 §2-3 B3 의 **산포 크기 측정**이다 — ±2% 냐 ±0.29% 냐가 CPI 를 0.2 s 로 둘지 5.9 s 로 둘지를 정하고, 그게 T2 의 성립 여부를 정한다.",
+        "보강": ["광다이오드 1 개는 자기 로터만 본다 → **로터별 산포를 보려면 4 개**", "마이크 1 개로 갈 거면 4 선 분리에 위 CPI 조건과 같은 분해능이 필요하다", "M1 의 시각동기 잔차 < 1 CPI 규칙이 이 채널에도 그대로 걸린다 — 별도 로거면 클럭을 맞춰야 한다"]
+      }
+    ]
+  },
+
+  "5_new_evidence_that_cuts_the_delta": {
+    "note": "⭐⭐ 이번에 새로 연 WiFi-JEPA Table 5 가 이 방향에 대한 가장 직접적인 반대 증거다. POSITION·compare 두 라운드 다 이 표를 안 썼다.",
+    "5_1_table5": {
+      "출처": "arXiv:2607.11064 p.13 Table 5 (VERIFIED_QUOTE, 내가 직접 열람)",
+      "표": [
+        {"pre-train": "None (scratch)", "real": "—", "sim": "—", "MPJPE": 102.4, "Δ": "—"},
+        {"pre-train": "sim-object (기하 프리미티브: 구·정육면체·원기둥·타원체)", "real": "—", "sim": "90K", "MPJPE": 100.1, "Δ": -2.3},
+        {"pre-train": "⭐ sim-human (해부학적으로 사실적인 사람 메쉬 + MoCap)", "real": "—", "sim": "90K", "MPJPE": 110.3, "Δ": "**+7.9 (역전이)**"},
+        {"pre-train": "Real only", "real": "90K", "sim": "—", "MPJPE": 97.1, "Δ": -5.3},
+        {"pre-train": "Real + sim-object", "real": "90K", "sim": "90K", "MPJPE": 93.5, "Δ": -8.9}
+      ],
+      "저자_해석": "'Because sim-human uses anatomically realistic scatterers yet performs worse, the result directly supports the hypothesis that trajectory diversity … is more important than scatterer realism for CSI pre-training.'",
+      "⚠내_반론(우리에게_유리)": "⭐ **그 추론은 교란돼 있다.** 저자 자신이 같은 문단에서 원인을 «likely because the fixed motion-capture sequences lack the trajectory variation» 이라고 적었다 — 즉 두 코퍼스가 **산란체 사실성과 궤적 다양성 두 축을 동시에** 다르게 놓았다. **단일축 시험이 아니다.** 그리고 그 구멍이 정확히 우리 델타가 메우려는 자리다. ⭐ 델타의 근거를 «두 절반» 프레임보다 이쪽으로 옮기는 것이 더 강하다 — «산란체 사실성을 시험한 유일한 공개 실험이 축을 두 개 동시에 움직였다» 는 쪽수 있는 단일 문장으로 선다.",
+      "⚠그러나_실현가능성_쪽에서는_우리를_친다": "역전이(+7.9 mm)가 **실재**한다. 표적을 정밀하게 만드는 것이 다운스트림을 **더 나쁘게** 만든 사례가 이미 인쇄돼 있다. 우리 사다리 실험의 사전 확률은 낙관적이지 않다."
+    },
+    "5_2_효과크기가_너무_작다": {
+      "숫자_전부_같은_표_같은_논문": {
+        "시뮬 사전학습 전체 효과": "102.4 → 100.1 = **2.3 mm (2.2%)**",
+        "실측 사전학습 효과": "102.4 → 97.1 = **5.3 mm (5.2%)**",
+        "최대(real+sim)": "102.4 → 93.5 = **8.9 mm (8.7%)**",
+        "⭐대비 — 토큰화 설계 하나": "111.85 → 97.10 = **14.75 mm** (Table 8, p.14)",
+        "⭐대비 — 마스킹 전략 하나": "105.14 → 97.10 = **8.04 mm** (Table 7, p.14)"
+      },
+      "⭐⭐결론": "**가장 가까운 SSL 선행에서, 표적 물리와 무관한 설계 선택(토큰화·마스킹)이 시뮬 사전학습 전체 효과를 3.5~6.4배 눌렀다.** 우리가 통제하려는 축(표적 표현)의 효과가 그보다 크다는 근거가 아직 하나도 없다. 사다리 칸 간 차이를 이 잡음 위에서 분리하려면 시드 반복과 분산 통제가 아주 빡빡해야 하는데, 그건 **R = 40~60 · d ≤ 64 제약과 정면으로 싸운다.**",
+      "grade": "숫자는 VERIFIED_QUOTE, 비율 계산은 내 산술"
+    },
+    "5_3_R2_는_이_렌즈에서도_살아있다": "POSITION 의 R2(저 SNR 에서 이득 소멸, K11)는 이 렌즈와 독립적으로 성립한다. DivNet p.10 (내가 재확인) 15 dB 에서 85/85/86 동률. Huang MLSP 는 이번에 열지 않았다 → §10. 효과크기가 작고(5-2) 동작점이 저 SNR 이면 **탐지 가능한 차이가 남지 않을 위험**이 곱해진다."
+  },
+
+  "6_defects": {
+    "note": "심각도 = ⭐⭐⭐ 방향을 바꿔야 함 / ⭐⭐ P1 집필 전 필수 수정 / ⭐ 문장 수정으로 닫힘. 근거는 전부 위 절에 있다.",
+    "items": [
+      {
+        "id": "D1",
+        "심각도": "⭐⭐⭐",
+        "결함": "T2(마이크로도플러 상태분류)의 통제축이 성립하지 않는다 — 이분법(§4-3)",
+        "근거": "V2(0.161λ, 4.53배 부족) + V3(엔진 1.84~11.63 dB · 단일축 가림 0.00~12.36 dB 부호 뒤집힘 vs 사다리 칸 0.01~6.2 dB) + V5(White 가 S_blade 를 실측에 적합)",
+        "왜_치명": "진폭을 쓰면 커널이 없고, 선 구조만 쓰면 산란축이 태스크에 안 닿는다. 그리고 «null 도 결과» 라는 델타의 최고 성질이 **여기서만 무효**다 — 눈금 없는 진폭이 만든 null 은 해석 불가.",
+        "⭐처방": [
+          "**T1(탐지)을 헤드라인으로 확정하고 T2 를 부차로 내린다.** 동체는 2.68 GHz 부터 PO 유효라 3.5 GHz 에서 통과하고, 사다리의 큰 칸도 검출 단면적 축에서 잰 것이다.",
+          "T2 를 살리려면 **회전 프로펠러 지그 실측**(§4-4)으로 블레이드 진폭을 독립 앵커링한 뒤에만 «통제축» 이라고 부른다.",
+          "그 전까지 T2 결과는 «부호와 자릿수» 규칙을 그대로 물려받는다."
+        ]
+      },
+      {
+        "id": "D2",
+        "심각도": "⭐⭐",
+        "결함": "시뮬 생성 예산이 오늘 파이프라인 기준으로 4.4~1,083배 과소",
+        "근거": "PC3 + §3. POSITION 07:28, 근거를 무효화한 report15b 07:00 — 28 분 차이.",
+        "⭐처방": "로터별 가림 위상표(4 장/시선각, 70.1 s)를 **P1 집필 전에** 구현하고 오차를 1 셀로 검증해 인쇄한다. 50~100 LOC. 그러면 15K 코퍼스가 5.8 GPU-h 로 돌아온다.",
+        "동시에_고칠_문장": ["«무라벨 표본은 사실상 공짜» → 거짓", "«GPU 예산 문제로 축소된다» → 축소되지 않는다", "«1팔 ≈ 1.7~14 GPU-h» → 조건(위상표 유효)을 명시"]
+      },
+      {
+        "id": "D3",
+        "심각도": "⭐⭐",
+        "결함": "로터별 rpm 산포 ±2% 가 «선언된 가정» 인데 T2 축 전체와 위상표 유효성이 거기 걸려 있다",
+        "근거": "report15b meta 자백 + PX4 SITL 0.07~0.29% + 내 계산(CPI > 0.14~5.95 s)",
+        "왜_아픈가": "SITL 수준이면 CPI 를 3~11배 늘려야 하고, 그러면 표적 이동·클럭 안정도에 걸리며 T2 가 호버로 강제되는데 호버는 hover blind 자리다.",
+        "⭐처방": "M3 의 독립 rpm 채널을 **«라벨 확보» 가 아니라 «산포 측정»** 으로 재정의하고 **첫 비행 전에** 발주한다. 로터별이면 4 채널. 며칠이면 닫힌다."
+      },
+      {
+        "id": "D4",
+        "심각도": "⭐⭐",
+        "결함": "M8(한 세션 두 캡처 규약)에 저장 용량 계획이 없다",
+        "근거": "내 계산 — 세 대역 연속이면 약 22 TB/필드데이, 5 일 캠페인 110 TB",
+        "⭐처방": "**버스트 캡처를 규약에 못 박는다**(예: 10 s / 60 s 간격 → 6배 절감, 3.7 TB/일). T2 는 0.5 s CPI 단위라 연속일 필요가 없다. 현장 NVMe 용량과 야간 오프로드를 메타데이터 스키마 옆에 적는다."
+      },
+      {
+        "id": "D5",
+        "심각도": "⭐⭐",
+        "결함": "노리는 효과크기가 선행에서 2.2~8.7% 인데, 표적과 무관한 설계 선택이 그것의 3.5~6.4배를 움직인다",
+        "근거": "WiFi-JEPA Table 5 · Table 7 · Table 8 (전부 VERIFIED_QUOTE)",
+        "⭐처방": [
+          "**아키텍처·마스킹·토큰화를 사다리 실험 내내 완전 고정**하고 그 사실을 표에 인쇄한다.",
+          "시드 반복 수를 먼저 정하고(White 는 9 회), 팔 간 차이의 CI 를 **항상** 붙인다.",
+          "⭐ **사전등록** — 어느 크기 이상이면 «효과 있음» 이라고 부를지 데이터 보기 전에 적는다. 이 저장소는 das_fleet_prereg 로 이미 그 습관이 있다."
+        ]
+      },
+      {
+        "id": "D6",
+        "심각도": "⭐⭐",
+        "결함": "사실적 산란체가 **역전이**를 낸 인쇄된 사례가 이미 있다",
+        "근거": "WiFi-JEPA Table 5 sim-human +7.9 mm (역전이)",
+        "완화": "그 비교는 축을 두 개 동시에 움직였다(저자 문장으로 확인) — 그게 우리 기여의 자리다. 다만 **사전 확률은 낙관적이지 않다** 는 사실을 위험 목록에 올려야 한다.",
+        "⭐처방": "델타의 근거를 «두 절반이 따로 있다» 보다 **«산란체 사실성을 시험한 유일한 공개 실험이 축을 두 개 동시에 움직였다»** 로 옮긴다. 쪽수 있는 한 문장으로 서고, 부재 계수에 의존하지 않으며, 심사자가 즉시 이해한다."
+      },
+      {
+        "id": "D7",
+        "심각도": "⭐",
+        "결함": "지시문·POSITION 이 «9만 프레임» 을 실측 목표처럼 다뤘다",
+        "근거": "PC1 + DivNet p.12 «15,000 → 30,000 은 +1%»",
+        "⭐처방": "코퍼스 목표를 **15K** 로 못 박고 근거를 DivNet p.12 로 단다. 90K 를 만들 이유가 문헌에 없다."
+      },
+      {
+        "id": "D8",
+        "심각도": "⭐",
+        "결함": "CFAR 문턱 교정이 시뮬 위에서 이뤄지면 도메인을 안 넘는다",
+        "근거": "dc_over_ac 이동 33~2,239배 (§4-1 V4)",
+        "⭐처방": "«문턱은 시뮬에서 교정하지 않는다. 실측 배경 녹음(M5) 위에서만 교정한다» 를 명시 규약으로 승격. M5 가 이미 1순위라 추가 비용 0."
+      },
+      {
+        "id": "D9",
+        "심각도": "⭐",
+        "결함": "X410 채널 간 위상 정합성이 미검증 가정으로 남아 있다",
+        "근거": "outputs/deepread_wave5.json — 같은 계열 N310 은 제조사 문서상 부팅마다 채널 간 위상 랜덤이고 저자들이 OTA 위상 교정을 새로 만들었다(2510.17342 p.3-4). X410 은 아키텍처가 달라 **단정 금지**, 확인해야 할 질문.",
+        "이_렌즈의_추가": "확인이 아니라 **세션 비용**의 문제다. 매 부팅마다 OTA 교정이 필요하면 필드데이당 30~60 분이 사라지고(CRUDE), §2-2 의 가동률 45~60% 가 더 내려간다.",
+        "⭐처방": "실측 전에 실내에서 부팅 3 회 × 위상차 측정 반나절. 값이 안정이면 비용 0, 불안정이면 교정 절차를 일과에 넣는다."
+      },
+      {
+        "id": "D10",
+        "심각도": "⭐",
+        "결함": "회전 코너리플렉터가 막지 못하는 칸을 막는다고 읽힐 수 있다",
+        "근거": "§4-4 — many-λ 물체라 few-λ 블레이드 진폭은 검증 못 한다",
+        "⭐처방": "«기하·운동학·수신체인·동기·처리사슬을 검증한다» 로 범위를 좁혀 적고, 블레이드 진폭용으로 **회전 프로펠러 지그**를 따로 세운다."
+      }
+    ]
+  },
+
+  "7_verdict": {
+    "판정": "PREMATURE",
+    "한_줄": "**실측 프레임 수도 시뮬 GPU 시간도 이 방향을 막지 않는다. 막는 것은 블레이드다** — 우리 패시브 기하가 볼 수 있는 유일한 마이크로도플러 특징이 하필 우리 커널이 유효하한 4.53배 아래에서 만드는 특징이고, 사다리 칸(0.01~6.2 dB)보다 엔진 선택(1.84~11.63 dB)이 더 크게 흔든다. 그래서 T2 갈래는 지금 세울 수 없고, T1 갈래는 세울 수 있다.",
+    "왜_BROKEN_이_아닌가": [
+      "T1(탐지) 절반은 온전하다 — 동체는 2.68 GHz 부터 PO 유효라 생산 대역에서 통과하고, 사다리의 큰 칸(−54~−56 dB)이 검출 단면적 축에서 측정됐다.",
+      "실측 프레임 예산이 넉넉하다 — WiFi-JEPA 실측 코퍼스는 반나절, DivNet 미세조정 요구량(474)은 한 필드데이의 1/20.",
+      "시뮬 비용 결함은 **경로가 구체적이고 싼 수리**(50~100 LOC, 5.8 GPU-h 로 복귀)를 갖고 있다.",
+      "POSITION 의 R1~R5, M0~M10, kill 조건은 대부분 이 렌즈의 공격을 견딘다 — 특히 M5(배경 1순위)와 M0(pass 단위)는 이 렌즈로 봐도 옳다."
+    ],
+    "왜_SOUND_가_아닌가": [
+      "사용자 지정 메인 태스크가 «탐지·**분류**» 인데 분류 절반의 통제축이 §4-3 이분법으로 무너진다.",
+      "예산 문장이 오늘 파이프라인에서 4.4~1,083배 틀렸고, 그 근거가 28 분 전에 폐기됐다는 것을 못 봤다.",
+      "노리는 효과크기(2.2~8.7%)보다 표적과 무관한 설계 선택(3.5~6.4배)이 크다는 인쇄된 증거가 있고, 사실적 산란체의 **역전이** 사례도 인쇄돼 있다.",
+      "T2 축의 존재 조건인 로터별 rpm 산포가 실측 근거 없는 «선언된 가정» 이다."
+    ],
+    "⭐이_판정을_뒤집는_가장_싼_한_수": "**회전 프로펠러 지그 실측**(모터 + 실제 프로펠러 1 짝, 기체·허가 불필요, 코너리플렉터급 비용). 이게 성공하면 — (i) 블레이드 진폭이 앵커링되어 D1 이 닫히고, (ii) rpm 산포를 실측해 D3 이 닫히며, (iii) 실측 배음 개수·감쇠 기울기를 White 의 3~5 쌍 / −5~10 dB / −3~8 dB 규범과 나란히 놓을 수 있고, (iv) 위상표 근사 오차를 실물로 검증할 수 있다. **네 결함이 한 물건으로 닫힌다.** 이 라운드가 내는 가장 값싼 제안이다.",
+    "갈래별": {
+      "P1 (시뮬만, RadarConf/EuRAD)": "⭐ **T1 범위로 좁히면 SOUND.** T2 를 넣으면 PREMATURE.",
+      "P2 (실측, IEEE T-RS/TAES)": "⭐ 프레임·pass 예산 성립. **D4(저장) · D9(위상 정합) · 프로펠러 지그**를 계획에 넣으면 SOUND.",
+      "P3 (학습, TAES/JSTSP ISAC)": "⚠ **PREMATURE.** D1·D5·D6 이 전부 여기 모인다. P1·P2 결과를 보고 다시 판정해야 하고, 지금 착수 결정을 내릴 근거가 없다."
+    }
+  },
+
+  "8_what_i_would_change_in_position": {
+    "note": "POSITION·MD 를 이 라운드에서 고치지 않았다(지시). 고칠 목록만 남긴다. 우선순위 순.",
+    "items": [
+      "① §2-2 델타 문장에서 «마이크로도플러 상태분류» 를 **조건부로 강등**하고, 헤드라인을 «패시브 바이스태틱 탐지확률» 로 확정한다. (D1)",
+      "② §4-2 «얼마나» 를 통째로 다시 쓴다 — 위상표 전제를 명시하고, 오늘 파이프라인 비용(15K·(a) = 61 GPU-h)과 수리 후 비용(5.8 GPU-h)을 나란히 적는다. «무라벨 표본은 사실상 공짜» 삭제. (D2, D7)",
+      "③ §2-2 «⚠ 이 델타의 가장 약한 고리» 에 **셋째**를 추가 — «null 이 결과가 되려면 블레이드 진폭이 독립 앵커링돼 있어야 한다». (D1)",
+      "④ §6 위험 목록에 **R6** 신설 — «표적 물리와 무관한 설계 선택이 효과를 덮는다», 근거 WiFi-JEPA Table 7·8. 그리고 **R7** — «사실적 산란체 역전이 인쇄 사례», 근거 Table 5. (D5, D6)",
+      "⑤ §2-3 «⭐ 더 센 새 프레임» 을 «두 절반» 에서 **«산란체 사실성을 시험한 유일한 공개 실험이 축을 두 개 동시에 움직였다»** 로 교체하거나 병기한다. 후자가 더 짧고 더 세다. (D6)",
+      "⑥ §4-1 M3 을 «rpm 라벨» 에서 **«rpm 산포 측정»** 으로 재정의하고 로터별 4 채널을 명시. (D3)",
+      "⑦ §4-1 M8 에 **버스트 캡처 규약과 저장 예산**을 추가. (D4)",
+      "⑧ §4-1 M6 에 **회전 프로펠러 지그**를 추가하고, 코너리플렉터의 범위를 «기하·운동학·체인 검증» 으로 좁힌다. (D10, 그리고 §7 의 뒤집는 한 수)",
+      "⑨ §4-2 «⚠ CFAR 문턱» 을 «문턱은 시뮬에서 교정하지 않는다» 로 강하게 다시 쓴다. (D8)",
+      "⑩ §4-1 에 **M11 — X410 채널 간 위상 정합 사전 확인**을 신설. (D9)"
+    ]
+  },
+
+  "9_crude_number_register": {
+    "note": "⭐ 지시대로 이 라운드에서 내가 새로 만든 숫자를 전부 여기 모았다. 위 본문에도 각 자리에 grade 를 달았다.",
+    "CRUDE": [
+      "필드데이 예산 — 공중 녹화 2.25~3.00 h/일/기체, pass 8.6/일/기체, R=40~60 → 4.7~7.0 기체-일 (가정: 8 h 현장 · 설치 2 h · 배경 1 h · 가동률 45~60% · 35 분 주기)",
+      "프레임 수 — 0.5 s CPI 50% 겹침 32,000~43,000/일, 5.6 s 이미지 1,450~1,930/일",
+      "프레임당 시뮬 비용 — (a)1 kHz 14.7 s · (a)200 Hz 2.9 s · (b)5 kHz 73.7 s (SBR 팔). 처리율만 MEASURED, 곱셈은 내 것",
+      "코퍼스 GPU-h — 15K/32K/90K × 세 규약 (12 ~ 1,842 GPU-h)",
+      "위상표 수리 경제성 — 70.1 s/시선각, 손익분기 0.95~4.75 프레임/시선각, 15K/300각 = 5.8 GPU-h, 90K/900각 = 17.5 GPU-h",
+      "저장 용량 — LTE 2.65 · WiFi 8.64 · 5G 10.62 TB/필드데이, 세 대역 22 TB, 5 일 110 TB, X410 최대 42.5 TB/일",
+      "환경 채널 몫 — 프레임당 +1~6 s, 15K 기준 +4~25 GPU-h",
+      "로터별 rpm 선 분해 — ±2.00% → CPI > 0.14~0.21 s / ±0.29% → 0.94~1.44 s / ±0.07% → 3.90~5.95 s",
+      "1 kHz 나이퀴스트 아래 생존 플래시선 배음 수 — 셀별 2~4 개",
+      "X410 부팅별 위상 교정 비용 — 필드데이당 30~60 분(필요한 경우)"
+    ],
+    "MEASURED (저장소가 잰 값, 내가 재집계만)": [
+      "슬로타임 표본당 비용 — SBR-spread 23.07/29.16/33.37 ms, PO-spread 3.72/4.43/5.09 ms, blade_occ 12.54/15.74/18.13 ms",
+      "동체 대 블레이드 레벨차 22.76~39.54 dB",
+      "단일축 가림(F−G) 0.00~12.36 dB, 6 셀 중 3 셀 부호 음수",
+      "엔진 묶음(B−D) 1.84~11.63 dB",
+      "dc_over_ac 0.010~87.25(8,779배), 같은 셀 SBR 대 PO 33~2,239배",
+      "PRF 관측가능성 0/36 · 9/9 · 0/9, f_flash 120.0~183.3 Hz, 필요 PRF 1195.4~4822.2 Hz"
+    ],
+    "VERIFIED_QUOTE (내가 이번에 PDF 를 열어 쪽수까지 확인)": [
+      "WiFi-JEPA p.6 90K 시뮬 = 10 GPU-h / 프레임 = 50 ms 창 / 20 RT pass / 기하 프리미티브",
+      "WiFi-JEPA p.9 실측 89,946 프레임",
+      "WiFi-JEPA p.13 Table 5 (sim-human +7.9 역전이 포함) · p.14 Table 7·8",
+      "White p.9 thin-wire 진폭 실패 + 인위적 감쇠 + S_body/S_blade 적합 · p.10 Table IV · p.6 Table III · p.5 Table I · p.7 5.6 s / 89.7%",
+      "DivNet p.8 32,000 표본 / 55 MOCAP · p.12 15k→30k +1% · p.10 15 dB 동률 · p.11 Table V · p.13 474 표본"
+    ]
+  },
+
+  "10_unverified_quarantine": {
+    "note": "이 라운드에서 내가 직접 확인하지 **않은** 것. 최종본에 쓰기 전에 닫아야 한다.",
+    "items": [
+      {"항목": "arXiv:2607.01025 «2R ≲ d»", "상태": "POSITION 인용을 그대로 받았다. 나는 이번에 PDF 를 안 열었다. §2-3 B1 의 근거이므로 R·d 표를 인쇄하기 전에 재확인 필요."},
+      {"항목": "Huang MLSP 1-shot SSL 이득 −20 dB 11.3% → +20 dB 25.7%", "상태": "이번에 안 열었다. §5-3 의 절반."},
+      {"항목": "Trinh 2026 «97% 회복»", "상태": "POSITION 도 «붕괴 쪽만 확인, 97% 는 미확인» 이라고 적었다. 그대로 유지."},
+      {"항목": "PiW3D 의 train/test 분할이 프레임 단위인지 세션 단위인지", "상태": "⭐ 확인 못 함. §2-3 B1 의 «WiFi-JEPA 도 문턱 안» 추정이 여기 걸린다. **단정하지 않았다.**"},
+      {"항목": "DJI Matrice 4E / Mini 5 Pro 공식 비행시간", "상태": "이번 라운드에서 스펙시트를 안 열었다. §2-2 의 35 분 주기는 순수 CRUDE 가정."},
+      {"항목": "X410 실제 지속 스트리밍 처리량과 현장 저장 구성", "상태": "src/experiment_x410.py 의 하드웨어 상수(491.52 MS/s · 12 bit · 400 MHz)만 읽었다. 실제 디스크 지속 쓰기는 확인 못 함 — §2-3 B2 는 링크가 아니라 **디스크**가 병목이라는 가정 위에 있다."},
+      {"항목": "BatStation · Ezuma · CageDroneRF · Dhulashia 2021", "상태": "POSITION 이 이미 미검증으로 격리한 것들. 이 렌즈에서 새로 열지 않았다."},
+      {"항목": "우리 SBR 커널의 처리율이 야외 사이트 트윈 씬에서도 29.2 ms/표본으로 유지되는가", "상태": "⚠ 확인 불가(GPU 미사용 라운드). report15b 는 씬에 드론만 있다. 지면·건물이 들어가면 광선 예산이 늘어 **§3 의 모든 GPU-h 가 올라간다.** 이 가정이 §3 에서 가장 낙관적인 칸이다."}
+    ]
+  },
+
+  "_one_paragraph_for_the_caller": "실현 가능성 렌즈 판정은 **PREMATURE** 다. 먼저 지시문 전제 하나가 뒤집혔다 — «그들이 쓴 실 9만 프레임» 의 출처는 WiFi-JEPA 이고, 그 90K 는 50 ms 짜리 CSI 창이라 **총 녹화 75 분**이며(p.6·p.9, 내가 직접 열람), 우리 필드데이 예산 2.25~3.00 h/일(CRUDE)이면 반나절에 넘는다. 미세조정 요구량도 DivNet 이 474 표본으로 7-class 97% 를 냈으니(p.13) 산술적으로 문제가 없다. 즉 **프레임 수는 병목이 아니고**, POSITION 이 지목한 R(독립 녹화 수)이 병목이라는 판단은 옳다 — 다만 이 렌즈가 새로 찾은 병목이 둘 더 있다. **저장 용량**(M8 의 두 캡처 규약을 세 대역 연속으로 하면 약 22 TB/필드데이 · 5 일 110 TB, 버스트 캡처로 6배 절감 가능)과 **CPI 길이**(로터별 rpm 산포 ±2% 는 report15b 자신이 «선언된 가정» 이라 적었고, 유일한 로그 증거인 PX4 SITL 은 0.07~0.29% 뿐이다 — 그 수준이면 로터 선을 분해하는 데 CPI 3.90~5.95 s 가 필요해 T2 가 호버로 강제되고, 호버는 hover blind 자리다). 시뮬 비용은 POSITION 이 **4.4~1,083배 과소평가**했다. 이유가 날카롭다 — «1팔 ≈ 1.7~14 GPU-h» 는 위상표 트릭 전제인데, 그 트릭을 무효화한 report15b 가 **같은 날 07:00 에 끝났고 POSITION 은 07:28 에 쓰였다**(28 분 차이). 오늘 파이프라인은 슬로타임 표본마다 sbr_field 를 다시 부르고, 저장소 실측으로 표본당 29.16 ms 라 15K 코퍼스가 61 GPU-h, 90K·풀캡처가 1,842 GPU-h 다. 다만 **로터별 가림 위상표(4 장/시선각, 70.1 s, 50~100 LOC)로 5.8 GPU-h 까지 회수된다** — kill 이 아니라 P1 집필 전 필수 수리다. 그리고 애초에 90K 를 만들 이유가 없다(DivNet p.12: 15,000→30,000 이 +1%). **진짜 급소는 블레이드가 맞다.** 우리 패시브 기하가 볼 수 있는 유일한 마이크로도플러 특징은 플래시선 배음 2~4 개인데(팁 도플러 0/36, 플래시선 LTE·WiFi 9/9 · 5G 0/9 — 내가 재집계), 그 세기를 정하는 날개가 우리 PO 유효하한에 **4.53배 부족**하고(0.161λ), 엔진 선택만으로 변조깊이가 **1.84~11.63 dB**, 단일축 가림만으로 **0.00~12.36 dB(부호 6 셀 중 3 셀 반전)** 움직이는데, 우리가 재려는 사다리 칸은 **0.01~6.2 dB** 다 — **통제 안 된 축이 통제축보다 크다.** 결정적으로 White 2023 p.9 를 내가 열어 확인했다: thin-wire 가 «파장과 날개 크기가 비슷한 우리 설정에서» 진폭 변조를 못 잡아 sideband 를 인위적으로 감쇠시키고 **S_body·S_blade 를 실측 SNR 에 맞춰 적합**했다(Table IV, 레이다별·기체별). 그러고도 합성 86.x% 대 실측 89.7% 다. 그래서 T2 는 이분법에 걸린다 — **진폭을 쓰면 커널이 없고, 선 위치·배음 구조만 쓰면(POSITION 의 R2 대비책이 정확히 이 길이다) 산란축이 태스크에 안 닿아 White 의 자리로 돌아간다.** POSITION 은 두 뿔을 각각 다른 절에서 밟았지만 둘이 같은 대상을 향한다는 것을 못 봤고, 그래서 델타의 자랑인 «null 도 결과» 가 T2 에서만 무효다(눈금 없는 진폭이 만든 null 은 ISAC 관행이 아니라 우리 커널에 대한 진술이다). 새 반대 증거도 하나 열었다 — WiFi-JEPA Table 5(p.13): **해부학적으로 사실적인 사람 메쉬 코퍼스가 역전이(+7.9 mm)를 냈고 기하 프리미티브가 이겼다**(−2.3 mm). 저자 해석은 교란돼 있어서(궤적 다양성과 산란체 사실성을 동시에 바꿨다, 저자 자신의 문장) **오히려 우리 델타의 자리를 더 선명하게 만든다** — «두 절반» 프레임보다 이 한 문장이 세다. 다만 같은 논문 Table 7·8 에서 토큰화(14.75 mm)와 마스킹(8.04 mm)이 시뮬 사전학습 전체 효과(2.3 mm)를 **3.5~6.4배** 눌렀다는 것도 사실이고, 그건 우리가 노리는 효과가 설계 잡음에 묻힐 위험이다. 결함 10 건을 심각도순으로 적었고(D1 T2 통제축 붕괴 ⭐⭐⭐ · D2 예산 ⭐⭐ · D3 rpm 산포 ⭐⭐ · D4 저장 ⭐⭐ · D5 효과크기 ⭐⭐ · D6 역전이 선례 ⭐⭐ · D7~D10 ⭐), POSITION 수정 목록 10 건을 §8 에 남겼다(이 라운드에서는 고치지 않았다). **판정을 뒤집는 가장 싼 한 수는 회전 프로펠러 지그 실측**이다 — 모터에 실제 프로펠러 한 짝만 달아 돌리면 기체도 비행 허가도 필요 없이 블레이드 진폭 앵커링(D1)·rpm 산포 실측(D3)·실측 배음 감쇠 기울기 대조(White 규범 3~5 쌍/−5~10 dB/−3~8 dB)·위상표 근사 검증이 **한 물건으로 닫힌다.** 코너리플렉터는 many-λ 라 이 칸을 못 막는다는 점도 적었다. 갈래별로는 P1 을 T1(탐지)로 좁히면 SOUND, P2 는 저장·위상정합·지그를 넣으면 SOUND, **P3(학습)는 지금 착수 결정을 내릴 근거가 없다.**"
+}

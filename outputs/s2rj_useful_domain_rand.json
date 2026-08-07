@@ -1,0 +1,680 @@
+{
+  "_meta": {
+    "title": "도메인 무작위화·절차적 생성 조사에서 «우리가 쓸 수 있는 것» 골라내기",
+    "date": "2026-08-07",
+    "round_id": "s2rj_useful_domain_rand",
+    "input": "outputs/s2rj_sweep_domain_rand.json (21편·8갈래·반례 9건·격리 7건)",
+    "what_this_round_did": "조사 결과를 그대로 승계하지 않고, 헤드라인을 떠받치는 축자 인용 35건을 내가 직접 PDF 로 다시 열어 쪽수까지 대조했다(34건 일치·1건 축자 오류 발견). 그 위에 21편 전문 낱말 계수를 새로 돌려 «없다» 주장의 모집단을 못박았다. 저장소 소스·리포트·빌더는 읽기만 했다.",
+    "files_written": ["outputs/s2rj_useful_domain_rand.json"],
+    "files_read_only": ["docs/TARGET_LADDER.md", "docs/SIM2REAL_PLAN.md", "docs/RESUME.md", "docs/VERIFY_RT_VS_PO.md", "outputs/report15_verdict.json", "outputs/report16_synthesis.json", "outputs/s2rj_sweep_domain_rand.json"],
+    "gpu_used": false,
+    "language_policy": "본문 한국어 · 논문/지표/식별자 영어 · 쉬운 말 우선",
+    "quote_policy": "이 파일의 모든 축자 인용은 내가 이번 라운드에 fitz 로 직접 열어 쪽수를 확인한 것이다. 확인 못 한 것은 unverified 로 격리했다."
+  },
+
+  "verification_this_round": {
+    "method": "PDF 를 fitz 로 열어 쪽 단위 텍스트를 정규화(하이픈·따옴표·리가처 통일)한 뒤 인용문을 부분문자열로 찾았다. 스크립트는 스크래치패드에만 있고 저장소에 안 남겼다.",
+    "quotes_rechecked": 35,
+    "quotes_confirmed": 34,
+    "quotes_corrected": 1,
+    "correction": {
+      "id": "Q-FIX-1",
+      "paper": "Camus 2022 (arXiv 2206.07352)",
+      "as_circulated": "This choice is not trivial because it cannot be known a priori and it directly determines the signal-to-noise ratio.",
+      "actual_verbatim": "This choice is not trivial because it cannot be known a priori [35] and it directly determines the signal-to-noise ratio.",
+      "page": 7,
+      "note": "본문 인용부호 [35] 가 문장 한가운데 있다. 축자로 쓰려면 넣거나 […] 로 표시해야 한다. 뜻은 안 변한다."
+    },
+    "new_page_number_pinned": {
+      "id": "Q-NEW-1",
+      "paper": "WiFi-JEPA (arXiv 2607.11064)",
+      "quote": "rendering temporal masking ineffective",
+      "page": 6,
+      "note": "이전 기록에 쪽수가 null 이던 «프레임당 20회 재추적» 근거 문장의 쪽수를 확정했다."
+    },
+    "page_count_discrepancy": {
+      "paper": "Clutter-Aware ISAC (Proc. IEEE 114(1):52-91)",
+      "circulated": "41쪽",
+      "what_i_opened": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf 는 36쪽이다",
+      "resolution": "«41쪽» 은 저널 페이지범위(52-91=40쪽)에서 온 수로 보인다. 쪽수를 인용할 때는 어느 판본인지 밝혀야 한다. 이 파일의 p.16 / p.32 는 전부 arXiv v2 PDF 기준이다."
+    },
+    "corpus_word_count": {
+      "why": "«아무도 안 했다» 를 «N편 범위에서 못 찾았다» 로 바꾸기 위해, 조사 21편 전문을 내가 다시 계수했다.",
+      "corpus_n": 21,
+      "corpus_ids": ["tobin2017","tremblay2018","prakash_sdr2018","openai_adr2019","chen2022_theory","kataoka_fractaldb","baradad2021_deadleaves","baradad2022_shaders","audiopg2026","wifi_jepa","camus2022_mocem","camus2025_combining","white2023","seyfioglu_divnet","erol_acgan","james_rcan2019","mehta_adr2019","task2sim","saribekyan2026","wirelessjepa","clutter_survey"],
+      "counts": {
+        "probability of detection / detection probability": {"zero_in": 21, "nonzero": []},
+        "ROC / receiver operating characteristic": {"zero_in": 21, "nonzero": []},
+        "CFAR": {"zero_in": 20, "nonzero": [["clutter_survey", 4]]},
+        "false alarm": {"zero_in": 19, "nonzero": [["clutter_survey", 3], ["white2023", 2]]},
+        "bistatic": {"zero_in": 18, "nonzero": [["clutter_survey", 16], ["camus2025_combining", 2], ["white2023", 1]]},
+        "passive radar / illuminator of opportunity": {"zero_in": 19, "nonzero": [["clutter_survey", 2], ["white2023", 1]]},
+        "micro-Doppler": {"zero_in": 17, "nonzero": [["seyfioglu_divnet", 59], ["erol_acgan", 44], ["white2023", 19], ["clutter_survey", 2]]},
+        "RCS / radar cross section": {"zero_in": 17, "nonzero": [["seyfioglu_divnet", 11], ["clutter_survey", 11], ["camus2025_combining", 2], ["white2023", 1]]}
+      },
+      "context_checks_i_did": [
+        "white2023 의 bistatic 1회는 **참고문헌 제목**(Direct signal synchronization for staring passive bistatic radar, p.14), passive radar 1회는 **저자 약력**(p.15)이다. 본문 방법이 아니다.",
+        "camus2025 의 bistatic 2회는 p.4 «Both approaches can be used in bistatic configura-tions.» 라는 **가능성 진술**이지 실험이 아니다.",
+        "white2023 의 false alarm 2회는 **한 동작점에서의 분류기 오경보율**이다 — p.7 «The real dataset achieved a 89.7 % classification accuracy, that was well balanced in regard to the rate of false positives of the two classes, with probability of false alarms being 8.9% for birds and 11.6% for drones.» ⚠ 이건 곡선이 아니라 점 하나다. «오경보를 안 적었다» 로 쓰면 틀린다.",
+        "clutter_survey 는 `drone`·`DJI` 가 0회이고 UAV 표현만 쓴다."
+      ],
+      "rt_config_recount": {
+        "wifi_jepa (17쪽)": {"max_depth": 0, "num_samples": 0, "diffraction": 0, "sionna version": 0, "RCS": 0, "physical optics": 0, "mesh": 4, "blender": 1},
+        "clutter_survey (36쪽 arXiv v2)": {"max_depth": 0, "num_samples": 0, "physical optics": 0, "dBsm": 0, "diffraction": 2, "RCS": 11, "mesh": 2, "blender": 1},
+        "note": "이전 라운드 계수와 대체로 같으나 내가 직접 다시 셌다. clutter_survey 의 diffraction 2회는 이전 목록에 없던 항목이라 «0회» 목록에서 뺐다."
+      }
+    }
+  },
+
+  "answer_1_borrowable_methods": {
+    "framing": "«그대로 빌릴 수 있다» 는 (a) 저자가 실제로 한 일이 문장으로 확인되고 (b) 우리 조건에서 전제가 성립하며 (c) 비용을 오늘 셀 수 있다 — 이 셋이 맞을 때만 적었다. 비용은 사람-시간 / GPU / 실측 셋으로 갈라 적는다.",
+    "items": [
+      {
+        "id": "M1",
+        "name": "실측 배경 주입 (real-background injection)",
+        "from": "White 2023, IEEE Trans. Radar Systems",
+        "what_they_did_verbatim": {
+          "text": "The simulated target's 1-D timeseries returns are summed elementwise with the background signal - extracted, injecting the simulated target into a real background.",
+          "page": 11,
+          "verified": "이번 라운드 직접 열람"
+        },
+        "why_it_transfers": "라벨도 비행도 필요 없다. «드론이 없는 시각의 녹음» 이면 되고, 우리 X410 이 그걸 받는 데 드는 것은 시간뿐이다.",
+        "our_adaptation": "조명원 ON · 드론 OFF 상태의 서베일런스 채널 IQ 를 통째로 녹음하고, 우리 PO 에코 시계열을 **ECA 앞 원 IQ 단에서** 더한다.",
+        "our_own_design_decision": "⭐ 주입 지점을 ECA 앞으로 정한 것은 White 에 없는 우리 결정이다. ECA 뒤에 더하면 배경의 정적 성분이 이미 제거된 뒤라 «실측 배경» 이 하는 일이 사라진다. 반대로 ECA 앞에 넣으면 우리 에코도 ECA 노치의 손해를 정직하게 맞는다.",
+        "cost": {"사람-시간": "합산·정렬 코드 반나절 + 녹음 포맷 정리 하루", "GPU": "0", "실측": "표적 없는 배경 녹음 (라벨 0 · 비행 0 · 반나절 현장)"},
+        "prerequisites": ["X410 녹음 배관", "조명원(셀룰러 DL) 수신 확인"],
+        "confidence": "높음 — 우리 모달리티에서 가장 좋은 sim2real 성적을 낸 방법이 이것이다(합성학습 86.6% vs 실측학습 89.7%)",
+        "counter_evidence": "White 의 최고 성적도 순수 합성이 아니라 «합성 표적 + 실측 배경» 이다. 즉 이 방법은 «실측 없이 된다» 를 지지하지 않는다."
+      },
+      {
+        "id": "M2",
+        "name": "기록된 rpm 시계열로 표집 (값이 아니라 시간 구조를 무작위화)",
+        "from": "White 2023",
+        "what_they_did_verbatim": {
+          "text": "the fixed-speeds fell significantly further demonstrating that motor speed variation is an essential component of training",
+          "page": 13,
+          "verified": "이번 라운드 직접 열람"
+        },
+        "the_number": "드론 recall: 실측 baseline 88.4% > sub-CPI 80.1% > single-motor 79.0% > per-CPI 78.8% > fixed-speeds 74.5%",
+        "the_subtlety_verbatim": {
+          "text": "The fixed rotational frequency was constant across the flight and sensible values within a range typical of the drone model was randomly chosen for each flight.",
+          "page": 12,
+          "verified": "이번 라운드 직접 열람",
+          "reading": "⭐ 꼴찌 팔도 무작위 추출은 했다. 없던 것은 «시간에 따른 변화» 다."
+        },
+        "our_adaptation": "PX4/DJI 비행 로그에서 모터별 rpm 시계열을 뽑아 CPI 안에서도 변하게 넣는다(sub-CPI). 네 로터의 위상·회전수를 따로 굴린다.",
+        "cost": {"사람-시간": "로그 파서 + 시계열 주입 하루", "GPU": "재생성 비용은 기존 데이터 생성과 동일", "실측": "로그만 — 실비행 필요하나 RF 측정 장비 불필요"},
+        "confidence": "높음",
+        "counter_evidence": "⚠ 우리 report15 caveats 는 «네 로터를 같은 위상으로 돌린다(위상 잠금)» 를 현재 한계로 적어 두었다. 즉 이 방법은 빌릴 수 있으나 **아직 안 빌렸다**."
+      },
+      {
+        "id": "M3",
+        "name": "무작위화 축의 분업 — 표적은 물리로, 환경·센서는 넓게",
+        "from": "Camus 2022 (MOCEM→MSTAR), 정정된 축자 Q-FIX-1",
+        "what_they_did_verbatim": {
+          "text": "This choice is not trivial because it cannot be known a priori [35] and it directly determines the signal-to-noise ratio.",
+          "page": 7,
+          "verified": "이번 라운드 직접 열람 · 축자 정정본"
+        },
+        "the_number": "무작위화 기여: 최악 클러터 고정(-20 dB) 대비 +24.95%, **최적 클러터 고정(-15 dB) 대비에도 +7.42%** — 클러터 레벨을 정확히 맞춰도 흔드는 쪽이 낫다",
+        "the_rule_i_extract": "⭐ 무작위화의 판단 기준은 «중요한가» 가 아니라 «운용 시점에 알 수 있는가» 다. 알 수 없는 값만 흔든다.",
+        "our_axis_table": [
+          {"축": "배경 클러터 레벨/분포", "사전에 알 수 있나": "아니오", "판정": "무작위화"},
+          {"축": "열잡음 세기", "사전에 알 수 있나": "부분(수신기 NF 는 안다, 간섭은 모른다)", "판정": "무작위화"},
+          {"축": "바이스태틱 각·기저선 거리", "사전에 알 수 있나": "예(우리가 배치한다)", "판정": "스윕(무작위 아님)"},
+          {"축": "조명원 점유(9모드)", "사전에 알 수 있나": "아니오 — 비협조", "판정": "무작위화"},
+          {"축": "드론 자세·rpm", "사전에 알 수 있나": "아니오", "판정": "무작위화(단 시간 구조 유지, M2)"},
+          {"축": "표적 형상·재질", "사전에 알 수 있나": "예(기종을 안다고 가정)", "판정": "⛔ 무작위화 금지 — 물리로 계산"}
+        ],
+        "cost": {"사람-시간": "축 표 확정 + 생성기 파라미터화 이틀", "GPU": "데이터 생성량에 비례(기존 배관 재사용)", "실측": "0"},
+        "confidence": "높음 — 우리와 구조가 가장 같은 선행(물리 계산 표적 + 환경 무작위화 + 실측 전이)의 ablation 이다",
+        "counter_evidence": "⚠ 우리 헤드라인이 Pd 라 이 방법이 그대로는 안 온다. B2 참조."
+      },
+      {
+        "id": "M4",
+        "name": "«소량 실측이면 된다» 의 수치 앵커 — 지도 사전학습 + 미세조정",
+        "from": "Seyfioglu DivNet (IEEE TAES)",
+        "what_they_did_verbatim": {
+          "text": "just 474 measured samples were needed to fine-tune the network and achieve a high classification accuracy of 97% for a 7-class activity recognition problem.",
+          "page": 13,
+          "verified": "이번 라운드 직접 열람"
+        },
+        "why_it_matters_for_us": "⭐ «실측을 몇 개나 찍어야 하나» 에 답을 준 유일한 외부 숫자다. 우리 실측 계획의 규모를 정할 때 이 수를 출발점으로 쓴다(우리 클래스 수가 훨씬 적으므로 상한으로 읽는다).",
+        "bonus_verbatim": {
+          "text": "optical versus radio frequency",
+          "page": 10,
+          "context": "ResNet-50 이 VGGNet 과 거의 같은 성능인 이유를 «전이 도메인이 표적 도메인과 현상학적으로 크게 달라서» 로 설명하는 문장 안에 있다.",
+          "reading": "ImageNet 사전학습이 RF 로 잘 안 온다는 직접 증거 — «RF 는 RF 로 사전학습해야 한다» 의 인용원"
+        },
+        "cost": {"사람-시간": "학습 배관 자체는 별도", "GPU": "미세조정은 싸다", "실측": "수백 샘플 규모 — 우리 2 기체면 하루 이틀 비행"},
+        "confidence": "높음",
+        "counter_evidence": "그들 다양화 축은 체격·속도·보행 스타일이고 표적은 MoCap 점산란체다. EM σ 없이 97% 가 나왔다는 사실은 **우리 σ 커널의 필요성을 지지하지 않는다**(R1 참조)."
+      },
+      {
+        "id": "M5",
+        "name": "구조 있는 무작위화 — 균일분포 대신 문제가 정한 분포",
+        "from": "Prakash et al., Structured Domain Randomization (ICRA 2019)",
+        "what_they_did_verbatim": {
+          "text": "In contrast to DR, which places objects and distractors randomly according to a uniform probability distribution, SDR places objects and distractors randomly according to probability distributions that arise from the specific problem at hand.",
+          "page": 1,
+          "verified": "이번 라운드 직접 열람"
+        },
+        "our_adaptation": "드론 위치·속도·자세를 균일하게 뿌리지 않고 비행역학이 허용하는 분포에서 뽑는다. 우리는 «문법» 을 손으로 설계할 필요가 없다 — rpm-추력 관계와 기체 한계가 이미 문법이다.",
+        "cost": {"사람-시간": "샘플러 하루", "GPU": "0 추가", "실측": "0"},
+        "confidence": "높음 — 비용이 거의 0이고 반례(Mehta ADR)가 균일표집의 위험을 따로 보여 준다",
+        "counter_evidence": "SDR 은 vision 이고 실측 벤치마크(KITTI)에서 증명됐다. 신호 모달리티에서 같은 이득이 난다는 증거는 이 21편 범위에 없다."
+      },
+      {
+        "id": "M6",
+        "name": "물리 타당성 필터 — 를 «필요 없음» 논거로 빌린다",
+        "from": "Erol & Gurbuz, kinematically sifted ACGAN (IEEE TAES)",
+        "what_they_did_verbatim": {
+          "text": "A principle-component analysis (PCA) based kinematic-sifting algorithm is introduced to ensure that synthetic signatures are consistent with physically possible human motions.",
+          "page": 1,
+          "verified": "이번 라운드 직접 열람"
+        },
+        "the_number": "kinematic sifting 으로 +9%",
+        "our_adaptation": "⭐ 우리는 생성기가 물리 방정식이라 «물리적으로 불가능한 샘플» 이 원리적으로 안 나온다. 즉 이 +9% 는 우리가 **이미 공짜로 갖고 있는 것**이고, 생성 방식을 정당화하는 인용으로 쓴다.",
+        "cost": {"사람-시간": "0 — 인용만", "GPU": "0", "실측": "0"},
+        "confidence": "중간 — 논거로는 강하나 «+9% 를 우리가 벌었다» 로 쓰면 과장이다. 우리 생성기로 그 실험을 한 적이 없다."
+      },
+      {
+        "id": "M7",
+        "name": "프리미티브 대조군 팔(P0)을 우리 사다리에 추가",
+        "from": "WiFi-JEPA (arXiv 2607.11064)",
+        "what_they_did_verbatim": {
+          "text": "At 5.64 GHz (wavelength ~5 cm), a sphere and a human body differ substantially in scattering behavior-the body is articulated, non-convex, and has complex dielectric properties. Nevertheless, SSL pre-training may still succeed with geometric primitives, because the learning objective benefits from diverse spatio-temporal channel variation, rather than faithful reproduction of body-specific multipath.",
+          "page": 5,
+          "verified": "이번 라운드 직접 열람"
+        },
+        "our_adaptation": "우리 표적 사다리에 «기하 프리미티브(구·상자·원기둥) 1~4개» 팔을 하나 넣고, 우리 태스크(Pd 와 상태분류) 에서 직접 잰다. 그러면 «프리미티브로 충분한가» 가 가설이 아니라 우리 실험의 한 칸이 된다.",
+        "cost": {"사람-시간": "팔 하나 추가 반나절", "GPU": "반나절", "실측": "0"},
+        "confidence": "높음 — 새 CAD 도 새 재질도 필요 없다",
+        "counter_evidence": "우리 사다리 B단(회전반경 위의 공)이 이미 프리미티브에 가깝고, matrice4e 에서 템플릿 손실 13.00 dB 다. 즉 답이 어느 쪽인지 반쯤 보인다."
+      },
+      {
+        "id": "M8",
+        "name": "절대 세기를 안 쓰는 불변 지표를 하나 인쇄",
+        "from": "White 2023 (HERM/측대역 간격) + AudioPG 의 잠재공간 관찰",
+        "audiopg_verbatim": {
+          "text": "Latent space analysis reveals physical factors, including fundamental frequency and relative intensity, emerge in orthogonal subspaces, making representations linearly decodable.",
+          "page": 1,
+          "verified": "이번 라운드 직접 열람"
+        },
+        "our_adaptation": "«측대역 간격 = 4 x rpm» 처럼 세기에 안 걸리는 양을 하나 뽑아, 도메인이 바뀌어도 안 변하는지 검사한다. 학습된 표현에서 그 양이 선형으로 읽히는지도 본다(AudioPG 식 잠재공간 검사).",
+        "cost": {"사람-시간": "지표 코드 반나절", "GPU": "0~소량", "실측": "0(단 실측이 오면 그대로 재사용)"},
+        "confidence": "높음 — 공짜 안전망",
+        "counter_evidence": "⚠ 이 갈래만으로는 헤드라인을 못 만든다. Pd 는 원리적으로 절대 세기에 걸린다."
+      },
+      {
+        "id": "M9",
+        "name": "«같은 표적·다른 엔진» 을 재는 실험 설계",
+        "from": "Camus 2025, Combining SAR Simulators",
+        "what_they_did_verbatim": {
+          "text": "Thus, we found a gap of 5.77 % between the two simulators. We conclude that there is a significant impact of the simulation paradigm on the ATR results. The combination of the two simulators further increases this result by 1.6 % to reach a total of 87.91 %.",
+          "page": 5,
+          "verified": "이번 라운드 직접 열람"
+        },
+        "what_i_borrow": "⭐ 빌리는 것은 «합치면 좋다» 는 결론이 **아니라**, «엔진 선택이 다운스트림 정확도에서 측정 가능한 차이를 만든다» 를 재는 **실험 설계**다.",
+        "why_the_conclusion_does_not_transfer": "그들 두 엔진(MOCEM=산란중심, Salsa=광선추적)은 독립적으로 개발된 다른 물리 패러다임이다. 우리 두 엔진은 하나가 다른 하나 위에 올라가 있고, 우리 자신의 report15 가 prop 채널 복소 AC 상관 0.857~0.978 을 보고한다 — 즉 «다른 패러다임» 이라 부를 근거가 아직 없다. B7 참조.",
+        "cost": {"사람-시간": "이미 있는 두 산출을 같은 다운스트림에 먹이는 배관 이틀", "GPU": "하루", "실측": "0"},
+        "confidence": "설계는 높음 · 결론 이전은 낮음"
+      }
+    ],
+    "not_borrowable_but_worth_citing": [
+      {"id": "N1", "what": "Tobin 2017 의 «충분한 변형이면 실물이 변형 중 하나로 보인다»(p.1)", "use": "계보의 원점 인용. 우리 실험 결과로 쓰면 안 된다."},
+      {"id": "N2", "what": "Chen 2022 ICLR 의 상·하한 정리(p.2 «We also provide a lower bound showing that such benign conditions are necessary for efficient learning.»)", "use": "⛔ 정리로 인용 금지. 강화학습 MDP 설정이다. 유비로만, 그것도 «유비» 라고 밝히고."},
+      {"id": "N3", "what": "OpenAI ADR 의 자동 폭 확장(p.1)", "use": "아이디어만. 계산량이 우리 규모가 아니다."},
+      {"id": "N4", "what": "RCAN 의 정준화(p.1 «domain randomization alone can waste modeling power»)", "use": "«무작위화 단독은 낭비» 논거로만. 우리 클래스가 2개라 생성 정제는 클래스 누출 위험이 크다."}
+    ]
+  },
+
+  "answer_2_what_breaks_for_us": {
+    "framing": "«깨진다» 는 «그 방법이 나쁘다» 가 아니라 «우리 조건에서 전제가 안 선다» 는 뜻이다. 각 항목에 왜 깨지는지와, 깨진 채로 쓸 방법이 있으면 그것도 적었다.",
+    "items": [
+      {
+        "id": "B1",
+        "breaks": "«표적 충실도는 무관하다»(WiFi-JEPA 의 핵심 가설)",
+        "why": "표적이 신호에서 맡은 역할이 다르다. 사람 몸은 채널을 흔드는 **산란체**라 구로 바꿔도 «흔든다» 는 사실이 남는다. 프로펠러는 신호를 만드는 **변조원**이라 회전대칭 물체로 바꾸면 «흔든다» 는 사실 자체가 사라진다.",
+        "our_number": "회전대칭 원판으로 바꾸면 검출 단면적 -56.48 dB(mini2) / -54.44 dB(matrice4e), 파형 상관 0.003 / 0.001 (docs/TARGET_LADDER.md §5)",
+        "geometry_not_kernel": "이건 계산 결과가 아니라 기하학이다 — 돌려도 안 바뀌는 물체는 변조를 만들 수 없다. 우리 PO 커널의 약점에 안 흔들리는 유일한 칸이다.",
+        "severity": "높음(이전 불가)",
+        "but_honestly": "⚠ 이게 «높은 충실도가 필요하다» 로 뒤집히지는 않는다. 사다리 D단(평판 날개)이 검출 -1.63/-6.23 dB · 템플릿 손실 4.06/7.15 dB 로, 형상 디테일이 하나도 없어도 대부분을 이미 산다. 우리가 지킬 수 있는 문장은 «회전대칭이 깨져야 한다» 까지다."
+      },
+      {
+        "id": "B2",
+        "breaks": "SNR 축 무작위화 (Camus 의 이득 대부분이 여기서 온다)",
+        "why": "Camus 의 무작위화가 실질적으로 하는 일은 «모델이 SNR 을 못 믿게 만들기» 다. 그런데 우리 헤드라인은 고정 Pfa 에서의 Pd 이고, 그건 절대 세기에 정면으로 걸린다. 세기를 지워 버리면 분류는 좋아져도 «검출거리» 주장이 사라진다.",
+        "external_support": "Task2Sim p.1 «downstream performance on different tasks are favored by different configurations of simulation parameters ... there is no one-size-fits-all solution.»",
+        "severity": "높음(우리 고유 제약)",
+        "my_resolution": "⭐ 무작위화 범위를 두 축에 **다르게** 건다. (i) 검출축: 클러터·잡음을 규약값으로 **고정**하고 표적 SNR 만 스윕해 Pd(SNR) 곡선을 낸다. (ii) 분류축: 클러터·잡음·점유를 넓게 흔든다. 두 축의 무작위화 표를 논문에 따로 인쇄한다.",
+        "why_this_is_a_contribution": "이 규약을 명시한 선행을 21편 범위에서 못 찾았다. 방법론 기여로 쓸 수 있다."
+      },
+      {
+        "id": "B3",
+        "breaks": "«생성기를 많이 만들면 좋아진다» 의 스케일 법칙",
+        "why": "Baradad 의 Shaders-21k 는 생성기가 21,000 개이고 성능이 그 수에 대해 **로그 스케일**로 오른다. 우리 생성기는 사실상 1개(SBR+PO 커널)다. 로그 스케일 곡선의 맨 왼쪽에서 우리는 평평한 자리에 있다.",
+        "verbatim": {"text": "reduces the gap between pre-training with real and procedurally generated images by 38%", "page": 1, "paper": "Baradad 2022", "verified": "이번 라운드 직접 열람", "reading": "38% 줄인다 = 62% 는 남는다"},
+        "severity": "중간(주노선이 아니므로)",
+        "implication": "절차적 사전학습을 주노선으로 쓰면 우리가 가장 약한 축(생성기 다양성)에 논문을 세우게 된다. 대조군으로 두는 결정을 뒷받침한다."
+      },
+      {
+        "id": "B4",
+        "breaks": "«GPU 를 더 쓰면 격차가 줄어든다»",
+        "why": "절차적 사전학습에서는 반대다.",
+        "verbatim": {"text": "extending procedural pre-training to 500 epochs improves ESC-50 accuracy to 85.40%. In the high-resource regime, the real-data baseline reaches 87.00%, suggesting a remaining domain gap between procedural and real audio that becomes more visible as compute increases.", "page": 5, "paper": "AudioPG 2026", "verified": "이번 라운드 직접 열람"},
+        "severity": "중간",
+        "implication": "⭐ 우리 GPU 가 넉넉하다는 사실이 이 노선에서는 장점이 아니다. GPU 는 **데이터 다양성**(더 많은 장면·기하)에 쓰고 **더 긴 사전학습**에 쓰지 않는다."
+      },
+      {
+        "id": "B5",
+        "breaks": "hot clutter 공분산을 quiet period 로 추정하는 처방 (Proc. IEEE)",
+        "verbatim": {"text": "the full hot-clutter covariance or the disturbance covariance R_eta,n can be estimated directly from secondary data collected during quiet periods where only the interference is present.", "page": 16, "paper": "Clutter-Aware ISAC (arXiv v2)", "verified": "이번 라운드 직접 열람"},
+        "why": "우리 조명원은 비협조·상시 ON 이라 «간섭이 없는 시각» 이 없다.",
+        "severity": "중간",
+        "mitigation": "⭐ 우리에게 없는 것은 «간섭 없는 시각» 이지 «표적 없는 시각» 이 아니다. 조명원 ON·드론 OFF 녹음은 얼마든지 되고, 그게 정확히 M1 의 재료다.",
+        "honesty": "⚠ 이건 역설의 **해소가 아니라 우회**다. 논문에 그렇게 적어야 한다 — 우리가 추정하는 것은 «표적 없는 배경» 이지 «간섭 없는 잡음» 이 아니다."
+      },
+      {
+        "id": "B6",
+        "breaks": "챔버 기반 시뮬 → 야외 실측 전이",
+        "why": "sim-to-real 을 논하기 전에 chamber-to-field 격차가 이미 크다. CageDroneRF 는 실측→실측인데도 실내→실외에서 기종식별이 42.07% 로 떨어진다.",
+        "severity": "높음 — 우리 챔버 방침(메모 sionna2-chamber-policy)과 실측 야외 방침(메모 sionna2-measurement-outdoor)이 이 지점에서 부딪친다",
+        "my_resolution": "⭐ 시뮬 쪽에도 **야외 기하 1종**을 만든다(지면 반사 + 개활지 + 원거리 바이스태틱). 챔버는 «통제된 대조군» 으로 남기고 실측과 맞대는 것은 야외 기하 쪽이다. 시뮬을 챔버로만 두면 두 격차(챔버→야외, sim→real)를 한 번에 건너게 된다.",
+        "cost": {"사람-시간": "씬 하나 이틀", "GPU": "하루", "실측": "0"}
+      },
+      {
+        "id": "B7",
+        "breaks": "«두 엔진을 합치면 좋다»(Camus 2025) 의 우리 버전",
+        "why": "⚠⚠ 우리 두 엔진이 독립이 아니다. 우리 자신의 outputs/report15_verdict.json 이 prop 채널 복소 AC 상관을 mini2 0.975/0.978/0.955 (1/3/10 m), matrice4e 0.922/0.887/0.857 로 보고한다. Camus 의 +1.6% 는 두 시뮬이 **5.77%p 만큼 다를 때** 나온 값이다.",
+        "severity": "높음(주장 범위 문제)",
+        "my_resolution": "지금은 «합치기» 를 기여로 주장하지 않는다. 먼저 두 엔진이 우리 다운스트림에서 얼마나 다른 답을 내는지 재고, 차이가 유의미할 때만 합치기를 말한다."
+      },
+      {
+        "id": "B8",
+        "breaks": "«우리 σ 커널이 정확하다» 를 근거로 쓰는 모든 문장",
+        "why": "마이크로도플러를 만드는 프로펠러 날개(폭 13.78 mm)는 3.50 GHz 에서 파장의 0.161배로 우리 PO 유효 하한에 4.53배 모자란다(docs/TARGET_LADDER.md §9). 커널이 가장 약한 부품이 이 실험의 주인공이다.",
+        "severity": "높음",
+        "consistent_with_policy": "메모 방침(σ 는 기여가 아니라 인프라)과 같은 방향이다. 숫자는 부호와 자릿수만 쓰고 소수점은 안 쓴다."
+      },
+      {
+        "id": "B9",
+        "breaks": "커리큘럼/균일표집 처방 (Mehta ADR) 을 우리 검출축에 그대로 적용하기",
+        "why": "Mehta 는 균일표집이 고분산 정책을 만든다고 하고 그건 우리에게도 온다. 그런데 우리 검출 사슬은 **CFAR 문턱이 클러터 분포로 정해진다**. 학습 데이터의 클러터 분포를 커리큘럼으로 바꾸면 시험 시점의 Pfa 가 안 지켜진다.",
+        "severity": "중간 — 21편 범위에서 이 함정을 다룬 편을 못 찾았다(그들 중 CFAR 를 쓰는 편이 clutter_survey 하나뿐이고 그건 학습을 안 한다)",
+        "my_resolution": "CFAR 문턱 교정은 **학습 분포와 분리된 고정 규약 집합**에서만 하고, 커리큘럼은 분류축에만 건다."
+      },
+      {
+        "id": "B10",
+        "breaks": "Chen 2022 ICLR 정리를 «증명» 으로 쓰기",
+        "why": "강화학습 MDP·정책·기억(memory) 설정이다. 우리는 지도/자기지도 지각 문제다. «기억» 이 우리 쪽에서 «시간축 시퀀스 모델» 로 유비될 뿐이다.",
+        "severity": "낮음(인용 위생 문제)",
+        "rule": "⛔ 정리로 인용 금지. 쓰려면 «유비» 라고 밝히고 쓴다."
+      }
+    ]
+  },
+
+  "answer_3_papers_that_refute_us": {
+    "framing": "«우리를 반박할 논문» 을 우리 주장별로 짝지었다. 각 항목에 (그들의 근거) (우리 답) (답해도 남는 것) 을 적었다. ⭐ 가장 강한 반박은 논문이 아니라 **우리 자신의 report15** 였다.",
+    "items": [
+      {
+        "id": "R1",
+        "our_claim_attacked": "«마이크로도플러 분류에는 EM 으로 계산한 표적 산란이 필요하다»",
+        "refuter": "Seyfioglu et al., DivNet (IEEE TAES)",
+        "their_evidence": "MoCap 기반 **점산란체** 모델로 만든 합성 32,000장 + 실측 474장 → 7-class 97% / 11-class 95.7%. EM 표적 모델이 없다.",
+        "our_answer": "그들 표적은 사람이고 우리 표적은 프로펠러다. 우리 사다리 A단(회전대칭)이 보이듯, 우리 표적에는 «형상이 있어야만 신호가 생기는» 문턱이 있다. 그리고 우리 논문의 주장은 σ 정확도가 아니라 **파이프라인이 낸 Pd 곡선**이다(메모 방침: σ 는 인프라).",
+        "what_remains": "⚠ 정직하게: 그들 결과는 «점산란체로도 충분하다» 를 지지한다. 우리 σ 커널이 분류 정확도를 올린다는 증거는 우리에게 **아직 없다**. 그래서 P0 팔(M7)로 우리 태스크에서 직접 재야 한다.",
+        "strength": "높음"
+      },
+      {
+        "id": "R2",
+        "our_claim_attacked": "«드론 마이크로도플러에는 CAD 기반 σ 가 값어치 있다»",
+        "refuter": "White 2023 (IEEE TRS)",
+        "their_evidence": "thin-wire 프로펠러 모델(재질 없음·자세 의존 없음)로 합성학습 86.6%, 실측학습 89.7%. 격차 3.1%p.",
+        "our_answer": "우리 사다리가 같은 말을 dB 로 한다 — 평판 날개(D단)가 검출 -1.63/-6.23 dB, 템플릿 손실 4.06/7.15 dB. 그래서 우리는 «CAD 가 필요하다» 를 주장하지 않는다.",
+        "dual_use": "⭐ 같은 논문이 반대 방향 문장도 준다: p.13 «The degradation of drone recall with reduced synthetic data fidelity shows that the more realistic the simulated data, the more accurate the classifier is, crucially producing less drone false positives.» 즉 방향은 우리 편이고 크기가 작을 뿐이다.",
+        "what_remains": "우리 델타는 «변조가 나오느냐» 가 아니라 «가림·재질·자세까지 들어간 변조냐» 이고, 그건 아직 실측으로 안 닫혔다.",
+        "strength": "높음"
+      },
+      {
+        "id": "R3",
+        "our_claim_attacked": "«물리적 사실성에 투자하면 sim2real 이 좋아진다»",
+        "refuter": "Saribekyan et al. 2026 (IEEE CITS, Sionna)",
+        "their_evidence_verbatim": {"text": "Overall, the results suggest that distribution alignment is more important than physical realism or dataset size for sim-to-real RF positioning.", "page": 1, "verified": "이번 라운드 직접 열람"},
+        "second_quote": {"text": "However, larger synthetic datasets alone do not improve performance on unseen streets.", "page": 1, "verified": "이번 라운드 직접 열람"},
+        "our_answer": "그들 태스크(RSSI 핑거프린트 측위)에는 **표적이 없다**. 표적 산란이 결과에 안 들어가는 태스크에서 «물리적 사실성이 덜 중요» 가 나오는 것은 놀랍지 않다. 그래도 정렬(distribution alignment)은 싸므로 우리도 보조로 쓴다.",
+        "what_remains": "⚠ 우리 지연-도플러 맵에서 «정렬» 이 무엇인지 아직 정의하지 못했다. RSSI 한 스칼라의 정규화가 2D 맵으로 그대로 오지 않는다.",
+        "strength": "중간~높음(Sionna·RF·sim2real 직결이라 심사자가 반드시 든다)"
+      },
+      {
+        "id": "R4",
+        "our_claim_attacked": "«사실적인 합성이 좋은 합성이다»",
+        "refuter": "Baradad et al. 2021 (NeurIPS, Dead Leaves)",
+        "their_evidence": "p.1 «good performance can be achieved even with processes that are far from realistic», 그리고 p.9 상관: 정확도↔precision(사실성) r=-0.67, precision↔log-volume(다양성) r=-0.84",
+        "our_answer": "⭐ 그 음의 상관은 «사실성을 올리면 다양성이 깎인다» 는 교환관계에서 온다. 우리 분업(표적은 물리 고정 · 환경만 무작위)은 그 교환을 피한다 — 표적을 물리로 고정해도 환경 축의 다양성(log-volume)은 안 깎이기 때문이다. 이게 우리 분업의 진짜 이유다.",
+        "counter_to_my_own_answer": "⚠ 내 논거의 약점: Baradad 의 상관은 사전학습 데이터 **분포 전체**에 대한 것이고, «표적만 고정하면 그 상관을 피한다» 는 내가 세운 추론이지 그들이 보인 것이 아니다. 우리 데이터로 검사해야 한다(환경 축만 흔든 데이터셋의 다양성 계량을 재 보는 것).",
+        "strength": "중간"
+      },
+      {
+        "id": "R5",
+        "our_claim_attacked": "«기하 프리미티브로는 우리 신호를 못 만든다»",
+        "refuter": "WiFi-JEPA (arXiv 2607.11064)",
+        "their_evidence": "프리미티브 사전학습 100.1 mm MPJPE < 사람 메쉬 110.3 mm — 프리미티브가 **더 좋았다**",
+        "our_answer": "산란체/변조원 구분(B1)과 우리 A단 숫자. 그리고 그들 지표는 MPJPE(mm)로 절대 세기를 안 쓴다 — 사과 대 사과가 아니다.",
+        "what_remains": "⚠ 우리는 그 대조를 **우리 태스크에서 아직 안 돌렸다**. M7 이 그걸 돌리는 팔이다. 돌리기 전까지는 «이전되지 않는다» 가 논증이지 결과가 아니다.",
+        "strength": "중간"
+      },
+      {
+        "id": "R6",
+        "our_claim_attacked": "«sim-to-sim 교차행렬이 좋으면 방법이 건강하다»",
+        "refuter": "Camus et al. 2022",
+        "their_evidence_verbatim": {"text": "It is important to note that we observe a good convergence of all the training algorithms. Thus, these poor results cannot be detected during training, which makes any fine-tuning of the hyper-parameters irrelevant.", "page": 4, "verified": "이번 라운드 직접 열람"},
+        "the_number": "SAMPLE 튜닝 SOTA 가 같은 설정에서 91% → 20% (adversarial training 팔은 77% → 27%)",
+        "our_answer": "반박이라기보다 우리 검증 설계의 근거다. sim-to-sim 교차행렬은 **필요조건 검사**로만 쓰고, 통과했다고 sim-to-real 을 주장하지 않는다.",
+        "what_remains": "우리 실측이 0인 동안 이 경고는 그대로 남는다. 해소는 실측뿐이다.",
+        "strength": "높음(가장 무서운 항목)"
+      },
+      {
+        "id": "R7",
+        "our_claim_attacked": "⭐⭐ «스톡 Sionna 로는 프로펠러 마이크로도플러가 안 나온다 — 그래서 우리 PO 커널이 필요하다»",
+        "refuter": "**우리 자신의 outputs/report15_verdict.json**",
+        "their_evidence": "로터 위상을 스텝하고 매번 재추적하면 **나온다, 단 확산(diffuse) 채널에서만**. prop 채널 15칸 집계: mini2 {SIONNA_NATIVE_OK 6, MIXED 7, NO_MODULATION 2}, matrice4e {SIONNA_NATIVE_OK 10, MIXED 4, NO_MODULATION 1}. 두 엔진 prop 채널 복소 AC 상관 mini2 0.975/0.978/0.955, matrice4e 0.922/0.887/0.857 (1/3/10 m).",
+        "our_answer": "우리가 지킬 수 있는 좁은 주장은 둘뿐이다. (i) **정반사(글린트) 채널은 사실상 비어 있다** — 50/60 칸이 통째로 공백이고 켜지는 칸도 연속 변조가 아니라 껐다켜짐이다. (ii) 확산 채널의 **절대값은 몬테카를로 표본합**이라 σ 로 읽을 수 없다(시드 재추첨만으로 흔들린다). 절대 σ 는 여전히 우리 PO 가 담당한다.",
+        "what_must_change": "⛔ «Sionna 로는 마이크로도플러가 안 나온다» 라는 유통 문장은 **우리 자신의 데이터가 반증**한다. 논문·메모·리포트에서 «정반사 채널에서는 / 절대 σ 로는» 으로 좁혀 적어야 한다.",
+        "strength": "최고 — 외부 심사자가 우리 저장소를 못 보더라도, 같은 실험을 재현하면 5분 안에 나온다"
+      },
+      {
+        "id": "R8",
+        "our_claim_attacked": "«실내 챔버 시뮬로 야외 검출을 말할 수 있다»",
+        "refuter": "CageDroneRF benchmark (arXiv 2601.03302)",
+        "their_evidence": "실측→실측인데도 실내→실외 이동만으로 기종식별 42.07%(변조 69.95% · 프로토콜 66.11%), 혼합 도메인 학습 69.63%",
+        "our_answer": "실측을 야외로 잡은 결정(메모)이 이 반례로 정당화된다. 그리고 B6 대로 시뮬에도 야외 기하를 하나 만든다.",
+        "what_remains": "혼합 도메인 학습이 69.63% 로 회복된다는 그들 숫자는 «두 도메인 데이터를 다 갖고 있을 때» 의 값이다. 우리는 아직 한쪽도 없다.",
+        "strength": "높음"
+      },
+      {
+        "id": "R9",
+        "our_claim_attacked": "«기종 일반화» 를 조금이라도 주장하기",
+        "refuter": "AirGuard (arXiv 2603.13112)",
+        "their_evidence": "quadrotor 로 학습 → six-rotor 66.78%, eVTOL 4.49%",
+        "our_answer": "기종 분류·기종 일반화를 novelty 로 팔지 않는다. Matrice 4E 학습 → Mini 5 Pro 시험 hold-out 을 반드시 인쇄한다.",
+        "what_remains": "우리 기체 2대라는 사실은 안 바뀐다. Camus 도 p.8 «this experiment has a limited scope because it concerns only two classes» 를 자인했다 — 같은 칼이 우리에게도 돌아온다.",
+        "strength": "높음"
+      },
+      {
+        "id": "R10",
+        "our_claim_attacked": "«절차적/합성 사전학습이 실물을 대체할 수 있다»",
+        "refuter": "FractalDB 원조 자신 (Kataoka et al.)",
+        "their_evidence_verbatim": {"text": "Although the models pre-trained with the proposed Fractal DataBase (FractalDB), a database without natural images, does not necessarily outperform models pre-trained with human annotated datasets at all settings, we are able to partially surpass the accuracy of ImageNet/Places pre-trained models.", "page": 1, "verified": "이번 라운드 직접 열람"},
+        "our_answer": "우리는 «대체» 를 주장하지 않는다. 절차적 노선은 대조군이다.",
+        "strength": "낮음(우리가 그 주장을 안 하므로) — 단 이 계보를 무조건 명제로 인용하는 다른 논문을 반박할 때 쓸 수 있다"
+      }
+    ]
+  },
+
+  "answer_4_attack_distances": {
+    "framing": "서론에 쓸 형태의 «빈 곳» 목록. ⚠ 과장 금지 규율에 따라 전부 **모집단을 밝힌 계수 진술**로 적었다. «아무도 안 했다» 는 문장은 하나도 쓰지 않았다.",
+    "population_definition": "이 라운드의 계수 모집단은 outputs/s2rj_sweep_domain_rand.json 이 정독한 **21편**(도메인 무작위화·절차적 생성·합성학습 sim2real 계열)이다. 별도로 /data/public/sionna_jeong 아카이브 372편 전문 스캔에서 `domain_randomization` 이 본문에 나오는 편은 2편뿐이었다(WiFi-JEPA · Khan meta-RL).",
+    "items": [
+      {
+        "id": "G1",
+        "what_is_missing": "무작위화·합성 데이터로 학습한 **검출기**의 Pd(고정 Pfa) 또는 ROC",
+        "who": "21편 전부 (White 2023 · DivNet · Camus 2022/2025 · WiFi-JEPA · Baradad · AudioPG · Clutter-Aware ISAC 포함)",
+        "evidence": "내가 이번 라운드에 21편 전문을 계수했다 — `probability of detection`/`detection probability` **0/21편**, `ROC`/`receiver operating characteristic` **0/21편**, `CFAR` 는 21편 중 1편(Clutter-Aware ISAC, 4회)에만 있고 그 편은 학습을 하지 않는다.",
+        "important_nuance": "⚠ White 2023 은 오경보를 **한 동작점에서** 적었다 — p.7 «probability of false alarms being 8.9% for birds and 11.6% for drones». 즉 «오경보를 안 다뤘다» 로 쓰면 틀린다. 없는 것은 **곡선**이다.",
+        "we_fill": "ECA→CAF→CFAR→Pd@고정 Pfa 배관이 이미 있다. 표적모형 팔마다 ROC 한 벌씩.",
+        "how_much": "팔 5개 x 점유 3모드 x SNR 스윕 — GPU 하루~이틀, 새 실측 0",
+        "intro_sentence_draft": "Synthetic and randomized training pipelines for radar micro-Doppler are evaluated almost exclusively by classification accuracy: across the 21 domain-randomization / procedural-pretraining works we surveyed, none reports a detection-probability-versus-false-alarm curve, and only one mentions CFAR at all (a tutorial that does not train a model).",
+        "overreach_guard": "⛔ «검출확률을 낸 합성학습 논문이 없다» 로 쓰지 말 것. «우리가 조사한 21편 범위에서 못 찾았다» 로 쓴다. 레이더 검출 문헌 전체를 계수한 것이 아니다."
+      },
+      {
+        "id": "G2",
+        "what_is_missing": "**패시브 바이스태틱** 기하에서의 무작위화/합성학습",
+        "who": "21편 중 실험이 패시브 바이스태틱인 편 0",
+        "evidence": "`bistatic` 는 21편 중 3편에서만 0회가 아니다. 그중 White 의 1회는 **참고문헌 제목**(p.14)이고, Camus 2025 의 2회는 p.4 «Both approaches can be used in bistatic configura-tions.» 라는 **가능성 진술**이며, 실질 사용은 Clutter-Aware ISAC(16회)뿐인데 그 편은 학습을 하지 않는다. `passive radar`/`illuminator of opportunity` 는 2편에서만 0회가 아니고, White 의 1회는 **저자 약력**(p.15)이다.",
+        "we_fill": "조명원이 비협조(셀룰러 DL)이고 기하가 바이스태틱인 조건에서 합성학습을 돌린다. 조명원 점유 9모드를 무작위화 축으로 넣는다 — 이건 모노스태틱 능동 레이더에 존재하지 않는 축이다.",
+        "how_much": "새 축 1개 + 기존 report12 배관 재사용",
+        "intro_sentence_draft": "Domain randomization for radar has so far been developed under monostatic active geometry; in the 21 works we surveyed, the word 'bistatic' appears in the body of only one, and there as a statement of possibility rather than an experiment.",
+        "overreach_guard": "⛔ «패시브 바이스태틱 딥러닝 논문이 없다» 는 거짓이다(우리 아카이브에 패시브 UAV 검출 편들이 있다). 좁혀야 할 것은 «**무작위화/합성학습 계열에서**» 다."
+      },
+      {
+        "id": "G3",
+        "what_is_missing": "드론 마이크로도플러 합성에서 **배경(날씨·장소)의 무작위화**",
+        "who": "White 2023 — 저자가 직접 범위 밖이라 적었다",
+        "evidence_verbatim": {"text": "The weather conditions and locations could be altered to yield varied backgrounds for training data but this lies outside the scope of the current study.", "page": 11, "verified": "이번 라운드 직접 열람"},
+        "we_fill": "⭐ 이게 가장 방어하기 좋은 칸이다 — 선행이 스스로 비워 두고 «해야 한다» 고 적었다. Sionna 로 장면을 무작위 생성하는 팔 + 실측 배경 주입 팔(M1) 둘 다.",
+        "how_much": "Sionna 장면 무작위화는 GPU 이틀; 실측 배경 주입은 현장 반나절",
+        "intro_sentence_draft": "The only study we found that trained a drone/bird micro-Doppler classifier on synthetic spectrograms injected the synthetic target into a single measured background and explicitly deferred background variation as out of scope.",
+        "overreach_guard": "⛔ 이 문장은 White 한 편에 대한 것이다. 계열 전체로 넓히지 말 것."
+      },
+      {
+        "id": "G4",
+        "what_is_missing": "합성 데이터에 **어려운(저 SNR) 케이스가 없음** — 그래서 붕괴점을 못 잰다",
+        "who": "White 2023 — 저자가 직접 적었다",
+        "evidence_verbatim": {"text": "The simulation model presented in this paper does not attempt to model such fluctuations and synthetic parameter values were set so that sidebands were always visible in the synthetic data.", "page": 12, "verified": "이번 라운드 직접 열람"},
+        "we_fill": "SNR 을 낮춰 가며 **무너지는 지점**을 잰다. G1 의 Pd 곡선이 정확히 그 곡선이다.",
+        "how_much": "G1 과 같은 실행에서 공짜로 나온다",
+        "intro_sentence_draft": "Prior synthetic micro-Doppler training sets were parameterised so that the rotor sidebands were always visible, which makes the resulting classifier's degradation with signal-to-noise ratio unobservable.",
+        "overreach_guard": "⚠ 이건 «그들이 게을렀다» 가 아니라 «그들 태스크가 분류라서 필요 없었다» 이다. 그렇게 적는 편이 심사에서 강하다."
+      },
+      {
+        "id": "G5",
+        "what_is_missing": "표적을 얼마나 단순화해도 되는지의 **dB 가격표** — 그것도 태스크별로",
+        "who": "Baradad(다양성이 중요하다는 것을 정성으로 보였으나 «얼마나» 를 안 쟀다) · WiFi-JEPA(프리미티브 대 메쉬를 한 쌍만 비교) · White(thin-wire 한 종류) · DivNet(점산란체 한 종류)",
+        "evidence": "21편 중 표적 단순화 단계를 **여러 단으로** 놓고 각 단의 대가를 물리량(dB)으로 적은 편을 못 찾았다. 가장 가까운 것이 WiFi-JEPA 의 프리미티브(100.1 mm) vs 사람 메쉬(110.3 mm) 한 쌍이다.",
+        "we_fill": "우리 표적 사다리가 그 표다. ⭐ 그리고 이 라운드가 새로 찾은 것 — **가격표가 태스크에 따라 다르다**: 같은 사다리가 검출축(검출 단면적 오차)에서는 0.01~8.66 dB, 파형축(템플릿 손실)에서는 0.00~13.00 dB 다.",
+        "the_sharpest_cell": "matrice4e 의 B단(회전반경 위의 구)은 검출 단면적이 +2.03 dB 로 «잘 맞는» 것처럼 보이는데 파형 상관이 0.224 라 템플릿 손실이 13.00 dB 다. **레벨이 맞았다고 신호가 맞은 게 아니다.**",
+        "how_much": "이미 계산돼 있다(outputs/report16_synthesis.json). 남은 일은 태스크축으로 다시 인쇄하는 것 + P0 프리미티브 팔 추가",
+        "intro_sentence_draft": "Whether a target can be replaced by a geometric primitive has been answered per-paper with a single pairwise comparison; we instead price each rung of a target-simplification ladder in dB, and show the price depends on the downstream task - a sphere that is within 2 dB of the correct detection cross-section still costs 13 dB of matched-filter template loss.",
+        "overreach_guard": "⚠ 우리 사다리 자체의 판정이 PREMATURE 다(가림 없음·운동학 혼입·PO 유효 하한 1/4.53). 서론에 쓸 때 «우리는 이 가격표를 처음 낸다» 까지만 쓰고 «정확하다» 는 안 쓴다."
+      },
+      {
+        "id": "G6",
+        "what_is_missing": "광선추적 **설정의 보고**(광선 예산·최대 깊이·메쉬 해상도·버전)",
+        "who": "WiFi-JEPA(17쪽) · Clutter-Aware ISAC(36쪽 arXiv v2)",
+        "evidence": "내가 이번 라운드에 직접 계수했다 — WiFi-JEPA: `max_depth` 0회 · `num_samples` 0회 · `diffraction` 0회 · `physical optics` 0회 · Sionna 버전 표기 0회. Clutter-Aware ISAC: `max_depth` 0회 · `num_samples` 0회 · `physical optics` 0회 · `dBsm` 0회 (`diffraction` 은 2회 있다).",
+        "the_pattern": "⭐ 탑베뉴(Proc. IEEE)와 프리프린트가 똑같다. 개별 논문의 실수가 아니라 **분야의 관행**이다.",
+        "we_fill": "우리 RT/PO 설정을 전부 공개한다(광선 예산·max_depth·메쉬 삼각형 수·재질·시드·버전).",
+        "how_much": "비용 거의 0 — 이미 JSON provenance 규약이 있다",
+        "intro_sentence_draft": "Ray-tracing-based training data is now used in venues from preprints to Proceedings of the IEEE, yet neither of the two ray-tracing-trained works we examined in full text reports the ray budget, the maximum interaction depth, or the simulator version.",
+        "overreach_guard": "⛔ «아무도 RT 설정을 안 적는다» 로 쓰지 말 것. 내가 계수한 것은 **2편**이다."
+      },
+      {
+        "id": "G7",
+        "what_is_missing": "**태스크마다 무작위화 범위를 다르게 거는 규약** — 특히 검출축과 분류축의 충돌",
+        "who": "Task2Sim 이 필요성만 지적하고(«no one-size-fits-all solution», p.1) vision 20개 태스크에서 보였다. 신호 모달리티에서 이 규약을 명시한 편을 21편 범위에서 못 찾았다.",
+        "the_conflict": "Camus 의 무작위화 이득 대부분이 «SNR 을 못 믿게 만들기» 인데(p.7, 최적 클러터 고정 대비에도 +7.42%), 검출 성능은 절대 세기로 정의된다. 두 목표가 같은 축을 반대 방향으로 당긴다.",
+        "we_fill": "검출축은 클러터·잡음 고정 + 표적 SNR 스윕, 분류축은 클러터·점유·자세 무작위화 — 두 무작위화 표를 따로 인쇄한다.",
+        "how_much": "규약 문서화 하루 + 두 데이터셋 생성",
+        "intro_sentence_draft": "Randomizing the clutter level is what makes a synthetically trained classifier robust, but it is also what destroys the meaning of a detection threshold; we make this trade explicit by specifying two separate randomization budgets, one for the detection axis and one for the classification axis.",
+        "overreach_guard": "«우리가 처음» 이라 쓰지 말고 «21편 범위에서 신호 모달리티의 사례를 못 찾았다» 로 쓴다."
+      },
+      {
+        "id": "G8",
+        "what_is_missing": "회전 로터의 **자세분해·재질가중 σ** 를 EM 으로 계산해 학습 데이터에 넣기",
+        "who": "White(thin-wire, 재질·자세 없음) · DivNet(MoCap 점산란체) · Camus(자세는 있으나 SAR 정지영상) · WiFi-JEPA(기하 프리미티브)",
+        "evidence": "21편 중 `RCS`/`radar cross section` 이 0회가 아닌 편은 4편뿐이고(DivNet 11 · Clutter survey 11 · Camus 2025 2 · White 1), 그중 회전 부품의 자세분해 σ 를 계산한 편은 없다.",
+        "we_fill": "SBR+PO 로 자세×로터위상 격자를 만들어 시계열을 만든다.",
+        "how_much": "이미 있다",
+        "intro_sentence_draft": "Synthetic rotor micro-Doppler in prior work is generated from thin-wire or point-scatterer kinematics; among the 21 works surveyed, we found none that computes the aspect-resolved, material-weighted scattering of the rotating blades themselves.",
+        "overreach_guard": "⚠⚠ 두 겹으로 좁혀야 한다. (i) 모집단은 «무작위화/합성학습 21편» 이다 — RCS 문헌 전체가 아니다(우리 아카이브에 드론 RCS 측정·계산 편이 여럿 있다). (ii) 우리 PO 커널은 그 부품에서 유효 하한에 4.53배 모자란다. 「계산했다」는 참이지만 「정확하다」는 아직 거짓일 수 있다."
+      }
+    ],
+    "gaps_i_rejected": [
+      {"candidate": "«라벨 비용을 숫자로 적은 편이 0» ", "why_rejected": "빈 곳이긴 하나 심사자가 값어치를 못 느낀다. 우리 강점(로그가 라벨을 준다)의 배경 설명으로만 쓴다."},
+      {"candidate": "«코드·데이터를 공개한 편이 적다»", "why_rejected": "사실이 아니다 — Baradad(shaders21k)·AudioPG·FractalDB 는 공개했다. 오히려 우리가 안 한 쪽이다."},
+      {"candidate": "«자기지도를 RF 센싱에 쓴 편이 없다»", "why_rejected": "명백히 거짓. WiFi-JEPA·WirelessJEPA 가 같은 해에 나왔고 Proc. IEEE 가 미래방향으로 지목했다."}
+    ],
+    "the_top_level_endorsement_to_cite": {
+      "why": "빈 곳만 나열하면 «왜 지금인가» 가 없다. Proc. IEEE 가 우리 노선 둘을 미래방향으로 직접 지목한 것이 서론의 «왜 지금» 재료다.",
+      "quote_1": {"text": "self-supervised adaptation can enable continual refinement without labels, physics-informed learning can impose Doppler and geometry consistency to improve sample efficiency and interpretability, and predictive digital twins can provide short-horizon forecasts of clutter evolution", "page": 32, "paper": "Clutter-Aware ISAC (Proc. IEEE, arXiv v2)", "verified": "이번 라운드 직접 열람"},
+      "quote_2": {"text": "Environment-aware training, and leveraging ray-tracing simulations or large-scale multipath datasets can improve robustness in complex propagation", "page": 32, "paper": "Clutter-Aware ISAC (Proc. IEEE, arXiv v2)", "verified": "이번 라운드 직접 열람"}
+    }
+  },
+
+  "decisions_i_made_this_round": {
+    "note": "⭐⭐ 사용자 지시대로 판단을 미루지 않았다. 각 결정에 이유와 반대근거를 적었다.",
+    "items": [
+      {
+        "id": "D1",
+        "decision": "JEPA·자기지도는 대조군으로 유지 (이전 라운드 판정 승계)",
+        "my_added_reason": "라벨 비용이 우리에게 0에 가깝다는 것이 결정적이다. WiFi-JEPA 가 자기지도를 택한 이유가 원문 p.5 에 적혀 있고(«requiring dedicated indoor environments, synchronized receivers, and co-located motion capture for labeling»), 그 비용이 우리에게는 비행 로그로 대체된다.",
+        "counter": "⚠ Proc. IEEE p.32 가 자기지도 적응을 미래방향으로 지목했다. 즉 심사자가 «왜 자기지도를 안 썼나» 를 물을 수 있다. 답: 우리는 라벨이 있으므로 지도 사전학습이 더 단순하고 DivNet 이 이미 실증했다 — 그리고 대조군으로 한 팔은 돌린다."
+      },
+      {
+        "id": "D2",
+        "decision": "검출축과 분류축에 무작위화 범위를 **다르게** 건다",
+        "reason": "Camus 의 SNR 무작위화와 우리 Pd 헤드라인이 정면 충돌한다(B2). Task2Sim 이 외부 근거다.",
+        "counter": "두 데이터셋을 만들어야 해서 생성 비용이 두 배다. 그리고 «한 데이터셋으로 두 태스크» 가 더 깔끔한 이야기다 — 그 깔끔함을 포기한다."
+      },
+      {
+        "id": "D3",
+        "decision": "⭐⭐ «스톡 Sionna 로는 프로펠러 마이크로도플러가 안 나온다» 주장을 **철회하고 좁힌다**",
+        "reason": "우리 자신의 report15 가 반증한다(R7). 지킬 수 있는 것은 «정반사 채널은 50/60 칸 공백» 과 «확산 채널 절대값은 몬테카를로 표본합이라 σ 로 못 읽는다» 둘뿐이다.",
+        "counter": "이 철회로 우리 PO 커널의 정당화가 약해진다. 남는 정당화는 «절대 σ» 와 «정반사 글린트» 두 가지이고, 둘 다 실측으로 안 닫혔다. 그래도 틀린 문장을 들고 가는 것보다 낫다 — 저장소에 R20 대정정 이력이 있다."
+      },
+      {
+        "id": "D4",
+        "decision": "실측 배경은 **ECA 앞 원 IQ 단**에서 주입한다",
+        "reason": "ECA 뒤에 더하면 배경의 정적 성분이 이미 제거된 뒤라 «실측 배경» 이 하는 일이 사라진다.",
+        "counter": "ECA 앞에 넣으면 우리 합성 에코도 ECA 노치 손해를 맞아 Pd 가 낮게 나온다. 그게 정직한 값이라고 판단했다."
+      },
+      {
+        "id": "D5",
+        "decision": "시뮬에 **야외 기하 1종**을 추가한다 (챔버는 대조군으로 남긴다)",
+        "reason": "CageDroneRF 가 chamber→field 격차(42.07%)를 실측→실측으로 보였다. 챔버 시뮬만 두면 두 격차를 한 번에 건너게 된다.",
+        "counter": "⚠ 메모 sionna2-chamber-policy 는 «모든 sionna2 실험을 챔버 형태로» 라는 사용자 지시다. 이 결정은 그 지시를 **확장**하는 것이지 뒤집는 것이 아니라고 읽었다 — 챔버 실험은 그대로 두고 야외 기하를 하나 **추가**한다. 되돌리기 어려운 결정이 아니고(씬 하나), 사용자가 반대하면 챔버만 남기면 된다."
+      },
+      {
+        "id": "D6",
+        "decision": "표적 사다리에 P0(기하 프리미티브) 팔을 추가한다",
+        "reason": "WiFi-JEPA 대조를 우리 태스크에서 직접 재는 가장 싼 방법이다. 논거가 실험이 된다.",
+        "counter": "우리 B단(회전반경 위의 구)이 이미 프리미티브에 가까워서 새 정보가 적을 수 있다. 그래도 «그들이 쓴 그 구성»(방 안에 프리미티브 1~4개)을 그대로 넣어야 인용이 성립한다."
+      },
+      {
+        "id": "D7",
+        "decision": "«두 엔진을 합쳤다» 를 지금 기여로 주장하지 않는다",
+        "reason": "우리 두 엔진의 prop 채널 복소 AC 상관이 0.857~0.978 이라 «다른 패러다임» 이라 부를 근거가 없다. Camus 의 +1.6% 는 5.77%p 차이에서 나온 값이다.",
+        "counter": "«Sionna=환경, PO=표적» 분업 자체는 여전히 옳고 report15 가 뒷받침한다. 주장을 못 하는 것은 «합치기의 이득» 이지 «분업의 필요» 가 아니다."
+      },
+      {
+        "id": "D8",
+        "decision": "CFAR 문턱 교정은 학습 분포와 분리된 고정 규약 집합에서만 한다",
+        "reason": "커리큘럼·무작위화가 학습 클러터 분포를 바꾸면 시험 시점 Pfa 가 안 지켜진다(B9). 21편 범위에 이 함정을 다룬 편이 없었다.",
+        "counter": "고정 규약 집합이 실제 운용 분포와 다르면 그것대로 Pfa 가 틀린다. 완전한 해가 아니라 **어디서 틀리는지를 아는 방식**을 고른 것이다."
+      }
+    ]
+  },
+
+  "repo_corrections_needed": {
+    "note": "⛔ 이 라운드는 조사·설계 라운드라 파일을 안 고쳤다(동시 진행 라운드가 src/·docs/RESUME.md 를 고치고 있다). 다음 편집 라운드 몫으로 근거와 함께 남긴다.",
+    "items": [
+      {
+        "id": "C1",
+        "file": "docs/TARGET_LADDER.md",
+        "line_or_section": "§5 맨 끝 «한 줄로» (파일 기준 145행)",
+        "current": "«모양이 있느냐 없느냐» 는 54 dB 이상을 가르지만, «모양이 얼마나 정밀하냐» 는 0.00~7.2 dB 안에서 논다.",
+        "problem": "두 군데가 틀린다. (i) 두 열을 섞었다 — 7.2 는 matrice4e D단의 **템플릿 손실**(7.15)인데 같은 표의 **검출 단면적** 최대치는 +8.66 dB(matrice4e C단)다. (ii) 템플릿 손실의 최대치는 7.2 가 아니라 **13.00 dB**(matrice4e B단)다. 같은 §5 본문(140행)이 그 13.0 dB 를 이미 설명하고 있어 문서 안에서 어긋난다.",
+        "proposed": "«모양이 있느냐 없느냐» 는 54 dB 이상을 가른다. «모양이 얼마나 정밀하냐» 는 **검출축(검출 단면적)에서는 0.01~8.66 dB**, **파형축(템플릿 손실)에서는 0.00~13.00 dB** 다 — 어느 축을 보느냐에 따라 값이 거의 두 배 다르다.",
+        "why_it_matters_now": "태스크가 마이크로도플러 분류로 바뀌면 봐야 할 열이 템플릿 손실이다. 축을 안 밝힌 «0~7 dB» 는 새 태스크에서 틀린 문장이 된다."
+      },
+      {
+        "id": "C2",
+        "file": "docs/RESUME.md",
+        "line_or_section": "23행 부근 «σ 는 기여가 아니라 인프라» 절의 근거 문장",
+        "current": "표적 사다리가 «모양 있느냐» **54 dB** ↔ «얼마나 정밀하냐» **0~7 dB** 로 갈랐다.",
+        "proposed": "표적 사다리가 «모양 있느냐» **54 dB** ↔ «얼마나 정밀하냐» **검출축 0~8.7 dB / 파형축 0~13.0 dB** 로 갈랐다.",
+        "note": "메모(sionna2-overhaul 계열)의 축약문도 같은 정정이 필요하다."
+      },
+      {
+        "id": "C3",
+        "file": "유통 문장 전반 (메모·리포트·덱)",
+        "current": "«스톡 Sionna 로는 블레이드 번쩍임이 원리적으로 안 나온다»",
+        "problem": "⭐⭐ 우리 자신의 outputs/report15_verdict.json 이 반증한다 — 로터 위상을 스텝하고 재추적하면 **확산 채널에서 나온다**(prop 15칸 중 mini2 6칸·matrice4e 10칸이 SIONNA_NATIVE_OK).",
+        "proposed": "«스톡 PathSolver 의 **정반사 채널**에서는 블레이드 글린트가 사실상 안 나온다(프롭 경로가 50/60 칸 공백, 켜지는 칸도 연속 변조가 아니라 껐다켜짐). 확산 채널에서는 변조가 나오지만 그 절대값은 몬테카를로 표본합이라 σ 로 읽을 수 없다.»",
+        "why_it_matters_now": "논문 서론에 그대로 실릴 위험이 큰 문장이고, 재현하면 5분 안에 반증된다."
+      },
+      {
+        "id": "C4",
+        "file": "outputs/s2rj_sweep_domain_rand.json (papers.camus2022_mocem.the_key_insight)",
+        "current": "This choice is not trivial because it cannot be known a priori and it directly determines the signal-to-noise ratio.",
+        "proposed": "This choice is not trivial because it cannot be known a priori [35] and it directly determines the signal-to-noise ratio.",
+        "note": "원문 p.7 에 인용부호 [35] 가 문장 한가운데 있다. 뜻은 안 변하나 축자 인용은 정확해야 한다."
+      },
+      {
+        "id": "C5",
+        "file": "클러터 서베이 쪽수 표기 전반",
+        "current": "«41쪽 전문»",
+        "proposed": "«Proc. IEEE 114(1):52-91 · 우리가 읽은 것은 arXiv v2 PDF 36쪽»",
+        "note": "쪽수 인용(p.16 quiet periods · p.32 미래방향)은 전부 arXiv v2 PDF 기준이다. 저널 조판 쪽수와 다르므로 판본을 밝혀야 한다."
+      }
+    ]
+  },
+
+  "cheapest_next_steps": {
+    "no_gpu_no_measurement": [
+      "① 사다리를 태스크 두 축으로 다시 인쇄한다 (검출축 / 파형축). 새 계산 0 — outputs/report16_synthesis.json 에 이미 있다. C1·C2 정정과 같은 작업이다.",
+      "② 무작위화 축 표를 «사전에 알 수 있나» 열과 함께 확정한다 (M3 의 표를 그대로 쓸 수 있다).",
+      "③ 검출축·분류축 무작위화 규약을 문서화한다 (D2) — 이게 논문의 방법론 기여가 된다.",
+      "④ R7 정정을 리포트·메모·덱에 반영한다 (C3). 미루면 논문에 실린다."
+    ],
+    "cheap_gpu": [
+      "⑤ P0 프리미티브 팔을 사다리에 추가 (M7) — 반나절.",
+      "⑥ 야외 기하 씬 1종 (D5) — 하루."
+    ],
+    "requires_measurement": [
+      "⑦ ⭐⭐ 표적 없는 배경 녹음 (조명원 ON · 드론 OFF). 라벨 0 · 비행 0 · 반나절. M1 의 전제이자 B5(quiet-period 역설)의 실무적 우회. **가장 먼저 해야 할 실측이다.**",
+      "⑧ 비행 로그에서 모터별 rpm 시계열 추출 (M2).",
+      "⑨ Matrice 4E 학습 → Mini 5 Pro 시험 hold-out 인쇄 (R9)."
+    ],
+    "do_not_do": [
+      "⛔ 절차적 사전학습을 더 오래 돌려서 격차를 좁히려 하지 말 것 (B4 — 격차가 오히려 벌어진다).",
+      "⛔ «두 엔진을 합쳐서 좋아졌다» 를 주장하지 말 것 (D7 — 독립성 미확보).",
+      "⛔ Chen 2022 정리를 우리 설정의 증명으로 인용하지 말 것 (B10).",
+      "⛔ «아무도 안 했다» 형태의 문장을 쓰지 말 것 — 전부 «N편 범위에서 못 찾았다» 로 (R20 대정정 이력).",
+      "⛔ 기종 분류·기종 일반화를 novelty 로 팔지 말 것 (R9)."
+    ]
+  },
+
+  "unverified_quarantine": {
+    "note": "인용 금지 목록. 이전 라운드 격리 7건을 승계하고 이 라운드의 상태를 갱신했다.",
+    "items": [
+      {"item": "PMC9410072 (Sensors 2022) — 합성학습 드론 기종분류 «실측 92.4%»", "status": "여전히 미확보(MDPI/PMC 차단)", "rule": "인용 금지. 우리와 가장 가까운 태스크라 다음 라운드 1순위."},
+      {"item": "WiSwiss — 다중소스 자기지도 무선센싱 «WiFi +4.5% / mmWave +10.3%»", "status": "PDF 미확보(ACM DL 초록만)", "rule": "인용 금지."},
+      {"item": "Inkawhich et al. 2021 SAMPLE «94.81% on measured data»", "status": "IEEE Xplore 차단", "rule": "인용 금지 + 반증 병기 — Camus 2022 가 같은 SAMPLE 설정에서 91%→20% 붕괴를 보였다(p.4, 내가 직접 확인)."},
+      {"item": "Sadeghi & Levine CAD2RL 수치", "status": "PDF 는 있으나 이번 라운드에도 안 읽었다", "rule": "수치 인용 금지. 계보 언급은 Tobin 경유로만."},
+      {"item": "WirelessJEPA (2601.20190) 본문 수치", "status": "1쪽만 확인 — 초록 문장 «learns general-purpose representations directly from real-world multi-antenna IQ data» 는 p.1 에서 내가 직접 확인했다", "rule": "그 한 문장 외 수치 인용 금지."},
+      {"item": "Ngo et al. 2106.08372 (레이더 sim2real 격차 계량)", "status": "초록만", "rule": "다음 라운드 정독 후보 — 다층 평가법이 우리 평가 설계에 쓸모 있어 보인다."},
+      {"item": "Chen et al. 2605.00018 (MoCap-to-radar 모델이 물리를 배우는가)", "status": "초록만", "rule": "다음 라운드 정독 후보 — «낮은 재구성 오차가 물리적 일관성을 보장하지 않는다» 가 우리 합성 검증 게이트에 직결."},
+      {"item": "CageDroneRF · AirGuard 수치 (42.07% · 66.78%/4.49%)", "status": "⚠ 이번 라운드에 원문을 다시 열지 않았다 — outputs/s2r_prior.json 계수를 승계했다. PDF 는 아카이브에 있다(2601.03302 · 2603.13112).", "rule": "논문에 쓰기 전 원문 확인 필요. 이 파일에서는 «승계» 라고 밝히고 썼다."}
+    ]
+  },
+
+  "provenance": {
+    "pdfs_i_opened_this_round": [
+      "1703.06907 (Tobin DR)", "1804.06516 (Tremblay)", "1810.10093 (Prakash SDR)", "1910.07113 (OpenAI ADR)",
+      "2110.03239 (Chen ICLR theory)", "2101.08515 (FractalDB)", "2106.05963 (Dead Leaves)", "2211.16412 (Shaders-21k)",
+      "audiopg (2606.14791)", "2607.11064 (WiFi-JEPA)", "2206.07352 (Camus MOCEM)", "2510.24768 (Camus combining)",
+      "white2023_trs (IEEE TRS)", "1811.08361 (DivNet)", "2001.08582 (Erol ACGAN)", "1812.07252 (RCAN)",
+      "1904.04762 (Mehta ADR)", "2112.00054 (Task2Sim)", "2607.04400 (Saribekyan)", "2601.20190 (WirelessJEPA)",
+      "2602.10537 (Clutter-Aware ISAC arXiv v2)"
+    ],
+    "pdf_roots": [
+      "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdfs/",
+      "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/s2rj/",
+      "/data/public/sionna_jeong/papers_isac_sionna/",
+      "/data/public/sionna_jeong/papers_isac_sionna/new_0731/"
+    ],
+    "repo_files_read": [
+      "docs/TARGET_LADDER.md (전문)",
+      "docs/SIM2REAL_PLAN.md (목차)",
+      "docs/RESUME.md (18-30행)",
+      "docs/VERIFY_RT_VS_PO.md (§1-3)",
+      "outputs/report15_verdict.json (conclusion · path_count_census · verdict)",
+      "outputs/report16_synthesis.json (ladder 열 확인)",
+      "outputs/s2rj_sweep_domain_rand.json (전문)"
+    ],
+    "repo_files_modified": "없음 — 이 파일 하나만 새로 썼다",
+    "gpu_used": false
+  }
+}

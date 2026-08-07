@@ -206,12 +206,31 @@ def main():
     res = json.load(open(J))
     npz = np.load(NPZ)
     cells = list(res["cells"])
-    # 대표 칸 = 가림이 가장 크게 무는 칸
-    lead = max(cells, key=lambda k: abs(res["cells"][k]["findings"]["occlusion_ptp_db"]))
-    print(f"  대표 칸: {lead}")
+
+    # ⭐ 대표 칸은 «가림이 큰 칸» 이 아니라 **메쉬가 깨끗한 기체** 로 고른다.
+    #   2026-08-07 메쉬 확정검사: matrice4e 프롭-벨 겹침 0.01 % (깨끗) ·
+    #   mini5pro 9.12 % (R3 이연). 헤드라인 그림을 결함이 남은 기체로 그리면
+    #   «그 9 % 때문 아니냐» 는 반론에 답할 수 없다.
+    #   matrice4e 는 1차 실측 표적이기도 하다.
+    def _pick(drone):
+        c = [k for k in cells if res["cells"][k]["drone"] == drone]
+        return max(c, key=lambda k: abs(res["cells"][k]["findings"]["occlusion_ptp_db"]))
+
+    lead = _pick("matrice4e")          # 깨끗한 메쉬 · 1차 실측 표적
+    second = _pick("mini5pro")         # ⚠ 겹침 9.12 % 남아 있음
+    print(f"  대표 칸(헤드라인) {lead}   ·   두 번째 {second}")
     fig1_spectrogram(res, npz, lead)
     fig2_occlusion(res, npz, lead)
     fig3_summary(res)
+    # 두 번째 기체도 같은 그림으로 남긴다(파일명 b)
+    import builtins
+    _orig = globals()["_save"]
+    def _save_b(fig, stem):
+        _orig(fig, stem + "b")
+    globals()["_save"] = _save_b
+    fig1_spectrogram(res, npz, second)
+    fig2_occlusion(res, npz, second)
+    globals()["_save"] = _orig
 
     print("\n═══ 판정 요약 ═══")
     for k in cells:

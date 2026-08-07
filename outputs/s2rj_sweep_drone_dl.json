@@ -1,0 +1,1359 @@
+{
+ "meta": {
+  "title": "드론 탐지·마이크로도플러 분류 × 딥러닝 선행조사 — 그리고 sim-to-real 노선 선택",
+  "date": "2026-08-07",
+  "round_id": "s2rj_sweep_drone_dl",
+  "language_policy": "본문 한국어 · 논문/지표/식별자 영어",
+  "gpu_used": false,
+  "files_touched": [
+   "outputs/s2rj_sweep_drone_dl.json (신규)"
+  ],
+  "files_not_touched": [
+   "src/**",
+   "reports/**",
+   "build_report*.py",
+   "docs/SIM2REAL_PLAN.md",
+   "prior_work/**",
+   "outputs/s2r_*.json"
+  ],
+  "quote_policy": "verbatim 인용은 전부 이번 라운드에 내가 직접 연 PDF/HTML 에서 뽑고 pdf_page 를 붙였다. 원문을 못 연 항목은 verified='unverified' 로 격리했고 수치를 주장에 쓰지 않았다.",
+  "builds_on": {
+   "outputs/s2r_prior.json": "2026-08-03 sim-to-real 정찰 33편. combo_found=False. 이번 라운드는 그 위에 쌓았고 거기서 이미 정독한 21편은 재정독하지 않았다(포인터만).",
+   "docs/SIM2REAL_PLAN.md": "태스크를 (a)유무검출로 잡고 표적모형 3갈래 지도학습 ablation 으로 짠 실행설계. 이번 라운드는 그 태스크 정의를 바꾸지 않고 '학습 패러다임' 층만 새로 조사했다.",
+   "prior_work/sionna_sensing_survey.md [R20][R21]": "Clutter-Aware ISAC · WiFi-JEPA 원문판정 완료분. 재정독 안 함. 다만 Clutter-Aware 인용 3건은 이번에 쪽수까지 재확인했다."
+  }
+ },
+ "scope_searched": {
+  "archive": {
+   "root": "/data/public/sionna_jeong",
+   "unique_pdfs_fulltext_scanned": 256,
+   "note": "md5 중복제거 후 256편 전문(fitz)에 9개 정규식(micro-Doppler / classif / bird / public-dataset / self-supervised / domain-adaptation / passive / drone|UAV / DL) 계수. site-packages·reference_cad 제외.",
+   "hits_drone>=10_AND_dl>=5_AND_(muD>=3_OR_clf>=8)": 9,
+   "verdict": "⚠ 아카이브는 '드론 × 딥러닝 분류' 축이 얇다. 상위 9편 중 5편은 이미 s2r_prior 에서 읽은 것이었다. 실질 신규는 아카이브 3편 + 웹 확보 6편."
+  },
+  "web": {
+   "websearch_queries": 7,
+   "pdfs_downloaded_and_opened": 6,
+   "blocked": [
+    {
+     "url": "https://www.mdpi.com/2504-446X/9/1/76",
+     "what": "Drones 2025 'UAV Detection with Passive Radar: Algorithms, Applications, and Challenges' 서베이",
+     "status": "HTTP 403 (WebFetch) / PDF 엔드포인트도 HTML 반환",
+     "consequence": "미검증 격리"
+    },
+    {
+     "url": "https://ietresearch.onlinelibrary.wiley.com/doi/full/10.1049/rsn2.70092",
+     "what": "Demissie 외, 'Drone Detection With a LTE450-Based Passive Radar', IET RSN 2025",
+     "status": "HTTP 402 Payment Required",
+     "consequence": "미검증 격리 — ⭐ 우리 기하와 가장 닮은 실측 패시브 논문이라 다음 라운드 최우선 확보 대상"
+    },
+    {
+     "url": "https://discovery.ucl.ac.uk/1533715/",
+     "what": "Ritchie 2017 IET RSN 원문(UCL AAM)",
+     "status": "페이지에서 PDF 링크 추출 실패",
+     "consequence": "수치는 Dhulashia 2021(직접 연 원문)의 재인용으로만 사용, 이중표기"
+    }
+   ]
+  },
+  "search_terms": [
+   "drone micro-Doppler classification deep learning",
+   "public dataset drone micro-Doppler radar spectrogram benchmark",
+   "passive radar UAV detection deep learning DVB-T LTE",
+   "radar foundation model self-supervised masked autoencoder micro-Doppler",
+   "JEPA joint embedding predictive architecture radar RF sensing 2026",
+   "sim-to-real domain adaptation radar micro-Doppler drone",
+   "pre-train simulated radar fine-tune real drone detection"
+  ]
+ },
+ "headline": {
+  "one_line": "⭐⭐⭐ 우리가 하려는 것을 **가장 가까운 선행 그룹(TU Ilmenau BiRa)이 자기 논문 마지막 줄에 future work 로 적어 놓고 안 했다**. 그 자리가 비어 있다.",
+  "the_sentence": {
+   "paper": "Costa 외, IEEE JSTEAP 2025 (arXiv:2504.05168)",
+   "pdf_page": 10,
+   "verbatim": "Future work can comprise the use of simulated data using this proposed model to train target classification algorithms and the validation of this training method using measurement data.",
+   "why_it_matters": "바이스태틱 OFDM 마이크로도플러 모델을 만들고 실측(BiRa)으로 검증까지 해 놓고 **분류기는 한 개도 학습하지 않았다**(내가 전문 계수: CNN 0회 · neural 0회 · accuracy 0회 · trained 0회). 즉 '시뮬로 분류기를 학습하고 실측으로 검증한다'는 우리 프로그램 전체가 그들이 남긴 빈칸이다."
+  },
+  "second_sentence": {
+   "paper": "같은 논문",
+   "pdf_page": 10,
+   "verbatim": "Although the measurement-based model produces a better representation of the drone body HRR micro-Doppler, it has the drawbacks of requiring multiple measurements, or at least an electromagnetic full-wave simulation, for each different target and having limitations in terms of geometric constellations.",
+   "why_it_matters": "⭐ 그들이 자기 모델의 약점으로 적은 것이 **정확히 우리 SBR+PO 커널이 하는 일**이다 — 표적마다 EM 시뮬로 동체 산란을 내고, 기하(바이스태틱 각) 제약 없이 낸다. 단 ⚠ 우리 PO 는 현재 모노스태틱이라 바이스태틱 obliquity 로 확장해야 이 문장을 우리 편으로 쓸 수 있다([[sionna2-rcs-methodology]] 와 일치)."
+  },
+  "structural_finding": {
+   "claim": "셀룰러 ISAC · 패시브 레이다 드론 문헌에서 표적은 거의 언제나 **자세도 로터도 없는 스칼라/통계 RCS** 다.",
+   "evidence_i_opened_myself": [
+    {
+     "paper": "Clutter-Aware ISAC (Proc. IEEE 2026)",
+     "pdf_page": 24,
+     "how": "α_t,n ~ CN(0, σ²_t,n) — 식(108)"
+    },
+    {
+     "paper": "Fuse-then-Detect (arXiv:2607.11955)",
+     "pdf_page": 9,
+     "how": "σ_UAV = 0 dBsm 고정 스칼라, Friis 바이스태틱"
+    },
+    {
+     "paper": "Saur 외, Nokia Bell Labs (arXiv:2605.23561)",
+     "pdf_page": 3,
+     "how": "DJI Air 3 를 문헌 비교로 σ = −17 dBsm 평균 스칼라"
+    },
+    {
+     "paper": "Jopanya·Osorio, SPAWC 2025 (arXiv:2504.02641)",
+     "pdf_page": 3,
+     "how": "α_k ~ CN(0,1) Swerling 1"
+    },
+    {
+     "paper": "Costa 외 JSTEAP 2025",
+     "pdf_page": 10,
+     "how": "동체는 Gaussian body model 또는 measurement-based model, 블레이드는 thin-wire 점산란체"
+    }
+   ],
+   "so_what": "⭐ 그러나 이 발견을 «우리 σ 가 더 정확하다» 로 쓰면 안 된다(사용자 지시). 쓸 수 있는 문장은 이것뿐이다 — **스칼라 σ 는 자세·가림·블레이드 위상이라는 축을 원리적으로 갖지 못한다. 우리 기여는 그 축이 탐지·상태분류 성능을 바꾸는지를 처음으로 측정하는 것이다.**"
+  }
+ },
+ "sim2real_routes": {
+  "framing": "이 라운드의 진짜 과녁. «JEPA 를 어떻게 이식하나» 가 아니라 «길이 몇 갈래고 우리 조건에 어느 것이 맞나».",
+  "routes": [
+   {
+    "id": "R1_sim_only_zeroshot",
+    "name": "시뮬만 지도학습 → 실측 제로샷 평가",
+    "precedents": [
+     "Moore 2023 IET RSN(합성전용 SqueezeNet → 실측 3-class 100%, 단 in-plane·자유공간)",
+     "White 2023 IEEE TRS(합성 86.6% vs 실측 89.7%)",
+     "RadSimReal",
+     "NextSense"
+    ],
+    "our_fit": "높음. docs/SIM2REAL_PLAN.md 의 3갈래 ablation 이 이미 이 구조다.",
+    "risk": "⚠ White 2023 이 실측으로 보여준 함정 — 총정확도는 −3.1 pp 인데 **표적 recall 은 88.4 → 80.1 pp** 로 무너진다. 총정확도 단일지표 금지."
+   },
+   {
+    "id": "R2_sim_pretrain_real_finetune",
+    "name": "시뮬 지도 사전학습 → 실측 미세조정 (전이학습)",
+    "precedents": [
+     "Saribekyan 2026(Sionna RT 로마 → RSSI 실측 fine-tune)",
+     "LAMBDA(단 RGB 경로만)",
+     "Seyfioglu·Gurbuz GRSL 2017(표본 ~650 미만이면 전이학습이 비지도 사전학습을 이긴다) ⚠ 원문 미확보=미검증"
+    ],
+    "our_fit": "높음. 가장 싸고 가장 표준적. 심사자가 «왜 안 했나» 라고 물을 기본선.",
+    "risk": "새롭지 않다. 이것만으로는 논문이 안 된다."
+   },
+   {
+    "id": "R3_real_background_injection",
+    "name": "⭐ 실측 배경 주입 — 시뮬 표적 시계열을 표적 없는 **실측** 배경에 원소별로 더한다",
+    "precedents": [
+     {
+      "paper": "White 2023 IEEE TRS",
+      "verbatim": "The simulated target's 1-D timeseries returns are summed elementwise with the background signal - extracted, injecting the simulated target into a real background.",
+      "source": "s2r_prior.json 에 pdf_page 11 로 기록된 기존 검증분(이번 라운드 재확인 안 함)"
+     }
+    ],
+    "our_fit": "⭐⭐ 매우 높음. X410 로 **표적 없는 시각의 필드 배경**을 그대로 녹음할 수 있다. 챔버→야외 격차(CageDroneRF: 기종식별 42.07%)를 배경 쪽에서 통째로 우회한다.",
+    "risk": "⚠ 배경을 실측으로 대체하면 «Sionna 로 환경을 냈다» 는 서사가 약해진다. Clutter-Aware ISAC(Proc. IEEE) 인용으로 지탱하던 상위 근거를 스스로 버리는 셈. → 두 구성(RT 배경 / 실측 배경)을 **둘 다** 돌려 대조하는 것이 정답."
+   },
+   {
+    "id": "R4_ssl_pretrain",
+    "name": "자기지도 사전학습(JEPA·MAE·contrastive) → 소량 라벨로 downstream",
+    "precedents": [
+     "WiFi-JEPA(2607.11064)",
+     "CSI-JEPA(2605.14171)",
+     "JEPA-MSAC(2603.29796)",
+     "JEPA for AI-Native 6G(2607.09798)",
+     "Huang 외 MLSP 2025(2501.03461, MAE + RF domain adaptation)"
+    ],
+    "our_fit": "⚠ **중간, 조건부**. 아래 verdict 참조. 라벨이 비싼 문제에서만 값이 있는데 우리는 라벨이 싸다.",
+    "risk": "⚠⚠ 자기모순 위험 — WiFi-JEPA 의 결론(«충실도보다 다양성»)이 우리 마이크로도플러에도 성립하면 **우리 σ 커널의 값어치가 사라진다**. JEPA 를 방법으로 채택하면 우리 기여를 스스로 부정하는 논문이 된다."
+   },
+   {
+    "id": "R5_domain_adaptation_calibration",
+    "name": "도메인 적응·분포정렬·캘리브레이션(재질 튜닝, CORAL/적대적, 물리 캘리브레이션)",
+    "precedents": [
+     "Trinh 2026 CDR(physics-informed calibrated DT)",
+     "oneTwin(Bayesian 재질 튜닝)",
+     "Huang 2025 의 RF domain adaptation 절반",
+     "Inkawhich 2021 SAR(⚠ abstract_only)"
+    ],
+    "our_fit": "중간. 짝지어진 실측이 있어야 돌아간다 — 우리는 실측 회차가 적다.",
+    "risk": "튜닝 자유도가 커서 «맞을 때까지 돌렸다» 는 비판을 받기 쉽다."
+   },
+   {
+    "id": "R6_mixed_domain",
+    "name": "혼합 학습 (시뮬 + 실측을 같이 넣는다)",
+    "precedents": [
+     {
+      "paper": "CageDroneRF(2601.03302)",
+      "number": "indoor→outdoor 기종식별 42.07% → 혼합 69.63% (+27.56 pp)"
+     },
+     {
+      "paper": "WiFi-JEPA",
+      "number": "실+시뮬 사전학습 결합이 SOTA(76.8 mm)"
+     }
+    ],
+    "our_fit": "높음. 두 선행 모두에서 **경험적으로 가장 강한 수단**이었다.",
+    "risk": "혼합하면 '시뮬이 얼마나 기여했나' 를 분리해 말하기 어렵다 → 라벨예산 곡선(real-only vs sim+real)으로 반드시 분해할 것."
+   }
+  ]
+ },
+ "verdict_route_choice": {
+  "decision": "⭐ 주노선 = **R3(실측 배경 주입) + R2(시뮬 사전학습→실측 미세조정) + R6(혼합)**. **R4(JEPA/SSL)는 백본이 아니라 «네 번째 팔」과 «가설 검증 장치»로만 넣는다.**",
+  "i_decided_this_myself": true,
+  "reasons": [
+   {
+    "n": 1,
+    "claim": "우리 태스크는 **절대 레벨**이 필요하다. WiFi-JEPA 의 전제가 우리에겐 성립 안 한다.",
+    "why": "그들 태스크는 자세추정이라 세기가 필요 없다. 우리는 «몇 m 에서 Pd 몇 %» 를 말해야 하고 그건 레벨 질문이다. 그들 자신의 가설 문장이 *'rather than faithful reproduction of body-specific multipath'* 인데, 이 문장은 그들 목적함수에 한정된 진술이다."
+   },
+   {
+    "n": 2,
+    "claim": "⭐⭐ **라벨은 우리 병목이 아니다.** SSL 이 당기는 레버가 우리에겐 이미 당겨져 있다.",
+    "evidence": {
+     "paper": "Huang 외, MLSP 2025 (arXiv:2501.03461)",
+     "pdf_page": 3,
+     "verbatim": "The improvement diminishes as the number of annotated frames used in fine-tuning increases, as reflected by the 17.5%, 6.3%, and 4.3% increases in 1-shot, 5-shot, and 10-shot performance for ResNet1D, respectively.",
+     "reading": "1-shot 17.5% → 10-shot 4.3%. SSL 이득은 극저라벨 구간에서만 크고 급격히 사그라든다. 우리는 챔버·필드 모두에서 10-shot 을 아득히 넘는다(비행 로그가 자세·시각 라벨을 자동으로 준다)."
+    },
+    "counter_evidence": "⚠ CSI-JEPA 는 Fall Detection 에서 **라벨 10개로 지도 Transformer 의 500개 성능**을 냈다(pdf p.8, 98.0% saving). 극저라벨 이득은 실재한다. 우리 반론은 «이득이 없다」가 아니라 «우리는 그 구간에 있지 않다» 다."
+   },
+   {
+    "n": 3,
+    "claim": "JEPA 를 백본으로 채택하면 **우리 σ 커널의 값어치를 스스로 지운다.**",
+    "why": "WiFi-JEPA 는 기하 프리미티브가 사람 메쉬를 이겼다(100.1 vs 110.3 mm). 같은 논리를 우리에게 적용하면 «구·상자로 사전학습해도 되니 SBR+PO 필요 없다» 가 된다. 우리 논문이 우리 인프라를 부정하는 구조가 된다."
+   },
+   {
+    "n": 4,
+    "claim": "그래도 R4 를 버리면 안 된다 — **그것이 우리 주장의 유일한 반증장치**이기 때문이다.",
+    "design": "표적모형 사다리(통계 σ / 큐브 / 우리 σ)를 **지도학습 팔과 SSL 팔 양쪽에서** 돌린다. ① SSL 팔에서도 사다리가 성능을 바꾸면 → «표적 구조는 표현학습 목적함수에서도 지워지지 않는다», WiFi-JEPA 의 결론이 마이크로도플러에는 이전되지 않는다는 강한 증거. ② 안 바꾸면 → 정직한 음성 결과이고 그 자체로 인용가치가 있다. 어느 쪽이든 논문이 된다.",
+    "why_this_is_the_right_use": "사용자 표현 그대로 — JEPA 는 «타겟 레퍼런스 중 하나»다. 방법이 아니라 **비교 대상이자 가설**로 쓰는 것이 이 판정의 결론이다."
+   },
+   {
+    "n": 5,
+    "claim": "가장 가까운 선행이 우리를 R1/R2 로 초대하고 있다.",
+    "why": "Costa 2025 의 future work 문장(위 headline)은 SSL 이 아니라 **'시뮬 데이터로 분류기 학습 + 실측 검증'** 이다. 우리가 그 문장을 인용해 자리를 차지하려면 그 문장이 말하는 노선을 걸어야 한다."
+   }
+  ],
+  "counter_arguments_against_my_own_decision": [
+   "⚠ 2026년 무선 쪽 JEPA 는 명백히 뜨는 흐름이다(WiFi-JEPA·CSI-JEPA·JEPA-MSAC·JEPA-for-6G 튜토리얼이 전부 2026). '새로움' 만 보면 R4 가 유리하고, 우리가 R1/R2 로 가면 «2017년 방법론» 이라는 인상 공격을 받을 수 있다.",
+   "⚠ 우리 실측 회차가 예상보다 훨씬 적으면(예: 유효 CPI 수백 개) Huang 2025 의 저라벨 구간에 실제로 들어간다. 그러면 내 판정 #2 의 전제가 깨진다. → **실측 1차(Matrice 4E) 직후 유효 표본 수를 세고 이 판정을 재검토하는 게이트를 걸어야 한다.**",
+   "⚠ 비행 로그가 자세·rpm 라벨을 정말 주는지 나는 이번 라운드에서 **검증하지 않았다**. DJI 로그의 per-motor RPM 접근성은 기종·펌웨어에 따라 다르다. 이게 안 되면 '라벨이 싸다' 는 전제가 흔들린다(→ open_questions 참조).",
+   "⚠ R3(실측 배경 주입)는 Clutter-Aware ISAC 을 근거로 세운 «Sionna 로 환경을 낸다» 서사와 부분적으로 충돌한다. 두 배경 구성을 병행하지 않으면 서사 일관성이 깨진다."
+  ],
+  "gate": "실측 1차 종료 시점에 (a) 유효 라벨 표본 수, (b) 비행로그 rpm/자세 라벨 실효성 두 개를 재고, 둘 다 나쁘면 R4 를 주노선으로 승격 재검토."
+ },
+ "papers_new_this_round": [
+  {
+   "id": "costa2025_jsteap",
+   "title": "Modeling Micro-Doppler Signature of Multi-Propeller Drones in Distributed ISAC",
+   "authors": "S. Costa 외 (TU Ilmenau / ThIMo BiRa)",
+   "venue_year": "IEEE J. Sel. Topics Emerg. Areas Sensing? — PDF 각주 DOI 10.1109/JSTEAP.2025.* , 2025",
+   "task": "바이스태틱 OFDM 다중 프로펠러 마이크로도플러 **신호 생성 모델** + BiRa 실측 검증. 분류 없음.",
+   "pretraining_data_source": "해당 없음(학습을 하지 않음)",
+   "labels_required": "해당 없음",
+   "transfer_result_numbers": {
+    "classifier_trained": 0,
+    "fulltext_counts_i_measured": {
+     "CNN": 0,
+     "neural": 0,
+     "accuracy": 0,
+     "trained": 0
+    }
+   },
+   "relevance": "높음 — ⭐ 이번 라운드 최직결 1위",
+   "quotes": [
+    {
+     "pdf_page": 10,
+     "verbatim": "Future work can comprise the use of simulated data using this proposed model to train target classification algorithms and the validation of this training method using measurement data."
+    },
+    {
+     "pdf_page": 10,
+     "verbatim": "Although the measurement-based model produces a better representation of the drone body HRR micro-Doppler, it has the drawbacks of requiring multiple measurements, or at least an electromagnetic full-wave simulation, for each different target and having limitations in terms of geometric constellations."
+    },
+    {
+     "pdf_page": 1,
+     "verbatim": "Besides bistatic real-time measurement systems such as [10], corresponding modeling and simulation tools are necessary for the training of classification algorithms, such as machine learning and deep learning layouts, that require large quantities of labeled training data [11]."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "동체 표현이 실측 기반 모델이면 표적마다 실측 또는 full-wave 시뮬이 필요하고 기하 조합에 제약이 있다(p.10)",
+     "분류기 학습·실측 검증은 future work(p.10)"
+    ],
+    "not_reported": [
+     "분류/탐지 성능 지표 0",
+     "Pd/Pfa/ROC 0",
+     "코드·데이터 공개 없음(PDF 내 링크 없음)"
+    ],
+    "we_have_they_dont": [
+     "물리로 계산한 자세분해 σ(재질가중 SBR+PO) — 그들이 '적어도 full-wave 시뮬이 필요' 라고 적은 바로 그 자리",
+     "패시브(비협조) 조명원 — 그들은 자체 OFDM 송신"
+    ],
+    "they_have_we_dont": [
+     "⭐ BiRa — 360° 방위 × 상반구 전체 자동 바이스태틱 실측 시설(우리에겐 없음)",
+     "로터 각속도를 원격 제어하는 커스텀 기체(Tarot IRON MAN 계열). 그들 스스로 *'full control over the rotors' rotation ... is not feasible with most standard commercial drones'* 라 적었다(APPENDIX A) — 우리는 상용 Matrice 4E 라 이 통제권이 없다"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2504.05168",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.05168__costa_microdoppler-multiprop-drones_JSTEAP-journal.pdf",
+   "verified": "pdf_opened_this_round"
+  },
+  {
+   "id": "tsms_drone_2026",
+   "title": "A Time-Synchronized Multi-Sensor drone dataset acquired from multiple radars and RF receiver (TSMS-Drone)",
+   "authors": "Seung-Kyu Han, Young-Ho Jung (한국항공대)",
+   "venue_year": "Nature Scientific Data 13:407, 2026 · DOI 10.1038/s41597-026-06802-6",
+   "task": "**공개 데이터셋**. CW 레이다(2.495 GHz) + FMCW(24 GHz TinyRad) + RF 수신기 시간동기 획득. DJI Inspire 2 / Mavic 2 Pro / Phantom 4 Pro / Matrice 30 + corner reflector 5클래스, 2~30 m 2 m 간격, 조건당 500회 반복.",
+   "pretraining_data_source": "전부 실측",
+   "labels_required": "라벨 완비(기종·거리·센서). 지도학습용으로 설계.",
+   "transfer_result_numbers": {
+    "baseline": "GoogLeNet 전이학습, 224×224, 클래스당 7,500장, 70/15/15",
+    "range_limits": "FMCW 20 m 초과 시 소형 드론 반사 소실, CW 12 m 초과 시 도플러 성분 분해 붕괴",
+    "rf_confusion": "Mavic 2 Pro ↔ Phantom 4 Pro 대역 중첩으로 약 50%"
+   },
+   "relevance": "높음 — 우리 눈금이자 사전학습 후보 실측 코퍼스",
+   "quotes": [
+    {
+     "pdf_page": 2,
+     "verbatim": "the inclusion of unprocessed raw signals (e.g., I/Q data, range-Doppler maps) enables a broad range of machine learning techniques like self-supervised representation learning while its time-synchronized structure is crucial for multimodal fusion."
+    },
+    {
+     "pdf_page": 12,
+     "verbatim": "beyond 20 meters, clear returns from smaller drones were no longer detectable. Similarly, in the CW radar, distinct micro-Doppler patterns were well resolved at short ranges, but beyond approximately 12 meters, a reduction in signal-to-noise ratio hindered the resolution of dominant frequency components."
+    },
+    {
+     "pdf_page": 15,
+     "verbatim": "the horizontal axis of the feature images encodes critical Doppler-frequency information. Therefore, geometry-based augmentations like rotation or scaling are not recommended as they can distort this spectral structure."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "거리 12~20 m 에서 이미 무너진다",
+     "RF 경로는 동일 대역 기종을 원리적으로 못 가른다"
+    ],
+    "not_reported": [
+     "야외/클러터 환경 없음(통제 조건)",
+     "바이스태틱 아님(모노스태틱 co-located)",
+     "sim-to-real 실험 없음",
+     "SSL 을 '가능하다' 고만 적고 직접 하지 않았다"
+    ],
+    "we_have_they_dont": [
+     "패시브 바이스태틱 기하",
+     "물리 계산 σ",
+     "시뮬 사다리"
+    ],
+    "they_have_we_dont": [
+     "⭐ 시간동기 3센서 실측 코퍼스 + figshare 공개 + 샘플코드. 우리 실측 1~2 기체보다 훨씬 크다.",
+     "4기종 → 기종분류 가능(우리는 불가)"
+    ]
+   },
+   "public_dataset": {
+    "name": "TSMS-Drone",
+    "host": "figshare",
+    "doi": "10.25452/figshare.plus.30027313"
+   },
+   "url": "https://www.nature.com/articles/s41597-026-06802-6",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/natsciData2026__multisensor-drone-radar-dataset.pdf",
+   "verified": "pdf_opened_this_round"
+  },
+  {
+   "id": "dhulashia2021_payload",
+   "title": "Multi-Frequency Radar Micro-Doppler Based Classification of Micro-Drone Payload Weight",
+   "authors": "D. Dhulashia, N. Peters, C. Horne, P. Beasley, M. Ritchie (UCL)",
+   "venue_year": "Frontiers in Signal Processing 1:781777, 2021 (open access)",
+   "task": "⭐ **상태 분류** — DJI Phantom 2 · DJI Spark **두 기체**로 탑재중량(payload)을 S/C/W-band 마이크로도플러로 분류. KNN + 6 특징.",
+   "pretraining_data_source": "전부 실측(ARESTOR RFSoC 레이다)",
+   "labels_required": "예 — 탑재중량은 실험자가 정한다(라벨 비용 거의 0)",
+   "transfer_result_numbers": {
+    "mean_payload_acc_pct": {
+     "S_band": 80.95,
+     "C_band": 72.5,
+     "W_band": 86.05
+    },
+    "condition": "드론 종류·기동 종류를 모를 때"
+   },
+   "relevance": "⭐⭐ 매우 높음 — «1~2 기체로도 성립하는 태스크» 의 정본 선례",
+   "quotes": [
+    {
+     "pdf_page": 1,
+     "verbatim": "Use of a KNN classifier with six features extracted from micro-Doppler signatures enabled mean payload classification accuracies of 80.95, 72.50 and 86.05%, for data collected at S-band, C-band and W-band, respectively, when the drone type and motion type are unknown."
+    },
+    {
+     "pdf_page": 2,
+     "verbatim": "In this data-set, a DJI Phantom 2 was loaded with a variety of payloads between 0 and 600 g and made to either hover or fly towards the central radar node. Fioranelli et al. (2015) and Ritchie et al. (2017) report high classification accuracies using a feature extraction based approach. In the hovering scenario, accuracies of 96-97% were achieved using centroid based micro-Doppler features. In contrast, for payload classification of the drone in flight, a maximum classification accuracy of 95% was achieved when using singular value decomposition (SVD) derived features."
+    },
+    {
+     "pdf_page": 2,
+     "verbatim": "Rahman et al. (2020) concluded through visual inspection of the spectrograms derived from the FMCW radar data that there were no consistent unique signatures that could solely be attributed to a drone carrying a payload."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "*'further data in different conditions to validate these preliminary results, including the use of additional models of micro-drones and selecting different locations'* — 조건·기체·장소 일반화 미검증(p.13 부근)",
+     "H-pol 만 씀, 편파 다양성 미검증"
+    ],
+    "not_reported": [
+     "딥러닝 없음(KNN 6특징)",
+     "시뮬레이션 없음 — sim-to-real 개념 자체가 없다",
+     "패시브 아님(전용 능동 레이다)",
+     "Pd/Pfa 없음(분류 정확도만)"
+    ],
+    "we_have_they_dont": [
+     "시뮬 사다리와 물리 계산 σ",
+     "패시브 바이스태틱 셀룰러 조명",
+     "딥러닝·표현학습 층"
+    ],
+    "they_have_we_dont": [
+     "3대역 동시 실측(S/C/W)",
+     "탑재중량을 사람이 임의 통제 — 우리는 야외 실측이라 통제변수(바람)를 못 잡는다"
+    ]
+   },
+   "url": "https://www.frontiersin.org/journals/signal-processing/articles/10.3389/frsip.2021.781777/full",
+   "pdf_path": "(로컬 스크래치 dl/frontiers_payload.pdf — 아카이브 미보존)",
+   "verified": "pdf_opened_this_round"
+  },
+  {
+   "id": "vovchuk2025_payload_wind",
+   "title": "Drone Carry-on Weight and Wind Flow Assessment via Micro-Doppler Analysis",
+   "authors": "D. Vovchuk, O. Torgovitsky 외, P. Ginzburg (Tel Aviv Univ. + Riga TU)",
+   "venue_year": "arXiv:2510.22846 (2025)",
+   "task": "⭐ **상태 분류의 물리** — 무향실 + **풍동**에서 호버링 드론의 탑재중량과 바람을 마이크로도플러로 분리. 결정론적(비-ML) 알고리즘.",
+   "pretraining_data_source": "전부 실측(CW 레이다, 가변 반송파)",
+   "labels_required": "예(무게·풍속을 실험자가 설정)",
+   "transfer_result_numbers": {
+    "mechanism": "무게=4로터 대칭 증속 → 블레이드 마이크로도플러 주파수 상승 / 바람=기울임 → 전후 로터 속도 분리 → 스펙트럼 분기(splitting)"
+   },
+   "relevance": "⭐⭐ 매우 높음 — 우리 «상태 분류» 태스크의 물리 근거 + 챔버 서사 동형",
+   "quotes": [
+    {
+     "pdf_page": 2,
+     "verbatim": "This complexity was acknowledged in a series of pioneering works that applied machine-learning techniques to extract payload information from micro-Doppler signatures [43], [51], [52], [53], [54]. Owing to the previously mentioned problem complexity, a reliable payload estimation algorithm was not found."
+    },
+    {
+     "pdf_page": 6,
+     "verbatim": "Moreover, integrating deterministic physics-based models with machine learning techniques promises to enhance the reliability and interpretability of future radar detection algorithms."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "기존 ML 계열이 신뢰할 만한 payload 추정에 도달하지 못했다고 스스로 정리(p.2)",
+     "물리-결정론 모델과 ML 의 결합은 '유망하다' 고만 적고 안 함(p.6)"
+    ],
+    "not_reported": [
+     "딥러닝 없음",
+     "시뮬레이션 없음",
+     "야외 비행 미포함(무향실+풍동)",
+     "Pd/Pfa 없음"
+    ],
+    "we_have_they_dont": [
+     "⭐ 그들이 남긴 '물리모델 + ML 결합' 자리를 우리가 채운다 — 우리 물리모델은 σ 커널이고 ML 은 탐지·상태분류기다",
+     "패시브 바이스태틱"
+    ],
+    "they_have_we_dont": [
+     "⭐ 풍동 — 바람을 통제변수로 만들 수 있다. 우리 야외 실측에서 바람은 **통제 불가 교란**이 된다(→ 우리 실측설계의 실질 위협)",
+     "가변 반송파 CW 로 최적 주파수 탐색"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2510.22846",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2510.22846__drone-carryon-weight-microdoppler.pdf",
+   "verified": "pdf_opened_this_round"
+  },
+  {
+   "id": "mudopplertag_2026",
+   "title": "μDopplerTag: CNN-Based Drone Recognition via Cooperative Micro-Doppler Tagging",
+   "authors": "O. Yerushalimov, D. Vovchuk, A. Glam, P. Ginzburg (Tel Aviv Univ.)",
+   "venue_year": "arXiv:2601.08042 (2026)",
+   "task": "블레이드에 공진 EM 스티커를 붙여 **인공 마이크로도플러 코드**를 만들고 CNN 으로 43코드(실내)/7코드(실외) 분류. CW 3.35 GHz.",
+   "pretraining_data_source": "전부 실측. 무향실 43코드 + 야외 20×5 m 자유비행. 사전학습 없음(*'without any pre-training'*).",
+   "labels_required": "예(코드=라벨)",
+   "transfer_result_numbers": {
+    "indoor_overall_acc_pct_above_9dB": 99,
+    "indoor_acc_at_0dB_pct": 10,
+    "outdoor_reliable_SNR_dB": 7,
+    "input": "I/Q 를 STFT 로 전처리한 단일채널 스펙트로그램 400×59, conv 32/64/128"
+   },
+   "relevance": "중간~높음 — 방법은 협조형이라 이전 불가, **평가 프로토콜과 챔버→야외 구조는 그대로 가져올 수 있다**",
+   "quotes": [
+    {
+     "pdf_page": 6,
+     "verbatim": "Fig. 4b summarizes the data, demonstrating that an overall accuracy of 99% is achieved at SNR levels above 9 dB. However, at 0 dB, the classification becomes unreliable."
+    },
+    {
+     "pdf_page": 10,
+     "verbatim": "Overall, as previously mentioned, a 7 dB SNR suggests accurate target classification. It is essential to note that such high accuracy is achieved by selecting codes that are well-separated on the PCA map."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "코드 43종이 전수가 아니며 취급 한계로 더 못 늘림",
+     "높은 정확도는 PCA 상 잘 분리된 코드를 골라 얻은 것(p.10) — ⚠ 선택 편향을 저자가 스스로 적었다"
+    ],
+    "not_reported": [
+     "비협조(스티커 없는) 드론에 대한 성능 0 — 방법 자체가 표적 개조를 전제",
+     "시뮬레이션 0",
+     "실측 SNR 은 합성잡음을 실측에 더해 만든 것(실제 원거리 실측 아님)"
+    ],
+    "we_have_they_dont": [
+     "⭐ 비협조 표적 — 우리는 드론을 건드리지 않는다",
+     "패시브 조명원(그들은 전용 CW 레이다)"
+    ],
+    "they_have_we_dont": [
+     "무향실 43형상 전수 실측 + 야외 자유비행 실측 둘 다",
+     "SNR 대비 accuracy/precision/recall/F1/FPR 전 지표 곡선 — 우리가 따라야 할 인쇄물 형식"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2601.08042",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2601.08042__mudopplertag-cnn-drone-microdoppler.pdf",
+   "verified": "pdf_opened_this_round"
+  },
+  {
+   "id": "fuse_then_detect_2026",
+   "title": "Fuse-then-Detect for Passive UAV Localization Using Multi-UE 5G Uplink Signals",
+   "authors": "W. Huang, N. González-Prelcic (UCSD), V. Ratnam, M. Bayraktar, C. J. Zhang (Samsung Research America)",
+   "venue_year": "arXiv:2607.11955 (2026-07-12, IEEE 투고)",
+   "task": "5G NR **상향링크 SRS** 기반 패시브 UAV 탐지·측위. LOS 기준 동기 + 다중 UE 증거누적. 시뮬만.",
+   "pretraining_data_source": "해당 없음(학습 없음)",
+   "labels_required": "해당 없음",
+   "transfer_result_numbers": {
+    "median_3D_pos_err_m": 4.84,
+    "detection_rate": "detect-then-fuse 대비 약 4배",
+    "carrier_GHz": 3.5,
+    "bandwidth_MHz": 98.28,
+    "obs_window_s": 0.5,
+    "sigma_UAV_dBsm": 0,
+    "echo_below_LOS_dB": "44~49"
+   },
+   "relevance": "⭐⭐ 매우 높음 — 우리 기하(패시브 바이스태틱 셀룰러)에 가장 가깝고, **future work 문장이 우리를 지목한다**",
+   "quotes": [
+    {
+     "pdf_page": 11,
+     "verbatim": "UAV-specific dynamic signatures may help resolve these ambiguities and are left to future work."
+    },
+    {
+     "pdf_page": 11,
+     "verbatim": "Future work will address UAV velocity estimation and measured-channel validation."
+    },
+    {
+     "pdf_page": 9,
+     "verbatim": "With σUAV = 0 dBsm, the UAV echo is about 44 to 49 dB weaker than the LOS in the considered geometry."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "⭐ 클러터 대체(clutter substitution) 실패 사례를 자백하고, 그 해법으로 *'UAV-specific dynamic signatures'*(=마이크로도플러) 를 지목하며 future work 로 미룸(p.11)",
+     "실측 채널 검증 없음(p.11)"
+    ],
+    "not_reported": [
+     "광선추적 0 · Sionna 0 (내가 전문 검색해 확인)",
+     "σ 는 0 dBsm 스칼라 상수 — 자세·로터 없음",
+     "분류 0"
+    ],
+    "we_have_they_dont": [
+     "⭐⭐ 정확히 그들이 미룬 것 — 로터 마이크로도플러로 드론과 클러터를 가르는 축",
+     "자세분해 σ"
+    ],
+    "they_have_we_dont": [
+     "다중 UE 융합 기하와 정규화 대비(normalized contrast) 검출기 — 우리 다중 Rx 처리에 이식 가능",
+     "표준 준거 SRS 배관(3GPP 정합성)"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2607.11955",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2607.11955__fuse-then-detect-passive-uav-5g-uplink.pdf",
+   "verified": "pdf_opened_this_round"
+  },
+  {
+   "id": "lipase_2025",
+   "title": "An Experimental Study of Passive UAV Tracking with Digital Arrays and Cellular Downlink Signals (LIPASE)",
+   "authors": "Y. Sun, C. Yu, Y. Luo, T. X. Han, H. Tan, R. Wang, F. C. M. Lau",
+   "venue_year": "arXiv:2412.20788 (2024/2025)",
+   "task": "**실측** LTE 하향링크 패시브 바이스태틱. 기준배열 4 + 감시배열 8 디지털 배열, CAF → 바이스태틱 거리·도플러·AoA → CA-CFAR → 다표적 추적.",
+   "pretraining_data_source": "해당 없음(학습 없음)",
+   "labels_required": "해당 없음",
+   "transfer_result_numbers": {
+    "baseline_m": 255,
+    "carrier_MHz": 2123,
+    "bandwidth_MHz": 5,
+    "CIT_s": 0.2,
+    "detection_hit_range_RMSE_m": 5.37,
+    "cartesian_tracking_range_RMSE_m": 1.78,
+    "AoA_RMSE_deg": 1.02
+   },
+   "relevance": "⭐⭐ 매우 높음 — 우리 신호사슬(CAF→CFAR)의 **실세계 검증판**이자 성능 눈금",
+   "quotes": [
+    {
+     "pdf_page": 2,
+     "verbatim": "With a multi-target tracking framework, it is shown that the root mean squared localization error can be suppressed below 1.5 meters even with missed detections and false alarms of UAV detection."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "오검출·미검출이 심각하다는 것을 전제로 추적기로 덮는 구조 — 즉 검출 단계 자체는 약하다고 자인"
+    ],
+    "not_reported": [
+     "분류 0 · 마이크로도플러 활용 0 (전문에 deep learning/neural 0회) — CIT 0.2 s 라 블레이드 선 자체를 못 본다",
+     "표적 모형 없음(실측이라 필요 없음)",
+     "Pd/Pfa 수치 없음"
+    ],
+    "we_have_they_dont": [
+     "⭐ 마이크로도플러 축 — 그들의 오검출 문제를 정면으로 겨눈다",
+     "물리 σ 로 검출거리 예산을 사전에 낼 수 있음"
+    ],
+    "they_have_we_dont": [
+     "⭐⭐ **실제로 돌아간 야외 패시브 바이스태틱 시스템**(255 m 베이스라인, 디지털 배열 2개). 우리 X410 실측이 도달해야 할 최소선.",
+     "RTK 급 GT 궤적과 미터급 검증"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2412.20788",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2412.20788__passive-uav-tracking-digital-arrays-cellular-dl.pdf",
+   "verified": "pdf_opened_this_round"
+  },
+  {
+   "id": "saur2026_nokia",
+   "title": "Reliable UAV Detection with ISAC",
+   "authors": "S. Saur, M. Doll, A. Grudnitsky, S. Mandelli, L. Giroto, M. Henninger, T. Wild (Nokia Bell Labs Stuttgart)",
+   "venue_year": "arXiv:2605.23561 (2026)",
+   "task": "상용 5G mmWave 하드웨어 모노스태틱 OFDM 레이다로 DJI Air 3 **실측 탐지**. 링크버짓 모델 대조.",
+   "pretraining_data_source": "해당 없음",
+   "labels_required": "해당 없음",
+   "transfer_result_numbers": {
+    "drone": "DJI Air 3 (대각 56 cm)",
+    "assumed_mean_RCS_dBsm": -17,
+    "range_m": "250~500+ (강한 클러터 환경)",
+    "min_SINR_dB": 17
+   },
+   "relevance": "중간~높음 — **σ 를 문헌값 스칼라로 꽂는 관행의 최신 실측 사례**이자 링크버짓 대조 방법의 표준",
+   "quotes": [
+    {
+     "pdf_page": 3,
+     "verbatim": "Based on the comparison of different UAV types [12], we have assessed its mean RCS as σ = −17 dBsm."
+    },
+    {
+     "pdf_page": 1,
+     "verbatim": "We show that reliable detection with sub-meter accuracy is still possible in over 500 meters distance in a challenging radio environment rich of strong clutter."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "빔 고도 HPBW 6.4° 때문에 언덕 위로 더 멀리 못 갔다(지형 제약, p.3)"
+    ],
+    "not_reported": [
+     "분류 0 · 마이크로도플러 0",
+     "σ 는 남의 문헌에서 가져온 평균 스칼라 — 자세·기동 무관"
+    ],
+    "we_have_they_dont": [
+     "자세분해 σ 로 «−17 dBsm 평균» 이 얼마나 낙관/비관인지 말할 수 있다",
+     "패시브(그들은 능동 모노스태틱)"
+    ],
+    "they_have_we_dont": [
+     "⭐ 상용 5G 하드웨어 실측 500 m 실적 — 우리 챔버 15 m 와 규모가 다르다",
+     "링크버짓 ↔ 실측 대조 방법론"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2605.23561",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2605.23561__reliable-uav-detection-with-isac.pdf",
+   "verified": "pdf_opened_this_round"
+  },
+  {
+   "id": "jopanya2025_ssb",
+   "title": "Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones",
+   "authors": "P. Jopanya, D. P. M. Osorio (Linköping Univ.)",
+   "venue_year": "IEEE SPAWC 2025 (arXiv:2504.02641v3)",
+   "task": "5G SSB 스윕빔 기반 **패시브 바이스태틱** 드론 탐지·측위. CRB 유도 + peak-to-average 문턱으로 Pd/Pfa.",
+   "pretraining_data_source": "해당 없음",
+   "labels_required": "해당 없음",
+   "transfer_result_numbers": {
+    "beams": "M=100 → 9각도, Q=81 안테나 응답",
+    "target_model": "α_k ~ CN(0,1) Swerling 1"
+   },
+   "relevance": "높음 — 우리 report12 의 SSB 조명 서사와 정확히 같은 신호원",
+   "quotes": [
+    {
+     "pdf_page": 3,
+     "verbatim": "αk ∼ CN (0, 1) is the randomness model of a radar cross section (RCS) of the kth target that follows a Swerling 1 model [10], where the realization fluctuates slowly and remains fixed within the OFDM block length L."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "(이번 라운드에 결론/한계 절을 끝까지 읽지 못했다 — ⚠ 부분 판정)"
+    ],
+    "not_reported": [
+     "분류 0 · 마이크로도플러 0",
+     "표적=Swerling 1 스칼라",
+     "실측 0"
+    ],
+    "we_have_they_dont": [
+     "자세분해 σ · 로터 · 실측 계획"
+    ],
+    "they_have_we_dont": [
+     "CRB 유도(이론 하한) — 우리 리포트에 없는 층",
+     "SSB 빔 스윕 다중화를 정면으로 모델링"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2504.02641",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2504.02641__5gnr-ssb-passive-detection-lowalt-drones_SPAWC2025.pdf",
+   "verified": "pdf_opened_this_round_partial"
+  },
+  {
+   "id": "ezuma2021_rcs_clf",
+   "title": "Comparative Analysis of Radar Cross Section Based UAV Classification Techniques",
+   "authors": "M. Ezuma, C. K. Anjinappa, V. Semkin (VTT), I. Guvenc (NCSU)",
+   "venue_year": "arXiv:2112.09774 (IEEE TAES 계열)",
+   "task": "무향실 실측 RCS(15/25 GHz, VV·HH)로 6기종 UAV 분류. SL(Swerling/GMM) vs ML(트리·판별분석) vs DL(SqueezeNet·GoogleNet·NasNet·ResNet101) 15개 알고리즘 비교.",
+   "pretraining_data_source": "전부 실측 RCS",
+   "labels_required": "예",
+   "transfer_result_numbers": {
+    "best_ML_classification_tree_acc_pct_at_3dB_SNR": 98.66,
+    "finding": "⭐ **ML 이 DL 을 이겼다** — 1D RCS 데이터에서는 전이학습 DL 이 열세"
+   },
+   "relevance": "높음 — «RCS 로 분류» 진영의 정본이자 ⚠ **DL 이 항상 낫지 않다는 반증**",
+   "quotes": [
+    {
+     "pdf_page": 1,
+     "verbatim": "the classification tree ML achieves an accuracy of 98.66% at 3 dB SNR using the 15 GHz VV-polarized RCS test data from the UAVs."
+    },
+    {
+     "pdf_page": 1,
+     "verbatim": "In general, the classification accuracy of the ML and SL algorithms outperformed the DL algorithms (Squeezenet, Googlenet, Nasnet, and Resnet 101) considered in the study."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "잡음 섞인 데이터로 학습하면 잡음 분포를 외울 수 있고 이는 future work 라 적음"
+    ],
+    "not_reported": [
+     "비행하지 않는 정적 드론 측정(프로펠러 정지) — 마이크로도플러 없음",
+     "sim-to-real 없음",
+     "탐지(Pd) 없음"
+    ],
+    "we_have_they_dont": [
+     "로터 회전과 마이크로도플러",
+     "패시브 바이스태틱",
+     "시뮬 사다리"
+    ],
+    "they_have_we_dont": [
+     "⭐⭐ 무향실 6~7기종 자세분해 실측 RCS — **우리 σ 커널의 외부 앵커로 쓸 수 있는 최상급 정답지**(Potter 2024 가 이 데이터를 방위 0~180°, 고각 −95~+95°, 1° 격자로 재사용)",
+     "15개 알고리즘 공정 비교 프로토콜"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2112.09774",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2112.09774__semkin_comparative-rcs-uav-classification.pdf",
+   "verified": "pdf_opened_this_round"
+  },
+  {
+   "id": "potter2024_taes",
+   "title": "Multistatic-Radar RCS-Signature Recognition of Aerial Vehicles: A Bayesian Fusion Approach",
+   "authors": "M. Potter, M. Akcakaya, M. Necsoiu, G. Schirner, D. Erdoğmuş, T. Imbiriba",
+   "venue_year": "IEEE TAES, 2024 (accepted 2024-08-06)",
+   "task": "7기종 UAV **다중스태틱 RCS 서명 인식**. Optimal Bayesian Fusion + Recursive Bayesian Classification. 랜덤워크 궤적을 무향실 실측 RCS(26–40 GHz, 15주파수) 자세에 매핑.",
+   "pretraining_data_source": "실측 RCS 룩업 + 합성 궤적/레이다 배치 (⭐ 우리 '주입' 계열과 같은 구조)",
+   "labels_required": "예(기종)",
+   "transfer_result_numbers": {
+    "code": "https://github.com/mlpotter/RCS_ATR (논문 초록에 명시)",
+    "targets": "F450, Heli, Hexa, M100, P4P, Walkera, Y600"
+   },
+   "relevance": "높음 — **'실측 σ 룩업 + 합성 기하' 하이브리드의 정본**이자 다중스태틱 융합 규약",
+   "quotes": [
+    {
+     "pdf_page": 3,
+     "verbatim": "We note that UAVs were non-operational during the data collection process, and therefore the measured RCS signature of the drones in flight may slightly change due to the rotating propellers."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "⭐ 정지 프로펠러로 측정한 RCS 라 비행 중에는 달라질 수 있다고 스스로 적음(p.3) — **그 차이가 정확히 우리 로터 위상 σ 가 다루는 것**"
+    ],
+    "not_reported": [
+     "마이크로도플러 0",
+     "실측 RF 검증 0(궤적·레이다는 합성)",
+     "패시브 아님"
+    ],
+    "we_have_they_dont": [
+     "회전 로터를 포함한 σ",
+     "패시브 바이스태틱",
+     "탐지(Pd) 층"
+    ],
+    "they_have_we_dont": [
+     "⭐ 코드 공개 + 7기종 실측 RCS 데이터 접근",
+     "베이지안 융합의 최적성 논증(우리 다중 Rx 결합의 이론 대조군)"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2402.17987",
+   "pdf_path": "/data/public/sionna_jeong/reference_library/injection/arxiv_2402.17987.pdf",
+   "verified": "pdf_opened_this_round"
+  },
+  {
+   "id": "huang2025_mlsp_ssl",
+   "title": "Few-Shot Radar Signal Recognition through Self-Supervised Learning and Radio Frequency Domain Adaptation",
+   "authors": "Z. Huang, S. Denman, A. Pemasiri, C. Fookes (QUT), T. Martin (Revolution Aerospace)",
+   "venue_year": "IEEE MLSP 2025 (arXiv:2501.03461)",
+   "task": "MAE 로 baseband I/Q 자기지도 사전학습(도메인 내/외) → 라벨 희소한 레이다 신호 인식으로 전이. few-shot.",
+   "pretraining_data_source": "RadChar-SSL(도메인 내 레이다) / RadioML(도메인 외 통신)",
+   "labels_required": "사전학습 라벨 0, 미세조정 1/5/10-shot",
+   "transfer_result_numbers": {
+    "1shot_gain_pct_in_domain": 17.5,
+    "1shot_gain_pct_out_of_domain": 16.31,
+    "5shot_gain_pct": 6.3,
+    "10shot_gain_pct": 4.3
+   },
+   "relevance": "⭐⭐ 매우 높음 — **R4 노선의 손익분기점을 숫자로 준 유일한 레퍼런스**",
+   "quotes": [
+    {
+     "pdf_page": 3,
+     "verbatim": "The improvement diminishes as the number of annotated frames used in fine-tuning increases, as reflected by the 17.5%, 6.3%, and 4.3% increases in 1-shot, 5-shot, and 10-shot performance for ResNet1D, respectively."
+    },
+    {
+     "pdf_page": 5,
+     "verbatim": "In future work, additional downstream tasks may be explored to evaluate SSL and RF domain adaptation in a real-world setting."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "⭐ 실세계(real-world) 평가는 안 했고 future work 라 적음(p.5)",
+     "SNR 중~고 구간에서만 이득이 뚜렷"
+    ],
+    "not_reported": [
+     "드론 아님(EW 레이다 신호 인식)",
+     "센싱 태스크 아님(방출 신호 분류)"
+    ],
+    "we_have_they_dont": [
+     "실측 계획(그들이 future work 로 남긴 것)",
+     "물리 기반 합성 데이터원"
+    ],
+    "they_have_we_dont": [
+     "라벨 예산 대비 이득 곡선 — 우리도 반드시 이 형식으로 인쇄해야 한다"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2501.03461",
+   "pdf_path": "(로컬 스크래치 dl/2501.03461.pdf)",
+   "verified": "pdf_opened_this_round"
+  },
+  {
+   "id": "csi_jepa_2026",
+   "title": "CSI-JEPA: Towards Foundation Representations for Ubiquitous Sensing with Minimal Supervision",
+   "authors": "X. Luo, Z. Li, Y. Liu (NC State)",
+   "venue_year": "arXiv:2605.14171 (2026)",
+   "task": "WiFi CSI 자기지도 JEPA(시간·부반송파 토큰화 + 변동 인지 마스킹) → 인코더 동결 + 경량 어댑터로 7개 실측 센싱 태스크.",
+   "pretraining_data_source": "라벨 없는 실측 CSI (⚠ 시뮬 아님 — WiFi-JEPA 와 결정적 차이)",
+   "labels_required": "사전학습 0, downstream 소량",
+   "transfer_result_numbers": {
+    "max_mean_acc_gain_pp": 10.64,
+    "max_mean_F1_gain_pp": 14.38,
+    "max_label_saving_pct": 98.0,
+    "fall_detection": "라벨 10개로 지도 Transformer 의 500개 성능",
+    "⚠_failure": "Loc 태스크는 ΔAcc = −1.75 pp, matched budget saving 0.0%"
+   },
+   "relevance": "높음 — JEPA 노선의 최신 성능 상한 **과 실패 사례를 동시에 준다**",
+   "quotes": [
+    {
+     "pdf_page": 8,
+     "verbatim": "Compared with the supervised Transformer at the same label budgets, CSI-JEPA improves the sensing accuracy by 10.64 pp on Motion Source Recognition and 9.18 pp on Breathing Detection, and improves mean F1 by 14.38 pp and 12.55 pp, respectively."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "표 III 에서 Loc 태스크 ΔAcc 가 음수(−1.75)이고 라벨 절감 0.0% — ⭐ 4개 중 1개 태스크에서 JEPA 가 졌다"
+    ],
+    "not_reported": [
+     "시뮬 사전학습 안 함(실측 무라벨로 사전학습)",
+     "드론·레이다 아님",
+     "sim-to-real 아님"
+    ],
+    "we_have_they_dont": [
+     "시뮬을 사전학습 데이터원으로 쓰는 구조",
+     "물리 앵커"
+    ],
+    "they_have_we_dont": [
+     "7개 실측 태스크 벤치와 라벨예산 매칭 프로토콜",
+     "무라벨 실측 CSI 대량 — 우리는 무라벨 실측도 적다"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2605.14171",
+   "pdf_path": "(로컬 스크래치 dl/2605.14171.pdf)",
+   "verified": "pdf_opened_this_round"
+  },
+  {
+   "id": "jepa_msac_2026",
+   "title": "JEPA-MSAC: A Joint-Embedding Predictive Architecture for Multimodal Sensing-Assisted Communications",
+   "authors": "C. Zheng, J. He, G. Cai, N. Li, M. Bennis, H. Wymeersch, M. Debbah",
+   "venue_year": "arXiv:2603.29796 (2026)",
+   "task": "멀티모달 센싱+통신 측정을 통합 토큰공간으로 → temporal block-masked JEPA 사전학습 → 백본 동결 + 경량 헤드로 측위·빔예측·RSSI 예측.",
+   "pretraining_data_source": "멀티모달 무선 측정(구체 확인 미완)",
+   "labels_required": "사전학습 0",
+   "transfer_result_numbers": {},
+   "relevance": "중간 — JEPA 가 무선에서 «단일 백본 다중 태스크» 로 쓰이는 형태의 사례",
+   "quotes": [
+    {
+     "pdf_page": 1,
+     "verbatim": "The proposed framework first maps multimodal sensing and communication measurements into a unified token space, and then pretrains a shared backbone using temporal block-masked JEPA to learn a predictive latent space that captures environment dynamics and cross-modal dependencies."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "(초록·서론만 읽음 — ⚠ 부분 판정)"
+    ],
+    "not_reported": [
+     "센싱 태스크가 통신 보조(측위·빔)이지 표적 탐지·분류가 아님"
+    ],
+    "we_have_they_dont": [
+     "표적 탐지·분류 태스크"
+    ],
+    "they_have_we_dont": [
+     "다중 태스크 전이 실험 규모"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2603.29796",
+   "pdf_path": "(로컬 스크래치 dl/2603.29796.pdf)",
+   "verified": "pdf_opened_this_round_partial"
+  },
+  {
+   "id": "jepa_6g_tutorial_2026",
+   "title": "JEPA for AI-Native 6G: Predictive Representations and Open Challenges",
+   "authors": "S. S. Hassan 외 (Edinburgh·KTH·Luxembourg·Chalmers 등, Wymeersch 포함)",
+   "venue_year": "arXiv:2607.09798 (2026)",
+   "task": "무선 지향 JEPA 튜토리얼 — 토큰화·마스킹 설계, RAN/O-RAN/edge 배치, 빔관리 사례연구, 열린 과제 목록.",
+   "pretraining_data_source": "해당 없음(튜토리얼)",
+   "labels_required": "해당 없음",
+   "transfer_result_numbers": {},
+   "relevance": "중간 — **JEPA 노선이 2026년 무선에서 '흐름' 임을 증명하는 문헌**(우리 결정의 반대근거 근원)",
+   "quotes": [
+    {
+     "pdf_page": 1,
+     "verbatim": "Joint-embedding predictive architecture (JEPA) is a promising self-supervised paradigm for this setting because it predicts missing or future representations in latent space instead of reconstructing raw measurements or using contrastive negative samples."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "벤치마킹·표준화·신뢰성이 열린 과제라고 스스로 나열"
+    ],
+    "not_reported": [
+     "센싱 표적 탐지/분류 사례 없음(빔관리 사례연구뿐)"
+    ],
+    "we_have_they_dont": [
+     "구체 표적 센싱 태스크"
+    ],
+    "they_have_we_dont": [
+     "설계 규약 정리 — 우리가 R4 팔을 만들 때 그대로 따를 레시피"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2607.09798",
+   "pdf_path": "(로컬 스크래치 dl/2607.09798.pdf)",
+   "verified": "pdf_opened_this_round"
+  },
+  {
+   "id": "clutter_aware_isac_recheck",
+   "title": "Clutter-Aware Integrated Sensing and Communication: Models, Methods, and Future Directions",
+   "authors": "R. Liu, P. Li, M. Li, A. L. Swindlehurst",
+   "venue_year": "Proc. IEEE 114(1):52–91, 2026 · DOI 10.1109/JPROC.2026.3675476",
+   "task": "클러터 억제 튜토리얼(41쪽). [R20] 에서 전문 정독 완료 — 이번 라운드는 **인용 3건의 쪽수만 재확인**했고 재정독하지 않았다.",
+   "relevance": "매우 높음(지지 + 공격 + 불리한 역설 3중)",
+   "quotes_reverified_this_round": [
+    {
+     "pdf_page": 20,
+     "verbatim": "The ToI and UAVs are modeled as simplified 3D mesh objects imported into Sionna. These meshes are obtained by simplifying publicly available 3D models in Blender and exporting them in Sionna's XML format, which keeps the ray-tracing scene lightweight while enabling flexible material assignment."
+    },
+    {
+     "pdf_page": 24,
+     "verbatim": "αt,n ∼ CN(0, σ²t,n) represents the target RCS together with the associated path-loss."
+    },
+    {
+     "pdf_page": 16,
+     "verbatim": "the full hot-clutter covariance or the disturbance covariance Rη,n can be estimated directly from secondary data collected during quiet periods where only the interference is present."
+    }
+   ],
+   "how_we_use_it": {
+    "support": "환경·클러터를 Sionna 로 내는 것이 Proc. IEEE 급에서 정당하다는 최상위 근거. 우리 «환경이 마이크로도플러를 훼손하는가» 질문의 상위 인용원.",
+    "attack_that_holds_a": "RT 설정 미보고 — num_samples·samples_per·max_depth·launch·physical_optics·drone·DJI 전부 0회([R20] 전문계수). 재현 불가.",
+    "attack_that_holds_b": "표적을 통계로 흡수(p.24 식 108) — 자세·회전·형상이 결과에 못 들어간다. 우리가 그 자리를 채운다.",
+    "attack_that_does_NOT_hold": "⛔ «메쉬를 단순화했으니 표적 에코가 틀렸다» — 그들 표적 진폭은 애초에 RT 산출이 아니다. 대상을 잘못 짚은 비판.",
+    "adverse_paradox_we_must_carry": "⚠ 그들 cold/hot 분류상 패시브·비협조 조명이면 **우리 표적 에코와 바닥 유령이 전부 hot clutter** 인데, 처방은 p.16 의 quiet-period 2차 데이터 추정이다. **우리는 조명원이 상시 ON 이라 quiet period 가 없다.** 이건 우리 약점이고 리포트에 그대로 적어야 한다."
+   },
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/2602.10537__clutter-aware-isac_ARXIV-v2_procIEEE-accepted.pdf",
+   "verified": "pages_reverified_this_round (본문 정독은 [R20])"
+  },
+  {
+   "id": "semenyuk2024_survey",
+   "title": "Advance and Refinement: The Evolution of UAV Detection and Classification Technologies",
+   "authors": "V. Semenyuk, I. Kurmashev, A. Lupidi, D. Alyoshin, L. Kurmasheva, A. Cantelli-Forti",
+   "venue_year": "Int. J. Critical Infrastructure Protection (manuscript draft, arXiv:2409.05985)",
+   "task": "2020~ UAV 탐지·분류 리뷰(레이다·RF·광학·음향 + 융합).",
+   "relevance": "중간 — **베이스라인 성능표의 공급원**",
+   "quotes": [
+    {
+     "pdf_page": "표 2 영역",
+     "verbatim": "Passive RF sensing 99.94% at range up to 150m; 99.38% at range up to 350m"
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [],
+    "not_reported": [
+     "마이크로도플러 sim-to-real 을 별도 축으로 다루지 않음",
+     "패시브 **레이다**(조명원 재활용)와 패시브 **RF 감청**(드론 방출 수신)을 뒤섞어 서술 — ⚠ 인용 시 반드시 구별할 것"
+    ],
+    "we_have_they_dont": [],
+    "they_have_we_dont": [
+     "기술별 정확도/사거리 대조표"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2409.05985",
+   "pdf_path": "(로컬 스크래치 dl/2409.05985.pdf)",
+   "verified": "pdf_opened_this_round_partial"
+  },
+  {
+   "id": "liang2026_multibs",
+   "title": "Sensing, Detection and Localization for Low Altitude UAV: A RF-Based Framework via Multiple BSs Collaboration",
+   "authors": "T. Liang, M. Jia, T. Zhang, J. Chen, L. Zhou, T. Q. S. Quek, P.-Y. Kam",
+   "venue_year": "arXiv:2510.09055 (2025/2026)",
+   "task": "다중 기지국 협력 RF 탐지·측위. CA-CFAR + **마이크로도플러 서명(MDS) 기반 인식** + 격자 확률융합 + RL 자원최적화. 시뮬 + 실험.",
+   "relevance": "중간~높음 — CFAR + MDS 인식 + 다국 융합이라는 우리 사슬과 같은 구성",
+   "quotes": [
+    {
+     "pdf_page": 1,
+     "verbatim": "The proposed approach features a robust scheme for LSS target identification, integrating a cell averaging-constant false alarm rate (CA-CFAR) detector with a micro-Doppler signature (MDS) based recognition method."
+    }
+   ],
+   "gaps": {
+    "author_declared_limits": [
+     "(⚠ 초록만 읽음 — 부분 판정)"
+    ],
+    "not_reported": [
+     "딥러닝 계수 6회로 낮음 — MDS 인식이 학습형인지 규칙형인지 미확인"
+    ],
+    "we_have_they_dont": [
+     "물리 계산 σ"
+    ],
+    "they_have_we_dont": [
+     "다국 협력 격자 융합 + RL 자원배분"
+    ]
+   },
+   "url": "https://arxiv.org/abs/2510.09055",
+   "pdf_path": "/data/public/sionna_jeong/reference_library/new_0803/2510.09055__lowalt-uav-sensing-detection-localization-multiple-bs.pdf",
+   "verified": "pdf_opened_this_round_partial"
+  }
+ ],
+ "papers_already_judged_do_not_reread": [
+  {
+   "id": "white2023_trs",
+   "where": "outputs/s2r_prior.json",
+   "one_line": "⭐ 드론 sim-to-real 사실상 표준 — 합성 86.6% vs 실측 89.7%, 그러나 드론 recall 88.4→80.1. **실측 배경 주입 기법의 원천**."
+  },
+  {
+   "id": "moore2023_iet",
+   "where": "outputs/s2r_prior.json",
+   "one_line": "레이저 스캔 프로펠러 → 합성전용 SqueezeNet 이 실측 3-class 100%(in-plane). 온라인 CAD 는 상관 낮음 = 메쉬 충실도의 유일한 정량 근거."
+  },
+  {
+   "id": "airguard",
+   "where": "outputs/s2r_prior.json",
+   "one_line": "cmD+HRRP 이중입력 CNN 237,600 샘플. 미학습 기체(6로터 66.78%, eVTOL 4.49%)로 붕괴 — sim-to-sim 조차 안 된다."
+  },
+  {
+   "id": "cagedronerf",
+   "where": "outputs/s2r_prior.json",
+   "one_line": "실내 케이지→실외 기종식별 42.07%, 혼합학습 69.63%(+27.56 pp). **챔버→필드 격차의 실측 증거이자 R6 근거**."
+  },
+  {
+   "id": "lambda_uav",
+   "where": "outputs/s2r_prior.json",
+   "one_line": "Sionna RT + CADFEKO 자세분해 RCS + 레이다 큐브까지 갖췄으나 sim-to-real 근거는 RGB 경로뿐."
+  },
+  {
+   "id": "beuster2024",
+   "where": "prior_work/sionna_sensing_survey.md",
+   "one_line": "TU Ilmenau 무향실 바이스태틱 반사도 + 실비행 사운딩 + 공개 데이터셋 — 우리 σ 외부 앵커 후보."
+  },
+  {
+   "id": "wifi_jepa",
+   "where": "prior_work/sionna_sensing_survey.md [R21]",
+   "one_line": "Sionna RT 기하 프리미티브로 JEPA 사전학습, 사람 메쉬를 이김(100.1 vs 110.3 mm). 프레임당 20회 재추적으로 시간축 생성."
+  }
+ ],
+ "public_real_datasets": {
+  "note": "⭐ 사용자가 특별히 확인을 요청한 축. 아래는 이번 라운드에 **출처를 직접 열어 확인**한 것만.",
+  "radar_microDoppler": [
+   {
+    "name": "TSMS-Drone (Time-Synchronized Multi-Sensor Drone)",
+    "year": 2026,
+    "modality": "CW 2.495 GHz + FMCW 24 GHz + RF 수신기(시간동기)",
+    "targets": "DJI Inspire 2 / Mavic 2 Pro / Phantom 4 Pro / Matrice 30 + corner reflector",
+    "size": "조건당 500회 × (2~30 m, 2 m 간격)",
+    "access": "figshare DOI 10.25452/figshare.plus.30027313",
+    "license_note": "Nature Sci Data OPEN",
+    "verified": "논문 PDF 직접 확인",
+    "our_use": "⭐ 무라벨 사전학습 코퍼스 후보 + 우리 CW/FMCW 대조군. ⚠ 모노스태틱·근거리(≤30 m)라 우리 패시브 바이스태틱과 사과-대-사과 아님."
+   },
+   {
+    "name": "Karlsson 77 GHz FMCW (drones/birds/humans)",
+    "year": 2021,
+    "modality": "77 GHz FMCW, 기계주사 안테나",
+    "targets": "드론 6종 + 새 + 사람",
+    "size": "75,868 샘플 / 1.6 GB",
+    "access": "Zenodo DOI 10.5281/zenodo.5845259, CC-BY 4.0",
+    "verified": "Zenodo 페이지 직접 확인",
+    "our_use": "⭐⭐ **드론 대 조류 판별의 공개 실측 정답지**. CC-BY 라 제약이 가장 적다. 우리 '드론 대 클러터/비드론' 태스크 외부 검증용."
+   },
+   {
+    "name": "DIAT-µSAT",
+    "year": 2022,
+    "modality": "X-band 10 GHz CW",
+    "targets": "RC plane, 3-short-blade rotor, 3-long-blade rotor, quadcopter, bionic bird, mini-helicopter",
+    "size": "4,849 마이크로도플러 이미지 (RPM 200–1740, flapping 2–4/s, 방위 0–360°, 고각 0–90°)",
+    "access": "IEEE DataPort (구독 필요) — 저자에게 기관 메일로 요청 시 .mat 무료 교육용 제공",
+    "cite": "IEEE GRSL DOI 10.1109/LGRS.2021.3102039",
+    "verified": "IEEE DataPort 페이지 직접 확인",
+    "our_use": "⭐ **RPM 라벨이 붙은 유일한 공개 마이크로도플러 셋** — 우리 '상태(rpm 구간) 분류' 의 외부 대조. ⚠ 접근에 이메일 절차 필요."
+   },
+   {
+    "name": "Open Radar Initiative (Gusland 외, RadarConf 2021)",
+    "year": 2021,
+    "modality": "자동차용 FMCW 트랜시버 기반 공용 프레임워크",
+    "targets": "마이크로도플러 인식 벤치마킹용 대규모 셋",
+    "access": "⚠ 미검증 — 원문 PDF(UCL discovery)를 열지 못했다",
+    "verified": "unverified",
+    "our_use": "확보 시 벤치마크 후보. 지금은 인용 금지."
+   },
+   {
+    "name": "DopNET (UCL)",
+    "access": "⚠ 미검증 — 검색 요약에만 등장, 원문·페이지 미확인. 손동작 셋일 가능성이 높아 드론과 무관할 수 있다.",
+    "verified": "unverified",
+    "our_use": "인용 금지"
+   }
+  ],
+  "measured_RCS": [
+   {
+    "name": "Ezuma/Semkin 무향실 UAV RCS",
+    "modality": "26–40 GHz(15주파수) 준모노스태틱, 방위 0–180° · 고각 −95~+95°, 1° 격자, VV/HH",
+    "targets": "F450, Heli, Hexa, M100, P4P, Walkera, Y600 (7기종)",
+    "access": "Potter 2024 가 재사용, 코드 github.com/mlpotter/RCS_ATR",
+    "verified": "Potter PDF p.3 직접 확인",
+    "our_use": "⭐⭐ **우리 SBR+PO 커널의 외부 앵커로 가장 값진 실측 정답지.** ⚠ 프로펠러 정지 상태 측정임을 반드시 병기."
+   },
+   {
+    "name": "DJI M350 측정 RCS (2505.20673)",
+    "access": "아카이브 보유",
+    "verified": "이전 라운드",
+    "our_use": "B류 절대 앵커(기존 기록)"
+   }
+  ],
+  "rf_emission_not_radar": [
+   {
+    "name": "RFUAV",
+    "ref": "arXiv:2503.09033",
+    "size": "1.3 TB, 37 UAV",
+    "note": "⚠ 드론 **방출** 신호 — 우리 태스크(반사파)와 다른 물리. 혼동 금지."
+   },
+   {
+    "name": "KU Leuven Drone RF dataset",
+    "doi": "10.48804/HZRVNZ",
+    "size": "43.5 GB, 5 UAV, USRP X310"
+   },
+   {
+    "name": "UAVSig (UCLA Dataverse)",
+    "doi": "10.25346/S6/LVRRAE",
+    "size": "6 UAV"
+   },
+   {
+    "name": "CageDroneRF",
+    "ref": "arXiv:2601.03302",
+    "note": "20기종 실내케이지↔실외 — 도메인 이동 실측 증거"
+   }
+  ],
+  "verdict": "⭐ **우리 기하(패시브 바이스태틱, 셀룰러 조명)의 공개 실측 데이터셋은 이번 라운드 탐색 범위에서 0건이다.** 공개 셋은 전부 능동 모노스태틱(CW/FMCW) 또는 방출신호다. → (a) 우리 X410 실측이 원리적으로 대체 불가라는 뜻이고, (b) 동시에 **우리가 낼 데이터셋 자체가 기여가 될 수 있다**는 뜻이다."
+ },
+ "metrics_and_baselines_we_will_be_measured_against": {
+  "note": "⭐ 사용자 지시 — 나중에 우리가 비교당할 눈금.",
+  "classification": [
+   {
+    "task": "drone vs bird (실측 도심 L-band, 1.4–2.7 km)",
+    "baseline": "실측학습 89.7% / 합성학습 86.6%, 드론 recall 88.4 → 80.1",
+    "src": "White 2023 (기존 검증분)"
+   },
+   {
+    "task": "기종 3-class (자유공간 CW, in-plane)",
+    "baseline": "합성전용 학습 100%",
+    "src": "Moore 2023 (기존 검증분)",
+    "caveat": "난이도가 전혀 다르다 — 우리 눈금으로 쓰면 안 된다"
+   },
+   {
+    "task": "기종 6-class (무향실 RCS)",
+    "baseline": "ML 트리 98.66% @3 dB SNR, DL 은 그보다 낮음",
+    "src": "Ezuma 2021 p.1"
+   },
+   {
+    "task": "UAV/bird 인식 (시뮬 cmD+HRRP)",
+    "baseline": "학습기체 고성능 / 미학습 기체 66.78%·4.49%",
+    "src": "AirGuard (기존 검증분)"
+   },
+   {
+    "task": "⭐ payload 상태분류 (multistatic S-band, DJI Phantom 2)",
+    "baseline": "hover 96–97%, in-flight 최대 95%",
+    "src": "Fioranelli 2015 / Ritchie 2017 → Dhulashia 2021 p.2 재인용(⚠ 이중표기)"
+   },
+   {
+    "task": "⭐ payload 상태분류 (다대역, 기체·기동 미상)",
+    "baseline": "S 80.95% / C 72.50% / W 86.05%",
+    "src": "Dhulashia 2021 p.1"
+   },
+   {
+    "task": "코드 인식 (챔버 43클래스 / 야외 7클래스, CW)",
+    "baseline": "≥9 dB 에서 99%, 야외 7 dB 에서 신뢰",
+    "src": "μDopplerTag p.6·p.10"
+   },
+   {
+    "task": "기종 5-class (TSMS 실측, 거리 stratified)",
+    "baseline": "GoogLeNet 단일센서 vs 융합 — 융합이 일관 우세",
+    "src": "TSMS p.12"
+   }
+  ],
+  "detection_localization_passive": [
+   {
+    "system": "LIPASE (LTE 패시브 바이스태틱 실측)",
+    "numbers": "baseline 255 m, B 5 MHz, CIT 0.2 s, range RMSE 5.37 m(검출) → 1.78 m(Cartesian 추적), AoA RMSE 1.02°",
+    "src": "arXiv:2412.20788 p.11"
+   },
+   {
+    "system": "Fuse-then-Detect (5G UL SRS, 시뮬)",
+    "numbers": "median 3D 위치오차 4.84 m, 검출률 detect-then-fuse 대비 ~4배",
+    "src": "arXiv:2607.11955"
+   },
+   {
+    "system": "Nokia 5G mmWave 모노스태틱 실측",
+    "numbers": "DJI Air 3(σ 가정 −17 dBsm) 500 m 초과 sub-meter, γ_min 17 dB",
+    "src": "arXiv:2605.23561 p.1·p.3"
+   }
+  ],
+  "ssl_label_efficiency": [
+   {
+    "system": "MAE + RF domain adaptation",
+    "numbers": "1-shot +17.5% → 5-shot +6.3% → 10-shot +4.3%",
+    "src": "arXiv:2501.03461 p.3"
+   },
+   {
+    "system": "CSI-JEPA",
+    "numbers": "최대 +10.64 pp acc / +14.38 pp F1, 라벨 98.0% 절감. ⚠ Loc 태스크는 −1.75 pp",
+    "src": "arXiv:2605.14171 p.8"
+   }
+  ],
+  "reporting_rule_we_must_follow": "⚠ White 2023 의 교훈 — **총정확도 단일지표 금지**. 클래스별 recall(특히 표적 recall), Pd@Pfa, SNR/거리 stratified 곡선, 라벨예산 곡선을 함께 낸다."
+ },
+ "gap_map_where_we_stand": {
+  "empty_cell_we_can_occupy": {
+   "statement": "**패시브 바이스태틱(셀룰러 조명) 기하에서, 물리로 계산된 자세·로터위상 분해 σ 로 만든 합성 마이크로도플러로 탐지기·상태분류기를 학습하고, 실측(X410 + Matrice 4E)으로 전이를 검증한 사례**는 이번 라운드 범위에서 0편이다.",
+   "population_declared": "아카이브 고유 PDF 256편 전문 정규식 스캔 + 웹 7질의 + 원문 개봉 신규 12편 + s2r_prior 기존 33편. ⚠ 이 범위 밖(IEEE 유료 프로시딩·중국어 DB·MDPI 403·IET 402)은 확인하지 못했다.",
+   "decomposition": [
+    {
+     "cell": "바이스태틱 마이크로도플러 모델 + 실측 검증",
+     "who": "Costa 2025 (BiRa)",
+     "what_is_missing": "분류기 0, 물리 σ 대신 thin-wire + Gaussian body"
+    },
+    {
+     "cell": "패시브 바이스태틱 실측 탐지·추적",
+     "who": "LIPASE 2024",
+     "what_is_missing": "분류 0, 마이크로도플러 0, 시뮬 0"
+    },
+    {
+     "cell": "패시브 5G 탐지·측위 + 클러터 융합",
+     "who": "Fuse-then-Detect 2026",
+     "what_is_missing": "σ=0 dBsm 스칼라, 실측 0, 마이크로도플러는 future work"
+    },
+    {
+     "cell": "상태(payload) 분류 실측",
+     "who": "Ritchie 2017 / Dhulashia 2021",
+     "what_is_missing": "능동 다중스태틱, 시뮬 0, 딥러닝 0"
+    },
+    {
+     "cell": "상태(무게·바람) 물리 분리",
+     "who": "Vovchuk 2025",
+     "what_is_missing": "ML 0, 시뮬 0, 무향실+풍동 한정"
+    },
+    {
+     "cell": "Sionna 로 환경, 통계로 표적",
+     "who": "Clutter-Aware ISAC 2026 (Proc. IEEE)",
+     "what_is_missing": "표적 구조 0, dBsm 0, Pd/분류 0"
+    },
+    {
+     "cell": "시뮬 사전학습 SSL",
+     "who": "WiFi-JEPA / CSI-JEPA / JEPA-MSAC",
+     "what_is_missing": "드론 0, 레이다 표적 0, 절대 레벨 태스크 0"
+    }
+   ]
+  },
+  "what_we_have_they_dont": [
+   "물리로 계산한 **자세 × 로터위상 분해 σ**(재질가중 SBR+PO) — Costa 가 '적어도 full-wave 시뮬이 필요' 라 적은 자리",
+   "패시브 바이스태틱 셀룰러 조명 기하 + 상시 조명 서사(LTE CRS vs 5G SSB)",
+   "표적모형 예산 사다리(«모양 있느냐» 54 dB ↔ «얼마나 정밀하냐» 0~7 dB) — 선행은 정성적으로만 말한다",
+   "회전 로터 — Sionna 스톡이 못 내는 블레이드 번쩍임을 우리 PO 커널은 낸다",
+   "실측 앵커 계획(X410 4RX·400 MHz, Matrice 4E → Mini 5 Pro)",
+   "⭐ 그리고 «우리 기하의 공개 데이터셋이 0건» 이라는 사실 자체 — 우리가 만들면 그게 자산"
+  ],
+  "what_they_have_we_dont_reviewer_ammunition": [
+   "⚠ **실측 규모** — 75,868(Karlsson) / 237,600(AirGuard) / 4,849(DIAT) / 조건당 500회(TSMS) 대비 우리는 1~2 기체 몇 회 비행",
+   "⚠ **기종 다양성** — 우리는 원리적으로 기종분류 불가. 심사자가 «왜 기종분류를 안 했나» 를 물으면 «기체가 1대」 라고 답해야 한다",
+   "⚠ **자체 실측 RCS 정답지 없음** — Ezuma/Semkin·M350 은 남의 데이터. 우리 커널의 절대 검증은 남의 앵커에 의존",
+   "⚠ **통제 시설 없음** — BiRa(360° 바이스태틱 자동), 풍동(Vovchuk), NetRAD(다중스태틱), 무향실 RCS 레인지 전부 우리에겐 없다",
+   "⚠ **로터 RPM 직접 통제 불가** — BiRa 팀은 커스텀 기체를 만들었다. 우리는 상용 Matrice 4E 이고 비행로그 의존(미검증)",
+   "⚠ **quiet period 없음** — Clutter-Aware ISAC 의 hot clutter 처방을 우리는 못 쓴다(상시 조명)",
+   "⚠ **바람 통제 불가** — 야외 실측이라 Vovchuk 이 풍동으로 잡은 교란이 우리에겐 라벨 잡음으로 들어온다"
+  ]
+ },
+ "recommended_task_definition": {
+  "note": "사용자 제약 반영 — RCS 는 인프라, 메인은 탐지·마이크로도플러 분류. 실측 1~2 기체.",
+  "primary": {
+   "name": "T1 탐지(유무)",
+   "why": "SIM2REAL_PLAN 과 report12 배관이 이미 여기 있다. Pd@Pfa 라는 절대 눈금.",
+   "prior_baseline": "LIPASE·Fuse-then-Detect·Nokia"
+  },
+  "secondary": {
+   "name": "⭐ T2 상태 분류(호버 / 기동 / rpm 구간 / 탑재)",
+   "why": "**1~2 기체로도 성립하는 것이 문헌으로 증명된 유일한 분류 태스크**(Ritchie 2017 = DJI Phantom 2 한 대, Dhulashia 2021 = 두 대). 비행로그가 라벨을 준다. 그리고 로터 마이크로도플러가 신호의 본체라 우리 σ 구조가 직접 작동하는 자리.",
+   "prior_baseline": "hover 96–97% / in-flight ≤95% / 다대역 72.5–86.05%"
+  },
+  "tertiary": {
+   "name": "T3 드론 대 비드론(클러터·바닥유령)",
+   "why": "Fuse-then-Detect 가 clutter substitution 으로 실패한 바로 그 지점. 공개 실측 대조군은 Karlsson CC-BY 셋(드론/새/사람).",
+   "prior_baseline": "White 2023 bird-drone"
+  },
+  "explicitly_out": [
+   "⛔ 기종 분류 — 기체가 1~2 대라 원리적으로 불가",
+   "⛔ σ 절대정확도 주장 — 인프라이지 기여가 아니다",
+   "⛔ 추적 — future work 한 줄"
+  ]
+ },
+ "what_to_do_next": [
+  "① ⭐ Costa 2025 를 논문 §I 의 **첫 인용**으로 배치하고 p.10 future work 문장을 그대로 인용해 '이 자리가 비어 있다' 를 세운다. 동시에 우리 PO 를 바이스태틱 obliquity 로 확장해야 그 문장이 우리 편이 된다([[sionna2-rcs-methodology]] 의 미완 항목과 동일).",
+  "② Fuse-then-Detect p.11 의 *'UAV-specific dynamic signatures ... left to future work'* 를 §I 두 번째 인용으로. 패시브 5G 진영이 마이크로도플러를 필요로 한다는 자백.",
+  "③ 데이터셋 3종 확보 절차 착수 — Karlsson Zenodo(즉시, CC-BY) / TSMS figshare(즉시) / DIAT-µSAT(기관메일 요청, 리드타임 있음).",
+  "④ ⚠ **비행로그 라벨 실효성 검증**을 실측 이전에 끝낸다 — Matrice 4E 로그에서 per-motor RPM·자세를 실제로 뽑을 수 있는가. 이게 안 되면 R4(SSL) 승격 재검토 트리거.",
+  "⑤ 실험설계에 **네 번째 팔** 추가 — 표적모형 사다리(통계σ/큐브/우리σ)를 지도학습 팔과 SSL 팔 양쪽에서 돌린다. WiFi-JEPA 의 '다양성>충실도' 가 마이크로도플러에도 이전되는지가 이 논문의 두 번째 질문이 된다.",
+  "⑥ R3(실측 배경 주입) 배관 준비 — X410 로 표적 없는 필드 배경을 녹음하는 프로토콜을 MEASUREMENT_PLAN 에 넣는다. RT 배경 구성과 **병행**해 둘 다 인쇄.",
+  "⑦ 미확보 3편 재시도 — IET RSN 2025 LTE450 패시브(402), MDPI Drones 2025 패시브 서베이(403), Open Radar Initiative(UCL). 기관 프록시 필요."
+ ],
+ "open_questions_unverified": [
+  {
+   "q": "DJI Matrice 4E 비행로그에서 per-motor RPM 과 자세를 실제로 추출할 수 있는가",
+   "status": "⚠ 미검증 — 이번 라운드에서 확인하지 않았다. '라벨이 싸다' 는 route verdict 의 핵심 전제라 반드시 먼저 확인할 것.",
+   "impact": "높음 — 깨지면 R4 승격"
+  },
+  {
+   "q": "Seyfioglu·Gurbuz GRSL 2017 의 '표본 650 교차점' 수치",
+   "status": "⚠ 미검증 — 검색 요약에만 있고 원문 미확보. 인용 금지.",
+   "impact": "중간"
+  },
+  {
+   "q": "Open Radar Initiative / DopNET 이 드론 마이크로도플러를 실제로 포함하는가",
+   "status": "⚠ 미검증",
+   "impact": "중간"
+  },
+  {
+   "q": "IET RSN 2025 LTE450 패시브 레이다가 드론-조류 판별을 실제로 했는가",
+   "status": "⚠ 미검증(402 Payment Required). 검색 요약은 '가능하다' 고 하지만 요약은 근거가 아니다.",
+   "impact": "⭐ 높음 — 우리 기하와 가장 닮은 실측"
+  },
+  {
+   "q": "우리 PO 커널의 바이스태틱 확장이 few-λ 로터에서 유효한가",
+   "status": "⚠ 미해결 설계과제(기존 기록)",
+   "impact": "높음"
+  }
+ ],
+ "honest_limits_of_this_round": [
+  "웹 검색 요약(WebSearch 응답문)은 근거로 쓰지 않았다. 요약에만 등장한 것은 전부 unverified 로 격리했다.",
+  "IEEE Xplore·MDPI·Wiley 유료/차단 문헌은 열지 못했다. '없다' 계열 진술의 모집단은 명시한 범위에 한정된다.",
+  "Jopanya(SPAWC)·JEPA-MSAC·Semenyuk 서베이·Liang 다중BS 4편은 부분 개봉이라 partial 로 표시했다. 이 4편의 한계 절은 읽지 못했다.",
+  "Ritchie 2017 원문은 못 열었고 수치는 Dhulashia 2021 의 재인용이다 — 논문에 쓸 때 반드시 '재인용' 을 밝히거나 원문을 확보할 것."
+ ]
+}

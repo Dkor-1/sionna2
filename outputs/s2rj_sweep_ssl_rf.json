@@ -1,0 +1,795 @@
+{
+ "_meta": {
+  "title": "자기지도 사전학습 × 무선센싱 — sim-to-real 경로 정찰 및 설계 판정",
+  "date": "2026-08-07",
+  "round_id": "s2rj",
+  "language_policy": "본문 한국어 · 논문/지표/식별자 영어 · verbatim 인용은 영어 원문 그대로",
+  "quote_policy": "모든 축자인용은 이 라운드에서 내가 직접 연 PDF 에서 fitz 로 추출했고 pdf_page 를 병기했다. 원문을 못 연 항목은 verified='UNVERIFIED' 로 격리했다.",
+  "gpu_used": false,
+  "files_not_touched": [
+   "src/**",
+   "reports/**",
+   "make_notebook*.py",
+   "build_*.py",
+   "docs/*.md (읽기만)",
+   "outputs/* (기존 파일 일절 수정 없음)"
+  ],
+  "builds_on": {
+   "outputs/s2r_prior.json": "2026-08-03 sim-to-real 정찰(313편 전문검색·33편 정독). combo_found=False. 이 라운드는 그 위에 '자기지도' 축만 새로 얹었고 거기 있는 21편을 다시 판정하지 않았다.",
+   "docs/SIM2REAL_PLAN.md": "실행 설계(451줄). ⚠ 태스크=(a)유무검출, ablation=표적모형 3갈래 지도학습. 자기지도가 아니다 → 이 라운드 §paths_verdict 에서 갱신 제안.",
+   "prior_work/sionna_sensing_survey.md [R20][R21]": "Clutter-Aware ISAC(Proc. IEEE) 41쪽 정독 + WiFi-JEPA 원문판정. 사용자 지시대로 재정독하지 않고 결과만 인용.",
+   "outputs/facet_attack.json:attack_5_clutter_survey": "클러터 서베이 공격 가능/불가 판정. 재계산 없이 인용."
+  }
+ },
+ "scope_searched": {
+  "archive_fulltext": {
+   "root": "/data/public/sionna_jeong",
+   "pdfs_walked": 316,
+   "unique_by_md5": 256,
+   "method": "PyMuPDF(fitz) 로 전편 텍스트 추출 후 정규식 전문검색. site-packages / reference_cad 제외.",
+   "ssl_regex": "self-?supervis | JEPA | masked auto-?encoder | masked (modeling|prediction|reconstruction) | contrastive | foundation model | SimCLR|MoCo|BYOL|DINO|VICReg|Barlow Twins",
+   "files_with_any_ssl_signal": 42,
+   "files_with_meaningful_ssl_content": 6,
+   "verdict": "⭐ 아카이브는 Sionna/ISAC 중심이라 SSL 축이 사실상 비어 있다. 아카이브만으로는 이 질문에 답할 수 없어 웹·arXiv 로 확장했다."
+  },
+  "arxiv_api": {
+   "queries": [
+    "all:\"self-supervised\" AND all:\"micro-Doppler\"",
+    "all:\"self-supervised\" AND all:\"ISAC\"",
+    "all:\"self-supervised\" AND all:\"UAV detection\"",
+    "all:\"JEPA\" AND (all:\"wireless\" OR all:\"sensing\" OR all:\"radar\")",
+    "abs:\"foundation model\" AND abs:\"radar\"",
+    "all:\"self-supervised\" AND all:\"drone\""
+   ],
+   "caveat": "⚠ arXiv API 는 제목·초록·코멘트만 검색한다(전문 아님). 여기서 나온 '0편' 은 초록 수준 부재이지 전문 부재가 아니다. R20 대정정(초록편향으로 헤드라인 2건 붕괴)의 교훈을 그대로 적용해 아래 absence_ledger 에 모집단을 명시했다."
+  },
+  "websearch_queries": 7,
+  "pdfs_downloaded_and_opened_this_round": 25,
+  "pdfs_read_in_depth_with_page_cited_quotes": 8,
+  "honest_limits": [
+   "IEEE Xplore / ACM DL / Elsevier 직접 PDF 는 이번에도 열지 못했다. ACM TOSN 2025 게재판(10.1145/3715130) 대신 arXiv:2308.02412v1 을 읽었으므로 수치가 게재판과 다를 수 있다.",
+   "Seyfioglu & Gurbuz 계열의 micro-Doppler unsupervised pretraining 수치(‘N≈650 교차점’)는 웹 검색 요약에서만 봤고 원문을 열지 못했다 → UNVERIFIED 로 격리.",
+   "Beuster EuCAP 2023 'ISAC UAV Dataset' 은 실제 다운로드 가능성·라이선스를 확인하지 못했다.",
+   "중국어권 DB·NATO STO 회색문헌은 이번에도 미탐색."
+  ]
+ },
+ "papers": [
+  {
+   "id": "skysense",
+   "rank": "⭐⭐⭐ 최근접 경쟁작",
+   "title": "SkySense: A Semi-Supervised Generative Framework for UAV Localization in ISAC Networks",
+   "authors": "S. Luo, Y. Xu, J. Yang, Y. Wang, C. Zhang, S. Jin, W. Zhang (Southeast Univ. + SJTU)",
+   "venue_year": "arXiv:2606.04076v1 (2026-06-02)",
+   "verified": "FULLTEXT (p.1-6 직접 열람)",
+   "task": "패시브 멀티스태틱 ISAC 에서 **비협조·무선침묵 UAV 3D 측위**. Tx 기지국이 상시 OFDM 통신신호를 방사 → UAV 가 산란 → 분산 Rx 들이 에코 CSI 수집.",
+   "pretrain_data_source": "**실측 무라벨 CSI**(비행 궤적의 시간연속성을 이용한 self-supervised temporal contrastive). 시뮬 없음(Sionna 0회).",
+   "labels_needed": "사전학습 0. 미세조정에 **라벨 1%**(0.1% 까지 내려도 데시미터급).",
+   "transfer_result": "3-BS 융합 9.77 cm(라벨 1%). 지도학습 U-Net 45.10 cm → 반지도 20.67 cm(단일 BS, 50%↓). DDPM 대조군은 245.90 cm 로 붕괴.",
+   "relevance": "**매우 높음 — 우리 기하와 사실상 동일**. 이 라운드에서 찾은 가장 위험한 선행이다.",
+   "quotes": [
+    {
+     "text": "Consider a multi-BS ISAC network, aiming to passively localize an unauthorized and silent UAV ... the transmitting BS continuously broadcasts ambient communication signals, which simultaneously illuminate the surveillance area and are scattered by the non-cooperative target UAV.",
+     "pdf_page": 2
+    },
+    {
+     "text": "Assuming precise synchronization and ideal channel estimation, the receivers can accurately acquire these CFR matrices. This assumption allows us to strictly evaluate the efficacy of the downstream localization algorithms without the compounding effects of estimation errors.",
+     "pdf_page": 2
+    },
+    {
+     "text": "The evaluation utilizes the open-source ISAC UAV Dataset [13], which contains 3-BS radar surveillance measurements of a non-cooperative UAV in complex urban environments.",
+     "pdf_page": 4
+    },
+    {
+     "text": "In the future, we aim to leverage high-fidelity ray-tracing simulations to construct large-scale synthetic datasets and employ Sim-to-Real transfer techniques to completely eliminate the reliance on empirical measurements, ultimately enabling a scalable, zero-survey deployment strategy for ubiquitous UAV localization.",
+     "pdf_page": 6
+    }
+   ],
+   "self_admitted_limits": "⭐⭐ 마지막 인용이 **저자 스스로 우리 계획을 future work 로 선언한 문장**이다. 즉 이 방향은 (a) 정당하고 (b) 이미 다른 팀이 조준하고 있다. 시간 압박으로 읽어라.",
+   "unreported_counted_fulltext_6p": {
+    "micro-Doppler": 0,
+    "Doppler": 0,
+    "probability of detection": 0,
+    "Pfa/false alarm": 0,
+    "ROC": 0,
+    "classification": 0,
+    "RCS": 0,
+    "Sionna": 0,
+    "code/github": 0
+   },
+   "our_opening": [
+    "⭐ **도플러를 통째로 버린다** — 6쪽 전문에서 'Doppler' 0회. 지연영역 CIR 지문만 쓴다. 드론의 정체(회전 로터)가 사는 축이 통째로 비어 있다.",
+    "태스크가 **측위**다. 탐지(Pd/Pfa/ROC) 0 · 분류 0. 우리 태스크와 겹치지 않는다.",
+    "*'precise synchronization and ideal channel estimation'* 을 **가정**한다. 패시브 X410 실측에서 우리가 못 하는 가정이다 — 이건 그들의 이상화이자 우리의 실무 부담이다.",
+    "표적을 산란 지문으로만 다룬다. 표적 EM 모델·자세·로터 없음(RCS 0회).",
+    "코드·데이터 공개 없음(github 0회)."
+   ],
+   "url": "https://arxiv.org/abs/2606.04076",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2606.04076.pdf"
+  },
+  {
+   "id": "transfer_to_sky",
+   "rank": "⭐⭐ 경로 템플릿 1순위",
+   "title": "Transfer to Sky: Unveil Low-Altitude Route-Level Radio Maps via Ground Crowdsourced Data",
+   "authors": "W. Lu, H. Chen, R. Duan, W. Yuan, S. Gao (HKUST-GZ · Meituan · SUSTech)",
+   "venue_year": "arXiv:2602.10736v1 (2026-02-11)",
+   "verified": "FULLTEXT (p.1-6 직접 열람)",
+   "task": "저고도 UAV 항로 RSRP(커버리지) 예측. **센싱 아님 — 통신 커버리지**.",
+   "pretrain_data_source": "⭐ **Sionna RT 로 만든 합성 3D 라디오맵**(OSM+DEM 로 1000×1000 m 도시, BS 10개, 100×100×20 격자, 200 m 고도) 위에서 **masked radio map recovery** 자기지도 사전학습. RT 설정: max path depth 2 · diffraction False · refraction False · samples per transmitter 1e9(p.5 Table I).",
+   "labels_needed": "사전학습 0 → 적대적 도메인정렬 → **희소 실측 UAV 측정**으로 미세조정.",
+   "transfer_result": "Meituan 선전 실운영 UAV 항로 RMSE best/mean/worst = **3.4 / 5.3 / 12.7 dB**. Kriging 12.1, GP 11.5, Autoencoder 10.2(mean).",
+   "ablation_numbers": {
+    "full": "3.4/5.3/12.7",
+    "w/o ADDA": "3.7/5.8/12.9",
+    "w/o real finetune": "4.5/6.6/13.5",
+    "w/o dual-cell": "3.9/6.3/13.2",
+    "w/o simulation pretraining": "mean 9.5"
+   },
+   "relevance": "**높음(경로 설계)** — 우리가 걸으려는 3단(시뮬 SSL 사전학습 → 정렬 → 소량 실측 미세조정)을 **실측 운영 데이터로 끝까지 닫은** 유일한 사례.",
+   "quotes": [
+    {
+     "text": "Our approach first leverages large-scale simulation-generated data to pretrain a dual-transmitter U-Net for masked radio map recovery. This self-supervised task builds robust propagation priors and spatial awareness of urban morphology.",
+     "pdf_page": 1
+    },
+    {
+     "text": "Removing the simulation pretraining stage leads to a sharp increase in error (mean RMSE rises from 5.3 to 9.5 dB).",
+     "pdf_page": 5
+    },
+    {
+     "text": "Without finetuning on real UAV measurements, the performance degrades noticeably (mean RMSE grows to 6.6 dB). Although adversarial adaptation provides domain-invariant features, the model remains uncalibrated to real-world signal dynamics like material-dependent reflections.",
+     "pdf_page": 6
+    }
+   ],
+   "what_we_take": [
+    "⭐ **시뮬 사전학습이 4개 구성요소 중 가장 큰 레버**다(제거 시 5.3→9.5 dB, 다른 셋은 0.5~1.3 dB). 우리 서사('실측이 적으니 시뮬로 사전학습한다')의 최강 정량 근거.",
+    "⭐ **사전학습용 RT 는 저충실도로 충분했다** — max_depth 2, 회절·굴절 끄고도 통했다. WiFi-JEPA 의 '다양성 > 충실도' 주장의 두 번째 독립 증거.",
+    "zero-shot(실측 미세조정 없이) 6.6 dB 로도 모든 베이스라인을 이긴다 → 우리도 '실측 0' 중간 산출물을 낼 수 있다."
+   ],
+   "our_opening": [
+    "태스크가 커버리지(스칼라 RSRP)라 표적 항이 아예 없다. 표적 산란·도플러·검출은 0. 우리와 사과-대-사과 비교 불가 — **경로 템플릿으로만 인용**하고 성능 수치를 나란히 놓지 마라."
+   ],
+   "url": "https://arxiv.org/abs/2602.10736",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2602.10736.pdf"
+  },
+  {
+   "id": "csi_jepa",
+   "rank": "⭐⭐ 방법 레퍼런스",
+   "title": "CSI-JEPA: Towards Foundation Representations for Ubiquitous Sensing with Minimal Supervision",
+   "authors": "X. Luo, Z. Li, Y. Liu (North Carolina State Univ.)",
+   "venue_year": "arXiv:2605.14171 (2026-05-13)",
+   "verified": "FULLTEXT (p.1, p.8 표 직접 열람)",
+   "task": "WiFi CSI 다중 센싱 태스크 7종(호흡·낙상·측위·동작원 인식 등).",
+   "pretrain_data_source": "**실측 무라벨 CSI**. 시뮬 0. 기여는 **channel variation-aware masking**(시간·부반송파 국소변동이 큰 영역을 예측표적으로 뽑음).",
+   "labels_needed": "사전학습 0 → 인코더 동결 + 경량 어댑터.",
+   "transfer_result": "⭐ 태스크별로 갈린다 — Breath ΔAcc +9.18 pp(라벨절감 95.0%, 500→10,000) · Fall +7.35 pp(**절감 98.0%, 10→500**) · Motion Source Recognition +10.64 pp(절감 50%) · **Localization ΔAcc −1.75 pp, 절감 0.0%**.",
+   "relevance": "**높음 — 우리 태스크 선택의 결정 근거**.",
+   "quotes": [
+    {
+     "text": "CSI-JEPA achieves up to 10.64 percentage points (pp) mean accuracy gain and up to 14.38 pp mean F1 gain, while reducing the matched labeled budget by up to 98.0%.",
+     "pdf_page": 1
+    },
+    {
+     "text": "Loc -1.75 5.66 4.57 21.92 0.0% –",
+     "pdf_page": 8,
+     "note": "Table III 의 Localization 행. ΔAcc 평균 −1.75 pp, 라벨절감 0.0%."
+    }
+   ],
+   "our_reading": "⭐⭐ **JEPA 류 SSL 은 「움직임의 성격」을 묻는 과제에서 이기고 「절대 위치·절대 레벨」을 묻는 과제에서 이기지 못한다.** 우리 태스크 배치가 이 선을 따라 갈린다 — 상태분류(호버/이동/rpm)·드론대클러터는 이득 쪽, **검출거리·절대 Pd 는 무이득 쪽**. 논문 주장을 이득 쪽에 걸어라.",
+   "our_opening": [
+    "실측만 쓴다 — 시뮬 사전학습 축이 없다. 코드·데이터 공개 없음. 마이크로도플러 0회, Pd/Pfa/ROC 0회."
+   ],
+   "url": "https://arxiv.org/abs/2605.14171",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2605.14171.pdf"
+  },
+  {
+   "id": "xu2023_ssl_csi_study",
+   "rank": "⭐⭐ 반대증거(필수)",
+   "title": "Self-Supervised Learning for WiFi CSI-Based Human Activity Recognition: A Systematic Study",
+   "authors": "K. Xu, J. Wang, H. Zhu, D. Zheng (Coventry Univ. · A*STAR I2R)",
+   "venue_year": "arXiv:2308.02412v1 (2023-07-19). 게재판은 ACM Trans. Sensor Networks, DOI 10.1145/3715130 (⚠ 게재판 미열람)",
+   "verified": "FULLTEXT (arXiv v1, p.1-2, p.15-18 직접 열람)",
+   "task": "WiFi CSI HAR 에서 SSL 4계열(instance/cluster/relation/MAE) × 3 인코더 × 3 데이터셋 벤치마크. 전이(사용자·방·수신기 위치)와 데이터 희소성 축으로 평가.",
+   "pretrain_data_source": "실측 공개 데이터셋(UT-HAR, SignFi, Widar). 시뮬 0.",
+   "labels_needed": "선형평가/미세조정 모두 평가.",
+   "transfer_result": "MAE 가 linear evaluation 에서 전 전이설정 최고(방 전이에서 타 기법 대비 +29%p 구간 존재). 그러나 미세조정하면 ResNet 계열 SSL 이 지도학습 베이스라인과 **거의 같아진다**.",
+   "relevance": "**높음 — 우리 계획을 죽일 수 있는 반대증거**.",
+   "quotes": [
+    {
+     "text": "our experiments have revealed that the current SSL algorithms fail to meet the expected level of performance when the dataset is extremely limited. Their performance does not significantly exceed that of the supervised baseline, even with a small amount of labeled data.",
+     "pdf_page": 18
+    },
+    {
+     "text": "although SSL algorithms can outperform the supervised baseline when faced with limited labeled datasets, the magnitude of improvement is not substantial.",
+     "pdf_page": 17
+    },
+    {
+     "text": "MAE demonstrates a high sensitivity to changes in both the quantity of labeled and unlabeled data.",
+     "pdf_page": 17
+    }
+   ],
+   "our_reading": "⭐ **SSL 은 무라벨 데이터가 많을 때만 값을 한다.** 우리 실측 쪽은 무라벨도 적다 → 실측만으로 SSL 하면 이 논문의 결론(지도학습 대비 유의차 없음)에 그대로 걸린다. **무라벨을 대량으로 만들 수 있는 쪽은 시뮬뿐**이다. 이것이 경로 D 를 척추로 못 쓰고 경로 C 를 척추로 쓰는 이유다.",
+   "self_admitted_limits": "저자 스스로 (1) 데이터 부족 (2) 다양성 부족(Widar=사용자 17명·방 3개) (3) 단일인 시나리오 한정 을 §5 에 적었다.",
+   "url": "https://arxiv.org/abs/2308.02412",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2308.02412.pdf"
+  },
+  {
+   "id": "jepa6g",
+   "rank": "⭐ 포지셔닝·인용원",
+   "title": "JEPA for AI-Native 6G: Predictive Representations and Open Challenges",
+   "authors": "S.S. Hassan, I.A. Meer, A. Saifaldawla, Y.K. Tun, M. Ozger, M. Alsenwi, N.V. Huynh, W.-H. Lee, C. Stefanovic, M. Sellathurai, H. Wymeersch, T. Ratnarajah",
+   "venue_year": "arXiv:2607.09798v1 (2026-07-09), 튜토리얼 12쪽",
+   "verified": "FULLTEXT (p.1, p.8-10 직접 열람)",
+   "task": "6G 용 JEPA 튜토리얼 + 빔관리 사례연구(32-안테나 ULA, 32-빔 코드북).",
+   "pretrain_data_source": "**전부 합성**(clustered geometric channel 3–6 paths). 실측·광선추적 0.",
+   "labels_needed": "SSL 3만 무라벨 / 라벨 1·5·10%(100·500·1000 궤적).",
+   "transfer_result": "BA-Future-JEPA(무선인지 보조표적) 가 combined-OOD 5% 라벨에서 rGain@3 0.594 · Cov@90 48.8%. 일반 Future-JEPA 0.470 · MAE 0.419 · 비학습 last-best 0.349/25.1%.",
+   "relevance": "**중간~높음** — (a) 'JEPA 는 유망하나 아직 초기' 라는 최상위 저자군(Wymeersch 등) 문장을 우리 서론이 인용할 수 있다. (b) ⭐ **SSL 예측표적을 도메인에 맞게 설계해야 이득이 난다**는 정량 근거.",
+   "quotes": [
+    {
+     "text": "we read the study as evidence that wireless-aware target design matters for a beam-prediction JEPA, not as validation of JEPA-enabled 6G intelligence in general; evaluation on ray-traced or measured datasets remains future work.",
+     "pdf_page": 9
+    },
+    {
+     "text": "the observed robustness primarily reflects label-efficient transfer to a narrow labeled domain rather than generalization to unseen physics",
+     "pdf_page": 9
+    }
+   ],
+   "self_admitted_limits": "⭐ 위 인용 자체가 저자 자백이다 — **광선추적·실측 평가가 없다**. 우리 실험이 그 칸을 그대로 채운다.",
+   "url": "https://arxiv.org/abs/2607.09798",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2607.09798.pdf"
+  },
+  {
+   "id": "sar_jepa",
+   "rank": "⭐ 설계교훈",
+   "title": "Predicting Gradient is Better: Exploring Self-Supervised Learning for SAR ATR with a Joint-Embedding Predictive Architecture (SAR-JEPA)",
+   "authors": "W. Li, W. Yang, T. Liu, Y. Hou, Y. Li, Z. Liu, Y. Liu, L. Liu (NUDT 외)",
+   "venue_year": "arXiv:2311.15153v6 · ISPRS J. Photogrammetry & Remote Sensing 계열 게재(⚠ 게재 서지 미확인)",
+   "verified": "FULLTEXT 일부(p.1-2, 스케일링·결론 절)",
+   "task": "SAR ATR(차량·선박·항공기 3 데이터셋) 자기지도 사전학습. 약 10만 장 무라벨 SAR.",
+   "pretrain_data_source": "**실측 SAR 공개 데이터 4종**.",
+   "transfer_result": "동종 SSL 기법 대비 우위. 데이터·모델·에폭 스케일링 이득 있으나 데이터 크기 한계로 대형 모델·장기학습은 과적합.",
+   "relevance": "**중간(설계교훈)** — 우리가 그대로 훔칠 것은 **'잡음 있는 레이다 신호에서는 원신호를 예측표적으로 쓰면 안 되고 도메인 특징을 표적으로 써야 한다'** 는 결론.",
+   "quotes": [
+    {
+     "text": "SAR images are affected by speckle noise, which can affect the quality of learned representations ... data augmentation in contrastive learning cannot exactly simulate the effects of speckle noise, and the gradient computation in HOG features has false results due to multiplicative noise.",
+     "pdf_page": 2
+    }
+   ],
+   "our_reading": "⭐ SAR-JEPA(다중스케일 SAR gradient 표적) · JEPA-6G(future beam-energy 표적) · LatentWave(마스킹 기하) · CSI-JEPA(변동인지 마스킹) — **네 편이 서로 독립적으로 같은 말을 한다.** 우리 자리는 **도플러/블레이드-위상 인지 마스킹·표적**이다. 이건 우리 물리 커널이 있어야 설계할 수 있다.",
+   "url": "https://arxiv.org/abs/2311.15153",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2311.15153.pdf"
+  },
+  {
+   "id": "lwm",
+   "rank": "⭐ 부재 증거",
+   "title": "Large Wireless Model (LWM): A Foundation Model for Wireless Channels",
+   "authors": "S. Alikhani, G. Charan, A. Alkhateeb (Arizona State Univ.)",
+   "venue_year": "arXiv:2411.08872v1 (2024-11), 부분 IEEE ICMLCN 2025",
+   "verified": "FULLTEXT 일부(p.1, p.8, p.11-12) + 13쪽 전문 낱말계수",
+   "task": "채널 임베딩 기반 범용 표현. 다운스트림: sub-6→mmWave 빔예측, LoS/NLoS 분류.",
+   "pretrain_data_source": "⭐ **100% 광선추적 합성** — DeepMIMO 15 시나리오, 100만+ 채널. Masked Channel Modeling.",
+   "transfer_result": "임베딩이 raw 채널 대비 일관 개선. 다운스트림 평가도 DeepMIMO 신규 6 시나리오(합성).",
+   "relevance": "**중간 — '시뮬만으로 사전학습한 무선 기반모델' 의 대표 전례이자 동시에 최대 구멍**.",
+   "counted_absence_fulltext_13p": {
+    "measured": 0,
+    "measurement": 0,
+    "over-the-air": 0,
+    "micro-Doppler": 0,
+    "UAV/drone": 0
+   },
+   "our_opening": [
+    "⭐ **13쪽 전문에서 'measured'·'measurement'·'over-the-air' 각 0회.** 세계 최초를 표방한 무선 기반모델이 실측 검증을 한 번도 하지 않았다. '시뮬 사전학습' 계열 전체의 급소이고, **우리가 실측으로 닫으면 그 자체가 기여**가 된다."
+   ],
+   "quotes": [
+    {
+     "text": "The LWM pre-training process utilizes a vast and diverse dataset of over 1 million wireless channels from 15 scenarios within the DeepMIMO dataset",
+     "pdf_page": 8
+    }
+   ],
+   "url": "https://arxiv.org/abs/2411.08872",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2411.08872.pdf"
+  },
+  {
+   "id": "radar_ssl_fewshot",
+   "rank": "중간",
+   "title": "Few-Shot Radar Signal Recognition through Self-Supervised Learning and Radio Frequency Domain Adaptation",
+   "authors": "Z. Huang, S. Denman, A. Pemasiri, C. Fookes, T. Martin (QUT · Revolution Aerospace)",
+   "venue_year": "IEEE MLSP 2025 (arXiv:2501.03461v3)",
+   "verified": "FULLTEXT (p.1-6 직접 열람)",
+   "task": "레이다 **파형 종류** 인식(EW). 표적 에코가 아니라 송신 파형 I/Q 5클래스.",
+   "pretrain_data_source": "RadChar-SSL(합성 50만)·DeepRadar(합성)·RadarComm·RadioML. **표적 에코·실측 표적 0**.",
+   "labels_needed": "1/5/10-shot(1-shot = 205 프레임).",
+   "transfer_result": "ResNet1D 1-shot 63.88%→**75.06%(+17.5 pp, in-domain 사전학습)**, RadioML(out-of-domain 통신신호) 사전학습으로도 74.30%(+16.31 pp). MS-TCN 은 1-shot 44.00%→72.62%.",
+   "relevance": "**중간** — ① RF I/Q 에서 masked signal modelling 이 실제로 통한다는 정량치 ② ⭐ **out-of-domain(통신) 사전학습이 in-domain 에 거의 맞먹는다** → 우리 '패시브 조명원 파형(LTE CRS/5G SSB) 자체' 를 사전학습 코퍼스로 재활용할 근거 ③ 마스킹 전략(zero/noise × random/block) 카탈로그를 그대로 이식 가능.",
+   "quotes": [
+    {
+     "text": "ResNet1D, which achieved a boost in classification accuracy of 17.5% when pre-trained on in-domain signals (RadChar-SSL), and 16.31% when pre-trained on out-of-domain data (RadioML), compared to its 1-shot baseline without SSL.",
+     "pdf_page": 5
+    },
+    {
+     "text": "In future work, additional downstream tasks may be explored to evaluate SSL and RF domain adaptation in a real-world setting.",
+     "pdf_page": 5
+    }
+   ],
+   "self_admitted_limits": "⭐ 마지막 문장이 자백 — **실세계 평가가 없다**. 데이터 전부 합성/공개 코퍼스이고 표적 산란은 다루지 않는다.",
+   "code": "https://github.com/abcxyzi/RadCharSSL",
+   "url": "https://arxiv.org/abs/2501.03461",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2501.03461.pdf"
+  },
+  {
+   "id": "mine_jepa",
+   "rank": "⭐ 유비(작은 데이터 희망근거)",
+   "title": "Mine-JEPA: In-Domain Self-Supervised Learning for Mine-Like Object Classification in Side-Scan Sonar",
+   "authors": "T. Kwon, Y. Choi, H. Kim, M. Cho, J. Choi, M.H. Kim (Maum AI · SNU · KAIST · Yonsei)",
+   "venue_year": "arXiv:2604.00383 (2026-04)",
+   "verified": "FULLTEXT 일부(p.1, p.4-5)",
+   "task": "측면주사 소나 기뢰 유사물 분류(2·3 클래스). 잡음 많고 데이터 극소인 센싱 모달리티.",
+   "pretrain_data_source": "⭐ **실측 153K 패치 + 합성 256K 패치 혼합**(≈409K). 모달리티 불일치(실측 RGB vs 합성 grayscale)를 일부러 안고 감.",
+   "transfer_result": "2클래스 F1 0.935 vs **DINOv3(1.7B 이미지 사전학습) 0.922**. 3클래스 0.820 vs 0.810. ViT-Tiny 로 파라미터 4배 절약. ⚠ 기반모델에 in-domain SSL 을 추가로 적용하면 **10–13 pp 악화**.",
+   "relevance": "**중간~높음(유비)** — 우리 규모 걱정에 대한 직접 반례: **소량 in-domain 무라벨(1,170~409K)이 거대 범용 기반모델을 이긴다.** 그리고 **합성+실측 무라벨 혼합이 이득**이라는 우리 계획의 인접 도메인 증거.",
+   "quotes": [
+    {
+     "text": "Mine-JEPA achieves an F1 score of 0.935, outperforming fine-tuned DINOv3 (0.922), a foundation model pretrained on 1.7B images.",
+     "pdf_page": 1
+    },
+    {
+     "text": "we consider a Real+Syn setting that adds approximately 256K synthetic sonar patches ... Rather than treating this mismatch as noise to avoid, we use it as an opportunity to test whether SSL can absorb sonar-like structure even in the presence of a moderate modality gap.",
+     "pdf_page": 4
+    },
+    {
+     "text": "applying in-domain SSL to foundation models degrades performance by 10–13 percentage points, suggesting that stronger pre-trained models do not always benefit from additional domain adaptation.",
+     "pdf_page": 1
+    }
+   ],
+   "url": "https://arxiv.org/abs/2604.00383",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2604.00383.pdf"
+  },
+  {
+   "id": "bootstrap_radar_ssl",
+   "rank": "중간",
+   "title": "Bootstrapping Autonomous Driving Radars with Self-Supervised Learning",
+   "authors": "Y. Hao, S. Madani, J. Guan, M. Alloulah, S. Gupta, H. Hassanieh (Cambridge · UIUC · EPFL)",
+   "venue_year": "CVPR 2024 (arXiv:2312.04519)",
+   "verified": "ABSTRACT PAGE (p.1) 직접 열람 + 전문 낱말계수",
+   "task": "자동차 mmWave 레이다 객체탐지. radar-to-radar + radar-to-vision contrastive 로 무라벨 레이다 히트맵 사전학습.",
+   "pretrain_data_source": "**실측 무라벨 레이다 + 페어링된 카메라 영상**.",
+   "transfer_result": "지도학습 SOTA 대비 **mAP +5.8%**.",
+   "relevance": "**중간** — 실측 무라벨 레이다 SSL 이 실제로 값을 한다는 숫자. ⚠ **동기화된 카메라가 필요**하다는 비용이 붙는다. 우리는 카메라 대신 **비행로그(자세·rpm)** 가 있어 더 싸다 — 이게 우리의 구조적 우위다.",
+   "quotes": [
+    {
+     "text": "the proposed self-supervision framework can improve the accuracy of state-of-the-art supervised baselines by 5.8% in mAP",
+     "pdf_page": 1
+    }
+   ],
+   "code": "https://github.com/yiduohao/Radical",
+   "url": "https://arxiv.org/abs/2312.04519",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2312.04519.pdf"
+  },
+  {
+   "id": "latentwave",
+   "rank": "중간(설계교훈)",
+   "title": "LatentWave: JEPA Pretraining for Wireless Foundation Models",
+   "authors": "A. Mohamed, A. Aboulfotouh, H. Abou-Zeid (Univ. of Calgary)",
+   "venue_year": "arXiv:2606.06373 (2026-06-04)",
+   "verified": "ABSTRACT + METHOD 일부(p.1, p.4)",
+   "task": "무선 스펙트로그램·CSI JEPA 사전학습 → RF 신호분류·5G NR 측위·빔예측·LoS/NLoS.",
+   "pretrain_data_source": "**실측 4종**(SDR 로 OTA 캡처한 WiFi/LTE/BT/5G-NR/ISM 3,200 · RF 지문 6,000 · 5G NR 실내 CSI 15,000 등).",
+   "transfer_result": "masked-modeling 베이스라인(WavesFM) 대비 out-of-the-box 전이 우수(수치 미열람).",
+   "relevance": "**중간** — ⭐ 핵심 이식물은 **마스킹 기하가 태스크별 귀납편향을 만든다**는 발견.",
+   "quotes": [
+    {
+     "text": "the masking geometry introduces a task-dependent inductive bias: frequency masking strongly favors channel-related tasks such as positioning and beam prediction, while region masking better preserves discriminability for signal classification.",
+     "pdf_page": 1
+    }
+   ],
+   "our_reading": "우리 데이터는 (지연 × 도플러) 또는 (시간 × 주파수) 격자다. 위 발견을 우리 축으로 옮기면 **‘도플러 마스킹 vs 지연 마스킹 vs 블레이드-위상 블록 마스킹’ 이 곧바로 하나의 ablation** 이 된다.",
+   "url": "https://arxiv.org/abs/2606.06373",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2606.06373.pdf"
+  },
+  {
+   "id": "wireless_jepa",
+   "rank": "낮음~중간",
+   "title": "WirelessJEPA: A Multi-Antenna Foundation Model using Spatio-temporal Wireless Latent Predictions",
+   "authors": "V. Chu, O. Mashaal, H. Abou-Zeid (Univ. of Calgary)",
+   "venue_year": "arXiv:2601.20190 (2026-01-28)",
+   "verified": "ABSTRACT PAGE (p.1)",
+   "task": "실측 다중안테나 IQ 로 JEPA 사전학습 → 6 다운스트림.",
+   "pretrain_data_source": "**실측 multi-antenna IQ**.",
+   "relevance": "낮음~중간 — 'JEPA×무선' 이 이미 붐비는 칸임을 보여주는 증거. **'우리가 처음 JEPA 를 무선에 적용' 주장 금지의 근거.**",
+   "url": "https://arxiv.org/abs/2601.20190",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2601.20190.pdf"
+  },
+  {
+   "id": "csi_clip_pp",
+   "rank": "중간",
+   "title": "CSI-CLIP++: A Scalable Channel Foundation Model for Wireless Communication via CIR-CSI Consistency",
+   "authors": "J. Jiang, W. Yu, Y. Li, Y. Gao, S. Xu",
+   "venue_year": "arXiv:2606.25714 (2026-06-24) (선행판 arXiv:2502.11965)",
+   "verified": "ARCHIVE FULLTEXT 검색(초록·결과절 직접 확인)",
+   "task": "CIR–CSI 대조학습 기반 채널 기반모델 → 측위·빔예측·채널식별.",
+   "pretrain_data_source": "**DeepMIMO(광선추적 합성)** 사전학습.",
+   "transfer_result": "⭐ **cross-simulator 전이** — DeepMIMO 사전학습 → **Sionna RT etoile 도시 시나리오** 로 이전, 섹터 A 지도학습 4.59 m → 3.33 m(−27.45%).",
+   "relevance": "**중간** — '시뮬 A 에서 사전학습해 시뮬 B 로 전이' 가 되는지 재 본 유일한 사례. 우리 '엔진 교차'(Sionna 조명 ↔ 우리 PO 표적) 설계의 선행. ⚠ 그러나 **시뮬→시뮬**이지 sim-to-real 이 아니다.",
+   "quotes": [
+    {
+     "text": "cross-simulator transfer on a Sionna RT dataset",
+     "pdf_page": 1,
+     "note": "아카이브 PDF 전문검색으로 확인. 페이지=1(초록)."
+    }
+   ],
+   "url": "https://arxiv.org/abs/2606.25714",
+   "pdf_path": "/data/public/sionna_jeong/sionna_papers_by_task/dataset_tooling/2606.25714__jiang-csi-clip-channel-foundation-model.pdf"
+  },
+  {
+   "id": "jepa_msac",
+   "rank": "낮음~중간",
+   "title": "JEPA-MSAC: A Joint-Embedding Predictive Architecture for Multimodal Sensing-Assisted Communications",
+   "authors": "C. Zheng, J. He, G. Cai, N. Li, M. Bennis, H. Wymeersch, M. Debbah",
+   "venue_year": "arXiv:2603.29796 (2026-03-31)",
+   "verified": "ABSTRACT PAGE (p.1)",
+   "task": "멀티모달 센싱+통신 측정을 토큰화 → temporal block-masked JEPA → 측위·빔예측·RSSI.",
+   "pretrain_data_source": "미확인(초록 수준). ⚠ 세부 미검증.",
+   "relevance": "낮음~중간 — 저자군이 겹친다(Wymeersch). 'JEPA 는 센싱을 보조로 쓰고 통신을 푼다' 는 방향이라 우리(센싱이 목적)와 반대.",
+   "url": "https://arxiv.org/abs/2603.29796",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2603.29796.pdf"
+  },
+  {
+   "id": "waloma",
+   "rank": "낮음",
+   "title": "WALoMA: A Multitask Wireless Foundation Model via Adaptive Low-Rank Masked Autoencoders",
+   "authors": "M. Makin, A. Abdallah, A. Celik, A.M. Eltawil (KAUST)",
+   "venue_year": "arXiv:2607.25763 (2026-07)",
+   "verified": "ABSTRACT PAGE (p.1)",
+   "task": "CSI MAE 사전학습 + LoRA → 5 태스크(LoS/NLoS 96.47%, 빔예측 80.45%, 보간 85.78%, 채널추정 99.12%, 채널차팅 77.18%).",
+   "pretrain_data_source": "무라벨 채널 데이터(대체로 합성 계열, 세부 미검증).",
+   "transfer_result": "복합점수 87.80% vs **LWM 59.90%**, 파라미터 14.68%만 학습.",
+   "relevance": "낮음 — 통신 태스크만. 인용가치는 'LWM 은 이미 추월당했다' 는 사실 하나.",
+   "url": "https://arxiv.org/abs/2607.25763",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2607.25763.pdf"
+  },
+  {
+   "id": "radio_fm",
+   "rank": "낮음~중간",
+   "title": "Radio-FM: A Foundation Model for Radio Signal Representation Learning and Its Applications",
+   "authors": "J. Zhou, W. Xie, Z. Chen, Y. Lu, Q. Xuan, Y. Lin, G. Gui",
+   "venue_year": "arXiv:2608.05793 (2026-08-06)",
+   "verified": "ABSTRACT PAGE (p.1)",
+   "task": "I/Q 마스크복원 사전학습(15 데이터셋) → 15 벤치마크(변조·**레이다 파형 인식**·에미터 식별 등). 13/15 SOTA, few-shot 우수.",
+   "pretrain_data_source": "공개 코퍼스 15종 혼합.",
+   "relevance": "낮음~중간 — 레이다 축이 있으나 **파형 인식**이지 표적 에코 아님. 우리 태스크와 층이 다르다.",
+   "url": "https://arxiv.org/abs/2608.05793",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2608.05793.pdf"
+  },
+  {
+   "id": "single_chip_radar_fm",
+   "rank": "낮음~중간",
+   "title": "Towards Foundational Models for Single-Chip Radar",
+   "authors": "T. Huang, A. Prabhakara, C. Chen, J. Karhade, D. Ramanan, M. O'Toole, A. Rowe (CMU · Bosch · UW-Madison)",
+   "venue_year": "arXiv:2509.12482 (2025-09)",
+   "verified": "ABSTRACT PAGE (p.1)",
+   "task": "4D 레이다 큐브(range-Doppler-az-el) → BEV 점유·3D 점유·시맨틱 분할·자기운동. 24시간·100만 샘플.",
+   "pretrain_data_source": "**실측 레이다 + LiDAR/카메라 감독**(자기지도라기보다 cross-modal 감독).",
+   "relevance": "낮음~중간 — 레이다 큐브 규모 학습의 상한 예시. ⚠ 감독신호가 LiDAR 다 — 우리에겐 RTK/비행로그가 대응물.",
+   "url": "https://arxiv.org/abs/2509.12482",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2509.12482.pdf"
+  },
+  {
+   "id": "md_supcontrast_uav",
+   "rank": "낮음(대비군)",
+   "title": "Multi-Domain Supervised Contrastive Learning for UAV Radio-Frequency Open-Set Recognition",
+   "authors": "N. Gao, T. Zeng, B. Chen, D. Cai, S. Jin, M. Matthaiou",
+   "venue_year": "arXiv:2508.12689 (2025-08)",
+   "verified": "ABSTRACT PAGE (p.1) + 전문 낱말계수",
+   "task": "UAV **RF 방출(조종링크) 개집합 인식**. ResNet+Transformer 특징융합 + supervised contrastive + IG-OpenMax.",
+   "pretrain_data_source": "실측 드론 RF 방출 데이터셋.",
+   "relevance": "**낮음(대비군)** — 드론이 나오지만 **자기지도 아님**(self-supervis 0회) 이고 **에코가 아니라 드론이 스스로 쏘는 통신신호**다. CageDroneRF 계열. 우리와 물리가 다르다 → **표적산란 선행으로 인용 금지**, '드론 RF 인식의 다른 층' 으로만 언급.",
+   "url": "https://arxiv.org/abs/2508.12689",
+   "pdf_path": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf/2508.12689.pdf"
+  },
+  {
+   "id": "natscidata_drone_radar",
+   "rank": "⭐ 데이터 자산",
+   "title": "A Time-Synchronized Multi-Sensor drone dataset acquired from multiple radars and RF receiver",
+   "authors": "S.-K. Han, Y.-H. Jung",
+   "venue_year": "Scientific Data 13:407 (2026), doi 10.1038/s41597-026-06802-6",
+   "verified": "ARCHIVE FULLTEXT 검색",
+   "task": "FMCW + CW 레이다 + RF 수신기 **시간동기 실측 드론 데이터셋**. 상용 드론 4종 + 비드론 1종, 2–30 m 를 2 m 간격.",
+   "pretrain_data_source": "해당없음(데이터셋 논문). raw I/Q · range-Doppler map · Doppler spectrum · PSD 포함.",
+   "relevance": "**높음(자산)** — ⭐ 저자들이 **자기지도 학습을 명시적 용도로 열어 두었지만 스스로 하지 않았다.** 즉 '공개 실측 드론 레이다 + SSL' 은 초대장만 있고 응한 사람이 없다.",
+   "quotes": [
+    {
+     "text": "the inclusion of unprocessed raw signals (e.g., I/Q data, range-Doppler maps) enables a broad range of machine learning techniques like self-supervised representation learning",
+     "pdf_page": 1,
+     "note": "Background & Summary. 아카이브 PDF."
+    }
+   ],
+   "our_opening": [
+    "모노스태틱 능동(FMCW/CW)이라 우리 패시브 바이스태틱과 기하가 다르다. 그래도 **마이크로도플러 무라벨 사전학습 코퍼스**로는 즉시 쓸 수 있다."
+   ],
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/natsciData2026__multisensor-drone-radar-dataset.pdf"
+  },
+  {
+   "id": "wifi_jepa",
+   "rank": "⭐⭐ 사용자 지정 레퍼런스 ②",
+   "title": "WiFi-JEPA: Self-supervised Learning for WiFi-CSI 3D Human Pose Estimation",
+   "authors": "D. Kim, J. Lee, S. Kim, S.-h. Kim (숭실대)",
+   "venue_year": "arXiv:2607.11064 (2026-07-13)",
+   "verified": "기존 라운드 [R21] 에서 원문판정 완료 — 이 라운드에서 재정독하지 않음(사용자 지시). 낱말계수만 재확인.",
+   "recap": "Sionna RT 로 기하 프리미티브(구·정육면체·원기둥·타원체 0.1–0.5 m) 1–4개가 최대 3 m/s 로 튀는 무작위 방(3–8 m) 채널 9만 프레임을 만들어 JEPA 사전학습. 프레임당 20회 독립 재추적으로 시간축 생성. 프리미티브(100.1 mm)가 사람 메쉬(110.3 mm)를 이김.",
+   "recounted_absence_fulltext": {
+    "micro-Doppler": 0,
+    "probability of detection": 0,
+    "RCS": 0,
+    "max_depth": 0,
+    "num_samples/samples_per": 0,
+    "Sionna version": 0,
+    "diffraction": 0,
+    "UAV/drone": 0
+   },
+   "our_reading": "⭐ 이 편의 값어치는 방법이 아니라 **‘표적 충실도가 필요 없는 과제가 존재한다’ 를 스스로 측정해 준 것**이다. 그러나 **얼마나 필요한지는 재지 않았다** — 그 자리가 우리 자리다.",
+   "url": "https://arxiv.org/abs/2607.11064",
+   "pdf_path": "/data/public/sionna_jeong/papers_isac_sionna/2607.11064__kim_wifi-jepa-csi-pose.pdf"
+  }
+ ],
+ "secondary_checked_not_deep_read": [
+  {
+   "id": "maskfi",
+   "title": "MaskFi: Unsupervised Learning of WiFi and Vision Representations for Multimodal HAR",
+   "url": "https://arxiv.org/abs/2402.19258",
+   "note": "WiFi+영상 마스크예측. 실측 자체수집 2종. 우리와 모달리티 짝이 다름(카메라 필요).",
+   "verified": "ABSTRACT PAGE"
+  },
+  {
+   "id": "autofi",
+   "title": "AutoFi: Towards Automatic WiFi Human Sensing via Geometric Self-Supervised Learning (IEEE IoT-J)",
+   "url": "https://arxiv.org/abs/2205.01629",
+   "note": "무작위 저품질 무라벨 CSI → 기하 SSL → cross-task transfer. WiFi 센싱 SSL 의 원조격.",
+   "verified": "ABSTRACT PAGE"
+  },
+  {
+   "id": "radler",
+   "title": "RADLER: Radar Object Detection Leveraging Semantic 3D City Models and Self-Supervised Radar-Image Learning",
+   "url": "https://arxiv.org/abs/2504.12167",
+   "note": "⭐ '시맨틱 3D 도시모델(=사이트 사전정보) + 대조 SSL' — 사이트 트윈을 학습에 넣는 방식의 인접 선례. RadarCity 54K 페어.",
+   "verified": "ABSTRACT PAGE"
+  },
+  {
+   "id": "ssl_radio_multitask",
+   "title": "Self-supervised Radio Representation Learning: Can we Learn Multiple Tasks? (Kanu, Eshaghbeigi, Abou-Zeid)",
+   "url": "https://arxiv.org/abs/2509.03077",
+   "note": "실측 대규모 무선 데이터 momentum contrast → AoA + AMC. 통신 태스크만.",
+   "verified": "ABSTRACT PAGE"
+  },
+  {
+   "id": "mmsense",
+   "title": "MMSense: Adapting Vision-based Foundation Model for Multi-task Multi-modal Wireless Sensing",
+   "url": "https://arxiv.org/abs/2511.12305",
+   "note": "영상 기반모델을 무선센싱에 적응. self-supervis 0회 — SSL 이 아니라 VLM 적응.",
+   "verified": "ABSTRACT PAGE"
+  },
+  {
+   "id": "jepa_cfm",
+   "title": "JEPA-CFM: JEPA-based Channel Foundation Model for Robust Fluid Antenna Systems",
+   "url": "https://arxiv.org/abs/2607.20202",
+   "note": "JEPA×무선이 붐비는 칸임을 보여주는 추가 사례.",
+   "verified": "TITLE/ABSTRACT ONLY"
+  },
+  {
+   "id": "dt_xlmimo_fm",
+   "title": "Digital Twin-Based Channel Generation Toolchain and Foundation Model for Low-Altitude XL-MIMO",
+   "url": "https://arxiv.org/abs/2606.14114",
+   "note": "저고도 XL-MIMO 디지털트윈 데이터셋 + CDDIM 생성 기반모델. 코드·데이터 공개(github.com/Lmyxxn/LAETwin-XL). 표적산란 아님.",
+   "verified": "ARCHIVE FULLTEXT 검색"
+  }
+ ],
+ "unverified_quarantine": [
+  {
+   "claim": "micro-Doppler 분류에서 unsupervised pretraining 이 표본 650개 이상에서 transfer learning 을 5%, random init 을 10% 넘어선다(작은 표본에서는 반대로 transfer 가 10%/25% 우세)",
+   "source": "웹 검색 요약이 인용한 Seyfioglu/Gurbuz 계열(추정 IEEE GRSL 2017)",
+   "why_unverified": "원문 PDF 를 열지 못했다. 논문 서지도 확정하지 못했다.",
+   "action": "인용 전 반드시 원문 확보. 확보 전에는 어떤 문서에도 쓰지 말 것."
+  },
+  {
+   "claim": "'radar+vision 공동학습이 라벨 1% 로 3.5% 이득' / 'contrastive+predictive RF 센싱이 5.7%, 무라벨 추가 시 11.3% 이득'",
+   "source": "WebSearch 요약 문장",
+   "why_unverified": "출처 논문을 특정하지 못했다.",
+   "action": "미인용."
+  },
+  {
+   "claim": "Beuster et al. 'ISAC UAV Dataset'(EuCAP 2023, 3.75 GHz, 3-BS)의 실제 공개 위치·라이선스·용량",
+   "source": "SkySense 참고문헌 [13] 경유",
+   "why_unverified": "데이터 포털을 확인하지 못했다.",
+   "action": "다음 세션 최우선 확인 항목."
+  },
+  {
+   "claim": "CSI-JEPA / LatentWave / WirelessJEPA / JEPA-MSAC / WALoMA / Radio-FM 의 세부 수치(초록·표 일부만 열람한 편들)",
+   "why_unverified": "전문 정독하지 않았다.",
+   "action": "헤드라인 수치만 쓰고, 우리 결과와 나란히 놓지 말 것."
+  }
+ ],
+ "absence_ledger": {
+  "note": "⚠ 각 항목은 **모집단을 밝힌 계수 진술**이다. 모집단 밖의 부재는 주장하지 않는다. R20 대정정(초록편향) 교훈 적용.",
+  "entries": [
+   {
+    "claim": "자기지도 사전학습 × 드론 RF/레이다 **에코** 센싱을 함께 한 논문이 아카이브에 0편",
+    "population": "/data/public/sionna_jeong 고유 PDF 256편 전문(fitz)",
+    "method": "self-?supervis ≥1 AND (UAV|drone ≥5 OR micro-?Doppler ≥3)",
+    "hits": 6,
+    "hits_detail": "6편 모두 오검출 — world-model DT(2605.16547) · 드론 데이터셋 논문(SSL 을 '가능한 용도' 로만 언급) · Clutter-Aware ISAC(중복 2본) · XL-MIMO DT · md-rt(SSL 1회는 관련연구 스침).",
+    "verdict": "⭐ **아카이브 내 0편 확정.**"
+   },
+   {
+    "claim": "arXiv 초록 수준에서 'self-supervised' + 'micro-Doppler' 는 **1편**뿐",
+    "population": "arXiv API(제목·초록·코멘트)",
+    "hits": 1,
+    "hits_detail": "2205.07869 'Near out-of-distribution detection for low-resolution radar micro-Doppler signatures'(2022) 하나. ⚠ 이 편도 원문 미열람.",
+    "caveat": "⚠ **전문 검색이 아니다.** 본문에만 나오는 논문은 원리적으로 놓친다."
+   },
+   {
+    "claim": "arXiv 초록 수준에서 'self-supervised' + 'drone' 상위 20편 중 **RF/레이다 편은 0편**(전부 비전·항법)",
+    "population": "arXiv API relevance 상위 20",
+    "caveat": "위와 동일한 초록편향 한계."
+   },
+   {
+    "claim": "LWM(세계 최초 무선 채널 기반모델)은 13쪽 전문에서 'measured'·'measurement'·'over-the-air' 각 0회",
+    "population": "arXiv:2411.08872v1 전문 13쪽",
+    "verdict": "⭐ 실측 검증 전무 확정."
+   },
+   {
+    "claim": "SkySense(최근접 경쟁작)는 6쪽 전문에서 'Doppler' 0 · 'micro-Doppler' 0 · 'RCS' 0 · 'ROC/false alarm/Pd' 0 · 'github' 0",
+    "population": "arXiv:2606.04076v1 전문 6쪽",
+    "verdict": "⭐ 도플러축·검출지표·코드 전부 비어 있음 확정."
+   },
+   {
+    "claim": "CSI-JEPA 는 11쪽 전문에서 micro-Doppler 0 · Pd/Pfa/ROC 0 · Sionna 0 · ray-tracing 0",
+    "population": "arXiv:2605.14171 전문 11쪽"
+   },
+   {
+    "claim": "WiFi-JEPA 는 max_depth · num_samples/samples_per · Sionna 버전 · diffraction 각 0회(기존 [R21] 판정 재확인)",
+    "population": "arXiv:2607.11064 전문 17쪽",
+    "note": "⭐ Clutter-Aware ISAC(Proc. IEEE)에서 지적한 **미보고 패턴이 탑베뉴 밖에서도 그대로 반복**된다. RT 설정 미보고는 이 분야의 구조적 결함이지 한 논문의 실수가 아니다 → 우리는 반대로 전부 보고해 차별화하라."
+   }
+  ]
+ },
+ "anchor_references": {
+  "clutter_aware_isac": {
+   "cite": "R. Liu, P. Li, M. Li, A.L. Swindlehurst, 'Clutter-Aware Integrated Sensing and Communication: Models, Methods, and Future Directions,' Proc. IEEE 114(1):52–91, 2026. DOI 10.1109/JPROC.2026.3675476 · arXiv:2602.10537",
+   "reread": "NO — 사용자 지시대로 재정독하지 않음. prior_work/sionna_sensing_survey.md [R20] 및 outputs/facet_attack.json:attack_5_clutter_survey 의 확정 사실만 사용.",
+   "use_as_support": "환경·클러터를 Sionna RT 로 내는 것이 Proc. IEEE 급에서 정당하다는 최상위 근거. 그림 11장 중 4장이 Sionna 산출물. 우리 '환경이 마이크로도플러를 훼손하는가' 서사의 상위 인용원.",
+   "use_as_attack": [
+    "(a) **RT 설정 미보고** — 41쪽에 num_samples 0 · samples_per 0 · max_depth 0 · launch 0 · physical_optics 0. 재현 불가.",
+    "(b) **표적을 통계로 흡수** — 식(108) α_t,n ~ CN(0, σ²_t,n). 자세·회전·형상이 결과에 못 들어간다. 우리가 그 자리를 채운다."
+   ],
+   "attack_that_does_NOT_work": "⛔ '메쉬를 단순화했으니 표적 에코가 틀렸다' — **대상 오인**. 그들 표적 진폭은 애초에 RT 산출물이 아니다. 이 문장을 어떤 문서에도 쓰지 마라.",
+   "our_own_weakness_from_it": "⚠ 그들 cold/hot 분류상 패시브·비협조 조명원이면 **우리 표적 에코와 바닥 유령이 전부 hot clutter** 이고, 논문 처방은 *'estimated directly from secondary data collected during quiet periods'* 인데 **우리는 조명원이 상시 ON 이라 quiet period 가 없다.** 이건 우리 약점이고 반드시 안고 가야 한다.",
+   "new_link_found_this_round": "⭐ 이 라운드에서 새로 이어진 고리 — 자기지도 관점에서 보면 'quiet period 가 없다' 는 것은 곧 **표적 없는 배경 캡처를 얻기 어렵다**는 뜻이고, 그것은 Trinh 2026 식 노이즈플로어 정렬(경로 E)의 전제를 흔든다. 대안은 **조명원은 켜져 있고 드론만 없는 구간**(=조명원 상시 ON 상태의 배경)을 배경으로 정의하는 것이다. 이건 물리적으로 확보 가능하고, X410 필드테스트 계획에 '드론 이륙 전/착륙 후 장시간 캡처' 로 반드시 넣어야 한다."
+  },
+  "wifi_jepa": {
+   "see": "papers[id=wifi_jepa]",
+   "role": "⭐ 후보 하나이지 결론이 아니다. 이 라운드 판정은 아래 paths_verdict 참조."
+  }
+ },
+ "sim2real_paths": [
+  {
+   "path": "A — 시뮬만 지도학습 + 도메인 랜덤화(zero-shot)",
+   "evidence": "White 2023 총정확도 −3.1 pp / 드론 recall −8.3 pp · BatStation 83.06%→11.18% · Trinh 2026 chance 붕괴 · RadSimReal(자동차)은 성공 (전부 outputs/s2r_prior.json)",
+   "fit_for_us": "낮음. 무향실 시뮬의 '너무 깨끗한 배경' 이 정확히 이 경로가 무너지는 조건이다.",
+   "verdict": "단독 채택 불가. 단, **실측 0 상태에서 낼 수 있는 유일한 중간 산출물**이므로 대조군으로 유지."
+  },
+  {
+   "path": "B — 시뮬 **지도** 사전학습 + 소량 실측 미세조정",
+   "evidence": "mmSimPrior zero-shot +8.5% vs 24 시퀀스 페어링 +24.7~39.0% · Sim2Radar +0.9~3.7 AP (s2r_prior.json)",
+   "fit_for_us": "중간~높음. 라벨이 비행로그로 공짜라 성립한다.",
+   "verdict": "⭐ **경로 C 의 필수 대조군.** 이게 없으면 'JEPA 덕분' 이라는 주장이 반증 불가능해진다."
+  },
+  {
+   "path": "C — 시뮬 **자기지도** 사전학습 + 소량 실측 미세조정",
+   "evidence": "Transfer to Sky(실측 UAV, 시뮬 사전학습 제거 시 mean RMSE 5.3→9.5 dB — 4요소 중 최대 레버) · WiFi-JEPA(프리미티브가 사람 메쉬를 이김) · Mine-JEPA(합성+실측 무라벨 혼합이 이득) · LWM/CSI-CLIP++(시뮬 사전학습 자체는 확립된 관행)",
+   "fit_for_us": "⭐⭐ **가장 높음**. 우리가 대량으로 만들 수 있는 것은 시뮬 무라벨뿐이고, SSL 이 요구하는 것이 정확히 그것이다.",
+   "verdict": "⭐ **척추로 채택.**"
+  },
+  {
+   "path": "D — **실측** 무라벨 자기지도 + 소량 라벨",
+   "evidence": "CSI-JEPA(최대 98% 라벨절감, 단 측위는 0%) · SkySense(라벨 1%로 9.77 cm) · Bootstrapping radars(+5.8 mAP) · WirelessJEPA · ⚠ Xu 2023 (극단적 소량에서 지도학습 대비 유의차 없음)",
+   "fit_for_us": "중간. 우리는 실측 무라벨도 적다 → Xu 2023 의 결론에 걸린다. 다만 **X410 을 그냥 오래 켜 두면 무라벨은 싸게 늘어난다**.",
+   "verdict": "보조로 채택 — 경로 C 사전학습 뒤에 **실측 무라벨로 2차 적응**(continual SSL)을 얹는 형태."
+  },
+  {
+   "path": "E — 분포 정렬 / 교정된 도메인 랜덤화",
+   "evidence": "Trinh 2026 무라벨 실측 10초로 노이즈플로어 정렬 → 50%→97% · NextSense KS/Wasserstein 게이트 · Transfer to Sky ADDA(5.3→5.8 dB, 작지만 공짜) (s2r_prior.json + 이 라운드)",
+   "fit_for_us": "높음. 비용이 거의 0.",
+   "verdict": "⭐ **의무 동반 항목.** 단독 논문거리는 아니지만 빼면 경로 C 가 죽는다. ⚠ 단 clutter-aware 의 'quiet period 없음' 역설을 우회해 배경을 정의해야 한다(위 참조)."
+  },
+  {
+   "path": "F — 학습 없이 물리구조 주입(정합필터/템플릿/저용량)",
+   "evidence": "BatStation 4,560 파라미터 물리기반 템플릿 상관이 RadYOLO 를 압도(s2r_prior.json)",
+   "fit_for_us": "중간. 우리 report12 의 정합필터·CFAR 파이프라인이 이미 이 경로다.",
+   "verdict": "⭐ **베이스라인으로 반드시 유지.** 학습형이 이걸 못 이기면 논문이 안 선다."
+  }
+ ],
+ "paths_verdict": {
+  "headline": "⭐⭐ **채택: 경로 C(시뮬 자기지도 사전학습 → 소량 실측 미세조정)를 척추로, 경로 B·E·F 를 각각 필수 대조군·필수 동반·필수 베이스라인으로 붙인다. 경로 D 는 X410 무라벨이 쌓이는 만큼 2차 적응으로 얹는다.**",
+  "but_the_paper_claim_is_not_the_method": "⭐⭐⭐ **논문의 주장은 「우리는 JEPA 를 썼다」가 아니다.** JEPA×무선은 이미 최소 7편이 붐빈다(WiFi-JEPA·CSI-JEPA·LatentWave·WirelessJEPA·JEPA-MSAC·JEPA-CFM·JEPA-6G). 방법을 novelty 로 팔면 즉시 반증당한다.",
+  "the_actual_question": "⭐⭐ **「자기지도 사전학습이 실측으로 전이되려면, 시뮬 코퍼스가 표적의 무엇을 담고 있어야 하는가 — 회전 블레이드 변조가 그 최소 성분인가?」**",
+  "why_this_question_is_ours": [
+   "WiFi-JEPA 는 *'diverse spatio-temporal channel variation, rather than faithful reproduction of body-specific multipath'* 를 **주장만 하고 얼마나 필요한지 재지 않았다.** 그들 표적은 크고 느린 몸통 하나라 잴 필요도 없었다.",
+   "우리는 **표적모형 사다리**로 그걸 잴 수 있는 유일한 준비가 되어 있다 — 「모양이 있느냐」 54 dB ↔ 「얼마나 정밀하냐」 0~7 dB 라는 정량 예산을 이미 갖고 있다.",
+   "⭐ 그리고 **엔진 대비가 실물 조작변수다** — Sionna 는 블레이드 번쩍임을 못 만들고(자세×로터위상 1,152칸 전수에서 프로펠러 정반사 0칸) 우리 PO 커널은 만든다. 즉 '사전학습 코퍼스에 블레이드 변조가 있느냐 없느냐' 를 **엔진을 바꾸는 것만으로** 켜고 끌 수 있다. 이건 다른 팀이 못 하는 실험이다.",
+   "σ 는 여기서 **기여가 아니라 조작변수(인프라)** 로 들어간다 — 사용자 지시와 정확히 일치한다.",
+   "태스크는 탐지·상태분류다. 기종분류를 요구하지 않는다(실측 1~2기체로 가능한 범위)."
+  ],
+  "falsifiable": "⭐ 사다리 팔 사이에 전이차가 안 나오면 결과는 **'블레이드는 사전학습에 불필요' 라는 음성 결과**다. 그것도 발표 가치가 있다 — WiFi-JEPA 의 '다양성 > 충실도' 를 회전표적 도메인에서 확증하는 첫 사례가 된다. **양쪽 결과 모두 논문이 되게 설계하라.**",
+  "why_not_label_efficiency": "⛔ SSL 의 표준 판매문구(라벨 절약)를 우리 novelty 로 쓰지 마라. **우리 라벨은 비행로그가 공짜로 준다.** 심사자가 첫 줄에서 반문한다. SSL 을 쓰는 이유는 라벨이 아니라 **실측 데이터 자체가 적어서, 대량의 시뮬 무라벨을 표현으로 흡수하기 위해서**다. 이 문장을 서론에 그대로 박아라.",
+  "counter_evidence_we_must_carry": [
+   "⚠ Xu 2023 (p.18): 극단적 소량 라벨에서 SSL 이 지도학습을 **유의하게 못 넘는다**. 우리 실측 규모가 작으면 이 결론에 그대로 걸린다.",
+   "⚠ CSI-JEPA: **측위(절대 기하)에서 −1.75 pp · 라벨절감 0%**. 우리 '검출거리·절대 Pd' 축은 같은 성격이다 → 거기서 이득을 약속하지 마라.",
+   "⚠ SkySense: 이미 (패시브 바이스태틱 + 비협조 UAV + 자기지도 + 실측 공개데이터)를 해냈고, **'고충실도 광선추적 합성 + Sim-to-Real' 을 future work 로 선언했다**(p.6). 시간 압박이 실재한다.",
+   "⚠ Mine-JEPA: 기반모델에 in-domain SSL 을 얹으면 **10–13 pp 악화**. '더 큰 사전학습이 항상 좋다' 가 아니다.",
+   "⚠ Manukyan(s2r_prior.json): Sionna 솔버 하이퍼파라미터·재질은 실측 대조에서 무의미했고 안테나 기하가 결정적이었다. **σ 를 더 조이는 데 시간 쓰지 마라** — 우리 지시와도 일치."
+  ]
+ },
+ "what_we_have_they_dont": [
+  "⭐ **물리로 계산한 자세분해 σ 와 회전 로터 변조** — 사전학습 코퍼스의 표적 물리를 *켜고 끌 수 있다*. 위 논문 전편에서 표적은 프리미티브(WiFi-JEPA)·통계(Clutter-Aware)·지문(SkySense)·없음(나머지)이다.",
+  "⭐ **표적모형 정량 예산**(모양 54 dB ↔ 정밀도 0~7 dB) — '얼마나 필요한가' 를 숫자로 답할 준비. WiFi-JEPA 는 주장만 했다.",
+  "⭐ **비행로그가 자세·rpm 라벨을 공짜로 준다** — Bootstrapping radars 는 동기화 카메라가, single-chip radar FM 은 LiDAR 가 필요했다. 우리는 더 싸다.",
+  "**패시브 바이스태틱 기하 + 상시 조명원(LTE CRS / 5G SSB) 서사** — SkySense 를 빼면 아무도 안 다룬다.",
+  "**엔진 두 개를 대비할 수 있음**(Sionna 환경 + 우리 PO 표적) — CSI-CLIP++ 의 cross-simulator 전이를 표적 축으로 확장한 형태.",
+  "**RT 설정 전면 보고** — 위 논문 대부분이 max_depth·광선수·버전을 안 밝힌다. 우리가 밝히면 그 자체가 재현성 기여."
+ ],
+ "what_they_have_we_dont": [
+  "⚠ **공개 벤치마크** — PiW3D(WiFi-JEPA) · Widar(Xu 2023) · RadChar(radar SSL) · SAMPLE(SAR) · RadarCity. 패시브 바이스태틱 드론 탐지에는 표준 벤치마크가 없다. 우리가 만들거나 남의 것을 써야 한다.",
+  "⚠ **실측 규모** — CSI-JEPA 7 태스크 · single-chip radar 24시간/100만 샘플 · LatentWave 4 데이터셋. 우리는 필드데이 1~2회, 기체 1~2대.",
+  "⚠ **다운스트림 태스크 다양성** — 기반모델 논문들은 4~15 태스크를 보인다. 우리는 2~3개.",
+  "⚠ **코드·데이터 공개 문화** — SAR-JEPA · RadCharSSL · Radical · LAETwin-XL 은 공개했다. 우리도 공개 계획이 있어야 심사에서 밀리지 않는다.",
+  "⚠ **SkySense 는 실측을 이미 갖고 있다**(Beuster 3-BS 공개 데이터). 우리는 아직 없다."
+ ],
+ "actionable_next": [
+  {
+   "priority": 1,
+   "action": "⭐⭐ Beuster et al. EuCAP 2023 'Measurement Testbed for Radar and Emitter Localization of UAV at 3.75 GHz' 의 공개 데이터셋을 확보하라. SkySense 가 쓴 바로 그 데이터이고, **우리 X410 필드테스트를 기다리지 않고 sim-to-real 실험을 돌릴 수 있는 유일한 다리**다. 우리 아카이브에 이미 같은 그룹의 arXiv:2402.16591 이 있다.",
+   "risk": "⚠ 접근성·라이선스 미확인(UNVERIFIED)."
+  },
+  {
+   "priority": 2,
+   "action": "⭐ 사전학습 코퍼스 **사다리 4팔 × 엔진 2종** 설계 — (구·상자) / (정지 블레이드 형상) / (회전 블레이드 변조) / (재질가중) × (Sionna-only) vs (Sionna 환경 + 우리 PO 표적). 각 팔의 무라벨 규모를 동일하게 고정.",
+   "note": "WiFi-JEPA 의 '프레임당 20회 재추적' 트릭은 우리에게 **블레이드 위상 스텝**으로 이미 존재한다 — 이식이 아니라 대응물이 있다는 점을 명시하라."
+  },
+  {
+   "priority": 3,
+   "action": "⭐ **공정성 규약** — SSL 팔마다 반드시 (i) 같은 시뮬로 **지도** 사전학습, (ii) 사전학습 없음(scratch), (iii) 물리 정합필터/CFAR(경로 F) 세 대조군을 붙인다. 셋 없이는 JEPA 주장이 반증 불가능하다.",
+   "source": "JEPA-6G 가 자기 사례연구에서 supervised scratch·SimCLR·MAE·비학습 3종(last-best·history-mean·random)을 전부 깐 것과 같은 규약."
+  },
+  {
+   "priority": 4,
+   "action": "⭐ **마스킹 기하를 ablation 으로 승격** — 도플러 마스킹 vs 지연 마스킹 vs 블레이드-위상 블록 마스킹 vs 랜덤. LatentWave(마스킹 기하=태스크별 귀납편향) · CSI-JEPA(변동인지 마스킹) · SAR-JEPA(도메인 특징 표적) · JEPA-6G(무선인지 표적) 넷이 같은 방향을 가리킨다."
+  },
+  {
+   "priority": 5,
+   "action": "⭐ **X410 배경 캡처를 계획에 못박아라** — 조명원 ON · 드론 없음 구간을 장시간. Trinh 2026 은 무라벨 실측 10초로 50%→97% 를 만들었다. ⚠ clutter-aware 의 'quiet period 없음' 역설 때문에 배경 정의를 '조명원 ON + 표적 없음' 으로 명시해야 한다."
+  },
+  {
+   "priority": 6,
+   "action": "지표 규약 — Pd@Pfa · **클래스별 recall** · 라벨예산 매칭 절감률(CSI-JEPA 식 SavingRate) · 시뮬-실측 분포 동등성(KS/Wasserstein). ⛔ 총정확도 단일 지표 금지(White 2023 에서 −3.1 pp 뒤에 드론 recall −8.3 pp 가 숨었다)."
+  },
+  {
+   "priority": 7,
+   "action": "docs/SIM2REAL_PLAN.md 갱신 제안서를 별도 문서로 쓸 것 — 현재 §1-2 는 태스크를 '(a) 유무 검출' 로, §2 는 ablation 을 '표적모형 3갈래 **지도학습**' 으로 잡고 있다. 이 라운드 판정은 **같은 3갈래 사다리를 사전학습 코퍼스 축으로 재해석**하는 것이다(팔 정의는 거의 그대로 재활용 가능). ⛔ 이번 라운드는 조사·설계이므로 파일을 고치지 않았다."
+  }
+ ],
+ "must_not_say": [
+  "⛔ '우리가 처음으로 JEPA/자기지도를 무선센싱에 적용했다' — WiFi-JEPA · CSI-JEPA · LatentWave · WirelessJEPA · JEPA-MSAC · JEPA-CFM · JEPA-6G 로 최소 7편이 선행.",
+  "⛔ '자기지도가 라벨 비용을 줄여 준다' 를 우리 기여로 — 우리 라벨은 비행로그로 사실상 공짜다.",
+  "⛔ '선행은 시뮬로 사전학습하지 않았다' — LWM · CSI-CLIP++ · Transfer to Sky · WiFi-JEPA 가 했다.",
+  "⛔ '우리가 σ 를 정확히 냈다' 를 논문 주장으로 — σ 는 인프라이지 기여가 아니다(사용자 지시).",
+  "⛔ 'Clutter-Aware ISAC 은 메쉬를 단순화해 표적 에코가 틀렸다' — 대상 오인. 그들 표적 진폭은 RT 산출물이 아니다.",
+  "⛔ 'Proc. IEEE 서베이가 16 dB RT 페널티를 보였다' — 그건 우리 뺄셈이지 그들 주장이 아니다(docs/TEAMMEETING_PRIORWORK_AUDIT.md).",
+  "⛔ '패시브 바이스태틱 드론 + 자기지도는 아무도 안 했다' — **SkySense(arXiv:2606.04076)가 했다.** 다만 도플러를 안 쓰고 측위만 한다.",
+  "⛔ 초록만 보고 판정하기 — 이 저장소는 그 이유로 헤드라인 2건을 철회한 이력이 있다(R20 대정정)."
+ ],
+ "one_paragraph_answer_to_user": "WiFi-JEPA 방법론을 빌려 sim-to-real 까지 가는 것 — **방향은 맞고, 그대로 베끼면 안 된다.** 이번 조사에서 sim-to-real 경로는 여섯 갈래로 정리됐고, 우리 조건(실측 1~2기체·비행로그 라벨 공짜·시뮬은 무한)에서 맞는 것은 **「시뮬로 대량 무라벨 자기지도 사전학습 → 소량 실측 미세조정」(경로 C)** 이다. 이 경로는 Transfer to Sky 가 실측 UAV 데이터로 **시뮬 사전학습이 4개 구성요소 중 가장 큰 레버**(제거 시 mean RMSE 5.3→9.5 dB)임을 이미 증명했다. 다만 **JEPA 자체를 novelty 로 팔면 죽는다** — JEPA×무선은 이미 7편이 붐빈다. 그리고 **자기지도를 '라벨 절약' 으로 팔아도 죽는다** — 우리 라벨은 공짜다. 값어치가 나오는 질문은 하나다: **「자기지도 사전학습이 실측으로 전이되려면 시뮬 코퍼스가 표적의 무엇을 담아야 하는가 — 회전 블레이드 변조가 그 최소 성분인가?」** WiFi-JEPA 는 '충실도보다 다양성' 을 주장만 하고 재지 않았고, 우리는 표적모형 사다리(모양 54 dB ↔ 정밀도 0~7 dB)와 **Sionna 는 못 만들고 우리 PO 는 만드는 블레이드 번쩍임**이라는 조작변수로 그걸 잴 수 있는 유일한 팀이다. 여기서 σ 는 기여가 아니라 스위치다. ⚠ 가장 위험한 소식: **SkySense(arXiv:2606.04076)** 가 이미 패시브 바이스태틱·비협조 UAV·자기지도·실측 공개데이터로 논문을 냈고, 결론에서 *'high-fidelity ray-tracing simulations ... Sim-to-Real transfer'* 를 future work 로 선언했다. 다행히 그들은 **도플러를 통째로 버렸고**(6쪽 전문 Doppler 0회) 태스크가 측위라 탐지·분류는 비어 있다. 그 칸이 우리 자리다.",
+ "_provenance": {
+  "extraction_tool": "PyMuPDF(fitz) 1.28.0 / Python 3.12 (~/.venvs/py312)",
+  "text_cache": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/{txt,ptxt}",
+  "downloaded_pdfs": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/pdf (25편, arXiv 공개판)",
+  "warning": "⚠ scratchpad 는 이전 세션과 공유된다(동명 스크립트 충돌 실측됨). 이 라운드 스크립트는 s2rj_ 접두어로 격리했다."
+ }
+}

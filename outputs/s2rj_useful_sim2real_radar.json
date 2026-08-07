@@ -1,0 +1,493 @@
+{
+  "meta": {
+    "title": "sim-to-real x 레이다/마이크로도플러 — 우리가 쓸 수 있는 것 / 깨지는 것 / 반박 / 공격 거리",
+    "date": "2026-08-07",
+    "round_id": "s2rj",
+    "입력": "outputs/s2rj_sweep_sim2real_radar.json (같은 라운드의 조사편)",
+    "대조한_우리_문서": [
+      "docs/SIM2REAL_PLAN.md (2026-08-03, 3팔 ablation·K1~K7 kill 기준·부록 A 축자원장)",
+      "docs/MEASUREMENT_PLAN.md",
+      "src/experiment_x410.py · src/freespace_link.py · src/experiment_detection.py (하드웨어 모델 실물 확인)"
+    ],
+    "gpu_used": false,
+    "편집한_것": "이 파일 하나. src/·리포트·빌더 미변경.",
+    "quote_policy": "이 파일의 축자 인용은 provenance 필드로 세 등급을 구분한다 — opened_this_round(내가 이번에 PDF 를 열고 정규식으로 문장을 뽑아 쪽수를 확인), repo_verified_earlier(docs/SIM2REAL_PLAN.md 부록 A 가 원문을 열고 기록한 것, 이번에 재확인 안 함), unverified(원문 미확인, 인용 금지)."
+  },
+
+  "verification_ledger": {
+    "이번_라운드에_내가_직접_열어_문장을_확인한_PDF": [
+      {"id": "2607.11064", "이름": "WiFi-JEPA", "경로": "/data/public/sionna_jeong/papers_isac_sionna/2607.11064__kim_wifi-jepa-csi-pose.pdf", "확인쪽": "p.3, p.5, p.13"},
+      {"id": "2601.17871", "이름": "Trinh calibrated domain randomization (FMCW 재실추정)", "경로": "scratchpad/pdf/2601.17871.pdf (arXiv 원문, 5 p.)", "확인쪽": "p.1, p.2, p.3, p.4"},
+      {"id": "2607.01025", "이름": "RF 드론 벤치마크 leakage", "경로": "scratchpad/pdf/2607.01025.pdf (11 p.)", "확인쪽": "p.1, p.2"},
+      {"id": "2311.15153", "이름": "SAR-JEPA", "경로": "scratchpad/pdf/2311.15153.pdf (15 p.)", "확인쪽": "p.2, p.4, p.12, p.13"},
+      {"id": "2509.25793", "이름": "Luo/Alkhateeb 디지털트윈 충실도 4축", "경로": "scratchpad/pdf/2509.25793.pdf (16 p.)", "확인쪽": "p.1, p.3, p.5"},
+      {"id": "2409.16845", "이름": "IRASNet", "경로": "scratchpad/pdf/2409.16845.pdf (16 p.)", "확인쪽": "p.8, p.9, p.16"},
+      {"id": "2409.14060", "이름": "SSR (synthetic-to-measured SAR-ATR)", "경로": "scratchpad/pdf/2409.14060.pdf (19 p.)", "확인쪽": "p.12"},
+      {"id": "2607.22973", "이름": "mmSimPrior", "경로": "scratchpad/pdf/2607.22973.pdf (19 p.)", "확인쪽": "p.1, p.2"},
+      {"id": "2501.03461", "이름": "MAE 기반 few-shot 레이다 신호인식 (IEEE MLSP 2025)", "경로": "scratchpad/pdf/2501.03461.pdf (6 p.)", "확인쪽": "p.1, p.3"},
+      {"id": "2509.06898", "이름": "BatStation", "경로": "/data/public/sionna_jeong/reference_library/2509.06898.pdf (14 p.)", "확인쪽": "p.9, p.10, p.11, p.12"},
+      {"id": "2606.28396", "이름": "RadarTwin", "경로": "/data/public/sionna_jeong/reference_library/2606.28396__radartwin.pdf (13 p.)", "확인쪽": "p.9, p.10"},
+      {"id": "procIEEE-clutter", "이름": "Clutter-Aware ISAC (Proc. IEEE 114(1):52-91, 2026)", "경로": "/data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/Clutter-Aware_...pdf (41 p.)", "확인쪽": "p.19, p.30, p.31"},
+      {"id": "2607.04400", "이름": "Saribekyan sim2real positioning (IEEE CITS 2026)", "경로": "/data/public/sionna_jeong/papers_isac_sionna/2607.04400__saribekyan_sim2real-positioning.pdf (8 p.)", "확인쪽": "p.7"},
+      {"id": "2402.16591", "이름": "Beuster multi-sensor ISAC drone (TU Ilmenau)", "경로": "/data/public/sionna_jeong/papers_isac_sionna/2402.16591__beuster_multisensor-isac-drone.pdf (6 p.)", "확인쪽": "p.1, p.3, p.4, p.6"},
+      {"id": "natsciData2026", "이름": "Multi-Sensor Drone Dataset (Sci Data 2026, 13:407)", "경로": "/data/public/sionna_jeong/papers_isac_sionna/new_0731/natsciData2026__multisensor-drone-radar-dataset.pdf (17 p.)", "확인쪽": "p.1, p.2, p.3, p.4, p.7"}
+    ],
+    "내가_직접_돌린_계수": {
+      "스크립트": "scratchpad/count.py — /data/public/sionna_jeong 전체를 (파일명, 바이트크기)로 중복제거 후 fitz 전문추출, 공백정규화 뒤 정규식 계수",
+      "모집단": "고유 PDF 317편",
+      "결과": [
+        "(SSL 계열 ≥2) AND (UAV|drone|quadcopter|multirotor|quadrotor ≥5) AND (micro-Doppler ≥1) → 1편 = natsciData2026 (SSL 실험 0, 언급만)",
+        "(SSL 계열 ≥2) AND (micro-Doppler ≥3) → 1편 = 같은 논문",
+        "(sim-to-real|sim2real|synthetic-to-measured ≥2) AND (UAV 계열 ≥5) → 0편",
+        "(recording-grouped|leave-one-recording|recording-level split|session-wise split ≥1) → 0편"
+      ],
+      "⚠_한계": "이 계수는 우리 아카이브 안에서만 유효하다. 2607.01025 처럼 아카이브 밖 논문은 애초에 셀 수 없다(그 논문이 바로 recording-grouped 를 주장하는 논문이다). 계수 0 은 '세상에 없다'가 아니라 '우리 서가에 없다'다."
+    }
+  },
+
+  "corrections_to_input_sweep": [
+    {
+      "무엇": "스윕이 «우리 시뮬에 X410 수신단(ADC 비트·위상잡음·LO 드리프트·AGC)이 아예 없다»고 적었다. 과장이다.",
+      "실제": "src/experiment_x410.py 에 X410 데이터클래스(adc_bits=12, dynamic_range_db=6.0206*12+1.76≈74 dB)와 adc_quantize() 가 이미 있다. AGC 가정도 freespace_link.py:151 주석에 명시돼 있다.",
+      "정확한_진술": "① adc_quantize() 는 자기 파일 밖 호출자가 0 이다 — 검출 벤치마크 경로(src/experiment_detection.py · src/detection_gpu.py · src/passive_process.py)에 배선돼 있지 않다. 링크버짓 쪽만 동적범위 '숫자'를 쓴다(freespace_link.py:266, benchmark/mono_link.py:836). ② 위상잡음·LO 드리프트·IQ 불균형은 코드베이스 전체에서 히트 0 — 이건 진짜 부재다.",
+      "왜_중요한가": "«아예 없다»로 쓰면 우리가 이미 한 일을 스스로 지운다. 그리고 고칠 비용이 완전히 다르다 — 있는 함수를 배선하는 30 LOC 짜리 일과 새로 만드는 일은 다르다."
+    },
+    {
+      "무엇": "스윕의 표적모형 사다리 5팔 중 (1) 점산란체 와 (3) 통계 CN(0,σ²) 은 검출 하류에서 구분되지 않는다.",
+      "왜": "둘 다 각도 무관 스칼라다. 우리 하류는 σ(t) 하나로 환원된 뒤 에코합성→RD→CFAR 를 지난다(SIM2REAL_PLAN §2-2). 점산란체는 σ 가 상수, 통계 CN 은 σ 가 지수분포 난수 — 후자가 전자를 이미 포함한다.",
+      "정정": "사다리를 {S-I(pass 당 1회 추출), S-II(CPI 마다 독립), C(큐브, 같은 SBR+PO 커널로 구움), O-rigid(우리 σ · 로터 정지), O-full(우리 σ + 회전 로터)} 5팔로 재정의한다. 정보량이 더 크고 SIM2REAL_PLAN 의 기존 배선(S/C/O)과 그대로 접속된다."
+    },
+    {
+      "무엇": "스윕의 권고 태스크 ②(호버/병진/rpm 상태 분류)는 5팔 사다리와 양립하지 않는다.",
+      "왜": "S 팔과 C 팔에는 로터가 없다. 상태 분류를 하류에 놓으면 팔 간 차이가 «표적모형의 질»이 아니라 «로터를 넣었느냐»로 퇴화한다 — SIM2REAL_PLAN §1-2 가 이미 같은 이유로 (b)(드론 대 비드론)를 기각했다.",
+      "정정": "하류는 검출 단일화. 상태 분류는 O 팔 안에서만 도는 별도 한계 패널로 인쇄."
+    }
+  ],
+
+  "q1_그대로_빌릴_수_있는_방법": {
+    "읽는_법": "비용은 우리 저장소 기준 실제 단위로 적었다 — LOC, GPU 시간, 실측 분/세션. '즉시'는 실측 없이 오늘 착수 가능하다는 뜻이다.",
+    "항목": [
+      {
+        "id": "B1",
+        "이름": "Calibrated Domain Randomization (CDR) — RD 맵 잡음바닥 통계를 실측에 맞춤",
+        "출처": "Trinh 2026, arXiv:2601.17871",
+        "축자": "“An additional short unlabeled calibration sequence (10 seconds or 100 frames) of an empty corridor is acquired once and used only to estimate the real noise-floor statistics for CDR (Sec. 2.3).” (p.2) / “the baseline RT model trained solely on unmodified simulation struggles to generalize … resulting in a balanced accuracy close to 50% (chance-level for a binary task). The introduction of uncalibrated Random DR … achieves balanced accuracy around 83% … CDR … achieves balanced accuracy ≈97%” (p.3)",
+        "provenance": "opened_this_round",
+        "우리_적용_지점": "src/passive_process.py 의 ECA 출력 직후, CAF range-Doppler 맵 로그진폭 히스토그램",
+        "비용": {"코드": "≈50 LOC (히스토그램 정합 + 시드 재현)", "GPU": "0", "실측": "무라벨 10초 캡처 1회 (기하마다)", "실측_라벨": "없음"},
+        "판정": "채택 — 필수. 이 문헌에서 비용대비 이득이 가장 크다.",
+        "⚠_단서": "원문 p.1 은 “aligns the global noise-floor statistics” 라고 적는다. 이건 **잡음바닥**만 맞추는 것이지 클러터 **구조**를 옮기는 것이 아니다. q2-X1 참조."
+      },
+      {
+        "id": "B2",
+        "이름": "실측 배경 주입 — 시뮬 표적 시계열을 실측 배경에 원소단위로 더함",
+        "출처": "White 외, IEEE Trans. Radar Systems 2023",
+        "축자": "“The simulated target's 1-D timeseries returns are summed elementwise with the background signal - extracted, injecting the simulated target into a real background.” (pdf p.11)",
+        "provenance": "repo_verified_earlier (docs/SIM2REAL_PLAN.md 부록 A-6)",
+        "우리_적용_지점": "src/experiment_detection.py 의 에코합성 단계 — 합성 클러터+잡음 대신 실측 배경 프레임을 더한다",
+        "비용": {"코드": "≈80 LOC (실측 배경 뱅크 + 시드 페어링 유지)", "GPU": "0", "실측": "«조명원 ON, 표적 없음» 캡처. 기하당 수 분", "실측_라벨": "없음"},
+        "판정": "채택 — B1 과 짝. B1 은 통계 정합, B2 는 실물 대입. 둘은 배타가 아니라 사다리의 두 칸이다.",
+        "⭐": "이 캡처 하나가 세 곳에 쓰인다 — ① 도메인 정렬(B1·B2) ② hot-clutter 공분산 대용(q2-X2) ③ CFAR 임계 교정. 실측 촬영 1순위."
+      },
+      {
+        "id": "B3",
+        "이름": "recording-grouped 평가 + 2R ≲ d 진단",
+        "출처": "arXiv:2607.01025",
+        "축자": "“a classifier can memorise the recording-to-label map exactly while the number of independent recordings R is small relative to the feature dimension d (specifically while 2R ≲ d), so that naive accuracy approaches 1 and the inflation gap approaches 1 − ACC⋆” (p.1) / “drone type identification (AR vs. Bebop) collapsing from a naive macro-F1 of 0.74 to 0.46 – the two-class chance level” (p.1)",
+        "provenance": "opened_this_round",
+        "우리_적용_지점": "분석 단위를 pass(=녹화)로 고정. 논문 표에 R(독립 pass 수)과 d(특징차원)를 나란히 인쇄.",
+        "비용": {"코드": "≈20 LOC (split 함수)", "GPU": "0", "실측": "0 추가 — 다만 **설계 제약**이 붙는다: R 을 키우거나 d 를 줄여야 한다"},
+        "판정": "채택 — 규약. SIM2REAL_PLAN §2-4 가 이미 pass 단위를 정했으므로 새 부담이 아니다.",
+        "⭐_숨은_이득": "2R ≲ d 기준은 우리 물리 기준선(ECA→CAF→CFAR, d 가 사실상 손으로 센 몇 개)이 이 함정 **밖에** 있음을 뜻한다. 학습형 옆에 물리형을 병기하는 것이 방법론적 사치가 아니라 leakage-free 눈금을 제공하는 장치가 된다."
+      },
+      {
+        "id": "B4",
+        "이름": "synthetic↔measured 짝 프로토콜 (SAMPLE 형식) — 무증강 기저선을 반드시 같이 인쇄",
+        "출처": "SSR, arXiv:2409.14060",
+        "축자": "표 2 (p.12): “w/o Aug … VGG-11 39.67 ± 2.29 … SSR (Proposed) 87.51 ± 0.89 / ResNet18 52.45 ± 6.21 → 94.69 ± 1.19 / ResNet50 36.23 ± 7.73 → 92.95 ± 2.22”",
+        "provenance": "opened_this_round",
+        "우리_적용_지점": "5팔 × 2정규화 표의 좌측 열을 «무보정 합성만 학습»으로 고정",
+        "비용": {"코드": "0 (표 설계)", "GPU": "0", "실측": "0"},
+        "판정": "채택 — 이 분야 정본 형식. 무보정 기저선이 없으면 이득 주장이 뜬다.",
+        "메모": "표준편차가 큰 것(±2~8%p)이 눈에 띈다. 우리도 5 seeds 표준편차를 반드시 병기한다."
+      },
+      {
+        "id": "B5",
+        "이름": "adversarial domain generalization (IRASNet 의 절반)",
+        "출처": "IRASNet, arXiv:2409.16845",
+        "축자": "“IRASNet (Proposed) 97.40% / 96.72%” (p.8 표) / “compared to an existing study [46], which used clutter-robust learning methods, IRASNet showed a 25.28% improvement in performance. Thus, the approach of removing clutter was more effective in reducing the influence of clutter and achieving high performance than learning clutter.” (p.9) / 표 S1 (p.16): 전체 96.72% (+8.10%), adversarial loss 를 뺀 조합은 92.79% (+4.17%)",
+        "provenance": "opened_this_round",
+        "비용": {"코드": "≈150 LOC (gradient reversal + 도메인 판별기)", "GPU": "학습 시간 ~1.3배", "실측": "타깃 도메인 무라벨 데이터 필요"},
+        "판정": "부분 채택 — 2차 옵션. B1·B2 를 다 하고 남는 격차에만.",
+        "⚠_왜_절반인가": "IRASNet 의 주 기여인 CRM(clutter reduction module)은 **표적/그림자 분할**을 전제한다. SAR 이미지에는 그림자가 있고 RD 맵에는 없다. 우리가 가져갈 수 있는 것은 adversarial 부분뿐이고, 그들의 ablation 상 그 몫은 전체 +8.10%p 중 약 절반(adversarial 제거 시 96.72→92.79)이다. 즉 IRASNet 인용은 «큰 숫자를 빌리는 것»이 아니라 «작은 조각을 빌리는 것»이다."
+      },
+      {
+        "id": "B6",
+        "이름": "합성 사전학습 → 소량 실측 미세조정 (zero-shot 을 목표로 두지 않는 커리큘럼)",
+        "출처": "mmSimPrior, arXiv:2607.22973",
+        "축자": "“with only 24 paired real sequences, mmSimPrior-Reg reduces MPJPE by 24.7-39.0% over the strongest baseline across the three environments, while mmSimPrior-Cls reduces zero-shot MPJPE by 8.5% without finetuning.” (p.1) / “we … introduce a No-Overlap Setting that prevents any exact subject–environment–location–motion tuple from appearing in both the adaptation and test sets.” (p.1)",
+        "provenance": "opened_this_round",
+        "우리_적용_지점": "P3 파일럿(2종 × 5비행)이 그들의 «24 paired sequences» 자리",
+        "비용": {"코드": "≈200 LOC (미세조정 루프 + 분할 관리)", "GPU": "중", "실측": "파일럿 세션. SIM2REAL_PLAN P3 에 이미 잡힌 예산"},
+        "판정": "채택 — 전이 메커니즘의 본체.",
+        "⭐_핵심_교훈": "zero-shot 이득(8.5%)이 few-shot 이득(24.7~39.0%)의 1/3 이하다. **zero-shot 을 헤드라인으로 걸지 마라.** 우리 K3(실측에서 전부 chance 붕괴) 위험이 zero-shot 프레이밍에서 최대가 된다.",
+        "보너스": "No-Overlap Setting 이 B3(recording-grouped)과 독립적으로 같은 요구를 한다 — 두 계열이 겹치므로 규약의 근거가 두 개다."
+      },
+      {
+        "id": "B7",
+        "이름": "SSL 의 예측 대상을 «물리로 규정된 특징 공간»으로 둔다",
+        "출처": "SAR-JEPA, arXiv:2311.15153",
+        "축자": "“I-JEPA has the feature collapse, in which the learnable predictor fails to learn a good feature space under speckle noise. As depicted in Figure 5, I-JEPA converges to a region with poor test performance.” (p.12) / “we found that a learnable target encoder is susceptible to feature collapses due to SAR image noise” (p.2)",
+        "provenance": "opened_this_round",
+        "우리_적용_지점": "SSL 을 쓸 경우 예측 대상 = cadence-velocity diagram · 블레이드선 위치/간격 · 도플러 포락선. raw RD 픽셀/latent 아님.",
+        "비용": {"코드": "≈100 LOC (특징 추출기 — 우리 microdoppler.py 에 이미 재료가 있다)", "GPU": "사전학습 소량"},
+        "판정": "채택 (SSL 을 쓰는 경우에 한해). SSL 을 안 써도 손해 없음.",
+        "⭐": "같은 논문 p.13 이 우리가 채울 칸을 자기 입으로 비워뒀다 — “Another direction is to use the simulated data for SSL.”"
+      },
+      {
+        "id": "B8",
+        "이름": "물리 템플릿 기준선을 학습형 옆에 그대로 인쇄",
+        "출처": "BatStation, arXiv:2509.06898",
+        "축자": "“BatStation only has 4,560 trainable parameters across all trained templates, which is 0.637% of that in RadYOLO. This indicates BatStation's robustness against the over-fitting issue” (p.12) / “the classification accuracies cannot exceed 49.33/11.18% for the two ML-driven methods on the PUCCH dataset … Such performance degradation mainly comes from the unseen hardware parameters on the experimental BS hardware (e.g., noise floor, receiving gain).” (p.11)",
+        "provenance": "opened_this_round",
+        "비용": {"코드": "0 — src/passive_process.py 의 CAF+CA-CFAR 가 이미 그것이다", "GPU": "0", "실측": "0"},
+        "판정": "채택 — 필수. 대안이 아니라 학습형이 이겨야 하는 눈금.",
+        "⭐_두번째_교훈": "그들이 붕괴 원인을 **하드웨어**(잡음바닥·수신이득)로 귀속한다. 이게 B11 의 두 번째 독립 근거다."
+      },
+      {
+        "id": "B9",
+        "이름": "공개 실측으로 X410 캠페인 전에 sim-to-real 예비검사",
+        "출처": [
+          "TU Ilmenau «ISAC UAV Dataset» — Beuster 2402.16591 참고문헌 [10], https://ems-tu-ilmenau.github.io/isac-uav-dataset-docs/ (p.6 에서 URL 직접 확인)",
+          "TU Ilmenau «BiRa Dataset» — 같은 논문 참고문헌 [11], https://github.com/EMS-TU-Ilmenau/bira-dataset (p.6 직접 확인)",
+          "Multi-Sensor Drone Dataset, Sci Data 2026 13:407 (natsciData2026)"
+        ],
+        "축자": "Beuster p.3: “the BiRa measurement facility at TU Ilmenau to characterize the bi-static reflectivity of multi-copters. The illustrated results exemplarily demonstrate the capabilities of BiRa for characterizing the bi-static reflectivity of a small quad-copter, namely a DJI Phantom 2, with propellers at standstill (upper right plot with measured data, lower right plot with simulated data) over the frequency range 2 to 18 GHz for different bi-static angels 10°to 180°and the Micro-Doppler signature of a quad…” / p.3: “Selected sets of the recorded BiRa measurement data are publicly available at [11]” / natsciData p.1: “four different commercial drones and one non-drone target … Measurements were taken across distances ranging from 2 to 30 meters in 2-meter intervals”, p.3: “The transmit signal's center frequency was set to 2.495 GHz.”",
+        "provenance": "opened_this_round",
+        "비용": {"코드": "포맷 어댑터 100~200 LOC/데이터셋", "GPU": "0", "실측": "0", "달력": "1~2주"},
+        "판정": "채택 — 즉시. 특히 BiRa 를 1순위로 올린다.",
+        "⭐_왜_BiRa_가_1순위인가": "우리 σ 커널은 현재 모노스태틱만이고(메모 sionna2-rcs-methodology) 바이스태틱 외부 앵커가 0 이다. BiRa 는 무향실에서 DJI Phantom 2 를 2–18 GHz · 바이스태틱각 10°~180° 로 재고, **프로펠러 정지 + 회전 블레이드 마이크로도플러**를 둘 다 갖고 있으며, 논문이 측정과 시뮬을 나란히 놓는다. 우리에게 필요한 정확한 물건이다.",
+        "⚠_아직_확정_아님": "데이터 실물을 받아 포맷·주파수·각도 격자가 우리 σ 격자와 대응되는지 확인 전이다. 이 칸은 «후보»다."
+      },
+      {
+        "id": "B10",
+        "이름": "거리 매칭 상태에서만 sim-real 비교",
+        "출처": "RadarTwin, arXiv:2606.28396",
+        "축자": "“First, distance is a confound. Pooling distances inflates sim-real feature correlations (to ∼0.8) because both domains vary with range. Distance-matched, per-feature correlations peak near 0.5…” (pdf p.11)",
+        "provenance": "repo_verified_earlier (docs/SIM2REAL_PLAN.md 부록 A-3b)",
+        "비용": {"코드": "0 (분석 규약)", "GPU": "0", "실측": "거리 3점 이상 — MEASUREMENT_PLAN 에 이미 있음"},
+        "판정": "채택 — 이미 SIM2REAL_PLAN §2-4 에 들어 있다. 재확인만."
+      },
+      {
+        "id": "B11",
+        "이름": "하드웨어 모델을 충실도 축으로 승격 — 켜고 끄는 실험",
+        "출처": ["Luo/Alkhateeb, arXiv:2509.25793", "BatStation p.11 (독립 근거)"],
+        "축자": "2509.25793 p.1: “The simulations also highlight the importance of digital twin fidelity, especially in 3D geometry, ray tracing, and hardware modeling, for improving CSI reconstruction quality.” / p.3: “we identify that 3D geometry, ray tracing, and hardware model are the key factors that greatly influence the performance of CSI reconstruction.” / p.5: “Additionally, it includes transceiver impairments such as power-amplifier distortion, phase noise, and quantization noise”",
+        "provenance": "opened_this_round",
+        "우리_현재_상태": "adc_quantize()(12-bit, 동적범위 74 dB)는 src/experiment_x410.py 에 이미 있으나 **검출 벤치마크 경로에 호출자 0**. 위상잡음·LO 드리프트·IQ 불균형은 코드 전체 히트 0.",
+        "비용": {"코드": "배선 ≈30 LOC + 위상잡음/LO 드리프트 ≈150 LOC", "GPU": "0~소량", "실측": "0 (스펙시트로 파라미터 결정)"},
+        "판정": "채택 — 즉시. **문헌이 크다고 잰 축 중 우리가 실제로 비운 유일한 칸이고, 동시에 가장 싼 칸이다.**",
+        "메모": "4축 중 material 은 세 편(2509.25793 · RadarTwin · Manukyan)이 일관되게 «작다»고 잰다. 우리 재질가중 PO 투자는 이미 충분하다는 뜻이고, 추가 정밀화는 우선순위가 낮다."
+      }
+    ]
+  },
+
+  "q2_우리_조건에서_깨지는_것": [
+    {
+      "id": "X1",
+      "무엇": "CDR(B1)은 잡음바닥만 맞춘다 — 우리 문제는 잡음바닥이 아니다.",
+      "왜_깨지나": "원문 p.1 축자는 “aligns the global noise-floor statistics of simulated range–Doppler (RD) maps to those observed in real environments”. 그들 도메인 격차의 지배항은 «너무 깨끗한 잡음바닥»이었다. 우리 지배항은 다르다 — 상시 ON 조명원의 **직접파 잔차**(12-bit ADC 로 양자화하면 완벽히 못 지운다)와 **표적경유 바닥유령**(메모 sionna2-chamber-floor-ghost)이다. 이 둘은 스칼라 히스토그램에 안 담긴다. 도플러 축과 각도 축에 구조를 갖는다.",
+      "우리가_해야_할_것": "정렬 단계를 두 층으로 나눈다 — (i) 잡음바닥 히스토그램 정합(그들 방법 그대로) (ii) 잔차 구조 정합(RD 맵의 도플러 확산 프로파일 · 거리셀별 분산). (ii)는 문헌에서 그대로 못 빌리므로 우리가 설계해야 한다.",
+      "⚠": "(ii)를 «우리 기여»로 팔지 마라. 크기가 작다. 그러나 안 하면 (i)만으로는 K3 를 못 피한다."
+    },
+    {
+      "id": "X2",
+      "무엇": "quiet period 가 우리에게 존재하지 않는다.",
+      "왜_깨지나": "Proc. IEEE 클러터 서베이 p.19 축자: “the full hot-clutter covariance or the disturbance covariance Rη,n can be estimated directly from secondary data collected during quiet periods where only the interference is present.” 우리 조명원(LTE CRS / 5G SSB)은 상시 ON 이라 «간섭만 있는 구간»이 없다. 우리의 «표적 없음» 캡처에는 간섭 + 직접파 + 정적 클러터가 전부 남아 있다.",
+      "우리가_해야_할_것": "secondary data 를 재정의한다 — «간섭만»이 아니라 «표적만 없음». 그리고 그 정의 차이가 공분산 추정을 얼마나 편향시키는지 정량화한다.",
+      "⭐_반전": "이 약점의 처방이 B2 의 실행항목과 같은 물건(«조명원 ON, 표적 없음» 캡처)을 요구한다. 하나의 캡처가 ① 도메인 정렬 ② 공분산 대용 ③ CFAR 임계 교정 셋에 쓰인다. 약점이 곧 실측계획의 1순위 근거가 된다."
+    },
+    {
+      "id": "X3",
+      "무엇": "SSL 의 표준 명분(«라벨이 비싸다»)이 우리에게 안 붙는다.",
+      "왜_깨지나": "PX4 비행로그가 자세·rpm 라벨을 사실상 공짜로 준다. «라벨 비용»으로 SSL 을 정당화하면 심사자가 바로 짚는다.",
+      "우리가_해야_할_것": "명분을 갈아끼운다. 2607.01025 의 2R ≲ d 가 우리 진짜 병목을 정확히 지목한다 — 병목은 라벨 수가 아니라 **독립 녹화 수 R**(우리는 기체 2종 × 10~15 비행 = R 이 수십 규모). 그리고 «ms급 시각동기» 비용은 라벨 개수와 무관하게 세션당 든다. SSL 을 쓴다면 명분은 이 둘이다.",
+      "판정": "깨진 게 아니라 **명분 교체**. SSL 은 ablation 팔로 남는다."
+    },
+    {
+      "id": "X4",
+      "무엇": "WiFi-JEPA 의 «90K 합성 프레임 ≈ 90K 실측 프레임» 예산 앵커가 단위째로는 전이되지 않는다.",
+      "왜_깨지나": "그들 분석 단위는 프레임이고 지표는 프레임 단위 회귀(MPJPE)다. 우리 분석 단위는 pass(=녹화)이고 지표는 pass 단위 Pd@고정 Pfa 다. 프레임 수 ↔ 독립 pass 수 환산율이 없다. 같은 pass 안의 프레임들은 거의 독립이 아니다 — 그게 정확히 2607.01025 가 경고하는 것이다.",
+      "우리가_해야_할_것": "예산 앵커로 인용하되 «프레임 수 등가»라고 단위를 명시하고, 우리 규모 산정은 R(독립 pass) 기준으로 따로 한다."
+    },
+    {
+      "id": "X5",
+      "무엇": "IRASNet 의 주 기여(CRM)를 우리는 못 쓴다.",
+      "왜_깨지나": "CRM 은 표적/그림자 분할을 전제한다. SAR 이미지에는 그림자가 있고 우리 range-Doppler 맵에는 그림자 개념이 없다.",
+      "우리가_해야_할_것": "adversarial DG 부분만 이식. 그들 ablation(p.16)상 그 몫은 96.72 → 92.79 차이 수준이다. 인용할 때 «IRASNet 처럼 +25.28%» 같은 문장을 쓰지 마라 — 우리가 가져가는 건 작은 조각이다."
+    },
+    {
+      "id": "X6",
+      "무엇": "챔버 프레임과 Road A(배경 정렬)가 원리적으로 충돌한다.",
+      "왜_깨지나": "배경을 정렬하려면 시뮬 쪽에 정렬할 배경이 있어야 한다. semi-anechoic 챔버는 배경을 **없애는** 시설이다. 시뮬 도메인을 챔버로 두면 정렬 대상이 없고, 실측(외부)과의 격차는 «배경 유무» 하나로 지배되어 표적모형 축이 파묻힌다. 그게 K3 다.",
+      "우리가_해야_할_것": "전이 실험의 sim 도메인을 **실외 사이트 트윈**으로 옮긴다. 챔버는 통제군이자 상한(upper bound)으로 병기.",
+      "판정": "내가 정했다 — 사이트 트윈으로 간다. 이유: Road A 없이는 K3 가 기본값이고, K3 가 터지면 이 방향 전체가 죽는다. ⚠ 이건 챔버 상시방침의 실질 변경이라 SIM2REAL_PLAN §6-5 가 사용자 확인 대기로 남긴 항목이다. 나는 «대체가 아니라 추가»로 정리하되, 전이 수치는 사이트 트윈에서만 낸다."
+    },
+    {
+      "id": "X7",
+      "무엇": "5팔 사다리 위에 상태 분류를 얹으면 ablation 이 퇴화한다.",
+      "왜_깨지나": "S 팔·C 팔에 로터가 없어 «표적모형의 질» 대신 «로터 유무»를 재게 된다.",
+      "우리가_해야_할_것": "하류 = 검출 단일화. 상태 분류는 O 팔 내부 한계 패널."
+    },
+    {
+      "id": "X8",
+      "무엇": "natsciData2026 예비검사로는 궤적 축을 못 잰다.",
+      "왜_깨지나": "p.1 축자상 «2 to 30 meters in 2-meter intervals», 조건당 500회 반복 측정 — 고정 거리·정지 위치 구조다. 자유비행 궤적 분포가 없다. WiFi-JEPA 가 «궤적 다양성이 전이의 주 통로»라고 주장하는 바로 그 축이 이 데이터셋에 부재한다.",
+      "우리가_해야_할_것": "이 데이터셋은 «드론 대 비드론» 판별 예비검사와 마이크로도플러 서명 대조에만 쓴다. 궤적 축 결론에는 쓰지 않는다.",
+      "메모": "부수 소득 — 그들 CW 수신 설정에 “Receiver gain mode AGC – Fast Attack”(p.3 표)가 적혀 있다. B11 하드웨어 축의 파라미터 참조로 쓸 수 있다."
+    },
+    {
+      "id": "X9",
+      "무엇": "우리 하드웨어 모델의 실제 상태 — 스윕의 진술을 정정한 뒤에도 구멍은 남는다.",
+      "왜_깨지나": "adc_quantize() 는 있으나 검출 벤치마크 경로에 배선 0. 위상잡음·LO 드리프트·IQ 불균형은 부재. 즉 우리 ECA 는 여전히 사실상 무한 동적범위로 돌고 있고, 이건 src/experiment_x410.py:37 주석이 스스로 «시뮬↔실측 간극의 첫 번째 후보»라고 적어둔 항목이다 — 알고 있었는데 안 배선했다.",
+      "우리가_해야_할_것": "즉시 배선(≈30 LOC). 그다음 위상잡음·LO 드리프트."
+    },
+    {
+      "id": "X10",
+      "무엇": "우리 «절대 σ 앵커링 ±2~3 dB» 홍보 문구가 전이 맥락에서는 값어치가 낮다.",
+      "왜_깨지나": "RadarTwin p.9: “absolute radiometry does not survive the sim-to-real gap: system gain and room-dependent multipath compression shift every level”. p.10: 기하 linear probe 85%(chance 50%) vs 재질 40%(chance 33%).",
+      "우리가_해야_할_것": "σ 의 값어치를 «절대 레벨»이 아니라 «각도 구조 + 시간 구조»로 재정의한다. N1 정규화(레벨 맞추고 구조만 남김)가 정확히 그 재정의다. 절대 앵커는 fidelity 진단에만 쓰고 전이 주장의 근거로 쓰지 않는다.",
+      "판정": "내부 정정 항목 — 메모 sionna2-rcs-materials 의 «실측 앵커링 ±2~3 dB» 자랑 문구는 전이 논문 서사에서 빼야 한다."
+    }
+  ],
+
+  "q3_우리를_반박할_논문과_답": [
+    {
+      "id": "R1",
+      "논문": "WiFi-JEPA, arXiv:2607.11064 (p.3, p.13)",
+      "반박의_내용": "표적 산란 충실도에 투자하지 마라. 기하 프리미티브가 사람 메쉬를 이겼다.",
+      "그들의_축자": "“Because sim-human uses anatomically realistic scatterers yet performs worse, the result directly supports the hypothesis that trajectory diversity—randomized physics with varied velocities and elastic reflections—is more important than scatterer realism for CSI pre-training.” (p.13)",
+      "provenance": "opened_this_round",
+      "우리_답": [
+        "(a) 그 비교는 두 변수를 동시에 바꿨다. p.13 자신의 문장이 «scene content» 안에 산란체 기하(프리미티브 vs 사람 메쉬)와 운동 분포(무작위 물리궤적 vs 고정 mocap)를 함께 넣는다. 한 팔의 열세로부터 두 요인 중 하나의 우위를 «directly supports» 할 수 없다.",
+        "(b) 저자 자신이 원인을 다른 쪽으로 돌린다 — “likely because the fixed motion-capture sequences lack the trajectory variation needed to learn generalizable channel features.” (p.13)",
+        "(c) 같은 논문의 기여 요약은 훨씬 약하게 적는다 — “providing evidence that dynamics diversity **may** matter more than geometric realism for transfer” (p.3). 본문의 «directly supports» 와 요약의 «may» 가 갈린다. 인용할 때 이 불일치를 각주로 남긴다.",
+        "(d) 표적이 다르다. 그들 표적은 사람이고 λ 대비 크며 회전 산란체가 없다. 우리 표적은 few-λ 이고 회전 로터가 있다 — «충실도»의 내용물 자체가 다르다.",
+        "(e) 결정적으로, 우리 실험이 그 교란을 제거한 판이다. 궤적 집합·씬·백본·마스킹·시드를 고정하고 표적항만 바꾼다."
+      ],
+      "⚠_정직하게": "그들이 옳을 수 있다. 우리 sim-to-sim 게이트(K1)가 실측 전에 그것을 잰다. K1 이 null 이면 우리가 틀린 것이고 그 사실을 인쇄한다.",
+      "우리가_그들에게_없는_것": "궤적을 고정한 채 표적항만 바꾸는 능력(σ 격자 + 어댑터). 그들 파이프라인은 궤적과 표적이 결합돼 있다."
+    },
+    {
+      "id": "R2",
+      "논문": "Trinh 2026, arXiv:2601.17871 (p.3)",
+      "반박의_내용": "배경 정렬 하나로 chance(50%)→97% 가 나왔다. 표적모형은 손도 안 댔다. 너희 사다리는 null 일 것이다.",
+      "그들의_축자": "“the baseline RT model trained solely on unmodified simulation struggles to generalize … balanced accuracy close to 50% (chance-level for a binary task) … CDR … achieves balanced accuracy ≈97%” (p.3)",
+      "provenance": "opened_this_round",
+      "우리_답": [
+        "(a) 그들이 잰 것은 «배경을 맞추면 좋아진다»이지 «표적모형이 무관하다»가 아니다. 표적모형 축을 아예 안 바꿨다 — 그 명제를 시험하지 않았다.",
+        "(b) 표적 조건이 다르다. 사람 1~2명, FMCW 근거리 모노스태틱, 재실/인원수 태스크. 표적이 λ 대비 매우 크고 로터가 없다. 표적모형 축의 자유도가 애초에 작다.",
+        "(c) 우리는 그들 방법을 반박하지 않고 **채택**한다(B1). 우리 주장은 «배경 정렬 후에도 표적모형이 남는 차이를 만드는가»다 — 그들 실험 뒤에 오는 질문이다."
+      ],
+      "⚠_정직하게": "이게 우리에게 가장 위험한 논문이다. **이 논문이 맞을 가능성이 우리 사다리가 살 가능성보다 낮지 않다.** 그래서 sim-to-sim 게이트(K1)를 실측 예산 앞에 둔다."
+    },
+    {
+      "id": "R3",
+      "논문": "Saribekyan 외, IEEE CITS 2026, arXiv:2607.04400 (p.7)",
+      "반박의_내용": "물리적 타당성이 전이를 예측하지 못한다. 분포 정렬이 더 세다.",
+      "그들의_축자": "“These results support the main qualitative claim of the paper: physical plausibility alone is not a reliable predictor of sim-to-real transfer.” / “This suggests that distribution alignment can be more impactful than physical plausibility alone.” (p.7)",
+      "provenance": "opened_this_round",
+      "우리_답": [
+        "(a) 우리 설계와 충돌하지 않는다 — 우리도 분포 정렬(Road A)을 **필수**로, 표적모형을 그 위의 잔차 질문으로 놓았다.",
+        "(b) 그들의 «physical plausibility»는 기지국 배치 좌표의 타당성이지 산란 물리가 아니다. 태스크는 RSSI 측위이고 RSSI 는 스칼라 수신전력이라 «표적 산란 구조»라는 축이 그 실험에 존재하지 않는다. 우리 축을 그들이 잰 적이 없다.",
+        "(c) 그럼에도 이 논문은 우리 K2 의 외부 근거다 — 정렬만으로 다 되면 우리 기여가 스칼라 1개로 환원된다. 그래서 N1/N2 두 정규화를 병행 인쇄한다."
+      ]
+    },
+    {
+      "id": "R4",
+      "논문": "RadarTwin, arXiv:2606.28396 (p.9, p.10)",
+      "반박의_내용": "절대 σ 는 전이되지 않는다. 재질축도 거의 chance. 절대 앵커링 투자는 전이에 안 쓰인다.",
+      "그들의_축자": "“absolute radiometry does not survive the sim-to-real gap: system gain and room-dependent multipath compression shift every level, and the simulator over-separates material contrast.” (p.9) / “Geometry is strongly preserved across the sim-real gap: a linear probe decodes symmetric-versus-asymmetric geometry from real embeddings at 85% (chance 50%) … Material structure transfers more weakly in the embedding (40% linear-probe accuracy against 33% chance)” (p.10)",
+      "provenance": "opened_this_round",
+      "우리_답": [
+        "받아들인다. 반박하지 않는다. σ 의 값어치를 절대 레벨이 아니라 각도·시간 **구조**로 재정의하고(X10), N1 정규화가 그 재정의를 실험 형식으로 구현한다.",
+        "그리고 이건 우리 편이기도 하다 — 기하축이 85% 로 전이된다는 것은 «메쉬 기하가 전이되는 축»이라는 뜻이고, 우리 σ 가 담는 것이 바로 기하다."
+      ],
+      "내부_숙제": "메모 sionna2-rcs-materials 의 «±2~3 dB 앵커링» 자랑을 전이 서사에서 내린다."
+    },
+    {
+      "id": "R5",
+      "논문": "BatStation, arXiv:2509.06898 (p.11, p.12)",
+      "반박의_내용": "합성으로 학습한 딥러닝은 실측 하드웨어에서 무너진다. 4,560 파라미터 템플릿이 이긴다. 학습형 프레이밍 자체가 위험하다.",
+      "그들의_축자": "“the classification accuracies cannot exceed 49.33/11.18% for the two ML-driven methods on the PUCCH dataset … Such performance degradation mainly comes from the unseen hardware parameters on the experimental BS hardware (e.g., noise floor, receiving gain).” (p.11) / “BatStation only has 4,560 trainable parameters … which is 0.637% of that in RadYOLO.” (p.12)",
+      "provenance": "opened_this_round",
+      "우리_답": [
+        "(a) 받아들이고 기준선으로 인쇄한다. 우리 K7 은 이 경우를 kill 이 아니라 **피벗**으로 정의해 뒀다 — 물리 검출기가 이기면 논문이 «예측-대-달성 링크버짓» 논문이 된다.",
+        "(b) 그리고 그들 축자가 우리에게 처방을 준다. 붕괴 원인이 «unseen hardware parameters (noise floor, receiving gain)»라면, 하드웨어 모델을 시뮬에 넣으면 붕괴가 줄어야 한다 — 검증 가능한 가설이고 그게 B11 이다. 우리는 이 논문을 «학습형은 안 된다»의 근거가 아니라 «하드웨어를 안 넣어서 안 됐다»의 근거로 쓴다.",
+        "(c) 우리 물리 검출기는 d 가 작아 2R ≲ d 함정 밖에 있다 — leakage-free 눈금 제공자로서의 역할이 따로 있다."
+      ]
+    },
+    {
+      "id": "R6",
+      "논문": "arXiv:2607.01025 (RF 드론 벤치마크 leakage)",
+      "반박의_내용": "실측 녹화 수 R 이 작으면 어떤 학습 수치도 낙관 편향이다. 2R ≲ d 이면 naive accuracy → 1.",
+      "그들의_축자": "“a classifier can memorise the recording-to-label map exactly while the number of independent recordings R is small relative to the feature dimension d (specifically while 2R ≲ d)” (p.1)",
+      "provenance": "opened_this_round",
+      "우리_답": "반박 불가. 규약을 지키는 것 외에 답이 없다 — recording-grouped 분할을 못박고 R 과 d 를 표에 인쇄하고, 물리 기준선을 옆에 둔다. 기체 2종 × 10~15 비행이면 R 이 수십 규모이므로 d 를 작게 유지하는 쪽이 우리 레버다.",
+      "⚠": "이건 «답»이 아니라 «복종»이다. 그리고 우리 수치를 낮게 만든다. 그래도 한다 — 낮은 정직한 수치가 높은 오염된 수치보다 방어된다."
+    },
+    {
+      "id": "R7",
+      "논문": "Clutter-Aware ISAC (Proc. IEEE 114(1), 2026), p.19 · 식(108)",
+      "반박의_내용": "Proc. IEEE 급 정본이 표적 반사진폭을 α ~ CN(0, σ²) 로 흡수하고도 성립한다. 표적모형 정교화는 불필요하다.",
+      "그들의_축자": "“the full hot-clutter covariance or the disturbance covariance Rη,n can be estimated directly from secondary data collected during quiet periods where only the interference is present.” (p.19, 우리 조건과의 충돌 지점) / 지지 축으로는 p.30: “the hot clutter is more prominent and has increased Doppler spread in the RT scene.”",
+      "provenance": "opened_this_round",
+      "우리_답": [
+        "그들 태스크는 «클러터 하에서의 검출·추정 알고리즘 설계»이고 표적은 그 알고리즘의 입력 통계다. 그 프레임 안에서 CN(0,σ²) 은 **옳다**. 우리 질문(«표적모형이 전이를 바꾸는가»)은 그 프레임 안에서 물을 수 없다 — 표적이 자유 파라미터가 아니기 때문이다. 이건 결함이 아니라 **범위**다.",
+        "그리고 같은 논문 p.30 이 우리 편이다 — site-specific RT 가 확률모델보다 hot clutter 를 더 많이, 더 넓은 도플러로 만든다는 것을 그들 자신의 그림으로 보였다. «환경이 마이크로도플러를 훼손한다»의 최상위 인용원이자, 우리 챔버 시뮬이 그 훼손을 과소평가 중일 가능성의 경고다."
+      ],
+      "⛔_쓰지_말_것": "«메쉬를 단순화했으니 표적 에코가 틀렸다» — 대상 오인이다. 그들 표적 진폭은 애초에 RT 산출물이 아니다(p.23 은 메쉬를 씬에 세우지만 표적 진폭은 식(108)에서 뽑는다)."
+    },
+    {
+      "id": "R8",
+      "논문": "CageDroneRF, IEEE T-AES (p.11, p.4)",
+      "반박의_내용": "통제환경 결과는 실외로 안 넘어간다 — 기종식별 42.07%. 챔버 프레임이 정면 표적이다.",
+      "그들의_축자": "“…struggles significantly with model-level identification (42.07%). This indicates poor domain generalization from indoor to outdoor environments.” (p.11)",
+      "provenance": "repo_verified_earlier (docs/SIM2REAL_PLAN.md 부록 A-8)",
+      "우리_답": [
+        "(a) 챔버는 상한(upper bound)으로만 프레이밍하고 격차를 인쇄한다.",
+        "(b) 태스크를 기종식별이 아니라 검출로 잡았다. 그들 자신의 계층 결과가 입도가 거칠수록 격차가 작음을 보인다(Modulation 69.95 > Protocol 66.11 > Model 42.07).",
+        "(c) X6 의 결정 — 전이 실험의 sim 도메인을 실외 사이트 트윈으로 옮긴다."
+      ]
+    }
+  ],
+
+  "q4_공격_거리": {
+    "작성_규칙": "⚠ «아무도 안 했다» 를 쓰지 않는다(R20 대정정). 모든 부재 진술은 모집단을 명시한 «N편 범위에서 못 찾았다» 형태다. 각 항목의 «얼마나»는 크다/중간/작다 + 한 줄 이유.",
+    "항목": [
+      {
+        "id": "A1",
+        "무엇이_비었나": "궤적·환경·백본·시드를 고정하고 **표적 산란 모형만** 바꾼 뒤 그 차이를 실측 전이 성능의 함수로 보고한 통제 ablation.",
+        "누가_가장_근접": "WiFi-JEPA (arXiv:2607.11064) Table 5 — sim-object(기하 프리미티브) vs sim-human(사람 메쉬).",
+        "근거": "축자 (p.13): “Both simulated datasets use the same number of clips and are sampled to 90K frames, so the comparison isolates the effect of scene content: geometric primitives with randomized physics trajectories (sim-object) versus animated human meshes with motion-capture sequences (sim-human).” — 그 «scene content» 안에 산란체 기하와 운동 분포가 함께 들어 있고, 저자 자신이 원인을 운동 분포로 돌린다(같은 쪽: “likely because the fixed motion-capture sequences lack the trajectory variation…”). 그리고 우리 아카이브 고유 PDF 317편 전문에서 (sim-to-real 계열 ≥2) AND (UAV 계열 ≥5) = **0편**.",
+        "우리가_채우나": "예. 궤적 집합·씬·조명 파형·검출기·5 seeds 를 고정하고 표적항만 {S-I, S-II, C, O-rigid, O-full} 로 바꾼다.",
+        "얼마나": "크다 — 우리만 가진 부품(자세분해 σ 격자 + 회전 로터 변조)이 있어야 성립하는 실험이고, 가장 근접한 선례가 교란되어 있다.",
+        "⚠_리스크": "사다리가 null 이면 이 칸은 negative result 로 남는다. K1(sim-to-sim 게이트)이 실측 전에 판정한다. null 도 인쇄한다."
+      },
+      {
+        "id": "A2",
+        "무엇이_비었나": "자기지도 학습(SSL/JEPA/MAE/contrastive)을 **드론 마이크로도플러**에 실제로 적용한 실험.",
+        "누가_가장_근접": "natsciData2026 (Sci Data 2026, 13:407) — 데이터셋 논문이 SSL 을 «가능하다»고 적기만 한다.",
+        "근거": "내가 직접 돌린 계수: /data/public/sionna_jeong 고유 PDF **317편** 전문에서 (SSL 계열 낱말 ≥2) AND (UAV 계열 ≥5) AND (micro-Doppler ≥1) = **1편**. 그 1편의 SSL 언급 전부: “…including supervised and self-supervised learning.”(p.1), “enables a broad range of machine learning techniques like self-supervised representation learning”(p.2) — SSL 실험 0. 여기에 arXiv 초록검색 21쿼리(선행 라운드)도 dry.",
+        "우리가_채우나": "조건부 — ablation 팔로만. 헤드라인 아님.",
+        "얼마나": "작다 — 빈칸이지만 novelty 로 팔 수 없다. 2026년 상반기에만 무선/레이다 JEPA 가 최소 7편(WiFi-JEPA · CSI-JEPA · LatentWave · WirelessJEPA · JEPA-CFM · JEPA-MSAC · SAR-JEPA)이고 포지션 페이퍼(2607.09798)까지 있다. «JEPA 를 드론에 적용»은 방어 불가.",
+        "⚠_반증가능한_구멍": "IEEE Xplore doc 10548787 «Track-Oriented Self-Supervised Learning for Micro-Doppler Target Classification» 원문 미확인. 표적이 드론인지조차 모른다. 이 부재 진술을 무너뜨릴 1순위 후보이고, [R20] 의 arXiv 편향 재발 지점이다. 좁힌 문장으로만 쓴다 — «아카이브 317편과 arXiv 초록검색 21쿼리 범위에서 SSL×드론 마이크로도플러 실험을 보고한 논문을 찾지 못했다. IEEE Xplore 전용 문헌은 미탐색이다.»"
+      },
+      {
+        "id": "A3",
+        "무엇이_비었나": "「시뮬로 자기지도 사전학습 → 실측 **드론** 전이」 3자 결합.",
+        "누가_가장_근접": "세 조각이 각각 있고 합쳐진 적이 없다 — WiFi-JEPA(시뮬 SSL→실측이나 표적=사람·태스크=자세), mmSimPrior(시뮬 사전학습→실측이나 지도형·인체), SAR-JEPA(레이다 JEPA 이나 실측만·정지표적).",
+        "근거": "⭐ 상대가 자기 입으로 칸을 비웠다 — SAR-JEPA (arXiv:2311.15153) p.13: “Another direction is to use the simulated data for SSL.” 그리고 A1 과 같은 317편 계수(sim2real ≥2 AND UAV ≥5 = 0편).",
+        "우리가_채우나": "예 — 다만 B7 조건부(예측 대상을 물리로 규정된 마이크로도플러 특징으로 둔다). 근거: 같은 논문 p.12 “I-JEPA has the feature collapse … under speckle noise”.",
+        "얼마나": "중간 — 방법 novelty 가 아니라 **도메인 결합** novelty. 심사에서 «JEPA 를 썼다»가 아니라 «잡음 심한 패시브 레이다에서 물리 규정 예측대상이 필요했다»로 팔아야 산다."
+      },
+      {
+        "id": "A4",
+        "무엇이_비었나": "**조명원 상시 ON**(패시브·비협조) 조건에서 hot-clutter 통계를 quiet period 없이 잡는 절차와 그 편향의 정량화.",
+        "누가": "Clutter-Aware ISAC (Proc. IEEE 114(1):52-91, 2026) — 처방을 quiet period 로 적는다.",
+        "근거": "축자 (p.19): “the full hot-clutter covariance or the disturbance covariance Rη,n can be estimated directly from secondary data collected during quiet periods where only the interference is present.” 같은 절이 바로 앞에서 “For non-cooperative emitters, the interference waveform is unknown at the BS” 라고 적는다 — 비협조 조명원을 다루면서 처방은 quiet period 를 요구하는 구조적 공백이다.",
+        "우리가_채우나": "예 — secondary data 를 «간섭만»이 아니라 «표적만 없음»으로 재정의하고, 남는 항(직접파 잔차 + 정적 클러터)이 공분산 추정을 얼마나 편향시키는지 잰다.",
+        "얼마나": "작지만 확실 — 그리고 값이 싸다. 캡처 하나가 도메인 정렬·공분산 대용·CFAR 임계 교정 셋에 쓰인다는 것을 실측으로 보이면 실무 문장이 된다."
+      },
+      {
+        "id": "A5",
+        "무엇이_비었나": "**수신단 하드웨어 손상**(ADC 양자화·위상잡음·LO 드리프트·AGC)을 sim-to-real 전이의 통제 축으로 켜고 끈 실험 — 드론/패시브 레이다 쪽에서.",
+        "누가_인접": "① Luo/Alkhateeb (arXiv:2509.25793) 는 4축을 분해하고 hardware 를 큰 축으로 세지만 태스크가 CSI 압축이다. ② BatStation (arXiv:2509.06898) 은 붕괴 원인을 hardware 로 **귀속만** 하고 축으로 재지 않았다.",
+        "근거": "축자 ① (2509.25793 p.3): “we identify that 3D geometry, ray tracing, and hardware model are the key factors that greatly influence the performance of CSI reconstruction.” — 4축 중 EM material 이 이 문장에 빠져 있다. 축자 ② (BatStation p.11): “Such performance degradation mainly comes from the unseen hardware parameters on the experimental BS hardware (e.g., noise floor, receiving gain).” 두 편이 독립적으로 같은 곳을 가리키는데, 드론 마이크로도플러 전이에서 이 축을 계단식으로 켜고 끈 실험을 이번 라운드 정독 15편 + s2r_prior 33편 + 아카이브 317편 전문검색 범위에서 못 찾았다.",
+        "우리가_채우나": "예 — 그리고 가장 싸다. adc_quantize()(12-bit, 74 dB 동적범위)가 src/experiment_x410.py 에 이미 있고 검출 경로에 호출자가 0 이다. 배선 ≈30 LOC. 위상잡음·LO 드리프트는 신규 ≈150 LOC.",
+        "얼마나": "중간~크다 — 문헌이 «크다»고 잰 축 중 우리가 실제로 비운 유일한 칸이고, 비용이 세 자리 LOC 다. ⭐ 부수 효과로 BatStation 반박(R5)의 답이 여기서 나온다."
+      },
+      {
+        "id": "A6",
+        "무엇이_비었나": "recording-grouped(녹화 단위) 평가를 쓴 드론 RF/레이다 논문.",
+        "누가": "arXiv:2607.01025 가 그 부재 자체를 논문으로 만들었다.",
+        "근거": "내가 직접 돌린 계수: 아카이브 고유 PDF **317편** 전문에서 «recording-grouped | leave-one-recording | recording-level split | session-wise split» 정규식 히트 **0편**. ⚠ 2607.01025 자신은 아카이브 밖이다(이번에 내가 내려받았다) — 이 계수는 «세상에 없다»가 아니라 «우리 서가에 없다»다. 그 논문의 수치: DroneRF AR vs Bebop macro-F1 0.74 → 0.46(=2클래스 chance).",
+        "우리가_채우나": "예 — 규약으로 채택하고 R(독립 pass 수)과 d(특징차원)를 표에 인쇄한다.",
+        "얼마나": "작다(방법 기여 아님). 그러나 **방어력이 크다** — 우리 수치가 낮게 나와도 «정직해서 낮다»를 증명하는 장치이고, 심사에서 선행 대비 열세를 설명하는 유일한 정당한 방식이다."
+      },
+      {
+        "id": "A7",
+        "무엇이_비었나": "TU Ilmenau BiRa 의 공개 바이스태틱 드론 반사도 실측을 **외부 그룹이 자기 산란 커널 검증에 쓴** 사례.",
+        "누가": "Beuster 외 (arXiv:2402.16591, IEEE JC&S 2024) — TU Ilmenau 자신이 측정하고 공개했다.",
+        "근거": "축자 (p.3): “…the capabilities of BiRa for characterizing the bi-static reflectivity of a small quad-copter, namely a DJI Phantom 2, with propellers at standstill (upper right plot with measured data, lower right plot with simulated data) over the frequency range 2 to 18 GHz for different bi-static angels 10° to 180° and the Micro-Doppler signature of a quad[-copter]…” / “Selected sets of the recorded BiRa measurement data are publicly available at [11]” (p.3), [11] = https://github.com/EMS-TU-Ilmenau/bira-dataset (p.6 참고문헌에서 URL 직접 확인). 이 데이터셋을 TU Ilmenau 그룹 밖에서 자기 커널 검증에 쓴 논문을 우리 아카이브 317편 범위에서 못 찾았다.",
+        "우리가_채우나": "예 — 우리 SBR+PO 의 **바이스태틱 확장** 외부 앵커. 현재 우리 σ 커널은 모노스태틱만이고 바이스태틱 앵커가 0 이다(메모 sionna2-rcs-methodology).",
+        "얼마나": "크다 — 절대 σ 앵커가 Das/Yuan 1건(같은 원자료 재분석)뿐인 상태에서, 각도 전 범위 바이스태틱 + 블레이드 회전 마이크로도플러를 동시에 주는 공개 실측은 우리 최대 구멍을 정확히 메운다.",
+        "⚠_아직_확정_아님": "데이터 실물 미수령. 포맷·각도 격자·편파가 우리 σ 격자와 대응되는지 확인 전이다. 이 칸은 «후보»이고, 확인 후에만 논문에 쓴다."
+      }
+    ],
+    "⛔_쓰지_말_문장": [
+      "«아무도 JEPA 를 레이다에 안 썼다» — 거짓. 2026년 상반기에만 최소 7편.",
+      "«Sionna 가 RCS 를 못 낸다» — 이미 정정된 문장. 참인 것은 «Sionna 기본 PathSolver 에 산란 적분이 없다»뿐(메모 sionna2-rt-rcs-claim-scope).",
+      "«표적 충실도가 전이에 중요함을 우리가 처음 보였다» — 아직 안 쟀다. K1 판정 전에는 쓸 수 없다.",
+      "«우리 시뮬에 하드웨어 모델이 없다» — 스윕의 오기. 정확히는 «ADC 양자화는 있으나 검출 경로에 미배선, 위상잡음·LO 드리프트·IQ 불균형은 부재».",
+      "«클러터 서베이가 메쉬를 단순화해서 표적 에코가 틀렸다» — 대상 오인."
+    ]
+  },
+
+  "decisions": {
+    "규칙": "사소한 판단은 스스로 정하고 이유를 남긴다. 되돌리기 어려운 것만 사용자에게 올린다.",
+    "내가_정한_것": [
+      {
+        "id": "D1",
+        "결정": "표적모형 사다리를 {S-I, S-II, C, O-rigid, O-full} 5팔로 확정. 스윕의 «점산란체» 팔은 뺀다.",
+        "이유": "점산란체와 통계 CN 은 검출 하류에서 구분이 안 된다(둘 다 각도무관 스칼라). S-I 이 이미 그 극단 자리다. 대신 시간상관 축(S-I vs S-II)과 로터 축(O-rigid vs O-full)을 넣으면 정보량이 크고 SIM2REAL_PLAN 기존 배선(S/C/O)에 그대로 접속된다.",
+        "반대근거": "«구조 없음»의 극단을 명시적으로 이름 붙이는 편이 서술에 낫다는 주장은 성립한다. S-I 에 «point-scatterer equivalent» 라는 별명을 붙여 해결한다."
+      },
+      {
+        "id": "D2",
+        "결정": "하류 태스크는 검출 단일화. 상태 분류(호버/병진/rpm)는 O 팔 내부 한계 패널로만.",
+        "이유": "S·C 팔에 로터가 없어 분류 하류에서는 ablation 이 «로터 유무»로 퇴화한다. SIM2REAL_PLAN §1-2 가 같은 이유로 이미 (b)(c)(d) 를 기각했다.",
+        "반대근거": "검출만으로는 마이크로도플러의 값어치를 못 보인다는 지적이 있다. → 검출 지표에 «pass 단위 검출 연속성 / 최장 드롭아웃»을 넣어 흡수한다(SIM2REAL_PLAN §2-4 에 이미 있음)."
+      },
+      {
+        "id": "D3",
+        "결정": "전이 실험의 sim 도메인을 실외 사이트 트윈으로 옮긴다. 챔버는 통제군·상한으로 병기한다.",
+        "이유": "Road A(배경·클러터 정렬)가 성립하려면 정렬할 배경이 시뮬 쪽에 있어야 한다. semi-anechoic 챔버는 배경을 없애는 시설이므로, 챔버를 sim 도메인으로 두면 격차가 «배경 유무» 하나로 지배되어 표적모형 축이 파묻힌다(=K3).",
+        "반대근거": "챔버 상시방침(메모 sionna2-chamber-policy)의 실질 변경이고, 사이트 트윈 씬은 300~600 LOC + 메쉬 자산이 든다(P3 의 주 비용). ⚠ **되돌리기 어려운 축** — SIM2REAL_PLAN §6-5 가 이미 사용자 확인 대기로 걸어둔 항목이므로 여기서 결정하되 사용자에게 올린다."
+      },
+      {
+        "id": "D4",
+        "결정": "SSL 은 ablation 팔. 명분은 «라벨 비용»이 아니라 «독립 녹화 수 R + 시각동기 비용».",
+        "이유": "PX4 로그가 라벨을 준다. 라벨 비용 논변은 심사에서 바로 깨진다. 2607.01025 의 2R ≲ d 가 우리 진짜 병목을 지목한다.",
+        "반대근거": "⚠ 실측 규모가 예상보다 작으면(R 이 한 자리) 1-shot 레짐이 되고 SSL 이득이 최대가 된다 — 2501.03461 p.3 축자: “the 17.5%, 6.3%, and 4.3% increases in 1-shot, 5-shot, and 10-shot performance for ResNet1D”. 그 경우 이 결정이 뒤집힌다. **파일럿에서 R 이 확정되면 재판정한다.**"
+      },
+      {
+        "id": "D5",
+        "결정": "하드웨어 축(A5)을 즉시 착수 — 이 목록에서 비용대비 이득 1위.",
+        "이유": "함수가 이미 있고 배선 30 LOC. 문헌 두 편이 독립적으로 «크다»고 가리킨 축이고, 동시에 BatStation 반박(R5)의 답이기도 하다.",
+        "반대근거": "없음. 실측도 GPU 도 안 든다."
+      },
+      {
+        "id": "D6",
+        "결정": "다음 라운드 1순위를 BiRa 데이터셋 확보로 올린다. IEEE Xplore doc 10548787 은 2순위.",
+        "이유": "스윕은 doc 10548787 을 1순위로 뒀으나, 그것은 우리 부재주장 하나를 지키는 방어 작업이다. BiRa 는 우리 σ 커널의 가장 큰 구멍(바이스태틱 앵커 0)을 직접 메우는 공격 작업이고 공개 자료라 확보 가능성이 높다.",
+        "반대근거": "doc 10548787 이 SSL×마이크로도플러×드론이면 A2 부재주장이 죽는다. 그러나 A2 는 이미 «작다»로 평가했으므로 잃을 것이 적다."
+      },
+      {
+        "id": "D7",
+        "결정": "메모 sionna2-rcs-materials 의 «실측 앵커링 ±2~3 dB» 를 전이 논문 서사에서 내린다. fidelity 진단으로만 유지.",
+        "이유": "RadarTwin p.9~10 이 절대 radiometry 가 전이되지 않음을, 재질축이 거의 chance 임을 실측으로 보였다.",
+        "반대근거": "절대 앵커는 N2(무정합) 규약의 레벨 근거로 여전히 필요하다 — 삭제가 아니라 배치 변경이다."
+      }
+    ]
+  },
+
+  "next_round": [
+    "① BiRa Dataset 실물 확보 → 포맷·각도격자·편파를 우리 σ 격자와 대조 (A7 을 «후보»에서 «확정»으로).",
+    "② A5 착수 — adc_quantize() 를 experiment_detection.py 경로에 배선(≈30 LOC) 후, 켜고/끈 두 조건에서 sim-to-sim 대각 성능 차이를 먼저 잰다.",
+    "③ K1 게이트 — sim-to-sim 5×5 교차행렬. 실측 예산 앞의 GO/NO-GO.",
+    "④ IEEE Xplore doc 10548787 원문 확보 (A2 부재주장 방어).",
+    "⑤ natsciData2026 내려받아 «드론 대 비드론» 전이 예비검사 — 단 X8 단서(고정거리·궤적 없음)를 지킨다.",
+    "⑥ MEASUREMENT_PLAN 에 «조명원 ON, 표적 없음» 캡처를 1순위 촬영물로 명시 (B1·B2·A4 가 전부 여기 걸려 있다)."
+  ]
+}
