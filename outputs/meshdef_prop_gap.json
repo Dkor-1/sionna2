@@ -1,0 +1,1631 @@
+{
+ "_meta": {
+  "title": "프롭 허브 ↔ 모터 벨 간격 — 증거와 패치 명세",
+  "generated": "2026-08-07",
+  "scope": "⛔ 명세 only. src/drones.py · src/drone_cad.py 는 이 라운드에서 한 글자도 바뀌지 않았다(읽기만). 적용은 다음 라운드.",
+  "why_now": "프로젝트가 마이크로도플러로 옮겨 갔고, 남은 최대 불일치가 로터 부근이다.",
+  "headline": "matrice4e 의 6.7 mm 는 **확인**된다(측정 6.656 mm). 원인은 프롭을 놓는 식과 벨을 짓는 식이 서로 다른 바닥을 쓰는 것이고, 닫힌식이 10기체를 1 µm 이내로 재현한다. 실물 간격은 0 이다(CAD·사진 독립 일치). ⭐ 그러나 이 라운드의 가장 큰 발견은 matrice4e 가 아니라 **mini5pro** 다 — 간격이 로터마다 달라(−6.37 앞 / +13.50 뒤) 앞 프롭 삼각형 526 개가 모터 벨 속에 박혀 있고, 마이크로도플러 대역 전력이 최대 4.20 dB 틀어진다.",
+  "adversarial_correction": "사용자 브리프의 '실루엣은 침묵하고 PO/SBR 은 본다' 는 절반만 맞다. 실루엣이 침묵하는 것은 확인했다(−2.21~+0.18 %). 그런데 각도평균 σ 도 거의 침묵한다(−0.46~+0.33 dB). 진짜로 보는 것은 **방위별 σ**(p95 3.63 dB)와 **마이크로도플러 고조파**(−7.03~+9.47 dB), 그리고 mini5pro 의 차동 간격이다.",
+  "environment": "python ~/.venvs/py312/bin/python, CUDA_VISIBLE_DEVICES=2 (GPU3 회피).",
+  "scratch_scripts": "측정 스크립트는 세션 스크래치패드에 있다(final_gap.py · cad_profile.py · photo_v2.py · effect.py · sigma_effect.py · md_effect.py · md_po.py · interpen.py)."
+ },
+ "fleet_measurement": {
+  "definition": "gap = (프롭 허브 밑면 z) − (모터 벨 윗면 z), 외형보정(sz) 적용 후 [mm]. 프롭 허브 밑면 = 프롭 로컬 z=0 (= _prop_hub 회전체의 바닥면, 설계상 평면). 모터 벨 윗면 = drone_cad 가 실제로 쓰는 식 (_bz + mot_h) 를 재현한 뒤 메쉬 꼭짓점으로 검증한 값. 양수 = 프롭이 떠 있음, 음수 = 벨 속에 박힘.",
+  "note": "typhoonh480 은 전용 분기라 _motor_bell 이 아니라 원통 스택이다 — 그 기체의 벨 윗면은 축 근방 motor 그룹 최고 z 로 측정했다(닫힌식 없음).",
+  "drones": {
+   "mini5pro": {
+    "name": "DJI Mini 5 Pro",
+    "n_rotors": 4,
+    "fit_scale_z": 1.41869149152026,
+    "gap_mm_per_rotor": [
+     -6.3664,
+     13.4953,
+     13.4953,
+     -6.3664
+    ],
+    "gap_mm_distinct": [
+     -6.3664,
+     13.4953
+    ],
+    "uniform_across_rotors": false,
+    "hub_bottom_z_mm": [
+     17.8223,
+     37.684,
+     37.684,
+     17.8223
+    ],
+    "bell_top_z_mm": [
+     24.1887,
+     24.1887,
+     24.1887,
+     24.1887
+    ],
+    "closed_form_gap_scaled_mm": 10.6579,
+    "closed_form_reproduces_measurement": true,
+    "blade_plane_offset_mm": 0.868,
+    "blade_plane_above_bell_top_mm": [
+     -5.4981,
+     14.3636,
+     14.3636,
+     -5.4981
+    ],
+    "prop_local_z_span_mm": [
+     -1.69,
+     6.858
+    ],
+    "hub_r_mm": 6.477,
+    "hub_h_mm": 6.858,
+    "contact_with_frame": [
+     true,
+     false,
+     false,
+     true
+    ],
+    "prop_verts_inside_bell": [
+     313,
+     0,
+     0,
+     313
+    ],
+    "prop_tris_fully_inside_bell": [
+     526,
+     0,
+     0,
+     526
+    ],
+    "phase_error_deg_at_3p5GHz": {
+     "el5": [
+      4.66,
+      9.89
+     ],
+     "el15": [
+      13.85,
+      29.36
+     ],
+     "el30": [
+      26.76,
+      56.72
+     ],
+     "el90": [
+      53.51,
+      113.44
+     ]
+    },
+    "constants": {
+     "arm_t_mm": 12.375,
+     "motor_h_drones_mm": 12.375,
+     "motor_h_cad_mm": 13.2,
+     "bell_base_z_mm": 3.85,
+     "motor_h_mm_spec": null,
+     "arm_od_mm_spec": null,
+     "rotor_z_mm_spec": [
+      -12.0,
+      2.0,
+      2.0,
+      -12.0
+     ],
+     "arm_shape": "folding"
+    }
+   },
+   "mavic4pro": {
+    "name": "DJI Mavic 4 Pro",
+    "n_rotors": 4,
+    "fit_scale_z": 1.3524057487449828,
+    "gap_mm_per_rotor": [
+     11.3947,
+     11.3947,
+     11.3947,
+     11.3947
+    ],
+    "gap_mm_distinct": [
+     11.3947
+    ],
+    "uniform_across_rotors": true,
+    "hub_bottom_z_mm": [
+     48.3722,
+     48.3722,
+     48.3722,
+     48.3722
+    ],
+    "bell_top_z_mm": [
+     36.9775,
+     36.9775,
+     36.9775,
+     36.9775
+    ],
+    "closed_form_gap_scaled_mm": 11.3947,
+    "closed_form_reproduces_measurement": true,
+    "blade_plane_offset_mm": 1.642,
+    "blade_plane_above_bell_top_mm": [
+     13.037,
+     13.037,
+     13.037,
+     13.037
+    ],
+    "prop_local_z_span_mm": [
+     -3.436,
+     12.015
+    ],
+    "hub_r_mm": 11.348,
+    "hub_h_mm": 12.015,
+    "contact_with_frame": [
+     false,
+     false,
+     false,
+     false
+    ],
+    "prop_verts_inside_bell": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "prop_tris_fully_inside_bell": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "phase_error_deg_at_3p5GHz": {
+     "el5": [
+      8.35
+     ],
+     "el15": [
+      24.79
+     ],
+     "el30": [
+      47.89
+     ],
+     "el90": [
+      95.78
+     ]
+    },
+    "constants": {
+     "arm_t_mm": 19.845,
+     "motor_h_drones_mm": 19.845,
+     "motor_h_cad_mm": 21.168,
+     "bell_base_z_mm": 6.174,
+     "motor_h_mm_spec": null,
+     "arm_od_mm_spec": null,
+     "rotor_z_mm_spec": null,
+     "arm_shape": "folding"
+    }
+   },
+   "matrice4e": {
+    "name": "DJI Matrice 4E",
+    "n_rotors": 4,
+    "fit_scale_z": 0.9998734227354615,
+    "gap_mm_per_rotor": [
+     6.656,
+     6.656,
+     6.656,
+     6.656
+    ],
+    "gap_mm_distinct": [
+     6.656
+    ],
+    "uniform_across_rotors": true,
+    "hub_bottom_z_mm": [
+     29.0963,
+     29.0963,
+     29.0963,
+     29.0963
+    ],
+    "bell_top_z_mm": [
+     22.4404,
+     22.4404,
+     22.4404,
+     22.4404
+    ],
+    "closed_form_gap_scaled_mm": 6.656,
+    "closed_form_reproduces_measurement": true,
+    "blade_plane_offset_mm": 1.657,
+    "blade_plane_above_bell_top_mm": [
+     8.3129,
+     8.3129,
+     8.3129,
+     8.3129
+    ],
+    "prop_local_z_span_mm": [
+     -3.395,
+     12.33
+    ],
+    "hub_r_mm": 11.645,
+    "hub_h_mm": 12.33,
+    "contact_with_frame": [
+     false,
+     false,
+     false,
+     false
+    ],
+    "prop_verts_inside_bell": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "prop_tris_fully_inside_bell": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "phase_error_deg_at_3p5GHz": {
+     "el5": [
+      4.88
+     ],
+     "el15": [
+      14.48
+     ],
+     "el30": [
+      27.97
+     ],
+     "el90": [
+      55.95
+     ]
+    },
+    "constants": {
+     "arm_t_mm": 13.6,
+     "motor_h_drones_mm": 16.3,
+     "motor_h_cad_mm": 16.3,
+     "bell_base_z_mm": 6.1432,
+     "motor_h_mm_spec": 16.3,
+     "arm_od_mm_spec": 13.6,
+     "rotor_z_mm_spec": null,
+     "arm_shape": "folding"
+    }
+   },
+   "s1000plus": {
+    "name": "DJI S1000+",
+    "n_rotors": 8,
+    "fit_scale_z": 0.9290953686047764,
+    "gap_mm_per_rotor": [
+     3.5956,
+     3.5956,
+     3.5956,
+     3.5956,
+     3.5956,
+     3.5956,
+     3.5956,
+     3.5956
+    ],
+    "gap_mm_distinct": [
+     3.5956
+    ],
+    "uniform_across_rotors": true,
+    "hub_bottom_z_mm": [
+     45.0611,
+     45.0611,
+     45.0611,
+     45.0611,
+     45.0611,
+     45.0611,
+     45.0611,
+     45.0611
+    ],
+    "bell_top_z_mm": [
+     41.4655,
+     41.4655,
+     41.4655,
+     41.4655,
+     41.4655,
+     41.4655,
+     41.4655,
+     41.4655
+    ],
+    "closed_form_gap_scaled_mm": 3.5956,
+    "closed_form_reproduces_measurement": true,
+    "blade_plane_offset_mm": 1.866,
+    "blade_plane_above_bell_top_mm": [
+     5.4614,
+     5.4614,
+     5.4614,
+     5.4614,
+     5.4614,
+     5.4614,
+     5.4614,
+     5.4614
+    ],
+    "prop_local_z_span_mm": [
+     -3.333,
+     17.145
+    ],
+    "hub_r_mm": 16.193,
+    "hub_h_mm": 17.145,
+    "contact_with_frame": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ],
+    "prop_verts_inside_bell": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "prop_tris_fully_inside_bell": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "phase_error_deg_at_3p5GHz": {
+     "el5": [
+      2.63
+     ],
+     "el15": [
+      7.82
+     ],
+     "el30": [
+      15.11
+     ],
+     "el90": [
+      30.22
+     ]
+    },
+    "constants": {
+     "arm_t_mm": 25.0,
+     "motor_h_drones_mm": 30.0,
+     "motor_h_cad_mm": 30.0,
+     "bell_base_z_mm": 14.63,
+     "motor_h_mm_spec": 30.0,
+     "arm_od_mm_spec": 25.0,
+     "rotor_z_mm_spec": null,
+     "arm_shape": "folding"
+    }
+   },
+   "phantom4": {
+    "name": "DJI Phantom 4",
+    "n_rotors": 4,
+    "fit_scale_z": 0.937408732757882,
+    "gap_mm_per_rotor": [
+     13.1706,
+     13.1706,
+     13.1706,
+     13.1706
+    ],
+    "gap_mm_distinct": [
+     13.1706
+    ],
+    "uniform_across_rotors": true,
+    "hub_bottom_z_mm": [
+     33.5124,
+     33.5124,
+     33.5124,
+     33.5124
+    ],
+    "bell_top_z_mm": [
+     20.3418,
+     20.3418,
+     20.3418,
+     20.3418
+    ],
+    "closed_form_gap_scaled_mm": 13.1706,
+    "closed_form_reproduces_measurement": true,
+    "blade_plane_offset_mm": 1.452,
+    "blade_plane_above_bell_top_mm": [
+     14.6228,
+     14.6228,
+     14.6228,
+     14.6228
+    ],
+    "prop_local_z_span_mm": [
+     -2.977,
+     10.8
+    ],
+    "hub_r_mm": 10.2,
+    "hub_h_mm": 10.8,
+    "contact_with_frame": [
+     false,
+     false,
+     false,
+     false
+    ],
+    "prop_verts_inside_bell": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "prop_tris_fully_inside_bell": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "phase_error_deg_at_3p5GHz": {
+     "el5": [
+      9.65
+     ],
+     "el15": [
+      28.65
+     ],
+     "el30": [
+      55.35
+     ],
+     "el90": [
+      110.71
+     ]
+    },
+    "constants": {
+     "arm_t_mm": 28.0,
+     "motor_h_drones_mm": 15.75,
+     "motor_h_cad_mm": 16.8,
+     "bell_base_z_mm": 4.9,
+     "motor_h_mm_spec": null,
+     "arm_od_mm_spec": null,
+     "rotor_z_mm_spec": null,
+     "arm_shape": "folding"
+    }
+   },
+   "typhoonh480": {
+    "name": "Yuneec Typhoon H (H480)",
+    "n_rotors": 6,
+    "fit_scale_z": 1.0189323860079453,
+    "gap_mm_per_rotor": [
+     -1.8341,
+     -1.8341,
+     -1.8341,
+     -1.8341,
+     -1.8341,
+     -1.8341
+    ],
+    "gap_mm_distinct": [
+     -1.8341
+    ],
+    "uniform_across_rotors": true,
+    "hub_bottom_z_mm": [
+     37.191,
+     37.191,
+     37.191,
+     37.191,
+     37.191,
+     37.191
+    ],
+    "bell_top_z_mm": [
+     39.0251,
+     39.0251,
+     39.0251,
+     39.0251,
+     39.0251,
+     39.0251
+    ],
+    "closed_form_gap_scaled_mm": null,
+    "closed_form_reproduces_measurement": null,
+    "blade_plane_offset_mm": 1.523,
+    "blade_plane_above_bell_top_mm": [
+     -0.3115,
+     -0.3115,
+     -0.3115,
+     -0.3115,
+     -0.3115,
+     -0.3115
+    ],
+    "prop_local_z_span_mm": [
+     -3.459,
+     10.359
+    ],
+    "hub_r_mm": 9.784,
+    "hub_h_mm": 10.359,
+    "contact_with_frame": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "prop_verts_inside_bell": [],
+    "prop_tris_fully_inside_bell": [],
+    "phase_error_deg_at_3p5GHz": {
+     "el5": [
+      1.34
+     ],
+     "el15": [
+      3.99
+     ],
+     "el30": [
+      7.71
+     ],
+     "el90": [
+      15.42
+     ]
+    },
+    "constants": {
+     "arm_t_mm": 12.0,
+     "motor_h_drones_mm": 24.5,
+     "motor_h_cad_mm": 24.5,
+     "bell_base_z_mm": 6.72,
+     "motor_h_mm_spec": 24.5,
+     "arm_od_mm_spec": 12.0,
+     "rotor_z_mm_spec": null,
+     "arm_shape": "folding"
+    }
+   },
+   "x500v2": {
+    "name": "Holybro X500 V2",
+    "n_rotors": 4,
+    "fit_scale_z": 1.0,
+    "gap_mm_per_rotor": [
+     2.0,
+     2.0,
+     2.0,
+     2.0
+    ],
+    "gap_mm_distinct": [
+     2.0
+    ],
+    "uniform_across_rotors": true,
+    "hub_bottom_z_mm": [
+     38.0,
+     38.0,
+     38.0,
+     38.0
+    ],
+    "bell_top_z_mm": [
+     36.0,
+     36.0,
+     36.0,
+     36.0
+    ],
+    "closed_form_gap_scaled_mm": 2.0,
+    "closed_form_reproduces_measurement": true,
+    "blade_plane_offset_mm": 1.42,
+    "blade_plane_above_bell_top_mm": [
+     3.4198,
+     3.4198,
+     3.4198,
+     3.4198
+    ],
+    "prop_local_z_span_mm": [
+     -2.724,
+     11.43
+    ],
+    "hub_r_mm": 10.795,
+    "hub_h_mm": 11.43,
+    "contact_with_frame": [
+     false,
+     false,
+     false,
+     false
+    ],
+    "prop_verts_inside_bell": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "prop_tris_fully_inside_bell": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "phase_error_deg_at_3p5GHz": {
+     "el5": [
+      1.47
+     ],
+     "el15": [
+      4.35
+     ],
+     "el30": [
+      8.41
+     ],
+     "el90": [
+      16.81
+     ]
+    },
+    "constants": {
+     "arm_t_mm": 16.0,
+     "motor_h_drones_mm": 28.5,
+     "motor_h_cad_mm": 28.5,
+     "bell_base_z_mm": 7.0,
+     "motor_h_mm_spec": 28.5,
+     "arm_od_mm_spec": 16.0,
+     "rotor_z_mm_spec": null,
+     "arm_shape": "tube"
+    }
+   },
+   "phantom3": {
+    "name": "DJI Phantom 3 Professional",
+    "n_rotors": 4,
+    "fit_scale_z": 0.9981775998846742,
+    "gap_mm_per_rotor": [
+     8.9836,
+     8.9836,
+     8.9836,
+     8.9836
+    ],
+    "gap_mm_distinct": [
+     8.9836
+    ],
+    "uniform_across_rotors": true,
+    "hub_bottom_z_mm": [
+     33.6386,
+     33.6386,
+     33.6386,
+     33.6386
+    ],
+    "bell_top_z_mm": [
+     24.655,
+     24.655,
+     24.655,
+     24.655
+    ],
+    "closed_form_gap_scaled_mm": 8.9836,
+    "closed_form_reproduces_measurement": true,
+    "blade_plane_offset_mm": 1.452,
+    "blade_plane_above_bell_top_mm": [
+     10.4358,
+     10.4358,
+     10.4358,
+     10.4358
+    ],
+    "prop_local_z_span_mm": [
+     -2.977,
+     10.8
+    ],
+    "hub_r_mm": 10.2,
+    "hub_h_mm": 10.8,
+    "contact_with_frame": [
+     false,
+     false,
+     false,
+     false
+    ],
+    "prop_verts_inside_bell": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "prop_tris_fully_inside_bell": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "phase_error_deg_at_3p5GHz": {
+     "el5": [
+      6.58
+     ],
+     "el15": [
+      19.54
+     ],
+     "el30": [
+      37.76
+     ],
+     "el90": [
+      75.51
+     ]
+    },
+    "constants": {
+     "arm_t_mm": 28.0,
+     "motor_h_drones_mm": 13.7,
+     "motor_h_cad_mm": 13.7,
+     "bell_base_z_mm": 11.0,
+     "motor_h_mm_spec": 13.7,
+     "arm_od_mm_spec": null,
+     "rotor_z_mm_spec": null,
+     "arm_shape": "folding"
+    }
+   },
+   "m350rtk": {
+    "name": "DJI Matrice 350 RTK",
+    "n_rotors": 4,
+    "fit_scale_z": 0.9907833753037915,
+    "gap_mm_per_rotor": [
+     5.9447,
+     5.9447,
+     5.9447,
+     5.9447
+    ],
+    "gap_mm_distinct": [
+     5.9447
+    ],
+    "uniform_across_rotors": true,
+    "hub_bottom_z_mm": [
+     46.5668,
+     46.5668,
+     46.5668,
+     46.5668
+    ],
+    "bell_top_z_mm": [
+     40.6221,
+     40.6221,
+     40.6221,
+     40.6221
+    ],
+    "closed_form_gap_scaled_mm": 5.9447,
+    "closed_form_reproduces_measurement": true,
+    "blade_plane_offset_mm": 3.072,
+    "blade_plane_above_bell_top_mm": [
+     9.0163,
+     9.0163,
+     9.0163,
+     9.0163
+    ],
+    "prop_local_z_span_mm": [
+     -6.022,
+     24.003
+    ],
+    "hub_r_mm": 22.67,
+    "hub_h_mm": 24.003,
+    "contact_with_frame": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "prop_verts_inside_bell": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "prop_tris_fully_inside_bell": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "phase_error_deg_at_3p5GHz": {
+     "el5": [
+      4.36
+     ],
+     "el15": [
+      12.93
+     ],
+     "el30": [
+      24.99
+     ],
+     "el90": [
+      49.97
+     ]
+    },
+    "constants": {
+     "arm_t_mm": 22.0,
+     "motor_h_drones_mm": 30.0,
+     "motor_h_cad_mm": 30.0,
+     "bell_base_z_mm": 12.53,
+     "motor_h_mm_spec": 30.0,
+     "arm_od_mm_spec": 22.0,
+     "rotor_z_mm_spec": null,
+     "arm_shape": "folding"
+    }
+   },
+   "mini2": {
+    "name": "DJI Mini 2",
+    "n_rotors": 4,
+    "fit_scale_z": 1.0012595041947647,
+    "gap_mm_per_rotor": [
+     2.811,
+     2.811,
+     2.811,
+     2.811
+    ],
+    "gap_mm_distinct": [
+     2.811
+    ],
+    "uniform_across_rotors": true,
+    "hub_bottom_z_mm": [
+     28.5584,
+     7.2716,
+     7.2716,
+     28.5584
+    ],
+    "bell_top_z_mm": [
+     25.7474,
+     4.4606,
+     4.4606,
+     25.7474
+    ],
+    "closed_form_gap_scaled_mm": 2.811,
+    "closed_form_reproduces_measurement": true,
+    "blade_plane_offset_mm": 0.734,
+    "blade_plane_above_bell_top_mm": [
+     3.545,
+     3.545,
+     3.545,
+     3.545
+    ],
+    "prop_local_z_span_mm": [
+     -1.539,
+     5.36
+    ],
+    "hub_r_mm": 5.062,
+    "hub_h_mm": 5.359,
+    "contact_with_frame": [
+     true,
+     true,
+     true,
+     true
+    ],
+    "prop_verts_inside_bell": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "prop_tris_fully_inside_bell": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "phase_error_deg_at_3p5GHz": {
+     "el5": [
+      2.06
+     ],
+     "el15": [
+      6.12
+     ],
+     "el30": [
+      11.81
+     ],
+     "el90": [
+      23.63
+     ]
+    },
+    "constants": {
+     "arm_t_mm": 9.585,
+     "motor_h_drones_mm": 7.1,
+     "motor_h_cad_mm": 7.1,
+     "bell_base_z_mm": 7.985,
+     "motor_h_mm_spec": 7.1,
+     "arm_od_mm_spec": null,
+     "rotor_z_mm_spec": [
+      10.63,
+      -10.63,
+      -10.63,
+      10.63
+     ],
+     "arm_shape": "folding"
+    }
+   }
+  }
+ },
+ "ground_truth": {
+  "datum": "우리 z=0 = 암 허브 평면. CAD→우리 좌표: x=-(z_cad-24.651), y=x_cad, z=y_cad-5.272 (직전 라운드 outputs/meshfix_matrice4e.json 이 확정한 변환).",
+  "cad": {
+   "file": "assets/meshes/reference/matrice4-M4T_v2.step (DJI 공식 STEP, M4T_ASM, 솔리드 125)",
+   "note": "⚠ CAD 에 프로펠러는 **없다**(props_in_cad=false). 그래서 프롭 자체가 아니라 «프롭이 앉는 면» 을 잰다 — 로터축 위 최상단 솔리드의 윗면.",
+   "method": "gmsh-OCC importShapes → 솔리드별 경계면 → 경계곡선 40점 매개변수 샘플. 앞 로터축 (x,y)=(139.49,179.28) 근방 솔리드만 남긴다.",
+   "front_rotor_stack": {
+    "tag105_stator_and_shaft": {
+     "z_mm": [
+      -8.5,
+      8.0
+     ],
+     "r_max_mm": 14.84,
+     "what": "아래 디스크(r≤14.84) + 위로 뻗은 축(r≈4~5)"
+    },
+    "tag104_bell_can": {
+     "z_mm": [
+      -1.5,
+      10.5
+     ],
+     "r_max_mm": 14.47,
+     "what": "벨 캔 — 두께 ~1 mm 얇은 원통 셸(r 12.0~14.5). 사진의 검은 통."
+    },
+    "tag103_bell_cap_prop_seat": {
+     "z_mm": [
+      3.5,
+      15.5
+     ],
+     "r_max_mm": 14.48,
+     "what": "벨 상부 캡 = **프롭 안착면**. 중앙 보어 r≈1.3, 꼭대기는 r≈11.9 링. 이 위에 아무 솔리드도 없다."
+    }
+   },
+   "topmost_rotating_face_z_mm": 15.31,
+   "gap_in_reality_mm": 0.0,
+   "gap_in_reality_why": "프롭 허브는 캡 위에 **물려 고정**된다(퀵릴리스). 둘 사이에 공기가 없다 — 사진 t11(프롭 뺀 모터 클로즈업)에 캡의 러그와 나사가 보이고, c04/c11(Mavic 4 Pro 암·프롭허브)도 같은 접합면을 보여 준다."
+  },
+  "photo": {
+   "file": "assets/photos/matrice4e/matrice4e_p01_side_profile_left.jpg (2667²)",
+   "scale_anchor": "검은 캔의 **높이** = CAD tag104 의 12.22 mm → 6.3011 px/mm. ⚠ 처음엔 실루엣 최대폭(29.68 mm)을 앵커로 썼는데 8.3 % 어긋났다 — 최대폭은 부드러운 극값이라 앵커로 약하다. 높이 앵커로 바꿨다.",
+   "can_top_y_px": 1305,
+   "can_bottom_y_px": 1382,
+   "px_per_mm": 6.3011,
+   "blade_neutral_plane_z_mm": {
+    "r20mm": 15.18,
+    "r25mm": 15.74,
+    "r30mm": 15.5,
+    "r35mm": 16.06,
+    "r40mm": 16.77,
+    "r50mm": 18.2
+   },
+   "verdict": "블레이드 중립면(허브 근처 r 20~30 mm) = z **+15.2~+15.7 mm**. CAD 의 최상단 회전면 +15.31 mm 와 **0.4 mm 안에서 일치**한다 — 서로 독립인 두 출처(STEP · 제품 렌더)가 같은 답을 낸다.",
+   "reading_error_mm": 1.5
+  },
+  "phantom3_independent_check": {
+   "source": "src/drones.py:696-699 (직전 라운드가 남긴 선언) + drone_cad.py:334-336",
+   "text": "P3 매뉴얼 정면도에서 벨 윗면 z=+24.7 mm, **블레이드면 z=+27.7 mm**. 우리 prop_z 는 33.7 mm → 프롭이 6.0 mm 높다.",
+   "meaning": "같은 결함이 **다른 기체·다른 출처(2D 도면)** 에서 독립적으로 확인된다. 그리고 P3 의 실제 스탠드오프는 0 이 아니라 **+3.0 mm** 다(나사식 허브). M4(퀵릴리스)의 ≈0 과 다르다 — 한 상수로 전 기체를 덮으면 안 된다.",
+   "real_blade_plane_above_bell_top_mm": 3.0,
+   "our_error_is_bigger_than_that_note_says": {
+    "note_says_mm": 6.0,
+    "note_compared": "우리 **장착면**(33.7) ↔ 도면의 **블레이드면**(27.7) — 두 면이 다르다.",
+    "apples_to_apples_mm": 7.389,
+    "how": "우리 블레이드 중립면 = 장착면 + 1.45 mm(실측) = 35.09 mm. 도면 27.7 mm. → 실제 오차는 6.0 이 아니라 **7.39 mm** 다. ⭐ 옛 기록이 저평가돼 있었다 — 장착면과 블레이드면을 같은 것으로 뒀기 때문이다."
+   }
+  },
+  "our_bell_maps_to_what": {
+   "our_bell_span_mm": [
+    6.14,
+    22.44
+   ],
+   "our_bell_height_mm": 16.3,
+   "cad_can_plus_cap_span_mm": [
+    -1.56,
+    15.31
+   ],
+   "cad_can_plus_cap_height_mm": 16.87,
+   "verdict": "우리 엔진의 단일 회전체 '벨' 은 실물의 **캔+캡 뭉치**에 대응한다(높이 16.3 ↔ 16.87, 차이 0.57 mm). 따라서 «우리 벨 윗면» 의 실물 짝은 tag103 캡 꼭대기 +15.31 이다.",
+   "absolute_height_error_mm": 7.13,
+   "absolute_error_owner": "MOTOR_BASE_Z / 암 평면 배분 — 이 항목이 아니라 outputs/meshfix_matrice4e.json 라운드의 것이다. 여기서는 **상대 간격**만 다룬다."
+  }
+ },
+ "cause": {
+  "one_sentence": "프롭을 놓는 코드와 벨을 짓는 코드가 **서로 다른 바닥에서 높이를 센다**. 두 값이 맞는 것은 우연이고, 어긋나도 예외는 나지 않는다.",
+  "prop_side": {
+   "where": "src/drones.py:1168-1194 `_arm_motor_dims`",
+   "formula_folding": "prop_z = motor_h + arm_t/2 + 0.006      (src/drones.py:1194)",
+   "formula_tube": "prop_z = OPEN_MOTOR_BASE_M + motor_h + 0.002   (src/drones.py:1193)",
+   "consumed_by": "src/drones.py:1345 `rotor_layout` → center=(…, (prop_z+dz)·sz)",
+   "reading": "‘암 중심선에서 재서 벨 높이 + 암 반두께 + 6 mm’. 그 6 mm 와 arm_t/2 는 어떤 실측에도 닿아 있지 않은 **집안 규칙**이다."
+  },
+  "bell_side": {
+   "where": "src/drone_cad.py:2112-2116 (접이식 일반 분기)",
+   "formula": "_bz = MOTOR_BASE_Z.get(key, 0.014·diag) + dz_k ;  bell_top = _bz + mot_h",
+   "reading": "‘벨 밑동을 표(MOTOR_BASE_Z)나 0.014·diag 에서 시작해 mot_h 만큼 쌓는다’. prop 쪽 식은 이 밑동을 **한 번도 읽지 않는다**."
+  },
+  "closed_form": {
+   "expr": "gap_raw = (motor_h_drones − motor_h_cad) + arm_t/2 + 6 mm − bell_base_z ,  gap = (gap_raw + dz_k)·sz",
+   "verified": "전 기체에서 측정 간격을 1 µm 이내로 재현한다(fleet[*].closed_form_*).",
+   "matrice4e_worked": "0 + 13.6/2 + 6 − 0.014·438.8 = 6.8 + 6 − 6.143 = 6.657 mm → ×sz(0.99987) = 6.656 mm = 측정값."
+  },
+  "second_decoupling": {
+   "what": "같은 '벨 높이' 에 **두 개의 기본식**이 있다.",
+   "drones_py": "src/drones.py:1181  motor_h = 0.045·diag",
+   "drone_cad_py": "src/drone_cad.py:2053  mot_r, mot_h = 0.052·diag, 0.048·diag",
+   "who_is_hurt": "spec 에 motor_h_mm 이 없는 3기 — mini5pro · mavic4pro · phantom4. mavic4pro 는 이 하나로 1.32 mm(0.003·441)가 간격에 그대로 더해진다."
+  },
+  "third_decoupling": {
+   "what": "rotor_z_mm 은 **프롭만** 옮기고 암·벨은 따라가지 않는다.",
+   "gate": "src/drone_cad.py:375 ARM_Z_FOLLOWS_ROTOR = {'mini2': True} — mini2 만 예외.",
+   "damage": "mini5pro 는 rotor_z_mm=(−12,+2,+2,−12) 인데 벨은 제자리라 앞 로터 간격이 −6.37 mm(프롭이 벨 **속에** 박힘), 뒤 로터가 +13.50 mm 가 된다."
+  },
+  "duplicated_copies_of_the_rule": [
+   "src/drones.py:1194 — 원본",
+   "src/viz_verify_sbr.py:188 — `prop_z = motor_h + arm_t / 2 + 0.006` **하드코딩 사본**. drones.py 를 고쳐도 여기는 안 따라온다(⚠ 조용히 갈라진다).",
+   "benchmark/airframe_phantom3.py:212 — `_arm_motor_dims` 를 **import** 해서 쓴다(안전).",
+   "src/drone_cad.py:1910 — 주석 안의 사본(m350rtk 가 6 mm 를 전제로 캡을 앉혔다는 기록)."
+  ]
+ },
+ "silhouette_blindness": {
+  "claim_under_test": "실루엣 점수는 «떠 있는 부품» 을 못 본다.",
+  "method": "matrice4e 의 현 메쉬와 간격 닫은 메쉬를 같은 방향에서 래스터라이즈해 덮인 면적을 비교(삼각형 무게중심 채우기, 1400 px 기준변).",
+  "rows": [
+   {
+    "az": 0.0,
+    "el": 0.0,
+    "area_now_m2": 0.021672,
+    "area_fixed_m2": 0.021437,
+    "delta_pct": -1.081
+   },
+   {
+    "az": 45.0,
+    "el": 0.0,
+    "area_now_m2": 0.030502,
+    "area_fixed_m2": 0.030495,
+    "delta_pct": -0.025
+   },
+   {
+    "az": 90.0,
+    "el": 0.0,
+    "area_now_m2": 0.026288,
+    "area_fixed_m2": 0.026263,
+    "delta_pct": -0.092
+   },
+   {
+    "az": 0.0,
+    "el": 5.0,
+    "area_now_m2": 0.026765,
+    "area_fixed_m2": 0.026517,
+    "delta_pct": -0.929
+   },
+   {
+    "az": 45.0,
+    "el": 5.0,
+    "area_now_m2": 0.031088,
+    "area_fixed_m2": 0.031142,
+    "delta_pct": 0.175
+   },
+   {
+    "az": 90.0,
+    "el": 5.0,
+    "area_now_m2": 0.029158,
+    "area_fixed_m2": 0.029177,
+    "delta_pct": 0.065
+   },
+   {
+    "az": 0.0,
+    "el": 15.0,
+    "area_now_m2": 0.03182,
+    "area_fixed_m2": 0.031226,
+    "delta_pct": -1.865
+   },
+   {
+    "az": 45.0,
+    "el": 15.0,
+    "area_now_m2": 0.035361,
+    "area_fixed_m2": 0.035037,
+    "delta_pct": -0.914
+   },
+   {
+    "az": 90.0,
+    "el": 15.0,
+    "area_now_m2": 0.034469,
+    "area_fixed_m2": 0.034114,
+    "delta_pct": -1.03
+   },
+   {
+    "az": 0.0,
+    "el": 30.0,
+    "area_now_m2": 0.039332,
+    "area_fixed_m2": 0.038462,
+    "delta_pct": -2.213
+   },
+   {
+    "az": 45.0,
+    "el": 30.0,
+    "area_now_m2": 0.04305,
+    "area_fixed_m2": 0.042288,
+    "delta_pct": -1.77
+   },
+   {
+    "az": 90.0,
+    "el": 30.0,
+    "area_now_m2": 0.042538,
+    "area_fixed_m2": 0.042084,
+    "delta_pct": -1.067
+   }
+  ],
+  "verdict": "6.66 mm 를 통째로 닫아도 실루엣 면적은 **−2.21 %~+0.18 %** 만 움직인다. 챔버 저앙각(el 0~15°)에서는 최악 −1.87 %, 최선 −0.03 % 다. 실루엣 96.6 % 짜리 점수판은 이 결함을 사실상 못 본다 — 주장 **확인**.",
+  "why": "실루엣은 윤곽만 본다. 프롭과 벨은 옆에서 보면 원래 겹쳐 보이므로, 둘 사이가 비어 있어도 바깥 윤곽은 거의 그대로다.",
+  "caveat": "그렇다고 σ 가 크게 움직이는 것도 아니다 — 아래 sigma_measured 참조. ‘실루엣은 못 보지만 PO/SBR 은 본다’ 는 **부분적으로만** 맞다: 각도평균 σ 는 0.2 dB 안쪽이고, 흔들리는 것은 방위별 σ(최대 3.6 dB)와 마이크로도플러 고조파(최대 9.5 dB)다."
+ },
+ "sigma_measured": {
+  "method": "rcs_sbr_batch(1-bounce, 가림 포함) 72 방위 · rcs_sbr(max_bounce=2) 24 방위, fc 3.5 GHz, 재질 DRONE_GROUP_MAT. 같은 스크립트가 두 메쉬를 만든다.",
+  "per_drone": {
+   "matrice4e": {
+    "one_bounce": {
+     "el5": {
+      "delta_db_meanpower": 0.041,
+      "delta_db_median_peraz": 0.023,
+      "abs_delta_db_p95": 1.097
+     },
+     "el15": {
+      "delta_db_meanpower": -0.094,
+      "delta_db_median_peraz": -0.072,
+      "abs_delta_db_p95": 2.009
+     },
+     "el30": {
+      "delta_db_meanpower": -0.185,
+      "delta_db_median_peraz": -0.266,
+      "abs_delta_db_p95": 2.554
+     }
+    },
+    "two_bounce": {
+     "el5": {
+      "delta_db_meanpower": 0.103,
+      "delta_db_median_peraz": 0.048
+     },
+     "el15": {
+      "delta_db_meanpower": 0.14,
+      "delta_db_median_peraz": 0.285
+     }
+    }
+   },
+   "mini5pro": {
+    "one_bounce": {
+     "el5": {
+      "delta_db_meanpower": 0.25,
+      "delta_db_median_peraz": 0.367,
+      "abs_delta_db_p95": 1.749
+     },
+     "el15": {
+      "delta_db_meanpower": -0.092,
+      "delta_db_median_peraz": -0.075,
+      "abs_delta_db_p95": 2.526
+     },
+     "el30": {
+      "delta_db_meanpower": -0.459,
+      "delta_db_median_peraz": -0.561,
+      "abs_delta_db_p95": 3.625
+     }
+    },
+    "two_bounce": {
+     "el5": {
+      "delta_db_meanpower": 0.328,
+      "delta_db_median_peraz": 0.681
+     },
+     "el15": {
+      "delta_db_meanpower": 0.178,
+      "delta_db_median_peraz": 0.015
+     }
+    }
+   }
+  },
+  "headline": "각도평균 σ 변화는 −0.46~+0.33 dB 로 작다. 방위별로는 |Δ| p95 가 el=30°에서 3.63 dB(mini5pro)까지 간다. 2-bounce 도 +0.10~+0.33 dB 로 작다 — 프롭 밑면과 벨 윗면이 만드는 오목부가 이 기하에서 강한 이중반사체가 아니기 때문이다."
+ },
+ "microdoppler": {
+  "engine_anatomy": {
+   "headline_po": {
+    "where": "src/microdoppler.py:36 `microdoppler_series`",
+    "model": "E(t) = E_frame + Σ_rotor exp(j2k·c·û)·Σ_p [n̂·v>0]|Γ|(n̂·v)ΔA·exp(j2k·P_local·v(t))",
+    "what_it_does_not_have": [
+     "가림 없음 — 점구름 PO 의 [n̂·v>0] 조명판정뿐. 벨이 프롭을 **가리지 못한다**.",
+     "다중산란 없음 — 프레임 항과 로터 항이 따로 계산돼 더해질 뿐. 프롭↔벨 이중반사는 **원래부터 없다**(간격이 없앤 게 아니다)."
+    ],
+    "how_the_gap_enters": "오직 로터별 위상원점 exp(j2k·c·û) 의 c_z 로만 들어간다. 위상오차 = 2k·Δz·sin(el)."
+   },
+   "sbr_mesh_path": {
+    "where": "src/microdoppler.py:135 `microdoppler_sbr` → pose_articulated + SBR",
+    "what_it_has": "가림 있음(first-hit). 여기서는 벨이 프롭을 실제로 가리고, 간격이 그 가림의 양을 바꾼다."
+   }
+  },
+  "measured_po_engine": {
+   "method": "microdoppler_series 를 그대로 돌리되 rotor_layout 만 프로세스 안에서 감싸 cz 를 gap 만큼 내린 판과 비교. az=0, prf=20 kHz, n_t=2048, fc=3.5 GHz.",
+   "result": {
+    "matrice4e": {
+     "el5": {
+      "dc_over_ac_now": 49.585,
+      "dc_over_ac_gap_closed": 49.586,
+      "delta_dc_over_ac_db": 0.0002,
+      "delta_md_band_power_db": -0.0
+     },
+     "el15": {
+      "dc_over_ac_now": 19.244,
+      "dc_over_ac_gap_closed": 19.073,
+      "delta_dc_over_ac_db": -0.0777,
+      "delta_md_band_power_db": 0.0
+     },
+     "el30": {
+      "dc_over_ac_now": 27.136,
+      "dc_over_ac_gap_closed": 27.149,
+      "delta_dc_over_ac_db": 0.0044,
+      "delta_md_band_power_db": -0.0
+     }
+    },
+    "mini5pro": {
+     "el5": {
+      "dc_over_ac_now": 119.481,
+      "dc_over_ac_gap_closed": 145.477,
+      "delta_dc_over_ac_db": 1.7099,
+      "delta_md_band_power_db": -1.7368
+     },
+     "el15": {
+      "dc_over_ac_now": 43.286,
+      "dc_over_ac_gap_closed": 70.008,
+      "delta_dc_over_ac_db": 4.1759,
+      "delta_md_band_power_db": -4.2024
+     },
+     "el30": {
+      "dc_over_ac_now": 15.922,
+      "dc_over_ac_gap_closed": 12.444,
+      "delta_dc_over_ac_db": -2.1409,
+      "delta_md_band_power_db": 2.174
+     }
+    },
+    "mavic4pro": {
+     "el5": {
+      "dc_over_ac_now": 53.383,
+      "dc_over_ac_gap_closed": 53.564,
+      "delta_dc_over_ac_db": 0.0294,
+      "delta_md_band_power_db": -0.0
+     },
+     "el15": {
+      "dc_over_ac_now": 1.673,
+      "dc_over_ac_gap_closed": 1.81,
+      "delta_dc_over_ac_db": 0.6868,
+      "delta_md_band_power_db": -0.0
+     },
+     "el30": {
+      "dc_over_ac_now": 48.447,
+      "dc_over_ac_gap_closed": 47.908,
+      "delta_dc_over_ac_db": -0.0972,
+      "delta_md_band_power_db": -0.0
+     }
+    },
+    "mini2": {
+     "el5": {
+      "dc_over_ac_now": 4.774,
+      "dc_over_ac_gap_closed": 4.745,
+      "delta_dc_over_ac_db": -0.0534,
+      "delta_md_band_power_db": -0.0
+     },
+     "el15": {
+      "dc_over_ac_now": 6.423,
+      "dc_over_ac_gap_closed": 6.348,
+      "delta_dc_over_ac_db": -0.1023,
+      "delta_md_band_power_db": -0.0
+     },
+     "el30": {
+      "dc_over_ac_now": 13.51,
+      "dc_over_ac_gap_closed": 13.408,
+      "delta_dc_over_ac_db": -0.0661,
+      "delta_md_band_power_db": -0.0
+     }
+    }
+   },
+   "headline": "⭐ 간격이 **전 로터에서 같은** 기체(matrice4e·mavic4pro·mini2)는 마이크로도플러 대역 전력이 **0.0000 dB** 로 안 변한다. 공통 Δz 는 회전항 전체에 걸리는 공통 위상이라 AC 크기에서 상쇄되기 때문이다. 움직이는 것은 몸체↔블레이드 간섭비(DC/AC)뿐이고 그것도 matrice4e 는 −0.078 dB 다. ⭐⭐ 반대로 간격이 **로터마다 다른** mini5pro 는 −1.74/−4.20/+2.17 dB (el 5/15/30) 로 크게 틀어진다 — 차동 위상은 상쇄되지 않는다."
+  },
+  "measured_sbr_path": {
+   "method": "로터 위상 φ 를 0~180° 로 36 등분해 각 스냅샷의 복소장 sbr_field 를 재고 FFT. AC/DC = md_ratio. fc 3.5 GHz.",
+   "result": {
+    "matrice4e": [
+     {
+      "az": 0.0,
+      "el": 15.0,
+      "md_ratio_now_db": -7.592,
+      "md_ratio_gap_closed_db": -7.383,
+      "delta_md_ratio_db": 0.209,
+      "delta_sigma_mean_db": 0.345,
+      "delta_harmonic_db": [
+       0.6,
+       2.0,
+       -0.31,
+       1.44,
+       0.2,
+       0.32
+      ]
+     },
+     {
+      "az": 45.0,
+      "el": 15.0,
+      "md_ratio_now_db": 0.8,
+      "md_ratio_gap_closed_db": 0.258,
+      "delta_md_ratio_db": -0.542,
+      "delta_sigma_mean_db": -1.098,
+      "delta_harmonic_db": [
+       -0.34,
+       1.28,
+       2.11,
+       -2.62,
+       9.14,
+       -4.31
+      ]
+     },
+     {
+      "az": 90.0,
+      "el": 15.0,
+      "md_ratio_now_db": 15.631,
+      "md_ratio_gap_closed_db": 16.078,
+      "delta_md_ratio_db": 0.447,
+      "delta_sigma_mean_db": 0.283,
+      "delta_harmonic_db": [
+       0.36,
+       -0.2,
+       0.69,
+       1.19,
+       5.32,
+       5.27
+      ]
+     },
+     {
+      "az": 0.0,
+      "el": 5.0,
+      "md_ratio_now_db": -6.571,
+      "md_ratio_gap_closed_db": -6.849,
+      "delta_md_ratio_db": -0.278,
+      "delta_sigma_mean_db": 0.421,
+      "delta_harmonic_db": [
+       -0.88,
+       -1.43,
+       -7.03,
+       -4.83,
+       -4.02,
+       -3.44
+      ]
+     },
+     {
+      "az": 45.0,
+      "el": 5.0,
+      "md_ratio_now_db": 6.109,
+      "md_ratio_gap_closed_db": 6.57,
+      "delta_md_ratio_db": 0.461,
+      "delta_sigma_mean_db": -0.591,
+      "delta_harmonic_db": [
+       0.77,
+       -1.4,
+       0.34,
+       -0.88,
+       3.9,
+       4.95
+      ]
+     }
+    ],
+    "mini5pro": [
+     {
+      "az": 0.0,
+      "el": 15.0,
+      "md_ratio_now_db": -5.936,
+      "md_ratio_gap_closed_db": -5.593,
+      "delta_md_ratio_db": 0.343,
+      "delta_sigma_mean_db": -0.484,
+      "delta_harmonic_db": [
+       -0.21,
+       3.26,
+       -3.73,
+       0.63,
+       -2.83,
+       -8.64
+      ]
+     },
+     {
+      "az": 45.0,
+      "el": 15.0,
+      "md_ratio_now_db": -1.799,
+      "md_ratio_gap_closed_db": -1.965,
+      "delta_md_ratio_db": -0.166,
+      "delta_sigma_mean_db": -0.23,
+      "delta_harmonic_db": [
+       -0.1,
+       -2.6,
+       9.47,
+       5.05,
+       3.07,
+       -1.94
+      ]
+     },
+     {
+      "az": 90.0,
+      "el": 15.0,
+      "md_ratio_now_db": 8.008,
+      "md_ratio_gap_closed_db": 8.423,
+      "delta_md_ratio_db": 0.415,
+      "delta_sigma_mean_db": -0.104,
+      "delta_harmonic_db": [
+       0.16,
+       1.94,
+       -2.57,
+       -4.69,
+       -0.48,
+       -6.58
+      ]
+     },
+     {
+      "az": 0.0,
+      "el": 5.0,
+      "md_ratio_now_db": -5.53,
+      "md_ratio_gap_closed_db": -3.759,
+      "delta_md_ratio_db": 1.772,
+      "delta_sigma_mean_db": -1.031,
+      "delta_harmonic_db": [
+       1.9,
+       1.57,
+       -4.11,
+       -1.61,
+       -2.33,
+       -0.06
+      ]
+     },
+     {
+      "az": 45.0,
+      "el": 5.0,
+      "md_ratio_now_db": -1.634,
+      "md_ratio_gap_closed_db": -1.36,
+      "delta_md_ratio_db": 0.274,
+      "delta_sigma_mean_db": 0.172,
+      "delta_harmonic_db": [
+       0.5,
+       0.57,
+       0.4,
+       0.63,
+       -2.96,
+       0.59
+      ]
+     }
+    ]
+   },
+   "headline": "가림이 있는 SBR 경로에서는 matrice4e 도 움직인다 — AC/DC 비가 −0.54~+0.46 dB, **개별 블레이드통과 고조파는 −7.03~+2.11 dB**. mini5pro 는 고조파가 −4.69~+9.47 dB 다."
+  },
+  "why_it_matters_for_this_project": "프로젝트가 마이크로도플러로 옮겨 갔고, 고조파의 상대 세기가 곧 분류 특징이다. 대역 전력이 안 변해도 고조파 배분이 수 dB 흔들리면 특징은 흔들린다."
+ },
+ "correction_candidates": [
+  {
+   "id": "C1",
+   "constant": "_arm_motor_dims 의 prop_z (접이식 분기)",
+   "where": "src/drones.py:1194",
+   "old": "motor_h + arm_t/2 + 0.006",
+   "new": "bell_top_z(spec, k) + standoff(spec) − blade_plane_offset(spec)  — 즉 drone_cad 가 쓰는 **바로 그 벨 윗면 식**을 단일 출처로 삼는다",
+   "unit": "m",
+   "source": "DJI 공식 STEP(matrice4-M4T_v2) + 제품 렌더 p01 + P3 매뉴얼 정면도",
+   "evidence": "CAD 최상단 회전면 +15.31 mm ↔ 사진 블레이드 중립면 +15.2~15.7 mm (0.4 mm 일치). 현 메쉬는 블레이드면이 벨 윗면보다 8.32 mm 높다(matrice4e). 닫힌식이 10기체 전부를 1 µm 이내로 재현하므로 원인은 확정이다.",
+   "confidence": "high (두 식이 하나여야 한다는 것), medium (standoff 의 정확한 값)",
+   "sigma_impact_db_est": {
+    "aspect_mean_1bounce": [
+     -0.19,
+     0.25
+    ],
+    "per_azimuth_p95": [
+     1.1,
+     3.63
+    ],
+    "two_bounce_mean": [
+     0.1,
+     0.33
+    ],
+    "microdoppler_band_power": [
+     0.0,
+     4.2
+    ],
+    "microdoppler_harmonic": [
+     -7.03,
+     9.47
+    ],
+    "note": "범위는 matrice4e·mini5pro 실측(위 sigma_measured / microdoppler). ‘추정’ 이 아니라 잰 값이다."
+   },
+   "breaks_what": [
+    "src/drones.py:1281-1292 frame_fit_scale — env_props_included 기체(mini5pro 뿐)는 sz 를 prop_z 로 푼다 → prop_z 를 바꾸면 **프레임 전체가 다시 스케일**된다(σ 전면 파급).",
+    "src/drones.py:1356-1372 frame_envelope_mm — 프롭 포함 bbox·디스크 엔벨로프.",
+    "src/viz_verify_sbr.py:188 — 같은 식의 하드코딩 사본. **같이 안 고치면 '수정 전/후' 비교 그림이 거짓이 된다.**",
+    "benchmark/report16_base.py:813 rotor_centers provenance, :609/:719 로터 점구름.",
+    "src/microdoppler.py:67 위상원점, src/microdoppler_nearfield.py:250.",
+    "src/gazebo_export.py 로터 링크 포즈, render_drones/viz_mesh 갤러리, outputs/mesh_compare_photo.json 실루엣 점수(±2 % 수준).",
+    "drone_cad.py:1909-1911 m350rtk 주석이 '6 mm' 를 전제로 캡을 앉혀 뒀다 — 그 주석과 캡 z 도 같이 손봐야 한다."
+   ]
+  },
+  {
+   "id": "C2",
+   "constant": "벨 높이 기본식(대각비례)의 이중정의",
+   "where": "src/drones.py:1181  ↔  src/drone_cad.py:2053",
+   "old": "drones: 0.045·diag   /   drone_cad: 0.048·diag",
+   "new": "한 상수를 공유(값은 0.048·diag 쪽)",
+   "unit": "dimensionless (× diag)",
+   "source": "코드 대조 + 메쉬 실측",
+   "evidence": "mavic4pro 측정 벨 높이 raw 21.17 mm ↔ _arm_motor_dims 가 믿는 19.84 mm. 차이 1.32 mm 가 간격에 그대로 더해진다. motor_h_mm 이 있는 7기는 영향 없음.",
+   "confidence": "high",
+   "sigma_impact_db_est": {
+    "note": "C1 에 흡수된다 — 단독 효과는 mavic4pro 간격의 1.32/11.40 = 12 %."
+   },
+   "breaks_what": [
+    "motor_h_mm 이 없는 3기(mini5pro·mavic4pro·phantom4)의 벨 높이와 prop_z 가 동시에 바뀐다. 이 3기는 벨 높이 실측이 없으므로 C1 을 넣을 때 같이 실측을 채우는 편이 낫다."
+   ]
+  },
+  {
+   "id": "C3",
+   "constant": "ARM_Z_FOLLOWS_ROTOR 에 mini5pro 추가 **또는** mini5pro rotor_z_mm 철회",
+   "where": "src/drone_cad.py:375  /  src/drones.py:221",
+   "old": "{'mini2': True}  /  rotor_z_mm=(-12.0, +2.0, +2.0, -12.0)",
+   "new": "{'mini2': True, 'mini5pro': True}  **또는**  rotor_z_mm=None",
+   "unit": "bool / mm",
+   "source": "현 메쉬 실측(간격·관통) + drones.py:221 주석 자체",
+   "evidence": "앞 로터 간격 −6.366 mm → 프롭 꼭짓점 **313 개**와 삼각형 **526 개**가 벨 솔리드 **안에** 있다(로터 0·3 각각). 뒤 로터는 +13.495 mm 로 떠 있다. 마이크로도플러 대역 전력이 el 15°에서 4.20 dB 틀어진다 — 이 라운드 최대값.",
+   "confidence": "high (지금이 틀렸다는 것), low (둘 중 어느 쪽이 옳은지)",
+   "sigma_impact_db_est": {
+    "aspect_mean_1bounce": [
+     -0.46,
+     0.25
+    ],
+    "per_azimuth_p95": [
+     1.75,
+     3.63
+    ],
+    "microdoppler_band_power": [
+     1.74,
+     4.2
+    ],
+    "microdoppler_harmonic": [
+     -4.69,
+     9.47
+    ]
+   },
+   "breaks_what": [
+    "mini5pro 는 env_props_included=True 라 프레임 전체 sz 가 다시 풀린다.",
+    "다리(gear='motor_legs')·암 z 가 같이 움직인다 — 사진앵커된 다리 길이 31.0 mm 의 접지점이 바뀐다.",
+    "⛔ 어느 쪽을 고르는지는 **증거로** 정해야 한다. drones.py:221 주석은 '실물은 앞 모터가 더 낮다(조사 확인)' 이라 하고, 바로 윗줄은 '사다리꼴로 디스크 겹침은 사라졌지만 관측된 사실이라 유지한다' 고 한다. 앞 14 mm 라는 크기의 **1차 출처**가 저장소에 없다 — 그것부터 찾아야 한다."
+   ]
+  },
+  {
+   "id": "C4",
+   "constant": "프롭 허브 밑면과 블레이드면의 어긋남(패치가 무엇을 맞출 것인가)",
+   "where": "src/drone_cad.py:40-77 build_propeller_cad / _prop_hub / _blade(root_frac=0.070)",
+   "old": "블레이드 중립면 = 장착면 + 1.66 mm (matrice4e), 허브 밑면 = 장착면 + 0",
+   "new": "옵션 A: 블레이드면을 벨 윗면에 맞춘다(gap = −blade_plane_offset) / 옵션 B: 허브 밑면을 벨 윗면에 맞춘다(gap = 0)",
+   "unit": "mm",
+   "source": "우리 프롭 메쉬 실측 + 사진",
+   "evidence": "실물은 블레이드면이 캡 꼭대기와 같은 높이다(CAD +15.31 ↔ 사진 +15.2~15.7). 우리 프롭은 블레이드를 장착면 위 1.66 mm 에 얹는다. 옵션 A 는 잔차 0 이지만 허브가 벨 캡을 1.66 mm 파고들어 **면 겹침**이 생긴다 (build_drone 은 불리언 합집합을 하지 않는다 — drones.py:1404). 옵션 B 는 잔차 +1.66 mm 지만 새 겹침이 없다(현 6.656 → 1.66, 4배 개선).",
+   "confidence": "medium",
+   "sigma_impact_db_est": {
+    "note": "옵션 A↔B 차이는 1.66 mm = el 15°에서 3.6° 위상. 위 실측 범위 안이다."
+   },
+   "breaks_what": [
+    "옵션 A 를 고르면 프롭·프레임 겹침면이 PO(가림 없음) 경로에서 이중계상된다 — microdoppler_series 는 정확히 그 경로다. 넣기 전에 겹침 삼각형 수를 세라."
+   ]
+  },
+  {
+   "id": "C5",
+   "constant": "스탠드오프는 기체마다 다르다(한 상수로 덮지 말 것)",
+   "where": "새 spec 필드 prop_standoff_mm 를 권함",
+   "old": "(없음 — 지금은 6 mm 가 전 기체 공통)",
+   "new": "matrice4e/mavic4pro 급 퀵릴리스 ≈ 0 ; phantom3 급 나사식 = +3.0 ; x500v2 = 제조사 STEP 플랜지 그대로(현행 유지)",
+   "unit": "mm",
+   "source": "M4T STEP · p01 · P3 매뉴얼 정면도 · Holybro X500 V2 STEP",
+   "evidence": "P3 는 블레이드면이 벨 윗면 위 3.0 mm (매뉴얼 도면). M4 는 ≈0 (CAD·사진). x500v2 는 프롭어댑터 플랜지 z 37.1~38.0 이 이미 실측 앵커다.",
+   "confidence": "medium",
+   "sigma_impact_db_est": {
+    "note": "기체별 3 mm 규모 = el 15° 에서 6.5° 위상."
+   },
+   "breaks_what": [
+    "새 필드는 spec 레코드 10개를 건드린다 — _SPEC_FIELDS 가 캐시 키라 _FIT_CACHE 무효화가 자동으로 따라온다(drones.py:1245-1256)."
+   ]
+  }
+ ],
+ "reasons_not_to_fix": [
+  {
+   "id": "N1",
+   "subject": "x500v2 의 2.0 mm 는 **맞는 값이다**",
+   "why": "src/drones.py:1187-1193 이 그 값을 제조사 STEP 의 프롭어댑터 플랜지(y_step 53.08~54.0 → z 37.1~38.0)에 앵커해 두었다. 열린 프레임은 프롭이 캔 위 별도 어댑터에 앉으므로 스탠드오프가 실재한다. ⛔ 0 으로 밀지 말 것."
+  },
+  {
+   "id": "N2",
+   "subject": "mini2 의 2.811 mm 는 **이미 채워져 있다**",
+   "why": "PROP_SCREW_POSTS(drone_cad.py:403, 높이 5.47 mm)가 벨 꼭대기에서 솟아 프롭 허브를 관통한다 — 측정에서 contact=True 로 잡힌 유일한 접이식 기체다. 간격을 0 으로 밀면 포스트가 묻히고, 이 기체의 **최고점**(FCC 제출 사진 앵커)이 바뀐다."
+  },
+  {
+   "id": "N3",
+   "subject": "m350rtk 의 5.945 mm 는 의도된 배치일 수 있다",
+   "why": "drone_cad.py:1909-1911 주석이 '벨 꼭대기 0.041 위 6 mm 에 prop_z 가 정확히 온다' 고 적고, 그 위에 '모터 상부 커버'(z 47~69 mm) 원통을 얹었다. 실물 M350 에 프롭 **위로** 커버가 솟아 있다면 프롭면은 벨과 커버 사이가 맞다. 사진으로 확인하기 전에는 손대지 말 것 — 이 라운드는 M350 사진을 열지 않았다."
+  },
+  {
+   "id": "N4",
+   "subject": "실물 허브는 평평한 원반이 아니다",
+   "why": "DJI 퀵릴리스 허브는 캡을 **덮어쓴다**(사진 p01·c11). '허브 최저점 = 벨 최고점' 은 그 접합을 단순화한 것이고, 우리 허브(높이 R·0.09 의 회전체)는 실물의 안착면과 덮개면을 구분하지 못한다. 그래서 정답은 0 이 아니라 **−1.66 mm**(C4 옵션 A)일 수 있고, 그건 새 겹침을 만든다."
+  },
+  {
+   "id": "N5",
+   "subject": "σ 로만 보면 급하지 않다",
+   "why": "각도평균 σ 변화가 −0.46~+0.33 dB 다. 헤드라인 마이크로도플러 엔진에서는 matrice4e·mavic4pro·mini2 의 대역 전력이 **정확히 0.0000 dB** 안 변한다. 이 항목을 '마이크로도플러 직결' 로 부르는 근거는 (a) mini5pro 의 차동 간격과 (b) SBR 경로의 고조파 재배분(최대 9.5 dB)이지, matrice4e 의 6.7 mm 자체가 아니다."
+  },
+  {
+   "id": "N6",
+   "subject": "합집합을 안 하는 조립이라 겹침은 공짜가 아니다",
+   "why": "build_drone(drones.py:1404)·pose_articulated(:1427)는 프롭을 **merge** 할 뿐 불리언 합집합을 하지 않는다. 프롭을 벨 안으로 밀어 넣으면 안쪽 면이 살아남고, 가림 없는 PO 경로(microdoppler_series)가 그것을 그대로 적분한다. mini5pro 는 이미 그 상태다(삼각형 526개)."
+  },
+  {
+   "id": "N7",
+   "subject": "절대 높이가 더 크게 틀렸다 — 순서를 틀리면 두 번 일한다",
+   "why": "matrice4e 의 우리 벨 윗면은 22.44 mm 인데 실물 캡 꼭대기는 15.31 mm 다 — 7.13 mm 차이로 **간격보다 크다**. 그 상수(MOTOR_BASE_Z / 세로 배분)는 outputs/meshfix_matrice4e.json 라운드의 소유다. C1 을 먼저 넣으면(=prop_z 를 벨에서 유도하면) 그 라운드가 벨을 내릴 때 프롭이 **자동으로** 따라온다. 순서: C1 → meshfix. 반대로 하면 prop_z 를 두 번 손봐야 한다."
+  }
+ ],
+ "recommended_order": [
+  "0. mini5pro 의 rotor_z_mm 1차 출처를 찾아라(앞 모터가 14 mm 낮다는 근거). 그것이 C3 의 두 갈래를 가른다.",
+  "1. C1 — prop_z 를 벨 윗면에서 유도(단일 출처). 동시에 viz_verify_sbr.py:188 사본 제거.",
+  "2. C2 — 벨 높이 기본식 통일(0.045 vs 0.048).",
+  "3. C5 — 기체별 스탠드오프 필드 도입, x500v2 는 현행 유지.",
+  "4. C3 — mini5pro 결정 적용.",
+  "5. 그 다음에 meshfix_matrice4e 의 MOTOR_BASE_Z / 세로 배분 라운드. C1 이 들어가 있으면 프롭이 자동으로 따라온다."
+ ],
+ "open_questions": [
+  "M350 RTK 의 '모터 상부 커버' 가 정말 프롭 **위** 인가 — 사진 미확인.",
+  "phantom4·mavic4pro·mini5pro 의 벨 높이 실측이 없다(대각비례 폴백). C2 를 넣을 때 같이 재는 것이 옳다.",
+  "우리 프롭 허브(회전체 높이 R·0.09)가 실물 퀵릴리스 허브의 안착면/덮개면을 구분하지 못한다 — C4 옵션 A/B 의 근원.",
+  "typhoonh480 의 −1.834 mm 는 전용 분기라 닫힌식 밖에 있다. 별도로 다뤄야 한다."
+ ]
+}
