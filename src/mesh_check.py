@@ -74,23 +74,97 @@ def report(res: dict) -> str:
     return "\n".join(lines)
 
 
+#  ⭐⭐ 2026-08-07 — **그룹 사이 관통 검사**. 위의 검사는 전부 «그룹 안»만 본다.
+#     `build_drone` 은 그룹끼리 불리언 합집합을 **하지 않으므로**, 프로펠러가 모터 벨 속에
+#     박히면 겹친 자리의 면이 **둘 다 살아서** PO 적분에 들어간다(면적 이중계상). 예외는 안 난다.
+#     실제로 mini5pro 가 2026-07-14 부터 24 일 동안 그 상태였다 — 앞 프롭 밑면이 벨 윗면보다
+#     8.06 mm 아래였고 프롭 면적의 9.6 %(1521 mm²)가 이중계상됐다. 아무 검사도 그걸 안 봤다.
+#
+#  ⚠ **판정법을 여기 적어 둔다**(안 적어서 «526 ↔ 662» 혼선이 났다):
+#     · 벨    = 그 로터 축에서 반경 60·(diag/438.8) mm 안의 'motor' 그룹 정점들이 만드는
+#               (최대반경 rad, z 범위 [zlo, zhi]).
+#     · 관통  = 'prop' 그룹 **삼각형 중심**이 (반경 ≤ rad) 이고 (zlo ≤ z ≤ zhi − 1 µm).
+#     · 깊이  = zhi − (관통한 삼각형 중심의 최소 z).  단위 mm, 외형보정(sz) 적용 후.
+PROP_BELL_MAX_DEPTH_MM = {
+    #  기본 예산 — 우리 블레이드 로프트는 뿌리가 장착면보다 0.7~2.0 mm **아래로** 내려간다
+    #  (익형 비틀림). 프롭 허브 밑면을 벨 윗면에 앉히면(2026-08-07 C1) 그만큼이 캡과 겹친다.
+    "_default": 2.5,
+    #  ↓ 설계상 겹치는 기체 — 값은 «지금 이만큼이다» 라는 기록이지 «이만큼이 옳다» 가 아니다.
+    "mini2":       4.0,   # 프롭 마운트 나사머리 포스트가 프롭 허브 보어를 채운다(PROP_SCREW_POSTS).
+                          #   포스트를 벨 꼭대기부터 꽉 찬 기둥으로 짓는 것이 그 라운드의 결정이었다.
+    "typhoonh480": 4.0,   # «모터 벨 + 프롭 허브 축» 원통이 허브 보어를 관통한다. 설계인지 결함인지
+                          #   아직 안 갈랐다(2026-08-07 선언).
+    "m350rtk":    25.0,   # 모터 **상부 커버**(프롭 위를 덮는 원통)가 'motor' 그룹이라 벨 z 범위가
+                          #   프롭 위까지 뻗는다. 이 기체는 사실상 이 검사가 안 걸린다 — 선언.
+}
+
+
+def check_prop_bell(spec, verbose=False) -> dict:
+    """프로펠러가 모터 벨 **속에 박혔는가** — 그룹 사이 관통 검사(판정법은 위 주석)."""
+    from drones import build_drone, rotor_layout
+    m = build_drone(spec)
+    V = np.asarray(m.v, float) * 1000.0
+    G = np.asarray(m.g)
+    F = np.asarray(m.f, np.int64)
+    if not (G == "prop").any() or not (G == "motor").any():
+        return dict(key=spec.key, checked=False, ok=True, reason="prop 또는 motor 그룹 없음")
+    mot = V[np.unique(F[G == "motor"])]
+    Fp = F[G == "prop"]
+    Cp = V[Fp].mean(1)
+    ar = 0.5 * np.linalg.norm(np.cross(V[Fp[:, 1]] - V[Fp[:, 0]],
+                                       V[Fp[:, 2]] - V[Fp[:, 0]]), axis=1)
+    rows, depth, tris, area = [], 0.0, 0, 0.0
+    for i, r in enumerate(rotor_layout(spec)):
+        cx, cy, cz = np.asarray(r["center"], float) * 1000.0
+        near = np.hypot(mot[:, 0] - cx, mot[:, 1] - cy) < 60.0 * (spec.diagonal_mm / 438.8)
+        if not near.any():
+            continue
+        bm = mot[near]
+        rad = float(np.hypot(bm[:, 0] - cx, bm[:, 1] - cy).max())
+        zlo, zhi = float(bm[:, 2].min()), float(bm[:, 2].max())
+        sel = ((np.hypot(Cp[:, 0] - cx, Cp[:, 1] - cy) <= rad)
+               & (Cp[:, 2] >= zlo) & (Cp[:, 2] <= zhi - 1e-3))
+        dep = float(zhi - Cp[sel][:, 2].min()) if sel.any() else 0.0
+        rows.append(dict(rotor=i, gap_mm=round(float(cz - zhi), 4), depth_mm=round(dep, 4),
+                         tris=int(sel.sum()), area_mm2=round(float(ar[sel].sum()), 2)))
+        depth = max(depth, dep); tris += int(sel.sum()); area += float(ar[sel].sum())
+    lim = PROP_BELL_MAX_DEPTH_MM.get(spec.key, PROP_BELL_MAX_DEPTH_MM["_default"])
+    res = dict(key=spec.key, checked=True, per_rotor=rows, max_depth_mm=round(depth, 4),
+               budget_mm=lim, tris=tris, area_mm2=round(area, 2),
+               area_pct=round(100.0 * area / float(ar.sum()), 3) if ar.sum() else 0.0,
+               ok=bool(depth <= lim))
+    if verbose:
+        print(f"  프롭↔벨 관통: 깊이 {depth:.3f} mm (예산 {lim}) · 삼각형 {tris} · "
+              f"면적 {area:.1f} mm² ({res['area_pct']} %)  {'✅' if res['ok'] else '❌'}")
+    return res
+
+
 def check_all(verbose=True) -> dict:
     """DRONES 레지스트리 **전 기종** + 챔버 전수 검사(기종 수는 len(DRONES))."""
     from drones import DRONES, build_drone
     out = {}
     for k, s in DRONES.items():
         r = check_mesh(build_drone(s), k)
+        pb = check_prop_bell(s)
+        r["prop_bell"] = pb
+        r["ok"] = bool(r["ok"] and pb["ok"])
         out[k] = r
         if verbose:
             print(f"\n[{k}]  {'✅ 통과' if r['ok'] else '❌ 결함'}")
             print(report(r))
+            print(f"  프롭↔벨 관통: 깊이 {pb.get('max_depth_mm', 0)} mm "
+                  f"(예산 {pb.get('budget_mm', '-')}) · 삼각형 {pb.get('tris', 0)} · "
+                  f"면적 {pb.get('area_mm2', 0)} mm² ({pb.get('area_pct', 0)} %)"
+                  f"  {'✅' if pb['ok'] else '❌'}")
     return out
 
 
 def assert_ok():
     """빌드 파이프라인용 — 결함이 있으면 예외를 던진다(회귀 방지)."""
     res = check_all(verbose=False)
-    bad = {k: [g for g, v in r["groups"].items() if not v["ok"]]
+    bad = {k: ([g for g, v in r["groups"].items() if not v["ok"]]
+               + ([f"prop↔bell {r['prop_bell']['max_depth_mm']} mm > "
+                   f"{r['prop_bell']['budget_mm']} mm"] if not r["prop_bell"]["ok"] else []))
            for k, r in res.items() if not r["ok"]}
     if bad:
         raise AssertionError(f"메쉬 검증 실패 — 결함 그룹: {bad}\n"

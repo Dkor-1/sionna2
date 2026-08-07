@@ -34,11 +34,18 @@ def _look(az_deg, el_deg):
 
 
 def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None,
-                        prf=20000.0, n_t=2048, spacing=None, blade_n=26):
+                        prf=20000.0, n_t=2048, spacing=None, blade_n=26,
+                        rpm_per_rotor=None):
     """회전 블레이드의 슬로타임 복소장 E(t). 반환 (t[s], E[복소], info).
     rpm=None 이면 드론별 대표 호버 회전수(spec.hover_rpm) 사용 — 큰 프로펠러(S1000 15in)는
       느리게 돌아 v_tip 이 현실적(Mach≈0.2)으로 나온다(고정 6000rpm 은 대형기에 과대).
-    blade_n : 블레이드 스팬 분할(촘촘할수록 도플러 트랙이 매끈 — 이산/블록 현상 완화)."""
+    blade_n : 블레이드 스팬 분할(촘촘할수록 도플러 트랙이 매끈 — 이산/블록 현상 완화).
+
+    rpm_per_rotor (2026-08-07 신설) : 길이 n_rotors 배열이면 **로터마다 다른 회전수**를 쓴다.
+      ⭐ 실제 기체는 무게중심 치우침과 요 토크 균형 때문에 네 모터가 서로 다른 추력을 내고,
+        그만큼 rpm 이 갈린다. 전부 같으면 신호가 완전한 주기함수가 되어 **스펙트로그램이
+        시간에 따라 변하지 않는다** — 그건 가정의 성질이지 물리가 아니다.
+      ⚠ None 이면 예전과 **비트 단위로 같다**(전 로터 같은 rpm)."""
     if rpm is None:
         rpm = getattr(spec, "hover_rpm", 6000.0)
     lam = C0 / fc; k = 2 * np.pi / lam
@@ -62,12 +69,20 @@ def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None,
 
     t = np.arange(n_t) / prf
     omega = 2 * np.pi * rpm / 60.0
+    # 로터별 각속도 — rpm_per_rotor 가 없으면 전부 같다(옛 거동과 비트 동일)
+    if rpm_per_rotor is None:
+        omegas = [omega] * len(rl)
+    else:
+        rr = np.asarray(rpm_per_rotor, float).ravel()
+        if len(rr) != len(rl):
+            raise ValueError(f"rpm_per_rotor 길이 {len(rr)} != 로터 수 {len(rl)}")
+        omegas = list(2 * np.pi * rr / 60.0)
     E = np.full(n_t, Ef, complex)
-    for rot in rl:
+    for rot, om in zip(rl, omegas):
         cx, cy, cz = rot["center"]; base = np.radians(rot["base_ang"]); d = rot["dir"]
         # dir=+1 은 CCW → 기준(비거울) 형상, dir=−1 은 CW → 거울상 (rotor_layout 규약)
         Pb, Nb, wb = ((Pp, Np_, dAp * wp) if d > 0 else (Pm, Nm_, dAm * wm))
-        th = base + d * omega * t                                   # (n_t,)
+        th = base + d * om * t                                      # (n_t,)
         # v(t) = Rz(-θ)·û  (블레이드 회전 ≡ 시선 반대회전)
         vx = ux * np.cos(th) + uy * np.sin(th)
         vy = -ux * np.sin(th) + uy * np.cos(th)

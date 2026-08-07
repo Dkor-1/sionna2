@@ -1,0 +1,1020 @@
+{
+ "_meta": {
+  "title": "게이트 ① — matrice4e 하방 어안은 좌우 한 쌍인가 앞뒤 한 쌍인가",
+  "generated": "2026-08-07T05:01:03",
+  "generator": "scratchpad/build_meshgate_fisheye.py",
+  "stage": "판정 게이트. **코드 변경 없음** — src/ 는 읽기만 했고 옮기는 실험은 메모리 안에서만 했다.",
+  "discipline": {
+   "no_source_edit": "src/drones.py · src/drone_cad.py · src/geom.py 를 열어 읽기만 했다. 메쉬를 옮긴 실험은 «다 짓고 나서 파이썬 안에서 구를 새로 만들어» 거리만 잰 것이고 파일은 그대로다.",
+   "not_touched": "src/make_report0N_*.py 와 report0N_*.ipynb 는 열지도 않았다(다른 라운드 작업 중).",
+   "gpu": "GPU 미사용. 전부 CPU — 이 라운드에 무거운 계산이 없다(SBR 재실행 안 함).",
+   "writes": [
+    "outputs/meshgate_fisheye.json",
+    "assets/photos/matrice4e/SOURCES.md"
+   ],
+   "no_hand_typed_numbers": "아래 수치는 (1) 공식 STEP 을 gmsh-OCC 로 직접 임포트해 재거나, (2) 사진 화소를 직접 재거나, (3) 우리 메쉬를 지어 재서 나온 것이다. DJI 공표값(438.8 mm 등)만 인용이고 그렇게 표시했다."
+  },
+  "source_guard": {
+   "src/drones.py": {
+    "sha256_16": "3ac4805ab098651a",
+    "mtime": "2026-08-04T04:06:02"
+   },
+   "src/drone_cad.py": {
+    "sha256_16": "c7d5c25badfb818d",
+    "mtime": "2026-08-04T04:03:44"
+   },
+   "src/geom.py": {
+    "sha256_16": "9e5990677750638e",
+    "mtime": "2026-07-20T00:53:43"
+   }
+  },
+  "elapsed_s": 12.7
+ },
+ "verdict": {
+  "answer": "photo_right",
+  "one_line_ko": "**사진이 맞다.** 하방 비전은 배 중앙선 위 앞뒤 한 쌍이고, CAD 솔리드 #44/#46 은 어안이 아니라 **짐벌 방진 고무**다 — 애초에 «좌우 한 쌍» 이라는 CAD 주장 자체가 없었다.",
+  "why_not_cad_right": "#44/#46 은 카메라가 아니다(근거는 cad_evidence). 그러니 CAD 와 사진이 «같은 물건을 두고 다툰» 적이 없다. 다툼은 우리가 CAD 안의 다른 부품을 어안으로 잘못 읽어 만든 것이다.",
+  "why_not_both_exist": "그 자리에 부품이 있기는 하다(방진 고무). 하지만 **카메라는 아니다.** «둘 다 있다» 로 적으면 어안을 두 쌍 넣게 되고 그건 실물에 없다.",
+  "confidence": "high",
+  "confidence_why": "서로 독립인 근거 넷이 같은 답을 낸다 — DJI User Manual §4.10 도해 · User Manual p.9 부품도 · 공식 STEP 하부커버 안의 안착 형상 · 제품 저면 사진. 그리고 CAD 안에서 #44/#46 이 카메라가 아님은 «같은 부품이 기수 위에도 두 벌 있다» 는 것만으로 증명된다."
+ },
+ "q1_photo_direction_audit": {
+  "why": "이 게이트가 사진을 근거로 쓰려면 사진 목록부터 믿을 수 있어야 한다. SOURCES.md 가 p01 을 «좌측면» 으로 적었는데 후면이었다.",
+  "method": [
+   "흰 배경 제거 → bbox 정규화 256² 실루엣 → 짝짝이 IoU (좌우 반전판도 같이)",
+   "확대 육안 판독: 짐벌 보이면 앞 · 배터리/전원버튼/후방 어안 보이면 뒤 · 벨리 스파인 보이면 아래 · RTK 돔 보이면 위"
+  ],
+  "near_duplicate_pairs": [
+   {
+    "a": "matrice4e_p01_side_profile_left.jpg",
+    "b": "matrice4e_p05_rear_elevation.jpg",
+    "iou": 0.9912,
+    "iou_mirrored": 0.5344,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice4e_p02_front_elevation.jpg",
+    "b": "matrice4e_p12_top_front_iso.jpg",
+    "iou": 0.9891,
+    "iou_mirrored": 0.9631,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice4e_p09_underside_plan.jpg",
+    "b": "matrice4e_p10_underside_plan_alt.jpg",
+    "iou": 0.9889,
+    "iou_mirrored": 0.9519,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice 4E_2.png",
+    "b": "matrice4e_p01_side_profile_left.jpg",
+    "iou": 0.9888,
+    "iou_mirrored": 0.537,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice4e_p05_rear_elevation.jpg",
+    "b": "matrice4e_p06_rear_low_angle.jpg",
+    "iou": 0.5345,
+    "iou_mirrored": 0.9881,
+    "relation": "mirror_view"
+   },
+   {
+    "a": "matrice 4E_2.png",
+    "b": "matrice4e_p05_rear_elevation.jpg",
+    "iou": 0.9877,
+    "iou_mirrored": 0.5362,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice4e_p07_iso_front_left.jpg",
+    "b": "matrice4e_p08_iso_rear_left_low.jpg",
+    "iou": 0.9877,
+    "iou_mirrored": 0.3236,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice4e_p03_front_elevation_gimbal.jpg",
+    "b": "matrice4e_p12_top_front_iso.jpg",
+    "iou": 0.9855,
+    "iou_mirrored": 0.9554,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice 4E_2.png",
+    "b": "matrice4e_p06_rear_low_angle.jpg",
+    "iou": 0.5371,
+    "iou_mirrored": 0.9838,
+    "relation": "mirror_view"
+   },
+   {
+    "a": "matrice4e_p01_side_profile_left.jpg",
+    "b": "matrice4e_p06_rear_low_angle.jpg",
+    "iou": 0.5352,
+    "iou_mirrored": 0.9831,
+    "relation": "mirror_view"
+   },
+   {
+    "a": "matrice 4E_3.png",
+    "b": "matrice4e_p06_rear_low_angle.jpg",
+    "iou": 0.9818,
+    "iou_mirrored": 0.5366,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice 4E_2.png",
+    "b": "matrice 4E_3.png",
+    "iou": 0.5383,
+    "iou_mirrored": 0.9803,
+    "relation": "mirror_view"
+   },
+   {
+    "a": "matrice 4E_3.png",
+    "b": "matrice4e_p01_side_profile_left.jpg",
+    "iou": 0.5366,
+    "iou_mirrored": 0.9793,
+    "relation": "mirror_view"
+   },
+   {
+    "a": "matrice 4E_3.png",
+    "b": "matrice4e_p05_rear_elevation.jpg",
+    "iou": 0.5359,
+    "iou_mirrored": 0.9789,
+    "relation": "mirror_view"
+   },
+   {
+    "a": "matrice 4E_1.png",
+    "b": "matrice4e_p12_top_front_iso.jpg",
+    "iou": 0.978,
+    "iou_mirrored": 0.97,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice4e_p02_front_elevation.jpg",
+    "b": "matrice4e_p03_front_elevation_gimbal.jpg",
+    "iou": 0.9778,
+    "iou_mirrored": 0.9538,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice 4E_1.png",
+    "b": "matrice4e_p03_front_elevation_gimbal.jpg",
+    "iou": 0.974,
+    "iou_mirrored": 0.965,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice 4E_1.png",
+    "b": "matrice4e_p02_front_elevation.jpg",
+    "iou": 0.9698,
+    "iou_mirrored": 0.9647,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice4e_p03_front_elevation_gimbal.jpg",
+    "b": "matrice4e_p11_front_top_iso.jpg",
+    "iou": 0.9691,
+    "iou_mirrored": 0.9578,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice 4E_1.png",
+    "b": "matrice4e_p11_front_top_iso.jpg",
+    "iou": 0.9664,
+    "iou_mirrored": 0.9633,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice4e_p11_front_top_iso.jpg",
+    "b": "matrice4e_p12_top_front_iso.jpg",
+    "iou": 0.9618,
+    "iou_mirrored": 0.9543,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice 4E_4.png",
+    "b": "matrice4e_p04_front_low_angle.jpg",
+    "iou": 0.9548,
+    "iou_mirrored": 0.9538,
+    "relation": "same_view"
+   },
+   {
+    "a": "matrice4e_p02_front_elevation.jpg",
+    "b": "matrice4e_p11_front_top_iso.jpg",
+    "iou": 0.9541,
+    "iou_mirrored": 0.9475,
+    "relation": "same_view"
+   }
+  ],
+  "corrections": [
+   {
+    "file": "matrice4e_p01_side_profile_left.jpg",
+    "old": "좌측면 프로파일 (＋«기존 5장에 없던 각도»)",
+    "new": "후면 3/4 — matrice 4E_2.png · p05 와 같은 시선",
+    "evidence": "IoU p01↔p05, p01↔4E_2 (아래 표), 짐벌이 화면에 없음"
+   },
+   {
+    "file": "matrice4e_p04_front_low_angle.jpg",
+    "old": "정면 하방",
+    "new": "후면, 정투영 근접 — matrice 4E_4.png 와 같은 시선",
+    "evidence": "배터리·전원버튼·잔량 LED 4칸이 보인다"
+   },
+   {
+    "file": "matrice4e_p08_iso_rear_left_low.jpg",
+    "old": "iso 후좌 하방",
+    "new": "p07 과 같은 사진의 저해상 판(후방도 하방도 아님)",
+    "evidence": "IoU 0.988, 거울 IoU 0.32"
+   },
+   {
+    "file": "matrice4e_p10_underside_plan_alt.jpg",
+    "old": "저면(프롭 각 다름)",
+    "new": "p09 와 같은 사진의 저해상 판, 프롭 각도도 같다",
+    "evidence": "IoU 0.989"
+   },
+   {
+    "file": "matrice4e_p09_underside_plan.jpg",
+    "old": "저면(plan)",
+    "new": "저면 오블리크 — 나디르에서 기울어짐",
+    "evidence": "전후/가로 축척비"
+   },
+   {
+    "file": "matrice4e_m13_battery_bay_bottom.png",
+    "old": "저면 배터리 베이",
+    "new": "후면 — 배터리를 뺀 배터리실(정비매뉴얼 p.10 «Battery Compartment»)",
+    "evidence": "정비매뉴얼 p.10 원본 대조"
+   },
+   {
+    "file": "matrice4e_m16_aux_light_underside.png",
+    "old": "하면 보조등",
+    "new": "라벨은 맞다. 다만 크롭 아래 «Beacon» 글자는 다음 그림 캡션이다(오독 위험)",
+    "evidence": "정비매뉴얼 p.14 원본 대조"
+   }
+  ],
+  "distinct_view_groups": {
+   "A_front_above20": [
+    "matrice 4E_1.png",
+    "p02",
+    "p03",
+    "p11",
+    "p12"
+   ],
+   "B_rear_threequarter": [
+    "matrice 4E_2.png",
+    "p01",
+    "p05"
+   ],
+   "C_rear_threequarter_mirror_of_B": [
+    "matrice 4E_3.png",
+    "p06"
+   ],
+   "D_rear_near_orthographic": [
+    "matrice 4E_4.png",
+    "p04"
+   ],
+   "E_top_near_orthographic": [
+    "matrice 4E_5.png"
+   ],
+   "F_underside_oblique": [
+    "p09",
+    "p10"
+   ],
+   "G_front_left_above": [
+    "p07",
+    "p08"
+   ],
+   "note_ko": "전기체 사진 17장 = 서로 다른 시선 7개. p01~p12 12장이 더한 새 시선은 F 와 G 둘뿐이다."
+  },
+  "repo_values_that_leaned_on_the_wrong_rows": [
+   {
+    "where": "outputs/meshdef_prop_gap.json → ground_truth.photo",
+    "what": "p01 을 «측면» 으로 알고 모터 캔 높이(앵커 12.22 mm → 6.3011 px/mm)와 블레이드 중립면 z 를 쟀다",
+    "survives_ko": "세로(z) 값과 세로 앵커는 산다 — 방위 회전으로 안 변한다",
+    "wobbles_ko": [
+     "(a) 후면뷰에서 가까이 잡히는 벨은 **뒤 모터**인데 CAD 비교 대상은 앞 로터 스택이었다 (benchmark/meshdef_attack_verdict.py A10 이 이미 지적)",
+     "(b) ⭐아직 어디에도 안 적힌 것: blade_neutral_plane_z_mm 의 r20…r50 라벨은 **가로 거리**라 요(yaw)만큼 단축된다. 실제 반경은 더 크고 블레이드면은 r 과 함께 오르므로 z 가 과대평가되는 방향이다. 결론(+15.2~15.7 vs CAD +15.31)은 안 뒤집히지만 «0.4 mm 일치» 는 낙관적이다"
+    ],
+    "action_ko": "prop_gap 의 photo 절에 «시선 = 후면 3/4, r 라벨은 미보정» 을 명시. 재측정은 이 게이트 범위 밖"
+   },
+   {
+    "where": "outputs/matrice4e_photo_measure.json → photo_inventory.distinct_directions",
+    "what": "p01·p05·4E_2 묶음을 «기수 판독 불가» 로 IoU 등록에서 제외",
+    "survives_ko": "«p09 는 plan 이 아니라 오블리크» 라는 판단은 맞다(그 파일 elev −64°, 이번 측정과 같은 결론)",
+    "wobbles_ko": [
+     "이제 기수가 판독된다(후면) — B 묶음을 IoU 등록에 다시 넣을 수 있다"
+    ],
+    "action_ko": "다음 IoU 라운드에서 B 묶음 복귀"
+   },
+   {
+    "where": "src/drone_cad.py:2189-2208 주석",
+    "what": "「하방쌍 43/45 = CAD 렌즈 하우징」 + 「여기서는 CAD(좌우)를 따른다」",
+    "survives_ko": "전방쌍·후방쌍 좌표는 맞다(내 측정과 0.3 mm 안에서 일치)",
+    "wobbles_ko": [
+     "하방쌍 좌표·정체·개수가 전부 틀렸다 — 이 게이트의 본론"
+    ],
+    "action_ko": "q4_what_to_fix 참조"
+   }
+  ]
+ },
+ "q2_belly_from_photos_and_manual": {
+  "question": "배면 사진을 모아 어안·비전센서·거리센서를 하나씩 짚는다",
+  "underside_photos": [
+   "matrice4e_p09_underside_plan.jpg (2667², 대표)",
+   "matrice4e_p10_underside_plan_alt.jpg (1440², p09 와 같은 사진)",
+   "matrice4e_m16_aux_light_underside.png (정비매뉴얼 p.14 라인아트)",
+   "matrice4e_m05_sensing_system_placement.png (정비매뉴얼 p.14 «Sensing System» — 배를 비스듬히)",
+   "DJI User Manual p.45 §4.10 그림 · p.9 부품도 (PDF 에서 500 dpi 로 렌더해 직접 읽음)"
+  ],
+  "dji_official_wording": {
+   "spec_page_ko": "«전방위 양안 비전 시스템, 기체 하단 3D 적외선 센서 탑재» (enterprise.dji.com/matrice-4-series/specs)",
+   "downward_range": "0.3~18.8 m, FOV 160°",
+   "user_manual_p9_parts": [
+    "2. Omnidirectional Vision System",
+    "4. Downward Vision System",
+    "5. Three-Dimensional Infrared Sensing System",
+    "6. Auxiliary Light",
+    "13. Beacon"
+   ],
+   "user_manual_45_callout_order_on_belly": "앞→뒤 ③(하방비전) ④(3D 적외선) ②(보조등) ③(하방비전)",
+   "inconsistency_ko": "정비매뉴얼 p.14 는 배 가운데 항목을 «Omnidirectional Vision System» 이라 적는다. 사양표(«기체 하단 3D 적외선 센서»)와 맞는 쪽은 User Manual 이므로 User Manual 을 1차로 쓴다."
+  },
+  "count_ko": "배에는 하방 비전 **2개** · 3D 적외선 **1개** · 보조등 **1개**. 전부 **중앙선(y=0) 위 앞뒤 한 줄**이다. 어안(전방위 비전)은 배에 **없다** — 위쪽에만 4개.",
+  "positions_and_sizes_from_cad": {
+   "downward_vision_1": {
+    "x_mm": 41.8,
+    "y_mm": -0.0,
+    "z_mm": -24.72,
+    "seat_diameter_mm": 14.449
+   },
+   "infrared_3d": {
+    "x_mm": 22.05,
+    "y_mm": -0.0,
+    "z_mm": -26.21,
+    "window_mm": [
+     11.899,
+     20.145
+    ]
+   },
+   "auxiliary_light": {
+    "x_mm": -9.41,
+    "y_mm": -0.0,
+    "z_mm": -25.43,
+    "seat_diameter_mm": 10.798
+   },
+   "downward_vision_2": {
+    "x_mm": -35.14,
+    "y_mm": -0.0,
+    "z_mm": -27.74,
+    "seat_diameter_mm": 14.449
+   }
+  },
+  "downward_stereo_baseline_mm": 76.94,
+  "omnidirectional_fisheye_units_in_cad": [
+   {
+    "tag": 36,
+    "center_mm": [
+     146.0,
+     -30.198,
+     48.581
+    ],
+    "size_mm": [
+     12.214,
+     12.19,
+     11.734
+    ],
+    "vol_mm3": 556.44,
+    "n_faces": 120,
+    "face_types": {
+     "Plane": 44,
+     "Cone": 26,
+     "Cylinder": 30,
+     "BSpline surface": 17,
+     "Sphere": 2,
+     "Unknown": 1
+    }
+   },
+   {
+    "tag": 37,
+    "center_mm": [
+     -53.591,
+     -30.302,
+     49.492
+    ],
+    "size_mm": [
+     12.192,
+     12.234,
+     11.596
+    ],
+    "vol_mm3": 556.44,
+    "n_faces": 120,
+    "face_types": {
+     "Plane": 44,
+     "Cone": 26,
+     "Cylinder": 30,
+     "BSpline surface": 17,
+     "Sphere": 2,
+     "Unknown": 1
+    }
+   },
+   {
+    "tag": 38,
+    "center_mm": [
+     -53.591,
+     30.273,
+     49.481
+    ],
+    "size_mm": [
+     12.192,
+     12.175,
+     11.573
+    ],
+    "vol_mm3": 556.43,
+    "n_faces": 120,
+    "face_types": {
+     "Plane": 44,
+     "Cone": 26,
+     "Cylinder": 30,
+     "BSpline surface": 17,
+     "Sphere": 2,
+     "Unknown": 1
+    }
+   },
+   {
+    "tag": 39,
+    "center_mm": [
+     145.971,
+     30.198,
+     48.572
+    ],
+    "size_mm": [
+     12.155,
+     12.19,
+     11.708
+    ],
+    "vol_mm3": 556.44,
+    "n_faces": 120,
+    "face_types": {
+     "Plane": 44,
+     "Cone": 26,
+     "Cylinder": 30,
+     "BSpline surface": 17,
+     "Sphere": 2,
+     "Unknown": 1
+    }
+   }
+  ],
+  "beacon_in_cad": [
+   {
+    "tag": 29,
+    "center_mm": [
+     -50.062,
+     0.0,
+     54.248
+    ],
+    "size_mm": [
+     6.175,
+     6.175,
+     6.175
+    ],
+    "vol_mm3": 123.3,
+    "n_faces": 4,
+    "face_types": {
+     "Sphere": 4
+    }
+   },
+   {
+    "tag": 43,
+    "center_mm": [
+     -49.675,
+     0.0,
+     56.978
+    ],
+    "size_mm": [
+     14.211,
+     16.378,
+     6.539
+    ],
+    "vol_mm3": 373.63,
+    "n_faces": 72,
+    "face_types": {
+     "BSpline surface": 2,
+     "Cone": 26,
+     "Cylinder": 8,
+     "Plane": 12,
+     "Torus": 16,
+     "Sphere": 8
+    }
+   }
+  ],
+  "photo_scale_basis": {
+   "why_ko": "p09 는 원근 렌더다. 전후 축척과 가로 축척이 **다르다** — 하나로 재면 틀린다.",
+   "symmetry_axis_px": 1333.0,
+   "symmetry_axis_sd_px": 0.79,
+   "symmetry_axis_n_rows": 210,
+   "fore_aft_scale_mm_per_px": {
+    "from_cad_belly_features": 0.3758,
+    "from_motor_axes(CAD 앞뒤 간격 279.02 mm)": 0.3807,
+    "agreement_pct": 1.3,
+    "residuals_mm_of_cad_fit": [
+     -1.79,
+     3.91,
+     -3.35,
+     1.23
+    ]
+   },
+   "lateral_scale_mm_per_px": {
+    "front_motor_pair": 0.2602,
+    "rear_motor_pair": 0.2897,
+    "used_mean": 0.275,
+    "front_vs_rear_pct": 10.7
+   },
+   "view_tilt_from_nadir_deg": 43.8,
+   "caveats_ko": [
+    "앞·뒤 모터쌍의 가로 축척이 다른 것은 **원근**이다(앞이 카메라에 가깝다) — 정투영이 아니다.",
+    "CAD 특징 맞춤 축척은 CAD 를 앵커로 쓰므로 CAD 를 **검증하지는 못한다**. 검증은 모터축 축척(독립)이 한다.",
+    "DJI 공표 대각 휠베이스 438.8 mm 와 CAD 모터축 배치가 0.5 % 안에서 맞아, 모터 앵커 자체는 신뢰할 만하다."
+   ],
+   "cross_check_baseline_mm": {
+    "from_photo": 81.0,
+    "from_cad": 76.94,
+    "diff_pct": 5.3
+   }
+  },
+  "what_p09_shows_fore_to_aft_ko": [
+   "① 어안 렌즈(유리 반사 보임) — 하방 비전 1",
+   "② 가로로 누운 검은 캡슐창 — 3D 적외선",
+   "③ 노란 LED 가 든 원 — 보조등",
+   "④ 어안 렌즈 — 하방 비전 2",
+   "그리고 이들보다 앞쪽 짐벌 웰 안에, 좌우로 **유리 없는 고무 방진 2개**"
+  ]
+ },
+ "q3_what_is_cad_solid_44_46": {
+  "question": "CAD 솔리드 #44/#46 은 무엇인가 — 어안이 맞나, 다른 센서인가, M4T 전용인가",
+  "answer_ko": "**짐벌 4점 방진(rubber damper) 중 아래 두 점**이다. 카메라가 아니다.",
+  "proof": [
+   {
+    "id": "P1",
+    "claim_ko": "같은 부품이 CAD 안에 **4벌** 있다",
+    "measured": {
+     "tags": [
+      44,
+      45,
+      46,
+      47
+     ],
+     "identical_volume_mm3": 173.67,
+     "identical_face_signature": {
+      "Cylinder": 8,
+      "Torus": 16,
+      "BSpline surface": 4,
+      "Surface of Revolution": 2,
+      "Plane": 5
+     },
+     "placements": [
+      [
+       84.388,
+       17.736,
+       -13.64
+      ],
+      [
+       132.183,
+       14.84,
+       46.593
+      ],
+      [
+       84.388,
+       -17.736,
+       -13.64
+      ],
+      [
+       132.183,
+       -14.84,
+       46.593
+      ]
+     ]
+    },
+    "so_what_ko": "두 벌은 배 아래(x +84.4, z −13.6), 두 벌은 **기수 상단**(x +132.2, z +46.6)에 있다. 하방 카메라가 기수 위에 쌍둥이를 가질 수는 없다."
+   },
+   {
+    "id": "P2",
+    "claim_ko": "이 CAD 에서 «어안» 은 형상 지문이 완전히 다르다",
+    "measured": {
+     "fisheye_signature": {
+      "tags": [
+       36,
+       37,
+       38,
+       39
+      ],
+      "vol_mm3": 556.44,
+      "n_faces": 120,
+      "Sphere_faces": 2,
+      "size_mm": [
+       12.214,
+       12.19,
+       11.734
+      ]
+     },
+     "solid_44_signature": {
+      "vol_mm3": 173.67,
+      "n_faces": 35,
+      "Sphere_faces": 0,
+      "size_mm": [
+       8.171,
+       10.761,
+       7.211
+      ]
+     }
+    },
+    "so_what_ko": "어안 4개는 전부 **구면(Sphere) 면 2장**을 갖는다(돔 유리). #44 는 구면이 0장이고 부피가 1/3 이며 bbox 를 27 %만 채운다(가늘고 잘록한 실패형)."
+   },
+   {
+    "id": "P3",
+    "claim_ko": "진짜 하방 카메라 자리는 하부커버 솔리드 #119 **안에 파인 형상**으로 있다",
+    "measured": {
+     "seat_fore": {
+      "tag": 16173,
+      "type": "Plane",
+      "area": 164.098,
+      "c": [
+       41.8,
+       -0.0,
+       -24.72
+      ],
+      "size": [
+       14.443,
+       14.455,
+       0.567
+      ]
+     },
+     "seat_aft": {
+      "tag": 16689,
+      "type": "Plane",
+      "area": 164.098,
+      "c": [
+       -35.14,
+       -0.0,
+       -27.74
+      ],
+      "size": [
+       14.443,
+       14.455,
+       0.567
+      ]
+     },
+     "ring_areas_fore": [
+      53.33,
+      53.33,
+      53.35,
+      53.35,
+      119.17,
+      119.18,
+      159.58,
+      164.1
+     ],
+     "ring_areas_aft": [
+      45.31,
+      45.31,
+      47.11,
+      47.11,
+      53.74,
+      53.77,
+      159.59,
+      164.1
+     ]
+    },
+    "so_what_ko": "두 자리의 주변 링(원·토러스·콘) 면적이 **소수점 둘째 자리까지 같다** — 같은 부품의 같은 자리다. 별개 솔리드가 없던 이유는 이 CAD 가 외형 참조용이라 벨리 광학부를 커버 표면에 새겨 넣었기 때문이다."
+   },
+   {
+    "id": "P4",
+    "claim_ko": "사진에서 그 자리를 확대하면 고무 방진이 보인다",
+    "measured": {
+     "file": "matrice4e_p09_underside_plan.jpg",
+     "crop_px": [
+      1230,
+      1180,
+      1450,
+      1280
+     ],
+     "what_ko": "짐벌 웰 안, 좌우 대칭으로 잘록한 **검은 고무 스풀** 2개가 브래킷에 물려 있다. 유리·렌즈·돔이 없다.",
+     "lateral_center_separation_px": 142.5,
+     "lateral_center_separation_mm_at_belly_scale": 39.2,
+     "cad_part_y_span_mm": [
+      12.355,
+      23.116
+     ]
+    },
+    "so_what_ko": "잰 중심 간격이 CAD 부품의 y 범위 안에 들어온다. 다만 이 부품은 배면보다 12 mm 위·움푹한 곳에 있어 사진 측정 오차가 크므로 **보조 근거**로만 쓴다."
+   }
+  ],
+  "m4t_only_check": {
+   "question_ko": "M4T(열화상판) 전용 부품일 가능성",
+   "finding_ko": "이 CAD 에서 M4T 전용은 **짐벌 머리**다 — x 159~172 에 두께 1 mm 짜리 창 평면이 6장 있고(#50~#55) 이것이 4T 의 «개구부 4 + LRF» 배치다. #44~#47 은 x 84~136 의 **기체 크래들 구역**이라 4E·4T 공용 구조에 속한다.",
+   "conclusion_ko": "M4T 전용이든 아니든 결론은 안 바뀐다 — 어느 쪽이어도 **어안이 아니다.**",
+   "m4t_gimbal_window_solids": [
+    {
+     "tag": 50,
+     "center_mm": [
+      162.11,
+      9.8,
+      -28.072
+     ],
+     "size_mm": [
+      1.0,
+      22.8,
+      9.6
+     ],
+     "vol_mm3": 214.34,
+     "n_faces": 10,
+     "face_types": {
+      "Plane": 6,
+      "Cylinder": 4
+     }
+    },
+    {
+     "tag": 51,
+     "center_mm": [
+      159.65,
+      -16.4,
+      -28.072
+     ],
+     "size_mm": [
+      1.0,
+      12.0,
+      12.0
+     ],
+     "vol_mm3": 113.1,
+     "n_faces": 4,
+     "face_types": {
+      "Cylinder": 2,
+      "Plane": 2
+     }
+    },
+    {
+     "tag": 52,
+     "center_mm": [
+      167.81,
+      7.129,
+      -9.966
+     ],
+     "size_mm": [
+      1.0,
+      22.776,
+      21.217
+     ],
+     "vol_mm3": 397.04,
+     "n_faces": 14,
+     "face_types": {
+      "Cylinder": 4,
+      "Plane": 10
+     }
+    },
+    {
+     "tag": 53,
+     "center_mm": [
+      171.71,
+      -16.2,
+      -9.872
+     ],
+     "size_mm": [
+      1.0,
+      17.101,
+      17.101
+     ],
+     "vol_mm3": 229.68,
+     "n_faces": 4,
+     "face_types": {
+      "Cylinder": 2,
+      "Plane": 2
+     }
+    },
+    {
+     "tag": 54,
+     "center_mm": [
+      164.878,
+      12.8,
+      11.329
+     ],
+     "size_mm": [
+      0.969,
+      16.811,
+      16.811
+     ],
+     "vol_mm3": 215.15,
+     "n_faces": 4,
+     "face_types": {
+      "Cylinder": 2,
+      "Plane": 2
+     }
+    },
+    {
+     "tag": 55,
+     "center_mm": [
+      162.11,
+      -11.02,
+      10.748
+     ],
+     "size_mm": [
+      1.0,
+      20.505,
+      16.046
+     ],
+     "vol_mm3": 296.55,
+     "n_faces": 20,
+     "face_types": {
+      "Plane": 13,
+      "Cylinder": 3,
+      "Unknown": 4
+     }
+    }
+   ]
+  }
+ },
+ "q4_what_to_fix": {
+  "headline_ko": "⭐ **«부양» 과 «위치» 는 서로 다른 결함이 아니라 같은 결함이다.** 두 어안을 CAD 가 말하는 중앙선 자리로 옮기면 부양이 저절로 닫힌다 — 크래들을 새로 짓지도, 셸 hull 표를 손대지도, 반지름을 줄이지도 않고.",
+  "measured_proof": {
+   "current": {
+    "where": "src/drone_cad.py:2207 좌표 (0.0844, ±0.01775, −0.0191)",
+    "min_dist_to_rest_mm": 7.42413059653471,
+    "bbox_mm": [
+     [
+      75.40000230073929,
+      93.4000015258789
+     ],
+     [
+      -26.750000193715096,
+      26.750000193715096
+     ],
+     [
+      -28.096443873172685,
+      -10.0987211762873
+     ]
+    ],
+    "note_ko": "부양 라운드가 잰 7.30 mm 를 이 라운드가 7.42 mm 로 재현했다(샘플링 밀도 차)."
+   },
+   "our_shell_belly_z_at_cad_stations_mm": {
+    "x=+41.80": -23.514589012591905,
+    "x=-35.14": -30.808769361987878
+   },
+   "cad_seat_z_mm": {
+    "x=+41.80": -24.72,
+    "x=-35.14": -27.74
+   },
+   "moved_variants": [
+    {
+     "radius_mm": 7.2,
+     "center_above_local_belly_mm": 0.0,
+     "min_dist_to_rest_mm": 0.269
+    },
+    {
+     "radius_mm": 7.2,
+     "center_above_local_belly_mm": 2.0,
+     "min_dist_to_rest_mm": 0.043
+    },
+    {
+     "radius_mm": 7.2,
+     "center_above_local_belly_mm": 3.5,
+     "min_dist_to_rest_mm": 0.259
+    },
+    {
+     "radius_mm": 7.2,
+     "center_above_local_belly_mm": 5.0,
+     "min_dist_to_rest_mm": 0.243
+    },
+    {
+     "radius_mm": 9.0,
+     "center_above_local_belly_mm": 0.0,
+     "min_dist_to_rest_mm": 0.17
+    },
+    {
+     "radius_mm": 9.0,
+     "center_above_local_belly_mm": 2.0,
+     "min_dist_to_rest_mm": 0.261
+    },
+    {
+     "radius_mm": 9.0,
+     "center_above_local_belly_mm": 3.5,
+     "min_dist_to_rest_mm": 0.272
+    },
+    {
+     "radius_mm": 9.0,
+     "center_above_local_belly_mm": 5.0,
+     "min_dist_to_rest_mm": 0.143
+    }
+   ],
+   "gap_after_move_best_mm": 0.043,
+   "reading_ko": "우리 셸의 배는 x +41.8 에서 z −23.5(CAD 안착면 −24.4, 0.9 mm 차), x −35.1 에서 z −30.8(CAD −27.4, 3.4 mm 차)이다. 즉 **옳은 자리에는 이미 셸이 있다.** 옮기기만 하면 반지름·높이를 어떻게 잡아도 최단거리가 0.04~0.27 mm 로 닿는다."
+  },
+  "patch_spec": [
+   {
+    "id": "N-A",
+    "action": "삭제",
+    "where": "src/drone_cad.py:2207 좌표 리스트의 (0.0844, ∓0.01775, −0.0191) 두 항목",
+    "why_ko": "그 자리는 카메라가 아니라 짐벌 방진 고무다. 지금 우리는 지름 18 mm 금속 구 두 개를 배 아래 7.4 mm 허공에 매달아 두고 있다.",
+    "replace_with_ko": "대체하지 않는다. 방진 고무는 부피 174 mm³ 의 고무이고 크래들 안에 깊이 들어가 가려져 있어 3.5 GHz 산란체로 셈할 값이 아니다.",
+    "risk": "낮음 — 지우기만 하면 σ 는 부양 라운드가 잰 만큼(방위평균 −0.112 dB) 돌아간다"
+   },
+   {
+    "id": "N-B",
+    "action": "추가",
+    "where": "같은 좌표 리스트",
+    "what_ko": "하방 비전 2개를 **중앙선 앞뒤**에 넣는다",
+    "coords_m": [
+     [
+      0.0418,
+      0.0,
+      null
+     ],
+     [
+      -0.03514,
+      0.0,
+      null
+     ]
+    ],
+    "z_rule_ko": "z 는 상수로 박지 말고 **그 x 에서 우리 셸의 국소 배면**에 맞춘다(측정치는 our_shell_belly_z_at_cad_stations_mm). 그래야 앞으로 셸 표가 바뀌어도 안 뜬다.",
+    "radius_m": 0.0072,
+    "radius_why_ko": "CAD 안착 원 지름 14.45 mm 의 절반. 지금 쓰는 0.009(=18 mm 구)는 어안 6개 공용 리터럴이라 하방에는 과하다.",
+    "risk": "낮음 — 옮긴 변형 전부가 셸에 닿았다(moved_variants)"
+   },
+   {
+    "id": "N-C",
+    "action": "보류(선택)",
+    "what_ko": "3D 적외선 캡슐창·보조등",
+    "why_ko": "둘 다 배 표면에 **평평하게 박힌 창**이라 따로 몸체를 넣어도 σ 에 새로 더하는 것이 거의 없다. 넣는다면 돌출 없이 새기는 방식이어야 한다.",
+    "coords_mm": {
+     "infrared_3d": {
+      "x_mm": 22.05,
+      "y_mm": -0.0,
+      "z_mm": -26.21,
+      "window_mm": [
+       11.899,
+       20.145
+      ]
+     },
+     "auxiliary_light": {
+      "x_mm": -9.41,
+      "y_mm": -0.0,
+      "z_mm": -25.43,
+      "seat_diameter_mm": 10.798
+     }
+    }
+   },
+   {
+    "id": "N-D",
+    "action": "주석 정정",
+    "where": "src/drone_cad.py:2189-2200",
+    "what_ko": "「하방쌍 43/45 = 렌즈 하우징」·「여기서는 CAD(좌우)를 따른다」·「⛔ 하방쌍은 셸에 닿지 않는다 … 크래들을 셸 단면에 넣을 것인가」 세 덩어리를 이 게이트 결과로 바꿔 쓴다."
+   }
+  ],
+  "candidates_this_gate_overturns": [
+   {
+    "id": "N2",
+    "was": "하방 어안 z 를 −19.1 → −13.64 로 올린다(datum 5.4 mm 이중 차감 수정)",
+    "now_ko": "**철회.** 산술 진단(5.4 mm 두 번 뺐다)은 맞지만, 고쳐 봐야 **방진 고무 자리**로 올라갈 뿐이다. 부품 자체가 틀린 자리에 있으므로 z 만 고치는 것은 틀린 자리를 더 정확히 맞히는 일이다."
+   },
+   {
+    "id": "N3",
+    "was": "하방 어안 반지름 9 → 4.3 mm (CAD 하우징 8.17×10.76×7.21 기준)",
+    "now_ko": "**근거 교체.** 그 CAD 치수는 방진 고무의 것이다. 하방 비전의 옳은 근거는 하부커버 안착 원 Ø14.45 mm → r ≈ 7.2 mm."
+   },
+   {
+    "id": "N1",
+    "was": "짐벌 크래들(솔리드 #56/#57/#58)을 셸에 추가해 어안을 받친다",
+    "now_ko": "**어안을 이유로는 불필요.** 옮기면 이미 닿는다. 크래블 추가는 «코 아래 18 mm 구조가 통째로 없다» 는 **별개 사안**으로 다시 저울질할 것 — 이 게이트는 그 판단을 하지 않는다."
+   },
+   {
+    "id": "X2",
+    "was": "충돌: 반지름 축소를 단독으로 넣으면 부양이 더 커진다",
+    "now_ko": "**소멸.** 자리를 옮기면 반지름 7.2 든 9.0 이든 전부 닿는다(moved_variants)."
+   },
+   {
+    "id": "N4",
+    "was": "차단항목: 하방 어안이 좌우인가 앞뒤인가",
+    "now_ko": "**해소.** 앞뒤 · 중앙선."
+   },
+   {
+    "id": "X7",
+    "was": "차단항목: p01 이 좌측면인가 후면인가",
+    "now_ko": "**해소.** 후면. 그리고 그 위에 얹혀 있던 값의 영향은 q1 에 적었다."
+   }
+  ],
+  "sigma_note_ko": "σ 는 이 라운드가 다시 안 쟀다. 부양 라운드의 측정(하방쌍 제거 시 방위평균 0.112 dB, 개별 방위 최대 3.278 dB)이 그대로 이 패치의 크기다 — 삭제분과 추가분이 서로 다른 자리에 있으므로, 적용 뒤에는 **한 번 다시 돌려** 확인할 것."
+ },
+ "what_i_could_not_settle": [
+  {
+   "q_ko": "p07/p08 과 B·C 묶음의 **좌/우** 판별",
+   "why_ko": "«Matrice 4» 각인이 앞-좌 암에 있다는 것까지는 정면·저면 사진에서 일관되게 읽히지만, iso 각도에서는 각인이 어느 암인지 확실히 못 짚었다. 앞뒤·상하 판별에는 영향이 없다.",
+   "impact_ko": "없음 — 이 게이트의 결론은 좌우 대칭이다"
+  },
+  {
+   "q_ko": "정비매뉴얼 p.14 가 배 가운데를 «Omnidirectional Vision System» 이라 적은 이유",
+   "why_ko": "같은 회사 두 문서가 다르다. 사양표와 User Manual 이 서로 맞으므로 그쪽을 택했지만, 정비매뉴얼이 왜 그렇게 적었는지는 모른다.",
+   "impact_ko": "낮음 — 어느 이름이든 그 자리는 **중앙선 위**다"
+  },
+  {
+   "q_ko": "#44~#47 이 방진 «고무» 인지 방진 «나사/부시» 인지",
+   "why_ko": "STEP 의 부품 이름이 BREP_44 처럼 익명화돼 있다. 형상(회전면 2 + 원통 2 + Ø5 원판)과 사진의 검은 스풀로 방진 고무라고 읽었다.",
+   "impact_ko": "없음 — 어느 쪽이어도 카메라가 아니다"
+  }
+ ]
+}

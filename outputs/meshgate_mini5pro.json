@@ -1,0 +1,688 @@
+{
+ "title": "게이트 ② — DJI Mini 5 Pro 의 rotor_z_mm 에 1차 출처가 있는가",
+ "meta": {
+  "when": "2026-08-07T04:52:45",
+  "root": "/home/yunjung/workspace/sionna2",
+  "python": "3.12.13",
+  "src_sha_before": {
+   "src/drones.py": "3ac4805ab098651a",
+   "src/drone_cad.py": "c7d5c25badfb818d"
+  },
+  "code_changed": "none — 이 라운드는 게이트다. 후보는 런타임 몽키패치로만 만들었다.",
+  "overlap_test": "benchmark/meshdef_attack_verify2.py (b) 와 같은 판정 (벨 반경 안 & 벨 z 범위 안에 든 프롭 삼각형/정점)",
+  "src_sha_after": {
+   "src/drones.py": "3ac4805ab098651a",
+   "src/drone_cad.py": "c7d5c25badfb818d"
+  },
+  "elapsed_s": 38.46
+ },
+ "q1_provenance": {
+  "line_221_222": "rotor_z_mm=(-12.0, +2.0, +2.0, -12.0),   # 실물은 **앞 모터가 더 낮다**(조사 확인). 사다리꼴로\n                                                 #   디스크 겹침은 사라졌지만 관측된 사실이라 유지한다.",
+  "last_touched_commit": "cba8626448793288aabe0e030bc8f110c8237c81",
+  "introduced_commit": {
+   "sha": "3dd47946c58d82d31853b595c70bf338495b8d9d",
+   "subject": "드론 스펙 심층 재조사 + 적대적 검증 — 지어낸 숫자 3건 적발, 호버 RPM 대폭 정정",
+   "date": "2026-07-14",
+   "days_ago": 23,
+   "commit_message_rationale": "mini5pro   7500 → **5500**  (249.9g → 5513 rpm 계산)\n  mavic4pro  5500 → **3600**  (1063g → 3886 rpm)  ← 기존 5500 은 **최대추력 회전수**이지 호버가 아니었다\n  matrice4e  5200 → **3800**  (1219g → 3947 rpm)\n--\n  · mini5pro  : 로터 배치를 **좌우 넓은 직사각**으로 (모터 ±76, ±114 mm → 56.3°)\n                ⚠ 프롭(152.4) > 앞뒤 모터간격(152) → **디스크가 평면도상 겹친다**\n                → 실물은 **앞 모터가 12 mm 더 낮다**(간섭 회피). DroneSpec.rotor_z_mm 추가.",
+   "diff_line": "+        rotor_z_mm=(-12.0, +2.0, +2.0, -12.0),   # ⚠ 프롭(152.4) > 앞뒤 모터간격(152) → 디스크가 겹친다."
+  },
+  "photos_present": [
+   "mini 5 pro_1.png",
+   "mini 5 pro_2.png",
+   "mini 5 pro_3.png"
+  ],
+  "photo_count": 3,
+  "photo_sources_md_exists": false,
+  "other_airframes_with_SOURCES_md": [
+   "m350rtk",
+   "matrice4e",
+   "mavic4pro",
+   "mini2",
+   "phantom2",
+   "phantom3",
+   "typhoonh480",
+   "x500v2"
+  ],
+  "repo_self_audit": {
+   "file": "docs/drone_specs_2026.json",
+   "quote_fabrication_list": "1. **로터 z 오프셋 \"앞 모터가 뒤 모터보다 낮은 평면\"(추정 10~15 mm)** — 어떤 소스에도 없다. silhouette 에서는 \"실제로 ~ 있어 간섭 회피\" 라고 **단정형**으로 쓰였는데(micro_doppler 에선 추정으로 강등), 근거는 오직 신뢰 불가한 앞뒤 역산이 만든 \"디스크가 겹친다\" 뿐이다. 자기 추론의 부산물을 관측 사실로 승격시킨 사례. 마이크로도플러 로터 z 좌표에 직접 들어가므로 위험.",
+   "quote_silhouette_assertion": "펴진다. 뒷 암이 앞 암보다 길고 더 벌어져서, 모터 배치가 정사각형이 아니라 **좌우로 넓고 앞뒤로 짧은 직사각형**이다(프로펠러 지름 152.4mm > 앞뒤 모터 간격 → 앞·뒤 프롭 디스크가 평면도상 겹친다. 실제로 앞 모터가 뒤 모터보다 낮은 평면에 있어 간섭 회피). 암 단면은",
+   "quote_correction_3": "3. **로터 좌표 (±0.076, ±0.114) 의 앞뒤 성분과 그로부터 나온 Iyy 가 불안정.** x=±0.076 은 오직 위의 못 믿을 앞뒤 역산에서만 나온다. 이 값은 앞뒤 간격을 프롭 지름(152.4)과 정확히 같게 만들어 \"디스크가 아슬아슬하게 겹친다 → 앞 모터가 낮은 평면\" 이라는 서사를 강제하는데, 이건 데이터가 아니라 역산 오차의 부산물일 수 있다. Ixx>Iyy(좌우로 넓음)라는 정성적 결론 자체는 좌우 227.6 > 앞뒤 어떤 값이든 성립하므로 살아남지만, Iyy 숫자는 ±40% 로 봐야 한다.\n\n【검산 통과(반박 실패)】 관성모멘트: 명시한 조립체 모델(동체 0.19kg 0.10×0.09×0.055 + 로터 4×0.015kg)로 내가 직접 재계산 → Ixx=9.56e-4, Iyy=5.53e-4, Izz=1.41e-3. 보고값과 일치. 질량수지 0.19+0.06=0.25 도 맞음. k_T=0.613/575.9²=1.848e-"
+  },
+  "searched_and_empty": [
+   "docs/drone_shape_research.json (rotor_z / 앞 모터 검색 0건)",
+   "docs/drone_research.json (0건)",
+   "docs/DRONE_SPECS.md (0건)",
+   "assets/photos/mini5pro/SOURCES.md (파일 자체가 없음)",
+   "assets/meshes/reference/ (mini5pro CAD 없음 — DJI 는 Mini 5 Pro CAD/GLB 미공개)"
+  ]
+ },
+ "q2_reality": {
+  "dji_manual": {
+   "doc": "DJI Mini 5 Pro 사용자 매뉴얼(한국어), © 2025 DJI",
+   "url": "https://dl.djicdn.com/downloads/DJI_Mini_5_Pro/UM/20251210/DJI_Mini_5_Pro_User_Manual_ko.pdf",
+   "md5": "b71b2c60f06d9c5d2c64a7c0818da508",
+   "bytes": 8430263,
+   "pages": 79,
+   "fetched": "2026-08-07",
+   "figures_read": [
+    {
+     "pdf_page_index": 10,
+     "printed_page": 11,
+     "section": "1.1 처음 사용 · 기체 암 펼치기",
+     "what_it_shows_ko": "암 펼치기 3컷. ① 뒤에서 본 접힘 상태 — **뒤 암**이 동체 **윗면**에 가로놓여 있고(왼쪽은 실선, 오른쪽은 점선 유령) 바깥·아래로 펴진다. ② 3/4 컷 — **앞 암**(끝에 착륙다리가 달렸다)이 동체 **밑면**에서 아래·앞으로 내려가며 펴진다. ③ 펼친 평면도."
+    },
+    {
+     "pdf_page_index": 13,
+     "printed_page": 14,
+     "section": "1.2 개요 · 기체",
+     "what_it_shows_ko": "기체 부위도(번호 11=모터, 12=프로펠러, 9=랜딩기어). 앞 암은 동체 아랫배 쪽, 뒤 암은 위쪽 어깨에서 나온다."
+    },
+    {
+     "pdf_page_index": 9,
+     "printed_page": 10,
+     "section": "1.1 처음 사용 · 기체 암 펼치기",
+     "what_it_shows_ko": "접힌 기체를 손에 든 컷 — 접힘 상태의 암 적층 순서."
+    }
+   ],
+   "reading_ko": "**뒤 암 경첩이 높고(윗면), 앞 암 경첩이 낮다(밑면).** 이것이 1차 문서에서 직접 읽히는 사실이고, 앞 로터가 뒤보다 낮다는 **부호**의 근거다. 다만 매뉴얼 어디에도 **몇 mm** 인지는 없다."
+  },
+  "product_renders": {
+   "dir": "assets/photos/mini5pro",
+   "files": [
+    "mini 5 pro_1.png",
+    "mini 5 pro_2.png",
+    "mini 5 pro_3.png"
+   ],
+   "count": 3,
+   "md5": {
+    "mini 5 pro_1.png": "e8678cb5bc2862b6c96039ce362c9d6f",
+    "mini 5 pro_2.png": "49fd3e4e4be2b9445b21bcafceeb00e5",
+    "mini 5 pro_3.png": "3aa2359e1ace5c23d9500cab05b4b6cc"
+   },
+   "reading_ko": "_1(정면)·_2(전좌상 3/4) 두 컷 모두에서 **앞 암 뿌리는 동체 아래쪽**(짐벌 블록 높이), **뒤 암 뿌리는 동체 윗면 어깨**다. 두 컷이 서로를 지지한다. _3 은 평면컷이라 높이 정보가 없다(대신 §photo_depth 의 배율차로만 쓴다).",
+   "limits_ko": "세 장 전부 마케팅 렌더이고 **정투영 측면도가 없다**. 축척자도 없다. 그래서 14 mm 같은 **크기**는 이 사진들로 못 잰다."
+  },
+  "plan_view_magnification": {
+   "image": "mini 5 pro_3.png",
+   "image_md5": "3aa2359e1ace5c23d9500cab05b4b6cc",
+   "image_px": [
+    1042,
+    878
+   ],
+   "orange_tip_clusters": 8,
+   "props": [
+    {
+     "hub_px": [
+      867.04,
+      243.39
+     ],
+     "tip_to_tip_px": 436.21,
+     "blade_azimuth_deg": 50.96
+    },
+    {
+     "hub_px": [
+      174.3,
+      243.77
+     ],
+     "tip_to_tip_px": 431.83,
+     "blade_azimuth_deg": 124.41
+    },
+    {
+     "hub_px": [
+      261.75,
+      690.56
+     ],
+     "tip_to_tip_px": 445.31,
+     "blade_azimuth_deg": 37.65
+    },
+    {
+     "hub_px": [
+      779.02,
+      691.09
+     ],
+     "tip_to_tip_px": 445.26,
+     "blade_azimuth_deg": 142.33
+    }
+   ],
+   "front_tip_to_tip_px": 434.02,
+   "rear_tip_to_tip_px": 445.29,
+   "rear_over_front_magnification": 1.02596,
+   "front_row_is_farther_from_camera": true,
+   "implied_front_minus_rear_mm": [
+    {
+     "camera_above_rotor_plane_mm": 300,
+     "delta_z_front_minus_rear_mm": -7.59
+    },
+    {
+     "camera_above_rotor_plane_mm": 500,
+     "delta_z_front_minus_rear_mm": -12.65
+    },
+    {
+     "camera_above_rotor_plane_mm": 800,
+     "delta_z_front_minus_rear_mm": -20.25
+    },
+    {
+     "camera_above_rotor_plane_mm": 1000,
+     "delta_z_front_minus_rear_mm": -25.31
+    },
+    {
+     "camera_above_rotor_plane_mm": 1600,
+     "delta_z_front_minus_rear_mm": -40.49
+    }
+   ],
+   "camera_height_that_gives_declared_14mm": 553.2,
+   "tilt_confound": {
+    "front_mean_sin2_blade": 0.642,
+    "rear_mean_sin2_blade": 0.3733,
+    "tilt_deg_that_explains_all_of_it": 24.65,
+    "ko": "앞 날은 이미지 x축에서 평균 53.2°, 뒤 날은 37.7° 다 — 방위가 다르다. 높이차가 0 이어도 카메라가 앞뒤로 **24.7° 만 기울면** 관측된 배율차가 그대로 나온다. 평면컷 하나로는 두 설명을 못 가른다."
+   },
+   "caveat_ko": "⚠ 이 관측은 **혼자서는 아무것도 못 정한다**. 아래 tilt_confound 를 보라 — 카메라가 앞뒤로 조금 기울기만 해도 같은 2.6 % 가 나온다. 부호가 다른 증거와 **어긋나지 않는다**는 것까지가 이 항목의 값어치다."
+  },
+  "family_precedent": {
+   "declared": [
+    {
+     "key": "mini2",
+     "rotor_z_mm": [
+      10.63,
+      -10.63,
+      -10.63,
+      10.63
+     ],
+     "front_mm": 10.63,
+     "rear_mm": -10.63,
+     "front_minus_rear_mm": 21.26,
+     "mean_mm": 0.0,
+     "shape_source": "manufacturer_cad"
+    },
+    {
+     "key": "mini5pro",
+     "rotor_z_mm": [
+      -12.0,
+      2.0,
+      2.0,
+      -12.0
+     ],
+     "front_mm": -12.0,
+     "rear_mm": 2.0,
+     "front_minus_rear_mm": -14.0,
+     "mean_mm": -5.0,
+     "shape_source": "spec_photo"
+    },
+    {
+     "key": "matrice4e",
+     "rotor_z_mm": null,
+     "shape_source": "spec_photo"
+    }
+   ],
+   "mini2_evidence": "공식 GLB 실측(WM161_zhankai_1k.glb) — 앞 프로펠러 중간면이 뒤보다 21.25 mm **위**, 암 축은 21.44 mm 벌어짐. 앞 경첩이 동체 위, 뒤가 아래.",
+   "matrice4e_evidence": "matrice4e 는 앞 암이 뒤보다 9.13 mm 높고 벨 중심도 8.02 mm 높다(ground Q2). prop_gap 이 실제로 보고하는 양은 «캔 윗면 ",
+   "lesson_ko": "**앞뒤 층차 자체는 DJI 기체에서 흔하다** — 실측 두 대(mini2·matrice4e)가 다 갖고 있다. 다만 두 대 모두 **앞이 높다**. mini5pro 는 접힘 구조가 반대(뒤 암이 윗면)라 부호도 반대여야 하며, 그래서 기종별 증거가 필요했다."
+  }
+ },
+ "q3_mesh": {
+  "declared": {
+   "rotor_z_mm": [
+    -12.0,
+    2.0,
+    2.0,
+    -12.0
+   ],
+   "front_mm": -12.0,
+   "rear_mm": 2.0,
+   "front_minus_rear_mm": -14.0,
+   "step_mm": 14.0,
+   "undeclared_mean_offset_mm": -5.0,
+   "zero_mean_equivalent": [
+    -7.0,
+    7.0,
+    7.0,
+    -7.0
+   ]
+  },
+  "results": {
+   "C0_current_as_shipped": {
+    "per_rotor": [
+     {
+      "rotor": 0,
+      "is_front": true,
+      "bell_top_z_mm": 24.189,
+      "prop_underside_z_mm": 16.133,
+      "gap_mm": -8.056,
+      "prop_tris_in_bell": 662,
+      "prop_verts_in_bell": 319,
+      "prop_area_in_bell_mm2": 760.55
+     },
+     {
+      "rotor": 1,
+      "is_front": false,
+      "bell_top_z_mm": 24.189,
+      "prop_underside_z_mm": 35.994,
+      "gap_mm": 11.806,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     },
+     {
+      "rotor": 2,
+      "is_front": false,
+      "bell_top_z_mm": 24.189,
+      "prop_underside_z_mm": 35.994,
+      "gap_mm": 11.806,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     },
+     {
+      "rotor": 3,
+      "is_front": true,
+      "bell_top_z_mm": 24.189,
+      "prop_underside_z_mm": 16.133,
+      "gap_mm": -8.056,
+      "prop_tris_in_bell": 662,
+      "prop_verts_in_bell": 319,
+      "prop_area_in_bell_mm2": 760.55
+     }
+    ],
+    "total_prop_tris_in_bell": 1324,
+    "total_prop_verts_in_bell": 638,
+    "prop_area_in_bell_mm2": 1521.09,
+    "prop_area_total_mm2": 15865.89,
+    "double_counted_prop_area_pct": 9.5872,
+    "min_gap_mm": -8.056,
+    "frame_fit_scale_z": 1.41869,
+    "drone_lwh_mm": [
+     258.37,
+     360.42,
+     91.0
+    ],
+    "tris_total": 29068,
+    "what_ko": "지금 상태 — 프롭만 옮기고 벨·암은 제자리"
+   },
+   "C1_retract_rotor_z_None": {
+    "per_rotor": [
+     {
+      "rotor": 0,
+      "is_front": true,
+      "bell_top_z_mm": 25.033,
+      "prop_underside_z_mm": 34.373,
+      "gap_mm": 9.34,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     },
+     {
+      "rotor": 1,
+      "is_front": false,
+      "bell_top_z_mm": 25.033,
+      "prop_underside_z_mm": 34.373,
+      "gap_mm": 9.34,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     },
+     {
+      "rotor": 2,
+      "is_front": false,
+      "bell_top_z_mm": 25.033,
+      "prop_underside_z_mm": 34.373,
+      "gap_mm": 9.34,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     },
+     {
+      "rotor": 3,
+      "is_front": true,
+      "bell_top_z_mm": 25.033,
+      "prop_underside_z_mm": 34.373,
+      "gap_mm": 9.34,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     }
+    ],
+    "total_prop_tris_in_bell": 0,
+    "total_prop_verts_in_bell": 0,
+    "prop_area_in_bell_mm2": 0.0,
+    "prop_area_total_mm2": 15865.89,
+    "double_counted_prop_area_pct": 0.0,
+    "min_gap_mm": 9.34,
+    "frame_fit_scale_z": 1.4682,
+    "drone_lwh_mm": [
+     258.37,
+     360.42,
+     91.0
+    ],
+    "tris_total": 29068,
+    "what_ko": "값 철회 — 네 로터를 한 평면으로"
+   },
+   "C2_zero_mean_step_only": {
+    "per_rotor": [
+     {
+      "rotor": 0,
+      "is_front": true,
+      "bell_top_z_mm": 22.308,
+      "prop_underside_z_mm": 21.289,
+      "gap_mm": -1.019,
+      "prop_tris_in_bell": 24,
+      "prop_verts_in_bell": 14,
+      "prop_area_in_bell_mm2": 33.85
+     },
+     {
+      "rotor": 1,
+      "is_front": false,
+      "bell_top_z_mm": 22.308,
+      "prop_underside_z_mm": 39.607,
+      "gap_mm": 17.298,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     },
+     {
+      "rotor": 2,
+      "is_front": false,
+      "bell_top_z_mm": 22.308,
+      "prop_underside_z_mm": 39.607,
+      "gap_mm": 17.298,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     },
+     {
+      "rotor": 3,
+      "is_front": true,
+      "bell_top_z_mm": 22.308,
+      "prop_underside_z_mm": 21.289,
+      "gap_mm": -1.019,
+      "prop_tris_in_bell": 24,
+      "prop_verts_in_bell": 14,
+      "prop_area_in_bell_mm2": 33.85
+     }
+    ],
+    "total_prop_tris_in_bell": 48,
+    "total_prop_verts_in_bell": 28,
+    "prop_area_in_bell_mm2": 67.7,
+    "prop_area_total_mm2": 15865.89,
+    "double_counted_prop_area_pct": 0.4267,
+    "min_gap_mm": -1.019,
+    "frame_fit_scale_z": 1.30839,
+    "drone_lwh_mm": [
+     258.37,
+     360.42,
+     91.0
+    ],
+    "tris_total": 29068,
+    "what_ko": "평균 0 인 층차만 남기고 엔진은 그대로"
+   },
+   "C3_arms_follow_current": {
+    "per_rotor": [
+     {
+      "rotor": 0,
+      "is_front": true,
+      "bell_top_z_mm": 5.959,
+      "prop_underside_z_mm": 13.134,
+      "gap_mm": 7.175,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     },
+     {
+      "rotor": 1,
+      "is_front": false,
+      "bell_top_z_mm": 22.478,
+      "prop_underside_z_mm": 29.653,
+      "gap_mm": 7.175,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     },
+     {
+      "rotor": 2,
+      "is_front": false,
+      "bell_top_z_mm": 22.478,
+      "prop_underside_z_mm": 29.653,
+      "gap_mm": 7.175,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     },
+     {
+      "rotor": 3,
+      "is_front": true,
+      "bell_top_z_mm": 5.959,
+      "prop_underside_z_mm": 13.134,
+      "gap_mm": 7.175,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     }
+    ],
+    "total_prop_tris_in_bell": 0,
+    "total_prop_verts_in_bell": 0,
+    "prop_area_in_bell_mm2": 0.0,
+    "prop_area_total_mm2": 15865.89,
+    "double_counted_prop_area_pct": 0.0,
+    "min_gap_mm": 7.175,
+    "frame_fit_scale_z": 1.17995,
+    "drone_lwh_mm": [
+     258.37,
+     360.42,
+     91.0
+    ],
+    "tris_total": 29036,
+    "what_ko": "ARM_Z_FOLLOWS_ROTOR 에 mini5pro 추가(값은 그대로)"
+   },
+   "C4_arms_follow_zero_mean": {
+    "per_rotor": [
+     {
+      "rotor": 0,
+      "is_front": true,
+      "bell_top_z_mm": 11.859,
+      "prop_underside_z_mm": 19.033,
+      "gap_mm": 7.175,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     },
+     {
+      "rotor": 1,
+      "is_front": false,
+      "bell_top_z_mm": 28.378,
+      "prop_underside_z_mm": 35.553,
+      "gap_mm": 7.175,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     },
+     {
+      "rotor": 2,
+      "is_front": false,
+      "bell_top_z_mm": 28.378,
+      "prop_underside_z_mm": 35.553,
+      "gap_mm": 7.175,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     },
+     {
+      "rotor": 3,
+      "is_front": true,
+      "bell_top_z_mm": 11.859,
+      "prop_underside_z_mm": 19.033,
+      "gap_mm": 7.175,
+      "prop_tris_in_bell": 0,
+      "prop_verts_in_bell": 0,
+      "prop_area_in_bell_mm2": 0.0
+     }
+    ],
+    "total_prop_tris_in_bell": 0,
+    "total_prop_verts_in_bell": 0,
+    "prop_area_in_bell_mm2": 0.0,
+    "prop_area_total_mm2": 15865.89,
+    "double_counted_prop_area_pct": 0.0,
+    "min_gap_mm": 7.175,
+    "frame_fit_scale_z": 1.17995,
+    "drone_lwh_mm": [
+     258.37,
+     360.42,
+     91.0
+    ],
+    "tris_total": 29036,
+    "what_ko": "ARM_Z_FOLLOWS_ROTOR + 평균 0 층차"
+   }
+  }
+ },
+ "q3b_step_vs_vertical_distortion": {
+  "rows": [
+   {
+    "step_mm": 0,
+    "fit_scale_z": 1.4682,
+    "raw_height_before_fit_mm": 61.981,
+    "min_gap_mm": 9.34,
+    "prop_tris_in_bell": 0
+   },
+   {
+    "step_mm": 7,
+    "fit_scale_z": 1.30839,
+    "raw_height_before_fit_mm": 69.551,
+    "min_gap_mm": 8.14,
+    "prop_tris_in_bell": 0
+   },
+   {
+    "step_mm": 14,
+    "fit_scale_z": 1.17995,
+    "raw_height_before_fit_mm": 77.122,
+    "min_gap_mm": 7.175,
+    "prop_tris_in_bell": 0
+   },
+   {
+    "step_mm": 21,
+    "fit_scale_z": 1.07448,
+    "raw_height_before_fit_mm": 84.692,
+    "min_gap_mm": 6.383,
+    "prop_tris_in_bell": 0
+   },
+   {
+    "step_mm": 28,
+    "fit_scale_z": 0.98631,
+    "raw_height_before_fit_mm": 92.263,
+    "min_gap_mm": 5.72,
+    "prop_tris_in_bell": 0
+   },
+   {
+    "step_mm": 42,
+    "fit_scale_z": 0.84727,
+    "raw_height_before_fit_mm": 107.404,
+    "min_gap_mm": 4.676,
+    "prop_tris_in_bell": 0
+   },
+   {
+    "step_mm": 60,
+    "fit_scale_z": 0.71726,
+    "raw_height_before_fit_mm": 126.872,
+    "min_gap_mm": 3.699,
+    "prop_tris_in_bell": 0
+   },
+   {
+    "step_mm": 80,
+    "fit_scale_z": 0.61279,
+    "raw_height_before_fit_mm": 148.501,
+    "min_gap_mm": 2.914,
+    "prop_tris_in_bell": 0
+   }
+  ],
+  "step_for_zero_vertical_distortion_mm": 26.91,
+  "stretch_pct_at_step0": 46.82,
+  "stretch_pct_at_step14": 18.0,
+  "ko": "층차 0 이면 공식 높이 91 mm(프롭 포함)를 맞추려고 기체를 세로로 47퍼센트 늘려야 한다(sz 1.468). 14 mm 면 18퍼센트(1.180). 왜곡이 정확히 0 이 되는 층차는 **26.91 mm** 다. 즉 선언된 14 mm 는 공식 높이와 모순되지 않고 오히려 **보수적**이다. ⛔ 그렇다고 이 경로로 층차를 역산하면 안 된다 — 모자란 높이는 셸·다리·허브 스택 어디서 와도 같은 sz 를 만든다(관측적 동치)."
+ },
+ "verdict": {
+  "headline_ko": "**반은 있고 반은 없다.** 앞 로터가 뒤보다 낮다는 **사실(부호)** 에는 1차 출처가 있다 — 이번 라운드가 DJI 공식 사용자 매뉴얼 도면에서 직접 찾았다. 그러나 **14 mm 라는 크기**에는 출처가 없고, 코드 주석의 «조사 확인» 은 **거짓**이다(자기 추론을 관측으로 승격시킨 것이고, 저장소의 적대검증 문서가 이미 2026-07-14 에 그렇게 적어 놨다).",
+  "q1_answer_ko": {
+   "has_primary_source_for_the_number": false,
+   "chain_ko": [
+    "① 2026-07-14 `3dd4794` 가 값을 넣었다. 그때 적은 이유는 **디스크 겹침 회피** 하나뿐이다 — 커밋 본문 «프롭(152.4) > 앞뒤 모터간격(152) → 디스크가 겹친다 → 실물은 앞 모터가 12 mm 더 낮다(간섭 회피)». 관측이 아니라 **추론**이다.",
+    "② 같은 날 조사문서 `docs/drone_specs_2026.json` 의 적대검증이 바로 그 항목을 «어떤 소스에도 없다 … 자기 추론의 부산물을 관측 사실로 승격시킨 사례» 로 적발했다. **우리가 이미 알고 있었고, 그 경고가 코드에 반영되지 않았다.**",
+    "③ 2026-07-31 `cba8626` 이 사다리꼴 배치를 채택하면서 **전제였던 디스크 겹침이 사라졌다**(같은쪽 앞뒤 여유 +2.3 mm). 그런데 값은 남기고 주석만 «실물은 앞 모터가 더 낮다(조사 확인)» 으로 **더 강하게** 고쳐 썼다. 그 «조사» 는 ②가 기각한 바로 그 조사다 — 순환이다.",
+    "④ 저장소 어디에도 mm 근거가 없다. `assets/photos/mini5pro/` 에는 다른 8개 기체와 달리 **SOURCES.md 자체가 없다**. DJI 는 Mini 5 Pro CAD/3D 모델을 공개하지 않는다(mini2 는 공식 GLB, matrice4e 는 공식 STEP 이 있어서 잰 것이다)."
+   ]
+  },
+  "q2_answer_ko": {
+   "asymmetry_is_real": true,
+   "sign": "앞 로터가 뒤보다 **낮다**",
+   "magnitude_sourced": false,
+   "evidence_for_sign_ko": [
+    "⭐ **DJI 공식 사용자 매뉴얼(한국어, 2025-12-10판) p.11 암 펼치기 도면** — 뒤 암은 동체 **윗면**에 접혀 있다가 펴지고, 앞 암(끝에 착륙다리가 달린 쪽)은 동체 **밑면**에서 아래로 내려오며 펴진다. 경첩 높이가 다르다는 것을 제조사 도면이 직접 보여준다. p.14 부위도도 같다.",
+    "공식 제품 렌더 2컷(_1 정면·_2 전좌상)에서 **앞 암 뿌리는 짐벌 블록 높이, 뒤 암 뿌리는 윗면 어깨**다 — 두 컷이 서로를 지지한다.",
+    "평면컷(_3)에서 앞 프롭이 뒤보다 2.60 % 작게 찍혔다(내가 주황 팁 8개를 직접 집어 다시 쟀다) → 앞 열이 카메라에서 더 멀다 = 더 낮다. **단 이것은 카메라 기울기 24.6° 로도 똑같이 설명된다 — 혼자서는 증거가 못 된다.**"
+   ],
+   "counter_evidence_kept_ko": "⚠ 우리가 **실측 CAD 를 가진 DJI 두 대는 반대로 앞이 높다** (mini2 앞이 21.26 mm 위, matrice4e 앞 암이 9.13 mm 위). 그러니 «DJI 니까 앞이 낮겠지» 는 성립하지 않는다. 이번 판정은 오직 **Mini 5 Pro 자기 도면**에서만 나온다.",
+   "photos_are_not_enough_ko": "사진은 3장뿐이고 **정투영 측면도가 없다**. 그래서 mm 는 사진으로 못 잰다 — 이건 사진을 더 모아도 안 되고, 실물 실측이나 제조사 CAD 가 있어야 풀린다."
+  },
+  "q3_decision": {
+   "choice": "(a) 근거 있다 → **모터·암·다리도 로터를 따라가게 고친다**. 다만 값은 **평균 0 인 층차**로 다시 쓴다.",
+   "chosen_candidate": "C4_arms_follow_zero_mean",
+   "new_value": {
+    "rotor_z_mm": [
+     -7.0,
+     7.0,
+     7.0,
+     -7.0
+    ],
+    "was": [
+     -12.0,
+     2.0,
+     2.0,
+     -12.0
+    ],
+    "step_mm": 14.0,
+    "removes_undeclared_mean_offset_mm": -5.0
+   },
+   "why_ko": [
+    "**철회(C1)가 더 위험하다.** 철회는 «네 로터가 한 평면» 이라고 **적극적으로 주장**하는 것인데, 그 주장은 위 매뉴얼 도면과 정면으로 어긋난다. 무출처 크기를 지우려다 **출처 있는 부호**까지 지운다.",
+    "겹침은 철회로도 사라지지만(1324 → 0 삼각형), 세로 왜곡은 **더 나빠진다** (sz 1.419 → 1.468). 층차를 살리고 암을 따라가게 하면 1.180 로 **가장 좋다**.",
+    "평균 −5 mm 는 아무도 주장한 적이 없는 **부작용**이다(2026-07-14 에 앞 프롭을 뒤 디스크 밑으로 넣으려다 생긴 값). 평균을 0 으로 되돌리면 메쉬 품질은 **완전히 같고**(겹침 0, 간격 7.175 mm, sz 1.17995 — C3 와 소수점까지 동일) 주장만 하나 줄어든다. 그래서 C4 다.",
+    "크기 14 mm 는 **추정으로 강등해서 유지**한다. 실측된 DJI 두 대의 층차가 8.0~21.26 mm 이고, 공식 높이 91 mm 는 26.9 mm 까지도 허용한다 — 14 는 그 안쪽의 보수적인 값이다. 바꿀 근거가 없으므로 **바꾸지 않는다**(근거 없는 값을 다른 근거 없는 값으로 바꾸는 것은 개선이 아니다)."
+   ],
+   "rejected": {
+    "C1_retract": "부호 증거와 어긋나고 세로 왜곡이 47 %로 최악.",
+    "C2_zero_mean_only": "암·벨이 안 따라가서 겹침이 48 삼각형 남는다(간격 -1.019 mm).",
+    "C3_keep_current_tuple": "메쉬는 C4 와 동일하지만 무출처 평균 오프셋을 그대로 안고 간다."
+   }
+  },
+  "q4_overlap_removal": {
+   "must_go_to_zero": true,
+   "measured_now": {
+    "prop_tris_in_bell": 1324,
+    "prop_verts_in_bell": 638,
+    "per_front_rotor_tris": 662,
+    "front_gap_mm": -8.056,
+    "double_counted_prop_area_mm2": 1521.09,
+    "double_counted_prop_area_pct": 9.5872
+   },
+   "note_on_526_ko": "문서의 «삼각형 526·꼭짓점 313» 은 **앞 로터 한 개** 기준이고 판정 반경이 달랐다. 같은 판정법(적대검증 2부 (b))으로 다시 세면 앞 로터 **하나당 662 삼각형·319 꼭짓점**, 앞 두 개 합계 **1324·638** 다. 어느 셈이든 결론은 같다: 앞 프롭이 벨 **속에 박혀 있다**(앞 프롭 밑면이 벨 윗면보다 8.056 mm 아래).",
+   "why_it_matters_ko": "`build_drone` 은 그룹끼리 **불리언 합집합을 안 한다**. 겹친 곳의 프롭 면과 벨 면이 **둘 다 살아서** PO 적분에 들어간다 = 그 면적이 두 번 세어진다. 지금 프롭 전체 면적의 **9.59 %**(1521 mm²)가 그 상태다.",
+   "how_ko": [
+    "1) `src/drone_cad.py:375` — `ARM_Z_FOLLOWS_ROTOR = {\"mini2\": True}` 에 `\"mini5pro\": True` 를 더한다(한 줄). 이미 mini2 용으로 만들어 둔 **키 게이트** 라 표에 없는 기종은 비트동일이다. 이러면 암·모터 벨·다리가 로터 z 를 따라간다.",
+    "2) `src/drones.py:221` — 값을 [-12.0, 2.0, 2.0, -12.0] → **[-7.0, 7.0, 7.0, -7.0]** 로(평균 0), 주석을 통째로 교체한다. «조사 확인» 은 지운다. 새 주석에는 (i) 부호의 근거 = 매뉴얼 p.11/p.14 도면 URL, (ii) 크기는 **추정**이고 밴드가 8~26.9 mm 라는 것, (iii) 암·벨·다리가 이 값을 따라간다는 것을 적는다.",
+    "3) `src/mesh_check.py` 에 **그룹 간 관통 검사**를 새로 넣는다 — 프롭 삼각형 중심이 모터 벨의 (반경, z) 안에 들어가면 실패. 지금은 이런 관통을 아무도 안 막아서 값이 들어온 2026-07-14 부터 **23 일 동안** 조용히 살아 있었다. 검사에는 판정법(반경·z 기준)을 주석에 박아 둘 것 — 526 ↔ 662 혼선이 바로 그것을 안 적어서 생겼다.",
+    "4) mini5pro 메쉬가 바뀌므로 **mini5pro σ·리포트 산출물을 재생성**한다.",
+    "5) 검수: `prop_tris_in_bell == 0` · 네 로터 간격이 **7.175 mm 로 균일** · `frame_fit_scale_z` 가 1.41869 → **1.17995**."
+   ]
+  },
+  "declared_residuals_ko": [
+   "크기 14 mm 는 **여전히 추정**이다. 리포트·주석에서 «측정» 이라고 부르면 안 된다.",
+   "다리(gear='motor_legs')가 앞 암에 붙어 있어 함께 7.0 mm 내려간다 — 지상고·접지 관련 수치는 적용 후 다시 봐야 한다.",
+   "겹침이 없어져도 엔진은 **여전히 그룹 합집합을 안 한다**. 다음 기체에서 같은 사고가 안 나려면 3) 의 검사가 반드시 같이 들어가야 한다.",
+   "평면컷 배율(2.6 %)은 카메라 기울기와 **관측적으로 동치**라 증거로 못 쓴다 — 부호가 어긋나지 않는다는 정합성 확인까지만이다."
+  ],
+  "what_would_overturn_this_ko": [
+   "Mini 5 Pro 의 제조사 CAD/공식 3D 모델이 나오면 부호·크기 둘 다 즉시 결판난다 (mini2 가 그렇게 풀렸다). 2026-08-07 확인: DJI 제품/지원/다운로드 페이지 어디에도 Mini 5 Pro 의 glb·gltf·step 자산이 없다(HTML 전수 검색).",
+   "정투영 측면도(제품 도면·리뷰의 측면 촬영·실물 실측) 한 장이면 크기가 잡힌다.",
+   "실물 한 대를 자로 재는 것 — 이 프로젝트는 실측 계획(Mavic4Pro·Matrice4E)이 이미 있으니 Mini 5 Pro 를 만지게 되면 **로터 4개의 높이**를 최우선으로 잴 것."
+  ]
+ }
+}

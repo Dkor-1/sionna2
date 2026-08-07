@@ -1,0 +1,362 @@
+{
+ "_meta": {
+  "생성": "2026-08-07",
+  "무엇": "05편 논문키트(노트북 셀 23)의 태그 없는 숫자를 근거 JSON 키로 바꾼 기록. 대상은 `src/make_report05_results.py : paper_blocks()` — 방어선 표 defence() 가 본체이고, 같은 셀에 실리는 methods() 문단·인용 목록과 같은 함수의 paper_map() 단서까지 함께 봤다.",
+  "규율_준수": [
+   "src/drones.py · src/drone_cad.py 미열람·미수정",
+   "src/make_report00_foundations.py · report00_foundations.ipynb 미열람·미수정",
+   "outputs/meshgate_* · meshdef_* 미접촉",
+   "GPU 미사용",
+   "리포트 재생성 안 함 — report05_results.ipynb 는 손대지 않았다. 검증은 스크래치패드 사본(r05_probe.ipynb)에 빌드해서 했다",
+   "고친 파일은 src/make_report05_results.py 하나 + 이 산출물"
+  ],
+  "다른_갈래와의_공존": "같은 파일을 F-1 갈래가 동시에 고쳤다(형상 정정 단서). 편집 직전마다 다시 읽고 최소 편집했고, 최종 빌드에 두 갈래의 문장이 모두 살아 있는 것을 확인했다."
+ },
+ "결론": {
+  "판정": "방어선 표에서 **근거 없는 데이터 숫자는 0 개**가 됐다.",
+  "고친_자리": 34,
+  "게재규격_검사": "strict=True 빌드 통과 — 마크다운 25/25 셀 · 그림 7 · 부정문 2/3 · 완충어 0",
+  "출처_태그_수": {
+   "이전": 311,
+   "이후": 374,
+   "증가": 63
+  },
+  "방어선_표_토큰_인구조사": {
+   "태그 붙은 수": 32,
+   "태그 없는 토큰": 41,
+   "태그 없는 토큰의 정체": "전부 그림·절 번호 / 표준 이름 / 선언 규약 / 식 / 코드 줄 / JSON 키 인덱스 / 날짜 조각 — 데이터 숫자는 하나도 없다(아래 declared_not_hand_typed 가 전수)."
+  }
+ },
+ "근거가_없는_수": {
+  "개수": 0,
+  "말": "41 개를 하나씩 훑었는데 **근거 키를 못 찾아 «출처 미상» 으로 남겨야 하는 수는 없었다**. 전부 이미 집안의 JSON 안에 있었고, 본문 다른 절이 같은 값을 이미 태그와 함께 쓰고 있는 경우도 많았다(§3.5 가 0.636·0.303·12.05·20·25 m/s 를 이미 그렇게 쓴다). 즉 이 블록의 문제는 «근거가 없다» 가 아니라 «근거가 있는데 손으로 옮겨 적었다» 였다."
+ },
+ "발견한_결함": [
+  {
+   "등급": "MEDIUM",
+   "자리": "방어선 9행 주장 — 「헤드라인 거리의 β 는 3° 대다」",
+   "무엇": "실제 값은 2.95° 다. 같은 편 §1.1 이 이미 2.95° 로 적고 있어서 **한 편 안에서 두 값이 돌아다녔다**. 손입력이 만든 어긋남이다.",
+   "근거": "outputs/report13_freespace.json : solve.W1.beta_deg 를 solve.W1.R_m 에서 보간 = 2.9486°",
+   "조치": "dnum(D['beta_at_R']) 로 바꿨다 — §1.1 과 같은 함수·같은 출처를 쓴다."
+  },
+  {
+   "등급": "LOW",
+   "자리": "방어선 5행 — 「CPI 0.1 s 에서 0.636, CPI 0.2 s 에서 0.303」",
+   "무엇": "0.636·0.303 이 «커버리지» 인지 «가려지는 헤딩 비율» 인지 문장이 안 밝혔다. 바로 앞 공격 칸이 「커버리지 0」 이라 읽는 사람은 0.636 을 커버리지로 읽게 된다. JSON 의 값은 blind_hard (가려지는 비율) 다 — 뜻이 뒤집혀 읽힌다.",
+   "근거": "outputs/cpi_guard_sweep.json : verdict.artifact.blind_hard_same_cpi = 0.6361…",
+   "조치": "「가려지는 헤딩 비율이 0.636」 으로 말을 바꿨다(쉬운 말 규율도 같이 지킨다)."
+  },
+  {
+   "등급": "LOW · 도구",
+   "자리": "src/report_style.py : _PROV_VALUE",
+   "무엇": "출처 태그와 그 앞의 값을 통째로 지우는 정규식의 단위 문자군이 `[A-Za-z·/]` 라 **한글 단위를 모른다**. 그래서 `12.05 배 ⟨…⟩` 처럼 태그가 멀쩡히 붙은 수도 §5.6-1 검사에 «출처 태그 없는 숫자» 로 걸린다. 검사가 스스로를 눈멀게 하는 자리다.",
+   "조치": "이 갈래는 도구를 안 고치고 **글 쪽에서 피했다** — 한글 단위를 태그 뒤로 뺐다(`12.05 ⟨…⟩ 배`). 도구를 고치려면 `[A-Za-z·/]` 에 한글 음절 범위를 더하면 되지만, 그 한 줄이 저장소 전체 검사 결과를 바꾸므로 이 라운드에서 손대지 않았다.",
+   "다음_갈래에": "_PROV_VALUE 의 단위 문자군에 `\\uac00-\\ud7a3` 를 더할지 판단할 것. 더하면 다른 편들의 «손입력 후보» 경고가 여럿 사라진다(진짜로 태그가 있는 수들이다)."
+  },
+  {
+   "등급": "정보",
+   "자리": "methods() 문단",
+   "무엇": "이 문단의 수(500 m · 60 m · 90 deg · 63 dBm · 10 dBi · 5 dB · 100 ms · 5.21/1.843/3.5 GHz · 1e-04 · 45 deg · 720 · 5 m/s · 1.5 · 2.5 bins)는 전부 fetch() 주입이라 손입력이 아니지만, 논문에 그대로 옮기는 문단이라 ⟨⟩ 태그를 **일부러 안 단다**. 그래서 렌더된 글만 보면 태그 없는 숫자로 보인다 — 이 라운드가 «41 개» 를 셀 때 이 문단이 섞여 들어갔을 개연성이 크다.",
+   "조치": "그 중 유일하게 손으로 친 값이던 0.210 dB/GHz 만 fetch() 로 바꿨다(문단·인용 두 자리)."
+  }
+ ],
+ "개수_대조": {
+  "말": "이 갈래가 실제로 만진 자리는 34 개다(치환 30 · 신설 인용 3 · 삭제 1). 지시서의 «41 개» 와 숫자가 다른 것은 세는 잣대가 달라서다.",
+  "잣대별_수": {
+   "방어선 표의 데이터 숫자(이 갈래가 고쳐야 할 것)": 30,
+   "+ paper_map 단서 2 · methods 0.210 · 인용 0.210": 34,
+   "셀 23 전체의 «손입력 후보»(report_style §5.6-1 기준) 이전": 38,
+   "셀 23 전체의 «손입력 후보» 이후": 24,
+   "방어선 표에 지금 남은 비데이터 토큰": 41
+  },
+  "주의": "«41» 이 원래 어느 잣대였는지 corr2_verify.json 이 적지 않아 1:1 대조는 못 한다. 확실한 것은 **데이터 숫자는 0 개 남았다**는 것이다."
+ },
+ "declared_not_hand_typed": {
+  "그림·표·절·편 번호": [
+   "그림 1·2(b)·4·5(a)·5(b)·6·6(b)·7",
+   "§3.3 · §3.6 · §3.4 · §2.2",
+   "02 §3.1a · 02 §5 · 06편 §4-1"
+  ],
+  "표준·기체 이름 안의 숫자": [
+   "5G(×5)",
+   "WiFi",
+   "LTE"
+  ],
+  "선언 규약": [
+   "공통모드 봉투 ±10 dB(×2)",
+   "바이스태틱 방법 조건 β ≤ 45°(×4, dnum 의 how 문자열 2회 포함)"
+  ],
+  "식": [
+   "절대거리 ∝ dB/4 (레이더식 R⁴ ∝ σ)",
+   "전 헤딩 블라인드 M ≤ 2g (근거 칸이 structural.formula 를 가리킨다)",
+   "열잡음 코히어런트 상한 10log₁₀N"
+  ],
+  "코드 줄": [
+   "`src/experiment_detection.py:284`"
+  ],
+  "JSON 키 안의 인덱스": [
+   "equal_cpi_penalty[0](×2) · equal_cpi_penalty[1] · by_speed[6] · by_speed[7]"
+  ],
+  "인용된 옛 주장": [
+   "「커버리지 0」 — 우리 옛 문장을 심사자 입으로 되읽는 자리다. 그 0 이 성립하는 조건(2.5 빈 선언가드 · CPI ≤ 0.10 s)을 같은 행 답 칸이 outputs/cpi_guard_sweep.json : structural.by_mode.G1.T_max_total_blind_declared_s 로 든다"
+  ],
+  "num() 이 찍은 날짜의 조각": [
+   "2026-08-04 (다른 갈래가 넣은 형상 정정 날짜 — 문자열 전체가 outputs/meshfix_applied.json : _meta.date 로 태그돼 있고, 토큰 단위로 쪼갤 때만 2026·08·04 로 보인다)"
+  ]
+ },
+ "편집": [
+  {
+   "file": "src/make_report05_results.py",
+   "site": "paper_map 단서 1",
+   "before": "3가지 순위를 낸다",
+   "after": "3 ⟨…⟩ 가지",
+   "why": "outputs/sigma_sensitivity.json : ranking_consensus.single_aspect_n_distinct"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "paper_map 단서 3",
+   "before": "2가지로 갈린다",
+   "after": "2 ⟨…⟩ 가지로",
+   "why": "outputs/sigma_sensitivity.json : configurations.by_config.aspect_avg_anchored_duty.n_distinct_orders"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "methods 문단",
+   "before": "the measured 0.210 dB/GHz",
+   "after": "fetch() 주입(0.210)",
+   "why": "outputs/sigma_anchor.json : sources.anchors.das_phantom3_mono.a"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 1행 답",
+   "before": "듀티 항이 세 밴드 모두 0 dB",
+   "after": "0 dB ⟨…⟩",
+   "why": "outputs/report13_freespace.json : ranges.mavic4pro.*.equal_psd.full_waveform_capture.by_N.1.budget_terms_db.duty"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 1행 답",
+   "before": "LTE 대비 16.02 dB",
+   "after": "16.02 dB ⟨…⟩",
+   "why": "outputs/sigma_sensitivity.json : unapplied_duty_axis.pair_gaps_db.L1-G1"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 2행 답",
+   "before": "단일 자세는 3가지 순위",
+   "after": "3 ⟨…⟩ 가지",
+   "why": "outputs/sigma_sensitivity.json : ranking_consensus.single_aspect_n_distinct"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 3행 주장",
+   "before": "순위는 15칸 전부 유지",
+   "after": "15 ⟨…⟩ 칸",
+   "why": "outputs/sigma_sensitivity.json : common_mode.by_drone → 기체 × 밴드"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 4행 주장",
+   "before": "자세평균 앵커 설정에서 3.72 dB",
+   "after": "3.72 dB ⟨…⟩",
+   "why": "outputs/sigma_sensitivity.json : configurations.by_config.aspect_avg_anchored.worst_flip_span_db"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 4행 공격",
+   "before": "현실 차분오차 봉투 5.01 dB",
+   "after": "5.01 dB ⟨…⟩",
+   "why": "outputs/sigma_sensitivity.json : differential.realistic_span_db"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 4행 답",
+   "before": "다섯 중 둘이 그 봉투 안에",
+   "after": "다섯 중 2 ⟨…⟩ 기체",
+   "why": "outputs/sigma_sensitivity.json : configurations.by_config.aspect_avg_anchored.n_drones_flipping_inside_realistic"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 5행 공격",
+   "before": "CPI 0.1 s 한 점에서",
+   "after": "CPI 0.1 s ⟨…⟩",
+   "why": "outputs/cpi_guard_sweep.json : equal_cpi_penalty[0].T_cpi_s"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 5행 답",
+   "before": "2.5빈 선언가드",
+   "after": "2.5 ⟨…⟩ 빈",
+   "why": "outputs/cpi_guard_sweep.json : structural.guard_bins_declared"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 5행 답",
+   "before": "(신설) 그 점이 성립하는 CPI 상한",
+   "after": "CPI 0.10 s ⟨…⟩ 이하일 때",
+   "why": "outputs/cpi_guard_sweep.json : structural.by_mode.G1.T_max_total_blind_declared_s"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 5행 답",
+   "before": "1.5빈 규약",
+   "after": "1.5 ⟨…⟩ 빈",
+   "why": "outputs/cpi_guard_sweep.json : structural.guard_bins_hard"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 5행 답",
+   "before": "같은 CPI 에서 0.636",
+   "after": "가려지는 헤딩 비율이 0.636 ⟨…⟩",
+   "why": "outputs/cpi_guard_sweep.json : verdict.artifact.blind_hard_same_cpi"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 5행 답",
+   "before": "CPI 0.2 s 에서",
+   "after": "CPI 0.2 s ⟨…⟩",
+   "why": "outputs/cpi_guard_sweep.json : equal_cpi_penalty[1].T_cpi_s"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 5행 답",
+   "before": "0.303 이다",
+   "after": "0.303 ⟨…⟩",
+   "why": "outputs/cpi_guard_sweep.json : verdict.artifact.blind_hard_at_200ms"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 5행 답",
+   "before": "WiFi 대비 배수 12.05",
+   "after": "12.05 ⟨…⟩",
+   "why": "outputs/cpi_guard_sweep.json : equal_cpi_penalty[0].ratio_G1_over_W1"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 6행 주장",
+   "before": "CPI 1.0 s 가 필요",
+   "after": "1.0 s ⟨…⟩",
+   "why": "outputs/cpi_guard_sweep.json : cost_of_long_cpi.required_cpi_s.to_WiFi_parity"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 6행 주장",
+   "before": "표적 속도 20 m/s 까지",
+   "after": "20 m/s ⟨…⟩",
+   "why": "outputs/cpi_guard_sweep.json : cost_of_long_cpi.by_speed[6].speed_ms"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 6행 답",
+   "before": "LTE 패리티에 3.75배",
+   "after": "3.75 ⟨…⟩ 배",
+   "why": "outputs/cpi_guard_sweep.json : cost_of_long_cpi.at_required_cpi.v5_LTE_parity.elapsed_vs_headline"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 6행 답",
+   "before": "WiFi 패리티에 10배",
+   "after": "10 ⟨…⟩ 배",
+   "why": "outputs/cpi_guard_sweep.json : cost_of_long_cpi.at_required_cpi.v5_WiFi_parity.elapsed_vs_headline"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 6행 답",
+   "before": "25 m/s 이상에서",
+   "after": "25 m/s ⟨…⟩",
+   "why": "outputs/cpi_guard_sweep.json : cost_of_long_cpi.by_speed[7].speed_ms"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 7행 주장",
+   "before": "−0.11",
+   "after": "-0.11 ⟨…⟩",
+   "why": "outputs/report05_derived.json : rx_gain.excess_min_db"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 7행 주장",
+   "before": "+0.47 dB",
+   "after": "+0.47 dB ⟨…⟩",
+   "why": "outputs/report05_derived.json : rx_gain.excess_max_db"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 7행 답",
+   "before": "표준편차의 11.0배",
+   "after": "11.0 ⟨…⟩ 배",
+   "why": "outputs/report05_derived.json : rx_gain.excess_in_sigma"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 8행 주장",
+   "before": "5G 에서 3.82 dB",
+   "after": "3.82 dB ⟨…⟩",
+   "why": "outputs/report05_derived.json : always_on_cost.G.cost_db"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 8행 주장",
+   "before": "거리분해능 41.64 m",
+   "after": "41.64 m ⟨…⟩",
+   "why": "outputs/report05_derived.json : always_on_cost.G.dr_g1_m"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 8행 주장",
+   "before": "대 3.05 m",
+   "after": "3.05 m ⟨…⟩",
+   "why": "outputs/report05_derived.json : always_on_cost.G.dr_g3_m"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 9행 주장",
+   "before": "헤드라인 거리의 β 는 3° 대다",
+   "after": "2.95° ⟨…⟩ 다  ⭐값 정정",
+   "why": "outputs/report13_freespace.json : solve.W1.beta_deg → R90 에서 보간"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 9행 답",
+   "before": "(신설) 창 밖 잔차 크기",
+   "after": "최대 4.02 dB ⟨…⟩",
+   "why": "outputs/sbr_defect_fixes.json : d2_reciprocity_drone.rows → β>45 행 최대"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 9행 답",
+   "before": "(신설) 창 안 잔차 크기",
+   "after": "창 안의 2.57 dB ⟨…⟩",
+   "why": "outputs/sbr_defect_fixes.json : d2_reciprocity_drone.rows → β≤45 행 최대"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "방어선 9행 답",
+   "before": "β 60~90° 에서",
+   "after": "창 밖(β > 45°) 행에서  ⭐격자 행 번호 삭제",
+   "why": "위 두 dnum 이 «창 밖/창 안» 을 정의하므로 60·90 을 손으로 적을 이유가 사라졌다"
+  },
+  {
+   "file": "src/make_report05_results.py",
+   "site": "인용 1(Das)",
+   "before": "Table III · 0.210 dB/GHz 기울기 앵커",
+   "after": "fetch() 주입(0.210)",
+   "why": "outputs/sigma_anchor.json : sources.anchors.das_phantom3_mono.a"
+  }
+ ],
+ "검증": {
+  "명령": "PYTHONPATH=src python -c \"import make_report05_results as M, report_style as rs; D=M.derived(); rs.build_notebook('<scratch>.ipynb', M.build_blocks(D), strict=True)\"",
+  "결과": "OK — 마크다운 25/25 셀 · 코드 0 셀 · 그림 7/8 · 출처태그 374 개 · 부정문 2/3 · 완충어 0/0",
+  "num()_대조": "모든 치환은 num(None, …) 또는 dnum(fetch 로 읽은 값, …) 이라 값은 JSON 이 정한다 — JSON 이 바뀌면 글도 같이 바뀌고, 어긋나면 빌드가 멈춘다.",
+  "이월된_위험_확인": {
+   "부정문": "2/3 — 늘리지 않았다",
+   "마크다운 셀": "25/25 — 셀을 늘리지 않았다(전부 기존 문자열 안에서 고쳤다)",
+   "SLOPE_LEDGER_GAP_MAX_DB_PER_GHZ": "σ 사슬을 재실행하지 않았다 — 상수 미접촉",
+   "06편 §4-1 12/12 줄": "06편 미접촉"
+  }
+ },
+ "남은_것": [
+  "F-1(HIGH) · F-2(HIGH) · Q4 용어는 다른 갈래의 몫이다 — 이 갈래는 손대지 않았다. 다만 F-1 갈래가 같은 파일에 넣은 형상 정정 문장 두 개(방법 «밴드 비교» 행 · 방어선 4행 답)가 최종 빌드에 살아 있는 것을 확인했다.",
+  "report05_results.ipynb 재생성은 다음 단계가 한 번에 한다 — 이 갈래는 소스만 고쳤다."
+ ]
+}

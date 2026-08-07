@@ -1,0 +1,1748 @@
+{
+ "_meta": {
+  "title": "메쉬 확정 검사 — 적용 라운드 독립 검증",
+  "when": "2026-08-07T06:41:54",
+  "verifier_stance_ko": "적용 라운드가 만든 숫자를 **다시 계산해서** 확인했다. HEAD 판 src 를 스크래치로 꺼내 «수정 전» 메쉬를 다시 지었고, 해시·무결성·겹침·σ·마이크로도플러를 전부 내 자로 다시 쟀다. 저장소 코드의 결과를 인용한 곳은 없다(mesh_check 실행 결과 하나만 대조용).",
+  "how_before_was_rebuilt": "git archive HEAD src → 스크래치. 나머지 모듈은 공유(geom·cadkit·rcs_sbr).",
+  "gpu": "σ 재측정만 GPU — src/gpu.py 가 여유 기준으로 GPU 2 를 골랐다. 메쉬 검사는 전부 CPU.",
+  "files_touched": "없음 — 이 검증은 저장소 파일을 하나도 고치지 않았다(결과 JSON 만 쓴다).",
+  "inputs": [
+   "outputs/meshgate_applied.json",
+   "outputs/meshgate_mini5pro.json",
+   "outputs/meshgate_fisheye.json",
+   "outputs/meshdef_prop_gap.json",
+   "outputs/meshdef_spec.json"
+  ]
+ },
+ "headline_ko": "**적용 라운드의 뼈대는 전부 재현됐다 — 비트동일 셋도, 바뀐 일곱도, 프롭이 실제로 움직였다는 것도 내 손으로 다시 계산해서 같았다.** 열 기체 전부 watertight·법선·winding·퇴화면 0 이다. σ 는 독립 재측정에서 부호와 크기대가 맞았다(matrice4e el0 +0.43 ↔ 그쪽 +0.36, mini5pro el0 −0.66 ↔ −0.91). 새 검사도 헛돌지 않는다 — mini5pro 를 되돌리니 실패했다. **그러나 두 가지가 빠졌다.** ① s1000plus 는 전용 분기라 `MOTOR_BELL_TOP_Z_M` 에 등록됐어야 하는데 안 돼서 프롭이 아직 벨 위 **1.98 mm** 에 떠 있다 — 이 라운드가 없애려던 바로 그 «두 곳이 다르게 센다» 결함이 한 기체에 남았다. ② phantom3 이 바뀌었으므로 명세가 미리 정한 승격 조건에 따라 p3_*·anchor_subband* 가 stale 목록 A 로 올라갔어야 하는데 목록에 없다(그 중 하나는 4.0 시간짜리다). 나머지 넷은 숫자 표기의 자잘한 불일치다 — 결론을 바꾸지 않는다.",
+ "verdict": {
+  "check1_hash_of_untouched": "CONFIRMED",
+  "check2_integrity": "PASS",
+  "check3_envelope_fit": "PASS(설명 필요 — 아래 note 참고)",
+  "check4_props_really_moved": "CONFIRMED",
+  "check5_overlap_removed": "PARTIAL — 줄었지만 0 이 아니고, 세 기체에 새 겹침이 생겼다(선언됨)",
+  "check6_invalidation": "INCOMPLETE — phantom3 계열 누락(V2)",
+  "overall_ko": "적용은 **채택 가능**하다. 다만 V1(s1000plus)과 V2(stale 목록)를 다음 라운드 1순위로 올린다."
+ },
+ "check1_bit_identity": {
+  "convention": "sha256( float32(v).tobytes() + int32(f).tobytes() ) — 지시된 규약",
+  "also_ran": "float64/int64 엄격판(반올림이 차이를 숨기지 못하게)",
+  "per_drone": {
+   "mini5pro": {
+    "drone_sha_before": "2f4a3b728f97528e961ab1096344deb5d3479345ca9b595aebb5853ce5ca5a60",
+    "drone_sha_after": "dd0081211cb06c68c7429d0b9a1aa789b0cb20ab81f12e17d8a3f7eb426edc4b",
+    "identical_f32": false,
+    "identical_f64": false,
+    "frame_identical": false,
+    "groups_changed": [
+     "accent",
+     "battery",
+     "body",
+     "camera",
+     "canopy",
+     "gear",
+     "motor",
+     "pcb",
+     "prop"
+    ],
+    "n_f": [
+     29068,
+     29036
+    ]
+   },
+   "mavic4pro": {
+    "drone_sha_before": "6d10971549591cfeb7823253ec7d8147ee1f6301b211c3a75b18f3b16bb97a5f",
+    "drone_sha_after": "facadf55d2df9e05fe66e6f8ef35702673c97d565d069be647412112d651cd81",
+    "identical_f32": false,
+    "identical_f64": false,
+    "frame_identical": true,
+    "groups_changed": [
+     "prop"
+    ],
+    "n_f": [
+     29932,
+     29932
+    ]
+   },
+   "matrice4e": {
+    "drone_sha_before": "4b66faa02f908b2244df285f9258a435a2cc41503479aa59b802911de7fc6e1f",
+    "drone_sha_after": "5a11a4d087e3279908a953f0387aad8d56a7f7428574f6b622fc2d3e7864fd08",
+    "identical_f32": false,
+    "identical_f64": false,
+    "frame_identical": false,
+    "groups_changed": [
+     "camera",
+     "prop"
+    ],
+    "n_f": [
+     30734,
+     30662
+    ]
+   },
+   "s1000plus": {
+    "drone_sha_before": "c8d240fd818ee06aafbecfbb656d7293ba4312585624927ee90536e3952e20fa",
+    "drone_sha_after": "f80a6202a1c78d5f40863bb9a8d9525ac577631691764bc7db5120e7a33baba9",
+    "identical_f32": false,
+    "identical_f64": false,
+    "frame_identical": true,
+    "groups_changed": [
+     "prop"
+    ],
+    "n_f": [
+     35370,
+     35370
+    ]
+   },
+   "phantom4": {
+    "drone_sha_before": "075f30ed3659803e39153860031150f26dcb009a8e6db993a05efefe286717d3",
+    "drone_sha_after": "89d0dd97163e28805173ae1f9affd41511a30772b5830ef4dbb1e3abbc5b40fe",
+    "identical_f32": false,
+    "identical_f64": false,
+    "frame_identical": true,
+    "groups_changed": [
+     "prop"
+    ],
+    "n_f": [
+     28402,
+     28402
+    ]
+   },
+   "typhoonh480": {
+    "drone_sha_before": "da4c6ab10d756aa181c63a4b3512bfb0ca38a479e7a5c5d6563abc012963807f",
+    "drone_sha_after": "da4c6ab10d756aa181c63a4b3512bfb0ca38a479e7a5c5d6563abc012963807f",
+    "identical_f32": true,
+    "identical_f64": true,
+    "frame_identical": true,
+    "groups_changed": [],
+    "n_f": [
+     34732,
+     34732
+    ]
+   },
+   "x500v2": {
+    "drone_sha_before": "8983310d56320b23ca96f5cc67711174f10d7ece081a0f92b8ad9200df9b0800",
+    "drone_sha_after": "8983310d56320b23ca96f5cc67711174f10d7ece081a0f92b8ad9200df9b0800",
+    "identical_f32": true,
+    "identical_f64": true,
+    "frame_identical": true,
+    "groups_changed": [],
+    "n_f": [
+     19030,
+     19030
+    ]
+   },
+   "phantom3": {
+    "drone_sha_before": "307d5826625d3df2473ba72d2566f27f71c161d6e05bd13628f6c858fec9529e",
+    "drone_sha_after": "57297bcd104002395355531e90adaca815522131b53e837f42a32247d986de86",
+    "identical_f32": false,
+    "identical_f64": false,
+    "frame_identical": true,
+    "groups_changed": [
+     "prop"
+    ],
+    "n_f": [
+     28366,
+     28366
+    ]
+   },
+   "m350rtk": {
+    "drone_sha_before": "f5a2f73d71210648eaf13c2d0b14a6d18dd56b0126664c60d0d3d18ae02d353c",
+    "drone_sha_after": "f5a2f73d71210648eaf13c2d0b14a6d18dd56b0126664c60d0d3d18ae02d353c",
+    "identical_f32": true,
+    "identical_f64": true,
+    "frame_identical": true,
+    "groups_changed": [],
+    "n_f": [
+     26216,
+     26216
+    ]
+   },
+   "mini2": {
+    "drone_sha_before": "41781fde96dc30562c32e201d3134833ac8aa9e1e47d8095ab0ef414a4dad8eb",
+    "drone_sha_after": "295ccbaaa0668b71e2a825d483e2ba4756f870e54cf653b26a138a75a4f8e3bc",
+    "identical_f32": false,
+    "identical_f64": false,
+    "frame_identical": false,
+    "groups_changed": [
+     "camera"
+    ],
+    "n_f": [
+     25823,
+     25823
+    ]
+   }
+  },
+  "bit_identical": [
+   "m350rtk",
+   "typhoonh480",
+   "x500v2"
+  ],
+  "changed": [
+   "matrice4e",
+   "mavic4pro",
+   "mini2",
+   "mini5pro",
+   "phantom3",
+   "phantom4",
+   "s1000plus"
+  ],
+  "claim_bit_identical": [
+   "m350rtk",
+   "typhoonh480",
+   "x500v2"
+  ],
+  "claim_changed": [
+   "matrice4e",
+   "mavic4pro",
+   "mini2",
+   "mini5pro",
+   "phantom3",
+   "phantom4",
+   "s1000plus"
+  ],
+  "verdict": "CONFIRMED",
+  "note_ko": "해시 **값**은 적용 라운드가 적은 것과 다르다 — 직렬화 규약이 서로 다르기 때문이다(같은 메쉬라도 바이트를 다르게 이어 붙이면 다른 해시가 나온다). 검증에 쓰이는 것은 값이 아니라 **같다/다르다의 패턴**이고, 그 패턴은 열 기체 전부 일치한다. float64 로 다시 재도 결론이 같다 — float32 반올림이 미세 변화를 숨긴 것이 아니다."
+ },
+ "check2_integrity": {
+  "method": "그룹 → 연결요소(부품)별 trimesh 검사. 퇴화면은 process 전(raw)·후 둘 다 셌다.",
+  "per_drone": {
+   "mini5pro": {
+    "faces": 29036,
+    "parts": 23,
+    "watertight": 23,
+    "inward": 0,
+    "winding": 0,
+    "degen_proc": 0,
+    "degen_raw": 0,
+    "min_triangle_area_mm2": 4.986e-06,
+    "ok": true
+   },
+   "mavic4pro": {
+    "faces": 29932,
+    "parts": 20,
+    "watertight": 20,
+    "inward": 0,
+    "winding": 0,
+    "degen_proc": 0,
+    "degen_raw": 0,
+    "min_triangle_area_mm2": 1.12e-07,
+    "ok": true
+   },
+   "matrice4e": {
+    "faces": 30662,
+    "parts": 28,
+    "watertight": 28,
+    "inward": 0,
+    "winding": 0,
+    "degen_proc": 0,
+    "degen_raw": 0,
+    "min_triangle_area_mm2": 1.4693e-05,
+    "ok": true
+   },
+   "s1000plus": {
+    "faces": 35370,
+    "parts": 49,
+    "watertight": 49,
+    "inward": 0,
+    "winding": 0,
+    "degen_proc": 0,
+    "degen_raw": 0,
+    "min_triangle_area_mm2": 9.2069e-05,
+    "ok": true
+   },
+   "phantom4": {
+    "faces": 28402,
+    "parts": 23,
+    "watertight": 23,
+    "inward": 0,
+    "winding": 0,
+    "degen_proc": 0,
+    "degen_raw": 0,
+    "min_triangle_area_mm2": 1.1291e-05,
+    "ok": true
+   },
+   "typhoonh480": {
+    "faces": 34732,
+    "parts": 29,
+    "watertight": 29,
+    "inward": 0,
+    "winding": 0,
+    "degen_proc": 0,
+    "degen_raw": 0,
+    "min_triangle_area_mm2": 9.361e-06,
+    "ok": true
+   },
+   "x500v2": {
+    "faces": 19030,
+    "parts": 50,
+    "watertight": 50,
+    "inward": 0,
+    "winding": 0,
+    "degen_proc": 0,
+    "degen_raw": 0,
+    "min_triangle_area_mm2": 5.397e-05,
+    "ok": true
+   },
+   "phantom3": {
+    "faces": 28366,
+    "parts": 21,
+    "watertight": 21,
+    "inward": 0,
+    "winding": 0,
+    "degen_proc": 0,
+    "degen_raw": 0,
+    "min_triangle_area_mm2": 1.4673e-05,
+    "ok": true
+   },
+   "m350rtk": {
+    "faces": 26216,
+    "parts": 43,
+    "watertight": 43,
+    "inward": 0,
+    "winding": 0,
+    "degen_proc": 0,
+    "degen_raw": 0,
+    "min_triangle_area_mm2": 0.000129682,
+    "ok": true
+   },
+   "mini2": {
+    "faces": 25823,
+    "parts": 18,
+    "watertight": 18,
+    "inward": 0,
+    "winding": 0,
+    "degen_proc": 0,
+    "degen_raw": 0,
+    "min_triangle_area_mm2": 1.106e-05,
+    "ok": true
+   }
+  },
+  "all_ok": true,
+  "repo_mesh_check": "python src/mesh_check.py → 10/10 통과(직접 실행)",
+  "verdict": "CONFIRMED"
+ },
+ "check3_envelope_and_fit": {
+  "note_ko": "bbox 오차는 **정의상 0 이다** — `frame_fit_scale` 이 프레임 bbox 를 공표치수에 강제로 맞추기 때문이다. 그래서 진짜 진단값은 오차가 아니라 **그 배율이 1.0 에서 얼마나 먼가**(형상이 공표치수와 얼마나 어긋나 있는가)다.",
+  "per_drone": {
+   "mini5pro": {
+    "official_mm": [
+     null,
+     null,
+     91.0
+    ],
+    "official_includes_props": true,
+    "compared_mm": [
+     258.367,
+     360.424,
+     91.0
+    ],
+    "err_pct": [
+     null,
+     null,
+     0.0
+    ],
+    "fit_scale_before": [
+     1.0,
+     1.0,
+     1.418691
+    ],
+    "fit_scale_after": [
+     1.0,
+     1.0,
+     1.3189
+    ],
+    "fit_sz_stretch_pct": 31.89,
+    "drone_bbox_mm_before": [
+     258.36673,
+     360.42402,
+     91.0
+    ],
+    "drone_bbox_mm_after": [
+     258.36673,
+     360.42402,
+     91.0
+    ],
+    "diagonal_spec_mm": 275,
+    "diagonal_effective_mm": 248.99,
+    "wheelbase_opposite_mm": 248.263
+   },
+   "mavic4pro": {
+    "official_mm": [
+     null,
+     null,
+     135.2
+    ],
+    "official_includes_props": false,
+    "compared_mm": [
+     320.995,
+     390.515,
+     135.2
+    ],
+    "err_pct": [
+     null,
+     null,
+     0.0
+    ],
+    "fit_scale_before": [
+     1.0,
+     1.0,
+     1.352406
+    ],
+    "fit_scale_after": [
+     1.0,
+     1.0,
+     1.352406
+    ],
+    "fit_sz_stretch_pct": 35.24,
+    "drone_bbox_mm_before": [
+     464.46954,
+     595.67819,
+     149.82176
+    ],
+    "drone_bbox_mm_after": [
+     464.46954,
+     595.67819,
+     138.42707
+    ],
+    "diagonal_spec_mm": 441,
+    "diagonal_effective_mm": 441.0,
+    "wheelbase_opposite_mm": 441.0
+   },
+   "matrice4e": {
+    "official_mm": [
+     null,
+     null,
+     149.5
+    ],
+    "official_includes_props": false,
+    "compared_mm": [
+     331.431,
+     389.748,
+     149.5
+    ],
+    "err_pct": [
+     null,
+     null,
+     0.0
+    ],
+    "fit_scale_before": [
+     1.0,
+     1.0,
+     0.999873
+    ],
+    "fit_scale_after": [
+     1.0,
+     1.0,
+     0.999873
+    ],
+    "fit_sz_stretch_pct": -0.01,
+    "drone_bbox_mm_before": [
+     476.20692,
+     594.74072,
+     149.5
+    ],
+    "drone_bbox_mm_after": [
+     476.20692,
+     594.74072,
+     149.5
+    ],
+    "diagonal_spec_mm": 438.8,
+    "diagonal_effective_mm": 439.13,
+    "wheelbase_opposite_mm": 438.866
+   },
+   "s1000plus": {
+    "official_mm": [
+     1016.0,
+     1016.0,
+     380.0
+    ],
+    "official_includes_props": false,
+    "compared_mm": [
+     1016.0,
+     1016.0,
+     380.0
+    ],
+    "err_pct": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "fit_scale_before": [
+     0.998571,
+     0.998571,
+     0.929095
+    ],
+    "fit_scale_after": [
+     0.998571,
+     0.998571,
+     0.929095
+    ],
+    "fit_sz_stretch_pct": -7.09,
+    "drone_bbox_mm_before": [
+     1329.76586,
+     1329.76586,
+     380.0
+    ],
+    "drone_bbox_mm_after": [
+     1329.76586,
+     1329.76586,
+     380.0
+    ],
+    "diagonal_spec_mm": 1045,
+    "diagonal_effective_mm": 1043.506,
+    "wheelbase_opposite_mm": 1043.506
+   },
+   "phantom4": {
+    "official_mm": [
+     289.5,
+     289.5,
+     196.0
+    ],
+    "official_includes_props": false,
+    "compared_mm": [
+     289.5,
+     289.5,
+     196.0
+    ],
+    "err_pct": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "fit_scale_before": [
+     1.019771,
+     1.019771,
+     0.937409
+    ],
+    "fit_scale_after": [
+     1.019771,
+     1.019771,
+     0.937409
+    ],
+    "fit_sz_stretch_pct": -6.26,
+    "drone_bbox_mm_before": [
+     440.27787,
+     467.50404,
+     197.69401
+    ],
+    "drone_bbox_mm_after": [
+     440.27787,
+     467.50404,
+     196.0
+    ],
+    "diagonal_spec_mm": 350,
+    "diagonal_effective_mm": 356.92,
+    "wheelbase_opposite_mm": 356.92
+   },
+   "typhoonh480": {
+    "official_mm": [
+     null,
+     null,
+     310.0
+    ],
+    "official_includes_props": false,
+    "compared_mm": [
+     452.169,
+     517.0,
+     310.0
+    ],
+    "err_pct": [
+     null,
+     null,
+     0.0
+    ],
+    "fit_scale_before": [
+     1.0,
+     1.0,
+     1.018932
+    ],
+    "fit_scale_after": [
+     1.0,
+     1.0,
+     1.018932
+    ],
+    "fit_sz_stretch_pct": 1.89,
+    "drone_bbox_mm_before": [
+     634.0054,
+     704.22409,
+     318.52492
+    ],
+    "drone_bbox_mm_after": [
+     634.0054,
+     704.22409,
+     318.52492
+    ],
+    "diagonal_spec_mm": 480,
+    "diagonal_effective_mm": 480.0,
+    "wheelbase_opposite_mm": 480.0
+   },
+   "x500v2": {
+    "official_mm": [
+     null,
+     null,
+     null
+    ],
+    "official_includes_props": false,
+    "compared_mm": [
+     400.378,
+     400.378,
+     336.28
+    ],
+    "err_pct": [
+     null,
+     null,
+     null
+    ],
+    "fit_scale_before": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "fit_scale_after": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "fit_sz_stretch_pct": 0.0,
+    "drone_bbox_mm_before": [
+     552.41288,
+     581.23003,
+     336.28
+    ],
+    "drone_bbox_mm_after": [
+     552.41288,
+     581.23003,
+     336.28
+    ],
+    "diagonal_spec_mm": 500,
+    "diagonal_effective_mm": 500.0,
+    "wheelbase_opposite_mm": 500.0
+   },
+   "phantom3": {
+    "official_mm": [
+     null,
+     null,
+     185.0
+    ],
+    "official_includes_props": false,
+    "compared_mm": [
+     289.066,
+     289.066,
+     185.0
+    ],
+    "err_pct": [
+     null,
+     null,
+     0.0
+    ],
+    "fit_scale_before": [
+     1.0,
+     1.0,
+     0.998178
+    ],
+    "fit_scale_after": [
+     1.0,
+     1.0,
+     0.998178
+    ],
+    "fit_sz_stretch_pct": -0.18,
+    "drone_bbox_mm_before": [
+     435.3849,
+     462.61108,
+     195.05078
+    ],
+    "drone_bbox_mm_after": [
+     435.3849,
+     462.61108,
+     187.61436
+    ],
+    "diagonal_spec_mm": 350.0,
+    "diagonal_effective_mm": 350.0,
+    "wheelbase_opposite_mm": 350.0
+   },
+   "m350rtk": {
+    "official_mm": [
+     null,
+     null,
+     430.0
+    ],
+    "official_includes_props": false,
+    "compared_mm": [
+     771.047,
+     626.342,
+     430.0
+    ],
+    "err_pct": [
+     null,
+     null,
+     0.0
+    ],
+    "fit_scale_before": [
+     1.0,
+     1.0,
+     0.990783
+    ],
+    "fit_scale_after": [
+     1.0,
+     1.0,
+     0.990783
+    ],
+    "fit_sz_stretch_pct": -0.92,
+    "drone_bbox_mm_before": [
+     1150.47562,
+     1008.01329,
+     430.0
+    ],
+    "drone_bbox_mm_after": [
+     1150.47562,
+     1008.01329,
+     430.0
+    ],
+    "diagonal_spec_mm": 895.0,
+    "diagonal_effective_mm": 895.0,
+    "wheelbase_opposite_mm": 895.0
+   },
+   "mini2": {
+    "official_mm": [
+     null,
+     null,
+     56.0
+    ],
+    "official_includes_props": false,
+    "compared_mm": [
+     160.094,
+     206.919,
+     56.0
+    ],
+    "err_pct": [
+     null,
+     null,
+     -0.0
+    ],
+    "fit_scale_before": [
+     1.0,
+     1.0,
+     1.00126
+    ],
+    "fit_scale_after": [
+     1.0,
+     1.0,
+     1.00126
+    ],
+    "fit_sz_stretch_pct": 0.13,
+    "drone_bbox_mm_before": [
+     203.87095,
+     285.24686,
+     58.69365
+    ],
+    "drone_bbox_mm_after": [
+     203.87095,
+     285.24686,
+     58.69365
+    ],
+    "diagonal_spec_mm": 213.0,
+    "diagonal_effective_mm": 215.35,
+    "wheelbase_opposite_mm": 213.046
+   }
+  },
+  "worst_vertical_stretch": [
+   [
+    35.24,
+    "mavic4pro"
+   ],
+   [
+    31.89,
+    "mini5pro"
+   ],
+   [
+    7.09,
+    "s1000plus"
+   ],
+   [
+    6.26,
+    "phantom4"
+   ]
+  ]
+ },
+ "check4_props": {
+  "why_ko": "지시가 경고한 함정: 지난 라운드는 «프레임만 바꾸고 프롭 해시는 그대로» 였다. 그래서 **세 가지를 따로** 봤다 — (a) 프롭 «형상» 메쉬(build_propeller), (b) 드론 안에 **놓인** 프롭 그룹, (c) 로터 장착 z.",
+  "per_drone": {
+   "mini5pro": {
+    "prop_shape_sha": [
+     "d652b8d847b04411",
+     "d652b8d847b04411"
+    ],
+    "prop_shape_changed": false,
+    "placed_prop_group_sha": [
+     "dffe7e65e4117a9a",
+     "a752ed6ca9c067bf"
+    ],
+    "placed_prop_changed": true,
+    "rotor_mount_z_mm": [
+     [
+      17.8223,
+      37.684
+     ],
+     [
+      13.2549,
+      31.7196
+     ]
+    ]
+   },
+   "mavic4pro": {
+    "prop_shape_sha": [
+     "f16f7e0620840051",
+     "f16f7e0620840051"
+    ],
+    "prop_shape_changed": false,
+    "placed_prop_group_sha": [
+     "70235e9d14cf7e72",
+     "3e780bfa4c036581"
+    ],
+    "placed_prop_changed": true,
+    "rotor_mount_z_mm": [
+     [
+      48.3722
+     ],
+     [
+      36.9775
+     ]
+    ]
+   },
+   "matrice4e": {
+    "prop_shape_sha": [
+     "742726bd58e61571",
+     "742726bd58e61571"
+    ],
+    "prop_shape_changed": false,
+    "placed_prop_group_sha": [
+     "fb25face01af147b",
+     "eded189b1be6dbed"
+    ],
+    "placed_prop_changed": true,
+    "rotor_mount_z_mm": [
+     [
+      29.0963
+     ],
+     [
+      22.4404
+     ]
+    ]
+   },
+   "s1000plus": {
+    "prop_shape_sha": [
+     "640b20fd3b146b05",
+     "640b20fd3b146b05"
+    ],
+    "prop_shape_changed": false,
+    "placed_prop_group_sha": [
+     "8d6b4cf19ae297e0",
+     "bf3320273786f384"
+    ],
+    "placed_prop_changed": true,
+    "rotor_mount_z_mm": [
+     [
+      45.0611
+     ],
+     [
+      41.4655
+     ]
+    ]
+   },
+   "phantom4": {
+    "prop_shape_sha": [
+     "502a85b6f11db4cf",
+     "502a85b6f11db4cf"
+    ],
+    "prop_shape_changed": false,
+    "placed_prop_group_sha": [
+     "26e9d74dd15cf80a",
+     "e52ac9c15b535cf9"
+    ],
+    "placed_prop_changed": true,
+    "rotor_mount_z_mm": [
+     [
+      33.5124
+     ],
+     [
+      20.3418
+     ]
+    ]
+   },
+   "typhoonh480": {
+    "prop_shape_sha": [
+     "753978fb5bfd1ccd",
+     "753978fb5bfd1ccd"
+    ],
+    "prop_shape_changed": false,
+    "placed_prop_group_sha": [
+     "88cf2f037fd0c731",
+     "88cf2f037fd0c731"
+    ],
+    "placed_prop_changed": false,
+    "rotor_mount_z_mm": [
+     [
+      37.191
+     ],
+     [
+      37.191
+     ]
+    ]
+   },
+   "x500v2": {
+    "prop_shape_sha": [
+     "2240b784a90bc164",
+     "2240b784a90bc164"
+    ],
+    "prop_shape_changed": false,
+    "placed_prop_group_sha": [
+     "953f3b98c2f96010",
+     "953f3b98c2f96010"
+    ],
+    "placed_prop_changed": false,
+    "rotor_mount_z_mm": [
+     [
+      38.0
+     ],
+     [
+      38.0
+     ]
+    ]
+   },
+   "phantom3": {
+    "prop_shape_sha": [
+     "502a85b6f11db4cf",
+     "502a85b6f11db4cf"
+    ],
+    "prop_shape_changed": false,
+    "placed_prop_group_sha": [
+     "e37ed935501ef3ad",
+     "81d1e4f2b5a20137"
+    ],
+    "placed_prop_changed": true,
+    "rotor_mount_z_mm": [
+     [
+      33.6386
+     ],
+     [
+      26.2022
+     ]
+    ]
+   },
+   "m350rtk": {
+    "prop_shape_sha": [
+     "7af8bdf7d0ceaee0",
+     "7af8bdf7d0ceaee0"
+    ],
+    "prop_shape_changed": false,
+    "placed_prop_group_sha": [
+     "47c7eb3f85aa41d4",
+     "47c7eb3f85aa41d4"
+    ],
+    "placed_prop_changed": false,
+    "rotor_mount_z_mm": [
+     [
+      46.5668
+     ],
+     [
+      46.5668
+     ]
+    ]
+   },
+   "mini2": {
+    "prop_shape_sha": [
+     "6cd61a4e9c88e35c",
+     "6cd61a4e9c88e35c"
+    ],
+    "prop_shape_changed": false,
+    "placed_prop_group_sha": [
+     "c3f98a8932f80e23",
+     "c3f98a8932f80e23"
+    ],
+    "placed_prop_changed": false,
+    "rotor_mount_z_mm": [
+     [
+      7.2717,
+      28.5584
+     ],
+     [
+      7.2717,
+      28.5584
+     ]
+    ]
+   }
+  },
+  "placed_prop_changed": [
+   "matrice4e",
+   "mavic4pro",
+   "mini5pro",
+   "phantom3",
+   "phantom4",
+   "s1000plus"
+  ],
+  "prop_shape_changed": [],
+  "verdict": "CONFIRMED — 프롭은 실제로 움직였다",
+  "finding_ko": "**놓인 프롭은 여섯 기체에서 바뀌었고**(mini5pro·mavic4pro·matrice4e·s1000plus·phantom4·phantom3) 로터 장착 z 가 3.6~13.2 mm 내려온 것이 그 이유다. 프롭 **형상** 자체는 열 기체 전부 그대로다 — 이번 라운드는 높이만 고쳤으니 옳다. ⚠ 그런데 적용 라운드의 지문표 `prop_sha16` 은 그 «형상» 해시라서 열 기체 전부 before==after 로 찍혀 있다(phantom3 과 phantom4 는 값까지 같다 — 같은 9450 프롭). 그 칸만 보면 «프롭이 안 바뀌었다» 로 읽힌다. 저장소도 이미 아는 함정이다(benchmark/meshdef_attack_verify.py Q2-c, meshdef_spec_judge.py:383)."
+ },
+ "check5_overlap": {
+  "two_rulers_ko": "(a) 저장소 기준 = 벨을 **원통으로 근사**(축 근방 motor 정점의 최대반경·z범위)하고 프롭 삼각형 **중심**이 그 안에 드는가. (b) 더 엄한 기준 = trimesh 의 **점-솔리드 내부판정**으로 실제 벨 솔리드 안에 드는가. (b)가 진짜 이중계상 면적이다.",
+  "per_drone": {
+   "mini5pro": {
+    "cyl_tris": [
+     1324,
+     392
+    ],
+    "cyl_depth_mm": [
+     7.5804,
+     1.214
+    ],
+    "cyl_area_pct": [
+     9.5872,
+     2.4965
+    ],
+    "solid_tris_inside": [
+     1276,
+     184
+    ],
+    "solid_area_pct": [
+     9.1236,
+     0.8109
+    ],
+    "mount_minus_bell_top_mm": [
+     [
+      -6.3664,
+      13.4953
+     ],
+     [
+      0.0
+     ]
+    ]
+   },
+   "mavic4pro": {
+    "cyl_tris": [
+     0,
+     328
+    ],
+    "cyl_depth_mm": [
+     0.0,
+     2.0189
+    ],
+    "cyl_area_pct": [
+     0.0,
+     1.8967
+    ],
+    "solid_tris_inside": [
+     0,
+     176
+    ],
+    "solid_area_pct": [
+     0.0,
+     0.756
+    ],
+    "mount_minus_bell_top_mm": [
+     [
+      11.3947
+     ],
+     [
+      0.0
+     ]
+    ]
+   },
+   "matrice4e": {
+    "cyl_tris": [
+     0,
+     144
+    ],
+    "cyl_depth_mm": [
+     0.0,
+     1.2421
+    ],
+    "cyl_area_pct": [
+     0.0,
+     0.3925
+    ],
+    "solid_tris_inside": [
+     0,
+     16
+    ],
+    "solid_area_pct": [
+     0.0,
+     0.0116
+    ],
+    "mount_minus_bell_top_mm": [
+     [
+      6.656
+     ],
+     [
+      0.0
+     ]
+    ]
+   },
+   "s1000plus": {
+    "cyl_tris": [
+     0,
+     0
+    ],
+    "cyl_depth_mm": [
+     0.0,
+     0.0
+    ],
+    "cyl_area_pct": [
+     0.0,
+     0.0
+    ],
+    "solid_tris_inside": [
+     0,
+     0
+    ],
+    "solid_area_pct": [
+     0.0,
+     0.0
+    ],
+    "mount_minus_bell_top_mm": [
+     [
+      5.5746
+     ],
+     [
+      1.979
+     ]
+    ]
+   },
+   "phantom4": {
+    "cyl_tris": [
+     0,
+     320
+    ],
+    "cyl_depth_mm": [
+     0.0,
+     1.755
+    ],
+    "cyl_area_pct": [
+     0.0,
+     1.8182
+    ],
+    "solid_tris_inside": [
+     0,
+     200
+    ],
+    "solid_area_pct": [
+     0.0,
+     2.1789
+    ],
+    "mount_minus_bell_top_mm": [
+     [
+      13.1706
+     ],
+     [
+      -0.0
+     ]
+    ]
+   },
+   "typhoonh480": {
+    "cyl_tris": [
+     1320,
+     1320
+    ],
+    "cyl_depth_mm": [
+     3.253,
+     3.253
+    ],
+    "cyl_area_pct": [
+     5.1282,
+     5.1282
+    ],
+    "solid_tris_inside": [
+     1320,
+     1320
+    ],
+    "solid_area_pct": [
+     5.1282,
+     5.1282
+    ],
+    "mount_minus_bell_top_mm": [
+     [
+      -1.8341
+     ],
+     [
+      -1.8341
+     ]
+    ]
+   },
+   "x500v2": {
+    "cyl_tris": [
+     0,
+     0
+    ],
+    "cyl_depth_mm": [
+     0.0,
+     0.0
+    ],
+    "cyl_area_pct": [
+     0.0,
+     0.0
+    ],
+    "solid_tris_inside": [
+     0,
+     0
+    ],
+    "solid_area_pct": [
+     0.0,
+     0.0
+    ],
+    "mount_minus_bell_top_mm": [
+     [
+      2.0
+     ],
+     [
+      2.0
+     ]
+    ]
+   },
+   "phantom3": {
+    "cyl_tris": [
+     0,
+     0
+    ],
+    "cyl_depth_mm": [
+     0.0,
+     0.0
+    ],
+    "cyl_area_pct": [
+     0.0,
+     0.0
+    ],
+    "solid_tris_inside": [
+     0,
+     0
+    ],
+    "solid_area_pct": [
+     0.0,
+     0.0
+    ],
+    "mount_minus_bell_top_mm": [
+     [
+      8.9836
+     ],
+     [
+      1.5472
+     ]
+    ]
+   },
+   "m350rtk": {
+    "cyl_tris": [
+     1664,
+     1664
+    ],
+    "cyl_depth_mm": [
+     24.1348,
+     24.1348
+    ],
+    "cyl_area_pct": [
+     11.2657,
+     11.2657
+    ],
+    "solid_tris_inside": [
+     232,
+     232
+    ],
+    "solid_area_pct": [
+     4.271,
+     4.271
+    ],
+    "mount_minus_bell_top_mm": [
+     [
+      -21.7972
+     ],
+     [
+      -21.7972
+     ]
+    ]
+   },
+   "mini2": {
+    "cyl_tris": [
+     2040,
+     2040
+    ],
+    "cyl_depth_mm": [
+     3.473,
+     3.473
+    ],
+    "cyl_area_pct": [
+     13.0785,
+     13.0785
+    ],
+    "solid_tris_inside": [
+     878,
+     878
+    ],
+    "solid_area_pct": [
+     2.9793,
+     2.9793
+    ],
+    "mount_minus_bell_top_mm": [
+     [
+      -2.6659
+     ],
+     [
+      -2.6659
+     ]
+    ]
+   }
+  },
+  "mini5pro_answer_ko": "질문 «mini5pro 프롭 삼각형이 벨 솔리드 안에 남아 있나» → **남아 있다, 다만 훨씬 적다**. 솔리드 내부 판정으로 1276 → 184 삼각형(프롭 면적의 9.12 % → 0.81 %). 0 이 아니다.",
+  "tradeoff_ko": "프롭을 벨 위에 «앉히자» 세 기체에서 **없던 겹침이 새로 생겼다**: phantom4 0 → 200 삼각형(2.18 %), mavic4pro 0 → 176(0.76 %), matrice4e 0 → 16(0.01 %). 블레이드 뿌리가 익형 비틀림으로 장착면 아래로 내려가기 때문이고, 적용 라운드가 이것을 «선언 잔차» 로 명시했다. 함대 전체로 보면 이중계상 면적은 줄었다(mini5pro 한 기체에서 −8.3 %p 를 벌고 세 기체에서 +3.0 %p 를 잃었다).",
+  "untouched_preexisting_ko": "typhoonh480 5.13 % · m350rtk 4.27 % · mini2 2.98 % 는 이 라운드 전부터 있던 겹침이고 그대로다 — 새 검사의 기체별 예산이 그것을 «지금 이 상태다» 로 통과시킨다(m350rtk 예산 25 mm 는 사실상 면제다)."
+ },
+ "check6_invalidation": {
+  "rule_ko": "메쉬가 바뀐 일곱 기체(mini5pro·mavic4pro·matrice4e·s1000plus·phantom4·phantom3·mini2)를 읽는 저장물은 낡았다. 비용은 **파일이 스스로 적어 둔 실행시간**을 읽어 왔다(추정이 아니다).",
+  "items": [
+   {
+    "f": "outputs/rcs_anchor.json",
+    "tier": "A",
+    "severity": "⛔ 헤드라인",
+    "why_ko": "절대 σ 앵커. 이 위에 저장소의 모든 dBsm 이 얹힌다. 바뀐 일곱 기체가 전부 들어 있다.",
+    "cost_s": 22997.2,
+    "cost_basis": "파일 자기기록 runtime_s",
+    "drones": "7기 전부"
+   },
+   {
+    "f": "outputs/report13_sigma_grid.json (+ _elext · .mini5pro/.mavic4pro/.matrice4e/.phantom4/.s1000plus)",
+    "tier": "A",
+    "severity": "⛔ 헤드라인",
+    "why_ko": "자세×주파수 σ 격자. **지문이 없어 조용히 낡는다** — 옛 형상 위 숫자를 그대로 인용하게 된다.",
+    "cost_s": null,
+    "cost_basis": "파일에 runtime 기록 없음. σ 캐시가 죽었으므로 SBR 을 전부 다시 돈다",
+    "drones": "mini5pro·mavic4pro·matrice4e·phantom3·phantom4·s1000plus"
+   },
+   {
+    "f": "outputs/report13_freespace.json",
+    "tier": "A",
+    "severity": "⛔ 헤드라인",
+    "why_ko": "검지거리 사다리 — σ 를 그대로 먹는다.",
+    "cost_s": 564.9,
+    "cost_basis": "파일 자기기록",
+    "drones": "5기"
+   },
+   {
+    "f": "outputs/p3_ours.json · p3_ours_v2 · p3_validation(_v2) · p3_attack · p3_photo_* · p3_remesh_attack · p3_specs",
+    "tier": "A",
+    "severity": "⛔ 헤드라인 — ⭐**적용 라운드의 stale 목록에 없다**",
+    "why_ko": "phantom3 전용 σ·검증물. meshdef_spec.json 은 이것을 C 등급에 두면서 «P1·P2·P5 가 phantom3 을 건드리면 C 에서 A 로 올라간다» 고 **미리 조건을 적어 두었다**. 이번에 phantom3 이 실제로 바뀌었으므로(프롭 8.98 → 1.55 mm) 조건이 발동했는데 적용 JSON 의 tier_A 목록에는 안 올라왔다.",
+    "cost_s": 14542.2,
+    "cost_basis": "p3_ours.json runtime_s_total_process",
+    "drones": "phantom3"
+   },
+   {
+    "f": "outputs/anchor_subband.json (+_compare · _attack)",
+    "tier": "A",
+    "severity": "⛔ 헤드라인 — ⭐**적용 라운드의 stale 목록에 없다**",
+    "why_ko": "같은 이유(phantom3 서브밴드 앵커). 위와 같은 승격 조건에 걸린다.",
+    "cost_s": null,
+    "cost_basis": "기록 없음",
+    "drones": "phantom3"
+   },
+   {
+    "f": "outputs/das_fleet_ours.json (+ spec · validation · prereg · attack · box_control)",
+    "tier": "A",
+    "severity": "⛔ 헤드라인",
+    "why_ko": "함대 단위 비교 — mini2·phantom3·phantom4 가 든다.",
+    "cost_s": 683.4,
+    "cost_basis": "파일 자기기록",
+    "drones": "mini2·phantom3·phantom4"
+   },
+   {
+    "f": "outputs/report15_* (sionna_sweep_matrice4e · verdict · probe · null_control · po_control · attack_*)",
+    "tier": "A",
+    "severity": "⛔ 헤드라인",
+    "why_ko": "matrice4e·mini2 형상을 직접 굽는다. 둘 다 이번에 바뀌었다.",
+    "cost_s": 4294.3,
+    "cost_basis": "sweep 파일 seconds_total(가장 비싼 한 편)",
+    "drones": "matrice4e·mini2"
+   },
+   {
+    "f": "outputs/report16_* (base · metric_* · rung_* · verify_* · synthesis)",
+    "tier": "A",
+    "severity": "⛔ 헤드라인",
+    "why_ko": "표적 사다리 — mesh_full/half_tri/no_rotor 팔이 전부 메쉬를 읽는다.",
+    "cost_s": null,
+    "cost_basis": "팔마다 22~85 s × 12 팔 ⇒ 20 분급(spec 추정, 파일 기록과 부합)",
+    "drones": "7기 전부"
+   },
+   {
+    "f": "outputs/mesh_compare_photo.json · mesh_compare_cad.json · mesh_compare_material.json · real_cad_compare.json",
+    "tier": "A",
+    "severity": "⛔ 헤드라인",
+    "why_ko": "실물 대조 점수. **이 라운드가 바꾼 것이 바로 형상**이므로 점수가 직접 움직인다(짐벌 높이·하방 렌즈).",
+    "cost_s": 60.0,
+    "cost_basis": "mesh_compare_cad elapsed_s(사진 쪽은 37.5 s)",
+    "drones": "5기"
+   },
+   {
+    "f": "outputs/report02_derived.json · report05_derived.json · report06_derived.json",
+    "tier": "A",
+    "severity": "⛔ 헤드라인 — ⭐**이미 낡았고, 낡은 채로 방금 만들어졌다**",
+    "why_ko": "리포트 본문 표·그림이 읽는 파생값. 파일 시각 2026-08-07 05:01 는 메쉬 소스 수정 시각(src/drones.py 2026-08-07 05:56)보다 **앞선다** — 다른 라운드가 리포트를 재생성한 직후에 이 라운드가 메쉬를 고쳤다. 두 라운드가 서로를 모른 채 한 시간 차로 엇갈렸다.",
+    "cost_s": 18.7,
+    "cost_basis": "report02_derived 자기기록(다만 상류 A 항목이 먼저다)",
+    "drones": "6기"
+   },
+   {
+    "f": "outputs/report00_microdoppler.json",
+    "tier": "A",
+    "severity": "⛔ 헤드라인",
+    "why_ko": "리포트 00 §4a 사례편. matrice4e·mini2 를 쓴다. ⭐ 다만 **PO 마이크로도플러 대역전력은 이번 변경에 거의 무감각하다**(내 실측: matrice4e 상대차 ~1e-16, mini5pro −0.29 %) — 그림의 σ 스케일만 따라 움직인다.",
+    "cost_s": null,
+    "cost_basis": "report15 재생성에 종속",
+    "drones": "matrice4e·mini2"
+   },
+   {
+    "f": "outputs/sigma_sensitivity.json · sigma_anchor.json · sigma_robust_summary.json · sigma_grid_regen.json · sigma_regen_impact.json",
+    "tier": "A",
+    "severity": "⛔ 헤드라인",
+    "why_ko": "σ 민감도·강건성 요약 — 위 격자에 종속.",
+    "cost_s": 15.2,
+    "cost_basis": "파일 자기기록",
+    "drones": "5기"
+   },
+   {
+    "f": "outputs/sigma_sbr_cache.json",
+    "tier": "A-보조",
+    "severity": "✅ 자동 무효화 확인됨",
+    "why_ko": "50 항목 전수 확인: 지금 메쉬와 지문이 맞는 것은 **typhoonh480 5 항목뿐**이고 나머지 45 개는 자동으로 미스가 된다(matrice4e 5 개는 HEAD 이전 메쉬라 원래부터 죽어 있었다). 손으로 지울 필요 없다는 적용 라운드의 주장은 맞다.",
+    "cost_s": 0.0,
+    "cost_basis": "조치 불필요",
+    "drones": "-"
+   },
+   {
+    "f": "outputs/figures/report02_* · report05_* · report06_* · report13_* · mesh_gallery PNG",
+    "tier": "B",
+    "severity": "⚠ 그림이 낡는다(숫자는 A 를 따라간다)",
+    "why_ko": "전부 위 JSON 에서 나온다.",
+    "cost_s": 44.4,
+    "cost_basis": "mesh_gallery runtime_s(갤러리만). 리포트 그림 전체는 그보다 훨씬 크다",
+    "drones": "-"
+   },
+   {
+    "f": "docs/MESH_VALIDATION.md · GEOMETRY_BENCHMARK.md · DRONE_SPECS.md · ENGINE_VALIDATION.md",
+    "tier": "B",
+    "severity": "⚠ 문서가 형상 상수를 인용한다",
+    "why_ko": "짐벌 높이·렌즈 좌표·프롭 장착 높이.",
+    "cost_s": null,
+    "cost_basis": "사람 시간",
+    "drones": "-"
+   },
+   {
+    "f": "benchmark/airframe_phantom3.py:137 · src/viz_report1.py:451",
+    "tier": "B",
+    "severity": "⚠ 갈라진 사본이 남아 있다",
+    "why_ko": "둘 다 벨을 `0.052·diag, 0.048·diag` 로 **따로** 짓고 밑동도 0.014·diag 로 박아 둔다. phantom3 은 spec 이 motor_h_mm 13.7 · MOTOR_BASE_Z 0.011 을 갖고 있어 생산 메쉬의 벨 윗면은 24.7 mm 인데, 저 파일 안의 벨은 21.7 mm 다. prop_z 만 새 식을 import 하므로 그 파일 안에서 프롭이 자기 벨 위 4.55 mm 에 뜬다(전에는 12 mm). 적용 라운드가 **선언했고 고치지 않았다** — 나도 직접 확인했다.",
+    "cost_s": null,
+    "cost_basis": "사람 시간",
+    "drones": "phantom3"
+   },
+   {
+    "f": "outputs/verify_cfar.json · verify_eca.json · verify_ambiguity.json · verify_observability.json",
+    "tier": "C",
+    "severity": "영향 없음",
+    "why_ko": "검출기 쪽. σ 는 곱셈 오프셋이라 문턱·Pfa 교정에 안 들어간다.",
+    "cost_s": 0.0,
+    "cost_basis": "-",
+    "drones": "-"
+   },
+   {
+    "f": "outputs/x500v2_* · meshfix_x500v2.json · typhoonh480·m350rtk 전용 산출물",
+    "tier": "C",
+    "severity": "영향 없음 — 확인함",
+    "why_ko": "이 셋은 메쉬가 **비트동일**이다(내가 float32·float64 두 자로 재확인).",
+    "cost_s": 0.0,
+    "cost_basis": "-",
+    "drones": "typhoonh480·x500v2·m350rtk"
+   }
+  ],
+  "total_measured_cost_s": 43220.3,
+  "total_measured_cost_h": 12.01,
+  "cost_note_ko": "이 합계는 **자기기록이 있는 항목만**이다. report13 σ 격자·report16 사다리처럼 기록이 없는 항목이 빠져 있으므로 실제 비용은 더 크다. 가장 비싼 둘은 rcs_anchor 6.4 시간과 p3_ours 4.0 시간이고, 뒤엣것이 목록에서 빠져 있었다.",
+  "silent_staleness_ko": "⭐ 진짜 위험은 목록 밖이 아니라 **소리를 안 내는 낡음**이다. σ 조회표(sigma_sbr_cache.json)는 키에 메쉬 지문이 있어 저절로 미스가 나지만(전수 확인: 50 중 45 가 죽었고 살아남은 5 는 typhoonh480 — 비트동일이라 옳다), **저장된 격자 파일에는 지문이 없다**. 재생성할 때 각 파일에 «어느 메쉬 지문으로 만들었는가» 를 함께 찍어 두면 이 부류가 사라진다.",
+  "collision_ko": "⚠ 다른 라운드가 2026-08-07 05:01 에 리포트 파생값을 재생성했고, 이 라운드는 2026-08-07 05:56 에 메쉬를 고쳤다. 한 시간 차로 엇갈려서, 방금 만들어진 파생값이 이미 낡았다. 두 라운드가 합류할 때 **파생값 재생성을 반드시 뒤에** 두어야 한다."
+ },
+ "sigma_independent_recheck": {
+  "setup": {
+   "engine": "rcs_sbr_batch(1-bounce)",
+   "fc_Hz": 3500000000.0,
+   "n_freq": 1,
+   "az_deg": "0~350 step 10 (36)",
+   "el_deg": [
+    0.0,
+    15.0
+   ],
+   "gpu": "src/gpu.py 가 고른 GPU 2",
+   "grid": "λ/12 기본"
+  },
+  "note_ko": "적용 라운드는 72 방위 × 5 주파수로 쟀고 나는 36 방위 × 1 주파수로 다시 쟀다 — 절대값은 다르지만 **부호와 크기대**가 맞는지 보는 것이 목적이다.",
+  "per_case": {
+   "mini5pro@el0": {
+    "mean_db_domain": -0.6572,
+    "mean_linear_then_db": -0.4547,
+    "median_db": -0.4822,
+    "p95_abs_db": 2.1375,
+    "max_abs_db": 7.2366,
+    "az_at_max_deg": 230.0
+   },
+   "mini5pro@el15": {
+    "mean_db_domain": -0.465,
+    "mean_linear_then_db": -0.3176,
+    "median_db": -0.2869,
+    "p95_abs_db": 2.827,
+    "max_abs_db": 3.6682,
+    "az_at_max_deg": 30.0
+   },
+   "mavic4pro@el0": {
+    "mean_db_domain": -0.0793,
+    "mean_linear_then_db": 0.0383,
+    "median_db": -0.0612,
+    "p95_abs_db": 1.0931,
+    "max_abs_db": 1.7273,
+    "az_at_max_deg": 310.0
+   },
+   "mavic4pro@el15": {
+    "mean_db_domain": -0.2149,
+    "mean_linear_then_db": -0.2814,
+    "median_db": -0.2396,
+    "p95_abs_db": 1.7523,
+    "max_abs_db": 2.4983,
+    "az_at_max_deg": 320.0
+   },
+   "matrice4e@el0": {
+    "mean_db_domain": 0.426,
+    "mean_linear_then_db": 0.2074,
+    "median_db": 0.3631,
+    "p95_abs_db": 3.982,
+    "max_abs_db": 4.8377,
+    "az_at_max_deg": 290.0
+   },
+   "matrice4e@el15": {
+    "mean_db_domain": 0.6448,
+    "mean_linear_then_db": 0.3497,
+    "median_db": 0.6188,
+    "p95_abs_db": 3.7592,
+    "max_abs_db": 4.7545,
+    "az_at_max_deg": 230.0
+   },
+   "s1000plus@el0": {
+    "mean_db_domain": -0.0822,
+    "mean_linear_then_db": -0.0044,
+    "median_db": -0.0204,
+    "p95_abs_db": 0.3374,
+    "max_abs_db": 1.4099,
+    "az_at_max_deg": 40.0
+   },
+   "s1000plus@el15": {
+    "mean_db_domain": -0.0311,
+    "mean_linear_then_db": 0.031,
+    "median_db": 0.0304,
+    "p95_abs_db": 0.8753,
+    "max_abs_db": 1.1069,
+    "az_at_max_deg": 180.0
+   },
+   "phantom3@el0": {
+    "mean_db_domain": -0.0362,
+    "mean_linear_then_db": -0.0069,
+    "median_db": 0.0031,
+    "p95_abs_db": 0.9968,
+    "max_abs_db": 1.3511,
+    "az_at_max_deg": 30.0
+   },
+   "phantom3@el15": {
+    "mean_db_domain": -0.23,
+    "mean_linear_then_db": -0.086,
+    "median_db": -0.0088,
+    "p95_abs_db": 2.0924,
+    "max_abs_db": 2.7133,
+    "az_at_max_deg": 290.0
+   }
+  },
+  "claim_from_applied": {
+   "matrice4e": {
+    "el0": 0.3641,
+    "el15": 0.149
+   },
+   "mini5pro": {
+    "el0": -0.9072,
+    "el15": -0.2665
+   },
+   "mavic4pro": {
+    "el0": -0.0518,
+    "el15": -0.2761
+   },
+   "s1000plus": {
+    "el0": 0.0969,
+    "el15": 0.0447
+   },
+   "phantom4": {
+    "el0": 0.0607,
+    "el15": -0.3381
+   },
+   "phantom3": {
+    "el0": 0.1054,
+    "el15": -0.2821
+   },
+   "mini2": {
+    "el0": 0.0,
+    "el15": 0.0024
+   }
+  },
+  "verdict_ko": "적용 라운드의 σ 주장은 **독립 재측정으로 뒷받침된다**. 방위평균 변화는 부호가 전부 같고 크기도 같은 자릿수다(내 matrice4e el0 +0.43 ↔ 그쪽 +0.36, mini5pro el0 −0.66 ↔ −0.91, mavic4pro el0 −0.08 ↔ −0.05). 개별 방위 최대는 내 성긴 격자에서 7.24 dB, 그쪽 촘촘한 격자에서 9.74 dB — «방위평균은 1 dB 안, 개별 방위는 한 자릿수 dB» 라는 결론이 재현된다."
+ },
+ "microdoppler_independent_recheck": {
+  "method_ko": "microdoppler_series(az 0, el 15, n_t 1024, blade_n 16) → spectrogram(DC 제거) → 도플러 빈별 대역전력 벡터. before/after 를 같은 설정으로 돌려 비교했다.",
+  "per_drone": {
+   "matrice4e": {
+    "band_power_total": [
+     134.21701942372755,
+     134.2170194237276
+    ],
+    "rel_change": 4.235187095114329e-16,
+    "sha": [
+     "4f38e4783cc268f6",
+     "55869ded66e50f9a"
+    ]
+   },
+   "mavic4pro": {
+    "band_power_total": [
+     140.83372897446816,
+     140.8337289744682
+    ],
+    "rel_change": 2.0181038759228336e-16,
+    "sha": [
+     "895cf33fd970a7d0",
+     "16a00baba9b70887"
+    ]
+   },
+   "mini5pro": {
+    "band_power_total": [
+     146.22646584093738,
+     145.8055715024658
+    ],
+    "rel_change": -0.002878373186762411,
+    "sha": [
+     "0122d027857c2601",
+     "51dac2fb6f10a5bc"
+    ]
+   }
+  },
+  "mechanism_ko": "src/microdoppler.py:79 에서 로터 중심은 `exp(i·2k·(c·û))` 라는 **로터당 공통 위상**으로만 들어간다. 모든 로터가 같은 Δz 로 내려가면 그 위상은 회전항 전체에 걸리는 **전역 상수**가 되어 |STFT| 가 안 변한다. 그래서 균일 Δz 인 mavic4pro·matrice4e 는 대역전력이 그대로고(내 측정: 상대차 ~1e-16, 마지막 비트만 다르다), 층차가 바뀐 mini5pro 만 실제로 움직인다(−0.29 %, −0.0125 dB).",
+  "verdict_ko": "적용 라운드의 «프롭 간격은 마이크로도플러를 흔들지 않는다»는 결론은 **맞다**. 다만 «비트 동일»은 과한 표현이다 — 프레임 항 Ef 가 바뀐 matrice4e 는 DC 제거 뺄셈의 반올림이 달라져 내 측정에서 마지막 ulp 가 어긋났다. 물리적 결론은 같다."
+ },
+ "falsification_of_the_new_test": {
+  "what_ko": "새 검사 `check_prop_bell` 이 헛도는 검사인지 확인했다 — 스크래치 사본에서 mini5pro 를 옛 상태로 되돌렸다(rotor_z_mm (−12,+2,+2,−12) + ARM_Z_FOLLOWS_ROTOR 에서 mini5pro 제거).",
+  "result": "FAIL as expected — 깊이 20.7075 mm > 예산 2.5 mm, 삼각형 1380, 면적 10.086 %, assert_ok() 예외 발생",
+  "note_ko": "적용 라운드는 같은 시험에서 11.58 mm 를 적었다 — 되돌린 범위가 다르기 때문이다(나는 두 편집을 다 되돌렸다). 어느 쪽이든 검사는 발화한다.",
+  "repo_check_now": "python src/mesh_check.py → 10/10 통과(직접 실행 확인)",
+  "budget_headroom_ko": "⚠ 예산 여유가 얇은 곳: m350rtk 실측 24.1348 mm ↔ 예산 25.0 (여유 0.87 mm), mini2 3.473 ↔ 4.0, typhoonh480 3.253 ↔ 4.0, mavic4pro 2.0189 ↔ 2.5. 이 예산들은 «지금 이만큼이다» 의 기록이지 «이만큼이 옳다» 가 아니라고 주석이 밝히고 있다 — 옳은 태도다."
+ },
+ "claims_i_could_not_break": [
+  "matrice4e 하방 비전 두 개가 셸에 닿는다 — 내 측정 0.0213 / 0.0590 mm(적용 JSON 과 동일).",
+  "matrice4e camera 그룹 9개 성분 전부 셸까지 0.3002 mm 이내.",
+  "짐벌 블록 세로 0.95·h = 58.14 mm, 바닥 −39.736 mm(옛 −39.72), 지상고 차 16 µm — 해석식으로 재현.",
+  "짐벌 앞끝 x 178.46 mm 불변(프레임 bbox 최대 x 로 확인).",
+  "phantom3 블레이드면 raw 27.702 mm(도면 27.7) — 벨 윗면 24.7 + 스탠드오프 1.55 + 블레이드 오프셋 1.452.",
+  "σ 캐시 지문 20개(before/after × 10기)가 적용 JSON 과 **한 글자도 다르지 않게** 재현됐다.",
+  "mini5pro sz 1.418691 → 1.318900, 네 로터 간격 0.0 균일, 공식 높이 91 mm 유지.",
+  "mini2 는 camera 그룹만 바뀌었다(M1 렌즈 y 0.1077 → 0.102796·bw) — 프롭·프레임 나머지는 그대로."
+ ],
+ "findings": [
+  {
+   "id": "V1",
+   "severity": "MEDIUM",
+   "verdict": "CONFIRMED",
+   "title_ko": "s1000plus 는 «프롭이 벨 위에 앉는다» 는 규칙에서 혼자 빠져 있다 — 아직 1.98 mm 떠 있다",
+   "what_ko": "새 식 `prop_z = motor_bell_top_z_m(spec,diag) + PROP_STANDOFF_M[key]` 에서 `motor_bell_top_z_m` 은 표에 없는 기체를 `MOTOR_BASE_Z(기본 0.014·diag) + 벨높이` 로 푼다. 그런데 s1000plus 는 **전용 분기**(drone_cad.py:1772)가 벨을 `ARM_OD/2 = 12.5 mm` 밑동에 짓는다. 일반식은 밑동을 0.014×1045 = 14.63 mm 로 보므로 벨 윗면을 **2.13 mm(raw) 높게** 계산한다. sz 0.9291 을 곱하면 프롭이 벨 위 **1.979 mm** 에 뜬 채 남는다(로터 8개 전부).",
+   "evidence_ko": "내 실측: 메쉬 벨 윗면 39.487 mm(= 42.5 raw × sz) vs 장착 z 41.4655 mm. 적용 JSON 은 s1000plus 를 «해석적 간격 3.87 → 0» 으로 적었고, 그 3.87 도 meshdef_prop_gap.json 이 **메쉬가 아니라 일반식**으로 잰 값이다(실제 메쉬 간격은 5.57). 즉 명세 단계의 오차가 그대로 코드에 실렸다.",
+   "why_it_matters_ko": "이 라운드가 잡으려던 결함이 «두 곳이 같은 것을 다르게 센다» 인데, 같은 결함이 s1000plus 에 남았다. 적용 라운드는 전용 분기 두 개(m350rtk·typhoonh480)를 `MOTOR_BELL_TOP_Z_M` 에 등록하면서 **세 번째 전용 분기를 빠뜨렸다**.",
+   "fix_ko": "`MOTOR_BELL_TOP_Z_M[\"s1000plus\"] = 0.0125 + 0.030` 한 줄. 그러면 프롭이 1.98 mm 내려온다. 다만 그 순간 s1000plus 메쉬가 또 바뀌므로(σ 파급) 다음 라운드에 다른 메쉬 변경과 **묶어서** 하는 편이 싸다. σ 영향은 작다 — 내 스폿체크에서 이번 s1000plus 변화(3.6 mm)가 방위평균 −0.08 dB 였다.",
+   "where": "src/drone_cad.py MOTOR_BELL_TOP_Z_M · src/drone_cad.py:1772 s1000plus 분기"
+  },
+  {
+   "id": "V2",
+   "severity": "MEDIUM",
+   "verdict": "CONFIRMED",
+   "title_ko": "stale 목록이 phantom3 산출물(p3_* · anchor_subband*)을 빠뜨렸다 — 명세가 예고한 승격 조건이 발동했는데도",
+   "what_ko": "meshdef_spec.json 의 invalidation tier C 는 «p3_*.json 은 phantom3 전용. P1·P2·P5 가 phantom3 을 건드리면 **C 에서 A 로 올라간다**» 고 조건을 미리 적어 두었다. 이번에 phantom3 은 실제로 바뀌었다(프롭 간격 8.98 → 1.55 mm, 메쉬 해시 변경). 그런데 meshgate_applied.json 의 `stale_outputs_ko.tier_A_headline` 에는 p3_* 도 anchor_subband* 도 없다.",
+   "evidence_ko": "p3_ours.json 은 phantom3 σ 를 담고 자기 기록 runtime_s_total_process 가 14542 s(4.0 시간)다 — 목록에서 빠진 것 중 두 번째로 비싼 항목이다. 관련 파일 12개(p3_*)+3개(anchor_subband*).",
+   "why_it_matters_ko": "가장 위험한 낡음은 «목록에 없어서 아무도 다시 안 보는» 낡음이다.",
+   "fix_ko": "stale 목록에 두 줄 추가(재생성은 다음 라운드).",
+   "where": "outputs/meshgate_applied.json stale_outputs_ko"
+  },
+  {
+   "id": "V3",
+   "severity": "LOW",
+   "verdict": "CONFIRMED",
+   "title_ko": "같은 파일 안에서 관통 삼각형 수를 두 자로 세고 있다 — 1 µm 차이가 phantom4 에서 42 % 를 바꾼다",
+   "what_ko": "meshgate_applied.json 헤드라인은 mini5pro 관통을 392 로, 같은 파일의 지문표는 400 으로 적는다. phantom4 는 지문표 456, mesh_check 기준 320. 원인은 판정식의 `z <= zhi − 1e-3` 에서 **1 µm 여유의 유무**뿐이다(내가 두 판정을 다 돌려 재현했다: mini5pro 392/400, phantom4 320/456).",
+   "evidence_ko": "스탠드오프를 0 으로 두면 프롭 허브 밑면이 벨 윗면과 **정확히 같은 평면**에 놓여, 그 평면 위 삼각형 한 고리 전체가 1 µm 여유의 어느 쪽에 서느냐로 세어지거나 빠진다.",
+   "why_it_matters_ko": "합격/불합격을 가르는 것은 **깊이**(견고하다)이지 삼각형 수가 아니므로 판정은 안전하다. 그러나 리포트에 삼각형 수를 인용하면 자릿수가 흔들린다.",
+   "fix_ko": "지문표와 mesh_check 가 같은 판정을 쓰게 하고, 인용은 «면적 %» 로 통일.",
+   "where": "outputs/meshgate_applied.json fingerprints.prop_tris_in_bell ↔ src/mesh_check.py:check_prop_bell"
+  },
+  {
+   "id": "V4",
+   "severity": "LOW",
+   "verdict": "CONFIRMED",
+   "title_ko": "«깊이 8.06 → 1.21 mm» 는 서로 다른 두 자를 이어 붙인 값이다",
+   "what_ko": "8.06 은 게이트 파일의 «프롭 최저점 − 벨 윗면» 이고(gate C0 gap −8.056), 1.21 은 mesh_check 의 «삼각형 중심» 기준이다. 한 자로 통일하면 **7.58 → 1.21**(중심 기준) 또는 **8.06 → 1.57**(최저점 기준)이다.",
+   "evidence_ko": "내가 두 정의를 모두 계산했다: 중심기준 before 7.5804 / after 1.2140.",
+   "why_it_matters_ko": "방향과 크기대는 옳다 — 바뀌는 것은 숫자의 재현성이지 결론이 아니다.",
+   "fix_ko": "헤드라인 문장 한 곳 수정.",
+   "where": "outputs/meshgate_applied.json headline_ko · src/mesh_check.py 주석"
+  },
+  {
+   "id": "V5",
+   "severity": "LOW",
+   "verdict": "CONFIRMED",
+   "title_ko": "«7.30 mm 떠 있던 것» 의 7.30 은 셸까지가 아니라 **배터리 상자**까지의 거리다",
+   "what_ko": "옛 하방 «어안» 두 개에서 가장 가까운 면을 그룹별로 재 보면 battery 7.3000 mm, body(셸) 11.1772 mm 다. 셸을 기준으로 하면 부양은 11.18 mm 이고, 옛 drone_cad 주석도 «가장 가까운 면까지 11.2 mm» 라고 적고 있었다.",
+   "evidence_ko": "trimesh closest_point 로 그룹별 최단거리 직접 측정.",
+   "why_it_matters_ko": "새 자리(0.0213 / 0.0590 mm)는 **셸 기준**이므로, 헤드라인은 서로 다른 두 기준을 나란히 놓았다. 개선 자체는 오히려 과소평가돼 있다(11.18 → 0.06).",
+   "fix_ko": "문장에 기준을 밝히거나 11.18 로 통일.",
+   "where": "outputs/meshgate_applied.json headline_ko"
+  },
+  {
+   "id": "V6",
+   "severity": "INFO",
+   "verdict": "CONFIRMED",
+   "title_ko": "프롭을 앉히는 대가로 세 기체에 없던 겹침이 새로 생겼다(선언되어 있다)",
+   "what_ko": "점-솔리드 내부판정: phantom4 0 → 200 삼각형(프롭 면적 2.18 %), mavic4pro 0 → 176(0.76 %), matrice4e 0 → 16(0.01 %). mini5pro 는 1276 → 184(9.12 % → 0.81 %)로 크게 줄었다.",
+   "evidence_ko": "trimesh contains() 로 벨 솔리드 내부 삼각형 중심을 직접 셌다(원통 근사와 별개).",
+   "why_it_matters_ko": "함대 합계로는 이중계상 면적이 줄었다. 적용 라운드가 «블레이드 뿌리가 캡을 0.7~2.0 mm 파고든다» 로 선언했고 새 검사가 예산 안에서 감시한다. 다만 mavic4pro 실측 깊이 2.0189 mm 는 선언 문구의 상한 2.0 을 살짝 넘는다.",
+   "fix_ko": "선언 문구의 상한을 2.3 mm 로 고치면 실측과 맞는다.",
+   "where": "src/drone_cad.py MOTOR_BELL_TOP_Z_M 앞 주석"
+  },
+  {
+   "id": "V7",
+   "severity": "INFO",
+   "verdict": "CONFIRMED",
+   "title_ko": "«비트 동일한 마이크로도플러» 는 물리적으로 옳지만 표현이 한 칸 과하다",
+   "what_ko": "내 재측정에서 matrice4e·mavic4pro 대역전력은 상대차 ~1e-16(마지막 ulp)로 달랐다. 원인은 프레임 항 Ef 가 바뀌면 DC 제거 뺄셈의 반올림이 달라지기 때문이다. mini5pro 는 층차가 실제로 바뀌어 −0.29 %(−0.0125 dB) 움직였다.",
+   "evidence_ko": "microdoppler_series(az0,el15,n_t1024) → spectrogram(DC 제거) 대역전력 벡터 비교.",
+   "why_it_matters_ko": "«균일 Δz 는 마이크로도플러를 안 흔든다» 는 결론은 그대로 선다.",
+   "fix_ko": "«비트 동일» → «반올림 오차 수준에서 동일».",
+   "where": "outputs/meshgate_applied.json microdoppler.finding_ko"
+  }
+ ],
+ "residuals_i_confirm_are_still_open": [
+  "mini5pro sz 는 여전히 +31.9 % 늘어나 있다(mavic4pro 는 +35.2 % 로 더 크다) — R3 로 이연됨.",
+  "m350rtk 프롭이 모터 상부 커버 안으로 24.13 mm 들어간다 — 예산 25 로 사실상 면제(선언됨).",
+  "mini2 13.08 % · typhoonh480 5.13 % 프롭 면적이 벨 그룹과 겹친 채 남아 있다(설계인지 결함인지 미판정).",
+  "벨 식 사본 2개(benchmark/airframe_phantom3.py:137 · src/viz_report1.py:451)가 갈라진 채 남아 있다.",
+  "mini5pro 층차 14 mm 는 여전히 추정 — 부호만 제조사 매뉴얼에 근거가 있다."
+ ],
+ "counts": {
+  "drones_checked": 10,
+  "drones_bit_identical": 3,
+  "drones_changed": 7,
+  "airframes_with_placed_prop_change": 6,
+  "findings": 7,
+  "invalidation_items": 18,
+  "sigma_cases_remeasured": 10
+ }
+}

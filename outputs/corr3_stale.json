@@ -1,0 +1,232 @@
+{
+ "_meta": {
+  "generated": "2026-08-07",
+  "round": "corr3 — 낡은 수치(F) 갈래",
+  "what": "outputs/corr2_verify.json 이 HIGH 로 남긴 F-2(06편)·F-1(05편)을 닫고, 05·06 에서 σ 앵커 사슬(rcs_anchor → sigma_anchor → sigma_sensitivity · σ 격자 · das_fleet)을 인용하는 자리를 전수로 훑어 「이 수치는 형상 정정 이전 세대」 표시를 달았다.",
+  "wording_source": "02편이 이미 쓰고 있는 문구를 그대로 옮겼다 — 「⚠ … 2026-08-04 형상 정정 전 메쉬 …」 + 「다섯 기체 중 Matrice 4E 가 그 정정을 받았다」 + ⟨outputs/meshfix_attack.json : Q6_invalidated_outputs.critical[3]⟩. 날짜는 손입력이 아니라 meshfix_applied.json:_meta.date 에서 주입한다.",
+  "scope_respected": [
+   "src/drones.py · src/drone_cad.py 미열람·미수정",
+   "src/make_report00_foundations.py · report00_foundations.ipynb 미열람·미수정",
+   "outputs/meshgate_* · meshdef_* 미접촉",
+   "src/make_report02_target.py 는 읽기만 했다(문구 원본 대조) — 이 갈래는 05·06 만 편집했다",
+   "리포트 재생성 안 함(노트북 .ipynb 는 한 줄도 안 바뀌었다) · GPU 미사용",
+   "근거 JSON 은 읽기만 했다 — 한 건도 고치지 않았다"
+  ],
+  "concurrent_branch_note": "작업 중 다른 갈래가 같은 파일(01·02·05·06)을 동시에 편집했다(mtime 04:30~04:31). 편집마다 직전에 다시 읽고 최소 편집했고, 마지막에 다시 grep 해 내 편집 13건이 전부 살아 있음을 확인했다.",
+  "how_checked": "저장소 밖(스크래치패드)으로 05·06 을 시험 빌드해 규약만 봤다 — src/report_style.py:check_budget. 저장소의 노트북·JSON 은 건드리지 않는다."
+ },
+
+ "verdict": "F-1 · F-2 CLOSED",
+
+ "contract_after_edits": {
+  "note": "스크래치패드 시험 빌드(dry_05.ipynb · dry_06.ipynb) 기준. 위반 0건.",
+  "report05": {"md_cells": "25/25", "negatives": "2/3", "hedges": "0/0", "figures": "7/8",
+                "cells_added": 0, "lines_added_to_any_capped_cell": 0},
+  "report06": {"md_cells": "25/25", "negatives": "1/3", "hedges": "0/0", "figures": "6/8",
+                "cells_added": 0, "lines_added_to_any_capped_cell": 0},
+  "why_zero_lines": "상한이 꽉 찬 셀(05 §3.4 = 12/12 · 06 §4-1 = 12/12)에는 손대지 않았거나 **기존 문장 뒤에 이어붙이기**만 했다. 여는 블록·논문블록·다음 단계는 구조 블록이라 줄 수 상한에서 면제되지만, 거기서도 결과 줄 수는 5/5 그대로 두고 기존 줄 안에 넣었다.",
+  "slope_ledger_assert": "SLOPE_LEDGER_GAP_MAX_DB_PER_GHZ = 1.40 은 건드리지 않았다(02편 파일 자체를 편집하지 않았다)."
+ },
+
+ "edits": [
+  {
+   "id": "F-2a",
+   "severity": "HIGH",
+   "file": "src/make_report06_measurement.py",
+   "site": "L774 — 여는 블록 결과 2 («설계가 판정 대상과 맞는다»)",
+   "before": "세션 드리프트 예산 {drift_budget} 가 그 폭 아래에 있다 — 여유 {drift_margin}. 설계가 판정 대상과 맞는다.",
+   "after": "… 설계가 판정 대상과 맞는다. ⚠ **그 폭을 정하는 것은 Matrice 4E 행이고, 그 행은 {meshfix date} 형상 정정 전 메쉬 값이다**(02 §5) — 여유가 그것뿐이라 σ 사슬을 다시 돌려 그 행이 여유만큼만 움직여도 이 «맞는다» 판정이 뒤집힌다.",
+   "why": "여유가 0.30 dB 뿐인데 그 폭(1.30 dB)이 `sigma_sensitivity.json : aspect_averaged.by_drone.matrice4e.smallest_flip_span_db` 에서 오고, 02 §5 가 바로 그 기체 행에 「형상 정정 전 값」 도장을 찍었다. 설계 적합성 주장 전체가 그 한 수 위에 서 있으므로 세대가 바뀌면 판정이 뒤집힌다는 것을 같은 문장에 적었다.",
+   "covers_also": "결과 1(«순위를 뒤집는 폭은 최소 1.30 dB»)을 «그 폭» 으로 명시적으로 덮는다 — 02 §4.2 가 §4.1·§4.3·§4.4 를 덮은 방식과 같다."
+  },
+  {
+   "id": "F-2b",
+   "severity": "HIGH",
+   "file": "src/make_report06_measurement.py",
+   "site": "L1255 — §4 결정표(03~05편의 주장) «파형 상대순위» 행, 판정 기준 칸",
+   "before": "순서 일치 · 뒤집힘 폭 {flip_span_min} (§3)",
+   "after": "순서 일치 · 뒤집힘 폭 {flip_span_min} (§3). ⚠ 이 폭을 정하는 Matrice 4E 행은 {meshfix date} 형상 정정 전 메쉬 값이고(02 §5), 드리프트 예산과의 여유는 {drift_margin} 다",
+   "why": "결정표는 이 편에서 가장 많이 인용되는 칸이고, §4-1 이 기울기 행에만 세대 단서를 달아 순위 행은 열거 밖이었다. 표 칸 안에 넣어 셀·줄 추가 0.",
+   "same_as_report02": "02 §5 표 아래 도장과 같은 형식(⚠ + 기체 행 + 날짜 + 사슬 파일)"
+  },
+  {
+   "id": "F-2c",
+   "severity": "HIGH",
+   "file": "src/make_report06_measurement.py",
+   "site": "L1137 — §3 «시뮬과 실측» 둘째 문단(셀 16, 11/12줄)",
+   "before": "… 여유 {drift_margin}) 이 캠페인은 **검출 사슬과 파형 순위**를 결판낸다.",
+   "after": "… 결판낸다. ⚠ 두 이동폭은 `sigma_sensitivity.json` 에서 오고, 좁은 쪽 Matrice 4E 행은 {meshfix date} 형상 정정 전 메쉬 값이다(02 §5) — 그 행이 여유만큼만 움직여도 이 «결판낸다» 판정이 함께 움직인다.",
+   "why": "«결판낸다» 라는 이 편의 헤드라인 동사가 이 문단에서 처음 선다. Matrice 4E 1.30 · Mini 5 Pro 2.95 두 값이 같은 문단에 있어 어느 쪽이 정정을 받았는지 여기서 갈라 줘야 한다.",
+   "cost": "이 셀의 문단이 3문장 → 4문장이 되어 §5.4 **권고**가 하나 붙는다(위반 아님). 줄을 늘려 문단을 나누면 11→12줄로 셀 상한을 다 써 버리므로, 다음 갈래에게 줄을 남기는 쪽을 택했다."
+  },
+  {
+   "id": "F-2d",
+   "severity": "HIGH",
+   "file": "src/make_report06_measurement.py",
+   "site": "L1392 — 논문키트 방어표, 「여유 0.30 dB 는 얇다」 에 대한 답 칸",
+   "before": "좁은 쪽은 Matrice 4E 하나이고 Mini 5 Pro 는 {mini5pro flip} 다. 두 기체를 함께 재어 넓은 쪽이 좁은 쪽의 판정을 받쳐 준다.",
+   "after": "… 받쳐 준다. ⚠ 그 좁은 쪽 값은 {meshfix date} 형상 정정 전 메쉬에서 온다(02 §5) — 이 답의 근거가 정확히 그 정정을 받은 기체이므로, σ 사슬 재실행 뒤에 여유를 다시 읽는다.",
+   "why": "corr2_verify 가 짚은 대로 **방어의 근거 자체**가 형상 정정을 받은 기체다. 방어표는 반론을 미리 적는 자리이므로 여기에 단서가 없으면 방어가 더 세게 읽힌다."
+  },
+  {
+   "id": "F-2e",
+   "severity": "HIGH",
+   "file": "src/make_report06_measurement.py",
+   "site": "L853 — paper_map qualifications (+1 항목)",
+   "before": "qualifications = [절대 탐지거리·Pfa 교정 …, σ 절대레벨은 교정구가 …]",
+   "after": "+ 「뒤집힘 폭의 최솟값은 `sigma_sensitivity.json` 에서 오고 그 값을 내는 Matrice 4E 행은 {meshfix date} 형상 정정 전 메쉬 위에 있다 (02 §5) — σ 사슬을 다시 돌리면 이 폭과 여유가 함께 움직인다」",
+   "why": "논문 대응 블록의 claim 이 flip_span_min_db 를 그대로 든다. 초록·덱은 이 블록만 떼어 인용하므로 단서가 claim 과 같은 블록 안에 있어야 한다."
+  },
+  {
+   "id": "F-2f",
+   "severity": "MEDIUM",
+   "file": "src/make_report06_measurement.py",
+   "site": "L1471 — 다음 단계 첫 행 «그러면 결정되는 것» 칸",
+   "before": "판정 문턱은 뒤집힘 폭 {flip_span_min} 다",
+   "after": "판정 문턱은 뒤집힘 폭 {flip_span_min} 이고, 그 폭은 {meshfix date} 형상 정정 전 메쉬 세대의 수다(02 §5)",
+   "why": "실제로 캠페인을 나갈 때 읽는 칸이다. 문턱 수치를 그대로 들고 나가지 않도록 같은 칸에 세대를 적었다."
+  },
+
+  {
+   "id": "F-1a",
+   "severity": "HIGH",
+   "file": "src/make_report05_results.py",
+   "site": "L734 — 여는 블록 §방법 «밴드 비교» 행 (05편의 마스터 단서)",
+   "before": "σ = A(f)·B₁(φ,θ) 에서 A(f) 의 기울기만 Das 측정에 맞춘 원장 위에서 한다. … 레벨이동은 {level_shift} 다(02 §4)",
+   "after": "… 다(02 §4). ⚠ **이 앵커 원장(`outputs/sigma_anchor.json`)과 순위 민감도(`outputs/sigma_sensitivity.json`)도 {meshfix date} 형상 정정 전 메쉬 위에 서 있다** — 다섯 기체 중 Matrice 4E 가 그 정정을 받았고, §2 의 σ 항 · §3.2 의 Δσ 표 · §3.3 의 R90 표 · §3.4 의 뒤집힘 문턱이 같은 사슬 위에 있다(02 §4.2 · §5) ⟨outputs/meshfix_attack.json : Q6_invalidated_outputs.critical[3]⟩",
+   "why": "05편 전체에 «형상 정정» 이 σ 격자 한 곳에만 있었고, 그 문장은 대상을 `report13_sigma_grid.json` **하나**로 못 박아 바로 위의 앵커 원장을 덮지 못했다. 02 §4.2 가 「§4 도입의 기울기와 §4.1·§4.3·§4.4 의 표도 같은 사슬 위에 있다」 로 이웃 절을 명시적으로 덮은 것과 같은 방식으로, 여기서 §2·§3.2·§3.3·§3.4 를 이름으로 덮었다.",
+   "same_as_report02": "문구·경로 태그(critical[3])까지 02 §5 와 동일"
+  },
+  {
+   "id": "F-1b",
+   "severity": "HIGH",
+   "file": "src/make_report05_results.py",
+   "site": "L705 — 여는 블록 결과 3 (뒤집힘 문턱)",
+   "before": "… 밴드별 차분 오차의 뒤집힘 문턱은 {worst_flip_span} 다.",
+   "after": "… 다. ⚠ 위 세 줄이 든 σ 민감도와 §3.2·§3.3 의 앵커 σ 는 {meshfix date} 형상 정정 전 메쉬 위에 있다 — 다섯 기체 중 Matrice 4E 가 그 정정을 받았다(방법 «밴드 비교»).",
+   "why": "여는 블록만 떼어 읽는 자리(덱·초록)를 위해 헤드라인에도 단서를 뒀다. 결과 1(σ 항이 큰 밴드쌍 수)·2(순위 합의)·3(뒤집힘 문턱)이 전부 sigma_sensitivity 에서 오므로 «위 세 줄» 로 세 줄을 한 번에 덮었다.",
+   "precision_note": "결과 3 의 3.72 dB 자체는 `configurations.by_config.aspect_avg_anchored.worst_flip_span_db` 이고 그 값을 내는 기체는 **Mavic 4 Pro** 다(JSON 대조). 그래서 이 문장은 «이 수가 Matrice 4E 에서 온다» 고 적지 않고, 사슬 전체가 정정 전 메쉬 위라는 사실과 다섯 중 어느 기체가 정정을 받았는지만 적는다."
+  },
+  {
+   "id": "F-1c",
+   "severity": "HIGH",
+   "file": "src/make_report05_results.py",
+   "site": "L1049 — §3.2 «밴드 비교의 바닥» 본문 끝(셀 11)",
+   "before": "… 이 사실은 원장에 「VV 측정 대 무편파 커널」 로 기록되어 있다.",
+   "after": "… 기록되어 있다. ⚠ 이 절이 든 앵커 수(정규화 잔차 · 아래 Δσ 표)와 §3.3 의 R90 표는 `outputs/sigma_anchor.json` 에서 오고, 그 사슬은 {meshfix date} 형상 정정 전 메쉬 위에 서 있다 — 다섯 기체 중 Matrice 4E 가 그 정정을 받았다(02 §4.2 · §5) ⟨outputs/meshfix_attack.json : Q6_invalidated_outputs.critical[3]⟩.",
+   "why": "Δσ 표와 R90 표는 각각 다음 셀(12·13)에 있고 두 셀 다 11/12줄이라 그 안에 줄을 넣을 수 없다. 02 §4.2 처럼 **앞 절의 문장이 뒤 표를 이름으로 덮는** 방식을 썼다."
+  },
+  {
+   "id": "F-1d",
+   "severity": "HIGH",
+   "file": "src/make_report05_results.py",
+   "site": "L1179 — §3.4 마지막 문단(셀 15, 12/12줄 — 줄 추가 불가)",
+   "before": "… 순위쌍 {n}개가 바뀌었다 — 통제되지 않은 σ 변화의 파급을 관측한 값이다.",
+   "after": "… 관측한 값이다. ⚠ 그리고 위 표의 뒤집힘 문턱은 {meshfix date} 형상 정정 전 메쉬 위에 있다 — 하한 {smallest_flip_span_overall} 를 내는 행이 그 정정을 받은 Matrice 4E 다(02 §5 · 방법 «밴드 비교»).",
+   "why": "§3.4 표의 하한 0.61 dB 가 02 §5 표의 «단일자세 0.61» 과 같은 칸이다(JSON 대조: differential.by_drone.matrice4e.analytic_smallest_flip_span_db = 0.61449 = differential.smallest_flip_span_db_overall). 이 절의 결론 문장이 그 표 위에 서 있어 표시가 가장 급한 자리였다.",
+   "cell_budget": "기존 문장 뒤에 이어붙여 12/12 줄 유지 · 하한 수치도 num() 주입"
+  },
+  {
+   "id": "F-1e",
+   "severity": "MEDIUM",
+   "file": "src/make_report05_results.py",
+   "site": "L565 — 논문키트 방어표, 「밴드별 차분 σ 오차의 뒤집힘 문턱」 행의 답 칸",
+   "before": "… 몬테카를로 순위보존 확률이 같은 순서를 준다 ⟨outputs/sigma_sensitivity.json : monte_carlo_per_band_error⟩",
+   "after": "… ⟩. ⚠ 이 문턱들은 {meshfix date} 형상 정정 전 메쉬 위의 값이다 — 다섯 기체 중 Matrice 4E 가 그 정정을 받았다(방법 «밴드 비교» · 02 §5)",
+   "why": "05편 논문블록의 방어표가 sigma_sensitivity 를 20회 인용하는데 그 블록만 논문으로 떼어 나간다. 06편 방어표에 단 것과 대칭으로 달았다."
+  },
+  {
+   "id": "F-1f",
+   "severity": "INFO",
+   "file": "src/make_report05_results.py",
+   "site": "L97 · L666 — 상수 J_MFX_ATK 신설 + build_blocks 에서 존재 검사",
+   "before": "(없음)",
+   "after": "J_MFX_ATK = \"outputs/meshfix_attack.json\" / from_json(J_MFX_ATK)  # 존재 검사",
+   "why": "본문 단서가 경로로 가리키는 파일이 사라지면 빌드가 조용히 통과하지 않도록, 02편이 J_MESHFIX_ATK 에 쓰는 것과 같은 존재 검사를 뒀다."
+  }
+ ],
+
+ "swept_full_grep": {
+  "method": "① 소스에서 J_AN·J_SS·J_SG·rcs_anchor·das_fleet 문자열을 전수 grep ② 스크래치패드 시험 빌드의 마크다운 셀마다 사슬 파일 인용을 기계로 세고 «형상 정정» 표시 유무를 판정 ③ 값이 실제로 형상을 먹는지 근거 JSON 으로 확인",
+  "report05": [
+   {"site": "여는 블록 결과 1·2·3", "chain": "sigma_sensitivity", "state": "표시됨(F-1b)"},
+   {"site": "§방법 «밴드 비교»", "chain": "sigma_anchor · sigma_sensitivity", "state": "표시됨(F-1a · 마스터)"},
+   {"site": "§방법 «σ 격자 출처»", "chain": "report13_sigma_grid", "state": "이미 표시됨(이전 라운드) — 두 세대 낡음 + 형상 정정"},
+   {"site": "§2 · §2 둘째 셀", "chain": "sigma_anchor(SRC_A) · sigma_sensitivity(gap_decomposition)", "state": "마스터가 «§2 의 σ 항» 으로 덮는다"},
+   {"site": "§3.2 본문 · Δσ 표", "chain": "sigma_anchor", "state": "표시됨(F-1c)"},
+   {"site": "§3.3 R90 표 · 순위 인용방식 표", "chain": "sigma_anchor · sigma_sensitivity", "state": "F-1c 와 마스터가 이름으로 덮는다"},
+   {"site": "§3.4 표 · 결론", "chain": "sigma_sensitivity", "state": "표시됨(F-1d)"},
+   {"site": "논문키트 방어표", "chain": "sigma_sensitivity ×20", "state": "표시됨(F-1e)"},
+   {"site": "§1.1 유효창", "chain": "archive/report13_sigma_grid_pre0803 : meta.el_deg", "state": "표시 불필요 — 격자의 **앙각 범위**(설정)이고 σ 값이 아니다. 격자 자체의 낡음은 «σ 격자 출처» 행이 든다"},
+   {"site": "§2.2 듀티 축 · 다음 단계 듀티 행", "chain": "sigma_sensitivity : unapplied_duty_axis", "state": "표시 불필요 — T_ref·프레임 수·듀티 dB 는 기준신호 규약값이고 메쉬 형상을 먹지 않는다(과잉 표시를 피했다)"},
+   {"site": "das_fleet · rcs_anchor", "chain": "—", "state": "05편은 이 둘의 값을 인용하지 않는다(grep 0건). J_DF 는 sbr_defect_fixes.json 이라 이름만 비슷하다"}
+  ],
+  "report06": [
+   {"site": "여는 블록 결과 1·2", "chain": "sigma_sensitivity(파생 원장 경유)", "state": "표시됨(F-2a)"},
+   {"site": "paper_map claim", "chain": "sigma_sensitivity", "state": "표시됨(F-2e)"},
+   {"site": "§3 본문", "chain": "sigma_sensitivity", "state": "표시됨(F-2c)"},
+   {"site": "§4 결정표 «파형 상대순위»", "chain": "sigma_sensitivity", "state": "표시됨(F-2b)"},
+   {"site": "방어표 «여유는 얇다»", "chain": "sigma_sensitivity", "state": "표시됨(F-2d)"},
+   {"site": "다음 단계 첫 행", "chain": "sigma_sensitivity", "state": "표시됨(F-2f)"},
+   {"site": "§2-2 교정구 여유", "chain": "rcs_anchor → sigma_anchor", "state": "이미 표시됨(이전 라운드)"},
+   {"site": "§3-1 앵커 원장 표 · §3-2 재보정 모드 표", "chain": "rcs_anchor → sigma_anchor", "state": "이미 표시됨 — §3-2 문장이 «위 두 표» 로 §3-1 을 덮는다"},
+   {"site": "§4-1 기울기", "chain": "rcs_anchor · sigma_anchor 두 세대", "state": "이미 표시됨(세대 + 형상 두 축 모두)"},
+   {"site": "§4 결정표 «밴드 기울기» 행", "chain": "sigma_anchor", "state": "이미 표시됨(세대 단서 + §4-1 포워딩)"},
+   {"site": "das_fleet", "chain": "—", "state": "06편은 인용하지 않는다(grep 0건)"}
+  ],
+  "counts": {
+   "report05_형상정정_before": 1,
+   "report05_형상정정_after": 6,
+   "report06_형상정정_before": 5,
+   "report06_형상정정_after": 11
+  }
+ },
+
+ "facts_checked_against_json": [
+  {"claim": "06 의 뒤집힘 폭 최솟값을 정하는 기체는 Matrice 4E 다",
+   "evidence": "report06_derived.json : ranking_validation.flip_span_min_airframe = matrice4e · flip_span_min_db = 1.297853547927232 = sigma_sensitivity.json : aspect_averaged.by_drone.matrice4e.smallest_flip_span_db",
+   "verdict": "참"},
+  {"claim": "여유는 0.30 dB 다",
+   "evidence": "report06_derived.json : ranking_validation.drift_margin_db = 0.29785354792723195 (= 1.29785 − 1.00)",
+   "verdict": "참"},
+  {"claim": "05 §3.4 하한 0.61 dB 는 Matrice 4E 행이다",
+   "evidence": "sigma_sensitivity.json : differential.smallest_flip_span_db_overall = 0.6144880997507195 = differential.by_drone.matrice4e.analytic_smallest_flip_span_db",
+   "verdict": "참 — 02 §5 표의 «단일자세 0.61» 과 같은 칸"},
+  {"claim": "05 결과 3 의 3.72 dB 는 Matrice 4E 행이다",
+   "evidence": "sigma_sensitivity.json : configurations.by_config.aspect_avg_anchored.by_drone.mavic4pro.smallest_flip_span_db = 3.7196021498295297 (matrice4e 는 4.064)",
+   "verdict": "거짓 — **Mavic 4 Pro** 다. 그래서 F-1b 문구를 «이 수가 Matrice 4E 에서 온다» 가 아니라 «사슬 전체가 정정 전 메쉬 위» 로 적었다"},
+  {"claim": "다섯 기체 중 형상 정정을 받은 것은 Matrice 4E 하나다",
+   "evidence": "meshfix_applied.json : per_drone = [matrice4e, mini2, x500v2] ∩ 05·06 의 5기체(mini5pro·mavic4pro·matrice4e·phantom4·s1000plus) = {matrice4e}",
+   "verdict": "참"},
+  {"claim": "sigma_anchor · sigma_sensitivity 는 critical 로 분류된 사슬이다",
+   "evidence": "meshfix_attack.json : Q6_invalidated_outputs.critical[3] = «outputs/sigma_anchor.json · sigma_sensitivity.json · …», why = «matrice4e(및 mini2) 형상을 먹는 σ 캐시·민감도»",
+   "verdict": "참 — 05 본문 태그가 이 인덱스를 그대로 가리킨다"},
+  {"claim": "meshfix 날짜는 2026-08-04 다",
+   "evidence": "meshfix_applied.json : _meta.date",
+   "verdict": "참 — 본문에는 손입력 없이 num() 으로 주입"}
+ ],
+
+ "not_this_branch": {
+  "note": "corr2_verify 의 «남은 것» 중 이 갈래가 손대지 않은 항목. 다른 갈래가 같은 파일을 동시에 편집 중이라 겹치지 않게 두었다.",
+  "items": [
+   "Q4 용어 15개(06편 위상맹목·CIR·게이팅 / 저장소 전반 로브·널 깊이·dBsm·first-hit·클램프·CFAR·ECA / 02편 여는 블록 kr·IoU·자기복제 상한·PEC·이면각·해석 PO)",
+   "05편 논문키트 방어 블록(셀 23)의 태그 없는 수 41개 — 이번 편집으로 그 블록에 문장 한 줄이 늘었을 뿐 수는 늘리지 않았다",
+   "RETRACTION_LOG R17 · corr2_rebuild.json 의 기록 정합(근거 JSON 편집 서술)",
+   "X-2(«같은 자리에 온다» → «레벨에서는 오히려 그 구가 앞선다») 다섯 자리"
+  ]
+ },
+
+ "risks_carried_forward": [
+  "05 §3.4 = 12/12줄 · 06 §4-1 = 12/12줄 — 다음 갈래는 이 두 셀에 **줄을 넣을 수 없다**(기존 문장 이어붙이기만 가능).",
+  "06 §3(셀 16) · §4 결정표(셀 20) · 05 §3.2 표(셀 12) · §3.3(셀 13) · §3.7(셀 20) 이 11/12줄이라 각 셀에 남은 줄은 하나뿐이다.",
+  "02·05·06 마크다운 25/25 셀 — 셀 추가는 어느 갈래도 못 한다.",
+  "부정문: 05 2/3 · 06 1/3 (이 갈래는 하나도 늘리지 않았다).",
+  "SLOPE_LEDGER_GAP_MAX_DB_PER_GHZ = 1.40 의 여유 0.0045 는 그대로다 — σ 사슬 재실행 시 이 assert 가 먼저 멈추는 것이 설계된 동작이고, 이 갈래는 상수를 건드리지 않았다.",
+  "다음 단계가 리포트를 재생성할 때 05·06 은 물론 **02 도 함께** 돌아야 한다 — 이 갈래의 단서가 02 §5 를 이름으로 가리킨다."
+ ],
+
+ "regenerate_next": [
+  "PYTHONPATH=src ~/.venvs/py312/bin/python src/make_report05_results.py",
+  "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python src/make_report06_measurement.py"
+ ]
+}

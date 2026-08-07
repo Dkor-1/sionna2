@@ -218,8 +218,33 @@ DRONES: dict[str, DroneSpec] = {
         #   ⚠ 휠베이스는 그래서 274.6 → **248.3 mm** 가 된다. `diagonal_mm=275` 는 그대로 두되
         #     이제 **로터 위치를 정하지 않는다**(암 두께·모터 비례식의 스케일로만 남는다) —
         #     275 자체가 '대칭 가정 위에서 공식 외형으로부터 역산한 값' 이었기 때문이다.
-        rotor_z_mm=(-12.0, +2.0, +2.0, -12.0),   # 실물은 **앞 모터가 더 낮다**(조사 확인). 사다리꼴로
-                                                 #   디스크 겹침은 사라졌지만 관측된 사실이라 유지한다.
+        # ⭐⭐ 2026-08-07 게이트 ② (outputs/meshgate_mini5pro.json) — (−12,+2,+2,−12) → **(−7,+7,+7,−7)**.
+        #   [부호는 근거가 있다] DJI 공식 **사용자 매뉴얼**(한국어, 2025-12-10판, md5
+        #     b71b2c60f06d9c5d2c64a7c0818da508) p.11 암 펼치기 도면 · p.14 부위도: **뒤 암은 동체
+        #     윗면**에 접혀 있다가 펴지고 **앞 암은 동체 밑면**에서 내려오며 펴진다. 경첩 높이가
+        #     다르다는 것을 제조사 도면이 직접 보여준다 ⇒ 앞 로터가 뒤보다 **낮다**.
+        #     공식 제품 렌더 2컷(_1 정면 · _2 전좌상)도 같은 것을 보여 준다(앞 암 뿌리 = 짐벌 블록
+        #     높이, 뒤 암 뿌리 = 윗면 어깨).
+        #   [크기 14 mm 는 **추정**이다 — 「조사 확인」 은 거짓이었다] 그 표현을 지운다. 값은
+        #     2026-07-14 `3dd4794` 가 «프롭 152.4 > 앞뒤 모터간격 152 → 디스크가 겹치니 앞이
+        #     12 mm 낮을 것» 이라는 **추론**으로 넣었고, 같은 날 우리 적대검증 문서
+        #     (docs/drone_specs_2026.json)가 «어떤 소스에도 없다 … 자기 추론의 부산물을 관측으로
+        #     승격» 이라고 이미 적발했다. 2026-07-31 사다리꼴 채택으로 그 전제(겹침)마저 사라졌다.
+        #     DJI 는 Mini 5 Pro 의 CAD/3D 모델을 공개하지 않아 mm 를 잴 1차 출처가 없다.
+        #   [왜 철회하지 않았나] 철회(네 로터를 한 평면)는 «층차가 없다» 고 **적극적으로 주장**하는
+        #     것이고 그 주장은 위 매뉴얼 도면과 정면으로 어긋난다. 무출처인 크기를 지우려다
+        #     출처 있는 부호까지 지우게 된다. 게다가 층차 0 이면 공식 높이 91 mm(프롭 포함)를
+        #     맞추느라 기체를 세로로 47 % 늘려야 한다(sz 1.468) — 14 mm 면 18 %.
+        #     실측 CAD 를 가진 DJI 두 대의 층차가 8.0~21.3 mm 이고 공식 높이는 26.9 mm 까지도
+        #     허용하므로 14 는 그 안쪽의 **보수적인** 값이다. 근거 없는 값을 다른 근거 없는 값으로
+        #     바꾸는 것은 개선이 아니라서 크기는 그대로 두고 **추정으로 강등**한다.
+        #   [무엇을 바꿨나] 평균을 0 으로 되돌렸다. 옛 튜플은 평균이 **−5 mm** 였는데 그것은
+        #     아무도 주장한 적이 없는 부작용이다(앞 프롭을 뒤 디스크 밑으로 밀어 넣다가 생겼다).
+        #     층차(14 mm)는 그대로이고 메쉬 품질도 그대로다 — 주장만 하나 줄었다.
+        #   ⚠ 이제 `drone_cad.ARM_Z_FOLLOWS_ROTOR` 에 mini5pro 가 있어 **암·모터 벨·다리가 이
+        #     값을 따라간다**(예전에는 프로펠러만 따라가서 앞 프롭이 벨 속에 박혔다).
+        #     다리가 앞 암에 붙어 있어 함께 7 mm 내려간다 — 지상고 계열 수치는 다시 봐야 한다.
+        rotor_z_mm=(-7.0, +7.0, +7.0, -7.0),
         envelope_mm=(None, None, 91.0), env_props_included=True),   # ⚠ **높이만** 공식이고, **프롭 포함**값이다.
         # DJI 는 Mini 5 Pro 의 **언폴드(프롭 제외) L×W 를 공개하지 않는다**(2026-07-14 심층조사 확인).
         # 공개된 것: 폴디드(프롭제외) 157×95×68,  언폴드(**프롭 포함**) 304×380×91.
@@ -693,10 +718,14 @@ DRONES: dict[str, DroneSpec] = {
              "wide, 18.3 px tall at 0.74929 mm/px); this matches the published DJI 2312 stator "
              "23 x 12 mm with an aluminium bell around it. Before this they were UNKNOWN and the "
              "diagonal-proportional fallback produced a 36.4 mm bell, +29%. "
-             "*** RESIDUAL, NOT FIXED: prop_z is a house formula (motor_h + arm_t/2 + 6 mm) and "
-             "gives 33.7 mm where the drawing shows the blade plane at 27.7 mm, so the propellers "
-             "sit 6 mm high. Correcting it needs a spec-level prop_z override, which would touch "
-             "every airframe, so it is recorded rather than patched. *** "
+             "*** FIXED 2026-08-07 (was: prop_z is a house formula motor_h + arm_t/2 + 6 mm, giving "
+             "33.7 mm where the drawing shows the blade plane at 27.7 mm). prop_z is now derived "
+             "from the motor bell top (drone_cad.motor_bell_top_z_m = 24.7 mm here) plus a "
+             "per-airframe standoff; the P3 has a SCREW-ON hub, so its standoff is 1.55 mm = the "
+             "drawing's 3.0 mm blade-plane clearance minus our own measured blade-neutral-plane "
+             "offset 1.452 mm. Result: our blade plane lands at 27.702 mm against the drawing's "
+             "27.7 mm. This did touch every airframe - that was the point, the two formulas had to "
+             "become one. *** "
              "body_lw and body_frac remain UNKNOWN for the P3 and carry the phantom4 values - they "
              "do not enter the CAD shell path (build_frame_cad reads body_l/w/h_mm directly) and "
              "affect diagrams only.",
@@ -970,8 +999,13 @@ DRONES: dict[str, DroneSpec] = {
              "*** THE HIGHEST POINTS ARE THE PROPELLER-MOUNT SCREW HEADS, and they are modelled "
              "(drone_cad.PROP_SCREW_POSTS, two solid 3.79 mm square posts per rotor at radius 5.0 mm "
              "from the motor axis, standing 5.47 mm above the bell top). Four separate GLB parts, "
-             "two per rotor, put their tops at z +31.46 (front) - that value with the -24.52 foot is "
-             "what makes the props-excluded height 55.98 = the published 56. Corroborated, not "
+             "two per rotor, put their tops at z +31.46 (front). *** CLAIM STRENGTH CORRECTED "
+             "2026-08-07 (M2/C5): -24.52 is NOT an independent measurement - the mini2 round DEFINES "
+             "the props-excluded lowest point to be z = -24.52 (see outputs/meshfix_mini2.json "
+             "frame_convention: 'origin_z ... 를 -24.52 로 정의한다'). So +31.46 is a coordinate in "
+             "that datum, not a second fact. The ONE quantity measured independently is the vertical "
+             "SPAN 55.97734 mm, and it matches the published 56 mm to -0.040 %. Read the two numbers "
+             "as one span, not as two agreeing measurements. Corroborated, not "
              "measured, by the FCC exhibit mini2_t28: two steel cross-head screws per propeller hub, "
              "diametrically opposite - steel, hence the metal 'motor' group. DECLARED: the CAD's "
              "screw heads float 4.6 mm above the bell top because the propeller hub that fills the "
@@ -1176,13 +1210,25 @@ def _arm_motor_dims(spec: DroneSpec, diag: float) -> tuple[float, float, float]:
 
     ⭐ 2026-07-30: 튜브 암(열린 프레임)은 **다른 식**을 쓴다. 셸형은 모터가 암 중심선에서
       시작하지만, 열린 프레임의 모터는 암 위에 얹힌 **모터마운트 판** 위에 앉는다. 옛 식을
-      그대로 쓰면 X500 V2 의 프롭이 모터 캔 꼭대기보다 7 mm 위에 떠 있었다(렌더로 확인)."""
+      그대로 쓰면 X500 V2 의 프롭이 모터 캔 꼭대기보다 7 mm 위에 떠 있었다(렌더로 확인).
+
+    ⭐⭐ 2026-08-07 (C1·C2 / P1·P2) — **프롭 장착 z 를 벨 윗면에서 유도한다.**
+      [옛 식] `prop_z = motor_h + arm_t/2 + 0.006`.  그 6 mm 와 arm_t/2 는 어떤 실측에도
+        닿아 있지 않은 **집안 규칙**이었고, 벨이 실제로 어디서 시작하는지(drone_cad.MOTOR_BASE_Z)를
+        **한 번도 읽지 않았다**. 그래서 벨을 움직여도 프롭은 제자리였고, 어긋나도 예외가 안 났다.
+        실측: 프롭이 벨 위 3.6~13.2 mm 에 떠 있었다(outputs/meshdef_prop_gap.json).
+      [새 식] `prop_z = drone_cad.motor_bell_top_z_m(spec, diag) + PROP_STANDOFF_M[key]`.
+        벨 높이도 이제 `drone_cad.motor_bell_h_m` 하나뿐이다 — 여기 있던 0.045·diag 는
+        drone_cad 의 0.048·diag 와 **다른 값**이었고(mavic4pro 에서 1.32 mm), 그 차이가
+        그대로 간격에 실렸다.
+      ⚠ 이 함수가 돌려주는 `motor_h` 도 이제 그 단일 출처 값이다(0.048·diag 계열).
+        `arm_t` 는 더 이상 프롭 높이에 안 쓰인다 — 암 두께로만 남는다."""
+    from drone_cad import (motor_bell_h_m, motor_bell_top_z_m,      # noqa: E402  (순환 import 회피)
+                           PROP_STANDOFF_M)
     arm_t = (0.08 if spec.fixed_arm else 0.045) * diag
-    motor_h = 0.045 * diag
+    motor_h = motor_bell_h_m(spec, diag)
     if getattr(spec, "arm_od_mm", None) is not None:
         arm_t = float(spec.arm_od_mm) / 1000.0
-    if getattr(spec, "motor_h_mm", None) is not None:
-        motor_h = float(spec.motor_h_mm) / 1000.0
     if getattr(spec, "arm_shape", "folding") == "tube":
         #  ⭐ 2026-08-04 — 캔 위 클리어런스 0.8 → **2.0 mm**. 프롭이 앉는 면은 제조사 STEP 의
         #    프롭어댑터 플랜지(y_step 53.08~54.0 → z 37.1~38.0)다. 캔이 z 7.5~36.0 으로
@@ -1191,7 +1237,7 @@ def _arm_motor_dims(spec: DroneSpec, diag: float) -> tuple[float, float, float]:
         #     합집합에서 캔에 먹힌다 — 예외는 안 난다.)
         #    ⚠ 이 분기는 arm_shape=='tube' 전용이고 현재 그 기체는 x500v2 뿐이다.
         return arm_t, motor_h, OPEN_MOTOR_BASE_M + motor_h + 0.002
-    return arm_t, motor_h, motor_h + arm_t / 2 + 0.006
+    return arm_t, motor_h, motor_bell_top_z_m(spec, diag) + PROP_STANDOFF_M.get(spec.key, 0.0)
 
 
 def _drone_dims(spec: DroneSpec):

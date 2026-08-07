@@ -1,0 +1,1428 @@
+{
+ "_meta": {
+  "generated": "2026-08-07T05:15:22",
+  "generator": "scratchpad/diag.py · diag2.py · diag3.py (읽기 전용 — 빌더·노트북 무수정)",
+  "question": "리포트가 왜 읽기 어려운가. 원인을 숫자로 짚는다.",
+  "scope": "이 라운드는 설계만 한다. src/make_report0N_*.py · report0N_*.ipynb · src/report_style.py · src/drones.py · src/drone_cad.py 는 열어 읽기만 했다.",
+  "inputs": [
+   "outputs/restruct_survey.json (셀 목록·클러스터·성격 분류)",
+   "report0[0-6]_*.ipynb (직접 읽어 다시 셈)",
+   "src/report_style.py (규약 원문)",
+   "outputs/corr3_terms.json (다른 갈래의 용어 조사 — 인용만)"
+  ],
+  "notebook_mtime_when_measured": {
+   "report00_foundations.ipynb": "2026-08-05T03:58:26",
+   "report01_prior.ipynb": "2026-08-07T05:01:09",
+   "report02_target.ipynb": "2026-08-07T05:01:44",
+   "report03_illuminators.ipynb": "2026-08-07T05:01:58",
+   "report04_detector.ipynb": "2026-08-07T05:02:00",
+   "report05_results.ipynb": "2026-08-07T05:02:01",
+   "report06_measurement.ipynb": "2026-08-07T05:02:05"
+  },
+  "snapshot_note": "restruct_survey.json 은 04:58 판 노트북을 읽었고 이 진단은 05:01~05:02 재빌드 판을 읽었다. 마크다운 셀 수는 양쪽 다 170 이고 §구조·셀 인덱스도 같다 — 움직인 것은 본문 글자 수뿐이다.",
+  "definitions": {
+   "화면 글자": "<!--pk:…--> 논문키트 주석과 <!--rs:…--> 태그를 뺀, 렌더된 뒤 눈에 보이는 글자 수",
+   "화면 칸(display column)": "한글·전각을 2칸, 나머지를 1칸으로 센 폭. 노트북 본문 한 줄은 보통 90~110칸",
+   "screen_lines": "화면 폭 100칸에서 줄바꿈된 뒤의 줄 수 — 사람이 실제로 겪는 길이",
+   "check_lines": "report_style.check_budget 이 세는 줄(빈 줄 제외) — 규약이 12로 제한하는 그 수",
+   "출처 태그": "⟨outputs/xxx.json : a.b.c⟩ — num() 이 값을 검증한 뒤 찍는 문자열"
+  }
+ },
+ "headline": {
+  "one_sentence": "읽기 어려운 가장 큰 이유는 글이 많아서가 아니라, 화면에 보이는 글자의 37.9% 가 본문이 아니라 출처 태그이고(94,984/250,425자), 결론 문장이 클러스터 71개 중 20개에만 있기 때문이다.",
+  "ranked_causes": [
+   {
+    "rank": 1,
+    "cause": "출처 태그가 본문 한가운데 박혀 있다",
+    "size": "화면 글자의 37.9% (94,984/250,425자) · 태그 하나 평균 66.9칸 · 태그가 든 문장은 183자인데 태그를 지우면 76자 (+180%)",
+    "why_it_hurts": "한 문장을 읽으려면 태그 문자열을 눈으로 건너뛰며 조각을 다시 이어 붙여야 한다. 문장 하나에 태그가 3개 이상인 경우가 95건, 최대 10개다."
+   },
+   {
+    "rank": 2,
+    "cause": "결론 문장이 없다",
+    "size": "클러스터 71개 중 결론 셀이 있는 것 20개 · 결론 셀 비중 6.6~18.5% · report02 는 56,990자에 결론 셀 1개(여는 셀)",
+    "why_it_hurts": "독자가 «그래서 뭐» 를 만나기 전에 report05 는 20,950자를 지나야 한다."
+   },
+   {
+    "rank": 3,
+    "cause": "본문의 절반이 표이고, 그 표 칸 안에 문단이 들어 있다",
+    "size": "표가 본문 글자의 47.7% · 표 칸 2,732개 중 120칸 넘는 칸 220개(최대 996칸) · 표 한 행의 중앙 폭 195칸(화면 폭의 두 배)",
+    "why_it_hurts": "열이 많아서가 아니다(중앙 4열). 한 칸에 문단이 들어가 표가 «격자 모양의 벽» 이 된다."
+   },
+   {
+    "rank": 4,
+    "cause": "12줄 검사가 재는 것과 사람이 겪는 것이 다르다",
+    "size": "170셀 중 105셀이 12줄 검사를 통과하면서 화면에서는 12줄을 넘는다 · 중앙 배율 2.0배 · 최악 report02 c20 은 검사 7줄 / 화면 61줄",
+    "why_it_hurts": "규약이 «벽» 을 못 잡는다. 한 줄에 500자를 넣으면 검사를 통과한다."
+   },
+   {
+    "rank": 5,
+    "cause": "한 셀에 주제가 여럿 들어 있다",
+    "size": "compound_cell 11건 · 7편 전부 cell 1 이 «방법 표 + 재현 bash + 출력 목록 + 앞 편에서 + 논문 대응» 합본",
+    "why_it_hurts": "«6편 골격은 유지» 라는 조항 때문에 편을 못 쪼개고 셀을 합쳤다 — 규약 자신이 금지한 방향이다."
+   }
+  ],
+  "the_one_number_that_matters": {
+   "claim": "내용을 하나도 빼지 않고도 독자가 보는 글자를 절반으로 줄일 수 있다",
+   "arithmetic": {
+    "지금 본문": 250425,
+    "논문 방법문단 8셀을 메모로 뺀 뒤": 201863,
+    "거기서 태그 1,421개를 각주 [n] 4자로 바꾸면": 125278,
+    "줄어드는 비율": "50.0%"
+   },
+   "why_this_is_not_content_removal": "num() 은 태그를 찍기 전에 JSON 을 열어 값을 대조하고 어긋나면 빌드를 멈춘다. 태그 문자열은 이미 통과한 검사의 «흔적» 이지 검사 자체가 아니다 — 각주로 옮겨도 검증은 1비트도 안 약해진다."
+  }
+ },
+ "s1_source_tags": {
+  "verdict": "CONFIRMED — 의심 목록에서 가장 큰 항이다",
+  "counts": {
+   "total_tags": 1421,
+   "per_report": {
+    "report00": {
+     "n_tags": 116,
+     "per_1000_chars": 4.2,
+     "worst_cell": 12,
+     "worst_cell_tags": 18
+    },
+    "report01": {
+     "n_tags": 99,
+     "per_1000_chars": 3.2,
+     "worst_cell": 17,
+     "worst_cell_tags": 16
+    },
+    "report02": {
+     "n_tags": 371,
+     "per_1000_chars": 6.5,
+     "worst_cell": 0,
+     "worst_cell_tags": 42
+    },
+    "report03": {
+     "n_tags": 175,
+     "per_1000_chars": 5.6,
+     "worst_cell": 21,
+     "worst_cell_tags": 35
+    },
+    "report04": {
+     "n_tags": 138,
+     "per_1000_chars": 6.3,
+     "worst_cell": 22,
+     "worst_cell_tags": 46
+    },
+    "report05": {
+     "n_tags": 343,
+     "per_1000_chars": 7.0,
+     "worst_cell": 23,
+     "worst_cell_tags": 36
+    },
+    "report06": {
+     "n_tags": 179,
+     "per_1000_chars": 5.4,
+     "worst_cell": 22,
+     "worst_cell_tags": 30
+    }
+   },
+   "in_table_cells": 692,
+   "in_prose_lines": 729,
+   "mid_sentence_occurrences": 534,
+   "distinct_file_key_pairs": 967,
+   "repeat_occurrences": 454,
+   "most_repeated": "outputs/meshfix_applied.json : _meta.date — 23회",
+   "citations_pointing_at_report0N_derived_json": {
+    "n": 365,
+    "pct": 26,
+    "note": "편마다 만든 파생 JSON 을 가리킨다 — 독자에게 «어느 실험» 인지 안 알려주는 한 겹의 간접층이다"
+   }
+  },
+  "size_on_screen": {
+   "tag_chars": 94984,
+   "body_chars": 250425,
+   "share_pct_of_chars": 37.9,
+   "tag_display_cols": 95082,
+   "share_pct_of_display_cols": 32.2,
+   "mean_tag_display_cols": 66.9,
+   "max_tag_display_cols": 176,
+   "key_path_len_chars": {
+    "median": 28,
+    "p90": 58,
+    "max": 141
+   }
+  },
+  "per_sentence": {
+   "sentences_with_at_least_one_tag": 346,
+   "histogram_tags_per_sentence": {
+    "1": 171,
+    "2": 80,
+    "3": 41,
+    "4": 27,
+    "5": 11,
+    "6": 7,
+    "7": 5,
+    "8": 2,
+    "9": 1,
+    "10": 1
+   },
+   "sentences_with_3_or_more": 95,
+   "max_tags_in_one_sentence": 10,
+   "sentence_length_inflation": {
+    "n": 331,
+    "median_with_tags": 183,
+    "median_without_tags": 76,
+    "inflation_pct": 180
+   },
+   "worst_examples": [
+    {
+     "report": "report02",
+     "cell": 0,
+     "n_tags": 10,
+     "chars": 637,
+     "text": "1. **기체 7 ⟨outputs/report02_derived.json : mesh.n⟩종의 메쉬를 지었다**(§1 그림 1) — Mini 2 ⟨outputs/report02_derived.json : mesh.smallest⟩ 285 mm ⟨outputs/report02_derived.json : mesh.smallest_span_mm⟩ 부터 S1000+ ⟨outputs/report02_derived.json : mesh.largest⟩ 1330 mm ⟨outputs/report02_derived.json : mesh.largest_span_mm⟩ 까지 4.66 ⟨outputs/report02_derived.json : mesh.span_ratio⟩배, 부품 222 ⟨outputs/report02_der"
+    },
+    {
+     "report": "report02",
+     "cell": 0,
+     "n_tags": 9,
+     "chars": 600,
+     "text": "2. **사진 21 ⟨outputs/report02_derived.json : photo.n_pairs⟩장과 실루엣으로 맞댔다**(그림 2) — IoU(두 실루엣이 겹친 넓이의 비)는 X500 V2 ⟨outputs/report02_derived.json : photo.best⟩ 0.875 ⟨outputs/report02_derived.json : photo.best_iou⟩(자기복제 상한, 즉 이 검사가 낼 수 있는 최고점 대비 91% ⟨outputs/report02_derived.json : photo.best_pct⟩)부터 Mini 5 Pro ⭐ ⟨outputs/report02_derived.json : photo.worst⟩ 0.478 ⟨outputs/report02_derived.json : phot"
+    },
+    {
+     "report": "report02",
+     "cell": 2,
+     "n_tags": 8,
+     "chars": 767,
+     "text": "⚠ **이 그림 넷과 §1 의 표는 2026-08-04 ⟨outputs/meshfix_applied.json : _meta.date⟩ 형상 정정 전 메쉬 기준이다** — 그날 Matrice 4E · Mini 2 · X500 V2 의 형상 상수가 공식 CAD 실측으로 정정되면서 몸통을 공표 높이에 맞추던 z 축 배율이 Matrice 4E 0.950 ⟨outputs/meshfix_applied.json : per_drone.matrice4e.fit_scale_before[2]⟩→1.000 ⟨outputs/meshfix_applied.json : per_drone.matrice4e.fit_scale_after[2]⟩ · Mini 2 0.906 ⟨outputs/meshfix_applied.json : per_dro"
+    },
+    {
+     "report": "report02",
+     "cell": 21,
+     "n_tags": 8,
+     "chars": 622,
+     "text": "공통모드에서 순위는 -10 ⟨outputs/report02_derived.json : sigma_sens.offset_min_db⟩~+10 dB ⟨outputs/report02_derived.json : sigma_sens.offset_max_db⟩ 전 구간 15 ⟨outputs/report02_derived.json : sigma_sens.n_cells⟩셀에서 그대로다 — 움직이는 것은 절대거리뿐이고 그 기울기가 σ 1 dB 당 0.246 dB ⟨outputs/report02_derived.json : sigma_sens.slope_mean_db_per_db⟩(0.223 ⟨outputs/report02_derived.json : sigma_sens.slope_min_db_per_db⟩~0.256 ⟨outp"
+    },
+    {
+     "report": "report02",
+     "cell": 0,
+     "n_tags": 7,
+     "chars": 754,
+     "text": "5. **주파수 의존성 A(f) 만 Das 측정(IEEE WCL 2026 15:3731)에 맞췄고, 같은 기체를 눈감고 돌려 봉인을 풀었다**(§4.5) — 기울기 0.210 dB/GHz ⟨outputs/rcs_anchor.json : literature.mu_eps.das_phantom3_mono.mu_a⟩ 에 맞출 때 기체 7 ⟨outputs/report02_derived.json : anchor_modes.n_airframes⟩종의 평균 레벨이동은 0.00 dB ⟨outputs/report02_derived.json : anchor_modes.level_shift_abs_max_db⟩ 이고, 눈감기 Phantom 3 는 고도정합 실측곡선 대비 레벨 -4.91 dB ⟨outputs/p3_validatio"
+    },
+    {
+     "report": "report02",
+     "cell": 12,
+     "n_tags": 7,
+     "chars": 1310,
+     "text": "이 문턱을 **Phantom 3 급 한 기체의 부품 치수**로 옮기면 부품마다 몇 GHz 부터 문턱을 넘는지가 나온다 — 동체 2.68 ⟨outputs/lowfreq_attack.json : q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_knee.body_81.51mm⟩ · 암뿌리 4.86 ⟨outputs/lowfreq_attack.json : q5_blast_radius.po_validity_blast_radius_the_real_one.recomputed_by_me_frequency_at_which_each_feature_passes_that_kn"
+    }
+   ]
+  },
+  "alternatives": [
+   {
+    "option": "A. 각주 번호 — 본문엔 [12], 절 끝에 번호↔출처 표",
+    "gain": "화면 글자 −30.3%p (태그 4칸으로). 문장이 끊기지 않고, 출처는 같은 화면 안에 남는다. 편이 짧아지므로 각주 표도 짧다(편당 20~40행).",
+    "loss": "숫자 옆에서 바로 출처를 못 본다 — 눈을 한 번 내려야 한다. 번호를 매기고 유지하는 코드가 report_style 에 새로 필요하다.",
+    "cost": "num() 이 문자열 대신 (표시값, 출처) 를 돌려주고 셀 빌더가 번호를 매기게 고치면 된다 — 호출부는 그대로."
+   },
+   {
+    "option": "B. 절 끝 «이 절의 숫자» 표 — 본문엔 태그 없음, 절 끝에 값·출처·의미 3열",
+    "gain": "본문이 완전히 깨끗해진다. 표 자체가 그 절의 숫자 목록이라 재감사가 오히려 쉽다(지금은 흩어져 있다).",
+    "loss": "어느 숫자가 어느 줄에서 왔는지 짝이 흐려진다 — 같은 값이 두 번 나오면 헷갈린다. 표가 길면 그 표가 새 벽이 된다(지금 표 폭 문제와 같은 함정).",
+    "cost": "각주보다 싸다 — 번호가 없어도 된다."
+   },
+   {
+    "option": "C. 접기(<details>) — 태그를 «출처 보기» 안에 넣는다",
+    "gain": "기본 화면에서 사라지고 한 번 눌러 다 본다. 본문 순서가 그대로라 짝이 안 흐려진다.",
+    "loss": "⚠ 렌더러 의존이다 — nbconvert·GitHub·VSCode·JupyterLab 이 <details> 를 다 같게 그리지 않고, 접힌 안쪽은 브라우저 찾기에서 놓칠 수 있다. PDF 로 뽑으면 내용이 통째로 사라지거나 통째로 펼쳐진다. 인수인계 문서에서 이건 큰 위험이다.",
+    "cost": "낮지만, 편마다 렌더 확인이 필요하다."
+   },
+   {
+    "option": "D. 태그를 짧게 — 파일 약칭 + 키 별칭 (예 ⟨D02:mesh.n⟩), 전체 경로는 편 끝 부록",
+    "gain": "화면 글자 −20.6%p. 구조는 그대로라 고치는 곳이 num() 한 군데다. 숫자 옆 출처가 살아 있다.",
+    "loss": "약칭 사전을 독자가 외워야 한다. 키 경로가 141자까지 가는 몇 개는 별칭을 손으로 지어야 하고, 그 별칭이 또 하나의 진실 후보가 된다(원본과 어긋날 위험).",
+    "cost": "가장 싸다 — 그러나 절감이 A 의 3분의 2다."
+   },
+   {
+    "option": "E. 첫 인용만 태그, 재인용은 «(위와 같음)»",
+    "gain": "태그 1,421 → 967 개(−32%). 다른 안과 겹쳐 쓸 수 있다. meshfix_applied.json:_meta.date 처럼 23번 되풀이되는 것이 바로 사라진다.",
+    "loss": "절감이 절반도 안 된다 — 남은 967개가 여전히 평균 66.9칸이다. 그리고 편을 쪼개면 «첫 인용» 이 편마다 다시 생겨 효과가 더 준다.",
+    "cost": "낮다. 다만 단독으로는 부족하다."
+   },
+   {
+    "option": "F. 별색·작은 글씨(<sup>·<span style>)로 시각 무게만 낮춘다",
+    "gain": "고칠 것이 거의 없다.",
+    "loss": "글자 수는 그대로다 — 문장은 여전히 183자다. 그리고 노트북 테마·PDF 에서 색이 살지 안 살지 보장이 없다. 이건 원인을 안 건드리고 증상만 칠하는 안이다.",
+    "cost": "거의 0. 효과도 거의 0."
+   }
+  ],
+  "my_decision": {
+   "choose": "A(각주 번호) + E(재인용 제거) 를 함께. 표 안에서는 B(칸에서 태그를 빼고 표 바로 밑에 출처 줄).",
+   "why": "① 절감이 가장 크고(−30.3%p, E 를 얹으면 더), ② 숫자↔출처 짝이 번호로 남아 재감사가 가능하며, ③ 렌더러에 기대지 않는다(각주는 그냥 글자와 표다). 표 안을 B 로 가르는 이유는 태그 1,421개 중 692개가 표 칸 안에 있고, 표 칸이 문단이 되는 원인 중 하나가 바로 그 태그이기 때문이다.",
+   "counter_evidence_i_accept": [
+    "각주 번호는 «숫자를 보는 순간 출처가 보인다» 는 지금의 최대 장점을 한 눈금 깎는다. 이건 손실이 맞다. 다만 편이 5,000자 규모로 짧아지면 각주 표가 같은 화면에 들어와 그 손실이 작아진다.",
+    "번호 유지 코드는 새 실패 지점이다. 번호가 밀리면 출처가 어긋나는데, 지금 구조에는 그런 실패 모드가 없다. 그래서 각주 표는 num() 이 «쓴 순서» 로 자동 생성해야 하고 손으로 매기면 안 된다.",
+    "C(접기)를 고르지 않은 것은 취향이 아니라 렌더러 위험 때문이다. 우리 리포트는 PDF·GitHub 로도 넘어간다는 전제가 있으므로 이건 실질 제약이다. 그 전제가 틀렸다면 C 가 A 보다 낫다."
+   ]
+  }
+ },
+ "s2_cell_length": {
+  "verdict": "PARTIAL — 중앙값은 문제가 아니다. 꼬리가 문제이고, 그 꼬리의 대부분이 사용자가 이미 «빼라» 고 한 논문 셀이다.",
+  "distribution_chars": {
+   "min": 98,
+   "p25": 646,
+   "median": 1018,
+   "p75": 1553,
+   "p90": 2652,
+   "max": 8215,
+   "mean": 1473
+  },
+  "over_2000": 34,
+  "over_3000": 16,
+  "over_5000": 7,
+  "top10": [
+   {
+    "report": "report01",
+    "cell": 23,
+    "chars": 8215,
+    "raw": 24801,
+    "display": 9140,
+    "head": "### §4.5 방법 문단 (논문 이관용)"
+   },
+   {
+    "report": "report03",
+    "cell": 21,
+    "chars": 7608,
+    "raw": 18188,
+    "display": 8438,
+    "head": "### §6. 방법 문단 (논문 이관용)"
+   },
+   {
+    "report": "report04",
+    "cell": 22,
+    "chars": 7606,
+    "raw": 17681,
+    "display": 8430,
+    "head": "### 방법 문단 (논문 이관용)"
+   },
+   {
+    "report": "report02",
+    "cell": 25,
+    "chars": 7598,
+    "raw": 18011,
+    "display": 8868,
+    "head": "### §7. 방법 문단 (논문 이관용)"
+   },
+   {
+    "report": "report05",
+    "cell": 23,
+    "chars": 7554,
+    "raw": 17586,
+    "display": 8745,
+    "head": "### 방법 문단 (논문 이관용)"
+   },
+   {
+    "report": "report06",
+    "cell": 23,
+    "chars": 6137,
+    "raw": 14057,
+    "display": 6921,
+    "head": "### §4.5 방법 문단 (논문 이관용)"
+   },
+   {
+    "report": "report05",
+    "cell": 1,
+    "chars": 6098,
+    "raw": 7069,
+    "display": 7081,
+    "head": "### 방법"
+   },
+   {
+    "report": "report02",
+    "cell": 1,
+    "chars": 4761,
+    "raw": 5719,
+    "display": 5454,
+    "head": "### 방법"
+   },
+   {
+    "report": "report02",
+    "cell": 20,
+    "chars": 4703,
+    "raw": 4703,
+    "display": 5752,
+    "head": "### §4.6 상자·구 대조군 — 메쉬가 사는 축은 절대 크기가 아니라 각도 구조다"
+   },
+   {
+    "report": "report02",
+    "cell": 12,
+    "chars": 4386,
+    "raw": 4386,
+    "display": 5101,
+    "head": "### §3.1a 세 번째 눈금 — 부품 폭 기준"
+   }
+  ],
+  "reading_time": "한국어 400~600자/분 기준 — 중앙 셀 1,018자 = 2분, 상위 셀 7,600자 = 13~19분(셀 하나에서)",
+  "key_observation": "상위 10셀 중 6개가 «방법 문단 (논문 이관용)» 이다(6,137~8,215자). 사용자 지시대로 논문 메모를 빼면 분포 꼭대기가 통째로 사라지고 최대 셀이 6,098자(report05 c1 «방법»)가 된다 — 그것도 재현 bash 를 떼면 갈라진다.",
+  "screen_lines": {
+   "median": 18.0,
+   "p90": 47,
+   "max": 112
+  }
+ },
+ "s3_check_vs_felt": {
+  "verdict": "CONFIRMED — 이것이 «검사를 통과하는데도 벽» 의 정체다",
+  "definition": "check_lines = report_style.check_budget 가 세는 줄(빈 줄 제외) · screen_lines = 화면 폭 100칸에서 줄바꿈된 뒤의 줄",
+  "cells_passing_check_but_over_12_screen_lines": 105,
+  "of_total_md_cells": 170,
+  "median_ratio_screen_over_source_lines": 2.0,
+  "worst_passing": [
+   {
+    "report": "report02",
+    "cell": 20,
+    "heading": "§4.6 상자·구 대조군 — 메쉬가 사는 축은 절대 크기가 아니라 각도 구조다",
+    "check_lines": 7,
+    "screen_lines": 61,
+    "ratio": 8.7,
+    "exempt": false,
+    "chars": 4703
+   },
+   {
+    "report": "report02",
+    "cell": 12,
+    "heading": "§3.1a 세 번째 눈금 — 부품 폭 기준",
+    "check_lines": 8,
+    "screen_lines": 55,
+    "ratio": 6.9,
+    "exempt": false,
+    "chars": 4386
+   },
+   {
+    "report": "report02",
+    "cell": 0,
+    "heading": "리포트 02 — 표적 모델: 메쉬 7종을 짓고 사진·공식 CAD·기준해로 재고, σ 의 주파수 축을 측정에 ",
+    "check_lines": 9,
+    "screen_lines": 48,
+    "ratio": 5.3,
+    "exempt": false,
+    "chars": 3756
+   },
+   {
+    "report": "report05",
+    "cell": 20,
+    "heading": "§3.7 표적모형이 검출을 얼마나 바꾸나",
+    "check_lines": 11,
+    "screen_lines": 48,
+    "ratio": 4.4,
+    "exempt": false,
+    "chars": 3748
+   },
+   {
+    "report": "report02",
+    "cell": 19,
+    "heading": "§4.5 ⭐ 눈감기 대조 — Phantom 3 를 문헌값을 보지 않고 내고 봉인을 풀었다 (v1 메쉬)",
+    "check_lines": 11,
+    "screen_lines": 47,
+    "ratio": 4.3,
+    "exempt": false,
+    "chars": 3553
+   },
+   {
+    "report": "report02",
+    "cell": 7,
+    "heading": "§2. 엔진 — 광선으로 조명면을 찾고 그 위에서 PO 를 적분한다",
+    "check_lines": 12,
+    "screen_lines": 45,
+    "ratio": 3.8,
+    "exempt": false,
+    "chars": 3377
+   },
+   {
+    "report": "report06",
+    "cell": 22,
+    "heading": "§4-1. 기울기 — 세션 재현성이 판정의 문턱이다",
+    "check_lines": 10,
+    "screen_lines": 43,
+    "ratio": 4.3,
+    "exempt": false,
+    "chars": 3286
+   },
+   {
+    "report": "report01",
+    "cell": 17,
+    "heading": "§3.4. ⭐ 엔진 밖에서 조달한 게재본 — 주입은 게재돼 있고, 값은 검증이 치른다",
+    "check_lines": 10,
+    "screen_lines": 36,
+    "ratio": 3.6,
+    "exempt": false,
+    "chars": 2606
+   },
+   {
+    "report": "report02",
+    "cell": 4,
+    "heading": "§1.1 사진과 맞댔다",
+    "check_lines": 11,
+    "screen_lines": 36,
+    "ratio": 3.3,
+    "exempt": false,
+    "chars": 2574
+   },
+   {
+    "report": "report01",
+    "cell": 20,
+    "heading": "§4.1.1. ⭐ 신규성 문단 — 논문 II 절에 그대로 붙인다",
+    "check_lines": 10,
+    "screen_lines": 33,
+    "ratio": 3.3,
+    "exempt": false,
+    "chars": 2652
+   }
+  ],
+  "what_the_rule_says": {
+   "text": "src/report_style.py:154 — «§5.7 분량 상한 — 넘치면 내용을 줄이지 말고 편을 쪼개라(다만 6편 골격은 유지).»",
+   "the_trap": "앞 절과 뒷 괄호가 서로를 취소한다. 쪼개라고 해 놓고 6편으로 묶어 두면 남는 수는 «합치기» 뿐이다. compound_cell 11건과 wall_of_text 22건이 그 자국이다.",
+   "provenance": "이 상한도 «6편 골격» 도 2026-07-30 재편 때 우리가 넣은 것이고 사용자가 만든 규칙이 아니다(docs/REBUILD_2026-07-30.md §5.7)."
+  }
+ },
+ "s4_time_to_conclusion": {
+  "verdict": "CONFIRMED — 가장 아픈 항이다. «한 리포트 당 하나의 중심 메시지» 의 정반대 상태.",
+  "per_report": {
+   "report00": {
+    "answer_cells": [
+     0,
+     9,
+     13
+    ],
+    "n_answer": 3,
+    "chars_to_2nd_answer": 7394,
+    "total_chars": 27369,
+    "answer_share_pct": 11.3
+   },
+   "report01": {
+    "answer_cells": [
+     0,
+     11,
+     18
+    ],
+    "n_answer": 3,
+    "chars_to_2nd_answer": 8669,
+    "total_chars": 31034,
+    "answer_share_pct": 9.7
+   },
+   "report02": {
+    "answer_cells": [
+     0
+    ],
+    "n_answer": 1,
+    "chars_to_2nd_answer": null,
+    "total_chars": 56990,
+    "answer_share_pct": 6.6
+   },
+   "report03": {
+    "answer_cells": [
+     0,
+     5,
+     20
+    ],
+    "n_answer": 3,
+    "chars_to_2nd_answer": 7900,
+    "total_chars": 31062,
+    "answer_share_pct": 15.0
+   },
+   "report04": {
+    "answer_cells": [
+     0,
+     9,
+     20
+    ],
+    "n_answer": 3,
+    "chars_to_2nd_answer": 6344,
+    "total_chars": 22028,
+    "answer_share_pct": 17.1
+   },
+   "report05": {
+    "answer_cells": [
+     0,
+     14,
+     16
+    ],
+    "n_answer": 3,
+    "chars_to_2nd_answer": 20950,
+    "total_chars": 48612,
+    "answer_share_pct": 11.6
+   },
+   "report06": {
+    "answer_cells": [
+     0,
+     5,
+     16,
+     20
+    ],
+    "n_answer": 4,
+    "chars_to_2nd_answer": 5963,
+    "total_chars": 33087,
+    "answer_share_pct": 18.5
+   }
+  },
+  "clusters_with_answer_cell": "20 / 71",
+  "clusters_without_answer": {
+   "n": 51,
+   "items": [
+    {
+     "cluster": "R01-G",
+     "report": "report01",
+     "title": "논문 원고 블록 (신규성 문단 + 방법 문단)",
+     "chars": 10867
+    },
+    {
+     "cluster": "R02-I",
+     "report": "report02",
+     "title": "눈감기 대조와 대조군 — Phantom 3 · 상자 · 구",
+     "chars": 8256
+    },
+    {
+     "cluster": "R04-F",
+     "report": "report04",
+     "title": "논문 방법 문단",
+     "chars": 7606
+    },
+    {
+     "cluster": "R05-K",
+     "report": "report05",
+     "title": "논문 방법 문단",
+     "chars": 7554
+    },
+    {
+     "cluster": "R03-H",
+     "report": "report03",
+     "title": "논문 방법 문단",
+     "chars": 7541
+    },
+    {
+     "cluster": "R02-L",
+     "report": "report02",
+     "title": "논문 방법 문단",
+     "chars": 7496
+    },
+    {
+     "cluster": "R02-H",
+     "report": "report02",
+     "title": "앵커 — σ 의 주파수 축만 측정에서 받는다",
+     "chars": 6837
+    },
+    {
+     "cluster": "R02-G",
+     "report": "report02",
+     "title": "기준해 검증 — 세 눈금 (해석 PO · Mie · 부품 폭)",
+     "chars": 6711
+    },
+    {
+     "cluster": "R06-L",
+     "report": "report06",
+     "title": "논문 방법 문단",
+     "chars": 6137
+    },
+    {
+     "cluster": "R02-E",
+     "report": "report02",
+     "title": "엔진 — 광선으로 조명면을 찾고 그 위에서 PO 적분",
+     "chars": 5201
+    },
+    {
+     "cluster": "R02-K",
+     "report": "report02",
+     "title": "코드셀 + 다음 단계",
+     "chars": 4178
+    },
+    {
+     "cluster": "R05-C",
+     "report": "report05",
+     "title": "감도사슬 — 밴드 격차를 항으로 분해",
+     "chars": 4045
+    }
+   ]
+  },
+  "clusters_where_answer_is_not_first": {
+   "n": 5,
+   "worst": [
+    {
+     "cluster": "R03-G",
+     "title": "모호함수 — 주엽 · 부엽 · 도플러 접힘",
+     "answer_cell": 20,
+     "chars_before_answer": 3235
+    },
+    {
+     "cluster": "R03-C",
+     "title": "세 조명원 — 상시 기준신호와 그 제원",
+     "answer_cell": 5,
+     "chars_before_answer": 2000
+    },
+    {
+     "cluster": "R04-E",
+     "title": "분해능 · 정확도 · 관측가능성",
+     "answer_cell": 20,
+     "chars_before_answer": 1363
+    },
+    {
+     "cluster": "R05-F",
+     "title": "R90 과 밴드 순위의 내구성",
+     "answer_cell": 14,
+     "chars_before_answer": 1289
+    },
+    {
+     "cluster": "R00-C",
+     "title": "그 수식에 없는 것 — 인자 8개와 단위 논증",
+     "answer_cell": 9,
+     "chars_before_answer": 943
+    }
+   ]
+  },
+  "in_cell_lead": {
+   "cells_over_900chars": 97,
+   "bold_lead_in_first_250": 32,
+   "bold_lead_later": 28,
+   "no_bold_at_all": 37,
+   "examples": [
+    {
+     "report": "report01",
+     "cell": 23,
+     "chars": 8214,
+     "why": "굵은 요약 줄이 아예 없다"
+    },
+    {
+     "report": "report03",
+     "cell": 21,
+     "chars": 7607,
+     "first_bold_at": 4182,
+     "why": "첫 굵은 줄이 4182자 뒤"
+    },
+    {
+     "report": "report04",
+     "cell": 22,
+     "chars": 7605,
+     "why": "굵은 요약 줄이 아예 없다"
+    },
+    {
+     "report": "report02",
+     "cell": 25,
+     "chars": 7597,
+     "first_bold_at": 2152,
+     "why": "첫 굵은 줄이 2152자 뒤"
+    },
+    {
+     "report": "report05",
+     "cell": 23,
+     "chars": 7553,
+     "why": "굵은 요약 줄이 아예 없다"
+    },
+    {
+     "report": "report06",
+     "cell": 23,
+     "chars": 6136,
+     "why": "굵은 요약 줄이 아예 없다"
+    },
+    {
+     "report": "report02",
+     "cell": 1,
+     "chars": 4761,
+     "first_bold_at": 1090,
+     "why": "첫 굵은 줄이 1090자 뒤"
+    },
+    {
+     "report": "report05",
+     "cell": 20,
+     "chars": 3748,
+     "first_bold_at": 3153,
+     "why": "첫 굵은 줄이 3153자 뒤"
+    },
+    {
+     "report": "report02",
+     "cell": 19,
+     "chars": 3553,
+     "first_bold_at": 436,
+     "why": "첫 굵은 줄이 436자 뒤"
+    },
+    {
+     "report": "report02",
+     "cell": 24,
+     "chars": 3466,
+     "first_bold_at": 345,
+     "why": "첫 굵은 줄이 345자 뒤"
+    }
+   ]
+  },
+  "worst_single_fact": "report02: 화면 글자 56,990자 · 주제 덩어리 12개 · 결론 셀 1개(여는 셀). 여는 셀을 지나면 53,234자 동안 «그래서 뭐» 문장이 한 번도 안 나온다.",
+  "second_worst": "report05: 첫 결론 셀(c0) 다음 결론 셀이 c14 — 그 사이 20,950자(읽는 시간 35~50분)"
+ },
+ "s5_symbols": {
+  "verdict": "REFUTED — 세어 보니 기호 과다는 사실이 아니다. 반대 문제가 있다.",
+  "measured": {
+   "report00": {
+    "total": 30,
+    "per_1000_chars": 1.1,
+    "by_symbol": {
+     "→": 17,
+     "⚠": 9,
+     "⭐": 4
+    }
+   },
+   "report01": {
+    "total": 11,
+    "per_1000_chars": 0.4,
+    "by_symbol": {
+     "→": 7,
+     "⭐": 4
+    }
+   },
+   "report02": {
+    "total": 70,
+    "per_1000_chars": 1.2,
+    "by_symbol": {
+     "→": 30,
+     "⚠": 21,
+     "⭐": 19
+    }
+   },
+   "report03": {
+    "total": 14,
+    "per_1000_chars": 0.4,
+    "by_symbol": {
+     "→": 14
+    }
+   },
+   "report04": {
+    "total": 7,
+    "per_1000_chars": 0.3,
+    "by_symbol": {
+     "→": 6,
+     "⭐": 1
+    }
+   },
+   "report05": {
+    "total": 44,
+    "per_1000_chars": 0.9,
+    "by_symbol": {
+     "→": 34,
+     "⚠": 10
+    }
+   },
+   "report06": {
+    "total": 39,
+    "per_1000_chars": 1.2,
+    "by_symbol": {
+     "→": 21,
+     "⚠": 13,
+     "⭐": 5
+    }
+   }
+  },
+  "reading": "⭐⚠⛔ 를 포함한 기호 전체가 1,000자당 0.3~1.2개다. 그나마 절반 이상이 문장 안의 화살표(→)이고 강조 기호가 아니다. ⛔ 는 리포트 본문에 0회다.",
+  "the_opposite_problem": {
+   "measured": {
+    "report00": {
+     "n_bold_spans": 54,
+     "bold_chars": 794,
+     "bold_share_pct": 2.9
+    },
+    "report01": {
+     "n_bold_spans": 23,
+     "bold_chars": 257,
+     "bold_share_pct": 0.8
+    },
+    "report02": {
+     "n_bold_spans": 97,
+     "bold_chars": 2559,
+     "bold_share_pct": 4.5
+    },
+    "report03": {
+     "n_bold_spans": 42,
+     "bold_chars": 436,
+     "bold_share_pct": 1.4
+    },
+    "report04": {
+     "n_bold_spans": 11,
+     "bold_chars": 174,
+     "bold_share_pct": 0.8
+    },
+    "report05": {
+     "n_bold_spans": 47,
+     "bold_chars": 656,
+     "bold_share_pct": 1.3
+    },
+    "report06": {
+     "n_bold_spans": 50,
+     "bold_chars": 631,
+     "bold_share_pct": 1.9
+    }
+   },
+   "reading": "report01 은 25셀에 굵은 구간 23개(본문의 0.8%), report04 는 23셀에 11개(0.8%)다. 900자 넘는 셀 97개 중 37개는 굵은 줄이 아예 없고 28개는 첫 굵은 줄이 250자 뒤에 나온다 — 훑을 때 눈이 걸릴 데가 없다.",
+   "conclusion": "«다 강조면 강조가 아니다» 가 아니라 «강조가 없어서 지도가 없다» 가 맞는 진단이다. 다만 report02(굵은 구간 97개·4.5%)만은 반대 방향으로 살짝 넘친다."
+  }
+ },
+ "s6_tables": {
+  "verdict": "PARTIAL — 열이 많아서가 아니다. 칸 안에 문단이 들어 있어서다.",
+  "columns": {
+   "min": 1,
+   "median": 4,
+   "max": 13
+  },
+  "tables_with_6plus_cols": 20,
+  "tables_with_8plus_cols": 2,
+  "row_display_width": {
+   "median": 195,
+   "p75": 331,
+   "p90": 562,
+   "max": 1104
+  },
+  "rows_over_100_cols": 96,
+  "rows_over_160_cols": 72,
+  "table_cells": {
+   "n_table_cells": 2732,
+   "cell_display_cols": {
+    "median": 16.0,
+    "p90": 104,
+    "p99": 404,
+    "max": 996
+   },
+   "cells_over_60cols": 695,
+   "cells_over_120cols": 220,
+   "cells_over_240cols": 70,
+   "tables_with_paragraph_cells": 49,
+   "n_tables": 125,
+   "tables_ge6_cols": 20,
+   "tables_ge8_cols": 2,
+   "worst_tables": [
+    {
+     "report": "report05",
+     "cell": 23,
+     "n_cols": 4,
+     "n_rows": 9,
+     "cells_over_120cols": 16,
+     "header": "| 주장 | 근거 | 공격 | 답 |"
+    },
+    {
+     "report": "report03",
+     "cell": 21,
+     "n_cols": 4,
+     "n_rows": 8,
+     "cells_over_120cols": 15,
+     "header": "| 주장 | 근거 | 공격 | 답 |"
+    },
+    {
+     "report": "report02",
+     "cell": 25,
+     "n_cols": 4,
+     "n_rows": 8,
+     "cells_over_120cols": 13,
+     "header": "| 주장 | 근거 | 공격 | 답 |"
+    },
+    {
+     "report": "report01",
+     "cell": 23,
+     "n_cols": 4,
+     "n_rows": 9,
+     "cells_over_120cols": 12,
+     "header": "| 주장 | 근거 | 공격 | 답 |"
+    },
+    {
+     "report": "report05",
+     "cell": 20,
+     "n_cols": 4,
+     "n_rows": 4,
+     "cells_over_120cols": 12,
+     "header": "| 무엇을 맞추나 | M1 평판 [dB] | M2 정육면체 [dB] | M3 우리 격자 [dB] |"
+    },
+    {
+     "report": "report06",
+     "cell": 23,
+     "n_cols": 4,
+     "n_rows": 8,
+     "cells_over_120cols": 11,
+     "header": "| 주장 | 근거 | 공격 | 답 |"
+    },
+    {
+     "report": "report02",
+     "cell": 24,
+     "n_cols": 3,
+     "n_rows": 16,
+     "cells_over_120cols": 10,
+     "header": "| 다음에 할 일 | 그러면 결정되는 것 | 어디서 |"
+    },
+    {
+     "report": "report04",
+     "cell": 22,
+     "n_cols": 4,
+     "n_rows": 8,
+     "cells_over_120cols": 8,
+     "header": "| 주장 | 근거 | 공격 | 답 |"
+    },
+    {
+     "report": "report05",
+     "cell": 1,
+     "n_cols": 2,
+     "n_rows": 9,
+     "cells_over_120cols": 8,
+     "header": "| 무엇을 | 어떻게 얻었나 |"
+    },
+    {
+     "report": "report06",
+     "cell": 25,
+     "n_cols": 3,
+     "n_rows": 12,
+     "cells_over_120cols": 7,
+     "header": "| 다음에 할 일 | 그러면 결정되는 것 | 어디서 |"
+    }
+   ],
+   "note": "한 칸이 120칸을 넘으면 그 칸 안에 문단이 들어 있다는 뜻 — 표가 아니라 문단 격자다"
+  },
+  "share_of_body": {
+   "table_chars": 113149,
+   "bullet_chars": 22431,
+   "prose_chars": 101457,
+   "heading_chars": 4255,
+   "table_share_pct": 47.7,
+   "prose_share_pct": 42.8
+  },
+  "reading": "표가 본문 글자의 47.7% 다(산문 42.8%). 표 125개 중 열이 6개 이상인 것은 20개뿐이라 «가로로 넘친다» 는 진단은 절반만 맞다. 진짜는 표 칸 2,732개 중 695칸이 60칸을 넘고 220칸이 120칸을 넘는다는 것 — 한 칸에 문단이 들어가면 그 표는 읽는 표가 아니라 격자 모양의 벽이다. 최악은 report05 c1 의 996칸짜리 한 칸이다.",
+  "worst_pattern": "«| 주장 | 근거 | 공격 | 답 |» 4열 표(논문 방어선)가 최악 6개 중 5개다 — 이건 논문 메모라 어차피 빠진다."
+ },
+ "s7_terminology": {
+  "verdict": "다른 갈래가 세는 중이라 다시 세지 않는다 — 그 결과를 인용한다.",
+  "source": "outputs/corr3_terms.json (2026-08-07 04:45)",
+  "cited": {
+   "terms_glossed": 35,
+   "edits": 39,
+   "files_touched": 6,
+   "residual_unglossed": 6,
+   "residual_examples": "Mie 등 6건 — 근거 JSON 이 만드는 문자열이라 그 갈래의 편집 범위 밖"
+  },
+  "my_only_addition": {
+   "parenthetical_glosses_counted_here": 22,
+   "structural_point": "용어 풀이는 «첫 등장 자리» 규칙으로 관리된다. 편을 쪼개면 첫 등장 자리가 편마다 새로 생기므로, 편이 늘수록 이 규칙이 깨진다 — 용어집을 편 밖에 한 번 두고 각 편이 링크하는 쪽이 싸다. 이건 편 수를 늘릴 때 반드시 같이 정해야 할 항목이다."
+  }
+ },
+ "s8_paragraphs_and_sentences": {
+  "verdict": "문단은 REFUTED · 문장은 CONFIRMED",
+  "paragraphs": {
+   "measured": {
+    "median": 2,
+    "mean": 2.1,
+    "p90": 4,
+    "max": 9,
+    "n": 325
+   },
+   "reading": "문단당 문장이 중앙 2개·평균 2.1개다. 문단이 길어서 읽기 어려운 것이 아니다."
+  },
+  "sentences": {
+   "with_tags_median_chars": 183,
+   "without_tags_median_chars": 76,
+   "inflation_pct": 180,
+   "all_sentences": {
+    "n": 693,
+    "median": 65,
+    "p75": 98,
+    "p90": 140,
+    "p99": 292,
+    "max": 514,
+    "over_120": 106,
+    "over_180": 31
+   },
+   "reading": "태그를 지운 문장은 중앙 65자로 짧다. 태그가 든 문장만 보면 183자이고 태그를 지우면 76자다 — 길이의 3분의 2가 출처 문자열이다. 즉 «문장이 길다» 는 증상이고 원인은 s1 이다."
+  },
+  "number_density": {
+   "median_per_100_chars": 2.2,
+   "top10": [
+    {
+     "report": "report02",
+     "cell": 3,
+     "chars": 914,
+     "n_numbers": 77,
+     "per_100_chars": 8.4
+    },
+    {
+     "report": "report06",
+     "cell": 9,
+     "chars": 590,
+     "n_numbers": 41,
+     "per_100_chars": 6.9
+    },
+    {
+     "report": "report02",
+     "cell": 9,
+     "chars": 1228,
+     "n_numbers": 68,
+     "per_100_chars": 5.5
+    },
+    {
+     "report": "report06",
+     "cell": 13,
+     "chars": 413,
+     "n_numbers": 22,
+     "per_100_chars": 5.3
+    },
+    {
+     "report": "report02",
+     "cell": 22,
+     "chars": 927,
+     "n_numbers": 46,
+     "per_100_chars": 5.0
+    },
+    {
+     "report": "report04",
+     "cell": 4,
+     "chars": 403,
+     "n_numbers": 20,
+     "per_100_chars": 5.0
+    },
+    {
+     "report": "report06",
+     "cell": 6,
+     "chars": 774,
+     "n_numbers": 39,
+     "per_100_chars": 5.0
+    },
+    {
+     "report": "report02",
+     "cell": 17,
+     "chars": 1008,
+     "n_numbers": 49,
+     "per_100_chars": 4.9
+    },
+    {
+     "report": "report02",
+     "cell": 6,
+     "chars": 804,
+     "n_numbers": 38,
+     "per_100_chars": 4.7
+    },
+    {
+     "report": "report05",
+     "cell": 21,
+     "chars": 586,
+     "n_numbers": 27,
+     "per_100_chars": 4.6
+    }
+   ],
+   "reading": "중앙 셀은 100자에 숫자 2.2개로 무겁지 않다. 상위는 report02 c3(100자에 8.4개)처럼 표를 산문으로 편 자리다 — 표로 되돌리면 풀린다."
+  }
+ },
+ "s9_my_own_read": {
+  "what_i_did": "report02(가장 큰 편, 56,990자)를 처음부터 끝까지 읽고, 대조로 report04(가장 작은 편, 22,028자)를 훑었다. 막힌 자리를 순서대로 적는다.",
+  "report02_friction_log": [
+   {
+    "where": "c0 결과 1번 (누적 0자)",
+    "what": "637자 한 문장에 태그 10개. 실제 내용은 «메쉬 7종, 285~1330 mm 4.66배, 부품 222개·삼각형 207,268개, kr 8.6~79.7» 100자 남짓인데 그 사이를 태그가 갈라 놓아 세 번 되짚어 읽었다.",
+    "fix": "s1 각주안"
+   },
+   {
+    "where": "c0 결과 5번",
+    "what": "«NOT_VALIDATED (P3 산포)» 를 설명하는 괄호가 «P3 은 봉인한 합격조건 넷 중 세 번째를 가리키는 이름이고 기체 Phantom 3 가 아니다» 다. 같은 문장 안에서 P3 이 두 뜻으로 쓰인다 — 여기서 확실히 멈췄다.",
+    "fix": "이름 충돌을 리포트에서 없앤다(합격조건은 C1~C4 같은 다른 글자로). 편을 쪼갤 때 «사전등록 대조» 는 독립 편이므로 그 편에서 이름을 새로 정하면 된다."
+   },
+   {
+    "where": "c1 (4,761자, 화면 80줄)",
+    "what": "한 셀에 방법 표 9행 + 재현 bash 12줄 + 출력 JSON 15개 목록 + 소요시간 + 앞 편에서 표 + «논문 대응» 인용블록(근거 경로 514자 한 줄)이 겹쳐 있다. 여섯 가지가 한 셀이다.",
+    "fix": "재현 bash·출력 목록·논문 대응은 사용자 지시대로 별도 메모. 남는 것은 방법 표 하나."
+   },
+   {
+    "where": "c2 (§1 여는 문단)",
+    "what": "그림 1 을 보기 전에 ⚠ 형상 정정 경고 767자를 먼저 읽어야 한다. 같은 경고가 report02 안에서 9셀에 되풀이된다(태그 meshfix_applied.json:_meta.date 가 리포지토리 전체에서 23회).",
+    "fix": "«이 편의 숫자는 어느 세대 메쉬인가» 를 편 머리에 한 번. 편이 작아지면 한 번으로 끝난다."
+   },
+   {
+    "where": "c7 (3,377자)",
+    "what": "«엔진은 무엇을 하나» 라는 제목 아래 서로 다른 네 가지가 쌓여 있다 — Sionna 기술보고서 낱말 카운트 / ITU metal S=0 / 면 수 가설 REFUTED / 런타임 벤치마크(72.8~128.0 ms vs 38.1 ms, 호스트 96.9%). 마지막 둘은 다른 편의 결과다.",
+    "fix": "클러스터 R02-E 를 «엔진이 하는 일» 과 «스톡 솔버와 맞대 본 결과» 로 가른다."
+   },
+   {
+    "where": "c12 (4,386자 · 검사 8줄 / 화면 55줄)",
+    "what": "부품 7개의 GHz 문턱이 산문으로 나열되는데 태그 키 경로가 141자짜리(q5_blast_radius.…passes_that_knee.body_81.51mm)이고 같은 경로가 한 문단에 7번 반복된다. 표가 되어야 할 것이 문장이 됐다.",
+    "fix": "부품×문턱 표 + 각주 1개."
+   },
+   {
+    "where": "c19→c20 (§4.5 → §4.6)",
+    "what": "v1 메쉬와 v2 메쉬, 그리고 두 채점 잣대(레벨 잔차 · ε)를 동시에 머리에 들고 가야 한다. c20 은 첫 문장이 «다음 문단의 ε 는 잣대가 다르다 — 거기서 밝힌다» 로 시작한다. 읽는 사람에게 미결 상태를 떠넘긴다.",
+    "fix": "v1/v2 는 시간 순서가 아니라 두 판이다 — 한 편에서 둘을 한 표로 맞대면 끝난다."
+   },
+   {
+    "where": "c20 꼬리 (§4.7)",
+    "what": "이 편에서 가장 무거운 판정인 NOT_VALIDATED 함대 대조가, 제목이 «상자·구 대조군» 인 4,703자(화면 61줄) 셀의 끝에 붙어 있다. 제목만 보면 거기 있는 줄 모른다. survey 의 compound_cell 플래그가 가리키는 자리다.",
+    "fix": "«사전등록 함대 대조» 는 그 자체로 한 편이다(중심 메시지: 네 기체로 넓히면 판정이 갈린다)."
+   },
+   {
+    "where": "편 전체",
+    "what": "§번호 참조가 107번 나온다. §3.1a·§4.5·§4.6·§4.7 를 앞뒤로 오가며 읽어야 한다.",
+    "fix": "편을 쪼개면 이 참조는 전부 끊긴다 — §번호 대신 «편 이름 + 앵커» 로 다시 걸어야 한다(survey: 편 안 §참조 403건)."
+   }
+  ],
+  "report04_contrast": {
+   "why_it_reads_better": "셀 중앙 800자대, 표는 4~5열에 짧은 칸, 셀 하나에 논지 하나. 같은 규약 아래서도 이렇게 읽힌다 — 즉 규약이 아니라 «한 편에 얼마나 밀어 넣었나» 가 가독성을 정한다.",
+   "but": [
+    "c9 는 «CFAR 교정» 절 안에 선행 census 낱말 카운트(16편·198쪽·13편이 0회)가 끼어 있다. 이 편의 중심 메시지와 무관한 문단이고, 독자는 갑자기 다른 편에 온 줄 안다.",
+    "굵은 구간이 23셀에 11개뿐이라 훑을 때 눈이 걸릴 데가 없다 — 짧아도 지도가 없으면 훑기가 안 된다.",
+    "c22(방법 문단, 7,606자·태그 46개)가 이 편 글자의 3분의 1이다 — 논문 메모로 빼면 이 편은 14,000자대가 된다."
+   ]
+  }
+ },
+ "what_the_current_format_does_well": {
+  "preamble": "재구성에서 잃으면 안 되는 것들. 전부 실제로 세어 확인했다.",
+  "items": [
+   {
+    "strength": "숫자마다 출처가 붙어 있고, 그 출처는 빌드 때 실제로 검증된다",
+    "evidence": {
+     "fact": "src/report_style.py num() 은 ⟨path : key⟩ 를 찍기 전에 실제로 그 JSON 을 열어 값을 대조하고, 어긋나면 ContractError 로 빌드를 멈춘다. 검증을 끄는 스위치는 없다.",
+     "consequence": "화면에 보이는 태그 문자열은 «이미 통과한 검사»의 흔적이다 — 태그를 접거나 각주로 옮겨도 검증 강도는 1 비트도 줄지 않는다. 줄어드는 것은 사람이 눈으로 재감사할 편의뿐이고, 그건 각주·부록으로 되살릴 수 있다.",
+     "where": "src/report_style.py num(), check_budget()"
+    },
+    "keep_how": "num() 호출은 그대로 두고 «찍는 자리» 만 각주로 옮긴다. 검증을 끄는 스위치가 없다는 성질도 그대로 둔다."
+   },
+   {
+    "strength": "그림 캡션이 전부 물음표로 끝나는 질문이다",
+    "evidence": {
+     "n_captions": 43,
+     "question_form_pct": 100,
+     "examples": [
+      "같은 광선엔진을 쓰는 두 계산은 표면에서 무엇이 갈라지는가?",
+      "같은 재질·같은 정면면적에서 모양만 바꾸면 σ 는 얼마나 갈라지는가?",
+      "표적을 키우면 무엇이 움직이고 무엇이 그대로인가?",
+      "두 물음을 던지면 각 실험은 어느 칸에 앉는가?"
+     ]
+    },
+    "keep_how": "그대로. 편이 늘어도 편당 그림 1~2장이면 이 규칙이 더 잘 산다."
+   },
+   {
+    "strength": "7편 전부가 같은 골격을 쓴다 — 한 일 → 결과 → 방법 → 재현 → 앞 편에서 → 본문 → 다음 단계",
+    "evidence": {
+     "report00": {
+      "opens_with_answer": true,
+      "has_result_list": true,
+      "has_method_table": true,
+      "has_repro_bash": true,
+      "has_prev_report_table": false,
+      "has_next_steps": true,
+      "has_code_cell": false
+     },
+     "report01": {
+      "opens_with_answer": true,
+      "has_result_list": true,
+      "has_method_table": true,
+      "has_repro_bash": true,
+      "has_prev_report_table": false,
+      "has_next_steps": true,
+      "has_code_cell": false
+     },
+     "report02": {
+      "opens_with_answer": true,
+      "has_result_list": true,
+      "has_method_table": true,
+      "has_repro_bash": true,
+      "has_prev_report_table": true,
+      "has_next_steps": true,
+      "has_code_cell": true
+     },
+     "report03": {
+      "opens_with_answer": true,
+      "has_result_list": true,
+      "has_method_table": true,
+      "has_repro_bash": true,
+      "has_prev_report_table": true,
+      "has_next_steps": true,
+      "has_code_cell": true
+     },
+     "report04": {
+      "opens_with_answer": true,
+      "has_result_list": true,
+      "has_method_table": true,
+      "has_repro_bash": true,
+      "has_prev_report_table": true,
+      "has_next_steps": true,
+      "has_code_cell": true
+     },
+     "report05": {
+      "opens_with_answer": true,
+      "has_result_list": true,
+      "has_method_table": true,
+      "has_repro_bash": true,
+      "has_prev_report_table": true,
+      "has_next_steps": true,
+      "has_code_cell": false
+     },
+     "report06": {
+      "opens_with_answer": true,
+      "has_result_list": true,
+      "has_method_table": true,
+      "has_repro_bash": true,
+      "has_prev_report_table": true,
+      "has_next_steps": true,
+      "has_code_cell": true
+     }
+    },
+    "keep_how": "편이 40개가 되어도 이 골격이 관리비를 갚는다. 다만 «재현» 은 사용자 지시대로 메모로 빠지므로 골격에서 뺀다."
+   },
+   {
+    "strength": "«이 결과로 말할 수 없는 것» 을 본문에 못박는다",
+    "evidence": {
+     "n_cells": 2,
+     "where": [
+      {
+       "report": "report02",
+       "cell": 12
+      },
+      {
+       "report": "report02",
+       "cell": 19
+      }
+     ]
+    },
+    "keep_how": "지금은 2셀뿐이다 — 편을 쪼개면 편마다 하나씩 두는 것이 오히려 자연스럽다. 정직성 장치이므로 늘리는 쪽이 맞다."
+   },
+   {
+    "strength": "낡은 값에 낡았다고 적어 둔다",
+    "evidence": {
+     "n_cells_with_staleness_warning": 21
+    },
+    "keep_how": "내용은 지키고 자리를 옮긴다 — 21셀에 흩어진 같은 경고를 편 머리 한 줄로. 편이 작으면 한 편의 숫자가 한 세대에서 나오므로 경고도 하나다."
+   },
+   {
+    "strength": "다음 단계가 «무엇이 결정되는가» 와 짝지어 적힌다",
+    "evidence": "7편 전부 has_next_steps=true. report_style 이 «무엇이 결정되는지» 가 없으면 예외를 던진다.",
+    "keep_how": "그대로."
+   },
+   {
+    "strength": "편 사이 연결이 명시돼 있다",
+    "evidence": {
+     "n_cross_report_refs": 97,
+     "top_edges": [
+      {
+       "src": "report06",
+       "dst": "report02",
+       "n": 15
+      },
+      {
+       "src": "report05",
+       "dst": "report02",
+       "n": 14
+      },
+      {
+       "src": "report02",
+       "dst": "report06",
+       "n": 13
+      },
+      {
+       "src": "report03",
+       "dst": "report05",
+       "n": 8
+      },
+      {
+       "src": "report04",
+       "dst": "report05",
+       "n": 7
+      },
+      {
+       "src": "report02",
+       "dst": "report05",
+       "n": 5
+      }
+     ],
+     "why_it_matters": "편끼리 «어디서 이어지는가» 가 이미 명시돼 있다. 편이 늘어나면 이 간선이 훨씬 많아지므로, 지금처럼 §번호로 걸면 무너진다 — 앵커 이름으로 바꿔 걸어야 한다."
+    },
+    "keep_how": "§번호를 앵커 이름으로 바꾼다. 편이 늘면 간선이 늘므로 지도(목차 편)를 하나 두는 편이 낫다."
+   }
+  ],
+  "the_thing_i_would_defend_hardest": "출처 검증. 이건 이 리포트들이 다른 어떤 연구노트보다 잘하는 것이고, 가독성 때문에 이걸 깎자는 제안이 나오면 반대한다 — 각주로 옮기는 것은 깎는 것이 아니다. 태그 문자열은 검증의 결과 표시일 뿐이고 검증은 빌드 때 이미 끝나 있다."
+ },
+ "measurable_rules_to_replace_the_invented_caps": {
+  "honesty_note": "아래 수치도 사용자가 만든 규칙이 아니다 — 내가 위 분포에서 잡은 것이다. 각 항목에 «어느 측정에서 왔는지» 를 붙인다. 바꾸려면 근거 분포를 다시 보면 된다.",
+  "rules": [
+   {
+    "rule": "한 편 = 클러스터 하나 = 중심 메시지 하나",
+    "target": "편당 화면 글자 2,000~5,000자",
+    "from": "클러스터 71개의 본문 글자 분포 — 중앙 2,474 · p75 3,790 · p90 5,201. full 클러스터 50개의 합이 150,448자다.",
+    "implies": "논문·재현을 뺀 본문 201,863자 → 편 40~50개. 사용자가 «편 수 엄청 늘어나도 상관없다» 고 한 그 범위."
+   },
+   {
+    "rule": "줄 검사를 화면 줄 검사로 바꾼다",
+    "target": "셀당 화면 줄(폭 100칸 기준) ≤ 15",
+    "from": "지금 중앙 18 · p90 47 · 최대 112. 105셀이 12줄 검사를 통과하면서 화면 12줄을 넘는다.",
+    "implies": "report_style.check_budget 에 display-width 셈을 넣으면 «벽» 이 처음으로 검사에 걸린다."
+   },
+   {
+    "rule": "문장 안 출처 태그 0개",
+    "target": "태그는 문장 끝 각주 번호 또는 절 끝 표",
+    "from": "태그가 화면 글자의 37.9% · 태그 든 문장 183자 vs 76자 · 문장 하나에 3개 이상이 95건",
+    "implies": "본문 250,425 → 125,278자(내용 삭제 0)."
+   },
+   {
+    "rule": "표 한 칸 ≤ 60 화면 칸",
+    "target": "넘으면 그 칸은 표가 아니라 문단이다 — 표 밖으로 내보낸다",
+    "from": "표 칸 2,732개 중 60칸 초과 695개 · 120칸 초과 220개 · 최대 996칸",
+    "implies": "«주장|근거|공격|답» 4열 방어선 표는 논문 메모로 빠지므로 최악 6개 중 5개가 자동 해결된다."
+   },
+   {
+    "rule": "편마다 결론 문장이 맨 앞에, 그리고 각 절의 첫 줄에",
+    "target": "answer 성격 셀 비중 ≥ 25%(지금 6.6~18.5%), 클러스터마다 결론 1개(지금 20/71)",
+    "from": "결론 셀 20개 / 클러스터 71개 · report05 는 결론 사이 20,950자",
+    "implies": "편이 작아지면 «여는 결론 + 근거 3~5셀» 로 자동 충족된다."
+   },
+   {
+    "rule": "§번호 참조 금지 — 편 이름 + 앵커로만 건다",
+    "target": "§참조 403건 → 0",
+    "from": "편 안 §참조 403건(report02 107 · report06 92 · report05 76). 편을 쪼개면 전부 끊긴다.",
+    "implies": "빌더에 앵커 사전을 두고 존재하지 않는 앵커를 가리키면 빌드가 멈추게 한다 — 지금 num() 이 출처에 하는 일과 같은 방식."
+   },
+   {
+    "rule": "논문·재현은 리포트 밖 메모",
+    "target": "memo_paper 8셀(48,381자) · memo_repro 코드셀 4개 + 7편의 cell 1 안에 박힌 bash",
+    "from": "사용자 지시. 그리고 셀 길이 상위 10개 중 6개가 논문 방법 문단이다.",
+    "implies": "빼면 본문 250,425 → 201,863자, 최대 셀 8,215 → 6,098자."
+   }
+  ]
+ },
+ "judgments_i_made": [
+  {
+   "judgment": "«기호 과다» 는 사실이 아니라고 판정했다",
+   "basis": "1,000자당 0.3~1.2개, 절반 이상이 화살표, ⛔ 는 0회",
+   "counter": "내가 센 기호 집합(⭐⚠⛔✅❌… 16종)이 좁을 수 있다. 이모지·괄호·«» 같은 시각 잡음은 안 셌다. 다만 그것까지 넣어도 순위 1~4위를 흔들 크기는 아니다."
+  },
+  {
+   "judgment": "«표가 가로로 넘친다» 를 «표 칸에 문단이 들어 있다» 로 고쳐 잡았다",
+   "basis": "열 6개 이상 표가 125개 중 20개뿐 · 120칸 넘는 표 칸이 220개",
+   "counter": "실제 렌더러에서 어떤 표가 가로 스크롤을 만드는지는 폰트·창 너비에 달렸고 나는 폭 100칸을 가정했다. 좁은 화면에서는 열 수도 문제가 된다 — 그 경우 내 판정은 절반만 맞다."
+  },
+  {
+   "judgment": "출처 태그 대안으로 각주(A)+재인용 제거(E)를 골랐다",
+   "basis": "절감 −30.3%p, 렌더러 비의존, 숫자↔출처 짝 유지",
+   "counter": "위 s1.my_decision.counter_evidence_i_accept 3건. 특히 번호 관리가 새 실패 지점이라는 것."
+  },
+  {
+   "judgment": "화면 폭 100칸을 기준으로 삼았다",
+   "basis": "노트북 본문 폭은 보통 90~110칸",
+   "counter": "임의값이다. 120칸으로 잡으면 «검사 통과하는데 화면 12줄 초과» 셀이 105개에서 줄어든다. 다만 태그 비중 37.9% 는 폭과 무관하다 — 그 숫자는 흔들리지 않는다."
+  },
+  {
+   "judgment": "report02 를 정독 대상으로 골랐다",
+   "basis": "가장 크고(56,990자) 결론 셀이 하나뿐이라 증상이 가장 뚜렷하다",
+   "counter": "가장 나쁜 편만 읽으면 진단이 과장된다. 그래서 가장 작은 report04 를 대조로 훑었고, 거기서는 같은 규약 아래 잘 읽힌다는 반대 사실을 확인했다 — 원인은 규약이 아니라 편당 적재량이다."
+  },
+  {
+   "judgment": "«문단이 길다» 는 의심을 기각했다",
+   "basis": "문단당 문장 중앙 2개·평균 2.1개",
+   "counter": "표 안 텍스트를 문단 통계에서 뺐다. 표가 본문의 47.7% 이므로, 독자가 겪는 «덩어리» 의 절반을 이 통계가 못 본다. 그 절반은 s6 에서 따로 쟀다."
+  }
+ ],
+ "what_i_did_not_measure": [
+  "실제 렌더된 노트북을 브라우저에서 열어 재지 않았다 — 화면 줄 수는 폭 100칸 가정에서 계산한 값이다.",
+  "그림 자체의 가독성(글자 크기·범례·색)은 안 봤다. 다른 라운드 몫이다.",
+  "용어는 outputs/corr3_terms.json 을 인용만 하고 다시 세지 않았다.",
+  "코드 셀 4개의 출력이 얼마나 긴지는 안 쟀다(노트북에 저장된 출력이 없다).",
+  "«편을 몇 개로 어떻게 쪼갤 것인가» 의 실제 목록은 restruct_survey.json 의 클러스터 71개가 이미 갖고 있다 — 이 진단은 그 위에 규칙만 얹는다."
+ ],
+ "files": {
+  "written": [
+   "outputs/restruct_diagnose.json"
+  ],
+  "read_only": [
+   "report0[0-6]_*.ipynb",
+   "src/report_style.py",
+   "outputs/restruct_survey.json",
+   "outputs/corr3_terms.json"
+  ],
+  "not_touched": "src/make_report0N_*.py · src/report_style.py · src/drones.py · src/drone_cad.py — 열어 읽기만 했고 mtime 무변화"
+ }
+}

@@ -1,0 +1,237 @@
+{
+  "_meta": {
+    "생성": "2026-08-07",
+    "라운드": "corr3 — 재생성·규약 통과 갈래 (F · Q4 · N 세 갈래를 합류시킨 단계)",
+    "무엇": "세 갈래(낡은 수치 F-1/F-2 · 용어 Q4 · 논문키트 숫자 N)가 같은 빌더를 동시에 고친 뒤, 그 충돌을 확인하고 리포트 01~06 을 재생성해 게재규격을 통과시켰다. 더해서 출처 태그 전수 검사와 빌더 리터럴 숫자 전수 검사를 돌려 남은 손입력을 닫았다.",
+    "규율_준수": [
+      "src/drones.py · src/drone_cad.py 미열람·미수정 (mtime 2026-08-04 그대로)",
+      "src/make_report00_foundations.py · report00_foundations.ipynb 미열람·미수정",
+      "outputs/meshgate_* · outputs/meshdef_* 미접촉",
+      "GPU 미사용 (CPU 빌드만)",
+      "근거 JSON 0줄 수정 — 파생 원장 셋은 빌더 산출물이고 값 변화 0(생성시각만)"
+    ],
+    "실행환경": "~/.venvs/py312/bin/python · cwd /home/yunjung/workspace/sionna2"
+  },
+
+  "verdict": "PASS — 6편 재생성, 규약 위반 0, 출처 태그 미해결 0, 결과에서 온 손입력 0",
+
+  "단계1_갈래_충돌_확인": {
+    "결론": "사실 모순 0건 · 표현 애매함 1건(고침)",
+    "대조한_것": [
+      {
+        "확인": "meshfix_applied.json:_meta.date = 2026-08-04, per_drone = [matrice4e, mini2, x500v2]",
+        "판정": "F 갈래가 05·06 에 쓴 «2026-08-04 형상 정정» 과 «다섯 기체 중 Matrice 4E» 가 둘 다 맞다. 05 방법 «σ 격자 출처» 가 원래 적고 있던 «Matrice 4E · Mini 2 · X500 V2» 와도 안 부딪힌다"
+      },
+      {
+        "확인": "meshfix_attack.json:Q6_invalidated_outputs.critical[3] = sigma_anchor·sigma_sensitivity·sigma_robust_summary·sigma_sbr_cache·sigma_regen_impact",
+        "판정": "05 방법 «밴드 비교» · §3.2 가 이 인덱스로 가리킨 대상이 실제로 그 사슬이다. critical[1] = rcs_anchor.json 도 06 §3-3 의 인용과 맞다"
+      },
+      {
+        "확인": "sigma_sensitivity.json:configurations.by_config.aspect_avg_anchored.worst_flip_span_db = 3.72 는 mavic4pro 유래",
+        "판정": "N 갈래가 05 방어선 4행의 3.72 를 Matrice 4E 로 귀속하지 않고 «사슬 전체가 정정 전 메쉬» 로만 적은 것이 옳았다"
+      },
+      {
+        "확인": "report06_derived.json:ranking_validation.flip_span_min_airframe = matrice4e (1.2979 dB)",
+        "판정": "06 이 «그 폭을 정하는 것은 Matrice 4E 행» 이라고 한 것이 맞다"
+      }
+    ],
+    "고친_애매함": {
+      "무엇": "F 갈래가 05 와 06 양쪽에서 «Matrice 4E 가 그 폭을 정한다» 고 적었는데 두 편이 드는 수가 다르다",
+      "05_의_수": {"값_db": 0.6144880997507195, "키": "sigma_sensitivity.json : differential.smallest_flip_span_db_overall", "기준": "단일 자세 · 5기체 최소"},
+      "06_의_수": {"값_db": 1.297853547927232, "키": "sigma_sensitivity.json : aspect_averaged.by_drone.matrice4e.smallest_flip_span_db", "기준": "자세평균 · 구매 2기체 최소"},
+      "판정": "둘 다 참이고 둘 다 Matrice 4E 다 — 사실 모순이 아니라 한 기체에 두 수가 붙는 읽기 위험이다",
+      "조치": "05 §3.4 에 «이 하한은 단일 자세 기준이고, 같은 기체를 자세평균으로 읽으면 1.30 dB 다 — 06편 §3 이 캠페인 판정 문턱으로 드는 수가 그것이다» 를 붙였다(값은 num() 주입)",
+      "다리를_한쪽에만_놓은_이유": "두 수가 함께 나오는 편이 05 다. 06 §3 셀에 같은 말을 되풀이하면 줄 상한에 걸리고, 06 독자는 05 §3.4 에서 다리를 만난다"
+    }
+  },
+
+  "단계2_재생성": {
+    "명령": "~/.venvs/py312/bin/python src/make_report0N_*.py  (N = 1..6, strict=True)",
+    "ContractError": "0건 — 서술·키 경로만으로 해결했고, 근거 JSON 은 손대지 않았다",
+    "결과표": [
+      {"report": "report01_prior",        "md셀": "25/25", "코드셀": 0, "그림": "4/8", "출처태그": 111, "부정문": "0/3", "완충어": "0/0", "위반": 0, "권고": 13},
+      {"report": "report02_target",       "md셀": "25/25", "코드셀": 1, "그림": "7/8", "출처태그": 403, "부정문": "3/3", "완충어": "0/0", "위반": 0, "권고": 34},
+      {"report": "report03_illuminators", "md셀": "22/25", "코드셀": 1, "그림": "7/8", "출처태그": 212, "부정문": "2/3", "완충어": "0/0", "위반": 0, "권고": 19},
+      {"report": "report04_detector",     "md셀": "23/25", "코드셀": 1, "그림": "7/8", "출처태그": 186, "부정문": "0/3", "완충어": "0/0", "위반": 0, "권고": 4},
+      {"report": "report05_results",      "md셀": "25/25", "코드셀": 0, "그림": "7/8", "출처태그": 381, "부정문": "2/3", "완충어": "0/0", "위반": 0, "권고": 23},
+      {"report": "report06_measurement",  "md셀": "25/25", "코드셀": 1, "그림": "6/8", "출처태그": 210, "부정문": "1/3", "완충어": "0/0", "위반": 0, "권고": 10}
+    ],
+    "출처태그_증가": "corr3 시작 시점 1486 → 1503 (그림 재생성 포함, 노트북 전체)",
+    "권고는_위반이_아니다": "권고 103건은 전부 §5.6-1(절·그림 번호 오탐) 과 §5.4(문단 문장 수)이고 빌드를 막지 않는다"
+  },
+
+  "단계3_출처태그_전수검사": {
+    "방법": "저장소 자신의 walker(report_style._walk)로 노트북 6편의 ⟨경로 : 키⟩ 를 전부 다시 풀었다. `*` 는 그 층의 첫 키로, `키 → 설명` 은 설명부를 떼고 풀었다",
+    "왜_필요했나": "num() 이 만든 태그는 빌드가 검증하지만 **손으로 적은 ⟨…⟩ 문자열은 아무도 검사하지 않는다** — 그 구멍을 재는 검사다",
+    "검사한_태그": 1503,
+    "안_풀리는_것": 0,
+    "고친_것": [
+      {
+        "file": "src/make_report05_results.py",
+        "site": "§3.3 국소 지수",
+        "before": "f'{J_FS} : ranges.*.n_local_at_R90'",
+        "after": "f'{J_FS} : ' + CELL.format(d='*', m='*') + '.n_local_at_R90'",
+        "why": "층이 두 개 빠져 이 경로로는 값이 안 나온다(ranges.<기체>.<모드>.equal_psd.full_waveform_capture.by_N.1). 같은 셀의 R90 표는 이미 옳은 경로를 쓰고 있었다 — 문장만 어긋나 있었다",
+        "유래": "이 라운드 이전부터 있던 결함(세 갈래가 만든 것이 아니다)"
+      }
+    ]
+  },
+
+  "단계4_빌더_리터럴_숫자_전수검사": {
+    "방법": "빌더 6개를 AST 로 파싱해 문자열 상수·f-string 리터럴 조각 안의 숫자(소수점 있거나 3자리 이상)를 전부 뽑고, 갈래를 나눈 뒤 남은 것만 눈으로 판정했다",
+    "처음": 209,
+    "고친_뒤_남은_것": 36,
+    "결과에서_온_손입력": 0,
+    "계약검증_대조값": {
+      "무엇": "num(값, 출처) / X.num(키, 값, …) 의 첫 인자",
+      "개수": 94,
+      "판정": "손입력이 아니다 — 빌드가 JSON 과 맞대 보고 어긋나면 ContractError 로 멈춘다"
+    },
+    "주입으로_바꾼_곳": [
+      {
+        "file": "src/make_report01_prior.py",
+        "site": "METHOD_PARA (논문 이관용 영문 방법 문단)",
+        "before": "n_pdfs=178 · n_documents=21 · n_quotes=46 · 'Version 1.2, 59 pages'",
+        "after": "P.get('meta.corpus_swept_pdfs') · P.get('counts.papers') · P.get('counts.quotes_verified') · P.get('engine.technical_report.version') · P.get('engine.technical_report.pages')",
+        "why": "모듈 상수라 원장을 못 읽었다 → 상수 METHOD_PARA 를 함수 method_para(P) 로 바꿨다. 이 문단은 논문에 그대로 옮기는 글이라 태그를 안 다는 자리인데, 그래서 더더욱 값이 조용히 낡는다"
+      },
+      {
+        "file": "src/make_report02_target.py",
+        "site": "METHOD_EN (영문 방법 문단)",
+        "before": "kr = 1 to 100 at 21 points and 48 incidence directions · 0.210 dB/GHz",
+        "after": "S.get('summary_div16.kr_min'/'kr_max'/'n_points') · S.get('meta.n_incidence') · SA.get('sources.anchors.das_phantom3_mono.a')",
+        "why": "N 갈래가 05 방법 문단에서 닫은 것과 같은 결함이 02 에 남아 있었다. sigma_anchor.json 은 존재 검사로만 열려 있어 SA 로 이름을 붙였다"
+      },
+      {
+        "file": "src/make_report02_target.py",
+        "site": "그림 5 게재 캡션",
+        "before": "over kr = 1 to 100 (21 points, 48 incidence directions)",
+        "after": "같은 sbr_kr_sweep.json 자리에서 주입",
+        "why": "캡션은 논문에 그대로 실린다"
+      },
+      {
+        "file": "src/make_report02_target.py",
+        "site": "§7 방어표 1행",
+        "before": "kr 1~100 전 구간에서",
+        "after": "S.num('summary_div16.kr_min') ~ S.num('summary_div16.kr_max')",
+        "why": "같은 사실을 세 자리가 각각 손으로 적고 있었다"
+      },
+      {
+        "file": "src/make_report02_target.py",
+        "site": "§5 σ 민감도 뜻풀이(파생 JSON 의 definition)",
+        "before": "밴드 스팬 3.367 GHz 위에서",
+        "after": "SS['_meta']['span_ghz']",
+        "why": "뜻풀이도 원장이 바뀌면 같이 바뀌어야 한다"
+      },
+      {
+        "file": "src/make_report03_illuminators.py",
+        "site": "§6 방어표 «변조 대조» 행 주장 칸",
+        "before": "상관 1.0000 · NMSE −135 dB",
+        "after": "X('nr.corr', '{:.4f}') · X('nr.nmse_db', '{:.1f}', 'dB')",
+        "why": "같은 편 여는 블록이 이미 이 경로로 같은 값을 쓰고 있었다. 방법 문단은 −135.2 로, 방어표는 −135 로 적혀 반올림까지 갈라져 있었다"
+      },
+      {
+        "file": "src/make_report03_illuminators.py",
+        "site": "§6 방어표 «점유 대가» 행",
+        "before": "$P_d$ 0.5",
+        "after": "L('occupancy_cost.pd_threshold', '{:.1f}')",
+        "why": "같은 dict 가 pd_threshold 를 쓰고 있다 — 문턱을 바꾸면 표만 옛말이 된다"
+      },
+      {
+        "file": "src/make_report03_illuminators.py",
+        "site": "occupancy_cost.defn (원장에 실리는 뜻풀이)",
+        "before": "기준신호 대역(7.2→98.28 MHz)",
+        "after": "float(r1['ref_bw_mhz']) · float(r3['ref_bw_mhz'])",
+        "why": "바로 위 세 줄이 같은 두 값을 ref_bw_G1_mhz · ref_bw_G3_mhz 로 계산해 넣고 있었다"
+      },
+      {
+        "file": "src/make_report05_results.py",
+        "site": "방법 표 «검출거리» 행",
+        "before": "EIRP 63 dBm · 수신이득 10 dBi · NF 5 dB · 베이스라인 500 m · CPI 0.1 s",
+        "after": "FS.num('meta.link_budget.eirp_dbm'/'rx_gain_dbi'/'noise_figure_db') · FS.num('solve.W1.L_m'/'solve.W1.T_cpi_s')",
+        "why": "**영문 방법 문단은 이미 정확히 이 다섯 자리에서 fetch 하고 있었다** — 한글 방법 표만 손입력이라 예산이 바뀌면 두 문단이 서로 다른 말을 하게 되어 있었다"
+      },
+      {
+        "file": "src/make_report05_results.py",
+        "site": "§3.5 표 머리 · 바로 아래 본문",
+        "before": "CPI 0.1 s (2 곳)",
+        "after": "fetch/CG.num('equal_cpi_penalty[0].T_cpi_s')",
+        "why": "같은 절이 이미 그 키로 같은 값을 태그와 함께 쓰고 있었다"
+      },
+      {
+        "file": "src/make_report06_measurement.py",
+        "site": "fig_farfield · fig_calibration 이름표",
+        "before": "'Calibration sphere r = 17.8 cm' · 'r = 17.8 cm' · 'r = 25 cm'",
+        "after": "SPHERES 상수에서 f'r = {float(s)*100:g} cm'",
+        "why": "그려지는 곡선은 SPHERES 가 정하는데 이름표는 따로 적혀 있었다 — 후보 반경을 바꾸면 그림이 거짓말한다"
+      },
+      {
+        "file": "src/make_report06_measurement.py",
+        "site": "fig_slope 이름표",
+        "before": "'Measurement anchor, 0.21 dB/GHz'",
+        "after": "J['slope']['anchor_db_per_ghz']",
+        "why": "같은 그림이 그 값으로 선을 긋는다"
+      }
+    ],
+    "주입_뒤_검증": "파생 원장 셋(report02/05/06_derived.json)의 diff 가 생성시각 두 줄뿐이다 — 주입값이 손입력과 전부 같았다. 즉 이 라운드는 틀린 수를 고친 게 아니라 앞으로 틀릴 자리를 막았다",
+    "남긴_36개와_이유": {
+      "선행연구가_쓴_사실": ["01: 0.5 m 금속구 · 28 GHz held-out (Zhang)", "01: 차량 5.8 GHz (Wypich)", "01: 식 (108) — 인용 논문의 식 번호"],
+      "우리가_고른_눈금(선언)": ["02: PO 문턱 1 / 0.5 / 0.2 dB (JSON 키 kr_below_1p0_db · kr_below_0p5_db 를 이름으로 부른다)", "03·05: Pd = 0.5", "05: P_ψ[Pd≥0.9]≥0.50 (스펙 키 이름)", "05 다음 단계: CPI 0.1~1.0 s 스윕 계획"],
+      "JSON_키_자체인_이름": ["LTE 1.843 GHz · 5G 3.5 GHz · WiFi 5.21 GHz", "부분대역 1.8–6.0 GHz · 6.0–18.2 GHz", "5G 100 MHz (시나리오 이름)", "sphere_r0.178"],
+      "수학적_상한": ["02: IoU 1.0 (자기복제 상한이 1.0 이 아닌 이유를 적는 문장)", "02: 코히런트 합이라 100 % 를 넘는다"],
+      "문서_번호": ["05: PAPER_SPEC §4.4 · §4.5", "DOI · arXiv · TS 36.211/38.211/38.213 · IEEE 802.11 · 쪽수 · 도구 버전"],
+      "가상_반례": ["06 §2-6: «'2.1 GHz 의 WiFi' 라는 배치신호는 세상에 존재하지 않는 인공물이다» — 존재하지 않음을 말하는 수라 원장이 없다"]
+    }
+  },
+
+  "단계5_기록": {
+    "file": "docs/RETRACTION_LOG.md",
+    "추가": "## ⭐⭐ R18 — 2026-08-07 3차 정정 라운드 · 리포트 01~06 재생성 (`outputs/corr3_rebuild.json`)",
+    "자리": "R17 다음 · «재발 방지» 앞",
+    "기존_보존": "R1~R17 · A8~A11 · 재발 방지 절 전부 그대로. 삭제·수정 0줄, 추가만 했다"
+  },
+
+  "내가_정한_판단": [
+    {
+      "판단": "05·06 의 «Matrice 4E» 두 수는 모순이 아니라 애매함으로 다루고, 다리는 05 에만 놓는다",
+      "이유": "두 수가 다른 기준(단일 자세 ↔ 자세평균)에서 온 참값이라 어느 쪽도 거둬들일 게 없다. 06 에 같은 말을 되풀이하면 §3 셀이 줄 상한에 닿고, 두 수가 함께 나오는 편은 05 다"
+    },
+    {
+      "판단": "report_style.py 의 _PROV_VALUE 정규식(한글 단위를 모르는 문제)을 고치지 않는다",
+      "이유": "N 갈래가 다음 갈래 판단거리로 남긴 항목이다. 고치면 «출처 태그 없는 숫자» 권고가 저장소 전체에서 달라진다 — 그건 검사기 개정이지 이 라운드(재생성·규약 통과)의 일이 아니다. 권고는 위반이 아니라 지금도 6편 전부 통과한다. 대신 그 사실을 R18 에 적어 다음 라운드가 집을 수 있게 했다"
+    },
+    {
+      "판단": "형상 정정 단서의 되풀이(05 에 5곳 · 06 에 5곳)를 줄이지 않는다",
+      "이유": "F 갈래가 인용 자리마다 일부러 단 것이고, 지우면 corr2 가 HIGH 로 남긴 F-1 · F-2 가 다시 열린다. 되풀이의 대가는 읽기 피로이고 지움의 대가는 낡은 수를 근거로 쓰는 것이다"
+    },
+    {
+      "판단": "«손입력 0» 을 «문자열 속 숫자 0» 이 아니라 «결과에서 온 숫자 0» 으로 정의한다",
+      "이유": "밴드 이름(LTE 1.843 GHz)은 JSON 키 자체이고, 선언 눈금(Pd = 0.5)은 결과가 아니라 우리가 고른 축이며, 인용 논문의 사실(0.5 m 금속구)은 우리 원장에 없다. 이 셋까지 주입하려 들면 태그가 뜻을 잃는다"
+    },
+    {
+      "판단": "06 §4 결정표의 드리프트 여유를 {:.2f} → {:+.2f} 로 바꾼다",
+      "이유": "같은 값을 06 이 다른 세 자리에서 +0.30 dB 로 적는다. 여유는 부호가 판정이라 한 편 안에서 표기가 갈리면 «여유가 음수인가» 를 되묻게 된다"
+    }
+  ],
+
+  "고친_파일": [
+    "src/make_report01_prior.py",
+    "src/make_report02_target.py",
+    "src/make_report03_illuminators.py",
+    "src/make_report05_results.py",
+    "src/make_report06_measurement.py",
+    "docs/RETRACTION_LOG.md"
+  ],
+  "재생성한_노트북": [
+    "report01_prior.ipynb", "report02_target.ipynb", "report03_illuminators.ipynb",
+    "report04_detector.ipynb", "report05_results.ipynb", "report06_measurement.ipynb"
+  ],
+  "부수_산출물": "outputs/report02_derived.json · report05_derived.json · report06_derived.json (생성시각만 변함) · outputs/figures/report02_f{2,5,6,7}* · report03_f{1..7}* · report06_* (게재규격 재저장)",
+
+  "다음_라운드_몫": [
+    "report_style.py:_PROV_VALUE 의 단위 문자군에 한글(\\uac00-\\ud7a3)을 더할지 결정 — 더하면 §5.6-1 권고가 저장소 전체에서 줄어든다",
+    "σ 사슬(rcs_anchor → sigma_anchor → sigma_sensitivity)을 한 세대로 재실행 — 지금 05·06 의 형상 정정 단서 10곳이 전부 이 재실행을 가리킨다. 재실행하면 06 §2-2 의 여유 +0.30 dB 와 §4-1 문턱 1.77 dB 가 함께 움직인다",
+    "02 편 부정문 3/3 — 다음 라운드가 부정 종결을 하나라도 더하면 빌드가 멈춘다",
+    "05 §3.4 · 06 §4-1 셀은 12/12 줄이다 — 새 줄을 넣지 말고 기존 문장에 이어 붙일 것"
+  ]
+}
