@@ -569,8 +569,13 @@ def main():
             if kk in Zm and len(Zm[kk]) >= NT:
                 fk, Sk = spectrum(np.asarray(Zm[kk])[:NT], PRF)
                 Pk = envelope(fk, Sk, SMOOTH)
-                engines_floor[kk] = dict(floor_rel_db=floor_rel_db(Pk, fk, 1.5 * FTIP0),
-                                         edge_hz=edge_of(Pk, fk, F_BODY))
+                _blade = np.abs(fk) > F_BODY               # 동체선 밖 = 블레이드가 만든 것
+                _out = _blade & (np.abs(fk) > FTIP0)       # 그 중 공칭 날개끝 **밖**
+                engines_floor[kk] = dict(
+                    floor_rel_db=floor_rel_db(Pk, fk, 1.5 * FTIP0),
+                    edge_hz=edge_of(Pk, fk, F_BODY),
+                    # ⭐읽기 쉬운 잣대 — 블레이드 대역 전력 중 공칭 f_tip **밖**에 있는 비율
+                    frac_power_beyond_ftip=float(Pk[_out].sum() / Pk[_blade].sum()))
     verdict = dict(
         doppler_scaling=dict(
             primary_estimator=("순수 PO 대조팔에 **시간분해 최대 도플러**"

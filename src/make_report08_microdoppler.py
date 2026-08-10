@@ -113,9 +113,10 @@ def write(no: str, slug: str, cells: list) -> None:
           f"{mb:5.1f} MB   ({', '.join(figs)})")
 
 
-NAV = ("> **8 권은 네 편이다** — "
+NAV = ("> **8 권은 다섯 편이다** — "
        "[08_1 시나리오](08_1_scene.ipynb) · [08_2 세 엔진과 거리](08_2_engines.ipynb) · "
-       "[08_3 무늬를 정하는 것](08_3_pattern.ipynb) · [08_4 무엇을 잴 수 있나](08_4_sampling.ipynb)")
+       "[08_3 무늬를 정하는 것](08_3_pattern.ipynb) · [08_4 무엇을 잴 수 있나](08_4_sampling.ipynb) · "
+       "[08_5 바이스태틱](08_5_bistatic.ipynb)")
 
 LEDGER_NOTE = ("⭐ 숫자는 전부 계산 결과 JSON(원장)에서 주입된다 — 원장이 다시 계산되면 "
                "`python src/make_report08_microdoppler.py` 한 번으로 본문 숫자가 따라 바뀐다.")
@@ -196,8 +197,9 @@ def build_08_1():
            "| [08_3 무늬를 정하는 것](08_3_pattern.ipynb) | 회전수·가림·산포가 무늬를 어떻게 바꾸나 |",
            "| [08_4 무엇을 잴 수 있나](08_4_sampling.ipynb) | 광선 비용과 조명원 반복률의 한계 |",
            "",
-           "⚠ 이 편은 **모노스태틱**이다. 패시브 바이스태틱(기준·감시 2채널)으로 가면 무엇이 "
-           "달라지는지는 `report07b_microdoppler_bistatic.ipynb` 가 따로 다룬다."),
+           "⚠ 이 편은 **모노스태틱**이다. 바이스태틱 기하로 가면 무엇이 달라지는지는 "
+           "[08_5 바이스태틱](08_5_bistatic.ipynb) 이 다룬다 — 단 그 편도 **기하만** 다루고 "
+           "기준·감시 2채널 처리(ECA·CAF)는 아직 쓰지 않는다."),
     ]
     write("08_1", "scene", c)
 
