@@ -1,4 +1,4 @@
-# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 2026-08-10 06:17:09)
+# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 2026-08-10 06:27:10)
 
 ## 프로세스
 84448 /home/yunjung/.venvs/py312/bin/python benchmark/rcs_same_span_sweep.py
@@ -9,9 +9,9 @@
 
 ## GPU
 0, 22717 MiB, 100 %
-1, 21684 MiB, 100 %
-2, 11932 MiB, 0 %
-3, 21001 MiB, 100 %
+1, 14748 MiB, 100 %
+2, 11948 MiB, 0 %
+3, 21858 MiB, 100 %
 
 ## 로그 후미
 ── md15b3_meshfix.log:
@@ -24,12 +24,12 @@ concurrent.futures.process.BrokenProcessPool: A process in the process pool was 
     raise self._exception
 concurrent.futures.process.BrokenProcessPool: A process in the process pool was terminated abruptly while the future was running or pending.
 ── samespan.log:
-  DJI Mini 5 Pro    17.0 GHz  mu  -17.97 dBsm  (1323s)
-  DJI Mini 5 Pro    17.5 GHz  mu  -18.20 dBsm  (1461s)
+  DJI Phantom 4     10.0 GHz  mu  -18.32 dBsm  (443s)
+  DJI Phantom 4     10.5 GHz  mu  -16.25 dBsm  (514s)
 ── sigma_chain.log:
 SIGMA_CHAIN_DONE 05:01:18
 HOVER_OUTDOOR_DONE 05:07:07
 
 ## git
-ab8dff3 0810 라운드6: 그림3=거리판 통합(사용자 제안) · 그림3·12 산포 정정 재계산 · 그림6 세엔진 플래시 비교 · 그림10 ±1.3kHz·여백 제거 · 그림11 출처 정직화
-미커밋 19건
+37828a6 0810 라운드7: ⭐시간 분해능 상향 체계 — PRF 배수 개방 + auto_periods 자동 규약, 전 스펙트로그램 그림 재계산 큐
+미커밋 7건

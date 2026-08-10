@@ -131,12 +131,15 @@ SCEN = os.path.join(ROOT, "outputs", "report07_three_engines.json")
 #  ⚠ 프레임 스크래치는 .gitignore 에 등록된 outputs/meshes/report15_probe/ 아래에만 둔다.
 FRAMES = os.path.join(RP.SCRATCH, "report07_anim_frames")
 
-RES_W = int(os.environ.get("MDANIM_RES_W", "1440"))
-RES_H = int(os.environ.get("MDANIM_RES_H", "900"))
-SPP = int(os.environ.get("MDANIM_SPP", "512"))
-N_FRAMES = int(os.environ.get("MDANIM_FRAMES", "32"))
+#  ⚠ 표본 버퍼 = W·H·spp·4 B 가 GPU 메모리에 그대로 잡힌다(실패 전례: 2560×1600×2048 = 32 GiB OOM).
+#    2026-08-10 현재 공용 카드 0·1·3 의 여유는 1.8~3.6 GiB 사이에서 출렁인다 → 1.3 GB 로 잡는다.
+#    가로로 긴 2:1 프레임인 이유: 이 기체는 가로 0.62 m · 세로 0.19 m 라 정사각 프레임은 흰 여백이다.
+RES_W = int(os.environ.get("MDANIM_RES_W", "1600"))
+RES_H = int(os.environ.get("MDANIM_RES_H", "800"))
+SPP = int(os.environ.get("MDANIM_SPP", "256"))
+N_FRAMES = int(os.environ.get("MDANIM_FRAMES", "36"))
 DELAY_MS = int(os.environ.get("MDANIM_MS", "60"))
-GIF_W = int(os.environ.get("MDANIM_GIF_W", "960"))
+GIF_W = int(os.environ.get("MDANIM_GIF_W", "1280"))
 MAX_MB = float(os.environ.get("MDANIM_MAX_MB", "8.0"))
 FOV = 26.0                       # render_md_scene.py 의 f0b 와 같은 화각
 FILL = 0.78                      # 드론이 화면 가로의 몇 할을 채울까 (카메라 거리를 이걸로 정한다)
@@ -209,20 +212,24 @@ def camera_axis(az_deg: float, el_deg: float):
 
 def frame_camera(mv, az_deg, el_deg, res, fov=FOV, fill=FILL):
     """드론이 화면 가로의 `fill` 만큼을 채우도록 **시선축 위에서** 카메라 거리를 정한다.
-    ⭐ 거리를 손으로 박지 않고 **렌더될 크기에서 역산**한다(기체가 바뀌어도 프레이밍이 산다)."""
+    ⭐ 거리를 손으로 박지 않고 **렌더될 크기에서 역산**한다(기체가 바뀌어도 프레이밍이 산다).
+    겨냥점은 메쉬 바운딩박스 중심 — 원점을 겨누면 기체가 화면에서 위로 치우친다."""
     u, w, r, v = camera_axis(az_deg, el_deg)
-    V = np.asarray(mv.v, float)
+    b0, b1 = mv.bounds()
+    c = (np.asarray(b0, float) + np.asarray(b1, float)) / 2.0
+    V = np.asarray(mv.v, float) - c
     half_r = float(np.abs(V @ r).max())
     half_v = float(np.abs(V @ v).max())
     fx = math.radians(fov) / 2.0
     fy = math.atan(math.tan(fx) * res[1] / res[0])
     d = max(half_r / math.tan(fx * fill), half_v / math.tan(fy * fill))
-    pos = d * u                                          # 표적(원점)에서 레이더 쪽으로 d
+    pos = c + d * u                                      # 표적 중심에서 레이더 쪽으로 d
     return (rt.Camera(position=mi.Point3f(*[float(x) for x in pos]),
-                      look_at=mi.Point3f(0.0, 0.0, 0.0)),
-            dict(position=[float(x) for x in pos], look_at=[0.0, 0.0, 0.0],
+                      look_at=mi.Point3f(*[float(x) for x in c])),
+            dict(position=[float(x) for x in pos], look_at=[float(x) for x in c],
                  distance_m=float(d), fov_deg=float(fov), fill_frac=float(fill),
-                 half_width_m=half_r, half_height_m=half_v))
+                 half_width_m=half_r, half_height_m=half_v,
+                 aim_ko="메쉬 바운딩박스 중심"))
 
 
 # --------------------------------------------------------------------------- #
@@ -257,6 +264,15 @@ def build_gif(png_files, out_path, ms=DELAY_MS, width=GIF_W, max_mb=MAX_MB) -> d
             fr = [im.resize((width_try, h), Image.LANCZOS) for im in src]
             pal = fr[0].quantize(colors=colors, method=Image.Quantize.MEDIANCUT)
             q = [f.quantize(palette=pal, dither=Image.Dither.FLOYDSTEINBERG) for f in fr]
+            #  ⚠ 배경이 253,253,252 로 양자화되면 흰 리포트 지면 위에 옅은 사각 테두리가 보인다.
+            #    **양자화 뒤에** 거의-흰 팔레트 항목만 순백으로 바꾼다(픽셀 인덱스는 그대로라
+            #    다시 매핑되지 않는다 — 양자화 전에 바꾸면 오히려 249 로 밀린다. 실측).
+            pl = list(q[0].getpalette() or [])
+            for j in range(0, len(pl), 3):
+                if all(v >= 248 for v in pl[j:j + 3]):
+                    pl[j:j + 3] = [255, 255, 255]
+            for im in q:
+                im.putpalette(pl)
             q[0].save(out_path, save_all=True, append_images=q[1:], duration=ms,
                       loop=0, optimize=True)
             mb = os.path.getsize(out_path) / 1e6
@@ -290,8 +306,8 @@ def main():
 
     res = tuple(int(x) for x in a.res.lower().split("x"))
     n_f, spp = a.frames, a.spp
-    if a.smoke:
-        n_f, spp, res = 2, 64, (720, 450)
+    if a.smoke:                                           # 화면비는 그대로 두고 크기·표본만 줄인다
+        n_f, spp, res = 2, 64, (res[0] // 2, res[1] // 2)
 
     sc = scenario(a.drone)
     spec = sc["spec"]
@@ -328,7 +344,7 @@ def main():
         shutil.rmtree(FRAMES, ignore_errors=True)
     os.makedirs(FRAMES, exist_ok=True)
 
-    files, per_frame, camrec, geo = [], [], None, None
+    files, per_frame, spp_used, camrec, geo = [], [], [], None, None
     t_all = time.time()
     for i in range(n_f):
         t0 = time.time()
@@ -339,8 +355,21 @@ def main():
         if camrec is None:
             camera, camrec = frame_camera(mv, sc["az_deg"], sc["el_deg"], res)
         p = os.path.join(FRAMES, f"frame_{i:03d}.png")
-        scene.render_to_file(camera=camera, filename=p, num_samples=spp,
-                             resolution=res, fov=FOV, show_devices=False)
+        #  ⚠ 공용 GPU 라 여유가 프레임 중간에 줄 수 있다. OOM 이면 죽지 말고 spp 를 반으로
+        #    줄여 다시 시도한다(프레임마다 다른 spp 를 쓰면 밝기가 아니라 잡음만 달라진다).
+        spp_i = spp
+        while True:
+            try:
+                scene.render_to_file(camera=camera, filename=p, num_samples=spp_i,
+                                     resolution=res, fov=FOV, show_devices=False)
+                break
+            except Exception as e:
+                if spp_i <= 32:
+                    raise
+                spp_i //= 2
+                print(f"    ⚠ 프레임 {i} 렌더 실패({type(e).__name__}) → spp {spp_i} 로 재시도",
+                      flush=True)
+        spp_used.append(int(spp_i))
         white_png(p)
         files.append(p)
         RP.drop_scratch(d)
@@ -384,7 +413,9 @@ def main():
             "prop_dia_mm": float(spec.prop_dia_mm),
             "rpm_per_rotor": [float(x) for x in rpms],
             "rpm_mean": float(rpms.mean()),
-            "rpm_spread_frac": float((rpms.max() - rpms.min()) / rpms.mean()),
+            "rpm_ptp_over_mean": float((rpms.max() - rpms.min()) / rpms.mean()),
+            "rpm_spread_frac_scenario": (float(sc["meta"]["rpm_spread_frac"])
+                                         if "rpm_spread_frac" in sc["meta"] else None),
             "spin_dirs": [int(x) for x in fp.dirs],
             "note_ko": ("로터별 rpm 과 CW/CCW 는 FastPoser/시나리오 JSON 이 정한 것을 그대로 썼다 "
                         "— 이 스크립트는 회전 방향을 새로 정하지 않는다."),
@@ -410,6 +441,8 @@ def main():
         "render": {
             "engine": "Sionna RT scene.render_to_file (Mitsuba path tracer)",
             "resolution": [int(res[0]), int(res[1])], "spp": int(spp),
+            "spp_actual_min": int(min(spp_used)), "spp_actual_max": int(max(spp_used)),
+            "spp_downgraded_frames": int(sum(1 for s in spp_used if s < spp)),
             "sample_buffer_gb": float(res[0] * res[1] * spp * 4 / 1e9),
             "camera": camrec,
             "camera_note_ko": ("render_md_scene.py 의 f0b 와 같은 시선축(레이더 → 표적, az 0 · "
@@ -430,6 +463,18 @@ def main():
             "gif_colors": gif["colors"], "gif_under_limit": gif["under_limit"],
             "gif_max_mb": gif["max_mb"], "gif_attempts": gif["attempts"],
         },
+        #  ⭐ 리포트 본문에 넣을 문단 초안 — 숫자는 위 기록에서 그대로 뽑아 쓴다(손입력 금지).
+        #     ⚠ make_report07_overview.py 는 이 스크립트가 건드리지 않는다. 초안만 남긴다.
+        "report_paragraph_ko": (
+            f"호버링하는 {spec.name}. 기체는 제자리에 떠 있지만 프로펠러 {int(spec.num_rotors)}개는 "
+            f"계속 돈다(호버 {rpms.mean():.0f} rpm, 로터마다 조금씩 다르고 CW/CCW 가 섞여 있다). "
+            f"시점은 레이더가 보는 방향(방위 {sc['az_deg']:.0f}° · 고각 {sc['el_deg']:.0f}°)이라 "
+            f"이 그림이 곧 송수신기가 마주보는 면이다. 볼 것은 하나다 — 동체는 한 픽셀도 "
+            f"안 움직이는데 블레이드의 방향만 프레임마다 바뀐다. 그 바뀌는 부분이 되돌아오는 "
+            f"신호의 위상을 흔들고, 그것이 이 편에서 다루는 마이크로도플러다. "
+            f"⚠ 실제 블레이드는 초당 {rpms.mean()/60:.0f} 바퀴를 돌아 눈으로는 볼 수 없다 — "
+            f"이 애니메이션은 블레이드 한 주기({T*1e3:.1f} ms)를 {n_f} 프레임으로 나눈 "
+            f"약 {slowmo:.0f} 배 슬로모션이다."),
         "reproduce": ("SIONNA2_GPU=%d PYTHONPATH=src python benchmark/render_md_anim.py "
                       "--frames %d --spp %d --res %dx%d" %
                       (GPU_INFO["gpu"], n_f, spp, res[0], res[1])),

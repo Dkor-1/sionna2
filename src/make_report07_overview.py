@@ -42,6 +42,11 @@ MDP = json.load(open(f"{_ROOT}/outputs/report00_microdoppler.json"))
 HOV = json.load(open(f"{_ROOT}/outputs/report07_hover_long.json"))["_meta"]
 _HOD_P = f"{_ROOT}/outputs/report07_hover_long_outdoor.json"
 HOD = json.load(open(_HOD_P))["_meta"] if os.path.exists(_HOD_P) else None  # 야외 프리셋(있으면)
+_ANIM_P = f"{_ROOT}/outputs/report07_anim.json"
+_HAS_ANIM = (os.path.exists(_ANIM_P)
+             and os.path.exists(f"{_ROOT}/outputs/figures/report07_anim.gif"))
+ANIM = json.load(open(_ANIM_P)) if _HAS_ANIM else None      # 호버링 애니메이션(있으면)
+_HAS_F13 = os.path.exists(f"{_ROOT}/outputs/figures/report07_f13.png")
 VERD = json.load(open(f"{_ROOT}/outputs/report15_verdict.json"))
 RNGS = json.load(open(f"{_ROOT}/outputs/report07_sionna_ranges.json"))     # 그림 9 원장
 W5G = json.load(open(f"{_ROOT}/outputs/report07_5g_waveform.json"))        # 그림 10 원장
@@ -72,12 +77,13 @@ FARFIELD_M = next(r for r in MDP["rows"] if r["drone"] == "matrice4e")["farfield
 _EMBEDDED: list[str] = []
 
 
-def embed(stem: str) -> str:
-    """그림을 base64 로 박는다 — 경로에 안 매이게."""
+def embed(stem: str, ext: str = "png") -> str:
+    """그림을 base64 로 박는다 — 경로에 안 매이게.
+    ext="gif" 면 애니메이션을 그대로 박는다(노트북 마크다운 셀에서 재생된다)."""
     _EMBEDDED.append(stem)
-    with open(os.path.join(FIG, f"{stem}.png"), "rb") as f:
+    with open(os.path.join(FIG, f"{stem}.{ext}"), "rb") as f:
         b = base64.b64encode(f.read()).decode()
-    return f"![{stem}](data:image/png;base64,{b})"
+    return f"![{stem}](data:image/{ext};base64,{b})"
 
 
 def md(*lines):
@@ -146,6 +152,24 @@ cells = [
           " 그림 1·5 의 원장은 지금 실측 산포·Γ(θ) 로 **재계산 중**이다.")),
 
     md("## §0. 시나리오 — 그림을 보기 전에", "",
+       "먼저 이 편이 다루는 표적이 실제로 무엇을 하고 있는지부터 본다.", "",
+       "" if not _HAS_ANIM else embed("report07_anim", "gif"), "",
+       "" if not _HAS_ANIM else
+       f"호버링하는 {ANIM['_meta'].get('name', 'DJI Matrice 4E')}. 기체는 제자리에 떠 있지만 "
+       f"프로펠러 넷은 계속 돈다(호버 {ANIM['rotors']['rpm_mean']:.0f} rpm, 로터마다 조금씩 "
+       "다르고 CW/CCW 가 섞여 있다). 시점은 **레이더가 보는 방향**"
+       f"(방위 {ANIM['_meta']['az_deg']:.0f}° · 앙각 {ANIM['_meta']['el_deg']:.0f}°)이라 "
+       "이 그림이 곧 송수신기가 마주보는 면이다. ⭐볼 것은 하나다 — **동체는 한 픽셀도 "
+       "안 움직이는데 블레이드의 방향만 프레임마다 바뀐다.** 그 바뀌는 부분이 되돌아오는 "
+       "신호의 위상을 흔들고, 그것이 이 편에서 다루는 마이크로도플러다.", "",
+       "" if not _HAS_ANIM else
+       f"⚠ 실제 블레이드는 초당 {ANIM['rotors']['rpm_mean']/60:.0f} 바퀴를 돌아 눈으로는 "
+       f"볼 수 없다 — 이 애니메이션은 블레이드 한 주기"
+       f"({ANIM['loop']['blade_period_ms']:.1f} ms)를 {ANIM['loop']['n_frames']} 프레임으로 "
+       "나눈 슬로모션이다. 한 프레임이 블레이드 "
+       f"{ANIM['loop']['blade_deg_per_frame']:.0f}° 에 해당한다. "
+       "⚠ 한 주기만 보이므로 **로터별 회전수 산포는 여기 안 보인다** — 신호를 비주기적으로 "
+       "만드는 그 성질은 그림 1 과 11 이 담당한다.", "",
        embed("report07_f0"), "",
        "**공통**: DJI Matrice 4E 한 대가 **제자리 호버링**한다(이동 0, 벌크 도플러 0). "
        "환경은 자유공간이다 — 지면도 벽도 클러터도 잡음도 두지 않았다. "
