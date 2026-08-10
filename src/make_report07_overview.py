@@ -40,6 +40,8 @@ MDB = json.load(open(f"{_ROOT}/outputs/report15b_microdoppler.json"))
 TRI = json.load(open(f"{_ROOT}/outputs/report07_three_engines.json"))
 MDP = json.load(open(f"{_ROOT}/outputs/report00_microdoppler.json"))
 HOV = json.load(open(f"{_ROOT}/outputs/report07_hover_long.json"))["_meta"]
+_HOD_P = f"{_ROOT}/outputs/report07_hover_long_outdoor.json"
+HOD = json.load(open(_HOD_P))["_meta"] if os.path.exists(_HOD_P) else None  # 야외 프리셋(있으면)
 VERD = json.load(open(f"{_ROOT}/outputs/report15_verdict.json"))
 RNGS = json.load(open(f"{_ROOT}/outputs/report07_sionna_ranges.json"))     # 그림 9 원장
 W5G = json.load(open(f"{_ROOT}/outputs/report07_5g_waveform.json"))        # 그림 10 원장
@@ -380,6 +382,35 @@ cells = [
        "Y = h28k[None, s0:s1] * X                                            # 평탄 채널",
        "h_hat[s0:s1] = np.mean(Y / X, axis=0)                                # 기지심볼 나눗셈",
        "```"),
+] + ([] if HOD is None else [
+    md("## 그림 11 — 로터 산포 프리셋 비교: 실내-이상 하한 vs 야외 앵커", "",
+       "**시나리오(§0 의 A)** — 그림 7 과 완전히 같은 계산(같은 기체·자세·2 초·SBR 팔)이고, "
+       "바꾼 것은 **로터 산포 프리셋 하나**다. 왼쪽이 그림 7 그대로의 실내-이상 프리셋"
+       f"(PX4 SITL 실측의 중간값 ±{HOV['static_spread']:.2%}, 흔들림 ±{HOV['wobble_amp']:.2%} "
+       f"@ {HOV['wobble_hz']:.1f} Hz), 오른쪽이 **야외 프리셋**"
+       f"(±{HOD['static_spread']:.0%} · 흔들림 ±{HOD['wobble_amp']:.1%} @ "
+       f"{HOD['wobble_hz']:.1f} Hz)이다.", "",
+       "야외 프리셋의 출처는 웹에서 확보한 **실기체 실측 앵커**(`outputs/rotor_rpm_web_anchor.json`)다 — "
+       "실내 정지비행 실측(NeuroBEM)이 산포 ~0.5 %, **야외** 정지비행 실측(CODEV)이 "
+       "산포 ~2.4 %·흔들림 2.5 % @ ~0.7 Hz, 실기체 DJI DAT 로그(PWM 환산)가 2~6 % 다. "
+       "SITL 은 바람·기체 비대칭이 없는 **대칭-이상 조건의 하한**이고, 우리 실증은 야외다.", "",
+       embed("report07_f11"), "",
+       "⭐ 읽는 법 — 왼쪽(±0.22 %)은 로터들이 거의 같은 속도라 고조파 빗살이 정렬되고, "
+       "포락이 느리게 숨쉰다. 오른쪽(±2 %)은 로터별 f_tip 이 수십 Hz 씩 갈라져 능선이 "
+       "**얽힌 뱀처럼** 교차한다 — 문헌의 야외 실측 그림이 바로 이 형태다. "
+       "⭐⭐그런데 **세로 플래시 아치는 양쪽 다 남는다** — 산포는 능선(주파수축 구조)을 "
+       "뭉개지만 플래시(시간축 사건)는 못 지운다. 시간 분해능을 우선하는 표시 규약과 "
+       "플래시 기반 읽기가 야외에서 더 중요해지는 물리적 이유가 이것이다.", "",
+       "⚠ 정직 표시 — 야외 프리셋의 두 수치는 **우리 표적의 실측이 아니라** 문헌 앵커의 "
+       "반올림이다(위 출처). 실측 비행 로그(모터별 rpm)가 오면 이 프리셋 자체를 측정값으로 "
+       "바꾼다. 헤드라인 수치(그림 1~7)는 여전히 실측 SITL 프리셋을 쓴다 — 이 그림은 "
+       "«야외에서 무엇이 달라지는가» 의 예고편이다.", "",
+       "**이 그림의 설정** — 그림 7 표와 동일하고 프리셋만 다르다. 재계산·재현: ", "",
+       "```bash",
+       "python benchmark/report07_hover_long.py --preset outdoor   # → *_outdoor.{npz,json}",
+       "python benchmark/build_hover_compare_fig.py                # → report07_f11",
+       "```"),
+]) + [
 
     md("## 부록 — 그림별 데이터 이력", "",
        "그림마다 딛고 선 원장(계산 결과 JSON)과 그 시점이 다르다. "
@@ -395,7 +426,10 @@ cells = [
        "| 4 | ⚠ 원장 없음 — `benchmark/build_report07_figs.py` 에 기록된 2026-08-07 실측값 | 2026-08-07 | 기록 없음 — 모른다 | — |",
        f"| 6 · 7 | `outputs/report07_hover_long.json` | {HOV['generated'][:16]} | ✅ 후 | ±{HOV['static_spread']*100:g} %(PX4 실측) |",
        f"| 9 | `outputs/report07_sionna_ranges.json` | {RGM['generated'][:16]} | ✅ 후 | ±{RGM['rpm_spread_frac']*100:g} %(PX4 실측 중간값) |",
-       f"| 10 | `outputs/report07_5g_waveform.json` | {WM['generated'][:16]} | ✅ 후 — 그림 7 원장 상속 | ±{HOV['static_spread']*100:g} %(PX4 실측 중간값) |"),
+       f"| 10 | `outputs/report07_5g_waveform.json` | {WM['generated'][:16]} | ✅ 후 — 그림 7 원장 상속 | ±{HOV['static_spread']*100:g} %(PX4 실측 중간값) |"
+       + ("" if HOD is None else
+          f"\n| 11 | `outputs/report07_hover_long_outdoor.json` | {HOD['generated'][:16]} | "
+          f"✅ 후 | ⚠±{HOD['static_spread']*100:g} %(야외 **문헌 앵커** — 우리 실측 아님) |")),
 
     md("## 부록 — 그림을 만든 설정 전부", "",
        "그림에는 설정 수치를 안 적는다. 여기가 그 수치들의 자리다.", "",
