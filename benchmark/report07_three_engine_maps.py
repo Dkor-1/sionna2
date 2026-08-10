@@ -61,7 +61,13 @@ OUT = os.path.join(ROOT, "outputs", "report07_three_engines.npz")
 OUTJ = os.path.join(ROOT, "outputs", "report07_three_engines.json")
 GM = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
 
-RPM_SPREAD = 0.02
+# ⭐ 2026-08-10 정정 — 이 값이 0.02 였다. 그것은 2026-08-07 이전의 **내 추측**이고,
+#   선배 PX4 텔레메트리 실측(0.07~0.29 %)의 9배다. 다른 헤드라인 그림(1·5·6·7)은 이미
+#   실측 중간값 ±0.22 % 로 재계산됐는데 이 그림만 뒤처져 있었다.
+#   ⚠ 산포가 크면 네 로터의 빗살이 고조파마다 어긋나 맵이 뭉개진다 — 사용자가 «가운데 패널이
+#     왜 이렇게 안 좋냐» 고 물은 것의 실제 원인이 이것이다(근거리장 아님 — 우리 팔은 평면파다).
+#   야외 산포(±2 %)의 효과는 그림 11(프리셋 비교)이 따로 담당한다.
+RPM_SPREAD = float(os.environ.get("SIONNA2_MD_SPREAD", "0.0022"))
 PATTERN = np.array([+1.0, -1.0, -0.55, +0.55])
 
 

@@ -41,6 +41,12 @@ plt.rcParams.update({
     "font.family": "DejaVu Sans",
 })
 
+def _ptp_db(E):
+    """변조 깊이 [dB p-p] — 엔진마다 제목에 적는다(그림 3 이 하던 역할을 이 그림이 잇는다)."""
+    d = 20 * np.log10(np.abs(np.asarray(E, complex)) + 1e-30)
+    return float(d.max() - d.min())
+
+
 ROWS = ["R3", "R8", "R15"]
 fig = plt.figure(figsize=(11.6, 9.6))
 gs = fig.add_gridspec(3, 4, width_ratios=[1, 1, 1, 0.045], wspace=0.16, hspace=0.30,
@@ -49,17 +55,16 @@ gs = fig.add_gridspec(3, 4, width_ratios=[1, 1, 1, 0.045], wspace=0.16, hspace=0
 CAP = ""
 for r, key in enumerate(ROWS):
     rng_m = RGS[key]["range_m"]
+    Es, Eb, Ep = (np.asarray(ZR[f"{key}/E"], complex),
+                  np.asarray(ZO["sbr"], complex), np.asarray(ZO["po"], complex))
     cols = [
-        (np.asarray(ZR[f"{key}/E"], complex),
-         f"Sionna PathSolver — R = {rng_m:.0f} m\n"
-         f"median {RGS[key]['paths_median']:.0f} paths/pose · "
-         f"level {RGS[key]['level_db']:.0f} dB"),
-        (np.asarray(ZO["sbr"], complex),
-         "Ours (SBR+PO, default)\nrange-invariant (plane wave)" if r == 0
-         else "Ours (SBR+PO) — same map, by construction"),
-        (np.asarray(ZO["po"], complex),
-         "Ours w/o occlusion (control)\nrange-invariant (plane wave)" if r == 0
-         else "Ours w/o occlusion — same map, by construction"),
+        (Es, f"Sionna PathSolver — R = {rng_m:.0f} m\n"
+             f"{_ptp_db(Es):.1f} dB p-p · median {RGS[key]['paths_median']:.0f} paths/pose · "
+             f"level {RGS[key]['level_db']:.0f} dB"),
+        (Eb, f"Ours (SBR+PO, default) — {_ptp_db(Eb):.1f} dB p-p\n"
+             + ("range-invariant (plane wave)" if r == 0 else "same map, by construction")),
+        (Ep, f"Ours w/o occlusion (control) — {_ptp_db(Ep):.1f} dB p-p\n"
+             + ("range-invariant (plane wave)" if r == 0 else "same map, by construction")),
     ]
     for c, (E, title) in enumerate(cols):
         ax = fig.add_subplot(gs[r, c])
@@ -86,6 +91,7 @@ fig.suptitle(f"{M['name']} hovering, belly view (az {M['az_deg']:.0f}, "
              "Only the Sionna column is re-solved per range (true monostatic, "
              "rays scaled (R/3)²).", fontsize=FS + 0.5, y=0.965)
 
+import textwrap                                                        # noqa: E402
 cap = (CAP + "\n"
        "Middle and right columns are computed once on a target-anchored plane-wave "
        "grid, so they do not depend on range by construction — the repetition down "
@@ -93,6 +99,9 @@ cap = (CAP + "\n"
        "the 3 m row is near-field for the Sionna column, 8 and 15 m are far-field. "
        "Sionna maps use ray budgets 1M / 7.1M / 25M (per-range level in each title; "
        "maps normalized to their own peak).")
+# ⚠ 캡션 한 줄이 길면 bbox_inches="tight" 가 **그림 폭을 캡션에 맞춰 늘린다**(2026-08-10 실측:
+#   f12 가 4652 px 로 벌어지고 오른쪽이 하얗게 남았다). 패널 폭에 맞춰 접는다.
+cap = "\n".join(textwrap.fill(p, 150) for p in cap.split("\n"))
 fig.text(0.062, 0.012, cap, fontsize=FS - 1.5, color="0.3", va="top")
 
 for ext in ("png", "pdf"):

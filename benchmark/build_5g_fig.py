@@ -50,6 +50,9 @@ M, A = J["_meta"], J["arms"]
 FFL, FTIP = M["f_flash_hz"], M["f_tip_hz"]
 
 T_SHOW = 0.3          # ⭐관측창 [s] — 2 s 전체 대신 앞 0.3 s 만 (사용자: 훨씬 짧게)
+# ⭐도플러축 상한 [Hz] — 사용자 지시 «±1200 Hz 정도에서 잘라서». 날개끝이 1229 Hz 라
+#   정확히 1200 으로 자르면 팁 선이 화면 밖으로 나가므로 그 위 1300 에서 자른다.
+YMAX_HZ = 1300.0
 
 FS = 9.5
 plt.rcParams.update({
@@ -71,7 +74,7 @@ def prep(E, fs):
     E = np.asarray(E, complex)[: max(8, int(round(T_SHOW * fs)))]
     f, t, S, nper = flash_spec(E, fs, FFL)
     n_slots = len(t)
-    keep = np.abs(f) <= YLIM_FTIP * FTIP * 1.05          # 그리는 창 밖 행은 모아레만 낳는다
+    keep = np.abs(f) <= YMAX_HZ * 1.05                   # 그리는 창 밖 행은 모아레만 낳는다
     f, S = f[keep], S[keep]
     stride = max(1, int(np.ceil(len(t) / 640.0)))        # 열이 화소보다 많으면 솎는다(표시용)
     return f, t[::stride], S[:, ::stride], nper, n_slots
@@ -97,10 +100,11 @@ for i, k in enumerate(["cw_5k", "nr_full_28k", "nr_crs_1k", "nr_ssb_50"]):
     ax = fig.add_subplot(gs[0, i], sharey=axes[0] if i else None)
     fs_k = A[k]["fs_hz"]
     f, t, S, nper, n_slots = prep(Z[k], fs_k)
-    m = draw(ax, t, f, S, FTIP, t_scale=1.0)             # ⭐draw 가 ylim ±1.9·f_tip 통일
+    m = draw(ax, t, f, S, FTIP, t_scale=1.0)
+    ax.set_ylim(-YMAX_HZ, YMAX_HZ)                       # ⭐네 패널 도플러축 통일 (±1.3 kHz)
     if k == "cw_5k":
         CAP_CW = caption(fs_k, FFL, nper, n_slots)
-    if fs_k / 2 < YLIM_FTIP * FTIP:                      # 나이퀴스트 밖 = 이 팔이 못 보는 띠
+    if fs_k / 2 < YMAX_HZ:                               # 나이퀴스트 밖 = 이 팔이 못 보는 띠
         for s in (+1, -1):                               # 회색 — 흰 여백 위에서도 보이게
             ax.axhline(s * fs_k / 2, color="0.35", ls="-", lw=0.9)
     if A[k]["ftip_folds"]:                               # 날개끝이 접혀 떨어지는 자리(점선)
@@ -138,6 +142,9 @@ cap = ("CW arm: " + CAP_CW + "\n"
        "the white area beyond it is not \"quiet\", it is unmeasurable at that rate. "
        "Dotted white: where the blade-tip (1 kHz arm) / blade-flash (50 Hz arm) lines "
        "land after aliasing.")
+# ⚠ 긴 한 줄 캡션은 bbox_inches="tight" 에서 **그림 폭을 늘린다** — 패널 폭에 맞춰 접는다.
+import textwrap                                                        # noqa: E402
+cap = "\n".join(textwrap.fill(p, 170) for p in cap.split("\n"))
 fig.text(0.048, -0.02, cap, fontsize=FS - 1.5, color="0.3", va="top")
 
 for ext in ("png", "pdf"):
