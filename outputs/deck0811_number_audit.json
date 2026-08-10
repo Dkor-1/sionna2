@@ -1,0 +1,785 @@
+{
+ "_meta": {
+  "generated": "2026-08-10 09:32:24",
+  "owner": "준비-B — 0811 팀미팅 «한 주제» 덱 후보 수치 전수 교차검증 (읽기 전용 감사, 이 파일만 씀)",
+  "user_rule_ko": "확실하게 교차검증해서 넣고, 검증이 안 된 것은 차라리 포기한다. 이 산출물의 핵심은 «버릴 수치 목록» 이다.",
+  "scope_ko": "덱 주제 = 마이크로도플러 맵 + 거리별 분석 + SBR+PO 대 PathSolver 비교. RCS·조명원·5G·비행로그는 감사 대상 밖.",
+  "ledgers_read": {
+   "report07_three_engines.json": "2026-08-10 06:23:27",
+   "report07_three_engine_ranges.json": "2026-08-10 06:50:49",
+   "report07_sionna_ranges.json": "2026-08-10 04:31:54",
+   "report15b_microdoppler.json": "2026-08-10 04:41:56",
+   "rotor_rpm_web_anchor.json": "2026-08-10 (mtime 06:07)",
+   "npz 원자료": [
+    "report07_three_engines.npz",
+    "report07_three_engine_ranges.npz",
+    "report07_sionna_ranges.npz",
+    "report15b_series.npz"
+   ]
+  },
+  "method_ko": [
+   "① 원장 JSON 에서 값을 직접 읽고 파일·키를 적었다.",
+   "② 생성 시각을 확인해 낡은 원장을 걸러냈다(오늘 04:16~07:08 사이에 재계산이 여러 번 돌았다).",
+   "③ npz 원자료에서 값을 다시 계산해 원장과 대조했다 — 레벨·p-p·p5~p95·코사인·경로 수 전부.",
+   "④ 같은 양을 담은 서로 다른 원장끼리 대조했다(three_engines ↔ three_engine_ranges ↔ sionna_ranges ↔ report15b).",
+   "⑤ 해석적 예측과 대조했다(f_tip, f_flash, 호버 rpm 의 C_T 유도, 원거리장 2D^2/lam, 조각 표본 수·Dt·Df, 레이다식 단위환산)."
+  ],
+  "counts": {
+   "쓴다": 30,
+   "정성만": 4,
+   "버린다": 12
+  }
+ },
+ "items": [
+  {
+   "name": "표적 기체",
+   "value": "DJI Matrice 4E",
+   "unit": "-",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "_meta.drone/_meta.name",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "src/drones.py DRONES['matrice4e'] 스펙 직접 로드 + report15b·report07 거리스윕 세 원장이 같은 키",
+   "cross_check_value": "matrice4e / DJI Matrice 4E (4원장 일치)",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "네 원장이 같은 기체를 가리키고 스펙 파일에서도 같은 키가 나온다."
+  },
+  {
+   "name": "기체 형상 (프롭 지름·날개 수·로터 수)",
+   "value": [
+    274,
+    2,
+    4
+   ],
+   "unit": "mm, 장, 개",
+   "ledger_file": "src/drones.py",
+   "ledger_key": "DRONES['matrice4e'].prop_dia_mm/prop_blades/num_rotors",
+   "generated": "코드 리터럴",
+   "cross_check_method": "spec note 의 1차출처: DJI M4 시리즈 매뉴얼 p.101 이 1154F 를 27.4 x 13.7 cm 로 적음 (note 필드에 인용)",
+   "cross_check_value": "27.4 cm = 274 mm",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "매뉴얼 쪽수까지 달린 1차출처가 코드값과 같다."
+  },
+  {
+   "name": "자세 (방위·고각)",
+   "value": [
+    0.0,
+    -15.0
+   ],
+   "unit": "deg (az, el)",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "_meta.az_deg/_meta.el_deg",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "report15b 의 'belly' 칸 az/el 과 대조 + 거리스윕 두 원장",
+   "cross_check_value": "report15b belly = (0, -15) 동일, sionna_ranges·three_engine_ranges 도 (0, -15)",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "⚠ 다만 report15b 의 'nose' 칸은 el=+15 다. 덱에서 «el 15도» 라고만 쓰면 어느 판인지 모른다 — 반드시 «belly, el −15» 로 적을 것."
+  },
+  {
+   "name": "거리 (그림3·그림12 첫 줄)",
+   "value": 3.0,
+   "unit": "m",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "_meta.range_m",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "three_engine_ranges.R3.range_m · sionna_ranges.R3.range_m",
+   "cross_check_value": "3.0 / 3.0",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "세 원장 일치."
+  },
+  {
+   "name": "반송파 주파수",
+   "value": 3.5,
+   "unit": "GHz",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "_meta.fc_hz",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "report15b _meta.fc_hz · sionna_ranges _meta.fc_hz",
+   "cross_check_value": "3.5e9 (전 원장 동일)",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "전 원장 동일."
+  },
+  {
+   "name": "호버 회전수",
+   "value": 3800,
+   "unit": "rpm",
+   "ledger_file": "src/drones.py",
+   "ledger_key": "DRONES['matrice4e'].hover_rpm",
+   "generated": "코드 리터럴(2026-07-28 확정)",
+   "cross_check_method": "⭐내가 spec note 의 유도를 직접 다시 풀었다 — T=1219 g·9.81/4=2.989 N/로터, C_T=0.0140 (NASA/US Army 실측, Russell et al., AHS Forum 72, 2016), D=0.274 m → Omega=396.9 rad/s",
+   "cross_check_value": "3790 rpm (코드 3800 은 +0.3%)",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "공개 실측 C_T 로 손계산이 재현된다. ⭐덱에는 note 가 선언한 잔여 밴드 ±5%(3613~3994 rpm → f_flash 120~133 Hz, f_tip 1169~1292 Hz)를 같이 적을 것 — hover_rpm 은 «추력균형에서 풀리는 값» 이 아니라 하드코딩 리터럴이다(docs/DRONE_SPECS.md §4 가 그 provenance 를 정정했다)."
+  },
+  {
+   "name": "플래시 주파수 f_flash",
+   "value": 126.667,
+   "unit": "Hz",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "_meta.f_flash_hz",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "해석 예측 f_flash = blades x rpm/60 = 2 x 63.3333, 그리고 report15b·sionna_ranges 원장 대조",
+   "cross_check_value": "126.6667 Hz (해석·3원장 완전 일치)",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "해석식과 세 원장이 소수점까지 같다."
+  },
+  {
+   "name": "플래시 주기",
+   "value": 7.9,
+   "unit": "ms",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "1/_meta.f_flash_hz",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "1/126.6667 직접 계산",
+   "cross_check_value": "7.8947 ms",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "f_flash 의 역수. 반올림 7.9 ms 로 인용 가능."
+  },
+  {
+   "name": "날개끝 도플러 f_tip (4자리 값)",
+   "value": [
+    1228.72,
+    1229.57
+   ],
+   "unit": "Hz",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json / /home/yunjung/workspace/sionna2/outputs/report15b_microdoppler.json",
+   "ledger_key": "_meta.f_tip_hz (report07) vs cells.*.physics.f_tip (report15b)",
+   "generated": "2026-08-10 06:23:27 / 2026-08-10 04:41:56",
+   "cross_check_method": "해석식 f_tip = 2(2*pi*f_rev*R)/lam*cos(el) 를 두 lam 규약으로 각각 계산 — report07 은 lam=3e8/fc, report15b 는 lam=c/fc",
+   "cross_check_value": "1228.7212 (3e8) vs 1229.5718 (c 정확값) — 둘 다 정확히 재현",
+   "agree": false,
+   "verdict": "정성만",
+   "why": "두 원장이 4번째 자리에서 갈린다(광속을 3e8 로 쓴 코드 대 정확값을 쓴 코드, 0.07% 차). ⭐덱에는 «약 1.23 kHz» 로만 적고 네 자리 수치는 쓰지 마라."
+  },
+  {
+   "name": "PRF (그림3·그림12 = report07_f5/f12)",
+   "value": 19700,
+   "unit": "Hz",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "_meta.prf_hz",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "해석 재현 ceil(16 x f_tip/100)x100 = ceil(16x1228.72/100)x100 + three_engine_ranges 원장 대조",
+   "cross_check_value": "19700 (일치)",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "⚠ 이 값은 PRF 배수 16 판이다. 코드 기본값은 4배(=5000 Hz)이므로 «PRF = 4 x f_tip» 이라고 쓰면 이 그림에 대해 거짓이다."
+  },
+  {
+   "name": "PRF (거리스윕 그림 = report07_f9)",
+   "value": 5000,
+   "unit": "Hz",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_sionna_ranges.json",
+   "ledger_key": "_meta.prf_hz",
+   "generated": "2026-08-10 04:31:54",
+   "cross_check_method": "해석 재현 ceil(4 x 1228.72/100)x100 = 5000 + report15b matrice4e 칸도 5000",
+   "cross_check_value": "5000 (일치)",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "해석식과 두 원장 일치."
+  },
+  {
+   "name": "PRF 를 단일 숫자로 말하기",
+   "value": "하나가 아님",
+   "unit": "-",
+   "ledger_file": "복수",
+   "ledger_key": "_meta.prf_hz",
+   "generated": "2026-08-10",
+   "cross_check_method": "원장 4개 대조",
+   "cross_check_value": "19700(f5·f12) / 5000(f9·report15b matrice4e) / 4000(report15b mini5pro)",
+   "agree": false,
+   "verdict": "버린다",
+   "why": "⭐덱에서 «우리 PRF 는 N Hz» 라는 단일 문장은 거짓이 된다. 그림마다 다르므로 그림 옆에 적어야 한다."
+  },
+  {
+   "name": "관측 창 (그림3·그림12)",
+   "value": [
+    4096,
+    207.9,
+    26.34
+   ],
+   "unit": "표본, ms, 블레이드 주기",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "_meta.n / _meta.blade_periods",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "4096/19700 = 207.9 ms, x126.6667 = 26.336 주기 직접 계산 + npz E 배열 길이 확인",
+   "cross_check_value": "npz sbr/po/sionna 전부 길이 4096, 26.336 주기",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "원장 수치·해석·npz 길이 삼중 일치."
+  },
+  {
+   "name": "관측 창 (거리스윕 f9 / report15b)",
+   "value": [
+    512,
+    102.4,
+    2526,
+    505.3
+   ],
+   "unit": "표본, ms, 표본, ms",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_sionna_ranges.json / /home/yunjung/workspace/sionna2/outputs/report15b_microdoppler.json",
+   "ledger_key": "_meta.n / cells.*.physics.n_t,duration_s",
+   "generated": "2026-08-10 04:31:54 / 2026-08-10 04:41:56",
+   "cross_check_method": "npz 배열 길이 직접 확인 (512, 2526)",
+   "cross_check_value": "512 / 2526 일치",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "창 길이도 그림마다 다르다 — 208 ms / 102 ms / 505 ms. 단일 숫자로 말하지 말 것."
+  },
+  {
+   "name": "로터별 rpm 산포 ±0.22 % 를 «실측» 이라고 부르는 것",
+   "value": 0.0022,
+   "unit": "분수",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report15b_microdoppler.json",
+   "ledger_key": "_meta.rpm_spread_frac / _meta.spread_is_declared_ko",
+   "generated": "2026-08-10 04:41:56",
+   "cross_check_method": "⭐같은 날 더 늦게 만들어진 원장 rotor_rpm_web_anchor.json (공개 실비행 로그 3원천: NeuroBEM 모터 실측 rpm, PX4 esc_status 실측 rpm, DJI P3 DAT) 과 대조",
+   "cross_check_value": "실기체 정적 산포 중앙 0.54 %(실내 무풍) ~ 2.35 %(야외). 그 원장은 우리 0.22 % 를 «한 자릿수 과소» 로 판정하고 0.5 %/2 % 를 권고. 또 같은 원장이 0.07~0.29 % 의 출처를 «PX4 SITL» (시뮬레이터)로 적는다",
+   "agree": false,
+   "verdict": "버린다",
+   "why": "⭐두 가지가 동시에 어긋난다. ① 0.07~0.29 % 의 출처가 원장마다 «PX4 텔레메트리 실측» 과 «PX4 SITL» 로 갈린다 — SITL 이면 실측이 아니다. ② 실기체 공개 로그 3원천이 모두 우리 값보다 크다. 덱에서 «실측 산포» 라고 부르면 방어할 수 없다. 값 자체를 써야 하면 «선언한 파라미터 ±0.22 %, 실기체 공개 로그는 0.5~2.4 % 라 이건 하한» 으로만 쓸 것."
+  },
+  {
+   "name": "원거리장 경계",
+   "value": 8.0,
+   "unit": "m",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_sionna_ranges.json",
+   "ledger_key": "_meta.farfield_boundary_m",
+   "generated": "2026-08-10 04:31:54",
+   "cross_check_method": "2D^2/lam 을 직접 계산. 코드는 D=0.587 m 하드코딩 — 실제 메쉬 bbox 를 내가 재봄",
+   "cross_check_value": "메쉬 bbox 최대 변 0.5947 m → 8.25 m (코드 0.587 → 8.04 m). ⚠ bbox 3D 대각 0.776 m 를 쓰면 14.1 m",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "D 를 «가장 긴 변» 으로 잡는 규약에서는 8.0~8.3 m 로 재현된다. ⭐덱에는 반드시 D 규약을 함께 적을 것 — 대각 규약이면 14 m 라 «8 m 는 경계 바로 위» 서사가 뒤집힌다."
+  },
+  {
+   "name": "우리 SBR+PO 레벨 (평균 dB)",
+   "value": -50.41,
+   "unit": "dB (임의 기준, 표적앵커 평면파 E [m^2])",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "levels_db.sbr (원장은 20log10(mean|E|) = -50.343) / npz 재계산 mean(20log10|E|)",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "⭐완전히 다른 실행과 대조 — report15b matrice4e/belly B_sbr_spread (PRF 5000, 2526 표본, 505 ms 창) 의 level_db",
+   "cross_check_value": "-50.4120 dB (report15b) vs -50.4132 dB (report07 npz 재계산) → 0.001 dB 차",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "격자·창 길이가 전혀 다른 두 독립 실행이 0.001 dB 안에서 만난다. ⚠ 단 원장 두 개가 서로 다른 정의를 쓴다(three_engines 는 20log10(평균|E|), 나머지는 dB 의 평균). 덱에는 «dB 평균» 규약으로 통일해 -50.4 dB 로 적을 것."
+  },
+  {
+   "name": "우리 «가림 끈» PO 레벨 (평균 dB)",
+   "value": -52.24,
+   "unit": "dB (같은 임의 기준)",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "levels_db.po / npz 재계산",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "report15b matrice4e/belly D_po_spread.level_db",
+   "cross_check_value": "-52.2422 vs -52.2429 → 0.0007 dB 차",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "두 독립 실행 일치."
+  },
+  {
+   "name": "SBR+PO − PO 레벨 차",
+   "value": 1.83,
+   "unit": "dB",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "levels_db.sbr − levels_db.po",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "report15b belly 의 B−D 로 같은 차를 계산",
+   "cross_check_value": "1.830 dB (report15b) vs 1.830 dB (report07)",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "가림을 켜면 레벨이 1.8 dB 올라간다 — 두 독립 실행이 같은 값. ⚠ 부호를 «가림이 신호를 키운다» 는 물리로 단정하지 말 것(코히런트 합이라 항이 줄어도 상쇄가 덜 될 수 있다 — report15b 원장이 그 경고를 담고 있다)."
+  },
+  {
+   "name": "우리 SBR+PO 변조 깊이 p-p",
+   "value": 7.9,
+   "unit": "dB",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "ptp_db.sbr",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "report15b belly B_sbr_spread.modulation_ptp_db (다른 PRF·창)",
+   "cross_check_value": "8.04 dB vs 7.86 dB → 0.18 dB 차",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "두 독립 실행이 0.2 dB 안. 덱에는 «약 8 dB» 로."
+  },
+  {
+   "name": "우리 «가림 끈» PO 변조 깊이 p-p",
+   "value": 2.7,
+   "unit": "dB",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "ptp_db.po",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "report15b belly D_po_spread.modulation_ptp_db",
+   "cross_check_value": "2.71 dB vs 2.77 dB → 0.05 dB 차",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "두 독립 실행 일치. 덱에는 «약 2.7 dB»."
+  },
+  {
+   "name": "⭐가림이 만드는 변조 깊이 차",
+   "value": 5.1,
+   "unit": "dB (p-p)",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "ptp_db.sbr − ptp_db.po",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "report15b belly 의 B−D (원장 findings.engine_ptp_db 규약과 같은 양)",
+   "cross_check_value": "5.33 dB (report15b) vs 5.09 dB (report07) → 0.24 dB 차",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "⭐이 덱의 헤드라인 후보로 가장 튼튼한 수치다 — 두 독립 실행이 0.24 dB 안, 두 팔 다 우리 커널이라 Sionna 의 광선잡음이 안 섞인다. ⚠ 단 «가림만» 의 값은 아니다 — 두 팔은 이산화(광선격자 lam/12 대 점구름 lam/11·lam/6)와 각도의존 |Gamma(theta)|(SBR 켬·PO 끔)도 함께 다르다. 이 단서를 슬라이드에 같이 적어야 한다. ⚠ 자세 의존도 크다(report15b: nose 6.50 / belly 5.33 / belly_side 2.10 dB) — «belly 에서» 라고 못박을 것."
+  },
+  {
+   "name": "변조 깊이 p5~p95 (강건판)",
+   "value": {
+    "sbr": 3.5,
+    "po": 1.3
+   },
+   "unit": "dB",
+   "ledger_file": "npz 재계산",
+   "ledger_key": "report07_three_engines.npz sbr/po",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "report15b belly 두 팔에서 같은 백분위수 재계산",
+   "cross_check_value": "sbr 3.51 vs 3.57 (0.06 차) · po 1.48 vs 1.20 (0.28 차)",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "p-p 보다 강건하고 두 실행이 대체로 만난다. po 는 0.3 dB 흔들리므로 «1.2~1.5 dB» 로 폭을 주어 인용할 것."
+  },
+  {
+   "name": "Sionna PathSolver 레벨 (그림3 원장)",
+   "value": -110.2,
+   "unit": "dB",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "levels_db.sionna",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "⭐기선 0(진짜 모노스태틱)으로 돈 두 독립 실행과 대조 — three_engine_ranges.R3 과 sionna_ranges.R3",
+   "cross_check_value": "-117.40 dB / -117.34 dB (두 실행이 서로 0.06 dB 차) ↔ 그림3 값 -110.29 dB (7.1 dB 어긋남). npz 파형끼리 상관 -0.047 (사실상 무상관)",
+   "agree": false,
+   "verdict": "버린다",
+   "why": "⭐그림3 의 Sionna 팔은 다른 기하로 돌았다. 스크립트 report07_three_engine_maps.py 의 수정 시각(07:08)이 원장 생성 시각(06:23)보다 늦고, report15_probe.place() 기본 기선은 0.20 m(준-모노, 3.8도)다. three_engine_ranges 원장 자신이 «원판 그림3 Sionna 팔(기선 0.2 m·3.8도)» 이라고 적어 두었다. 기선 0 두 실행이 0.06 dB 안에서 만나는데 이 값만 7 dB 떨어져 있어 표본잡음으로는 설명이 안 된다."
+  },
+  {
+   "name": "⭐«Sionna 가 60 dB 낮다» (그림3 제목의 −60 dB)",
+   "value": -60,
+   "unit": "dB",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "levels_db.sionna − max(levels_db) (build_three_engine_fig.py 가 제목에 찍는다)",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "⭐두 갈래로 반증했다. (a) 단위 검증 — 우리 E 는 표적앵커 면적분 [m^2](sigma=4pi|E|^2/lam^2, 1/R^2 확산 없음)이고 Sionna a 는 확산·자유공간손실을 다 포함한 채널진폭이다. 순수 단위환산만으로 -20log10(4 pi R^2) = -41.1 dB 가 나온다. (b) 기하 검증 — 기선 0 으로 다시 돌면 같은 차가 -66.7 dB 가 된다",
+   "cross_check_value": "단위환산만 -41.1 dB · 기선 0 에서는 -66.7 dB",
+   "agree": false,
+   "verdict": "버린다",
+   "why": "⭐두 겹으로 못 쓴다. 첫째, 두 팔의 단위가 달라 «레벨 차» 자체가 물리 진술이 아니다(차의 3분의 2가 순수 단위환산이다). 둘째, 그 -60 이라는 숫자마저 기하가 어긋난 실행에서 나왔다. 다른 감사 원장(deck0811_redundancy.json)이 «레벨차 60 dB 는 확정» 이라고 적었는데 그 판정에 반대한다. 덱에서 레벨 비교는 통째로 빼라."
+  },
+  {
+   "name": "Sionna 변조 깊이 p-p",
+   "value": [
+    7.68,
+    15.42,
+    32.65
+   ],
+   "unit": "dB",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json / /home/yunjung/workspace/sionna2/outputs/report07_sionna_ranges.json / /home/yunjung/workspace/sionna2/outputs/report07_three_engine_ranges.json",
+   "ledger_key": "ptp_db.sionna / ranges.R3.ptp_db / npz 재계산",
+   "generated": "2026-08-10 04:31~06:50",
+   "cross_check_method": "같은 «3 m 의 Sionna p-p» 를 담은 세 원장 대조 + npz 재계산",
+   "cross_check_value": "7.68 dB(그림3판) · 15.42 dB(f9 판) · 32.65 dB(f12 판). 8 m 는 2.48, 15 m 는 50.11",
+   "agree": false,
+   "verdict": "버린다",
+   "why": "⭐같은 양이 실행마다 7.7 → 15.4 → 32.7 dB 로 4배 넘게 흔들린다. 원인은 물리가 아니라 광선 표본화다 — 경로를 거의 못 찾은 자세 하나가 전폭을 혼자 정한다(f12 빌더의 주석도 같은 진단을 적어 두었다). 덱에 숫자로 넣지 마라. 대신 p5~p95(강건판, R3 7.3~7.5 dB)를 쓰거나 «Sionna 팔은 깊이가 안정되지 않는다» 는 정성 서술로."
+  },
+  {
+   "name": "f_tip 안 스펙트럼 코사인 (sionna↔sbr, sionna↔po)",
+   "value": [
+    0.727,
+    0.66
+   ],
+   "unit": "-",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "verdict.cosine_in_ftip",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "⭐기선 0 Sionna(three_engine_ranges R3/R8/R15)로 같은 코사인을 다시 계산 + Sionna 팔의 «자기 자신과의» 코사인 상한 측정",
+   "cross_check_value": "기선 0 에서 sionna↔sbr 0.476 (0.727 아님) · sionna↔po 0.760. Sionna 자기끼리(R3↔R8) 0.864, R3↔R15 0.841 — 즉 이 엔진의 자기일관성 천장이 0.84~0.86 이다",
+   "agree": false,
+   "verdict": "버린다",
+   "why": "⭐숫자가 기하에 따라 0.727 ↔ 0.476 으로 뒤집힌다. 게다가 Sionna 팔이 자기 자신과도 0.84~0.86 밖에 안 맞아서, 0.4~0.76 이라는 값이 «엔진이 다르다» 는 뜻인지 «같은 엔진의 잡음» 인지 구별이 안 된다. 판정 근거로 못 쓴다."
+  },
+  {
+   "name": "f_tip 안 스펙트럼 코사인 (sbr↔po, 우리 두 팔끼리)",
+   "value": 0.44,
+   "unit": "-",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "verdict.cosine_in_ftip.sbr_vs_po",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "⭐npz 에서 내가 재계산(원장과 소수점 16자리까지 일치) 후, report15b belly 의 B_sbr_spread↔D_po_spread (PRF 5000, 505 ms 창)로 같은 양을 독립 계산",
+   "cross_check_value": "report07 격자 0.4402 vs report15b 격자 0.2857 — 같은 두 엔진·같은 자세인데 0.15 나 다르다",
+   "agree": false,
+   "verdict": "버린다",
+   "why": "⭐원장 재현은 완벽하지만(비트 단위) 격자를 바꾸면 값이 0.44 → 0.29 로 변한다. 코사인은 PRF·창 길이가 정하는 빈 집합에 딸린 양이라 «엔진이 얼마나 닮았나» 의 절대 척도가 못 된다. 코사인은 이번 덱에서 전부 빼라."
+  },
+  {
+   "name": "Sionna 가 3 m 에서 찾는 경로 수 (중앙값)",
+   "value": 5,
+   "unit": "개/자세",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engine_ranges.json",
+   "ledger_key": "ranges.R3.paths_median",
+   "generated": "2026-08-10 06:50:49",
+   "cross_check_method": "독립 실행 sionna_ranges.R3.paths_median + npz 의 npaths 배열 직접 재계산",
+   "cross_check_value": "5.0 / 5.0 (두 실행 동일), npz 재계산도 5.0",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "⭐«PathSolver 로 어떻게 맵을 그리나» 를 설명하는 데 가장 강한 수치다 — 광선 100만 개를 쏘아 자세당 경로 5개, max_depth=1. 두 독립 실행이 정확히 같다."
+  },
+  {
+   "name": "Sionna 경로 수 (8 m 13개 / 15 m 6개)",
+   "value": [
+    13,
+    6
+   ],
+   "unit": "개/자세",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engine_ranges.json",
+   "ledger_key": "ranges.R8/R15.paths_median",
+   "generated": "2026-08-10 06:50:49",
+   "cross_check_method": "다른 거리 격자(sionna_ranges: 10 m 7개, 20 m 3개)와 추세 대조",
+   "cross_check_value": "10 m 에서 7개인데 8 m 가 13개 — 단조롭지 않다. 광선 예산도 다르다(7.1M vs 8M)",
+   "agree": false,
+   "verdict": "정성만",
+   "why": "단일 실행이고 이웃 거리와 단조성이 안 맞는다. «거리가 멀수록 경로가 줄어든다» 는 방향만 쓰고 8 m·15 m 의 개별 숫자는 빼라."
+  },
+  {
+   "name": "엔진별 자세당 계산 비용",
+   "value": {
+    "sionna_ms": 134,
+    "sbr_ms": 34,
+    "po_ms": 3.0
+   },
+   "unit": "ms/자세",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engines.json",
+   "ledger_key": "engines.*.seconds / _meta.n",
+   "generated": "2026-08-10 06:23:27",
+   "cross_check_method": "⭐독립 실행 3개와 대조 — three_engine_ranges 세 거리(562.2/506.7/567.3 s ÷ 4096) 및 report15b 의 A·B·C·D 팔(85.0·70.0·8.5·8.6 s ÷ 2526)",
+   "cross_check_value": "Sionna 137/124/138 ms · SBR 33.6/27.7 ms · PO 3.37/3.40 ms",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "세 독립 실행이 같은 자릿수로 만난다. 덱에는 «Sionna 약 0.13 s, 우리 SBR 약 0.03 s, 우리 PO 약 0.003 s» — 즉 SBR 이 4배, PO 가 40배 싸다. ⚠ 같은 GPU 에 다른 작업이 함께 돌던 시간대라 절대값은 ±30 % 로 받아라. ⚠ 원본 스크립트 docstring 의 «Sionna 자세당 1.75 s» 는 낡았다(실측 0.13 s) — 인용 금지."
+  },
+  {
+   "name": "프롭 정반사 «칸 수»",
+   "value": null,
+   "unit": "-",
+   "ledger_file": null,
+   "ledger_key": null,
+   "generated": null,
+   "cross_check_method": "outputs/*.json 전수 검색 + reports/·docs/ 검색",
+   "cross_check_value": "해당 양을 담은 원장을 못 찾았다",
+   "agree": false,
+   "verdict": "버린다",
+   "why": "⭐원장이 없다. 근거 없이 슬라이드에 올릴 수 없다."
+  },
+  {
+   "name": "Sionna 레벨 @3 m (기선 0)",
+   "value": -117.4,
+   "unit": "dB",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engine_ranges.json",
+   "ledger_key": "ranges.R3.level_db",
+   "generated": "2026-08-10 06:50:49",
+   "cross_check_method": "독립 실행 sionna_ranges.R3.level_db (다른 PRF·표본 수)",
+   "cross_check_value": "-117.34 dB vs -117.40 dB → 0.06 dB 차",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "⭐레벨은 안정하다(0.06 dB). 흔들리는 것은 깊이(p-p)뿐이다. 이 대비 자체가 슬라이드 한 줄이 된다. ⚠ 다른 엔진 레벨과 나란히 놓지는 마라(단위가 다르다)."
+  },
+  {
+   "name": "Sionna 레벨 @8 m / @15 m",
+   "value": [
+    -117.97,
+    -148.28
+   ],
+   "unit": "dB",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engine_ranges.json",
+   "ledger_key": "ranges.R8/R15.level_db",
+   "generated": "2026-08-10 06:50:49",
+   "cross_check_method": "npz 재계산 + 이웃 거리 실행(10 m −126.08, 20 m −156.44)과 추세 대조",
+   "cross_check_value": "npz 재계산은 원장과 완전 일치. 다만 8 m(−118.0)가 3 m(−117.4)와 거의 같고 10 m(−126.1)와는 8 dB 벌어져 거리 의존이 단조롭지 않다",
+   "agree": false,
+   "verdict": "정성만",
+   "why": "원장 재현은 되지만 거리 의존이 단조롭지 않아(광선 예산을 (R/3)^2 로 보상한 탓) 개별 수치를 «거리 법칙» 처럼 읽으면 안 된다. 방향만 서술할 것."
+  },
+  {
+   "name": "⭐40 m 에서 경로 0 인 자세 비율",
+   "value": 78.3,
+   "unit": "%",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_sionna_ranges.json",
+   "ledger_key": "ranges.R40.paths_zero_frac",
+   "generated": "2026-08-10 04:31:54",
+   "cross_check_method": "npz 의 npaths 배열에서 직접 세었고, |E|==0 인 표본 집합과 완전히 같은지도 확인",
+   "cross_check_value": "0.7832 (npaths==0) — |E|==0 집합과 정확히 일치. 20 m 는 0 %, 10 m 0 %, 3 m 0 %",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "⭐이 덱의 «거리별 분석» 헤드라인으로 가장 안전한 수치다 — 세는 양이라 dB 잡음이 안 낀다. ⚠ 반드시 광선 예산을 함께 적을 것: 자세당 3,200만 광선(3 m 의 (R/3)^2 = 178배 보상). 예산을 더 주면 이 비율은 내려간다. 단일 실행이므로 «이 예산에서» 라고 못박아라."
+  },
+  {
+   "name": "40 m 평균 레벨 −504.9 dB · p-p 443.7 dB",
+   "value": [
+    -504.89,
+    443.74
+   ],
+   "unit": "dB",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_sionna_ranges.json",
+   "ledger_key": "ranges.R40.level_db / ptp_db",
+   "generated": "2026-08-10 04:31:54",
+   "cross_check_method": "npz 재계산 + 코드의 하한 상수 추적 (20log10(|E|+1e-30) 이므로 경로 0 인 표본은 −600 dB 로 찍힌다)",
+   "cross_check_value": "경로가 있는 21.7 % 만 모으면 평균 −161.3 dB, p-p 16.1 dB. −504.9 는 0.783x(−600) + 0.217x(−161.3) 의 산술",
+   "agree": false,
+   "verdict": "버린다",
+   "why": "⭐물리가 아니라 수치 하한(1e-30)의 산물이다. −504.9 dB 나 443.7 dB 를 슬라이드에 올리면 즉시 반박당한다. ⭐대체값: «경로를 찾은 21.7 % 의 자세에서 평균 −161.3 dB» (내가 npz 에서 재계산). 붕괴는 레벨이 아니라 «경로 0 비율» 로 말하라."
+  },
+  {
+   "name": "거리별 경로 수 사다리",
+   "value": {
+    "3m": 5,
+    "10m": 7,
+    "20m": 3,
+    "40m": 0
+   },
+   "unit": "개/자세(중앙값)",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_sionna_ranges.json",
+   "ledger_key": "ranges.*.paths_median",
+   "generated": "2026-08-10 04:31:54",
+   "cross_check_method": "npz npaths 재계산 + 3 m 은 다른 실행과도 대조",
+   "cross_check_value": "npz 재현 일치, 3 m 은 두 실행 모두 5",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "⚠ 3 m 5개 → 10 m 7개는 거꾸로다(광선 보상 탓). 사다리 전체를 «단조 감소» 로 그리지 말고 «20 m 3개 → 40 m 0개» 의 붕괴만 쓰거나 네 값을 그대로 보여라."
+  },
+  {
+   "name": "표시 조각 = 블레이드 0.45 주기 (그림3·그림12)",
+   "value": [
+    0.45,
+    70,
+    3.55,
+    281
+   ],
+   "unit": "주기, 표본, ms, Hz",
+   "ledger_file": "src/md_mapstyle.py",
+   "ledger_key": "FLASH_PERIODS_SHARP / auto_periods()",
+   "generated": "코드",
+   "cross_check_method": "빌더가 실제로 부르는 값을 코드에서 확인(build_three_engine_fig.py:57, build_three_engine_ranges_fig.py:79 둘 다 auto_periods(PRF,FFL)) 후 표본 수·Dt·Df 를 손으로 계산",
+   "cross_check_value": "round(0.45x19700/126.667)=70 표본, 70/19700=3.553 ms, 19700/70=281.4 Hz — docstring 표와 정확히 일치",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "조각 길이·시간분해능·주파수분해능은 해석적으로 정확히 재현된다."
+  },
+  {
+   "name": "표시 조각 = 블레이드 0.6 주기 (거리스윕 f9)",
+   "value": [
+    0.6,
+    24,
+    4.8,
+    208
+   ],
+   "unit": "주기, 표본, ms, Hz",
+   "ledger_file": "src/md_mapstyle.py",
+   "ledger_key": "flash_spec() 기본 FLASH_PERIODS",
+   "generated": "코드",
+   "cross_check_method": "build_range_sweep_fig.py:60 은 periods 를 안 넘긴다 → 기본 0.6. PRF 5000 에서 auto_periods 를 썼어도 0.45x39.47=18 표본 < 최소 24 라 0.6 으로 떨어진다",
+   "cross_check_value": "round(0.6x5000/126.667)=24 표본, 4.80 ms, 208.3 Hz",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "⭐그림마다 조각 규약이 다르다(0.45 대 0.6). «우리는 0.45 주기로 그린다» 는 단일 문장은 f9 에 대해 거짓이다."
+  },
+  {
+   "name": "«0.45 가 가장 뚜렷하다» 근거표 (플래시 대비 2.6/7.4/16.1/19.1/17.6 dB)",
+   "value": [
+    2.6,
+    7.4,
+    16.1,
+    19.1,
+    17.6
+   ],
+   "unit": "dB",
+   "ledger_file": "src/md_mapstyle.py docstring",
+   "ledger_key": "auto_periods() docstring 표",
+   "generated": "2026-08-10 (원장 JSON 없음 — 주석에만 있다)",
+   "cross_check_method": "⭐내가 독립 재구현했다 — 같은 원장(three_engines.npz sbr 팔, PRF 19700), docstring 이 서술한 대로 «날개끝 띠 0.35~1.0 f_tip 의 시간축 변동 폭» 을 60 ms 창과 전체 창 둘 다에서 계산",
+   "cross_check_value": "60 ms 창 p-p: 4.4 / 7.0 / 13.6 / 20.5 / 21.3 dB — 즉 0.60 주기가 0.45 보다 **크다**. 전체 창에서도 23.4 → 25.5 로 같은 방향",
+   "agree": false,
+   "verdict": "버린다",
+   "why": "⭐dB 숫자들이 내 재구현과 안 맞고, 무엇보다 «0.45 에서 최대» 라는 결론이 뒤집힌다(내 지표에서는 0.60 이 더 크다). 지표 정의가 주석 한 줄뿐이라 어느 쪽이 맞는지 가릴 수 없다. 원장 JSON 도 없다. 덱에는 표를 넣지 말고 «조각 0.45 주기 = 3.55 ms 로 고정했다» 는 사실만 쓰라."
+  },
+  {
+   "name": "«w/o occlusion» 의 정의",
+   "value": "같은 메쉬의 모든 면에 PO 를 적용하고 법선이 등진 면만 뺀다 — 광선을 아예 안 쏜다",
+   "unit": "-",
+   "ledger_file": "src/rcs_po.py / src/rcs_sbr.py / benchmark/build_engine_concept_fig.py",
+   "ledger_key": "po_field_dir() / sbr_field()",
+   "generated": "코드",
+   "cross_check_method": "두 커널 함수의 본문을 직접 읽어 대조: sbr_field 는 lam/12 광선격자의 first-hit 만 적분, po_field_dir 는 n_hat·u_hat>0 인 모든 면을 적분",
+   "cross_check_value": "일치 — 대조군은 «드론을 일부만 그린 것» 이 아니라 «남의 뒤에 숨은 면까지 다 세는 물리적으로 불가능한 팔» 이다",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "⭐사용자가 «w/o occlusion 이 뭔 소리인지 모른다» 고 한 자리다. 코드로 확인된 정의라 그대로 설명 슬라이드에 쓸 수 있다."
+  },
+  {
+   "name": "⚠ SBR+PO ↔ PO 는 «가림만» 의 단일축이 아니다",
+   "value": "이산화와 각도의존 Gamma(theta) 도 함께 다르다",
+   "unit": "-",
+   "ledger_file": "benchmark/build_engine_concept_fig.py",
+   "ledger_key": "정직 표시 캡션",
+   "generated": "2026-08-10",
+   "cross_check_method": "커널 소스 대조 — SBR 은 광선격자 lam/12 + gamma_shape(theta) 켬, PO 는 점구름(프롭 lam/11·프레임 lam/6) + angle_gamma 기본 False. 또 SBR 은 penetrate=True 로 셸을 통과해 내부 금속을 더한다",
+   "cross_check_value": "세 축이 동시에 다름 확인",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "⭐이 단서를 빼면 «5 dB 는 가림의 값» 이라는 과장이 된다. 슬라이드에 한 줄로 반드시 남길 것."
+  },
+  {
+   "name": "report15b 의 F(가림 켬)↔G(가림 끔) 단일축 값",
+   "value": {
+    "m4e/nose": [
+     -0.07,
+     0.43
+    ],
+    "m4e/belly": [
+     1.04,
+     -25.42
+    ],
+    "m4e/belly_side": [
+     -0.92,
+     -2.29
+    ],
+    "mini5/nose": [
+     0.0,
+     0.0
+    ],
+    "mini5/belly": [
+     -0.24,
+     -12.75
+    ],
+    "mini5/belly_side": [
+     -1.92,
+     -4.25
+    ]
+   },
+   "unit": "dB (레벨차, p-p차)",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report15b_microdoppler.json",
+   "ledger_key": "cells.*.findings.occlusion_level_db / occlusion_ptp_db",
+   "generated": "2026-08-10 04:41:56",
+   "cross_check_method": "⭐npz 의 E 배열에서 여섯 칸 스물네 팔을 전부 재계산 — 원장과 소수점까지 일치(불일치 0건). 그 다음 여섯 칸의 부호·크기 일관성을 봤다",
+   "cross_check_value": "레벨차 부호가 칸마다 뒤집힌다(-1.92 ~ +1.04). p-p 차는 +0.43 ~ -25.4 로 60배 흔들린다. ⭐mini5pro/nose 는 F 와 G 의 복소열이 **비트 단위로 완전히 같다**(최대차 0.0)",
+   "agree": false,
+   "verdict": "버린다",
+   "why": "⭐원장은 완벽히 재현되지만 값이 물리 결론을 못 준다. 부호가 자세마다 뒤집히고, 한 칸에서는 가림 팔과 비가림 팔이 아예 같은 신호를 낸다(그 자세에서 동체가 광선을 하나도 막지 않았다). 원장 자신도 «부호를 물리로 단정하지 말 것» 이라고 적었다. 이번 덱은 어차피 report07 의 SBR+PO↔PO 축을 쓰므로 이 값들은 넣지 마라."
+  },
+  {
+   "name": "mini5pro/nose 에서 가림 팔과 비가림 팔이 동일하다는 사실",
+   "value": 0.0,
+   "unit": "dB (완전 동일)",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report15b_microdoppler.json",
+   "ledger_key": "cells['mini5pro/nose'].findings.occlusion_*",
+   "generated": "2026-08-10 04:41:56",
+   "cross_check_method": "npz 두 복소열의 원소별 차 최대값을 계산",
+   "cross_check_value": "np.array_equal == True, 최대차 0.0",
+   "agree": true,
+   "verdict": "정성만",
+   "why": "정직성 카드로는 쓸 수 있다(«자세에 따라 가림이 아예 안 걸리기도 한다»). 다만 이번 덱은 Matrice 4E belly 한 자세로 좁히는 편이 낫다."
+  },
+  {
+   "name": "3 / 8 / 15 m 에서 빈 자세(경로 0) 비율",
+   "value": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "unit": "%",
+   "ledger_file": "/home/yunjung/workspace/sionna2/outputs/report07_three_engine_ranges.json",
+   "ledger_key": "ranges.*.paths_zero_frac",
+   "generated": "2026-08-10 06:50:49",
+   "cross_check_method": "npz 의 npaths 배열에서 직접 세고, 다른 실행(sionna_ranges 3/10/20 m)도 대조",
+   "cross_check_value": "세 거리 모두 0/4096. sionna_ranges 도 3/10/20 m 에서 0 %",
+   "agree": true,
+   "verdict": "쓴다",
+   "why": "⭐40 m 의 78.3 % 를 돋보이게 하는 대조군이다 — 20 m 까지는 한 자세도 안 비었다가 40 m 에서 무너진다."
+  },
+  {
+   "name": "⚠ 그림 report07_f5 (세 엔진 한 격자) 를 그대로 덱에 올리는 것",
+   "value": "Sionna 열이 낡은 기하",
+   "unit": "-",
+   "ledger_file": "outputs/figures/report07_f5.png (07:53) ← report07_three_engines.npz (06:23)",
+   "ledger_key": "빌더 build_three_engine_fig.py",
+   "generated": "2026-08-10 07:53",
+   "cross_check_method": "그림이 읽는 npz 의 생성 시각(06:23)과 그 npz 를 만든 스크립트의 수정 시각(07:08)을 대조 + 레벨 7 dB 어긋남",
+   "cross_check_value": "그림은 07:53 에 다시 그려졌지만 원자료는 06:23 판 그대로다 — 즉 Sionna 열은 기선 0.2 m 준-모노, 나머지 두 열은 평면파 모노스태틱",
+   "agree": false,
+   "verdict": "버린다",
+   "why": "⭐그림 자체를 쓰지 말라는 뜻이 아니라 «세 열이 같은 기하» 라는 문장을 쓰지 말라는 뜻이다. 기하가 맞는 판은 report07_f12 의 3 m 줄이다. 덱에는 f12 를 쓰고, f5 를 써야 하면 Sionna 열을 빼거나 npz 를 다시 만든 뒤 그려라."
+  }
+ ],
+ "summary": {
+  "쓴다": [
+   "표적 기체",
+   "기체 형상 (프롭 지름·날개 수·로터 수)",
+   "자세 (방위·고각)",
+   "거리 (그림3·그림12 첫 줄)",
+   "반송파 주파수",
+   "호버 회전수",
+   "플래시 주파수 f_flash",
+   "플래시 주기",
+   "PRF (그림3·그림12 = report07_f5/f12)",
+   "PRF (거리스윕 그림 = report07_f9)",
+   "관측 창 (그림3·그림12)",
+   "관측 창 (거리스윕 f9 / report15b)",
+   "원거리장 경계",
+   "우리 SBR+PO 레벨 (평균 dB)",
+   "우리 «가림 끈» PO 레벨 (평균 dB)",
+   "SBR+PO − PO 레벨 차",
+   "우리 SBR+PO 변조 깊이 p-p",
+   "우리 «가림 끈» PO 변조 깊이 p-p",
+   "⭐가림이 만드는 변조 깊이 차",
+   "변조 깊이 p5~p95 (강건판)",
+   "Sionna 가 3 m 에서 찾는 경로 수 (중앙값)",
+   "엔진별 자세당 계산 비용",
+   "Sionna 레벨 @3 m (기선 0)",
+   "⭐40 m 에서 경로 0 인 자세 비율",
+   "거리별 경로 수 사다리",
+   "표시 조각 = 블레이드 0.45 주기 (그림3·그림12)",
+   "표시 조각 = 블레이드 0.6 주기 (거리스윕 f9)",
+   "«w/o occlusion» 의 정의",
+   "⚠ SBR+PO ↔ PO 는 «가림만» 의 단일축이 아니다",
+   "3 / 8 / 15 m 에서 빈 자세(경로 0) 비율"
+  ],
+  "정성만": [
+   "날개끝 도플러 f_tip (4자리 값)",
+   "Sionna 경로 수 (8 m 13개 / 15 m 6개)",
+   "Sionna 레벨 @8 m / @15 m",
+   "mini5pro/nose 에서 가림 팔과 비가림 팔이 동일하다는 사실"
+  ],
+  "버린다": [
+   "PRF 를 단일 숫자로 말하기",
+   "로터별 rpm 산포 ±0.22 % 를 «실측» 이라고 부르는 것",
+   "Sionna PathSolver 레벨 (그림3 원장)",
+   "⭐«Sionna 가 60 dB 낮다» (그림3 제목의 −60 dB)",
+   "Sionna 변조 깊이 p-p",
+   "f_tip 안 스펙트럼 코사인 (sionna↔sbr, sionna↔po)",
+   "f_tip 안 스펙트럼 코사인 (sbr↔po, 우리 두 팔끼리)",
+   "프롭 정반사 «칸 수»",
+   "40 m 평균 레벨 −504.9 dB · p-p 443.7 dB",
+   "«0.45 가 가장 뚜렷하다» 근거표 (플래시 대비 2.6/7.4/16.1/19.1/17.6 dB)",
+   "report15b 의 F(가림 켬)↔G(가림 끔) 단일축 값",
+   "⚠ 그림 report07_f5 (세 엔진 한 격자) 를 그대로 덱에 올리는 것"
+  ]
+ },
+ "headline_ko": [
+  "⭐가장 튼튼한 것 — 우리 두 팔(SBR+PO 대 가림 끈 PO)의 비교다. 레벨차 1.83 dB, 변조 깊이 차 약 5 dB, 레벨 −50.4/−52.2 dB 가 격자가 전혀 다른 두 독립 실행에서 0.001~0.24 dB 안으로 만난다.",
+  "⭐가장 위험한 것 — Sionna 팔의 «수치» 전부다. 레벨 −110.2 dB 는 기하가 어긋난 실행이고(기선 0.2 m), 레벨차 −60 dB 는 단위가 다른 두 양의 뺄셈이며(3분의 2가 순수 단위환산), p-p 는 7.7/15.4/32.7 dB 로 실행마다 4배 흔들리고, 코사인은 격자를 바꾸면 0.44 가 0.29 로 변한다.",
+  "⭐Sionna 팔에서 살아남는 것은 세는 양과 평균 레벨뿐이다 — 자세당 경로 중앙값 5개(@3 m, 두 실행 일치), 40 m 경로 0 비율 78.3 %, 레벨 −117.4 dB(두 실행 0.06 dB 차), 자세당 비용 약 0.13 s.",
+  "⭐덱에서 통째로 빼야 하는 것 세 덩어리 — (a) 엔진 간 레벨 비교, (b) 모든 코사인, (c) 40 m 의 −504.9 dB/443.7 dB."
+ ]
+}
