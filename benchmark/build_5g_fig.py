@@ -104,9 +104,16 @@ for i, k in enumerate(["cw_5k", "nr_full_28k", "nr_crs_1k", "nr_ssb_50"]):
     ax.set_ylim(-YMAX_HZ, YMAX_HZ)                       # ⭐네 패널 도플러축 통일 (±1.3 kHz)
     if k == "cw_5k":
         CAP_CW = caption(fs_k, FFL, nper, n_slots)
-    if fs_k / 2 < YMAX_HZ:                               # 나이퀴스트 밖 = 이 팔이 못 보는 띠
-        for s in (+1, -1):                               # 회색 — 흰 여백 위에서도 보이게
-            ax.axhline(s * fs_k / 2, color="0.35", ls="-", lw=0.9)
+    if fs_k / 2 < YMAX_HZ:
+        # ⭐2026-08-10 사용자 문답: «범위 밖까지 그릴 수 없나» → 그 자리엔 **정보가 없다**.
+        #   표본화 스펙트럼은 주기 fs 로 반복하므로 복사본을 그릴 수는 있지만, 그러면
+        #   «저것도 측정한 것» 으로 읽혀 혼동만 커진다. 그려 넣지 않는다.
+        #   ⚠ 대신 **비워 두지도 않는다** — 하양은 «조용하다» 로 읽힌다. 회색으로 덮어
+        #   «이 표본율로는 닿지 못하는 영역» 임을 그림 자체가 말하게 한다.
+        ax.axhspan(fs_k / 2, YMAX_HZ, color="0.86", zorder=3)
+        ax.axhspan(-YMAX_HZ, -fs_k / 2, color="0.86", zorder=3)
+        for s in (+1, -1):
+            ax.axhline(s * fs_k / 2, color="0.35", ls="-", lw=0.9, zorder=4)
     if A[k]["ftip_folds"]:                               # 날개끝이 접혀 떨어지는 자리(점선)
         for s in (+1, -1):
             ax.axhline(s * alias(FTIP, fs_k), color="w", ls=":", lw=1.1)
