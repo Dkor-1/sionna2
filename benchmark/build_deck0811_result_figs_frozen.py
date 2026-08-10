@@ -186,7 +186,7 @@ def build_r1(beat):
     fig = plt.figure(figsize=(12.2, 7.1))
     gs = fig.add_gridspec(2, 3, height_ratios=[1.32, 1.0], width_ratios=[1, 1, 0.035],
                           wspace=0.10, hspace=0.46,
-                          left=0.070, right=0.928, top=0.888, bottom=0.152)
+                          left=0.070, right=0.928, top=0.888, bottom=0.300)
 
     cap0, m = "", None
     for c, (E, title) in enumerate((
@@ -224,7 +224,15 @@ def build_r1(beat):
                                 (("ours"), C_OURS, NAME_OURS, 2.0)):
         fr, X, fpk = beat[key]["fr"], beat[key]["X"], beat[key]["peak_hz"]
         s = fr <= 420
-        lab = f"{base}    {fpk:.2f} Hz    off by {dev_pct(fpk):+.2f} %"
+        # ⭐«어느 조화가 최강인가» 는 1x 와 2x 의 **여유**가 정한다. 그 여유가 작으면
+        #   답이 잡음으로 뒤집힌다 — Sionna 팔은 여유가 1 dB 대라 시드만 바꿔도 뒤집히고,
+        #   우리 팔은 7 dB 대라 안 뒤집힌다. 그래서 여유를 범례에 함께 적는다.
+        def _line_db(f0):
+            w = (fr > f0 - 6) & (fr < f0 + 6)
+            return 20 * np.log10(X[w].max() / X.max() + 1e-30) if w.any() else -99.0
+        margin = _line_db(FFL) - _line_db(2 * FFL)
+        lab = (f"{base}    {fpk:.2f} Hz    off by {dev_pct(fpk):+.2f} %"
+               f"    first line clears the second by {margin:+.1f} dB")
         ax.plot(fr[s], 20 * np.log10(X[s] + 1e-6), color=col, lw=2.2, label=lab)
         ax.plot([fpk], [ymk], marker="v", ms=10, color=col, clip_on=False, zorder=5)
     ax.plot([], [], color=C_PRED, ls="--", lw=1.5,
@@ -239,13 +247,16 @@ def build_r1(beat):
                     alpha=0.9, annotation_clip=False)
 
     ax.set_xlim(0, 420)
-    ax.set_ylim(-44, 34)                       # 위쪽 34 dB 는 **글 자리**다
+    ax.set_ylim(-46, 8)   # 범례를 축 밖으로 뺐으므로 위쪽 «글 자리» 가 필요 없다
     ax.set_yticks([-40, -30, -20, -10, 0])
     ax.set_xlabel("Modulation rate of the blade tip band energy [Hz]")
     ax.set_ylabel("Line level [dB]")
-    ax.legend(loc="upper right", fontsize=FS - 3.5, framealpha=0.94,
+    # ⭐사용자 지적 — 범례가 2x·3x 고조파 봉우리를 가리고 있었다(upper right 가 정확히
+    #   그 자리다). 축 **바깥 아래**로 빼서 곡선을 하나도 안 가리게 한다.
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.30), ncol=1,
+              fontsize=FS - 3.5, framealpha=0.0,
               title="Strongest line in the blade tip band", title_fontsize=FS - 3.5,
-              borderpad=0.55, labelspacing=0.42)
+              borderpad=0.4, labelspacing=0.34, handlelength=2.4)
     ax.grid(alpha=0.22)
 
     fig.suptitle(f"{NAME} hovering at {FC/1e9:.1f} GHz, belly view "
@@ -263,7 +274,7 @@ def build_r1(beat):
            f"{PRF/N:.1f} Hz, so the quoted peak is an interpolated line position and not a "
            "resolution claim. Ledger outputs/deck0811_beat_check_frozen.json.")
     cap = "\n".join(textwrap.fill(p, 150) for p in cap.split("\n"))
-    fig.text(0.070, 0.086, cap, fontsize=FS - 3.5, color="0.32", va="top")
+    fig.text(0.070, 0.055, cap, fontsize=FS - 3.5, color="0.32", va="top")
 
     for ext in ("png", "pdf"):
         fig.savefig(f"{FIG}/deck0811_r1_frozen.{ext}", bbox_inches="tight",
@@ -310,20 +321,30 @@ def build_r2():
             # ⭐뱃지는 «몇 발 쐈나 ↔ 한 번만 계산했다» 대비만 진다. 용어를 안 쓴다.
             spp_m = (R40J["seeds"][str(seed)]["spp"] if seed
                      else RJ["ranges"][key]["spp"]) / 1e6
-            badge = (f"{spp_m:g}M rays" if c == 0
-                     else ("computed once" if r == 0 else "same array"))
-            ax.text(0.014, 0.94, badge, transform=ax.transAxes, ha="left", va="top",
-                    fontsize=FS - 4, color=col, fontweight="bold",
-                    bbox=dict(boxstyle="round,pad=0.24", fc="white", ec=col,
-                              lw=1.0, alpha=0.90))
+            # ⭐⭐사용자 지시(두 번째) — «computed once, same array 이런 거 안 넣었으면
+            #   좋겠다니까? 좀 그림만 넣어줘». 우리 열에는 **아무 글자도 안 넣는다.**
+            #   «한 번만 계산했다» 는 두 줄이 똑같이 생긴 것으로 이미 보이고,
+            #   세 줄 다 파란 테두리로 묶여 있다.
+            #   Sionna 열은 광선 수만 남긴다 — 그게 이 그림의 «비용» 축이다.
+            #   측정된 최강선은 왼쪽 행 이름표로 내렸다(맵 위에 글을 얹지 않는다).
+            badge = f"{spp_m:g}M rays" if c == 0 else ""
+            if badge:
+                ax.text(0.014, 0.94, badge, transform=ax.transAxes,
+                        ha="left", va="top", fontsize=FS - 4, color=col,
+                        fontweight="bold",
+                        bbox=dict(boxstyle="round,pad=0.24", fc="white",
+                                  ec=col, lw=1.0, alpha=0.90))
             # ⭐부제를 뺐다(사용자: «무슨 never enters kernel 이런 식으로 주저리주저리»).
             #   «다시 푼다 ↔ 한 번만 계산한다» 는 뱃지가 이미 말하고, 그림 자체가 보여준다.
             if r == 0:
                 ax.set_title(base, fontsize=FS - 1.5, color=col,
                              fontweight="bold", pad=6)
             if c == 0:
-                lab = (f"R = {rng:.0f} m\nseed {'AB'[seed-1]}" if seed
-                       else f"R = {rng:.0f} m")
+                if seed:
+                    bh = R40J["seeds"][str(seed)]["beat_hz"] if R40J else 0.0
+                    lab = f"R = {rng:.0f} m\nrun {seed}\n{bh:.0f} Hz"
+                else:
+                    lab = f"R = {rng:.0f} m"
                 ax.set_ylabel(f"{lab}\nDoppler [Hz]", fontsize=FS - 1.5)
             else:
                 plt.setp(ax.get_yticklabels(), visible=False)
@@ -373,8 +394,11 @@ def build_r2():
     ax2.set_ylabel("Median paths per pose", color=C_SIONNA, fontsize=FS - 1)
     ax2.tick_params(axis="y", colors=C_SIONNA, labelsize=FS - 2.5)
 
-    # ⭐제목 한 줄 (사용자: «우측 그래프도 왜 이렇게 제목에 주저리주저리»)
-    ax.set_title("40 m was a budget, not a wall",
+    # ⭐⭐제목을 아예 뺐다 (사용자: «무슨 40m was a budget, not a wall 뭐 어쩌란거야»).
+    #   맞는 지적이다 — 그건 제목이 아니라 슬로건이었다. 축 라벨이
+    #   «빈 자세 [%]» · «자세당 경로 중앙값» · «R = 40 m 에서 소스당 광선 수» 로
+    #   이미 다 말하고 있으므로 제목이 필요 없다.
+    ax.set_title("",
                  fontsize=FS, fontweight="bold", pad=8)
     h1, l1 = ax.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()

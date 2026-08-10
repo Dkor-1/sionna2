@@ -54,7 +54,7 @@ import report15_probe as RP                                            # noqa: E
 from articulated_fast import FastPoser, rotor_phases                   # noqa: E402
 from drones import DRONES, DRONE_GROUP_MAT                             # noqa: E402
 from microdoppler import microdoppler_series                           # noqa: E402
-from rcs_sbr import sbr_field                                          # noqa: E402
+from rcs_sbr import sbr_field, grid_ref_for_slowtime                   # noqa: E402
 
 FC = 3.5e9
 OUT = os.path.join(ROOT, "outputs", "report07_three_engines.npz")
@@ -120,10 +120,21 @@ def main():
     series, meta = {}, {}
 
     # ── ② SBR (싸다 — 먼저) ────────────────────────────────────────────────
+    #  ⭐ 광선 격자를 **얼린다**. 격자는 자세의 bbox 에서 나오는데 프로펠러가 돌면 그 bbox 가
+    #    숨을 쉬므로 자(모눈종이)가 프레임마다 움직인다 — 위상 원점(ctr)이 흔들리고 표본
+    #    집합(Rout·n)이 갈아엎어진다. 마이크로도플러는 «프레임 사이 위상차» 로 재는 양이라
+    #    그 움직임이 표적의 운동으로 기록된다. 로터 한 바퀴의 합집합 bbox 로 판을 한 번 만들어
+    #    모든 자세에 같은 판을 쓴다(커널이 자세마다 덮개를 검사한다).
+    #    SIONNA2_FREEZE_GRID=0 이면 판이 None → 옛 동작(전후 비교용 스위치).
+    gref = grid_ref_for_slowtime(fp.pose, fp.dirs, FC)
+    print("  격자(얼림) " + (f"n={gref.n} ({gref.n**2}발) · Rout={gref.Rout:.4f} m"
+                            if gref is not None else "OFF — SIONNA2_FREEZE_GRID=0"), flush=True)
     t0 = time.time()
-    E = np.array([sbr_field(fp.pose(ph[i]), GM, FC, u) for i in range(a.n)])
+    E = np.array([sbr_field(fp.pose(ph[i]), GM, FC, u, grid_ref=gref) for i in range(a.n)])
     series["sbr"] = E
-    meta["sbr"] = {"seconds": time.time() - t0, "engine": "우리 SBR (가림 + 각도의존 Γ)"}
+    meta["sbr"] = {"seconds": time.time() - t0, "engine": "우리 SBR (가림 + 각도의존 Γ)",
+                   "grid_frozen": bool(gref is not None),
+                   "grid_ref": (gref.asjson() if gref is not None else None)}
     print(f"  ② sbr    {meta['sbr']['seconds']:6.1f}s", flush=True)
 
     # ── ③ 순수 PO ─────────────────────────────────────────────────────────

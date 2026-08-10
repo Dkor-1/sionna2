@@ -872,6 +872,45 @@ def grid_ref_from(meshes, fc: float, spacing=None, pad=1.15) -> GridRef:
                    spacing=float(d), fc=float(fc), pad=float(pad), n_mesh=len(items))
 
 
+#  ── ⭐ 하류 슬로타임 경로가 공유하는 스위치 + 판 만들기 ─────────────────────── #
+#  왜 스위치인가: 전후 비교를 **같은 코드**로 돌릴 수 있어야 「얼리니 이렇게 달라졌다」가
+#  증거가 된다. SIONNA2_FREEZE_GRID=0 이면 하류가 grid_ref=None 을 넘기므로 옛 값과
+#  비트 단위로 같다(커널의 기본 동작은 여전히 «안 얼림» 이고, 켜는 쪽은 호출자다).
+_FREEZE_ENV = "SIONNA2_FREEZE_GRID"
+
+
+def freeze_grid_enabled() -> bool:
+    """슬로타임(마이크로도플러) 경로가 격자를 얼릴지 — 기본 **True**.
+
+    ⚠ 호출할 때마다 환경변수를 읽는다(import 시점이 아니다). 한 프로세스 안에서
+      `os.environ["SIONNA2_FREEZE_GRID"]="0"` 로 옛 동작을 되살려 A/B 를 낼 수 있다.
+    0 · false · no · off (대소문자 무관) 면 끈다."""
+    v = os.environ.get(_FREEZE_ENV, "1").strip().lower()
+    return v not in ("0", "false", "no", "off", "")
+
+
+def grid_ref_for_slowtime(pose_fn, dirs, fc, spacing=None, pad=1.15, n_probe=24):
+    """슬로타임 열이 쓸 **한 판** — 로터 한 바퀴를 고르게 훑은 자세들의 합집합 bbox.
+
+        gref = grid_ref_for_slowtime(fp.pose, fp.dirs, FC, spacing=None)
+        E[i] = sbr_field(fp.pose(ph[i]), gmat, FC, u, grid_ref=gref)   # None 이면 옛 동작
+
+    · pose_fn : 로터 위상 리스트[deg] → 메쉬(.v 를 가진 것이면 무엇이든). FastPoser.pose 나
+      `lambda p: pose_articulated(spec, rotor_phase_deg=p)` 를 그대로 넣는다.
+    · dirs    : 로터별 회전 방향(±1). 위상은 dir_k·φ 로 준다 — 생산 경로와 같은 규약이다.
+    · n_probe : φ ∈ [0,360) 을 몇 등분해 훑을지. bbox 는 **정점별 최댓값**이라 로터마다
+      위상이 달라도(rpm 흩어짐) 이 봉투 안에 든다 — 각 로터가 이 스윕에서 자기 극단을
+      다 지나기 때문이다. 그래도 커널이 자세마다 덮개를 검사한다.
+    · **SIONNA2_FREEZE_GRID=0 이면 None 을 돌려준다** → 호출자가 그대로 넘기면 옛 동작.
+    ⚠ 격자 간격마다 판이 다르다 — 사다리를 돌리면 div 마다 이 함수를 다시 불러라."""
+    if not freeze_grid_enabled():
+        return None
+    dirs = [float(d) for d in dirs]
+    phis = np.linspace(0.0, 360.0, int(n_probe), endpoint=False)
+    meshes = [pose_fn([d * float(p) for d in dirs]) for p in phis]
+    return grid_ref_from(meshes, fc, spacing=spacing, pad=pad)
+
+
 def _grid_basis(u):
     """광선 격자의 가로축 (e1, e2) — û 하나로 정해지는 **규약**이다(물리 아님).
     ⚠ `sbr_field` 와 `sbr_field_bistatic` 이 같은 basis 를 써야 모노 회귀 게이트가 위상까지

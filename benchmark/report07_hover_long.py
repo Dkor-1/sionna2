@@ -49,7 +49,7 @@ pick(verbose=True)
 import numpy as np                                                     # noqa: E402
 from articulated_fast import FastPoser                                 # noqa: E402
 from drones import DRONES, DRONE_GROUP_MAT                             # noqa: E402
-from rcs_sbr import sbr_field                                          # noqa: E402
+from rcs_sbr import sbr_field, grid_ref_for_slowtime                   # noqa: E402
 
 FC = 3.5e9
 GM = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
@@ -130,10 +130,19 @@ def main():
                   np.cos(np.radians(a.el)) * np.sin(np.radians(a.az)),
                   np.sin(np.radians(a.el))])
 
+    # ⭐ 광선 격자를 **얼린다**(2026-08-10). 격자는 자세의 bbox 에서 나오는데 프로펠러가 돌면
+    #   bbox 가 숨을 쉬어 위상 원점(ctr)과 표본 집합(Rout·n)이 프레임마다 바뀐다. 이 파일은
+    #   2 초짜리 긴 창을 보므로 그 «자의 흔들림» 이 능선의 물결로 오독되기 딱 좋다.
+    #   판은 로터 한 바퀴의 합집합 bbox 다 — rpm 이 흔들려도 각 로터가 그 봉투 안에 든다.
+    #   SIONNA2_FREEZE_GRID=0 이면 None → 옛 동작(전후 비교 스위치).
+    gref = grid_ref_for_slowtime(fp.pose, fp.dirs, FC)
+    print("  격자(얼림) " + (f"n={gref.n} ({gref.n**2}발) · Rout={gref.Rout:.4f} m"
+                            if gref is not None else "OFF — SIONNA2_FREEZE_GRID=0"), flush=True)
+
     E = np.zeros(n, complex)
     t0 = time.time()
     for i in range(n):
-        E[i] = sbr_field(fp.pose(ph[i]), GM, FC, u)
+        E[i] = sbr_field(fp.pose(ph[i]), GM, FC, u, grid_ref=gref)
         if i and i % 1000 == 0:
             el = time.time() - t0
             print(f"    {i}/{n}  {el:.0f}s  ETA {(n-i)/i*el/60:.1f}분", flush=True)

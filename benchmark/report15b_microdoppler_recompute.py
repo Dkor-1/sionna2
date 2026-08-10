@@ -65,7 +65,7 @@ import numpy as np                                                     # noqa: E
 from articulated_fast import FastPoser, rotor_phases                   # noqa: E402
 from drones import DRONES, DRONE_GROUP_MAT, rotor_layout               # noqa: E402
 from rcs_po import C0                                                  # noqa: E402
-from rcs_sbr import sbr_field                                          # noqa: E402
+from rcs_sbr import sbr_field, grid_ref_for_slowtime                   # noqa: E402
 from microdoppler import microdoppler_series                           # noqa: E402
 
 OUT_JSON = os.path.join(ROOT, "outputs", "report15b_microdoppler.json")
@@ -136,7 +136,7 @@ _GMAT_BODY_BLACK = {g: (m if g == "prop" else 0.0)
                     for g, (m, _) in DRONE_GROUP_MAT.items()}
 
 
-def _sbr_series(spec, u, rpms, phys, mode="full"):
+def _sbr_series(spec, u, rpms, phys, mode="full", gref=None):
     """슬로타임 복소열 E(t) — 시간표본마다 자세를 새로 만들고 광선을 쏜다.
 
     mode
@@ -146,13 +146,24 @@ def _sbr_series(spec, u, rpms, phys, mode="full"):
       "blade_free" 동체 **면**을 뺀다. 정점 배열은 그대로 둬서 bbox·광선격자가 같다.
                    = 블레이드 신호, 가릴 것 없음.
 
-    ⭐ blade_occ ↔ blade_free 가 이 실험의 단일축이다 — 광선 엔진·재질·기하·운동학·
-      **광선 격자까지** 같고 오직 «동체가 막느냐» 만 다르다.
-    ⚠ 정점을 그대로 둔 것이 중요하다. `_mi_scene_from_mesh` 는 면이 참조하는 정점만
-      쓰므로 씬은 프롭뿐이지만, `sbr_field` 의 bbox 는 `mesh.v` 전체로 잡혀 두 팔의
-      광선 수·간격이 같아진다. 안 그러면 «가림» 과 «표본화» 가 섞인다.
+    ■ 광선 격자를 두 방향으로 맞춘다 — 이 둘은 **다른 문제**다
+      ① **팔 사이**(blade_occ ↔ blade_free, 같은 자세): 정점 배열을 그대로 두고 면만 뺀다.
+         `_mi_scene_from_mesh` 는 면이 참조하는 정점만 씬에 넣으므로 씬은 프롭뿐이지만
+         bbox 는 `mesh.v` 전체로 잡혀 두 팔의 광선 수·간격이 같아진다.
+         → blade_occ ↔ blade_free 가 «동체가 막느냐» 하나만 다른 단일축이 된다.
+      ② ⭐**자세 사이**(같은 팔, 프레임 t ↔ t+1): ①은 이것을 전혀 안 챙긴다. 격자는
+         자세의 bbox 에서 나오는데 프로펠러가 돌면 그 bbox 가 숨을 쉬므로 **자(모눈종이)가
+         프레임마다 움직였다** — 위상 원점(ctr)이 흔들리고 표본 집합(Rout·n)이 갈아엎어진다.
+         마이크로도플러는 «프레임 사이 위상차» 로 재는 양이라 그 움직임이 표적의 운동으로
+         기록된다. `gref`(얼린 판)가 ②를 챙긴다.
+      ⭐ 세 mode 가 **같은 판**을 써야 단일축이 유지되므로 판은 호출자가 한 번 만들어
+        모든 팔에 같은 것을 넘긴다(`gref`). None 이면 여기서 만든다(같은 spec·같은 규약이라
+        값은 같지만, 팔마다 다시 만들지 않는다는 것을 눈에 보이게 두려고 인자로 열었다).
+      · SIONNA2_FREEZE_GRID=0 이면 판이 None 이 되어 옛 동작(자세마다 격자 재정의)으로 돌아간다.
     """
     fp = FastPoser(spec)
+    if gref is None:
+        gref = grid_ref_for_slowtime(fp.pose, fp.dirs, FC)
     t = np.arange(phys["n_t"]) / phys["prf"]
     ph = rotor_phases(t, rpms, fp.dirs)                    # (n_t, n_rotors)
 
@@ -170,7 +181,7 @@ def _sbr_series(spec, u, rpms, phys, mode="full"):
         mv = fp.pose(ph[i])
         if prop_only:
             mv.f, mv.g = f_keep, g_keep                    # 정점(mv.v)은 그대로 — bbox 보존
-        E[i] = sbr_field(mv, gmat, FC, u, penetrate=penetrate)
+        E[i] = sbr_field(mv, gmat, FC, u, penetrate=penetrate, grid_ref=gref)
         if i and i % 1000 == 0:
             el = time.time() - t0
             print(f"      {i}/{phys['n_t']}  {el:.0f}s  "
@@ -275,10 +286,26 @@ def main():
                   f"({phys['bins_to_ftip']:.0f} 빈/f_tip)", flush=True)
             print(f"   로터별 rpm(흩어짐) {np.round(r_sprd,1).tolist()}", flush=True)
 
+            # ⭐ 얼린 광선 격자 — 이 셀의 **모든 SBR 팔이 같은 판**을 쓴다(단일축 유지).
+            #   판은 자세들의 합집합 bbox 라 자세(u)·rpm 과 무관하므로 여기서 한 번 만든다.
+            _fp = FastPoser(spec)
+            gref = grid_ref_for_slowtime(_fp.pose, _fp.dirs, FC)
+            if gref is None:
+                print("   ⚠ SIONNA2_FREEZE_GRID=0 — 격자를 안 얼린다(옛 동작)", flush=True)
+            else:
+                print(f"   격자(얼림) n={gref.n} ({gref.n**2}발) · "
+                      f"ctr=({gref.ctr[0]:+.4f},{gref.ctr[1]:+.4f},{gref.ctr[2]:+.4f}) · "
+                      f"Rout={gref.Rout:.4f} m · d={gref.spacing*1e3:.2f} mm", flush=True)
+
             cell = {"drone": key, "name": spec.name, "aspect": asp,
                     "az_deg": az, "el_deg": el, "physics": {
                         k: v for k, v in phys.items() if not isinstance(v, np.ndarray)},
                     "rpm_locked": r_lock.tolist(), "rpm_spread": r_sprd.tolist(),
+                    # ⭐ 이 열이 어느 광선 격자에서 났는지 — 원장에 남긴다(전후 비교의 근거)
+                    "grid_frozen": bool(gref is not None),
+                    "grid_ref": (gref.asjson() if gref is not None else None),
+                    "grid_note_ko": ("얼린 판이면 모든 자세·모든 SBR 팔이 같은 ctr·Rout·n 을 쓴다. "
+                                     "SIONNA2_FREEZE_GRID=0 이면 null 이고 자세마다 격자를 다시 잡는다."),
                     "arms": {}}
 
             arms = [("A_sbr_locked", "sbr", r_lock, "full"),
@@ -291,7 +318,7 @@ def main():
             for name, eng, rpms, mode in arms:
                 t0 = time.time()
                 if eng == "sbr":
-                    t, E, secs = _sbr_series(spec, u, rpms, phys, mode=mode)
+                    t, E, secs = _sbr_series(spec, u, rpms, phys, mode=mode, gref=gref)
                 else:
                     t, E = _po_series(spec, az, el, rpms, phys)
                     secs = time.time() - t0

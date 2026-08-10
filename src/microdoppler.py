@@ -184,7 +184,7 @@ def microdoppler_sbr(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None, prf=20000.0,
     microdoppler_series() 의 SBR 판. 인터페이스 동일."""
     import numpy as _np
     from drones import pose_articulated, rotor_layout, DRONE_GROUP_MAT
-    from rcs_sbr import sbr_field
+    from rcs_sbr import sbr_field, grid_ref_from, freeze_grid_enabled
 
     if rpm is None:
         rpm = getattr(spec, "hover_rpm", 6000.0)
@@ -198,10 +198,24 @@ def microdoppler_sbr(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None, prf=20000.0,
     phis = _np.linspace(0.0, period, n_phase, endpoint=False)
 
     # φ 별 복소장 테이블 (여기서만 광선을 쏜다)
+    #
+    # ⭐⭐2026-08-10 — **광선 격자를 얼린다.**
+    #   그전까지 `sbr_field` 는 자세마다 표적 경계상자에서 격자 중심·반경·칸수를 다시
+    #   잡았다. 프로펠러가 돌면 경계상자가 바뀌므로 **자(모눈종이)가 프레임마다 움직였고**,
+    #   마이크로도플러는 «프레임 사이 위상차» 로 재는 양이라 그 움직임이 표적의 운동으로
+    #   기록됐다(시선방향 39.9 mm = 0.47 λ = 5.85 rad p-p 의 가짜 변조).
+    #   ⭐결정적 증거 — 서로 안 가리는 로터의 PO 적분은 E = E₀ + Σ ΔE_j(φ_j) 로 정확히
+    #     쪼개져야 하는데, 얼린 격자는 잔차 1e-15(기계정밀도), 움직이는 격자는 O(1) 이다.
+    #     즉 물리적으로 결합할 수 없는 로터 사이에 결합을 지어냈다.
+    #   ⇒ 로터 한 바퀴 전 구간의 **합집합 경계상자**로 판을 한 번 만들고 모든 자세에 쓴다.
+    #     커널이 자세마다 덮개를 검사하므로 표적이 판 밖으로 나가면 예외가 난다.
+    #   ⭐ 스위치 SIONNA2_FREEZE_GRID=0 이면 gref=None → 옛 동작(자세마다 격자 재정의)으로
+    #     되돌아간다. 전후 비교를 **같은 코드**로 돌리기 위한 것이다.
+    meshes = [pose_articulated(spec, rotor_phase_deg=[d * ph for d in dirs]) for ph in phis]
+    gref = grid_ref_from(meshes, fc, spacing=spacing) if freeze_grid_enabled() else None
     tab = _np.zeros(n_phase, complex)
-    for i, ph in enumerate(phis):
-        mesh = pose_articulated(spec, rotor_phase_deg=[d * ph for d in dirs])
-        tab[i] = sbr_field(mesh, gmat, fc, u, spacing=spacing)   # 자세마다 씬이 바뀐다(캐시 불가)
+    for i, mesh in enumerate(meshes):
+        tab[i] = sbr_field(mesh, gmat, fc, u, spacing=spacing, grid_ref=gref)
 
     # 시간축으로 조회 — φ(t) = 360·rpm/60 · t  (deg)
     t = _np.arange(n_t) / prf
