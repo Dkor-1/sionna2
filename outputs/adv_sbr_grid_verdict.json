@@ -1,0 +1,136 @@
+{
+ "_meta": {
+  "role": "적대적 반증 — 렌즈: «이 실험이 지표를 자기에게 유리하게 정의했을 가능성»",
+  "target_claim": "대역밖 바닥의 지배 원인은 이산화가 아니라 자세마다 격자를 재정의하는 것. 얼리면 9.3 dB 내려가고 d² 로 수렴한다.",
+  "target_ledger": "outputs/sbr_grid_convergence.json (읽기만 함 — 수정하지 않았다)",
+  "method": "GPU 재계산 없음. 저장된 슬로타임 계열(outputs/sbr_grid_convergence.npz, outputs/report07_three_engines.npz)만으로 지표를 다시 정의해 재측정. GPU 0~3 은 전부 98~100% 사용중이라 손대지 않았다.",
+  "scripts": [
+   "benchmark/adv_sbr_grid_metric_audit.py",
+   "benchmark/adv_sbr_grid_metric_audit2.py",
+   "benchmark/adv_sbr_grid_metric_audit3.py"
+  ],
+  "detail_ledgers": [
+   "outputs/adv_sbr_grid_metric_audit.json",
+   "outputs/adv_sbr_grid_metric_audit2.json",
+   "outputs/adv_sbr_grid_metric_audit3.json",
+   "outputs/adv_report07b_headline_recheck.json"
+  ]
+ },
+
+ "verdict": {
+  "causal_claim_survives": true,
+  "headline_number_survives": false,
+  "one_line": "인과 결론(자세별 격자 재정의가 지배 원인·얼리면 d² 수렴)은 살아남고 오히려 더 강해진다. 그러나 «9.3 dB» 라는 숫자는 추정기 분모의 인공물이라 깨진다 — 방어 가능한 수치는 절대 대역밖 전력의 13.1 dB(λ/12)·20.1 dB(λ/32) 다."
+ },
+
+ "survives": {
+  "S1_absolute_power": {
+   "test": "비율이 아니라 분자(절대 대역밖 전력) 만으로 재측정 — 분모 조작 가설을 원천 차단",
+   "prod_P_out_div12": 3.8478e-07,
+   "froz_P_out_div12": 1.8874e-08,
+   "abs_gain_db_div12": 13.09,
+   "abs_gain_db_div32": 20.13,
+   "note": "논문 비율 이득(9.34 dB)보다 절대 이득이 **더 크다**. 즉 지표는 얼린 팔에 유리한 쪽이 아니라 **불리한(보수적) 쪽**으로 치우쳐 있었다. «분모가 커져서 비율이 내려갔다» 가설은 부호부터 틀렸다."
+  },
+  "S2_no_target_loss": {
+   "test": "얼린 팔이 표적을 놓쳤나 — 조명된 표본 수·격자 커버리지",
+   "lit_ratio_froz_over_prod": {"8": 1.0191, "12": 0.9915, "16": 1.0001, "24": 1.0001, "32": 0.9993},
+   "ray_ratio_froz_over_prod": 1.09,
+   "transverse_coverage_margin_mm": {"8": 134.5, "12": 123.8, "16": 118.4, "24": 113.1, "32": 110.4},
+   "clipped_poses": 0,
+   "n_poses_checked": 4096,
+   "note": "얼린 격자는 전역 bbox 로 잡아서 생산 격자보다 **크다**(광선 +9%). 4096 자세 전부에서 표적이 격자 안에 들어온다. 신호를 깎아서 바닥이 내려간 것이 아니다."
+  },
+  "S3_blade_signal_preserved": {
+   "test": "얼리기가 진짜 블레이드 신호를 깎았나 — 심판 둘: phase 팔(격자 그대로·위상원점만 사후 고정)과 순수 PO(독립 엔진). 평활 없이 잰다.",
+   "P_mid_db_vs_pure_po": {
+    "prod": {"12": 19.10, "16": 19.37, "24": 19.36, "32": 19.35},
+    "phase": {"12": 6.24, "16": 5.24, "24": 4.12, "32": 3.62},
+    "froz": {"12": 3.93, "16": 3.80, "24": 3.51, "32": 3.43}
+   },
+   "froz_minus_phase_at_div32_db": -0.19,
+   "phase_vs_froz_aligned_rel_err": {"12": 0.1697, "16": 0.0654, "24": 0.0494, "32": 0.0238},
+   "phase_vs_froz_coherence": {"12": 0.9968, "16": 0.9985, "24": 0.9996, "32": 0.9999},
+   "note": "λ/32 에서 얼린 팔과 phase 팔의 블레이드 대역 전력이 0.19 dB 안에서 일치하고, 전역 상수위상을 맞추면 두 계열이 2.4% RMS(코히런스 0.9999)로 겹친다. 얼리기는 신호를 깎은 것이 아니라 생산 팔의 누설 16 dB 를 지운 것이다. 덤: 얼린 팔의 P_mid 는 λ/8 에서 이미 수렴해 있다(사다리 전체 0.3 dB 이내), phase 팔은 λ/32 까지 가야 그 값에 닿는다."
+  },
+  "S4_not_overfit": {
+   "test": "표본 5개로 낸 기울기 −2.09 가 과적합인가 — leave-one-out·인접쌍·지표 6종 교차",
+   "froz_abs_P_out_nosmooth": {
+    "full": -2.212, "r2": 0.9990,
+    "loo_range": [-2.268, -2.191],
+    "adjacent_pairs": {"8-12": -2.19, "12-16": -2.44, "16-24": -2.19, "24-32": -1.94}
+   },
+   "froz_slope_across_metric_definitions": {
+    "paper_frac_smoothed": -2.091,
+    "paper_frac_smoothed_ge12": -2.118,
+    "frac_of_total": -2.100,
+    "abs_P_out_smoothed": -1.908,
+    "abs_P_out_nosmooth": -2.212,
+    "honest_frac_nosmooth": -2.178
+   },
+   "note": "어떤 부분집합·어떤 지표 정의로도 −1.9 ~ −2.3 이고 R² ≥ 0.998. 과적합이 아니다."
+  },
+  "S5_prod_nonconvergence_confirmed": {
+   "test": "생산 팔이 안 내려간다는 것도 절대 전력·평활 없이 다시 확인",
+   "prod_abs_P_out_nosmooth_slope_ge12": -0.56,
+   "prod_adjacent_pairs_ge12": {"12-16": -0.12, "16-24": -0.68, "24-32": -0.76},
+   "band_decomposition_prod_ge12_slope": {"1.0-1.5 f_tip": -0.06, "1.5-2.0": -0.55, "2.0-3.0": -1.59, "3.0-8.0": -2.09},
+   "mechanism": "1.0~1.5 f_tip 구간이 div 에 **완전히 무관**(λ/12→λ/32 에서 0.3 dB). ctr·û 흔들림(39.9 mm = 5.85 rad p-p)은 격자 간격과 무관한 결정론적 양이므로 정확히 그 서명이다. 먼 꼬리(3 f_tip 이상)만 d² 로 수렴한다.",
+   "phase_arm_alone_restores_convergence": {"abs_P_out_nosmooth_slope_ge12": -2.33},
+   "note": "⭐진단 정밀화: **비수렴**의 원인은 위상 원점 ctr·û 하나다(사후 보정만으로 d² 가 돌아온다). 격자 기하 얼리기는 그 위에 상수 배(λ/12 에서 7.3 dB, λ/24 에서 12.2 dB)를 더 얹는다. 둘 다 «자세별 격자 재정의» 안에 들지만 처방이 다르다 — 위상 원점 고정은 공짜, 격자 얼리기는 아래 B4 의 대가가 있다."
+  }
+ },
+
+ "breaks": {
+  "B1_denominator_is_body_smear": {
+   "severity": "치명 — 헤드라인 숫자를 못 쓴다",
+   "finding": "포락 평활 커널이 f_body 보다 넓다. 4·f_flash = 506.7 Hz(반폭 252.5 Hz) > 0.15·f_tip = 184.3 Hz. 그래서 몸통 DC 봉우리가 «블레이드 대역» 분모 안으로 번져 들어간다.",
+   "denominator_fraction_that_is_dc_smear": {
+    "prod": {"8": 0.234, "12": 0.635, "16": 0.623, "24": 0.634, "32": 0.640},
+    "froz": {"8": 0.968, "12": 0.970, "16": 0.981, "24": 0.984, "32": 0.984}
+   },
+   "freeze_gain_db_paper_metric": {"8": 15.85, "12": 9.34, "16": 13.25, "24": 15.45, "32": 16.27},
+   "freeze_gain_db_dc_smear_removed": {"8": 2.06, "12": -1.52, "16": 0.22, "24": 1.87, "32": 2.81},
+   "freeze_gain_db_no_smoothing_at_all": {"8": 4.19, "12": -2.08, "16": 0.43, "24": 2.80, "32": 4.21},
+   "note": "얼린 팔은 분모의 97~98%, 생산 팔은 62~64% 가 몸통 번짐이다. 번짐을 빼면 λ/12 의 «9.3 dB 이득» 은 −1.5 ~ −2.1 dB (즉 비율로는 얼린 쪽이 오히려 나쁘다) 로 뒤집힌다. 지표가 의도한 뜻(«블레이드 대역 전력 중 …») 과 실제 계산이 다르다."
+  },
+  "B2_ratio_comparison_is_circular": {
+   "severity": "치명 — 비율 형태의 이득은 전부 폐기",
+   "finding": "생산 팔의 블레이드 대역 전력 자체가 조사 대상 인공물로 15.9 dB 부풀어 있다(순수 PO 대비 prod +19.35 dB vs froz +3.43 dB, λ/32). 그 분모로 정규화한 비율은 해석 불가다.",
+   "replacement": "prod↔froz 비교는 **절대 대역밖 전력**으로만 한다: 13.1 dB(λ/12) · 16.0(λ/16) · 18.7(λ/24) · 20.1 dB(λ/32).",
+   "note": "논문 원장의 freeze_gain_db 9.3/13.3/15.5/16.3 과 verdict.text 의 «9.3 dB» 는 이 값으로 갈아야 한다."
+  },
+  "B3_collateral_report07b_headline": {
+   "severity": "높음 — 이 실험 밖으로 번진다",
+   "finding": "리포트 7b 의 헤드라인 3종(SBR 6.05% · Sionna 2.12% · 순수 PO 0.02%)이 **같은 추정기**로 나왔고 같은 결함을 물려받았다.",
+   "recomputed_no_smoothing_P_out_over_P_mid": {"sbr": 0.16657, "sionna": 0.29813, "po": 0.00023},
+   "recomputed_no_smoothing_P_out_over_P_blade": {"sbr": 0.1428, "sionna": 0.2297, "po": 0.00023},
+   "dc_smear_fraction_of_denominator": {"sbr": 0.635, "sionna": 0.917, "po": 0.989},
+   "note": "⭐DC 번짐을 빼면 **SBR 과 Sionna 의 순서가 뒤집힌다**(SBR 16.7% < Sionna 29.8%). 두 정규화 모두에서 뒤집힌다. 리포트 7b 서술을 다시 봐야 한다. 이 감사의 범위 밖이라 여기 표시만 남긴다.",
+   "ledger": "outputs/adv_report07b_headline_recheck.json"
+  },
+  "B4_metric_is_blind_to_level": {
+   "severity": "중 — 권고문이 틀렸다",
+   "finding": "대역밖 «비율» 은 스케일 불변이라 레벨(=σ) 오차를 구조적으로 못 본다. 얼린 팔은 광대역 잡음을 결정론적 레벨 편향으로 바꿔치기한다.",
+   "level_spread_db_over_div_ge12": {"prod": 0.05, "froz": 1.55},
+   "froz_level_db_ge12": [-51.509, -50.006, -49.955, -50.177],
+   "note": "생산 팔의 자세별 무작위 오프셋은 사실상 몬테카를로 평균이라 레벨이 λ/12~λ/32 에서 0.05 dB 안에 붙어 있다. 얼리면 한 오프셋 판에 갇혀 1.55 dB 흔들린다. 원장의 recommendation_freeze.extra_cost = «0» 은 광선 수 기준으로만 참이고, σ 레벨 재현성 기준으로는 거짓이다."
+  },
+  "B5_asymmetric_ladder_nit": {
+   "severity": "낮음 — 검사했고 무해",
+   "finding": "헤드라인이 prod 는 div≥12 기울기(−0.55), froz 는 전 사다리 기울기(−2.09) 로 짝지어 서로 다른 사다리를 비교한다.",
+   "symmetric_ge12": {"prod_paper_metric": -0.548, "froz_paper_metric": -2.118, "prod_honest": -0.61, "froz_honest": -2.07},
+   "why_harmless": "λ/8 은 prod 에서만 이상치다(인접쌍 −7.52 대 나머지 −0.12/−0.68/−0.76). froz 는 λ/8 인접쌍도 −2.19 로 나머지와 같아서 사다리를 어떻게 잘라도 −2 근처다. 대비는 대칭 비교에서도 유지된다 — 서술만 대칭으로 고치면 된다."
+  },
+  "B6_scope_untested": {
+   "severity": "낮음 — 반증은 아니고 미검증 범위",
+   "items": [
+    "단일 기체·단일 자세(az 0·el −15)·단일 주파수(3.5 GHz) 뿐이다. 일반성은 검증 안 됐다.",
+    "얼린 격자의 ctr₀·Rout₀ 는 4096 자세를 **미리 다 훑어서** 잡는다. 스트리밍으로는 못 한다.",
+    "광선 +9% 로 끝난 것은 표적이 제자리 호버링이기 때문이다. 병진하는 표적이면 얼린 격자가 궤적 전체를 덮어야 해서 n 이 궤적 길이/d 로 커진다 — «extra_cost 0» 은 몸통 고정 좌표계 전제다."
+   ]
+  }
+ },
+
+ "recommended_restatement": "SBR 슬로타임 스펙트럼의 날개끝 밖 바닥은 광선 격자 이산화가 아니라 **자세마다 격자를 다시 정의하는 것**이 지배한다. 안에서 둘로 갈리는데, (i) 위상 원점 ctr·û 의 흔들림(39.9 mm = 5.85 rad p-p, 격자 간격과 무관)이 **비수렴**을 만들고 — 사후 위상 보정만으로 기울기가 −0.56 → −2.33 으로 회복된다 —, (ii) 격자 중심·크기의 자세별 재정의가 그 위에 상수 배를 얹는다. 격자를 얼리면 대역밖 절대 전력이 λ/12 에서 13.1 dB · λ/32 에서 20.1 dB 내려가고, 남은 바닥은 예측대로 d² 로 수렴한다(기울기 −2.21, R² 0.999, LOO −2.19~−2.27). 얼려도 표적을 놓치지 않고(조명 표본비 1.000, 커버리지 여유 +110 mm, 잘린 자세 0/4096) 블레이드 신호도 깎지 않는다(위상 보정한 생산 팔과 λ/32 에서 0.19 dB·코히런스 0.9999 일치). 대가는 σ 레벨 재현성이다(레벨 산포 0.05 → 1.55 dB)."
+}

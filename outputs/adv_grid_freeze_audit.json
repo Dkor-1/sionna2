@@ -1,0 +1,529 @@
+{
+ "_meta": {
+  "generated": "2026-08-10T16:34:48+00:00",
+  "host": "irsgpu1",
+  "script": "benchmark/adv_sbr_grid_freeze_audit.py",
+  "role": "적대적 감사 — outputs/sbr_grid_convergence.json 의 결론을 깨려는 시도",
+  "lens": "자세마다 격자 재정의가 사실은 물리적으로 필요할 가능성",
+  "audited_claim": "대역밖 바닥의 지배 원인은 이산화가 아니라 자세마다 격자를 재정의하는 것이다. 격자를 얼리면 9.3 dB 내려가고 d² 로 수렴한다.",
+  "reads_only": [
+   "outputs/sbr_grid_convergence.json",
+   "outputs/sbr_grid_convergence.npz",
+   "outputs/archive/sbr_grid_conv_parts/div*.npz"
+  ],
+  "writes": [
+   "outputs/adv_grid_freeze_audit.json",
+   "outputs/archive/adv_grid_freeze/*.npz"
+  ],
+  "drone": "matrice4e",
+  "fc_hz": 3500000000.0,
+  "prf_hz": 19700.0,
+  "f_tip_hz": 1228.7211819358865,
+  "n": 4096,
+  "divs": [
+   8,
+   12,
+   16,
+   24,
+   32
+  ]
+ },
+ "verdict": {
+  "survives": true,
+  "headline": "결론은 살아남는다 — 그리고 원장이 말한 것보다 **크다**. 분모·창·평활을 전부 없앤 절대 대역밖 에너지로 재보면 λ/12 에서 얼리기 이득은 9.3 dB 가 아니라 **12.4 dB**, λ/32 에서는 **19.9 dB** 다. 다만 원장이 쓴 «비율» 지표 자체는 깨진다 — 그 분모의 98 %(얼린 팔) / 58 %(생산 팔)가 body 봉우리를 507 Hz 이동평균이 번지게 한 누수다.",
+  "what_broke": [
+   "지표: frac_power_beyond_ftip 의 분모는 «블레이드 대역 전력» 이 아니다. 평활(4·f_flash=507 Hz)이 |f|≤0.15·f_tip 의 body 봉우리를 블레이드 대역으로 번지게 해서 분모의 98.4 %(froz λ/32) / 58.3 %(prod λ/32) 가 누수다. 평활을 끄면 λ/12 에서 이득이 −1.7 dB 로 **부호가 뒤집힌다** — 결론이 아니라 지표가 깨지는 것이지만, 이 비율을 헤드라인 숫자로 인용하면 안 된다.",
+   "비용: recommendation_freeze.extra_cost = \"0\" 은 틀렸다. 얼린 격자 n₀ 는 생산 격자의 [min,max] 범위 안에 있지만 **평균보다 크다** — 광선이 8.4~9.6 % 더 든다.",
+   "외삽: div_needed_to_reach_po_floor_if_frozen = 64.6 은 비율 지표의 기울기로 낸 값이다. 절대 에너지로는 ≈180 — 2.8 배 낙관이다."
+  ],
+  "what_held": [
+   "분모 반증 실패: 얼린 팔의 분모는 커지지 않고 **작아진다**(λ/12 에서 −3.3 dB). 비율은 실제 효과를 **과소**평가한다. 절대 대역밖 에너지가 12.4~19.9 dB 내려간다.",
+   "신호손실 반증 실패: 얼린 팔의 조명 히트수는 생산 팔의 0.991~1.000 배, 프레임간 산포도 같다(3.6~3.7 %). 총전력도 λ/16 이상에서 +0.15~+0.35 dB 로 보존된다 — 전력이 사라진 것이 아니라 DC 로 **되돌아갔다**(body 대역 +1.3~+1.5 dB).",
+   "물리적 필요 반증 실패: 4096 자세 전부를 덮는 **고정** 가로 반폭은 318.37 mm 하나면 충분하다(자세별 요구 214~316 mm). 두 팔 모두 341~450 mm 를 써서 **어느 자세도 잘리지 않는다**. 격자가 커지는 이유는 코드가 가로 요구 대신 3D 포위반경(290~387 mm, 주로 û 방향 길이변화)을 가로 반폭으로 쓰기 때문이다 — 물리가 아니라 규약이다.",
+   "과적합 반증 실패: 얼린 팔 기울기는 LOO 로 [−2.23, −2.03](비율)·[−1.98, −1.86](절대), 연속쌍 −2.00/−2.03/−1.91/−1.58, 분모 없는 절대 에너지로 −2.16(R² 0.988). div 5 개는 서로 **다른 격자 오프셋 5 판**이고 전부 d² 선 위에 있다.",
+   "광선수 반증 실패: 얼린 격자가 9 % 더 쓰지만 d² 곡선상 0.4 dB 어치다. 반대로 얼린 팔은 λ/12(광선 15,376발)로 생산 λ/32(93,655발)보다 대역밖이 10.1 dB 낮다 — 광선 6.1 배 적게.",
+   "커널 자신의 계약과 충돌: rcs_sbr.sbr_field_bistatic 독스트링(832–835행)이 «슬로타임 계열은 같은 격자를 쓰므로 그 오차가 프레임 간 공통 모드로 들어간다» 고 적어 놓았다. 자세별 bbox 재정의가 그 가정을 조용히 깬다(n 이 4095 프레임 중 1636 번 바뀐다, λ/12)."
+  ],
+  "surviving_defense": [
+   "⭐ctr 이 두 역할을 겸한다 — **격자 앵커**이자 **위상 원점**이다. 표적이 «병진» 하면 앵커는 반드시 몸을 따라가야 한다(안 그러면 격자를 항적 전체로 키워야 한다). 따라서 «자세마다 ctr 을 새로 잡는다» 자체가 무조건 틀린 것은 아니다. 틀린 것은 그 ctr 을 **관절운동으로 흔들리는 bbox** 에서 뽑는 것과, 같은 흔들리는 점을 위상 원점으로 쓰는 것이다. 올바른 처방은 «세계좌표 고정» 이 아니라 «강체 프레임에 고정 + n 고정 + 격자 위상 스냅, 위상 원점은 운동학이 알려진 점».",
+   "⭐자세마다 서브셀 오프셋을 새로 뽑는 것은 **시간평균 σ 에는 진짜 이득**이다 — 격자 dither 를 4096 프레임에 걸쳐 몬테카를로 평균한다. 실측: 생산 팔의 레벨은 λ/12→λ/32 에서 0.052 dB 밖에 안 움직이는데 얼린 팔은 1.554 dB 흔들린다. 즉 현재 코드는 **σ 에는 맞고 마이크로도플러에는 틀린** 설계다. 둘을 한 함수가 겸할 수 없다.",
+   "하류 결합: src/ptd_edges.py 는 위상 원점 = 자세별 bbox 중심을 **요구**하고(64행) 어긋나면 경고한다(785행). 얼리려면 PTD 규약도 같이 바꿔야 한다."
+  ]
+ },
+ "audit_1_denominator": {
+  "note": "원장 지표 frac_power_beyond_ftip = Σ_{|f|>f_tip} P_env / Σ_{|f|>0.15 f_tip} P_env. P_env 는 폭 4·f_flash 이동평균 포락이다. 그 평활이 body 봉우리를 분모로 번지게 한다.",
+  "rows": [
+   {
+    "div": 8,
+    "prod_raw_in_db": 18.594701119669256,
+    "prod_smoothed_in_db": 20.88911546782692,
+    "prod_denominator_leakage_frac": 0.4103985197571892,
+    "prod_raw_out_db": 21.340090034628723,
+    "prod_sm_out_db": 21.373058885065053,
+    "froz_raw_in_db": 0.30420612264880165,
+    "froz_smoothed_in_db": 17.48501530445113,
+    "froz_denominator_leakage_frac": 0.9808610070782349,
+    "froz_raw_out_db": -1.1372663310399191,
+    "froz_sm_out_db": -1.0847901275868503,
+    "freeze_gain_ratio_db": 15.854691684355732,
+    "freeze_gain_abs_smoothed_db": 22.457849012651902,
+    "freeze_gain_abs_raw_db": 22.47735636566864
+   },
+   {
+    "div": 12,
+    "prod_raw_in_db": 15.883335965485877,
+    "prod_smoothed_in_db": 19.90597237571565,
+    "prod_denominator_leakage_frac": 0.6039624556563048,
+    "prod_raw_out_db": 8.099376799920087,
+    "prod_sm_out_db": 7.990932470509417,
+    "froz_raw_in_db": 0.7141596837424257,
+    "froz_smoothed_in_db": 16.88552370665268,
+    "froz_denominator_leakage_frac": 0.9758529768925392,
+    "froz_raw_out_db": -4.994170336343695,
+    "froz_sm_out_db": -4.608729546579201,
+    "freeze_gain_ratio_db": 9.339078266409043,
+    "freeze_gain_abs_smoothed_db": 12.599662017088619,
+    "freeze_gain_abs_raw_db": 13.093547136263782
+   },
+   {
+    "div": 16,
+    "prod_raw_in_db": 16.155179154803772,
+    "prod_smoothed_in_db": 19.934583612979658,
+    "prod_denominator_leakage_frac": 0.5811490023805352,
+    "prod_raw_out_db": 7.954933764508311,
+    "prod_sm_out_db": 7.917378100482968,
+    "froz_raw_in_db": 0.586571168371049,
+    "froz_smoothed_in_db": 18.374690586783238,
+    "froz_denominator_leakage_frac": 0.98335866902856,
+    "froz_raw_out_db": -8.047994309034765,
+    "froz_sm_out_db": -7.149624661055779,
+    "freeze_gain_ratio_db": 13.254559960865045,
+    "freeze_gain_abs_smoothed_db": 15.067002761538747,
+    "freeze_gain_abs_raw_db": 16.002928073543075
+   },
+   {
+    "div": 24,
+    "prod_raw_in_db": 16.147020457799137,
+    "prod_smoothed_in_db": 19.933561869132635,
+    "prod_denominator_leakage_frac": 0.5818367534753862,
+    "prod_raw_out_db": 6.750614883601941,
+    "prod_sm_out_db": 6.643602855103616,
+    "froz_raw_in_db": 0.2969653864307378,
+    "froz_smoothed_in_db": 18.42343226289364,
+    "froz_denominator_leakage_frac": 0.9846059351290758,
+    "froz_raw_out_db": -11.902580089810215,
+    "froz_sm_out_db": -10.505951867065516,
+    "freeze_gain_ratio_db": 15.446002217531671,
+    "freeze_gain_abs_smoothed_db": 17.149554722169132,
+    "freeze_gain_abs_raw_db": 18.653194973412155
+   },
+   {
+    "div": 32,
+    "prod_raw_in_db": 16.13540838861333,
+    "prod_smoothed_in_db": 19.93379768931956,
+    "prod_denominator_leakage_frac": 0.5829759804986054,
+    "prod_raw_out_db": 5.802228070931061,
+    "prod_sm_out_db": 5.675613231188834,
+    "froz_raw_in_db": 0.2190797967141803,
+    "froz_smoothed_in_db": 18.20285392339889,
+    "froz_denominator_leakage_frac": 0.9840917434074732,
+    "froz_raw_out_db": -14.327139375509805,
+    "froz_sm_out_db": -12.478228756275875,
+    "freeze_gain_ratio_db": 16.266673834185323,
+    "freeze_gain_abs_smoothed_db": 18.15384198746471,
+    "freeze_gain_abs_raw_db": 20.129367446440867
+   }
+  ],
+  "freeze_gain_by_metric_db": {
+   "원장 비율(hann·pad4·평활)": [
+    15.854691684355732,
+    9.339078266409043,
+    13.254559960865045,
+    15.446002217531671,
+    16.266673834185323
+   ],
+   "절대 대역밖(평활 포락)": [
+    22.457849012651902,
+    12.599662017088619,
+    15.067002761538747,
+    17.149554722169132,
+    18.15384198746471
+   ],
+   "절대 대역밖(생 주기도)": [
+    22.47735636566864,
+    13.093547136263782,
+    16.002928073543075,
+    18.653194973412155,
+    20.129367446440867
+   ],
+   "절대 대역밖 에너지(창·평활 없음)": [
+    22.623894463015986,
+    12.35113136380096,
+    16.569997831527985,
+    18.042178164716546,
+    19.928471174896657
+   ],
+   "시간영역 거칠기 ‖E−LPF(E)‖²/‖E‖²": [
+    19.77283610455508,
+    11.115326654061644,
+    16.837154935920232,
+    18.39322073112652,
+    20.076189134358863
+   ]
+  },
+  "divs": [
+   8,
+   12,
+   16,
+   24,
+   32
+  ]
+ },
+ "audit_2_signal_loss": {
+  "note": "얼린 격자가 표적을 놓쳤다면 조명 히트수가 줄고 레벨이 깎였을 것이다.",
+  "rows": [
+   {
+    "div": 8,
+    "n0_frozen": 85,
+    "n_prod_min": 69,
+    "n_prod_max": 90,
+    "n_prod_mean": 81.38720703125,
+    "rays_frozen_over_prod_mean": 1.0857695419512474,
+    "n_lit_prod_mean": 271.28662109375,
+    "n_lit_froz_mean": 276.47802734375,
+    "n_lit_froz_over_prod": 1.0191362413268659,
+    "n_lit_prod_relstd": 0.043589546660223175,
+    "n_lit_froz_relstd": 0.03660696294089924
+   },
+   {
+    "div": 12,
+    "n0_frozen": 124,
+    "n_prod_min": 100,
+    "n_prod_max": 131,
+    "n_prod_mean": 118.83740234375,
+    "rays_frozen_over_prod_mean": 1.08353155324063,
+    "n_lit_prod_mean": 610.523193359375,
+    "n_lit_froz_mean": 605.319580078125,
+    "n_lit_froz_over_prod": 0.991476796724761,
+    "n_lit_prod_relstd": 0.037772496312079164,
+    "n_lit_froz_relstd": 0.03635941916668596
+   },
+   {
+    "div": 16,
+    "n0_frozen": 164,
+    "n_prod_min": 131,
+    "n_prod_max": 173,
+    "n_prod_mean": 156.265625,
+    "rays_frozen_over_prod_mean": 1.095991909044802,
+    "n_lit_prod_mean": 1085.511962890625,
+    "n_lit_froz_mean": 1085.621826171875,
+    "n_lit_froz_over_prod": 1.000101208724552,
+    "n_lit_prod_relstd": 0.03728004404975947,
+    "n_lit_froz_relstd": 0.03737878666839267
+   },
+   {
+    "div": 24,
+    "n0_frozen": 242,
+    "n_prod_min": 193,
+    "n_prod_max": 256,
+    "n_prod_mean": 231.1591796875,
+    "rays_frozen_over_prod_mean": 1.090424432038485,
+    "n_lit_prod_mean": 2442.35205078125,
+    "n_lit_froz_mean": 2442.618896484375,
+    "n_lit_froz_over_prod": 1.0001092576735773,
+    "n_lit_prod_relstd": 0.036620958412880454,
+    "n_lit_froz_relstd": 0.037116863575341684
+   },
+   {
+    "div": 32,
+    "n0_frozen": 321,
+    "n_prod_min": 256,
+    "n_prod_max": 339,
+    "n_prod_mean": 306.032470703125,
+    "rays_frozen_over_prod_mean": 1.0945362635925753,
+    "n_lit_prod_mean": 4342.629150390625,
+    "n_lit_froz_mean": 4339.791748046875,
+    "n_lit_froz_over_prod": 0.9993466164746085,
+    "n_lit_prod_relstd": 0.03626772310022129,
+    "n_lit_froz_relstd": 0.036521326243782744
+   }
+  ],
+  "level_db": {
+   "prod": [
+    -48.03283009477202,
+    -50.27314692957671,
+    -50.272989946271124,
+    -50.3061074313678,
+    -50.32476557827764
+   ],
+   "froz": [
+    -50.883888453232906,
+    -51.50895163931604,
+    -50.005832841878885,
+    -49.95506486495782,
+    -50.177047618815436
+   ],
+   "po": [
+    -52.235762778140966,
+    -52.228414643181466,
+    -52.227154081341794,
+    -52.22516323724979,
+    -52.22419231465616
+   ]
+  },
+  "level_spread_ge12_db": {
+   "prod": 0.05177563200651747,
+   "froz": 1.5538867743582188
+  }
+ },
+ "audit_3_coverage": {
+  "note": "«자세마다 bbox 가 숨쉬니 격자도 커져야 한다» 를 기하로 검사한다 — 광선을 쏘지 않고 정점만 본다. 필요한 것은 û 에 수직인 **가로** 반폭이다.",
+  "required_half_extent_fixed_center_mm": 318.37381357862785,
+  "required_half_extent_own_center_min_mm": 214.14685178199792,
+  "required_half_extent_own_center_max_mm": 315.53670678228275,
+  "enclosing_radius_3d_min_mm": 289.9349270210118,
+  "enclosing_radius_3d_max_mm": 386.7639766866104,
+  "conclusion": "가로 요구는 고정중심 기준 318.37 mm 하나로 4096 자세 전부를 덮는다. 코드가 격자를 키우는 근거인 3D 포위반경은 28 % 숨쉬지만 그 숨은 대부분 û 방향이고 가로 표본화와 무관하다.",
+  "rows": [
+   {
+    "div": 8,
+    "frozen_half_extent_mm": 449.688687,
+    "prod_half_extent_min_mm": 364.033699,
+    "required_half_extent_all_poses_mm": 318.37381357862785,
+    "frozen_margin_mm": 131.31487342137217,
+    "prod_worst_margin_mm": 80.56047505369767,
+    "frozen_clips_any_pose": false
+   },
+   {
+    "div": 12,
+    "frozen_half_extent_mm": 438.98181350000004,
+    "prod_half_extent_min_mm": 353.3268255,
+    "required_half_extent_all_poses_mm": 318.37381357862785,
+    "frozen_margin_mm": 120.60799992137217,
+    "prod_worst_margin_mm": 70.74826054429384,
+    "frozen_clips_any_pose": false
+   },
+   {
+    "div": 16,
+    "frozen_half_extent_mm": 436.305095125,
+    "prod_half_extent_min_mm": 347.97338875,
+    "required_half_extent_all_poses_mm": 318.37381357862785,
+    "frozen_margin_mm": 117.93128154637212,
+    "prod_worst_margin_mm": 66.0375779934334,
+    "frozen_clips_any_pose": false
+   },
+   {
+    "div": 24,
+    "frozen_half_extent_mm": 430.0594189166667,
+    "prod_half_extent_min_mm": 342.619952,
+    "required_half_extent_all_poses_mm": 318.37381357862785,
+    "frozen_margin_mm": 111.68560533803884,
+    "prod_worst_margin_mm": 60.95648247688407,
+    "frozen_clips_any_pose": false
+   },
+   {
+    "div": 32,
+    "frozen_half_extent_mm": 428.27494,
+    "prod_half_extent_min_mm": 341.2815928125,
+    "required_half_extent_all_poses_mm": 318.37381357862785,
+    "frozen_margin_mm": 109.90112642137213,
+    "prod_worst_margin_mm": 59.345782055933384,
+    "frozen_clips_any_pose": false
+   }
+  ]
+ },
+ "audit_4_slope": {
+  "note": "분모를 없앤 절대 대역밖 에너지로 기울기를 다시 낸다.",
+  "per_arm": {
+   "prod": {
+    "abs_oob_energy_db": [
+     -52.55157018297872,
+     -65.83457217828551,
+     -65.85695738873717,
+     -67.18028664565159,
+     -68.06793029545291
+    ],
+    "slope_vs_div": -2.2024579913379134,
+    "r2": 0.6704012759543099,
+    "slope_vs_div_ge12": -0.5574608960854857,
+    "r2_ge12": 0.9281584406162015,
+    "loo_slopes": [
+     -0.5574608960854857,
+     -2.60841960424063,
+     -2.2147508036502064,
+     -2.242322060054434,
+     -2.870438898037649
+    ],
+    "pairwise_slopes": [
+     -7.5432489190770164,
+     -0.017916949586133463,
+     -0.7515019564349709,
+     -0.7104631228857446
+    ]
+   },
+   "phase": {
+    "abs_oob_energy_db": [
+     -52.61361253260249,
+     -69.03283270816125,
+     -69.22775162740982,
+     -73.1206189084841,
+     -79.33286737162479
+    ],
+    "slope_vs_div": -3.8630218189856333,
+    "r2": 0.8659674589998353,
+    "slope_vs_div_ge12": -2.3877682786152477,
+    "r2_ge12": 0.8692641120704762,
+    "loo_slopes": [
+     -2.3877682786152477,
+     -4.3248008819744905,
+     -3.8684106993548952,
+     -4.072787060428789,
+     -4.032273355908605
+    ],
+    "pairwise_slopes": [
+     -9.324267577851147,
+     -0.1560115977958551,
+     -2.210710118123089,
+     -4.972235698698422
+    ]
+   },
+   "froz": {
+    "abs_oob_energy_db": [
+     -75.17546464599471,
+     -78.18570354208647,
+     -82.42695522026516,
+     -85.22246481036814,
+     -87.99640147034957
+    ],
+    "slope_vs_div": -2.1614350029039673,
+    "r2": 0.9884220316664082,
+    "slope_vs_div_ge12": -2.1987058729229005,
+    "r2_ge12": 0.9768626403263249,
+    "loo_slopes": [
+     -2.1987058729229005,
+     -2.1040856732204287,
+     -2.1662005870965095,
+     -2.1790471731079406,
+     -2.1884637635002084
+    ],
+    "pairwise_slopes": [
+     -1.709476615838108,
+     -3.394665092120782,
+     -1.58753455741889,
+     -2.2202374822134745
+    ]
+   }
+  },
+  "po_abs_oob_db": -103.59132856068842,
+  "div_needed_for_prod_to_match_frozen_at_div12": 1971.4520747265542,
+  "rays_needed_ratio": 26990.439464886356,
+  "div_needed_frozen_to_reach_po_floor": 179.71598400158044,
+  "ledger_said": 64.57618273048351
+ },
+ "audit_5_recompute": {
+  "source": "outputs/archive/adv_grid_freeze/adv_div012_nt512.npz",
+  "n_t": 512,
+  "div": 12,
+  "gate_max_rel_err_vs_kernel": 0.0,
+  "note": "⭐한 자세에 씬을 한 번만 짓고 격자만 바꿔 쏜다 → 팔끼리 기하·재질·가림이 완전히 같다. prod 팔은 rcs_sbr.sbr_field 와 비트 단위로 같음을 게이트가 확인.",
+  "arms": {
+   "prod": {
+    "what": "자세마다 ctr=bbox중심 · Rout=3D반경·pad+3d (생산 그대로)",
+    "abs_oob_energy_db": -67.6287928943665,
+    "gain_vs_prod_db": 0.0,
+    "level_db": -50.20638879332456,
+    "n_lit_mean": 612.349609375,
+    "n_grid_min": 100,
+    "n_grid_max": 129,
+    "rays_vs_prod": 1.0
+   },
+   "froz": {
+    "what": "ctr0 · Rout0 고정 (원장의 얼린 팔)",
+    "abs_oob_energy_db": -76.78184737507192,
+    "gain_vs_prod_db": 9.153054480705421,
+    "level_db": -51.49289978126649,
+    "n_lit_mean": 607.2890625,
+    "n_grid_min": 124,
+    "n_grid_max": 124,
+    "rays_vs_prod": 1.0978576294539169
+   },
+   "frozHalf": {
+    "what": "ctr0 + ½d(e1+e2) · Rout0 — ⭐격자를 반칸 민 다른 판",
+    "abs_oob_energy_db": -80.02981746705339,
+    "gain_vs_prod_db": 12.401024572686893,
+    "level_db": -50.128040152624166,
+    "n_lit_mean": 615.04296875,
+    "n_grid_min": 124,
+    "n_grid_max": 124,
+    "rays_vs_prod": 1.0978576294539169
+   },
+   "frozQrt": {
+    "what": "ctr0 + (0.37,−0.21)d · Rout0+1.5d — ⭐n 까지 다른 판",
+    "abs_oob_energy_db": -79.10166231435103,
+    "gain_vs_prod_db": 11.472869419984534,
+    "level_db": -49.19631121851243,
+    "n_lit_mean": 614.8828125,
+    "n_grid_min": 127,
+    "n_grid_max": 127,
+    "rays_vs_prod": 1.1516223793875016
+   },
+   "sizeOnly": {
+    "what": "ctr0 고정 · Rout 만 자세별 → **격자 크기·n 튐** 단독 몫",
+    "abs_oob_energy_db": -69.41064650647964,
+    "gain_vs_prod_db": 1.7818536121131388,
+    "level_db": -50.79570282623432,
+    "n_lit_mean": 611.052734375,
+    "n_grid_min": 100,
+    "n_grid_max": 129,
+    "rays_vs_prod": 1.0
+   },
+   "ctrOnly": {
+    "what": "ctr = ctr0 + (c_i−ctr0)_가로 · Rout0 → **가로 중심흔들림** 단독 몫",
+    "abs_oob_energy_db": -73.88176473613056,
+    "gain_vs_prod_db": 6.252971841764065,
+    "level_db": -50.38809093615313,
+    "n_lit_mean": 611.177734375,
+    "n_grid_min": 124,
+    "n_grid_max": 124,
+    "rays_vs_prod": 1.0978576294539169
+   },
+   "uOnly": {
+    "what": "ctr = ctr0 + ((c_i−ctr0)·û)û · Rout0 → **위상 원점 흔들림** 단독 몫",
+    "abs_oob_energy_db": -72.48522210657397,
+    "gain_vs_prod_db": 4.856429212207473,
+    "level_db": -51.49288613750623,
+    "n_lit_mean": 607.2890625,
+    "n_grid_min": 124,
+    "n_grid_max": 124,
+    "rays_vs_prod": 1.0978576294539169
+   }
+  },
+  "decomposition_vs_fully_frozen_db": {
+   "note": "얼린 팔을 기준으로, 그 한 조각만 다시 «자세별» 로 풀었을 때 대역밖 에너지가 얼마나 올라가는가. 세 조각은 dB 로 더해지지 않는다(서로 간섭한다).",
+   "grid_size_n_jitter": 7.3712008685922825,
+   "transverse_centre_wander": 2.900082638941356,
+   "phase_origin_wander_along_u": 4.296625268497948,
+   "all_three_prod": 9.153054480705421,
+   "headline": "⭐ 가장 큰 조각은 **격자 크기·n 튐**(+7.4 dB)이다. 그런데 그 조각이야말로 «bbox 가 숨쉬니 격자도 커져야 한다» 는 물리적 변명이 붙던 부분이고, audit_3 이 그 변명을 기하로 반증한다(고정 318.37 mm 하나면 전 자세를 덮는다)."
+  },
+  "lucky_lattice_rebuttal": {
+   "note": "얼린 팔이 «운 좋은 격자 한 판» 이었나 — 서로 다른 얼린 격자 세 판의 이득[dB]",
+   "froz": 9.153054480705421,
+   "frozHalf": 12.401024572686893,
+   "frozQrt": 11.472869419984534,
+   "level_db": {
+    "froz": -51.49289978126649,
+    "frozHalf": -50.128040152624166,
+    "frozQrt": -49.19631121851243
+   },
+   "verdict": "세 판 모두 9.2~12.4 dB. 판마다 ±1.6 dB 흔들리지만 부호도 크기도 안 바뀐다. «운 좋은 한 판» 가설은 반증됐다. (레벨은 판마다 2.3 dB 흔들린다 — 얼리기의 진짜 대가는 여기다.)"
+  },
+  "reproduces_ledger": {
+   "prod_abs_oob_db_ledger_truncated": -67.6287928943665,
+   "prod_abs_oob_db_recomputed": -67.6287928943665,
+   "froz_abs_oob_db_ledger_truncated": -76.78175316115818,
+   "froz_abs_oob_db_recomputed": -76.78184737507192,
+   "note": "원장 계열을 같은 NT 로 자른 값과 독립 재계산이 소수점까지 일치한다."
+  }
+ }
+}

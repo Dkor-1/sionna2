@@ -646,9 +646,12 @@ def summarize(led):
         # ⭐ 닫힌 꼴: ρ_ref = DTR − G_proc + SINR_target  (G_proc = 사슬의 처리이득)
         g_proc = 10 * np.log10(nv) + blk["sinr_ideal_db"]
         # 손실 ≤ 3 dB 를 지키려면 기준채널 SNR 이 얼마여야 하나 (곡선을 뒤집어 읽는다)
-        o = np.argsort(ys)[::-1]                       # 손실 내림차순 = ρ 오름차순
-        req = float(np.interp(3.0, np.array(ys)[o], np.array(xs)[o]))
-        req_clip = bool(3.0 < min(ys) or 3.0 > max(ys))
+        # ⚠ np.interp 는 xp 가 **증가**해야 한다 — 손실 오름차순으로 정렬해서 넣는다
+        #   (2026-08-10: 내림차순으로 넣어 전부 40 dB(스윕 상단)로 잘려 나왔던 버그를 고침).
+        o = np.argsort(ys)
+        ys_a = np.array(ys)[o]; xs_a = np.array(xs)[o]
+        req = float(np.interp(3.0, ys_a, xs_a))
+        req_clip = bool(3.0 < ys_a[0] or 3.0 > ys_a[-1])
         mp = sorted([r["axis_value"] for r in blk["rows"] if r["kind"] == "mp"])
         mp_loss = [next(r["loss_db"] for r in blk["rows"]
                         if r["kind"] == "mp" and r["axis_value"] == x) for x in mp]
@@ -671,6 +674,67 @@ def summarize(led):
             pfa_emp_by_arm={r["arm"]: r["pfa_emp"] for r in blk["rows"]},
             eca_depth_db_by_arm={r["arm"]: r["eca_depth_db"] for r in blk["rows"]},
             sinr_ideal_db=blk["sinr_ideal_db"], dtr_db=dtr, noise_var=nv)
+    # ⭐ 손실이 «표적이 내려간 것» 인지 «바닥이 올라온 것» 인지 — E1c 의 peak/floor 로 판정
+    mech = {}
+    for blk in led.get("E1c", []):
+        base = next((r for r in blk["rows"] if r["kind"] == "ideal"), None)
+        if not base or "peak_db_mean" not in base:
+            continue
+        mech[blk["mode"]] = dict(
+            ref_cond_db=blk.get("ref_conditioning", {}).get("cond_db"),
+            rows={r["arm"]: dict(d_peak_db=r["peak_db_mean"] - base["peak_db_mean"],
+                                 d_floor_db=r["floor_db_mean"] - base["floor_db_mean"],
+                                 loss_db=r["loss_db"]) for r in blk["rows"]},
+            verdict=("표적 피크는 안 움직이고 **바닥만 올라간다** — 손실은 신호 손실이 아니라 "
+                     "못 지운 직접파가 만든 간섭이다."))
+    led["mechanism"] = mech
+
+    # ⭐ 마이크로도플러 확산 손실 — 같은 형상에서 톤 표적 대비 RD 피크가 얼마나 내려가나
+    spread = {}
+    tone = {b["mode"]: next((r for r in b["rows"] if r["kind"] == "ideal"), None)
+            for b in led.get("E1c", [])}
+    for blk in led.get("E1b", []):
+        m = blk["mode"]
+        r_md = next((r for r in blk["rows"] if r["kind"] == "ideal"), None)
+        r_t = tone.get(m)
+        if r_md and r_t and "peak_db_mean" in r_md and "peak_db_mean" in r_t:
+            spread[m] = dict(
+                peak_tone_db=r_t["peak_db_mean"], peak_md_db=r_md["peak_db_mean"],
+                spreading_loss_db=float(r_t["peak_db_mean"] - r_md["peak_db_mean"]),
+                what=("같은 평균전력(mean|m|²=1)으로 정규화한 표적을 톤(단일 도플러) 대 "
+                      "마이크로도플러 원장으로 바꿨을 때 RD 피크가 내려간 양 — 로터 변조가 "
+                      "표적 에너지를 도플러축으로 흩는 대가. CPI 의 슬로타임 PRF 가 낮으면 "
+                      "접힘까지 겹친다."),
+                prf_hz=blk["prf_hz"], f_tip_hz=float(led["md_ledger"]["f_tip_hz"]),
+                aliased=bool(float(led["md_ledger"]["f_tip_hz"]) > blk["prf_hz"] / 2))
+    led["md_spreading_loss"] = spread
+    # ⭐ 경험식 — 스윕에서 **읽어낸** 규칙. 유도한 것이 아니라 맞춰본 것이다.
+    rows = []
+    for blk in led.get("E1", []):
+        for r in blk["rows"]:
+            if r["kind"] == "refsnr" and r["axis_value"] >= 10:
+                law = 10 * np.log10(1 + 10 ** ((blk["dtr_db"] - 2 * r["axis_value"]) / 10))
+                rows.append(dict(mode=blk["mode"], rho_db=r["axis_value"],
+                                 measured_db=r["loss_db"], law_db=float(law),
+                                 resid_db=float(r["loss_db"] - law)))
+    ok = [x for x in rows if x["mode"] in ("W1", "L1")]
+    bad = [x for x in rows if x["mode"] == "G1"]
+    led["empirical_law"] = dict(
+        formula="loss_dB = 10·log10(1 + 10^((DTR_dB − 2·ρ_ref_dB)/10))",
+        equivalently="loss_dB ≈ max(0, DTR_dB − ECA_depth_dB),  ECA_depth_dB ≈ 2·ρ_ref_dB (이상 깊이에서 포화)",
+        design_rule="손실 ≤ 3 dB ⟺ ρ_ref ≥ DTR/2",
+        # ⛔수치를 이 문자열에 박지 마라 — 리포트가 이 문자열을 인용하는 통로로
+        #   손으로 적은 값이 본문에 샌다. 실제 요구치는 summary[파형]
+        #   .ref_snr_needed_for_3db_loss 에서 읽는다.
+        design_rule_note="수치는 summary[파형].ref_snr_needed_for_3db_loss 에서 읽어라. G1 은 SINR 천장 근처라 설계 근거에서 뺀다.",
+        fit_mae_db_W1_L1=float(np.mean(np.abs([x["resid_db"] for x in ok]))) if ok else None,
+        fit_mae_db_G1=float(np.mean(np.abs([x["resid_db"] for x in bad]))) if bad else None,
+        scope=("ρ_ref 10~40 dB, DTR 40~66 dB 에서 W1·L1 은 평균절대오차 <1 dB 로 맞는다. "
+               "⚠ **G1(5G SSB)에는 안 맞는다**(오차 최대 20 dB) — G1 은 팔 A 의 바닥이 이미 "
+               "열잡음이 아니라 직접파 잔류라 «잔류를 얹는다» 는 전제가 깨지기 때문이다. "
+               "유도된 식이 아니라 **맞춰본 식**이다 — 1차 이론 추정(잔류=dpi²σ_n²)은 이 기울기를 "
+               "재현하지 못한다(왜 2ρ 인지 아직 모른다)."),
+        points=rows)
     led["summary"] = out
 
     # E2 — 마이크로도플러 생존 판정
@@ -834,7 +898,9 @@ def build_figure(led, arr, figdir):
     order = [("ideal", "(e)  Passive chain, ideal reference"),
              ("refSNR+10dB", "(f)  Passive chain, reference SNR 10 dB"),
              ("MDR-20dB", "(g)  Passive chain, multipath reference -20 dB"),
-             ("noDPI_noECA", "(h)  Target only, ECA off — the body line ECA removes")]
+             # ⚠ 「ECA 가 동체선을 지운다」고 제목에 못박지 않는다 — 실측 노치 대가는 0.6 dB 뿐이다
+             #    (이 호버 원장은 로터 지배라 0-도플러에 지울 것이 별로 없다). 대조군으로만 부른다.
+             ("noDPI_noECA", "(h)  Target only, ECA off — control for the zero-Doppler notch")]
     for key, ttl in order:
         if f"e2_wifi__{key}__S" in arr:
             panels.append((f"e2_wifi__{key}", ttl, wmeta.get("prf_hz", 1.0)))
@@ -932,7 +998,8 @@ def main():
 
     if args.stage in ("all", "e1"):
         print("== E1 — 단일 도플러 점표적 (헤드라인과 같은 표적모델) ==", flush=True)
-        led["identity_check"] = {}
+        # ⚠ --only 로 한 파형만 다시 돌릴 때 나머지 파형의 검사를 지우지 않는다(2026-08-10 실제로 지웠다)
+        led.setdefault("identity_check", {})
         out = []
         for key, std, mk in wf_list:
             wf = mk()

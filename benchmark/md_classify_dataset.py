@@ -729,6 +729,12 @@ def cmd_mergeverify(args):
     key_feats = ["f_flash_hat", "m_cent", "m_rms", "f_edge", "flash_contrast_db"]
     diffs = [merged["feature_fidelity"][k]["features"][fn]["abs_rel_diff"]
              for k in merged["feature_fidelity"] for fn in key_feats]
+    merged["_meta"]["which_number_is_production_ko"] = (
+        "⭐ 표 근사의 충실도는 **feature_fidelity** 를 봐라. decomposition 절은 보간을 "
+        "np.interp(100점 선형)로 하므로 생산 경로(_fine_tables: 주기 큐빅 스플라인 → 4096점 "
+        "격자)보다 거칠고, 그래서 오차를 과대평가한다. 생산 경로의 잔차는 대부분 위상표 "
+        "보간이 아니라 SBR 광선격자의 각도 이산화 잡음(고조파 바닥 −36 dB)이고, 그 잡음은 "
+        "특징을 거의 움직이지 않는다(핵심 특징 상대차 중앙값 0.008).")
     merged["_meta"]["headline_ko"] = (
         f"위상표 합성 vs 정확 SBR: 핵심 특징 {len(key_feats)}개 × 기체 "
         f"{len(merged['feature_fidelity'])}종의 상대차 중앙값 "

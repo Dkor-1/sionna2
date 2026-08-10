@@ -155,6 +155,12 @@ def main():
         "prf_main_hz": prf_main, "window_s": t_main,
         "cv_ko": "자세 단위 leave-one-aspect-out (시험 자세는 학습에서 한 번도 안 본 기하)",
         "chance_accuracy": round(1.0 / len(labels), 4),
+        "upstream_ledger": "outputs/md_classify_verify.json",
+        "data_precondition_ko": (
+            "광선 격자를 자세에 못 박고 계산한 위상표를 쓴다. 못 박지 않으면 프로펠러가 "
+            "bbox 를 흔들어 허위 변조가 얹힌다(기체 6종 실측 1.49~14.64 배, 중앙값 3.3 배). "
+            "고정하면 로터 기여의 덧셈이 기계정밀도(1e−15)로 성립한다. "
+            "원장: outputs/md_classify_verify.json 의 grid_pinning 절."),
     }, "arms": {}, "noise": {}, "prf_sweep": {}, "window_sweep": {},
         "feature_stats": {}, "confusion": {}}
 
