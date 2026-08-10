@@ -1,4 +1,21 @@
-# 작업 현황 — 2026-08-10 05:5x KST
+# 작업 현황 — 2026-08-10 06:0x KST  ⭐세션 종료 대비 최종판
+> ✅사건 갱신5 (24b9539): **그림 12 완성** — 그림 3 거리판 3/8/15 m(Sionna 열만 재해,
+> 기선 0, 경로중앙 5/13/6·빈자세 0%·레벨 −117→−148 dB; 8 m 초과보상 13경로 정직 기록).
+> report07 = **셀 16 · 그림 13장**. 오늘 커밋 사슬: 676e448 → 7a6984f → bfd510e → f23f771 → 24b9539.
+>
+> 🔄세션이 꺼져도 계속 도는 것(전부 자동, 로그는 scratchpad/):
+>   ① σ격자 m4e `--backend direct --force` (PID 101312, 04:26~ 출력버퍼링으로 sigma_m4e2.log
+>      가 조용해 보여도 정상) → 끝나면 **watcher 가 σ mini5 direct 자동 시작**(sigma_force_mini5_direct.log)
+>   ② 같은구간 RCS 스윕 (PID 84448) → outputs/rcs_same_span.json (matrice4e→mini5pro→phantom4)
+>   ③ RESUME_LIVE.md 10분 스냅샷 루프(24h 자동종료)
+> ⚠σ prefill 백엔드는 GPU2 동시작업과 BrokenProcessPool — **재시도는 반드시 direct 로**.
+>
+> ⏭다음 세션이 이어서 할 일(순서대로):
+>   1. σ 완료 확인 → 편 59·60·61 재빌드(조건형 Γ(θ) 경고 자동소멸 확인) · SLOPE assert 걸리면 정합 라운드
+>   2. rcs_same_span.json 생기면 → Das 사과-대-사과 기울기 보고 + 덱 1부 그림
+>   3. 덱 v2 최종 확정 → sionna2/decks/ 복사+커밋(상시규칙) + team_meeting 경로지정 커밋
+>   4. 후순위: freespace_range:496 라벨굳음 커널 수정+재계산 · 구 report03/04/05 복원 판단 ·
+>      restruct_exec_plan 구제목 5건 · Lane D 무효화 목록의 mini5pro 파생물(report16 등) 재계산
 > ✅사건 갱신4 (f23f771): 사용자 문답 3건 처리 — ①그림별 엔진 매핑(예외: 그림0 렌더·
 > 그림2 Sionna↔PO 비교·그림4 08-07 PO 하드코딩) ②그림10 **4패널 축 통일**(0~0.3s·±2334Hz,
 > 나이퀴스트=회색선, 빈 하양=측정불가 정직표시) ③그림11 야외/실내 프리셋 상세 설명.
