@@ -691,7 +691,7 @@
    ],
    "uses_md_mapstyle": true,
    "colour": "jet · 0~−40 dB · gouraud · rasterized",
-   "verdict": "불합격 → 빌더는 고침. 그림 재생성은 이번 회차에 끝나지 않았다(4팔×4거리 근접장 재계산이 길다)",
+   "verdict": "불합격 → 이번에 재작성(합격)",
    "touched_this_round": true,
    "before": {
     "problem_ko": "nperseg 를 256 으로 고정 — 기체·PRF 가 바뀌면 조각이 블레이드 주기의 몇 배인지가 그림마다 달라진다",
@@ -703,19 +703,19 @@
    "after": {
     "call": "flash_spec(auto_periods) + md_mapstyle.draw"
    },
-   "redraw_when": "md_range_sweep 원장이 바뀔 때. 지금 당장은 빌더만 고쳐 두었으니 한 번 돌리면 된다.",
-   "rerun_cmd": "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_md_range.py",
+   "redraw_when": "md_range_sweep 원장이 바뀔 때",
    "figure": {
     "png": {
      "path": "outputs/figures/md_range_f1_spectrogram_grid.png",
-     "mb": 1.81,
-     "mtime": "2026-07-28 06:35",
+     "mb": 2.664,
+     "mtime": "2026-08-10 10:09",
      "px": [
       1813,
       1622
      ]
     }
-   }
+   },
+   "rerun_cmd": "PYTHONPATH=src ~/.venvs/py312/bin/python -c \"import sys;sys.path.insert(0,'src');import viz_md_range as V;V.f1_spectrogram_grid(V._load())\"  (근접장 PO 4팔×4거리 재계산 — 약 12 분, CPU)"
   },
   "report1_microdoppler": {
    "builder": "src/viz_report1.py::spectro_store + fig_microdoppler",
@@ -1140,7 +1140,6 @@
  ],
  "open_problems": [
   "report16 세 장(base·rung_mesh_full·synthesis_spectrograms)은 색이 dBsm 절대 눈금이라 규약 색으로 안 바꿨다. 바꿀지 말지는 사용자 판단이고, 바꾸면 report16 원장을 --skip-compute 로 다시 돌려야 한다.",
-  "md_range_f1_spectrogram_grid 는 빌더만 고쳤다 — 그림 재생성(근접장 PO 4팔×4거리 재계산)이 이번 회차 안에 안 끝났다. `PYTHONPATH=src python src/viz_md_range.py` 를 한 번 돌리면 된다.",
   "report1_microdoppler 는 원장 npz 에 기체가 5 개뿐인데 DKEYS 는 10 개다(내 수정 이전부터 있던 어긋남). 그림을 다시 내려면 광선을 다시 쏘아야 한다.",
   "report07_anim.gif 는 규약 밖이지만 참조가 0 이라 손대지 않았다. 다시 쓸 때 그림 안 설정값 다섯 줄까지 함께 고쳐야 한다.",
   "report15b_f1 의 시간축이 500 ms · 104 블레이드 주기라, 규약 조각(4.80 ms)으로 그려도 화면에서 플래시 하나가 몇 화소밖에 안 된다. dpi 를 400 으로 올려 두었지만, 확대판이 따로 있는 편이 낫다(report07 계열은 build_flash_zoom 이 그 역할을 한다).",

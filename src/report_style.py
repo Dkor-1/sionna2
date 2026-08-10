@@ -1302,10 +1302,16 @@ def check_budget(nb_path: str) -> dict:
                 md_imgs.append(src)
                 if src.startswith(("http", "data:")):
                     continue
-                # 노트북 위치 기준, 없으면 리포지토리 루트 기준으로도 찾아본다
+                # 노트북 위치 기준, 없으면 리포지토리 루트 기준으로도 찾아본다.
+                # ⭐2026-08-10 세 번째 후보 — **권 디렉터리(reports/)** 기준.
+                #   조각은 `reports/_parts/` 에 살지만 그 셀은 권(`reports/`)으로 옮겨져 읽히므로
+                #   그림 경로 `../outputs/figures/…` 는 **권 기준으로 옳다.** 조각 자기 위치에서는
+                #   한 층 모자라 깨져 보이는데, 그것은 조각을 직접 열지 않는다는 전제의 자연스러운
+                #   결과다. 셋 중 하나라도 있으면 통과시킨다.
                 cands = ([src] if os.path.isabs(src)
                          else [os.path.join(os.path.dirname(p), src),
-                               os.path.join(ROOT, src)])
+                               os.path.join(ROOT, src),
+                               os.path.join(ROOT, "reports", src)])
                 if not any(os.path.exists(x) for x in cands):
                     missing_imgs.append(f"셀 {i}: {src}")
             if _has_tag(c, TAG_SOURCES):

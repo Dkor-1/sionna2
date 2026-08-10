@@ -68,7 +68,7 @@ import rcs_sbr as rsb                                                   # noqa: 
 from rcs_sbr import sbr_field, sbr_field_bistatic                       # noqa: E402
 from articulated_fast import FastPoser, rotor_phases                    # noqa: E402
 from drones import DRONES, DRONE_GROUP_MAT                              # noqa: E402
-from md_mapstyle import auto_periods, flash_spec                        # noqa: E402
+from md_mapstyle import auto_periods, flash_spec, ridge_spec             # noqa: E402
 from microdoppler import microdoppler_series                            # noqa: E402
 
 GM = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
@@ -210,6 +210,30 @@ def envelope(f, S, smooth_hz):
     df = float(f[1] - f[0])
     n = max(3, int(round(smooth_hz / df)) | 1)
     return np.convolve(P, np.ones(n) / n, mode="same")
+
+
+def inst_max_doppler(E, prf, f_flash, f_body, drop_db=20.0, pct=99.0):
+    """⭐**시간분해 최대 도플러** — 이 편의 주 추정기.
+
+    왜 스펙트럼 «가장자리» 가 아니라 이것인가 (2026-08-10 실측으로 갈아탄 이유):
+      전 구간 스펙트럼은 f_flash 간격의 **빗살**이다. 빗살 **선 위치는 β 에 안 변하고**
+      포락만 줄어든다. 그래서 가장자리를 임계값으로 재면 눈금이 126.7 Hz 로 양자화되어
+      ±10~25 % 가 튄다(실측). 반면 날개끝 도플러는 **한 회전 안에서 잠깐만** 도달하는
+      시간 사건이라, 시간-주파수 평면에서 슬롯마다 재면 훨씬 날카롭다.
+
+    재는 법: `md_mapstyle.ridge_spec` (능선 규약 — 주파수 분해능을 사는 판) 로 STFT 를 만들고,
+      슬롯마다 그 슬롯 최대값 대비 drop_db 위에 남는 **최고 |f|** 를 취한 뒤, 그 시계열의
+      pct 분위수를 쓴다(단발 이상치를 안 물게).
+    ⚠ 절대값에는 −5 % 쯤의 계통 편향이 있다(모노에서 1159 Hz vs 공식 1229 Hz — 창·임계값 탓).
+      우리가 쓰는 것은 **β=0 대비 비율**이라 그 편향은 상쇄된다."""
+    f, t, S, _ = ridge_spec(np.asarray(E, complex), prf, f_flash)
+    P = S ** 2
+    ok = np.abs(f) > f_body
+    fa, Pp = np.abs(f)[ok], P[ok]
+    thr = Pp.max(axis=0) * 10 ** (-drop_db / 10.0)
+    v = np.array([fa[Pp[:, j] > thr[j]].max() if (Pp[:, j] > thr[j]).any() else np.nan
+                  for j in range(P.shape[1])])
+    return float(np.nanpercentile(v, pct))
 
 
 def edge_of(P_env, f, f_body, drop_db=25.0):
@@ -450,6 +474,8 @@ def main():
     _, S0p = spectrum(Epo[:, 0], PRF)
     P0p = envelope(f, S0p, SMOOTH)
     e0_sbr, e0_po = edge_of(P0, f, F_BODY), edge_of(P0p, f, F_BODY)
+    v0_po = inst_max_doppler(Epo[:, 0], PRF, FFL, F_BODY)      # ⭐주 추정기의 기준(β=0)
+    v0_sbr = inst_max_doppler(E[:, 0], PRF, FFL, F_BODY)
     scales = np.arange(0.25, 1.301, 0.002)
     rows = []
     t_env0 = b_env0 = None
@@ -461,8 +487,11 @@ def main():
         _, Sjp = spectrum(Epo[:, j], PRF)
         Pjp = envelope(fj, Sjp, SMOOTH)
         e_sbr, e_po = edge_of(Pj, fj, F_BODY), edge_of(Pjp, fj, F_BODY)
-        # 임계값 민감도 — PO 는 절벽이라 거의 안 움직이고, SBR 은 크게 움직인다
-        e_po_lo, e_po_hi = edge_of(Pjp, fj, F_BODY, 15.0), edge_of(Pjp, fj, F_BODY, 35.0)
+        # ⭐주 추정기 — 시간분해 최대 도플러(두 팔에 같은 잣대를 댄다)
+        v_po = inst_max_doppler(Epo[:, j], PRF, FFL, F_BODY)
+        v_sbr = inst_max_doppler(E[:, j], PRF, FFL, F_BODY)
+        v_po_lo = inst_max_doppler(Epo[:, j], PRF, FFL, F_BODY, drop_db=25.0)
+        v_po_hi = inst_max_doppler(Epo[:, j], PRF, FFL, F_BODY, drop_db=15.0)
         s_fit, a_fit, c_fit, r2 = scale_fit(f, P0, Pj, 2.4 * FTIP0, scales)
         # 플래시 — 띠는 각 β 의 예측 축척으로 따라간다
         lo, hi = 0.35 * FTIP0 * pred_B, 1.05 * FTIP0 * pred_B
@@ -488,12 +517,16 @@ def main():
             bisector_el_deg=float(np.degrees(np.arcsin(np.clip(bisector(u_i, us)[2], -1, 1)))),
             pred_cos_half_beta=pred_A, pred_bisector_horiz=pred_B,
             f_tip_pred_A_hz=pred_A * FTIP0, f_tip_pred_B_hz=pred_B * FTIP0,
-            # ⭐도플러 축척 — 순수 PO 대조팔(가장자리가 잘려 있어 잴 수 있다)
+            # ⭐도플러 축척 — 순수 PO 대조팔에 시간분해 최대 도플러
+            po_fmax_hz=v_po, po_ratio=float(v_po / v0_po),
+            po_ratio_lo=float(v_po_lo / inst_max_doppler(Epo[:, 0], PRF, FFL, F_BODY,
+                                                         drop_db=25.0)),
+            po_ratio_hi=float(v_po_hi / inst_max_doppler(Epo[:, 0], PRF, FFL, F_BODY,
+                                                         drop_db=15.0)),
+            po_over_predA=float(v_po / v0_po / pred_A), po_over_predB=float(v_po / v0_po / pred_B),
             po_edge_hz=e_po, po_edge_ratio=float(e_po / e0_po),
-            po_edge_ratio_lo=float(e_po_lo / e0_po), po_edge_ratio_hi=float(e_po_hi / e0_po),
-            po_edge_over_predB=float(e_po / (pred_B * e0_po)),
-            po_edge_over_predA=float(e_po / (pred_A * e0_po)),
-            # SBR 팔 — 같은 추정기를 대보면 «못 잰다» 는 것이 그대로 보인다
+            # SBR 팔 — **같은 잣대**를 대보면 «못 잰다» 는 것이 그대로 보인다
+            sbr_fmax_hz=v_sbr, sbr_ratio=float(v_sbr / v0_sbr),
             sbr_edge_hz=e_sbr, sbr_edge_ratio=float(e_sbr / e0_sbr),
             sbr_floor_rel_db=floor_rel_db(Pj, fj, 1.5 * FTIP0),
             sbr_scale_fit=s_fit, sbr_scale_fit_r2=r2,
@@ -540,19 +573,26 @@ def main():
                                          edge_hz=edge_of(Pk, fk, F_BODY))
     verdict = dict(
         doppler_scaling=dict(
-            primary_estimator=("순수 PO 대조팔의 스펙트럼 **가장자리** — 이 팔은 f_tip 에서 "
-                               "절벽처럼 잘리므로 임계값에 안 민감하다"),
-            po_max_err_vs_pred_A=_mx(rest, "po_edge_ratio", "pred_cos_half_beta"),
-            po_max_err_vs_pred_B=_mx(rest, "po_edge_ratio", "pred_bisector_horiz"),
-            po_max_err_vs_pred_A_azimuth=_mx(az_rows, "po_edge_ratio", "pred_cos_half_beta"),
-            po_max_err_vs_pred_B_azimuth=_mx(az_rows, "po_edge_ratio", "pred_bisector_horiz"),
-            po_max_err_vs_pred_A_elevation=_mx(el_rows, "po_edge_ratio", "pred_cos_half_beta"),
-            po_max_err_vs_pred_B_elevation=_mx(el_rows, "po_edge_ratio", "pred_bisector_horiz"),
-            po_edge_threshold_spread=float(max(abs(r["po_edge_ratio_hi"] - r["po_edge_ratio_lo"])
-                                               for r in rows)),
+            primary_estimator=("순수 PO 대조팔에 **시간분해 최대 도플러**"
+                               "(ridge_spec STFT · 슬롯당 −20 dB · 99 분위)"),
+            po_max_err_vs_pred_A=_mx(rest, "po_ratio", "pred_cos_half_beta"),
+            po_max_err_vs_pred_B=_mx(rest, "po_ratio", "pred_bisector_horiz"),
+            po_rms_rel_err_vs_pred_A=float(np.sqrt(np.mean([(r["po_over_predA"] - 1) ** 2
+                                                            for r in rows]))),
+            po_rms_rel_err_vs_pred_B=float(np.sqrt(np.mean([(r["po_over_predB"] - 1) ** 2
+                                                            for r in rows]))),
+            po_max_err_vs_pred_A_azimuth=_mx(az_rows, "po_ratio", "pred_cos_half_beta"),
+            po_max_err_vs_pred_B_azimuth=_mx(az_rows, "po_ratio", "pred_bisector_horiz"),
+            po_max_err_vs_pred_A_elevation=_mx(el_rows, "po_ratio", "pred_cos_half_beta"),
+            po_max_err_vs_pred_B_elevation=_mx(el_rows, "po_ratio", "pred_bisector_horiz"),
+            po_threshold_spread=float(max(abs(r["po_ratio_hi"] - r["po_ratio_lo"])
+                                          for r in rows)),
+            sharpest_case=("el120 — 두 예측이 가장 멀다(A 0.500 ↔ B 0.366): "
+                           + f"실측 {next(r['po_ratio'] for r in rows if r['label'] == 'el120'):.3f}"),
             winner=("B (이등분선의 수평투영)"
-                    if _mx(rest, "po_edge_ratio", "pred_bisector_horiz")
-                    < _mx(rest, "po_edge_ratio", "pred_cos_half_beta") else "A (cos(β/2))"),
+                    if np.sqrt(np.mean([(r["po_over_predB"] - 1) ** 2 for r in rows]))
+                    < np.sqrt(np.mean([(r["po_over_predA"] - 1) ** 2 for r in rows]))
+                    else "A (cos(β/2))"),
         ),
         sbr_edge_unusable=dict(
             why=("SBR 슬로타임 스펙트럼에는 f_tip 밖까지 이어지는 **광대역 바닥**이 있다 — "
@@ -560,6 +600,8 @@ def main():
                  "그래서 «가장자리» 로는 f_tip 을 못 잰다(어떤 β 에서도 나이퀴스트까지 밀린다). "
                  "포락을 P(f)=a·P₀(f/s)+c 로 맞춰도 s 가 1 근처에 붙는다 — 축척이 없다는 뜻이 "
                  "아니라 **이 관측량으로는 축척이 안 보인다**는 뜻이다."),
+            sbr_ratio_range=[float(min(r["sbr_ratio"] for r in rows)),
+                             float(max(r["sbr_ratio"] for r in rows))],
             sbr_edge_ratio_range=[float(min(r["sbr_edge_ratio"] for r in rows)),
                                   float(max(r["sbr_edge_ratio"] for r in rows))],
             sbr_scale_fit_range=[float(min(r["sbr_scale_fit"] for r in rows)),
@@ -572,6 +614,15 @@ def main():
         ),
         flash_rate=dict(
             f_flash_nominal_hz=FFL,
+            # ⚠ 포락 스펙트럼의 최대선이 **2차 고조파**로 넘어가는 칸이 있다(플래시가 반주기마다
+            #   두 번 보이면 2f 선이 더 세진다). 그래서 «공칭의 정수배인가» 로 판정한다 —
+            #   축척이 아니라 **격자**가 유지되는지가 이 절의 주장이다.
+            harmonic_index=[int(round(r["f_flash_meas_hz"] / FFL)) for r in rows],
+            max_abs_dev_from_harmonic_hz=float(max(
+                abs(r["f_flash_meas_hz"] - round(r["f_flash_meas_hz"] / FFL) * FFL)
+                for r in rows)),
+            n_at_fundamental=int(sum(abs(r["f_flash_meas_hz"] - FFL) < 2.0 for r in rows)),
+            n_total=len(rows),
             max_abs_dev_hz=float(max(abs(r["f_flash_meas_hz"] - FFL) for r in rows)),
             values_hz=[r["f_flash_meas_hz"] for r in rows],
         ),
@@ -644,18 +695,17 @@ def main():
     # ── 콘솔 요약 ───────────────────────────────────────────────────────────
     print("\n═══ 도플러 축척: 예측 A cos(β/2) · 예측 B 이등분선-수평투영 · 실측 ═══")
     print(f"{'label':>7} {'plane':>9} {'beta':>5} {'predA':>7} {'predB':>7} "
-          f"{'PO edge':>8} {'/predA':>7} {'/predB':>7} {'SBRedge':>8} {'SBRfit':>7} "
-          f"{'floor':>7} {'level':>8}")
+          f"{'PO meas':>8} {'/predA':>7} {'/predB':>7} {'SBRmeas':>8} {'floor':>7} {'level':>8}")
     for r in rows:
         print(f"{r['label']:>7} {r['plane']:>9} {r['beta_deg']:5.0f} "
               f"{r['pred_cos_half_beta']:7.4f} {r['pred_bisector_horiz']:7.4f} "
-              f"{r['po_edge_ratio']:8.4f} {r['po_edge_over_predA']:7.3f} "
-              f"{r['po_edge_over_predB']:7.3f} {r['sbr_edge_ratio']:8.3f} "
-              f"{r['sbr_scale_fit']:7.3f} {r['sbr_floor_rel_db']:7.1f} "
+              f"{r['po_ratio']:8.4f} {r['po_over_predA']:7.3f} {r['po_over_predB']:7.3f} "
+              f"{r['sbr_ratio']:8.3f} {r['sbr_floor_rel_db']:7.1f} "
               f"{r['level_db_rel_mono']:+8.2f}")
-    print("  ⭐판정:", verdict["doppler_scaling"]["winner"],
-          f"(PO 가장자리 대 A 최대오차 {verdict['doppler_scaling']['po_max_err_vs_pred_A']:.4f}, "
-          f"대 B {verdict['doppler_scaling']['po_max_err_vs_pred_B']:.4f})")
+    _V = verdict["doppler_scaling"]
+    print("  ⭐판정:", _V["winner"],
+          f"— 상대 rms 오차 A {_V['po_rms_rel_err_vs_pred_A']:.3f} vs B "
+          f"{_V['po_rms_rel_err_vs_pred_B']:.3f}")
     print("  모노 원장 세 엔진 바닥:", {k: round(v["floor_rel_db"], 1)
                                 for k, v in (engines_floor or {}).items()})
     print("\n═══ 플래시 ═══")
