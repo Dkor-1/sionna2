@@ -1,4 +1,4 @@
-# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 2026-08-10 05:27:06)
+# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 2026-08-10 05:37:07)
 
 ## 프로세스
 84448 /home/yunjung/.venvs/py312/bin/python benchmark/rcs_same_span_sweep.py
@@ -7,9 +7,9 @@
 361292 bash -c while kill -0 101312 2>/dev/null; do sleep 60; done; SIONNA2_GPU=2 PYTHONPATH=src ~/.venvs/py312/bin/python src/experiment_freespace_sigma.py --drone mini5pro --backend direct --force > /tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/sigma_force_mini5_direct.log 2>&1; echo SIGMA_MINI5_DONE $(date +%H:%M:%S) >> /tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/sigma_chain.log
 
 ## GPU
-0, 22287 MiB, 100 %
-1, 22074 MiB, 100 %
-2, 10721 MiB, 0 %
+0, 22295 MiB, 100 %
+1, 17738 MiB, 100 %
+2, 11654 MiB, 28 %
 3, 22030 MiB, 100 %
 
 ## 로그 후미
@@ -23,12 +23,12 @@ concurrent.futures.process.BrokenProcessPool: A process in the process pool was 
     raise self._exception
 concurrent.futures.process.BrokenProcessPool: A process in the process pool was terminated abruptly while the future was running or pending.
 ── samespan.log:
-  DJI Matrice 4E    15.5 GHz  mu  -14.84 dBsm  (3406s)
   DJI Matrice 4E    16.0 GHz  mu  -14.12 dBsm  (3737s)
+  DJI Matrice 4E    16.5 GHz  mu  -13.93 dBsm  (4085s)
 ── sigma_chain.log:
 SIGMA_CHAIN_DONE 05:01:18
 HOVER_OUTDOOR_DONE 05:07:07
 
 ## git
-7a6984f 0810 라운드2: 적대적 처방 41건 적용·78편 재빌드(링크 위반0)·f9 거리스윕·f10 5G 4팔·report07 셀14/그림11·hover 프리셋 이원화(sitl/outdoor)·RESUME 10분 대비체계
-미커밋 7건
+bfd510e 0810 라운드3: 로터 산포 프리셋 이원화 실행 — f11 실내/야외 비교(야외 2%/2.5%@1Hz 웹앵커), report07 셀15/그림12, hover outdoor 원장
+미커밋 8건
