@@ -348,13 +348,28 @@ def calibrate_sigma(S, target_db, n=2, iters=14, headroom_db=3.0):
     tgt = float(target_db)
     if ceiling < target_db + headroom_db:
         tgt = ceiling - headroom_db
-    nv = 1e-6
-    v = meas(nv)
-    for _ in range(iters):
+    # ⚠ 시컨트(SINR = −10log10 nv 가정)는 **천장 근처에서 안 움직인다** — 한 걸음이 (v−tgt) dB
+    #   뿐이라 nv 를 몇 자릿수 올려야 할 때 14 번으로는 못 간다(2026-08-10 G1 에서 실제로 실패).
+    #   그래서 **괄호치고 이분**한다: nv 를 100배씩 키워 목표 아래로 떨어질 때까지 간 다음 로그축 이분.
+    lo, hi = 1e-24, 1e-8
+    v = meas(hi)
+    for _ in range(20):
+        if v <= tgt:
+            break
+        lo = hi
+        hi *= 100.0
+        v = meas(hi)
+    nv = hi
+    for _ in range(int(iters)):
         if abs(v - tgt) < 0.2:
             break
-        nv = nv * 10 ** ((v - tgt) / 10.0)
-        v = meas(nv)
+        mid = float(np.sqrt(lo * hi))
+        v = meas(mid)
+        nv = mid
+        if v > tgt:
+            lo = mid
+        else:
+            hi = mid
     S["nv"] = float(nv)
     return float(nv), float(v), float(ceiling), float(tgt)
 

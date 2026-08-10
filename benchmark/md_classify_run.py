@@ -12,13 +12,16 @@ md_classify_run.py — **호버링 드론을 마이크로도플러만으로 기�
 2. **base rpm 을 시행마다 ±6% 흩뜨렸다.** 안 그러면 f_flash 가 정답표다.
    그 결과 mini5pro(5500 rpm) 와 phantom4(5500) 의 f_flash 분포는 **완전히 겹친다.**
 3. ⭐ **f_flash 제외 대조.** f_flash 만으로 갈리면 그건 분류가 아니라 회전수 읽기다.
-   네 팔로 나눠 묻는다.
-     all         전부
-     flash_only  f_flash 하나만 — «회전수 읽기» 기준선
-     no_flash    f_flash 를 뺀 나머지
-     scale_free  f_flash·f_edge 를 뺀 나머지 — **rpm 이 약분된 양만** 남는다
-                 (빗살 고조파 모멘트 m̄ = 2πR/λ 의 단조함수 · 고조파 분포 ·
-                  접은 주기 구조 · 동체/블레이드 비 · 플래시 대비 · 비정상성)
+   다섯 팔로 나눠 묻는다.
+     all            전부
+     flash_only     f_flash 하나만 — «회전수 읽기» 기준선
+     no_flash       f_flash 를 뺀 나머지
+     scale_free     f_flash·f_edge 를 뺀 나머지
+     geometry_only  ⭐ 거기서 flash_contrast_db·half_corr 까지 뺀다 —
+                    이 둘은 창 안의 블레이드 주기 수를 통해 rpm 을 약하게 물고 있다.
+                    남는 것은 빗살 고조파 모멘트(m̄ = 2πR/λ 의 단조함수) · 고조파 분포 ·
+                    접은 주기 구조 · 동체/블레이드 비 · 포락선 첨도 · 도플러 비대칭 —
+                    **회전수가 완전히 약분된 기하와 재질**뿐이다.
 4. **널 대조.** 라벨을 자세 안에서 섞고 같은 교차검증을 돌린다. 우연 수준이 아니면 누수다.
 5. **잡음 팔.** 우리 시뮬은 잡음 0·클러터 0 이라 정확도는 **상한**이다. SNR 을 내려 가며
    어디서 무너지는지 잰다.
@@ -126,11 +129,21 @@ def main():
     def cols(keep):
         return np.array([i for i, n in enumerate(names) if n in keep])
 
+    #  ⭐ geometry_only — **엄격하게 rpm 과 무관한 양만** 남긴다.
+    #    scale_free 는 f_flash·f_edge 를 뺐지만 두 특징이 rpm 을 약하게 물고 있다:
+    #      flash_contrast_db  STFT 조각 길이가 추정 f_flash 에 맞춰 정해진다
+    #      half_corr          창 안에 든 블레이드 주기 수 = T·f_flash 가 기체마다 다르다
+    #                         (0.25 s 창에서 mini2 77 주기 ↔ matrice4e 32 주기)
+    #    둘을 마저 빼면 남는 것은 빗살 모멘트·고조파 분포·접은 주기 구조·동체/블레이드 비
+    #    ·포락선 첨도·도플러 비대칭 — 전부 회전수가 약분된 **기하와 재질**이다.
+    G_RPM_TINGED = ["flash_contrast_db", "half_corr"]
     ARMS = {
         "all": [n for n in names],
         "no_flash": [n for n in names if n not in G_RATE],
         "flash_only": list(G_RATE),
         "scale_free": [n for n in names if n not in G_RATE + G_ABS],
+        "geometry_only": [n for n in names
+                          if n not in G_RATE + G_ABS + G_RPM_TINGED],
     }
 
     res = {"_meta": {
@@ -250,7 +263,7 @@ def main():
         if m.sum() == 0:
             continue
         row = {}
-        for arm in ("all", "no_flash", "scale_free"):
+        for arm in ("all", "no_flash", "scale_free", "geometry_only"):
             c = cols(ARMS[arm])
             acc, _ = run_cv(X_all[m][:, c], drone[m], aspect[m],
                             lambda: _models()["LDA"])
@@ -290,9 +303,11 @@ def main():
     a_nf = res["arms"]["no_flash"]["best_accuracy"]
     a_fo = res["arms"]["flash_only"]["best_accuracy"]
     a_sf = res["arms"]["scale_free"]["best_accuracy"]
+    a_go = res["arms"]["geometry_only"]["best_accuracy"]
     res["verdict"] = {
         "accuracy_all": a_all, "accuracy_no_flash": a_nf,
         "accuracy_flash_only": a_fo, "accuracy_scale_free": a_sf,
+        "accuracy_geometry_only": a_go,
         "chance": round(1.0 / len(labels), 4),
         "flash_is_not_the_whole_story": bool(a_nf > 0.6 * a_all),
         "honesty_ko": (
@@ -381,11 +396,12 @@ def figure(res, Xh, yh, names, labels, conf_store, z):
 
     # (e) 대조 실험
     ax = fig.add_subplot(gs[1, 0])
-    arms = ["all", "no_flash", "scale_free", "flash_only"]
-    lab = ["All", "No flash\nrate", "Scale-free\nonly", "Flash rate\nonly"]
+    arms = ["all", "no_flash", "scale_free", "geometry_only", "flash_only"]
+    lab = ["All", "No flash\nrate", "Scale-free\nonly", "Geometry\nonly",
+           "Flash rate\nonly"]
     mods = ["LDA", "kNN5", "RF100"]
     w = 0.26
-    xs = np.arange(len(arms))
+    xs = np.arange(len(arms), dtype=float)
     for j, mm in enumerate(mods):
         ax.bar(xs + (j - 1) * w,
                [res["arms"][a]["models"][mm]["accuracy"] * 100 for a in arms], w,
@@ -404,7 +420,8 @@ def figure(res, Xh, yh, names, labels, conf_store, z):
     ax = fig.add_subplot(gs[1, 1])
     if res["noise"]:
         ss = sorted([float(k) for k in res["noise"]], reverse=True)
-        for arm, st in (("all", "-o"), ("no_flash", "-s"), ("scale_free", "-^")):
+        for arm, st in (("all", "-o"), ("no_flash", "-s"),
+                        ("geometry_only", "-^")):
             ax.plot(ss, [res["noise"][f"{s:g}"][arm]["RF100"] * 100 for s in ss], st,
                     label=arm.replace("_", " "), ms=5)
         base = res["arms"]["all"]["models"]["RF100"]["accuracy"] * 100

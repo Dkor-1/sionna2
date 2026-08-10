@@ -639,25 +639,50 @@ def rcs_sbr_multistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s_list,
         D = np.tile(-u_i, (A.size, 1))
         ray = mi.Ray3f(o=mi.Point3f(*O.T.astype(np.float32)), d=mi.Vector3f(*D.T.astype(np.float32)))
 
-        def _hits(sc, shptr, gam):
+        def _hits(sc, shptr, gam, mk=None):
+            """⭐2026-08-10 — 각도의존 Γ(θ) 를 여기에도 배선했다.
+
+            그전까지 이 함수는 **수직입사 Γ 상수만** 곱했다. 같은 저장소의 `sbr_field`(모노)와
+            `sbr_field_bistatic`(바이스태틱 복소장)은 둘 다 `gamma_shape(재질, fc, cosθ_i)` 를
+            곱하므로, 이 함수만 **다른 물리**를 쓰고 있었다.
+            ⚠ 그 격차는 계통편차가 아니라 **산포**다 — `outputs/verify_bistatic_field.json` 의
+              24 케이스에서 평균 +0.33 dB · 중앙 +0.27 dB 인데 11 건이 음수이고 폭이
+              −2.70 ~ +3.62 dB 다. 즉 «σ 가 일정하게 낮았다» 가 아니라 «자세마다 몇 dB 씩
+              달랐다» 이고, 그래서 눈에 안 띄었다.
+            ⚠ 이 배선은 `ANGLE_GAMMA=False` 에서 예전과 **비트 동일**이다(그 경우 블록을 건너뛴다).
+            """
             si = sc.ray_intersect(ray)
             valid = np.asarray(si.is_valid()).astype(bool)
             P = np.asarray(mi.Point3f(si.p)).T
             Nn = np.asarray(mi.Vector3f(si.n)).T
             g = np.zeros(P.shape[0])
-            for sp, gm in zip(shptr, gam):
-                g = np.where(np.asarray(si.shape == sp).astype(bool), gm, g)
+            which = np.full(P.shape[0], -1, int)          # 어느 그룹을 맞았나(각도 Γ 용)
+            for _i, (sp, gm) in enumerate(zip(shptr, gam)):
+                hit = np.asarray(si.shape == sp).astype(bool)
+                g = np.where(hit, gm, g)
+                which = np.where(hit, _i, which)
             sgn = np.sign(np.einsum("ij,ij->i", Nn, -D)); sgn[sgn == 0] = 1.0
-            return valid, P - ctr, Nn * sgn[:, None], g, si
+            Nn = Nn * sgn[:, None]
+            if ANGLE_GAMMA and mk is not None:
+                from materials import gamma_shape as _gsh
+                cos_i = Nn @ u_i                          # 국소 입사 코사인(조명은 û_i 하나)
+                lit_here = valid & (cos_i > 1e-6)
+                for _i, _key in enumerate(mk):
+                    if _key is None:                      # float 로 넘어온 재질은 상수
+                        continue
+                    sel = (which == _i) & lit_here
+                    if sel.any():
+                        g[sel] = g[sel] * _gsh(_key, fc, cos_i[sel])
+            return valid, P - ctr, Nn, g, si
 
-        valid, Pc, Nn, g, si = _hits(scene, shape_ptrs, gammas)      # 외부 조명 히트
+        valid, Pc, Nn, g, si = _hits(scene, shape_ptrs, gammas, matk)  # 외부 조명 히트
         lit_i = valid & ((Nn @ u_i) > 1e-6)      # û_i 조명 게이트
         if do_pen:
             tau = np.zeros(valid.shape[0])
             for i in shell_pos:
                 tau = np.where(np.asarray(si.shape == shape_ptrs[i]).astype(bool),
                                1.0 - gammas[i] ** 2, tau)
-            valid2, Pc2, Nn2, g2, _ = _hits(scene_i, shptr_i, gammas_i)   # 내부 금속 히트
+            valid2, Pc2, Nn2, g2, _ = _hits(scene_i, shptr_i, gammas_i, matk_i)  # 내부 금속
             lit2_i = valid2 & ((Nn2 @ u_i) > 1e-6)
 
         # ⚠ obliquity 는 û_i 개구 샘플링에 내재한 (n̂·û_i) 를 그대로 쓴다(표준 PO). 대칭
