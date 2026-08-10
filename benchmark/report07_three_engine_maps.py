@@ -150,7 +150,9 @@ def main():
                          mat_key=DRONE_GROUP_MAT[g][0], color=cols[g])
                  for g, p in paths.items()]
         sc = RP.build_scene(parts, fc=FC)
-        RP.place(sc, az=a.az, el=a.el, rng=a.range)
+        RP.place(sc, az=a.az, el=a.el, rng=a.range, baseline=0.0)   # ⭐진짜 모노스태틱(2026-08-10)
+        #   ⚠기본값은 기선 0.2 m(준-모노)다. 거리판(f12)·거리스윕(f9)이 기선 0 이므로
+        #     여기도 맞춰야 세 그림의 기하가 같다 — 적대적 검증이 잡은 불일치.
         p = RP.rt.PathSolver()(sc, max_depth=1, los=True, specular_reflection=True,
                                diffuse_reflection=True, refraction=False,
                                samples_per_src=int(a.spp),

@@ -45,7 +45,9 @@ import report15_probe as RP                                            # noqa: E
 from drones import DRONES                                              # noqa: E402
 
 FIGDIR = os.path.join(ROOT, "outputs", "figures")
-AZ, EL, RNG, BASE = 0.0, -15.0, 3.0, 0.2
+AZ, EL, RNG, BASE = 0.0, -15.0, 3.0, 0.0   # ⭐기선 0 = 진짜 모노스태틱(2026-08-10)
+#   ⚠0.2(준-모노)였다. 그림 3 절이 «진짜 모노스태틱» 을 선언하는데 그 절의 렌더만
+#     준-모노여서 그림과 글이 어긋났다 — 적대적 검증이 잡은 불일치.
 
 
 def main():

@@ -35,8 +35,16 @@ import rcs_sbr as RS                                                   # noqa: E
 GM = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
 FREQS = np.arange(2.0, 18.01, 0.5) * 1e9
 AZ = np.linspace(0, 360, 360, endpoint=False)
-KEYS = ["matrice4e", "mini5pro", "phantom4"]
+KEYS = ["matrice4e", "mini5pro", "phantom4", "phantom3"]
+#   ⭐2026-08-10 phantom3 추가 — Das 가 실제로 잰 기체가 Phantom 3 인데 우리는 그 메쉬를
+#     갖고 있으면서 phantom4 를 «대리» 로 썼다. 사과-대-사과의 마지막 한 칸이다.
 DAS = {"slope": 0.21, "band": [1.8, 18.2], "cite": "Das IEEE WCL 2026, Phantom 3, dB az-mean"}
+
+# ⭐이어달리기 — 이미 잰 기체는 건너뛴다(phantom3 만 추가로 도는 경우가 이 경로다)
+_OUTP = os.path.join(ROOT, "outputs", "rcs_same_span.json") if "ROOT" in dir() else \
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                     "outputs", "rcs_same_span.json")
+_prev = json.load(open(_OUTP)) if os.path.exists(_OUTP) else None
 
 out = {"_meta": {"generated": time.strftime("%Y-%m-%d %H:%M:%S"),
                  "freqs_ghz": (FREQS / 1e9).tolist(), "n_az": len(AZ), "el_deg": 0.0,
@@ -44,7 +52,14 @@ out = {"_meta": {"generated": time.strftime("%Y-%m-%d %H:%M:%S"),
                  "statistic": "10log10(mean_az sigma_lin) — Das §III-1 규약",
                  "why_ko": "Das 와 같은 2~18 GHz 구간에서 기울기를 적합해 «구간이 다르다» 비교 불능을 닫는다",
                  "das_anchor": DAS}, "drones": {}}
+if _prev:
+    out["drones"].update(_prev.get("drones", {}))
+    out["_meta"]["resumed_from"] = _prev["_meta"]["generated"]
+
 for key in KEYS:
+    if key in out["drones"]:
+        print(f"  [건너뜀] {key} — 이미 있음 (재계산하려면 outputs/rcs_same_span.json 삭제)")
+        continue
     spec = DRONES[key]; mesh = build_drone(spec)
     mu = []
     t0 = time.time()

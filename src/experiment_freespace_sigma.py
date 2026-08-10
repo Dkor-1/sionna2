@@ -676,7 +676,16 @@ def main(argv=None):
                 continue
             g = build_sigma_grid([drone], bands, az, el, n_f=n_f, div=DIV,
                                  backend=args.backend, verbose=True)
-            out["sigma"]["grid"][drone] = g["grid"][drone]
+            cell = g["grid"][drone]
+            # ⭐ 2026-08-10 — **기체별 세대 도장**. 격자는 기체마다 따로 채워지는데
+            #   meta.generated 는 setdefault 라 첫 세대 시각을 그대로 들고 있다. 그래서
+            #   «2기는 Γ(θ) 이후, 5기는 이전» 인 혼합 세대가 **한 세대로 서명**될 수 있었다
+            #   (적대적 감사 2026-08-10 지적). 하류 서술 게이트가 기체별로 판정하도록 남긴다.
+            if isinstance(cell, dict):
+                import rcs_sbr as _RS                      # 지연 import(무거운 모듈)
+                cell["generated"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+                cell["angle_gamma"] = bool(getattr(_RS, "ANGLE_GAMMA", None))
+            out["sigma"]["grid"][drone] = cell
             _save(args.out, out)                   # ★드론 하나 끝날 때마다 저장
             print(f"  [σ] {drone} 저장 → {args.out}")
 

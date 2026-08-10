@@ -107,7 +107,34 @@ J_AGI = "outputs/angle_gamma_impact.json"
 AGI = from_json(J_AGI)
 _GAMMA_ON = str(fetch((J_AGI, "_meta.generated"))).replace("T", " ")
 _FS_GEN = str(fetch((J_FS, "meta.generated"))).replace("T", " ")
-GAMMA_WARN = "" if _FS_GEN >= _GAMMA_ON else (
+
+# ⚠ 2026-08-10 적대적 감사가 잡은 **거짓 해제**: 위 한 줄(σ 사슬의 생성 시각)만 보면,
+#   σ 격자의 **일부 기체만** Γ(θ) 이후로 재계산돼도 경고가 통째로 사라진다.
+#   실제로 σ 격자는 기체별 증분 저장이라 «2기 post + 5기 pre» 혼합 세대가 될 수 있고,
+#   meta.generated 는 setdefault 라 첫 세대 시각을 그대로 들고 있다.
+#   → 기체별로 세대를 따져 **한 기체라도 이전 세대면 경고를 남긴다**.
+_J_SG = "outputs/report13_sigma_grid.json"
+
+
+def _stale_gamma_drones() -> list:
+    """σ 격자에서 Γ(θ) 투입 시각보다 오래된 기체 목록. 판정 불가면 보수적으로 전부 반환."""
+    import json as _json
+    import os as _os
+    p = _os.path.join(_ROOT, _J_SG) if "_ROOT" in globals() else _J_SG
+    try:
+        g = _json.load(open(p))["sigma"]["grid"]
+    except Exception:
+        return ["(판정불가)"]
+    out = []
+    for k, v in g.items():
+        gen = str((v or {}).get("generated", "")).replace("T", " ")
+        if not gen or gen < _GAMMA_ON:
+            out.append(k)
+    return out
+
+
+_STALE = _stale_gamma_drones()
+GAMMA_WARN = "" if (_FS_GEN >= _GAMMA_ON and not _STALE) else (
     "⚠ 이 σ 원장은 Γ(θ) 각도 모양(기본 켬, " + AGI.num("_meta.generated", None)
     + ") 이전 커널의 산출이다 — 방위평균 전체 드론 σ 이동은 "
     + AGI.num("whole_drone_sigma_az24_el_-15.mini5pro.delta_db", None, "{:+.2f}") + " ~ "
