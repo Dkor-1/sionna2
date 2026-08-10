@@ -49,44 +49,37 @@ plt.rcParams.update({
 })
 
 
+from md_mapstyle import flash_spec, draw                               # noqa: E402
+
+
 def spec_of(E):
-    """0 도플러를 살린 스펙트로그램. 제로패딩 없음 — 표시 화소보다 빈이 많으면 얼룩진다."""
-    E = np.asarray(E, complex)
-    nper = int(2 ** np.round(np.log2(8 * PRF / FFL)))
-    nper = int(min(nper, max(16, len(E) // 3)))
-    nov = nper - max(1, nper // 8)
-    f, t, S = _spec(E, fs=PRF, nperseg=nper, noverlap=nov, nfft=nper, detrend=False,
-                    window="hann", return_onesided=False, scaling="spectrum",
-                    mode="magnitude")
-    return np.fft.fftshift(f), t, np.fft.fftshift(S, axes=0), nper
+    """⭐플래시 해상도 규약(md_mapstyle) — 모든 맵이 같은 설정을 쓴다."""
+    return flash_spec(E, PRF, FFL)
 
 
-ARMS = [("sionna", "Sionna PathSolver"), ("sbr", "Our SBR kernel"), ("po", "Our PO kernel")]
+# ⭐ 라벨 정정(2026-08-07) — «SBR 커널 / PO 커널» 이 별개 물리처럼 읽혔다.
+#   산란식은 둘 다 PO 다. 차이는 **어느 면을 셈에 넣느냐** 뿐이다:
+#     기본(SBR+PO)  광선이 보이는 면을 고르고 그 면에 PO      ← 가림 O
+#     대조(w/o occ) 법선만 보고 모든 면에 PO                  ← 가림 X
+ARMS = [("sionna", "Sionna PathSolver"),
+        ("sbr", "Ours (SBR+PO, default)"),
+        ("po", "Ours w/o occlusion (control)")]
 got = [(k, ttl) + spec_of(Z[k]) for k, ttl in ARMS]
 ref = max(J["levels_db"].values())
 
 fig, axes = plt.subplots(1, 3, figsize=(12.0, 3.9), sharey=True)
 for ax, (k, ttl, f, t, S, nper) in zip(axes, got):
-    m = ax.pcolormesh(t * 1e3, f, 20 * np.log10(S / S.max() + 1e-12),
-                      cmap="turbo", vmin=-35, vmax=0, shading="auto")
-    for s in (+1, -1):
-        ax.axhline(s * FTIP, color="w", ls="--", lw=1.1, alpha=0.9)
+    m = draw(ax, t, f, S, FTIP)
     ax.set_title(f"{ttl}\n{J['ptp_db'][k]:.1f} dB p-p  ·  level "
                  f"{J['levels_db'][k] - ref:+.0f} dB vs strongest", fontsize=FS)
     ax.set_xlabel("Time [ms]")
-    ax.set_ylim(-1.45 * FTIP, 1.45 * FTIP)
 axes[0].set_ylabel("Doppler [Hz]")
 fig.colorbar(m, ax=axes, pad=0.012).set_label(
     "Magnitude, each panel to its own peak [dB]", fontsize=FS)
 fig.suptitle(f"{M['name']} — hovering, belly view (az {M['az_deg']:.0f}, el {M['el_deg']:.0f}), "
              f"{M['fc_hz']/1e9:.1f} GHz.   Same slow-time grid for all three engines.",
              fontsize=FS + 0.5, y=1.10)
-fig.text(0.5, 1.045,
-         f"{M['n']} samples at PRF {PRF:.0f} Hz = {M['blade_periods']:.0f} blade periods.  "
-         f"Ridge spacing $f_{{flash}}$ = {FFL:.0f} Hz, white dashed $f_{{tip}}$ = {FTIP:.0f} Hz.  "
-         f"Per-rotor rpm spread {M['rpm_spread_frac']:.0%}.  "
-         f"{got[0][5]}-sample Hann segments, no zero padding.",
-         ha="center", va="top", fontsize=FS - 2.0, color="#455a64")
+# 설정 수치는 그림에 안 적는다 — 리포트의 «표시 규약» 절이 담는다.
 for ext in ("png", "pdf"):
     fig.savefig(f"{FIGDIR}/report07_f5.{ext}", bbox_inches="tight", facecolor="white")
 plt.close(fig)

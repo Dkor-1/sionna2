@@ -50,7 +50,8 @@ def sg(x, nper, hop, pad):
 
 fig, axes = plt.subplots(1, 2, figsize=(10.4, 4.0), sharey=True)
 for ax, (nper, hop, pad, tag) in zip(
-        axes, [(24, 2, 8, "flash-resolved"), (256, 4, 2, "ridge-resolved")]):
+        axes, [(int(round(0.6 * PER)), 2, 8, "flash-resolved"),
+               (int(round(6.5 * PER)), 4, 2, "ridge-resolved")]):
     f, t, S = sg(seg, nper, hop, pad)
     m = ax.pcolormesh((t + n0 / PRF) * 1e3, f, 20 * np.log10(S / S.max() + 1e-12),
                       cmap="jet", vmin=-40, vmax=0, shading="gouraud")

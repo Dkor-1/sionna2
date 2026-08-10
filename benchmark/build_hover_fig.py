@@ -47,13 +47,10 @@ plt.rcParams.update({
 #      hop 을 8 표본(1.6 ms)으로 줄이면 슬롯이 1,187 개가 되어 문헌처럼 매끈해진다.
 #      ⚠ 겹침은 정보를 늘리지 않는다 — 같은 정보를 **촘촘히 다시 읽을** 뿐이다.
 #        시간 분해능은 여전히 조각 길이가 정한다. 보기 좋아지는 것이지 좋아지는 것이 아니다.
-NPER = int(2 ** np.round(np.log2(12 * PRF / FFL)))
-HOP = 8
-NOV = NPER - HOP
-f, t, S = _spec(E, fs=PRF, nperseg=NPER, noverlap=NOV, nfft=2 * NPER, detrend=False,
-                window="hann", return_onesided=False, scaling="spectrum", mode="magnitude")
-f = np.fft.fftshift(f)
-S = np.fft.fftshift(S, axes=0)
+import sys as _sys
+_sys.path.insert(0, os.path.join(ROOT, "src"))
+from md_mapstyle import flash_spec, VMIN, VMAX, CMAP, SHADING            # noqa: E402
+f, t, S, NPER = flash_spec(E, PRF, FFL)
 D = 20 * np.log10(S / S.max() + 1e-12)
 
 fig = plt.figure(figsize=(9.2, 4.6))
@@ -61,7 +58,7 @@ gs = fig.add_gridspec(2, 1, height_ratios=[3.1, 1.0], hspace=0.30,
                       left=0.088, right=0.985, bottom=0.115, top=0.865)
 
 ax = fig.add_subplot(gs[0])
-m = ax.pcolormesh(t, f, D, cmap="jet", vmin=-40, vmax=0, shading="auto")
+m = ax.pcolormesh(t, f, D, cmap=CMAP, vmin=VMIN, vmax=VMAX, shading=SHADING)
 for s in (+1, -1):
     ax.axhline(s * FTIP, color="w", ls="--", lw=1.0, alpha=0.85)
 ax.set_ylim(-2000, 2000)
@@ -84,13 +81,7 @@ ax2.set_xlabel("Time [s]")
 ax2.set_title("Rotor speeds — spread taken from measured PX4 telemetry (0.07-0.29 %)",
               fontsize=FS - 0.5)
 
-fig.text(0.5, 0.955,
-         f"Ridge spacing $f_{{flash}}$ = {FFL:.0f} Hz, white dashed = blade-tip "
-         f"$f_{{tip}}$ = {FTIP:.0f} Hz.   {NPER}-sample Hann segments "
-         f"({NPER/(PRF/FFL):.0f} blade periods, {PRF/NPER:.0f} Hz resolution) "
-         f"hopped every {HOP} samples ({HOP/PRF*1e3:.1f} ms) = {len(t)} time slots.   "
-         f"Zero Doppler is the body.",
-         ha="center", va="top", fontsize=FS - 2.2, color="#455a64")
+# 설정 수치는 그림에 안 적는다 — 리포트의 «표시 규약» 절이 담는다.
 
 for ext in ("png", "pdf"):
     fig.savefig(f"{ROOT}/outputs/figures/report07_f7.{ext}",
@@ -98,4 +89,4 @@ for ext in ("png", "pdf"):
 plt.close(fig)
 print(f"  ✅ outputs/figures/report07_f7.png")
 print(f"     조각 {NPER} 표본 = {NPER/(PRF/FFL):.1f} 블레이드 주기 · "
-      f"분해능 {PRF/NPER:.1f} Hz · hop {HOP} · 시간 슬롯 {len(t)}개")
+      f"분해능 {PRF/NPER:.1f} Hz · 시간 슬롯 {len(t)}개")

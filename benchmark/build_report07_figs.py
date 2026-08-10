@@ -87,6 +87,7 @@ def _half_corr(E):
 
 
 def _plain_spec(E, prf, f_flash, min_periods=8, zero_pad=1):
+    # (아래 flash 규약으로 대체됨 — ridge 대조가 필요한 자리만 이것을 쓴다)
     """⭐ 0 도플러를 **지우지 않는** 스펙트로그램 — 동체 선을 읽기의 기준으로 남긴다.
 
     ⚠ zero_pad 를 1 로 둔다. 4배로 하면 표시 범위에 빈이 1,461개 들어가는데 패널 폭이
@@ -120,62 +121,30 @@ def _sgram(E, prf, f_flash, f_tip):
 
 # ─────────────────────────────────────────── 그림 1 — 마이크로도플러 스펙트럼
 def fig1_prop_spectrogram():
-    """⭐ **OpenISAC Fig.13 의 그림 흐름**을 따른다 (arXiv:2601.03535 p.14).
-
-    원문이 자기 그림을 읽는 방식 그대로:
-      · *"The **zero-Doppler return** represents quasi-static scattering from the **UAV body**."*
-      · *"**Symmetric, equidistant ridges** correspond to the rotating rotor blades."*
-      · *"The **spacing between these ridges** reflects the **rotor angular velocity**."*
-      · *"the **overall Doppler spread** indicates the **maximum radial velocity of the blade tips**."*
-    그래서 **0 도플러를 지우지 않는다** — 동체 선이 읽기의 기준이다. 색역도 원문처럼 넓게(60 dB).
-
-    ⚠ 원문의 **처리 파라미터**(MTI 정규화 가장자리 0.005/0.01 등)는 그들의 OFDM 격자·심볼율에
-      맞춰진 값이라 우리 슬로타임에 그대로 옮기지 않는다. 우리가 가져오는 것은 **그림 흐름**이고,
-      노치를 쓸 때의 차단주파수는 우리 물리(f_flash)에서 정한다. MTI 자체는
-      `src/microdoppler_proc.py` 에 있고 **검출 축**에서 쓴다.
-    """
+    """⭐ 회전수 가정만 바꾼 두 팔 — **플래시 해상도 규약**(md_mapstyle)으로 그린다.
+    설정 수치는 그림에 안 적는다 — 리포트의 «표시 규약» 절이 담는다."""
+    from md_mapstyle import flash_spec, draw
     c = MDB["cells"][LEAD]
     ph = c["physics"]
     prf, ftip, ffl = ph["prf"], ph["f_tip"], ph["f_flash"]
 
     panels = [("A_sbr_locked", "All four rotors at one rpm"),
               ("B_sbr_spread", "Per-rotor rpm spread")]
-    got = []
-    for arm, ttl in panels:
-        E = np.asarray(NPZ[f"{LEAD}/{arm}/E"])
-        f, t, S, per = _plain_spec(E, prf, ffl)        # ⭐ 0 도플러를 살린다
-        got.append((arm, ttl, f, t, S, per, E))
-    vmax = max(g[4].max() for g in got)                # 동체 선이 0 dB 기준이 된다
+    got = [(arm, ttl) + flash_spec(NPZ[f"{LEAD}/{arm}/E"], prf, ffl)
+           for arm, ttl in panels]
+    ref = max(g[4].max() for g in got)              # 같은 채널 — 공통 기준
 
-    fig, axes = plt.subplots(1, 2, figsize=(9.8, 4.0), sharey=True)
-    fig.subplots_adjust(top=0.80)
-    for ax, (arm, ttl, f, t, S, per, E) in zip(axes, got):
-        # ⚠ 색역 60 dB 로 두면 빗살 **사이의 바닥**(빗살보다 23 dB 아래)까지 다 보여
-        #   화면이 얼룩진다. 능선만 남게 35 dB 로 좁힌다.
-        m = ax.pcolormesh(t * 1e3, f, 20 * np.log10(S / vmax + 1e-12),
-                          cmap="turbo", vmin=-35, vmax=0, shading="auto")
-        for sgn in (+1, -1):
-            ax.axhline(sgn * ftip, color="w", ls="--", lw=1.1, alpha=0.9)
-        hc = _half_corr(E)
+    fig, axes = plt.subplots(1, 2, figsize=(10.2, 4.0), sharey=True)
+    for ax, (arm, ttl, f, t, S, nper) in zip(axes, got):
+        m = draw(ax, t, f, S, ftip, ref=ref)
+        hc = c["arms"][arm]["half_window_spectrum_corr"]
         ax.set_title(f"{ttl}\nhalf-window spectrum correlation {hc:.4f}", fontsize=FS)
         ax.set_xlabel("Time [ms]")
-        ax.set_ylim(-1.45 * ftip, 1.45 * ftip)
     axes[0].set_ylabel("Doppler [Hz]")
-
     fig.colorbar(m, ax=axes, pad=0.015).set_label("Magnitude [dB]", fontsize=FS)
     fig.suptitle(f"{c['name']} — hovering, belly view "
-                 f"(az {c['az_deg']:.0f}, el {c['el_deg']:.0f}), 3.5 GHz.   "
-                 f"Figure flow after OpenISAC arXiv:2601.03535 Fig. 13",
-                 fontsize=FS + 0.5, y=1.13)
-    fig.text(0.5, 1.05,
-             f"Zero Doppler = body.   Symmetric ridges = blades, spaced by "
-             f"$f_{{flash}}$ = {ffl:.0f} Hz.   White dashed = blade-tip spread "
-             f"$f_{{tip}}$ = {ftip:.0f} Hz.\n"
-             f"{per['nperseg']}-sample Hann segments "
-             f"({per['seg_periods']:.0f} blade periods, "
-             f"{per['bins_between_harmonics']:.0f} bins between ridges), "
-             f"{per['n_segments']} time slots, both panels on one reference.",
-             ha="center", va="top", fontsize=FS - 2.0, color="#455a64")
+                 f"(az {c['az_deg']:.0f}, el {c['el_deg']:.0f}), 3.5 GHz",
+                 fontsize=FS + 0.5, y=1.02)
     _save(fig, "report07_f1")
 
 
