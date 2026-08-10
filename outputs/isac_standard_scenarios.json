@@ -1,0 +1,531 @@
+{
+  "meta": {
+    "title": "3GPP ISAC standard scenarios - primary-source determination",
+    "generated": "2026-08-10",
+    "access_date": "2026-08-10",
+    "companion_doc": "prior_work/isac_standard_scenarios.md",
+    "method": "All 3GPP documents downloaded directly from www.3gpp.org/ftp with a browser User-Agent, unzipped, and text-extracted from the original .docx (WordprocessingML + OMML math). No repository records were used to derive any claim; the repository was opened only at the end for cross-check.",
+    "counts": {
+      "primary_documents": 10,
+      "secondary_documents": 3,
+      "access_failures": 6
+    }
+  },
+
+  "direct_answers": {
+    "is_uav_surveillance_monostatic_based": {
+      "verdict": "phase-dependent",
+      "rel19_channel_model_phase": "NO - all six sensing modes were explicitly in scope; TR 38.901 7.9.1 says 'Monostatic or bistatic sensing can be performed'. No baseline mode is designated.",
+      "rel20_normative_phase": "YES - Rel-20 SI (RP-253246) and WI (RP-261566) are scoped to gNB-based mono-static sensing for the UAV use case only, with no UE impacts and no inter-gNB coordination.",
+      "one_line": "Rel-19 leaves the mode open; Rel-20 normative work narrows drone sensing to gNB monostatic."
+    },
+    "what_is_the_standard_scenario": {
+      "scenario": "UMa-AV",
+      "why": "UMa-AV is the ISAC-UAV calibration scenario in TR 38.901 Table 7.9.6.1-1 / 7.9.6.2-1 and the sole baseline scenario in TR 38.765 Table 6.2-1 and Annex A.",
+      "target": "UAV with small size, 0.3 m x 0.4 m x 0.2 m, RCS model 1, sigma_M = -12.81 dBsm",
+      "geometry": "7 macro sites x 3 sectors, ISD 500 m, BS height 25 m, UAV altitude 25-300 m, horizontal speed 0-180 km/h",
+      "rf": "FR1 4 or 4.9 GHz (optional 6 GHz), 100 MHz, SCS 30 kHz, CP-OFDM, DL NR reference signals"
+    }
+  },
+
+  "facts": [
+    {
+      "id": "F01",
+      "claim": "3GPP defines exactly six ISAC sensing modes, enumerated in the Rel-19 RAN1 study item description.",
+      "source_type": "primary",
+      "doc": "RP-242348 (Revised SID: Study on channel modelling for ISAC for NR)",
+      "version": "RAN#105, Melbourne, 2024-09-09/12, revision of RP-240799",
+      "section": "4.1 Objective of SI",
+      "quote": "All six sensing modes should be considered (i.e. TRP-TRP bistatic, TRP monostatic, TRP-UE bistatic, UE-TRP bistatic, UE-UE bistatic, UE monostatic).",
+      "url": "https://www.3gpp.org/ftp/tsg_ran/TSG_RAN/TSGR_105/Docs/RP-242348.zip",
+      "verified": true
+    },
+    {
+      "id": "F02",
+      "claim": "TR 38.901 does not enumerate the six modes in a definitions clause; it names them inline. The only place all four bistatic modes (including UE-TRP) appear together is the background-channel clause.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.901",
+      "version": "V19.4.0 (2026-06)",
+      "section": "7.9.4.2 Background channel",
+      "quote": "For TRP-TRP, TRP-UE, UE-TRP and UE-UE bistatic sensing modes, following Step 1 in Clause 7.9.4.0, the background channel between a pair of STX and SRX is generated using Step 2 to Step12 of Clause 7.5 with parameters derived by Table 7.9.3-3.",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.901/38901-j40.zip",
+      "verified": true
+    },
+    {
+      "id": "F03",
+      "claim": "For the ISAC-UAV scenario no baseline sensing mode is designated: monostatic and bistatic are both allowed, with TRPs and/or UEs.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.901",
+      "version": "V19.4.0 (2026-06)",
+      "section": "7.9.1 Scenarios (ISAC-UAV)",
+      "quote": "In the ISAC-UAV sensing scenarios, the sensing targets are outdoor UAVs below or above the buildings in urban or rural areas. Monostatic or bistatic sensing can be performed using TRPs and/or UEs, including UEs on other UAVs.",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.901/38901-j40.zip",
+      "verified": true
+    },
+    {
+      "id": "F04",
+      "claim": "Five ISAC sensing scenario groups were adopted, keyed to the target type; UAV is the first.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.901",
+      "version": "V19.4.0 (2026-06)",
+      "section": "7.9.1 Scenarios",
+      "quote": "Based on the interested type of ST, the sensing scenarios can be grouped to UAV sensing scenarios (ISAC-UAV), Automotive sensing scenarios (ISAC-Automotive), Human sensing scenarios (ISAC-Human), Automated Guided Vehicles (AGV) sensing scenarios (ISAC-AGV), and Objects creating hazards on roads/railways sensing scenarios (ISAC-Objects creating hazards on roads/railways).",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.901/38901-j40.zip",
+      "verified": true
+    },
+    {
+      "id": "F05",
+      "claim": "The UAV calibration tables list only four sensing modes - UE monostatic is present for human/automotive/AGV but absent for UAV.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.901",
+      "version": "V19.4.0 (2026-06)",
+      "section": "Table 7.9.6.1-1 and Table 7.9.6.2-1 (UAV), vs Tables 7.9.6.1-2/3/4",
+      "quote": "Sensing mode | TRP monostatic, TRP-TRP bistatic, TRP-UE bistatic, UE-UE bistatic",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.901/38901-j40.zip",
+      "verified": true
+    },
+    {
+      "id": "F06",
+      "claim": "SA1's ISAC feasibility study contains 32 use cases; four concern UAVs. The words monostatic and bistatic never appear in it - SA1 is sensing-mode agnostic.",
+      "source_type": "primary",
+      "doc": "3GPP TR 22.837",
+      "version": "V19.4.0 (2024-06)",
+      "section": "Clause 5 (5.1-5.32); 5.10, 5.12, 5.13, 5.22 are the UAV ones",
+      "quote": "5.10 Use case on UAV flight trajectory tracing / 5.12 Use case on Network assisted sensing to avoid UAV collision / 5.13. Use case on sensing for UAV intrusion detection / 5.22 Use case of UAVs/vehicles/pedestrians detection near Smart Grid equipment",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/22_series/22.837/22837-j40.zip",
+      "verified": true
+    },
+    {
+      "id": "F07",
+      "claim": "The UAV intrusion-detection use case explicitly assumes a non-cooperative target that is unaware it is being sensed.",
+      "source_type": "primary",
+      "doc": "3GPP TR 22.837",
+      "version": "V19.4.0 (2024-06)",
+      "section": "5.13.1 Description",
+      "quote": "considering that the UAV entering the restricted area is illegal and the UAV itself even could be illegal, this kind of sensing operation doesn't require the cooperation of the UAV. That means the UAV may be unaware of the sensing operation.",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/22_series/22.837/22837-j40.zip",
+      "verified": true
+    },
+    {
+      "id": "F08",
+      "claim": "SA1 justifies UE-assisted (bistatic) reception for UAVs by RCS angular variation.",
+      "source_type": "primary",
+      "doc": "3GPP TR 22.837",
+      "version": "V19.4.0 (2024-06)",
+      "section": "5.10.1 Description",
+      "quote": "some UEs are located in the reflection directions that have larger radar cross section (RCS) than 5G RAN entities considering the UAV RCS variation in different reflection directions.",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/22_series/22.837/22837-j40.zip",
+      "verified": true
+    },
+    {
+      "id": "F09",
+      "claim": "SA1 normative stage-1 defines monostatic/bistatic/multistatic conceptually, and binds both sensing transmitter and sensing receiver to be part of a RAN node or a UE.",
+      "source_type": "primary",
+      "doc": "3GPP TS 22.137",
+      "version": "V19.1.0 (2024-03)",
+      "section": "3.1 Terms; 4.2 Sensing operation",
+      "quote": "Sensing receiver: a sensing receiver is an entity that receives the sensing signal which the sensing service will use in its operation. A sensing receiver is part of a RAN node or a UE. ... Sensing operation can be implemented in a couple of different ways, from radar like sensing where the sensing transmitter and sensing receiver are co-located in the same entity (figure 4.2-1), called Monostatic sensing, to have the sensing receiver and sensing transmitter in different entities (figure 4.2-2), also called Bistatic sensing. A more advanced scenario with multiple sensing transmitters and receivers is also possible, called Multistatic sensing.",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/22_series/22.137/22137-j10.zip",
+      "verified": true
+    },
+    {
+      "id": "F10",
+      "claim": "The Rel-20 RAN study item narrows ISAC to gNB-based monostatic sensing for the UAV use case, with no UE impacts, FR1 prioritized, and no inter-gNB coordination.",
+      "source_type": "primary",
+      "doc": "RP-253246 (Revised SID: Study on Integrated Sensing And Communication (ISAC) for NR)",
+      "version": "RAN#110, Baltimore, 2025-12-08/11, revision of RP-252819",
+      "section": "4.1 Objective of SI",
+      "quote": "Evaluate the performance of gNB-based mono-static sensing (i.e., single TRP with co-located sensing transmitter and receiver) for UAV use case [RAN1] ... No UE impacts ... FR1 frequency range is prioritized. ... Study network architecture for gNB-based mono-static sensing for UAV sensing target use cases [RAN3] ... Applicability to gNB bistatic sensing may be considered as part of this network architecture without additional architecture impacts. ... No inter-gNB coordination will be studied.",
+      "url": "https://www.3gpp.org/ftp/tsg_ran/TSG_RAN/TSGR_110/Docs/RP-253246.zip",
+      "verified": true
+    },
+    {
+      "id": "F11",
+      "claim": "The Rel-20 normative work item specifies gNB-based monostatic sensing for UAV targets only; bistatic is limited to intra-gNB and only as an architecture applicability note.",
+      "source_type": "primary",
+      "doc": "RP-261566 (New WID on Integrated Sensing And Communication (ISAC) for NR)",
+      "version": "RAN#112, Singapore, 2026-06-08/11",
+      "section": "4.1 Objective of Core part WI",
+      "quote": "The objective of this Work Item is to specify gNB-based mono-static sensing for UAV sensing target use cases, building upon the conclusions of the ISAC Study Item as documented in TR 38.765. There will be no UE impacts. ... Applicability to intra-gNB bistatic sensing may be considered as part of this network architecture without additional architecture impacts.",
+      "url": "https://www.3gpp.org/ftp/tsg_ran/TSG_RAN/TSGR_112/Docs/RP-261566.zip",
+      "verified": true
+    },
+    {
+      "id": "F12",
+      "claim": "TR 38.765 is the Rel-20 ISAC study output and is scoped entirely to gNB monostatic UAV sensing; CP-OFDM is the baseline waveform.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.765",
+      "version": "V20.0.0 (2026-06)",
+      "section": "1 Scope",
+      "quote": "The present document is intended to capture the output of study item for 'Study on Integrated Sensing And Communication (ISAC) for NR'. CP-OFDM is considered as baseline waveform. ... Performance evaluation of gNB-based mono-static sensing for UAV use case ... Network architecture for gNB-based mono-static sensing for UAV use cases",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.765/38765-k00.zip",
+      "verified": true
+    },
+    {
+      "id": "F13",
+      "claim": "Rel-20 concluded that single-TRP monostatic sensing rarely meets the performance objectives; multi-TRP fusion is what meets them.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.765",
+      "version": "V20.0.0 (2026-06)",
+      "section": "9 Conclusions",
+      "quote": "Baseline 1 (high BS TX power 52dBm with 80dB antenna isolation): By utilizing measurements from multiple or all TRPs, results from 9/10 sources achieve the performance objectives. By utilizing measurements from single TRP, results from 3/11 sources achieve the performance objectives. Baseline 2 (low BS TX power 37dBm with 65dB antenna isolation): ... multiple or all TRPs, results from 7/9 sources ... single TRP, results from 2/9 sources",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.765/38765-k00.zip",
+      "verified": true
+    },
+    {
+      "id": "F14",
+      "claim": "The RCS coefficient is a product of three components, with sigma_M deterministic, sigma_D angular (or unity), and sigma_S log-normal whose mean is tied to its standard deviation.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.901",
+      "version": "V19.4.0 (2026-06)",
+      "section": "7.9.2.1 RCS of a sensing target",
+      "quote": "The RCS related coefficient sigma_RCS of a SPST for a pair of incident/scattered angles is composed of a first component sigma_M which is included in the large-scale parameters (described in Step 15 in Clause 7.9.4.1), and a second component sigma_D and third component sigma_S which are both included in the small-scale parameters (described in Step 10 in Clause 7.9.4.1), i.e., sigma_RCS = sigma_M sigma_D sigma_S.",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.901/38901-j40.zip",
+      "verified": true
+    },
+    {
+      "id": "F15",
+      "claim": "Small-size UAV uses RCS model 1: 10lg(sigma_M) = -12.81 dBsm, sigma_sigmaS_dB = 3.74 dB, sigma_D fixed to 1 (no monostatic angular dependence). The only angular term is a bistatic -3 sin(beta/2) decay with forward scattering set to -infinity.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.901",
+      "version": "V19.4.0 (2026-06)",
+      "section": "7.9.2.1, eq. 7.9.2-2 and Table 7.9.2.1-1",
+      "quote": "sigma_MD_dB(theta_i,phi_i,theta_s,phi_s) = max{10lg(sigma_M) - 3 sin(beta/2), sigma_FS(theta_i,phi_i,theta_s,phi_s)} ... sigma_FS is for the effect of forward scattering and is set to -infinity. | Table 7.9.2.1-1: UAV with small size | -12.81 | 3.74",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.901/38901-j40.zip",
+      "verified": true
+    },
+    {
+      "id": "F16",
+      "claim": "Large-size UAV (1.6 x 1.5 x 0.7 m) does NOT use -12.81 dBsm: it uses RCS model 2 with sigma_M = -5.85 dBsm, sigma_sigmaS_dB = 2.50 dB, and a six-sector angular sigma_D indexed by the bisector angle.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.901",
+      "version": "V19.4.0 (2026-06)",
+      "section": "7.9.2.1, Table 7.9.2.1-2 (Parameters on RCS for UAV with large size)",
+      "quote": "The bisector angle (theta,phi) is used to index one set from the N_sp sets of parameters, and determine sigma_D of the ST consequently. | Table 7.9.2.1-2 rows: Left/Back/Right/Front/Bottom/Roof with Range of theta and Range of phi; sigma_M = -5.85 dBsm, sigma_sigmaS_dB = 2.50 dB",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.901/38901-j40.zip",
+      "verified": true
+    },
+    {
+      "id": "F17",
+      "claim": "The standardized UAV RCS is frequency-independent: clause 7.9.2.1 contains no frequency, wavelength or GHz term, and the identical sigma_M is used for FR1 6 GHz and FR2 30 GHz calibration and for Rel-20 4/4.9/6 GHz evaluation.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.901",
+      "version": "V19.4.0 (2026-06)",
+      "section": "7.9.2.1 (machine search: zero hits for frequency/GHz/wavelength) cross-checked against Table 7.9.6.1-1",
+      "quote": "Table 7.9.6.1-1: Carrier Frequency | FR1: 6 GHz FR2: 30 GHz ... Component sigma_M of the RCS for each scattering point | -12.81 dBsm",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.901/38901-j40.zip",
+      "verified": true
+    },
+    {
+      "id": "F18",
+      "claim": "The standard explicitly reuses the same RCS values for monostatic and bistatic sensing of UAVs.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.901",
+      "version": "V19.4.0 (2026-06)",
+      "section": "Table 7.9.6.2-1 (full calibration, UAV)",
+      "quote": "RCS for each scattering point | Component sigma_M: -12.81 dBsm Component sigma_D: 0 dB Component sigma_S: 3.74 dB for standard deviation The same values are used for monostatic RCS and bistatic RCS",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.901/38901-j40.zip",
+      "verified": true
+    },
+    {
+      "id": "F19",
+      "claim": "UAV cross-polarization ratio is log-normal with mean 13.75 dB and standard deviation 7.07 dB.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.901",
+      "version": "V19.4.0 (2026-06)",
+      "section": "7.9.2.2, Table 7.9.2.2-1",
+      "quote": "Target | mu_XPR | sigma_XPR ; UAV | 13.75 | 7.07",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.901/38901-j40.zip",
+      "verified": true
+    },
+    {
+      "id": "F20",
+      "claim": "The -12.81 dBsm value rests on heterogeneous contributions spanning 3.5-94 GHz and target sizes 0.16-1.6 m, mixing anechoic measurements, ray-tracing and Method-of-Moments simulation. The frequency independence is therefore a standardization simplification, not an empirical finding.",
+      "source_type": "primary",
+      "doc": "R1-2504948 'Information on validations for ISAC' + attached xlsx, sheet 'UAV'",
+      "version": "RAN1 #121, St Julian's Malta, 2025-05-19/23",
+      "section": "attachment: Information on validations for ISAC_v019_ZTE_Moderator.xlsx, sheet UAV",
+      "quote": "R1-2502452 Xiaomi/BJTU/BUPT Measurement 0.81x0.67x0.43 m 28 GHz 3 GHz 6 m; R1-2406975 Huawei Measurement 0.35x0.28x0.1 m 4.9 GHz mono 3 m; R1-2405010 Ericsson Measurement 171x245x62 mm 3.8 GHz 100 MHz 44-52 m Bistatic RCS; R1-2410136 NIST Measurement 1.1x1.2x0.5 m 28.5 GHz 2 GHz Monostatic and bistatic RCS; R1-2500660 Sony EM simulation based on Method of moments (MoM) 0.4x0.3x0.2 m 3.5 GHz; R1-2410235 Sony MoM 1.6x1.5x0.7 m 3.5 GHz; R1-2501002 Moderator(Xiaomi) FL summary Proposal 4.4-1 is for RCS of small size UAV; R1-2503152 Moderator(Xiaomi) FL summary Proposal 3-1 is for RCS of large size UAV",
+      "url": "https://www.3gpp.org/ftp/tsg_ran/WG1_RL1/TSGR1_121/Docs/R1-2504948.zip",
+      "verified": true
+    },
+    {
+      "id": "F21",
+      "claim": "In 3GPP ISAC vocabulary 'passive' denotes a passive TARGET (an object with no UE onboard), never a passive receiver. TR 38.901 and TR 38.765 contain zero occurrences of 'passive' or 'non-cooperative'.",
+      "source_type": "primary",
+      "doc": "3GPP TR 23.700-14 (SA2 stage-2 ISAC study); machine search of TR 38.901 V19.4.0 and TR 38.765 V20.0.0",
+      "version": "TR 23.700-14 V20.0.0 (2026-03)",
+      "section": "TR 23.700-14 solution note",
+      "quote": "NOTE 1: The detected Object can be a passive object (e.g. a human or an animal or a drone/vehicle without UE on board or any other passive objects etc.) or an object with UE onboard.",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/23_series/23.700-14/23700-14-k00.zip",
+      "verified": true
+    },
+    {
+      "id": "F22",
+      "claim": "The Rel-20 ISAC architecture is closed between gNB and the Sensing Function over a new direct interface Ns; there is no architectural slot for a receiver outside the 5G system.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.765",
+      "version": "V20.0.0 (2026-06)",
+      "section": "7 Network architecture",
+      "quote": "Figure 7.1 depicts a logical architecture for ISAC, where the Ns is the direct interface between the gNB and the SenF, without AMF involvement.",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.765/38765-k00.zip",
+      "verified": true
+    },
+    {
+      "id": "F23",
+      "claim": "gNB monostatic transmit power in Rel-20 is derived from receiver saturation plus antenna isolation, i.e. the monostatic link budget is capped by self-interference isolation - a constraint a passive bistatic receiver does not have.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.765",
+      "version": "V20.0.0 (2026-06)",
+      "section": "Annex A, Table A-1, NOTE 1 and 'Self-interference' row",
+      "quote": "NOTE 1: The above options are calculated with BS_maxpower = BS Rx saturation power + antenna isolation by assuming the BS Rx saturation power = -28dBm and the antenna isolation = 65dB and 80dB, respectively. | Self-interference: The residual leakage interference/noise is modelled e.g., by additional additive white Gaussian noise, -94+X dBm in 100 MHz",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.765/38765-k00.zip",
+      "verified": true
+    },
+    {
+      "id": "F24",
+      "claim": "Rel-20 measurement reporting levels A/B/C/D were defined; Level A is not supported, Level C is agreed for specification, Level D is conditional on privacy/security resolution.",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.765",
+      "version": "V20.0.0 (2026-06)",
+      "section": "5.1 Definitions of Levels/Options; 9 Conclusions",
+      "quote": "Due to its higher transport capacity requirement, Measurement level A is not supported. Other measurement levels have been evaluated. Level C is agreed for specification in a potential future normative phase. Whether it is possible to also support Level D depends on the resolution of potential privacy and security issues by the appropriate WG(s).",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.765/38765-k00.zip",
+      "verified": true
+    },
+    {
+      "id": "F25",
+      "claim": "Rel-19 ISAC channel model entered TR 38.901 at V19.0.0 via CR RP-251567 at RAN#108 (2025-06) and was maintained through V19.4.0 by CR RP-261338 at RAN#112 (2026-06).",
+      "source_type": "primary",
+      "doc": "3GPP TR 38.901",
+      "version": "V19.4.0 (2026-06)",
+      "section": "Annex, Change history",
+      "quote": "2025-06 | RAN#108 | RP-251567 | 0027 | B | CR to introduce channel model for ISAC | 19.0.0 ... 2026-06 | RAN#112 | RP-261338 | 0039 | F | CR on ISAC reference channel model | 19.4.0",
+      "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.901/38901-j40.zip",
+      "verified": true
+    },
+    {
+      "id": "F26",
+      "claim": "The Rel-19 and Rel-20 ISAC work items and their controlling documents are recorded in the official 3GPP work plan.",
+      "source_type": "primary",
+      "doc": "3GPP Work Plan",
+      "version": "Work_plan_3gpp_2026_06_26.xlsx",
+      "section": "Task_Table1",
+      "quote": "Rel-19 | FS_Sensing_NR | Study on channel modelling for Integrated Sensing And Communication (ISAC) for NR | R1 | RP-242348 | completion 1.0 ; Rel-20 | FS_Sensing_NR_bis | Study on Integrated Sensing And Communication (ISAC) for NR | R1 | RP-253246 | completion 1.0 ; Rel-20 | NR_Sensing_bis-Core | Core part: Integrated Sensing and communication (ISAC) for NR | R3 | RP-261566 | completion 0",
+      "url": "https://www.3gpp.org/ftp/Information/WORK_PLAN/Work_plan_3gpp_2026_06_26.xlsx",
+      "verified": true
+    }
+  ],
+
+  "sensing_modes": [
+    {"name": "TRP monostatic", "tx": "TRP", "rx": "same TRP (co-located)", "defined_in": "RP-242348 §4.1", "also_named_in": "TR 38.901 §7.9.4.1/§7.9.6; TR 38.765 §1", "source_type": "primary"},
+    {"name": "TRP-TRP bistatic", "tx": "TRP", "rx": "different TRP", "defined_in": "RP-242348 §4.1", "also_named_in": "TR 38.901 §7.9.4.2, Table 7.9.6.1-1", "source_type": "primary"},
+    {"name": "TRP-UE bistatic", "tx": "TRP", "rx": "UE", "defined_in": "RP-242348 §4.1", "also_named_in": "TR 38.901 §7.9.4.2, Table 7.9.6.1-1", "source_type": "primary"},
+    {"name": "UE-TRP bistatic", "tx": "UE", "rx": "TRP", "defined_in": "RP-242348 §4.1", "also_named_in": "TR 38.901 §7.9.4.2 only (absent from calibration tables)", "source_type": "primary"},
+    {"name": "UE-UE bistatic", "tx": "UE", "rx": "different UE", "defined_in": "RP-242348 §4.1", "also_named_in": "TR 38.901 §7.9.4.2, Table 7.9.6.1-1", "source_type": "primary"},
+    {"name": "UE monostatic", "tx": "UE", "rx": "same UE (co-located)", "defined_in": "RP-242348 §4.1", "also_named_in": "TR 38.901 Tables 7.9.6.1-2/3/4 (NOT in the UAV tables)", "source_type": "primary"}
+  ],
+
+  "uav_use_cases": {
+    "sa1_tr22837": [
+      {"clause": "5.10", "title": "Use case on UAV flight trajectory tracing", "mode_specified": false},
+      {"clause": "5.12", "title": "Use case on Network assisted sensing to avoid UAV collision", "mode_specified": false},
+      {"clause": "5.13", "title": "Use case on sensing for UAV intrusion detection", "mode_specified": false, "note": "explicitly non-cooperative target"},
+      {"clause": "5.22", "title": "Use case of UAVs/vehicles/pedestrians detection near Smart Grid equipment", "mode_specified": false}
+    ],
+    "total_use_cases_in_tr22837": 32,
+    "monostatic_bistatic_word_count_in_tr22837": 0,
+    "ran1_scenario_group": "ISAC-UAV (TR 38.901 §7.9.1, Table 7.9.1-1)",
+    "calibration_scenario": "UMa-AV",
+    "rel20_scoped_mode": "gNB-based mono-static (single TRP, co-located Tx/Rx)"
+  },
+
+  "rcs_model_verification": {
+    "repo_claim": "sigma_M = -12.81 dBsm, sigma_S std 3.74 dB, frequency-independent, RCS model 1, flat attitude pattern",
+    "primary_result": "CONFIRMED for 'UAV with small size' (0.3 x 0.4 x 0.2 m)",
+    "caveats": [
+      "A second UAV branch exists: 'UAV with large size' (1.6 x 1.5 x 0.7 m) uses RCS model 2 with sigma_M = -5.85 dBsm, sigma_S std 2.50 dB and a six-sector angular sigma_D (Left/Back/Right/Front/Bottom/Roof) indexed by the bisector angle.",
+      "'Flat' is true for the monostatic pattern only; eq. 7.9.2-2 still carries a bistatic -3 sin(beta/2) term with forward scattering set to -infinity. Our M1b branch disables this term - a deliberate deviation from the spec that must be declared.",
+      "The spec states the same RCS values are used for monostatic and bistatic (Table 7.9.6.2-1) - a standards precedent for our bisector-monostatic approximation.",
+      "Frequency independence is confirmed but is a standardization simplification: the underlying validation inputs span 3.5, 3.8, 4.9, 24, 28, 28.5 and 94 GHz (R1-2504948)."
+    ],
+    "additional_uav_parameters_not_in_repo": {
+      "xpr_mean_dB": 13.75,
+      "xpr_std_dB": 7.07,
+      "sigma_D_dB_small_uav": 0,
+      "path_drop_threshold_dB": -40,
+      "fast_fading_model": "TR 36.777 Annex B.1.3"
+    }
+  },
+
+  "deployment_parameters": {
+    "rel19_tr38901_table_7_9_1_1_scenario_definition": {
+      "applicable_communication_scenarios": "UMi, UMa, RMa, SMa, UMi-AV, UMa-AV, RMa-AV [TR 36.777]",
+      "los_nlos": "LOS and NLOS",
+      "indoor_outdoor": "Outdoor",
+      "horizontal_velocity_kmh": "uniform 0 to 180 (or fixed 0)",
+      "vertical_velocity_kmh": "0, optional {20, 40}",
+      "altitude_option_A_m": "uniform 1.5 to 300",
+      "altitude_option_B_m": "fixed from {25, 50, 100, 200, 300}",
+      "num_targets": "N = {1,2,3,4,5}, N=0 for false-alarm evaluation",
+      "target_size_option1_m": "1.6 x 1.5 x 0.7",
+      "target_size_option2_m": "0.3 x 0.4 x 0.2",
+      "orientation": "random in horizontal domain",
+      "min_target_target_distance_m": "physical target size, or 10"
+    },
+    "rel19_tr38901_calibration_uav": {
+      "scenario": "UMa-AV",
+      "sensing_modes": ["TRP monostatic", "TRP-TRP bistatic", "TRP-UE bistatic", "UE-UE bistatic"],
+      "target_type": "UAV of small size (0.3 x 0.4 x 0.2 m)",
+      "carrier_GHz": {"FR1": 6, "FR2": 30},
+      "bandwidth_MHz": {"FR1": 100, "FR2": 400},
+      "bs_tx_power_dBm": {"FR1": 56, "FR2": 41},
+      "bs_noise_figure_dB": {"FR1": 5, "FR2": 7},
+      "ut_height_m": 1.5,
+      "ut_count_center_cell": 30,
+      "target_altitude_m": 200,
+      "sigma_M_dBsm": -12.81,
+      "min_3d_distance_m": 10,
+      "stx_srx_selection": "Best N = 4 STX-SRX pairs"
+    },
+    "rel20_tr38765_annexA": {
+      "scenario": {"FR1": "UMa-AV, optional RMa-AV", "FR2_1_optional": "UMi-AV"},
+      "carrier_GHz": {"FR1": "4 or 4.9, optional 6", "FR2_1": 30},
+      "system_bandwidth_MHz": {"FR1": 100, "FR2_1": 400},
+      "scs_kHz": {"FR1": 30, "FR2_1": 120},
+      "bs_layout": "hexagonal grid, 7 macro sites, 3 sectors per site (30/150/270 deg)",
+      "isd_m": {"UMa-AV": "500, optional 1000", "RMa-AV": 1732, "UMi-AV": 200},
+      "bs_height_m": {"UMa-AV": 25, "RMa-AV": 35, "UMi-AV": 10},
+      "bs_antenna": "Tx/Rx (8,8,2,1,1;4,8), dH,dV = (0.5,0.8) lambda, +45/-45 pol",
+      "bs_antenna_pattern": "Table 9 in Report ITU-R M.2412",
+      "antenna_isolation_dB": {"FR1": [65, 80], "FR2_1": "80 to 100"},
+      "max_bs_tx_power_dBm": {"FR1": [37, 52], "FR2_1": 30},
+      "bs_noise_figure_dB": {"FR1": 5, "FR2_1": 7},
+      "self_interference": "residual leakage modelled as additional AWGN, -94+X dBm in 100 MHz",
+      "interference_not_modelled": ["inter-site", "co-site inter-sector", "adjacent channel"],
+      "wrap_around": "none",
+      "target": "UAV with small size (0.3 x 0.4 x 0.2 m), RCS model 1",
+      "targets_per_sector": "N = 5 (optional uniform 1 to 10), center site only",
+      "target_altitude_m": "uniform 25 to 300 (optionally 1.5 to 300)",
+      "mobility_kmh": {"horizontal": "uniform 0 to 180", "vertical": 0},
+      "min_bs_target_3d_m": 10,
+      "min_target_target_3d_m": 10,
+      "gnb_target_link": "TRP-UAV link per TR 38.901 Table 7.9.3-2, using TR 36.777 clause B.1.3",
+      "waveform": "CP-OFDM baseline; existing DL NR waveform and DL NR reference signals"
+    },
+    "rel20_performance_objectives": {
+      "missed_detection_probability": 0.05,
+      "false_alarm_probability_type1": 0.05,
+      "false_alarm_probability_type2": 0.05,
+      "horizontal_positioning_accuracy_m": 10,
+      "vertical_positioning_accuracy_m": 10,
+      "velocity_accuracy_mps": 5,
+      "confidence_level": 0.90
+    }
+  },
+
+  "positioning_verdict": {
+    "question": "Is our passive (non-cooperative) bistatic reception inside or outside the 3GPP framework?",
+    "verdict": "OUTSIDE the 3GPP sensing-mode taxonomy, but geometrically identical to TRP-UE bistatic.",
+    "reasoning": [
+      "All six 3GPP modes pair 3GPP entities only; TS 22.137 §3.1 binds both STX and SRX to 'part of a RAN node or a UE'. A USRP X410 is neither.",
+      "TR 38.765 §7 closes the architecture between gNB and SenF over the new Ns interface; there is no slot for a receiver outside the 5GS.",
+      "Rel-20 normative work (RP-261566) is gNB monostatic with no UE impacts and intra-gNB bistatic only, so the passive-receiver bistatic case is explicitly unaddressed.",
+      "However the target model (sigma_M, sigma_S, XPR, -3 sin(beta/2)) is mode-agnostic and the geometry maps onto TR 38.901 Table 7.9.3-2 Case 4 (TRP-Aerial UE link), so the channel model is legitimately inheritable."
+    ],
+    "terminology_hazard": "In 3GPP text 'passive' means a passive TARGET (object without an onboard UE), and 'non-cooperative' describes the UAV, not the receiver. Any paper using 'passive bistatic' for a 3GPP audience must say 'passive RECEIVER' explicitly.",
+    "new_supporting_arguments_from_standard": [
+      "TR 38.765 §9: single-TRP monostatic met the objectives in only 3/11 and 2/9 sources; multi-TRP fusion is what works. 3GPP itself records the limit of the monostatic baseline.",
+      "TR 38.765 Annex A NOTE 1: gNB monostatic Tx power is capped by Rx saturation plus antenna isolation (65/80 dB). A passive bistatic receiver has no such self-interference term."
+    ]
+  },
+
+  "access_failures": [
+    {"target": "www.3gpp.org via the WebFetch tool", "result": "HTTP 403 Forbidden", "impact": "none - bypassed with curl plus a browser User-Agent", "verified": true},
+    {"target": "ETSI deliver/etsi_tr/138900_138999/138901/ directory listing", "result": "HTTP 200 but no links (JS-rendered page)", "impact": "none - the 3GPP original V19.4.0 was obtained; note that the ETSI mirror is one version behind (TR 138 901 V19.2.0)", "verified": true},
+    {"target": "Individual RAN1 Tdocs behind the UAV RCS value (R1-2502417, R1-2502452, R1-2406975, R1-2410235, ...)", "result": "not retrieved (several RAN1 meeting folders return 403; not individually enumerated)", "impact": "moderate - we have only the moderator's metadata ledger, not the underlying measured RCS curves; needed for curve-to-curve comparison against our SBR+PO sigma", "verified": false},
+    {"target": "R1-2509126 (Rel-19 ISAC calibration results)", "result": "not attempted", "impact": "minor - needed to align our simulator against the 3GPP calibration CDFs", "verified": false},
+    {"target": "RAN1 #120 agreement text (to verify the claim that the Zhang JSAC unified RCS model was adopted)", "result": "TSGR1_120 folder returned 403", "impact": "minor - the repo's 'adopted at RAN1 #120' statement remains secondary (the paper's own claim)", "verified": false},
+    {"target": "Rel-20 WI output TS numbers", "result": "not assigned yet - WID lists them as 38.xxx", "impact": "none - genuinely undecided", "verified": true}
+  ],
+
+  "repo_deltas": [
+    {
+      "id": "X1",
+      "type": "contradiction",
+      "file": "docs/DRONE_ISAC_PRIOR_READING.md",
+      "line": 73,
+      "repo_says": "isotropic constant -20 dBsm treated as the 3GPP-agreed sigma (attributed to R1-2403921 / two JSAC papers); our five-airframe azimuth means were matched against it",
+      "primary_says": "3GPP adopted -12.81 dBsm (small UAV) and -5.85 dBsm (large UAV). -20 dBsm is a contribution-stage proposal, not the adopted value.",
+      "action": "label -20 dBsm as 'contribution-stage, not adopted'; redo the spec comparison against -12.81 / -5.85"
+    },
+    {
+      "id": "G1",
+      "type": "gap",
+      "file": "docs/PAPER_POSITION_0803.md",
+      "repo_says": "M1 applies -12.81 dBsm with a flat pattern to all five airframes",
+      "primary_says": "TR 38.901 splits UAVs into small (0.3x0.4x0.2 m, -12.81, flat) and large (1.6x1.5x0.7 m, -5.85, six-sector angular)",
+      "action": "our S1000+ class belongs to the large branch; add -5.85 dBsm + Table 7.9.2.1-2 as a second spec reference"
+    },
+    {
+      "id": "G2",
+      "type": "gap",
+      "file": "docs/PAPER_POSITION_0803.md (C5)",
+      "repo_says": "all three branches use a bisector monostatic approximation for bistatic sigma, flagged as a weakness",
+      "primary_says": "TR 38.901 Table 7.9.6.2-1: 'The same values are used for monostatic RCS and bistatic RCS'",
+      "action": "cite this as a standards precedent defending the approximation"
+    },
+    {
+      "id": "G3",
+      "type": "gap",
+      "file": "docs/INJECTION_PRECEDENT.md",
+      "repo_says": "no record of the target cross-polarization model",
+      "primary_says": "TR 38.901 Table 7.9.2.2-1: UAV XPR log-normal, mu 13.75 dB, sigma 7.07 dB",
+      "action": "add as a comparison axis for polarization handling"
+    },
+    {
+      "id": "G4",
+      "type": "gap",
+      "file": "whole repository (docs/ and prior_work/)",
+      "repo_says": "zero mentions of TR 38.765, TR 22.837, TS 22.137, UMa-AV, or the six sensing modes",
+      "primary_says": "these carry the entire deployment, power, isolation and interference assumption set",
+      "action": "adopt UMa-AV assumptions as the standard comparison scenario in the paper"
+    },
+    {
+      "id": "G5",
+      "type": "gap",
+      "file": "docs/PAPER_POSITION_0803.md",
+      "repo_says": "no standards-side argument for distributed/passive reception",
+      "primary_says": "TR 38.765 §9 single-TRP 3/11 and 2/9; Annex A NOTE 1 isolation-capped Tx power",
+      "action": "use both as standards-grounded motivation for multi-Rx passive bistatic"
+    },
+    {
+      "id": "OK1",
+      "type": "confirmed",
+      "file": "docs/PAPER_POSITION_0803.md, docs/INJECTION_PRECEDENT.md",
+      "repo_says": "sigma_M = -12.81 dBsm, sigma_S std 3.74 dB, frequency-independent, sigma_RCS = sigma_M sigma_D sigma_S, injected at Step 10 (small-scale) and Step 15 (large-scale), sector lookup by bisector angle, TR 38.901 V19.4.0 §7.9.2.1",
+      "primary_says": "identical",
+      "action": "no change"
+    }
+  ],
+
+  "sources": {
+    "primary": [
+      {"id": "P1", "doc": "3GPP TR 38.901", "title": "Study on channel model for frequencies from 0.5 to 100 GHz", "release": "Rel-19", "version": "V19.4.0", "date": "2026-06", "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.901/38901-j40.zip", "accessed": "2026-08-10"},
+      {"id": "P2", "doc": "3GPP TR 22.837", "title": "Feasibility Study on Integrated Sensing and Communication", "release": "Rel-19", "version": "V19.4.0", "date": "2024-06", "url": "https://www.3gpp.org/ftp/Specs/archive/22_series/22.837/22837-j40.zip", "accessed": "2026-08-10"},
+      {"id": "P3", "doc": "3GPP TS 22.137", "title": "Service requirements for Integrated Sensing and Communication; Stage 1", "release": "Rel-19", "version": "V19.1.0", "date": "2024-03", "url": "https://www.3gpp.org/ftp/Specs/archive/22_series/22.137/22137-j10.zip", "accessed": "2026-08-10"},
+      {"id": "P4", "doc": "3GPP TR 38.765", "title": "Study on Integrated Sensing And Communication (ISAC) for NR", "release": "Rel-20", "version": "V20.0.0", "date": "2026-06", "url": "https://www.3gpp.org/ftp/Specs/archive/38_series/38.765/38765-k00.zip", "accessed": "2026-08-10"},
+      {"id": "P5", "doc": "3GPP TR 23.700-14", "title": "Study on Integrated Sensing and Communication; Stage 2", "release": "Rel-20", "version": "V20.0.0", "date": "2026-03", "url": "https://www.3gpp.org/ftp/Specs/archive/23_series/23.700-14/23700-14-k00.zip", "accessed": "2026-08-10"},
+      {"id": "P6", "doc": "RP-242348", "title": "Revised SID: Study on channel modelling for Integrated Sensing And Communication (ISAC) for NR", "meeting": "RAN#105, Melbourne, 2024-09-09/12", "note": "revision of RP-240799; source Xiaomi, AT&T; acronym FS_Sensing_NR", "url": "https://www.3gpp.org/ftp/tsg_ran/TSG_RAN/TSGR_105/Docs/RP-242348.zip", "accessed": "2026-08-10"},
+      {"id": "P7", "doc": "RP-253246", "title": "Revised SID: Study on Integrated Sensing And Communication (ISAC) for NR", "meeting": "RAN#110, Baltimore, 2025-12-08/11", "note": "revision of RP-252819; source Xiaomi, China Telecom; acronym FS_Sensing_NR_bis; output TR 38.765", "url": "https://www.3gpp.org/ftp/tsg_ran/TSG_RAN/TSGR_110/Docs/RP-253246.zip", "accessed": "2026-08-10"},
+      {"id": "P8", "doc": "RP-261566", "title": "New WID on Integrated Sensing And Communication (ISAC) for NR", "meeting": "RAN#112, Singapore, 2026-06-08/11", "note": "acronym NR_Sensing_bis; RAN3-led core part; target RAN#115", "url": "https://www.3gpp.org/ftp/tsg_ran/TSG_RAN/TSGR_112/Docs/RP-261566.zip", "accessed": "2026-08-10"},
+      {"id": "P9", "doc": "R1-2504948", "title": "Information on validations for ISAC (+ attached xlsx)", "meeting": "RAN1 #121, St Julian's Malta, 2025-05-19/23", "note": "moderator Xiaomi; reference [27] of TR 38.901", "url": "https://www.3gpp.org/ftp/tsg_ran/WG1_RL1/TSGR1_121/Docs/R1-2504948.zip", "accessed": "2026-08-10"},
+      {"id": "P10", "doc": "3GPP Work Plan", "title": "Work_plan_3gpp_2026_06_26.xlsx", "url": "https://www.3gpp.org/ftp/Information/WORK_PLAN/Work_plan_3gpp_2026_06_26.xlsx", "accessed": "2026-08-10"}
+    ],
+    "secondary": [
+      {"id": "S1", "ref": "Y. Liu, Y. Zhang, J. Zhang et al., 'A Comprehensive Survey of 3GPP Release 19 ISAC Channel Modeling: From Empirical Features to Unified Methodology and Standardized Simulator', arXiv:2512.03506v1, 2025-12-03", "status": "agrees with primary on the six sensing modes; authors include the TR 38.901 ISAC editor (Yingyang Li, Xiaomi)", "url": "https://arxiv.org/abs/2512.03506"},
+      {"id": "S2", "ref": "ETSI TR 138 901 V19.2.0 (2026-02)", "status": "ETSI mirror, ONE VERSION BEHIND the 3GPP original V19.4.0 - do not cite in place of it", "url": "https://www.etsi.org/deliver/etsi_tr/138900_138999/138901/19.02.00_60/tr_138901v190200p.pdf"},
+      {"id": "S3", "ref": "ETSI GR ISC 001 V1.1.1 (2025-03); ETSI GR ISC 002 V1.1.1 (2025-08), ETSI ISG ISAC", "status": "separate SDO - not evidence for 3GPP mode definitions", "url": "https://www.etsi.org/deliver/etsi_gr/isc/001_099/001/01.01.01_60/gr_isc001v010101p.pdf"}
+    ]
+  }
+}

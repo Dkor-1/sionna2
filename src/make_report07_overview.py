@@ -155,21 +155,28 @@ cells = [
        "먼저 이 편이 다루는 표적이 실제로 무엇을 하고 있는지부터 본다.", "",
        "" if not _HAS_ANIM else embed("report07_anim", "gif"), "",
        "" if not _HAS_ANIM else
-       f"호버링하는 {ANIM['_meta'].get('name', 'DJI Matrice 4E')}. 기체는 제자리에 떠 있지만 "
-       f"프로펠러 넷은 계속 돈다(호버 {ANIM['rotors']['rpm_mean']:.0f} rpm, 로터마다 조금씩 "
-       "다르고 CW/CCW 가 섞여 있다). 시점은 **레이더가 보는 방향**"
-       f"(방위 {ANIM['_meta']['az_deg']:.0f}° · 앙각 {ANIM['_meta']['el_deg']:.0f}°)이라 "
-       "이 그림이 곧 송수신기가 마주보는 면이다. ⭐볼 것은 하나다 — **동체는 한 픽셀도 "
-       "안 움직이는데 블레이드의 방향만 프레임마다 바뀐다.** 그 바뀌는 부분이 되돌아오는 "
-       "신호의 위상을 흔들고, 그것이 이 편에서 다루는 마이크로도플러다.", "",
+       f"호버링하는 {ANIM['_meta'].get('name', 'DJI Matrice 4E')}. **아래칸이 배치**다 — "
+       "붉은 공 하나가 레이더이고, 거기서 3 m 떨어진 곳에 드론이 떠 있다"
+       f"(방위 {ANIM['_meta']['az_deg']:.0f}° · 앙각 {ANIM['_meta']['el_deg']:.0f}°, "
+       "즉 레이더가 드론을 올려다본다). 공이 하나인 이유는 기선이 0 인 **진짜 모노스태틱**이라 "
+       "송신기와 수신기가 같은 점에 있기 때문이다. **위칸**은 그 레이더 시선에서 표적을 "
+       "당겨 본 모습이다.", "",
        "" if not _HAS_ANIM else
-       f"⚠ 실제 블레이드는 초당 {ANIM['rotors']['rpm_mean']/60:.0f} 바퀴를 돌아 눈으로는 "
-       f"볼 수 없다 — 이 애니메이션은 블레이드 한 주기"
-       f"({ANIM['loop']['blade_period_ms']:.1f} ms)를 {ANIM['loop']['n_frames']} 프레임으로 "
-       "나눈 슬로모션이다. 한 프레임이 블레이드 "
-       f"{ANIM['loop']['blade_deg_per_frame']:.0f}° 에 해당한다. "
-       "⚠ 한 주기만 보이므로 **로터별 회전수 산포는 여기 안 보인다** — 신호를 비주기적으로 "
-       "만드는 그 성질은 그림 1 과 11 이 담당한다.", "",
+       "⭐볼 것은 하나다 — **동체는 한 픽셀도 안 움직이는데 프로펠러 넷의 날 방향만 "
+       f"프레임마다 바뀐다**(호버 {ANIM['rotors']['rpm_mean']:.0f} rpm, 로터마다 조금씩 "
+       "다르고 CW/CCW 가 섞여 있다). 그 바뀌는 부분이 되돌아오는 신호의 위상을 흔들고, "
+       "그것이 이 편에서 다루는 마이크로도플러다.", "",
+       "" if not _HAS_ANIM else
+       f"⚠ 실제 날은 초당 {ANIM['rotors']['rpm_mean']/60:.0f} 바퀴를 돌아 눈으로는 볼 수 없다 — "
+       f"이 애니메이션은 프레임 사이 실시간 {ANIM['loop']['loop_real_ms']/int(ANIM['loop']['n_frames']):.2f} ms 를 "
+       f"{int(ANIM['loop']['frame_delay_ms'])} ms 로 늘여 튼 "
+       f"**약 {ANIM['loop']['slowmotion_factor']:.0f} 배 슬로모션**이다"
+       f"(프레임당 {ANIM['loop']['blade_deg_per_frame']:.0f}° 회전, "
+       f"{ANIM['loop']['n_frames']} 프레임 = 블레이드 {ANIM['loop']['n_periods']} 주기 = "
+       f"실시간 {ANIM['loop']['loop_real_ms']:.0f} ms). "
+       f"⚠ 클립이 {ANIM['loop']['n_periods']} 주기를 담지만 로터 간 누적 어긋남이 "
+       f"{ANIM['loop']['seam_mismatch_deg']:.1f}° 뿐이라 **눈에는 안 보인다** — "
+       "신호를 비주기적으로 만드는 그 성질은 그림 1 과 11 이 담당한다.", "",
        embed("report07_f0"), "",
        "**공통**: DJI Matrice 4E 한 대가 **제자리 호버링**한다(이동 0, 벌크 도플러 0). "
        "환경은 자유공간이다 — 지면도 벽도 클러터도 잡음도 두지 않았다. "

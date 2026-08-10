@@ -67,7 +67,7 @@ VK = "outputs/report16_verify_kernel.json"
 VD = "outputs/report16_verify_detector.json"
 VT = "outputs/report16_verify_tautology.json"
 
-OUT = os.path.join(_ROOT, "reports")
+OUT = os.path.join(_ROOT, "reports", "_parts")   # ⭐조각 — 사람이 읽는 문서는 src/build_volumes.py 가 묶은 권이다
 FIG = "../outputs/figures"
 
 REPRO = dict(

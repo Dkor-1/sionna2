@@ -93,7 +93,7 @@ from_json("outputs/lowfreq_attack.json")            # 결정표가 경로로 가
 from_json("outputs/measurement_layers.json")        # 3층 설계 원본
 from_json("outputs/meshfix_attack.json")            # 형상 정정 파급
 
-OUT = os.path.join(_ROOT, "reports")
+OUT = os.path.join(_ROOT, "reports", "_parts")   # ⭐조각 — 사람이 읽는 문서는 src/build_volumes.py 가 묶은 권이다
 FIG = "../outputs/figures"
 
 REPRO = dict(

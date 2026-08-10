@@ -51,16 +51,17 @@ render_md_anim.py — ⭐**호버링 애니메이션**(TX/RX + 도는 프로펠�
 
 환경변수(재현용 주입점)
     SIONNA2_GPU        쓸 GPU 고정(없으면 MDANIM_GPUS 후보 중 여유 메모리 최대 카드)
-    MDANIM_GPUS        후보 GPU 목록 (기본 "0,1,3" — 2 번은 다른 작업이 점유 중)
+                       ⭐ 이 판의 산출물은 SIONNA2_GPU=2 로 핀해 **한 카드에서** 뽑았다
+    MDANIM_GPUS        후보 GPU 목록 (기본 "0,1,2,3" — 판정은 여유 메모리)
     MDANIM_W           프레임 가로 픽셀 (기본 1800; 두 칸이 이 폭을 공유한다)
-    MDANIM_H_MAIN      위칸 세로 (기본 880)
-    MDANIM_H_WIDE      아래칸 세로 (기본 600)
+    MDANIM_H_MAIN      위칸 세로 (기본: 내용 가로세로비에서 역산 — panel_height)
+    MDANIM_H_WIDE      아래칸 세로 (기본: 같은 역산)
     MDANIM_SPP         프레임당 표본 수 (기본 256) ⚠ W·H·spp·4 B 가 GPU 메모리다
     MDANIM_MEM_FRAC    표본버퍼가 쓸 여유 메모리 비율 (기본 0.40) — spp 를 자동으로 낮춘다
     MDANIM_FRAMES      프레임 수 (기본 96)
     MDANIM_PERIODS     루프에 담을 블레이드 주기 수 (기본 8)
     MDANIM_MS          GIF 프레임 지연 [ms] (기본 30) ⚠ 20 ms 미만은 브라우저가 100 ms 로 올린다
-    MDANIM_GIF_W       GIF 가로 픽셀 (기본 1100 — 렌더본을 축소해 파일을 줄인다)
+    MDANIM_GIF_W       GIF 가로 픽셀 (기본 1300 — 렌더본을 축소해 파일을 줄인다)
     MDANIM_MAX_MB      GIF 상한 [MB] (기본 12.0 — 리포트에 base64 로 박힌다)
 
 산출
@@ -109,12 +110,13 @@ def _gpu_free_mb() -> dict[int, int]:
 
 
 def _pick_gpu() -> dict:
-    """후보(기본 0·1·3) 중 여유 메모리가 가장 많은 카드를 고른다.
-    ⚠ 2026-08-10 현재 GPU2 는 σ격자·RCS 스윕·마이크로도플러 고해상도 체인이 점유 중이라
-      후보에서 뺀다(MDANIM_GPUS 로 덮을 수 있다)."""
+    """후보 중 여유 메모리가 가장 많은 카드를 고른다. SIONNA2_GPU 가 있으면 그걸 따른다.
+    ⚠ 2026-08-10 이 산출물은 **SIONNA2_GPU=2 로 핀해서** 뽑았다(사용자 지시로 후보 제한
+      «0·1·3» 이 그날 취소됐다). 후보 목록을 특정 카드로 굳히지 않는다 — 그런 굳힘이 하루
+      만에 낡았다. 판정은 언제나 **여유 메모리**이고, 고정이 필요하면 SIONNA2_GPU 를 쓴다."""
     free = _gpu_free_mb()
     forced = os.environ.get("SIONNA2_GPU")
-    cands = [int(x) for x in os.environ.get("MDANIM_GPUS", "0,1,3").split(",") if x.strip()]
+    cands = [int(x) for x in os.environ.get("MDANIM_GPUS", "0,1,2,3").split(",") if x.strip()]
     if forced is not None and forced.strip() != "":
         idx = int(forced)
         why = "SIONNA2_GPU 로 강제"
@@ -163,7 +165,7 @@ MEM_FRAC = float(os.environ.get("MDANIM_MEM_FRAC", "0.40"))
 N_FRAMES = int(os.environ.get("MDANIM_FRAMES", "96"))
 N_PERIODS = int(os.environ.get("MDANIM_PERIODS", "8"))
 DELAY_MS = int(os.environ.get("MDANIM_MS", "30"))
-GIF_W = int(os.environ.get("MDANIM_GIF_W", "1100"))
+GIF_W = int(os.environ.get("MDANIM_GIF_W", "1300"))
 MAX_MB = float(os.environ.get("MDANIM_MAX_MB", "12.0"))
 GUTTER = 18                       # 두 칸 사이 흰 여백[px]
 
@@ -649,10 +651,21 @@ def main():
             "browser_delay_rule_ko": ("GIF 지연이 20 ms 미만이면 브라우저가 100 ms 로 올린다. "
                                       f"{a.ms} ms 는 그 위라 그대로 재생된다."),
         },
+        #  ⚠ **깨면 안 되는 키**: src/make_report07_overview.py 가 §0 문장을 짤 때
+        #    loop.blade_period_ms · loop.blade_deg_per_frame · loop.n_frames 를 읽는다
+        #    (rotors.rpm_mean · _meta.name/az_deg/el_deg 도). 이름을 바꾸면 리포트 빌드가
+        #    KeyError 로 죽는다 — 그 파일은 다른 작업자 소유라 여기서 못 고친다.
         "loop": {
             "f_flash_hz": float(sc["f_flash_hz"]),
+            "blade_period_ms": float(T * 1e3),
             "n_periods": int(a.periods),
+            "loop_real_ms": float(a.periods * T * 1e3),
             "n_frames": int(n_f),
+            "blade_deg_per_frame": float(deg_per_frame),
+            "rotor_deg_per_frame": float(deg_per_frame),
+            "playback_s": float(playback_s),
+            "frame_delay_ms": int(a.ms),
+            "slowmotion_factor": float(slowmo),
             "unique_visual_phases": float(unique_phases),
             "repeats_in_clip": float(n_f / unique_phases),
             "seam_mismatch_deg": float(seam_deg),

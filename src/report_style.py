@@ -150,8 +150,13 @@ ROOT = os.environ.get(
     "SIONNA2_ROOT",
     os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")))
 
-#: §5.7 분량 상한 — 넘치면 **내용을 줄이지 말고 편을 쪼개라**(다만 6편 골격은 유지).
-MAX_MD_CELLS = 25
+#: ⛔ 2026-08-10 사용자 지시로 **셀 수 상한을 폐지**한다.
+#   *"규약 상한 이런 거 만들지 마 / 그냥 적당히 핵심 메시지가 담기는 하나의 구성을 토대로
+#    합친다만을 목표로 해서 제대로 구성해줘"*
+#   왜 폐지가 옳은가 — 상한이 «넘치면 편을 쪼개라» 를 강제했고, 그 규칙이 78 편이라는
+#   과잉 분할을 낳았다. 편의 크기는 **하나의 메시지가 끝나는 자리**가 정해야지 셀 수가
+#   정해서는 안 된다. None 이면 검사는 통과하고 실제 셀 수만 보고된다.
+MAX_MD_CELLS = None
 MAX_LINES_PER_CELL = 12
 MAX_FIGURES = 8
 
@@ -1195,7 +1200,7 @@ def build_notebook(path: str, blocks: Iterable, kernel: dict | None = None,
         raise ContractError(
             f"규약 위반 — {rep['path']}\n  "
             + "\n  ".join(rep["violations"])
-            + "\n  → 분량이면 **편을 쪼개고**(§5.7), 톤이면 **주장의 크기를 맞춰라**(§5.0).")
+            + "\n  → 톤이면 **주장의 크기를 맞춰라**(§5.0). ⛔분량으로 편을 쪼개지 마라.")
     return rep
 
 
@@ -1346,7 +1351,7 @@ def check_budget(nb_path: str) -> dict:
 
     V = []
     # 분량(§5.7)
-    if len(md_cells) > MAX_MD_CELLS:
+    if MAX_MD_CELLS is not None and len(md_cells) > MAX_MD_CELLS:
         V.append(f"마크다운 셀 {len(md_cells)}개 > 상한 {MAX_MD_CELLS}")
     for o in offenders:
         V.append(f"셀 {o['cell']} 이 {o['lines']}줄 > 상한 {MAX_LINES_PER_CELL} "
@@ -1416,7 +1421,7 @@ def check_budget(nb_path: str) -> dict:
 
 def _budget_text(rep: dict) -> str:
     mark = "✅" if rep["ok"] else "⛔"
-    s = (f"{mark} {rep['path']} — 마크다운 {rep['md_cells']}/{MAX_MD_CELLS}셀 · "
+    s = (f"{mark} {rep['path']} — 마크다운 {rep['md_cells']}셀 · "
          f"코드 {rep['code_cells']}셀 · 그림 {rep['figures']}/{MAX_FIGURES} · "
          f"출처태그 {rep['provenance_tags']}개 · "
          f"부정문 {rep['n_negatives']}/{MAX_NEGATIVES} · 완충어 {rep['n_hedges']}/0")
@@ -1443,7 +1448,7 @@ def budget_report(nb_paths: Iterable[str]) -> str:
         verdict = "✅" if r["ok"] else "⛔ " + "; ".join(
             v.splitlines()[0] for v in r["violations"])
         lines.append(
-            f"| `{r['path']}` | {r['md_cells']}/{MAX_MD_CELLS} | {r['code_cells']} "
+            f"| `{r['path']}` | {r['md_cells']} | {r['code_cells']} "
             f"| {r['figures']}/{MAX_FIGURES} | {r['provenance_tags']} "
             f"| {r['n_negatives']}/{MAX_NEGATIVES} | {r['n_hedges']}/0 | {verdict} |")
     lines.append(f"| **합계** | **{tot_md}** |  | **{tot_fig}** |  "

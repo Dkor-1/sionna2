@@ -787,6 +787,168 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
     return Etot
 
 
+def sbr_field_bistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s,
+                       spacing=None, pad=1.15, cache_key=None, penetrate=True,
+                       shell_groups=None, exit_vis=True,
+                       ptd=False, ptd_pol="V", ptd_opts=None):
+    """**바이스태틱 복소 산란장 E(û_i, û_s)** — `sbr_field` 의 바이스태틱 판(σ 가 아니라 E).
+
+        E(û_i,û_s) = Σ_hits |Γ_i| · e^{jk(û_i+û_s)·p} · d²        σ = (4π/λ²)|E|²
+
+    û_i = 표적→송신국, û_s = 표적→수신국 (둘 다 outward 단위벡터). û_s=û_i 면 모노스태틱이고
+    `sbr_field` 와 **수치적으로 같다**(회귀 게이트: benchmark/verify_bistatic_field.py,
+    원장 outputs/verify_bistatic_field.json).
+
+    ■ 왜 이 함수가 따로 필요한가 — `rcs_sbr_multistatic` 을 그냥 쓰면 안 되는 이유
+      그 함수는 마지막에 |E|² 로 **σ 를 내고 위상을 버린다**. 마이크로도플러(슬로타임 위상)는
+      프레임 사이의 **상대 위상**이 신호 그 자체라 σ 로는 복원할 수 없다. 게다가 그 함수는
+      jitter 오프셋마다 σ 를 **비코히어런트 평균**한다 — 위상을 쓰는 하류에서는 그 평균이
+      의미를 바꾼다(서로 다른 격자의 장을 더하면 격자 위상차가 신호로 둔갑한다).
+      → 여기서는 **jitter 를 두지 않는다**. `sbr_field` 와 같은 **단일 격자**(오프셋 0)다.
+        절대레벨의 격자 산포(파일 상단 dither 실측)는 그대로 남는다 — 슬로타임 계열은 같은
+        격자를 쓰므로 그 오차가 프레임 간 **공통 모드**로 들어가고, 마이크로도플러가 보는
+        것은 그 차이다.
+
+    ■ 물리는 `rcs_sbr_multistatic` 과 같다 (그 함수를 고치지 않고 그대로 따랐다)
+      · 위상 e^{jk(û_i+û_s)·p} (모노 특수화 e^{j2k û·p} 와 정확히 겹친다)
+      · 조명 게이트 (n̂·û_i > 1e-6) — 광선을 û_i 로 쏘므로 dA_투영=d² 상쇄가 성립
+      · 수신 게이트 (n̂·û_s > 1e-6)
+      · exit_vis(기본 True): 히트점마다 û_s 로 그림자광선 1발 — 수신기를 향하지만 **가려진**
+        면을 뺀다. 모노(û_s=û_i)에서는 first-hit 이 이미 그 가림을 뺐으므로 no-op 다.
+      · penetrate: 유전체 셸 왕복 투과 τ=1−|Γ|² 로 내부 금속을 코히어런트 가산(입사/출사 가림은
+        **셸을 뺀 내부 씬**으로 판정 — 셸은 투과 대상이므로 가림체가 아니다).
+
+    ■ Γ(θ) 각도의존 — **켜져 있다**(모노 경로와 같은 규약)
+      `ANGLE_GAMMA` 가 True 면 `materials.gamma_shape(재질, fc, cosθ_i)` 를 곱한다. 각도는
+      **국소 입사각** cosθ_i = n̂·û_i 다(표준 PO 의 Γ 는 입사각에서 평가한다). `sbr_field`·
+      `rcs_sbr_batch` 와 같은 규약이므로 û_s=û_i 에서 비트 단위로 겹친다.
+      ⚠ **`rcs_sbr_multistatic` 은 이 각도 모양을 곱하지 않는다**(그 함수는 matk 를 받고도 쓰지
+        않는다). 따라서 ANGLE_GAMMA=True 에서 (4π/λ²)|E|² 는 그 함수의 σ 와 **일치하지 않는다** —
+        차이는 재질 각도 모양뿐이고, 실측치는 outputs/verify_bistatic_field.json 의
+        `sigma_cross_check.angle_gamma_on` 에 있다. 두 경로를 나란히 인용하지 말 것.
+
+    ⚠ **적용범위 한계 — `rcs_sbr_multistatic` 의 것을 그대로 물려받는다**(계약이므로 코드에 남긴다):
+      (1) **전방산란 무효**: β→180°(û_s≈−û_i)에서 조명게이트와 수신게이트가 상호배타 → E≡0.
+          lit-PO 는 그림자복사(Babinet 전방로브 σ_fwd=4πA²/λ²)를 못 낸다 →
+          **후방~중간 바이스태틱각(β≲90°급, 조명면 일부가 여전히 Rx 가시)에만 유효.**
+      (2) **상반성 부분성립**: E(û_i,û_s) ↔ E(û_s,û_i) 가 볼록·강반사에선 거의 맞으나
+          **비볼록 표적에서는 β≤90° 안에서도 깨진다**(û_i 단일 조명격자 재사용의 구조적 대가,
+          격자세분으로 안 줄어듦). σ 레벨 실측은 outputs/sbr_defect_fixes.json `reciprocity`.
+          ⚠ σ 의 `symmetrize` 같은 대칭화는 여기 **없다** — √(σσ) 는 위상을 정의하지 않는다.
+      (3) 투과 출사경로(û_s 로 셸 재통과)는 입사 τ 로 근사(1차 투과) → 바이스태틱 비대칭을 더 키움.
+      (4) obliquity 는 표준 PO 의 (n̂·û_i) 를 그대로 쓴다(대칭 √((n̂·û_i)(n̂·û_s)) 는 grazing
+          조명면에서 이산 격자를 폭발시켜 rms 오차를 키웠다 → 폐기된 시도다).
+
+    u_s : (3,) 이면 **복소 스칼라**를 돌려준다. (N,3) 이면 길이 N 복소 배열 —
+      조명(광선추적)은 û_i 로만 결정되므로 **한 번만 쏘고** 수신방향마다 싼 위상합 +
+      그림자광선 1발만 반복한다(멀티 Rx 패시브에서 그대로 쓰라고 넣은 경로다).
+
+    ptd (기본 **False**) : True 면 같은 위상원점(bbox 중심)의 모서리 프린지 A_FW [m²] 를 더한
+      복소장을 돌려준다(규약·게이트는 「PTD 배선」 절). ⚠ ptd=False 는 이 인자들이 없던 때와
+      비트 단위로 같다."""
+    lam = C0 / float(fc)
+    k = 2.0 * np.pi / lam
+    d = float(spacing) if spacing else lam / DEFAULT_DIV
+    u_i = np.asarray(u_i, float); u_i = u_i / np.linalg.norm(u_i)
+    _one = np.asarray(u_s, float).ndim == 1
+    #  ⚠ 정규화는 û_i 와 **같은 코드경로**(1-D np.linalg.norm)로 한다. 축방향 norm 은 BLAS 축약이
+    #    달라 1 ulp 가 어긋날 수 있고, û_s=û_i 회귀 게이트가 그 1 ulp 때문에 게이트 경계에서
+    #    히트 하나를 뒤집으면 «물리가 다른 것»처럼 보인다(측정하려는 것은 물리다).
+    U_s = np.stack([v / np.linalg.norm(v) for v in np.atleast_2d(np.asarray(u_s, float))])
+
+    scene, shapes, gammas, matk = _scene_for(mesh, group_mat, cache_key, fc)
+    shape_ptrs = [mi.ShapePtr(s) for s in shapes]
+    group_names = sorted(set(np.asarray(mesh.g).tolist()))
+    _shells = _resolve_shells(group_names, group_mat, shell_groups)
+    shell_pos = [i for i, gn in enumerate(group_names) if gn in _shells]
+    do_pen = penetrate and len(shell_pos) > 0
+    if do_pen:
+        ck_i = (cache_key, "noshell") if cache_key is not None else None
+        scene_i, shapes_i, gammas_i, matk_i = _scene_for(mesh, group_mat, ck_i, fc, exclude=_shells)
+        shptr_i = [mi.ShapePtr(s) for s in shapes_i]
+
+    V = np.asarray(mesh.v, float)
+    ctr = 0.5 * (V.max(0) + V.min(0))
+    Rout = float(np.linalg.norm(V - ctr, axis=1).max()) * pad + 3 * d
+    n = int(np.ceil(2 * Rout / d))
+    t = (np.arange(n) - (n - 1) / 2.0) * d
+    A, B = np.meshgrid(t, t, indexing="ij")
+    # ⭐ 격자 basis 는 `sbr_field` 와 **같은 식**으로 û_i 에서 만든다 — 다른 basis 를 쓰면 히트점
+    #   집합이 미세하게 달라져 모노 회귀 게이트가 위상 수준에서 깨진다(격자는 물리가 아니라 규약).
+    tmp = np.array([0.0, 0.0, 1.0]) if abs(u_i[2]) < 0.9 else np.array([1.0, 0.0, 0.0])
+    e1 = np.cross(u_i, tmp); e1 /= np.linalg.norm(e1)
+    e2 = np.cross(u_i, e1)
+    O = (ctr + Rout * u_i)[None, :] + A.ravel()[:, None] * e1 + B.ravel()[:, None] * e2
+    D = np.tile(-u_i, (O.shape[0], 1))
+    ray = mi.Ray3f(o=mi.Point3f(*O.T.astype(np.float32)),
+                   d=mi.Vector3f(*D.T.astype(np.float32)))
+
+    def _illum(sc, shptr, gam, mk=None):
+        """조명 패스 — û_i 에만 의존한다(수신방향마다 재사용). 반환: (P절대, P−ctr, n̂, |Γ|, lit_i, si)."""
+        si = sc.ray_intersect(ray)
+        valid = np.asarray(si.is_valid()).astype(bool)
+        P = np.asarray(mi.Point3f(si.p)).T
+        Nn = np.asarray(mi.Vector3f(si.n)).T
+        g = np.zeros(P.shape[0])
+        which = np.full(P.shape[0], -1, int)
+        for _i, (sp, gm) in enumerate(zip(shptr, gam)):
+            hit = np.asarray(si.shape == sp).astype(bool)
+            g = np.where(hit, gm, g)
+            which = np.where(hit, _i, which)
+        sgn = np.sign(Nn @ u_i); sgn[sgn == 0] = 1.0     # 법선을 광선 오는 쪽(û_i)으로 정렬
+        Nn = Nn * sgn[:, None]
+        cos_i = Nn @ u_i                                  # ⭐국소 입사 코사인
+        lit_i = valid & (cos_i > 1e-6)                    # 조명 게이트
+        if ANGLE_GAMMA and mk is not None:                # ⭐각도 모양 — 모노 경로와 같은 규약
+            from materials import gamma_shape as _gsh
+            for _i, _key in enumerate(mk):
+                if _key is None:
+                    continue
+                sel = (which == _i) & lit_i
+                if sel.any():
+                    g[sel] = g[sel] * _gsh(_key, fc, cos_i[sel])
+        return P, P - ctr, Nn, g, lit_i, valid, si
+
+    P, Pc, Nn, g, lit_i, valid, si = _illum(scene, shape_ptrs, gammas, matk)
+    if do_pen:
+        tau = np.zeros(valid.shape[0])
+        for i in shell_pos:
+            tau = np.where(np.asarray(si.shape == shape_ptrs[i]).astype(bool),
+                           1.0 - gammas[i] ** 2, tau)
+        P2, Pc2, Nn2, g2, lit2_i, _, _ = _illum(scene_i, shptr_i, gammas_i, matk_i)
+        lit2_i = lit2_i & (tau > 0)
+
+    if ptd:
+        _ptd_spacing_warn(d, lam, "sbr_field_bistatic")
+        A_ptd = _ptd_edge_A(mesh, group_mat, fc, [(u_i, us) for us in U_s], ctr, scene,
+                            pol=ptd_pol, cache_key=cache_key, opts=ptd_opts,
+                            exit_vis=exit_vis)[0]
+
+    out = np.zeros(len(U_s), complex)
+    for j, us in enumerate(U_s):
+        q = u_i + us                                      # 위상 벡터(모노면 정확히 2û)
+        lit = lit_i & ((Nn @ us) > 1e-6)                  # + 수신 게이트(법선)
+        if exit_vis:                                      # + û_s 로 나가는 길이 뚫려 있는가
+            sel = np.where(lit)[0]
+            if sel.size:
+                lit = lit.copy()
+                lit[sel] = _exit_visible(scene, P[sel], Nn[sel], us)
+        E = np.sum(np.where(lit, g, 0.0) * np.exp(1j * k * (Pc @ q)))
+        if do_pen:
+            litp = lit2_i & ((Nn2 @ us) > 1e-6)
+            if exit_vis:
+                sel = np.where(litp)[0]
+                if sel.size:
+                    litp = litp.copy()
+                    litp[sel] = _exit_visible(scene_i, P2[sel], Nn2[sel], us)
+            E = E + np.sum(np.where(litp, tau * g2, 0.0) * np.exp(1j * k * (Pc2 @ q)))
+        Etot = complex(E) * d * d                         # 면적분 [m²]
+        if ptd:
+            Etot = Etot + complex(A_ptd[j])               # + 모서리 프린지 [m²]
+        out[j] = Etot
+    return complex(out[0]) if _one else out
+
+
 def rcs_sbr(mesh: Mesh, group_mat: dict, fc: float, az_deg, el_deg=0.0,
             spacing=None, max_bounce=1, pad=1.15, return_hits=False):
     """SBR 로 **모노스태틱 RCS σ[m²]** 를 낸다. az_deg 는 스칼라 또는 배열.

@@ -77,7 +77,7 @@ POC = "outputs/report15_po_control.json"        # PO 대조군 + 감사
 ATK = "outputs/report15_attack_stats.json"      # 적대검증 렌즈 1
 SPP = "outputs/report15_attack_spp_ladder.json"
 
-OUT = os.path.join(_ROOT, "reports")
+OUT = os.path.join(_ROOT, "reports", "_parts")   # ⭐조각 — 사람이 읽는 문서는 src/build_volumes.py 가 묶은 권이다
 FIG = "../outputs/figures"
 
 #: 헤드라인 칸 — 메쉬가 깨끗하고(프롭·벨 겹침 0.01 %) 1차 실측 표적이다.
