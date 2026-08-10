@@ -55,20 +55,66 @@ PO 핵심 (모노스태틱 후방산란, **재질 가중**)
 """
 from __future__ import annotations
 
+import os
+
 import numpy as np
 
 C0 = 299792458.0
+
+# --------------------------------------------------------------------------- #
+#  ⭐ 각도의존 반사계수 Γ(θ) (2026-08-10 배선 — 설계는 materials.gamma_shape, SBR 과 동일)
+# --------------------------------------------------------------------------- #
+#  설계: |Γ(θ)| = |Γ_보정|·|Γ_벌크(θ)|/|Γ_벌크(0)| (전력평균 TE·TM, θ=0 비트동일).
+#  rcs_sbr.py 는 같은 환경변수(SIONNA2_ANGLE_GAMMA)로 **기본 켬**이지만, 여기 순수 PO 는
+#  **호출 단위 옵트인**이다 — mats=(점별 재질 키) 를 명시한 호출만 각도 경로를 밟고,
+#  옛 방식 호출(mats 없음)은 이 플래그와 무관하게 **옛 결과와 비트동일**하다.
+#
+#  ⚠ 왜 SBR 과 기본값이 다른가 — 순수 PO 는 하위 사용처가 많다(리포트 대조군·PTD 항등검사
+#    `ptd_edges._po_field_dirs`·회귀 기준선·viz_* 다수). 시그니처만 바꿔도 그 회귀 검사들이
+#    전부 다시 재야 한다 → 조용한 전역 변화가 위험해서, 켜는 쪽이 명시적으로 켠다.
+#    이 플래그는 **킬 스위치**다: SIONNA2_ANGLE_GAMMA=0 이면 옵트인한 호출도 옛 경로로
+#    돌아간다(SBR 쪽과 같은 회귀 검증 규약).
+ANGLE_GAMMA = bool(int(os.environ.get("SIONNA2_ANGLE_GAMMA", "1")))
+
+
+def point_mat_keys(group_keys, group_to_mat):
+    """점별 **그룹 키**(mesh_to_points(return_keys=True) 의 마지막 반환) → 점별 **재질 키**.
+
+    group_to_mat : 그룹 → 재질 키(str) 또는 |Γ| float. float(예: PEC 1.0)·미등록 그룹은
+    각도 모양을 정의할 수 없으므로 None 이 된다 — 해당 점은 상수 |Γ| 그대로(= rcs_sbr 가
+    float 재질을 건너뛰는 것과 같은 규약)."""
+    lut = {g: (v if isinstance(v, str) else None) for g, v in group_to_mat.items()}
+    return np.asarray([lut.get(g) for g in np.asarray(group_keys, object).tolist()], object)
+
+
+def _angle_shape(mats, fc, cos_i):
+    """점별 재질 키(mats)의 상대 각도 모양 |Γ_벌크(θ)|/|Γ_벌크(0)| — cos_i 와 같은 모양의 배열.
+
+    키 None(상수 |Γ|)은 1. 공식은 materials.gamma_shape — **SBR 쪽과 같은 함수**를 쓰므로
+    두 엔진의 각도 모양이 조용히 어긋날 수 없다. cos_i 는 (Np,)든 (Np, A)든 된다
+    (mats 는 (Np,) — 행 단위 재질 선택)."""
+    from materials import gamma_shape
+    mats = np.asarray(mats, object)
+    S = np.ones(np.shape(cos_i), float)
+    for key in sorted({k for k in mats.tolist() if k is not None}):
+        sel = mats == key
+        S[sel] = gamma_shape(key, fc, cos_i[sel])      # gamma_shape 가 cos 를 [0,1] 로 자른다
+    return S
 
 
 # --------------------------------------------------------------------------- #
 #  메쉬 → 표면 점구름(point cloud): 위치 r, 법선 n̂, 면적요소 ΔA
 # --------------------------------------------------------------------------- #
-def mesh_to_points(mesh, spacing, gamma=None):
-    """삼각형들을 spacing[m] 간격 점으로 잘게 나눠 (P, N, dA[, w]) 를 돌려준다.
+def mesh_to_points(mesh, spacing, gamma=None, return_keys=False):
+    """삼각형들을 spacing[m] 간격 점으로 잘게 나눠 (P, N, dA[, w][, keys]) 를 돌려준다.
     gamma : 그룹→진폭 반사계수 |Γ| dict. 주면 점별 가중 w 를 **네 번째 값으로 추가 반환**
-            (없는 그룹은 1.0=PEC). None(기본)이면 기존과 동일한 3-튜플."""
+            (없는 그룹은 1.0=PEC). None(기본)이면 기존과 동일한 3-튜플.
+    return_keys : True 면 점별 **그룹 키 배열**(object)을 **마지막 값으로 추가 반환**.
+            각도의존 Γ(θ) 경로(rcs_from_points/po_field_dir 의 mats=)가 점별 재질을
+            알아야 해서다 — 그룹→재질 키 변환은 point_mat_keys() 가 한다.
+            ⚠ 기본 False: 기존 호출부의 반환 모양·값이 그대로다(비트동일)."""
     V = np.array(mesh.v)
-    Ps, Ns, dAs, Ws = [], [], [], []
+    Ps, Ns, dAs, Ws, Ks = [], [], [], [], []
     for fi, (ia, ib, ic) in enumerate(mesh.f):
         v0, v1, v2 = V[ia], V[ib], V[ic]
         e1, e2 = v1 - v0, v2 - v0
@@ -90,8 +136,14 @@ def mesh_to_points(mesh, spacing, gamma=None):
         dAs.append(np.full(len(pts), area / len(pts)))
         if gamma is not None:
             Ws.append(np.full(len(pts), float(gamma.get(mesh.g[fi], 1.0))))
+        if return_keys:
+            Ks.append(np.full(len(pts), mesh.g[fi], object))
     out = (np.vstack(Ps), np.vstack(Ns), np.concatenate(dAs))
-    return out + (np.concatenate(Ws),) if gamma is not None else out
+    if gamma is not None:
+        out = out + (np.concatenate(Ws),)
+    if return_keys:
+        out = out + (np.concatenate(Ks),)
+    return out
 
 
 def _look_dirs(az_deg, el_deg=0.0):
@@ -101,26 +153,37 @@ def _look_dirs(az_deg, el_deg=0.0):
                      np.full_like(az, np.sin(el))], axis=-1)
 
 
-def rcs_from_points(P, N, dA, fc, az_deg, el_deg=0.0, w=None):
+def rcs_from_points(P, N, dA, fc, az_deg, el_deg=0.0, w=None, mats=None):
     """점구름에서 PO 모노스태틱 RCS σ(az)[m²] 를 계산(벡터화).
-    w : 점별 진폭 반사계수 |Γ| (mesh_to_points(gamma=…) 의 4번째 반환). None=PEC."""
+    w : 점별 진폭 반사계수 |Γ| (mesh_to_points(gamma=…) 의 4번째 반환). None=PEC.
+    mats : ⭐점별 **재질 키** 배열 — mesh_to_points(return_keys=True) 의 그룹 키를
+        point_mat_keys() 로 변환해 넘긴다. 주면(그리고 모듈 킬스위치 ANGLE_GAMMA 가 참이면)
+        |Γ| 에 각도 모양 |Γ_벌크(θ)|/|Γ_벌크(0)| 을 곱한다(cos θ = n̂·û = NU, SBR 과 동일 설계).
+        ⚠ 기본 None = 옛 경로 그대로(**비트동일**). 기본이 꺼짐인 이유는 파일 상단 참조."""
     lam = C0 / fc; k = 2 * np.pi / lam
     U = _look_dirs(az_deg, el_deg)                 # (A,3)
     PU = P @ U.T                                   # (Np,A) 위상거리
-    NU = N @ U.T                                   # (Np,A) 면법선·시선
+    NU = N @ U.T                                   # (Np,A) 면법선·시선 = cos θ_i
     illum = NU > 0
     amp = dA if w is None else dA * w              # 재질 가중 진폭
-    integrand = np.where(illum, NU, 0.0) * amp[:, None] * np.exp(1j * 2 * k * PU)
+    if mats is not None and ANGLE_GAMMA:           # ⭐각도의존 Γ — 옵트인 호출만
+        integrand = (np.where(illum, NU, 0.0) * (amp[:, None] * _angle_shape(mats, fc, NU))
+                     * np.exp(1j * 2 * k * PU))
+    else:
+        integrand = np.where(illum, NU, 0.0) * amp[:, None] * np.exp(1j * 2 * k * PU)
     E = integrand.sum(axis=0)                      # (A,)
     return (4 * np.pi / lam**2) * np.abs(E)**2     # (A,) σ [m²]
 
 
-def po_field_dir(P, N, dA, fc, u, w=None):
+def po_field_dir(P, N, dA, fc, u, w=None, mats=None):
     """단일 시선 단위벡터 û 의 **복소 산란장** E = Σ(n̂·û>0)|Γ|(n̂·û)·ΔA·exp(j2k·P·û).
-    (rcs_from_points 의 σ 직전 값. 마이크로도플러용 — 위상이 필요하므로 σ 가 아닌 E.)"""
+    (rcs_from_points 의 σ 직전 값. 마이크로도플러용 — 위상이 필요하므로 σ 가 아닌 E.)
+    mats : ⭐점별 재질 키 — rcs_from_points 와 같은 각도의존 Γ 옵트인(기본 None=옛 경로 비트동일)."""
     k = 2 * np.pi * fc / C0
     NU = N @ np.asarray(u); PU = P @ np.asarray(u)
     amp = dA if w is None else dA * w
+    if mats is not None and ANGLE_GAMMA:           # ⭐각도의존 Γ — 옵트인 호출만
+        amp = amp * _angle_shape(mats, fc, NU)
     return np.sum(np.where(NU > 0, NU, 0.0) * amp * np.exp(1j * 2 * k * PU))
 
 

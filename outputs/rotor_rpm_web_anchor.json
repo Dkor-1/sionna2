@@ -1,0 +1,92 @@
+{
+  "title": "인터넷 공개 실기체 비행로그로 로터 rpm 산포·흔들림 앵커 (갈래 A, 2026-08-10)",
+  "purpose": "report07_hover_long.py 의 STATIC_SPREAD(±0.22%, PX4 SITL 유래)·WOBBLE_AMP(±0.15%, 가정)·WOBBLE_HZ(2.7 Hz, 가정)를 실기체 로그로 검증",
+  "method_note": "모든 수치는 근사-호버 창(속도<0.3 m/s, 모터 가동)에서 측정. 정적 산포 = 창 내 모터별 평균의 모터간 std/평균 [%]. 흔들림 = 모터별 상대 rpm 의 대역(0.3-5 Hz) 성분 rms*sqrt(2) = 등가 사인 진폭 [%], 지배 주파수 = 해당 대역 PSD 피크",
+  "sources": [
+    {
+      "name": "NeuroBEM (UZH RPG)",
+      "url": "https://download.ifi.uzh.ch/rpg/NeuroBEM/ (processed_data.zip)",
+      "vehicle": "커스텀 레이싱 쿼드 0.772 kg, 실기체, 실내 Vicon 행어, 무풍",
+      "signal": "모터별 실측 회전수 [rad/s] @ 400 Hz (Betaflight 텔레메트리)",
+      "segments_used": [
+        "merged_2021-02-23-11-31-23 (random points slow) seg_1..4",
+        "merged_2021-02-23-11-41-38 (satellite slow) seg_1..3"
+      ],
+      "hover_windows": "7개 (1.2-1.4 s, v<0.3 m/s, |w|<0.35 rad/s), 호버 rpm ~10500",
+      "measured": {
+        "static_spread_std_pct": {"all7": [0.25, 0.32, 0.38, 0.54, 0.61, 0.63, 1.06], "median": 0.54},
+        "wobble_amp_pct_quiet4win": {"median": 0.74, "range": [0.61, 1.06]},
+        "wobble_peak_hz_quiet": "0.7-2.2 Hz 지배 (일부 창 10-15 Hz 부성분)",
+        "transient_note": "궤적 직전/직후 창은 3.3-6.0% (과도응답, 제외)"
+      },
+      "caution": "⚠DJI 아님(레이싱 쿼드). 창이 1.2-1.4 s 로 짧아 주파수 분해능 ~0.7 Hz. 실내 무풍이라 흔들림의 하한측 앵커"
+    },
+    {
+      "name": "PX4 Flight Review 공개 실기체 로그 - CODEV AQUILA V3",
+      "url": [
+        "https://review.px4.io/plot_app?log=a8a62015-a063-4d51-b52d-a89c55e43f85",
+        "https://review.px4.io/plot_app?log=4312c2f5-fa8c-4e21-8499-6b8f7c74e97d"
+      ],
+      "vehicle": "상용 대형 쿼드 (CODEV AQUILA V3, PX4 v1.12.3), 실기체, 야외 Position 홀드",
+      "signal": "esc_status.esc_rpm (CAN ESC 실측 rpm) @ 4 Hz, 호버 rpm ~2900",
+      "hover_windows": "39개 (3-18 s, 총 239 s, v<0.3 m/s)",
+      "measured": {
+        "static_spread_std_pct": {"median": 2.35, "min": 0.79, "max": 5.53},
+        "wobble_lf_amp_pct_0p3to2hz": {"median": 2.52, "p25": 2.0, "p75": 3.81},
+        "wobble_peak_hz": {"median": 0.74, "p25": 0.5, "p75": 1.5}
+      },
+      "caution": "⚠DJI 아님. 샘플링 4 Hz 라 2 Hz 초과 성분이 접혀 들어와(앨리어싱) 진폭이 과대측정일 수 있음. 야외 바람 미상 - 바람 보정 트림이 정적 산포에 섞임(창마다 패턴 변동). 두 로그는 동일 기체로 추정",
+      "verify_snippet": "pyulog 로 esc_status + vehicle_local_position 추출, 스크립트 analyze_px4_esc.py"
+    },
+    {
+      "name": "DJI Phantom 3 DAT 실비행 로그 (DROP 포렌식 샘플)",
+      "url": "https://github.com/BiTLab-BaggiliTruthLab/DROP (sample-data/DAT-Files/FLY000/002/003.DAT)",
+      "vehicle": "⭐진짜 DJI (Phantom 3), 실기체, 야외",
+      "signal": "MotorCtrl(type 54) 모터별 PWM 명령 [%] @ 50 Hz + GPS(type 5) 속도. ⚠실측 rpm 아님 - P3 V1 DAT 에 RecMotor(실측 rpm, type 52721) 레코드가 이 펌웨어에는 없음. 파서는 DatCon 소스(BudWalkerJava/DatCon)의 프레임 규격을 그대로 이식해 자작(parse_dji_dat.py): 0x55 프레임, tick%256 XOR, 600 tick/s",
+      "hover_windows": "9개 진성 호버 (v<0.3 m/s, PWM>55%, 3-14 s)",
+      "measured": {
+        "static_spread_pwm_std_pct": {"median": 5.8, "range": [3.5, 12.0]},
+        "wobble_lf_amp_pwm_pct_0p3to5hz": {"median": 5.3, "range": [3.5, 11.8]},
+        "wobble_lf_peak_hz": "0.3-4 Hz (창 다수 0.3-0.9 Hz)",
+        "wobble_hf_cmd_pct_5to20hz": "10-33% @ 13-19 Hz (명령 영역 - 로터 관성이 저역통과라 실제 rpm 에는 크게 감쇠되어 나타남)"
+      },
+      "pwm_to_rpm_note": "명령(PWM)→rpm 변환은 대략 Δrpm/rpm ≈ (0.5~1.0)·ΔPWM/PWM (추력∝rpm², ESC 준선형 가정). 즉 rpm 환산 정적 산포 ~2-6%, 저주파 흔들림 ~2-6% 수준으로 추정",
+      "caution": "⚠명령 영역 proxy. 2015년 기체라 최신 DJI(Mavic 4 Pro 등) 제어보다 거칠 수 있음. 야외 바람 미상"
+    }
+  ],
+  "sources_tried_and_failed": [
+    {"name": "MIT Blackbird UAV dataset", "reason": "blackbird-dataset.mit.edu DNS 실패 (호스트 소멸 추정). rosbag 에 모터 rpm 있으나 접근 불가"},
+    {"name": "PX4 Flight Review DShot 쿼드 13종", "reason": "다운로드·검사한 14개 로그 중 12개에 esc_status 없음 (DShot 텔레메트리 배선·설정 드묾). CODEV 2개만 성공"},
+    {"name": "DJI V3 DAT (P4/Mavic Pro, 실측 Motor:Speed 포함)", "reason": "공개 샘플 미발견. NIST CFReDS/VTO 포렌식 이미지는 대용량 칩오프 이미지라 이번 세션에서 미시도. Mavic Air 이후 기종은 DAT 암호화"},
+    {"name": "Kaggle", "reason": "API 자격증명 없음"}
+  ],
+  "comparison_with_ours": {
+    "ours": {"static_spread": "±0.22% (PX4 SITL 유래)", "wobble": "±0.15% @ 2.7 Hz (순수 가정)"},
+    "finding": [
+      "정적 산포: 실기체 3원천 모두 우리 값보다 큼. 실내 무풍 대칭 레이싱기 0.25-1.06% (중앙 0.54%), 야외 상용기 0.8-5.5% (중앙 2.4%), DJI P3 명령환산 ~2-6%. SITL(0.07-0.29%)은 완전대칭 모델이라 실기체의 CG 오프셋·모터/프롭 개체차·바람 트림이 빠져 있음 - 한 자릿수 과소",
+      "흔들림 진폭: 실측 rpm 기준 실내 정온 0.6-1.1% (중앙 0.74%), 야외 2.0-3.8% (중앙 2.5%). 우리 ±0.15% 는 5-17배 과소",
+      "흔들림 주파수: 지배 성분 0.3-2.2 Hz (중앙 0.7-1.5 Hz). 우리 2.7 Hz 는 관측 범위 상단 부근 - 방향은 맞으나 지배 주파수보다 높음. 명령 영역에는 13-19 Hz 성분도 크지만 로터 관성이 감쇠"
+    ],
+    "counter_evidence": [
+      "세 원천 모두 우리 대상 기체(Mavic 4 Pro·Matrice 4E)가 아님. 최신 DJI 제어는 P3(2015)보다 정밀할 것 - 실내 하한(NeuroBEM 0.5-0.7%)쪽에 가까울 가능성",
+      "NeuroBEM 창은 1.2-1.4 s 로 짧고 궤적 사이 구간이라 잔여 과도가 흔들림을 키웠을 수 있음",
+      "CODEV 4 Hz 샘플링은 앨리어싱으로 진폭 과대 가능, P3 는 명령이지 rpm 이 아님",
+      "그럼에도 세 독립 원천이 모두 같은 방향(우리 값 과소)을 가리켜 방향성은 견고"
+    ]
+  },
+  "verdict": {
+    "decision": "수정 권고 (파라미터 파일은 재계산 중이라 건드리지 않음 - 메인이 반영)",
+    "recommended": {
+      "STATIC_SPREAD": {"controlled_indoor": 0.005, "outdoor_default": 0.02, "current": 0.0022, "basis": "실내=NeuroBEM 중앙 0.54% 반올림, 야외=CODEV 중앙 2.4% 하향 반올림"},
+      "WOBBLE_AMP": {"controlled_indoor": 0.008, "outdoor_default": 0.025, "current": 0.0015, "basis": "실내=NeuroBEM 정온 중앙 0.74%, 야외=CODEV 중앙 2.5%"},
+      "WOBBLE_HZ": {"recommended": 1.0, "current": 2.7, "basis": "3원천 지배 주파수 중앙 0.7-1.5 Hz. 0.3-2.2 Hz 대역 서술이 더 정직"},
+      "regime_note": "챔버 정책(야외 사이트 트윈 기본·챔버 통제군)에 맞춰 두 레짐 값을 모두 둘 것을 권고. 마이크로도플러 파급: 흔들림 ±0.15%→0.8~2.5% 면 블레이드 라인 폭이 5-17배 넓어짐 - report11 저속·분해능 논의와 정합 확인 필요"
+    }
+  },
+  "provenance": {
+    "date": "2026-08-10",
+    "scripts": "스크래치패드 analyze_neurobem.py, parse_dji_dat.py, analyze_dji.py, analyze_px4_esc.py (세션 스크래치패드, 필요시 재실행으로 재현 가능)",
+    "raw_downloads": "NeuroBEM CSV 8편(remotezip 부분추출), DJI FLY000/002/003.DAT(180 MB), PX4 ulog 14편",
+    "dat_format_provenance": "DatCon 소스 BudWalkerJava/DatCon: DatFile.java(startOfRecords=128, headerLength=10), DatFileV1.java(clockRate=600), Payload.java(tick%256 XOR, little-endian), MotorCtrl35_54.java(PWM u16/100 @19,21,23,25), GpsGroup.java(velN/E/D f32/100 @20,24,28)"
+  }
+}

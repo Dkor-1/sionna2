@@ -1,0 +1,148 @@
+{
+  "_meta": {
+    "generated": "2026-08-10",
+    "scope": "부 6~7 — reports/30~43 (사다리·마이크로도플러) 적대적 검증, 읽기 전용 라운드",
+    "method": "전 14편 정독 + 출처 태그 [^n] 전수 자동 대조(파일:키→값) + 번들 태그 수동 대조 + 낡음 검사(2026-08-07 Γ(θ) 커널, 2026-08-10 로터 산포 ±2%→±0.22% 정정) 대비 원장 생성시각 확인",
+    "ledger_vintages": {
+      "report16_synthesis/verify_* (편30~33)": "2026-08-04 — Γ(θ) 이전",
+      "report15_probe/verdict/null_control/attack_stats (편34,36,41,42)": "2026-08-04 — Γ(θ) 이전",
+      "report00_microdoppler (편36)": "2026-08-05 — Γ(θ) 이전",
+      "report15b_microdoppler (편35,37~40,43)": "2026-08-07 07:00 — Γ(θ) 기본켬(10:58) 이전, rpm_spread_frac=0.02",
+      "report07_three_engines (편36)": "2026-08-07 11:58 — Γ(θ) 이후이나 rpm_spread_frac=0.02 유지",
+      "report07_hover_long (미인용)": "2026-08-07 13:29 — static_spread=0.0022(±0.22% 실측) 채택"
+    }
+  },
+  "findings": [
+    {
+      "file": "reports/37_md-rpm.ipynb",
+      "cell": 4,
+      "severity": "HIGH",
+      "type": "낡음",
+      "claim": "흩어짐 폭 ±2% 는 '선언된 가정'이고 실측은 '앞으로 확보'하며, PX4 로그의 모터간 산포 0.07~0.29% 는 '이 질문에 쓰기에 좁다'. 헤드라인 수치(반창 상관 0.7757, 낙차 0.2209, ptp 5.60 dB, dc/ac 0.30)는 전부 ±2% 팔에서 나옴.",
+      "evidence": "2026-08-10 정정: 로터 산포는 실측 ±0.22% (±2% 의 ~1/9). outputs/report07_hover_long.json(_meta.static_spread=0.0022, 2026-08-07 13:29)은 이미 그 값을 기본으로 채택했고, 메모리 규율(measured-over-plausible)은 '실측 로그를 좁다고 기각한 것' 자체가 오판이었다고 기록. 이 편이 기대는 report15b_microdoppler.json(_meta.rpm_spread_frac=0.02, 2026-08-07 07:00)은 정정 전 원장. '무늬가 시간에 변하려면 흩어짐이 필요하다'는 구조 결론은 살지만, 정량 헤드라인은 실측의 9배 산포에서 계산된 값이고 cell 4 의 실측 기각 문장은 현재 사실과 반대.",
+      "fix": "±0.22% 실측 팔로 재계산해 상관 낙차·ptp·dc/ac 를 갱신하고, cell 4 를 '실측 ±0.22% 확보(0.07~0.29% 로그와 정합), 2% 팔은 상계 시나리오' 로 다시 쓴다. 결과 5의 '실측 비행 로그는 앞으로 확보한다'도 삭제."
+    },
+    {
+      "file": "reports/39_md-blade-vs-body.ipynb",
+      "cell": 3,
+      "severity": "MED",
+      "type": "낡음",
+      "claim": "레벨 -51.11/-76.48 dB, 동체:날개 비 2.25/0.069, 변조 깊이 3.91/44.32 dB 를 현재 사실로 서술.",
+      "evidence": "원장 report15b_microdoppler.json 은 2026-08-07 07:00 생성 — 같은 날 10:58 Γ(θ) 기본켬 이전. angle_gamma_impact.json 은 정확히 같은 규약 칸(matrice4e, el −15, 3.5 GHz)에서 프로펠러 채널 레벨 +5.16 dB·ptp +2.7 dB 이동을 실측. 따라서 프롭 채널 레벨과 동체:날개 비(≈3배 이동)는 현재 커널 값이 아님. '동체가 덮고 있다'는 방향 결론은 오히려 강화되나 수치는 낡음. 편 내 Γ(θ) 빈티지 언급 0회.",
+      "fix": "report15b 재계산(Γ(θ) 켬) 후 표 갱신, 또는 '2026-08-07 Γ(θ) 이전 값, 프롭 채널 +5~6.5 dB 이동 예정' 빈티지 주석."
+    },
+    {
+      "file": "reports/34_md-paths-doppler.ipynb",
+      "cell": 0,
+      "severity": "MED",
+      "type": "사실오류",
+      "claim": "결과 3 및 cell 3: '프롭 경유 경로 296 개가 모두 같은 부호·같은 크기 도플러를 받는다'.",
+      "evidence": "자기 근거 원장이 반증: report15_probe.json airframes.matrice4e.A_doppler.rigid_prop_velocity 에 n_distinct_doppler=104, doppler_min_hz=0.0, doppler_max_hz=187.5 — 크기는 0~187.5 Hz 로 퍼진다(경로 기하에 따른 v·k 투영). '같은 부호'만 참. 원장의 note 필드 자체가 같은 오문을 담고 있어 리포트가 그대로 베낀 것. 같은 셀의 '이 표의 도플러는 한 부호로 몰린다'와도 상충. 결론(전진/후퇴 날 부호 분리 불가 → 블레이드 변조 불가)은 불변.",
+      "fix": "'모두 같은 부호로 몰리고 크기는 강체 투영에 따라 0~187.5 Hz 로 퍼진다(음의 도플러가 없다)' 로 정정."
+    },
+    {
+      "file": "reports/31_ladder-calibrated.ipynb",
+      "cell": 3,
+      "severity": "MED",
+      "type": "낡음",
+      "claim": "교정 사다리 절대치(검출 단면적 -48.15 dBsm, 플래시 대조비 16.84 dB, 동체:날개 20.57 dB 등)를 현재 사실로 서술 (편 32 의 오차표·호버벌금 25.4~38.7 dB 도 동일 원장).",
+      "evidence": "원장 report16_synthesis.json = 2026-08-04 생성, 2026-08-07 Γ(θ) 이전. 프로펠러(플라스틱)는 각도의존 Γ 의 주 수혜 부품(angle_gamma_impact: 프롭 채널 +5.16~+6.48 dB, 3.5 GHz 실측 플라스틱 75° +6.67 dB). 사다리의 프롭 유래 절대치(sigma_ac_peak·dc_ac·호버벌금)는 이동 대상. 단 대 단 차이(같은 재질 프롭 대리끼리 짝지은 빼기)와 낭떠러지(-54 dB, 기하)는 부호·자릿수 수준에서 강건 — 편 33 의 '부호·자릿수까지만 인용' 지침이 이미 그 수준으로 방어. 편 30~32 에 Γ(θ) 빈티지 언급 0회.",
+      "fix": "빈티지 주석 추가('2026-08-04 원장, Γ(θ) 이전 — 프롭 절대치 +5~6.5 dB 이동 예정') 또는 사다리 재계산. 편 30·32 에 동일 적용."
+    },
+    {
+      "file": "reports/36_md-two-engines.ipynb",
+      "cell": 0,
+      "severity": "MED",
+      "type": "낡음",
+      "claim": "한 편 안에서 세 원장의 빈티지가 섞임: 변조 깊이 10.91/17.70 dB(report00, 08-05)·꼬리 -19.56/-36.14 dB(report15_verdict, 08-04)는 Γ(θ) 이전, 세 엔진 표 9.8/7.5/2.7 dB(report07_three_engines, 08-07 11:58)는 Γ(θ) 이후 — 전부 현재 사실처럼 나란히 서술.",
+      "evidence": "원장 생성시각 실측: report00_microdoppler.json 2026-08-05, report15_verdict.json 2026-08-04, report07_three_engines.json _meta.generated 2026-08-07 11:58(Γ(θ) 기본켬 10:58 이후). PO 팔 ptp·꼬리는 프롭 채널 수치라 Γ(θ) 이동(+5~6.5 dB 레벨, ±2.7~4.6 dB ptp) 대상. 구조 결론(아래에서 겹치고 위에서 갈림, 빗=기하)은 위상 축이라 강건. 또한 report07_three_engines 는 rpm_spread_frac=0.02(±2%, 실측 ±0.22% 의 9배)로 계산됨 — 편 37 낡음이 이 편 표에도 스며 있음.",
+      "fix": "표마다 원장 빈티지를 명기하고, PO 팔·三엔진 표를 Γ(θ)+실측 산포로 재계산해 한 빈티지로 통일."
+    },
+    {
+      "file": "reports/38_md-occlusion.ipynb",
+      "cell": 3,
+      "severity": "MED",
+      "type": "낡음",
+      "claim": "가림 축 두 팔의 값(44.32/53.01 dB, -76.48/-77.61 dB, dc/ac 0.069/0.100)을 현재 사실로 서술.",
+      "evidence": "report15b_microdoppler.json = 2026-08-07 07:00, Γ(θ) 기본켬(10:58) 이전. 같은 칸(matrice4e/belly, 3.5 GHz)에서 angle_gamma_impact 가 프롭 레벨 +5.16 dB·ptp +2.7 dB 이동 실측. 가림 차이(-8.69 dB)는 두 팔이 같은 블레이드 재질을 공유해 부분 상쇄될 수 있으나, Γ(θ)가 입사각별로 면 가중을 바꾸므로 변조 파형 자체가 달라져 차이값 보존은 확인 불가. 절대 레벨·dc/ac 는 확실히 이동.",
+      "fix": "재계산 또는 빈티지 주석. '부호를 물리로 단정하지 않는다'(cell 4)는 이미 방어적이므로 주석만으로도 족함."
+    },
+    {
+      "file": "reports/30_ladder-three.ipynb",
+      "cell": 7,
+      "severity": "LOW",
+      "type": "가독성",
+      "claim": "cell 0 결과 4 는 '세 몫의 합은 정의상 총 차이와 닫힌다(닫힘오차 0.00)' 인데, cell 7 표는 운동학 몫·형상 몫만 보여줌 — 표의 두 몫 합(23.42−2.85=20.57)이 총 차이 26.05 와 안 닫힘.",
+      "evidence": "원장에 material_part_db=5.494 존재(report16_synthesis.json shape_vs_kinematics.rows.mini2.ac_power_db_LENS_CONVENTION.cube_eqvol): 23.42+5.49−2.85=26.06 ✓. 방법 셀은 '재질 몫'을 선언하나 결과 표에서 열이 빠져 독자가 닫힘을 재현 못 함. 재질 몫 5.49 dB 는 형상 몫(-2.85)보다 큼에도 본문 어디에도 수치가 없음.",
+      "fix": "표에 '재질 몫' 열 추가(5.49/…)."
+    },
+    {
+      "file": "reports/33_ladder-premature.ipynb",
+      "cell": 3,
+      "severity": "LOW",
+      "type": "논리",
+      "claim": "P1: '가장 인용하기 좋은 숫자(메쉬 − 구 = 62~77 dB)' — 편 32 는 같은 간격을 '62.0~100.8 dB' 로 인용. 두 편이 같은 헤드라인 간격을 다른 집계로 적으면서 규약 차이를 명시하지 않음.",
+      "evidence": "62~77 = 기체별 in_band_ac_over_dc 간격(report16_verify_tautology check2: mini2 62.04, matrice4e 76.83). 62.0~100.8 = 같은 지표의 방위 전 구간 min/max(report16_synthesis axis3.modulation_gap min 62.04 max 100.80). 둘 다 원장 충실 인용이라 출처깨짐은 아니나, 94%/99% 몫은 기체별 간격(62.0/76.8) 기준으로 계산된 값인데 편 32 는 100.8 과 병기해 독자가 몫의 분모를 오독하기 쉬움.",
+      "fix": "한쪽 규약으로 통일하거나 '기체별 62·77, 방위 극값 최대 101' 로 한 줄 명시."
+    },
+    {
+      "file": "reports/39_md-blade-vs-body.ipynb",
+      "cell": 4,
+      "severity": "LOW",
+      "type": "수치불일치",
+      "claim": "'프로펠러 채널의 변조 자체는 30 dB 대로 깊다'.",
+      "evidence": "같은 편 cell 3 의 자기 수치가 44.32 dB, 전 칸 실측 범위는 38.1~54.8 dB(report15b arms.F/G modulation_ptp_db 전수) — '30 dB 대'는 자기 표와 불일치(손입력 의심).",
+      "fix": "'40~50 dB 대' 또는 '수십 dB' 로 정정."
+    },
+    {
+      "file": "reports/41_md-calibration.ipynb",
+      "cell": 6,
+      "severity": "LOW",
+      "type": "낡음",
+      "claim": "'널 최댓값 3.83 dB 가 신호 격자 최솟값 3.08 dB 보다 크다 — 문턱 6.0 dB 는 겹친 구간 위에 있다' 를 현재 사실로 서술.",
+      "evidence": "원장 report15_verdict/null_control/attack_stats 전부 2026-08-04(Γ(θ) 이전). Γ(θ)로 프롭 신호가 +5~6.5 dB 오르면 신호 격자 최솟값이 올라 겹침 자체가 해소될 수 있음 — 유리한 방향의 낡음이라 결론(널 조용함·거짓양성 0)은 강건하나 겹침 진술은 재확인 대상. 태그 21개 전수 대조는 전부 일치.",
+      "fix": "Γ(θ) 켠 커널로 널·신호 격자 재계산 시 겹침 여부 갱신(이미 '다음 단계'에 시드 증량 항목 있음 — Γ(θ) 항목 추가)."
+    },
+    {
+      "file": "reports/40_md-attitude.ipynb",
+      "cell": 3,
+      "severity": "LOW",
+      "type": "낡음",
+      "claim": "세 자세의 가림 효과(+3.16/-8.69/-3.19 dB 등)를 현재 사실로 서술.",
+      "evidence": "동일 원장 report15b(2026-08-07 07:00, Γ(θ) 이전). 단 이 편의 주장은 '부호와 크기가 자세마다 다르다'는 구조라 짝지은 차이 기반 — Γ(θ) 후에도 방향은 유지될 개연성이 높으나 개별 dB 는 재확인 대상. 자세 기하 주장(배 쪽 관측·프롭 위치)은 낡음 무관.",
+      "fix": "재계산 시 값만 갱신, 구조 서술은 유지 가능."
+    },
+    {
+      "file": "reports/42_md-ray-budget.ipynb",
+      "cell": 5,
+      "severity": "LOW",
+      "type": "낡음",
+      "claim": "PO 꼬리 -36.14/-35.83 dB(report15_verdict, 2026-08-04)를 현재 사실로 인용.",
+      "evidence": "이 편의 본론(예산 법칙 1.01 dB/dB, 경로수 비 5.41, uint32 상한)은 Sionna PathSolver 추적량이라 우리 커널 Γ(θ)와 무관 — 낡음 아님. 다만 cell 5 꼬리 표의 PO 열만 Γ(θ) 이전 프롭 채널 값. Sionna 꼬리·경로수·판정 뒤집힘(12/15)은 유효.",
+      "fix": "PO 꼬리 열에 빈티지 주석 또는 재계산."
+    },
+    {
+      "file": "reports/43_md-prf.ipynb",
+      "cell": 3,
+      "severity": "LOW",
+      "type": "가독성",
+      "claim": "요구 표본율 1980 Hz 는 mini5pro(5500 rpm, f_tip 989.8 Hz) 기준인데, 결과 4·cell 4 는 '헤드라인 기체의 블레이드 통과율 126.7 Hz'(matrice4e, 3800 rpm, report15b)를 같은 흐름에 섞음.",
+      "evidence": "md_range_sweep.json cells[0].drone=mini5pro(플래시 183.3 Hz) vs report15b matrice4e/belly f_flash=126.7. 두 기체 모두에서 결론은 성립(각 f_tip×2 > 모든 모드 반복률, 플래시 <500 Hz, 5G 두 모드 나이퀴스트 25/100 Hz 에서 접힘) — 반증 실패. 다만 한 표는 mini5pro, 한 문장은 matrice4e 라 어느 기체의 1980 인지 오독 여지. f_flash·f_tip 은 순수 운동학이라 Γ(θ) 낡음 무관.",
+      "fix": "결과 4 에 '(matrice4e 126.7 · mini5pro 183.3 Hz — 둘 다 LTE/WiFi 나이퀴스트 안)' 병기."
+    }
+  ],
+  "verified_clean": {
+    "tags_all_match": "편 30~33: 96/96 수치 태그 일치(+번들 4 수동 대조 일치 — ladder_A/C 표 전 칸). 편 34~43: 135/135 일치(+번들 2: by_range 3행·prf_feasibility 4행 수동 대조 일치). 깨진 태그·깨진 키 0.",
+    "claims_survived": [
+      "편 30 '단마다 운동학이 다르다' — ladder_A kinematics 라벨 원장 일치, 닫힘오차 0 확인",
+      "편 31 '원판 단만 인용 자격 아니오' — ladder_C quotable 전 단 확인(disc 만 False, 양 기체)",
+      "편 32 낭떠러지 -56.48/-54.44·공짜 구간 ±0.01 dB — 태그 일치, 기하 논증 자립",
+      "편 33 PREMATURE 3렌즈 판정 — verdict 키 일치, 판정 규칙 사전 선언 확인",
+      "편 34 결론(스톡 불가) — 메모리 sionna-rt-doppler-velocity 의 소스 실측과 합치",
+      "편 35 운동학·창 수치 전부 일치 — 순수 운동학이라 Γ(θ) 낡음 무관",
+      "편 41 널 15→12 칸 자기 정정 — attack_stats 원장과 일치",
+      "편 42 예산 법칙 — Sionna 추적량 기반이라 커널 정정과 독립"
+    ]
+  },
+  "checked": {"files": 14, "tags_verified": 237, "tags_broken": 0}
+}

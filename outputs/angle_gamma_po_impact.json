@@ -1,0 +1,153 @@
+{
+ "_meta": {
+  "generated": "2026-08-10 04:25:37",
+  "what": "순수 PO(rcs_po)·microdoppler_series 의 각도의존 Γ(θ) 배선 검증",
+  "design": "|Γ(θ)| = |Γ_보정|·|Γ_벌크(θ)|/|Γ_벌크(0)| — materials.gamma_shape (SBR 과 동일 함수)",
+  "switch": "rcs_po: 호출 옵트인(mats=점별 재질 키) ∧ 킬스위치 ANGLE_GAMMA(env SIONNA2_ANGLE_GAMMA, SBR 과 같은 변수). 옛 방식 호출은 항상 옛 경로 — SBR(기본 켬)과 달리 순수 PO 는 하위 사용처가 많아 조용한 전역 변화를 금지했다.",
+  "old_reference": "git HEAD 의 src/rcs_po.py·src/microdoppler.py 를 별도 모듈로 실행해 비교",
+  "seconds": 121.9
+ },
+ "bit_identical_off": {
+  "matrice4e/mesh_to_points": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "matrice4e/mesh_to_points_return_keys_first4": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "matrice4e/el-15/rcs_from_points": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "matrice4e/el-15/mats+killswitch_off": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "matrice4e/el-15/po_field_dir": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "matrice4e/el+15/rcs_from_points": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "matrice4e/el+15/mats+killswitch_off": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "matrice4e/el+15/po_field_dir": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "matrice4e/microdoppler_series_default": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "mini5pro/mesh_to_points": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "mini5pro/mesh_to_points_return_keys_first4": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "mini5pro/el-15/rcs_from_points": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "mini5pro/el-15/mats+killswitch_off": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "mini5pro/el-15/po_field_dir": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "mini5pro/el+15/rcs_from_points": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "mini5pro/el+15/mats+killswitch_off": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "mini5pro/el+15/po_field_dir": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "mini5pro/microdoppler_series_default": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "verdict": "PASS(전부 비트동일)"
+ },
+ "propeller_channel_el_-15_3p5GHz": {
+  "matrice4e": {
+   "level_db_off": -77.58,
+   "level_db_on": -74.12,
+   "level_delta_db": 3.46,
+   "ptp_db_off": 16.94,
+   "ptp_db_on": 21.88,
+   "sbr_ref_delta_db": 5.16,
+   "same_direction": true,
+   "same_order": true
+  },
+  "mini5pro": {
+   "level_db_off": -90.05,
+   "level_db_on": -87.12,
+   "level_delta_db": 2.93,
+   "ptp_db_off": 42.35,
+   "ptp_db_on": 33.92,
+   "sbr_ref_delta_db": 6.48,
+   "same_direction": true,
+   "same_order": true
+  }
+ },
+ "whole_drone_sigma_az24_el_-15": {
+  "matrice4e": {
+   "db_off": -15.67,
+   "db_on": -15.71,
+   "delta_db": -0.04
+  },
+  "mini5pro": {
+   "db_off": -20.66,
+   "db_on": -20.69,
+   "delta_db": -0.02
+  }
+ },
+ "three_engines_po_arm": {
+  "npz": "outputs/report07_three_engines.npz (sionna·sbr 팔은 저장본, po 팔만 재계산)",
+  "geometry": {
+   "drone": "matrice4e",
+   "az_deg": 0.0,
+   "el_deg": -15.0,
+   "prf_hz": 5000.0,
+   "n": 1024,
+   "f_tip_hz": 1228.7211819358865
+  },
+  "po_off_bit_reproduces_npz": {
+   "identical": true,
+   "max_abs_diff": 0.0
+  },
+  "stored_cosine_sionna_vs_po": 0.6961570939595767,
+  "cosine": {
+   "sionna_vs_po_off": 0.6962,
+   "sionna_vs_po_on": 0.6757,
+   "sbr_vs_po_off": 0.6465,
+   "sbr_vs_po_on": 0.6628,
+   "sionna_vs_sbr": 0.6569
+  },
+  "delta_sionna_vs_po": -0.0204,
+  "delta_sbr_vs_po": 0.0162,
+  "hypothesis_ko": "임무 가설: Sionna 는 각도의존 프레넬을 쓰므로 새 Γ(θ) 를 켠 po 팔의 스펙트럼 코사인이 오르면 독립 검증이 된다.",
+  "reading_ko": "⚠ 독립 검증 **미성립** — sionna↔po 코사인이 -0.0204 로 오히려 내렸다. 이것이 Γ(θ) 반증은 아니라고 판단한다. 근거: (1) 잣대 자체가 각도 프레넬의 잣대가 아니다 — Sionna 팔의 드론 에코는 **확산(산란계수 S) 경로 지배**다(ITU metal 은 S=0 이라 금속부는 확산 기여 0, 블레이드=prop_plastic S=0.20). 확산 진폭의 각도 거동은 산란 패턴이지 벌크 프레넬 TE/TM 이 아니므로, '새 Γ(θ) 를 켜면 Sionna 와 같아져야 한다'는 이 실험의 전제가 약했다(임무 명세의 «Sionna 는 원래 각도의존 프레넬»은 **정반사 팔**에만 참이다). (2) 우리 두 커널끼리는 예상대로 움직였다 — sbr↔po 가 +0.0162 올랐다(둘 다 같은 각도 물리를 갖게 되어 가림 차이만 남음). (3) 켠 뒤 세 쌍의 코사인이 0.657~0.676(폭 0.019)으로 수렴했다(끄면 0.647~0.696, 폭 0.050) — 특정 쌍만 좋아 보이던 상태보다 오히려 자기일관적이다. 반대근거(우리 주장의 약점)도 적는다: 코사인 절대값이 0.65~0.70 대역이라 어느 쌍도 강한 일치가 아니고, −0.02 는 그 대역 안의 작은 이동이라 (1)~(3)은 정황이지 증명이 아니다. 각도 Γ 의 독립 앵커는 Sionna 가 아니라 실측(문헌 RCS 앵커·야외 X410)으로 미룬다."
+ },
+ "verdict_ko": "[A] PASS — 꺼짐(옛 호출·킬스위치)은 전부 비트동일. [B] 프롭 채널 Δ +3.46/+2.93 dB — SBR 실측(+5.16/+6.48)과 방향 일치·자릿수 일치. 전체 σ 는 -0.04/-0.02 dB 로 거의 불변(설계 의도). [C] sionna↔po 코사인 0.6962 → 0.6757 (-0.0204) — 오르지 않았다(독립 검증 미성립 — three_engines_po_arm.reading_ko 참조). sbr↔po 는 +0.0162 (두 커널이 같은 각도 물리를 공유하게 된 내부 일관성).",
+ "open_issues_ko": [
+  "⚠ [C] Sionna 독립검증 미성립(코사인 −0.02) — Sionna 팔은 확산(S) 지배라 벌크 프레넬 각도모양의 잣대가 아니었다. 각도 Γ 의 독립 앵커는 실측(문헌 RCS·야외 X410)으로 넘어간다.",
+  "PO 프롭 채널 Δ(+3.46/+2.93 dB)가 SBR(+5.16/+6.48)보다 작다 — 가림 없는 PO 는 항상-보이는 뒷면·아랫면 기여가 각도 효과를 희석한다(커널 차이, 모순 아님).",
+  "drone_rcs_pattern(engine='po')·drone_rcs_pattern_bw·viz_*/benchmark 하위 사용처는 전부 옛 경로 그대로다(의도된 옵트인 정책). 순수 PO 로 각도 Γ 를 쓰려면 mesh_to_points(return_keys=True)+point_mat_keys+mats= 로 직접 부른다.",
+  "얇은 날(두께≪λ)의 각도 거동에 벌크 프레넬 모양을 빌려 쓰는 근사는 그대로다 (materials.py 선언 근사 (1) — 방향은 맞고 크기는 근사)."
+ ]
+}

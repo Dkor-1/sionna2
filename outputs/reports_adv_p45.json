@@ -1,0 +1,127 @@
+{
+  "_meta": {
+    "round": "reports 적대적 검증 — 부 4~5 (커널·앵커), reports/18~29",
+    "date": "2026-08-10",
+    "owner": "p45 갈래 (읽기 전용 라운드)",
+    "method": "12편 전 셀 정독 + 출처표 [^n] 236개 전수 기계대조(파일·키·값) + 번들표((N행 표)) 내용 대조 + 그림 존재 확인 + Γ(θ)/로터산포 낡음 검사 + 제목-근거 논리 검사",
+    "staleness_baseline": {
+      "gamma_theta": "각도의존 Γ(θ) 커널 투입 2026-08-07 10:58 (outputs/angle_gamma_impact.json), 리포트 빌드 12:01 — 빌드가 투입 이후. 그러나 인용 원장 전부(report02_derived 08-07 05:01, rcs_anchor 08-03, sigma_sensitivity 07-31, p3_* 08-03, das_fleet 08-03)는 Γ(θ) 이전 산출. docs/RESUME.md 3층에 'σ 격자 재계산 — 자세 의존 결과 전부 바뀜' 이 미완 TODO 로 남아 있음",
+      "rotor_scatter": "2026-08-10 로터 산포 ±2%→±0.22% 정정은 부 4~5 에 해당 서술 없음(전 12편 grep — 29편의 '0.22' 는 기울기 0.223 의 우연 일치). 낡음 비해당 확인"
+    },
+    "not_findings": [
+      "출처 태그 236/236 전수 일치 — 깨진 태그 0, 수치 불일치 0 (26편 [^16] '예'↔True 는 불리언 표기 차이일 뿐)",
+      "번들표 전수 일치 — 18 가림표(7행)·21 이면각표(4행)·24 모드표(3행)·25 기체표(7행)/미통제표(6행)·28 table_28(28행)·29 민감도표(5행) 모두 원장과 값 일치",
+      "그림 4장(mesh_compare_material_shadow, report02_f5/f6/f7) 전부 존재",
+      "21편 기준해 대조는 Γ(θ) 낡음 아님 — angle_gamma_impact.reference_solutions_unchanged 가 '전부 금속이라 소수 셋째 자리까지 동일(UNCHANGED)' 을 실측으로 확인",
+      "22편(PO 무릎)은 커널 무관(2D MoM 참값 vs 해석 PO, 금속 판) — Γ(θ) 비영향 확인",
+      "26·27편의 헤드라인 스칼라는 Γ(θ) 방위평균 효과(0.07~0.33 dB)가 주장 여유(레벨 -3.30 dB, 산포 16.27 dB 등)보다 훨씬 작아 반증 실패 — 주장 강건",
+      "24편 cell 8 의 '기울기 세대 간극 1.396 dB/GHz(mavic4pro)' 는 sigma_anchor(1.311) ↔ report02_derived(-0.084) 의 차와 정확히 일치 — 자기모순 아니라 공시된 세대 축"
+    ]
+  },
+  "findings": [
+    {
+      "file": "reports/19_kernel-vs-stock.ipynb",
+      "cell": 0,
+      "severity": "HIGH",
+      "type": "논리",
+      "claim": "제목: «면이 많아서 느리다» 가설은 반증되고, 런타임의 96.9% 는 호스트가 쓴다",
+      "evidence": "원장의 REFUTED 판정(facet_count.json verdict.hypothesis)은 'mesh triangle count governs stock-Sionna target echo **amplitude**' — 에코 진폭 가설이지 «느리다»(런타임) 가설이 아니다. 본문 cell 0·3 도 '«면이 많아서 에코가 커진다» 가설 REFUTED' 로 옳게 쓴다. 런타임 축(runtime_benchmark.json)에는 면 수-런타임 스윕이 아예 없어(면 수는 기체별 고정 29k~31k) «면이 많아서 느리다» 를 반증한 측정은 저장소 어디에도 없다. 제목(=결론 문장)의 앞 절이 본문 근거 위에 서지 않는다",
+      "fix": "제목을 본문과 같게 '«면이 많아서 에코가 커진다» 가설은 반증되고, 런타임의 96.9% 는 호스트가 쓴다' 로 정정 (README 색인·타 편의 편 19 인용 문자열도 함께)"
+    },
+    {
+      "file": "reports/18_kernel-what.ipynb",
+      "cell": 3,
+      "severity": "HIGH",
+      "type": "낡음",
+      "claim": "'누가 무엇을 하나' 표: 재질 |Γ| = Sionna 재질표(src/materials.py:53), PO 면적분 E = Σ|Γᵢ|e^{j2k pᵢ·û}d² (cell 1·2 동일 수식) — 상수 |Γ| 커널을 현재 사실로 기술",
+      "evidence": "2026-08-07 10:58(이 리포트 빌드 12:01 이전)에 각도의존 Γ(θ) 가 기본 켬(ANGLE_GAMMA=1)으로 들어갔다 — |Γ(θ)| = |Γ_보정|·|Γ_벌크(θ)|/|Γ_벌크(0)|, TE·TM 전력평균 (outputs/angle_gamma_impact.json _meta, src/rcs_sbr.py:84, src/materials.py:271 gamma_shape/:282 gamma_po_angle, docs/RESUME.md §1). 커널 정의 편이 커널의 최신 구성요소를 반영하지 않고, cell 7 ⚠ 도 2026-08-04 형상 정정 축만 적고 Γ(θ) 축(프롭 채널 +5.16~+6.48 dB, σ 개별 자세 최대 6.00 dB)은 누락 — 표의 가림·셸투과·생산 σ 열도 전부 Γ(θ) 이전 원장",
+      "fix": "cell 1~4 수식·표에 |Γᵢ(θ)| 와 ANGLE_GAMMA 스위치를 반영하고, cell 7 재계산 사유에 2026-08-04 형상 정정과 나란히 2026-08-07 Γ(θ) 축을 추가"
+    },
+    {
+      "file": "reports/23_kernel-open-items.ipynb",
+      "cell": 2,
+      "severity": "MED",
+      "type": "낡음",
+      "claim": "제목 '커널이 아직 못 하는 것은 편파·PTD·재테셀레이션 셋' + 열린 항목 표의 편파 행 '면적분이 스칼라라 한 채널의 σ 를 낸다'",
+      "evidence": "Γ(θ) 투입(빌드 2시간 전) 후 상태와 안 맞는다: ① 커널은 이제 TE·TM 전력평균 Γ(θ) 를 쓰므로 '한 채널' 이 아니다(RESUME §4: '스칼라 커널 — TE·TM 전력평균으로 갈음'), ② RESUME §4 가 미해결로 선언한 '얇은 판의 각도 거동 — Γ(θ) 에 벌크 모양을 빌려 씀(방향은 맞고 크기는 근사)' 가 열린 항목 표에 없다, ③ 빌드 시점에 rcs_po(순수 PO)·rcs_sbr_batch 는 Γ(θ) 미배선이었다(angle_gamma_impact.still_unwired) — 열린 항목을 전수한다는 편이 최신 열린 항목을 빠뜨림",
+      "fix": "편파 행을 'TE·TM 전력평균 스칼라(채널 분리 없음)' 로 고치고, 'Γ(θ) 벌크 모양 근사(얇은 판)' 와 'Γ(θ) 미배선 경로' 행을 추가 — 항목 수 '셋' 재검토"
+    },
+    {
+      "file": "reports/24_anchor-mode.ipynb",
+      "cell": 8,
+      "severity": "MED",
+      "type": "낡음",
+      "claim": "'이 표가 서 있는 사슬 세대' 가 두 축(원장 세대 07-30↔08-03, 형상 정정 2026-08-04)만 공시",
+      "evidence": "세 번째 축 누락: 두 세대 모두 Γ(θ) 이전 커널 산출이다(rcs_anchor.json meta.generated 2026-08-03 05:49 < Γ(θ) 2026-08-07 10:58). docs/RESUME.md 3층이 'σ 격자 재계산 — 자세 의존 결과(ε·분포적합·자세평균)가 전부 바뀐다' 를 미완으로 선언했고, angle_gamma_sigma_impact.json 실측은 방위평균 +0.04~+0.33 dB·개별 자세 최대 6.00 dB 다. 앵커 기울기·재보정 원장이 어느 커널 위에 있는지가 이 편의 존재 이유인데 그 축이 빠졌다 (25편 cell 1·5 의 같은 ⚠ 문단도 동일 누락)",
+      "fix": "cell 8 에 'Γ(θ) 이전 커널 세대' 를 셋째 축으로 추가하고 다음 단계의 재생성 항목에 Γ(θ) 반영을 명기 (25편 cell 5 ⚠ 도 동일)"
+    },
+    {
+      "file": "reports/20_bistatic-exit.ipynb",
+      "cell": 4,
+      "severity": "MED",
+      "type": "논리",
+      "claim": "'바이스태틱 자세 패턴은 β ≤ 45° 에서 성립한다 — 그 범위의 상반성 RMS 가 2.57 dB 다'",
+      "evidence": "원장 배열(sbr_defect_fixes.json d2)의 RMS(exit-vis 켬)는 β=[0,15,30,45,60,75,90] 에서 [0, 0.79, 1.57, 2.57, 1.67, 2.84, 4.02] — 창 밖이라는 β=60°(1.67 dB)가 창 안 경계 β=45°(2.57 dB)보다 좋아 45° 경계가 원장에서 유도되지 않는다(비단조). 또 β=45°(2.36→2.57)·75°(1.83→2.84)에서는 exit-vis 를 켜면 RMS 가 오히려 나빠진다 — 9.69→8.24 dB 개선은 최악치(worst) 지표에서만 성립하는데 본문은 이 조건을 안 밝힌다",
+      "fix": "창 규칙을 명시(예: 'RMS ≤ 문턱 X 를 만족하는 최대 연속 구간' 등 원장이 결정하는 규칙)하거나 β≤60° 재검토, '내려간다' 는 최악치 기준임을 본문에 한정"
+    },
+    {
+      "file": "reports/29_sigma-robustness.ipynb",
+      "cell": 7,
+      "severity": "MED",
+      "type": "낡음",
+      "claim": "⚠ 가 'Matrice 4E 행은 2026-08-04 형상 정정 전 값' 만 공시하고 '한 기체 값이 움직여도 이 표가 사는 주장은 그대로 선다' 로 닫음",
+      "evidence": "표 전체(sigma_sensitivity.json, 2026-07-31)가 Γ(θ) 이전 산출이고, 헤드라인 최악 뒤집힘 문턱 0.09 dB(자세평균, mavic4pro)는 Γ(θ) 가 실측으로 옮긴 밴드평균 σ 변화 0.07~0.33 dB(angle_gamma_sigma_impact.json)와 같은 자릿수라, 문턱 값 자체가 커널 갱신에 걸리는 양이다. 공통모드/차분 구조 주장은 강건하나 숫자 원장의 낡음 축 하나(Γ(θ))가 공시에서 빠졌다",
+      "fix": "⚠ 에 Γ(θ) 이전 산출임을 추가하고, 재생성 시 0.09 dB 급 문턱 값의 변동 가능성을 명기"
+    },
+    {
+      "file": "reports/18_kernel-what.ipynb",
+      "cell": 1,
+      "severity": "LOW",
+      "type": "출처깨짐",
+      "claim": "코드 참조 src/rcs_sbr.py:184 (PO 면적분, cell 1·2·3 반복)",
+      "evidence": "2026-08-07 커널 편집(Γ(θ) 삽입)으로 줄이 밀렸다 — 현재 :184 는 빈 줄이고 rcs_sbr_batch 는 :198, rcs_sbr 은 :790 이다. materials.py:53(:171)은 여전히 유효",
+      "fix": "줄 번호를 함수명 기준으로 갱신하거나 함수명만 인용"
+    },
+    {
+      "file": "reports/20_bistatic-exit.ipynb",
+      "cell": 2,
+      "severity": "LOW",
+      "type": "출처깨짐",
+      "claim": "코드 참조 src/rcs_sbr.py:330 rcs_sbr_multistatic (cell 1·2·5, 23편 cell 4 다음단계도 동일)",
+      "evidence": "rcs_sbr_multistatic 은 현재 :544 에 있다 — :330 은 다른 함수 내부의 ray_intersect 줄. 2026-08-07 커널 편집으로 밀림",
+      "fix": "줄 번호 갱신 또는 함수명만 인용"
+    },
+    {
+      "file": "reports/24_anchor-mode.ipynb",
+      "cell": 0,
+      "severity": "LOW",
+      "type": "가독성",
+      "claim": "결과 4 '평균 레벨이동은 0.00 dB [^16]'",
+      "evidence": "[^16] 의 키는 anchor_modes.level_shift_abs_max_db(기체별 평균 이동의 |최대|, 4.7e-15)로 '평균' 이 아니라 '절대 최대' 다. 값이 ~0 이라 수치 왜곡은 없으나 서술과 키 의미가 어긋난다",
+      "fix": "'레벨이동 절대 최대 0.00 dB' 로 표현 정정"
+    },
+    {
+      "file": "reports/25_anchor-ledger.ipynb",
+      "cell": 5,
+      "severity": "LOW",
+      "type": "가독성",
+      "claim": "본문 '⭐ polarisation 칸은 이제 크기를 갖는다(11.56 dB)' ↔ cell 4 표의 polarisation 행은 '미상'",
+      "evidence": "sigma_anchor.json uncontrolled 의 size_db 는 여전히 null 이라 표는 미상으로 인쇄되고, 크기는 본문이 다른 원장(lowfreq_anchor 11.56 dB)에서 가져온다 — 같은 편 안에서 표와 본문이 다른 값을 말해 독자가 어느 쪽이 원장인지 혼동할 수 있다",
+      "fix": "표 각주로 '크기는 편 22 의 얇은 판 참값 11.56 dB 로 갱신 예정(원장 미반영)' 을 달거나 원장 갱신 시 함께 반영"
+    },
+    {
+      "file": "reports/28_fleet-prereg.ipynb",
+      "cell": 4,
+      "severity": "LOW",
+      "type": "낡음",
+      "claim": "⚠ '둘 다 재집계를 기다린다' 가 M350 스냅샷·Mini 2 형상 정정만 나열",
+      "evidence": "네 기체 전부 Γ(θ) 이전 커널(das_fleet_validation.json 2026-08-03) 산출이라는 축이 빠졌다. 다만 방위평균 효과 0.07~0.33 dB 는 판정 산포 16.27 dB 대비 미미해 NOT_VALIDATED 판정 자체는 강건 — 공시 누락만 지적",
+      "fix": "재집계 목록에 Γ(θ) 반영 재계산을 추가(판정 강건성 문장은 유지 가능)"
+    }
+  ],
+  "checked": {
+    "files": 12,
+    "tags_verified": 236,
+    "tags_broken": 0
+  }
+}

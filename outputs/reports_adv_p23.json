@@ -1,0 +1,76 @@
+{
+  "_meta": {
+    "generated": "2026-08-10",
+    "scope": "부 2~3 — reports/08~17 (선행·표적 메쉬), 적대적 검증 읽기전용 라운드",
+    "owner": "reports_adv_p23",
+    "method": "전편 정독 + 출처 태그 원장 대조 + 낡음 검사(2026-08-07 Γ(θ) 커널 · 2026-08-04 형상 정정 · 2026-08-10 로터 산포 정정)"
+  },
+  "findings": [
+    {
+      "file": "reports/15_mesh-build.ipynb",
+      "cell": 0,
+      "severity": "HIGH",
+      "type": "낡음",
+      "claim": "결과 5 · cell 5: '⚠ 이 편의 그림과 표는 2026-08-04 형상 정정 전 메쉬 기준이다', cell 6: '이 부의 표와 그림이 현재 형상 위에 선다 — 지금은 z 축 배율부터 어긋나 있다'",
+      "evidence": "사실은 정반대다 — 표·그림 둘 다 정정 후 기준이다. 표의 X500 V2 삼각형 19,030 = meshfix_applied.json per_drone.x500v2.n_tri_after(정정 후; 정정 전은 18,816)이고 합계 207,268 도 그 값을 포함한다. 그림·표의 원장 mesh_gallery.json 은 _meta.generated 2026-08-04 10:55, mesh_source_newest 2026-08-04 04:06 — 형상 정정(드론 소스 04:03/04:06 수정, 원장 04:15) **이후** 재측정본이고, report02_derived.json(2026-08-07 05:01)의 r 교차검증도 0.00% 다. 빌더 src/build_part03_target_mesh.py:155·179 의 하드코딩 문장이 재측정 이후 갱신되지 않았다.",
+      "fix": "⚠ 문장을 '그림과 표는 2026-08-04 형상 정정 후 메쉬에서 재측정한 값이다' 로 뒤집고, cell 6 의 '형상 원장 넷 다시 돌리기(z 축 배율 어긋남)' 행에서 갤러리(완료)를 빼고 사진·CAD·재질 원장(아직 07-31 산)만 남긴다."
+    },
+    {
+      "file": "reports/16_mesh-vs-real.ipynb",
+      "cell": 0,
+      "severity": "MED",
+      "type": "낡음",
+      "claim": "결과 1~4를 현재 사실로 서술 — IoU 0.478~0.875, CAD 최대 편차 0.56%, Δ 방위평균 σ −2.00/−0.40/+1.80 dB, 자세별 RMS 6.8~10.0 dB",
+      "evidence": "네 검사 원장이 전부 두 정정 이전 산이다. mesh_compare_photo.json 생성 2026-07-31 05:18(meta.mesh_source_newest 2026-07-31 02:42 — 2026-08-04 형상 정정 전; 정정된 matrice4e·x500v2 가 사진 함대 7 에 포함), mesh_compare_cad.json 07-31 03:58, phantom4_scan_compare/real_cad_compare/community_compare 07-31 02:44~02:46 — 전부 Γ(θ) 도입(2026-08-07, rcs_sbr.py ANGLE_GAMMA 기본 켬) 전 커널 산이다. angle_gamma_sigma_impact.json(08-07 11:06)이 같은 phantom4 에서 개별 자세 σ 최대 6.0 dB · 방위평균 +0.31~0.33 dB 이동을 실측했으므로, 이 편이 인용하는 Δσ·RMS 는 현재 커널에서 다를 수 있다. 다음 단계에 사진 IoU 재측정만 적혀 있고 σ 대조 3건·CAD 에는 낡음 표시가 없다.",
+      "fix": "세 σ 대조를 Γ(θ) 기본 켬 커널로 재산출(또는 편 15 식 ⚠ 를 결과 4 에 부착)하고, 사진·CAD 검사에 '2026-08-04 형상 정정 전 메쉬 기준' 단서를 단다."
+    },
+    {
+      "file": "reports/15_mesh-build.ipynb",
+      "cell": 0,
+      "severity": "MED",
+      "type": "논리",
+      "claim": "결과 1 · cell 2: '기체 7 종을 지었다 — Mini 2 285 mm 부터 S1000+ 1330 mm 까지 4.66배다'",
+      "evidence": "모집단 섞임. 본문 표(mesh.rows)의 7종은 mini5pro·phantom4·x500v2·matrice4e·mavic4pro·typhoonh480·s1000plus 로 Mini 2 가 없다. smallest='Mini 2'·span_ratio 4.66 은 mesh_gallery.json size_spread 가 10기체(mini2 r=0.176 m·phantom3·m350rtk 포함) 위에서 계산한 값이다. 같은 결과 목록의 kr(8.6~79.7)·부품 222·삼각형 207,268 은 7종만의 합(n_airframe_band=21=7×3)이라 한 문단 안에서 모집단이 두 번 바뀐다. 7종 기준이면 스팬비는 1330/360≈3.7 이다.",
+      "fix": "'메쉬는 10종을 지었고 그중 σ 함대 7종이 이 표다' 로 모집단을 문장에 적거나, 스팬 극값·비율을 7종 위에서 다시 계산한다."
+    },
+    {
+      "file": "reports/17_materials.ipynb",
+      "cell": 1,
+      "severity": "MED",
+      "type": "낡음",
+      "claim": "방법 행 'PO 실효 반사계수 — 적분기가 실제로 곱하는 값이 그쪽이다' + cell 4 고정 스칼라 열(carbon 0.90 · plastic 0.28 · prop 0.25 …) + cell 5 셸 왕복 투과 τ=0.71 dB 상수 서술, Γ(θ) 언급 전무",
+      "evidence": "2026-08-07 부터 커널 기본값이 각도의존 Γ(θ) 다 — src/rcs_sbr.py:84 ANGLE_GAMMA=1(기본 켬), 267~275·763~770 행에서 |Γ(θ)|=|Γ_보정|·shape(θ) 를 곱한다. outputs/angle_gamma_impact.json(08-07 10:58): 프롭 채널 +5.16~+6.48 dB, angle_gamma_sigma_impact.json: 개별 자세 셀 최대 6.0 dB. 따라서 표의 스칼라는 이제 '수직입사 값' 이고 적분기가 실제로 곱하는 값이 아니다. 노트북 자체는 08-07 12:01(변경 후) 빌드인데 내용이 반영 안 됐다. 면적·Σ|Γ|A 장부(45.3%/73.5%)는 각도 무관 장부라 유효하다.",
+      "fix": "방법 행을 '수직입사 실효값 — 커널은 여기에 각도 모양 Γ(θ)/Γ(0) 을 곱한다(2026-08-07 기본 켬, 프롭 채널 +5~6.5 dB)' 로 고치고 cell 5 의 τ 도 수직입사 기준임을 명시한다."
+    },
+    {
+      "file": "reports/17_materials.ipynb",
+      "cell": 0,
+      "severity": "LOW",
+      "type": "출처깨짐",
+      "claim": "코드 줄 좌표 인용 'src/drones.py:562 DRONE_GROUP_MAT' · 'src/rcs_sbr.py:88'(셸 투과) — 편 15 의 'src/drones.py:43 DroneSpec' · 'src/drones.py:822'(치수표)도 동류",
+      "evidence": "실측: DRONE_GROUP_MAT 는 src/drones.py:1122, 셸(_DIELECTRIC_SHELLS) 로직은 src/rcs_sbr.py:100(08-07 ANGLE_GAMMA 블록 삽입으로 밀림), DroneSpec 은 drones.py:44, drones.py:822 는 현재 X500 hover_rpm 주석 문자열 한가운데다. materials.py:53 MATERIALS 만 아직 맞다.",
+      "fix": "줄번호 앵커를 재생성 시 자동 주입으로 바꾸거나 심볼명만 인용한다."
+    },
+    {
+      "file": "reports/13_where-we-stand.ipynb",
+      "cell": 5,
+      "severity": "LOW",
+      "type": "수치불일치",
+      "claim": "바이스태틱 행 'β ≤ 45°' 는 출처 태그가 없는 손입력이다 (빌더 build_part02_prior_work.py:593 하드코딩)",
+      "evidence": "반증 실패 — outputs/sbr_defect_fixes.json:d2_exit_vis_effect_on_reciprocity.beta_deg[3]=45 로 원장이 실재하고(편 20 이 [^4] 로 태깅) 값도 일치한다. 결함이 아니라 태그 누락이다. 참고로 같은 편의 '0.201 dB(해석 PO 구 대비)' 는 금속구 기준이라 Γ(θ) 변경의 영향이 없음(angle_gamma_impact.json reference_solutions_unchanged: 'UNCHANGED')을 별도 확인했다 — 낡음 아님.",
+      "fix": "β ≤ 45° 에 ⟨outputs/sbr_defect_fixes.json:d2_exit_vis_effect_on_reciprocity.beta_deg[3]⟩ 태그를 단다."
+    }
+  ],
+  "verified_notes": [
+    "리포트 08·09·10·11·12·13·14 의 스칼라 태그 전수(약 120건)를 원장에서 열어 대조 — 불일치 0, 깨진 태그 0",
+    "관문 깔때기 G1=10·G2=3·G1∩G2∩G3=0 을 papers[].gates 행 단위로 재집계해 counts 와 일치 확인",
+    "R1~R7 route_status(3/3·1/1·1/0·2/2·5/1·6/3·3/1, 합 21/11)와 편 11 표 일치",
+    "편 12 의 넓은 정의 16=게재10+프리프린트6, 편 15 kr 산술(예: S1000+ r=0.730 @3.5 GHz → 53.6), 편 15 삼각형 합 207,268 재계산 일치",
+    "로터 산포 ±0.22% 정정(2026-08-10)에 걸리는 서술은 08~17 에 없음(마이크로도플러는 부 7 소관)"
+  ],
+  "checked": {
+    "files": 10,
+    "tags_verified": 120,
+    "tags_broken": 0
+  }
+}

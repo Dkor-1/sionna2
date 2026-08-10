@@ -1,0 +1,81 @@
+{
+  "_meta": {
+    "round": "reports 44-62 (부 8~9 조명원·검출기) 적대적 검증, 읽기 전용",
+    "date": "2026-08-10",
+    "owner": "p89 갈래",
+    "method": "출처 태그 374개 전수 원장 대조(자동 342 + 파생 32 수동 재계산), 손입력 표 재계산, 낡음 검사(Γ(θ) 2026-08-07 · 로터 산포 2026-08-10), 그림 파일 존재 확인"
+  },
+  "findings": [
+    {
+      "file": "reports/57_sensitivity-chain.ipynb",
+      "cell": 0,
+      "severity": "HIGH",
+      "type": "사실오류",
+      "claim": "결과 4 / cell 5: \"헤드라인 칸을 구속하는 것은 직접파 잔차다(dpi_residual)\"",
+      "evidence": "같은 원장이 자기모순: report13_freespace.json solve.W1.R_m=9724.071630719278 이 sensitivity_eca_depth.inf.R_m(완전 억압, n0_excess_db=0.0)과 소수 12자리까지 동일 — 헤드라인 solve 는 DPI 잔류 0 에서 풀렸으므로 그 칸을 직접파 잔차가 '구속'할 수 없다(L1·G1 도 동일: R_m==inf 행). 게다가 ranges 전 셀의 limit 라벨이 dpi_residual 하나뿐인데, 이는 원장(07-30) 이후 수정된 src/freespace_link.py:207(08-03) 이 \"벽 라벨이 전 셀에서 dpi_residual 로 굳어 §1.1-5 가 무너졌다\" 라고 버그로 기록한 바로 그 패턴이고, 원장 자신의 limit_note 도 \"which wall binds is conditional; not headlined\" 다. 40dB→2786m 민감도 수치 자체는 원장과 일치.",
+      "fix": "결과 4 를 조건형으로 고쳐 쓰기: \"유한 ECA 깊이(예: 40 dB)에서는 직접파 잔차가 벽이 된다(2786→9724 m)\" — 헤드라인이 완전 억압 가정임을 명시하고, limit 라벨은 재생성 전까지 인용하지 않는다."
+    },
+    {
+      "file": "reports/60_r90.ipynb",
+      "cell": 0,
+      "severity": "HIGH",
+      "type": "낡음",
+      "claim": "R90 3.69~11.10 km 표와 단일자세(ψ=0) 밴드 순서가 현재 사실로 제시됨",
+      "evidence": "σ 원장 전부가 2026-08-07 Γ(θ) 커널 반영 이전 생성 — report13_freespace.json(07-30)·sigma_anchor.json(07-31)·sigma_sensitivity.json(07-31). 노트북은 08-07 12:01 재빌드됐지만(angle_gamma_sigma_impact.json 11:06 이후) Γ(θ) 언급이 0회고 경고는 08-04 메쉬 정정뿐. angle_gamma_sigma_impact.json: 개별 자세 셀 |Δσ| 최대 6.0 dB(phantom4/el+15) — 국소 지수 n=3.99 로 옮기면 칸당 R90 최대 ~41% 이동 가능이고, 단일자세 순위 뒤집힘 하한은 0.61 dB 라 ψ=0 표의 밴드 순서는 Γ(θ) 반영에 취약하다.",
+      "fix": "편 8 의 메쉬 경고 절에 Γ(θ)(2026-08-07) 낡음 한 줄을 병기하거나, σ 격자를 Γ(θ)-on 커널로 재생성 후 재빌드."
+    },
+    {
+      "file": "reports/57_sensitivity-chain.ipynb",
+      "cell": 2,
+      "severity": "MED",
+      "type": "낡음",
+      "claim": "σ 행(-11.33/-23.90/-12.75, 공칭 헤딩)과 격차 분해(W1-L1 σ 항 +12.57 dB)가 현재 사실로 제시됨",
+      "evidence": "값 자체는 원장과 일치함을 확인(budget_terms_db σ + mavic4pro Δσ 재계산 일치). 그러나 그 원장(report13_freespace 07-30·report05_derived 08-07 05:02 도 07-30 solve 재가공)이 Γ(θ) 커널(08-07 10:58~11:06) 이전이고, 공칭 헤딩 단일 자세 σ 는 Γ(θ) 개별 자세 최대 6 dB 에 직접 노출된다. 편 제목(값이 다른 항은 λ²와 σ 둘뿐)은 구조 주장이라 생존.",
+      "fix": "cell 2/3 에 σ 원장 세대(Γ(θ) 이전) 명시 한 줄 추가."
+    },
+    {
+      "file": "reports/61_rank-durability.ipynb",
+      "cell": 6,
+      "severity": "MED",
+      "type": "낡음",
+      "claim": "단일자세 뒤집힘 하한 0.61 dB·관측 파급(17.9%) 행이 현재 사실로 제시됨",
+      "evidence": "sigma_sensitivity.json(07-31)이 Γ(θ) 커널(08-07) 이전. Γ(θ) 개별 자세 |Δσ| 최대 6.0 dB 는 단일자세 하한 0.61 dB 를 한 자릿수 배 넘는다 — 차분 행 갱신 필요는 편이 이미 다음 단계로 걸었으나 사유가 '형상 정정(08-04)'뿐이고 커널 변경이 빠져 있다. 반증 실패도 기록: 자세평균 헤드라인은 Γ(θ) 자세평균 이동 0.03~0.33 dB < 앵커 후 문턱 3.72 dB 라 유지된다.",
+      "fix": "cell 6 경고문에 Γ(θ)(08-07) 를 병기 — 자세평균 결론 유지·단일자세 하한 취약을 갈라 적기."
+    },
+    {
+      "file": "reports/59_slope-anchor.ipynb",
+      "cell": 7,
+      "severity": "MED",
+      "type": "낡음",
+      "claim": "기체별 Δσ 표·기울기 0.210 dB/GHz 가 현재 사실로 제시됨 (메쉬 세대 경고는 08-04 정정만 언급)",
+      "evidence": "sigma_anchor.json(07-31 01:34)이 Γ(θ) 커널(08-07) 이전 σ 격자에서 산출 — slope_before(0.936~1.699 dB/GHz)와 Δσ 는 격자 σ(f) 의 함수라 Γ(θ) 반영 시 이동 가능. 표 값 자체는 원장과 전수 일치 확인(5기체×3밴드·comparability 라벨 포함).",
+      "fix": "cell 7 의 '메쉬 세대' 절을 '원장 세대' 로 넓혀 Γ(θ) 커널 변경(08-07)을 병기."
+    },
+    {
+      "file": "reports/60_r90.ipynb",
+      "cell": 0,
+      "severity": "LOW",
+      "type": "논리",
+      "claim": "제목 \"앵커 σ 위의 R90 은 3.69~11.10 km\"",
+      "evidence": "상한 11.10 km 는 anchor 비교가능성이 not_comparable 인 s1000plus(L1) 칸에서 온다(sigma_anchor.drones.s1000plus.verdict=not_comparable, 크기보정 L²/L⁴ 9.5 dB 갈림). 결과 2 는 비교가능 12칸을 3.69~7.44 km 로 제한하는데 제목은 '앵커 σ 위의' 라벨로 비교불가 칸까지 포함한 범위를 든다. 15칸 표 값 자체는 R90_C50×Δσ(국소지수 3.99) 재계산으로 전수 일치.",
+      "fix": "제목 범위를 3.69~7.44 km(비교가능 12칸)로 좁히거나 '비교불가 s1000plus 포함 시 ~11.10' 을 병기."
+    },
+    {
+      "file": "reports/55_observability.ipynb",
+      "cell": 6,
+      "severity": "LOW",
+      "type": "가독성",
+      "claim": "위치 RMS 0.19 m(2RX) 등 절대 수치가 배치 명시 없이 제시됨",
+      "evidence": "verify_observability.json meta: chamber [30,20,11]·TX [4,2.5,8]·EIRP 12 dBm — 챔버 통제 기하에서 잰 수인데 편 본문 어디에도 '챔버' 명시가 없다(기저선 15.07 m 만 표기). 같은 부의 편 56 은 야외 L=500 m 기하를 쓰므로 독자가 0.19 m 를 야외 배치로 오독할 여지가 있다. 랭크 2/6 논증 자체는 기하 일반. 표 수치는 RSS(σ_pos) 재계산으로 전수 일치(57.75/0.19/0.12/0.60 m, 유효랭크=rank_practical).",
+      "fix": "cell 1 방법 표나 cell 6 에 '챔버 통제 기하(30×20×11, EIRP 12 dBm)에서 잰 값' 한 줄 추가."
+    }
+  ],
+  "non_findings_verified": [
+    "출처 태그 374개 전수 대조: 깨진 태그 0. 편 50 의 '아니오/예' 3건은 JSON boolean 의 한글 표기, 편 62 [^1] 은 수식 문자열 말줄임 — 결함 아님",
+    "손입력 의심 표 전수 재계산 일치: 51 사슬형상(DNR·탭·빈·PRF·Δf_d=PRF/48), 55 CRLB·fixes(RSS), 57 예산표(공통항 78.46=33+10-153.52+198.98-10, σ행=PO σ+Δσ), 59 Δσ표, 60 R90표(=R90_C50×10^(Δσ/(10·3.99)) 15칸 전수), 62 CPI표",
+    "파생 태그 32건 수동 재계산 일치: 56(β@R90=2.9486→2.95, d(el-20)=126.2, d(β45)=602.4, SNR 57.7→58, 상반성 rms 2.57/4.02, 앙각 9행 min -20), 49(dR_ratio lte 0.9196 이 89~94% 구간 안, dF_ratio 6경우 전부 1.470~1.471), 52(M=48 노치비 3파형 동일 0.5957), 58(1/0.05434=18.4→18배), 60(n_local 평균 3.992, 비교가능 min/max 4.15/6.78→앵커후 3.69/7.44), 61(MC@2dB min 0.280/max 0.820, 파급 최대 17.94%)",
+    "그림 파일 참조 19편 전부 존재",
+    "로터 산포 정정(±2%→±0.22%, 08-10)에 걸리는 서술은 44~62 에 없음(부 7 소관) — '산포' 는 편 61 의 'σ 로브 산포' 뿐으로 무관"
+  ],
+  "checked": { "files": 19, "tags_verified": 374, "tags_broken": 0 }
+}

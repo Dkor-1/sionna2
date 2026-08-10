@@ -25,7 +25,8 @@ from __future__ import annotations
 import numpy as np
 
 from drones import build_frame, build_propeller, rotor_layout, drone_gamma_map
-from rcs_po import mesh_to_points, po_field_dir, C0
+import rcs_po as _rcs_po
+from rcs_po import mesh_to_points, po_field_dir, point_mat_keys, C0
 
 
 def _look(az_deg, el_deg):
@@ -35,7 +36,7 @@ def _look(az_deg, el_deg):
 
 def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None,
                         prf=20000.0, n_t=2048, spacing=None, blade_n=26,
-                        rpm_per_rotor=None):
+                        rpm_per_rotor=None, angle_gamma=False):
     """회전 블레이드의 슬로타임 복소장 E(t). 반환 (t[s], E[복소], info).
     rpm=None 이면 드론별 대표 호버 회전수(spec.hover_rpm) 사용 — 큰 프로펠러(S1000 15in)는
       느리게 돌아 v_tip 이 현실적(Mach≈0.2)으로 나온다(고정 6000rpm 은 대형기에 과대).
@@ -45,26 +46,50 @@ def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None,
       ⭐ 실제 기체는 무게중심 치우침과 요 토크 균형 때문에 네 모터가 서로 다른 추력을 내고,
         그만큼 rpm 이 갈린다. 전부 같으면 신호가 완전한 주기함수가 되어 **스펙트로그램이
         시간에 따라 변하지 않는다** — 그건 가정의 성질이지 물리가 아니다.
-      ⚠ None 이면 예전과 **비트 단위로 같다**(전 로터 같은 rpm)."""
+      ⚠ None 이면 예전과 **비트 단위로 같다**(전 로터 같은 rpm).
+
+    angle_gamma (2026-08-10 신설) : True 면 **각도의존 |Γ(θ)|** 를 쓴다 — 프레임은
+      po_field_dir(mats=…), 블레이드는 아래 인라인 적분에 rcs_po._angle_shape 를 곱한다
+      (설계·공식은 rcs_sbr/materials.gamma_shape 와 동일: |Γ(θ)|=|Γ_보정|·|Γ_벌크(θ)|/|Γ_벌크(0)|).
+      ⭐ 도는 날개는 대부분의 시간을 큰 입사각에서 보내는 플라스틱이라, SBR 실측에서 프롭 채널이
+        +5.16/+6.48 dB(matrice4e/mini5pro) 올랐다 — 순수 PO 판도 같은 물리를 옵트인으로 제공한다.
+      ⚠ False(기본)면 예전과 **비트 단위로 같다**. rcs_po 규약(옵트인·많은 하위 사용처)을 따르고,
+        env SIONNA2_ANGLE_GAMMA=0 이면 True 여도 죽는다(전역 킬스위치, SBR 과 동일)."""
     if rpm is None:
         rpm = getattr(spec, "hover_rpm", 6000.0)
     lam = C0 / fc; k = 2 * np.pi / lam
     spacing = spacing or lam / 11.0                # 촘촘한 점구름(매끈한 도플러)
     u = _look(az, el); ux, uy, uz = u
+    ag = bool(angle_gamma) and _rcs_po.ANGLE_GAMMA  # 각도의존 Γ — 옵트인 ∧ 킬스위치
 
     # 프레임(비회전) → 상수 산란장
     gm = drone_gamma_map(spec)                     # 부위 재질 |Γ| (셸 반투명 + 내부 금속)
-    Pf, Nf, dAf, wf = mesh_to_points(build_frame(spec), lam / 6.0, gamma=gm)
-    Ef = po_field_dir(Pf, Nf, dAf, fc, u, w=wf)
+    if ag:
+        from drones import DRONE_GROUP_MAT
+        _g2m = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}      # 그룹 → 재질 키
+        Pf, Nf, dAf, wf, kf = mesh_to_points(build_frame(spec), lam / 6.0, gamma=gm,
+                                             return_keys=True)
+        Ef = po_field_dir(Pf, Nf, dAf, fc, u, w=wf, mats=point_mat_keys(kf, _g2m))
+    else:
+        Pf, Nf, dAf, wf = mesh_to_points(build_frame(spec), lam / 6.0, gamma=gm)
+        Ef = po_field_dir(Pf, Nf, dAf, fc, u, w=wf)
 
     # 프로펠러 — **CW/CCW 두 벌**. 실물 멀티로터는 반대회전 로터에 거울상 프롭을 단다.
     # ⚠ 2026-07-28: 옛 코드는 한 벌을 전 로터가 공유해 네 로터가 **같은 손잡이**였다.
     #   `drones.build_drone`/`pose_articulated` 가 거울상을 쓰도록 바뀌었으므로(같은 날짜),
     #   여기 순수-PO 판도 맞춰야 한다. 안 맞추면 같은 파일 안에서 PO판(카이럴 없음)과
     #   SBR판(pose_articulated 경유 → 카이럴 있음)이 서로 어긋난다.
-    Pp, Np_, dAp, wp = mesh_to_points(build_propeller(spec, n=blade_n), spacing, gamma=gm)
-    Pm, Nm_, dAm, wm = mesh_to_points(build_propeller(spec, n=blade_n, mirror=True),
-                                      spacing, gamma=gm)
+    if ag:
+        Pp, Np_, dAp, wp, kp = mesh_to_points(build_propeller(spec, n=blade_n), spacing,
+                                              gamma=gm, return_keys=True)
+        Pm, Nm_, dAm, wm, km = mesh_to_points(build_propeller(spec, n=blade_n, mirror=True),
+                                              spacing, gamma=gm, return_keys=True)
+        mats_p, mats_m = point_mat_keys(kp, _g2m), point_mat_keys(km, _g2m)
+    else:
+        Pp, Np_, dAp, wp = mesh_to_points(build_propeller(spec, n=blade_n), spacing, gamma=gm)
+        Pm, Nm_, dAm, wm = mesh_to_points(build_propeller(spec, n=blade_n, mirror=True),
+                                          spacing, gamma=gm)
+        mats_p = mats_m = None
     rl = rotor_layout(spec)
 
     t = np.arange(n_t) / prf
@@ -81,16 +106,21 @@ def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None,
     for rot, om in zip(rl, omegas):
         cx, cy, cz = rot["center"]; base = np.radians(rot["base_ang"]); d = rot["dir"]
         # dir=+1 은 CCW → 기준(비거울) 형상, dir=−1 은 CW → 거울상 (rotor_layout 규약)
-        Pb, Nb, wb = ((Pp, Np_, dAp * wp) if d > 0 else (Pm, Nm_, dAm * wm))
+        Pb, Nb, wb, mb = ((Pp, Np_, dAp * wp, mats_p) if d > 0 else (Pm, Nm_, dAm * wm, mats_m))
         th = base + d * om * t                                      # (n_t,)
         # v(t) = Rz(-θ)·û  (블레이드 회전 ≡ 시선 반대회전)
         vx = ux * np.cos(th) + uy * np.sin(th)
         vy = -ux * np.sin(th) + uy * np.cos(th)
         vz = np.full_like(th, uz)
         V = np.stack([vx, vy, vz], axis=1)                          # (n_t,3)
-        NU = Nb @ V.T                                               # (Npts, n_t)
+        NU = Nb @ V.T                                               # (Npts, n_t) = cos θ_i(t)
         PU = Pb @ V.T
-        integ = np.where(NU > 0, NU, 0.0) * wb[:, None] * np.exp(1j * 2 * k * PU)
+        if ag:   # ⭐각도의존 Γ — NU 가 곧 입사 코사인이라 시간축까지 한 번에 얹는다
+            integ = (np.where(NU > 0, NU, 0.0)
+                     * (wb[:, None] * _rcs_po._angle_shape(mb, fc, NU))
+                     * np.exp(1j * 2 * k * PU))
+        else:
+            integ = np.where(NU > 0, NU, 0.0) * wb[:, None] * np.exp(1j * 2 * k * PU)
         Eb = integ.sum(axis=0) * np.exp(1j * 2 * k * (cx * ux + cy * uy + cz * uz))
         E += Eb
 
@@ -98,7 +128,7 @@ def microdoppler_series(spec, fc=3.5e9, az=0.0, el=15.0, rpm=None,
     f_tip = 2.0 * (omega * prop_R) / lam * np.cos(np.radians(el))    # 최대 마이크로도플러[Hz]
     info = dict(rpm=rpm, prf=prf, fc=fc, lam=lam, az=az, el=el,
                 f_tip=f_tip, flash_hz=spec.prop_blades * rpm / 60.0,
-                v_tip=omega * prop_R, n_rotors=len(rl))
+                v_tip=omega * prop_R, n_rotors=len(rl), angle_gamma=ag)
     return t, E, info
 
 

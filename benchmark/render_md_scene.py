@@ -64,7 +64,15 @@ def main():
         return rt.Camera(position=mi.Point3f(*[float(v) for v in pos]),
                          look_at=mi.Point3f(*[float(v) for v in look]))
 
-    def shot(name, camera, res=(1760, 1100), spp=1024, fov=55.0):
+    # ⭐고화질 오버라이드(2026-08-10, 사용자 지시: GPU2 전유 — 메모리 크게)
+    #   ⚠주의 실측: 2560×1600 × spp4096 = 34 GB OOM. spp2048 은 ~17 GB 로 안전.
+    _RW = int(os.environ.get("MDSCENE_RES_W", "1760"))
+    _RH = int(os.environ.get("MDSCENE_RES_H", "1100"))
+    _SPP = int(os.environ.get("MDSCENE_SPP", "1024"))
+
+    def shot(name, camera, res=None, spp=None, fov=55.0):
+        res = res or (_RW, _RH)
+        spp = spp or _SPP
         p = os.path.join(FIGDIR, f"{name}.png")
         t0 = time.time()
         scene.render_to_file(camera=camera, filename=p, num_samples=spp,
@@ -79,6 +87,22 @@ def main():
     u = -mid / np.linalg.norm(mid)                     # TX/RX → 드론 방향
     shot("report07_f0b", cam(mid - 0.9 * u + np.array([0, 0, 0.18]),
                              np.zeros(3)), fov=26.0)
+
+    # ⭐ f0c — 그림 3(세 엔진)의 씬 그대로: PathSolver 가 실제로 찾은 경로를 겹쳐 그린다.
+    #   경로해 설정은 세 엔진 실행(report07_three_engine_maps.py)과 동일하다.
+    paths = rt.PathSolver()(scene, max_depth=1, los=True, specular_reflection=True,
+                            diffuse_reflection=True, refraction=False,
+                            samples_per_src=1_000_000,
+                            max_num_paths_per_src=RP.MAX_PATHS, seed=1)
+    a, _, _, O = RP.unpack(paths)
+    n_hit = int(((O != RP.NO_OBJ).any(axis=0)).sum()) if O.size else 0
+    print(f"  경로 {a.size}개 (표적경유 {n_hit}개)", flush=True)
+    p = os.path.join(FIGDIR, "report07_f0c.png")
+    t0 = time.time()
+    scene.render_to_file(camera=cam(center + np.array([0.9, 3.2, 0.75]), center),
+                         filename=p, num_samples=_SPP, resolution=(_RW, _RH),
+                         paths=paths, fov=58.0)
+    print(f"  ✅ {os.path.relpath(p, ROOT)}  ({time.time()-t0:.1f}s)", flush=True)
 
     RP.drop_scratch(scratch)
 

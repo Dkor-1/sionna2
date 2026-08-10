@@ -1,0 +1,132 @@
+{
+ "_meta": {
+  "title": "mini5pro 프롭↔벨 겹침 정리 + mesh_check 솔리드 자 신설 — 갈래 D",
+  "when": "2026-08-10",
+  "python": "~/.venvs/py312/bin/python (CPU only — GPU 는 안 썼다)",
+  "files_touched": [
+   "src/drone_cad.py (+13줄: PROP_STANDOFF_M['mini5pro']=0.0010 한 항목 + 근거 주석 12줄)",
+   "src/mesh_check.py (+84/−6줄: PROP_BELL_SOLID_AREA_PCT 예산표 + check_prop_bell_solid + check_all/assert_ok 배선)",
+   "outputs/meshfix_mini5pro_overlap.json (이 파일)"
+  ],
+  "files_not_touched": "src/drones.py 는 결국 안 건드렸다(레버가 drone_cad 의 키게이트 표 하나로 충분). 다른 기체 분기 일절 무변경.",
+  "inputs": [
+   "outputs/meshgate_verify.json (check5 · V6)",
+   "outputs/meshgate_applied.json (fingerprints · P1/C4 결정)",
+   "outputs/meshgate_mini5pro.json (게이트 ② — 층차 부호의 1차 출처)",
+   "outputs/meshdef_prop_gap.json (닫힌식·blade droop 실측)"
+  ]
+ },
+ "headline_ko": "**브리프의 «9.12 % 남아 있다» 는 낡은 수치였다 — 실측하니 현 상태는 솔리드 자로 0.81 % 였고(9.12 % 는 적용 라운드 «이전» 값), 그 0.81 % 를 스탠드오프 1.0 mm(raw) 한 항목으로 0.00 % 로 닫았다.** 원인은 층차가 아니라(네 로터 대칭 46 삼각형씩이 그 증거) 블레이드 뿌리 로프트가 허브 밑면보다 0.860 mm(raw) 내려가 벨 캡 솔리드 안에 남는 것이었다. 층차 (−7,+7,+7,−7)·부호(앞이 낮다)는 그대로다. 미수정 9기는 두 해시 규약 모두에서 비트동일이고, 신설한 솔리드 자 검사는 반증시험(스탠드오프 제거 → FAIL)을 통과했다.",
+ "premise_correction_ko": {
+  "brief_said": "meshgate_verify check5 가 mini5pro 9.12 % 를 남겼다",
+  "measured_now": "현 저장소(HEAD 8c6f390 + 병행 갈래 작업트리)에서 직접 재측정: 솔리드 자 184 삼각형 = 0.8109 %, 원통 자 392 = 2.497 %.",
+  "why_the_gap": "9.12 % 는 check5 배열의 **before**(적용 라운드 이전) 값이다. verify 자신이 «1276 → 184 삼각형(9.12 % → 0.81 %)» 로 적고 있다. 현 메쉬 10기 전부가 meshgate_applied 의 after 지문(mesh_sha 규약)과 일치함을 확인해 현 상태 = 적용후 상태임을 못박았다.",
+  "discipline": "실측 > 그럴듯함 — 브리프 수치도 실측으로 검증하고 시작했다."
+ },
+ "task1_cause_verdict": {
+  "not_the_tier_ko": "층차·벨 위치는 원인이 **아니다**. 게이트 ②(rotor_z (−7,+7,+7,−7) + ARM_Z_FOLLOWS_ROTOR) 이후 네 벨이 각자의 로터 z 를 따라가 장착 간격이 네 로터 균일 0 이고, 남은 겹침이 네 로터에 **완전 대칭**(로터당 46 삼각형·32.17 mm², z [장착면−0.876, 장착면−0.034] mm, r 5.30~10.58 mm)이라는 것이 그 증거다 — 층차 문제라면 앞뒤가 달라야 한다.",
+  "actual_cause_ko": "블레이드 뿌리 로프트(익형 비틀림)가 허브 밑면(=장착면)보다 내려간다. 벨 반경 14.3 mm 안에서 내려가는 깊이 = 정점 기준 **1.134 mm(final) = 0.860 mm(raw, sz 1.3189 로 나눔)**, 로터당 42정점. 스탠드오프 0(허브 밑면=벨 윗면, 옵션 B)이라 그 깊이만큼 벨 캡 «솔리드 안»에 프롭 면이 남고, build_drone 이 prop↔motor 를 합집합하지 않으므로 PO 가 그 면적을 이중 계상한다. 적용 라운드가 «선언 잔차» 로 남긴 바로 그것이다. (참고: droop 최심 −1.69 mm 는 r 38.9 mm 까지의 블레이드 중간부 — 벨 밖 허공이라 관통이 아니다.)",
+  "which_lever_ko": "**프롭 z 다.** 벨 형상은 실측 대응(캔+캡 뭉치 ↔ matrice4e CAD, 높이 0.57 mm 이내)이 있어 옮길 근거가 없다. 프롭 z 는 나사식 프롭 가족의 실측 앵커 둘 — mini2 공식 GLB **2.81 mm**, phantom3 매뉴얼 유도 **1.55 mm** — 이 «벨 위 양의 간격» 을 지지한다. Mini 계열 프롭은 나사식(mini2 GLB 가 같은 계열의 실측 근거)이고, 퀵릴리스 가족(M4 CAD 간격 0)과 다르다. 다만 Mini 5 Pro 자체의 mm 출처는 없다(meshgate_mini5pro.json: 정투영 측면도·CAD 부재) — 모른다고 적는다.",
+  "sign_kept_ko": "층차 부호(앞이 낮다, DJI 매뉴얼 p.11/p.14)와 크기 14 mm(추정)는 **한 글자도 안 건드렸다** — rotor_z_mm (−7,+7,+7,−7) 그대로.",
+  "counter_evidence_ko": [
+   "반대근거 ①: mini5pro 가 실은 퀵릴리스라면 실물 간격은 0 이 옳고 우리 1.0 mm 는 실물보다 크다. 그래도 1.0 mm 는 가족 앵커(1.55~2.81)보다 작아 어느 가설에서도 과장 방향이 아니다.",
+   "반대근거 ②: 더 근본적인 수리는 프롭 로프트의 droop 자체를 없애는 것이다. 그러나 그것은 프롭 «형상» 변경 = 마이크로도플러 블레이드 응답을 바꾸는 큰 수술이라 «최소 수정» 이 아니고, 이 갈래 범위 밖으로 남긴다(같은 droop 가 mavic4pro 0.76 %·phantom4 3.74 % 를 만들고 있다 — 아래 residuals)."
+  ]
+ },
+ "task2_fix_applied": {
+  "edit": "src/drone_cad.py PROP_STANDOFF_M 에 \"mini5pro\": 0.0010 (코드 1줄 + 주석 12줄). 키게이트 dict 라 다른 기체 경로에 안 닿는다.",
+  "value_basis_ko": "물리 주장이 아니라 **메쉬 유효성 간극**: 벨 반경 안 droop 0.860 mm(raw)를 덮는 최소의 둥근 값(잉여 0.14 mm raw). 가족 앵커(1.55·2.81 mm)보다 작아 실물 방향으로 하한이다.",
+  "overlap_before_after": {
+   "solid_ruler_area_pct": [0.8109, 0.0],
+   "solid_ruler_tris": [184, 0],
+   "cyl_ruler_area_pct": [2.497, 0.0],
+   "cyl_ruler_tris": [392, 0],
+   "cyl_ruler_depth_mm": [1.214, 0.0],
+   "min_prop_vert_minus_bell_top_mm": [-1.1336, 0.1649],
+   "note": "after 는 «중심이 안 들어옴» 이 아니라 **정점 단위로도 벨 위**다 — 참 무관통."
+  },
+  "geometry_side_effects": {
+   "standoff_final_mm": 1.2985,
+   "mount_z_final_mm": [[13.2549, 31.7196], [14.3489, 32.5286]],
+   "bell_top_final_mm": [13.0504, 31.23],
+   "fit_scale_z": [1.3189, 1.2985],
+   "vertical_stretch_pct": [31.89, 29.85],
+   "bbox_mm": [[258.367, 360.424, 91.0], [258.367, 360.424, 91.0]],
+   "n_f": [29036, 29036],
+   "note_ko": "공식 높이 91 mm(프롭 포함) 유지. 프롭이 1 mm(raw) 올라간 만큼 세로 왜곡 sz 가 오히려 1.9 %p 준다(R3 잔차 방향으로 개선). 면 수·위상 불변 — z 이동+재배율뿐."
+  },
+  "mini5pro_fingerprints": {
+   "convention_A_f32": "sha256(float32(v)+int32(f)) — 지시 규약",
+   "before_f32": "dd0081211cb06c68c7429d0b9a1aa789b0cb20ab81f12e17d8a3f7eb426edc4b",
+   "after_f32": "e4fb4478381b7b7a80c20410291f44a35f5e14d0d2621b6632e2ac9a97224f1b",
+   "convention_B_mesh_sha16": "benchmark/meshdef_spec_measure.py:44 규약(round(v,9) f64 + i64, 16자)",
+   "before_sha16": "a6e117bb3117480a",
+   "after_sha16": "362c72aa00ae42df"
+  }
+ },
+ "task_bit_identity_of_untouched": {
+  "method": "수정 전(이 세션 baseline)·후 각각 build_drone 으로 10기 전부 재빌드, 두 규약으로 해시. 추가로 baseline 이 meshgate_applied.json fingerprints 의 after 열(mesh_sha16 규약)과 10/10 일치함을 먼저 확인해 «현 상태 = 적용후 상태» 를 못박았다.",
+  "result": {
+   "mavic4pro": true, "matrice4e": true, "s1000plus": true, "phantom4": true,
+   "typhoonh480": true, "x500v2": true, "phantom3": true, "m350rtk": true, "mini2": true
+  },
+  "all_nine_bit_identical": true,
+  "sha16_after_edit": {
+   "mavic4pro": "893e9e8656ae9778", "matrice4e": "dc5d28a46dd7fd01",
+   "s1000plus": "368475213695b924", "phantom4": "7a33d004356c8cc0",
+   "typhoonh480": "ff4356b210b148dc", "x500v2": "8070ec2ca55f5dcc",
+   "phantom3": "a2943754ab1a2641", "m350rtk": "848fee1540c0c4b4",
+   "mini2": "57614a81ab9b981b"
+  },
+  "note_ko": "9기 전부 두 규약(f32 전체 sha256 · mesh_sha16) 모두 비트동일. 지시의 «5종» 을 넘어 mini5pro 외 **9기 전부** 를 쟀다. 병행 갈래가 src/microdoppler.py·rcs_po.py 등을 고치고 있으나 build_drone 경로(drones.py·drone_cad.py·geom·cadkit)와 무관함을 git diff 로 확인했다."
+ },
+ "task3_mesh_check": {
+  "already_present_confirmed_ko": "선배 교훈(«normals_out 이라는 이름과 달리 winding 이 깨져 있었다»)이 요구하는 세 검사는 **이미 있었다** — check_mesh 가 부품(연결요소)별로 is_watertight(수밀), is_winding_consistent(winding), volume<0(부피 부호=법선 방향), 퇴화면을 센다(src/mesh_check.py:54-57). 이름이 아니라 계산으로 판정한다 — 새로 넣을 것은 없었고 확인만 기록한다.",
+  "newly_added_ko": "**그룹 간 관통의 솔리드 자** check_prop_bell_solid 를 신설했다. 기존 check_prop_bell 은 벨을 (최대반경×z범위) 원통으로 근사해 진짜 이중계상 면적과 다르게 센다(mini5pro 2.50 ↔ 0.81 %, m350rtk 11.27 ↔ 4.27 %). 새 검사는 trimesh contains() 로 «벨 수밀 솔리드 안의 프롭 삼각형 중심» 면적을 직접 재고, 기체별 예산(PROP_BELL_SOLID_AREA_PCT, «지금 이만큼이다» 기록)으로 판정한다. check_all·assert_ok 에 배선 — 회귀하면 빌드가 죽는다.",
+  "falsification_ko": "반증시험: PROP_STANDOFF_M 에서 mini5pro 를 메모리에서 지우고 돌리면 184 삼각형/0.811 % > 예산 0.1 % 로 **FAIL**, 되돌리면 0/0.0 % PASS — 검사는 헛돌지 않는다.",
+  "fleet_results_after_fix": {
+   "mini5pro":    {"cyl": {"depth_mm": 0.0,     "area_pct": 0.0,    "budget_mm": 2.5,  "ok": true}, "solid": {"tris": 0,    "area_pct": 0.0,   "budget_pct": 0.1, "ok": true}},
+   "mavic4pro":   {"cyl": {"depth_mm": 2.0189,  "area_pct": 1.897,  "budget_mm": 2.5,  "ok": true}, "solid": {"tris": 176,  "area_pct": 0.756, "budget_pct": 1.0, "ok": true}},
+   "matrice4e":   {"cyl": {"depth_mm": 1.2421,  "area_pct": 0.392,  "budget_mm": 2.5,  "ok": true}, "solid": {"tris": 16,   "area_pct": 0.012, "budget_pct": 0.1, "ok": true}},
+   "s1000plus":   {"cyl": {"depth_mm": 0.0,     "area_pct": 0.0,    "budget_mm": 2.5,  "ok": true}, "solid": {"tris": 0,    "area_pct": 0.0,   "budget_pct": 0.1, "ok": true}},
+   "phantom4":    {"cyl": {"depth_mm": 1.755,   "area_pct": 1.818,  "budget_mm": 2.5,  "ok": true}, "solid": {"tris": 256,  "area_pct": 3.742, "budget_pct": 4.2, "ok": true}},
+   "typhoonh480": {"cyl": {"depth_mm": 3.253,   "area_pct": 5.128,  "budget_mm": 4.0,  "ok": true}, "solid": {"tris": 1320, "area_pct": 5.128, "budget_pct": 5.5, "ok": true}},
+   "x500v2":      {"cyl": {"depth_mm": 0.0,     "area_pct": 0.0,    "budget_mm": 2.5,  "ok": true}, "solid": {"tris": 0,    "area_pct": 0.0,   "budget_pct": 0.1, "ok": true}},
+   "phantom3":    {"cyl": {"depth_mm": 0.0,     "area_pct": 0.0,    "budget_mm": 2.5,  "ok": true}, "solid": {"tris": 0,    "area_pct": 0.0,   "budget_pct": 0.1, "ok": true}},
+   "m350rtk":     {"cyl": {"depth_mm": 24.1348, "area_pct": 11.266, "budget_mm": 25.0, "ok": true}, "solid": {"tris": 232,  "area_pct": 4.271, "budget_pct": 4.5, "ok": true}},
+   "mini2":       {"cyl": {"depth_mm": 3.473,   "area_pct": 13.078, "budget_mm": 4.0,  "ok": true}, "solid": {"tris": 878,  "area_pct": 2.979, "budget_pct": 3.2, "ok": true}}
+  },
+  "integrity_after_fix": "python src/mesh_check.py → 10/10 통과(수밀·winding·법선안쪽·퇴화면 전부 0, 두 관통 자 전부 예산 내). assert_ok() = True.",
+  "solid_vs_verify_note_ko": "phantom4 솔리드 3.74 % 는 verify 의 2.18 % 와 다르다 — 컴포넌트 선정이 다른 자다(우리는 로터 근방 «모든» 수밀 motor 요소, verify 는 벨 하나). 자의 정의를 코드에 박았으므로 이후 비교는 이 자로 하면 된다."
+ },
+ "task4_invalidated_outputs": {
+  "rule_ko": "mini5pro 메쉬(sha16 a6e117bb… → 362c72aa…)를 읽은 저장물은 낡았다. mini5pro 칸만 낡는다 — 다른 9기 칸은 비트동일이라 유효하다. 재계산은 메인이 돌린다.",
+  "tier_A_headline": [
+   {"f": "outputs/rcs_anchor.json", "why": "절대 σ 앵커(7기, mini5pro 포함)", "scope": "mini5pro 칸", "cost_note": "자기기록 22997 s(7기 전체 기준)"},
+   {"f": "outputs/report13_sigma_grid.json + report13_sigma_grid.mini5pro.json + report13_sigma_grid_elext.json", "why": "자세×주파수 σ 격자", "scope": "mini5pro 칸"},
+   {"f": "outputs/report13_freespace.json", "why": "검지거리 사다리 — σ 를 먹는다", "scope": "mini5pro 행"},
+   {"f": "outputs/report15b_microdoppler.json + report15b_series.npz", "why": "마이크로도플러 재계산(DRONE_KEYS=[matrice4e, mini5pro])", "scope": "mini5pro 칸", "warning_ko": "⚠ 지금 GPU2 에서 도는 재계산이 수정 «전» 메쉬로 돌고 있다 — 그 결과의 mini5pro 절반은 태어나면서 낡는다. matrice4e 절반은 유효."},
+   {"f": "outputs/report16_base.json · report16_metric_* · report16_rung_* · report16_synthesis.json", "why": "표적 사다리 — mesh_full/half_tri/no_rotor 팔이 메쉬를 읽는다", "scope": "mini5pro 칸"},
+   {"f": "outputs/sigma_anchor.json · sigma_sensitivity.json · sigma_robust_summary.json · sigma_grid_regen.json · sigma_regen_impact.json · sigma_el_extend_*.json · angle_gamma_sigma_impact.json", "why": "σ 민감도·앙각확장 — 격자에 종속", "scope": "mini5pro 칸"},
+   {"f": "outputs/report02_derived.json · report05_derived.json · report06_derived.json", "why": "리포트 본문 표·그림 파생값", "scope": "mini5pro 칸"},
+   {"f": "outputs/mesh_compare_photo.json · mesh_compare_cad.json · mesh_compare_material.json", "why": "실물 대조 점수 — 형상이 직접 바뀌었다", "scope": "mini5pro 칸 (real_cad_compare.json 은 mini5pro 없음 — 무관 확인)"}
+  ],
+  "auto_invalidated": [
+   {"f": "outputs/sigma_sbr_cache.json", "why": "키에 메쉬 지문이 있어 mini5pro 항목은 자동 미스 — 조치 불필요"}
+  ],
+  "tier_B_figures_docs": [
+   {"f": "outputs/figures/report13_* · report15b/report07 mini5pro 그림 · mesh gallery PNG", "why": "위 JSON 에서 나온다"},
+   {"f": "docs/DRONE_SPECS.md 등 프롭 장착 높이를 인용하는 문서", "why": "mini5pro 장착 z 가 1.0 mm(raw) 올라갔다"}
+  ],
+  "records_superseded_not_stale": [
+   {"f": "outputs/meshgate_applied.json fingerprints · outputs/meshgate_verify.json", "why": "역사 기록 — 재계산 대상 아님. mini5pro 의 최신 지문은 이 파일이 갖는다."}
+  ],
+  "not_stale_confirmed": "p3_*·anchor_subband*(phantom3) · das_fleet_*(mini2·phantom3·phantom4) · report15_*(matrice4e·mini2) · report00_microdoppler(matrice4e·mini2) · x500v2/typhoonh480/m350rtk 전용물 — mini5pro 를 안 읽는다."
+ },
+ "residuals_left_open_ko": [
+  "블레이드 뿌리 droop 자체(프롭 형상)는 그대로다 — mavic4pro 0.76 %·phantom4 3.74 %·typhoonh480 5.13 %·m350rtk 4.27 %·mini2 2.98 % 는 선언 예산 안에서 감시되는 잔차로 남는다(우선순위 낮음, 브리프 합의).",
+  "mini5pro 층차 크기 14 mm 는 여전히 추정(부호만 매뉴얼 근거) — 이 갈래는 건드리지 않았다.",
+  "mini5pro sz +29.85 % 세로왜곡(R3)은 여전히 크다 — 1.9 %p 개선은 부수효과일 뿐이다.",
+  "check_prop_bell(원통 자)의 1 µm 경계 모호(verify V3)는 그대로 두었다 — 판정 기준을 솔리드 자로 옮기는 것으로 대신했다."
+ ]
+}
