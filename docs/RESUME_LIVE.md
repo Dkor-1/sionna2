@@ -1,13 +1,13 @@
-# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 2026-08-10 21:37:42)
+# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 2026-08-10 22:47:45)
 
 ## 프로세스
 198615 bash -c for i in $(seq 1 144); do { echo "# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 $(date "+%F %T"))"; echo; echo "## 프로세스"; pgrep -af "report15b_microdoppler_recompute|experiment_freespace_sigma|rcs_same_span|hover_long" || echo "(없음)"; echo; echo "## GPU"; nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader; echo; echo "## 로그 후미"; for f in md15b3_meshfix sigma_force_m4e sigma_force_mini5 samespan sigma_chain; do echo "── $f.log:"; tail -2 /tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/$f.log 2>/dev/null; done; echo; echo "## git"; git -C /home/yunjung/workspace/sionna2 log --oneline -1; echo "미커밋 $(git -C /home/yunjung/workspace/sionna2 status --porcelain | wc -l)건"; } > /home/yunjung/workspace/sionna2/docs/RESUME_LIVE.md 2>&1; sleep 600; done
 
 ## GPU
-0, 21425 MiB, 100 %
-1, 21998 MiB, 100 %
-2, 9537 MiB, 100 %
-3, 18636 MiB, 100 %
+0, 21827 MiB, 100 %
+1, 23920 MiB, 100 %
+2, 14741 MiB, 100 %
+3, 23868 MiB, 100 %
 
 ## 로그 후미
 ── md15b3_meshfix.log:
@@ -27,5 +27,5 @@ HOVER_OUTDOOR_DONE 05:07:07
 SIGMA_MINI5_DONE 07:13:45
 
 ## git
-6fb4629 세션 종료 지점 정리 — RESUME.md 갱신 + 투과 모델 현실화 계획
-미커밋 10건
+e7882da 덱 v14·v15 보존
+미커밋 155건

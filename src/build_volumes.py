@@ -29,7 +29,7 @@ build_volumes.py — ⭐**조각 78 편을 15 권으로 묶는다**
    ⇒ 재계산 → 조각 빌더 재실행 → 이 스크립트 재실행이면 권의 숫자도 함께 갱신된다.
 
    조각:  reports/_parts/NN_slug.ipynb   (빌더 산출 · **사람이 직접 읽는 문서가 아니다**)
-   권  :  reports/NN_slug.ipynb          (사람이 읽는 문서 · 15 권 · 8 권만 네 편으로 나뉜다)
+   권  :  reports/NN_slug.ipynb          (사람이 읽는 문서 · 15 권 · 8 권만 다섯 편으로 나뉜다 · 별편은 COMPANIONS)
 
 이 스크립트가 손대는 다섯 가지
 ------------------------------
@@ -44,8 +44,8 @@ build_volumes.py — ⭐**조각 78 편을 15 권으로 묶는다**
 3. **지도 권 생성** — 1 권의 첫 절은 조각이 아니라 이 스크립트가 짓는다. 옛 조각 `00_map`
    은 «78 편 · 12 부» 라는 폐지된 구조 자체를 설명하는 글이라 재배선으로 살릴 수 없다.
    대신 여기서 열다섯 권의 목차·조각 배치·읽는 경로를 **편성과 디스크에서 다시 만든다.**
-4. **8 권 후처리** — 8 권은 그림이 무거워 네 편으로 나뉘고, 다른 빌더가 낸다(위 ②).
-   이 스크립트는 그 네 편의 **주소만 고치고**, 옛 부 7 조각(34~39)을 `08_3_pattern.ipynb`
+4. **8 권 후처리** — 8 권은 그림이 무거워 다섯 편으로 나뉘고, 다른 빌더가 낸다(위 ②·②').
+   이 스크립트는 그 다섯 편의 **주소만 고치고**, 옛 부 7 조각(34~39)을 `08_3_pattern.ipynb`
    뒤에 절로 **덧붙인다**. 덧붙인 셀에는 표식을 달아 두므로 다시 돌려도 겹쳐 쌓이지 않는다.
 5. **색인과 목차** — `outputs/volumes_index.json`(기계용)과 `reports/README.md`(사람용).
 
@@ -79,7 +79,7 @@ APPEND_TAG = "from_parts"
 #    (번호, 슬러그, 제목, 한 줄 논지, [조각 번호…], 결론 조각)
 #  ⭐ 순서는 «묻는 것 → 도구를 믿을 근거 → 표적 → 신호 → 처리 → 결과 → 실측» 이다.
 #     마이크로도플러는 «7 번» 을 고집하지 않고 이 흐름에서 제 자리인 **8 권**이다(사용자 지시).
-#     그 8 권만 아래 EXTERNAL 이 맡는다 — 그림이 무거워 네 편으로 나뉘기 때문이다.
+#     그 8 권만 아래 EXTERNAL 이 맡는다 — 그림이 무거워 다섯 편으로 나뉘기 때문이다.
 #  ⭐ 마지막 칸은 «이 권을 한 절만 읽는다면 어디» — 빨리 훑는 경로가 여기서 만들어진다.
 # --------------------------------------------------------------------------- #
 VOLUMES = [
@@ -95,8 +95,10 @@ VOLUMES = [
      "공개 문헌과 오픈소스를 전수로 세어, 우리가 **새로 하는 것과 빌려 쓰는 것**을 갈라 적는다.",
      ["08", "09", "10", "11", "12", "14"], "08"),
     ("04", "target-mesh", "표적을 짓는다 — 메쉬와 재질",
-     "기체 아홉 대를 CAD 로 짓고 실물 사진·도면과 대조한다. "
-     "**재질은 측정이 아니라 선언**이고, 그 선언이 어디까지 미치는지 함께 적는다.",
+     f"기체 {len(RS.fetch(('outputs/mesh_gallery.json', 'order_by_size')))} 대를 CAD 로 짓고, "
+     f"그중 σ 를 내는 {RS.fetch(('outputs/report02_derived.json', 'mesh.n')):.0f} 대를 실물 "
+     f"사진·도면과 대조한다. **재질은 측정이 아니라 선언**이고, 그 선언이 어디까지 미치는지 "
+     f"함께 적는다.",
      ["15", "16", "17"], "16"),
     ("05", "kernel", "우리 커널 — 무엇이고, 무엇이 아닌가",
      "SBR + 물리광학이 무엇을 계산하고 무엇을 **계산하지 않는지**를 정의하고, "
@@ -106,8 +108,9 @@ VOLUMES = [
      "우리 σ 의 절대 레벨을 붙드는 것은 **공개 문헌 한 기체·한 실험실**뿐이다. "
      "그 끈의 장력을 재고, 끊어질 자리를 먼저 적는다.",
      ["24", "25", "26", "27", "28", "29"], "24"),
-    ("07", "size-law", "크기 법칙 — 작아지면 얼마나 어려워지나",
-     "기체 크기를 사다리로 놓고 σ 와 검출거리가 어떻게 따라오는지 본다. "
+    ("07", "size-law", "표적을 얼마나 거칠게 그려도 되나 — 사다리와 크기 법칙",
+     "표적 모형을 구·정육면체·상자·평판으로 갈아 끼우는 사다리로 **단순화의 값**을 재고, "
+     "앵커보다 크고 작은 두 기체로 **크기전이 법칙**을 가르는 계획을 적는다. "
      "**사다리의 답이 이르게 나오면 그것부터 의심한다.**",
      ["30", "31", "32", "33", "77"], "32"),
     # 08 은 EXTERNAL 이 맡는다
@@ -162,9 +165,35 @@ EXTERNAL = [
          headline="36"),
 ]
 
+# --------------------------------------------------------------------------- #
+#  권에 딸린 별편 — 권 파일과 따로 사는 노트북이고 빌더도 다르다.
+#    권을 쪼갠 것(EXTERNAL)이 아니라, 권 하나의 가정을 하나만 풀어 본 **곁가지**다.
+#    지도는 이것도 세어 적는다 — 세지 않으면 디스크에 있는 노트북이 목차에서 사라진다.
+# --------------------------------------------------------------------------- #
+COMPANIONS = {
+    "11": [dict(file="11_2_two_channel.ipynb",
+                label="11-2",
+                title="기준채널이 현실이면 얼마를 잃는가",
+                what="11 권의 사슬을 한 줄도 안 고치고, 기준신호를 «송신 파형 그대로» 에서 "
+                     "«잡음·다중경로가 섞인 측정 신호» 로 바꿔 손실을 잰다",
+                builder="src/make_report11_2_two_channel.py")],
+}
+
 #: 1 권 첫 절(지도)은 조각이 아니라 이 스크립트가 짓는다.
 MAP_VOL = "01"
 MAP_SECTION_TITLE = "열다섯 권의 지도 — 무엇이 어디에 있나"
+
+#: 편 수를 한글로 — 지도 본문이 «네 편/다섯 편» 을 손으로 적지 않게 한다.
+_KOR_COUNT = {1: "한", 2: "두", 3: "세", 4: "네", 5: "다섯", 6: "여섯", 7: "일곱",
+              8: "여덟", 9: "아홉", 10: "열"}
+
+
+def _kor(n: int) -> str:
+    return _KOR_COUNT.get(n, str(n))
+
+
+def _n_companions() -> int:
+    return sum(len(v) for v in COMPANIONS.values())
 
 #: 읽는 경로 ② «왜 믿을 수 있나» — 검증·대조·반증 조각만. (경로 ① 은 각 권의 결론 절이다)
 VERIFY_PARTS = ["01", "04", "05", "21", "22", "26", "27", "28", "29", "33",
@@ -180,6 +209,12 @@ SUPERSEDED = {
 #  정규식
 # --------------------------------------------------------------------------- #
 _FN_REF = re.compile(r"\[\^(\d+)\]")                       # 각주(정의·인용 공통)
+#: 그림 번호 — 조각마다 «그림 1» 부터 다시 세므로 그냥 이으면 한 권 안에 «그림 1» 이 여럿이다.
+#: 각주와 같은 방식으로 권 단위로 다시 매긴다. 캡션(`**그림 1.**`)과 산문의 참조(`그림 2 에서`)를
+#: 같은 만큼 옮겨야 짝이 유지된다.
+#: ⚠ «그림 3 개/장/편» 은 **수량**이지 번호가 아니다 — 건드리지 않는다.
+_FIG_NUM = re.compile(r"그림\s*(\d+)(?!\s*(?:개|장|편))")
+_FIG_CAP_NO = re.compile(r"\*\*그림\s*(\d+)\.\*\*")         # 캡션 — 그림 번호의 정의
 #: 조각 사이 참조 — `[편 22 «…»](22_po-knee.ipynb)`
 _XREF = re.compile(r"\[\s*편\s*(\d{2})\s*([^\]]*?)\s*\]\(\s*(\d{2})_([a-z0-9\-]+)\.ipynb"
                    r"(?:#[^)]*)?\s*\)")
@@ -320,6 +355,19 @@ def _max_footnote(src: str) -> int:
     return max(ns) if ns else 0
 
 
+def _shift_figures(src: str, off: int) -> str:
+    """그림 번호를 권 단위로 다시 매긴다 — 캡션과 산문의 참조를 함께 옮긴다."""
+    if off == 0:
+        return src
+    return _FIG_NUM.sub(lambda m: f"그림 {int(m.group(1)) + off}", src)
+
+
+def _max_figure(src: str) -> int:
+    """이 조각이 정의한 그림의 마지막 번호 — **캡션**만 센다(참조는 정의가 아니다)."""
+    ns = [int(m.group(1)) for m in _FIG_CAP_NO.finditer(src)]
+    return max(ns) if ns else 0
+
+
 def _relink(src: str, cur_file: str, place: dict[str, dict],
             bu2vol: dict[str, str], stat: dict) -> str:
     """78 편 시절 주소를 새 권·절 주소로 고쳐 쓴다. 같은 **파일** 안이면 링크를 안 만든다."""
@@ -401,6 +449,9 @@ def _vol_intro(no: str, title: str, thesis: str,
               "⭐ 표시한 절 하나만 읽어도 이 권의 결론은 선다.", "",
               "숫자는 전부 계산 결과 JSON(원장)에서 주입된다 — 절 끝 «출처» 표가 그 파일과 키다. "
               "원장이 다시 계산되면 빌더를 돌리는 것만으로 본문 숫자가 따라 바뀐다.", ""]
+    for c in COMPANIONS.get(no, []):
+        lines += [f"이 권에는 별편이 하나 딸려 있다 — [리포트 {c['label']} «{c['title']}»]"
+                  f"({c['file']}) 다. {c['what']}.", ""]
     lines.append("전체 목차는 [reports/README.md](README.md) 다."
                  if no == MAP_VOL else
                  "전체 목차는 [reports/README.md](README.md) 이고, 열다섯 권의 지도는 "
@@ -434,9 +485,14 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
         "고칠 일이 생기면 조각이 아니라 그 조각을 만든 빌더를 고친다.\n"
         f"3. 조각 사이 상호참조 ⟨{INDEX_REL} : _meta.n_crossrefs⟩ 개는 «리포트 N 절 M» 주소로 "
         "다시 쓰였고, 각주는 편 단위로 다시 번호가 매겨졌다.\n"
-        "4. 한 권이 한 파일인 것이 규칙이고, **8 권만 그림이 무거워 네 편**이다 — 파일이 커지면 "
-        "열리지 않기 때문이지 메시지가 넷이어서가 아니다.\n"
-        "5. 읽는 목적이 셋이면 순서도 셋이다 — **빨리 훑기**(권마다 결론 절 하나씩) · "
+        + "".join(
+            f"4. 한 권이 한 파일인 것이 규칙이고, **{int(ex['no'])} 권만 그림이 무거워 "
+            f"{_kor(len(ex['files']))} 편**이다 — 파일이 커지면 열리지 않기 때문이지 "
+            f"메시지가 {_kor(len(ex['files']))} 개여서가 아니다."
+            + (f" 그 밖에 권에 딸린 별편이 {_n_companions()} 편 있다.\n"
+               if COMPANIONS else "\n")
+            for ex in EXTERNAL)
+        + "5. 읽는 목적이 셋이면 순서도 셋이다 — **빨리 훑기**(권마다 결론 절 하나씩) · "
         "**왜 믿을 수 있나**(검증·대조·반증 절만) · **다시 돌리기**(리포트를 안 읽고 명령만 본다). "
         "논문 문장과 재현 절차는 리포트 밖에 산다 — [`docs/paper/`](../docs/paper/README.md) 와 "
         "[`docs/REPRODUCE.md`](../docs/REPRODUCE.md) 다.\n"))
@@ -462,15 +518,39 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
         "```bash\n"
         "PYTHONPATH=src python src/build_part00_map.py              # ① 조각 빌더 12 개\n"
         "PYTHONPATH=src python src/make_report08_microdoppler.py    # ② 8 권 1~4 편\n"
+        "PYTHONPATH=src python src/make_report07b_bistatic.py       # ②' 8 권 5 편\n"
+        "PYTHONPATH=src python src/make_report11_2_two_channel.py   # ②\" 11-2 별편\n"
         "PYTHONPATH=src python src/build_volumes.py                 # ③ 조각 → 권\n"
         "PYTHONPATH=src python benchmark/check_report_links.py      # ④ 검사\n"
         "```\n"
         "\n"
         "| | |\n"
         "|---|---|\n"
-        f"| 출력 | `reports/*.ipynb` {n_vol} 권 · `{INDEX_REL}` · `reports/README.md` |\n"
+        f"| 출력 | `reports/*.ipynb` {n_vol} 권 (+ 별편 {_n_companions()} 편) · "
+        f"`{INDEX_REL}` · `reports/README.md` |\n"
         "| 소요 | 약 3 초 (GPU 0 장) |\n"
-        "| 비고 | ③ 은 맨 마지막이다 — ② 가 낸 8 권 파일 뒤에 조각을 덧붙이기 때문이다 |\n"))
+        "| 비고 | ③ 은 맨 마지막이다 — ② 가 낸 8 권 파일 뒤에 조각을 덧붙이기 때문이다. "
+        "②' 와 ②\" 는 자기 파일만 내므로 ③ 과 순서를 다투지 않는다 |\n"))
+
+    # ── 처음 여는 사람을 위한 말 풀이 ────────────────────────────────────────
+    #   ⭐이 권을 처음 여는 사람은 편성이 아니라 **무엇을 하는 연구인가**를 먼저 묻는다.
+    #     열다섯 권 표 앞에 그 한 화면을 둔다 — 뒤 권들이 이 낱말을 설명 없이 쓴다.
+    cells.append(_cell(
+        "## 처음 여는 사람에게 — 이 연구의 말 다섯\n"
+        "\n"
+        "레이더를 우리가 쏘지 않는다. 이동통신 기지국이 늘 내보내는 신호를 빌려, 떨어진 곳에 "
+        "세운 수신기로 드론이 되돌린 메아리를 듣는다. 아래 다섯 낱말이 그 그림의 이름이다.\n"
+        "\n"
+        "| 말 | 뜻 |\n"
+        "|---|---|\n"
+        "| 패시브(passive) | 우리는 아무것도 송신하지 않고 남의 신호를 빌려 쓴다 |\n"
+        "| 바이스태틱(bistatic) | 송신하는 곳과 받는 곳이 떨어져 있다. 둘이 같은 자리면 "
+        "모노스태틱이다 |\n"
+        "| RCS · σ | 표적이 되돌리는 에코의 세기를 넓이(m²)로 환산한 값. 기체의 모양·재질·보는 "
+        "각도가 정한다 |\n"
+        "| 마이크로도플러 | 도는 프로펠러가 에코에 남기는 시간-주파수 무늬. 기종을 가르는 축이 "
+        "이것이다 |\n"
+        "| 탐지 · 분류 | 있나 없나를 정하는 것이 탐지, 어느 기종인가를 정하는 것이 분류다 |\n"))
 
     # ── 열다섯 권 표 (두 셀로 나눠 화면에서 읽히게) ──────────────────────────
     def _vol_rows(nos) -> str:
@@ -491,18 +571,35 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
 
     for ex in EXTERNAL:
         rows = "\n".join(f"| [{f}]({f}) | {t} |" for f, t in ex["files"])
+        n_files = len(ex["files"])
         cells.append(_cell(
-            f"## {int(ex['no'])} 권은 네 편이다\n"
+            f"## {int(ex['no'])} 권은 {_kor(n_files)} 편이다\n"
             "\n"
             "한 권이 한 파일인 것이 이 저장소의 규칙인데, 이 권만 예외다. 애니메이션과 "
             "스펙트로그램이 노트북 안에 그림으로 박혀 있어 한 파일에 담으면 열리지 않는다. "
-            "**나누는 축은 분량이 아니라 물음**이라, 네 편이 각각 하나씩 답한다.\n"
+            f"**나누는 축은 분량이 아니라 물음**이라, {_kor(n_files)} 편이 각각 하나씩 답한다.\n"
             "\n"
             "| 편 | 무엇에 답하나 |\n"
             "|---|---|\n" + rows + "\n"
             "\n"
             f"옛 부 7 조각(회전수·가림·동체 대 날개)은 `{ex['append_to']}` 뒤에 절로 이어 붙어 "
             "있다 — 무늬를 정하는 것이 무엇인가라는 같은 물음에 답하기 때문이다."))
+
+    if COMPANIONS:
+        rows = "\n".join(
+            f"| [{c['label']}]({c['file']}) | {int(no)} 권 | {c['title']} — {c['what']} "
+            f"| `{c['builder']}` |"
+            for no in sorted(COMPANIONS) for c in COMPANIONS[no])
+        hosts = " · ".join(f"{int(no)} 권" for no in sorted(COMPANIONS))
+        cells.append(_cell(
+            "## 권에 딸린 별편\n"
+            "\n"
+            "권을 쪼갠 것이 아니라 **곁가지**다 — 어떤 권이 세운 사슬을 그대로 두고 그 권의 "
+            f"가정 **하나만** 풀어 본 편이고, 그래서 빌더도 파일도 따로다. 지금 붙어 있는 "
+            f"곳은 {hosts} 다.\n"
+            "\n"
+            "| 별편 | 어느 권에 붙나 | 무엇을 하나 | 빌더 |\n"
+            "|---|---|---|---|\n" + rows + "\n"))
 
     # ── 조각 배치표 ─────────────────────────────────────────────────────────
     def _place_rows(sub) -> str:
@@ -627,7 +724,9 @@ def _write_bootstrap_index(place: dict[str, dict]) -> None:
     on_disk = _all_parts_on_disk()
     doc = {"_meta": {
         "n_volumes": len(_ordered_nos()),
-        "n_notebooks": sum(len(_vol_entry(n)["files"]) for n in _ordered_nos()),
+        "n_notebooks": (sum(len(_vol_entry(n)["files"]) for n in _ordered_nos())
+                        + _n_companions()),
+        "n_companions": _n_companions(),
         "n_parts_on_disk": len(on_disk),
         "n_parts_placed": len(place),
         "n_parts_superseded": len(SUPERSEDED),
@@ -651,7 +750,11 @@ def _write_index(place: dict[str, dict], titles: dict[str, str],
         n_crossrefs_cross_file=stat.get("xref_cross", 0) + stat.get("coderef_cross", 0),
         n_crossrefs_same_file=stat.get("xref_intra", 0) + stat.get("coderef_intra", 0),
         n_partrefs_rewritten=stat.get("buref", 0) + stat.get("buprose", 0),
+        # ⭐순서는 «권을 만드는 명령» 전부다 — 여기 없는 빌더는 README 의 재현 블록에서도
+        #   빠지고, 그러면 reports/README.md 의 순서와 갈린다(같은 절차가 두 곳에서 다르게
+        #   적히는 것이 가장 잦은 어긋남이다). 8-5 와 별편도 권 파일을 내므로 여기 든다.
         order=["src/build_partNN_*.py", "src/make_report08_microdoppler.py",
+               "src/make_report07b_bistatic.py", "src/make_report11_2_two_channel.py",
                "src/build_volumes.py", "benchmark/check_report_links.py"])
     doc["volumes"] = built
     doc["parts"] = {p: dict(volume=m["vol"], file=m["file"], section=m["sec"],
@@ -660,12 +763,22 @@ def _write_index(place: dict[str, dict], titles: dict[str, str],
                     for p, m in sorted(place.items())}
     doc["superseded_parts"] = {k: dict(reason=v, part_file=f"reports/_parts/{_part_file(k)}")
                                for k, v in sorted(SUPERSEDED.items())}
+    # ⭐별편의 제목·설명까지 색인에 넣는다 — 루트 README 가 목차를 이 색인 하나에서 만들기
+    #   때문이다. 파일 이름만 넣으면 README 에 별편이 «이름 없는 파일» 로만 남거나 아예
+    #   빠진다(실제로 그랬다).
+    doc["companions"] = {no: [dict(c) for c in cs] for no, cs in sorted(COMPANIONS.items())}
     doc["notes"] = {
         "parts": "reports/_parts/ 의 조각은 빌더 중간 산출물이다 — 사람이 읽는 문서가 아니고, "
                  "손으로 고치지 않는다. 고칠 곳은 그 조각을 만든 src/build_partNN_*.py 다.",
-        "volumes": "reports/ 의 권이 사람이 읽는 문서다. 한 권이 한 파일이고, 8 권만 그림이 "
-                   "무거워 네 편으로 나뉜다.",
-        "rebuild": "① 조각 빌더 12 개 → ② src/make_report08_microdoppler.py → "
+        "volumes": ("reports/ 의 권이 사람이 읽는 문서다. 한 권이 한 파일이고, "
+                    + " · ".join(f"{int(e['no'])} 권만 그림이 무거워 "
+                                 f"{len(e['files'])} 편으로 나뉜다" for e in EXTERNAL)
+                    + (f". 그 밖에 권에 딸린 별편이 {_n_companions()} 편 있다"
+                       f"({', '.join(c['file'] for v in COMPANIONS.values() for c in v)})."
+                       if COMPANIONS else ".")),
+        "companions": {no: [c["file"] for c in cs] for no, cs in sorted(COMPANIONS.items())},
+        "rebuild": "① 조각 빌더 12 개 → ② src/make_report08_microdoppler.py + "
+                   "src/make_report07b_bistatic.py + src/make_report11_2_two_channel.py → "
                    "③ src/build_volumes.py → ④ benchmark/check_report_links.py",
     }
     with open(INDEX, "w", encoding="utf-8") as f:
@@ -718,6 +831,9 @@ def _write_readme(place: dict[str, dict], titles: dict[str, str],
                   "| 편 | 무엇에 답하나 |", "|---|---|"]
             L += [f"| [{f}]({f}) | {t} |" for f, t in e["files"]]
             L += ["", f"아래 절은 이 스크립트가 `{b['append_to']}` 뒤에 이어 붙인 것이다.", ""]
+        for c in COMPANIONS.get(no, []):
+            L += [f"별편 하나가 딸려 있다 — [{c['label']} «{c['title']}»]({c['file']}) "
+                  f"(빌더 `{c['builder']}`). {c['what']}.", ""]
         L += ["| 절 | 제목 | 조각 |", "|---|---|---|"]
         for s in b["sections"]:
             src = ("(이 스크립트가 생성)" if s["part"] == "gen"
@@ -736,6 +852,8 @@ def _write_readme(place: dict[str, dict], titles: dict[str, str],
           "PYTHONPATH=src python src/build_part00_map.py              # ① 조각 빌더 12 개",
           "#  … build_part01_stock_engine.py … build_part11_measurement.py",
           "PYTHONPATH=src python src/make_report08_microdoppler.py    # ② 8 권 1~4 편",
+          "PYTHONPATH=src python src/make_report07b_bistatic.py       # ②' 8 권 5 편",
+          "PYTHONPATH=src python src/make_report11_2_two_channel.py   # ②\" 11-2 별편",
           "PYTHONPATH=src python src/build_volumes.py                 # ③ 조각 → 권 + 색인 + 이 파일",
           "PYTHONPATH=src python benchmark/check_report_links.py      # ④ 검사",
           "```",
@@ -765,14 +883,16 @@ def _assemble(no, slug, title, thesis, parts, hd, place, bu2vol, titles, stat) -
 
     hl_sec = place[hd]["sec"] if hd in place else None
     cells = [_vol_intro(no, title, thesis, secs, hl_sec)]
-    off = 0
+    off = fig_off = 0
     for i, ((t, cs), (part, _t2, _fn)) in enumerate(zip(loaded, secs), 1):
         cells.append(_section_rule(i, t))
-        hi = 0
+        hi = fig_hi = 0
         for c in cs:
             src = _text(c)
             hi = max(hi, _max_footnote(src))
+            fig_hi = max(fig_hi, _max_figure(src))
             src = _shift_footnotes(src, off)
+            src = _shift_figures(src, fig_off)
             if part != "gen":            # 생성된 절은 이미 새 주소로 쓰여 있다
                 src = _relink(src, fname, place, bu2vol, stat)
             src = _H1_LINE.sub("", src, count=1)     # 절 구분자가 조각 H1 을 대신한다
@@ -780,6 +900,7 @@ def _assemble(no, slug, title, thesis, parts, hd, place, bu2vol, titles, stat) -
                 continue
             cells.append(_cell(src, c["cell_type"], c.get("metadata", {})))
         off += hi
+        fig_off += fig_hi
 
     nb = {"cells": cells,
           "metadata": {"kernelspec": {"display_name": "py312", "language": "python",
@@ -823,6 +944,7 @@ def _postprocess_external(ex, place, bu2vol, titles, stat) -> dict:
                        if src != _text(c) else c)
         cells = out
         off = max([_max_footnote(_text(c)) for c in cells] or [0])
+        fig_off = max([_max_figure(_text(c)) for c in cells] or [0])
 
         if fname == host:                              # ⭐ 조각을 절로 덧붙인다
             base = max([int(n) for c in cells for n in _SEC_H2.findall(_text(c))] or [0])
@@ -842,11 +964,13 @@ def _postprocess_external(ex, place, bu2vol, titles, stat) -> dict:
             for i, p in enumerate(ex["parts"], base + 1):
                 _fn, t, cs = _load_part(p)
                 cells.append(_section_rule(i, t, meta={"tags": [APPEND_TAG]}))
-                hi = 0
+                hi = fig_hi = 0
                 for c in cs:
                     src = _text(c)
                     hi = max(hi, _max_footnote(src))
+                    fig_hi = max(fig_hi, _max_figure(src))
                     src = _shift_footnotes(src, off)
+                    src = _shift_figures(src, fig_off)
                     src = _relink(src, fname, place, bu2vol, stat)
                     src = _H1_LINE.sub("", src, count=1)
                     if not src.strip():
@@ -856,6 +980,7 @@ def _postprocess_external(ex, place, bu2vol, titles, stat) -> dict:
                                                       + [APPEND_TAG]))
                     cells.append(_cell(src, c["cell_type"], meta))
                 off += hi
+                fig_off += fig_hi
                 host_secs.append(dict(n=i, part=p, title=t, file=fname,
                                       part_file=_part_file(p)))
 

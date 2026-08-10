@@ -78,6 +78,13 @@ class FastPoser:
         mv = fp.pose([12.0, -12.0, 33.0, -33.0])      # 로터별 위상[deg]
         E  = sbr_field(mv, gmat, fc, u)
 
+    ⭐ **슬로타임 열(마이크로도플러)이면 광선 격자를 얼려라.** 격자는 자세의 bbox 에서
+      나오므로 로터가 돌면 위상 원점과 표본 집합이 프레임마다 바뀌고, 그 «자의 흔들림» 이
+      표적 운동으로 기록된다:
+
+        gref = grid_ref_for_slowtime(fp.pose, fp.dirs, fc)      # rcs_sbr
+        E[i] = sbr_field(fp.pose(ph[i]), gmat, fc, u, grid_ref=gref)
+
     ⚠ 몸체 자세(`body_rpy`)·위치(`body_pos`)는 **생성 시점에 고정**된다. 몸체가 움직이는
       시나리오는 자세마다 `FastPoser` 를 새로 만들어야 한다(그건 원래 비용이 든다).
       로터만 도는 정지비행에서는 하나로 충분하다.

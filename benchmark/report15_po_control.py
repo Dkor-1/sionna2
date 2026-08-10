@@ -80,7 +80,7 @@ import report15_probe as probe                                        # noqa: E4
 
 from drones import (DRONES, DRONE_GROUP_MAT, build_frame,             # noqa: E402
                     pose_articulated, rotor_layout)
-from rcs_sbr import sbr_field                                          # noqa: E402
+from rcs_sbr import sbr_field, grid_ref_for_slowtime                   # noqa: E402
 import microdoppler_nearfield as mnf                                   # noqa: E402
 
 FC = probe.FC
@@ -347,11 +347,27 @@ def arm_sbr(spec, aspects, divs, n_phase, gmat, verbose=True):
     """φ 격자 × 자세 × 광선격자 → E(φ). 메쉬는 φ 당 **한 번만** 만들어 전부 재사용한다.
 
     반환 {(aspect_label, div): E[complex, n_phase]} + 진단.
-    프레임 전용(프롭 제거) 씬도 한 번 재서 DC 맥락을 남긴다."""
+    프레임 전용(프롭 제거) 씬도 한 번 재서 DC 맥락을 남긴다.
+
+    ⭐ 광선 격자를 **얼린다**(2026-08-10). 이 팔은 φ 축을 따라 늘어놓는 슬로타임 열이라,
+      격자가 자세의 bbox 에서 나오면 위상 원점(ctr)과 표본 집합(Rout·n)이 φ 마다 바뀌어
+      «파형이 같은가» 를 재는 이 대조의 관측량 자체를 오염시킨다.
+      ⚠ 판은 **격자 간격마다 다르다** — div 사다리(12/24/48)마다 판을 따로 만든다.
+      프레임 전용 씬·결정성 검사도 같은 판을 써야 DC 맥락의 위상 원점이 열과 같다.
+      SIONNA2_FREEZE_GRID=0 이면 판이 None → 옛 동작(전후 비교 스위치)."""
     dirs = [r["dir"] for r in rotor_layout(spec)]
     phis = np.linspace(0.0, 360.0, int(n_phase), endpoint=False)
     us = {lab: probe.look_dir(a["az_deg"], a["el_deg"]) for lab, a in aspects.items()}
     tab = {(lab, d): np.zeros(int(n_phase), complex) for lab in aspects for d in divs}
+    gref = {d: grid_ref_for_slowtime(
+        lambda p: pose_articulated(spec, rotor_phase_deg=p), dirs, FC,
+        spacing=LAM / float(d)) for d in divs}
+    if verbose:
+        for d in divs:
+            g = gref[d]
+            print(f"      [sbr/{spec.key}] div{d} 격자 " +
+                  (f"n={g.n} ({g.n**2}발) · Rout={g.Rout:.4f} m (얼림)"
+                   if g is not None else "OFF — SIONNA2_FREEZE_GRID=0"), flush=True)
     t0 = time.time()
     n_tris = None
     for i, ph in enumerate(phis):
@@ -360,7 +376,8 @@ def arm_sbr(spec, aspects, divs, n_phase, gmat, verbose=True):
             n_tris = int(mesh.n_tris())
         for lab, u in us.items():
             for d in divs:
-                tab[(lab, d)][i] = complex(sbr_field(mesh, gmat, FC, u, spacing=LAM / float(d)))
+                tab[(lab, d)][i] = complex(sbr_field(mesh, gmat, FC, u, spacing=LAM / float(d),
+                                                     grid_ref=gref[d]))
         if verbose and (i % 16 == 0 or i == len(phis) - 1):
             print(f"      [sbr/{spec.key}] φ={ph:7.3f}°  ({i+1}/{len(phis)})  "
                   f"{time.time()-t0:6.1f}s", flush=True)
@@ -368,18 +385,25 @@ def arm_sbr(spec, aspects, divs, n_phase, gmat, verbose=True):
     fr = {}
     for lab in aspects:
         for d in divs:
-            v = complex(sbr_field(frame_mesh, gmat, FC, us[lab], spacing=LAM / float(d)))
+            v = complex(sbr_field(frame_mesh, gmat, FC, us[lab], spacing=LAM / float(d),
+                                  grid_ref=gref[d]))
             fr[f"{lab}|div{d}"] = dict(abs=float(abs(v)), db=db20(v),
                                        deg=float(np.degrees(np.angle(v))))
     #  결정성 — 같은 입력 재실행이 **비트 단위로** 같은가 (Sionna 의 시드 산포에 대응하는 자리)
     m0 = pose_articulated(spec, rotor_phase_deg=[d * 0.0 for d in dirs])
     lab0 = list(aspects)[0]
-    e1 = complex(sbr_field(m0, gmat, FC, us[lab0], spacing=LAM / float(divs[0])))
-    e2 = complex(sbr_field(m0, gmat, FC, us[lab0], spacing=LAM / float(divs[0])))
+    e1 = complex(sbr_field(m0, gmat, FC, us[lab0], spacing=LAM / float(divs[0]),
+                           grid_ref=gref[divs[0]]))
+    e2 = complex(sbr_field(m0, gmat, FC, us[lab0], spacing=LAM / float(divs[0]),
+                           grid_ref=gref[divs[0]]))
     m0b = pose_articulated(spec, rotor_phase_deg=[d * 0.0 for d in dirs])
-    e3 = complex(sbr_field(m0b, gmat, FC, us[lab0], spacing=LAM / float(divs[0])))
+    e3 = complex(sbr_field(m0b, gmat, FC, us[lab0], spacing=LAM / float(divs[0]),
+                           grid_ref=gref[divs[0]]))
     diag = dict(seconds=float(time.time() - t0), n_tris=n_tris,
                 frame_only=fr,
+                grid_frozen=bool(gref[divs[0]] is not None),
+                grid_ref={f"div{d}": (gref[d].asjson() if gref[d] is not None else None)
+                          for d in divs},
                 determinism=dict(
                     repeat_delta_abs=float(abs(e2 - e1)),
                     remesh_delta_abs=float(abs(e3 - e1)),

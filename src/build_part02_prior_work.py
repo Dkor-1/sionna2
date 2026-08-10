@@ -122,8 +122,9 @@ def report_08_census_published():
                 f"그 메쉬에서 산란 진폭을 계산한 편은 "
                 f"{_n('counts.mesh_scattering_in_engine', SURVEY, '{:.0f}', '편')} 이다.",
 
-                f"census 16편에 1차 사료 정산이 "
-                f"{_n('counts.added_since_census', SURVEY, '{:.0f}', '편')} 을 더했다 — 그중 "
+                f"1차 사료 정산이 "
+                f"{_n('counts.added_since_census', SURVEY, '{:.0f}', '편')} 을 더해 판정 문서가 "
+                f"{_n('counts.papers', SURVEY, '{:.0f}', '건')} 이 됐다 — 더한 것 중 "
                 f"Rzewuski 는 최종물이 우리와 가장 가깝고 아카이브 밖에 있었다.",
 
                 f"전문 쪽수 합계는 "
@@ -367,7 +368,7 @@ def report_11_procurement_catalog():
                 f"{_n('corpus.documents', PAPER, '{:.0f}', '건')} 전수를 담는다 — 표를 셋으로 "
                 f"나눈 이유는 화면 하나에 들어가게 하기 위해서다.",
 
-                "각 행은 «논문 · 상태 · 조달처 · 그 편이 산 주장» 네 칸이다. 마지막 칸이 이 부의 "
+                "각 행은 «논문 · 상태 · 조달처 · 그 편이 산 주장» 네 칸이다. 마지막 칸이 이 권의 "
                 "중심 문장을 행마다 반복해서 보여준다.",
 
                 f"이 표가 논문 II 절 표의 원형이고, 그 문단은 "
@@ -397,7 +398,8 @@ def report_11_procurement_catalog():
 
         next_steps([
             ("엔진 밖 조달 갈래를 아카이브 전수로 다시 센다",
-             "판정 21건이라는 모집단 밖에서도 같은 그림이 서는지가 확정된다",
+             f"판정 {_n('corpus.documents', PAPER, '{:.0f}', '건')} 이라는 모집단 밖에서도 "
+             f"같은 그림이 서는지가 확정된다",
              ref("injection", short=True)),
             ("갈래별 게재 편수를 네 관문 판정과 교차시킨다",
              "어느 갈래가 어느 관문에서 걸리는지가 확정된다",
@@ -497,6 +499,13 @@ def report_12_injection():
            "⭐ **게재된 주입 사례가 인쇄한 것은 아키텍처가 아니라 검증이다** — 0.5 m 금속구와 "
            "28 GHz held-out 밴드(Zhang, IEEE JSAC), 77 GHz 자동차 레이다 end-to-end(Deep, "
            "IET RSN), 정규화 서명 상관(Costa, IEEE J-STEAP).", "",
+           "⚠ 그 셋을 한 줄로 «검증됐다» 라고 묶으면 크기가 부풀려진다. 검증된 양이 편마다 "
+           "다르고, 원장이 그 차이를 이렇게 적는다.", "",
+           table(["편", "검증된 것이 정확히 무엇인가"],
+                 [["Costa (IEEE J-STEAP)",
+                   _n("cross_reference.my_refinements[0]", INJ_HUNT)],
+                  ["Deep (IET RSN)", _n("cross_reference.my_refinements[1]", INJ_HUNT)],
+                  ["Zhang (IEEE JSAC)", _n("cross_reference.my_refinements[2]", INJ_HUNT)]]), "",
            f"입장료가 거기 있으므로 우리도 같은 값을 치른다. 그 값을 치르는 자리가 "
            f"{ref_part(5)} 와 {ref_part(11)} 이고, 검증량이 σ 자체에서 서명 형태까지 갈린다는 "
            f"사실이 우리 검증 층 설계의 근거다."),
@@ -622,6 +631,9 @@ def report_13_where_we_stand():
                   ["Zhang (IEEE JSAC 2026)", "M350 · 10–36 GHz",
                    _n("anchors.zhang.a_slope_db_per_ghz", SURVEY, "{:.2f}", "dB/GHz"),
                    "분해 σ=A(f)·B1(φ)·B2 형식"]]), "",
+           f"⚠ 위 표의 대역은 **앵커로 쓰는 부분**이다 — Das 논문 자체는 "
+           f"{_n('papers[1].target_ko', SURVEY)} 를 재고, 우리가 끊어 쓰는 것은 그중 "
+           f"{_n('anchors.das.platform', SURVEY)} 한 대의 구간이다.", "",
            f"Das 의 Phantom 3 자료는 Das 자신의 참고문헌 [7](Wang 외, China Communications)에서 "
            f"왔고 ⟨{SURVEY} : anchors.das.provenance_ko⟩, 우리가 쓰는 것은 그 기울기 하나다. "
            f"레벨 규약은 출처 논문 안에서 갈린다 — 정의를 그대로 쓰면 인쇄값이고, 잔차 최소화 "

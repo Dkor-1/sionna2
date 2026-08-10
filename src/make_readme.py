@@ -47,6 +47,8 @@ STEP_LEAD = {
     "src/build_partNN_*.py": "조각 빌더 → reports/_parts/NN_slug.ipynb "
                              "(계산 없음 · GPU 0 장 · 수 초)",
     "src/make_report08_microdoppler.py": "그림이 무거워 여러 편으로 나뉘는 권을 따로 짓는다",
+    "src/make_report07b_bistatic.py": "그 권의 마지막 편(바이스태틱)은 빌더가 따로다",
+    "src/make_report11_2_two_channel.py": "권에 딸린 별편 — 자기 파일만 낸다",
     "src/build_volumes.py": "조각 → 권 + 후처리 + 색인 + reports/README.md",
     "benchmark/check_report_links.py": "끊긴 링크·그림·출처를 전수로 센다",
 }
@@ -165,9 +167,12 @@ def build() -> str:
     A("")
     A(f"보고서는 **{n_vol}권 · 절 {n_sec}개** 다. **한 권이 물음 하나를 들고, 절 제목이 그 절의")
     A("결론 문장**이다 — 목차를 읽는 것이 결론을 읽는 것이다. 사람이 읽는 문서는")
+    _n_comp = sum(len(cs) for cs in idx.get("companions", {}).values())
     A("`reports/NN_slug.ipynb` 이고, " + " · ".join(
         f"{int(v['no'])}권만 그림이 무거워 {len(v['files'])}편으로 나뉜다" for v in n_split)
-      + ("." if n_split else ""))
+      + ("." if n_split else "")
+      + (f" 그 밖에 권에 딸린 **별편**이 {_n_comp}편 있다 — 권 하나의 가정을 하나만 풀어 본"
+         " 곁가지이고, 딸린 권의 목차에 적어 두었다." if _n_comp else ""))
     A("")
 
     # ── 읽기 경로 ────────────────────────────────────────────────────────────
@@ -271,6 +276,12 @@ def build() -> str:
         for s in v["sections"]:
             A(f"| [{s['n']}](reports/{s['file']}) | {esc(s['title'])} |")
         A("")
+        #  ⭐권에 딸린 별편 — 권 파일과 따로 살고 빌더도 다르다. 여기 안 적으면 디스크에
+        #    있는 노트북이 루트 목차에서만 사라진다(reports/README.md 에는 있었다).
+        for c in idx.get("companions", {}).get(v["no"], []):
+            A(f"별편 하나가 딸려 있다 — [{c['label']} «{esc(c['title'])}»]"
+              f"(reports/{c['file']}) (빌더 `{c['builder']}`). {esc(c['what'])}.")
+            A("")
 
     A("---")
     A("")
@@ -350,7 +361,25 @@ def build() -> str:
     A("src/")
     A("  build_partNN_*.py          ⭐조각 생성기 — 서술의 원본. 계산은 없다")
     A("  build_volumes.py           ⭐조각 → 권 + 색인 + reports/README.md")
-    A("  make_report08_microdoppler.py  8권 네 편(그림이 무거워 따로 짓는다)")
+    #  ⭐권 파일을 따로 내는 빌더는 손으로 적지 않는다 — «8권 네 편» 이 다섯 편이 된 뒤에도
+    #    그 줄만 옛말로 남아 있었다. 목록도 설명도 색인(`_meta.order`·`companions`)에서 읽는다.
+    _comp_by_builder = {c["builder"]: c
+                        for cs in idx.get("companions", {}).values() for c in cs}
+    for step in idx["_meta"]["order"]:
+        if not step.startswith("src/make_report"):
+            continue
+        _b = os.path.basename(step)
+        _own = next((v for v in n_split if step in (v.get("builder") or "")), None)
+        if step in _comp_by_builder:
+            _lead = f"별편 {_comp_by_builder[step]['label']} 을 짓는다"
+        elif _own is None:
+            _lead = "권 파일을 짓는다"
+        elif (_own.get("builder") or "").split()[0] == step:
+            _lead = (f"{int(_own['no'])}권 {len(_own['files'])}편 중 주 빌더"
+                     " (그림이 무거워 따로 짓는다)")
+        else:
+            _lead = f"{int(_own['no'])}권의 나머지 한 편"
+        A(f"  {_b}{' ' * max(2, 31 - len(_b))}{_lead}")
     A("  make_readme.py             이 파일을 만든다")
     A("  report_style.py            규약 강제(num()·각주·부정문 계수)")
     A("  report_registry.py         앵커 사전 — 조각 사이 링크의 유일한 출처")

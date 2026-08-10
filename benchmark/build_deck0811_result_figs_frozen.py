@@ -249,7 +249,9 @@ def build_r1(beat):
     ax.set_xlim(0, 420)
     ax.set_ylim(-46, 8)   # 범례를 축 밖으로 뺐으므로 위쪽 «글 자리» 가 필요 없다
     ax.set_yticks([-40, -30, -20, -10, 0])
-    ax.set_xlabel("Modulation rate of the blade tip band energy [Hz]")
+    ax.set_title(f"Blade tip band energy, {BAND_LO*FTIP:.0f} to {BAND_HI*FTIP:.0f} Hz, "
+                 "how fast it rises and falls", fontsize=FS - 0.5, pad=6)
+    ax.set_xlabel("Modulation rate [Hz]")
     ax.set_ylabel("Line level [dB]")
     # ⭐사용자 지적 — 범례가 2x·3x 고조파 봉우리를 가리고 있었다(upper right 가 정확히
     #   그 자리다). 축 **바깥 아래**로 빼서 곡선을 하나도 안 가리게 한다.

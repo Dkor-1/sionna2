@@ -159,6 +159,8 @@ def main():
                          "wobble_amp": WOBBLE_AMP, "wobble_hz": WOBBLE_HZ,
                          "preset": a.preset, "preset_why_ko": preset_why,
                          "compute_seconds": secs,
+                         "grid_frozen": bool(gref is not None),
+                         "grid_ref": (gref.asjson() if gref is not None else None),
                          "declared_ko": ("⚠ 흔들림 진폭·주파수는 프리셋(문헌 앵커) 값이다. "
                                          "우리 표적의 실측 비행 로그가 이 둘을 측정값으로 바꾼다.")}},
               open(f"{ROOT}/outputs/report07_hover_long{tag}.json", "w"),

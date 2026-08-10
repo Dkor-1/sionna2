@@ -58,6 +58,7 @@ SS = "outputs/sigma_sensitivity.json"        # σ 오차 → 순위
 MFX = "outputs/meshfix_applied.json"         # 형상 정정이 옮긴 것
 MFX_ATK = "outputs/meshfix_attack.json"      # 형상 정정 적대검증
 AGI = "outputs/angle_gamma_impact.json"      # Γ(θ) 각도 모양 — 커널 세대의 셋째 축
+VBF = "outputs/verify_bistatic_field.json"   # 다중정적 σ 경로에 Γ(θ) 가 들어온 시점·일치도
 S2R = "outputs/s2r_assets_verify.json"       # 재생성 대조
 
 FIG = "../outputs/figures"
@@ -116,7 +117,8 @@ def report_24_anchor_mode():
                 f"({_n('anchor.correction_min_drone', DER)} @ "
                 f"{_n('anchor.correction_min_band', DER)}) 다.",
 
-                f"정렬 후 7기종 기울기가 모두 "
+                f"정렬 후 "
+                f"{_n('anchor_modes.n_airframes', DER, '{:.0f}', '기종')} 기울기가 모두 "
                 f"{_n('anchor.slope_after_db_per_ghz', DER, '{:.3f}', 'dB/GHz')} 위에 서고, 기종 간 "
                 f"산포는 "
                 f"{_n('anchor.slope_after_spread_db_per_ghz', DER, '{:.1e}', 'dB/GHz')} 다.",
@@ -218,7 +220,9 @@ def report_24_anchor_mode():
            f"{_n('anchor.slope_ledger_gap_max_db_per_ghz', DER, '{:.3f}', 'dB/GHz')} 갈린다"
            f"({_n('anchor.slope_ledger_gap_max_drone', DER)}).", "",
            f"⚠ **그리고 두 세대 모두 {_MESHFIX} 전 메쉬 위에 서 있다** — 이 축은 위 문단의 세대 "
-           f"축과 별개다. 앵커 5기체 중 Matrice 4E 가 그 정정을 받았다 "
+           f"축과 별개다. 기울기를 대조한 "
+           f"{_n('anchor.n_slope_crosschecked', DER, '{:.0f}', '기체')} 중 Matrice 4E 가 그 정정을 "
+           f"받았다 "
            f"⟨{MFX_ATK} : Q6_invalidated_outputs.critical[1]⟩.", "",
            f"⚠ 셋째 축 — 두 세대 모두 {_GAMMA_AXIS} 다. 앵커를 갈아끼우려면 σ 사슬 전체를 "
            f"형상 정정 + Γ(θ) 한 세대로 맞춰야 하고, 그것은 {ref_part(10)} 전체가 먹는 값이다."),
@@ -583,7 +587,11 @@ def report_27_box_sphere_control():
            f"반지름은 같다.", "",
            f"즉 **두 잣대 모두에서 지는 것은 메쉬 부피로 잡은 구**이고, 레벨에서 우리를 앞선 것은 "
            f"반지름을 그보다 키운 논문표기 상자부피 구 하나다. 두 결과는 «어느 부피를 골랐나» 와 "
-           f"함께 읽는다."),
+           f"함께 읽는다.", "",
+           f"⚠ 이 마지막 두 수는 함대 원장(`{DFV}`)에서 왔고, 그 σ 는 다중정적 경로"
+           f"(`rcs_sbr_multistatic`)로 낸 값이다. 그 경로에 Γ(θ) 각도 모양이 들어온 것은 "
+           f"{_n('generated', VBF)} 이고 이 표는 그 이전 판이다 — **재계산 대기**이고, 두 수의 "
+           f"순위는 재계산 뒤 다시 읽는다."),
 
         next_steps([
             ("Phantom 3 구 대조군을 방위 산포 ε 축까지 포함해 다섯 기체로 넓힌다",
@@ -658,6 +666,27 @@ def report_28_fleet_prereg():
            f"판정은 **{_n('prereg_judgement.verdict', DFV)}** 다 — 실제 산포가 "
            f"{_n('prereg_judgement.P3_spread_db', DFV, '{:.2f}', 'dB')} 이고 봉인이 예측한 산포는 "
            f"{_n('prereg_judgement.spread_predicted_db', DFV, '{:.1f}', 'dB')} 였다.", "",
+           table(["봉인 항목", "무엇을 요구했나", "통과"], [
+               ["P1", _n('pass_rule.primary_gate_level_at_theta_b_0.P1_all', DFP),
+                _n('prereg_judgement.P1_all_within_6db', DFV)],
+               ["P2", _n('pass_rule.primary_gate_level_at_theta_b_0.P2_most', DFP),
+                _n('prereg_judgement.P2_three_within_4db', DFV)
+                + " (실제 " + _n('prereg_judgement.P2_count_within_4db', DFV, '{:.0f}', '기체')
+                + ")"],
+               ["P3 ⭐", _n('pass_rule.primary_gate_level_at_theta_b_0.P3_spread', DFP),
+                _n('prereg_judgement.P3_spread_within_6db', DFV)],
+               ["P4", _n('pass_rule.primary_gate_level_at_theta_b_0.P4_sign', DFP),
+                _n('prereg_judgement.P4_sign_agreement', DFV)],
+               ["기울기", f"phantom3 · phantom2 둘 다 기울기차가 봉인 문턱 안 ⟨{DFP} : "
+                        f"pass_rule.slope_gate.S1⟩", _n('prereg_judgement.slope_gate_pass', DFV)],
+               ["바이스태틱", f"phantom2 의 바이스태틱 추세가 봉인 범위 안 ⟨{DFP} : "
+                          f"pass_rule.bistatic_gate⟩", _n('prereg_judgement.bistatic_gate_pass', DFV)],
+           ]), "",
+           f"네 항목 전부 통과가 요구조건이고"
+           f"(⟨{DFP} : pass_rule.primary_gate_level_at_theta_b_0.all_four_required⟩), 판정 "
+           f"문자열이 이름으로 든 것은 산포(P3) 다 — 봉인이 «판정을 정하는 항목» 으로 미리 지목한 "
+           f"것이 그것이기 때문이다 ⟨{DFP} : "
+           f"pass_rule.primary_gate_level_at_theta_b_0.why_spread_is_the_decisive_one⟩.", "",
            f"⚠ 용어 두 개를 푼다. 판정 문자열의 **P3 은 봉인한 합격조건 네 개 중 세 번째**(레벨오차 "
            f"산포)를 가리키는 이름이고 기체 Phantom 3 를 뜻하지 않는다. 그리고 **레벨오차 DL(0)** "
            f"는 바이스태틱각 0°(송신기와 수신기가 같은 자리에 있는 배치)에서 측정 대비 우리 σ 가 "
@@ -674,14 +703,30 @@ def report_28_fleet_prereg():
            f"있다.", "",
            f"예측이 반증됐고 일치도가 메쉬 구속도를 따라간다는 두 사실이 함께 서 있고, 그것은 "
            f"결과에 맞춰 맞춘 흔적의 정반대 서명이다 ⟨{DFA} : Q5_tuned_evidence⟩.", "",
+           f"⚠ 이 2:2 분할은 봉인이 계산 전에 지목한 것이고, 지목된 두 기체가 |DL(0)| 하위 두 "
+           f"자리를 다 차지할 확률은 무작위 배정에서 "
+           f"{_n('degrees_of_freedom.evidence_split.exact_partition_p', DFV, '{:.3f}')} 다 — "
+           f"기체가 넷뿐이라 유의수준이 아니라 **가설 생성**으로 읽는다 "
+           f"⟨{DFV} : degrees_of_freedom.evidence_split.exact_partition_note⟩. 구속도와 |DL(0)| 의 "
+           f"상관도 같은 이유로 서술용이다 ⟨{DFV} : degrees_of_freedom._correlation.what⟩.", "",
            f"⚠ M350 RTK 값은 계산이 다 끝나기 전의 스냅샷에서 집계됐고, Mini 2 행은 {_MESHFIX} 전 "
            f"메쉬에서 나온 값이다 — 둘 다 재집계를 기다린다 "
            f"⟨{DFA} : overall.required_before_citing[0]⟩ · "
-           f"⟨{MFX_ATK} : Q6_invalidated_outputs.critical[0]⟩. 재집계에는 Γ(θ) 커널"
-           f"({_n('_meta.generated', AGI)} 기본 켬) 반영도 함께 든다 — 판정(NOT_VALIDATED) 자체는 "
-           f"이 크기의 이동에 강건하다."),
+           f"⟨{MFX_ATK} : Q6_invalidated_outputs.critical[0]⟩.", "",
+           f"⚠ **이 표의 σ 는 다중정적 경로(`rcs_sbr_multistatic`)로 냈고, 그 경로에 Γ(θ) 각도 "
+           f"모양이 들어온 것은 {_n('generated', VBF)} 다** — 그 뒤로 복소장 경로와 σ 경로가 "
+           f"{_n('verdict.sigma_angle_gamma_gap_db', VBF, '{:.1e}', 'dB')} 안에서 같은 값을 낸다"
+           f"(⟨{VBF} : sigma_cross_check.angle_gamma_on⟩). 이 표는 그 배선 이전 판이라 **재계산 "
+           f"대기**이고, 이동의 크기는 이 격자에서 아직 안 쟀다. 판정이 기댄 것은 산포 "
+           f"{_n('prereg_judgement.P3_spread_db', DFV, '{:.2f}', 'dB')} 와 위 표 P3 문턱 사이의 "
+           f"거리이고, 형상 증거 구간 "
+           f"{_n('degrees_of_freedom.evidence_split.gap_db', DFV, '{:.2f}', 'dB')} 는 그 거리보다 "
+           f"좁다."),
 
         next_steps([
+            ("함대 σ 를 Γ(θ) 가 배선된 다중정적 경로로 다시 낸다",
+             "이 표의 모든 칸이 현재 커널 위에 서고, 형상 증거 구간이 그 이동 뒤에도 남는지가 갈린다",
+             "`benchmark/das_fleet_sigma.py` → `benchmark/das_fleet_validation.py`"),
             ("M350 RTK 를 계산이 끝난 격자에서 다시 집계한다",
              "네 기체 중 한 행의 값이 확정되어 산포가 다시 계산된다",
              f"⟨{DFA} : overall.required_before_citing[0]⟩"),

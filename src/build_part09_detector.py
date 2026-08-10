@@ -147,6 +147,11 @@ PFA_LO = num(None, f"{CFAR}:meta.pfa_nominal[8]", "{:.0e}")
 _ratio_raw = {b: num(None, f"{CFAR}:{_row(b, 'dpi_eca', 'op')}.ratio", "{:.2f}")
               for b, _e, _l in WFS}
 RATIO = {b: v + "배" for b, v in _ratio_raw.items()}
+#: 제목에 들어가는 배율 구간 — 손으로 적지 않는다(제목에는 출처 태그를 달 수 없으므로
+#: 값만 원장에서 읽어 끼운다. 세 파형의 운용 형상 경험/명목 비의 최소·최대다).
+_RATIO_F = {b: float(fetch(f"{CFAR}:{_row(b, 'dpi_eca', 'op')}.ratio")) for b, _e, _l in WFS}
+RATIO_LO = f"{min(_RATIO_F.values()):.2f}"
+RATIO_HI = f"{max(_RATIO_F.values()):.2f}"
 CALIB = {b: num(None, f"{CFAR}:{_calib(b, 1e-4)}.pfa_nominal_needed", "{:.2e}")
          for b, _e, _l in WFS}
 DNR = {e: num(None, f"{ECA}:meta.setups[{_setup(e)}].dnr_db", "{:.1f}", "dB")
@@ -157,12 +162,17 @@ DEEP_DPI = {e: num(None, f"{ECA}:{_s1_deepest(e)}.depth_dpi_db", "{:.1f}", "dB")
             for _b, e, _l in WFS}
 DEEP_FULL = {e: num(None, f"{ECA}:{_s1_deepest(e)}.depth_full_db", "{:.1f}", "dB")
              for _b, e, _l in WFS}
+#: 다중경로의 출처 — 실측이 아니라 레이 트레이싱이라는 것을 원장에서 직접 읽는다.
+CLUTTER_SRC = num(None, f"{ECA}:meta.setups[{_setup('5G NR 100MHz')}].clutter_src")
 FD3DB = num(None, f"{ECA}:{_s4('5G NR 100MHz', 48)}.fd_3db_over_dfd", "{:.3f}")
 M48 = num(None, f"{ECA}:{_s4('WiFi 80MHz', 48)}.M", "{:.0f}")
 V3 = {e: num(None, f"{ECA}:{_s4(e, 48)}.v_3db_ms", "{:.2f}", "m/s") for _b, e, _l in WFS}
 RANK1 = num(None, f"{OBS}:summary.snapshot_fim_rank", "{:.0f}")
 RANK2 = num(None, f"{OBS}:summary.fix_2rx_rank", "{:.0f}")
 RMS2 = num(None, f"{OBS}:summary.fix_2rx_pos_rms_m", "{:.2f}", "m")
+#: 그램행렬·CRLB 를 푼 기준 셀과 관측창 — 랭크 표의 절대값이 어디에 매달려 있는지가 이 둘이다.
+REF_CFG = num(None, f"{OBS}:gramian.ref_cfg")
+T_OBS = num(None, f"{OBS}:gramian.t_obs_s", "{:.0f}", "s")
 OI = _paper("openisac")
 N_PAPERS = num(None, f"{CENSUS}:meta.n_papers", "{:.0f}")
 TOT_PAGES = num(None, f"{CENSUS}:counts.total_pages", "{:.0f}")
@@ -228,14 +238,20 @@ def r51():
                       fmt={"dnr_db": "{:.1f} dB", "n_taps": "{:.0f}", "n_range": "{:.0f}",
                            "prf_hz": "{:.0f} Hz", "dfd_hz": "{:.2f} Hz"},
                       order=[_setup("WiFi 80MHz"), _setup("LTE 20MHz"),
-                             _setup("5G NR 100MHz")])),
+                             _setup("5G NR 100MHz")]), "",
+           f"이 표의 PRF 는 **검출기 프레임률**이다 — 사슬이 한 프레임으로 끊어 읽는 속도이지 "
+           f"조명원의 물리 반복률이 아니다. 5G 상시 SSB 에서 두 양이 얼마나 벌어지고 그것이 "
+           f"도플러를 어디서 접는지는 {ref('doppler-fold', short=True)} 가 잰다."),
 
         md("## 이 사슬 위에서 무엇이 결정되나", "",
            f"2단계의 소거 깊이와 그 대가는 {ref('eca', short=True)} 가, 4단계 문턱의 눈금은 "
            f"{ref('cfar-calib', short=True)} 가 든다. 3단계가 만드는 응답의 모양은 "
            f"{ref('ambiguity', short=True)} 가 이미 쟀다.", "",
            "세 파형이 같은 코드 경로를 지나므로, 뒤 편들이 재는 격차는 사슬 차이가 아니라 "
-           "파형 차이다."),
+           "파형 차이다.", "",
+           "이 사슬의 레퍼런스 채널에는 **송신 파형 그 자체**가 들어간다 — 잡음 0 · 다중경로 0 "
+           "이라는 상한 가정이다. 그 가정 하나만 풀어 손실을 재는 편이 "
+           "[리포트 11-2 «기준채널이 현실이면 얼마를 잃는가»](11_2_two_channel.ipynb) 다."),
 
         next_steps([
             ("회전 블레이드 산란을 이 사슬에 넣는 조건을 세운다",
@@ -260,13 +276,13 @@ def r52():
                 "도플러를 얼마나 함께 지우는지를 속도 문턱으로 환산했다.",
             results=[
                 f"직접파만 든 신호에 같은 소거기를 걸면 float64 한계까지 내려간다 — "
-                f"5G {DEEP_DPI['5G NR 100MHz']}. 측정된 다중경로를 넣으면 "
+                f"5G {DEEP_DPI['5G NR 100MHz']}. 레이 트레이싱으로 푼 챔버 다중경로를 넣으면 "
                 f"{DEEP_FULL['5G NR 100MHz']} 에서 멈춘다.",
                 f"바닥을 정하는 것은 탭 수가 아니라 환경이다 — 탭 1~96 스윕에서 깊이가 포화한다.",
                 f"대가는 0-도플러 노치다. 3 dB 손실 지점은 $f_d/\\Delta f_d$ = {FD3DB} 이고 "
                 f"세 파형이 같다.",
                 f"프레임 {M48}개에서 속도 문턱은 WiFi {V3['WiFi 80MHz']} · LTE {V3['LTE 20MHz']} · "
-                f"5G {V3['5G NR 100MHz']} 다 — 그 위 속도는 온전히 남는다.",
+                f"5G {V3['5G NR 100MHz']} 다 — 그보다 빠른 표적이 무는 노치 손실은 3 dB 아래다.",
                 f"정적 산란체는 ECA 뒤에서 죽은 파라미터다 — 클러터를 "
                 f"{num(None, f'{ECA}:{_clutter_max()}.scale', '{:.0f}')}배까지 키워도 SCR 변화폭은 "
                 f"{num(None, f'{ECA}:S5_clutter_dead.scr_span_db', '{:.1e}', 'dB')} 다.",
@@ -276,7 +292,8 @@ def r52():
                  "CPI 1회 최소제곱 사영의 standard ECA — 레퍼런스의 지연 사본이 치는 부분공간에 "
                  "서베일런스를 통째로 사영한다(`src/passive_process.py:13`)"),
                 ("깊이 스윕",
-                 "탭 수 1~96 × (직접파만 / 측정된 다중경로 포함) 두 조건. 두 조건의 차이가 "
+                 f"탭 수 1~96 × (직접파만 / 다중경로 포함) 두 조건. 다중경로는 챔버 장면을 "
+                 f"레이 트레이싱으로 푼 것이고 실측이 아니다(출처 {CLUTTER_SRC}). 두 조건의 차이가 "
                  "«바닥을 무엇이 정하는가» 를 가른다"),
                 ("노치 환산",
                  "3 dB 손실 지점을 $f_d/\\Delta f_d$ 무차원으로 재고, 파형별 $\\lambda$ 로 "
@@ -295,7 +312,8 @@ def r52():
            table(["파형", "직접파만", "직접파 + 다중경로(포화)"],
                  [[label, DEEP_DPI[ename], DEEP_FULL[ename]] for _b, ename, label in WFS]),
            "",
-           "왼쪽은 float64 산술의 한계이고, 오른쪽이 실제 바닥이다. 두 열의 간격이 곧 "
+           "왼쪽은 float64 산술의 한계이고, 오른쪽이 이 장면의 다중경로가 정하는 바닥이다"
+           "(실측 채널이 아니라 레이 트레이싱으로 푼 챔버 장면이다). 두 열의 간격이 곧 "
            "**환경이 정하는 몫**이다."),
 
         md(*fig(1, "f2_eca_depth", "ECA 소거 깊이의 바닥을 정하는 것은 무엇인가?")),
@@ -334,7 +352,7 @@ def r53():
     return [
         header(
             num=53,
-            title="운용 형상에서 경험 Pfa 를 재니 명목값의 1.52~2.66 배였다",
+            title=f"운용 형상에서 경험 Pfa 를 재니 명목값의 {RATIO_LO}~{RATIO_HI} 배였다",
             did="운용 형상의 검출 사슬에서 거리-도플러 맵을 대량으로 다시 만들어 경험적 "
                 "오경보율을 세고, 세 파형의 CFAR 문턱을 그 측정값에 맞춰 교정했다.",
             results=[
@@ -407,6 +425,10 @@ def r53():
            "`src/passive_process.py:283` 을 거쳐 이 표를 읽는다.", "",
            f"교정이 없으면 세 파형 비교가 서로 다른 실제 오경보율 위에서 이뤄진다. "
            f"그 위에서 선 비교가 {ref('shared-threshold')} 다.", "",
+           "이 표는 **레퍼런스 채널이 이상적일 때**의 형상에서 잰 값이다. 레퍼런스가 오염되면 "
+           "거리-도플러 맵의 통계가 달라져 이 교정이 그대로 서지 않는다 — 그 형상에서 팔마다 "
+           "경험 Pfa 를 다시 센 것이 "
+           "[리포트 11-2 «기준채널이 현실이면 얼마를 잃는가»](11_2_two_channel.ipynb) 다.", "",
            f"배율이 왜 1 이 아닌지, 이 표가 어디까지 쓰이는지는 {ref('cfar-why')} 가 든다."),
 
         next_steps([
@@ -536,7 +558,8 @@ def r55():
                 f"기저선을 축으로 표적을 돌리면 $R_b$ 변화가 최대 "
                 f"{num(None, f'{OBS}:summary.exact_rotation_max_dRb_m', '{:.1e}', 'm')} 다 — "
                 f"그 방향의 정보량은 SNR 과 관측시간에 무관하게 0 이다.",
-                f"수신기를 하나 더 놓으면 랭크 {RANK2} · 위치 RMS {RMS2} 가 된다.",
+                f"수신기를 하나 더 놓으면 랭크 {RANK2} · 위치 RMS {RMS2} 가 된다 — 그 절대값은 "
+                f"측위 세션 옵션인 PRS 셀({REF_CFG})에서 푼 값이다.",
                 f"분해능과 정확도는 다른 양이다 — 5G SSB 는 기준 대역폭 "
                 f"{num(None, f'{OBS}:cells[2].ref_bw_mhz', '{:.2f}', 'MHz')} 라 셀이 "
                 f"{num(None, f'{OBS}:cells[2].drb_bw_m', '{:.2f}', 'm')} 인데, 같은 반송파에서 "
@@ -583,7 +606,10 @@ def r55():
                        ("σ_Rb (정확도)", "sigma_rb_m"), ("σ_fd", "sigma_fd_hz")],
                       fmt={"ref_bw_mhz": "{:.2f} MHz", "drb_bw_m": "{:.2f} m",
                            "bin_m": "{:.2f} m",
-                           "sigma_rb_m": "{:.4f} m", "sigma_fd_hz": "{:.3f} Hz"})),
+                           "sigma_rb_m": "{:.4f} m", "sigma_fd_hz": "{:.3f} Hz"}), "",
+           f"오른쪽 두 열은 CRLB 이고, 그 안의 SNR 은 선언값이 아니라 **챔버 동작점에서 잰 "
+           f"SCR** 이다 ⟨{OBS} : meta.note⟩. 그래서 두 열은 대역폭만의 함수가 아니라 이 "
+           f"기하·이 표적에 매달린 값이다."),
 
         md("## 두 열을 갈라 읽는다", "",
            "$\\Delta R_b$ 열이 선언 규약이고, 거리 빈은 표본율이 정하는 격자 간격이다. "
@@ -607,11 +633,19 @@ def r55():
                       fmt={"rank_practical": "{:.0f}", "pos_rms_m": "{:.2f} m"},
                       order=["1RX (baseline)", "2RX",
                              "1RX + AoA(1deg)", "1RX + AoA(5deg)"]), "",
-           f"표의 위치 RMS 는 챔버 통제 기하에서 잰 값이다 — 기저선 "
+           f"표의 랭크는 위치 3 + 속도 3 = **6 차원 상태**에 대한 값이고, 관측창 {T_OBS} 를 "
+           f"누적한 그램행렬에서 센다 — 머리줄의 «랭크 {RANK1}» 는 **한 순간 · 위치 3차원**에 "
+           f"대한 값이라 다른 양이다."),
+
+        md("## 이 표의 절대값이 매달린 것", "",
+           f"랭크는 셀을 갈아도 그대로지만, 위치 RMS 는 아니다. 표의 절대값은 기준 셀 "
+           f"{REF_CFG} — 위 표의 마지막 줄인 **PRS**, 즉 측위 세션에서만 켜지는 신호에서 푼 "
+           f"값이다. 상시 기준신호 셀은 같은 표에서 $\\sigma_{{R_b}}$ 가 더 크므로 위치 RMS 도 "
+           f"그만큼 커진다.", "",
+           f"기하도 함께 매달려 있다 — 기저선 "
            f"{num(None, f'{OBS}:meta.L_m', '{:.2f}', 'm')} · EIRP "
            f"{num(None, f'{OBS}:meta.eirp_dbm', '{:.0f}', 'dBm')} · CPI "
-           f"{num(None, f'{OBS}:meta.t_cpi_s', '{:.2f}', 's')} 이고, 기하가 바뀌면 절대값도 "
-           f"같이 움직인다."),
+           f"{num(None, f'{OBS}:meta.t_cpi_s', '{:.2f}', 's')} 의 챔버 통제 기하다."),
 
         md(*fig(2, "f7_observability", "송수신 한 쌍에 무엇을 더하면 표적 위치가 풀리는가?")),
 

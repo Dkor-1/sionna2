@@ -50,6 +50,19 @@ VMIN, VMAX = -40.0, 0.0
 SHADING = "gouraud"
 YLIM_FTIP = 1.9           # 도플러축을 f_tip 의 이 배까지
 
+# --------------------------------------------------------------------------- #
+#  세 팔의 이름 — 그림·표·산문이 **한 이름만** 쓴다
+# --------------------------------------------------------------------------- #
+#  ⭐ 같은 세 팔이 8-2(모노)와 8-5(바이스태틱)의 같은 표에 나오므로, 이름이 갈리면 같은
+#     수가 다른 물건처럼 읽힌다. 그림 라벨(`benchmark/build_three_engine_fig.py` ·
+#     `build_flash_zoom.py` · `build_engine_concept_fig.py`)과 **같은 문자열**이다.
+#  ⚠ 그림 텍스트는 영어이므로 라벨도 영어로 둔다(집 규약).
+ARM_SIONNA = "Sionna PathSolver"
+ARM_SBR = "Ours (SBR+PO, 기본)"
+ARM_PO = "Ours, nothing blocked (control)"
+#: 원장 키 → 표시 이름. 세 팔을 도는 표는 이 순서를 쓴다(대조 → 스톡 → 우리 기본).
+ARM_LABELS = {"po": ARM_PO, "sionna": ARM_SIONNA, "sbr": ARM_SBR}
+
 
 def _spectro(E, prf, nper, hop, pad):
     nper = max(8, int(nper))

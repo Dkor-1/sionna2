@@ -40,6 +40,10 @@ if _HERE not in sys.path:
 from report_registry import index_shard, nb_path, ref  # noqa: E402
 from report_style import (build_notebook, caption, fetch, header, md,  # noqa: E402
                           next_steps, num, table)
+#: ⭐점유 체제 G1·G2·G3 의 정의는 파형 코드가 정본이다(`src/waveforms.py:MODE_DESC`) —
+#  그림의 축 이름(`report03_f1_grid` · `report03_f3_occupancy`)이 그 이름을 그대로 쓰므로
+#  본문도 같은 자리에서 받아 적는다. 손으로 옮겨 적으면 그림과 본문이 갈린다.
+from waveforms import MODE_DESC  # noqa: E402
 
 # ── 근거 JSON ────────────────────────────────────────────────────────────── #
 J_WAVE = "outputs/report2_waveform_rcs.json"     # 파형 제원 + Sionna 교차대조
@@ -82,6 +86,17 @@ def fig(no: int, stem: str, question: str) -> list[str]:
     return [f"![{stem}]({FIG}/{stem}.png)", "", caption(no, question)]
 
 
+def regime_table() -> str:
+    """점유 체제 G1·G2·G3 — 표준마다 켜는 채널이 다르므로 표준별로 적는다."""
+    return table(["체제", "무엇이 켜져 있나", "WiFi 802.11ac", "LTE Rel-9", "5G NR Rel-16"],
+                 [["G1", "유휴 셀 — 상시 기준신호만",
+                   MODE_DESC["wifi"]["G1"], MODE_DESC["lte"]["G1"], MODE_DESC["nr"]["G1"]],
+                  ["G2", "측위 세션이 열린 셀",
+                   MODE_DESC["wifi"]["G2"], MODE_DESC["lte"]["G2"], MODE_DESC["nr"]["G2"]],
+                  ["G3", "데이터로 꽉 찬 셀 — 풀로드",
+                   MODE_DESC["wifi"]["G3"], MODE_DESC["lte"]["G3"], MODE_DESC["nr"]["G3"]]])
+
+
 # =========================================================================== #
 #  편 44 — 상시이면서 내용을 미리 아는 신호는 표준마다 하나씩 있다
 # =========================================================================== #
@@ -100,14 +115,16 @@ def r44():
                 f"5G SSB({W1('nr.ref_bw_mhz', '{:.2f}', 'MHz')}).",
                 f"거리 눈금 $\\Delta R_b = c/B_{{ref}}$ 는 "
                 f"{W1('wifi.dR_m', '{:.1f}')} · {W1('lte.dR_m', '{:.1f}')} · "
-                f"{W1('nr.dR_m', '{:.1f}', 'm')} 로 세 표준이 한 자릿수 배 이상 갈린다.",
+                f"{W1('nr.dR_m', '{:.1f}', 'm')} 로 세 표준이 열 배 넘게 갈린다.",
                 f"$B_{{ref}}$ 는 기준신호가 차지한 부반송파의 양끝 span 이라 안쪽 널 톤을 "
                 f"포함한다 — WiFi 는 span {W1('wifi.ref_bw_mhz', '{:.3f}', 'MHz')} 가 "
                 f"채널 점유대역 {W1('wifi.chan_bw_mhz', '{:.3f}', 'MHz')} 보다 넓다.",
-                f"프레임 안에서 기준신호가 실제로 차지하는 몫은 "
+                f"자원격자에서 **켜져 있는 자원요소의 비율**(비어 있지 않은 칸 ÷ 격자 전체 "
+                f"칸, `src/waveforms.py:178`)은 상시 체제에서 "
                 f"{W1('wifi.occ_pct', '{:.2f}', '%')}(WiFi) · "
                 f"{W1('lte.occ_pct', '{:.2f}', '%')}(LTE) · "
-                f"{W1('nr.occ_pct', '{:.2f}', '%')}(5G) 다.",
+                f"{W1('nr.occ_pct', '{:.2f}', '%')}(5G) 다 — 이 체제에서는 켜진 칸이 "
+                f"기준신호뿐이라 그 값이 곧 기준신호의 몫이다.",
             ],
             method=[
                 ("자원격자",
@@ -119,6 +136,12 @@ def r44():
                 ("거리 규약",
                  "바이스태틱 거리합 $R_b = R_1 + R_2 - L$ 이라 분해능은 $c/B_{ref}$ 다 — "
                  "모노스태틱 교과서 값의 두 배다"),
+                ("점유율의 정의",
+                 "격자에서 **비어 있지 않은 자원요소의 비율**이다(`src/waveforms.py:178`). "
+                 "상시 체제(G1)는 기준신호만 켠 격자라 그 비율이 기준신호의 몫과 같다"),
+                ("반복률의 출처가 갈린다",
+                 "LTE CRS · 5G SSB 는 규격이 고정한 주기이고, **WiFi 는 트래픽 가정에서 온 "
+                 "선언값**이다(`src/waveforms.py:112` 의 `PILOT_RATE_HZ`)"),
             ],
             repro=dict(cmd=CMD_ALL[:2] + CMD_ALL[-1:], out=[J_WAVE, J_LED],
                        runtime=f"① {num(None, (J_WAVE, 'meta.runtime_s'), '{:.0f}', 's')} "
@@ -130,7 +153,10 @@ def r44():
            "**동시에** 서야 한다.", "",
            "**① 내용을 미리 안다.** 데이터는 매 순간 바뀌므로 규격이 고정한 기준신호가 그 자리를 맡는다.", "",
            "**② 아무 셀이나 늘 켠다.** 상시 신호라야 표적이 지나가는 그 순간에도 공중에 있다.", "",
-           "두 조건을 다 만족하는 신호는 표준마다 **하나씩**이다."),
+           "두 조건을 다 만족하는 신호는 표준마다 **하나씩**이다 — WiFi 의 **VHT-LTF**"
+           "(패킷 앞머리에 붙는 채널추정용 훈련심볼) · LTE 의 **CRS**(셀 고유 기준신호, 매 "
+           "서브프레임 전대역) · 5G NR 의 **SSB**(동기신호 블록, 대역 한가운데 좁은 비콘)다. "
+           "5G 의 **PRS**(측위 기준신호)는 상시가 아니라 측위 세션이 열릴 때만 켜진다."),
 
         md("## 격자에서 잰 제원", "",
            table(["표준", "상시 기준신호", "반송파", "채널 점유대역", "$B_{ref}$",
@@ -155,6 +181,12 @@ def r44():
            f"채널 대역이 다 열린 체제의 값 {W1('nr.chan_dR_m', '{:.2f}', 'm')} 는 "
            f"{ref('cost-ledger', short=True)} 가 낙관적 상한으로 함께 싣는다.", "",
            f"규약의 정확한 형태는 {ref('range-convention')} 가 든다."),
+
+        md("## 셀이 얼마나 바쁜가 — 체제 셋 G1 · G2 · G3", "",
+           "아래 그림과 뒤 편들의 가로축에 붙는 이름이다. 셀이 무엇을 켜고 있느냐로 셋을 가른다.", "",
+           regime_table(), "",
+           "이 편의 제원표는 전부 **G1** 에서 잰 값이다 — 남의 셀을 빌리는 수신기가 "
+           "언제나 기대할 수 있는 것이 그 체제뿐이기 때문이다."),
 
         md(*fig(1, "report03_f1_grid",
                 "유휴 셀이 실제로 켜는 칸은 어디이고, 그중 패시브가 상관에 쓰는 것은 무엇인가?")),
@@ -199,8 +231,8 @@ def r45():
                  "거리 축은 $B_{ref}$ 가, 속도 축은 물리 반복률이 정한다 — 둘 다 규격이 고정한 "
                  "자원격자에서 나오는 닫힌형이다"),
                 ("비교 체제",
-                 "상시 기준신호 체제(G1)에서 잰다. PRS 체제(G2·G3)는 같은 그림에 함께 싣고 "
-                 "낙관적 상한으로 읽는다"),
+                 "유휴 셀 체제(G1)에서 잰다 — 체제 셋의 뜻은 **절 1** 의 표에 있다. PRS 가 켜진 "
+                 "체제(G2·G3)는 같은 그림에 함께 싣고 낙관적 상한으로 읽는다"),
                 ("$\\lambda^2$ 항",
                  "EIRP 고정 · 수신 안테나 **이득** 고정 전제에서 선다 — `src/freespace_link.py:371`"),
             ],
@@ -364,7 +396,7 @@ def r46():
         next_steps([
             (f"EIRP 격자를 {L('occupancy_cost.eirp_grid_step_db', '{:.0f}', 'dB')} 에서 2 dB 로 "
              f"좁히고 기준신호 대역을 고정한 점유 스윕을 돌린다",
-             f"{L('occupancy_cost.value_db', '{:.1f}', 'dB')} 안에서 점유 항과 대역 항의 크기가 갈린다",
+             f"{L('occupancy_cost.value_db', '{:.0f}', 'dB')} 안에서 점유 항과 대역 항의 크기가 갈린다",
              "`benchmark/run_matrix.py:300`"),
             (f"표적 {L('occupancy_cost.drone')} · 시나리오 {L('occupancy_cost.scen')} 한 점에서 "
              f"읽은 점유 대가를 기체·기하로 넓힌다",
@@ -461,7 +493,7 @@ def r48():
     return [
         header(
             num=48,
-            title="같은 자원격자를 독립 변조기에 넣어 상관 1.0000 을 얻었다",
+            title="같은 자원격자를 독립 변조기에 넣으면 같은 시간파형이 나온다",
             did="우리 변조기와 Sionna PHY 의 `OFDMModulator` 에 같은 자원격자를 넣고 두 시간파형의 "
                 "상관과 NMSE 를 재, 변조 단계를 독립 구현으로 채점했다.",
             results=[
@@ -550,8 +582,10 @@ def r49():
                 f"모호함수와 검출기 거리도플러 출력은 최대 "
                 f"{L('detector_af_max_err_db.value', '{:.3f}', 'dB')} 안에서 같다 "
                 f"({L('detector_af_max_err_db.n_cases', '{:.0f}')}개 경우, −45 dB 이상 셀).",
-                f"거리 주엽은 $c/B_{{ref}}$ 예측의 {A('wifi_G1.dR_ratio', '{:.0%}')} ~ "
-                f"{A('nr_G1.dR_ratio', '{:.0%}')} 다(G1 세 파형).",
+                f"거리 주엽은 $c/B_{{ref}}$ 예측의 "
+                f"{A('wifi_G1.dR_ratio', '{:.0%}')}(WiFi) · "
+                f"{A('lte_G1.dR_ratio', '{:.0%}')}(LTE) · "
+                f"{A('nr_G1.dR_ratio', '{:.0%}')}(5G) 다.",
                 f"도플러 주엽은 여섯 경우 모두 $1/T_{{CPI}}$ 의 "
                 f"{A('wifi_G1.dF_ratio', '{:.2f}')}배 근처이고, 이 배수는 파형이 아니라 "
                 f"slow-time Hann 창이 정한다(`src/passive_process.py:142`).",
@@ -571,6 +605,9 @@ def r49():
                  "이 창이다(`src/passive_process.py:142`)"),
                 ("이 표의 PRF",
                  "**검출기 프레임률**이다. 물리 주기 기준의 접힘은 따로 잰다"),
+                ("기준신호를 어디서 얻나",
+                 "이 커널은 기준신호로 **송신 파형 그 자체**를 넣는다 — 잡음도 다중경로도 "
+                 "없는 «완벽한 기준안테나» 상한이다. 그 가정을 푸는 것은 이 편의 밖이다"),
             ],
             prereq=[(ref("range-convention", short=True), "$\\Delta R_b$ 와 잡음대역 규약")],
             repro=dict(cmd=CMD_ALL[2:3] + CMD_ALL[-1:], out=[J_AMB, J_LED],
@@ -583,11 +620,16 @@ def r49():
            f"우리가 그리는 것은 **검출기가 쓰는 것과 같은 커널**이고, 검출기의 거리도플러 출력과 "
            f"최대 {L('detector_af_max_err_db.value', '{:.3f}', 'dB')} "
            f"({L('detector_af_max_err_db.n_cases', '{:.0f}')}개 경우, −45 dB 이상 셀) 안에서 같다. "
-           f"따로 계산한 그림이 아니라 **검출기 자신의 눈**이라는 뜻이다."),
+           f"따로 계산한 그림이 아니라 **검출기 자신의 눈**이라는 뜻이다.", "",
+           "⚠ 그 눈이 드는 기준신호는 **송신 파형 그 자체**다 — 잡음 0 · 다중경로 0, 즉 "
+           "기준안테나가 완벽하다는 상한이다. 기준채널을 현실로 두면 그 사슬이 얼마를 잃는지는 "
+           "[리포트 11-2 «기준채널이 현실이면 얼마를 잃는가»](11_2_two_channel.ipynb) 가 "
+           "단일축으로 잰다."),
 
         md("## 주엽 — 닫힌형과 대조", "",
            f"거리 주엽(응답에서 가장 높이 솟은 가운데 봉우리)은 $c/B_{{ref}}$ 예측의 "
-           f"{A('wifi_G1.dR_ratio', '{:.0%}')} ~ {A('nr_G1.dR_ratio', '{:.0%}')} 다(G1 세 파형).", "",
+           f"{A('wifi_G1.dR_ratio', '{:.0%}')}(WiFi) · {A('lte_G1.dR_ratio', '{:.0%}')}(LTE) · "
+           f"{A('nr_G1.dR_ratio', '{:.0%}')}(5G) 다.", "",
            f"도플러 주엽은 여섯 경우 모두 $1/T_{{CPI}}$ 의 {A('wifi_G1.dF_ratio', '{:.2f}')}배 "
            f"근처이고, 이 배수는 파형이 아니라 **slow-time Hann 창**(프레임과 프레임 사이 축에 "
            f"씌워 가장자리를 깎는 창)이 정한다."),
@@ -599,6 +641,9 @@ def r49():
            "주엽 밖으로 새는 에너지는 두 가지로 나타난다. **부엽**은 강한 표적이 평면 다른 곳의 "
            "약한 표적을 덮는 정도이고, **±PRF 레플리카**는 무모호 속도를 넘은 표적이 되접혀 "
            "들어오는 세기다.", "",
+           "표의 마지막 열 «프레임 내 시간점유» 는 **에너지가 실려 있는 표본 수 ÷ 프레임 전체 "
+           "표본 수** 다(`benchmark/verify_ambiguity.py:260`). 프레임 내내 신호가 있으면 "
+           "온전한 몫이 되고, 앞쪽에 뭉칠수록 작아진다.", "",
            table(["기준신호", "2D 부엽 최대", "±PRF 레플리카", "프레임 내 시간점유"],
                  [["WiFi VHT-LTF", A("wifi_G1.psl_2d_db", "{:.1f}", "dB"),
                    A("wifi_G1.doppler_replica_db", "{:.2f}", "dB"),
@@ -617,6 +662,9 @@ def r49():
            "이 표의 PRF 는 **검출기 프레임률**이다. 물리 주기 기준의 접힘은 "
            + ref("doppler-fold", short=True) + " 가 따로 잰다 — 그 편이 같은 표를 "
            "물리 반복률로 다시 세운다."),
+
+        md(*fig(2, "report03_f7_af_sidelobe",
+                "각 기준신호는 표적 에너지를 부엽과 도플러 레플리카에 얼마나 남기는가?")),
 
         next_steps([
             (f"`benchmark/run_min_cell.py:74` 의 `frame_len()` 을 물리 SSB 주기"
@@ -670,9 +718,6 @@ def r50():
                        runtime="② GPU 1장 수 분 · ④ CPU 20초 안쪽"),
         ),
 
-        md(*fig(1, "report03_f7_af_sidelobe",
-                "각 기준신호는 표적 에너지를 부엽과 도플러 레플리카에 얼마나 남기는가?")),
-
         md("## 물리 반복률이 무모호 속도를 정한다", "",
            table(["기준신호", "물리 PRF", "무모호 속도", "접히는가"],
                  [["WiFi VHT-LTF", A("wifi_G1.physical.prf_physical_hz", "{:.0f}", "Hz"),
@@ -691,7 +736,11 @@ def r50():
            f"±{A('nr_G1.physical.fd_unamb_phys_hz', '{:.0f}', 'Hz')} 안으로 되접혀 "
            f"{A('nr_G1.physical.fd_aliased_phys_hz', '{:.1f}', 'Hz')} 에 나타난다.", "",
            "접힌 표적은 사라지는 것이 아니라 **엉뚱한 속도로 보고된다**. 그래서 이 대가는 "
-           "감도가 아니라 판정의 정합성에 든다."),
+           "감도가 아니라 판정의 정합성에 든다.", "",
+           "같은 접힘이 마이크로도플러 축에도 그대로 온다 — 검출이 죽은 칸에서 빗살이 어디까지 "
+           "남는지, 그리고 5G 에서 그 빗살이 어떻게 접히는지는 "
+           "[리포트 11-2 «기준채널이 현실이면 얼마를 잃는가»](11_2_two_channel.ipynb) 의 "
+           "마지막 절이 같은 사슬에서 잰다."),
 
         md("## 두 배의 대가의 나머지 절반", "",
            f"5G 는 좁아서 거리 눈금이 거칠고, 드물어서 속도 눈금이 접힌다 — "
@@ -785,8 +834,9 @@ BUILD = [
     ("cost-ledger", r46, [J_LED, J_FIX, J_MTX], ["report03_f3_occupancy", "report03_f4_ledger"]),
     ("range-convention", r47, [J_LED, J_FIX, J_AMB], []),
     ("waveform-check", r48, [J_WAVE], ["report03_f5_crosscheck"]),
-    ("ambiguity", r49, [J_LED, J_AMB], ["report03_f6_af_mainlobe"]),
-    ("doppler-fold", r50, [J_LED, J_AMB], ["report03_f7_af_sidelobe"]),
+    ("ambiguity", r49, [J_LED, J_AMB],
+     ["report03_f6_af_mainlobe", "report03_f7_af_sidelobe"]),
+    ("doppler-fold", r50, [J_LED, J_AMB], []),
 ]
 
 

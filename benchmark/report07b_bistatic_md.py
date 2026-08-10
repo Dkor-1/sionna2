@@ -65,7 +65,8 @@ import numpy as np                                                      # noqa: 
 import mitsuba as mi                                                    # noqa: E402
 
 import rcs_sbr as rsb                                                   # noqa: E402
-from rcs_sbr import sbr_field, sbr_field_bistatic                       # noqa: E402
+from rcs_sbr import (grid_ref_for_slowtime, sbr_field,                  # noqa: E402
+                     sbr_field_bistatic)
 from articulated_fast import FastPoser, rotor_phases                    # noqa: E402
 from drones import DRONES, DRONE_GROUP_MAT                              # noqa: E402
 from md_mapstyle import auto_periods, flash_spec, ridge_spec             # noqa: E402
@@ -347,6 +348,15 @@ def main():
               f"예측A cos(β/2)={np.cos(np.radians(b)/2):.4f}  "
               f"예측B={horiz_ratio(u_i, us, EL):.4f}")
 
+    # ⭐ 얼린 광선 격자 — 모노 팔(리포트 7)과 **같은 규약**이다. 격자는 자세의 bbox 에서
+    #   나오는데 프로펠러가 돌면 bbox 가 숨을 쉬어 위상 원점(ctr)과 표본 집합(Rout·n)이
+    #   프레임마다 바뀐다. 바이스태틱도 격자를 û_i 에서 같은 함수로 만들므로 병이 같다.
+    #   ⚠ 한 판을 모든 수신방향(U_s)이 공유한다 — β 사이 비교가 격자 차이에 오염되면 안 된다.
+    #   SIONNA2_FREEZE_GRID=0 이면 None → 옛 동작(전후 비교 스위치).
+    gref = grid_ref_for_slowtime(fp.pose, fp.dirs, FC)
+    print("  격자(얼림) " + (f"n={gref.n} ({gref.n**2}발) · Rout={gref.Rout:.4f} m"
+                            if gref is not None else "OFF — SIONNA2_FREEZE_GRID=0"), flush=True)
+
     # ── 슬로타임 복소열 ──────────────────────────────────────────────────────
     if a.analyze_only:
         Zp = np.load(OUTZ)
@@ -357,7 +367,7 @@ def main():
         t0 = time.time()
         E = np.zeros((NT, len(dirs)), complex)
         for i in range(NT):
-            E[i] = sbr_field_bistatic(fp.pose(ph[i]), GM, FC, u_i, U_s)
+            E[i] = sbr_field_bistatic(fp.pose(ph[i]), GM, FC, u_i, U_s, grid_ref=gref)
             if i and i % 512 == 0:
                 el_ = time.time() - t0
                 print(f"      {i}/{NT}  {el_:.0f}s  ETA {(NT-i)/i*el_/60:.1f}분", flush=True)
@@ -372,8 +382,9 @@ def main():
         rel = []
         for i in idx:
             mv = fp.pose(ph[i]); ck = ("r07b", int(i))
-            Em = sbr_field(mv, GM, FC, u_i, cache_key=ck)
-            Eb = sbr_field_bistatic(mv, GM, FC, u_i, u_i, cache_key=ck)
+            # 생산 경로와 같은 판을 넘긴다 — 안 그러면 항등 검사가 생산과 다른 격자를 검사한다
+            Em = sbr_field(mv, GM, FC, u_i, cache_key=ck, grid_ref=gref)
+            Eb = sbr_field_bistatic(mv, GM, FC, u_i, u_i, cache_key=ck, grid_ref=gref)
             rel.append(abs(complex(Eb) - Em) / abs(Em))
             rsb._SCENE_CACHE.clear()
         ident = dict(n=int(len(idx)), max_rel_err=float(max(rel)),
@@ -393,7 +404,11 @@ def main():
                           max_phase_err_deg=float(np.abs(np.degrees(
                               np.angle(E[:, 0] / s0))).max()),
                           source="outputs/report07_three_engines.npz['sbr']",
-                          note="리포트 7 의 모노 SBR 팔과 이 스윕의 β=0 열")
+                          this_run_grid_frozen=bool(gref is not None),
+                          note=("리포트 7 의 모노 SBR 팔과 이 스윕의 β=0 열. "
+                                "⚠ 두 열이 **같은 격자 규약**일 때만 0 이 나온다 — 이 스윕이 "
+                                "얼린 판을 쓰는데 원장이 옛(안 얼린) 판이면 커진다. 그때는 "
+                                "report07_three_engines.npz 를 먼저 다시 내라."))
     print(f"  회귀 ① 커널 항등 max rel {ident['max_rel_err']:.3e} "
           f"(비트동일 {ident['n_bit_identical']}/{ident['n']})")
     if ledger:
@@ -649,6 +664,8 @@ def main():
         host=socket.gethostname(), gpu=os.environ.get("SIONNA2_GPU"),
         script="benchmark/report07b_bistatic_md.py",
         kernel="rcs_sbr.sbr_field_bistatic (단일 격자 λ/12 · 각도의존 Γ(θ) · 투과 · 출사가시성)",
+        grid_frozen=bool(gref is not None),
+        grid_ref=(gref.asjson() if gref is not None else None),
         inherited_from="outputs/report07_three_engines.json['_meta'] — 하드코딩 없음",
         drone=M["drone"], name=M["name"], fc_hz=FC, az_deg=AZ, el_deg=EL,
         n=NT, prf_hz=PRF, f_flash_hz=FFL, f_tip_mono_hz=FTIP0,

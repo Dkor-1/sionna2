@@ -42,7 +42,7 @@ for _p in (_HERE, os.path.join(_ROOT, "benchmark")):
         sys.path.insert(0, _p)
 
 from report_registry import index_shard, nb_path, ref, ref_part           # noqa: E402
-from report_style import (build_notebook, caption, header, md,            # noqa: E402
+from report_style import (build_notebook, caption, fetch, header, md,     # noqa: E402
                           next_steps, num, table, table_from)
 
 # --------------------------------------------------------------------------- #
@@ -65,6 +65,7 @@ MFX_ATK = "outputs/meshfix_attack.json"      # 형상 정정 적대검증
 EVD = "outputs/report00_evidence.json"       # 테셀레이션 축
 PTD = "outputs/ptd_wiring.json"              # PTD 배선 비용
 AGI = "outputs/angle_gamma_impact.json"      # Γ(θ) 각도 모양 — 커널이 |Γ| 에 곱하는 축
+APO = "outputs/angle_gamma_po_impact.json"   # 순수 PO 쪽 Γ(θ) — 호출 옵트인 · 비트동일 회귀
 SGC = "outputs/sbr_grid_convergence.json"    # 격자 사다리 — 생산·위상고정·얼림 세 팔
 SGZ = "outputs/sbr_grid_convergence.npz"     # 그 사다리의 슬로타임 계열·격자 진단
 SGR = "outputs/sbr_grid_freeze_review.json"  # 얼리기 적대 반증 8 라운드
@@ -73,12 +74,53 @@ AGV = "outputs/adv_sbr_grid_verdict.json"    # 위 둘의 종합 판정
 OOB = "outputs/outofband_power.json"         # ⭐대역밖 전력의 잣대(절대·평활 없음)
 VFG = "outputs/verify_frozen_grid.json"      # grid_ref 배선 회귀 게이트
 MCV = "outputs/md_classify_verify.json"      # 가산성 정리 검사(격자 고정 ↔ 이동)
+VBF = "outputs/verify_bistatic_field.json"   # 바이스태틱 복소장 게이트 — Γ(θ) 배선 포함
+GEO = "outputs/geometry_grid.json"           # 검출 사슬이 σ 를 어느 기하에서 읽나
+ARK = "outputs/audit_rcs_kernel.json"        # 커널 감사 — 배선 축의 열린 자리
 
 FIG = "../outputs/figures"
 
 
 def _n(key: str, src: str, fmt: str | None = None, unit: str = "") -> str:
     return num(None, (src, key), fmt, unit)
+
+
+def _lit(key: str, src: str, fmt: str = "{:.2f}") -> str:
+    """원장 값을 **출처 표시 없이** 글자로만 — 제목처럼 각주가 못 붙는 자리에 쓴다.
+
+    본문 숫자는 언제나 `num()`(출처 태그 포함)으로 넣는다. 제목은 각주가 안 붙는 자리라
+    손으로 적히기 쉬운데, 이 함수를 거치면 값이 **원장에서 읽혀** 원장이 움직이면 제목도
+    같이 움직인다."""
+    return fmt.format(fetch((src, key)))
+
+
+def _pct(num_key: str, den: float, src: str, fmt: str = "{:.0f}") -> str:
+    """원장 값을 분모로 나눈 비율 — 파생값을 본문에 손으로 적지 않기 위한 것이다."""
+    return fmt.format(100.0 * float(fetch((src, num_key))) / float(den))
+
+
+#: 격자 사다리가 돈 자세 수 — 「4095 스텝」 같은 파생 숫자를 여기서 만든다.
+_N_POSE = int(fetch((SGC, "_meta.n")))
+#: λ/12 격자에서 자세마다 갈리는 히트 수 — 계열의 최대−최소와 그 상대폭.
+_NLIT = [float(x) for x in fetch((SGZ, "n_lit_div12"))]
+_NLIT_PTP = max(_NLIT) - min(_NLIT)
+_NLIT_PTP_PCT = 100.0 * _NLIT_PTP / (sum(_NLIT) / len(_NLIT))
+#: 얼린 판이 자세 평균보다 더 쏘는 광선의 몫.
+_RAY_COST_PCT = 100.0 * (float(fetch((VFG, "gate2_frozen_grid_invariant.extra_ray_cost"))) - 1.0)
+
+AGS = "outputs/angle_gamma_sigma_impact.json"   # Γ(θ) 가 σ 격자를 옮긴 양 — 기체 3 × 고각 2
+#: 그 원장에서 **가장 작은 칸과 가장 큰 칸의 이름**을 고른다 — 범위의 두 끝까지 원장이 정한다.
+_AGS_CELLS = ["matrice4e/el-15", "matrice4e/el+15", "mini5pro/el-15",
+              "mini5pro/el+15", "phantom4/el-15", "phantom4/el+15"]
+
+
+def _ends(src: str, cells: list[str], field: str) -> tuple[str, str]:
+    vals = {c: float(fetch((src, f"{c}.{field}"))) for c in cells}
+    return min(vals, key=vals.get), max(vals, key=vals.get)
+
+
+_AGS_MEAN_LO, _AGS_MEAN_HI = _ends(AGS, _AGS_CELLS, "delta_db")
+_AGS_CELL_LO, _AGS_CELL_HI = _ends(AGS, _AGS_CELLS, "cell_max_abs_db")
 
 
 def _fig(no: int, stem: str, question: str) -> list[str]:
@@ -102,6 +144,21 @@ _KNEE = ("q5_blast_radius.po_validity_blast_radius_the_real_one."
 
 def _knee(part: str, fmt: str = "{:.2f}", unit: str = "GHz") -> str:
     return _n(_KNEE + part, LFK, fmt, unit)
+
+
+def _knee_width(part: str) -> str:
+    """무릎 표의 «폭» 칸 — 원장 키 이름에 박힌 치수를 그대로 읽는다.
+
+    폭을 따로 손으로 적으면 표의 폭과 그 폭으로 찾은 주파수가 서로 다른 값을 가리킬 수
+    있다. 같은 문자열에서 둘 다 나오게 두면 그 어긋남이 생기지 않는다."""
+    return part.rsplit("_", 1)[-1].replace("mm", " mm")
+
+
+#: 무릎 표의 행 — (부품 이름, 원장 키). 폭도 주파수도 이 키 하나에서 나온다.
+_KNEE_ROWS = [("동체", "body_81.51mm"), ("암뿌리", "arm_root_45mm"),
+              ("암끝", "arm_tip_30mm"), ("프로펠러", "prop_blade_13.78mm"),
+              ("모터", "motor_13.68mm"), ("캐노피", "canopy_6.22mm"),
+              ("PCB", "pcb_2.99mm")]
 
 
 # =========================================================================== #
@@ -144,8 +201,9 @@ def report_18_kernel_what():
                 f"{_n('grid_pinning.matrice4e.pinned.additivity_residual_median', MCV, '{:.1e}')} "
                 f"(기계정밀도)이고 움직이는 격자에서 "
                 f"{_n('grid_pinning.matrice4e.moving.additivity_residual_median', MCV, '{:.2f}')} "
-                f"다. 얼리면 대역밖 절대 전력이 λ/12 에서 "
-                f"{_n('freeze_verdict.gains_db.12', OOB, '{:.1f}', 'dB')} 내려간다.",
+                f"다. 얼리면 **대역밖**(블레이드 끝 도플러 "
+                f"{_n('_meta.f_tip_hz', OOB, '{:.0f}', 'Hz')} 보다 높은 주파수 전부) 절대 전력이 "
+                f"λ/12 에서 {_n('freeze_verdict.gains_db.12', OOB, '{:.1f}', 'dB')} 내려간다.",
             ],
             method=[
                 ("① 조명면 찾기", "Sionna 의 Mitsuba/OptiX 광선엔진을 그대로 부른다 — 첫 충돌 "
@@ -177,7 +235,8 @@ def report_18_kernel_what():
                  [["첫 충돌 탐색 · 가림", "어느 면이 실제로 조명되는가",
                    "🟢 Sionna 의 Mitsuba/OptiX 광선엔진"],
                   ["재질 |Γ(θ)|", "수직입사 보정값 × 각도 모양(TE·TM 전력평균, "
-                                "`ANGLE_GAMMA=1` 기본)",
+                                "`ANGLE_GAMMA=1` 기본). 1회 반사 경로 넷이 같은 함수를 쓴다 "
+                                "— 다중반사 경로가 서 있는 자리는 **절 6** 이다",
                    "🟢 Sionna 재질표(`src/materials.py` `MATERIALS`) + 🔵 각도 모양 "
                    "(`src/rcs_sbr.py` `ANGLE_GAMMA`)"],
                   ["PO 면적분 → σ", "E = Σ |Γᵢ(θᵢ)| e^{j2k pᵢ·û} d², σ = 4π|E|²/λ²",
@@ -237,7 +296,9 @@ def report_18_kernel_what():
            f"광선 격자는 표적 앞에 세우는 평면 자다 — 중심 ctr, 반경 Rout, 한 변의 칸수 n "
            f"셋이 그것을 정한다. 생산 경로는 그 셋을 **자세마다 bbox 에서 다시 잡는다**. "
            f"관절이 도는 로터에서는 bbox 가 자세마다 숨쉬므로 자도 같이 흔들린다.", "",
-           table(["흔들리는 것", "무엇이 흔들리나 (λ/12 · matrice4e · 4096 자세)", "무엇이 실리나"],
+           table(["흔들리는 것",
+                  f"무엇이 흔들리나 (λ/12 · {fetch((SGC, '_meta.drone'))} · {_N_POSE} 자세)",
+                  "무엇이 실리나"],
                  [["위상 원점",
                    "ctr 이 시선방향으로 "
                    + _n("grid_wander.ctr_u_ptp_mm", SGC, "{:.1f}", "mm")
@@ -251,9 +312,9 @@ def report_18_kernel_what():
                    "n = ceil(2Rout/d) 가 정수라 "
                    + _n("grid_wander.per_div.12.n_min", SGC, "{:.0f}") + "~"
                    + _n("grid_wander.per_div.12.n_max", SGC, "{:.0f}")
-                   + " 사이를 오가고 4095 스텝 중 "
+                   + f" 사이를 오가고 {_N_POSE - 1} 스텝 중 "
                    + _n("grid_wander.per_div.12.n_changes", SGC, "{:.0f}", "번")
-                   + "(40 %) 튄다",
+                   + f"({_pct('grid_wander.per_div.12.n_changes', _N_POSE - 1, SGC)} %) 튄다",
                    "서브셀 오프셋 표준편차 "
                    + _n("grid_wander.per_div.12.subcell_off_e1_std_frac", SGC, "{:.4f}")
                    + " 는 균등분포 1/√12 = 0.2887 과 넷째 자리까지 같다 — 자세마다 굴리는 "
@@ -263,8 +324,9 @@ def report_18_kernel_what():
                    + _n("audit_2_signal_loss.rows[1].n_lit_prod_mean", AGF, "{:.1f}", "개")
                    + ", 자세간 상대 표준편차 "
                    + _n("audit_2_signal_loss.rows[1].n_lit_prod_relstd", AGF, "{:.4f}"),
-                   "자세별 히트 수 계열 ⟨" + SGZ + " : n_lit_div12⟩ 의 최대−최소가 102 개"
-                   "(17 %) 다 — 어느 면이 세어지는가가 자세마다 갈린다"]])),
+                   "자세별 히트 수 계열 ⟨" + SGZ + " : n_lit_div12⟩ 의 최대−최소가 "
+                   f"{_NLIT_PTP:.0f} 개(평균의 {_NLIT_PTP_PCT:.0f} %) 다 — 어느 면이 "
+                   "세어지는가가 자세마다 갈린다"]])),
 
         md("## 결정적 검사 — 가산성", "",
            "서로 가리지 않는 로터의 PO 면적분은 E(φ₁..φ₄) = E₀ + Σ ΔE_j(φ_j) 로 정확히 "
@@ -289,7 +351,12 @@ def report_18_kernel_what():
            f"{_n('in_band_fidelity.rows[1].cos_froz_vs_po', SGC, '{:.3f}')} 으로 오른다."),
 
         md("## 얼리면 무엇이 오고 무엇을 잃나", "",
-           f"판 하나를 잡아 4096 자세에 그대로 쓰면 슬로타임 스펙트럼의 대역밖 절대 전력이 "
+           f"잣대를 먼저 정의한다 — **대역밖 전력** P_out 은 슬로타임 스펙트럼에서 블레이드 끝 "
+           f"도플러 f_tip = {_n('_meta.f_tip_hz', OOB, '{:.0f}', 'Hz')} 보다 높은 주파수의 "
+           f"|X(f)|² 를 그대로 더한 값이다 ⟨{OOB} : new_definition.headline⟩ — 평활도 비율도 "
+           f"안 들어가고, 정규화가 필요하면 분모를 이름에 박아 전체 전력으로 나눈다 "
+           f"⟨{OOB} : new_definition.normalization⟩.", "",
+           f"판 하나를 잡아 {_N_POSE} 자세에 그대로 쓰면 그 대역밖 절대 전력이 "
            f"λ/12 에서 {_n('freeze_verdict.gains_db.12', OOB, '{:.1f}')} · λ/32 에서 "
            f"{_n('freeze_verdict.gains_db.32', OOB, '{:.1f}', 'dB')} 내려간다. "
            f"⭐ 그리고 **얼린 팔만 예측대로 d² 로 수렴한다** — 기울기 "
@@ -304,7 +371,7 @@ def report_18_kernel_what():
                  [["광선 수",
                    "얼린 판이 자세 평균 대비 "
                    + _n("gate2_frozen_grid_invariant.extra_ray_cost", VFG, "{:.3f}", "배"),
-                   "전 자세를 덮는 판이라 평균보다 크다 — 비용 +10.8 %"],
+                   f"전 자세를 덮는 판이라 평균보다 크다 — 비용 +{_RAY_COST_PCT:.1f} %"],
                   ["디더 평균",
                    "얼린 장과 생산 장의 레벨 차가 "
                    + _n("field_level.froz_vs_prod_level_db_ptp", VFG, "{:.2f}", "dB") + " p-p",
@@ -315,17 +382,21 @@ def report_18_kernel_what():
                    "덮개 여유 최소 "
                    + _n("gate3_coverage.margin_min_mm", VFG, "{:.1f}", "mm"),
                    "자세열을 먼저 훑어야 판이 나온다 — 스트리밍으로는 못 잡는다"]]), "",
-           f"배선은 커널에 들어가 있고 기본값은 `grid_ref=None` 이다 — 그 값이면 배선 전 커널과 "
+           f"커널의 기본값은 `grid_ref=None` 이다 — 그 값이면 배선 전 커널과 "
            f"{_n('gate1_bit_identity.n_bit_identical', VFG, '{:.0f}')}/"
            f"{_n('gate1_bit_identity.n_cases', VFG, '{:.0f}')} 비트 동일이라 "
-           f"(최대 상대오차 {_n('gate1_bit_identity.max_rel_err', VFG, '{:.1f}')}) 기존 원장이 "
-           f"그대로 선다. 하류(`src/microdoppler.py` · 리포트 8 계열)는 아직 `grid_ref` 를 "
-           f"안 넘긴다 — 이 절의 이득은 커널의 성질이지 지금 원장의 숫자가 아니다."),
+           f"(최대 상대오차 {_n('gate1_bit_identity.max_rel_err', VFG, '{:.1f}')}) 옛 원장이 "
+           f"그대로 선다. 판을 잡는 쪽은 호출자다 — 슬로타임 경로(`src/microdoppler.py`)는 로터 "
+           f"한 바퀴의 합집합 경계상자로 판 한 장을 만들어 넘기고, 스위치 "
+           f"`SIONNA2_FREEZE_GRID` 가 그 켬·끔을 정한다(기본 켬). 판이 자세를 못 덮으면 커널이 "
+           f"예외를 던진다 ⟨{VFG} : negative_controls.too_small_msg⟩.", "",
+           f"⚠ 리포트 8 계열의 원장은 지금 얼린 판으로 다시 나는 중이다 — 이 절은 그 재계산 "
+           f"결과를 인용하지 않고, 여기 숫자는 격자 사다리와 회귀 게이트 자신의 것이다."),
 
         next_steps([
-            ("하류 마이크로도플러 경로에 `grid_ref` 를 넘기고 원장을 다시 낸다",
+            ("얼린 판으로 리포트 8 계열의 마이크로도플러 원장을 다시 낸다",
              "얼린 격자의 이득이 리포트 8 계열의 숫자로 들어온다",
-             "`src/microdoppler.py` → " + ref("md-slowtime", short=True)),
+             "`src/microdoppler.py`(판을 넘기는 쪽) → " + ref("md-slowtime", short=True)),
             ("정정된 메쉬로 가림 표와 생산 σ 를 같은 설정에서 다시 낸다",
              "형상 정정이 가림과 σ 를 어느 방향으로 얼마나 옮기는지가 기체별로 확정된다",
              f"⟨{MFX_ATK} : recommended_gate_before_any_sigma_claim⟩"),
@@ -350,7 +421,8 @@ def report_19_kernel_vs_stock():
         header(
             num=19,
             title="스톡 솔버와 맞대면 «면이 많아서 에코가 커진다» 가설은 반증되고, "
-                  "런타임의 96.9% 는 호스트가 쓴다",
+                  f"런타임의 {_lit('answer.cost_structure.host_side_pct', RUN, '{:.1f}')}% 는 "
+                  "호스트가 쓴다",
             did="같은 메쉬를 스톡 경로 솔버에 그대로 넣고 경로 수·진폭·런타임을 우리 커널과 "
                 "같은 카드에서 나란히 쟀다.",
             results=[
@@ -455,7 +527,11 @@ def report_20_bistatic_exit():
     return [
         header(
             num=20,
-            title="수신 방향 그림자 광선을 켜면 상반성 위반이 9.69 → 8.24 dB 로 내려간다",
+            title="수신 방향 그림자 광선을 켜면 상반성 위반이 "
+                  f"{_lit('d2_exit_vis_effect_on_reciprocity.worst_without_exit_vis_db', DFX)}"
+                  f" → "
+                  f"{_lit('d2_exit_vis_effect_on_reciprocity.worst_with_exit_vis_db', DFX)}"
+                  " dB 로 내려간다",
             did="각 충돌점에서 수신기 방향으로 그림자 광선을 한 번 더 쏘아 출사 쪽 가림을 "
                 "판정하고, 그 효과를 상반성으로 쟀다.",
             results=[
@@ -523,6 +599,19 @@ def report_20_bistatic_exit():
            f"주장 창을 후방~중간 바이스태틱각으로 못박는 이유이고, 그 목록은 "
            f"{ref('kernel-open-items', short=True)} 에 있다."),
 
+        md("## 이 절의 수치가 서 있는 자리", "",
+           f"⚠ 위 상반성 표는 각도 모양 |Γ(θ)| 가 바이스태틱 경로에 들어오기 **전** 커널의 "
+           f"산출이다. 지금 그 경로는 각도 모양을 곱하고, 같은 씬에서 복소장과 σ 두 경로가 "
+           f"{_n('verdict.sigma_angle_gamma_gap_db', VBF, '{:.0e}', 'dB')} 안에서 맞는다 "
+           f"⟨{VBF} : kernel.angle_gamma_wired⟩ — 상반성 표는 그 커널로 다시 낼 대상이다.", "",
+           f"⚠ 그리고 **생산 검출 사슬은 이 커널을 부르지 않는다** — σ 를 모노스태틱 격자에서 "
+           f"이등분선 방향으로 조회한다. 그 근사의 크기가 β 15° 에서 rms 중앙 "
+           f"{_n('sigma_transfer.bisector_approximation_error_by_beta.15.dsigma_rms_median_db', GEO, '{:.2f}')}"
+           f" · p95 최대 "
+           f"{_n('sigma_transfer.bisector_approximation_error_by_beta.15.dsigma_p95_max_db', GEO, '{:.1f}', 'dB')}"
+           f" 이므로, 검출 결과가 인용하는 β 가 몇 도인지가 그 근사의 유효성을 정한다 "
+           f"({ref('geometry', short=True)})."),
+
         next_steps([
             ("2회 반사를 β 별로 다시 돌린다",
              "바이스태틱 유효범위가 45° 위로 얼마나 넓어지는지 확정된다",
@@ -530,9 +619,11 @@ def report_20_bistatic_exit():
             ("검출 기하가 이 창 안에 드는지 확인한다",
              "결과 편이 인용하는 β 가 자세 패턴 유효창 안인지가 확정된다",
              ref("geometry", short=True)),
-            ("바이스태틱 PO 의 사입사 인자를 일반형으로 넓힌다",
-             "모노·바이·멀티스태틱을 한 식으로 쓰는 커널이 선다",
-             "`src/rcs_po.py` → 사입사 obliquity 항"),
+            ("대칭 사입사 인자 √((n̂·û_i)(n̂·û_s)) 를 grazing 안정화와 함께 다시 시도한다",
+             "상반성 위반이 격자 폭발 없이 줄어드는지가 확정된다 — 지금은 표준 (n̂·û_i) 를 두고 "
+             "σ 레벨 기하평균(`symmetrize=True`)으로 우회한다",
+             f"`src/rcs_sbr.py` `rcs_sbr_multistatic()` obliquity 주석 "
+             f"⟨{ARK} : q2_mono_bi_multistatic.obliquity_question.code_says⟩"),
         ]),
     ]
 
@@ -544,7 +635,8 @@ def report_21_kernel_vs_reference():
     return [
         header(
             num=21,
-            title="해석 PO 구 대비 구현오차는 kr 전 구간에서 0.201 dB 안이다",
+            title="해석 PO 구 대비 구현오차는 kr 전 구간에서 "
+                  f"{_lit('summary_div16.max_abs_db_vs_po', KRS, '{:.3f}')} dB 안이다",
             did="구 후방산란의 닫힌형 기준해 둘과 이면각 닫힌형에 커널을 맞대 구현오차와 모형 "
                 "간극을 따로 쟀다.",
             results=[
@@ -658,7 +750,13 @@ def report_21_kernel_vs_reference():
                       fmt={"a_m": "{:.2f}", "exact_dbsm": "{:.2f}",
                            "sbr_1bounce_dbsm": "{:.2f}", "sbr_2bounce_dbsm": "{:.2f}",
                            "err_2bounce_db": "{:+.3f}"}), "",
-           f"1회/2회 열이 오목부에서 오는 항이 어디에 있는지 그대로 보여준다. 같은 스크립트가 "
+           f"1회/2회 열이 오목부에서 오는 항이 어디에 있는지 그대로 보여준다. 셋째 줄(a = 0.30 m)"
+           f"의 1회 반사는 "
+           f"{_n('s3_validation.layer4_dihedral_multibounce.a03_sbr_1bounce_dbsm', POC, '{:.1f}', 'dBsm')}"
+           f" 로 무너진 널이고, 그 줄의 작은 오차는 그 우연한 상쇄 위에 앉아 있다 — 이 표에서 "
+           f"인용할 값은 4점의 **최대** "
+           f"{_n('d3_multibounce_phase.max_abs_err_db', DFX, '{:.3f}', 'dB')} 다.", "",
+           f"같은 스크립트가 "
            f"매끄러운 기준체도 함께 잰다 — 구는 λ/16 격자에서 해석 PO 대비 "
            f"{_n('d3_multibounce_phase.sphere_and_plate.sphere_vs_po_db.sphere_lam/16_vs_po', DFX, '{:+.3f}', 'dB')}, "
            f"평판은 λ/10 격자에서 "
@@ -754,13 +852,7 @@ def report_22_po_knee():
 
         md("## 부품마다 몇 GHz 에서 무릎을 넘나", "",
            table(["부품", "폭", "무릎 주파수"],
-                 [["동체", "81.51 mm", _knee('body_81.51mm')],
-                  ["암뿌리", "45 mm", _knee('arm_root_45mm')],
-                  ["암끝", "30 mm", _knee('arm_tip_30mm')],
-                  ["프로펠러", "13.78 mm", _knee('prop_blade_13.78mm')],
-                  ["모터", "13.68 mm", _knee('motor_13.68mm')],
-                  ["캐노피", "6.22 mm", _knee('canopy_6.22mm')],
-                  ["PCB", "2.99 mm", _knee('pcb_2.99mm')]]), "",
+                 [[name, _knee_width(key), _knee(key)] for name, key in _KNEE_ROWS]), "",
            f"⚠ 이 목록은 **기체 하나**의 치수이고 7기체 공통이 아니다 — 크기 폭 "
            f"{_n('mesh.span_ratio', DER, '{:.2f}', '배')} 안에서 S1000+ 처럼 큰 기체는 이 문턱이 "
            f"그만큼 낮은 주파수로, Mini 급은 그만큼 높은 주파수로 옮겨간다."),
@@ -834,7 +926,7 @@ def report_23_kernel_open_items():
     return [
         header(
             num=23,
-            title="커널이 아직 못 하는 것은 편파 분리·PTD·재테셀레이션·Γ(θ) 배선 넷이고, "
+            title="커널이 아직 못 하는 것은 편파 분리·PTD·재테셀레이션·다중반사 Γ(θ) 넷이고, "
                   "각각의 크기를 적었다",
             did="커널의 열린 항목을 하나씩 세고 각 항목이 σ 를 얼마나 움직이는지를 dB 로 함께 "
                 "적었다.",
@@ -854,15 +946,15 @@ def report_23_kernel_open_items():
                 f"{_n('H_tessellation_changes_the_answer.numbers.max_inflation_db', EVD, '{:.2f}', 'dB')} "
                 f"부푼다. 메쉬 사다리는 앵커 물체 두 점에서 돌렸다.",
 
-                f"2회 이상 다중반사 — 생산 σ 는 1-bounce 다. 이면각에서 1-bounce "
-                f"{_n('s3_validation.layer4_dihedral_multibounce.a03_sbr_1bounce_dbsm', POC, '{:.2f}')} "
+                f"2회 이상 다중반사 — 생산 σ 는 1-bounce 다. 변 "
+                f"{_n('d3_multibounce_phase.rows[0].a_m', DFX, '{:.2f}', 'm')} 이면각에서 "
+                f"1-bounce {_n('d3_multibounce_phase.rows[0].sbr_1bounce_dbsm', DFX, '{:.2f}')} "
                 f"↔ 2-bounce "
-                f"{_n('s3_validation.layer4_dihedral_multibounce.a03_sbr_2bounce_dbsm', POC, '{:.2f}', 'dBsm')} "
-                f"다.",
+                f"{_n('d3_multibounce_phase.rows[0].sbr_2bounce_dbsm', DFX, '{:.2f}', 'dBsm')} 다.",
 
-                f"Γ(θ) 각도 모양 — 벌크 모양은 얇은 판 근사·TE·TM 전력평균이고, "
-                f"`rcs_sbr_batch`·`rcs_po` 경로는 아직 수직입사 값 그대로다. 배선된 경로에서 "
-                f"프롭 채널이 "
+                f"Γ(θ) 각도 모양 — 1회 반사 네 경로(σ 격자·복소장·바이스태틱 둘)가 같은 함수를 "
+                f"기본으로 곱하고 순수 PO 는 호출 옵트인이며 ⟨{APO} : _meta.switch⟩, 다중반사 "
+                f"경로는 아직 수직입사 값 그대로다. 켠 경로에서 프롭 채널이 "
                 f"{_n('propeller_channel_el_-15_3p5GHz.matrice4e.level_delta_db', AGI, '{:+.2f}')} ~ "
                 f"{_n('propeller_channel_el_-15_3p5GHz.mini5pro.level_delta_db', AGI, '{:+.2f}', 'dB')} "
                 f"움직였다.",
@@ -897,25 +989,32 @@ def report_23_kernel_open_items():
                    + _n('propeller_channel_el_-15_3p5GHz.matrice4e.level_delta_db', AGI, '{:+.2f}')
                    + " ~ "
                    + _n('propeller_channel_el_-15_3p5GHz.mini5pro.level_delta_db', AGI, '{:+.2f}', 'dB')
-                   + " · 전체 드론 σ "
-                   + _n('whole_drone_sigma_az24_el_-15.mini5pro.delta_db', AGI, '{:+.2f}')
-                   + " ~ "
-                   + _n('whole_drone_sigma_az24_el_-15.matrice4e.delta_db', AGI, '{:+.2f}', 'dB')],
-                  ["Γ(θ) 미배선 경로", "`rcs_sbr_batch`·`rcs_po` 는 수직입사 값 그대로다 — "
-                                    f"σ 격자 생산자가 batch 경로를 쓴다 "
-                                    f"⟨{AGI} : still_unwired_ko[0]⟩",
-                   "배선 시 왼쪽 행의 크기만큼 움직인다"],
+                   + " · 기체 3대의 전체 드론 σ 는 방위평균 "
+                   + _n(f'{_AGS_MEAN_LO}.delta_db', AGS, '{:+.3f}')
+                   + " ~ " + _n(f'{_AGS_MEAN_HI}.delta_db', AGS, '{:+.3f}', 'dB')
+                   + " · 칸별 최대 "
+                   + _n(f'{_AGS_CELL_LO}.cell_max_abs_db', AGS, '{:.2f}')
+                   + " ~ " + _n(f'{_AGS_CELL_HI}.cell_max_abs_db', AGS, '{:.2f}', 'dB')],
+                  ["Γ(θ) 다중반사 경로", "1회 반사 네 경로는 기본 켬이고 순수 PO 는 호출 "
+                                     "옵트인이다. 남은 자리는 `rcs_sbr(max_bounce≥2)` 로, "
+                                     "재질 키를 받고도 각도 모양을 곱하지 않는다 "
+                                     f"⟨{ARK} : q3_angle_gamma_wiring.UNWIRED_paths."
+                                     f"rcs_sbr (max_bounce 경로)⟩",
+                   "그 경로로 낸 2회 반사 σ 는 왼쪽 위 행의 크기만큼 1회 반사 경로와 갈린다"],
                   ["모서리 프린지(PTD)", "배선은 있고 생산 경로는 `ptd=False` 다",
                    "켜면 TE 가 "
                    + _n('s3_validation.layer3_thin_plate_2d_mom.po_minus_te_at_0p15lam_db', POC, '{:+.2f}')
                    + " → "
                    + _n('s3_validation.layer3_thin_plate_2d_mom.po_ptd_minus_te_at_0p15lam_db', POC, '{:+.2f}', 'dB')
                    + " 로 벌어진다"],
-                  ["2회 이상 다중반사", "생산 σ 는 1-bounce 다",
-                   "이면각에서 1-bounce "
-                   + _n('s3_validation.layer4_dihedral_multibounce.a03_sbr_1bounce_dbsm', POC, '{:.2f}')
+                  ["2회 이상 다중반사", "생산 σ 는 1-bounce 다 — 오목부의 항이 통째로 빠진다",
+                   "변 " + _n('d3_multibounce_phase.rows[0].a_m', DFX, '{:.2f}', 'm')
+                   + " 이면각에서 1-bounce "
+                   + _n('d3_multibounce_phase.rows[0].sbr_1bounce_dbsm', DFX, '{:.2f}')
                    + " ↔ 2-bounce "
-                   + _n('s3_validation.layer4_dihedral_multibounce.a03_sbr_2bounce_dbsm', POC, '{:.2f}', 'dBsm')],
+                   + _n('d3_multibounce_phase.rows[0].sbr_2bounce_dbsm', DFX, '{:.2f}', 'dBsm')
+                   + " (**절 4** 표의 a = 0.30 m 줄은 1회 반사가 무너진 널이라 크기 인용에 "
+                     "쓰지 않는다)"],
                   ["크리핑파·표면파", "우리 커널과 Sionna 가 같은 자리에 선다 — GO/UTD 계열 "
                                 "고주파 근사의 바깥이다",
                    "매끄러운 볼록체 그림자 경계를 감아 도는 성분"],
@@ -932,8 +1031,10 @@ def report_23_kernel_open_items():
 
         md("## 이 표를 읽는 법", "",
            f"앞 다섯 줄(편파 · Γ(θ) 두 항 · PTD · 테셀레이션)은 커널 자신의 축이다. **편파**는 "
-           f"커널이 애초에 안 가르는 축이라 크기가 참값 쪽에서 오고, **Γ(θ)** 는 켜진 경로와 "
-           f"미배선 경로가 갈라져 있다. **PTD** 는 배선이 끝나 있고 스위치만 꺼 둔 항이라 켜면 "
+           f"커널이 애초에 안 가르는 축이라 크기가 참값 쪽에서 오고, **Γ(θ)** 는 1회 반사 "
+           f"경로와 다중반사 경로가 갈라져 있다 — 그 항의 근거는 교과서 프레넬과 θ=0 비트동일 "
+           f"둘뿐이고, 각도 경로를 밟는 과녁은 아직 세우지 않았다(다음 단계 표). **PTD** 는 "
+           f"배선이 끝나 있고 스위치만 꺼 둔 항이라 켜면 "
            f"바로 값이 나온다 — 비용 "
            f"{_n('verdict.cost_increase_pct', PTD, '{:+.1f}', '%')} 가 그 값이다. **테셀레이션**은 "
            f"입력 메쉬를 어떻게 쪼갰는가에 σ 가 따라 움직인다는 뜻이고, 그 축을 정면으로 다룬 것이 "
@@ -947,9 +1048,12 @@ def report_23_kernel_open_items():
             ("편파 분해를 커널에 넣고 VV/HH 를 따로 낸다",
              "표의 첫 행이 크기에서 값으로 바뀐다",
              "`src/materials.py:171` → " + ref("sigma-checklist", short=True)),
-            ("Γ(θ) 를 `rcs_sbr_batch`·`rcs_po` 에 배선한다",
-             "σ 격자 생산 경로가 단일자세 커널과 같은 커널이 된다",
-             f"`src/rcs_sbr.py` `ANGLE_GAMMA` → ⟨{AGI} : still_unwired_ko⟩"),
+            ("Γ(θ) 를 다중반사 경로에 배선하고 오목부 기체에서 다시 낸다",
+             "2회 반사 σ 가 1회 반사 경로와 같은 각도 물리 위에 선다",
+             "`src/rcs_sbr.py` `rcs_sbr(max_bounce≥2)`"),
+            ("각도 경로를 실제로 밟는 과녁을 하나 세운다 — 유전체 평판 각도 스윕 대 MoM·프레넬",
+             "Γ(θ) 의 외부 눈금이 처음 생긴다 — 지금 과녁은 전부 PEC 라 각도 경로를 안 밟는다",
+             f"⟨{ARK} : open_items_ranked[2].item⟩"),
             ("생산 σ 를 `ptd=True` 로 다시 낸다",
              "모서리 항이 밴드 기울기를 얼마나 옮기는지가 수치로 남는다",
              "`benchmark/rcs_anchor.py --ptd` → `outputs/rcs_anchor_ptd.json`"),

@@ -1,0 +1,645 @@
+{
+ "_meta": {
+  "script": "benchmark/report15b_microdoppler_recompute.py",
+  "generated": "2026-08-10 15:11:34",
+  "fc_hz": 3500000000.0,
+  "gpu": "2",
+  "n_flash_periods": 64,
+  "prf_over_ftip": 16.0,
+  "rpm_spread_frac": 0.0022,
+  "rpm_spread_pattern": [
+   1.0,
+   -1.0,
+   -0.55,
+   0.55
+  ],
+  "what_fixed_ko": [
+   "① 로터별 rpm — 옛 코드는 네 로터가 위상 하나를 공유했다(microdoppler.py:158)",
+   "② 도플러 분해능 — 분해능은 f_flash/(창의 주기 수)라 창을 늘려야 좋아진다",
+   "③ 가림 — 헤드라인이 가림 없는 PO 를 썼다. 여기서는 SBR(가림 O) 로 다시 잰다"
+  ],
+  "enabled_by_ko": "src/articulated_fast.py (20,000배, 정점차 0.00e+00). 설계 출처는 선배 po_mdoppler/po_sim/mesh.py.",
+  "spread_is_declared_ko": "±0.22% 는 선배 PX4 텔레메트리 실측(0.07~0.29%)의 중간값이다. 우리 표적(Matrice 4E) 실측 로그가 오면 그 값으로 바꾼다.",
+  "clean_axis_ko": "B↔E 가 단일축(동체 유무)이다. A↔C 는 가림 외에 엔진도 달라 단일축이 아니다."
+ },
+ "cells": {
+  "matrice4e/nose": {
+   "drone": "matrice4e",
+   "name": "DJI Matrice 4E",
+   "aspect": "nose",
+   "az_deg": 0.0,
+   "el_deg": 15.0,
+   "physics": {
+    "rpm": 3800.0,
+    "lam": 0.085654988,
+    "v_tip": 54.51710451529488,
+    "prop_R": 0.137,
+    "f_rev": 63.333333333333336,
+    "f_flash": 126.66666666666667,
+    "f_tip": 1229.571807909744,
+    "prf": 19700.0,
+    "duration_s": 0.5052631578947369,
+    "n_t": 6000,
+    "doppler_resolution_hz": 1.9791666666666667,
+    "bins_to_ftip": 621.2573345228179
+   },
+   "rpm_locked": [
+    3800.0,
+    3800.0,
+    3800.0,
+    3800.0
+   ],
+   "rpm_spread": [
+    3808.36,
+    3791.64,
+    3795.402,
+    3804.598
+   ],
+   "arms": {
+    "A_sbr_locked": {
+     "level_db": -50.371491705093405,
+     "modulation_ptp_db": 6.808153634975369,
+     "modulation_std_db": 1.6128262970368394,
+     "dc_over_ac": 2.0798386314535495,
+     "half_window_spectrum_corr": 0.9999654474823884,
+     "energy_inside_ftip_frac": 0.8064136084763056,
+     "seconds": 2029.4
+    },
+    "B_sbr_spread": {
+     "level_db": -50.198215019844646,
+     "modulation_ptp_db": 8.41365672816353,
+     "modulation_std_db": 1.4634122023243226,
+     "dc_over_ac": 0.4027461000292708,
+     "half_window_spectrum_corr": 0.9483141834998619,
+     "energy_inside_ftip_frac": 0.9517911048563419,
+     "seconds": 2143.9
+    },
+    "F_blade_occ": {
+     "level_db": -70.7038571577329,
+     "modulation_ptp_db": 46.64848639740432,
+     "modulation_std_db": 5.908220518090586,
+     "dc_over_ac": 0.21121486535029757,
+     "half_window_spectrum_corr": 0.7618563313760676,
+     "energy_inside_ftip_frac": 0.5985902438152081,
+     "seconds": 544.6
+    },
+    "G_blade_free": {
+     "level_db": -70.65628408911633,
+     "modulation_ptp_db": 46.847134970652725,
+     "modulation_std_db": 5.931802819450832,
+     "dc_over_ac": 0.20975933088780013,
+     "half_window_spectrum_corr": 0.7646504299192662,
+     "energy_inside_ftip_frac": 0.602322479194103,
+     "seconds": 182.2
+    },
+    "C_po_locked": {
+     "level_db": -49.62581640474599,
+     "modulation_ptp_db": 1.957189425080152,
+     "modulation_std_db": 0.38681583698265576,
+     "dc_over_ac": 17.3939162030774,
+     "half_window_spectrum_corr": 0.9999997575135785,
+     "energy_inside_ftip_frac": 0.998923259361273,
+     "seconds": 16.8
+    },
+    "D_po_spread": {
+     "level_db": -49.62213340100719,
+     "modulation_ptp_db": 2.005479190813766,
+     "modulation_std_db": 0.3160197906393459,
+     "dc_over_ac": 18.689250996349195,
+     "half_window_spectrum_corr": 0.7979016657864785,
+     "energy_inside_ftip_frac": 0.999812599140689,
+     "seconds": 15.6
+    }
+   },
+   "findings": {
+    "occlusion_level_db": -0.048,
+    "occlusion_ptp_db": -0.199,
+    "occlusion_axis_ko": "F−G: 광선 엔진·재질·기하·운동학·**광선 격자**까지 같고 오직 «동체가 막느냐» 만 다르다. 단일축이다.",
+    "occlusion_sign_note_ko": "⚠ 합이 코히런트라 가림이 레벨을 **올릴 수도** 있다 — 항이 줄어도 남은 항끼리 상쇄가 덜 되면 그렇다. 부호를 물리로 단정하지 말 것.",
+    "rpm_spread_makes_it_time_varying": {
+     "locked_half_corr": 1.0,
+     "spread_half_corr": 0.9483,
+     "drop": 0.0517,
+     "note_ko": "잠긴 rpm 은 신호가 완전 주기라 반창 스펙트럼 상관이 1 이어야 한다. 흩어지면 내려간다 — 그 내려감이 «시간에 따라 변한다» 의 정량이다."
+    },
+    "engine_ptp_db": 6.408,
+    "engine_axis_caveat_ko": "B−D 는 가림 말고 다중반사·투과·표본화도 함께 다르다. 단일축 아님"
+   }
+  },
+  "matrice4e/belly": {
+   "drone": "matrice4e",
+   "name": "DJI Matrice 4E",
+   "aspect": "belly",
+   "az_deg": 0.0,
+   "el_deg": -15.0,
+   "physics": {
+    "rpm": 3800.0,
+    "lam": 0.085654988,
+    "v_tip": 54.51710451529488,
+    "prop_R": 0.137,
+    "f_rev": 63.333333333333336,
+    "f_flash": 126.66666666666667,
+    "f_tip": 1229.571807909744,
+    "prf": 19700.0,
+    "duration_s": 0.5052631578947369,
+    "n_t": 6000,
+    "doppler_resolution_hz": 1.9791666666666667,
+    "bins_to_ftip": 621.2573345228179
+   },
+   "rpm_locked": [
+    3800.0,
+    3800.0,
+    3800.0,
+    3800.0
+   ],
+   "rpm_spread": [
+    3808.36,
+    3791.64,
+    3795.402,
+    3804.598
+   ],
+   "arms": {
+    "A_sbr_locked": {
+     "level_db": -50.427473989741074,
+     "modulation_ptp_db": 4.753777643358774,
+     "modulation_std_db": 0.9205983130915475,
+     "dc_over_ac": 2.232604296018153,
+     "half_window_spectrum_corr": 0.9999875772743548,
+     "energy_inside_ftip_frac": 0.9183701632589806,
+     "seconds": 694.3
+    },
+    "B_sbr_spread": {
+     "level_db": -50.40463799176247,
+     "modulation_ptp_db": 8.27354032610748,
+     "modulation_std_db": 1.0971385692194138,
+     "dc_over_ac": 0.3608014371714149,
+     "half_window_spectrum_corr": 0.9123497701712066,
+     "energy_inside_ftip_frac": 0.9652371294183921,
+     "seconds": 697.5
+    },
+    "F_blade_occ": {
+     "level_db": -72.97636688885649,
+     "modulation_ptp_db": 50.782659842255484,
+     "modulation_std_db": 5.828439911478214,
+     "dc_over_ac": 0.11306531066481813,
+     "half_window_spectrum_corr": 0.7642092049782422,
+     "energy_inside_ftip_frac": 0.72851636389733,
+     "seconds": 285.1
+    },
+    "G_blade_free": {
+     "level_db": -74.06413354303054,
+     "modulation_ptp_db": 54.419734462462415,
+     "modulation_std_db": 7.302266469974738,
+     "dc_over_ac": 0.13971211573443193,
+     "half_window_spectrum_corr": 0.7732337743205695,
+     "energy_inside_ftip_frac": 0.7363889201760405,
+     "seconds": 165.5
+    },
+    "C_po_locked": {
+     "level_db": -52.2454963552174,
+     "modulation_ptp_db": 1.1849084536975454,
+     "modulation_std_db": 0.2762556481428992,
+     "dc_over_ac": 25.571511182158567,
+     "half_window_spectrum_corr": 0.9999993868759967,
+     "energy_inside_ftip_frac": 0.9994798530881316,
+     "seconds": 14.0
+    },
+    "D_po_spread": {
+     "level_db": -52.243028026934645,
+     "modulation_ptp_db": 2.8054839008806027,
+     "modulation_std_db": 0.4156833792809235,
+     "dc_over_ac": 14.764178051187349,
+     "half_window_spectrum_corr": 0.7668976519361929,
+     "energy_inside_ftip_frac": 0.9998905030998857,
+     "seconds": 16.1
+    }
+   },
+   "findings": {
+    "occlusion_level_db": 1.088,
+    "occlusion_ptp_db": -3.637,
+    "occlusion_axis_ko": "F−G: 광선 엔진·재질·기하·운동학·**광선 격자**까지 같고 오직 «동체가 막느냐» 만 다르다. 단일축이다.",
+    "occlusion_sign_note_ko": "⚠ 합이 코히런트라 가림이 레벨을 **올릴 수도** 있다 — 항이 줄어도 남은 항끼리 상쇄가 덜 되면 그렇다. 부호를 물리로 단정하지 말 것.",
+    "rpm_spread_makes_it_time_varying": {
+     "locked_half_corr": 1.0,
+     "spread_half_corr": 0.9123,
+     "drop": 0.0876,
+     "note_ko": "잠긴 rpm 은 신호가 완전 주기라 반창 스펙트럼 상관이 1 이어야 한다. 흩어지면 내려간다 — 그 내려감이 «시간에 따라 변한다» 의 정량이다."
+    },
+    "engine_ptp_db": 5.468,
+    "engine_axis_caveat_ko": "B−D 는 가림 말고 다중반사·투과·표본화도 함께 다르다. 단일축 아님"
+   }
+  },
+  "matrice4e/belly_side": {
+   "drone": "matrice4e",
+   "name": "DJI Matrice 4E",
+   "aspect": "belly_side",
+   "az_deg": 90.0,
+   "el_deg": -15.0,
+   "physics": {
+    "rpm": 3800.0,
+    "lam": 0.085654988,
+    "v_tip": 54.51710451529488,
+    "prop_R": 0.137,
+    "f_rev": 63.333333333333336,
+    "f_flash": 126.66666666666667,
+    "f_tip": 1229.571807909744,
+    "prf": 19700.0,
+    "duration_s": 0.5052631578947369,
+    "n_t": 6000,
+    "doppler_resolution_hz": 1.9791666666666667,
+    "bins_to_ftip": 621.2573345228179
+   },
+   "rpm_locked": [
+    3800.0,
+    3800.0,
+    3800.0,
+    3800.0
+   ],
+   "rpm_spread": [
+    3808.36,
+    3791.64,
+    3795.402,
+    3804.598
+   ],
+   "arms": {
+    "A_sbr_locked": {
+     "level_db": -40.315188447732915,
+     "modulation_ptp_db": 2.297739573230544,
+     "modulation_std_db": 0.4814476448042947,
+     "dc_over_ac": 0.12267810960059243,
+     "half_window_spectrum_corr": 0.9999987292196859,
+     "energy_inside_ftip_frac": 0.9839006990168329,
+     "seconds": 607.7
+    },
+    "B_sbr_spread": {
+     "level_db": -40.34680208078814,
+     "modulation_ptp_db": 2.8924503630282032,
+     "modulation_std_db": 0.46712045617207787,
+     "dc_over_ac": 0.10471920277583258,
+     "half_window_spectrum_corr": 0.9357537776115717,
+     "energy_inside_ftip_frac": 0.9900742203327024,
+     "seconds": 638.5
+    },
+    "F_blade_occ": {
+     "level_db": -76.3255447268233,
+     "modulation_ptp_db": 54.28685010949671,
+     "modulation_std_db": 7.173651104191821,
+     "dc_over_ac": 0.10330240853501854,
+     "half_window_spectrum_corr": 0.8075426391411816,
+     "energy_inside_ftip_frac": 0.595018581042974,
+     "seconds": 365.2
+    },
+    "G_blade_free": {
+     "level_db": -75.17174425457644,
+     "modulation_ptp_db": 55.11990052419858,
+     "modulation_std_db": 7.564461717161385,
+     "dc_over_ac": 0.1333457580680239,
+     "half_window_spectrum_corr": 0.8581972593838494,
+     "energy_inside_ftip_frac": 0.7252254706328911,
+     "seconds": 177.0
+    },
+    "C_po_locked": {
+     "level_db": -39.05473316734241,
+     "modulation_ptp_db": 0.49402467817147766,
+     "modulation_std_db": 0.0841242440787663,
+     "dc_over_ac": 77.60003290786504,
+     "half_window_spectrum_corr": 0.9999992505947969,
+     "energy_inside_ftip_frac": 0.9986744800914986,
+     "seconds": 16.1
+    },
+    "D_po_spread": {
+     "level_db": -39.054651330157476,
+     "modulation_ptp_db": 0.5683006271369919,
+     "modulation_std_db": 0.09172380723597341,
+     "dc_over_ac": 60.51585995743407,
+     "half_window_spectrum_corr": 0.9213386819836695,
+     "energy_inside_ftip_frac": 0.9993808952475352,
+     "seconds": 15.1
+    }
+   },
+   "findings": {
+    "occlusion_level_db": -1.154,
+    "occlusion_ptp_db": -0.833,
+    "occlusion_axis_ko": "F−G: 광선 엔진·재질·기하·운동학·**광선 격자**까지 같고 오직 «동체가 막느냐» 만 다르다. 단일축이다.",
+    "occlusion_sign_note_ko": "⚠ 합이 코히런트라 가림이 레벨을 **올릴 수도** 있다 — 항이 줄어도 남은 항끼리 상쇄가 덜 되면 그렇다. 부호를 물리로 단정하지 말 것.",
+    "rpm_spread_makes_it_time_varying": {
+     "locked_half_corr": 1.0,
+     "spread_half_corr": 0.9358,
+     "drop": 0.0642,
+     "note_ko": "잠긴 rpm 은 신호가 완전 주기라 반창 스펙트럼 상관이 1 이어야 한다. 흩어지면 내려간다 — 그 내려감이 «시간에 따라 변한다» 의 정량이다."
+    },
+    "engine_ptp_db": 2.324,
+    "engine_axis_caveat_ko": "B−D 는 가림 말고 다중반사·투과·표본화도 함께 다르다. 단일축 아님"
+   }
+  },
+  "mini5pro/nose": {
+   "drone": "mini5pro",
+   "name": "DJI Mini 5 Pro",
+   "aspect": "nose",
+   "az_deg": 0.0,
+   "el_deg": 15.0,
+   "physics": {
+    "rpm": 5500.0,
+    "lam": 0.085654988,
+    "v_tip": 43.888049370649405,
+    "prop_R": 0.0762,
+    "f_rev": 91.66666666666667,
+    "f_flash": 183.33333333333334,
+    "f_tip": 989.8454565788965,
+    "prf": 15900.0,
+    "duration_s": 0.34909090909090906,
+    "n_t": 5551,
+    "doppler_resolution_hz": 2.8645833333333335,
+    "bins_to_ftip": 345.5460502966329
+   },
+   "rpm_locked": [
+    5500.0,
+    5500.0,
+    5500.0,
+    5500.0
+   ],
+   "rpm_spread": [
+    5512.099999999999,
+    5487.900000000001,
+    5493.344999999999,
+    5506.655
+   ],
+   "arms": {
+    "A_sbr_locked": {
+     "level_db": -52.41778786865702,
+     "modulation_ptp_db": 6.044245995295796,
+     "modulation_std_db": 1.030470689029996,
+     "dc_over_ac": 1.7169319726097727,
+     "half_window_spectrum_corr": 0.9999940731249936,
+     "energy_inside_ftip_frac": 0.8838850760076103,
+     "seconds": 562.4
+    },
+    "B_sbr_spread": {
+     "level_db": -52.48343560340263,
+     "modulation_ptp_db": 6.269262715965134,
+     "modulation_std_db": 1.101276177778871,
+     "dc_over_ac": 0.4370297488989219,
+     "half_window_spectrum_corr": 0.9318119708064572,
+     "energy_inside_ftip_frac": 0.9458011644096829,
+     "seconds": 567.3
+    },
+    "F_blade_occ": {
+     "level_db": -77.31613260752214,
+     "modulation_ptp_db": 46.97458241065022,
+     "modulation_std_db": 5.7900192452827834,
+     "dc_over_ac": 0.25393265403555026,
+     "half_window_spectrum_corr": 0.7764244482145898,
+     "energy_inside_ftip_frac": 0.5565446409689057,
+     "seconds": 360.9
+    },
+    "G_blade_free": {
+     "level_db": -77.31613260752214,
+     "modulation_ptp_db": 46.97458241065022,
+     "modulation_std_db": 5.7900192452827834,
+     "dc_over_ac": 0.25393265403555026,
+     "half_window_spectrum_corr": 0.7764244482145898,
+     "energy_inside_ftip_frac": 0.5565446409689057,
+     "seconds": 51.5
+    },
+    "C_po_locked": {
+     "level_db": -48.08645296086362,
+     "modulation_ptp_db": 0.4324203135429272,
+     "modulation_std_db": 0.13920492920085192,
+     "dc_over_ac": 43.65724120234997,
+     "half_window_spectrum_corr": 0.9999999999915623,
+     "energy_inside_ftip_frac": 0.9978257768626576,
+     "seconds": 14.1
+    },
+    "D_po_spread": {
+     "level_db": -48.08646054217068,
+     "modulation_ptp_db": 0.5637726272990875,
+     "modulation_std_db": 0.1486862859772953,
+     "dc_over_ac": 41.07114982614017,
+     "half_window_spectrum_corr": 0.9635127764854218,
+     "energy_inside_ftip_frac": 0.9989132918121809,
+     "seconds": 14.6
+    }
+   },
+   "findings": {
+    "occlusion_level_db": 0.0,
+    "occlusion_ptp_db": 0.0,
+    "occlusion_axis_ko": "F−G: 광선 엔진·재질·기하·운동학·**광선 격자**까지 같고 오직 «동체가 막느냐» 만 다르다. 단일축이다.",
+    "occlusion_sign_note_ko": "⚠ 합이 코히런트라 가림이 레벨을 **올릴 수도** 있다 — 항이 줄어도 남은 항끼리 상쇄가 덜 되면 그렇다. 부호를 물리로 단정하지 말 것.",
+    "rpm_spread_makes_it_time_varying": {
+     "locked_half_corr": 1.0,
+     "spread_half_corr": 0.9318,
+     "drop": 0.0682,
+     "note_ko": "잠긴 rpm 은 신호가 완전 주기라 반창 스펙트럼 상관이 1 이어야 한다. 흩어지면 내려간다 — 그 내려감이 «시간에 따라 변한다» 의 정량이다."
+    },
+    "engine_ptp_db": 5.705,
+    "engine_axis_caveat_ko": "B−D 는 가림 말고 다중반사·투과·표본화도 함께 다르다. 단일축 아님"
+   }
+  },
+  "mini5pro/belly": {
+   "drone": "mini5pro",
+   "name": "DJI Mini 5 Pro",
+   "aspect": "belly",
+   "az_deg": 0.0,
+   "el_deg": -15.0,
+   "physics": {
+    "rpm": 5500.0,
+    "lam": 0.085654988,
+    "v_tip": 43.888049370649405,
+    "prop_R": 0.0762,
+    "f_rev": 91.66666666666667,
+    "f_flash": 183.33333333333334,
+    "f_tip": 989.8454565788965,
+    "prf": 15900.0,
+    "duration_s": 0.34909090909090906,
+    "n_t": 5551,
+    "doppler_resolution_hz": 2.8645833333333335,
+    "bins_to_ftip": 345.5460502966329
+   },
+   "rpm_locked": [
+    5500.0,
+    5500.0,
+    5500.0,
+    5500.0
+   ],
+   "rpm_spread": [
+    5512.099999999999,
+    5487.900000000001,
+    5493.344999999999,
+    5506.655
+   ],
+   "arms": {
+    "A_sbr_locked": {
+     "level_db": -61.05314619145909,
+     "modulation_ptp_db": 10.585546653917525,
+     "modulation_std_db": 1.8919693397448751,
+     "dc_over_ac": 1.711424952072363,
+     "half_window_spectrum_corr": 0.9999588332674568,
+     "energy_inside_ftip_frac": 0.5578612222159772,
+     "seconds": 524.9
+    },
+    "B_sbr_spread": {
+     "level_db": -61.22664270826033,
+     "modulation_ptp_db": 15.384825761732138,
+     "modulation_std_db": 2.176328870860565,
+     "dc_over_ac": 0.4985332399111889,
+     "half_window_spectrum_corr": 0.9064748425177057,
+     "energy_inside_ftip_frac": 0.8695738112734013,
+     "seconds": 570.4
+    },
+    "F_blade_occ": {
+     "level_db": -80.6334320438888,
+     "modulation_ptp_db": 59.84371345950987,
+     "modulation_std_db": 6.338481357053429,
+     "dc_over_ac": 0.32071286533714055,
+     "half_window_spectrum_corr": 0.7642358536023139,
+     "energy_inside_ftip_frac": 0.526931121846199,
+     "seconds": 300.5
+    },
+    "G_blade_free": {
+     "level_db": -80.31784216275386,
+     "modulation_ptp_db": 59.93617431640027,
+     "modulation_std_db": 6.403144317218146,
+     "dc_over_ac": 0.2992542407319747,
+     "half_window_spectrum_corr": 0.646960418879053,
+     "energy_inside_ftip_frac": 0.5855626573396763,
+     "seconds": 92.6
+    },
+    "C_po_locked": {
+     "level_db": -54.24989755163379,
+     "modulation_ptp_db": 0.637782013096647,
+     "modulation_std_db": 0.13729037018768042,
+     "dc_over_ac": 47.96476560218617,
+     "half_window_spectrum_corr": 0.9999999999662178,
+     "energy_inside_ftip_frac": 0.9915697698168744,
+     "seconds": 12.8
+    },
+    "D_po_spread": {
+     "level_db": -54.250746314563166,
+     "modulation_ptp_db": 1.204775687803206,
+     "modulation_std_db": 0.25414626614181707,
+     "dc_over_ac": 27.431737513638634,
+     "half_window_spectrum_corr": 0.9584803240687003,
+     "energy_inside_ftip_frac": 0.9986821469203813,
+     "seconds": 14.3
+    }
+   },
+   "findings": {
+    "occlusion_level_db": -0.316,
+    "occlusion_ptp_db": -0.092,
+    "occlusion_axis_ko": "F−G: 광선 엔진·재질·기하·운동학·**광선 격자**까지 같고 오직 «동체가 막느냐» 만 다르다. 단일축이다.",
+    "occlusion_sign_note_ko": "⚠ 합이 코히런트라 가림이 레벨을 **올릴 수도** 있다 — 항이 줄어도 남은 항끼리 상쇄가 덜 되면 그렇다. 부호를 물리로 단정하지 말 것.",
+    "rpm_spread_makes_it_time_varying": {
+     "locked_half_corr": 1.0,
+     "spread_half_corr": 0.9065,
+     "drop": 0.0935,
+     "note_ko": "잠긴 rpm 은 신호가 완전 주기라 반창 스펙트럼 상관이 1 이어야 한다. 흩어지면 내려간다 — 그 내려감이 «시간에 따라 변한다» 의 정량이다."
+    },
+    "engine_ptp_db": 14.18,
+    "engine_axis_caveat_ko": "B−D 는 가림 말고 다중반사·투과·표본화도 함께 다르다. 단일축 아님"
+   }
+  },
+  "mini5pro/belly_side": {
+   "drone": "mini5pro",
+   "name": "DJI Mini 5 Pro",
+   "aspect": "belly_side",
+   "az_deg": 90.0,
+   "el_deg": -15.0,
+   "physics": {
+    "rpm": 5500.0,
+    "lam": 0.085654988,
+    "v_tip": 43.888049370649405,
+    "prop_R": 0.0762,
+    "f_rev": 91.66666666666667,
+    "f_flash": 183.33333333333334,
+    "f_tip": 989.8454565788965,
+    "prf": 15900.0,
+    "duration_s": 0.34909090909090906,
+    "n_t": 5551,
+    "doppler_resolution_hz": 2.8645833333333335,
+    "bins_to_ftip": 345.5460502966329
+   },
+   "rpm_locked": [
+    5500.0,
+    5500.0,
+    5500.0,
+    5500.0
+   ],
+   "rpm_spread": [
+    5512.099999999999,
+    5487.900000000001,
+    5493.344999999999,
+    5506.655
+   ],
+   "arms": {
+    "A_sbr_locked": {
+     "level_db": -49.982634196475004,
+     "modulation_ptp_db": 3.2357915395527854,
+     "modulation_std_db": 0.6704975944472793,
+     "dc_over_ac": 0.3658874458958475,
+     "half_window_spectrum_corr": 0.9999989499279801,
+     "energy_inside_ftip_frac": 0.9845398327656895,
+     "seconds": 562.0
+    },
+    "B_sbr_spread": {
+     "level_db": -49.98986672656531,
+     "modulation_ptp_db": 4.044503560272247,
+     "modulation_std_db": 0.7078610067784427,
+     "dc_over_ac": 0.36416213243849926,
+     "half_window_spectrum_corr": 0.9696797192042276,
+     "energy_inside_ftip_frac": 0.9802315168098498,
+     "seconds": 565.4
+    },
+    "F_blade_occ": {
+     "level_db": -79.97020687295709,
+     "modulation_ptp_db": 49.60147771427009,
+     "modulation_std_db": 5.97934012396575,
+     "dc_over_ac": 0.35579710853730856,
+     "half_window_spectrum_corr": 0.7508092285086092,
+     "energy_inside_ftip_frac": 0.5224140865949343,
+     "seconds": 355.4
+    },
+    "G_blade_free": {
+     "level_db": -78.15283612324735,
+     "modulation_ptp_db": 44.38552784470136,
+     "modulation_std_db": 5.706421012168805,
+     "dc_over_ac": 0.2283881523375947,
+     "half_window_spectrum_corr": 0.778387715023908,
+     "energy_inside_ftip_frac": 0.5143946919170175,
+     "seconds": 49.8
+    },
+    "C_po_locked": {
+     "level_db": -46.355201471908444,
+     "modulation_ptp_db": 0.33353968924736677,
+     "modulation_std_db": 0.0786896180970984,
+     "dc_over_ac": 86.62901727286683,
+     "half_window_spectrum_corr": 0.999999999972046,
+     "energy_inside_ftip_frac": 0.9926056695174387,
+     "seconds": 14.6
+    },
+    "D_po_spread": {
+     "level_db": -46.355135140657026,
+     "modulation_ptp_db": 0.40587185289204797,
+     "modulation_std_db": 0.09212495448589536,
+     "dc_over_ac": 70.84612346055327,
+     "half_window_spectrum_corr": 0.8572648038820936,
+     "energy_inside_ftip_frac": 0.9990698133673129,
+     "seconds": 13.9
+    }
+   },
+   "findings": {
+    "occlusion_level_db": -1.817,
+    "occlusion_ptp_db": 5.216,
+    "occlusion_axis_ko": "F−G: 광선 엔진·재질·기하·운동학·**광선 격자**까지 같고 오직 «동체가 막느냐» 만 다르다. 단일축이다.",
+    "occlusion_sign_note_ko": "⚠ 합이 코히런트라 가림이 레벨을 **올릴 수도** 있다 — 항이 줄어도 남은 항끼리 상쇄가 덜 되면 그렇다. 부호를 물리로 단정하지 말 것.",
+    "rpm_spread_makes_it_time_varying": {
+     "locked_half_corr": 1.0,
+     "spread_half_corr": 0.9697,
+     "drop": 0.0303,
+     "note_ko": "잠긴 rpm 은 신호가 완전 주기라 반창 스펙트럼 상관이 1 이어야 한다. 흩어지면 내려간다 — 그 내려감이 «시간에 따라 변한다» 의 정량이다."
+    },
+    "engine_ptp_db": 3.639,
+    "engine_axis_caveat_ko": "B−D 는 가림 말고 다중반사·투과·표본화도 함께 다르다. 단일축 아님"
+   }
+  }
+ }
+}

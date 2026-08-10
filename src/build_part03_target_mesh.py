@@ -9,7 +9,7 @@ build_part03_target_mesh.py — 부 3 「표적 메쉬」 → 편 15~17
 
     15 mesh-build    기체 7종을 제원과 제조사 CAD 치수에서 세우고 부품을 재질 그룹으로 유지했다
     16 mesh-vs-real  외형이 실물과 얼마나 맞는지를 사진 IoU·CAD 치수·실물 스캔 세 자로 쟀다
-    17 materials     도전성 재질이 면적의 45.3% 로 Σ|Γ|A 의 73.5% 를 낸다
+    17 materials     도전성 재질이 면적 비중보다 큰 몫의 Σ|Γ|A 를 낸다 (두 비율은 원장에서 주입)
 
 어디서 왔나 (재구성 전 → 후)
     `report02_target.ipynb` c2~c6
@@ -50,6 +50,7 @@ COM = "outputs/community_compare.json"       # 커뮤니티 메쉬 대조
 MFX_ATK = "outputs/meshfix_attack.json"      # 형상 정정 적대검증 — σ 재계산 전 관문
 GAL = "outputs/mesh_gallery.json"            # 메쉬 함대 원장 — 모집단(σ 함대보다 넓다)
 AGI = "outputs/angle_gamma_impact.json"      # Γ(θ) 각도 모양 — 커널이 |Γ| 에 곱하는 축
+AGS = "outputs/angle_gamma_sigma_impact.json"  # Γ(θ) 가 σ 격자를 옮긴 양 — 기체 3 × 고각 2
 
 FIG = "../outputs/figures"
 
@@ -59,6 +60,31 @@ _FLEET_N = len(fetch((GAL, "order_by_size")))
 
 def _n(key: str, src: str, fmt: str | None = None, unit: str = "") -> str:
     return num(None, (src, key), fmt, unit)
+
+
+def _lit(key: str, src: str, fmt: str = "{:.1f}") -> str:
+    """원장 값을 **출처 표시 없이** 글자로만 — 제목처럼 각주를 달 수 없는 자리에 쓴다.
+
+    본문 숫자는 언제나 `num()`(출처 태그 포함)으로 넣는다. 제목은 각주가 안 붙는 자리라
+    손으로 적히기 쉬운데, 이 함수를 거치면 값이 **원장에서 읽혀** 원장이 움직일 때 제목도
+    같이 움직인다."""
+    return fmt.format(fetch((src, key)))
+
+
+def _ends(src: str, cells: list[str], field: str) -> tuple[str, str]:
+    """그 항목이 **가장 작은 칸과 가장 큰 칸의 이름**을 원장에서 고른다.
+
+    범위를 손으로 «A ~ B» 라고 적으면 원장이 바뀔 때 그 두 끝이 조용히 틀어진다.
+    끝의 정체까지 원장이 고르게 해 두면 본문의 범위가 원장을 따라간다."""
+    vals = {c: float(fetch((src, f"{c}.{field}"))) for c in cells}
+    return min(vals, key=vals.get), max(vals, key=vals.get)
+
+
+#: Γ(θ) 가 σ 격자를 옮긴 양을 잰 칸 — 기체 3 × 고각 2.
+_AGS_CELLS = ["matrice4e/el-15", "matrice4e/el+15", "mini5pro/el-15",
+              "mini5pro/el+15", "phantom4/el-15", "phantom4/el+15"]
+_AGS_MEAN_LO, _AGS_MEAN_HI = _ends(AGS, _AGS_CELLS, "delta_db")
+_AGS_CELL_LO, _AGS_CELL_HI = _ends(AGS, _AGS_CELLS, "cell_max_abs_db")
 
 
 def _fig(no: int, stem: str, question: str) -> list[str]:
@@ -332,7 +358,8 @@ def report_17_materials():
     return [
         header(
             num=17,
-            title="도전성 재질이 면적의 45.3% 로 Σ|Γ|A 의 73.5% 를 낸다",
+            title=f"도전성 재질이 면적의 {_lit('material.conducting_area_pct', DER)}% 로 "
+                  f"Σ|Γ|A 의 {_lit('material.conducting_gamma_pct', DER)}% 를 낸다",
             did="부품 그룹마다 재질을 붙여 7기체의 표면적을 재질로 나누고, 같은 면적을 반사계수 "
                 "크기로 가중해 무엇이 반사 진폭을 내는지까지 셌다.",
             results=[
@@ -341,11 +368,11 @@ def report_17_materials():
 
                 f"도전성 {_n('material.conducting', DER)} 가 면적의 "
                 f"{_n('material.conducting_area_pct', DER, '{:.1f}', '%')} 를 차지하고 반사계수 "
-                f"가중 면적 Σ Γ·A 의 "
+                f"가중 면적 Σ|Γ|A 의 "
                 f"{_n('material.conducting_gamma_pct', DER, '{:.1f}', '%')} 를 낸다.",
 
                 f"유전체 셸(body·canopy)은 반사계수 크기 "
-                f"{_n('material.gamma_shell', DER, '{:.2f}')} 로 왕복 투과 τ = 1−Γ², 즉 "
+                f"{_n('material.gamma_shell', DER, '{:.2f}')} 로 왕복 투과 τ = 1−|Γ|², 즉 "
                 f"{_n('material.shell_tau_db', DER, '{:.2f}', 'dB')}(수직입사 기준) 를 곱해 "
                 f"통과시키고 그 뒤 금속(배터리·PCB)을 코히런트 합산한다(`src/rcs_sbr.py` `rcs_sbr(penetrate=True)`).",
 
@@ -390,12 +417,17 @@ def report_17_materials():
                            "area_pct": "{:.1f} %", "gamma_pct": "{:.1f} %"}), "",
            f"표의 |Γ| 두 열은 **수직입사** 값이다 — 커널은 여기에 각도 모양 |Γ(θ)|/|Γ(0)| "
            f"(TE·TM 전력평균, `ANGLE_GAMMA=1` 기본)을 곱한다 ⟨{AGI} : _meta.design⟩. 그 축이 "
-           f"옮기는 크기는 프롭 채널 레벨 "
+           f"옮기는 크기는 기체 2대의 프롭 채널 레벨 "
            f"{_n('propeller_channel_el_-15_3p5GHz.matrice4e.level_delta_db', AGI, '{:+.2f}')} ~ "
            f"{_n('propeller_channel_el_-15_3p5GHz.mini5pro.level_delta_db', AGI, '{:+.2f}', 'dB')}"
-           f" · 전체 드론 σ "
-           f"{_n('whole_drone_sigma_az24_el_-15.mini5pro.delta_db', AGI, '{:+.2f}')} ~ "
-           f"{_n('whole_drone_sigma_az24_el_-15.matrice4e.delta_db', AGI, '{:+.2f}', 'dB')} 다."),
+           f" 다.", "",
+           f"σ 쪽은 기체 3 × 고각 2 칸에서 따로 쟀다 — **방위평균**은 "
+           f"{_n(f'{_AGS_MEAN_LO}.delta_db', AGS, '{:+.3f}')} ~ "
+           f"{_n(f'{_AGS_MEAN_HI}.delta_db', AGS, '{:+.3f}', 'dB')} 로 거의 그대로이고, 같은 "
+           f"격자의 **칸 하나**로 내려가면 "
+           f"{_n(f'{_AGS_CELL_LO}.cell_max_abs_db', AGS, '{:.2f}')} ~ "
+           f"{_n(f'{_AGS_CELL_HI}.cell_max_abs_db', AGS, '{:.2f}', 'dB')} 다. 두 자리가 자릿수로 "
+           f"갈리므로 인용할 때 방위평균인지 칸별인지 함께 적는다."),
 
         md("## 셸을 통과한 뒤 금속을 더한다", "",
            f"유전체 셸(body·canopy)은 |Γ| = "

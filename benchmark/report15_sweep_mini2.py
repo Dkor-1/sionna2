@@ -580,12 +580,18 @@ def secS_sbr(spec, aspects, f_rev, f_tip) -> dict:
       를 옆에 놓기 위해서다. 거리 의존은 없다(원거리장 평면파).
     """
     try:
-        from rcs_sbr import sbr_field
+        from rcs_sbr import sbr_field, grid_ref_for_slowtime
     except Exception as e:
         return dict(available=False, error=f"{type(e).__name__}: {e}")
     gmat = {g: mt for g, (mt, _) in DRONE_GROUP_MAT.items()}
     dirs = [r["dir"] for r in rotor_layout(spec)]
     step = 360.0 / N_STEPS
+    # ⭐ 광선 격자를 얼린다 — 이 팔도 φ 마다 값을 늘어놓는 **슬로타임 열**이다.
+    #   격자가 자세의 bbox 에서 나오면 위상 원점(ctr)과 표본 집합(Rout·n)이 φ 마다 바뀌어
+    #   블레이드 변조에 가짜 변조가 섞인다. 판은 자세에 무관하므로 자세 루프 밖에서 한 번 만든다.
+    #   SIONNA2_FREEZE_GRID=0 이면 None → 옛 동작.
+    gref = grid_ref_for_slowtime(
+        lambda p: pose_articulated(spec, rotor_phase_deg=p), dirs, FC)
     out = {}
     for asp in aspects:
         u = PB.look_dir(asp["az"], asp["el"])
@@ -593,7 +599,7 @@ def secS_sbr(spec, aspects, f_rev, f_tip) -> dict:
         t0 = time.time()
         for i in range(N_STEPS):
             mesh = pose_articulated(spec, rotor_phase_deg=[d * (i * step) for d in dirs])
-            E[i] = complex(sbr_field(mesh, gmat, FC, u))
+            E[i] = complex(sbr_field(mesh, gmat, FC, u, grid_ref=gref))
         a = db(E)
         out[asp["tag"]] = dict(
             az_deg=asp["az"], el_deg=asp["el"], sec=_f(time.time() - t0),
@@ -605,6 +611,8 @@ def secS_sbr(spec, aspects, f_rev, f_tip) -> dict:
               f"({out[asp['tag']]['spectrum']['coherent']['f_extent_over_f_tip']}×f_tip)  "
               f"[{time.time()-t0:.0f}s]", flush=True)
     return dict(available=True, engine="rcs_sbr.sbr_field (우리 커널, SBR+PO 단일산란)",
+                grid_frozen=bool(gref is not None),
+                grid_ref=(gref.asjson() if gref is not None else None),
                 by_aspect=out,
                 caveat=("대조군이지 정답이 아니다. 평면파 원거리장 모노스태틱이라 거리 의존이 없고, "
                         "Sionna 와 달리 산란적분을 우리가 직접 편다."))

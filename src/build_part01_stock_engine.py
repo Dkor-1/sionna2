@@ -65,6 +65,14 @@ RIGHT_HALF = [0, 1, 2, 3, 4]        # 표적 항이 소거되는 칸 (Z1 · Z2)
 LEFT_HALF = [5, 6, 7, 8, 9, 10]     # 표적 항이 답에 남는 칸 (Z3 · Z4)
 ITEM_COLS = [("실험 유형", "label_en"), ("칸", "zone"), ("왜 그런지", "why_ko")]
 
+#: `report00_decision_map.json:items` 안에서 마이크로도플러 행의 자리(순서 고정).
+MD_ITEM = 7
+
+#: 면 수 사다리에서 **형상 판정을 통과하는 마지막 단**. 원장이 `shape_ok_per_level` 로
+#: 들고 있으므로 여기서 손으로 세지 않는다 — 판이 바뀌면 이 인덱스도 따라 바뀐다.
+_SHAPE_OK = fetch((EVD, "B_facet_count_sweep.numbers.shape_ok_per_level"))
+LAST_SHAPE_OK = max(i for i, ok in enumerate(_SHAPE_OK) if ok)
+
 
 def _n(key: str, src: str, fmt: str | None = None, unit: str = "") -> str:
     """`num(None, …)` 축약. **값은 언제나 JSON 이 정한다** — 이 파일에 숫자 리터럴은 없다."""
@@ -526,9 +534,12 @@ def report_05_size_sweep():
 
                 f"같은 실험을 기체 메쉬로 옮기면 삼각형을 "
                 f"{_n('B_facet_count_sweep.numbers.n_tri_span_decades', EVD, '{:.2f}')} decade 깎는 "
-                f"동안 진폭이 총 "
-                f"{_n('B_facet_count_sweep.numbers.total_collapse_db', EVD, '{:.2f}', 'dB')} 무너지고, "
-                f"면 2→1 계단이 닫힌형 20·log₁₀(1/2) 에 붙는다.",
+                f"동안 진폭이 계단으로 떨어진다 — 면 2→1 계단이 "
+                f"{_n('B_facet_count_sweep.numbers.step_2to1_facet_db', EVD, '{:+.2f}', 'dB')} 로 "
+                f"닫힌형 20·log₁₀(1/2) 에 붙고, 면 1→0 계단이 "
+                f"{_n('B_facet_count_sweep.numbers.step_1to0_facet_db', EVD, '{:+.2f}', 'dB')} 여서 "
+                f"합이 "
+                f"{_n('B_facet_count_sweep.numbers.total_collapse_db', EVD, '{:.2f}', 'dB')} 다.",
 
                 f"반대 방향도 같은 뿌리다 — 같은 평판을 쪼개기만 해도 코히어런트 전력이 "
                 f"{_n('H_tessellation_changes_the_answer.numbers.max_inflation_db', EVD, '{:.2f}', 'dB')} "
@@ -578,17 +589,31 @@ def report_05_size_sweep():
            f"{_n('B_facet_count_sweep.numbers.n_tri_per_level[0]', EVD, '{:,.0f}')}개 → "
            f"{_n('B_facet_count_sweep.numbers.n_tri_per_level[-1]', EVD, '{:.0f}')}개"
            f"({_n('B_facet_count_sweep.numbers.n_tri_span_decades', EVD, '{:.2f}')} decade)로 "
-           f"깎아도 실루엣은 유지된다. 그런데 "
+           f"여섯 단에 걸쳐 깎는다.", "",
+           f"실루엣이 유지되는 것은 "
+           f"{_n(f'B_facet_count_sweep.numbers.n_tri_per_level[{LAST_SHAPE_OK}]', EVD, '{:,.0f}')}"
+           f"개까지다. 가장 성긴 "
+           f"{_n('B_facet_count_sweep.numbers.n_tri_per_level[-1]', EVD, '{:.0f}')}개 판은 원장의 "
+           f"형상 판정에서 떨어진다(`shape_ok` = "
+           f"{_n('B_facet_count_sweep.numbers.shape_ok_per_level[-1]', EVD)}) — 정면투영 편차 "
+           f"{_n('B_facet_count_sweep.numbers.proj_dev_pct_per_level[-1]', EVD, '{:.1f}', '%')} · "
+           f"경계상자 편차 "
+           f"{_n('B_facet_count_sweep.numbers.bbox_dev_pct_per_level[-1]', EVD, '{:.1f}', '%')} 다. "
+           f"실루엣이 살아 있는 단 전부에서, "
            f"{_n('B_facet_count_sweep.numbers.spec_n_aspects', EVD, '{:.0f}')}자세 중 정반사 경로가 "
            f"존재하는 자세는 "
-           f"{_n('B_facet_count_sweep.numbers.spec_n_aspects_nonzero_per_level[0]', EVD, '{:.0f}')}개다.", "",
-           f"그 한 자세에서 진폭은 기여 면 개수를 따라 계단으로 떨어져 총 "
-           f"{_n('B_facet_count_sweep.numbers.total_collapse_db', EVD, '{:.2f}', 'dB')} 무너진다 — "
-           f"면 2→1 계단이 "
+           f"{_n('B_facet_count_sweep.numbers.spec_n_aspects_nonzero_per_level[0]', EVD, '{:.0f}')}"
+           f"개다.", "",
+           f"그 한 자세에서 진폭은 기여 면 개수를 따라 계단으로 떨어진다. 면 2→1 계단이 "
            f"{_n('B_facet_count_sweep.numbers.step_2to1_facet_db', EVD, '{:+.2f}', 'dB')} 로 닫힌형 "
            f"20·log₁₀(1/2) = "
            f"{_n('B_facet_count_sweep.numbers.theoretical_step_two_to_one_facet_db', EVD, '{:+.2f}', 'dB')} "
-           f"에 붙는다.", "",
+           f"에 붙고, 면 1→0 계단이 "
+           f"{_n('B_facet_count_sweep.numbers.step_1to0_facet_db', EVD, '{:+.2f}', 'dB')} 다. "
+           f"둘을 합한 "
+           f"{_n('B_facet_count_sweep.numbers.total_collapse_db', EVD, '{:.2f}', 'dB')} 가 사다리 "
+           f"전체의 붕괴폭이고, ⚠ 그 뒤 계단은 형상 판정에서 떨어지는 마지막 단에서 일어난다 — "
+           f"**실루엣이 유지되는 구간 안에서 면 수만으로 움직인 몫은 앞 계단이다.**", "",
            f"⚠ 나머지 자세가 빈 이유는 따로 있다. 같은 자세에 확산을 켜면 표적경유 경로가 자세당 "
            f"{_n('B_facet_count_sweep.numbers.hot_n_paths_min', EVD, '{:.0f}')}개 넘게 잡힌다. "
            f"비어 있는 것은 광선이 아니라 **거울 조건을 만족하는 삼각형**이다."),
@@ -658,8 +683,9 @@ def report_06_decision_table():
                 ("두 축의 정의", "① 표적 산란량이 비를 취할 때 상수로 소거되는가 "
                                "② 결론이 절대 dBsm·dB 를 인쇄해야 하는가"),
                 ("칸 배치", "판단이다. 행마다 그 판단이 선 근거 JSON 키를 붙였다"),
-                ("한 사례 시험", "도는 로터는 비율만 필요하므로 오른쪽 칸에 앉는다 — "
-                              "그 사례가 마이크로도플러 부다"),
+                ("한 사례 시험", f"도는 로터는 표적 항이 소거되지 않고 절대 dBsm 도 필요 없어 "
+                              f"{_n(f'items[{MD_ITEM}].zone', DEC)} 에 앉는다 — 필요한 것은 "
+                              f"레벨이 아니라 서명의 **모양**이고, 그 사례가 마이크로도플러 권이다"),
             ],
             repro=_repro(["PYTHONPATH=src python benchmark/build_report00_decision_map.py",
                           "PYTHONPATH=src python src/figs_report00.py"],
@@ -691,8 +717,9 @@ def report_06_decision_table():
            f"다른 E 가 나온다(식의 |Γ| 는 입사각 의존 |Γᵢ(θᵢ)| 다 — "
            f"⟨outputs/angle_gamma_impact.json : _meta.design⟩). 그때는 오른쪽 칸의 실험도 "
            f"왼쪽으로 이사한다.", "",
-           f"⭐ 이 표를 한 사례로 시험한 것이 {ref_part(7)} 다 — 도는 로터는 비율만 필요하므로 "
-           f"오른쪽 칸에 앉는다."),
+           f"⭐ 이 표를 한 사례로 시험한 것이 {ref_part(7)} 다 — 도는 로터는 "
+           f"{_n(f'items[{MD_ITEM}].zone', DEC)}, 즉 **왼쪽 절반**에 앉는다. 표적 항이 소거되지 "
+           f"않으므로 표적 모델이 필요하고, 다만 절대 dBsm 은 필요 없어 **모양만** 있으면 된다."),
 
         next_steps([
             ("다중경로 기하에서 표적 항이 소거되는지를 직접 잰다",
@@ -701,8 +728,9 @@ def report_06_decision_table():
             ("왼쪽 칸이 요구하는 절대 σ 의 조달 방법을 고른다",
              "완전파·SBR+PO·주입 중 무엇을 쓸지가 비용과 함께 확정된다",
              ref("why-po", short=True)),
-            ("오른쪽 칸의 사례를 하나 끝까지 돌린다",
-             "비율만 쓰는 실험이 표적 모델 없이 실제로 서는지가 수치로 확정된다",
+            (f"{_n(f'items[{MD_ITEM}].zone', DEC)} 사례를 하나 끝까지 돌린다",
+             "표적 서명의 **모양**만으로 서는 실험이 절대 레벨 없이 실제로 서는지가 수치로 "
+             "확정된다",
              ref_part(7)),
         ]),
     ]

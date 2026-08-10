@@ -162,7 +162,11 @@ def blocks_67() -> list:
            "⟨outputs/measurement_layers.json : validation_three_points.channels⟩ — 사양의 4 RX 는 "
            "각도축을 여는 예비다.", "",
            "사양은 `src/experiment_x410.py:61`, 기하 배치는 `src/experiment_x410.py:100` "
-           "한 곳에 있다."),
+           "한 곳에 있다.", "",
+           "시뮬 사슬은 그 RX0 이 조명원의 파형 전체를 잡음도 다중경로도 없이 받는다는 상한에서 "
+           "돈다. 그 가정 하나를 푼 편이 "
+           "[리포트 11-2 «기준채널이 현실이면 얼마를 잃는가»](11_2_two_channel.ipynb) 이고, "
+           "이 벤치와 같은 두 채널 구성 위에서 기준채널 잡음 축을 연다."),
 
         md("## 사양이 무엇을 제약하나", "",
            table(["항목", "값", "무엇을 제약하나"], [
@@ -407,7 +411,8 @@ def blocks_70() -> list:
     return [
         header(
             num=70,
-            title="구가 σ 를 절대량으로 만들고, 반경 17.8 cm 를 고른다",
+            title=f"구가 σ 를 절대량으로 만들고, 반경 "
+                  f"{D.get('calibration_pick.radius_cm'):.1f} cm 를 고른다",
             did="정밀 PEC 구를 기준체로 두고 정확 Mie 급수로 기준값을 계산해 두 기체·세 밴드에서 "
                 "여유가 남는 반경을 골랐다.",
             results=[
@@ -427,11 +432,13 @@ def blocks_70() -> list:
                 f"측정에 앵커한다**(생산 모드의 평균 레벨이동 "
                 f"{D.num('modes.level_shift_production_abs_max_db', fmt='{:.2f}', unit='dB')}).",
 
-                f"앵커 사슬이 선언한 σ_cal "
-                f"{D.num('layers.cal_anchor_declared_dbsm', fmt='{:.2f}', unit='dBsm')} 대비 "
-                f"우리 정확 Mie 교정은 밴드에 따라 "
+                f"채택 반경에서 우리 정확 Mie σ 는 **πr² 광학 점근** "
+                f"{D.num('layers.cal_pir2_dbsm', fmt='{:.2f}', unit='dBsm')} 대비 밴드에 따라 "
                 f"{D.num('layers.mie_shift_min_db', fmt='{:+.2f}')} ~ "
-                f"{D.num('layers.mie_shift_max_db', fmt='{:+.2f}', unit='dB')} 위로 뜬다.",
+                f"{D.num('layers.mie_shift_max_db', fmt='{:+.2f}', unit='dB')} 위에 있다 — "
+                f"앵커 사슬이 선언한 σ_cal 은 "
+                f"{D.num('layers.cal_anchor_declared_dbsm', fmt='{:.2f}', unit='dBsm')} 이고, "
+                f"그 규약이 곧 이 광학 점근이다.",
             ],
             method=[
                 ("기준체",
@@ -491,10 +498,11 @@ def blocks_70() -> list:
            f"{D.num('layers.cal_anchor_declared_dbsm', fmt='{:.2f}', unit='dBsm')} 로 "
            f"선언했다 — πr² 광학값 "
            f"{D.num('layers.cal_pir2_dbsm', fmt='{:.2f}', unit='dBsm')} 이다"
-           f"⟨outputs/measurement_layers.json : calibration_convention_gap.anchor_quote⟩.", "",
-           f"우리가 정확 Mie 로 교정하면 우리 σ 는 그 규약 대비 밴드에 따라 "
-           f"{D.num('layers.mie_shift_min_db', fmt='{:+.2f}')} ~ "
-           f"{D.num('layers.mie_shift_max_db', fmt='{:+.2f}', unit='dB')} 위로 뜬다 — "
+           f"⟨outputs/measurement_layers.json : calibration_convention_gap.anchor_quote⟩. "
+           f"두 수의 차는 반올림이고, 규약 자체는 πr² 광학 점근이다.", "",
+           f"우리가 정확 Mie 로 교정하면 채택 반경에서 우리 σ 는 **그 πr² 규약 대비** 밴드에 "
+           f"따라 {D.num('layers.mie_shift_min_db', fmt='{:+.2f}')} ~ "
+           f"{D.num('layers.mie_shift_max_db', fmt='{:+.2f}', unit='dB')} 위에 있다 — "
            f"앵커와 견줄 때 이 항을 먼저 되돌린다."),
 
         md("## 이 구가 값어치가 가장 큰 이유 두 가지", "",
@@ -525,7 +533,8 @@ def blocks_71() -> list:
     return [
         header(
             num=71,
-            title="표적을 한 거리빈에 넣는 최대 대역은 200 MHz 다",
+            title=f"표적을 한 거리빈에 넣는 최대 대역은 "
+                  f"{D.get('point_target_max_bw_MHz'):.0f} MHz 다",
             did="순시대역을 서브밴드로 쪼개 거리분해능이 기체 최대치수보다 커지는 최대 대역을 "
                 "두 기체에서 함께 찾았다.",
             results=[
@@ -656,7 +665,8 @@ def blocks_72() -> list:
                    [("기체", "airframe"), ("밴드", "band"),
                     ("Δφ 나이퀴스트", "az_nyquist_deg"), ("Δφ 권장", "az_recommended_deg"),
                     ("한 바퀴 표본수", "n_az_per_turn"),
-                    ("앵커 고정 2° 보다 촘촘한가", "finer_than_anchor_2deg")],
+                    (f"앵커 고정 {D.get('layers.anchor_step_deg'):.0f}° 보다 촘촘한가",
+                     "finer_than_anchor_2deg")],
                    fmt={"az_nyquist_deg": "{:.2f}°", "az_recommended_deg": "{:.2f}°",
                         "n_az_per_turn": "{:.0f}"})),
 
@@ -665,6 +675,10 @@ def blocks_72() -> list:
            f"⟨outputs/measurement_layers.json : angular_sampling._rule⟩, 우리 기체에서 그 자리는 "
            f"`{D.get('layers.anchor_too_coarse_1')}` 와 "
            f"`{D.get('layers.anchor_too_coarse_2')}` 두 칸이다.", "",
+           f"그 둘 중 하나는 2·3층 반송파 ISM "
+           f"{D.num('layers.carrier_ism_ghz', fmt='{:.1f}', unit='GHz')} 이고, 위 표는 σ(f) "
+           f"레인지의 세 밴드만 싣는다 — 앵커 대비 판정은 거기에 그 반송파를 더한 칸에서 읽는다.",
+           "",
            f"나머지 칸에서는 앵커의 고정 간격이 우리 요구보다 촘촘하다. 요구 표본수는 반원당 "
            f"{D.num('layers.N_required_min', fmt='{:.0f}')} ~ "
            f"{D.num('layers.N_required_max', fmt='{:.0f}')} 점이다."),
@@ -803,7 +817,12 @@ def blocks_74() -> list:
                 f"{D.num('ranking_validation.drift_budget_db', fmt='{:.2f}', unit='dB')} 가 "
                 f"그 폭 아래에 있다 — 여유 "
                 f"{D.num('ranking_validation.drift_margin_db', fmt='{:+.2f}', unit='dB')}. "
-                f"설계가 판정 대상과 맞는다.",
+                f"그 여유는 결정론적 값이고, 같은 예산을 밴드별 독립 오차로 놓은 단일자세 "
+                f"몬테카를로에서 순위 보존확률은 Matrice 4E "
+                f"{D.num('ranking_validation.p_order_preserved_at_1db.matrice4e', fmt='{:.3f}')}"
+                f" · Mini 5 Pro "
+                f"{D.num('ranking_validation.p_order_preserved_at_1db.mini5pro', fmt='{:.3f}')} "
+                f"다.",
 
                 f"σ 를 세 밴드 공통으로 1 dB 옮기면 절대거리가 "
                 f"{D.num('ranking_validation.common_mode_slope_db_per_db', fmt='{:.2f}', unit='dB')} "
@@ -845,6 +864,19 @@ def blocks_74() -> list:
            f"아래에 있으므로(여유 "
            f"{D.num('ranking_validation.drift_margin_db', fmt='{:+.2f}', unit='dB')}) 이 "
            f"캠페인은 **검출 사슬과 파형 순위**를 결판낸다."),
+
+        md("## 그 여유를 확률로 다시 읽으면", "",
+           f"위 여유는 뒤집힘 폭 하나와 예산 하나를 견준 결정론적 값이다. 같은 예산 "
+           f"{D.num('ranking_validation.drift_budget_db', fmt='{:.2f}', unit='dB')} 를 "
+           f"밴드별 독립 오차로 놓고 **단일자세 lead** 위에서 몬테카를로를 돌리면 순위 "
+           f"보존확률은 Matrice 4E "
+           f"{D.num('ranking_validation.p_order_preserved_at_1db.matrice4e', fmt='{:.3f}')} · "
+           f"Mini 5 Pro "
+           f"{D.num('ranking_validation.p_order_preserved_at_1db.mini5pro', fmt='{:.3f}')} 다"
+           f"⟨outputs/report06_derived.json : ranking_validation.mc_basis⟩.", "",
+           "그러므로 세션 설계가 노리는 것은 예산을 겨우 지키는 것이 아니라 뒤집힘 폭보다 "
+           "한참 아래로 내리는 것이다. 기체별 확률 전량은 "
+           + ref("sigma-robustness", "σ 강건성") + " 의 표에 있다."),
 
         md("## 설계상 같게 맞춘 축과 다르게 둔 축", "",
            table(["설계상 같게 맞춘 축", "설계상 다르게 둔 축"], [
@@ -1084,7 +1116,7 @@ def blocks_76() -> list:
 
                 f"⚠⚠ 이 문턱은 생산 원장 세대({D.num('slope.ledger_generation')})의 수다. "
                 f"디스크의 현재 세대({D.num('slope.current_generation')})로 같은 정의를 다시 "
-                f"적합하면 Matrice 4E 가 "
+                f"적합하면 `{D.get('slope.rows[0].airframe')}` 가 "
                 f"{D.num('slope.rows[0].ours_db_per_ghz', fmt='{:.3f}')} → "
                 f"{D.num('slope.rows[0].ours_current_generation_db_per_ghz', fmt='{:.3f}', unit='dB/GHz')} "
                 f"로 내려간다.",
@@ -1152,7 +1184,7 @@ def blocks_76() -> list:
            f"위의 «우리 커널» 값은 생산 원장(`sigma_anchor.json`, "
            f"{D.num('slope.ledger_generation')} 판 `rcs_anchor.json` 위)에서 왔다. 디스크의 "
            f"현재 `rcs_anchor.json`({D.num('slope.current_generation')} 판)으로 같은 정의를 "
-           f"다시 적합하면 Matrice 4E 가 "
+           f"다시 적합하면 `{D.get('slope.rows[0].airframe')}` 가 "
            f"{D.num('slope.rows[0].ours_db_per_ghz', fmt='{:.3f}')} → "
            f"{D.num('slope.rows[0].ours_current_generation_db_per_ghz', fmt='{:.3f}', unit='dB/GHz')} "
            f"로 내려가고, 전대역 앵커와의 판별폭이 "

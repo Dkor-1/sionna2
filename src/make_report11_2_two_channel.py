@@ -59,6 +59,17 @@ NOTCH = SURV["eca_notch_cost_db"]
 
 _EMBEDDED: list[str] = []
 
+# ── 상속한 마이크로도플러 원장의 광선 격자 세대 — 원장 스스로가 스위치다.
+#    커널은 자세 사이에 격자를 고정하는 `grid_ref` 를 받는다. 그 인자로 계산된 원장은
+#    메타에 `grid_ref` 를 남기므로, 없으면 «자세마다 격자를 다시 잡은 산출» 이다.
+#    다시 낸 원장으로 갈아끼우면 이 경고는 저절로 사라진다. ────────────────────────── #
+GRID_PENDING = "" if MDL.get("grid_ref") else (
+    "⚠ **이 원장은 광선 격자를 자세마다 다시 잡는 설정에서 계산된 것이다** — 메타에 "
+    "`grid_ref` 기록이 없다. 격자 중심·반경이 프레임마다 움직이면 그 움직임이 표적 운동과 "
+    "같은 자리에 들어간다. 얼린 격자로 다시 낸 원장 위에서 **절 5 의 플래시 지표와 확산 "
+    "손실은 다시 잰다(재계산 대기)**. 절 2~4 의 손실 축은 표적 변조가 아니라 기준채널 "
+    "품질의 함수이고, 그 팔들의 표적은 단일 톤이다.")
+
 
 def embed(stem: str, ext: str = "png") -> str:
     _EMBEDDED.append(stem)
@@ -344,7 +355,10 @@ cells = [
        f"오르지 않고(+{RHO[0].lstrip('+')} dB 에서 {SUM['G1']['pd_by_refsnr'][RHO[0]]:.2f}, "
        f"+{RHO[1].lstrip('+')} dB 에서 {SUM['G1']['pd_by_refsnr'][RHO[1]]:.2f}), 이상 팔조차 "
        f"{E1R['G1']['ideal']['pd']:.2f} 라 «Pd 0.5 를 가로지른다» 가 {SH['W1']}·{SH['L1']} 의 "
-       f"1.00 → 0.00 과 같은 사건이 아니다. 절벽의 근거로는 {SH['W1']}·{SH['L1']} 만 쓴다.", "",
+       f"그 한 칸에서 보이는 "
+       f"{SUM['W1']['pd_by_refsnr'][CL_HI]:.2f}·{SUM['L1']['pd_by_refsnr'][CL_HI]:.2f} → "
+       f"{SUM['W1']['pd_by_refsnr'][CL_LO]:.2f}·{SUM['L1']['pd_by_refsnr'][CL_LO]:.2f} 와 같은 "
+       f"사건이 아니다. 절벽의 근거로는 {SH['W1']}·{SH['L1']} 만 쓴다.", "",
        "**기준채널 다중경로 — 손실 [dB]**", "",
        "| MDR | " + " | ".join(LBL[m] for m in MODES) + " |",
        "|---|---|---|---|",
@@ -576,18 +590,24 @@ cells = [
        "내려오면 빗살이 배경에 묻혔다는 뜻이고, 값이 크면 «빗살이 주기적으로 서 있다» 는 뜻이다. "
        "`플래시 대비` 는 같은 띠 전력의 시간축 p95−p5 이고 **잡음 변동만으로도 커진다** — "
        "판정값은 선 세기 쪽이다.", "",
-       "⚠ **이 절의 사다리는 절 2 의 사다리와 같은 물건이 아니다.** 팔 이름만 같고 사슬이 "
-       "다르다.", "",
-       "| 무엇 | 절 2 의 검출 사다리 | 절 5 의 생존 사다리 |",
-       "|---|---|---|",
-       f"| 슬로타임 사슬 | 블록 b={DET['b']} · PRF {DET['prf_hz']:.0f} Hz · "
+       "⚠ **여기에는 사다리가 둘이고, 둘 다 절 2 의 사다리와 같은 물건이 아니다.** 팔 이름만 "
+       "같다 — 맵은 생존 사다리에서, Pd 는 그것과 또 다른 검출 사다리에서 나온다.", "",
+       "| 무엇 | 절 2 의 검출 사다리 (E1) | 절 5 의 Pd 를 낸 사다리 (E1b) | 절 5 의 맵 (E2) |",
+       "|---|---|---|---|",
+       f"| 표적 모형 | {E1['W1']['target_model']} (단일 도플러 톤) | "
+       f"{DET['target_model']} (마이크로도플러 원장) | {DET['target_model']} (같은 원장) |",
+       f"| 슬로타임 사슬 | 블록 b={E1['W1']['b']} · PRF {E1['W1']['prf_hz']:.0f} Hz · "
+       f"T_CPI {E1['W1']['T_cpi_ms']:.0f} ms | b={DET['b']} · PRF {DET['prf_hz']:.0f} Hz · "
        f"T_CPI {DET['T_cpi_ms']:.0f} ms | b={SURVCFG['b']} · PRF {SURVCFG['prf_hz']:.0f} Hz · "
        f"관측 {SURVCFG['seconds']*1e3:.0f} ms |",
        f"| 날개끝이 접히나 | **접힌다** (f_tip {ALIAS['f_tip_hz']:.0f} Hz > "
-       f"±{DET['prf_hz']/2:.0f} Hz) | 안 접힌다 (±{SURVCFG['f_unamb_hz']:.0f} Hz) |",
-       f"| σ² | {DET['noise_var']:.0f} — 표적이 마이크로도플러라 같은 출력 SINR 을 맞추려고 "
-       f"절 2 의 톤 실험보다 **{NV_GAP_DB:.1f} dB 낮게** 잡혔다 | "
-       f"{SURVCFG['noise_var']:.0f} (목표 SINR {SURVCFG['sinr_target_db']:.0f} dB) |",
+       f"±{E1['W1']['prf_hz']/2:.0f} Hz) | **접힌다** (±{DET['prf_hz']/2:.0f} Hz) | "
+       f"안 접힌다 (±{SURVCFG['f_unamb_hz']:.0f} Hz) |",
+       f"| σ² | {E1['W1']['noise_var']:.0f} (목표 SINR "
+       f"{CFG['target_sinr_ideal_db']:.0f} dB) | {DET['noise_var']:.0f} — 표적이 "
+       f"마이크로도플러라 같은 출력 SINR 을 맞추려고 톤 실험보다 **{NV_GAP_DB:.1f} dB 낮게** "
+       f"잡혔다 | {SURVCFG['noise_var']:.0f} (목표 SINR "
+       f"{SURVCFG['sinr_target_db']:.0f} dB) |",
        "",
        f"그래서 같은 `refSNR{JOINT_RHO}dB` 라벨인데도 Pd 가 절 2 표에서는 "
        f"{SUM['W1']['pd_by_refsnr'][JOINT_RHO]:.2f}, 여기서는 "
@@ -633,11 +653,20 @@ cells = [
        f"{SURV['ideal']['zero_bin_rel_tip_db']:+.1f} dB). 플래시 선 세기 자체는 "
        f"{SURV['noECA']['flash_line_db']:.1f} dB 로 높지만, 읽히는 것은 동체선이지 "
        "블레이드가 아니다.", "",
-       f"② ⭐ **5G 는 조명원의 프레임률로 날개끝이 접힌다.** 상시 기준신호 SSB 의 프레임률이 "
-       f"{ALIAS['prf_hz']/1e3:.0f} kHz 라 무모호 도플러가 **±{ALIAS['f_unamb_hz']:.0f} Hz** "
-       f"뿐인데, 이 기체의 날개끝 도플러는 **{ALIAS['f_tip_hz']:.0f} Hz** 다. 그 차이는 "
-       f"측정 잡음이 아니라 **접힘**으로 나타난다 — 참 도플러 {ALIAS['f_tip_hz']:.0f} Hz 가 "
-       f"**{F_FOLD:.0f} Hz**, 즉 «멀어지는 블레이드» 로 읽힌다.", "",
+       f"② ⭐ **5G 팔은 프레임률로 날개끝이 접힌다.** 이 팔이 채널을 읽는 속도는 "
+       f"{ALIAS['prf_hz']/1e3:.0f} kHz — 슬롯 하나를 한 프레임으로 읽는 **슬롯율**이다"
+       f"(원장의 이름 그대로 «{ALIAS['rate_is']}»). 그래서 무모호 도플러가 "
+       f"**±{ALIAS['f_unamb_hz']:.0f} Hz** 뿐인데, 이 기체의 날개끝 도플러는 "
+       f"**{ALIAS['f_tip_hz']:.0f} Hz** 다. 그 차이는 측정 잡음이 아니라 **접힘**으로 "
+       f"나타난다 — 참 도플러 {ALIAS['f_tip_hz']:.0f} Hz 가 **{F_FOLD:.0f} Hz**, 즉 "
+       "«멀어지는 블레이드» 로 읽힌다.", "",
+       f"⚠ **그 {ALIAS['prf_hz']/1e3:.0f} kHz 는 SSB 버스트율이 아니다.** 상시 기준신호로 "
+       f"쓸 수 있는 SSB 는 주기 {ALIAS['ssb_burst_period_ms']:.0f} ms, 즉 "
+       f"{ALIAS['ssb_burst_rate_hz']:.0f} Hz 라 무모호 도플러가 "
+       f"±{ALIAS['ssb_burst_rate_hz']/2:.0f} Hz 로 훨씬 좁다(10 권 절 7). 그래서 이 팔은 "
+       f"5G 에 **유리한 쪽으로 낙관적**이고, 진짜 상시 SSB 로는 접힘이 더 심하다 — 원장이 "
+       f"그 자리에 스스로 적어 둔 단서다 "
+       f"⟨outputs/passive_two_channel.json : md_survival.nr_alias.what⟩.", "",
        "| 파형 | 슬로타임 PRF | 무모호 도플러 | 날개끝 f_tip | 접히나 |",
        "|---|---|---|---|---|",
        "\n".join(f"| {LBL[m]} | {SPREAD[m]['prf_hz']:.0f} Hz | "
@@ -646,6 +675,9 @@ cells = [
        + f"\n| 생존 판정에 쓴 WiFi 사슬 | {WM['prf_hz']:.0f} Hz | "
          f"±{WM['f_unamb_hz']:.0f} Hz | {ALIAS['f_tip_hz']:.0f} Hz | 아니오 |",
        "",
+       f"⚠ 표의 PRF 는 **사슬이 프레임을 끊어 읽는 속도**(검출기 프레임률)다 — {SH['G1']} 행의 "
+       f"{ALIAS['prf_hz']/1e3:.0f} kHz 는 5G 슬롯율이고, 상시 SSB 의 물리 반복률 "
+       f"{ALIAS['ssb_burst_rate_hz']:.0f} Hz 와는 다른 양이다(바로 위 ⚠).", "",
        f"⚠ 검출용 CPI(첫 세 줄)는 세 파형 **모두** 접힌다 — 슬로타임 PRF 가 f_tip 의 두 배에 "
        "못 미친다. 그것이 검출 성능에 얹는 대가가 다음 표다.", "",
        "**마이크로도플러가 검출에 무는 값 — 톤 표적 대비**", "",
@@ -669,7 +701,8 @@ cells = [
        f"{MDL['fc_hz']/1e9:.1f} GHz 와 같은 팔은 세 팔 중 {SH['G1']} 하나뿐이다 — 도플러축은 "
        f"**원장의 반송파 기준**으로 읽어야 한다(절 6 의 가정 {AS_MD}번이 그중 {SH['W1']} 의 "
        "축척을 적어 두었다). 표적의 병진 도플러 f_d 도 세 팔 모두 그 반송파 하나로 계산된 "
-       "값이다(가정 2) — 팔마다 실제 반송파로 다시 잡지 않았다."),
+       "값이다(가정 2) — 팔마다 실제 반송파로 다시 잡지 않았다.", "",
+       GRID_PENDING),
 
     md("## 절 6. 무엇을 못 말하나", "",
        "아래 두 목록은 원장(`outputs/passive_two_channel.json`)의 `assumptions` 와 "
@@ -678,6 +711,8 @@ cells = [
        "\n".join(f"{i+1}. {s}" for i, s in enumerate(ASSUM)), "",
        f"### 미해결 ({len(OPEN)}건)", "",
        "\n".join(f"{i+1}. {s}" for i, s in enumerate(OPEN)), "",
+       "⭐ 위 두 목록에 나오는 `report12` 는 원장이 쓰던 옛 편 번호이고, 현재 편성에서는 "
+       "**13 권 «결과»**(`13_results.ipynb`)다 — 헤드라인 검출 수치가 사는 권이다.", "",
        "⭐ 이 중 결론을 **바꿀 수 있는** 것은 셋이다 — 어느 결론을 바꾸는지까지 적는다.", "",
        f"- **{OP_DECIM}번 → 이 편의 5G 수치 전부.** {SH['G1']} 의 천장이 처리 규약의 "
        "산물이라면, 기준신호 대역으로 여파·데시메이션한 뒤의 값은 여기 수치보다 나을 수 있다. "
@@ -789,7 +824,8 @@ cells = [
        f"{MDL['wobble_amp']*100:.2f} % @ {MDL['wobble_hz']:.1f} Hz "
        f"(프리셋 `{MDL['preset']}` — {MDL['preset_why_ko']}) |",
        "",
-       f"{MDL['declared_ko']}"),
+       f"{MDL['declared_ko']}", "",
+       GRID_PENDING),
 
     md("## 부록 — 재현", "",
        "```bash",

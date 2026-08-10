@@ -1007,7 +1007,7 @@ def grid_used(mesh, fc: float, u, spacing=None, pad=1.15, grid_ref=None) -> dict
 
 def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
               cache_key=None, penetrate=True, shell_groups=None,
-              ptd=False, ptd_pol="V", ptd_opts=None, *, grid_ref=None):
+              ptd=False, ptd_pol="V", ptd_opts=None, *, grid_ref=None, range_m=None):
     """**복소 산란장 E(û)** 를 돌려준다 (σ 가 아니라 E — 마이크로도플러는 위상이 필요하다).
 
         E(û) = Σ_hits |Γ_i| · e^{j2k p_i·û} · d²          σ = (4π/λ²)|E|²
@@ -1018,6 +1018,22 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
     ptd (기본 **False**) : True 면 같은 위상원점(bbox 중심)의 모서리 프린지 A_FW [m²] 를 더한
     **복소장**을 돌려준다 — 위상을 쓰는 하류(마이크로도플러)가 그대로 쓸 수 있다.
     ⚠ ptd=False 는 이 인자들이 없던 때와 비트 단위로 같다.
+
+    range_m (기본 **None**, keyword-only) : ⭐**구면파 조명**. None 이면 **평면파**(원거리장
+    근사)이고 이 인자가 없던 때와 **비트 동일**하다. 값을 주면 표적 중심에서 그 거리만큼
+    떨어진 점에 레이더가 있다고 보고 **실제 왕복 거리**로 위상을 준다.
+
+        평면파(기본)  exp(j2k (p−ctr)·û)      ← 파면이 평평하다는 가정
+        구면파        exp(j2k (|p−p_tx| − R)) ← p_tx = ctr + R·û, 중심 감산은 그대로
+
+    ⚠ **왜 필요한가** — 평면파는 원거리장 근사다. 이 기체의 경계는 2D²/λ ≈ 8 m 인데
+      우리 주력 거리가 3 m 라 **경계 안쪽**이다. 거기서는 파면이 휘어 기체 앞뒤가 다른
+      위상을 받으므로 간섭 무늬가 실제로 달라진다. 그 차이를 재려면 이 인자가 필요하다.
+      2차 위상 오차의 크기는 대략 k·D²/(4R) 이고, D=0.6 m·R=3 m·3.5 GHz 에서 **약 2.2 rad**
+      이다 — 무시할 수 없다.
+    ⚠ **이 배선이 하는 것과 안 하는 것** — 위상만 구면파로 바꾼다. 광선은 여전히
+      **평행 격자**이고 1/r 확산도 안 넣는다. 근거리장의 지배적 효과가 **위상 곡률**이라
+      그것부터 잰다. 광선을 발산시키고 확산을 넣는 것은 별개의 다음 단계다.
 
     grid_ref (기본 **None**, keyword-only) : ⭐**얼린 광선 격자**. None 이면 자세마다 격자를
       메쉬에서 다시 만든다(옛 동작, 비트 동일). `grid_ref_from(자세들, fc, spacing)` 이 준
@@ -1067,7 +1083,13 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
                 sel = (which == _i) & lit
                 if sel.any():
                     g[sel] = g[sel] * _gsh(_key, fc, cos_i[sel])
-        return valid, lit, g, np.exp(1j * 2.0 * k * ((P - ctr) @ u)), si
+        if range_m is None:                               # 평면파 — 옛 동작과 비트 동일
+            ph = np.exp(1j * 2.0 * k * ((P - ctr) @ u))
+        else:                                             # ⭐구면파 — 실제 왕복 거리
+            p_tx = ctr + float(range_m) * np.asarray(u, float)
+            ph = np.exp(1j * 2.0 * k *
+                        (np.linalg.norm(P - p_tx, axis=1) - float(range_m)))
+        return valid, lit, g, ph, si
 
     valid, lit, g, phase, si = _field(scene, shape_ptrs, gammas, matk)
     E = np.sum(np.where(lit, g, 0.0) * phase)

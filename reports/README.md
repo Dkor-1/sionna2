@@ -13,10 +13,10 @@
 | [1 «이 연구가 묻는 것과 답한 방식»](01_map.ipynb) | 패시브 바이스태틱으로 드론을 탐지하고 마이크로도플러로 분류하는 것이 태스크이고, RCS 는 그 인프라다. 이… | 3 | [절 3 «주장마다 판정 범위를 결판·사슬확인·캠페인 밖으로 적었다»](01_map.ipynb) |
 | [2 «스톡 Sionna 로는 왜 부족한가»](02_stock-engine.ipynb) | 스톡 레이 트레이서는 경로를 풀지 산란적분을 하지 않는다. 그 한 가지가 드론처럼 작은 표적에서 무엇을 무너뜨… | 7 | [절 6 «표적 항이 비에서 소거되는가와 절대값이 필요한가, 두 물음이 실험을 네 칸으로 가른다»](02_stock-engine.ipynb) |
 | [3 «선행연구는 어디까지 왔고 우리는 어디 서는가»](03_prior-work.ipynb) | 공개 문헌과 오픈소스를 전수로 세어, 우리가 새로 하는 것과 빌려 쓰는 것을 갈라 적는다. | 6 | [절 1 «게재본 중 드론 메쉬에서 산란을 계산한 것은 0편이다»](03_prior-work.ipynb) |
-| [4 «표적을 짓는다 — 메쉬와 재질»](04_target-mesh.ipynb) | 기체 아홉 대를 CAD 로 짓고 실물 사진·도면과 대조한다. 재질은 측정이 아니라 선언이고, 그 선언이 어디까… | 3 | [절 2 «메쉬 외형이 실제 기체와 얼마나 맞는지를 사진 IoU·CAD 치수·실물 스캔 세 자로 쟀다»](04_target-mesh.ipynb) |
+| [4 «표적을 짓는다 — 메쉬와 재질»](04_target-mesh.ipynb) | 기체 10 대를 CAD 로 짓고, 그중 σ 를 내는 7 대를 실물 사진·도면과 대조한다. 재질은 측정이 아니라… | 3 | [절 2 «메쉬 외형이 실제 기체와 얼마나 맞는지를 사진 IoU·CAD 치수·실물 스캔 세 자로 쟀다»](04_target-mesh.ipynb) |
 | [5 «우리 커널 — 무엇이고, 무엇이 아닌가»](05_kernel.ipynb) | SBR + 물리광학이 무엇을 계산하고 무엇을 계산하지 않는지를 정의하고, 해석해가 있는 과녁(구·평판·이면각)… | 6 | [절 4 «해석 PO 구 대비 구현오차는 kr 전 구간에서 0.201 dB 안이다»](05_kernel.ipynb) |
 | [6 «σ 를 무엇에 붙들어 매나»](06_anchor.ipynb) | 우리 σ 의 절대 레벨을 붙드는 것은 공개 문헌 한 기체·한 실험실뿐이다. 그 끈의 장력을 재고, 끊어질 자리… | 6 | [절 1 «σ = A(f)·B₁·B₂ 에서 A(f) 의 기울기만 측정에서 받고, 레벨과 각패턴은 우리 PO 출력이다»](06_anchor.ipynb) |
-| [7 «크기 법칙 — 작아지면 얼마나 어려워지나»](07_size-law.ipynb) | 기체 크기를 사다리로 놓고 σ 와 검출거리가 어떻게 따라오는지 본다. 사다리의 답이 이르게 나오면 그것부터 의… | 5 | [절 3 «모양의 유무는 수십 dB 를 가르고, 모양의 정밀도는 한 자릿수 dB 안에서 논다»](07_size-law.ipynb) |
+| [7 «표적을 얼마나 거칠게 그려도 되나 — 사다리와 크기 법칙»](07_size-law.ipynb) | 표적 모형을 구·정육면체·상자·평판으로 갈아 끼우는 사다리로 단순화의 값을 재고, 앵커보다 크고 작은 두 기체… | 5 | [절 3 «모양의 유무는 수십 dB 를 가르고, 모양의 정밀도는 한 자릿수 dB 안에서 논다»](07_size-law.ipynb) |
 | [8 «마이크로도플러 — 도는 로터가 남기는 무늬»](08_1_scene.ipynb) | 호버링하는 드론은 제자리에 있지만 프로펠러는 돈다. 그 회전이 남기는 시간-주파수 무늬가 이 연구의 분류 축이… | 6 | [절 3 «두 엔진이 날개끝 주파수 아래에서 겹치고 그 위에서 갈린다»](08_3_pattern.ipynb) |
 | [9 «마이크로도플러 — 무엇이 그 무늬를 흐리나»](09_microdoppler-limits.ipynb) | 자세·보정·광선 예산·표본율 네 가지가 무늬를 지운다. 각각을 단일축으로 갈라 얼마나 지우는지 잰다. | 4 | [절 4 «상시 기준신호가 주는 것은 날개끝 확산이 아니라 블레이드 통과율까지다»](09_microdoppler-limits.ipynb) |
 | [10 «무엇을 조명원으로 쓸 수 있나»](10_illuminators.ipynb) | LTE·5G·WiFi 가 각각 얼마나 자주, 얼마나 넓게 신호를 내주는가. 5G 는 대역이 넓은 대신 상시 신… | 7 | [절 3 «여섯 항목은 닫힌형이고, 점유 대가만 몬테카를로 격자에서 읽는다»](10_illuminators.ipynb) |
@@ -26,7 +26,7 @@
 | [14 «결론이 무엇에 기대고 있나 — 강건성과 하드웨어»](14_robustness.ipynb) | 표적 모형·수신 소자·장비를 바꿔 넣어 결론이 어디서 흔들리는지 본다. | 5 | [절 1 «σ 를 곱하기 전에 이미 세 파형의 순서를 정하는 축이 있다»](14_robustness.ipynb) |
 | [15 «실측 계획 — 무엇을 재야 이 문서가 닫히나»](15_measurement.ipynb) | 시뮬레이션이 선언으로 남겨 둔 것들의 목록과, 그것을 닫는 야외 실측 규약이다. | 7 | [절 6 «캠페인이 결판내는 양은 절대값이 아니라 순위다»](15_measurement.ipynb) |
 
-셀 788 개 · 각주 1366 개 · 그림 68 개.
+셀 797 개 · 각주 1454 개 · 그림 68 개.
 
 ## 각 권에 어느 조각이 들어갔나
 
@@ -80,7 +80,7 @@
 | 3 | 수신 방향 그림자 광선을 켜면 상반성 위반이 9.69 → 8.24 dB 로 내려간다 | `_parts/20_bistatic-exit.ipynb` |
 | 4 | 해석 PO 구 대비 구현오차는 kr 전 구간에서 0.201 dB 안이다 | `_parts/21_kernel-vs-reference.ipynb` |
 | 5 | PO 유효 무릎을 부품 폭으로 옮기면 어느 부품이 어느 밴드에서 떨어지는지가 보인다 | `_parts/22_po-knee.ipynb` |
-| 6 | 커널이 아직 못 하는 것은 편파 분리·PTD·재테셀레이션·Γ(θ) 배선 넷이고, 각각의 크기를 적었다 | `_parts/23_kernel-open-items.ipynb` |
+| 6 | 커널이 아직 못 하는 것은 편파 분리·PTD·재테셀레이션·다중반사 Γ(θ) 넷이고, 각각의 크기를 적었다 | `_parts/23_kernel-open-items.ipynb` |
 
 ### [6 «σ 를 무엇에 붙들어 매나»](06_anchor.ipynb)
 
@@ -93,7 +93,7 @@
 | 5 | 같은 잣대를 네 기체로 넓히면 판정이 NOT_VALIDATED 로 갈린다 | `_parts/28_fleet-prereg.ipynb` |
 | 6 | 공통모드 σ 오차는 파형 순위를 안 건드리고, 차분 오차가 뒤집는다 | `_parts/29_sigma-robustness.ipynb` |
 
-### [7 «크기 법칙 — 작아지면 얼마나 어려워지나»](07_size-law.ipynb)
+### [7 «표적을 얼마나 거칠게 그려도 되나 — 사다리와 크기 법칙»](07_size-law.ipynb)
 
 | 절 | 제목 | 조각 |
 |---|---|---|
@@ -131,8 +131,8 @@
 | 절 | 제목 | 조각 |
 |---|---|---|
 | 1 | 지상 레이더는 기체를 아래에서 보므로 가림이 무는 자세가 우리 자세다 | `_parts/40_md-attitude.ipynb` |
-| 2 | 판정 잣대를 널 팔 15 칸과 이상 점산란자로 먼저 교정했다 | `_parts/41_md-calibration.ipynb` |
-| 3 | 두 기체가 갈리는 이유는 메쉬 품질이 아니라 표적 크기 대비 광선예산이다 | `_parts/42_md-ray-budget.ipynb` |
+| 2 | 문턱은 널 팔이 교정했고, 가장자리 시험은 아직 교정되지 않았다 | `_parts/41_md-calibration.ipynb` |
+| 3 | 두 기체가 갈리는 축은 메쉬 품질이 아니라 표적 크기 대비 광선예산이다 — 예산을 맞춰 확인하는 시험은 이 하네스에서 아직 못 한다 | `_parts/42_md-ray-budget.ipynb` |
 | 4 | 상시 기준신호가 주는 것은 날개끝 확산이 아니라 블레이드 통과율까지다 | `_parts/43_md-prf.ipynb` |
 
 ### [10 «무엇을 조명원으로 쓸 수 있나»](10_illuminators.ipynb)
@@ -143,11 +143,13 @@
 | 2 | 5G 는 좁고 드물다 — 두 배의 대가를 치른다 | `_parts/45_5g-double-cost.ipynb` |
 | 3 | 여섯 항목은 닫힌형이고, 점유 대가만 몬테카를로 격자에서 읽는다 | `_parts/46_cost-ledger.ipynb` |
 | 4 | 바이스태틱 거리 분해능은 c/B, 잡음대역은 √(B/fs) 로 고정한다 | `_parts/47_range-convention.ipynb` |
-| 5 | 같은 자원격자를 독립 변조기에 넣어 상관 1.0000 을 얻었다 | `_parts/48_waveform-check.ipynb` |
+| 5 | 같은 자원격자를 독립 변조기에 넣으면 같은 시간파형이 나온다 | `_parts/48_waveform-check.ipynb` |
 | 6 | 검출기가 실제로 쓰는 커널 그대로 모호함수를 그렸다 | `_parts/49_ambiguity.ipynb` |
 | 7 | 5G SSB 는 걷는 드론에서 접힌다 | `_parts/50_doppler-fold.ipynb` |
 
 ### [11 «처리 사슬 — 직접파를 죽이고 표적을 세운다»](11_detector.ipynb)
+
+별편 하나가 딸려 있다 — [11-2 «기준채널이 현실이면 얼마를 잃는가»](11_2_two_channel.ipynb) (빌더 `src/make_report11_2_two_channel.py`). 11 권의 사슬을 한 줄도 안 고치고, 기준신호를 «송신 파형 그대로» 에서 «잡음·다중경로가 섞인 측정 신호» 로 바꿔 손실을 잰다.
 
 | 절 | 제목 | 조각 |
 |---|---|---|
@@ -181,7 +183,7 @@
 |---|---|---|
 | 1 | σ 를 곱하기 전에 이미 세 파형의 순서를 정하는 축이 있다 | `_parts/64_sigma-free-axis.ipynb` |
 | 2 | 평판·큐브·우리 격자를 같은 동작점에서 갈아끼우면 요구 이득이 이만큼 달라진다 | `_parts/65_target-model-swap.ipynb` |
-| 3 | 코히어런트 배열이득은 10log₁₀N 상한에 −0.11~+0.47 dB 로 붙는다 | `_parts/66_rx-elements.ipynb` |
+| 3 | 코히어런트 배열이득은 10log₁₀N 상한에 -0.11~+0.47 dB 로 붙는다 | `_parts/66_rx-elements.ipynb` |
 | 4 | X410 의 12-bit ADC 동적범위가 직접파 제거의 천장이다 | `_parts/67_hardware.ipynb` |
 | 5 | 교정된 절대 σ 를 만드는 조건은 여섯 항목이 전부다 | `_parts/68_sigma-checklist.ipynb` |
 
@@ -211,6 +213,8 @@
 PYTHONPATH=src python src/build_part00_map.py              # ① 조각 빌더 12 개
 #  … build_part01_stock_engine.py … build_part11_measurement.py
 PYTHONPATH=src python src/make_report08_microdoppler.py    # ② 8 권 1~4 편
+PYTHONPATH=src python src/make_report07b_bistatic.py       # ②' 8 권 5 편
+PYTHONPATH=src python src/make_report11_2_two_channel.py   # ②" 11-2 별편
 PYTHONPATH=src python src/build_volumes.py                 # ③ 조각 → 권 + 색인 + 이 파일
 PYTHONPATH=src python benchmark/check_report_links.py      # ④ 검사
 ```

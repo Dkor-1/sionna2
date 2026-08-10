@@ -66,6 +66,8 @@ SYN = "outputs/report16_synthesis.json"
 VK = "outputs/report16_verify_kernel.json"
 VD = "outputs/report16_verify_detector.json"
 VT = "outputs/report16_verify_tautology.json"
+RMF = "outputs/report16_rung_mesh_full.json"    # 사다리 기준선 — 엔진 계약이 여기 적혀 있다
+P3V2 = "outputs/p3_validation_v2.json"          # 구 대조군 — 어느 부피를 골랐나가 갈리는 곳
 
 OUT = os.path.join(_ROOT, "reports", "_parts")   # ⭐조각 — 사람이 읽는 문서는 src/build_volumes.py 가 묶은 권이다
 FIG = "../outputs/figures"
@@ -151,6 +153,11 @@ def blocks_30() -> list:
                 ("몫 분해",
                  "총 차이 = 운동학 몫 + 재질 몫 + 형상 몫. 렌즈가 인용한 것과 같은 규약"
                  "(방위평균 AC 전력의 dB 비)으로 다시 계산했다"),
+                ("엔진",
+                 "표면에 붙은 점구름 위의 순수 PO 다 — "
+                 + _n("kinematics_contract.shared.engine", src=RMF)
+                 + " 다. 점이 표적과 **함께 돌아** 광선 격자를 쓰지 않으므로, 자세마다 격자를 "
+                 "다시 잡는 SBR 쪽 규약은 이 사다리에 들어오지 않는다"),
                 ("게이트",
                  "네 파일의 mesh 팔이 비트 단위로 같은지 · 규약이 자기모순인지 · 도플러 칸 "
                  "합이 총 RCS 와 맞는지를 먼저 통과시켰다"),
@@ -513,6 +520,18 @@ def blocks_32() -> list:
            "① 에서는 지적이 맞는다. ② 는 구가 원리적으로 못 내는 축이다 — 구의 방위 산포는 "
            "«작다» 가 아니라 정확히 0 이고, 회전대칭이라 만들 방법이 막혀 있다. ③ 의 큰 간격은 "
            "«메쉬가 정밀해서» 가 아니라 «회전대칭이 아니라서» 번 것이다.", "",
+           "⚠ ① 의 «자유 모수 0 개» 는 **구의 부피를 논문표기 상자로 잡았을 때**의 값이다 — 그 "
+           "구는 레벨오차 "
+           + num(None, (P3V2, "controls.table.sphere_eqvol_paperbox.level_err_db"),
+                 "{:+.2f}", "dB")
+           + " 이고, 같은 기체에서 **메쉬 부피**로 잡은 구는 "
+           + num(None, (P3V2, "controls.table.sphere_vol_v2.level_err_db"), "{:+.2f}", "dB")
+           + " 로 우리 메쉬 "
+           + num(None, (P3V2, "controls.table.ours_phantom3_mesh_v2.level_err_db"),
+                 "{:+.2f}", "dB")
+           + " 보다 멀다. 즉 이 축의 자유 매개변수는 구의 모수가 아니라 **어느 부피에 맞출지의 "
+           "선택**이고, 그 대조군 표는 " + ref("box-sphere-control", "상자·구 대조군") + " 에 있다.",
+           "",
            "⭐ 그래서 다시 잡아야 할 방향은 «정밀도» 가 아니라 «무엇이 도는가» 다"
            "(" + ref("ladder-three", "사다리가 셋이었다") + ")."),
 

@@ -141,9 +141,15 @@ def _worklist():
 #    는 면이 참조하는 정점만 씬에 넣으므로(`used = np.unique(f)`) 산란에는 영향이 없고,
 #    `sbr_field` 의 bbox 만 상수로 못 박힌다. 비용은 사실상 0 이다(n 63 → 64).
 #
-#  ⚠ 이 결함은 이 파일 밖에도 있다 — `src/microdoppler.microdoppler_sbr` 와
-#    `benchmark/report15b_microdoppler_recompute._sbr_series` 도 격자를 고정하지 않는다.
-#    (그 파일들은 이번 작업의 소유 밖이라 손대지 않았다. 보고서에 남긴다.)
+#  ⭐ 2026-08-10 — 이 결함은 이 파일 밖에도 있었고, 이제 커널이 직접 받는다.
+#    `rcs_sbr.sbr_field(..., grid_ref=...)` + `grid_ref_for_slowtime()` 이 그것이다.
+#    `microdoppler.microdoppler_sbr` · `report15b_microdoppler_recompute._sbr_series` ·
+#    `report07_three_engine_maps` · `report07_hover_long` · `report07b_bistatic_md` ·
+#    `report15_po_control.arm_sbr` · `report15_sweep_mini2.secS_sbr` 가 전부 그 배선을 쓴다
+#    (스위치 SIONNA2_FREEZE_GRID=0 이면 옛 동작).
+#    ⚠ 이 파일은 **핀 정점** 방식을 그대로 둔다 — 이미 얼려져 있고(ctr·Rout·n 이 상수),
+#      이미 낸 위상표(TAB_DIR)와 규약을 바꾸면 그 원장이 통째로 무효가 되기 때문이다.
+#      두 방식은 «격자를 자세와 무관하게 만든다» 는 같은 물리를 다른 손잡이로 잡은 것이다.
 class PinnedPoser:
     """`FastPoser` 를 감싸 광선 격자를 자세와 무관하게 고정한다."""
 

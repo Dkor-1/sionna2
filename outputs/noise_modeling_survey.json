@@ -1,0 +1,291 @@
+{
+  "title": "레이더/ISAC 시뮬레이션 잡음 모델링 조사 — 수치 원장",
+  "date": "2026-08-10",
+  "companion_doc": "prior_work/noise_modeling_survey.md",
+  "scope": "① Sionna 2.0.1 설치본의 잡음 주입 지점(소스 직독) ② 레이더 방정식 SNR 표준 ③ 드론 마이크로도플러 문헌의 잡음/SNR 정의 ④ 거리 저하 시각화 관례",
+  "provenance_rule": "모든 값은 1차 자료(설치본 파일:줄 / arXiv / DOI / 공개 PDF)에서 직접 읽었다. 읽지 못한 것은 not_found 에 둔다.",
+
+  "sionna": {
+    "version": "2.0.1",
+    "install_path": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna",
+    "phy": {
+      "awgn_block": {
+        "file": "phy/channel/awgn.py",
+        "lines": {"doc_variance": 21, "doc_no_semantics": 35, "draw": 77, "broadcast": 85, "scale": 89, "add": 92},
+        "convention": "no = 복소 차원당 잡음 전력, 실/허 각각 no/2",
+        "code_core": "noise = complex_normal(x.shape,...); noise = noise * no.sqrt(); return x + noise"
+      },
+      "complex_normal_used_by_awgn": {"file": "phy/utils/random.py", "lines": "158-191", "note": "실·허 각각 정규분포 후 x sqrt(0.5) → 복소 단위분산"},
+      "complex_normal_other": {"file": "phy/utils/misc.py", "lines": "43-93", "note": "동명이인. var 인자를 받고 stddev=sqrt(var/2) (misc.py:86)"},
+      "ebnodb2no": {
+        "file": "phy/utils/misc.py",
+        "lines": "246-328",
+        "formula": "no = energy_per_symbol / (ebno * coderate * num_bits_per_symbol), E_s = 1",
+        "key_lines": {"ebno_lin": 310, "Es_init": 312, "cp_overhead": 319, "num_syms": "320-324", "rg_scale": 325, "no": 327},
+        "layer": "심볼당(표본당) 상대 규약 — 절대 와트 아님"
+      },
+      "injection_points": [
+        {"file": "phy/channel/apply_time_channel.py", "lines": "114, 195-197", "domain": "시간영역(컨볼루션 후)"},
+        {"file": "phy/channel/apply_ofdm_channel.py", "lines": "93, 122", "domain": "주파수영역(자원격자)"},
+        {"file": "phy/channel/flat_fading_channel.py", "lines": "163, 182", "domain": "평탄페이딩 출력"}
+      ],
+      "thermal_noise_absent": {
+        "file": "phy/constants.py",
+        "line": 10,
+        "symbol": "BOLTZMANN_CONSTANT",
+        "finding": "정의만 존재. 패키지 전체 grep 결과 사용처 0. sionna.phy 에는 kTBF 헬퍼가 없다."
+      }
+    },
+    "rt": {
+      "noise_string_count_in_rt": 12,
+      "path_solvers_noise_count": 0,
+      "path_solver_files_checked": ["rt/path_solvers/paths.py", "rt/path_solvers/field_calculator.py", "rt/path_solvers/path_solver.py"],
+      "rt_utils_noise_count": 0,
+      "thermal_noise_power": {"file": "rt/scene.py", "lines": "172-177", "formula": "temperature * Boltzmann * bandwidth"},
+      "sinr_use": {"file": "rt/radio_map_solvers/radio_map.py", "lines": "195-199", "formula": "sinr_map = rss / (interference + noise)"},
+      "doc_formula": {"file": "rt/radio_map_solvers/radio_map_solver.py", "lines": "61-71", "formula": "SINR^k_i = RSS^k_i / (N0 + sum_{k'!=k} RSS^{k'}_i), N0 = B*T*k"},
+      "defaults": {"file": "rt/constants.py", "DEFAULT_FREQUENCY_hz": 3.5e9, "line_freq": 33, "DEFAULT_BANDWIDTH_hz": 1e6, "line_bw": 36, "DEFAULT_TEMPERATURE_K": 293, "line_temp": 39},
+      "default_N0_W": 4.04530157e-15,
+      "default_N0_dBm": -113.93,
+      "gaps_vs_radar_convention": [
+        "잡음지수 F 항이 없다 (N0 = kTB, kTBF 아님)",
+        "T=293 K 이지 레이더 관례 T0=290 K 가 아니다",
+        "난수 실현이 아니라 결정론적 상수 — RT 만으로는 잡음으로 흔들리는 맵이 나오지 않는다"
+      ]
+    }
+  },
+
+  "standard_radar_snr": {
+    "noise_power": {
+      "form_mit": "N = k * Ts * Bn",
+      "source": "MIT Lincoln Laboratory, Introduction to Radar Systems, Lecture 2 (The Radar Equation), slide 361564_P_9Y/_P_10Y, R. M. O'Donnell",
+      "url": "https://www.ll.mit.edu/sites/default/files/outreach/doc/2018-07/lecture%202.pdf",
+      "snr_equation": "S/N = Pt G^2 lambda^2 sigma / ((4pi)^3 R^4 k Ts Bn L)",
+      "layer": "펄스당 · 정합필터 이후 (Bn = 수신 잡음대역폭)"
+    },
+    "per_pulse_vs_per_dwell_example": {
+      "source": "MIT LL Lecture 2, slide 361564_P_29Y (Airport Surveillance Radar, Blake chart)",
+      "quote": "S / N = 1.3 dB per pulse (21 pulses integrated) => S / N per dwell = 14.5 dB",
+      "integration_gain_db": 13.2,
+      "n_pulses": 21
+    },
+    "coherent_integration_gain": {
+      "source": "MIT LL Lecture 5 (Detection of Targets in Noise and Pulse Compression Techniques), slide Radar Course_12",
+      "quote": "The coherent integration gain is equal to the number of pulses coherently integrated",
+      "examples_db": {"2": 3, "10": 10, "20": 13},
+      "condition": "펄스 간 잡음 표본이 독립(백색 가우시안)"
+    },
+    "noncoherent_integration": {
+      "source": "MIT LL Lecture 5, slide Radar Course_13",
+      "quote": "8 Pulses Noncoherently Averaged — SNR Unchanged, Noise Variance Reduced after Integration (Allows Lower Threshold)"
+    },
+    "ofdm_isac_formulation": {
+      "source": "M. Braun, OFDM Radar Algorithms in Mobile Communication Networks, PhD thesis, KIT, 2014",
+      "url": "https://publikationen.bibliothek.kit.edu/1000038892/2987095",
+      "eq_3_35": "SNR_F_Rx = P_Rx / (k_B * theta * NF * N * df)",
+      "eq_3_36": "SNR_F = SNR_F_Rx",
+      "eq_3_37": "SNR_Per = SNR_F + PG,  PG = 10*log10(N*M)",
+      "eq_3_41_proof": "SNR_Per = b0^2 (NM)^2 / (NM * E[|Z|^2]) = NM * SNR_F",
+      "eq_3_76_window": "PG = 10*log10(NM) + SNR_wd + SNR_wv",
+      "eq_3_77": "SNR_wd = |sum w_k|^2 / (||w||^2 * N)",
+      "table_3_3_window_loss_db_examples": [0.0, -1.35, -1.81, -3.02],
+      "eq_3_92_cfar": "p_FA,bin = exp(-eta / sigma_N^2)  (periodogram bin ~ chi2_2 / exponential)",
+      "eq_3_93_threshold": "eta = -sigma_N^2 * ln(p_FA,bin)",
+      "eq_3_150_dmax": "d_max,detect = ( Pmax*GRx*c0^2*sigma_RCS*N*M / ((4pi)^3 fC^2 PN SNR_min) )^(1/4)",
+      "footnote": "In [Richards], the general term chosen for this is integration gain."
+    },
+    "passive_bistatic_form": {
+      "source": "Maksymiuk et al., Remote Sens. 2022, 14(23), 6146",
+      "doi": "10.3390/rs14236146",
+      "eq_9": "Re < ( PT*GT*GR*S0*lambda^2*Tint / ((4pi)^3 * L0 * D0 * k * T0) )^(1/4)",
+      "eq_10": "T0 = Tref * (10^(Nf/10) - 1),  Tref = 290 K",
+      "note": "적분시간 Tint 가 레이더 방정식 분자에 직접 들어간다 (처리이득 흡수). D0 = 검출계수(문턱).",
+      "table2_params": {"fc_GHz": 3.44, "EIRP_dBm": 73, "Gr_dBi": 10, "D0_dB": 11, "Tint_ms": 20, "L0_dB": 10, "T0_K": 493, "sigma_m2": [1, 10, 50, 100]},
+      "implied_noise_figure_db_approx": 4.4
+    },
+    "where_to_add_noise": {
+      "answer": "시계열(또는 유니터리 등가인 자원격자)에 복소 가우시안을 더하고 그 다음 STFT/FFT",
+      "evidence": [
+        "sionna/phy/channel/apply_time_channel.py:195-197 (시간영역)",
+        "radarsimpy/radar.py::_calculate_noise_amp → 기저대역 시간표본 진폭",
+        "arXiv:2604.12567 본문: 'Noise was applied to the raw signals ... before the spectrograms were generated'",
+        "Drones 5(4):149 eq (8): psi_final(t) = detection(psi(t+ts), pd) + n, 그 다음 STFT"
+      ],
+      "why_not_on_map": [
+        "맵 잡음 바닥은 지수(chi2_2) 분포이지 가우시안이 아니다 (Braun eq 3.92)",
+        "겹친 STFT 프레임끼리 상관되고 창 함수로 색이 입혀진다",
+        "신호x잡음 교차항 2Re(s n*) 이 사라져 약한 선의 흔들림이 재현되지 않는다",
+        "CFAR 문턱 eta = -sigma_N^2 ln pFA 와 연결이 끊긴다"
+      ]
+    },
+    "radarsimpy_reference_impl": {
+      "source": "radarsimpy/radar.py::_calculate_noise_amp (radarsimx.github.io _modules 자동생성 소스)",
+      "formula_db": "input_noise_dbm(=10log10(kB*T*1000)) + rf_gain + noise_figure + 10log10(noise_bandwidth) + baseband_gain",
+      "then": "noise_amplitude_mixer = sqrt(receiver_noise_watts * load_resistor)"
+    }
+  },
+
+  "literature_microdoppler_noise": [
+    {
+      "id": "drones2021_5_149",
+      "cite": "D. Raval, E. Hunter, S. Hudson, A. Damini, B. Balaji, 'Convolutional Neural Networks for Classification of Drones Using Radars', Drones 2021, 5(4), 149",
+      "doi": "10.3390/drones5040149",
+      "noise_injection": "time domain, before long-window STFT (eq 8)",
+      "snr_definition": "10*log10(A_r^2 / sigma_0^2), A_r = 블레이드 반사 진폭 (Martin-Mulgrew)",
+      "snr_layer": "per-sample (pre-integration)",
+      "snr_sweep_db": [0, 5, 10, 15, 20],
+      "sample_length_s": 0.3,
+      "pd_augmentation": 0.8,
+      "radar_equation_snr_in_same_paper": {"eq": "Pt*Gt*Gr*lambda^2*sigma*tau / ((4pi)^3 R^4 Tn kb L)", "label": "SNR Per Pulse", "value_db": 13.535, "note": "주입 SNR 과 잇지 않는다 — 문헌의 전형적 구멍"},
+      "headline_result": "X-band 2 kHz PRF, 학습 SNR 10 dB 에서 F1 = 0.816 +/- 0.011"
+    },
+    {
+      "id": "arxiv_2403_02080",
+      "cite": "A. S. Malarvanan, 'Hybrid Quantum Neural Network Advantage for Radar-Based Drone Detection and Classification in Low Signal-to-Noise Ratio', arXiv:2403.02080",
+      "snr_definition": "the single pulse signal-to-noise ratio, which is defined as 10 log10 A_r^2 / sigma_n^2",
+      "snr_layer": "per-pulse (pre-integration)",
+      "snr_sweep_detection_db": [-5, -10, -15, -20],
+      "snr_sweep_classification_db": [20, 15, 10, 5, 0, -5],
+      "note": "음수 표본당 SNR 을 쓰는 것 자체가 per-sample 규약의 증거. 처리이득은 명시 안 함."
+    },
+    {
+      "id": "arxiv_2604_12567",
+      "cite": "S. Mustafa, S. Liaquat, I. H. Abbasi, A. Hasan, 'Feature-Level Robustness of Physics-Guided Micro-Doppler Descriptors for classification of Drones and Birds', arXiv:2604.12567",
+      "noise_injection": "raw signals, before spectrogram generation (본문). 초록은 'spectrograms are corrupted' 라 오해 소지",
+      "quote": "Noise was applied to the raw signals and the resulting signals were saved separately before the spectrograms were generated",
+      "snr_definition": "x_awgn[n] = x[n] + w[n], w ~ N(0, sigma^2), sigma^2 = 10^(-SNR/10) * P_signal (세그먼트별 신호전력)",
+      "snr_layer": "per-sample, 총전력 기준",
+      "snr_sweep_db": [-10, -7, -5, -3, 0, 3, 5, 7, 10],
+      "phase_noise_deg": [1, 10],
+      "dataset": "SAAB SIRS 1600 FMCW 77 GHz, 160 MHz BW; 드론 44 / 새 56 / 리플렉터 19 스펙트로그램"
+    },
+    {
+      "id": "arxiv_2402_04368",
+      "cite": "D. Vovchuk et al., 'Micro-Doppler-Coded Drone Identification', arXiv:2402.04368",
+      "noise_injection": "측정 데이터에 백색 가우시안 주입, 1000 realizations",
+      "quote": "Gaussian white noise was intentionally added to the measurements. For making the statistical studies, 1000 numerical experiments with different noise realization have been performed.",
+      "snr_definition": "명시 안 함 ('noise level dB')",
+      "findings": {"least_squares_breaks_below_db": 12, "cnn_saturates_above_db": 20, "random_floor_pct": 25, "n_classes": 4},
+      "range_figure": "Fig. 4(b): 10 m 에서 1.3 m/s 접근 비행 한 장 스펙트로그램에 구간 I~V 라벨 (I 미검출 / II 도플러만 / III 도플러+마이크로도플러 / IV,V 근접 호버)",
+      "outdoor_setup": {"cw_power_dbm": 10, "initial_range_m": 10, "ground_speed_mps": 1.3, "detection_range_m_approx": 5, "rx_antenna_gain_db": 10}
+    },
+    {
+      "id": "remotesens_2022_14_6146",
+      "cite": "R. Maksymiuk, K. Abratkiewicz, P. Samczynski, M. Plotka, 'Renyi Entropy-Based Adaptive Integration Method for 5G-Based Passive Radar Drone Detection', Remote Sens. 2022, 14(23), 6146",
+      "doi": "10.3390/rs14236146",
+      "noise_injection": "합성 5G NR 신호에 백색 가우시안, 20 ms 구간",
+      "snr_sweep_db": [0, 10, 20, 30, 40],
+      "signal_params": {"bandwidth_MHz": 40, "sample_rate_MHz": 61.44, "scs_kHz": 30, "interval_ms": 20},
+      "bt_processing_gain_db": 59.03,
+      "pfa_used": [0.0001],
+      "display_convention": "CAF 피크를 '24 dB above noise' 처럼 잡음 위 dB 로 서술",
+      "closeness_to_us": "패시브 + 5G + 드론 + CAF + CFAR — 우리 구성과 가장 가깝다"
+    },
+    {
+      "id": "arxiv_2504_02641",
+      "cite": "P. Jopanya, D. P. M. Osorio, 'Utilizing 5G NR SSB Blocks for Passive Detection and Localization of Low-Altitude Drones', arXiv:2504.02641",
+      "snr_definition": "SNR_r = rho * beta * g^2 / (sigma_n^2 * M)  (BsB 기저대역 블록)",
+      "snr_layer": "per-sample (pre-integration)",
+      "snr_values_db": [-10, -7],
+      "integration_visible_in": "CRB 식이 SNR_r * N * L 형태 — 적분이득이 식 안에 명시",
+      "params": {"fc_GHz": 15, "scs_kHz": 60, "rcs_dBsm": -10, "beams_R": 45, "gamma_a": 6}
+    },
+    {
+      "id": "arxiv_2506_00497",
+      "cite": "A. M. Westerkam, A. S. Damkjaer, R. E. Villadsen, M. O. B. Poulsen, T. Pedersen, 'Second-Order Characterization of Micro Doppler Radar Signatures of Drone Swarms', arXiv:2506.00497",
+      "noise_injection": "없음",
+      "quote": "We focus on the micro-Doppler signature of the drones and therefore omit macro-Doppler, noise, and clutter in the model.",
+      "rotor_randomness": {
+        "distribution": "i.i.d. Gaussian over rotors",
+        "mean_omega_rad_per_s": 523,
+        "var_omega_rad2_per_s2": 27,
+        "std_omega_rad_per_s": 5.196,
+        "relative_spread_pct": 0.994,
+        "time_varying": false
+      },
+      "why_it_matters": "문헌 로터 산포 앵커 ~1.0 % vs 우리 현재 0.22 % (4~5배 차이). 시간 흔들림은 이 논문도 없다."
+    }
+  ],
+
+  "range_dependence_display_conventions": [
+    {"method": "절대 물리 컬러바", "source": "Braun thesis Fig. 3.5", "detail": "컬러바 'Received power (dBm)', 눈금 -80 ... -24 dBm, 정규화 없음"},
+    {"method": "잡음 위 dB (SNR 눈금)", "source": "Remote Sens. 14:6146", "detail": "'the peak ... a few decibels above noise level' / '24 dB above noise'"},
+    {"method": "연속 스펙트로그램 + 거리 구간 라벨", "source": "arXiv:2402.04368 Fig. 4(b)", "detail": "검출은 되지만 마이크로도플러는 안 보이는 구간(II)을 명시적으로 분리"},
+    {"method": "성능 대 거리 곡선(threshold effect)", "source": "Braun thesis Fig. 5.5-5.6, §5.2.1", "detail": "d0 = 10..400 m, 1 m 간격, 각 거리 10000 회 MC. 'This creates a unique value of the SNR at every distance' / 'Beyond a certain distance, SNR becomes too low ... to recognize the target reliably'"},
+    {"method": "검출거리 vs 적분시간 / Pd 곡선", "source": "Remote Sens. 14:6146 Fig. 14-17", "detail": "sigma = 1/10/50/100 m^2 별 곡선, Pfa=1e-4 에서 Pd"},
+    {"method": "Pd vs SNR 곡선(알고리즘 비교)", "source": "arXiv:2402.04368 Fig. 5(b), MIT LL Lecture 5", "detail": "랜덤 추측 바닥선 표시"}
+  ],
+
+  "our_arithmetic": {
+    "disclaimer": "아래는 인용이 아니라 우리 계산이다. 근거는 Braun eq 3.37/3.76 (PG = 10log10(NM) + 창손실) 뿐이다.",
+    "full_cpi_coherent_gain_db": {"samples": 5000, "cpi_s": 0.25, "prf_hz": 20000, "value": 36.99},
+    "stft_frame_gain_db": {
+      "flash_spec_default": {"FLASH_PERIODS": 0.6, "prf_hz_example": 19700, "f_flash_hz_example": 200, "nperseg_approx": 59, "gain_db": 17.71, "hann_loss_db": -1.76, "net_db": 15.95},
+      "md_metrics_default": {"nperseg": 256, "gain_db": 24.08, "hann_loss_db": -1.76, "net_db": 22.32}
+    },
+    "implication": "'37 dB 적분이득' 과 '플래시 그림에서 실제로 얻는 이득' 이 20 dB 이상 다르다. 시간분해능 우선 정책이 곧 감도 20 dB 를 버리는 선택.",
+    "hann_coherent_gain_loss_db": -1.76,
+    "range_scaling_db_40m_vs_3m": {"both_legs_vary_R4": 45.0, "one_leg_fixed_R2": 22.5, "note": "패널 비교 시 어느 다리가 변하는지 반드시 명시"},
+    "thermal_noise_examples_dbm": {"kT0B_100MHz_NF5dB": -88.98, "sionna_rt_default_kTB_1MHz_293K_noNF": -113.93}
+  },
+
+  "overlap_with_our_records": [
+    {"file": "prior_work/isac_standard_scenarios.md", "line": 292, "content": "3GPP ISAC BS noise figure FR1 5 dB / FR2 7 dB — 잡음지수 값은 이미 우리 기록에 있다"},
+    {"file": "prior_work/isac_standard_scenarios.md", "line": 334, "content": "자기간섭 잔여를 additional AWGN -94+X dBm in 100 MHz 로 모델링 (3GPP)"},
+    {"file": "prior_work/sionna_sensing_survey.md", "line": 269, "content": "Sionna 계열 센싱 논문이 표적을 자유공간 점산란체 + AWGN 만으로 둔 사례"},
+    {"file": "src/microdoppler_nearfield.py", "lines": "334-350", "content": "echo_over_noise_db(): P_n = k*T0*F*B (T0=290, F=5 dB, B=100 MHz) — 표본당 에코/잡음비. 문헌 표준과 동일"},
+    {"file": "src/microdoppler_nearfield.py", "lines": "365-373", "content": "add_noise(): 시계열 복소 가우시안 주입, p_n = p_sig / 10^(SNR/10) — 문헌 표준(Drones 5:149 eq 7)과 동일 규약"},
+    {"file": "src/microdoppler_nearfield.py", "lines": "353-362", "content": "ac_snr_db(): 총전력 SNR - dc_ac_db. 문헌에서 대응 정의를 못 찾았다(우리 고유)"},
+    {"file": "src/freespace_link.py", "lines": "133-197", "content": "n0_thermal(kT0F*B) + DPI/양자화 합성 — 검출 사슬 잡음은 이미 문헌 표준 이상"},
+    {"file": "src/experiment_md_range.py", "lines": "158-162", "content": "add_noise 를 쓰는 유일한 경로. 맵 생성 경로는 이 함수를 거치지 않는다 = 사용자가 지적한 결함의 정확한 위치"},
+    {"file": "outputs/rotor_rpm_web_anchor.json", "content": "실기 로그 로터 산포 0.54 % / 2.35 % — 본 조사의 문헌 앵커 0.99 % (arXiv:2506.00497) 와 같은 자릿수"}
+  ],
+
+  "recommendations": [
+    {"item": "잡음 주입 지점", "standard": "시계열 복소 가우시안 -> 그 다음 STFT", "ours": "add_noise() 가 이미 그렇게 함", "action": "맵 생성 경로(md_mapstyle, build_part07/08)를 이 함수에 연결"},
+    {"item": "잡음 전력 근거", "standard": "kT0*F*B, F=5 dB(3GPP FR1)", "ours": "echo_over_noise_db 에 이미 있음", "action": "유지. Sionna RT 의 kTB(F 없음, T=293 K)를 그대로 쓰지 말 것"},
+    {"item": "SNR 라벨", "standard": "표본당과 적분 후 병기 (MIT LL: per pulse / per dwell)", "ours": "표본당만", "action": "snr_sample_db + pg_db + snr_map_db 3종 기록"},
+    {"item": "맵 스케일", "standard": "절대 dBm 또는 dB-above-noise, 패널 공통 눈금", "ours": "맵별 최대값 정규화", "action": "교체 — 이것이 '40 m 가 24 dB 약하다' 를 그림에서 되살리는 핵심"},
+    {"item": "거리 저하 표현", "standard": "곡선(RMSE/Pd vs 거리)이 본론, 맵은 예시", "ours": "맵만", "action": "fd_edge 관측성 vs 거리, Pd vs 거리 곡선 추가"},
+    {"item": "로터 산포", "standard": "sigma/omega ~ 1.0 % i.i.d. 가우시안 (arXiv:2506.00497)", "ours": "±0.22 % 상수, t=0 위상 정렬", "action": "산포를 실기 로그(0.54 %) 또는 문헌(1.0 %)로 올리고 t=0 위상은 U(0,2pi)"}
+  ],
+
+  "not_found": [
+    "Griffiths & Baker, IEE Proc. RSN 152(3):153-159, 2005, doi:10.1049/ip-rsn:20045082 — 서지는 확정, 본문 미열람(IET 유료). '패시브 레이더 처리이득 BT 40-70 dB' 수치는 2차 검색 요약에서만 봤고 원문 대조 못 함 → 인용 금지",
+    "NATO STO EN-SET-119(2010)-03 (Griffiths, Passive Bistatic Radar and Waveform Diversity) — HTTP 403 으로 접근 실패",
+    "STFT 한 조각의 처리이득을 10log10(창길이) 로 명시한 1차 문헌 — 못 찾음. Braun eq 3.37 은 2D 페리오도그램(NM)에 대한 것이고 STFT 조각 적용은 우리 유추",
+    "몸체 DC 대 블레이드 AC SNR 구분(ac_snr_db)에 대응하는 문헌 정의 — 못 찾음. arXiv:2402.04368 Fig.4(b) 구간 II/III 이 현상적으로만 같음",
+    "Sionna 공식 예제 중 RT 경로 + 잡음 + 레인지-도플러를 잇는 것 — 설치본에 examples/notebook 없음. 온라인 튜토리얼은 이번에 미확인",
+    "로터 rpm 의 시간에 따른 흔들림(자세제어 미세조정)을 모델링한 마이크로도플러 문헌 — 못 찾음. arXiv:2506.00497 조차 로터별 각속도를 시간 상수로 둠",
+    "arXiv:2504.02641 의 SNR_r 을 절대 링크버짓(거리/EIRP)과 잇는 부분 — 5쪽 논문이라 생략됨"
+  ],
+
+  "primary_sources_verified": {
+    "code": [
+      "sionna/phy/channel/awgn.py:21,35,77,85,89,92",
+      "sionna/phy/utils/random.py:158-191",
+      "sionna/phy/utils/misc.py:43-93,246-328",
+      "sionna/phy/channel/apply_time_channel.py:114,195-197",
+      "sionna/phy/channel/apply_ofdm_channel.py:93,122",
+      "sionna/phy/channel/flat_fading_channel.py:163,182",
+      "sionna/phy/constants.py:10",
+      "sionna/rt/constants.py:33,36,39",
+      "sionna/rt/scene.py:142-177",
+      "sionna/rt/radio_map_solvers/radio_map.py:195-199",
+      "sionna/rt/radio_map_solvers/radio_map_solver.py:56-71",
+      "sionna/rt/path_solvers/{paths,field_calculator,path_solver}.py (noise 0 hits)",
+      "radarsimpy/radar.py::_calculate_noise_amp"
+    ],
+    "papers_full_text_read": [
+      "MIT LL Introduction to Radar Systems Lecture 2 + Lecture 5 (PDF)",
+      "M. Braun KIT PhD thesis 2014 (PDF, 195 pages)",
+      "Drones 2021, 5(4), 149 (PDF)",
+      "Remote Sens. 2022, 14(23), 6146 (PDF)",
+      "arXiv:2402.04368 (PDF)",
+      "arXiv:2504.02641 (PDF)",
+      "arXiv:2604.12567 (HTML)",
+      "arXiv:2403.02080 (HTML)",
+      "arXiv:2506.00497 (HTML)"
+    ]
+  }
+}

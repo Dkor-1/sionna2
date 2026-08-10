@@ -71,6 +71,17 @@ LFA, MFX = from_json(J_LFA), from_json(J_MFX)
 D = R5.derived()                      # 파생 수치 — JSON 만 읽는다
 
 PHC = "verdict.claims[2].range_over_phi"
+
+# ── φ 스윕은 세 팔을 다 냈는데 본문은 W1 한 팔만 인용해 «세 팔 모두» 를 말했다.
+#    세 팔을 실제로 읽어 판정하고, 인용도 세 팔의 폭으로 싣는다. ─────────────────── #
+_PHI_MIN_ALL = all(
+    str(fetch(("outputs/phi_sweep.json", f"{PHC}.constant_sigma_control.{m}.phi90_is")))
+    == "minimum" for m in ("W1", "L1", "G1"))
+_PHI_SPANS = {m: float(fetch(("outputs/phi_sweep.json",
+                              f"{PHC}.constant_sigma_control.{m}.span_pct_of_phi90")))
+              for m in ("W1", "L1", "G1")}
+PHI90_VERDICT = ("세 팔(W1·L1·G1) 모두 φ=90° 가 최솟값"
+                 if _PHI_MIN_ALL else "φ=90° 가 최솟값인 팔과 아닌 팔이 섞인 상태")
 TAE = "Q1_normalisation.recomputed_spread_db_by_matching_estimator"
 
 # 표 밑 «출처» 줄용(태그 통째)과 `dnum()` 안에 넣을 알맹이용을 나눠 둔다 —
@@ -190,11 +201,14 @@ def r56():
                 + dnum(D["recip_out"], "{:.2f}", "dB", f"{J_DF} : d2_reciprocity_drone.rows",
                        "β>45 행 최대") + " 다.",
                 f"장면 방위 {PH.num('meta.n_phi', None, '{:.0f}')}방위 전수 스윕에서 σ 를 고정한 "
-                f"순수기하의 R90 span 은 "
+                f"순수기하의 R90 span 은 W1 에서 "
                 f"{PH.num(f'{PHC}.constant_sigma_control.W1.span_pct_of_phi90', None, '{:.2f}', '%')}"
-                f" 이고, 세 팔 모두 φ=90° 가 "
-                f"{PH.num(f'{PHC}.constant_sigma_control.W1.phi90_is', None)} 라 이 배치의 φ 는 "
-                f"보수적인 끝이다.",
+                f" 이고 세 팔을 다 세면 "
+                + dnum(min(_PHI_SPANS.values()), "{:.2f}", "", f"{J_PH} : {PHC}.*.span_pct_of_phi90",
+                       "세 팔 최소") + " ~ "
+                + dnum(max(_PHI_SPANS.values()), "{:.2f}", "%",
+                       f"{J_PH} : {PHC}.*.span_pct_of_phi90", "세 팔 최대")
+                + f" 다 — {PHI90_VERDICT}이라 이 배치의 φ 는 보수적인 끝이다.",
                 f"σ 격자의 앙각 행은 "
                 + dnum(D["n_el"], "{:.0f}", "개", f"{J_SG_USED} : meta.el_deg", "길이")
                 + " 이고 최솟값이 "
@@ -362,6 +376,10 @@ def r57():
                    ("**출력 SNR**", "total_anch")]]),
            "", SRC_B, SRC_A),
 
+        md("## σ 행이 서 있는 원장 세대", "",
+           "$\\lambda^2$ 는 정의로 정해지지만 σ 행은 격자 원장에서 조회한 값이다 — 그 격자의 "
+           "세대가 이렇다.", "", MESH_WARN, "", GAMMA_WARN),
+
         md("## 밴드 쌍의 격차를 그 두 항으로 쪼갠다", "",
            "$\\lambda^2$ 는 정의로 정확하고, σ 는 자세 로브 구조(방위를 돌릴 때 σ 가 솟는 봉우리와 "
            "꺼지는 골)가 만든다.", "",
@@ -484,7 +502,12 @@ def r58():
            f"5G 의 요구 명목 Pfa 는 경험값의 "
            + dnum(D["pfa_g1_ratio"], "{:.0f}", "배",
                   f"{J_FS} : threshold.pfa.G1.ratio_emp_over_nominal", "역수")
-           + f" 다 — 프레임 {FS.num('waveforms.G1.M', 5, '{:.0f}')}개짜리 도플러 축이 그만큼 좁다."),
+           + f" 다 — 프레임 {FS.num('waveforms.G1.M', 5, '{:.0f}')}개짜리 도플러 축이 그만큼 좁다.",
+           "",
+           "이 문턱은 **기준신호가 이상적일 때**의 형상에서 잰 값이다 — 기준채널이 측정된 "
+           "신호이면 맵 통계가 달라져 같은 명목값이 같은 경험값을 주지 않는다. 그 축을 단일축으로 "
+           "흔들어 손실을 잰 편이 "
+           "[리포트 11-2 «기준채널이 현실이면 얼마를 잃는가»](11_2_two_channel.ipynb) 다."),
 
         md("## 세 밴드가 문턱 하나를 공유한다", "",
            f"세 밴드의 solve 는 W1 에서 잰 문턱 SNR90 = "
@@ -651,8 +674,9 @@ def r60():
             ],
             method=[
                 ("R90 정의",
-                 "공칭 헤딩 ψ=0 의 σ 로 SNR(d) 를 만들고, 유효 게이트를 통과한 칸에서 교정 문턱과의 "
-                 "**최외곽 하강교차**를 찾는다"),
+                 "**검출확률 $P_d$ 가 0.9 로 떨어지는 거리**다 — 거리축 `d` 는 송·수신 기선의 "
+                 "중점에서 표적까지의 수평거리다. 공칭 헤딩 ψ=0 의 σ 로 SNR(d) 를 만들고, 유효 "
+                 "게이트를 통과한 칸에서 교정 문턱과의 **최외곽 하강교차**를 찾는다"),
                 ("앵커 전이",
                  "Δσ 를 R90 근방 국소 지수로 1차 전이한다 — `src/freespace_scene.py:56`"),
                 ("순위를 읽는 표",
@@ -666,6 +690,18 @@ def r60():
             repro=dict(cmd=CMD[:5] + CMD[-2:], out=[J_FS, J_AN, J_SS, J_DV], runtime=RUNTIME),
         ),
 
+        md("## R90 이 무엇인가", "",
+           "**검출확률이 0.9 로 떨어지는 거리**다. 거리축은 송신국과 수신국을 잇는 기선의 "
+           "중점에서 표적까지의 수평거리이고, 그 축에서 문턱을 마지막으로 아래로 뚫는 자리가 "
+           "R90 이다.", "",
+           "표의 오른쪽 끝 «앵커 비교가능성» 은 그 기체의 σ 를 앵커 기체(Phantom 3)에서 "
+           "얼마나 곧장 옮길 수 있나를 세 낱말로 적은 것이다.", "",
+           table(["값", "무슨 뜻인가"],
+                 [["`direct`", "앵커 기체와 크기·로터 수가 같은 급이라 그대로 비교한다"],
+                  ["`scaled`", "크기법칙으로 전이한 뒤 비교한다"],
+                  ["`not_comparable`",
+                   "크기보정 자체가 결론을 지배해 헤드라인 폭에서 뺀다"]])),
+
         md("## 앵커 σ 위의 R90", "",
            f"Δσ 를 R90 근방 국소 지수 "
            + dnum(D["n_local"], "{:.2f}", "",
@@ -678,7 +714,23 @@ def r60():
         md(table(["기체"] + [MODE_NAME[m] for m in MODES] + ["앵커 비교가능성"],
                  [[dr] + [f"{D['R90_anch'][(dr, m)]:.2f} km" for m in MODES]
                   + [fetch((J_AN, f"drones.{dr}.comparability.verdict"))] for dr in DRONES]),
-           "", SRC_R, SRC_A),
+           "",
+           f"헤드라인이 드는 {D['n_cells_comp']}칸은 비교가능 기체 "
+           f"{len(D['comparable'])}대 × 세 밴드다 — `{D['X_name']}` 의 세 칸은 "
+           f"`not_comparable` 이라 폭에서 뺐고, 표에는 그대로 싣는다.", "",
+           SRC_R + " · " + SRC_A),
+
+        md("## 이 표가 서 있는 두 규약", "",
+           f"전력 규약은 "
+           f"`{FS.num('meta.link_budget.power_normalization.canonical_occupancy', None)}` 다 — "
+           f"자원요소(RE) 하나당 같은 전력으로 세 파형을 묶는다.", "",
+           f"기준채널 규약은 "
+           f"`{FS.num('meta.link_budget.power_normalization.canonical_reference', None)}` 다 — "
+           f"기준안테나가 조명원의 **파형 전체**를 받아 상관에 쓴다는 뜻이고, 잡음도 다중경로도 "
+           f"0 인 상한이다. 그 가정 하나만 풀어 잃는 양을 재는 편이 "
+           f"[리포트 11-2 «기준채널이 현실이면 얼마를 잃는가»](11_2_two_channel.ipynb) 이고, "
+           f"거기서 잰 손실은 X410 벤치 기하의 값이므로 위 km 열로 옮기려면 같은 기하에서 다시 "
+           f"풀어야 한다."),
 
         md("## 왜 km 열을 순위로 읽는가", "",
            f"공통모드 σ 오차 ±10 dB 가 이 열 전체를 "
@@ -880,7 +932,10 @@ def r62():
                 ("가드 규약",
                  "가드 반폭 = g빈 × PRF/M 이고 g 는 검출기 적용값 1.5빈과 선언값 2.5빈 **둘 다** 잰다"),
                 ("헤딩 격자",
-                 "헤딩 720점 · 속도 5 m/s 로 스윕한다 — `benchmark/cpi_guard_sweep.py`"),
+                 f"격자가 둘이다 — 발표된 앵커를 재현하는 "
+                 f"{CG.num('meta.psi_n_published', None, '{:.0f}', '점')} 과 스윕이 쓰는 "
+                 f"{CG.num('meta.psi_n_fine', None, '{:.0f}', '점')} 이다. 속도는 5 m/s 로 "
+                 f"고정한다 — `benchmark/cpi_guard_sweep.py`"),
                 ("두 기구를 가른다",
                  "표본화가 만드는 접힘 축과 진폭이 만드는 덮임을 분리해 각각의 CPI 의존을 적는다"),
             ],
@@ -898,9 +953,11 @@ def r62():
            f"{CG.num('structural.two_mechanisms.observed.L1.hard.T_max_total_blind_s', None, '{:.3f}', 's')}"
            " 에서 전 헤딩 블라인드가 된다."),
 
-        md("## 기준 CPI 에서의 값", "",
+        md("## 기준 CPI 에서의 값 — 앵커 재현 격자", "",
            f"기준 CPI 는 "
-           f"{CG.num('equal_cpi_penalty[0].T_cpi_s', None, '{:.1f}', 's')} 다.", "",
+           f"{CG.num('equal_cpi_penalty[0].T_cpi_s', None, '{:.1f}', 's')} 다. 아래 표는 발표된 "
+           f"앵커를 그대로 재현하는 헤딩 격자 "
+           f"{CG.num('meta.psi_n_published', None, '{:.0f}', '점')} 위의 값이다.", "",
            table(["모드", "PRF", "기준 CPI 의 M",
                   "접힘 축 ±", "블라인드(1.5빈)", "블라인드(2.5빈)"],
                  [[MODE_NAME[m],
@@ -914,11 +971,22 @@ def r62():
            f"5G 의 커버리지 0 은 선언가드 2.5빈 · CPI ≤ "
            f"{CG.num('structural.by_mode.G1.T_max_total_blind_declared_s', None, '{:.2f}', 's')} 에서 "
            f"성립한다. 검출기가 적용하는 1.5빈 규약의 경계는 "
-           f"{CG.num('structural.by_mode.G1.T_max_total_blind_hard_s', None, '{:.2f}', 's')} 다."),
+           f"{CG.num('structural.by_mode.G1.T_max_total_blind_hard_s', None, '{:.2f}', 's')} 다.", "",
+           f"두 수는 **표본화(A) 하나로** 정한 경계다. 진폭(B)까지 함께 관측한 경계는 각각 "
+           f"{CG.num('structural.two_mechanisms.observed.G1.declared.T_max_total_blind_s', None, '{:.3f}', 's')}"
+           f" · "
+           f"{CG.num('structural.two_mechanisms.observed.G1.hard.T_max_total_blind_s', None, '{:.3f}', 's')}"
+           f" 이고, 아래 LTE 의 "
+           f"{CG.num('structural.two_mechanisms.observed.L1.hard.T_max_total_blind_s', None, '{:.3f}', 's')}"
+           f" 가 그 관측 잣대의 수다."),
 
-        md("## CPI 를 늘리면", "",
+        md("## CPI 를 늘리면 — 촘촘한 격자", "",
            "세 파형 모두 블라인드율이 내려간다. 5G 가 치르는 **배수**는 그대로 남는다 — "
            "이것이 이 대가를 구조로 만드는 첫 번째 사실이다.", "",
+           f"아래 표는 헤딩 격자 "
+           f"{CG.num('meta.psi_n_fine', None, '{:.0f}', '점')} 위의 값이라, 같은 CPI 라도 앞의 "
+           f"앵커 재현 표와 값이 갈린다 — 격자가 촘촘하면 가드에 걸리는 헤딩 구간의 경계가 "
+           f"더 곱게 세어진다. 본문이 드는 수는 이 촘촘한 격자 쪽이다.", "",
            table(["CPI", "WiFi", "LTE", "5G", "5G/WiFi", "5G/LTE"],
                  [[CG.num(f"equal_cpi_penalty[{i}].T_cpi_s", None, "{:.1f}", "s"),
                    CG.num(f"equal_cpi_penalty[{i}].blind_hard_W1", None, "{:.3f}"),
@@ -1241,7 +1309,9 @@ def r66():
     return [
         header(
             num=66,
-            title="코히어런트 배열이득은 10log₁₀N 상한에 −0.11~+0.47 dB 로 붙는다",
+            title=f"코히어런트 배열이득은 10log₁₀N 상한에 "
+                  f"{fetch((J_DV, 'rx_gain.excess_min_db')):+.2f}~"
+                  f"{fetch((J_DV, 'rx_gain.excess_max_db')):+.2f} dB 로 붙는다",
             did="한 지점 λ/2 배열의 소자 수 N 을 늘려가며 SNR50 을 재고, 그 이득이 열잡음 "
                 "코히어런트 상한 10log₁₀N 에서 얼마나 벗어나는지를 두 방식으로 확인했다.",
             results=[
