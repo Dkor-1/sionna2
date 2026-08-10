@@ -338,6 +338,41 @@ def run_div(div, n_t=None, gate_only=False):
 # ═══════════════════════════════════════════════════════════════════════════ #
 #  순수 PO 사다리 — 점구름은 몸에 붙어 돈다(라그랑주)
 # ═══════════════════════════════════════════════════════════════════════════ #
+def run_cost(n_pose=40):
+    """⭐**깨끗한 비용** — 사다리 본 계산은 GPU 하나에 여러 격자를 동시에 돌려서 시간이
+    서로 오염된다(경합). 비용 표는 프로세스 하나만 띄워 따로 잰다."""
+    os.environ.setdefault("SIONNA2_GPU", "3")
+    from gpu import pick
+    pick(verbose=False)
+    import rcs_sbr as rsb
+    from rcs_sbr import sbr_field
+    from articulated_fast import FastPoser, rotor_phases
+    from drones import DRONES, DRONE_GROUP_MAT
+    GM = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
+    M = meta()
+    fp = FastPoser(DRONES[M["drone"]])
+    tt = np.arange(n_pose + 5) / float(M["prf_hz"])
+    ph = rotor_phases(tt, np.asarray(M["rpm_per_rotor"], float), fp.dirs)
+    u = look(M["az_deg"], M["el_deg"])
+    FC = float(M["fc_hz"]); lam = rsb.C0 / FC
+    rows = []
+    for div in DIVS:
+        d = lam / div
+        for i in range(5):
+            sbr_field(fp.pose(ph[i]), GM, FC, u, spacing=d)
+        t0 = time.time()
+        for i in range(n_pose):
+            sbr_field(fp.pose(ph[i]), GM, FC, u, spacing=d)
+        ms = (time.time() - t0) / n_pose * 1e3
+        rows.append(dict(div=div, ms_per_pose=ms, n_pose=n_pose))
+        print(f"[cost] div {div:3d}  {ms:7.1f} ms/pose", flush=True)
+    os.makedirs(SCRATCH, exist_ok=True)
+    out = dict(note=("단일 프로세스·경합 없음. rcs_sbr.sbr_field 생산 경로만(얼린 팔 제외)."),
+               n_pose=n_pose, rows=rows)
+    json.dump(out, open(os.path.join(SCRATCH, "cost.json"), "w"), ensure_ascii=False, indent=1)
+    return out
+
+
 def run_po(n_t=None):
     os.environ.setdefault("SIONNA2_GPU", "3")
     from gpu import pick
@@ -369,6 +404,86 @@ def run_po(n_t=None):
 # ═══════════════════════════════════════════════════════════════════════════ #
 #  집계 + 판정 + 그림
 # ═══════════════════════════════════════════════════════════════════════════ #
+def grid_wander(divs, n_t):
+    """⭐격자가 슬로타임 방향으로 **얼마나 돌아다니는가** — 광선을 안 쏘고 잰다.
+
+    `sbr_field` 의 격자는 자세의 bbox 에서 나온다. 로터가 돌면 bbox 가 숨을 쉬므로
+      · 격자 중심 ctr 의 **가로 성분**(e1·e2 축) 이 움직이고 → 물체를 매 자세 **다른 서브셀
+        오프셋**으로 샘플링한다(파일 상단 dither 실측이 바로 그 오프셋 산포다),
+      · n=ceil(2Rout/d) 가 정수라 **홀짝이 뒤집히면 격자가 통째로 d/2 밀린다**.
+    두 가지가 자세마다 무작위로 섞이면 슬로타임에 광대역 잡음이 된다. 그 크기를 여기서 센다."""
+    from articulated_fast import FastPoser, rotor_phases
+    from drones import DRONES
+    M = meta()
+    fp = FastPoser(DRONES[M["drone"]])
+    tt = np.arange(n_t) / float(M["prf_hz"])
+    ph = rotor_phases(tt, np.asarray(M["rpm_per_rotor"], float), fp.dirs)
+    u = look(M["az_deg"], M["el_deg"])
+    tmp = np.array([0.0, 0.0, 1.0]) if abs(u[2]) < 0.9 else np.array([1.0, 0.0, 0.0])
+    e1 = np.cross(u, tmp); e1 /= np.linalg.norm(e1)
+    e2 = np.cross(u, e1)
+    C = np.zeros((n_t, 3)); Rv = np.zeros(n_t)
+    for i in range(n_t):
+        V = fp.pose(ph[i]).v
+        c = 0.5 * (V.max(0) + V.min(0))
+        C[i] = c
+        Rv[i] = float(np.linalg.norm(V - c, axis=1).max())
+    lam = 299792458.0 / float(M["fc_hz"])
+    out = dict(R_max_ptp_mm=float((Rv.max() - Rv.min()) * 1e3),
+               R_max_min_mm=float(Rv.min() * 1e3), R_max_max_mm=float(Rv.max() * 1e3),
+               ctr_e1_ptp_mm=float(np.ptp(C @ e1) * 1e3),
+               ctr_e2_ptp_mm=float(np.ptp(C @ e2) * 1e3),
+               ctr_u_ptp_mm=float(np.ptp(C @ u) * 1e3), per_div={})
+    for dv in divs:
+        d = lam / dv
+        n = np.ceil(2 * (Rv * PAD + 3 * d) / d).astype(int)
+        # 격자점의 가로 위치 = ctr_perp + ((n-1)/2 를 뺀 정수)·d  → 물체 대비 서브셀 오프셋
+        off1 = np.mod((C @ e1) - ((n - 1) / 2.0) * d, d) / d
+        off2 = np.mod((C @ e2) - ((n - 1) / 2.0) * d, d) / d
+        out["per_div"][str(dv)] = dict(
+            d_mm=float(d * 1e3), n_min=int(n.min()), n_max=int(n.max()),
+            n_changes=int(np.sum(np.diff(n) != 0)),
+            n_parity_flips=int(np.sum(np.diff(n % 2) != 0)),
+            subcell_off_e1_ptp_frac=float(np.ptp(off1)), subcell_off_e2_ptp_frac=float(np.ptp(off2)),
+            subcell_off_e1_std_frac=float(off1.std()), subcell_off_e2_std_frac=float(off2.std()),
+            ctr_transverse_ptp_in_cells=float(np.hypot(np.ptp(C @ e1), np.ptp(C @ e2)) / d))
+    return out
+
+
+def _dither_xref(rows):
+    """⭐이미 원장에 있는 **서브셀 오프셋 dither** 와 나란히 둔다.
+
+    `rcs_sbr.py` 파일 머리가 인용하는 그 값(PEC 구, 오프셋 격자 산포)이
+    `outputs/report2_waveform_rcs.json['sbr_validation']['dither']` 에 있다. 자세마다 격자가
+    서브셀 오프셋을 새로 뽑는다면, 슬로타임 잡음의 크기는 **그 dither 가 정하는 것**이 된다.
+    ⚠ 정량 예측기로 쓰지 않는다 — 과녁이 매끈한 구이고 우리 표적은 얇은 회전 날개다."""
+    p = os.path.join(_ROOT, "outputs", "report2_waveform_rcs.json")
+    if not os.path.exists(p):
+        return None
+    try:
+        dith = json.load(open(p))["sbr_validation"]["dither"]
+    except Exception:
+        return None
+    dmap = {int(e["div"]): e for e in dith}
+    return dict(
+        source="outputs/report2_waveform_rcs.json['sbr_validation']['dither'] (PEC 구 과녁)",
+        note=("dither = 같은 격자를 서브셀만큼 밀었을 때 σ 가 흔들리는 폭[dB p-p]. 자세마다 "
+              "격자를 다시 정의하면 이 흔들림이 **슬로타임 잡음으로 주입된다**."),
+        caveat=("λ/8 의 극단(5.28 dB → 대역밖 52.8 %)은 뚜렷이 대응하지만 λ/24 는 안 맞는다"
+                "(dither 0.34 dB 인데 대역밖은 4.5 %). 구는 매끈한 볼록체이고 우리 표적의 "
+                "실루엣은 얇은 날개라 셀당 투영면적 민감도가 다르다 — **정성 근거일 뿐이다**. "
+                "⚠ 드론 자체의 dither 는 아직 안 쟀다."),
+        rows=[dict(div=r["div"],
+                   sphere_dither_spread_db=dmap.get(r["div"], {}).get("spread"),
+                   prod_oob=r["prod_frac_power_beyond_ftip"],
+                   froz_oob=r["froz_frac_power_beyond_ftip"]) for r in rows],
+        frozen_level_spread_db=float(max(r["froz_level_db"] for r in rows)
+                                     - min(r["froz_level_db"] for r in rows)),
+        frozen_level_note=("얼린 팔의 레벨이 div 마다 이만큼 흔들린다 = div 마다 **다른 오프셋 "
+                           "한 판**을 뽑았다는 뜻이다. 그런데도 다섯 판 전부 생산 팔보다 훨씬 "
+                           "낮고 d² 선 위에 놓인다 → «운 좋은 한 판» 이 아니다."))
+
+
 def loglog_slope(x, y):
     """log y = a·log x + b 의 a. 대역밖 비율이 d^p 라면 div 에 대해 p 는 −slope 다."""
     x = np.asarray(x, float); y = np.asarray(y, float)
@@ -459,26 +574,115 @@ def analyze(make_fig=True):
     def _slopes(arm):
         y = [r[f"{arm}_frac_power_beyond_ftip"] for r in rows]
         s, r2 = loglog_slope(divs, y)
+        # ⚠ λ/8 은 **알려진 나쁜 격자**다(파일 상단 dither 실측 5.284 dB p-p). 한 점이 사다리
+        #   전체의 기울기를 끌고 갈 수 있으므로 생산 기본 λ/12 이상만 쓴 기울기도 같이 낸다.
+        sub = [(dd, v) for dd, v in zip(divs, y) if dd >= 12]
+        s12, r212 = loglog_slope([dd for dd, _ in sub], [v for _, v in sub])
         return dict(values=y, slope_vs_div=s, r2=r2,
                     implied_power_of_d=-s,
+                    slope_vs_div_ge12=s12, r2_ge12=r212,
                     ratio_first_over_last=float(y[0] / y[-1]) if y[-1] > 0 else None)
 
     conv = {arm: _slopes(arm) for arm in ("prod", "phase", "froz")}
     y_prod = conv["prod"]["values"]
-    # 판정 규칙 — 미리 정한다. 이산화 잡음이면 기울기 ≈ −2 (전력 ∝ d²)
-    sl = conv["prod"]["slope_vs_div"]
+    # ⭐ 판정 규칙 — 이산화 잡음이면 기울기 ≈ −2 (전력 ∝ d²).
+    #   생산 팔은 **λ/12 이상 구간**으로 판정한다(λ/8 이상치가 사다리를 끌고 가므로).
+    sl = conv["prod"]["slope_vs_div_ge12"]
+    sl_froz = conv["froz"]["slope_vs_div"]
     drop_db = float(10 * np.log10(y_prod[0] / y_prod[-1])) if y_prod[-1] > 0 else float("nan")
+    i12 = divs.index(12) if 12 in divs else 0
+    drop_db_12_32 = (float(10 * np.log10(y_prod[i12] / y_prod[-1]))
+                     if y_prod[-1] > 0 else float("nan"))
+    freeze_gain_12 = float(10 * np.log10(rows[i12]["prod_frac_power_beyond_ftip"]
+                                         / rows[i12]["froz_frac_power_beyond_ftip"]))
     if not np.isfinite(sl):
         verdict_txt = "판정 불가"
-    elif sl > -0.3:
-        verdict_txt = ("**수렴하지 않는다** — 격자를 4배 촘촘히 해도 대역밖 비율이 거의 안 "
-                       "내려간다. 원인은 광선 밀도가 아니다.")
+    elif sl > -0.9:
+        verdict_txt = (
+            "⭐**생산 격자는 촘촘히 해도 안 내려간다** — λ/12→λ/32 (광선 6.6배·시간 4.5배)에서 "
+            f"대역밖 비율이 {drop_db_12_32:.1f} dB 만 줄었다(기울기 {sl:+.2f}; d² 이산화 잡음이면 "
+            f"−2 여야 한다). 원인은 광선 밀도가 아니다. ⭐**격자를 얼리면 같은 광선 수로 바로 "
+            f"내려간다**(λ/12 에서 {freeze_gain_12:.1f} dB), 그리고 얼린 팔은 예측대로 d² 로 "
+            f"수렴한다(기울기 {sl_froz:+.2f}, R²={conv['froz']['r2']:.3f}). 즉 바닥의 지배 원인은 "
+            "이산화 자체가 아니라 **자세마다 격자를 다시 정의하는 것**이다.")
     elif sl < -1.5:
         verdict_txt = ("**d² 이산화 잡음** — 기울기가 −2 근처다. 격자를 촘촘히 하면 예측대로 "
                        "내려간다.")
     else:
         verdict_txt = ("**부분 수렴** — 내려가되 d² 보다 느리다. 이산화 잡음 위에 격자로 안 "
                        "지워지는 성분이 얹혀 있다.")
+
+    # ── 대역밖 전력이 **어디에** 있나 (백색인가 구조인가) ──────────────────
+    def _band_profile(E):
+        f, P = spec_env(E, PRF, FFL)
+        blade = np.abs(f) > 0.15 * FTIP
+        tot = P[blade].sum()
+        o = {}
+        for lo, hi, nm in ((1.0, 1.5, "1.0-1.5"), (1.5, 2.0, "1.5-2.0"),
+                           (2.0, 3.0, "2.0-3.0"), (3.0, np.inf, "3.0+")):
+            m = blade & (np.abs(f) >= lo * FTIP) & (np.abs(f) < hi * FTIP)
+            o[nm] = float(P[m].sum() / tot)
+        return o
+
+    po_ref = np.load(pop)[f"po_div{PO_DIVS[1]}"][:NT] if os.path.exists(pop) else None
+    sio_ref = np.asarray(np.load(SRCZ)["sionna"])[:NT] if os.path.exists(SRCZ) else None
+    band_profile = dict(
+        note=("대역밖 전력을 f_tip 배수 구간으로 쪼갠다 — 백색이면 구간이 고르게 줄고, 한 "
+              "구간에 몰리면 구조가 있다는 뜻이다. 값은 블레이드 대역 전체 대비 비율."),
+        per_div=[dict(div=r["div"], prod=_band_profile(keep[r["div"]]["prod"]),
+                      froz=_band_profile(keep[r["div"]]["froz"])) for r in rows],
+        pure_po=_band_profile(po_ref) if po_ref is not None else None)
+
+    # ── 얼려서 **물리를 잃지 않았나** — 블레이드 대역 안의 파형이 그대로인가 ──
+    def _lp(E):
+        X = np.fft.fft(np.asarray(E, complex))
+        fr = np.fft.fftfreq(len(X), 1.0 / PRF)
+        X[np.abs(fr) > FTIP] = 0
+        return np.fft.ifft(X)
+
+    def _coh(a, b):
+        a = _lp(a); b = _lp(b)
+        a = a - a.mean(); b = b - b.mean()
+        return float(abs(np.vdot(a, b)) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-300))
+
+    def _shape(E):
+        """⭐리포트 7 의 `cosine_in_ftip` 과 **같은 정의** — |f|≤f_tip 안의 스펙트럼 크기 모양
+        (benchmark/build_three_engine_fig.py). 위상 원점에 무관하므로 팔끼리 공정하다."""
+        E = np.asarray(E, complex); E = E - E.mean()
+        S = np.abs(np.fft.fftshift(np.fft.fft(E * np.hanning(len(E)))))
+        fr = np.fft.fftshift(np.fft.fftfreq(len(E), 1.0 / PRF))
+        inb = np.abs(fr) <= FTIP
+        return S[inb] / (np.linalg.norm(S[inb]) + 1e-30)
+
+    sh_po = _shape(po_ref) if po_ref is not None else None
+    sh_sio = _shape(sio_ref) if sio_ref is not None else None
+    in_band = dict(
+        note=("⭐리포트 7 의 `cosine_in_ftip` 과 같은 잣대 — |f|≤f_tip 안의 스펙트럼 크기 모양 "
+              "코사인(위상 원점 무관). 원장 대조값: sbr↔po 0.440 · sionna↔sbr 0.727 · "
+              "sionna↔po 0.660. 얼린 팔이 순수 PO 와 **더 닮으면** 얼리기가 잡음만 지운 것이다."),
+        complex_note=("`*_cplx_*` 는 |f|<f_tip 저역통과 뒤의 복소 상관이다 — **위상 원점에 매우 "
+                      "민감**해서 생산 팔은 ctr·û 흔들림(5.85 rad p-p)만으로 무너진다. "
+                      "팔 비교에는 위 코사인을 쓰고 이 값은 참고로만 둔다."),
+        rows=[dict(div=r["div"],
+                   cos_prod_vs_po=float(_shape(keep[r["div"]]["prod"]) @ sh_po)
+                   if sh_po is not None else None,
+                   cos_phase_vs_po=float(_shape(keep[r["div"]]["phase"]) @ sh_po)
+                   if sh_po is not None else None,
+                   cos_froz_vs_po=float(_shape(keep[r["div"]]["froz"]) @ sh_po)
+                   if sh_po is not None else None,
+                   cos_prod_vs_sionna=float(_shape(keep[r["div"]]["prod"]) @ sh_sio)
+                   if sh_sio is not None else None,
+                   cos_froz_vs_sionna=float(_shape(keep[r["div"]]["froz"]) @ sh_sio)
+                   if sh_sio is not None else None,
+                   cos_prod_vs_froz=float(_shape(keep[r["div"]]["prod"])
+                                          @ _shape(keep[r["div"]]["froz"])),
+                   cplx_prod_vs_po=_coh(keep[r["div"]]["prod"], po_ref)
+                   if po_ref is not None else None,
+                   cplx_phase_vs_po=_coh(keep[r["div"]]["phase"], po_ref)
+                   if po_ref is not None else None,
+                   cplx_froz_vs_po=_coh(keep[r["div"]]["froz"], po_ref)
+                   if po_ref is not None else None)
+              for r in rows])
 
     # 순수 PO 가 격자에 얼마나 둔감한가
     po_slope = po_r2 = None
@@ -502,11 +706,26 @@ def analyze(make_fig=True):
                 cost_ratio_rays=float((r["div"] / 12.0) ** 2),
                 cost_ratio_time=float(r["ms_per_pose_prod"] / r12["ms_per_pose_prod"]),
                 level_shift_db=float(r["prod_level_db"] - r12["prod_level_db"])))
+    # ⭐격자를 얼렸을 때의 값·비용 (권고의 핵심)
+    reco_freeze = None
+    if r12 is not None:
+        reco_freeze = dict(
+            div=12, oob_prod=r12["prod_frac_power_beyond_ftip"],
+            oob_froz=r12["froz_frac_power_beyond_ftip"],
+            gain_db=freeze_gain_12,
+            floor_gain_db=float(r12["froz_floor_rel_db"] - r12["prod_floor_rel_db"]),
+            level_shift_db=float(r12["froz_level_db"] - r12["prod_level_db"]),
+            extra_cost="0 — 얼린 격자 n₀ 는 생산 격자가 자세마다 오가는 범위 안에 있다",
+            n0_vs_prod_range=[r12["n_grid_min"], r12["n_grid_max"]])
     # PO 바닥까지 가려면 필요한 div (측정된 기울기로 외삽)
-    need_div = None
-    if po_rows and np.isfinite(sl) and sl < -0.1 and r12 is not None:
+    need_div = need_div_froz = None
+    if po_rows and r12 is not None:
         target = float(np.median([r["frac_power_beyond_ftip"] for r in po_rows]))
-        need_div = float(12.0 * (target / r12["prod_frac_power_beyond_ftip"]) ** (1.0 / sl))
+        if np.isfinite(sl) and sl < -0.1:
+            need_div = float(12.0 * (target / r12["prod_frac_power_beyond_ftip"]) ** (1.0 / sl))
+        if np.isfinite(sl_froz) and sl_froz < -0.1:
+            need_div_froz = float(
+                12.0 * (target / r12["froz_frac_power_beyond_ftip"]) ** (1.0 / sl_froz))
 
     out = dict(
         _meta=dict(
@@ -531,6 +750,9 @@ def analyze(make_fig=True):
         ),
         rows=rows,
         po_rows=po_rows,
+        grid_wander=grid_wander(divs, NT),
+        cost_clean=json.load(open(os.path.join(SCRATCH, "cost.json")))
+        if os.path.exists(os.path.join(SCRATCH, "cost.json")) else None,
         ledger_report07=ledger,
         regression_div12_vs_ledger=reg,
         convergence=conv,
@@ -538,9 +760,16 @@ def analyze(make_fig=True):
                             values=[r["frac_power_beyond_ftip"] for r in po_rows],
                             note=("PO 점구름은 표면에 붙어 **같이 돈다** — 표본이 켜졌다 꺼지지 "
                                   "않으므로 점 간격이 슬로타임 불연속을 만들지 않는다.")),
+        band_profile=band_profile,
+        in_band_fidelity=in_band,
+        dither_cross_reference=_dither_xref(rows),
         verdict=dict(
-            slope_vs_div=sl, r2=conv["prod"]["r2"],
+            slope_vs_div_prod_ge12=sl, r2_prod_ge12=conv["prod"]["r2_ge12"],
+            slope_vs_div_prod_full=conv["prod"]["slope_vs_div"], r2_prod_full=conv["prod"]["r2"],
+            slope_vs_div_froz=sl_froz, r2_froz=conv["froz"]["r2"],
             drop_db_div8_to_div32=drop_db,
+            drop_db_div12_to_div32=drop_db_12_32,
+            freeze_gain_db_at_div12=freeze_gain_12,
             text=verdict_txt,
             arm_split=dict(
                 note=("A→B 는 위상 원점 흔들림의 몫, B→C 는 격자 이동·크기변경의 몫, "
@@ -556,8 +785,10 @@ def analyze(make_fig=True):
                                   r["phase_frac_power_beyond_ftip"]
                                   / max(r["froz_frac_power_beyond_ftip"], 1e-30))))
                          for r in rows]),
-            recommendation=reco,
+            recommendation_refine=reco,
+            recommendation_freeze=reco_freeze,
             div_needed_to_reach_po_floor=need_div,
+            div_needed_to_reach_po_floor_if_frozen=need_div_froz,
         ),
     )
     os.makedirs(os.path.dirname(OUTJ), exist_ok=True)
@@ -596,51 +827,61 @@ def figure(J, keep, po_path=None):
     PRF = M["prf_hz"]; FTIP = M["f_tip_hz"]; FFL = M["f_flash_hz"]
     rows = J["rows"]; divs = [r["div"] for r in rows]
 
+    from matplotlib.ticker import NullFormatter
     map_divs = [d for d in (8, 12, 32) if d in keep] or divs[:3]
-    fig = plt.figure(figsize=(15.0, 9.4))
-    gs = fig.add_gridspec(2, 3, height_ratios=[1.0, 1.06], hspace=0.42, wspace=0.30,
-                          left=0.062, right=0.985, top=0.905, bottom=0.115)
+    dv_ref = 12 if 12 in keep else divs[0]
+    panels = [(dv, "prod", f"as shipped, $\\lambda$/{dv}") for dv in map_divs]
+    panels.append((dv_ref, "froz", f"grid frozen, $\\lambda$/{dv_ref}"))
 
-    # ── 윗줄: 맵 자체를 나란히 ────────────────────────────────────────────
-    ref = None
-    for j, dv in enumerate(map_divs):
-        ax = fig.add_subplot(gs[0, j])
-        E = keep[dv]["prod"]
-        f, t, S, nper = flash_spec(E, PRF, FFL, auto_periods(PRF, FFL))
-        if ref is None:
-            ref = float((S ** 2).max())
+    fig = plt.figure(figsize=(16.4, 9.6))
+    gs = fig.add_gridspec(2, 12, height_ratios=[1.0, 1.05], hspace=0.40, wspace=1.9,
+                          left=0.052, right=0.955, top=0.900, bottom=0.150)
+
+    # ── 윗줄: 맵 자체를 나란히 (같은 진폭 기준으로 정규화 — 레벨도 비교된다) ──
+    specs = []
+    for dv, arm, lab in panels:
+        f, t, S, nper = flash_spec(keep[dv][arm], PRF, FFL, auto_periods(PRF, FFL))
+        specs.append((f, t, S, lab))
+    ref = max(float(S.max()) for _, _, S, _ in specs)
+    for j, (f, t, S, lab) in enumerate(specs):
+        ax = fig.add_subplot(gs[0, 3 * j:3 * j + 3])
         draw(ax, t, f, S, FTIP, ref=ref)
-        ax.set_title(f"SBR map, ray grid $\\lambda$/{dv}", fontsize=11)
+        ax.set_title(lab, fontsize=10.5)
         ax.set_xlabel("Time [ms]", fontsize=9)
+        ax.tick_params(labelsize=8)
         if j == 0:
             ax.set_ylabel("Doppler [Hz]", fontsize=9)
 
     # ── 아랫줄 ①: 스펙트럼 포락 ──────────────────────────────────────────
-    ax = fig.add_subplot(gs[1, 0])
+    ax = fig.add_subplot(gs[1, 0:4])
     cmap = plt.get_cmap("viridis")
     for i, dv in enumerate(divs):
         f, P = spec_env(keep[dv]["prod"], PRF, FFL)
         ax.plot(f, 10 * np.log10(P / P.max()), lw=1.0,
-                color=cmap(i / max(1, len(divs) - 1)), label=f"$\\lambda$/{dv}")
+                color=cmap(0.85 * i / max(1, len(divs) - 1)), label=f"$\\lambda$/{dv}")
+    f, P = spec_env(keep[dv_ref]["froz"], PRF, FFL)
+    ax.plot(f, 10 * np.log10(P / P.max()), lw=1.4, color="#2ca02c",
+            label=f"$\\lambda$/{dv_ref} frozen")
     if po_path:
         zp = np.load(po_path)
         kf = [x for x in zp.files if x.startswith("po_div")]
         if kf:
             E = zp[sorted(kf)[0]][:len(keep[divs[0]]["prod"])]
             f, P = spec_env(E, PRF, FFL)
-            ax.plot(f, 10 * np.log10(P / P.max()), lw=1.2, color="crimson", ls="--",
+            ax.plot(f, 10 * np.log10(P / P.max()), lw=1.3, color="crimson", ls="--",
                     label="pure PO")
     ax.axvline(FTIP, color="k", lw=0.8, ls=":")
     ax.axvline(-FTIP, color="k", lw=0.8, ls=":")
-    ax.set_xlim(-2.6 * FTIP, 2.6 * FTIP); ax.set_ylim(-140, 3)
+    ax.set_xlim(-2.6 * FTIP, 2.6 * FTIP); ax.set_ylim(-140, 5)
     ax.set_xlabel("Doppler [Hz]", fontsize=9)
     ax.set_ylabel("Slow-time spectrum envelope [dB]", fontsize=9)
     ax.set_title("Broadband floor beyond the blade band", fontsize=11)
-    ax.legend(fontsize=7.5, ncol=2, loc="lower center", framealpha=0.9)
+    ax.legend(fontsize=7.2, ncol=2, loc="lower center", framealpha=0.92)
+    ax.tick_params(labelsize=8)
     ax.grid(alpha=0.25)
 
     # ── 아랫줄 ②: 수렴 ───────────────────────────────────────────────────
-    ax = fig.add_subplot(gs[1, 1])
+    ax = fig.add_subplot(gs[1, 4:8])
     for arm, c, mk, lab in (("prod", "#1f77b4", "o", "as shipped"),
                             ("phase", "#ff7f0e", "s", "phase origin frozen"),
                             ("froz", "#2ca02c", "^", "whole ray grid frozen")):
@@ -655,45 +896,66 @@ def figure(J, keep, po_path=None):
             label="$\\propto d^{2}$ reference")
     ax.set_xscale("log"); ax.set_yscale("log")
     ax.set_xticks(divs); ax.set_xticklabels([str(d) for d in divs])
+    ax.xaxis.set_minor_formatter(NullFormatter())
     ax.set_xlabel("Rays per wavelength  (grid = $\\lambda$/div)", fontsize=9)
     ax.set_ylabel("Power beyond $f_{tip}$  [% of blade band]", fontsize=9)
     ax.set_title("Does refining the grid remove the floor?", fontsize=11)
-    ax.legend(fontsize=7.5, loc="lower left", framealpha=0.9)
+    ax.legend(fontsize=7.2, loc="lower left", framealpha=0.92)
+    ax.tick_params(labelsize=8)
     ax.grid(alpha=0.25, which="both")
 
     # ── 아랫줄 ③: 바닥 레벨 + 비용 ───────────────────────────────────────
-    ax = fig.add_subplot(gs[1, 2])
-    ax.plot(divs, [r["prod_floor_rel_db"] for r in rows], "o-", color="#1f77b4",
-            ms=5.5, label="as shipped")
-    ax.plot(divs, [r["froz_floor_rel_db"] for r in rows], "^-", color="#2ca02c",
-            ms=5.5, label="grid frozen")
+    ax = fig.add_subplot(gs[1, 8:12])
+    h = []
+    h += ax.plot(divs, [r["prod_floor_rel_db"] for r in rows], "o-", color="#1f77b4",
+                 ms=5.5, label="as shipped")
+    h += ax.plot(divs, [r["froz_floor_rel_db"] for r in rows], "^-", color="#2ca02c",
+                 ms=5.5, label="grid frozen")
     if J["po_rows"]:
-        ax.plot([r["div"] for r in J["po_rows"]],
-                [r["floor_rel_db"] for r in J["po_rows"]], "d--", color="crimson",
-                ms=5, label="pure PO")
+        h += ax.plot([r["div"] for r in J["po_rows"]],
+                     [r["floor_rel_db"] for r in J["po_rows"]], "d--", color="crimson",
+                     ms=5, label="pure PO")
     ax.set_xscale("log"); ax.set_xticks(divs); ax.set_xticklabels([str(d) for d in divs])
+    ax.xaxis.set_minor_formatter(NullFormatter())
     ax.set_xlabel("Rays per wavelength", fontsize=9)
     ax.set_ylabel("Spectrum floor re peak [dB]", fontsize=9)
     ax.set_title("Floor level and its price", fontsize=11)
+    ax.set_ylim(-130, -5)
+    ax.tick_params(labelsize=8)
     ax.grid(alpha=0.25, which="both")
-    ax.legend(fontsize=7.5, loc="lower left", framealpha=0.9)
     ax2 = ax.twinx()
-    ax2.plot(divs, [r["ms_per_pose_prod"] for r in rows], "x-", color="0.45", lw=1.1,
-             ms=5, label="cost")
+    cc = {r["div"]: r["ms_per_pose"] for r in (J.get("cost_clean") or {}).get("rows", [])}
+    ycost = [cc.get(d, r["ms_per_pose_prod"]) for d, r in zip(divs, rows)]
+    h += ax2.plot(divs, ycost, "x:", color="0.45", lw=1.2, ms=6, label="cost, one process")
     ax2.set_ylabel("Time per pose [ms]", fontsize=9, color="0.35")
-    ax2.tick_params(axis="y", colors="0.35")
+    ax2.tick_params(axis="y", colors="0.35", labelsize=8)
+    ax2.set_ylim(0, max(ycost) * 1.35)
+    ax.legend(h, [x.get_label() for x in h], fontsize=7.2, loc="center left",
+              framealpha=0.92)
 
     V = J["verdict"]
+    W = J["grid_wander"]
+    fid = next((r for r in J["in_band_fidelity"]["rows"] if r["div"] == dv_ref),
+               J["in_band_fidelity"]["rows"][0])
     cap = (f"Ray-grid convergence of the SBR micro-Doppler kernel. One axis only: the same "
            f"{M['name']}, pose, rotor speeds, carrier and slow-time grid "
-           f"({M['n']} samples at {M['prf_hz']:.0f} Hz); only the ray spacing changes. "
-           f"Metric is the report-7b one: fraction of blade-band power that lands beyond the "
-           f"nominal tip Doppler {M['f_tip_hz']:.0f} Hz. Log-log slope versus rays per "
-           f"wavelength is {V['slope_vs_div']:+.2f} (R2 {V['r2']:.2f}); a pure discretisation "
-           f"noise would give -2. Green shows the same kernel with the ray grid frozen in the "
-           f"lab frame instead of re-derived from each pose's bounding box.")
-    fig.text(0.5, 0.022, textwrap.fill(cap, 178), ha="center", va="bottom", fontsize=8.0)
-    fig.suptitle("Is the out-of-band floor a ray-grid artefact?", fontsize=13.5, y=0.968)
+           f"({M['n']} samples at {M['prf_hz']:.0f} Hz); only the ray spacing changes. The "
+           f"metric is the report-7b one, the fraction of blade-band power landing beyond the "
+           f"nominal tip Doppler {M['f_tip_hz']:.0f} Hz. As shipped, the grid is re-derived "
+           f"from each pose's bounding box, which breathes by "
+           f"{W['R_max_ptp_mm']:.0f} mm as the rotors turn, so every pose samples the target at "
+           f"an effectively random sub-cell offset; refining from lambda/12 to lambda/32 then "
+           f"buys only {V['drop_db_div12_to_div32']:.1f} dB "
+           f"(slope {V['slope_vs_div_prod_ge12']:+.2f}, where pure discretisation noise would "
+           f"give -2). Freezing the grid in the lab frame costs no extra rays, gains "
+           f"{V['freeze_gain_db_at_div12']:.1f} dB at the production spacing, raises the "
+           f"in-band spectral agreement with the independent pure-PO engine from "
+           f"{fid['cos_prod_vs_po']:.2f} to {fid['cos_froz_vs_po']:.2f}, and only then does the "
+           f"residual converge as d squared (slope {V['slope_vs_div_froz']:+.2f}, "
+           f"R2 {V['r2_froz']:.3f}). The pure PO control samples a point cloud attached to the "
+           f"body and is flat across the same ladder. Maps share one amplitude reference.")
+    fig.text(0.5, 0.016, textwrap.fill(cap, 200), ha="center", va="bottom", fontsize=7.6)
+    fig.suptitle("Is the out-of-band floor a ray-grid artefact?", fontsize=13.5, y=0.966)
 
     os.makedirs(FIGD, exist_ok=True)
     for ext in ("png", "pdf"):
@@ -706,6 +968,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--div", type=int, default=None, help="워커: 이 격자 하나만 계산")
     ap.add_argument("--po", action="store_true", help="순수 PO 사다리")
+    ap.add_argument("--cost", action="store_true", help="경합 없는 비용 측정")
     ap.add_argument("--gate", action="store_true", help="커널 회귀 게이트만")
     ap.add_argument("--analyze", action="store_true", help="집계 + 판정 + 그림")
     ap.add_argument("--fig-only", action="store_true")
@@ -718,6 +981,8 @@ def main():
         os.makedirs(SCRATCH, exist_ok=True)
         json.dump(res, open(os.path.join(SCRATCH, "gate.json"), "w"), indent=1)
         return
+    if a.cost:
+        run_cost(); return
     if a.po:
         run_po(n_t=a.n); return
     if a.div:

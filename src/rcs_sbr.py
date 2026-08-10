@@ -54,6 +54,7 @@ from __future__ import annotations
 import os
 import sys
 import time
+from typing import NamedTuple
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
@@ -727,9 +728,247 @@ def rcs_sbr_multistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s_list,
     return sig if len(U_s) > 1 else float(sig[0])
 
 
+# ─────────────────────────────────────────────────────────────────────────── #
+#  ⭐ 얼린 광선 격자 (grid_ref) — 2026-08-10
+# ─────────────────────────────────────────────────────────────────────────── #
+#  ■ 무엇이 문제였나
+#    `sbr_field` 는 격자를 **메쉬에서** 만든다 — ctr=½(V.max+V.min), Rout=max|V−ctr|·pad+3d,
+#    n=ceil(2Rout/d). 정지비행이라 몸체가 안 움직여도 **로터가 돌면 정점 bbox 가 흔들려서**
+#    자세마다 이 셋이 다시 정해진다. 슬로타임(마이크로도플러)에서는 그게 신호로 둔갑한다:
+#      · ctr 이동  = 위상 원점 흔들림. E 의 크기·σ 에는 영향이 **정확히 0** 이지만(전역 위상),
+#                    프레임 사이 위상차가 신호인 마이크로도플러에는 그대로 실린다.
+#                    실측(matrice4e, 4096 자세): ctr·û 가 39.9 mm = **5.85 rad p-p** 흔들린다.
+#      · Rout·n 변화 = 표본 집합 갈아엎기. n 은 정수라 한 칸 튀면 t 격자가 통째로 d/2 밀린다
+#                    (λ/12 에서 4095 스텝 중 **1636 번**). 서브셀 오프셋이 자세마다 새로
+#                    뽑히고(std 0.2887 ≈ 균등분포 1/√12), 그 «주사위» 의 크기가 곧 파일 상단의
+#                    dither(λ/12 1.373 dB p-p) 다. 즉 1.4 dB 주사위를 프레임마다 다시 굴린다.
+#
+#  ■ 실험 근거 (outputs/sbr_grid_convergence.json, benchmark/sbr_grid_convergence_md.py)
+#    격자를 촘촘히 해서는 안 내려간다 — 생산 팔은 λ/12→λ/32 에서 대역밖 비율이 2.2 dB 만
+#    줄고 log-log 기울기가 **−0.55**(R² 0.94; d² 이산화 잡음이면 −2 여야 한다).
+#    같은 자세에서 격자를 **얼리면** 같은 광선 수로 바로 내려가고(λ/12 에서 논문 지표 9.3 dB /
+#    절대 대역밖 전력으로는 13.1 dB), 기울기가 **−2.09**(R² 0.987)로 예측대로 수렴한다.
+#    ⚠ 「반만 고치기」는 신뢰할 수 없다 — 위상 원점만 사후 보정하면 λ/8 에서 오히려 0.57 dB
+#      나빠진다(두 인공물이 그 격자에서 부분상쇄하고 있었다). 얼리려면 ctr·Rout·n 을 **다** 얼린다.
+#
+#  ■ 얼리기의 대가 (정직하게 적는다 — 공짜가 아니다)
+#    (1) 광선 수 +8.3 % (λ/12, matrice4e: 얼린 n₀=124 → 15376발 vs 자세평균 14194발).
+#    (2) 백색 슬로타임 잡음이 **결정론적 레벨 편향**으로 바뀐다 — 얼린 팔은 오프셋 «한 판» 에
+#        레벨이 걸린다(같은 λ/12 에서 반 칸 옮기면 1.4 dB 차). 절대 σ 를 인용할 때 유의.
+#    (3) 격자를 덮개로 삼으므로 **모든 자세를 덮는 기준**이어야 한다 → `grid_ref_from` 에
+#        자세들을 다 넣고, 커널이 자세마다 덮개를 검사한다(GRID_REF_CHECK).
+#
+#  ■ 기본값은 안 바뀐다
+#    `grid_ref=None` 이면 이 인자가 없던 때와 **비트 단위로 같다**(회귀 게이트:
+#    benchmark/verify_frozen_grid.py, 원장 outputs/verify_frozen_grid.json).
+#    기존 원장(report07 계열)은 전부 grid_ref 없이 난 값이므로 그대로 살아 있다.
+GRID_REF_CHECK = bool(int(os.environ.get("SIONNA2_GRID_REF_CHECK", "1")))
+_GRID_REF_RTOL = 1e-9              # grid_ref.spacing ↔ 실제 d 허용 상대오차
+
+
+class GridRef(NamedTuple):
+    """얼린 광선 격자 한 판. 물리는 (ctr, Rout, n) 셋이 전부고 나머지는 대조용 꼬리표다.
+
+      ctr     : (3,) 격자 중심 = **위상 원점**  e^{j2k(P−ctr)·û}
+      Rout    : 광선 출발 평면까지의 거리 [m] (ctr + Rout·û 에서 −û 로 쏜다)
+      n       : 격자 한 변 칸 수 → n² 발
+      spacing : 이 판이 전제하는 격자 간격 d [m]. 커널이 실제 d 와 다르면 **예외를 던진다**
+                (d 가 바뀌면 n·Rout 의 뜻이 바뀐다 — 사다리마다 판을 새로 만들라는 뜻).
+      fc·pad·n_mesh : 만든 조건 기록(판정에 안 쓴다).
+    """
+    ctr: np.ndarray
+    Rout: float
+    n: int
+    spacing: float
+    fc: float | None = None
+    pad: float = 1.15
+    n_mesh: int = 0
+
+    def asjson(self):
+        """원장(JSON)에 그대로 넣을 수 있는 dict — 되읽으면 다시 grid_ref 로 쓸 수 있다."""
+        return dict(ctr=[float(x) for x in np.asarray(self.ctr, float)],
+                    Rout=float(self.Rout), n=int(self.n),
+                    spacing=(None if self.spacing is None else float(self.spacing)),
+                    fc=(None if self.fc is None else float(self.fc)),
+                    pad=float(self.pad), n_mesh=int(self.n_mesh))
+
+
+def as_grid_ref(ref) -> GridRef:
+    """GridRef · dict · (ctr, Rout, n[, spacing]) 를 GridRef 로 정규화하고 **검사**한다."""
+    if isinstance(ref, GridRef):
+        g = ref._replace(ctr=np.asarray(ref.ctr, float))
+    elif isinstance(ref, dict):
+        miss = [k for k in ("ctr", "Rout", "n") if k not in ref]
+        if miss:
+            raise ValueError(f"grid_ref dict 에 {miss} 가 없다 — (ctr, Rout, n) 은 필수다.")
+        g = GridRef(ctr=np.asarray(ref["ctr"], float), Rout=float(ref["Rout"]),
+                    n=int(ref["n"]),
+                    spacing=(None if ref.get("spacing") is None else float(ref["spacing"])),
+                    fc=(None if ref.get("fc") is None else float(ref["fc"])),
+                    pad=float(ref.get("pad", 1.15)), n_mesh=int(ref.get("n_mesh", 0)))
+    else:
+        seq = tuple(ref)
+        if len(seq) not in (3, 4):
+            raise ValueError("grid_ref 시퀀스는 (ctr, Rout, n) 또는 (ctr, Rout, n, spacing) 이다.")
+        g = GridRef(ctr=np.asarray(seq[0], float), Rout=float(seq[1]), n=int(seq[2]),
+                    spacing=(float(seq[3]) if len(seq) == 4 else None))
+    if np.asarray(g.ctr).shape != (3,) or not np.all(np.isfinite(g.ctr)):
+        raise ValueError(f"grid_ref.ctr 는 유한한 (3,) 이어야 한다 — 받은 것 {g.ctr!r}")
+    if not (np.isfinite(g.Rout) and g.Rout > 0):
+        raise ValueError(f"grid_ref.Rout 는 양의 유한값이어야 한다 — 받은 것 {g.Rout!r}")
+    if g.n < 1:
+        raise ValueError(f"grid_ref.n 은 1 이상 정수여야 한다 — 받은 것 {g.n!r}")
+    return g
+
+
+def _verts_of(meshes):
+    """Mesh · (N,3) 배열 · 그것들의 열(列) 을 **정점 배열 리스트**로 만든다.
+
+    ⚠ 반복자(generator)를 주면 여기서 통째로 물질화한다(중심을 먼저 구한 뒤 반경을 재려면
+      두 번 훑어야 한다). 자세 4096 개를 통째로 넣지 말고 **로터 한 바퀴를 고르게 훑는
+      수십 개**를 넣어라 — 덮개는 그것으로 충분하고 커널이 자세마다 검사한다."""
+    if hasattr(meshes, "v"):
+        return [np.asarray(meshes.v, float)]
+    if isinstance(meshes, np.ndarray) and meshes.ndim == 2 and meshes.shape[1] == 3:
+        return [np.asarray(meshes, float)]
+    out = []
+    for m in meshes:
+        out.append(np.asarray(m.v, float) if hasattr(m, "v") else np.asarray(m, float))
+        if out[-1].ndim != 2 or out[-1].shape[1] != 3:
+            raise ValueError(f"정점 배열이 (N,3) 이 아니다 — {out[-1].shape}")
+    if not out:
+        raise ValueError("grid_ref_from: 메쉬가 하나도 없다.")
+    return out
+
+
+def grid_ref_from(meshes, fc: float, spacing=None, pad=1.15) -> GridRef:
+    """메쉬(들)의 **합집합 경계상자**로 얼린 격자 기준 (ctr, Rout, n) 을 만든다.
+
+        ref = grid_ref_from([fp.pose(p) for p in phases], fc)     # 로터 위상 전 구간
+        E   = [sbr_field(fp.pose(p), gmat, fc, u, grid_ref=ref) for p in phases]
+
+    · meshes : Mesh 하나, (N,3) 정점 배열, 또는 그것들의 열(列). **여러 자세를 넣으면
+      합집합 bbox** 로 중심을 잡고 그 중심에서 잰 최대 반경으로 격자를 키운다 —
+      로터 위상 전 구간을 한 판으로 덮으려면 이렇게 해야 한다.
+    · 식은 생산 경로와 **같다**: ctr=½(lo+hi) · Rout=Rmax·pad+3d · n=ceil(2Rout/d).
+      메쉬를 하나만 주면 그 자세의 생산 격자와 정확히 같은 판이 나온다(게이트가 검사한다).
+    · spacing 을 안 주면 λ/DEFAULT_DIV. **격자 간격마다 판이 다르다** — 사다리를 돌리면
+      div 마다 `grid_ref_from(..., spacing=λ/div)` 를 새로 만들어야 한다.
+    """
+    lam = C0 / float(fc)
+    d = float(spacing) if spacing else lam / DEFAULT_DIV
+    items = _verts_of(meshes)
+    lo = np.full(3, np.inf)
+    hi = np.full(3, -np.inf)
+    for V in items:
+        lo = np.minimum(lo, V.min(0))
+        hi = np.maximum(hi, V.max(0))
+    ctr = 0.5 * (lo + hi)
+    Rmax = 0.0
+    for V in items:
+        Rmax = max(Rmax, float(np.linalg.norm(V - ctr, axis=1).max()))
+    Rout = Rmax * pad + 3 * d
+    return GridRef(ctr=ctr, Rout=float(Rout), n=int(np.ceil(2 * Rout / d)),
+                   spacing=float(d), fc=float(fc), pad=float(pad), n_mesh=len(items))
+
+
+def _grid_basis(u):
+    """광선 격자의 가로축 (e1, e2) — û 하나로 정해지는 **규약**이다(물리 아님).
+    ⚠ `sbr_field` 와 `sbr_field_bistatic` 이 같은 basis 를 써야 모노 회귀 게이트가 위상까지
+      겹친다. 그래서 한 군데에 둔다."""
+    tmp = np.array([0.0, 0.0, 1.0]) if abs(u[2]) < 0.9 else np.array([1.0, 0.0, 0.0])
+    e1 = np.cross(u, tmp); e1 /= np.linalg.norm(e1)
+    e2 = np.cross(u, e1)
+    return e1, e2
+
+
+def grid_ref_margin(mesh, u, grid_ref, spacing=None, fc=None) -> dict:
+    """얼린 격자가 이 자세를 **덮는가** — 여유[m]를 재서 돌려준다(예외는 안 던진다).
+
+    가로 두 축은 광선 원점이 실제로 깔린 범위 ±(n−1)d/2 로, 세로(û)는 광선 출발 평면
+    Rout 으로 잰다. 셋 다 양수여야 표적이 격자 안에 든다. 회귀 게이트 ③ 이 이걸 쓴다."""
+    ref = as_grid_ref(grid_ref)
+    d = float(spacing) if spacing else (
+        ref.spacing if ref.spacing else C0 / float(fc if fc else ref.fc) / DEFAULT_DIV)
+    u = np.asarray(u, float); u = u / np.linalg.norm(u)
+    V = np.asarray(mesh.v, float) if hasattr(mesh, "v") else np.asarray(mesh, float)
+    return _grid_cover(V, np.asarray(ref.ctr, float), float(ref.Rout), int(ref.n), float(d), u)
+
+
+def _grid_cover(V, ctr, Rout, n, d, u) -> dict:
+    e1, e2 = _grid_basis(u)
+    W = V - ctr
+    half = (n - 1) / 2.0 * d
+    m1 = float(half - np.abs(W @ e1).max())
+    m2 = float(half - np.abs(W @ e2).max())
+    mu = float(Rout - (W @ u).max())
+    return dict(n=int(n), spacing_m=float(d), half_extent_m=float(half),
+                margin_e1_m=m1, margin_e2_m=m2, margin_u_m=mu,
+                margin_min_m=float(min(m1, m2, mu)),
+                margin_min_cells=float(min(m1, m2, mu) / d),
+                covered=bool(min(m1, m2, mu) >= 0.0))
+
+
+def _grid_for(mesh, d, pad, grid_ref, u, where):
+    """이 호출이 쓸 격자 (ctr, Rout, n) 을 정한다 — 모노·바이스태틱이 **같이** 쓴다.
+
+    grid_ref=None 이면 옛 코드와 **같은 세 줄**(비트 동일)이고, 주어지면 그 판을 쓴다."""
+    if grid_ref is None:
+        V = np.asarray(mesh.v, float)
+        ctr = 0.5 * (V.max(0) + V.min(0))
+        Rout = float(np.linalg.norm(V - ctr, axis=1).max()) * pad + 3 * d
+        return ctr, Rout, int(np.ceil(2 * Rout / d))
+    ref = as_grid_ref(grid_ref)
+    if ref.spacing is not None and abs(d - ref.spacing) > _GRID_REF_RTOL * max(d, ref.spacing):
+        raise ValueError(
+            f"{where}: grid_ref 의 격자 간격이 이 호출과 다르다 "
+            f"(ref {ref.spacing*1e3:.6f} mm ↔ 지금 {d*1e3:.6f} mm). n·Rout 은 d 에 매인 값이라 "
+            f"섞어 쓰면 덮개가 깨진다 — `grid_ref_from(..., spacing={d!r})` 로 판을 새로 만들라.")
+    ctr = np.asarray(ref.ctr, float)
+    Rout = float(ref.Rout)
+    n = int(ref.n)
+    if GRID_REF_CHECK:
+        V = np.asarray(mesh.v, float)
+        cov = _grid_cover(V, ctr, Rout, n, d, np.asarray(u, float))
+        if not cov["covered"]:
+            raise ValueError(
+                f"{where}: 얼린 격자가 이 자세를 못 덮는다 — 여유 "
+                f"e1 {cov['margin_e1_m']*1e3:+.2f} · e2 {cov['margin_e2_m']*1e3:+.2f} · "
+                f"û {cov['margin_u_m']*1e3:+.2f} mm (음수 = 밖으로 삐져나옴). "
+                f"grid_ref_from 에 이 자세를 포함시켜 판을 다시 만들라 "
+                f"(검사를 끄려면 SIONNA2_GRID_REF_CHECK=0 — 권하지 않는다).")
+    return ctr, Rout, n
+
+
+def _ray_grid(ctr, Rout, n, d, u):
+    """격자 (ctr, Rout, n, d) 와 방향 û 에서 **평행 광선 다발**을 만든다(n² 발).
+    ⚠ 모노·바이스태틱이 같은 코드를 쓰도록 한 군데에 둔다 — 옛 두 벌과 식이 같다."""
+    t = (np.arange(n) - (n - 1) / 2.0) * d
+    A, B = np.meshgrid(t, t, indexing="ij")
+    e1, e2 = _grid_basis(u)
+    O = (ctr + Rout * u)[None, :] + A.ravel()[:, None] * e1 + B.ravel()[:, None] * e2
+    D = np.tile(-u, (O.shape[0], 1))
+    return mi.Ray3f(o=mi.Point3f(*O.T.astype(np.float32)),
+                    d=mi.Vector3f(*D.T.astype(np.float32)))
+
+
+def grid_used(mesh, fc: float, u, spacing=None, pad=1.15, grid_ref=None) -> dict:
+    """이 호출이 **실제로 쓸** 격자를 그대로 돌려준다(광선은 안 쏜다) — 진단·게이트용.
+
+    커널과 같은 `_grid_for` 를 부르므로 재구현이 아니다. 회귀 게이트 ② 가 자세를 바꿔 가며
+    이 값이 변하는지(생산) / 안 변하는지(얼림) 를 이걸로 본다."""
+    lam = C0 / float(fc)
+    d = float(spacing) if spacing else lam / DEFAULT_DIV
+    u = np.asarray(u, float); u = u / np.linalg.norm(u)
+    ctr, Rout, n = _grid_for(mesh, d, pad, grid_ref, u, "grid_used")
+    return dict(ctr=[float(x) for x in ctr], Rout=float(Rout), n=int(n),
+                spacing_m=float(d), n_rays=int(n) ** 2,
+                ctr_dot_u=float(np.asarray(ctr, float) @ u), frozen=bool(grid_ref is not None))
+
+
 def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
               cache_key=None, penetrate=True, shell_groups=None,
-              ptd=False, ptd_pol="V", ptd_opts=None):
+              ptd=False, ptd_pol="V", ptd_opts=None, *, grid_ref=None):
     """**복소 산란장 E(û)** 를 돌려준다 (σ 가 아니라 E — 마이크로도플러는 위상이 필요하다).
 
         E(û) = Σ_hits |Γ_i| · e^{j2k p_i·û} · d²          σ = (4π/λ²)|E|²
@@ -739,7 +978,14 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
 
     ptd (기본 **False**) : True 면 같은 위상원점(bbox 중심)의 모서리 프린지 A_FW [m²] 를 더한
     **복소장**을 돌려준다 — 위상을 쓰는 하류(마이크로도플러)가 그대로 쓸 수 있다.
-    ⚠ ptd=False 는 이 인자들이 없던 때와 비트 단위로 같다."""
+    ⚠ ptd=False 는 이 인자들이 없던 때와 비트 단위로 같다.
+
+    grid_ref (기본 **None**, keyword-only) : ⭐**얼린 광선 격자**. None 이면 자세마다 격자를
+      메쉬에서 다시 만든다(옛 동작, 비트 동일). `grid_ref_from(자세들, fc, spacing)` 이 준
+      판을 넣으면 모든 자세가 **같은 ctr·Rout·n** 을 쓴다 — 위상 원점이 안 흔들리고 표본
+      집합이 안 갈아엎어진다(왜 필요한지는 위 「얼린 광선 격자」 절). ptd=True 면 모서리
+      프린지의 위상 원점도 같이 얼어붙는다(둘이 같은 ctr 을 쓴다).
+      ⚠ 커널이 자세마다 덮개를 검사해 삐져나오면 예외를 던진다(GRID_REF_CHECK)."""
     lam = C0 / float(fc)
     k = 2.0 * np.pi / lam
     d = float(spacing) if spacing else lam / DEFAULT_DIV
@@ -756,19 +1002,8 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
         scene_i, shapes_i, gammas_i, matk_i = _scene_for(mesh, group_mat, ck_i, fc, exclude=_shells)
         shptr_i = [mi.ShapePtr(s) for s in shapes_i]
 
-    V = np.asarray(mesh.v, float)
-    ctr = 0.5 * (V.max(0) + V.min(0))
-    Rout = float(np.linalg.norm(V - ctr, axis=1).max()) * pad + 3 * d
-    n = int(np.ceil(2 * Rout / d))
-    t = (np.arange(n) - (n - 1) / 2.0) * d
-    A, B = np.meshgrid(t, t, indexing="ij")
-    tmp = np.array([0.0, 0.0, 1.0]) if abs(u[2]) < 0.9 else np.array([1.0, 0.0, 0.0])
-    e1 = np.cross(u, tmp); e1 /= np.linalg.norm(e1)
-    e2 = np.cross(u, e1)
-    O = (ctr + Rout * u)[None, :] + A.ravel()[:, None] * e1 + B.ravel()[:, None] * e2
-    D = np.tile(-u, (O.shape[0], 1))
-    ray = mi.Ray3f(o=mi.Point3f(*O.T.astype(np.float32)),
-                   d=mi.Vector3f(*D.T.astype(np.float32)))
+    ctr, Rout, n = _grid_for(mesh, d, pad, grid_ref, u, "sbr_field")
+    ray = _ray_grid(ctr, Rout, n, d, u)
 
     def _field(sc, shptr, gam, mk=None):
         si = sc.ray_intersect(ray)
@@ -815,7 +1050,7 @@ def sbr_field(mesh: Mesh, group_mat: dict, fc: float, u, spacing=None, pad=1.15,
 def sbr_field_bistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s,
                        spacing=None, pad=1.15, cache_key=None, penetrate=True,
                        shell_groups=None, exit_vis=True,
-                       ptd=False, ptd_pol="V", ptd_opts=None):
+                       ptd=False, ptd_pol="V", ptd_opts=None, *, grid_ref=None):
     """**바이스태틱 복소 산란장 E(û_i, û_s)** — `sbr_field` 의 바이스태틱 판(σ 가 아니라 E).
 
         E(û_i,û_s) = Σ_hits |Γ_i| · e^{jk(û_i+û_s)·p} · d²        σ = (4π/λ²)|E|²
@@ -870,7 +1105,12 @@ def sbr_field_bistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s,
 
     ptd (기본 **False**) : True 면 같은 위상원점(bbox 중심)의 모서리 프린지 A_FW [m²] 를 더한
       복소장을 돌려준다(규약·게이트는 「PTD 배선」 절). ⚠ ptd=False 는 이 인자들이 없던 때와
-      비트 단위로 같다."""
+      비트 단위로 같다.
+
+    grid_ref (기본 **None**, keyword-only) : ⭐**얼린 광선 격자** — `sbr_field` 와 **같은 인자·
+      같은 뜻·같은 코드**(`_grid_for`/`_ray_grid` 를 공유한다). 둘이 갈리면 û_s=û_i 모노 회귀
+      게이트가 깨지므로 한 군데에서만 정한다. 격자는 조명 방향 û_i 로 깔리고, 위상 원점도
+      얼린 ctr 이다(멀티 Rx 를 한 번의 조명으로 재사용하는 경로에도 그대로 걸린다)."""
     lam = C0 / float(fc)
     k = 2.0 * np.pi / lam
     d = float(spacing) if spacing else lam / DEFAULT_DIV
@@ -892,21 +1132,11 @@ def sbr_field_bistatic(mesh: Mesh, group_mat: dict, fc: float, u_i, u_s,
         scene_i, shapes_i, gammas_i, matk_i = _scene_for(mesh, group_mat, ck_i, fc, exclude=_shells)
         shptr_i = [mi.ShapePtr(s) for s in shapes_i]
 
-    V = np.asarray(mesh.v, float)
-    ctr = 0.5 * (V.max(0) + V.min(0))
-    Rout = float(np.linalg.norm(V - ctr, axis=1).max()) * pad + 3 * d
-    n = int(np.ceil(2 * Rout / d))
-    t = (np.arange(n) - (n - 1) / 2.0) * d
-    A, B = np.meshgrid(t, t, indexing="ij")
-    # ⭐ 격자 basis 는 `sbr_field` 와 **같은 식**으로 û_i 에서 만든다 — 다른 basis 를 쓰면 히트점
-    #   집합이 미세하게 달라져 모노 회귀 게이트가 위상 수준에서 깨진다(격자는 물리가 아니라 규약).
-    tmp = np.array([0.0, 0.0, 1.0]) if abs(u_i[2]) < 0.9 else np.array([1.0, 0.0, 0.0])
-    e1 = np.cross(u_i, tmp); e1 /= np.linalg.norm(e1)
-    e2 = np.cross(u_i, e1)
-    O = (ctr + Rout * u_i)[None, :] + A.ravel()[:, None] * e1 + B.ravel()[:, None] * e2
-    D = np.tile(-u_i, (O.shape[0], 1))
-    ray = mi.Ray3f(o=mi.Point3f(*O.T.astype(np.float32)),
-                   d=mi.Vector3f(*D.T.astype(np.float32)))
+    # ⭐ 격자(중심·반경·칸수)와 basis 는 `sbr_field` 와 **같은 함수**로 û_i 에서 만든다 — 다른
+    #   basis 를 쓰면 히트점 집합이 미세하게 달라져 모노 회귀 게이트가 위상 수준에서 깨진다
+    #   (격자는 물리가 아니라 규약이다). grid_ref 도 그래서 두 함수가 같이 받는다.
+    ctr, Rout, n = _grid_for(mesh, d, pad, grid_ref, u_i, "sbr_field_bistatic")
+    ray = _ray_grid(ctr, Rout, n, d, u_i)
 
     def _illum(sc, shptr, gam, mk=None):
         """조명 패스 — û_i 에만 의존한다(수신방향마다 재사용). 반환: (P절대, P−ctr, n̂, |Γ|, lit_i, si)."""
