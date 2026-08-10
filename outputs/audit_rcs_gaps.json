@@ -1,0 +1,184 @@
+{
+ "_meta": {
+  "title": "갈래 C — 무엇이 아직 안 끝났나: RCS 축 미완·보류·막힌 것 전수",
+  "generated": "2026-08-10 06:35 UTC",
+  "scope_ko": "읽기 전용 감사. 프로젝트 파일 무수정, GPU 재계산 0회, git 미사용. 이 파일 하나만 내가 썼다.",
+  "method_ko": "docs/RESUME.md·progress/·REPORTS_ADVERSARIAL_0810.md·meshfix_mini5pro_overlap.json 정독 + 파일 mtime 대조 + 로그(scratchpad) 실측 + 원장 JSON 재계산(CPU, numpy) + 코드 정독.",
+  "gpu_judgement_basis": "nvidia-smi --query-compute-apps (메모리 점유). GPU2: 84448 samespan 8368 MiB · 101312 σ 8368/2654 MiB · 642705 three_engine 898 MiB.",
+  "reference_time_ko": "본문의 «지금» 은 2026-08-10 06:35 UTC 다."
+ },
+
+ "q1_same_span_fit": {
+  "what_it_is_ko": "Das(IEEE WCL 2026)가 Phantom 3 에서 적합한 2~18 GHz 밴드 기울기 0.21 dB/GHz 와 우리 기울기를 **같은 주파수 창**에서 겨루게 하는 것. 우리 기존 적합은 1.8~6.0 GHz 라 창이 4배 달라 «비교 불능» 이었다(덱 v1 1부가 그렇게 정직하게 적었다).",
+  "script": "benchmark/rcs_same_span_sweep.py (2.0~18.0 GHz × 0.5 GHz = 33점, el=0 방위 360점, 선형 방위평균 → 10log10 = Das §III-1 규약, rcs_sbr_batch penetrate=True jitter=2 ANGLE_GAMMA=on)",
+  "output": "outputs/rcs_same_span.json (아직 없음 — 3기 전부 끝나야 한 번에 쓴다)",
+  "progress_measured": {
+   "pid": 84448, "started": "2026-08-10 04:23:34 UTC", "elapsed_at_audit": "2h12m",
+   "matrice4e": {"state": "DONE", "seconds": 5237, "a_full_2_18": 0.243, "r2": 0.75, "a_low_2_6": 0.533},
+   "mini5pro":  {"state": "DONE", "seconds": 1585, "a_full_2_18": 0.312, "r2": 0.82, "a_low_2_6": 0.827},
+   "phantom4":  {"state": "RUNNING", "at": "13.0 GHz @ t=1046s (06:35 UTC)", "remaining_points": 10}
+  },
+  "eta_ko": "mini5pro 의 13.0→18.0 구간 950 s 를 현재 phantom4/mini5pro 누적비 1.647 로 환산 → 잔여 ≈ 1,560 s. **완료 예상 07:00~07:05 UTC (지금부터 25~30분)**. 완료 시 outputs/rcs_same_span.json 이 한 번에 생긴다.",
+  "what_it_settles_ko": "ANCHOR_SUBBAND.md §0 의 헤드라인 «우리 대역에서 3.5배 가파르다 → 계통오차가 아니라 저 ka 물리다» 를 사과-대-사과로 재판한다. 지금까지 나온 2기 결과가 이미 방향을 말한다 — **전구간(2~18)에서 우리는 0.243·0.312 dB/GHz 로 Das 0.21 에 붙고, 저구간(2~6)에서만 0.533·0.827 로 벌어진다.** 즉 «3.5배» 는 상당 부분 **창 선택의 산물**이고, 물리적 초과분은 저 ka 쪽에 국한된다는 쪽으로 기운다.",
+  "caveats_ko": [
+   "⚠ 기체가 다르다. Das 표적은 Phantom 3 이고 우리 스윕은 matrice4e·mini5pro·phantom4 다. 사과-대-사과에 가장 가까운 것은 마지막 phantom4 행뿐이고 그것도 근사다 — **결판은 phantom4 가 나와야 난다**.",
+   "⚠ 이 스윕은 새 파일만 만든다. 기존 원장(sigma_anchor.json·ANCHOR_SUBBAND.md)의 «+1.452 vs +0.411, 3.5배» 서술은 갱신되지 않는다 — 두 서술이 병존하게 되므로 어느 쪽이 무슨 창인지 문장에 박아야 한다.",
+   "⚠ el=0 단일 앙각·360 az·jitter=2·penetrate=True 는 우리 규약이다. Das 의 측정 체인(편파 VV 등)과 같지 않다."
+  ]
+ },
+
+ "q2_mini5pro_invalidation_ledger": {
+  "cutoff_ko": "무효화 기준 시각 = src/drone_cad.py mtime **2026-08-10 04:19:03 UTC** (PROP_STANDOFF_M['mini5pro']=0.0010 적용). 이보다 낡은 mini5pro 파생물은 전부 낡았다.",
+  "good_news_ko": "⭐같은구간 스윕(04:23:34 시작)은 커널 수정보다 **뒤에** 떴다 — mini5pro 행은 수정된 메쉬로 계산됐다. 무효화 대상이 아니다.",
+  "recomputed": [
+   {"f": "outputs/report15b_microdoppler.json", "mtime": "2026-08-10 05:00:21", "state": "DONE"},
+   {"f": "outputs/report15b_series.npz", "mtime": "2026-08-10 05:00:21", "state": "DONE"}
+  ],
+  "queued": [
+   {"f": "outputs/report13_sigma_grid.json (mini5pro 칸)", "state": "QUEUED",
+    "how": "워처 PID 361292 살아 있음 — `while kill -0 101312; do sleep 60; done` 뒤 `--drone mini5pro --backend direct --force` 실행. 아직 시작 안 함(101312 가 2h09m째)."}
+  ],
+  "still_stale_full_list": [
+   {"f": "outputs/rcs_anchor.json", "mtime": "2026-08-03 12:36:37", "why": "절대 σ 앵커(5기, mini5pro 포함)", "cost_s": 11407, "note": "meshfix json 은 자기기록 22,997 s 로 적었다. ⭐SLOPE 어서트 정합의 필수 입력이기도 하다."},
+   {"f": "outputs/report13_sigma_grid.mini5pro.json", "mtime": "2026-07-24 22:11:33", "why": "mini5pro 전용 σ 격자", "note": "⭐목록에서 가장 낡음 — 17일 전, Γ(θ)·메쉬수정 둘 다 이전"},
+   {"f": "outputs/report13_sigma_grid_elext.json", "mtime": "2026-08-03 11:08:20", "why": "앙각 확장 격자"},
+   {"f": "outputs/report13_freespace.json", "mtime": "2026-07-30 03:16:40", "why": "검지거리 사다리(σ 소비자). 편 57·59·60·61 의 상류", "cost_s": 3600},
+   {"f": "outputs/report16_base.json + report16_base_tables.npz", "mtime": "2026-08-04 11:26"},
+   {"f": "outputs/report16_metric_{box_bbox,cube_eqvol,mesh_full,mesh_half_tri,mesh_no_rotor,sphere_eqvol}.json(+npz)", "mtime": "2026-08-04 12:28~12:56"},
+   {"f": "outputs/report16_rung_*.json(+prereg/tables)", "mtime": "2026-08-04 11:40~12:17", "n": 13},
+   {"f": "outputs/report16_synthesis.json", "mtime": "2026-08-04 14:34:54"},
+   {"f": "outputs/report16_verify_{detector,kernel,tautology}.json", "mtime": "2026-08-04 13:21~13:44"},
+   {"f": "outputs/sigma_anchor.json", "mtime": "2026-07-31 01:34:18", "cost_s": 60},
+   {"f": "outputs/sigma_sensitivity.json", "mtime": "2026-07-31 05:41:54"},
+   {"f": "outputs/sigma_robust_summary.json", "mtime": "2026-07-31 06:17:11"},
+   {"f": "outputs/sigma_grid_regen.json", "mtime": "2026-08-03 11:24:15"},
+   {"f": "outputs/sigma_regen_impact.json", "mtime": "2026-08-03 11:45:06"},
+   {"f": "outputs/sigma_el_extend_{ceiling,verify,progress}.json", "mtime": "2026-08-03 11:08~11:09"},
+   {"f": "outputs/angle_gamma_sigma_impact.json", "mtime": "2026-08-07 11:06:34"},
+   {"f": "outputs/report02_derived.json", "mtime": "2026-08-07 05:01:28"},
+   {"f": "outputs/report05_derived.json", "mtime": "2026-08-07 05:02:01"},
+   {"f": "outputs/report06_derived.json", "mtime": "2026-08-07 05:02:02"},
+   {"f": "outputs/mesh_compare_photo.json", "mtime": "2026-07-31 05:19:42"},
+   {"f": "outputs/mesh_compare_cad.json", "mtime": "2026-07-31 03:58:03"},
+   {"f": "outputs/mesh_compare_material.json", "mtime": "2026-07-31 03:53:02"},
+   {"f": "outputs/figures/report13_* · mesh gallery PNG (Tier B)", "why": "위 JSON 파생"}
+  ],
+  "not_action_needed": [
+   {"f": "outputs/sigma_sbr_cache.json", "why": "키에 메쉬 지문 → mini5pro 항목 자동 미스"},
+   {"f": "outputs/meshgate_applied.json · meshgate_verify.json", "why": "역사 기록(superseded ≠ stale)"}
+  ],
+  "tally_ko": "⭐Tier A 8묶음 중 **재계산 완료 1묶음(report15b), 큐 1묶음(σ 격자 mini5pro 칸), 손도 안 댄 것 6묶음**. 파일 수로는 30개 이상이 아직 낡았고, 그중 가장 무거운 것이 rcs_anchor(3.2 h)와 report13_freespace(1 h)다."
+ },
+
+ "q3_declared_assumptions": [
+  {"id": "A1", "what_ko": "재질 실효 |Γ| 대표값 — plastic 0.28 · prop_plastic 0.25 · camera_assembly 0.85 · pcb 0.80 · carbon 0.90",
+   "where": "src/materials.py MATERIALS", "kind": "선언(문헌 유도 + 방향만 맞춘 대표값)",
+   "self_admission_ko": "prop_plastic note 가 직접 적었다 — «⚠ 정밀 두께 모델이 아니다. DJI 가 부품 두께를 공개하지 않고, 박막 |Γ| 는 0.1~0.45 로 출렁인다. 모든 드론 프롭에 같은 0.25 를 쓴다.»",
+   "closed_by_ko": "재질 쿠폰 실측(우리는 안 한다) 또는 문헌 두께 데이터. 실무적으로는 **공개 문헌 RCS 앵커(±2~3 dB)** 로 흡수한다.",
+   "impact_ko": "자기기록상 셸 0.28↔프롭 0.25 차이는 총 σ 에 0.03 dB 미만."},
+
+  {"id": "A2", "what_ko": "각도의존 Γ(θ) 의 «모양» — 벌크 프레넬 TE·TM 전력평균 비를 수직입사 보정값에 곱한다",
+   "where": "src/rcs_sbr.py (ANGLE_GAMMA, 기본 켬)", "kind": "선언(모형)",
+   "closed_by_ko": "박막(1~3 mm 셸/날개) 다층 프레넬 또는 실측. 지금은 벌크 반무한 가정.",
+   "honest_negative_ko": "⭐2026-08-10 순수 PO 에 켰더니 Sionna 일치가 0.696 → 0.676 으로 **나빠졌다**(확산 지배 축이라 벌크 전제가 안 맞는다). 그래서 순수 PO 경로는 opt-in 으로 남겼다."},
+
+  {"id": "A3", "what_ko": "내부 산란체(battery·pcb) 치수·위치",
+   "where": "src/drone_cad.py INTERNALS", "kind": "선언(phantom3 만 실측)",
+   "self_admission_ko": "drone_cad.py:232 «⚠ 치수는 측정하지 않았다 — 옛 비율상자 크기를 그대로 두고…». phantom3 만 분해사진 실측이고 나머지는 비율 상속.",
+   "extra_hazard_ko": "⚠ drone_cad.py:193 — «'battery'·'pcb' 그룹은 build_frame_cad 말미의 불리언 union 목록에 **없다**» → 셸 투과(penetrate=True) 경로에서 내부 면이 남아 PO 가 이중 계상할 수 있다.",
+   "closed_by_ko": "실물 분해 사진/실측(우리가 실제로 살 기체는 Mavic 4 Pro·Mini 5 Pro) 또는 X-ray/CAD."},
+
+  {"id": "A4", "what_ko": "PTD(모서리 프린지 회절) — 구현은 1차 untruncated Michaeli PTD-EEC, **생산 기본 꺼짐**",
+   "where": "src/ptd_edges.py · src/rcs_sbr.py:375 «PTD 배선 — 기본 꺼짐»", "kind": "미배선 + 부분 미구현",
+   "not_implemented_ko": "TW(Johansen 절단) · 2차 회절 · 코너 회절 · 크리핑파 · 모서리 가림(인접면 법선 게이트만).",
+   "ledger_state_ko": "outputs/ptd_regression.json · ptd_drone_effect.json · ptd_attack_impl.json · ptd_defect_fixes.json · report00_po_case.json 이 **SUPERSEDED**(정규화 상수 ½→−½ 부호 정정 이전) — 재생성 전 인용 금지.",
+   "closed_by_ko": "Michaeli 1986 원문 대조(미확보) + 사각평판 모노스태틱 σ(θ) 재검증. **인프라 관점에서 후순위** — 켜면 σ 축 비용이 SBR 전체와 맞먹는다(Gao Table 1)."},
+
+  {"id": "A5", "what_ko": "커널은 **스칼라**다 — 편파 자유도가 없다(TE·TM 전력평균)",
+   "where": "docs/ENGINE_VALIDATION.md §1 «편파 | 대조 불가»", "kind": "선언(구조적 한계)",
+   "closed_by_ko": "편파 분리 커널(편 23 이 «넷» 중 하나로 적어 둔 미완 항목). 측정은 VV 단독이라 지금은 대조 자체가 불가."},
+
+  {"id": "A6", "what_ko": "σ 원장은 **모노스태틱 전용**이다",
+   "where": "outputs/report13_sigma_grid.json top keys = ['meta','sigma','sigma_confidence'] — 'multistatic' 블록 **없음**. meta.multistatic_regenerated=false, meta.multistatic_note=«옛 판의 multistatic 블록은 07-29 메쉬 낡음을 안고 있어 옮겨 싣지 않았다».",
+   "kind": "구멍(원장 결손)",
+   "hazard_ko": "⭐지금 도는 --force 는 parts 기본값 «grid,confidence,anchor» 라 **multistatic 을 복구하지 않는다**. 프로젝트 전제가 패시브 **바이스태틱** 탐지인데 σ 원장에 바이스태틱 칸이 없다.",
+   "code_state_ko": "rcs_sbr.rcs_sbr_multistatic() 는 실재하고 obliquity 를 표준 PO (n̂·û_i) 로 쓴다고 문서화돼 있다(:552·:595). 즉 커널은 있는데 **원장이 없다**.",
+   "closed_by_ko": "experiment_freespace_sigma --parts ...,multistatic 로 재생성(β 격자 7점 × az 24). 비용은 grid 대비 작다."},
+
+  {"id": "A7", "what_ko": "mini5pro 기하 — 프롭 스탠드오프 1.0 mm(raw)",
+   "where": "src/drone_cad.py PROP_STANDOFF_M", "kind": "선언(물리 주장 아님)",
+   "self_admission_ko": "meshfix json: «물리 주장이 아니라 **메쉬 유효성 간극** — 벨 반경 안 droop 0.860 mm 를 덮는 최소 둥근 값». Mini 5 Pro 자체의 mm 출처는 없다(가족 앵커 mini2 GLB 2.81 mm · phantom3 매뉴얼 1.55 mm 만)."},
+
+  {"id": "A8", "what_ko": "mini5pro 로터 층차 크기 14 mm 는 **추정**(부호만 DJI 매뉴얼 근거) · 세로 왜곡 sz +29.85 % 잔존",
+   "where": "src/drones.py:228·240 · meshfix json residuals", "kind": "선언",
+   "closed_by_ko": "정투영 측면도 실측 또는 실물."},
+
+  {"id": "A9", "what_ko": "블레이드 뿌리 droop 로 인한 프롭↔벨 솔리드 관통이 5기에 남아 있다 — **«예산 안» 이라고 선언**한 것이지 0 이 아니다",
+   "where": "src/mesh_check.py PROP_BELL_SOLID_AREA_PCT",
+   "measured_ko": "mini5pro 0.000 % · matrice4e 0.012 % · mavic4pro 0.756 % · mini2 2.979 % · phantom4 3.742 % · m350rtk 4.271 % · typhoonh480 5.128 %. 예산은 «지금 이만큼이다» 기록이지 물리 문턱이 아니다.",
+   "closed_by_ko": "프롭 로프트 자체 수술 — 그러나 그건 블레이드 형상 변경 = 마이크로도플러 응답 변경이라 «최소 수정» 이 아니다(meshfix json 이 명시적으로 범위 밖으로 남김)."},
+
+  {"id": "A10", "what_ko": "절대 σ 레벨은 **판정 보류**다",
+   "where": "docs/ENGINE_VALIDATION.md §1.1 · benchmark/deck_facts.py:1070·1434·1738",
+   "measured_ko": "5.21 GHz −16.86 dBsm = 봉투 [−18.10,−14.51] **안** / 3.5 GHz −19.65 = 최근접변 −1.20 dB / 1.843 GHz −23.23 = −4.43 dB. 교정구는 정확 Mie 대비 0.375~0.851 dB, 해석 PO 구는 ≤0.2006 dB.",
+   "closed_by_ko": "우리 실측이 아니다 — **공개 문헌 RCS**(Das·Yuan)와 대조하는 것뿐. 자체 측정은 외부 필드테스트(X410)이고 그건 탐지 축이지 σ 절대값 축이 아니다."}
+ ],
+
+ "q4_open_defects_and_hazards": [
+  {"id": "D1", "sev": "HIGH", "title_ko": "σ --force 체인이 7기 중 2기만 덮는다 — report13_sigma_grid.json 이 혼합 세대가 된다",
+   "evidence_ko": "실행 중 PID 101312 = --drone matrice4e. 워처 PID 361292 = --drone mini5pro. mavic4pro·phantom4·s1000plus·typhoonh480·x500v2 는 어느 큐에도 없다. 격자의 meta.generated 는 파일당 하나뿐이고(현재 '2026-08-03T11:17:59'), meta.provenance[drone/band] 는 **파일명 매핑만** 담아 기체별 세대 시각이 없다(실측: when/generated/mesh_fp 전부 None).",
+   "next_ko": "나머지 5기도 --force 로 큐에 걸거나, 격자에 per-drone generated 스탬프를 넣어 혼합 세대를 원장이 스스로 말하게 한다."},
+
+  {"id": "D2", "sev": "HIGH", "title_ko": "⭐Γ(θ) 조건형 경고의 **거짓 해제** 위험",
+   "evidence_ko": "src/build_part10_results.py:108-118 — GAMMA_WARN 은 `report13_freespace.json:meta.generated >= angle_gamma_impact.json:_meta.generated` **한 줄로만** 판정한다. 즉 report13_freespace 를 한 번 다시 풀면, σ 격자의 5기가 여전히 Γ(θ) 이전이어도 편 59·60·61 의 경고가 **전부 사라진다**.",
+   "next_ko": "게이트를 «freespace 세대» 가 아니라 «σ 격자의 기체별 세대 최소값» 으로 바꾼다. 코드 한 곳 + D1 의 스탬프."},
+
+  {"id": "D3", "sev": "MED", "title_ko": "SLOPE_LEDGER_GAP 어서트는 **지금 라운드로는 안 닫힌다** — «σ 끝나면 확인» 은 헛다리다",
+   "measured_ko": "두 원장을 직접 재적합해 재현했다 — mavic4pro **1.3955** (sigma_anchor +1.3111 ↔ rcs_anchor −0.0845), s1000plus 1.0074, matrice4e 0.7026, phantom4 0.3049, mini5pro 0.2413. 상한 1.40, 여유 **0.0045**. typhoonh480·x500v2 는 rcs_anchor 에 없어 대조조차 안 된다(only_sa 2건).",
+   "why_ko": "⭐최악 기체 mavic4pro 는 지금 σ 체인에 **없고**, 어서트가 읽는 두 파일(sigma_anchor.json 07-31 · rcs_anchor.json 08-03) 은 **어느 것도 재생성 대상이 아니다**. 그러므로 matrice4e·mini5pro σ 가 끝나도 이 값은 1.3955 그대로다 — 터지지도, 닫히지도 않는다.",
+   "next_ko": "정합의 실체 = benchmark/rcs_anchor.py(≈3.2 h) → src/sigma_anchor.py(≈1 min) 를 한 세대로 다시 도는 것. ⭐이건 mini5pro 무효화 목록의 rcs_anchor 재계산과 **같은 작업**이다 — 두 미결을 한 라운드로 묶어라."},
+
+  {"id": "D4", "sev": "MED", "title_ko": "σ 원장에 바이스태틱 칸이 없다 (A6 과 동일)",
+   "evidence_ko": "top keys ['meta','sigma','sigma_confidence'] · multistatic_regenerated=false. 현재 --force 의 parts 기본값에 multistatic 없음.",
+   "next_ko": "σ 재계산 라운드에 --parts grid,confidence,anchor,multistatic 을 붙인다."},
+
+  {"id": "D5", "sev": "MED", "title_ko": "실행 중인 σ 작업의 진행이 관측 불가",
+   "evidence_ko": "PID 101312 의 fd 1·2 가 scratchpad/sigma_m4e2.log 인데 **2h09m 째 0 바이트**(파이썬 출력 버퍼링). 증분저장은 `_save()` 가 «드론 하나 끝날 때마다» 뿐이라(experiment_freespace_sigma.py:678) 3밴드×120az×23el×n_f 3 이 전부 끝나야 첫 바이트가 나온다. 살아 있다는 증거는 CPU 시간뿐 — ELAPSED 02:02 대비 TIME 02:12 (108 %).",
+   "next_ko": "python -u 또는 밴드 단위 _save. 비용 0."},
+
+  {"id": "D6", "sev": "MED", "title_ko": "sigma_chain.log 의 «SIGMA_CHAIN_DONE 05:01:18» 은 **실패 마커**다",
+   "evidence_ko": "sigma_force_m4e.log · sigma_force_mini5.log 둘 다 05:01 에 BrokenProcessPool 로 죽었고(prefill 백엔드가 GPU2 동시작업과 충돌) 체인 스크립트가 그 뒤에 무조건 DONE 을 찍었다. 이어서 HOVER_OUTDOOR_DONE 05:07:07 이 실행됐다.",
+   "next_ko": "마커를 성공으로 읽지 마라. 체인 마커에 종료코드를 실어라."},
+
+  {"id": "D7", "sev": "MED", "title_ko": "experiment_freespace_range.py:496 라벨 굳음",
+   "evidence_ko": "outputs/diag_kernel_labels.json diag1 = CONFIRMED(«버그가 아니라 선언된 가정을 라벨 키에 안 실은 provenance 결함»). eca_depth_db=60.0 하드코딩이 classify_limit 에 먹혀 DNR>60 인 **1,209 셀**이 limit='dpi_residual' 로 굳는다. 리포트 축은 H1 로 라벨 인용을 제거해 차단했다.",
+   "next_ko": "깊이를 헤드라인 동작점과 일치시키거나 라벨을 limit_at_depth60 으로 개명. 팀미팅 뒤."},
+
+  {"id": "D8", "sev": "LOW", "title_ko": "링크·태그 검사 위반 3건 (RESUME 은 «깨짐 0» 으로 낡음)",
+   "evidence_ko": "outputs/adv_docs_consistency.json — 노트북 78 · 링크 441 · 태그 1,332 · **위반 3**(reports/36 이 outputs/report07_three_engines.json 의 없는 키를 가리킴, 05:54 재계산 산). docs/RESUME.md:82 는 «태그 1,277건 깨짐 0».",
+   "next_ko": "재계산 멎으면 build_three_engine_fig → 부 7 재빌드로 0 이 된다."},
+
+  {"id": "D9", "sev": "INFO", "title_ko": "⭐다른 감사가 미해결로 남긴 «04:24 에 누가 report13_sigma_grid.json 을 썼나» 를 닫았다",
+   "evidence_ko": "outputs/adv_docs_consistency.json:unresolved_ko 의 1번 항목. 답 = scratchpad/sigma_m4e.log 의 **비-force 런**이다. 근거 셋 — (1) 로그 mtime 04:24:27.672 ↔ 파일 mtime 04:24:27.668 (4 ms 차), (2) 로그 본문 «[σ] matrice4e 이미 있음 — 건너뜀 / [anchor] Δ 산출 / [σ] 완료 (**4.5s**)» ↔ meta.runtime_s = **4.5**, (3) main() 이 `out.setdefault(\"meta\", ...)` 라 기존 meta 를 보존한다 — 그래서 meta.generated 가 08-03 인 채 파일만 다시 쓰였다. **격자 수치는 08-03 판 그대로이고 anchor 파트만 갱신됐다.**"}
+ ],
+
+ "q5_priority_proposal_ko": {
+  "principle": "⭐RCS 는 인프라다. 여기서 «더 정확한 σ» 쪽 투자는 그 자체가 틀린 답이다. 내일 팀미팅(8/11)과 논문에 실제로 값을 내는 것만 고른다.",
+  "P0_today_zero_gpu": [
+   "① 같은구간 스윕 phantom4 완료(07:00~07:05 UTC) 확인 → 덱 1부의 «구간이 달라 비교 불능» 칸을 숫자로 교체. 전구간 우리 0.24·0.31(+phantom4) ↔ Das 0.21. **비용 0, 이득 최대** — 오늘 유일하게 «못 하던 비교» 가 열린다.",
+   "② 그 문장에 한정어를 붙인다 — 기체가 다르다(Das=Phantom 3), 저구간(2~6)에서는 여전히 0.53·0.83 으로 가파르다. 헤드라인을 «격차가 사라졌다» 로 쓰면 거짓이 된다.",
+   "③ D2(Γ(θ) 거짓 해제) 게이트를 고치거나, 못 고치면 덱·리포트에 «σ 재계산은 matrice4e·mini5pro 2기 한정» 을 명시. 이건 발표 전에 반드시."
+  ],
+  "P1_next_round_gpu": [
+   "④ σ --force 를 나머지 5기로 확장 + --parts 에 multistatic 추가(D1·D4 동시 해소). 지금 상태로 두면 격자가 영구 혼합 세대다.",
+   "⑤ rcs_anchor(3.2 h) → sigma_anchor(1 min) 를 한 세대로 재실행. ⭐이 하나가 mini5pro 무효화 목록 최대 항목과 SLOPE 어서트 정합을 **동시에** 닫는다.",
+   "⑥ 그 다음에야 report13_freespace(1 h) → report16 계열 → mesh_compare_* → report0N_derived → 78편 재빌드. 순서를 뒤집으면 버릴 결과에 GPU 를 태운다."
+  ],
+  "P2_do_not_do": [
+   "⛔ PTD 를 생산에 켜기 · TW 절단 구현 — 모서리항이 SBR 전체와 맞먹는 연산이고(Gao Table 1), 우리 메인은 탐지·분류다.",
+   "⛔ 메쉬 미세정밀화 · 상용 솔버 — 2026-08-03 방침(«입장료는 검증») 그대로. 그리고 Γ(θ) 실측이 방위평균 +0.04~0.33 dB 라고 말했다 — 이 축의 남은 이득이 작다는 증거다.",
+   "⛔ 절대 σ 를 더 맞추려는 시도 — 정답은 «봉투 안/밖» 을 숫자로 정직하게 적는 현재 문장을 유지하는 것이다."
+  ],
+  "paper_framing_ko": "논문에서 RCS 절은 «인프라 + 검증된 한계» 로 짧게 간다. 새 **실험**이 필요한 것은 같은구간 비교 하나뿐이고 그건 오늘 끝난다. 나머지는 전부 재계산·원장 정합이지 새 물리가 아니다."
+ }
+}

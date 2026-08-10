@@ -1,0 +1,337 @@
+{
+ "_meta": {
+  "generated": "2026-08-10 06:39:18",
+  "branch": "D — 선행연구 대조 (RCS 축)",
+  "mode": "READ-ONLY audit — GPU 미사용, 저장소 파일 무수정. 이 파일만 새로 씀.",
+  "gpu_state_at_audit": "GPU0/1/3 점유(22.7/21.7/21.9 GB), GPU2 11.9 GB — 같은구간 스윕 PID 84448 이 GPU2 에서 phantom4 11.5 GHz 진행 중",
+  "read_only": [
+   "prior_work/**",
+   "docs/PRIOR_WORK_JIHYUCK.md",
+   "docs/PRIOR_WORK_COMPARISON.md",
+   "docs/MESH_VALIDATION.md",
+   "docs/ENGINE_VALIDATION.md",
+   "docs/ANCHOR_SUBBAND.md",
+   "docs/PAPER_POSITION_0803.md",
+   "docs/FLEET_VALIDATION.md",
+   "OPENSOURCE.md",
+   "outputs/das_fleet_*.json",
+   "outputs/p3_ours*.json",
+   "outputs/p3_validation.json",
+   "outputs/rcs_anchor.json",
+   "outputs/prior_work_survey.json",
+   "outputs/validate_measured_airframe.json",
+   "outputs/meshfix_mini5pro_overlap.json",
+   "outputs/angle_gamma_sigma_impact.json",
+   "reports/13,21,24,25,27,28,74"
+  ]
+ },
+ "headline": "브리프의 «레벨은 맞고 기울기가 4.2배» 는 지금 원장으로 **두 항 모두 참이 아니다**. 4.2 라는 배수는 저장소 어디에도 없고(가장 가까운 4.343 은 «우리 좁은창 ÷ 우리 넓은창» 이라 남과의 비교가 아니다), 승인된 같은-창 배수는 3.54배(1.8~6.0 GHz, v1 메쉬)다. 현행 v2 메쉬 전대역으로는 Das 대비 2.47배·Yuan θ90 대비 1.65배다. 레벨은 «맞는» 게 아니라 앵커에 따라 −1.47 ~ −3.30 dB 낮고, 그 방향은 v1→v2 에서 **가까워졌고 기울기는 멀어졌다**. 인프라로서의 신뢰도는 «절대 σ» 가 아니라 «무엇을 못 한다고 정직하게 적었는가» 에서 나오고, 그 축은 잘 서 있다.",
+ "Q1_das_yuan_slope": {
+  "brief_claim": "레벨은 맞고 기울기가 4.2배 차이난다",
+  "verdict": "REFUTED_AS_STATED",
+  "where_4p2_is_not": "grep 전수: docs/·reports/·outputs/·benchmark/ 어디에도 기울기 문맥의 «4.2배» 없음",
+  "nearest_numbers": {
+   "4.343": "validate_measured_airframe.json :: 8_comparison.B_band_slope.fitting_interval_matters.ratio_narrow_over_wide — 우리 1.843~5.21 ÷ 우리 1.8~18.2. 남과의 비교가 아니다",
+   "3.54": "docs/ANCHOR_SUBBAND.md §4 ✅허용문장 1 — 같은 1.8~6.0 GHz 창, 우리 +1.45 vs Yuan θ90 복원곡선 +0.41, z=+4.5 (v1 메쉬)",
+   "1.9~6.4": "같은 문서 창 민감도 범위 — 4.2 는 이 범위 안에 있으나 «창을 안 붙인 배수» 는 §4 ⛔1·⛔2 가 금지한 인용 형태다",
+   "2.074": "validate_measured_airframe :: ratio_ours_over_measured.das_phantom3_1p8_18p2 (v1 세대 0.4355 ÷ 0.21)",
+   "9.006": "같은 키 ratio_vs_das_narrowband — 좁은창÷넓은창 혼합, 명시적으로 폐기된 인용"
+  },
+  "current_ruler_v2": {
+   "source": "outputs/p3_ours_v2.json :: headline (2026-08-03 13:59:29, 사진 실측 재구축 메쉬)",
+   "a_ours_db_per_ghz": 0.5188199109025231,
+   "se_a": 0.03215966505770871,
+   "n_freq": 61,
+   "R2": 0.8151986193831893,
+   "fit_on_v1_21pt_subgrid_a": 0.5181823653632139,
+   "reading": "v1 21점 부분격자에서 재적합해도 0.5182 — 변한 것은 격자가 아니라 메쉬다",
+   "ratio_vs_das_0p21": 2.4705710042977294,
+   "ratio_vs_yuan_theta90_0p315": 1.6470473362000735,
+   "delta_vs_yuan_theta90_db_per_ghz": 0.2038199109025231,
+   "sigma_vs_yuan_theta90": 3.97,
+   "sigma_note": "se = hypot(0.03216, 0.04) = 0.0513; 0.04 는 Yuan 복원곡선 성긴격자 불확도(MESH_VALIDATION §3)",
+   "subband_v2": {
+    "1.8-6.0": 1.0178,
+    "6.0-18.2": 0.3321,
+    "R2_1.8-6.0": 0.865,
+    "R2_6.0-18.2": 0.579
+   }
+  },
+  "level_axis": {
+   "v1_vs_v2_against_yuan_theta90_curve_db": [
+    -4.91,
+    -3.3
+   ],
+   "v1_vs_v2_DL0_against_das_plus_2p5068_db": [
+    -3.013658831971691,
+    -1.469546268476721
+   ],
+   "source": [
+    "reports/27_box-sphere-control.ipynb 결과 5",
+    "outputs/das_fleet_validation.json :: ruler_mismatch.consequence"
+   ],
+   "band_by_band_v1": {
+    "LTE 1.843 GHz": "봉투 밖 −4.43 dB",
+    "5G 3.5 GHz": "봉투 밖 −1.20 dB",
+    "WiFi 5.21 GHz": "봉투 안 (0.00)"
+   },
+   "band_by_band_source": "outputs/validate_measured_airframe.json :: 8_comparison.A_absolute_level.by_band",
+   "sign_is_one_way": "부호는 다섯 대조 전부 «우리가 낮다». 게다가 P3 메쉬에는 실물에 없는 마그네슘 판(σ 를 올리는 편향)이 선언돼 있어 결손은 하한이다 (MESH_VALIDATION §2.3)",
+   "verdict": "«레벨은 맞다» 는 성립하지 않는다. 성립하는 문장은 «v1→v2 에서 레벨은 가까워졌고 기울기는 멀어졌다»(리포트 27 본문 그대로)"
+  },
+  "what_explains_the_slope_gap_candidates": [
+   {
+    "cand": "적합 구간",
+    "size": "우리 μ(f) 는 직선이 아니다 — v2 에서 1.8~6.0 GHz 1.018 vs 6.0~18.2 GHz 0.332 dB/GHz. 측정은 전구간 한 직선. 창을 안 맞추면 배수가 1.9~9.0 사이 아무 값이나 나온다",
+    "status": "정량화됨·가장 큰 항"
+   },
+   {
+    "cand": "메쉬 세대(기체 형상)",
+    "size": "v1→v2 로 a 가 0.4198→0.5188 (+0.099 dB/GHz), 같은 21점 격자에서도 같은 이동. 기하가 기울기를 옮긴다",
+    "status": "정량화됨"
+   },
+   {
+    "cand": "PO 저-ka 결손 + PTD 부재",
+    "size": "잔차가 저주파에서 가장 음(−5.78 저대역 / −5.07 고대역). 구 기준해에서 kr≈1 에 PO 가 Mie 대비 −6.58 dB 진다. 교차주파수 f_x=5.7 GHz [68% CI 3.8~7.8] 가 셸 ka=16.1 자리와 일치",
+    "status": "정황 일치이지 정량 예측 아님 — 둘을 가르는 직접 실험 미실시(MESH_VALIDATION §2.2 자인)"
+   },
+   {
+    "cand": "편파",
+    "size": "Das·Yuan 은 VV, 우리는 무편파 스칼라 |Γ|. 얇은 판 참값에서 폭 0.15λ 일 때 두 편파가 11.56 dB 갈린다",
+    "status": "부호가 반대 방향 — 우리는 VV 가 버릴 전력을 남기므로 «높게» 읽어야 한다. 우리가 낮은 것을 설명 못 한다(E_error_bars 명시)"
+   },
+   {
+    "cand": "고도 정합",
+    "size": "Das μ 가 방위단면인지 Yuan 3단면 통합인지 원문에서 확정 불가. 규약 재조정 잔차 ±0.49 dB 에 섞여 있다",
+    "status": "미해결(das_fleet_spec.open_questions 3)"
+   },
+   {
+    "cand": "통계 규약(dB평균↔선형평균)",
+    "size": "지수분포 가지 +2.507 dB 상수 vs 로그정규 가지 +3.432 dB — 미해소 폭 0.925 dB. 기울기에는 안 걸리고 레벨에만 걸린다",
+    "status": "RESOLVED_EMPIRICALLY(잔차 최소 = 지수), 잔차 폭은 앵커에 딸려 다님"
+   },
+   {
+    "cand": "기체",
+    "size": "Das/Yuan = Phantom 3. 현재 도는 스윕 3기체(matrice4e·mini5pro·phantom4)는 전부 다른 기체다",
+    "status": "OPEN — 아래 Q1b"
+   }
+  ]
+ },
+ "Q1b_same_span_sweep_scope": {
+  "status": "RUNNING (PID 84448, GPU2, 04:23~ · phantom4 11.5 GHz)",
+  "log": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/samespan.log",
+  "keys": [
+   "matrice4e",
+   "mini5pro",
+   "phantom4"
+  ],
+  "finding": "⚠ 이 스윕은 «Das 사과-대-사과» 를 닫지 **않는다** — Das 의 표적 Phantom 3 를 안 돌린다. 스크립트 헤더는 phantom4 를 «Phantom 3 의 최근접» 이라 적지만, src/drones.py:623 에 phantom3 가 실제 등록돼 있고 그 v2 메쉬의 1.8~18.2 GHz 61점 σ 가 outputs/p3_ours_v2.json 에 이미 있다(a=0.5188). 즉 «같은 구간·같은 기체» 대조는 이미 존재하고, 이 스윕이 새로 주는 것은 «우리 운용기체 3대의 대역의존» 이다. 둘을 한 문장에 섞으면 기체가 바뀐 채로 배수를 인용하게 된다.",
+  "preliminary_fits_from_log": {
+   "note": "감사자가 로그를 파싱해 직접 적합(계산 아님·GPU 미사용). matrice4e·mini5pro 는 33점 완주, phantom4 는 20/33점",
+   "matrice4e": {
+    "2-18": 0.243,
+    "R2": 0.754,
+    "2-6": 0.533,
+    "6-18": 0.159,
+    "ratio_vs_das_0p21": 1.16
+   },
+   "mini5pro": {
+    "2-18": 0.312,
+    "R2": 0.824,
+    "2-6": 0.827,
+    "6-18": 0.214,
+    "ratio_vs_das_0p21": 1.49
+   },
+   "phantom4_partial_2_11p5": {
+    "a": 0.586,
+    "R2": 0.701,
+    "caveat": "미완 — 고주파 평탄부가 아직 안 들어와 과대추정"
+   }
+  },
+  "mesh_timing_verified": "src/drone_cad.py 수정 04:19:03 < 프로세스 시작 04:23 → **이 스윕의 mini5pro 다리는 고친 메쉬**다. meshfix 무효화 목록에 안 들어가고, 오히려 새 메쉬의 첫 σ 파생물이 된다.",
+  "fragility": "스크립트는 마지막 한 줄에서만 json.dump 한다 — 중간 체크포인트가 없어 지금 죽으면 2시간 이상이 전부 사라진다. 로그가 유일한 복구 경로다(위 적합이 그 증거).",
+  "next": "완료 시 ① Das 대조는 p3_ours_v2(0.5188) 로 하고 ② 스윕 3기체는 «우리 기체의 대역의존» 절로 분리해 적을 것"
+ },
+ "Q2_other_measured_anchors": {
+  "zhang_m350_2505p20673": {
+   "used_how": "**형식만 차용, 수치 앵커 아님**",
+   "evidence": [
+    "outputs/prior_work_survey.json :: anchors.zhang — A(f) 기울기 0.31 dB/GHz, 적합대역 10~36 GHz, RMSE 2.414 dB, 분해 σ(f,φ)=A(f)·B1(f,φ)·B2",
+    "reports/13_where-we-stand.ipynb 표 «우리가 쓰는 자리» = «분해 σ=A(f)·B1(φ)·B2 형식» (Das=기울기 앵커, Yuan=고도 3측면 대조와 대비)",
+    "outputs/rcs_anchor.json :: literature.mu_eps 에는 das_phantom3 + yuan(θ90/θ0/θ180) 4행뿐 — **zhang 행 없음**. 생산 앵커 경로가 Zhang 을 안 읽는다",
+    "docs/PRIOR_WORK_COMPARISON.md:1076 F3 — «Zhang 을 평균만 인용 표준으로» 를 정반대로 정정하고 3층 분해로 교체한 이력 있음"
+   ],
+   "inconsistency_found": "prior_work/sionna_sensing_survey.md:354 는 «RCS 절대 앵커: DJI M350 측정(2505.20673) → report08» 이라 적는다. 실태는 절대 앵커로 안 쓴다(rcs_anchor 에 없음). 한 줄 정정 필요.",
+   "version_hygiene_ok": "arXiv v1(13쪽) ↔ JSAC 게재판(15쪽) 두 파일 공존이 기록돼 있고, Table V 는 arXiv p.11 로만 인용한다고 명시(prior_work_survey.anchors.zhang.table_v_note). r3_quote_attack.json 이 쪽번호 어긋남을 잡아 정정한 이력도 있다."
+  },
+  "das_fleet_m350rtk_is_not_independent": "das_fleet 의 m350rtk 행은 Zhang 이 아니라 Das(21~27 GHz)다. Das ACKNOWLEDGMENT 가 Mini 2·Phantom 3·M350 RTK 자료를 전부 Wei Fan(Southeast Univ.) 제공으로 적으므로 **같은 측정체인**이다.",
+  "anchor_count_truth": {
+   "claim": "앵커는 한 기체·한 실험실·한 원자료다",
+   "evidence": "outputs/rcs_anchor.json :: literature._convention.source_relation — Das Table I 의 Phantom 3 열(35x20 cm·1.8~18.2 GHz·2801 점·방위 −90:2:90)이 Yuan §II-A 와 글자 단위로 같고, Das ACKNOWLEDGMENT 가 Wei Fan 을 지목. Wei Fan 은 Yuan 논문 교신저자",
+   "status": "정직하게 적혀 있음 — ANCHOR_SUBBAND §4 ⛔6 이 «앵커 2건이 독립적으로 우리를 반증한다» 를 명시 금지"
+  },
+  "unused_anchor_still_open": {
+   "rzewuski_fdtd": "리포트 13 «다음 단계» 가 «Rzewuski 의 FDTD σ(WiFi 대역 −40~0 dBsm)를 우리 σ 격자와 같은 축에 올린다» 를 적었으나 실행 흔적 없음 — grep 상 수치 대조 0건. Rzewuski 는 capability_matrix/injection_verdict 에 서술로만 등장",
+   "openems": "OPENSOURCE.md 가 full-wave 교차검증처로 openEMS 를 적었으나 드론 σ 실행 산출물 없음",
+   "why_it_matters": "두 번째 측정체인이 하나만 붙어도 «1기체·1체인» 이라는 가장 큰 미통제 항이 반쯤 닫힌다. 지금은 절대 레벨을 어느 쪽으로 고쳐야 하는지 판정할 자가 없다"
+  }
+ },
+ "Q3_r20_correction_reflected": {
+  "verdict": "REFLECTED — 재발 흔적 없음",
+  "evidence": [
+   "prior_work/sionna_sensing_survey.md:22 «🔴🔴 R20 대정정» 블록 — arXiv 편향 자인, 헤드라인 2건 반증(R5 «Sionna 드론 마이크로도플러 0» → md-rt 1편 · 종합 §1 «Sionna 안 dBsm RCS 0» → zig-conf Fig.6)",
+   "같은 파일 :27 — «주 워크플로가 저널판만 접근 가능해 오판했고, 회의판 PDF 를 PyMuPDF 레이아웃으로 열면 RCS(dBsm) 이 세로축 라벨로 확정된다. 회의판 판정이 옳다»",
+   "같은 파일 :348 — «🔴 [R20 정밀화] 두 판을 구별할 것: 저널판은 |E|(dB)·MAE(dB) 만 내고 dBsm 0회, 회의판 Fig.6 은 원거리장 극한에서 RCS(dBsm) 를 낸다. 어느 판인지 밝히지 않으면 둘 다 틀린 문장이 된다»",
+   "같은 파일 :356 — «[R20 정정] Ziganshin UTD 는 교차검증 엔진에서 하향 — 산란 물리가 다르고 저널판은 dBsm 을 안 내므로 수치 교차검증 불가»",
+   "같은 파일 :117 — zig-conf 를 «저널판이 our preliminary work [24] 로 지칭하는 선행 회의판, 독립 논문 아님·중복카운트 주의» 로 표기",
+   "prior_work/README.md:42 — «md-rt 는 광선발사기를 개조했다 · Ziganshin 저널판은 OJAP 투고 프리프린트»",
+   "docs/PAPER_POSITION_0803.md §2 — «Ziganshin 외(저널판 arXiv:2604.05991v2 / 회의판 별건 — 두 판을 절대 섞지 않는다, A10)»",
+   "docs/PAPER_POSITION_0803.md §6 «공통 금지» 행에 «회의판/저널판 혼용» 이 들어 있음"
+  ],
+  "root_cause_also_recorded": "survey.md:22 가 원인을 «기록 3갈래 분산»(paper_sionna_Ray/ PDF · DRONE_ISAC_PRIOR_READING.md 정독노트 · 이 서베이) 으로 지목하고 R20 에서 아카이브 일원화를 수행했다고 적는다 — 메모리의 진단과 일치",
+  "residual_1": {
+   "file": "OPENSOURCE.md (2026-07-22, R20 이전 세대)",
+   "what": "«자작 SBR+PO (BVH SBR+PO arXiv:2604.09243 와 동일 방법)를 따른다» — 계보 주장이라 거짓은 아니나, survey.md:356 이 요구한 «Sagitta 인용 시 유효창 병기 필수»(Mie 대조 유효창 kr≳30 인데 3.5 GHz 우리 로터 kr≈3.6 은 그 아래 한 자릿수) 가 빠져 있다",
+   "risk": "«Sagitta 가 우리 PO 정확성을 뒷받침한다» 로 읽힐 여지 — survey 가 그것을 과대주장이라 못 박은 바로 그 문장",
+   "severity": "LOW (문서 한 줄)"
+  },
+  "residual_2": "survey.md:66 은 Sagitta 를 «Sionna 미사용 독립 BVH SBR 로 재확인(과거 표기 정정)» 이라 적어 정정됐다 — OPENSOURCE.md 만 뒤처졌다"
+ },
+ "Q4_positioning": {
+  "policy_respected": "«우리가 σ 를 더 정확히 낸다» 는 어디에도 주장으로 서 있지 않다. das_fleet_ours.json :: headline.cannot_conclude[0] 가 «⛔ 우리 σ 가 정확하다 는 어떤 결과로도 서지 않는다» 로 못 박고, PAPER_POSITION_0803 §7 은 M3(우리 실형상) 축을 스스로 C(인쇄 보류) 로 내린다.",
+  "better_than_others": [
+   {
+    "claim": "구현오차와 모형오차를 분리해 두 기준해로 각각 재고 인쇄한다",
+    "evidence": "리포트 21 — (커널−해석PO)=0.201 dB (kr 1~100, 입사 48방향), (해석PO−Mie)=6.73 dB@kr=1. 격자를 209배 조여도 후자는 0.054 dB 만 움직인다. 선행 중 이 분해를 인쇄한 사례를 서가에서 못 찾았다"
+   },
+   {
+    "claim": "계산 전에 합격규칙을 봉인하고 실패를 실패로 선언했다",
+    "evidence": "das_fleet_prereg.json → das_fleet_validation.json :: prereg_judgement.verdict = NOT_VALIDATED (P3 산포 16.27 dB vs 예측 1.0 dB). das_fleet_attack.json :: what_survived[4] «사후 조정 없음». 규약을 바꿔도(dB영역) C등급을 빼도 6 dB 문턱을 넘는다는 4조합 감도까지 실었다"
+   },
+   {
+    "claim": "앵커가 통제하지 못한 항목을 크기와 함께 원장으로 적는다",
+    "evidence": "리포트 25 — size transfer law UNRESOLVED +9.50 dB, polarisation UNRESOLVED, statistic convention RESOLVED_EMPIRICALLY +0.93 dB, elevation PARTIAL +0.73 dB. 가장 큰 미통제 항(9.50)이 실제 적용 보정 최대치(2.70)보다 크다는 것을 스스로 인쇄한다"
+   },
+   {
+    "claim": "선행의 규약 모순을 원문에서 역산해 해소한다",
+    "evidence": "rcs_anchor.literature._convention — Das 가 §III-1(선형평균)과 §III-2(dB평균)를 서로 다르게 정의하는 것을 잡아내고, 같은 원자료인 Yuan 과 맞춰 잔차 최소 변환(지수, +2.507 dB, resid rms 0.238)을 골랐다. Yuan ε 의 단위조차 레일리 검산으로 «선형 진폭 표준편차» 라고 역산했다"
+   },
+   {
+    "claim": "선행이 안 하는 축 — 표적모형 선택이 검출 결론을 얼마나 옮기는가를 한 주입점에서 통제해 잰다",
+    "evidence": "PAPER_POSITION_0803 §2 — 교집합 5편 중 표적 절대 dBsm 자기계산 인쇄 0편·Pfa 교정 ROC 인쇄 0편, 표적모형 3갈래를 같은 주입점에 꽂은 통제 실험 미발견(고유 345편 아카이브 범위 한정 표현)"
+   }
+  ],
+  "worse_than_others": [
+   {
+    "claim": "절대 레벨이 유일한 정합 앵커보다 낮고, 그 부호가 한 방향이다",
+    "evidence": "MESH_VALIDATION §2.1 — 다섯 대조 전부 «우리가 낮다»(−0.51 ~ −4.91 dB). v2 로 −3.30 dB. 최악 1.8 GHz 에서 −7.97 dB. 선언된 과금속화(마그네슘 판)가 σ 를 올리는 편향인데도 낮으므로 **결손은 하한**"
+   },
+   {
+    "claim": "방위 산포 ε 의 모양이 실측과 다르다 — 우리는 정반사 플래시 지배, 실물은 풍부한 산란 앙상블",
+    "evidence": "validate_measured_airframe :: C_azimuth_pattern_shape — Das ε 는 전 밴드 5.2~5.3 dB 로 거의 일정하고 다중약산란체 한계 5.570 dB 바로 아래. 우리는 1.843/3.5 GHz 에서 낮고(4.48/3.97) 5.21 GHz 에서 높다(6.48). 분포족도 우리 로그정규 11/감마 8/라이시안 2 vs 실측 라이시안 최량. das_fleet flash_dominance: top1pct_share m350rtk 0.369"
+   },
+   {
+    "claim": "PO 1-bounce 라 모서리 회절(PTD)이 없고 저-ka 에서 진다",
+    "evidence": "MESH_VALIDATION §2.2 — 1.8 GHz 에서 다리튜브 ka=0.30·모터벨 0.64. 구 기준해 kr≈1 에서 PO 가 Mie 대비 −6.58 dB. ANCHOR_SUBBAND — 주파수 의존 신뢰 하한 f_x≈5.7 GHz 인데 **우리 운용 3밴드가 전부 그 아래**"
+   },
+   {
+    "claim": "편파가 없다 — 스칼라 |Γ|",
+    "evidence": "E_error_bars.polarisation — Das·Yuan 은 VV, 우리 PO 면적분에 편파 항이 없다. 리포트 25: 얇은 판 폭 0.15λ 에서 두 편파가 11.56 dB 갈린다. 원장 크기 칸은 아직 null"
+   },
+   {
+    "claim": "바이스태틱은 대조 자체가 성립 안 한다",
+    "evidence": "D_bistatic status = ⛔ NOT COMPARABLE — Das 의 7 각도가 기울기·ε 동일에 절편만 0.63 dB 이동(우리 광선격자 dither 1.373 dB p-p 보다 작다). 게다가 우리 rcs_sbr_multistatic 은 아직 모노스태틱 obliquity 규약을 쓰고 전방산란에서 σ=0 을 낸다"
+   },
+   {
+    "claim": "앵커가 1기체·1측정체인이고, 그 위에서 7기체로 크기전이를 한다",
+    "evidence": "rcs_anchor.literature._convention.source_relation + 리포트 25 — direct 1대(phantom4)·scaled 5대·not_comparable 1대(s1000plus, L²↔L⁴ 산포 9.50 dB)"
+   }
+  ],
+  "claims_we_must_not_make": [
+   "«우리 σ 가 정확하다/검증됐다» — das_fleet 판정이 NOT_VALIDATED 이고 앵커가 1건이다",
+   "«앵커 2건이 독립적으로 확인한다» — Das 는 Yuan 원자료 재분석 (ANCHOR_SUBBAND ⛔6)",
+   "«우리 대역에서 N배 틀리다» 를 창 없이 — ⛔1·⛔2 (7.44배·3~8배가 그렇게 폐기됐다)",
+   "«고대역에서 앵커와 일치한다» — 6~12 GHz 에서만 참(z=+0.6), 6~18.2 전체는 z=−2.1 경계 (⛔3)",
+   "«처음/최초» — Rzewuski NATO 2021 이 드론 바이스태틱 RCS→커버리지→50 m 실외검출을 이미 닫았고, Mukherjee IEEE Access 2022 가 상용 RT 안에 PO 를 넣어 8000면 인체 팬텀에 적용·실측 RMSE 5.46 dB 를 인쇄했다",
+   "«환경 광선추적 + 실형상 표적» 자리 — 이미 5편(RadarTwin·LAMBDA·Clutter-Aware ISAC·Great-X·Neural ISAC)"
+  ]
+ },
+ "open_items": [
+  {
+   "id": "D-1",
+   "severity": "HIGH",
+   "state": "STALE",
+   "what": "docs/MESH_VALIDATION.md(08-03 11:00)·docs/ENGINE_VALIDATION.md(08-03 07:04) 가 v1 phantom3 메쉬 세대에 멈춰 있다",
+   "detail": "MESH_VALIDATION §3 헤드라인 «우리 0.420 ± 0.066, 우리−Yuan θ90 = +0.105 dB/GHz = 1.58σ, 95% 수준에서 구별되지 않음» 은 p3_ours.json(08:34, v1)에서 나온 값이다. 같은 날 13:59 의 v2 로 다시 재면 a=0.5188±0.0322, Δ=+0.204, ≈3.97σ → **구별된다**. ENGINE_VALIDATION 의 «2.07배» 표도 같은 세대다. 리포트 24·26·27 은 v2 를 정확히 싣고 있으므로 문서만 뒤처졌다",
+   "next": "두 md 의 슬로프 절을 v2 수치로 갱신하거나, 최소한 헤더에 «v1 메쉬 세대 — 현행은 p3_ours_v2» 를 못 박는다(계산 불필요)"
+  },
+  {
+   "id": "D-2",
+   "severity": "HIGH",
+   "state": "STALE",
+   "what": "선행대조 산출물 전부가 Γ(θ) 커널(2026-08-07 10:58) 이전 세대다",
+   "detail": "validate_measured_airframe.json 08-03 03:55 · das_fleet_*.json 08-03 · p3_ours*.json 08-03 · rcs_anchor.json. 리포트 28 은 이 사실을 본문에 적어 두었다(«재집계에는 Γ(θ) 반영도 함께 든다»)",
+   "next": "σ 격자 재계산이 끝나면 p3(v2)+das_fleet 을 같은 커널로 재집계. 판정(NOT_VALIDATED)은 이 크기의 이동에 강건하다고 리포트 28 이 이미 선언했으므로 우선순위는 기울기 숫자 쪽"
+  },
+  {
+   "id": "D-3",
+   "severity": "MEDIUM",
+   "state": "OPEN",
+   "what": "«Γ(θ) 는 기울기 비교에 중립적» 이 선언만 있고 측정이 없다",
+   "detail": "benchmark/rcs_same_span_sweep.py 헤더가 «Γ(θ) 는 방위평균을 +0.1~0.33 dB 만 움직인다(실측) — 기울기 비교에는 중립적» 이라 적는다. 근거인 outputs/angle_gamma_sigma_impact.json 은 el±15 두 자세 × 3기체뿐이고 **주파수 축이 없다**. 주파수 무관성의 실제 근거는 «재질 Γ_po 가 전부 주파수 평탄»(E_error_bars) 이라는 간접 논거다",
+   "next": "2~18 GHz 4~5점에서 Γ(θ) on/off 를 재 기울기 차를 인쇄한다(현 σ 재계산 큐 뒤, 싸다)"
+  },
+  {
+   "id": "D-4",
+   "severity": "MEDIUM",
+   "state": "OPEN",
+   "what": "das_fleet_ours.json 의 헤드라인 문장이 같은 날 후속 산출물에 의해 뒤집혔는데 파일 안에 그대로 남아 있다",
+   "detail": "ours(17:37) what_held: «통제군 DL=−3.014 로 사전등록값과 소수 셋째자리까지 같다» · «기울기 게이트 2/2 통과(phantom3 Δa=+0.21)». validation(18:35) ruler_mismatch: 그 통제군만 v1 자로 쟀고 v2 로는 DL=−1.470(+1.544 dB), Δa=+0.309 → **문턱 0.25 초과 = 실패**. flash_dominance 도 «단조 증가» 를 «|DL| 로 읽어야 하고 phantom3 을 넣으면 그것도 깨진다, 남는 것은 Spearman 0.8·n=4 추세» 로 격하. das_fleet_attack.overall.required_before_citing 6항은 미이행(ours.json 재집계 없음)",
+   "mitigation_ok": "리포트 28 은 das_fleet_validation 을 읽어 −1.47 을 싣고 m350rtk 스냅샷·mini2 정정전 메쉬·Γ(θ) 대기를 본문에 적는다 — 리포트 경로는 안전하다",
+   "next": "ours.json 재집계 시 headline.what_held 1·5 를 validation 의 문장으로 교체. 그 전까지 ours.json 문장 직접 인용 금지"
+  },
+  {
+   "id": "D-5",
+   "severity": "MEDIUM",
+   "state": "RUNNING",
+   "what": "같은구간 스윕이 Das 표적(phantom3)을 안 돌려 «사과-대-사과» 라는 이름과 실제 범위가 어긋난다",
+   "next": "Q1b 참조 — 결과를 두 문단으로 분리해 적는다"
+  },
+  {
+   "id": "D-6",
+   "severity": "LOW",
+   "state": "OPEN",
+   "what": "prior_work/sionna_sensing_survey.md:354 «RCS 절대 앵커: DJI M350 측정(2505.20673)» 이 실태와 어긋난다",
+   "detail": "rcs_anchor.json literature 에 Zhang 행이 없다. Zhang 은 분해 형식(σ=A·B1·B2)과 기울기 census 로만 쓰인다",
+   "next": "그 한 줄을 «분해 형식 차용 + 기울기 census» 로 정정"
+  },
+  {
+   "id": "D-7",
+   "severity": "LOW",
+   "state": "OPEN",
+   "what": "OPENSOURCE.md(07-22)가 R20 이후 규율(Sagitta 유효창 kr≳30 병기)을 안 담고 있다",
+   "next": "«RaytrAMP/RadarSimPy 불채택» 행 옆에 Sagitta 유효창 한 줄 추가"
+  },
+  {
+   "id": "D-8",
+   "severity": "MEDIUM",
+   "state": "OPEN",
+   "what": "두 번째 측정체인이 없다 — Rzewuski FDTD·openEMS 교차검증이 리포트 «다음 단계» 에만 있고 실행 흔적 0",
+   "next": "절대 레벨 −1.5~−3.3 dB 를 어느 쪽으로 고칠지 판정할 유일한 저비용 수단. openEMS 정준 표적(구/판) 부터"
+  },
+  {
+   "id": "D-9",
+   "severity": "LOW",
+   "state": "OPEN",
+   "what": "das_fleet_spec.open_questions 5건 미해결 — Das ref[7](Wang, China Commun. 2026) 미확보, supplementary 미확보, Das μ 의 고도 풀링 여부, taper sin²θb 출처, Table I 치수 규약",
+   "next": "ref[7] 확보가 Mini2·M350RTK 의 편파·레인지 종류를 한 번에 닫는다"
+  }
+ ],
+ "what_is_solid": [
+  "R20 대정정(md-rt 승격·Ziganshin 저널판↔회의판 구별)이 서베이·README·PAPER_POSITION 세 곳에 반영돼 있고 재발 흔적 없음",
+  "앵커가 1기체·1측정체인이라는 것을 스스로 찾아 인쇄하고, «독립 2건» 주장을 명시 금지 목록에 올림",
+  "봉인→채점→실패 선언(NOT_VALIDATED) 사이클이 실제로 돌았고, 자기 산출물을 공격하는 라운드(das_fleet_attack·validation)가 헤드라인을 실제로 깎았음",
+  "생산 앵커는 slope_only — 레벨 이동 7기체 평균 −0.0000 dB. 절대 σ 를 문헌에 맞춰 끌어당기지 않음",
+  "포지셔닝이 «σ 정확도» 가 아니라 «표적모형 선택이 검출 결론을 얼마나 옮기는가» 로 서 있음 — 메인 태스크(탐지·분류)와 정합"
+ ]
+}

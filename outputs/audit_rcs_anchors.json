@@ -1,0 +1,441 @@
+{
+ "_meta": {
+  "title": "갈래 A 감사 — 우리 σ 는 무엇에 붙들려 있고 그 끈이 지금 성한가",
+  "generated": "2026-08-10 06:42:48",
+  "scope": "읽기 전용. GPU 재계산·git·파일수정 없음. 이 파일이 유일한 산출물.",
+  "method": "문장이 아니라 원장(JSON)·파일시각·프로세스·소스코드로 판정했다. 메쉬 지문은 감사 시점에 CPU 로 다시 계산했다.",
+  "event_clock": {
+   "angle_gamma_wired": "2026-08-07 11:04:33 (src/rcs_sbr.py, ANGLE_GAMMA 기본 1)",
+   "mini5pro_mesh_fix": "2026-08-10 04:19:03 (src/drone_cad.py PROP_STANDOFF_M)"
+  }
+ },
+ "Q1_absolute_anchor": {
+  "answer_ko": "절대 레벨 앵커는 **공개 문헌 RCS 뿐이고 자체 측정은 0 건**이다. 그마저 기체 한 대(DJI Phantom 3)·측정체인 한 개(Southeast Univ. CATR)다.",
+  "self_measurement_count": 0,
+  "self_measurement_status": "계획 단계 — 편 68 체크리스트 6항목, X410 야외 캠페인. outputs/measured_sigma.json 은 아직 없다.",
+  "literature_anchors": [
+   {
+    "paper": "Das, IEEE WCL 2026 15:3731 (doi 10.1109/LWC.2026.3705634)",
+    "airframe": "DJI Phantom 3",
+    "band_ghz": [
+     1.8,
+     18.2
+    ],
+    "pol": "VV",
+    "geom": "monostatic far-field anechoic",
+    "slope_db_per_ghz": 0.21,
+    "role": "생산 기울기 앵커(slope_only 가 받는 값)"
+   },
+   {
+    "paper": "Yuan, EuCAP 2025 (doi 10.23919/EuCAP63536.2025.10999912)",
+    "airframe": "DJI Phantom 3",
+    "band_ghz": [
+     1.8,
+     18.2
+    ],
+    "pol": "VV",
+    "geom": "monostatic CATR far-field anechoic",
+    "slope_db_per_ghz": {
+     "theta90_az": 0.315,
+     "theta0_top": 0.231,
+     "theta180_bottom": 0.175
+    },
+    "role": "고도정합 대조군(우리 el=0 ↔ θ=90)"
+   },
+   {
+    "paper": "Das Table III 나머지 3 기체",
+    "airframe": [
+     "Phantom 2",
+     "Mini 2",
+     "M350 RTK"
+    ],
+    "band_ghz": [
+     [
+      11,
+      26
+     ],
+     [
+      21,
+      27
+     ],
+     [
+      21,
+      27
+     ]
+    ],
+    "role": "우리 대역(1.8~5.21 GHz)과 **겹치지 않는다** — 레벨 앵커로 못 쓴다"
+   }
+  ],
+  "independence_verdict_ko": "Das 의 Phantom 3 행은 Yuan 원자료의 재분석이다(Das ACKNOWLEDGMENT 의 Wei Fan = Yuan 교신저자, Table I 설정이 글자 단위로 동일). **독립 2건이 아니다.** 두 논문의 일치는 재현이 아니라 통계 규약 역산에만 쓸 수 있다.",
+  "ground_truth_references_not_measurements": [
+   {
+    "what": "정확 Mie (PEC 구)",
+    "file": "benchmark/mie_pec_sphere.py",
+    "role": "커널 절대 판정"
+   },
+   {
+    "what": "2D EFIE MoM (얇은 띠)",
+    "file": "benchmark/mom2d_reference.py",
+    "role": "PO 근본한계 판정"
+   },
+   {
+    "what": "해석 PO 닫힌형",
+    "role": "수치수렴 판정 (커널이 PO 이므로)"
+   }
+  ],
+  "distance_to_ledger_now": {
+   "primary_comparand_ko": "고도·규약·추정량이 모두 정합인 유일한 대조 = 우리 P3 v2 메쉬 el=0 ↔ Yuan θ=90 복원 실측곡선",
+   "source": "outputs/p3_validation_v2.json (2026-08-03 14:00:56)",
+   "full_band_1p8_18p2": {
+    "level_err_db": -3.3044,
+    "rms_db": 3.7171,
+    "slope_ours": 0.5188,
+    "slope_se": 0.0322,
+    "slope_measured_dense": 0.3164,
+    "slope_err_db_per_ghz": 0.2024,
+    "z": 6.294
+   },
+   "our_operating_band_1p8_6p0": {
+    "level_err_mean_db": -5.1645,
+    "level_err_at_low_db": -5.2458,
+    "level_err_at_high_db": -3.4924,
+    "slope_ours": 1.0178,
+    "slope_measured": 0.4107,
+    "slope_ratio": 2.478
+   },
+   "per_band_ours_minus_yuan_curve_db": {
+    "LTE 1.843 GHz": -6.5086,
+    "5G 3.5 GHz": -7.3483,
+    "WiFi 5.21 GHz": -4.1083
+   },
+   "older_sibling": {
+    "file": "outputs/validate_measured_airframe.json (2026-08-03 03:55:51)",
+    "verdict": "THE VALIDATION FAILS — 1.843 GHz 에서 봉투 대비 -4.43 dB, 5.21 GHz 에서 봉투 안",
+    "note_ko": "p3_validation_v2 (같은 날 14:00) 가 **대체**한다 — v2 는 사진실측 메쉬·61 주파수점. 두 파일이 같은 양에 다른 수를 인쇄하므로 인용 전에 v2 를 쓸 것."
+   },
+   "sphere_control_ko": "Yuan 자신의 교정구(r=17.8 cm)는 우리 커널이 정확 Mie 대비 -0.85 dB(1.843) · -0.37 dB(3.5) 로 재현한다 — 절대 스케일과 주파수 편향은 커널 문제가 아니라는 뜻이다.",
+   "po_floor_ko": "PEC 구 ka=1 에서 커널−Mie 간극 6.530 → 6.584 dB 로, 광선격자를 209 배 조여도 -0.054 dB 밖에 안 준다 = 표본화가 아니라 PO 근본한계다(outputs/lowfreq_anchor.json)."
+  },
+  "what_the_anchor_moves": {
+   "production_mode": "slope_only",
+   "moves": "A(f) 의 기울기만. 밴드 비가중 평균 레벨을 축으로 회전 → 평균 레벨이동 0.00 dB",
+   "does_not_move_ko": "절대 레벨과 각도 패턴은 우리 PO 출력 그대로다. 각패턴 불변 잔차 9.6e-16 dB.",
+   "largest_uncontrolled_term_db": 9.501,
+   "largest_uncontrolled_term": "size transfer law (L² vs L⁴, s1000plus)",
+   "applied_correction_abs_max_db": 2.698
+  }
+ },
+ "Q2_reproducibility": {
+  "verdict_ko": "지문 게이트는 **한 층에만** 있다. 검출사슬 σ 캐시는 메쉬가 바뀌면 자동 미스가 나지만, σ 격자 원장 자신은 재실행해도 지문을 갱신하지 않는다.",
+  "guards_that_work": [
+   {
+    "what": "σ 디스크캐시 키에 메쉬 지문",
+    "where": "benchmark/channel.py::_mesh_fp / _sig_key",
+    "key_form": "'{drone}@{md5(round(v,6))[:8]}|{fc_MHz}|{az_mdeg}|{el_mdeg}'",
+    "verified_ko": "outputs/sigma_sbr_cache.json 실제 키가 'mini5pro@8afe5530|5210.0|...' 형태다 — 현 mini5pro 지문 3cdaecdc 와 달라 자동 미스. 지문 없는 옛 키는 _sig_load 가 메모리에서 버린다.",
+    "state": "PASS"
+   },
+   {
+    "what": "워커 캐시 미스 시 조용한 PO 폴백 금지",
+    "where": "SIONNA2_NO_GPU=1 → 큰 소리로 실패",
+    "state": "PASS"
+   },
+   {
+    "what": "rcs_anchor.json 자기 지문 + stale_when 규칙",
+    "where": "meta.mesh_provenance.built_mesh",
+    "state": "PARTIAL",
+    "why_ko": "지문은 있으나 소급 기록임을 파일 스스로 적었고(meta.mesh_provenance.note), source_sha256_16 은 산출 당시가 아니라 «현재» 해시라고 명시돼 있다. 실제로 지금 src 3 개(drones.py·materials.py·rcs_sbr.py)가 그 기록과 다르다."
+   }
+  ],
+  "guard_that_fails": {
+   "what": "report13_sigma_grid.json 의 meta 자기기록",
+   "where": "src/experiment_freespace_sigma.py:main() — `out.setdefault(\"meta\", _meta(...))`",
+   "defect_ko": "기존 파일에 --force 로 한 기체만 다시 넣으면 meta 는 **손대지 않는다**. meta.generated·meta.mesh_fp·meta.backend 가 옛 세대 그대로 남고, 갱신되는 건 meta.runtime_s 뿐이다. 격자 셀에는 기체별 지문·시각이 **없다**.",
+   "consequence_ko": "지금 도는 matrice4e --force 가 착지하면 report13_sigma_grid.json 은 «한 세대» 로 서명된 **혼합 세대 원장**이 된다 — matrice4e 칸만 새 메쉬+Γ(θ), 나머지 6 칸은 08-03 메쉬·Γ 이전. 파일만 보고는 구별할 방법이 없다.",
+   "severity": "HIGH",
+   "fix_ko": "격자 셀마다 mesh_fp·kernel_flags(ANGLE_GAMMA)·generated 를 적고, meta 는 setdefault 대신 세대별 목록으로 누적할 것."
+  },
+  "mesh_fingerprint_audit": {
+   "convention": "benchmark/channel.py::_mesh_fp — md5(round(v,6).tobytes() + str(shape))[:8]",
+   "recorded_in": "outputs/report13_sigma_grid.json : meta.mesh_fp (2026-08-03 세대)",
+   "measured_at_audit_time": true,
+   "rows": [
+    {
+     "drone": "mini5pro",
+     "recorded": "8afe5530",
+     "current": "3cdaecdc",
+     "match": false,
+     "n_vert_now": 14564
+    },
+    {
+     "drone": "phantom4",
+     "recorded": "8e44ef2a",
+     "current": "80a104c5",
+     "match": false,
+     "n_vert_now": 14247
+    },
+    {
+     "drone": "mavic4pro",
+     "recorded": "73d30b20",
+     "current": "3f15e6e2",
+     "match": false,
+     "n_vert_now": 15006
+    },
+    {
+     "drone": "matrice4e",
+     "recorded": "5ee3b19b",
+     "current": "9bbfff74",
+     "match": false,
+     "n_vert_now": 15387
+    },
+    {
+     "drone": "s1000plus",
+     "recorded": "02f45928",
+     "current": "7a49d665",
+     "match": false,
+     "n_vert_now": 17753
+    },
+    {
+     "drone": "typhoonh480",
+     "recorded": "83ea1cd0",
+     "current": "83ea1cd0",
+     "match": true,
+     "n_vert_now": 17424
+    },
+    {
+     "drone": "x500v2",
+     "recorded": "126e2936",
+     "current": "0f15ccc6",
+     "match": false,
+     "n_vert_now": 9615
+    }
+   ],
+   "n_mismatch": 6,
+   "finding_ko": "7 기체 중 **6 기체**가 불일치한다(typhoonh480 만 일치). mini5pro 만이 아니다 — phantom4·mavic4pro·matrice4e·s1000plus·x500v2 도 08-04 메쉬 게이트 라운드 이후 바뀌었다. 정점수까지 바뀐 것은 mini5pro(14580→14564)·matrice4e(15410→15387) 두 기체이고, 나머지는 정점수 동일·좌표 이동이다.",
+   "cross_check_ko": "outputs/meshfix_mini5pro_overlap.json 의 «다른 9 기 비트동일» 은 **오늘 편집에 한해** 참이다. 08-04 게이트 대비로는 참이 아니므로 «mini5pro 칸만 낡았다» 로 읽으면 안 된다."
+  }
+ },
+ "Q3_staleness_census": {
+  "rule_ko": "생성시각 < Γ(θ) 배선(2026-08-07 11:04:33) 이면 Γ 낡음, < mini5pro 메쉬 수정(2026-08-10 04:19:03) 이면 메쉬 낡음. 추측 없이 파일시각으로만 판정했다.",
+  "caveat_ko": "⚠ mtime 은 내용 세대의 증거가 아니다. report13_sigma_grid.json 은 mtime 2026-08-10 04:24:27 이지만 meta.generated 는 2026-08-03T11:17:59 이고 runtime_s 4.5 다 — 격자를 다시 안 돈 무의미 재저장이다. 판정은 meta.generated + mesh_fp 로 했다.",
+  "stale_vs_angle_gamma": [
+   "outputs/rcs_anchor.json (2026-08-03 12:36:37 / meta.generated 08-03 05:49:19) — 절대 σ 앵커 7 기체",
+   "outputs/sigma_anchor.json (2026-07-31 01:34:18) — 재보정 원장, 원천 격자 07-29·원천 앵커 07-30",
+   "outputs/report13_sigma_grid.json (meta.generated 2026-08-03T11:17:59) — 자세×주파수 σ 격자 7 기체",
+   "outputs/report13_sigma_grid_elext.json (2026-08-03 11:08:20)",
+   "outputs/report13_sigma_grid.{mini5pro,phantom4,mavic4pro,matrice4e,s1000plus}.json (2026-07-24~25)",
+   "outputs/report13_freespace.json (2026-07-30 03:16:40) — 검지거리 사다리",
+   "outputs/sigma_sensitivity.json (2026-07-31 05:41:54)",
+   "outputs/sigma_robust_summary.json (2026-07-31 06:17:11)",
+   "outputs/sigma_grid_regen.json · sigma_regen_impact.json · sigma_el_extend_*.json (2026-08-03)",
+   "outputs/sigma_sbr_cache.json (2026-08-03 09:58:17) — 지문 게이트로 자동 미스, 조치 불필요",
+   "outputs/lowfreq_anchor.json (2026-08-03 14:31:00) · lowfreq_grid.json (08-03 13:27)",
+   "outputs/validate_measured_airframe.json (2026-08-03 03:55:51)",
+   "outputs/p3_*.json 전부 (2026-08-03) — p3_validation_v2 포함",
+   "outputs/anchor_subband*.json (2026-08-03)",
+   "outputs/das_fleet_*.json (2026-08-03)",
+   "outputs/report16_* 전부 (2026-08-04) — 표적 사다리",
+   "outputs/report02_derived.json · report05_derived.json · report06_derived.json (2026-08-07 05:0x)",
+   "outputs/mesh_compare_{photo,cad,material}.json (2026-07-31)",
+   "outputs/correction_sweep.json (2026-08-03) · prior_settled_anchor.json (2026-07-31)"
+  ],
+  "fresh_after_angle_gamma": [
+   "outputs/angle_gamma_sigma_impact.json (2026-08-07 11:06:34) — Γ 영향 측정 그 자체",
+   "outputs/angle_gamma_po_impact.json (2026-08-10 04:27:39) — 순수 PO·마이크로도플러 배선 검증",
+   "outputs/report15b_microdoppler.json (_meta.generated 2026-08-10 04:41:56) — 메쉬 수정 **이후** 생성, 유효",
+   "outputs/report07_* (2026-08-10) — 마이크로도플러 계열"
+  ],
+  "sigma_products_fresh_after_mesh_fix": [],
+  "headline_ko": "⭐ Γ(θ) 이후 갱신된 **σ 산출물은 하나도 없다**. σ 축 전체(앵커·격자·검지거리·민감도·강건성·사다리·리포트 파생값)가 커널 한 세대 뒤에 있다. 마이크로도플러 축만 최신이다.",
+  "report_layer": {
+   "state_ko": "reports/ 78 편 전부 2026-08-10 05:14~05:17 에 재빌드됐다 — 즉 **오늘 날짜의 서술이 08-03/07-31 세대 숫자를 싣고 있다**.",
+   "disclosure_ok_ko": "14 편이 «2026-08-04 형상 정정 전 메쉬» 를 본문에 명시하고, 편 25 는 Γ(θ) 이전 커널임까지 적는다 — 공시는 성실하다.",
+   "disclosure_gap_ko": "⚠ 2026-08-10 mini5pro 메쉬 수정을 언급하는 리포트는 **0 편**이다(grep '2026-08-10' → 무). 수정 45 분 뒤에 재빌드했는데도 공시가 안 붙었다."
+  }
+ },
+ "Q4_recompute_progress": {
+  "judged_by": "프로세스(ps/lsof)·파일시각·로그 내용. 프로세스는 건드리지 않았다.",
+  "gpu_occupancy_by_memory": {
+   "note": "판정은 메모리 기준(util% 아님)",
+   "GPU0": "22717/24564 MiB — 타 사용자(srlee, F-ViTA inference_gsam)",
+   "GPU1": "21684/24564 MiB — 타 사용자(srlee)",
+   "GPU2": "11948/24564 MiB — 우리 3 프로세스",
+   "GPU3": "21858/24564 MiB — 타 사용자(MMFE, baseenv hyb*)",
+   "implication_ko": "우리 σ 작업은 GPU2 한 장에 세 프로세스가 몰려 있다. 여유 카드가 없어 분산이 불가하다."
+  },
+  "live_jobs": [
+   {
+    "pid": 101312,
+    "cmd": "src/experiment_freespace_sigma.py --drone matrice4e --backend direct --force",
+    "started": "2026-08-10 04:26:31",
+    "elapsed_at_audit": "02:02",
+    "cpu_s": 8474,
+    "state": "Rl (259 threads)",
+    "gpu_mem_mib": 2654,
+    "stdout": "scratchpad/sigma_m4e2.log — 0 바이트(블록 버퍼링, 정상)",
+    "committed_output": "없음 — _save 는 기체 하나가 끝나야 호출된다(all-or-nothing)",
+    "budget_estimate_ko": "08-03 샤드 실측(matrice4e LTE base 9 el = 98.7 s, el 확장 1 행 = 30.7 s)으로 환산하면 1 기체 3 밴드 ≈ 1,600 GPU-s ≈ 27 분. 지금 122 분 = 예산의 **약 4.5 배**.",
+    "verdict": "RUNNING — 진행률 관측 불가(중간 저장 없음), 예산 초과"
+   },
+   {
+    "pid": 84448,
+    "cmd": "benchmark/rcs_same_span_sweep.py",
+    "started": "2026-08-10 04:23:34",
+    "elapsed_at_audit": "02:05",
+    "gpu_mem_mib": 8368,
+    "progress": {
+     "matrice4e": "33/33 완료",
+     "mini5pro": "33/33 완료",
+     "phantom4": "23/33 (13.0 GHz)"
+    },
+    "overall_pct": 89.9,
+    "committed_output": "없음 — outputs/rcs_same_span.json 은 3 기체 전부 끝난 뒤 한 번만 쓴다(파일 미존재 확인)",
+    "recovery_ko": "다행히 μ 가 로그에 한 줄씩 찍힌다 — samespan.log 파싱으로 완료 2 기체는 복구 가능하다(이 감사가 실제로 복구해 적합까지 돌렸다).",
+    "verdict": "RUNNING 90% — 남은 10 점 ≈ 35~50 분 예상"
+   },
+   {
+    "pid": 642705,
+    "cmd": "benchmark/report07_three_engine_ranges.py (마이크로도플러 고해상도 큐)",
+    "started": "2026-08-10 06:23:28",
+    "gpu_mem_mib": 898,
+    "verdict": "RUNNING"
+   },
+   {
+    "pid": 361292,
+    "cmd": "watcher: 101312 종료 대기 → mini5pro σ direct --force",
+    "verdict": "QUEUED — mini5pro σ 는 **아직 시작 전**이다"
+   }
+  ],
+  "failed_silently": {
+   "what_ko": "prefill 백엔드 σ 재계산이 matrice4e·mini5pro **둘 다** BrokenProcessPool 로 죽었다(05:01). 원인은 Dr.Jit CUDA_ERROR_NOT_INITIALIZED — GPU2 동시작업과의 경합.",
+   "defect_ko": "⚠ 그런데 마커 파일 sigma_chain.log 에는 «SIGMA_CHAIN_DONE 05:01:18» 이 찍혔다. 체인이 **종료코드를 보지 않고** 완료를 선언한다. 로그를 안 열었으면 «σ 재계산 끝남» 으로 오독됐을 것이다.",
+   "severity": "MEDIUM-HIGH"
+  },
+  "coverage_gap_ko": "⭐ 큐에 있는 것은 matrice4e·mini5pro **2 기체뿐**이다. mavic4pro·phantom4·s1000plus·typhoonh480·x500v2 는 재계산 예정에 없다 — 이 라운드가 다 끝나도 격자 7 칸 중 5 칸은 08-03 세대로 남는다."
+ },
+ "Q5_assert_risk": {
+  "assert": "src/make_report02_target.py:276 — assert worst <= SLOPE_LEDGER_GAP_MAX_DB_PER_GHZ (=1.40)",
+  "what_it_compares_ko": "worst = max_k |sigma_anchor.json:drones[k].slope_ours_3band_db_per_ghz − polyfit(3밴드 el0 mean_dbsm of **현재** rcs_anchor.json)|. 즉 **두 세대의 rcs_anchor** 를 맞대는 것이지 격자를 보는 게 아니다.",
+  "recomputed_now": {
+   "matrice4e": {
+    "sigma_anchor_slope_db_per_ghz": 0.9358698306274642,
+    "rcs_anchor_slope_db_per_ghz": 0.23322388401605645,
+    "gap_db_per_ghz": 0.7026459466114078,
+    "break_if_new_rcs_anchor_slope_below": -0.4641301693725357,
+    "break_if_new_rcs_anchor_slope_above": 2.3358698306274643,
+    "delta_needed_to_break_down_db_per_ghz": -0.6973540533885921,
+    "delta_needed_to_break_up_db_per_ghz": 2.102645946611408
+   },
+   "mavic4pro": {
+    "sigma_anchor_slope_db_per_ghz": 1.3110883410656062,
+    "rcs_anchor_slope_db_per_ghz": -0.0844509267461361,
+    "gap_db_per_ghz": 1.3955392678117424,
+    "break_if_new_rcs_anchor_slope_below": -0.08891165893439368,
+    "break_if_new_rcs_anchor_slope_above": 2.711088341065606,
+    "delta_needed_to_break_down_db_per_ghz": -0.004460732188257571,
+    "delta_needed_to_break_up_db_per_ghz": 2.7955392678117423
+   },
+   "mini5pro": {
+    "sigma_anchor_slope_db_per_ghz": 1.5170442793984567,
+    "rcs_anchor_slope_db_per_ghz": 1.2757108456969408,
+    "gap_db_per_ghz": 0.24133343370151583,
+    "break_if_new_rcs_anchor_slope_below": 0.11704427939845674,
+    "break_if_new_rcs_anchor_slope_above": 2.9170442793984566,
+    "delta_needed_to_break_down_db_per_ghz": -1.158666566298484,
+    "delta_needed_to_break_up_db_per_ghz": 1.6413334337015157
+   },
+   "phantom4": {
+    "sigma_anchor_slope_db_per_ghz": 1.6994008126771427,
+    "rcs_anchor_slope_db_per_ghz": 2.00425680950296,
+    "gap_db_per_ghz": 0.3048559968258173,
+    "break_if_new_rcs_anchor_slope_below": 0.2994008126771428,
+    "break_if_new_rcs_anchor_slope_above": 3.0994008126771426,
+    "delta_needed_to_break_down_db_per_ghz": -1.7048559968258172,
+    "delta_needed_to_break_up_db_per_ghz": 1.0951440031741826
+   },
+   "s1000plus": {
+    "sigma_anchor_slope_db_per_ghz": 1.6037946605260234,
+    "rcs_anchor_slope_db_per_ghz": 0.5963837817463704,
+    "gap_db_per_ghz": 1.007410878779653,
+    "break_if_new_rcs_anchor_slope_below": 0.20379466052602346,
+    "break_if_new_rcs_anchor_slope_above": 3.0037946605260233,
+    "delta_needed_to_break_down_db_per_ghz": -0.39258912122034695,
+    "delta_needed_to_break_up_db_per_ghz": 2.407410878779653
+   }
+  },
+  "worst_now": {
+   "drone": "mavic4pro",
+   "gap_db_per_ghz": 1.3955,
+   "margin_db_per_ghz": 0.0045
+  },
+  "will_this_recompute_break_it": {
+   "answer": "NO — 이번 라운드로는 안 깨진다",
+   "why_ko": "지금 도는 두 프로세스는 report13_sigma_grid.json 과 rcs_same_span.json 만 쓴다. rcs_anchor.json(benchmark/rcs_anchor.py)·sigma_anchor.json(src/sigma_anchor.py) 은 아무도 안 건드린다. assert 의 두 입력이 그대로면 worst 도 그대로다."
+  },
+  "when_it_will_break": {
+   "trigger_ko": "benchmark/rcs_anchor.py 를 새 메쉬·Γ(θ) 로 다시 돌리고 **src/sigma_anchor.py 를 안 돌린 채** make_report02_target.py 를 부르는 순간.",
+   "empirical_delta_estimate_ko": "지금 도는 같은구간 스윕(현 메쉬·Γ 켬·el=0·360 az)의 μ 를 세 밴드에 보간해 기울기를 재면 08-03 rcs_anchor 대비 이렇게 움직인다:",
+   "observed_delta_slope_db_per_ghz": {
+    "matrice4e": 0.2524,
+    "mini5pro": -0.3478,
+    "phantom4": -0.4139
+   },
+   "delta_caveat_ko": "이 Δ 는 메쉬 세대 + Γ(θ) + 표본(360 vs 720 az) + div(12 vs 16) + 단일주파수 vs 3점 밴드평균 이 섞인 값이라 상한 성격이다. 그래도 크기대(0.25~0.41 dB/GHz)는 신뢰할 만하다.",
+   "quantified_risk": {
+    "mavic4pro_needs_to_break": -0.0045,
+    "ratio_of_observed_to_needed": "55~92 배",
+    "p_break_ko": "필요 변화량이 관측 변화량의 1~2 % 라 «크기» 로는 사실상 확정이고, 남은 건 **부호**뿐이다. 관측 3 건 중 2 건이 음수 → 대략 **55~70 %**. 위로 깨지려면 +2.80 dB/GHz 가 필요해 불가능하다.",
+    "second_in_line": "s1000plus — 아래로 -0.393 dB/GHz 면 깨진다. 관측 |Δ| 0.25~0.41 과 같은 크기대라 **동시 발화 가능**.",
+    "safe_margin": {
+     "matrice4e": -0.697,
+     "mini5pro": -1.159,
+     "phantom4": -1.705
+    }
+   }
+  },
+  "prescription_ko": "⭐ 상수를 올리지 마라(설계된 멈춤). 정답은 **두 원장을 한 세대로 다시 도는 것** — benchmark/rcs_anchor.py → src/sigma_anchor.py 순서로 돌리고 그 뒤 SLOPE_LEDGER_GAP_MAX_DB_PER_GHZ 를 0 근처로 되돌린다. 어서트 실패 메시지가 이미 그 순서를 적고 있다.",
+  "hidden_trap_ko": "⚠ mavic4pro 는 이번 재계산 큐에 **없다**. 그래서 격자만 고치고 앵커를 다시 돌면 mavic4pro 는 «옛 메쉬 격자 ↔ 새 메쉬 앵커» 라는 세 번째 혼합이 된다. 앵커 라운드는 7 기체를 통째로 도는 것이 유일하게 안전하다."
+ },
+ "other_open_items": [
+  {
+   "id": "anchor_subband SUSPECT",
+   "file": "outputs/anchor_subband_attack.json (2026-08-03 11:51:45)",
+   "state": "OPEN — 7 일째 미반영",
+   "detail_ko": "적대검증이 verdict=SUSPECT 와 must_fix 13 건(HIGH 3)을 냈는데 표적 파일 anchor_subband.json 은 그보다 **먼저**(10:44) 만들어진 그대로다. 반증 가능한 항목 하나를 직접 검사했다: [MEDIUM] «NaN → null» 미수정 확인 — das_fig3b_subband_slopes.nofit.low_2_6_occluded_columns_dropped.a_db_per_ghz 가 bare NaN 이라 RFC-8259 엄격 파서에서 파일 전체가 안 읽힌다(python json 은 확장으로 통과시켜 놓쳐 왔다).",
+   "containment_ko": "다행히 문제의 헤드라인(z=+4.5, «저 ka 물리다»)은 reports/ 어디에도 안 들어갔다 — grep 확인. 원장 안에서만 썩고 있다."
+  },
+  {
+   "id": "순위 강건성 3/5 기체 미달",
+   "file": "outputs/sigma_robust_summary.json",
+   "state": "OPEN(선언됨)",
+   "detail_ko": "앵커 전 자체 오차범위를 못 견디는 기체가 mavic4pro(margin -1.79)·matrice4e(-2.15)·s1000plus(-3.73) 셋이다. 안전한 주장은 aspect_avg_anchored 의 L1(LTE) 계열 4 건뿐이고 fragile 5 건은 부호가 기체마다 뒤집힌다. 원장이 스스로 fragile/safe 로 갈라 적어 둔 점은 좋다."
+  },
+  {
+   "id": "validate_measured_airframe ↔ p3_validation_v2 이중원장",
+   "state": "OPEN",
+   "detail_ko": "같은 양(P3 대조 레벨·기울기)에 두 파일이 다른 수를 인쇄한다(레벨 -4.43 vs -3.30, 기울기 0.435 vs 0.519). v2 가 같은 날 10 시간 뒤 산출물이지만 v1 파일에 «superseded» 표시가 없다. 편 24 는 v2 를, 다른 곳은 v1 을 인용할 위험."
+  },
+  {
+   "id": "multistatic 블록 미재생",
+   "state": "OPEN(선언됨)",
+   "detail_ko": "report13_sigma_grid.json meta.multistatic_regenerated=false — 옛 판 multistatic 은 07-29 메쉬 낡음을 안고 있어 아예 안 옮겼다. 모노스태틱만 최신인 상태이고, 방침 메모의 «모노/바이/멀티스태틱 일반형 필수» 와 갈라져 있다."
+  }
+ ],
+ "what_is_trustworthy_as_infrastructure": {
+  "solid_ko": [
+   "커널의 절대 스케일 — Yuan 교정구를 정확 Mie 대비 0.85 dB 안에서, 세 밴드에 걸쳐 평평하게 재현한다.",
+   "PO 유효 한계의 크기와 위치 — 부품 폭 0.729λ 무릎, ka=1 에서 6.58 dB 바닥이 참값(Mie·MoM)으로 고정돼 있다. 이건 «우리 σ 가 얼마나 틀릴 수 있나» 를 물리로 답한다.",
+   "앵커가 옮기는 것과 안 옮기는 것의 분리 — slope_only 는 레벨 이동 0.00 dB, 각패턴 잔차 1e-15 dB 로 검증됐다.",
+   "실패를 실패로 적는 규율 — validate_measured_airframe 은 헤드라인이 «THE VALIDATION FAILS» 이고, p3 v2 는 «형상을 고쳤더니 기울기가 더 나빠졌다» 를 그대로 싣는다.",
+   "검출사슬 σ 캐시의 메쉬 지문 게이트(자동 무효화)와 캐시 미스 시 큰 소리로 실패하는 설계."
+  ],
+  "not_closed_ko": [
+   "자체 측정 0 건 — 절대 레벨은 전부 남의 기체(P3) 한 대·남의 실험실 한 곳에 얹혀 있다.",
+   "우리 5 기체로의 전이 — 크기전이 지수(L² vs L⁴)가 9.50 dB 를 정하는데 미결이다. 이게 최대 미통제항이다.",
+   "편파 — 문헌은 VV, 우리는 무편파 스칼라. 얇은 판 참값에서 두 편파가 11.56 dB 갈린다.",
+   "세대 정합 — σ 축 전체가 Γ(θ) 한 세대·메쉬 한~두 세대 뒤에 있고, 원장이 자기 세대를 셀 단위로 기록하지 않는다.",
+   "멀티/바이스태틱 σ — 재생성 안 됨."
+  ],
+  "verdict_ko": "⭐ 인프라로서의 판정: **구조(자세 의존 변동·가림·PO 한계의 위치)는 믿을 만하고, 절대 레벨은 믿을 만하지 않으며 프로젝트도 그렇게 주장하지 않는다.** 지금 진짜 위험은 σ 값이 틀린 것이 아니라 **원장이 자기 세대를 못 적는 것**이다 — 혼합 세대 파일 하나가 조용히 만들어지는 중이고, 그것을 막는 장치가 σ 격자 층에는 없다."
+ }
+}

@@ -1,0 +1,214 @@
+{
+  "_meta": {
+    "title": "갈래 B 감사 — SBR+PO 커널이 인프라로서 어디까지 검증됐나",
+    "when": "2026-08-10",
+    "mode": "읽기 전용(파일 수정 0 · GPU 재계산 0). 이 파일 하나만 새로 썼다.",
+    "question": "«σ 가 맞나» 가 아니라 «인프라로서 믿을 만한가, 무엇이 아직 안 닫혔나»",
+    "gpu_state_at_audit": "GPU0/1/3 각 21.7~22.7 GiB 점유(util 100%), GPU2 11.9 GiB 점유(σ격자 direct + 같은구간 스윕). 아무것도 안 띄웠다.",
+    "read": [
+      "src/rcs_sbr.py (1116줄 전문)",
+      "src/rcs_po.py (346줄 전문)",
+      "src/materials.py (289줄 전문)",
+      "src/ptd_edges.py (APPROXIMATIONS/NOT_IMPLEMENTED 절)",
+      "outputs/sbr_defect_fixes.json · sbr_kr_sweep.json · angle_gamma_impact.json · angle_gamma_sigma_impact.json · angle_gamma_po_impact.json · verify_md_nearfield.json · report16_verify_kernel.json · report13_sigma_grid.json · report13_freespace.json · geometry_grid.json · das_fleet_validation.json · meshfix_mini5pro_overlap.json",
+      "reports/20_bistatic-exit · 21_kernel-vs-reference · 22_po-knee · 23_kernel-open-items · 56_geometry · 59/60/61",
+      "docs/RETRACTION_LOG.md · PAPER_POSITION_0803.md · PTD_ILDC_FORMULATION.md · RESUME.md"
+    ]
+  },
+
+  "headline_ko": "커널은 인프라로서 **기준해 축은 닫혀 있고, 배선 축이 열려 있다**. 기준해 검증(구·평판·이면각·kr스윕)은 전부 PEC 표적이라 Γ(θ) 도입에 **코드적으로 불변**임이 증명되므로 07-31 숫자가 지금도 유효하다. 반면 메모의 «모노만 있다» 는 **거짓**이다 — `rcs_sbr_multistatic` 이 실재하고 출사가시성·상반성까지 검증됐다. 진짜 구멍은 세 개다: ① Γ(θ) 가 batch·sbr_field·(옵트인)rcs_po 에만 배선되고 **multistatic·다중반사 경로에는 안 들어갔다**(그래서 모든 바이스태틱 수치는 Γ(θ) OFF 다), ② Γ(θ) 자체는 **기준해 검증이 0** 이다(모든 과녁이 PEC 라 각도경로를 한 번도 안 밟는다) — 유일한 독립검증 시도가 실패했고 정직하게 미성립으로 기록됐다, ③ 생산 검출 σ 는 multistatic 커널이 아니라 **모노 격자 + 이등분선 근사**이고 그 근사오차가 β=15° 부터 rms 중앙 6.39 dB 다(헤드라인 β=2.95° 라 지금은 안전).",
+
+  "q1_reference_solutions": {
+    "verdict": "DONE — 단, 과녁 셋 중 «진짜 외부검증» 은 Mie 하나뿐이고 그 사실이 이미 문서화돼 있다",
+    "current_kernel_validity": {
+      "claim": "07-31 기준해 숫자가 Γ(θ)(08-07) 도입 뒤에도 유효한가?",
+      "verdict": "YES — 코드로 증명된다(재계산 불필요)",
+      "proof_chain": [
+        "rcs_sbr.py:942 _PEC_GROUP_MAT = {\"metal\": 1.0} — 재질 문자열이 아니라 **float**",
+        "rcs_sbr.py:169 mat_keys.append(val if isinstance(val, str) else None) — float 이면 키가 None",
+        "rcs_sbr.py:268-275 `if _key is None: continue` — 각도 모양을 아예 안 곱한다",
+        "즉 구·평판·이면각 전 과녁에서 Γ(θ) 코드경로가 **한 번도 실행되지 않는다**"
+      ],
+      "corroboration": "outputs/angle_gamma_impact.json reference_solutions_unchanged — 이면각 오차 off/on 이 [0.556, 0.466, 0.076, -0.108] 로 소수 셋째 자리까지 동일, verdict=UNCHANGED",
+      "same_argument_for_mesh_fix": "mini5pro 메쉬 수정(08-10)도 기준해와 무관 — 과녁은 드론 메쉬가 아니라 구·평판·이면각이다"
+    },
+    "numbers_as_of_2026-07-31": {
+      "source": "outputs/sbr_defect_fixes.json (07-31 03:42) · outputs/sbr_kr_sweep.json (07-31 04:28)",
+      "sphere_vs_analytic_PO_db": {"lam/4": 2.186, "lam/6": 0.395, "lam/10": 0.078, "lam/16": -0.021},
+      "plate_vs_4piA2_over_lam2_db": {"lam/4": 0.295, "lam/6": -0.012, "lam/10": -0.011},
+      "dihedral_2bounce_err_db": {"a=0.15": 0.556, "a=0.20": 0.466, "a=0.30": 0.076, "a=0.40": -0.108, "max_abs": 0.556},
+      "kr_sweep_1_to_100": {"max_abs_vs_analytic_PO_div16_db": 0.2006, "max_abs_vs_analytic_PO_div12_production_db": 0.2544, "max_abs_vs_exact_Mie_db": 6.729, "std_pct_kr_ge30_vs_PO": 0.8855, "std_pct_kr_ge30_vs_Mie": 1.834}
+    },
+    "conditions_measured_at": {
+      "kernel_path": "생산 커널 rcs_sbr_batch(jitter=3, penetrate=False), |Γ|=1.0 PEC — 2026-07-29 에 옛 rcs_sbr() 단일격자에서 갈아탄 것",
+      "dihedral_only": "rcs_sbr(max_bounce=2) — 배치 커널은 1-bounce 전용이라 오목 과녁만 이 경로",
+      "gap_to_production": "생산은 penetrate=True · 재질 Γ · Γ(θ) ON · 자기가림 · jitter=2 · div=16. 과녁은 penetrate=False · |Γ|=1 · 볼록. 이 간극은 reports/23 이 «생산 경로의 참값 대조» 행으로 이미 세고 있다"
+    },
+    "honesty_already_enforced": {
+      "R9": "docs/RETRACTION_LOG.md — «해석해 검증» 이라는 말 금지. 평판 4πA²/λ² · 이면각 8πa²b²/λ² 는 **PO 로 PO 채점**이고, 해석 PO 구도 커널과 같은 물리라 수치수렴만 잡는다. **진짜 외부검증은 정확 Mie 하나**: 0.375~0.851 dB (r=0.178 m, ka 6.88~19.44)",
+      "R10": "이면각 +0.076 dB 단독 인용 금지 — 그 행(a=0.30)은 1-bounce σ 가 −118.33 dBsm 로 붕괴한 행이라 잔차가 작은 이유가 수렴이 아니라 **우연한 상쇄**다. 정직한 문장은 «a=0.15~0.40 m 에서 ≤0.56 dB»",
+      "kernel_selfdoc": "rcs_po.py:42-44 가 «평판 검증은 진단력 0 의 항등식» 이라고 스스로 적어놨다(수직입사에서 P·û≡0 이라 위상항 소멸 → 위상계수 2k→k 로 버그를 주입해도 +0.00 dB)"
+    }
+  },
+
+  "q2_mono_bi_multistatic": {
+    "verdict": "메모의 «모노만 있다» = **거짓(REFUTED)**. «bistatic obliquity 변경 필요» = **부분참이나 이미 시도·기각됨**",
+    "what_the_kernel_can_do_now": {
+      "monostatic": "rcs_sbr_batch (방위 배치 · 생산 경로) · rcs_sbr(max_bounce≥2, 오목부) · sbr_field(복소 E, 마이크로도플러)",
+      "bistatic_multistatic": "src/rcs_sbr.py:544 rcs_sbr_multistatic(u_i, u_s_list) — 일반 PO E ∝ Σ_hit |Γ| e^{jk(û_i+û_s)·p} d². 조명추적 1회를 모든 û_s 가 재사용(멀티 Rx 효율)",
+      "pure_PO_is_monostatic_only": "src/rcs_po.py 의 rcs_from_points·po_field_dir 는 exp(j·2k·P·û) 뿐 — 바이스태틱 항이 **없다**. 바이스태틱 능력은 오직 SBR 쪽에만 있다"
+    },
+    "verified": {
+      "beta0_equals_monostatic": "benchmark/das_fleet_verify.py V1 — rcs_sbr_multistatic(û_s=û_i) ↔ rcs_sbr_batch 일치",
+      "exit_visibility_monostatic_noop_db": 0.0,
+      "exit_visibility_noop_airframes": ["mavic4pro", "mini5pro", "s1000plus"],
+      "reciprocity_worst_db": {"with_exit_vis": 8.237, "without_exit_vis": 9.687},
+      "reciprocity_rms_by_beta_db": {"0": 0.0, "15": 0.790, "30": 1.569, "45": 2.568, "60": 1.671, "90": 4.024},
+      "declared_window": "β ≤ 45° (reports/20) — 창 규칙 «경계 안 상반성 rms ≤ 2.57 dB», 경계는 **선언값**이라고 명시",
+      "external_anchor": "Das IEEE WCL 2026 바이스태틱 실측과 4기체 × 7 θb = 28쌍 대조(outputs/das_fleet_validation.json). prereg 판정 **NOT_VALIDATED** (P3 산포 16.27 dB vs 예측 1 dB). 같은 파일이 자기 결함 2건(ruler_mismatch · upstream_defect_found)을 스스로 적었다"
+    },
+    "obliquity_question": {
+      "memo_said": "bistatic PO obliquity 변경이 필요하다",
+      "code_says": "rcs_sbr.py:663-666 · 581-584 — 대칭 obliquity √((n̂·û_i)(n̂·û_s)) 로 승격하면 이론상 상반성이 복원되나, grazing 조명면(n̂·û_i→0)에서 √(cosθ_s/cosθ_i) 가 이산격자를 폭발시켜(단일광선 수백배 가중) **오히려 rms 오차가 커진다** → 표준 (n̂·û_i) 유지, symmetrize=True(σ 레벨 기하평균)로 우회",
+      "verdict": "«필요하다» 가 아니라 «시도했고 반증되어 기각, 대체수단(symmetrize) 을 둠» 이 정확한 상태. 다만 symmetrize 는 «오차를 0 으로 만들지 않는다» 고 코드가 스스로 못박았다",
+      "stale_pointer": "reports/20 다음단계가 «바이스태틱 PO 의 사입사 인자를 일반형으로 → src/rcs_po.py 사입사 obliquity 항» 을 가리키는데, **rcs_po.py 에는 바이스태틱 경로 자체가 없다**. 가리켜야 할 곳은 rcs_sbr.py:663 이다"
+    },
+    "the_real_hole": {
+      "what": "커널의 부재가 아니라 **생산 경로가 그 커널을 안 쓴다**",
+      "evidence": "reports/56 방법표 — «σ 조회: 이등분선 방향의 **모노스태틱** 값을 격자에서 조회 (src/experiment_freespace_sigma.py:227)». 검출 사슬은 rcs_sbr_multistatic 을 한 번도 부르지 않는다",
+      "bisector_approximation_error_db": {
+        "source": "outputs/geometry_grid.json : sigma_transfer.bisector_approximation_error_by_beta",
+        "beta_0": {"rms_median": 0.0, "p95_max": 0.0},
+        "beta_15": {"rms_median": 6.394, "p95_max": 18.872},
+        "beta_30": {"rms_median": 6.844, "p95_max": 24.953},
+        "beta_45": {"rms_median": 7.473, "p95_max": 20.039},
+        "beta_90": {"rms_median": 8.806, "p95_max": 21.921}
+      },
+      "why_headline_survives": "헤드라인 기하의 β = 2.95° (reports/56) 라 준모노스태틱 — 근사가 거의 항등이다. β=0 에서만 0.0 dB 이고 β=15° 에서 이미 rms 중앙 6.39 dB 로 뛴다",
+      "so_what": "패시브 바이스태틱 프로젝트에서 «구멍인가» 의 답 = **지금 헤드라인에는 아니고, 창을 β 수 도(度) 밖으로 넓히는 순간 그렇다**. geometry_grid.json 이 이미 원장 규칙을 적어뒀다: «σ 는 셀마다 어느 기하에서 계산했나를 반드시 적는다 — 모노=직접계산, 바이=이등분선 근사 + Δσ(β) 오차막대»",
+      "note_R5": "RETRACTION R5 — 예전에 «상반성 위반 13.7 dB» 라 부른 숫자는 실은 **이등분선 근사오차 p95**(matrice4e·5G·β=45)였다. 두 축을 섞지 말 것"
+    },
+    "declared_limits_in_code": [
+      "전방산란 무효: β→180° 에서 조명게이트(n̂·û_i>0)와 수신게이트(n̂·û_s>0)가 상호배타 → σ≡0. lit-PO 는 Babinet 전방로브를 못 낸다",
+      "상반성 부분성립: 볼록·강반사에선 성립(구 ~0.2 dB)하나 비볼록 표적은 β≤90° 안에서도 깨지고 격자세분으로 안 줄어든다",
+      "투과 출사경로는 입사 τ 로 근사(1차 투과) → 바이스태틱 비대칭을 더 키운다",
+      "≥2-bounce 는 출사 가시성을 검사하지 않는다(생산 σ 는 전부 1-bounce 라 무관)"
+    ]
+  },
+
+  "q3_angle_gamma_wiring": {
+    "verdict": "OPEN — **배선 비대칭이 실재하고, 프로젝트 자신의 열린항목 원장(reports/23)이 그 방향을 정확히 반대로 적고 있다**",
+    "design": "|Γ(θ)| = |Γ_보정| · |Γ_벌크(θ)|/|Γ_벌크(0)|, TE·TM 전력평균 √((|Γ_TE|²+|Γ_TM|²)/2). θ=0 에서 비트동일. 두 엔진이 materials.gamma_shape **같은 함수**를 쓴다(조용한 어긋남 구조적 차단)",
+    "wired_paths": {
+      "rcs_sbr_batch": "src/rcs_sbr.py:321 → _lit_g_phase(..., matk) → :268-275 gamma_shape — **기본 ON** (σ 격자 생산자)",
+      "sbr_field": "src/rcs_sbr.py:773 → _field(..., matk) → :763-770 — **기본 ON** (마이크로도플러 복소 E)",
+      "rcs_po.rcs_from_points / po_field_dir": "**호출 옵트인**(mats=). 실제 옵트인한 곳은 src/microdoppler.py:72,87 둘뿐"
+    },
+    "UNWIRED_paths": {
+      "rcs_sbr_multistatic": "src/rcs_sbr.py:603 에서 matk 를 받아놓고 함수 본문(내부 _hits)이 **한 번도 안 쓴다**. gamma_shape 가 544~702 구간에 존재하지 않음(grep 확인)",
+      "rcs_sbr (max_bounce 경로)": "src/rcs_sbr.py:813 에서 matk 를 받아놓고 안 쓴다",
+      "consequence": "**모든 바이스태틱·멀티스태틱 σ 와 모든 ≥2-bounce σ 는 Γ(θ) OFF 로 계산된다** — 켠 상태로 서술되는 커널과 다른 물건이다. das_fleet_* 원장(08-03)은 시점상으로도 Γ(θ) 이전이고, 코드상으로도 지금 다시 돌려도 Γ(θ) 가 안 걸린다(값은 재현되지만 서술과 어긋난다)"
+    },
+    "ledger_contradiction": {
+      "reports/23_kernel-open-items.ipynb": "«Γ(θ) 미배선 경로 — `rcs_sbr_batch`·`rcs_po` 는 수직입사 값 그대로다 — σ 격자 생산자가 batch 경로를 쓴다»",
+      "source_key": "outputs/angle_gamma_impact.json : still_unwired_ko[0] (생성 2026-08-07 10:58:22)",
+      "reality": "batch 는 같은 날 11:06 이전에 배선됐고(angle_gamma_sigma_impact.json 이 on/off 를 나란히 잰다), rcs_po 는 08-10 04:27 에 옵트인 배선됐다(angle_gamma_po_impact.json, 비트동일 회귀 PASS)",
+      "why_it_happened": "출처 규율(«본문 숫자는 JSON 키에서만») 이 **낡은 JSON 을 그대로 보존**했다. 규율의 부작용이지 부주의가 아니다",
+      "correct_statement_now": "미배선은 batch·rcs_po 가 아니라 **rcs_sbr_multistatic · rcs_sbr(max_bounce)** 다. 이 두 경로의 미배선은 지금 어느 문서에도 적혀 있지 않다"
+    },
+    "flow_downstream": {
+      "sigma_grid": "outputs/report13_sigma_grid.json — meta.generated 2026-08-03T11:17:59, git_rev 4265045 → Γ(θ) 이전 산출. 지금 GPU2 에서 --force 재생성 중(matrice4e→mini5pro)",
+      "conditional_warning_present": "reports/59·60·61 에 «⚠ 이 σ 원장은 Γ(θ) 각도 모양(기본 켬, 2026-08-07 10:58:22) 이전 커널의 산출이다» 가 조건형으로 박혀 있다 — 이건 제대로 걸려 있다",
+      "sigma_impact_measured": {
+        "whole_drone_azimuth_mean_delta_db": {"matrice4e/el-15": 0.069, "matrice4e/el+15": 0.084, "mini5pro/el-15": 0.093, "mini5pro/el+15": 0.036, "phantom4/el-15": 0.328, "phantom4/el+15": 0.312},
+        "per_cell_max_abs_db": {"matrice4e/el-15": 1.668, "matrice4e/el+15": 2.066, "mini5pro/el-15": 2.339, "mini5pro/el+15": 1.266, "phantom4/el-15": 4.155, "phantom4/el+15": 6.001},
+        "propeller_channel_level_delta_db_SBR": {"matrice4e": 5.16, "mini5pro": 6.48},
+        "propeller_channel_level_delta_db_pure_PO": {"matrice4e": 3.46, "mini5pro": 2.93},
+        "reading": "방위평균 σ 는 거의 안 움직이고(동체가 금속·탄소섬유라 각도 둔감) **프롭 채널만 5~6.5 dB 움직인다** — 즉 σ 앵커는 안 흔들리고 마이크로도플러(=메인 태스크)가 정면으로 영향받는다"
+      },
+      "stale_freespace": "outputs/report13_freespace.json meta.generated 2026-07-24T21:45:11, sigma_file 은 report13_sigma_grid.json 경로를 가리키는데 그 파일 내용은 그 뒤 **두 번**(08-03, 08-10 진행중) 갈아엎혔다. reports/56 이 이 문제를 outputs/archive/report13_sigma_grid_pre0803.json 를 인용해 정직하게 처리했다(발표된 격자의 신원을 아카이브로 특정)"
+    },
+    "kill_switch": "SIONNA2_ANGLE_GAMMA — 두 모듈이 같은 환경변수를 읽는다(기본 «1»). 저장소 어디에도 0 으로 고정한 실행 스크립트는 없다(grep 확인)"
+  },
+
+  "q4_honesty_of_limits": {
+    "verdict": "DONE(대체로) — 한계는 **구두 전승이 아니라 코드·JSON 에 기계가 읽을 수 있는 형태**로 적혀 있다. 다만 어긋난 곳 3군데를 아래에 특정한다",
+    "written_in_code": {
+      "src/ptd_edges.py": {
+        "NOT_IMPLEMENTED": ["TW(truncated wedge, Johansen 1996 / Gao 2012) — 항 자체가 ABSENT (few-λ 표적의 알려진 최약점)", "2차(모서리-모서리) 회절 — ABSENT", "코너/꼭짓점 회절 — ABSENT", "크리핑파 — ABSENT"],
+        "APPROXIMATIONS": ["PO 면적분은 스칼라(편파 없음) — 같은 스칼라 장을 V·H 양쪽에 더한다", "co-pol 만, cross-pol 미계산, BSA/FSA 부호규약 미적용", "Ufimtsev 제거가능 특이점을 φ'±5e-3 대칭평균으로 정규화", "sharp_deg=5° 봉합선 폐기는 속도최적화가 **아니다** — 매끄러운 구에서 세분해도 수렴하지 않고, mini5pro 는 |α−180|<10° 봉합선만으로 금속 전체보다 큰 모서리 진폭(−15.6 vs −17.8 dB) → 드론 수치는 반드시 sharp_deg 밴드로 보고"],
+        "emitted": "이 리스트들이 meta 로 실려 나간다(진단 메타) — 문서에서 베끼는 게 아니라 산출물이 들고 다닌다"
+      },
+      "src/rcs_po.py": ["자기차폐 무시 → 과대 방향 / 다중반사 무시 → 과소 방향, **부호가 반대라 순 편향은 형상 의존**이며 한 방향으로 단정 불가", "평판 검증은 진단력 0 의 항등식 — 근거로 쓰지 말 것", "구 검증만이 커널을 실제로 시험한다(±0.015 dB)"],
+      "src/materials.py": ["(1) 얇은 판(프로펠러 날, 두께≪λ)의 각도 거동은 벌크 프레넬과 다르다 — 방향은 맞고 크기는 근사", "(2) 스칼라 커널이라 편파 없음 → TE·TM 전력평균(TE 만 쓰면 과대)", "(3) 도체는 각도 무관"],
+      "src/rcs_sbr.py": ["격자 디더 산포가 **단일 숫자가 아니다** — λ/8 5.284 / λ/12 1.373 / λ/16 1.782 dB peak-to-peak, 단조도 아니다. 손으로 적지 말고 JSON dither 에서 주입할 것(2026-07-30 정정)", "셸 투과 판정이 재질이 아니라 **그룹 이름**으로 되는 함정 → _resolve_shells 가 |Γ|≥0.5 면 즉시 예외(카본을 body 에 넣으면 ~97 dB 오차)", "≥2-bounce PO 진폭의 obliquity 비를 1 로 둔다(역반사면 정확, 일반각은 근사)"]
+    },
+    "few_lambda_is_quantified_not_folklore": {
+      "definition": "«두 편파 중 나쁜 쪽의 |PO−MoM| 이 1 dB 를 넘는 구간의 상단» → 특징 폭 **0.729 λ**",
+      "component_knee_ghz": {"body": 2.68, "arm_root": 4.86, "arm_tip": 7.28, "propeller": 15.86, "motor": 15.97, "canopy": 35.13, "pcb": 73.08},
+      "production_bands_ghz": {"LTE": 1.843, "5G": 3.5, "WiFi": 5.21},
+      "consequence": "**동체를 뺀 모든 특징이 생산 3밴드에서 무릎 아래**다 (reports/22)",
+      "adversarial_verdict": "저대역 라벨 B_PO_LIMIT 에 대한 적대검증 판정 = **PREMATURE** — PO 한계는 부호만 확인됐고 크기 귀속은 열려 있다",
+      "sphere_yardstick_caveat": "reports/21 이 스스로 «이 kr 눈금은 매끄러운 구에서만 맞는 눈금» 이라고 못박음 — 어긋나는 자리를 정하는 것은 기체 전체 크기가 아니라 부품 하나의 폭"
+    },
+    "PTD_is_wired_but_off": {
+      "state": "배선 완료, 생산 ptd=False. ptd=False 는 인자가 없던 때와 **비트동일**(outputs/ptd_wiring.json)",
+      "effect_if_on": "가장 가는 시험 폭에서 TE 가 +7.53 → +10.81 dB 로 벌어진다",
+      "cost": "+47.2%",
+      "declared_gap": "투과(penetrate) 기여에는 모서리항을 붙이지 않는다 — 프린지 계수가 PEC 유도이고 셸 투과계수를 프린지에 곱할 근거가 없어서 **값을 지어내지 않는다**",
+      "naming_discipline": "docs/PTD_ILDC_FORMULATION.md — TW 미구현이므로 «TW-ILDC»·«ILDC»·«Gao's method» 라 부르지 않는다. 채택명 = untruncated Michaeli PTD-EEC (first order). RETRACTION R13 이 같은 규율"
+    },
+    "where_honesty_has_drifted": [
+      {
+        "where": "reports/23_kernel-open-items.ipynb — 프로젝트 자신의 «커널 열린항목» 원장",
+        "what": "Γ(θ) 미배선 경로를 batch·rcs_po 로 적었다. 지금은 그 둘이 배선됐고, 미배선은 multistatic·다중반사다",
+        "severity": "HIGH — 열린항목 원장이 열린 곳을 반대로 가리키면 다음 라운드가 이미 닫힌 문을 밀고 열린 문을 지나친다"
+      },
+      {
+        "where": "reports/20_bistatic-exit.ipynb 다음단계",
+        "what": "«바이스태틱 obliquity 를 일반형으로 → src/rcs_po.py» 인데 rcs_po.py 에는 바이스태틱 경로가 없다. 가리켜야 할 곳은 rcs_sbr.py:663 이고, 그 자리에는 이미 «시도했다가 grazing 폭주로 기각» 반증기록이 있다",
+        "severity": "MEDIUM"
+      },
+      {
+        "where": "outputs/report13_sigma_grid.json : sigma_confidence",
+        "what": "few_lambda 판정자를 **D/λ(기체 전체 bbox 수평최대), 문턱 3.0** 으로 쓴다 → 세 밴드 전부 few_lambda=false. 그런데 reports/21·22 는 그 눈금이 «매끄러운 구에서만 맞는 눈금» 이고 진짜 자는 **부품 폭 0.729λ** 라고 이미 못박았다. 게다가 by_drone 에 matrice4e **1기만** 들어 있다(격자는 7기)",
+        "severity": "MEDIUM — σ 원장이 스스로에게 붙이는 신뢰도 태그가, 같은 저장소가 폐기한 자를 쓰고 낙관 쪽으로 찍힌다"
+      }
+    ],
+    "latent_code_defect": {
+      "file": "src/rcs_sbr.py:813",
+      "code": "scene, shapes, gammas, matk = _mi_scene_from_mesh(mesh, group_mat)",
+      "problem": "fc 를 안 넘긴다 → |Γ| 가 **항상 3.5 GHz** 로 계산된다. _mi_scene_from_mesh 의 fc 인자는 도크스트링에 «잠복버그 예방» 이라고 적혀 추가된 것인데 이 호출만 그 계약을 안 지킨다(_scene_for 경유 3곳은 전부 fc 를 넘긴다)",
+      "impact": "낮다 — 이 경로를 쓰는 곳은 validate() 이면각(PEC float 1.0), viz_report2/viz_verify_sbr 대조(3.5 GHz), verify_ptd_regression(PEC) 뿐이고 생산 σ 는 전부 rcs_sbr_batch 다. gamma_po override 없는 재질(metal 0.9998)의 주파수 의존은 ≤0.002 dB",
+      "note": "고치라는 처방이 아니라 기록이다 — 지금은 읽기 전용 감사다"
+    }
+  },
+
+  "what_is_safe_to_say": [
+    "구 후방산란에서 우리 이산 PO/SBR 의 **수치 구현오차**는 kr 1~100 에서 ≤0.2006 dB (div=16) · ≤0.2544 dB (생산 div=12) — 과녁은 해석 PO 이므로 이건 수렴의 자다",
+    "**물리적 참값**(정확 Mie) 대비는 0.375~0.851 dB (r=0.178 m, ka 6.88~19.44) — 세 밴드 모두 같은 부호 결손이고 ka 가 커지면 준다",
+    "다중반사 위상은 PEC 이면각 폐형해 대비 a=0.15~0.40 m 에서 ≤0.56 dB — 단, 이건 PO 로 PO 채점이다",
+    "출사 가시성(Sagitta 각주 1 이 지목한 단계)을 구현했고 모노스태틱에서 정확히 0.000 dB no-op 이다",
+    "바이스태틱 **자세 패턴**은 β ≤ 45° 창에서 주장한다(상반성 rms ≤ 2.57 dB) — 이건 상반성 기준 창이지 σ 정확도 창이 아니다",
+    "PO 유효 무릎은 0.729λ 이고, 생산 3밴드에서 동체를 뺀 모든 부품이 그 아래다"
+  ],
+
+  "what_is_NOT_safe_to_say": [
+    "«커널에 각도의존 Γ(θ) 가 들어 있다» — 무조건으로는 거짓. multistatic·다중반사 경로는 아직 아니다",
+    "«우리 커널은 해석해로 검증됐다» — R9 금지 표현. 과녁 셋 중 외부검증은 Mie 하나",
+    "«이면각 오차 0.076 dB» — R10 금지. 그 행은 1-bounce 가 −118 dBsm 로 붕괴한 우연한 상쇄",
+    "«바이스태틱 σ 를 낸다» — 커널은 낼 수 있지만 **생산 검출 사슬은 모노 격자 + 이등분선 근사**를 쓴다(β≥15° 에서 rms 중앙 6.4~8.8 dB)",
+    "«σ 격자가 현재 커널 산출물이다» — 08-03 격자는 Γ(θ) 이전이고 mini5pro 파생물은 08-10 메쉬 수정으로 무효화됐다. 재생성이 지금 돌고 있다"
+  ],
+
+  "open_items_ranked": [
+    {"rank": 1, "item": "Γ(θ) 를 rcs_sbr_multistatic·rcs_sbr(max_bounce) 에 배선하거나, 미배선 사실을 원장에 명시", "why": "지금은 두 경로가 조용히 다른 물리를 쓴다. 바이스태틱 수치를 인용할 때마다 서술과 어긋난다", "cost": "코드 소·검증 중(비트동일 회귀 규약이 이미 있다)"},
+    {"rank": 2, "item": "reports/23 열린항목 표의 Γ(θ) 두 행 정정 (출처 JSON 재생성 또는 superseded 키 추가)", "why": "열린항목 원장이 열린 곳을 반대로 가리킨다", "cost": "JSON 1개 + 재빌드"},
+    {"rank": 3, "item": "Γ(θ) 의 **외부 앵커** — 지금 0 이다. 기준해가 전부 PEC 라 각도경로를 한 번도 안 밟고, Sionna 교차검증은 미성립(코사인 0.6962→0.6757, 확산 S 지배가 원인)", "why": "프롭 채널 +5~6.5 dB 를 움직이는 항이 메인 태스크(마이크로도플러 분류) 바로 위에 얹혀 있는데 근거가 «교과서 프레넬 + θ=0 비트동일» 뿐", "cost": "실측(문헌 RCS 앵커·야외 X410)으로 이미 이월 선언됨. 저비용 중간수단: 유전체 평판 각도 스윕을 MoM/해석 프레넬과 대조(각도경로를 실제로 밟는 최초의 과녁)"},
+    {"rank": 4, "item": "sigma_confidence 의 few_lambda 자를 D/λ(3.0) → 부품 폭(0.729λ)으로 교체 + 7기 전부 태깅", "why": "σ 원장의 자기 신뢰도 태그가 폐기된 자로 낙관 쪽에 찍혀 있다", "cost": "소"},
+    {"rank": 5, "item": "reports/20 다음단계 포인터를 rcs_po.py → rcs_sbr.py:663 으로 정정(그 자리의 기각 반증기록과 함께)", "why": "존재하지 않는 코드를 가리킨다", "cost": "소"},
+    {"rank": 6, "item": "rcs_sbr.py:813 의 fc 누락(|Γ| 가 항상 3.5 GHz)", "why": "_mi_scene_from_mesh 가 «잠복버그 예방» 으로 받은 fc 계약을 이 호출만 안 지킨다", "cost": "1줄, 영향 ≤0.002 dB(생산 무관)"}
+  ],
+
+  "not_a_prescription": "SLOPE_LEDGER_GAP_MAX_DB_PER_GHZ = 1.40 은 건드리지 않는다 — 설계된 멈춤이고, 걸리면 원장 정합이 정답이다. 이 감사에서는 그 어서트에 손댈 근거를 하나도 못 찾았다."
+}

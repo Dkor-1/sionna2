@@ -58,7 +58,8 @@ gs = fig.add_gridspec(2, 1, height_ratios=[3.1, 1.0], hspace=0.30,
                       left=0.088, right=0.985, bottom=0.115, top=0.865)
 
 ax = fig.add_subplot(gs[0])
-m = ax.pcolormesh(t, f, D, cmap=CMAP, vmin=VMIN, vmax=VMAX, shading=SHADING)
+m = ax.pcolormesh(t, f, D, cmap=CMAP, vmin=VMIN, vmax=VMAX, shading=SHADING,
+                  rasterized=True)       # ⚠PDF 폭증 방지
 for s in (+1, -1):
     ax.axhline(s * FTIP, color="w", ls="--", lw=1.0, alpha=0.85)
 ax.set_ylim(-2000, 2000)

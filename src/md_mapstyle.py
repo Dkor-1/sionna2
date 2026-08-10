@@ -102,8 +102,11 @@ def ridge_spec(E, prf, f_flash):
 def draw(ax, t, f, S, f_tip, *, t_scale=1e3, ref=None):
     """규약대로 한 패널을 그린다. 반환은 컬러메시(공통 컬러바용)."""
     ref = S.max() if ref is None else ref
+    # ⚠ rasterized=True 는 **필수**다(2026-08-10 실측). gouraud 음영은 격자 칸마다 폴리곤을
+    #   찍는데, 고해상도 원장(2,033 시간 슬롯 × 수천 주파수 빈)이면 PDF 가 **114 MB** 로
+    #   불어나 GitHub 100 MB 한도에 막힌다. 래스터화하면 축·글자는 벡터로 남고 맵만 픽셀이 된다.
     m = ax.pcolormesh(t * t_scale, f, 20 * np.log10(S / (ref + 1e-30) + 1e-12),
-                      cmap=CMAP, vmin=VMIN, vmax=VMAX, shading=SHADING)
+                      cmap=CMAP, vmin=VMIN, vmax=VMAX, shading=SHADING, rasterized=True)
     for s in (+1, -1):
         ax.axhline(s * f_tip, color="w", ls="--", lw=1.0, alpha=0.8)
     ax.set_ylim(-YLIM_FTIP * f_tip, YLIM_FTIP * f_tip)

@@ -58,7 +58,8 @@ for col, (tag, title) in enumerate(ARMS):
     D = 20 * np.log10(S / S.max() + 1e-12)
 
     ax = fig.add_subplot(gs[0, col])
-    m = ax.pcolormesh(t, f, D, cmap=CMAP, vmin=VMIN, vmax=VMAX, shading=SHADING)
+    m = ax.pcolormesh(t, f, D, cmap=CMAP, vmin=VMIN, vmax=VMAX, shading=SHADING,
+                      rasterized=True)   # ⚠PDF 폭증 방지(md_mapstyle.draw 주석 참조)
     for s in (+1, -1):
         ax.axhline(s * FTIP, color="w", ls="--", lw=1.0, alpha=0.85)
     ax.set_ylim(-2000, 2000)
