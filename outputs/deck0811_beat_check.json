@@ -1,0 +1,44 @@
+{
+ "_meta": {
+  "owner": "build_deck0811_result_figs.py — 0811 덱 결과 그림 둘의 박자 지표",
+  "why_ko": "감사가 «지표를 코드로 못 박고 원장 JSON 으로 내라» 고 했다. 덱 빌더는 이 파일을 읽어 주입한다(하드코딩 금지).",
+  "source_npz": {
+   "sionna": "report07_three_engine_ranges.npz : R3/E  (기선 0, 진짜 모노스태틱)",
+   "ours": "report07_three_engines.npz : sbr  (표적 앵커 평면파, 거리·기선 무관)"
+  },
+  "geometry_note_ko": "⭐report07_three_engines.npz 의 sionna 열(기선 0.20 m)은 쓰지 않았다. 그 판으로 재면 최대선이 2·f_flash 로 넘어가 예측 대비 +99.6 % 가 나온다.",
+  "prf_hz": 19700.0,
+  "n": 4096,
+  "record_ms": 207.91878172588832,
+  "f_flash_hz": 126.66666666666667,
+  "f_tip_hz": 1228.7211819358865,
+  "rayleigh_hz": 4.890764647467726,
+  "metric_ko": "flash_spec(0.45 주기·70 표본) → |f|/f_tip 0.35~1.0 대역 전력 합 g(t) → 평균제거·Hann·64배 제로패딩 rFFT → 40~400 Hz 최대선 · 포물선 보간",
+  "caveat_ko": "포물선 보간은 강한 선 하나의 위치 추정이지 분해능 주장이 아니다 (레일리 빈 4.8 Hz)."
+ },
+ "prediction_hz": 126.66666666666667,
+ "engines": {
+  "sionna": {
+   "peak_hz": 126.261,
+   "dev_pct": -0.32,
+   "is_band_max": true
+  },
+  "ours": {
+   "peak_hz": 126.727,
+   "dev_pct": 0.047,
+   "is_band_max": true
+  }
+ },
+ "robustness": {
+  "n_variants": 96,
+  "swept_ko": "대역 6종 · 패딩 2종 · 전력/진폭 · 조각 0.45|0.60 주기 · 창 유무",
+  "ours_abs_dev_max_pct": 0.127,
+  "sionna_abs_dev_max_pct": 0.583,
+  "sionna_off_fundamental_variants": 2,
+  "note_ko": "⚠ Sionna 팔은 좁은 대역(0.5~1.0 f_tip)을 고르면 2/96 변형에서 최대선이 2·f_flash 로 넘어간다. 우리 팔은 96/96 이 기본파다."
+ },
+ "figures": [
+  "outputs/figures/deck0811_r1.png",
+  "outputs/figures/deck0811_r2.png"
+ ]
+}

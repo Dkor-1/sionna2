@@ -1,14 +1,14 @@
-# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 2026-08-10 11:07:20)
+# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 2026-08-10 14:07:26)
 
 ## 프로세스
 198615 bash -c for i in $(seq 1 144); do { echo "# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 $(date "+%F %T"))"; echo; echo "## 프로세스"; pgrep -af "report15b_microdoppler_recompute|experiment_freespace_sigma|rcs_same_span|hover_long" || echo "(없음)"; echo; echo "## GPU"; nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader; echo; echo "## 로그 후미"; for f in md15b3_meshfix sigma_force_m4e sigma_force_mini5 samespan sigma_chain; do echo "── $f.log:"; tail -2 /tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/$f.log 2>/dev/null; done; echo; echo "## git"; git -C /home/yunjung/workspace/sionna2 log --oneline -1; echo "미커밋 $(git -C /home/yunjung/workspace/sionna2 status --porcelain | wc -l)건"; } > /home/yunjung/workspace/sionna2/docs/RESUME_LIVE.md 2>&1; sleep 600; done
-1578074 /home/yunjung/.venvs/py312/bin/python src/experiment_freespace_sigma.py --drone mini5pro --backend direct --force
+2525724 /home/yunjung/.venvs/py312/bin/python benchmark/report07_hover_long.py --sec 2.0 --preset outdoor
 
 ## GPU
-0, 23577 MiB, 100 %
-1, 17152 MiB, 100 %
-2, 2166 MiB, 0 %
-3, 1 MiB, 0 %
+0, 22111 MiB, 40 %
+1, 21544 MiB, 100 %
+2, 13634 MiB, 60 %
+3, 11542 MiB, 100 %
 
 ## 로그 후미
 ── md15b3_meshfix.log:
@@ -28,5 +28,5 @@ HOVER_OUTDOOR_DONE 05:07:07
 SIGMA_MINI5_DONE 07:13:45
 
 ## git
-377ff7d 0810 라운드19: ⭐바이스태틱 마이크로도플러 편 완성 — 8권 다섯째 편(08_5_bistatic)
-미커밋 1건
+34d0e93 0810 라운드20: ⭐수치 전수 교차검증 46건(쓴다30·정성만4·**버린다12**) + 내 서술 오류 둘 정정
+미커밋 6건
