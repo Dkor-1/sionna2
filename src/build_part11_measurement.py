@@ -88,6 +88,7 @@ PV2 = from_json("outputs/p3_validation_v2.json")    # 밴드정합 앵커 · v2 
 PW = from_json("outputs/ptd_wiring.json")           # PTD 배선 상태
 MFX = from_json("outputs/meshfix_applied.json")     # 형상 정정 — 설계값 신선도
 S2A = from_json("outputs/s2r_attack.json")          # sim-to-real 설계 적대검증
+AGI = from_json("outputs/angle_gamma_impact.json")  # Γ(θ) 각도 모양 — 커널 세대의 셋째 축
 from_json("outputs/lowfreq_attack.json")            # 결정표가 경로로 가리킨다 — 존재 검사
 from_json("outputs/measurement_layers.json")        # 3층 설계 원본
 from_json("outputs/meshfix_attack.json")            # 형상 정정 파급
@@ -476,8 +477,13 @@ def blocks_70() -> list:
            f"채택 반경은 {D.num('calibration_pick.radius_cm', fmt='{:.1f}', unit='cm')} 다 — "
            f"{D.get('calibration_pick.why')}", "",
            f"⚠ 이 여유가 견주는 «기체 예상 σ» 는 `rcs_anchor → sigma_anchor` 사슬에서 오고, "
-           f"그 사슬은 {MFX.num('_meta.date')} 형상 정정 전 메쉬 위에 있다 — 반경 선택은 여유가 "
-           f"{D.num('calibration_margin_min_db', fmt='{:+.2f}', unit='dB')} 라 그 정도 이동에는 "
+           f"그 사슬은 {MFX.num('_meta.date')} 형상 정정 전 메쉬 위·"
+           f"{AGI.num('_meta.generated')} Γ(θ) 각도 모양(기본 켬) 이전 커널 위에 있다 — "
+           f"두 요인의 방위평균 이동(Γ(θ) 는 "
+           f"{AGI.num('whole_drone_sigma_az24_el_-15.mini5pro.delta_db', fmt='{:+.2f}')} ~ "
+           f"{AGI.num('whole_drone_sigma_az24_el_-15.matrice4e.delta_db', fmt='{:+.2f}', unit='dB')})"
+           f"보다 여유가 "
+           f"{D.num('calibration_margin_min_db', fmt='{:+.2f}', unit='dB')} 로 커서 반경 선택은 "
            f"버틴다."),
 
         md("## 앵커와 사과-대-사과로 견주려면 규약차를 먼저 되돌린다", "",
@@ -595,7 +601,8 @@ def blocks_72() -> list:
     return [
         header(
             num=72,
-            title="각도표본을 λ/4D 로 잡아 앵커 문헌의 고정 2° 보다 촘촘하게 간다",
+            title=f"가장 촘촘한 요구 {D.get('aspect_finest_deg'):.2f}° 를 세션 간격으로 채택해 "
+                  f"앵커 문헌의 고정 {D.get('layers.anchor_step_deg'):.0f}° 보다 촘촘하게 간다",
             did="방위 각도표본 간격을 밴드마다 λ/4D 로 정하고 앵커 문헌의 고정 간격과 밴드별로 "
                 "견줬다.",
             results=[
@@ -606,8 +613,8 @@ def blocks_72() -> list:
 
                 f"앵커 문헌은 밴드와 무관하게 "
                 f"{D.num('layers.anchor_step_deg', fmt='{:.2f}', unit='°')} 고정(반원 "
-                f"{D.num('layers.anchor_N', fmt='{:.0f}', unit='점')})을 썼고, 우리는 밴드마다 "
-                f"λ/4D 를 따라간다.",
+                f"{D.num('layers.anchor_N', fmt='{:.0f}', unit='점')})을 썼고, 우리는 요구를 "
+                f"밴드마다 λ/4D 로 계산해 세션은 최촘값으로 돈다.",
 
                 f"우리 요구 표본수는 반원당 "
                 f"{D.num('layers.N_required_min', fmt='{:.0f}')} ~ "
@@ -634,8 +641,10 @@ def blocks_72() -> list:
             repro=REPRO,
         ),
 
-        md("## 각도표본을 λ/4D 로 잡는다", "",
-           "방위는 엔코더 턴테이블로 돌리고, 표본 간격은 `λ/4D` 이하로 잡는다.", "",
+        md("## 요구는 λ/4D 로 계산하고, 세션은 최촘값으로 돈다", "",
+           "방위는 엔코더 턴테이블로 돌린다. 요구 간격은 밴드마다 `λ/4D` 로 계산하고, 세션 "
+           "간격은 그 최촘값 하나로 채택한다 — 칸마다 간격을 바꾸는 대신 전 칸을 최촘 요구로 "
+           "덮는다.", "",
            f"가장 촘촘한 요구는 {D.num('aspect_finest_deg', fmt='{:.2f}', unit='°')} "
            f"(`{D.get('aspect_finest_airframe')}` · `{D.get('aspect_finest_band')}`)이고, "
            f"한 바퀴에 {D.num('aspect_n_az_max', fmt='{:.0f}')} 표본이다.", "",
@@ -801,8 +810,9 @@ def blocks_74() -> list:
                 f"움직인다 — 순위는 그 공통이동에서 불변이다.",
 
                 f"⚠ 그 폭을 정하는 것은 Matrice 4E 행이고, 그 행은 {MFX.num('_meta.date')} "
-                f"형상 정정 전 메쉬 값이다 — σ 사슬을 다시 돌려 그 행이 여유만큼만 움직여도 "
-                f"이 «맞는다» 판정이 뒤집힌다.",
+                f"형상 정정 전 메쉬·{AGI.num('_meta.generated')} Γ(θ) 이전 커널 값이다 — "
+                f"σ 사슬을 두 축 한 라운드로 다시 돌려 그 행이 여유만큼만 움직여도 이 «맞는다» "
+                f"판정이 뒤집힌다.",
             ],
             method=[
                 ("판정 대상",
@@ -875,8 +885,9 @@ def blocks_74() -> list:
            ]), "",
            f"두 기체 다 등급이 `scaled` 다 — 앵커 기체와 같은 4로터 위상이고 대각만 다르다.", "",
            f"⚠ 위 표들은 `rcs_anchor → sigma_anchor` 사슬 위에 서 있고, 그 사슬은 "
-           f"{MFX.num('_meta.date')} 형상 정정 **전** 메쉬로 돌린 것이다 — 다섯 앵커 기체 중 "
-           f"Matrice 4E 가 그 정정을 받았다"
+           f"{MFX.num('_meta.date')} 형상 정정 **전** 메쉬·{AGI.num('_meta.generated')} Γ(θ) "
+           f"각도 모양(기본 켬) **이전** 커널로 돌린 것이다 — 다섯 앵커 기체 중 Matrice 4E 가 "
+           f"그 정정을 받았다"
            f"(⟨outputs/meshfix_attack.json : Q6_invalidated_outputs.critical[1]⟩)."),
 
         next_steps([
@@ -886,8 +897,8 @@ def blocks_74() -> list:
              f"확인된다 — 판정 문턱은 뒤집힘 폭 "
              f"{D.num('ranking_validation.flip_span_min_db', fmt='{:.2f}', unit='dB')} 다",
              ref("decision-matrix", "결정표") + " → 검출 결과 편과 대조"),
-            ("σ 사슬을 정정된 메쉬로 다시 돌린 뒤 뒤집힘 폭을 다시 읽는다",
-             "설계와 판정 대상의 «맞는다» 가 현재 형상 위에서 확정된다",
+            ("σ 사슬을 정정된 메쉬·Γ(θ) 켠 커널 한 라운드로 다시 돌린 뒤 뒤집힘 폭을 다시 읽는다",
+             "설계와 판정 대상의 «맞는다» 가 현재 형상·현재 커널 위에서 확정된다",
              "`benchmark/rcs_anchor.py` → `src/sigma_anchor.py`"),
         ]),
     ]
@@ -1151,10 +1162,13 @@ def blocks_76() -> list:
            f"그 세대에서 가장 좁은 판별폭은 "
            f"{D.num('slope.discrimination_min_abs_db_current_generation', fmt='{:.2f}', unit='dB')} "
            f"로, 세션 진폭 재현성이 닿는 범위 밖이다. 두 세대 모두 {MFX.num('_meta.date')} "
-           f"형상 정정 전 메쉬 위에 서 있고, 앵커 5기체 중 Matrice 4E 가 그 정정을 받았다."),
+           f"형상 정정 전 메쉬 위·{AGI.num('_meta.generated')} Γ(θ) 각도 모양(기본 켬) 이전 커널 "
+           f"위에 서 있고, 앵커 5기체 중 Matrice 4E 가 그 정정을 받았다 — 재실행 선행조건은 "
+           f"형상 정정 + Γ(θ) 다."),
 
         next_steps([
-            ("σ 사슬(rcs_anchor → sigma_anchor)을 한 세대로 다시 돌린 뒤 이 문턱을 다시 낸다",
+            ("σ 사슬(rcs_anchor → sigma_anchor)을 형상 정정 + Γ(θ) 한 세대로 다시 돌린 뒤 이 "
+             "문턱을 다시 낸다",
              f"기울기 판별폭이 현재 기하 위에서 확정된다 — 지금은 세대를 바꾸는 것만으로 "
              f"{D.num('slope.rows[0].gap_db', fmt='{:.2f}')} → "
              f"{D.num('slope.rows[0].gap_db_current_generation', fmt='{:.2f}', unit='dB')} "

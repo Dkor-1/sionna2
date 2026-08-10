@@ -33,6 +33,7 @@ build_part10_results.py — 부 10 「검출 결과」 11편(56~66)을 짓는다
 from __future__ import annotations
 
 import json
+import math
 import os
 import sys
 
@@ -99,6 +100,35 @@ RUNTIME = ("σ 격자 · 검지거리 4단계 · 검증 · 스윕을 합쳐 "
 MESH_WARN = ("⚠ 이 사슬은 " + MFX.num("_meta.date", None) + " 형상 정정 **전** 메쉬 위에 있다 — "
              "다섯 기체 중 Matrice 4E 가 그 정정을 받았다 "
              f"⟨{J_MFX_ATK} : Q6_invalidated_outputs.critical[3]⟩.")
+
+# ── Γ(θ) 세대 판정(조건형) — σ 사슬(report13_freespace)이 Γ(θ) 커널 투입 이후에 다시
+#    풀렸으면 이 경고는 빈 문자열이 되어 본문에서 사라진다. 원장이 곧 스위치다. ──────── #
+J_AGI = "outputs/angle_gamma_impact.json"
+AGI = from_json(J_AGI)
+_GAMMA_ON = str(fetch((J_AGI, "_meta.generated"))).replace("T", " ")
+_FS_GEN = str(fetch((J_FS, "meta.generated"))).replace("T", " ")
+GAMMA_WARN = "" if _FS_GEN >= _GAMMA_ON else (
+    "⚠ 이 σ 원장은 Γ(θ) 각도 모양(기본 켬, " + AGI.num("_meta.generated", None)
+    + ") 이전 커널의 산출이다 — 방위평균 전체 드론 σ 이동은 "
+    + AGI.num("whole_drone_sigma_az24_el_-15.mini5pro.delta_db", None, "{:+.2f}") + " ~ "
+    + AGI.num("whole_drone_sigma_az24_el_-15.matrice4e.delta_db", None, "{:+.2f}", "dB")
+    + ", 프롭 채널 레벨 이동은 "
+    + AGI.num("propeller_channel_el_-15_3p5GHz.matrice4e.level_delta_db", None, "{:+.2f}") + " ~ "
+    + AGI.num("propeller_channel_el_-15_3p5GHz.mini5pro.level_delta_db", None, "{:+.2f}", "dB")
+    + " 다. σ 격자를 Γ(θ) 켠 커널로 재생성한 뒤 이 편을 다시 짓는다.")
+
+# ── H1 정정(조건형) — 헤드라인이 어느 억압 가정에서 풀렸는지를 원장에서 직접 판정한다.
+#    solve.W1.R_m 이 완전 억압(inf) 행과 같으면 헤드라인 동작점의 DPI 잔류는 0 이다.
+#    limit 라벨(solve.*.limit)은 고정 60 dB 깊이에서 계산된 별도 축이라 인용하지 않는다. ── #
+_ECA_IDEAL = abs(float(fetch((J_FS, "solve.W1.R_m")))
+                 - float(fetch((J_FS, "solve.W1.sensitivity_eca_depth.inf.R_m")))) < 1e-6
+ECA_HEADLINE = ("헤드라인 R90 은 완전 억압(ECA ∞) 행과 같은 값이다"
+                if _ECA_IDEAL else
+                "헤드라인 R90 은 유한 ECA 깊이 팔에서 풀렸다")
+ECA_HEADLINE_LONG = (
+    "헤드라인 R90 은 완전 억압(ECA ∞) 행과 같은 값이라, 헤드라인 동작점의 직접파 잔차 항은 "
+    "0 이다" if _ECA_IDEAL else
+    "헤드라인 R90 은 유한 ECA 깊이 팔에서 풀렸다 — 벽의 정체는 원장에서 다시 읽는다")
 
 
 def B(m, k, f="{:+.2f}"):
@@ -263,12 +293,11 @@ def r57():
                 f"5기체 × 3쌍 15칸에서 σ 항이 더 큰 칸이 "
                 f"{SS.num('gap_decomposition.n_pairs_sigma_dominates', None, '{:.0f}')}칸이다 — "
                 f"σ-무관 축의 격차는 $\\lambda^2$ 스프레드로 고정이다.",
-                f"헤드라인 칸을 구속하는 것은 직접파 잔차다"
-                f"({FS.num('solve.W1.limit', None)}). ECA 억압 깊이를 40 dB 에서 완전 억압으로 "
-                f"바꾸면 R90 이 "
-                f"{num(None, (J_FS, 'solve.W1.sensitivity_eca_depth.40.R_m'), '{:.0f}')} → "
+                f"유한 ECA 깊이에서는 직접파 잔차가 벽이 된다 — 40 dB 에서 R90 "
+                f"{num(None, (J_FS, 'solve.W1.sensitivity_eca_depth.40.R_m'), '{:.0f}')}, 완전 "
+                f"억압에서 "
                 f"{num(None, (J_FS, 'solve.W1.sensitivity_eca_depth.inf.R_m'), '{:.0f}', 'm')} "
-                f"로 움직인다.",
+                f"이고, {ECA_HEADLINE}.",
                 f"듀티 항은 이 사슬에서 꺼져 있다 — 그 크기는 5G 가 LTE 대비 "
                 f"{SS.num('unapplied_duty_axis.pair_gaps_db.L1-G1', None, '{:.2f}', 'dB')} 다.",
             ],
@@ -326,8 +355,8 @@ def r57():
         md(*fig(1, PF["gap"], "밴드 격차를 만드는 항은 $\\lambda^2$ 와 σ 중 무엇인가?")),
 
         md("## 어느 벽이 거리를 정하나", "",
-           f"헤드라인 칸을 구속하는 것은 직접파 잔차다({FS.num('solve.W1.limit', None)}). "
-           f"ECA 억압 깊이를 바꾸면 거리가 이렇게 움직인다.", "",
+           f"{ECA_HEADLINE_LONG}. 유한 ECA 깊이에서는 직접파 잔차가 벽이 되고, 깊이에 따라 "
+           f"거리가 이렇게 움직인다.", "",
            table(["ECA 깊이"] + [f"{k} dB" if k != "inf" else "완전 억압"
                                 for k in ("40", "60", "90", "inf")],
                  [["R90"] + [num(None, (J_FS, f"solve.W1.sensitivity_eca_depth.{k}.R_m"),
@@ -547,8 +576,8 @@ def r59():
 
         md(*fig(1, PF["anchor"], "앵커가 옮긴 밴드 격차는 앵커 자신의 미통제 항보다 큰가?")),
 
-        md("## 이 사슬이 서 있는 메쉬 세대", "",
-           MESH_WARN, "",
+        md("## 이 사슬이 서 있는 원장 세대", "",
+           MESH_WARN, "", GAMMA_WARN, "",
            f"이 절의 앵커 수(정규화 잔차 · Δσ 표)와 뒤 편들의 R90 표가 같은 사슬 위에 있다 — "
            f"{ref('r90', short=True)} · {ref('rank-durability', short=True)}."),
 
@@ -570,7 +599,8 @@ def r60():
     return [
         header(
             num=60,
-            title="앵커 σ 위의 R90 은 3.69~11.10 km 이고, 밴드 순서는 기체마다 바뀐다",
+            title=f"앵커 σ 위의 R90 은 비교가능 {D['n_cells_comp']}칸에서 "
+                  f"{D['A_min']:.2f}~{D['A_max']:.2f} km 이고, 밴드 순서는 기체마다 바뀐다",
             did="기울기 앵커의 Δσ 를 R90 근방 국소 지수로 옮겨 다섯 기체 × 세 밴드의 검출거리를 "
                 "내고, 그 표에서 밴드 순서가 기체마다 어떻게 바뀌는지를 읽었다.",
             results=[
@@ -663,7 +693,7 @@ def r60():
 
         md(*fig(1, PF["ranking"], "세 파형의 순위는 자세 인용 방식에 따라 어떻게 달라지는가?")),
 
-        md("## 이 표가 서 있는 메쉬 세대", "", MESH_WARN),
+        md("## 이 표가 서 있는 원장 세대", "", MESH_WARN, "", GAMMA_WARN),
 
         next_steps([
             ("자세평균 σ 격자로 `--stage solve` 를 다시 돌린다",
@@ -672,7 +702,7 @@ def r60():
             ("헤딩 격자 전체에서 R90(ψ) 를 풀어 P_ψ[Pd≥0.9]=0.50 지점을 낸다",
              "`R90_C50` 키가 이름 그대로의 커버리지 백분위 값을 담는다",
              "`src/experiment_freespace_range.py:703`"),
-            ("σ 전격자를 현재 메쉬로 재생성해 `--stage solve` 를 다시 돌린다",
+            ("σ 전격자를 현재 메쉬·Γ(θ) 켠 커널로 재생성해 `--stage solve` 를 다시 돌린다",
              "절대 R90 · 백분위 · 기체간 순위가 현재 기하 위에 선다 — 동일설정 재생성 대조에서 "
              "기체당 최대 "
              + SV.num("overstated[0].결과_표[0].max_abs_delta_db", None, "{:.2f}", "dB")
@@ -773,7 +803,7 @@ def r61():
                   "5기체 max_range_change_pct 최대")
            + f" 움직이고 순위쌍 "
              f"{SS.num('staleness_and_mesh_update.n_orders_changed', None, '{:.0f}')}개가 뒤집힌다.", "",
-           MESH_WARN, "",
+           MESH_WARN, "", GAMMA_WARN, "",
            f"하한 {SS.num('differential.smallest_flip_span_db_overall', None, '{:.2f}', 'dB')} 를 "
            f"내는 행이 그 정정을 받은 Matrice 4E 다. 이 하한은 **단일 자세** 기준이고, 같은 기체를 "
            f"**자세평균**으로 읽으면 "
@@ -1162,7 +1192,7 @@ def r65():
            "다음 단계에 있다."),
 
         next_steps([
-            ("표적모형 민감도의 M3 팔을 재생성 격자로 다시 푼다",
+            ("표적모형 민감도의 M3 팔을 재생성 격자(형상 정정 + Γ(θ) 켠 커널)로 다시 푼다",
              "우리 팔의 요구 추가이득 "
              + TA.num("Q3_staleness.m3_own_number.base_db", None, "{:.2f}", "dB")
              + " 와 낙차 몫 "
@@ -1200,7 +1230,10 @@ def r66():
                 f"{DV.num('rx_gain.excess_fit_max_db', None, '{:+.2f}', 'dB')} 로 같다.",
                 f"몬테카를로 표준편차(K = {DV.num('rx_gain.K', None, '{:.0f}')})는 "
                 f"{DV.num('rx_gain.snr50_mc_sigma_db', None, '{:.3f}', 'dB')} 이고, 최대 초과분은 "
-                f"그 {DV.num('rx_gain.excess_in_sigma', None, '{:.1f}')}σ 다.",
+                f"단일 추정 σ 의 {DV.num('rx_gain.excess_in_sigma', None, '{:.1f}')}σ · 이득(두 "
+                f"SNR50 추정의 차)의 √2σ 로는 "
+                + dnum(D["rx_excess_in_sigma"] / math.sqrt(2.0), "{:.1f}", "σ",
+                       f"{J_DV} : rx_gain.excess_in_sigma", "÷√2 — 두 추정의 차") + " 다.",
             ],
             method=[
                 ("배열",
@@ -1252,8 +1285,11 @@ def r66():
                   ["SNR50 의 몬테카를로 표준편차 (K = "
                    + DV.num("rx_gain.K", None, "{:.0f}") + ")",
                    DV.num("rx_gain.snr50_mc_sigma_db", None, "{:.3f}", "dB")],
-                  ["최대 초과분 / 그 표준편차",
-                   DV.num("rx_gain.excess_in_sigma", None, "{:.1f}") + "σ"]])),
+                  ["최대 초과분 / 몬테카를로 σ",
+                   DV.num("rx_gain.excess_in_sigma", None, "{:.1f}") + "σ (단일 추정 기준) · "
+                   + dnum(D["rx_excess_in_sigma"] / math.sqrt(2.0), "{:.1f}", "σ",
+                          f"{J_DV} : rx_gain.excess_in_sigma", "÷√2 — 두 추정의 차")
+                   + " (이득 = 두 추정의 차 기준)"]])),
 
         md(*fig(1, PF["multirx"],
                 "수신소자를 늘렸을 때 얻는 감도는 이상적 코히어런트 상한에 얼마나 붙는가?")),
@@ -1276,6 +1312,13 @@ def write_paper_doc() -> str:
     nb = os.path.join(_ROOT, "report05_results.ipynb")
     with open(nb, encoding="utf-8") as f:
         cells = json.load(f)["cells"]
+    if len(cells) <= 23:
+        # 옛 노트북(report05_results.ipynb)이 비워져 논문 부록 셀(c23)이 없다 —
+        # 마지막으로 생성된 docs/paper/05_results.md 를 그대로 보존하고 재생성만 건너뛴다.
+        p = os.path.join(_ROOT, "docs", "paper", "05_results.md")
+        print(f"⚠ {os.path.relpath(nb, _ROOT)} 에 셀 24개가 없다({len(cells)}개) — "
+              f"논문 조각 재생성을 건너뛰고 기존 {os.path.relpath(p, _ROOT)} 를 보존한다")
+        return p
 
     figs = []
     for c in cells:

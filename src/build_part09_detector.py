@@ -606,7 +606,12 @@ def r55():
                        ("위치 RMS 오차", "pos_rms_m")],
                       fmt={"rank_practical": "{:.0f}", "pos_rms_m": "{:.2f} m"},
                       order=["1RX (baseline)", "2RX",
-                             "1RX + AoA(1deg)", "1RX + AoA(5deg)"])),
+                             "1RX + AoA(1deg)", "1RX + AoA(5deg)"]), "",
+           f"표의 위치 RMS 는 챔버 통제 기하에서 잰 값이다 — 기저선 "
+           f"{num(None, f'{OBS}:meta.L_m', '{:.2f}', 'm')} · EIRP "
+           f"{num(None, f'{OBS}:meta.eirp_dbm', '{:.0f}', 'dBm')} · CPI "
+           f"{num(None, f'{OBS}:meta.t_cpi_s', '{:.2f}', 's')} 이고, 기하가 바뀌면 절대값도 "
+           f"같이 움직인다."),
 
         md(*fig(2, "f7_observability", "송수신 한 쌍에 무엇을 더하면 표적 위치가 풀리는가?")),
 
@@ -628,6 +633,13 @@ def write_paper_doc() -> str:
     nb = os.path.join(_ROOT, "report04_detector.ipynb")
     with open(nb, encoding="utf-8") as f:
         cells = json.load(f)["cells"]
+    if len(cells) <= 22:
+        # 옛 노트북(report04_detector.ipynb)이 비워져 논문 부록 셀(c22)이 없다 —
+        # 마지막으로 생성된 docs/paper/04_detector.md 를 그대로 보존하고 재생성만 건너뛴다.
+        p = os.path.join(_ROOT, "docs", "paper", "04_detector.md")
+        print(f"⚠ {os.path.relpath(nb, _ROOT)} 에 셀 23개가 없다({len(cells)}개) — "
+              f"논문 조각 재생성을 건너뛰고 기존 {os.path.relpath(p, _ROOT)} 를 보존한다")
+        return p
 
     figs = []
     for c in cells:

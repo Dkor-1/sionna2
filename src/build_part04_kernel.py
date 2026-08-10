@@ -8,14 +8,14 @@ build_part04_kernel.py — 부 4 「산란 커널」 → 편 18~23
 편 하나 = 중심 메시지 하나 (제목이 곧 그 편의 결론 문장이다)
 
     18 kernel-what          가림 판정은 Sionna 광선엔진이 하고, 면적분은 우리 커널이 한다
-    19 kernel-vs-stock      스톡 솔버와 맞대면 «면이 많아서 느리다» 가설은 반증되고,
+    19 kernel-vs-stock      스톡 솔버와 맞대면 «면이 많아서 에코가 커진다» 가설은 반증되고,
                             런타임의 96.9% 는 호스트가 쓴다
     20 bistatic-exit        수신 방향 그림자 광선을 켜면 상반성 위반이 9.69 → 8.24 dB 로 내려간다
     21 kernel-vs-reference  해석 PO 구 대비 구현오차는 kr 전 구간에서 0.201 dB 안이다
     22 po-knee              PO 유효 무릎을 부품 폭으로 옮기면 어느 부품이 어느 밴드에서
                             떨어지는지가 보인다
-    23 kernel-open-items    커널이 아직 못 하는 것은 편파·PTD·재테셀레이션 셋이고,
-                            각각의 크기를 적었다
+    23 kernel-open-items    커널이 아직 못 하는 것은 편파 분리·PTD·재테셀레이션·Γ(θ) 배선
+                            넷이고, 각각의 크기를 적었다
 
 어디서 왔나 (재구성 전 → 후)
     `report02_target.ipynb` c7~c13  ·  `report00_foundations.ipynb` c18 · c19 · c22
@@ -64,6 +64,7 @@ MFX = "outputs/meshfix_applied.json"         # 형상 정정이 옮긴 것
 MFX_ATK = "outputs/meshfix_attack.json"      # 형상 정정 적대검증
 EVD = "outputs/report00_evidence.json"       # 테셀레이션 축
 PTD = "outputs/ptd_wiring.json"              # PTD 배선 비용
+AGI = "outputs/angle_gamma_impact.json"      # Γ(θ) 각도 모양 — 커널이 |Γ| 에 곱하는 축
 
 FIG = "../outputs/figures"
 
@@ -135,7 +136,7 @@ def report_18_kernel_what():
                 ("① 조명면 찾기", "Sionna 의 Mitsuba/OptiX 광선엔진을 그대로 부른다 — 첫 충돌 "
                                "탐색과 자기가림 판정이 그쪽 몫이다"),
                 ("② 면적분", "그 면 위에서 부품별 재질 PO 를 적분한다 "
-                          "(`src/rcs_sbr.py:184`) — E = Σ |Γᵢ| e^{j2k pᵢ·û} d², σ = 4π|E|²/λ²"),
+                          "(`src/rcs_sbr.py` `rcs_sbr()`) — E = Σ |Γᵢ(θᵢ)| e^{j2k pᵢ·û} d², σ = 4π|E|²/λ²"),
                 ("셸 투과", "얇은 유전체 셸 뒤의 금속(배터리·PCB)을 코히런트 합산한다 "
                         "(동 `penetrate=True`)"),
                 ("가림의 크기", "같은 자세에서 가림을 끄고 다시 적분해 방위평균 σ 의 차이를 "
@@ -151,16 +152,19 @@ def report_18_kernel_what():
            "바로 적어 넣고 그 면을 훑어 더해 산란을 내는 방법이다. **SBR** 은 광선을 쏴서 튀기며 "
            "그 면이 어디인지 찾는 방법(shooting-and-bouncing rays)이다.", "",
            "상용 고주파 RCS 솔버(FEKO/CST SBR+)의 순서 그대로다 — **① 광선으로 실제 조명면을 "
-           "찾고 ② 그 위에서 PO 표면적분**(`src/rcs_sbr.py:184`). 레이다식이 표적 산란과 전파 "
+           "찾고 ② 그 위에서 PO 표면적분**(`src/rcs_sbr.py` `rcs_sbr()`). 레이다식이 표적 산란과 전파 "
            "경로를 두 양으로 쓰는 그대로, **σ 는 이 커널이 내고 경로와 환경은 그 엔진이 낸다**."),
 
         md("## 누가 무엇을 하나", "",
            table(["단계", "무엇을", "누가"],
                  [["첫 충돌 탐색 · 가림", "어느 면이 실제로 조명되는가",
                    "🟢 Sionna 의 Mitsuba/OptiX 광선엔진"],
-                  ["재질 |Γ|", "부품별 반사계수", "🟢 Sionna 재질표 (`src/materials.py:53`)"],
-                  ["PO 면적분 → σ", "E = Σ |Γᵢ| e^{j2k pᵢ·û} d², σ = 4π|E|²/λ²",
-                   "🔵 우리 (`src/rcs_sbr.py:184`)"],
+                  ["재질 |Γ(θ)|", "수직입사 보정값 × 각도 모양(TE·TM 전력평균, "
+                                "`ANGLE_GAMMA=1` 기본)",
+                   "🟢 Sionna 재질표(`src/materials.py` `MATERIALS`) + 🔵 각도 모양 "
+                   "(`src/rcs_sbr.py` `ANGLE_GAMMA`)"],
+                  ["PO 면적분 → σ", "E = Σ |Γᵢ(θᵢ)| e^{j2k pᵢ·û} d², σ = 4π|E|²/λ²",
+                   "🔵 우리 (`src/rcs_sbr.py` `rcs_sbr()`)"],
                   ["셸 투과", "얇은 유전체 셸 뒤 금속(배터리·PCB)의 코히런트 합",
                    "🔵 우리 (동 `penetrate=True`)"]])),
 
@@ -207,9 +211,10 @@ def report_18_kernel_what():
            f"{_n('occlusion.min_db', DER, '{:.2f}', 'dB')} 다. 기체 "
            f"{_n('occlusion.n_above_floor', DER, '{:.0f}', '종')} 전부에서 이 값이 이산화 "
            f"바닥(최대 {_n('occlusion.floor_max_db', DER, '{:.3f}', 'dB')}) 위에 있다.", "",
-           f"⚠ 이 표와 그림은 {_n('_meta.date', MFX)} 형상 정정 **전** 메쉬 기준이다 — 가림 "
-           f"최대치를 내는 Matrice 4E 와 X500 V2 가 그 정정을 받은 기체이고, 닫힌 동체의 가림은 "
-           f"셸 형상에 직접 걸린다. 생산 σ 열도 같은 이유로 재계산 대상이다."),
+           f"⚠ 이 표와 그림은 {_n('_meta.date', MFX)} 형상 정정 **전** 메쉬 기준이고, "
+           f"{_n('_meta.generated', AGI)} Γ(θ) 각도 모양(기본 켬) **이전** 커널의 산출이다 — "
+           f"가림 최대치를 내는 Matrice 4E 와 X500 V2 가 그 정정을 받은 기체이고, 닫힌 동체의 "
+           f"가림은 셸 형상에 직접 걸린다. 생산 σ 열도 두 축 같은 이유로 재계산 대상이다."),
 
         next_steps([
             ("정정된 메쉬로 가림 표와 생산 σ 를 같은 설정에서 다시 낸다",
@@ -235,8 +240,8 @@ def report_19_kernel_vs_stock():
     return [
         header(
             num=19,
-            title="스톡 솔버와 맞대면 «면이 많아서 느리다» 가설은 반증되고, 런타임의 96.9% 는 "
-                  "호스트가 쓴다",
+            title="스톡 솔버와 맞대면 «면이 많아서 에코가 커진다» 가설은 반증되고, "
+                  "런타임의 96.9% 는 호스트가 쓴다",
             did="같은 메쉬를 스톡 경로 솔버에 그대로 넣고 경로 수·진폭·런타임을 우리 커널과 "
                 "같은 카드에서 나란히 쟀다.",
             results=[
@@ -345,7 +350,7 @@ def report_20_bistatic_exit():
             did="각 충돌점에서 수신기 방향으로 그림자 광선을 한 번 더 쏘아 출사 쪽 가림을 "
                 "판정하고, 그 효과를 상반성으로 쟀다.",
             results=[
-                f"상반성 위반 최대치가 "
+                f"상반성 위반 최대치(전 β 최악)가 "
                 f"{_n('d2_exit_vis_effect_on_reciprocity.worst_without_exit_vis_db', DFX, '{:.2f}')} → "
                 f"{_n('d2_exit_vis_effect_on_reciprocity.worst_with_exit_vis_db', DFX, '{:.2f}', 'dB')} "
                 f"로 내려간다.",
@@ -365,7 +370,7 @@ def report_20_bistatic_exit():
             ],
             method=[
                 ("출사 가시성", "각 충돌점에서 수신기 방향으로 그림자 광선을 한 번 더 쏜다 "
-                            "(`src/rcs_sbr.py:330` `rcs_sbr_multistatic`)"),
+                            "(`src/rcs_sbr.py` `rcs_sbr_multistatic()`)"),
                 ("무엇으로 재나", "**상반성** — 보내는 자리와 받는 자리를 맞바꿔도 σ 가 같아야 "
                              "한다는 성질이다. 위반량이 곧 모형오차의 크기다"),
                 ("모노스태틱 대조", "송수신이 같은 자리면 이 검사가 무연산이 되는지 확인한다 — "
@@ -379,7 +384,7 @@ def report_20_bistatic_exit():
 
         md("## 무엇을 한 번 더 쏘나", "",
            "각 충돌점에서 수신기 방향으로 그림자 광선을 한 번 더 쏘아 **출사 쪽 가림**을 "
-           "판정한다(`src/rcs_sbr.py:330` `rcs_sbr_multistatic`). 조명 쪽만 보면 «빛이 닿는 면» "
+           "판정한다(`src/rcs_sbr.py` `rcs_sbr_multistatic()`). 조명 쪽만 보면 «빛이 닿는 면» "
            "까지는 맞지만, 그 면이 수신기에서 보이는지는 따로 물어야 한다.", "",
            "Sagitta(preprint, arXiv:2604.09243 각주 1)가 바이스태틱 SBR 에서 빠져 있다고 지목한 "
            "바로 그 단계다."),
@@ -397,9 +402,13 @@ def report_20_bistatic_exit():
         md("## 자세 패턴을 주장할 범위", "",
            f"**바이스태틱 자세 패턴은 β ≤ "
            f"{_n('d2_exit_vis_effect_on_reciprocity.beta_deg[3]', DFX, '{:.0f}', '°')} 에서 "
-           f"성립한다** — 그 범위의 상반성 RMS 가 "
-           f"{_n('d2_exit_vis_effect_on_reciprocity.rms_with_exit_vis_db[3]', DFX, '{:.2f}', 'dB')} "
-           f"다. 그 위의 β 는 창 밖이고, 검출 기하가 이 창 안에 드는지는 "
+           f"성립한다** — 창 규칙은 «경계 안 상반성 RMS ≤ "
+           f"{_n('d2_exit_vis_effect_on_reciprocity.rms_with_exit_vis_db[3]', DFX, '{:.2f}', 'dB')}"
+           f"» 이고, 경계는 선언값이다. RMS 는 β 에 단조가 아니라 β 60° 에서 "
+           f"{_n('d2_exit_vis_effect_on_reciprocity.rms_with_exit_vis_db[4]', DFX, '{:.2f}')} 로 "
+           f"내려왔다가 β 90° 에서 "
+           f"{_n('d2_exit_vis_effect_on_reciprocity.rms_with_exit_vis_db[6]', DFX, '{:.2f}', 'dB')} "
+           f"까지 오른다. 그 위의 β 는 창 밖이고, 검출 기하가 이 창 안에 드는지는 "
            f"{ref('geometry', short=True)} 가 확인한다.", "",
            f"전방산란 쪽 끝(β→180°)은 조명 게이트와 수신 게이트가 상호배타라 σ ≡ 0 이 된다 — "
            f"주장 창을 후방~중간 바이스태틱각으로 못박는 이유이고, 그 목록은 "
@@ -408,7 +417,7 @@ def report_20_bistatic_exit():
         next_steps([
             ("2회 반사를 β 별로 다시 돌린다",
              "바이스태틱 유효범위가 45° 위로 얼마나 넓어지는지 확정된다",
-             "`src/rcs_sbr.py:330` 상반성 검사"),
+             "`src/rcs_sbr.py` `rcs_sbr_multistatic()` 상반성 검사"),
             ("검출 기하가 이 창 안에 드는지 확인한다",
              "결과 편이 인용하는 β 가 자세 패턴 유효창 안인지가 확정된다",
              ref("geometry", short=True)),
@@ -716,12 +725,13 @@ def report_23_kernel_open_items():
     return [
         header(
             num=23,
-            title="커널이 아직 못 하는 것은 편파·PTD·재테셀레이션 셋이고, 각각의 크기를 적었다",
+            title="커널이 아직 못 하는 것은 편파 분리·PTD·재테셀레이션·Γ(θ) 배선 넷이고, "
+                  "각각의 크기를 적었다",
             did="커널의 열린 항목을 하나씩 세고 각 항목이 σ 를 얼마나 움직이는지를 dB 로 함께 "
                 "적었다.",
             results=[
-                f"편파 — 면적분이 스칼라라 한 채널의 σ 를 낸다. 가장 가는 시험 폭에서 참값이 "
-                f"TM−TE "
+                f"편파 — 면적분이 스칼라다. |Γ(θ)| 는 TE·TM 전력평균이라 채널 분리가 따로 "
+                f"없고, 가장 가는 시험 폭에서 참값이 TM−TE "
                 f"{_n('s3_validation.layer3_thin_plate_2d_mom.tm_minus_te_at_0p15lam_db', POC, '{:.2f}', 'dB')} "
                 f"로 갈린다.",
 
@@ -741,8 +751,12 @@ def report_23_kernel_open_items():
                 f"{_n('s3_validation.layer4_dihedral_multibounce.a03_sbr_2bounce_dbsm', POC, '{:.2f}', 'dBsm')} "
                 f"다.",
 
-                f"주장 창은 후방~중간 바이스태틱각으로 못 박혀 있다 — β→180° 는 조명 게이트와 "
-                f"수신 게이트가 상호배타라 σ ≡ 0 이 되기 때문이다.",
+                f"Γ(θ) 각도 모양 — 벌크 모양은 얇은 판 근사·TE·TM 전력평균이고, "
+                f"`rcs_sbr_batch`·`rcs_po` 경로는 아직 수직입사 값 그대로다. 배선된 경로에서 "
+                f"프롭 채널이 "
+                f"{_n('propeller_channel_el_-15_3p5GHz.matrice4e.level_delta_db', AGI, '{:+.2f}')} ~ "
+                f"{_n('propeller_channel_el_-15_3p5GHz.mini5pro.level_delta_db', AGI, '{:+.2f}', 'dB')} "
+                f"움직였다.",
             ],
             method=[
                 ("무엇을 세나", "커널이 계산에 넣지 않는 항과, 넣되 생산 경로에서 꺼 둔 항을 "
@@ -758,11 +772,30 @@ def report_23_kernel_open_items():
         ),
 
         md("## 열린 항목과 그 크기", "",
-           table(["열린 항목", "현재 상태", "크기"],
-                 [["편파", "면적분이 스칼라다 — 한 채널의 σ 를 낸다",
+           "커널이 계산에 넣지 않는 항과, 넣되 생산 경로에서 꺼 둔 항을 한 표에 센다 — "
+           "항마다 크기는 그 항을 실제로 켜거나 끄고 잰 대조에서 왔다."),
+
+        md(table(["열린 항목", "현재 상태", "크기"],
+                 [["편파", "면적분이 스칼라다 — |Γ(θ)| 는 TE·TM 전력평균이라 채널 분리가 "
+                          "따로 없다",
                    "가장 가는 시험 폭에서 참값이 TM−TE "
                    + _n('s3_validation.layer3_thin_plate_2d_mom.tm_minus_te_at_0p15lam_db', POC, '{:.2f}', 'dB')
                    + " 로 갈린다"],
+                  ["Γ(θ) 각도 모양의 근사", "벌크 각도 모양을 얇은 판 근사로 곱한다 — "
+                                        "수직입사에서 보정값과 동일하다 "
+                                        f"⟨{AGI} : _meta.design⟩",
+                   "프롭 채널 레벨 "
+                   + _n('propeller_channel_el_-15_3p5GHz.matrice4e.level_delta_db', AGI, '{:+.2f}')
+                   + " ~ "
+                   + _n('propeller_channel_el_-15_3p5GHz.mini5pro.level_delta_db', AGI, '{:+.2f}', 'dB')
+                   + " · 전체 드론 σ "
+                   + _n('whole_drone_sigma_az24_el_-15.mini5pro.delta_db', AGI, '{:+.2f}')
+                   + " ~ "
+                   + _n('whole_drone_sigma_az24_el_-15.matrice4e.delta_db', AGI, '{:+.2f}', 'dB')],
+                  ["Γ(θ) 미배선 경로", "`rcs_sbr_batch`·`rcs_po` 는 수직입사 값 그대로다 — "
+                                    f"σ 격자 생산자가 batch 경로를 쓴다 "
+                                    f"⟨{AGI} : still_unwired_ko[0]⟩",
+                   "배선 시 왼쪽 행의 크기만큼 움직인다"],
                   ["모서리 프린지(PTD)", "배선은 있고 생산 경로는 `ptd=False` 다",
                    "켜면 TE 가 "
                    + _n('s3_validation.layer3_thin_plate_2d_mom.po_minus_te_at_0p15lam_db', POC, '{:+.2f}')
@@ -789,8 +822,10 @@ def report_23_kernel_open_items():
                    "부품별 위상은 우리 커널의 복소 E 에서 온다"]])),
 
         md("## 이 표를 읽는 법", "",
-           f"세 줄은 성질이 다르다. **편파**는 커널이 애초에 안 가르는 축이라 크기가 참값 쪽에서 "
-           f"온다. **PTD** 는 배선이 끝나 있고 스위치만 꺼 둔 항이라 켜면 바로 값이 나온다 — 비용 "
+           f"앞 다섯 줄(편파 · Γ(θ) 두 항 · PTD · 테셀레이션)은 커널 자신의 축이다. **편파**는 "
+           f"커널이 애초에 안 가르는 축이라 크기가 참값 쪽에서 오고, **Γ(θ)** 는 켜진 경로와 "
+           f"미배선 경로가 갈라져 있다. **PTD** 는 배선이 끝나 있고 스위치만 꺼 둔 항이라 켜면 "
+           f"바로 값이 나온다 — 비용 "
            f"{_n('verdict.cost_increase_pct', PTD, '{:+.1f}', '%')} 가 그 값이다. **테셀레이션**은 "
            f"입력 메쉬를 어떻게 쪼갰는가에 σ 가 따라 움직인다는 뜻이고, 그 축을 정면으로 다룬 것이 "
            f"{ref_part(6)} 다.", "",
@@ -803,6 +838,9 @@ def report_23_kernel_open_items():
             ("편파 분해를 커널에 넣고 VV/HH 를 따로 낸다",
              "표의 첫 행이 크기에서 값으로 바뀐다",
              "`src/materials.py:171` → " + ref("sigma-checklist", short=True)),
+            ("Γ(θ) 를 `rcs_sbr_batch`·`rcs_po` 에 배선한다",
+             "σ 격자 생산 경로가 단일자세 커널과 같은 커널이 된다",
+             f"`src/rcs_sbr.py` `ANGLE_GAMMA` → ⟨{AGI} : still_unwired_ko⟩"),
             ("생산 σ 를 `ptd=True` 로 다시 낸다",
              "모서리 항이 밴드 기울기를 얼마나 옮기는지가 수치로 남는다",
              "`benchmark/rcs_anchor.py --ptd` → `outputs/rcs_anchor_ptd.json`"),
@@ -811,7 +849,7 @@ def report_23_kernel_open_items():
              ref("ladder-answer", short=True)),
             ("2회 반사를 생산 경로에서 켜고 비용과 이득을 함께 잰다",
              "오목부 있는 기체에서 1-bounce 가정의 대가가 확정된다",
-             "`src/rcs_sbr.py:330`"),
+             "`src/rcs_sbr.py` `rcs_sbr_multistatic()`"),
             ("회전 블레이드 마이크로도플러를 이 커널 위에서 검증한다",
              "미세도플러 서명을 이 커널의 산출물로 인용할 수 있게 된다",
              ref("md-slowtime", short=True)),

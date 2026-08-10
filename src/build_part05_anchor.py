@@ -57,6 +57,7 @@ LFK = "outputs/lowfreq_attack.json"          # 저대역 적대검증
 SS = "outputs/sigma_sensitivity.json"        # σ 오차 → 순위
 MFX = "outputs/meshfix_applied.json"         # 형상 정정이 옮긴 것
 MFX_ATK = "outputs/meshfix_attack.json"      # 형상 정정 적대검증
+AGI = "outputs/angle_gamma_impact.json"      # Γ(θ) 각도 모양 — 커널 세대의 셋째 축
 S2R = "outputs/s2r_assets_verify.json"       # 재생성 대조
 
 FIG = "../outputs/figures"
@@ -80,6 +81,10 @@ def _repro(cmd: list[str], out: list[str], runtime: str, note: str = "") -> dict
 
 _DERIVE = "PYTHONPATH=src python src/make_report02_target.py --derive-only"
 _MESHFIX = f"{_n('_meta.date', MFX)} 형상 정정"
+_GAMMA_AXIS = (f"{_n('_meta.generated', AGI)} Γ(θ) 각도 모양(기본 켬) 이전 커널의 산출"
+               f"이기도 하다 — 전체 드론 σ 이동 "
+               f"{_n('whole_drone_sigma_az24_el_-15.mini5pro.delta_db', AGI, '{:+.2f}')} ~ "
+               f"{_n('whole_drone_sigma_az24_el_-15.matrice4e.delta_db', AGI, '{:+.2f}', 'dB')}")
 
 
 # =========================================================================== #
@@ -116,7 +121,7 @@ def report_24_anchor_mode():
                 f"산포는 "
                 f"{_n('anchor.slope_after_spread_db_per_ghz', DER, '{:.1e}', 'dB/GHz')} 다.",
 
-                f"평균 레벨이동은 "
+                f"레벨이동 절대 최대는 "
                 f"{_n('anchor_modes.level_shift_abs_max_db', DER, '{:.2f}', 'dB')}, 재보정 후 정규화 "
                 f"각패턴 변화는 "
                 f"{_n('anchor.shape_invariance_max_abs_db', DER, '{:.1e}', 'dB')} 다 — 주파수 눈금만 "
@@ -196,7 +201,7 @@ def report_24_anchor_mode():
                  [["A(f) 기울기", "주파수 의존성", "**측정**(Das)",
                    "μ 기울기 " + _n('literature.mu_eps.das_phantom3_mono.mu_a', ANC, '{:.2f}', 'dB/GHz')],
                   ["A(f) 레벨", "절대 레벨", "**우리 PO 출력**",
-                   "`" + _n('anchor_modes.production_mode', DER) + "` 의 평균 레벨이동 "
+                   "`" + _n('anchor_modes.production_mode', DER) + "` 의 레벨이동 절대 최대 "
                    + _n('anchor_modes.level_shift_abs_max_db', DER, '{:.2f}', 'dB')],
                   ["B₁(φ,θ)", "자세에 따른 모양", "**기하**(광선 가림 + PO)",
                    "재보정 후 정규화 패턴 변화 "
@@ -214,11 +219,12 @@ def report_24_anchor_mode():
            f"({_n('anchor.slope_ledger_gap_max_drone', DER)}).", "",
            f"⚠ **그리고 두 세대 모두 {_MESHFIX} 전 메쉬 위에 서 있다** — 이 축은 위 문단의 세대 "
            f"축과 별개다. 앵커 5기체 중 Matrice 4E 가 그 정정을 받았다 "
-           f"⟨{MFX_ATK} : Q6_invalidated_outputs.critical[1]⟩. 앵커를 갈아끼우려면 σ 사슬 전체를 "
-           f"한 세대로 맞춰야 하고, 그것은 {ref_part(10)} 전체가 먹는 값이다."),
+           f"⟨{MFX_ATK} : Q6_invalidated_outputs.critical[1]⟩.", "",
+           f"⚠ 셋째 축 — 두 세대 모두 {_GAMMA_AXIS} 다. 앵커를 갈아끼우려면 σ 사슬 전체를 "
+           f"형상 정정 + Γ(θ) 한 세대로 맞춰야 하고, 그것은 {ref_part(10)} 전체가 먹는 값이다."),
 
         next_steps([
-            ("앵커 사슬(rcs_anchor → sigma_anchor)을 현재 메쉬로 다시 돌린다",
+            ("앵커 사슬(rcs_anchor → sigma_anchor)을 현재 메쉬·Γ(θ) 켠 커널로 다시 돌린다",
              "밴드 기울기와 재보정 원장이 현재 기하 위에 선다 — 재생성 평균이 기체마다 "
              + _n('overstated[0].결과_표[0].mean_delta_db', S2R, '{:+.2f}') + " ~ "
              + _n('overstated[0].결과_표[2].mean_delta_db', S2R, '{:+.2f}', 'dB') + " 로 갈린다",
@@ -299,7 +305,10 @@ def report_25_anchor_ledger():
         md("## 앵커가 통제한 항목과 남은 항목의 크기", "",
            table_from(f"{SIG}:uncontrolled",
                       [("항목", "term"), ("상태", "status"), ("크기 [dB]", "size_db")],
-                      fmt={"size_db": "{:+.2f}"})),
+                      fmt={"size_db": "{:+.2f}"}, null="미상"), "",
+           f"표의 `polarisation` 행 크기 칸은 원장이 null(미상)로 두고 있다 — 본문이 드는 "
+           f"{_n('thin_plate.truth_2d_mom.0.15.tm_minus_te_db', LFA, '{:.2f}', 'dB')} 는 얇은 판 "
+           f"참값에서 온 값이고, 원장 반영은 다음 단계 표에 있다."),
 
         md("## 가장 큰 항이 실제 보정보다 크다", "",
            f"가장 큰 항은 **{_n('anchor.largest_uncontrolled_term', DER)}** "
@@ -312,8 +321,8 @@ def report_25_anchor_ledger():
            f"면적분은 편파를 가르는 대신 세기 하나만 내는 스칼라다"
            f"({ref('po-knee', short=True)}). 그 낙차가 이 항의 크기이고, 부호는 "
            f"{ref('sigma-checklist', short=True)} 의 VV/HH 측정이 정한다.", "",
-           f"⚠ 두 표 모두 생산 원장 세대이고 {_MESHFIX} 전 메쉬 위에 있다 — Matrice 4E 행이 그 "
-           f"정정을 받은 기체다."),
+           f"⚠ 두 표 모두 생산 원장 세대이고 {_MESHFIX} 전 메쉬 위에 있으며, {_GAMMA_AXIS} 다 "
+           f"— Matrice 4E 행이 그 정정을 받은 기체다."),
 
         next_steps([
             ("VV/HH 2편파를 잰다",
@@ -668,7 +677,9 @@ def report_28_fleet_prereg():
            f"⚠ M350 RTK 값은 계산이 다 끝나기 전의 스냅샷에서 집계됐고, Mini 2 행은 {_MESHFIX} 전 "
            f"메쉬에서 나온 값이다 — 둘 다 재집계를 기다린다 "
            f"⟨{DFA} : overall.required_before_citing[0]⟩ · "
-           f"⟨{MFX_ATK} : Q6_invalidated_outputs.critical[0]⟩."),
+           f"⟨{MFX_ATK} : Q6_invalidated_outputs.critical[0]⟩. 재집계에는 Γ(θ) 커널"
+           f"({_n('_meta.generated', AGI)} 기본 켬) 반영도 함께 든다 — 판정(NOT_VALIDATED) 자체는 "
+           f"이 크기의 이동에 강건하다."),
 
         next_steps([
             ("M350 RTK 를 계산이 끝난 격자에서 다시 집계한다",
@@ -790,9 +801,10 @@ def report_29_sigma_robustness():
         md("## 이 표가 사는 주장", "",
            f"뒤집힘 문턱은 기체 크기가 아니라 **로브 산포**가 정한다 — 표에서 최대 치수 열과 "
            f"뒤집힘 문턱 열이 같은 방향으로 가지 않는다. 밴드간 σ 산포 열이 그 순서를 만든다.", "",
-           f"⚠ Matrice 4E 행은 {_MESHFIX} 전 값이다 — 이 표를 낸 `outputs/sigma_sensitivity.json` "
-           f"가 그 기체의 형상을 먹는다 ⟨{MFX_ATK} : Q6_invalidated_outputs.critical[3]⟩. 한 기체 "
-           f"값이 움직여도 이 표가 사는 주장은 그대로 선다."),
+           f"⚠ Matrice 4E 행은 {_MESHFIX} 전 값이고, 표 전체가 {_GAMMA_AXIS} 다 — 이 표를 낸 "
+           f"`outputs/sigma_sensitivity.json` 가 그 기체의 형상을 먹는다 "
+           f"⟨{MFX_ATK} : Q6_invalidated_outputs.critical[3]⟩. 재생성 시 0.1 dB 급 문턱 값은 그 "
+           f"이동만으로도 움직인다 — 한 기체 값이 움직여도 이 표가 사는 주장은 그대로 선다."),
 
         next_steps([
             ("Matrice 4E 를 정정된 메쉬로 다시 넣어 표를 갱신한다",

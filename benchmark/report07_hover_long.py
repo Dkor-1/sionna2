@@ -59,9 +59,20 @@ GM = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
 #   그때 나는 그것을 «너무 작아 비현실적» 이라고 치부했는데, 그것이 실측이다.
 #   ⚠ ±2 % 를 쓰면 네 로터의 빗살이 고조파마다 어긋나 맵이 뭉개진다 —
 #     문헌 그림의 능선이 가늘고 선명한 이유가 여기 있다.
-STATIC_SPREAD = 0.0022        # ⭐PX4 실측 산포(0.07~0.29 %)의 중간값
-WOBBLE_AMP = 0.0015           # ⚠선언된 가정 — 제어루프 흔들림. 정적 산포와 같은 자릿수로 둔다
-WOBBLE_HZ = 2.7               # ⚠선언된 가정 — 자세루프 대역 수 Hz
+#
+# ⭐ 2026-08-10 프리셋 이원화 — 웹 실측 앵커(outputs/rotor_rpm_web_anchor.json)가
+#   그림을 완성했다: SITL 값은 **실내·이상 조건의 하한**이고, 실기체 야외는 더 벌어진다.
+#     실내  NeuroBEM  정지비행  산포 ~0.54 % · 흔들림 0.74 % @ 0.7~2.2 Hz
+#     야외  CODEV     정지비행  산포 ~2.4 %  · 흔들림 2.5 %  @ ~0.74 Hz
+#     실기체 DJI P3 DAT(PWM 환산)  ~2~6 %
+#   실증이 야외이므로([[실측=외부]]) 야외 프리셋이 헤드라인 후보다. SITL 프리셋은
+#   대칭-이상 통제군으로 유지한다. 실측 로그가 오면 그 값이 프리셋을 대체한다.
+PRESETS = {
+    # (static_spread, wobble_amp, wobble_hz, 근거)
+    "sitl":    (0.0022, 0.0015, 2.7, "선배 PX4 SITL 실측(0.07~0.29%) 중간값 — 대칭-이상 하한"),
+    "outdoor": (0.02,   0.025,  1.0, "웹 실측 앵커 CODEV 야외(2.4%/2.5%@0.74Hz)·P3 DAT(2~6%) 반올림"),
+}
+STATIC_SPREAD, WOBBLE_AMP, WOBBLE_HZ = PRESETS["sitl"][:3]     # 기본은 기존과 동일(재현성)
 PATTERN = np.array([+1.0, -1.0, -0.55, +0.55])
 
 
@@ -71,7 +82,15 @@ def main():
     ap.add_argument("--sec", type=float, default=2.0)
     ap.add_argument("--az", type=float, default=0.0)
     ap.add_argument("--el", type=float, default=-15.0)
+    ap.add_argument("--preset", default="sitl", choices=list(PRESETS),
+                    help="산포 프리셋 — sitl(실내·이상 하한, 기본) / outdoor(웹 실측 앵커)")
+    ap.add_argument("--tag", default=None,
+                    help="출력 접미사(기본: sitl 은 없음=기존 경로, 그 외 프리셋명)")
     a = ap.parse_args()
+
+    global STATIC_SPREAD, WOBBLE_AMP, WOBBLE_HZ
+    STATIC_SPREAD, WOBBLE_AMP, WOBBLE_HZ, preset_why = PRESETS[a.preset]
+    tag = a.tag if a.tag is not None else ("" if a.preset == "sitl" else f"_{a.preset}")
 
     spec = DRONES[a.drone]
     fp = FastPoser(spec)
@@ -116,7 +135,7 @@ def main():
             print(f"    {i}/{n}  {el:.0f}s  ETA {(n-i)/i*el/60:.1f}분", flush=True)
     secs = time.time() - t0
 
-    np.savez_compressed(f"{ROOT}/outputs/report07_hover_long.npz", E=E, t=t, rpm_t=rpm_t)
+    np.savez_compressed(f"{ROOT}/outputs/report07_hover_long{tag}.npz", E=E, t=t, rpm_t=rpm_t)
     json.dump({"_meta": {"generated": time.strftime("%Y-%m-%d %H:%M:%S"),
                          "drone": a.drone, "name": spec.name, "fc_hz": FC,
                          "az_deg": a.az, "el_deg": a.el,
@@ -125,12 +144,13 @@ def main():
                          "blade_periods": a.sec * f_flash,
                          "rpm0": rpm0, "static_spread": STATIC_SPREAD,
                          "wobble_amp": WOBBLE_AMP, "wobble_hz": WOBBLE_HZ,
+                         "preset": a.preset, "preset_why_ko": preset_why,
                          "compute_seconds": secs,
-                         "declared_ko": ("⚠ 흔들림 진폭·주파수는 선언된 가정이다. "
-                                         "실측 비행 로그가 이 둘을 측정값으로 바꾼다.")}},
-              open(f"{ROOT}/outputs/report07_hover_long.json", "w"),
+                         "declared_ko": ("⚠ 흔들림 진폭·주파수는 프리셋(문헌 앵커) 값이다. "
+                                         "우리 표적의 실측 비행 로그가 이 둘을 측정값으로 바꾼다.")}},
+              open(f"{ROOT}/outputs/report07_hover_long{tag}.json", "w"),
               ensure_ascii=False, indent=1)
-    print(f"\n  ✅ {secs/60:.1f}분 · outputs/report07_hover_long.npz")
+    print(f"\n  ✅ {secs/60:.1f}분 · outputs/report07_hover_long{tag}.npz")
 
 
 if __name__ == "__main__":

@@ -49,6 +49,7 @@ from report_style import (build_notebook, caption, fetch, header, md,    # noqa:
 SURVEY = "outputs/prior_work_survey.json"      # 21건 전문 판정 · 갈래 · 낱말 빈도 · 앵커
 PAPER = "outputs/report01_paper.json"          # 4관문 집계 · 인용 · 갈래별 게재수
 KR = "outputs/sbr_kr_sweep.json"
+DFX = "outputs/sbr_defect_fixes.json"  # 출사 가시성·상반성 — β 창의 원장
 CFAR = "outputs/verify_cfar.json"
 S2R = "outputs/s2r_prior.json"
 POC = "outputs/report00_po_case.json"
@@ -590,7 +591,9 @@ def report_13_where_we_stand():
                   ["절대 레벨 · 밴드 기울기", "A(f)·B1(φ)·B2 분해로 Das 적합계수에 정렬",
                    _n("anchors.das.mu_a_db_per_ghz", SURVEY, "{:.2f}", "dB/GHz"),
                    ref("anchor-mode", short=True)],
-                  ["바이스태틱", "수신기 방향 그림자 광선으로 출사쪽 가시성 판정", "β ≤ 45°",
+                  ["바이스태틱", "수신기 방향 그림자 광선으로 출사쪽 가시성 판정",
+                   "β ≤ " + _n('d2_exit_vis_effect_on_reciprocity.beta_deg[3]', DFX,
+                               '{:.0f}', '°'),
                    ref("bistatic-exit", short=True)],
                   ["검출", "경험 Pfa(실제로 울린 오경보율)로 CFAR 문턱 교정",
                    "GPU 몬테카를로 " + _n("meta.runtime_s", CFAR, "{:.0f}", "s"),

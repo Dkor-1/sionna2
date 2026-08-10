@@ -41,6 +41,10 @@ TRI = json.load(open(f"{_ROOT}/outputs/report07_three_engines.json"))
 MDP = json.load(open(f"{_ROOT}/outputs/report00_microdoppler.json"))
 HOV = json.load(open(f"{_ROOT}/outputs/report07_hover_long.json"))["_meta"]
 VERD = json.load(open(f"{_ROOT}/outputs/report15_verdict.json"))
+RNGS = json.load(open(f"{_ROOT}/outputs/report07_sionna_ranges.json"))     # 그림 9 원장
+W5G = json.load(open(f"{_ROOT}/outputs/report07_5g_waveform.json"))        # 그림 10 원장
+RGM, RGR = RNGS["_meta"], RNGS["ranges"]
+WM, WA = W5G["_meta"], W5G["arms"]
 LEAD = MDB["cells"]["matrice4e/belly"]
 PH = LEAD["physics"]
 FND = LEAD["findings"]
@@ -110,7 +114,7 @@ else:
 cells = [
     md("# 리포트 07 — 마이크로도플러 한눈에 보기", "",
        "> **도는 로터가 만드는 무늬는 회전수·가림·자세가 정한다.**", "",
-       "이 편은 **부 7 의 표지**다. 장면 렌더 두 장과 그림 일곱 장을 한자리에 놓고 "
+       "이 편은 **부 7 의 표지**다. 장면 렌더 두 장과 그림 아홉 장을 한자리에 놓고 "
        "각각이 무엇을 말하는지 한 줄로 적는다. 자세한 것은 각 절이 가리키는 편에 있다.", "",
        "| 그림 | 무엇을 말하나 | 자세히 |",
        "|---|---|---|",
@@ -121,7 +125,10 @@ cells = [
        "| 5 | 동체가 막으면 무엇이 달라지나 | `reports/38_md-occlusion.ipynb` |",
        "| ⭐6 | **블레이드 플래시가 7.9 ms 마다 번쩍인다** | 아래 |",
        "| ⭐7 | 2초 호버링 — 능선과 로터 회전수 | 아래 |",
+       "| ⭐9 | Sionna 경로해는 거리에 무너진다 — 광선 예산의 구조적 한계 | 아래 |",
+       "| ⭐10 | 5G 풀캡처 ≡ CW — 차이는 파형이 아니라 반복률 | 아래 |",
        "",
+       "(그림 9·10 의 번호는 그림 파일 번호 f9·f10 을 따른다 — 본문 그림 8 은 없다.)", "",
        f"헤드라인 칸은 **{LEAD['name']}** 를 배 쪽에서 본 것이다 — "
        f"방위 {LEAD['az_deg']:.0f}° · 앙각 {LEAD['el_deg']:.0f}° · "
        f"호버 {PH['rpm']:.0f} rpm · 날개끝 주파수 {PH['f_tip']:.0f} Hz · "
@@ -139,8 +146,9 @@ cells = [
        "레이더는 기체의 **배 쪽 아래**에서 본다(방위 0°, 앙각 −15°). "
        "지상 레이더가 나는 드론을 보는 각도다. "
        "⚠ 예외가 하나 있다 — **그림 2 만 자세가 다르다**(아래 B 끝과 그림 2 절에 적는다).", "",
-       "⚠ **두 종류의 그림이 서로 다른 파면을 쓴다.** 어느 그림이 어느 쪽인지 아래에 적는다.", "",
-       "**A. 원거리장 평면파** — 그림 1 · 4 · 5 · 6 · 7 (우리 SBR+PO 단독)", "",
+       "⚠ **세 갈래의 배치가 섞여 있다 — 파면이 서로 다르다.** 어느 그림이 어느 쪽인지 아래에 적는다.", "",
+       "**A. 원거리장 평면파** — 그림 1 · 4 · 5 · 6 · 7 (우리 SBR+PO 단독 — "
+       "그림 10 은 그림 7 의 이 채널을 파형만 바꿔 다시 쓴다)", "",
        "| | |",
        "|---|---|",
        "| 배치 | TX/RX 없음 — **시선 방향 하나**만 준다 (거리 무한대 가정) |",
@@ -163,6 +171,14 @@ cells = [
        "세 엔진 비교를 3 m 에서 한 이유는 Sionna 경로해가 근거리에서 경로를 더 안정적으로 "
        "찾기 때문인데, 그 대가로 **A 그림들과 파면 조건이 다르다**. "
        "같은 자세인데 그림 3 과 그림 1 의 무늬 세부가 다른 이유 중 하나가 이것이다.", "",
+       "**C. 진짜 모노스태틱 거리 스윕** — 그림 9 (Sionna 씬, 2026-08-10)", "",
+       "| | |",
+       "|---|---|",
+       "| TX = RX | 완전 동일점 — 기선 0, 바이스태틱각 0° |",
+       f"| 거리 | 3 · 10 · 20 · 40 m — 원거리장 경계 {FARFIELD_M:.1f} m 를 가로지른다 |",
+       "| 뜻 | B 의 준-모노(기선 0.2 m, 3.8°)를 대체하는 정정(2026-08-10) — "
+       "SBR/PO 팔과 같은 후방산란 기하 |",
+       "",
        "⚠ 시나리오에 **없는 것**도 그림을 읽는 데 필요하다 — 잡음 0 · 클러터 0 · 지면 반사 0. "
        "그래서 이 그림들의 «깨끗함» 은 성과가 아니라 설정이다. "
        "지면·클러터는 향후 과제로 두었다(야외 사이트 트윈)."),
@@ -266,6 +282,105 @@ cells = [
        f"⚠ 제어루프 흔들림(±{HOV['wobble_amp']:.2%} @ {HOV['wobble_hz']:.1f} Hz)은 아직 "
        f"**선언된 가정**이다 — 실측 비행 로그가 그 자리를 채운다."),
 
+    md("## 그림 9 — 거리를 늘리면 Sionna 경로해가 어떻게 무너지나", "",
+       f"**시나리오(§0 의 C)** — 그림 3 과 같은 Sionna 씬이지만 둘이 다르다. "
+       f"① **진짜 모노스태틱**이다 — TX=RX 완전 동일점(기선 {RGM['baseline_m']:.0f} m). "
+       "2026-08-10 정정으로 그림 2·3 의 준-모노(기선 0.2 m·바이스태틱각 3.8°)를 대체하며, "
+       "이제 SBR/PO 팔과 같은 후방산란 기하다. "
+       f"② 표적을 **3 → 10 → 20 → 40 m** 로 물린다 — 원거리장 경계 {FARFIELD_M:.1f} m 를 "
+       f"가로지른다. 파형은 없다 — {RGM['fc_hz']/1e9:.1f} GHz 단일 톤(CW) 채널응답이고, "
+       f"PRF {RGM['prf_hz']:.0f} Hz 는 슬로타임 표본율이다. 광선 수는 표적 입체각 축소를 "
+       "(R/3)² 로 보상해 1M → 32M 까지 늘렸다.", "",
+       embed("report07_f9"), "",
+       "| 거리 | 광선 수 | 자세당 경로(중앙값) | 경로 0 인 자세 | 평균 레벨 | 변조 p-p |",
+       "|---|---|---|---|---|---|",
+       "\n".join(
+           f"| {RGR[k]['range_m']:.0f} m | {RGR[k]['spp']/1e6:.0f}M | "
+           f"{RGR[k]['paths_median']:.0f} | {RGR[k]['paths_zero_frac']:.1%} | "
+           f"{RGR[k]['level_db']:.1f} dB | {RGR[k]['ptp_db']:.1f} dB |"
+           for k in ("R3", "R10", "R20", "R40")),
+       "",
+       f"⭐ 광선을 32배 부어도 **40 m 에선 자세의 {RGR['R40']['paths_zero_frac']:.1%} 가 "
+       "경로 0** 이다. 광선을 덜 쏜 탓이 아니라 **구조**다 — PathSolver 는 TX 에서 광선을 "
+       "뿌리고 그 광선이 표적을 맞혀야 경로가 생기는데, 표적이 차지하는 입체각은 (D/R)² 로 "
+       "줄어든다. 반면 우리 SBR+PO 는 광선 격자를 **표적에 앵커**(λ/16 간격)한 평면파 조명이라, "
+       f"원거리장 경계({FARFIELD_M:.1f} m) 밖에서는 무늬가 거리에 불변이고 수신 레벨만 1/R² 로 "
+       "내려간다. 마이크로도플러를 원거리에서 물으려면 이 축은 SBR+PO 가 맡아야 한다.", "",
+       "⚠ 정직 표시 둘. ① 40 m 맵은 자기 최대 정규화라 몇 안 되는 «경로 있는 자세» 만 "
+       "세로줄로 번쩍이고 나머지는 바닥이다 — 예쁘게 가리지 않았다. ② 표의 40 m 평균 레벨"
+       "(−505 dB)과 변조 p-p(444 dB)는 경로 0 자세의 log(0) 바닥이 만든 산술이지 물리 "
+       "수치가 아니다 — 20 m 의 p-p 33 dB 도 경로가 성긴 자세가 키운 값이다.", "",
+       "**이 그림의 설정** (표시 규약은 부록 표와 같다 — flash_spec)", "",
+       "| 항목 | 값 |",
+       "|---|---|",
+       f"| 슬로타임 | N_T {RGM['n']} 표본 @ PRF {RGM['prf_hz']:.0f} Hz = "
+       f"{RGM['n']/RGM['prf_hz']*1e3:.0f} ms |",
+       f"| 파형 | 없음 — {RGM['fc_hz']/1e9:.1f} GHz 단일 톤 CW |",
+       "| 광선 수 | (R/3)² 보상 — 3 m 1M · 10 m 8M · 20 m 16M · 40 m 32M |",
+       "| PathSolver | max_depth 1 · LoS·정반사·확산 켬 · 굴절 끔 |",
+       f"| 기하 | TX=RX(기선 0) · 방위 {RGM['az_deg']:.0f}° · 앙각 {RGM['el_deg']:.0f}° |",
+       f"| 로터 산포 | ±{RGM['rpm_spread_frac']*100:g} % (PX4 실측 중간값) |",
+       "",
+       "PathSolver 호출부 (`benchmark/report07_sionna_range_sweep.py`) —", "",
+       "```python",
+       "RP.place(sc, az=AZ, el=EL, rng=rng, baseline=0.0)      # ⭐기선 0 = 모노스태틱",
+       "p = RP.rt.PathSolver()(sc, max_depth=1, los=True, specular_reflection=True,",
+       "                       diffuse_reflection=True, refraction=False,",
+       "                       samples_per_src=int(spp),",
+       "                       max_num_paths_per_src=RP.MAX_PATHS, seed=1)",
+       "```"),
+
+    md("## 그림 10 — 같은 채널에 5G 파형을 실제로 태우면", "",
+       "**시나리오(§0 의 A)** — 채널은 그림 7 의 2 초 호버링 h(t) **그대로**다(같은 원장). "
+       "바꾼 것은 파형뿐이다: 5G NR 형 OFDM — "
+       f"SCS {WM['scs_hz']/1e3:.0f} kHz(n78 규약) · 유효 부반송파 {WM['n_sc']:,}개 · "
+       f"심볼마다 무작위 QPSK · 심볼율 {WM['sym_rate_hz']/1e3:.0f}k sym/s. "
+       "수신은 기지 심볼 나눗셈(Y/X → 부반송파 평균)으로 심볼마다 채널 ĥ 을 꺼낸다. "
+       "네 팔은 **«채널을 얼마나 자주 읽나»(반복률)만** 다르다 — "
+       "CW 5 kHz(기준) · 풀캡처 28 kHz · CRS 급 1 kHz · SSB 급 50 Hz.", "",
+       embed("report07_f10"), "",
+       f"⭐ **판정 — 풀캡처는 CW 와 수치적으로 같다**(최대 상대오차 "
+       f"**{WM['full_capture_max_rel_err']:.1e}**). 왼쪽 두 맵이 같아 보이는 것이 이 그림의 "
+       "핵심이다. 잡음 0·단일 거리빈에서 차이를 만드는 것은 파형이 아니라 **반복률**이다.", "",
+       "| 팔 | 표본율 | 나이퀴스트 | 날개끝 ±1229 Hz | 플래시 127 Hz |",
+       "|---|---|---|---|---|",
+       "\n".join(
+           f"| {WA[k]['label']} | {WA[k]['fs_hz']:g} Hz | ±{WA[k]['nyquist_hz']:g} Hz | "
+           f"{'⚠접힘' if WA[k]['ftip_folds'] else '보임'} | "
+           f"{'⚠접힘' if WA[k]['fflash_folds'] else '보임'} |"
+           for k in ("cw_5k", "nr_full_28k", "nr_crs_1k", "nr_ssb_50")),
+       "",
+       "⭐ 이것이 **5G 이중고**의 그림판이다 — 패시브가 기댈 상시 신호 기준으로, LTE CRS 급 "
+       "1 kHz 는 날개끝(±1229 Hz)이 나이퀴스트 500 Hz 안으로 **접혀** 들어오고(점선 = 접힌 "
+       "자리 ±229 Hz), 5G SSB 급 50 Hz 는 **플래시선(127 Hz)마저** ∓23 Hz 로 접힌다. "
+       "풀캡처가 CW 와 같다는 판정과 합치면 — 문제는 5G 파형이 아니라 **상시로 쓸 수 있는 "
+       "반복률**이다.", "",
+       "⚠ 정직 한계 두 줄. ① 5 kHz 채널열을 28 kHz 심볼율로 다상 보간했다 — 근거는 대역제한 "
+       f"가드 에너지 **{WM['bandlimit_guard_energy']:.1e}**(|f| > 2250 Hz 성분)다. "
+       f"② 심볼 안에서 채널이 도는 ICI 를 1차 근사로 재면 바닥이 "
+       f"**{WM['ici_floor_db_first_order']:.1f} dB** 인데, 채널 모형(심볼당 상수·평탄)에는 "
+       "넣지 않았다 — 실제 수신기의 바닥은 이 그림보다 나쁠 수 있다.", "",
+       "⚠ SSB 패널은 표본 100개(2 s × 50 Hz)뿐이라 스펙트로그램이 무의미하다 — 규약 조각이 "
+       "최소 8표본 = 160 ms = 블레이드 20주기라 플래시가 원리적으로 시간평균된다. 그래서 "
+       "주기도(PSD)로 정직하게 대체했다. CRS 패널의 거친 결(조각 8표본 클램프)도 그대로 뒀다.", "",
+       "**이 그림의 설정** (표시 규약은 부록 표와 같다 — 각 팔의 자기 표본율로 flash_spec)", "",
+       "| 항목 | 값 |",
+       "|---|---|",
+       f"| 채널 | 그림 7 원장 h(t) — {WM['channel_source']} |",
+       f"| SCS | {WM['scs_hz']/1e3:.0f} kHz (5G n78) |",
+       f"| 유효 부반송파 | {WM['n_sc']:,} |",
+       f"| 심볼율 | {WM['sym_rate_hz']:.0f} sym/s (0.5 ms 슬롯 × 14 심볼) |",
+       "| 변조·수신 | 무작위 QPSK · 기지 심볼 나눗셈 |",
+       f"| 평탄 채널 근거 | {WM['flat_channel_justification_ko']} |",
+       "",
+       "OFDM 송수신의 심장부 (`benchmark/report07_5g_waveform.py`) —", "",
+       "```python",
+       "X = (RNG.integers(0, 4, (N_SC, s1 - s0)) * 2 + 1) * (np.pi / 4)      # QPSK 위상",
+       "X = np.exp(1j * X)",
+       "Y = h28k[None, s0:s1] * X                                            # 평탄 채널",
+       "h_hat[s0:s1] = np.mean(Y / X, axis=0)                                # 기지심볼 나눗셈",
+       "```"),
+
     md("## 부록 — 그림별 데이터 이력", "",
        "그림마다 딛고 선 원장(계산 결과 JSON)과 그 시점이 다르다. "
        "각도의존 Γ(θ) 는 2026-08-07 에 켜졌다 — 그 전 원장의 절대값은 곧 갱신된다.", "",
@@ -278,7 +393,9 @@ cells = [
        f"| 2 | `outputs/report15_verdict.json` | {VERD['meta']['stamp'][:16]} | ⚠ 전 · 자세도 예외(nose, el +15) | — (위상 스텝, 산포 없음) |",
        f"| 3 | `outputs/report07_three_engines.json` | {TRI['_meta']['generated'][:16]} | ✅ 후 | ±{TM['rpm_spread_frac']*100:g} %(선언) |",
        "| 4 | ⚠ 원장 없음 — `benchmark/build_report07_figs.py` 에 기록된 2026-08-07 실측값 | 2026-08-07 | 기록 없음 — 모른다 | — |",
-       f"| 6 · 7 | `outputs/report07_hover_long.json` | {HOV['generated'][:16]} | ✅ 후 | ±{HOV['static_spread']*100:g} %(PX4 실측) |"),
+       f"| 6 · 7 | `outputs/report07_hover_long.json` | {HOV['generated'][:16]} | ✅ 후 | ±{HOV['static_spread']*100:g} %(PX4 실측) |",
+       f"| 9 | `outputs/report07_sionna_ranges.json` | {RGM['generated'][:16]} | ✅ 후 | ±{RGM['rpm_spread_frac']*100:g} %(PX4 실측 중간값) |",
+       f"| 10 | `outputs/report07_5g_waveform.json` | {WM['generated'][:16]} | ✅ 후 — 그림 7 원장 상속 | ±{HOV['static_spread']*100:g} %(PX4 실측 중간값) |"),
 
     md("## 부록 — 그림을 만든 설정 전부", "",
        "그림에는 설정 수치를 안 적는다. 여기가 그 수치들의 자리다.", "",

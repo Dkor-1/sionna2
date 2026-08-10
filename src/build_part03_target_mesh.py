@@ -48,8 +48,13 @@ PH4 = "outputs/phantom4_scan_compare.json"   # 실물 스캔 대조
 RCAD = "outputs/real_cad_compare.json"       # 실물 유래 CAD 대조
 COM = "outputs/community_compare.json"       # 커뮤니티 메쉬 대조
 MFX_ATK = "outputs/meshfix_attack.json"      # 형상 정정 적대검증 — σ 재계산 전 관문
+GAL = "outputs/mesh_gallery.json"            # 메쉬 함대 원장 — 모집단(σ 함대보다 넓다)
+AGI = "outputs/angle_gamma_impact.json"      # Γ(θ) 각도 모양 — 커널이 |Γ| 에 곱하는 축
 
 FIG = "../outputs/figures"
+
+#: 메쉬 함대 모집단 — σ 함대 7종보다 넓다. 원장 목록의 길이라 함대가 바뀌면 따라 바뀐다.
+_FLEET_N = len(fetch((GAL, "order_by_size")))
 
 
 def _n(key: str, src: str, fmt: str | None = None, unit: str = "") -> str:
@@ -82,8 +87,9 @@ def report_15_mesh_build():
             did="공식 외형(L×W×H)·모터 대각·프롭 지름에 맞춰 기체 7종의 메쉬를 세우고, 부품을 "
                 "재질 그룹으로 나눠 유지했다.",
             results=[
-                f"기체 {_n('mesh.n', DER, '{:.0f}', '종')} 을 지었다 — "
-                f"{_n('mesh.smallest', DER)} "
+                f"메쉬 함대는 {_FLEET_N}종이고(⟨{GAL} : order_by_size⟩ 길이) 이 편의 표는 "
+                f"그중 σ 함대 {_n('mesh.n', DER, '{:.0f}', '종')} 이다 — 크기 극값은 함대 "
+                f"전체에서 {_n('mesh.smallest', DER)} "
                 f"{_n('mesh.smallest_span_mm', DER, '{:.0f}', 'mm')} 부터 "
                 f"{_n('mesh.largest', DER)} "
                 f"{_n('mesh.largest_span_mm', DER, '{:.0f}', 'mm')} 까지 "
@@ -103,12 +109,12 @@ def report_15_mesh_build():
                 f"외접반경 r 은 빌더가 메쉬에서 직접 다시 재고 갤러리 원장과 대조한다 — 최대 차이 "
                 f"{_n('mesh.r_crosscheck_max_pct', DER, '{:.2f}', '%')} 다.",
 
-                f"⚠ 이 편의 그림과 표는 {_n('_meta.date', MFX)} 형상 정정 **전** 메쉬 기준이다. "
-                f"정정이 옮긴 양은 아래에 그대로 적었다.",
+                f"이 편의 그림과 표는 {_n('_meta.date', MFX)} 형상 정정 **후** 메쉬에서 "
+                f"재측정한 값이다. 정정이 옮긴 양은 아래에 그대로 적었다.",
             ],
             method=[
                 ("치수 출처", "공식 외형(L×W×H)·모터 대각·프롭 지름 — 제원과 제조사 CAD 치수표 "
-                            "(`src/drones.py:43` DroneSpec, `src/drones.py:822`)"),
+                            "(`src/drones.py` `DroneSpec` · 치수표)"),
                 ("부품 유지", "부품을 **재질 그룹**으로 나눠 유지한다 — 산란 커널이 그룹마다 "
                             "다른 |Γ| 를 읽기 때문이다"),
                 ("외접반경", "빌더가 메쉬 정점에서 직접 재고 갤러리 원장과 교차확인한다"),
@@ -122,13 +128,15 @@ def report_15_mesh_build():
 
         md("## 무엇에서 지었나", "",
            "메쉬는 제원과 제조사 CAD 치수에서 세운다 — 공식 외형(L×W×H)·모터 대각·프롭 지름에 "
-           "맞춘 뒤 부품을 **재질 그룹**으로 나눠 유지한다(`src/drones.py:43` DroneSpec, "
-           "`src/drones.py:822`). **matrice4e · mini5pro 가 실측 대상**이다.", "",
+           "맞춘 뒤 부품을 **재질 그룹**으로 나눠 유지한다(`src/drones.py` `DroneSpec` · 치수표"
+           "). **matrice4e · mini5pro 가 실측 대상**이다.", "",
            f"크기 폭이 {_n('mesh.span_ratio', DER, '{:.2f}')}배다 — "
            f"{_n('mesh.smallest', DER)} "
            f"{_n('mesh.smallest_span_mm', DER, '{:.0f}', 'mm')} 대 "
            f"{_n('mesh.largest', DER)} "
-           f"{_n('mesh.largest_span_mm', DER, '{:.0f}', 'mm')}. 그 폭이 kr 을 "
+           f"{_n('mesh.largest_span_mm', DER, '{:.0f}', 'mm')}, 메쉬 함대 {_FLEET_N}종 전체에서 "
+           f"잰 극값이다(이 편의 표는 그중 σ 함대 {_n('mesh.n', DER, '{:.0f}', '종')}). 그 폭이 "
+           f"kr 을 "
            f"{_n('electrical.kr_min', DER, '{:.1f}')}"
            f"({_n('electrical.kr_min_name', DER)} @ {_n('electrical.kr_min_band', DER)})~"
            f"{_n('electrical.kr_max', DER, '{:.1f}')}"
@@ -152,9 +160,9 @@ def report_15_mesh_build():
            f"값이고, 클수록 파장에 비해 몸이 크다는 뜻이다. 외접반경 r 은 이 빌더가 메쉬에서 직접 "
            f"다시 재고 갤러리 원장과 대조한다(최대 차이 "
            f"{_n('mesh.r_crosscheck_max_pct', DER, '{:.2f}', '%')}).", "",
-           f"⚠ 위 그림과 표는 {_n('_meta.date', MFX)} 형상 정정 전 메쉬 기준이다. 그날 "
-           f"Matrice 4E · Mini 2 · X500 V2 의 형상 상수가 공식 CAD 실측으로 정정되면서 몸통을 "
-           f"공표 높이에 맞추던 z 축 배율이 Matrice 4E "
+           f"위 그림과 표는 {_n('_meta.date', MFX)} 형상 정정 **후** 메쉬에서 재측정한 값이다. "
+           f"그날 Matrice 4E · Mini 2 · X500 V2 의 형상 상수가 공식 CAD 실측으로 정정되면서 "
+           f"몸통을 공표 높이에 맞추던 z 축 배율이 Matrice 4E "
            f"{_n('per_drone.matrice4e.fit_scale_before[2]', MFX, '{:.3f}')}→"
            f"{_n('per_drone.matrice4e.fit_scale_after[2]', MFX, '{:.3f}')} · Mini 2 "
            f"{_n('per_drone.mini2.fit_scale_before[2]', MFX, '{:.3f}')}→"
@@ -175,10 +183,9 @@ def report_15_mesh_build():
              "σ 캐시 키에 메쉬 지문을 넣고, 봉인해 둔 예측과 대조한다",
              "새 σ 가 형상 정정 때문에 움직인 것인지 다른 것 때문인지가 구별된다",
              f"⟨{MFX_ATK} : recommended_gate_before_any_sigma_claim⟩"),
-            ("형상 원장 넷(갤러리·사진·공식 CAD·재질)을 정정된 메쉬로 다시 돌린다",
-             "이 부의 표와 그림이 현재 형상 위에 선다 — 지금은 z 축 배율부터 어긋나 있다",
-             "`src/viz_mesh_gallery.py` · `viz_mesh_photo.py` · `viz_cad_compare.py` · "
-             "`viz_mesh_material.py`"),
+            ("형상 원장 셋(사진·공식 CAD·재질)을 정정된 메쉬로 다시 돌린다",
+             "사진·CAD·재질 표가 갤러리(재측정 완료)와 같은 형상 세대 위에 선다",
+             "`src/viz_mesh_photo.py` · `viz_cad_compare.py` · `viz_mesh_material.py`"),
             ("이 부의 그림 넷을 게재 규격(벡터 + 300 dpi · 8 pt)으로 다시 그린다",
              "원고 그림 전부가 2단 조판 축소에서 살아남는다",
              "`src/viz_mesh_gallery.py` · `src/viz_mesh_material.py`"),
@@ -296,7 +303,10 @@ def report_16_mesh_vs_real():
            f"{_n('photo.iou_at_1deg_pose_error', DER, '{:.3f}')}, 2° 면 "
            f"{_n('photo.iou_at_2deg_pose_error', DER, '{:.3f}')} 로 내려간다.", "",
            f"⭐ 그래서 이 편이 파는 것은 «메쉬가 맞다» 가 아니라 **«어느 인용 단위까지 맞다»** 다. "
-           f"그 단위 안에서 σ 를 쓰는 자리가 {ref_part(5)} 이고, 단위 밖의 양을 인용하지 않는다."),
+           f"그 단위 안에서 σ 를 쓰는 자리가 {ref_part(5)} 이고, 단위 밖의 양을 인용하지 않는다.", "",
+           f"⚠ 사진 IoU·CAD 표는 {_n('_meta.date', MFX)} 형상 정정 **전** 메쉬의 산출이고, "
+           f"σ 대조 세 값은 그 메쉬 위에서 {_n('_meta.generated', AGI)} Γ(θ) 각도 모양(기본 켬) "
+           f"**이전** 커널로 돌린 것이다 — 재측정은 다음 단계 표에 있다."),
 
         next_steps([
             ("실물 스캔 대조를 실측 대상 두 기체로 넓힌다",
@@ -336,11 +346,11 @@ def report_17_materials():
 
                 f"유전체 셸(body·canopy)은 반사계수 크기 "
                 f"{_n('material.gamma_shell', DER, '{:.2f}')} 로 왕복 투과 τ = 1−Γ², 즉 "
-                f"{_n('material.shell_tau_db', DER, '{:.2f}', 'dB')} 를 곱해 통과시키고 그 뒤 "
-                f"금속(배터리·PCB)을 코히런트 합산한다(`src/rcs_sbr.py:88`).",
+                f"{_n('material.shell_tau_db', DER, '{:.2f}', 'dB')}(수직입사 기준) 를 곱해 "
+                f"통과시키고 그 뒤 금속(배터리·PCB)을 코히런트 합산한다(`src/rcs_sbr.py` `rcs_sbr(penetrate=True)`).",
 
                 f"Sionna RT 와 우리 PO 적분기는 **같은 재질 표**를 읽는다"
-                f"(`src/materials.py:53` MATERIALS, `src/drones.py:562` DRONE_GROUP_MAT) — "
+                f"(`src/materials.py` `MATERIALS`, `src/drones.py` `DRONE_GROUP_MAT`) — "
                 f"전파 계산과 산란 계산이 같은 물성에서 나온다.",
             ],
             method=[
@@ -349,7 +359,9 @@ def report_17_materials():
                 ("면적 계수", "7기체의 메쉬 표면적을 재질별로 합산한다"),
                 ("반사계수 가중 면적", "같은 면적을 반사계수 크기로 가중한 장부다 — PO 적분에 "
                                     "들어가는 양이고, 위상이 없으므로 σ 자체는 아니다"),
-                ("PO 실효 반사계수", "벌크값과 따로 적는다 — 적분기가 실제로 곱하는 값이 그쪽이다"),
+                ("PO 실효 반사계수", "수직입사 실효값이다 — 커널은 여기에 각도 모양 "
+                                 "|Γ(θ)|/|Γ(0)| (TE·TM 전력평균, `ANGLE_GAMMA=1` 기본)을 "
+                                 "곱한다 ⟨" + AGI + " : _meta.design⟩"),
             ],
             repro=_repro([_DERIVE_CMD, "PYTHONPATH=src python src/viz_mesh_material.py"],
                          [DER], "약 2분 (GPU 0장)",
@@ -358,8 +370,8 @@ def report_17_materials():
         ),
 
         md("## 부품별 재질 — PO 적분에 들어가는 물리 입력", "",
-           "Sionna RT 와 우리 PO 적분기는 **같은 재질 표**를 읽는다(`src/materials.py:53` "
-           "MATERIALS, `src/drones.py:562` DRONE_GROUP_MAT). 아래 그림은 7기체의 표면적을 재질로 "
+           "Sionna RT 와 우리 PO 적분기는 **같은 재질 표**를 읽는다(`src/materials.py` `MATERIALS`"
+           ", `src/drones.py` `DRONE_GROUP_MAT`). 아래 그림은 7기체의 표면적을 재질로 "
            "나누고, 같은 면적을 |Γ| 로 가중해 **무엇이 반사 진폭을 내는지**까지 함께 싣는다."),
 
         md("## 무엇으로 이루어져 있고, 무엇이 진폭을 내는가", "",
@@ -375,13 +387,22 @@ def report_17_materials():
                        ("면적 [m²] (7기체)", "area_m2"), ("면적 비중", "area_pct"),
                        ("Σ\\|Γ\\|A 비중", "gamma_pct")],
                       fmt={"gamma_bulk": "{:.3f}", "gamma_po": "{:.2f}", "area_m2": "{:.3f}",
-                           "area_pct": "{:.1f} %", "gamma_pct": "{:.1f} %"})),
+                           "area_pct": "{:.1f} %", "gamma_pct": "{:.1f} %"}), "",
+           f"표의 |Γ| 두 열은 **수직입사** 값이다 — 커널은 여기에 각도 모양 |Γ(θ)|/|Γ(0)| "
+           f"(TE·TM 전력평균, `ANGLE_GAMMA=1` 기본)을 곱한다 ⟨{AGI} : _meta.design⟩. 그 축이 "
+           f"옮기는 크기는 프롭 채널 레벨 "
+           f"{_n('propeller_channel_el_-15_3p5GHz.matrice4e.level_delta_db', AGI, '{:+.2f}')} ~ "
+           f"{_n('propeller_channel_el_-15_3p5GHz.mini5pro.level_delta_db', AGI, '{:+.2f}', 'dB')}"
+           f" · 전체 드론 σ "
+           f"{_n('whole_drone_sigma_az24_el_-15.mini5pro.delta_db', AGI, '{:+.2f}')} ~ "
+           f"{_n('whole_drone_sigma_az24_el_-15.matrice4e.delta_db', AGI, '{:+.2f}', 'dB')} 다."),
 
         md("## 셸을 통과한 뒤 금속을 더한다", "",
            f"유전체 셸(body·canopy)은 |Γ| = "
            f"{_n('material.gamma_shell', DER, '{:.2f}')} 로 왕복 투과 τ = 1−|Γ|², 즉 "
            f"{_n('material.shell_tau_db', DER, '{:.2f}', 'dB')} 를 곱해 통과시키고 그 뒤 "
-           f"금속(배터리·PCB)을 코히런트 합산한다(`src/rcs_sbr.py:88`).", "",
+           f"금속(배터리·PCB)을 코히런트 합산한다 — τ 는 수직입사 기준이고, 각도 모양은 "
+           f"|Γ(θ)| 축이 따로 든다(`src/rcs_sbr.py` `rcs_sbr(penetrate=True)`).", "",
            f"⚠ Σ|Γ|A 는 **위상 없는 장부**다 — 어느 재질이 진폭에 얼마나 기여하는지의 크기 "
            f"순서를 보는 데 쓰고, σ 자체는 위상을 가진 면적분에서 나온다. 그 적분이 "
            f"{ref('kernel-what')} 다."),

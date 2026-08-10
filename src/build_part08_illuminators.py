@@ -720,6 +720,13 @@ def write_paper_doc() -> str:
     nb = os.path.join(_ROOT, "report03_illuminators.ipynb")
     with open(nb, encoding="utf-8") as f:
         cells = json.load(f)["cells"]
+    if len(cells) <= 21:
+        # 옛 노트북(report03_illuminators.ipynb)이 비워져 c2·c21 이 없다 —
+        # 마지막으로 생성된 docs/paper/03_illuminators.md 를 그대로 보존하고 재생성만 건너뛴다.
+        p = os.path.join(_ROOT, "docs", "paper", "03_illuminators.md")
+        print(f"⚠ {os.path.relpath(nb, _ROOT)} 에 셀 22개가 없다({len(cells)}개) — "
+              f"논문 조각 재생성을 건너뛰고 기존 {os.path.relpath(p, _ROOT)} 를 보존한다")
+        return p
 
     def src(i):
         return "".join(cells[i]["source"]).strip()

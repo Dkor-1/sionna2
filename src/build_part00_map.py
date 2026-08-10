@@ -79,7 +79,7 @@ def report_00_map():
                 f"{_n('_meta.n_parts', fmt='{:.0f}', unit='개')} 다 — 한 편이 중심 메시지 하나를 "
                 f"들고, 편 제목이 곧 그 편의 결론 문장이다.",
 
-                f"재구성 전은 편 8개였다 — 화면 글자의 "
+                f"재구성 전은 편 8개였고 그중 7개를 진단했다 — 화면 글자의 "
                 f"{_n('s1_source_tags.size_on_screen.share_pct_of_chars', DIAG, '{:.1f}', '%')} 가 "
                 f"본문이 아니라 출처 태그였고, 태그는 "
                 f"{_n('s1_source_tags.counts.total_tags', DIAG, '{:,.0f}', '개')} 였다.",

@@ -13,7 +13,7 @@ build_part01_stock_engine.py — 부 1 「스톡 엔진이 하는 일과 안 하
     04 eight-factors     필드 갱신 인자 여덟 개에 면적·곡률·치수·λ 가 없다
     05 size-sweep        면적을 1600배로 키워도 경로 진폭은 7.4e-07 dB 움직인다
     06 decision-table    두 물음이 실험을 네 칸으로 가른다
-    07 why-po            완전파는 정확도의 과녁이고, SBR+PO 는 표를 만들 수 있는 유일한 비용대다
+    07 why-po            완전파는 정확도의 과녁이고, SBR+PO 는 표를 만들 수 있는 비용대에서 가장 정확하다
 
 어디서 왔나 (재구성 전 → 후)
     `report00_foundations.ipynb` c2~c17  ·  `report01_prior.ipynb` c2~c3
@@ -401,7 +401,8 @@ def report_04_eight_factors():
             results=[
                 f"인자는 "
                 f"{len(fetch((ANA, 'item2_field_calculation_arguments.argument_inventory')))}개이고 "
-                f"그중 여섯은 방향(단위벡터·회전), 둘은 Fresnel 계수다.",
+                f"그중 셋은 방향·자세(회전·단위벡터), 하나는 반사/투과 분기, 넷은 프레넬 "
+                f"반사·투과 계수다.",
 
                 "호출부가 `return_vertices=False` 로 **정점 좌표를 일부러 요청하지 않고** 법선만 "
                 "가져온다(`field_calculator.py:404-405`) — 삼각형 크기를 알 수 있는 유일한 통로가 "
@@ -441,7 +442,8 @@ def report_04_eight_factors():
         md("## 목록 밖에 있는 양들", "",
            table_from(f"{ANA}:item2_field_calculation_arguments.absent_quantities",
                       [("필드 갱신 인자 목록 밖에 있는 양", "")]), "",
-           "여덟 인자 중 여섯은 방향(단위벡터·회전)이고 둘은 Fresnel 계수다. 더 결정적인 것은 "
+           "여덟 인자 중 셋은 방향·자세(회전·단위벡터), 하나는 반사/투과 분기, 넷은 프레넬 "
+           "반사·투과 계수다. 더 결정적인 것은 "
            "호출부다 — `field_calculator.py:404-405` 가 `return_vertices=False` 로 **정점 좌표를 "
            "일부러 요청하지 않고** 법선만 가져온다. 삼각형 크기를 알 수 있는 유일한 통로가 "
            "그 자리에서 닫힌다."),
@@ -618,7 +620,7 @@ def report_05_size_sweep():
              ref("decision-table", short=True)),
             ("드론 본체에서 재테셀레이션 사다리를 돌린다",
              "적대검증이 무경계로 남긴 기하 축에 크기가 붙는다",
-             "`benchmark/facet_mechanism.py` → " + ref("kernel-vs-stock", short=True)),
+             "`benchmark/facet_mechanism_verdict.py` → " + ref("kernel-vs-stock", short=True)),
             ("면적분을 얹은 커널이 같은 메쉬에서 무엇을 내는지 맞댄다",
              "면 수 의존이 커널 쪽에서 사라지는지가 확정된다",
              ref("kernel-vs-stock", short=True)),
@@ -686,7 +688,9 @@ def report_06_decision_table():
            "소거 논증은 표적이 **한 방향에서** 조명될 때의 것이다. 다중경로에서는 직접파와 바닥 "
            "반사가 서로 다른 방향에서 동시에 표적을 때리므로 표적 항이 방향마다 달라진다. "
            f"커널의 {_n('s2_our_kernel.derivation[7].statement', POC)} 가 보여주듯 각 조명 방향마다 "
-           f"다른 E 가 나온다. 그때는 오른쪽 칸의 실험도 왼쪽으로 이사한다.", "",
+           f"다른 E 가 나온다(식의 |Γ| 는 입사각 의존 |Γᵢ(θᵢ)| 다 — "
+           f"⟨outputs/angle_gamma_impact.json : _meta.design⟩). 그때는 오른쪽 칸의 실험도 "
+           f"왼쪽으로 이사한다.", "",
            f"⭐ 이 표를 한 사례로 시험한 것이 {ref_part(7)} 다 — 도는 로터는 비율만 필요하므로 "
            f"오른쪽 칸에 앉는다."),
 
@@ -711,7 +715,8 @@ def report_07_why_po():
     return [
         header(
             num=7,
-            title="완전파는 정확도의 과녁이고, SBR+PO 는 표를 만들 수 있는 유일한 비용대다",
+            title="완전파는 정확도의 과녁이고, SBR+PO 는 표를 만들 수 있는 비용대에서 가장 "
+                  "정확하다",
             did="σ 를 조달하는 다섯 갈래를 비용과 정확도로 지도에 놓고, 게재된 반론 하나를 "
                 "그대로 실어 우리 선택의 값을 적었다.",
             results=[
@@ -722,7 +727,8 @@ def report_07_why_po():
 
                 f"우리 커널은 자세 하나(방위·고도 한 점 × 반송파 하나 → σ 한 값)에 중앙값 "
                 f"{_n('s1_alternatives.ours_runtime.ours_per_pose_ms_median', POC, '{:.1f}', 'ms')} "
-                f"다. 같은 카드·같은 씬에서 스톡 `sionna.rt.PathSolver` 전파 해가 "
+                f"다(측정은 Γ(θ) 배선 전 batch 커널 경로). 같은 카드·같은 씬에서 스톡 "
+                f"`sionna.rt.PathSolver` 전파 해가 "
                 f"{_n('s1_alternatives.stock_sionna_same_card.stock_sionna_ms_median', POC, '{:.1f}', 'ms')} "
                 f"이므로 하드웨어 변수가 제거된다.",
 
@@ -757,7 +763,8 @@ def report_07_why_po():
            f"그 대신 비용이 표를 못 만들게 한다. 게재본 문장 그대로 — "
            f"{_n('s1_alternatives.alternatives[0].cost_quote_mlfmm', POC)}", "",
            f"우리 커널은 자세 하나에 중앙값 "
-           f"{_n('s1_alternatives.ours_runtime.ours_per_pose_ms_median', POC, '{:.1f}', 'ms')} 다. "
+           f"{_n('s1_alternatives.ours_runtime.ours_per_pose_ms_median', POC, '{:.1f}', 'ms')} 다 — "
+           f"측정은 Γ(θ) 배선 전 batch 커널 경로의 값이다. "
            f"같은 `RTX 4090`, 같은 챔버 씬에서 스톡 `sionna.rt.PathSolver` 전파 해가 "
            f"{_n('s1_alternatives.stock_sionna_same_card.stock_sionna_ms_median', POC, '{:.1f}', 'ms')} "
            f"이므로 하드웨어 변수는 여기서 제거된다(⚠ 재는 양은 서로 다르다 — 전파 경로 대 σ)."),
@@ -767,7 +774,8 @@ def report_07_why_po():
            f"{_n('s1_alternatives.cascade_cost_objection._the_objection', POC)}", "",
            f"우리 구현에서 PO 적분은 광선캐스팅의 "
            f"{_n('s1_alternatives.cascade_cost_objection.our_po_over_rt', POC, '{:.1f}')}배다 — "
-           f"적분이 아직 호스트 numpy 라서다. 게재된 유일한 GPU 커널 분해(SagittaSBR)는 같은 "
+           f"적분이 아직 호스트 numpy 라서이고, 측정은 Γ(θ) 배선 전 batch 커널 경로다. "
+           f"게재된 유일한 GPU 커널 분해(SagittaSBR)는 같은 "
            f"캐스케이드를 광선발사의 "
            f"{_n('s1_alternatives.cascade_cost_objection.sagitta_po_over_raylaunch_A100_fp32', POC, '{:.1%}')} "
            f"로 적는다. 절반은 우리 몫이다.", "",
@@ -781,6 +789,9 @@ def report_07_why_po():
              f"{_n('s1_alternatives.cascade_cost_objection.our_po_over_rt', POC, '{:.1f}')}배가 "
              f"게재된 GPU 분해 수준으로 내려가는지가 확정된다",
              "`src/rcs_sbr.py`"),
+            ("Γ(θ) 를 batch 경로에 배선한 뒤 runtime_benchmark 를 같은 카드에서 다시 돌린다",
+             "각도 모양이 붙은 커널의 자세당 비용이 확정된다",
+             "`benchmark/runtime_benchmark.py`"),
             ("이 비용대에서 얻은 σ 를 해석 기준해와 맞댄다",
              "구현오차가 kr 전 구간에서 dB 로 확정된다",
              ref("kernel-vs-reference", short=True)),

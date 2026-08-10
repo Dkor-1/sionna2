@@ -104,6 +104,7 @@ def blocks_30() -> list:
                 rows.append([dn, pn,
                              _n(b + ".total_db", "{:+.2f}", "dB"),
                              _n(b + ".kinematics_part_db", "{:+.2f}", "dB"),
+                             _n(b + ".material_part_db", "{:+.2f}", "dB"),
                              _n(b + ".shape_part_db", "{:+.2f}", "dB"),
                              _n(b + ".kinematics_share", "{:.0%}")])
         return rows
@@ -216,7 +217,8 @@ def blocks_30() -> list:
            "빨간 점이 초록 점 아래에 정확히 겹쳐 있다."),
 
         md("## 운동학 몫이 형상 몫보다 크다", "",
-           table(["기체", "대리 형상", "총 차이", "운동학 몫", "형상 몫", "운동학 비중"],
+           table(["기체", "대리 형상", "총 차이", "운동학 몫", "재질 몫", "형상 몫",
+                  "운동학 비중"],
                  kin_rows()), "",
            "즉 «정육면체가 틀린 이유» 는 대부분 «모양이 거칠어서» 가 아니라 "
            "**«무엇이 도는지를 틀리게 놓아서»** 다. 운동학이 같으면서 날개 디테일만 없앤 "
@@ -625,7 +627,14 @@ def blocks_33() -> list:
 
         md("## 일곱 가지", "",
            table_from(f"{SYN}:why_premature",
-                      [("#", "id"), ("무엇이 문제인가", "claim_ko"), ("숫자", "number_ko")])),
+                      [("#", "id"), ("무엇이 문제인가", "claim_ko"), ("숫자", "number_ko")]), "",
+           "P1 이 드는 «메쉬 − 구» 간격은 기체별 집계이고, 방위 극값까지 펴면 "
+           + _n("professor_answer.axis3_time_modulation.modulation_gap_mesh_minus_sphere_db.min",
+                "{:.1f}") + "~"
+           + _n("professor_answer.axis3_time_modulation.modulation_gap_mesh_minus_sphere_db.max",
+                "{:.1f}", "dB")
+           + " 다 — 같은 대조를 두 규약으로 읽은 것이다("
+           + ref("ladder-answer", "형상 축의 값") + " 이 뒤 규약을 쓴다)."),
 
         md("## 치명적인 둘", "",
            "**P2 — 커널이 가림(그늘)을 안 본다.** 커널 렌즈가 깊이버퍼 그늘을 넣어 보니, 이 "
