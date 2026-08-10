@@ -1,8 +1,9 @@
 {
  "_meta": {
-  "generated": "2026-08-10 06:31:09",
+  "generated": "2026-08-10 08:08:01",
   "script": "benchmark/render_md_anim.py",
-  "purpose_ko": "리포트 07 — 호버링은 «정지» 가 아니다. 기체는 제자리, 프로펠러만 돈다. 그 회전이 마이크로도플러의 원천이라는 것을 움직임으로 보여준다.",
+  "purpose_ko": "리포트 07 — 호버링은 «정지» 가 아니다. 기체는 제자리, 프로펠러만 돈다. 그 회전이 마이크로도플러의 원천이라는 것을 움직임으로 보여준다. 이 판은 (1) 회전을 그럴듯한 속도로 올리고 (2) TX/RX 를 화면에 넣었다.",
+  "revision_ko": "2026-08-10 재제작. 옛 판은 36 프레임×60 ms 로 블레이드 한 주기만 덮어 슬로모션 ×274 였고 TX/RX 를 껐다(show_devices=False).",
   "scenario_source": "outputs/report07_three_engines.json (_meta.generated=2026-08-10 06:23:27)",
   "drone": "matrice4e",
   "name": "DJI Matrice 4E",
@@ -10,18 +11,21 @@
   "az_deg": 0.0,
   "el_deg": -15.0,
   "range_m": 3.0,
-  "determinism_ko": "Scene.render_to_file 에는 시드 인자가 없다(서명 실측). 재현성은 자세(rpm·프레임 수로 계산)·카메라(메쉬 크기에서 역산)·spp·해상도가 모두 결정론적이라는 데서 온다."
+  "baseline_m": 0.0,
+  "baseline_source": "benchmark/render_md_scene.py 에서 읽음 ({'AZ': 0.0, 'EL': -15.0, 'RNG': 3.0, 'BASE': 0.0})",
+  "determinism_ko": "Scene.render_to_file 에는 시드 인자가 없다(서명 실측). 재현성은 자세(rpm·프레임 수로 계산)·카메라(회전 포락선에서 역산)·spp·해상도가 모두 결정론적이라는 데서 온다.",
+  "warnings": []
  },
  "gpu": {
   "gpu": 1,
-  "free_mb": 4736,
+  "free_mb": 7350,
   "free_mb_all": {
-   "0": 1847,
-   "1": 4736,
-   "2": 12608,
+   "0": 687,
+   "1": 7350,
+   "2": 15977,
    "3": 3563
   },
-  "why_ko": "후보 [0, 1, 3] 중 여유 메모리 최대 (GPU0:1847MiB, GPU1:4736MiB, GPU2:12608MiB, GPU3:3563MiB)"
+  "why_ko": "후보 [0, 1, 3] 중 여유 메모리 최대 (GPU0:687MiB, GPU1:7350MiB, GPU2:15977MiB, GPU3:3563MiB)"
  },
  "rotors": {
   "n_rotors": 4,
@@ -44,95 +48,176 @@
   ],
   "note_ko": "로터별 rpm 과 CW/CCW 는 FastPoser/시나리오 JSON 이 정한 것을 그대로 썼다 — 이 스크립트는 회전 방향을 새로 정하지 않는다."
  },
+ "speed": {
+  "hover_rpm_mean": 3800.0,
+  "rev_per_s": 63.333333333333336,
+  "seconds_per_rev_ms": 15.789473684210527,
+  "blade_symmetry_deg": 180.0,
+  "blade_period_ms": 7.894736842105264,
+  "rotor_deg_per_frame": 15.0,
+  "real_ms_per_frame": 0.6578947368421052,
+  "frame_delay_ms": 30,
+  "slowmotion_factor": 45.599999999999994,
+  "playback_s": 0.72,
+  "loop_real_ms": 15.789473684210527,
+  "chain_ko": "호버 3800 rpm → 1회전 15.79 ms → 프레임당 15.00° = 실시간 0.658 ms → 표시 30 ms/프레임 → 슬로모션 ×45.6",
+  "previous_slowmotion": 273.6,
+  "wagon_wheel_ko": "프레임당 15.0° 는 2엽 대칭각 180° 의 8% — 50% 를 넘으면 역회전처럼 보인다. 안전 구간.",
+  "browser_delay_rule_ko": "GIF 지연이 20 ms 미만이면 브라우저가 100 ms 로 올린다. 30 ms 는 그 위라 그대로 재생된다."
+ },
  "loop": {
   "f_flash_hz": 126.66666666666667,
-  "blade_period_ms": 7.894736842105264,
-  "n_periods": 1,
-  "loop_real_ms": 7.894736842105264,
-  "n_frames": 36,
-  "blade_deg_per_frame": 5.0,
-  "rotor_deg_per_frame": 5.0,
-  "playback_s": 2.16,
-  "frame_delay_ms": 60,
-  "slowmotion_factor": 273.6,
-  "seam_mismatch_deg": 0.396000000000015,
-  "seam_note_ko": "로터마다 rpm 이 달라 한 주기 뒤 위상이 정확히 안 맞는다. 그 어긋남이 seam_mismatch_deg 이고, 이 값이 작아서 루프가 이어진다.",
-  "honesty_ko": "실제 프로펠러는 초당 63.3 바퀴 돈다. 그대로 재생하면 눈에 안 보이므로 이 GIF 는 약 274 배 느린 슬로모션이다."
+  "n_periods": 2,
+  "n_frames": 24,
+  "unique_visual_phases": 12.0,
+  "repeats_in_clip": 2.0,
+  "seam_mismatch_deg": 0.79200000000003,
+  "seam_note_ko": "로터마다 rpm 이 달라 루프 끝의 위상이 시작 위상과 정확히 안 맞는다. 그 어긋남이 seam_mismatch_deg 다. 주기를 많이 담을수록 커진다 (옛 판은 1 주기 0.40°, 이 판은 2 주기 0.79°).",
+  "honesty_ko": "프레임당 15.0° 이므로 12 프레임마다 형상이 되돌아온다. 24 프레임 클립은 그 시각 주기를 2 번 담은 **영상**이다 — 주기운동을 찍은 실제 영상이 그렇듯이. 로터별 rpm 이 달라 되풀이가 완전히 같지는 않고, 클립 끝까지 누적 어긋남이 0.79° 다."
  },
  "render": {
   "engine": "Sionna RT scene.render_to_file (Mitsuba path tracer)",
-  "resolution": [
-   1600,
-   800
+  "layout_ko": "한 프레임 = 두 칸 세로 쌓기. 위칸 근접(드론 크게) · 아래칸 배치 전체(TX/RX 포함). 사이는 흰 여백만 — 선도 글자도 없다.",
+  "frame_px": [
+   720,
+   550
   ],
-  "spp": 256,
-  "spp_actual_min": 256,
-  "spp_actual_max": 256,
-  "spp_downgraded_frames": 0,
-  "sample_buffer_gb": 1.31072,
-  "camera": {
-   "position": [
-    1.6027436864384619,
-    0.013642104968077218,
-    -0.41540067667020636
-   ],
-   "look_at": [
-    -0.0033045247288496227,
-    0.013642104968077218,
-    0.01493864451752398
-   ],
-   "distance_m": 1.6627034576117408,
-   "fov_deg": 26.0,
-   "fill_frac": 0.78,
-   "half_width_m": 0.29737036126235855,
-   "half_height_m": 0.10574146475583825,
-   "aim_ko": "메쉬 바운딩박스 중심"
-  },
-  "camera_note_ko": "render_md_scene.py 의 f0b 와 같은 시선축(레이더 → 표적, az 0 · el −15°)이되, 드론이 화면을 채우도록 그 축 위에서 앞으로 당겼다. TX/RX 는 카메라 뒤라 화면에 없다 — 배치는 f0a/f0b/f0c 담당.",
-  "geometry": {
+  "gutter_px": 18,
+  "views": [
+   {
+    "key": "main",
+    "resolution": [
+     720,
+     296
+    ],
+    "fov_deg": 26.0,
+    "spp_requested": 96,
+    "spp_used": 96,
+    "spp_actual_min": 96,
+    "spp_actual_max": 96,
+    "spp_downgraded_frames": 0,
+    "sample_buffer_gb": 0.08183808,
+    "show_devices": false,
+    "camera": {
+     "position": [
+      1.6920520474306782,
+      -0.00010348394357231894,
+      -0.45129616072860207
+     ],
+     "look_at": [
+      -0.005190076328403478,
+      -0.00010348394357231894,
+      0.0034784956927274204
+     ],
+     "distance_m": 1.7571143431163994,
+     "fov_deg": 26.0,
+     "fill_frac": 0.86,
+     "half_width_m": 0.31817056748103356,
+     "half_height_m": 0.09418379436836288,
+     "depth_span_m": 0.5338574850183805,
+     "view_dir": [
+      0.9659258262890683,
+      0.0,
+      -0.25881904510252074
+     ],
+     "fit_ko": "점구름 전부가 프레임 안에 들어오는 최소 거리(원근 정확 해)"
+    },
+    "what_ko": "드론 근접 — 레이더가 보는 방향(az/el 그대로), 블레이드가 크게 보인다"
+   },
+   {
+    "key": "wide",
+    "resolution": [
+     720,
+     236
+    ],
+    "fov_deg": 40.0,
+    "spp_requested": 96,
+    "spp_used": 96,
+    "spp_actual_min": 96,
+    "spp_actual_max": 96,
+    "spp_downgraded_frames": 0,
+    "sample_buffer_gb": 0.06524928,
+    "show_devices": true,
+    "camera": {
+     "position": [
+      2.107650680478903,
+      5.0958698278878005,
+      1.1487682020691052
+     ],
+     "look_at": [
+      1.3339729365069302,
+      -0.06198179859201837,
+      -0.3985872858748405
+     ],
+     "distance_m": 5.4402499628572505,
+     "fov_deg": 40.0,
+     "fill_frac": 0.86,
+     "half_width_m": 1.6263130244022233,
+     "half_height_m": 0.5319601327655561,
+     "depth_span_m": 0.6231587824254062,
+     "view_dir": [
+      0.14221363894199318,
+      0.9480909262799545,
+      0.28442727788398636
+     ],
+     "fit_ko": "점구름 전부가 프레임 안에 들어오는 최소 거리(원근 정확 해)"
+    },
+    "what_ko": "배치 전체 — 옆에서 본 레이더(TX·RX 한 점)와 표적, 그 사이 3 m"
+   }
+  ],
+  "spp_autofit_ko": "요청 spp 96 를 시작 시점 여유 메모리 7350 MiB 의 40% 안에 들어오도록 깎았다 (위칸 96 · 아래칸 96). 그래도 OOM 이면 프레임 단위로 반씩 줄여 재시도한다.",
+  "devices": {
    "tx": [
     2.897777478867205,
-    -0.1,
+    0.0,
     -0.7764571353075622
    ],
    "rx": [
     2.897777478867205,
-    0.1,
+    0.0,
     -0.7764571353075622
    ],
-   "az_deg": 0.0,
-   "el_deg": -15.0,
-   "range_m": 3.0,
-   "baseline_m": 0.2,
-   "bistatic_deg": 3.8183048659928702,
-   "tau_expect_ns": 20.02496142822063
+   "baseline_m": 0.0,
+   "bistatic_deg": 1.2074182697257333e-06,
+   "tau_expect_ns": 20.013845711889125,
+   "display_radius_tx_m": 0.09,
+   "display_radius_rx_m": 0.0495,
+   "color_rgb": [
+    0.85,
+    0.13,
+    0.13
+   ],
+   "overlap_ko": "기선 0 = 진짜 모노스태틱이라 TX 와 RX 가 같은 점이다. RX 구를 TX 구 안에 넣고 색을 같게 둬서 화면에는 **공 하나**만 보인다 — 같은 반지름이면 두 구면이 z-fighting 으로 얼룩진다. 글자는 넣지 않았다(규약).",
+   "render_note_ko": "Sionna 는 장치를 **발광 구**로 별도 렌더해 깊이로 합성한다(renderer.get_overlay_scene 실측) — 씬 조명을 바꾸지 않으므로 장치를 켜도 드론의 밝기·재질 표현은 그대로다."
   },
   "background": "white (viz_report1._whiten 과 같은 밝기-알파 합성)",
-  "text_in_figure": "none (규약: 렌더 안에 글자 금지)",
-  "seconds_total": 38.46942090988159,
-  "seconds_per_frame_mean": 1.0685430036650763,
-  "seconds_per_frame_min": 0.9728047847747803,
-  "seconds_per_frame_max": 1.42397141456604
+  "text_in_figure": "none (규약: 렌더 안에 글자·눈금·라벨 금지)",
+  "seconds_total": 30.06514000892639,
+  "seconds_per_frame_mean": 1.2526474098364513,
+  "seconds_per_frame_min": 1.0016160011291504,
+  "seconds_per_frame_max": 3.553433895111084
  },
  "outputs": {
   "gif": "outputs/figures/report07_anim.gif",
   "poster_png": "outputs/figures/report07_anim_poster.png",
-  "gif_size_mb": 1.451131,
+  "gif_size_mb": 0.964477,
   "gif_px": [
-   1280,
-   640
+   1100,
+   840
   ],
   "gif_colors": 128,
+  "gif_delay_ms": 30,
+  "gif_n_frames": 24,
   "gif_under_limit": true,
-  "gif_max_mb": 8.0,
+  "gif_max_mb": 12.0,
   "gif_attempts": [
    {
-    "width": 1280,
+    "width": 1100,
     "colors": 128,
-    "mb": 1.451
+    "mb": 0.964
    }
   ]
  },
- "report_paragraph_ko": "호버링하는 DJI Matrice 4E. 기체는 제자리에 떠 있지만 프로펠러 4개는 계속 돈다(호버 3800 rpm, 로터마다 조금씩 다르고 CW/CCW 가 섞여 있다). 시점은 레이더가 보는 방향(방위 0° · 고각 -15°)이라 이 그림이 곧 송수신기가 마주보는 면이다. 볼 것은 하나다 — 동체는 한 픽셀도 안 움직이는데 블레이드의 방향만 프레임마다 바뀐다. 그 바뀌는 부분이 되돌아오는 신호의 위상을 흔들고, 그것이 이 편에서 다루는 마이크로도플러다. ⚠ 실제 블레이드는 초당 63 바퀴를 돌아 눈으로는 볼 수 없다 — 이 애니메이션은 블레이드 한 주기(7.9 ms)를 36 프레임으로 나눈 약 274 배 슬로모션이다.",
- "reproduce": "SIONNA2_GPU=1 PYTHONPATH=src python benchmark/render_md_anim.py --frames 36 --spp 256 --res 1600x800"
+ "report_paragraph_ko": "호버링하는 DJI Matrice 4E. 아래칸이 배치다 — 붉은 공 하나가 레이더고, 거기서 3 m 떨어진 곳에 드론이 떠 있다(고각 -15°, 즉 레이더가 드론을 올려다본다). 공이 하나인 이유는 기선이 0 인 **진짜 모노스태틱**이라 송신기와 수신기가 같은 점에 있기 때문이다. 위칸은 그 레이더 시선에서 드론을 당겨 본 모습이고, 볼 것은 하나다 — 동체는 한 픽셀도 안 움직이는데 프로펠러 4개의 날 방향만 프레임마다 바뀐다(호버 3800 rpm, 로터마다 조금씩 다르고 CW/CCW 가 섞여 있다). 그 바뀌는 부분이 되돌아오는 신호의 위상을 흔들고, 그것이 이 편에서 다루는 마이크로도플러다. ⚠ 실제 날은 초당 63 바퀴를 돌아 눈으로는 볼 수 없다 — 이 애니메이션은 프레임 사이 실시간 0.66 ms 를 30 ms 로 늘여 튼 약 46 배 슬로모션이다(프레임당 15° 회전).",
+ "reproduce": "SIONNA2_GPU=1 PYTHONPATH=src python benchmark/render_md_anim.py --frames 24 --periods 2 --spp 96 --width 720 --ms 30"
 }
