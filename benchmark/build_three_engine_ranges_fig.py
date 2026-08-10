@@ -24,7 +24,7 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "src"))
-from md_mapstyle import flash_spec, draw, caption                      # noqa: E402
+from md_mapstyle import flash_spec, auto_periods, draw, caption              # noqa: E402
 
 TR = json.load(open(f"{ROOT}/outputs/report07_three_engine_ranges.json"))
 ZR = np.load(f"{ROOT}/outputs/report07_three_engine_ranges.npz")
@@ -68,7 +68,7 @@ for r, key in enumerate(ROWS):
     ]
     for c, (E, title) in enumerate(cols):
         ax = fig.add_subplot(gs[r, c])
-        f, t, S, nper = flash_spec(E, PRF, FFL)
+        f, t, S, nper = flash_spec(E, PRF, FFL, auto_periods(PRF, FFL))
         m = draw(ax, t, f, S, FTIP)
         if r == 0 and c == 0:
             CAP = caption(PRF, FFL, nper, len(t))

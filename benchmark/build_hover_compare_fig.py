@@ -26,7 +26,7 @@ import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
-from md_mapstyle import flash_spec, VMIN, VMAX, CMAP, SHADING            # noqa: E402
+from md_mapstyle import flash_spec, auto_periods, VMIN, VMAX, CMAP, SHADING   # noqa: E402
 
 ARMS = [
     ("", "Indoor-ideal preset (PX4 SITL, measured)"),
@@ -54,7 +54,7 @@ for col, (tag, title) in enumerate(ARMS):
     PRF, FFL, FTIP = J["prf_hz"], J["f_flash_hz"], J["f_tip_hz"]
     meta[tag] = J
 
-    f, t, S, NPER = flash_spec(E, PRF, FFL)
+    f, t, S, NPER = flash_spec(E, PRF, FFL, auto_periods(PRF, FFL))
     D = 20 * np.log10(S / S.max() + 1e-12)
 
     ax = fig.add_subplot(gs[0, col])

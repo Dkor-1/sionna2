@@ -231,21 +231,18 @@ DATASETS = [
          short="NeuroBEM", venue="indoor", unit="rpm",
          title="NeuroBEM racing quad — indoor, measured rpm",
          ylabel="Rotor speed [rpm]",
-         xtick="NeuroBEM\nindoor, rpm",
-         # 표시 창: 조용한(과도 없는) 창 중 정적 산포가 중앙값에 가장 가까운 것
-         pick=lambda w: (np.median(w["wobble_amp_pct"]) < 2.0, -w["dur_s"])),
+         xtick="NeuroBEM\nindoor, rpm", show_s=None),
     dict(key="px4", loader=load_px4,
          short="PX4 CODEV AQUILA V3", venue="outdoor", unit="rpm",
          title="PX4 CODEV AQUILA V3 — outdoor, measured rpm",
          ylabel="Rotor speed [rpm]",
-         xtick="PX4 CODEV\noutdoor, rpm",
-         pick=lambda w: (True, -w["dur_s"])),
+         xtick="PX4 CODEV\noutdoor, rpm", show_s=None),
     dict(key="dji", loader=load_dji,
          short="DJI Phantom 3", venue="outdoor", unit="pwm",
          title="DJI Phantom 3 — outdoor, motor PWM command (not rpm)",
          ylabel="Motor command [% PWM]",
-         xtick="DJI Phantom 3\noutdoor, PWM",
-         pick=lambda w: (True, -w["dur_s"])),
+         # 50 Hz 명령이라 창 전체(13 s)를 그리면 뭉개진다 — 앞 4 s 만 보인다
+         xtick="DJI Phantom 3\noutdoor, PWM", show_s=4.0),
 ]
 
 MOTOR_COLORS = ["#1f77b4", "#d62728", "#2ca02c", "#9467bd",
@@ -265,13 +262,16 @@ def collect():
     return data, notes
 
 
-def pick_display(ds, wins):
-    """표시할 대표 창 = pick 규칙 상위 + 정적 산포가 그 원천 중앙값에 가장 가까운 창."""
-    med = float(np.median([w["static_std_pct"] for w in wins]))
-    cand = sorted(wins, key=ds["pick"], reverse=True)
-    cand = [w for w in cand if ds["pick"](w)[0] == cand[0] and True] or cand
-    keep = [w for w in wins if ds["pick"](w)[0]] or wins
-    return min(keep, key=lambda w: abs(w["static_std_pct"] - med)), med
+PICK_RULE = ("정적 산포가 그 원천 창들의 사분위 범위(p25–p75) 안에 드는 창 중 "
+             "가장 긴 것 — 전형적이면서 읽히는 길이")
+
+
+def pick_display(wins):
+    """표시할 대표 창: 산포가 전형적(IQR 안)인 창 중 가장 긴 것."""
+    st = np.array([w["static_std_pct"] for w in wins])
+    lo, hi = np.percentile(st, [25, 75])
+    cand = [w for w in wins if lo <= w["static_std_pct"] <= hi] or list(wins)
+    return max(cand, key=lambda w: w["dur_s"]), float(np.median(st))
 
 
 # ── 그림 ────────────────────────────────────────────────────────────────────
@@ -296,9 +296,9 @@ CAPTION = (
 def build(data, notes, presets):
     fig = plt.figure(figsize=(10.6, 6.6))
     gs = fig.add_gridspec(2, 6, height_ratios=[1.0, 1.15], hspace=0.46, wspace=1.05,
-                          left=0.062, right=0.985, bottom=0.175, top=0.915)
+                          left=0.062, right=0.985, bottom=0.175, top=0.885)
 
-    picks = {}
+    picks, handles = {}, []
     for i, ds in enumerate(DATASETS):
         ax = fig.add_subplot(gs[0, 2 * i:2 * i + 2])
         wins = data[ds["key"]]["windows"]
@@ -309,23 +309,25 @@ def build(data, notes, presets):
             ax.set_yticks([])
             ax.set_title(ds["title"], fontsize=FS - 0.5)
             continue
-        w, med = pick_display(ds, wins)
+        w, med = pick_display(wins)
         key = [k for k in data[ds["key"]]["traces"]
                if k.endswith(f"@{w['t0']:.2f}") or k.endswith(f"@{w['t0']:.1f}")]
         key = [k for k in key if k.split("@")[0][:8] == w["file"][:8]] or key
         t, y = data[ds["key"]]["traces"][key[0]]
-        picks[ds["key"]] = (w, med, key[0])
+        if ds["show_s"]:
+            m = t <= ds["show_s"]
+            t, y = t[m], y[m]
+        picks[ds["key"]] = (w, med, key[0], float(t[-1]))
         for k in range(y.shape[1]):
-            ax.plot(t, y[:, k], lw=0.85, color=MOTOR_COLORS[k],
-                    label=f"rotor {k + 1}")
+            ln, = ax.plot(t, y[:, k], lw=0.85, color=MOTOR_COLORS[k],
+                          label=f"rotor {k + 1}")
+            if i == 0:
+                handles.append(ln)
         ax.set_xlim(0, t[-1])
         ax.set_xlabel("Time [s]")
         ax.set_ylabel(ds["ylabel"])
         ax.set_title(ds["title"], fontsize=FS - 0.5)
         ax.grid(alpha=0.25, lw=0.5)
-        if i == 0:
-            ax.legend(ncol=4, loc="upper center", bbox_to_anchor=(1.72, 1.34),
-                      framealpha=0.0, columnspacing=1.4, handlelength=1.6)
 
     panels = [
         ("Static spread across motors", "static_std_pct",
@@ -368,6 +370,9 @@ def build(data, notes, presets):
             ax.axhline(100 * presets[name][pkey], lw=1.3,
                        label=f"{name.capitalize()} preset", **style)
         ax.set_yscale("log")
+        allv = np.concatenate([v for v in vals if len(v)] or [np.array([1.0])])
+        lo = min(float(allv.min()), 100 * presets["indoor"][pkey])
+        ax.set_ylim(lo / 1.9, float(allv.max()) * 1.7)
         ax.set_xlim(0.45, len(DATASETS) + 0.55)
         ax.set_xticks(pos)
         ax.set_xticklabels([d["xtick"] for d in DATASETS])
@@ -378,7 +383,11 @@ def build(data, notes, presets):
             ax.legend(loc="upper left", framealpha=0.85)
 
     fig.suptitle("Rotor speed in real hover — three public flight logs vs the two "
-                 "presets used in this report", fontsize=FS + 1.0, y=0.978)
+                 "presets used in this report", fontsize=FS + 1.0, y=0.996)
+    if handles:
+        fig.legend(handles, [h.get_label() for h in handles], ncol=4,
+                   loc="upper center", bbox_to_anchor=(0.5, 0.968),
+                   framealpha=0.0, columnspacing=1.6, handlelength=1.8)
     fig.text(0.5, 0.012, "\n".join(textwrap.wrap(CAPTION, 128)),
              ha="center", va="bottom", fontsize=FS - 1.5, color="0.25")
 
@@ -399,16 +408,18 @@ def main():
 
     cache = f"{ROOT}/outputs/rotor_log_traces.npz"
     data, notes = collect()
-    have_raw = any(d["windows"] for d in data.values())
 
-    if not have_raw and os.path.exists(cache):
-        print("  ⚠ 원자료 없음 — 캐시(rotor_log_traces.npz)로 그림만 재생성")
+    # 원자료가 없는 원천만 캐시(npz)로 되살린다 — 한 원천이 빠져도 나머지는 그대로
+    missing = [d["key"] for d in DATASETS if not data[d["key"]]["windows"]]
+    if missing and os.path.exists(cache):
         Z = np.load(cache, allow_pickle=True)
-        data = {k: dict(windows=list(Z[f"{k}_windows"]),
-                        traces={str(Z[f'{k}_key']): (Z[f"{k}_t"], Z[f"{k}_y"])})
-                for k in [d["key"] for d in DATASETS] if f"{k}_t" in Z}
-        for d in DATASETS:
-            data.setdefault(d["key"], dict(windows=[], traces={}))
+        for k in missing:
+            if f"{k}_t" not in Z:
+                continue
+            data[k] = dict(windows=list(Z[f"{k}_windows"]),
+                           traces={str(Z[f"{k}_key"]): (Z[f"{k}_t"], Z[f"{k}_y"])})
+            notes[k] = (notes.get(k) or "") + " — 캐시(rotor_log_traces.npz)로 복원"
+            print(f"  ⚠ {k}: 원자료 없음 → 캐시로 복원")
 
     picks = build(data, notes, presets)
 
@@ -451,15 +462,17 @@ def main():
             windows=wins,
         )
         if key in picks:
-            w, med, tkey = picks[key]
+            w, med, tkey, span = picks[key]
             srcs[key]["displayed_window"] = dict(
                 file=w["file"], t0_s=w["t0"], dur_s=w["dur_s"],
+                plotted_span_s=round(span, 2),
+                plotted_note=("창 전체" if abs(span - w["dur_s"]) < 0.2 else
+                              f"창 앞 {span:.1f} s 만 (50 Hz 명령이라 전체는 뭉개짐)"),
                 v_mean_ms=w["v_mean"], level_mean=w["level_mean"],
                 static_std_pct=w["static_std_pct"],
                 wobble_amp_pct=w["wobble_amp_pct"],
                 wobble_peak_hz=w["wobble_peak_hz"],
-                why="정적 산포가 그 원천의 창 중앙값에 가장 가까운 창"
-                    + (" (과도응답 창 제외)" if key == "neurobem" else ""))
+                why=PICK_RULE)
             t, y = data[key]["traces"][tkey]
             npz[f"{key}_t"] = np.asarray(t, np.float32)
             npz[f"{key}_y"] = np.asarray(y, np.float32)

@@ -1,0 +1,193 @@
+{
+  "_meta": {
+    "title": "갈래 E — 2026-08-10 처방 반영 78편 재검증 (처방이 새 오류를 낳았나)",
+    "generated": "2026-08-10 06:10",
+    "scope": "reports/ 78편 · docs/REPORTS_ADVERSARIAL_0810.md §6 «적용 결과» 41건",
+    "mode": "읽기 전용 — reports/*.ipynb · src/build_part*.py 무수정, GPU 미사용, git 미사용",
+    "python": "~/.venvs/py312/bin/python (PYTHONPATH=src)",
+    "caveat": "백그라운드 재계산이 도는 중이라 원장 일부(report07_three_engines 05:54, report13_sigma_grid)가 검사 중에 움직였다. 시각을 함께 적었다."
+  },
+
+  "how_i_checked": {
+    "1_처방적용_전건": "§6 표의 41건을 «있어야 할 새 문자열 / 없어야 할 옛 문자열» 쌍으로 코드화해 78편 전문에서 전수 대조(43개 어서션). HIGH 6건은 해당 셀 원문을 직접 읽고 원장 값까지 재계산.",
+    "2_태그_값_재대조": "78편 각주 표 1,332건의 (파일·키·값)을 원장에서 다시 열어 표시 자릿수 허용오차로 값 비교. 키 미해석 28건은 «→ 최대/역수/보간» 파생 표기라 정상.",
+    "3_링크검사_독립재현": "benchmark/check_report_links.py 재실행 — 노트북 78/78 · 링크 441 · 그림 52 · 출처 1,332 · 위반 0 (§6.6 주장 재현됨).",
+    "4_문법_부작용_스캔": "빈 셀 · 3연속 빈줄 · 이중 공백 · 빈 «» · 떠 있는 문장부호 · None/nan 누출 · 미치환 {포맷} 을 78편에서 정규식 스캔.",
+    "5_조건분기_양쪽평가": "빌더에 실재하는 산문 조건분기는 둘뿐(build_part10_results.py:110 GAMMA_WARN · :124 _ECA_IDEAL). 두 분기의 문자열을 모두 조립해 문법·논리 확인, 스위치가 읽는 원장 키의 실제 값도 확인.",
+    "6_교차인용_전파": "바뀐 제목 5건(07·19·23·60·72)을 reports/ · README.md · outputs/reports_index.json · docs/ 전체에서 대조.",
+    "7_낡음_재발": "78편이 인용하는 모든 원장의 mtime 을 노트북 mtime 과 비교(원장이 더 새것 = 낡음 후보), 별도로 오늘 새로 생긴 원장(rotor_rpm_web_anchor · angle_gamma_po_impact · meshfix_mini5pro_overlap)을 읽어 서술과 대조.",
+    "8_소스인용_검증": "노트북의 `파일.py:줄` 인용 85건을 전부 열어 그 줄에 실제로 무엇이 있는지 확인."
+  },
+
+  "verified_ok": [
+    "HIGH 6건 전건이 노트북에 실제로 반영됐다 — H1(57 결과4 조건형·limit 라벨 인용 0) · H2(37 산포 서사) · H3(15 ⚠ 반전 «정정 후») · H4(18 Σ|Γᵢ(θᵢ)| 수식 두 곳 + 표 행 + cell 7 Γ(θ) 축) · H5(19 제목 «에코가 커진다») · H6(60 제목 «비교가능 12칸 3.69~7.44 km» + 59·60·61 조건형 Γ(θ) 경고).",
+    "§6.3 나머지 35건도 문자열 어서션 43/43 통과 — 옛 문자열 스윕에서 «느리다 가설»·«유일한 비용대»·«3.69~11.10»·«여섯은 방향»·«선언된 가정»·«쓰기에 좁다»·«앞으로 확보»·«적분기가 실제로 곱하는 값»·«같은 부호·같은 크기»·«dpi_residual»·«30 dB 대»·«facet_mechanism.py» 잔존 0.",
+    "H1 산술 재계산 통과 — report13_freespace solve.W1.R_m = 9724.071630719278 이 sensitivity_eca_depth.inf.R_m 과 완전 일치(_ECA_IDEAL=True), 40 dB 팔 2785.996 → 본문 «2786 / 9724» 정확. 두 분기 문장 모두 문법이 선다.",
+    "문법 부작용 없음 — 78편에 빈 마크다운 셀 0 · None/nan 누출 0 · 미치환 {포맷} 0. 검출된 «빈 괄호»는 전부 `rcs_sbr()` 같은 함수명, «미치환 포맷»은 전부 LaTeX $B_{ref}$ 였다.",
+    "태그 값 1,332건 중 어긋난 것은 편 36 의 6건뿐(아래 F4) — 나머지는 현재 원장과 일치.",
+    "편 18 cell 7 의 «2026-08-04 형상 정정 전 메쉬» ⚠ 는 옳다(H3 형 역방향 오류 아님) — 그 표의 뿌리 원장 outputs/mesh_compare_material.json 이 generated 2026-07-31 03:53 · mesh_source_newest 2026-07-31 02:42 로 정정 전이다. report02_derived.json 의 08-07 스탬프는 집계 시각일 뿐이다.",
+    "편 07 의 «측정은 Γ(θ) 배선 전 batch 커널 경로» 3구는 옳다 — 측정 시점을 말하는 과거 진술이라 코드 현재 상태와 충돌하지 않는다(편 23 과 다른 점이 바로 이것).",
+    "편 30 «재질 몫» 열은 닫힌다 — mini2/cube_eqvol 에서 23.4158 + 5.4940 + (−2.8549) = 26.0549 = total_db, closure_err_db 0.0.",
+    "편 20 의 β 창 규칙(β ≤ 45° · 창 안 RMS 2.57 dB · 위반 최대치는 «전 β 최악» 한정)과 편 23 cell 4 의 인용이 서로 어긋나지 않는다.",
+    "편 37~40 의 report15b 태그는 현재 원장(generated 2026-08-10 04:41:56, rpm_spread_frac 0.0022)과 일치 — mini5pro 메쉬 수정(src/drone_cad.py mtime 04:19)보다 뒤에 계산돼 «F/G 팔 ±13 dB» 재계산이 반영돼 있다(mini5pro/belly occlusion_ptp_db −12.745)."
+  ],
+
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "HIGH",
+      "type": "낡음(처방이 새로 넣은 것)",
+      "where": "reports/23_kernel-open-items.ipynb 제목·cell 0 결과 5·cell 3 표 2행·cell 5 다음단계 / src/build_part04_kernel.py:17·719 + 표",
+      "claim": "제목 «커널이 아직 못 하는 것은 편파 분리·PTD·재테셀레이션·Γ(θ) 배선 넷» + 표 «Γ(θ) 미배선 경로 — `rcs_sbr_batch`·`rcs_po` 는 수직입사 값 그대로다 — σ 격자 생산자가 batch 경로를 쓴다»",
+      "evidence": "코드 실측: src/rcs_sbr.py:266-271 이 `if ANGLE_GAMMA and _mk is not None: g[sel] *= gamma_shape(...)` 로 각도 모양을 곱하고, 이 함수 `_lit_g_phase` 는 :321(외부 패스)·:331(투과 패스) 두 곳에서 `matk`·`matk_i` 를 넘겨 호출된다. `matk` 는 _mi_scene_from_mesh:168 이 그룹마다 채우는 재질 키 리스트라 항상 not-None이다 → rcs_sbr_batch 는 배선돼 있다(파일 mtime 08-07 11:04, 원장 angle_gamma_impact.json 스탬프 10:58 보다 뒤). rcs_po 도 src/rcs_po.py:169·185 에 배선돼 있고 오늘 04:25 outputs/angle_gamma_po_impact.json 이 «[A] PASS — 꺼짐은 전부 비트동일 · 프롭 채널 Δ +3.46/+2.93 dB» 로 검증까지 마쳤다(다만 옵트인이라 하위 사용처는 옛 경로). 즉 처방은 2026-08-07 10:58 원장의 `still_unwired_ko` 두 줄을 «현재 사실» 로 읽어 제목에 올렸다. 같은 재빌드 안에서 편 59·60·61 의 조건형 경고는 «σ 격자를 Γ(θ) 켠 커널로 재생성한 뒤 이 편을 다시 짓는다» 라고 써 batch 가 배선돼 있음을 전제한다 — 두 편이 정면으로 모순된다.",
+      "fix": "표 행을 «rcs_sbr_batch 배선 완료(rcs_sbr.py `_lit_g_phase`) · rcs_po 는 배선됐으나 옵트인이라 drone_rcs_pattern 등 하위 사용처는 옛 경로» 로 바꾸고, 제목의 열린 항목 수를 «셋» 으로 되돌린다. 근거 원장은 angle_gamma_po_impact.json 이고, batch 쪽은 원장이 없으니 짧은 켬/끔 대조를 하나 남기는 것이 정공법이다. angle_gamma_impact.json:still_unwired_ko 는 이제 인용하지 않는다.",
+      "applied": false
+    },
+    {
+      "id": "F2",
+      "severity": "HIGH",
+      "type": "사실오류(처방이 새로 넣은 것)",
+      "where": "reports/37_md-rpm.ipynb cell 0 결과5 · cell 1 방법 2행 · cell 4 절 제목·본문 / src/build_part07_microdoppler.py:481-482·496·531",
+      "claim": "«흩어짐 폭 ±0.22% 는 PX4 텔레메트리 **실측** 산포(모터간 0.07~0.29 %)의 중간값이다», 절 제목 «흩어짐 폭은 실측에서 온다», «**실측 크기**의 산포에서도 상관이 0.7713 로 내려간다»",
+      "evidence": "0.22 % 의 출처는 실기체 측정이 아니라 **PX4 SITL(시뮬레이션) 로그**다. 저장소가 그렇게 적는다 — benchmark/report07_hover_long.py:72 «\"sitl\": (0.0022, …, \"선배 PX4 SITL 실측(0.07~0.29%) 중간값 — 대칭-이상 하한\")», benchmark/build_hover_compare_fig.py:7 «SITL 은 대칭-이상 조건의 하한», src/make_report07_overview.py:396·403 도 같다. 그리고 오늘 04:29 다른 갈래가 낸 outputs/rotor_rpm_web_anchor.json 이 실기체 로그 3원천으로 이 값을 반증했다: comparison_with_ours.ours.static_spread = «±0.22% (PX4 SITL 유래)», finding = «실기체 3원천 모두 우리 값보다 큼 … SITL(0.07-0.29%)은 완전대칭 모델 … 한 자릿수 과소», verdict.recommended.STATIC_SPREAD = 실내 0.005 · 야외 0.02. 78편 어디에도 이 원장이나 오늘 만든 야외 프리셋(outputs/report07_hover_long_outdoor.json, 05:07)이 인용되지 않는다. H2 처방은 «선언된 가정» 을 지우면서 시뮬레이션 값을 실측으로 승격시켰다 — 방향이 반대인 measured-over-plausible 위반이다.",
+      "fix": "네 자리의 «실측» 을 «PX4 SITL(대칭-이상 하한)» 으로 바꾸고 절 제목을 «흩어짐 폭은 어디서 왔나» 류로 낮춘다. 결과 5 에 rotor_rpm_web_anchor.json 을 태그로 달아 «실기체 로그는 실내 0.25~1.06 % · 야외 0.8~5.5 % 로 더 넓다 — 이 편의 0.22 % 는 하한 팔» 을 한 줄로 병기한다. 원장 report15b_microdoppler.json:_meta.spread_is_declared_ko 문자열도 같은 정정이 필요하나 원장 소관이다.",
+      "applied": false
+    },
+    {
+      "id": "F3",
+      "severity": "MED",
+      "type": "교차인용 전파 누락",
+      "where": "README.md:170 외 4행 · outputs/reports_index.json(368·721·839·1906·2267) · docs/repro/part11_measurement.md:12",
+      "claim": "§6.2 H5 «ref() 는 지어진 노트북 H1 을 정본으로 읽으므로 전 편 재빌드로 교차 인용까지 자동 갱신 확인» · §6.6 «옛 문자열 잔존 0»",
+      "evidence": "노트북 H1 과 README 색인 행을 78편 전수 대조하니 5행이 옛 제목이다 — 07 «유일한 비용대다», 19 «면이 많아서 느리다», 23 «편파·PTD·재테셀레이션 셋», 60 «3.69~11.10 km», 72 «각도표본을 λ/4D 로 잡아». README.md mtime 은 2026-08-07 12:01 로 오늘 재생성되지 않았다. reports/ 안의 교차 인용은 실제로 자동 갱신됐지만(편 05·18 의 편 19 인용이 «에코가 커진…» 으로 바뀜) README·reports_index 는 노트북이 아니라 별도 생성물이라 대상이 아니었다. §4-2단계 처방 5번은 «+ README 색인» 을 명시했으므로 미이행이다.",
+      "fix": "`PYTHONPATH=src ~/.venvs/py312/bin/python src/make_readme.py` 재실행 — make_readme 는 report_registry(REPORTS[a]['title'])를 읽고 registry 는 노트북 H1 을 정본으로 삼으므로 다섯 행이 한 번에 낫는다. reports_index.json 은 make_reports_index.py, docs/repro/*.md 는 extract_part_docs.py 소관.",
+      "applied": false
+    },
+    {
+      "id": "F4",
+      "severity": "MED",
+      "type": "낡음 재발",
+      "where": "reports/36_md-two-engines.ipynb cell 4 표·본문 · 각주 [^16]~[^21]",
+      "claim": "«Sionna PathSolver 9.8 dB / 우리 SBR 7.5 dB / 우리 순수 PO 2.7 dB», «코사인 0.657(Sionna↔SBR) · 0.696(Sionna↔PO) · 0.647(SBR↔PO)»",
+      "evidence": "outputs/report07_three_engines.json 이 검사 도중 재생성됐다(_meta.generated 2026-08-10 05:54:42, 노트북 빌드 05:14). 현재 값: ptp_db.sionna 6.819 · sbr 8.023 · po 2.654, cosine sionna_vs_sbr 0.7282 · sionna_vs_po 0.6480 · sbr_vs_po 0.4439. 여섯 태그 전부 어긋나고, 표가 세우던 «Sionna 가 가장 깊다(9.8 > 7.5)» 는 순서가 뒤집힌다(SBR 8.02 > Sionna 6.82). SBR↔PO 코사인이 0.647 → 0.444 로 내려가 «구조가 일치한다» 문장의 여유도 줄었다. 78편 중 노트북보다 새 원장을 인용하는 편은 이 한 편뿐이다(전수 mtime 대조).",
+      "fix": "백그라운드 재계산이 끝난 뒤 build_part07_microdoppler.py 재실행. 표의 정성 서술(«능선이 성기고» / «대역을 채우고»)이 새 ptp 순서와도 맞는지 그때 한 번 더 읽을 것 — 수치는 태그로 낫지만 그 문장은 하드코딩이다.",
+      "applied": false
+    },
+    {
+      "id": "F5",
+      "severity": "MED",
+      "type": "논리(처방의 조건형이 엉뚱한 파일을 본다)",
+      "where": "src/build_part10_results.py:108-118 (GAMMA_WARN) → reports/59·60·61",
+      "claim": "«σ 사슬이 Γ(θ) 이후에 재생성되면 경고가 저절로 사라진다»(§6.2 H6)",
+      "evidence": "스위치는 `_FS_GEN = report13_freespace.json:meta.generated` 와 `_GAMMA_ON = angle_gamma_impact.json:_meta.generated` 의 문자열 비교다. 그런데 Γ(θ) 가 들어가는 곳은 σ **격자**이고, freespace 는 그 격자를 읽어 푸는 하류 단계다(make_report05_results.py:78 J_SG, :81 J_SG_USED=outputs/archive/report13_sigma_grid_pre0803.json — 헤드라인 solve 가 실제로 먹은 격자는 아카이브본이다). 그래서 σ 격자를 그대로 둔 채 `--stage solve` 만 다시 돌리면(편 60 «다음 단계» 표가 바로 그것을 지시한다) `_FS_GEN` 만 올라가 경고가 조용히 사라지고 σ 는 여전히 Γ(θ) 이전 값이다. 현재 값(_FS_GEN=2026-07-24 21:45:11 < _GAMMA_ON=2026-08-07 10:58:22)에서는 경고가 정상 출력되므로 오늘의 산출물 자체는 틀리지 않았다 — 열리는 것은 다음 재빌드다.",
+      "fix": "비교 대상을 σ 격자의 스탬프로 바꾼다 — report13_freespace.json:meta.sigma_file 이 가리키는 파일의 meta.generated(또는 J_SG_USED 의 meta.generated)를 읽어 `min(격자, solve) >= _GAMMA_ON` 일 때만 경고를 끈다.",
+      "applied": false
+    },
+    {
+      "id": "F6",
+      "severity": "MED",
+      "type": "논리(처방의 비대칭)",
+      "where": "src/build_part10_results.py:100-103 (MESH_WARN) → reports/59·60·61",
+      "claim": "«⚠ 이 사슬은 2026-08-04 형상 정정 **전** 메쉬 위에 있다»",
+      "evidence": "바로 아래 줄의 Γ(θ) 경고는 원장 스탬프로 조건형이 됐는데(H6), 같은 절에 나란히 찍히는 메쉬 경고는 하드코딩 문자열 그대로다. 오늘 σ 격자·rcs_anchor 가 정정된 메쉬로 재생성되는 중이므로(outputs/meshfix_mini5pro_overlap.json:task4_invalidated_outputs tier_A 가 두 파일을 재계산 대상으로 지목), 재계산 후 재빌드하는 순간 이 문장은 H3 과 똑같은 «있지도 않은 낡음» 이 된다.",
+      "fix": "MESH_WARN 도 GAMMA_WARN 과 같은 꼴로 — 격자 원장의 meta.generated 와 meshfix_applied.json:_meta.date 를 비교해 조건형으로 만든다(F5 의 파일 선택 문제도 함께 고쳐서).",
+      "applied": false
+    },
+    {
+      "id": "F7",
+      "severity": "MED",
+      "type": "사실오류(있다고 적은 장치가 원장에 없다)",
+      "where": "reports/37_md-rpm.ipynb cell 1 «비고» 행 / src/build_part07_microdoppler.py:92",
+      "claim": "«산출물이 자기가 어떤 메쉬로 계산됐는지 지문을 함께 적는다(`mesh_provenance`) — 계산 도중 메쉬가 바뀌면 스스로 경고한다»",
+      "evidence": "현재 outputs/report15b_microdoppler.json(2026-08-10 04:41:56 재계산본)에는 최상위 키가 `_meta`·`cells` 둘뿐이고 문자열 «mesh_provenance» 출현 0회, «sha» 0회다. 지문을 찍는 것은 별도 스크립트 benchmark/report15b_stamp_provenance.py:81 인데 오늘 recompute 뒤에 돌지 않았다(재현 블록에는 세 명령이 다 적혀 있다). 하필 오늘 mini5pro 메쉬가 바뀐 라운드라, 광고된 «스스로 경고» 장치가 정확히 필요한 순간에 비어 있었다.",
+      "fix": "recompute 뒤 `PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_stamp_provenance.py` 를 돌려 지문을 찍고 재빌드. 그때까지는 비고 행을 «지문 스탬프는 별도 단계이고 이 원장에는 아직 없다» 로 낮추는 것이 정직하다.",
+      "applied": false
+    },
+    {
+      "id": "F8",
+      "severity": "MED",
+      "type": "출처(처방이 절반만 적용됨)",
+      "where": "reports/45·46·54·56·58·60·64·66·67·68·69·70·71·72·73·74·75·76·77 의 `파일.py:줄` 인용",
+      "claim": "§6.3 마지막 행 «part03·04 코드 줄번호 인용을 심볼명으로 전환 — 실측: :562 는 현재 1122 로 밀려 있었다»",
+      "evidence": "전환은 부 3·4 에만 적용됐고, 78편에는 줄번호 인용이 아직 85건 남아 있다. 85건을 전부 열어보니 여러 건이 이미 밀려 무의미한 줄을 가리킨다 — `src/sigma_anchor.py:939` 는 `L.append(\"\")` 이고(뜻한 것은 :944 `write_measurement_plan()` 또는 :886 `_md_tables()`), 편 67·68·69·70·71·72·73·74·75·76·77 **11편**이 같은 자리를 «그 안의 수치표는 … 가 쓴다» 로 인용한다. 그 밖에 `src/freespace_link.py:371` → 독스트링 닫는 `\"\"\"`(편 45 두 곳·46), `src/experiment_freespace_sigma.py:227` → 영문 문자열 조각(편 56 두 곳), `src/freespace_scene.py:56` → 주석 조각(편 60 두 곳), `src/experiment_freespace_range.py:856` → `modes = list(solve.keys())`(편 58 세 곳), `:703` → `# stage 4` 주석(편 60), `:206` → 인자 한 줄(편 54), `src/experiment_x410.py:100` → `@dataclass`(편 67, 한 줄 위).",
+      "fix": "같은 처방을 부 9~11 에 마저 적용 — `sigma_anchor.py:939` → `sigma_anchor.write_measurement_plan()`, `freespace_link.py:371` → `duty_db_from_cpi()`, `experiment_freespace_range.py:856` → 문턱 공유 블록의 심볼명 등. 줄번호가 꼭 필요하면 빌드 때 심볼을 grep 해 번호를 주입할 것.",
+      "applied": false
+    },
+    {
+      "id": "F9",
+      "severity": "LOW",
+      "type": "수치불일치(처방이 만든 각주)",
+      "where": "reports/66_rx-elements.ipynb cell 0 결과5 · cell 4 표 · 각주 [^9]",
+      "claim": "본문 «이득(두 SNR50 추정의 차)의 √2σ 로는 7.8 σ [^9]» ↔ 각주 [^9] 값 칸 «10.98 (파생)»",
+      "evidence": "[^9] 의 키는 `rx_gain.excess_in_sigma → ÷√2 — 두 추정의 차` 인데 값 칸에는 나눗셈 **전** 값 10.98 이 찍혀 있다(10.98/√2 = 7.76 → 본문 7.8). 같은 노트북의 [^8] 도 10.98 이라 두 각주가 같은 값을 보이면서 본문 숫자는 다르다. 다른 편의 파생 각주 규약은 파생 **후** 값을 적는다 — 편 58 [^2] 는 «0.05434 (파생)» 이다.",
+      "fix": "값 칸을 7.76 으로 하거나 «10.98 ÷ √2 = 7.76 (파생)» 로 적어 규약을 통일한다.",
+      "applied": false
+    },
+    {
+      "id": "F10",
+      "severity": "LOW",
+      "type": "낡음(재생성이 막힌 산출물)",
+      "where": "docs/paper/03_illuminators.md · 04_detector.md · 05_results.md (전부 2026-08-07 12:01) / src/build_part10_results.py:1315-1321 의 가드",
+      "claim": "§6.6 «가드를 넣어 기존 docs/paper/03·04·05*.md 를 보존하고 재생성만 건너뛰게 했다»",
+      "evidence": "가드는 크래시를 없앴지만 그 대가로 논문 조각이 08-07 에 얼어붙었다 — 오늘의 정정이 하나도 안 들어간다. 실례: docs/paper/05_results.md 의 방어 표는 아직 «최대 초과분은 … 11.0 ⟨report05_derived.json : rx_gain.excess_in_sigma⟩ 배» 로만 적어, 편 66 에 넣은 √2σ 병기(7.8σ)가 없다. 편 60 의 제목 범위 정정도 마찬가지로 반영될 자리가 없다. 요란한 실패가 조용한 낡음으로 바뀐 것이다.",
+      "fix": "빌더가 보존을 택할 때 파일 머리에 «⚠ 이 조각은 <날짜> 산이고 편 NN 의 최신 서술을 반영하지 않는다» 한 줄을 찍게 하거나, 옛 노트북(report03/04/05*.ipynb)의 c23 셀을 복원해 재생성을 되살린다(메인 세션 판단).",
+      "applied": false
+    },
+    {
+      "id": "F11",
+      "severity": "LOW",
+      "type": "수치불일치",
+      "where": "reports/37_md-rpm.ipynb cell 0 결과5·cell 1·cell 4 (원장 report15b_microdoppler.json:_meta.spread_is_declared_ko 에서 온 문구)",
+      "claim": "«0.07~0.29 % 의 **중간값** ±0.22 %»",
+      "evidence": "인용된 구간의 중점은 (0.07+0.29)/2 = 0.18 % 이지 0.22 % 가 아니다. 0.22 가 모터별 표본의 중앙값이라면 그 표본이 어느 원장에도 없다 — benchmark/report15b_microdoppler_recompute.py:96 도 «중간값을 쓴다» 라고만 적는다. 값 자체는 구간 안에 있으므로 큰 해는 없으나, 재현 가능한 수가 아니다.",
+      "fix": "«중간값» 대신 «구간(0.07~0.29 %) 안에서 고른 값» 으로 적거나, 모터별 표본을 원장에 남겨 중앙값을 계산 가능하게 한다. F2 와 함께 고치는 것이 자연스럽다.",
+      "applied": false
+    },
+    {
+      "id": "F12",
+      "severity": "LOW",
+      "type": "문서 주장 부정확",
+      "where": "docs/REPORTS_ADVERSARIAL_0810.md §6.6",
+      "claim": "«낡은 문자열 스윕(… · 정정 전 메쉬 기준): 78편 전체에서 잔존 0»",
+      "evidence": "«정정 **전** 메쉬 기준» 은 편 18 cell 7 에 남아 있다. 다만 그 자리에서는 **옳다** — 그 표의 뿌리 원장 mesh_compare_material.json 이 2026-07-31 산이다. 즉 결함은 서술이 아니라 문서의 스윕 결과 보고 쪽이다.",
+      "fix": "§6.6 의 그 항목에 «편 18 은 정당한 잔존» 을 한 줄로 달아 다음 라운드가 이 문자열을 기계적으로 지우지 않게 한다.",
+      "applied": false
+    }
+  ],
+
+  "deferred_items_rejudged": {
+    "보류1_30·32_교정사다리_빈티지": {
+      "verdict": "여전히 보류 — 판정 불변",
+      "evidence": "outputs/report16_synthesis.json · report16_verify_*.json · report16_rung_*.json 전부 2026-08-04 mtime 그대로다. 1단계 재계산이 시작되지 않았다."
+    },
+    "보류2_36_세_원장_빈티지_혼재": {
+      "verdict": "판정 가능해졌고, 결과는 «재빌드 필요»",
+      "evidence": "outputs/report07_three_engines.json 이 오늘 05:54:42 에 rpm_spread_frac 0.0022 · engines.sbr.engine=«우리 SBR (가림 + 각도의존 Γ)» 로 재생성됐고 report15b 도 04:41 재계산본이라 두 원장의 세대가 수렴했다. 그러나 노트북은 05:14 빌드라 아직 옛 값을 들고 있다(F4). 빈티지 혼재 문제는 해소, 낡음 문제는 신규 발생."
+    },
+    "확인불가1_rt_public_names_161": {
+      "verdict": "미판정 유지",
+      "evidence": "런타임 재계수는 `import sionna.rt` 가 필요하고 그 임포트는 mitsuba 변형 초기화로 GPU 컨텍스트를 잡는다 — GPU 세 작업이 도는 지금 금지 조건에 걸린다. 대체로 설치본 sionna/rt/__init__.py 를 AST 로 정적 파싱해 봤으나 등가가 아니다: 직접 바인딩 36개 + star-import 둘(utils · radio_materials)을 펼치면 377개로 dir() 의미와 어긋난다. 원장-태그 일치까지만 확인된 상태를 그대로 둔다."
+    },
+    "확인불가2_report05_스윕_재실행": {
+      "verdict": "미판정 유지 — GPU 재계산 금지 범위",
+      "evidence": "1600배·49.02 dB 는 스톡 엔진 스윕 재실행이 있어야 검증된다. 원장 대조까지만."
+    },
+    "부수보류_restruct_exec_plan_title_ko_5건": {
+      "verdict": "«실해 없음» 은 절반만 맞다",
+      "evidence": "report_registry 는 노트북 H1 을 정본으로 삼으므로 reports/ 안에서는 무해하다. 그러나 그 판단은 README·reports_index 가 오늘 재생성된다는 전제였고, 실제로는 재생성되지 않아 옛 제목 5건이 색인에 남았다(F3)."
+    },
+    "부수보류_0단계_Γ(θ)_배선": {
+      "verdict": "사실상 완료 — 편 23 이 그것을 모른다",
+      "evidence": "F1 참조. rcs_sbr_batch 는 코드상 배선, rcs_po 는 오늘 배선 + 검증(angle_gamma_po_impact.json). 남은 것은 «옵트인이라 하위 사용처가 옛 경로» 라는 좁은 항목뿐이다."
+    }
+  },
+
+  "counts": {
+    "처방_적용_어서션": {"검사": 43, "통과": 43, "실패": 0},
+    "각주_태그_값_재대조": {"검사": 1332, "불일치": 6, "불일치_편": ["36"]},
+    "링크검사": {"노트북": 78, "링크": 441, "그림": 52, "출처": 1332, "위반": 0},
+    "문법_부작용": {"빈셀": 0, "None_nan_누출": 0, "미치환_포맷": 0},
+    "소스_줄번호_인용": {"총": 85, "밀린_것_확인": 11, "그것을_인용하는_편": 19},
+    "발견": {"HIGH": 2, "MED": 6, "LOW": 4, "계": 12}
+  }
+}

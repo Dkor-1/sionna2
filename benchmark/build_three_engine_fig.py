@@ -49,12 +49,12 @@ plt.rcParams.update({
 })
 
 
-from md_mapstyle import flash_spec, draw                               # noqa: E402
+from md_mapstyle import flash_spec, auto_periods, draw                       # noqa: E402
 
 
 def spec_of(E):
     """⭐플래시 해상도 규약(md_mapstyle) — 모든 맵이 같은 설정을 쓴다."""
-    return flash_spec(E, PRF, FFL)
+    return flash_spec(E, PRF, FFL, auto_periods(PRF, FFL))
 
 
 # ⭐ 라벨 정정(2026-08-07) — «SBR 커널 / PO 커널» 이 별개 물리처럼 읽혔다.

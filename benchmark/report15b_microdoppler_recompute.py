@@ -99,7 +99,9 @@ RPM_SPREAD_FRAC = 0.0022
 RPM_SPREAD_PATTERN = np.array([+1.0, -1.0, -0.55, +0.55])   # 대각쌍이 반대로 (요 균형)
 
 N_FLASH_PERIODS = 64          # ⭐창에 든 블레이드 주기 수 = 도플러 분해능을 정하는 유일한 값
-PRF_OVER_FTIP = 4.0           # PRF = 이 배수 × f_tip (나이키스트 2배 + 여유)
+PRF_OVER_FTIP = float(os.environ.get("SIONNA2_MD_PRF_MULT", "4.0"))   # PRF = 배수 × f_tip
+#   ⭐2026-08-10 — 환경변수로 열었다(사용자: 시간 해상도를 더, 계산량을 더 쓰더라도).
+#     16 이면 표시 조각이 블레이드 0.6→0.2주기로 내려가 시간 분해능이 3배 좋아진다.
 MAX_SAMPLES = 6000            # 안전 상한
 
 

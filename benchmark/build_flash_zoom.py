@@ -30,7 +30,7 @@ import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
-from md_mapstyle import flash_spec, draw, caption                      # noqa: E402
+from md_mapstyle import flash_spec, auto_periods, draw, caption              # noqa: E402
 
 J = json.load(open(f"{ROOT}/outputs/report07_three_engines.json"))["_meta"]
 Z = np.load(f"{ROOT}/outputs/report07_three_engines.npz")
@@ -58,7 +58,7 @@ CAP, m = "", None
 for i, (key, title) in enumerate(ARMS):
     seg = np.asarray(Z[key], complex)[N0:N0 + NZ]
     ax = fig.add_subplot(gs[0, i])
-    f, t, S, nper = flash_spec(seg, PRF, FFL)
+    f, t, S, nper = flash_spec(seg, PRF, FFL, auto_periods(PRF, FFL))
     m = draw(ax, t + N0 / PRF, f, S, FTIP)
     if i == 0:
         CAP = caption(PRF, FFL, nper, len(t))

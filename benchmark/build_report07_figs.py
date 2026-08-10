@@ -123,14 +123,14 @@ def _sgram(E, prf, f_flash, f_tip):
 def fig1_prop_spectrogram():
     """⭐ 회전수 가정만 바꾼 두 팔 — **플래시 해상도 규약**(md_mapstyle)으로 그린다.
     설정 수치는 그림에 안 적는다 — 리포트의 «표시 규약» 절이 담는다."""
-    from md_mapstyle import flash_spec, draw
+    from md_mapstyle import flash_spec, draw, auto_periods
     c = MDB["cells"][LEAD]
     ph = c["physics"]
     prf, ftip, ffl = ph["prf"], ph["f_tip"], ph["f_flash"]
 
     panels = [("A_sbr_locked", "All four rotors at one rpm"),
               ("B_sbr_spread", "Per-rotor rpm spread")]
-    got = [(arm, ttl) + flash_spec(NPZ[f"{LEAD}/{arm}/E"], prf, ffl)
+    got = [(arm, ttl) + flash_spec(NPZ[f"{LEAD}/{arm}/E"], prf, ffl, auto_periods(prf, ffl))
            for arm, ttl in panels]
     ref = max(g[4].max() for g in got)              # 같은 채널 — 공통 기준
 

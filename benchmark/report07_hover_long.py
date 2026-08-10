@@ -101,7 +101,11 @@ def main():
     f_rev = rpm0 / 60.0
     f_flash = spec.prop_blades * f_rev
     f_tip = 2.0 * (2 * np.pi * f_rev * R) / lam * np.cos(np.radians(a.el))
-    prf = float(np.ceil(4.0 * f_tip / 100.0) * 100.0)
+    # ⭐PRF 배수 — 시간 분해능의 유일한 레버(2026-08-10). 표시 조각의 시간 길이는
+    #   (비율 × 블레이드 주기)라 PRF 와 무관하지만, 비율을 0.6→0.2 로 내리려면 그 짧은
+    #   조각에도 표본이 남아야 하므로 PRF 를 함께 올린다. 16 이면 4.7 ms → 1.6 ms.
+    prf_mult = float(os.environ.get("SIONNA2_MD_PRF_MULT", "4.0"))
+    prf = float(np.ceil(prf_mult * f_tip / 100.0) * 100.0)
     n = int(round(a.sec * prf))
     t = np.arange(n) / prf
 

@@ -50,7 +50,8 @@ from drones import DRONES, DRONE_GROUP_MAT, drone_colors               # noqa: E
 
 FC = 3.5e9
 AZ, EL = 0.0, -15.0
-N_T = 512                                   # 102 ms = 13 블레이드 주기 — 맵에 충분
+N_T = int(os.environ.get("SIONNA2_MD_NT", "512"))            # 표본 수(창 = N_T/PRF)
+PRF_OVER_FTIP = float(os.environ.get("SIONNA2_MD_PRF_MULT", "4.0"))   # ⭐시간 분해능 레버
 RANGES = [3.0, 10.0, 20.0, 40.0]
 # ⭐ 광선 수를 (R/3)² 로 늘려 표적 입체각 축소를 보상한다 (상한 32M)
 SPP = {3.0: 1_000_000, 10.0: 8_000_000, 20.0: 16_000_000, 40.0: 32_000_000}
@@ -67,7 +68,7 @@ def main():
     lam = 3e8 / FC
     R_ = spec.prop_dia_mm / 1000.0 / 2.0
     f_tip = 2.0 * (2 * np.pi * f_rev * R_) / lam * np.cos(np.radians(EL))
-    prf = float(np.ceil(4.0 * f_tip / 100.0) * 100.0)
+    prf = float(np.ceil(PRF_OVER_FTIP * f_tip / 100.0) * 100.0)
     t = np.arange(N_T) / prf
     rpms = rpm0 * (1.0 + STATIC_SPREAD * np.resize(PATTERN, len(fp.dirs)))
     ph = rotor_phases(t, rpms, fp.dirs)

@@ -69,6 +69,7 @@ GM = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
 #   야외 산포(±2 %)의 효과는 그림 11(프리셋 비교)이 따로 담당한다.
 RPM_SPREAD = float(os.environ.get("SIONNA2_MD_SPREAD", "0.0022"))
 PATTERN = np.array([+1.0, -1.0, -0.55, +0.55])
+PRF_OVER_FTIP = float(os.environ.get("SIONNA2_MD_PRF_MULT", "4.0"))   # ⭐16 이면 시간분해능 4배
 
 
 def main():
@@ -99,7 +100,10 @@ def main():
     #     ③ 날개 두께·비틀림이 f_tip 을 조금 넘는 성분을 만든다.
     #   ⭐ 표본 수는 Sionna 비용이 정하므로, PRF 를 올려도 **비용이 안 늘고 창만 짧아진다**.
     #     1024 표본 @ 5000 Hz = 205 ms = 26 블레이드 주기 — 조각당 8주기를 넉넉히 넘는다.
-    prf = float(np.ceil(4.0 * f_tip / 100.0) * 100.0)
+    # ⭐ 2026-08-10 — PRF 배수를 열었다(사용자: 시간 해상도를 더, 계산량을 더 쓰더라도).
+    #   표시 조각을 «블레이드 0.6주기 → 0.2주기» 로 줄이려면 그 짧은 조각에도 표본이 남아야 한다.
+    #   PRF 4배 + 표본 수 4배 = **같은 관측 창**에 시간 분해능만 3배 좋아진다(4.7 → 1.6 ms).
+    prf = float(np.ceil(PRF_OVER_FTIP * f_tip / 100.0) * 100.0)
     t = np.arange(a.n) / prf
     rpms = rpm0 * (1.0 + RPM_SPREAD * np.resize(PATTERN, n_rot))
     ph = rotor_phases(t, rpms, fp.dirs)                        # (n, n_rot) [deg]

@@ -1,0 +1,209 @@
+{
+ "_meta": {
+  "title": "갈래 A — report07 새 절(그림 9·10·11·12=그림3 거리판) 적대적 검증",
+  "generated": "2026-08-10 06:20 (UTC)",
+  "reviewer": "adversarial branch A (read-only; 수정은 메인이 적용)",
+  "snapshot_ko": "⚠ 검증 중 메인이 파일을 계속 고쳤다. 아래 줄번호는 다음 스냅샷 기준이다.",
+  "snapshot": {
+   "src/make_report07_overview.py": "mtime 2026-08-10 06:09:58 (그림 12 절이 그림 3 절로 병합된 판, 그림 13 추가된 판)",
+   "benchmark/build_5g_fig.py": "mtime 2026-08-10 05:57:04 (YMAX_HZ=1300 도입 판)",
+   "benchmark/build_range_sweep_fig.py": "mtime 2026-08-10 04:53:08",
+   "benchmark/build_hover_compare_fig.py": "mtime 2026-08-10 05:24:18",
+   "benchmark/build_three_engine_ranges_fig.py": "mtime 2026-08-10 06:00:03",
+   "report07_microdoppler.ipynb": "mtime 2026-08-10 06:02:48 (06:09 스크립트 수정분은 아직 반영 전)",
+   "outputs/report07_three_engine{s,_ranges}.json": "산포 재계산 완료 — 둘 다 rpm_spread_frac 0.0022"
+  },
+  "method_ko": "원장 JSON·npz 를 직접 다시 계산하고(보간 왕복오차·가드에너지·앨리어스 자리·경로예산·레벨추세·플래시 생존), 그림 PNG 는 PIL 로 크기를 재고 빌더를 스크래치패드에 복제해 실제 축 한계를 찍어 확인했다. GPU 재계산·git·타 갈래 파일 수정은 하지 않았다."
+ },
+ "summary_ko": "그림 9·10·11·12 를 원장·코드·PNG 로 재계산해 대조했다. 통과한 것: 앨리어스 자리(±228.7 / ∓23.3 Hz), SSB 표본 15개→시간슬롯 4개, CRS 8표본 클램프, 78.3 % 빈 자세, 40 m −505 dB 의 log(0) 분해(−600 dB 바닥 78.3 % + 실제 −161.3 dB), 재현 명령·코드 발췌(place/PathSolver·QPSK 나눗셈)와 실제 스크립트 일치, 야외 앵커 수치(2.35 %·2.52 %·0.74 Hz·0.54 %·2~6 %)와 rotor_rpm_web_anchor.json 일치, «산포는 플래시를 못 지운다» 는 지지(127 Hz 선 peak/배경 216→88, 시간대비 0.47→0.66). 걸린 것 18건 — 핵심 5건은 ①그림 9 의 (R/3)² 보상이 실제로는 40 m 에서 5.6배 미달이라 «구조적 붕괴» 결론이 예산과 뒤섞였고 ②그림 3 절이 «진짜 모노스태틱» 이라 선언했지만 같은 절의 렌더·p-p 표·§0 표는 기선 0.2 m 준-모노 원장이며 ③«풀캡처 ≡ CW 2.4e-14» 는 CW 와의 비교가 아니라 Y/X 항등식(실제 CW 대비 오차는 6.7e-4) ④원거리장 경계가 8.0 과 8.3 m 두 값으로 갈려 «8 m 는 원거리장» 판정이 뒤집히고 ⑤그림 10 도플러축은 실제 ±1300 Hz 인데 본문은 ±2334 Hz 라고 적었다.",
+ "verified_ok": [
+  "앨리어스 자리 재계산: alias(1228.72,1000)=228.72 Hz, alias(126.67,50)=23.33 Hz — 본문 ±229 / ∓23 과 일치",
+  "SSB 팔 표본 15개(0.3 s×50 Hz) → flash_spec nper=max(8,0)=8, hop 2 → 슬롯 (15-8)//2+1 = 4개 — 본문과 일치",
+  "CRS 팔 조각 8표본 클램프 사실 — md_mapstyle._spectro 의 max(8,nper) 로 확인",
+  "그림 9 표의 경로중앙/빈자세/레벨/p-p 전부 report07_sionna_ranges.json 값 그대로(주입식)",
+  "40 m −504.886 dB 분해: 0.7832×(−600, 즉 20log10(1e-30)) + 0.2168×(−161.3) — 본문의 log(0) 설명과 일치",
+  "5G 팔 표본수: 56000/2000/100, fs 28k/1k/50 — 원장·스크립트 데시메이션(28,560)과 일치",
+  "코드 발췌 2건(RP.place+PathSolver, QPSK/기지심볼 나눗셈)이 실제 스크립트와 문자 그대로 일치",
+  "재현 명령 실재: report07_hover_long.py --preset outdoor(choices 에 있음, tag='_outdoor'), build_hover_compare_fig.py, report07_three_engine_ranges.py, build_three_engine_ranges_fig.py",
+  "그림 11 야외 앵커 수치 = rotor_rpm_web_anchor.json 실측치(CODEV 2.35 %·2.52 %·0.74 Hz, NeuroBEM 0.54 %, P3 DAT PWM 2~6 %)와 일치",
+  "«플래시는 안 지워진다» 지지: 고도플러 대역 에너지의 127 Hz 선이 실내 peak/배경 216 → 야외 88 로 살아남고 시간대비(std/mean)는 0.47→0.66 로 오히려 커진다",
+  "PNG 크기 정상: f9 2674×1406, f10 2708×976, f11 1927×1071, f12 2387×1976 — 06:01 재생성으로 f12 의 4652 px 캡션 벌어짐은 해소됨",
+  "노트북 임베드 12장 모두 현재 디스크 PNG 와 바이트 일치(06:02:48 빌드 기준)"
+ ],
+ "findings": [
+  {
+   "severity": "HIGH",
+   "type": "confounded-claim",
+   "where": "src/make_report07_overview.py:325-326, 336-341, 352 (그림 9) · benchmark/report07_sionna_range_sweep.py:55-56",
+   "claim": "«광선 수는 표적 입체각 축소를 (R/3)² 로 보상해 1M → 32M 까지 늘렸다» + «광선을 32배 부어도 40 m 에선 78.3 % 가 경로 0 — 광선을 덜 쏜 탓이 아니라 구조다»",
+   "evidence": "스크립트의 SPP 는 {3:1M, 10:8M, 20:16M, 40:32M}(주석에 '상한 32M'). (R/3)² 규칙이 요구하는 값은 1M/11.1M/44.4M/177.8M 이므로 실제 보상은 각각 1.00×/0.72×/0.36×/0.18× 다 — 40 m 는 규칙 대비 5.6배 미달이고, 표적 입체각당 광선 밀도(N/R²)가 3 m 의 18 % 뿐이다. 즉 «(R/3)² 로 보상했다» 는 서술 자체가 사실이 아니고, 그 위에 선 «예산 탓이 아니라 구조» 결론은 예산 부족과 분리되지 않았다. 반증 자료가 같은 리포트 안에 있다 — 정확히 (R/3)²(7.1M=7.11M 규칙값, 25M=25M) 를 지킨 그림 12 는 8 m 에서 경로가 5→13개로 **늘고**, 그림 9 자신도 3→10 m 에서 5→7개로 늘었다(경로수 5→7→3→0 은 단조 붕괴가 아니다).",
+   "fix": "① 본문에서 «(R/3)² 로 보상» 을 «(R/3)² 규칙 대비 10/20/40 m 에서 각각 0.72/0.36/0.18 배만 부었다(32M 상한)» 로 정정. ② 결론을 «구조적 붕괴» 에서 «이 예산에서는 40 m 에서 78 % 가 빈다 — 예산을 규칙대로(178M) 올리면 어디까지 버티는지는 아직 측정하지 않았다» 로 낮추거나, 40 m 를 178M 로 한 점만 추가 측정. ③ 경로수 비단조(5→7→3→0)를 본문에 적기."
+  },
+  {
+   "severity": "HIGH",
+   "type": "internal-contradiction",
+   "where": "src/make_report07_overview.py:218-234 (그림 3 절) vs :164-169 (§0 B 표) · benchmark/render_md_scene.py:48 · benchmark/report07_three_engine_maps.py:149 · benchmark/report15_probe.py:89",
+   "claim": "그림 3 절: «기하는 **진짜 모노스태틱**(TX=RX, 기선 0)이다» + «아래 렌더가 이 비교의 씬 그대로다»",
+   "evidence": "같은 절이 딛고 선 세 가지가 전부 기선 0.2 m 준-모노다. ① 렌더 f0c 를 만든 render_md_scene.py 는 AZ,EL,RNG,BASE = 0,-15,3,0.2 로 place() 하고 그 씬에서 경로를 겹쳐 그린다(그래서 «TX→RX 직행 1개» 가 존재한다 — 기선 0 이면 성립하지 않는 개념이다). ② 절의 p-p 표가 인용하는 TRI['ptp_db']['sionna']=6.8 dB 는 report07_three_engines.json 인데, 이를 만든 report07_three_engine_maps.py:149 는 baseline 인자 없이 RP.place() 를 불러 기본값 BASELINE_M=0.20 을 쓴다. ③ §0 의 B 표는 같은 그림 3 을 TX(+2.898,−0.100,−0.776)/RX(+2.898,+0.100,−0.776)·기선 0.2 m·바이스태틱 3.8° 로 명시한다. 반면 그림 3 에 실린 f12 의 Sionna 열만 기선 0(report07_three_engine_ranges.py:78)이다. 그 결과 3 m 에서 표는 6.8 dB p-p, 바로 위 그림은 16.2 dB p-p 로 9.4 dB 어긋난 두 숫자가 같은 절에 있다.",
+   "fix": "그림 3 절 첫 문장을 «Sionna 열(거리판 f12)만 진짜 모노스태틱(기선 0)이고, p-p 표의 Sionna 값과 경로 렌더는 기선 0.2 m·3.8° 준-모노 원장이다» 로 정정하고, §0 의 B/C 구분을 그림 3 이 두 기하를 걸친다는 사실에 맞춰 다시 쓴다. 아니면 f0c 렌더와 three_engines 의 Sionna 팔을 기선 0 으로 재계산(GPU 필요)."
+  },
+  {
+   "severity": "HIGH",
+   "type": "unsupported-number",
+   "where": "src/make_report07_overview.py:375-377, 388-390 (그림 10) · benchmark/build_5g_fig.py:82-84 (패널 제목 'max rel. err vs CW 2.4e-14') · benchmark/report07_5g_waveform.py:72-81",
+   "claim": "«⭐판정 — 풀캡처는 CW 와 수치적으로 같다(최대 상대오차 2.4e-14)»",
+   "evidence": "그 2.4e-14 는 CW 와의 비교가 아니다. 스크립트는 err = max|h_hat − h28k| / max|h28k| 를 재는데, h_hat 은 Y=h28k·X 를 만든 뒤 mean(Y/X) 로 되돌린 것이라 잡음 0·심볼당 평탄 가정에서 **대수적 항등식**이고 남는 것은 부동소수점 반올림뿐이다(즉 OFDM 사슬이 아무것도 안 했다는 확인이지 파형 무관성의 측정이 아니다). 실제 «풀캡처 vs CW» 를 재면 — 두 열이 시각이 겹치는 표본(h_hat[::28] ≡ 1 kHz 팔 vs h5k[::5])에서 최대 상대오차 6.7e-4, rms 6.7e-4 로 열한 자릿수 크다. 결론(파형이 아니라 반복률) 자체는 6.7e-4 수준에서 여전히 서지만, 인용한 수와 «CW 와» 라는 문구·그림 제목은 틀렸다.",
+   "fix": "본문·패널 제목을 «풀캡처 수신은 자기가 받은 채널을 그대로 되돌린다(Y/X 항등식, 반올림 2.4e-14) — CW 원열과의 실제 차이는 보간 오차 6.7e-4 다» 로 바꾸고, 원장에 cw_vs_full_coincident_rel_err 필드를 추가해 주입한다."
+  },
+  {
+   "severity": "HIGH",
+   "type": "inconsistent-constant",
+   "where": "src/make_report07_overview.py:70(FARFIELD_M), :175-176, :184, :229, :323, :340 · benchmark/build_three_engine_ranges_fig.py:93 · benchmark/report07_sionna_range_sweep.py:78,138",
+   "claim": "본문은 원거리장 경계를 **8.3 m**(report00 원장, D=0.5952 m), 그림 12 본문·캡션과 그림 9 의 세로 점선은 **8.0 m**(스윕 스크립트에 하드코딩된 D=0.587 m)로 쓴다",
+   "evidence": "report00_microdoppler.json 의 matrice4e farfield_m = 8.2591 m(→본문 8.3), report07_sionna_ranges.json 의 farfield_boundary_m = 8.0399 m(2·0.587²/λ, 스크립트 78·138행 하드코딩). 그림 9 는 본문이 «경계 8.3 m 를 가로지른다» 라고 쓰는데 그림 속 점선은 8.04 m 에 있다. 더 나쁜 것은 판정이 뒤집힌다는 점 — 그림 12 본문·캡션의 «8 m 는 원거리장 경계 바로 위 / 8·15 m 는 far-field» 는 8.04 기준에서만 참이고, 본문이 다른 데서 쓰는 8.259 기준으로는 8 m 가 **근거리장**이다.",
+   "fix": "D 정의를 하나로 정하고(권장: report15_probe 가 쓰는 D_horizontal → 8.26 m) 스윕 스크립트의 0.587 하드코딩을 스펙에서 유도하도록 바꾼 뒤, 그림 12 캡션·본문의 8.0 을 주입값으로 교체. 8 m 행의 near/far 문구도 함께 정정."
+  },
+  {
+   "severity": "HIGH",
+   "type": "text-figure-mismatch",
+   "where": "src/make_report07_overview.py:396-400 (그림 10) vs benchmark/build_5g_fig.py:55, 77, 104",
+   "claim": "«네 패널은 축이 완전히 같다(시간 0~0.3 s · **도플러 ±2334 Hz**)»",
+   "evidence": "빌더는 05:57 판에서 YMAX_HZ = 1300.0 을 도입해 draw() 의 규약값(±1.9·f_tip = ±2334.6 Hz)을 덮어쓴다(104행 set_ylim(-YMAX_HZ, YMAX_HZ), 77행 keep 마스크도 1300×1.05). 빌더를 스크래치패드에 복제해 실제 축을 찍어보면 네 패널 모두 (−1300, +1300) 이고, 같은 규약을 쓰는 f9 는 (−2334.6, +2334.6) 으로 나온다. 즉 본문 숫자가 틀렸을 뿐 아니라 f9 와 f10 의 도플러창이 서로 다르다(그리고 f11 은 ±2000).",
+   "fix": "본문을 ±1300 Hz 로 정정하고 그 값을 빌더에서 원장/상수로 주입하거나(권장) 규약대로 ±1.9·f_tip 로 되돌린다. 축을 좁힌 이유(모아레·빈 띠 가독성)는 본문에 한 줄로."
+  },
+  {
+   "severity": "MED",
+   "type": "honesty-gap",
+   "where": "src/make_report07_overview.py:391-392 (그림 10 «정직 한계 ①») · benchmark/report07_5g_waveform.py:57-62",
+   "claim": "«5 kHz 채널열을 28 kHz 심볼율로 다상 보간했다 — 근거는 대역제한 가드 에너지 2.1e-03(|f| > 2250 Hz 성분)이다»",
+   "evidence": "그 수치는 근거가 아니라 **탈락 표시**다. 스크립트 자신이 guard < 1e-3 이면 '✅보간 합법', 아니면 '⚠접힘 위험' 을 찍는데 실측 guard = 2.059e-03 > 1e-3 이라 실행하면 ⚠ 가 찍힌다(재계산으로 확인). 대역 밖 에너지는 |f|>2000 Hz 4.06e-03, |f|>1750 Hz 6.37e-03 로 나이퀴스트에 붙어 있고, 스크립트 독스트링의 «블레이드 도플러가 ±1.5 kHz 안이라 이 열은 대역제한 신호로서 완전하다» 도 자기 측정에 반증된다. 실제 보간 오차는 6.7e-4(위 항목)로 작지만, 본문은 «기준을 통과했다» 는 인상을 준다.",
+   "fix": "«가드 에너지 2.1e-03 은 우리가 세운 합법 기준(1e-3)을 넘겼다 — 그래서 보간 오차를 직접 쟀고 CW 와 시각이 겹치는 표본에서 6.7e-4 였다» 로 바꾸고, 스크립트 독스트링의 '완전하다' 를 삭제."
+  },
+  {
+   "severity": "MED",
+   "type": "stale-number",
+   "where": "src/make_report07_overview.py:513-515 (부록 «그림별 데이터 이력» 마지막 행)",
+   "claim": "«| 12 | report07_three_engine_ranges.json + 그림 3 원장(sbr·po 열) | 2026-08-10 | ✅ 후 | **±2 %**(그림 3 격자 상속 — 선언) |»",
+   "evidence": "산포 재계산이 끝나 report07_three_engine_ranges.json 과 report07_three_engines.json 둘 다 rpm_spread_frac = 0.0022(06:01·05:54 생성)다. 게다가 같은 표 503-505 행에 «3 (거리판 f12)» 가 이미 주입값 ±0.22 % 로 들어 있어, **같은 그림에 대한 행이 두 개이고 산포가 서로 모순**이다(0.22 % vs 2 %). 이력표는 바로 이 혼동을 막으려고 만든 표다.",
+   "fix": "12 행을 삭제(3 행에 통합됨). 남은 ±2 % 하드코딩 전수는 98행(그림 1 과거서사), 447행(그림 11 야외 프리셋 — 주입값 0.02 이므로 정당하나 하드코딩), 463행(그림 13 야외 프리셋), 501행(RECOMPUTED=False 분기 — 현재 미사용), 515행(이 항목, 유일한 오류) 이다."
+  },
+  {
+   "severity": "MED",
+   "type": "misleading-figure",
+   "where": "benchmark/build_range_sweep_fig.py:88-109 (아랫줄 (b)) · src/make_report07_overview.py:342-345",
+   "claim": "패널 (b) «평균 레벨 vs 거리» 에 two-way 1/R² 기준선을 얹어 물리 추세로 읽게 한다",
+   "evidence": "y축이 −100 ~ −505 dB 로 벌어져 있는데 −505 는 본문도 인정하듯 log(0) 바닥(0.783×(−600)+0.217×(−161.3))이 만든 비물리 수치다. 그 한 점 때문에 실제로 의미 있는 3/10/20 m 구간(−117/−126/−156)과 기준선의 차이가 축 상단 10 % 에 눌려 사실상 판독 불가다. 게다가 실측은 기준선과 크게 어긋난다 — 10 m 는 +12.2 dB, 20 m 는 −6.1 dB(그림 12 의 8 m 는 +16.4 dB) — 이 어긋남을 본문이 한 줄도 설명하지 않는다. 원인의 하나는 level_db 정의가 mean(20log10|E|), 즉 **dB 평균**이라 깊은 널 자세가 평균을 끌어내리는 편향 추정량이라는 점이다(전력 평균이 아니다).",
+   "fix": "40 m 점은 (b) 에서 빼거나 «log(0) 오염» 표식으로 따로 찍고, y축을 −100~−170 으로 자른다. level 정의를 10log10(mean|E|²) 로 바꾸거나 최소한 원장·부록에 «dB 평균» 임을 명시. 기준선 대비 +12/−6 dB 편차를 한 줄로 설명(경로 집합이 자세마다 바뀌는 탓)."
+  },
+  {
+   "severity": "MED",
+   "type": "provenance-contradiction",
+   "where": "src/make_report07_overview.py:425 (그림 11) vs :310-311 (그림 7) vs :508(부록 이력표) vs :497(설정표) · outputs/rotor_rpm_web_anchor.json:purpose",
+   "claim": "±0.22 % 의 출처가 한 노트북 안에서 세 가지로 적혀 있다 — «PX4 SITL 실측의 중간값»(그림 11) / «PX4 텔레메트리를 직접 재서 나온 값»(그림 7) / «PX4 실측»(이력표·설정표)",
+   "evidence": "앵커 원장 rotor_rpm_web_anchor.json 의 purpose 는 «STATIC_SPREAD(±0.22%, **PX4 SITL 유래**)» 라고 못박고, 새로 추가된 그림 13 절(483행)도 «SITL 유래 ±0.22 %» 라고 쓴다. SITL 은 시뮬레이터라 «실측» 과 뜻이 다르고, 그림 11·13 의 논지 자체가 «SITL 은 대칭-이상 조건의 하한» 이라는 전제 위에 서 있다. 보강 증거: 같은 앵커의 **실기체 실내 무풍**(NeuroBEM) 호버 창 7개 산포가 0.25~1.06 %(중앙 0.54 %)로, ±0.22 % 는 실제로 기록된 어떤 실기체 호버 창보다도 작다.",
+   "fix": "표기를 한 가지로 통일한다 — «PX4 SITL(소프트웨어 인 더 루프) 텔레메트리에서 잰 값» 으로 쓰고, 그림 7·부록의 «실측» 을 «SITL 실측» 으로 바꾼다. 그림 11 의 영어 패널 제목 'Indoor-ideal preset (PX4 SITL, measured)' 도 'simulated (SITL)' 로."
+  },
+  {
+   "severity": "MED",
+   "type": "mechanism-not-shown",
+   "where": "src/make_report07_overview.py:446-451 (그림 11 «읽는 법»)",
+   "claim": "«왼쪽(±0.22 %)은 고조파 빗살이 정렬되고, 오른쪽(±2 %)은 로터별 f_tip 이 수십 Hz 씩 갈라져 능선이 얽힌 뱀처럼 교차한다»",
+   "evidence": "그림 11 의 맵은 flash_spec 규약이라 주파수 분해능이 PRF/nper = 5000/24 = **208 Hz** 다. 고조파 빗살 간격은 f_flash = 126.7 Hz 로 분해능보다 촘촘해 애초에 분해되지 않고, 산포가 만드는 선폭 증가도 2 초 FFT(0.5 Hz 분해능)로 재면 1차 1.0→3.0 Hz, 5차 1.5→14.5 Hz, 9차 2.0→38.5 Hz 로 전부 208 Hz 셀 안에 들어간다(로터간 f_tip 차이도 ±2.7 Hz → ±24.6 Hz 로 역시 셀 안). 즉 «빗살 정렬/분리» 는 물리적으로는 참이지만(고분해능 FFT 로 확인) **이 그림이 보여줄 수 있는 것이 아니다**. 오른쪽 패널에서 실제로 달라지는 것은 시간축 요동이다(고도플러 대역 에너지의 std/mean 0.47→0.66).",
+   "fix": "읽는 법을 «분해되지 않은 성분들이 시간축에서 맥놀이해 무늬가 흐트러진다» 로 바꾸고, 빗살 분리를 보이려면 보조 패널로 2 초 전체 FFT(0.5 Hz) 또는 ridge_spec 를 곁들인다. 지금 표기대로면 «능선» 이라는 말이 무엇을 가리키는지 독자가 그림에서 확인할 수 없다."
+  },
+  {
+   "severity": "MED",
+   "type": "cherry-picked-endpoints",
+   "where": "src/make_report07_overview.py:254-257 (그림 3 거리판 읽는 법)",
+   "claim": "«절대 레벨이 3→15 m 에서 30 dB 내려간다»",
+   "evidence": "원장은 −117.37 / −117.97 / −148.25 dB 다. 3→15 m 는 −30.9 dB 로 맞지만 **3→8 m 는 −0.59 dB** 다(two-way 1/R² 예측 −17.0 dB 대비 +16.4 dB). 즉 레벨은 단조로 내려가지 않는데 양 끝점만 인용해 매끈한 감쇠처럼 읽힌다. 같은 문단이 8 m 의 경로수 증가(13개)는 정직하게 적으면서 레벨 비단조는 적지 않는다 — 둘은 같은 원인(자세별 경로 집합 변화 + 예산)일 가능성이 크다.",
+   "fix": "«3→8 m 는 −0.6 dB 로 거의 안 내려가고 8→15 m 에서 −30 dB 가 몰린다 — 레벨은 거리보다 그 거리에서 잡히는 경로 집합에 더 좌우된다» 로 바꾸고, 30 dB 도 원장 주입값으로."
+  },
+  {
+   "severity": "MED",
+   "type": "ledger-counterevidence",
+   "where": "outputs/report07_5g_waveform.json arms.*.ptp_db · src/make_report07_overview.py:375-377",
+   "claim": "«같다» 고 선언한 두 팔의 변조 p-p 가 원장 안에서 8.23 dB(CW) vs 18.57 dB(풀캡처)로 10.3 dB 다르다 — 본문은 이 값을 한 번도 보이지 않는다",
+   "evidence": "재계산 확인: cw_5k min|h| 1.746e-03 / max 4.504e-03 → 8.23 dB, nr_full_28k min 5.526e-04 / max 4.690e-03 → 18.57 dB. 풀캡처의 가장 깊은 널(5.5e-04)은 보간 오차 자체(6.7e-04, 위 항목)보다 **작아서** 신뢰할 수 없는 값이다. p-p 는 표본수 의존(10,000 vs 56,000)이라 반복률이 다른 팔 사이에서 비교 가능한 양이 아니다.",
+   "fix": "원장 ptp_db 옆에 «표본율이 다른 팔 사이에서 비교 불가» 주석을 달거나, 풀캡처 팔의 p-p 는 보간 오차 바닥(−63 dB rel. peak) 위로 클리핑해 계산. 본문이 p-p 를 인용하지 않는 현 상태는 최소한 유지."
+  },
+  {
+   "severity": "MED",
+   "type": "number-without-formula",
+   "where": "src/make_report07_overview.py:393-395 (그림 10 «정직 한계 ②») · benchmark/report07_5g_waveform.py:17, 86",
+   "claim": "«심볼 안에서 채널이 도는 ICI 를 1차 근사로 재면 바닥이 −17.8 dB»",
+   "evidence": "이 수치는 20log10(π·f_D/SCS) 라는 식에서 나오는데 본문·원장 어디에도 식이 없다. 같은 스크립트의 독스트링(17행)은 같은 항목을 «≈ −28 dB» 라고 적어 두었고(=20log10(f_D/SCS)), 문헌 표준 근사(Robertson–Kaiser, ICI/신호 전력 ≈ (π f_D T)²/3)로 계산하면 −22.6 dB 다. 한 수치가 세 값(−17.8 / −22.6 / −28)이고 4.8~10 dB 차이가 난다. 또 f_D 로 최대 도플러(f_tip)를 쓴 것은 도플러 **분포** 가 아니라 최악값이라는 점도 안 적혀 있다.",
+   "fix": "식을 본문(또는 부록)에 한 줄로 적고 어느 근사인지 밝힌다. 스크립트 독스트링의 −28 dB 를 삭제. «최대 도플러 기준의 상한» 이라고 성격을 붙인다."
+  },
+  {
+   "severity": "MED",
+   "type": "house-rule",
+   "where": "benchmark/build_hover_compare_fig.py:29, 57-64",
+   "claim": "그림 11 빌더가 md_mapstyle 의 draw()/caption() 을 우회한다 — flash_spec 만 쓰고 정규화·pcolormesh·ylim 을 자체 구현하며 캡션 줄이 없다",
+   "evidence": "29행에서 draw/caption 대신 VMIN/VMAX/CMAP/SHADING 만 가져오고, 61행에서 직접 pcolormesh, 64행에서 ax.set_ylim(-2000, 2000) 을 쓴다(규약은 ±1.9·f_tip = ±2334.6). 그 결과 한 리포트 안에서 도플러창이 f9 ±2334.6 · f10 ±1300 · f11 ±2000 세 가지가 되고, f11 만 표시규약 캡션(조각 길이·hop·제로패딩·슬롯 수)이 없다. 하우스 규약은 «md_mapstyle 의 flash_spec/draw/caption 만 사용, 우회 금지» 다.",
+   "fix": "draw(ax, t, f, S, FTIP) 로 교체하고 caption(PRF, FFL, NPER, len(t)) 을 그림 밖 텍스트로 추가. 창을 좁히려면 md_mapstyle 에 인자를 추가해 한 자리에서 바꾼다."
+  },
+  {
+   "severity": "LOW",
+   "type": "caption-code-mismatch",
+   "where": "benchmark/build_5g_fig.py:106-111, 138-140 · src/make_report07_overview.py:386-390",
+   "claim": "캡션은 «Dotted white: where the blade-tip (1 kHz arm) / blade-flash (50 Hz arm) lines land after aliasing» 이라 적지만, 코드는 SSB(50 Hz) 팔에도 ftip_folds=True 라 **날개끝 접힘선까지** 그린다",
+   "evidence": "재계산: alias(1228.72, 50) = 21.28 Hz, alias(126.67, 50) = 23.33 Hz — 50 Hz 팔 패널에는 ±21.3 과 ±23.3, 즉 점선이 넷 그려지고 서로 2 Hz 밖에 안 떨어져 사실상 구분이 안 된다. 본문도 «플래시선마저 ∓23 Hz 로 접힌다» 만 쓰고 날개끝이 ±21.3 Hz 로 같은 자리에 겹쳐 온다는 (더 강한) 사실을 안 쓴다.",
+   "fix": "캡션을 «1 kHz 팔은 날개끝, 50 Hz 팔은 날개끝과 플래시가 **둘 다** 접혀 21.3 / 23.3 Hz 에 겹쳐 떨어진다» 로 고치고 본문에도 그 한 줄을 넣는다(이 팔의 무용함을 가장 잘 보이는 사실이다)."
+  },
+  {
+   "severity": "LOW",
+   "type": "toc-incomplete",
+   "where": "src/make_report07_overview.py:121-133 (머리말·목차 표)",
+   "claim": "«장면 렌더 두 장과 그림 아홉 장» + 목차 표에 1·2·3·4·5·6·7·9·10 만",
+   "evidence": "현재 노트북은 렌더 2장(f0, f0c) 외에 f1·f2·f12·f3·f4·f8·f7·f9·f10·f11(+f13) 을 싣는다 — 절 기준 그림 11(과 새로 붙은 13)이 목차에 없고 개수도 아홉이 아니다.",
+   "fix": "목차 표에 11·13 행 추가, 개수는 len(_EMBEDDED) 로 주입."
+  },
+  {
+   "severity": "LOW",
+   "type": "house-rule",
+   "where": "benchmark/build_three_engine_ranges_fig.py:90-96 (그림 캡션) · benchmark/build_range_sweep_fig.py:117-119 · src/make_report07_overview.py:487-488 (부록 첫 줄)",
+   "claim": "부록은 «그림에는 설정 수치를 안 적는다. 여기가 그 수치들의 자리다» 라고 선언하는데, f12 캡션은 광선 예산(1M/7.1M/25M)·원거리장 경계(8.0 m)·조각 길이·hop·제로패딩을, f9 캡션은 PRF·분해능·슬롯 수를 그림 안에 렌더한다",
+   "evidence": "PNG 를 열어 확인 — f12 하단 3줄, f9 하단 2줄이 이미지 픽셀 안에 있다(fig.text). md_mapstyle.caption() 의 표시규약 한 줄은 의도된 예외로 볼 수 있으나, 광선 예산·원거리장 경계는 명백히 «설정 수치» 다.",
+   "fix": "캡션에서 광선 예산·경계값을 빼고 본문 설정표로 옮긴다(값이 바뀌면 그림을 다시 그려야 하는 결합도 사라진다)."
+  },
+  {
+   "severity": "LOW",
+   "type": "hardcoded-number",
+   "where": "src/make_report07_overview.py:229(8.0 m), 255(30 dB), 256(13개), 378(±1229/127 Hz 표 머리), 387-388(±229/∓23 Hz), 392(2250 Hz), 396(±2334 Hz), 398(±500/±25 Hz), 401(15개·4슬롯), 446-447(±0.22 %/±2 %)",
+   "claim": "새 절들의 수치 상당수가 원장 주입이 아니라 본문에 박혀 있다(하우스 규약: 수치는 원장 JSON 주입, 하드코딩 금지)",
+   "evidence": "값 자체는 이번 라운드 기준으로 대부분 맞다(±229/∓23 Hz, 15표본·4슬롯, 13개 경로는 재계산으로 확인). 그러나 8.0 m·±2334 Hz 는 이미 틀렸고(위 HIGH 2건), 산포 재계산 때 ±2 % 한 자리가 남은 것도 같은 원인이다. 접힘 자리는 빌더에 alias() 함수가 이미 있으므로 원장에 넣어 주입할 수 있다.",
+   "fix": "report07_5g_waveform.py 가 alias(f_tip/f_flash, fs) 와 표시창(YMAX_HZ)을 원장에 기록하고, 본문은 그것을 f-string 으로 읽는다. 그림 3·12 의 far-field·레벨차·경로수도 마찬가지."
+  },
+  {
+   "severity": "LOW",
+   "type": "terminology-inconsistency",
+   "where": "src/make_report07_overview.py:429-431 vs :452-453 vs :512 (이력표 11행)",
+   "claim": "그림 11 절이 «출처는 **논문이 아니라** 공개 비행로그 데이터셋 세 종» 이라고 쓴 뒤, 같은 절 끝과 이력표는 «**문헌 앵커**의 반올림», «야외 **문헌 앵커**» 라고 쓴다",
+   "evidence": "rotor_rpm_web_anchor.json 은 논문이 아니라 로그 데이터셋(NeuroBEM/PX4 Flight Review/DROP DAT)에서 직접 잰 값이다 — «문헌» 이라는 말이 세 곳에 남아 있어 출처 성격이 흐려진다.",
+   "fix": "«문헌 앵커» → «공개 비행로그 앵커» 로 통일."
+  },
+  {
+   "severity": "LOW",
+   "type": "loose-wording",
+   "where": "outputs/report07_hover_long_outdoor.json _meta.preset_why_ko · src/make_report07_overview.py:426-428",
+   "claim": "야외 프리셋 흔들림 주파수 1.0 Hz 를 CODEV 실측 0.74 Hz 의 «반올림» 이라고 부른다",
+   "evidence": "0.74 → 1.0 은 35 % 상향이라 «반올림» 이라기보다 선택이다(앵커의 IQR 0.5~1.5 Hz 안이므로 값 자체는 정당하다). 산포도 2.35 %→2 % 로 **하향** 선택이다(같은 앵커의 DJI DAT 는 2~6 %).",
+   "fix": "«CODEV 중앙값 0.74 Hz(IQR 0.5~1.5)에서 1 Hz 를 골랐고 산포는 2.35 % 를 2 % 로 낮춰 잡았다 — 보수적 선택» 이라고 성격을 밝힌다."
+  },
+  {
+   "severity": "LOW",
+   "type": "tone-policy",
+   "where": "src/make_report07_overview.py:98-99 (그림 1 caveat, RECOMPUTED 분기)",
+   "claim": "«⚠ 처음에는 ±2 % 를 넣었었다(선언된 가정). 실측이 나온 뒤 ±0.22 % 로 재계산한 것이 이 그림이다»",
+   "evidence": "산포 ±2 % 전수 조사 중 발견. 리포트 톤 정책은 «과거 버그·수정 과정 서사 금지, 현재 상태의 신뢰성만» 이다. 같은 유형이 그림 7 절에도 있었으나 06:09 판에서는 정리됐고 이 한 줄만 남았다.",
+   "fix": "«이 그림의 산포 ±0.22 % 는 PX4 SITL 텔레메트리에서 잰 값이다» 만 남기고 과거 경위는 삭제(필요하면 RESUME/이력표로)."
+  }
+ ],
+ "not_findings_ko": [
+  "그림 12 의 4652 px 캡션 벌어짐: 06:01 재생성으로 2387×1976 이 되어 해소 — 재발 방지용 textwrap(150) 이 빌더에 있다",
+  "그림 9 의 40 m 맵이 세로줄로만 번쩍이는 것: 경로 있는 자세만 남은 결과이고 본문이 그대로 적었다 — 정직",
+  "그림 12 가운데·오른쪽 열이 세 줄 반복되는 것: 빌더가 같은 배열을 세 번 그리는 것이 맞고 본문도 «거리라는 변수가 없다» 고 적었다 — 정직",
+  "flash_spec 조각 0.61 주기·208 Hz·hop 2 등 표시규약 수치: 코드와 부록이 일치"
+ ]
+}

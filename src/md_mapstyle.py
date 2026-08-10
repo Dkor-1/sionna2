@@ -60,10 +60,37 @@ def _spectro(E, prf, nper, hop, pad):
     return np.fft.fftshift(f), t, np.fft.fftshift(S, axes=0), nper
 
 
-def flash_spec(E, prf, f_flash):
-    """⭐ **플래시가 보이는** 스펙트로그램 — 이것이 기본 규약이다."""
+FLASH_PERIODS_FINE = 0.2  # ⭐고 PRF 원장용 — 조각을 더 짧게(시간 분해능을 더 산다)
+MIN_SEG_SAMPLES = 24      # 조각이 이보다 적은 표본이면 주파수축이 무너진다
+
+
+def auto_periods(prf, f_flash, min_samples: int = MIN_SEG_SAMPLES) -> float:
+    """⭐원장이 허락하는 **가장 짧은 조각**을 고른다 — 시간 분해능 우선 규약의 자동화.
+
+    조각의 시간 길이 = periods × 블레이드 주기다. 짧을수록 좋지만, 표본이 너무 적으면
+    주파수축이 무너진다. 그래서 PRF 가 높은 원장에서만 짧은 조각으로 내려간다.
+    ⚠ 이 함수 덕에 **빌더는 손대지 않아도** 고 PRF 원장이 오면 자동으로 좋아진다."""
+    per = prf / f_flash                                   # 블레이드 한 주기 = 표본 수
+    for p in (FLASH_PERIODS_FINE, 0.3, 0.45, FLASH_PERIODS):
+        if round(p * per) >= min_samples:
+            return p
+    return FLASH_PERIODS
+
+
+def flash_spec(E, prf, f_flash, periods=None):
+    """⭐ **플래시가 보이는** 스펙트로그램 — 이것이 기본 규약이다.
+
+    periods : 조각 길이(블레이드 주기 배수). None 이면 규약값 0.6.
+      ⭐ 2026-08-10 사용자 지시 «시간 해상도를 더 높여달라, 계산량을 더 넣더라도».
+        조각의 **시간 길이**는 (periods × 블레이드 주기)라 PRF 와 무관하다 —
+        즉 PRF 만 올려서는 시간 분해능이 안 좋아진다. periods 를 줄여야 한다.
+        그런데 periods 를 줄이면 조각의 **표본 수**가 줄어(최소 8 로 클램프) 주파수축이
+        무너지므로, **PRF 를 함께 올려야** 짧은 조각에도 표본이 남는다.
+        예) PRF 5 kHz·0.6주기 = 24표본 = 4.7 ms  →  PRF 20 kHz·0.2주기 = 32표본 = 1.6 ms.
+        ⚠ 대가는 주파수 분해능(208 → 625 Hz)과 계산량(자세 수 4배)이다."""
     per = prf / f_flash
-    return _spectro(E, prf, round(FLASH_PERIODS * per), FLASH_HOP, FLASH_PAD)
+    p = FLASH_PERIODS if periods is None else float(periods)
+    return _spectro(E, prf, round(p * per), FLASH_HOP, FLASH_PAD)
 
 
 def ridge_spec(E, prf, f_flash):

@@ -49,8 +49,8 @@ plt.rcParams.update({
 #        시간 분해능은 여전히 조각 길이가 정한다. 보기 좋아지는 것이지 좋아지는 것이 아니다.
 import sys as _sys
 _sys.path.insert(0, os.path.join(ROOT, "src"))
-from md_mapstyle import flash_spec, VMIN, VMAX, CMAP, SHADING            # noqa: E402
-f, t, S, NPER = flash_spec(E, PRF, FFL)
+from md_mapstyle import flash_spec, auto_periods, VMIN, VMAX, CMAP, SHADING   # noqa: E402
+f, t, S, NPER = flash_spec(E, PRF, FFL, auto_periods(PRF, FFL))
 D = 20 * np.log10(S / S.max() + 1e-12)
 
 fig = plt.figure(figsize=(9.2, 4.6))

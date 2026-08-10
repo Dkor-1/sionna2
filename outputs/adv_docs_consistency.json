@@ -1,0 +1,297 @@
+{
+  "_meta": {
+    "generated": "2026-08-10 06:1x KST",
+    "branch": "갈래 C — 문서·기록물 정합 감사",
+    "scope_ko": "오늘(2026-08-10) 라운드가 남긴 문서·원장 불일치 전수. 발견만 기록하고 아무것도 고치지 않았다(RESUME.md·RESUME_LIVE.md·progress/·REPORTS_ADVERSARIAL_0810.md 는 읽기만).",
+    "read_only_confirmed": [
+      "docs/RESUME.md",
+      "docs/RESUME_LIVE.md",
+      "docs/progress/2026-08-10.md",
+      "docs/REPORTS_ADVERSARIAL_0810.md"
+    ],
+    "tooling_run": [
+      "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/check_report_links.py  (읽기 전용)"
+    ],
+    "gpu_touched": false,
+    "in_flight_jobs_at_audit_time": [
+      "PID 101312 src/experiment_freespace_sigma.py --drone matrice4e --backend direct --force",
+      "PID 84448 benchmark/rcs_same_span_sweep.py",
+      "PID 500378 benchmark/report07_three_engine_ranges.py (그림 12 산포 재계산)",
+      "watcher: σ mini5pro direct 대기"
+    ],
+    "counts": {"HIGH": 8, "MED": 8, "LOW": 5, "total": 21}
+  },
+
+  "link_check_result": {
+    "command": "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/check_report_links.py",
+    "notebooks": 78,
+    "planned": 78,
+    "links": 441,
+    "figures": 52,
+    "provenance_tags": 1332,
+    "violations": 3,
+    "violations_detail": [
+      "[bad-provenance] reports/36_md-two-engines.ipynb:c9 — outputs/report07_three_engines.json : verdict.cosine_in_ftip.sionna_vs_sbr — 키 없음",
+      "[bad-provenance] reports/36_md-two-engines.ipynb:c9 — outputs/report07_three_engines.json : verdict.cosine_in_ftip.sionna_vs_po — 키 없음",
+      "[bad-provenance] reports/36_md-two-engines.ipynb:c9 — outputs/report07_three_engines.json : verdict.cosine_in_ftip.sbr_vs_po — 키 없음"
+    ],
+    "delta_vs_resume_ko": "docs/RESUME.md:82 는 «태그 1,277건 깨짐 0» 로 적혀 있다. 지금은 태그 1,332건·위반 3건이다 — 위반 3건은 오늘 05:54 의 ±0.22% 재계산이 낳은 것이다."
+  },
+
+  "findings": [
+    {
+      "id": "C01",
+      "severity": "HIGH",
+      "type": "provenance-chain-break",
+      "where": "reports/36_md-two-engines.ipynb:c9 · src/build_part07_microdoppler.py:403-405 · outputs/report07_three_engines.json",
+      "claim": "편 36 이 ⟨outputs/report07_three_engines.json : verdict.cosine_in_ftip.{sionna_vs_sbr,sionna_vs_po,sbr_vs_po}⟩ 세 값을 인용한다.",
+      "evidence": "check_report_links.py 가 위반 3건으로 잡는다. 원장의 현재 최상위 키는 ['_meta','engines','levels_db','ptp_db'] 뿐이다(verdict 없음). 원인: verdict 블록은 benchmark/build_three_engine_fig.py:101-105 가 그림을 그리면서 JSON 에 되쓰던 것인데, 오늘 05:54:42 에 benchmark/report07_three_engine_maps.py(±0.22% 재계산)가 파일을 통째로 덮어써 verdict 를 지웠다. report07_three_engine_maps.py 에는 verdict 를 쓰는 코드가 없다.",
+      "fix": "①(GPU 재계산 끝난 뒤) `PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_three_engine_fig.py` 를 돌려 verdict 를 복원하고 그림 f5 도 ±0.22% 판으로 갱신한다. ② 그 다음 `PYTHONPATH=src ... src/build_part07_microdoppler.py` 재빌드. ③ 구조적 처방: verdict 계산을 fig 빌더가 아니라 maps 스크립트 안으로 옮기거나, maps 가 기존 JSON 을 읽어 verdict 를 보존하도록 한다(현재는 재계산할 때마다 같은 사고가 재발한다).",
+      "applied": false
+    },
+    {
+      "id": "C02",
+      "severity": "HIGH",
+      "type": "claim-scope-overstatement",
+      "where": "report07_microdoppler.ipynb:cell15 · src/make_report07_overview.py:527-528 · src/build_part07_microdoppler.py:434-436 · (파급) teammeeting_0811/make_0811_v2.py:420 · teammeeting_slides_0811_v2.json:243",
+      "claim": "«자세×로터위상 1,152칸 **전수**에서 프로펠러에 떨어진 정반사 경로는 0칸이다» — 덱은 «0 of 1,152 cells», v1 은 슬라이드 제목 «Not one propeller specular path in 1152 cells».",
+      "evidence": "그 1,152칸은 outputs/report15_probe.json : blade_flash.airframes.{mini2,matrice4e} 이고 격자가 az 12 × **el {0,10,20,30,45,60}°** × 위상 8 = 576칸 × 2기, spp 2.56e8, 단일 거리다. **같은 저장소의 더 촘촘한 원장이 이를 반증한다**: outputs/report15_sionna_sweep_matrice4e.json : specular_census.production 은 같은 기체·같은 질문에서 az 8 × el {0,15,30,45,60,70,75,80,85,90}° × 위상 4 × 거리 3 = 960칸, spp 2.048e9(8배)로 `n_cells_with_prop_specular = 18`(1.875%), `specular_paths_by_group.prop = 32` 를 낸다. 히트는 전부 el ≥ 45°(대부분 70~90°)·주로 R=1 m 다. PEC 프롭 팔(specular_census.pec_prop)도 480칸 중 2칸이다. 즉 «0» 은 el ≤ 60°·저 광선예산 격자에서만 참이고, «전수» 가 아니다.",
+      "fix": "세 곳 모두 한정어를 넣는다 — «지상 레이더 운용 자세대(el 0~60°)·광선예산 2.56e8 에서 1,152칸 전부 0칸이다. 광선을 8배(2.048e9)로 올리고 el 을 70~90°까지 넓힌 별도 격자(report15_sionna_sweep_matrice4e : specular_census.production)에서는 960칸 중 18칸에 프롭 정반사가 잡힌다 — 즉 «없다» 가 아니라 «우리 자세대에서, 이 광선예산에서 안 잡힌다» 다». ⭐팀미팅이 내일이므로 덱 슬라이드(제목·본문·노트)가 최우선이다. 이 정정은 오히려 편 42(md-ray-budget)의 «광선예산» 논지를 강화한다.",
+      "applied": false
+    },
+    {
+      "id": "C03",
+      "severity": "HIGH",
+      "type": "doc-map-stale",
+      "where": "README.md:302 · docs/LEGACY_MIGRATION.md:19 · docs/LEGACY_MIGRATION.md:42-43",
+      "claim": "README 는 루트 `report0N_*.ipynb` 를 «옛 8편 — 재구성 전 원본이고 대조가 끝날 때까지 제자리에 둔다» 로, LEGACY_MIGRATION 은 `report07_microdoppler.ipynb` 를 «md셀 11 · ✅ 전부 이관 (부 7 통째)» 로, 그리고 «옛 노트북 8개는 전부 대조용으로 제자리에 있다» 로 적는다.",
+      "evidence": "루트 report00~06 은 실제로 1셀짜리 안내 스텁이다(각 1.6~2.5 KB). 그러나 report07_microdoppler.ipynb 는 18.8 MB · **셀 16 · 그림 13장**(f0,f1,f2,f0c,f5,f3,f4,f8,f7,f9,f10,f11,f12)이고 오늘 05:42 에 갱신됐다 — 스스로 «부 7 의 표지»(cell 0)라고 선언하는 **현역 산출물**이다. 그림 9·10·11·12 는 reports/34~43 어디에도 없다. 즉 «옛 8편·전부 이관·대조용» 세 진술이 모두 현재 상태와 어긋난다.",
+      "fix": "① README 부록 표의 «옛 8편» 행을 둘로 쪼갠다 — «루트 report00~06: 안내 스텁(내용은 reports/ 로 이관)» / «report07_microdoppler.ipynb: ⭐부 7 표지 — 현역, 셀 16·그림 13장, `src/make_report07_overview.py` 가 짓는다». 생성물이므로 `src/make_readme.py` 를 고쳐야 한다. ② LEGACY_MIGRATION.md:19 의 report07 행을 «표지로 부활 — 철거 대상 아님» 으로, :42 문장을 «7개는 대조용, report07 은 현역» 으로 고친다(`src/make_legacy_map.py`).",
+      "applied": false
+    },
+    {
+      "id": "C04",
+      "severity": "HIGH",
+      "type": "reproduce-doc-gap",
+      "where": "docs/REPRODUCE.md (전체 · 부 7 표는 96-109) · docs/repro/part07_microdoppler.md:9,34-40",
+      "claim": "REPRODUCE.md 는 «편 → 명령 → 출력 → 소요» 의 정본이고, 부 7 재현 메모는 docs/repro/part07_microdoppler.md 다.",
+      "evidence": "오늘 만든 스크립트 5개가 두 문서 어디에도 없다: benchmark/report07_sionna_range_sweep.py(04:26) · benchmark/report07_5g_waveform.py(04:15) · benchmark/report07_three_engine_ranges.py(05:32) · benchmark/build_hover_compare_fig.py(05:24) · benchmark/build_three_engine_ranges_fig.py(05:48). benchmark/report07_hover_long.py 의 `--preset {sitl,outdoor}`·`--tag`(:85-87)도 없다. 산출 JSON 4개(report07_sionna_ranges · report07_5g_waveform · report07_three_engine_ranges · report07_hover_long_outdoor)도 REPRODUCE·OUTPUT_NAMING 어디에도 없다(grep 결과 docs/progress/2026-08-10.md 와 RESUME.md 에만 있다). ⭐더 심한 것: **편 36 의 재현 명령이 틀렸다** — 편 36 은 outputs/report07_three_engines.json 을 인용하는데(C01), part07_microdoppler.md:34-40 의 명령에는 report15_* 셋만 있고 report07_three_engine_maps.py·build_three_engine_fig.py 가 없다. 문서대로 돌리면 편 36 의 숫자가 안 나온다.",
+      "fix": "① 부 7 에 «report07 표지» 행을 신설한다 — 명령 `benchmark/report07_three_engine_maps.py` → `build_three_engine_fig.py` → `report07_hover_long.py [--preset sitl|outdoor]` → `report07_sionna_range_sweep.py` → `report07_5g_waveform.py` → `report07_three_engine_ranges.py` → `build_report07_figs.py`·`build_hover_compare_fig.py`·`build_three_engine_ranges_fig.py` → `src/make_report07_overview.py`. ② 편 36 의 명령 목록에 report07_three_engine_maps.py·build_three_engine_fig.py 를 추가한다. ③ REPRODUCE.md·docs/repro/ 는 생성물이므로 `src/make_reports_index.py`·`src/extract_part_docs.py` 를 고치고, report07 표지가 «편» 색인 밖이라면 make_reports_index 에 표지 절을 새로 배선해야 한다.",
+      "applied": false
+    },
+    {
+      "id": "C05",
+      "severity": "HIGH",
+      "type": "ledger-guard-missing",
+      "where": "outputs/report15b_microdoppler.json · reports/35_md-slowtime.ipynb:c1 · reports/37 · 38 · 39 · 40 (같은 «비고» 줄) · docs/REPRODUCE.md:101,103,104,105,106",
+      "claim": "편 35·37·38·39·40 이 각각 «비고 | 산출물이 자기가 어떤 메쉬로 계산됐는지 지문을 함께 적는다(`mesh_provenance`) — 계산 도중 메쉬가 바뀌면 스스로 경고한다» 를 싣는다.",
+      "evidence": "현재 outputs/report15b_microdoppler.json 의 최상위 키는 `['_meta','cells']` 뿐 — **`mesh_provenance` 가 없다**. benchmark/report15b_stamp_provenance.py:81 이 그 키를 쓰는데, 04:41:56 재계산(mini5pro 메쉬 수정 반영) 뒤에 이 스탬프 단계가 안 돌았다. 하필 **메쉬를 고친 라운드**에서 메쉬 지문 가드가 빠졌다 — 이 가드의 존재 이유가 정확히 그 상황이다. (파일 mtime 05:00 ≠ _meta.generated 04:41:56 이므로 04:41 이후 무언가가 파일을 다시 썼는데 스탬프는 아니다.)",
+      "fix": "`PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15b_stamp_provenance.py` 를 돌린다(CPU 만 쓴다 — build_drone + sha256). 그 뒤 부 7 재빌드. ⚠ report15b 원장은 다른 갈래가 만지는 중일 수 있으니 재계산 체인이 멎은 뒤에 돌린다. 구조적 처방: recompute 스크립트 끝에서 스탬프를 직접 호출해 «계산 따로 스탬프 따로» 를 없앤다.",
+      "applied": false
+    },
+    {
+      "id": "C06",
+      "severity": "HIGH",
+      "type": "figure-ledger-divergence",
+      "where": "report07_microdoppler.ipynb:cell13(그림별 데이터 이력 표) · outputs/report07_three_engines.json · outputs/report07_three_engine_ranges.json",
+      "claim": "이력 표가 «그림 3 | outputs/report07_three_engines.json | 생성 2026-08-07 11:58 | Γ(θ) ✅후 | 산포 ±2%(선언)» 로, «그림 12 | report07_three_engine_ranges.json + 그림 3 원장 | 생성 2026-08-10 | ±2%(그림 3 격자 상속 — 선언)» 로 적는다.",
+      "evidence": "원장의 실제 _meta 는 report07_three_engines.json = generated **2026-08-10 05:54:42** · `rpm_spread_frac 0.0022` · rpm_per_rotor [3808.36, 3791.64, 3795.402, 3804.598] 이다. 즉 이력 표의 날짜(08-07 11:58)와 산포(±2%) 둘 다 이미 낡았다. report07_three_engine_ranges.json 은 generated 05:39:49 · `rpm_spread_frac 0.02` 로 아직 옛 값이고, 지금 PID 500378 이 재계산 중이다. 노트북에 박힌 그림 f5(03:52)·f12(05:41) 이미지는 둘 다 원장보다 **앞선다** — 그림과 원장이 갈라져 있다.",
+      "fix": "재계산 완료 후 순서대로: `build_three_engine_fig.py`(f5·verdict) → `build_three_engine_ranges_fig.py`(f12) → 이력 표의 그림 3·12 행을 원장 `_meta.generated`·`_meta.rpm_spread_frac` 에서 **주입**으로 바꾼다(현재 make_report07_overview.py 에 하드코딩된 날짜·산포 문자열). 하드코딩이 남아 있는 한 재계산마다 같은 어긋남이 재발한다.",
+      "applied": false
+    },
+    {
+      "id": "C07",
+      "severity": "HIGH",
+      "type": "fact-error",
+      "where": "report07_microdoppler.ipynb:cell14 (부록 «그림을 만든 설정 전부», 계산 표의 «광선 간격» 행) · 근거: src/rcs_sbr.py:95",
+      "claim": "«| 광선 간격 | λ/16 | SBR 격자 (rcs_sbr 기본) |»",
+      "evidence": "src/rcs_sbr.py:95 `DEFAULT_DIV = 12` 이고 :35·:796 주석도 «현재 λ/12» 라고 적는다. 그림을 만든 세 스크립트(report07_hover_long.py:132 · report15b_microdoppler_recompute.py:171 · report07_three_engine_maps.py:120)는 전부 `sbr_field(...)` 를 `spacing` 없이 부르므로 실제 격자는 **λ/12** 다. λ/16 은 report2/report13 σ 격자가 명시적으로 넘기는 값이고(outputs/report13_sigma_grid.json : meta «report2 uses div=16; DEFAULT_DIV=12»), 부 7 그림과는 무관하다. docs/PRIOR_WORK_JIHYUCK.md:395·402 도 λ/12 로 적어 부록과 모순된다.",
+      "fix": "부록 행을 «λ/12 (rcs_sbr.DEFAULT_DIV 기본, 세 스크립트 모두 spacing 미지정)» 로 고친다. 겸사겸사 `_n()` 태그로 rcs_sbr.DEFAULT_DIV 를 주입해 상수 이동에 자동 따라가게 한다.",
+      "applied": false
+    },
+    {
+      "id": "C08",
+      "severity": "HIGH",
+      "type": "prior-work-doc-contradiction",
+      "where": "docs/PRIOR_WORK_JIHYUCK.md:396 (대조표 «재질 Γ 의 각도의존» 행)",
+      "claim": "«| 재질 Γ 의 각도의존 | ⭐ 있다(선배) — 패싯마다 Γ(θ) | **없다**(우리) — 그룹당 수직입사 상수 (`materials.py:171`) | **선배** — 63~75° 에서 우리가 +5~7 dB 놓친다 |»",
+      "evidence": "src/materials.py:229 «⭐ 각도의존 반사계수 (2026-08-07 신설)», :271 `gamma_shape()`, :282 `gamma_po_angle()` 가 있고, 오늘 라운드의 원장·리포트가 전부 «Γ(θ) 2026-08-07 10:58:22 기본 켬» 을 축으로 삼는다(docs/REPORTS_ADVERSARIAL_0810.md H4·H6 처방이 이미 반영됨). 이 doc 행만 «없다» 로 남아, 선행연구 대조표가 우리 커널의 현재 능력을 과소 서술한다.",
+      "fix": "행을 «있다(2026-08-07 배선, `materials.py:282 gamma_po_angle`, ANGLE_GAMMA=1 기본) — 다만 TE·TM 전력평균 스칼라 근사이고 얇은 판에는 벌크 프레넬 모양을 쓴다» 로 고치고, «+5~7 dB 놓친다» 를 «프롭 채널 +5.16~+6.48 dB · 전체 σ +0.08~+0.10 dB 로 이미 반영됐다»(편 17 태그값)로 바꾼다.",
+      "applied": false
+    },
+    {
+      "id": "C09",
+      "severity": "MED",
+      "type": "prior-work-doc-contradiction",
+      "where": "docs/PRIOR_WORK_JIHYUCK.md:551-552 · :421 · :619-626  vs  benchmark/report15b_microdoppler_recompute.py:92-98,250 · benchmark/report07_hover_long.py:58,72",
+      "claim": "doc: «**못 쓰는 것 — 로터 산포 통계.** 정적 바이어스가 0(0.08 %). 이상적 제어할당기의 지령이라 …전부 없다» / «⚠ 단 산포 통계는 못 쓴다 … **메커니즘은 배우고 통계는 실측 로그로 대체**한다». 코드/리포트: «±0.22 % 는 선배 PX4 텔레메트리 실측(0.07~0.29%)의 중간값이다» 를 부 7 헤드라인 산포로 채택.",
+      "evidence": "같은 저장소가 같은 데이터에 두 판정을 갖고 있다. 게다가 **수치 자체가 안 맞는다** — doc:364-369 은 t≥5 s 전 8 grade 에서 p50 0.26 % · p90 6.41 % · p99 27.8 % · max 136.2 % 로 재고, 코드 주석은 같은 로그를 «0.07~0.29 %» 로 적는다. 0.07~0.29 % 는 doc:371-374 의 «정적 바이어스 0.08 % 안» 쪽 수(로터별 평균의 편차)로 읽히고, 0.26/6.41 % 는 순시 산포다 — 서로 다른 양을 같은 이름(«모터 간 산포»)으로 부르고 있다. 그 결과 그림 1·5·6·7·(재계산 후)3·12 의 헤드라인 산포가 «정적 바이어스» 를 «순시 산포» 자리에 넣은 값일 가능성이 열려 있다.",
+      "fix": "① 두 수의 정의를 한 문장으로 갈라 적는다 — «정적(세션 평균) 바이어스 0.07~0.29 %» vs «순시 상대산포 p50 0.26 % · p90 6.41 %». ② report15b/report07 의 ±0.22 % 라벨을 «PX4 SITL 의 정적 바이어스 중간값 — 대칭-이상 하한» 으로 한정한다(RESUME.md:120-121 의 미해결 선언과 같은 방향). ③ PRIOR_WORK_JIHYUCK:551 에 «단, 대칭-이상 **하한**으로는 쓴다(부 7 sitl 프리셋)» 를 덧붙여 doc↔코드 모순을 닫는다. ④ 야외 팔(±2 %/2.5 % @1 Hz)이 이미 문헌 앵커로 있으니(outputs/rotor_rpm_web_anchor.json), 헤드라인 교체 여부는 사용자 확인 사항으로 남긴다.",
+      "applied": false
+    },
+    {
+      "id": "C10",
+      "severity": "MED",
+      "type": "doc-map-stale",
+      "where": "README.md:340 · outputs/reports_index.json(_meta, 2026-08-07 12:01) · README.md 부별 «그림» 열",
+      "claim": "«지금 편 78개에 그림 46장이 실려 있다»",
+      "evidence": "실측 52장이다(check_report_links.py 도 «그림 52개»). reports/*.ipynb 는 오늘 05:17 에 전편 재빌드됐는데 outputs/reports_index.json 은 08-07 12:01 그대로여서, 그 색인을 읽는 README.md·docs/REPRODUCE.md·docs/repro/ 가 전부 한 세대 낡았다. 어긋나는 편은 6개다 — 10_procurement · 36_md-two-engines · 46_cost-ledger · 52_eca · 55_observability · 69_site-geometry 가 각각 그림 2장인데 README 표에는 1로 찍혀 있다(46 + 6 = 52).",
+      "fix": "`PYTHONPATH=src $PY src/make_reports_index.py` → `src/make_readme.py` (계산 없음·수 초). ⭐다만 README 는 다른 갈래의 편집 대상일 수 있으니 재생성은 메인이 라운드 끝에 한 번만 돌린다.",
+      "applied": false
+    },
+    {
+      "id": "C11",
+      "severity": "MED",
+      "type": "report07-index-stale",
+      "where": "report07_microdoppler.ipynb:cell0 (표지 안내 표) · src/make_report07_overview.py:136 부근",
+      "claim": "«장면 렌더 두 장과 **그림 아홉 장**을 한자리에 놓고» + 표에 그림 1,2,3,4,5,6,7,9,10 아홉 행.",
+      "evidence": "노트북 실측은 이미지 13장 / 셀 16개다. 표에 **그림 11(로터 산포 프리셋 비교)·그림 12(그림 3 거리판 3/8/15 m)가 빠져 있다** — 둘 다 오늘 만들어 §들이 붙어 있는데(cell 11·12) 표지 색인만 안 따라갔다. docs/RESUME.md:4 는 이미 «report07 = 셀 16 · 그림 13장» 으로 정확히 적고 있어, 어긋난 쪽은 노트북 표지다.",
+      "fix": "make_report07_overview.py 의 표지 표에 11·12 행을 추가하고 «그림 아홉 장» 을 원장에서 세도록(그림 목록 길이) 바꾼다. 하드코딩 수사를 남기면 다음 그림에서 또 어긋난다.",
+      "applied": false
+    },
+    {
+      "id": "C12",
+      "severity": "MED",
+      "type": "provenance-stamp-stale",
+      "where": "outputs/report13_sigma_grid.json : meta.generated",
+      "claim": "meta.generated = «2026-08-03T11:17:59», git_rev 4265045, backend direct.",
+      "evidence": "파일 mtime 은 2026-08-10 04:24 다 — 오늘 다시 쓰였는데 생성 스탬프는 08-03 그대로다. (진행 중인 --force direct 런은 04:26 시작이므로 04:24 의 쓰기는 그 이전 무언가다. 무엇이 04:24 에 썼는지는 모른다 — 이 감사에서 확정하지 못했다.) 이 원장은 편 56·57·58·60 이 «σ 격자» 로 먹는 파일이고, 편 59·60·61 의 조건형 Γ(θ) 경고가 `report13_freespace:meta.generated` 와 `angle_gamma_impact:_meta.generated` 비교로 자동 해소되게 배선돼 있어(REPORTS_ADVERSARIAL H6), **생성 스탬프가 안 움직이면 경고가 거짓으로 유지되거나 거짓으로 사라진다**.",
+      "fix": "σ 격자 --force 런이 끝난 뒤 meta.generated·git_rev 가 실제로 갱신됐는지 확인한다. 갱신 안 되면 experiment_freespace_sigma.py 의 쓰기 경로에 스탬프 갱신을 강제한다. 그 전에는 편 59·60·61 의 «Γ(θ) 이후 재생성됨» 판정을 믿지 않는다.",
+      "applied": false
+    },
+    {
+      "id": "C13",
+      "severity": "MED",
+      "type": "tone-violation",
+      "where": "reports/41_md-calibration.ipynb:c0 (항목 5) · reports/41_md-calibration.ipynb:c6 (절 제목 «## 적대검증이 정정한 두 가지» + 마무리 문장)",
+      "claim": "«⚠ 적대검증이 널 셈을 정정했다 — 실제로 시험된 널은 12 칸이고 나머지 3 칸은 AC 가 정확히 0 이라 시험 자체가 성립하지 않는 칸이다», «## 적대검증이 정정한 두 가지», «이 정정을 안고 읽어야 하는 판정이 편 42 다».",
+      "evidence": "[[sionna2-report-tone]] — 리포트 본문은 «현재 상태의 신뢰성» 만 쓰고 과거 버그·수정 과정 서사는 금지다. 이 절은 «전에 15칸이라고 셌는데 적대검증이 12칸으로 고쳤다» 는 **과정** 서사다. 현재 상태만 남기면 «널 15칸 중 시험이 성립하는 칸은 12칸이고, 3칸은 AC 가 정확히 0 이라 시험 대상이 아니다» 로 충분하다. (편 제목 자체도 «널 팔 15 칸» 이라 본문 12칸과 표면상 어긋나 보인다 — 한정어가 제목에 없다.)",
+      "fix": "c6 절 제목을 «널 15칸 중 시험이 성립하는 12칸» 류로, c0 항목 5 를 «시험이 성립하는 널은 12칸이다(3칸은 AC 가 정확히 0)» 로 재서술한다. 빌더는 src/build_part07_microdoppler.py. 편 제목도 «널 팔 15 칸» → «시험 가능한 널 12칸» 검토.",
+      "applied": false
+    },
+    {
+      "id": "C14",
+      "severity": "MED",
+      "type": "tone-violation",
+      "where": "report07_microdoppler.ipynb:cell1(§0 시나리오 표 «뜻» 칸) · cell9(그림 9 서두) · cell12(그림 12 서두) · cell14(«**용어 정정**» 소제목)",
+      "claim": "«B 의 준-모노(기선 0.2 m, 3.8°)를 대체하는 **정정(2026-08-10)**», «**2026-08-10 정정으로** 그림 2·3 의 준-모노(기선 0.2 m·바이스태틱각 3.8°)를 대체하며», «원판 그림 3 의 Sionna 팔은 기선 0.2 m·3.8° 준-모노라 3 m 줄이 **원판과 미묘하게 다르다**», «**용어 정정** — …».",
+      "evidence": "[[sionna2-report-tone]] 위반. «어느 그림이 어느 기하 위에 서 있나» 는 현재 상태(유지해야 할 한계)지만, «정정으로 대체했다 / 원판과 다르다» 는 수정 과정 서사다.",
+      "fix": "기하를 **상태**로만 적는다 — «그림 9·12 의 Sionna 팔: TX=RX 동일점(기선 0 m, 진짜 모노스태틱). 그림 2·3 의 Sionna 팔: 기선 0.2 m · 바이스태틱각 3.8°. SBR/PO 팔은 전부 후방산란 기하다.» «용어 정정» → «용어» 또는 «두 팔의 뜻».",
+      "applied": false
+    },
+    {
+      "id": "C15",
+      "severity": "MED",
+      "type": "prior-work-doc-stale",
+      "where": "docs/PRIOR_WORK_JIHYUCK.md:393 (대조표 «로터별 위상» 행)",
+      "claim": "«우리: 순수 PO 경로 `microdoppler_series(rpm_per_rotor=…)` 는 2026-08-07 오늘 추가됨. **SBR 정본 `microdoppler_sbr` 은 아직 φ 하나 공유**(microdoppler.py:173, 178) → **선배** — 정본 경로 기준으로는 여전히 우리가 없다»",
+      "evidence": "src/microdoppler.py:180 `microdoppler_sbr(...)` 에 여전히 rpm_per_rotor 인자가 없는 것은 맞다. 그러나 **부 7 의 생산 경로는 그 함수가 아니다** — benchmark/report15b_microdoppler_recompute.py:65,153,171 과 benchmark/report07_{hover_long,three_engine_maps,three_engine_ranges,sionna_range_sweep}.py 가 `articulated_fast.FastPoser` + `rotor_phases` 로 로터별 rpm 을 만들고 `rcs_sbr.sbr_field` 에 직접 먹인다(원장 _meta.rpm_per_rotor = [3808.36, 3791.64, 3795.402, 3804.598]). 즉 «SBR 에서 로터별 위상이 없다» 는 서술은 오늘 그림들과 어긋난다.",
+      "fix": "행을 «SBR 로터별 위상: 생산 경로(FastPoser + sbr_field)에서 배선됨(2026-08-10 원장 rpm_per_rotor 4값). 남은 것은 편의함수 `microdoppler.microdoppler_sbr` 이 아직 φ 하나를 공유한다는 것뿐» 으로 고친다. 겸해서 그 편의함수에 rpm_per_rotor 를 뚫어 두 경로를 하나로 만드는 것을 «다음 단계» 로 적는다.",
+      "applied": false
+    },
+    {
+      "id": "C16",
+      "severity": "MED",
+      "type": "doc-architecture-stale",
+      "where": "docs/REPORT_CODE_MAP.md:3 · :256 · docs/OUTPUT_NAMING.md:162",
+      "claim": "«리포트 6편의 **절 하나하나**를 그것을 만든 코드와 JSON 에 잇는 지도다 … 2026-07-31 재편판», «리포트 6편이 읽지 않으므로 기본 실행에서 뺐고», «stage 9 — 리포트 6편 재빌드».",
+      "evidence": "현재 구조는 **편 78개 · 부 12개**(README.md:11, check_report_links «노트북 78개»)다. REPORT_CODE_MAP.md 는 «숫자 하나를 역추적하는 절차» 의 정본을 자처하는 문서인데 전제 구조가 두 세대 낡았고, report07_* 스크립트·JSON 이 하나도 없다(grep 0건). OUTPUT_NAMING.md 도 report07_* 산출 4종을 등록하지 않았다.",
+      "fix": "① REPORT_CODE_MAP.md 머리말을 «편 78개 · 부 12개» 로 갱신하거나, 갱신할 여력이 없으면 문서 맨 위에 «⚠ 2026-07-31 6편 구조 기준 — 현재 구조는 README 참조» 를 한 줄 박고 docs/ARCHIVE.md 로 강등한다. ② OUTPUT_NAMING.md 에 report07_{sionna_ranges,5g_waveform,three_engine_ranges,hover_long,hover_long_outdoor,three_engines}.json 과 rotor_rpm_web_anchor.json 을 등록한다.",
+      "applied": false
+    },
+    {
+      "id": "C17",
+      "severity": "LOW",
+      "type": "doc-map-stale",
+      "where": "prior_work/README.md:15 (원칙 3번째 줄)",
+      "claim": "«각 선행 방법이 우리 리포트(**report06 Q&A · report12 §2b**)와 정합하는지/모순인지 명시한다»",
+      "evidence": "report06/report12 라는 편 번호는 옛 12편 체계의 것이고 지금은 없다. 현재 대응은 부 1(편 01~07)·부 2(편 08~14)다.",
+      "fix": "«부 1 «스톡 엔진이 하는 일과 안 하는 일»(편 01~07) · 부 2 «선행연구»(편 08~14)» 로 바꾼다.",
+      "applied": false
+    },
+    {
+      "id": "C18",
+      "severity": "LOW",
+      "type": "cross-artifact-number-drift",
+      "where": "teammeeting_0811/teammeeting_slides_0811_v2.json:259 (슬라이드 노트) · outputs/report07_three_engines.json",
+      "claim": "덱 노트: «세 엔진의 팁 대역 코사인 유사도는 약 0.65~0.70», 영문 «cosine similarity around zero point seven».",
+      "evidence": "그 수의 원장 키 `verdict.cosine_in_ftip.*` 는 지금 존재하지 않는다(C01). 재계산이 ±2 % → ±0.22 % 로 산포를 바꿨으므로 세 엔진의 팁대역 유사도도 바뀔 수 있다. 즉 내일 발표 수치가 **현재 원장으로 검증 불가**다.",
+      "fix": "C01 을 먼저 닫아 verdict 를 복원한 뒤 새 값을 읽어 덱 노트를 갱신한다. 값이 크게 움직이면 슬라이드 본문도 함께. ⚠ 덱은 이 갈래 소유가 아니므로 메인이 처리한다.",
+      "applied": false
+    },
+    {
+      "id": "C19",
+      "severity": "LOW",
+      "type": "resume-number-drift",
+      "where": "docs/RESUME.md:82 · docs/RESUME.md:87",
+      "claim": "«적대적 검증 78편: **태그 1,277건 깨짐 0**», «GPU2 report15b 재계산 (**PID 174223** … ~25분)»",
+      "evidence": "지금 check_report_links 는 태그 1,332건 · **위반 3건**이다(C01). PID 174223 은 이미 없다(ps 실측: 84448 · 101312 · 500378 만 GPU 점유). RESUME 은 메인 소유라 고치지 않았고 보고만 한다.",
+      "fix": "메인이 다음 갱신에서 태그/위반 수를 다시 재고, §2 «하는 중» 의 PID 목록을 현재값(84448 rcs_same_span · 101312 σ m4e direct · 500378 three_engine_ranges + mini5 watcher)으로 바꾼다.",
+      "applied": false
+    },
+    {
+      "id": "C20",
+      "severity": "LOW",
+      "type": "orphan-artifact",
+      "where": "outputs/figures/report07_f6.{png,pdf} (2026-08-07 13:08)",
+      "claim": "부 7 그림 파일 f6 이 outputs/figures 에 있다.",
+      "evidence": "report07_microdoppler.ipynb 의 이미지 13장 중 f6 은 없다(사용 목록: f0,f1,f2,f0c,f5,f3,f4,f8,f7,f9,f10,f11,f12). 본문 그림 번호와 파일 번호가 이미 어긋나 있어(cell0 이 «본문 그림 8 은 없다» 를 각주로 단다) f6 이 폐기물인지 미배치물인지 문서로 판별할 수 없다.",
+      "fix": "이력 표 아래에 «파일번호 ↔ 본문 그림번호» 대응 한 줄을 넣고, f6 이 폐기물이면 지우거나 outputs/archive/ 로 옮긴다.",
+      "applied": false
+    },
+    {
+      "id": "C21",
+      "severity": "LOW",
+      "type": "tone-borderline",
+      "where": "reports/{16:c5, 18:c7, 24:c8, 25:c1·c5, 28:c4, 29:c7, 59:c7, 60:c8, 61:c6, 65:c7, 69:c0·c4, 70:c4, 74:c0·c6, 76:c5} — «2026-08-04 형상 정정 전/후 메쉬 · 2026-08-07 Γ(θ) 이전 커널» 세대 공시",
+      "claim": "14개 편이 «이 원장은 형상 정정 전 메쉬·Γ(θ) 이전 커널 위에 있다» 를 ⚠ 로 싣는다.",
+      "evidence": "[[sionna2-report-tone]] 은 과거 버그 서사를 금지하되 «현재의 한계는 유지» 하라고 한다. 이 공시들은 **어느 세대 위에 서 있나** 라는 현재 상태이므로 위반이 아니다 — 반증 기록 삼아 명시적으로 «위반 아님» 으로 판정한다. 다만 «정정» 이라는 낱말이 14편에 반복돼 톤 감사 때마다 오탐을 부르므로, «세대» 어휘로 통일하면 규칙 검사도 쉬워진다.",
+      "fix": "선택 사항 — «형상 정정 전» → «형상 세대 A(2026-08-04 이전)» 처럼 세대 라벨로 통일. 우선순위 낮다. σ 사슬 재생성이 끝나면 상당수가 자동 소멸한다.",
+      "applied": false
+    }
+  ],
+
+  "checked_and_clean": [
+    {
+      "item": "편 수",
+      "result": "README «편 78개 · 부 12개» = check_report_links «노트북 78개 / 계획 78편» = reports/*.ipynb 78개. 일치."
+    },
+    {
+      "item": "reports 링크",
+      "result": "링크 441개 전부 유효(끊긴 링크·없는 앵커 0). 위반 3건은 전부 provenance 키 결손이지 링크 문제가 아니다."
+    },
+    {
+      "item": "1,152칸 산술",
+      "result": "outputs/report00_microdoppler.json : specular_census.total.n_cells = 1152 = mini2 576 + matrice4e 576. 덧셈 자체는 맞다. 문제는 «전수» 라는 한정어다(C02)."
+    },
+    {
+      "item": "report07 이력 표의 그림 9·10·11 행",
+      "result": "원장 _meta.generated 와 정확히 일치 — 9: 2026-08-10 04:31(:54) · 10: 04:16(:43) · 11: 05:07(:07) · 1·5: 04:41(:56). 어긋난 것은 그림 3·12 행뿐이다(C06)."
+    },
+    {
+      "item": "그림 11 야외 프리셋 정직성",
+      "result": "이력 표가 «⚠±2%(야외 **문헌 앵커** — 우리 실측 아님)» 로 명시하고 원장(outputs/rotor_rpm_web_anchor.json)도 출처를 갖는다. 규약 준수."
+    },
+    {
+      "item": "그림 안 하이퍼파라미터 금지",
+      "result": "report07 부록 cell14 가 «그림에는 설정 수치를 안 적는다. 여기가 그 수치들의 자리다» 로 규약을 명시하고 설정을 본문 부록에 모은다. 준수(다만 그 표에 λ/16 오기가 있다 — C07)."
+    }
+  ],
+
+  "priority_order_ko": [
+    "1) C02 — 내일 발표 덱의 «전수 0칸» 한정어. 유일하게 시간 제약이 있는 건이다.",
+    "2) C01 → C06 — 재계산이 멎는 즉시 build_three_engine_fig.py → build_three_engine_ranges_fig.py → 이력 표 주입화 → 부 7 재빌드. 링크검사 위반 3건이 여기서 0 이 된다.",
+    "3) C05 — report15b_stamp_provenance.py (CPU). 메쉬 고친 라운드에 메쉬 지문이 빠져 있다.",
+    "4) C07·C11 — make_report07_overview.py 문자열 두 곳(λ/12, 표지 표 11·12행). 계산 없음.",
+    "5) C03·C04·C10·C16 — 문서 지도 재생성(make_readme·make_reports_index·make_legacy_map) + REPRODUCE 부 7 배선.",
+    "6) C08·C09·C15 — PRIOR_WORK_JIHYUCK 세 행. 선행 대조표가 우리 현재 능력을 과소·과대 서술한다.",
+    "7) C13·C14 — 톤 규약 위반 두 건.",
+    "8) C12·C17~C21 — 나머지."
+  ],
+
+  "unresolved_ko": [
+    "outputs/report13_sigma_grid.json 을 2026-08-10 04:24 에 무엇이 썼는지 확정하지 못했다(git 사용 금지·진행 중 런은 04:26 시작). meta.generated 가 08-03 인 이유는 «안 갱신» 이거나 «다른 파일의 복사» 둘 중 하나인데 가리지 못했다.",
+    "outputs/report15b_microdoppler.json 의 mtime 05:00 ≠ _meta.generated 04:41:56 — 04:41 이후 누가 썼는지 확정 못 했다(스탬프 스크립트는 아니다 — mesh_provenance 키가 없다).",
+    "0.07~0.29 % 와 p50 0.26 %/p90 6.41 % 가 같은 로그의 서로 다른 통계라는 것은 정황(정적 바이어스 0.08 %)으로 추론했을 뿐, 두 수를 낸 코드를 나란히 돌려 확인하지는 않았다(GPU·재계산 금지 범위 밖으로 판단)."
+  ]
+}
