@@ -42,7 +42,11 @@ for _p in (os.path.join(ROOT, "src"), _HERE):
 import report_style as RS                                             # noqa: E402
 from report_registry import PARTS, REPORTS                            # noqa: E402
 
-REPORT_DIR = os.path.join(ROOT, "reports")
+# ⭐2026-08-10 두 층 구조 — 사람이 읽는 **권**은 reports/, 빌더가 내는 **조각**은 그 아래
+#   _parts/ 에 산다. 링크·그림·출처 검사는 **권**을 훑고(사람이 보는 문서라서),
+#   «계획에 있는데 안 지어졌나» 는 **조각**을 본다(계획 78 편이 조각의 계획이므로).
+REPORT_DIR = os.path.join(ROOT, "reports")            # 권 — 검사 대상
+PARTS_DIR = os.path.join(ROOT, "reports", "_parts")   # 조각 — 존재 검사 대상
 
 #: 마크다운 링크 — 이미지(`![…]`)는 뺀다.
 _LINK = re.compile(r"(?<!\!)\[([^\]]*)\]\(\s*([^)\s]+?)\s*\)")
@@ -90,7 +94,7 @@ def check() -> dict:
 
     # 계획에 있는데 안 지어진 편
     missing = [a for a, r in REPORTS.items()
-               if not os.path.exists(os.path.join(REPORT_DIR, r["file"]))]
+               if not os.path.exists(os.path.join(PARTS_DIR, r["file"]))]
 
     n_links = n_imgs = n_prov = 0
     for fn in nb_files:

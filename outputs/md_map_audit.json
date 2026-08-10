@@ -1,0 +1,1150 @@
+{
+ "meta": {
+  "generated": "2026-08-10 09:59:50",
+  "task_ko": "마이크로도플러 맵 전수조사 후 전부 같은 고해상도 규약으로 다시 그린다",
+  "convention": {
+   "module": "src/md_mapstyle.py",
+   "call": "flash_spec(E, prf, f_flash, auto_periods(prf, f_flash))",
+   "segment": "블레이드 0.45 주기(표본이 24 미만이면 auto_periods 가 0.6 으로 물러선다)",
+   "hop": 2,
+   "zero_pad": 8,
+   "cmap": "jet",
+   "colour_range_db": [
+    -40.0,
+    0.0
+   ],
+   "shading": "gouraud",
+   "zero_doppler": "지우지 않는다",
+   "rasterized": true,
+   "caption": "그림 밖(textwrap.fill 로 접어서). 그림 안에는 설정값을 안 적는다"
+  },
+  "scope_ko": "맵 = 슬로타임 신호의 **시간-주파수** 맵. 거리-도플러 맵과 꺾은선·막대는 제외했고, 무엇을 왜 제외했는지 not_micro_doppler_maps 에 남긴다.",
+  "gpu_note_ko": "이번 회차는 CPU 다시 그리기만 했다 — GPU2 는 chain3.sh(σ 격자·고해상도 재계산) 중이라 건드리지 않았다."
+ },
+ "census_counts": {
+  "n_micro_doppler_maps": 19,
+  "n_pass_untouched": 8,
+  "n_fixed_this_round": 7,
+  "n_conditional": 3,
+  "n_failed_not_fixed": 1
+ },
+ "maps": {
+  "report07_f1": {
+   "builder": "benchmark/build_report07_figs.py::fig1_prop_spectrogram",
+   "ledger": [
+    "outputs/report15b_microdoppler.json",
+    "outputs/report15b_series.npz"
+   ],
+   "stft": {
+    "prf_hz": 5000.0,
+    "f_flash_hz": 126.67,
+    "segment_blade_periods": 0.608,
+    "nperseg": 24,
+    "dt_ms": 4.8,
+    "df_hz": 208.3
+   },
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud",
+   "verdict": "합격",
+   "touched_this_round": false,
+   "redraw_when": "report15b 원장(현재 PRF 5,000)이 고해상도로 재계산될 때 — chain3.sh",
+   "note_ko": "PRF 5,000 이라 auto_periods 가 0.6 주기로 물러선다. 원장이 올라가면 저절로 0.45 가 된다.",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report07_f1.png",
+     "mb": 1.398,
+     "mtime": "2026-08-10 06:59",
+     "px": [
+      1658,
+      848
+     ]
+    },
+    "pdf": {
+     "path": "outputs/figures/report07_f1.pdf",
+     "mb": 1.176,
+     "mtime": "2026-08-10 07:00"
+    }
+   }
+  },
+  "report07_f5": {
+   "builder": "benchmark/build_three_engine_fig.py",
+   "ledger": [
+    "outputs/report07_three_engines.json",
+    "outputs/report07_three_engines.npz"
+   ],
+   "stft": {
+    "prf_hz": 19700.0,
+    "f_flash_hz": 126.67,
+    "segment_blade_periods": 0.45,
+    "nperseg": 70,
+    "dt_ms": 3.553,
+    "df_hz": 281.4
+   },
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud",
+   "verdict": "합격",
+   "touched_this_round": false,
+   "redraw_when": "report07_three_engines 원장이 다시 계산될 때만",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report07_f5.png",
+     "mb": 1.074,
+     "mtime": "2026-08-10 07:53",
+     "px": [
+      1894,
+      892
+     ]
+    },
+    "pdf": {
+     "path": "outputs/figures/report07_f5.pdf",
+     "mb": 0.873,
+     "mtime": "2026-08-10 07:53"
+    }
+   }
+  },
+  "report07_f7": {
+   "builder": "benchmark/build_hover_fig.py",
+   "ledger": [
+    "outputs/report07_hover_long.json",
+    "outputs/report07_hover_long.npz"
+   ],
+   "stft": {
+    "prf_hz": 5000.0,
+    "f_flash_hz": 126.67,
+    "segment_blade_periods": 0.608,
+    "nperseg": 24,
+    "dt_ms": 4.8,
+    "df_hz": 208.3
+   },
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud",
+   "verdict": "합격",
+   "touched_this_round": false,
+   "redraw_when": "report07_hover_long 원장(현재 PRF 5,000)이 고해상도로 재계산될 때 — chain3.sh",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report07_f7.png",
+     "mb": 1.577,
+     "mtime": "2026-08-10 06:58",
+     "px": [
+      1827,
+      879
+     ]
+    },
+    "pdf": {
+     "path": "outputs/figures/report07_f7.pdf",
+     "mb": 1.278,
+     "mtime": "2026-08-10 06:59"
+    }
+   }
+  },
+  "report07_f8": {
+   "builder": "benchmark/build_flash_zoom.py",
+   "ledger": [
+    "outputs/report07_three_engines.json",
+    "outputs/report07_three_engines.npz"
+   ],
+   "stft": {
+    "prf_hz": 19700.0,
+    "f_flash_hz": 126.67,
+    "segment_blade_periods": 0.45,
+    "nperseg": 70,
+    "dt_ms": 3.553,
+    "df_hz": 281.4
+   },
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud",
+   "verdict": "합격",
+   "touched_this_round": false,
+   "redraw_when": "report07_three_engines 원장이 다시 계산될 때만",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report07_f8.png",
+     "mb": 0.918,
+     "mtime": "2026-08-10 07:53",
+     "px": [
+      2261,
+      915
+     ]
+    },
+    "pdf": {
+     "path": "outputs/figures/report07_f8.pdf",
+     "mb": 0.688,
+     "mtime": "2026-08-10 07:53"
+    }
+   }
+  },
+  "report07_f11": {
+   "builder": "benchmark/build_hover_compare_fig.py",
+   "ledger": [
+    "outputs/report07_hover_long.json",
+    "outputs/report07_hover_long_outdoor.json"
+   ],
+   "stft": {
+    "chamber": {
+     "prf_hz": 5000.0,
+     "f_flash_hz": 126.67,
+     "segment_blade_periods": 0.608,
+     "nperseg": 24,
+     "dt_ms": 4.8,
+     "df_hz": 208.3
+    },
+    "outdoor": {
+     "prf_hz": 5000.0,
+     "f_flash_hz": 126.67,
+     "segment_blade_periods": 0.608,
+     "nperseg": 24,
+     "dt_ms": 4.8,
+     "df_hz": 208.3
+    }
+   },
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud",
+   "verdict": "합격",
+   "touched_this_round": false,
+   "redraw_when": "hover_long / hover_long_outdoor 두 원장(현재 PRF 5,000)이 고해상도로 재계산될 때 — chain3.sh",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report07_f11.png",
+     "mb": 2.092,
+     "mtime": "2026-08-10 06:59",
+     "px": [
+      1927,
+      1071
+     ]
+    },
+    "pdf": {
+     "path": "outputs/figures/report07_f11.pdf",
+     "mb": 1.691,
+     "mtime": "2026-08-10 06:59"
+    }
+   }
+  },
+  "report07_f12": {
+   "builder": "benchmark/build_three_engine_ranges_fig.py",
+   "ledger": [
+    "outputs/report07_three_engine_ranges.json",
+    "outputs/report07_three_engine_ranges.npz"
+   ],
+   "stft": {
+    "prf_hz": 19700.0,
+    "f_flash_hz": 126.67,
+    "segment_blade_periods": 0.45,
+    "nperseg": 70,
+    "dt_ms": 3.553,
+    "df_hz": 281.4
+   },
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud",
+   "verdict": "합격",
+   "touched_this_round": false,
+   "redraw_when": "report07_three_engine_ranges 원장이 다시 계산될 때만",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report07_f12.png",
+     "mb": 3.312,
+     "mtime": "2026-08-10 07:54",
+     "px": [
+      2387,
+      2030
+     ]
+    },
+    "pdf": {
+     "path": "outputs/figures/report07_f12.pdf",
+     "mb": 2.629,
+     "mtime": "2026-08-10 07:55"
+    }
+   }
+  },
+  "deck0811_concept": {
+   "builder": "benchmark/build_engine_concept_fig.py",
+   "ledger": [
+    "outputs/report07_three_engines.json",
+    "outputs/report07_three_engine_ranges.json"
+   ],
+   "stft": {
+    "prf_hz": 19700.0,
+    "f_flash_hz": 126.67,
+    "segment_blade_periods": 0.45,
+    "nperseg": 70,
+    "dt_ms": 3.553,
+    "df_hz": 281.4
+   },
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud",
+   "verdict": "합격",
+   "touched_this_round": false,
+   "redraw_when": "report07_three_engines 원장이 다시 계산될 때만",
+   "note_ko": "덱용 개념도지만 안에 실측 맵 세 열이 들어간다. 규약 그대로다.",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/deck0811_concept.png",
+     "mb": 0.864,
+     "mtime": "2026-08-10 09:33",
+     "px": [
+      3040,
+      1506
+     ]
+    },
+    "pdf": {
+     "path": "outputs/figures/deck0811_concept.pdf",
+     "mb": 0.121,
+     "mtime": "2026-08-10 09:33"
+    }
+   }
+  },
+  "report07b_bistatic": {
+   "builder": "benchmark/report07b_bistatic_md.py  ⛔ 바이스태틱 작업자 소유",
+   "ledger": [
+    "outputs/report07b_bistatic_md.npz",
+    "outputs/report07_three_engines.json"
+   ],
+   "stft": {
+    "prf_hz": 19700.0,
+    "f_flash_hz": 126.67,
+    "segment_blade_periods": 0.45,
+    "nperseg": 70,
+    "dt_ms": 3.553,
+    "df_hz": 281.4
+   },
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud",
+   "verdict": "합격(읽기만 함 — 소유자 다름)",
+   "touched_this_round": false,
+   "redraw_when": "소유자 판단",
+   "figure": null
+  },
+  "report15_f1": {
+   "builder": "benchmark/report15_verdict_build.py::fig1_spectrograms",
+   "ledger": [
+    "outputs/report15_verdict_grid_mini2.json",
+    "outputs/report15_sionna_sweep_matrice4e.json",
+    "outputs/report15_verdict_po_grid.json",
+    "outputs/report15_verdict_nulls_vs_range.json"
+   ],
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud · rasterized",
+   "verdict": "불합격 → 이번에 재작성(합격)",
+   "touched_this_round": true,
+   "before": {
+    "n_panels": 24,
+    "layout": "8행(신호 4 + 널 4) × 3거리",
+    "cmap": "magma",
+    "colour_range_db": [
+     -65.0,
+     -5.0
+    ],
+    "shading": "auto",
+    "zero_doppler": "지웠음",
+    "stft": {
+     "mini2": {
+      "prf_hz": 19626.7,
+      "f_flash_hz": 306.67,
+      "segment_blade_periods": 2.0,
+      "nperseg": 128,
+      "dt_ms": 6.522,
+      "df_hz": 153.3
+     },
+     "matrice4e": {
+      "prf_hz": 8106.7,
+      "f_flash_hz": 126.67,
+      "segment_blade_periods": 2.0,
+      "nperseg": 128,
+      "dt_ms": 15.789,
+      "df_hz": 63.3
+     }
+    },
+    "in_figure_text": "suptitle 4 줄(설명 주석)"
+   },
+   "after": {
+    "n_panels": 15,
+    "layout": "5행(신호 4 + 대표 널 1) × 3거리",
+    "cmap": "jet",
+    "colour_range_db": [
+     -40.0,
+     0.0
+    ],
+    "shading": "gouraud",
+    "zero_doppler": "남김",
+    "stft": {
+     "mini2": {
+      "prf_hz": 19626.7,
+      "f_flash_hz": 306.67,
+      "segment_blade_periods": 0.453,
+      "nperseg": 29,
+      "dt_ms": 1.478,
+      "df_hz": 676.8
+     },
+     "matrice4e": {
+      "prf_hz": 8106.7,
+      "f_flash_hz": 126.67,
+      "segment_blade_periods": 0.453,
+      "nperseg": 29,
+      "dt_ms": 3.577,
+      "df_hz": 279.5
+     }
+    },
+    "in_figure_text": "suptitle 한 줄 + 판별 수치 뱃지(결과값이지 설정값이 아니다)"
+   },
+   "redraw_when": "report15 격자(Sionna·PO·널)를 다시 추적할 때. chain3.sh 와는 무관하다 — 이 원장은 별개다.",
+   "rerun_cmd": "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/report15_verdict_build.py --figs",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report15_f1.png",
+     "mb": 3.214,
+     "mtime": "2026-08-10 09:44",
+     "px": [
+      2909,
+      2886
+     ]
+    },
+    "pdf": {
+     "path": "outputs/figures/report15_f1.pdf",
+     "mb": 0.59,
+     "mtime": "2026-08-10 09:44"
+    }
+   }
+  },
+  "report15b_f1": {
+   "builder": "benchmark/build_report15b_figs.py::fig1_spectrogram",
+   "ledger": [
+    "outputs/report15b_microdoppler.json",
+    "outputs/report15b_series.npz"
+   ],
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud",
+   "verdict": "불합격 → 이번에 재작성(합격)",
+   "touched_this_round": true,
+   "before": {
+    "cmap": "turbo",
+    "colour_range_db": [
+     -45.0,
+     0.0
+    ],
+    "shading": "auto",
+    "zero_doppler": "지웠음",
+    "savefig_dpi": 200,
+    "stft": {
+     "prf_hz": 5000.0,
+     "f_flash_hz": 126.67,
+     "segment_blade_periods": 5.32,
+     "nperseg": 210,
+     "dt_ms": 42.0,
+     "df_hz": 23.8
+    },
+    "in_figure_text": "흰 글씨로 f_tip 주석"
+   },
+   "after": {
+    "cmap": "jet",
+    "colour_range_db": [
+     -40.0,
+     0.0
+    ],
+    "shading": "gouraud",
+    "zero_doppler": "남김",
+    "savefig_dpi": 400,
+    "stft": {
+     "prf_hz": 5000.0,
+     "f_flash_hz": 126.67,
+     "segment_blade_periods": 0.608,
+     "nperseg": 24,
+     "dt_ms": 4.8,
+     "df_hz": 208.3
+    },
+    "in_figure_text": "없음(제목만)"
+   },
+   "redraw_when": "report15b 원장(현재 PRF 5,000)이 고해상도로 재계산될 때 — chain3.sh",
+   "rerun_cmd": "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report15b_figs.py",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report15b_f1.png",
+     "mb": 3.757,
+     "mtime": "2026-08-10 09:46",
+     "px": [
+      3315,
+      1697
+     ]
+    },
+    "pdf": {
+     "path": "outputs/figures/report15b_f1.pdf",
+     "mb": 3.169,
+     "mtime": "2026-08-10 09:46"
+    }
+   }
+  },
+  "report15b_f1b": {
+   "builder": "benchmark/build_report15b_figs.py::fig1_spectrogram (mini5pro)",
+   "ledger": [
+    "outputs/report15b_microdoppler.json",
+    "outputs/report15b_series.npz"
+   ],
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud",
+   "verdict": "불합격 → 이번에 재작성(합격)",
+   "touched_this_round": true,
+   "same_change_as": "report15b_f1",
+   "redraw_when": "report15b 원장(현재 PRF 5,000)이 고해상도로 재계산될 때 — chain3.sh",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report15b_f1b.png",
+     "mb": 3.699,
+     "mtime": "2026-08-10 09:47",
+     "px": [
+      3315,
+      1697
+     ]
+    },
+    "pdf": {
+     "path": "outputs/figures/report15b_f1b.pdf",
+     "mb": 3.104,
+     "mtime": "2026-08-10 09:47"
+    }
+   }
+  },
+  "report00_f5": {
+   "builder": "benchmark/build_report00_microdoppler.py::figure",
+   "ledger": [
+    "outputs/report15_verdict.json",
+    "outputs/report15_probe.json"
+   ],
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud · rasterized",
+   "verdict": "불합격 → 이번에 재작성(합격)",
+   "touched_this_round": true,
+   "before": {
+    "cmap": "magma",
+    "colour_range_db": "자료 최대 −60 dB",
+    "shading": "auto",
+    "zero_doppler": "지웠음",
+    "stft": {
+     "mini2": {
+      "prf_hz": 19626.7,
+      "f_flash_hz": 306.67,
+      "segment_blade_periods": 2.0,
+      "nperseg": 128,
+      "dt_ms": 6.522,
+      "df_hz": 153.3
+     },
+     "matrice4e": {
+      "prf_hz": 8106.7,
+      "f_flash_hz": 126.67,
+      "segment_blade_periods": 2.0,
+      "nperseg": 128,
+      "dt_ms": 15.789,
+      "df_hz": 63.3
+     }
+    }
+   },
+   "after": {
+    "cmap": "jet",
+    "colour_range_db": [
+     -40.0,
+     0.0
+    ],
+    "shading": "gouraud",
+    "zero_doppler": "남김",
+    "stft": {
+     "mini2": {
+      "prf_hz": 19626.7,
+      "f_flash_hz": 306.67,
+      "segment_blade_periods": 0.453,
+      "nperseg": 29,
+      "dt_ms": 1.478,
+      "df_hz": 676.8
+     },
+     "matrice4e": {
+      "prf_hz": 8106.7,
+      "f_flash_hz": 126.67,
+      "segment_blade_periods": 0.453,
+      "nperseg": 29,
+      "dt_ms": 3.577,
+      "df_hz": 279.5
+     }
+    }
+   },
+   "redraw_when": "report15 격자를 다시 추적할 때(= report15_f1 과 같은 원장)",
+   "rerun_cmd": "PYTHONPATH=src:benchmark ~/.venvs/py312/bin/python benchmark/build_report00_microdoppler.py",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report00_f5.png",
+     "mb": 1.792,
+     "mtime": "2026-08-10 09:48",
+     "px": [
+      3464,
+      1728
+     ]
+    },
+    "pdf": {
+     "path": "outputs/figures/report00_f5.pdf",
+     "mb": 0.314,
+     "mtime": "2026-08-10 09:48"
+    }
+   }
+  },
+  "report07_f10": {
+   "builder": "benchmark/build_5g_fig.py",
+   "ledger": [
+    "outputs/report07_5g_waveform.json",
+    "outputs/report07_5g_waveform.npz"
+   ],
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud",
+   "verdict": "부분 불합격 → 이번에 고침(합격)",
+   "touched_this_round": true,
+   "before": {
+    "problem_ko": "flash_spec 을 auto_periods 없이 불러 조각이 규약 기본값 0.6 주기에 고정돼 있었다",
+    "stft": {
+     "cw_5k": {
+      "prf_hz": 5000.0,
+      "f_flash_hz": 126.67,
+      "segment_blade_periods": 0.608,
+      "nperseg": 24,
+      "dt_ms": 4.8,
+      "df_hz": 208.3
+     },
+     "nr_full_28k": {
+      "prf_hz": 28000.0,
+      "f_flash_hz": 126.67,
+      "segment_blade_periods": 0.602,
+      "nperseg": 133,
+      "dt_ms": 4.75,
+      "df_hz": 210.5
+     },
+     "nr_crs_1k": {
+      "prf_hz": 1000.0,
+      "f_flash_hz": 126.67,
+      "segment_blade_periods": 1.013,
+      "nperseg": 8,
+      "dt_ms": 8.0,
+      "df_hz": 125.0
+     },
+     "nr_ssb_50": {
+      "prf_hz": 50.0,
+      "f_flash_hz": 126.67,
+      "segment_blade_periods": 20.267,
+      "nperseg": 8,
+      "dt_ms": 160.0,
+      "df_hz": 6.2
+     }
+    }
+   },
+   "after": {
+    "stft": {
+     "cw_5k": {
+      "prf_hz": 5000.0,
+      "f_flash_hz": 126.67,
+      "segment_blade_periods": 0.608,
+      "nperseg": 24,
+      "dt_ms": 4.8,
+      "df_hz": 208.3
+     },
+     "nr_full_28k": {
+      "prf_hz": 28000.0,
+      "f_flash_hz": 126.67,
+      "segment_blade_periods": 0.448,
+      "nperseg": 99,
+      "dt_ms": 3.536,
+      "df_hz": 282.8
+     },
+     "nr_crs_1k": {
+      "prf_hz": 1000.0,
+      "f_flash_hz": 126.67,
+      "segment_blade_periods": 1.013,
+      "nperseg": 8,
+      "dt_ms": 8.0,
+      "df_hz": 125.0
+     },
+     "nr_ssb_50": {
+      "prf_hz": 50.0,
+      "f_flash_hz": 126.67,
+      "segment_blade_periods": 20.267,
+      "nperseg": 8,
+      "dt_ms": 160.0,
+      "df_hz": 6.2
+     }
+    }
+   },
+   "redraw_when": "report07_5g_waveform 원장이 다시 만들어질 때만",
+   "note_ko": "팔마다 표본율이 달라(28k·5k·1k·50 Hz) auto_periods 가 팔마다 다른 조각을 고른다 — 그것이 규약의 의도다. 표본이 모자란 팔은 8 표본 하한에 걸린 채로 남는다(원리적 한계).",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report07_f10.png",
+     "mb": 1.238,
+     "mtime": "2026-08-10 09:54",
+     "px": [
+      2708,
+      976
+     ]
+    },
+    "pdf": {
+     "path": "outputs/figures/report07_f10.pdf",
+     "mb": 0.876,
+     "mtime": "2026-08-10 09:54"
+    }
+   },
+   "residual_ko": "규약 캡션(md_mapstyle.caption)이 그림 **안** 아래쪽에 fig.text 로 그려져 있다. 설정값은 리포트 본문에 두는 것이 하우스 규약이라 엄밀히는 남은 위반이지만, 이 그림은 현행 15권 리포트가 참조하지 않고 캡션 자체가 md_mapstyle 이 제공하는 문구라 이번 회차에는 손대지 않았다."
+  },
+  "md_range_f1_spectrogram_grid": {
+   "builder": "src/viz_md_range.py::f1_spectrogram_grid",
+   "ledger": [
+    "outputs/md_range_sweep.json (+ 근접장 PO 시계열 재계산)"
+   ],
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud · rasterized",
+   "verdict": "불합격 → 빌더는 고침. 그림 재생성은 이번 회차에 끝나지 않았다(4팔×4거리 근접장 재계산이 길다)",
+   "touched_this_round": true,
+   "before": {
+    "problem_ko": "nperseg 를 256 으로 고정 — 기체·PRF 가 바뀌면 조각이 블레이드 주기의 몇 배인지가 그림마다 달라진다",
+    "cmap": "magma",
+    "shading": "auto",
+    "rasterized": false,
+    "zero_doppler": "지웠음(microdoppler.spectrogram 기본)"
+   },
+   "after": {
+    "call": "flash_spec(auto_periods) + md_mapstyle.draw"
+   },
+   "redraw_when": "md_range_sweep 원장이 바뀔 때. 지금 당장은 빌더만 고쳐 두었으니 한 번 돌리면 된다.",
+   "rerun_cmd": "PYTHONPATH=src ~/.venvs/py312/bin/python src/viz_md_range.py",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/md_range_f1_spectrogram_grid.png",
+     "mb": 1.81,
+     "mtime": "2026-07-28 06:35",
+     "px": [
+      1813,
+      1622
+     ]
+    }
+   }
+  },
+  "report1_microdoppler": {
+   "builder": "src/viz_report1.py::spectro_store + fig_microdoppler",
+   "ledger": [
+    "outputs/report1_microdoppler.npz"
+   ],
+   "uses_md_mapstyle": true,
+   "colour": "jet · 0~−40 dB · gouraud · rasterized",
+   "verdict": "불합격 → 빌더는 고침. 그림은 재생성 못 함(원장이 낡았다 — 아래 참조)",
+   "touched_this_round": true,
+   "before": {
+    "problem_ko": "nperseg 128 고정. PRF 20,000 에서 mini5pro 는 1.17 블레이드 주기가 되어 플래시가 조각 안에서 시간평균되어 지워졌다",
+    "stft_example": {
+     "drone": "mini5pro",
+     "prf_hz": 20000.0,
+     "nperseg": 128,
+     "segment_blade_periods": 1.173,
+     "dt_ms": 6.4,
+     "df_hz": 156.2
+    },
+    "cmap": "magma",
+    "shading": "auto",
+    "rasterized": false,
+    "zero_doppler": "지웠음"
+   },
+   "after": {
+    "stft_example": {
+     "prf_hz": 20000.0,
+     "f_flash_hz": 183.33,
+     "segment_blade_periods": 0.449,
+     "nperseg": 49,
+     "dt_ms": 2.45,
+     "df_hz": 408.2
+    }
+   },
+   "blocked_by_ko": "outputs/report1_microdoppler.npz 에 기체가 5 개뿐인데 DKEYS 는 10 개다 — 내 수정 이전부터 있던 어긋남이다. 그림을 다시 내려면 viz_report1.build_all 이 광선을 다시 쏘아야 하고 그것은 이번 임무 범위(CPU 다시 그리기) 밖이다.",
+   "redraw_when": "report1 원장을 다시 만들 때(레거시 — 현행 15권 리포트가 이 그림을 참조하지 않는다)",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report1_microdoppler.png",
+     "mb": 0.724,
+     "mtime": "2026-07-29 11:34",
+     "px": [
+      2972,
+      1334
+     ]
+    }
+   }
+  },
+  "report16_synthesis_spectrograms": {
+   "builder": "benchmark/report16_synthesis.py::make_spectrogram_figure",
+   "ledger": [
+    "outputs/report16_base_tables.npz",
+    "outputs/report16_rung_*_tables.npz"
+   ],
+   "stft": {
+    "matrice4e": {
+     "prf_hz": 16213.3,
+     "f_flash_hz": 126.67,
+     "segment_blade_periods": 0.5,
+     "nperseg": 64,
+     "dt_ms": 3.947,
+     "df_hz": 253.3
+    }
+   },
+   "colour": "magma · 90 dB 폭 · dBsm 절대 · shading auto · rasterized",
+   "n_panels": 12,
+   "uses_md_mapstyle": false,
+   "touched_this_round": false,
+   "verdict": "조건부 합격 — 시간분해능은 규약 안(0.50 블레이드 주기), 색·음영은 규약 밖",
+   "deviation_ko": "색이 «도플러 칸별 RCS(dBsm) 절대 눈금» 이다. 사다리 칸끼리 절대값으로 견주는 것이 이 리포트의 논지라, 판마다 최대값으로 정규화하는 규약 색(0~−40 dB)으로 바꾸면 그 논지가 사라진다. 그래서 **일부러** 안 바꿨다. 바꾸려면 사용자 판단이 필요하고, 재계산이 GPU 를 잡는다(지금 GPU2 는 chain3 중).",
+   "redraw_when": "report16 원장을 다시 만들 때. `--skip-compute` 로 그림만 다시 그릴 수는 있다.",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report16_synthesis_spectrograms.png",
+     "mb": 0.446,
+     "mtime": "2026-08-04 14:34",
+     "px": [
+      3225,
+      1410
+     ]
+    }
+   }
+  },
+  "report16_base": {
+   "builder": "benchmark/report16_base.py::make_figure (4×3 판의 0 행 2 칸)",
+   "ledger": [
+    "outputs/report16_base_tables.npz"
+   ],
+   "stft": {
+    "mini2": {
+     "prf_hz": 19626.7,
+     "f_flash_hz": 306.67,
+     "segment_blade_periods": 0.5,
+     "nperseg": 32,
+     "dt_ms": 1.63,
+     "df_hz": 613.3
+    },
+    "matrice4e": {
+     "prf_hz": 16213.3,
+     "f_flash_hz": 126.67,
+     "segment_blade_periods": 0.5,
+     "nperseg": 64,
+     "dt_ms": 3.947,
+     "df_hz": 253.3
+    }
+   },
+   "colour": "magma · 0~−45 dB · shading auto · rasterized 없음(PNG 만 저장)",
+   "n_panels": 2,
+   "uses_md_mapstyle": false,
+   "touched_this_round": false,
+   "verdict": "조건부 합격 — 시간분해능은 규약 안(0.50 블레이드 주기), 색·음영은 규약 밖",
+   "deviation_ko": "색이 «도플러 칸별 RCS(dBsm) 절대 눈금» 이다. 사다리 칸끼리 절대값으로 견주는 것이 이 리포트의 논지라, 판마다 최대값으로 정규화하는 규약 색(0~−40 dB)으로 바꾸면 그 논지가 사라진다. 그래서 **일부러** 안 바꿨다. 바꾸려면 사용자 판단이 필요하고, 재계산이 GPU 를 잡는다(지금 GPU2 는 chain3 중).",
+   "redraw_when": "report16 원장을 다시 만들 때. `--skip-compute` 로 그림만 다시 그릴 수는 있다.",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report16_base.png",
+     "mb": 0.858,
+     "mtime": "2026-08-04 11:26",
+     "px": [
+      2520,
+      2580
+     ]
+    }
+   }
+  },
+  "report16_rung_mesh_full": {
+   "builder": "benchmark/report16_rung_mesh_full.py::make_figure (0,0 칸)",
+   "ledger": [
+    "outputs/report16_rung_mesh_full_tables.npz"
+   ],
+   "stft": {
+    "matrice4e": {
+     "prf_hz": 16213.3,
+     "f_flash_hz": 126.67,
+     "segment_blade_periods": 0.5,
+     "nperseg": 64,
+     "dt_ms": 3.947,
+     "df_hz": 253.3
+    }
+   },
+   "colour": "magma · 0~−45 dB · shading auto · rasterized 없음(PNG 만 저장)",
+   "n_panels": 1,
+   "uses_md_mapstyle": false,
+   "touched_this_round": false,
+   "verdict": "조건부 합격 — 시간분해능은 규약 안(0.50 블레이드 주기), 색·음영은 규약 밖",
+   "deviation_ko": "색이 «도플러 칸별 RCS(dBsm) 절대 눈금» 이다. 사다리 칸끼리 절대값으로 견주는 것이 이 리포트의 논지라, 판마다 최대값으로 정규화하는 규약 색(0~−40 dB)으로 바꾸면 그 논지가 사라진다. 그래서 **일부러** 안 바꿨다. 바꾸려면 사용자 판단이 필요하고, 재계산이 GPU 를 잡는다(지금 GPU2 는 chain3 중).",
+   "redraw_when": "report16 원장을 다시 만들 때. `--skip-compute` 로 그림만 다시 그릴 수는 있다.",
+   "figure": {
+    "png": {
+     "path": "outputs/figures/report16_rung_mesh_full.png",
+     "mb": 0.777,
+     "mtime": "2026-08-04 12:08",
+     "px": [
+      2520,
+      2130
+     ]
+    }
+   }
+  },
+  "report07_anim": {
+   "builder": "src/viz_animations.py",
+   "ledger": [
+    "(애니메이션 렌더 — 시계열을 그때 계산한다)"
+   ],
+   "uses_md_mapstyle": false,
+   "colour": "turbo · 0~−45 dB · gouraud",
+   "verdict": "불합격 — 손대지 않음",
+   "touched_this_round": false,
+   "why_not_ko": "① 현행 15권 리포트가 이 GIF 를 참조하지 않는다(참조 0). ② 고치면 GIF 를 통째로 다시 렌더해야 하고 그것은 «CPU 다시 그리기» 범위 밖이다. ③ 그림 안 supxlabel 에 창 길이·빈 폭 같은 설정값이 다섯 줄 들어가 있어 하우스 규약(설정은 본문)도 함께 어긴다 — 고칠 때 같이 고쳐야 한다.",
+   "redraw_when": "이 GIF 를 다시 쓰기로 할 때",
+   "figure": null
+  }
+ },
+ "not_micro_doppler_maps": {
+  "report15_f2": "조화 스펙트럼 꺾은선(benchmark/report15_verdict_build.py::fig2_flash_vs_ftip)",
+  "report15_f3": "경로수 시계열 + 엔진 상관 꺾은선(fig3_paths_and_divergence) — 임무문이 맵일 것으로 보았으나 실측 결과 맵이 아니다",
+  "report07_f2": "한 주기 파형 + 조화 빗살 꺾은선",
+  "report07_f3": "대역별 변조 깊이 막대·꺾은선",
+  "report15b_f2/f2b/f3": "파형 + 조화 스펙트럼 + 요약 막대",
+  "report16_rung_{box_bbox,cube_eqvol,sphere_eqvol,mesh_half_tri,mesh_no_rotor}": "make_figure 는 있으나 스펙트로그램(pcolormesh)이 없다 — 막대·꺾은선판",
+  "report16_metric_*": "스펙트로그램 없음",
+  "run_matrix.py / run_min_cell.py / verify_server.py / verify_ambiguity.py / src/viz_report2.py": "거리-도플러 맵(레인지-도플러) — 마이크로도플러 시간-주파수 맵이 아니다",
+  "verify_observability.py": "파라미터 격자 맵",
+  "src/microdoppler.py · microdoppler_proc.py · microdoppler_nearfield.py · experiment_md_range.py": "계산 모듈(그림을 안 낸다)",
+  "jihyuck/po_mdoppler/*": "선배 코드 — 우리 규약 대상 아님"
+ },
+ "ledger_prf_table": {
+  "outputs/report07_three_engines.{json,npz}": {
+   "stft": {
+    "prf_hz": 19700.0,
+    "f_flash_hz": 126.67,
+    "segment_blade_periods": 0.45,
+    "nperseg": 70,
+    "dt_ms": 3.553,
+    "df_hz": 281.4
+   },
+   "status": "고해상도 ✅",
+   "figures": [
+    "report07_f5",
+    "report07_f8",
+    "report07_f12(대조 팔)",
+    "deck0811_concept",
+    "report07b_bistatic"
+   ]
+  },
+  "outputs/report07_three_engine_ranges.{json,npz}": {
+   "stft": {
+    "prf_hz": 19700.0,
+    "f_flash_hz": 126.67,
+    "segment_blade_periods": 0.45,
+    "nperseg": 70,
+    "dt_ms": 3.553,
+    "df_hz": 281.4
+   },
+   "status": "고해상도 ✅",
+   "figures": [
+    "report07_f12"
+   ]
+  },
+  "outputs/report07_hover_long.{json,npz}": {
+   "stft": {
+    "prf_hz": 5000.0,
+    "f_flash_hz": 126.67,
+    "segment_blade_periods": 0.608,
+    "nperseg": 24,
+    "dt_ms": 4.8,
+    "df_hz": 208.3
+   },
+   "status": "저해상도 ❌ — chain3.sh 진행 중",
+   "figures": [
+    "report07_f7",
+    "report07_f11"
+   ]
+  },
+  "outputs/report07_hover_long_outdoor.{json,npz}": {
+   "stft": {
+    "prf_hz": 5000.0,
+    "f_flash_hz": 126.67,
+    "segment_blade_periods": 0.608,
+    "nperseg": 24,
+    "dt_ms": 4.8,
+    "df_hz": 208.3
+   },
+   "status": "저해상도 ❌ — chain3.sh 진행 중",
+   "figures": [
+    "report07_f11"
+   ]
+  },
+  "outputs/report15b_microdoppler.json + report15b_series.npz": {
+   "stft": {
+    "prf_hz": 5000.0,
+    "f_flash_hz": 126.67,
+    "segment_blade_periods": 0.608,
+    "nperseg": 24,
+    "dt_ms": 4.8,
+    "df_hz": 208.3
+   },
+   "status": "저해상도 ❌ — chain3.sh 진행 중",
+   "figures": [
+    "report07_f1",
+    "report15b_f1",
+    "report15b_f1b"
+   ]
+  },
+  "outputs/report07_5g_waveform.{json,npz}": {
+   "stft": {
+    "cw_5k": {
+     "prf_hz": 5000.0,
+     "f_flash_hz": 126.67,
+     "segment_blade_periods": 0.608,
+     "nperseg": 24,
+     "dt_ms": 4.8,
+     "df_hz": 208.3
+    },
+    "nr_full_28k": {
+     "prf_hz": 28000.0,
+     "f_flash_hz": 126.67,
+     "segment_blade_periods": 0.448,
+     "nperseg": 99,
+     "dt_ms": 3.536,
+     "df_hz": 282.8
+    },
+    "nr_crs_1k": {
+     "prf_hz": 1000.0,
+     "f_flash_hz": 126.67,
+     "segment_blade_periods": 1.013,
+     "nperseg": 8,
+     "dt_ms": 8.0,
+     "df_hz": 125.0
+    },
+    "nr_ssb_50": {
+     "prf_hz": 50.0,
+     "f_flash_hz": 126.67,
+     "segment_blade_periods": 20.267,
+     "nperseg": 8,
+     "dt_ms": 160.0,
+     "df_hz": 6.2
+    }
+   },
+   "status": "팔마다 표본율이 다르다(설계) — 재계산 대상 아님",
+   "figures": [
+    "report07_f10"
+   ]
+  },
+  "outputs/report15_verdict_grid_mini2.json + report15_sionna_sweep_matrice4e.json + report15_verdict_po_grid.json + report15_verdict_nulls_vs_range.json": {
+   "stft": {
+    "mini2": {
+     "prf_hz": 19626.7,
+     "f_flash_hz": 306.67,
+     "segment_blade_periods": 0.453,
+     "nperseg": 29,
+     "dt_ms": 1.478,
+     "df_hz": 676.8
+    },
+    "matrice4e": {
+     "prf_hz": 8106.7,
+     "f_flash_hz": 126.67,
+     "segment_blade_periods": 0.453,
+     "nperseg": 29,
+     "dt_ms": 3.577,
+     "df_hz": 279.5
+    }
+   },
+   "status": "위상 격자(한 주기 64 등분) — chain3.sh 와 무관한 별도 원장",
+   "figures": [
+    "report15_f1",
+    "report00_f5"
+   ],
+   "note_ko": "여기 PRF 는 «등가» 다 — 한 주기를 64 등분한 것을 표본율로 환산한 값이고, 실제 기록은 한 주기뿐이라 이어 붙여 쓴다."
+  },
+  "outputs/report16_base_tables.npz + report16_rung_*_tables.npz": {
+   "stft": {
+    "mini2": {
+     "prf_hz": 19626.7,
+     "f_flash_hz": 306.67,
+     "segment_blade_periods": 0.5,
+     "nperseg": 32,
+     "dt_ms": 1.63,
+     "df_hz": 613.3
+    },
+    "matrice4e": {
+     "prf_hz": 16213.3,
+     "f_flash_hz": 126.67,
+     "segment_blade_periods": 0.5,
+     "nperseg": 64,
+     "dt_ms": 3.947,
+     "df_hz": 253.3
+    }
+   },
+   "status": "해상도는 규약 안(0.50 주기) · 색만 예외",
+   "figures": [
+    "report16_base",
+    "report16_rung_mesh_full",
+    "report16_synthesis_spectrograms"
+   ]
+  },
+  "outputs/report1_microdoppler.npz": {
+   "stft": {
+    "prf_hz": 20000.0,
+    "f_flash_hz": 183.33,
+    "segment_blade_periods": 0.449,
+    "nperseg": 49,
+    "dt_ms": 2.45,
+    "df_hz": 408.2
+   },
+   "status": "레거시 — 기체 5/10 만 들어 있다",
+   "figures": [
+    "report1_microdoppler"
+   ]
+  }
+ },
+ "redraw_after_chain3": {
+  "why_ko": "chain3.sh 가 PRF 5,000 원장을 고해상도로 다시 만들면 auto_periods 가 스스로 0.6 → 0.45 주기로 내려간다. 아래 그림은 그때 **한 번씩 다시 돌리면** 된다 — 코드는 이미 규약을 따르므로 손댈 것이 없다.",
+  "figures": [
+   {
+    "figure": "report07_f1",
+    "cmd": "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report07_figs.py"
+   },
+   {
+    "figure": "report15b_f1 · report15b_f1b",
+    "cmd": "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_report15b_figs.py"
+   },
+   {
+    "figure": "report07_f7",
+    "cmd": "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_hover_fig.py"
+   },
+   {
+    "figure": "report07_f11",
+    "cmd": "PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/build_hover_compare_fig.py"
+   }
+  ],
+  "not_affected": [
+   "report07_f5",
+   "report07_f8",
+   "report07_f12",
+   "deck0811_concept",
+   "report07_f10",
+   "report15_f1",
+   "report00_f5",
+   "report16_*"
+  ]
+ },
+ "handoff_body_text": [
+  {
+   "owner": "reports/ 15권 통합 담당(+ src/build_part07_microdoppler.py 가 그 본문을 생성한다)",
+   "where": [
+    "reports/09_microdoppler-limits.ipynb",
+    "reports/_parts/41_md-calibration.ipynb",
+    "src/build_part07_microdoppler.py (report15_f1 절)"
+   ],
+   "stale_sentence_ko": "«위 네 줄이 신호 팔(프로펠러가 도는 두 기체 × 두 엔진), 아래 네 줄이 널 팔이다.»",
+   "why_stale_ko": "이제 널은 네 줄이 아니라 **대표 한 줄**(가장 시끄러운 널)이다. 나머지 세 줄은 수치로 접었다.",
+   "suggested_ko": "«위 네 줄이 신호 팔(프로펠러가 도는 두 기체 × 두 엔진)이고, 맨 아래 한 줄이 **널 팔 넷 중 가장 시끄러운 것**이다. 가장 시끄러운 널이 조용하면 나머지도 조용하므로 나머지 세 줄은 아래 표로 접었다.»"
+  },
+  {
+   "owner": "같음",
+   "stale_sentence_ko": "«색눈금은 각 패널 자신의 정적 반사를 0 dB 로 잡은 값이라 널 줄과 신호 줄을 직접 견줄 수 있다. 널 줄은 세 거리 전부에서 검게 남는다.»",
+   "why_stale_ko": "규약이 «0 도플러를 지우지 않는다» 이므로 널 줄에도 **정지 반사 그 자체**가 0 dB 로 남는다. 널 줄은 더 이상 «검지» 않고, 대신 **시간에 전혀 안 변하는 가로 띠**로 보인다. 널이 조용하다는 사실은 색이 아니라 판마다 붙인 «sideband ... dB» 뱃지가 말한다.",
+   "suggested_ko": "«색눈금은 각 패널 자신의 정적 반사를 0 dB 로 잡은 값이다. 신호 줄은 블레이드 박자로 띠가 뛰고, 널 줄은 시간에 전혀 안 변한다. 판마다 붙은 뱃지가 정지 반사 대비 최대 측대역인데, 신호 줄은 몇 dB 안쪽이고 널 줄은 60~80 dB 아래다.»"
+  }
+ ],
+ "open_problems": [
+  "report16 세 장(base·rung_mesh_full·synthesis_spectrograms)은 색이 dBsm 절대 눈금이라 규약 색으로 안 바꿨다. 바꿀지 말지는 사용자 판단이고, 바꾸면 report16 원장을 --skip-compute 로 다시 돌려야 한다.",
+  "md_range_f1_spectrogram_grid 는 빌더만 고쳤다 — 그림 재생성(근접장 PO 4팔×4거리 재계산)이 이번 회차 안에 안 끝났다. `PYTHONPATH=src python src/viz_md_range.py` 를 한 번 돌리면 된다.",
+  "report1_microdoppler 는 원장 npz 에 기체가 5 개뿐인데 DKEYS 는 10 개다(내 수정 이전부터 있던 어긋남). 그림을 다시 내려면 광선을 다시 쏘아야 한다.",
+  "report07_anim.gif 는 규약 밖이지만 참조가 0 이라 손대지 않았다. 다시 쓸 때 그림 안 설정값 다섯 줄까지 함께 고쳐야 한다.",
+  "report15b_f1 의 시간축이 500 ms · 104 블레이드 주기라, 규약 조각(4.80 ms)으로 그려도 화면에서 플래시 하나가 몇 화소밖에 안 된다. dpi 를 400 으로 올려 두었지만, 확대판이 따로 있는 편이 낫다(report07 계열은 build_flash_zoom 이 그 역할을 한다).",
+  "mini2 는 f_flash 가 306.7 Hz 라 0.45 주기 조각의 빈 폭(677 Hz)이 빗살 간격보다 넓다 — report15_f1 의 mini2 줄에서 조화 빗살은 뭉친다. 빗살을 읽는 그림은 report15_f2 가 따로 있다(시간·주파수 맞바꿈의 정직한 대가).",
+  "report07_f10 은 규약 캡션이 그림 안 아래에 그려져 있다(설정은 본문이라는 하우스 규약과 충돌). build_5g_fig 를 다시 손볼 때 캡션을 그림 밖으로 빼야 한다."
+ ]
+}

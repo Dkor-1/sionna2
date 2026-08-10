@@ -44,7 +44,9 @@ import matplotlib                                    # noqa: E402
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt                      # noqa: E402
 
-from report15_verdict import spectrogram             # noqa: E402  (기존 모듈 재사용)
+#  ⭐ 마이크로도플러 맵 표시 규약은 src/md_mapstyle.py 한 자리가 정한다(우회 금지).
+from md_mapstyle import (VMAX as MS_VMAX, VMIN as MS_VMIN, auto_periods,   # noqa: E402
+                         draw as md_draw, flash_spec)
 
 VERDICT = os.path.join(_ROOT, "outputs", "report15_verdict.json")
 PROBE = os.path.join(_ROOT, "outputs", "report15_probe.json")
@@ -146,15 +148,18 @@ def figure(J, arms, rows, stem):
             if z is None:
                 panels[(i, j)] = None
                 continue
-            zp = z - z.mean()
-            t, f, Sd = spectrogram(zp, ff, n_rev=N_REV)
-            # 각 판의 정지(DC) 성분 기준 dB — 널 판과 신호 판이 직접 비교된다
-            Sd = 20 * np.log10(np.maximum(np.abs(Sd), 1e-14) / max(np.abs(z.mean()), 1e-14))
+            #  ⭐ 표시 규약은 src/md_mapstyle.py 가 정한다 — 여기서 다시 정하지 않는다.
+            #     옛 판은 조각이 **블레이드 2 주기**여서 플래시가 조각 안에서
+            #     시간평균되어 지워졌다. 규약값 0.45 주기면 Δt 가 4.4 배 좋아진다.
+            dc = max(float(np.abs(z.mean())), 1e-14)
+            prf = z.size * ff                     # 한 주기(180°) N 등분 → 등가 표본율
+            f, t, S, _n = flash_spec(np.tile(z, 2 * N_REV), prf, ff,
+                                     auto_periods(prf, ff))
             f_rev = ff / 2.0                      # 2엽 → 플래시율의 절반이 회전율
-            panels[(i, j)] = (np.asarray(t) * f_rev, np.asarray(f) / ftip, Sd)
-            peaks.append(float(np.nanmax(Sd)))
-    vmax = float(np.nanmax(peaks))
-    vmin = vmax - 60.0
+            panels[(i, j)] = (np.asarray(t) * f_rev, np.asarray(f) / ftip, S, dc)
+            peaks.append(float(np.nanmax(S)) / dc)
+    #  ⭐ 색은 «각 판 자신의 정지 반사 대비» 이고 색역은 규약값 0 ~ −40 dB 다.
+    vmin, vmax = MS_VMIN, MS_VMAX
     #  ⚠ 스펙트로그램 창이 끝까지 안 차므로 축 상한을 **자료 실제 끝**으로 잡는다.
     #     N_REV 로 두면 판마다 오른쪽에 흰 여백이 남는다.
     x_hi = float(min(np.nanmax(d[0]) for d in panels.values() if d is not None))
@@ -177,12 +182,12 @@ def figure(J, arms, rows, stem):
                     ax.text(.5, .5, "no paths", color="w", ha="center", va="center",
                             transform=ax.transAxes)
                 else:
-                    x, y, Sd = d
-                    pm = ax.pcolormesh(x, y, Sd, cmap="magma", vmin=vmin, vmax=vmax,
-                                       shading="auto", rasterized=True)
-                #  운동학 예측 = 정규화 축에서 정확히 ±1
-                for s in (+1, -1):
-                    ax.axhline(s, color="#00e676", ls=(0, (4, 3)), lw=1.0)
+                    x, y, S, dc = d
+                    #  정규화 축(세로 = 도플러÷f_tip)이므로 draw 에 y 를 그대로 준다 —
+                    #  예측선은 ±1 이고, 색·색역·음영·래스터화는 규약이 정한 그대로다.
+                    pm = md_draw(ax, x, y, S, 1.0, t_scale=1.0, ref=dc)
+                #  ⚠ 운동학 예측선(정규화 축에서 정확히 ±1)은 md_mapstyle.draw 가 이미
+                #    흰 파선으로 그린다 — 여기서 또 그리면 선이 겹친다.
                 ax.set_xlim(0, x_hi)
                 ax.set_ylim(-1.75, 1.75)
                 ax.set_xticks([t for t in range(0, N_REV + 1) if t <= x_hi])
@@ -215,7 +220,7 @@ def figure(J, arms, rows, stem):
                      f"(R = {RANGE} m, az 0{DEG} / el 15{DEG})",
                      y=0.975)
         fig.text(0.485, 0.022,
-                 "Green dashed = blade-tip Doppler from the kinematics alone, so it sits at "
+                 "White dashed = blade-tip Doppler from the kinematics alone, so it sits at "
                  f"{PM}1 in every panel.  Both axes are normalised, so all six panels share one frame.",
                  ha="center", fontsize=st.rc["legend.fontsize"], color="#333333")
 

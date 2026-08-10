@@ -69,6 +69,7 @@ from rcs_sbr import sbr_field, sbr_field_bistatic                       # noqa: 
 from articulated_fast import FastPoser, rotor_phases                    # noqa: E402
 from drones import DRONES, DRONE_GROUP_MAT                              # noqa: E402
 from md_mapstyle import auto_periods, flash_spec                        # noqa: E402
+from microdoppler import microdoppler_series                            # noqa: E402
 
 GM = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
 SRC = os.path.join(_ROOT, "outputs", "report07_three_engines.json")
@@ -199,46 +200,54 @@ def spectrum(E, prf, pad=4):
     return f, S
 
 
-def tip_quantile(f, S, f_body, q=0.98):
-    """⭐추정기 1 — 동체선을 뺀 뒤 **전력가중 |f| 분위수**. 축척에 등변(scale-equivariant)이라
-    같은 추정기를 β 마다 쓰면 편향이 비율에서 상쇄된다."""
+def envelope(f, S, smooth_hz):
+    """빗살을 지우고 **포락**만 남긴다 — 이동평균(폭 smooth_hz).
+
+    ⚠ 왜 필요한가: 스펙트럼의 **선 위치**(f_flash 배수)는 β 에 안 변하고 **포락의 폭**만
+      변한다. 그래서 선 구조를 그대로 두고 축척을 재려 하면 추정기가 «안 변한다» 는 쪽으로
+      끌려간다(실제로 그랬다 — 초판 모양정합이 전부 s≈1 로 붙었다)."""
+    P = np.asarray(S, float) ** 2
+    df = float(f[1] - f[0])
+    n = max(3, int(round(smooth_hz / df)) | 1)
+    return np.convolve(P, np.ones(n) / n, mode="same")
+
+
+def edge_of(P_env, f, f_body, drop_db=25.0):
+    """띠 바깥 **가장자리** — 동체선 밖 최대값 대비 drop_db 아래로 내려가는 마지막 |f|.
+    ⭐순수 PO 처럼 잘린 스펙트럼에서는 임계값에 거의 안 민감하다(절벽이 80 dB 라서).
+    ⚠ SBR 처럼 바닥이 넓은 스펙트럼에서는 **나이퀴스트까지 밀린다** — 그 사실 자체가 결과다."""
     m = np.abs(f) > f_body
-    w = S[m] ** 2
-    a = np.abs(f[m])
-    o = np.argsort(a)
-    a, w = a[o], w[o]
-    c = np.cumsum(w) / w.sum()
-    return float(np.interp(q, c, a))
-
-
-def tip_knee(f, S, f_body, f_hi, drop_db=20.0):
-    """추정기 2 — 날개끝 띠 위쪽 **무릎**: 띠 안 중앙값 대비 drop_db 아래로 내려간 마지막 |f|."""
-    m = (np.abs(f) > f_body) & (np.abs(f) < f_hi)
-    ref = np.median(S[m] ** 2)
+    ref = P_env[m].max()
     thr = ref * 10 ** (-drop_db / 10.0)
-    a = np.abs(f); p = S ** 2
+    a = np.abs(f)[m]; p = P_env[m]
     o = np.argsort(a); a, p = a[o], p[o]
-    k = np.where(a > f_body)[0]
-    a, p = a[k], p[k]
-    # 위에서 내려오며 임계 위로 올라오는 첫 자리
     above = np.where(p > thr)[0]
     return float(a[above[-1]]) if above.size else float("nan")
 
 
-def tip_shape_scale(f, S0, S, f_body, f_max, scales):
-    """⭐추정기 3 — **모양 정합**. S(f) 와 S0(f/s) 의 상관을 최대로 하는 s.
-    임계값이 필요없고, 스펙트럼 전체(빗살 구조 포함)를 쓴다."""
-    m = (np.abs(f) > f_body) & (np.abs(f) < f_max)
-    fa, y = f[m], np.log10(S[m] ** 2 + 1e-30)
-    y = y - y.mean()
-    best, bs = -2.0, np.nan
+def floor_rel_db(P_env, f, f_lo):
+    """|f| > f_lo 의 **바닥**이 봉우리보다 몇 dB 아래인가 — 스펙트럼 오염의 척도."""
+    m = np.abs(f) > f_lo
+    return float(10 * np.log10(np.median(P_env[m]) / P_env.max()))
+
+
+def scale_fit(f, P0, P, f_max, scales):
+    """P(f) ≈ a·P0(f/s) + c 를 (a,c) 최소제곱 · s 격자탐색으로 푼다.
+    ⭐바닥 c 를 **가정하지 않고 자유 파라미터로 잰다**. 반환 (s, a, c, R²)."""
+    m = np.abs(f) <= f_max
+    y = P[m]
+    best = (np.inf, np.nan, np.nan, np.nan)
     for s in scales:
-        ref = np.interp(fa / s, f, np.log10(S0 ** 2 + 1e-30))
-        ref = ref - ref.mean()
-        c = float(np.dot(y, ref) / (np.linalg.norm(y) * np.linalg.norm(ref) + 1e-30))
-        if c > best:
-            best, bs = c, float(s)
-    return bs, best
+        x = np.interp(f[m] / s, f, P0)
+        A = np.stack([x, np.ones_like(x)], 1)
+        coef, *_ = np.linalg.lstsq(A, y, rcond=None)
+        if coef[0] <= 0:
+            continue
+        r = float(np.sum((A @ coef - y) ** 2))
+        if r < best[0]:
+            best = (r, float(s), float(coef[0]), float(coef[1]))
+    tot = float(np.sum((y - y.mean()) ** 2))
+    return best[1], best[2], best[3], float(1 - best[0] / tot) if tot > 0 else np.nan
 
 
 def flash_envelope(E, prf, f_flash, f_lo, f_hi):
@@ -391,21 +400,70 @@ def main():
         print(f"  ✅ 게이트 센서스 {time.time()-t0:.0f}s ({len(cen_idx)} 자세 × {len(Uc)} 방향)")
     Aeff = Ac.mean(axis=0)
 
+    # ── ⭐순수-PO 대조팔 (바이스태틱) — 「왜 이게 필요한가」는 파일 상단 주석 참조 ────
+    #   위상 항등식:  e^{jk(û_i+û_s)·p} = e^{j2k' û_b·p},  k' = k·cos(β/2)
+    #   → **바이스태틱 PO 위상 = 이등분선 시선의 모노 PO 위상 @ 반송파 fc·cos(β/2)**.
+    #   그래서 `microdoppler_series` 를 **고치지 않고** 그대로 불러 대조팔을 만든다.
+    #   ⚠ 근사 하나: 진폭 게이트·obliquity 는 (n̂·û_b) 하나를 쓴다(두 게이트 n̂·û_i, n̂·û_s
+    #     각각이 아니라). 도플러축은 위상이 정하므로 **이 팔이 재는 축척에는 영향이 없고**,
+    #     레벨은 SBR 팔이 맡는다. 이 팔은 «가장자리가 잘려 보이는» 스펙트럼을 얻기 위한 것이다.
+    SPACING_PO = rsb.C0 / FC / 11.0             # β 마다 점구름이 안 변하게 **고정**
+    _have_po = a.analyze_only and "E_po" in np.load(OUTZ).files
+    if _have_po:
+        Epo = np.load(OUTZ)["E_po"]
+        print("  ↻ PO 대조팔도 npz 에서 읽었다")
+    else:
+        t0 = time.time()
+        Epo = np.zeros((NT, len(dirs)), complex)
+        for j, (lab, pl, beta, us, phi) in enumerate(dirs):
+            if beta == 0.0:                     # 원장과 비트동일하게 특수화
+                azb, elb, fcb = AZ, EL, FC
+            else:
+                ub = bisector(u_i, us)
+                azb = float(np.degrees(np.arctan2(ub[1], ub[0])))
+                elb = float(np.degrees(np.arcsin(np.clip(ub[2], -1, 1))))
+                fcb = FC * float(np.cos(np.radians(beta) / 2.0))
+            _, Epo[:, j], _ = microdoppler_series(spec, fc=fcb, az=azb, el=elb, prf=PRF,
+                                                  n_t=NT, rpm_per_rotor=rpms,
+                                                  spacing=SPACING_PO)
+        print(f"  ✅ PO 대조팔 {time.time()-t0:.0f}s")
+
+    # 회귀 ③ — PO β=0 이 리포트 7 의 po 팔과 같은가
+    po_ledger = None
+    if os.path.exists(SRCZ):
+        Z = np.load(SRCZ)
+        if "po" in Z and len(Z["po"]) >= NT:
+            p0 = np.asarray(Z["po"])[:NT]
+            r = np.abs(Epo[:, 0] - p0) / (np.abs(p0) + 1e-300)
+            po_ledger = dict(n=int(NT), max_rel_err=float(r.max()),
+                             n_bit_identical=int(np.sum(Epo[:, 0] == p0)),
+                             source="outputs/report07_three_engines.npz['po']",
+                             note="리포트 7 의 순수 PO 팔과 이 대조팔의 β=0 열")
+            print(f"  회귀 ③ PO 원장 대조 max rel {po_ledger['max_rel_err']:.3e} "
+                  f"(비트동일 {po_ledger['n_bit_identical']}/{po_ledger['n']})")
+
     # ── 측정 ────────────────────────────────────────────────────────────────
     F_BODY = 0.15 * FTIP0                       # 동체선·1차 플래시 측대역 제외
+    SMOOTH = 4.0 * FFL                          # 빗살(간격 f_flash)을 지우는 포락 폭
     f, S0 = spectrum(E[:, 0], PRF)
-    scales = np.arange(0.20, 1.201, 0.002)
+    P0 = envelope(f, S0, SMOOTH)
+    _, S0p = spectrum(Epo[:, 0], PRF)
+    P0p = envelope(f, S0p, SMOOTH)
+    e0_sbr, e0_po = edge_of(P0, f, F_BODY), edge_of(P0p, f, F_BODY)
+    scales = np.arange(0.25, 1.301, 0.002)
     rows = []
     t_env0 = b_env0 = None
     for j, (lab, pl, beta, us, phi) in enumerate(dirs):
         pred_A = float(np.cos(np.radians(beta) / 2.0))
         pred_B = horiz_ratio(u_i, us, EL)
         fj, Sj = spectrum(E[:, j], PRF)
-        q0 = tip_quantile(f, S0, F_BODY)
-        qj = tip_quantile(fj, Sj, F_BODY)
-        k0 = tip_knee(f, S0, F_BODY, 1.05 * FTIP0)
-        kj = tip_knee(fj, Sj, F_BODY, 1.05 * FTIP0)
-        sc, cc = tip_shape_scale(f, S0, Sj, F_BODY, 1.9 * FTIP0, scales)
+        Pj = envelope(fj, Sj, SMOOTH)
+        _, Sjp = spectrum(Epo[:, j], PRF)
+        Pjp = envelope(fj, Sjp, SMOOTH)
+        e_sbr, e_po = edge_of(Pj, fj, F_BODY), edge_of(Pjp, fj, F_BODY)
+        # 임계값 민감도 — PO 는 절벽이라 거의 안 움직이고, SBR 은 크게 움직인다
+        e_po_lo, e_po_hi = edge_of(Pjp, fj, F_BODY, 15.0), edge_of(Pjp, fj, F_BODY, 35.0)
+        s_fit, a_fit, c_fit, r2 = scale_fit(f, P0, Pj, 2.4 * FTIP0, scales)
         # 플래시 — 띠는 각 β 의 예측 축척으로 따라간다
         lo, hi = 0.35 * FTIP0 * pred_B, 1.05 * FTIP0 * pred_B
         tj, bj, nper = flash_envelope(E[:, j], PRF, FFL, lo, hi)
@@ -430,9 +488,16 @@ def main():
             bisector_el_deg=float(np.degrees(np.arcsin(np.clip(bisector(u_i, us)[2], -1, 1)))),
             pred_cos_half_beta=pred_A, pred_bisector_horiz=pred_B,
             f_tip_pred_A_hz=pred_A * FTIP0, f_tip_pred_B_hz=pred_B * FTIP0,
-            meas_ratio_quantile=float(qj / q0), meas_ratio_knee=float(kj / k0),
-            meas_ratio_shape=sc, shape_corr=cc,
-            f_tip_meas_quantile_hz=float(qj), f_tip_meas_knee_hz=float(kj),
+            # ⭐도플러 축척 — 순수 PO 대조팔(가장자리가 잘려 있어 잴 수 있다)
+            po_edge_hz=e_po, po_edge_ratio=float(e_po / e0_po),
+            po_edge_ratio_lo=float(e_po_lo / e0_po), po_edge_ratio_hi=float(e_po_hi / e0_po),
+            po_edge_over_predB=float(e_po / (pred_B * e0_po)),
+            po_edge_over_predA=float(e_po / (pred_A * e0_po)),
+            # SBR 팔 — 같은 추정기를 대보면 «못 잰다» 는 것이 그대로 보인다
+            sbr_edge_hz=e_sbr, sbr_edge_ratio=float(e_sbr / e0_sbr),
+            sbr_floor_rel_db=floor_rel_db(Pj, fj, 1.5 * FTIP0),
+            sbr_scale_fit=s_fit, sbr_scale_fit_r2=r2,
+            sbr_scale_fit_floor_rel_db=float(10 * np.log10(max(c_fit, 1e-300) / Pj.max())),
             level_dbsm_rel=lvl, level_db_rel_mono=None,   # 아래에서 채운다
             ptp_db=float((20 * np.log10(np.abs(E[:, j]) + 1e-30)).max()
                          - (20 * np.log10(np.abs(E[:, j]) + 1e-30)).min()),
@@ -455,24 +520,55 @@ def main():
               for (pl, b, phi), A in zip(cen_meta, Aeff)]
 
     # ── 판정 ────────────────────────────────────────────────────────────────
-    def _err(r, key):
-        return abs(r["meas_ratio_shape"] - r[key])
-
     az_rows = [r for r in rows if r["plane"] == "azimuth" and r["beta_deg"] > 0]
     el_rows = [r for r in rows if r["plane"] == "elevation"]
+    rest = rows[1:]
+
+    def _mx(rr, key, pred):
+        return float(max(abs(r[key] - r[pred]) for r in rr))
+
+    # 모노 원장 세 엔진의 바닥 — «SBR 가장자리는 못 쓴다» 의 근거를 원장에서 만든다
+    engines_floor = None
+    if os.path.exists(SRCZ):
+        Zm = np.load(SRCZ)
+        engines_floor = {}
+        for kk in ("sbr", "po", "sionna"):
+            if kk in Zm and len(Zm[kk]) >= NT:
+                fk, Sk = spectrum(np.asarray(Zm[kk])[:NT], PRF)
+                Pk = envelope(fk, Sk, SMOOTH)
+                engines_floor[kk] = dict(floor_rel_db=floor_rel_db(Pk, fk, 1.5 * FTIP0),
+                                         edge_hz=edge_of(Pk, fk, F_BODY))
     verdict = dict(
         doppler_scaling=dict(
-            estimator="meas_ratio_shape (모양 정합) — 분위수·무릎은 교차검증",
-            max_err_vs_pred_A=float(max(_err(r, "pred_cos_half_beta") for r in rows[1:])),
-            max_err_vs_pred_B=float(max(_err(r, "pred_bisector_horiz") for r in rows[1:])),
-            max_err_vs_pred_A_azimuth_only=float(max(_err(r, "pred_cos_half_beta")
-                                                     for r in az_rows)),
-            max_err_vs_pred_B_azimuth_only=float(max(_err(r, "pred_bisector_horiz")
-                                                     for r in az_rows)),
-            max_err_vs_pred_A_elevation=float(max(_err(r, "pred_cos_half_beta")
-                                                  for r in el_rows)),
-            max_err_vs_pred_B_elevation=float(max(_err(r, "pred_bisector_horiz")
-                                                  for r in el_rows)),
+            primary_estimator=("순수 PO 대조팔의 스펙트럼 **가장자리** — 이 팔은 f_tip 에서 "
+                               "절벽처럼 잘리므로 임계값에 안 민감하다"),
+            po_max_err_vs_pred_A=_mx(rest, "po_edge_ratio", "pred_cos_half_beta"),
+            po_max_err_vs_pred_B=_mx(rest, "po_edge_ratio", "pred_bisector_horiz"),
+            po_max_err_vs_pred_A_azimuth=_mx(az_rows, "po_edge_ratio", "pred_cos_half_beta"),
+            po_max_err_vs_pred_B_azimuth=_mx(az_rows, "po_edge_ratio", "pred_bisector_horiz"),
+            po_max_err_vs_pred_A_elevation=_mx(el_rows, "po_edge_ratio", "pred_cos_half_beta"),
+            po_max_err_vs_pred_B_elevation=_mx(el_rows, "po_edge_ratio", "pred_bisector_horiz"),
+            po_edge_threshold_spread=float(max(abs(r["po_edge_ratio_hi"] - r["po_edge_ratio_lo"])
+                                               for r in rows)),
+            winner=("B (이등분선의 수평투영)"
+                    if _mx(rest, "po_edge_ratio", "pred_bisector_horiz")
+                    < _mx(rest, "po_edge_ratio", "pred_cos_half_beta") else "A (cos(β/2))"),
+        ),
+        sbr_edge_unusable=dict(
+            why=("SBR 슬로타임 스펙트럼에는 f_tip 밖까지 이어지는 **광대역 바닥**이 있다 — "
+                 "표적이 도는 동안 광선 격자에서 히트 집합이 켜졌다 꺼지는 데서 온다. "
+                 "그래서 «가장자리» 로는 f_tip 을 못 잰다(어떤 β 에서도 나이퀴스트까지 밀린다). "
+                 "포락을 P(f)=a·P₀(f/s)+c 로 맞춰도 s 가 1 근처에 붙는다 — 축척이 없다는 뜻이 "
+                 "아니라 **이 관측량으로는 축척이 안 보인다**는 뜻이다."),
+            sbr_edge_ratio_range=[float(min(r["sbr_edge_ratio"] for r in rows)),
+                                  float(max(r["sbr_edge_ratio"] for r in rows))],
+            sbr_scale_fit_range=[float(min(r["sbr_scale_fit"] for r in rows)),
+                                 float(max(r["sbr_scale_fit"] for r in rows))],
+            mono_ledger_engine_floors_db=engines_floor,
+            note=("모노 원장(report07_three_engines.npz)의 세 팔을 같은 추정기로 잰 것이다 — "
+                  "순수 PO 는 바닥이 −100 dB 대이고 SBR·Sionna 는 −30~−40 dB 대다. "
+                  "즉 이것은 바이스태틱의 성질이 아니라 **광선 엔진 공통의 성질**이고, "
+                  "리포트 7 이 남긴 «SBR 의 날개끝 밖 능선» 미제와 같은 것이다."),
         ),
         flash_rate=dict(
             f_flash_nominal_hz=FFL,
@@ -529,7 +625,7 @@ def main():
         ],
     )
 
-    np.savez_compressed(OUTZ, E=E, labels=np.array(labels), U_s=U_s, u_i=u_i,
+    np.savez_compressed(OUTZ, E=E, E_po=Epo, labels=np.array(labels), U_s=U_s, u_i=u_i,
                         census_A=Ac, census_idx=cen_idx, census_U=Uc,
                         census_beta=np.array([c[1] for c in cen_meta]),
                         census_plane=np.array([c[0] for c in cen_meta]))
@@ -539,21 +635,29 @@ def main():
                                               bisector_az_deg=r["bisector_az_deg"],
                                               bisector_el_deg=r["bisector_el_deg"])
                                          for r in rows],
-                   rows=rows, census=census, regression=dict(kernel_identity=ident,
-                                                            mono_ledger=ledger),
+                   rows=rows, census=census,
+                   regression=dict(kernel_identity=ident, mono_ledger=ledger,
+                                   po_control_ledger=po_ledger),
                    verdict=verdict),
               open(OUTJ, "w"), ensure_ascii=False, indent=1)
 
     # ── 콘솔 요약 ───────────────────────────────────────────────────────────
-    print("\n═══ 도플러 축척: 예측 A cos(β/2) vs 예측 B 이등분선-수평투영 vs 실측 ═══")
-    print(f"{'라벨':>7} {'평면':>9} {'β':>5} {'예A':>7} {'예B':>7} {'모양':>7} "
-          f"{'분위':>7} {'무릎':>7} {'r':>6} {'레벨dB':>8}")
+    print("\n═══ 도플러 축척: 예측 A cos(β/2) · 예측 B 이등분선-수평투영 · 실측 ═══")
+    print(f"{'label':>7} {'plane':>9} {'beta':>5} {'predA':>7} {'predB':>7} "
+          f"{'PO edge':>8} {'/predA':>7} {'/predB':>7} {'SBRedge':>8} {'SBRfit':>7} "
+          f"{'floor':>7} {'level':>8}")
     for r in rows:
         print(f"{r['label']:>7} {r['plane']:>9} {r['beta_deg']:5.0f} "
               f"{r['pred_cos_half_beta']:7.4f} {r['pred_bisector_horiz']:7.4f} "
-              f"{r['meas_ratio_shape']:7.4f} {r['meas_ratio_quantile']:7.4f} "
-              f"{r['meas_ratio_knee']:7.4f} {r['shape_corr']:6.3f} "
+              f"{r['po_edge_ratio']:8.4f} {r['po_edge_over_predA']:7.3f} "
+              f"{r['po_edge_over_predB']:7.3f} {r['sbr_edge_ratio']:8.3f} "
+              f"{r['sbr_scale_fit']:7.3f} {r['sbr_floor_rel_db']:7.1f} "
               f"{r['level_db_rel_mono']:+8.2f}")
+    print("  ⭐판정:", verdict["doppler_scaling"]["winner"],
+          f"(PO 가장자리 대 A 최대오차 {verdict['doppler_scaling']['po_max_err_vs_pred_A']:.4f}, "
+          f"대 B {verdict['doppler_scaling']['po_max_err_vs_pred_B']:.4f})")
+    print("  모노 원장 세 엔진 바닥:", {k: round(v["floor_rel_db"], 1)
+                                for k, v in (engines_floor or {}).items()})
     print("\n═══ 플래시 ═══")
     for r in rows:
         print(f"{r['label']:>7} f_flash {r['f_flash_meas_hz']:7.2f} Hz "

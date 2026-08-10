@@ -2,9 +2,13 @@
 """
 make_readme.py — README.md 를 편성에서 직접 짓는다
 ==========================================================================================
-편이 8 → 78 이 되면서 README 를 손으로 유지하면 반드시 어긋난다. 그래서 목차를
-`report_registry`(= 계획 + 지어진 노트북의 H1)와 `outputs/reports_index.json` 에서
-**읽어서** 만든다. 편을 하나 더 지으면 이 스크립트를 다시 돌리는 것으로 끝난다.
+목차를 손으로 유지하면 편성이 바뀔 때마다 어긋난다. 그래서 권 수·권 제목·절 수·절 제목·
+그림 수를 전부 **`outputs/volumes_index.json` 에서 읽어서** 만든다. 권이 늘거나 절이
+옮겨가면 이 스크립트를 다시 돌리는 것으로 끝난다 — 이 파일 안에 편성 숫자는 없다.
+
+읽는 층이 둘이다.
+    `reports/NN_slug.ipynb`        권 — 사람이 읽는 문서. README 의 링크는 전부 여기로 간다
+    `reports/_parts/NN_slug.ipynb` 조각 — 빌더 산출물. README 는 가리키지 않는다
 
 산출
     README.md
@@ -13,7 +17,7 @@ make_readme.py — README.md 를 편성에서 직접 짓는다
    숫자는 `report_style.num()` 이 JSON 을 열어 대조한 값이다 — 손으로 친 숫자가 없다.
 
 실행 (색인이 먼저다)
-    PYTHONPATH=src ~/.venvs/py312/bin/python src/make_reports_index.py
+    PYTHONPATH=src ~/.venvs/py312/bin/python src/build_volumes.py
     PYTHONPATH=src ~/.venvs/py312/bin/python src/make_readme.py
 """
 from __future__ import annotations
@@ -29,58 +33,79 @@ if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 import report_style as RS                                              # noqa: E402
-from report_registry import PARTS, REPORTS                             # noqa: E402
 from report_style import num                                           # noqa: E402
 
-OUT = os.path.join(ROOT, "README.md")
-IDX = "outputs/reports_index.json"
+#: 읽는 경로 ② «왜 믿을 수 있나» 의 정본은 권을 조립하는 스크립트다 — 1 권 절 1 의 지도와
+#: 같은 목록을 써야 README 와 리포트가 갈라지지 않는다.
+from build_volumes import VERIFY_PARTS                                 # noqa: E402
 
-#: 부 소개 한 줄 — 그 부가 무엇을 해냈는지. 물음(`PARTS[k]["question"]`)과 짝이다.
-PART_LEAD = {
-    0: "읽는 목적이 셋이라 진입 경로도 셋이다. 여기서 갈라진다.",
-    1: "Sionna RT 설치본을 인자 목록까지 해부해, 광선이 면을 맞았을 때 무엇이 계산되고 "
-       "무엇이 계산되지 않는지를 확정했다. 표적 산란이 별도 항이 되는 자리가 여기서 정해진다.",
-    2: "게재본 16편이 표적 서명을 어디서 조달했는지 전문으로 판정하고, 그 조달처가 사 준 "
-       "주장의 크기를 카탈로그로 만들었다.",
-    3: "기체 7종을 제원과 제조사 CAD 치수에서 세우고, 외형이 실물과 얼마나 맞는지를 사진 "
-       "IoU·CAD 치수·실물 스캔 세 자로 쟀다.",
-    4: "광선으로 조명면을 찾고 그 위에서 부품별 재질 PO 를 적분하는 커널을, 닫힌형 기준해 "
-       "셋과 맞대 구현오차와 모형 간극을 따로 쟀다.",
-    5: "σ 의 주파수 기울기만 공개 측정에서 받고 레벨과 각패턴은 우리 출력으로 두었다. 그 "
-       "판정을 눈감기 대조·대조군·사전등록 채점으로 때렸다.",
-    6: "드론을 얼마나 거칠게 그려도 되는지를 사다리로 물었다 — 몸통은 진짜 CAD 로 두고 "
-       "프로펠러만 갈아 끼운 축이 답할 자격이 있는 유일한 축이다.",
-    7: "로터를 돌려가며 시간표본마다 다시 추적해, 마이크로도플러 무늬를 정하는 것이 "
-       "회전수·가림·자세임을 단일축으로 갈랐다.",
-    8: "상시 기준신호를 세 표준의 자원격자에서 세우고, 조명원을 고르는 대가를 dB 원장으로 "
-       "닫았다.",
-    9: "수신 신호가 판정이 되기까지의 사슬을 세우고, CFAR 문턱을 경험 Pfa 로 교정했다.",
-    10: "같은 표적·같은 기하·같은 교정문턱에서 세 조명원의 검출거리를 앵커 σ 위에서 쟀다.",
-    11: "X410 으로 교정된 σ 를 얻는 세션 설계와, 어느 측정이 어느 주장을 결판내는지를 "
-        "수치로 고정했다.",
+OUT = os.path.join(ROOT, "README.md")
+IDX = "outputs/volumes_index.json"
+
+#: 다시 만들기 블록의 한 줄 설명. 명령 목록 자체는 색인(`_meta.order`)이 정한다.
+STEP_LEAD = {
+    "src/build_partNN_*.py": "조각 빌더 → reports/_parts/NN_slug.ipynb "
+                             "(계산 없음 · GPU 0 장 · 수 초)",
+    "src/make_report08_microdoppler.py": "그림이 무거워 여러 편으로 나뉘는 권을 따로 짓는다",
+    "src/build_volumes.py": "조각 → 권 + 후처리 + 색인 + reports/README.md",
+    "benchmark/check_report_links.py": "끊긴 링크·그림·출처를 전수로 센다",
 }
 
+#: 색인의 명령 목록이 글로브일 때 실제로 치는 명령.
+STEP_CMD = {"src/build_partNN_*.py": 'for f in src/build_part*.py; do PYTHONPATH=src $PY "$f"; done'}
 
-def _rows() -> list[dict]:
+
+# --------------------------------------------------------------------------- #
+#  색인 읽기 — 편성 숫자는 전부 여기서 온다
+# --------------------------------------------------------------------------- #
+def _index() -> dict:
     with open(os.path.join(ROOT, IDX), encoding="utf-8") as f:
-        return json.load(f)["reports"]
+        return json.load(f)
 
 
-def _slug(k: int) -> str:
-    return f"부-{k}-" + PARTS[k]["name"].replace(" ", "-")
+def _anchor_of(part_file: str) -> str:
+    """`reports/_parts/18_kernel-what.ipynb` → `kernel-what`."""
+    base = os.path.basename(part_file)
+    return re.sub(r"^\d+_", "", base[:-6] if base.endswith(".ipynb") else base)
 
 
-def _ref(anchor: str, short: bool = True) -> str:
-    r = REPORTS[anchor]
-    t = r["short"] if short else r["title"]
-    return f"[{r['no']} «{t}»](reports/{r['file']})"
+def _by_anchor(idx: dict) -> dict[str, dict]:
+    """앵커 → 그 조각이 앉은 권과 절. 앵커는 조각 파일 이름에서 읽는다."""
+    out: dict[str, dict] = {}
+    for pno, p in idx["parts"].items():
+        out[_anchor_of(p["part_file"])] = dict(p, part=pno)
+    return out
 
 
-#: 읽기 경로 — 편 00 과 같은 앵커 목록을 쓴다(정본은 `src/build_part00_map.py`).
-sys.path.insert(0, _HERE)
-from build_part00_map import PATH_FAST, PATH_TRUST                     # noqa: E402
+def _cut(t: str, width: int = 72) -> str:
+    """표 칸에 넣을 한 줄 — 굵은 표시를 떼고 길이로만 자른다.
+
+    ⚠ «—» 나 «,» 에서 자르지 않는다. 권 제목은 앞머리가 겹치는 것들이 있어
+      (8 권·9 권 둘 다 «마이크로도플러 — …») 앞부분만 남기면 서로 구별이 안 된다.
+    """
+    t = re.sub(r"\*\*", "", str(t)).strip()
+    return t if len(t) <= width else t[: width - 1].rstrip() + "…"
 
 
+def _gh_slug(heading: str) -> str:
+    """GitHub 이 제목에서 만드는 앵커. 글자·숫자·공백·하이픈만 남기고 공백을 하이픈으로."""
+    s = re.sub(r"[^\w\s\-]", "", heading.strip().lower(), flags=re.UNICODE)
+    return re.sub(r"\s", "-", s)
+
+
+def _vol_head(v: dict) -> str:
+    return f"권 {int(v['no'])} «{v['title']}»"
+
+
+def _sec_link(p: dict, width: int = 30) -> str:
+    """절 하나를 가리키는 링크 — `[리포트 5 절 1 «…»](reports/05_kernel.ipynb)`."""
+    return (f"[리포트 {int(p['volume'])} 절 {p['section']} «{_cut(p['title'], width)}»"
+            f"](reports/{p['file']})")
+
+
+# --------------------------------------------------------------------------- #
+#  각주
+# --------------------------------------------------------------------------- #
 def _footnotes(text: str) -> str:
     """본문의 `값 ⟨파일 : 키⟩` 를 `값[^n]` 으로 바꾸고 문서 끝에 각주 정의를 붙인다.
 
@@ -109,10 +134,20 @@ def _footnotes(text: str) -> str:
     return text + "\n".join(L) + "\n"
 
 
+# --------------------------------------------------------------------------- #
+#  본문
+# --------------------------------------------------------------------------- #
 def build() -> str:
-    rows = _rows()
-    by_part = {k: [r for r in rows if r["part"] == k] for k in PARTS}
-    n_rep, n_fig = len(rows), sum(len(r["figures"]) for r in rows)
+    idx = _index()
+    vols = idx["volumes"]
+    parts = idx["parts"]
+    anchors = _by_anchor(idx)
+    esc = RS._md_escape_cell
+
+    n_vol = len(vols)
+    n_sec = sum(int(v["n_sections"]) for v in vols)
+    n_fig = sum(int(v["figures"]) for v in vols)
+    n_split = [v for v in vols if len(v["files"]) > 1]
 
     L: list[str] = []
     A = L.append
@@ -128,48 +163,59 @@ def build() -> str:
     A("부품별 재질 PO 를 적분해 만든다. σ 의 **주파수 의존성**은 공개 측정(Das)에 맞추고,")
     A("**자세 패턴과 절대 레벨은 우리 PO 출력**이다.")
     A("")
-    A(f"보고서는 **편 {n_rep}개 · 부 {len(PARTS)}개** 다. 한 편이 중심 메시지 하나를 들고,")
-    A("**편 제목이 곧 그 편의 결론 문장**이다 — 목차를 읽는 것이 결론을 읽는 것이다.")
+    A(f"보고서는 **{n_vol}권 · 절 {n_sec}개** 다. **한 권이 물음 하나를 들고, 절 제목이 그 절의")
+    A("결론 문장**이다 — 목차를 읽는 것이 결론을 읽는 것이다. 사람이 읽는 문서는")
+    A("`reports/NN_slug.ipynb` 이고, " + " · ".join(
+        f"{int(v['no'])}권만 그림이 무거워 {len(v['files'])}편으로 나뉜다" for v in n_split)
+      + ("." if n_split else ""))
     A("")
 
     # ── 읽기 경로 ────────────────────────────────────────────────────────────
+    map_vol = vols[0]
     A("## 어디부터 읽어라")
     A("")
-    A(f"편 {n_rep}개를 처음부터 읽지 않는다. **읽는 목적이 셋이면 읽는 순서도 셋**이고,")
-    A(f"그 갈림길이 [편 00 «읽는 목적이 셋이면 읽는 순서도 셋이다»](reports/00_map.ipynb) 다.")
+    A(f"{n_vol}권을 처음부터 읽지 않는다. **읽는 목적이 셋이면 읽는 순서도 셋**이고,")
+    A(f"그 갈림길이 [리포트 {int(map_vol['no'])} 절 1 «{map_vol['sections'][0]['title']}»"
+      f"](reports/{map_vol['sections'][0]['file']}) 다.")
     A("")
     A("| 무엇을 하려는가 | 어디로 | 얼마나 |")
     A("|---|---|---|")
     A("| 이 저장소가 무엇을 해냈는지만 알고 싶다 | ↓ **① 빨리 훑기** | 30분 |")
     A("| 판정을 검사하려 한다(심사·적대검증) | ↓ **② 왜 믿을 수 있나** | 2시간 |")
     A("| 숫자를 재생산하려 한다 | [`docs/REPRODUCE.md`](docs/REPRODUCE.md) — "
-      "편 → 명령 → 출력 → 소요 | 리포트를 안 읽는다 |")
+      "명령 → 출력 → 소요 | 리포트를 안 읽는다 |")
     A("| 원고에 옮기려 한다 | [`docs/paper/`](docs/paper/README.md) — 조각마다 "
-      "«어느 편에서 왔나» 가 붙어 있다 | — |")
+      "«어디서 왔나» 가 붙어 있다 | — |")
+    A("| 권과 조각, 두 층이 왜 이런지 알고 싶다 | "
+      "[`docs/REPORTS_VOLUMES.md`](docs/REPORTS_VOLUMES.md) | — |")
     A("")
     A("### ① 빨리 훑기 — 30분")
     A("")
-    A("부마다 결론 편 하나씩이다. **오른쪽 칸이 그 편의 결론 문장 전체**이므로, 제목만 읽어도")
-    A("한 바퀴가 돈다. 막히는 데서만 그 편을 연다.")
+    A("권마다 결론 절 하나씩이다. **오른쪽 칸이 그 절의 결론 문장 전체**이므로, 제목만 읽어도")
+    A("한 바퀴가 돈다. 막히는 데서만 그 절을 연다.")
     A("")
-    A("| 부 | 편 | 이 편의 결론 |")
+    A("| 권 | 절 | 이 절이 낸 결론 |")
     A("|---|---|---|")
-    for a in PATH_FAST:
-        r = REPORTS[a]
-        A(f"| {r['part']} | [{r['no']}](reports/{r['file']}) `{a}` "
-          f"| {RS._md_escape_cell(r['title'])} |")
+    for v in vols:
+        p = parts.get(str(v["headline_part"]))
+        if not p:
+            continue
+        A(f"| [{int(v['no'])} «{esc(v['title'])}»](reports/{v['file']}) "
+          f"| [절 {p['section']}](reports/{p['file']}) | {esc(p['title'])} |")
     A("")
     A("### ② 왜 믿을 수 있나 — 2시간")
     A("")
-    A("검증·대조·반증 편만 모았다. 뼈대는 **눈감기 대조 · 사전등록 채점 · PREMATURE 판정 ·")
-    A("널 교정** 넷이다 — 우리가 틀렸을 수 있는 자리를 우리가 먼저 때린 편들이다.")
+    A("검증·대조·반증 절만 모았다. 뼈대는 **눈감기 대조 · 사전등록 채점 · PREMATURE 판정 ·")
+    A("널 교정** 넷이다 — 우리가 틀렸을 수 있는 자리를 우리가 먼저 때린 절들이다.")
     A("")
-    A("| 부 | 편 | 무엇을 때렸나 |")
-    A("|---|---|---|")
-    for a in PATH_TRUST:
-        r = REPORTS[a]
-        A(f"| {r['part']} | [{r['no']}](reports/{r['file']}) `{a}` "
-          f"| {RS._md_escape_cell(r['title'])} |")
+    A("| 권·절 | 무엇을 때렸나 |")
+    A("|---|---|")
+    for pno in VERIFY_PARTS:
+        p = parts.get(str(pno))
+        if not p:
+            continue
+        A(f"| [리포트 {int(p['volume'])} 절 {p['section']}](reports/{p['file']}) "
+          f"| {esc(p['title'])} |")
     A("")
     A("---")
     A("")
@@ -177,45 +223,53 @@ def build() -> str:
     # ── 저장소가 한 일 ────────────────────────────────────────────────────────
     A("## 이 저장소가 한 일")
     A("")
-    A("| 한 일 | 수치 | 어느 편 |")
+    A("| 한 일 | 수치 | 어느 절 |")
     A("|---|---|---|")
     for what, value, anchor in _headline():
-        A(f"| {what} | {value} | {_ref(anchor)} |")
+        p = anchors[anchor]
+        A(f"| {what} | {value} | {_sec_link(p)} |")
     A("")
     A("---")
     A("")
 
-    # ── 부 목차 ──────────────────────────────────────────────────────────────
-    A("## 목차 — 부 12개")
+    # ── 권 목차 ──────────────────────────────────────────────────────────────
+    A(f"## 목차 — {n_vol}권")
     A("")
-    A("부마다 답하는 물음이 하나다. 아래 표의 «편» 칸은 그 편의 **결론 문장** 그대로다.")
+    A("권마다 답하는 물음이 하나다. 절 제목은 그 절의 **결론 문장** 그대로다.")
     A("")
-    A("| 부 | 이름 | 이 부가 답하는 물음 | 편 |")
+    A("| 권 | 이 권이 답하는 물음 | 절 | 그림 |")
     A("|---|---|---|---|")
-    for k, p in sorted(PARTS.items()):
-        sub = by_part.get(k) or []
-        if not sub:
-            continue
-        span = f"{sub[0]['no']}~{sub[-1]['no']}" if len(sub) > 1 else sub[0]["no"]
-        A(f"| [{k}](#{_slug(k)}) | {p['name']} | {p['question']} | {span} ({len(sub)}편) |")
+    for v in vols:
+        A(f"| [{int(v['no'])} «{esc(v['title'])}»](#{_gh_slug(_vol_head(v))}) "
+          f"| {esc(_cut(v['thesis']))} | {v['n_sections']} | {v['figures'] or ''} |")
+    A("")
+    A(f"셀 {idx['_meta']['n_cells']}개 · 각주 {idx['_meta']['n_footnotes']}개 · "
+      f"그림 {n_fig}장. 절 단위 목차는 [`reports/README.md`](reports/README.md) 에도 있다.")
     A("")
 
-    for k, p in sorted(PARTS.items()):
-        sub = by_part.get(k) or []
-        if not sub:
-            continue
-        A(f"### 부 {k} «{p['name']}»")
+    for v in vols:
+        A(f"### {_vol_head(v)}")
         A("")
-        A(f"**{p['question']}**")
+        A(v["thesis"])                     # 논지는 자기 강조를 이미 달고 있다
         A("")
-        A(PART_LEAD.get(k, ""))
+        A(f"→ [`reports/{v['file']}`](reports/{v['file']})")
         A("")
-        A("| 편 | 이 편의 결론 | 그림 |")
-        A("|---|---|---|")
-        for r in sub:
-            nfig = len(r["figures"])
-            A(f"| [{r['no']}](reports/{os.path.basename(r['file'])}) `{r['anchor']}` "
-              f"| {RS._md_escape_cell(r['title'])} | {nfig or ''} |")
+        if len(v["files"]) > 1:
+            A(f"이 {len(v['files'])}편은 `{v['builder']}` 가 짓는다."
+              if v.get("builder") else f"이 권은 {len(v['files'])}편으로 나뉜다.")
+            A("")
+            A("| 편 | 무엇에 답하나 |")
+            A("|---|---|")
+            for nb in v.get("notebooks", []):
+                A(f"| [`{nb['file']}`](reports/{nb['file']}) | {esc(nb['holds'])} |")
+            A("")
+            if v.get("append_to"):
+                A(f"아래 절은 [`{v['append_to']}`](reports/{v['append_to']}) 에 이어 붙어 있다.")
+                A("")
+        A("| 절 | 이 절의 결론 |")
+        A("|---|---|")
+        for s in v["sections"]:
+            A(f"| [{s['n']}](reports/{s['file']}) | {esc(s['title'])} |")
         A("")
 
     A("---")
@@ -227,7 +281,7 @@ def build() -> str:
     A("| 위치 | 내용 |")
     A("|---|---|")
     A("| [`report_mesh/`](report_mesh) 8편 | 드론 메쉬 제작·검증 심화 가이드 |")
-    A("| [`prior_work/`](prior_work) | 선행연구·오픈소스 조사 원자료 — 부 2 의 census 가 "
+    A("| [`prior_work/`](prior_work) | 선행연구·오픈소스 조사 원자료 — 3권의 census 가 "
       "여기서 나온다 |")
     A("| [`OPENSOURCE.md`](OPENSOURCE.md) | 오픈소스 대체 지도(RadarSimPy 교차검증 · "
       "OpenISAC X410 실측) |")
@@ -236,23 +290,22 @@ def build() -> str:
     A("")
     A("## 다시 만들기")
     A("")
+    A("순서가 중요하다 — 뒤 단계가 앞 단계의 산출물을 읽는다.")
+    A("")
     A("```bash")
     A("cd /home/yunjung/workspace/sionna2")
     A("PY=~/.venvs/py312/bin/python")
+    _CIRCLED = "①②③④⑤⑥⑦⑧⑨"
+    for i, step in enumerate(idx["_meta"]["order"], 1):
+        A("")
+        mark = _CIRCLED[i - 1] if i <= len(_CIRCLED) else f"{i}."
+        A(f"# {mark} {STEP_LEAD[step]}" if step in STEP_LEAD else f"# {mark}")
+        A(STEP_CMD.get(step, f"PYTHONPATH=src $PY {step}"))
     A("")
-    A("# ① 편 78개를 다시 조립한다 (계산 없음 · GPU 0장 · 수 초)")
-    A("for f in src/build_part*.py; do PYTHONPATH=src $PY \"$f\"; done")
-    A("")
-    A("# ② 색인 · 재현 문서 · 논문 목차 · 지도 편 · README")
-    A("PYTHONPATH=src $PY src/make_reports_index.py")
-    A("PYTHONPATH=src $PY src/build_part00_map.py")
-    A("PYTHONPATH=src $PY src/make_legacy_map.py")
+    A("# 이 README (색인을 읽어 목차를 다시 낸다)")
     A("PYTHONPATH=src $PY src/make_readme.py")
     A("")
-    A("# ③ 편 사이 참조 검사 — 끊긴 링크·없는 앵커·안 열리는 출처를 센다")
-    A("PYTHONPATH=src $PY benchmark/check_report_links.py")
-    A("")
-    A("# ④ 숫자 자체를 다시 낸다 (GPU) — 어느 편의 어느 명령인지는 docs/REPRODUCE.md 에")
+    A("# 숫자 자체를 다시 낸다 (GPU) — 어느 절의 어느 명령인지는 docs/REPRODUCE.md 에")
     A("PYTHONPATH=src:benchmark $PY benchmark/regen_mesh_dependents.py --list")
     A("PYTHONPATH=src:benchmark $PY benchmark/regen_mesh_dependents.py")
     A("```")
@@ -267,52 +320,62 @@ def build() -> str:
     A("")
     A("## 하우스 규약")
     A("")
-    A("- **편 제목이 결론 문장이다.** «…다» 로 끝나는 평서문이고, 물음표로 끝나는 제목은")
-    A("  `src/report_style.py` 가 막는다.")
-    A(f"- **숫자는 손으로 치지 않는다.** 전부 `num()` 이 JSON 을 열어 값을 대조하고, 화면에는")
-    A(f"  각주 `[^n]` 으로 찍힌다. 편 끝 «출처» 표의 값은 표를 만들 때 JSON 을 **다시 열어**")
-    A(f"  채운 것이다(왕복 검사). 지금 편 {n_rep}개에 그림 {n_fig}장이 실려 있다.")
+    A("- **권 제목은 물음, 절 제목은 답이다.** 절 제목은 «…다» 로 끝나는 평서문이고, "
+      "물음표로 끝나는 절 제목은 `src/report_style.py` 가 막는다.")
+    A("- **숫자는 손으로 치지 않는다.** 전부 `num()` 이 JSON 을 열어 값을 대조하고, 화면에는")
+    A("  각주 `[^n]` 으로 찍힌다. 절 끝 «출처» 표의 값은 표를 만들 때 JSON 을 **다시 열어**")
+    A(f"  채운 것이다(왕복 검사). 지금 {n_vol}권에 각주 {idx['_meta']['n_footnotes']}개와 "
+      f"그림 {n_fig}장이 실려 있다.")
+    A("- **본문을 고칠 곳은 조각 빌더다.** 조각(`reports/_parts/`)과 권(`reports/`)은 둘 다 "
+      "생성물이라, 손으로 고치면 다음 빌드에서 사라진다.")
     A("- **논문 문장과 재현 절차는 리포트 밖에 산다** — 사용자 지시다. "
       "[`docs/paper/`](docs/paper/README.md) 와 [`docs/REPRODUCE.md`](docs/REPRODUCE.md).")
-    A("- 각 편은 `한 일 / 결과 / 방법 / 재현` 으로 열고 `다음 단계` 표로 닫는다. "
+    A("- 각 절은 `한 일 / 결과 / 방법 / 재현` 으로 열고 `다음 단계` 표로 닫는다. "
       "«다음 단계» 는 한계 목록이 아니라 앞을 보는 행동이다.")
     A("- 그림 텍스트(제목·축·범례·주석)는 **영어**, 본문·주석·print 는 **한국어**.")
-    A("- 분량 상한: 편당 마크다운 25셀 · 셀당 12줄 · 편당 그림 8장. **넘치면 내용을 줄이지 "
-      "말고 편을 쪼갠다.**")
+    A("- **권의 길이는 그 권이 답하는 물음의 크기가 정한다** — 셀 수 상한을 두지 않는다.")
     A("")
     A("## 저장소 구조")
     A("")
+    A("읽는 층과 만드는 층이 갈려 있다.")
+    A("")
     A("```")
-    A("reports/NN_<anchor>.ipynb   ⭐본편 78편 (생성물) — 번호는 읽는 순서다")
-    A("report_mesh/               부록 8편 (동결)")
-    A("prior_work/                선행연구 조사 원자료")
+    A(f"reports/NN_slug.ipynb        ⭐권 {n_vol}개 — 사람이 읽는 문서. 한 권이 물음 하나")
+    A("  README.md                  권 목차 (생성물)")
+    A(f"  _parts/NN_slug.ipynb       조각 {idx['_meta']['n_parts_on_disk']}편 — 빌더 산출물."
+      " 직접 읽지 않는다")
+    A("report_mesh/                 부록 8편 (동결)")
+    A("prior_work/                  선행연구 조사 원자료")
     A("")
     A("src/")
-    A("  build_part0N_*.py        ⭐편 생성기 — 서술의 원본. 계산은 없다")
-    A("  build_part00_map.py      지도 편 + 읽기 경로의 정본")
-    A("  make_reports_index.py    색인 · docs/REPRODUCE.md · docs/paper/README.md")
-    A("  make_readme.py           이 파일을 만든다")
-    A("  report_style.py          규약 강제(num()·각주·분량 상한·부정문 계수)")
-    A("  report_registry.py       앵커 사전 — 편 사이 링크의 유일한 출처")
-    A("  drones.py                ⭐표적 레지스트리 DRONES — 기종·제원의 유일한 출처")
-    A("  materials.py             ⭐전파재질 단일 진리원 — Sionna RT 와 PO 가 둘 다 읽는다")
-    A("  rcs_sbr.py               ⭐SBR+PO 커널 (Mitsuba 광선조준 + PO 표면적분)")
-    A("  sigma_anchor.py          ⭐측정 앵커 재보정 σ=A(f)·B₁·B₂ + 미통제 항 원장")
-    A("  waveforms*.py            WiFi/LTE/5G OFDM 합성 + Sionna PHY 대조")
-    A("  passive_process.py       패시브 DSP: ECA → CAF 거리도플러 → CA-CFAR")
-    A("  experiment_*.py          검출·자유공간 실험(GPU 몬테카를로)")
-    A("  viz_*.py                 그림 (텍스트는 전부 영어)")
+    A("  build_partNN_*.py          ⭐조각 생성기 — 서술의 원본. 계산은 없다")
+    A("  build_volumes.py           ⭐조각 → 권 + 색인 + reports/README.md")
+    A("  make_report08_microdoppler.py  8권 네 편(그림이 무거워 따로 짓는다)")
+    A("  make_readme.py             이 파일을 만든다")
+    A("  report_style.py            규약 강제(num()·각주·부정문 계수)")
+    A("  report_registry.py         앵커 사전 — 조각 사이 링크의 유일한 출처")
+    A("  drones.py                  ⭐표적 레지스트리 DRONES — 기종·제원의 유일한 출처")
+    A("  materials.py               ⭐전파재질 단일 진리원 — Sionna RT 와 PO 가 둘 다 읽는다")
+    A("  rcs_sbr.py                 ⭐SBR+PO 커널 (Mitsuba 광선조준 + PO 표면적분)")
+    A("  sigma_anchor.py            ⭐측정 앵커 재보정 σ=A(f)·B₁·B₂ + 미통제 항 원장")
+    A("  waveforms*.py              WiFi/LTE/5G OFDM 합성 + Sionna PHY 대조")
+    A("  passive_process.py         패시브 DSP: ECA → CAF 거리도플러 → CA-CFAR")
+    A("  experiment_*.py            검출·자유공간 실험(GPU 몬테카를로)")
+    A("  viz_*.py                   그림 (텍스트는 전부 영어)")
     A("")
     A("benchmark/")
-    A("  check_report_links.py    ⭐편 사이 참조 전수 검사")
-    A("  regen_mesh_dependents.py ⭐재생성 파이프라인 — 무엇을 어느 순서로 돌리나")
-    A("  mie_pec_sphere.py        기준해 두 개(정확 Mie · 해석 PO) — 커널의 과녁")
-    A("  verify_*.py              검증 하네스 (편이 읽는 verify_*.json 생산)")
+    A("  check_report_links.py      ⭐링크·그림·출처 전수 검사")
+    A("  regen_mesh_dependents.py   ⭐재생성 파이프라인 — 무엇을 어느 순서로 돌리나")
+    A("  mie_pec_sphere.py          기준해 두 개(정확 Mie · 해석 PO) — 커널의 과녁")
+    A("  verify_*.py                검증 하네스 (절이 읽는 verify_*.json 생산)")
     A("")
-    A("outputs/                   *.json(숫자의 원본) · figures/ · reports_index.json")
-    A("docs/                      REPRODUCE.md · paper/ · repro/ · SPECS.md · "
-      "MEASUREMENT_PLAN.md")
+    A("outputs/                     *.json(숫자의 원본) · figures/ · volumes_index.json")
+    A("docs/                        REPORTS_VOLUMES.md(편성) · REPRODUCE.md · paper/ · "
+      "SPECS.md")
     A("```")
+    A("")
+    A(f"기계용 색인은 [`{IDX}`]({IDX}) 다 — 권·절·조각 배치와 셀·각주·그림 수가 전부 거기 "
+      "있고, 이 README 의 목차는 그 파일을 읽어 만든 것이다.")
     A("")
     A("## 별도 주제 — 코드는 그대로 있다")
     A("")
@@ -325,7 +388,7 @@ def build() -> str:
 
 
 def _headline() -> list[tuple[str, str, str]]:
-    """저장소 헤드라인 — (한 일, 수치, 어느 편)."""
+    """저장소 헤드라인 — (한 일, 수치, 어느 조각의 앵커)."""
     KRS, DFX, ANC = ("outputs/sbr_kr_sweep.json", "outputs/sbr_defect_fixes.json",
                      "outputs/rcs_anchor.json")
     DER, CEN = "outputs/report02_derived.json", "outputs/prior_census.json"
@@ -390,12 +453,14 @@ def _headline() -> list[tuple[str, str, str]]:
 
 
 def main() -> int:
+    idx = _index()
     text = build()
     with open(OUT, "w", encoding="utf-8") as f:
         f.write(text)
     n_foot = len(re.findall(r"^\[\^\d+\]:", text, re.M))
+    n_sec = sum(int(v["n_sections"]) for v in idx["volumes"])
     print(f"✅ README.md — {len(text):,}자 · 각주 {n_foot}개 · "
-          f"편 {len(_rows())}개 · 부 {len(PARTS)}개")
+          f"권 {len(idx['volumes'])}개 · 절 {n_sec}개")
     return 0
 
 

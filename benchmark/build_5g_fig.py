@@ -40,7 +40,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
-from md_mapstyle import flash_spec, draw, caption, YLIM_FTIP           # noqa: E402
+from md_mapstyle import (YLIM_FTIP, auto_periods, caption, draw,       # noqa: E402
+                         flash_spec)
 
 J = json.load(open(f"{ROOT}/outputs/report07_5g_waveform.json"))
 Z = np.load(f"{ROOT}/outputs/report07_5g_waveform.npz")
@@ -72,7 +73,11 @@ def prep(E, fs):
     """⭐분석은 md_mapstyle 규약 그대로 — 앞 T_SHOW 초만 잘라 그린다.
     표시용으로만 행(그리는 도플러 창 밖)·열(화소 초과분)을 줄인다."""
     E = np.asarray(E, complex)[: max(8, int(round(T_SHOW * fs)))]
-    f, t, S, nper = flash_spec(E, fs, FFL)
+    #  ⭐ 2026-08-10 정정 — 조각 길이를 규약 기본값(0.6 주기)에 두고 있었다. auto_periods 가
+    #     표본이 충분한 팔에서는 0.45 주기를 골라 준다(전량 포착 팔: Δt 4.75 → 3.54 ms).
+    #     표본이 모자란 팔(1 kHz 파일럿·50 Hz SSB)에서는 auto_periods 가 스스로 0.6 으로
+    #     물러서므로, 팔마다 «가장 뚜렷한» 조각이 자동으로 잡힌다.
+    f, t, S, nper = flash_spec(E, fs, FFL, auto_periods(fs, FFL))
     n_slots = len(t)
     keep = np.abs(f) <= YMAX_HZ * 1.05                   # 그리는 창 밖 행은 모아레만 낳는다
     f, S = f[keep], S[keep]

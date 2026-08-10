@@ -36,6 +36,8 @@ import matplotlib.pyplot as plt                            # noqa: E402
 from drones import DRONES                                # noqa: E402
 import microdoppler_nearfield as nf                        # noqa: E402
 from microdoppler import spectrogram                       # noqa: E402
+#  ⭐ 마이크로도플러 맵 표시 규약 — 한 자리(md_mapstyle)에서만 가져온다.
+from md_mapstyle import auto_periods, draw as md_draw, flash_spec   # noqa: E402
 
 SRC = os.path.join(_ROOT, "outputs", "md_range_sweep.json")
 FIGDIR = os.path.join(_ROOT, "outputs", "figures")
@@ -99,17 +101,16 @@ def f1_spectrogram_grid(doc):
     fig, axes = plt.subplots(len(arms), len(SHOW_RANGES),
                              figsize=(4.1 * len(SHOW_RANGES), 3.1 * len(arms)),
                              sharex=True, sharey=True)
-    vmin, vmax = -45.0, 0.0
     for i, arm in enumerate(arms):
         for j, R in enumerate(SHOW_RANGES):
             ax = axes[i, j]
             E, info, prf = _series_for(doc, HEADLINE_DRONE, HEADLINE_BAND, R, arm, rng)
-            f, tt, S = spectrogram(E, prf, nperseg=256, nfft=1024)
-            sel = np.abs(f) <= 2.2 * info["f_tip"]
-            im = ax.pcolormesh(tt * 1e3, f[sel], S[sel], cmap="magma",
-                               vmin=vmin, vmax=vmax, shading="auto")
-            for s in (+1, -1):
-                ax.axhline(s * info["f_tip"], color="#4dd0e1", lw=0.9, ls="--", alpha=0.85)
+            #  ⭐ 표시 규약은 src/md_mapstyle.py 한 자리가 정한다(우회 금지).
+            #     옛 판은 nperseg 를 256 으로 **고정**해 두어, 기체·PRF 가 바뀌면 조각이
+            #     블레이드 주기의 몇 배인지가 그림마다 달라졌다. 규약은 «주기의 배수» 로 잡는다.
+            ffl = float(info["flash_hz"])
+            f, tt, S, _n = flash_spec(E, prf, ffl, auto_periods(prf, ffl))
+            im = md_draw(ax, tt, f, S, info["f_tip"])
             if i == 0:
                 ax.set_title(f"R = {R:g} m" + ("   (far field)" if R >= c["r_ff_m"]
                                                else "   (NEAR field)"),
@@ -119,11 +120,11 @@ def f1_spectrogram_grid(doc):
                 ax.set_ylabel(ARM_LABEL[arm] + "\n\nDoppler [Hz]", fontsize=8.5)
             if i == len(arms) - 1:
                 ax.set_xlabel("Slow time [ms]", fontsize=9)
-    fig.colorbar(im, ax=axes, shrink=0.6, pad=0.012, label="|STFT| [dB re max]")
+    fig.colorbar(im, ax=axes, shrink=0.6, pad=0.012, label="Magnitude [dB re max]")
     fig.suptitle(f"Micro-Doppler vs range — three-arm separation   "
                  f"({HEADLINE_DRONE}, {HEADLINE_BAND}, monostatic, el 15°)\n"
                  f"far-field boundary $2D^2/\\lambda$ = {c['r_ff_m']:.2f} m   |   "
-                 f"dashed cyan = kinematic $\\pm f_{{tip}}$ = {c['f_tip_hz']:.0f} Hz",
+                 f"white dashed = kinematic $\\pm f_{{tip}}$ = {c['f_tip_hz']:.0f} Hz",
                  fontsize=13, fontweight="bold", y=0.995)
     return _save(fig, "f1_spectrogram_grid")
 

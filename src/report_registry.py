@@ -35,8 +35,14 @@ ROOT = os.path.abspath(os.path.join(_HERE, ".."))
 
 PLAN = os.path.join(ROOT, "outputs", "restruct_exec_plan.json")
 
-#: 편이 사는 곳. 링크는 이 디렉터리 안에서의 상대경로다.
-REPORT_DIR = os.path.join(ROOT, "reports")
+#: ⭐조각이 사는 곳(2026-08-10). 옛 78 편은 `reports/_parts/` 로 옮겨졌고 **사람이 직접 읽는
+#  문서가 아니다** — 사람이 읽는 것은 `reports/` 의 15 권이다(`src/build_volumes.py`).
+#  ⚠이 상수가 `reports/` 를 가리키던 동안 두 가지가 조용히 어긋나 있었다:
+#    ① `nb_path()` 가 조각을 권 디렉터리에 쏟아, 조각 빌더를 돌리면 78 개가 권과 섞였다.
+#    ② `_built_title()` 이 조각을 못 찾아 «지어진 편의 제목이 정본» 규약이 죽고,
+#       계획 JSON 의 낡은 제목 9 건이 되살아나 있었다.
+#  ⚠ 링크 주소는 안 바뀐다 — `ref()`·`ref_fig()`·`ref_part()` 는 basename 만 쓴다.
+REPORT_DIR = os.path.join(ROOT, "reports", "_parts")
 
 _CUT = ("—", " — ", ",", "，")
 

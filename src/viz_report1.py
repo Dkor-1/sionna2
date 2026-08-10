@@ -823,19 +823,30 @@ def measure_microdoppler(n_phase=144, n_t=6144, prf=20000.0):
     return out, store
 
 
-def spectro_store(md, nperseg=128, nfft=2048):
+def spectro_store(md=None):
     """저장된 E(t) 로 스펙트로그램만 다시 계산 (광선을 다시 쏘지 않는다).
-    nperseg 를 짧게 잡아야 **블레이드 플래시(세로 줄무늬)** 가 시간축에서 보인다:
-    창 길이 {nperseg}/prf 가 플래시 주기(1/flash)보다 짧아야 한다."""
-    from microdoppler import spectrogram
+
+    ⭐ 표시 규약은 **src/md_mapstyle.py** 한 자리가 정한다 — 여기서 다시 정하지 않는다.
+      옛 판은 `nperseg` 를 128 로 **고정**해 두었다. 조각의 물리적 의미는 «블레이드 주기의
+      몇 배인가» 인데, 기체마다 플래시율이 다르므로 고정 표본수는 기체마다 다른 조각이 된다
+      (같은 128 표본이 어떤 기체에는 0.3 주기, 다른 기체에는 1.2 주기다 — 뒤쪽은 플래시가
+      한 조각 안에서 시간평균되어 지워진다). 규약은 주기의 배수로 잡아 그 편차를 없앤다.
+    """
+    from drones import DRONES
+    from md_mapstyle import auto_periods, flash_spec
     z = np.load(NPZ)
     prf = float(z["prf"])
-    return {k: spectrogram(z[k], prf, nperseg=nperseg,
-                           noverlap=nperseg - max(1, nperseg // 16), nfft=nfft)
-            for k in DKEYS}
+    out = {}
+    for k in DKEYS:
+        s = DRONES[k]
+        f_flash = s.prop_blades * s.hover_rpm / 60.0          # 블레이드 플래시율 [Hz]
+        f, t, S, _n = flash_spec(z[k], prf, f_flash, auto_periods(prf, f_flash))
+        out[k] = (f, t, S)                 # ⚠ dB 변환은 md_mapstyle.draw 가 한다
+    return out
 
 
 def fig_microdoppler(md: dict, store: dict):
+    from md_mapstyle import draw as md_draw
     D = md["drones"]; C = md["cfg"]
     # ⚠ 격자는 **기종 수 + 막대패널 1** 에서 유도한다. 예전엔 2×3 에 패널 5개를 손으로 나열해
     #   두었고, 기종을 추가하면 zip 이 조용히 잘라 새 기체의 스펙트로그램이 사라졌다.
@@ -846,11 +857,10 @@ def fig_microdoppler(md: dict, store: dict):
     axes = [fig.add_subplot(gs[i // ncol, i % ncol]) for i in range(n_d)]
     m = None
     for ax_, k in zip(axes, DKEYS):
-        f, tt, Sdb = store[k]
+        f, tt, S = store[k]
         d = D[k]
-        m = ax_.pcolormesh(tt * 1e3, f, Sdb, cmap="magma", vmin=-45, vmax=0, shading="auto")
-        ax_.axhline(d["f_tip_hz"], color="#4fc3f7", ls="--", lw=1.0)
-        ax_.axhline(-d["f_tip_hz"], color="#4fc3f7", ls="--", lw=1.0)
+        #  ⭐ 색·색역·음영·예측선은 md_mapstyle.draw 가 규약대로 한다(흰 파선 = f_tip).
+        m = md_draw(ax_, tt, f, S, d["f_tip_hz"])
         lim = 1.35 * max(d["f_tip_hz"], 200)
         ax_.set_ylim(-lim, lim)
         ax_.set_title(f"{k}   {d['rpm']:.0f} rpm,  flash {d['flash_hz']:.0f} Hz",
@@ -860,7 +870,7 @@ def fig_microdoppler(md: dict, store: dict):
         ax_.annotate(f"$f_{{tip}}$ = {d['f_tip_hz']:.0f} Hz", (0.98, 0.03),
                      xycoords="axes fraction", ha="right", va="bottom", fontsize=8.5,
                      color="white", bbox=dict(fc="#0d47a1", ec="none", alpha=0.65, pad=1.6))
-    fig.colorbar(m, ax=axes[min(ncol - 1, n_d - 1)], fraction=0.046, label="dB  (peak = 0)")
+    fig.colorbar(m, ax=axes[min(ncol - 1, n_d - 1)], fraction=0.046, label="Magnitude [dB re max]")
 
     a = fig.add_subplot(gs[n_d // ncol, n_d % ncol])     # 막대패널 = 스펙트로그램 바로 다음 칸
     x = np.arange(len(DKEYS))
@@ -879,7 +889,7 @@ def fig_microdoppler(md: dict, store: dict):
 
     fig.suptitle(f"Micro-Doppler preview computed with SBR (occlusion included), {C['fc']/1e9:.1f} GHz, "
                  f"az {C['az']:.0f} deg / el {C['el']:.0f} deg", fontsize=14, fontweight="bold")
-    _cap(fig, "Each panel is the slow-time complex field E(t) of the fully articulated drone: the frame is static, the propellers spin at the hover rpm derived above. Vertical stripes are blade flashes; the blue dashes are the kinematic limit f_tip.\n"
+    _cap(fig, "Each panel is the slow-time complex field E(t) of the fully articulated drone: the frame is static, the propellers spin at the hover rpm derived above. Vertical stripes are blade flashes; the white dashes are the kinematic limit f_tip.\n"
               "E(t) is not a closed-form model. For every rotor phase the mesh is re-posed and Mitsuba shoots a fresh ray grid at it, so a blade that swings behind the body simply stops scattering. "
               "The whole pose is a function of one angle phi = omega t and an n-blade prop repeats every 360/n degrees, so one period is tabulated and the time axis interpolates it.\n"
               f"Bottom right: the price of the old pure-PO model. Without occlusion it kept counting blades hidden behind the body and hardware sealed inside the shell, "
@@ -1027,7 +1037,7 @@ def build_all(only=None, n_phase=144, n_frames=36):
         md, _ = measure_microdoppler(n_phase=n_phase)
         J["microdoppler"] = md
         # 짧은 창(nperseg=128 → 6.4 ms < 플래시 주기)으로 다시 STFT → 블레이드 플래시가 보인다
-        J["figures"]["microdoppler"] = fig_microdoppler(md, spectro_store(md, nperseg=128))
+        J["figures"]["microdoppler"] = fig_microdoppler(md, spectro_store())
     if "gif" in only:
         print("\n▶ 분절 애니메이션 — Sionna 렌더 → GIF")
         J["renders"]["articulation_gif"] = render_articulation(n_frames=n_frames)
