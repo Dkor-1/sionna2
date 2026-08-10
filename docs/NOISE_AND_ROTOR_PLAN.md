@@ -3,6 +3,8 @@
 > **이 문서는 «다음 세션이 그대로 착수하는 지시서» 다.** 코드는 한 줄도 안 고쳤다.
 > 각 항목은 «어느 파일의 어느 함수에 어떤 인자를 넣고 어느 원장에 어떤 키를 낸다» 수준으로 쓴다.
 >
+> **이 문서의 수치 원장**: `outputs/noise_rotor_plan.json` (여기 나오는 모든 수가 들어 있다)
+>
 > **근거 문서** (먼저 읽어라, 여기서 다시 논증하지 않는다)
 > · `prior_work/noise_modeling_survey.md` + `outputs/noise_modeling_survey.json` — 잡음 조사
 > · `prior_work/rotor_randomness_survey.md` + `outputs/rotor_randomness_survey.json` — 로터 조사
@@ -53,8 +55,8 @@ G_mf = 10·log10(B / PRF) = 10·log10(100e6 / 19,700) = 37.06 dB
 
 **파급**: `md_range_sweep.json` 의 «5 m 부터 `fd_edge` 가 NaN(=블레이드선 묻힘)» 은
 이 37 dB 를 안 넣은 결과다. 넣으면 같은 문턱(`spec_peak_over_floor_db ≥ 10 dB`)이
-**R ≈ 42 m** 로 밀린다(matrice4e·EIRP 12 dBm). 이것은 «40 m 는 예산이었지 구조가 아니었다»
-(`docs/RESUME.md` 미해결 선언)와 **같은 방향**이다.
+**R ≈ 35 ~ 42 m** 로 밀린다(matrice4e·EIRP 12 dBm·문턱 감도 10~13 dB). 이것은
+«40 m 는 예산이었지 구조가 아니었다»(`docs/RESUME.md` 미해결 선언)와 **같은 방향**이다.
 
 ⚠ 단, `G_mf` 는 **풀 웨이브폼 캡처** 전제에서만 성립한다 — PRF 19.7 kHz 로 슬로타임을 뽑으려면
 매 PRI(50.8 µs)마다 100 MHz 를 통째로 상관해야 한다. 상시 기준신호(LTE CRS 1 kHz·5G SSB 50 Hz)
@@ -181,7 +183,8 @@ P_n              = k · T0 · F · B_eff                                     [W]
 
 | 필요한 것 | 어디서 | 값 |
 |---|---|---|
-| σ (방위평균) | `outputs/md_range_sweep.json` → `cells[].rows[].sigma_eq_aspect_mean_plane_dbsm` | matrice4e **−18.88 dBsm** · mavic4pro −15.93 · mini5pro −20.00 · s1000plus −15.90 · phantom4 −16.92 (3.5 GHz) |
+| σ (**방위평균**, 36 방위) | `outputs/md_range_sweep.json` → `cells[].rows[].sigma_eq_aspect_mean_plane_dbsm` | matrice4e **−18.88 dBsm** · mavic4pro −15.93 · mini5pro −20.00 · s1000plus −15.90 · phantom4 −16.92 (3.5 GHz). ⚠**단일자세 `sigma_eq_plane_dbsm` 을 쓰지 마라** — 그 파일 자신이 «비인용» 이라 선언한다 |
+| dc_ac (기체별) | 같은 파일 `rows[].arms.A0_reference.dc_ac_db` | matrice4e **17.3** · s1000plus 18.9 · mini5pro 26.5 · phantom4 32.5 · mavic4pro **37.2 dB** |
 | EIRP·G·F·B | `microdoppler_nearfield.py:327-331` (챔버 12 dBm) / `benchmark/link_budget.py:46-50` (매크로 63 dBm) | 12 또는 63 dBm · 10 dBi · 5 dB · 100 MHz |
 | 바이스태틱 기하 | `benchmark/geometry.py` TX/RX/CENTER → `bistatic_scene.bistatic_params` | R1·R2·L·β |
 | DTR | `benchmark/passive_two_channel_md.py:108-124` `scene_numbers()` | `4π R1²R2²/(L²σ)` |
@@ -195,13 +198,15 @@ P_n              = k · T0 · F · B_eff                                     [W]
 
 | R [m] | ① snr_band | ③ snr_slow | ③′ snr_slow_ac | ⑤ snr_map_ac |
 |---|---|---|---|---|
-| 3 | +18.69 | +55.74 | +38.44 | +55.14 |
-| 10 | −2.23 | +34.83 | +17.53 | +34.22 |
-| 15 | −9.27 | +27.79 | +10.49 | +27.18 |
-| 20 | −14.27 | +22.79 | +5.49 | +22.18 |
-| **40** | −26.31 | +10.75 | **−6.55** | +10.14 |
-| 60 | −33.35 | +3.70 | −13.60 | +3.09 |
-| 100 | −42.23 | −5.17 | −22.47 | −5.78 |
+| 3 | +18.69 | +55.74 | +38.36 | +55.06 |
+| 10 | −2.23 | +34.83 | +17.45 | +34.14 |
+| 15 | −9.27 | +27.79 | +10.41 | +27.10 |
+| 20 | −14.27 | +22.79 | +5.41 | +22.10 |
+| **40** | −26.31 | +10.75 | **−6.63** | +10.06 |
+| 60 | −33.35 | +3.70 | −13.68 | +3.01 |
+| 100 | −42.23 | −5.17 | −22.55 | −5.86 |
+
+(`snr_band(R=1 m) = +37.77 dB`. 사다리 전부가 이 한 수에서 `−40log10(R)` 로 내려간다.)
 
 **⭐그리고 이것이 «분류 정확도 대 거리»를 준다.** `outputs/md_classify.json` 의 잡음 팔이
 **정확히 ③′ 축** 이므로(§0-1), 거리로 바로 옮겨진다:
@@ -295,7 +300,7 @@ draw(ax, t, f, S, f_tip, *, t_scale=1e3, ref=None,
 3. **한 장의 연속 스펙트로그램에 구간 라벨** — **(c)**. arXiv:2402.04368 Fig. 4(b) 가
    «(II) 검출은 되는데 마이크로도플러는 안 보임 / (III) 둘 다 보임» 을 한 장에 표시한다 `[조사]`.
    우리 사다리로 그 구간 경계가 **계산된다**: ③ > 0 dB 인데 ③′ < 0 dB 인 구간이 정확히 (II) 다.
-   matrice4e·EIRP 12 dBm 에서 그 구간은 **R = 27.3 ~ 43.6 m**. `[신규]`
+   matrice4e·EIRP 12 dBm 에서 그 구간은 **R = 27.3 ~ 74.3 m** (폭 **17.4 dB** = `dc_ac_off_db`). `[신규]`
    → 선행연구와 나란히 놓을 수 있는 그림이다(상시규칙 `sionna2-priorwork-methodology`).
 
 ## 1-7. 원장 설계 — 파일과 키
@@ -322,9 +327,14 @@ g_stft_db, snr_map_ac_db, fd_edge_hz, fd_edge_n_valid, pd_est`
 **정확도 수치를 다시 계산하지 않는다**(원장 재사용). 붙이는 것은 `R` 뿐이다.
 
 ### 기존 원장 갱신
-- `outputs/md_range_sweep.json` — ⚠**이미 낡았다**: 현행 `experiment_md_range.py:139-140` 이
-  `snr_ac_plane_db`/`snr_ac_sph_db` 를 쓰는데 원장에는 그 키가 **0 개**다(생성 2026-07-28).
-  사다리 도입과 함께 **재생성**한다(CPU, §4 참조).
+- `outputs/md_range_sweep.json` — ⚠⚠**이미 두 겹으로 낡았다** (오늘 실측으로 확인) `[신규]`:
+  ① 현행 `experiment_md_range.py:139-140` 이 `snr_ac_plane_db`/`snr_ac_sph_db` 를 쓰는데
+     원장에는 그 키가 **0 개**다(생성 2026-07-28T06:13).
+  ② 원장의 `snr_sample_plane_db`(R=1 m 에서 36.673)는 **단일자세 σ**(`sigma_eq_plane_dbsm`
+     = −19.981)로 계산된 값이다. 현행 코드(`:124`)는 **방위평균 σ**(−18.879)를 쓰므로
+     같은 입력에서 **37.775** 가 나온다 — **1.10 dB 차이**. 즉 원장은 코드가 «비인용» 이라고
+     선언한 단일자세 σ 로 만들어져 있다(코드 `:119-123` 의 정정 주석보다 앞선 실행).
+  ⇒ 사다리 도입과 함께 **반드시 재생성**한다(CPU, §4 #6). 그 전까지 이 원장의 SNR 열을 인용 금지.
 - `outputs/md_classify.json` `_meta` 에 `"snr_convention": "v2_2026-08",
   "snr_reference": "ac", "capture": "full_waveform"` 를 박는다.
 
@@ -495,7 +505,7 @@ matrice4e (f_flash 126.67 Hz · f_tip 1,228.7 Hz):
 
 **이 셋을 어디서 볼 수 있고 어디서 못 보나** — 계측기 분해능과 나란히 놓아야 정직하다:
 
-| 계측기 | Δf |`outdoor` 63 Hz 를 보나 |
+| 계측기 | Δf | `outdoor` 63 Hz 를 보나 |
 |---|---|---|
 | 2 s CPI 호버 맵(`ridge_spec`) | 0.5 Hz | ✅ **127 빈** — 능선이 뱀처럼 굵어진다 |
 | 분류 특징 전창 FFT (T = 0.25 s) | 4.0 Hz | ✅ 16 빈 |
@@ -559,7 +569,7 @@ matrice4e (f_flash 126.67 Hz · f_tip 1,228.7 Hz):
 | G11 | 정합필터 이득 | 측정 vs `10log10(B/PRF)` **≤ 0.3 dB** (오늘 예비측정 0.13 dB) |
 | G12 | ⭐**교차검증**: `passive_two_channel_md.py` 의 실사슬(ECA→CAF→CFAR) `sinr_ideal_db` vs 사다리 예측 | **≤ 1 dB**. 안 맞으면 사다리가 틀렸거나 사슬에 추가 손실이 있다 — 어느 쪽인지 밝힐 것 |
 | G13 | `snr_slow_ac_db` vs R 기울기 | 모노 등가에서 **−40.0 dB/decade ± 0.1** |
-| G14 | `fd_edge` 가 NaN 이 되는 거리 | 예측 «`spec_peak_over_floor_db` = 10 dB» 지점과 **± 5 dB(SNR)** 안. matrice4e·12 dBm 예측 **R ≈ 42 m** |
+| G14 | `fd_edge` 가 NaN 이 되는 거리 | 예측 «`spec_peak_over_floor_db` = 10 dB» 지점과 **± 5 dB(SNR)** 안. matrice4e·12 dBm 예측 **R ≈ 35 ~ 42 m** (현행 원장은 5 m) |
 | G15 | 컬러바 공통성 | 한 그림 안 모든 패널의 `ref`/`noise_rms`/`vmin`/`vmax` 가 **동일** (assert) |
 | G16 | ⚠**ECA 노치가 DC 를 지우면 `dc_ac_off_db` → 0** | `passive_two_channel_md` 산출에서 실측. 0 이면 §1-8 대로 AC 보정이 불필요해진다 — **결과를 그대로 기록**(어느 쪽이든 발견이다) |
 
@@ -660,8 +670,10 @@ GPU 단계는 **표시해 두고 뒤로 민다**.
 | `g_mf_db` = 37.06 dB | `10*log10(100e6/19700)` |
 | `g_stft_db` = 16.69 dB | `nperseg = round(auto_periods(19700,126.667)*19700/126.667) = 70`; `10*log10(70) - 1.76` |
 | CPI 2 s 코히어런트 이득 45.95 dB | `10*log10(2.0*19700)` — **④ 와 혼동 금지** |
-| §1-4 거리표 | `nf.echo_over_noise_db(10**(-18.88/10), R, 3.5e9, b_hz=1e8)` + 37.06 − 17.38 (+16.69) |
+| `snr_band(1 m)` = 37.77 dB | `nf.echo_over_noise_db(10**(-18.879/10), 1.0, 3.5e9)` — σ 는 **방위평균** |
+| §1-4 거리표 | `37.77 − 40log10(R)` (+37.06 → ③) (−17.38 → ③′) (+16.69 → ⑤) |
 | `dc_ac_off_db`(17.3 dB) = 17.38 | `10*log10(1+10**(17.3/10))` |
+| 구간 (II) 27.3~74.3 m | ③′=0 → `10**(57.45/40)`; ③=0 → `10**(74.83/40)` |
 | 분류 SNR→거리 | `R = 10**((C - s)/40)`, `C = 57.45`(12 dBm) / `108.45`(63 dBm) |
 | σ_w 보정 F | `(2/π)*(arctan(2π·f2·T) - arctan(2π·f1·T))`, T = 0.2274 |
 | 창평균 몫 | `(2T/Tw)*(1 - (T/Tw)*(1-exp(-Tw/T)))` |
@@ -671,7 +683,10 @@ GPU 단계는 **표시해 두고 뒤로 민다**.
 
 ## 부록 B. 손대는 파일 목록 (착수 체크리스트)
 
-**새로 만든다**
+**이미 만들었다 (이 설계 라운드의 산출물)**
+- `docs/NOISE_AND_ROTOR_PLAN.md` (이 문서) · `outputs/noise_rotor_plan.json` (수치 원장)
+
+**새로 만든다 (착수 시)**
 - `src/rotor_dynamics.py`
 - `benchmark/verify_noise_rotor.py`
 - `outputs/snr_convention.json` · `outputs/md_snr_vs_range.json` · `outputs/md_classify_vs_range.json` ·

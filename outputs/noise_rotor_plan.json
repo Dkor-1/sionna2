@@ -1,0 +1,488 @@
+{
+ "_meta": {
+  "title": "잡음 주입·로터 랜덤성 설계안 — 수치 원장",
+  "companion_doc": "docs/NOISE_AND_ROTOR_PLAN.md",
+  "date": "2026-08-10",
+  "status": "DESIGN ONLY — 코드 미변경. 이 값들은 설계 근거이지 산출물이 아니다.",
+  "gpu_used": false,
+  "git_touched": false,
+  "provenance_rule": "[조사]=prior_work/{noise_modeling,rotor_randomness}_survey.md, [신규]=이 문서 계산, [선언]=출처없는 가정"
+ },
+ "snr_convention": {
+  "name": "v2_2026-08",
+  "canonical_rung": "snr_slow_ac_db",
+  "rungs": [
+   {
+    "id": "snr_band_db",
+    "formula": "P_echo/(k*T0*F*B)",
+    "level": "pre-matched-filter, per Rx sample"
+   },
+   {
+    "id": "g_mf_db",
+    "formula": "10*log10(B/PRF)",
+    "condition": "capture=full_waveform",
+    "value_example_db": 37.06
+   },
+   {
+    "id": "snr_slow_db",
+    "formula": "snr_band_db + g_mf_db",
+    "level": "per slow-time sample, TOTAL power"
+   },
+   {
+    "id": "dc_ac_off_db",
+    "formula": "10*log10(1+10**(dc_ac_db/10))",
+    "note": "현행 ac_snr_db()는 dc_ac_db를 그냥 뺀다(>=10dB에서 오차<=0.41dB, 0dB에서 3.0dB)"
+   },
+   {
+    "id": "snr_slow_ac_db",
+    "formula": "snr_slow_db - dc_ac_off_db",
+    "canonical": true
+   },
+   {
+    "id": "g_stft_db",
+    "formula": "10*log10(N_seg) + L_win",
+    "value_example_db": 16.69,
+    "caveat": "STFT 조각에 적용하는 것은 우리 유추. Braun eq 3.37은 2D 페리오도그램(NM) 것 [조사]"
+   },
+   {
+    "id": "snr_map_ac_db",
+    "formula": "snr_slow_ac_db + g_stft_db"
+   }
+  ],
+  "constants": {
+   "T0_K": 290.0,
+   "nf_db": 5.0,
+   "b_hz": 100000000.0,
+   "prf_hz": 19700.0,
+   "nperseg": 70,
+   "window_coh_loss_db": {
+    "hann": -1.76,
+    "hamming": -1.35,
+    "boxcar": 0.0
+   },
+   "window_loss_source": "Braun PhD KIT 2014 eq(3.77), Table 3.3 [조사]"
+  },
+  "do_not_confuse": {
+   "cpi_coherent_gain_2s_db": 45.95,
+   "stft_frame_gain_db": 16.69,
+   "note": "CPI 전체 코히어런트 이득과 STFT 한 조각 이득은 다른 수다 [조사 §3.1]"
+  }
+ },
+ "finding_two_conventions_in_our_code": {
+  "total_power": {
+   "where": "src/microdoppler_nearfield.py:369-370 add_noise()",
+   "ref": "mean(abs(E)**2)"
+  },
+  "ac_only": {
+   "where": "benchmark/md_classify_dataset.py:808-809",
+   "ref": "mean(abs(E-mean(E))**2)"
+  },
+  "gap_db_range": [
+   17.3,
+   37.2
+  ],
+  "consequence_ko": "분류 '표본당 0 dB에서 84%'는 AC 기준, experiment_md_range의 snr_sample_*는 총전력 기준 — 같은 표에 놓으면 최대 37 dB 어긋난다"
+ },
+ "finding_missing_matched_filter_gain": {
+  "g_mf_db": 37.06,
+  "measured_check": {
+   "L": 5000,
+   "per_sample_snr_db": -30.0,
+   "measured_out_db": 6.86,
+   "predicted_out_db": 6.99,
+   "err_db": 0.13
+  },
+  "consequence_ko": "거리 링크버짓을 37 dB 비관적으로 쓰고 있었다. fd_edge NaN 개시가 5 m -> 35~42 m 로 이동",
+  "precondition": "full-waveform capture (PRF 19.7 kHz 로 매 PRI 100 MHz 상관). 상시 기준신호(CRS 1 kHz/SSB 50 Hz)에는 적용 불가"
+ },
+ "range_ladder_example": {
+  "drone": "matrice4e",
+  "fc_hz": 3500000000.0,
+  "sigma_dbsm": -18.879,
+  "sigma_source": "outputs/md_range_sweep.json cells[].rows[].sigma_eq_aspect_mean_plane_dbsm (36 azimuths)",
+  "dc_ac_db": 17.3,
+  "dc_ac_off_db": 17.38,
+  "eirp_dbm": 12.0,
+  "rx_gain_dbi": 10.0,
+  "nf_db": 5.0,
+  "geometry": "monostatic-equivalent (R_t=R_r=R)",
+  "snr_band_at_1m_db": 37.77,
+  "slope_db_per_decade": -40.0,
+  "rows": [
+   {
+    "R_m": 1.0,
+    "snr_band_db": 37.77,
+    "snr_slow_db": 74.83,
+    "snr_slow_ac_db": 57.45,
+    "snr_map_ac_db": 74.14
+   },
+   {
+    "R_m": 3.0,
+    "snr_band_db": 18.69,
+    "snr_slow_db": 55.75,
+    "snr_slow_ac_db": 38.37,
+    "snr_map_ac_db": 55.06
+   },
+   {
+    "R_m": 5.0,
+    "snr_band_db": 9.82,
+    "snr_slow_db": 46.87,
+    "snr_slow_ac_db": 29.49,
+    "snr_map_ac_db": 46.18
+   },
+   {
+    "R_m": 10.0,
+    "snr_band_db": -2.23,
+    "snr_slow_db": 34.83,
+    "snr_slow_ac_db": 17.45,
+    "snr_map_ac_db": 34.14
+   },
+   {
+    "R_m": 15.0,
+    "snr_band_db": -9.27,
+    "snr_slow_db": 27.79,
+    "snr_slow_ac_db": 10.41,
+    "snr_map_ac_db": 27.1
+   },
+   {
+    "R_m": 20.0,
+    "snr_band_db": -14.27,
+    "snr_slow_db": 22.79,
+    "snr_slow_ac_db": 5.41,
+    "snr_map_ac_db": 22.1
+   },
+   {
+    "R_m": 27.3,
+    "snr_band_db": -19.67,
+    "snr_slow_db": 17.38,
+    "snr_slow_ac_db": 0.0,
+    "snr_map_ac_db": 16.69
+   },
+   {
+    "R_m": 40.0,
+    "snr_band_db": -26.31,
+    "snr_slow_db": 10.75,
+    "snr_slow_ac_db": -6.63,
+    "snr_map_ac_db": 10.06
+   },
+   {
+    "R_m": 60.0,
+    "snr_band_db": -33.35,
+    "snr_slow_db": 3.7,
+    "snr_slow_ac_db": -13.68,
+    "snr_map_ac_db": 3.02
+   },
+   {
+    "R_m": 74.3,
+    "snr_band_db": -37.06,
+    "snr_slow_db": -0.01,
+    "snr_slow_ac_db": -17.39,
+    "snr_map_ac_db": -0.7
+   },
+   {
+    "R_m": 100.0,
+    "snr_band_db": -42.23,
+    "snr_slow_db": -5.17,
+    "snr_slow_ac_db": -22.55,
+    "snr_map_ac_db": -5.86
+   }
+  ],
+  "region_II_detect_yes_microdoppler_no_m": [
+   27.3,
+   74.3
+  ],
+  "region_II_definition": "snr_slow_db>0 and snr_slow_ac_db<0 — arXiv:2402.04368 Fig.4(b) 구간 II 의 우리 판 [조사+신규]"
+ },
+ "classification_accuracy_vs_range": {
+  "accuracy_source": "outputs/md_classify.json noise[] RF100 (재계산 아님, 원장 재사용)",
+  "snr_axis": "snr_slow_ac_db (분류 실험이 이미 AC 기준)",
+  "chance": 0.1667,
+  "arms": [
+   {
+    "eirp_dbm": 12.0,
+    "const_C_db": 57.45,
+    "points": [
+     {
+      "snr_slow_ac_db": 10.0,
+      "accuracy_rf100": 0.8785,
+      "R_m": 15.4
+     },
+     {
+      "snr_slow_ac_db": 0.0,
+      "accuracy_rf100": 0.8403,
+      "R_m": 27.3
+     },
+     {
+      "snr_slow_ac_db": -10.0,
+      "accuracy_rf100": 0.434,
+      "R_m": 48.6
+     },
+     {
+      "snr_slow_ac_db": -15.0,
+      "accuracy_rf100": 0.2859,
+      "R_m": 64.8
+     },
+     {
+      "snr_slow_ac_db": -20.0,
+      "accuracy_rf100": 0.2419,
+      "R_m": 86.3
+     }
+    ]
+   },
+   {
+    "eirp_dbm": 63.0,
+    "const_C_db": 108.45,
+    "points": [
+     {
+      "snr_slow_ac_db": 10.0,
+      "accuracy_rf100": 0.8785,
+      "R_m": 289.2
+     },
+     {
+      "snr_slow_ac_db": 0.0,
+      "accuracy_rf100": 0.8403,
+      "R_m": 514.3
+     },
+     {
+      "snr_slow_ac_db": -10.0,
+      "accuracy_rf100": 0.434,
+      "R_m": 914.6
+     },
+     {
+      "snr_slow_ac_db": -15.0,
+      "accuracy_rf100": 0.2859,
+      "R_m": 1219.7
+     },
+     {
+      "snr_slow_ac_db": -20.0,
+      "accuracy_rf100": 0.2419,
+      "R_m": 1626.5
+     }
+    ]
+   }
+  ],
+  "caveats": [
+   "풀 캡처 전제",
+   "열잡음만(클러터·DPI·ECA 노치 없음)",
+   "모노스태틱 등가",
+   "matrice4e 의 dc_ac 로 계산 — 기체별로 다시 내야 한다(17.3~37.2 dB)"
+  ]
+ },
+ "stale_ledger_alert": {
+  "file": "outputs/md_range_sweep.json",
+  "generated": "2026-07-28T06:13:36",
+  "defect_1": "현행 코드가 쓰는 snr_ac_plane_db/snr_ac_sph_db 키가 0 개",
+  "defect_2": {
+   "ko": "snr_sample_plane_db 가 단일자세 σ 로 계산돼 있다(코드 :124 는 방위평균 σ)",
+   "single_aspect_sigma_dbsm": -19.981402084947387,
+   "aspect_mean_sigma_dbsm": -18.879,
+   "gap_db": 1.1,
+   "ledger_snr_at_1m_db": 36.673,
+   "recompute_with_code_db": 37.775
+  },
+  "action": "사다리 도입과 함께 재생성. 그 전까지 SNR 열 인용 금지"
+ },
+ "rotor_model": {
+  "decision_ko": "정현파 1톤 -> OU(1극 저역통과). 정적 산포는 난수. t=0 회전위상 U(0,360/blades)",
+  "ou_discretisation": "a=exp(-dt/T); e[n+1]=a*e[n]+sigma*sqrt(1-a**2)*N(0,1); e[0]~N(0,sigma)",
+  "tau_ctl_s": 0.2274,
+  "tau_ctl_source": "PX4 MC_ROLL_P=4.0 1/s -> 0.64 Hz, ArduPilot ATC_ANG_*_P=4.5 -> 0.72 Hz [조사]",
+  "sigma_w_calibration": {
+   "why_ko": "원장의 wobble amp 는 '등가 사인 진폭'(대역 rms x sqrt(2)). OU 파라미터는 sigma 이므로 두 번 고친다",
+   "formula": "sigma_w = (amp/sqrt(2)) / sqrt(F);  F=(2/pi)*(atan(2*pi*f2*T)-atan(2*pi*f1*T))",
+   "entries": [
+    {
+     "source": "NeuroBEM 실내",
+     "band_hz": [
+      0.3,
+      5.0
+     ],
+     "amp_pct": 0.74,
+     "F": 0.6537,
+     "sigma_w_pct": 0.647
+    },
+    {
+     "source": "CODEV 야외",
+     "band_hz": [
+      0.3,
+      2.0
+     ],
+     "amp_pct": 2.52,
+     "F": 0.5279,
+     "sigma_w_pct": 2.452
+    },
+    {
+     "source": "DJI P3 명령(PWM)",
+     "band_hz": [
+      0.3,
+      5.0
+     ],
+     "amp_pct": 5.3,
+     "F": 0.6537,
+     "sigma_w_pct_cmd": 4.635,
+     "rpm_equiv_pct": [
+      2.3,
+      4.6
+     ]
+    }
+   ],
+   "note_ko": "rotor_randomness_survey.md §6 의 권고(실내 0.8%/야외 2.5%)는 대역 몫 보정 전 값 — 둘 다 남긴다"
+  },
+  "presets": {
+   "legacy": {
+    "static_sigma": 0.0022,
+    "pattern": [
+     1.0,
+     -1.0,
+     -0.55,
+     0.55
+    ],
+    "wobble_sine_amp": 0.0015,
+    "wobble_hz": 2.7,
+    "random_phase": false,
+    "why": "현행 그대로. 비트동일 보장. 기본값"
+   },
+   "sitl": {
+    "static_sigma": 0.0022,
+    "wobble_sigma": 0.0,
+    "random_phase": true,
+    "why": "PX4 SITL 0.07~0.29% — 대칭·이상 하한"
+   },
+   "indoor": {
+    "static_sigma": 0.0054,
+    "wobble_sigma": 0.0065,
+    "tau_ctl_s": 0.2274,
+    "random_phase": true,
+    "why": "NeuroBEM 정적 중앙 0.54% + 보정 sigma_w"
+   },
+   "outdoor": {
+    "static_sigma": 0.0235,
+    "wobble_sigma": 0.0245,
+    "tau_ctl_s": 0.2274,
+    "random_phase": true,
+    "why": "CODEV 야외 정적 중앙 2.35% + 보정 sigma_w. 실증이 야외이므로 헤드라인 후보"
+   }
+  },
+  "tau_motor_optional_s": [
+   0.0125,
+   0.025
+  ],
+  "tau_motor_note": "2극. 8~20 dB 짜리 세부 [조사 §3-3]. 우리 표적 기체 값은 못 찾았다",
+  "window_mean_variance_fraction": {
+   "formula": "(2T/Tw)*(1-(T/Tw)*(1-exp(-Tw/T)))",
+   "table": {
+    "0.05": 0.931,
+    "0.1": 0.868,
+    "0.25": 0.716,
+    "0.5": 0.542,
+    "1.0": 0.353,
+    "2.0": 0.202,
+    "4.0": 0.107
+   },
+   "consequence_ko": "0.25 s 창(분류 헤드라인)에서는 흔들림의 71.6% 가 정적 오프셋으로 보인다. 분류에서 먼저 고칠 것은 흔들림이 아니라 정적 산포 값 자체"
+  },
+  "effective_static_spread_pct": {
+   "0.25": 3.13,
+   "1.0": 2.76,
+   "2.0": 2.59,
+   "current_md_classify_draw_pct": [
+    0.07,
+    0.29
+   ],
+   "gap_ko": "약 10 배"
+  },
+  "line_broadening_prediction": {
+   "drone": "matrice4e",
+   "f_flash_hz": 126.67,
+   "f_tip_hz": 1228.7,
+   "entries": [
+    {
+     "case": "현행 정현파 0.15% (sigma 0.106%)",
+     "dev_ftip_hz": 1.3,
+     "dev_m10_hz": 1.34,
+     "carson_m10_hz": 4.1
+    },
+    {
+     "case": "indoor sigma 0.65%",
+     "dev_ftip_hz": 7.99,
+     "dev_m10_hz": 8.23,
+     "carson_m10_hz": 17.9
+    },
+    {
+     "case": "outdoor sigma 2.45%",
+     "dev_ftip_hz": 30.1,
+     "dev_m10_hz": 31.0,
+     "carson_m10_hz": 63.4
+    }
+   ],
+   "resolvability": {
+    "cpi_2s_bin_hz": 0.5,
+    "classify_fft_bin_hz": 4.0,
+    "classify_comb_halfwidth_hz": 25.3,
+    "flash_spec_df_hz": 281.4,
+    "verdict_ko": "outdoor 63 Hz 는 2 s 맵에서 127 빈으로 보이고, 분류 빗살(±25.3 Hz)은 넘쳐서 h1..h12 가 깎이며, flash_spec(281 Hz)에서는 안 보인다"
+   }
+  }
+ },
+ "verification_gates": {
+  "count": 25,
+  "script_planned": "benchmark/verify_noise_rotor.py",
+  "ledger_planned": "outputs/verify_noise_rotor.json",
+  "regression": [
+   "G1 add_noise ref=total 비트동일",
+   "G2 ac_snr_db exact=False 비트동일",
+   "G3 draw mode=peak 비트동일",
+   "G4 rotor legacy 프리셋 vs report07_hover_long.npz rpm_t <=1e-12",
+   "G5 rotor_phases 1D 비트동일",
+   "G6 md_classify 특징행렬 rel diff <=1e-12"
+  ],
+  "noise_stats": [
+   "G7 스펙트로그램 빈 지수분포 KS p>0.01",
+   "G8 미평활 max/median 11.0~11.4 dB",
+   "G9 W=33 평활 후 ~2 dB",
+   "G10 실현간 표준편차"
+  ],
+  "physics": [
+   "G11 정합필터 이득 오차 <=0.3 dB",
+   "G12 passive_two_channel sinr_ideal_db 와 <=1 dB",
+   "G13 기울기 -40.0 dB/decade +-0.1",
+   "G14 fd_edge NaN 개시 35~42 m",
+   "G15 패널 공통 눈금 assert",
+   "G16 ECA 노치가 dc_ac_off_db 를 0 으로 만드나 (측정, 합불 아님)"
+  ],
+  "rotor": [
+   "G17 OU std +-5%",
+   "G18 lag-1 자기상관 +-1e-4",
+   "G19 PSD -20 dB/decade +-2",
+   "G20 대역 rms 역보정 +-10%",
+   "G21 위상 적분 rel err <=1e-12",
+   "G22 초기위상 KS p>0.01",
+   "G23 선폭 ~ 2*m*f_flash*sigma_w 상관 >=0.95",
+   "G24 반증 4항 방향 일치",
+   "G25 T=1.0s 하락폭 > T=0.25s"
+  ]
+ },
+ "schedule_to_0818": {
+  "total_hours_est": 26,
+  "gpu_steps": [
+   "#10 report07_hover_long --preset outdoor (~5 min)"
+  ],
+  "gpu_free_reason_ko": "md_classify 는 로터 위상표를 재사용하므로 로터 모델을 바꿔도 SBR 재계산이 필요없다",
+  "ordering_locks": [
+   "#1,#2 before #6",
+   "#3 before #8",
+   "#5 before all recompute",
+   "#9 판정 before #16 덱"
+  ]
+ },
+ "unresolved": [
+  "g_stft_db 를 STFT 조각에 적용하는 1차 문헌 근거 없음 (우리 유추)",
+  "g_mf_db 를 실사슬(ECA->CAF->CFAR)로 검증하기 전엔 37 dB 를 단정 금지 (G12)",
+  "ECA 0-도플러 노치가 동체 DC 를 지우면 dc_ac_off_db -> 0 (G16, 미측정)",
+  "sigma 자체 불확실(Das 실측의 2.39배=3.78 dB = 거리 x0.79)이 사다리에 미반영",
+  "로터 시간흔들림의 문헌 선례 0 건 — 실기 로그 3원천이 유일 근거이고 셋 다 우리 표적 기체가 아님",
+  "sigma_w 보정이 OU 를 참으로 가정 — 실제 스펙트럼이 OU 가 아니면 F 가 달라진다",
+  "바이스태틱에서 sigma 가 달라지는데 사다리는 모노 sigma 를 쓴다",
+  "상시 기준신호 팔(CRS 1 kHz/SSB 50 Hz)의 거리 곡선은 별도 계산 — 미착수"
+ ]
+}
