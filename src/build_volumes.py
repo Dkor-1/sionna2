@@ -176,10 +176,13 @@ SUPERSEDED = {
 # --------------------------------------------------------------------------- #
 _FN_REF = re.compile(r"\[\^(\d+)\]")                       # 각주(정의·인용 공통)
 #: 조각 사이 참조 — `[편 22 «…»](22_po-knee.ipynb)`
-_XREF = re.compile(r"\[\s*편\s*(\d{2})\s*([^\]]*?)\s*\]\(\s*(\d{2})_[a-z0-9\-]+\.ipynb"
+_XREF = re.compile(r"\[\s*편\s*(\d{2})\s*([^\]]*?)\s*\]\(\s*(\d{2})_([a-z0-9\-]+)\.ipynb"
                    r"(?:#[^)]*)?\s*\)")
 #: 인라인 코드로 적힌 조각 주소 — `` `reports/37_md-rpm.ipynb` `` · `` `35_md-slowtime` ``
-_CODEREF = re.compile(r"`(?:\.\./)?(?:reports/)?(\d{2})_[a-z0-9\-]+(?:\.ipynb)?`")
+#: ⚠ 권 파일 이름도 같은 꼴(`09_microdoppler-limits.ipynb`)이다. 번호만 보고 고치면 **이미
+#:   새 주소로 적힌 글을 옛 주소로 오인해 망가뜨린다.** 그래서 슬러그까지 조각 파일명과
+#:   대조해서, 실제로 조각을 가리킬 때만 고친다(`_is_part_name`).
+_CODEREF = re.compile(r"`(?:\.\./)?(?:reports/)?(\d{2})_([a-z0-9\-]+?)(?:\.ipynb)?`")
 #: 옛 12 부 참조 — `[부 4 «산란 커널»](../README.md#부-4-산란-커널)`
 _PARTREF = re.compile(r"\[\s*부\s*(\d{1,2})\s*([^\]]*?)\s*\]\(\s*\.\./README\.md#[^)]*\)")
 #: 링크가 아닌 산문의 옛 부 번호 — `부 7 의 표지다`
@@ -212,6 +215,14 @@ def _load_part(no: str) -> tuple[str, str, list]:
 
 def _all_parts_on_disk() -> list[str]:
     return sorted(f[:2] for f in os.listdir(PARTS) if re.match(r"^\d{2}_.*\.ipynb$", f))
+
+
+def _is_part_name(no: str, slug: str) -> bool:
+    """`NN_slug` 가 진짜 조각 파일 이름인가. 권 파일 이름과 헷갈리지 않으려고 대조한다."""
+    try:
+        return _part_file(no)[:-len(".ipynb")] == f"{no}_{slug}"
+    except FileNotFoundError:
+        return False
 
 
 def _text(c: dict) -> str:
@@ -320,6 +331,8 @@ def _relink(src: str, cur_file: str, place: dict[str, dict],
         return f"[리포트 {int(p['vol'])} 절 {p['sec']}{tail}]({p['file']})"
 
     def _x(m: re.Match) -> str:
+        if not _is_part_name(m.group(3), m.group(4)):    # 권 파일이면 손대지 않는다
+            return m.group(0)
         out = _addr(m.group(3), m.group(2).strip(), "xref")
         if out is not None:
             return out
@@ -327,6 +340,8 @@ def _relink(src: str, cur_file: str, place: dict[str, dict],
         return f"**{m.group(2).strip()}**" if m.group(2).strip() else "이 문서"
 
     def _c(m: re.Match) -> str:
+        if not _is_part_name(m.group(1), m.group(2)):    # 권 파일이면 손대지 않는다
+            return m.group(0)
         out = _addr(m.group(1), "", "coderef")
         return out if out is not None else m.group(0)
 
@@ -591,11 +606,14 @@ def _th_short(thesis: str, width: int = 62) -> str:
 #  색인 · 목차
 # --------------------------------------------------------------------------- #
 def _count_xrefs(place: dict[str, dict]) -> int:
+    """조각이 들고 있는 옛 주소의 개수 — 링크·옛 부·인라인 코드 셋을 합친다."""
     n = 0
     for p in place:
         t = json.dumps(json.load(open(os.path.join(PARTS, _part_file(p)),
                                      encoding="utf-8")), ensure_ascii=False)
-        n += len(_XREF.findall(t)) + len(_PARTREF.findall(t)) + len(_CODEREF.findall(t))
+        n += sum(1 for m in _XREF.finditer(t) if _is_part_name(m.group(3), m.group(4)))
+        n += len(_PARTREF.findall(t))
+        n += sum(1 for m in _CODEREF.finditer(t) if _is_part_name(m.group(1), m.group(2)))
     return n
 
 

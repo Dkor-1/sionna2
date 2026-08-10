@@ -1,4 +1,4 @@
-# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 2026-08-10 09:37:16)
+# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 2026-08-10 09:47:17)
 
 ## 프로세스
 198615 bash -c for i in $(seq 1 144); do { echo "# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 $(date "+%F %T"))"; echo; echo "## 프로세스"; pgrep -af "report15b_microdoppler_recompute|experiment_freespace_sigma|rcs_same_span|hover_long" || echo "(없음)"; echo; echo "## GPU"; nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader; echo; echo "## 로그 후미"; for f in md15b3_meshfix sigma_force_m4e sigma_force_mini5 samespan sigma_chain; do echo "── $f.log:"; tail -2 /tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/$f.log 2>/dev/null; done; echo; echo "## git"; git -C /home/yunjung/workspace/sionna2 log --oneline -1; echo "미커밋 $(git -C /home/yunjung/workspace/sionna2 status --porcelain | wc -l)건"; } > /home/yunjung/workspace/sionna2/docs/RESUME_LIVE.md 2>&1; sleep 600; done
@@ -7,9 +7,9 @@
 1578074 /home/yunjung/.venvs/py312/bin/python src/experiment_freespace_sigma.py --drone mini5pro --backend direct --force
 
 ## GPU
-0, 21125 MiB, 100 %
-1, 22180 MiB, 100 %
-2, 10638 MiB, 100 %
+0, 22251 MiB, 54 %
+1, 23356 MiB, 100 %
+2, 10742 MiB, 100 %
 3, 19986 MiB, 100 %
 
 ## 로그 후미
@@ -30,5 +30,5 @@ HOVER_OUTDOOR_DONE 05:07:07
 SIGMA_MINI5_DONE 07:13:45
 
 ## git
-c69539c 0810 라운드14: ⭐⭐광선예산 결판 — 40m 붕괴는 «구조» 가 아니라 **내 예산 부족**이었다 (내 주장 정정)
-미커밋 37건
+8ffc54c 0810 라운드15: ⭐report07 을 08_1~08_4 네 편으로 쪼갬 + 그림9 를 광선예산 판으로 재작성
+미커밋 29건

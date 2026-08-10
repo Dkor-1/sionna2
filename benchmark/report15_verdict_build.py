@@ -23,8 +23,7 @@ for _p in (os.path.join(ROOT, "src"), _HERE):
 from report15_verdict import (ASPECT_ORDER, FIGDIR, KEYS, OUT_JSON, TH,   # noqa: E402
                               _f, _fl, _jsonable, ac_corr, analyse_channel,
                               analyse_po, block_wave, corr_null_p, edge_bin,
-                              harm_seeded, ideal_comb, judge, load, physics,
-                              spectrogram)
+                              harm_seeded, ideal_comb, judge, load, physics)
 from paper_kit import paper_style, save_figure                            # noqa: E402
 
 SIONNA_SRC = dict(mini2="report15_verdict_grid_mini2.json",
@@ -323,39 +322,57 @@ def compare_engines(S, PO, key, n_period, nulls_p=True) -> dict:
 # --------------------------------------------------------------------------- #
 #  §4 — 그림
 # --------------------------------------------------------------------------- #
-def _spec_data(zp, f_flash, n_rev=6):
-    """⭐ 스펙트로그램을 **DC(정지 반사) 대비 dB** 로 낸다.
+#  ⭐ 표시 규약은 **src/md_mapstyle.py 한 자리**가 정한다 — 여기서 다시 정하지 않는다.
+#     (0.45 블레이드 주기 조각 · hop 2 · 8배 제로패딩 · jet · 0~−40 dB · gouraud · rasterized)
+import md_mapstyle as MS                                                  # noqa: E402
+
+N_PERIOD_TILES = 12          # 위상 격자 한 주기를 이만큼 이어 붙여 슬로타임을 만든다(= 6 회전)
+
+
+def _spec_data(zp, f_flash, n_tiles=N_PERIOD_TILES):
+    """⭐ 한 주기 위상 파형 → **md_mapstyle 규약** 스펙트로그램 + DC 기준값.
+
+    ⚠ 위상 격자는 **블레이드 한 주기**만 돈다. 슬로타임 기록을 만들려면 이어 붙일 수밖에
+      없고, 그래서 이 맵은 **구성상 정확히 주기적**이다 — 시간축의 되풀이는 자료가 아니라
+      이어 붙이기다. 그 사실을 캡션에 적는다.
 
     ⚠ 패널마다 제 최대값으로 정규화하면 구 널이 신호만큼 밝게 보인다 — 실제로는 1000 배
-      약한데도. 그건 그림이 거짓말을 하는 것이다. DC 로 정규화하면 모든 패널이
-      '정지 반사 대비 변조 깊이' 라는 같은 물리량이 되고, 널은 있는 그대로 캄캄해진다."""
+      약한데도. 그건 그림이 거짓말을 하는 것이다. DC(정지 반사)로 정규화하면 모든 패널이
+      '정지 반사 대비 변조 깊이' 라는 같은 물리량이 되고, 널은 있는 그대로 캄캄해진다.
+      ⭐ 0 도플러는 **지우지 않는다**(규약) — 동체 선이 0 dB 로 남아 읽기의 기준이 된다.
+
+    반환: dict(t, f, S, nper, prf, dc, peak_sideband_db) 또는 None.
+    """
     zp = np.asarray(zp, complex)
+    n = zp.size
     dc = float(np.abs(zp.mean()))
     ac = zp - zp.mean()
-    if not np.isfinite(ac).all() or np.abs(ac).max() <= 0 or dc <= 0:
+    if n < 8 or not np.isfinite(ac).all() or np.abs(ac).max() <= 0 or dc <= 0:
         return None
-    t, f, S = spectrogram(zp, f_flash, n_rev=n_rev)
-    return t, f, 20 * np.log10(S / dc + 1e-14)
+    prf = n * float(f_flash)                     # 한 주기 = 1/f_flash 초 → 등가 표본율
+    per = MS.auto_periods(prf, f_flash)
+    x = np.tile(zp, int(n_tiles))
+    f, t, S, nper = MS.flash_spec(x, prf, f_flash, per)
+    #  ⭐ 인용용 수치는 **DC 를 뺀** 같은 STFT 에서 잰다 — 옛 판의 «변조 깊이» 와 직접 비교된다.
+    _f2, _t2, S_ac, _n2 = MS.flash_spec(np.tile(ac, int(n_tiles)), prf, f_flash, per)
+    peak = 20.0 * math.log10(float(np.nanmax(S_ac)) / dc + 1e-14)
+    return dict(t=t, f=f, S=S, nper=int(nper), prf=prf, dc=dc, periods=float(per),
+                peak_sideband_db=float(peak))
 
 
-def _spec_panel(ax, data, f_flash, f_tip_pred, title, vmin, vmax):
-    """한 패널 = 한 소스의 양측 스펙트로그램(DC 대비 dB, **공통 색눈금**)."""
+def _spec_panel(ax, data, f_tip_pred, title):
+    """한 패널 = 한 소스의 양측 스펙트로그램. 색은 **DC 대비 변조 깊이**(0 ~ −40 dB)."""
     if data is None:
         ax.text(0.5, 0.5, "no modulation\nAC = 0 exactly", ha="center", va="center",
                 transform=ax.transAxes, fontsize=8)
         ax.set_title(title, fontsize=8)
         ax.set_axis_off()
         return None
-    t, f, Sd = data
-    pm = ax.pcolormesh(t * 1e3, f, Sd, vmin=vmin, vmax=vmax,
-                       shading="auto", cmap="magma", rasterized=True)
-    for s in (+1, -1):
-        ax.axhline(s * f_tip_pred, color="#39FF88", lw=1.1, ls="--")
-    ax.set_ylim(-1.6 * max(f_tip_pred, f_flash), 1.6 * max(f_tip_pred, f_flash))
+    m = MS.draw(ax, data["t"], data["f"], data["S"], f_tip_pred, ref=data["dc"])
     ax.set_title(title, fontsize=8)
     ax.tick_params(labelsize=8)
-    _spec_panel.last_mesh = pm
-    return float(np.nanmax(Sd))
+    _spec_panel.last_mesh = m
+    return data["peak_sideband_db"]
 
 
 def _wave_from(cell):
@@ -366,54 +383,86 @@ def _wave_from(cell):
     return (10 ** (a / 20.0)).astype(complex)
 
 
+NULL_ARMS = [("mini2 · sphere null (z-spin)", "mini2", "sphere_mini2_plastic"),
+             ("mini2 · disc null (rot.-symm.)", "mini2", "disc_mini2"),
+             ("mini2 · rotor removed", "mini2", "norotor_mini2"),
+             ("matrice4e · sphere null (z-spin)", "matrice4e", "sphere_matrice4e_plastic")]
+
+
 def fig1_spectrograms(J, phys, S, PO, NU, path):
-    """그림 1 — Sionna / PO / 구 널 / 로터제거, 거리별 양측 스펙트로그램 (자세 nose)."""
+    """그림 1 — 신호 팔 네 줄 + **대표 널 한 줄**, 거리 3 열 (자세 nose).
+
+    ⭐ 2026-08-10 다시 그렸다. 바뀐 것은 둘이다.
+
+    (1) **표시 규약을 md_mapstyle 로 통일**했다. 옛 판은 조각이 **블레이드 2 주기**여서
+        플래시가 한 조각 안에서 시간평균되어 지워지고 가로 줄무늬만 남았다. 규약값
+        0.45 주기로 내리면 시간 분해능이 4.4 배 좋아진다(예: mini2 6.52 → 1.48 ms).
+        ⚠ 대가는 주파수 분해능이다 — mini2 는 빗살 간격(f_flash 306.7 Hz)보다 빈이 넓어져
+          **조화 빗살이 뭉친다**. 빗살을 읽는 그림은 f2 가 따로 있고, 여기서 답하는 질문은
+          «널에서도 무늬가 보이는가» 이지 «빗살이 몇 개인가» 가 아니다.
+
+    (2) **패널을 24 → 15 로 줄였다.** 널 네 줄은 세 거리 전부에서 «아무것도 없다» 는
+        **한 가지**만 말한다. 널을 네 줄 그리면 그림의 절반이 검은 칸이 되고, 정작 봐야 할
+        신호 줄이 작아진다. 그래서 **가장 시끄러운 널**(자료가 고른다) 한 줄만 그리고
+        나머지는 수치로 접는다 — 가장 시끄러운 것이 조용하면 나머지는 자동으로 조용하다.
+        접은 값은 반환 JSON 의 `null_rows_folded` 에 전부 남는다(숨기는 것이 아니다).
+    """
     import matplotlib.pyplot as plt
+    import textwrap
     ranges = ("1", "3", "10")
-    sources = []                    # (라벨, 기체, 가져오기 함수)
+
+    def _cell_data(c, key):
+        """한 칸 → (스펙트로그램 dict, 예측 f_tip) 또는 (None, None)."""
+        if not c or c.get("empty"):
+            return None, None
+        ph = phys[key]
+        fp = (c["ftip"]["f_tip_aspect_hz"] if c.get("ftip")
+              else ph["f_tip_hz"] * math.cos(math.radians(15.0)))
+        return _spec_data(_wave_from(c), ph["f_flash_hz"]), fp
+
+    #  ── 널 팔 전량을 **먼저 재어** 대표를 자료가 고르게 한다 ──────────────────
+    folded = {}
+    for lab, key, arm in NULL_ARMS:
+        by = ((NU.get("arms") or {}).get(arm) or {}).get("by", {})
+        row = {}
+        for R in ranges:
+            d, _fp = _cell_data(by.get(f"{R}/all"), key)
+            row[R] = _f(d["peak_sideband_db"]) if d else None
+        vals = [v for v in row.values() if v is not None]
+        folded[arm] = dict(label=lab, airframe=key, peak_sideband_db_re_dc=row,
+                           worst_db=_f(max(vals)) if vals else None)
+    ranked = sorted((v for v in folded.values() if v["worst_db"] is not None),
+                    key=lambda v: -v["worst_db"])
+    rep = ranked[0] if ranked else None
+    rep_arm = next((a for a, v in folded.items() if v is rep), None)
+
+    #  ── 그리는 줄 = 신호 4 + 대표 널 1 ───────────────────────────────────────
+    rows = []
     for key in KEYS:
-        sources.append((f"{key}\nSionna (prop ch.)", key,
-                        lambda R, k=key: S[k].get(f"{R}/nose/prod/prop")))
-        sources.append((f"{key}\nPO kernel (prop ch.)", key,
-                        lambda R, k=key: PO[k].get(f"matched/{R}/nose/prop")))
-    #  널은 두 기체 각각 (구), 그리고 mini2 로터제거·원판
-    null_map = [("mini2\nsphere null (z-spin)", "mini2", "sphere_mini2_plastic"),
-                ("mini2\ndisc null (rot.-symm.)", "mini2", "disc_mini2"),
-                ("mini2\nrotor removed", "mini2", "norotor_mini2"),
-                ("matrice4e\nsphere null (z-spin)", "matrice4e", "sphere_matrice4e_plastic")]
-    rows = [(lab, key, getter) for lab, key, getter in sources]
-    for lab, key, arm in null_map:
-        rows.append((lab, key,
-                     lambda R, a=arm: ((NU.get("arms") or {}).get(a) or {})
-                     .get("by", {}).get(f"{R}/all")))
+        rows.append((f"{key}\nSionna (prop ch.)", key,
+                     lambda R, k=key: S[k].get(f"{R}/nose/prod/prop"), "signal"))
+        rows.append((f"{key}\nPO kernel (prop ch.)", key,
+                     lambda R, k=key: PO[k].get(f"matched/{R}/nose/prop"), "signal"))
+    if rep_arm is not None:
+        rows.append((rep["label"].replace(" · ", "\n") + "\n(loudest null)",
+                     rep["airframe"],
+                     lambda R, a=rep_arm: ((NU.get("arms") or {}).get(a) or {})
+                     .get("by", {}).get(f"{R}/all"), "null"))
     nrows = len(rows)
 
-    #  ── 1차 통과: 자료를 먼저 다 만들어 **공통 색눈금**을 정한다 ────────────────
-    grid = {}
-    peaks = []
-    for i, (lab, key, getter) in enumerate(rows):
-        ph = phys[key]
+    grid, levels = {}, {}
+    for i, (lab, key, getter, kind) in enumerate(rows):
         for j, R in enumerate(ranges):
-            c = getter(R)
-            if not c or c.get("empty"):
-                grid[(i, j)] = (None, None, "no paths" if i < len(sources)
-                                else "not measured")
-                continue
-            fp = (c["ftip"]["f_tip_aspect_hz"] if c.get("ftip")
-                  else ph["f_tip_hz"] * math.cos(math.radians(15.0)))
-            d = _spec_data(_wave_from(c), ph["f_flash_hz"])
-            grid[(i, j)] = (d, fp, None)
+            d, fp = _cell_data(getter(R), key)
+            grid[(i, j)] = (d, fp, None if d is not None else
+                            ("no paths" if kind == "signal" else "not measured"))
             if d is not None:
-                peaks.append(float(np.nanmax(d[2])))
-    vmax = float(np.ceil(max(peaks) / 5.0) * 5.0) if peaks else 0.0
-    vmin = vmax - 60.0
+                levels[f"{lab}|{R}"] = _f(d["peak_sideband_db"])
 
     with paper_style(width=7.16, base_pt=8.5) as st:
-        fig, axes = plt.subplots(nrows, len(ranges), figsize=(7.16, 1.30 * nrows),
+        fig, axes = plt.subplots(nrows, len(ranges), figsize=(7.16, 1.42 * nrows),
                                  constrained_layout=True, squeeze=False)
-        levels = {}
-        for i, (lab, key, _g) in enumerate(rows):
-            ph = phys[key]
+        for i, (lab, key, _g, _kind) in enumerate(rows):
             for j, R in enumerate(ranges):
                 ax = axes[i][j]
                 d, fp, msg = grid[(i, j)]
@@ -422,30 +471,65 @@ def fig1_spectrograms(J, phys, S, PO, NU, path):
                             transform=ax.transAxes, fontsize=8)
                     ax.set_axis_off()
                     continue
-                lv = _spec_panel(ax, d, ph["f_flash_hz"], fp,
-                                 f"R = {R} m" if i == 0 else "", vmin, vmax)
-                levels[f"{lab}|{R}"] = _f(lv)
+                lv = _spec_panel(ax, d, fp, f"R = {R} m" if i == 0 else "")
+                #  ⭐ 판마다 «DC 대비 최대 변조 깊이» 를 뱃지로 — 널 줄이 왜 널인지가
+                #     색이 아니라 **수치**로 읽힌다. (설정값이 아니라 결과이므로 그림에 둔다.)
+                ax.text(0.985, 0.955, f"sideband {lv:.0f} dB", transform=ax.transAxes,
+                        ha="right", va="top", color="w", fontsize=8,
+                        bbox=dict(fc="#000000b0", ec="none", pad=1.4))
                 if j == 0:
                     ax.set_ylabel(lab, fontsize=8)
+                #  ⚠ 줄마다 기체가 다르면 **시간축 눈금이 다르다**(플래시 주기가 다르므로).
+                #    그래서 눈금을 숨기지 않는다 — 숨기면 다른 축을 같은 축처럼 읽게 된다.
         for j in range(len(ranges)):
             axes[-1][j].set_xlabel("slow time [ms]", fontsize=8)
         pm = getattr(_spec_panel, "last_mesh", None)
         if pm is not None:
             cb = fig.colorbar(pm, ax=axes.ravel().tolist(), fraction=0.02, pad=0.01)
-            cb.set_label("modulation depth [dB re static return]", fontsize=8)
+            cb.set_label("magnitude [dB re each panel's static return]", fontsize=8)
             cb.ax.tick_params(labelsize=8)
-        fig.suptitle("Two-sided micro-Doppler spectrograms, aspect az=0 el=15\n"
-                     "Shared colour scale, in dB relative to each panel's own static (DC)\n"
-                     "return, so null rows compare directly with signal rows.\n"
-                     "Green dashed = kinematic tip Doppler.", fontsize=9)
-    save_figure(fig, path, caption=(
+        #  ⭐ 그림 안에는 설정값을 적지 않는다(하우스 규약) — 한 줄 제목만.
+        fig.suptitle("Two-sided micro-Doppler, aspect az 0 / el 15.  "
+                     "White dashed = kinematic tip Doppler.", fontsize=9)
+
+    one = grid[(0, 0)][0] or next((d for d, _f2, _m in grid.values() if d), None)
+    cap = textwrap.fill(
         "Two-sided micro-Doppler spectrograms built by stepping the rotor phase and "
-        "re-tracing. Rows compare the stock Sionna PathSolver, our PO kernel, and the "
-        "null controls; columns are target range. All panels share one colour scale, "
-        "expressed as modulation depth relative to the static return, so the null rows "
-        "are directly comparable with the signal rows. Green dashed lines mark the "
-        "kinematic blade-tip Doppler projected on the line of sight."), close=True)
-    return dict(peak_db_re_dc=levels, colour_scale_db=[_f(vmin), _f(vmax)])
+        "re-tracing the whole scene. Rows one to four are the signal arms - the stock "
+        "Sionna PathSolver and our PO kernel, for both airframes; the bottom row is the "
+        "loudest of the four rotationally symmetric null controls, chosen by the "
+        "measurement itself. Columns are target range. Colour is modulation depth "
+        "relative to each panel's own static return, so the null row is directly "
+        "comparable with the signal rows and the static return itself sits at 0 dB. "
+        "The badge in each panel is the peak of the same spectrogram computed after the "
+        "static component is removed, so it states in numbers what the colour cannot: the "
+        "signal arms modulate within a few dB of their own static return, the null control "
+        "sixty to eighty dB below it. Time axes differ between airframes because the blade "
+        "flash rates differ. The rotor-phase sweep covers one blade period, so the "
+        "slow-time record is that period tiled and the map is exactly periodic by "
+        "construction; the repetition along time is the tiling, not new data.", 96)
+    save_figure(fig, path, caption=cap, close=True)
+    return dict(peak_sideband_db_re_dc=levels,
+                colour_scale_db=[MS.VMIN, MS.VMAX],
+                colour_reference="each panel's own static (DC) return",
+                n_panels=int(nrows * len(ranges)),
+                n_panels_before=24,
+                rows_drawn=[r[0].replace("\n", " ") for r in rows],
+                representative_null=rep_arm,
+                null_rows_folded=folded,
+                null_selection_rule_ko=(
+                    "널 네 줄은 «아무것도 없다» 는 한 가지만 말하므로 **가장 시끄러운 널** "
+                    "한 줄만 그린다. 대표는 자료가 고른다(세 거리 최대 변조 깊이 최댓값). "
+                    "가장 시끄러운 널이 조용하면 나머지 널은 자동으로 조용하다 — 나머지 "
+                    "세 줄의 값은 null_rows_folded 에 그대로 남는다."),
+                null_ranking_db=[[v["label"], v["worst_db"]] for v in ranked],
+                display=dict(module="src/md_mapstyle.py", call="flash_spec(auto_periods)",
+                             periods=(one or {}).get("periods"),
+                             nperseg=(one or {}).get("nper"),
+                             hop=MS.FLASH_HOP, zero_pad=MS.FLASH_PAD,
+                             cmap=MS.CMAP, shading=MS.SHADING,
+                             zero_doppler_kept=True,
+                             tiles_of_one_blade_period=N_PERIOD_TILES))
 
 
 _ASPECT_EL = dict(nose=15.0, oblique=15.0, side=15.0, hot=0.0, disc=75.0)
@@ -1336,5 +1420,35 @@ def self_check(SJ, S) -> dict:
     return out
 
 
+def figures_only() -> dict:
+    """⭐ **그림만** 다시 그린다 — outputs/report15_verdict.json 은 건드리지 않는다.
+
+    왜 따로 두나: 표시 규약을 고칠 때마다 판정 JSON 을 다시 쓰면, 그림 손질과 숫자 갱신이
+    한 커밋에 섞여 «무엇 때문에 숫자가 움직였나» 를 못 가린다. 그림은 그림만 바꾼다.
+    """
+    phys = {k: physics(k) for k in KEYS}
+    SJ = {k: load(SIONNA_SRC[k]) for k in KEYS}
+    POJ = load("report15_verdict_po_grid.json")
+    NUJ = load("report15_verdict_nulls_vs_range.json")
+    GRJ = load("report15_verdict_geomref.json")
+    S = {k: analyse_sionna(SJ[k], phys[k]) for k in KEYS}
+    PO = {k: analyse_po_grid(POJ, k, phys[k], 64) for k in KEYS}
+    NU = analyse_nulls(NUJ, phys)
+    CMP = {k: compare_engines(S[k], PO[k], k, 64) for k in KEYS}
+    out = {}
+    lv = fig1_spectrograms(SJ, phys, S, PO, NU, f"{FIGDIR}/report15_f1")
+    out["f1"] = _jsonable(lv)
+    print("   f1 ✅  패널", lv["n_panels"], "(옛 판", lv["n_panels_before"], ")",
+          "· 대표 널", lv["representative_null"])
+    fig2_flash_vs_ftip(SJ, phys, S, PO, GRJ, f"{FIGDIR}/report15_f2")
+    print("   f2 ✅ (스펙트로그램 아님 — 조화 스펙트럼)")
+    fig3_paths_and_divergence(SJ, phys, S, PO, CMP, f"{FIGDIR}/report15_f3")
+    print("   f3 ✅ (스펙트로그램 아님 — 경로수·상관 꺾은선)")
+    return out
+
+
 if __name__ == "__main__":
-    build()
+    if "--figs" in sys.argv:
+        figures_only()
+    else:
+        build()

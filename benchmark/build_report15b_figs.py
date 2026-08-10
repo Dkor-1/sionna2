@@ -22,7 +22,6 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.signal import spectrogram as _spec
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -37,7 +36,7 @@ FS = 9.5
 plt.rcParams.update({
     "font.size": FS, "axes.labelsize": FS, "axes.titlesize": FS,
     "xtick.labelsize": FS - 1, "ytick.labelsize": FS - 1, "legend.fontsize": FS - 1.5,
-    "axes.linewidth": 0.9, "figure.dpi": 200, "savefig.dpi": 200,
+    "axes.linewidth": 0.9, "figure.dpi": 200, "savefig.dpi": 400,   # ⭐맵의 시간축이 촘촘하다 — 화소를 두 배로
     "font.family": "DejaVu Sans",
 })
 C_OCC, C_FREE = "#c62828", "#1565c0"
@@ -50,45 +49,40 @@ def _save(fig, stem):
     print(f"  ✅ outputs/figures/{stem}.png")
 
 
-def _sgram(E, prf, nper=None):
-    """복소 슬로타임 → (도플러 f, 시간 t, dB). 정적 0-도플러는 뺀다."""
-    E = np.asarray(E) - np.mean(E)
-    nper = nper or max(64, len(E) // 12)
-    nov = nper - max(1, nper // 8)
-    f, t, S = _spec(E, fs=prf, nperseg=nper, noverlap=nov, nfft=4 * nper,
-                    detrend=False, window="hann", return_onesided=False,
-                    scaling="spectrum", mode="magnitude")
-    f = np.fft.fftshift(f)
-    S = np.fft.fftshift(S, axes=0)
-    return f, t, 20 * np.log10(S / (S.max() + 1e-30) + 1e-12)
+def fig1_spectrogram(res, npz, cell_key, stem="report15b_f1"):
+    """⭐ rpm 이 잠기면 시간에 안 변한다 — 그 사실을 눈으로 보인다.
 
-
-def fig1_spectrogram(res, npz, cell_key):
-    """⭐ rpm 이 잠기면 시간에 안 변한다 — 그 사실을 눈으로 보인다."""
+    ⭐ 2026-08-10 표시 규약을 **src/md_mapstyle.py** 로 통일했다. 옛 판은 조각을
+      `len(E)//12`(= 5.3 블레이드 주기, Δt 42 ms)로 잡아 플래시가 한 조각 안에서
+      **시간평균되어 지워졌다** — 남는 것은 가로 줄무늬뿐이었다. 규약값으로 내리면
+      Δt 가 4.80 ms 로 8.8 배 좋아진다.
+    ⚠ 이 원장은 PRF 5,000 Hz 라 규약의 0.45 주기가 24 표본 하한에 걸린다
+      (`auto_periods` 가 0.6 주기로 물러선다). 고해상도 원장으로 재계산되면
+      auto_periods 가 저절로 0.45 로 내려가므로 **이 그림을 다시 그려야 한다.**
+    """
+    from md_mapstyle import auto_periods, draw, flash_spec
     c = res["cells"][cell_key]
     ph = c["physics"]
-    prf, ftip = ph["prf"], ph["f_tip"]
-    fig, axes = plt.subplots(1, 2, figsize=(9.6, 3.5), sharey=True)
-    for ax, arm, ttl in ((axes[0], "A_sbr_locked", "All four rotors at one rpm"),
-                         (axes[1], "B_sbr_spread", "Per-rotor rpm spread")):
+    prf, ftip, ffl = ph["prf"], ph["f_tip"], ph["f_flash"]
+    got = []
+    for arm, ttl in (("A_sbr_locked", "All four rotors at one rpm"),
+                     ("B_sbr_spread", "Per-rotor rpm spread")):
         E = npz[f"{cell_key}/{arm}/E"]
-        f, t, S = _sgram(E, prf)
-        m = ax.pcolormesh(t * 1e3, f, S, cmap="turbo", vmin=-45, vmax=0, shading="auto")
-        for s in (+1, -1):
-            ax.axhline(s * ftip, color="w", ls="--", lw=1.0, alpha=0.85)
+        got.append((arm, ttl) + flash_spec(E, prf, ffl, auto_periods(prf, ffl)))
+    ref = max(g[4].max() for g in got)              # 두 팔은 같은 채널 — 공통 기준
+    fig, axes = plt.subplots(1, 2, figsize=(10.2, 4.0), sharey=True)
+    for ax, (arm, ttl, f, t, S, nper) in zip(axes, got):
+        m = draw(ax, t, f, S, ftip, ref=ref)
         hc = c["arms"][arm]["half_window_spectrum_corr"]
         ax.set_title(f"{ttl}\nhalf-window spectrum correlation = {hc:.4f}", fontsize=FS)
         ax.set_xlabel("Time [ms]")
-        ax.set_ylim(-1.6 * ftip, 1.6 * ftip)
     axes[0].set_ylabel("Doppler [Hz]")
-    axes[0].text(0.02, 0.96, f"white dashed = kinematic $f_{{tip}}$ = {ftip:.0f} Hz",
-                 transform=axes[0].transAxes, fontsize=FS - 2, color="w", va="top")
-    fig.colorbar(m, ax=axes, pad=0.015).set_label("Normalised magnitude [dB]", fontsize=FS)
+    fig.colorbar(m, ax=axes, pad=0.015).set_label("Magnitude [dB]", fontsize=FS)
+    #  ⭐ 그림 안에는 설정값을 안 적는다(하우스 규약) — 무엇을 잰 자료인지만.
     fig.suptitle(f"{c['name']} — {c['aspect']} (az {c['az_deg']:.0f}, el {c['el_deg']:.0f}), "
-                 f"{ph['n_t']} slow-time samples over "
-                 f"{res['_meta']['n_flash_periods']} blade periods",
-                 fontsize=FS + 0.5, y=1.04)
-    _save(fig, "report15b_f1")
+                 f"3.5 GHz.  White dashed = kinematic $f_{{tip}}$ = {ftip:.0f} Hz",
+                 fontsize=FS + 0.5, y=1.02)
+    _save(fig, stem)
 
 
 def fig2_occlusion(res, npz, cell_key):

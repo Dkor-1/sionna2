@@ -79,9 +79,9 @@ gsb = gs[0, 1].subgridspec(2, 1, height_ratios=[1.0, 1.22], hspace=0.30)
 #  (a) 등거리합 타원 — 모노의 원이 바이스태틱에서 타원이 된다
 # ─────────────────────────────────────────────────────────────────────────── #
 ax = fig.add_subplot(gs[0, 0])
-L = 2.0                                     # 기선(TX–RX)
+L = 2.9                                     # 기선(TX–RX) — 타원의 이심률이 보이게
 tx, rx = np.array([-L / 2, 0.0]), np.array([+L / 2, 0.0])
-tgt = np.array([0.35, 1.55])
+tgt = np.array([0.45, 1.35])
 Rt, Rr = np.linalg.norm(tgt - tx), np.linalg.norm(tgt - rx)
 Ssum = Rt + Rr                              # 등거리합
 a_e, c_e = Ssum / 2.0, L / 2.0
@@ -118,8 +118,8 @@ ax.plot(*tx, "s", ms=8, color=C_TX); ax.text(tx[0], tx[1] - 0.22, "TX", color=C_
                                              ha="center", va="top", fontsize=FS)
 ax.plot(*rx, "^", ms=9, color=C_RX); ax.text(rx[0], rx[1] - 0.22, "RX", color=C_RX,
                                              ha="center", va="top", fontsize=FS)
-ax.plot(*tgt, "o", ms=8, color=C_TGT); ax.text(tgt[0] + 0.10, tgt[1] + 0.10, "target",
-                                               color=C_TGT, fontsize=FS)
+ax.plot(*tgt, "o", ms=8, color=C_TGT); ax.text(tgt[0] + 0.14, tgt[1] + 0.02, "target",
+                                               color=C_TGT, fontsize=FS, va="bottom")
 ax.text(0.0, -0.30, "baseline", color="#555555", ha="center", va="top", fontsize=FS - 1)
 ax.set_title("(a) Two foci, not one: range becomes an ellipse")
 ax.set_aspect("equal"); ax.axis("off")
@@ -154,10 +154,10 @@ for v, c, lab, dy in ((vi, C_TX, r"$\hat u_i$", 0.10), (vs, C_RX, r"$\hat u_s$",
 ax.plot([vi[0], vq[0]], [vi[1], vq[1]], color="#aaaaaa", lw=0.9, ls=":")
 ax.plot([vs[0], vq[0]], [vs[1], vq[1]], color="#aaaaaa", lw=0.9, ls=":")
 ax.annotate("", xy=vq, xytext=(0, 0), arrowprops=dict(arrowstyle="-|>", lw=2.6, color=C_BIS))
-ax.add_patch(Arc((0, 0), 0.62, 0.62, theta1=-np.degrees(h), theta2=np.degrees(h),
+ax.add_patch(Arc((0, 0), 0.46, 0.46, theta1=-np.degrees(h), theta2=np.degrees(h),
                  color="k", lw=1.1))
-ax.text(0.40, 0.0, r"$\beta$", fontsize=FS + 2.5, ha="center", va="center")
-ax.text(vq[0] * 0.55, 0.13, r"$2\cos(\beta/2)$", color=C_BIS, fontsize=FS, ha="center")
+ax.text(0.31, 0.0, r"$\beta$", fontsize=FS + 2.5, ha="center", va="center")
+ax.text(vq[0] * 0.62, 0.22, r"$2\cos(\beta/2)$", color=C_BIS, fontsize=FS, ha="center")
 ax.text(vq[0] * 1.02, -0.16, "bisector", color=C_BIS, fontsize=FS - 0.5, ha="center",
         va="top")
 ax.set_title(r"(b) The sum $\hat u_i+\hat u_s$ shrinks as $2\cos(\beta/2)$…", pad=4)
@@ -166,7 +166,7 @@ ax.set_xlim(-0.18, 1.72); ax.set_ylim(-1.02, 1.02)
 
 # (b2) 위에서 본 판 — 도플러를 만드는 것은 그 합의 **수평 성분**뿐이다
 ax = fig.add_subplot(gsb[1, 0])
-Rd = 0.42
+Rd = 0.52
 th = np.linspace(0, 2 * np.pi, 240)
 ax.plot(Rd * np.cos(th), Rd * np.sin(th), color=C_TGT, lw=1.4)
 ax.plot([0], [0], "o", ms=5, color=C_TGT)
@@ -185,11 +185,11 @@ for k in range(6):                                   # 한 회전에 모든 방�
                 arrowprops=dict(arrowstyle="-|>", lw=1.1, color="#e65100", alpha=0.35))
 ax.annotate("", xy=(Rd * np.cos(vaz), Rd * np.sin(vaz)), xytext=(0, 0),
             arrowprops=dict(arrowstyle="-|>", lw=2.4, color="#e65100"))
-ax.text(Rd * np.cos(vaz) * 1.15, Rd * np.sin(vaz) * 1.15 - 0.10, r"$v_{tip}$",
+ax.text(Rd * np.cos(vaz) * 0.62 + 0.10, Rd * np.sin(vaz) * 0.62 - 0.02, r"$v_{tip}$",
         color="#e65100", fontsize=FS, ha="left", va="top")
 ax.set_title(r"…but only its horizontal part meets $v_{tip}$", pad=4)
 ax.set_aspect("equal"); ax.axis("off")
-ax.set_xlim(-0.75, 1.55); ax.set_ylim(-0.62, 1.55)
+ax.set_xlim(-0.80, 1.60); ax.set_ylim(-0.70, 1.60)
 
 # ─────────────────────────────────────────────────────────────────────────── #
 #  (c) 그래서 예측이 둘이다
