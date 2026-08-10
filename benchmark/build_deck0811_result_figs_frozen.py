@@ -186,7 +186,7 @@ def build_r1(beat):
     fig = plt.figure(figsize=(12.2, 7.1))
     gs = fig.add_gridspec(2, 3, height_ratios=[1.32, 1.0], width_ratios=[1, 1, 0.035],
                           wspace=0.10, hspace=0.46,
-                          left=0.070, right=0.928, top=0.888, bottom=0.300)
+                          left=0.070, right=0.928, top=0.900, bottom=0.200)
 
     cap0, m = "", None
     for c, (E, title) in enumerate((
@@ -220,8 +220,8 @@ def build_r1(beat):
 
     # ── 박자 패널 ───────────────────────────────────────────────────────────
     ax = fig.add_subplot(gs[1, 0:2])
-    for key, col, base, ymk in ((("sionna"), C_SIONNA, NAME_SIONNA, 9.5),
-                                (("ours"), C_OURS, NAME_OURS, 2.0)):
+    for key, col, base in ((("sionna"), C_SIONNA, NAME_SIONNA),
+                           (("ours"), C_OURS, NAME_OURS)):
         fr, X, fpk = beat[key]["fr"], beat[key]["X"], beat[key]["peak_hz"]
         s = fr <= 420
         # ⭐«어느 조화가 최강인가» 는 1x 와 2x 의 **여유**가 정한다. 그 여유가 작으면
@@ -234,7 +234,6 @@ def build_r1(beat):
         lab = (f"{base}    {fpk:.2f} Hz    off by {dev_pct(fpk):+.2f} %"
                f"    first line clears the second by {margin:+.1f} dB")
         ax.plot(fr[s], 20 * np.log10(X[s] + 1e-6), color=col, lw=2.2, label=lab)
-        ax.plot([fpk], [ymk], marker="v", ms=10, color=col, clip_on=False, zorder=5)
     ax.plot([], [], color=C_PRED, ls="--", lw=1.5,
             label=f"Kinematic prediction    {FFL:.2f} Hz    "
                   f"{BLADES:.0f} blades at {RPM0:.0f} rpm")
@@ -242,15 +241,16 @@ def build_r1(beat):
     for h, nm in ((1, "flash rate"), (2, "2x"), (3, "3x")):
         ax.axvline(h * FFL, color=C_PRED, ls="--", lw=1.5 if h == 1 else 1.0,
                    alpha=0.85 if h == 1 else 0.42, zorder=0)
-        ax.annotate(nm, xy=(h * FFL, 1.0), xycoords=("data", "axes fraction"),
-                    ha="center", va="bottom", fontsize=FS - 3, color=C_PRED,
-                    alpha=0.9, annotation_clip=False)
+        # ⭐축 밖(위)에 두면 패널 제목과 겹친다 — 안쪽 위에 붙인다.
+        ax.annotate(nm, xy=(h * FFL, 0.965), xycoords=("data", "axes fraction"),
+                    ha="center", va="top", fontsize=FS - 3.5, color=C_PRED,
+                    alpha=0.85)
 
     ax.set_xlim(0, 420)
-    ax.set_ylim(-46, 8)   # 범례를 축 밖으로 뺐으므로 위쪽 «글 자리» 가 필요 없다
+    ax.set_ylim(-46, 6)
     ax.set_yticks([-40, -30, -20, -10, 0])
     ax.set_title(f"Blade tip band energy, {BAND_LO*FTIP:.0f} to {BAND_HI*FTIP:.0f} Hz, "
-                 "how fast it rises and falls", fontsize=FS - 0.5, pad=6)
+                 "how fast it rises and falls", fontsize=FS - 0.5, pad=10)
     ax.set_xlabel("Modulation rate [Hz]")
     ax.set_ylabel("Line level [dB]")
     # ⭐사용자 지적 — 범례가 2x·3x 고조파 봉우리를 가리고 있었다(upper right 가 정확히
@@ -266,17 +266,8 @@ def build_r1(beat):
                  f"The same {ZOOM_MS:.0f} ms window through two engines.",
                  fontsize=FS + 1.5, y=0.972)
 
-    cap = (cap0 + "\n"
-           "Same slow time grid, same rotor speeds, same display convention, so only the "
-           "scattering engine differs. Sionna is the true monostatic run at baseline 0. "
-           "Our rays now start on one grid that is held still while the rotors turn. "
-           "Maps are normalized to their own peak, so this compares "
-           "structure and timing, never level. The beat is measured on the full "
-           f"{N/PRF*1e3:.0f} ms record, not on the {ZOOM_MS:.0f} ms zoom. Rayleigh bin "
-           f"{PRF/N:.1f} Hz, so the quoted peak is an interpolated line position and not a "
-           "resolution claim. Ledger outputs/deck0811_beat_check_frozen.json.")
-    cap = "\n".join(textwrap.fill(p, 150) for p in cap.split("\n"))
-    fig.text(0.070, 0.055, cap, fontsize=FS - 3.5, color="0.32", va="top")
+    # ⭐사용자 지시 — 그림 하단의 긴 캡션을 삭제했다. 설명은 발표 노트가 진다.
+    #   캡션 자리가 비면서 아래 여백이 생기므로 축 밖 범례가 겹치지 않는다.
 
     for ext in ("png", "pdf"):
         fig.savefig(f"{FIG}/deck0811_r1_frozen.{ext}", bbox_inches="tight",

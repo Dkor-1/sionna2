@@ -136,8 +136,7 @@ def build_band():
         ns, Es, no, Eo = SERIES[R]
         for E, nm, col in ((Es, ns, C_S), (Eo, no, C_O)):
             fr, A, pk = band_energy(E)
-            ax.plot(fr, 20 * np.log10(A + 1e-6), color=col, lw=2.0,
-                    label=f"{nm}   {pk:.1f} Hz")
+            ax.plot(fr, 20 * np.log10(A + 1e-6), color=col, lw=2.0, label=nm)
             out[f"{R:.0f}/{nm}"] = pk
         for h in (1, 2, 3):
             ax.axvline(h * FFL, color="0.25", ls="--",
@@ -161,10 +160,12 @@ def build_band():
 
 # ═══ 그림 D — 40 m, 시드 두 판 ═══════════════════════════════════════════════
 def build_seed40():
-    runs = [("run 1", SZ["S1/E"]), ("run 2", SZ["S2/E"])]
-    fig = plt.figure(figsize=(13.6, 5.2))
-    gs = fig.add_gridspec(1, 4, width_ratios=[1, 1, 0.038, 1.25],
-                          wspace=0.16, left=0.055, right=0.975, top=0.845, bottom=0.155)
+    # ⭐시드는 디스크에 있는 만큼 전부 싣는다(사용자: «다른 시드로도 하나 더 돌려서 추가»).
+    runs = [(f"run {k}", SZ[f"S{k}/E"]) for k in (1, 2, 3) if f"S{k}/E" in SZ.files]
+    nr = len(runs)
+    fig = plt.figure(figsize=(4.6 * nr + 4.2, 5.2))
+    gs = fig.add_gridspec(1, nr + 2, width_ratios=[1] * nr + [0.038, 1.25],
+                          wspace=0.16, left=0.050, right=0.975, top=0.845, bottom=0.155)
     m = None
     for c, (nm, E) in enumerate(runs):
         ax = fig.add_subplot(gs[0, c])
@@ -175,15 +176,14 @@ def build_seed40():
             ax.set_ylabel("Doppler [Hz]")
         else:
             plt.setp(ax.get_yticklabels(), visible=False)
-    cb = fig.colorbar(m, cax=fig.add_subplot(gs[0, 2]))
+    cb = fig.colorbar(m, cax=fig.add_subplot(gs[0, nr]))
     cb.set_label("Each map to its own peak [dB]", fontsize=FS - 1)
 
-    ax = fig.add_subplot(gs[0, 3])
+    ax = fig.add_subplot(gs[0, nr + 1])
     peaks = {}
-    for (nm, E), ls in zip(runs, ("-", "--")):
+    for (nm, E), ls in zip(runs, ("-", "--", ":")):
         fr, A, pk = band_energy(E)
-        ax.plot(fr, 20 * np.log10(A + 1e-6), color=C_S, lw=2.0, ls=ls,
-                label=f"{nm}   {pk:.1f} Hz")
+        ax.plot(fr, 20 * np.log10(A + 1e-6), color=C_S, lw=2.0, ls=ls, label=nm)
         peaks[nm] = pk
     for h in (1, 2, 3):
         ax.axvline(h * FFL, color="0.25", ls="--", lw=1.4 if h == 1 else 0.9, zorder=0)
@@ -191,8 +191,8 @@ def build_seed40():
     ax.set_xlabel("Modulation rate [Hz]"); ax.set_ylabel("Line level [dB]")
     ax.set_title(f"Blade tip band energy ({LO_HZ:.0f} to {HI_HZ:.0f} Hz)", pad=7)
     ax.legend(loc="upper right", fontsize=FS - 3, framealpha=0.92)
-    fig.suptitle(f"{NAME} at 40 m. The same computation run twice, "
-                 f"only the random start differs.   Prediction {FFL:.1f} Hz.",
+    fig.suptitle(f"{NAME} at 40 m. The same computation run {nr} times, "
+                 "only the random start differs.",
                  fontsize=FS + 1, y=0.955)
     for e in ("png", "pdf"):
         fig.savefig(f"{FIG}/deck0811_seed40.{e}", bbox_inches="tight", facecolor="white")
