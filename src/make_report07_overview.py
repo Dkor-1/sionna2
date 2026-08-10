@@ -46,6 +46,8 @@ VERD = json.load(open(f"{_ROOT}/outputs/report15_verdict.json"))
 RNGS = json.load(open(f"{_ROOT}/outputs/report07_sionna_ranges.json"))     # 그림 9 원장
 W5G = json.load(open(f"{_ROOT}/outputs/report07_5g_waveform.json"))        # 그림 10 원장
 RGM, RGR = RNGS["_meta"], RNGS["ranges"]
+_TRP = f"{_ROOT}/outputs/report07_three_engine_ranges.json"
+TRR = json.load(open(_TRP))["ranges"] if os.path.exists(_TRP) else None  # 그림12 거리판
 WM, WA = W5G["_meta"], W5G["arms"]
 LEAD = MDB["cells"]["matrice4e/belly"]
 PH = LEAD["physics"]
@@ -415,6 +417,33 @@ cells = [
        "python benchmark/report07_hover_long.py --preset outdoor   # → *_outdoor.{npz,json}",
        "python benchmark/build_hover_compare_fig.py                # → report07_f11",
        "```"),
+]) + ([] if TRR is None else [
+    md("## 그림 12 — 그림 3 을 거리 3 / 8 / 15 m 로 (한 줄 = 한 거리)", "",
+       "**시나리오** — 그림 3 과 같은 슬로타임 격자·같은 로터 회전수(산포 ±2 % 선언)를 "
+       "그대로 쓰고, **Sionna 열만** 거리마다 다시 풀었다(진짜 모노스태틱 기선 0 — 원판 "
+       "그림 3 의 Sionna 팔은 기선 0.2 m·3.8° 준-모노라 3 m 줄이 원판과 미묘하게 다르다). "
+       "광선 수는 (R/3)² 보상: 1M · 7.1M · 25M. 가운데·오른쪽 열(우리 SBR+PO · 가림 끈 "
+       "대조군)은 표적 앵커 평면파라 **거리라는 변수 자체가 없다** — 세 줄에서 같은 맵이 "
+       "반복되고, 그 반복이 이 그림의 절반이다. 8 m 는 원거리장 경계(8.0 m) 바로 위다.", "",
+       embed("report07_f12"), "",
+       "| 거리 | 광선 수 | 자세당 경로(중앙값) | 경로 0 자세 | 평균 레벨 |",
+       "|---|---|---|---|---|",
+       "\n".join(
+           f"| {TRR[k]['range_m']:.0f} m | {TRR[k]['spp']/1e6:.1f}M | "
+           f"{TRR[k]['paths_median']:.0f} | {TRR[k]['paths_zero_frac']:.1%} | "
+           f"{TRR[k]['level_db']:.1f} dB |" for k in ("R3", "R8", "R15")),
+       "",
+       "⭐ 읽는 법 — 이 거리대(≤15 m)에서는 광선 보상 덕에 경로 0 자세가 없다(40 m 붕괴는 "
+       "그림 9). 대신 두 가지가 변한다. ① 절대 레벨이 3→15 m 에서 30 dB 내려간다"
+       "(맵은 자기 최대 정규화라 안 보이는 사실 — 제목에 적었다). ② 맵의 결 — 자세마다 "
+       "잡히는 경로 집합이 달라져 세로 깜빡임이 거리에 따라 오르내린다. 8 m 줄이 오히려 "
+       "차분한 것은 광선 보상이 초과해 경로가 13개로 **늘었기** 때문이다(솔직히 기록한다 — "
+       "보상 규칙 (R/3)² 는 정확한 등가가 아니라 근사다).", "",
+       "**이 그림의 설정** — 그림 3 표와 동일(격자 재사용). 재계산·재현:", "",
+       "```bash",
+       "python benchmark/report07_three_engine_ranges.py        # Sionna 열만 3/8/15 m",
+       "python benchmark/build_three_engine_ranges_fig.py       # → report07_f12",
+       "```"),
 ]) + [
 
     md("## 부록 — 그림별 데이터 이력", "",
@@ -434,7 +463,10 @@ cells = [
        f"| 10 | `outputs/report07_5g_waveform.json` | {WM['generated'][:16]} | ✅ 후 — 그림 7 원장 상속 | ±{HOV['static_spread']*100:g} %(PX4 실측 중간값) |"
        + ("" if HOD is None else
           f"\n| 11 | `outputs/report07_hover_long_outdoor.json` | {HOD['generated'][:16]} | "
-          f"✅ 후 | ⚠±{HOD['static_spread']*100:g} %(야외 **문헌 앵커** — 우리 실측 아님) |")),
+          f"✅ 후 | ⚠±{HOD['static_spread']*100:g} %(야외 **문헌 앵커** — 우리 실측 아님) |")
+       + ("" if TRR is None else
+          "\n| 12 | `outputs/report07_three_engine_ranges.json` + 그림 3 원장(sbr·po 열) | "
+          "2026-08-10 | ✅ 후 | ±2 %(그림 3 격자 상속 — 선언) |")),
 
     md("## 부록 — 그림을 만든 설정 전부", "",
        "그림에는 설정 수치를 안 적는다. 여기가 그 수치들의 자리다.", "",
