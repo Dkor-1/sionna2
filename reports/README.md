@@ -26,7 +26,7 @@
 | [14 «결론이 무엇에 기대고 있나 — 강건성과 하드웨어»](14_robustness.ipynb) | 표적 모형·수신 소자·장비를 바꿔 넣어 결론이 어디서 흔들리는지 본다. | 5 | [절 1 «σ 를 곱하기 전에 이미 세 파형의 순서를 정하는 축이 있다»](14_robustness.ipynb) |
 | [15 «실측 계획 — 무엇을 재야 이 문서가 닫히나»](15_measurement.ipynb) | 시뮬레이션이 선언으로 남겨 둔 것들의 목록과, 그것을 닫는 야외 실측 규약이다. | 7 | [절 6 «캠페인이 결판내는 양은 절대값이 아니라 순위다»](15_measurement.ipynb) |
 
-셀 771 개 · 각주 1329 개 · 그림 66 개.
+셀 785 개 · 각주 1329 개 · 그림 68 개.
 
 ## 각 권에 어느 조각이 들어갔나
 
@@ -105,7 +105,7 @@
 
 ### [8 «마이크로도플러 — 도는 로터가 남기는 무늬»](08_1_scene.ipynb)
 
-그림이 무거워 **4 편**으로 나뉜다(빌더 `src/make_report08_microdoppler.py`).
+그림이 무거워 **5 편**으로 나뉜다(빌더 `src/make_report08_microdoppler.py (08_5 만 src/make_report07b_bistatic.py)`).
 
 | 편 | 무엇에 답하나 |
 |---|---|
@@ -113,6 +113,7 @@
 | [08_2_engines.ipynb](08_2_engines.ipynb) | 어떻게 계산하나 — 세 엔진과 거리 |
 | [08_3_pattern.ipynb](08_3_pattern.ipynb) | 무엇이 무늬를 정하나 — 회전수·가림·산포 |
 | [08_4_sampling.ipynb](08_4_sampling.ipynb) | 무엇을 잴 수 있나 — 광선 비용과 반복률 |
+| [08_5_bistatic.ipynb](08_5_bistatic.ipynb) | 송수신이 갈라지면 — 바이스태틱 도플러·플래시·에코 |
 
 아래 절은 이 스크립트가 `08_3_pattern.ipynb` 뒤에 이어 붙인 것이다.
 
@@ -209,7 +210,7 @@
 ```bash
 PYTHONPATH=src python src/build_part00_map.py              # ① 조각 빌더 12 개
 #  … build_part01_stock_engine.py … build_part11_measurement.py
-PYTHONPATH=src python src/make_report08_microdoppler.py    # ② 8 권 네 편
+PYTHONPATH=src python src/make_report08_microdoppler.py    # ② 8 권 1~4 편
 PYTHONPATH=src python src/build_volumes.py                 # ③ 조각 → 권 + 색인 + 이 파일
 PYTHONPATH=src python benchmark/check_report_links.py      # ④ 검사
 ```

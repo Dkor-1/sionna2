@@ -224,26 +224,46 @@ def panel_pathsolver(ax, F):
     #     그래서 부채꼴이 아니라 별처럼 사방으로 그린다. 대부분은 표적을 못 맞힌다.
     for adeg in np.linspace(0.0, 360.0, 161)[:-1] + 1.7:
         v = np.array([np.cos(np.radians(adeg)), np.sin(np.radians(adeg))])
-        ax.plot(*np.array([rc, rc + reach * v]).T, color=BLUE, lw=0.8, alpha=0.13, zorder=1)
-
-    #  ② 표적이 깔고 앉은 각 — 사방 광선과 견주면 «거의 다 빗나간다» 가 눈에 보인다.
-    angs = np.degrees(np.arctan2(*(corners - rc).T[::-1]))
-    wedge = [rc]
-    for adeg in np.linspace(angs.min(), angs.max(), 24):
-        v = np.array([np.cos(np.radians(adeg)), np.sin(np.radians(adeg))])
-        wedge.append(rc + 1.18 * float(np.hypot(*(dc - rc))) * v)
-    ax.add_patch(Polygon(np.array(wedge), closed=True, facecolor=BLUE, alpha=0.16,
-                         edgecolor=BLUE, lw=1.2, ls=(0, (5, 3)), zorder=2))
+        ax.plot(*np.array([rc, rc + reach * v]).T, color=BLUE, lw=0.9, alpha=0.20, zorder=1)
 
     ax.imshow(sub, zorder=3, interpolation="antialiased")
+
+    #  ② 살아남은 경로 — 렌더가 실제로 그린 선이 너무 가늘어 프로젝터에서 사라진다.
+    #     선을 **새로 그리지 않고** 렌더 안의 경로 화소만 골라 굵혀서 다시 얹는다.
+    #     (구·기체 상자는 빼서 표적과 레이더를 덮지 않게 한다.)
+    pm = sub[..., 3] > 0.15
+    yy, xx = np.mgrid[0:H, 0:W]
+    #  rs 는 물리량이 아니라 **그리기 상수**다. 레이더 표식 두 구를 덮을 만큼이면 된다.
+    rs = 0.085 * W
+    pm &= (xx - rc[0]) ** 2 + (yy - rc[1]) ** 2 > rs ** 2
+
+    #  기체가 실제로 두꺼워지는 열(= 동체)부터를 «덮으면 안 되는 곳» 으로 본다.
+    #  bbox 전체를 빼면 프로펠러 끝까지 잘려 다발이 허공에서 끊긴다(첫 판의 흠).
+    bx0, bx1 = int(corners[:, 0].min()), int(corners[:, 0].max())
+    by0, by1 = int(corners[:, 1].min()), int(corners[:, 1].max())
+    colcnt = (sub[by0:by1 + 1, bx0:bx1 + 1, 3] > 0.15).sum(0)
+    core = np.nonzero(colcnt > 0.30 * colcnt.max())[0]
+    cx0 = bx0 + (int(core[0]) if core.size else 0)
+    pm &= ~((xx > cx0 - 10) & (xx < bx1 + 10) & (yy > by0 - 10) & (yy < by1 + 10))
+
+    thick = pm.copy()
+    for ddy in (-1, 0, 1):
+        for ddx in (-1, 0, 1):
+            thick |= np.roll(np.roll(pm, ddy, 0), ddx, 1)
+    #  기체에 다가갈수록 서서히 옅어지게 한다. 딱 끊기면 그림이 고장 난 것처럼 보인다.
+    ramp = np.clip((cx0 - xx) / (0.09 * W), 0.0, 1.0)
+    ov = np.zeros((H, W, 4))
+    ov[..., 0], ov[..., 1], ov[..., 2] = 0.11, 0.12, 0.14
+    ov[..., 3] = np.where(thick, 0.60 * ramp, 0.0)
+    ax.imshow(ov, zorder=4, interpolation="antialiased")
 
     #  ③ 글자 — 최소한으로. 광선 위에 얹히므로 흰 판을 깐다.
     bbox = dict(facecolor="white", alpha=0.82, edgecolor="none", pad=2.0)
     ax.text(rc[0] + 0.022 * W, rc[1] + 0.090 * H, "Tx and Rx", color="#a41220",
             fontsize=13.5, fontweight="bold", ha="left", va="top", zorder=6, bbox=bbox)
     ax.annotate(f"median {F['paths_med']:.0f} paths return",
-                xy=tuple(dc + np.array([-0.055 * W, 0.030 * H])),
-                xytext=(0.545 * W, 0.760 * H),
+                xy=tuple(rc + 0.62 * (dc - rc)),
+                xytext=(0.455 * W, 0.805 * H),
                 color=BLUE, fontsize=13.5, fontweight="bold", ha="left", va="center",
                 zorder=6, bbox=bbox,
                 arrowprops=dict(arrowstyle="-|>", color=BLUE, lw=1.8, shrinkA=6, shrinkB=4,
@@ -285,7 +305,7 @@ def panel_sbrpo(ax, F, rays):
 
     hx = k_in[hit] * dx
     hy = y0[hit] + k_in[hit] * dy
-    ax.plot(hx, hy, "o", ms=4.0, mfc=GREEN, mec="white", mew=0.6, zorder=6, ls="none")
+    ax.plot(hx, hy, "o", ms=4.4, mfc=GREEN, mec="white", mew=0.6, zorder=6, ls="none")
 
     #  진행 방향을 크게 한 번만 — 평면파라는 것이 읽히게 화살표 셋.
     for fy in (0.20, 0.50, 0.80):
@@ -386,7 +406,7 @@ def build():
 
     #  ── 칸 아래 세 줄 + 핵심 한 줄 ──────────────────────────────────────── #
     rows = [
-        [("FIRED", f"{F['spp']:,} ray samples, uniform on the sphere".replace(",", " ")),
+        [("FIRED", f"{F['spp']:,}".replace(",", " ") + " ray samples, uniform on the sphere"),
          ("KEPT", f"the paths that return, median {F['paths_med']:.0f} "
                   f"at {F['rng']:.0f} m"),
          ("LEFT OUT", "the surface integral over the target")],
@@ -394,7 +414,7 @@ def build():
          ("KEPT", "the first hit of every ray"),
          ("LEFT OUT", "back facing and hidden facets")],
     ]
-    keys = [("Target solid angle falls as (D/R)², so the budget must grow with range", BLUE),
+    keys = [("Solid angle falls as (D/R)², so the ray budget grows with range", BLUE),
             ("The grid rides on the target, so range is not a variable at all", GREEN)]
     y_rows = (5.34, 5.66, 5.98)
     for (x0, c, *_), rws, (kline, kc) in zip(cols, rows, keys):

@@ -1,0 +1,290 @@
+{
+ "_meta": {
+  "generated": "2026-08-10",
+  "owner": "teammeeting_0818 준비 — 8/18 팀미팅 로드맵의 기계용 계획서 (신규 파일만 씀, sionna2 의 다른 파일은 읽기 전용)",
+  "target_date": "2026-08-18",
+  "days_left": 8,
+  "human_doc": "/home/yunjung/workspace/teammeeting_0818/ROADMAP.md",
+  "deck_v1": {
+   "builder": "/home/yunjung/workspace/teammeeting_0818/make_0818_v1.py",
+   "manuscript": "/home/yunjung/workspace/teammeeting_0818/teammeeting_slides_0818_v1.json",
+   "pptx": "/home/yunjung/workspace/teammeeting_0818/_out_0818_v1.pptx"
+  },
+  "ledgers_read": [
+   "outputs/deck0811_number_audit.json",
+   "outputs/report07_ray_budget_test.json",
+   "outputs/report07b_bistatic_md.json",
+   "outputs/md_map_audit.json",
+   "prior_work/isac_standard_scenarios.md",
+   "docs/MEASUREMENT_PLAN.md",
+   "docs/RESUME.md",
+   "docs/progress/2026-08-10.md",
+   "src/passive_process.py",
+   "src/drones.py",
+   "reports/08_1_scene.ipynb .. 08_5_bistatic.ipynb",
+   "reports/README.md"
+  ],
+  "rule_ko": "이 계획서는 «무엇이 검증됐나» 와 «무엇을 채울 자리인가» 를 기계가 읽을 수 있게 적은 것이다. 덱 빌더가 자리표시를 실물로 바꿀 때 이 파일의 slot 항목을 지운다."
+ },
+
+ "verdict_columns": {
+  "확실": {
+   "n": 30,
+   "criterion_ko": "격자·PRF·창 길이가 다른 두 독립 실행이 만난다",
+   "deck_safe": true,
+   "items_used_in_v1": [
+    {"k": "target", "v": "DJI Matrice 4E, prop 274 mm, 2 blades, 4 rotors", "src": "src/drones.py + manual p.101"},
+    {"k": "geometry", "v": "az 0 deg, el -15 deg (belly), 3 m, 3.5 GHz, baseline 0", "src": "outputs/report07_three_engines.json:_meta"},
+    {"k": "hover_rpm", "v": 3800, "band_pct": 5.0, "src": "src/drones.py (declared literal, C_T=0.0140 hand check 3790)"},
+    {"k": "f_flash_hz", "v": 126.667, "period_ms": 7.9, "src": "analytic + 3 ledgers"},
+    {"k": "level_sbr_db", "v": -50.4, "agree_db": 0.001},
+    {"k": "level_po_db", "v": -52.2, "agree_db": 0.0007},
+    {"k": "level_diff_db", "v": 1.83},
+    {"k": "ptp_sbr_db", "v": 7.9, "agree_db": 0.18},
+    {"k": "ptp_po_db", "v": 2.7, "agree_db": 0.05},
+    {"k": "ptp_diff_db", "v": 5.1, "agree_db": 0.24, "note_ko": "가장 튼튼한 수치. belly 한정. 두 팔은 가림 외에 이산화·Gamma(theta)도 다르다"},
+    {"k": "p5p95_sbr_db", "v": 3.5},
+    {"k": "p5p95_po_db", "v": [1.2, 1.5]},
+    {"k": "paths_median_3m", "v": 5, "agree": "두 실행 동일"},
+    {"k": "sionna_level_3m_db", "v": -117.4, "agree_db": 0.06},
+    {"k": "cost_ms_per_pose", "v": {"sionna": 134, "sbr": 34, "po": 3.0}, "tolerance_pct": 30},
+    {"k": "zero_pose_frac_upto_20m", "v": 0.0},
+    {"k": "ray_ladder_40m", "v": {"32M": 0.773, "64M": 0.0, "128M": 0.0, "178M": 0.0}, "paths_median": {"32M": 0, "64M": 2, "128M": 4, "178M": 5}, "src": "outputs/report07_ray_budget_test.json"},
+    {"k": "farfield_m", "v": [8.0, 8.3], "convention_ko": "D = 가장 긴 변. 대각 규약이면 14.1 m"},
+    {"k": "segment", "v": {"blade_periods": 0.45, "samples": 70, "ms": 3.553, "df_hz": 281.4}},
+    {"k": "wo_occlusion_def_ko", "v": "같은 메쉬 모든 면에 PO, 법선이 등진 면만 제외. 광선을 안 쏜다"},
+    {"k": "bistatic_regression", "v": {"n_bit_identical": 4096, "max_rel_err": 0.0, "max_phase_err_deg": 4.4e-15}},
+    {"k": "bistatic_doppler_winner", "v": "bisector", "rms_rel_err": {"bisector": 0.061, "cos_half_beta": 0.126}},
+    {"k": "bistatic_flash_stable", "v": "9 cells, 8 within 0.8 Hz of 126.67 Hz"},
+    {"k": "A_eff_rel_beta120_az", "v": 0.285},
+    {"k": "wideband_floor", "v": {"sbr": {"db": -33.5, "frac_beyond_ftip": 0.0605}, "sionna": {"db": -41.4, "frac_beyond_ftip": 0.0212}, "po": {"db": -118.8, "frac_beyond_ftip": 0.000209}}}
+   ]
+  },
+  "흔들림": {
+   "n": 7,
+   "deck_safe": false,
+   "usage_ko": "방향만 서술, 숫자 금지",
+   "items": [
+    {"k": "f_tip_4digit", "why_ko": "두 원장이 1228.72 vs 1229.57 (3e8 대 정확 c). «약 1.23 kHz» 로만"},
+    {"k": "paths_8m_15m", "why_ko": "단일 실행이고 이웃 거리와 단조성이 안 맞는다"},
+    {"k": "sionna_level_8m_15m", "why_ko": "거리 의존이 단조롭지 않다 (광선 예산 보상 서술이 실제와 0.18배 어긋남)"},
+    {"k": "mini5_nose_identical_arms", "why_ko": "정직성 카드로만"},
+    {"k": "zero_pose_78_3_pct", "why_ko": "⭐강등됨. 광선 사다리가 예산 부족으로 판정. 8/18 에는 사다리 전체를 쓴다", "superseded_by": "ray_ladder_40m"},
+    {"k": "bistatic_residual_max_0_128", "why_ko": "az60. 원장이 스스로 미해결로 적었다"},
+    {"k": "el120_flash_corr_0_746", "why_ko": "원장이 스스로 미해결로 적었다"}
+   ]
+  },
+  "반증": {
+   "n": 12,
+   "deck_safe": false,
+   "usage_ko": "한 자리도 쓰지 않는다. 빌더가 문자열 잠입 검사로 강제한다",
+   "items": [
+    {"k": "PRF 를 단일 숫자로", "type": "figure_dependent", "values": [19700, 5000, 4000]},
+    {"k": "rotor spread 0.22 % 를 «실측»", "type": "provenance_mislabel", "why_ko": "원장이 PX4 텔레메트리 실측 vs PX4 SITL 로 갈린다. 실기체 로그 3원천은 0.54~2.4 %"},
+    {"k": "Sionna level -110.2 dB", "type": "geometry_mismatch", "why_ko": "그 팔만 기선 0.20 m. 기선 0 두 실행과 7.1 dB 어긋남"},
+    {"k": "Sionna is 60 dB lower", "type": "different_unit_subtraction", "why_ko": "단위환산만 -41.1 dB. 차의 2/3 가 환산이고 그 -60 마저 어긋난 기하"},
+    {"k": "Sionna p-p", "type": "run_to_run_instability", "values_db": [7.68, 15.42, 32.65], "why_ko": "같은 양이 4배 이상 흔들린다"},
+    {"k": "cosine sionna vs ours", "type": "grid_dependent", "why_ko": "0.727 <-> 0.476. Sionna 자기일관성 천장이 0.84~0.86"},
+    {"k": "cosine ours two arms", "type": "grid_dependent", "why_ko": "0.44 -> 0.29 (격자 변경)"},
+    {"k": "prop specular cell count", "type": "no_ledger", "why_ko": "해당 양을 담은 JSON 없음"},
+    {"k": "40 m mean -504.9 dB and p-p 443.7 dB", "type": "numerical_floor_artifact", "why_ko": "20log10(|E|+1e-30). 대체값 -161.3 dB over 21.7 %"},
+    {"k": "0.45 evidence table", "type": "reproduction_failed", "why_ko": "독립 재구현 4.4/7.0/13.6/20.5/21.3 이고 결론이 역전(0.60 이 더 크다). 원장 JSON 없음"},
+    {"k": "report15b F vs G single axis", "type": "sign_flips_by_aspect", "why_ko": "레벨차 -1.92~+1.04 dB, p-p 차 60배. 한 칸은 두 팔이 비트 동일"},
+    {"k": "report07_f5 as one geometry", "type": "geometry_mismatch", "why_ko": "Sionna 열만 기선 0.2 m. f12 의 3 m 줄을 쓴다"}
+   ]
+  }
+ },
+
+ "seven_rules": [
+  {"id": "R1", "name_ko": "두 실행 규칙", "text_ko": "격자·PRF·창이 다른 두 번째 독립 실행이 재현 못 하면 방향만 쓴다", "catches": ["Sionna level -110.2", "Sionna p-p"]},
+  {"id": "R2", "name_ko": "단위 규칙", "text_ko": "단위가 다른 두 양을 빼지 않는다. 원장에 팔마다 단위를 적는다", "catches": ["Sionna is 60 dB lower"]},
+  {"id": "R3", "name_ko": "백분위 규칙", "text_ko": "p-p 가 있으면 p5~p95 도 같이 낸다. 간격이 크면 p-p 를 안 쓴다", "catches": ["Sionna p-p", "40 m p-p"]},
+  {"id": "R4", "name_ko": "표시 규약 의존 규칙", "text_ko": "코사인·상관·닮음은 두 격자에서 안 변한다는 것을 보이기 전엔 판정 근거가 아니다", "catches": ["cosine x2", "0.45 evidence table"]},
+  {"id": "R5", "name_ko": "하한 상수 규칙", "text_ko": "하한 상수를 넣고 계산한 dB 는 슬라이드 금지. 조건부 통계와 빈 비율로 나눈다", "catches": ["40 m mean -504.9"]},
+  {"id": "R6", "name_ko": "출처 낱말 규칙", "text_ko": "실측은 실기체 로그·계측기일 때만. 시뮬레이터 출력은 선언", "catches": ["rotor spread 0.22 %"]},
+  {"id": "R7", "name_ko": "붕괴 규칙", "text_ko": "벽·구조적 한계를 말하기 전에 예산 사다리를 먼저 돌린다", "catches": ["zero_pose_78_3_pct"]}
+ ],
+
+ "jobs": [
+  {
+   "id": "J1", "title_ko": "원장 ↔ 리포트 정합", "priority": 1, "upstream": true,
+   "gain_ko": "덱이 인용할 바닥을 고친다. 08_2 가 아직 «버린다» 수치를 본문에 담고 있다",
+   "gpu": false, "cost_days": [0.5, 1.0],
+   "targets": [
+    {"file": "reports/08_2_engines.ipynb", "fix_ko": "코사인 0.727/0.660/0.440 · p-p 32.6/2.5/50.1 · 0.45 근거표 · 프롭 정반사 0칸/1152칸 · 가림 단일축 -15.96 dB 제거"},
+    {"file": "reports/08_3_pattern.ipynb", "fix_ko": "0.22 % 를 «PX4 텔레메트리 실측» 으로 부르는 문장 → «선언» 으로"},
+    {"file": "docs/RESUME.md", "fix_ko": "«40 m 빈자세 78.3 % = PathSolver 구조 붕괴» → 광선 사다리 결론으로 정정"},
+    {"file": "docs/DRONE_ISAC_PRIOR_READING.md:73", "fix_ko": "-20 dBsm → -12.81(소형)/-5.85(대형). -20 은 채택 안 된 기고 단계 제안치"},
+    {"file": "reports/README.md", "fix_ko": "8권이 «4 편» 으로 적혀 08_5_bistatic 이 빠져 있다"},
+    {"file": "reports/08_5_bistatic.ipynb", "fix_ko": "H1 이 «리포트 07b» 라 8-1~8-4 와 어긋나고 5편 내비 배너가 없다"}
+   ],
+   "risk_ko": "낮음. 다만 «정반사 0칸» 은 원장을 찾거나 문장을 빼야 한다",
+   "finishes_by_0818": true
+  },
+  {
+   "id": "J2", "title_ko": "패시브 2채널 승격 Tier A (닫힌 형태 eta_ref)", "priority": 2,
+   "gain_ko": "«패시브인데 왜 기준신호를 공짜로 아나» 에 숫자로 답한다. RNR 스윕 x 다중경로 -> ECA 소거 깊이·RD 피크 손실 = eta_ref -> R90 감소량",
+   "gpu": false, "cost_days": [2, 3],
+   "current_ideal_points": [
+    {"file": "src/passive_process.py", "line": 68, "code": "ref_cpi = np.tile(ref_frame, M)", "why_ko": "기준채널이 송신 파형의 깨끗한 복사본"},
+    {"file": "src/experiment_freespace_range.py", "line": 71, "code": "CANON_REF = \"full_waveform_capture\"", "why_ko": "모든 호출이 eta_ref=0.0"},
+    {"file": "benchmark/geometry_grid.py", "line": 388, "why_ko": "이상적 기준 가정이 원장에 글로 적혀 있다"}
+   ],
+   "changes": [
+    {"file": "src/passive_process.py", "fn": "make_cpi", "what_ko": "ref_multipath·ref_snr_db·ref_gain 키워드 추가, 기본값은 현재값(기존 수치 비트 동일 유지)"},
+    {"file": "benchmark/verify_eca.py", "what_ko": "«[6] 기준채널 열화» 절 신설. RNR 10~60 dB x 다중경로 on/off"},
+    {"file": "src/freespace_link.py", "fn": "eta_ref_db", "what_ko": "신규. snd_rd_db 는 그대로"},
+    {"file": "src/experiment_freespace_range.py", "what_ko": "CANON_REF 를 튜플로. 키를 교체하지 말고 추가"}
+   ],
+   "blockers": [
+    {"file": "src/experiment_freespace_range.py", "line": 496, "issue_ko": "eca_depth_db=60.0 하드코딩. 현실 기준채널은 깊이를 낮추는데 이 리터럴이 결과를 먹는다. ⭐먼저 배선", "blast_radius": "large"},
+    {"issue_ko": "\"full_waveform_capture\" 문자열이 12개 파일에 하드코딩"},
+    {"issue_ko": "우리 ECA 는 표준 ECA 이고 ECA-S 가 아니다. 저속 표적 보존 주장은 이전 안 됨"}
+   ],
+   "finishes_by_0818": true,
+   "tier_b_finishes_by_0818": false,
+   "tier_b_why_not_ko": "experiment_detection.Precomputed 가 «ECA 를 한 번만 계산» 전제 위에 있다. 시행별 무작위 기준신호면 구조가 깨지고 CFAR 교정을 다시 재야 한다(GPU 2717 s)"
+  },
+  {
+   "id": "J3", "title_ko": "분류 최소 실험 (혼동행렬)", "priority": 3,
+   "gain_ko": "«보이나»(탐지)에서 «무엇인가»(분류)로. 메인 태스크의 나머지 절반",
+   "gpu": false, "gpu_optional_hours": 0.31, "cost_days": [2, 3],
+   "data_ready": [
+    {"file": "outputs/report16_rung_mesh_full_tables.npz", "what_ko": "10기 x 24방위 위상표 + frame__/rot__ 분해 -> 임의 rpm·산포·CPI·SNR·자세를 numpy 로 합성 가능(광선 재발사 없음)"},
+    {"file": "src/microdoppler_proc.py", "what_ko": "전처리 사슬 이미 있음 (mti_sos, clutter_suppress, periodogram_spec, select_bins, process)"},
+    {"file": "src/md_mapstyle.py", "what_ko": "플래시 주기 정규화 STFT"},
+    {"env": "~/.venvs/py312", "sklearn": "1.9.0"}
+   ],
+   "pilot_result_ko": "1-NN LOO 파일럿이 Hz 축 1.000 · 차수 축 0.992. 이유는 물리가 아니라 f_flash 가 drones.py 리터럴이고 분류기가 그걸 읽는 것",
+   "trap_ko": "⭐이 일감은 위험이 본체다. 그대로 발표하면 즉시 반박당한다. 선행연구도 모델 식별이 도메인 밖에서 42.07 % 로 떨어진다고 기록",
+   "honest_design": [
+    "로터 회전수를 각 기체의 선언 밴드 안에서 무작위로 뽑아 통과율 분포가 겹치게 한다",
+    "자세를 미지수로 둔다 (방위를 훈련·시험으로 나눈다)",
+    "열잡음 SNR 스윕을 축으로. 헤드라인은 단일 정확도가 아니라 «SNR 과 rpm 사전분포 폭의 함수»",
+    "어려운 쌍 부분집합을 따로 낸다",
+    "로터 수(4/6/8)는 도플러가 아닌 별개 판별축이므로 따로 표시"
+   ],
+   "hard_pairs": [
+    {"pair": ["mini5pro", "phantom4"], "f_flash_hz": [183.33, 183.33], "why_ko": "완전히 같다 (둘 다 5500 rpm). 프롭 지름으로만 갈린다", "f_tip_hz": [1024.8, 1613.8]},
+    {"pair": ["x500v2", "typhoonh480"], "f_flash_hz": [181.67, 186.67], "sep_pct": 3.0, "why_ko": "typhoonh480 의 rpm 밴드가 ±4.5 % 라 자기 밴드 안에 상대가 들어온다"}
+   ],
+   "easy_set_ko": "m350rtk 80 · mavic4pro 120 · matrice4e 126.7 · s1000plus 148.9 · phantom3 170 · mini2 306.7 Hz — 최소 간격 5 %, 분해능 2~4.8 Hz 라 자명하게 갈린다",
+   "finishes_by_0818": true,
+   "full_sbr_spread_finishes_by_0818": false,
+   "full_sbr_spread_cost_gpu_hours": 44
+  },
+  {
+   "id": "J4", "title_ko": "광선 엔진의 광대역 바닥 (격자 사다리)", "priority": 4,
+   "gain_ko": "우리 SBR 팔의 날개끝 밖 전력 6.05 % / 바닥 -33.5 dB 가 격자를 촘촘히 하면 내려가나. 커널 신뢰도 문제",
+   "gpu": true, "cost_days": [1, 1],
+   "ladder": ["lam/12 (현재)", "lam/24", "lam/36"],
+   "cost_note_ko": "격자 2배면 광선 4배. 자세당 34 ms -> 약 140 ms. 4096 자세면 격자당 30~40분",
+   "risk_ko": "⚠안 내려갈 수 있다. 원인이 이산화가 아니라 first-hit 집합의 불연속이면 격자로 안 사라진다. 그 경우도 결론이지만 헤드라인을 «해결했다» 로 잡으면 안 된다",
+   "context_ko": "Sionna 도 -41.4 dB / 2.12 % 라 광선 엔진 공통 성질. 순수 PO 는 -118.8 dB / 0.02 %",
+   "finishes_by_0818": true,
+   "root_cause_finishes_by_0818": false
+  },
+  {
+   "id": "J5", "title_ko": "바이스태틱 beta 스윕 확장", "priority": 5,
+   "gain_ko": "지금 beta 5개 x 평면 2개 = 9칸. 더 촘촘히·평면 더",
+   "gpu": true, "cost_days": [0.5, 0.5],
+   "cost_note_ko": "자세당 218 ms x 4096 = 891 s 가 한 스윕. 칸 수에 선형",
+   "risk_ko": "lit-PO 전방산란 무효 (beta->180 에서 E==0, 원뿔 도달 한계 beta <= 150) · Gamma(theta) 가 rcs_sbr_multistatic·다중반사에 미배선 · 도플러 부호 미검증",
+   "do_not_ko": "⛔다중 수신국은 이번에 하지 않는다 — Gamma(theta) 미배선 위에 얹으면 J1 이 고치고 있는 것과 같은 부채가 생긴다",
+   "finishes_by_0818": true,
+   "multi_rx_finishes_by_0818": false
+  },
+  {
+   "id": "J6", "title_ko": "실측 준비 X410 야외 규약 (한 장)", "priority": 6,
+   "gain_ko": "«무엇을 재야 시뮬이 닫히나» 를 한 장으로",
+   "gpu": false, "cost_days": [0.5, 0.5],
+   "must_record": [
+    "sigma(f, phi) 원자료 2기체 x 부대역 x 방위 -90~+90 도",
+    "같은 세션의 교정구 응답 (PEC 구 r=0.178 m, 정확 Mie 기준, 파이 r^2 아님)",
+    "세션 내 드리프트 <= 1.00 dB (넘으면 그 세션의 레벨은 폐기, 형상은 생존)",
+    "편파 최소 VV (교차편파는 판마다 따로 교정)",
+    "로터 정지 + 블레이드 방위각 기록",
+    "배경 S_BG 를 복소로 차감 (크기 아님)",
+    "기체 상태 로그 (배터리·짐벌·다리·프롭)",
+    "GT = 기체 로그 + RTK, 시각동기 규약을 프로토콜에 박는다",
+    "Layer 2 는 E_tx 를 방향성 결합기로 실측 (선언 EIRP 아님)"
+   ],
+   "gaps_ko": ["안테나 모델·이득이 계획 어디에도 없다", "국내 ISM 5.8 GHz 규정 미확인", "비행 승인 미확인", "⭐로터 rpm 은 기록 대상이 아니다 — 우리 산포 앵커의 구멍은 별도 세션으로만 닫힌다"],
+   "finishes_by_0818": true
+  },
+  {
+   "id": "J7", "title_ko": "3GPP 대조 (한 장)", "priority": 7,
+   "gain_ko": "우리 위치를 규격 문장으로 말한다. 조사는 이미 끝났다",
+   "gpu": false, "cost_days": [0.5, 0.5],
+   "facts": [
+    {"k": "sigma_M_small_dbsm", "v": -12.81, "sigma_S_db": 3.74, "src": "TR 38.901 V19.4.0 Table 7.9.2.1-1"},
+    {"k": "sigma_M_large_dbsm", "v": -5.85, "sigma_S_db": 2.50, "src": "Table 7.9.2.1-2"},
+    {"k": "mono_equals_bistatic", "v": "The same values are used for monostatic RCS and bistatic RCS", "use_ko": "우리 이등분선 근사의 방어논거"},
+    {"k": "single_TRP_meets_targets", "v": "3 of 11 (baseline 1), 2 of 9 (baseline 2)", "multi_trp": "9 of 10, 7 of 9", "src": "TR 38.765 section 9"},
+    {"k": "tx_power_from_isolation", "v": "37 / 52 dBm = Rx saturation -28 dBm + antenna isolation 65 / 80 dB", "use_ko": "패시브 바이스태틱엔 이 항이 없다"},
+    {"k": "rel20_scope", "v": "gNB-based mono-static sensing for UAV, no UE impacts, no inter-gNB coordination"},
+    {"k": "scenario", "v": "UMa-AV, ISD 500 m, gNB height 25 m, FR1 4 / 4.9 GHz, 100 MHz, SCS 30 kHz"},
+    {"k": "our_position", "v": "in-geometry, out-of-regulation — an unauthorized non-cooperative variant of TRP-UE bistatic"}
+   ],
+   "risk_ko": "docs/DRONE_ISAC_PRIOR_READING.md:73 의 -20 dBsm 을 먼저 정정. 3GPP 에서 «passive» 는 표적이 passive 라는 뜻이라 반드시 «passive receiver» 라고 써야 한다",
+   "finishes_by_0818": true
+  }
+ ],
+
+ "cannot_finish_by_0818": [
+  {"what_ko": "현실 기준채널 몬테카를로 Pd (J2 Tier B)", "why_ko": "Precomputed 구조 + CFAR 재교정 2717 s"},
+  {"what_ko": "rpm 산포까지 넣은 full SBR 분류 데이터셋", "why_ko": "44 GPU-h"},
+  {"what_ko": "우리 sigma 대 Das 2.39배 해소", "why_ko": "구간·기종을 맞췄는데도 안 닫혔다. 남은 후보는 메쉬 대 실물 · 편파 규약 · 측정 조건"},
+  {"what_ko": "전방산란 beta > 150 도", "why_ko": "커널이 lit-PO 라 E==0. 그림자 복사를 따로 넣어야 한다"},
+  {"what_ko": "다중 수신국 바이스태틱", "why_ko": "Gamma(theta) 미배선"},
+  {"what_ko": "실측 그 자체", "why_ko": "장비·승인·일정"}
+ ],
+
+ "deck_plan": {
+  "page_logic_ko": "«풍부하게» 는 «장수를 늘려라» 가 아니다. 8/11 은 질문이 하나였고 본론 12장이 정확했다. 8/18 은 질문이 셋이 되므로 장이 는다.",
+  "questions": [
+   {"id": "Q1", "ko": "어떤 엔진으로 그리나", "status": "8/11 결과, 검증 완료", "part": 1},
+   {"id": "Q2", "ko": "그 무늬로 기체를 가를 수 있나", "status": "신규 (J3)", "part": 2},
+   {"id": "Q3", "ko": "기준신호를 공짜로 안다는 가정을 벗으면 얼마나 나빠지나", "status": "신규 (J2)", "part": 3}
+  ],
+  "parts": [
+   {"part": 0, "title_ko": "표지·오늘", "slides": 2, "status": "확정"},
+   {"part": 1, "title_ko": "어디까지 왔나", "slides": 6, "status": "확정"},
+   {"part": 2, "title_ko": "무늬로 기체를 가를 수 있나", "slides": 4, "status": "J3 대기"},
+   {"part": 3, "title_ko": "패시브를 진짜로", "slides": 3, "status": "J2 대기"},
+   {"part": 4, "title_ko": "기하와 커널", "slides": 4, "status": "J5·J4 대기"},
+   {"part": 5, "title_ko": "마무리", "slides": 3, "status": "J7·J6"},
+   {"part": 9, "title_ko": "부록", "slides": 2, "status": "확정", "backup": true}
+  ],
+  "fallback_ko": "⭐결과가 안 나오면 그 부를 통째로 뺀다. 자리표시를 말로 채우지 않는다. 2부가 빠지면 18장, 2·3부가 다 빠지면 15장 — 그래도 8/11 의 12장보다 많다.",
+  "v1_built": {
+   "body_pages": 22,
+   "appendix_pages": 2,
+   "file_slides": 24,
+   "slot_figures": 3,
+   "verified": "make_0818_v1.py 내장 검증 + XML 기계검증 모두 통과 (2026-08-10)"
+  }
+ },
+
+ "slots": [
+  {"id": "SLOT-CLS-MATRIX", "job": "J3", "slide_tag": "CLASSIFICATION", "fig": "slot_confusion.png", "what_ko": "혼동행렬. 행 = 참 기체, 열 = 예측. rpm 을 선언 밴드 안에서 무작위로 뽑아 통과율이 겹친 상태에서 잰 것", "fill_when": "J3 완료"},
+  {"id": "SLOT-CLS-SNR", "job": "J3", "slide_tag": "CLASSIFICATION", "fig": "slot_acc_vs_snr.png", "what_ko": "가로 = SNR, 세로 = 정확도. 곡선 = rpm 사전분포 폭. 어려운 쌍 부분집합은 별도 곡선", "fill_when": "J3 완료"},
+  {"id": "SLOT-REF-ETA", "job": "J2", "slide_tag": "PASSIVE", "fig": "slot_eta_ref.png", "what_ko": "가로 = 기준채널 RNR, 세로 = ECA 소거 깊이와 RD 피크 손실. 다중경로 on/off 두 곡선", "fill_when": "J2 Tier A 완료"},
+  {"id": "SLOT-REF-R90", "job": "J2", "slide_tag": "PASSIVE", "fig": "slot_r90.png", "what_ko": "이상적 기준 대 현실 기준의 R90 막대. 기체별·대역별", "fill_when": "J2 Tier A 완료"},
+  {"id": "SLOT-FLOOR-LADDER", "job": "J4", "slide_tag": "KERNEL FLOOR", "fig": "slot_floor_ladder.png", "what_ko": "가로 = 광선 격자 간격 (lam/12, lam/24, lam/36), 세로 = 날개끝 밖 전력 비율과 바닥 dB. 순수 PO 선을 기준선으로", "fill_when": "J4 완료"}
+ ],
+
+ "open_questions_for_0818": [
+  {"q_ko": "분류 정확도가 100 % 인데 말이 되나", "answerable": false, "note_ko": "안 된다. 우리가 먼저 말해야 한다"},
+  {"q_ko": "우리 sigma 가 Das 보다 2.39배 큰 이유", "answerable": false},
+  {"q_ko": "SBR 팔의 날개끝 밖 6 % 는 무엇인가", "answerable": "partial", "note_ko": "J4 를 해야 부분적으로"},
+  {"q_ko": "Gamma(theta) 미배선이면 바이스태틱 sigma 는 무슨 물리인가", "answerable": false},
+  {"q_ko": "패시브인데 왜 기준신호를 완벽하게 아나", "answerable": "partial", "note_ko": "J2 Tier A 를 하면 답한다"},
+  {"q_ko": "전방산란을 왜 안 하나", "answerable": false, "note_ko": "커널이 lit-PO. 정직하게 못 한다고 적는다"},
+  {"q_ko": "ECA 가 ECA-S 가 아닌데 저속 표적이 살아남나", "answerable": false},
+  {"q_ko": "로터 산포 몇 %가 맞나", "answerable": false, "note_ko": "우리 표적의 실측 rpm 로그가 없다. DJI DAT 암호화"},
+  {"q_ko": "40 m 에서 78 % 가 빈다더니", "answerable": true, "note_ko": "예산 부족이었다. 178M 이면 0 %. 그 정정 자체를 발표한다"},
+  {"q_ko": "3GPP 는 모노만 규격화했는데 왜 바이스태틱인가", "answerable": true},
+  {"q_ko": "Sionna 를 왜 대조군으로만 쓰나", "answerable": true}
+ ]
+}

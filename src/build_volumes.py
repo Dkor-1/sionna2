@@ -13,6 +13,7 @@ build_volumes.py — ⭐**조각 78 편을 15 권으로 묶는다**
                              → reports/_parts/NN_slug.ipynb
     ② 8 권 빌더              src/make_report08_microdoppler.py
                              → reports/08_1_scene.ipynb … 08_4_sampling.ipynb
+    ②' 8-5 바이스태틱 빌더  src/make_report07b_bistatic.py → reports/08_5_bistatic.ipynb
     ③ **이 스크립트**        src/build_volumes.py
                              → reports/NN_slug.ipynb 14 권 + 8 권 후처리 + 색인 + README
     ④ 검사                   benchmark/check_report_links.py
@@ -140,18 +141,22 @@ VOLUMES = [
 
 # --------------------------------------------------------------------------- #
 #  다른 빌더가 내는 권 — 이 스크립트는 주소를 고치고 조각을 덧붙일 뿐이다
-#    ⭐ 8 권은 그림이 무거워(애니메이션 GIF 포함) 한 파일에 담기지 않는다. 그래서 네 편이다.
+#    ⭐ 8 권은 그림이 무거워(애니메이션 GIF 포함) 한 파일에 담기지 않는다. 그래서 다섯 편이다.
+#    ⚠ 08_5(바이스태틱)만 빌더가 다르다 — src/make_report07b_bistatic.py 다.
 # --------------------------------------------------------------------------- #
 EXTERNAL = [
     dict(no="08", title="마이크로도플러 — 도는 로터가 남기는 무늬",
          thesis="호버링하는 드론은 제자리에 있지만 **프로펠러는 돈다**. "
                 "그 회전이 남기는 시간-주파수 무늬가 이 연구의 분류 축이다. "
-                "그림이 무거워 **네 편**으로 나뉜다.",
-         builder="src/make_report08_microdoppler.py",
+                "그림이 무거워 **다섯 편**으로 나뉜다.",
+         builder="src/make_report08_microdoppler.py "
+                 "(08_5 만 src/make_report07b_bistatic.py)",
          files=[("08_1_scene.ipynb", "무엇을 보고 있나 — 시나리오와 신호의 정체"),
                 ("08_2_engines.ipynb", "어떻게 계산하나 — 세 엔진과 거리"),
                 ("08_3_pattern.ipynb", "무엇이 무늬를 정하나 — 회전수·가림·산포"),
-                ("08_4_sampling.ipynb", "무엇을 잴 수 있나 — 광선 비용과 반복률")],
+                ("08_4_sampling.ipynb", "무엇을 잴 수 있나 — 광선 비용과 반복률"),
+                ("08_5_bistatic.ipynb",
+                 "송수신이 갈라지면 — 바이스태틱 도플러·플래시·에코")],
          append_to="08_3_pattern.ipynb",
          parts=["34", "35", "36", "37", "38", "39"],
          headline="36"),
@@ -456,7 +461,7 @@ def _map_cells(place: dict[str, dict], titles: dict[str, str]) -> list[dict]:
         "\n"
         "```bash\n"
         "PYTHONPATH=src python src/build_part00_map.py              # ① 조각 빌더 12 개\n"
-        "PYTHONPATH=src python src/make_report08_microdoppler.py    # ② 8 권 네 편\n"
+        "PYTHONPATH=src python src/make_report08_microdoppler.py    # ② 8 권 1~4 편\n"
         "PYTHONPATH=src python src/build_volumes.py                 # ③ 조각 → 권\n"
         "PYTHONPATH=src python benchmark/check_report_links.py      # ④ 검사\n"
         "```\n"
@@ -730,7 +735,7 @@ def _write_readme(place: dict[str, dict], titles: dict[str, str],
           "```bash",
           "PYTHONPATH=src python src/build_part00_map.py              # ① 조각 빌더 12 개",
           "#  … build_part01_stock_engine.py … build_part11_measurement.py",
-          "PYTHONPATH=src python src/make_report08_microdoppler.py    # ② 8 권 네 편",
+          "PYTHONPATH=src python src/make_report08_microdoppler.py    # ② 8 권 1~4 편",
           "PYTHONPATH=src python src/build_volumes.py                 # ③ 조각 → 권 + 색인 + 이 파일",
           "PYTHONPATH=src python benchmark/check_report_links.py      # ④ 검사",
           "```",

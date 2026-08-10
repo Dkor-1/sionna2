@@ -206,13 +206,15 @@ def build_r1(beat):
     ax = fig.add_subplot(gs[1, 0:2])
     # ⭐수치는 **범례 이름 안에** 넣는다. 첫 판에서 따로 만든 글상자가 3배 조화선을 덮었다 —
     #   데이터를 가리는 글상자는 안 된다. 위쪽에 여백(headroom)을 만들어 거기에만 글을 둔다.
-    for key, col, base in (("sionna", C_SIONNA, "Sionna PathSolver"),
-                           ("ours", C_OURS, "Ours, SBR + PO")):
+    # ⚠ 두 최대선이 0.47 Hz 차이라 표식이 서로를 덮는다. 높이를 엇갈리게 둔다 —
+    #   «둘이 같은 자리에 꽂힌다» 가 보이려면 둘 다 보여야 한다.
+    for key, col, base, ymk in (("sionna", C_SIONNA, "Sionna PathSolver", 9.5),
+                                ("ours", C_OURS, "Ours, SBR + PO", 2.0)):
         fr, X, fpk = beat[key]["fr"], beat[key]["X"], beat[key]["peak_hz"]
         s = fr <= 420
         lab = f"{base}    {fpk:.2f} Hz    off by {dev_pct(fpk):+.2f} %"
         ax.plot(fr[s], 20 * np.log10(X[s] + 1e-6), color=col, lw=2.2, label=lab)
-        ax.plot([fpk], [1.6], marker="v", ms=11, color=col, clip_on=False, zorder=5)
+        ax.plot([fpk], [ymk], marker="v", ms=10, color=col, clip_on=False, zorder=5)
     ax.plot([], [], color=C_PRED, ls="--", lw=1.5,
             label=f"Kinematic prediction    {FFL:.2f} Hz    "
                   f"{BLADES:.0f} blades at {RPM0:.0f} rpm")
@@ -249,7 +251,7 @@ def build_r1(beat):
            f"on the {ZOOM_MS:.0f} ms zoom. Rayleigh bin {PRF/N:.1f} Hz, so the quoted peak "
            "is an interpolated line position and not a resolution claim. Ledger "
            "outputs/deck0811_beat_check.json.")
-    cap = "\n".join(textwrap.fill(p, 135) for p in cap.split("\n"))
+    cap = "\n".join(textwrap.fill(p, 150) for p in cap.split("\n"))
     fig.text(0.070, 0.086, cap, fontsize=FS - 3.5, color="0.32", va="top")
 
     for ext in ("png", "pdf"):
@@ -288,7 +290,7 @@ def build_r2():
                     bbox=dict(boxstyle="round,pad=0.24", fc="white", ec=col,
                               lw=1.0, alpha=0.90))
             if r == 0:
-                sub = ("re solved at every range" if c == 0
+                sub = ("solved again at every range" if c == 0
                        else "range never enters the kernel")
                 ax.set_title(f"{base}\n{sub}", fontsize=FS - 1.5, color=col,
                              fontweight="bold", pad=6)
@@ -355,7 +357,7 @@ def build_r2():
                  "same 60 ms window. Right, what it costs Sionna to reach 40 m.",
                  fontsize=FS + 1.5, y=0.965)
 
-    cap = ("Left. Only the Sionna column is re solved at each range, with the ray budget "
+    cap = ("Left. Only the Sionna column is solved again at each range, with the ray budget "
            "raised as the target shrinks in solid angle. Our column is computed once on a "
            "target anchored plane wave grid, so the same array is drawn in all three rows. "
            "That repetition is the claim, not an accident of plotting. Far field boundary "
@@ -370,7 +372,7 @@ def build_r2():
            "close to the 32M bar here. Ledger outputs/report07_ray_budget_test.json, "
            f"{BJ['_meta']['n_poses']} poses per rung, {BJ['_meta']['prf_hz']/1000:g} kHz.")
     cap = "\n".join(textwrap.fill(p, 132) for p in cap.split("\n"))
-    fig.text(0.052, 0.108, cap, fontsize=FS - 3.5, color="0.32", va="top")
+    fig.text(0.052, 0.155, cap, fontsize=FS - 3.5, color="0.32", va="top")
 
     for ext in ("png", "pdf"):
         fig.savefig(f"{FIG}/deck0811_r2.{ext}", bbox_inches="tight", facecolor="white")
