@@ -48,7 +48,7 @@ NZ = int(round(ZOOM_MS / 1000 * PRF))
 
 ARMS = [("sionna", "Sionna PathSolver"),
         ("sbr", "Ours (SBR+PO, default)"),
-        ("po", "Ours w/o occlusion (control)")]
+        ("po", "Ours, nothing blocked (control)")]
 
 fig = plt.figure(figsize=(11.4, 3.9))
 gs = fig.add_gridspec(1, 4, width_ratios=[1, 1, 1, 0.05], wspace=0.14,

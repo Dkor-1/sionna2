@@ -71,7 +71,7 @@ for r, key in enumerate(ROWS):
              f"level {RGS[key]['level_db']:.0f} dB"),
         (Eb, f"Ours (SBR+PO, default) — {db_[0]:.1f} dB p5-p95 ({db_[1]:.1f} p-p)\n"
              + ("range-invariant (plane wave)" if r == 0 else "same map, by construction")),
-        (Ep, f"Ours w/o occlusion (control) — {dp[0]:.1f} dB p5-p95 ({dp[1]:.1f} p-p)\n"
+        (Ep, f"Ours, nothing blocked (control) — {dp[0]:.1f} dB p5-p95 ({dp[1]:.1f} p-p)\n"
              + ("range-invariant (plane wave)" if r == 0 else "same map, by construction")),
     ]
     for c, (E, title) in enumerate(cols):

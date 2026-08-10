@@ -29,10 +29,17 @@ OUT = os.path.join(_ROOT, "reports", "08_5_bistatic.ipynb")
 
 J = json.load(open(f"{_ROOT}/outputs/report07b_bistatic_md.json"))
 TRI = json.load(open(f"{_ROOT}/outputs/report07_three_engines.json"))
+# ⭐대역밖 전력의 잣대는 이 원장이 정의한다 — 평활 없는 주기도의 **절대** 대역 전력이고,
+#   정규화가 필요할 때만 **전체 전력**으로 나눈다(분모를 이름에 박았다).
+OOB = json.load(open(f"{_ROOT}/outputs/outofband_power.json"))
+OOBE = {r["label"]: r for r in OOB["three_engines"]}
+OOBR, OOBW = OOB["three_engines_ranking"], OOB["why_old_metric_is_wrong"]
+OOBB = OOB["robustness"]["band_edge_sensitivity_db"]
+OOBF = OOB["freeze_verdict"]
 M, ROWS, CEN, REG, V = J["_meta"], J["rows"], J["census"], J["regression"], J["verdict"]
 R = {r["label"]: r for r in ROWS}
 DS, SBU, FR, FS_ = V["doppler_scaling"], V["sbr_edge_unusable"], V["flash_rate"], V["forward_scatter"]
-FLOORS = SBU["mono_ledger_engine_floors_db"]
+#: 옛 잣대의 세 팔 바닥은 `outputs/outofband_power.json` 이 대신한다 — 위 OOBE 를 쓴다.
 BET = [b for b in M["betas_deg"] if b > 0]
 AZK = [f"az{b:.0f}" for b in BET]
 ELK = [f"el{b:.0f}" for b in BET]
@@ -50,6 +57,11 @@ def embed(stem: str, ext: str = "png") -> str:
 def md(*lines):
     return {"cell_type": "markdown", "metadata": {},
             "source": [l + "\n" for l in "\n".join(lines).split("\n")]}
+
+
+def _pct(v: float) -> str:
+    """백분율 — 크기가 다섯 자릿수 갈리므로 유효숫자로 적는다(0.00007 ↔ 2.74)."""
+    return f"{v:.2f}" if v >= 0.01 else f"{v:.5f}"
 
 
 def cen(plane, beta):
@@ -188,8 +200,9 @@ cells = [
        "−20 dB · 99 분위) 그 값을 β=0 대비 비율로 쓴다. "
        "⚠ 절대값에는 −5 % 쯤의 계통 편향이 있다(창·임계값 탓). **비율**이라 상쇄된다.", "",
        "**어느 팔에서 재나.** 판정은 **순수 PO 팔**에서 한다 — 그 팔은 날개끝에서 스펙트럼이 "
-       f"절벽처럼 잘린다(바닥 {FLOORS['po']['floor_rel_db']:.0f} dB). "
-       f"광선 팔(SBR)은 바닥이 {FLOORS['sbr']['floor_rel_db']:.0f} dB 뿐이라 같은 잣대가 안 선다 — 절 2.", "",
+       f"절벽처럼 잘린다(바닥 {OOBE['po']['new_floor_rel_db_raw_mean']:.0f} dB). "
+       f"광선 팔(SBR)은 바닥이 {OOBE['sbr']['new_floor_rel_db_raw_mean']:.0f} dB 뿐이라 "
+       "같은 잣대가 안 선다 — 절 2.", "",
        "⭐ **바이스태틱 PO 를 어떻게 모노 코드로 재나** — 위상 항등식 하나로 된다.", "",
        "$$e^{jk(\\hat u_i+\\hat u_s)\\cdot p}=e^{j2k'\\hat u_b\\cdot p},\\qquad k'=k\\cos(\\beta/2)$$", "",
        "즉 **바이스태틱 위상 = 이등분선 시선의 모노 위상 @ 반송파 fc·cos(β/2)** 다. "
@@ -228,26 +241,71 @@ cells = [
        f"**{SBU['sbr_ratio_range'][0]:.2f} ~ {SBU['sbr_ratio_range'][1]:.2f}** 로 나온다 — "
        "β 를 열자마자 1.5 배 위로 뛴다. 즉 «바이스태틱이 되면 최대 도플러가 커진다» 는, "
        "물리적으로 말이 안 되는 답이다.", "",
-       "원인은 그 팔의 슬로타임 신호가 **광대역 바닥**을 깔고 있기 때문이다. 표적이 도는 동안 "
-       "광선 격자에서 히트 집합이 켜졌다 꺼지고, 그 스위칭이 슬로타임에서 백색에 가까워 "
-       "도플러축 전체에 평평하게 퍼진다. β 가 커지면 코히어런트 합은 줄어드는데 그 바닥은 안 "
-       "줄어서, 상대적으로 더 두드러진다.", "",
+       "원인은 그 팔의 슬로타임 신호가 **광대역 바닥**을 깔고 있기 때문이다. 커널이 자세마다 "
+       "광선 격자를 다시 정의하므로 위상 원점이 흔들리고 히트 집합이 갈리며, 그 흔들림이 "
+       "슬로타임에서 백색에 가까워 도플러축 전체에 평평하게 퍼진다. β 가 커지면 코히어런트 "
+       "합은 줄어드는데 그 바닥은 안 줄어서, 상대적으로 더 두드러진다.", "",
        "⭐ **이것은 바이스태틱의 성질이 아니다.** 8 권 모노 편의 모노 원장에 있는 세 팔을 "
        "**같은 추정기**로 재면 바로 보인다.", "",
-       "| 모노 원장의 팔 | 날개끝 밖 바닥 (봉우리 대비) | 블레이드 전력 중 f_tip **밖** 비율 |",
+       "| 모노 원장의 팔 | **전체 전력** 중 f_tip 밖 몫 | 날개끝 밖 바닥 (봉우리 대비) |",
        "|---|---|---|",
-       "\n".join(f"| {nm} | {FLOORS[k]['floor_rel_db']:.1f} dB | "
-                 f"{FLOORS[k]['frac_power_beyond_ftip']*100:.2f} % |"
+       "\n".join(f"| {nm} | {_pct(OOBE[k]['frac_of_total']*100)} % | "
+                 f"{OOBE[k]['new_floor_rel_db_raw_mean']:.1f} dB |"
                  for k, nm in (("po", "순수 PO (가림 없음)"), ("sionna", "Sionna PathSolver"),
-                               ("sbr", "우리 SBR (가림 + Γ(θ))"))
-                 if k in FLOORS),
+                               ("sbr", "우리 SBR (가림 + Γ(θ))"))),
        "",
-       f"공칭 날개끝은 {M['f_tip_mono_hz']:.0f} Hz 다(오른쪽 칸은 동체선 밖 전력 중 그 너머에 "
-       "있는 몫이다). 순수 PO 는 거기서 잘리고, **광선을 쓰는 두 팔은 둘 다** 그 너머로 새어 "
-       "나간다. 8 권 모노 편이 «다음에 할 것» 으로 적어 둔 "
-       "«SBR 의 날개끝 밖 능선을 규명한다» 가 바로 이것이고, 이 편은 그것이 **무엇을 못 하게 "
-       "만드는지**를 처음으로 계량한다 — 광선 팔의 슬로타임 스펙트럼에서는 날개끝 축척을 "
+       f"공칭 날개끝은 {M['f_tip_mono_hz']:.0f} Hz 다. 순수 PO 는 거기서 잘리고, "
+       "**광선을 쓰는 두 팔은 둘 다** 그 너머로 새어 나간다. 8 권 모노 편이 «다음에 할 것» 으로 "
+       "적어 둔 «SBR 의 날개끝 밖 능선을 규명한다» 가 바로 이것이고, 이 편은 그것이 **무엇을 "
+       "못 하게 만드는지**를 계량한다 — 광선 팔의 슬로타임 스펙트럼에서는 날개끝 축척을 "
        "읽을 수 없다.", "",
+
+       "**이 칸의 정의.** 평활 없는 Hann 주기도의 **절대** 대역 전력이다 — "
+       "P_out = Σ|X(f)|², |f| > f_tip. 세 팔은 단위가 같지 않으므로"
+       "(Sionna 는 채널계수다) 그 절대량을 **전체 전력**으로 나눠 나란히 놓는다. "
+       "열 제목에 분모를 박아 둔 것이 그 뜻이고, 대역 경계가 분모에 안 들어간다.", "",
+
+       f"⚠ **옛 «블레이드 전력 중» 비율(SBR "
+       f"{OOBE['sbr']['old_frac_power_beyond_ftip']*100:.2f} % · Sionna "
+       f"{OOBE['sionna']['old_frac_power_beyond_ftip']*100:.2f} % · PO "
+       f"{OOBE['po']['old_frac_power_beyond_ftip']*100:.2f} %)는 인용하지 않는다.** "
+       f"그 분모는 포락 평활 커널({OOBW['smoothing_kernel_hz']:.0f} Hz)이 대역 시작"
+       f"({OOBW['band_start_hz']:.0f} Hz)보다 넓어 동체 DC 봉우리를 대역 안으로 끌어온다. "
+       f"분모 중 그 번짐의 몫이 SBR "
+       f"{OOBW['measured_dc_leak_frac_of_denominator']['three_engines']['sbr']*100:.0f} % · "
+       f"Sionna "
+       f"{OOBW['measured_dc_leak_frac_of_denominator']['three_engines']['sionna']*100:.0f} % · "
+       f"PO {OOBW['measured_dc_leak_frac_of_denominator']['three_engines']['po']*100:.0f} % 라, "
+       "그 비율이 실제로 재는 것은 «동체 DC 대비» 다.", "",
+
+       "⭐ **순위는 분모가 정한다 — 그래서 분모를 밝히지 않고는 대소를 쓰지 않는다.** "
+       f"헤드라인(전체 전력 대비)으로는 SBR {OOBE['sbr']['frac_of_total']*100:.2f} % 가 "
+       f"Sionna {OOBE['sionna']['frac_of_total']*100:.2f} % 보다 "
+       f"{OOBR['sbr_over_sionna_db']['new_frac_of_total']:.1f} dB 위다. "
+       f"그런데 같은 두 팔을 **대역비**(f_tip 밖 / 블레이드 대역)로 재면 Sionna "
+       f"{OOBR['secondary_out_over_in']['values_pct']['sionna']:.1f} % 대 SBR "
+       f"{OOBR['secondary_out_over_in']['values_pct']['sbr']:.1f} % 로 **순서가 뒤집힌다**"
+       f"({abs(OOBR['sbr_over_sionna_db']['secondary_out_over_in']):.1f} dB 차). "
+       "이 편은 그 대역비를 헤드라인으로 안 쓴다. 이유가 둘이다 — "
+       f"분모 P_in 자체가 SBR 에서 독립 엔진(순수 PO) 대비 "
+       f"{OOBF['is_the_P_in_drop_signal_loss']['per_div']['12']['prod']:.1f} dB 부풀어 있어 "
+       "그 자리도 격자 잡음이고, 두 대역의 폭이 "
+       f"{OOB['_meta']['band_widths_hz']['out_over_in']:.1f} 배 다르다.", "",
+
+       f"⚠ **순수 PO 의 절대값은 «0 에 가깝다» 의 기준선으로만 쓴다.** f_tip 을 5 % 올려 "
+       f"자르면 광선 두 팔은 {abs(OOBB['sionna']['f_tip x1.05']):.1f}~"
+       f"{abs(OOBB['sbr']['f_tip x1.05']):.1f} dB 움직이는데(넓은 바닥) 순수 PO 는 "
+       f"{abs(OOBB['po']['f_tip x1.05']):.1f} dB 움직인다(절벽). PO 칸이 재는 것은 바닥 높이가 "
+       "아니라 절벽을 어디서 잘랐는가다.", "",
+
+       "⭐ **이 바닥의 원인은 광선 격자의 이산화가 아니라 자세마다 격자를 다시 정의하는 "
+       f"것이다.** 격자를 얼리면 λ/12 에서 대역밖 절대 전력이 "
+       f"{OOBF['gains_db']['12']:.1f} dB 내려가고, 얼린 팔만 예측대로 d² 로 수렴한다"
+       f"(기울기 {OOB['convergence']['froz']['slope_ge12']:.2f} · R² "
+       f"{OOB['convergence']['froz']['r2_ge12']:.3f}, 생산 팔은 "
+       f"{OOB['convergence']['prod']['slope_ge12']:.2f}). 그 기전과 대가는 "
+       "[리포트 5 «우리 커널 — 무엇이고, 무엇이 아닌가»](05_kernel.ipynb) 가 잰다. "
+       "이 편의 스윕은 아직 얼린 격자를 안 쓴다.", "",
        "⚠ 그렇다고 광선 팔의 맵이 틀렸다는 말이 아니다. 레벨(절 3)·플래시(절 4)·가림은 광선 팔이 "
        "맡는 것이고 이 편의 그 결과들은 전부 광선 팔에서 나온다. 못 하는 것은 **날개끝 "
        "가장자리의 정밀 측정** 하나다."),
@@ -449,7 +507,12 @@ cells = [
        f"| 도플러 축척 (주) | {DS['primary_estimator']} |",
        "| 플래시율 | 날개끝 띠의 시간축 에너지 b(t) 의 지배 선주파수 |",
        "| 플래시 밀림 | b(t) 와 β=0 의 b₀(t) 의 정규화 상호상관 최대 자리 (±½주기 안) |",
-       "| 게이트 센서스 | 커널의 광선 격자를 다시 쏘아 두 게이트 ∩ 출사가시성에 남는 히트 수 × d² |"),
+       "| 게이트 센서스 | 커널의 광선 격자를 다시 쏘아 두 게이트 ∩ 출사가시성에 남는 히트 수 × d² |",
+       "| 대역밖 전력 (절 2) | 평활 없는 Hann 주기도(4배 제로패딩)의 절대 대역 전력 "
+       "P_out = Σ|X(f)|², |f| > f_tip. 정규화는 **전체 전력** "
+       "⟨outputs/outofband_power.json : new_definition.headline⟩ |",
+       "| 날개끝 밖 바닥 (절 2) | 같은 주기도에서 f_tip 밖 구간의 평균을 봉우리 대비로 "
+       "⟨outputs/outofband_power.json : three_engines[0].new_floor_rel_db_raw_mean⟩ |"),
 
     md("## 부록 — 코드 발췌", "",
        "**바이스태틱 기하** (`benchmark/report07b_bistatic_md.py`) — 방위면에서 β 를 정확히 맞춘다", "",
@@ -519,8 +582,9 @@ cells = [
        "**남긴 문제**", "",
        "| 무엇 | 왜 미해결인가 |",
        "|---|---|",
-       "| 광선 팔의 광대역 슬로타임 바닥 | 8 권 모노 편의 «날개끝 밖 능선» 과 같은 것. 격자를 "
-       "촘촘히 하면 줄어들 것으로 보이나 재지 않았다 |",
+       "| 이 편의 스윕에 얼린 격자를 배선한다 | 원인은 «자세마다 격자를 다시 정의하는 것» "
+       "으로 규명됐고 커널에 `grid_ref` 가 배선돼 있다. 이 편의 바이스태틱 스윕은 그것을 "
+       "안 넘긴다 |",
        f"| 도플러 축척의 남은 잔차 (최대 {DS['po_max_err_vs_pred_B']:.3f}) | 빗살 간격이 유한하고 "
        "포락 모양이 β 마다 조금 달라진다 |",
        "| 플래시 밀림의 부호 | 로터가 짝을 지어 반대로 돌아 예측이 ±둘이다. 로터별 분해가 필요 |",

@@ -63,6 +63,11 @@ TRR = TRR_J["ranges"] if TRR_J else None
 # ⭐변조 깊이를 p-p 와 p5~p95 두 자로 잰 원장(benchmark/ledger_ptp_robust.py).
 #   본문에 손으로 적혀 있던 수치를 이것으로 갈음한다.
 DEP = _opt(f"{_ROOT}/outputs/report07_depth_robust.json")
+# ⭐대역밖 전력의 잣대 — 평활 없는 절대 대역 전력, 정규화는 전체 전력(분모를 이름에 박았다).
+OOB = json.load(open(f"{_ROOT}/outputs/outofband_power.json"))
+OOBE = {r["label"]: r for r in OOB["three_engines"]}
+SGC = json.load(open(f"{_ROOT}/outputs/sbr_grid_convergence.json"))
+SGF = SGC["in_band_fidelity"]["rows"][1]                       # λ/12 = 생산 기본
 
 RGM, RGR = RNGS["_meta"], RNGS["ranges"]
 WM, WA = W5G["_meta"], W5G["arms"]
@@ -228,7 +233,7 @@ def build_08_2():
            "| **Ours (SBR+PO, 기본)** | 표적에 **앵커한** λ/12 격자로 평면파 조명 | 광선이 "
            "**처음 맞은 지점만** 면적분 — |Γ|·(n̂·û)·ΔA·위상 | 가려진 면이 자동으로 빠진다 "
            "(가림이 공짜) |",
-           "| **Ours w/o occlusion (대조)** | 광선을 안 쓴다 | 점구름의 **모든 면**을 더한다 "
+           "| **Ours, nothing blocked (대조)** | 광선을 안 쓴다 | 점구름의 **모든 면**을 더한다 "
            "(법선이 등진 면만 제외) | ⚠**아무것도 안 빠진다** — 남의 뒤에 숨은 면도 셈에 든다 |",
            "",
            "⭐ 셋째 열은 **물리적으로 불가능한 상태**다. 오직 «가림이 얼마나 바꾸나» 를 재는 "
@@ -265,7 +270,7 @@ def build_08_2():
                    ("sionna", "Sionna PathSolver", "무늬가 성기고 날개끝 근처에서 잦아든다"),
                    ("sbr", "Ours (SBR+PO, 기본)",
                     "⚠능선이 대역을 채우고 날개끝 밖에도 남는다"),
-                   ("po", "Ours w/o occlusion", "능선이 몇 가닥에 그친다")]]), "",
+                   ("po", "Ours, nothing blocked", "능선이 몇 가닥에 그친다")]]), "",
            "⚠ **이 표의 깊이를 물리량으로 인용하지 마라.** 같은 Sionna 팔을 거리만 바꿔 "
            "재면 p-p 가 "
            + (" / ".join(f"{DEP['sionna_by_range'][k]['ptp_db']:.1f}"
@@ -286,13 +291,40 @@ def build_08_2():
            + " dB 가 남는다. 이상치 **하나**가 아니라 **꼬리가 두꺼운 것**이다.", "",
            f"⭐ 셋 다 **(a) 0 도플러 동체 선 · (b) 통과율 간격 능선 · (c) 날개끝 근처 감쇠**를 "
            f"낸다 — 구조가 일치한다. 날개끝 안 스펙트럼 코사인은 "
-           f"Sionna↔SBR+PO **{V['sionna_vs_sbr']:.3f}** · Sionna↔w/o occ **{V['sionna_vs_po']:.3f}** · "
+           f"Sionna↔SBR+PO **{V['sionna_vs_sbr']:.3f}** · Sionna↔대조군 **{V['sionna_vs_po']:.3f}** · "
            f"기본↔대조 **{V['sbr_vs_po']:.3f}** 다.", "",
            "⚠ **코사인 세 자리를 그대로 인용하지 마라 — 격자에 딸려 움직인다.** 같은 두 팔을 "
            "다른 광선 격자로 다시 재니 기본↔대조가 0.44 에서 0.29 로 내려갔다. 즉 이 수는 "
            "«두 무늬가 얼마나 닮았나» 의 절대 척도가 아니라 **이 실행에서의 순서**(Sionna 는 "
            "우리 기본팔과 가장 닮았고, 우리 두 팔끼리가 가장 덜 닮았다)만 말한다. "
            "절대값이 필요하면 격자 사다리를 먼저 태워야 한다.", "",
+
+           "⭐ **그 격자 사다리는 태웠고, 우리 두 팔이 덜 닮은 이유가 거기서 나온다.** 커널이 "
+           "자세마다 광선 격자를 다시 정의하는 것이 SBR 팔에 광대역 잡음을 싣는다. 격자를 "
+           f"한 판으로 얼리면 기본↔대조 코사인이 {SGF['cos_prod_vs_po']:.3f} 에서 "
+           f"{SGF['cos_froz_vs_po']:.3f} 으로 오르고, 슬로타임 스펙트럼의 대역밖 절대 전력이 "
+           f"λ/12 에서 {OOB['freeze_verdict']['gains_db']['12']:.1f} dB 내려간다.", "",
+
+           "| 세 팔의 대역밖 (모노 원장) | **전체 전력** 중 f_tip 밖 몫 | 날개끝 밖 바닥 |",
+           "|---|---|---|",
+           "\n".join(
+               f"| {nm} | {v*100:.2f} % | {OOBE[k]['new_floor_rel_db_raw_mean']:.1f} dB |"
+               if (v := OOBE[k]['frac_of_total']) >= 1e-4 else
+               f"| {nm} | {v*100:.5f} % | {OOBE[k]['new_floor_rel_db_raw_mean']:.1f} dB |"
+               for k, nm in (("po", "Ours w/o occlusion"), ("sionna", "Sionna PathSolver"),
+                             ("sbr", "Ours (SBR+PO, 기본)"))),
+           "",
+           "⚠ 이 칸은 **평활 없는 주기도의 절대 대역 전력**이고 정규화는 전체 전력이다 — "
+           "열 제목에 분모를 박아 두었다. 옛 «블레이드 대역 전력 중» 비율은 포락 평활이 동체 "
+           "DC 를 분모로 끌어와 사실상 «동체 DC 대비» 라 인용하지 않는다. ⭐ 순위는 정규화가 "
+           f"정한다 — 전체 전력 대비로는 SBR 이 Sionna 보다 "
+           f"{OOB['three_engines_ranking']['sbr_over_sionna_db']['new_frac_of_total']:.1f} dB "
+           f"위이고, 대역비로 재면 Sionna "
+           f"{OOB['three_engines_ranking']['secondary_out_over_in']['values_pct']['sionna']:.1f} % "
+           f"대 SBR "
+           f"{OOB['three_engines_ranking']['secondary_out_over_in']['values_pct']['sbr']:.1f} % "
+           "로 뒤집힌다. 그 대역비를 헤드라인으로 쓰지 않는 이유는 분모 자체가 격자 잡음으로 "
+           "부풀어 있기 때문이다.", "",
            "" if TRR is None else "\n".join([
                "| 거리 | 광선 수 | 자세당 경로(중앙값) | 경로 0 자세 | 평균 레벨 |",
                "|---|---|---|---|---|"] + [

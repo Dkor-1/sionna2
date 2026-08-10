@@ -63,7 +63,7 @@ def spec_of(E):
 #     대조(w/o occ) 법선만 보고 모든 면에 PO                  ← 가림 X
 ARMS = [("sionna", "Sionna PathSolver"),
         ("sbr", "Ours (SBR+PO, default)"),
-        ("po", "Ours w/o occlusion (control)")]
+        ("po", "Ours, nothing blocked (control)")]
 got = [(k, ttl) + spec_of(Z[k]) for k, ttl in ARMS]
 ref = max(J["levels_db"].values())
 

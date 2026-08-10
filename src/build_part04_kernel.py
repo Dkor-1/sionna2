@@ -65,6 +65,14 @@ MFX_ATK = "outputs/meshfix_attack.json"      # 형상 정정 적대검증
 EVD = "outputs/report00_evidence.json"       # 테셀레이션 축
 PTD = "outputs/ptd_wiring.json"              # PTD 배선 비용
 AGI = "outputs/angle_gamma_impact.json"      # Γ(θ) 각도 모양 — 커널이 |Γ| 에 곱하는 축
+SGC = "outputs/sbr_grid_convergence.json"    # 격자 사다리 — 생산·위상고정·얼림 세 팔
+SGZ = "outputs/sbr_grid_convergence.npz"     # 그 사다리의 슬로타임 계열·격자 진단
+SGR = "outputs/sbr_grid_freeze_review.json"  # 얼리기 적대 반증 8 라운드
+AGF = "outputs/adv_grid_freeze_audit.json"   # 얼리기 적대 감사 — 히트수·커버리지·비용
+AGV = "outputs/adv_sbr_grid_verdict.json"    # 위 둘의 종합 판정
+OOB = "outputs/outofband_power.json"         # ⭐대역밖 전력의 잣대(절대·평활 없음)
+VFG = "outputs/verify_frozen_grid.json"      # grid_ref 배선 회귀 게이트
+MCV = "outputs/md_classify_verify.json"      # 가산성 정리 검사(격자 고정 ↔ 이동)
 
 FIG = "../outputs/figures"
 
@@ -122,15 +130,22 @@ def report_18_kernel_what():
                 f"{_n('occlusion.max_db', DER, '{:.2f}', 'dB')}"
                 f"({_n('occlusion.max_drone', DER)}, 닫힌 동체)까지 부풀고, 열린 프레임인 "
                 f"{_n('occlusion.min_drone', DER)} 에서는 "
-                f"{_n('occlusion.min_db', DER, '{:.2f}', 'dB')} 다.",
-
-                f"기체 {_n('occlusion.n_above_floor', DER, '{:.0f}', '종')} 전부에서 이 값이 "
+                f"{_n('occlusion.min_db', DER, '{:.2f}', 'dB')} 다. 기체 "
+                f"{_n('occlusion.n_above_floor', DER, '{:.0f}', '종')} 전부에서 이 값이 "
                 f"이산화 바닥(최대 {_n('occlusion.floor_max_db', DER, '{:.3f}', 'dB')}) 위에 "
                 f"있다 — 가림은 수치잡음이 아니라 물리다.",
 
                 f"금속 4그룹만 남긴 메쉬의 방위평균 σ 가 전체의 "
                 f"{_n('C_metal.metal_share_pct', R3RT, '{:.0f}', '%')} 다 — 코히런트 합이라 "
                 f"100 % 를 넘는다.",
+
+                f"그 광선 격자를 자세마다 다시 정의하면 로터 사이에 가짜 결합이 생긴다 — "
+                f"가산성 잔차가 격자를 얼렸을 때 "
+                f"{_n('grid_pinning.matrice4e.pinned.additivity_residual_median', MCV, '{:.1e}')} "
+                f"(기계정밀도)이고 움직이는 격자에서 "
+                f"{_n('grid_pinning.matrice4e.moving.additivity_residual_median', MCV, '{:.2f}')} "
+                f"다. 얼리면 대역밖 절대 전력이 λ/12 에서 "
+                f"{_n('freeze_verdict.gains_db.12', OOB, '{:.1f}', 'dB')} 내려간다.",
             ],
             method=[
                 ("① 조명면 찾기", "Sionna 의 Mitsuba/OptiX 광선엔진을 그대로 부른다 — 첫 충돌 "
@@ -141,8 +156,10 @@ def report_18_kernel_what():
                         "(동 `penetrate=True`)"),
                 ("가림의 크기", "같은 자세에서 가림을 끄고 다시 적분해 방위평균 σ 의 차이를 "
                             "기체마다 잰다 — 이산화 바닥과 나란히 싣는다"),
+                ("격자를 무엇에 매나", "격자 중심·반경·칸수를 자세마다 다시 잡는 팔과 "
+                                "한 판으로 얼린 팔을 같은 씬·같은 자세열에 나란히 태운다"),
             ],
-            repro=_repro([_DERIVE], [DER, PSS, R3RT],
+            repro=_repro([_DERIVE], [DER, PSS, R3RT, SGC, OOB, VFG, MCV],
                          "약 2분 (GPU 0장 — 원장 조립이다)",
                          "σ 격자 자체의 재생성은 `benchmark/rcs_anchor.py` 가 맡는다"),
         ),
@@ -216,7 +233,99 @@ def report_18_kernel_what():
            f"가림 최대치를 내는 Matrice 4E 와 X500 V2 가 그 정정을 받은 기체이고, 닫힌 동체의 "
            f"가림은 셸 형상에 직접 걸린다. 생산 σ 열도 두 축 같은 이유로 재계산 대상이다."),
 
+        md("## 격자를 자세마다 다시 정의하면 무엇이 생기나", "",
+           f"광선 격자는 표적 앞에 세우는 평면 자다 — 중심 ctr, 반경 Rout, 한 변의 칸수 n "
+           f"셋이 그것을 정한다. 생산 경로는 그 셋을 **자세마다 bbox 에서 다시 잡는다**. "
+           f"관절이 도는 로터에서는 bbox 가 자세마다 숨쉬므로 자도 같이 흔들린다.", "",
+           table(["흔들리는 것", "무엇이 흔들리나 (λ/12 · matrice4e · 4096 자세)", "무엇이 실리나"],
+                 [["위상 원점",
+                   "ctr 이 시선방향으로 "
+                   + _n("grid_wander.ctr_u_ptp_mm", SGC, "{:.1f}", "mm")
+                   + " p-p 돌아다닌다 = "
+                   + _n("R4_phase_only_arm.ctr_dot_u_ptp_rad", SGR, "{:.2f}", "rad") + " p-p",
+                   "진폭은 "
+                   + _n("R4_phase_only_arm.rows[1].max_abs_change", SGR, "{:.0e}")
+                   + " 안에서 불변인 채 **위상만** 흔들린다 — 정지한 동체를 시선방향으로 "
+                     "숨쉬게 만드는 것과 같다"],
+                  ["표본 격자",
+                   "n = ceil(2Rout/d) 가 정수라 "
+                   + _n("grid_wander.per_div.12.n_min", SGC, "{:.0f}") + "~"
+                   + _n("grid_wander.per_div.12.n_max", SGC, "{:.0f}")
+                   + " 사이를 오가고 4095 스텝 중 "
+                   + _n("grid_wander.per_div.12.n_changes", SGC, "{:.0f}", "번")
+                   + "(40 %) 튄다",
+                   "서브셀 오프셋 표준편차 "
+                   + _n("grid_wander.per_div.12.subcell_off_e1_std_frac", SGC, "{:.4f}")
+                   + " 는 균등분포 1/√12 = 0.2887 과 넷째 자리까지 같다 — 자세마다 굴리는 "
+                     "**백색 주사위**다"],
+                  ["히트 집합",
+                   "조명된 광선이 평균 "
+                   + _n("audit_2_signal_loss.rows[1].n_lit_prod_mean", AGF, "{:.1f}", "개")
+                   + ", 자세간 상대 표준편차 "
+                   + _n("audit_2_signal_loss.rows[1].n_lit_prod_relstd", AGF, "{:.4f}"),
+                   "자세별 히트 수 계열 ⟨" + SGZ + " : n_lit_div12⟩ 의 최대−최소가 102 개"
+                   "(17 %) 다 — 어느 면이 세어지는가가 자세마다 갈린다"]])),
+
+        md("## 결정적 검사 — 가산성", "",
+           "서로 가리지 않는 로터의 PO 면적분은 E(φ₁..φ₄) = E₀ + Σ ΔE_j(φ_j) 로 정확히 "
+           "쪼개진다. 로터 넷을 따로 돌린 합과 넷을 함께 돌린 장의 차이를 잔차로 쓴다 — "
+           "이 잣대에는 창도 평활도 분모도 안 들어간다.", "",
+           table(["격자", "가산성 잔차 (중앙값)", "읽는 법"],
+                 [["얼린 판 한 장",
+                   _n("grid_pinning.matrice4e.pinned.additivity_residual_median", MCV, "{:.1e}")
+                   + " ~ "
+                   + _n("grid_pinning.mini5pro.pinned.additivity_residual_median", MCV, "{:.1e}"),
+                   "기계정밀도 — 정리가 그대로 성립한다"],
+                  ["자세마다 다시 정의",
+                   _n("grid_pinning.s1000plus.moving.additivity_residual_median", MCV, "{:.3f}")
+                   + " ~ "
+                   + _n("grid_pinning.matrice4e.moving.additivity_residual_median", MCV, "{:.2f}"),
+                   "O(1) — 물리적으로 결합할 수 없는 로터 사이에 결합이 생긴다"]]), "",
+           f"그 가짜 결합이 변조로 실린다 — 기체별로 "
+           f"{_n('grid_pinning.matrice4e.spurious_modulation_db', MCV, '{:+.1f}')} ~ "
+           f"{_n('grid_pinning.phantom4.spurious_modulation_db', MCV, '{:+.1f}', 'dB')} 다. "
+           f"교차 증거로, 광선을 안 쓰는 독립 엔진(순수 PO)과의 대역 안 스펙트럼 일치가 "
+           f"{_n('in_band_fidelity.rows[1].cos_prod_vs_po', SGC, '{:.3f}')} 에서 "
+           f"{_n('in_band_fidelity.rows[1].cos_froz_vs_po', SGC, '{:.3f}')} 으로 오른다."),
+
+        md("## 얼리면 무엇이 오고 무엇을 잃나", "",
+           f"판 하나를 잡아 4096 자세에 그대로 쓰면 슬로타임 스펙트럼의 대역밖 절대 전력이 "
+           f"λ/12 에서 {_n('freeze_verdict.gains_db.12', OOB, '{:.1f}')} · λ/32 에서 "
+           f"{_n('freeze_verdict.gains_db.32', OOB, '{:.1f}', 'dB')} 내려간다. "
+           f"⭐ 그리고 **얼린 팔만 예측대로 d² 로 수렴한다** — 기울기 "
+           f"{_n('convergence.froz.slope_ge12', OOB, '{:.2f}')}"
+           f"(R² {_n('convergence.froz.r2_ge12', OOB, '{:.3f}')}) 대 생산 팔 "
+           f"{_n('convergence.prod.slope_ge12', OOB, '{:.2f}')}"
+           f"(R² {_n('convergence.prod.r2_ge12', OOB, '{:.3f}')}) 다. "
+           f"생산 격자는 λ/12 → λ/32 로 촘촘히 해도 "
+           f"{_n('convergence.prod.drop_db_div12_to_div32', OOB, '{:.1f}', 'dB')} 만 "
+           f"내려간다 — 바닥의 지배 원인이 광선 밀도가 아니라는 뜻이다.", "",
+           table(["대가", "크기", "무엇을 뜻하나"],
+                 [["광선 수",
+                   "얼린 판이 자세 평균 대비 "
+                   + _n("gate2_frozen_grid_invariant.extra_ray_cost", VFG, "{:.3f}", "배"),
+                   "전 자세를 덮는 판이라 평균보다 크다 — 비용 +10.8 %"],
+                  ["디더 평균",
+                   "얼린 장과 생산 장의 레벨 차가 "
+                   + _n("field_level.froz_vs_prod_level_db_ptp", VFG, "{:.2f}", "dB") + " p-p",
+                   "자세별 무작위 오프셋은 사실상 몬테카를로 평균이다. 얼리면 오프셋 한 판에 "
+                   "절대 레벨이 걸린다 — 절대 σ 는 정적 경로에서 가져오고 얼린 복소장은 "
+                   "**모양**에만 쓴다"],
+                  ["판을 미리 잡는 일",
+                   "덮개 여유 최소 "
+                   + _n("gate3_coverage.margin_min_mm", VFG, "{:.1f}", "mm"),
+                   "자세열을 먼저 훑어야 판이 나온다 — 스트리밍으로는 못 잡는다"]]), "",
+           f"배선은 커널에 들어가 있고 기본값은 `grid_ref=None` 이다 — 그 값이면 배선 전 커널과 "
+           f"{_n('gate1_bit_identity.n_bit_identical', VFG, '{:.0f}')}/"
+           f"{_n('gate1_bit_identity.n_cases', VFG, '{:.0f}')} 비트 동일이라 "
+           f"(최대 상대오차 {_n('gate1_bit_identity.max_rel_err', VFG, '{:.1f}')}) 기존 원장이 "
+           f"그대로 선다. 하류(`src/microdoppler.py` · 리포트 8 계열)는 아직 `grid_ref` 를 "
+           f"안 넘긴다 — 이 절의 이득은 커널의 성질이지 지금 원장의 숫자가 아니다."),
+
         next_steps([
+            ("하류 마이크로도플러 경로에 `grid_ref` 를 넘기고 원장을 다시 낸다",
+             "얼린 격자의 이득이 리포트 8 계열의 숫자로 들어온다",
+             "`src/microdoppler.py` → " + ref("md-slowtime", short=True)),
             ("정정된 메쉬로 가림 표와 생산 σ 를 같은 설정에서 다시 낸다",
              "형상 정정이 가림과 σ 를 어느 방향으로 얼마나 옮기는지가 기체별로 확정된다",
              f"⟨{MFX_ATK} : recommended_gate_before_any_sigma_claim⟩"),

@@ -76,6 +76,8 @@ GEO = "outputs/report15_verdict_geomref.json"   # 이상 점산란자 기준
 POC = "outputs/report15_po_control.json"        # PO 대조군 + 감사
 ATK = "outputs/report15_attack_stats.json"      # 적대검증 렌즈 1
 SPP = "outputs/report15_attack_spp_ladder.json"
+SGC = "outputs/sbr_grid_convergence.json"       # 격자 사다리 — 생산·위상고정·얼림
+OOB = "outputs/outofband_power.json"            # ⭐대역밖 전력의 잣대(절대·평활 없음)
 
 OUT = os.path.join(_ROOT, "reports", "_parts")   # ⭐조각 — 사람이 읽는 문서는 src/build_volumes.py 가 묶은 권이다
 FIG = "../outputs/figures"
@@ -412,8 +414,23 @@ def blocks_36() -> list:
                ["우리 SBR", "⚠ 날개끝 주파수 밖에도 능선을 낸다 — 운동학이 금지한 자리다"],
                ["Sionna", "경로가 열 개 남짓이라 표본이 성기다"],
            ]), "",
-           "⚠ 남은 의심은 하나다 — **우리 SBR 의 날개끝 밖 능선이 광선 격자의 이산화 산물인가, "
-           "물리인가.** " + ref("md-ray-budget", "광선예산") + " 이 그것을 잰다."),
+           "⭐ **그 날개끝 밖 능선의 원인은 광선 격자의 이산화가 아니라 자세마다 격자를 다시 "
+           "정의하는 것이다.** 격자를 촘촘히 해도 λ/12 → λ/32 에서 대역밖 절대 전력이 "
+           + _n("convergence.prod.drop_db_div12_to_div32", OOB, "{:.1f}", "dB")
+           + " 만 내려간다 — 기울기 "
+           + _n("convergence.prod.slope_ge12", OOB, "{:.2f}")
+           + " 이고, d² 이산화 잡음이면 −2 여야 한다.", "",
+           "격자를 얼리면 같은 광선 수로 "
+           + _n("freeze_verdict.gains_db.12", OOB, "{:.1f}", "dB")
+           + " 내려가면서 기울기가 "
+           + _n("convergence.froz.slope_ge12", OOB, "{:.2f}")
+           + " 로 예측에 붙는다. 얼린 팔은 광선을 안 쓰는 독립 엔진(순수 PO)과의 대역 안 일치도 "
+           + _n("in_band_fidelity.rows[1].cos_prod_vs_po", SGC, "{:.3f}")
+           + " 에서 "
+           + _n("in_band_fidelity.rows[1].cos_froz_vs_po", SGC, "{:.3f}")
+           + " 으로 오른다. 기전과 대가는 " + ref("kernel-what", "커널이 하는 일") + " 이 잰다.", "",
+           "⚠ 이 편의 맵은 아직 생산 격자로 계산돼 있다 — 커널의 `grid_ref` 배선을 하류가 "
+           "안 넘긴다."),
 
         md("## Sionna 의 빗은 기하에서 온다", "",
            table(["기체", "±1 조화 안 일치(근거리)", "빗 모양 코사인 중앙값"], [

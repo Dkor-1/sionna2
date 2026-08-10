@@ -5,7 +5,7 @@ build_engine_concept_fig.py — **세 엔진이 각각 무엇을 계산하는지
 왜 이 그림이 필요한가 (사용자 지적, 2026-08-11 팀미팅 준비)
 ------------------------------------------------------------
 결과 그림(report07_f5·f12)은 세 열을 나란히 놓는다:
-    ① Sionna PathSolver   ② Ours (SBR+PO, default)   ③ Ours w/o occlusion (control)
+    ① Sionna PathSolver   ② Ours (SBR+PO, default)   ③ Ours, nothing blocked (control)
 그런데 **청중은 그 세 열이 무엇인지 모른다.** 특히
   · path solver 로 어떻게 마이크로도플러 맵이 나오는지,
   · SBR+PO 가 무엇을 쏘고 무엇을 더하는지,
@@ -101,7 +101,7 @@ def facts():
 
     #  ⚠ 열 제목은 결과 그림(report07_f5)과 **글자까지 같아야** 청중이 두 그림을 잇는다.
     #    그래서 하드코딩하되 원본에 그 문자열이 실재하는지 검사한다.
-    titles = ["Sionna PathSolver", "Ours (SBR+PO, default)", "Ours w/o occlusion (control)"]
+    titles = ["Sionna PathSolver", "Ours (SBR+PO, default)", "Ours, nothing blocked (control)"]
     ref = open(f"{ROOT}/benchmark/build_three_engine_fig.py", encoding="utf-8").read()
     for t in titles:
         if t not in ref:

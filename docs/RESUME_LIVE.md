@@ -1,14 +1,13 @@
-# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 2026-08-10 17:27:32)
+# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 2026-08-10 21:07:40)
 
 ## 프로세스
 198615 bash -c for i in $(seq 1 144); do { echo "# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 $(date "+%F %T"))"; echo; echo "## 프로세스"; pgrep -af "report15b_microdoppler_recompute|experiment_freespace_sigma|rcs_same_span|hover_long" || echo "(없음)"; echo; echo "## GPU"; nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader; echo; echo "## 로그 후미"; for f in md15b3_meshfix sigma_force_m4e sigma_force_mini5 samespan sigma_chain; do echo "── $f.log:"; tail -2 /tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/$f.log 2>/dev/null; done; echo; echo "## git"; git -C /home/yunjung/workspace/sionna2 log --oneline -1; echo "미커밋 $(git -C /home/yunjung/workspace/sionna2 status --porcelain | wc -l)건"; } > /home/yunjung/workspace/sionna2/docs/RESUME_LIVE.md 2>&1; sleep 600; done
-3063862 /home/yunjung/.venvs/py312/bin/python benchmark/report15b_microdoppler_recompute.py --aspects nose,belly,belly_side --drones matrice4e,mini5pro
 
 ## GPU
-0, 23061 MiB, 100 %
-1, 21728 MiB, 100 %
-2, 11190 MiB, 97 %
-3, 18628 MiB, 100 %
+0, 22517 MiB, 100 %
+1, 23086 MiB, 100 %
+2, 9537 MiB, 28 %
+3, 22252 MiB, 100 %
 
 ## 로그 후미
 ── md15b3_meshfix.log:
@@ -28,5 +27,5 @@ HOVER_OUTDOOR_DONE 05:07:07
 SIGMA_MINI5_DONE 07:13:45
 
 ## git
-fdc026d ⭐4층 새 편 — 리포트 11-2 「패시브 2채널: 기준채널이 현실이면 무엇을 잃는가」 + 분류 트랙 완주
-미커밋 3건
+5c948da ⭐8 m 이상의 원인 확정 — 거리가 아니라 몬테카를로 추첨 하나가 4096 자세 내내 얼어붙은 것
+미커밋 32건
