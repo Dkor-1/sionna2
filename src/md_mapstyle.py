@@ -135,18 +135,77 @@ def ridge_spec(E, prf, f_flash):
     return _spectro(E, prf, round(RIDGE_PERIODS * per), RIDGE_HOP, RIDGE_PAD)
 
 
-def draw(ax, t, f, S, f_tip, *, t_scale=1e3, ref=None):
-    """규약대로 한 패널을 그린다. 반환은 컬러메시(공통 컬러바용)."""
-    ref = S.max() if ref is None else ref
+#: `mode="over_noise"` 의 색역 [dB above the estimated noise floor].
+#: 0 이 **잡음 바닥**이다 — 패시브 레이더 관례(Remote Sens. 14:6146 "24 dB above noise").
+NOISE_VMIN, NOISE_VMAX = -6.0, 40.0
+
+
+def noise_rms_from(S_noise):
+    """잡음만 통과시킨 스펙트로그램의 **rms 크기** — `draw(mode="over_noise")` 의 0 점.
+
+    ⭐ 예측식이 아니라 **측정값**을 쓴다. 같은 창·같은 조각 길이·같은 제로패딩을 통과한
+      잡음이라 창 손실·겹침 상관이 자동으로 들어간다(우리가 유추한 g_stft 를 안 믿어도 된다).
+    ⚠ 반드시 **같은 `flash_spec` 설정**으로 만든 잡음 전용 맵을 넣어라."""
+    S = np.asarray(S_noise, float)
+    return float(np.sqrt(np.mean(S ** 2)))
+
+
+def draw(ax, t, f, S, f_tip, *, t_scale=1e3, ref=None, mode="peak", noise_rms=None,
+         vmin=None, vmax=None):
+    """규약대로 한 패널을 그린다. 반환은 컬러메시(공통 컬러바용).
+
+    mode : ⭐**무엇을 0 dB 로 잡나**
+      "peak"       (**기본, 옛 동작과 비트동일**) 20log10(S/ref), ref 기본값은 이 맵의 최대값.
+                   ⚠ ref=None 이면 **패널마다 자기 최대값**이라 거리 정보가 그림에서 사라진다.
+                     여러 거리를 한 그림에 놓을 때는 ref 를 **공통 스칼라**로 주거나
+                     mode="over_noise" 를 써라.
+      "over_noise" 20log10(S/noise_rms). 0 = **추정 잡음 바닥**, 색역 NOISE_VMIN..NOISE_VMAX.
+                   `noise_rms` 는 `noise_rms_from()` 로 잰다(같은 STFT 설정의 잡음 전용 맵).
+    vmin/vmax : 색역을 직접 못 박고 싶을 때. None 이면 모드의 기본값."""
+    md = str(mode)
+    if md == "peak":
+        ref = S.max() if ref is None else ref
+        Z = 20 * np.log10(S / (ref + 1e-30) + 1e-12)
+        lo = VMIN if vmin is None else float(vmin)
+        hi = VMAX if vmax is None else float(vmax)
+    elif md == "over_noise":
+        if noise_rms is None:
+            raise ValueError("draw(mode='over_noise') 는 noise_rms 가 필요하다 "
+                             "(noise_rms_from(잡음 전용 스펙트로그램))")
+        Z = 20 * np.log10(S / (float(noise_rms) + 1e-30) + 1e-12)
+        lo = NOISE_VMIN if vmin is None else float(vmin)
+        hi = NOISE_VMAX if vmax is None else float(vmax)
+    else:
+        raise ValueError(f"draw: mode must be 'peak' or 'over_noise', got {mode!r}")
     # ⚠ rasterized=True 는 **필수**다(2026-08-10 실측). gouraud 음영은 격자 칸마다 폴리곤을
     #   찍는데, 고해상도 원장(2,033 시간 슬롯 × 수천 주파수 빈)이면 PDF 가 **114 MB** 로
     #   불어나 GitHub 100 MB 한도에 막힌다. 래스터화하면 축·글자는 벡터로 남고 맵만 픽셀이 된다.
-    m = ax.pcolormesh(t * t_scale, f, 20 * np.log10(S / (ref + 1e-30) + 1e-12),
-                      cmap=CMAP, vmin=VMIN, vmax=VMAX, shading=SHADING, rasterized=True)
+    m = ax.pcolormesh(t * t_scale, f, Z,
+                      cmap=CMAP, vmin=lo, vmax=hi, shading=SHADING, rasterized=True)
     for s in (+1, -1):
         ax.axhline(s * f_tip, color="w", ls="--", lw=1.0, alpha=0.8)
     ax.set_ylim(-YLIM_FTIP * f_tip, YLIM_FTIP * f_tip)
     return m
+
+
+def caption_snr(ladder) -> str:
+    """사다리 세 층위를 **캡션 한 줄**로(그림 안이 아니라 밖에 붙인다 — 하우스 규약).
+
+    ⚠ 「SNR」 이라는 맨 이름을 쓰지 않는다. 어느 칸인지 이름을 그대로 적는다."""
+    g = ladder.get
+    bits = [f"snr_sample {float(g('snr_band_db')):+.1f} dB (per Rx sample, pre-MF)"]
+    if g("g_mf_db") is not None:
+        bits.append(f"gain_mf {float(g('g_mf_db')):+.1f} dB")
+    if g("snr_slow_db") is not None:
+        bits.append(f"slow-time total {float(g('snr_slow_db')):+.1f} dB")
+    if g("snr_slow_ac_db") is not None:
+        bits.append(f"blade line (AC) {float(g('snr_slow_ac_db')):+.1f} dB")
+    if g("g_stft_db") is not None:
+        bits.append(f"gain_stft {float(g('g_stft_db')):+.1f} dB "
+                    f"({int(g('nperseg'))}-sample {g('window')} frame)")
+    if g("snr_map_ac_db") is not None:
+        bits.append(f"blade line on the map {float(g('snr_map_ac_db')):+.1f} dB")
+    return "  |  ".join(bits)
 
 
 def caption(prf, f_flash, nper, n_slots) -> str:

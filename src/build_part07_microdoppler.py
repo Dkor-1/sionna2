@@ -38,7 +38,7 @@ for _p in (_HERE, os.path.join(_ROOT, "benchmark")):
         sys.path.insert(0, _p)
 
 from report_style import (ContractError, build_notebook, caption,   # noqa: E402
-                          header, md, next_steps, num, table, table_from)
+                          fetch, header, md, next_steps, num, table, table_from)
 
 # --------------------------------------------------------------------------- #
 #  앵커 해결기 — 번호는 실행 계획이 정본이다
@@ -98,6 +98,27 @@ REPRO_15B = dict(
 
 def _n(key: str, src: str = MDB, fmt: str | None = None, unit: str = "") -> str:
     return num(None, (src, key), fmt, unit)
+
+
+#: 세 팔의 «전체 전력 중 f_tip 밖 몫» — 원장의 행 순서에 안 걸리게 라벨로 찾는다.
+_OOB_ROW = {r["label"]: i for i, r in enumerate(fetch((OOB, "three_engines")))}
+
+
+def _grid_state_line() -> str:
+    """이 편의 맵이 어떤 광선 격자로 풀렸나 — 원장의 표식에서 읽는다."""
+    if not bool(fetch((TRI, "_meta.grid_frozen")) or False):
+        return ("⚠ 이 편의 맵은 아직 생산 격자로 계산돼 있다 — 커널의 `grid_ref` 배선을 하류가 "
+                "안 넘긴다.")
+    return ("⭐ **이 편의 맵은 그 얼린 판으로 다시 났다.** 옛 판과의 전후 비교"
+            "(레벨 · 변조 깊이 · 대역밖 전력 · 가산성)는 8 권의 «광선 격자를 어디에 매나» 절이 "
+            "낸다. ⚠ 아직 옛 판인 것은 바이스태틱 스윕 원장과 PO 대조 원장이다.")
+
+
+def _oob_pct(label: str) -> str:
+    """대역밖 몫을 %로 — 값이 아주 작으면 자릿수를 늘린다(0.00 % 로 뭉개지 않는다)."""
+    v = float(fetch((OOB, f"three_engines[{_OOB_ROW[label]}].frac_of_total")))
+    return _n(f"three_engines[{_OOB_ROW[label]}].frac_of_total", OOB,
+              "{:.5%}" if v < 1e-4 else "{:.2%}")
 
 
 def _L(key: str, fmt: str | None = None, unit: str = "") -> str:
@@ -404,13 +425,16 @@ def blocks_36() -> list:
            f"{_n('_meta.n', TRI, '{:.0f}', '표본')} @ PRF "
            f"{_n('_meta.prf_hz', TRI, '{:.0f}', 'Hz')} = "
            f"{_n('_meta.blade_periods', TRI, '{:.0f}')} 블레이드 주기.", "",
-           table(["엔진", "변조 p-p", "무늬"], [
+           table(["엔진", "변조 p-p", "전체 전력 중 날개끝 밖", "무늬"], [
                ["Sionna PathSolver", _n("ptp_db.sionna", TRI, "{:.1f}", "dB"),
-                "능선이 성기고 날개끝 주파수 근처에서 잦아든다"],
-               ["우리 SBR", _n("ptp_db.sbr", TRI, "{:.1f}", "dB"),
-                "능선이 대역을 채우고 날개끝 주파수 밖에도 남는다"],
-               ["우리 순수 PO", _n("ptp_db.po", TRI, "{:.1f}", "dB"),
-                "능선이 몇 가닥에 그친다"],
+                _oob_pct("sionna"),
+                "얼룩이 대역을 채우고 날개끝 주파수 밖에도 남는다"],
+               ["우리 SBR", _n("ptp_db.sbr", TRI, "{:.1f}", "dB"), _oob_pct("sbr"),
+                "빗살이 또렷하다 — ⚠순수 PO 보다는 여전히 "
+                + _n("three_engines_ranking.new_P_out_absolute.sbr_over_po_db", OOB,
+                     "{:.0f}", "dB") + " 위다"],
+               ["우리 순수 PO", _n("ptp_db.po", TRI, "{:.1f}", "dB"), _oob_pct("po"),
+                "빗살이 가장 좁고 날개끝에서 절벽처럼 잘린다"],
            ]), "",
            f"⭐ 셋 다 (a) 0 도플러 동체 선, (b) 블레이드 통과율 간격 능선, "
            f"(c) 날개끝 주파수 근처 감쇠를 낸다 — **구조가 일치한다**. "
@@ -424,11 +448,15 @@ def blocks_36() -> list:
            "**세기와 밀도**에서 크게 갈리고, 갈리는 방향에 각각 이유가 있다.", "",
            table(["엔진", "무엇이 그렇게 만드나"], [
                ["우리 순수 PO", "가림을 빼고 계산하므로 모든 면이 항상 기여한다 → 변조가 씻긴다"],
-               ["우리 SBR", "⚠ 날개끝 주파수 밖에도 능선을 낸다 — 운동학이 금지한 자리다"],
-               ["Sionna", "경로가 열 개 남짓이라 표본이 성기다"],
+               ["우리 SBR", "가림이 켜져 있어 능선이 굵다. 격자를 얼린 뒤 날개끝 밖에 남는 몫은 "
+                            + _oob_pct("sbr") + " 이고, 그래도 순수 PO 보다 "
+                            + _n("three_engines_ranking.new_P_out_absolute.sbr_over_po_db",
+                                 OOB, "{:.0f}", "dB") + " 위다"],
+               ["Sionna", "경로가 열 개 남짓이라 표본이 성기고, 날개끝 밖에 "
+                          + _oob_pct("sionna") + " 이 남는다"],
            ]), "",
-           "⭐ **그 날개끝 밖 능선의 원인은 광선 격자의 이산화가 아니라 자세마다 격자를 다시 "
-           "정의하는 것이다.** 격자를 촘촘히 해도 λ/12 → λ/32 에서 대역밖 절대 전력이 "
+           "⭐ **날개끝 밖에 남던 능선의 원인은 광선 격자의 이산화가 아니라 자세마다 격자를 다시 "
+           "정의하는 것이었다.** 격자를 촘촘히 해도 λ/12 → λ/32 에서 대역밖 절대 전력이 "
            + _n("convergence.prod.drop_db_div12_to_div32", OOB, "{:.1f}", "dB")
            + " 만 내려간다 — 기울기 "
            + _n("convergence.prod.slope_ge12", OOB, "{:.2f}")
@@ -442,8 +470,7 @@ def blocks_36() -> list:
            + " 에서 "
            + _n("in_band_fidelity.rows[1].cos_froz_vs_po", SGC, "{:.3f}")
            + " 으로 오른다. 기전과 대가는 " + ref("kernel-what", "커널이 하는 일") + " 이 잰다.", "",
-           "⚠ 이 편의 맵은 아직 생산 격자로 계산돼 있다 — 커널의 `grid_ref` 배선을 하류가 "
-           "안 넘긴다."),
+           _grid_state_line()),
 
         md("## Sionna 의 빗은 기하에서 온다", "",
            table(["기체", "±1 조화 안 일치(근거리)", "빗 모양 코사인 중앙값"], [

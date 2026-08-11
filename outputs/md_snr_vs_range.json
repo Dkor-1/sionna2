@@ -1,0 +1,4858 @@
+{
+ "_meta": {
+  "title": "micro-Doppler SNR ladder vs range (the bridge between sigma and metres)",
+  "generated": "2026-08-11T00:10:57",
+  "generator": "benchmark/md_snr_vs_range.py",
+  "convention": "v2_2026-08",
+  "canonical_rung": "snr_slow_ac_db",
+  "capture": "full_waveform",
+  "noise": "thermal_only",
+  "geometry": "monostatic_equivalent",
+  "three_layers": {
+   "snr_sample_db": "rung 1 - per Rx sample, BEFORE the matched filter, over B=100 MHz",
+   "gain_mf_db": "rung 2 - 10log10(B/PRF) = 36.99 dB, ONE PRI correlated, full-waveform capture only",
+   "gain_stft_db": "rung 4 - 10log10(nperseg)+window loss; here nperseg = 6144 (md_metrics takes one full-record Hann FFT)",
+   "do_not_confuse": {
+    "gain_mf_db": 36.9897,
+    "cpi_coherent_gain_db": 36.1245,
+    "map_frame_gain_db": 16.691,
+    "note": "three separate ~37/37/17 dB quantities; the map only ever shows the third one"
+   }
+  },
+  "link_budget": {
+   "eirp_dbm": {
+    "chamber_12dBm": 12.0,
+    "macro_gnb_63dBm": 63.0
+   },
+   "rx_gain_dbi": 10.0,
+   "noise_figure_db": 5.0,
+   "b_hz": 100000000.0,
+   "noise_bw_effective_hz": 20000.0,
+   "provenance": "EIRP 12 dBm DECLARED (chamber class, no source doc); 63 dBm is the macro-gNB value used in benchmark/link_budget.py"
+  },
+  "reuse": {
+   "sigma": "outputs/md_range_sweep.json",
+   "ladder": "src/microdoppler_nearfield.py::snr_ladder",
+   "inverse": "src/microdoppler_nearfield.py::range_for_snr_db",
+   "accuracy": "outputs/md_classify.json (copied, not recomputed)"
+  },
+  "caveats": [
+   "sigma is our SBR/PO far-field-equivalent value and is 3.78 dB (2.39x) above the Das bistatic measurement anchor; in range that is a factor 0.79 - the range columns carry that unresolved uncertainty",
+   "gain_mf_db assumes an ideal matched filter and a clean reference channel; the real two-channel passive chain loses part of it (benchmark/passive_two_channel_md.py)",
+   "gain_stft_db for a single STFT frame is our extrapolation of Braun eq (3.37), which is stated for a 2-D periodogram - no primary source for one STFT frame",
+   "an ECA zero-Doppler notch would remove the body DC and drive dc_ac_off_db to 0, which would move every AC row up by up to 37 dB - unmeasured",
+   "always-on pilots (LTE CRS 1 kHz, 5G SSB 50 Hz) cannot produce a 20 kHz slow time; for those arms capture='always_on_pilot' and gain_mf_db = 0"
+  ],
+  "runtime_s": 0.02
+ },
+ "cells": [
+  {
+   "drone": "mini5pro",
+   "band": "5G NR 3.5 GHz",
+   "fc_hz": 3500000000.0,
+   "sigma_dbsm": -20.00354974567332,
+   "sigma_m2": 0.009991829747998662,
+   "sigma_source": "outputs/md_range_sweep.json::cells[].rows[0].sigma_eq_aspect_mean_plane_dbsm (azimuth mean over 36 aspects)",
+   "sigma_range_spread_db": 7.105427357601002e-15,
+   "dc_ac_db": 26.477728871228056,
+   "dc_ac_source": "outputs/md_range_sweep.json::cells[].rows[0].arms.A0_reference.dc_ac_db (plane-wave noiseless reference)",
+   "f_tip_hz": 989.8454565788965,
+   "flash_hz": 183.33333333333334,
+   "r_ff_m": 3.3311867364970595,
+   "capture": "full_waveform",
+   "prf_hz": 20000.0,
+   "geometry": "monostatic_equivalent",
+   "slope_db_per_decade": {
+    "monostatic_both_legs": -40.0,
+    "bistatic_one_leg": -20.0
+   },
+   "eirp_arms": {
+    "chamber_12dBm": {
+     "eirp_dbm": 12.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 36.6504,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 73.6401,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 47.1526,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 83.2771
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 24.6092,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 61.5989,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 35.1114,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 71.2359
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 17.5655,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 54.5552,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 28.0678,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 64.1923
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 8.6916,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 45.6813,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 19.1938,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 55.3183
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 2.8465,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 39.8362,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 13.3487,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 49.4732
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": -3.3496,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 33.6401,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 7.1526,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 43.2771
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": -10.3933,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 26.5964,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 0.109,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 36.2335
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": -15.3908,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 21.5989,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -4.8886,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 31.2359
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": -20.7961,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 16.1936,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -10.2939,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 25.8306
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": -22.4345,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 14.5552,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -11.9322,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 24.1923
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": -27.432,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 9.5577,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -16.9298,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 19.1947
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": -31.3084,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 5.6813,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -20.8062,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 15.3183
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": -37.1535,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -0.1638,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -26.6513,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 9.4732
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": -43.3496,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -6.3599,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -32.8474,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 3.2771
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": -50.3933,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -13.4036,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -39.891,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -3.7665
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -55.3908,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -18.4011,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -44.8886,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -8.7641
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -62.4345,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -25.4448,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -51.9322,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -15.8077
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -71.3084,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -34.3187,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -60.8062,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -24.6817
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -83.3496,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -46.3599,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -72.8474,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -36.7229
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 21.928,
+       "13": 32.81,
+       "10": 38.994,
+       "6": 49.091,
+       "3": 58.345,
+       "0": 69.343,
+       "-3": 82.414,
+       "-6": 97.95,
+       "-10": 123.311,
+       "-15": 164.438,
+       "-20": 219.282
+      },
+      "snr_slow_ac_db": {
+       "20": 4.773,
+       "13": 7.142,
+       "10": 8.488,
+       "6": 10.686,
+       "3": 12.7,
+       "0": 15.094,
+       "-3": 17.94,
+       "-6": 21.321,
+       "-10": 26.842,
+       "-15": 35.794,
+       "-20": 47.733
+      },
+      "snr_map_ac_db": {
+       "20": 38.188,
+       "13": 57.138,
+       "10": 67.909,
+       "6": 85.492,
+       "3": 101.608,
+       "0": 120.761,
+       "-3": 143.525,
+       "-6": 170.58,
+       "-10": 214.747,
+       "-15": 286.37,
+       "-20": 381.881
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 15.094,
+      "outer_m": 69.343,
+      "width_db": 26.4875,
+      "width_ratio": 4.594,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    },
+    "macro_gnb_63dBm": {
+     "eirp_dbm": 63.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 87.6504,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 124.6401,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 98.1526,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 134.2771
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 75.6092,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 112.5989,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 86.1114,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 122.2359
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 68.5655,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 105.5552,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 79.0678,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 115.1923
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 59.6916,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 96.6813,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 70.1938,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 106.3183
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 53.8465,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 90.8362,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 64.3487,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 100.4732
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": 47.6504,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 84.6401,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 58.1526,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 94.2771
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": 40.6067,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 77.5964,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 51.109,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 87.2335
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": 35.6092,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 72.5989,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 46.1114,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 82.2359
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": 30.2039,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 67.1936,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 40.7061,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 76.8306
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": 28.5655,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 65.5552,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 39.0678,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 75.1923
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": 23.568,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 60.5577,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 34.0702,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 70.1947
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": 19.6916,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 56.6813,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 30.1938,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 66.3183
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": 13.8465,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 50.8362,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 24.3487,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 60.4732
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": 7.6504,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 44.6401,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 18.1526,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 54.2771
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": 0.6067,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 37.5964,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 11.109,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 47.2335
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -4.3908,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 32.5989,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": 6.1114,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 42.2359
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -11.4345,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 25.5552,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -0.9322,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 35.1923
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -20.3084,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 16.6813,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -9.8062,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 26.3183
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -32.3496,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 4.6401,
+       "dc_ac_off_db": 26.4875,
+       "snr_slow_ac_db": -21.8474,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 14.2771
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 413.05,
+       "13": 618.02,
+       "10": 734.518,
+       "6": 924.703,
+       "3": 1099.012,
+       "0": 1306.178,
+       "-3": 1552.395,
+       "-6": 1845.025,
+       "-10": 2322.749,
+       "-15": 3097.436,
+       "-20": 4130.498
+      },
+      "snr_slow_ac_db": {
+       "20": 89.911,
+       "13": 134.529,
+       "10": 159.888,
+       "6": 201.287,
+       "3": 239.23,
+       "0": 284.325,
+       "-3": 337.921,
+       "-6": 401.62,
+       "-10": 505.609,
+       "-15": 674.241,
+       "-20": 899.115
+      },
+      "snr_map_ac_db": {
+       "20": 719.33,
+       "13": 1076.287,
+       "10": 1279.169,
+       "6": 1610.378,
+       "3": 1913.938,
+       "0": 2274.72,
+       "-3": 2703.51,
+       "-6": 3213.127,
+       "-10": 4045.087,
+       "-15": 5394.211,
+       "-20": 7193.296
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 284.325,
+      "outer_m": 1306.178,
+      "width_db": 26.4875,
+      "width_ratio": 4.594,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    }
+   }
+  },
+  {
+   "drone": "mavic4pro",
+   "band": "5G NR 3.5 GHz",
+   "fc_hz": 3500000000.0,
+   "sigma_dbsm": -15.931946997805777,
+   "sigma_m2": 0.025515571504493278,
+   "sigma_source": "outputs/md_range_sweep.json::cells[].rows[0].sigma_eq_aspect_mean_plane_dbsm (azimuth mean over 36 aspects)",
+   "sigma_range_spread_db": 0.0,
+   "dc_ac_db": 37.176075425456894,
+   "dc_ac_source": "outputs/md_range_sweep.json::cells[].rows[0].arms.A0_reference.dc_ac_db (plane-wave noiseless reference)",
+   "f_tip_hz": 1135.0983689616266,
+   "flash_hz": 120.0,
+   "r_ff_m": 7.206490980148832,
+   "capture": "full_waveform",
+   "prf_hz": 20000.0,
+   "geometry": "monostatic_equivalent",
+   "slope_db_per_decade": {
+    "monostatic_both_legs": -40.0,
+    "bistatic_one_leg": -20.0
+   },
+   "eirp_arms": {
+    "chamber_12dBm": {
+     "eirp_dbm": 12.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 40.722,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 77.7117,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 40.5348,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 76.6593
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 28.6808,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 65.6705,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 28.4936,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 64.6181
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 21.6371,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 58.6268,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 21.4499,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 57.5745
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 12.7632,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 49.7529,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 12.576,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 48.7005
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 6.9181,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 43.9078,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 6.7309,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 42.8554
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": 0.722,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 37.7117,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 0.5348,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 36.6593
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": -6.3217,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 30.668,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -6.5089,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 29.6157
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": -11.3192,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 25.6705,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -11.5064,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 24.6181
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": -16.7245,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 20.2652,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -16.9117,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 19.2128
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": -18.3629,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 18.6268,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -18.5501,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 17.5745
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": -23.3604,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 13.6293,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -23.5476,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 12.5769
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": -27.2368,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 9.7529,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -27.424,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 8.7005
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": -33.0819,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 3.9078,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -33.2691,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 2.8554
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": -39.278,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -2.2883,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -39.4652,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -3.3407
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": -46.3217,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -9.332,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -46.5089,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -10.3843
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -51.3192,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -14.3295,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -51.5064,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -15.3819
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -58.3629,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -21.3732,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -58.5501,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -22.4255
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -67.2368,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -30.2471,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -67.424,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -31.2995
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -79.278,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -42.2883,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -79.4652,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -43.3407
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 27.72,
+       "13": 41.476,
+       "10": 49.294,
+       "6": 62.057,
+       "3": 73.755,
+       "0": 87.658,
+       "-3": 104.182,
+       "-6": 123.82,
+       "-10": 155.881,
+       "-15": 207.87,
+       "-20": 277.199
+      },
+      "snr_slow_ac_db": {
+       "20": 3.261,
+       "13": 4.879,
+       "10": 5.799,
+       "6": 7.301,
+       "3": 8.677,
+       "0": 10.313,
+       "-3": 12.257,
+       "-6": 14.567,
+       "-10": 18.339,
+       "-15": 24.455,
+       "-20": 32.611
+      },
+      "snr_map_ac_db": {
+       "20": 26.091,
+       "13": 39.038,
+       "10": 46.396,
+       "6": 58.409,
+       "3": 69.42,
+       "0": 82.505,
+       "-3": 98.058,
+       "-6": 116.542,
+       "-10": 146.718,
+       "-15": 195.651,
+       "-20": 260.905
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 10.313,
+      "outer_m": 87.658,
+      "width_db": 37.1769,
+      "width_ratio": 8.5001,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    },
+    "macro_gnb_63dBm": {
+     "eirp_dbm": 63.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 91.722,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 128.7117,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 91.5348,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 127.6593
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 79.6808,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 116.6705,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 79.4936,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 115.6181
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 72.6371,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 109.6268,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 72.4499,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 108.5745
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 63.7632,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 100.7529,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 63.576,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 99.7005
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 57.9181,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 94.9078,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 57.7309,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 93.8554
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": 51.722,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 88.7117,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 51.5348,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 87.6593
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": 44.6783,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 81.668,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 44.4911,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 80.6157
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": 39.6808,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 76.6705,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 39.4936,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 75.6181
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": 34.2755,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 71.2652,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 34.0883,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 70.2128
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": 32.6371,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 69.6268,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 32.4499,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 68.5745
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": 27.6396,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 64.6293,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 27.4524,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 63.5769
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": 23.7632,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 60.7529,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 23.576,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 59.7005
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": 17.9181,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 54.9078,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 17.7309,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 53.8554
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": 11.722,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 48.7117,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 11.5348,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 47.6593
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": 4.6783,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 41.668,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": 4.4911,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 40.6157
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -0.3192,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 36.6705,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -0.5064,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 35.6181
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -7.3629,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 29.6268,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -7.5501,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 28.5745
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -16.2368,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 20.7529,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -16.424,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 19.7005
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -28.278,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 8.7117,
+       "dc_ac_off_db": 37.1769,
+       "snr_slow_ac_db": -28.4652,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 7.6593
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 522.147,
+       "13": 781.254,
+       "10": 928.523,
+       "6": 1168.941,
+       "3": 1389.288,
+       "0": 1651.172,
+       "-3": 1962.422,
+       "-6": 2332.343,
+       "-10": 2936.246,
+       "-15": 3915.547,
+       "-20": 5221.466
+      },
+      "snr_slow_ac_db": {
+       "20": 61.428,
+       "13": 91.911,
+       "10": 109.237,
+       "6": 137.521,
+       "3": 163.444,
+       "0": 194.254,
+       "-3": 230.871,
+       "-6": 274.391,
+       "-10": 345.438,
+       "-15": 460.649,
+       "-20": 614.285
+      },
+      "snr_map_ac_db": {
+       "20": 491.454,
+       "13": 735.33,
+       "10": 873.942,
+       "6": 1100.228,
+       "3": 1307.623,
+       "0": 1554.113,
+       "-3": 1847.067,
+       "-6": 2195.243,
+       "-10": 2763.647,
+       "-15": 3685.382,
+       "-20": 4914.536
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 194.254,
+      "outer_m": 1651.172,
+      "width_db": 37.1769,
+      "width_ratio": 8.5001,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    }
+   }
+  },
+  {
+   "drone": "matrice4e",
+   "band": "5G NR 3.5 GHz",
+   "fc_hz": 3500000000.0,
+   "sigma_dbsm": -18.879044077723254,
+   "sigma_m2": 0.01294480737264002,
+   "sigma_source": "outputs/md_range_sweep.json::cells[].rows[0].sigma_eq_aspect_mean_plane_dbsm (azimuth mean over 36 aspects)",
+   "sigma_range_spread_db": 0.0,
+   "dc_ac_db": 17.26067929607295,
+   "dc_ac_source": "outputs/md_range_sweep.json::cells[].rows[0].arms.A0_reference.dc_ac_db (plane-wave noiseless reference)",
+   "f_tip_hz": 1229.571807909744,
+   "flash_hz": 126.66666666666667,
+   "r_ff_m": 8.045381933736769,
+   "capture": "full_waveform",
+   "prf_hz": 20000.0,
+   "geometry": "monostatic_equivalent",
+   "slope_db_per_decade": {
+    "monostatic_both_legs": -40.0,
+    "bistatic_one_leg": -20.0
+   },
+   "eirp_arms": {
+    "chamber_12dBm": {
+     "eirp_dbm": 12.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 37.7749,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 74.7646,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 57.4231,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 93.5476
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 25.7337,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 62.7234,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 45.3819,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 81.5064
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 18.6901,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 55.6798,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 38.3382,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 74.4627
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 9.8161,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 46.8058,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 29.4643,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 65.5888
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 3.971,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 40.9607,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 23.6192,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 59.7437
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": -2.2251,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 34.7646,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 17.4231,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 53.5476
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": -9.2687,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 27.721,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 10.3794,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 46.5039
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": -14.2663,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 22.7234,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 5.3819,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 41.5064
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": -19.6716,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 17.3181,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": -0.0234,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 36.1011
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": -21.3099,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 15.6798,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": -1.6618,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 34.4627
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": -26.3075,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 10.6822,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": -6.6593,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 29.4652
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": -30.1839,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 6.8058,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": -10.5357,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 25.5888
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": -36.029,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 0.9607,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": -16.3808,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 19.7437
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": -42.2251,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -5.2354,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": -22.5769,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 13.5476
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": -49.2687,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -12.279,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": -29.6206,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 6.5039
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -54.2663,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -17.2766,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": -34.6181,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 1.5064
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -61.3099,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -24.3202,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": -41.6618,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -5.5373
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -70.1839,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -33.1942,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": -50.5357,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -14.4112
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -82.2251,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -45.2354,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": -62.5769,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -26.4524
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 23.395,
+       "13": 35.004,
+       "10": 41.602,
+       "6": 52.374,
+       "3": 62.247,
+       "0": 73.98,
+       "-3": 87.926,
+       "-6": 104.5,
+       "-10": 131.557,
+       "-15": 175.435,
+       "-20": 233.946
+      },
+      "snr_slow_ac_db": {
+       "20": 8.621,
+       "13": 12.9,
+       "10": 15.331,
+       "6": 19.301,
+       "3": 22.939,
+       "0": 27.263,
+       "-3": 32.402,
+       "-6": 38.51,
+       "-10": 48.482,
+       "-15": 64.651,
+       "-20": 86.214
+      },
+      "snr_map_ac_db": {
+       "20": 68.975,
+       "13": 103.202,
+       "10": 122.656,
+       "6": 154.415,
+       "3": 183.523,
+       "0": 218.117,
+       "-3": 259.233,
+       "-6": 308.099,
+       "-10": 387.873,
+       "-15": 517.237,
+       "-20": 689.747
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 27.263,
+      "outer_m": 73.98,
+      "width_db": 17.3415,
+      "width_ratio": 2.7136,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    },
+    "macro_gnb_63dBm": {
+     "eirp_dbm": 63.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 88.7749,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 125.7646,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 108.4231,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 144.5476
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 76.7337,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 113.7234,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 96.3819,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 132.5064
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 69.6901,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 106.6798,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 89.3382,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 125.4627
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 60.8161,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 97.8058,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 80.4643,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 116.5888
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 54.971,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 91.9607,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 74.6192,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 110.7437
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": 48.7749,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 85.7646,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 68.4231,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 104.5476
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": 41.7313,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 78.721,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 61.3794,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 97.5039
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": 36.7337,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 73.7234,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 56.3819,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 92.5064
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": 31.3284,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 68.3181,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 50.9766,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 87.1011
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": 29.6901,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 66.6798,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 49.3382,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 85.4627
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": 24.6925,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 61.6822,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 44.3407,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 80.4652
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": 20.8161,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 57.8058,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 40.4643,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 76.5888
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": 14.971,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 51.9607,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 34.6192,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 70.7437
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": 8.7749,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 45.7646,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 28.4231,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 64.5476
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": 1.7313,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 38.721,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 21.3794,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 57.5039
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -3.2663,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 33.7234,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 16.3819,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 52.5064
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -10.3099,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 26.6798,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 9.3382,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 45.4627
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -19.1839,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 17.8058,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": 0.4643,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 36.5888
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -31.2251,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 5.7646,
+       "dc_ac_off_db": 17.3415,
+       "snr_slow_ac_db": -11.5769,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 24.5476
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 440.672,
+       "13": 659.348,
+       "10": 783.637,
+       "6": 986.541,
+       "3": 1172.506,
+       "0": 1393.526,
+       "-3": 1656.209,
+       "-6": 1968.407,
+       "-10": 2478.078,
+       "-15": 3304.57,
+       "-20": 4406.715
+      },
+      "snr_slow_ac_db": {
+       "20": 162.397,
+       "13": 242.984,
+       "10": 288.786,
+       "6": 363.561,
+       "3": 432.093,
+       "0": 513.543,
+       "-3": 610.347,
+       "-6": 725.399,
+       "-10": 913.223,
+       "-15": 1217.802,
+       "-20": 1623.966
+      },
+      "snr_map_ac_db": {
+       "20": 1299.241,
+       "13": 1943.97,
+       "10": 2310.413,
+       "6": 2908.638,
+       "3": 3456.922,
+       "0": 4108.56,
+       "-3": 4883.033,
+       "-6": 5803.495,
+       "-10": 7306.168,
+       "-15": 9742.931,
+       "-20": 12992.408
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 513.543,
+      "outer_m": 1393.526,
+      "width_db": 17.3415,
+      "width_ratio": 2.7136,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    }
+   }
+  },
+  {
+   "drone": "s1000plus",
+   "band": "5G NR 3.5 GHz",
+   "fc_hz": 3500000000.0,
+   "sigma_dbsm": -15.899564389921224,
+   "sigma_m2": 0.02570653613920781,
+   "sigma_source": "outputs/md_range_sweep.json::cells[].rows[0].sigma_eq_aspect_mean_plane_dbsm (azimuth mean over 36 aspects)",
+   "sigma_range_spread_db": 1.7763568394002505e-15,
+   "dc_ac_db": 18.873270016464996,
+   "dc_ac_source": "outputs/md_range_sweep.json::cells[].rows[0].arms.A0_reference.dc_ac_db (plane-wave noiseless reference)",
+   "f_tip_hz": 1619.7471107654671,
+   "flash_hz": 120.0,
+   "r_ff_m": 42.41145533690087,
+   "capture": "full_waveform",
+   "prf_hz": 20000.0,
+   "geometry": "monostatic_equivalent",
+   "slope_db_per_decade": {
+    "monostatic_both_legs": -40.0,
+    "bistatic_one_leg": -20.0
+   },
+   "eirp_arms": {
+    "chamber_12dBm": {
+     "eirp_dbm": 12.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 40.7544,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 77.7441,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 58.8149,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 94.9394
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 28.7132,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 65.7029,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 46.7737,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 82.8982
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 21.6695,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 58.6592,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 39.73,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 75.8545
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 12.7956,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 49.7853,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 30.8561,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 66.9806
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 6.9505,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 43.9402,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 25.011,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 61.1355
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": 0.7544,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 37.7441,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 18.8149,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 54.9394
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": -6.2893,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 30.7004,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 11.7712,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 47.8957
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": -11.2868,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 25.7029,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 6.7737,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 42.8982
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": -16.6921,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 20.2976,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 1.3684,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 37.4929
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": -18.3305,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 18.6592,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": -0.27,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 35.8545
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": -23.328,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 13.6617,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": -5.2675,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 30.857
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": -27.2044,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 9.7853,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": -9.1439,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 26.9806
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": -33.0495,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 3.9402,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": -14.989,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 21.1355
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": -39.2456,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -2.2559,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": -21.1851,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 14.9394
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": -46.2893,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -9.2996,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": -28.2288,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 7.8957
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -51.2868,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -14.2971,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": -33.2263,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 2.8982
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -58.3305,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -21.3408,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": -40.27,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -4.1455
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -67.2044,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -30.2147,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": -49.1439,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -13.0194
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -79.2456,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -42.2559,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": -61.1851,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -25.0606
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 27.772,
+       "13": 41.553,
+       "10": 49.386,
+       "6": 62.173,
+       "3": 73.893,
+       "0": 87.822,
+       "-3": 104.376,
+       "-6": 124.051,
+       "-10": 156.172,
+       "-15": 208.258,
+       "-20": 277.717
+      },
+      "snr_slow_ac_db": {
+       "20": 9.341,
+       "13": 13.976,
+       "10": 16.61,
+       "6": 20.911,
+       "3": 24.853,
+       "0": 29.537,
+       "-3": 35.105,
+       "-6": 41.723,
+       "-10": 52.526,
+       "-15": 70.044,
+       "-20": 93.405
+      },
+      "snr_map_ac_db": {
+       "20": 74.728,
+       "13": 111.811,
+       "10": 132.888,
+       "6": 167.296,
+       "3": 198.831,
+       "0": 236.311,
+       "-3": 280.857,
+       "-6": 333.799,
+       "-10": 420.228,
+       "-15": 560.383,
+       "-20": 747.282
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 29.537,
+      "outer_m": 87.822,
+      "width_db": 18.9292,
+      "width_ratio": 2.9732,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    },
+    "macro_gnb_63dBm": {
+     "eirp_dbm": 63.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 91.7544,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 128.7441,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 109.8149,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 145.9394
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 79.7132,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 116.7029,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 97.7737,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 133.8982
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 72.6695,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 109.6592,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 90.73,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 126.8545
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 63.7956,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 100.7853,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 81.8561,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 117.9806
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 57.9505,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 94.9402,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 76.011,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 112.1355
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": 51.7544,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 88.7441,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 69.8149,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 105.9394
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": 44.7107,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 81.7004,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 62.7712,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 98.8957
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": 39.7132,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 76.7029,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 57.7737,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 93.8982
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": 34.3079,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 71.2976,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 52.3684,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 88.4929
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": 32.6695,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 69.6592,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 50.73,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 86.8545
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": 27.672,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 64.6617,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 45.7325,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 81.857
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": 23.7956,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 60.7853,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 41.8561,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 77.9806
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": 17.9505,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 54.9402,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 36.011,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 72.1355
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": 11.7544,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 48.7441,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 29.8149,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 65.9394
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": 4.7107,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 41.7004,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 22.7712,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 58.8957
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -0.2868,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 36.7029,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 17.7737,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 53.8982
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -7.3305,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 29.6592,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 10.73,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 46.8545
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -16.2044,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 20.7853,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": 1.8561,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 37.9806
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -28.2456,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 8.7441,
+       "dc_ac_off_db": 18.9292,
+       "snr_slow_ac_db": -10.1851,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 25.9394
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 523.121,
+       "13": 782.712,
+       "10": 930.255,
+       "6": 1171.122,
+       "3": 1391.881,
+       "0": 1654.253,
+       "-3": 1966.084,
+       "-6": 2336.695,
+       "-10": 2941.725,
+       "-15": 3922.853,
+       "-20": 5231.208
+      },
+      "snr_slow_ac_db": {
+       "20": 175.943,
+       "13": 263.252,
+       "10": 312.876,
+       "6": 393.887,
+       "3": 468.136,
+       "0": 556.381,
+       "-3": 661.26,
+       "-6": 785.908,
+       "-10": 989.4,
+       "-15": 1319.386,
+       "-20": 1759.43
+      },
+      "snr_map_ac_db": {
+       "20": 1407.618,
+       "13": 2106.128,
+       "10": 2503.138,
+       "6": 3151.264,
+       "3": 3745.284,
+       "0": 4451.278,
+       "-3": 5290.354,
+       "-6": 6287.598,
+       "-10": 7915.617,
+       "-15": 10555.645,
+       "-20": 14076.178
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 556.381,
+      "outer_m": 1654.253,
+      "width_db": 18.9292,
+      "width_ratio": 2.9732,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    }
+   }
+  },
+  {
+   "drone": "phantom4",
+   "band": "5G NR 3.5 GHz",
+   "fc_hz": 3500000000.0,
+   "sigma_dbsm": -16.919816656002933,
+   "sigma_m2": 0.02032442811778475,
+   "sigma_source": "outputs/md_range_sweep.json::cells[].rows[0].sigma_eq_aspect_mean_plane_dbsm (azimuth mean over 36 aspects)",
+   "sigma_range_spread_db": 0.0,
+   "dc_ac_db": 32.50727161334935,
+   "dc_ac_source": "outputs/md_range_sweep.json::cells[].rows[0].arms.A0_reference.dc_ac_db (plane-wave noiseless reference)",
+   "f_tip_hz": 1558.8117426439314,
+   "flash_hz": 183.33333333333334,
+   "r_ff_m": 5.171969897325738,
+   "capture": "full_waveform",
+   "prf_hz": 20000.0,
+   "geometry": "monostatic_equivalent",
+   "slope_db_per_decade": {
+    "monostatic_both_legs": -40.0,
+    "bistatic_one_leg": -20.0
+   },
+   "eirp_arms": {
+    "chamber_12dBm": {
+     "eirp_dbm": 12.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 39.7341,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 76.7238,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 44.2141,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 80.3386
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 27.6929,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 64.6826,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 32.1729,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 68.2974
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 20.6493,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 57.639,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 25.1293,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 61.2538
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 11.7753,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 48.765,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 16.2553,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 52.3798
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 5.9302,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 42.9199,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 10.4102,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 46.5347
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": -0.2659,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 36.7238,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 4.2141,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 40.3386
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": -7.3095,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 29.6802,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -2.8295,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 33.295
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": -12.3071,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 24.6826,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -7.8271,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 28.2974
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": -17.7124,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 19.2773,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -13.2324,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 22.8921
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": -19.3507,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 17.639,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -14.8707,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 21.2538
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": -24.3483,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 12.6414,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -19.8683,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 16.2562
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": -28.2247,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 8.765,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -23.7447,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 12.3798
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": -34.0698,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 2.9199,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -29.5898,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 6.5347
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": -40.2659,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -3.2762,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -35.7859,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 0.3386
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": -47.3095,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -10.3198,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -42.8295,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -6.705
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -52.3071,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -15.3174,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -47.8271,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -11.7026
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -59.3507,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -22.361,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -54.8707,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -18.7462
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -68.2247,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -31.235,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -63.7447,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -27.6202
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -80.2659,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -43.2762,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -75.7859,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -39.6614
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 26.188,
+       "13": 39.183,
+       "10": 46.569,
+       "6": 58.627,
+       "3": 69.678,
+       "0": 82.812,
+       "-3": 98.423,
+       "-6": 116.976,
+       "-10": 147.264,
+       "-15": 196.379,
+       "-20": 261.876
+      },
+      "snr_slow_ac_db": {
+       "20": 4.03,
+       "13": 6.03,
+       "10": 7.167,
+       "6": 9.023,
+       "3": 10.724,
+       "0": 12.745,
+       "-3": 15.148,
+       "-6": 18.003,
+       "-10": 22.665,
+       "-15": 30.224,
+       "-20": 40.304
+      },
+      "snr_map_ac_db": {
+       "20": 32.245,
+       "13": 48.246,
+       "10": 57.341,
+       "6": 72.188,
+       "3": 85.796,
+       "0": 101.968,
+       "-3": 121.19,
+       "-6": 144.034,
+       "-10": 181.328,
+       "-15": 241.805,
+       "-20": 322.453
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 12.745,
+      "outer_m": 82.812,
+      "width_db": 32.5097,
+      "width_ratio": 6.4974,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    },
+    "macro_gnb_63dBm": {
+     "eirp_dbm": 63.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 90.7341,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 127.7238,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 95.2141,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 131.3386
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 78.6929,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 115.6826,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 83.1729,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 119.2974
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 71.6493,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 108.639,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 76.1293,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 112.2538
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 62.7753,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 99.765,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 67.2553,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 103.3798
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 56.9302,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 93.9199,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 61.4102,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 97.5347
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": 50.7341,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 87.7238,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 55.2141,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 91.3386
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": 43.6905,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 80.6802,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 48.1705,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 84.295
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": 38.6929,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 75.6826,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 43.1729,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 79.2974
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": 33.2876,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 70.2773,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 37.7676,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 73.8921
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": 31.6493,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 68.639,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 36.1293,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 72.2538
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": 26.6517,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 63.6414,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 31.1317,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 67.2562
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": 22.7753,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 59.765,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 27.2553,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 63.3798
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": 16.9302,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 53.9199,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 21.4102,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 57.5347
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": 10.7341,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 47.7238,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 15.2141,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 51.3386
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": 3.6905,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 40.6802,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 8.1705,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 44.295
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -1.3071,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 35.6826,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": 3.1729,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 39.2974
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -8.3507,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 28.639,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -3.8707,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 32.2538
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -17.2247,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 19.765,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -12.7447,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 23.3798
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -29.2659,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 7.7238,
+       "dc_ac_off_db": 32.5097,
+       "snr_slow_ac_db": -24.7859,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 11.3386
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 493.282,
+       "13": 738.067,
+       "10": 877.194,
+       "6": 1104.322,
+       "3": 1312.489,
+       "0": 1559.896,
+       "-3": 1853.94,
+       "-6": 2203.412,
+       "-10": 2773.931,
+       "-15": 3699.097,
+       "-20": 4932.825
+      },
+      "snr_slow_ac_db": {
+       "20": 75.919,
+       "13": 113.593,
+       "10": 135.006,
+       "6": 169.962,
+       "3": 202.001,
+       "0": 240.078,
+       "-3": 285.334,
+       "-6": 339.12,
+       "-10": 426.926,
+       "-15": 569.315,
+       "-20": 759.194
+      },
+      "snr_map_ac_db": {
+       "20": 607.387,
+       "13": 908.795,
+       "10": 1080.104,
+       "6": 1359.771,
+       "3": 1616.091,
+       "0": 1920.728,
+       "-3": 2282.789,
+       "-6": 2713.1,
+       "-10": 3415.59,
+       "-15": 4554.763,
+       "-20": 6073.874
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 240.078,
+      "outer_m": 1559.896,
+      "width_db": 32.5097,
+      "width_ratio": 6.4974,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    }
+   }
+  },
+  {
+   "drone": "mavic4pro",
+   "band": "LTE 1.843 GHz",
+   "fc_hz": 1843000000.0,
+   "sigma_dbsm": -14.557303637426424,
+   "sigma_m2": 0.03501625015943223,
+   "sigma_source": "outputs/md_range_sweep.json::cells[].rows[0].sigma_eq_aspect_mean_plane_dbsm (azimuth mean over 36 aspects)",
+   "sigma_range_spread_db": 1.7763568394002505e-15,
+   "dc_ac_db": 50.78762024846768,
+   "dc_ac_source": "outputs/md_range_sweep.json::cells[].rows[0].arms.A0_reference.dc_ac_db (plane-wave noiseless reference)",
+   "f_tip_hz": 597.7103697132222,
+   "flash_hz": 120.0,
+   "r_ff_m": 3.7947322504040852,
+   "capture": "full_waveform",
+   "prf_hz": 20000.0,
+   "geometry": "monostatic_equivalent",
+   "slope_db_per_decade": {
+    "monostatic_both_legs": -40.0,
+    "bistatic_one_leg": -20.0
+   },
+   "eirp_arms": {
+    "chamber_12dBm": {
+     "eirp_dbm": 12.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 47.6675,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 84.6572,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 33.8695,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 69.9941
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 35.6263,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 72.616,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 21.8283,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 57.9529
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 28.5826,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 65.5723,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 14.7847,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 50.9092
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 19.7087,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 56.6984,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 5.9107,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 42.0353
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 13.8636,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 50.8533,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 0.0656,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 36.1901
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": 7.6675,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 44.6572,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -6.1305,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 29.9941
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": 0.6238,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 37.6135,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -13.1741,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 22.9504
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": -4.3737,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 32.616,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -18.1717,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 17.9529
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": -9.779,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 27.2107,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -23.577,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 12.5475
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": -11.4174,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 25.5723,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -25.2153,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 10.9092
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": -16.4149,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 20.5748,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -30.2129,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 5.9117
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": -20.2913,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 16.6984,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -34.0893,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 2.0353
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": -26.1364,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 10.8533,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -39.9344,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -3.8099
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": -32.3325,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 4.6572,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -46.1305,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -10.0059
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": -39.3762,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -2.3865,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -53.1741,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -17.0496
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -44.3737,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -7.384,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -58.1717,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -22.0471
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -51.4174,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -14.4277,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -65.2153,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -29.0908
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -60.2913,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -23.3016,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -74.0893,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -37.9647
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -72.3325,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -35.3428,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -86.1305,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -50.0059
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 41.346,
+       "13": 61.863,
+       "10": 73.524,
+       "6": 92.561,
+       "3": 110.009,
+       "0": 130.746,
+       "-3": 155.392,
+       "-6": 184.684,
+       "-10": 232.504,
+       "-15": 310.049,
+       "-20": 413.457
+      },
+      "snr_slow_ac_db": {
+       "20": 2.222,
+       "13": 3.325,
+       "10": 3.951,
+       "6": 4.974,
+       "3": 5.912,
+       "0": 7.026,
+       "-3": 8.351,
+       "-6": 9.925,
+       "-10": 12.495,
+       "-15": 16.662,
+       "-20": 22.22
+      },
+      "snr_map_ac_db": {
+       "20": 17.777,
+       "13": 26.598,
+       "10": 31.612,
+       "6": 39.797,
+       "3": 47.299,
+       "0": 56.215,
+       "-3": 66.812,
+       "-6": 79.406,
+       "-10": 99.966,
+       "-15": 133.306,
+       "-20": 177.767
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 7.026,
+      "outer_m": 130.746,
+      "width_db": 50.7877,
+      "width_ratio": 18.6076,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    },
+    "macro_gnb_63dBm": {
+     "eirp_dbm": 63.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 98.6675,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 135.6572,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 84.8695,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 120.9941
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 86.6263,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 123.616,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 72.8283,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 108.9529
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 79.5826,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 116.5723,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 65.7847,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 101.9092
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 70.7087,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 107.6984,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 56.9107,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 93.0353
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 64.8636,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 101.8533,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 51.0656,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 87.1901
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": 58.6675,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 95.6572,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 44.8695,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 80.9941
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": 51.6238,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 88.6135,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 37.8259,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 73.9504
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": 46.6263,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 83.616,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 32.8283,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 68.9529
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": 41.221,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 78.2107,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 27.423,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 63.5475
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": 39.5826,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 76.5723,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 25.7847,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 61.9092
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": 34.5851,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 71.5748,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 20.7871,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 56.9117
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": 30.7087,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 67.6984,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 16.9107,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 53.0353
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": 24.8636,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 61.8533,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 11.0656,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 47.1901
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": 18.6675,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 55.6572,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": 4.8695,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 40.9941
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": 11.6238,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 48.6135,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -2.1741,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 33.9504
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": 6.6263,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 43.616,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -7.1717,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 28.9529
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -0.4174,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 36.5723,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -14.2153,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 21.9092
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -9.2913,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 27.6984,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -23.0893,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 13.0353
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -21.3325,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 15.6572,
+       "dc_ac_off_db": 50.7877,
+       "snr_slow_ac_db": -35.1305,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 0.9941
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 778.807,
+       "13": 1165.279,
+       "10": 1384.937,
+       "6": 1743.532,
+       "3": 2072.191,
+       "0": 2462.804,
+       "-3": 2927.048,
+       "-6": 3478.803,
+       "-10": 4379.554,
+       "-15": 5840.229,
+       "-20": 7788.071
+      },
+      "snr_slow_ac_db": {
+       "20": 41.854,
+       "13": 62.624,
+       "10": 74.428,
+       "6": 93.7,
+       "3": 111.362,
+       "0": 132.354,
+       "-3": 157.304,
+       "-6": 186.956,
+       "-10": 235.363,
+       "-15": 313.862,
+       "-20": 418.541
+      },
+      "snr_map_ac_db": {
+       "20": 334.851,
+       "13": 501.016,
+       "10": 595.458,
+       "6": 749.637,
+       "3": 890.946,
+       "0": 1058.891,
+       "-3": 1258.494,
+       "-6": 1495.723,
+       "-10": 1883.004,
+       "-15": 2511.026,
+       "-20": 3348.507
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 132.354,
+      "outer_m": 2462.804,
+      "width_db": 50.7877,
+      "width_ratio": 18.6076,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    }
+   }
+  },
+  {
+   "drone": "mavic4pro",
+   "band": "WiFi 5.21 GHz",
+   "fc_hz": 5210000000.0,
+   "sigma_dbsm": -14.112772301101252,
+   "sigma_m2": 0.03879026708545978,
+   "sigma_source": "outputs/md_range_sweep.json::cells[].rows[0].sigma_eq_aspect_mean_plane_dbsm (azimuth mean over 36 aspects)",
+   "sigma_range_spread_db": 5.329070518200751e-15,
+   "dc_ac_db": 27.896415729951336,
+   "dc_ac_source": "outputs/md_range_sweep.json::cells[].rows[0].arms.A0_reference.dc_ac_db (plane-wave noiseless reference)",
+   "f_tip_hz": 1689.6750006543068,
+   "flash_hz": 120.0,
+   "r_ff_m": 10.72737657330726,
+   "capture": "full_waveform",
+   "prf_hz": 20000.0,
+   "geometry": "monostatic_equivalent",
+   "slope_db_per_decade": {
+    "monostatic_both_legs": -40.0,
+    "bistatic_one_leg": -20.0
+   },
+   "eirp_arms": {
+    "chamber_12dBm": {
+     "eirp_dbm": 12.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 39.0858,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 76.0755,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 48.172,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 84.2965
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 27.0446,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 64.0343,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 36.1308,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 72.2553
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 20.0009,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 56.9906,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 29.0872,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 65.2117
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 11.127,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 48.1167,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 20.2132,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 56.3377
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 5.2819,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 42.2716,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 14.3681,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 50.4926
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": -0.9142,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 36.0755,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 8.172,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 44.2965
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": -7.9579,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 29.0318,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 1.1284,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 37.2529
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": -12.9554,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 24.0343,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": -3.8692,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 32.2553
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": -18.3607,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 18.629,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": -9.2745,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 26.85
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": -19.9991,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 16.9906,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": -10.9128,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 25.2117
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": -24.9966,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 11.9931,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": -15.9104,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 20.2141
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": -28.873,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 8.1167,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": -19.7868,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 16.3377
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": -34.7181,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 2.2716,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": -25.6319,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 10.4926
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": -40.9142,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -3.9245,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": -31.828,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 4.2965
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": -47.9579,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -10.9682,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": -38.8716,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -2.7471
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -52.9554,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -15.9657,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": -43.8692,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -7.7447
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -59.9991,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -23.0094,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": -50.9128,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -14.7883
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -68.873,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -31.8833,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": -59.7868,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -23.6623
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -80.9142,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -43.9245,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": -71.828,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -35.7035
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 25.228,
+       "13": 37.747,
+       "10": 44.863,
+       "6": 56.479,
+       "3": 67.125,
+       "0": 79.779,
+       "-3": 94.817,
+       "-6": 112.69,
+       "-10": 141.869,
+       "-15": 189.185,
+       "-20": 252.282
+      },
+      "snr_slow_ac_db": {
+       "20": 5.062,
+       "13": 7.574,
+       "10": 9.001,
+       "6": 11.332,
+       "3": 13.468,
+       "0": 16.007,
+       "-3": 19.024,
+       "-6": 22.61,
+       "-10": 28.464,
+       "-15": 37.958,
+       "-20": 50.617
+      },
+      "snr_map_ac_db": {
+       "20": 40.496,
+       "13": 60.592,
+       "10": 72.013,
+       "6": 90.659,
+       "3": 107.749,
+       "0": 128.06,
+       "-3": 152.2,
+       "-6": 180.889,
+       "-10": 227.726,
+       "-15": 303.678,
+       "-20": 404.961
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 16.007,
+      "outer_m": 79.779,
+      "width_db": 27.9035,
+      "width_ratio": 4.9841,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    },
+    "macro_gnb_63dBm": {
+     "eirp_dbm": 63.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 90.0858,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 127.0755,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 99.172,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 135.2965
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 78.0446,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 115.0343,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 87.1308,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 123.2553
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 71.0009,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 107.9906,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 80.0872,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 116.2117
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 62.127,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 99.1167,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 71.2132,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 107.3377
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 56.2819,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 93.2716,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 65.3681,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 101.4926
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": 50.0858,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 87.0755,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 59.172,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 95.2965
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": 43.0421,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 80.0318,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 52.1284,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 88.2529
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": 38.0446,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 75.0343,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 47.1308,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 83.2553
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": 32.6393,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 69.629,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 41.7255,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 77.85
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": 31.0009,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 67.9906,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 40.0872,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 76.2117
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": 26.0034,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 62.9931,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 35.0896,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 71.2141
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": 22.127,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 59.1167,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 31.2132,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 67.3377
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": 16.2819,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 53.2716,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 25.3681,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 61.4926
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": 10.0858,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 47.0755,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 19.172,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 55.2965
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": 3.0421,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 40.0318,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 12.1284,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 48.2529
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -1.9554,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 35.0343,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 7.1308,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 43.2553
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -8.9991,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 27.9906,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": 0.0872,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 36.2117
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -17.873,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 19.1167,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": -8.7868,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 27.3377
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -29.9142,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 7.0755,
+       "dc_ac_off_db": 27.9035,
+       "snr_slow_ac_db": -20.828,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 15.2965
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 475.212,
+       "13": 711.028,
+       "10": 845.059,
+       "6": 1063.866,
+       "3": 1264.407,
+       "0": 1502.751,
+       "-3": 1786.023,
+       "-6": 2122.692,
+       "-10": 2672.311,
+       "-15": 3563.584,
+       "-20": 4752.115
+      },
+      "snr_slow_ac_db": {
+       "20": 95.346,
+       "13": 142.659,
+       "10": 169.551,
+       "6": 213.452,
+       "3": 253.688,
+       "0": 301.509,
+       "-3": 358.344,
+       "-6": 425.893,
+       "-10": 536.167,
+       "-15": 714.991,
+       "-20": 953.456
+      },
+      "snr_map_ac_db": {
+       "20": 762.805,
+       "13": 1141.335,
+       "10": 1356.48,
+       "6": 1707.707,
+       "3": 2029.613,
+       "0": 2412.2,
+       "-3": 2866.905,
+       "-6": 3407.323,
+       "-10": 4289.565,
+       "-15": 5720.227,
+       "-20": 7628.046
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 301.509,
+      "outer_m": 1502.751,
+      "width_db": 27.9035,
+      "width_ratio": 4.9841,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    }
+   }
+  },
+  {
+   "drone": "s1000plus",
+   "band": "LTE 1.843 GHz",
+   "fc_hz": 1843000000.0,
+   "sigma_dbsm": -17.80258739737567,
+   "sigma_m2": 0.016585984693800015,
+   "sigma_source": "outputs/md_range_sweep.json::cells[].rows[0].sigma_eq_aspect_mean_plane_dbsm (azimuth mean over 36 aspects)",
+   "sigma_range_spread_db": 3.552713678800501e-15,
+   "dc_ac_db": 22.67246388932132,
+   "dc_ac_source": "outputs/md_range_sweep.json::cells[].rows[0].arms.A0_reference.dc_ac_db (plane-wave noiseless reference)",
+   "f_tip_hz": 852.912550040216,
+   "flash_hz": 120.0,
+   "r_ff_m": 22.33266062454523,
+   "capture": "full_waveform",
+   "prf_hz": 20000.0,
+   "geometry": "monostatic_equivalent",
+   "slope_db_per_decade": {
+    "monostatic_both_legs": -40.0,
+    "bistatic_one_leg": -20.0
+   },
+   "eirp_arms": {
+    "chamber_12dBm": {
+     "eirp_dbm": 12.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 44.4222,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 81.4119,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 58.716,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 94.8406
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 32.381,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 69.3707,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 46.6748,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 82.7994
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 25.3374,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 62.3271,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 39.6312,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 75.7557
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 16.4634,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 53.4531,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 30.7572,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 66.8818
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 10.6183,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 47.608,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 24.9121,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 61.0366
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": 4.4222,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 41.4119,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 18.716,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 54.8406
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": -2.6214,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 34.3683,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 11.6724,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 47.7969
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": -7.619,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 29.3707,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 6.6748,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 42.7994
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": -13.0243,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 23.9654,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 1.2695,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 37.394
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": -14.6626,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 22.3271,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": -0.3688,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 35.7557
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": -19.6602,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 17.3295,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": -5.3664,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 30.7582
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": -23.5366,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 13.4531,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": -9.2428,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 26.8818
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": -29.3817,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 7.608,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": -15.0879,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 21.0366
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": -35.5778,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 1.4119,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": -21.284,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 14.8406
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": -42.6214,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -5.6317,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": -28.3276,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 7.7969
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -47.619,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -10.6293,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": -33.3252,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 2.7994
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -54.6626,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -17.6729,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": -40.3688,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -4.2443
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -63.5366,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -26.5469,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": -49.2428,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -13.1182
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -75.5778,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -38.5881,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": -61.284,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -25.1594
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 34.3,
+       "13": 51.321,
+       "10": 60.995,
+       "6": 76.789,
+       "3": 91.264,
+       "0": 108.467,
+       "-3": 128.913,
+       "-6": 153.214,
+       "-10": 192.885,
+       "-15": 257.216,
+       "-20": 343.003
+      },
+      "snr_slow_ac_db": {
+       "20": 9.288,
+       "13": 13.896,
+       "10": 16.516,
+       "6": 20.792,
+       "3": 24.712,
+       "0": 29.37,
+       "-3": 34.906,
+       "-6": 41.486,
+       "-10": 52.228,
+       "-15": 69.647,
+       "-20": 92.875
+      },
+      "snr_map_ac_db": {
+       "20": 74.304,
+       "13": 111.177,
+       "10": 132.134,
+       "6": 166.347,
+       "3": 197.703,
+       "0": 234.971,
+       "-3": 279.263,
+       "-6": 331.905,
+       "-10": 417.844,
+       "-15": 557.203,
+       "-20": 743.043
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 29.37,
+      "outer_m": 108.467,
+      "width_db": 22.6959,
+      "width_ratio": 3.6931,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    },
+    "macro_gnb_63dBm": {
+     "eirp_dbm": 63.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 95.4222,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 132.4119,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 109.716,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 145.8406
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 83.381,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 120.3707,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 97.6748,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 133.7994
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 76.3374,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 113.3271,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 90.6312,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 126.7557
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 67.4634,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 104.4531,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 81.7572,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 117.8818
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 61.6183,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 98.608,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 75.9121,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 112.0366
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": 55.4222,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 92.4119,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 69.716,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 105.8406
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": 48.3786,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 85.3683,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 62.6724,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 98.7969
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": 43.381,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 80.3707,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 57.6748,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 93.7994
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": 37.9757,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 74.9654,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 52.2695,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 88.394
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": 36.3374,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 73.3271,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 50.6312,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 86.7557
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": 31.3398,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 68.3295,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 45.6336,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 81.7582
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": 27.4634,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 64.4531,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 41.7572,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 77.8818
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": 21.6183,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 58.608,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 35.9121,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 72.0366
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": 15.4222,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 52.4119,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 29.716,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 65.8406
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": 8.3786,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 45.3683,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 22.6724,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 58.7969
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": 3.381,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 40.3707,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 17.6748,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 53.7994
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -3.6626,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 33.3271,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 10.6312,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 46.7557
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -12.5366,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 24.4531,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": 1.7572,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 37.8818
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -24.5778,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 12.4119,
+       "dc_ac_off_db": 22.6959,
+       "snr_slow_ac_db": -10.284,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 25.8406
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 646.097,
+       "13": 966.713,
+       "10": 1148.941,
+       "6": 1446.431,
+       "3": 1719.087,
+       "0": 2043.138,
+       "-3": 2428.275,
+       "-6": 2886.01,
+       "-10": 3633.271,
+       "-15": 4845.045,
+       "-20": 6460.971
+      },
+      "snr_slow_ac_db": {
+       "20": 174.945,
+       "13": 261.759,
+       "10": 311.101,
+       "6": 391.653,
+       "3": 465.48,
+       "0": 553.224,
+       "-3": 657.508,
+       "-6": 781.45,
+       "-10": 983.787,
+       "-15": 1311.901,
+       "-20": 1749.448
+      },
+      "snr_map_ac_db": {
+       "20": 1399.632,
+       "13": 2094.179,
+       "10": 2488.936,
+       "6": 3133.385,
+       "3": 3724.035,
+       "0": 4426.024,
+       "-3": 5260.34,
+       "-6": 6251.925,
+       "-10": 7870.708,
+       "-15": 10495.757,
+       "-20": 13996.317
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 553.224,
+      "outer_m": 2043.138,
+      "width_db": 22.6959,
+      "width_ratio": 3.6931,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    }
+   }
+  },
+  {
+   "drone": "s1000plus",
+   "band": "WiFi 5.21 GHz",
+   "fc_hz": 5210000000.0,
+   "sigma_dbsm": -12.365729416159457,
+   "sigma_m2": 0.057999875107055066,
+   "sigma_source": "outputs/md_range_sweep.json::cells[].rows[0].sigma_eq_aspect_mean_plane_dbsm (azimuth mean over 36 aspects)",
+   "sigma_range_spread_db": 8.881784197001252e-15,
+   "dc_ac_db": 39.397643939712516,
+   "dc_ac_source": "outputs/md_range_sweep.json::cells[].rows[0].arms.A0_reference.dc_ac_db (plane-wave noiseless reference)",
+   "f_tip_hz": 2411.1092705965953,
+   "flash_hz": 120.0,
+   "r_ff_m": 63.132480658643864,
+   "capture": "full_waveform",
+   "prf_hz": 20000.0,
+   "geometry": "monostatic_equivalent",
+   "slope_db_per_decade": {
+    "monostatic_both_legs": -40.0,
+    "bistatic_one_leg": -20.0
+   },
+   "eirp_arms": {
+    "chamber_12dBm": {
+     "eirp_dbm": 12.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 40.8328,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 77.8225,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 38.4244,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 74.5489
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 28.7916,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 65.7813,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 26.3832,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 62.5077
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 21.748,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 58.7377,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 19.3395,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 55.464
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 12.874,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 49.8637,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 10.4656,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 46.5901
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 7.0289,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 44.0186,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 4.6205,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 40.745
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": 0.8328,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 37.8225,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -1.5756,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 34.5489
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": -6.2108,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 30.7789,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -8.6193,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 27.5052
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": -11.2084,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 25.7813,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -13.6168,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 22.5077
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": -16.6137,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 20.376,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -19.0221,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 17.1024
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": -18.252,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 18.7377,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -20.6605,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 15.464
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": -23.2496,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 13.7401,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -25.658,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 10.4665
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": -27.126,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 9.8637,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -29.5344,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 6.5901
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": -32.9711,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 4.0186,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -35.3795,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 0.745
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": -39.1672,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -2.1775,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -41.5756,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -5.4511
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": -46.2108,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -9.2211,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -48.6193,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -12.4948
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -51.2084,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -14.2187,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -53.6168,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -17.4923
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -58.252,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -21.2623,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -60.6605,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -24.536
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -67.126,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -30.1363,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -69.5344,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -33.4099
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -79.1672,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": -42.1775,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -81.5756,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": -45.4511
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 27.897,
+       "13": 41.741,
+       "10": 49.609,
+       "6": 62.454,
+       "3": 74.227,
+       "0": 88.219,
+       "-3": 104.849,
+       "-6": 124.613,
+       "-10": 156.878,
+       "-15": 209.201,
+       "-20": 278.974
+      },
+      "snr_slow_ac_db": {
+       "20": 2.888,
+       "13": 4.321,
+       "10": 5.136,
+       "6": 6.466,
+       "3": 7.684,
+       "0": 9.133,
+       "-3": 10.854,
+       "-6": 12.901,
+       "-10": 16.241,
+       "-15": 21.658,
+       "-20": 28.881
+      },
+      "snr_map_ac_db": {
+       "20": 23.106,
+       "13": 34.572,
+       "10": 41.089,
+       "6": 51.728,
+       "3": 61.478,
+       "0": 73.067,
+       "-3": 86.84,
+       "-6": 103.21,
+       "-10": 129.934,
+       "-15": 173.27,
+       "-20": 231.059
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 9.133,
+      "outer_m": 88.219,
+      "width_db": 39.3981,
+      "width_ratio": 9.6595,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    },
+    "macro_gnb_63dBm": {
+     "eirp_dbm": 63.0,
+     "rows": [
+      {
+       "R_m": 1.0,
+       "snr_sample_db": 91.8328,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 128.8225,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 89.4244,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 125.5489
+      },
+      {
+       "R_m": 2.0,
+       "snr_sample_db": 79.7916,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 116.7813,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 77.3832,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 113.5077
+      },
+      {
+       "R_m": 3.0,
+       "snr_sample_db": 72.748,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 109.7377,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 70.3395,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 106.464
+      },
+      {
+       "R_m": 5.0,
+       "snr_sample_db": 63.874,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 100.8637,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 61.4656,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 97.5901
+      },
+      {
+       "R_m": 7.0,
+       "snr_sample_db": 58.0289,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 95.0186,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 55.6205,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 91.745
+      },
+      {
+       "R_m": 10.0,
+       "snr_sample_db": 51.8328,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 88.8225,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 49.4244,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 85.5489
+      },
+      {
+       "R_m": 15.0,
+       "snr_sample_db": 44.7892,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 81.7789,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 42.3807,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 78.5052
+      },
+      {
+       "R_m": 20.0,
+       "snr_sample_db": 39.7916,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 76.7813,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 37.3832,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 73.5077
+      },
+      {
+       "R_m": 27.3,
+       "snr_sample_db": 34.3863,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 71.376,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 31.9779,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 68.1024
+      },
+      {
+       "R_m": 30.0,
+       "snr_sample_db": 32.748,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 69.7377,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 30.3395,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 66.464
+      },
+      {
+       "R_m": 40.0,
+       "snr_sample_db": 27.7504,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 64.7401,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 25.342,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 61.4665
+      },
+      {
+       "R_m": 50.0,
+       "snr_sample_db": 23.874,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 60.8637,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 21.4656,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 57.5901
+      },
+      {
+       "R_m": 70.0,
+       "snr_sample_db": 18.0289,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 55.0186,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 15.6205,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 51.745
+      },
+      {
+       "R_m": 100.0,
+       "snr_sample_db": 11.8328,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 48.8225,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 9.4244,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 45.5489
+      },
+      {
+       "R_m": 150.0,
+       "snr_sample_db": 4.7892,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 41.7789,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": 2.3807,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 38.5052
+      },
+      {
+       "R_m": 200.0,
+       "snr_sample_db": -0.2084,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 36.7813,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -2.6168,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 33.5077
+      },
+      {
+       "R_m": 300.0,
+       "snr_sample_db": -7.252,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 29.7377,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -9.6605,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 26.464
+      },
+      {
+       "R_m": 500.0,
+       "snr_sample_db": -16.126,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 20.8637,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -18.5344,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 17.5901
+      },
+      {
+       "R_m": 1000.0,
+       "snr_sample_db": -28.1672,
+       "gain_mf_db": 36.9897,
+       "snr_slow_db": 8.8225,
+       "dc_ac_off_db": 39.3981,
+       "snr_slow_ac_db": -30.5756,
+       "gain_stft_db": 36.1245,
+       "snr_map_ac_db": 5.5489
+      }
+     ],
+     "range_at_threshold_m": {
+      "snr_slow_db": {
+       "20": 525.488,
+       "13": 786.254,
+       "10": 934.465,
+       "6": 1176.422,
+       "3": 1398.18,
+       "0": 1661.74,
+       "-3": 1974.982,
+       "-6": 2347.27,
+       "-10": 2955.038,
+       "-15": 3940.606,
+       "-20": 5254.883
+      },
+      "snr_slow_ac_db": {
+       "20": 54.401,
+       "13": 81.397,
+       "10": 96.741,
+       "6": 121.789,
+       "3": 144.747,
+       "0": 172.032,
+       "-3": 204.461,
+       "-6": 243.002,
+       "-10": 305.921,
+       "-15": 407.952,
+       "-20": 544.013
+      },
+      "snr_map_ac_db": {
+       "20": 435.233,
+       "13": 651.212,
+       "10": 773.967,
+       "6": 974.366,
+       "3": 1158.037,
+       "0": 1376.329,
+       "-3": 1635.77,
+       "-6": 1944.116,
+       "-10": 2447.498,
+       "-15": 3263.79,
+       "-20": 4352.335
+      }
+     },
+     "region_ii_detected_but_no_microdoppler": {
+      "inner_m": 172.032,
+      "outer_m": 1661.74,
+      "width_db": 39.3981,
+      "width_ratio": 9.6595,
+      "meaning": "between these two ranges the echo is above the noise (a detector sees the target) but the blade line is not (no micro-Doppler)"
+     }
+    }
+   }
+  }
+ ],
+ "classification_vs_range": {
+  "available": true,
+  "source": "outputs/md_classify.json",
+  "accuracy_is_reused": "accuracy numbers are copied from md_classify.json; only the range column is computed here",
+  "snr_axis_is": "snr_slow_ac_db (AC / blade line) - the classifier injects noise with reference='ac', which is exactly rung 3'",
+  "chance": 0.1667,
+  "window_s": 0.25,
+  "prf_hz": 20000.0,
+  "airframes": [
+   "mini2",
+   "mini5pro",
+   "phantom4",
+   "matrice4e",
+   "typhoonh480",
+   "s1000plus"
+  ],
+  "caveat": "the per-airframe dc_ac_db differs by up to 20 dB, so the SNR->range map is per airframe; the accuracy column is the 6-class pooled accuracy",
+  "rows": [
+   {
+    "snr_slow_ac_db": 10.0,
+    "accuracy": {
+     "LDA": 0.8426,
+     "RF100": 0.8785
+    },
+    "range_m": {
+     "mini5pro": {
+      "chamber_12dBm": 8.49,
+      "macro_gnb_63dBm": 159.89
+     },
+     "mavic4pro": {
+      "chamber_12dBm": 5.8,
+      "macro_gnb_63dBm": 109.24
+     },
+     "matrice4e": {
+      "chamber_12dBm": 15.33,
+      "macro_gnb_63dBm": 288.79
+     },
+     "s1000plus": {
+      "chamber_12dBm": 16.61,
+      "macro_gnb_63dBm": 312.88
+     },
+     "phantom4": {
+      "chamber_12dBm": 7.17,
+      "macro_gnb_63dBm": 135.01
+     }
+    }
+   },
+   {
+    "snr_slow_ac_db": 0.0,
+    "accuracy": {
+     "LDA": 0.7222,
+     "RF100": 0.8403
+    },
+    "range_m": {
+     "mini5pro": {
+      "chamber_12dBm": 15.09,
+      "macro_gnb_63dBm": 284.33
+     },
+     "mavic4pro": {
+      "chamber_12dBm": 10.31,
+      "macro_gnb_63dBm": 194.25
+     },
+     "matrice4e": {
+      "chamber_12dBm": 27.26,
+      "macro_gnb_63dBm": 513.54
+     },
+     "s1000plus": {
+      "chamber_12dBm": 29.54,
+      "macro_gnb_63dBm": 556.38
+     },
+     "phantom4": {
+      "chamber_12dBm": 12.75,
+      "macro_gnb_63dBm": 240.08
+     }
+    }
+   },
+   {
+    "snr_slow_ac_db": -10.0,
+    "accuracy": {
+     "LDA": 0.3611,
+     "RF100": 0.434
+    },
+    "range_m": {
+     "mini5pro": {
+      "chamber_12dBm": 26.84,
+      "macro_gnb_63dBm": 505.61
+     },
+     "mavic4pro": {
+      "chamber_12dBm": 18.34,
+      "macro_gnb_63dBm": 345.44
+     },
+     "matrice4e": {
+      "chamber_12dBm": 48.48,
+      "macro_gnb_63dBm": 913.22
+     },
+     "s1000plus": {
+      "chamber_12dBm": 52.53,
+      "macro_gnb_63dBm": 989.4
+     },
+     "phantom4": {
+      "chamber_12dBm": 22.66,
+      "macro_gnb_63dBm": 426.93
+     }
+    }
+   },
+   {
+    "snr_slow_ac_db": -15.0,
+    "accuracy": {
+     "LDA": 0.2639,
+     "RF100": 0.2859
+    },
+    "range_m": {
+     "mini5pro": {
+      "chamber_12dBm": 35.79,
+      "macro_gnb_63dBm": 674.24
+     },
+     "mavic4pro": {
+      "chamber_12dBm": 24.46,
+      "macro_gnb_63dBm": 460.65
+     },
+     "matrice4e": {
+      "chamber_12dBm": 64.65,
+      "macro_gnb_63dBm": 1217.8
+     },
+     "s1000plus": {
+      "chamber_12dBm": 70.04,
+      "macro_gnb_63dBm": 1319.39
+     },
+     "phantom4": {
+      "chamber_12dBm": 30.22,
+      "macro_gnb_63dBm": 569.32
+     }
+    }
+   },
+   {
+    "snr_slow_ac_db": -20.0,
+    "accuracy": {
+     "LDA": 0.2477,
+     "RF100": 0.2419
+    },
+    "range_m": {
+     "mini5pro": {
+      "chamber_12dBm": 47.73,
+      "macro_gnb_63dBm": 899.11
+     },
+     "mavic4pro": {
+      "chamber_12dBm": 32.61,
+      "macro_gnb_63dBm": 614.28
+     },
+     "matrice4e": {
+      "chamber_12dBm": 86.21,
+      "macro_gnb_63dBm": 1623.97
+     },
+     "s1000plus": {
+      "chamber_12dBm": 93.41,
+      "macro_gnb_63dBm": 1759.43
+     },
+     "phantom4": {
+      "chamber_12dBm": 40.3,
+      "macro_gnb_63dBm": 759.19
+     }
+    }
+   },
+   {
+    "snr_slow_ac_db": -25.0,
+    "accuracy": {
+     "LDA": 0.2326,
+     "RF100": 0.2292
+    },
+    "range_m": {
+     "mini5pro": {
+      "chamber_12dBm": 63.65,
+      "macro_gnb_63dBm": 1198.99
+     },
+     "mavic4pro": {
+      "chamber_12dBm": 43.49,
+      "macro_gnb_63dBm": 819.16
+     },
+     "matrice4e": {
+      "chamber_12dBm": 114.97,
+      "macro_gnb_63dBm": 2165.59
+     },
+     "s1000plus": {
+      "chamber_12dBm": 124.56,
+      "macro_gnb_63dBm": 2346.24
+     },
+     "phantom4": {
+      "chamber_12dBm": 53.75,
+      "macro_gnb_63dBm": 1012.4
+     }
+    }
+   },
+   {
+    "snr_slow_ac_db": -30.0,
+    "accuracy": {
+     "LDA": 0.2454,
+     "RF100": 0.2373
+    },
+    "range_m": {
+     "mini5pro": {
+      "chamber_12dBm": 84.88,
+      "macro_gnb_63dBm": 1598.88
+     },
+     "mavic4pro": {
+      "chamber_12dBm": 57.99,
+      "macro_gnb_63dBm": 1092.37
+     },
+     "matrice4e": {
+      "chamber_12dBm": 153.31,
+      "macro_gnb_63dBm": 2887.86
+     },
+     "s1000plus": {
+      "chamber_12dBm": 166.1,
+      "macro_gnb_63dBm": 3128.76
+     },
+     "phantom4": {
+      "chamber_12dBm": 71.67,
+      "macro_gnb_63dBm": 1350.06
+     }
+    }
+   }
+  ]
+ },
+ "observability_measured": {
+  "available": false,
+  "why": "outputs/md_range_sweep_mf.json 이 아직 없다"
+ }
+}

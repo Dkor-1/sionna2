@@ -321,24 +321,157 @@ def microdoppler_nf(spec, fc=3.5e9, range_m=10.0, az_deg=0.0, el_deg=15.0, *,
 
 
 # --------------------------------------------------------------------------- #
-#  링크버짓 — 거리에 따른 SNR (arm ① 이 쓰는 부분)
+#  링크버짓 — 거리에 따른 SNR
 # --------------------------------------------------------------------------- #
 #  ⚠ 아래 파라미터는 **선언값**이다(챔버급 저출력). 출처문서 없음 — JSON meta 에 provenance 로 기록.
 DECLARED_EIRP_DBM = 12.0        # 챔버 실험 EIRP (benchmark/run_min_cell.EIRP_DBM 규약)
 DECLARED_RX_GAIN_DBI = 10.0
 DECLARED_NF_DB = 5.0
 DECLARED_B_HZ = 100e6           # 수신 순시대역 (5G NR 100 MHz)
+DECLARED_PRF_HZ = 20000.0       # 슬로타임 표본율(= PRI 반복률). experiment_md_range.PRF 와 같은 값
 K_BOLTZ, T0 = 1.380649e-23, 290.0
+
+# --------------------------------------------------------------------------- #
+#  ⭐⭐ SNR 규약 v2 (2026-08-10) — 사다리 하나, 이름 다섯. 「SNR」 이라는 맨 이름 금지
+# --------------------------------------------------------------------------- #
+#  왜 규약이 필요했나 (2026-08-10 적대검증이 잡은 결함 둘):
+#    ① 저장소에 SNR 기준이 **두 개** 있었다. `add_noise()` 는 **총전력**(몸체 DC 포함),
+#       `md_classify_dataset.cmd_build` 는 **AC 만**(블레이드선). 둘은 기체별 17.3~37.2 dB
+#       어긋나는데 같은 표에 나란히 놓여 있었다. → 이제 두 값을 **항상 병기**하고,
+#       변환은 `dc_ac_offset_db()` 하나로만 한다.
+#    ② **정합필터 이득 G_mf = 10log10(B/PRF) = 37 dB 가 통째로 빠져 있었다.**
+#       `echo_over_noise_db()` 는 잡음을 kT0F·B (B = 100 MHz) 로 세는데, 그 값을 우리는
+#       **슬로타임 표본 E[m] 의 SNR** 로 썼다. E[m] 은 PRI 하나를 기준신호와 상관해 나온
+#       **정합필터 출력**이라 시간·대역폭 곱만큼 이득이 붙는다. → 거리 링크버짓이 37 dB
+#       비관적이었다. `capture="full_waveform"` 이 그 이득을 붙인다.
+#
+#  사다리 (이름 → 정의):
+#    ① snr_band_db     = P_echo / (k·T0·F·B)         정합필터 **전**, 수신 표본당
+#    ② g_mf_db         = 10log10(B / PRF)            PRI 하나 상관의 처리이득 (풀 캡처에서만)
+#    ③ snr_slow_db     = ① + ②                      슬로타임 표본 E[m] 의 **총전력** SNR
+#    ③′snr_slow_ac_db  = ③ − dc_ac_off_db           ⭐**정본**. 블레이드(AC)선 SNR
+#    ④ g_stft_db       = 10log10(N_seg) + L_win      STFT **한 조각**의 코히어런트 이득
+#    ⑤ snr_map_ac_db   = ③′ + ④                     맵 위 블레이드선 첨두 SNR
+#
+#  ⚠⚠ **37 dB 짜리 양이 셋 있고 서로 다르다. 절대 뭉뚱그리지 마라**:
+#     · ② 정합필터 이득(빠른시간, PRI 안)        = 10log10(1e8/2e4)  = 36.99 dB
+#     · CPI 전체 슬로타임 코히어런트 적분(5000 표본) = 10log10(5000)  = 36.99 dB  ← 우연히 비슷
+#     · ④ STFT 한 조각(70 표본·Hann)에서 실제로 얻는 이득          = 16.69 dB
+#     맵에서 눈으로 보는 이득은 ④ 뿐이다. ② 는 «슬로타임 표본을 만드는 값», CPI 이득은
+#     «전창 FFT 특징(분류기)이 얻는 값». 세 자리가 다르므로 세 이름을 따로 쓴다.
+SNR_CONVENTION = "v2_2026-08"          # 원장 meta 에 그대로 박는 문자열
+CANONICAL_SNR_KEY = "snr_slow_ac_db"   # 검출성 주장에 쓰는 정본 눈금
+
+#: 창의 코히어런트 이득 손실 L_win = 10log10(|Σw|²/(N·Σw²)) [dB] — Braun(KIT 2014) 식 (3.77)
+WINDOW_COH_LOSS_DB = {"boxcar": 0.0, "rect": 0.0, "hann": -1.76,
+                      "hamming": -1.35, "blackman": -2.37}
+
+#: 원장(`outputs/snr_convention.json`)이 그대로 싣는 자기기술
+SNR_RUNGS = [
+    dict(id="snr_band_db", formula="P_echo / (k*T0*F*B)",
+         ref="pre-matched-filter, per Rx sample", condition="always"),
+    dict(id="g_mf_db", formula="10*log10(B/PRF)",
+         ref="fast-time matched-filter (one PRI) processing gain",
+         condition="capture=full_waveform only; 0 dB for always_on_pilot"),
+    dict(id="snr_slow_db", formula="snr_band_db + g_mf_db",
+         ref="slow-time sample E[m], TOTAL power (body DC included)"),
+    dict(id="snr_slow_ac_db", formula="snr_slow_db - dc_ac_off_db",
+         ref="slow-time sample, AC (blade line) only", canonical=True),
+    dict(id="g_stft_db", formula="10*log10(nperseg) + L_win",
+         ref="coherent gain of ONE STFT frame (NOT the whole CPI)"),
+    dict(id="snr_map_ac_db", formula="snr_slow_ac_db + g_stft_db",
+         ref="peak SNR of the blade line on the spectrogram"),
+]
+
+
+def window_coh_loss_db(window="hann", n=None):
+    """창 코히어런트 이득 손실 L_win [dB] (≤ 0). `n` 을 주면 그 길이에서 정확히 계산한다.
+
+    L_win = 10log10( |Σ w|² / (N · Σ w²) ).  N→∞ 극한이 `WINDOW_COH_LOSS_DB` 표다
+    (Hann −1.76 dB). 유한 N 은 조금 다르다 — 예: np.hanning(70) 은 −1.79 dB.
+    기본(표) 을 쓰는 이유는 원장·설계서가 표 값으로 적혀 있어서다."""
+    key = str(window).lower()
+    if n is not None and int(n) > 1:
+        f = {"hann": np.hanning, "hamming": np.hamming, "blackman": np.blackman,
+             "boxcar": np.ones, "rect": np.ones}.get(key)
+        if f is not None:
+            w = np.asarray(f(int(n)), float)
+            num = float(np.sum(w)) ** 2
+            den = float(int(n)) * float(np.sum(w ** 2))
+            return float(10.0 * np.log10(max(num, 1e-300) / max(den, 1e-300)))
+    return float(WINDOW_COH_LOSS_DB.get(key, 0.0))
+
+
+def matched_filter_gain_db(b_hz=DECLARED_B_HZ, prf=DECLARED_PRF_HZ, *,
+                           capture="full_waveform"):
+    """⭐ 정합필터(빠른시간) 처리이득 G_mf = 10log10(B / PRF) [dB].
+
+    슬로타임 표본 E[m] 은 «PRI 한 개 분량(1/PRF 초)의 대역 B 신호를 기준신호와 상관» 해서
+    나온다. 시간·대역폭 곱 B·T_pri = B/PRF 만큼 이득이 붙는다(이상적 정합필터).
+
+    ⭐ **같은 말을 잡음 쪽에서 쓰면**: 잡음 대역이 B 가 아니라 PRF 다 —
+
+            P_echo / (k·T0·F·B) · (B/PRF)  =  P_echo / (k·T0·F·PRF)
+            즉   k·T0·F·B / (B/PRF)  =  k·T0·F·PRF
+
+      두 표현은 **정확히 같다**. 그래서 사다리는 ①+② 로도, B_eff = PRF 로도 쓸 수 있다.
+
+    ⚠ 전제: **풀 웨이브폼 캡처**. PRF 19.7~20 kHz 로 슬로타임을 뽑으려면 매 PRI 마다 100 MHz 를
+      통째로 상관해야 한다. 상시 기준신호(LTE CRS 1 kHz · 5G SSB 50 Hz)로는 그 PRF 가 안 나오므로
+      `capture="always_on_pilot"` 은 **0 dB** 를 돌려준다(그 팔에서는 PRF 를 실제 반복률로 두고
+      B_eff = B 로 센다).
+    ⚠ 이 값은 «CPI 전체 코히어런트 적분 이득»(10log10(N_slow))도, «STFT 한 조각 이득»(④)도
+      **아니다**. 모듈 상단 규약 주석의 «37 dB 짜리 셋» 경고를 볼 것."""
+    if str(capture) in ("full_waveform", "fullwaveform", "full"):
+        return float(10.0 * np.log10(float(b_hz) / float(prf)))
+    return 0.0
+
+
+def dc_ac_offset_db(dc_ac_db, *, exact=True):
+    """⭐ **총전력 ↔ AC 변환량** [dB] ≥ 0.  snr_ac = snr_total − dc_ac_offset_db.
+
+        P_tot = P_dc + P_ac 이므로  P_tot/P_ac = 1 + P_dc/P_ac = 1 + 10^(dc_ac_db/10)
+        ⇒ 정확식:  dc_ac_off_db = 10·log10(1 + 10^(dc_ac_db/10))
+        ⇒ 근사식:  dc_ac_off_db = dc_ac_db          (P_dc ≫ P_ac 일 때)
+
+    `exact=False` 는 2026-08-10 이전 `ac_snr_db()` 가 쓰던 근사다. dc_ac_db ≥ 10 dB 면
+    오차 ≤ 0.41 dB 이지만 dc_ac_db ≈ 0 이면 **3.0 dB 틀린다**(ECA 노치가 동체선을 지우면
+    실제로 그 영역에 들어간다)."""
+    d = float(dc_ac_db)
+    if not exact:
+        return d
+    return float(10.0 * np.log10(1.0 + 10.0 ** (d / 10.0)))
+
+
+def total_to_ac_db(snr_total_db, dc_ac_db, *, exact=True):
+    """총전력 기준 SNR → AC(블레이드선) 기준 SNR [dB]."""
+    return float(snr_total_db) - dc_ac_offset_db(dc_ac_db, exact=exact)
+
+
+def ac_to_total_db(snr_ac_db, dc_ac_db, *, exact=True):
+    """AC(블레이드선) 기준 SNR → 총전력 기준 SNR [dB]. `total_to_ac_db` 의 역."""
+    return float(snr_ac_db) + dc_ac_offset_db(dc_ac_db, exact=exact)
 
 
 def echo_over_noise_db(sigma_eq_m2, range_m, fc, *, eirp_dbm=DECLARED_EIRP_DBM,
                        rx_gain_dbi=DECLARED_RX_GAIN_DBI, nf_db=DECLARED_NF_DB,
-                       b_hz=DECLARED_B_HZ, rx_range_m=None):
-    """슬로타임 **샘플당** 에코-대-잡음비 [dB].
+                       b_hz=DECLARED_B_HZ, rx_range_m=None,
+                       capture="pre_mf", prf=DECLARED_PRF_HZ, return_terms=False):
+    """에코-대-잡음비 [dB]. **어느 사다리 칸인지는 `capture` 가 정한다.**
 
         P_echo = EIRP·G_rx·λ²·σ / ((4π)³·R_t²·R_r²)
-        P_n    = k·T0·F·B
-    """
+        P_n    = k·T0·F·B                       (① snr_band_db, 정합필터 전)
+        G_mf   = 10log10(B/PRF)                 (② 풀 캡처에서만)
+        ⇒ ③ snr_slow_db = ① + ②  =  P_echo / (k·T0·F·PRF)   ← 같은 수의 두 표현
+
+    capture
+      "pre_mf"          (**기본, 2026-08-10 이전 동작과 비트동일**) — ① 만 돌려준다.
+      "always_on_pilot" — ② 가 0 dB 라 값은 ① 과 같다. 이름만 규약에 맞춘 것.
+      "full_waveform"   — ③ 을 돌려준다(② 를 붙인다). ⭐거리 링크버짓은 **이쪽이 옳다**.
+
+    return_terms=True 면 **옛 값과 새 값을 한꺼번에** dict 로 돌려준다:
+      snr_band_db(=옛 반환값) · g_mf_db · snr_slow_db · b_eff_hz · p_echo_w · p_noise_w.
+      ⚠ 스칼라 반환은 배열도 될 수 있다(σ 를 배열로 주면). dict 의 전력항도 같은 모양이다."""
     lam = C0 / float(fc)
     eirp_w = 10.0 ** (float(eirp_dbm) / 10.0) * 1e-3
     g = 10.0 ** (float(rx_gain_dbi) / 10.0)
@@ -347,30 +480,222 @@ def echo_over_noise_db(sigma_eq_m2, range_m, fc, *, eirp_dbm=DECLARED_EIRP_DBM,
     Rr = Rt if rx_range_m is None else float(rx_range_m)
     p_echo = eirp_w * g * lam ** 2 * np.asarray(sigma_eq_m2, float) / ((4 * np.pi) ** 3 * Rt ** 2 * Rr ** 2)
     p_n = K_BOLTZ * T0 * f * float(b_hz)
-    return 10.0 * np.log10(np.maximum(p_echo / p_n, 1e-300))
+    band_db = 10.0 * np.log10(np.maximum(p_echo / p_n, 1e-300))
+    g_mf = matched_filter_gain_db(b_hz, prf, capture=capture)
+    if return_terms:
+        return dict(snr_band_db=band_db, g_mf_db=float(g_mf), snr_slow_db=band_db + g_mf,
+                    b_eff_hz=float(b_hz) / (10.0 ** (g_mf / 10.0)),
+                    p_echo_w=p_echo, p_noise_band_w=float(p_n), capture=str(capture),
+                    prf_hz=float(prf), convention=SNR_CONVENTION)
+    if g_mf == 0.0:
+        return band_db                      # ← 옛 경로 그대로(비트동일)
+    return band_db + g_mf
 
 
-def ac_snr_db(E, snr_total_db):
-    """⭐ **블레이드선(AC)의 실효 SNR** [dB] = 총전력 SNR − DC/AC 비.
+def _f(x):
+    """0차원이면 float, 아니면 배열 그대로 (사다리 dict 를 JSON 에 바로 실을 수 있게)."""
+    a = np.asarray(x)
+    return float(a) if a.ndim == 0 else a
+
+
+def snr_ladder(sigma_eq_m2, range_m, fc, *, rx_range_m=None,
+               prf=DECLARED_PRF_HZ, capture="full_waveform",
+               dc_ac_db=None, exact_ac=True,
+               nperseg=None, window="hann", window_n=None,
+               eirp_dbm=DECLARED_EIRP_DBM, rx_gain_dbi=DECLARED_RX_GAIN_DBI,
+               nf_db=DECLARED_NF_DB, b_hz=DECLARED_B_HZ):
+    """⭐ 규약 v2 사다리 전부를 dict 로. **원장 키 이름이 그대로 이 dict 의 키다.**
+
+    반환 키
+      convention, capture, prf_hz, b_hz, b_eff_hz,
+      snr_band_db ①, g_mf_db ②, snr_slow_db ③,
+      dc_ac_db, dc_ac_off_db, snr_slow_ac_db ③′  (dc_ac_db 를 줬을 때만)
+      g_stft_db ④, snr_map_ac_db ⑤              (nperseg 를 줬을 때만)
+      p_echo_w, p_noise_band_w, p_noise_eff_w
+
+    ⚠ ① 은 **`echo_over_noise_db()` 를 불러서** 얻는다(재구현 금지 규약).
+    ⚠ 기하: `rx_range_m=None` 이면 모노스태틱 등가(R_t = R_r = R) — 거리 기울기 −40 dB/decade.
+      바이스태틱으로 한 다리만 움직이면 −20 dB/decade 다. 원장에 어느 쪽인지 반드시 적을 것."""
+    d = echo_over_noise_db(sigma_eq_m2, range_m, fc, eirp_dbm=eirp_dbm,
+                           rx_gain_dbi=rx_gain_dbi, nf_db=nf_db, b_hz=b_hz,
+                           rx_range_m=rx_range_m, capture=capture, prf=prf,
+                           return_terms=True)
+    out = dict(convention=SNR_CONVENTION, capture=str(capture),
+               prf_hz=float(prf), b_hz=float(b_hz), b_eff_hz=d["b_eff_hz"],
+               geometry=("monostatic_equivalent" if rx_range_m is None else "bistatic"),
+               R_t_m=float(range_m), R_r_m=float(range_m if rx_range_m is None else rx_range_m),
+               snr_band_db=_f(d["snr_band_db"]), g_mf_db=d["g_mf_db"],
+               snr_slow_db=_f(d["snr_slow_db"]),
+               p_echo_w=_f(d["p_echo_w"]), p_noise_band_w=d["p_noise_band_w"],
+               p_noise_eff_w=K_BOLTZ * T0 * 10.0 ** (float(nf_db) / 10.0) * d["b_eff_hz"])
+    if dc_ac_db is not None:
+        off = dc_ac_offset_db(dc_ac_db, exact=exact_ac)
+        out.update(dc_ac_db=float(dc_ac_db), dc_ac_off_db=float(off),
+                   dc_ac_exact=bool(exact_ac),
+                   snr_slow_ac_db=_f(np.asarray(d["snr_slow_db"]) - off))
+    if nperseg is not None:
+        l_win = window_coh_loss_db(window, window_n)
+        g_stft = float(10.0 * np.log10(float(nperseg)) + l_win)
+        out.update(nperseg=int(nperseg), window=str(window), window_coh_loss_db=l_win,
+                   g_stft_db=g_stft)
+        if "snr_slow_ac_db" in out:
+            out["snr_map_ac_db"] = _f(np.asarray(out["snr_slow_ac_db"]) + g_stft)
+    #  ⭐ **세 층위를 항상 함께 낸다** — 키 이름에 층위가 박혀 있어야 원장만 보고 구별된다.
+    #    snr_sample_db (정합필터 **전**, 수신 표본당) · gain_mf_db · gain_stft_db.
+    #    ⚠ «표본» 이 둘이다: 수신 표본(①)과 슬로타임 표본(③). 별칭은 ① 이다.
+    for alias, canon in LADDER_KEY_ALIASES.items():
+        if canon in out:
+            out[alias] = out[canon]
+    return out
+
+
+def ac_snr_db(E, snr_total_db, *, exact=False):
+    """⭐ **블레이드선(AC)의 실효 SNR** [dB] = 총전력 SNR − DC/AC 오프셋.
 
     ⚠ 왜 필요한가(2026-07-28 적대검증이 잡아낸 결함): `echo_over_noise_db`/`add_noise` 의
       SNR 은 **총전력 기준**인데, 마이크로도플러 시계열은 비회전 몸체가 만드는 **0-도플러 DC 가
-      지배**한다(측정 dc_ac_db = 33~37 dB). 그래서 총전력 SNR 은 "블레이드선이 보이는가" 의
-      지표로는 **33~37 dB 낙관적**이고, 그 오프셋은 거리에 따라 4.15 dB 흔들려 **상쇄되지도 않는다**.
-      예: 총전력 SNR +7.5 dB @R=10 m 인데 실제 AC SNR 은 **−29.2 dB**(그래서 fd_edge 가 NaN 이다).
-      → 검출성을 논할 때는 **반드시 이 값**을 쓸 것."""
-    return float(snr_total_db) - float(md_metrics(E, 1.0)["dc_ac_db"])
+      지배**한다(측정 dc_ac_db = 17~37 dB). 그래서 총전력 SNR 은 "블레이드선이 보이는가" 의
+      지표로는 그만큼 낙관적이고, 그 오프셋은 거리에 따라 4.15 dB 흔들려 **상쇄되지도 않는다**.
+      → 검출성을 논할 때는 **반드시 이 값**을 쓸 것.
+
+    exact : False(**기본, 옛 동작과 비트동일**) 면 `dc_ac_db` 를 그냥 뺀다.
+            True 면 정확식 10log10(1+10^(dc_ac/10)) 을 쓴다 → `dc_ac_offset_db()`.
+            차이는 dc_ac ≥ 10 dB 에서 ≤ 0.41 dB, dc_ac = 0 dB 에서 3.0 dB."""
+    d = float(md_metrics(E, 1.0)["dc_ac_db"])
+    if not exact:
+        return float(snr_total_db) - d
+    return total_to_ac_db(snr_total_db, d, exact=True)
 
 
-def add_noise(E, snr_db, rng):
-    """|E|² 의 **시간평균**이 snr_db 가 되도록 복소 백색잡음을 더한다. 반환 (E_noisy, sigma_n).
+def add_noise(E, snr_db, rng, *, ref="total"):
+    """복소 백색잡음을 더해 목표 SNR 을 맞춘다. 반환 (E_noisy, sigma_n).
 
-    ⚠ snr_db 는 **총전력 기준**이다(몸체 DC 포함). 블레이드선 검출성은 `ac_snr_db()` 를 쓸 것."""
-    p_sig = float(np.mean(np.abs(E) ** 2))
+    ⚠ **저수준 함수다.** 새 코드는 `noisy_series()` 를 써라 — 시드·눈금·층위를 원장에 남긴다.
+      이 함수는 «잡음을 만드는 유일한 자리» 로 남기고(재구현 금지), 상위 배선은 전부 그쪽을 거친다.
+
+    ref : ⭐**기준 전력을 무엇으로 잡나** — 저장소에 두 규약이 흩어져 있던 자리다.
+      "total" (**기본, 옛 동작과 비트동일**) p_sig = mean|E|²        — 몸체 DC 포함(③ 눈금)
+      "ac"                                   p_sig = mean|E−mean E|² — 블레이드선만(③′ 눈금)
+
+    ⚠ 두 눈금은 `dc_ac_offset_db()` 만큼(기체별 17.3~37.2 dB) 다르다. **같은 표에 놓지 마라.**
+      `md_classify_dataset` 는 "ac", `experiment_md_range` 는 "total" 을 쓴다 — 둘 다 이 함수를
+      거치므로 원장의 `snr_reference` 필드만 보면 어느 눈금인지 알 수 있다."""
+    if str(ref) == "ac":
+        p_sig = float(np.mean(np.abs(E - np.mean(E)) ** 2))
+    elif str(ref) == "total":
+        p_sig = float(np.mean(np.abs(E) ** 2))
+    else:
+        raise ValueError(f"add_noise: ref must be 'total' or 'ac', got {ref!r}")
     p_n = p_sig / (10.0 ** (float(snr_db) / 10.0))
     s = np.sqrt(p_n / 2.0)
     n = rng.normal(0.0, s, size=E.shape) + 1j * rng.normal(0.0, s, size=E.shape)
     return E + n, float(np.sqrt(p_n))
+
+
+# --------------------------------------------------------------------------- #
+#  ⭐ 잡음 주입 입구 하나 — 시드를 받고 원장에 그대로 실을 provenance 를 돌려준다
+# --------------------------------------------------------------------------- #
+def stable_seed(*parts, base=0):
+    """문자열/수를 **프로세스에 무관하게** 재현되는 32비트 시드로.
+
+    ⚠ 왜 필요한가(2026-08-10 발견): `experiment_md_range.py` 가
+      `abs(hash((drone, band))) % 2**31` 로 시드를 잡고 있었다. **파이썬 str 의 `hash()` 는
+      실행마다 salt 가 달라진다**(PYTHONHASHSEED). 즉 그 원장의 잡음 실현은 **재현 불가능**했고
+      시드가 어디에도 안 적혀 있었다. blake2b 는 프로세스·플랫폼에 무관하다."""
+    import hashlib
+    h = hashlib.blake2b("|".join(str(p) for p in parts).encode("utf-8"), digest_size=8)
+    return int((int.from_bytes(h.digest(), "big") + int(base)) % (2 ** 31))
+
+
+def _as_rng(seed_or_rng):
+    """(rng, seed_recorded).  int → default_rng(int) 이고 시드가 기록된다.
+    Generator 를 그대로 주면 재현 책임이 **호출자**에게 넘어간다(seed=None 으로 기록)."""
+    if seed_or_rng is None:
+        return np.random.default_rng(), None
+    if isinstance(seed_or_rng, np.random.Generator):
+        return seed_or_rng, None
+    s = int(seed_or_rng)
+    return np.random.default_rng(s), s
+
+
+def noisy_series(E, snr_db, seed=None, *, ref="ac", n_real=1, capture=None, layer=None):
+    """⭐⭐ **잡음 주입의 유일한 입구.** 슬로타임 복소열 E 에 복소 백색 가우시안을 더한다.
+
+    ⭐ 순서가 중요하다 — **시계열에 더하고 그 다음 STFT** 한다. 스펙트로그램·전력·dB 이미지에
+      더하면 (a) 맵 잡음 바닥이 지수분포(χ²₂) 대신 가우시안이 되고 (b) 겹친 프레임 간 상관과
+      창 색이 사라지고 (c) 신호×잡음 교차항 2Re(s·n*) 이 통째로 빠진다. Sionna 자신도
+      `apply_time_channel.py` 에서 채널 컨볼루션 **뒤 시간영역**에 AWGN 을 더한다.
+
+    E       : 슬로타임 복소열 (n_t,)  — 정합필터 **출력** 열이어야 한다(③ 층)
+    snr_db  : 목표 SNR. **어느 눈금인지는 `ref` 가 정한다**(규약 v2)
+    seed    : ⭐int 를 줘라. 원장에 그대로 적히고 같은 시드면 비트동일하게 재현된다.
+              Generator 를 주면 seed=None 으로 기록되고 재현 책임은 호출자에게 있다.
+    ref     : "ac"(**기본**, ③′ 블레이드선 = 정본) | "total"(③ 총전력)
+    n_real  : 잡음 실현 수. 반환 배열의 첫 축.
+
+    반환 (En, prov)
+      En   : (n_real, n_t) 복소 배열 — n_real=1 이어도 2차원이다(모양이 조건에 안 흔들리게)
+      prov : 원장에 **그대로 실을** dict — seed·ref·snr_db·sigma_n·p_sig_w·convention·layer
+
+    ⚠ 실현마다 잡음이 다르고 신호는 같다. rng 를 실현 사이에 **재생성하지 않는다**(같은
+      스트림에서 이어 뽑는다) — 그래야 n_real 을 늘려도 앞쪽 실현이 그대로 재현된다."""
+    rng, seed_rec = _as_rng(seed)
+    E = np.asarray(E)
+    outs, sig = [], None
+    for _ in range(int(n_real)):
+        En, s = add_noise(E, snr_db, rng, ref=ref)
+        outs.append(En)
+        sig = s
+    p_sig = (float(np.mean(np.abs(E - np.mean(E)) ** 2)) if str(ref) == "ac"
+             else float(np.mean(np.abs(E) ** 2)))
+    prov = dict(convention=SNR_CONVENTION, snr_db=float(snr_db), snr_reference=str(ref),
+                snr_rung=("snr_slow_ac_db" if str(ref) == "ac" else "snr_slow_db"),
+                seed=seed_rec, n_real=int(n_real), sigma_n=float(sig),
+                p_signal_w=p_sig, p_noise_w=float(sig) ** 2,
+                noise="circular complex white Gaussian, added to the SLOW-TIME series "
+                      "BEFORE any STFT (never to the map)",
+                layer=str(layer) if layer else "slow_time_post_matched_filter",
+                capture=(str(capture) if capture else None),
+                reproducible=bool(seed_rec is not None))
+    return np.asarray(outs), prov
+
+
+# --------------------------------------------------------------------------- #
+#  ⭐ 거리 ↔ SNR 를 잇는 길 (사다리의 역함수)
+# --------------------------------------------------------------------------- #
+#: 세 층위를 원장 키 이름에 박기 위한 별칭(`snr_ladder` 가 함께 낸다).
+#: ⚠ `snr_sample_db` 는 «정합필터 **전**, 수신 표본당» 이다 — 슬로타임 표본은 `snr_slow_db` 다.
+LADDER_KEY_ALIASES = {"snr_sample_db": "snr_band_db",
+                      "gain_mf_db": "g_mf_db",
+                      "gain_stft_db": "g_stft_db"}
+
+RANGE_SLOPE_DB_PER_DECADE = {"both": 40.0, "one": 20.0}
+
+
+def range_for_snr_db(target_db, sigma_eq_m2, fc, *, rung="snr_slow_ac_db",
+                     legs="both", r_fixed_m=None, r_ref_m=1.0, **kw):
+    """⭐ **주어진 SNR 이 나오는 거리 R [m]** — `snr_ladder()` 의 닫힌형 역함수.
+
+    사다리의 모든 칸은 거리에 대해 `−10·n·log10(R)` 로만 움직인다(σ·이득은 거리에 무관).
+      legs="both" : 모노스태틱 등가 R_t = R_r = R → n = 4 (**−40 dB/decade**)
+      legs="one"  : Tx 다리 `r_fixed_m` 고정, Rx 만 이동 → n = 2 (**−20 dB/decade**)
+    그래서 기준거리 한 점만 계산하면 나머지는 산술이다.
+
+        R = r_ref · 10^((SNR(r_ref) − target) / slope)
+
+    kw 는 `snr_ladder` 로 그대로 넘어간다(dc_ac_db·nperseg·capture·eirp_dbm …).
+    `rung` 이 사다리에 없으면(예: dc_ac_db 를 안 주고 snr_slow_ac_db 를 요구) KeyError 다."""
+    slope = RANGE_SLOPE_DB_PER_DECADE[str(legs)]
+    if str(legs) == "one":
+        if r_fixed_m is None:
+            raise ValueError("legs='one' 이면 고정된 Tx 다리 r_fixed_m 이 필요하다")
+        lad = snr_ladder(sigma_eq_m2, float(r_fixed_m), fc, rx_range_m=float(r_ref_m), **kw)
+    else:
+        lad = snr_ladder(sigma_eq_m2, float(r_ref_m), fc, **kw)
+    if rung not in lad:
+        raise KeyError(f"rung {rung!r} not in ladder (keys: {sorted(lad)})")
+    v0 = float(np.asarray(lad[rung]))
+    return float(float(r_ref_m) * 10.0 ** ((v0 - float(target_db)) / slope))
 
 
 # --------------------------------------------------------------------------- #

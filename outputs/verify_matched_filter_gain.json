@@ -1,0 +1,105 @@
+{
+ "_meta": {
+  "title": "matched-filter processing gain — numeric gate for the range link budget",
+  "generated": "2026-08-10T23:43:42",
+  "script": "benchmark/verify_matched_filter_gain.py",
+  "defect": "2026-08-10: G_mf = 10log10(B/PRF) was missing from the range link budget (echo_over_noise_db counted noise over B=100 MHz but its output was used as the slow-time sample SNR, i.e. as a matched-filter output)",
+  "convention": "v2_2026-08",
+  "capture_precondition": "full-waveform capture only; always-on pilots (LTE CRS 1 kHz, 5G SSB 50 Hz) cannot form a 20 kHz slow-time stream, so G_mf = 0 there",
+  "do_not_confuse": {
+   "g_mf_db (fast-time, one PRI)": 36.99,
+   "cpi_coherent_gain_db (slow-time, 5000 samples)": 36.99,
+   "g_stft_db (one STFT frame, 70 samples, Hann)": 16.691,
+   "note": "three different quantities; two of them happen to be ~37 dB"
+  },
+  "gpu_used": false,
+  "runtime_s": 4.42
+ },
+ "summary": {
+  "n_gates": 5,
+  "n_pass": 5,
+  "all_pass": true,
+  "g_mf_db": 36.9897,
+  "b_hz": 100000000.0,
+  "prf_hz": 20000.0,
+  "L": 5000
+ },
+ "gates": [
+  {
+   "id": "MF1",
+   "what": "matched-filter gain, gauss reference",
+   "measured_gain_db": 37.0161,
+   "predicted_gain_db": 36.9897,
+   "err_db": 0.0264,
+   "tol_db": 0.3,
+   "passed": true,
+   "L": 5000,
+   "snr_in_db": -30.0,
+   "n_real": 4000,
+   "reference": "gauss",
+   "out_snr_measured_db": 7.016060682949857,
+   "out_snr_predicted_db": 6.9897000433601875
+  },
+  {
+   "id": "MF2",
+   "what": "matched-filter gain, qpsk reference",
+   "measured_gain_db": 36.9712,
+   "predicted_gain_db": 36.9897,
+   "err_db": -0.0185,
+   "tol_db": 0.3,
+   "passed": true,
+   "L": 5000,
+   "snr_in_db": -30.0,
+   "n_real": 4000,
+   "reference": "qpsk",
+   "out_snr_measured_db": 6.971183022923652,
+   "out_snr_predicted_db": 6.9897000433601875
+  },
+  {
+   "id": "MF3",
+   "what": "end-to-end: fast-time kT0F*B noise -> per-PRI correlation -> slow-time SNR",
+   "L_fast_samples": 5000,
+   "n_pri": 2000,
+   "snr_band_db": -2.2251,
+   "g_mf_db": 36.9897,
+   "slow_snr_measured_db": 34.8695,
+   "slow_snr_predicted_db": 34.7646,
+   "err_db": 0.1049,
+   "tol_db": 0.3,
+   "passed": true,
+   "scenario": {
+    "sigma_dbsm": -18.879,
+    "range_m": 10.0,
+    "fc_hz": 3500000000.0,
+    "eirp_dbm": 12.0,
+    "rx_gain_dbi": 10.0,
+    "nf_db": 5.0,
+    "b_hz": 100000000.0,
+    "prf_hz": 20000.0,
+    "geometry": "monostatic_equivalent"
+   }
+  },
+  {
+   "id": "MF4",
+   "what": "kT0F*B / (B/PRF) == kT0F*PRF (identity of the two formulations)",
+   "lhs_w": 2.532277383755612e-16,
+   "rhs_w": 2.5322773837556114e-16,
+   "rel_err": 1.9470144500201214e-16,
+   "tol_rel": 1e-12,
+   "passed": true,
+   "p_noise_band_dbm": -88.975,
+   "p_noise_prf_dbm": -125.965
+  },
+  {
+   "id": "MF5",
+   "what": "echo_over_noise_db(): default bit-identical; full_waveform = default + G_mf; return_terms carries BOTH (old snr_band_db, new snr_slow_db)",
+   "default_db": -2.2250555548817452,
+   "always_on_pilot_db": -2.2250555548817452,
+   "full_waveform_db": 34.76464448847844,
+   "g_mf_db": 36.98970004336019,
+   "terms_snr_band_db": -2.2250555548817452,
+   "terms_snr_slow_db": 34.76464448847844,
+   "passed": true
+  }
+ ]
+}

@@ -88,8 +88,14 @@ def _series_for(doc, drone, band, R, arm, rng):
                                     m["geometry"]["el_deg"], wavefront=wv,
                                     prf=prf, n_t=n_t, n_phase=n_ph)
     if arm in ("A1_snr_only", "A3_both"):
-        snr = nf.echo_over_noise_db(info["sigma_eq_mean_m2"], R, fc)
-        E, _ = nf.add_noise(E, snr, rng)
+        #  ⭐ 규약 v2: 잡음 눈금은 원장이 선언한 capture 층을 따른다. 옛 원장(선언 없음)이면
+        #    "pre_mf" 로 되돌아가 그 원장과 같은 그림이 나온다(정합필터 이득 없음).
+        #  ⚠ 여기 σ 는 **단일자세** sigma_eq_mean_m2 이고 실험 본체는 방위평균 σ 를 쓴다 —
+        #    그림용 근사이며 두 값은 ~1.1 dB 다르다(md_range_sweep.json 의 sigma 주석).
+        cap = m.get("slow_time", {}).get("capture", "pre_mf")
+        snr = float(nf.echo_over_noise_db(info["sigma_eq_mean_m2"], R, fc,
+                                          capture=cap, prf=prf))
+        E, _ = nf.add_noise(E, snr, rng, ref="total")
     return E, info, prf
 
 
@@ -249,18 +255,22 @@ def f6_snr_wall(doc):
     """F6 — 거리별 샘플 SNR (팔 A1/A3 이 쓰는 값) 과 패턴 상관의 동시 표시."""
     c = _cell(doc, HEADLINE_DRONE, HEADLINE_BAND)
     R = np.array([r["R_m"] for r in c["rows"]])
-    snr = np.array([r["snr_sample_sph_db"] for r in c["rows"]])
+    #  ⭐ 규약 v2: 사다리 ③(슬로타임 총전력)을 쓴다. 옛 원장이면 ①(정합필터 전)로 되돌아간다.
+    snr = np.array([float(r.get("snr_slow_sph_db", r["snr_sample_sph_db"])) for r in c["rows"]])
+    ladder = "snr_slow_sph_db" in c["rows"][0]
     fig, ax = plt.subplots(figsize=(11, 5.4))
     lb0 = doc["meta"]["link_budget"]["eirp_dbm"]
+    lay = "slow-time sample (post matched filter)" if ladder else "pre matched filter"
     ax.semilogx(R, snr, "o-", color="#00695c", lw=2, ms=6,
-                label=f"per-sample SNR, EIRP {lb0:g} dBm (used by A1/A3)")
+                label=f"total-power SNR, {lay}, EIRP {lb0:g} dBm (injected into A1/A3)")
     # ⚠ SNR 벽은 **선언 EIRP 의 함수**다. 실제 셀룰러 조명원(63 dBm)이면 통째로 이동한다.
     ax.semilogx(R, snr + (63.0 - lb0), "^--", color="#8d6e63", lw=1.8, ms=6,
                 label="same at EIRP 63 dBm (macro cell) — wall moves out $10^{51/40}$ = 18.8×")
-    # 블레이드선(AC)의 실효 SNR = 전체 SNR − DC/AC 비
+    # 블레이드선(AC)의 실효 SNR = 총전력 SNR − dc_ac_off (정확식 10log10(1+10^(dc_ac/10)))
     dcac = float(c["rows"][0]["arms"]["A0_reference"]["dc_ac_db"])
-    ax.semilogx(R, snr - dcac, ":", color="#00695c", lw=1.6,
-                label=f"AC (blade-line) SNR = total − DC/AC ({dcac:.1f} dB)")
+    off = np.array([float(r.get("dc_ac_off_sph_db", dcac)) for r in c["rows"]])
+    ax.semilogx(R, snr - off, ":", color="#00695c", lw=1.6,
+                label=f"AC (blade-line) SNR = total − DC/AC offset ({float(off[0]):.1f} dB)")
     ax.axhline(0, color="#c62828", ls="--", lw=1.3)
     ax.text(R[0], 1.0, " SNR = 0 dB", color="#c62828", fontsize=9.5)
     ax.set_xlabel("Monostatic range R [m]"); ax.set_ylabel("Per-sample SNR [dB]")

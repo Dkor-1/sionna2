@@ -1,0 +1,120 @@
+{
+ "_meta": {
+  "convention": "v2_2026-08",
+  "canonical_rung": "snr_slow_ac_db",
+  "doc": "docs/NOISE_AND_ROTOR_PLAN.md#1-2",
+  "generated": "2026-08-10T23:43:43",
+  "generator": "benchmark/verify_snr_convention.py::write_convention",
+  "rule_ko": "맨 이름 「SNR」은 snr_slow_ac_db(③′) 를 뜻한다. 원장은 ③·③′·dc_ac_db 를 항상 병기한다. 어느 눈금인지 안 적힌 SNR 수치는 인용 금지."
+ },
+ "rungs": [
+  {
+   "id": "snr_band_db",
+   "formula": "P_echo / (k*T0*F*B)",
+   "ref": "pre-matched-filter, per Rx sample",
+   "condition": "always"
+  },
+  {
+   "id": "g_mf_db",
+   "formula": "10*log10(B/PRF)",
+   "ref": "fast-time matched-filter (one PRI) processing gain",
+   "condition": "capture=full_waveform only; 0 dB for always_on_pilot"
+  },
+  {
+   "id": "snr_slow_db",
+   "formula": "snr_band_db + g_mf_db",
+   "ref": "slow-time sample E[m], TOTAL power (body DC included)"
+  },
+  {
+   "id": "snr_slow_ac_db",
+   "formula": "snr_slow_db - dc_ac_off_db",
+   "ref": "slow-time sample, AC (blade line) only",
+   "canonical": true
+  },
+  {
+   "id": "g_stft_db",
+   "formula": "10*log10(nperseg) + L_win",
+   "ref": "coherent gain of ONE STFT frame (NOT the whole CPI)"
+  },
+  {
+   "id": "snr_map_ac_db",
+   "formula": "snr_slow_ac_db + g_stft_db",
+   "ref": "peak SNR of the blade line on the spectrogram"
+  }
+ ],
+ "constants": {
+  "T0_K": 290.0,
+  "k_boltz": 1.380649e-23,
+  "nf_db": 5.0,
+  "b_hz": 100000000.0,
+  "prf_hz": 20000.0,
+  "eirp_dbm_chamber": 12.0,
+  "rx_gain_dbi": 10.0,
+  "window_coh_loss_db": {
+   "boxcar": 0.0,
+   "rect": 0.0,
+   "hann": -1.76,
+   "hamming": -1.35,
+   "blackman": -2.37
+  },
+  "window_loss_source": "Braun (KIT PhD 2014) eq (3.77), Table 3.3"
+ },
+ "capture_badges": {
+  "full_waveform": "G_mf = 10log10(B/PRF) applies; every PRI is correlated over the full band",
+  "always_on_pilot": "G_mf = 0 dB; PRF is the pilot repetition rate (LTE CRS 1 kHz, 5G SSB 50 Hz)",
+  "pre_mf": "rung 1 only; the value BEFORE any matched filtering (this is the pre-2026-08-10 number)"
+ },
+ "do_not_confuse": {
+  "g_mf_db": 36.9897,
+  "cpi_coherent_gain_db_5000": 36.9897,
+  "g_stft_db_70_hann": 16.691,
+  "note": "three distinct quantities; the first two are both ~37 dB by coincidence"
+ },
+ "conversion": {
+  "dc_ac_off_db": "10*log10(1 + 10**(dc_ac_db/10))",
+  "total_to_ac": "snr_slow_ac_db = snr_slow_db - dc_ac_off_db",
+  "ac_to_total": "snr_slow_db = snr_slow_ac_db + dc_ac_off_db",
+  "approx_note": "pre-2026-08-10 code subtracted dc_ac_db directly; error <=0.41 dB for dc_ac>=10 dB, 3.01 dB at dc_ac=0 dB",
+  "implemented_in": "src/microdoppler_nearfield.py::dc_ac_offset_db"
+ },
+ "who_uses_which": {
+  "src/experiment_md_range.py": "total (ref='total'), capture per --capture flag",
+  "benchmark/md_classify_dataset.py": "ac (ref='ac'), capture=full_waveform",
+  "src/microdoppler_nearfield.py::echo_over_noise_db": "rung 1 by default (capture='pre_mf')"
+ },
+ "matched_filter_verification": {
+  "source": "outputs/verify_matched_filter_gain.json",
+  "all_pass": true,
+  "g_mf_db": 36.9897,
+  "gates": {
+   "MF1": {
+    "what": "matched-filter gain, gauss reference",
+    "err_db": 0.0264,
+    "passed": true
+   },
+   "MF2": {
+    "what": "matched-filter gain, qpsk reference",
+    "err_db": -0.0185,
+    "passed": true
+   },
+   "MF3": {
+    "what": "end-to-end: fast-time kT0F*B noise -> per-PRI correlation -> slow-time SNR",
+    "err_db": 0.1049,
+    "passed": true
+   },
+   "MF4": {
+    "what": "kT0F*B / (B/PRF) == kT0F*PRF (identity of the two formulations)",
+    "passed": true
+   },
+   "MF5": {
+    "what": "echo_over_noise_db(): default bit-identical; full_waveform = default + G_mf; return_terms carries BOTH (old snr_band_db, new snr_slow_db)",
+    "passed": true
+   }
+  }
+ },
+ "known_gaps": [
+  "g_stft_db has no primary-literature source for a single STFT frame; it is our extrapolation of Braun eq (3.37) (2-D periodogram). Recorded as ours, not as literature.",
+  "g_mf_db assumes an ideal matched filter and a clean reference channel; the real passive chain (benchmark/passive_two_channel_md.py) loses some of it.",
+  "an ECA zero-Doppler notch removes the body DC, which would drive dc_ac_off_db toward 0 dB; unmeasured (gate G16 in docs/NOISE_AND_ROTOR_PLAN.md)"
+ ]
+}

@@ -1,0 +1,64 @@
+{
+ "_meta": {
+  "generator": "benchmark/probe_prf_effect.py",
+  "question_ko": "PRF 를 35 kHz 로 올리면 그림이 달라지나",
+  "design_ko": "기록 길이와 STFT 창의 **시간 길이**를 고정하고 표본율만 바꾼다. 그래야 «자» 가 같고 표본율만 다른 비교가 된다.",
+  "arm_ko": "우리 커널만(얼린 격자·평면파). Sionna 는 PRF 를 바꾸면 난수 추첨도 같이 바뀌어 두 효과가 섞이므로 뺐다.",
+  "drone": "matrice4e",
+  "fc_hz": 3500000000.0,
+  "f_flash_hz": 126.66666666666667,
+  "f_tip_hz": 1228.7211819358865,
+  "record_s": 0.20791878172588832,
+  "window_s": 0.0035526315789473684
+ },
+ "by_prf": {
+  "19700": {
+   "prf_hz": 19700.0,
+   "n_poses": 4096,
+   "cpu_seconds": 1058.5,
+   "window_samples": 70,
+   "window_ms": 3.553299492385787,
+   "blade_periods": 0.4500846023688664,
+   "df_hz": 281.42857142857144,
+   "unambiguous_doppler_hz": 9850.0,
+   "fft_size": 560,
+   "hop_samples": 2,
+   "hop_ms": 0.10152284263959391,
+   "n_time_slots": 2014,
+   "level_db": -51.57756680410664,
+   "beat_hz": 126.01883529645245,
+   "beat_dev_pct": -0.5114458185901738,
+   "line_1x_db": 0.0,
+   "line_2x_db": -7.436841385781873,
+   "margin_1x_2x_db": 7.436841385781873
+  },
+  "35000": {
+   "prf_hz": 35000.0,
+   "n_poses": 7277,
+   "cpu_seconds": 1935.7,
+   "window_samples": 124,
+   "window_ms": 3.5428571428571427,
+   "blade_periods": 0.44876190476190475,
+   "df_hz": 282.258064516129,
+   "unambiguous_doppler_hz": 17500.0,
+   "fft_size": 992,
+   "hop_samples": 2,
+   "hop_ms": 0.05714285714285714,
+   "n_time_slots": 3577,
+   "level_db": -51.54708637445494,
+   "beat_hz": 126.03162943652887,
+   "beat_dev_pct": -0.5013451816877347,
+   "line_1x_db": 0.0,
+   "line_2x_db": -7.38583780995109,
+   "margin_1x_2x_db": 7.38583780995109
+  }
+ },
+ "verdict": {
+  "df_same": true,
+  "window_ms_same": true,
+  "beat_shift_hz": 0.012794140076422877,
+  "margin_shift_db": 0.05100357583078363,
+  "cost_ratio": 1.776611328125,
+  "verdict_ko": "⭐PRF 를 올려도 **자가 그대로**다 — 분해능은 창의 시간 길이가 정하기 때문이다. Δf 281 → 282 Hz, 창 3.553 → 3.543 ms. 바뀌는 것은 도플러축 상한(±9.8 → ±17.5 kHz)인데 f_tip 이 1.23 kHz 라 **그 위는 원래 비어 있다**. 대가는 계산량 1.78 배."
+ }
+}

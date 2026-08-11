@@ -32,6 +32,7 @@ build_part04_kernel.py — 부 4 「산란 커널」 → 편 18~23
 """
 from __future__ import annotations
 
+import json
 import os
 import sys
 
@@ -107,6 +108,34 @@ _NLIT_PTP = max(_NLIT) - min(_NLIT)
 _NLIT_PTP_PCT = 100.0 * _NLIT_PTP / (sum(_NLIT) / len(_NLIT))
 #: 얼린 판이 자세 평균보다 더 쏘는 광선의 몫.
 _RAY_COST_PCT = 100.0 * (float(fetch((VFG, "gate2_frozen_grid_invariant.extra_ray_cost"))) - 1.0)
+
+#: ⭐리포트 8 계열의 원장이 얼린 판으로 다시 났나 — 상태를 **원장에서 읽는다**(손으로 안 적는다).
+_R8J = os.path.join(_ROOT, "outputs", "report07_three_engines.json")
+_FBAJ = os.path.join(_ROOT, "outputs", "freeze_before_after.json")
+
+
+def _r8_freeze_status() -> str:
+    """이 절의 숫자가 어디 것이고, 8 권이 그것으로 갈아탔는지."""
+    tail = ("여기 숫자는 격자 사다리와 회귀 게이트 자신의 것이다 — 리포트 8 계열의 "
+            "재계산 결과를 인용하지 않는다.")
+    try:
+        with open(_R8J, encoding="utf-8") as f:
+            done = bool(json.load(f)["_meta"].get("grid_frozen"))
+    except Exception:
+        done = False
+    if not done:
+        return "⚠ 리포트 8 계열의 원장은 아직 옛 판(자세마다 다시 정의)이다 — " + tail
+    n = ""
+    try:
+        with open(_FBAJ, encoding="utf-8") as f:
+            n = f"{json.load(f)['summary']['n_series']} 열 · "
+    except Exception:
+        pass
+    return ("⭐ 리포트 8 계열의 마이크로도플러 원장은 얼린 판으로 **다시 났다**"
+            f"({n}옛 열은 `outputs/prefreeze/` 에 사본으로 남아 있다). 전후 비교와 그 판의 "
+            "구체적인 수치는 [리포트 8-2 «광선 격자를 어디에 매나»](08_2_engines.ipynb) 가 낸다. "
+            "⚠ 아직 옛 판인 것은 바이스태틱 스윕 원장(`report07b_bistatic_md`)과 PO 대조 원장"
+            "(`report15_po_control`)이다. " + tail)
 
 AGS = "outputs/angle_gamma_sigma_impact.json"   # Γ(θ) 가 σ 격자를 옮긴 양 — 기체 3 × 고각 2
 #: 그 원장에서 **가장 작은 칸과 가장 큰 칸의 이름**을 고른다 — 범위의 두 끝까지 원장이 정한다.
@@ -390,12 +419,12 @@ def report_18_kernel_what():
            f"한 바퀴의 합집합 경계상자로 판 한 장을 만들어 넘기고, 스위치 "
            f"`SIONNA2_FREEZE_GRID` 가 그 켬·끔을 정한다(기본 켬). 판이 자세를 못 덮으면 커널이 "
            f"예외를 던진다 ⟨{VFG} : negative_controls.too_small_msg⟩.", "",
-           f"⚠ 리포트 8 계열의 원장은 지금 얼린 판으로 다시 나는 중이다 — 이 절은 그 재계산 "
-           f"결과를 인용하지 않고, 여기 숫자는 격자 사다리와 회귀 게이트 자신의 것이다."),
+           _r8_freeze_status()),
 
         next_steps([
-            ("얼린 판으로 리포트 8 계열의 마이크로도플러 원장을 다시 낸다",
-             "얼린 격자의 이득이 리포트 8 계열의 숫자로 들어온다",
+            ("얼린 판으로 **바이스태틱** 스윕 원장과 PO 대조 원장을 다시 낸다",
+             "모노 쪽은 갈아탔고(리포트 8-2), 남은 두 원장만 아직 옛 판이라 "
+             "두 편의 절대값을 이어 붙여 읽을 수 없다",
              "`src/microdoppler.py`(판을 넘기는 쪽) → " + ref("md-slowtime", short=True)),
             ("정정된 메쉬로 가림 표와 생산 σ 를 같은 설정에서 다시 낸다",
              "형상 정정이 가림과 σ 를 어느 방향으로 얼마나 옮기는지가 기체별로 확정된다",

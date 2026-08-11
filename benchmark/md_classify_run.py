@@ -121,6 +121,11 @@ def main():
     aspect = z["aspect"]
     prf, Tw, snr = z["prf"], z["Twin"], z["snr_db"]
     prf_main, t_main = float(z["prf_main"]), float(z["t_main"])
+    #  ⭐ SNR 규약 v2 — 이 축이 **AC 기준**임을 원장에 박고, 총전력 눈금으로 되돌릴 수 있게
+    #    dc_ac_db 를 함께 싣는다. (옛 npz 에는 없으므로 없으면 None)
+    dc_ac = np.asarray(z["dc_ac_db"], float) if "dc_ac_db" in z.files else None
+    snr_conv = str(z["snr_convention"]) if "snr_convention" in z.files else "v1_pre_2026-08 (unlabelled)"
+    snr_ref = str(z["snr_reference"]) if "snr_reference" in z.files else "ac"
     labels = [k for k in ["mini2", "mini5pro", "phantom4", "matrice4e",
                           "typhoonh480", "s1000plus"] if k in set(drone)]
     G_RATE = [str(s) for s in z["group_rate"]]
@@ -154,6 +159,15 @@ def main():
         "features": names, "airframes": labels,
         "prf_main_hz": prf_main, "window_s": t_main,
         "cv_ko": "자세 단위 leave-one-aspect-out (시험 자세는 학습에서 한 번도 안 본 기하)",
+        #  ⭐⭐ 이 원장의 SNR 축이 무엇인지 — 안 적으면 experiment_md_range 의 총전력 축과
+        #     기체별 17.3~37.2 dB 어긋난 채 같은 표에 놓인다(2026-08-10 적대검증).
+        "snr_convention": snr_conv, "snr_reference": snr_ref,
+        "snr_rung": "snr_slow_ac_db (3', AC / blade line only)",
+        "snr_capture": "full_waveform",
+        "snr_note": ("the SNR axis below is AC-referenced: p_sig = mean|E-mean(E)|^2, i.e. the blade "
+                     "line alone, NOT total power. Convert with "
+                     "snr_slow_db = snr_slow_ac_db + 10*log10(1+10**(dc_ac_db/10)); each noise row "
+                     "carries its own dc_ac_db. Convention: outputs/snr_convention.json"),
         "chance_accuracy": round(1.0 / len(labels), 4),
         "upstream_ledger": "outputs/md_classify_verify.json",
         "data_precondition_ko": (
@@ -276,6 +290,16 @@ def main():
             acc2, _ = run_cv(X_all[m][:, c], drone[m], aspect[m],
                              lambda: _models()["RF100"])
             row[arm] = {"LDA": round(acc, 4), "RF100": round(acc2, 4)}
+        #  ⭐ 두 눈금 병기 — 이 행의 s 는 ③′(AC) 다. 총전력 ③ 는 기체마다 다르므로 함께 낸다.
+        row["_snr"] = {"snr_slow_ac_db": float(s), "reference": "ac"}
+        if dc_ac is not None:
+            def _tot(d):
+                return float(s) + 10.0 * np.log10(1.0 + 10.0 ** (float(d) / 10.0))
+            per = {lab: {"dc_ac_db": round(float(np.median(dc_ac[m & (drone == lab)])), 3),
+                         "snr_slow_db": round(_tot(np.median(dc_ac[m & (drone == lab)])), 3)}
+                   for lab in labels if (m & (drone == lab)).sum() > 0}
+            row["_snr"]["per_airframe"] = per
+            row["_snr"]["snr_slow_db_median_all"] = round(_tot(np.median(dc_ac[m])), 3)
         res["noise"][f"{s:g}"] = row
         print(f"  SNR {s:6.1f} dB  all(RF) {row['all']['RF100']:.3f}  "
               f"no_flash(RF) {row['no_flash']['RF100']:.3f}")

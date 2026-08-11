@@ -1,0 +1,183 @@
+{
+ "_meta": {
+  "title": "SNR convention v2 — regression + cross-scale gates",
+  "generated": "2026-08-10T23:43:43",
+  "script": "benchmark/verify_snr_convention.py",
+  "convention": "v2_2026-08",
+  "canonical": "snr_slow_ac_db",
+  "defect": "2026-08-10: two SNR references coexisted (total power in add_noise, AC-only in md_classify_dataset) and differ by 17.3-37.2 dB per airframe",
+  "decision_ko": "둘 다 쓴다. 이름을 나누고(③ snr_slow_db · ③′ snr_slow_ac_db) 원장에 병기하며 변환은 dc_ac_offset_db() 하나로만 한다. 맨 이름 「SNR」은 ③′ 를 뜻한다.",
+  "gpu_used": false,
+  "runtime_s": 0.88
+ },
+ "summary": {
+  "n_gates": 6,
+  "n_pass": 6,
+  "all_pass": true
+ },
+ "gates": [
+  {
+   "id": "SC1",
+   "what": "add_noise(ref='total') == pre-2026-08-10 implementation",
+   "bit_identical": true,
+   "max_abs_diff": 0.0,
+   "sigma_old": 13.152036527745457,
+   "sigma_new": 13.152036527745457,
+   "passed": true
+  },
+  {
+   "id": "SC2",
+   "what": "ac_snr_db(exact=False) == pre-2026-08-10 implementation",
+   "bit_identical": true,
+   "old_db": -4.960757770245852,
+   "new_db": -4.960757770245852,
+   "exact_db": -5.040869624540026,
+   "exact_minus_approx_db": -0.080112,
+   "passed": true
+  },
+  {
+   "id": "SC3",
+   "what": "md_classify_dataset inline AC noise == add_noise(ref='ac'), same seed",
+   "series": {
+    "snr_10": {
+     "max_abs_diff": 0.0,
+     "max_rel_diff": 0.0
+    },
+    "snr_0": {
+     "max_abs_diff": 3.580361673049448e-15,
+     "max_rel_diff": 1.4197047876893516e-16
+    },
+    "snr_-20": {
+     "max_abs_diff": 1.464821375527116e-14,
+     "max_rel_diff": 3.157447430023724e-16
+    }
+   },
+   "features": {
+    "n_features": 27,
+    "max_abs_diff": 7.993605777301127e-14,
+    "max_rel_diff": 9.790882151255127e-15
+   },
+   "worst_rel_diff": 3.157447430023724e-16,
+   "tol_rel": 1e-12,
+   "note": "차이는 부동소수 결합순서뿐(수학적으로 동일식). 비트동일은 요구하지 않는다.",
+   "passed": true
+  },
+  {
+   "id": "SC4",
+   "what": "dc_ac conversion: total->ac->total roundtrip + exact vs approx table",
+   "rows": [
+    {
+     "dc_ac_db": 0.0,
+     "off_exact_db": 3.0103,
+     "off_approx_db": 0.0,
+     "exact_minus_approx_db": 3.0103,
+     "roundtrip_rel_err": 0.0
+    },
+    {
+     "dc_ac_db": 3.0,
+     "off_exact_db": 4.764349,
+     "off_approx_db": 3.0,
+     "exact_minus_approx_db": 1.764349,
+     "roundtrip_rel_err": 0.0
+    },
+    {
+     "dc_ac_db": 10.0,
+     "off_exact_db": 10.413927,
+     "off_approx_db": 10.0,
+     "exact_minus_approx_db": 0.413927,
+     "roundtrip_rel_err": 0.0
+    },
+    {
+     "dc_ac_db": 17.3,
+     "off_exact_db": 17.380126,
+     "off_approx_db": 17.3,
+     "exact_minus_approx_db": 0.080126,
+     "roundtrip_rel_err": 0.0
+    },
+    {
+     "dc_ac_db": 26.5,
+     "off_exact_db": 26.509712,
+     "off_approx_db": 26.5,
+     "exact_minus_approx_db": 0.009712,
+     "roundtrip_rel_err": 0.0
+    },
+    {
+     "dc_ac_db": 37.2,
+     "off_exact_db": 37.200827,
+     "off_approx_db": 37.2,
+     "exact_minus_approx_db": 0.000827,
+     "roundtrip_rel_err": 0.0
+    }
+   ],
+   "worst_roundtrip_rel_err": 0.0,
+   "tol_rel": 1e-12,
+   "passed": true
+  },
+  {
+   "id": "SC5",
+   "what": "total vs AC reference really differ by dc_ac_off_db (measured on injected noise)",
+   "rows": [
+    {
+     "dc_ac_requested_db": 17.3,
+     "dc_ac_measured_db": 17.2983,
+     "dc_ac_off_db": 17.3785,
+     "injected_noise_gap_db": 17.3785,
+     "err_db": 0.0
+    },
+    {
+     "dc_ac_requested_db": 26.5,
+     "dc_ac_measured_db": 26.4984,
+     "dc_ac_off_db": 26.5081,
+     "injected_noise_gap_db": 26.5081,
+     "err_db": 0.0
+    },
+    {
+     "dc_ac_requested_db": 37.2,
+     "dc_ac_measured_db": 37.1984,
+     "dc_ac_off_db": 37.1992,
+     "injected_noise_gap_db": 37.1992,
+     "err_db": 0.0
+    }
+   ],
+   "worst_err_db": 0.0,
+   "tol_db": 0.05,
+   "passed": true
+  },
+  {
+   "id": "SC6",
+   "what": "ladder self-consistency + range slope (-40 dB/dec mono, -20 dB/dec one-leg)",
+   "snr_slow_ac_identity_err_db": 0.0,
+   "snr_map_identity_err_db": 0.0,
+   "slope_monostatic_db_per_decade": -40.0,
+   "slope_bistatic_one_leg_db_per_decade": -20.0,
+   "g_stft_db": 16.691,
+   "example_R10": {
+    "convention": "v2_2026-08",
+    "capture": "full_waveform",
+    "prf_hz": 20000.0,
+    "b_hz": 100000000.0,
+    "b_eff_hz": 20000.0,
+    "geometry": "monostatic_equivalent",
+    "R_t_m": 10.0,
+    "R_r_m": 10.0,
+    "snr_band_db": -2.2251,
+    "g_mf_db": 36.9897,
+    "snr_slow_db": 34.7646,
+    "p_echo_w": 7.585351754840619e-13,
+    "p_noise_band_w": 1.2661386918778057e-12,
+    "p_noise_eff_w": 2.532277383755612e-16,
+    "dc_ac_db": 17.3,
+    "dc_ac_off_db": 17.3801,
+    "dc_ac_exact": true,
+    "snr_slow_ac_db": 17.3845,
+    "nperseg": 70,
+    "window": "hann",
+    "window_coh_loss_db": -1.76,
+    "g_stft_db": 16.691,
+    "snr_map_ac_db": 34.0755
+   },
+   "tol_db": 0.01,
+   "passed": true
+  }
+ ]
+}

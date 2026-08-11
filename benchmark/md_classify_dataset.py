@@ -87,10 +87,16 @@ PRF_MAIN = 20000.0        # 헤드라인 PRF [Hz] — 표를 쓰므로 표본은
 T_MAIN = 0.25             # 헤드라인 창 [s]
 PRF_SWEEP = [20000.0, 5000.0, 2000.0, 1000.0]
 T_SWEEP = [1.00, 0.25, 0.10, 0.05]   # ⭐긴 창은 로터간 간섭무늬를 평균한다
-#  ⭐ 왜 이렇게 낮은 SNR 까지 내려가나 — 0.25 s × 20 kHz = 5,000 표본이라
-#     코히런트 적분 이득이 10log₁₀(5000) = 37 dB 다. 표본당 SNR 0 dB 는
-#     스펙트럼에서 37 dB 선으로 서므로 분류가 끄떡없다(2026-08-10 예비실험 확인).
+#  ⭐ 왜 이렇게 낮은 SNR 까지 내려가나 — 0.25 s × 20 kHz = 5,000 표본이라 **전창 FFT**
+#     (features() ①)의 코히런트 적분 이득이 10log₁₀(5000) − 1.76(Hann) = 35.2 dB 다.
+#     표본당 SNR 0 dB 는 스펙트럼에서 35 dB 선으로 서므로 분류가 끄떡없다.
 #     무너지는 자리를 보려면 −30 dB 까지 내려야 한다.
+#  ⚠⚠ **혼동 금지 — 「37 dB」짜리 양이 셋이고 서로 다르다**(outputs/snr_convention.json):
+#       · 정합필터 이득(빠른시간, PRI 안)   10log10(B/PRF) = 10log10(1e8/2e4) = 36.99 dB
+#       · 전창 코히런트 적분(슬로타임 5,000 표본, Hann)   10log10(5000)−1.76 = 35.23 dB ← 여기
+#       · STFT 한 조각(맵, 70 표본·Hann)                  10log10(70)−1.76   = 16.69 dB
+#     ⭐ 그리고 아래 SNR 축은 **AC(블레이드선) 기준**이다 — 총전력 기준과 기체별 17.3~37.2 dB
+#       어긋난다. 변환은 npz 의 `dc_ac_db` 로 한다.
 SNR_SWEEP_DB = [1e9, 10.0, 0.0, -10.0, -15.0, -20.0, -25.0, -30.0]   # 1e9 = 잡음 없음
 
 SEED = 20260810
@@ -403,13 +409,21 @@ def _fine_tables(dE, phis, n_fine=4096):
 
 
 def synth(E_ref, fine, dirs, rpms, p0, prf, n_t):
-    """표에서 슬로타임 복소열 E(t) 를 뽑는다."""
+    """표에서 슬로타임 복소열 E(t) 를 뽑는다.
+
+    ⭐ `rpms` 는 **1차원**(로터별 상수, 현행) 또는 **2차원 (n_t, n_rotors)**(시간에 따라
+      흔들리는 rpm, `rotor_dynamics.rpm_series()` 산출)이다. 2차원이면 위상이 적분이 된다.
+      ⭐⭐ 위상표는 **각도의 함수** ΔE_k(φ_k) 라 rpm 이 시간에 따라 변해도 표를 다시 만들
+        필요가 없다 — 그래서 로터 랜덤성 개선에 GPU 가 한 톨도 안 든다.
+    ⛔ 1차원 경로는 이 확장 전과 비트동일이다(게이트 verify_rotor_dynamics.py G6)."""
     import numpy as np
+    from articulated_fast import rotor_phases        # 위상 계산은 커널 하나만 쓴다
     n_fine = fine.shape[1]
     t = np.arange(n_t) / prf
     E = np.full(n_t, E_ref, complex)
+    ph_all = rotor_phases(t, rpms, dirs, p0, dt=1.0 / prf)
     for k in range(fine.shape[0]):
-        ph = p0[k] + dirs[k] * (360.0 * rpms[k] / 60.0) * t
+        ph = ph_all[:, k]
         idx = np.mod(ph / PHASE_PERIOD_DEG * n_fine, n_fine)
         i0 = np.floor(idx).astype(np.int64) % n_fine
         i1 = (i0 + 1) % n_fine
@@ -615,13 +629,25 @@ def features(E, prf):
     return np.asarray(vec, float), aux
 
 
-def _draw_trials(rng, spec, n_rotors):
+def _draw_trials(rng, spec, n_rotors, jit=None):
+    """시행 하나의 로터 상태를 뽑는다 — (로터별 rpm, 초기위상, base rpm, σ_s).
+
+    jit=None 이면 **현행 그대로**다: σ_s 를 U(0.07 %, 0.29 %) 에서 뽑고 N(0,σ) 산포 +
+    초기위상 U(0,180°). ⭐이 팔은 이미 초기위상을 무작위화하고 있었다.
+    jit 를 주면 `rotor_dynamics` 의 프리셋 σ_s 를 쓴다(시간 흔들림은 여기가 아니라
+    조건 루프에서 붙는다 — 창 길이·PRF 마다 열이 달라지기 때문이다).
+    ⛔ jit=None 경로는 난수 소모 순서까지 현행과 같다(게이트 G6)."""
     base = float(spec.hover_rpm) * float(rng.uniform(1 - RPM_BASE_FRAC, 1 + RPM_BASE_FRAC))
     import numpy as np
-    sig = float(rng.uniform(RPM_SPREAD_LO, RPM_SPREAD_HI))
-    d = rng.normal(0.0, sig, n_rotors)
-    d = d - d.mean()                      # 평균 rpm 은 base 로 유지
-    return base * (1.0 + d), rng.uniform(0.0, PHASE_PERIOD_DEG, n_rotors), base, sig
+    if jit is None:
+        sig = float(rng.uniform(RPM_SPREAD_LO, RPM_SPREAD_HI))
+        d = rng.normal(0.0, sig, n_rotors)
+        d = d - d.mean()                  # 평균 rpm 은 base 로 유지
+        return base * (1.0 + d), rng.uniform(0.0, PHASE_PERIOD_DEG, n_rotors), base, sig
+    import rotor_dynamics as rd
+    d = rd.static_offsets(n_rotors, jit, rng)
+    p0 = rd.initial_phase_deg(n_rotors, jit, rng, period_deg=PHASE_PERIOD_DEG)
+    return base * (1.0 + d), p0, base, float(jit.static_sigma)
 
 
 def cmd_mergeverify(args):
@@ -756,6 +782,18 @@ def cmd_mergeverify(args):
 def cmd_build(args):
     import numpy as np
     from drones import DRONES
+    import microdoppler_nearfield as nf          # ⭐ 잡음 주입은 공용 헬퍼 하나만 쓴다
+    import rotor_dynamics as rd                  # ⭐ 로터 랜덤성도 공용 커널 하나만 쓴다
+
+    #  ⭐ 로터 랜덤성 — **opt-in**. 기본(빈 문자열)이면 난수 소모 순서까지 현행 그대로다.
+    #     ⚠ 프리셋을 주면 산출 이름에 접미사가 붙는다 — 기존 원장을 덮지 않는다.
+    preset = str(getattr(args, "rotor_preset", "") or "")
+    jit = rd.get(preset) if preset else None
+    tag = getattr(args, "tag", "") or ("" if not preset else f"_{preset}")
+    feat_npz = FEAT_NPZ if not tag else FEAT_NPZ.replace(".npz", f"{tag}.npz")
+    if preset and os.path.exists(feat_npz) and not getattr(args, "overwrite", False):
+        raise SystemExit(f"⛔ 이미 있다: {feat_npz} — --tag 나 --overwrite 를 써라.")
+    rot_seed0 = int(getattr(args, "rotor_seed", SEED))
 
     rng = np.random.default_rng(SEED)
     rows, meta_rows = [], []
@@ -798,21 +836,38 @@ def cmd_build(args):
             E_ref, fine, dirs = tabs[(key, ai)]
             az, el = ASPECTS[ai]
             for di in range(N_DRAW_PER_ASPECT):
-                rpms, p0, base, sig = _draw_trials(rng, spec, len(dirs))
+                rpms, p0, base, sig = _draw_trials(rng, spec, len(dirs), jit)
                 nz_seed = int(rng.integers(0, 2 ** 31 - 1))
-                for tag, prf, T, snr_db in uniq:
+                #  ⭐ 흔들림 시드는 시행마다 하나. 조건(PRF·창)이 달라도 **같은 물리 실현**을
+                #     쓰도록 성근 격자(200 Hz)에서 만든다 — 스윕 비교가 성립한다.
+                rot_seed = (int(rng.integers(0, 2 ** 31 - 1))
+                            if (jit is not None and jit.wobble_sigma > 0) else None)
+                for cond_tag, prf, T, snr_db in uniq:
                     n_t = int(round(prf * T))
-                    E = synth(E_ref, fine, dirs, rpms, p0, prf, n_t)
+                    rp = rpms
+                    if rot_seed is not None:
+                        rp, _ = rd.rpm_series(base, len(dirs), n_t, prf,
+                                              jit.with_(static_sigma=0.0),
+                                              np.random.default_rng(rot_seed))
+                        rp = rp + (rpms - base)[None, :]      # 정적 산포는 그대로 얹는다
+                    E = synth(E_ref, fine, dirs, rp, p0, prf, n_t)
+                    #  ⭐⭐ SNR 규약 v2 (2026-08-10): 이 팔의 눈금은 **AC 기준**
+                    #     (③′ snr_slow_ac_db — 블레이드선 전력 대 잡음). 예전에는 같은 식이
+                    #     여기 인라인으로 있었고 `microdoppler_nearfield.add_noise()` 는
+                    #     **총전력** 기준이라, 두 실험의 SNR 축이 기체별 17.3~37.2 dB
+                    #     어긋난 채 같은 표에 놓였다. 이제 둘 다 같은 헬퍼를 거치고
+                    #     `ref` 로 눈금을 선언한다(게이트: benchmark/verify_snr_convention.py SC3).
+                    #     ⭐ dc_ac 를 함께 적어 두면 총전력 눈금(③)으로 언제든 되돌릴 수 있다:
+                    #        snr_slow_db = snr_db + 10log10(1 + 10^(dc_ac_db/10))
+                    dc_ac = float(20.0 * np.log10(max(abs(E.mean()), 1e-300)
+                                                  / max(float(np.std(E)), 1e-300)))
                     if np.isfinite(snr_db) and snr_db < 500:
                         r = np.random.default_rng(nz_seed)
-                        sd = np.sqrt((np.abs(E - E.mean()) ** 2).mean())
-                        sn = sd * 10 ** (-snr_db / 20.0)
-                        E = E + sn / np.sqrt(2) * (r.normal(size=n_t)
-                                                   + 1j * r.normal(size=n_t))
+                        E, _sn = nf.add_noise(E, snr_db, r, ref="ac")
                     v, aux = features(E, prf)
                     rows.append(v)
                     meta_rows.append((key, ai, az, el, di, prf, T, snr_db, base, sig,
-                                      len(dirs), spec.prop_dia_mm, spec.prop_blades))
+                                      len(dirs), spec.prop_dia_mm, spec.prop_blades, dc_ac))
                     if (di == 0 and prf == PRF_MAIN and T == T_MAIN
                             and snr_db > 500 and ai in (1, 7, 13)):
                         ex_series[f"{key}/a{ai:02d}"] = E.astype(np.complex64)
@@ -820,7 +875,7 @@ def cmd_build(args):
 
     X = np.asarray(rows, float)
     np.savez_compressed(
-        FEAT_NPZ, X=X, feature_names=np.array(FEATURE_NAMES),
+        feat_npz, X=X, feature_names=np.array(FEATURE_NAMES),
         drone=np.array([r[0] for r in meta_rows]),
         aspect=np.array([r[1] for r in meta_rows], int),
         az=np.array([r[2] for r in meta_rows], float),
@@ -834,11 +889,28 @@ def cmd_build(args):
         n_rotors=np.array([r[10] for r in meta_rows], int),
         prop_dia_mm=np.array([r[11] for r in meta_rows], float),
         blades=np.array([r[12] for r in meta_rows], int),
+        #  ⭐ 규약 v2: 어느 눈금인지 원장 자신이 말한다. dc_ac_db 가 있으면 AC↔총전력 변환이 된다.
+        dc_ac_db=np.array([r[13] for r in meta_rows], float),
+        snr_convention=nf.SNR_CONVENTION, snr_reference="ac",
+        snr_rung=nf.CANONICAL_SNR_KEY, capture="full_waveform",
+        snr_note=("snr_db is AC-referenced (blade line only): p_sig = mean|E-mean(E)|^2. "
+                  "To convert to the TOTAL-power rung used by experiment_md_range: "
+                  "snr_slow_db = snr_db + 10*log10(1 + 10**(dc_ac_db/10)). "
+                  "See outputs/snr_convention.json"),
         group_rate=np.array(G_RATE), group_abs=np.array(G_ABS), group_free=np.array(G_FREE),
         prf_main=PRF_MAIN, t_main=T_MAIN, n_aspects=len(ASPECTS),
         missing_tables=np.array(missing),
+        #  ⭐ 로터 랜덤성 규약 — 원장 자신이 어느 모델로 만들어졌는지 말한다.
+        #     빈 문자열이면 «현행»(σ_s ~ U(0.07,0.29 %) · 흔들림 없음 · 초기위상 U(0,180°)).
+        rotor_preset=preset, rotor_seed=rot_seed0,
+        rotor_jitter=json.dumps(jit.asjson(), ensure_ascii=False) if jit else "",
+        rotor_note=("rotor_preset='' means the historical model: per-trial sigma_s ~ "
+                    "U(0.0007,0.0029), NO time-varying wobble, initial phase U(0,180 deg). "
+                    "A named preset uses src/rotor_dynamics.py (Gaussian spread + OU wobble). "
+                    "See docs/NOISE_AND_ROTOR_PLAN.md section 2."),
         **{f"ex/{k}": v for k, v in ex_series.items()})
-    print(f"✅ {FEAT_NPZ}  X={X.shape}  ({os.path.getsize(FEAT_NPZ)/1e6:.1f} MB)")
+    print(f"✅ {feat_npz}  X={X.shape}  ({os.path.getsize(feat_npz)/1e6:.1f} MB)"
+          f"  로터 «{preset or '현행'}»")
     print(f"   NaN 행 {int(np.isnan(X).any(axis=1).sum())}")
 
 
@@ -860,6 +932,13 @@ def main():
     b.add_argument("--tag", default="")
     d = sub.add_parser("mergeverify"); d.set_defaults(fn=cmd_mergeverify)
     c = sub.add_parser("build"); c.set_defaults(fn=cmd_build)
+    #  ⭐ 로터 랜덤성 — opt-in. 기본(빈 문자열)이면 현행과 비트동일이다.
+    c.add_argument("--rotor-preset", default="",
+                   help="src/rotor_dynamics.PRESETS 이름(legacy/sitl/indoor/outdoor/lit_iid). "
+                        "기본 '' = 현행 모델 그대로(비트동일)")
+    c.add_argument("--rotor-seed", type=int, default=SEED)
+    c.add_argument("--tag", default="", help="산출 접미사(기본: 프리셋명)")
+    c.add_argument("--overwrite", action="store_true")
     args = ap.parse_args()
     args.fn(args)
 

@@ -168,21 +168,33 @@ class FastPoser:
 
 
 # ---------------------------------------------------------------------- #
-def rotor_phases(t, rpm_per_rotor, dirs, base_deg=None):
+def rotor_phases(t, rpm_per_rotor, dirs, base_deg=None, dt=None):
     """시간축 → 로터별 위상[deg].
 
-    rpm_per_rotor : 길이 n_rotors. ⭐ **로터마다 다른 rpm** 을 줄 수 있다 —
-      이것이 스펙트로그램을 시간에 따라 변하게 만드는 요인이다.
+    rpm_per_rotor : 길이 n_rotors **또는** (n_t, n_rotors).
+      · 1차원 = 로터마다 다른 **상수** rpm → 위상은 선형이다(현행 경로, 손 안 댐).
+      · ⭐2차원 = 로터마다 **시간에 따라 흔들리는** rpm → 위상은 그 **적분**이다.
+        `src/rotor_dynamics.rpm_series()` 가 그런 열을 만든다. rpm 이 변하면
+        θ = ω·t 가 성립하지 않으므로 반드시 cumsum 을 타야 한다.
     dirs          : 로터별 회전 부호 (+1 CCW / −1 CW).
     base_deg      : 로터별 t=0 위상 오프셋. None 이면 0.
       ⚠ 실제 기체는 t=0 에 네 로터가 정렬돼 있을 이유가 없다.
+      `rotor_dynamics.initial_phase_deg()` 가 𝒰(0, 360/blades) 로 뽑아 준다.
+    dt            : 2차원 경로의 적분 간격 [s]. None 이면 t 에서 유도한다.
+      ⚠ `1/prf` 와 `t[1]-t[0]` 은 마지막 ulp 에서 갈릴 수 있다 — 비트동일이 걸린 자리면
+        `dt=1.0/prf` 를 **명시**해라.
 
     반환 (n_t, n_rotors) [deg].
+
+    ⛔ 1차원 경로는 이 확장 전과 **비트동일**이다(게이트 verify_rotor_dynamics.py G5).
     """
     t = np.asarray(t, float)
     rpm = np.asarray(rpm_per_rotor, float)
     d = np.asarray(dirs, float)
-    b = np.zeros(len(rpm)) if base_deg is None else np.asarray(base_deg, float)
+    b = np.zeros(rpm.shape[-1]) if base_deg is None else np.asarray(base_deg, float)
+    if rpm.ndim >= 2:
+        step = float(t[1] - t[0]) if dt is None else float(dt)
+        return b[None, :] + d[None, :] * np.cumsum(360.0 * rpm / 60.0 * step, axis=0)
     return b[None, :] + d[None, :] * (360.0 * rpm[None, :] / 60.0) * t[:, None]
 
 

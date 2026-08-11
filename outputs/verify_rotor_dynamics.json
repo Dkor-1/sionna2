@@ -1,0 +1,392 @@
+{
+ "gates": [
+  {
+   "id": "G4/legacy",
+   "what": "rotor_dynamics 'legacy' vs report07_hover_long.npz rpm_t",
+   "pass": true,
+   "measured": {
+    "max_abs_diff": 0.0
+   },
+   "spec": "bit-identical (0.0)",
+   "note_ko": "결정론 경로라 시드와 무관해야 한다"
+  },
+  {
+   "id": "G4b/legacy",
+   "what": "rd.phases(2D) vs report07 옛 cumsum 식",
+   "pass": true,
+   "measured": {
+    "max_abs_diff": 0.0
+   },
+   "spec": "bit-identical",
+   "note_ko": ""
+  },
+  {
+   "id": "G4/legacy_outdoor",
+   "what": "rotor_dynamics 'legacy_outdoor' vs report07_hover_long_outdoor.npz rpm_t",
+   "pass": true,
+   "measured": {
+    "max_abs_diff": 0.0
+   },
+   "spec": "bit-identical (0.0)",
+   "note_ko": "결정론 경로라 시드와 무관해야 한다"
+  },
+  {
+   "id": "G4b/legacy_outdoor",
+   "what": "rd.phases(2D) vs report07 옛 cumsum 식",
+   "pass": true,
+   "measured": {
+    "max_abs_diff": 0.0
+   },
+   "spec": "bit-identical",
+   "note_ko": ""
+  },
+  {
+   "id": "G5",
+   "what": "articulated_fast.rotor_phases() 1차원 경로",
+   "pass": true,
+   "measured": {
+    "base_given": true,
+    "base_none": true
+   },
+   "spec": "bit-identical",
+   "note_ko": "2차원 확장이 1차원 산술을 안 건드렸는지"
+  },
+  {
+   "id": "G6a",
+   "what": "md_classify_dataset.synth() 1차원 경로",
+   "pass": true,
+   "measured": {
+    "max_abs_diff": 0.0
+   },
+   "spec": "bit-identical",
+   "note_ko": ""
+  },
+  {
+   "id": "G6b",
+   "what": "md_classify_dataset._draw_trials(jit=None) 난수열",
+   "pass": true,
+   "measured": {
+    "n_draws": 5
+   },
+   "spec": "bit-identical",
+   "note_ko": "RNG 소모 순서가 같아야 기존 특징행렬이 재현된다"
+  },
+  {
+   "id": "G17",
+   "what": "OU 정상상태 std",
+   "pass": true,
+   "measured": {
+    "std": 0.024806012569272805,
+    "sigma_w": 0.0245,
+    "rel_err": 0.012490308949910434,
+    "n_tau": 400,
+    "n_ch": 8
+   },
+   "spec": "|std/σ_w − 1| ≤ 0.05",
+   "note_ko": ""
+  },
+  {
+   "id": "G18a",
+   "what": "OU 이산화 계수 a = exp(−dt/T) (결정론)",
+   "pass": true,
+   "measured": {
+    "a": 0.9782488939094783,
+    "sigma_step": 0.2074345717687439,
+    "max_abs_diff": 0.0
+   },
+   "spec": "bit-identical",
+   "note_ko": "정확 이산화인가 — 근사(오일러)면 여기서 깨진다"
+  },
+  {
+   "id": "G18b",
+   "what": "lag-1 표본 자기상관",
+   "pass": true,
+   "measured": {
+    "measured": 0.9785764397501615,
+    "predicted_exp_dt_over_T": 0.9782488939094783,
+    "diff": 0.0003275458406831744,
+    "se": 0.0005437906476692205,
+    "n_samples": 145512,
+    "design_spec_was": "±1e-4 — 통계적으로 불가능해 4·SE 로 바꿨다"
+   },
+   "spec": "|Δ| ≤ 4·SE",
+   "note_ko": ""
+  },
+  {
+   "id": "G19",
+   "what": "PSD 기울기(코너 위)",
+   "pass": true,
+   "measured": {
+    "slope_db_per_decade": -19.323698608457697,
+    "band_hz": [
+     2.8000000000000003,
+     28.0
+    ]
+   },
+   "spec": "−20 ± 2 dB/decade",
+   "note_ko": "1극 저역통과의 지문. 백색이면 0 이 나온다"
+  },
+  {
+   "id": "G20",
+   "what": "대역 rms 역보정 — 생성한 ε 가 실기 로그 앵커를 되돌려주나",
+   "pass": true,
+   "measured": {
+    "indoor": {
+     "band_hz": [
+      0.3,
+      5.0
+     ],
+     "amp_equiv_sine_pct": 0.7303499727365036,
+     "anchor_pct": 0.74,
+     "rel_err": -0.013040577383103269,
+     "sigma_w_from_formula": 0.0064719016945253465,
+     "sigma_w_in_preset": 0.0065
+    },
+    "outdoor": {
+     "band_hz": [
+      0.3,
+      2.0
+     ],
+     "amp_equiv_sine_pct": 2.45895475454132,
+     "anchor_pct": 2.52,
+     "rel_err": -0.02422430375344442,
+     "sigma_w_from_formula": 0.024524945539779828,
+     "sigma_w_in_preset": 0.0245
+    }
+   },
+   "spec": "|rel| ≤ 0.10",
+   "note_ko": "σ_w = (amp/√2)/√F 보정이 맞는지. 틀리면 프리셋 σ 가 통째로 어긋난다"
+  },
+  {
+   "id": "G21",
+   "what": "위상 적분 무결성 dθ/dt·60/360 == rpm",
+   "pass": true,
+   "measured": {
+    "max_rel_err": 1.6977530492567894e-12,
+    "roundoff_floor": 1.7881671005431854e-12,
+    "theta_max_deg": 9257.350587235716,
+    "mean_step_deg": 1.1495261003129156,
+    "design_spec_was": "≤1e-12 — 상쇄오차 하한 아래라 10·floor 로 바꿨다"
+   },
+   "spec": "≤ 10 × eps·θ_max/Δθ",
+   "note_ko": ""
+  },
+  {
+   "id": "G22",
+   "what": "초기위상 θ_k(0) ~ U(0, 360/blades)",
+   "pass": true,
+   "measured": {
+    "n": 4000,
+    "ks_stat": 0.017080666394131916,
+    "p_value": 0.19144896313685777,
+    "min": 0.06057349001489021,
+    "max": 179.94371563870314
+   },
+   "spec": "KS p > 0.01",
+   "note_ko": ""
+  },
+  {
+   "id": "G22b",
+   "what": "legacy 는 여전히 정렬(0)",
+   "pass": true,
+   "measured": {
+    "phases": [
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "spec": "all zero",
+   "note_ko": ""
+  },
+  {
+   "id": "G23",
+   "what": "m 차 조화 선폭 ∝ m·f_flash·σ_w",
+   "pass": true,
+   "measured": {
+    "r": 0.9859507434704289,
+    "n": 15,
+    "slope": 0.7073946248353093,
+    "rows": [
+     {
+      "sigma_w": 0.0,
+      "m": 1,
+      "pred_hz": 0.0,
+      "rms_width_hz": 0.2886833348041072,
+      "rms_width_floor_removed_hz": 0.0,
+      "used_in_fit": false
+     },
+     {
+      "sigma_w": 0.0,
+      "m": 2,
+      "pred_hz": 0.0,
+      "rms_width_hz": 0.28868262627107794,
+      "rms_width_floor_removed_hz": 0.0,
+      "used_in_fit": false
+     },
+     {
+      "sigma_w": 0.0,
+      "m": 4,
+      "pred_hz": 0.0,
+      "rms_width_hz": 0.2887115469107191,
+      "rms_width_floor_removed_hz": 0.003323564419641544,
+      "used_in_fit": false
+     },
+     {
+      "sigma_w": 0.0,
+      "m": 8,
+      "pred_hz": 0.0,
+      "rms_width_hz": 0.2886921572833484,
+      "rms_width_floor_removed_hz": 0.0,
+      "used_in_fit": false
+     },
+     {
+      "sigma_w": 0.0065,
+      "m": 1,
+      "pred_hz": 0.8233333333333334,
+      "rms_width_hz": 0.8539509698264146,
+      "rms_width_floor_removed_hz": 0.8036721642736827,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.0065,
+      "m": 2,
+      "pred_hz": 1.6466666666666667,
+      "rms_width_hz": 1.6036103531841832,
+      "rms_width_floor_removed_hz": 1.577410172910132,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.0065,
+      "m": 4,
+      "pred_hz": 3.2933333333333334,
+      "rms_width_hz": 2.788639293435354,
+      "rms_width_floor_removed_hz": 2.77365567395315,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.0065,
+      "m": 8,
+      "pred_hz": 6.586666666666667,
+      "rms_width_hz": 5.471435101099182,
+      "rms_width_floor_removed_hz": 5.463813572432819,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.0125,
+      "m": 1,
+      "pred_hz": 1.5833333333333335,
+      "rms_width_hz": 1.5397787303809967,
+      "rms_width_floor_removed_hz": 1.5124732153974116,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.0125,
+      "m": 2,
+      "pred_hz": 3.166666666666667,
+      "rms_width_hz": 2.5118450458167456,
+      "rms_width_floor_removed_hz": 2.4951998362766457,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.0125,
+      "m": 4,
+      "pred_hz": 6.333333333333334,
+      "rms_width_hz": 5.97361694417257,
+      "rms_width_floor_removed_hz": 5.9666369157563555,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.0125,
+      "m": 8,
+      "pred_hz": 12.666666666666668,
+      "rms_width_hz": 9.770273328470491,
+      "rms_width_floor_removed_hz": 9.766007249730194,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.0245,
+      "m": 1,
+      "pred_hz": 3.1033333333333335,
+      "rms_width_hz": 2.7473122684679248,
+      "rms_width_floor_removed_hz": 2.732102009302589,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.0245,
+      "m": 2,
+      "pred_hz": 6.206666666666667,
+      "rms_width_hz": 4.885204759619799,
+      "rms_width_floor_removed_hz": 4.8766671233715355,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.0245,
+      "m": 4,
+      "pred_hz": 12.413333333333334,
+      "rms_width_hz": 10.826135490369358,
+      "rms_width_floor_removed_hz": 10.822285634032944,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.0245,
+      "m": 8,
+      "pred_hz": 24.826666666666668,
+      "rms_width_hz": 15.447421346644711,
+      "rms_width_floor_removed_hz": 15.444723466269494,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.05,
+      "m": 1,
+      "pred_hz": 6.333333333333334,
+      "rms_width_hz": 5.4957773635320715,
+      "rms_width_floor_removed_hz": 5.488189639423222,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.05,
+      "m": 2,
+      "pred_hz": 12.666666666666668,
+      "rms_width_hz": 10.240200746239948,
+      "rms_width_floor_removed_hz": 10.236130519490949,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.05,
+      "m": 4,
+      "pred_hz": 25.333333333333336,
+      "rms_width_hz": 16.79164214486584,
+      "rms_width_floor_removed_hz": 16.7891602711391,
+      "used_in_fit": true
+     },
+     {
+      "sigma_w": 0.05,
+      "m": 8,
+      "pred_hz": 50.66666666666667,
+      "rms_width_hz": 27.749250225080676,
+      "rms_width_floor_removed_hz": 27.74774846258523,
+      "used_in_fit": false
+     }
+    ],
+    "r_raw_all_points": 0.9871501754484102,
+    "zero_wobble_baseline_width_hz": 0.2886924163173131,
+    "slope_note_ko": "기울기가 1 이 아니라 ≈0.87 이다 — 중앙값 빼기와 Hann 창이 선의 꼬리를 깎기 때문이다. 게이트는 **비례성**(r)이지 절대 폭이 아니다.",
+    "cpi_s": 2.0,
+    "doppler_bin_hz": 0.5,
+    "f_flash_hz": 126.66666666666667
+   },
+   "spec": "Pearson r ≥ 0.95",
+   "note_ko": "랜덤과정은 선을 **넓힌다**. 정현파였다면 폭 대신 빗살이 생긴다"
+  }
+ ],
+ "n_pass": 16,
+ "n_total": 16,
+ "_meta": {
+  "script": "benchmark/verify_rotor_dynamics.py gates",
+  "generated": "2026-08-11 00:14:12",
+  "design": "docs/NOISE_AND_ROTOR_PLAN.md §3-1 · §3-4",
+  "module": "src/rotor_dynamics.py"
+ }
+}

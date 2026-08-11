@@ -15,17 +15,26 @@ report07_hover_long.py — 문헌 형태의 **호버링 마이크로도플러 �
 
 무엇을 넣나 — 호버 rpm 의 시간 변동
 -----------------------------------
-    rpm_k(t) = rpm0 · (1 + s_k + a·sin(2π f_ctl t + φ_k))
+    rpm_k(t) = rpm0 · (1 + s_k + ε_k(t))
 
-  s_k    로터별 정적 치우침 (무게중심·요 토크 균형) — 기존 ±2 %
-  a      제어루프가 만드는 흔들림 진폭
-  f_ctl  그 흔들림의 주파수. 멀티로터 자세루프는 대개 수 Hz 대다.
-  φ_k    로터마다 다른 위상 — 네 모터가 같이 움직이지 않는다
+  s_k     로터별 정적 치우침 (무게중심·요 토크 균형·프롭 개체차)
+  ε_k(t)  제어루프가 만드는 흔들림. 로터마다 **독립**이다.
 
-⚠ a 와 f_ctl 은 **선언된 가정**이다. 우리에게 아직 실측 비행 로그가 없다.
-  ⭐ 로그를 받으면 이 두 값이 **측정값으로 바뀐다** — 그것이 로그를 받아야 하는 이유 중 하나다.
+⭐ 2026-08-11 — 이 파일이 직접 갖고 있던 로터 모델을 `src/rotor_dynamics.py` 로 옮겼다.
+  옮기면서 셋을 고쳤다(설계서 `docs/NOISE_AND_ROTOR_PLAN.md` §2):
+    ① 정적 치우침을 **결정론적 패턴**(±1, ∓0.55)에서 **가우시안 추출 + 시드**로
+    ② 흔들림을 **정현파 한 톤**에서 **OU(저역통과 잡음)** 로 — 랜덤 과정은 선을 넓히고
+       정현파는 빗살로 가른다. 물리는 앞쪽이다(조사 §3-4)
+    ③ t=0 회전위상을 **정렬**에서 𝒰(0, 360/blades) 로
 
-    python benchmark/report07_hover_long.py [--sec 2.0]
+⛔ **기본값 `--preset legacy` 는 옛 식 그대로**다 — `outputs/report07_hover_long.npz` 의
+  `rpm_t` 와 비트동일이고 게이트가 그것을 지킨다(`benchmark/verify_rotor_dynamics.py` G4).
+
+⚠ σ 값은 **다른 기체의 실기 로그**에서 왔다(NeuroBEM 실내 · CODEV 야외 · DJI P3 명령).
+  우리 표적(Mavic 4 Pro · Matrice 4E)의 로그를 받으면 그 값이 프리셋을 대체한다.
+
+    python benchmark/report07_hover_long.py [--sec 2.0]                # legacy(기본)
+    python benchmark/report07_hover_long.py --preset outdoor --tag _outdoor_ou
 """
 from __future__ import annotations
 
@@ -47,12 +56,14 @@ from gpu import pick                                                   # noqa: E
 pick(verbose=True)
 
 import numpy as np                                                     # noqa: E402
+import rotor_dynamics as rd                                            # noqa: E402
 from articulated_fast import FastPoser                                 # noqa: E402
 from drones import DRONES, DRONE_GROUP_MAT                             # noqa: E402
 from rcs_sbr import sbr_field, grid_ref_for_slowtime                   # noqa: E402
 
 FC = 3.5e9
 GM = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
+SEED = 20260811
 
 # ⭐ 2026-08-07 정정 — 흩어짐을 ±2 % 로 뒀던 것은 **내 추측**이었고 틀렸다.
 #   선배(홍지혁)의 PX4 텔레메트리를 내가 직접 재니 모터 간 산포가 **0.07~0.29 %** 였다.
@@ -67,13 +78,11 @@ GM = {g: m for g, (m, _) in DRONE_GROUP_MAT.items()}
 #     실기체 DJI P3 DAT(PWM 환산)  ~2~6 %
 #   실증이 야외이므로([[실측=외부]]) 야외 프리셋이 헤드라인 후보다. SITL 프리셋은
 #   대칭-이상 통제군으로 유지한다. 실측 로그가 오면 그 값이 프리셋을 대체한다.
-PRESETS = {
-    # (static_spread, wobble_amp, wobble_hz, 근거)
-    "sitl":    (0.0022, 0.0015, 2.7, "선배 PX4 SITL 실측(0.07~0.29%) 중간값 — 대칭-이상 하한"),
-    "outdoor": (0.02,   0.025,  1.0, "웹 실측 앵커 CODEV 야외(2.4%/2.5%@0.74Hz)·P3 DAT(2~6%) 반올림"),
-}
-STATIC_SPREAD, WOBBLE_AMP, WOBBLE_HZ = PRESETS["sitl"][:3]     # 기본은 기존과 동일(재현성)
-PATTERN = np.array([+1.0, -1.0, -0.55, +0.55])
+# ⭐ 2026-08-11 — 프리셋은 이제 `src/rotor_dynamics.PRESETS` 한 자리에 있다.
+#   옛 이름 대응:  옛 "sitl"(정현파 0.15%@2.7Hz) → **"legacy"**(기본, 비트동일)
+#                  옛 "outdoor"(정현파 2.5%@1Hz) → **"legacy_outdoor"**
+#   새 이름 "sitl"/"indoor"/"outdoor" 는 **OU 판**이다 — 같은 이름이라도 모양이 다르다.
+PRESETS = rd.PRESETS
 
 
 def main():
@@ -82,15 +91,31 @@ def main():
     ap.add_argument("--sec", type=float, default=2.0)
     ap.add_argument("--az", type=float, default=0.0)
     ap.add_argument("--el", type=float, default=-15.0)
-    ap.add_argument("--preset", default="sitl", choices=list(PRESETS),
-                    help="산포 프리셋 — sitl(실내·이상 하한, 기본) / outdoor(웹 실측 앵커)")
+    ap.add_argument("--preset", default=rd.DEFAULT_PRESET, choices=list(PRESETS),
+                    help="로터 랜덤성 프리셋 — legacy(기본, 옛 식 비트동일) / "
+                         "legacy_outdoor(옛 outdoor) / sitl·indoor·outdoor(OU 판) / lit_iid")
+    ap.add_argument("--seed", type=int, default=SEED,
+                    help="난수 시드 — 정적 산포·흔들림·초기위상 추첨. legacy 는 결정론이라 무관")
+    ap.add_argument("--tau-motor", type=float, default=None,
+                    help="2극(로터 관성) 시상수 [s]. 기본 끔. 켤 값의 문헌 범위 0.0125~0.025")
     ap.add_argument("--tag", default=None,
-                    help="출력 접미사(기본: sitl 은 없음=기존 경로, 그 외 프리셋명)")
+                    help="출력 접미사(기본: legacy 는 없음=기존 경로, 그 외 프리셋명)")
+    ap.add_argument("--overwrite", action="store_true",
+                    help="같은 이름의 원장이 이미 있으면 덮어쓴다(기본은 중단)")
     a = ap.parse_args()
 
-    global STATIC_SPREAD, WOBBLE_AMP, WOBBLE_HZ
-    STATIC_SPREAD, WOBBLE_AMP, WOBBLE_HZ, preset_why = PRESETS[a.preset]
-    tag = a.tag if a.tag is not None else ("" if a.preset == "sitl" else f"_{a.preset}")
+    jit = rd.get(a.preset)
+    if a.tau_motor is not None:
+        jit = jit.with_(tau_motor_s=float(a.tau_motor))
+    preset_why = jit.source
+    tag = a.tag if a.tag is not None else ("" if a.preset == rd.DEFAULT_PRESET
+                                           else f"_{a.preset}")
+    npz_path = f"{ROOT}/outputs/report07_hover_long{tag}.npz"
+    #  ⛔ 원장 보호 — 이름이 겹치면 조용히 덮지 않는다. 특히 새 OU `outdoor` 는
+    #     옛 정현파 판이 이미 쓴 `_outdoor` 와 이름이 겹친다.
+    if os.path.exists(npz_path) and not a.overwrite:
+        raise SystemExit(f"⛔ 이미 있다: {npz_path}\n"
+                         f"   --tag 로 새 이름을 주거나 --overwrite 를 붙여라.")
 
     spec = DRONES[a.drone]
     fp = FastPoser(spec)
@@ -109,22 +134,24 @@ def main():
     n = int(round(a.sec * prf))
     t = np.arange(n) / prf
 
-    # ⭐ 흔들리는 rpm → 위상은 그 적분이다. 로터마다 다른 위상으로 흔든다.
-    stat = STATIC_SPREAD * np.resize(PATTERN, n_rot)
-    phi0 = 2 * np.pi * np.arange(n_rot) / n_rot
-    rpm_t = rpm0 * (1.0 + stat[None, :]
-                    + WOBBLE_AMP * np.sin(2 * np.pi * WOBBLE_HZ * t[:, None] + phi0[None, :]))
-    # θ(t) = ∫ ω dt  — 흔들리므로 곱셈이 아니라 누적이다
-    omega_deg = 360.0 * rpm_t / 60.0
-    dt = 1.0 / prf
-    ang = np.cumsum(omega_deg * dt, axis=0)
-    ph = np.asarray(fp.dirs, float)[None, :] * ang
+    # ⭐ 흔들리는 rpm → 위상은 그 적분이다. 로터마다 **독립**으로 흔든다.
+    #    ⛔ legacy 프리셋이면 아래 두 줄이 옛 식과 글자 그대로 같다(게이트 G4).
+    rng = np.random.default_rng(a.seed)
+    rpm_t, rpm_diag = rd.rpm_series(rpm0, n_rot, n, prf, jit, rng)
+    period_deg = 360.0 / float(spec.prop_blades)
+    base_deg = rd.initial_phase_deg(n_rot, jit, rng, period_deg=period_deg)
+    ph = rd.phases(rpm_t, prf, fp.dirs, base_deg=base_deg)
+    rpm_stats = rd.summary(rpm_t, prf, jit)
 
     print(f"\n═══ {spec.name} 호버링 · az {a.az:.0f} el {a.el:.0f} · {FC/1e9:.2f} GHz ═══")
     print(f"  f_flash {f_flash:.1f} Hz · f_tip {f_tip:.0f} Hz · PRF {prf:.0f} Hz")
     print(f"  {a.sec:.1f} s = {n} 표본 = {a.sec*f_flash:.0f} 블레이드 주기")
-    print(f"  rpm 정적 치우침 ±{STATIC_SPREAD:.0%} · ⭐제어루프 흔들림 "
-          f"±{WOBBLE_AMP:.1%} @ {WOBBLE_HZ:.1f} Hz", flush=True)
+    print(f"  로터 프리셋 «{jit.name}» seed {a.seed} · {rpm_diag['mode']}")
+    print(f"    정적 산포 σ_s {jit.static_sigma:.4f} (실측 {rpm_stats['static_spread_std_rel']:.5f}) · "
+          f"흔들림 σ_w {jit.wobble_sigma:.4f} (실측 {rpm_stats['wobble_std_rel']:.5f})")
+    print(f"    T {jit.tau_ctl_s:.4f} s (f_ctl {jit.f_ctl_hz:.2f} Hz) · τ_m {jit.tau_motor_s} · "
+          f"초기위상 {'𝒰(0,%.0f°)' % period_deg if jit.random_phase else '정렬(0)'} "
+          f"{np.round(base_deg, 1).tolist()}", flush=True)
 
     u = np.array([np.cos(np.radians(a.el)) * np.cos(np.radians(a.az)),
                   np.cos(np.radians(a.el)) * np.sin(np.radians(a.az)),
@@ -148,21 +175,35 @@ def main():
             print(f"    {i}/{n}  {el:.0f}s  ETA {(n-i)/i*el/60:.1f}분", flush=True)
     secs = time.time() - t0
 
-    np.savez_compressed(f"{ROOT}/outputs/report07_hover_long{tag}.npz", E=E, t=t, rpm_t=rpm_t)
+    np.savez_compressed(npz_path, E=E, t=t, rpm_t=rpm_t, base_phase_deg=base_deg)
     json.dump({"_meta": {"generated": time.strftime("%Y-%m-%d %H:%M:%S"),
                          "drone": a.drone, "name": spec.name, "fc_hz": FC,
                          "az_deg": a.az, "el_deg": a.el,
                          "seconds": a.sec, "n": n, "prf_hz": prf,
                          "f_flash_hz": f_flash, "f_tip_hz": f_tip,
                          "blade_periods": a.sec * f_flash,
-                         "rpm0": rpm0, "static_spread": STATIC_SPREAD,
-                         "wobble_amp": WOBBLE_AMP, "wobble_hz": WOBBLE_HZ,
+                         "rpm0": rpm0,
+                         # ⭐ 로터 랜덤성 — 프리셋·시드·실측 진단을 통째로 박는다
                          "preset": a.preset, "preset_why_ko": preset_why,
+                         "rotor_seed": int(a.seed),
+                         "rotor_jitter": jit.asjson(),
+                         "rotor_diag": rpm_diag,
+                         "rotor_measured": {k: v for k, v in rpm_stats.items()
+                                            if k != "jitter"},
+                         "initial_phase_deg": base_deg.tolist(),
+                         "phase_period_deg": period_deg,
+                         "rotor_model_ko": (
+                             "rpm_k(t) = rpm0·(1 + s_k + ε_k(t)); s_k ~ N(0,σ_s) 평균제거, "
+                             "ε_k(t) = OU(σ_w, T) 로터별 독립, θ_k(0) ~ U(0,360/blades). "
+                             "legacy 프리셋만 옛 결정론 패턴 + 정현파 한 톤이다."),
                          "compute_seconds": secs,
                          "grid_frozen": bool(gref is not None),
                          "grid_ref": (gref.asjson() if gref is not None else None),
-                         "declared_ko": ("⚠ 흔들림 진폭·주파수는 프리셋(문헌 앵커) 값이다. "
-                                         "우리 표적의 실측 비행 로그가 이 둘을 측정값으로 바꾼다.")}},
+                         "declared_ko": ("⚠ σ_s·σ_w·T 는 **다른 기체**의 실기 로그에서 왔다"
+                                         "(NeuroBEM 실내·CODEV 야외·DJI P3 명령, "
+                                         "outputs/rotor_rpm_web_anchor.json). 우리 표적의 "
+                                         "실측 비행 로그가 이 값들을 대체한다. 시간 흔들림에는 "
+                                         "마이크로도플러 문헌 선례가 없다.")}},
               open(f"{ROOT}/outputs/report07_hover_long{tag}.json", "w"),
               ensure_ascii=False, indent=1)
     print(f"\n  ✅ {secs/60:.1f}분 · outputs/report07_hover_long{tag}.npz")

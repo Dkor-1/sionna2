@@ -74,7 +74,7 @@ def md(*lines):
 
 
 def _pct(v: float) -> str:
-    """백분율 — 크기가 다섯 자릿수 갈리므로 유효숫자로 적는다(0.00007 ↔ 2.74)."""
+    """백분율 — 크기가 다섯 자릿수 갈리므로 유효숫자로 적는다(0.00007 ↔ 5.06)."""
     return f"{v:.2f}" if v >= 0.01 else f"{v:.5f}"
 
 
@@ -276,6 +276,12 @@ cells = [
                  for k, nm in (("po", ARM_PO), ("sionna", ARM_SIONNA),
                                ("sbr", ARM_SBR))),
        "",
+       "⚠ **이 표의 두 줄은 격자가 다르다.** 모노 원장의 SBR 열은 **얼린 광선 격자**로 다시 났고"
+       "(그 전후 비교는 [리포트 8-2 «광선 격자를 어디에 매나»](08_2_engines.ipynb)), "
+       "**이 편의 β 스윕은 아직 옛 판**이다. 두 표의 절대값을 이어 붙여 읽지 마라. "
+       f"⭐ 얼린 뒤에도 SBR 의 대역밖 절대 전력은 순수 PO 보다 "
+       f"{OOBR['new_P_out_absolute']['sbr_over_po_db']:.1f} dB 위다 — 아래 논지는 그대로 선다.", "",
+
        f"공칭 날개끝은 {M['f_tip_mono_hz']:.0f} Hz 다. 순수 PO 는 거기서 잘리고, "
        "**광선을 쓰는 두 팔은 둘 다** 그 너머로 새어 나간다. 8 권 모노 편이 «다음에 할 것» 으로 "
        "적어 둔 «SBR 의 날개끝 밖 능선을 규명한다» 가 바로 이것이고, 이 편은 그것이 **무엇을 "
@@ -303,11 +309,16 @@ cells = [
        "⭐ **순위는 분모가 정한다 — 그래서 분모를 밝히지 않고는 대소를 쓰지 않는다.** "
        f"헤드라인(전체 전력 대비)으로는 SBR {OOBE['sbr']['frac_of_total']*100:.2f} % 가 "
        f"Sionna {OOBE['sionna']['frac_of_total']*100:.2f} % 보다 "
-       f"{OOBR['sbr_over_sionna_db']['new_frac_of_total']:.1f} dB 위다. "
-       f"그런데 같은 두 팔을 **대역비**(f_tip 밖 / 블레이드 대역)로 재면 Sionna "
+       f"{abs(OOBR['sbr_over_sionna_db']['new_frac_of_total']):.1f} dB "
+       f"{'위' if OOBR['sbr_over_sionna_db']['new_frac_of_total'] > 0 else '아래'}다. "
+       f"같은 두 팔을 **대역비**(f_tip 밖 / 블레이드 대역)로 재면 Sionna "
        f"{OOBR['secondary_out_over_in']['values_pct']['sionna']:.1f} % 대 SBR "
-       f"{OOBR['secondary_out_over_in']['values_pct']['sbr']:.1f} % 로 **순서가 뒤집힌다**"
-       f"({abs(OOBR['sbr_over_sionna_db']['secondary_out_over_in']):.1f} dB 차). "
+       f"{OOBR['secondary_out_over_in']['values_pct']['sbr']:.1f} % 로 "
+       + ("**순서가 뒤집힌다**"
+          if (OOBR['sbr_over_sionna_db']['new_frac_of_total'] > 0)
+          != (OOBR['sbr_over_sionna_db']['secondary_out_over_in'] > 0)
+          else "**순서는 같다**")
+       + f"({abs(OOBR['sbr_over_sionna_db']['secondary_out_over_in']):.1f} dB 차). "
        "이 편은 그 대역비를 헤드라인으로 안 쓴다. 이유가 둘이다 — "
        f"분모 P_in 자체가 SBR 에서 독립 엔진(순수 PO) 대비 "
        f"{OOBF['is_the_P_in_drop_signal_loss']['per_div']['12']['prod']:.1f} dB 부풀어 있어 "

@@ -97,6 +97,9 @@ SG12 = next(r for r in SGC["rows"] if r["div"] == 12)          # 광선 수·조
 FRZ = _opt(f"{_ROOT}/outputs/verify_frozen_grid.json")
 BFL = _opt(f"{_ROOT}/outputs/report15_blade_flash_ladder.json")
 PRB = _opt(f"{_ROOT}/outputs/probe_8m_anomaly.json")
+# ⭐ 얼린 판으로 원장을 다시 낸 **전후 비교표** — 이 편의 «광선 격자를 어디에 매나» 절이 읽는다.
+#   27 열을 같은 잣대(레벨 · 변조 깊이 · 대역밖 절대 전력 · 진폭 상관)로 잰 원장이다.
+FBA = _opt(f"{_ROOT}/outputs/freeze_before_after.json")
 # ⭐표시 규약(조각 길이·hop·패딩)의 정본은 코드다 — 본문에 손으로 적지 않고 거기서 읽는다.
 from md_mapstyle import (ARM_PO, ARM_SBR, ARM_SIONNA, FLASH_HOP,   # noqa: E402
                          FLASH_PAD, auto_periods)
@@ -182,35 +185,253 @@ def _pending_note() -> str:
             "(SBR · 대조군)의 수치는 현재 원장 그대로다.\n")
 
 
+#: 격자 사다리에서 «지금 우리가 쓰는 팔» 의 칸 — 얼렸으면 얼린 팔을 인용해야 한다.
+_LADDER_KEY = "cos_froz_vs_po" if SBR_GRID_FROZEN else "cos_prod_vs_po"
+
+
+def _plate(meta, grid_ref=None) -> str:
+    """원장 하나가 어떤 광선 격자로 풀렸는지 — 표식이 없으면 «옛 판» 이다(추측하지 않는다)."""
+    if not meta:
+        return "—"
+    if not meta.get("grid_frozen"):
+        return "⚠자세마다 다시 정의"
+    g = grid_ref or meta.get("grid_ref") or {}
+    return f"얼림 (한 변 {g['n']} 칸)" if g.get("n") else "얼림"
+
+
+def _stamp(meta) -> str:
+    """원장이 언제 났나 — 열을 다시 푼 라운드가 있으면 그 시각을 쓴다."""
+    return (meta.get("regenerated") or meta.get("generated") or "")[:16]
+
+
+_PLATE_TRI = _plate(TM, ((TRI.get("engines") or {}).get("sbr") or {}).get("grid_ref"))
+_PLATE_R15B = _plate(MDB["_meta"])
+_PLATE_HOV = _plate(HOV)
+_PLATE_HOD = _plate(HOD)
+
+
+def _grid_state_08_3() -> str:
+    """8-3 의 맵이 어떤 광선 격자 위에 서 있나 — 원장의 표식에서 읽는다."""
+    frozen = [k for k, m in (("f1 · f4", MDB["_meta"]), ("f7", HOV), ("f11", HOD))
+              if m and m.get("grid_frozen")]
+    if not frozen:
+        return ("⚠ **이 편의 맵이 어떤 광선 격자 위에 서 있나.** 우리 SBR 팔은 광선 격자의 "
+                "중심·반경·칸수를 자세마다 표적 경계상자에서 다시 잡는다 — 프로펠러가 돌면 "
+                "그 자가 프레임마다 움직이고, 그 움직임이 슬로타임에 **광대역 바닥**으로 실린다. "
+                "**이 편의 맵과 수치는 아직 그 판이다 — ⏳재계산 대기.**")
+    return ("⭐ **이 편의 맵은 얼린 광선 격자 위에 서 있다**(" + " · ".join(frozen) + "). "
+            "자를 자세마다 다시 놓으면 자의 움직임이 표적의 운동으로 기록되는데, 이 편의 맵은 "
+            "판 한 장을 모든 자세가 함께 쓰는 계산으로 다시 났다. 전후 비교(레벨 · 변조 깊이 · "
+            "대역밖 전력 · 가산성)는 [08_2 «광선 격자를 어디에 매나»](08_2_engines.ipynb) 가, "
+            "기전과 대가는 [리포트 5 «우리 커널 — 무엇이고, 무엇이 아닌가»](05_kernel.ipynb) 가 "
+            "낸다. ⚠ **f3 만 예외다** — 그 그림의 밴드별 깊이는 옛 판에서 잰 값이라 절대 dB 를 "
+            "인용하지 마라(8-4 의 «그림별 데이터 이력» 참조).")
+
+
+def _oob_rank_line() -> str:
+    """SBR ↔ Sionna 의 대역밖 대소 — «위/아래» 도 «뒤집히나» 도 원장에서 읽는다."""
+    rk = OOB["three_engines_ranking"]
+    head = rk["sbr_over_sionna_db"]["new_frac_of_total"]      # + 면 SBR 이 위
+    band = rk["sbr_over_sionna_db"]["secondary_out_over_in"]
+    sec = rk["secondary_out_over_in"]["values_pct"]
+    flipped = (head > 0) != (band > 0)
+    s = ("⭐ **분모를 밝히지 않고는 대소를 쓰지 않는다.** 전체 전력 대비로는 SBR 이 Sionna 보다 "
+         f"{abs(head):.1f} dB {'위' if head > 0 else '아래'}이고, 대역비"
+         f"(f_tip 밖 / 블레이드 대역)로 재면 Sionna {sec['sionna']:.1f} % 대 SBR "
+         f"{sec['sbr']:.1f} % 로 ")
+    if flipped:
+        return s + ("**순서가 뒤집힌다**. 그 대역비를 헤드라인으로 쓰지 않는 이유는 분모 자체가 "
+                    "격자 잡음으로 부풀어 있기 때문이다.")
+    return s + (f"**같은 순서**다({abs(band):.1f} dB 차). 두 잣대가 갈리지 않으므로 이 표의 "
+                "대소는 정규화 선택에 안 걸린다 — 그래도 헤드라인은 분모를 이름에 박은 "
+                "`frac_of_total` 로만 쓴다.")
+
+
+def _cosine_order_line() -> str:
+    """세 코사인의 대소를 원장에서 읽어 문장으로 — 손으로 순서를 적지 않는다."""
+    if MAPS_PENDING:
+        return f"⏳ 세 자리의 대소는 원장이 다시 나야 적을 수 있다 — {PENDING}."
+    nm = {"sbr_vs_po": "우리 두 팔끼리", "sionna_vs_sbr": "Sionna↔우리 기본팔",
+          "sionna_vs_po": "Sionna↔대조군"}
+    order = sorted(V, key=lambda k: -V[k])
+    return ("⭐ **이 실행의 대소** — " + " > ".join(f"{nm[k]} {V[k]:.3f}" for k in order)
+            + ". " + ("우리 두 팔이 서로 가장 닮았고, Sionna 는 그 둘에서 비슷한 거리만큼 "
+                      "떨어져 있다 — 광선을 쓰는 두 구현(Sionna·우리 SBR)이 서로 닮은 것이 "
+                      "아니라, **가림을 빼면 우리 두 팔이 같은 물리를 낸다**는 쪽이다."
+                      if order[0] == "sbr_vs_po" else
+                      "⚠ 우리 두 팔끼리가 가장 닮은 짝이 아니다 — 그 자체가 살펴야 할 신호다."))
+
+
+def _ray_count_phrase() -> str:
+    """자세당 광선 수 — 얼린 판을 쓰면 그 판이 정하고, 아니면 사다리의 λ/12 칸이 정한다."""
+    gref = ((TRI.get("engines") or {}).get("sbr") or {}).get("grid_ref") or {}
+    if SBR_GRID_FROZEN and gref.get("n"):
+        return (f"자세당 광선 {gref['n']**2:,} 발(얼린 판 한 변 {gref['n']} 칸 — 아래 "
+                "**절 «광선 격자를 어디에 매나»**)")
+    return f"자세당 광선 {SG12['rays_per_pose']:,} 발"
+
+
 def _freeze_para() -> list:
-    """광선 격자를 자세마다 다시 정의하는 문제와, 그것을 얼리는 스위치의 현재 상태."""
+    """맵이 어떤 광선 격자로 풀렸는지 한 줄 — 자세한 것은 아래 «광선 격자를 어디에 매나» 절."""
+    if SBR_GRID_FROZEN:
+        return ["⭐ **이 편의 맵은 얼린 광선 격자로 풀었다** — 판 한 장을 모든 자세가 함께 쓴다. "
+                "그것이 무엇이고 이 편의 숫자를 얼마나 옮겼는지는 아래 "
+                "**절 «광선 격자를 어디에 매나»** 가 낸다.", ""]
+    return ["⏳ **이 편의 맵은 아직 기본값(자세마다 다시 정의하는 격자)으로 푼 판이다** — "
+            "얼린 판으로 다시 푸는 계산이 돌고 있고, 끝나면 이 편의 그림과 수치가 함께 갱신된다.",
+            ""]
+
+
+# --------------------------------------------------------------------------- #
+#  ⭐ 08_2 의 «광선 격자를 어디에 매나» 절
+#     기전은 리포트 5(커널 편)가 이미 다룬다 — 여기서는 **이 편의 숫자가 그것으로 바뀌었다**
+#     만 짧게 적고, 전후 비교표(outputs/freeze_before_after.json)를 읽는다.
+# --------------------------------------------------------------------------- #
+_KERNEL_LINK = ("[리포트 5 «우리 커널 — 무엇이고, 무엇이 아닌가»](05_kernel.ipynb)")
+
+
+def _grid_anchor_cell():
+    """이 편의 맵이 딛고 선 광선 격자와, 그것을 바꿨을 때 이 편의 숫자가 움직인 폭."""
     g1 = (FRZ or {}).get("gate1_bit_identity") or {}
     g2 = (FRZ or {}).get("gate2_frozen_grid_invariant") or {}
     pr, fz = g2.get("prod") or {}, g2.get("frozen") or {}
-    out = []
+    gref = ((TRI.get("engines") or {}).get("sbr") or {}).get("grid_ref") or {}
+    ad = ((FBA or {}).get("additivity") or {}).get("cells", {}).get("matrice4e/az0_el-15")
+    row = ((FBA or {}).get("ledgers") or {}).get("report07_three_engines/sbr")
+    smy = (FBA or {}).get("summary") or {}
+    ogate = (FBA or {}).get("off_switch_gate") or {}
+
+    out = ["## 광선 격자를 어디에 매나", "",
+           "> **자를 프레임마다 다시 놓으면, 자가 움직인 것이 표적이 움직인 것으로 기록된다.**", ""]
+
+    # ① 쉬운 말 — 무엇이 문제인가
+    out += ["우리 커널은 표적 앞에 **평면 자**를 세우고 그 격자점마다 광선을 쏜다. 자를 정하는 "
+            "것은 중심 ctr · 반경 Rout · 한 변의 칸수 n 셋이다. 그 셋을 **자세마다 표적 "
+            "경계상자에서 다시 뽑으면** 프로펠러가 돌 때마다 상자가 숨을 쉬므로 자도 같이 "
+            "움직인다. 마이크로도플러는 **프레임 사이 위상차**로 재는 양이라, 그 움직임이 "
+            "표적의 운동으로 기록된다.", ""]
     if pr and fz:
-        out += ["⭐ **우리 두 팔이 덜 닮은 이유는 격자에 있다.** 커널은 기본값에서 광선 격자를 "
-                "**자세마다 다시 정의한다** — 격자는 그 자세의 경계상자에서 나오는데 프로펠러가 "
-                "돌면 상자가 숨을 쉰다. 실측"
-                f"(자세 {g2.get('n_pose', 0)} 개 · λ/12): 격자 한 변이 "
-                f"{pr['n_min']}~{pr['n_max']} 칸 사이를 {pr['n_changes']} 번 오가고, 위상 원점이 "
-                f"시선 방향으로 {pr['ctr_dot_u_ptp_mm']:.1f} mm · 격자 반경이 "
-                f"{pr['Rout_ptp_mm']:.0f} mm 움직인다. 마이크로도플러는 **프레임 사이 위상차**로 "
-                "재는 양이라, 그 움직임이 표적의 운동으로 기록된다.", ""]
-        out += [f"⭐ 그래서 커널에 격자를 **얼리는 스위치**(`grid_ref`)가 있다 — 로터 한 바퀴의 "
-                "합집합 상자로 판을 한 번 만들어 모든 자세가 같은 판을 쓴다(얼린 판은 한 변 "
-                f"{fz['n']} 칸으로 **{fz['n_changes']} 번** 바뀐다). 기본값(끔)에서는 배선 전과 "
-                f"{g1.get('n_bit_identical', 0)}/{g1.get('n_cases', 0)} **비트 동일**하다"
-                f"(광선 수는 {g2.get('extra_ray_cost', 1):.2f} 배로 는다). "
-                "얼렸을 때의 이득은 격자 사다리가 이미 쟀다 — 기본↔대조 코사인 "
-                f"{SGF['cos_prod_vs_po']:.3f} → {SGF['cos_froz_vs_po']:.3f}, 슬로타임 스펙트럼의 "
-                f"대역밖 **절대** 전력이 λ/12 에서 "
-                f"{OOB['freeze_verdict']['gains_db']['12']:.1f} dB 하락.", ""]
-    out += ["⭐ **이 편의 맵은 얼린 판으로 풀었다.**" if SBR_GRID_FROZEN else
-            "⏳ **이 편의 맵은 아직 기본값(자세마다 다시 정의하는 격자)으로 푼 판이다** — "
-            "얼린 판으로 다시 푸는 계산이 돌고 있고, 끝나면 이 편의 그림과 수치가 함께 갱신된다.",
-            ""]
-    return out
+        out += [f"실측(같은 기체·자세 · 자세 {g2.get('n_pose', 0)} 개 · λ/12): 자세마다 다시 뽑는 "
+                f"자는 한 변이 {pr['n_min']}~{pr['n_max']} 칸을 오가며 {pr['n_changes']} 번 튀고, "
+                f"위상 원점이 시선 방향으로 {pr['ctr_dot_u_ptp_mm']:.1f} mm · 반경이 "
+                f"{pr['Rout_ptp_mm']:.0f} mm 돌아다닌다. 얼린 판은 한 변 {fz['n']} 칸으로 "
+                f"**{fz['n_changes']} 번** 바뀐다.", ""]
+    if gref:
+        out += [f"⭐ **이 편이 쓴 판** — 로터 한 바퀴를 {gref.get('n_mesh', 0)} 등분해 그 "
+                f"메쉬들의 합집합 경계상자로 한 번 만든 판이다: 한 변 {gref['n']} 칸 · 간격 "
+                f"{gref['spacing']*1e3:.3f} mm · 반경 {gref['Rout']*1e2:.1f} cm. "
+                f"{TM['n']:,} 자세가 전부 이 한 장을 쓴다.", ""]
+
+    # ② 결정적 검사 — 가산성
+    out += ["**결정적 검사는 가산성이다.** 서로 가리지 않는 로터의 PO 면적분은 "
+            "E(φ₁..φ₄) = E₀ + Σ ΔE_j(φ_j) 로 정확히 쪼개진다 — 로터를 하나씩 돌린 변화량의 합이 "
+            "넷을 함께 돌린 장과 같아야 한다. 이 잣대에는 창도 평활도 분모도 안 들어간다.", ""]
+    if ad:
+        out += ["| 격자 | 가산성 잔차 (중앙값) | 읽는 법 |", "|---|---|---|",
+                f"| 얼린 판 한 장 | {ad['frozen']['additivity_residual_median']:.1e} | "
+                "기계정밀도 — 정리가 그대로 성립한다 |",
+                f"| 자세마다 다시 정의 | {ad['moving']['additivity_residual_median']:.3f} | "
+                "O(1) — 물리적으로 결합할 수 없는 로터 사이에 결합이 생긴다 |", "",
+                f"그 가짜 결합이 그대로 변조로 실린다 — 이 자세에서 "
+                f"{ad['spurious_modulation_db']:+.1f} dB 다"
+                f"(변조 RMS {ad['moving']['modulation_rms']:.2e} ↔ 얼린 판 "
+                f"{ad['frozen']['modulation_rms']:.2e}). "
+                f"기전과 다른 기체·자세의 같은 검사는 {_KERNEL_LINK} 가 낸다 — 여기서는 "
+                "**이 편의 자세**에서 그것이 성립한다는 것만 확인한다.", ""]
+
+    # ③ 이 편의 숫자가 얼마나 옮겼나
+    out += ["### 이 편의 숫자가 얼마나 옮겼나", "",
+            "옛 판(자세마다 다시 정의)과 새 판(얼림)을 **같은 잣대**로 나란히 잰 원장이 "
+            "`outputs/freeze_before_after.json` 이다. 옛 열은 `outputs/prefreeze/` 에 사본으로 "
+            "남아 있다 — 지우지 않았다.", ""]
+    if row:
+        out += ["| 잣대 | 옛 판 | 얼린 판 | 차 |", "|---|---|---|---|",
+                f"| 평균 레벨 20·log₁₀(mean&#124;E&#124;) | {row['level_db_before']:.2f} dB | "
+                f"{row['level_db_after']:.2f} dB | {row['level_db_delta']:+.2f} dB |",
+                f"| 변조 깊이 std&#124;E&#124;/mean&#124;E&#124; | {row['mod_depth_before']:.3f} | "
+                f"{row['mod_depth_after']:.3f} | ×{row['mod_depth_ratio']:.2f} |",
+                f"| 변조 깊이 p-p | {row['ptp_db_before']:.1f} dB | {row['ptp_db_after']:.1f} dB | "
+                f"{row['ptp_db_after'] - row['ptp_db_before']:+.1f} dB |",
+                f"| 대역밖 절대 전력 P_out (&#124;f&#124; > f_tip) | {row['P_out_db_before']:.1f} dB | "
+                f"{row['P_out_db_after']:.1f} dB | **{row['P_out_db_delta']:+.1f} dB** |", "",
+                f"⭐ **레벨은 {abs(row['level_db_delta']):.1f} dB 움직이는 데 그쳤는데 날개끝 밖 "
+                f"바닥은 {abs(row['P_out_db_delta']):.1f} dB 내려간다.** 얼리기는 신호를 키우거나 "
+                "줄이는 조작이 아니라 **슬로타임 변조를 바로잡는** 조작이다. 내려간 만큼이 "
+                "표적의 운동이 아니라 자의 흔들림이었다.", "",
+                f"⚠ **같은 신호의 미세 수정이 아니다.** 옛 열과 새 열의 진폭 상관이 "
+                f"{row['amp_corr']:.3f}(복소 코히런스 {row['complex_coherence']:.3f})다 — "
+                "**다른 시계열**이다. 그래서 옛 판으로 그린 그림과 새 판의 숫자를 섞어 실으면 "
+                "안 된다.", ""]
+    if smy:
+        lv, ac, md_, po = (smy.get("level_db_delta") or {}), (smy.get("amp_corr") or {}), \
+            (smy.get("mod_depth_ratio") or {}), (smy.get("outofband_P_out_db_delta") or {})
+        out += [f"같은 잣대를 이 라운드에서 다시 낸 **{smy.get('n_series', 0)} 열 전부**에 "
+                f"먹이면(세 엔진 · report15b 여섯 자세 · 호버 두 프리셋): 레벨 차 중앙값 "
+                f"{lv.get('median', 0):+.2f} dB({lv.get('min', 0):+.2f} ~ {lv.get('max', 0):+.2f}) · "
+                f"진폭 상관 중앙값 {ac.get('median', 0):.3f} · 변조 깊이 후/전 비 중앙값 "
+                f"×{md_.get('median', 0):.2f} · 대역밖 절대 전력 "
+                f"**{po.get('n_decreased', 0)}/{smy.get('n_series', 0)} 열에서 감소**"
+                f"(중앙값 {po.get('median', 0):+.1f} dB · 최대 {po.get('min', 0):+.1f} dB).", "",
+                "⚠ 변조 깊이는 **항상 얕아지지 않는다** — 후/전 비의 범위가 "
+                f"×{md_.get('min', 0):.2f} ~ ×{md_.get('max', 0):.2f} 다. 격자 흔들림이 실제 "
+                "변조를 **가리고 있던** 열도 있다는 뜻이라, «얼리면 변조가 준다» 고 쓰면 틀린다. "
+                "한 방향으로 움직인 것은 대역밖 전력뿐이다.", ""]
+
+    # ④ 교차 확인 — 판을 어디에 잡든 같은가 / 스위치를 끄면 옛 원장인가
+    out += ["### 이 판을 믿을 근거 두 가지", ""]
+    if row and (pc := row.get("plate_choice_check")):
+        out += [f"**① 판의 위치에 둔하다.** 같은 «얼림» 을 다른 봉투로 잡은 판"
+                f"(`{pc['vs'].split('::')[-1]}` — 자세 {TM['n']:,} 개 전부의 합집합)과 견주면 진폭 "
+                f"상관 {pc['amp_corr']:.3f} · 레벨 차 {pc['level_db_delta']:+.3f} dB 다. "
+                f"얼림↔안얼림이 {row['amp_corr']:.3f} 인 것과 나란히 놓으면, 차이를 만든 것은 "
+                "판의 **위치**가 아니라 판이 **움직였다는 사실**이다.", ""]
+    if ogate.get("rows"):
+        n_ok = sum(1 for v in ogate["rows"].values() if v.get("bit_identical"))
+        out += [f"**② 스위치를 끄면 옛 원장이 그대로 선다.** 재계산기에서 얼리기를 끄고"
+                f"(`SIONNA2_FREEZE_GRID=0`) 자세 {ogate.get('n_poses_checked', 0)} 개를 다시 풀면 "
+                f"{n_ok}/{len(ogate['rows'])} 열이 옛 원장과 **비트 동일**하다. 자세 격자·PRF·"
+                "로터 회전수를 하나도 안 건드렸다는 증거이고, 그래서 위 표의 «전 ↔ 후» 가 "
+                "격자 하나만의 차이가 된다. 커널 자체의 기본값(`grid_ref=None`)도 배선 전과 "
+                f"{g1.get('n_bit_identical', 0)}/{g1.get('n_cases', 0)} 비트 동일이다.", ""]
+    out += [f"⭐ **격자 사다리의 예측과도 맞는다.** 사다리는 얼리면 기본↔대조 코사인이 "
+            f"{SGF['cos_prod_vs_po']:.3f} → {SGF['cos_froz_vs_po']:.3f} 로 오른다고 예측했다"
+            f"(`outputs/sbr_grid_convergence.json`). 이 편의 생산 원장을 얼린 판으로 다시 풀어 "
+            f"재면 **{cos3('sbr_vs_po')}** 다 — 독립 구현의 예측을 생산 경로가 재현했다.", ""]
+
+    # ⑤ 대가
+    out += ["### 대가", "",
+            "| 대가 | 크기 | 무엇을 뜻하나 |", "|---|---|---|"]
+    if g2:
+        out += [f"| 광선 수 | ×{g2.get('extra_ray_cost', 1):.3f} "
+                f"(+{100*(g2.get('extra_ray_cost', 1)-1):.1f} %) | 전 자세를 덮는 판이라 자세별 "
+                "최소 판의 평균보다 크다 — 계산이 그만큼 비싸진다 |"]
+    if FRZ and (fl := FRZ.get("field_level")):
+        out += [f"| 디더 평균 | 얼린 장과 생산 장의 레벨 차 "
+                f"{fl['froz_vs_prod_level_db_ptp']:.2f} dB p-p | 자세마다 굴리던 무작위 오프셋은 "
+                "사실상 몬테카를로 평균이었다. 얼리면 그 평균이 사라지고 **오프셋 한 판**에 절대 "
+                "레벨이 걸린다 — 그래서 얼린 복소장은 **모양**에만 쓰고, 절대 σ 는 정적 경로에서 "
+                "가져온다 |"]
+    if FRZ and (g3 := FRZ.get("gate3_coverage")):
+        out += [f"| 판을 미리 잡는 일 | 덮개 여유 최소 {g3['margin_min_mm']:.0f} mm | 자세열을 "
+                "먼저 훑어야 판이 나온다 — 스트리밍으로는 못 잡는다. 판이 자세를 못 덮으면 커널이 "
+                "예외를 던진다 |"]
+    out += ["", f"기전·수렴·적대 검증의 정본은 {_KERNEL_LINK} 다. 이 절은 그것을 되풀이하지 않고 "
+            "**이 편의 숫자가 그 판으로 바뀌었다**는 것만 적는다.", ""]
+
+    # ⑥ 선언
+    out += ["### 이 편의 모든 맵은 얼린 격자로 계산됐다", ""] if SBR_GRID_FROZEN else []
+    if SBR_GRID_FROZEN:
+        out += [f"⭐ 이 편(8-2)의 **SBR 팔 맵과 그 파생 수치는 전부 위의 얼린 판으로 계산됐다** — "
+                f"세 엔진 원장 `report07_three_engines.npz` 의 sbr 열 {TM['n']:,} 자세를 다시 "
+                "풀었고, 그 열을 읽는 그림(f12 · f8)과 표(깊이 · 대역밖 · 코사인)가 모두 그 "
+                "열에서 나온다. 8-3 의 맵(f1 · f4 · f7 · f11)도 같은 라운드에서 같은 방식으로 "
+                "다시 났다.", "",
+                "⚠ **같이 안 바뀐 것을 밝힌다.** ① 세 엔진 원장의 **Sionna 열과 대조군(순수 PO) "
+                "열은 다시 안 돌렸다** — 순수 PO 는 점구름 적분이라 광선 격자를 아예 안 쓰고, "
+                "Sionna 열은 몬테카를로라 다시 돌리는 것이 곧 다른 추첨이다. 두 열은 비트 그대로 "
+                "옮겼다. ② **8-5(바이스태틱)의 원장**과 PO 대조 원장은 아직 옛 판이다 — 그 편의 "
+                "해당 절에 그렇게 적혀 있다.", ""]
+    return md(*out)
 
 
 def _flash_census_para() -> list:
@@ -453,7 +674,7 @@ def build_08_2():
            "진폭·지연으로 h = Σ a_p·e^(−j2πf_cτ_p) | 경로가 열 가닥 남짓이라 재료가 성기다. "
            "프롭을 맞은 **정반사** 경로는 이 격자에서 **0 칸**(아래) |",
            f"| **Ours (SBR+PO, 기본)** | 표적에 **앵커한** λ/12(= {SG12['spacing_mm']:.1f} mm) "
-           f"격자로 평면파 조명 — 자세당 광선 {SG12['rays_per_pose']:,} 발 | 광선이 **처음 맞은 "
+           f"격자로 평면파 조명 — {_ray_count_phrase()} | 광선이 **처음 맞은 "
            "지점만** 면적분 — E = Σ&#124;Γ(θ)&#124;·e^(j2k p·û)·d² (입사 코사인은 가중이 아니라 "
            "**문지기**다: n̂·û>0 인 점만 든다. 광선을 û 로 쏘므로 셀의 투영면적이 d² 와 "
            "상쇄된다) | 가려진 면이 자동으로 빠진다 (가림이 공짜) |",
@@ -494,10 +715,17 @@ def build_08_2():
                f"{DEP['engines'][k]['p5p95_db']:.1f} dB | "
                f"{DEP['engines'][k]['ptp_over_p5p95']:.1f}× | {desc} |"
                for k, nm, desc in [
-                   ("sionna", ARM_SIONNA, "무늬가 성기고 날개끝 근처에서 잦아든다"),
+                   ("sionna", ARM_SIONNA,
+                    "얼룩이 대역을 채우고 날개끝 밖에도 남는다 — 전체 전력의 "
+                    f"{OOBE['sionna']['frac_of_total']*100:.2f} % 가 f_tip 밖"),
                    ("sbr", ARM_SBR,
-                    "⚠능선이 대역을 채우고 날개끝 밖에도 남는다"),
-                   ("po", CTRL, "능선이 몇 가닥에 그친다")]]), "",
+                    f"빗살이 또렷하다 — {OOBE['sbr']['frac_of_total']*100:.2f} % 가 f_tip 밖"
+                    "(⚠대조군보다는 여전히 "
+                    f"{OOB['three_engines_ranking']['new_P_out_absolute']['sbr_over_po_db']:.0f} "
+                    "dB 위다)"),
+                   ("po", CTRL,
+                    "빗살이 가장 좁고 날개끝에서 절벽처럼 잘린다 — "
+                    f"{OOBE['po']['frac_of_total']*100:.5f} %")]]), "",
            ("" if not (DEP and "sionna_by_range" in DEP) else
             "⚠ **이 표의 깊이를 물리량으로 인용하지 마라.** 같은 Sionna 팔을 거리만 바꿔 재면 p-p 가 "
             + " / ".join(f"{DEP['sionna_by_range'][k]['ptp_db']:.1f}"
@@ -521,12 +749,19 @@ def build_08_2():
            f"기본↔대조 **{cos3('sbr_vs_po')}** 다.", "",
            "⭐ **이 코사인이 무엇인가** — 두 팔의 슬로타임 스펙트럼을 |f| ≤ f_tip 안에서 "
            "**크기만** 취해 정규화한 뒤 내적한 값이다(위상 원점 무관 · 1 이면 같은 모양).", "",
+           _cosine_order_line(), "",
            "⚠ **세 자리를 절대 척도로 인용하지 마라 — 격자 간격에 딸려 움직인다.** 같은 두 팔을 "
            "간격만 바꿔 재면 기본↔대조가 "
-           + " · ".join(f"λ/{r['div']} {r['cos_prod_vs_po']:.3f}" for r in SGL)
-           + " 로 옮겨 다닌다(`outputs/sbr_grid_convergence.json`). 즉 이 수가 말하는 것은 "
-             "**이 실행에서의 순서**(Sionna 는 우리 기본팔과 가장 닮았고, 우리 두 팔끼리가 가장 "
-             "덜 닮았다)까지다.", "",
+           + " · ".join(f"λ/{r['div']} {r[_LADDER_KEY]:.3f}" for r in SGL)
+           + " 로 옮겨 다닌다(`outputs/sbr_grid_convergence.json` · "
+           + ("얼린 팔" if SBR_GRID_FROZEN else "자세마다 다시 정의하는 팔")
+           + "). "
+           + ("같은 사다리에서 자세마다 격자를 다시 정의하는 팔은 "
+              + f"{min(r['cos_prod_vs_po'] for r in SGL):.3f}~"
+              + f"{max(r['cos_prod_vs_po'] for r in SGL):.3f} 에 눌려 있고, 간격을 "
+                "촘촘히 해도 거기서 안 올라온다 — 그 팔의 한계는 광선 밀도가 아니었다. "
+                if SBR_GRID_FROZEN else "")
+           + "즉 이 수가 말하는 것은 **이 실행에서의 순서**까지다.", "",
            *_freeze_para(),
            "| 세 팔의 대역밖 (모노 원장) | **전체 전력** 중 f_tip 밖 몫 | 날개끝 밖 바닥 |",
            "|---|---|---|",
@@ -539,15 +774,8 @@ def build_08_2():
            "",
            "⚠ **이 칸의 정의** — 평활 없는 주기도에서 |f| > f_tip 의 전력을 **전 대역 전력**으로 "
            "나눈 몫이다(분모를 열 제목에 박아 두었다). «날개끝 밖 바닥» 은 같은 주기도의 "
-           "f_tip 밖 평균을 봉우리 대비로 적은 값이다. ⭐ 순위는 정규화가 "
-           f"정한다 — 전체 전력 대비로는 SBR 이 Sionna 보다 "
-           f"{OOB['three_engines_ranking']['sbr_over_sionna_db']['new_frac_of_total']:.1f} dB "
-           f"위이고, 대역비로 재면 Sionna "
-           f"{OOB['three_engines_ranking']['secondary_out_over_in']['values_pct']['sionna']:.1f} % "
-           f"대 SBR "
-           f"{OOB['three_engines_ranking']['secondary_out_over_in']['values_pct']['sbr']:.1f} % "
-           "로 뒤집힌다. 그 대역비를 헤드라인으로 쓰지 않는 이유는 분모 자체가 격자 잡음으로 "
-           "부풀어 있기 때문이다.", "",
+           "f_tip 밖 평균을 봉우리 대비로 적은 값이다.", "",
+           _oob_rank_line(), "",
            "" if TRR is None else "\n".join([
                "| 거리 | 광선 수 | 자세당 경로(중앙값) | 경로 0 자세 | 평균 레벨 |",
                "|---|---|---|---|---|"] + [
@@ -568,6 +796,8 @@ def build_08_2():
            "⇒ **이 표에서 인용해도 되는 것은 «빈 자세 0 %» 뿐이다**(그것은 시드에 둔감하다). "
            "원장: `outputs/probe_8m_anomaly.json`."),
 
+        _grid_anchor_cell(),
+
         md("## 블레이드 플래시를 세 엔진으로 나란히 (60 ms 확대)", "",
            "**시나리오** — 위와 **같은 원장·같은 슬로타임 격자·같은 로터 회전수**에서 60 ms 만 "
            "잘라 확대했다. 세 패널의 차이는 **산란 엔진뿐**이다. 조각은 블레이드 한 주기의 "
@@ -575,9 +805,10 @@ def build_08_2():
            embed("report07_f8"), "",
            f"⭐ 세로 아치가 블레이드 플래시이고 **{1000/TM['f_flash_hz']:.1f} ms 마다** 반복한다"
            f"(= f_flash {TM['f_flash_hz']:.0f} Hz). 세 엔진이 그 주기를 같이 낸다는 것이 "
-           "이 그림의 첫 확인이다. 모양은 갈린다 — 가림을 켠 우리 기본팔은 아치가 굵고 도플러축으로 "
-           "넓게 퍼지고, 가림을 끈 대조군은 좁고 또렷한 점처럼 떨어지며, Sionna 는 아치라기보다 "
-           "얼룩에 가깝다.", "",
+           "이 그림의 첫 확인이다. 모양은 갈린다 — **우리 두 팔은 같은 자리에 같은 아치를 "
+           f"낸다**(대역 안 코사인 {cos3('sbr_vs_po')}). 가림을 켠 기본팔의 아치가 도플러축으로 "
+           "조금 더 넓게 번지고 날개끝 선 위로 옅은 꼬리를 남기는 것이 둘의 남은 차이이며, "
+           "Sionna 는 아치라기보다 얼룩에 가깝다.", "",
            *_flash_census_para(),
            "⭐ **시간 분해능을 주파수 분해능보다 앞세운다.** 조각을 한 주기보다 길게 잡으면 "
            "플래시는 그 안에서 평균돼 사라지고 가로 능선만 남는다. 그래서 조각을 "
@@ -607,7 +838,12 @@ def build_08_2():
            "무늬 세부를 위 맵들과 직접 견주면 안 된다."),
 
         md("## 이 편이 서 있는 자리", "",
-           "세 엔진이 **같은 주기**를 내고 **모양이 갈린다**. 그 갈림의 원인은 가림과 경로 수다.", "",
+           "세 엔진이 **같은 주기**를 낸다. 모양은 **우리 두 팔끼리 거의 같고**"
+           f"(대역 안 코사인 {cos3('sbr_vs_po')}) 남은 갈림은 가림이 만든다. "
+           f"Sionna 는 둘 모두에서 떨어져 있고({cos3('sionna_vs_sbr')} · "
+           f"{cos3('sionna_vs_po')}) 그 원인은 경로 수 — 프롭 정반사가 이 격자에서 0 칸이다.", "",
+           "⭐ 그리고 그 «거의 같다» 는 **광선 격자를 얼린 뒤에** 나온 자리다. 자를 자세마다 "
+           "다시 놓던 판에서는 같은 두 팔이 훨씬 덜 닮았다 — **절 «광선 격자를 어디에 매나»**.", "",
            "| 다음 | 무엇을 답하나 |", "|---|---|",
            "| [08_3 무늬를 정하는 것](08_3_pattern.ipynb) | 회전수·가림·산포가 무늬를 어떻게 바꾸나 |",
            "| [08_4 무엇을 잴 수 있나](08_4_sampling.ipynb) | 이 계산을 얼마나 멀리·얼마나 자주 할 수 있나 |",
@@ -625,16 +861,7 @@ def build_08_3():
         md("# 리포트 8-3 — 마이크로도플러: 무엇이 무늬를 정하나", "", NAV, "",
            "> **회전수·가림·산포 세 가지가 무늬를 정한다.** 각각을 갈라서 얼마나 바꾸는지 잰다.", "",
            "엔진 비교는 [08_2](08_2_engines.ipynb) 가 했다. 이 편은 **표적 쪽 요인**만 다룬다.", "",
-           "⚠ **이 편의 맵이 어떤 광선 격자 위에 서 있나.** 우리 SBR 팔은 광선 격자의 "
-           "중심·반경·칸수를 자세마다 표적 경계상자에서 다시 잡는다. 프로펠러가 돌면 "
-           "경계상자가 바뀌므로 격자도 프레임마다 조금씩 움직이고, 마이크로도플러는 프레임 "
-           "사이의 위상차로 재는 양이라 그 움직임이 슬로타임에 **광대역 바닥**으로 실린다. "
-           "커널에는 격자를 한 판으로 얼려 두는 배선(`grid_ref`)이 있고, 얼리면 슬로타임 "
-           f"스펙트럼의 대역밖 절대 전력이 λ/12 에서 "
-           f"{OOB['freeze_verdict']['gains_db']['12']:.1f} dB 내려간다. "
-           "**이 편의 맵과 수치는 아직 그 배선을 안 넘긴 계산이다 — ⏳재계산 대기.** "
-           "기전과 대가는 [리포트 5 «우리 커널 — 무엇이고, 무엇이 아닌가»](05_kernel.ipynb) 가 "
-           "잰다.", "",
+           _grid_state_08_3(), "",
            LEDGER_NOTE),
 
         md("## 회전수가 같으면 무늬가 시간에 안 변한다", "",
@@ -832,24 +1059,35 @@ def build_08_4():
 
         md("## 부록 — 그림별 데이터 이력", "",
            "그림마다 딛고 선 원장과 그 시점이 다르다. ⭐**원장의 PRF 가 다르면 시간 분해능도 "
-           "다르다** — 그래서 그림마다 선명도가 갈릴 수 있다.", "",
-           "| 그림 | 편 | 원장 | 생성 | PRF |", "|---|---|---|---|---|",
-           f"| 애니메이션 · f0 · f0c | 08_1 | 렌더(수치 없음) | 2026-08-10 | — |",
-           f"| f12 · f8 · f2 | 08_2 | `report07_three_engines.json` | "
-           f"{TM['generated'][:16]} | {TM['prf_hz']:.0f} Hz |",
-           f"| f1 · f4 · f3 | 08_3 | `report15b_microdoppler.json` | "
-           f"{MDB['_meta']['generated'][:16]} | {PH['prf']:.0f} Hz |",
-           f"| f7 | 08_3 | `report07_hover_long.json` | {HOV['generated'][:16]} | "
-           f"{HOV['prf_hz']:.0f} Hz |",
+           "다르다** — 그래서 그림마다 선명도가 갈릴 수 있다. 마지막 칸은 그 원장의 우리 팔이 "
+           "어떤 **광선 격자**로 풀렸는가다(**절 [«광선 격자를 어디에 매나»](08_2_engines.ipynb)**).", "",
+           "| 그림 | 편 | 원장 | 생성 | PRF | 광선 격자 |", "|---|---|---|---|---|---|",
+           f"| 애니메이션 · f0 · f0c | 08_1 | 렌더(수치 없음) | 2026-08-10 | — | — |",
+           f"| f12 · f8 | 08_2 | `report07_three_engines.json` | "
+           f"{_stamp(TM)} | {TM['prf_hz']:.0f} Hz | {_PLATE_TRI} |",
+           f"| f2 | 08_2 | `report15_verdict.json` | {VERD['meta']['stamp'][:10]} | — | "
+           "광선 안 씀(순수 PO ↔ Sionna) |",
+           f"| f1 · f4 | 08_3 | `report15b_microdoppler.json` | "
+           f"{_stamp(MDB['_meta'])} | {PH['prf']:.0f} Hz | {_PLATE_R15B} |",
+           "| f3 | 08_3 | 밴드별 변조 깊이(그림 빌더에 박힌 2026-08-07 실측) | 2026-08-07 | — | "
+           "⚠자세마다 다시 정의 |",
+           f"| f7 | 08_3 | `report07_hover_long.json` | {_stamp(HOV)} | "
+           f"{HOV['prf_hz']:.0f} Hz | {_PLATE_HOV} |",
            ("" if HOD is None else
-            f"| f11 | 08_3 | `report07_hover_long_outdoor.json` | {HOD['generated'][:16]} | "
-            f"{HOD['prf_hz']:.0f} Hz |"),
+            f"| f11 | 08_3 | `report07_hover_long_outdoor.json` | {_stamp(HOD)} | "
+            f"{HOD['prf_hz']:.0f} Hz | {_PLATE_HOD} |"),
            ("" if not _HAS_F13 else
-            "| f13 | 08_3 | `rotor_log_traces.json` (공개 비행로그) | 2026-08-10 | 로그 원본 |"),
+            "| f13 | 08_3 | `rotor_log_traces.json` (공개 비행로그) | 2026-08-10 | 로그 원본 | "
+            "— (측정 로그) |"),
            f"| f9 | 08_4 | `report07_ray_budget_test.json` + `report07_sionna_ranges.json` | "
-           f"{RGM['generated'][:16]} | {RGM['prf_hz']:.0f} Hz |",
-           f"| f10 | 08_4 | `report07_5g_waveform.json` | {WM['generated'][:16]} | 팔마다 다름 |",
+           f"{RGM['generated'][:16]} | {RGM['prf_hz']:.0f} Hz | Sionna 팔(광선 격자 무관) |",
+           f"| f10 | 08_4 | `report07_5g_waveform.json` | {WM['generated'][:16]} | 팔마다 다름 | "
+           f"{_PLATE_HOV} — 채널열이 `report07_hover_long` |",
            "",
+           "⚠ **f3 만 옛 판이다** — 밴드별 변조 깊이는 그림 빌더 안에 2026-08-07 실측값으로 "
+           "박혀 있고, 그 실측은 자세마다 격자를 다시 정의하던 판에서 났다. 그 그림의 논지"
+           "(«블레이드는 강한데 동체가 덮는다» · 프롭 채널 ↔ 전체 드론)는 두 채널을 **같은 판**"
+           "에서 비교한 것이라 유지되지만, **깊이의 절대 dB 는 인용하지 마라**.", "",
            "**표시 규약**(8-1~8-4 의 맵 공통 · 8-5 도 같은 규약이다) — 조각 = 블레이드 **0.45 주기**"
            "(`md_mapstyle.auto_periods` 가 고르는 값 · 조각이 24 표본 아래로 내려가면 0.6 으로 "
            "물러난다) · hop 2 · 제로패딩 8 배 · Hann · gouraud · jet · 색역 0~−40 dB · "
@@ -861,16 +1099,26 @@ def build_08_4():
            f"Δt {0.45/TM['f_flash_hz']*1e3:.2f} ms · Δf {TM['f_flash_hz']/0.45:.0f} Hz. "
            "«플래시 대비가 최대» 라는 표는 독립 재구현에서 재현되지 않아 내렸다.", "",
            "**재현**", "", "```bash",
+           "# 광선 격자 — 기본은 얼림. 0 이면 옛 판(자세마다 다시 정의)이 그대로 나온다.",
+           "export SIONNA2_FREEZE_GRID=1",
            "# 원장 재계산(GPU)",
            "PYTHONPATH=src python benchmark/report07_three_engine_maps.py --n 4096   # SIONNA2_MD_PRF_MULT=16",
            "PYTHONPATH=src python benchmark/report07_hover_long.py --sec 2.0",
            "PYTHONPATH=src python benchmark/report15b_microdoppler_recompute.py",
            "PYTHONPATH=src python benchmark/report07_ray_budget_test.py",
+           "# 파생 원장(계산 없음 — 디스크에서 다시 잰다)",
+           "PYTHONPATH=src python benchmark/ledger_ptp_robust.py",
+           "PYTHONPATH=src python benchmark/ledger_outofband_power.py",
            "# 그림",
-           "PYTHONPATH=src python benchmark/build_three_engine_ranges_fig.py",
-           "PYTHONPATH=src python benchmark/build_flash_zoom.py",
-           "PYTHONPATH=src python benchmark/build_range_sweep_fig.py",
-           "PYTHONPATH=src python benchmark/build_5g_fig.py",
+           "PYTHONPATH=src python benchmark/build_three_engine_fig.py        # f5 + 코사인 판정",
+           "PYTHONPATH=src python benchmark/build_three_engine_ranges_fig.py  # f12",
+           "PYTHONPATH=src python benchmark/build_flash_zoom.py               # f8",
+           "PYTHONPATH=src python benchmark/build_report07_figs.py            # f1~f4",
+           "PYTHONPATH=src python benchmark/build_hover_fig.py                # f7",
+           "PYTHONPATH=src python benchmark/build_hover_compare_fig.py        # f11",
+           "PYTHONPATH=src python benchmark/build_rotor_log_fig.py            # f13",
+           "PYTHONPATH=src python benchmark/build_range_sweep_fig.py          # f9",
+           "PYTHONPATH=src python benchmark/build_5g_fig.py                   # f10",
            "# 이 빌더가 내는 네 편(08_1~08_4) — 08_5 는 src/make_report07b_bistatic.py",
            "PYTHONPATH=src python src/make_report08_microdoppler.py",
            "```"),

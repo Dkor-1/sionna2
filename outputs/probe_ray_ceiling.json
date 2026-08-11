@@ -1,0 +1,48 @@
+{
+ "_meta": {
+  "generator": "benchmark/probe_ray_ceiling.py",
+  "question_ko": "PathSolver 가 한 번에 쏠 수 있는 광선 수의 상한",
+  "source_ko": "sb_candidate_generator.py:285 spawn_ray_from_sources 가 광선을 한 번에 전부 할당한다(내부 청킹 없음). sample_data.py:77 이 샘플당 스레드 로컬 버퍼를 max_depth 만큼 잡는다. ⇒ 알고리즘 상한이 아니라 GPU 메모리가 상한이다.",
+  "caveat_ko": "다른 작업이 같은 카드를 쓰면 상한이 내려간다. 이 값은 «이 카드에서 이 여유일 때» 의 상한이다.",
+  "gpu": 2,
+  "gpu_total_mib": 24564,
+  "gpu_used_at_start_mib": 8597,
+  "scene": "matrice4e · 40 m · max_depth 1 · 확산 켬",
+  "ladder": [
+   4000000000,
+   4294967295,
+   4294967296,
+   4400000000
+  ]
+ },
+ "rows": [
+  {
+   "spp": 4000000000,
+   "spp_m": 4000.0,
+   "ok": true,
+   "seconds": 1.1,
+   "n_paths": 199,
+   "gpu_used_before_mib": 8597,
+   "gpu_used_after_mib": 8597,
+   "error": ""
+  },
+  {
+   "spp": 4294967295,
+   "spp_m": 4294.967295,
+   "ok": false,
+   "seconds": 6.7,
+   "n_paths": null,
+   "gpu_used_before_mib": 8597,
+   "gpu_used_after_mib": 8597,
+   "error": "RuntimeError: [Sampler] Sampler::seed(): wavefront_size should be specified!"
+  }
+ ],
+ "verdict": {
+  "max_ok_spp": 4000000000,
+  "max_ok_spp_m": 4000.0,
+  "first_fail_spp": 4294967295,
+  "first_fail_spp_m": 4294.967295,
+  "deck_40m_spp": 178000000,
+  "headroom_vs_deck": 22.471910112359552
+ }
+}

@@ -286,19 +286,28 @@ def main():
         secondary_out_over_in=dict(
             order=rank("out_over_in_ratio_SECONDARY"),
             values_pct={r["label"]: 100 * r["out_over_in_ratio_SECONDARY"] for r in eng_rows},
-            warning=("⚠ 이것이 **순위를 뒤집는 칸**이다 — SBR 16.7 % ↔ Sionna 29.8 %. "
-                     "분모 P_in 이 SBR 에서는 격자 잡음으로 부풀어 있어서 그렇다. "
-                     "헤드라인으로 쓰지 마라.")),
+            warning=(
+                ("⚠ 이것이 **순위를 뒤집는 칸**이다 — "
+                 if rank("out_over_in_ratio_SECONDARY") != rank("frac_of_total") else
+                 "⚠ 이 칸은 헤드라인과 **같은 순서**다(격자를 얼리기 전에는 뒤집혔다) — ")
+                + f"SBR {100*E['sbr']['out_over_in_ratio_SECONDARY']:.1f} % ↔ Sionna "
+                  f"{100*E['sionna']['out_over_in_ratio_SECONDARY']:.1f} %. "
+                  "분모 P_in 이 광선 팔에서는 격자 잡음으로 부풀 수 있다. "
+                  "헤드라인으로 쓰지 마라.")),
         verdict=(
             f"옛 잣대(SBR {100*E['sbr']['old_frac_power_beyond_ftip']:.2f} % · "
             f"Sionna {100*E['sionna']['old_frac_power_beyond_ftip']:.2f} % · "
             f"PO {100*E['po']['old_frac_power_beyond_ftip']:.2f} %)는 «동체 DC 대비» 였다. "
             f"새 헤드라인 `frac_of_total` 로는 SBR {100*E['sbr']['frac_of_total']:.2f} % · "
             f"Sionna {100*E['sionna']['frac_of_total']:.2f} % · "
-            f"PO {100*E['po']['frac_of_total']:.5f} % 로 **순서는 그대로지만 값이 전부 바뀌고 "
-            f"SBR↔Sionna 간격이 {_db(E['sbr']['old_frac_power_beyond_ftip'] / E['sionna']['old_frac_power_beyond_ftip']):.1f} dB "
-            f"에서 {_db(E['sbr']['frac_of_total'] / E['sionna']['frac_of_total']):.1f} dB 로 벌어진다**. "
-            "반면 대역비(P_out/P_in)로 읽으면 순위가 **뒤집힌다** — 그래서 비율을 안 쓴다."),
+            f"PO {100*E['po']['frac_of_total']:.5f} % 다. SBR↔Sionna 간격은 "
+            f"{_db(E['sbr']['old_frac_power_beyond_ftip'] / E['sionna']['old_frac_power_beyond_ftip']):.1f} dB "
+            f"에서 {_db(E['sbr']['frac_of_total'] / E['sionna']['frac_of_total']):.1f} dB 로 옮겨간다"
+            f"(순서는 {'그대로' if rank('frac_of_total') == rank('old_frac_power_beyond_ftip') else '바뀐다'}). "
+            + ("대역비(P_out/P_in)로 읽으면 순위가 **뒤집힌다** — 그래서 비율을 안 쓴다."
+               if rank("out_over_in_ratio_SECONDARY") != rank("frac_of_total") else
+               "대역비(P_out/P_in)로 읽어도 지금은 같은 순서다 — 그래도 분모가 격자 잡음에 "
+               "걸리므로 헤드라인은 분모를 이름에 박은 `frac_of_total` 로만 쓴다.")),
         sbr_over_sionna_db=dict(
             old_frac=_db(E["sbr"]["old_frac_power_beyond_ftip"]
                          / E["sionna"]["old_frac_power_beyond_ftip"]),
