@@ -65,23 +65,28 @@ NOTES = {
     2: "Today I show micro-Doppler maps of a hovering drone, computed two ways: "
        "with Sionna's Path Solver, and with our own SBR plus physical optics kernel.",
 
-    3: "The target is a DJI Matrice 4E. Each rotor spins at a fixed speed near 3,800 RPM, "
-       "which I got from a published thrust measurement. The four rotors differ slightly "
-       "from each other, and that spread comes from Ji-hyuk's prior work. "
-       "These are hand-set constant values, not measured from a real flight. "
-       "Better rotor modelling is future work.",
+    3: "The target is a DJI Matrice 4E. Each rotor spins at a fixed speed near 3,800 RPM. "
+       "That is a calculated value, not a measured one. I solved a thrust balance from the "
+       "drone's weight and propeller size, using a thrust coefficient that NASA measured for "
+       "this class of rotor. The four rotors differ slightly from each other, and that spread "
+       "comes from Ji-hyuk's prior work. These are hand-set constant values, not taken from a "
+       "real flight. Better rotor modelling is future work.",
 
-    4: "Sionna's Path Solver spreads rays evenly over the full sphere from the transmitter. "
-       "When a ray hits a surface it picks up that material's reflection coefficient, "
-       "and the result comes from the few paths that actually come back.\n\n"
+    4: "Sionna's Path Solver launches rays isotropically from the transmitter, that is, "
+       "evenly in every direction. When a ray hits a surface it picks up that material's "
+       "reflection coefficient, and the result comes from the few paths that actually "
+       "come back.\n\n"
        "Our kernel does something different. We shoot a grid of parallel rays at the target, "
        "take the first point each ray hits, and sum the physical optics scattering integral "
        "over those points. For parts we treat as transmissive, the ray passes through, "
        "and we add the echo from the metal inside, scaled by how much gets through.",
 
-    5: "The centre frequency is 3.5 GHz, a standard 5G band. I kept the waveform simple, "
-       "a continuous wave. For the STFT: window 70 samples, about 3.6 milliseconds; "
-       "hop 2 samples; FFT size 560.\n\n"
+    5: "The centre frequency is 3.5 GHz, a standard 5G band. For the waveform I used a simple "
+       "continuous wave. This is an early experiment, and CW is the easiest thing to work "
+       "with. What I want to see first is the micro-Doppler itself, so I did not need a more "
+       "complicated waveform yet.\n\n"
+       "For the STFT: window 70 samples, about 3.6 milliseconds; hop 2 samples; "
+       "FFT size 560.\n\n"
        "The bottom figure is made in two steps. First I take the energy in the 430 to "
        "1229 Hz band, which is above the body and belongs to the blade tips. Then I ask "
        "how that energy rises and falls over time, and take its spectrum.\n\n"
@@ -94,14 +99,16 @@ NOTES = {
        "At 40 metres its map changes, and I will come back to why.",
 
     7: "This is the band energy for each range. One thing stands out in the harmonics. "
-       "With our kernel the peaks fall off steadily as you go up. With the Path Solver, "
-       "the second harmonic often comes out almost as strong as the fundamental, "
-       "and sometimes stronger.",
+       "With our PO approach, the peak height gradually decreases as we move to the higher "
+       "harmonics. With the Path Solver, the second harmonic often comes out almost as high "
+       "as the first one, and sometimes higher.",
 
-    8: "At 40 metres I ran the Path Solver again with only the random seed changed. "
-       "The map depends on the seed. One seed puts the strongest line on the second "
-       "harmonic instead of the fundamental.\n\n"
-       "Our kernel has no randomness. Same distance, same pose, same answer every time.",
+    8: "At 40 metres I ran the Path Solver again, changing only the random seed. "
+       "Even with the same drone, the same pose and the same orientation, the seed changes "
+       "the result. One seed puts the strongest line on the second harmonic instead of "
+       "the first one.\n\n"
+       "Our PO approach has no randomness. Same pose, same orientation, "
+       "same answer every time.",
 
     # ⭐새 슬라이드 — 사용자 지시대로 아주 짧게
     9: "One last thing. I raised the ray count to the maximum the solver allows. "
