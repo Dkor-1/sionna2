@@ -3,7 +3,8 @@
 make_0811_v20.py — **v19 에서 v20 을 짓는다.** 두 가지만 한다.
 
   ① 발표 대본(notes)을 전부 갈아끼운다 — 사실 오류 다섯 건 정정 + 짧고 쉬운 문장으로.
-  ② **Future work 바로 앞에 슬라이드 한 장**을 새로 끼운다 — 40 억 발 광선 결과.
+  ② **Future work 바로 앞에 슬라이드 두 장**을 새로 끼운다 —
+     [9] 광선 예산(1.78 억 발 ↔ 40 억 발, 시드 2 개씩) · [10] 40 억 발 ↔ 우리 PO 나란히.
 
 사용자(2026-08-11)
 > "v20 만들 때 방금 만든 raybudget_40m 실어서. 대본은 팀미팅 직전에 시뮬레이션이 끝난
@@ -13,12 +14,14 @@ make_0811_v20.py — **v19 에서 v20 을 짓는다.** 두 가지만 한다.
 >  방금 전 확인 가능했다 정도만."
 
 ⛔ v19 는 **안 건드린다.** 새 파일 v20 을 만든다.
-⛔ 기존 아홉 장의 **그림·본문·레이아웃은 한 글자도 안 바꾼다.**
+⛔ 기존 아홉 장의 **그림·본문·레이아웃은 한 글자도 안 바꾼다.** (쪽번호 /9 → /11 만 예외)
 
 ■ 새 슬라이드를 어떻게 만드나
 슬라이드 8("TWICE")을 **XML 통째로 복제**해 틀로 쓴다. 새로 그리지 않는 이유는 이 덱의
 활자·색·여백이 빌더가 아니라 파일 안에 있어서, 손으로 다시 만들면 미세하게 어긋나기
-때문이다. 복제 뒤 그림만 갈아 끼우고 세 군데 글자를 바꾼다.
+때문이다. 복제 뒤 그림만 갈아 끼우고 세 군데 글자(태그·제목·결론띠)를 바꾼다.
+그림은 틀 안에 **비율 유지로** 넣고 가로·세로 모두 가운데 정렬한다 —
+가로로 넓은 것은 폭이, 덜 넓은 것은 높이가 먼저 걸린다.
 
 ■ 정정한 대본 다섯 (전부 사실 오류)
  1. [3] "hard-coded **randomized** values" — 난수가 아니다. 원장 `rpm_per_rotor` 는
@@ -30,6 +33,9 @@ make_0811_v20.py — **v19 에서 v20 을 짓는다.** 두 가지만 한다.
  4. [5] "밴드 430–1229 Hz 인데 피크가 127 Hz" — 그대로 들으면 자기모순이다. 대역 전력을
     **시간축으로 다시 FFT** 한 것이라는 두 단계를 명시했다.
  5. [6] "patterns remained highly consistent" — 우리 커널에서만 참이다.
+ ⭐추가(사용자 지시): [3] 은 3,800 의 계산 과정을 **설명하지 않는다**. «계산값이지
+    실측이 아니다» 까지만 말한다. [4] 는 "isotropically" 표현을 유지한다.
+    [5] 는 CW 를 쓴 이유(초기 실험·다루기 쉬움·목적이 마이크로도플러 자체)를 넣는다.
 
     /home/yunjung/.venvs/py312/bin/python teammeeting_0811/make_0811_v20.py
 """
@@ -47,30 +53,36 @@ TM = "/home/yunjung/workspace/team_meeting"
 SIONNA2 = "/home/yunjung/workspace/sionna2"
 SRC = f"{TM}/teammeeting_0811_v19.pptx"
 DST = f"{TM}/teammeeting_0811_v20.pptx"
-FIG = f"{SIONNA2}/outputs/figures/raybudget_40m_deck.png"
 
 TEMPLATE_IDX = 7          # 0-기준. 슬라이드 8 "TWICE" — 제목 + 큰 그림 + 결론띠
-INSERT_AT = 8             # 0-기준. Future work(현 index 8) 바로 **앞**
+INSERT_AT = 8             # 0-기준. Future work(현 index 8) 바로 **앞**부터 차례로 끼운다
 
-# 새 슬라이드에서 갈아 끼울 글자 — {옛 문구: 새 문구}
-NEW_TEXT = {
-    "TWICE": "RAY BUDGET",
-    "Forty metres, repeated runs": "More rays, cleaner background",
-    "Only the random start differs between these runs.":
-        "Pushing the ray budget to its maximum cleaned up the background.",
-}
+# 틀 슬라이드의 글자 세 자리 — 이것을 열쇠로 갈아 끼운다
+K_TAG = "TWICE"
+K_TITLE = "Forty metres, repeated runs"
+K_BAR = "Only the random start differs between these runs."
 
-# 최종 10 장 기준 대본
+# 끼워 넣을 슬라이드 — INSERT_AT 부터 이 순서대로 들어간다
+NEW_SLIDES = [
+    dict(tag="RAY BUDGET",
+         title="More rays, cleaner background",
+         bar="Pushing the ray budget to its maximum cleaned up the background.",
+         fig=f"{SIONNA2}/outputs/figures/raybudget_40m_deck.png"),
+    dict(tag="SIDE BY SIDE",
+         title="The two engines at forty metres",
+         bar="Same distance, same drone. Ours repeats exactly, the Path Solver does not.",
+         fig=f"{SIONNA2}/outputs/figures/raybudget_40m_vs_ours.png"),
+]
+
+# 최종 11 장 기준 대본
 NOTES = {
     2: "Today I show micro-Doppler maps of a hovering drone, computed two ways: "
        "with Sionna's Path Solver, and with our own SBR plus physical optics kernel.",
 
     3: "The target is a DJI Matrice 4E. Each rotor spins at a fixed speed near 3,800 RPM. "
-       "That is a calculated value, not a measured one. I solved a thrust balance from the "
-       "drone's weight and propeller size, using a thrust coefficient that NASA measured for "
-       "this class of rotor. The four rotors differ slightly from each other, and that spread "
-       "comes from Ji-hyuk's prior work. These are hand-set constant values, not taken from a "
-       "real flight. Better rotor modelling is future work.",
+       "That is a calculated value, not something I measured. The four rotors differ slightly "
+       "from each other, and that spread comes from Ji-hyuk's prior work. These are hand-set "
+       "constant values, not taken from a real flight. Better rotor modelling is future work.",
 
     4: "Sionna's Path Solver launches rays isotropically from the transmitter, that is, "
        "evenly in every direction. When a ray hits a surface it picks up that material's "
@@ -110,13 +122,18 @@ NOTES = {
        "Our PO approach has no randomness. Same pose, same orientation, "
        "same answer every time.",
 
-    # ⭐새 슬라이드 — 사용자 지시대로 아주 짧게
+    # ⭐새 슬라이드 둘 — 사용자 지시대로 아주 짧게
     9: "One last thing. I raised the ray count to the maximum the solver allows. "
        "It takes a long time to run, so I only got the result just before this meeting. "
        "The background is much cleaner.\n\n"
        "[if asked] The seed still decides which harmonic comes out strongest.",
 
-    10: "For my future work, I want to make the simulation more realistic. "
+    10: "And here they are next to each other at 40 metres. Two Path Solver runs with the "
+        "full ray budget, and our PO result.\n\n"
+        "[if asked] The blade lines land in the same place. What changes between the two "
+        "Path Solver runs is only the random seed.",
+
+    11: "For my future work, I want to make the simulation more realistic. "
         "I have three directions.\n\n"
         "First, the rotor speeds. Right now each rotor turns at a hard-coded value, and the "
         "spread between them comes from a flight simulator, not from a real drone. I want to "
@@ -177,15 +194,15 @@ def move_slide(prs, frm: int, to: int) -> None:
 
 
 def main() -> None:
-    for f in (SRC, FIG):
+    need = [SRC] + [s["fig"] for s in NEW_SLIDES]
+    for f in need:
         if not os.path.exists(f):
             raise SystemExit(f"❌ {f} 가 없다")
     shutil.copy2(SRC, DST)
     prs = Presentation(DST)
     n0 = len(prs.slides)
-    print(f"═══ v19({n0} 장) → v20\n")
+    print(f"═══ v19({n0} 장) → v20 · 새 슬라이드 {len(NEW_SLIDES)} 장\n")
 
-    # ── ① 새 슬라이드 ───────────────────────────────────────────────────────
     tmpl = prs.slides[TEMPLATE_IDX]
     pic_box = next(((s.left, s.top, s.width, s.height) for s in tmpl.shapes
                     if s.shape_type == 13), None)
@@ -193,32 +210,38 @@ def main() -> None:
         raise SystemExit("❌ 틀 슬라이드에 그림이 없다")
     L, T, W, H = pic_box
 
-    new = clone_slide(prs, TEMPLATE_IDX)
+    # ── ① 새 슬라이드들 ─────────────────────────────────────────────────────
+    for k, spec in enumerate(NEW_SLIDES):
+        new = clone_slide(prs, TEMPLATE_IDX)
 
-    # 그림 — 폭을 틀에 맞추고 높이는 원본 비율대로. 틀 안에서 세로 가운데.
-    iw, ih = Image.open(FIG).size
-    w = W
-    h = int(round(W * ih / iw))
-    top = T + (H - h) // 2
-    new.shapes.add_picture(FIG, L, top, width=w, height=h)
-    print(f"  그림  {os.path.basename(FIG)}  {iw}x{ih} (비율 {iw/ih:.2f}:1)")
-    print(f"        놓은 자리 L{Emu(L).inches:.2f} T{Emu(top).inches:.2f} "
-          f"W{Emu(w).inches:.2f} H{Emu(h).inches:.2f} in  (틀 H{Emu(H).inches:.2f})")
+        # 그림 — 틀 **안에** 비율 유지로 넣고 가로·세로 모두 가운데.
+        #   폭이 걸리면 폭에, 높이가 걸리면 높이에 맞춘다.
+        iw, ih = Image.open(spec["fig"]).size
+        ar = iw / ih
+        if W / H > ar:                                 # 높이가 먼저 걸린다
+            h, w = H, int(round(H * ar))
+        else:                                          # 폭이 먼저 걸린다
+            w, h = W, int(round(W / ar))
+        left, top = L + (W - w) // 2, T + (H - h) // 2
+        new.shapes.add_picture(spec["fig"], left, top, width=w, height=h)
 
-    hit = 0
-    for shp in new.shapes:
-        if not shp.has_text_frame:
-            continue
-        cur = shp.text_frame.text.strip()
-        if cur in NEW_TEXT:
-            set_text(shp.text_frame, NEW_TEXT[cur])
-            print(f"  글자  {cur!r} → {NEW_TEXT[cur]!r}")
-            hit += 1
-    if hit != len(NEW_TEXT):
-        raise SystemExit(f"❌ 글자 교체 {hit}/{len(NEW_TEXT)} — 틀이 바뀌었다")
+        swap = {K_TAG: spec["tag"], K_TITLE: spec["title"], K_BAR: spec["bar"]}
+        hit = 0
+        for shp in new.shapes:
+            if not shp.has_text_frame:
+                continue
+            cur = shp.text_frame.text.strip()
+            if cur in swap:
+                set_text(shp.text_frame, swap[cur])
+                hit += 1
+        if hit != len(swap):
+            raise SystemExit(f"❌ 글자 교체 {hit}/{len(swap)} — 틀이 바뀌었다")
 
-    move_slide(prs, n0, INSERT_AT)                     # 맨 뒤 → Future work 앞
-    print(f"\n  자리  맨 뒤({n0 + 1}) → {INSERT_AT + 1} 번째 (Future work 바로 앞)")
+        move_slide(prs, len(prs.slides) - 1, INSERT_AT + k)
+        print(f"  [{INSERT_AT + k + 1:>2}] {spec['tag']:<12} {spec['title']}")
+        print(f"       {os.path.basename(spec['fig'])}  {iw}x{ih} ({ar:.2f}:1) → "
+              f"W{Emu(w).inches:.2f} H{Emu(h).inches:.2f} in "
+              f"(틀 W{Emu(W).inches:.2f} H{Emu(H).inches:.2f})")
 
     # ── ② 쪽번호 총장수 "/9" → "/10" ────────────────────────────────────────
     n1 = len(prs.slides)
@@ -250,7 +273,8 @@ def main() -> None:
 
     # ── 검산 ───────────────────────────────────────────────────────────────
     a, b = Presentation(SRC), Presentation(DST)
-    order = [i for i in range(n1) if i != INSERT_AT]        # 새 장을 뺀 나머지
+    inserted = set(range(INSERT_AT, INSERT_AT + len(NEW_SLIDES)))
+    order = [i for i in range(n1) if i not in inserted]     # 새 장을 뺀 나머지
 
     def body(slide):
         """본문 글자만. **쪽번호 자리표시자는 뺀다** — «/9 → /10» 은 의도한 변경이다."""
@@ -275,13 +299,14 @@ def main() -> None:
                     print(f"     v19[{j}] {x[:70]!r}\n     v20[{k}] {y[:70]!r}")
     notes_ok = all(b.slides[i - 1].notes_slide.notes_text_frame.text.strip() == v.strip()
                    for i, v in NOTES.items())
-    n_pic = sum(1 for sh in b.slides[INSERT_AT].shapes if sh.shape_type == 13)
+    n_pic = [sum(1 for sh in b.slides[i].shapes if sh.shape_type == 13)
+             for i in sorted(inserted)]
 
-    print(f"\n  장수 {n0} → {n1} · 새 장에 그림 {n_pic} 개"
+    print(f"\n  장수 {n0} → {n1} · 새 장 그림 {n_pic}"
           f" · 기존 장 본문 불변 {'✅' if same_body else '❌'}"
           f" · 대본 되읽기 {'✅' if notes_ok else '❌'}")
     print(f"\n✅ {DST}  ({os.path.getsize(DST):,} B)")
-    if not (same_body and notes_ok and n_pic == 1):
+    if not (same_body and notes_ok and n_pic == [1] * len(NEW_SLIDES)):
         raise SystemExit("❌ 검산 실패 — 이 v20 을 쓰지 마라")
 
 

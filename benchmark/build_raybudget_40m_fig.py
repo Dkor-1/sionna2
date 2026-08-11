@@ -245,6 +245,36 @@ def main() -> None:
     plt.close(figd)
     print(f"\n✅ {OUT_STRIP}  (덱용 가로판)")
 
+    # ── 덱용 나란히판 — 40 억 발 PathSolver ↔ 우리 PO ────────────────────────
+    # 사용자(2026-08-11): "40 억 발 쏜 거랑 PO 로 뽑은 STFT 결과물 같이 나란히"
+    OZ = np.load(f"{ROOT}/outputs/deck_ours_by_range.npz")
+    E_ours = OZ["R40/E"]
+    C_OURS = "#1f5fa8"                                # 덱의 «우리 팔» 색
+    figs = plt.figure(figsize=(22.0, 8.2))
+    gss = figs.add_gridspec(1, 4, width_ratios=[1, 1, 1, 0.028],
+                            wspace=0.09, left=0.055, right=0.965, top=0.865, bottom=0.115)
+    ms = None
+    panels = [(data[("4.0e9", 1)][0]["E"], "Sionna Path Solver\n4,000 M rays  ·  seed 1", C_HI),
+              (data[("4.0e9", 2)][0]["E"], "Sionna Path Solver\n4,000 M rays  ·  seed 2", C_HI),
+              (E_ours,                     "Ours (SBR + PO)\nno randomness",              C_OURS)]
+    for c, (E, ttl, col) in enumerate(panels):
+        ax = figs.add_subplot(gss[0, c])
+        ms = _map(ax, E)
+        ax.set_title(ttl, color=col, fontweight="bold", fontsize=FS + 4, pad=10)
+        ax.set_xlabel("Time [ms]", fontsize=FS + 2)
+        if c == 0:
+            ax.set_ylabel("Doppler [Hz]", fontsize=FS + 2)
+        else:
+            plt.setp(ax.get_yticklabels(), visible=False)
+        for sp in ax.spines.values():
+            sp.set_color(col); sp.set_linewidth(2.4)
+    caxs = figs.add_subplot(gss[0, 3])
+    cbs = figs.colorbar(ms, cax=caxs); cbs.set_label("Normalised power [dB]", fontsize=FS + 1)
+    OUT_SIDE = f"{ROOT}/outputs/figures/raybudget_40m_vs_ours.png"
+    figs.savefig(OUT_SIDE, bbox_inches="tight")
+    plt.close(figs)
+    print(f"✅ {OUT_SIDE}  (덱용 나란히판 — 40 m, 두 엔진)")
+
     # ── 판정 ────────────────────────────────────────────────────────────────
     def spread(arm, field):
         v = [r[field] for r in rows if r["arm"] == arm]
