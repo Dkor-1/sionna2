@@ -216,6 +216,35 @@ def main() -> None:
     fig.savefig(OUT_PNG.replace(".png", ".pdf"), bbox_inches="tight")
     plt.close(fig)
 
+    # ── 덱용 가로판 ─────────────────────────────────────────────────────────
+    # 8/11 덱의 그림틀은 25.09 x 6.35 in (가로 3.95:1) 이라 위 세로판이 안 들어간다.
+    # 맵 4 칸만 한 줄로 세워 «배경이 깨끗해졌다» 하나만 보이게 한다.
+    figd = plt.figure(figsize=(24.0, 7.0))
+    gsd = figd.add_gridspec(1, 5, width_ratios=[1, 1, 1, 1, 0.022],
+                            wspace=0.07, left=0.045, right=0.972, top=0.845, bottom=0.135)
+    md = None
+    for c, (key, seed) in enumerate([("1.78e8", 1), ("1.78e8", 2),
+                                     ("4.0e9", 1), ("4.0e9", 2)]):
+        col = C_LO if key == "1.78e8" else C_HI
+        lab = "178 M rays" if key == "1.78e8" else "4,000 M rays"
+        ax = figd.add_subplot(gsd[0, c])
+        md = _map(ax, data[(key, seed)][0]["E"])
+        ax.set_title(f"{lab}   ·   seed {seed}", color=col, fontweight="bold",
+                     fontsize=FS + 3, pad=9)
+        ax.set_xlabel("Time [ms]", fontsize=FS + 1)
+        if c == 0:
+            ax.set_ylabel("Doppler [Hz]", fontsize=FS + 1)
+        else:
+            plt.setp(ax.get_yticklabels(), visible=False)
+        for sp in ax.spines.values():
+            sp.set_color(col); sp.set_linewidth(2.2)
+    caxd = figd.add_subplot(gsd[0, 4])
+    cbd = figd.colorbar(md, cax=caxd); cbd.set_label("Normalised power [dB]", fontsize=FS)
+    OUT_STRIP = f"{ROOT}/outputs/figures/raybudget_40m_deck.png"
+    figd.savefig(OUT_STRIP, bbox_inches="tight")
+    plt.close(figd)
+    print(f"\n✅ {OUT_STRIP}  (덱용 가로판)")
+
     # ── 판정 ────────────────────────────────────────────────────────────────
     def spread(arm, field):
         v = [r[field] for r in rows if r["arm"] == arm]
