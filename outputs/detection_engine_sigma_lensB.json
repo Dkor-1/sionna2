@@ -1,0 +1,170 @@
+{
+  "_meta": {
+    "role_ko": "렌즈 B 재검 — «숫자가 맞다고 치고, 추론이 성립하나». 축 (1) 절대 σ 판정(승자 ours)을 대상으로 한다.",
+    "audits": "outputs/detection_engine_sigma_axis.json",
+    "generated": "2026-08-11",
+    "compute_ko": "GPU 0 초. 원장 JSON 읽기 + numpy 산술(CPU) + grep. 시뮬레이션 재실행 0 건.",
+    "writes": ["outputs/detection_engine_sigma_lensB.json"],
+    "does_not_touch_ko": "outputs/report07_range40.json · report07_three_engines.* · outputs/raybudget_ladder/ 는 읽기만 했다(raybudget_ladder 는 열지도 않았다).",
+    "house_rule": "손으로 지어낸 수치 0 개 — 모든 숫자에 파일::키 또는 계산식을 적는다. 내 산술은 «내 산술» 이라고 표시한다.",
+    "overturned": false,
+    "verdict_ko": "승자는 유지 — 축 (1) 에서 PathSolver 는 여전히 경쟁 상대가 아니다. 그러나 그 판정에서 탐지로 넘어가는 추론에 결함 3 건이 있고, 그중 1 건(σ 를 정하는 것은 엔진이 아니라 자세 선택)은 판정문의 오차예산 전체보다 크다."
+  },
+
+  "0_what_i_tried_to_break": {
+    "H1": "PathSolver 가 축 (1) 을 가져갈 수 있나 — 실패(아래 4절). 다만 «아예 안 잰다» 는 과장이고 정확한 문장으로 바꿔야 한다.",
+    "H2": "축 (1) 이 탐지를 결정하나 — **부분 성공**. 헤드라인 탐지 벤치마크의 σ 를 실제로 정한 것은 엔진이 아니라 자세 한 점이고, 그 항이 판정문의 최악 엔진오차(9.076 dB)보다 크다(1절).",
+    "H3": "우리 두 팔 중 어느 쪽이 σ 인가 — **성공**. 같은 메쉬·같은 주파수에서 우리 PO 와 SBR 이 정면 자세에서 19.84 dB 다르다(2절). 판정문 오차예산에 이 항이 없다.",
+    "H4": "승자를 바꿀 숨은 축(분모·오경보)이 있나 — **부분 성공**. 항은 실재하고 크기도 축 (1) 급이지만, 결정론적 해석 대체 경로가 있어서 승자를 넘기지는 못한다(5절)."
+  },
+
+  "1_the_sigma_that_actually_carried_the_detection_headline_was_chosen_by_aspect_not_by_engine": {
+    "headline_ledger": "outputs/detection_rx_sweep.json :: meta",
+    "K": 6000,
+    "modes": 9,
+    "drone": "mavic4pro",
+    "fc_hz": 3500000000.0,
+    "az_deg_used": -23.805943518457717,
+    "el_deg_of_geometry": -3.080612049479626,
+    "sigma_dbsm_used": -27.5779568443798,
+    "code_path": "src/experiment_detection.py:344-345 — sigma_dbsm,_ = drone_rcs_pattern(drone, FC, np.array([abs(az)])) → 순수 PO 팔, 방위 한 점, **el 인자를 안 넘긴다**(src/rcs_po.py:209 기본값 el_deg=0.0). 기하의 el 은 -3.08° 인데 σ 는 el=0 에서 뽑혔다.",
+    "same_airframe_same_band_other_choices_dbsm": {
+      "our_SBR_grid_el0_az24": -26.326,
+      "our_SBR_grid_el-3.5_az24 (기하의 실제 앙각)": -23.043,
+      "our_SBR_grid_el0_az21": -19.98,
+      "our_SBR_grid_el0_az27": -14.68,
+      "our_SBR_grid_el0_az30": -10.21,
+      "our_SBR_grid_el0_row_aspect_linear_mean": -16.69,
+      "our_SBR_grid_whole_grid_linear_mean": -16.89,
+      "our_PO_36aspect_mean (md ladder)": -16.78977769147696,
+      "src": [
+        "outputs/report13_sigma_grid.mavic4pro.json :: sigma.grid.mavic4pro['5G NR 3.5 GHz'].sigma_dbsm (SBR, jitter=2, div=16)",
+        "outputs/md_range_sweep_mf.json :: cells[] mavic4pro '5G NR 3.5 GHz' rows[0].sigma_eq_aspect_mean_plane_dbsm (pure PO)"
+      ]
+    },
+    "deltas_vs_the_value_used_db": {
+      "elevation_default_bug (el0 → el-3.5, 같은 az)": 3.283,
+      "azimuth_+3deg (az24 → az27, el0)": 11.646,
+      "azimuth_+6deg (az24 → az30, el0)": 16.116,
+      "aspect_mean_instead_of_one_point (SBR 전체격자 평균)": 10.688,
+      "aspect_mean_instead_of_one_point (PO 36자세 평균)": 10.788,
+      "note_ko": "모두 내 산술이다 — 원장 값의 뺄셈."
+    },
+    "range_translation": {
+      "rule": "바이스태틱 SNR ∝ σ/(R_t²R_r²) ⇒ σ 의 X dB 는 거리 10^(X/40) 배 (판정문 detection_translation 규칙과 동일)",
+      "aspect_mean_10.79dB": 1.862,
+      "az_+6deg_16.12dB": 2.531,
+      "worst_engine_error_in_the_audited_verdict_9.076dB": 1.686
+    },
+    "reading_ko": "⭐ 헤드라인 9-모드 K=6000 탐지 벤치마크의 SNR 분자는 우리 자신의 자세평균 σ 보다 10.7~10.8 dB **낮은** 국소 골짜기에서 뽑혔고, 6° 옆이면 16.1 dB 위다. 이 한 선택이 감사 판정문의 최악 엔진오차(9.076 dB)보다 크다. 두 엔진 중 무엇을 쓰든 이 항은 그대로 남는다 ⇒ 축 (1) 을 «누가 SNR 분자를 내나» 로 세운 것은 옳지만, 그 축의 승패가 탐지거리에 미치는 영향이 자세 선택보다 작다는 사실이 판정문에 없다.",
+    "caveat_ko": "el0/az24 격자점에서 두 팔(PO -27.578 · SBR -26.326)은 1.25 dB 안에서 일치한다 — 즉 이것은 팔 다툼이 아니라 **자세 다툼**이다. 그리고 detection_rx_sweep 의 σ 는 검증된 절대 앵커가 아니라 우리 격자의 한 점이다."
+  },
+
+  "2_our_own_two_arms_disagree_by_19.84_dB_at_one_aspect": {
+    "src": "outputs/facet_count.json :: levels[0].po_dbsm_by_az / .sbr_dbsm_by_az",
+    "setup": "mavic4pro · 3.5 GHz · el=+15° · R=10 m · 같은 메쉬(n_tri 29,932) · production per-group 재질 · 세 엔진 동일 조건",
+    "po_dbsm_by_az": {"az0": -38.01848032308225, "az30": -16.985417210277053, "az60": -15.046167291040044, "az90": -13.646052954579918},
+    "sbr_dbsm_by_az": {"az0": -18.177212629083446, "az30": -19.73799338281001, "az60": -17.520006678589723, "az90": -15.329987022470577},
+    "abs_gap_db": {"az0": 19.841, "az30": 2.753, "az60": 2.474, "az90": 1.684},
+    "aspect_mean_agreement_db": {
+      "our_PO_36aspect_mean": -16.78977769147696,
+      "our_SBR_grid_linear_mean": -16.89,
+      "gap": 0.1,
+      "note_ko": "자세평균으로는 두 팔이 0.10 dB 안에서 붙는다. 19.84 dB 는 스케일 차이가 아니라 **정면 자세의 국소 널** 차이다."
+    },
+    "which_arm_feeds_what": {
+      "md 거리사다리 · 관측가능성": "outputs/md_range_sweep_mf.json :: meta.engine = 'pure PO point cloud, NO occlusion'",
+      "report13 σ 격자 · mono_vs_passive": "outputs/report13_sigma_grid.mavic4pro.json :: meta.engine = 'sbr (rcs_sbr_batch, 1-bounce, penetrate=True)'",
+      "헤드라인 탐지 벤치마크": "src/experiment_detection.py:345 → rcs_po.drone_rcs_pattern (PO)"
+    },
+    "caveat_ko": "R=10 m 는 이 파일 자신의 farfield_m 13.8465 보다 짧다(근거리장). 방위 4 점뿐이고 PO 팔은 가림이 없다. 그래도 같은 메쉬·같은 자세의 like-for-like 행이다.",
+    "reading_ko": "«우리 엔진이 σ 를 낸다» 는 참이지만 «우리 엔진» 이 하나가 아니다. 탐지가 서는 자세에서 우리 두 팔이 19.84 dB 갈리고, 판정문 오차예산의 최대값(9.076 dB)의 2 배다. 축 (1) 판정은 이 항을 안 세었다."
+  },
+
+  "3_the_band_law_also_depends_on_which_arm_you_read": {
+    "our_PO_36aspect_mean_dbsm (md ladder, el=+15)": {"LTE 1.843 GHz": -15.83678229971056, "5G 3.5 GHz": -16.78977769147696, "WiFi 5.21 GHz": -15.498857469790972},
+    "our_PO_slope_db_per_ghz": 0.1,
+    "our_SBR_grid_linear_mean_dbsm (report13, belly el<=0)": {"LTE 1.8 GHz": -17.72, "5G 3.5 GHz": -16.89, "WiFi 5.2 GHz": -13.98},
+    "our_SBR_slope_db_per_ghz": 1.1,
+    "measured_slope_db_per_ghz": {"Das": 0.21, "Yuan": 0.315, "src": "outputs/engine_validation_verdict.json :: 1_verdict.table (밴드 기울기 1.8~6 GHz 행)"},
+    "our_validated_airframe_slope_db_per_ghz": 1.54,
+    "reading_ko": "우리 두 팔이 측정값을 **양쪽에서 끼고** 있다(PO 0.10 ↔ 측정 0.21~0.315 ↔ SBR 1.10 ↔ 검증행 1.54). 팔 선택이 밴드 간 σ 비교를 우리 운용 span 에서 약 3.4 dB 움직인다. 대역 비교(어느 조명원이 유리한가)는 헤드라인 비교주장인데, σ 공통편향이 상쇄된다는 통념이 여기서는 성립하지 않는다.",
+    "caveat_ko": "두 팔의 앙각 규약이 다르다(md 는 el=+15 위에서, report13 은 배면 el<=0). 따라서 이 차이는 «팔 + 규약» 이지 순수 팔 효과가 아니다. 순수 팔 효과만 재려면 같은 자세집합에서 두 팔을 돌려야 한다 — 안 돼 있다. 모른다."
+  },
+
+  "4_the_pathsolver_claim_needs_one_word_changed": {
+    "what_survives": "정반사 채널은 표적 크기에 완전히 눈이 멀었다 — outputs/rt_no_rcs_verify.json :: A_plate 에서 σ 52.041 dB 스윙에 진폭비 산포 1.8e-06 dB; outputs/detection_engine_angle.json :: B.size_blindness 의 specular_size_slope_db_per_decade ≈ 1e-06; 36 자세 중 정반사가 비지 않은 칸 1 개(facet_count.json :: levels[0].spec_n_aspects_nonzero = 1).",
+    "what_is_overstated": {
+      "claim_in_the_verdict": "«PathSolver 는 σ 를 아예 안 잰다»",
+      "counter": [
+        "확산 채널은 레이다 거리법칙을 지킨다 — outputs/detection_engine_angle.json :: B.size_blindness.diffuse_range_slope_db_per_decade = -40.22/-40.92/-40.71 (prod nose/oblique/side).",
+        "확산 채널의 시드 재현성은 경로가 충분하면 0.19~0.41 dB 다 — outputs/report15_verdict.json :: '1/nose/prod/all'.seed_noise_std_db = 0.189946 (R=1 m); outputs/detection_engine_angle.json :: C ...coherent_sum_h.pooled_seed_sd_db = 0.4055. 판정문이 인용한 8~18 dB 산포는 **경로가 5~9 개로 붕괴하는 원거리 칸**의 값이다(report07_range40 paths_median 9/9/5).",
+        "즉 확산 채널은 «면적 × 손으로 고른 S» 라는 σ 모형이다 — 없는 것이 아니라 **예측이 아니라 교정**이다."
+      ],
+      "but_it_still_loses": [
+        "각도 동역학 범위가 없다 — 같은 4 방위에서 span: stock 확산 0.170(비코히어런트)/0.557(코히어런트) dB vs 우리 PO 4.514 / SBR 3.947 dB (outputs/facet_count.json :: spans).",
+        "메쉬에도 거의 눈이 멀었다 — n_tri 1.82 decade 감쇄에 stock 0.093/0.265 dB/decade vs PO 1.920 · SBR 1.654 (facet_count.json :: slopes).",
+        "S 를 한 번 교정하면 다른 크기·다른 기체로 옮겨가나 — **미검증**. outputs/rt_no_rcs_verify.json :: B_sphere_S 는 반지름 하나에서 S 만 바꿨다. 모른다."
+      ]
+    },
+    "the_honest_sentence": "PathSolver 의 정반사 채널은 σ 를 재지 않는다(측정됨). 확산 채널은 σ 를 «면적 × 손으로 고른 S» 로 만들어 낸다 — 각도 구조가 1 dB 남짓이라 탐지의 각도별 Pd 를 못 지탱한다. 축 (1) 승자는 그대로 ours 다.",
+    "the_uncomfortable_neighbour": "outputs/das_fleet_validation.json :: box_control — 부피등가 PEC 구(순수 면적 모형)가 4 기체 중 2 기체에서 우리보다 절대 레벨이 정확하다(mini2 -0.024 vs -0.508 · m350rtk +0.724 vs +9.076). 즉 «레벨만» 놓고 보면 우리 커널이 면적모형 계열을 이긴다는 것이 입증돼 있지 않다. 판정문이 «유일성 + 결정론» 을 이유로 든 것은 결정론 부분에서 반례가 있다 — 닫힌형 구 공식도 결정론적이다. 우리 커널이 실제로 유일하게 주는 것은 **각도·주파수 구조**(축 3)다."
+  },
+
+  "5_the_hidden_axis_denominator_and_false_alarms": {
+    "the_ladder_declares_the_denominator_away": {
+      "src": ["benchmark/md_snr_vs_range.py:21 — noise = thermal_only (클러터·직접파 잔류·ECA 노치·위상잡음 없음)", "outputs/md_snr_vs_range.json :: cells[].geometry = 'monostatic_equivalent'"],
+      "dtr_to_be_cancelled_db": {"value": 65.85816767994419, "src": "outputs/passive_two_channel.json :: geometry.dtr_db"}
+    },
+    "rt_corrected_a_hand_table_by_16.2_dB": {
+      "rt_strongest_db": -9.8,
+      "assumed_strongest_db": -26.020599913279625,
+      "gap_db": 16.221,
+      "src": "outputs/floor_ghost_verify.json :: A_static_floor.rt_strongest_db / .assumed_strongest_db",
+      "and_that_hand_table_is_still_in_use": "outputs/passive_two_channel.json :: config.clutter_ratio = [[8e-09,0.05],[2.2e-08,0.035],[4.5e-08,0.02]] — floor_ghost_verify 의 'assumed' 세 탭과 같은 값이다."
+    },
+    "propagation_factor_the_ladder_omits": {
+      "gamma_te": 0.5179954795449742,
+      "gamma_tm": 0.25526184493401266,
+      "spread_db": -2.822348878953638,
+      "floor_image_amplitude_ratio": {"TE": 0.3742, "TM": 0.1846, "how": "10^(rel_db/20), rel_db_te=-8.5358 · rel_db_tm=-14.6826"},
+      "two_leg_peak_to_null_db": {"TE": 13.65, "TM": 6.5, "formula": "40·log10((1+r)/(1-r))", "flag": "⚠ 내 산술이다 — 시뮬레이션이 아니다. 그리고 챔버 기하(report09)의 Γ 다."},
+      "reading_ko": "표적 에코 자체가 바닥반사와 간섭하면 레벨이 6.5~13.7 dB 흔들린다. ECA 는 이걸 안 지운다(표적 경유라 도플러가 있다). 사다리에는 이 항이 없다."
+    },
+    "why_this_does_not_flip_the_winner": [
+      "정적 클러터는 죽은 파라미터다 — outputs/floor_ghost_verify.json :: B_clutter_dead, scale 0/1/10× 에 scr_span_db 5.38e-11, pd 1.0. 크기를 16 dB 틀려도 탐지가 안 움직인다.",
+      "살아남는 항(표적경유 바닥유령)은 해석 2선 모형으로 결정론적으로 나온다 — 같은 파일 A_static_floor.match.d_amp_db = -0.01737, 즉 Fresnel 예측이 RT 탭과 0.017 dB 안에서 맞았다. PathSolver 의 입증된 역할은 **검증자**이지 유일 공급자가 아니다.",
+      "따라서 숨은 축은 실재하고 크기도 축 (1) 급 이상이지만, 승자를 PathSolver 로 넘기지는 못한다. 넘어가는 것은 «우선순위» 다."
+    ]
+  },
+
+  "6_the_axis_was_scored_on_DC_but_detection_rides_AC": {
+    "agreement_with_the_audited_verdict": "판정문이 이미 축 (4) 사슬이 안 이어져 있다고 적었다. 여기서는 그 크기를 숫자로 못 박는다.",
+    "our_two_arms_in_the_blade_band_db": {
+      "report07_three_engines/sbr :: P_in_excess_over_po_db_after": 4.018518657150409,
+      "report07_three_engines/sbr :: P_out_excess_over_po_db_after": 34.569247525126414,
+      "report15b/matrice4e/nose/A_sbr_locked :: P_in_excess_over_po_db_after": 3.230643869491658,
+      "report15b/matrice4e/nose/B_sbr_spread :: P_in_excess_over_po_db_after": 3.022278207653528,
+      "src": "outputs/freeze_signal_loss.json :: rows"
+    },
+    "reading_ko": "블레이드 대역에서 우리 SBR 은 우리 PO 보다 3.0~4.0 dB 높고 대역밖은 24~35 dB 높다. 축 (1) 이 인용한 0.851 dB(교정구)·9.076 dB(함대)는 전부 DC/정적 σ 의 숫자다. 노치 뒤에 남는 양의 팔 간 불일치는 별도로 3~4 dB 이고, 그 절대 레벨은 판정문 자신이 인용 금지라고 적었다."
+  },
+
+  "7_verdict": {
+    "overturned": false,
+    "winner_axis1": "ours",
+    "why_the_winner_survives_ko": "PathSolver 를 축 (1) 로 올릴 길을 네 갈래로 시도했다 — 정반사(크기 눈멂, 52 dB→1.8e-06 dB), 확산+교정 S(면적모형이라 각도 span 0.17~0.56 dB), 재현성(경로 붕괴 칸에서 8~18 dB), 광선 증량(4000M 에서도 박자 오독 잔존). 전부 실패했다. 확산 채널을 «σ 를 만들긴 한다» 로 정정해도 각도 구조가 없어서 탐지의 Pd(각도) 를 못 지탱한다.",
+    "what_must_be_corrected_before_quoting_ko": [
+      "① «PathSolver 는 σ 를 아예 안 잰다» → «정반사 채널은 σ 를 안 잰다(측정됨). 확산 채널은 면적×손으로 고른 S 로 σ 급 스칼라를 만들지만 각도 span 이 0.17~0.56 dB 라 각도의존이 없다» 로 바꿀 것.",
+      "② 이유를 «유일성 + 결정론» 이라고 적으면 안 된다 — 닫힌형 부피등가 구도 결정론적이고 4 기체 중 2 기체에서 레벨이 더 정확하다(box_control). 우리 커널의 진짜 값어치는 각도·주파수 구조(축 3)이고, 축 (1) 판정은 축 (3) 의 신용을 빌려 쓰고 있다.",
+      "③ 오차예산에 두 항을 추가할 것: (a) 우리 두 팔의 자세국소 불일치 19.841 dB(facet_count az0), (b) 헤드라인 탐지 벤치마크의 자세 선택 -10.79 dB(자세평균 대비) / +16.12 dB(6° 옆). 둘 다 판정문의 최댓값 9.076 dB 보다 크다.",
+      "④ 우선순위 문장을 넣을 것: 탐지거리는 엔진 선택보다 **자세 규약**(어느 az·el 에서 σ 를 뽑나, 한 점인가 평균인가)에 더 민감하다. 엔진 싸움을 이겨도 자세 규약을 안 고정하면 거리 숫자가 1.86~2.53 배 움직인다."
+    ],
+    "unknowns_ko": [
+      "한 번 교정한 Sionna 산란계수 S 가 표적 크기·기체를 건너 옮겨가는가 — 원장에 실험이 없다(B_sphere_S 는 반지름 하나). 모른다.",
+      "같은 자세집합·같은 앙각에서 우리 PO 와 SBR 의 밴드 기울기 차 — 두 원장의 앙각 규약이 달라 분리가 안 된다. 모른다.",
+      "detection_rx_sweep 의 자세(az -23.81°, el -3.08°)가 어떤 근거로 골라졌는지 — X410Scenario 기하에서 유도된 값이지만, 그 기하가 대표 자세인지 판단할 자료가 없다. 모른다.",
+      "야외(실제 배치) 지면에서의 2선 전파인자 실측 — 없다. 5절의 6.5~13.7 dB 는 챔버 Γ 로 한 내 산술이다. 모른다."
+    ]
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "_meta": {
+    "generated": "2026-08-11",
+    "role": "lens-B re-audit of outputs/detection_engine_angle.json (axis 3 = angle dependence). Numbers of the original verdict are taken as given; only the INFERENCE is under test.",
+    "question": "Does the angle axis actually decide detection, and is there a hidden angle axis where PathSolver wins?",
+    "gpu_used": "none - ledger + source reading only",
+    "nothing_overwritten": true,
+    "note": "outputs/detection_engine_angle.json (the audited verdict) was NOT modified; this is a separate file."
+  },
+
+  "verdict": {
+    "overturned": false,
+    "winner_unchanged": "ours",
+    "one_line": "The winner survives and is in fact UNDER-argued - the project's own constant-sigma control shows that 100% of the angle dependence of the detection answer comes from sigma(aspect). What must be corrected is the axis's PURCHASING POWER, not its winner."
+  },
+
+  "A_attack_that_FAILED_geometry_not_target": {
+    "hypothesis": "The angle dependence that moves Pd is bistatic geometry (R1/R2 spread, scene azimuth phi), not target aspect - and geometry needs no scattering engine, so the axis cannot pick an engine.",
+    "result": "REFUTED by the repo's own pre-existing control arm.",
+    "evidence": {
+      "src": "outputs/phi_sweep.json",
+      "sigma_fixed_control_R90_ratio_over_360deg_phi": {"W1": 1.00479, "L1": 1.00169, "G1": 1.00322},
+      "sigma_grid_arm_R90_ratio_over_360deg_phi_mini5pro_W1": 3.96,
+      "R90_min_max_m_mini5pro_W1": [1390, 5508],
+      "ranking_orders_over_72_phi": {"with_sigma_grid": 6, "with_constant_sigma": 1},
+      "equivalent_sigma_span_db": {"sigma_grid_arm": 23.9, "constant_sigma_control": 0.083},
+      "ledger_headline_quote": "The large phi dependence one actually sees in a raw R90-vs-phi plot (up to 28 dB-equivalent) is the drone's RCS ASPECT pattern, not geometry: it vanishes in both the constant-sigma control and the heading-averaged arm."
+    },
+    "consequence": "If the engine cannot produce sigma(aspect), the modelled detection range has essentially NO angle dependence at all (geometry alone gives 0.5%). Sionna's measured azimuth span (1.281 dB, facet_count.json) maps to R90 x1.077. Ours maps to x3.96. That is the axis, and it goes to ours."
+  },
+
+  "B_corroboration_the_original_verdict_missed": {
+    "heading_polar_R90_spread": {
+      "src": "outputs/report13_freespace.json :: solve[mode].heading_polar (s1000plus, L=500 m, alt=60 m, phi=90)",
+      "R90_max_over_min": {"W1": 3.309, "L1": 2.875, "G1": 3.180},
+      "reads": "72 headings, same target, same range: detection range moves ~3x. Independent of the facet_count 4-azimuth cell the original verdict leaned on."
+    },
+    "ranking_instability_is_itself_an_angle_finding": {
+      "src": "outputs/phi_sweep.json :: rankings",
+      "n_distinct_illuminator_orders_over_phi": 6,
+      "reads": "with angle-resolved sigma the W/L/G ranking is not stable over scene azimuth; with constant sigma it is a single order. Only an engine that produces sigma(aspect) can discover this."
+    }
+  },
+
+  "C_downgrades_that_DO_survive": {
+    "C1_zero_leverage_in_the_5G_headline_mode": {
+      "src": "outputs/report13_freespace.json :: solve.G1.coverage / coverage_curve",
+      "blind_frac": 1.0,
+      "coverage_C_max_over_all_30_ranges": 0.0,
+      "W1_L1_for_contrast": {"W1": {"blind_frac": 0.0833, "C_max": 0.9167}, "L1": {"blind_frac": 0.25, "C_max": 0.75}},
+      "reads": "In G1 every one of the 72 headings is Doppler-blind, so C = 0 at every range no matter what sigma(azimuth) says. In that mode the angle axis has exactly zero leverage on the detection deliverable. In W1/L1 the coverage CEILING is set by the blind sector (C_max = 1 - blind_frac exactly), and sigma(aspect) only sets where the roll-off happens."
+    },
+    "C2_bistatic_transport_of_the_lobes": {
+      "src": "outputs/geometry_grid.json :: sigma_transfer",
+      "production_path": "sigma grid = rcs_sbr_batch MONOSTATIC backscatter; the bistatic arm looks it up along the BISECTOR",
+      "bisector_error_rms_median_db_by_beta": {"0": 0.0, "15": 6.394, "30": 6.844, "45": 7.473, "60": 7.511, "75": 8.060, "90": 8.806},
+      "bisector_error_p95_max_db_by_beta": {"15": 18.872, "30": 24.953, "45": 20.039, "90": 21.921},
+      "beta_at_the_operating_point": {
+        "src": "outputs/report13_freespace.json :: solve[mode].beta_deg vs d_grid_m",
+        "beta_at_R90_deg": 2.9,
+        "beta_at_C_ge_0p5_deg": {"W1": 7.4, "L1": 6.2},
+        "frac_of_d_grid_with_beta_gt_20deg": 0.5
+      },
+      "honest_reading": "At the headline operating point (L=500 m, R90 ~10 km) beta is ~3 deg, inside the literature 15-20 deg validity window (outputs/injection_verdict.json flags that window), so the shortcut is probably benign THERE - but the ledger has no row between beta=0 and beta=15, so the error at 3-7 deg is NOT measured. At short range / long baseline (half the d-grid is beta>20 deg) the delivered sigma(angle) carries 6.4-8.8 dB RMS, i.e. x1.5-1.9 in R90, against the x2.9-4.0 aspect effect being sold.",
+      "and_the_error_bar_is_currently_missing": {
+        "src": "outputs/audit_rcs_gaps.json :: q3_declared_assumptions[5], q4_open_defects_and_hazards[3]",
+        "quote": "report13_sigma_grid.json top keys = ['meta','sigma','sigma_confidence'] - 'multistatic' block ABSENT. meta.multistatic_regenerated=false",
+        "kernel_state": "rcs_sbr.rcs_sbr_multistatic() exists (src/rcs_sbr.py:545) and reduces to monostatic at beta=0 (benchmark/das_fleet_verify.py V1) - the CAPABILITY is there, the LEDGER is not",
+        "reads": "So today the bistatic sigma error bar quoted in geometry_grid.json belongs to an older (07-29 mesh) grid. For the current grid the number is: unknown."
+      }
+    },
+    "C3_the_elevation_half_of_sigma_az_el_is_often_clamped": {
+      "src": "outputs/phi_sweep.json :: sigma_grid.mini5pro.by_mode.W1.rows[*].sigma_oor_n",
+      "clamped_lookups_at_headline_phi90": 947,
+      "clamped_lookups_median_over_phi": 2041,
+      "clamped_lookups_max_over_phi": 4446,
+      "grid_el_rows": "0 to -20 deg only",
+      "denominator": "not established from the ledger - I do not know the total lookup count per phi row, so I cannot state a clamped FRACTION",
+      "reads": "The axis is sold as sigma(azimuth, ELEVATION). The azimuth half is dense (3 deg); the elevation half is a 0..-20 deg band that the bistatic bisector leaves often enough that the ledger keeps a counter for it."
+    },
+    "C4_only_envelope_statistics_are_quotable": {
+      "restates": "the original verdict's own caveat 3, which I confirm rather than overturn",
+      "numbers": "PO vs SBR disagree by 19.8 dB at az=0 (facet_count.json); div=16 dither floor 1.782 dB p-p on a PEC sphere (sbr_grid_convergence.json), drone dither unmeasured; 20x decimation moves ours 0.4-2.3 dB",
+      "consequence": "the product is p10/p50/p90, ptp, epsilon - not a null position. The project's own recommended configuration (sigma_robust_summary.json paper_ready) is aspect_avg_anchored, i.e. the headline deliberately averages the lobes away."
+    }
+  },
+
+  "D_hidden_axis_where_the_other_engine_wins": {
+    "name": "angle dependence of the PROPAGATION, not of the target",
+    "why_it_is_not_this_axis": "it does not change the winner of axis (3); it bounds what winning axis (3) buys",
+    "evidence": [
+      {
+        "src": "outputs/report13_freespace.json :: solve[mode].fs3_ground",
+        "F4_db_at_the_operating_point": 9.772,
+        "ledger_note_verbatim": "FS-3 companion; free space is NOT an upper bound (F4 in [-20,+11.5] dB)",
+        "span_db": 31.5,
+        "reads": "a 31.5 dB grazing-angle-dependent term that the headline free-space chain excludes; our PO/SBR kernel is free-space and produces none of it"
+      },
+      {
+        "src": "outputs/floor_ghost_verify.json :: A_static_floor",
+        "rt_strongest_tap_db": -9.8,
+        "analytic_assumed_strongest_db": -26.02,
+        "gap_db": 16.22,
+        "reads": "when the environment was actually traced (RT), the floor return was 16.2 dB stronger than the analytic stand-in. RT corrected an analytic assumption, not the other way round."
+      },
+      {
+        "src": "outputs/floor_ghost_verify.json :: CD_ghost / outputs/detection_ghost.json",
+        "5G_NR_100MHz": {"ghost_db": -18.07, "resolved": true, "pd": 1.0, "p_false": 1.0},
+        "sigma_used": -27.578,
+        "sigma_form": "ONE SCALAR, no angle at all",
+        "provenance": "detection_ghost.json meta.source = 'outputs/floor_ghost_verify.json (RT, report09)'",
+        "reads": "In the one place in this repo where a detection verdict actually flipped because of geometry (5G false-alarm probability 1.0), the angle-dependent quantity came from Sionna RT and our kernel contributed a single angle-free scalar. That is the exact mirror image of axis (3)."
+      }
+    ],
+    "conclusion": "For detection the SNR numerator is sigma(aspect) x propagation(geometry). Ours owns the first factor (PathSolver cannot produce it - confirmed, no aperture term, size-blind). RT owns the second (ours cannot produce it - free space, no environment). A single-winner verdict on 'angle dependence' is a scoping artefact; the deployable answer is composition (h = h_bg from RT + h_target from our sigma), which is also what the prior-work census records as mainstream."
+  },
+
+  "E_what_I_could_not_check": [
+    "Whether the bisector approximation is acceptable at beta = 3-7 deg (the actual operating point): the error ledger has rows at beta = 0 and 15 deg and nothing between. Unknown.",
+    "The clamped-lookup FRACTION in elevation (numerator known, denominator not in the ledger).",
+    "Whether the outdoor measurement geometry (X410, field test) will sit at small beta like the L=500 m headline scene. Not established anywhere I read.",
+    "Sionna diffuse-channel ABSOLUTE level with our production materials (same gap the original verdict declared; S is a free handle, 15.8 dB of swing in rt_no_rcs_verify.json B_sphere_S).",
+    "Whether the hovering / blade-line chain consumes sigma(aspect) at all: md_range_sweep.json is monostatic az=0, el=15 and reports aspect only as a 36-azimuth MEAN correction (d_sigma_aspect_mean_db). I did not find an aspect-resolved blade-line detection deliverable."
+  ]
+}

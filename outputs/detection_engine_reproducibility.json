@@ -1,0 +1,195 @@
+{
+ "_meta": {
+  "axis": "(2) 재현성 — 같은 장면이 같은 답을 주나",
+  "question_ko": "드론 탐지에서 Sionna PathSolver 와 우리 SBR+PO 중 재현성 축에서 무엇이 유리한가",
+  "generated": "2026-08-11",
+  "stance_ko": "«우리가 유리하다» 를 반증하는 데 힘을 썼다. 반증 시도 4 건 중 2 건은 부분 성공(재현성 != 정확성), 2 건은 실패.",
+  "compute_ko": "GPU 0 초. 이미 있는 원장 JSON 을 읽고 산술만 했다. benchmark/raybudget_seed_ladder.py --analyse 만 실행(읽기 전용 집계).",
+  "reads_only": [
+   "outputs/report07_range40_raybudget.json",
+   "outputs/report07_range40.json",
+   "outputs/raybudget_ladder/*.npz (진행 중 — 부분집합)",
+   "outputs/verify_frozen_grid.json",
+   "outputs/freeze_signal_loss.json",
+   "outputs/freeze_before_after.json",
+   "outputs/freeze_plate_sensitivity.json",
+   "outputs/adv_grid_freeze_audit.json",
+   "outputs/report2_waveform_rcs.json",
+   "outputs/report07_three_engines.json",
+   "src/rcs_sbr.py, src/materials.py, src/geom.py, src/articulated_fast.py, src/ptd_edges.py, src/drones.py"
+  ],
+  "writes": [
+   "outputs/detection_engine_reproducibility.json",
+   "outputs/raybudget_seed_ladder.json (--analyse 의 집계 산출물, git 미추적이었음)"
+  ]
+ },
+
+ "pathsolver": {
+  "structure_ko": "seed 는 자세마다 다시 뽑는 잡음이 아니다. report07_range40.py:115 가 PathSolver()(..., seed=a.seed) 를 4,096 자세 전부에 같은 값으로 넘긴다. Fibonacci lattice 는 결정론적 → 한 시드 = 광선 방향 집합 하나 = 자세 평균으로 안 지워지는 계통 편향.",
+  "seed_ladder_178M_partial": {
+   "source": "outputs/raybudget_seed_ladder.json (진행 중, 스냅샷 시점 샤드 31 개)",
+   "n_seeds": 8,
+   "n_poses_used": 768,
+   "sd_level_db": 4.156,
+   "ptp_level_db": 13.177,
+   "sd_level_db_7seeds_full_1024poses": 2.992,
+   "ptp_level_db_7seeds": 7.715,
+   "sd_h1_over_h2_db": 10.444,
+   "sd_between_seeds_db": 4.1493,
+   "sd_within_pose_db": 4.9224,
+   "predicted_if_iid_db": 0.1776,
+   "ratio_observed_over_iid": 23.36,
+   "beats_hz": [127.58, 254.33, 126.27, 254.19, 253.78, 254.93, 253.63, 169.63],
+   "f_flash_true_hz": 126.6667,
+   "n_seeds_on_2x_harmonic": 5,
+   "n_seeds_correct_beat": 2
+  },
+  "two_seed_headline_falsified": {
+   "claim_ko": "«1.78 억 발 2.61 dB → 40 억 발 1.22 dB» 로 광선을 늘리면 시드 산포가 준다",
+   "source": "outputs/report07_range40_raybudget.json : verdict.level_spread_db",
+   "test_ko": "두 값 다 표본 2 개의 극단폭이다. 8 시드가 준 sd 를 참으로 두고 2-표본 극단폭의 분포를 보면 둘 다 평범하다.",
+   "E_two_sample_range_db_if_sd_2.992": 3.38,
+   "P_two_sample_range_le_2.61_db": 0.463,
+   "P_two_sample_range_le_1.22_db": 0.227,
+   "verdict_ko": "수렴 주장은 원장으로 지지되지 않는다. 1.22 dB 는 같은 산포에서 23 % 확률로 그냥 나온다."
+  },
+  "more_rays_did_not_fix_the_feature": {
+   "source": "outputs/report07_range40_raybudget.json : rows",
+   "seed1_beat_hz_at_178M": 253.27,
+   "seed1_beat_hz_at_4000M": 253.03,
+   "seed1_beat_rel_err_pct_at_4000M": 99.76,
+   "npaths_median_178M": [9, 9],
+   "npaths_median_4000M": [193, 165],
+   "verdict_ko": "광선 22.5 배(경로 중앙값 9 → 193)에도 시드 1 의 박자는 2 배 조화에 그대로 붙어 있다. 산포가 아니라 방향 집합이 답을 정한다."
+  },
+  "three_seed_at_178M": {
+   "source": "outputs/report07_range40.json : seeds",
+   "level_db": [-158.948, -156.344, -150.940],
+   "ptp_db": 8.008,
+   "paths_median": [9.0, 9.0, 5.0],
+   "beat_dev_pct": [99.95, -0.12, 1.16],
+   "note_ko": "raybudget 원장이 인용한 2.61 dB 는 이 셋 중 둘만 쓴 값이다. 셋을 다 쓰면 8.01 dB."
+  },
+  "within_run_symptom_at_3m": {
+   "source": "outputs/report07_three_engines.json : ptp_db, verdict.cosine_in_ftip",
+   "ptp_db": {"sionna": 32.646, "sbr": 5.327, "po": 2.765},
+   "cosine_in_ftip": {"sionna_vs_po": 0.7602, "sbr_vs_po": 0.9550},
+   "note_ko": "3 m 열은 시드가 하나뿐이라 시드 산포를 못 잰다. 다만 이웃 자세 사이 슬로타임 흔들림이 32.6 dB p-p 로 광선을 안 쓰는 PO(2.8)·우리 SBR(5.3)보다 훨씬 크다."
+  }
+ },
+
+ "ours": {
+  "rng_audit": {
+   "method_ko": "σ 사슬 6 개 모듈 전체 grep: np.random / default_rng / RandomState / randn / rand( / Sampler",
+   "hits": {"src/rcs_sbr.py": 0, "src/materials.py": 0, "src/geom.py": 0,
+            "src/articulated_fast.py": 0, "src/ptd_edges.py": 0, "src/drones.py": 0},
+   "jitter_is_not_random": {
+    "code": "J = max(1, int(jitter)); fr = (np.arange(J) + 0.5) / J - 0.5; offsets = [(ox*d, oy*d) for ox in fr for oy in fr]",
+    "line": "src/rcs_sbr.py:288-290",
+    "verdict_ko": "jitter 는 난수가 아니다. J² 개의 결정론적 부분셀 오프셋 격자이고 그 위에서 σ 를 비코히어런트 평균한다. 광선 원점 A,B 도 np.meshgrid 의 정규 격자(src/rcs_sbr.py:240-243)."
+   },
+   "only_stochastic_candidate_ko": "Mitsuba 는 scene.ray_intersect 만 쓴다 — 샘플러 없음. BVH 질의는 결정론적."
+  },
+  "bit_identity_gates": {
+   "verify_frozen_grid": {
+    "source": "outputs/verify_frozen_grid.json",
+    "passed": true,
+    "gate1_n_cases": 36, "gate1_n_bit_identical": 36, "gate1_max_rel_err": 0.0,
+    "gate2_frozen_n_changes": 0, "gate2_prod_n_changes": 61,
+    "independent_implementation_max_rel_err": 0.0,
+    "self_ref_all_bit_identical": true,
+    "negative_controls_passed": true
+   },
+   "cross_process_cross_day": {
+    "source": "outputs/freeze_before_after.json : off_switch_gate",
+    "n_columns": 6, "all_bit_identical": true, "max_abs_diff": 0.0,
+    "note_ko": "다른 날 다른 프로세스에서 만든 원장 배열과 오늘 재실행이 max_abs_diff 0.0. 프로세스·날짜를 건너뛴 비트 재현이다."
+   }
+  }
+ },
+
+ "refutation_attempts": [
+  {
+   "id": "R1",
+   "claim_attacked_ko": "우리 커널은 재현되니까 재현성 축에서 이긴다",
+   "attack_ko": "결정론적이지만 결정론적으로 틀린 답이면 재현성은 미덕이 아니다. 광선 격자를 안 쓰는 순수 PO 를 심판으로 세운다.",
+   "result": "부분 성공",
+   "source": "outputs/freeze_signal_loss.json",
+   "numbers": {
+    "P_in_excess_over_po_db_before_median": 20.297,
+    "P_in_excess_over_po_db_after_median": 4.019,
+    "blade_coh_vs_po_before_median": 0.3429,
+    "blade_coh_vs_po_after_median": 0.7489,
+    "n_below_po_after": 0,
+    "P_out_excess_over_po_db_after_example": 34.569,
+    "oob_over_in_db_after_median": -6.278,
+    "oob_over_in_db_po_median": -29.634
+   },
+   "verdict_ko": "2026-08-10 이전 우리 원장의 블레이드 대역은 비트 재현되면서 순수 PO 보다 중앙값 +20.3 dB 높았고 복소 일치는 0.34 였다. 재현성 게이트는 그 20 dB 를 한 번도 못 잡았다 — 잡은 것은 독립 엔진이다. 고친 뒤에도 +4.0 dB 높고, 대역밖 잔차는 PO 대비 23 dB 나쁘다. ⇒ 재현성은 정확성의 증거가 아니다."
+  },
+  {
+   "id": "R2",
+   "claim_attacked_ko": "우리는 자유 손잡이가 없다",
+   "attack_ko": "얼린 격자 «판» 이 곧 seed 와 같은 자유 손잡이 아닌가. 반 칸 옮겨 본다.",
+   "result": "부분 성공",
+   "source": "outputs/freeze_plate_sensitivity.json : verdict",
+   "numbers": {
+    "abs_level_plate_ptp_db": 3.452,
+    "occlusion_level_plate_ptp_db": 4.163,
+    "ledger_occlusion_level_abs_db": 1.315,
+    "occlusion_level_survives_plate_choice": false,
+    "p0_vs_production_max_abs_db": 0.526,
+    "n_plates": 3
+   },
+   "counter_evidence": {
+    "source": "outputs/freeze_before_after.json : reuse_check.plate_choice_sensitivity",
+    "two_recipe_plates_amp_corr": 0.99297,
+    "two_recipe_plates_level_db_delta": -0.00606,
+    "note_ko": "생산 레시피(로터 한 바퀴 24 등분 합집합)와 수렴 원장 레시피(4096 자세 합집합)로 각각 얼린 두 판은 레벨차 0.006 dB. 즉 레시피가 판을 0.006 dB 로 못 박는다. 3.452 dB 는 일부러 반 칸 어긋낸 적대적 섭동이다."
+   },
+   "verdict_ko": "판은 자유 손잡이가 맞다 — 그리고 우리 리포트가 인용하던 «가림 레벨 1.315 dB» 는 판 흩어짐 4.163 dB 보다 작아 물리가 아니라 판 선택을 읽은 값이다. 다만 판은 원장에 박혀 있고(grid_ref: ctr/Rout/n/spacing), 덮개 게이트와 예외가 걸려 있으며, 레시피 재실행이 0.006 dB 로 같은 판을 낸다. seed 처럼 매 실행 새로 뽑히지 않는다."
+  },
+  {
+   "id": "R3",
+   "claim_attacked_ko": "PathSolver 도 광선을 늘리면 수렴하니 재현성 문제는 예산 문제일 뿐이다",
+   "attack_ko": "«2.61 → 1.22 dB» 를 8 시드 사다리와 2-표본 극단폭 분포로 검증한다.",
+   "result": "실패(우리 주장이 살아남음)",
+   "numbers": {
+    "sd_level_db_8seeds": 4.156,
+    "P_two_sample_range_le_1.22_db_given_sd_2.992": 0.227,
+    "ratio_observed_over_iid": 23.36,
+    "seed1_beat_still_wrong_at_4e9_pct": 99.76
+   },
+   "verdict_ko": "수렴 증거가 아니다. 시드 간 산포는 i.i.d. 예측의 23.4 배 → 자세를 늘려도 안 지워지는 계통 편향이고, 광선 22.5 배에도 박자 오류가 남는다. 반대로 우리 커널은 간격 d 라는 수렴 손잡이가 있고 얼린 팔이 d² 로 수렴한다(기울기 −2.09 R² 0.987, 적대 재검 −2.16 R² 0.988, LOO [−2.23,−2.03] ⟨outputs/adv_grid_freeze_audit.json⟩)."
+  },
+  {
+   "id": "R4",
+   "claim_attacked_ko": "시드 문제는 40 m 라 경로가 굶어서 생긴 특수 사정이다",
+   "attack_ko": "다른 거리에서 시드 산포를 찾는다.",
+   "result": "확인 불가",
+   "verdict_ko": "모른다. 시드 사다리는 40 m·matrice4e·el −15°·기선 0 한 자리에만 있다. 3 m 열(report07_three_engines)은 시드가 하나뿐이라 시드 산포를 못 잰다. 다만 그 자리에서도 슬로타임 p-p 가 32.6 dB(우리 5.3 · PO 2.8)로 이웃 자세 간 불안정이 크다."
+  }
+ ],
+
+ "detection_translation": {
+  "rule_ko": "level_db = 20·log10(mean|E|) 는 수신 전력 dB 와 같은 눈금이다. 바이스태틱 SNR ∝ σ/(R_t²R_r²) 이므로 σ 의 X dB 오차는 R_t·R_r 을 10^(X/40) 배 틀리게 만든다.",
+  "pathsolver_1sd_2.992_db_range_factor": 1.188,
+  "pathsolver_ptp_7.715_db_range_factor": 1.559,
+  "ours_adversarial_plate_3.452_db_range_factor": 1.220,
+  "ours_recipe_plate_0.006_db_range_factor": 1.0001,
+  "feature_level_ko": "⭐호버 + 0-도플러 노치에서 탐지는 블레이드선에 걸린다. 그 블레이드선의 «박자» 를 178 M 발에서 8 시드 중 5 개가 2 배 조화(253 Hz)로 잘못 읽는다. 이것은 레벨 오차가 아니라 특징 오차다."
+ },
+
+ "verdict": {
+  "who_wins": "ours",
+  "confidence_ko": "높음(재현성 축 한정)",
+  "headline_ko": "재현성 축은 우리가 이긴다. 우리 σ 사슬 6 개 모듈에 난수가 0 개이고(jitter 는 결정론적 J² 오프셋 격자), 36/36 케이스 비트 동일 + 다른 날·다른 프로세스 6/6 열 max_abs_diff 0.0 이다. PathSolver 는 178 M 발에서 시드 간 sd 4.16 dB(8 시드) 이고 그 산포가 i.i.d. 예측의 23.4 배 — 자세를 늘려도 안 지워지는 계통 편향이며 광선 22.5 배에도 박자 오류가 남는다.",
+  "hard_caveat_ko": "⛔ 그러나 재현성은 정확성이 아니다. 우리 커널은 2026-08-10 까지 «비트 재현되면서 순수 PO 보다 +20.3 dB 높은» 블레이드 대역을 냈고, 그것을 잡은 것은 재현성 게이트가 아니라 독립 엔진이었다. 지금도 +4.0 dB 높고 대역밖 잔차는 PO 대비 23 dB 나쁘다. 그리고 얼린 «판» 은 seed 와 같은 종류의 자유 손잡이라, 반 칸 옮기면 절대 레벨이 3.45 dB p-p 움직인다.",
+  "unknowns_ko": [
+   "jitter=2(J²=4 오프셋) 평균 뒤의 잔차 산포 — 원장에 없다. 단일 격자 값만 있다(구 r=0.5 m·3.5 GHz, div=12 에서 p-p 1.373 dB·평균오차 +0.744 dB ⟨outputs/report2_waveform_rcs.json : sbr_validation.dither⟩). 모른다.",
+   "PathSolver 시드 산포의 거리·기체·앙각 의존 — 40 m 한 자리만 쟀다. 모른다.",
+   "우리 커널의 GPU 간(카드가 다를 때) 비트 동일성 — 확인한 게이트는 모두 같은 카드다. 모른다.",
+   "A_sbr_locked 4 열의 f_flash 상대오차 −0.5(2 배 오차)가 «잠긴 rpm» 이라는 축퇴 대조군의 참 물리인지 버그인지 — 확정 못 했다. 현실 팔(B_sbr_spread)은 맞게 읽는다. 모른다."
+  ]
+ }
+}

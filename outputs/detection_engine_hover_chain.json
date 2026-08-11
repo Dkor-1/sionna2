@@ -1,0 +1,273 @@
+{
+ "_meta": {
+  "axis": "(4) 패시브 호버링 사슬 — σ(정적) × 변조깊이 × 처리이득 → 블레이드선 절대 레벨 → 잡음 대비 → Pd. 이 사슬이 코드·원장에 이어져 있나, 그리고 두 엔진 중 누가 유리한가",
+  "generated": "2026-08-11",
+  "method": "읽기 전용 감사 + 기존 npz 후처리(CPU 수 초). GPU 0 초. 원장 덮어쓰기 0 건. 이 파일이 유일한 산출물.",
+  "house_rule": "손으로 지어낸 수치 0 개 — 모든 숫자에 파일::키 또는 계산식을 적는다.",
+  "stance_ko": "«PO(우리 커널)가 유리하다» 를 반증하려 시작했다. 반증 시도 4 건 중 2 건은 부분 성공, 2 건은 실패. 6절이 그 기록이다.",
+  "reads_only": [
+   "docs/NOISE_AND_ROTOR_PLAN.md (2026-08-11 02:20 판 — 형제 에이전트가 갱신 중)",
+   "docs/RESUME.md, docs/PLAN_0818.md, docs/RETRACTION_LOG.md (G12 상태만)",
+   "src/microdoppler_nearfield.py (snr_ladder · ac_snr_db · add_noise · noisy_series)",
+   "benchmark/link_budget.py, benchmark/passive_two_channel_md.py, benchmark/run_min_cell.py",
+   "benchmark/report16_verify_detector.py, benchmark/report16_synthesis.py, benchmark/report07_three_engine_maps.py",
+   "outputs/passive_two_channel.{json,npz}, outputs/md_snr_vs_range.json, outputs/md_range_sweep_mf.json",
+   "outputs/report16_synthesis.json, outputs/report16_verify_detector.json",
+   "outputs/report07_three_engines.{json,npz}, outputs/report07_three_engine_ranges.{json,npz}, outputs/report07_range40.json",
+   "outputs/verify_snr_convention.json, outputs/detection_rx_sweep.json"
+  ],
+  "not_touched": [
+   "outputs/report07_range40.json",
+   "outputs/report07_three_engines.*",
+   "outputs/raybudget_ladder/ (계산 중)"
+  ]
+ },
+
+ "1_chain_as_built": {
+  "question_ko": "사슬 다섯 마디가 실제로 이어져 있나. 마디별로 «어느 파일이 그것을 내는가» 를 적는다.",
+  "links": [
+   {
+    "id": "L1",
+    "what_ko": "σ(정적 경로) 절대값",
+    "status": "있다",
+    "where": "outputs/md_range_sweep_mf.json::cells[].rows[].sigma_eq_aspect_mean_plane_dbsm (36 방위 평균) · outputs/report16_synthesis.json::ladder_A_as_run.<drone>.mesh_full.sigma_total_dbsm",
+    "numbers": {
+     "matrice4e_sigma_am_dbsm_ladder": -17.529501162873732,
+     "matrice4e_sigma_total_dbsm_report16_powermean": -18.368301968047152,
+     "matrice4e_sigma_total_dbsm_report16_t5": -22.07906453487976
+    },
+    "engine": "우리 SBR+PO 만. PathSolver 열은 이 마디에 없다.",
+    "note_ko": "report16 의 t5 행(−22.08)과 사다리(−17.53)는 방위통계 규약이 달라 4.55 dB 차이가 난다 — 아직 아무도 화해시키지 않았다."
+   },
+   {
+    "id": "L2",
+    "what_ko": "변조 깊이 (얼린 팔) — 동체 대 블레이드",
+    "status": "있다",
+    "where": "outputs/md_range_sweep_mf.json::cells[].rows[].arms.A0_reference.dc_ac_db · outputs/report16_synthesis.json::...mesh_full.dc_ac_db / peak_share_of_ac",
+    "numbers": {
+     "matrice4e_dc_ac_db_A0_plane": 24.861376808276944,
+     "matrice4e_dc_ac_off_db": 24.875532745934077,
+     "matrice4e_dc_ac_db_report16": 20.56537188724374,
+     "matrice4e_peak_share_of_ac": 0.2621296134229279,
+     "matrice4e_peak_share_db": -5.8148391297299415
+    },
+    "note_ko": "⭐두 팔이 «블레이드선» 을 다르게 정의한다. 사다리는 AC **전체**(dc_ac_off 만 뺀다), report16 은 AC **가장 센 한 선**(추가로 peak_share −5.81 dB). 5.8 dB 짜리 규약 차이다."
+   },
+   {
+    "id": "L3",
+    "what_ko": "처리이득",
+    "status": "있다 — 그러나 두 팔이 서로 다른 층에서 끝난다",
+    "where": "src/microdoppler_nearfield.py::snr_ladder (g_mf_db · g_stft_db) · benchmark/report16_verify_detector.py:227 snr_out (P·T_cpi/kT0F)",
+    "numbers": {
+     "g_mf_db_full_waveform": 36.9897,
+     "g_stft_db_map_frame_nperseg70": 16.691,
+     "cpi_coherent_gain_db_report16_T0p1s_PRF20k": 33.0103
+    },
+    "note_ko": "사다리의 정본 ③′ 는 **슬로타임 표본 하나**의 AC SNR, report16 은 **CPI 0.1 s 전체 코히어런트 적분** 후의 SNR — 33.01 dB 층이 다르다. 설계서 §1-2 가 «섞지 마라» 라고 못 박은 바로 그 셋이다."
+   },
+   {
+    "id": "L4",
+    "what_ko": "블레이드선 절대 레벨 (σ_ac_peak)",
+    "status": "있다",
+    "where": "outputs/report16_verify_detector.json::t5_x410_measurability.rows.<drone>.sigma_ac_peak_dbsm · benchmark/report16_synthesis.py:330-358 arm_stats (σ_m = 4π/λ²·|c_m|²)",
+    "numbers": {
+     "matrice4e_sigma_ac_peak_dbsm_report16_t5": -46.821110033334634,
+     "matrice4e_hover_penalty_db": 24.742045498454875,
+     "mini2_sigma_ac_peak_dbsm": -53.47544576389037,
+     "mini2_hover_penalty_db": 25.454780496490564,
+     "fleet_hover_penalty_range_db": "25.6 ~ 39.1 (10기, report16_verify_detector.json::findings.biggest_number_ko)"
+    },
+    "engine": "우리 SBR+PO 위상표만. PathSolver 열 없음."
+   },
+   {
+    "id": "L5",
+    "what_ko": "잡음 대비 → Pd(호버)",
+    "status": "⚠ 반쪽만 있다",
+    "have": "report16_verify_detector 가 Swerling-1 단일빈 CFAR(Pfa 1e-4, SNR_req 11.749 dB)로 **닫힌 형태**의 호버 검출거리를 낸다. 게이트 G3(해석해 대조 6.7e-06)·G5(슬로타임 재계산 2.9e-15 dB) 통과.",
+    "missing": "실사슬(ECA→CAF→CFAR)로 호버 표적의 Pd 를 잰 원장이 **저장소에 하나도 없다**.",
+    "numbers": {
+     "matrice4e_hover_range_m_EIRP20dBm": 79.81670122336345,
+     "matrice4e_hover_range_m_EIRP30dBm": 141.93639636273574,
+     "matrice4e_range_if_body_usable_EIRP30dBm": 589.7187171901206,
+     "mini2_hover_range_m_EIRP30dBm": 96.7688057690973
+    }
+   }
+  ],
+  "verdict_ko": "⭐사슬은 «가정된 노치» 갈래에서 **이어져 있다** — L1→L5 가 report16_verify_detector 한 파일에서 닫힌다. 끊긴 것은 그 갈래가 실사슬(ECA·DPI·CFAR·바이스태틱)을 한 번도 안 통과한다는 것이다."
+ },
+
+ "2_cross_check_two_arms_of_our_own_chain": {
+  "what_ko": "⭐이 파일이 새로 한 계산 — 독립적으로 세워진 두 팔(사다리 vs report16)이 같은 호버 검출거리를 주나. 설계서의 G12 는 «사다리 ↔ 패시브 실사슬» 이라 아직 미착수이고, 여기서 한 것은 «사다리 ↔ report16 검출기» 다(더 쉬운 관문).",
+  "inputs": {
+   "ladder_snr_slow_ac_db_at_R1m_EIRP12dBm": 51.2386,
+   "ladder_source": "outputs/md_snr_vs_range.json::cells[matrice4e].eirp_arms.chamber_12dBm.rows[R_m=1]",
+   "cpi_coherent_gain_db": 33.0103,
+   "peak_share_db": -5.8148391297299415,
+   "snr_req_db": 11.749083424299407,
+   "report16_range_at_EIRP20dBm_m": 79.81670122336345,
+   "eirp_scaling": "R ∝ EIRP^(1/4) → R(12 dBm) = R(20 dBm)·10^((12-20)/40)"
+  },
+  "result": {
+   "ladder_derived_hover_range_m_EIRP12dBm": 46.46,
+   "report16_derived_hover_range_m_EIRP12dBm": 50.36,
+   "gap_db_snr": 1.40,
+   "gap_ratio_range": 1.084,
+   "residual_traced_to": "σ_ac_peak 자체의 차이 — 사다리 유도값 −48.22 dBsm(= −17.53 − 24.88 − 5.81) vs report16 t5 −46.82 dBsm, 정확히 1.40 dB. 즉 규약(층·정의)을 맞추면 **나머지 전부가 σ 한 항으로 설명된다**.",
+   "meaning_ko": "⭐두 팔은 어긋난 것이 아니라 **다른 층에 서 있었을 뿐**이다. 33.01 dB(CPI 코히어런트) + 5.81 dB(AC 전체→AC 첨두) 를 붙이면 1.4 dB 안에서 만난다."
+  },
+  "caveat_ko": "이것은 사슬의 **입력 두 개가 서로 일관되다**는 확인이지, 사슬이 실제로 그 SNR 을 번다는 확인이 아니다. 그 관문(G12)은 여전히 미착수다."
+ },
+
+ "3_where_the_chain_is_actually_cut": {
+  "cut1_no_absolute_scale_in_the_arm_that_has_the_notch": {
+   "where": "benchmark/passive_two_channel_md.py:386 a_tgt = 1.0 · :190 m = m/sqrt(mean|m|²) · :334-374 calibrate_sigma",
+   "what_ko": "실사슬 팔은 표적 진폭을 1 로 고정하고 마이크로도플러 변조를 평균전력 1 로 정규화한 뒤, **잡음전력을 역산해 출력 SINR 을 20 dB 로 맞춘다**. 즉 거리도 절대 σ 도 이 팔에 없다. σ 는 오직 DTR(직접파/표적비) 로만 들어간다.",
+   "imports_check": "passive_two_channel_md.py 는 link_budget 을 import 하지 않는다 (grep 확인).",
+   "sigma_enters_only_via": {
+    "dtr_db": 65.85816767994419,
+    "sigma_dbsm_used": -27.5779568443798,
+    "sigma_source": "outputs/detection_rx_sweep.json::meta.sigma_dbsm (mavic4pro, src/rcs_po.drone_rcs_pattern = 우리 커널)",
+    "sensitivity_ko": "DTR = 4πR1²R2²/(L²σ) 이므로 σ 오차 Δ dB 는 DTR 을 −Δ 만큼 옮기고, 경험법칙 loss ≈ max(0, DTR − 2ρ_ref) 에 따라 **기준채널 요구 SNR 을 Δ/2 만큼** 옮긴다. 즉 이 팔에서도 엔진이 완전히 무해하지는 않다."
+   },
+   "declared_by_repo": "docs/NOISE_AND_ROTOR_PLAN.md §1-3 표: «passive_two_channel_md.calibrate_sigma — 여기엔 거리가 아예 없다. 링크버짓 팔을 하나 더 다는 것이 남은 일»"
+  },
+  "cut2_no_hover_Pd_anywhere_in_the_real_chain": {
+   "what_ko": "실사슬로 Pd 를 낸 팔은 전부 **병진 표적**이다.",
+   "evidence": [
+    "passive_two_channel_md.run_sweep: mod = exp(j2πf_d t) 또는 md_modulation(..., fd_bulk=fd), fd = geometry.fd_hz = 63.756 Hz (3 m/s) — E1·E1b 둘 다 호버가 아니다",
+    "passive_two_channel_md.run_md_survival (E2, fd_bulk=0.0 = 진짜 호버): 산출 지표가 flash_contrast_db · flash_line_db · tip_band_db · body_frac_db · zero_bin_rel_tip_db · total_db 뿐 — **Pd 도, 잡음 대비 절대 레벨도 없다**",
+    "src/experiment_detection.py (report12 헤드라인): vel = (-3,0,0), 단일 도플러 톤 점표적",
+    "benchmark/run_min_cell.py: link_budget→ECA→CFAR→Pd 로 **절대 사슬이 닫히는 유일한 팔**이지만 scenarios.radial(SPEED) 로 병진하는 점표적이고 마이크로도플러 변조가 없다"
+   ],
+   "consequence_ko": "«호버 표적이 블레이드선으로 잡히나» 를 실사슬로 잰 수치가 0 개다. report16 의 46~142 m 는 **노치를 가정하고 계산한 닫힌형**이지 측정이 아니다."
+  },
+  "cut3_G12_declared_missing_by_the_repo_itself": {
+   "quote": "docs/NOISE_AND_ROTOR_PLAN.md 머리 진행표: «§3-3 G12 (사다리 ↔ 실사슬) — ❌ 미착수. «37 dB 를 실제로 번다» 의 유일한 관문이다»",
+   "also": "docs/RESUME.md:173 · docs/PLAN_0818.md:35,107 · docs/RETRACTION_LOG.md:700 이 같은 말을 한다."
+  },
+  "cut4_the_passive_premise_itself_is_retracted_for_this_ladder": {
+   "what_ko": "⭐사슬의 처리이득 마디는 «풀 웨이브폼 캡처» 전제에서만 성립한다. 진짜 패시브(상시 기준신호) 팔은 지금 **인용 금지** 상태다.",
+   "evidence": [
+    "docs/NOISE_AND_ROTOR_PLAN.md 2026-08-11 정정 상자: capture='always_on_pilot' 의 G_mf 가 0 dB 로 하드코딩돼 있는데 옳은 값은 LTE CRS +50.0 dB · 5G SSB +44.6 dB — 44~50 dB 비관적이고 «거짓 주장» 이라고 적혀 있다 (RETRACTION_LOG R17)",
+    "같은 문서: «사다리에 듀티 항이 아예 없다» (LTE 연속 0.00 · 5G SSB −18.45 · WiFi −10.00 dB)",
+    "outputs/md_range_sweep_mf.json::cells[].prf_feasibility — matrice4e 에서 required_prf 2459.14 Hz vs WiFi/LTE 1000 · 5G SSB 50 · NR-PRS 200 Hz, **네 팔 전부 ok=false**. 즉 상시 기준신호로는 f_tip 이 접힌다"
+   ],
+   "consequence_ko": "46~142 m 는 «풀 캡처 수신기» 의 수다. 우리 실제 시스템(상시 기준신호 패시브)의 호버 검출거리는 **아직 아무도 못 냈다**."
+  }
+ },
+
+ "4_open_question_G16_does_the_ECA_notch_erase_the_body": {
+  "question_ko": "설계서 §1-8/§5-3 의 열린 문제: ECA 0-도플러 노치가 동체선을 지우면 dc_ac_off 보정(기체별 17.3~37.2 dB)이 필요 없어지나. outputs/passive_two_channel.json 에 답이 있나.",
+  "answer_ko": "⚠ **수치는 있는데 답은 아니다.** 원장이 낸 수는 «측정» 이지만 그 측정이 동체와 블레이드를 가를 수 없는 분해능에서 났다.",
+  "ledger_number": {
+   "eca_notch_cost_db": 0.6016900690978031,
+   "where": "outputs/passive_two_channel.json::md_survival.eca_notch_cost_db",
+   "definition": "표적만(DPI·클러터 끔) 대조군에서 ECA on/off 차이 — 0-도플러 한 빈이 날개끝 띠 대비 몇 dB 내려가나"
+  },
+  "my_direct_recompute_from_npz": {
+   "method": "outputs/passive_two_channel.npz 의 e2_wifi__noDPI_{noECA,ECA}__S 에서 0-도플러 한 빈 전력 대 나머지 전 빈 전력",
+   "noDPI_noECA_dc_over_ac_db": -10.32,
+   "noDPI_ECA_dc_over_ac_db": -11.03,
+   "dc_bin_drop_db": 0.60,
+   "agrees_with_ledger": true
+  },
+  "why_it_cannot_answer_G16": [
+   "분해능 Δf = 282.805 Hz (E2 wifi 팔, nper=68). 0-도플러 «한 빈» 의 반폭이 ±141.40 Hz 인데 **1차 플래시 고조파가 126.67 Hz** 다 — 동체선과 첫 블레이드선이 같은 빈 안에 있다.",
+   "sub-CPI 길이가 nper_periods = 0.4479 블레이드 주기 (3.536 ms) 로 **한 주기보다 짧다** — 그 창의 «DC» 는 동체선이 아니라 «그 순간 로터가 어디 있나» 다.",
+   "지표가 zero_bin_rel_tip_db(0-도플러 빈 ÷ 날개끝 띠)로, 설계서 G16 이 묻는 dc_ac_off_db(총 DC 전력 ÷ 총 AC 전력)와 **다른 양**이다. 자유공간 원장의 dc_ac_db(matrice4e 24.86 dB)와 이 팔의 −10.3 dB 는 같은 이름의 양이 아니다."
+  ],
+  "verdict_ko": "G16 은 «측정됐다» 가 아니라 **여전히 열려 있다**. 지금 원장으로 말할 수 있는 것은 «이 형상·이 분해능에서 ECA 는 0-도플러 빈을 0.60 dB 밖에 못 깎았다» 뿐이고, 그것이 동체선이 살았다는 뜻인지 첫 고조파 누설이 그 빈을 채우고 있다는 뜻인지 **가릴 수 없다**.",
+  "cheapest_fix_ko": "E2 를 Δf ≪ f_flash 인 창(예: nper ≥ 4 블레이드 주기, Δf ≤ 32 Hz)에서 한 번 더 돌리고, 지표를 dc_ac_off_db 정의(전 AC 대비)로 바꿔 ECA 전후를 병기하면 끝난다. GPU 불필요."
+ },
+
+ "5_engine_axis_what_this_chain_needs_from_the_kernel": {
+  "what_the_chain_needs_ko": "L1·L2·L4 를 합치면 사슬이 커널에게 요구하는 것은 딱 하나다 — **자세별로 안정한 σ_ac_peak(방위)**. 그것을 내려면 로터 위상마다 복소장을 내되 (a) 절대 스케일이 안정하고 (b) 위상 사이 상대위상이 안정해야 한다. 진폭 하나만으로는 안 된다.",
+  "ours": {
+   "supplies": "report16 위상표(24 방위 × 256 위상) → σ_m = 4π/λ²|c_m|² → σ_ac_peak. 게이트 G1(파스발 대조 7.1e-15 dB)·G5(슬로타임 재계산 2.9e-15 dB) 통과.",
+   "range_law": "거리는 해석적으로 붙인다 — outputs/verify_snr_convention.json::gates[SC6] slope_monostatic_db_per_decade = −40.0 (tol 0.01 dB), one-leg −20.0",
+   "dc_ac_stability": {
+    "A0_plane_wave_all_ranges_1_to_1000m": 24.861376808276944,
+    "A2_spherical_1m": 30.651,
+    "A2_spherical_5m": 24.880,
+    "A2_spherical_15m": 24.632,
+    "A2_spherical_100m": 24.812,
+    "spread_beyond_5m_db": 0.28,
+    "source": "outputs/md_range_sweep_mf.json::cells[matrice4e].rows[].arms.{A0_reference,A2_nearfield}.dc_ac_db"
+   }
+  },
+  "pathsolver": {
+   "supplies_ko": "같은 사슬을 태우려면 자세마다 씬을 다시 지어 PathSolver 를 돌려야 한다(benchmark/report07_three_engine_maps.py 가 그렇게 한다). 원장에는 **σ 로 환산된 열이 없다** — 열은 20log10|Σa·exp(−j2πfτ)| 뿐이다.",
+   "measured_on_the_quantity_this_axis_needs": {
+    "dc_ac_db_at_3m_spp1e6": 8.59,
+    "dc_ac_db_at_8m_spp7.1e6": 25.08,
+    "dc_ac_db_at_15m_spp2.5e7": 0.49,
+    "swing_db": 24.59,
+    "source": "outputs/report07_three_engine_ranges.npz::{R3,R8,R15}/E — 이 파일이 후처리해 계산 (같은 기체·같은 자세열·같은 rpm)",
+    "physical_expectation_ko": "matrice4e 의 원거리장 경계 r_ff = 8.259 m 이므로 8·15 m 는 근거리장 밖이거나 경계이고, 우리 구면파 팔은 그 구간에서 24.6~24.9 dB 로 평평하다. 24.6 dB 스윙은 물리가 아니라 광선표본 추정오차로 읽힌다."
+   },
+   "level_vs_range_law": {
+    "total_power_db": {"R3": -116.81, "R8": -117.95, "R15": -145.13},
+    "ac_only_power_db": {"R3": -125.96, "R8": -143.05, "R15": -148.39},
+    "law_prediction_from_R3_db": {"R8": -17.03, "R15": -27.96},
+    "deviation_total_db": {"R8": 15.89, "R15": -0.36},
+    "deviation_ac_db": {"R8": -0.06, "R15": 5.53},
+    "note_ko": "AC 는 8 m 에서 법칙을 거의 정확히 따르는데(−0.06 dB) 전체 전력은 +15.89 dB 어긋난다 — 코히어런트 평균(DC)이 수렴을 못 한 것이다. 15 m 는 반대로 AC 가 +5.53 dB 뜬다."
+   },
+   "seed_stability_at_operational_range": {
+    "range_m": 40.0,
+    "spp": 178000000,
+    "level_db_by_seed": [-158.94761179761306, -156.3439884628333, -150.93966543218082],
+    "peak_to_peak_db": 8.01,
+    "beat_hz_by_seed": [253.27289881682782, 126.51421667487428, 128.1342372247478],
+    "beat_dev_pct_by_seed": [99.9522885396009, -0.12035525667820635, 1.158608335327212],
+    "source": "outputs/report07_range40.json::seeds (읽기만 함)",
+    "meaning_ko": "3 시드 중 1 시드가 플래시선을 2 배(253 Hz)로 읽는다. 형제 에이전트의 8 시드 집계는 outputs/detection_engine_reproducibility.json 참조(sd 4.16 dB)."
+   }
+  }
+ },
+
+ "6_refutation_attempts": [
+  {
+   "id": "R1",
+   "attempt_ko": "«실사슬 팔은 calibrate_sigma 로 σ 를 통째로 지운다 — 그러니 노치가 사는 그 팔에서는 엔진 선택이 관측 불가능하고, 우리 커널의 절대 σ 우위는 이 축에서 무효다»",
+   "outcome": "부분 성공",
+   "why_ko": "맞다. passive_two_channel_md 안에서 a_tgt=1·평균전력 1 정규화·잡음 역산이라 절대 σ 가 관측 불가능하다. 그러나 그 팔은 **호버 Pd 를 아예 안 낸다** — 그 팔만으로는 어떤 검출 주장도 못 한다. 그리고 σ 는 DTR 을 통해 남아, σ 오차 Δ dB 가 기준채널 요구 SNR 을 Δ/2 옮긴다. ⇒ «엔진 무관» 은 사슬의 한 조각 안에서만 참이다."
+  },
+  {
+   "id": "R2",
+   "attempt_ko": "«3 m 에서 PathSolver 의 dc_ac 는 8.59 dB 로 우리(19.78 SBR / 24.21 PO)보다 낮다. 노치가 DC 를 지우고 검출이 AC 에 걸린다면, 총전력이 같을 때 **PathSolver 쪽이 더 유리한 예측**을 준다 — 즉 우리 커널이 호버 검출을 보수적으로 과소평가하고 있을 수 있다»",
+   "outcome": "실패 (그러나 절반은 살아남는다)",
+   "why_ko": "AC 비율만 보면 PathSolver 가 SBR 보다 10.6 dB · PO 보다 15.0 dB 유리하게 보이는 것은 사실이다. 그러나 같은 양이 8 m 에서 25.08, 15 m 에서 0.49 dB 로 24.6 dB 흔들린다 — 물리적으로 거리 불변이어야 하는 구간에서다. 흔들리는 추정치는 «유리» 가 아니라 «모른다» 다. 살아남는 절반: **dc_ac 에 대한 실측 앵커가 저장소에 0 건**이므로(prior_work grep 0 hit) 우리 24.86 dB 도 검증된 값이 아니다. 이 마디는 두 엔진 모두 미검증이다."
+  },
+  {
+   "id": "R3",
+   "attempt_ko": "«PathSolver 는 회전 블레이드를 못 다루니 마이크로도플러 자체가 가짜일 것이다»",
+   "outcome": "실패 — 이 주장은 거짓이다",
+   "why_ko": "3 m·1M spp 에서 PathSolver 열의 AC 전력 중 92.27 % 가 f_flash 고조파 빗살(±2.5 빈) 안에 있고, 반 칸 어긋난 대조 빗살 대비 22.68 dB 높다(우리 SBR 24.08 · PO 35.12 dB). 플래시선 위치도 126.261 Hz(예측 126.667, dev −0.32 %)로 맞다(outputs/deck0811_beat_check_frozen.json). **PathSolver 는 무늬를 만든다.** 못 만드는 것은 그 무늬의 **절대 레벨과 DC/AC 배분**이다 — 그리고 이 축이 요구하는 것이 정확히 후자다."
+  },
+  {
+   "id": "R4",
+   "attempt_ko": "«사슬이 끊겨 있다면 두 엔진 중 누가 유리한지 애초에 말할 수 없다 — 답은 unverifiable 이어야 한다»",
+   "outcome": "부분 성공",
+   "why_ko": "검출 **출력**(호버 Pd)에서는 맞다 — 어느 엔진으로도 실사슬 호버 Pd 가 없으므로 출력에서의 비교는 불가능하다. 그러나 사슬의 **입력**(σ_ac_peak 의 절대값과 재현성)은 두 엔진 모두에 대해 측정돼 있고, 그 입력이 검출거리를 R ∝ σ^(1/4) 로 정한다. 8.01 dB 시드 산포는 거리로 ×1.58, 24.6 dB dc_ac 스윙은 ×4.3 이다. ⇒ 출력에서는 못 가르고, 입력에서는 가른다. 아래 판정은 그 구분을 명시한다."
+  }
+ ],
+
+ "7_verdict_axis4": {
+  "chain_connected": "부분적 — «가정된 노치» 갈래(report16_verify_detector)는 L1→L5 가 닫히고 사다리와 1.40 dB 안에서 일치한다. «측정된 노치» 갈래(passive_two_channel_md)는 절대 σ·거리·호버 Pd 가 전부 없다. 두 갈래는 만나지 않는다(G12 미착수).",
+  "who_wins": "ours",
+  "confidence_ko": "중간 — 입력 축 한정. 검출 출력(Pd)에서 두 엔진을 비교한 원장은 0 건이다.",
+  "why_ko": "이 축의 화물은 «블레이드선의 절대 레벨» 이고, 그것을 내려면 σ_ac_peak(방위) 가 절대값·재현성 둘 다 있어야 한다. 그것을 실제로 내는 팔(report16 위상표 → σ_m 분해 → 링크버짓 → Pd)은 전부 우리 SBR+PO 위에 서 있고 PathSolver 열이 아예 없다. 그리고 PathSolver 를 그 자리에 넣으려면 필요한 양(dc_ac·절대 레벨)이 40 m·178 M 발에서 시드 간 8.01 dB, 3→15 m 에서 dc_ac 24.6 dB 흔들린다 — 거리로 각각 ×1.58·×4.3 이다.",
+  "what_would_flip_it_ko": [
+   "PathSolver 를 σ_ac_peak 로 환산하는 팔을 만들고(지금 없다), 그 값이 우리 −46.8 dBsm 와 몇 dB 안에서 만나면 이 축의 판정은 무의미해진다.",
+   "지금 도는 outputs/raybudget_ladder/ 가 «발 수를 N 배 늘리면 시드 산포가 √N 로 준다» 를 보이면 PathSolver 의 산포는 예산 문제이지 구조 문제가 아니게 된다. (형제 에이전트 집계는 지금 그 반대를 가리킨다 — i.i.d. 예측의 23.4 배.)",
+   "G16 을 제대로 재서 «노치가 동체를 안 지운다» 가 확정되면 호버 벌금 24.7~26.6 dB 가 사라지고, 검출은 σ_total 로 돌아가 이 축의 요구가 완전히 달라진다(matrice4e 30 dBm 에서 142 m → 590 m)."
+  ],
+  "what_I_do_not_know_ko": [
+   "두 엔진의 **절대 레벨이 비교 가능한 단위인지 확인하지 못했다.** report07_three_engines.json 의 levels_db(sbr −51.5 · po −52.2 · sionna −117.1)는 20log10|E| 인데, sbr/po 는 산란진폭이고 sionna 는 거리 3 m 링크가 포함된 채널이다. 65 dB 차를 «σ 가 65 dB 다르다» 로 읽으면 안 된다. 이 축에서 나는 그 환산을 하지 않았다 — 축 (1) 담당의 몫이다.",
+   "우리 σ_ac_peak 자체의 편향 방향. report16_verify_detector::flaws.F8 이 «가림 없음(D1)은 σ_dc 를 부풀려 호버 벌금을 과대로, 로터 상대위상(D5)은 σ_ac_peak 를 상위 백분위로 밀어 과소로 만든다 — 상쇄 정도를 모른다» 고 스스로 적었다. 나도 모른다.",
+   "실사슬에서 호버 표적이 실제로 CFAR 를 통과하는지. doppler_guard_mask(width=3)가 0-도플러 ±1 빈을 통째로 지우므로 호버 동체는 **설계상** 검출 불가인데, 블레이드선이 가드 밖으로 충분히 나오는지를 잰 원장이 없다.",
+   "report16 의 σ_total(t5 −22.08)과 사다리의 σ_am(−17.53) 이 4.55 dB 어긋나는 이유 — 방위통계 규약 차이로 보이지만 확인하지 않았다."
+  ]
+ }
+}

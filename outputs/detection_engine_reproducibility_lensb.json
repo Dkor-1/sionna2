@@ -1,0 +1,268 @@
+{
+ "_meta": {
+  "role_ko": "렌즈 B 재심 — 앞선 재현성 판정(승자 ours)의 **추론**을 검사한다. 숫자는 맞다고 치고, 그 축이 탐지에 정말 중요한지·승자를 바꿀 축이 가려졌는지만 본다.",
+  "generated": "2026-08-11",
+  "compute_ko": "GPU 0 초. 이미 디스크에 있는 복소열(npz)과 원장 JSON 만 읽고 numpy 산술만 했다.",
+  "does_not_touch_ko": "outputs/report07_range40.json · report07_three_engines.* · raybudget_ladder/ · raybudget_seed_ladder.json 전부 읽기만 했다. --analyse 도 안 불렀다(그 스위치는 raybudget_seed_ladder.json 을 쓴다).",
+  "snapshot_ko": "⚠사다리는 계속 돌고 있다. 아래 숫자는 이 시점 스냅샷이다.",
+  "snapshot": {
+   "n_shard_files": 63,
+   "latest_mtime": "2026-08-11 02:30:46",
+   "full_seeds_178M": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ],
+   "full_seeds_4G": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+   ]
+  },
+  "reads_only": [
+   "outputs/raybudget_ladder/*.npz",
+   "outputs/report07_range40.npz",
+   "outputs/report07_range40.json",
+   "outputs/report07_range40_raybudget.json",
+   "outputs/report07_three_engines.npz/.json",
+   "outputs/freeze_signal_loss.json",
+   "outputs/freeze_plate_sensitivity.json",
+   "outputs/detection_engine_reproducibility.json",
+   "src/experiment_detection.py",
+   "src/rcs_po.py",
+   "benchmark/raybudget_seed_ladder.py",
+   "benchmark/report07_range40.py",
+   "benchmark/ledger_outofband_power.py",
+   "benchmark/adv_freeze_plate_sensitivity.py"
+  ],
+  "writes": [
+   "outputs/detection_engine_reproducibility_lensb.json"
+  ]
+ },
+ "F1_headline_statistic_is_the_notched_quantity": {
+  "claim_attacked_ko": "«PathSolver 시드 산포 2.99 dB → 탐지거리 곱 1.188 배»",
+  "what_the_statistic_is_ko": "그 산포의 잣대는 level_db = 20·log10(mean|E|) 다. 그 전력이 어느 도플러 대역에 있는지 정본 정의(benchmark/ledger_outofband_power.band_powers, 동체 |f|≤0.15·f_tip · 블레이드 0.15·f_tip<|f|≤f_tip · 밖 |f|>f_tip)로 직접 갈랐다.",
+  "band_fraction_of_total_power": {
+   "178M": {
+    "body": 0.9157641020604471,
+    "blade": 0.059064624910681984,
+    "out_of_band": 0.025171273028871
+   },
+   "4e9": {
+    "body": 0.9949564354235069,
+    "blade": 0.003768289076567472,
+    "out_of_band": 0.0012752754999256445
+   }
+  },
+  "verdict_ko": "⭐level_db 는 전력의 91.6 %(178 M) · **99.5 %**(40 억 발)가 **동체 0-도플러**다. 앞선 판정이 «호버 + 0-도플러 노치가 동체를 지우니 탐지는 블레이드선에 걸린다» 고 적어 놓고, 탐지 눈금으로 환산한 숫자는 **그 노치가 버리는 성분**의 산포였다. 축의 전제와 환산한 양이 서로 어긋난다.",
+  "corrected_number_ko": "같은 시드들의 **블레이드 대역** 전력 산포가 탐지에 걸리는 값이다.",
+  "blade_band_seed_sd_db": {
+   "178M_seeds1_7": 2.446,
+   "4e9_seeds1_7": 1.078,
+   "4e9_all8": 1.482
+  },
+  "range_factor_10pow_db_over_40": {
+   "blade_178M": 1.1512,
+   "blade_4e9": 1.0891,
+   "ours_adversarial_plate_3.452": 1.2198,
+   "ours_recipe_plate_0.006": 1.0003
+  }
+ },
+ "F2_convergence_now_supported": {
+  "claim_attacked_ko": "R3 «광선을 늘려도 수렴 증거가 없다 — 1.22 dB 는 2 표본이라 통계가 아니다»",
+  "why_it_is_stale_ko": "R3 은 40 억 발 칸에 시드가 2 개뿐일 때의 판정이다. 그 사이 사다리가 자라 **40 억 발 칸이 8 시드 × 1024 자세로 4/4 샤드 전부 찼다.** 같은 시드 7 개로 두 예산을 맞대면 표준편차가 실제로 내려간다.",
+  "seed_sd_db": {
+   "level_db": {
+    "178M_seeds1_7": 2.992,
+    "4e9_seeds1_7": 1.943,
+    "sd_ratio": 1.54,
+    "F": 2.37,
+    "p_one_sided": 0.1588
+   },
+   "P_body_db": {
+    "178M_seeds1_7": 3.1,
+    "4e9_seeds1_7": 1.946,
+    "sd_ratio": 1.593,
+    "F": 2.536,
+    "p_one_sided": 0.141
+   },
+   "P_in_db": {
+    "178M_seeds1_7": 2.446,
+    "4e9_seeds1_7": 1.078,
+    "sd_ratio": 2.27,
+    "F": 5.151,
+    "p_one_sided": 0.0332
+   },
+   "P_out_db": {
+    "178M_seeds1_7": 0.755,
+    "4e9_seeds1_7": 0.836,
+    "sd_ratio": 0.904,
+    "F": 0.817,
+    "p_one_sided": 0.5941
+   }
+  },
+  "verdict_ko": "⭐탐지에 걸리는 **블레이드 대역**에서 시드 산포가 2.446 → 1.078 dB 로 내려간다 (F=5.15, p=0.033 — 5 % 수준에서 유의). 총레벨은 2.992 → 1.943 dB (p=0.16, 유의 못 함), 대역밖은 안 준다(0.755 → 0.836). ⇒ «자세를 늘려도 안 지워지는 계통 편향» 은 맞지만 «광선으로도 안 준다» 는 틀렸다. 시드 효과는 **광선 예산에 따라 줄어드는 몬테카를로 잡음**이고, 종류가 아니라 정도의 문제다.",
+  "caveat_ko": "1/√N 보다 훨씬 느리다(22.5 배 광선에 sd 2.3 배 감소, 이상적이면 4.7 배). 그리고 40 m 한 자리·1024 자세 한 판이다. 더 늘리면 어디까지 가는지는 **모른다**."
+ },
+ "F3_beat_is_a_metric_artifact_not_an_engine_defect": {
+  "claim_attacked_ko": "«178 M 발에서 8 시드 중 5 개가 2 배 조화를 박자로 읽는다 — 레벨 오차가 아니라 특징 오차이고 교정 대상이 아니다»",
+  "method_ko": "benchmark/raybudget_seed_ladder.band_energy 를 한 글자도 안 바꾸고 옮겨, 같은 지표를 (a) 두 광선 예산의 모든 시드, (b) 우리 SBR·**순수 PO**·Sionna 3 m 팔에 똑같이 댔다.",
+  "beat_by_budget": {
+   "178M": {
+    "seeds": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ],
+    "beat_hz": [
+     127.58,
+     254.33,
+     126.27,
+     254.19,
+     253.78,
+     254.93,
+     253.63
+    ],
+    "n_on_2x": 5,
+    "n_on_fundamental": 2
+   },
+   "4e9": {
+    "seeds": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8
+    ],
+    "beat_hz": [
+     127.15,
+     126.21,
+     126.92,
+     252.66,
+     255.47,
+     126.29,
+     127.3,
+     254.21
+    ],
+    "n_on_2x": 3,
+    "n_on_fundamental": 5
+   }
+  },
+  "harmonic_margin_h1_over_h2_db": {
+   "pathsolver_178M": [
+    5.49,
+    -2.03,
+    1.89,
+    -0.69,
+    -6.59,
+    -4.07,
+    -7.15
+   ],
+   "pathsolver_4e9": [
+    5.57,
+    10.34,
+    1.74,
+    -4.49,
+    -1.81,
+    0.8,
+    7.89,
+    -2.92
+   ],
+   "ours_sbr_3m": 7.47,
+   "pure_po_3m": 6.48,
+   "sionna_3m": 1.27
+  },
+  "verdict_ko": "⭐박자 지표는 40~400 Hz 안 **argmax** 다. 그런데 1× 와 2× 봉우리의 여유는 어느 엔진에서도 작다 — 광선 격자를 안 쓰는 **순수 PO 조차 +6.48 dB**, Sionna 3 m 는 +1.27 dB 다. 즉 플래시 펄스열의 고조파가 실제로 비슷하게 세고, argmax 는 몇 dB 흔들리면 뒤집힌다. «2 배 조화로 읽음» 은 종류가 다른 특징 오차가 아니라 **승자독식 지표가 읽은 레벨 오차**다. 우리 엔진도 같은 병에 걸린다 — outputs/freeze_signal_loss.json 의 A_sbr_locked 4 열이 f_flash 를 정확히 **절반**(rel_err −0.4999)으로 읽는다.",
+  "and_it_improves_with_rays_ko": "40 억 발에서 기본파를 맞히는 시드가 2/7 → 5/8 로 늘었다. 앞선 판정의 «광선 22.5 배에도 시드 1 의 박자가 그대로» 는 **다른 자료**에서 온 문장이다 — 그 99.76 % 는 report07_range40_raybudget.json(4096 자세 판)의 시드 1 이고, 사다리(1024 자세 판)의 시드 1 은 두 예산 모두 기본파(127.58 · 127.15 Hz)를 읽는다. 두 자료를 한 서사로 이었다.",
+  "detection_relevance_ko": "그리고 탐지는 argmax 를 안 쓴다. CFAR 는 도플러 칸의 **에너지**가 문턱을 넘나만 본다. 1× 든 2× 든 둘 다 노치 밖이라 Pd 는 안 바뀐다. 조화가 뒤집혀 무너지는 것은 **분류·rpm 추정**이지 탐지가 아니다."
+ },
+ "F4_the_axis_is_off_the_detection_path": {
+  "what_the_detection_chain_actually_eats_ko": "src/experiment_detection.py:344 — σ 는 `drone_rcs_pattern(drone, FC, az)` 이 주는 **방위 하나의 스칼라**이고, 에코는 build_echo_sionna 가 `amp = sqrt(σ)·L/(√(4π)·R1·R2)` 로 만든다(:150). 도플러는 bistatic_tau_fd 가 주는 **강체 하나**이고 기본 vel = (−3,0,0) m/s 다(:331).",
+  "consequences_ko": [
+   "우리가 발표하는 Pd 에는 **PathSolver 가 아예 없다**. 재현성 축에서 진 엔진은 탐지 사슬에 안 들어간다.",
+   "그 Pd 에는 **블레이드선도 없다**. 슬로타임 열도 마이크로도플러도 안 쓴다 — 스칼라 σ 하나다.",
+   "즉 이 축이 잰 양(40 m 슬로타임 레벨·박자)은 우리 탐지 숫자의 상류에 없다. 승패가 Pd 를 안 움직인다."
+  ],
+  "verdict_ko": "⭐탐지에서 재현성이 실제로 걸리는 곳은 `drone_rcs_pattern` 이 내는 **스칼라 σ(az)** 다. 그 값의 재현성은 비트 게이트가 이미 잡고 있고, 그 값의 **정확도**는 축 1 의 문제다. 이 축의 승리는 탐지 결론에 아무것도 더하지 않는다.",
+  "caveat_ko": "⚠호버 + 0-도플러 노치 서사(과제문 (4))가 옳다면, 지금 탐지 사슬이 vel=(−3,0,0) 강체 도플러 하나로 Pd 를 내는 것 자체가 결함이다. 그것은 이 축이 아니라 **사슬 연결(축 4)** 의 발견이다."
+ },
+ "F5_cross_process_same_seed_probe": {
+  "question_ko": "축의 문자 그대로 «같은 장면이 같은 답을 주나» 를 PathSolver 에도 대 본다.",
+  "method_ko": "report07_range40.npz(seed 1·2·3 · spp 178 M · 4096 자세)와 사다리 샤드(같은 spp · 같은 자세 격자 · 앞 1024 자세)를 자세별로 맞댔다. 두 스크립트는 fc·az·el·rng·rpm·PRF 규약이 같고, rotor_phases 1 차원 경로는 그 사이 커밋에서 **비트동일 보장**이다.",
+  "numbers": {
+   "bit_identical": false,
+   "median_rel_diff_per_pose": [
+    0.59,
+    0.606,
+    0.693
+   ],
+   "level_delta_db_same_seed": [
+    1.162,
+    -1.554,
+    9.98
+   ],
+   "npaths_median_range40_vs_ladder": {
+    "s1": [
+     9,
+     4
+    ],
+    "s2": [
+     9,
+     7
+    ],
+    "s3": [
+     5,
+     8
+    ]
+   },
+   "cos_same_seed_across_processes_mean": 0.9154,
+   "cos_different_seed_same_process_mean": 0.903,
+   "cos_different_seed_range": [
+    0.8159,
+    0.9557
+   ]
+  },
+  "verdict_ko": "같은 시드를 다른 프로세스에서 돌린 쌍의 복소 코사인(0.9154)이 **다른 시드끼리의 코사인 분포(평균 0.9030, [0.816, 0.956]) 안에 그대로 들어간다.** 즉 그 자료에서는 시드가 답을 못 박지 못했다.",
+  "confound_ko": "⚠단정하지 않는다. 두 실행 사이(2026-08-10 22:58 ↔ 08-11 01:59)에 커밋이 4 건 있고, 그 중 6f6ffbf 는 «하류 마이크로도플러에 얼린 격자 켜기 — 27 열 재계산» 이다. PathSolver 경로 자체를 건드렸는지 확정 못 했고, 178 M 시드 1·2 열이 실제로 언제 계산됐는지도 파일 시각만으로는 모른다. ⇒ «PathSolver 가 프로세스 간 비결정론적이다» 는 **증명 못 했다**. 말할 수 있는 것은 «같은 시드라는 라벨만으로는 같은 답이 안 나왔다» 뿐이다."
+ },
+ "what_survives_of_the_original_verdict": [
+  "우리 σ 사슬에 난수가 0 이고 jitter 가 결정론적 격자라는 코드 사실 — 그대로 산다. 확인했다.",
+  "36/36 비트 동일 · 6/6 열 max_abs_diff 0.0 게이트 — 그대로 산다. 우리는 **검증했고** PathSolver 쪽은 그런 게이트가 없다(F5 는 시사할 뿐 증명 못 한다).",
+  "R1(재현성 ≠ 정확성, 비트 재현되며 +20.3 dB 였다) · R2(판도 자유 손잡이다) — 그대로 산다. 오히려 더 무겁다."
+ ],
+ "what_does_not_survive": [
+  "«탐지 눈금 환산» — 노치가 버리는 동체 성분(전력의 99.5 %)을 탐지거리로 옮겼다. 블레이드 대역으로 다시 재면 40 억 발에서 sd 1.48 dB(×1.089)이고, 이는 우리 적대적 판 3.452 dB(×1.220)보다 **작다**.",
+  "«정도가 아니라 종류다» — 블레이드 대역 시드 산포가 광선 22.5 배에 2.446 → 1.078 dB (F=5.15, p=0.033). 정도의 문제이고 예산으로 산다.",
+  "«박자 2 배 뒤집힘은 교정 대상이 아닌 특징 오차» — 1×/2× 여유는 순수 PO 조차 6.5 dB, Sionna 3 m 는 1.27 dB 다. argmax 지표의 성질이고 우리 엔진도 절반으로 읽는 열이 있다. 그리고 CFAR 는 argmax 를 안 본다.",
+  "«이 축이 탐지에 중요하다» — 우리 Pd 사슬은 스칼라 σ(az) 하나만 먹는다. PathSolver 도 블레이드선도 그 사슬에 없다."
+ ],
+ "verdict": {
+  "who_wins_literal_axis": "ours",
+  "who_wins_decision_relevant_axis": "무승부 — 이 축은 탐지 승자를 못 가른다",
+  "overturned_ko": "판정의 **이유 4 개 중 3 개**와 **탐지 환산 전체**를 뒤집는다. 승자 라벨(ours)만 문자 그대로의 «같은 바이너리를 다시 돌리면 같은 비트» 라는 약한 뜻에서 남는다.",
+  "corrected_headline_ko": "재현성은 두 엔진을 가르는 축이 아니다. 우리 쪽 강점은 «난수가 없다» 가 아니라 «얼린 판·간격을 원장에 박고 게이트로 검증했다» 는 **공정** 이고, PathSolver 의 약점은 «종류가 다른 계통 편향» 이 아니라 **광선 예산이 모자란 몬테카를로 잡음**이다. 탐지가 걸리는 블레이드 대역에서 그 잡음은 40 억 발에서 1.5 dB(거리 곱 1.09 배)이고, 우리 판 선택의 적대적 폭 3.45 dB(1.22 배)보다 작다. 두 엔진의 승부는 **축 1(절대 σ)** 에서 나야 하고, 그쪽에서는 우리 자신이 20.3 dB 반례를 만든 적이 있다.",
+  "confidence_ko": "중간~높음. F1·F3·F4 는 원장·소스에서 직접 확인했고, F2 는 유의수준 0.033(블레이드 대역)이라 표본이 작다. F5 는 교란이 있어 증거로만 쓴다.",
+  "unknowns_ko": [
+   "우리 커널의 **블레이드 대역** 판 민감도 — freeze_plate_sensitivity 는 level_db(총레벨)만 잰다. 우리 쪽 3.452 dB 도 동체 지배값일 수 있고, 블레이드 대역 값은 원장에 없다. **모른다.**",
+   "PathSolver 가 같은 프로세스에서 같은 시드로 두 번 돌면 비트 동일한지 — 재실행이 필요해 안 쟀다. **모른다.**",
+   "40 억 발 위에서 시드 산포가 어디로 수렴하는지 — 사다리는 두 예산뿐이다. **모른다.**",
+   "이 모든 것은 40 m · matrice4e · el −15° · 기선 0 한 자리다. **모른다.**"
+  ]
+ }
+}

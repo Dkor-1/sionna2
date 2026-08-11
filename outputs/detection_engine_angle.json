@@ -1,0 +1,656 @@
+{
+ "_meta": {
+  "generated": "2026-08-11T02:31:36",
+  "axis": "(3) angle dependence - which engine produces sigma(azimuth, elevation) for detection",
+  "author": "subagent, read-only pass over existing ledgers + sionna 2.0.1 source",
+  "gpu_used": "none - no new simulation was run; every number is read from an existing ledger or from the installed sionna source",
+  "ledgers_read": [
+   "outputs/facet_count.json",
+   "outputs/report13_sigma_grid.json",
+   "outputs/md_range_sweep.json",
+   "outputs/validate_measured_airframe.json",
+   "outputs/report15_sionna_sweep_matrice4e.json",
+   "outputs/sbr_grid_convergence.json",
+   "outputs/sigma_sensitivity.json",
+   "outputs/rt_no_rcs_verify.json"
+  ],
+  "nothing_overwritten": true
+ },
+ "A_source_audit_pathsolver": {
+  "install": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt (sionna 2.0.1 / sionna_rt 2.0.1)",
+  "claim_under_test": "PathSolver has no scattering integral - it only multiplies a Fresnel/Jones coefficient per path",
+  "verdict": "CONFIRMED, with one refinement: it is not only Fresnel, there is also an EMPIRICAL diffuse lobe, but there is still no aperture integral anywhere",
+  "evidence": [
+   {
+    "file": "path_solvers/field_calculator.py",
+    "line": 324,
+    "code": "spreading_factor = dr.select(has_diffraction, 1/sqrt(s*s'*(s+s')), dr.rcp(ray_tube_length))",
+    "reads": "for every non-diffracted path the field is scaled by 1/(unfolded path length). No ray-tube curvature matrix (rho1,rho2), no divergence factor, therefore no dependence on the scatterer's size or curvature."
+   },
+   {
+    "file": "path_solvers/field_calculator.py",
+    "line": 347,
+    "code": "a_ *= spreading_factor*wl_scaling  (wl_scaling = lambda/4pi, line 329)",
+    "reads": "the whole channel coefficient is antenna_pattern x (product of Jones matrices) x lambda/(4 pi L). Nothing integrates over a surface."
+   },
+   {
+    "file": "path_solvers/field_calculator.py",
+    "line": 464,
+    "code": "e_fields[i] = dr.select(active, jones_mat@e_field, e_field)",
+    "reads": "the interaction is a 4x4 Jones matrix product - exactly the 'multiply a Fresnel coefficient' description."
+   },
+   {
+    "file": "radio_materials/radio_material.py",
+    "line": 960,
+    "code": "jones_mat = dr.sqrt(fs * solid_angle) * gamma * xpd_jones_mat",
+    "reads": "diffuse reflection = sqrt(empirical scattering pattern f_s x MC ray-tube solid angle) x Fresnel magnitude. f_s is the Degli-Esposti lobe (lambertian/directive/backscattering, radio_materials/scattering_pattern.py) - a function of local incidence/scattering angle only, with no wavelength and no object extent in it."
+   },
+   {
+    "file": "path_solvers/ + radio_materials/",
+    "line": 0,
+    "code": "grep -rncE 'physical_optics|kirchhoff|aperture|surface_area|facet_area|induced_current' -> 0 hits in all 14 files",
+    "reads": "no aperture/PO/Kirchhoff/induced-current term exists in the solver or the material layer."
+   },
+   {
+    "file": "path_solvers/path_solver.py",
+    "line": 151,
+    "code": "diffuse_reflection: bool = False (default)",
+    "reads": "stock default is specular+refraction+LOS only; diffuse must be switched on explicitly."
+   }
+  ],
+  "consequence_for_angle": "the amplitude of a path carries no information about how big the reflecting piece is, so a coherent lobe pattern produced by the target's aperture cannot arise. Azimuth can only enter through (i) the Fresnel coefficient vs local incidence angle (smooth), (ii) whether a flat facet's normal falls inside the specular acceptance window, (iii) Monte-Carlo sampling."
+ },
+ "B_empirical_confirmation_from_our_own_ledgers": {
+  "size_blindness": {
+   "src": "report15_sionna_sweep_matrice4e.json headline.specular_range_law",
+   "specular_is_size_blind": true,
+   "specular_size_slope_db_per_decade_of_plate_size": {
+    "1": -7.325874574342442e-06,
+    "3": -1.249997170288844e-06,
+    "10": 1.1024284651235879e-06
+   },
+   "specular_range_slope_db_per_decade": {
+    "300mm": -19.911216366302362,
+    "100mm": -19.91121786141197
+   },
+   "diffuse_range_slope_db_per_decade": {
+    "prod/nose": -40.22046273280088,
+    "prod/oblique": -40.91562108379805,
+    "prod/side": -40.70933158879139,
+    "prod/hot": -21.435239910660115,
+    "prod/disc": -41.162827881735154
+   },
+   "reads": "specular channel obeys the infinite-mirror law (1/R^2, -19.9 dB/decade) and is exactly size-blind (slope ~1e-6 dB/decade). The diffuse channel does obey the radar law (~-40 dB/decade) but its absolute level is set by the free knob 'scattering_coefficient S'."
+  },
+  "specular_channel_is_almost_always_empty": {
+   "src_a": "report15 specular_census.production (matrice4e, 8 az x 10 el x 4 rotor phase x 3 ranges = 960 cells, spp=2.048e9)",
+   "frac_cells_with_specular": 0.034375,
+   "n_cells_with_specular": 33,
+   "src_b": "facet_count.json levels[0].spec_grid (mavic4pro, 12 az x 3 el = 36 aspects, spp=256e6)",
+   "spec_n_aspects": 36,
+   "spec_n_aspects_nonzero": 1,
+   "the_one_aspect_that_works": {
+    "az_deg": 0.0,
+    "el_deg": 0.0
+   },
+   "reads": "across the azimuth circle at el=0/15/90 the specular channel is identically zero except at az=0,el=0 (nose-on, normal incidence on the camera face). A pattern that is zero at 35 of 36 aspects is not an angle dependence."
+  },
+  "curved_bodies_give_zero_specular": {
+   "src": "report15 mechanism.c1_curved_tessellation / c2_curvature_law",
+   "n_specular_for_rho_0.05m_any_tessellation": 0,
+   "tessellations_tried": [
+    8,
+    64,
+    512,
+    4096
+   ],
+   "acceptance_law": "δ_max ≈ atan((facet_edge/2)/R)  ·  곡면: 2R/ρ ≲ 1 이어야 정반사",
+   "reads": "a cylinder of 5 cm curvature radius returns 0 specular paths at 1/3/10 m no matter how finely it is tessellated. A drone is made of such radii, so the geometry-driven part of PathSolver's angle response is switched off for the airframe."
+  },
+  "pec_sphere_gives_zero_paths": {
+   "src": "rt_no_rcs_verify.json C_pec_sphere",
+   "rows": "r=0.3/1/3 m at spp=1e6 and 1.6e7 -> n_paths = 0 in all 6 runs"
+  }
+ },
+ "C_head_to_head_same_cells": {
+  "scope": "outputs/facet_count.json - mavic4pro, 3.5 GHz, R=10 m, el=+15 deg, bistatic 1.146 deg, az = 0/30/60/90 deg, production per-group materials, identical mesh for all three engines",
+  "why_this_is_the_only_apples_to_apples_azimuth_cut": "it is the ONLY ledger in outputs/ that runs stock Sionna PathSolver, our pure PO and our SBR at the same set of azimuths on the same mesh.",
+  "sionna_pathsolver_diffuse_channel": {
+   "incoherent_sum_abs_a2": {
+    "mean_db_by_az": {
+     "az0": -99.9688,
+     "az30": -101.25,
+     "az60": -100.8618,
+     "az90": -100.1408
+    },
+    "seed_sd_db_by_az": {
+     "az0": 0.1843,
+     "az30": 0.1675,
+     "az60": 0.3657,
+     "az90": 0.169
+    },
+    "between_az_span_db": 1.2812423706054688,
+    "pooled_seed_sd_db": 0.23683239328399297,
+    "one_way_F_3_8": 19.476279881778616,
+    "std_over_4_az_db": 0.522593629742574
+   },
+   "coherent_sum_h": {
+    "mean_db_by_az": {
+     "az0": -77.8783,
+     "az30": -79.1253,
+     "az60": -78.6574,
+     "az90": -77.493
+    },
+    "seed_sd_db_by_az": {
+     "az0": 0.2813,
+     "az30": 0.2714,
+     "az60": 0.6621,
+     "az90": 0.2579
+    },
+    "between_az_span_db": 1.63226318359375,
+    "pooled_seed_sd_db": 0.40548204708653385,
+    "one_way_F_3_8": 9.958655126616804,
+    "std_over_4_az_db": 0.6397966784824174
+   }
+  },
+  "our_kernels_dbsm_by_az": {
+   "PO": {
+    "az0": -38.01848032308225,
+    "az30": -16.985417210277053,
+    "az60": -15.046167291040044,
+    "az90": -13.646052954579918
+   },
+   "SBR": {
+    "az0": -18.177212629083446,
+    "az30": -19.73799338281001,
+    "az60": -17.520006678589723,
+    "az90": -15.329987022470577
+   }
+  },
+  "span_over_the_same_4_azimuths_db": {
+   "sionna_incoherent": 1.2812423706054688,
+   "sionna_coherent": 1.63226318359375,
+   "our_PO": 24.372427368502333,
+   "our_SBR": 4.408006360339433
+  },
+  "std_over_the_same_4_azimuths_db": {
+   "sionna_incoherent": 0.522593629742574,
+   "sionna_coherent": 0.6397966784824174,
+   "our_PO": 9.940461790766294,
+   "our_SBR": 1.58352496555546
+  },
+  "correlation_with_projected_area_over_the_4_azimuths": {
+   "projected_area_m2": {
+    "az0": 0.041124,
+    "az30": 0.04002000000000001,
+    "az60": 0.037216,
+    "az90": 0.036416000000000004
+   },
+   "r_sionna_incoh_vs_area": -0.009,
+   "r_sionna_coh_vs_area": -0.289,
+   "r_PO_vs_area": -0.793,
+   "r_SBR_vs_area": -0.783,
+   "reads": "4 points only - treat as a hint, not a test."
+  }
+ },
+ "D_refutation_attempt_a_is_sionna_azimuth_change_a_lobe_or_MC_noise": {
+  "question": "PathSolver also moves when azimuth changes. Is that a lobe, or Monte-Carlo noise?",
+  "answer": "NEITHER OF THE TWO EASY ANSWERS. The movement is statistically real (so 'it is just MC noise' is FALSE and I retract that line of attack), but it is ~1.3 dB wide and it is an ENVELOPE, not an interference lobe pattern.",
+  "test_1_seed_null": {
+   "between_azimuth_span_db": 1.2809,
+   "pooled_seed_sd_db": 0.2372,
+   "one_way_F_3_8": 19.48,
+   "coherent_channel": {
+    "between_azimuth_span_db": 1.6325,
+    "pooled_seed_sd_db": 0.4053,
+    "one_way_F_3_8": 9.96
+   },
+   "reads": "3 seeds per azimuth. Between-azimuth variance beats seed variance by F=19.5 (incoherent). The azimuth dependence is real."
+  },
+  "test_2_is_it_interference": {
+   "method": "decimate the mesh 30k -> 1.5k triangles (5 shape-valid rungs) and watch the azimuth pattern. A lambda=8.57 cm interference pattern cannot survive a 20x change in facet layout; a silhouette/Lambertian envelope can.",
+   "sionna_incoh_per_az_spread_across_5_mesh_ratios_db": [
+    0.15,
+    0.26,
+    0.29,
+    0.16
+   ],
+   "sionna_pattern_shape_std_across_ratios_db": [
+    0.04,
+    0.06,
+    0.06,
+    0.1
+   ],
+   "our_PO_per_az_spread_across_5_mesh_ratios_db": [
+    7.29,
+    1.8,
+    1.23,
+    4.94
+   ],
+   "our_SBR_per_az_spread_across_5_mesh_ratios_db": [
+    1.11,
+    1.44,
+    1.43,
+    2.9
+   ],
+   "reads": "PathSolver's azimuth pattern is invariant to a 20x remesh (<=0.10 dB). Ours is not (0.4-2.3 dB in shape). Invariance to the facet layout is the signature of a geometric-optics envelope with no coherent aperture; sensitivity is the signature of interference. This is the cleanest available discriminator and it also names OUR cost: our lobe placement is mesh-dependent."
+  },
+  "test_3_scale": {
+   "measured_azimuth_spread_eps_db_Das_TableIII": {
+    "LTE 1.843 GHz": 5.21529,
+    "5G 3.5 GHz": 5.265000000000001,
+    "WiFi 5.21 GHz": 5.3163
+   },
+   "our_eps_db": {
+    "LTE 1.843 GHz": 4.477223702521501,
+    "5G 3.5 GHz": 3.96521071908194,
+    "WiFi 5.21 GHz": 6.481237518790272
+   },
+   "our_minus_measured_db": {
+    "LTE 1.843 GHz": -0.7380662974784995,
+    "5G 3.5 GHz": -1.2997892809180605,
+    "WiFi 5.21 GHz": 1.1649375187902722
+   },
+   "sionna_std_over_its_4_azimuths_db": 0.5232,
+   "caveat": "our eps is over the full 360 deg circle at 3 deg; the Sionna 0.52 dB is over a quarter circle at 30 deg on a different drone. NOT the same statistic. But the gap is ~10x, far larger than any plausible sampling correction.",
+   "reads": "a published bistatic measurement puts the azimuth spread of a real airframe at 5.2-5.3 dB. Our kernel gives 4.0-6.5 dB (within -1.30/+1.16 dB). PathSolver's diffuse channel gives ~0.5 dB."
+  }
+ },
+ "E_refutation_attempt_b_does_detection_actually_need_the_lobes": {
+  "question": "maybe one aspect-averaged sigma is enough and the lobe structure is decoration",
+  "finding_1_single_aspect_vs_36_azimuth_mean": {
+   "src": "md_range_sweep.json rows (pure PO, monostatic, el=+15)",
+   "diff_single_minus_aspectmean_db_by_drone_band": {
+    "mini5pro|5G NR 3.5 GHz": -0.9712,
+    "mavic4pro|5G NR 3.5 GHz": 6.082,
+    "matrice4e|5G NR 3.5 GHz": -1.1024,
+    "s1000plus|5G NR 3.5 GHz": -2.2692,
+    "phantom4|5G NR 3.5 GHz": 6.0152,
+    "mavic4pro|LTE 1.843 GHz": 4.5678,
+    "mavic4pro|WiFi 5.21 GHz": 1.1554,
+    "s1000plus|LTE 1.843 GHz": 1.6664,
+    "s1000plus|WiFi 5.21 GHz": 7.4614
+   },
+   "n_rows": 63,
+   "mean_db": 2.511706749098623,
+   "median_db": 1.666359376905561,
+   "min_db": -2.2691737308218514,
+   "max_db": 7.461356147421771,
+   "p90_abs_db": 7.185482605414946,
+   "R90_factor_at_max": 1.5365047376144036,
+   "reads": "quoting the nose-on value instead of the azimuth mean is worth -2.3 to +7.5 dB depending on airframe and band, i.e. up to a 1.53x error in detection range. So the angle axis is load-bearing for detection, not decoration."
+  },
+  "finding_2_our_own_ledger_argues_the_other_way": {
+   "src": "sigma_sensitivity.json ranking_consensus / aspect_averaged",
+   "single_aspect_n_distinct_orders_across_5_drones": 3,
+   "aspect_avg_n_distinct_orders": 1,
+   "project_recommended_configuration": "aspect_avg_anchored",
+   "interpretation_quoted": "취약성의 주원인은 σ 의 '오차'가 아니라 '단일자세 인용'이다. σ 로브 구조가 밴드마다 완전히 재편되기 때문.",
+   "reads": "⭐ THIS IS THE STRONGEST POINT AGAINST US. Our own robustness study concludes that quoting a single aspect is the main source of fragility and recommends the aspect-AVERAGED sigma for every headline claim. So the project does not, in fact, use the fine lobe structure - it averages it away."
+  },
+  "why_the_axis_still_stands": "the aspect mean is computed FROM sigma(azimuth). PathSolver produces no sigma at any azimuth (specular = size-blind mirror amplitude, zero at 35/36 aspects; diffuse = an arbitrary S knob), so it cannot produce the mean either. The honest competitor to our sigma(az) on this axis is a published measured sigma table, not PathSolver.",
+  "what_the_lobes_are_still_needed_for": [
+   "Pd stated as a function of look angle (p10/p50/p90 across azimuth, not a single number)",
+   "the azimuth spread eps itself, which is the one angle quantity we can check against a measurement",
+   "the aspect mean, which cannot be formed without the pattern"
+  ]
+ },
+ "F_our_kernel_lobe_structure_numbers": {
+  "src": "report13_sigma_grid.json (engine: sbr (rcs_sbr_batch, 1-bounce, penetrate=True), div=16, jitter=2, az step 3 deg x 120, el 23 rows, 3 bands, 7 airframes)",
+  "warning_smoothing": "meta.smooth_deg = 3.0 and sigma_dbsm is BIT-IDENTICAL to sigma_smooth_dbsm (checked: max|diff| = 0.0). The stored grid is already 3 deg smoothed - finer lobes than 3 deg are not in this file.",
+  "per_cut": {
+   "matrice4e|LTE 1.8 GHz|el0.0": {
+    "ptp_db": 27.81979443915492,
+    "p90_minus_p10_db": 11.012491224834013,
+    "std_db": 4.379025750380186,
+    "n_local_max": 18,
+    "dominant_period_deg": 180.0
+   },
+   "matrice4e|LTE 1.8 GHz|el-12.0": {
+    "ptp_db": 23.41190819443765,
+    "p90_minus_p10_db": 12.69964906992379,
+    "std_db": 4.615776388068348,
+    "n_local_max": 17,
+    "dominant_period_deg": 60.0
+   },
+   "matrice4e|LTE 1.8 GHz|el-24.0": {
+    "ptp_db": 19.748327097391567,
+    "p90_minus_p10_db": 10.581807638027927,
+    "std_db": 4.022258615061973,
+    "n_local_max": 16,
+    "dominant_period_deg": 90.0
+   },
+   "matrice4e|5G NR 3.5 GHz|el0.0": {
+    "ptp_db": 31.174729331899325,
+    "p90_minus_p10_db": 9.889957399971497,
+    "std_db": 5.257258018249487,
+    "n_local_max": 31,
+    "dominant_period_deg": 60.0
+   },
+   "matrice4e|5G NR 3.5 GHz|el-12.0": {
+    "ptp_db": 24.045040999278097,
+    "p90_minus_p10_db": 11.024897204799606,
+    "std_db": 4.728232896695064,
+    "n_local_max": 28,
+    "dominant_period_deg": 60.0
+   },
+   "matrice4e|5G NR 3.5 GHz|el-24.0": {
+    "ptp_db": 26.07993093031797,
+    "p90_minus_p10_db": 13.315544887626878,
+    "std_db": 5.350310947024824,
+    "n_local_max": 32,
+    "dominant_period_deg": 90.0
+   },
+   "matrice4e|WiFi 5.2 GHz|el0.0": {
+    "ptp_db": 23.824020967319605,
+    "p90_minus_p10_db": 14.198697561123966,
+    "std_db": 5.40840986516939,
+    "n_local_max": 37,
+    "dominant_period_deg": 90.0
+   },
+   "matrice4e|WiFi 5.2 GHz|el-12.0": {
+    "ptp_db": 20.668029021356098,
+    "p90_minus_p10_db": 11.356680839749423,
+    "std_db": 4.632542118415963,
+    "n_local_max": 33,
+    "dominant_period_deg": 90.0
+   },
+   "matrice4e|WiFi 5.2 GHz|el-24.0": {
+    "ptp_db": 22.537777226233946,
+    "p90_minus_p10_db": 12.001948907648156,
+    "std_db": 4.592560249917796,
+    "n_local_max": 40,
+    "dominant_period_deg": 6.428571428571429
+   },
+   "mini5pro|LTE 1.8 GHz|el0.0": {
+    "ptp_db": 18.03159273656147,
+    "p90_minus_p10_db": 11.78005654184366,
+    "std_db": 4.260488695055371,
+    "n_local_max": 14,
+    "dominant_period_deg": 180.0
+   },
+   "mini5pro|LTE 1.8 GHz|el-12.0": {
+    "ptp_db": 17.362235424825485,
+    "p90_minus_p10_db": 11.629523213461429,
+    "std_db": 4.21214491212917,
+    "n_local_max": 12,
+    "dominant_period_deg": 180.0
+   },
+   "mini5pro|LTE 1.8 GHz|el-24.0": {
+    "ptp_db": 20.934159679986838,
+    "p90_minus_p10_db": 14.593757816274824,
+    "std_db": 5.297221236205634,
+    "n_local_max": 12,
+    "dominant_period_deg": 180.0
+   },
+   "mini5pro|5G NR 3.5 GHz|el0.0": {
+    "ptp_db": 20.29418698109892,
+    "p90_minus_p10_db": 11.108302399321293,
+    "std_db": 4.256030661578149,
+    "n_local_max": 17,
+    "dominant_period_deg": 180.0
+   },
+   "mini5pro|5G NR 3.5 GHz|el-12.0": {
+    "ptp_db": 22.82358553026578,
+    "p90_minus_p10_db": 11.101382518826856,
+    "std_db": 4.685845719954903,
+    "n_local_max": 21,
+    "dominant_period_deg": 24.0
+   },
+   "mini5pro|5G NR 3.5 GHz|el-24.0": {
+    "ptp_db": 23.353760058979148,
+    "p90_minus_p10_db": 13.109456985979797,
+    "std_db": 5.095073745736344,
+    "n_local_max": 19,
+    "dominant_period_deg": 24.0
+   },
+   "mini5pro|WiFi 5.2 GHz|el0.0": {
+    "ptp_db": 18.477222434764098,
+    "p90_minus_p10_db": 12.385156899452188,
+    "std_db": 4.719007105823039,
+    "n_local_max": 28,
+    "dominant_period_deg": 90.0
+   },
+   "mini5pro|WiFi 5.2 GHz|el-12.0": {
+    "ptp_db": 24.97761135684181,
+    "p90_minus_p10_db": 12.281469783264107,
+    "std_db": 5.143426791155684,
+    "n_local_max": 31,
+    "dominant_period_deg": 90.0
+   },
+   "mini5pro|WiFi 5.2 GHz|el-24.0": {
+    "ptp_db": 26.49016296558476,
+    "p90_minus_p10_db": 13.122286434458076,
+    "std_db": 5.114728085845499,
+    "n_local_max": 28,
+    "dominant_period_deg": 24.0
+   },
+   "mavic4pro|LTE 1.8 GHz|el0.0": {
+    "ptp_db": 24.704670742375743,
+    "p90_minus_p10_db": 15.740536529225453,
+    "std_db": 5.932003479757494,
+    "n_local_max": 16,
+    "dominant_period_deg": 60.0
+   },
+   "mavic4pro|LTE 1.8 GHz|el-12.0": {
+    "ptp_db": 15.388166842107609,
+    "p90_minus_p10_db": 10.059675106428454,
+    "std_db": 3.844900532194753,
+    "n_local_max": 21,
+    "dominant_period_deg": 60.0
+   },
+   "mavic4pro|LTE 1.8 GHz|el-24.0": {
+    "ptp_db": 26.049627742208443,
+    "p90_minus_p10_db": 9.236366362045246,
+    "std_db": 4.669013236729454,
+    "n_local_max": 20,
+    "dominant_period_deg": 90.0
+   },
+   "mavic4pro|5G NR 3.5 GHz|el0.0": {
+    "ptp_db": 23.045280402927787,
+    "p90_minus_p10_db": 13.623356847251095,
+    "std_db": 5.037227902070635,
+    "n_local_max": 37,
+    "dominant_period_deg": 45.0
+   },
+   "mavic4pro|5G NR 3.5 GHz|el-12.0": {
+    "ptp_db": 24.271481261338245,
+    "p90_minus_p10_db": 15.321645494334849,
+    "std_db": 5.605466281871736,
+    "n_local_max": 34,
+    "dominant_period_deg": 120.0
+   },
+   "mavic4pro|5G NR 3.5 GHz|el-24.0": {
+    "ptp_db": 24.43866502483604,
+    "p90_minus_p10_db": 13.71593773210451,
+    "std_db": 5.118251171714318,
+    "n_local_max": 29,
+    "dominant_period_deg": 36.0
+   },
+   "mavic4pro|WiFi 5.2 GHz|el0.0": {
+    "ptp_db": 21.426946144819095,
+    "p90_minus_p10_db": 12.647708952933904,
+    "std_db": 4.915119189345087,
+    "n_local_max": 34,
+    "dominant_period_deg": 45.0
+   },
+   "mavic4pro|WiFi 5.2 GHz|el-12.0": {
+    "ptp_db": 20.104739650347344,
+    "p90_minus_p10_db": 10.994646421148929,
+    "std_db": 4.433439552912081,
+    "n_local_max": 35,
+    "dominant_period_deg": 120.0
+   },
+   "mavic4pro|WiFi 5.2 GHz|el-24.0": {
+    "ptp_db": 22.172740523443558,
+    "p90_minus_p10_db": 10.83198582294823,
+    "std_db": 4.741278289744568,
+    "n_local_max": 47,
+    "dominant_period_deg": 7.2
+   },
+   "s1000plus|LTE 1.8 GHz|el0.0": {
+    "ptp_db": 23.496661589614472,
+    "p90_minus_p10_db": 14.612363773327846,
+    "std_db": 5.916841035759798,
+    "n_local_max": 44,
+    "dominant_period_deg": 90.0
+   },
+   "s1000plus|LTE 1.8 GHz|el-12.0": {
+    "ptp_db": 16.75900587304875,
+    "p90_minus_p10_db": 10.462411025791296,
+    "std_db": 3.788828275208487,
+    "n_local_max": 30,
+    "dominant_period_deg": 22.5
+   },
+   "s1000plus|LTE 1.8 GHz|el-24.0": {
+    "ptp_db": 24.885144254925166,
+    "p90_minus_p10_db": 15.416605229716307,
+    "std_db": 5.386073702022692,
+    "n_local_max": 38,
+    "dominant_period_deg": 45.0
+   },
+   "s1000plus|5G NR 3.5 GHz|el0.0": {
+    "ptp_db": 27.456689344018752,
+    "p90_minus_p10_db": 14.576304683398133,
+    "std_db": 5.434910171790457,
+    "n_local_max": 39,
+    "dominant_period_deg": 90.0
+   },
+   "s1000plus|5G NR 3.5 GHz|el-12.0": {
+    "ptp_db": 21.78832216845818,
+    "p90_minus_p10_db": 11.586375562392647,
+    "std_db": 4.772207456946544,
+    "n_local_max": 39,
+    "dominant_period_deg": 90.0
+   },
+   "s1000plus|5G NR 3.5 GHz|el-24.0": {
+    "ptp_db": 17.29516290665225,
+    "p90_minus_p10_db": 10.097182318493115,
+    "std_db": 3.6883665668847847,
+    "n_local_max": 38,
+    "dominant_period_deg": 22.5
+   },
+   "s1000plus|WiFi 5.2 GHz|el0.0": {
+    "ptp_db": 24.67301423368239,
+    "p90_minus_p10_db": 9.680436477204276,
+    "std_db": 5.0683400675331765,
+    "n_local_max": 44,
+    "dominant_period_deg": 90.0
+   },
+   "s1000plus|WiFi 5.2 GHz|el-12.0": {
+    "ptp_db": 23.367245474663626,
+    "p90_minus_p10_db": 11.708268481637662,
+    "std_db": 4.711010868827023,
+    "n_local_max": 44,
+    "dominant_period_deg": 90.0
+   },
+   "s1000plus|WiFi 5.2 GHz|el-24.0": {
+    "ptp_db": 21.549578023091463,
+    "p90_minus_p10_db": 11.47276631484503,
+    "std_db": 4.562624976023697,
+    "n_local_max": 45,
+    "dominant_period_deg": 7.5
+   },
+   "phantom4|LTE 1.8 GHz|el0.0": {
+    "ptp_db": 19.44639501681192,
+    "p90_minus_p10_db": 11.773704040904597,
+    "std_db": 4.191302287432434,
+    "n_local_max": 18,
+    "dominant_period_deg": 120.0
+   },
+   "phantom4|LTE 1.8 GHz|el-12.0": {
+    "ptp_db": 18.027098487645056,
+    "p90_minus_p10_db": 13.021356553807166,
+    "std_db": 4.627822689764515,
+    "n_local_max": 17,
+    "dominant_period_deg": 90.0
+   },
+   "phantom4|LTE 1.8 GHz|el-24.0": {
+    "ptp_db": 25.139257150263774,
+    "p90_minus_p10_db": 12.525623871709442,
+    "std_db": 5.211795123014415,
+    "n_local_max": 17,
+    "dominant_period_deg": 90.0
+   },
+   "phantom4|5G NR 3.5 GHz|el0.0": {
+    "ptp_db": 22.286898938384176,
+    "p90_minus_p10_db": 10.49025560714195,
+    "std_db": 4.23808559671809,
+    "n_local_max": 27,
+    "dominant_period_deg": 60.0
+   },
+   "phantom4|5G NR 3.5 GHz|el-12.0": {
+    "ptp_db": 21.815446863515277,
+    "p90_minus_p10_db": 13.720823625468697,
+    "std_db": 4.95007394435971,
+    "n_local_max": 23,
+    "dominant_period_deg": 45.0
+   },
+   "phantom4|5G NR 3.5 GHz|el-24.0": {
+    "ptp_db": 22.109648075158347,
+    "p90_minus_p10_db": 12.337859364268681,
+    "std_db": 4.968399403842891,
+    "n_local_max": 29,
+    "dominant_period_deg": 120.0
+   },
+   "phantom4|WiFi 5.2 GHz|el0.0": {
+    "ptp_db": 28.0075470683119,
+    "p90_minus_p10_db": 15.018755436001692,
+    "std_db": 5.903160255447266,
+    "n_local_max": 27,
+    "dominant_period_deg": 90.0
+   },
+   "phantom4|WiFi 5.2 GHz|el-12.0": {
+    "ptp_db": 21.075565306719653,
+    "p90_minus_p10_db": 14.311762848705234,
+    "std_db": 5.322873501740211,
+    "n_local_max": 32,
+    "dominant_period_deg": 90.0
+   },
+   "phantom4|WiFi 5.2 GHz|el-24.0": {
+    "ptp_db": 23.618764883205742,
+    "p90_minus_p10_db": 13.995454522958088,
+    "std_db": 5.395958190306715,
+    "n_local_max": 39,
+    "dominant_period_deg": 90.0
+   }
+  },
+  "local_maxima_per_360deg_by_band": {
+   "LTE 1.8 GHz": {
+    "median": 17.0,
+    "min": 12,
+    "max": 44
+   },
+   "5G NR 3.5 GHz": {
+    "median": 29.0,
+    "min": 17,
+    "max": 39
+   },
+   "WiFi 5.2 GHz": {
+    "median": 35.0,
+    "min": 27,
+    "max": 47
+   }
+  },
+  "reads": "lobe count rises monotonically with carrier (median 17 at 1.843 GHz, 29 at 3.5 GHz, 34 at 5.21 GHz) - the signature of an interference pattern whose lobe width scales as lambda/D. Peak-to-peak is 15.4-31.2 dB, p90-p10 is 9.2-15.7 dB.",
+  "numerical_repeatability_floor": {
+   "src": "sbr_grid_convergence.json dither_cross_reference (PEC sphere target)",
+   "sphere_dither_ptp_db_at_div16": 1.782,
+   "grid_div_used_by_sigma_grid": 16,
+   "caveat_quoted": "drone 자체의 dither 는 아직 안 쟀다 (ledger's own warning)",
+   "reads": "a single sigma cell wobbles ~1.8 dB p-p when the ray grid is sub-cell shifted. Envelope statistics (p90-p10 ~ 9-16 dB) clear that floor by 5-9x; individual deep nulls (-36 to -41 dBsm) do not and must not be quoted."
+  },
+  "detection_consequence": {
+   "p90_minus_p10_11.0_dB_at_matrice4e_5G_el-12": "R90 moves 1.89x across azimuth",
+   "ptp_24.1_dB_same_cut": "R90 moves 3.99x between best and worst azimuth",
+   "sionna_span_1.28_dB": "R90 moves 1.08x"
+  }
+ },
+ "G_what_I_could_not_check": [
+  "No fine-azimuth (<=5 deg) PathSolver sweep exists anywhere in outputs/. The finest Sionna azimuth sampling on record is 30 deg (facet_count.json, 12 az) and 45 deg (report15 specular census, 8 az). So I cannot MEASURE a PathSolver lobe period - I can only show, from the source and from the remesh-invariance test, that the mechanism for one is absent.",
+  "The 4-azimuth head-to-head is a single drone (mavic4pro), single range (10 m), single elevation (+15 deg), single band (3.5 GHz). It has not been repeated.",
+  "The drone's own SBR dither (numerical repeatability of a sigma cell on a drone rather than a PEC sphere) is unmeasured - the ledger says so explicitly.",
+  "PathSolver's diffuse channel absolute level depends on the per-material scattering_coefficient S. rt_no_rcs_verify.json B_sphere_S shows the returned level moving from -12.79 dB to +2.97 dB relative to truth as S goes 0.2 -> 1.0. I did not audit which S our production materials use, so I cannot say how far off the diffuse azimuth envelope's absolute level is.",
+  "I did not check elevation as carefully as azimuth. Our grid has 23 elevation rows; the ledger warns el=-90 is a degenerate row (one sigma replicated over azimuth) and must not be used for azimuth statistics."
+ ]
+}

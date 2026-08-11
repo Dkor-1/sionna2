@@ -1,0 +1,312 @@
+{
+ "_meta": {
+  "role_ko": "렌즈 A 재검 — «인용한 숫자가 실제로 그 파일 그 키에 있나» 를 원장·소스로 하나씩 대조했다.",
+  "audits": "outputs/detection_engine_reproducibility.json (재현성 축 판정, 승자 ours)",
+  "generated": "2026-08-11",
+  "compute_ko": "GPU 0 초. 원장 JSON 읽기 + outputs/raybudget_ladder/*.npz 원본 재집계(numpy/CPU) + grep.",
+  "writes": [
+   "outputs/detection_engine_reproducibility_lensA.json"
+  ],
+  "does_not_touch_ko": "outputs/report07_range40.json · report07_three_engines.* · raybudget_ladder/ · raybudget_seed_ladder.json 은 읽기만 했다.",
+  "overturned": false,
+  "verdict_ko": "판정 유지 — 재현성 축 승자는 ours. 다만 반증항목 R3 은 뒤집혔고 산술·귀속 오류 6 건을 고쳐야 한다."
+ },
+ "lensA_confirmed": {
+  "note_ko": "아래는 인용대로 그 파일 그 키에 **있었다**. npz 가 있는 것은 원본에서 다시 계산해 일치까지 확인했다.",
+  "raybudget_seed_ladder.json/cells[0]": {
+   "spp": 178000000,
+   "n_seeds": 8,
+   "n_poses": 768,
+   "sd_level_db": 4.156,
+   "ptp_level_db": 13.177,
+   "sd_h1_over_h2_db": 10.444,
+   "structure": {
+    "sd_between_seeds_db": 4.1493,
+    "sd_within_pose_db": 4.9224,
+    "predicted_if_iid_db": 0.1776,
+    "ratio_observed_over_iid": 23.36
+   },
+   "arms_level_db_7full": [
+    -160.072,
+    -154.806,
+    -160.923,
+    -156.163,
+    -157.871,
+    -160.304,
+    -153.208
+   ],
+   "recomputed_from_npz": {
+    "sd_db": 2.9918,
+    "ptp_db": 7.716,
+    "match": true
+   },
+   "beats_hz": [
+    127.58,
+    254.33,
+    126.27,
+    254.19,
+    253.78,
+    254.93,
+    253.63,
+    169.63
+   ],
+   "recomputed_beats_7full_hz": [
+    127.5,
+    254.36,
+    126.22,
+    254.04,
+    253.72,
+    255.01,
+    253.72
+   ],
+   "f_flash_hz": 126.6667,
+   "n_on_2x": 5,
+   "n_correct": 2
+  },
+  "report07_range40.json/seeds": {
+   "level_db": [
+    -158.948,
+    -156.344,
+    -150.94
+   ],
+   "ptp_db": 8.008,
+   "paths_median": [
+    9,
+    9,
+    5
+   ],
+   "beat_dev_pct": [
+    99.95,
+    -0.12,
+    1.16
+   ],
+   "2.61dB_uses_only_seeds_1_2": true
+  },
+  "report07_range40_raybudget.json": {
+   "seed1_beat_rel_err_pct": {
+    "1.78e8": 99.95,
+    "4.0e9": 99.76
+   },
+   "npaths_median": {
+    "1.78e8": [
+     9,
+     9
+    ],
+    "4.0e9": [
+     193,
+     165
+    ]
+   },
+   "verdict.level_spread_db": {
+    "1.78e8": 2.61,
+    "4.0e9": 1.22
+   }
+  },
+  "report07_three_engines.json": {
+   "ptp_db": {
+    "sionna": 32.646,
+    "sbr": 5.327,
+    "po": 2.765
+   },
+   "cosine_in_ftip": {
+    "sionna_vs_po": 0.7602,
+    "sbr_vs_po": 0.955
+   },
+   "range_m": 3.0
+  },
+  "kernel_rng_grep_hits": {
+   "src/rcs_sbr.py": 0,
+   "src/materials.py": 0,
+   "src/geom.py": 0,
+   "src/articulated_fast.py": 0,
+   "src/ptd_edges.py": 0,
+   "src/drones.py": 0,
+   "reproduced_ko": "직접 grep 재실행. 0 확인."
+  },
+  "jitter_code": {
+   "lines": "src/rcs_sbr.py:288-290",
+   "text_matches_citation": true,
+   "ray_origin_grid_lines_actual": "src/rcs_sbr.py:242-243 (인용은 240-243)",
+   "mitsuba_calls": "scene.ray_intersect / ray_test 만 — 샘플러·인테그레이터 호출 없음(grep 확인)"
+  },
+  "verify_frozen_grid.json": {
+   "passed": true,
+   "gate1_n_cases": 36,
+   "gate1_n_bit_identical": 36,
+   "gate1_max_rel_err": 0.0,
+   "gate2_frozen_n_changes": 0,
+   "gate2_prod_n_changes": 61,
+   "independent_implementation_max_rel_err": 0.0,
+   "negative_controls_passed": true
+  },
+  "freeze_before_after.json/off_switch_gate": {
+   "n_rows": 6,
+   "all_bit_identical": true,
+   "max_abs_diff": 0.0
+  },
+  "freeze_before_after.json/reuse_check.plate_choice_sensitivity": {
+   "amp_corr": 0.9929699,
+   "level_db_delta": -0.0060601
+  },
+  "freeze_plate_sensitivity.json/verdict": {
+   "abs_level_plate_ptp_db": 3.452,
+   "occlusion_level_plate_ptp_db": 4.163,
+   "ledger_occlusion_level_abs_db": 1.315,
+   "occlusion_level_survives_plate_choice": false,
+   "p0_vs_production_max_abs_db": 0.526
+  },
+  "freeze_signal_loss.json": {
+   "P_in_excess_over_po_db_before_median": 20.297,
+   "after_median": 4.019,
+   "blade_coh_vs_po_before_median": 0.3429,
+   "n_with_po_judge": 13,
+   "oob_over_in_db_after_median": -6.278,
+   "oob_over_in_db_po_median": -29.634
+  },
+  "report2_waveform_rcs.json/sbr_validation.dither[div=12]": {
+   "spread": 1.3734745,
+   "avg_err": 0.7437577
+  },
+  "arithmetic_recheck": {
+   "E_two_sample_range_if_sd_2.992": 3.375,
+   "P_le_2.61": 0.463,
+   "P_le_1.22": 0.227,
+   "range_factor_2.992dB": 1.188,
+   "range_factor_7.715dB": 1.559,
+   "range_factor_3.452dB": 1.22
+  }
+ },
+ "lensA_errors_found": [
+  {
+   "id": "E1",
+   "severity": "귀속 오류",
+   "claim": "«기울기 −2.09 R² 0.987» 출처를 outputs/adv_grid_freeze_audit.json 으로 적었다",
+   "fact_ko": "그 파일에 −2.09 도 0.987 도 없다(grep 0 건). 실제 출처는 outputs/sbr_grid_convergence.json verdict.slope_vs_div_froz = −2.090692, r2 = 0.986516 이고, outputs/verify_frozen_grid.json _meta.motivation 이 그것을 인용한다. 같은 파일의 −2.16/R² 0.988(audit_4.per_arm.froz)과 LOO [−2.23,−2.03](verdict.what_held)은 실재한다.",
+   "affects_verdict": false
+  },
+  {
+   "id": "E2",
+   "severity": "수치 오류(방향은 보수적)",
+   "claim": "sd_within_pose_db 4.9224 · predicted_if_iid_db 0.1776 · ratio_observed_over_iid 23.36",
+   "fact_ko": "이 셋은 **자세가 어긋난** 행렬에서 나왔다. benchmark/raybudget_seed_ladder.py:199 가 `M = np.stack([np.abs(a['E'][:n_pose]) for a in arms])` 로 각 팔의 앞 768 개를 자르는데, 샤드 인덱스가 `np.arange(shard, n, nshards)` 라 시드 8(샤드 00 결측)의 idx 는 {1,2,3,5,6,7,…} 이고 시드 1~7 은 0…767 이다 → 같은 열이 서로 다른 자세를 비교한다. 자세를 맞춰(완전한 7 시드·1024 자세) 다시 계산: sd_within 3.5753 · pred_iid 0.1117 · **ratio 26.78**. 어긋남이 분모를 부풀렸으므로 23.36 은 과소평가였다.",
+   "affects_verdict": false
+  },
+  {
+   "id": "E3",
+   "severity": "범위 오류",
+   "claim": "P_out_excess_over_po_db_after 는 열에 따라 24~36 dB",
+   "fact_ko": "13 열 실측 범위는 21.862 ~ 36.357 dB (최소는 report15b/mini5pro/belly_side/A_sbr_locked).",
+   "affects_verdict": false
+  },
+  {
+   "id": "E4",
+   "severity": "개수 오류",
+   "claim": "A_sbr_locked 4 열이 f_flash 를 −0.5 상대오차로 읽는다",
+   "fact_ko": "3 열이다 — matrice4e nose·belly·belly_side 의 A_sbr_locked 가 f_flash_relerr −0.4999154. mini5pro 의 A_sbr_locked 3 열은 −0.0031 로 맞게 읽는다.",
+   "affects_verdict": false
+  },
+  {
+   "id": "E5",
+   "severity": "산술 오류",
+   "claim": "0.006 dB → 거리 곱 1.0001 배",
+   "fact_ko": "10^(0.006/40) = 1.000345. 1.0001 이 아니다(무해).",
+   "affects_verdict": false
+  },
+  {
+   "id": "E6",
+   "severity": "줄번호",
+   "claim": "광선 원점 격자 src/rcs_sbr.py:240-243",
+   "fact_ko": "해당 두 줄은 242-243 이다. 인용한 코드 문자열은 정확하다.",
+   "affects_verdict": false
+  }
+ ],
+ "R3_overturned_by_new_data": {
+  "what_ko": "감사 시점 이후 사다리의 40 억 발 팔이 8 시드 × 1024 자세로 **다 찼다**. outputs/raybudget_seed_ladder.json 에 cells[1] 이 생겼고, R3 의 결론(«광선 늘려도 수렴 안 한다», 판정 «실패»)은 그 새 칸이 뒤집는다.",
+  "cells[1]_as_found": {
+   "spp": 4000000000,
+   "n_seeds": 8,
+   "n_poses": 1024,
+   "sd_level_db": 1.833,
+   "ptp_level_db": 4.86,
+   "level_db_mean": -144.609,
+   "ratio_observed_over_iid": 31.16,
+   "beats_hz": [
+    127.15,
+    126.21,
+    126.92,
+    252.66,
+    255.47,
+    126.29,
+    127.3,
+    254.21
+   ]
+  },
+  "apples_to_apples_same_7_complete_seeds_recomputed_from_npz": {
+   "sd_db": {
+    "1.78e8": 2.9915,
+    "4.0e9": 1.9435
+   },
+   "ptp_db": {
+    "1.78e8": 7.715,
+    "4.0e9": 4.86
+   },
+   "mean_level_db": {
+    "1.78e8": -157.621,
+    "4.0e9": -144.731
+   },
+   "beat_on_2x_harmonic": {
+    "1.78e8": "5/7",
+    "4.0e9": "2/7"
+   },
+   "ratio_observed_over_iid_aligned": {
+    "1.78e8": 26.78,
+    "4.0e9": 31.16
+   },
+   "within_seed_splithalf_sd_db": {
+    "1.78e8": 0.0322,
+    "4.0e9": 0.0083
+   }
+  },
+  "so_what_ko": [
+   "산포는 실제로 준다 — 22.5 배 광선이 sd 를 2.99 → 1.94 dB 로 1.54 배 줄인다. 순수 몬테카를로면 √22.5 ≈ 4.7 배를 기대한다. R3 의 2-표본 논증(0.463 / 0.227)은 **옛 증거가 통계적으로 비었다**는 점에서는 옳았지만, 결론 «수렴 안 한다» 는 이제 원장이 반증한다.",
+   "그러나 탐지에는 소용이 없다 — 같은 7 시드 평균 레벨이 광선을 늘리자 **+12.89 dB 이동했다**(−157.62 → −144.73). 절대 σ 가 수렴한 게 아니라 답 자체가 12.9 dB 움직였고, 이는 R_t·R_r 로 2.06 배다.",
+   "남은 산포도 여전히 계통이다 — 정렬 후 ratio_observed_over_iid 가 26.78 → **31.16 으로 오히려 올랐다**. 자세를 더 평균해도 안 지워진다.",
+   "한 시드 안에서는 0.008~0.032 dB 로 안정하다(짝/홀 자세 반분 검정). 즉 «시드 안 재현 0.01 dB ↔ 시드 간 4.9~7.7 dB» 라는 구조 주장은 내가 독립으로 확인했다.",
+   "4.0e9 에서도 sd 1.94 dB → 거리 곱 1.118 배(11.8 % 탐지거리 오차)를 시드당 1024 자세에 ~4,800 초 주고 산다."
+  ]
+ },
+ "new_test_i_ran": {
+  "name_ko": "같은 시드·같은 자세 교차실행 대조",
+  "how_ko": "report07 40 m seed 1 의 자세 0…1023 과 사다리 seed 1 의 1024 자세는 rotor_phases(arange(n)/PRF, 같은 rpms) 라 **물리적으로 같은 자세**다. 저장된 복소 E 를 자세별로 맞대었다.",
+  "result": {
+   "bit_identical": false,
+   "corr_absE": 0.0522,
+   "median_rel_diff": 0.7,
+   "level_db": {
+    "report07_arm": -158.911,
+    "ladder_arm": -160.072
+   },
+   "delta_db": 1.161
+  },
+  "⚠confound_ko": "두 팔의 samples_per_src 가 **같지 않다** — report07 은 규칙값 177,777,778, 사다리는 178,000,000 으로 0.125 % 다르다. 그래서 이것은 «같은 입력이면 비트 재현되나» 의 검정이 **아니다**. 보여주는 것은 «광선 예산을 0.125 % 만 바꿔도 자세별 복소 답이 상관 0.05 로 흩어지고 평균 레벨이 1.16 dB 움직인다» 이다.",
+  "consequence_for_the_mechanism_claim_ko": "«한 시드 = 광선 방향 집합 하나» 는 덜 정확하다. 방향 집합은 seed **와** samples_per_src 에 함께 걸린다. 계통 편향이라는 결론(반분 0.01 dB)은 그대로 서지만, 그 편향은 «시드당» 이 아니라 «(시드, 예산)당» 이다."
+ },
+ "still_unknown": [
+  "PathSolver 가 **완전히 같은 입력**(같은 seed·같은 spp·같은 씬)에 비트 동일한 답을 내는지는 어느 원장에도 없다 — 모른다. 위 교차실행 대조는 예산이 0.125 % 달라 이 질문에 답하지 못한다.",
+  "우리 커널의 카드 간(GPU 0/1/2/3) 비트 동일성은 검사된 적이 없다 — 게이트는 전부 같은 카드다. 모른다.",
+  "jitter=2 평균 **뒤**의 잔차 산포 숫자는 여전히 없다. 있는 것은 단일격자 dither(div12 spread 1.373 dB)뿐이다. 모른다.",
+  "PathSolver 시드 산포의 거리·기체·앙각 의존은 40 m·matrice4e·el −15°·기선 0 한 자리 밖에서 안 쟀다 — 모른다.",
+  "outputs/raybudget_ladder/ 의 178 M 팔은 아직 seed 8 shard 00 이 없다(31/32). cells[0] 의 8 시드 숫자(4.156 / 13.177)는 여전히 잠정치다."
+ ],
+ "verdict": {
+  "overturned": false,
+  "winner": "ours",
+  "why_ko": "우리 쪽 근거는 인용대로 전부 그 자리에 있었고(36/36 비트 동일, 6/6 max_abs_diff 0.0, 6 모듈 난수 0, jitter=결정론적 J² 격자), 재계산 가능한 것은 원본에서 다시 계산해 일치했다. PathSolver 쪽 근거도 그 자리에 있었고, 새로 찬 40 억 발 칸까지 넣어도 sd 1.94 dB · 평균 레벨 12.9 dB 이동 · 박자 2/7 오독이 남는다. 렌즈 A 로 찾은 오류 6 건은 전부 판정 방향을 바꾸지 않고, 그중 가장 큰 E2 는 오히려 우리 쪽에 유리한 방향으로 틀렸다(23.36 → 26.78).",
+  "must_fix_before_quoting_ko": [
+   "ratio 는 23.36 대신 정렬값 26.78 을 쓰거나 «자세 어긋남» 단서를 달 것",
+   "R3 은 «실패» 가 아니라 «부분 반증» 으로 다시 쓸 것 — 산포는 2.99→1.94 dB 로 준다. 대신 평균 레벨 12.89 dB 이동과 ratio 31.16 이 진짜 논거다.",
+   "−2.09/0.987 의 출처를 sbr_grid_convergence.json 으로 고칠 것",
+   "21.9~36.4 dB · A_sbr_locked 3 열 · 1.00035 배로 고칠 것"
+  ]
+ }
+}

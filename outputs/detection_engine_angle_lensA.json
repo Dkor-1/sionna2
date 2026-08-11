@@ -1,0 +1,458 @@
+{
+ "_meta": {
+  "generated": "2026-08-11T02:47:16.777555Z",
+  "role": "OVERTURN AUDIT (Lens A: do the cited numbers exist, in that file, at that key?)",
+  "axis": "(3) angle dependence - who produces sigma(azimuth, elevation)",
+  "verdict_under_attack": "winner = ours (our PO/SBR kernel), Sionna PathSolver does not enter this axis",
+  "gpu_used": "none - ledger and source reading only",
+  "nothing_overwritten": true,
+  "did_not_touch": [
+   "outputs/report07_range40.json",
+   "outputs/report07_three_engines.*",
+   "outputs/raybudget_ladder/",
+   "outputs/detection_engine_angle.json"
+  ],
+  "ledgers_read": [
+   "facet_count.json",
+   "facet_attack.json",
+   "report15_sionna_sweep_matrice4e.json",
+   "report13_sigma_grid.json",
+   "validate_measured_airframe.json",
+   "md_range_sweep.json",
+   "sbr_grid_convergence.json",
+   "rt_no_rcs_verify.json",
+   "sigma_sensitivity.json",
+   "sigma_robust_summary.json"
+  ],
+  "source_read": "/home/yunjung/.venvs/py312/lib/python3.12/site-packages/sionna/rt (2.0.1)"
+ },
+ "A_lensA_citation_audit": {
+  "result": "20 of 22 checkable citations reproduce EXACTLY from the named file/key or from the named source line. 2 are loose quotes, 1 prose number could not be located, 1 line number is off by one. None of them carries the verdict.",
+  "exact": {
+   "sionna_source": {
+    "field_calculator.py:324 spreading_factor = dr.select(has_diffraction, 1/sqrt(s s'(s+s')), rcp(ray_tube_length))": "EXACT (line 324)",
+    "field_calculator.py:329 wl_scaling = wavelength*rcp(4 pi)": "EXACT (line 329)",
+    "field_calculator.py:347 a_ *= spreading_factor*wl_scaling": "EXACT (line 347)",
+    "field_calculator.py:464 e_fields[i] = select(active, jones_mat@e_field, e_field)": "EXACT (line 464)",
+    "radio_material.py:960 jones_mat = sqrt(fs*solid_angle)*gamma*xpd": "EXACT (line 960)",
+    "grep physical_optics|kirchhoff|aperture|surface_area|facet_area|induced_current": "0 hits in all 14 .py files of path_solvers/ + radio_materials/ - CONFIRMED (I counted the files: 8 + 6 = 14)"
+   },
+   "report15_headline_specular_range_law": {
+    "specular_is_size_blind": true,
+    "size_slope_db_per_decade": {
+     "1": -7.325874574342442e-06,
+     "3": -1.249997170288844e-06,
+     "10": 1.1024284651235879e-06
+    },
+    "range_slope_db_per_decade": {
+     "300mm": -19.911216366302362,
+     "100mm": -19.91121786141197
+    }
+   },
+   "report15_specular_census_production": {
+    "n_cells": 960,
+    "n_cells_with_specular": 33,
+    "frac_cells_with_specular": 0.034375
+   },
+   "facet_count_spec_grid": {
+    "n_aspects": 36,
+    "n_nonzero": 1,
+    "grid": "az 12 x el {0,15,90} = 36; the single non-zero cell is az=0 el=0 (n_paths=2, coh -33.871 dB); el=15 all 12 azimuths are 0; el=90 all 12 are 0"
+   },
+   "curved_tessellation": {
+    "rho_m": 0.05,
+    "n_specular_all_12_combos": [
+     0
+    ]
+   },
+   "pec_sphere": {
+    "rows": 6,
+    "n_paths_all_zero": true
+   },
+   "head_to_head_same_cell": {
+    "sionna_incoherent_db": [
+     -99.96876525878906,
+     -101.25000762939453,
+     -100.86182657877605,
+     -100.14079284667969
+    ],
+    "sionna_coherent_db": [
+     -77.87825012207031,
+     -79.1252950032552,
+     -78.65736134847005,
+     -77.49303181966145
+    ],
+    "our_PO_dbsm": [
+     -38.01848032308225,
+     -16.985417210277053,
+     -15.046167291040044,
+     -13.646052954579918
+    ],
+    "our_SBR_dbsm": [
+     -18.177212629083446,
+     -19.73799338281001,
+     -17.520006678589723,
+     -15.329987022470577
+    ],
+    "spans_db": {
+     "sionna_incoh": 1.2812423706054688,
+     "sionna_coh": 1.63226318359375,
+     "PO": 24.372427368502333,
+     "SBR": 4.408006360339433
+    },
+    "note": "the quoted 0.523 / 0.640 dB are POPULATION std (ddof=0); sample std is 0.603 / 0.739. Immaterial."
+   },
+   "anova": {
+    "incoherent": {
+     "span": 1.2812423706054688,
+     "std_pop": 0.522593629742574,
+     "std_sample": 0.6034391456173173,
+     "pooled_sd": 0.23683239328399297,
+     "F": 19.476279881778616
+    },
+    "coherent": {
+     "span": 1.63226318359375,
+     "std_pop": 0.6397966784824174,
+     "std_sample": 0.7387735690969043,
+     "pooled_sd": 0.40548204708653385,
+     "F": 9.958655126616806
+    }
+   },
+   "report13": {
+    "n_cuts": 45,
+    "local_maxima_median_by_band": {
+     "LTE 1.8 GHz": 17.0,
+     "5G NR 3.5 GHz": 29.0,
+     "WiFi 5.2 GHz": 35.0
+    },
+    "p90_minus_p10_range_db": [
+     9.236366362045246,
+     15.740536529225453
+    ],
+    "ptp_range_db": [
+     15.388166842107609,
+     31.174729331899325
+    ],
+    "matrice4e_5G_el_minus12": {
+     "p90_p10": 11.024897204799606,
+     "ptp": 24.045040999278097,
+     "R90_factor_from_p90_p10": 1.8863506676784865,
+     "R90_factor_from_ptp": 3.9914070950489453
+    },
+    "sigma_equals_sigma_smooth_max_abs_diff": 0.0
+   },
+   "measured_comparison": {
+    "ours_eps_db": {
+     "LTE 1.843 GHz": 4.477223702521501,
+     "5G 3.5 GHz": 3.96521071908194,
+     "WiFi 5.21 GHz": 6.481237518790272
+    },
+    "das_eps_db": {
+     "LTE 1.843 GHz": 5.21529,
+     "5G 3.5 GHz": 5.265000000000001,
+     "WiFi 5.21 GHz": 5.3163
+    },
+    "delta_db": {
+     "LTE 1.843 GHz": -0.7380662974784995,
+     "5G 3.5 GHz": -1.2997892809180605,
+     "WiFi 5.21 GHz": 1.1649375187902722
+    }
+   },
+   "md_range_sweep": {
+    "n_rows": 63,
+    "mean": 2.511706749098623,
+    "median": 1.666359376905561,
+    "min": -2.2691737308218514,
+    "max": 7.461356147421771,
+    "p90_abs": 7.185482605414946,
+    "R90_at_max": 1.5365047376144036
+   },
+   "dither_floor": {
+    "div": 16,
+    "sphere_dither_ptp_db": 1.7821516012275314,
+    "drone_dither_measured": false
+   },
+   "sigma_sensitivity": {
+    "single_aspect_n_distinct": 3,
+    "aspect_avg_n_distinct": 1,
+    "recommended_configuration": "aspect_avg_anchored"
+   },
+   "decimation_shape_test": {
+    "sionna_incoh": {
+     "shape_std_across_ratios_db": [
+      0.0422,
+      0.0638,
+      0.0723,
+      0.1097
+     ],
+     "shape_ptp_across_ratios_db": [
+      0.1057,
+      0.1649,
+      0.1741,
+      0.2734
+     ],
+     "raw_per_az_spread_db": [
+      0.1491,
+      0.2634,
+      0.2853,
+      0.1622
+     ],
+     "level_means_db": [
+      -100.5553,
+      -100.525,
+      -100.5423,
+      -100.5999,
+      -100.6534
+     ]
+    },
+    "sionna_coh": {
+     "shape_std_across_ratios_db": [
+      0.0404,
+      0.0653,
+      0.0896,
+      0.1281
+     ],
+     "shape_ptp_across_ratios_db": [
+      0.0949,
+      0.1639,
+      0.2212,
+      0.3122
+     ],
+     "raw_per_az_spread_db": [
+      0.1738,
+      0.2783,
+      0.3512,
+      0.2106
+     ],
+     "level_means_db": [
+      -78.2885,
+      -78.2547,
+      -78.2684,
+      -78.3348,
+      -78.3984
+     ]
+    },
+    "PO": {
+     "shape_std_across_ratios_db": [
+      2.6199,
+      1.3362,
+      0.785,
+      1.988
+     ],
+     "shape_ptp_across_ratios_db": [
+      6.4336,
+      3.4697,
+      1.8544,
+      4.8072
+     ],
+     "raw_per_az_spread_db": [
+      7.2876,
+      1.8025,
+      1.2253,
+      4.9445
+     ],
+     "level_means_db": [
+      -20.924,
+      -20.7887,
+      -21.9001,
+      -21.8925,
+      -20.0701
+     ]
+    },
+    "SBR": {
+     "shape_std_across_ratios_db": [
+      0.4205,
+      0.6579,
+      0.6485,
+      0.9991
+     ],
+     "shape_ptp_across_ratios_db": [
+      1.1017,
+      1.485,
+      1.7716,
+      2.3126
+     ],
+     "raw_per_az_spread_db": [
+      1.1082,
+      1.4386,
+      1.4304,
+      2.8963
+     ],
+     "level_means_db": [
+      -17.6913,
+      -17.9978,
+      -18.2561,
+      -18.275,
+      -18.0326
+     ]
+    }
+   }
+  },
+  "loose_or_unlocated": [
+   {
+    "claim": "'diffuse channel only, -40.2 to -40.9 dB/decade'",
+    "status": "LOOSE QUOTE",
+    "actual": {
+     "prod/nose": -40.22046273280088,
+     "prod/oblique": -40.91562108379805,
+     "prod/side": -40.70933158879139,
+     "prod/hot": -21.435239910660115,
+     "prod/disc": -41.162827881735154
+    },
+    "why_it_matters": "the real spread is -21.44 (prod/hot) to -41.16 (prod/disc). prod/hot is the aspect where the size-blind SPECULAR path dominates, so that channel inherits the mirror 1/R^2 law. The quote silently drops the two channels that do not fit. Direction unaffected; the sentence should be '3 of 5 diffuse channels obey 1/R^4; at the one aspect where the specular mirror turns on the range law collapses to 1/R^2'."
+   },
+   {
+    "claim": "'mechanism.c1'",
+    "status": "WRONG KEY NAME - data is under mechanism.c1_curved_tessellation. Content matches exactly."
+   },
+   {
+    "claim": "'path_solver.py:151 diffuse_reflection: bool = False'",
+    "status": "OFF BY ONE - the line is 152. Default False confirmed."
+   },
+   {
+    "claim": "'ours moved 0.4~2.3 dB under decimation'",
+    "status": "MIXED STATISTIC - 0.420 is the MIN of SBR shape-std, 2.313 is the MAX of SBR shape-p-p. Apples-to-apples shape-std across the 5 shape-preserving rungs: Sionna incoherent 0.042-0.110, SBR 0.420-0.999, PO 0.785-2.620. The clean comparison is stronger for the verdict than the quoted one, not weaker."
+   },
+   {
+    "claim": "'PO truth error +32.6 dB for a 100 mm plate at 10 m'",
+    "status": "NOT IN ANY LEDGER VERBATIM, but ARITHMETICALLY CORRECT - I re-derived it",
+    "derivation": {
+     "lam_m": 0.08571428571428572,
+     "R_m": 10.0,
+     "plate_side_m": 0.1,
+     "mirror_equiv_sigma_dbsm": 24.971498726941338,
+     "po_truth_sigma_dbsm": -7.668965567166772,
+     "error_db": 32.64046429410811,
+     "derivation": "a=lam/(4 pi L), L=2R  ->  sigma_eq = |a|^2 (4pi)^3 R^4 / lam^2 = pi R^2 (Gamma=1). PO truth = 4 pi A^2 / lam^2."
+    }
+   },
+   {
+    "claim": "'error vs the infinite-mirror prediction is 0.002~0.014 dB'",
+    "status": "COULD NOT LOCATE in report15 or any other ledger. Unverified. Immaterial to the verdict."
+   }
+  ]
+ },
+ "B_my_best_attempt_to_overturn_and_why_it_failed": {
+  "attack": "The 'scale' leg of the verdict (Sionna 0.52 dB vs measured 5.2 dB) is measured on the INCOHERENT sum, which is phase-blind by construction and therefore smooth by construction. The observable a detection receiver actually integrates is the COHERENT channel h. If Sionna's coherent channel has azimuth structure of the measured size, the '1/10 of measured' headline dies.",
+  "the_number_that_would_have_killed_it": {
+   "src": "report15_sionna_sweep_matrice4e.json['grid']['blocks'][R/aspect/prod], recomputed by me from hr,hi",
+   "coherent_|h|^2_azimuth_span_over_az_0_45_90_at_el15_db": {
+    "1": 15.687802610755973,
+    "3": 13.0949904960586,
+    "10": 12.660954300892769
+   },
+   "coherent_std_db": {
+    "1": 8.165940738985116,
+    "3": 6.563657496168173,
+    "10": 6.779417229415162
+   },
+   "reads": "12.7-15.7 dB span, 6.6-8.2 dB std - LARGER than Das's measured eps of 5.2-5.3 dB. On its face this destroys the scale argument."
+  },
+  "why_it_is_not_quotable": {
+   "src": "report15_sionna_sweep_matrice4e.json['convergence'] and ['headline']",
+   "coherent_converged_by_range": {
+    "1": false,
+    "3": false,
+    "10": false
+   },
+   "incoherent_converged_by_range": {
+    "1": true,
+    "3": true,
+    "10": true
+   },
+   "coh_slope_log10h_per_log10N": {
+    "1": 0.5156586680182554,
+    "3": 0.49964643687201704,
+    "10": 0.4357197863259347
+   },
+   "coh_total_swing_db_over_the_spp_ladder": {
+    "1": 25.04677707376414,
+    "3": 23.913045211580354,
+    "10": 14.907429646303584
+   },
+   "inc_total_swing_db_over_the_spp_ladder": {
+    "1": 0.1519639068896197,
+    "3": 0.020626705005398094,
+    "10": -0.24844074538660266
+   },
+   "reads": "|h|^2 grows as N^0.44-0.52 in the number of ray samples - 25.0 dB of drift across a 256x spp ladder at R=1 m - while Sum|a|^2 moves 0.15 dB. The coherent sum of SAMPLED diffuse paths is a divergent Monte-Carlo estimator (each sample carries amplitude ~ sqrt(Omega) ~ 1/sqrt(N), so Sum|a|^2 converges but |Sum a e^{-j phi}|^2 does not). Its azimuth spread is estimator variance dressed as physics, not sigma(az).",
+   "verdict_on_the_attack": "FAILED. And it fails in the direction that makes Sionna worse: its ONLY converged target observable is the flat one."
+  },
+  "second_attack_projected_area": {
+   "attack": "maybe Sionna's flat azimuth envelope is an artifact of one badly chosen scattering coefficient S (the previous auditor listed S as unaudited).",
+   "what_I_found": "report15['materials']['by_group'] - production S = 0.2 (plastic body/canopy/prop/gear), 0.3 (carbon arm), 0.0 (ITU metal motor + camera).",
+   "why_it_does_not_help_sionna": "(i) S is a pure level knob: jones_mat = sqrt(f_s*Omega)*Gamma*xpd, so S rescales the diffuse channel without touching its shape in azimuth; (ii) the shape comes from f_s, a Degli-Esposti empirical lobe in LOCAL incidence/scatter angles with no wavelength and no object size in it, so no value of S can manufacture target-scale lobes; (iii) worse for Sionna: the two METAL groups (motor, camera) have S = 0 exactly, so in Sionna the strongest scatterers on the airframe contribute NOTHING to the diffuse channel and appear only in the specular channel, which is alive at 1 of 36 aspects.",
+   "what_stays_unknown": "whether S=0.2 gives the right ABSOLUTE diffuse level is still not audited (rt_no_rcs_verify B_sphere_S shows a 15.8 dB swing from S=0.2 to S=1.0 on a PEC sphere). I did not close that. Unknown."
+  },
+  "third_attack_elevation": {
+   "attack": "the axis is sigma(azimuth AND elevation). The verdict only argued azimuth. Sionna's elevation dependence might be large and real.",
+   "what_I_found": {
+    "converged_incoherent_level_at_R10_db": {
+     "az0_el15(nose)": -130.0724947689862,
+     "az0_el0(hot)": -64.42796576502546
+    },
+    "elevation_step_db": {
+     "1": 46.859073972899665,
+     "3": 55.57464215585819,
+     "10": 65.64452900396073
+    }
+   },
+   "reads": "Sionna's elevation dependence is enormous - 46.9/55.6/65.6 dB from el=15 to el=0 at R=1/3/10 m - and it is entirely the size-blind specular mirror switching on: at 10/hot the coherent |h|^2 median is -59.653 dB and report15's specular_census records the same cell's specular amplitude as -59.657 dB. That channel's range law is -19.91 dB/decade (1/R^2), not -40 (1/R^4).",
+   "verdict_on_the_attack": "FAILED, and again in the wrong direction for Sionna: adding elevation to the axis makes PathSolver's angle dependence a binary, size-blind, wrong-range-law cliff rather than a lobe pattern."
+  },
+  "fourth_attack_fine_azimuth": {
+   "the_open_hole_I_inherited": "no Sionna azimuth sweep finer than 30 deg exists in any ledger. I re-scanned outputs/ and confirm this: the finest are facet_count (12 az x 30 deg) and report15 (8 az x 45 deg in the census, 3 az in the phase grid).",
+   "what_I_can_bound_instead": {
+    "independent_replication_on_a_second_drone": {
+     "src": "report15 grid.blocks, matrice4e, prod, spp 2.048e9, 5 seeds x 64 rotor phases",
+     "incoherent_az_span_db": {
+      "1": 2.450849171963398,
+      "3": 2.0511357241466186,
+      "10": 1.7164161085561886
+     },
+     "incoherent_az_std_db": {
+      "1": 1.245031156588653,
+      "3": 1.0551884128560811,
+      "10": 0.9063418189043032
+     },
+     "reads": "1.72-2.45 dB span, 0.91-1.25 dB std on matrice4e, versus 1.28 dB / 0.52 dB on mavic4pro in facet_count. Two drones, three ranges, two independent scripts: same answer."
+    },
+    "realisation_noise_bound": {
+     "src": "report15 headline.noise_floor_on_grid",
+     "inc_seed_std_db_median": 0.029414539060837058,
+     "inc_seed_std_db_max": 0.4339505710334278,
+     "reads": "the converged channel repeats to 0.03 dB (median) / 0.43 dB (worst) across seeds, so any structure hiding between 30 deg samples would have to exceed that - and there is no lambda-scale term in the expression that could produce it (a_p = pattern x Jones x lambda/(4 pi L), f_s a function of local angles only)."
+    },
+    "status": "the hole is narrowed by an argument from the verified equations plus a 0.43 dB reproducibility bound, NOT closed by a fine sweep. A 1-2 deg Sionna azimuth sweep is still the clean way to shut it."
+   }
+  }
+ },
+ "C_things_the_verdict_overstates_that_should_be_restated": [
+  {
+   "item": "'our PO span 24.37 dB vs Sionna 1.28 dB' in the head-to-head cell",
+   "problem": "the 24.37 dB is carried entirely by one point: az=0 PO = -38.018 dBsm, a deep null where our own two kernels disagree by 19.84 dB (SBR gives -18.177 there). Drop az=0 and PO's span over the remaining three azimuths is 3.339 dB - BELOW SBR's 4.408 dB and only 2.6x Sionna's 1.281 dB.",
+   "restate_as": "the head-to-head cell shows ours moves 3-4 dB where Sionna moves 1.3 dB, over a 4-point quadrant of one drone. The load-bearing evidence for the axis is the 360-deg grid (p90-p10 9.2-15.7 dB over 45 cuts) and the eps-vs-Das comparison, not this cell."
+  },
+  {
+   "item": "'our eps matches measurement'",
+   "problem": "validate_measured_airframe's own eps_reading says our azimuth statistics are the wrong distribution family (ours: gamma/gamma/lognormal; measured: Rician with K <= -10 dB, i.e. Rayleigh) and the wrong band trend (measured is flat 5.2-5.3 dB across all three bands; ours is 4.48/3.97/6.48). The ledger's own sentence: 'a real airframe behaves like a rich, stationary scattering ensemble across the band, and ours does not.'",
+   "restate_as": "one scalar (the azimuth spread) lands within -1.3/+1.2 dB of the measured value at all three bands. Its band trend and its distribution family do not match. That is still an order of magnitude closer than Sionna's 0.5-1.2 dB, but it is a single-scalar match, not a pattern match."
+  },
+  {
+   "item": "'Sionna std = 0.52 dB'",
+   "restate_as": "0.5-1.2 dB, across two drones and three ranges (mavic4pro quadrant 0.52; matrice4e az 0/45/90 0.91-1.25)."
+  }
+ ],
+ "D_where_this_axis_actually_stands_after_the_attack": {
+  "verdict": "NOT OVERTURNED - ours",
+  "the_one_sentence": "PathSolver's only converged target observable has 1.3-2.5 dB of azimuth structure and no size, curvature or aperture term anywhere in the expression that produces it; our kernel produces a 360-deg sigma(az,el) whose spread lands within 1.3 dB of the only measured airframe we have. Detection range goes as sigma^(1/4), and 9-16 dB of p90-p10 is a 1.7-2.1x swing in R90 that only one of the two engines can even name.",
+  "but_the_real_competitor_is_still_not_pathsolver": "it is a published measured sigma table. PathSolver does not enter this axis; our own headline deliberately aspect-averages the lobes away (sigma_robust_summary.paper_ready.recommended_configuration = aspect_avg_anchored), so what the lobes buy is angle-resolved Pd, not the waveform ranking."
+ },
+ "E_what_I_could_not_check": [
+  "The absolute correctness of Sionna's diffuse level at production S=0.2 - I found the S values but did not audit whether the level is right. Unknown.",
+  "The '0.002~0.014 dB' figure in the prose. Not in any ledger I read. Unknown.",
+  "Drone-level dither of OUR sigma grid. Still only the PEC-sphere proxy (1.782 dB p-p at div=16). The ledger says so itself. Unknown.",
+  "Any Sionna azimuth sweep finer than 30 deg. Does not exist in outputs/. Unknown by measurement; bounded by equation + 0.43 dB seed repeatability.",
+  "Axes (1) absolute sigma, (2) reproducibility, (4) blade-line chain. Not mine. Note that the decimation numbers here (our PO level wanders 1.8 dB and our PO shape-std reaches 2.62 dB over a 20x mesh decimation, while Sionna moves 0.09 dB/decade) are evidence AGAINST us on axis (2)."
+ ]
+}

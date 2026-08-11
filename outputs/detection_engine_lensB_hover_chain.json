@@ -1,0 +1,193 @@
+{
+  "_meta": {
+    "axis": "렌즈 B — 축(4) 「패시브 호버링 사슬」 판정의 **추론**을 검증한다. 숫자는 맞다고 치고, 추론이 성립하나 / 그 축이 탐지에 정말 중요한가 / 승자를 바꿀 다른 축이 가려져 있나.",
+    "target_verdict": "outputs/detection_engine_hover_chain.json :: 7_verdict_axis4.who_wins = ours",
+    "generated": "2026-08-11",
+    "method": "원장·소스만 읽었다. GPU 0 초. 새 계산은 산술(거리 환산·링크팩터)뿐.",
+    "reads_only": [
+      "outputs/detection_engine_hover_chain.json",
+      "outputs/detection_engine_sigma_axis.json",
+      "outputs/detection_engine_reproducibility.json",
+      "outputs/detection_engine_angle.json",
+      "outputs/passive_two_channel.json",
+      "outputs/detection_ghost.json",
+      "outputs/detection_rx_sweep.json",
+      "outputs/floor_ghost_verify.json",
+      "outputs/freeze_signal_loss.json",
+      "outputs/md_range_sweep_mf.json",
+      "outputs/report16_verify_detector.json",
+      "outputs/report07_three_engines.json",
+      "src/experiment_md_range.py",
+      "src/viz_md_range.py",
+      "src/passive_process.py",
+      "benchmark/report16_base.py",
+      "benchmark/md_snr_vs_range.py",
+      "benchmark/report07_three_engine_ranges.py",
+      "docs/NOISE_AND_ROTOR_PLAN.md",
+      "docs/MEASUREMENT_PLAN.md"
+    ],
+    "not_touched": [
+      "outputs/report07_range40.json",
+      "outputs/report07_three_engines.*",
+      "outputs/raybudget_ladder/ (계산 중 — ls 만 했다)"
+    ]
+  },
+
+  "1_reasoning_defects_in_the_axis4_verdict": [
+    {
+      "id": "D1",
+      "severity": "치명",
+      "claim_attacked": "§5 「우리 dc_ac 는 R=1~1000 m 에서 완전 불변(24.861 dB)이다」 = 안정성의 대표 증거",
+      "finding_ko": "그 24.861 dB 는 **거리마다 잰 값이 아니라 한 번 계산해서 모든 행에 복사한 상수다.**",
+      "source": [
+        "src/experiment_md_range.py:216 주석 그대로 — `# A0 (거리 무관, 참조용으로 매 행에 기록)` 그리고 `entry['arms']['A0_reference'] = dict(..., **m0)` 에서 m0 는 루프 밖의 평면파 계열 하나다",
+        "src/viz_md_range.py:89 — `R_use = 1000.0 if arm in ('A0_reference','A1_snr_only') else R`"
+      ],
+      "consequence_ko": "「1000 m 걸쳐 0 dB 산포」는 물리 결과가 아니라 같은 수를 19 번 적은 것이다. 이 항목은 증거로 쓸 수 없다. 살아남는 진짜 증거는 A2 구면파 팔(5 m 밖 산포 0.28 dB) 하나뿐이고, 그마저 A2 의 유일한 R 의존성은 표적 자기 구경 위의 파면 곡률뿐이다 — 전파손실은 해석적으로 밖에 곱한다. 즉 「거의 변할 데가 없는 모형」이 「변할 데가 많은 추정기」보다 덜 변한다는 관찰이고, 정확도에 대해 아무 말도 하지 않는다."
+    },
+    {
+      "id": "D2",
+      "severity": "치명",
+      "claim_attacked": "「PathSolver 는 40 m 에서 시드 간 8.01 dB(거리 ×1.58) 흔들리므로 이 자리에 못 넣는다」",
+      "finding_ko": "**같은 잣대를 우리 커널에 대면 우리도 탈락한다.** 이 축이 말하는 화물(블레이드 대역 절대 레벨)에 대해 우리 저장소가 스스로 적어놓은 불확실도가 같은 자릿수다.",
+      "numbers_db": {
+        "SBR_vs_pure_PO_blade_band_median_after_freeze_fix": 4.019,
+        "SBR_vs_pure_PO_blade_band_median_before": 20.297,
+        "SBR_out_of_band_excess_over_PO_after": 34.569,
+        "frozen_plate_choice_micro_doppler_arm": 3.452,
+        "PO_physics_vs_exact_Mie_low_kr": 6.729,
+        "our_sigma_worst_vs_measured_airframe_fleet": 9.076,
+        "pathsolver_seed_pp_40m": 8.01,
+        "pathsolver_seed_sd_40m_8seeds": 4.16
+      },
+      "sources": [
+        "outputs/freeze_signal_loss.json :: rows['report07_three_engines/sbr'].P_in_excess_over_po_db_{before,after} · P_out_excess_over_po_db_after",
+        "outputs/detection_engine_sigma_axis.json :: 5_verdict_axis1.honest_error_budget_for_detection_db (NOT_VALIDATED 선언 포함)",
+        "outputs/detection_engine_reproducibility.json :: refutation_attempts[0]"
+      ],
+      "why_it_bites_ko": "블레이드 시위는 몇 cm, λ=8.57 cm 라 kr≈1 — PO 가 가장 약한 바로 그 구간이다. 그 구간의 자기 선언 오차 6.73 dB 는 PathSolver 시드 표준편차 4.16 dB 보다 크다. 그리고 형제 원장이 못박았다 — 우리 사슬은 2026-08-10 까지 **비트 재현되면서 이 대역에서 +20.3 dB 틀렸고, 재현성 게이트는 그것을 한 번도 못 잡았다. 잡은 것은 독립 엔진이었다.** 즉 이 축이 승자를 뽑은 성질(결정론·안정)은 20 dB 오류를 숨겨준 바로 그 성질이다.",
+      "honest_counter_ko": "⚠ 내 「PathSolver 산포는 분산이니 평균으로 갚을 수 있다」 갈래는 형제 원장이 부분 반증한다 — 시드 산포가 i.i.d. 예측의 23.4 배이고 광선 22.5 배에도 박자 오류가 남는다(detection_engine_reproducibility). 그래서 D2 의 결론은 「PathSolver 가 낫다」가 아니라 **「8 dB 잣대는 두 엔진을 가르지 못한다」** 다."
+    },
+    {
+      "id": "D3",
+      "severity": "중",
+      "claim_attacked": "§2 「독립적으로 세워진 두 팔이 1.40 dB 안에서 만난다」",
+      "finding_ko": "두 팔이 다른 커널인 것은 맞다 — 사다리는 `pure PO point cloud, NO occlusion`(md_range_sweep_mf.json::meta.engine), report16 은 `SBR (occlusion) via microdoppler.microdoppler_sbr`(benchmark/report16_base.py:899). 그래서 완전히 공허하진 않다. 그러나 **그 두 커널의 블레이드 대역 격차 중앙값이 이미 +4.02 dB 로 측정돼 있다.** 한 기체 한 자리에서 1.40 dB 로 만난 것은 알려진 계통 산포 안쪽이고, 정확도의 증거가 아니라 표본 1 이다.",
+      "source": "outputs/freeze_signal_loss.json vs outputs/detection_engine_hover_chain.json::2_cross_check_two_arms_of_our_own_chain"
+    },
+    {
+      "id": "D4",
+      "severity": "구조",
+      "claim_attacked": "「이 축의 승자는 ours」라는 문장이 정보를 담고 있다는 전제",
+      "finding_ko": "형제 축(1)이 이미 확정했다 — **PathSolver 는 절대 σ 를 낼 수 없다(진폭이 σ 의 함수가 아니라는 것이 세 실험으로 직접 측정됨)**. 따라서 σ_ac_peak 자리에서 승부는 애초에 성립하지 않는다. 축(4)의 판정은 경쟁이 아니라 **부전승**이고, 「우리가 유리하다」가 아니라 「출전한 선수가 하나였다」로 읽어야 한다.",
+      "source": "outputs/detection_engine_sigma_axis.json :: 1_pathsolver_absolute_sigma.verdict · 5_verdict_axis1.one_line_ko"
+    }
+  ],
+
+  "2_is_this_axis_actually_decisive_for_detection": {
+    "method_ko": "저장소 원장에 있는 레버들을 전부 dB 로 모아 검출거리로 환산했다(R ∝ P^(1/4), 즉 dB/40).",
+    "lever_ladder": [
+      {"lever": "기준채널 ρ_ref 30→10 dB", "db": 44.899, "range_factor": 13.26, "engine_owns_it": "없음(수신기·안테나 설계)", "source": "outputs/passive_two_channel.json::summary.W1.loss_db_by_refsnr"},
+      {"lever": "기준채널 ρ_ref 30→20 dB (여기서 Pd 1.0 → 0.0)", "db": 25.435, "range_factor": 4.32, "engine_owns_it": "없음", "source": "같은 파일 pd_by_refsnr = {+30:1.0, +20:0.0}"},
+      {"lever": "호버 노치 가정(hover_penalty, G16 미해결)", "db": 24.742, "range_factor": 4.15, "engine_owns_it": "없음(신호처리 가정)", "source": "outputs/report16_verify_detector.json::t5.rows.matrice4e"},
+      {"lever": "5G SSB 듀티", "db": 18.45, "range_factor": 2.89, "engine_owns_it": "없음(조명원)", "source": "docs/NOISE_AND_ROTOR_PLAN.md 2026-08-11 정정 상자"},
+      {"lever": "EIRP 12 vs 30 dBm", "db": 18.0, "range_factor": 2.82, "engine_owns_it": "없음", "source": "report16_verify_detector F7 (근거 없는 가정이라고 자인)"},
+      {"lever": "우리 σ 최악(함대 실측 대조)", "db": 9.076, "range_factor": 1.69, "engine_owns_it": "ours", "source": "detection_engine_sigma_axis"},
+      {"lever": "PathSolver 시드 p-p @40 m", "db": 8.01, "range_factor": 1.59, "engine_owns_it": "pathsolver", "source": "outputs/report07_range40.json (읽기만)"},
+      {"lever": "PO 물리 오차(저 kr, 정확 Mie 대비)", "db": 6.729, "range_factor": 1.47, "engine_owns_it": "ours", "source": "detection_engine_sigma_axis"},
+      {"lever": "SBR vs 순수 PO 블레이드 대역", "db": 4.019, "range_factor": 1.26, "engine_owns_it": "ours(내부 불일치)", "source": "outputs/freeze_signal_loss.json"},
+      {"lever": "얼린 판 선택(마이크로도플러 팔)", "db": 3.452, "range_factor": 1.22, "engine_owns_it": "ours", "source": "detection_engine_sigma_axis"}
+    ],
+    "reading_ko": "⭐**엔진 축은 이 사다리의 맨 아래다.** 두 엔진 중 누구를 고르든 검출거리는 ×1.2~1.7 움직이는데, 같은 원장 안의 비-엔진 레버들은 ×2.8~13 을 움직이고 그 중 하나(ρ_ref)는 Pd 를 1.0 에서 0.0 으로 **뒤집는다**. 그리고 σ 는 그 지배 레버에 **절반 기울기로만** 들어간다 — 설계규칙이 ρ_ref ≥ DTR/2 이고 DTR ∝ 1/σ 라 σ 오차 Δ dB 는 요구 기준안테나 이득을 Δ/2 dB 만 옮긴다(passive_two_channel::empirical_law · summary.ref_snr_needed_for_3db_loss 36.27 dB · ref_antenna_gain_needed_db 14.09).",
+    "counterpoint_kept_ko": "⚠ 반대로 남겨둘 사실 — 다중경로(MDR −30…−10 dB)는 손실을 0.19→0.54 dB 밖에 안 움직인다(summary.loss_db_by_mdr). 즉 「환경이 다 지배한다」도 과장이다. 지배하는 것은 **환경 일반**이 아니라 **기준채널 품질** 하나다."
+  },
+
+  "3_hidden_axes_the_verdict_did_not_weigh": [
+    {
+      "id": "H1",
+      "title_ko": "탐지의 나머지 절반(Pfa)은 통째로 Sionna 쪽에 있다 — 우리 커널은 손이 닿지 않는다",
+      "evidence": {
+        "detection_ghost_meta": "outputs/detection_ghost.json::meta = {sigma_dbsm: -27.578, source: 'outputs/floor_ghost_verify.json (RT, report09)'} — **우리 커널의 기여는 스칼라 σ 하나**이고 기하·채널은 RT/Sionna PHY 다",
+        "rt_vs_assumed_clutter": "outputs/floor_ghost_verify.json::A_static_floor.rt_strongest_db = -9.8 vs assumed_strongest_db = -26.02 → **RT 가 바닥 탭을 가정모형보다 16.22 dB 위로 올렸다**",
+        "false_alarm": "outputs/detection_ghost.json 네 모드 전부 p_fire_ghost_cell.with_ghost = 1.0, floor_ghost_verify::CD_ghost 5G NR 100 MHz 는 p_false = 1.0"
+      },
+      "reasoning_ko": "탐지는 「고정 Pfa 에서의 Pd」다. Pfa 쪽 기제(바닥유령·클러터·DPI 기하)는 전부 RT 가 낸 양 위에 서 있고, 우리 SBR+PO 는 그 자리에 넣을 수 있는 양이 없다. 축(4)은 Pd 의 분자만 보고 승자를 뽑았다. 분모(문턱을 정하는 간섭·유령)에서는 **Sionna 가 유일한 공급자**다."
+    },
+    {
+      "id": "H2",
+      "title_ko": "저장소가 실제로 하는 탐지는 **호버가 아니라 비행**이다 — 축의 전제가 저장소의 주류가 아니다",
+      "evidence": {
+        "headline_detection_ledger": "outputs/detection_rx_sweep.json::meta.vel = [-3.0, 0.0, 0.0] (fd 63.76 Hz) — 헤드라인 9 모드 벤치마크는 **움직이는 표적**이다",
+        "ghost_ledger": "outputs/passive_two_channel.json::geometry.fd_hz = 63.756 — 실사슬 실험도 병진 표적",
+        "field_plan": "docs/MEASUREMENT_PLAN.md:36,562 — 3층 비행검출의 표적 상태는 「비행 · 로터 회전」, 1·2층은 「정지 · 로터 정지」. **호버 층이 없다**"
+      },
+      "reasoning_ko": "표적이 움직이면 동체선이 0-도플러 밖으로 나가 호버 벌금 24.7~39.1 dB 가 통째로 사라지고, 화물이 σ_ac_peak 에서 σ_total 로 바뀐다. 그러면 이 축이 요구하는 양 자체가 달라진다. 「우리 실제 시스템은 호버링」이라는 전제는 프롬프트가 준 것이지 저장소 원장이 지지하는 것이 아니다 — 호버는 report16 의 한 코너이고, 실제 탐지 원장·현장계획은 비행이다."
+    },
+    {
+      "id": "H3",
+      "title_ko": "각도 요구(3)가 이 화물에 대해서는 우리 쪽에서도 미충족 — 고각 표가 없고 기하가 모노스태틱이다",
+      "evidence": {
+        "repo_self_declaration": "outputs/report16_verify_detector.json::flaws.F6 — 「진짜 지면반사는 고각이 다른 경로인데 **이 저장소에는 로터가 도는 팔의 고각별 위상표가 없다**」",
+        "ladder_geometry": "outputs/md_range_sweep_mf.json::meta.geometry = {monostatic: true, az_deg: 0.0, el_deg: 15.0}",
+        "actual_system": "outputs/passive_two_channel.json::geometry.beta_deg = 47.598 (바이스태틱)"
+      },
+      "reasoning_ko": "σ_ac_peak 는 고각 한 점·모노스태틱에서만 존재하는데, 사슬은 바이스태틱 Pd 를 낸다. 축(3)의 요구를 이 화물에 대해 만족시킨 엔진은 **둘 다 없다**. PathSolver 는 바이스태틱 기하를 태생적으로 다루지만 σ 를 못 내고(축 1), 우리는 σ 를 내지만 한 기하에서만 낸다."
+    },
+    {
+      "id": "H4",
+      "title_ko": "가려진 진짜 강점 — 비용. 축(4)은 이 논거를 안 썼는데 이것이 유일하게 자릿수로 이기는 축이다",
+      "evidence": "outputs/report07_three_engines.json::engines.seconds — 순수 PO **8.4 s** · 우리 SBR 1889.6 s · Sionna PathSolver 960.2 s (spp 1e6, 3 m 한 자세열). 40 m 열은 spp 1.78e8 = 178 배.",
+      "reasoning_ko": "σ(방위×고각×로터위상) 표를 지으려면 이 계산을 수천~수십만 번 해야 한다. PO 는 초 단위, PathSolver 는 자세열 하나에 수백~수만 초다. 「PathSolver 로는 이 표를 못 짓는다」는 흔들림 논거보다 훨씬 단단하고, 반증도 어렵다. 축(4)이 이 논거 대신 흔들림(D2 에서 무너지는)을 골랐다."
+    },
+    {
+      "id": "H5",
+      "title_ko": "축(4)의 cut4(패시브 전제 인용금지)는 방향이 반쯤 틀렸다 — 상시 기준신호가 반드시 더 나쁘지 않다",
+      "evidence": "docs/NOISE_AND_ROTOR_PLAN.md:104-107 — LTE CRS 는 G_mf **+50.0 dB**(사다리의 풀캡처 37.0 dB 보다 +13 dB), 듀티 0.00 dB. PRF 는 19.7 kHz → 1 kHz 로 떨어져 CPI 코히어런트 이득이 33.0 → 20.0 dB 로 −13 dB. 총 이득은 B·T_cpi 라 **거의 상쇄된다**. 같은 문서가 명시한다 — 「그 팔의 진짜 대가는 도플러 **모호**(f_tip 1229 Hz 가 PRF 1 kHz 에서 접힌다)와 듀티다」.",
+      "reasoning_ko": "축(4)은 「46~142 m 는 풀캡처의 수이고 상시 패시브 호버는 0 건」이라며 이를 사슬의 결함으로 적었다. 총 처리이득 불변을 보면 LTE CRS 팔은 대략 같은 거리에 서고(듀티 0 dB), 5G SSB 만 −18.45 dB 다. 그리고 f_flash 126.67 Hz 는 PRF 1 kHz 에서 **모호하지 않다**(접히는 것은 tip 대역 ±1229 Hz 다). 즉 사슬은 축(4)이 말한 것보다 덜 끊겼다 — 이것은 축(4)의 판정을 **강화**하는 방향의 정정이라 그대로 남긴다.",
+      "unresolved_ko": "접힌 tip 대역이 어느 빈으로 접혀 σ_ac_peak 배분을 어떻게 바꾸는지는 원장에 없다. 모른다."
+    },
+    {
+      "id": "H6",
+      "title_ko": "0-도플러 노치의 기제를 확인했다 — ECA 는 「빈 하나」가 아니라 「지연 탭 구간 전체의 0-도플러 부분공간」을 지운다",
+      "evidence": "src/passive_process.py:115-121 ECACanceller.cancel — 기준의 지연복제 부분공간을 최소제곱 투영·제거. 독스트링 그대로 「직접파누설 + 정적 클러터(지연만 있고 도플러 0)를 없앤다(도플러 있는 표적은 보존)」. n_taps=40, 표적 거리빈 6 → 표적은 탭 구간 **안**에 있다.",
+      "reasoning_ko": "호버 표적의 동체는 탭 구간 안의 0-도플러 성분이라 설계상 제거된다. 즉 축(4)의 화물 선택(σ_total 이 아니라 σ_ac_peak)은 **기제상 옳다**. 이것도 축(4)을 강화하는 쪽이라 남긴다. 다만 저장소의 유일한 노치 비용 수치 0.602 dB 는 fd=63.76 Hz **병진** 표적에서 잰 것이라 호버에 대한 답이 아니다 — 축(4)의 G16 열림 선언은 유효하다."
+    }
+  ],
+
+  "4_caveat_partially_settled": {
+    "which": "축(4) 단서 ① 「두 엔진의 절대 레벨이 비교 가능한 단위인지 확인 못 했다 (sbr −51.5 · po −52.2 · sionna −117.1, 65 dB 차)」",
+    "my_arithmetic": {
+      "gap_sbr_minus_sionna_db": 65.5303,
+      "two_way_freespace_factor_at_3m_db": -73.4061,
+      "formula": "20log10( lambda / ((4pi)^1.5 R^2) ), lambda = 0.0856550 m, R = 3 m",
+      "residual_after_removing_link_db": -7.8758
+    },
+    "reading_ko": "65.53 dB 격차는 3 m 두-방향 자유공간 링크팩터 −73.41 dB 로 대부분 설명된다(잔차 7.88 dB). ⇒ 「σ 가 65 dB 다르다」는 확실히 **아니다**. 다만 잔차 7.88 dB 가 정규화 규약인지 진짜 레벨 차이인지는 나도 모른다 — sbr/po 열의 입사장 정규화를 소스에서 확정하지 않았다."
+  },
+
+  "5_verdict_lensB": {
+    "overturned": true,
+    "what_survives_ko": "승자 라벨 「ours」 자체는 뒤집히지 않는다 — PathSolver 는 σ 를 못 내므로(축 1 확정) σ_ac_peak 자리에 놓을 수 없다.",
+    "what_is_overturned_ko": [
+      "① 근거가 무너진다. 대표 증거(A0 거리 불변 24.861 dB)는 복사된 상수다(D1).",
+      "② 판정 기준이 차별력이 없다. 8 dB 흔들림 잣대를 공평하게 대면 우리 커널도 같은 자릿수로 탈락한다(D2: 3.45~9.08 dB, 저장소 자신이 NOT_VALIDATED 선언). 결정론·재현성은 정확성의 증거가 아니고, 실제로 20.3 dB 오류를 숨겨준 성질이다.",
+      "③ 판정의 성격이 다르다. 경쟁이 아니라 **부전승**이다(D4).",
+      "④ 축의 중요도가 잘못 매겨졌다. 엔진 축은 저장소 레버 사다리의 **맨 아래**(×1.2~1.7)이고, 같은 사슬의 비-엔진 레버가 ×2.8~13, 그 중 ρ_ref 는 Pd 를 1.0→0.0 으로 뒤집는다(§2)."
+    ],
+    "corrected_verdict_ko": "**부전승 ours — 그러나 이 축은 탐지의 결정 축이 아니다.** 두 엔진은 대체재가 아니라 직렬 보완재다. 저장소의 유일한 종단 탐지 원장(detection_ghost·detection_rx_sweep)이 이미 그렇게 배선돼 있다 — 우리 커널은 **스칼라 σ 하나**로 들어가고 기하·유령·채널은 Sionna RT/PHY 가 낸다. 「탐지에 무엇이 유리한가」를 Pd 의 분자(σ)로만 물으면 ours, 분모(Pfa·간섭·유령)까지 물으면 그 자리의 유일한 공급자는 Sionna 다. 그리고 두 자리 모두 우리가 지금 가진 수는 단일 고각·모노스태틱이다.",
+    "confidence_ko": "높음(추론 결함 D1·D4 는 소스 한 줄로 확정) · 중간(§2 레버 사다리는 서로 다른 실험의 dB 를 한 축에 얹은 것이라 순서는 튼튼하지만 자릿수는 대략이다)",
+    "what_would_flip_my_flip_ko": [
+      "A0 이 실제로 거리마다 재계산된 것이라는 소스 증거가 나오면 D1 이 무너진다(나는 experiment_md_range.py:216 주석과 viz_md_range.py:89 두 줄로 판단했다).",
+      "ρ_ref 를 안테나 설계로 40 dB 이상 확보할 수 있다는 근거가 서면 손실이 0.63 dB 로 내려가 사슬이 다시 열잡음·σ 제한이 되고, 엔진 축의 상대 중요도가 올라간다(summary.ref_snr_needed_for_3db_loss = 36.27 dB).",
+      "H2 가 틀렸다면 — 즉 실제 운용 표적이 호버가 주류라는 근거가 나오면 축의 전제는 살아난다."
+    ],
+    "what_i_do_not_know_ko": [
+      "report07_three_engines levels_db 의 sbr/po 열 입사장 정규화 — 잔차 7.88 dB 의 정체. 모른다.",
+      "PRF 1 kHz 에서 접힌 tip 대역이 σ_ac_peak 배분을 어떻게 바꾸는가. 원장 0 건. 모른다.",
+      "호버 표적을 실사슬(ECA→CAF→CFAR)에 태운 Pd — 어느 엔진으로도 0 건이라는 축(4)의 선언을 나도 뒤집지 못했다.",
+      "outputs/raybudget_ladder/ 는 계산 중이라 ls 만 했다. 결과가 「예산 문제」로 나오면 D2 의 절반(우리도 같은 자릿수)이 더 강해지고, 「구조 문제」로 나오면 부전승 판정이 더 굳는다 — 어느 쪽이든 §2 의 축 중요도 결론은 안 바뀐다."
+    ],
+    "gpu_seconds_used": 0,
+    "ledgers_overwritten": 0
+  }
+}
