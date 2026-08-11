@@ -1,0 +1,1956 @@
+
+===== PAGE 1 =====
+1
+AI-Empowered Low-Altitude Economy:
+Cooperative Sensing With Fixed Wireless Access
+Jinya Zhang, Jiajia Guo, Xiangyi Li, Chao-Kai Wen, Fellow, IEEE, and Shi Jin, Fellow, IEEE
+Abstract—The rapid growth of the low-altitude economy has
+intensified safety concerns arising from unauthorized unmanned
+aerial vehicles (UAVs), positioning UAV supervision as a key
+use case in 3GPP. To precisely sense such UAVs with wide
+coverage and low cost, we leverage fixed wireless access (FWA)
+customer premises equipment (CPEs), static, densely deployed
+devices that serve as wireless cameras for the radio envi-
+ronment. We develop an artificial intelligence-empowered two-
+stage cooperative sensing pipeline that exploits uplink channel
+state information (CSI) from multiple base station-CPE pairs
+for UAV detection and localization. In cooperative detection,
+lightweight CSI features are first individually extracted by neural
+network, and then adaptively integrated through an attention-
+based scheme to declare UAV presence. The learned attention
+scores effectively identify the critical pairs during detection,
+while facilitating UAV-affected pair selection for subsequent
+localization. For cooperative localization, neural network initially
+generates individual estimates and extract CSI features from
+selected pairs. These estimates, together with features and pair
+indexes, are fused using a Transformer to produce a precise
+cooperative estimate. Simulations show that cooperative schemes
+significantly reduce the missed detection probability to 0.63% and
+realize a 95%-confidence positioning error of 6.50 m, satisfying
+3GPP requirements and showing the potential of FWA-assisted
+cooperative sensing. Dataset and codes are available on GitHub1.
+Index Terms—Low-altitude economy, UAV detection and local-
+ization, AI, CSI-based sensing
+I. INTRODUCTION
+T
+HE low-altitude economy (LAE), typically defined as
+economy activities in airspace below 3,000 m, has seen
+rapid deployment of unmanned aerial vehicles (UAVs) for
+commercial, inspection, and logistics applications [2], [3].
+Nevertheless, unauthorized UAVs, or black flights, pose seri-
+ous threats to infrastructure, public safety, and privacy, creating
+an urgent demand for reliable detection and localization [4].
+Addressing this challenge requires new paradigms beyond
+conventional monitoring systems. As a core usage scenario in
+the 6th generation mobile communication systems (6G) vision
+[5], integrated sensing and communication (ISAC) provides a
+promising solution for co-locating sensing and communication
+functions within the same infrastructure [6]–[8]. By reusing
+existing wireless networks, radio-signal-based sensing enables
+cost efficiency, ubiquitous coverage, and non-intrusiveness [9].
+Reflecting its relevance, 3GPP TR 22.870 [10] (Release 20
+study on 6G use cases) has explicitly recognized low-altitude
+UAV supervision as a representative ISAC use case.
+This work has been partly accepted by IEEE ICC Workshops 2026 [1].
+1The
+GitHub
+link
+will
+be
+provided
+once
+the
+paper
+is
+accepted.
+https://github.com/xxxxxx.
+Internet
+BS
+Wireless channel
+Fiber
+üSensing capability
+ûSensing instability
+• Wireless connection
+• Movable
+UE
+FTTH Router
+ûUnable to sense
+ûExpensive fiber 
+• Wired connection
+• Physical cables
+Core
+Network
+FWA CPE
+üSensing capability
+üLarge coverage
+üSensing stability
+• Wireless connection
+• Widely-deployed
+• Fixed CPE node
+Wireless camera
+Fig. 1. Widely-deployed, fixed FWA CPEs show wireless sensing potential.
+Since black flights do not disclose onboard information
+(e.g., GNSS coordinates), they must be sensed under device-
+free paradigms in which targets do not cooperate with the su-
+pervisor [11]. In ISAC-enabled device-free sensing, commonly
+used sensing metrics include received signal strength (RSS),
+time of arrival (ToA), angle of arrival (AoA), and channel state
+information (CSI) [12]. As a measure of signal amplitude,
+RSS can indicate object presence or provide coarse range
+estimates via path loss models, but its reliability deteriorates
+in multipath-rich environments [13]. ToA infers distance from
+propagation delay, but requires substantial bandwidth to attain
+fine temporal resolution [14]. Likewise, AoA supplies direc-
+tional information that facilitates localization, yet achieving
+high angular resolution necessitates large antenna arrays [15].
+In contrast to metrics capturing only partial information, CSI
+encodes finer-grained propagation characteristics (e.g., multi-
+path signatures), which are more informative for environment
+inference [16]–[19]. Additionally, artificial intelligence (AI)-
+based methods have shown the ability to exploit rich features
+[20], [21], yielding stronger robustness and higher accuracy
+compared to traditional model-based approaches [22], [23].
+However, many CSI-based works rely on a solitary transmitter-
+receiver pair, causing limited coverage and vulnerability in
+multipath-rich or obstructed channels.
+To surmount these limitations, node cooperation (fusion of
+multiple sensing observations or decisions) has been adopted
+to enhance sensing reliability [24]. Early efforts have mainly
+focused on cooperative frameworks involving multiple base
+stations (BSs). [25] has integrated multiple monostatic BSs
+into a two-stage cooperative UAV sensing pipeline. Within
+a similar scenario, [26] has incorporated ToA and AoA
+measurements from multiple monostatic BSs with optimally
+chosen weights to refine positioning accuracy. Subsequent
+studies have extended BS cooperation architectures with di-
+arXiv:2605.07623v1  [eess.SP]  8 May 2026
+
+===== PAGE 2 =====
+2
+verse sensing equipment. For instance, the authors of [27]
+have leveraged a cellular-connected UAV to assist the sensing
+process, and reconfigurable intelligent surfaces (RIS) have
+been employed as passive anchors in [28]. Beyond framework
+design, transmission overhead has remained a critical concern.
+To address this, a codebook-based sensing data transmission
+scheme has been exploited for efficient cooperation between
+multiple access points [29]. Collectively, these cooperative
+sensing works substantially mitigate the coverage and robust-
+ness limitations compared to single-pair sensing.
+For cooperative sensing, sensing node selection, effective
+data processing and fusion, and efficient data transmission
+are three essential components. Among these, node selection
+serves as the foundational element. In LAE supervision, where
+the monitored airspace spans large regions, strategic node
+selection is particularly critical to ensure seamless and reliable
+sensing. Although BSs achieve high sensing accuracy owing to
+high-end radios and wide bandwidth, their sparse deployment
+constrains spatial coverage [30]. Augmenting BS-centric sys-
+tems with widely deployed user equipment (UEs) can increase
+coverage, but UE mobility undermines sensing stability. RISs
+help establish line-of-sight (LoS) links, but their limited signal
+processing capabilities complicate the sensing process. Under
+these considerations, a critical challenge in reliable, large-area
+LAE supervision is:
+Are there alternative widely-deployed fixed nodes to assist BS-
+centric sensing?
+The rapid development of fixed wireless access (FWA) [31]
+has catalyzed a dense deployment of customer premises equip-
+ment (CPE). As illustrated in Fig. 1, these devices possess
+several advantages for sensing, including fixed placement, high
+spatial density, and persistent connectivity with nearby BSs.
+This observation motivates a reconsideration of the role of
+CPEs: beyond functioning as last-mile communication devices,
+they can potentially be repurposed as wireless cameras for
+the radio environment, delivering rich, fine-grained observa-
+tions suitable for cooperative sensing. While the 3GPP has
+recognized the potential of CPEs for indoor sensing tasks [32],
+[33], extending their application to LAE supervision presents
+several challenges, including ensuring seamless coverage over
+wide areas, accommodating heterogeneous CSI statistics, and
+minimizing sensing data transmission overhead. According to
+these considerations, we leverage FWA to assist BS-centric
+sensing for LAE supervision and investigate an effective
+sensing framework to tackle these challenges.
+Motivated by the demand for accurate, wide-area, and cost-
+effective monitoring in LAE, and enabled by the potential
+of FWA-assisted sensing in ISAC, we propose an AI-based
+two-stage cooperative sensing pipeline that leverages uplink
+CSI from multiple BS-CPE pairs to detect and localize the
+unauthorized UAV. The key contributions of this study are
+summarized as follows:
+• FWA-assisted sensing framework. We introduce the novel
+use of static, densely deployed FWA CPEs as auxiliary sens-
+ing nodes, exploiting their fixed placement and high spatial
+density to complement BS-centric sensing by functioning as
+wireless cameras. Sensing region visualizations confirm that
+integrating multiple BSs and CPEs substantially eliminates
+blind spots and expands effective coverage.
+• AI-based cooperative detection architecture. We design a
+two-stage framework following the attention-based multiple
+instance learning (MIL) paradigm. First, lightweight CSI
+features are individually extracted using neural network
+(NN) at BSs and transmitted to central processing unit
+(CPU). Second, these features are cooperatively integrated to
+infer UAV presence, with attention scores assigned to reflect
+the relative importance of different pairs in the detection
+process. In general, higher attention scores are typically
+assigned to UAV-affected pairs. By transmitting only CSI
+features, this two-stage design significantly reduces BS-CPU
+transmission overhead.
+• AI-based cooperative localization architecture. We fur-
+ther develop a two-stage localization framework. Initially,
+UAV-affected pairs are selected under the guidance of at-
+tention scores learned from detection, and only the selected
+pairs participate in localization. In the first stage, individual
+localization NN predicts UAV positions and extract CSI fea-
+tures. These coarse estimates, along with associated features
+and pair indexes, are subsequently transmitted and fused at
+the CPU to produce a refined estimate using a cooperative
+NN. This lightweight fusion strategy effectively balances
+transmission overhead and localization accuracy.
+• Performance evaluation and insights: Simulations under
+ray-tracing channel models demonstrate that the FWA-aided
+cooperative detection scheme significantly extends sens-
+ing coverage and reduces the missed detection probability
+(MDP) to 0.63%, while the cooperative localization scheme
+achieves an accuracy of positioning error (APE) of 6.50 m at
+a 95% confidence level, both satisfying 3GPP requirements.
+In-depth analyses further explore trade-offs in attention
+thresholds, feature extraction, node deployment density, and
+robustness under cluttered propagation conditions.
+The rest of this paper is organized as follows. Section II
+introduces the LAE scenario and system model. Section III
+details the AI-based cooperative UAV detection framework.
+Section IV presents the AI-based cooperative UAV localization
+design. Section V provides simulation settings, results, and
+analysis. Finally, Section VI concludes the paper.
+Notations: Lowercase symbols denote scalars, bold lower-
+case symbols denote column vectors, and bold uppercase sym-
+bols denote matrices. The ⊙and ∧represent the element-wise
+multiplication and the logical AND operation, respectively.
+X ∼U(a, b) denotes a uniform distribution between a and
+b. The notation (·)⊤is the transposition of a matrix.
+II. SYSTEM MODEL
+This work considers uplink transmission in a multiple-input
+multiple-output orthogonal frequency division multiplexing
+(MIMO-OFDM) system deployed in a three-dimensional LAE
+scene. The scenario consists of a CPU, M BSs, N CPEs,
+and a single UAV, as illustrated in Fig. 2. BSs and CPEs
+are static and are located at (xm
+bs, ym
+bs, zm
+bs), m = 1, . . . , M,
+and (xn
+cpe, yn
+cpe, zn
+cpe), n = 1, . . . , N, respectively. The UAV
+hovers at p = (x, y, z) and acts as a scatterer whose presence
+affects the wireless propagation.
+
+===== PAGE 3 =====
+3
+CPE
+BS
+UAV
+Uplink channel between CPE and BS
+CPU
+Data transmission between BS and CPU
+Fig. 2. The LAE scenario comprises a CPU, multiple BSs/CPEs, and a UAV.
+Each BS is equipped with Nr antennas and CPE with Nt
+antennas. Both of them adopt uniform plane arrays (UPA)
+with half-wavelength spacing. The system employs Nc OFDM
+subcarriers. All N CPEs can communicate with all M BSs,
+yielding M × N BS-CPE pairs in total. Through pilot trans-
+mission, BSs acquire uplink CSI on the space-frequency
+grid for every BS-CPE pair. For simplicity, we assume syn-
+chronous CSI acquisition across all BSs on the same set of
+subcarriers and neglect mutual interference. Accordingly, the
+collected channel frequency responses (CFRs) are represented
+as H(1,1), . . . , H(M,N), where
+H(m,n) =
+h
+H(m,n)
+1
+, . . . , H(m,n)
+Nc
+i
+∈CNr×Nt×Nc.
+(1)
+To relate the CFR to the physical environment, the wireless
+channel is modeled as a superposition of multipath compo-
+nents. Let i = 1, . . . , Nr and j = 1, . . . , Nt index receiving
+and transmitting antennas, respectively. The channel at fre-
+quency f can be written as
+Hi,j(f) =
+Np
+X
+p=1
+αi,j,pe−j2πfτp,
+(2)
+where Np is the number of propagation paths, αi,j,p is the
+complex gain of path p, and τp is its delay. The presence of a
+UAV inside the sensing region modifies multipath propagation
+for several BS-CPE pairs. Consequently, the M ×N collection
+of CSI measurements can be exploited to infer the presence
+and position of a UAV using the existing infrastructure.
+III. AI-BASED COOPERATIVE UAV DETECTION
+In this section, we propose an AI-based two-stage coop-
+erative UAV detection framework using the CSI of multiple
+BS-CPE pairs. The framework follows the MIL paradigm [34],
+as shown in Fig. 3. Specifically, each BS acquires uplink CSI
+from N CPEs, collecting M × N CSI measurements. First,
+AI-based individual detection is performed on each BS-CPE
+pair to encode lightweight CSI embedding, which are designed
+to extract information associated with UAV-affected channel
+variations. Second, all CSI embeddings are fused through an
+attention-based mechanism to produce a cooperative detection
+result that identifies the presence of UAV.
+A. Overall UAV Detection Framework Based on MIL
+In UAV detection tasks, CSI measurements collected from
+multiple BS-CPE pairs provide a set of multi-view observa-
+tions of the monitored LAE airspace. Since the impact of
+a UAV on wireless propagation depends on the surrounding
+geometry, and each BS-CPE pair has only a limited sensing
+region, different pairs may respond quite differently to the
+UAV. As a result, only a subset of the BS-CPE pairs exhibit
+evident UAV-related channel variations, while others may
+remain weakly affected or unaffected. Moreover, although the
+scene label, i.e., whether a UAV is present in the airspace,
+can be obtained, identifying which specific BS-CPE pairs are
+affected by the UAV is hard in practical deployments.
+Such a setting naturally matches the MIL paradigm. MIL is
+a weakly supervised learning framework in which the training
+data are organized as bags, each consisting of multiple in-
+stances, and only bag labels are available. Instead of requiring
+explicit supervision for every instance, MIL learns to infer the
+bag label by identifying the informative instances relevant to
+the target task. Accordingly, in the UAV detection task, each
+monitored scene is treated as a bag, and the CSI measurements
+collected from all BS-CPE pairs are regarded as the instances
+within that bag. The corresponding bag label (or scene label),
+denoted by ys ∈{0, 1}, indicates whether a UAV is present
+in the LAE airspace. Assume that the instance labels (or pair
+labels) Y = {y(1,1), . . . , y(M,N)} exist but are inaccessible,
+where y(m,n) ∈{0, 1} indicates whether the CSI of the
+(m, n)-th BS-CPE pair is affected by the UAV. Consequently,
+the scene label can be determined from all pair labels as
+ys =
+(
+0,
+PM
+m=1
+PN
+n=1 y(m,n) = 0,
+1,
+otherwise.
+(3)
+The unavailability of pair labels limits the applicability of
+the pair-supervised two-stage detection strategy proposed in
+[1]. By contrast, MIL provides a more suitable formulation, as
+it predicts the presence of UAV using only scene supervision.
+In particular, the attention-based MIL model in [34] jointly
+learns instance representations and bag-level aggregation,
+while adaptively emphasizing the BS-CPE pairs containing
+discriminative UAV-related information. Therefore, it yields
+reliable and interpretable cooperative detection results. The
+detailed framework is presented as follows.
+B. Stage 1: Individual Detection
+The individual detection stage aims to extract UAV-
+related information and produce lightweight CSI embeddings
+h(m,n) ∈RNe based on each CSI H(m,n), where Ne is
+the embedding length. Individual detection comprises two
+modules: CSI preprocessing and a neural encoder, denoted as
+Individual UAV Detection Net (I-UDetNet). For the (m, n)-th
+BS-CPE pair, individual detection is formulated as
+h(m,n) = fI(P(H(m,n)); ΘI),
+(4)
+where P(·) represents the preprocessing operator, fI(·) and
+ΘI denotes the I-UDetNet and its parameters, respectively.
+
+===== PAGE 4 =====
+4
+C-UDetNet
+  �C(∙; �C)
+Extract CSI embeddings on � pairs (�-th BS)
+�(�,1)
+Preprocessing
+�(∙)
+...
+�(�,�)
+�AD
+(�,1)
+�AD
+(�,�)
+�(�,1)
+�(�,�)
+...
+Individual detection (�× � in total)
+...
+Extract CSI embeddings on � pairs (�-th BS)
+Extract CSI embeddings on � pairs  (1-st BS)
+...
+...
+Cooperative detection
+Presence
+of the UAV?
+��
+...
+Sensing data transmission
+Attention-based
+MIL pooling
++
+Lightweight
+NN classifier
+0/1
+Uplink CSI acquisition
+�-th BS
+1-st BS
+�-th CPE
+�× � pairs
+in total
+...
+�(1,1)
+�(�,�)
+I-UDetNet
+  �I(∙; �I)
+I-UDetNet
+Preprocessing
+Fig. 3. The two-stage cooperative UAV detection framework. In Stage 1 (individual detection), each BS preprocesses N uplink CSI and generates compact
+embeddings that preserve UAV-informative features. In Stage 2 (cooperative detection), CSI embeddings are transmitted to the CPU and fused with an
+attention-based mechanism to yield the final detection.
+�AD
+(�,�)
+�r × �t × �s
+’ × 1
+Conv 3×3×3
+c = 8
+BN+LeakyReLU
+Flatten
+Dense 64
+ 
+�(�,�)
+MaxPool (2,1,2) 
+Conv 3×1×3
+BN+LeakyReLU
+×3
+MaxPool (2,1,2) 
+Dilation rate
+(1,1,1), (2,1,2), (3,1,3)
+Dilation rate
+(1,1,1), (2,1,2)
+Conv 3×1×3
+BN+LeakyReLU
+Dilation rate
+(3,1,3)
+c = 8
+c = 8
+c = 8
+c = 2
+c = 8
+Conv 3×1×3
+BN+LeakyReLU
+×2
+c = 8
+c = 8
+c = 8
+BN+LeakyReLU
+Dense 32
+×2
+Fig. 4. The NN architecture of the I-UDetNet for individual detection.
+1) CSI Preprocessing: Compared to the space-frequency
+domain, expressing CFR in the angle-delay domain provides a
+more physically interpretable representation that is appropriate
+to UAV sensing. Therefore, we convert the CFR H(m,n) to the
+angle-delay channel response
+H(m,n)
+AD
+= P(H(m,n)),
+(5)
+where H(m,n)
+AD
+∈RNr×Nt×N′
+c×1. The operator P(·) includes
+four steps, which are detailed below.
+a. 3D-IDFT. The first step is to apply a three-dimensional
+inverse discrete Fourier transform (3D-IDFT) along the
+antenna and subcarrier axes
+H(m,n) 3D-IDFT
+−−−→eH(m,n)
+AD
+,
+(6)
+where eH(m,n)
+AD
+∈CNr×Nt×Nc.
+b. Truncation. Since the delay energy is typically gathered
+in a limited period, we retain the first N ′
+c delay elements
+and discard the remainder to reduce input dimensionality
+eH(m,n)
+AD
+(:, :, 1:N ′
+c) →eH(m,n)
+AD
+∈CNr×Nt×N′
+c.
+(7)
+c. Amplitude extraction and logarithmic compression. We
+extract the magnitude of eH(m,n)
+AD
+and apply a logarithmic
+transform to compress the dynamic range, which helps
+reveal low-energy paths affected by the UAV
+H(m,n)
+ADAMP = log10(| eH(m,n)
+AD
+|),
+(8)
+where H(m,n)
+ADAMP ∈RNr×Nt×N′
+c.
+d. Reshape and min-max normalization. Finally, H(m,n)
+ADAMP
+is reshaped to add a channel dimension to match the input
+shape expected by convolutional (Conv) layers, and min-
+max normalization is applied (per sample) to scale the
+values into the interval (0, 1)
+H(m,n)
+AD
+= Norm
+
+Reshape(H(m,n)
+ADAMP)
+
+.
+(9)
+2) I-UDetNet Design: Following CSI preprocessing, the I-
+UDetNet encodes each H(m,n)
+AD
+into a compact embedding that
+preserves the CSI features most informative of UAV-induced
+perturbations. In the individual detection stage, a shared I-
+UDetNet for all BS-CPE pairs is sufficient.
+• Input and output. The I-UDetNet takes the preprocessed
+CSI H(m,n)
+AD
+for a single pair as input and produces a
+compact embedding h(m,n). This embedding is expected
+to preserve the CSI features that are most informative of
+UAV-induced channel variations. Since UAV may influence
+propagation paths compared with scenarios without UAV,
+h(m,n) provides valuable evidence for the subsequent coop-
+erative detection stage to infer the UAV presence.
+• NN architecture. The NN architecture is shown in Fig. 4,
+comprising Conv3D, Batch Normalization (BN), MaxPool,
+Flatten, and Dense layers. Leaky ReLU and Sigmoid activa-
+tions are used. To enlarge the receptive field without reduc-
+ing spatial resolution, we employ multiple dilated Convs
+with different dilation rates [35]. UAV-affected scattering
+
+===== PAGE 5 =====
+5
+appears as sparse and spatially correlated energy across
+neighboring angle-delay bins, while dilated Convs help
+capture multi-scale patterns indicative of UAV presence.
+C. Stage 2: Cooperative Detection
+After obtaining M×N CSI embeddings, h(1,1), . . . , h(M,N)
+are transmitted from BSs to the CPU, where the presence of a
+UAV is inferred through a cooperative detection process. This
+process is implemented by Cooperative UAV Detection Net
+(C-UDetNet), consisting attention-based MIL pooling module
+[34] and a lightweight classifier. The cooperative detection
+stage can be written as
+ˆys = fC(h(1,1), . . . , h(M,N); ΘC),
+(10)
+where fC(·) and ΘC denotes the C-UDetNet and its pa-
+rameters, respectively, ˆys ∈{0, 1} represents the cooperative
+decision on the presence of UAV.
+• Attention-based MIL pooling. Firstly, all CSI embeddings
+are aggregated into a single vector z ∈RNe. In this process,
+M × N attention weights are learned to adaptively measure
+the relative contribution of different BS-CPE pairs to UAV
+detection. The aggregated feature is given by
+z =
+M
+X
+m=1
+N
+X
+n=1
+am,nh(m,n),
+(11)
+where the attention score of each pair is calculated as
+sm,n = wa
+⊤
+Tanh
+
+Vah(m,n)
+⊙Sigm
+
+Uah(m,n)
+,
+am,n =
+exp(sm,n)
+PM
+m=1
+PN
+n=1 exp(sm,n)
+.
+(12)
+Here, wa, Va, and Ua denote the learnable parameters of
+three Dense layers. Through attention-based MIL pooling
+mechanism, C-UDetNet can assign larger weights to the
+pairs that strongly affected by UAV, while reducing the
+influence of weakly affected or unaffected BS-CPE pairs.
+As a result, the feature z provides a compact while valuable
+representation for cooperative UAV detection.
+• Lightweight classifier. Based on the merged feature z, a
+lightweight Dense classifier is employed to predict the UAV
+presence ˆys. Specifically, the classifier consists of two Dense
+layers with ReLU and Sigmoid activations, respectively,
+together with a Dropout layer for regularization. Combined
+with the attention mechanism, the classifier enables the
+cooperative detection stage to remain computationally effi-
+cient while effectively exploiting the complementary sensing
+information provided by multiple BS-CPE pairs.
+D. Training Strategy and Evaluation Metrics
+I-UDetNet and C-UDetNet are jointly optimized using
+ground-truth label ys with binary cross-entropy loss, while no
+pair labels are required during training. Under this end-to-
+end training strategy, I-UDetNet is encouraged to extract CSI
+features that are beneficial for the subsequent cooperative de-
+cision, thereby improving the detection accuracy. Once offline
+training is completed, I-UDetNet is deployed at each BS to
+process the local CSI measurements of all associated BS-CPE
+pairs, and C-UDetNet is deployed at the CPU for cooperative
+detection. Each BS only needs to upload the lightweight
+CSI embeddings extracted by I-UDetNet, rather than high-
+dimensional CSI. This significantly reduces the transmission
+overhead between BSs and the CPU. Moreover, since C-
+UDetNet performs attention-based MIL pooling, the CPU can
+additionally obtain the attention score of each BS-CPE pair,
+providing useful auxiliary information for subsequent tasks,
+such as UAV localization.
+To improve the robustness of the detection framework
+against variations in the number of available BS-CPE pairs,
+a random pair-sampling strategy is introduced during training.
+Specifically, the CSI of all M ×N pairs is not always provided
+for each training sample. Instead, only a randomly selected
+subset of pairs is retained, with the subset size uniformly
+sampled from [ M×N
+2
+, M × N]. In this way, the network is
+prevented from over-relying on a few specific pairs. As a
+result, the proposed framework becomes more robust to pair
+missing or pair selection changes during inference.
+For the two-stage detection pipeline, MDP and false alarm
+probability (FAP) [32] are adopted to indicate the ability to
+identify UAV’s presence in the LAE scenario. MDP measures
+the likelihood of failing to detect a UAV when it is actually
+present, and is defined as
+MDP =
+FN
+FN + TP = (ˆys = 0) ∧(ys = 1)
+ys = 1
+,
+(13)
+where FN and TP denote the numbers of missed and correctly
+detected UAV-present samples, respectively. Consequently,
+FN + TP represents the total number of samples in which a
+UAV is present.
+Similarly, FAP quantifies the probability of falsely declaring
+a UAV when none exists, and is given by
+FAP =
+FP
+FP + TN = (ˆys = 1) ∧(ys = 0)
+ys = 0
+,
+(14)
+where FP and TN are the numbers of false positive and
+true negative samples, respectively. In this case, FP + TN
+corresponds to the total number of UAV-absent samples.
+IV. AI-BASED COOPERATIVE UAV LOCALIZATION
+In this section, we further design an AI-based two-stage co-
+operative UAV localization framework. Specifically, a medium
+fusion strategy is adopted, which operates on intermediate
+representations, i.e., local estimates and CSI features. Com-
+pared with hard fusion, which uses only local estimates,
+and soft fusion, which directly fuses raw CSI, the adopted
+strategy provides a better tradeoff between sensing information
+retention and transmission cost. As illustrated in Fig. 5, the
+framework begins with identifying L BS-CPE pairs according
+to the detection attention scores. The CSI of these pairs
+are expected to be more strongly affected by the UAV and
+thus suitable for position estimation. In the first stage, a
+localization NN estimates a coarse position and simultaneously
+extracts a compact CSI feature of each selected pair. These
+L estimates, along with the corresponding features and pair
+
+===== PAGE 6 =====
+6
+C-ULocNet
+�C(∙; �C)
+Estimate UAV position with �-th UAV-affected pair
+Estimate UAV position with 1-st UAV-affected pair
+...
+...
+Cooperative
+localization
+Individual localization (� in total)
+Sensing data transmission
+Position
+of the UAV?
+Select � pairs
+(UAV-affected)
+Attention-guided pair selection
+�-th pair
+�(�)
+Preprocessing
+�(∙)
+�AD
+(�)
+I-ULocNet
+�I(∙; �I)
+Estimate UAV position with �-th UAV-affected pair
+(�(�), �(�))
+Index
+�(�)
+�(�)
+�
+Selecting pairs
+(Top-� &
+ score ≥ �att)
+...
+Attention
+scores
+Fig. 5. The two-stage cooperative UAV localization framework. Prior to localization, the CPU screens L UAV-affected pairs according to the attention scores
+obtained in cooperative detection. In Stage 1 (individual localization), the corresponding BSs are instructed to generate individual positioning estimates
+and extract CSI features from selected pairs. In Stage 2 (cooperative localization), individual estimates, features, and pair indexes are fused at the CPU to
+produce a refined estimate.
+indexes, are transmitted to the CPU for fusion. In the coop-
+erative localization stage, the CPU employs a Transformer-
+based medium-fusion strategy to integrate these heterogeneous
+inputs and produce a refined positioning estimate. The detailed
+components of the framework are elaborated below.
+A. Preparation: Attention-Guided Pair Selection
+Due to the limited sensing coverage of each BS-CPE
+pair, different pairs generally contribute unequally to UAV
+localization. Pairs whose channels are more strongly affected
+by the UAV (y(m,n) = 1) provide more significant information
+for localization, whereas unaffected pairs (y(m,n) = 0) may
+contribute limited information and even degrade the final lo-
+calization accuracy. Therefore, a pair selection step is required
+before localization to identify the strongly affected BS-CPE
+pairs, so that the subsequent localization process can focus on
+the most informative observations.
+During the inference of C-UDetNet, the CPU can addition-
+ally obtain the attention score of each BS-CPE pair. Since
+these scores reflect the relative contribution of different pairs
+to UAV detection, they can also serve as an effective indicator
+of pair selection for localization. Accordingly, a pair selection
+function F(·) is introduced to select the BS-CPE pairs used
+for localization based on the attention scores
+Sloc = F
+
+{am,n}M,N
+m=1,n=1
+
+,
+(15)
+where Sloc denotes the set of selected BS-CPE pairs with L
+elements, satisfying 0 < L ≤M × N. After the effective
+pairs are determined, the CPU informs the corresponding
+pair indices to the associated BSs to initiate the subsequent
+individual localization process.
+A straightforward solution is to select the top-k pairs with
+the highest attention scores. However, according to (12), the
+attention scores am,n are normalized by a softmax function,
+which ensures that the sum of all M × N scores equals 1.
+For different samples, the number of truly informative pairs
+(y(m,n) = 1) vary, and a fixed top-k strategy may still retain
+some irrelevant pairs. To address this issue, an threshold σatt
+is introduced to further remove pairs with low attention scores.
+Accordingly, the selection rule can be written as
+Sloc = F
+
+{am,n}M,N
+m=1,n=1; k, σatt
+
+= {(m, n) | (m, n) ∈Stop-k, am,n ≥σatt} .
+(16)
+where Stop-k denotes the set of pairs selected by the top-k rule.
+Only the pairs that are ranked among the top-k in attention
+scores and simultaneously satisfy the threshold requirement
+are retained for localization.
+B. Stage 1: Individual Localization
+Following the attention-guided pair selection operation, BSs
+are informed by CPU to execute individual localization on
+selected pairs. For each pair in Sloc, the UAV position ˆp(l)
+is estimated from the corresponding CSI H(l). Concurrently,
+compact CSI features v(l) that preserve key propagation
+characteristics are extracted to enable subsequent cooperative
+sensing with minimal transmission overhead, thereby sup-
+porting further positioning enhancements. This stage includes
+a CSI preprocessing module and a localization NN, termed
+Individual UAV Localization Net (I-ULocNet). Formally, the
+individual localization is expressed as
+ˆp(l), v(l) = gI(P(H(l)); ΦI),
+(17)
+where gI(·) and ΦI denote the I-ULocNet and its correspond-
+ing parameters, respectively. The CSI preprocessing module
+P(·) converts the raw CSI into the angle-delay domain, pro-
+ducing H(l)
+AD ∈RNr×Nt×N′
+c×1, as described in Sec. III-B1. I-
+ULocNet generates coarse position estimates and CSI features
+of each pair. A common I-ULocNet architecture with shared
+parameters is adopted for all BS-CPE pairs. The following
+describes the design of I-ULocNet.
+1) Input and Output of I-ULocNet: After preprocessing, I-
+ULocNet processes H(l)
+AD to produce a coarse position ˆp(l) and
+a lightweight CSI feature v(l), which are the final and inter-
+mediate outputs of I-ULocNet, respectively. The ground-truth
+is the UAV’s actual position p. Specifically, the localization
+task demands the accurate inference of UAV-affected propa-
+gation paths from complex channels, followed by the effective
+mapping of these features to spatial coordinates within LAE
+
+===== PAGE 7 =====
+7
+�AD
+(�)
+�r × �t × �s
+’ × 1
+Conv 3×3×3
+c = 8
+BN+LeakyReLU
+Flatten + Dropout
+Dense 128
+�(�)
+MaxPool (2,2,2) 
+c = 8
+BN+LeakyReLU
+Dense 64
+BN+LeakyReLU
+Dense 32
+Conv 3×3×3
+c = 8
+BN+LeakyReLU
+c = 8
+Spatial
+Attention
+×7
+c = 8
+Conv 3×3×3
+c = 2
+BN+LeakyReLU
+c = 2
+BN+LeakyReLU
+Dense 2
+MaxPool 
+AvgPool 
+C
+Conv 3×3×3
+Along the channel axis
+c = 8
+c = 2
+c = 1
+Sigmoid
+×
+c = 8
+C
+×
+Element-wise multiplication
+Concatenate
+Fig. 6. The NN architecture of the I-ULocNet for individual localization.
+airspace. Relying solely on coarse position estimates yields
+suboptimal performance. To address this, an intermediate NN
+layer of I-ULocNet (e.g., Dense or activation) produces a
+compact CSI feature v(l) ∈RNv. The dimensionality Nv
+depends on the NN architecture, allowing flexible adjustment
+according to transmission resources. Collectively, the L posi-
+tion estimates, associated CSI features, and pair indexes are
+transmitted for the subsequent cooperative localization stage.
+2) NN Architecture: The NN architecture of I-ULocNet,
+illustrated in Fig. 6, comprises Conv3D, BN, MaxPool, Flatten,
+and Dense layers, along with several Spatial Attention (SA)
+blocks. The SA blocks, introduced in [36], aim to focus
+on informative regions of the input feature by generating a
+spatial attention map, computed via MaxPool, AveragePool
+(AvgPool), Conv3D, and Sigmoid operations. In individual
+localization, these blocks help extract UAV-relevant channel
+features more effectively, thereby improving accuracy.
+To generate the spatial attention map, two pooling oper-
+ations are first applied along the channel axis of the input
+feature Fin, and their outputs are concatenated to form a two-
+channel feature descriptor Fs
+Fs = [MaxPool(Fin), AvgPool(Fin)].
+(18)
+This descriptor emphasizes informative regions in the input.
+Then, Fs is processed through a Conv3D layer followed by a
+Sigmoid activation to generate a spatial attention map Ms
+Ms = Sigm(Conv3D(Fs)).
+(19)
+Finally, the output of the SA module is obtained through
+element-wise multiplication of the spatial attention map with
+the input feature map, expressed as
+Fout = Fin ⊙Ms.
+(20)
+To achieve a balance between transmission overhead and
+sensing performance, the compact CSI feature v(l) is extracted
+from layers with low-dimensional outputs. Specifically, Dense
+and activation layers with output dimensions of 128, 64, and
+32 are considered, corresponding to Nv ∈{128, 64, 32}. The
+I-ULocNet is trained using the mean square error (MSE) loss
+function to minimize the discrepancy between the estimated
+position and the ground-truth.
+C. Stage 2: Cooperative Localization
+Once individual localization is completed at M BSs, the
+L positioning estimates, CSI features, and corresponding pair
+indexes are transmitted to the CPU. In the cooperative local-
+ization stage, the CPU performs medium fusion, integrating
+received sensing data to produce a more precise UAV position-
+ing estimate. Nevertheless, two challenges arise in this process.
+First, the number of UAV-affected BS-CPE pairs L varies
+and depends on the UAV’s location. Second, heterogeneity
+in the received sensing data further complicates the data
+fusion. To this end, a Transformer [37] is adopted as the
+backbone of the Cooperative UAV Localization Net, written as
+C-ULocNet. Let ˆP =
+ˆp(1), . . . , ˆp(L)
+, V =
+
+v(1), . . . , v(L)
+,
+and e = [e1, . . . , eL] denote the L estimates, CSI features, and
+pairing indexes, respectively, where the l-th index is given by
+el = N(m(l)−1)+n(l). Therefore, the cooperative localization
+is written as
+ˆp = gC(ˆP, V, e; ΦC),
+(21)
+where gC(·) and ΦC denote the C-ULocNet and its corre-
+sponding parameters, respectively.
+1) Input and Output of C-ULocNet: C-ULocNet leverages
+three sensing observations as input: positioning estimates,
+CSI features, and pair indexes. Each of them contributes
+complementary information for cooperative localization.
+• The coarse positioning estimates provide spatial priors that
+constrain the search space and enhance fusion stability.
+• The CSI feature vectors capture essential propagation
+characteristics, such as angle-delay distributions, which are
+critical for fine-grained cooperative localization.
+• The pair indexes indicate the belonging BS-CPE pairs,
+providing geometry-aware context that allows C-ULocNet to
+model pair-specific propagation effects and perform adaptive
+compensation across multiple sensing nodes.
+Through a dedicated learning process, C-ULocNet estimates
+the position of the UAV with enhanced accuracy.
+2) NN Architecture: The architecture of C-ULocNet is
+shown in Fig. 7. The NN adopts a Transformer encoder-
+only framework, consisting of an input projection with an
+embedding layer, an encoder, and a localization head. The
+encoder includes four layers, each containing a multi-head
+
+===== PAGE 8 =====
+8
+Pair index
+(�(�), �(�)),
+�= 1, . . . , �
+Embedding 
+layer
+CSI feature
+�(�), �= , . . . , �
+Coarse position
+�(�), �= 1, . . . , �
+C
+Dense 128 + Norm
++
+Multi-head 
+attention
+×4
+Dense 512 + ReLU
+Dense 128
+Dropout
+Add & LayerNorm
+Add & LayerNorm
+AvgPool
+Dense 64 + ReLU
+Dense 2
+Cooperative
+estimation
+of position �
+Covert to int
+��= �(�(�) −1) + �(�), 
+�= 1, . . . , �
++
+Add
+C
+Concatenate
+Fig. 7. The NN architecture of the C-ULocNet for cooperative localization.
+self-attention (MHA) block, a feed-forward network (FFN),
+residual connections [38], and layer normalizations (Layer-
+Norm). The overall learning process is illustrated as follows.
+a. Input projection and embedding layer. First, the CSI
+feature matrix V is concatenated with the coarse positions
+matrix ˆP. Then, the concatenated matrix is projected and
+normalized to produce sensing data embeddings S, which
+is given by
+S = Norm
+
+Dense([ˆP, V])
+
+.
+(22)
+Meanwhile, the pair indexes are converted to int and
+encoded as embeddings. Therefore, the input embeddings
+for the first encoder layer X are obtained by summing the
+sensing data embeddings and the positional embeddings
+X = S + Embed (e) .
+(23)
+b. Encoder. The encoder module is composed of four identi-
+cal layers, each following the standard Transformer struc-
+ture and comprising two main components.
+• A MHA block whose output is combined with the input
+via a residual connection and LayerNorm. In this work,
+each MHA block has eight heads.
+• A two-layer FFN followed by a Dropout layer. The
+output of FFN is added to its input through a residual
+connection and LayerNorm.
+Consequently, the encoder layer can be formulated as
+Xa = LayerNorm(X + MHA(X)),
+(24)
+Xe = LayerNorm(Xa + Dropout(FFN(Xa))).
+(25)
+c. Localization head. After four encoder layers, the outputs
+are aggregated by AvgPool over the token dimension to
+obtain a fixed-size global representation. The pooled vector
+is passed through several Dense layers to produce the final
+positioning estimate ˆp
+ˆp = Dense(ReLU(Dense(AvgPool(Xe)))).
+(26)
+In summary, C-ULocNet leverages a Transformer encoder to
+integrate heterogeneous sensing data into a unified embedding
+space. Its self-attention mechanism aggregates complementary
+information from distributed BS-CPE pairs and captures long-
+range dependencies, thereby enhancing sensing robustness and
+accommodating variable L. Furthermore, the FFN, combined
+TABLE I
+DATASET SEGMENTATION OF SAMPLES WITH/WITHOUT UAV.
+With UAV
+Without UAV
+Total samples
+Training
+8,100
+8,100
+162,000
+Validation
+1,800
+1,800
+3,600
+Testing
+2,700
+2,700
+5,400
+with residual connections and LayerNorm, stabilizes training
+and enables accurate, scalable cooperative localization. During
+the training process, C-ULocNet is optimized via the MSE
+loss, and its localization performance is evaluated by the mean
+and cumulative distribution function (CDF) of the APE [32].
+APE is defined as the Euclidean distance between ˆp and p.
+V. SIMULATION RESULT
+A. Simulation Settings
+1) Scenario
+Configuration:
+The
+dataset
+is
+generated
+through ray-tracing, using OpenStreetMap (OSM), Blender,
+and Sionna RT [39]. A 200 m × 200 m area of Southeast
+University Sipailou Campus is first extracted from OSM
+and imported into Blender, where building materials such as
+concrete, marble, and brick are assigned. The scenario includes
+M = 2 BSs and N = 16 CPEs positioned at heights of
+z1
+bs = z2
+bs = 100 m and zn
+cpe = 18 m, n = 1, . . . , 16,
+respectively. Their x-y plane coordinates are illustrated in
+Fig. 8(a). The UAV is modeled as a metallic cube located
+at p = (x, y, 60), where x, y ∼U[−75, 75].
+For the MIMO-OFDM system, each BS is equipped with
+Nr = 64 antennas and each CPE with Nt = 4 antennas,
+respectively. The choice of Nt = 4 is aligned with commercial
+FWA CPE configurations, since 5G FWA products with 4x4
+MIMO are already commercially available. In addition, FWA
+planning studies indicate that one site may serve hundreds of
+households, suggesting the practical potential of the proposed
+method in real-world FWA deployment scenarios. The carrier
+frequency is 2.8 GHz with a 20 MHz bandwidth, 30 kHz
+subcarrier spacing, and Nc = 512 subcarriers. During ray-
+tracing, the wireless propagation channel accounts for LoS
+and first-order reflections comprising both specular and diffuse
+components, as shown in Fig. 8(b). In the simulation, due
+to the scene geometry and the strict conditions required for
+
+===== PAGE 9 =====
+9
+CPE 2
+(-35, -65)
+CPE 1
+(-80, -45)
+CPE 3
+(10, -80)
+CPE 5
+(75, -50)
+CPE 4
+(40, -50)
+CPE 7
+(-5, -25)
+CPE 6
+(75, -25)
+CPE 8
+(75, 5)
+CPE 9
+(10, 15)
+CPE 14
+(15, 55)
+CPE 15
+(15, 75)
+CPE 12
+(-55, 30)
+CPE 10
+(-35, -5)
+CPE 11
+(-85, 10)
+CPE 16
+(-80, 85)
+CPE 13
+(50, 40)
+BS 2
+(90, 90)
+BS 1
+(-90, -90)
+�
+�
+(a) The simulation layout of the LAE scenarios.
+(b) Simulation of ray-tracing propagation paths. The black, blue, and green
+lines represent LoS, specular, and diffuse reflections, respectively.
+Fig. 8. The LAE scenario modeled with OSM, Blender, and Sionna.
+2
+4
+8
+12
+16
+Number of CPEs
+0%
+20%
+40%
+60%
+80%
+Probability
+3GPP requirement
+C-UDetNet (2 BSs)
+C-UDetNet (Only BS 1)
+C-UDetNet (Only BS 2)
+SL with σd = 2[1] (2 BSs)
+SL with σd = 2[1] (Only BS 1)
+SL with σd = 2[1] (Only BS 2)
+(a) MDP
+2
+4
+8
+12
+16
+Number of CPEs
+0%
+2%
+4%
+6%
+8%
+10%
+Probability
+3GPP requirement
+C-UDetNet (2 BSs)
+C-UDetNet (Only BS 1)
+C-UDetNet (Only BS 2)
+SL with σd = 2[1] (2 BSs)
+SL with σd = 2[1] (Only BS 1)
+SL with σd = 2[1] (Only BS 2)
+(b) FAP
+Fig. 9. Cooperative detection performance with different numbers of BSs/CPEs.
+specular reflection, most UAV-affected paths are dominated
+by diffuse reflections, which generally have lower power.
+Accordingly, the CSI logarithmic compression step in (8) is
+helpful to reveal these low-energy paths.
+2) CSI Generation: The dataset is divided into samples
+with and without UAV, and further split into training, vali-
+dation, and testing sets, as summarized in Table I. For the
+UAV detection task, ys is set to 1 whenever a UAV exists in
+the scenario, while the pair labels y(m,n) is derived from the
+path type provided by Sionna RT. As described in Sec. V-A1,
+UAV-affected paths are typically caused by diffuse reflections.
+Therefore, y(m,n) is set to 1 only when the channel between
+a BS-CPE pair contains such reflections. These pair labels
+are not involved in the training of I-UDetNet or C-UDetNet,
+but are used only to evaluate the effectiveness of attention
+score learning in detection and the pair selection strategy for
+localization. For the UAV localization task, the ground-truth
+is the actual UAV position denoted by p.
+3) Data Augmentation: The channel parameters in (2) are
+obtained from path instances computed by the PathSolver
+function in Sionna RT. CSI samples from a fully static sce-
+nario are nearly constant, which may cause overfitting during
+training. Therefore, a random phase shift is introduced to each
+path based on (2) to increase data diversity
+Hi,j(f) =
+Np
+X
+p=1
+αi,j,pe−j2πfτpejθp,
+(27)
+where θp ∼U[0, 2π) expresses the random phase shift.
+4) Training Configuration: For CSI preprocessing, only the
+first N ′
+c = 64 elements along the delay dimension are retained.
+All NNs are optimized using Adam optimizer. Specifically, the
+jointly trained I-UDetNet and C-UDetNet employs an initial
+learning rate of 1×10−4, a batch size of 64, and is trained for
+
+===== PAGE 10 =====
+10
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+CPE index
+1
+2
+BS index
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+1
+0
+0
+1
+0
+0
+0
+0
+0
+1
+0
+0
+1
+0
+1
+0
+0
+0
+0
+1
+0
+0
+0.1
+0.2
+Attention
+(a) Sample A.
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+CPE index
+1
+2
+BS index
+0
+1
+1
+1
+0
+0
+1
+0
+0
+1
+1
+0
+0
+0
+0
+0
+0
+0
+0
+0
+1
+1
+1
+0
+1
+0
+0
+1
+0
+0
+0
+0
+0.05
+0.10
+0.15
+Attention
+(b) Sample B.
+Fig. 10.
+Visualization of attention scores and true pair labels. In each
+grid, the color intensity indicates the attention weight, while the 0/1 entry
+denotes the pair label y(m,n). Pairs with higher attention weights contribute
+more to the NN decision, and the consistency between the learned attention
+distribution and the true pair labels demonstrates the effectiveness of the
+proposed framework.
+0
+5
+10
+15
+20
+Positioning error (m)
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+Probability
+3GPP requirement
+(10m@95%)
+C-ULocNet (σatt = 0.05)
+C-ULocNet (σatt = 0.1)
+C-ULocNet (σatt = 0.15)
+C-ULocNet (σatt = 0.2)
+C-ULocNet (σatt = 0.25)
+C-ULocNet (σatt = 0.3)
+6
+8
+10
+0.88
+0.93
+0.98
+Fig. 11. With k = 10 and varying σatt, the CDF of APE performance in
+the proposed two-stage localization framework.
+200 epochs. I-ULocNet and C-ULocNet use an initial learning
+rate of 1×10−3 and a batch size of 32, with training durations
+of 1,000 and 300 epochs, respectively. To enhance training
+stability and mitigate overfitting, early stopping and learning
+rate decay strategies are applied across all NNs.
+B. Performance Evaluation of Cooperative Detection
+1) Detection Performance: In the cooperative detection
+stage, the MDP and FAP are used to assess the accuracy of
+UAV detection. As a benchmark for validating the effective-
+ness of the proposed framework, the performance requirements
+specified in 3GPP TR 22.870 [10] are considered, where both
+the MDP and FAP are required to be below 5%. In addi-
+tion, the supervised learning (SL)-based I-UDetNet with the
+thresholding-based decision rule proposed in [1] is included
+as a comparison scheme, denoted by SL with σd.
+Fig. 9 shows the performance of the proposed cooperative
+detection framework under different BS/CPE configurations.
+The proposed method consistently achieves competitive detec-
+tion performance, although its training process does not rely
+TABLE II
+THE RELIABILITY OF ATTENTION-GUIDED PAIR SELECTION STRATEGY
+WITH VARY σatt.
+σatt
+TP
+FP
+FN
+Range of L
+0.05
+26,334
+347
+21,703
+[1,10]
+0.1
+23,861
+116
+24,176
+[1,8]
+0.15
+21,189
+60
+26,848
+[1,6]
+0.2
+17,634
+57
+30,403
+[1,4]
+0.25
+14,278
+56
+33,759
+[1,3]
+0.3
+11,752
+56
+36,285
+[1,3]
+True pair label
+\
+\
+\
+[1,15]
+* TP=True positive, FP=False positive, FN=False negative.
+on explicit pair labels. This result indicates that the joint I-
+UDetNet and C-UDetNet scheme can adaptively identify the
+UAV-affected pairs, and effectively exploit the complementary
+information provided by multiple pairs to infer the presence
+of UAV. In particular, with M = 2 BSs and N = 16 CPEs,
+the proposed method achieves an MDP of 0.63% and an FAP
+of 0.00%. The 95%-confidence interval of MDP is [0.37%,
+1.01%], and that of FAP is [0.00%, 0.13%]. Both metrics
+satisfy 3GPP requirements, which supports the practical feasi-
+bility of the proposed method for cooperative UAV detection.
+Fig. 9 also illustrates the impact of the BSs/CPEs numbers
+on the detection performance. As the number of participating
+pairs increases, the MDP decreases, indicating that multi-view
+observations provide complementary sensing information and
+help mitigate sensing blind spots. Besides, Fig. 9(b) shows that
+reducing the number of participating pairs leads to a higher
+FAP. When more pairs are available, random non-UAV-related
+fluctuations can be effectively suppressed by the consistency
+across multiple views. In contrast, with only a few pairs,
+the detection result becomes much more sensitive to channel
+variations, therefore causing more overconfident false alarms.
+Overall, these results suggest that cooperative sensing per-
+formance depends not only on the number of observations and
+sensing coverage, but also on the reliability of the participating
+views. Additionally, for low-altitude UAV intrusion detection,
+minimizing MDP is of higher priority than lowering FAP, since
+missed detections are unacceptable.
+2) Attention Score Visualization: To verify the effectiveness
+of learned attention scores, Fig. 10 visualizes the attention
+distribution over all pairs. Specifically, two samples are shown
+as examples, where the color of each grid indicates the
+attention score, and the number inside each grid denotes the
+pair label y(m,n). It can be observed that grids with relatively
+high attention scores are generally associated with positive pair
+labels, suggesting that the proposed attention mechanism can
+adaptively focus on the BS-CPE pairs affected by the UAV.
+Moreover, the Pearson correlation coefficient between the true
+pair labels and the attention scores is 0.66, further confirming
+the moderately strong consistency between them.
+Nevertheless, not all positive BS-CPE pairs are assigned
+high attention scores. This phenomenon may be related to
+the varying degrees of CSI perturbation induced by the UAV
+across different pairs. To reduce unreliable decisions, the NN
+
+===== PAGE 11 =====
+11
+0.05
+0.1
+0.15
+0.2
+0.25
+0.3
+σatt
+1
+2
+3
+4
+5
+6
+7
+Positioning error (m)
+C-ULocNet (with perfect pair label): 2.44m
+3.37
+3.09
+3.17
+3.46
+3.78
+4.27
+3.38
+3.22
+3.30
+3.62
+3.89
+4.32
+6.11
+5.62
+5.58
+5.52
+6.98
+6.66
+Proposed
+Hard fusion
+Soft fusion
+(a) Mean APE.
+0.05
+0.1
+0.15
+0.2
+0.25
+0.3
+σatt
+0.0
+2.5
+5.0
+7.5
+10.0
+12.5
+15.0
+17.5
+Positioning error (m)
+C-ULocNet (with perfect pair label): 5.76m
+7.68
+6.50
+7.05
+7.91
+8.94
+9.89
+7.40
+6.93
+7.51
+8.56
+9.20
+10.45
+15.78
+13.28
+14.50
+14.40
+17.62
+15.98
+Proposed
+Hard fusion
+Soft fusion
+(b) 95%-confidence APE.
+Fig. 12. With varying σatt, APE comparison among proposed framework, hard fusion, and soft fusion.
+tends to assign higher attention weights to pairs with more
+pronounced UAV-induced channel variations. In addition, since
+the attention scores are normalized to sum to one, the attention
+allocated to each positive pair may decrease when the number
+of positive pairs becomes large.
+C. Performance Evaluation of Cooperative Localization
+The cooperative localization performance is evaluated
+against four schemes.
+• 3GPP requirements. A benchmark specified in 3GPP TS
+22.870 [10] is used to validate the framework. Concretely, at
+the 95% confidence level, the APE should be below 10 m.
+• C-ULocNet with perfect pair labels. This scheme assumes
+that ground-truth pair labels (y(m,n)) are utilized for pair
+selection, aiming to verify the performance of the proposed
+attention-guided selection method.
+• Hard fusion. A baseline in which the L positioning esti-
+mates obtained in individual localization stage are averaged
+as final result. This scheme serves to verify the effectiveness
+of the Transformer-based cooperative localization.
+• Soft fusion. A baseline in which L raw CSI are directly
+uploaded to CPU and fused using a Transformer. This
+scheme is used to demonstrate the effectiveness of the two-
+stage medium-fusion strategy.
+1) Reliability of Attention-Guided Pair Selection: We first
+evaluate the attention-guided pair selection under different
+σatt with k
+=
+10. Since the sum of attention scores
+equals to one, when k is sufficiently large, the number
+of selected pairs L is mainly determined by σatt. We set
+σatt ∈{0.05, 0.1, 0.15, 0.2, 0.25, 0.3}, and Tab. II compares
+the selected pair set Sloc with the ground-truth pair labels
+over the entire training dataset in terms of TP, FP, and FN. As
+σatt increases, fewer TP pairs are retained, while FP pairs are
+also reduced, revealing the tradeoff of the selection strategy.
+Retaining sufficient TP pairs is important for localization,
+whereas excessive FP pairs may introduce irrelevant or mis-
+leading information. Therefore, these results not only reflect
+the effectiveness of the attention-guided selection scheme, but
+0
+2
+4
+6
+8
+Positioning error (m)
+3.04 3.09 3.19 3.05 3.17 3.26
+6.56 6.50 6.72 6.55 6.66
+7.05
+Mean APE
+95% conﬁdence APE
+Dense 128
+Dense 64
+Dense 32
+Act 128
+Act 64
+Act 32
+Fig. 13.
+With varying CSI features, APE performance in cooperative
+localization under the configuration of k = 10, σatt = 0.1.
+also help explain the following localization performance under
+different threshold settings.
+2) Localization Performance: First, the proposed frame-
+work is compared with three benchmark schemes. Unless oth-
+erwise specified, the CSI features in the individual localization
+stage are extracted from the Dense layer with Nv = 64. Fig. 11
+presents the CDF of the APE under different σatt. Under all
+considered threshold settings, C-ULocNet satisfies the 3GPP
+requirement of 10 m APE at the 95% confidence level. Specifi-
+cally, when σatt = 0.1, the mean and 95%-confidence APE are
+3.09 m and 6.50 m, respectively. Moreover, the performance
+achieved by attention-guided pair selection remains close to
+that obtained with true pair labels, indicating that the attention
+scores learned in the detection stage are effective for select
+informative pairs. This also suggests the potential for a tight
+integration of UAV detection and localization tasks in practical
+deployment. Compared with hard and soft fusion schemes,
+the proposed two-stage medium fusion framework provides
+further performance gains, reducing the 95%-confidence APE
+by 0.43 m and 6.78 m, respectively.
+The influence of σatt on APE is further illustrated in Fig. 12
+and can be interpreted together with Tab. II. As σatt decreases,
+the mean and 95%-confidence APE in Fig. 12 generally
+
+===== PAGE 12 =====
+12
+−95
+−65
+−35
+−5
+25
+55
+85
+x (m)
+−95
+−65
+−35
+−5
+25
+55
+85
+y (m)
+BS 1
+CPE 9
+BS1, CPE9
+(a) A single pair.
+−95
+−65
+−35
+−5
+25
+55
+85
+x (m)
+−95
+−65
+−35
+−5
+25
+55
+85
+y (m)
+BS 1
+CPE 9
+BS 2
+BS1, CPE9
+BS2, CPE9
+(b) Two BSs with a single CPE.
+−95
+−65
+−35
+−5
+25
+55
+85
+x (m)
+−95
+−65
+−35
+−5
+25
+55
+85
+y (m)
+BS 1
+CPE 7
+CPE 9
+CPE 13
+CPE 15
+BS1, CPE7
+BS1, CPE9
+BS1, CPE13
+BS1, CPE15
+(c) A single BS with several CPEs.
+Fig. 14. Sensing region visualizations of the samples from the testing dataset. Multiple BSs provide complementary coverage that reduces blind areas, while
+multiple CPEs produce overlapping regions that enhance robustness.
+decrease, indicating improved localization performance. This
+trend can be attributed to the increased number of selected
+pairs L, which provides richer observations and enhances
+prediction accuracy. Consequently, NNs can exploit sufficient
+information for accurate UAV localization. Nevertheless, a
+slight performance degradation is observed when σatt = 0.05.
+A possible reason is that the number of falsely selected
+pairs increases under this setting, introducing misleading in-
+formation that degrades localization accuracy especially in
+cooperative stage.
+Finally, we investigate the effect of CSI feature dimensional-
+ity on cooperative localization. In the simulation, CSI features
+with length Nv ∈{128, 64, 32} are extracted from either a
+Dense layer or an activation layer in I-ULocNet. As shown in
+Fig. 13, all feature settings achieve competitive cooperative
+localization performance, with the mean APE around 3.04
+to 3.26 m and the 95%-confidence APE around 6.50 to
+7.05 m. These results suggest that the proposed I-ULocNet can
+effectively compress CSI into compact feature representations
+that preserve the key semantics required for localization while
+discarding redundant information. This indicates that compact
+CSI features are sufficient for cooperative localization, which
+helps reduce the transmission overhead between BSs and the
+CPU in practical deployment.
+In summary, the choice of σatt plays an important role in
+balancing localization accuracy and transmission overhead. A
+smaller threshold allows more pairs to participate in localiza-
+tion, thereby enhancing localization accuracy through richer
+CSI observations. However, it may also introduce unrelated
+pairs that hinder the localization process and consume ad-
+ditional transmission resources between BSs and the CPU.
+Therefore, the pair selection threshold σatt should be care-
+fully selected in practical deployment to achieve a desirable
+localization accuracy.
+D. Analysis and Discussions
+In this section, the sensing regions of BS-CPE pairs are
+visualized and used to analyze the cooperation benefits.
+• Sensing region of each pair. Fig. 14 illustrates the spatial
+distribution of UAV samples for which y(m,n) = 1 (i.e., CSI
+is perturbed by the UAV). For clarity, only some represen-
+tative pairs are shown. As depicted in Fig. 14(a), empirical
+observations indicate that the UAV-detectable region of a
+pair tends to lie outside the rectangular area whose diagonal
+is defined by the segment between the BS and the CPE.
+Moreover, the sample distribution within the sensing region
+is non-uniform, with fewer samples observed in areas farther
+away from the pair.
+This behavior arises because the UAV operates at an altitude
+between the BS and CPE, establishing a dominant two-
+segment reflection path: from the CPE to the UAV, then
+from the UAV to the BS. For both segments to meet the
+geometric constraints, the UAV’s horizontal position must
+lie outside the BS-CPE rectangular region. Furthermore,
+long-distance propagation incurs severe path loss, resulting
+in sparse samples in such regions. These analysis of sensing
+geometries provides valuable insights for optimizing node
+deployment in practice.
+• Advantages of cooperative sensing. The variability in
+sensing regions across BS-CPE pairs motivates us to adopt
+the cooperative frameworks to mitigate pair-specific blind
+zones. As illustrated in Fig. 14(b) and Fig. 14(c), multiple
+BSs provide complementary coverage that fills gaps left by
+individual pairs, whereas multiple CPEs often yield over-
+lapping sensing regions when their geometries relative to
+the BSs are similar. Consequently, cooperative schemes not
+only reduce sensing blind spots but also enhance robustness
+by incorporating multiple sensing nodes.
+VI. CONCLUSION
+In this paper, we propose AI-based, two-stage cooper-
+ative UAV sensing frameworks that leverage uplink CSI
+from multiple BS-CPE pairs for LAE supervision. For UAV
+detection tasks, CSI feature of each BS-CPE pair is first
+extracted and then cooperatively fused through an attention-
+based pooling mechanism to determine UAV presence. The
+
+===== PAGE 13 =====
+13
+learned attention scores further guide the selection of UAV-
+affected pairs with top-k and thresholding strategy, providing
+significant information for UAV localization. In localization
+tasks, a medium-fusion strategy is adopted, in which individual
+position estimates and CSI features are first generated and
+subsequently integrated to produce a more accurate UAV
+position estimate. Establishing with existing BSs and CPEs,
+the proposed framework achieves substantial cooperative gains
+and reduces sensing data transmission overhead through its
+two-stage scheme. Simulation results show that cooperative
+frameworks significantly improve sensing coverage and reli-
+ability, achieving only 0.63% missed detections and a posi-
+tioning error of 6.50 m at the 95% confidence level. These
+results suggest that the AI-based sensing framework, which
+incorporates FWA and BSs, provides a practical and accurate
+solution for LAE UAV monitoring.
+REFERENCES
+[1] J. Zhang, J. Guo, X. Li, C.-K. Wen, and S. Jin, “Deep learning-based
+cooperative UAV detection with CPE-assisted sensing,” in Proc. IEEE
+ICC Workshops, 2026.
+[2] W. Yuan et al., “From ground to sky: Architectures, applications,
+and challenges shaping low-altitude wireless networks,” arXiv preprint
+arXiv:2506.12308, 2025.
+[3] Z. Xu, T. Zheng, and L. Dai, “LLM-empowered near-field communica-
+tions for low-altitude economy,” IEEE Trans. Commun., vol. 73, no. 11,
+pp. 11 186–11 196, Nov. 2025.
+[4] G. Wu, F. Zhou, C. Meng, and X.-Y. Li, “Precise UAV MMW-vision
+positioning: A modal-oriented self-tuning fusion framework,” IEEE J.
+Sel. Areas Commun., vol. 42, no. 1, pp. 6–20, Jan. 2024.
+[5] ITU-R,
+“Future
+technology
+trends
+of
+terrestrial
+International
+Mobile Telecommunications systems towards 2030 and beyond,”
+2022. [Online]. Available: https://www.itu.int/dms pub/itu-r/opb/rep/
+R-REP-M.2516-2022-PDF-E.pdf
+[6] F. Liu et al., “Integrated sensing and communications: Toward dual-
+functional wireless networks for 6G and beyond,” IEEE J. Sel. Areas
+Commun., vol. 40, no. 6, pp. 1728–1767, Jun. 2022.
+[7] M.
+Elfiatoure,
+M.
+Mohammadi,
+H.
+Quoc
+Ngo,
+H.
+Shin,
+and
+M. Matthaiou, “Multiple-target detection in cell-free massive MIMO-
+assisted ISAC,” IEEE Trans. Wireless Commun., vol. 24, no. 5, pp.
+4283–4298, May 2025.
+[8] Z. Fu, J. Yuan, Y. Yang, and M. Guizani, “Beamwidth-adaptive ISAC
+beamforming: A joint optimization framework for detection and com-
+munication,” in Proc. IEEE Int. Conf. Commun. China (ICCC), Aug.
+2025, pp. 1–6.
+[9] D. Zhang et al., “Practical issues and challenges in CSI-based integrated
+sensing and communication,” in Proc. IEEE ICC Workshops, May 2022,
+pp. 836–841.
+[10] 3GPP, “TR 22.870: Study on 6G use cases and service requirements,”
+2026. [Online]. Available: https://www.3gpp.org/DynaReport/22870.htm
+[11] J. Wang, Q. Gao, M. Pan, and Y. Fang, “Device-free wireless sensing:
+Challenges, opportunities, and applications,” IEEE Netw., vol. 32, no. 2,
+pp. 132–137, Mar.-Apr. 2018.
+[12] H. Zhang, B. Di, K. Bian, Z. Han, H. V. Poor, and L. Song, “Toward
+ubiquitous sensing and localization with reconfigurable intelligent sur-
+faces,” Proc. IEEE, vol. 110, no. 9, pp. 1401–1422, Sep. 2022.
+[13] D. Konings, F. Alam, F. Noble, and E. M.-K. Lai, “Device-free lo-
+calization systems utilizing wireless RSSI: A comparative practical
+investigation,” IEEE Sensors J., vol. 19, no. 7, pp. 2747–2757, Apr.
+2019.
+[14] J. Shen, A. F. Molisch, and J. Salmi, “Accurate passive location
+estimation using TOA measurements,” IEEE Trans. Wireless Commun.,
+vol. 11, no. 6, pp. 2182–2192, Jun. 2012.
+[15] L. Zhang, Q. Gao, X. Ma, J. Wang, T. Yang, and H. Wang, “DeFi:
+Robust training-free device-free wireless localization with WiFi,” IEEE
+Trans. Veh. Technol., vol. 67, no. 9, pp. 8822–8831, Sep. 2018.
+[16] J. Guo, Y. Lv, C.-K. Wen, X. Li, and S. Jin, “Learning-based integrated
+CSI feedback and localization in massive MIMO,” IEEE Trans. Wireless
+Commun., vol. 23, no. 10, pp. 14 988–15 001, Oct. 2024.
+[17] Y. Ma, G. Zhou, and S. Wang, “WiFi sensing with channel state
+information: A survey,” ACM Comput. Surveys, vol. 52, no. 3, pp. 1–36,
+Jun. 2019.
+[18] G. Zhang, D. Zhang, Y. He, J. Chen, F. Zhou, and Y. Chen, “Multi-person
+passive WiFi indoor localization with intelligent reflecting surface,”
+IEEE Trans. Wireless Commun., vol. 22, no. 10, pp. 6534–6546, Oct.
+2023.
+[19] F. Meneghello, D. Garlisi, N. Dal Fabbro, I. Tinnirello, and M. Rossi,
+“SHARP: Environment and person independent activity recognition with
+commodity IEEE 802.11 access points,” IEEE Trans. Mobile Comput.,
+vol. 22, no. 10, pp. 6160–6175, Oct. 2023.
+[20] W. Wei, J. Yan, X. Wu, C. Wang, and G. Zhang, “CSI fingerprinting
+for device-free localization: Phase calibration and SSIM-based augmen-
+tation,” IEEE Wireless Commun. Lett., vol. 11, no. 6, pp. 1137–1141,
+Jun. 2022.
+[21] J. Guo, Y. Cui, C.-K. Wen, and S. Jin, “Prompt-enabled large AI models
+for CSI feedback,” IEEE J. Sel. Areas Commun., vol. 44, pp. 2654–2668,
+2026.
+[22] Q. Shi, L. Liu, S. Zhang, and S. Cui, “Device-free sensing in OFDM
+cellular network,” IEEE J. Sel. Areas Commun., vol. 40, no. 6, pp. 1838–
+1853, Jun. 2022.
+[23] X. Li, S. Li, D. Zhang, J. Xiong, Y. Wang, and H. Mei, “Dynamic-
+MUSIC: Accurate device-free indoor localization,” in Proc. ACM Int.
+Jt. Conf. Pervasive Ubiquitous Comput. (UbiComp), 2016, pp. 196–207.
+[24] X. Wang et al., “Cooperative integrated sensing and communication
+in 6G: From operators perspective,” IEEE Wireless Commun., vol. 32,
+no. 1, pp. 52–59, Feb. 2025.
+[25] J. Tang et al., “Cooperative ISAC-empowered low-altitude economy,”
+IEEE Trans. Wireless Commun., vol. 24, no. 5, pp. 3837–3853, May
+2025.
+[26] M. R. Figueroa, P. K. Bishoyi, and M. Petrova, “Optimal weight scheme
+for fusion-assisted cooperative multi-monostatic object localization in
+6G networks,” in Proc. IEEE Global Commun. Conf. (GLOBECOM),
+Dec. 2024, pp. 1389–1394.
+[27] Y. Wang et al., “ISAC enabled cooperative detection for cellular-
+connected UAV network,” IEEE Trans. Wireless Commun., vol. 24, no. 2,
+pp. 1541–1554, Feb. 2025.
+[28] Q. Wang, L. Liu, S. Zhang, B. Di, and F. C. M. Lau, “A heterogeneous
+6G networked sensing architecture with active and passive anchors,”
+IEEE Trans. Wireless Commun., vol. 23, no. 8, pp. 9502–9517, Aug.
+2024.
+[29] Z. Wang, V. W. Wong, and R. Schober, “Cooperative ISAC for joint
+localization and velocity estimation in cell-free MIMO systems,” IEEE
+J. Sel. Areas Commun., vol. 44, pp. 642–658, 2026.
+[30] L. Liu, S. Zhang, and S. Cui, “Leveraging a variety of anchors in cellular
+network for ubiquitous sensing,” IEEE Commun. Mag., vol. 62, no. 9,
+pp. 98–104, Sep. 2024.
+[31] Ericsson, “Fixed wireless access,” 2024. [Online]. Available: https:
+//www.ericsson.com/en/fixed-wireless-access/
+[32] 3GPP,
+“TS
+22.137:
+Service
+requirements
+for
+integrated
+sensing
+and communication,” 2024. [Online]. Available: https://www.3gpp.org/
+DynaReport/22137.htm
+[33] ——, “TR 22.837: Feasibility study on integrated sensing and
+communication,”
+2024.
+[Online].
+Available:
+https://www.3gpp.org/
+DynaReport/22837.htm
+[34] M. Ilse, J. Tomczak, and M. Welling, “Attention-based deep multiple
+instance learning,” in Proc. Int. Conf. Mach. Learn. (ICML), 2018, pp.
+2127–2136.
+[35] F. Yu and V. Koltun, “Multi-scale context aggregation by dilated
+convolutions,” arXiv preprint arXiv:1511.07122, 2015.
+[36] S. Woo, J. Park, J.-Y. Lee, and I. S. Kweon, “CBAM: Convolutional
+block attention module,” in Proc. Eur. Conf. Comput. Vis. (ECCV), 2018,
+pp. 3–19.
+[37] A. Vaswani et al., “Attention is all you need,” in Proc. Adv. Neural Inf.
+Process. Syst. (NeurIPS), vol. 30, 2017.
+[38] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for
+image recognition,” in Proc. IEEE Conf. Comput. Vis. Pattern Recognit.
+(CVPR), 2016, pp. 770–778.
+[39] J. Hoydis et al., “Sionna RT: Differentiable ray tracing for radio
+propagation modeling,” in Proc. IEEE GLOBECOM Workshops, Dec.
+2023, pp. 317–321.

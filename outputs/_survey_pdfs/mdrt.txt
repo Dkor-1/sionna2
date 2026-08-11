@@ -1,0 +1,600 @@
+
+===== PAGE 1 =====
+Micro-Doppler Signature Simulation of Multirotor
+UAVs Using Ray Tracing
+Changjun Li∗, Shiyi Mu∗, Jun Jiang∗, Lei Feng∗, Yuan Gao∗, and Shugong Xu†‡
+∗School of Communication and Information Engineering, Shanghai University, Shanghai, China
+†Xi’an Jiaotong-Liverpool University, Jiangsu, China
+Email: {1511495516, shiyimu, jun jiang, flyyds, gaoyuansie}@shu.edu.cn, shugong.xu@xjtlu.edu.cn
+‡Corresponding author
+Abstract—With the widespread application of multirotor un-
+manned aerial vehicles (UAVs) across various domains, incidents
+such as illegal intrusions have become increasingly frequent,
+highlighting the growing importance of UAVs detection. During
+flight, multirotor UAVs introduce micro-Doppler effects into radio
+frequency (RF) signals, which can be effectively used to distin-
+guish UAVs from other targets such as birds. Most existing studies
+on micro-Doppler effects rely on radar technology; however,
+these solutions often lack adaptability in complex environments
+and suffer from limited generalizability. Furthermore, radar-
+based data collection typically requires expensive equipment and
+significant manpower. As a key technology in 6G communi-
+cations, Integrated Sensing and Communication (ISAC) offers
+a promising new approach to addressing these challenges. In
+this study, the Sionna RT module is used to construct various
+simulation scenarios and obtain Channel State Information (CSI)
+data for analysis. The feasibility of using Sionna RT to simulate
+micro-Doppler effects induced by UAV rotor motion is validated.
+Further analysis of the micro-Doppler characteristics of multi-
+rotor UAVs reveals that, as the carrier frequency increases, the
+micro-Doppler spectrum becomes broader while the signal energy
+becomes more dispersed.
+Index Terms—Micro-Doppler, Ray Tracing, UAV, ISAC
+I. INTRODUCTION
+The rapid development of 5G mobile communication
+systems and artificial intelligence technologies has sparked
+widespread interest in the low-altitude economy [1]. Due
+to their ease of deployment, low maintenance costs, high
+maneuverability, and ability to hover, unmanned aerial vehicles
+(UAVs) have found extensive applications in various civilian
+domains [2]. However, the proliferation of multirotor UAVs in
+logistics, security, and surveillance has brought about increas-
+ing risks such as illegal intrusions and privacy violations [3].
+Addressing these threats requires effective UAVs detection
+technologies [4], making high-accuracy, low-cost UAVs de-
+tection a prominent research topic.
+Nevertheless, UAVs are often difficult to detect due to their
+typically low flight speeds, low altitudes, small radar cross-
+sections (RCS), and hovering capabilities [5]. Although high
+radar transmit power can enhance detectability, it remains
+challenging to distinguish UAVs from other flying objects such
+as birds in urban environments, as they exhibit similar speeds
+and RCS [6]. However, the propellers and structural vibrations
+of UAVs during flight induce Micro-Doppler effects in the RF
+signals, which manifest as unique high-frequency modulated
+sidebands around the Doppler frequency [7]. These signatures
+enable effective differentiation between UAVs and other flying
+objects such as birds [6].
+Currently, most Micro-Doppler-based UAVs detection stud-
+ies rely on radar systems. However, there is no widely accepted
+open-source benchmark dataset for Micro-Doppler analysis,
+and radar-based data collection remains expensive and labor-
+intensive [8]. To address the scarcity of training data, [9]
+proposed the concept of channel foundation models (CFMs),
+which leverage self-supervised learning to exploit large-scale
+unlabeled data, thereby reducing the reliance on manual anno-
+tations, in [10], a mathematical model was used to derive the
+Micro-Doppler signatures of UAVs propellers under a bistatic
+OFDM waveform scenario, and Micro-Doppler detection was
+carried out based on the acquired channel state information
+(CSI),
+[11] have proposed several solutions, including syn-
+thetic Micro-Doppler data generation via model-based simu-
+lations, the use of generative adversarial networks (GANs),
+unsupervised pretraining, and transfer learning. Nonetheless,
+these methods are not universally applicable to all target
+scenarios.
+Traditional theoretical models [12] and empirical mod-
+els [13] typically offer computationally efficient solutions with
+satisfactory accuracy. However, they are generally distance-
+dependent and only applicable to environments similar to their
+development conditions [14]. Ray tracing, as a more advanced
+propagation modeling approach, provides more generalized
+solutions than empirical models [15]. Sionna RT [16], as an
+emerging differentiable ray tracing framework, shows potential
+for investigating Micro-Doppler effects in integrated sensing
+and communication (ISAC) systems. To date, no research has
+systematically employed ray tracing to model and analyze
+signal spectrum variations caused by rotational motions of
+multirotor UAVs.
+The main contributions are as follows:
+1) We propose an ISAC data generation method tailored
+for ISAC scenarios, capable of simulating UAVs targets
+under diverse motion patterns and parameter settings.
+2) We propose an improved directional ray-tracing strategy
+based on Sionna RT, which replaces spherical sampling
+with conical sampling to enhance path density and
+distribution accuracy in critical regions.
+359
+2025 IEEE 25th International Conference on Communication Technology
+979-8-3315-8578-5/25/$31.00 ©2025 IEEE
+2025 IEEE 25th International Conference on Communication Technology (ICCT) | 979-8-3315-8578-5/25/$31.00 ©2025 IEEE | DOI: 10.1109/ICCT67417.2025.11374154
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:43:12 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 2 =====
+3) We validate the effectiveness of Sionna RT in simulating
+Micro-Doppler effects induced by UAVs rotor motion.
+The simulation results show that the extracted Micro-
+Doppler features are stable and highly correlated with
+UAVs physical parameters, such as attitude angles, pro-
+viding a basis for motion state inference.
+II. ANALYSIS OF MICRO-DOPPLER SIGNATURE OF UAVS
+x
+y
+z
+U
+V
+W
+x
+y
+z
+R0
+r0
+r0⃗
+ωz⃗
+ωz
+Tx/RxQ
+O
+P
+O′
+P ′⃗
+V⃗
+V
+Fig. 1. Geometry of transmitter/receiver and target with translation and
+rotation..
+As shown in Fig. 1, the transmitter and receiver remain
+stationary at origin Q of the transmitter coordinate system
+(U, V, W). The target is described in its local coordinate sys-
+tem (x, y, z), which undergoes translation and rotation relative
+to the transmitter frame. Assuming a rigid body target with
+translation velocity⃗V and angular velocity⃗ω = (ωx, ωy, ωz)T
+expressed in the local frame.
+The rigid body motion can be described through positional
+changes between two time-steps: For point P on the target
+with initial position⃗r0 in local coordinates at t = 0, its motion
+to P ′ at time t includes: (1)Global translation from O to O′
+with displacement⃗V t, (2)Local rotation about the origin in
+the body-fixed frame.
+With attitude change described by rotation matrix R(t), the
+point’s position in transmitter coordinates becomes:⃗
+r(t) =⃗R0 +⃗V t + R(t)⃗r0
+(1)
+where⃗R0 is the initial position of the local frame origin. The
+transmitter-to-point distance r(t) = ∥⃗r(t)∥
+For a transmitted sinusoidal wave with frequency f, the
+baseband return signal from point
+s(t) = 1
+2σ(x, y, z) · exp
+
+j 4πf
+c r(t)
+
+(2)
+where σ(x, y, z) is the reflectivity function and ϕ(t) = 4πf
+c r(t)
+represents signal phase. The Doppler shift is obtained by phase
+differentiation:
+fD = 1
+2π
+dϕ(t)
+dt
+= 2f
+c
+⃗
+V + d
+dt(R(t)⃗r0)
+T⃗
+n
+(3)
+with unit direction vector⃗n
+=⃗
+r(t)
+∥⃗r(t)∥Using the skew-
+symmetric matrix representation for rotation with angular
+velocity⃗ω:
+ˆω =
+
+
+0
+−ωz
+ωy
+ωz
+0
+−ωx
+−ωy
+ωx
+0
+
+
+(4)
+In the reference coordinate system, the angular velocity
+vector is described by⃗ω = (ωx, ωy, ωz)T . The object rotates
+around the unit vector⃗ω′ =⃗ω/ |⃗ω| with an angular speed
+of Ω= |⃗ω|. Assuming that the symbol duration is short and
+the angular velocity is relatively low, the rotational motion
+during each small time interval can be considered infinitesimal.
+Therefore, the rotation matrix can be approximated as:
+R(t) = exp(ˆωt)
+(5)
+where ˆω is the skew-symmetric matrix associated with⃗ω.
+Therefore, the Doppler frequency shift caused by the rotation
+becomes:
+d
+dt(R(t)⃗r0) = ˆωR(t)⃗r0 =⃗ω ×⃗r(t)
+(6)
+When the distance between the transmitter and receiver and
+the target
+⃗R0
+, is much greater than the target’s motion range⃗
+V t+R(t)⃗r0, the unit vector can be approximately considered
+as⃗n ≈⃗
+R0
+∥⃗R0∥
+Therefore, the final Doppler frequency shift can be approx-
+imately considered as:
+fD = 2f
+c
+h⃗
+V +⃗ω ×⃗r
+i
+radial
+(7)
+where⃗V corresponds to the Doppler frequency shift caused
+by translation,⃗ω×⃗r corresponds to the Micro-Doppler caused
+by rotation.
+III. RAY TRACING STRATEGY
+Fig. 2. Ray tracing strategy.
+Under the condition of a fixed number of rays, as the
+distance between the target and the transmitter gradually
+increases, the number of rays that collide with the target grad-
+ually decreases until it approaches zero. At this point, Doppler
+frequency shifts can no longer be detected. Meanwhile, when
+the number of rays colliding with the target is small, gaps ap-
+pear in the resulting time-frequency spectrogram. These gaps
+are not caused by insufficient Doppler frequency resolution
+but rather due to the scarcity of effective colliding rays
+360
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:43:12 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 3 =====
+Fig. 3. Experiment diagram
+To address this problem and achieve directional ray tracing
+toward the target, we propose a ray tracing strategy. This
+strategy first calculates the unit vector pointing from the
+transmitter to the target based on their known positions as
+the primary orientation. Then, a cone with this vector as its
+main axis is constructed, limiting the spatial range of ray
+emission in this direction, thereby improving the coverage
+efficiency of rays in the critical area, as illustrated in Fig 2.
+We utilize the built-in Fibonacci sampling function provided
+by the Sionna1 framework to generate N uniformly distributed
+sampling points on the unit square [0, 1]2, where the sampling
+point indices are i = 0, 1, . . . , N −1. The coordinates of the
+sampling points (xi, yi) are given by the following equation:
+xi =
+ i
+ϕ
+
+mod 1, yi =
+i
+N −1
+(8)
+Here, mod denotes taking the fractional part. The sample
+points are first projected onto the surface of a cone defined in
+the local coordinate system (with the local z-axis as the main
+axis):
+vlocal =
+
+
+sin θ cos ϕ
+sin θ sin ϕ
+cos θ
+
+
+where
+
+
+
+
+
+cos θ = 1 −Sx(1 −cos θ)
+sin θ =
+p
+1 −cos2 θ
+ϕ = 2πSy
+(9)
+The polar angle θ is determined by Sx, and the azimuthal
+angle ϕ is determined by Sy, uniformly distributed over
+[0, 2π]:
+When mapping the cone direction vector from the local
+coordinate system to the global coordinate system, we use the
+Frame utility function from the Mitsuba2 rendering framework
+to construct the rotation transformation R. The direction
+vector in the world coordinate system vworld is obtained
+through the following transformation:
+vworld = Rvlocal
+(10)
+This ensures that the direction vectors are uniformly dis-
+tributed within a cone centered around the unit direction,
+thereby achieving directional sampling of the target area. This
+strategy guarantees that most rays interact with the target
+region, effectively improving the observability of the target
+response in the simulation and providing high-quality data
+support for subsequent Micro-Doppler feature modeling.
+Table I. Parameters Setup
+RT Parameters
+Value
+Waveform
+OFDM-based
+Number of OFDM symbols
+2048
+OFDM symbol duration
+50µs
+Rotating propellers
+1
+Blades per propeller
+2
+Propeller radius
+10.55cm
+Propeller material
+Wood
+IV. EXPERIMENTS
+In this section, we validate the accuracy of the Sionna RT
+framework for simulating rotational micro-Doppler effects.
+The simulated results are compared with the analytical for-
+mulas derived in Section II using identical target models and
+micromotion parameters. The overall procedure, illustrated in
+Fig. 3, consists of three steps: physical modeling, parameter
+setup, and data processing. In the physical modeling, both
+built-in objects in Sionna and rotor models created in Blender
+are employed. Details of the parameter configuration are
+summarized in Table I.
+The transmitted signal, target, and received signal are
+considered. The transmitted signal can be a pulse wave-
+form, OFDM waveform, or other defined waveforms. The
+target consists of either Sionna’s built-in reflector model or
+a physical model of a propeller modeled using Blender. The
+model’s coordinates are located at its geometric center, and
+electromagnetic parameters such as conductivity are based
+on Sionna’s built-in settings. The initial positions, velocities,
+and trajectories of the transmitter, receiver, and target are
+predetermined as inputs for the simulation.
+In summary, the simulation process includes:
+(1) Select transmission parameters (carrier frequency, band-
+width, number of subcarriers, number of symbols);
+(2) Choose the physical model (Blender modeling or Sionna
+built-in models);
+(3) Select the target motion parameters (initial position,
+trajectory, velocity, and acceleration of the target);
+(4) Emit rays toward the target and calculate the channel
+frequency response;
+(5) Update the target’s velocity and position, then repeat
+step 4;
+(6) Convert the computed channel data from frequency
+domain to delay domain using Inverse Fast Fourier Transform
+1Sionna:https://nvlabs.github.io/sionna/
+2Mitsuba:https://www.mitsuba-renderer.org/
+361
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:43:12 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 4 =====
+(a)
+(b)
+(c)
+(d)
+(e)
+Fig. 4. Geometry and Micro-Doppler time-frequency spectrum of scatter points(a):number of scatter points = 1.(b):number of scatter points = 2.(c):number
+of scatter points = 3.(d):number of scatter points = 6.(e)scatter point = →∞(Blade model)
+(IFFT), and from time domain to Doppler domain using Fast
+Fourier Transform (FFT).
+A. Simulation Validation of Micro-Doppler Effects Using
+Sionna RT
+Rotation is a fundamental micromotion of the target. As-
+sume the system operates at 5,GHz, with initial Euler an-
+gles (ψ = 0◦, θ = 0◦, ϕ = 0◦), angular velocity vector⃗
+ω = [ωx, ωy, ωz]T, and velocity vector⃗V = [Vx, Vy, Vz]T. We
+adopt an approach inspired by the micromechanical method,
+using a strategy from local to global. First, we simulate
+the case of a single scattering center. Then, the number of
+scattering centers is gradually increased—from two points,
+three points, six points—to finally importing a realistic blade
+model for simulation.
+In the case of a single scatterer, the simulated Micro-
+Doppler modulation is shown in Fig. 4a. The modulation
+from a single scatterer center appears as a sinusoidal curve
+symmetric about zero frequency, which agrees with [7]. Ac-
+cording to Eq. (7), the calculated maximum Micro-Doppler
+frequency shift is 1562 Hz. The rotation period derived from
+the angular velocity, T = 2π
+ω = 0.04 s, matches perfectly with
+the simulation results.
+For scatter points equal to 2, 3, and 6, when the angular
+velocity⃗ω remains constant, if the rotation radius r decreases,
+the linear velocity decreases accordingly, which leads to a
+reduction in the amplitude of the sinusoidal Micro-Doppler
+modulation. When the number of scattering centers increases
+and the rotation radius of the additional scattering centers
+decreases, the time-frequency diagram gradually fills the spec-
+trum within the envelope of the maximum frequency shift
+sinusoid. The simulation results are shown in Fig. 4b, 4c, and
+4d, which are consistent with the theoretical results.
+When the rotating target is a physical model of a propeller,
+considering that the minimum spatial resolution in Sionna
+is 0.01 m, the number of scattering centers can be regarded
+as approaching infinity. According to the previous analysis,
+the Micro-Doppler modulation should then appear as two
+symmetric filled sinusoidal envelopes around zero frequency.
+The simulation results are shown in Fig. 4e, which conform
+to the theoretical expectation.
+It is worth noting that when the range resolution is smaller
+than the physical size of the target, which means in the
+high range resolution (HRR) scenario, the target is no longer
+regarded as a point scatterer, but rather forms an extended
+response along the range dimension. This differs from the
+classical model in [17], which assumes the target response is
+contained within a single range cell, producing only one clear
+sinusoidal curve. In the HRR case, the target can be resolved
+into multiple independent scatterers, and the micro-Doppler
+spectrum appears as a filled sinusoidal envelope.
+B. Impact of Carrier Frequency and Azimuth Angle on Micro-
+Doppler Features
+In radar systems, the Micro-Doppler signal generated by
+rotor blades is influenced by multiple parameters, including
+blade length L, rotational angular velocity ω, carrier frequency
+f and azimuth angle. We focus on analyzing the impact of
+azimuth angle and carrier frequency f on the Micro-Doppler
+signatures generated by the rotor.
+To analyze the impact of the azimuth angle on the Micro-
+Doppler effect, the results shown in Fig. 5 assumes a rotor
+with two blades rotating at a constant angular velocity, which
+indicates that when only the yaw angle changes, the maximum
+micro-Doppler frequency shift stays constant, with only the
+initial phase varying. However, when the pitch or roll angle
+changes, the maximum micro-Doppler frequency shift also
+changes.
+Furthermore, Fig. 6 investigates the impact of the carrier
+frequency. Under the conditions of a blade length of 1.055
+meters, constant rotational speed, and fixed azimuth angle,
+the range of Micro-Doppler frequency shifts increases linearly
+362
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:43:12 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 5 =====
+(a)
+(b)
+(c)
+(d)
+(e)
+(f)
+Fig. 5. Micro-Doppler signature of the different positions(Euler Angles).(a)Transmitter/Reciver at (10,0,-10).(b)Transmitter/Reciver at
+(5,0,-5).(c)Transmitter/Reciver at (7.071,7.071,-10).(d)Transmitter/Reciver at (5,0,-10).(e)Transmitter/Reciver at (10,0,-5).(f)Transmitter/Reciver at
+(7.071,7.071,-5).
+(a)
+(b)
+(c)
+(d)
+(e)
+(f)
+Fig. 6. Micro-Doppler signature of the different carrier frequency.(a)2.4GHz.(b)5GHz.(c)6GHz.(d)24GHz.(e)60GHz.(f)77GHz.
+363
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:43:12 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 6 =====
+with the carrier frequency, as indicated by Eq. (7). However,
+simulation experiments also show that the echo energy of high-
+frequency signals significantly decreases. This reduction may
+be caused by atmospheric absorption. According to the free-
+space path loss formula, higher frequencies suffer greater path
+loss, resulting in lower received energy. Therefore, in practical
+system design, a trade-off must be made when selecting the
+carrier frequency to balance the amplitude of Micro-Doppler
+frequency shifts and the echo energy.
+V. CONCLUSION AND FUTURE WORK
+This paper proposes a directional modeling strategy based
+on ray tracing, designed to achieve targeted ray propagation
+toward specific objects. By incorporating this strategy into
+simulation experiments, we demonstrate the feasibility and
+effectiveness of Sionna RT in capturing the Micro-Doppler
+effects caused by a single UAV’s rotor motions. Simulation
+results show that, on one hand, as the number of scattering
+points approaches infinity, the periodic rotation of the rotor
+induces Micro-Doppler features that manifest as filled sinu-
+soidal envelopes. On the other hand, the periodic motion of
+the rotor introduces stable Micro-Doppler signatures into the
+received signals. These signatures can not only be effectively
+extracted, but also exhibit strong correlations with various
+physical parameters of the UAV platform, such as attitude
+angles. Furthermore, as the carrier frequency increases, the
+Micro-Doppler signatures undergo greater spectral broadening,
+while the associated signal energy decreases.
+In recent years, to address severe Doppler shifts in high-
+mobility communications, researchers have proposed novel
+techniques such as OTFS modulation, which alleviates the
+Doppler sensitivity of OFDM by mapping information into
+the delay–Doppler domain [18]. Meanwhile, deep learning-
+based joint channel estimation and data detection has demon-
+strated promising robustness, providing new perspectives for
+signal processing in dynamic channels. Studies on Integrated
+Localization and Communication (ILAC) reveal the funda-
+mental trade-off between communication and localization per-
+formance [19] [20]. Their combination can bridge Sionna
+RT-based signal simulation with system-level optimization,
+promoting the deployment of ISAC in 6G low-altitude econ-
+omy scenarios. In addition, the issue of channel aging in
+high-mobility UAV scenarios can be mitigated by lightweight
+Transformer-based channel prediction methods [21], while
+CSI extrapolation techniques, such as CANet, can reduce
+acquisition overhead and enhance detection robustness [22].
+In summary, future research may advance UAV micro-
+Doppler detection from physical-layer modeling to system-
+level optimization through channel prediction , and high-
+resolution CSI acquisition , laying a solid foundation for
+practical 6G ISAC applications.
+REFERENCES
+[1] H. Shakhatreh, A. H. Sawalmeh, A. Al-Fuqaha, Z. Dou, E. Almaita,
+I. Khalil, N. S. Othman, A. Khreishah, and M. Guizani, “Unmanned
+aerial vehicles (uavs): A survey on civil applications and key research
+challenges,” IEEE Access, vol. 7, pp. 48572–48634, 2019.
+[2] S. Hayat, E. Yanmaz, and R. Muzaffar, “Survey on unmanned aerial
+vehicle networks for civil applications: A communications viewpoint,”
+IEEE Communications Surveys & Tutorials, vol. 18, no. 4, pp. 2624–
+2661, 2016.
+[3] S. Park, H. T. Kim, S. Lee, H. Joo, and H. Kim, “Survey on anti-drone
+systems: Components, designs, and challenges,” IEEE Access, vol. 9,
+pp. 42635–42659, 2021.
+[4] Y. Mekdad, A. Aris, L. Babun, A. E. Fergougui, M. Conti, R. Lazzeretti,
+and A. S. Uluagac, “A survey on security and privacy issues of uavs,”
+Computer Networks, vol. 224, p. 109626, 2023.
+[5] R. Guay, G. Drolet, and J. R. Bray, “Measurement and modelling of the
+dynamic radar cross-section of an unmanned aerial vehicle,” IET Radar,
+Sonar & Navigation, vol. 11, no. 7, pp. 1155–1160, 2017.
+[6] M. Ritchie, F. Fioranelli, H. Griffiths, and B. Torvik, “Monostatic and
+bistatic radar measurements of birds and micro-drone,” in 2016 IEEE
+Radar Conference (RadarConf), pp. 1–5, 2016.
+[7] V. Chen, F. Li, S.-S. Ho, and H. Wechsler, “Micro-doppler effect in
+radar: phenomenon, model, and simulation study,” IEEE Transactions
+on Aerospace and Electronic Systems, vol. 42, no. 1, pp. 2–21, 2006.
+[8] A. Hanif, M. Muaz, A. Hasan, and M. Adeel, “Micro-doppler based
+target recognition with radars: A review,” IEEE Sensors Journal, vol. 22,
+no. 4, pp. 2948–2961, 2022.
+[9] J. Jiang, Y. Gao, X. Wu, and S. Xu, “Towards channel foundation models
+(cfms): Motivations, methodologies and opportunities,” arXiv preprint
+arXiv:2507.13637, 2025.
+[10] H. C. A. Costa, S. J. Myint, C. Andrich, S. W. Giehl, C. Schneider, and
+R. S. Thom¨a, “Modelling micro-doppler signature of drone propellers
+in distributed isac,” in 2024 IEEE Radar Conference (RadarConf24),
+pp. 1–6, 2024.
+[11] F. Fioranelli, H. Griffiths, M. Ritchie, and A. Balleri, eds., Micro-
+Doppler Radar and its Applications. The Institute of Engineering and
+Technology (IET), 2020.
+[12] H. T. Friis, “A note on a simple transmission formula,” Proceedings of
+the IRE, vol. 34, no. 5, pp. 254–256, 1946.
+[13] European Cooperation in Science and Technology (COST), “Digital
+mobile radio towards future generation systems: Final report.” https:
+//www.winlab.rutgers.edu/∼andrej/research/docs/cost231/ch4.pdf.
+Ac-
+cessed: 2025-06-02.
+[14] M. Iskander and Z. Yun, “Propagation prediction models for wireless
+communication systems,” IEEE Transactions on Microwave Theory and
+Techniques, vol. 50, no. 3, pp. 662–673, 2002.
+[15] Z. Yun and M. F. Iskander, “Ray tracing for radio propagation modeling:
+Principles and applications,” IEEE Access, vol. 3, pp. 1089–1100, 2015.
+[16] J. Hoydis, F. A. Aoudia, S. Cammerer, M. Nimier-David, N. Binder,
+G. Marcus, and A. Keller, “Sionna rt: Differentiable ray tracing for
+radio propagation modeling,” in 2023 IEEE Globecom Workshops (GC
+Wkshps), pp. 317–321, 2023.
+[17] D. Jianjiang, Y. zhiqiang, Y. Dazhi, and R. Chongji, “Modeling and
+validation of modulated characteristics for aircraft rotating structure in
+the air surveillance radars,” in IEEE International Radar Conference,
+2005., pp. 641–646, 2005.
+[18] Y. Gao, X. Xu, Y. Jin, W. Yuan, J. Zhang, and S. Xu, “Joint channel
+estimation and data detection for otfs systems: A lightweight deep
+learning framework with a novel data augmentation method,” IEEE
+Internet of Things Journal, 2025.
+[19] Y. Gao, H. Du, Z. Jiang, H. Hu, J. Zhang, S. Zhang, J. Du, F. R.
+Yu, and S. Xu, “A stochastic geometry-based analytical framework for
+integrated localization and communication systems,” IEEE Internet of
+Things Journal, 2025.
+[20] Y. Gao, H. Hu, J. Zhang, Y. Jin, S. Xu, and X. Chu, “On the performance
+of an integrated communication and localization system: an analytical
+framework,” IEEE Transactions on Vehicular Technology, vol. 73, no. 7,
+pp. 10845–10849, 2024.
+[21] Y. Jin, Y. Wu, Y. Gao, S. Zhang, S. Xu, and C.-X. Wang, “Linformer: A
+linear-based lightweight transformer architecture for time-aware mimo
+channel prediction,” IEEE Transactions on Wireless Communications,
+2025.
+[22] Y. Jin, R. Yu, Y. Gao, S. Liu, X. Chu, K.-K. Wong, and C.-B. Chae,
+“Context-aware deep learning for robust channel extrapolation in fluid
+antenna systems,” arXiv preprint arXiv:2507.04435, 2025.
+364
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:43:12 UTC from IEEE Xplore.  Restrictions apply. 

@@ -1,0 +1,2170 @@
+
+===== PAGE 1 =====
+A Two-Stage ISAC Framework for Low-Altitude
+Economy Based on 5G NR Signals
+Haisu Wu, Hong Ren, Member, IEEE, Cunhua Pan, Senior Member, IEEE, Boshi Wang, Jun Tang,
+Haoyang Weng, Feng Shu, Member, IEEE, Jiangzhou Wang, Fellow, IEEE
+Abstract—The evolution of next-generation wireless networks
+has spurred the vigorous development of the low-altitude econ-
+omy (LAE). To support this emerging field while remaining
+compatible with existing network architectures, integrated sens-
+ing and communication (ISAC) based on 5G New Radio (NR)
+signals is regarded as a promising solution. However, merely
+leveraging standard 5G NR signals, such as the Synchronization
+Signal Block (SSB), presents fundamental limitations in sensing
+resolution. To address the issue, this paper proposes a two-stage
+coarse-to-fine sensing framework that utilizes standard 5G NR
+initial access signals augmented by a custom-designed sparse
+pilot structure (SPS) for high-precision unmanned aerial vehicles
+(UAV) sensing. In Stage I, we first fuse information from the
+SSB, Type#0-PDCCH, and system information block 1 (SIB1) to
+ensure the initial target detection. In Stage II, a refined estimation
+algorithm is introduced to overcome the resolution limitations of
+these signals. Inspired by the sparse array theory, this stage
+employs a novel SPS, which is inserted into resource blocks
+(RBs) within the CORSET#0 bandwidth. To accurately extract
+the off-grid range and velocity parameters from these sparse
+pilots, we develop a corresponding high-resolution algorithm
+based on the weighted unwrapped phase (WUP) technique and
+the RELAX-based iterative method. Finally, the density-based
+spatial clustering of applications with noise (DBSCAN) algorithm
+is adopted to prune the redundant detections arising from
+beam overlap. Comprehensive simulation results demonstrate the
+superior estimation accuracy and computational efficiency of the
+proposed framework in comparison to other techniques.
+Index Terms—Integrated sensing and communication (ISAC),
+5G New Radio (5G NR), multiple-input multiple-output orthogo-
+nal frequency division multiplexing (MIMO-OFDM), low-altitude
+economy (LAE)
+I. INTRODUCTION
+T
+HE evolution of future sixth-generation (6G) wireless net-
+works is driven by the demands of emerging applications,
+with the low-altitude economy (LAE) at the forefront [1]. As
+a new economic form, the LAE utilizes low-altitude airspace
+to conduct diverse flying activities, which promises to deliver
+revolutionary productivity advancements in sectors such as
+The work of Cunhua Pan was supported in part by the Jiangsu Outstanding
+Youth Fund BK20240071 and National Natural Science Foundation of China
+under Grant 62350710796. This work of Hong Ren was supported in part by
+National Natural Science Foundation of China under Grant No. 62471138.
+H. Wu, H. Ren, C. Pan, B. Wang, J. Tang, H. Weng and J. Wang are with
+National Mobile Communications Research Laboratory, Southeast Univer-
+sity, Nanjing, China. (e-mail: wuhaisu, hren, cpan, boshi_wang, 220241016,
+220241245, j.z.wang@seu.edu.cn).
+Feng
+Shu
+are
+with
+the
+School
+of
+Information
+and
+Commu-
+nication
+Engineering,
+Hainan
+University,
+Haikou
+570228,
+China
+(email:shufeng@hainanu.edu.cn).
+Corresponding authors: Hong Ren and Cunhua Pan.
+logistics delivery, environmental monitoring, and intelligent
+inspection [2], [3]. As this large-scale economic activity is
+expected to involve millions of aircraft [4], the supporting
+network needs to provide a dual capability: massive, real-
+time data exchange for communication and continuous, high-
+precision sensing for safe and uniform regulation [5], [6].
+To address these converging requirements, integrated sens-
+ing and communication (ISAC) has emerged as a critical
+enabling technology [7], [8]. By multiplexing 5G-Advanced
+(5G-A) or future 6G communication signals, ISAC can simul-
+taneously support high-speed data transmission for unmanned
+aerial vehicles (UAVs) and provide effective flight supervision.
+Specifically, the seamless coverage provided by the commu-
+nication network is leveraged for the effective perception,
+localization, and surveillance of UAVs. This capability, in
+turn, assists in UAV navigation, path planning, and airspace
+management, which is essential for the prosperity of the LAE
+[1], [4].
+Building on this motivation, considerable research has fo-
+cused on the sensing of UAVs utilizing terrestrial base stations
+(BSs) to support the LAE. In monostatic scenarios, for exam-
+ple, the authors of [9] proposed a practical ISAC framework
+for cluttered environments and addressed the power allocation
+between communication and sensing beams. In addition, the
+authors of [10] introduced an efficient algorithm for jointly an-
+gle, velocity, and range estimation in the OFDM-based ISAC
+system, which includes a pruning algorithm for redundant
+target points. In multistatic scenarios, [11] investigated the
+UAV parameter estimation by employing the tensor decom-
+position technique and proposed a minimum spanning tree
+(MST)-based multi-BS data association scheme. Moreover, an
+extended Kalman filter (EKF) framework was introduced in [4]
+to predict the UAV’s movement and developed a corresponding
+handover strategy.
+Notably, the aforementioned research often operates without
+considering the practical constraints of standardized protocols
+like 5G NR [12]–[15] or Wi-Fi [16], focusing instead on the-
+oretical aspects such as beamforming or parameter extraction.
+To foster practical deployment, both academia and industry
+have begun to focus on implementing sensing within these
+protocol frameworks, and the investigations generally fall into
+two categories: data-based and pilot-based sensing.
+In monostatic data-based sensing scenarios, BS’s
+priori
+knowledge of transmitted data can be used to estimate UAV
+parameter estimation via techniques such as matched filtering
+arXiv:2511.14529v1  [eess.SP]  18 Nov 2025
+
+===== PAGE 2 =====
+and data cancellation, while beamforming can steer energy
+toward potential targets [17]. This principle can be applied
+within the 5G NR standard, where several downlink channels
+serve as potential signals of opportunity for wireless sensing.
+Early studies have explored the feasibility of using data-centric
+channels, such as the Physical Downlink Control Channel
+(PDCCH), the Physical Downlink Shared Channel (PDSCH),
+and the associated Demodulation Reference Signals (DMRS)
+[17]. For instance, the theoretical ambiguity functions of
+PDCCH and PDSCH were analyzed in [58]. However, such
+approaches are fundamentally dependent on active downlink
+data transmissions, rendering the sensing capability oppor-
+tunistic rather than persistent. In addition, leveraging user-
+centric data channels like PDSCH for sensing poses significant
+privacy risks, as sensitive user information could be exposed
+to malicious eavesdroppers.
+To overcome the reliance on user data and the associated
+privacy concerns, research has shifted towards dedicated ref-
+erence signals that are independent of communication traffic.
+The Positioning Reference Signal (PRS) and the Channel
+State Information Reference Signal (CSI-RS) are potential
+candidates, as they are specifically designed for positioning
+and channel estimation. The work in [18] investigated the
+application of the PRS for radar sensing by proposing a multi-
+frame estimation scheme and deriving its Cramér-Rao lower
+bounds. In addition, [19] introduced a novel irregular resource
+pattern to suppress the inherent range-velocity ambiguities of
+the comb-like PRS structure. Despite the advantages, the ded-
+icated signals like PRS and CSI-RS are typically transmitted
+only upon specific network configuration and are not always-
+on in most operational networks, which limits their ubiquitous
+applicability for persistent sensing.
+In contrast, the Synchronization Signal and PBCH Block
+(SSB) is a fundamental component of the 5G NR frame
+structure that is broadcast periodically, which enables it an
+ideal and highly reliable signal of opportunity. Consequently,
+SSB-based sensing has been extensively investigated [20]–
+[25]. For instance, the authors of [20] leveraged the beam-
+sweeping nature of the SSB, utilizing RSRP measurements
+at the user equipment (UE) to achieve spatial environment
+mapping. Similarly, [21] exploited the periodicity of the SSB
+for passive coherent location (PCL). However, the study also
+highlighted that the maximum unambiguous velocity of PCL is
+severely constrained by the SSB’s long transmission periodic-
+ity (e.g., 10 ms minimum). While the study in [22] addressed
+UAV detection using the SSB, its performance was limited:
+angular resolution is constrained by the wide beamwidth
+of the SSB, and velocity estimation accuracy is limited by
+the short duration of the per-beam OFDM transmission. To
+further address these limitations, the work in [26] proposed
+to combine the SSB with downlink control information (DCI)
+and system information block 1 (SIB1) signals to mitigate the
+radar ambiguity problem. Notably, while the 5G NR standard
+allocates a bandwidth part of N DL,BWP
+RB
+resource blocks (RBs)
+for PDSCH carrying SIB1, the PDSCH itself often occupies
+only a fraction of this potential bandwidth [13]–[15], [26].
+Since the PDSCH frequency allocation is mandated to use
+Downlink Resource Allocation Type 1 (i.e., a contiguous set of
+RBs), the requirement creates an opportunity to insert auxiliary
+pilots into the unused portions of the N DL,BWP
+RB
+RBs [15]. These
+pilots can, in turn, further enhance sensing performance and
+assist the DMRS within the PDSCH for more effective channel
+estimation.1
+The design of the aforementioned auxiliary pilots falls
+within the research domain of pilot placement in OFDM
+systems, which plays a pivotal role in optimizing ISAC
+performance. While initial research centered on optimizing
+uniformly spaced patterns [27], the equidistant approach is
+known to limit the maximum unambiguous velocity and
+range. In order to overcome the ambiguity introduced by such
+sparsity, subsequent works have introduced more sophisticated
+designs. For instance, [28] introduced a novel sensing pattern
+composed of multiple comb-type RS structures, where the
+comb sizes of the constituent structures are co-prime. Building
+upon a similar principle, [29] utilized co-prime intervals
+between the RS to eliminate ambiguity. Furthermore, [30]
+proposed a set of insertion criteria for OFDM RS patterns
+aiming at maximizing the extended ambiguity property (EAP)
+and applied this principle to super-resolution algorithms like
+2D-MUSIC [31] and 2D-IAA [32], [33]. However, these
+works primarily focused on maximizing the interference-free
+detection region; consequently, the practical range and velocity
+estimation performance was not directly evaluated.
+Distinct from the aforementioned pattern design methodolo-
+gies, a novel approach inspired by array design theory refor-
+mulates the RS placement problem as a 2D-array design task
+[34]. Specifically, the proposed sparse pilot scheme achieves
+the same unambiguous range and peak sidelobe level (PSL)
+as uniform pilot placement, but with a substantial reduction
+in required resource elements (REs). Nevertheless, as the
+subsequent parameter estimation relies on a conventional 2D-
+FFT algorithm to generate the range-Doppler maps (RDMs),
+the estimation accuracy remains limited.
+Motivated by the above findings, this paper proposes a novel
+two-stage coarse-to-fine estimation framework to leverage 5G
+NR broadcast signals and newly designed sparse pilots for
+high-precision UAV sensing. Specifically, this framework is
+designed to operate within the constraints of the 5G NR
+protocol while overcoming the inherent limitations of standard
+signals. The main contributions of this paper are summarized
+as follows:
+• First, we establish a coarse estimation stage (Stage I)
+that fuses information from multiple 5G NR initial access
+signals. By combining the RDMs derived from the SSB
+and SIB1 with the high-resolution range profile from the
+Type#0-PDCCH, this stage provides robust initial target
+detection by utilizing the area-based combination CFAR
+(ABC-CFAR) algorithm.
+1The use of auxiliary pilots for enhanced channel estimation is beyond
+the scope of this paper, which primarily focuses on their benefit to sensing
+performance.
+
+===== PAGE 3 =====
+• Second, to overcome the resolution limitations of stan-
+dard signals, we design a novel sparse pilot structure
+(SPS) inspired by sparse array theory. The SPS is strate-
+gically inserted into the #CORSET0 bandwidth. We then
+develop a corresponding high-resolution refinement algo-
+rithm (Stage II), which employs the weighted unwrapped
+phase (WUP) estimator and a RELAX-based iterative
+method to accurately extract off-grid range and velocity
+parameters from these sparse pilots.
+• Furthermore, we introduce the density-based spatial clus-
+tering of applications with noise (DBSCAN) based al-
+gorithm that operates in the joint range-velocity-angle
+domain. This method effectively identifies and prunes
+redundant detections of a single target that arise from
+the intentional overlap of adjacent beams during the
+SSB/SIB1 sweep.
+• Finally, comprehensive simulation results are presented
+to validate the effectiveness of the proposed frame-
+work. The results demonstrate that our two-stage ap-
+proach achieves superior estimation accuracy. Notably,
+the proposed WUP-based refinement algorithm signif-
+icantly outperforms conventional benchmark methods,
+including 2D-FFT, 2D-MUSIC, and CS-AN, particularly
+under the challenging conditions imposed by the sparse
+pilot configuration.
+Notations: Lowercase letters, boldface lowercase letters,
+boldface uppercase letters, and calligraphy letters denote the
+scalars, vectors, matrices, and sets, respectively, i.e., a, a, A,
+and A. The operators (·)T and (·)H represent the transpose and
+Hermitian transpose, respectively. The operator ⊙denotes the
+Hadamard (element-wise) product. R and C denote the sets of
+real and complex numbers. [A]i,l denotes the element in the i-
+th row and l-th column of matrix A. |·| represents the absolute
+value of a scalar or the cardinality of a set. ∠(·) denotes the
+angle of a complex number. Diag(·) returns a diagonal matrix.
+vecl(·) stacks the strict lower triangular elements of a matrix
+into a vector. round(·) rounds to the nearest integer. ∪denotes
+the set union operation.
+II. SYSTEM MODEL
+In this paper, we consider a mono-static MIMO-OFDM
+ISAC system designed for simultaneous downlink communi-
+cation and radar parameter estimation. The BS is equipped
+with separate uniform linear arrays (ULAs), consisting of Nt
+transmit and Nr receive antennas, respectively.2 As illustrated
+in Fig. 1, the BS first transmits SSB beams to scan the
+coverage area, immediately followed by Type#0-PDCCH and
+SIB1 signals with the same beam pattern. According to the
+prior studies [26], [35], these broadcast signals are utilized
+for a dual role. On one hand, they deliver the information
+necessary for uplink RACH procedures. On the flip side, they
+are adopted as sensing signals.
+2We assume that the BS operates under an advanced full-duplex regime,
+where self-interference (SI) at the receive antennas is effectively canceled.
+A. Transmitted Signal Model
+Let l ∈{1, · · · , Ns} and i ∈{1, · · · , Nc} denote the
+indices for the OFDM symbols and subcarriers, respectively.
+Based on the frequency-flat assumption, the signal vector
+transmitted at the l-th symbol on the i-th subcarrier is modeled
+as 3
+[X]i,l = w[l][S]i,l,
+(1)
+where S ∈CNc×Ns denotes the transmitted matrix, and
+w[l] ∈CNt denotes the precoding vector for the l-th symbol.
+Specifically, the vector w[l] is selected from a predefined code-
+book W to steer the transmission towards a specific direction.
+This codebook, W, is constructed from an oversampled dis-
+crete fourier transform (DFT) grid to achieve the fine-grained
+angular coverage. Specifically, given an integer oversampling
+factor O, the codebook is defined as W = {wq}Q−1
+q=0 , where
+Q = O · Nt and the q-th beamforming vector is given by
+wq =
+1
+√Nt
+h
+1, ej 2πq
+Q , ej 2π2q
+Q , . . . , ej 2π(Nt−1)q
+Q
+iT
+.
+(2)
+Then, after the inverse fast fourier transform (IFFT) operation
+at the transmitter, the baseband time-domain OFDM signal can
+be expressed as
+x(t) =
+Ns−1
+X
+l=0
+Nc−1
+X
+i=0
+[X]i,l ej2πi∆ft r(t −lT) ∈CNt,
+(3)
+where ∆f is the subcarrier spacing, r(t) denotes the rectangu-
+lar pulse, and T = Tc + Tcp is the total duration of an OFDM
+symbol. Here, Tc denotes the OFDM symbol duration and Tcp
+denotes the cyclic prefix (CP) duration.
+B. Sensing Signal Model
+Let ˜y(t) ∈CNr×1 denote the received echoes from Ntarget
+unknown targets. The received signal model can be written as
+˜y(t) =
+Ntarget
+X
+n=1
+βnej2πfD,ntbr(θn)aH
+t (θn)x(t −τn) + z(t), (4)
+where the components are defined as follows:
+• ˜y(t) = [˜y(1, t), . . . , ˜y(Nr, t)]T ∈CNr is the received
+signal vector at the Nr receive antennas.
+• τn = 2Rn/c is the round-trip propagation delay for the
+n-th target.
+• x(t) ∈CNt×1 is the vector of transmitted baseband
+signals from the Nt transmit antennas.
+• at(θn) ∈CNt×1 is the transmit array steering vec-
+tor
+towards
+the
+direction
+θn,
+with
+[ar(θn)]m
+=
+e−j2π(m−1)dt sin(θn)/λc.
+• br(θn)
+∈
+CNr×1
+is
+the
+receive
+array
+steering
+vector
+for
+the
+direction
+θn,
+with
+[br(θn)]m
+=
+e−j2π(m−1)dr sin(θn)/λc.
+• z(t) = [z(1, t), . . . , z(Nr, t)]T ∈CNr is the additive
+white Gaussian noise (AWGN) vector.
+3Following [36], the signal bandwidth in this work is assumed to be
+contained within a single subband. Consequently, a common precoding vector
+is applied across all subcarriers for a given OFDM symbol.
+
+===== PAGE 4 =====
+PBCH
+PSS
+SSS
+PBCH
+PSS
+SSS
+PBCH
+PSS
+SSS
+SSB-1
+SSB-2
+SSB-Lmax
+OFDM Frame Structure
+MIB from SSB provides
+CORESET #0 Conﬁguraon
+Inserted SPS
+SIB1
+PDCCH
+CORSET#0
+24/48RB
+Inserted SPS
+SIB1
+PDCCH
+CORSET#0
+24/48RB
+Inserted SPS
+SIB1
+PDCCH
+CORSET#0
+24/48RB
+PDCCH/SIB1-1
+PDCCH/SIB1-2
+PDCCH/SIB1-Lmax
+Algorithm Flow
+beam-1
+beam-Lmax
+UAV
+Angular Spectral 
+Analysis to obtain 
+Stage 1
+Coarse Esmaon via Inial Access Signals
+Spaal Filtering 
+for 
+ABC-CFAR Target 
+Detecon
+Preliminary 
+Range-Velocity
+Esmaon  
+Angular Spectral 
+Analysis to obtain 
+Stage 2
+Reﬁned Esmaon and Targets Clustering
+Spaal Filtering 
+for
+WUP-based
+Reﬁned Range-
+Velocity
+Esmaon
+DBSCAN-based
+Targets 
+Clustering
+Coarse Esmaon 
+& Target Count
+Input for
+Reﬁnement
+Fig. 1: Frame structure and algorithm flow for the proposed two-stage sensing framework.
+After the analog-to-digital conversion (ADC) with a sampling
+frequency of Fs and the subsequent CP removal, the discrete
+echo signal vector for the l-th symbol ˆy(j, l) ∈CNr×1 is
+obtained as
+ˆy(j, l) ≜˜y(lT + j/Fs + TCP).
+(5)
+Subsequently, following serial-to-parallel conversion, an Ns-
+point FFT is applied to ˆy(j, l) along the sample index di-
+mension. As derived in Appendix A, the resulting frequency-
+domain OFDM symbol y(i, l) is given by
+y(i, l) =
+Ntarget
+X
+n=1
+βnaH
+t (θn)[X]i,l ejiωr(Rn)ejlωv(vn)br(θn)+z(i, l),
+(6)
+where ωr(Rn) ≜−4π∆fRn/c and ωv(vn) ≜2πfD,nT are
+the normalized frequencies corresponding to the range and
+velocity of the n-th target, respectively. The notation z(i, l)
+denotes the noise term, which is approximated as AWGN [10],
+[37].
+III. STAGE I: COARSE TARGET DETECTION AND
+PARAMETER ESTIMATION
+In this section, we elaborate on the utilization of the SSB
+signal for target detection and coarse parameter estimation.
+Specifically, each SSB block occupies 20 resource blocks
+(RBs) and four consecutive OFDM symbols in the time-
+frequency domain and is broadcast periodically, as illustrated
+in Fig. 1. We exploit the inherent beam-sweeping nature of
+SSB to obtain coarse estimates of the target’s angular, range,
+and velocity parameters.
+A. Angular Spectral Analysis
+We begin by addressing the angular estimation. To perform
+Direction of Arrival (DoA) estimation for targets within the
+k-th SSB beam centered at θk, we employ the high-resolution
+multiple signal classification (MUSIC) algorithm [10]. Firstly,
+we average the outer product of y(i, l) across all available
+subcarriers and OFDM symbols
+ˆR =
+1
+|Rk,SSB|
+X
+{(i,l)}∈Rk,SSB
+y(i, l)y(i, l)H,
+(7)
+where Rk,SSB is the set of REs for the k-th SSB beam and
+|Rk,SSB| denotes the cardinality of this set.
+Then, we perform the eigenvalue decomposition as
+ˆR = UΛUH,
+(8)
+where U = [u1, . . . , uNr] is the matrix of eigenvectors and
+Λ = Diag(λ1 ≥λ2 ≥· · · ≥λNr) is the diagonal matrix
+containing the corresponding eigenvalues, sorted in descending
+order.
+Based on the auto-correlation coefficient matrix algorithm
+[38], the number of potential UAVs Nθk can be effectively
+determined4. Once Nθk is estimated, the noise subspace matrix
+¯U is constructed as
+¯U = [uNθk +1, . . . , uNr]. Then, by
+exploiting the orthogonality between the array steering vectors
+and the noise subspace, the DoA of the potential UAVs in the
+current beam is given by
+{ˆθn}
+Nθk
+n=1 = argpeak
+θ
+
+1
+bH
+r (θ) ¯U ¯UHbr(θ), Nθk
+
+,
+(9)
+4Unlike the ideal assumption in [10], [11], the limited samples per SSB
+beam cause information-theoretic criteria to perform poorly; MDL [39]
+becomes inaccurate while AIC tends to overestimate. We therefore employ the
+more robust auto-correlation coefficient matrix method. The interested reader
+is referred to [38] for further details.
+
+===== PAGE 5 =====
+[H
+ˆθn′]i,l = bH
+r (ˆθn′)y(i, l)
+aH
+t (ˆθn′)[X]i,l
+=
+bH
+r (ˆθn′)
+PNtarget
+n=1 βnaH
+t (θn)[X]i,lejiωr(Rn)ejlωv(vn)br(θn) + z(i, l)
+
+aH
+t (ˆθn′)[X]i,l
+(10)
+=
+X
+k∈Kn′
+Gn′,kβkejiωr(Rk)ejlωv(vk)
+|
+{z
+}
+Desired Signals from Target Cluster
++
+X
+n/∈Kn′
+βn
+aH
+t (θn)[X]i,l
+aH
+t (ˆθn′)[X]i,l
+
+bH
+r (ˆθn′)br(θn)
+
+ejiωr(Rn)ejlωv(vn)
+|
+{z
+}
+Interference from Other Targets
++ bH
+r (ˆθn′)z(i, l)
+aH
+t (ˆθn′)[X]i,l
+|
+{z
+}
+Noise
+where the search window θ ∈[θk −∆θ, θk + ∆θ], with ∆θ ≈
+85◦/(Nt cos(θk)) denoting the approximate half-beamwidth of
+the ULA at the suppression level -10 dB [40]5. The operator
+argpeak(·, N) finds the locations of the N largest peaks.
+B. Spatial Filtering
+For each estimated DoA ˆθn′ ∈{ˆθn}
+Nθk
+n=1 obtained from
+the preceding angular spectral analysis, we first perform
+the spatial filtering and remove the signal-dependent coeffi-
+cients aH
+t (ˆθn′)[X]i,l [41]. The resulting 2D channel response
+[Hˆθn′]i,l is given in (10), which is shown at the top of this
+page. In this model, Kn′ represents the index set of targets
+whose DoAs are clustered around the estimated angle ˆθn′ .
+Due to the signal-to-noise ratio (SNR) gains introduced by
+the spatial filter, both the interference from other target clusters
+(n /∈Kn′) and the noise term are significantly suppressed.
+Thus, the model in (10) can be approximated by its dominant
+signal components
+[H
+ˆθn′]i,l ≈
+X
+k∈Kn′
+αkejiωr(Rk)ejlωv(vk),
+(11)
+where αk = Gn′,kβk is the effective complex amplitude of
+the k-th target within Kn′.
+Remark1: In practical systems, the half-power beamwidths
+of adjacent beams overlap to ensure effective user coverage.
+Consequently, the resource set for estimation can be expanded,
+e.g., Rext
+k,SSB = Rk−1,SSB ∪Rk,SSB ∪Rk+1,SSB. The expansion
+introduces a trade-off: a larger resource set provides more sam-
+ples but suffers from lower beamforming gain at the periphery.
+The reduced beamfoming gain aH
+t (ˆθn′)[X]i,l increases the
+relative power of the interference and the noise terms in
+(10). Therefore, the estimation window must be judiciously
+configured to balance the number of samples against the
+degradation in effective signal to interference plus noise ratio
+(SINR).6
+5The overlap between the half-power beamwidths of adjacent SSB beams
+may cause a single target to be detected multiple times. However, the
+clustering method is introduced in Section V to prune redundant detections
+and enhance the overall estimation accuracy.
+6Due to the beam sweeping of the SSB, a target is only coherently
+illuminated during a subset of OFDM symbols. Processing the entire set of
+symbols would incorporate noise from irrelevant time instances where the
+beam was pointing elsewhere, thereby degrading the effective SNR.
+ 
+  
+  
+              
+  
+  
+  
+  
+  
+  
+  
+  
+   
+            
+   
+   
+   
+   
+   
+   
+  
+ 
+(a)
+ 
+  
+  
+              
+  
+  
+  
+  
+  
+  
+  
+  
+   
+            
+   
+   
+   
+   
+   
+   
+  
+ 
+(b)
+ 
+  
+  
+              
+  
+  
+  
+  
+  
+  
+  
+  
+   
+            
+   
+   
+   
+   
+   
+   
+  
+ 
+(c)
+Fig. 2: RDMs with different numbers of beams: (a) 1 beams,
+(b) 3 beams, and (c) 5 beams.
+C. Preliminary Range and Velocity Estimation
+Before detailing our estimation algorithm, we first clarify
+two primary limitations inherent to the SSB’s structure.
+1) Limited Velocity Estimation Fidelity: The achievable
+velocity resolution is fundamentally limited by the short
+observation interval, as a UAV target is typically illumi-
+nated by only a few four-symbol SSB blocks.
+2) Limited Bandwidth and Range Resolution: The spec-
+tral bandwidth of the SSB is confined to 240 subcarriers.
+This restricted bandwidth inherently limits the achievable
+range resolution.
+To address these limitations, we further leverage the Type#0-
+PDCCH and SIB1 broadcasting signals, which offer a more
+extended observation interval and wider bandwidth than SSB,
+to enhance velocity estimation and range resolution. Firstly,
+the range-Doppler map (RDM) of the SSB is generated by
+performing 2D-FFT on the approximated channel matrix Hˆθn′
+as
+[R
+ˆθn′
+SSB]p,q =
+
+X
+(i,l)∈Rext
+k,SSB
+[H]
+ˆθn′
+i,l e−j 2πpi
+Nr e−j 2πql
+Nd
+
+,
+(12)
+where Nr and Nd are the FFT points for the range and
+doppler dimensions, respectively, with zero-padding applied
+
+===== PAGE 6 =====
+to improve resolution. Similarly, we obtain the RDM of SIB1
+as R
+ˆθn′
+SIB1. The wider-bandwidth PDCCH, in turn, yields a high-
+resolution range profile, defined as the vector p
+ˆθn′
+PDCCH. These
+components are then fused to form the combined RDM as
+R
+ˆθn′
+comb = R
+ˆθn′
+SSB ⊙R
+ˆθn′
+SIB1 ⊙P
+ˆθn′
+PDCCH,
+(13)
+where P
+ˆθn′
+PDCCH = p
+ˆθn′
+PDCCH1T
+Nd, with 1T
+Nd denoting a row
+vector of Nd ones. To visualize the combined RDM, Fig. 2
+illustrates the combined RDM obtained with different numbers
+of beams used for angular estimation. It is clear that the
+3-beam combination (Fig. 2b) achieves superior resolution
+over the single-beam case (Fig. 2a), while avoiding the noise-
+floor degradation apparent in the 5-beam scenario (Fig. 2c).
+Additionally, inaccuracies in the initial angle estimation often
+cause the energy of a point-based UAV target to disperse across
+a certain area in the RDM. Therefore, rather than the cell-
+average (CA) constant false-alarm rate (CFAR), we employ
+the area-based combination CFAR (ABC-CFAR) framework
+[42] for target detection. The resulting set of estimated ranges
+and velocities for the detected targets can be expressed as
+D
+ˆθn′ = {( ˆRm, ˆvm, ˆθn′)}M
+m=1,
+(14)
+where M
+is the total number of detected targets and
+( ˆRm, ˆvm, ˆθn′) represents the estimated range-velocity-angle
+pair for the m-th target.
+IV. SPARSE PILOT STRUCTURE FOR REFINED ESTIMATION
+In this section, we present the necessary definitions and
+common structures of the SPS. The design of this SPS
+is directly motivated by 3GPP specifications [12]–[15] and
+[26], which indicate that the PDSCH carrying SIB1 typically
+occupies only a portion of the CORESET#0 bandwidth. This
+characteristic, combined with inspiration from 1D sparse array
+theory [43], leads to our PTRS-like SPS configuration where
+pilots are sparsely arranged in the frequency domain. The
+approach yields two key advantages: i) spanning a wide
+effective bandwidth to improve range resolution; ii) multiplex-
+ing communication pilots to facilitate initial access. We now
+introduce the necessary definitions for this SPS.
+A. Pilots Signal Structure
+We first introduce the structure of the pilots, which are
+sparsely arranged in the frequency domain as illustrated in
+Fig. 3.7
+Definition 1 (Frequency-Domain Sparse Pilot Structure):
+For a set Sf of subcarrier indices where pilots are placed, let
+Df denote the corresponding Difference Co-spectrum (DCS);
+7According to the 3GPP TS-38 series specifications, for a 120 kHz sub-
+carrier spacing (SCS), CORESET#0 can be configured with a bandwidth of
+either 24 or 48 RBs, corresponding to 288 or 576 subcarriers, respectively.
+For illustrative purposes, this figure depicts a case where 11 subcarriers are
+occupied for sensing.
+Fig. 3: Example of the Sparse Pilot Structure.
+Uf denote the virtual uniform spectrum and C(k) denote all
+pilot pairs contributing to the frequency lag k,
+Sf = {p1, p2, . . . , pM},
+Df = {pi −pj | pi, pj ∈Sf},
+Uf = [−Lu, . . . , Lu] ⊆Df,
+Cf(k) = {(pi, pj) | pi −pj = k; pi, pj ∈Sf}.
+(15)
+Here, each pm ∈Sf represents an individual subcarrier index,
+and Lu is the maximum one-sided lag of the DCS Uf. Then,
+|Df|, 2Lu + 1, and |Cf(k)| are referred to the degrees of
+freedom (DoF), the uniform DoF (uDoF), and the weight
+function w(k) w.r.t. the Sf respectively. Similar to their roles
+in the DoA estimation problem, it will be shown in the
+subsequent analysis that the DoF, uDoF, and weight function of
+our sparse sensing scheme are instrumental in the performance
+of time-delay estimation.
+Definition 2 (ANAII-2 Sparse Pilot Structure) [44]: An
+Augmented Nested Array with two levels and two-sided ex-
+tensions (ANAII-2) for a given total of N sensors is defined by
+the set of sensor positions S. First, the intermediate parameters
+L and M are determined from N as
+L = round(N/6),
+M = N −4L.
+(16)
+The set S is then constructed as the union of the following
+five sub-sets, S = SL11 ∪SL12 ∪SM ∪SR21 ∪SR22, where
+
+===== PAGE 7 =====
+f
+PDCCH
+PDSCH
+PDSCH
+DMRS
+CORSET#0
+PDCCH
+48RB
+24RB
+PDSCH
+PDSCH
+DMRS
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+                 
+                     
+     
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+  
+  
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+                 
+                     
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+  
+  
+  
+     
+t
+Fig. 4: Example of the SPS Configuration.
+each sub-set is explicitly defined by
+SM =
+
+2L2 + L + 4Ll | l ∈{0, . . . , M}
+	
+,
+SL12 =
+
+2L2 + L −(2L + 1)l | l ∈{0, . . . , L −1}
+	
+,
+SL11 = {2L + 1 −l | l ∈{0, 2, . . . , 2L} ∪{2L + 1}} ,
+SR21 =
+
+2L2 + L + 4LM + (2L −1)l | l ∈{0, . . . , L −1}
+	
+,
+SR22 =
+(
+4L2 −2L + 1 + 4LM + l |
+l ∈{0} ∪{1, 3, . . . , 2L −1}
+)
+.
+(17)
+The resulting set S is normalized such that its minimum
+element is 0.
+Definition 3 (UF-4BL Sparse Pilot Structure) [45]: A
+Uniform Fitting 4-Block-Level (UF-4BL) array with a total
+of N sensors is defined by the set of sensor positions S. The
+structure is determined by two intermediate parameters, Nb
+and Nt, which are derived from N as:
+Nb = ⌊(N −8)/8⌋,
+Nt = N −4Nb −6.
+(18)
+The final set of frequency positions S is constructed as the
+union of eight distinct sub-ULAs, S = S8
+i=1 Si, where each
+sub-array is explicitly defined by:
+S1 = {3l | l = 0, 1}
+S2 = {7 + 4l | l = 0, 1, . . . , Nb −1}
+S3 = {(4Nb + 8) + l | l = 0, 1}
+S4 = {(4Nb + 15) + 4l | l = 0, 1, . . . , Nb −1}
+S5 = {(8Nb + 19) + (4Nb + 7)l | l = 0, 1, . . . , Nt −1}
+S6 = {(4NtNb + 7Nt + 4Nb + 19) + 4l | l = 0, 1, . . . , Nb −1}
+S7 = {(4NtNb + 7Nt + 8Nb + 18) + 2l | l = 0, 1}
+S8 = {(4NtNb + 7Nt + 8Nb + 25) + 4l | l = 0, 1, . . . , Nb −1}
+Based on the comparison in Table I, we recommend the
+UF-4BL structure for the 24RB configuration and ANAII-
+2 for the 48RB configuration, respectively. For the 24RB
+case, both structures offer comparable uDoF, making the UF-
+4BL preferable due to its simpler weight function and lower
+coupling. Conversely, for the 48RB case, the uDoF of ANAII-2
+TABLE I: Comparison of Weight Functions and uDoF for
+Different Arrays
+Array Type
+w(1)
+w(2)
+w(3)
+uDoF
+ANAII-2 [44]
+2
+N/3
+2
+O(2N2/3)
+MISC [46]
+1
+2⌊N/4⌋−2
+1/2
+O(N2/2 + 3N)
+TSENA [47]
+N1 −6
+N1 −8
+N1 −9
+O(N2/2 + 3.5N)
+UF-3BL [45]
+1
+1
+3Nb −1
+O(N2/2 + 2N)
+UF-4BL [45]
+1
+1
+2
+O(N2/2 + 2N)
+Note: For TS-ENA array, the parameter N1 = 2⌊(N + 3)/4⌋. For UF-3BL,
+the parameter Nb = ⌊(N −5)/6⌋.
+significantly surpasses that of UF-4BL. This substantial uDoF
+gain outweighs its higher coupling, rendering it the superior
+choice for performance.
+B. Integration of the Pilots and SIB1
+In this subsection, we describe how the aforementioned
+SPS is incorporated into the SIB1 block. Let us denote
+the SIB1 data symbol matrix and the sparse sensing pilot
+matrix as SSIB1 ∈CNc,SIB1×Ns,SIB1 and Ssen ∈CNc,SIB1×Ns,SIB1,
+respectively. The placement of these signals is governed by
+their corresponding binary masks Lk,SIB1 and Lk,sen, which
+belong to the set {0, 1}Nc,SIB1×Ns,SIB1. For the sensing pilot
+mask Lk,sen, we adopt a configuration analogous to the PT-RS
+in 5G NR. Specifically, the pilots occupy all OFDM symbols
+within the SIB1 block but are placed only on the sparse set
+of subcarrier indices Sf, as described in Section IV-A.
+The final transmitted matrix Stx ∈CNc,SIB1×Ns,SIB1 is formed
+by having the SIB1 symbols overwrite the sensing pilots on
+any shared REs. This is expressed as
+Stx = SSIB1 + Ssen ⊙(J −Lk,SIB1),
+(19)
+where J ∈CNc,SIB1×Ns,SIB1 is an all-ones matrix of the same
+size. The overwrite mechanism is illustrated in Fig. 4, where
+SIB1 symbols take precedence over sensing pilots. Here, we
+denote the set of carrier frequencies jointly occupied by both
+SIB1 and the sensing pilots as Sf,combined.
+
+===== PAGE 8 =====
+V. STAGE II: REFINED PARAMETER ESTIMATION WITH
+SPARSE PILOT SYMBOLS
+In this section, we refine the coarse parameter estimates
+obtained in Stage I by applying the RELAX-based WUP
+algorithm. Then, the parameter pairing is introduced to identify
+the most probable range-velocity pairings. Finally, we employ
+the DBSCAN algorithm to prune redundant targets and obtain
+the final estimates.
+A. Weighted Unwrapped Phase Velocity Estimation
+We begin by considering the channel response matrix Hˆθn′
+associated with a specific angle ˆθn′, assuming it corresponds
+to a single target k. For i ∈Sf,combined, we define the Doppler
+vector8
+aD(vk) = [H
+ˆθn′]i,: = ¯αk[ej0ωv(vk), . . . , ej(Ns,SIB1−1)ωv(vk)].
+(20)
+Then, the Doppler covariance vector rfD ∈CNvec×1 is con-
+structed as
+rfD = vecl(aD(vk)HaD(vk)),
+(21)
+where Nvec = Ns,SIB1(Ns,SIB1−1)/2. Its n-th element is given
+by [rfD]n = |¯αk|2ej(n−Cn)ωv(vk), where Cn = max{Ct|t ≥
+0 and Ct < n} and Ct = tNs,SIB1 −t(t + 1)/2.
+Denoting the wrapped phase vector as p = ∠rfD
+∈
+C1×Ns,SIB1, its n-th element is [p]n
+= (n −Cn)ωv(vk)
+(mod 2π). Based on the coarse velocity estimate ωv(vFFT)
+obtained in Section III, we define the reference unwrapped
+phase vector pFFT ∈CNvec×1 with its n-th element given by
+[pFFT]n = (n −Cn)ωv(vFFT).
+(22)
+As such, the integer wrap vector κ, whose elements represent
+the number of phase wraps, can be estimated by
+κ = round
+pFFT −p
+2π
+
+,
+(23)
+where round(·) is an element-wise rounding operation. The
+true unwrapped phase vector ˜p is then recovered as
+˜p = p + 2πκ.
+(24)
+Finally, given the unwrapped phase vector ˜p, the estimate of
+the Doppler frequency ˆωv(vk) is obtained as
+ˆωv(vk) =
+PNvec
+n=1(n −Cn)[˜p]n
+PNvec
+n=1(n −Cn)2
+.
+(25)
+Remark 2: Observing (21), we note an analogy between the
+phase differences captured by the cross-correlation operation
+and the virtual difference co-arrays exploited in DoA estima-
+tion [44], [48]. As depicted in Fig. 3, the considered PT-RS
+style reference signal structure, which is dense across OFDM
+symbols, is analogous to the ULA. Furthermore, the weighted
+unwrapped estimator in (25) inherently assigns higher weights
+to phase differences corresponding to larger effective time
+8For notational simplicity, we omit the subcarrier index i dependence in
+the following derivations, as the process is identical for each i ∈Sf,combined.
+separations (i.e., larger values of n −Cn), as these gener-
+ally provide finer velocity resolution. This weighting strategy
+aligns conceptually with the objectives in the non-ULA design,
+which often aims for higher DoF and lower mutual coupling.
+B. RELAX-Based Multi-Target Velocity Estimation
+We now extend the estimation framework to the multi-target
+scenario, where multiple targets may share the same angle bin
+ˆθn′. In this case, the i-th row of the channel response matrix
+is the superposition of |Kn′| signals :
+[H
+ˆθn′]i,: =
+|Kn′|
+X
+k=1
+αk[ej0ωv(vk), . . . , ej(Ns,SIB1−1)ωv(vk)].
+(26)
+To estimate the parameters of each target individually, we
+adopt the estimate-subtract strategy inspired by the RELAX
+algorithm [48]. This iterative method estimates the parameters
+of one target at a time while treating the others as interference.
+Specifically, assuming that the parameters of Q −1 targets
+have already been estimated in Hˆθn′ , the signal component
+corresponding to the k-th target (k ≤Q) is extracted as
+s(k)
+fD = [H
+ˆθn′]i,:−
+Q
+X
+¯k=1,¯k̸=k
+ˆα¯k[ej0ˆωv(v¯k), . . . , ej(Ns,SIB1−1)ˆωv(v¯k)],
+(27)
+where ˆα¯k and ˆωv(v¯k) are the current estimates for the other
+targets. The Doppler frequency ˆωv(vk) is then estimated from
+s(k)
+fD using the weighted unwrapped phase (WUP) method
+described previously. Subsequently, the complex amplitude αk
+can be estimated as
+ˆαk =
+aD(ˆωv(vk))∗s(k)
+fD
+Ns,SIB1
+,
+(28)
+where aD(ˆωv(vk)) is the estimated Doppler vector for the k-
+th target’s Doppler frequency. This process is iterated, refining
+the estimates for all targets until all Q = |Kn′| targets have
+been identified. The detailed implementation is presented in
+Algorithm 1.
+C. Range Estimation and Parameter Pairing
+Drawing inspiration from research in the non-ULA design,
+we adopt the SPS for the pilots, as detailed in Section IV. Let
+Sf,combined = {p1, . . . , p|Sf,combined|} denote this sparse set of
+subcarrier indices. Assuming a single target k, we define the
+delay vector aτ(Rk) ∈C|Sf,combined|×1 by extracting the channel
+response at the sparse subcarrier indices over a specific OFDM
+symbol l
+aτ(Rk) ≈¯αk[ejp1ωr(Rk), . . . , ejp|Sf,combined|ωr(Rk)]T .
+(29)
+Following the weighted unwrapped phase estimator framework
+proposed in Sections V.A and V.B, the delay covariance vector
+rτ is constructed as
+rτ = vecl(aτ(Rk)aτ(Rk)H).
+(30)
+Then, the corresponding unwrapped phase vector ˜pτ can be
+expressed as
+˜pτ = vecl(Rτ)ωr(Rk),
+(31)
+
+===== PAGE 9 =====
+Algorithm 1: RELAX-Based Iterative Velocity Esti-
+mation
+1: Input: sfD = [Hˆθn′]i,:, |Kn′|, τ.
+2: Initialization: Obtain initial estimates
+{ˆωv(vk)}|Kn′|
+k=1 , {ˆαk}|Kn′|
+k=1 , ∆= ∞, y1 = sfD.
+3: for Q = 1 to |Kn′| do
+4:
+Estimate ˆωv(vQ) from yQ according to (20)-(24).
+5:
+Estimate ˆαQ from yQ and ˆωv(vQ) according to (28).
+6:
+Reset convergence check ∆= ∞.
+7:
+while ∆≥τ do
+8:
+Store previous estimates {ωprev(vk) = ˆωv(vk)}Q
+k=1
+9:
+for k = 1 to Q do
+10:
+Calculate residual signal
+yrefine
+k
+= sfD −PQ
+¯k=1,¯k̸=k ˆα¯kaD(ˆωv(v¯k))
+11:
+Refine velocity ˆωv(vk) from yrefine
+k
+according to
+(20)-(24).
+12:
+Refine amplitude ˆαk from yrefine
+k
+and ˆωv(vk)
+according to (28).
+13:
+end for
+14:
+Calculate maximum change
+∆= maxk∈{1..Q}{||ˆωv(vk) −ωprev(vk)||}
+15:
+end while
+16:
+Prepare residual for the next target’s initial estimation
+17:
+yQ+1 = sfD −PQ
+¯k=1 ˆα¯kaD(ˆωv(v¯k))
+18: end for
+19: Output: Estimated velocities {ˆωv(vk)}|Kn′|
+k=1 .
+where [Rτ]i,j = pi −pj, with pi and pj being the i-th and
+j-th frequency indices from Sf,combined, respectively. Notably,
+the vector vecl(Rτ) contains the frequency index differences
+corresponding to the DCS, which is detailed in Definition 1.
+The subsequent steps for ωr(Rk) proceed analogously to the
+velocity estimation.
+Building upon the range and velocity estimation procedures
+outlined previously, we can obtain the sets of estimated
+normalized range frequencies {ˆωr(Rk)}|Kn′|
+k=1 and Doppler fre-
+quencies {ˆωv(vk)}|Kn′|
+k=1 . Next, parameter pairing is performed
+to associate the correct range and velocity estimates for each
+target. To this end, we first construct Γ containing all possible
+|Kn′|2 range-velocity pairings
+Γ = {(ˆωr(Ri), ˆωv(vj))}|Kn′|
+i,j=1,
+(32)
+where for each pair (ˆωr(Ri), ˆωv(vj)) ∈Γ, the matching score
+is calculated as
+S
+ˆθn′
+ˆωr(Ri),ˆωv(vj) =
+aτ( ˆRi)HH
+ˆθn′aD(ˆvj)
+ .
+(33)
+Subsequently, by identifying the |Kn′| pairs in Γ that yield
+the highest matching scores, the final set Ξˆθn′ of paired range
+and velocity parameters for the |Kn′| targets is given by
+Ξ
+ˆθn′ = {( ˆRk, ˆvk)}|Kn′|
+k=1 .
+(34)
+D. DBSCAN-based Repeated Targets Pruning
+In order to maintain continuous energy coverage, the half-
+power beamwidths of adjacent beams typically overlap during
+SSB and SIB1 beam sweeping. Consequently, a single UAV
+target may be detected by multiple beams. To address this
+redundancy, we employ the DBSCAN algorithm [49] to cluster
+the detected targets in the range-velocity-angle space. To
+mitigate the impact of spurious noise detections, the minimum
+number of points Nmin in a cluster is set to 2.
+As a prerequisite for clustering, we define the detected
+targets set Ξ across all detected angles {ˆθn′} as
+Ξ =
+[
+ˆθn′
+{( ˆRk, ˆvk, ˆθn′) | ( ˆRk, ˆvk) ∈Ξ
+ˆθn′},
+(35)
+where each element s ∈Ξ is a tuple s = ( ˆR, ˆv, ˆθ). Next, we
+define the weighting matrix W = Diag(wR, wv, wθ), where
+the weights reflect the inverse squared resolutions: wR =
+(2Nc,SIB1∆f/c)2, wv = (2Ns,SIB1Tsym/λ)2 and wθ ∝N 2
+R.
+Then, the weighted distance d(s1, s2) between two points
+s1, s2 ∈Ξ is calculated as
+d(s1, s2) =
+ (s1 −s2)T W(s1 −s2)
+1/2 ,
+(36)
+where (s1 −s2) represents the element-wise difference vector.
+After applying DBSCAN with the distance metric and a
+suitable neighborhood radius ϵ, the algorithm groups the points
+in Ξ into clusters. Each resulting cluster ideally corresponds
+to multiple detections of a single, unique UAV target, while
+points classified as noise by DBSCAN are discarded. Specif-
+ically for each cluster Cm identified by DBSCAN, the final
+estimate ( ˆRfinal
+m , ˆvfinal
+m , ˆθfinal
+m ) for the m-th target is obtained as
+( ˆRfinal
+m , ˆvfinal
+m , ˆθfinal
+m ) =
+P
+s∈Cm S ˆθ
+ˆωr(R),ˆωv(v) · s
+P
+s∈Cm S ˆθ
+ˆωr(R),ˆωv(v)
+,
+(37)
+where the summation and division are performed element-wise
+for the tuple s = ( ˆR, ˆv, ˆθ). This process yields the final pruned
+set of detected UAV parameters.
+VI. NUMERICAL RESULTS
+In this section, simulation results are presented to eval-
+uate the performance of the proposed sensing framework.
+Firstly, we provide the simulation parameter settings. Then,
+we compare the performance of our proposed RELAX-based
+WUP algorithm with conventional techniques in a single-
+target scenario. Furthermore, we also evaluate the impact of
+SPS configurations. Finally, we compare our DBSCAN-based
+clustering algorithm with the benchmark pruning method in
+the multi-target scenario.
+A. Simulation Settings
+Unless stated otherwise, the simulation parameters are set
+as follows: We consider a DFRC BS operating at a carrier
+frequency of fc = 30 GHz with ∆f
+= 120 kHz. The
+BS is equipped with seperate half-wavelength ULAs with
+Nt = 32 and Nr = 64 antennas, respectively. Assuming
+
+===== PAGE 10 =====
+the normal CP, the 0th and 7th OFDM symbols have a CP
+duration of Tcp ≈1.107 µs with T ≈9.44 µs, while the
+remaining 12 symbols have Tcp ≈0.586 µs with T ≈8.92 µs.
+The RCS of each UAV is set to σ = 0.05 m2. Moreover,
+the sensing procedure is sequential, comprising two distinct
+stages. Firstly, 64 SSB beams are transmitted to perform initial
+detection across the [−45◦, 45◦] angular range. Secondly, SPS-
+augmented PDCCH/SIB1 signals are transmitted to provide
+the essential information for UE system access, while simul-
+taneously enabling refined parameter estimation. All results
+are averaged over 200 Monte Carlo trials.
+B. Estimation Accuracy and Computational Cost for Single
+Target
+We first evaluate the performance of our proposed algorithm
+in the single-target scenario by comparing it against three
+benchmark methods9: 2D-FFT [10], 2D-MUSIC [31], 2D
+CS-AN [50]. These benchmarks represent the periodogram,
+subspace-based and compressed sensing methods, respectively.
+For this simulation, the range, radial velocity, and angle of the
+single target are set to (50 m, 25 m/s, 15◦).
+-20
+-15
+-10
+-5
+0
+5
+SNR (dB)
+10-3
+10-2
+Range RMSE (m)
+WUP Algorithm
+MUSIC
+CS-AN
+2D FFT (Beam 1 & 3)
+CRB
+Beam 1
+Beam 3
+Fig. 5: RMSE of range estimation versus SNR.
+Fig. 5 compares the range RMSE performance versus SNR
+for different algorithms. We can observe that the 2D-FFT
+method exhibits a almostly fixed RMSE, limited by bandwidth
+resolution and unaffected by the number of beams. In contrast,
+both 2D-MUSIC and CS-AN show performance gains as
+SNR increases; however, their grid-based search leads to
+eventual error floors. Among these, CS-AN provides better
+range estimation than 2D-MUSIC. The proposed WUP algo-
+rithm significantly outperforms all benchmarks, achieving the
+lowest RMSE and highlighting its effective off-grid estimation
+capability under challenging sparse pilot conditions.
+Fig. 6 presents the velocity RMSE versus SNR for different
+algorithms. A key observation is that utilizing multiple beams
+significantly enhances velocity estimation accuracy for all
+algorithms by extending the effective observation interval and
+thus improving velocity resolution. Notably, this performance
+9To ensure reproducibility, the source code for all benchmark algorithms is
+provided at https://github.com/OnePieceofCakeforYou.
+-20
+-15
+-10
+-5
+0
+5
+SNR (dB)
+10-4
+10-3
+10-2
+10-1
+100
+101
+Velocity RMSE (m/s)
+WUP Algorithm
+MUSIC
+CS-AN
+2D FFT
+CRB
+Beam 1
+Beam 3
+Fig. 6: RMSE of velocity estimation versus SNR.
+gain is markedly stronger than that observed for range esti-
+mation. In contrast to the range estimation results, it is noted
+that the 2D-MUSIC slightly outperforms CS-AN in velocity
+estimation under the sparse frequency configuration. Further-
+more, the proposed WUP algorithm demonstrates superior
+performance, consistently achieving the lowest RMSE across
+the entire simulated SNR range.
+      
+      
+                  
+    
+   
+   
+                           
+   
+      
+        
+     
+Fig. 7: Computational time comparison .
+Fig. 7 demonstrates the average processing time of the
+proposed WUP algorithm against benchmark methods un-
+der different beam configurations. The results reveal a clear
+computational hierarchy, with WUP algorithm being the most
+efficient, followed in order by 2D-FFT, 2D-MUSIC, and the
+substantially more costly CS-AN. While the computational
+burden increases for all algorithms with more beams, the WUP
+algorithm maintains a marked efficiency edge. This advantage
+demonstrates its superior scalability compared to the other
+methods, particularly the highly complex CS-AN.
+Fig. 8 illustrates the performance of range estimation versus
+transmit power under different array layouts, where the Fig.
+8(a) and 8(b) correspond to the 24RB and 48RB CORSET#0
+configurations, respectively. Since the frequency-domain con-
+figuration schemes primarily affect range estimation, only the
+ranging RMSE is evaluated. As shown in Fig. 8(a), for the
+
+===== PAGE 11 =====
+(a)
+(b)
+Fig. 8: RMSE of range estimation versus transmit power with
+different CORSET#0 Configuration: (a) 24RBs, (b) 48RBs
+24RB configuration, the UF4BL scheme achieves the best
+performance, which is attributed to its lower mutual coupling.
+Conversely, for the 48RB configuration in Fig. 8(b), the
+ANAII-2 scheme provides the highest accuracy due to the
+increased uDoF it offers. Furthermore, we observe that for
+a given transmit power, the increased bandwidth from 24RBs
+to 48RBs does not improve sensing performance. This can be
+attributed to the decrease in the SNR per RE as the total power
+is distributed over a larger number of REs.
+C. Estimation Accuracy for Multiple Targets
+To evaluate the multi-target performance, we employ the
+optimal sub-pattern assignment (OSPA) metric [10], which
+provides a unified performance assessment by jointly capturing
+both localization and cardinality errors (i.e., the difference
+between the true and estimated number of targets) in a single
+value.
+Given the ground truth set of L target positions P
+=
+{p1, . . . , pL}, and the estimated set of ˆL positions
+ˆP
+=
+{ˆp1, . . . , ˆpˆL}, the distance between any true position p and
+estimated position ˆp is defined as
+d(p, ˆp; ¯c) = min{¯c, ||p −ˆp||2},
+(38)
+where ¯c > 0 is the cutoff parameter that determines how
+the metric penalizes cardinality error with respect to the
+localization error. For the case L ≤ˆL, the OSPA metric of
+order q is defined as [51]
+dq(P, ˆP; ¯c)
+=
+ 1
+ˆL
+
+min
+π∈Π ˆ
+L
+L
+X
+l=1
+ d(pl, ˆpπ(l); ¯c)
+q + ¯cq(ˆL −L)
+1/q
+,
+(39)
+where ΠˆL is the set of permutations of {1, 2, . . . , ˆL} and
+π(l) is the index of the estimated point in ˆP assigned to
+the l-th true point pl under a specific permutation π ∈
+ΠˆL. In particular, the metric is computed symmetrically as
+dq(P, ˆP; ¯c) = dq( ˆP, P; ¯c) if L > ˆL. Moreover, the order
+q determines the sensitivity to outliers, while the cutoff ¯c
+balances the localization and cardinality error penalties. In our
+simulations, we follow the recommendations in [51] and set
+q = 2 and ¯c = 10 m to ensure a proper balance between
+these error components. Specifically, we consider L = 5
+targets, whose parameters are randomly drawn from uniform
+distributions: ranges in [5, 85] m, velocities in [−35, 35] m/s,
+and angles in [−35◦, 35◦]. We employ this setup to validate
+the performance of our proposed two-stage (coarse-to-fine)
+detection scheme in a multi-target environment.
+Fig. 9: OSPA distance versus the minimum distance threshold
+dmin of DBSCAN.
+Fig. 9 illustrates the OSPA performance of the pro-
+posed DBSCAN-based algorithm versus the minimum distance
+threshold dmin, compared against the Pruning algorithm from
+[10]. For the Pruning algorithm, parameters are set to ϵr = ∆r
+and ϵv = 3∆v as recommended in [10] to achieve its optimal
+performance, which is plotted as the black dashed line (mean
+OSPA). For our proposed algorithm, the mean, 20th, and 80th
+percentile curves are presented.
+The OSPA distance for the DBSCAN-based fusion algo-
+rithm exhibits a U-shaped trend, highlighting a critical trade-
+off. Specifically, when the threshold dmin is too low, the algo-
+rithm fail to associate detections from the same target (e.g.,
+across different beams), resulting in an overestimation of the
+target count and increasing the cardinality error. Conversely,
+a large dmin risks merging detections from distinct targets that
+are closely spaced in the range-Doppler-angle domain, which
+introduces both localization and cardinality errors. As shown,
+the DBACAN-based fusion algorithm achieves an optimal
+balance between both error types around dmin = 1.7. With
+this proper hyperparameter selection, our method demonstrates
+superior performance over the benchmark.
+
+===== PAGE 12 =====
+   
+   
+  
+ 
+ 
+  
+        
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+                 
+                  
+                        
+                        
+                   
+                         
+                         
+Fig. 10: OSPA distance versus SNR.
+Fig. 10 depicts the OSPA distance versus SNR for the
+proposed DBSCAN-based fusion algorithm and the Pruning
+benchmark [10]. The proposed algorithm consistently achieves
+better accuracy and greater robustness across the entire SNR
+range. This improved robustness is reflected in the narrower
+spread between its 20th and 80th percentile curves around the
+mean. In contrast, the Pruning algorithm exhibits larger per-
+formance fluctuations, which can be attributed to its selection
+mechanism: it retains only the single target candidate with the
+maximum matching score. The clustering nature of DBSCAN,
+however, inherently suppresses such variability by aggregating
+the regional detections, resulting in more stable and reliable
+performance.
+VII. CONCLUSION
+This paper proposed a two-stage ISAC framework designed
+to support the emerging LAE by leveraging 5G NR networks.
+Specifically, the framework addressed the fundamental sensing
+resolution limitations of standard broadcast signals. In Stage
+I, we first fused RDMs from the SSB, Type#0-PDCCH, and
+SIB1 for robust initial detection. In Stage II, we employed the
+novel SPS, inspired by sparse array theory and inserted into
+unused SIB1 resources, to overcome the resolution limitations.
+To this end, a corresponding high-resolution algorithm based
+on the WUP estimator and the RELAX-based iterative method
+was developed to accurately extract off-grid range and velocity
+parameters from these sparse pilots. Finally, the DBSCAN-
+based clustering scheme was employed to prune redundant
+detections. Comprehensive simulation results demonstrated
+that the proposed framework achieves superior estimation
+accuracy at a significantly lower computational cost compared
+to conventional benchmark methods. Future work will focus on
+investigating the framework’s performance in more complex,
+dense multi-target scenarios and exploring further optimization
+of the SPS patterns in 5G NR.
+APPENDIX A
+In this appendix, we derive the received frequency-domain
+signal model for a MIMO-OFDM system as presented in
+the main text. We begin with the continuous-time baseband
+signal models and proceed through the steps of sampling, CP-
+removal, and DFT.
+Substituting (5) into (3), and assuming a sufficiently long
+CP such that inter-symbol interference (ISI) is eliminated, the
+sampled signal from the l-th transmitted symbol is
+ˆy(j, l) ≈
+Ntarget
+X
+n=1
+βnej2πfD,ntj,lbr(θn)aH(θn)
+×
+Nc−1
+X
+i=0
+[X]i,lej2πi∆f(tj,l−τn),
+(40)
+where tj,l = lT + j/Fs + TCP and the noise term is omitted
+for clarity.
+An Ns-point Discrete Fourier Transform (DFT) is then
+applied to ˆy(j, l) along the index j to obtain the frequency-
+domain signal y(k, l):
+y(k, l) =
+Ns−1
+X
+j=0
+ˆy(j, l)e−j2πkj/Ns
+≈
+Ns−1
+X
+j=0
+Ntarget
+X
+n=1
+βnej2πfD,ntj,lbr(θn)aH(θn)
+×
+Nc−1
+X
+i=0
+[X]i,lej2πi∆f(tj,l−τn)e−j2πkj/Ns.
+(41)
+By rearranging the summations and substituting the definition
+of tj,l, (41) can be written as
+y(k, l) ≈
+Ntarget
+X
+n=1
+βnbr(θn)aH(θn)
+Nc−1
+X
+i=0
+[X]i,le−j2πi∆fτn
+×
+
+
+Ns−1
+X
+j=0
+ej2π(fD,n+i∆f)tj,le−j2πkj/Ns
+
+.
+(42)
+The summation over j can be simplified. First, we expand tj,l
+and factor out the term that is constant with respect to j:
+Ns−1
+X
+j=0
+ej2π(fD,n+i∆f)(lT +TCP +j/Fs)e−j2πkj/Ns
+= ej2π(fD,n+i∆f)(lT +TCP )
+×
+Ns−1
+X
+j=0
+ej2π(fD,n+i∆f)(j/Fs)e−j2πkj/Ns.
+(43)
+Using the standard OFDM relation Fs = Ns∆f, the summa-
+tion term in (43) becomes
+Ns−1
+X
+j=0
+ej2π
+j
+Ns (i−k+fD,n/∆f).
+(44)
+For scenarios where the Doppler shift is much smaller than
+the subcarrier spacing (fD,n ≪∆f), we can approximate
+fD,n/∆f ≈0. This approximation neglects the inter-carrier
+
+===== PAGE 13 =====
+interference (ICI). Under this condition, (44) simplifies to the
+delta function
+Ns−1
+X
+j=0
+ej2π
+j
+Ns (i−k) = Ns · δi,k.
+(45)
+Substituting (45) back into (42) causes the summation over i
+to collapse to a single term where i = k:
+y(k, l) ≈
+Ntarget
+X
+n=1
+βnbr(θn)aH(θn)[X]k,le−j2πk∆fτn
+× ej2π(fD,n+k∆f)(lT +TCP ) · Ns.
+(46)
+After
+compensating
+for
+the
+known
+phase
+component
+ej2πk∆f(lT +TCP )
+and
+neglecting
+the
+negligible
+term
+ej2πfD,nTCP and the constant Ns, (46) simplifies to
+y(k, l) =
+Ntarget
+X
+n=1
+βnaH
+t (θn)[X]k,l ejkωr(Rn)ejlωv(vn)br(θn)+z(k, l),
+(47)
+where ωr(Rn) ≜−4π∆fRn/c and ωv(vn) ≜2πfD,nT
+respectively.
+APPENDIX B
+A. Stacking Order Convention
+To facilitate the joint estimation of all target parameters, we
+aggregate the observations from all receive antennas. First, for
+each receive antenna p, we form a data vector bp = vec(Yp) ∈
+CMN×1 , where [Yp]i,l = [y(i, l)]p. Then the total observation
+vector b ∈CNrMN×1 is expressed as:
+b =
+
+
+b0
+b1
+...
+bNr−1
+
+.
+(48)
+B. Contribution of the n-th Target
+For the n-th target, we define the time-frequency phase
+vector sn ∈CMN×1 with elements arranged as
+sn =
+
+
+aH
+t (θn)[X]0,0ej0·ωr(Rn)ej0·ωv(vn)
+aH
+t (θn)[X]1,0ej1·ωr(Rn)ej0·ωv(vn)
+...
+aH
+t (θn)[X]M−1,0ej(M−1)·ωr(Rn)ej0·ωv(vn)
+aH
+t (θn)[X]0,1ej0·ωr(Rn)ej1·ωv(vn)
+...
+aH
+t (θn)[X]M−1,N−1ej(M−1)·ωr(Rn)ej(N−1)·ωv(vn)
+
+
+.
+(49)
+The contribution of the n-th target to the complete received
+vector is given by
+yn = βnbr(θn) ⊗sn,
+= βnbr(θn) ⊗
+ TT a∗
+t (θn) ⊙(av (vn) ⊗ar (Rn))
+ (50)
+where ar(Rn) = [1, ejωr(Rn), . . . , ej(M−1)ωr(Rn)]T ∈CM×1,
+av(vn) = [1, ejωv(vn), . . . , ej(N−1)ωv(vn)]T ∈CN×1 and T ∈
+CNt×MN is formed by stacking [X]i,l in column-major order.
+C. Complete Signal Model
+The full received signal is the superposition of all target
+contributions plus noise
+y =
+Ntarget
+X
+n=1
+βn
+ br(θn) ⊗
+ TT a∗
+t (θn)
+
+⊙(av(vn) ⊗ar(Rn))
+
++z.
+(51)
+Denoting the joint steering vector for the n-th target as
+an = br(θn) ⊗
+ TT a∗
+t (θn)
+
+⊙(av(vn) ⊗ar(Rn))
+
+, (52)
+the model can then be written in the matrix form
+y = Aβ + z,
+(53)
+where A = [a1, a2, . . . , aNtarget] and β = [β1, β2, . . . , βNtarget]T .
+Substituting these results back, the final expression for the
+partial derivative of the joint steering vector with respect to
+the angle θn is:
+∂an
+∂θn
+= (Jbrbr(θn)) ⊗sn
+−br(θn) ⊗
+ TT Jata∗
+t (θn)
+
+⊙(av(vn) ⊗ar(Rn))
+
+.
+(54)
+∂an
+∂ωr (Rn) = br (θn)⊗
+ TT a∗
+t (θn)
+
+⊙(av (vn) ⊗(Jrar (Rn)))
+
+(55)
+∂an
+∂ωv (vn) = br (θn)⊗
+ TT a∗
+t (θn)
+
+⊙((Jvav (vn)) ⊗ar (Rn))
+
+(56)
+where Jbr, Jat, Jr and Jv are diagonal matrixs. [Jbr]i,i =
+−j2π(i −1)dr cos θn/λc
+and
+[Jat]i,i
+=
+−j2π(i −
+1)dt cos θn/λc, Jr = j · diag(0, 1, 2, . . . , M −1), Jv =
+j · diag(0, 1, 2, . . . , N −1)
+Based on the Theorem 1 in [52], the CRLB w.r.t Θ =
+h
+θT , ωT
+r , ωT
+v
+iT
+can be given as
+CRLB(Θ) = σ2
+v
+2
+h
+Re
+n
+˜BH   ¯AHP⊥
+A ¯A
+ ˜B
+oi−1
+,
+(57)
+where
+¯A =
+∂a1
+∂θ1
+, ∂a2
+∂θ2
+, . . . , ∂aNtarget
+∂θNtarget
+,
+∂a1
+∂ωr(R1),
+∂a2
+∂ωr(R2), . . . ,
+∂aNtarget
+∂ωr(RNtarget),
+∂a1
+∂ωv(v1),
+∂a2
+∂ωv(v2), . . . ,
+∂aNtarget
+∂ωv(vNtarget)
+
+(58)
+P⊥
+A = I −A
+ AHA
+−1 A,
+(59)
+,
+˜B = I3 ⊗diag(β)
+(60)
+
+===== PAGE 14 =====
+REFERENCES
+[1] Y. Jiang, X. Li, G. Zhu, H. Li, J. Deng, K. Han, C. Shen, Q. Shi,
+and R. Zhang, “Integrated sensing and communication for low altitude
+economy: Opportunities and challenges,” IEEE Commun. Mag., 2025.
+[2] Y. Wang, G. Sun, Z. Sun, J. Wang, J. Li, C. Zhao, J. Wu, S. Liang,
+M. Yin, P. Wang, et al., “Toward realization of low-altitude economy
+networks: Core architecture, integrated technologies, and future direc-
+tions,” arXiv preprint arXiv:2504.21583, 2025.
+[3] M. Song, Y. Lin, J. Wang, G. Sun, C. Dong, N. Ma, D. Niyato, and
+P. Zhang, “Trustworthy intelligent networks for low-altitude economy,”
+IEEE Commun. Mag., 2025.
+[4] L. Gupta, R. Jain, and G. Vaszkun, “Survey of important issues in uav
+communication networks,” IEEE Commun. Surv. Tutor., vol. 18, no. 2,
+pp. 1123–1152, 2015.
+[5] M. A. Hoque, M. Hossain, S. Noor, S. R. Islam, and R. Hasan, “IoTaaS:
+Drone-based internet of things as a service framework for smart cities,”
+IEEE Internet Things J., vol. 9, no. 14, pp. 12425–12439, 2021.
+[6] Q. Wu, J. Xu, Y. Zeng, D. W. K. Ng, N. Al-Dhahir, R. Schober, and A. L.
+Swindlehurst, “A comprehensive overview on 5G-and-beyond networks
+with uavs: From communications to sensing and intelligence,” IEEE J.
+Sel. Areas Commun., vol. 39, no. 10, pp. 2912–2945, 2021.
+[7] F. Liu, C. Masouros, A. P. Petropulu, H. Griffiths, and L. Hanzo, “Joint
+radar and communication design: Applications, state-of-the-art, and the
+road ahead,” IEEE Trans. Commun., vol. 68, no. 6, pp. 3834–3862, 2020.
+[8] F. Liu, Y. Cui, C. Masouros, J. Xu, T. X. Han, Y. C. Eldar, and S. Buzzi,
+“Integrated sensing and communications: Toward dual-functional wire-
+less networks for 6G and beyond,” IEEE J. Sel. Areas Commun., vol. 40,
+no. 6, pp. 1728–1767, 2022.
+[9] H. Luo, Y. Wang, D. Luo, J. Zhao, H. Wu, S. Ma, and F. Gao,
+“Integrated sensing and communications in clutter environment,” IEEE
+Trans. Wireless Commun., vol. 23, no. 9, pp. 10941–10956, 2024.
+[10] L. Pucci, E. Paolini, and A. Giorgetti, “System-level analysis of joint
+sensing and communication based on 5G new radio,” IEEE J. Sel. Areas
+Commun., vol. 40, no. 7, pp. 2043–2055, 2022.
+[11] J. Tang, Y. Yu, C. Pan, H. Ren, D. Wang, J. Wang, and X. You,
+“Cooperative ISAC-empowered low-altitude economy,” IEEE Trans.
+Wireless Commun., 2025.
+[12] 3GPP, “NR; physical channels and modulation,” Technical Specification
+(TS) 38.211, 3GPP, Jul. 2023. Version 17.5.0.
+[13] 3GPP, “NR; Multiplexing and channel coding,” Technical Specification
+(TS) 38.212, 3GPP, Sep. 2025. Version 19.1.0.
+[14] 3GPP, “NR; physical layer procedures for control,” Technical Specifi-
+cation (TS) 38.213, 3GPP, Oct. 2023. Version 17.7.0.
+[15] 3GPP, “NR; Physical layer procedures for data,” Technical Specification
+(TS) 38.214, 3GPP, Sep. 2025. Version 19.1.0.
+[16] IEEE, “IEEE Standard for Information Technology–Telecommunications
+and Information Exchange between Systems - Local and Metropoli-
+tan Area Networks–Specific Requirements - Part 11: Wireless LAN
+Medium Access Control (MAC) and Physical Layer (PHY) Specifica-
+tions, Amendment 1: Enhancements for High-Efficiency WLAN,” 2021.
+(Amendment to IEEE Std 802.11-2020).
+[17] M. F. Keskin, M. M. Mojahedian, J. O. Lacruz, C. Marcus, O. Eriksson,
+A. Giorgetti, J. Widmer, and H. Wymeersch, “Fundamental trade-offs in
+monostatic ISAC: A holistic investigation towards 6G,” IEEE Trans.
+Wireless Commun., 2025.
+[18] Z. Wei, Y. Wang, L. Ma, S. Yang, Z. Feng, C. Pan, Q. Zhang, Y. Wang,
+H. Wu, and P. Zhang, “5G PRS-based sensing: A sensing reference
+signal approach for joint sensing and communication system,” IEEE
+Trans. Veh. Technol., vol. 72, no. 3, pp. 3250–3263, 2022.
+[19] M. Golzadeh, E. Tiirola, J. Talvitie, L. Anttila, K. Hooli, O. Tervo,
+and M. Valkama, “Joint sensing and ue positioning in 5G-6G: Prs range
+estimation with suppressed ambiguity,” in 2024 IEEE Radar Conference
+(RadarConf24), pp. 1–6, IEEE, 2024.
+[20] J. Yang, C.-K. Wen, J. Xu, H. Que, H. Wei, and S. Jin, “Angle-
+based SLAM on 5G mmWave systems: Design, implementation, and
+measurement,” IEEE Internet Things J., vol. 10, no. 20, pp. 17755–
+17771, 2023.
+[21] K. Abratkiewicz, A. Ksi˛e˙zyk, M. Płotka, P. Samczy´nski, J. Wszołek, and
+T. P. Zieli´nski, “SSB-based signal processing for passive radar using a
+5G network,” IEEE J. Sel. Top. Appl. Earth Obs. Remote Sens., vol. 16,
+pp. 3469–3484, 2023.
+[22] Y. Awad, A. Celik, and A. Eltawil, “SSB-based multi-target detection
+and joint velocity, angle, and range estimation in 5G-NR,” IEEE Com-
+mun. Lett., 2025.
+[23] L. Chen, X. Zhou, F. Chen, L.-L. Yang, and R. Chen, “Carrier phase
+ranging for indoor positioning with 5G NR signals,” IEEE Internet
+Things J., vol. 9, no. 13, pp. 10908–10919, 2021.
+[24] Z. Liu, L. Chen, X. Zhou, Z. Jiao, G. Guo, and R. Chen, “Machine learn-
+ing for time-of-arrival estimation with 5G signals in indoor positioning,”
+IEEE Internet Things J., vol. 10, no. 11, pp. 9782–9795, 2023.
+[25] H. Yang, L. Chen, H. Liu, and G. Zhu, “Dynamic feature-fused local-
+ization with smartphones exploiting 5G NR SSB and Wi-Fi for indoor
+environments,” IEEE Trans. Instrum. Meas., vol. 73, pp. 1–14, 2024.
+[26] M. Golzadeh, E. Tiirola, L. Anttila, J. Talvitie, K. Hooli, O. Tervo,
+I. Peruga, S. Hakola, and M. Valkama, “Downlink sensing in 5G-
+advanced and 6G: SIB1-assisted SSB approach,” in 2023 IEEE 97th
+Vehicular Technology Conference (VTC2023-Spring), pp. 1–7, IEEE,
+2023.
+[27] Q. Zhao, A. Tang, and X. Wang, “Reference signal design and power
+optimization for energy-efficient 5G V2X integrated sensing and com-
+munications,” IEEE Trans. Green Commun. Netw., vol. 7, no. 1, pp. 379–
+392, 2023.
+[28] W. Liu, X. Hou, J. Liu, and L. Chen, “Low-overhead sensing rs design
+for integrated sensing and communication,” in 2025 IEEE Wireless
+Communications and Networking Conference (WCNC), pp. 1–6, IEEE,
+2025.
+[29] D. Mei, Z. Wei, X. Chen, L. Wang, and Z. Feng, “A coprime and periodic
+pilot design for ISAC system,” in 2024 IEEE Wireless Communications
+and Networking Conference (WCNC), pp. 1–6, IEEE, 2024.
+[30] R. Zhang, S. Tsai, T.-H. Chou, J. Ren, W. Qu, and O. Sun, “OFDM
+reference signal pattern design criteria for integrated communication and
+sensing,” IEEE Internet Things J., 2024.
+[31] R. Xie, D. Hu, K. Luo, and T. Jiang, “Performance analysis of joint
+range-velocity estimator with 2D-MUSIC in OFDM radar,” IEEE Trans.
+Signal Process., vol. 69, pp. 4787–4800, 2021.
+[32] P. Stoica, J. Li, J. Ling, and Y. Cheng, “Missing data recovery via a
+nonparametric iterative adaptive approach,” in 2009 ieee international
+conference on acoustics, speech and signal processing, pp. 3369–3372,
+IEEE, 2009.
+[33] W. Roberts, P. Stoica, J. Li, T. Yardibi, and F. A. Sadjadi, “Iterative
+adaptive approaches to MIMO radar imaging,” IEEE J. Sel. Top. Signal
+Process., vol. 4, no. 1, pp. 5–20, 2010.
+[34] J. Ren and S. Tsai, “Multi-tier structured array for sensing pilot design
+in integrated sensing and communication,” in 2024 IEEE 13rd Sensor
+Array and Multichannel Signal Processing Workshop (SAM), pp. 1–5,
+IEEE, 2024.
+[35] A. Ksi˛e˙zyk, M. Płotka, K. Abratkiewicz, R. Maksymiuk, J. Wszołek,
+P. Samczy´nski, and T. P. Zieli´nski, “Opportunities and limitations in
+radar sensing based on 5G broadband cellular networks,” IEEE Aerosp.
+Electron. Syst. Mag., vol. 38, no. 9, pp. 4–21, 2023.
+[36] X. Fu, D. Le Ruyet, R. Visoz, V. Ramireddy, M. Grossmann, M. Land-
+mann, and W. Quiroga, “A tutorial on downlink precoder selection strate-
+gies for 3GPP MIMO codebooks,” IEEE Access, vol. 11, pp. 138897–
+138922, 2023.
+[37] Z. Zhang, H. Ren, C. Pan, S. Hong, D. Wang, J. Wang, and X. You,
+“Target localization in cooperative ISAC systems: A scheme based on
+5G NR OFDM signals,” IEEE Trans. Commun., 2024.
+[38] T. Salman, A. Badawy, T. M. Elfouly, A. Mohamed, and T. Khattab, “Es-
+timating the number of sources: An efficient maximization approach,”
+in 2015 International Wireless Communications and Mobile Computing
+Conference (IWCMC), pp. 199–204, IEEE, 2015.
+[39] M. Wax and T. Kailath, “Detection of signals by information theoretic
+criteria,” IEEE Trans. Acoust. Speech Signal Process., vol. 33, no. 2,
+pp. 387–392, 2003.
+[40] H. L. Van Trees, Optimum array processing: Part IV of detection,
+estimation, and modulation theory. John Wiley & Sons, 2002.
+[41] Z. Xiao, R. Liu, M. Li, Q. Liu, and A. L. Swindlehurst, “A novel
+joint angle-range-velocity estimation method for MIMO-OFDM ISAC
+systems,” IEEE Trans. Signal Process., 2024.
+[42] Z. Wei, B. Li, T. Feng, Y. Tao, and C. Zhao, “Area-based CFAR
+target detection for automotive millimeter-wave radar,” IEEE Trans. Veh.
+Technol., vol. 72, no. 3, pp. 2891–2906, 2022.
+[43] X. Wang, Z. Yang, F. Liu, P. Chu, and J. Zheng, “Coprime-based frame-
+level sensing OFDM waveform for 5G NR integrated radar sensing and
+
+===== PAGE 15 =====
+communication via downlink sensing,” IEEE Sens. J.l, vol. 24, no. 15,
+pp. 24421–24437, 2024.
+[44] J. Liu, Y. Zhang, Y. Lu, S. Ren, and S. Cao, “Augmented nested arrays
+with enhanced DOF and reduced mutual coupling,” IEEE Trans. Signal
+Process., vol. 65, no. 21, pp. 5549–5563, 2017.
+[45] W. Shi, S. A. Vorobyov, and Y. Li, “ULA fitting for sparse array design,”
+IEEE Trans. Signal Process., vol. 69, pp. 6431–6447, 2021.
+[46] Z. Zheng, W.-Q. Wang, Y. Kong, and Y. D. Zhang, “MISC array: A
+new sparse array design achieving increased degrees of freedom and
+reduced mutual coupling effect,” IEEE Trans. Signal Process., vol. 67,
+no. 7, pp. 1728–1741, 2019.
+[47] S. Ren, W. Dong, X. Li, W. Wang, and X. Li, “Extended nested arrays for
+consecutive virtual aperture enhancement,” IEEE Signal Process. Lett.,
+vol. 27, pp. 575–579, 2020.
+[48] Y. Ma, X. Cao, X. Wang, M. S. Greco, and F. Gini, “Multi-source
+off-grid DOA estimation with single snapshot using non-uniform linear
+arrays,” Signal Processing, vol. 189, p. 108238, 2021.
+[49] M. Ester, H.-P. Kriegel, J. Sander, X. Xu, et al., “A density-based
+algorithm for discovering clusters in large spatial databases with noise,”
+in KDD, vol. 96, pp. 226–231, 1996.
+[50] L. Zheng and X. Wang, “Super-resolution delay-doppler estimation for
+OFDM passive radar,” IEEE Trans. Signal Process., vol. 65, no. 9,
+pp. 2197–2210, 2017.
+[51] D. Schuhmacher, B.-T. Vo, and B.-N. Vo, “A consistent metric for
+performance evaluation of multi-object filters,” IEEE Trans. Signal
+Process., vol. 56, no. 8, pp. 3447–3457, 2008.
+[52] Z. Hu, Q. Ye, Y. Huang, S. Hu, and G. Yang, “Joint range-velocity-
+azimuth estimation for OFDM-based integrated sensing and communica-
+tion,” IEEE Trans. Wireless Commun., vol. 23, no. 10, pp. 12933–12948,
+2024.

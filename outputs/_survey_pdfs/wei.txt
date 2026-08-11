@@ -1,0 +1,2052 @@
+
+===== PAGE 1 =====
+10166
+IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 24, NO. 12, DECEMBER 2025
+UAV’s Rotor Micro-Doppler Feature Extraction
+Using Integrated Sensing and Communication
+Signal: Algorithm Design and
+Testbed Evaluation
+Jiachen Wei , Dingyou Ma , Feiyang He, Qixun Zhang , Member, IEEE, Zhiyong Feng , Zhengfeng Liu,
+and Taohong Liang
+Abstract—With the rapid application of uncrewed aerial vehi-
+cles (UAVs) in urban areas, the identiﬁcation and tracking of
+hovering UAVs have become critical challenges, signiﬁcantly
+impacting the safety of aircraft take-off and landing operations.
+As a promising technology for 6G mobile systems integrated
+sensing and communication (ISAC), can be used to detect high-
+mobility UAVs with a low deployment cost. The micro-Doppler
+signals from UAV rotors can be leveraged to address the detection
+of low-mobility and hovering UAVs using ISAC signals. However,
+determining whether the frame structure of the ISAC system can
+be used to identify UAVs, and how to accurately capture the weak
+rotor micro-Doppler signals of UAVs in complex environments,
+remain two challenging problems. This paper ﬁrst proposes a
+novel frame structure for UAV micro-Doppler extraction and the
+representation of UAV micro-Doppler signals within the channel
+state information (CSI). Furthermore, to address complex envi-
+ronments and the interference caused by UAV body vibrations,
+the rotor micro-Doppler null space pursuit (rmD-NSP) algorithm
+and the feature extraction algorithm synchroextracting transform
+(SET) are designed to effectively separate UAV’s rotor micro-
+Doppler signals and enhance their features in the spectrogram.
+Finally, both simulation and hardware testbed demonstrate that
+the proposed rmD-NSP algorithm enables the ISAC base station
+(BS) to accurately and completely extract UAV’s rotor micro-
+Doppler signals. Within the observation period of 0.1 s, ISAC
+BS successfully captures eight rotations of the DJI M300 RTK
+UAV’s rotor in urban environments. Compared to the existing
+AM-FM NSP, NSP, MTD, EMD and VMD signal decomposition
+algorithms, the integrity of the rotor micro-Doppler features is
+improved by 60%.
+Index
+Terms—Integrated
+sensing
+and
+communication,
+uncrewed
+aerial
+vehicle
+(UAV)
+micro-Doppler,
+null
+space
+pursuit, feature extraction.
+Received 2 August 2024; revised 24 February 2025; accepted 31 May 2025.
+Date of publication 10 July 2025; date of current version 12 December 2025.
+This work was supported in part by the National Natural Science Foundation
+of China under Grant 62341101, Grant 62321001, and Grant 62401077;
+in part by Beijing Natural Science Foundation under Grant L232003; and
+in part by the Fundamental Research Funds for Central Universities under
+Grant 2024RC02. The associate editor coordinating the review of this article
+and approving it for publication was A. Vosoughi. (Corresponding author:
+Dingyou Ma.)
+The authors are with the Key Laboratory of Universal Wireless Commu-
+nications, Ministry of Education, Beijing University of Posts and Telecom-
+munications,
+Beijing
+100876,
+China
+(e-mail:
+weijiachen@bupt.edu.cn;
+dingyouma@bupt.edu.cn;
+ﬂyinghjgc@163.com;
+zhangqixun@bupt.edu.cn;
+fengzy@bupt.edu.cn; guan kangping@163.com; 13381221925@189.cn).
+Digital Object Identiﬁer 10.1109/TWC.2025.3578033
+I. INTRODUCTION
+T
+HE rapid development of 5G mobile communication
+systems and artiﬁcial intelligence technology has drawn
+signiﬁcant attention to the low-altitude economy [1]. The low
+cost, small size, ease of acquisition, and particularly live video
+feed have greatly popularized the use of uncrewed aerial
+vehicles (UAVs). Unfortunately, the increasing popularity of
+UAV applications has raised concerns about safety, security,
+and privacy, mainly due to the so-called smart attacks and
+threats [2]. It is critically important to ﬁnd ways to counter the
+illegal UAVs intrusion [3]. Therefore, numerous researchers
+from academia and industry have tried to develop suitable
+UAV detection systems, primarily through the use of multiple
+sensors, such as ultrasonic sensors, light detection and rang-
+ing (LiDAR), optical cameras, millimeter wave (mmWave)
+radars, etc. At the same time, the next generation of wireless
+networks, in addition to providing primary communication
+functions, is also expected to gain the capability to sense
+the surrounding environment through radio frequency (RF)
+signals, effectively acting as a sensor [4]. Leveraging existing
+communication base stations (BSs) and pipeline infrastructure,
+a UAV detection network can be rapidly and cost-effectively
+constructed. Furthermore, the inherent network collaborative
+capability of multiple BSs can enhance the detection accu-
+racy and reduce blind spot detection, which can address the
+problem of UAV being difﬁcult to detect in urban scenarios
+[5].
+As one of the key technologies for 6G communications,
+integrated sensing and communication (ISAC) systems provide
+theoretical feasibility for using mobile communication systems
+to detect UAVs [6]. Current research on ISAC primarily
+focuses on four aspects: signal design [7], [8], [9], [10], signal
+processing [11], [12], [13], [14], protocol-based applications
+[15], [16], [17], [18], and network sensing [19], [20], [21].
+In scenarios where multiple BSs are used for UAV detection,
+current research mainly focuses on UAV localization and
+tracking [22], [23], [24]. Speciﬁcally, these ISAC signal pro-
+cessing algorithms assume that the UAV is a point target with
+strong reﬂections and high-speed movement characteristics.
+These assumptions do not align with actual conditions [25],
+1536-1276 © 2025 IEEE. All rights reserved, including rights for text and data mining, and training of artiﬁcial intelligence and
+similar technologies. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See https://www.ieee.org/publications/rights/index.html for more information.
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 2 =====
+WEI et al.: UAV’s ROTOR MICRO-DOPPLER FEATURE EXTRACTION USING ISAC SIGNAL
+10167
+[26], [27], [28]. First, the assumption that the UAV is a single
+scatterer neglects the reﬂections from the rotor blades. Second,
+UAVs typically move at a slower speed and can hover, making
+them difﬁcult to detect from clutter, noise, and other natural
+ﬂying objects such as birds in urban environments. Actually,
+the rotation of the UAV’s rotor introduces unique high-
+frequency modulation sidebands near the Doppler frequency,
+known as the micro-Doppler signal. This micro-Doppler signal
+can be used to identify the type of target and distinguish it
+from other objects [29].
+However, existing ISAC studies do not consider the appli-
+cation of micro-Doppler to detect and identify UAV in mobile
+communication systems. There remains a lack of practical
+performance evaluation for using mobile communication sys-
+tems to extract the micro-Doppler signatures of UAVs. The
+challenges with micro-Doppler extraction of UAV based on
+mobile communication systems come from two main sources.
+One aspect is whether the communication waveform and
+uplink/downlink frame structure affect the extraction of UAV
+micro-Doppler features. In addition, considering the complex
+environment faced by micro-Doppler signal extraction, there
+is a signiﬁcant amount of clutter and interference. The UAV’s
+rotor echoes to be extracted are very weak, making the
+extraction of micro-Doppler features challenging. Moreover,
+the vibration of UAVs itself also affects the performance of
+micro-Doppler extraction [30], [31].
+Therefore, to address the above issues, this paper presents a
+time division duplexing (TDD) frame structure conﬁguration
+for extracting micro-Doppler features of UAV using ISAC
+signals. Furthermore, it provides an expression for the UAV
+echoes in the context of channel state information (CSI).
+This expression accounts for the time-varying radar cross
+section (RCS) induced by the UAV’s rotor rotation, which
+leads to periodic variations in rotor echo intensity. Addition-
+ally, the model incorporates the translational and vibrational
+motion of the UAV body. To combat the complex environment
+and suppress the effect of body vibrations, the rotor micro-
+Doppler null space pursuit (rmD-NSP) algorithm is designed,
+based on an operator-based signal decomposition method
+[32], [33], [34], to extract weak rotor micro-Doppler signals
+from various interference sources. The rotor micro-Doppler
+signals obtained from decomposition can be further processed
+using the synchroextracting transform (SET) algorithm to
+obtain time-frequency ridges with more concentrated energy,
+thereby revealing more pronounced micro-Doppler features
+[35]. Finally, both simulation and hardware testbed results
+demonstrate that the proposed rmD-NSP algorithm extracts
+UAV rotor micro-Doppler signals in urban environments more
+effectively than existing AM-FM NSP [34] and NSP [32],
+MTD [36], EMD [37] and VMD [38] signal decomposition
+algorithms. The main contributions of this paper are summa-
+rized as follows.
+• A new mathematical model for UAV micro-Doppler in
+monostatic ISAC systems is proposed. This paper pro-
+vides a model for the representation of the micro-Doppler
+signal in the CSI and considers the rotation of multiple
+UAV rotor blades, as well as the translational motion and
+vibration of the UAV body during ﬂight. Additionally, the
+mathematical model takes into account the dynamic RCS
+of the rotors caused by blade rotation, which will be an
+interesting tool for the future development of ISAC target
+classiﬁcation algorithms.
+• We design an rmD-NSP adaptive operator based on
+the mathematical model of the UAV rotor. Through
+the null space tracking algorithm, we extract rotor
+micro-Doppler signals from mixed signals that con-
+tain multiple interference components. In addition, we
+use the time-frequency enhancement algorithm SET to
+complete the extraction of the micro-Doppler feature
+of UAVs.
+• Through software simulations and hardware testbed
+experiments based on the ISAC system, we validate the
+effectiveness of the rmD-NSP algorithm and the SET
+algorithm to extract the micro-Doppler feature of UAVs in
+mobile communication systems. Within the observation
+period of 0.1 s, ISAC BS successfully captures eight
+rotations of the DJI M300 RTK UAV’s rotor in an urban
+environment.
+The rest of this paper is organized as follows. Section II
+presents the system model of the UAV micro-Doppler feature
+extraction. Section III introduces the rmD-NSP algorithm and
+the SET algorithm. In Section IV, we present the software sim-
+ulation results. In Section V, we implement the extraction of
+micro-Doppler features from UAVs using the ISAC hardware
+testbed. Section VI concludes this paper.
+The following notations are used throughout this paper:
+Boldface lowercase and uppercase letters denote vectors and
+matrices, respectively. We denote the transpose operation
+as (·)T. Ax = diag(x) denotes the diagonalization of the
+vector x. The set of complex numbers is C and the set of
+real numbers is R.
+II. SYSTEM MODEL
+In this section, we consider an ISAC BS to implement
+the micro-Doppler feature extraction function for UAV, as
+shown in Fig. 1(a). The BS is equipped with separate antennas
+that enable full-duplex operation, allowing it to transmit and
+receive signals simultaneously.
+First, in Subsection II-A, we present a frame structure
+based on 3GPP TS 38.211 [39] for extracting UAV micro-
+Doppler features using the BS, as shown in Fig. 1(b).
+In Subsection II-B, we present the ISAC echo representation of
+the UAV, taking into account the dynamic RCS characteristics
+and the rotational motion of the rotor blades, as well as the
+translational and vibrational motion of the UAV body. Then,
+in Subsection II-C, the CSI is provided, which contains target
+range, Doppler, and micro-Doppler information.
+A. 5G NR TDD Frame Conﬁguration
+The ISAC system proposed in this paper is based on the
+5G new radio (NR) protocol. The 5G NR basic resource
+unit in the time domain is the radio frame, with each radio
+frame lasting for 10 ms and consisting of 10 subframes,
+each with a duration of 1 ms. With the subcarrier spacing
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 3 =====
+10168
+IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 24, NO. 12, DECEMBER 2025
+Fig. 1.
+Low altitude UAV identiﬁcation scenario and frame structure con-
+ﬁguration (a) Urban low altitude UAV identiﬁcation scenario (b) TD-ISAC
+Conﬁguration.
+of 30 kHz, each subframe contains 2 slots and each slot con-
+tains 14 orthogonal frequency division multiplexing (OFDM)
+symbols. In the TDD mode, there are three types of slots
+between BS and UE: downlink (DL) slots, ﬂexible slots and
+uplink (UL) slots. DL slots are used for broadcasting by the
+BS and transmitting control information and communication
+data to UE. The ﬂexible slots serve as intervals for switching
+between UL and DL transmissions. UL slots are used for UE
+feedback and information reporting to BS.
+Micro-Doppler feature extraction requires the sensing sym-
+bols in the ISAC system to be sufﬁciently dense. Therefore, we
+consider a frame structure designed for UAV micro-Doppler
+feature extraction as shown in Fig. 1(b). During DL slots, the
+BS utilizes all physical downlink shared channel (PDSCH)
+signals as sensing symbols, resulting in the shortest pulse
+repetition interval (PRI) of 33.3 µs. Currently, BS operates
+in a TDD mode with a single cycle duration of 2.5 ms, i.e.,
+“DDDSU”, as the ISAC mode. After BS detects an unknown
+ﬂying target, it transmits communication signals to the tar-
+get in the DL slots while simultaneously receiving echoes.
+In this sensing mode, the extracted micro-Doppler features
+are unambiguous.
+B. Received Signal Model
+In sensing applications, we select several radio frames as
+one coherent processing interval (CPI). During a single CPI,
+the BS transmits a total of M PDSCH OFDM symbols during
+DL slots. The transmitted baseband signal s (t) within a single
+Fig. 2. Geometry of the BS and the UAV rotation.
+CPI is expressed as
+s (t) =
+M
+X
+m=1
+N
+X
+n=1
+DTX (n, m)
+× exp (j2πn∆ft) rect
+t −mTs
+Ts
+
+,
+(1)
+where N
+denotes the number of subcarriers. DTX
+∈
+CN×M represents the resource grid that transmits signals and
+DTX (n, m) is the m symbol modulated on the n subcarrier,
+also called the complex modulation symbol. ∆f is the sub-
+carrier interval and Ts =
+1
+∆f + Tg denotes the total duration
+of one OFDM symbol including that of the cyclic preﬁx (CP)
+Tg. rect (·) is a rectangular window of unity support.
+The ISAC transmission signal propagates in free space and
+is reﬂected by the target. The transmitted signal in the time
+domain is s (t) exp (j2πfct) and fc represents the central
+frequency of the transmitter. Considering that there is a strong
+scattering point, the received signal ey (t, R (t) , ζ (t)) at the
+receiving end is
+ey (t, R (t) , ζ (t)) = ζ (t) s
+
+t −2R (t)
+c
+
+exp (j2πfct)
+× exp
+
+−j2πfc
+2R (t)
+c
+
+,
+(2)
+where ζ (t) is the scattering intensity and R (t) is the distance
+from the scattering point to the BS.
+Scatterers on the UAV exhibit different motion and scat-
+tering intensity characteristics. In particular, the scatterers on
+the rotor display both translational and rotational motions.
+The rotational motion induces dynamic variations in the RCS,
+resulting in time-varying scattering intensities [29]. In contrast,
+the scatterers on the UAV body exhibit both translational and
+vibrational motions [31]. The analysis is presented as follows.
+The geometry of the ISAC BS and the UAV rotor is shown
+in Fig. 2. For simplicity, the UAV is modeled as a set of
+point scatterers, which are the primary reﬂecting points on the
+target. The target depicted in Fig. 2 represents one of the UAV
+blades. The BS is located at the origin (X, Y, Z) of the space-
+ﬁxed coordinates. The rotor is described in a local coordinate
+system (x, y, z) that is attached to the target and has translation
+and rotation with respect to the BS coordinates. To observe
+the rotation of the rotor, a reference coordinates (X′, Y ′, Z′)
+is introduced, which shares the same origin with the target
+local coordinates and thus has the same translation as the
+target but no rotation with respect to the BS coordinates. The
+distance from the BS to the UAV origin is R0. The azimuth and
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 4 =====
+WEI et al.: UAV’s ROTOR MICRO-DOPPLER FEATURE EXTRACTION USING ISAC SIGNAL
+10169
+elevation angles of the reference coordinate origin observed by
+the BS are α and θ, respectively.
+The rotor has a translation velocity v relative to the BS
+and rotates around the Z-axis with a rotational speed of fr.
+Thus, a point scatter p in the UAV rotor at time t = 0
+will move to p′′ at time T. The movement consists of two
+steps: (1) translation from p to p′, as shown in Fig. 2, with a
+velocity v; and (2) rotation from p′ to p′′ with a rotational
+speed of fr. The modeling of the motion characteristics and
+scattering properties of different scatterers on the UAV is as
+follows:
+1) UAV Body Translation: The body of the UAV can
+be regarded as a strong scattering point. The radial motion
+pattern of the scatterer on the body, representing translational
+movement relative to the BS, is as follows:
+Rbody
+trans (t) = R0 + vt.
+(3)
+During a single CPI, the radial motion distance of the UAV
+is very short. Hence, its scattering intensity ζbody (t) can be
+considered as a constant ζbody. Therefore, the echo from the
+scatterer due to the translational motion of the body can be
+expressed as
+ybody
+trans (t) = ey
+
+t, Rbody
+trans (t) , ζbody
+.
+(4)
+2) UAV Rotor Rotation: Each UAV is equipped with multi-
+ple blades, one of which is illustrated in Fig. 2. For simplicity,
+we ignore the distance between the UAV blade tip and the UAV
+body. Assuming an azimuth angle of α = 0, the distance from
+the BS to a scatter point p (located at the tip of the blade) is
+given by
+Rrotor
+p
+(t) = R0 + vt + L
+2 cos θ cos (2πfrt + ϕp) ,
+(5)
+where L is the length of the blade. ϕp represents the initial
+rotation angle of the scattering point p on the blade.
+The high-speed rotation of the blades results in a dynamic
+RCS [40]. To simplify matters, we can allocate the RCS of
+each blade to the blade’s tip [29]. The RCS of scatterer p at
+time t can be expressed as
+σrotor
+p
+(t) =
+∞
+X
+ℓ=1
+I
+X
+i=1
+ai sin
+
+bi
+fr
+100
+
+t +
+ϕp
+2πfr
+
++ ci
+
+× u1
+
+t −ℓ
+fr
++
+ϕp
+2πfr
+
+,
+(6)
+where [40]
+u1 (t) =
+(
+1,
+0 ≤t <
+1
+fr
+0,
+t >
+1
+fr ,
+(7)
+and I varies according to the material of the UAV blades.
+ai, bi and ci represent the coefﬁcients under different mate-
+rials, respectively. Within a single CPI, this dynamic RCS
+results in rapid variations in the scattering intensity ζrotor
+p
+(t).
+Considering multiple scatterers on multiple rotors, the echo
+from the scatterers due to the rotor rotation can be expressed
+as
+yrotor
+rotation (t) =
+P
+X
+p=1
+ey
+ t, Rrotor
+p
+(t) , ζrotor
+p
+(t)
+
+,
+(8)
+where P represents the total number of blades.
+Fig. 3. Geometry of the BS and the UAV vibration.
+3) UAV Body Vibration: In practical applications, due to
+the interaction between the UAV body and the air, the UAV
+experiences high-frequency vibrations, which are added to
+the echoes from the target [41]. These vibrations introduce
+non-stationary phase modulation, an effect widely studied in
+synthetic aperture radar (SAR) imaging, where they generate
+micro-Doppler effects and can lead to artifacts or “ghost” tar-
+gets [41]. Such observations justify the inclusion of vibration
+components in the UAV echo model, as they adversely affect
+the extraction of rotor micro-Doppler signal features.
+Assume that a scatterer q in the UAV body vibrates at
+a frequency fv with an amplitude Dv, and that the vibra-
+tion direction in the reference coordinate system (X′, Y ′, Z′)
+is characterized by an azimuth angle αq and an elevation
+angle θq, as shown in Fig. 3. For simplicity, if we assume
+that both α and θq are zero, then the distance from the BS to
+the scatterer q can be expressed as
+Rbody
+q
+(t) = R0 + vt + Dv sin (2πfvt) cos θ cos αq.
+(9)
+The vibration components primarily originate from the UAV
+body and have a very small amplitude [28], [29], [41]. Within
+a short CPI, the azimuth and elevation angle of the UAV
+body relative to the BS remain nearly unchanged. Therefore,
+the impact of the vibration on the RCS can be considered
+negligible. Therefore, the scattering intensity ζbody
+q
+(t) can also
+be considered as a constant ζbody. The echo from the scatterer
+q due to the vibration motion of the body can be expressed as
+ybody
+vibration (t) = ey
+ t, Rbody
+q
+(t) , ζbody
+.
+(10)
+The total scattering echo of the UAV is given by the coherent
+sum of all independent scattering centers at that instant,
+y (t) = ybody
+trans (t) + ybody
+vibration (t) + yrotor
+rotation (t) + n (t) ,
+(11)
+where n (t) is additive white Gaussian noise (AWGN).
+C. UAV CSI Model
+The signal in (11) is sampled at the receiver with a period
+of Ts. Therefore, the sampled echo can be expressed as y (tm),
+where tm = mTs ∈{Ts, 2Ts, · · · , MTs} represents the dis-
+crete time. After RF demodulation and OFDM demodulation,
+according to (1) and (11), the signal expression on the resource
+grid at the receiver is,
+DRX (n, m) = DTX (n, m) Θ (n, m) + Ω(n, m) ,
+(12)
+where DRX ∈CN×M. Ω(n, m) represents additive Gaussian
+white noise. The matrix Θ = kR ⊗kD, where kR ∈CN×1
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 5 =====
+10170
+IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 24, NO. 12, DECEMBER 2025
+carries the range information of the target, and kD ∈C1×M
+carries the Doppler and micro-Doppler information of the
+target. kR (n) and kD (m) are modeled as follows:
+kR (n) = exp
+
+−j2πn∆f 2R0
+c
+
+, n ∈{1, 2, · · · , N} ,
+(13)
+kD (m) = ktrans
+D
+(m) + kvibration
+mD
+(m) + krotation
+mD
+(m) ,
+m ∈{1, 2, · · · , M} ,
+(14)
+where ktrans
+D
+∈C1×M represents the Doppler phase infor-
+mation due to the translational motion of the UAV body.
+kvibration
+mD
+∈C1×M represents the micro-Doppler phase infor-
+mation due to the body vibration, and krotation
+mD
+∈C1×M
+represents the micro-Doppler amplitude-phase information due
+to the rotor rotation. The representations of ktrans
+D , kvibration
+mD
+and
+krotation
+mD
+are as follows:
+ktrans
+D
+(m) = ζbody exp (−j2πfD (m)) ,
+kvibration
+mD
+(m) = ζbody exp (−j2π (fD (m) + f v
+mD(m))) ,
+krotation
+mD
+(m) =
+P
+X
+p=1
+ζrotor
+p
+(m)
+× exp (−j2π (fD (m) + f p
+mD (m))) ,
+m ∈{1, 2, · · · , M} ,
+(15)
+where fD (m)
+=
+2vmTs
+λ
+represents the Doppler effect.
+f v
+mD (m) = 2Dv cos θ cos αq sin(2πfvmTs)
+λ
+represents the micro-
+Doppler effect caused by the vibration, and f p
+mD (m) =
+L cos θ cos(2πfrmTs+ϕp)
+λ
+represents the micro-Doppler effect
+caused by the rotor rotation.
+Divide the corresponding elements of the transmitted signal
+on the resource grid to eliminate the inﬂuence of the amplitude
+and phase of the data. The signal model of the CSI containing
+target motion information is established as follows:
+CSI (n, m) = DRX (n, m)
+DTX (n, m) = Θ (n, m) + Ω′ (n, m) ,
+(16)
+where Ω′ (n, m) =
+Ω(n,m)
+DTX(n,m) represents additive noise.
+III. UAV ROTOR FEATURE EXTRACTION ALGORITHM
+In this section, we present a method for extracting UAV
+micro-Doppler features using an ISAC BS. The overall process
+is illustrated in Fig. 4. First, in Subsection III-A, we introduce
+the matched ﬁltering method to determine the UAV’s position
+and provide the mixed signal model for decomposition. Then
+in Subsection III-B, an operator-based signal decomposition
+method, denoted by rmD-NSP, is adopted to extract the rotor
+micro-Doppler signals from the mixed signals. Finally, in
+Subsection III-C, the feature extraction method, denoted by
+SET, is applied to obtain the high resolution rotor features
+from the decomposed signals.
+A. Determine the UAV Position
+According to (13) and (16), the range R0 between the UAV
+and the BS can be obtained by performing an inverse discrete
+Fig. 4. Overall procedure of UAV feature extraction.
+Fourier transform (IDFT) along the columns of the CSI matrix.
+The matrix after IDFT processing is denoted as TRM:
+TRM
+=
+
+
+
+
+
+d (1) kD (1) d (1) kD (2) · · · d (1) kD (M)
+d (2) kD (1) d (2) kD (2) · · · d (2) kD (M)
+...
+...
+...
+...
+d (N) kD (1) d (N) kD (2) · · · d (N) kD (M)
+
+
+
+
+,
+(17)
+where TRM ∈CN×M, and d ∈CN×1 is given by,
+d (k) = IDFT [kR (n)] = 1
+N
+N
+X
+n=1
+kR (n) exp
+
+j 2π
+N nk
+
+= 1
+N
+N
+X
+n=1
+exp
+
+−j2πn∆f 2R0
+c
+
+exp
+
+j 2π
+N nk
+
+,
+k ∈{1, 2, · · · , N} .
+(18)
+When the UAV is present, |d| will exhibit a peak. Let
+kp
+∈{1, 2, . . . , N} denote the position where the peak
+appears. Then, we extract the kp-th row vector, denoted by
+suav ∈C1×M, from the TRM,
+suav = TRM (kp, :) = d (kp) kD.
+(19)
+In actual urban environments, the echoes contain not only
+the target but also signiﬁcant strong interfering clutter. Con-
+sidering this, the mixed signal model smix ∈CM×1 to be
+decomposed is formulated as follows:
+smix = sT
+uav + ηc,
+(20)
+where ηc ∈CM×1 represents the clutter and noise vector.
+According to (14) and (20), smix contains the body Doppler
+information ktrans
+D , the body vibration micro-Doppler infor-
+mation kvibration
+mD
+, the micro-Doppler information krotation
+mD
+, and
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 6 =====
+WEI et al.: UAV’s ROTOR MICRO-DOPPLER FEATURE EXTRACTION USING ISAC SIGNAL
+10171
+Fig. 5. The objective of the decomposition algorithm.
+clutter. Meanwhile, if the micro-Doppler feature extrac-
+tion processing is performed directly on smix, the resulting
+time-frequency spectrogram not only contains the rotor micro-
+Doppler features but also includes signiﬁcant interference. The
+micro-Doppler signals generated by body vibrations overlap
+with the rotor micro-Doppler signals, affecting the feature
+extraction results [31]. Moreover, the weak rotor micro-
+Doppler signals are obscured by strong interference, such as
+clutter and echoes from the UAV body.
+According to (6) and (15), the unique motion characteristics
+of the rotors modulate the echo in both amplitude and phase.
+Our approach leverages the distinctive amplitude-phase infor-
+mation of the rotor micro-Doppler signals krotation
+mD
+to separate
+them from the mixed signal smix using a signal decomposi-
+tion method. Subsequently, feature extraction processing is
+performed on the decomposed signal.
+B. Operator-Based Signal Decomposition Algorithm
+In Section III-A, we obtain a mixed signal smix that
+contains the rotor micro-Doppler signals d(kp)krotation
+mD
+along
+with various interference components. Our goal is to extract
+d(kp)krotation
+mD
+from smix to obtain the rotor micro-Doppler
+features, as shown in Fig. 5. This task is essentially a multi-
+component signal decomposition problem. Although several
+multi-component signal decomposition algorithms-such as
+empirical mode decomposition (EMD) and variational mode
+decomposition (VMD) [37], [38]–have been studied, they
+do not decompose the signal based on the speciﬁc form of
+the target, making them unsuitable for extracting the micro-
+Doppler signals from smix.
+Null space pursuit (NSP) is an adaptive operator-based
+signal decomposition method that constructs adaptive oper-
+ators to remove local narrowband signals in the null space
+for separation [32], [33], [34]. The main appeal of this
+algorithm lies in its ability to design an adaptive operator based
+on the target signal model, thereby enabling the extraction
+of the target signal from the mixed signal. The algorithm
+implementation consists of two main steps: (i) designing a
+parameterized operator based on the target signal form, and
+(ii) adaptively adjusting the operator parameters via null-space
+tracking while simultaneously extracting the target signal.
+In
+this
+paper,
+the
+target
+signal
+is
+the
+rotor
+micro-
+Doppler signal d(kp)krotation
+mD
+. By designing a speciﬁc oper-
+ator, we can achieve effective separation of the target
+signal.
+1) Parameterized Operator Design: Speciﬁcally, the NSP
+algorithm leverages prior information about the target signal.
+It designs adaptive operators based on the mathematical rep-
+resentation of the target signal, ensuring that the target signal
+falls into the null space of the operator.
+By examining the mathematical representation of the
+rotor micro-Doppler signal d(kp)krotation
+mD
+and referring to (6)
+and (15), we observe that d(kp)krotation
+mD
+is composed of
+the product of an amplitude term and a phase term. The
+phase term includes both linearly time-varying Doppler infor-
+mation fD(m) and nonlinearly time-varying micro-Doppler
+information f p
+mD(m), while the amplitude term contains the
+nonlinearly time-varying RCS information ζrotor
+p
+(m).
+Our approach is to utilize the unique amplitude-phase
+information of the rotor signal to construct an operator TmD,
+ensuring that d(kp)krotation
+mD
+falls into the null space of this
+operator. We deﬁne TmD[ xm] = 0 to indicate that the operator
+maps the sampled signal xm into its null space. In practical
+hardware processing, the signal is divided into its real and
+imaginary parts for separate acquisition. The operator TmD is
+then applied identically to both components. Here, we take the
+real part as an example,
+TmD
+h
+ℜ
+n
+d (kp) krotation
+mD
+(m)
+oi
+= 0.
+(21)
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 7 =====
+10172
+IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 24, NO. 12, DECEMBER 2025
+According
+to
+(15),
+the
+real
+part
+of
+rotor
+micro-
+Doppler
+signal
+ℜ
+n
+d (kp) krotation
+mD
+(m)
+o
+can
+be
+simpli-
+ﬁed
+to
+a (m) cos (φ1 (m) + φ2 (m)),
+where
+a (m)
+=
+ℜ
+
+d (kp) ζrotor
+p
+(m)
+	
+contains the amplitude modulation
+information (which varies with changes in the RCS), φ1(m) =
+f p
+mD(m) represents the micro-Doppler information, and
+φ2(m) = fD(m) represents the Doppler information.
+Typically, for signals of this form, a second-order differen-
+tial parameterized operator TmD is chosen to extract the target
+signal [33]:
+TmD[xm] = D2[xm] + p(m) D1[xm] + q(m) xm,
+(22)
+where D2 is deﬁned as the second-order difference operator
+and D1 is deﬁned as the ﬁrst-order difference operator. The
+parameters p ∈RM×1 and q ∈RM×1 characterize the
+operator.
+We substitute the simpliﬁed target signal expressions
+into (21),
+TmD [(a (m) cos (φ1 (m) + φ2 (m))] = 0.
+(23)
+By expanding (23) in detail and setting the coefﬁcients
+preceding the sine and cosine terms to zero, the expressions
+for the parameters p(m) and q(m) in the operator TmD can
+be derived. Due to the extremely small sampling interval
+Ts, the derivative of the sampled discrete-time sequence with
+respect to time closely approximates the derivative of the
+actual continuous-time signal. Let x′ (m) ≜
+dx(t)
+dt
+|t=mTs,
+x′′ (m) ≜
+d2x(t)
+dt2
+|t=mTs, and ¯φ (m) = φ1′ (m) + φ2′ (m),
+the following equation is given:
+(
+−2a′ (m) ¯φ (m) −a (m)
+ ¯φ′ (m) −¯φ (m) p (m)
+
+= 0,
+a′′ (m) + a′ (m) p (m) + a (m)
+ q (m) −¯φ2 (m)
+
+= 0.
+(24)
+Since
+φ2 (m)
+is
+a
+linear
+ﬁrst-order
+function
+of
+m,
+φ′′
+2 (m) = 0. We obtain the expressions for p (m) and q (m):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+p (m) = −2a′ (m)
+a (m) −φ′′
+1 (m)
+¯φ (m) ,
+q (m) = ¯φ (m)2 + 2
+a′ (m)
+a (m)
+2
++ a′ (m)
+a (m)
+φ′′
+1 (m)
+¯φ (m)
+−a′′ (m)
+a (m) ,
+(25)
+where
+ a′(m)
+a(m)
+ is the instantaneous bandwidth of the signal.
+We assume that ¯φ (m)2 + 2
+
+a′(m)
+a(m)
+2
++ a′(m)
+a(m)
+φ′′
+1 (m)
+¯φ(m) ≫a′′(m)
+a(m)
+according to [34]. We obtain the operator TmD,
+TmD = D2 +
+
+−2a′ (m)
+a (m) −φ′′
+1 (m)
+¯φ (m)
+
+D1
++ ¯φ (m)2 + 2
+a′ (m)
+a (m)
+2
++ a′ (m)
+a (m)
+φ′′
+1 (m)
+¯φ (m) .
+(26)
+At this point, the real part of the rotor micro-Doppler signal
+is in the null space of the designed operator. The operator
+design is complete.
+2) Null Space Pursuit Algorithm: According to the null
+space pursuit (NSP) theory, after designing the operator TmD
+speciﬁc to the real part of the target signal, the following
+optimization problem can be solved to estimate the parameters
+of the operator and separate the real part of the mixed signal
+sreal = ℜ{smix} ∈RM×1 into the target signal u = sreal −r ∈
+RM×1 and the residual r ∈RM×1,
+min
+r(m),p(m),q(m),λ1,γ
+n
+∥TmD (sreal (m) −r (m))∥2
++λ1
+ ∥r (m) ∥2 + γ∥sreal (m) −r (m) ∥2
++λ2
+
+∥D2q (m) + p (m)∥2o
+,
+(27)
+where λ1 and λ2 are the Lagrange multiplier, and λ1 gov-
+erns the balance between preserving the signal energy and
+effectively suppressing undesired components. γ is the leakage
+parameter determining the quantity of sreal (m) −r (m) pre-
+served in the null space of TmD. Speciﬁcally, γ controls how
+aggressively the operator (D + Pα) removes the component
+lying in its null space.
+We obtain the matrix form of corresponding augmented
+Lagrangian function as expressed in (27),
+F (r, θ, λ1, γ) = ∥D2 (sreal −r) + Aθ∥2
++ λ1
+ ∥r∥2 + γ∥sreal −r∥2
++ λ2 ∥M2θ∥2 ,
+(28)
+where θ =
+
+pT , qT T ∈R2M×1 contains the operator param-
+eters, which speciﬁcally include the instantaneous frequency
+and instantaneous bandwidth information of the signal at
+each time instant. A =
+ AD1(sreal−r) Asreal−r
+
+∈RM×2M.
+M2 =
+D2 E
+∈RM×2M, where E ∈RM×M is the identity
+matrix. D2 ∈RM×M and D1 ∈RM×M can be written
+as follows, which represent the second-order and ﬁrst-order
+differential matrices, respectively,
+D2 =
+
+
+−1 1
+0 · · · 0
+1 −2 1 · · · 0
+...
+... ... ...
+...
+0 · · · 1 −2 1
+0 · · · 0
+1 −1
+
+
+,
+(29)
+D1 =
+
+
+−1 1
+0 · · · 0
+0 −1 1 · · · 0
+...
+... ... ...
+...
+0 · · · 0 −1 1
+0 · · · 0
+0 −1
+
+
+.
+(30)
+We can solve the above problems by using an iterative
+algorithm. By iteratively calculating the parameters r, θ, λ1
+and γ, we can estimate the parameters of the operator TmD and
+extract the target micro-Doppler signal u. In the j-th iteration,
+the current residual signal is rj, the current leakage component
+is γj, and the current Lagrangian parameter is λj
+1. The speciﬁc
+parameter update process and sequence are as follows:
+(1) Iteration of θj: The parameter θj =
+h
+pjT , qjT iT
+can
+be obtained by solving the following subproblem,
+θj = arg min
+θ
+D2(sreal −rj) + Ajθ
+2 + λ2 ∥M2θ∥2 ,
+(31)
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 8 =====
+WEI et al.: UAV’s ROTOR MICRO-DOPPLER FEATURE EXTRACTION USING ISAC SIGNAL
+10173
+where Aj =
+ AD1(sreal−rj) Asreal−rj 
+. By setting the
+ﬁrst derivatives of F (r, θ, λ1, γ) with respect to θ to
+zero, we get
+ˆθ
+j = −
+
+AjT Aj + λ2M2
+T M2
+−1
+AjT D2(sreal −rj).
+(32)
+(2) Iteration of λj+1
+1
+: The parameter λj+1
+1
+is iteratively
+updated based on the NSP theory [32] which can be
+calculated as follows:
+λj+1
+1
+=
+1
+1 + γj
+sT
+realχjT sreal
+sT
+realχjT χjsreal
+,
+(33)
+where χj
+=
+
+TjT
+mDTj
+mD + (1 + γj)λj
+1E
+−1
+and
+Tj
+mD = D2 +
+
+ApjAqj 
+D1T ET T .
+(3) Iteration of rj+1: The parameter rj+1 can be obtained
+by solving the following subproblem
+rj+1 = arg min
+r
+D2(sreal −r) + Aθj2
++ λj+1
+1
+ ∥r∥2 + γj∥sreal −r∥2
+,
+(34)
+by setting the ﬁrst derivatives of F (r, θ, λ1, γ) with
+respect to r to zero, we get
+rj+1 =
+
+TjT
+mDTj
+mD + (1 + γj)λj+1
+1
+E
+−1
+×
+
+TjT
+mDTj
+mDsreal + λj+1
+1
+γjsreal
+
+.
+(35)
+(4) Iteration of γj+1: The parameter γj+1 can be iteratively
+updated according to the following equation [32]:
+γj+1 = (sreal −rj+1)T sreal
+∥sreal −rj+1∥2
+−1.
+(36)
+Algorithm 1 rmD-NSP to Extract the Micro-Doppler Signal
+Input: Mixed signal sreal, stopping threshold ε and the initial
+values of λ2, λ0
+1 and γ0.
+1: Initialization: Let j = 0, rj = 0, λj
+1 = λ0
+1 and γj = γ0
+2: repeat
+3:
+θj ←rj, Aj according to (32).
+4:
+λj+1
+1
+←λj
+1, γj, θj according to (33).
+5:
+rj+1 ←θj, γj, λj+1
+1
+according to (35).
+6:
+γj+1 ←rj+1 according to (36), and set j = j + 1.
+7: until
+rj+1 −rj2 > ε ∥sreal∥2
+Output:
+The
+extracted
+rotor
+micro-Doppler
+signal
+ˆu =
+ 1 + γj  sreal −rj
+.
+The value of the parameter λ2 is less sensitive to the
+separation result and is therefore set as a constant [32].
+The detailed procedure is illustrated in Algorithm 1, and the
+complexity analysis is provided in Appendix A.
+C. High-Resolution Feature Extraction Algorithm
+After applying the rmD-NSP decomposition algorithm
+described in the previous section, we have extracted the
+rotor micro-Doppler component d(kp)krotation
+mD
+from smix. Next,
+we extract the micro-Doppler features from this signal. SET
+is a novel time-frequency analysis method that produces
+spectrograms with more concentrated energy [35]. It extracts
+time-frequency coefﬁcients near the instantaneous frequency
+(IF) while discarding the remaining coefﬁcients, thereby
+enhancing performance for multi-component non-stationary
+signals. Therefore, we adopt SET for subsequent feature
+extraction.
+The main steps of this algorithm are as follows:
+1) The decomposed signal u obtained after the rmD-NSP
+algorithm retains most of the rotor micro-Doppler sig-
+nals. A modiﬁed short-time Fourier transform (STFT) is
+then performed on this signal:
+Su (η, m) =
++∞
+X
+ξ′=−∞
+u [ξ′ + m] g∗[ξ′] e−2πjηξ′
+=
++∞
+X
+ξ=−∞
+u [ξ] g [ξ −m] e−2πjη(ξ−m)
+= Mu (η, m) e2jπΦu(η,m),
+(37)
+where
+g (m)
+is
+a
+ﬁnite-length
+window
+function,
+Mu (η, m) is the magnitude of STFT results, and
+Φu (η, m) is the phase.
+(2) Based on the modiﬁed STFT result Su (η, m), we cal-
+culate the instantaneous frequency ˆωu (η, m) of u (m)
+as follows:
+ˆωu (η, m) =
+
+
+
+ℜ
+ ∂mSu (η, m)
+2jπSu (η, m)
+
+,
+|Su (η, m)| > γSET,
+∞,
+|Su (η, m)| ≤γSET,
+(38)
+where
+∂mSu (η, m)
+≜
+Su(η,m+1)−Su(η,m)
+Ts
+≈
+dSu(η,t)
+dt
+
+t=mTs
+. γSET > 0 is to eliminate the unstable
+phenomena or the inﬂuence of noise.
+(3) Perform energy extraction to obtain the SET result:
+SETu (η, m) = Su (η, m) δ (η −ˆωu (η, m))
+=
+(
+Su (η, m) ,
+η = ˆωu (η, m)
+0,
+η̸ = ˆωu (η, m) ,
+(39)
+where δ (η −ˆωu (η, m)) is used to gather the STFT
+coefﬁcients that have the same frequency to where they
+should appear.
+IV. SIMULATION RESULTS
+This section validates the effectiveness of extracting UAV
+features using ISAC signals through software simulations.
+First, in Subsection IV-A, we compare the micro-Doppler
+feature extraction performance under different frame struc-
+tures. In Subsection IV-B, we demonstrate the robustness
+of the proposed algorithm in various complex environments.
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 9 =====
+10174
+IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 24, NO. 12, DECEMBER 2025
+TABLE I
+SIMULATION PARAMETERS
+In Subsection IV-C, we apply the proposed algorithm to extract
+the micro-Doppler features of UAVs with different rotor speeds
+and rotor lengths, demonstrating its broad applicability. More-
+over, when multiple types of UAVs coexist, then the algorithm
+can distinguish and extract the micro-Doppler features of
+each UAV. In Subsection IV-D, we verify the convergence
+properties of the algorithm through simulation results. Finally,
+in Subsection IV-E, we present a comparative analysis of the
+proposed method against NSP [32], MTD [36], EMD [37],
+and VMD [38], highlighting its advantages in extracting UAV
+micro-Doppler signatures in complex environments.
+In the numerical simulations presented in this section, the
+transmitted waveform is OFDM. All simulation parameters
+are listed in Table I, including the target parameters for
+UAVs, birds, pedestrians, and vehicles, as well as the system
+parameters of the BS.
+The method that combines the integral model with the
+method of moments (MoM) to calculate the RCS of UAV
+rotors was proposed in [40]. It provides an analytical expres-
+sion for the RCS of rotating blades, validated through both
+simulations and experiments. Additionally, [40] presents the
+relevant coefﬁcients used in RCS calculations for carbon ﬁber
+blades, speciﬁcally the coefﬁcients ai, bi, and ci in (6) and (7).
+Therefore, in Section IV, we set ai, bi, and ci as follows
+a = [1.133, 0.425, 0.7121, −0.1588, 0.1046, 0.0027],
+b = [356.8, 1445, 608, 1946, 2236, 3513],
+c = [−0.1997, −2.464, 1.695, 1.319, −0.1277,
+−0.2433].
+(40)
+The scattering intensity ζ (t) in the simulations is given by
+the radar equation [42]. The relevant coefﬁcients [43] can be
+found in Table I
+ζ (t) = PtGtGrλ2σ (t)
+(4π)3 R4
+0
+,
+(41)
+where Pt is the transmit power. Gt and Gr are the trans-
+mitting and receiving antenna gains. λ is the wavelength.
+σ (t) represents the RCS of the scattering point.
+The variance σ2
+n of the AWGN n (tm) in the received
+sampled signal y (tm) is given by the following equation
+σ2
+n = BkTFn,
+(42)
+where B represents the system bandwidth and k is the Boltz-
+mann coefﬁcient. T represents the temperature coefﬁcient and
+Fn represents the receiver noise ﬁgure.
+The signal-to-noise ratio (SNR) at the BS receiver is deﬁned
+by the following equation. In the subsequent simulations in
+Section IV, we adjust the distance R0 between the target and
+the BS to vary the SNR
+SNR = PtGtGrλ2σ (t)
+(4π)3 R4
+0BkTFn
+.
+(43)
+A. Comparison of Micro-Doppler Features Under Different
+Frame Structures
+The conﬁguration of the frame structure directly inﬂuences
+the density of sensing symbols, which is critical for extracting
+unblurred UAV micro-Doppler features. To ensure that these
+features are preserved, the pulse repetition frequency (PRF)
+must be at least twice the maximum micro-Doppler frequency,
+i.e., PRF ≥2f max
+mD , where the maximum micro-Doppler
+frequency is given by f max
+mD
+=
+2πfrL
+λ
+. For example, using
+our hardware test parameters (fr = 80 r/s and L = 0.5 m),
+we obtain fmD = 2934 Hz, which requires a PRF of at least
+5868 Hz (corresponding to a PRI of less than 1.7 × 10−4 s).
+If DMRS signals are used as sensing symbols [44],
+[45], [46], the downlink sensing symbol interval would be
+1×10−4 s, which might appear to satisfy the PRI requirement.
+However, because the complete ISAC process includes uplink
+slots-during which no sensing symbols are transmitted-the
+overall sensing symbol density is insufﬁcient for accurate
+micro-Doppler extraction.
+To overcome this limitation, we propose the DDDSU frame
+structure as shown in Fig. 1(b), in which all PDSCH signals
+in the downlink slots are employed as sensing symbols. This
+conﬁguration achieves a downlink sensing symbol interval
+of 3.33 × 10−5 s, well below the required PRI. Although
+uplink slots do not carry sensing symbols, both simulations
+and hardware tests conﬁrm that the overall sensing symbol
+density is adequate for extracting clear UAV micro-Doppler
+features. While this sensing mode sacriﬁces some communi-
+cation resources, it is essential for meeting the stringent PRI
+requirements necessary for effective micro-Doppler extraction.
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 10 =====
+WEI et al.: UAV’s ROTOR MICRO-DOPPLER FEATURE EXTRACTION USING ISAC SIGNAL
+10175
+Fig. 6.
+Micro-Doppler feature extraction results under different frame
+structure conﬁgurations (a) DDDSU PDSCH (b) DDDSU DMRS (c) DDSUU
+PDSCH (d) DDSUU DMRS.
+Fig. 7. Micro-Doppler feature of rotor.
+In addition, we compare the DDDSU frame structure with
+DDSUU frame structure, including DMRS-based sensing [44],
+[45], [46], as shown in Fig. 6. When using demodulation
+reference signal (DMRS) as the sensing symbol, the micro-
+Doppler features exhibit signiﬁcant blurring, and the signal
+energy is lower compared to using PDSCH. Simulations are
+also conducted for other TDD modes, such as DDSU and
+DSDU, yielding consistent conclusions: without employing
+additional sparse recovery algorithms, only the use of the
+entire PDSCH signal ensures that the UAV’s micro-Doppler
+features remain clear and unblurred.
+B. Algorithm Extraction Results in Complex Scenarios
+In Subsection IV-B, we evaluate the robustness of the
+proposed algorithm across various scenarios. The simulated
+motion parameters of the UAV are set as R0 = 200 m,
+fr
+= 80 r/s, L = 0.5 m, v
+= 5 m/s and P
+= 1,
+resulting in the rotor micro-Doppler signal features depicted in
+Fig. 7. To enhance scene complexity, we gradually introduce
+interference signals. The robustness veriﬁcation is conducted
+in three scenarios:
+1) Scenario 1 Contains Both a Uav and a Vehicle: In
+Scenario 1, the CSI includes the micro-Doppler signals of the
+UAV rotors, the translational and vibration signals of the UAV
+body, as well as the translational motion signals of the vehicle.
+The motion parameters of the vehicle are listed in Table I.
+Due to the vehicle’s high RCS and relatively fast movement,
+its echo exhibits high intensity and introduces a signiﬁcant
+Doppler shift. As shown in the ﬁrst row of Fig. 8(a), a
+highly prominent spectral component appears at approximately
+600 Hz in the spectrogram. This strong component com-
+pletely overwhelms the micro-Doppler features of the UAV
+rotor, making them difﬁcult to distinguish. The ﬁrst row of
+Fig. 8(b) and (c) illustrates the decomposition and enhance-
+ment capabilities of the proposed algorithm. In the ﬁrst row
+of Fig. 8(b), the rmD-NSP algorithm successfully extracts
+the rotor micro-Doppler signals, while in the ﬁrst row of
+Fig. 8(c), the extracted signals’ micro-Doppler features are
+further enhanced.
+2) Scenario 2 Contains a Uav, a Vehicle, and a Bird:
+Building upon Scenario 1, we introduce the micro-Doppler
+signals of birds. The bird parameters are set as vbird = 10 m/s,
+ﬂapping frequency fﬂap = 8 Hz, ﬂapping amplitude Dﬂap =
+0.3 m and RCS σbird = 0.1 m2. The ﬂapping motion of
+bird wings also induces micro-Doppler signals; however, the
+ﬂapping frequency is generally much lower than the rotational
+frequency of UAV rotors [29]. Within a CPI of 0.1s, it is
+difﬁcult to observe a complete wingbeat cycle. The modulation
+frequency of the bird’s micro-Doppler signal is given by
+f bird
+mD = 4πfﬂapDﬂap cos (2πfﬂapt)
+λ
+.
+(44)
+As shown in the second row of Fig. 8(a), nonlinear time-
+varying micro-Doppler components corresponding to bird
+movements appear in the spectrogram. Due to the higher echo
+intensity of birds compared to UAV rotors, the UAV’s micro-
+Doppler features are no longer directly observable in the raw
+signal. The second row of Fig. 8(b) and Fig. 8(c) illustrate
+the results of the algorithm performing decomposition and
+enhancement in Scenario 2, effectively separating and extract-
+ing the UAV micro-Doppler features.
+3) Scenario 3 Contains a Uav, a Vehicle, a Bird and a
+Pedestrian: Scenario 3 extends Scenario 2 by further incor-
+porating the translational motion signals of pedestrians. The
+motion parameters of pedestrians are listed in Table I.
+As shown in the third row of Fig. 8, pedestrian Doppler
+components appear near the zero-frequency region. Despite
+this additional interference, the proposed algorithm success-
+fully extracts the UAV’s micro-Doppler features.
+C. Algorithm Extraction Results for Different Uav Types
+In Subsection IV-C, we evaluate the algorithm’s scalability
+in extracting micro-Doppler features from UAVs with vary-
+ing rotor speeds and counts, as well as its performance in
+multi-UAV scenarios. The veriﬁcation is conducted in three
+scenarios:
+1) Scenario 4 Dual-Rotor Uav: The simulated motion
+parameters of the UAV are set as R0 = 200 m, fr = 50 r/s,
+L = 0.5 m, v = 5 m/s and P = 2. Its rotational speed is
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 11 =====
+10176
+IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 24, NO. 12, DECEMBER 2025
+Fig. 8. Micro-Doppler feature extraction results for three different scenarios. Each row corresponds to a different scenario (a) micro-Doppler features of the
+original echo (b) micro-Doppler features of the signal extracted by the rmD-NSP algorithm (c) micro-Doppler features enhanced by SET.
+lower than in Scenarios 1-3, leading to a lower micro-Doppler
+frequency. The algorithm’s results are shown in the ﬁrst row
+of Fig. 9.
+2) Scenario 5 Tri-Rotor Uav: The simulated motion param-
+eters of UAV are set as R0 = 200 m, fr = 50 r/s, L = 0.5 m,
+v = 5 m/s and P = 3. The algorithm’s execution results are
+shown in the second row of Fig. 9.
+3) Scenario 6 A Low-Speed Dual-Rotor Uav, a High-Speed
+Single-Rotor Uav, a Vehicle, and a Bird: In Scenario 6, we
+simulate the algorithm’s performance in a complex environ-
+ment where multiple UAVs coexist. Speciﬁcally, the received
+echo at the BS contains the micro-Doppler signals of a low-
+speed dual-rotor UAV, with parameters fr = 30 r/s, L = 0.3
+m, v = 5 m/s, P = 2, as well as a high-speed single-rotor
+UAV with parameters fr = 80 r/s, L = 0.5 m, v = 5 m/s,
+P = 1. Additionally, the echoes include the translational and
+vibrational signals of both UAVs, as well as the translational
+motion signals of a vehicle and the micro-Doppler signals of
+birds. The motion parameters of the vehicle and birds are the
+same as those in Scenario 2.
+The simulation results are shown in Fig. 10. Fig. 10(a)
+presents the spectrogram of the mixed signal. Due to strong
+interference from the vehicle’s translational echo and bird
+echoes, the micro-Doppler features of both UAVs are difﬁcult
+to distinguish in Fig. 10(a). To address this issue, we ﬁrst
+apply the rmD-NSP algorithm to the mixed signal, obtaining
+a residual signal and a target signal. Due to the speciﬁc design
+of the operator, the periodically amplitude- and frequency-
+modulated micro-Doppler signals of the UAVs fall into the null
+space of the operator. As a result, the target signal simultane-
+ously retains the micro-Doppler features of both UAVs. Since
+the two UAVs have different rotor speeds, their modulation
+frequencies differ, allowing the algorithm to further separate
+the two micro-Doppler signals. The separation results are
+shown in Fig. 10(b) and Fig. 10(c), where the micro-Doppler
+features of both UAVs become clearly visible, and interference
+from the surrounding environment is effectively suppressed.
+D. Convergence Results of the Algorithm in Different
+Scenarios
+The theoretical analysis of the algorithm’s convergence is
+provided in Appendix B. To further validate its convergence,
+we conduct simulations across the six aforementioned scenar-
+ios. The simulation results are presented in Fig. 11.
+In Fig. 11, the horizontal axis represents the number of
+iterations, while the vertical axis denotes the residual variation
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 12 =====
+WEI et al.: UAV’s ROTOR MICRO-DOPPLER FEATURE EXTRACTION USING ISAC SIGNAL
+10177
+Fig. 9. Micro-Doppler feature extraction results for three different scenarios. Each row corresponds to a different scenario (a) micro-Doppler features of the
+original echo (b) micro-Doppler features of the signal extracted by the rmD-NSP algorithm (c) micro-Doppler features enhanced by SET.
+Fig. 10. Separation and feature extraction results of multiple UAV targets in complex environments (a) spectrogram of the original signal (b) spectrogram of
+the low-speed dual-rotor UAV extracted by the rmD-NSP (c) spectrogram of the high-speed single-rotor UAV extracted by the rmD-NSP.
+Fig. 11. Convergence curves of the algorithm in different scenarios.
+extracted by the algorithm, i.e.,
+rj+1 −rj2. It can be
+observed that the residual variation trends across all scenarios
+exhibit typical convergence characteristics. Speciﬁcally, as the
+number of iterations increases, the residual gradually decreases
+and eventually stabilizes. This demonstrates the robustness and
+stability of the proposed algorithm.
+E. Comparison Results of the Algorithm
+In Subsection IV-E, we compare the performance of dif-
+ferent algorithms in Scenario 3 to validate the advantages of
+the proposed method. Speciﬁcally, for the mixed signal in
+Scenario 3, we apply the MTD, VMD, and EMD algorithms
+to extract the UAV micro-Doppler features.
+Fig. 12 presents the comparison between the proposed algo-
+rithm and the MTD method. Fig. 12(a) shows the spectrogram
+of the mixed signal in Scenario 3, while Fig. 12(b) illustrates
+the spectrogram after processing with the MTD algorithm.
+It can be observed that MTD successfully suppresses interfer-
+ence near the zero-frequency region; however, the spectrogram
+still contains bird micro-Doppler signals and high-speed
+vehicle translational signals, both of which have signiﬁ-
+cantly higher energy than the rotor’s micro-Doppler signals.
+As a result, the rotor micro-Doppler features remain buried
+in the interference, making them difﬁcult to be extracted.
+In contrast, Fig. 12(c) and Fig. 12(d) show the results after
+applying the proposed algorithm for decomposition and fea-
+ture extraction, respectively. The clear and distinguishable
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 13 =====
+10178
+IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 24, NO. 12, DECEMBER 2025
+Fig. 12. Decomposition and feature extraction results of MTD and proposed
+method on the mixed signal in scenario 3 (a) raw signal (b) MTD (c) rmD-
+NSP (d) rmD-NSP plus SET.
+Fig. 13.
+EMD and VMD decomposition and feature extraction results for
+Scenario 3 (a) EMD (b) VMD.
+micro-Doppler features of the UAV rotors can now be
+observed, demonstrating the superior performance of the pro-
+posed method in isolating weak micro-Doppler signals from
+complex environments.
+Fig. 13 presents the decomposition and feature extraction
+results using VMD and EMD. Both methods decompose
+the mixed signal into ﬁve intrinsic mode function (IMF)
+components. However, none of the extracted IMF components
+exhibit the rotor’s micro-Doppler features, indicating that these
+methods fail to effectively extract the weak micro-Doppler
+signals.
+The underlying reason is that the proposed algorithm
+decomposes the signal based on the periodic amplitude and
+frequency modulation characteristics induced by UAV rotor
+motion. This property distinguishes rotors from other sensing
+targets, as very few objects exhibit periodic amplitude and
+frequency modulation within a window of 0.1 s. Therefore, we
+design the operator and signal extraction process speciﬁcally
+Fig. 14.
+RMSE under different SNRs for the different decomposition
+algorithm.
+based on this unique property, enabling effective separation
+and identiﬁcation of rotor micro-Doppler features.
+Since the results of EMD, VMD, and MTD demonstrate that
+these methods fail to extract valid UAV micro-Doppler signals,
+we further evaluate the performance of operator-based signal
+decomposition algorithms, including NSP, AM-FM NSP, and
+rmD-NSP, under different SNR conditions. The SNR is deﬁned
+as in (43), and we adjust the distance R0 between the target
+and the BS to vary the SNR. Additionally, the decomposition
+error, measured by the root mean square error (RMSE), is
+deﬁned as follows:
+RMSE =
+v
+u
+u
+t 1
+M
+M
+X
+m=1
+krotation
+mD
+(m) −ˆu (m)
+
+2
+,
+(45)
+where krotation
+mD
+represents the true rotor micro-Doppler signal in
+the simulation, while ˆu denotes the target signal extracted by
+the algorithm from the mixed signal. Thus, RMSE serves as
+a measure of the algorithm’s decomposition accuracy. When
+RMSE = 0, it indicates that the algorithm is able to perfectly
+extract the UAV micro-Doppler signal from the mixed signal,
+with zero error between the extracted target signal and the true
+signal.
+The simulation results are presented in Fig. 14. The SNR of
+the input signal increases in 1 dB increments from −10 dB to
+30 dB. Fig. 14 illustrates the RMSE of the three algorithms in
+decomposing rotor micro-Doppler signals. It can be observed
+that under a 30 dB SNR condition, the rmD-NSP algorithm
+achieves the lowest RMSE of only 0.07, compared to 0.17
+for AM-FM NSP and 0.38 for NSP. Even at a SNR of 5 dB,
+the rmD-NSP algorithm maintains strong performance with an
+RMSE of 0.34, outperforming the other two algorithms.
+V. HARDWARE TESTBED AND RESULTS
+The proposed algorithm is validated on the Sub-6G ISAC
+hardware testbed. The ISAC system is based on the 5G
+NR protocol and consists of UL and DL baseband signal
+processing, intermediate frequency modulation, 3.5 GHz RF
+modulation, and antenna modules. The parameters for the Sub-
+6G ISAC hardware testbed are identical to those listed in
+Table I. We employ the proposed frame structure to enable
+both sensing and communication functions. The test location
+is Ningbo, China, and the test scenario is shown in Fig. 15.
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 14 =====
+WEI et al.: UAV’s ROTOR MICRO-DOPPLER FEATURE EXTRACTION USING ISAC SIGNAL
+10179
+Fig. 15. UAV micro-Doppler extraction test scenario based on ISAC hardware
+testbed.
+The DJI M300 RTK UAV has a rotor length of 0.5 m, and
+a body area is 0.26 m × 0.13 m. The UAV was controlled to
+ﬂy uniformly along the radial direction of the BS at a speed
+of 5 m/s, while the ISAC BS collected the echoes to obtain
+the target’s CSI information.
+We apply the proposed rmD-NSP plus SET, AM-FM NSP
+[34], NSP [32], MTD [36], EMD [37], and VMD [38] algo-
+rithms to extract UAV micro-Doppler features. The results are
+shown in Fig. 16:
+• Fig. 16(a) presents the spectrogram at the UAV range cell
+without any processing. The rotor micro-Doppler signal
+is extremely weak, and no distinguishable micro-Doppler
+features can be observed.
+• Fig. 16(b) shows the spectrogram after applying the MTD
+algorithm, which effectively suppresses static targets.
+While some rotor micro-Doppler features emerge, their
+intensity remains very low, and the spectrogram is heavily
+contaminated by noise and interference components.
+• Fig. 16(c) and Fig. 16(d) display the extracted micro-
+Doppler features using EMD and VMD, respectively.
+Even after selecting the most representative IMF com-
+ponent, these methods fail to fully extract the UAV
+micro-Doppler features.
+• Fig. 16(e) presents the result obtained using AM-FM
+NSP, where the micro-Doppler features of the UAV
+become more evident, though their intensity remains low.
+• Fig. 16(f) shows the spectrogram extracted by the
+NSP algorithm, where the micro-Doppler features are
+incomplete and accompanied by signiﬁcant interference
+components.
+• Fig. 16(g) and Fig. 16(h) illustrate the results obtained
+using the proposed algorithm. The rotor micro-Doppler
+signals are now highly concentrated, while interference
+and noise components are effectively suppressed, demon-
+strating the superior performance of the proposed method
+in extracting UAV micro-Doppler features.
+The spectrogram obtained after applying the proposed algo-
+rithm shows that the rotor micro-Doppler signals exhibit high
+energy, clear features, and distinct periodicity. Within the
+Fig. 16. Comparison of various algorithms on hardware data (a) raw features
+(b) MTD (c) EMD (d) VMD (e) AM-FM NSP (f) NSP (g) rmD-NSP
+(h) rmD-NSP plus SET.
+observation period of 0.1 s, eight rotations are clearly observed
+in the spectrogram, which is consistent with the software sim-
+ulation results shown in Fig. 8(b). These results demonstrate
+that the ISAC BS can accurately extract the UAV’s rotor
+micro-Doppler features using the proposed algorithm in real
+urban scenarios.
+VI. CONCLUSION
+In order to enable the BS to extract the micro-Doppler
+features of aerial targets, this paper proposes a target fea-
+ture extraction technique. We ﬁrst consider a more realistic
+UAV scattering model that accounts for vibration char-
+acteristics, high-speed rotor rotation, and dynamic RCS
+variations. The primary objective is to extract weak UAV rotor
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 15 =====
+10180
+IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 24, NO. 12, DECEMBER 2025
+micro-Doppler signals from complex environments and per-
+form feature extraction.
+In the software simulations, we evaluate the effectiveness
+of the proposed rmD-NSP algorithm in extracting rotor micro-
+Doppler signals and compare it with the NSP, AM-FM NSP,
+EMD, VMD, and MTD signal decomposition algorithms.
+We also analyze the decomposition performance of the pro-
+posed method under different SNR conditions. Furthermore,
+we validate the algorithm through ISAC hardware testbed
+experiments. Using a Sub-6 GHz ISAC hardware testbed, we
+successfully extract the rotor micro-Doppler signal and obtain
+high-resolution features. Within the observation period of 0.1
+s, the ISAC BS successfully captures eight rotations of the DJI
+M300 RTK UAV’s rotor in an urban environment.
+APPENDIX A
+COMPUTATIONAL COMPLEXITY OF
+THE PROPOSED ALGORITHM
+The computational complexity of the rmD-NSP algorithm
+can be derived based on the implementation steps provided
+in Section III-B. Each iteration of the algorithm consists
+of four steps. Speciﬁcally, updating the operator parameters
+θj according to (32), the Lagrange parameters λj
+1 according
+to (33), and the residual components rj+1 according to (35)
+requires matrix multiplication and matrix inversion, resulting
+in a computational complexity of O(M 3) (j denotes the index
+of iteration and M denotes the number of OFDM symbols
+used for sensing). Additionally, updating the leakage param-
+eter γj+1 according to (36) involves computing vector inner
+products and norms, leading to a computational complexity
+of O(M). Therefore, the overall computational complexity of
+the proposed algorithm is O(M 3 + M).
+During our hardware tests, the value of M was 1680.
+We conducted algorithm runtime simulations on a machine
+equipped with a 13th Gen Intel R
+⃝CoreTM i9-13900HX proces-
+sor at 2.20 GHz with 16.0 GB of RAM (15.8 GB available).
+The experimental results show that the algorithm execution
+time is approximately 0.84 seconds. These results indicate
+that, while the algorithm is computationally intensive, it is
+feasible for real-time applications on state-of-the-art hardware.
+Moreover, further optimizations such as parallel processing or
+implementation on dedicated hardware (e.g., FPGA or GPU)
+can further enhance its real-time performance.
+APPENDIX B
+CONVERGENCE ANALYSIS OF THE PROPOSED ALGORITHM
+The algorithm is derived from the minimization problem
+proposed in Section-III
+F (r, θ, λ1, γ) = ∥D2 (sreal −r) + Aθ∥2
++ λ1
+ ∥r∥2 + γ∥sreal −r∥2
++ λ2 ∥M2θ∥2 ,
+(46)
+where r, θ, λ1, γ are the parameters to be optimized. More-
+over, the parameters λ1, γ and λ2 are both greater than
+zero, ensuring that all terms in the optimization problem are
+non-negative.
+At each iteration, the updates of θ and r are derived from
+the closed-form solutions of ∂F
+∂θ = 0 and ∂F
+∂r = 0. When λ1
+and γ are ﬁxed, the updates of θ and r can be viewed as a
+typical coordinate descent step
+θ ←arg min
+θ F (r, θ, λ1, γ) ,
+r ←arg min
+r
+F (r, θ, λ1, γ) .
+(47)
+Speciﬁcally, these two steps ensure that in the direction of θ
+or r, the objective function achieves its optimal value (or does
+not increase), thereby guaranteeing that F is monotonically
+non-increasing with respect to these parameters.
+The update of λ1 and γ is not directly obtained by solving
+∂F
+∂λ1
+= 0 and
+∂F
+∂γ
+= 0. Instead, they are based on the
+orthogonal signal decomposition approach proposed in [32].
+Speciﬁcally, they assume that a given signal s can be decom-
+posed as:
+s = ˜u + ˜r,
+˜uT˜r = 0,
+(48)
+where ˜u lies in the null space of the operator and and ˜u is
+orthogonal to ˜r. Next, the same reference [32] assumes that
+the optimal residual ˆr can be written as
+ˆr = β1 ˜u + β2 ˜r.
+(49)
+Here, the coefﬁcients β1 and β2 represent how the components
+˜u and ˜r are combined to form the residual. By analyzing the
+contributions of these components to the objective function,
+one can derive the relations between β1, β2 and the parameters
+λ1, γ in [32]. Based on the above assumptions and the model
+constraints in (48)–(49), the update formulas for λ1, γ can be
+derived by setting
+∂F
+∂β1 = 0 and
+∂F
+∂β2 = 0. Consequently, the
+updates of λ1, γ achieve a locally optimal (or approximate)
+solution in each iteration. From an algorithmic perspective,
+we can divide the parameters into two groups:
+• θ, r: updated by solving ∂F/∂θ = 0 and ∂F/∂r = 0
+under ﬁxed λ1, γ;
+• λ1, γ: updated by exploiting (48)–(49) to satisfy the
+signal decomposition assumptions.
+This leads to an alternating block-wise minimization plus
+model-based iteration scheme. Numerical experiments typi-
+cally demonstrate that this strategy achieves signiﬁcant error
+reduction and converges within a ﬁnite number of iterations.
+Further stability can be ensured by restricting γ within a
+proper range (e.g., [0, 1]) to avoid extreme cases. We validate
+the rationality of the proposed alternating iterative strat-
+egy through simulation tests in various scenarios, as shown
+in Fig. 11.
+REFERENCES
+[1]
+H. Shakhatreh et al., “Unmanned aerial vehicles (UAVs): A survey on
+civil applications and key research challenges,” IEEE Access, vol. 7,
+pp. 48572–48634, 2019.
+[2]
+J. Watling and N. Reynolds, “Meatgrinder: Russian tactics in the second
+year of its invasion of Ukraine,” Roy. United Services Inst. for Defence
+Secur. Stud., London, U.K., Tech. Rep., 2023.
+[3]
+Y. Mekdad et al., “A survey on security and privacy issues of UAVs,”
+Comput. Netw., vol. 224, Apr. 2023, Art. no. 109626.
+[4]
+Y. Huang, Q. Wu, R. Lu, X. Peng, and R. Zhang, “Massive MIMO
+for cellular-connected UAV: Challenges and promising solutions,” IEEE
+Commun. Mag., vol. 59, no. 2, pp. 84–90, Feb. 2021.
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 16 =====
+WEI et al.: UAV’s ROTOR MICRO-DOPPLER FEATURE EXTRACTION USING ISAC SIGNAL
+10181
+[5]
+Y. Cui et al., “Seeing is not always believing: ISAC-assisted predictive
+beam tracking in multipath channels,” IEEE Wireless Commun. Lett.,
+vol. 13, no. 1, pp. 14–18, Jan. 2024.
+[6]
+A. Zhang, Md. L. Rahman, X. Huang, Y. J. Guo, S. Chen, and
+R. W. Heath, “Perceptive mobile networks: Cellular networks with radio
+vision via joint communication and radar sensing,” IEEE Veh. Technol.
+Mag., vol. 16, no. 2, pp. 20–30, Jun. 2021.
+[7]
+A. Liu et al., “A survey on fundamental limits of integrated sensing
+and communication,” IEEE Commun. Surveys Tuts., vol. 24, no. 2,
+pp. 994–1034, 2nd Quart., 2022.
+[8]
+B. K. Chalise and B. Himed, “Performance tradeoff in a uniﬁed multi-
+static passive radar and communication system,” in Proc. IEEE Radar
+Conf., Apr. 2018, pp. 0653–0658.
+[9]
+Z. Wei et al., “Integrated sensing and communication signals toward
+5G-A and 6G: A survey,” IEEE Internet Things J., vol. 10, no. 13,
+pp. 11068–11092, Jul. 2023.
+[10] M. Li, S. Zhang, Y. Ge, F. Gao, and P. Fan, “Joint channel estimation
+and data detection for hybrid RIS aided millimeter wave OTFS systems,”
+IEEE Trans. Commun., vol. 70, no. 10, pp. 6832–6848, Oct. 2022.
+[11] J. A. Zhang et al., “An overview of signal processing techniques for joint
+communication and radar sensing,” IEEE J. Sel. Topics Signal Process.,
+vol. 15, no. 6, pp. 1295–1315, Nov. 2021.
+[12] D. Ma, N. Shlezinger, T. Huang, Y. Liu, and Y. C. Eldar, “FRaC: FMCW-
+based joint radar-communications system via index modulation,” IEEE
+J. Sel. Topics Signal Process., vol. 15, no. 6, pp. 1348–1364, Nov. 2021.
+[13] J. A. Zhang, X. Huang, Y. J. Guo, J. Yuan, and R. W. Heath Jr.,
+“Multibeam for joint communication and radar sensing using steerable
+analog antenna arrays,” IEEE Trans. Veh. Technol., vol. 68, no. 1,
+pp. 671–685, Jan. 2019.
+[14] M. Li, S. Zhang, Y. Ge, Z. Li, F. Gao, and P. Fan, “STAR-RIS aided
+integrated sensing and communication over high mobility scenario,”
+IEEE Trans. Commun., vol. 72, no. 8, pp. 4788–4802, Aug. 2024.
+[15] E. Grossi, M. Lops, L. Venturino, and A. Zappone, “Opportunistic radar
+in IEEE 802.11ad networks,” IEEE Trans. Signal Process., vol. 66,
+no. 9, pp. 2441–2454, Mar. 2018.
+[16] Q. Zhang, H. Sun, X. Gao, X. Wang, and Z. Feng, “Time-division ISAC
+enabled connected automated vehicles cooperation algorithm design and
+performance evaluation,” IEEE J. Sel. Areas Commun., vol. 40, no. 7,
+pp. 2206–2218, Jul. 2022.
+[17] K. Ji, Q. Zhang, Z. Wei, Z. Feng, and P. Zhang, “Networking based
+ISAC hardware testbed and performance evaluation,” IEEE Commun.
+Mag., vol. 61, no. 5, pp. 76–82, May 2023.
+[18] Q. Zhang, K. Ji, Z. Wei, Z. Feng, and P. Zhang, “Joint com-
+munication and sensing system performance evaluation and testbed:
+A communication-centric approach,” IEEE Netw., vol. 38, no. 5,
+pp. 286–294, Sep. 2024.
+[19] Q. Shi, L. Liu, S. Zhang, and S. Cui, “Device-free sensing in
+OFDM cellular network,” IEEE J. Sel. Areas Commun., vol. 40, no. 6,
+pp. 1838–1853, Jun. 2022.
+[20] W. Mao, Y. Lu, C.-Y. Chi, B. Ai, Z. Zhong, and Z. Ding,
+“Communication-sensing
+region
+for
+cell-free
+massive
+MIMO
+ISAC systems,” IEEE Trans. Wireless Commun., vol. 23, no. 9,
+pp. 12396–12411, Sep. 2024.
+[21] L. Xie, S. Song, and K. B. Letaief, “Networked sensing with AI-
+empowered interference management: Exploiting macro-diversity and
+array gain in perceptive mobile networks,” IEEE J. Sel. Areas Commun.,
+vol. 41, no. 12, pp. 3863–3877, Dec. 2023.
+[22] X. Chen et al., “Multiple signal classiﬁcation based joint communication
+and sensing system,” IEEE Trans. Wireless Commun., vol. 22, no. 10,
+pp. 6504–6517, Oct. 2023.
+[23] S. Li et al., “A novel ISAC transmission framework based on spatially-
+spread orthogonal time frequency space modulation,” IEEE J. Sel. Areas
+Commun., vol. 40, no. 6, pp. 1854–1872, Jun. 2022.
+[24] F. Dong, F. Liu, Y. Cui, W. Wang, K. Han, and Z. Wang, “Sensing as
+a service in 6G perceptive networks: A uniﬁed framework for ISAC
+resource allocation,” IEEE Trans. Wireless Commun., vol. 22, no. 5,
+pp. 3522–3536, May 2023.
+[25] Z. Hu, Z. Bai, Y. Yang, Z. Zheng, K. Bian, and L. Song, “UAV aided
+aerial-ground IoT for air quality sensing in smart city: Architecture, tech-
+nologies, and implementation,” IEEE Netw., vol. 33, no. 2, pp. 14–22,
+Apr. 2019.
+[26] V. C. Chen, The Micro-Doppler Effect in Radar. Norwood, MA, USA:
+Artech House, 2019.
+[27] L. C. Potter, D.-M. Chiang, R. Carriere, and M. J. Gerry, “A GTD-based
+parametric model for radar scattering,” IEEE Trans. Antennas Propag.,
+vol. 43, no. 10, pp. 1058–1067, Oct. 1995.
+[28] Q. Wang et al., “Reduction of vibration-induced artifacts in synthetic
+aperture radar imagery,” IEEE Trans. Geosci. Remote Sens., vol. 52,
+no. 6, pp. 3063–3073, Jul. 2013.
+[29] V. C. Chen, F. Li, S.-S. Ho, and H. Wechsler, “Micro-Doppler effect in
+radar: Phenomenon, model, and simulation study,” IEEE Trans. Aerosp.
+Electron. Syst., vol. 42, no. 1, pp. 2–21, Jan. 2006.
+[30] H. C. A. Costa, S. J. Myint, C. Andrich, S. W. Giehl, C. Schneider, and
+R. S. Thom¨a, “Modelling micro-Doppler signature of drone propellers
+in distributed ISAC,” in Proc. IEEE Radar Conf., May 2024, pp. 1–6.
+[31] Q. Wang et al., “Reduction of vibration-induced artifacts in synthetic
+aperture radar imagery,” IEEE Trans. Geosci. Remote Sens., vol. 52,
+no. 6, pp. 3063–3073, Jun. 2014.
+[32] S. Peng and W.-L. Hwang, “Null space pursuit: An operator-based
+approach to adaptive signal separation,” IEEE Trans. Signal Process.,
+vol. 58, no. 5, pp. 2475–2483, May 2010.
+[33] S. Peng and W.-L. Hwang, “Adaptive signal decomposition based on
+local narrow band signals,” IEEE Trans. Signal Process., vol. 56, no. 7,
+pp. 2669–2676, Jul. 2008.
+[34] X. Hu, S. Peng, and W.-L. Hwang, “Operator based multicomponent
+AM-FM signal separation approach,” in Proc. IEEE Int. Workshop
+Mach. Learn. Signal Process., Sep. 2011, pp. 1–6.
+[35] G. Yu, M. Yu, and C. Xu, “Synchroextracting transform,” IEEE Trans.
+Ind. Electron., vol. 64, no. 10, pp. 8042–8054, Oct. 2017.
+[36] M. Richards, J. Scheer, and W. Holm, Principles of Modern Radar:
+Basic Principles. Raleigh, NC, USA: SciTech Publishing, 2010.
+[37] N. E. Huang et al., “The empirical mode decomposition and the
+Hilbert spectrum for nonlinear and non-stationary time series analysis,”
+Proc. Roy. Soc. Lond. Ser. Math. Phys. Eng. Sci., vol. 454, no. 1971,
+pp. 903–995, Mar. 1998.
+[38] K. Dragomiretskiy and D. Zosso, “Variational mode decomposition,”
+IEEE Trans. Signal Process., vol. 62, no. 3, pp. 531–544, Feb. 2013.
+[39] Technical Speciﬁcation Group Radio Access Network; NR; Physical
+Channels and Modulation, Standard TR 38.211, 3GPP, Sep. 2021.
+[40] T. Li, B. Wen, Y. Tian, S. Wang, and Y. Yin, “Optimized radar waveform
+parameter design for small drone detection based on echo modeling and
+experimental analysis,” IEEE Access, vol. 7, pp. 101527–101538, 2019.
+[41] S. Radkowski and P. Szulim, “Analysis of vibration of rotors in
+unmanned aircraft,” in Proc. 19th Int. Conf. Methods Models Autom.
+Robot. (MMAR), Sep. 2014, pp. 748–753.
+[42] D. K. Barton, Radar Equations for Modern Radar. Norwood, MA, USA:
+Artech House, 2013.
+[43] 3GPP, TS 38.104, V18.7.0: NR; Base Station (BS) Radio Transmission
+and Reception (Release 18), Sep. 2024.
+[44] Z. Wei et al., “Multiple reference signals collaborative sensing for
+integrated sensing and communication system towards 5G-A and 6G,”
+IEEE Trans. Veh. Technol., vol. 73, no. 10, pp. 15185–15199, Oct. 2024.
+[45] P. Yuan and S. Ding, “A uniﬁed pilot design for integrated sensing and
+communications,” in Proc. IEEE Int. Conf. Commun. Workshops (ICC
+Workshops), Jun. 2024, pp. 414–419.
+[46] L. Ma, C. Pan, Q. Wang, M. Lou, Y. Wang, and T. Jiang, “A down-
+link pilot based signal processing method for integrated sensing and
+communication towards 6G,” in Proc. IEEE 95th Veh. Technol. Conf.
+(VTC-Spring), Jun. 2022, pp. 1–5.
+Jiachen Wei received the B.S. degree from Shanxi
+University, Shanxi, China, in 2022. He is cur-
+rently pursuing the Ph.D. degree with the Key
+Laboratory of Universal Wireless Communications,
+Ministry of Education, Beijing University of Posts
+and Telecommunications (BUPT), Beijing, China.
+His research interests include integrated sensing
+and communication (ISAC), micro-Doppler analy-
+sis, signal processing, machine learning, and signal
+denoising and interference mitigation.
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 17 =====
+10182
+IEEE TRANSACTIONS ON WIRELESS COMMUNICATIONS, VOL. 24, NO. 12, DECEMBER 2025
+Dingyou Ma received the B.Sc. degree in aerospace
+science and technology from Xidian University,
+Xi’an, China, in 2016, and the Ph.D. degree in
+electronics engineering from Tsinghua University,
+Beijing, China, in 2022. Since July 2022, he has
+been with the Key Laboratory of Universal Wireless
+Communications, Ministry of Education, School of
+Information and Communication Engineering, Bei-
+jing University of Posts and Telecommunications,
+as a Lecturer. His current research interests include
+communications signal processing, radar signal pro-
+cessing, and dual-function radar-communications systems.
+Feiyang He received the Ph.D. degree from Beihang
+University, Beijing, China, in 2013. His research
+interests include electromagnetic spectrum manage-
+ment and intelligent spectrum sharing technology.
+Qixun Zhang (Member, IEEE) received the B.E.
+and Ph.D. degrees from Beijing University of Posts
+and Telecommunications (BUPT), Beijing, China, in
+2006 and 2011, respectively. From March to June
+2006, he was a Visiting Scholar at the University of
+Maryland, College Park, MD, USA. From November
+2018 to November 2019, he was a Visiting Scholar at
+the University of Houston, Houston, TX, USA. He is
+currently a Professor at BUPT. He is active in ITU-
+R WP5A/5C/5D standards. His research interests
+include 5G mobile networks, integrated sensing and
+communication (ISAC) for autonomous driving vehicles, mmWave commu-
+nication systems, and uncrewed aerial vehicles communication.
+Zhiyong Feng received the B.S., M.S., and Ph.D.
+degrees from BUPT, Beijing, China, in 1993,
+1997, and 2009, respectively. She is currently
+a Professor at BUPT and the Director of the
+Key Laboratory of Universal Wireless Communica-
+tions, Ministry of Education, China. She is active
+in ITU-R WP5A/5C/5D, IEEE 1900, ETSI, and
+CCSA standards. Her research interests include 5G
+mobile networks, ISAC system design, wireless
+network architecture design, cognitive wireless net-
+works, universal signal detection and identiﬁcation,
+and network information theory.
+Zhengfeng Liu received the B.E. and M.S. degrees
+from Air Force Engineering University (AFEN),
+Xi’an, China, in 2001 and 2007, respectively. His
+research interests include electromagnetic spectrum
+management and low-altitude uncrewed aerial vehi-
+cle (UAV) regulation technologies.
+Taohong Liang received the B.E. and M.S. degrees
+from Air Force Engineering University (AFEN),
+Xi’an, China, in 1994 and 2007, respectively. His
+research interests include electromagnetic spectrum
+management and low-altitude uncrewed aerial vehi-
+cle (UAV) regulation technologies.
+Authorized licensed use limited to: DGIST. Downloaded on July 23,2026 at 06:50:22 UTC from IEEE Xplore.  Restrictions apply. 

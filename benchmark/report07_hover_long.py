@@ -91,6 +91,12 @@ def main():
                     help="2극(로터 관성) 시상수 [s]. 기본 끔. 켤 값의 문헌 범위 0.0125~0.025")
     ap.add_argument("--tag", default=None,
                     help="출력 접미사(기본: legacy 는 없음=기존 경로, 그 외 프리셋명)")
+    ap.add_argument("--shard", type=int, default=0)
+    ap.add_argument("--nshards", type=int, default=1,
+                    help="⭐자세를 range(shard, n, nshards) 로 나눈다. 위상은 먼저 다 만들어지므로 "
+                         "분할이 결과를 안 바꾼다. --merge 로 합친다.")
+    ap.add_argument("--merge", action="store_true",
+                    help="샤드를 합쳐 원장을 낸다(계산 없음).")
     ap.add_argument("--overwrite", action="store_true",
                     help="같은 이름의 원장이 이미 있으면 덮어쓴다(기본은 중단)")
     a = ap.parse_args()
@@ -144,6 +150,26 @@ def main():
           f"초기위상 {'𝒰(0,%.0f°)' % period_deg if jit.random_phase else '정렬(0)'} "
           f"{np.round(base_deg, 1).tolist()}", flush=True)
 
+    if a.merge:
+        import glob
+        sd = f"{ROOT}/outputs/hover_long_shards{tag}"
+        fs = sorted(glob.glob(f"{sd}/sh*.npz"))
+        if not fs:
+            raise SystemExit(f"⛔ 샤드가 없다: {sd}")
+        E = np.zeros(n, complex); seen = np.zeros(n, bool); secs = 0.0
+        for f in fs:
+            z = np.load(f); ii = z["idx"].astype(int)
+            E[ii] = z["E"]; seen[ii] = True
+            secs += float(np.asarray(z["meta"], float)[5])
+        miss = int((~seen).sum())
+        print(f"  샤드 {len(fs)} 개 병합 · 자세 {n-miss}/{n}"
+              + (f"  ⚠빠짐 {miss}" if miss else "  ✅빠짐 없음"))
+        if miss:
+            raise SystemExit("⛔ 빠진 자세가 있다. 죽은 샤드를 다시 돌려라.")
+        _merged = True
+    else:
+        _merged = False
+
     u = np.array([np.cos(np.radians(a.el)) * np.cos(np.radians(a.az)),
                   np.cos(np.radians(a.el)) * np.sin(np.radians(a.az)),
                   np.sin(np.radians(a.el))])
@@ -153,18 +179,39 @@ def main():
     #   2 초짜리 긴 창을 보므로 그 «자의 흔들림» 이 능선의 물결로 오독되기 딱 좋다.
     #   판은 로터 한 바퀴의 합집합 bbox 다 — rpm 이 흔들려도 각 로터가 그 봉투 안에 든다.
     #   SIONNA2_FREEZE_GRID=0 이면 None → 옛 동작(전후 비교 스위치).
-    gref = grid_ref_for_slowtime(fp.pose, fp.dirs, FC)
-    print("  격자(얼림) " + (f"n={gref.n} ({gref.n**2}발) · Rout={gref.Rout:.4f} m"
-                            if gref is not None else "OFF — SIONNA2_FREEZE_GRID=0"), flush=True)
+    gref = None if _merged else grid_ref_for_slowtime(fp.pose, fp.dirs, FC)
+    if not _merged:
+        print("  격자(얼림) " + (f"n={gref.n} ({gref.n**2}발) · Rout={gref.Rout:.4f} m"
+                                if gref is not None else "OFF — SIONNA2_FREEZE_GRID=0"), flush=True)
 
-    E = np.zeros(n, complex)
-    t0 = time.time()
-    for i in range(n):
-        E[i] = sbr_field(fp.pose(ph[i]), GM, FC, u, grid_ref=gref)
-        if i and i % 1000 == 0:
-            el = time.time() - t0
-            print(f"    {i}/{n}  {el:.0f}s  ETA {(n-i)/i*el/60:.1f}분", flush=True)
-    secs = time.time() - t0
+    # ⭐샤딩 (2026-08-11) — 2 초 창은 자세가 39,400 개라 한 프로세스로 7 시간이다.
+    #   ⛔안전한 이유: `rpm_t`·`ph` 를 **위에서 전부** 만든 뒤 여기로 온다. OU 적분과 cumsum 은
+    #     이미 끝났으므로 자세 i 의 장은 다른 자세와 **독립**이다. 시드가 같으면 어떤 샤드
+    #     분할이어도 `ph` 가 같으므로 결과가 분할에 안 걸린다.
+    #   nshards=1 이면 아래가 옛 경로와 **글자 그대로 같다**(idx = 0..n-1).
+    if not _merged:
+        idx = np.arange(a.shard, n, a.nshards)
+        Es = np.zeros(idx.size, complex)
+        t0 = time.time()
+        for j, i in enumerate(idx):
+            Es[j] = sbr_field(fp.pose(ph[int(i)]), GM, FC, u, grid_ref=gref)
+            if j and j % 500 == 0:
+                el = time.time() - t0
+                print(f"    shard {a.shard}: {j}/{idx.size}  {el:.0f}s  "
+                      f"ETA {(idx.size-j)/j*el/60:.1f}분", flush=True)
+        secs = time.time() - t0
+
+        if a.nshards > 1:
+            sd = f"{ROOT}/outputs/hover_long_shards{tag}"
+            os.makedirs(sd, exist_ok=True)
+            np.savez_compressed(f"{sd}/sh{a.shard:02d}.npz", idx=idx, E=Es,
+                                meta=np.array([a.shard, a.nshards, n, prf, a.seed, secs]))
+            print(f"\n✅ shard {a.shard}/{a.nshards} · {idx.size} 자세 · "
+                  f"{secs/60:.1f}분 → {sd}", flush=True)
+            return
+        # nshards=1 이면 idx 가 0..n-1 이라 그대로 옛 경로와 같다
+        E = np.zeros(n, complex)
+        E[idx] = Es
 
     np.savez_compressed(npz_path, E=E, t=t, rpm_t=rpm_t, base_phase_deg=base_deg)
     json.dump({"_meta": {"generated": time.strftime("%Y-%m-%d %H:%M:%S"),

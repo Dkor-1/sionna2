@@ -1,0 +1,691 @@
+
+===== PAGE 1 =====
+Fuse-then-Detect
+for Passive UAV Localization
+Using Multi-UE 5G Uplink Signals
+Wenyu Huang∗, Nuria Gonz´alez-Prelcic∗, Vishnu Ratnam†,
+Murat Bayraktar†, and Charlie Jianzhong Zhang†
+∗Department of Electrical and Computer Engineering, University of California San Diego, USA
+†Standards and Mobility Innovation Lab, Samsung Research America, USA
+Email:{wenyuhuang, ngprelcic}@ucsd.edu, {vishnu.r, m.bayraktar, jianzhong.z}@samsung.com
+Abstract
+Low-altitude uncrewed aerial vehicles (UAVs) can pose growing risks to airspace safety,
+security, and privacy. Cellular infrastructure can passively sense them without dedicated radar
+hardware by exploiting integrated sensing and communication (ISAC) technology. Most prior work
+exploits monostatic sensing or bistatic/multistatic configurations based on downlink measurements.
+To the best of our knowledge, this paper presents the first uplink framework, where multiple
+user equipments (UEs) transmit sounding reference signal (SRS) pilots and the base station
+(BS) receives the UAV-scattered echoes. Sensing from uplink SRS, however, introduces new
+challenges. Each UE has its own oscillator and timing loop, so the channel estimate at the BS
+carries residual timing, frequency, and amplitude impairments that corrupt the UAV delay and
+Doppler. Moreover, the UAV echo is weaker than both the line-of-sight (LOS) path and urban
+clutter, so detection from a single UE transmission is not reliable. We address these challenges
+by designing a LOS-referenced synchronization scheme and a joint detector. The synchronization
+reuses the existing timing advance (TA) command and an adjacent-occasion conjugate product to
+remove the residuals without additional signaling. Then the detector searches a shared 3D state
+space and accumulates evidence across UEs. It leverages a normalized contrast that exploits the
+bistatic geometry. We evaluate the framework in a cluttered urban scene at frequency range 1
+(FR1) with four pedestrian UEs and a 100 MHz 5G New Radio (NR) waveform. The proposed
+pipeline achieves sub-nanosecond synchronization and a 4.84 m median 3D position error.
+Index Terms
+Uplink sensing, ISAC, distributed ISAC, UAV detection, multistatic localization.
+I. INTRODUCTION
+Low-altitude UAVs pose growing challenges for airspace safety, critical-infrastructure security,
+and personal privacy. Conventional UAV sensing mainly relies on dedicated radar systems, e.g.,
+[1]. In contrast, cellular ISAC reuses existing BSs as transmitters and/or receivers [2], offering a
+lower-cost alternative that can exploit the dense coverage of cellular networks.
+Prior work on active and passive ISAC solutions for UAV detection has largely focused on
+monostatic configurations based on MIMO-OFDM radar [3] or on bistatic/multistatic approaches
+This work was supported in part by Samsung Research America.
+This work has been submitted to the IEEE for possible publication.
+arXiv:2607.11955v1  [eess.SP]  12 Jul 2026
+
+===== PAGE 2 =====
+that exploit downlink measurements [4]. Monostatic solutions require full-duplex hardware
+and careful self-interference management [5]. Moreover, single-BS operation is vulnerable to
+obstructions and often performs poorly for distant UAVs [6]. Downlink-based bistatic or multistatic
+sensing can benefit from the high BS transmit power, but requires channel state information (CSI)
+feedback, target visibility depends on downlink traffic scheduling, and remains vulnerable to
+blockage [7]. Multi-cell approaches can improve coverage, but they require coordinated operation
+of multiple transmit and receive BSs, which substantially complicates network management,
+synchronization, and calibration [8].
+In this paper, we consider a distributed FR1 sensing architecture that exploits uplink transmissions.
+Specifically, we reuse standard SRS pilots, which are transmitted by multiple UEs for multi-user
+channel estimation [9]. After the SRS transmissions are coarsely synchronized across UEs through
+the TA command [10], the UAV acts as a scatterer of these pilots, and its state is embedded in
+the multiple uplink channel estimates observed at the BS. In this way, the BS obtains multiple
+bistatic views of the target from different UE–UAV–BS paths. The approach requires no waveform
+modification and is compatible with existing infrastructure and current cellular operation for
+multi-user MIMO communication. However, uplink sensing also introduces several challenges,
+most notably synchronization under communication-oriented receiver processing and fusion under
+strong clutter.
+Because our goal is to enable sensing as a byproduct of communication with minimal changes
+to a standard-compliant receiver, we assume that the uplink channel estimates are obtained after
+conventional time and frequency synchronization for communication have been applied [11]. As a
+result, existing bistatic ISAC approaches that introduce a dedicated sensing synchronization stage
+after digital-to-analog conversion cannot be directly applied to our setting [12], [13]. Furthermore,
+typical FR1 SRS bandwidths provide only limited delay resolution, making it difficult to separate
+multipath components finely enough to support delay-domain time synchronization [13].
+Detection under strong clutter is another key challenge. UEs transmit at approximately
+23 dBm [14], far below typical BS downlink transmit powers, and the small physical size of many
+UAVs further weakens the scattered echo. Consequently, the UAV echo can be easily masked
+by urban clutter. A conventional detect-then-fuse strategy [6], where each UE view is processed
+independently before fusion, is ineffective in this regime because no single UE is likely to isolate
+the UAV echo reliably. In addition, UE mobility changes the observed bistatic Doppler, which
+can bias velocity estimation if not explicitly accounted for.
+To the best of our knowledge, this is the first system model and solution for passive UAV
+detection and localization using standard 5G NR uplink resources from multiple mobile UEs. The
+main contributions are as follows:
+• We formulate an uplink UAV sensing signal model under realistic 5G receiver impairments,
+including timing errors, Doppler-reference errors, gain variations, and phase errors across
+SRS occasions.
+• We propose a LOS-referenced synchronization scheme that reuses the 5G NR TA command
+and an adjacent-occasion conjugate product to suppress timing drift, phase drift, and gain
+variation for each UE without additional signaling.
+• We develop a fuse-then-detect pipeline that combines range-normalized evidence from multiple
+UEs in a common 3D state space. By enforcing bistatic geometric consistency, the proposed
+method reveals UAV echoes that are too weak to be detected from any single UE view.
+• We evaluate the proposed method using a Friis bistatic channel and a 100 MHz NR waveform
+at FR1. The proposed pipeline achieves a 4.84 m median 3D position error and a useful
+
+===== PAGE 3 =====
+Bistatic UAV echo  (UE→UAV→BS)
+LOS path (Uplink SRS transmission)
+Static clutter
+Dynamic clutter
+UE 1
+UE 2
+UE 3
+UE 4
+UAV
+BS
+Fig. 1. System model for urban uplink passive UAV sensing.
+detection rate nearly four times that of a detect-then-fuse baseline.
+II. SYSTEM MODEL
+A. Uplink SRS-Based UAV Sensing Scenario
+As shown in Fig. 1, we consider an urban single-cell uplink scenario, where K ground UEs
+transmit standard 5G NR SRS to a BS with an Mh ×Mv half-wavelength-spaced isotropic UPA. A
+small UAV acts as a passive aerial target and reflects the uplink SRS. The propagation environment
+naturally includes static scatterers, such as buildings and ground reflections, as well as dynamic
+scatterers, such as ground vehicles. The ground UEs move as pedestrians. The system operates at
+carrier frequency fc with wavelength λ = c/fc, subcarrier spacing ∆f, and N contiguous active
+subcarriers covering bandwidth B = N∆f. For each SRS occasion s = 0, . . . , S −1, where S is
+the number of occasions in the observation window, the BS estimates the uplink channel from
+UE k on each active subcarrier, yielding Hk[n, s] ∈CM, n ∈{0, . . . , N −1}. The S occasions
+are separated by TSRS. The full observation tensor bH ∈CM×K×N×S serves as the input to the
+sensing algorithm. Therefore, our proposed UAV sensing framework directly reuses standard
+uplink cellular resources, without dedicated radar waveforms, extra sensing pilots, or additional
+sensing hardware.
+B. Uplink Receiver Processing and Residual Impairments
+The BS performs standard 5G NR uplink synchronization and channel estimation before
+exporting bHk[n, s]. Time synchronization of the multi-UE SRS transmissions is performed through
+the TA procedure following [10]. Frequency synchronization at the BS first removes a coarse
+frequency offset using uplink reference signals. The phase-tracking reference signal (PT-RS) is
+then used to track the residual common phase error [9]. Therefore, the channel estimate bHk[n, s]
+carries three classes of impairments, as described below, that are common to every propagation
+path of UE k at occasion s.
+Residual timing offset. To align transmission timing, the BS commands UE k to advance its
+transmission by TTA,k[s], which approximates the true propagation delay τ prop
+k
+= ∥pk −pBS∥/c,
+
+===== PAGE 4 =====
+where pk and pBS denote the positions of UE k and the BS. The TA command differs from
+τ prop
+k
+by an estimation error τk,est[s] and a quantization error τk,q[s], yielding TTA,k[s] = τ prop
+k
+−
+τk,est[s] −τk,q[s]. After UE k applies TTA,k[s] as pre-compensation, the residual timing offset is
+∆tk[s] = τk,est[s] + τk,q[s] + τk,clk[s] + δtsync
+k
+[s],
+(1)
+where τk,clk[s] is the phase offset between UE k’s sampling clock and the BS timing reference.
+Small updates of the receiver timing reference introduce occasion-to-occasion sampling jitter,
+denoted by δtsync
+k
+[s]. This residual induces a phase ramp across subcarriers.
+Common Frequency Reference. The frequency synchronization loop estimates and removes a
+Doppler reference νref,k[s] for each UE from bHk. This reference absorbs the carrier frequency
+offset (CFO) and part of the dominant slow-time Doppler seen by the receiver. It is mainly
+estimated from uplink reference signals such as SRS, while the remaining common phase rotation
+can be tracked by PT-RS. Consequently, the Doppler of path ℓin bHk takes the form
+νobs
+kℓ[s] = ¯νkℓ[s] −νref,k[s],
+(2)
+where ¯νkℓ[s] is the physical Doppler of path ℓ. Since νref,k[s] has been absorbed by the receiver,
+it cannot be directly recovered from bHk. Only νobs
+kℓ[s] are observable.
+Common complex scalar. A complex scalar βk[s] ∈C summarizes the remaining common
+amplitude and phase distortion within occasion s. It includes automatic gain control (AGC)
+variation, oscillator phase noise, residual common phase error after PT-RS tracking, and residual
+CFO [11], [15].
+C. Uplink Bistatic Channel Model
+The estimated channel component of path ℓfrom UE k is
+hkℓ[n, s] = βk[s] αkℓ[s] e−j2πn∆f(τkℓ[s]+∆tk[s])
+· e j2πsTSRS νobs
+kℓ[s] aBS(ϕkℓ[s], θkℓ[s]),
+(3)
+where αkℓ[s] ∈C is the complex path gain, τkℓ[s] is the absolute propagation delay of path ℓ, and
+aBS(ϕ, θ) ∈CM is the BS array response evaluated at the azimuth ϕkℓ[s] and elevation θkℓ[s]
+of the path arrival direction. The phase across subcarriers carries the physical path delay τkℓ[s]
+shifted by the common timing residual ∆tk[s], while the phase across SRS occasions carries the
+observed Doppler νobs
+kℓ[s] from Eq. (2).
+Assuming that the LOS path exists, we decompose the estimated channel into the LOS path,
+static clutter, dynamic clutter, the UAV echo, and residual noise as
+bHk[n, s] = HLOS
+k
+[n, s] + Hst
+k [n, s] + Hdy
+k [n, s]
++ HUAV
+k
+[n, s] + Ek[n, s].
+(4)
+Here, HLOS
+k
+[n, s] is the direct UE–BS path, Hst
+k [n, s] represents static clutter from buildings and
+ground reflections, Hdy
+k [n, s] represents dynamic clutter from ground vehicles, and HUAV
+k
+[n, s] is
+the UE–UAV–BS bistatic echo. Ek[n, s] collects channel estimation noise. For the UAV echo,
+with UAV position q[s], the propagation delay is
+τ UAV
+k
+[s] = ∥pUE,k[s] −q[s]∥+ ∥q[s] −pBS∥
+c
+.
+(5)
+UE motion also contributes to the observed bistatic Doppler.
+
+===== PAGE 5 =====
+III. PROPOSED UPLINK UAV SENSING FRAMEWORK
+The uplink setting introduces two challenges absent in downlink or monostatic ISAC. First,
+each UE’s channel estimate carries an independent timing offset, frequency reference, and
+amplitude scalar that corrupt the delay and Doppler signatures needed for localization. This
+makes synchronization design necessary. Second, the uplink echo power is limited by the UE
+transmitter, whereas the higher BS transmit power makes downlink ISAC generally more favorable
+for long-range UAV detection and tracking. In the uplink case, bistatic propagation loss and small
+UAV RCS make the UAV echo much weaker. Strong clutter paths and sidelobes make it difficult
+to isolate the UAV echo.
+Our proposed framework addresses these challenges and only reuses quantities already produced
+inside the BS. First, the LOS-referenced synchronization uses the LOS path of each UE as a
+timing and phase reference to remove the corresponding distortions. Then, the two-step clutter
+suppression reduces dominant static and low-elevation clutter without aggressively removing weak
+aerial candidates. Geometry-coupled bistatic fusion then searches a shared three-dimensional state
+space and combines weak UAV evidence from all K UEs through physical bistatic constraints.
+Finally, a closed-form ray-delay intersection recovers the UAV position from the validated cluster.
+Note that since the ground UEs are pedestrian users, their movement within the observation
+window is small relative to the delay resolution. Therefore it has limited impact on localization
+after detection.
+A. LOS-Referenced Synchronization
+In Eq. (3), βk[s] and the receiver Doppler reference νref,k corrupt the delay and Doppler
+signatures needed for sensing. A reference path is needed to remove these distortions. We observe
+that the LOS path is a natural choice. It is usually the strongest path, shares the same common
+distortion βk[s] with the UAV echo, and has an approximate delay already provided by the TA
+command without extra cost. Therefore, assuming that a UE–BS LOS path is available for each
+UE, we reuse only the TA command, requiring no additional signaling or UE modification. The
+algorithm proceeds in four steps. Step 1 estimates the LOS delay and direction. Step 2 projects
+the channel onto this direction. Step 3 uses an adjacent-occasion conjugate product to remove
+all phase terms constant across occasions and expose the timing and phase increments. Step 4
+estimates these increments and accumulates them to produce the synchronized channel.
+Step 1: Estimate LOS delay and direction. The TA command TTA,k provides a coarse LOS delay
+ˆτk,LOS = TTA,k. This delay is refined by searching a narrow window around the TA prediction
+and accumulating power over the first S0 SRS occasions, with S0 < S. At the refined delay bin,
+the BS forms a spatial covariance matrix, and the LOS steering vector ˆak,LOS is taken as its
+dominant eigenvector. The covariance is invariant to the unknown phase ∠βk[s], so this direction
+estimate is robust to phase variations across SRS occasions.
+Step 2: Construct the LOS reference. We remove the predicted LOS delay and project the
+channel onto the estimated LOS direction
+gk[n, s] = ˆaH
+k,LOS bHk[n, s]ej2πn∆f ˆτk,LOS.
+(6)
+This operation replaces the delay term τk,LOS[s] + ∆tk[s] by ϵLOS
+k,τ [s] + ∆tk[s], where ϵLOS
+k,τ [s] =
+τk,LOS[s] −ˆτk,LOS[s] is small. Thus, gk[n, s] is a LOS-centered reference whose residual phase
+mainly contains ∆tk[s] and βk[s].
+Step 3: Remove the unknown phase terms by adjacent-occasion product. At any single occasion,
+∠βk[s], the unknown LOS path phase, and the LOS slow-time Doppler all appear as flat phase
+
+===== PAGE 6 =====
+terms in gk[n, s] across subcarriers. Unlike the timing offset ∆tk[s], which forms a separable slope
+across n, these three share no absolute reference and cannot be isolated. The adjacent-occasion
+conjugate product
+Qk[n, s] = gk[n, s] · gk[n, s −1]∗
+(7)
+cancels the LOS path phase, which is constant across occasions, and exposes only the inter-occasion
+increments
+Qk[n, s] ≈Ak[s] ejϕk[s] e−j2πn∆f ηk[s],
+(8)
+where ηk[s]=∆tk[s]−∆tk[s−1] is the timing increment, ϕk[s] absorbs the LOS Doppler step and
+∠βk[s]−∠βk[s−1], and Ak[s]≥0. In Qk, ηk[s] appears as the slope phase across n and ϕk[s] as
+its constant component.
+Step 4: Increment estimation and cumulative correction. Both increments are estimated from
+Qk
+ˆηk[s] = −
+1
+2π∆f ∠
+ N−2
+X
+n=0
+Qk[n + 1, s] Q∗
+k[n, s]
+!
+,
+(9)
+ˆϕk[s] = ∠
+ N−1
+X
+n=0
+Qk[n, s] ej2πn∆f ˆηk[s]
+!
+.
+(10)
+Then the cumulative timing and phase corrections are ˆTk[s] = Ps
+u=1 ˆηk[u] and ˆΦk[s] =
+Ps
+u=1 ˆϕk[u]. The amplitude ˆrk[s] is the subcarrier median of |baH
+k,LOS bHk[n, s]|, normalized to its
+s = 0 value. The LOS projection isolates the dominant path, so ˆrk[s] captures the SRS occasion
+gain |βk[s]| up to a constant scale. The synchronized channel is
+eHk[n, s] =
+bHk[n, s]ej2πn∆f(ˆτk,LOS+ ˆTk[s])−j ˆΦk[s]
+ˆrk[s]
+≈
+X
+ℓ∈Pk
+eαkℓe−j2πn∆feτkℓej2πsTSRS∆νkℓakℓ+ f
+Wk[n, s],
+(11)
+where eτkℓ= τkℓ−ˆτk,LOS + bk,τ is the LOS-referenced delay, ∆νkℓ= ¯νkℓ−¯νk,LOS + bk,ν is
+the LOS-referenced differential Doppler, eαkℓis the normalized path gain, and f
+Wk[n, s] collects
+residual estimation errors. Both the receiver Doppler reference νref,k and the timing bias of UE k
+are common to all paths and cancel under LOS referencing. The small residual biases bk,τ and
+bk,ν are absorbed by the geometric gates.
+B. Clutter Suppression
+We apply two filters that exploit physical signatures of the clutter. Static scatterers from
+buildings and ground reflections are nearly invariant in slow time, since pedestrian UE motion
+induces negligible delay variation within the observation window. Ground vehicles and other
+near-ground dynamic scatterers usually arrive at the BS from low elevation angles, which makes
+them separable. The first filter removes the static component by subtracting the slow-time sample
+mean
+eH(1)
+k [n, s] = eHk[n, s] −1
+S
+S−1
+X
+s′=0
+eHk[n, s′]
+(12)
+which suppresses the time-invariant component at every delay bin simultaneously. The second
+filter exploits the elevation. A steering dictionary Alow spanning the elevation range [θlow, θhigh]
+forms a soft spatial projector F = IM −ξPlow with weight ξ, where Plow is the projection onto
+
+===== PAGE 7 =====
+the column space of Alow. Applying F to the antenna axis of eH(1)
+k
+produces the clutter-suppressed
+residual eH(res)
+k
+[n, s].
+C. Geometry-Coupled Bistatic Fusion
+A true UAV echo is consistent with one 3D position across UEs, whereas clutter generally is
+not. We therefore search a shared state space and accumulate weak evidence across UEs. Within
+the short observation window, we write the UE position as pUE,k for brevity. Let θ = (az, el, ρ)
+denote a candidate UAV state, with candidate position ˆq(θ) = pBS +ρˆu(az, el). For UE k, define
+dk = ∥pUE,k −pBS∥. The predicted LOS-referenced bistatic excess delay is
+τ ⋆
+k(θ) = ∥pUE,k −ˆq(θ)∥+ ρ −dk
+c
+.
+(13)
+Evidence extraction. For candidate θ, we beamform the residual channel toward the candidate
+direction ˆu(az, el)
+Xk[n, s; θ] = aH
+BS(θ) eH(res)
+k
+[n, s].
+(14)
+Then applying an IFFT over n and an FFT over s gives the delay-Doppler response Xk(τ, ν; θ) and
+power map Pk(τ, ν; θ) = |Xk(τ, ν; θ)|2. Within the predicted gate Ωk(θ) = {(τ, ν) | |τ −τ ⋆
+k| ≤
+∆τ, |ν| ≤νN}, UE k compares the strongest gated response with a local background level
+Λk(θ) = log max
+(τ,ν)∈Ωk
+Pk(τ, ν; θ) −log Fk(θ),
+(15)
+where Fk(θ) is the p0 percentile of the delay-max profile of Pk outside Ωk. This log contrast
+measures how much the candidate stands out from its local background, rather than how large
+its absolute power is. It therefore reduces the effect of UE link-budget differences and prevents
+strong clutter from dominating the fusion only by raw power.
+Contrast normalization. Λk alone is still not enough. A strong clutter path aligned with ˆu can
+remain bright for many candidate ranges, so it may produce large Λk values even when the range
+hypothesis is wrong. In contrast, a true UAV echo should stand out only near its true range ρ⋆.
+Since clutter and UAV echoes behave differently along the range axis, we normalize Λk at each
+direction (az, el) by its range
+ζk(θ) =
+Λk(θ) −medρ Λk
+medρ |Λk −medρ Λk|.
+(16)
+So flat clutter gives ζk ≈0 while a localized UAV peak gives a large positive value near ρ⋆.
+Fusion across UEs. A real UAV must produce a ζk peak at the same ρ⋆across multiple UEs, a
+coincidence that clutter sidelobes rarely reproduce. Let ζ[1] ≥· · · ≥ζ[K] be the order of {ζk(θ)}.
+The fused detection score is the trimmed mean
+T(θ) =
+1
+K −1
+K−1
+X
+k=1
+ζ[k](θ),
+(17)
+which discards the weakest UE so that one blocked or unfavorable path does not veto detection.
+Let Kmin denote the minimum number of supporting UEs. Candidates are penalized if fewer than
+Kmin UEs have ζk > ζmin. Such weak cross-UE support is more likely caused by sidelobe or
+clutter alignment. Fig. 2 illustrates the fusion. UEs 1–3 show clear ζk peaks at the same range
+while UE 4 remains flat. Fusion localizes the UAV at ˆρ = 134 m despite one UE carrying no
+usable evidence.
+
+===== PAGE 8 =====
+60
+80
+100
+120
+140
+160
+180
+0
+5
+10
+15
+UE1
+UE2
+UE3
+UE4
+60
+80
+100
+120
+140
+160
+180
+0
+2
+4
+Fig. 2. ζk(ρ) at the UAV direction for each UE and T(ρ).
+Local refinement. We refine the top-ranked candidates by a local search around the coarse grid
+maximum using the same ζk criterion. The contrast in Eq. (15) is computed within a narrow
+Doppler range around the coarse peak to reduce inconsistent clutter. Parabolic interpolation around
+the refined peak then gives an off-grid range estimate.
+Cluster validation. Each refined candidate is finally checked against two physical constraints.
+Since the UEs are pedestrian users, their Doppler contribution is bounded and can be treated
+as a tolerance. The Doppler feasibility check tests whether the wrapped Doppler peaks across
+UEs can be explained by one UAV motion within the speed bound. The spatial coherence check
+requires the angle map’s peaks from different UEs to agree with one BS-side arrival direction.
+This removes ghost clusters caused by accidental sidelobe, which may pass the delay-Doppler
+gates but do not correspond to a real UAV.
+D. UAV Position Estimation
+After cluster validation, we obtain the BS-side UAV direction ˆu and the LOS-referenced excess
+delay ∆ˆτk for each supporting UE. The UAV is then constrained to lie on the ray ˆq = pBS + ρˆu.
+Substituting this ray into the bistatic delay constraint c∆ˆτk = ∥ˆq −pUE,k∥+ ρ −dk gives
+ˆρk =
+c∆ˆτk (c∆ˆτk + 2dk)
+2
+ d⊤
+k ˆu + c∆ˆτk + dk
+,
+(18)
+where dk = pBS −pUE,k and dk = ∥dk∥. After removing outliers, we average the remaining ˆρk
+values to obtain ˆρ. The UAV position estimate is ˆqUAV = pBS + ˆρˆu.
+IV. SIMULATION RESULTS
+We simulate a cluttered urban uplink scenario with one BS at [0, 0, 25] m. The four pedestrian
+UEs are initially at [80, 50, 1.5], [100, −60, 1.5], [−80, 60, 1.5], and [−100, −50, 1.5] m, providing
+
+===== PAGE 9 =====
+TABLE I
+MAIN SIMULATION PARAMETERS.
+Param.
+Value
+Param.
+Value
+Carrier freq. fc
+3.5 GHz
+SCS ∆f
+30 kHz
+Subcarriers N
+3276
+Bandwidth B
+98.28 MHz
+SRS period TSRS
+10 ms
+SRS occasions S
+50
+Obs. window
+0.5 s
+LOS init. S0
+10
+BS array
+4 × 4 UPA
+UE number K
+4
+MC trials
+140
+Bg. percentile p0
+60th
+Az. grid
+[−180, 180]◦/6◦El. grid
+[−15, 75]◦/4◦
+Range grid
+[45, 200] m / 5 m Range refine
+±8 m
+Elev. range
+[−45, −12]◦
+Elev. weight ξ
+0.7
+Min. support Kmin
+3
+Support thresh. ζmin
+2.5
+distributed bistatic views around the BS. The UAV is initially located at [40, 0, 60] m and moves
+with velocity [0, 8, 0] m/s. The clutter contains 50 static scatterers randomly placed in an annular
+region from 30 m to 200 m around the BS, 4 tall-building reflectors with heights from 45 m to
+95 m, and 3 vehicle dynamic scatterers moving at 5–14 m/s at a height of 0.5 m. The clutter seeds
+are independently randomized across Monte Carlo trials. The four UEs move horizontally as
+pedestrians with speeds 0.95, 0.85, 0.90, and 0.75 m/s, while the sensing algorithm only knows the
+pedestrian speed bound of 1 m/s. We use ∆τ = 45 ns (coarse) / 35 ns (refinement) and νN = 50 Hz,
+with local range refinement over ±8 m. Cluster validation admits UAV speeds in [1.5, 30] m/s and
+BS-side angle direction within 35◦. The remaining parameters are listed in Table I.
+The UAV echo is modeled following the bistatic Friis radar equation. For UE k, the UAV-path
+amplitude is
+|αk,UAV| =
+s
+λ2σUAV
+(4π)3∥pUE,k −q0∥2∥q0 −pBS∥2 ,
+(19)
+where q0 is the initial UAV position and σUAV is the UAV RCS. The amplitude is fixed over the
+short sensing window, while the UAV delay and Doppler are updated across SRS occasions. With
+σUAV = 0 dBsm, the UAV echo is about 44 to 49 dB weaker than the LOS in the considered
+geometry.
+Receiver impairments after coarse synchronization are injected for each UE k. A timing shift
+∆tk[s] = bt,k +ϵt,k[s] produces the subcarrier phase ramp e−j2πn∆f ∆tk[s], where the fixed per-UE
+bias bt,k ∼U(±130 ns) and the per-occasion jitter ϵt,k[s]∼N(0, 152 ns2) follow TA granularity
+(256Tc ≈130 ns) [10]. A residual common Doppler ϵν,k[s]∼U(±30 Hz) is applied to every path
+of UE k, modeling the CFO residual after BS coarse-loop removal. The common complex scalar
+is modeled as βk[s] = 10gk[s]/20ejϕk[s], where gk[s] includes slow gain drift, gain jitter, and AGC
+jumps with probability 0.06 and clipping at ±8 dB. The phase term ϕk[s] ∼N(0, (3◦)2) models
+residual common phase error.
+A. Synchronization Accuracy
+Table II reports the synchronization accuracy in a representative trial. The cumulative timing
+RMSE is below 1 ns for all four UEs, much smaller than the 10.2 ns delay bin resolution and
+the delay gate used by the fusion detector. The cumulative phase RMSE is close to or below 2◦,
+which preserves coherence over the 0.5 s observation window. The remaining delay bias is on the
+order of tens of nanoseconds because the method estimates timing changes over slow time rather
+than full path delays. This common bias is absorbed by the delay matching window Ωk(θ).
+
+===== PAGE 10 =====
+TABLE II
+REPRESENTATIVE LOS-REFERENCED SYNCHRONIZATION ACCURACY.
+Metric
+UE 1
+UE 2
+UE 3
+UE 4
+Timing RMSE [ns]
+0.88
+0.79
+0.79
+0.66
+Phase RMSE [◦]
+2.05
+1.21
+0.34
+0.15
+Residual delay bias bk,τ [ns]
+−31.8
++35.7
+−33.2
++9.1
+Residual Doppler bias bk,ν [mHz]
+−19.4
+−15.0
++3.2
+−1.1
+Detect-then-fuse
+Sum-fusion
+(no Normalized contrast)
+Proposed
+0
+20
+40
+60
+80
+100
+Trial outcome [%]
+14
+53
+84
+15
+99
+32
+Position correct (≤10 m)
+False alarm
+Missed
+10
+1
+10
+2
+3D position error [m]
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+Empirical CDF over all trials
+10 m threshold
+Detect-then-fuse
+Sum-fusion (no Normalized contrast)
+Proposed
+(a)
+(b)
+Fig. 3. MC Comparison of the three methods. (a) Trial outcomes under the 10 m localization threshold. (b) Empirical
+CDF of the 3D localization error.
+B. Detection and Localization Performance
+We compare the proposed pipeline with two baselines using the same synchronized and clutter-
+suppressed channel estimates. The detect-then-fuse baseline follows the classical multi-static
+concept of [6]. Each UE independently picks its top delay-Doppler peaks and estimates an
+AoA per peak, then cross-UE clustering groups peaks sharing a common direction. The sum-
+fusion variant keeps our geometry-coupled search but fuses the raw log-contrasts Λk without the
+range-axis normalization in Eq. (16), isolating the effect of normalization.
+Fig. 3 summarizes the results over 140 trials. In Fig. 3(a), the detect-then-fuse declares detection
+in 98% of trials but locks onto a static reflector in 84%, leaving only 14% useful detections. The
+sum-fusion variant also fails in almost all trials as strong clutter dominates the unnormalized
+fused score. Our proposed pipeline improves useful detection from 14% to 53% and reduces
+clutter-induced wrong detections from 84% to 15% compared with detect-then-fuse. Fig. 3(b)
+plots the empirical position error CDF. The slight advantage of detect-then-fuse below 3 m comes
+from a few lucky trials, but it detects the UAV far less often. For useful detections, our proposed
+method achieves a median 3D error of 4.84 m, confirming that localization is accurate once the
+UAV is detected. The horizontal error is smaller than the vertical error, which reflects the geometry.
+The four ground UEs span a wide horizontal aperture but offer limited elevation diversity. The
+two baseline CDFs rise mainly between 40 and 180 m, indicating target substitution by strong
+clutter.
+
+===== PAGE 11 =====
+36 37 38 39 40 41 42 43 44 45 46 47 48 49
+Static-clutter realization index
+0
+25
+50
+75
+100
+Rate [%]
+mean 53%
+Detection rate
+Useful detection (≤10 m)
+Clutter masking
+Clutter substitution
+Fig. 4. Performance of the proposed pipeline across static-clutter realizations.
+Fig. 4 shows the effect of static clutter geometry. Nine of the fourteen realizations achieve
+detection rates above 60% and useful detection rates above 50%. Across these cases, the method
+reaches 79% detection probability, and 89% of detections are localized within 10 m. This suggests
+that clutter mainly affects detection, while localization is stable once the UAV is found. A future
+tracking stage could reduce missed detections by integrating evidence across SRS occasions.
+C. Failure Mode Discussion
+The results in Fig. 4 reveal two failure modes. Clutter masking, seen in realizations 43 and 46,
+occurs when a strong static scatterer falls inside the UAV delay-AoA gate and hides the weak
+UAV echo. Clutter substitution, seen in realizations 47 and 48, occurs when a clutter cluster
+receives a higher cross-UE score than the true UAV cluster. This exposes a limitation of the
+fusion rule. The same cross-UE consistency that helps reveal the UAV can also select clutter
+when unrelated paths accidentally satisfy the same geometric checks. This ambiguity cannot be
+resolved alone, since clutter near the UAV is indistinguishable from the UAV under delay and
+angle constraints. UAV-specific dynamic signatures may help resolve these ambiguities and are
+left to future work.
+V. CONCLUSION
+This paper presented the first passive UAV detection and localization framework that reuses
+standard 5G NR uplink SRS transmissions from multiple mobile UEs. The proposed LOS-
+referenced synchronization removes timing, phase, and gain distortions, while the geometry-
+coupled fusion combines weak cross-UE evidence under bistatic delay constraints. Simulations
+show that the framework converts weak uplink UAV echoes into useful localization. Future work
+will address UAV velocity estimation and measured-channel validation.
+REFERENCES
+[1] Fortem Technologies, “TrueView® R40 Radar,” https://fortemtech.com/products/trueview-r40-radar/, 2026,
+accessed: 2026-05-30.
+[2] N. Gonz´alez-Prelcic, M. F. Keskin, O. Kaltiokallio, M. Valkama, D. Dardari, X. Shen, Y. Shen, M. Bayraktar,
+and H. Wymeersch, “The integrated sensing and communication revolution for 6G: Vision, techniques, and
+applications,” Proc. IEEE, vol. 112, no. 7, pp. 676–723, May 2024.
+
+===== PAGE 12 =====
+[3] B. Nuss, L. Sit, M. Fennel, J. Mayer, T. Mahler, and T. Zwick, “MIMO OFDM radar system for drone detection,”
+in Proc. 18th Int. Radar Symp. (IRS), Prague, Czech Republic, Jun. 2017, pp. 1–9.
+[4] R. Maksymiuk, M. Płotka, K. Abratkiewicz, and P. Samczy´nski, “5G network-based passive radar for drone
+detection,” in Proc. 24th Int. Radar Symp. (IRS), Berlin, Germany, May 2023, pp. 1–10.
+[5] M. Bayraktar, N. Gonz´alez-Prelcic, M. Valkama, H. Chen, and C. J. Zhang, “Integrated monostatic sensing and
+full-duplex multiuser communication for mmWave systems,” IEEE Transactions on Wireless Communications,
+vol. 25, pp. 10 904–10 920, 2026.
+[6] J. Tang, Y. Yu, C. Pan, H. Ren, D. Wang, J. Wang, and X. You, “Cooperative ISAC-empowered low-altitude
+economy,” IEEE Trans. Wireless Commun., vol. 24, no. 5, pp. 3837–3853, Feb. 2025.
+[7] C. Zhao, Y. Feng, H. Luo, F. Gao, F. Liu, and S. Jin, “Networked ISAC-based UAV tracking and handover toward
+low-altitude economy,” IEEE Trans. Wireless Commun., vol. 24, no. 9, pp. 7670–7685, Apr. 2025.
+[8] K. Meng, C. Masouros, A. P. Petropulu, and L. Hanzo, “Cooperative ISAC networks: Opportunities and challenges,”
+IEEE Wireless Communications, vol. 32, no. 3, pp. 212–219, 2025.
+[9] 3rd Generation Partnership Project (3GPP), “NR; Physical Channels and Modulation,” 3GPP, TS 38.211, 2022,
+release 17.
+[10] ——, “NR; Physical Layer Procedures for Control,” 3GPP, TS 38.213, 2022, release 17.
+[11] K. Wu, J. Pegoraro, F. Meneghello, J. A. Zhang, J. O. Lacruz, J. Widmer, F. Restuccia, M. Rossi, X. Huang,
+D. Zhang et al., “Sensing in bistatic ISAC systems with clock asynchronism: A signal processing perspective,”
+IEEE Signal Process. Mag., vol. 41, no. 5, pp. 31–43, Nov. 2024.
+[12] J. Pegoraro, J. O. Lacruz, T. Azzino, M. Mezzavilla, M. Rossi, J. Widmer, and S. Rangan, “JUMP: Joint
+communication and sensing with unsynchronized transceivers made practical,” IEEE Trans. Wireless Commun.,
+vol. 23, no. 8, pp. 9759–9775, Feb. 2024.
+[13] G. Ventura, M. Rossi, and J. Pegoraro, “AsyMov: Integrated sensing and communications with asynchronous
+moving devices,” IEEE Trans. Wireless Commun., vol. 25, pp. 11 480–11 496, Feb. 2026.
+[14] 3rd Generation Partnership Project (3GPP), “NR; User Equipment (UE) Radio Transmission and Reception,”
+3GPP, TS 38.101-1, 2022, release 17.
+[15] V. V. Ratnam, H. Chen, H.-H. Chang, A. Sehgal, and J. Zhang, “Optimal preprocessing of WiFi CSI for sensing
+applications,” IEEE Trans. Wireless Commun., vol. 23, no. 9, pp. 10 820–10 833, Mar. 2024.

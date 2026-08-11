@@ -1,0 +1,917 @@
+
+===== PAGE 1 =====
+CellSense: A Sub-6 GHz Cellular ISAC System
+for Clutter-Robust Passive Sensing
+Bibhor Kumar1, Ish Kumar Jain2, Vijay K Shah1
+1NextG Wireless Lab, North Carolina State University, Raleigh, North Carolina
+2Department of Electrical, Computer and Systems Engineering, Rensselaer Polytechnic Institute, Troy, New York
+Email: {bkumar2}@ncsu.edu, {jaini}@rpi.edu, {vijay.shah}@ncsu.edu
+Abstract—Future wireless networks demand capabilities be-
+yond traditional communication, driving the development of
+Integrated Sensing and Communication (ISAC) for environ-
+mental awareness, localization, and tracking. Ubiquitous cel-
+lular deployment allows ISAC to maximize spectral efficiency,
+lower costs, and expand sensing coverage. However, sub-6 GHz
+research has heavily favored communication, leaving sensing
+capabilities largely under-explored. To bridge this gap, we
+introduce CellSense, a novel sub-6 GHz ISAC architecture
+natively integrated into the 5G cellular protocol stack for real-
+world target tracking. We validate the system via Sionna-based
+orthogonal frequency-division multiplexing (OFDM) link-level
+simulations and an experimental USRP hardware prototype using
+the OpenAirInterface (OAI) stack. Furthermore, we analyze the
+communication–sensing tradeoff by quantifying how pilot symbol
+density impacts throughput versus sensing accuracy. Simulations
+show that CellSense achieves a 74% detection probability with
+a 1.43 m localization error in indoor warehouse environment,
+which improves to 94% detection and a sub-meter error of
+0.33 m in the outdoor environment of Oval area at the NCSU
+Centennial campus. Hardware experiments in a highly cluttered
+indoor laboratory confirm a 1.28 m localization accuracy and
+76% detection probability, proving its efficacy for practical ISAC
+deployments.
+I. INTRODUCTION
+ISAC has emerged as a cornerstone of next-generation
+wireless systems, recognized by both the ITU [1] and 3GPP
+[2] as one of the six primary usage scenarios for 6G. This
+paradigm is driven by its ability to dual-purpose wireless net-
+works for both sensing and communication without requiring
+additional spectrum or dedicated hardware resources. Due to
+these capabilities, ISAC is poised to deliver critical utility
+across both commercial and defense domains, enhancing auto-
+mated driving and smart cities on one hand, while maximizing
+tactical situational awareness on the other. To standardize
+these capabilities, the 3GPP Release 19 specifications [3]
+outline several distinct sensing service categories. Among
+these, object detection and tracking stands out as a particularly
+vital and practical use case, and it is this specific application
+of ISAC that forms the central focus of our work.
+Despite its potential, repurposing current cellular sys-
+tems for ISAC introduces two major limitations. First,
+communication-centric OFDM waveforms are unoptimized for
+high-precision parameter estimation, which restricts sensing
+resolution and accuracy. Second, while standard OFDM pilots
+are designed solely for communication CSI acquisition at
+the BS and UE, high-performance sensing demands much
+denser pilot transmissions. This introduces a fundamental
+communication–sensing tradeoff, where maximizing sensing
+accuracy directly reduces communication throughput.
+To address these limitations, we present CellSense, a
+high-precision ISAC system based on OFDM signals designed
+for real-time target localization and tracking within existing
+Sub-6 GHz cellular infrastructure. Implemented on a full-stack
+5G NR testbed, CellSense demonstrates robust cellular
+sensing by utilizing standard-compliant pilot signals without
+requiring modifications to the underlying communication pro-
+tocol. In summary, our primary contributions are:
+• We propose CellSense, a comprehensive Sub-6 GHz
+ISAC architecture that is fully integrated with a functional
+5G cellular stack.
+• We design an iterative parameter estimation and refine-
+ment method that isolate individual multipath components
+for improved estimation accuracy. This is paired with a
+robust data association and tracking pipeline that utilizes
+multi-frame sliding windows and bipartite matching to
+maintain persistent target tracks in the presence of heavy
+environmental clutter.
+• Finally, we provide extensive simulation and hardware
+prototype based validation of CellSense across mul-
+tiple environments, demonstrating high-fidelity sensing
+with minimal communication overhead.
+II. RELATED WORK
+The dual challenges of waveform optimization and the
+communication–sensing trade-off have catalyzed extensive re-
+search in ISAC. Several foundational studies [4]–[7] have
+demonstrated the theoretical feasibility of repurposing stan-
+dard 5G reference signals such as the Positioning Reference
+Signal (PRS) or the Synchronization Signal Block (SSB) for
+sensing applications. However, such studies predominantly
+rely on idealized channel simulations that neglect non-linear
+hardware impairments, phase noise, and intricate multipath
+scattering. To bridge this gap, Software-Defined Radio (SDR)
+experimental testbeds have emerged to evaluate standard-
+compliant 5G New Radio (NR) signals under realistic oper-
+ational conditions [8]–[11]. However, existing hardware pro-
+totypes suffer from two primary limitations: they prioritize
+mmWave frequencies over the ubiquitously deployed Sub-6
+arXiv:2606.07900v1  [eess.SY]  5 Jun 2026
+
+===== PAGE 2 =====
+CLUTTERED ENVIRONMENT
+Sliding window 
+tracking filter
+            
+Track 
+maintenance
+2. TARGET ASSOCIATION AND 
+LOCALIZATION PIPELINE
+Data Association 
+(Bipartite 
+Matching)
+            
+Clutter 
+Suppression
+High-resolution estimation of 
+multipath parameters
+1. PARAMETER ESTIMATOR
+(SAGE-based
+Multidimensional Refinement)
+ToF Estimate
+AoA Estimate
+Channel gain
+Estimate
+Estimated paths
+Output
+Predicted 
+coordinates
+SRS channel 
+estimates
+UE
+BS
+LoS path
+BS
+UE
+Target 1
+Target 2
+Target
+Fig. 1: Overview of the CellSense architecture
+GHz bands, and they operate in isolation rather than inte-
+grating with a functional, full-stack 5G cellular network. In
+contrast, CellSense is explicitly designed for Sub-6 GHz
+frequencies and seamlessly integrates with a functional 5G
+cellular stack, offering the practical deployability that current
+testbeds lack. Parallel to cellular research, Wi-Fi-based ISAC
+systems [12]–[17] have been proposed as low-cost alternatives
+for localized applications, leveraging existing IEEE 802.11
+signals. However, their low transmit power restrictions and
+structural indoor limitations inherently restrict their suitability
+for high-mobility, long-range outdoor sensing scenarios.
+III. SYSTEM MODEL AND SIGNAL MODEL
+CellSense consists of a Single-Input Multiple-Output
+(SIMO) system, featuring a multi-antenna 5G BS equipped
+with a Uniform Linear Array (ULA) and a single-antenna
+UE. The system, depicted in Fig. 1, operates in a cluttered
+environment where a dynamic target must be detected and
+tracked amidst environmental reflections. Both the BS and UE
+are running full 5G protocol stack and maintain a continuous
+communication link between them. We further assume that
+the BS and UE are stationary and their locations are known a
+priori. This assumption is reasonable in multi-BS deployments,
+where UE localization can be obtained using GPS or through
+measurements from multiple BSs. In addition, we assume
+that a line-of-sight (LoS) link between the UE and BS is
+always available. For channel estimation, we exploit uplink
+Sounding Reference Signal (SRS) pilot transmissions from the
+UE for uplink channel state information (CSI) estimation. The
+SRS pilot signals are based on Zadoff-Chu sequences [18].
+We adopt an uplink-based sensing framework to leverage the
+higher computational capability at the BS, enabling centralized
+processing for object detection and tracking tasks.
+The received signal at the BS can be modeled as
+Ym(t) =
+L−1
+X
+l=0
+αlej2πγltaBS(ϕl)xT
+m(t −τl)p(t −τl −mT)
++ N(t),
+(1)
+where αl, γl, τl and ϕl represent the complex pathgain,
+Doppler, transmit delay and angle of arrival (AoA) of the lth
+received path at the BS with L being the total number of paths.
+Also, aBS(ϕl) = [1, ej2πdsin(ϕl), ..., ej2π(M−1)dsin(ϕl)] rep-
+resents the antenna array response with M being the no. of
+antennas and d being the relative inter-antenna distance with
+respect to the wavelength at the BS. Also, p(t) represents the
+pulse shaping function, N(t) represents the receiver noise, T
+is the OFDM symbol duration and m is the OFDM symbol
+number. Finally, xm(t) represents the transmitted OFDM
+signal modeled as xm(t) = ΣNfft−1
+k=0
+Xk,mej2πkfscs(t−ncp/fs).
+Here, Xk,m is the symbol transmitted on kth subcarrier of
+mth OFDM symbol, fscs is the subcarrier spacing, fs is the
+sampling rate and ncp is the length of the cyclic prefix (CP).
+Channel
+estimation: Upon receiving the signal, the
+BS OFDM receiver samples the continuous-time waveform.
+The resulting time-domain samples, Ym(n/fs) for n
+∈
+{ncp, ncp + 1, . . . , Nfft + ncp −1}, are transformed into
+the frequency domain via Discrete Fourier Transform (DFT),
+yielding the frequency-domain symbols Yf
+m[k] for k
+∈
+{0, 1, . . . , Nfft−1}. After that, we perform least squares (LS)
+estimation using the pilot symbols to estimate the channel for
+the corresponding subcarriers given as [19]
+ˆHf
+m[q][k] = Yf
+m[q][k]
+Xp
+k,m
+.
+(2)
+Here, k denotes the pilot subcarrier, m denotes the OFDM
+symbol, q denotes the receive antenna index, Xp
+k,m denotes
+the corresponding pilot symbol. Yf
+m[q][k] denotes the received
+symbol and ˆHf
+m[q][k] denotes the channel estimate for kth
+subcarrier and qth receive antenna. To maximize throughput
+efficiency, SRS pilots are mapped using a comb structure
+with a comb size of two or greater. While this configuration
+enables the multiplexing of data and SRS symbols within
+the same OFDM resource element grid, it inherently yields
+sparse channel estimates. Linear interpolation is subsequently
+applied across the frequency domain to estimate the channel
+coefficients for the remaining unpiloted subcarriers [19].
+IV. CELLSENSE DESIGN
+In this section, we will discuss the individual components of
+the CellSense architecture in more detail. As illustrated by
+the functional flow diagram in Fig. 1, the proposed system
+is designed to seamlessly integrate high-precision passive
+sensing into standard 5G communication frameworks. The
+architecture can be functionally decomposed into two primary,
+sequentially linked stages: Parameter Estimation, and Target
+Association and Localization. Each of these stages is described
+in detail in the following subsections.
+A. Stage 1: Parameter estimation
+After getting the SRS channel estimates from the OFDM
+receiver, CellSense extracts the fundamental physical pa-
+rameters of the propagation environment, specifically the An-
+gle of Arrival (AoA) and the propagation delay. We begin by
+reconstructing the received signal using the provided channel
+estimates and a pilot sequence as ˆYf
+m[q][k] = ˆHf
+m[q][k]Xp
+k.
+Here ˆYf
+m[q][k] is the generated received signal for kth subcar-
+rier and qth antenna and Xp
+k is the pilot symbol for kth sub-
+carrier. This frequency-domain representation is subsequently
+transformed into the time domain via an Inverse Discrete
+Fourier Transform (IDFT), yielding ˆYm = IDFT( ˆYf
+m).
+
+===== PAGE 3 =====
+Inspired by the Wi-Fi-based mD-Track algorithm [14], we
+resolve the multipath components from the reconstructed time-
+domain signal by employing an iterative algorithm based on
+the Space-Alternating Generalized Expectation-maximization
+(SAGE) framework [20]. The SAGE algorithm effectively de-
+composes the multi-dimensional maximum likelihood estima-
+tion problem into a sequence of one-dimensional optimization
+tasks. The expectation step (E-step) is characterized by the
+correlation function:
+z(ϕ, τ) =
+Nfft−1
+X
+n=0
+aH
+BS(ϕ) ˆYm[:, n]X∗
+p[n −τ],
+(3)
+where X∗
+p denotes the complex conjugate of the time-domain
+pilot sequence used in the signal regeneration. The subsequent
+maximization step (M-step) identifies the parameter pair that
+maximizes this correlation:
+(ˆϕ, ˆτ) = argmax
+(ϕ,τ)
+|z(ϕ, τ)|.
+(4)
+Combining Eq. 1 and Eq. 3 with the maximization step, we
+can estimate the pathgain as ˆα = z(ˆϕ, ˆτ)/(M × Nfft).
+While these operations are rooted in the Generalized EM
+(GEM) architecture, our approach diverges by estimating
+multipath parameters in a successive, path-by-path manner.
+Upon completing the initial E-step and M-step to resolve the
+parameters of the dominant propagation path, the contribution
+of this path is reconstructed and subtracted from the total
+signal ˆYm to yield a residual signal:
+ˆ
+W = ˆYm −ˆαaBS(ˆϕ)XT
+p [n −ˆτ].
+(5)
+This iterative signal cancellation process is repeated on the
+residual signal ˆ
+W to extract secondary and weaker multipath
+components. This cycle continues until a predefined number
+of paths have been estimated and final residual signal is
+calculated as
+ˆ
+W = ˆYm −
+Lest−1
+X
+l=0
+ˆαlaBS(ˆϕl)XT
+p [n −ˆτl].
+(6)
+The initial stage of the algorithm provides a set of coarse
+estimates for the Lest dominant propagation paths. However,
+in dense multipath environments typical of tactical scenarios,
+the accuracy of these initial estimates can be degraded by
+mutual interference between paths-particularly when compo-
+nents are closely spaced in the delay or angular domains.
+To mitigate this ”leakage” effect, our proposed algorithm
+performs a refinement phase to achieve higher estimation
+precision. The refinement process begins by isolating each path
+from the aggregate signal. For the l-th path, we reconstruct a
+“cleaned” version of the received signal, ˆYl, by combining
+the final residual signal
+ˆ
+W with the previously estimated
+contribution of that specific path:
+ˆYl = ˆ
+W + ˆαlaBS(ˆϕl)XT
+p [n −ˆτl],
+(7)
+where ˆϕl, ˆαl and ˆτl represent the coarse estimates for the path
+of interest. We then re-apply the SAGE-based maximization
+steps (Eq. 3 and Eq. 4) to this reconstructed signal ˆYl to
+derive updated, high-precision parameters. Because the inter-
+ference from all other Lest −1 paths has been suppressed
+Transmit delay
+Angle of arrival
+Frames
+New object appeared
+(a) Detecting the target
+Frames
+Angle of arrival
+Transmit delay
+Moving object
+(b) Tracking the target
+Fig. 2: Heuristic methods for dynamic object detection and
+tracking using CellSense. Blue and red markers indicate
+static reflectors and the dynamic target, respectively.
+in the residual
+ˆ
+W, this iteration significantly reduces the
+bias introduced during the initial coarse estimation. Following
+the update of the l-th path’s parameters, the residual signal
+ˆ
+W is recalculated using Eq. 5. This refinement cycle is
+performed sequentially for all estimated paths and repeated for
+a predetermined number of iterations, ensuring that the final
+parameters (ˆϕl, ˆτl, ˆαl) converge toward the true maximum
+likelihood estimates.
+B. Stage 2: Target association and localization
+Following Stage 1 (parameter estimation), the resolved
+multipath components need to be associated with distinct
+physical entities, enabling the separation of dynamic targets
+from static environmental clutter. To accomplish this, in Stage
+2, we employ two complementary methodologies for target
+detection and tracking, as illustrated in Fig. 2.
+The first approach employs Differential Change Detection
+which assumes that the initial sensing environment is static
+and can therefore serve as a baseline channel profile. Any
+significant parameter deviation from this baseline indicates
+a dynamic object entering the sensing region, enabling the
+system to autonomously detect new targets by continuously
+monitoring variations relative to the baseline. The second ap-
+proach relies on Temporal Trajectory Analysis across consecu-
+tive sensing frames. By examining parameter evolution across
+consecutive frames, the system distinguishes and suppresses
+persistent static clutter from moving reflections, thereby main-
+taining continuous tracks of mobile targets over time. Together,
+these complementary heuristics provide robust target discrim-
+ination and reliable tracking performance, even in densely
+cluttered environments.
+Parameter-reflector association: A fundamental challenge
+in persistent tracking is the consistent association of resolved
+parameters (AoA and transmit delay) with their respective
+physical reflectors across consecutive temporal snapshots.
+However, in dense scattering environments, weaker reflec-
+tions may fluctuate above and below the detection threshold,
+leading to intermittent parameter estimates across frames. To
+ensure temporal continuity, CellSense maintains a global
+repository of parameters spanning a sliding window of ten
+consecutive snapshots. We formulate parameter-to-reflector
+mapping as a combinatorial assignment problem, minimizing
+
+===== PAGE 4 =====
+BS
+UE
+Dynamic 
+object
+d
+X-axis
+Y-axis
+Wall
+(a)
+(b)
+Fig. 3: (a) Localization of a dynamic target via the
+intersection of a bistatic range ellipse (with BS and UE
+as foci) and a directional ray originating from the BS. (b)
+Site-specific Sionna ray-tracing environments generated in
+Blender: indoor warehouse (top) and NCSU Centennial
+Campus outdoor Oval (bottom).
+the aggregate distance between current parameters and estab-
+lished tracks in the global repository. By computing pairwise
+distances between all points of the current snapshot and global
+repository, we solve this bipartite matching problem to identify
+the optimal assignment.
+Localization: Once the dynamic parameters are isolated
+from the environmental multipath, the final step is to localize
+the object in a 2-D coordinate system. This process leverages
+the known location of the UE and the assumption of a
+persistent Line-of-Sight (LoS) connection between the BS and
+UE. The LoS component is readily identified as the reference
+signal due to its known angular direction and dominant power
+profile. By utilizing the differential delay between the target-
+reflected path and the direct LoS path, we estimate the sum
+of the distances from the object to both the BS and the UE
+as ˆl = c × (ˆτobj −ˆτUE) + d. Here c is the speed of radio
+waves in air, ˆτobj and ˆτUE are estimated transmit delays from
+the object and UE, respectively and d is the known BS-UE
+distance. The moving object should be on the intersection of
+the ellipse with UE and BS as foci and sum of distance from
+the 2 foci as ˆl and a ray originating from the BS at an angle
+of ˆθobj −ˆθUE relative to the BS-UE LoS baseline, as shown
+in Fig. 3a. Here, ˆθobj and ˆθUE are estimated AoA from object
+and UE, respectively. Using these information, the 2D location
+estimate of the object of interest is given as
+ˆx =
+h
+ˆl2sin2(ˆθobj−ˆθUE)
+2(ˆlcos(ˆθobj−ˆθUE)−d) +
+ˆlcos(ˆθobj−ˆθUE)+d
+2
+i
+h
+ˆlsin(ˆθobj−ˆθUE)
+ˆlcos(ˆθobj−ˆθUE)−d + cot(ˆθobj −ˆθUE)
+i
+ˆy = cot(ˆθobj −ˆθUE) × ˆx.
+(8)
+V. EVALUATION
+CellSense is evaluated through a two-fold approach
+comprising high-fidelity simulations and hardware prototype
+experiments, and it’s performance is benchmarked against a
+traditional 2D-FFT baseline. The following paragraphs provide
+details on the baseline implementation, evaluation metrics, and
+experimental results.
+10.0
+7.5
+5.0
+2.5
+0.0
+2.5
+5.0
+7.5
+10.0
+X-axis (m)
+0
+2
+4
+6
+8
+10
+Y-axis (m)
+UE
+5G gNB
+Object not visible
+Visible object
+Estimated positions
+Fig. 4: Comparison between two ground truth trajectories
+and the estimated coordinates for the target of interest in
+the outdoor simulation environment.
+Baseline: To implement the 2D-FFT baseline for object
+detection, a static reference matrix is first established via cross-
+correlation of the received signal and the known pilot symbols
+across the joint AoA-delay search space. This baseline matrix
+is normalized and stored as a reference. To detect and localize
+a dynamic object, the stored static 2D-FFT matrix is sub-
+tracted from the current normalized 2D-FFT matrix, effectively
+isolating the dynamic reflections. If the peak magnitude of
+the resulting differential matrix exceeds a pre-determined
+threshold, a dynamic object is detected and mapped to the
+corresponding AoA and transmit delay parameters.
+Metrics: Evaluation relies on three core metrics - Detection
+probability (Pd), defined as the ratio of correct detections
+to the total points where the object is visible to the Base
+Station (BS); False alarm probability (Pfa), defined as the
+ratio of false detections to the total algorithm detections; and
+Localization Root Mean Square Error (RMSE), calculated as
+the square root of the mean squared error across all estimated
+target locations.
+A. Simulation Experiments
+For simulation study, we utilize a cross-platform framework:
+Blender is employed to render multiple realistic environments,
+shown in Fig. 3b, including an indoor warehouse, an outdoor
+area (Oval at Centennial Campus, NC State University), and
+an open environment consisting of only the UE, BS, and
+target on a concrete floor, while the Sionna ray-tracing library
+generates site-specific wireless channel impulse responses. The
+underlying 5G-compliant OFDM transceiver is implemented in
+Python, adhering to 3GPP-specified bandwidths and resource
+configurations. To simulate a dynamic target, we model a
+mobile object as a 1.8 m × 0.5 m × 0.25 m cuboid to
+emulate the average physiological profile of a human. Both the
+stationary transmitter (UE) and receiver (BS) are positioned
+at a height of 1 meter. Analysis is performed with the target
+following multiple constant-velocity trajectories, as shown for
+the outdoor environment in Fig. 4. Notably, the target is
+not visible to the BS for the entire trajectory; detection and
+localization is only performed for segments where a reflected
+signal from the object reaches the BS.
+Results: Detailed system parameters are summarized in
+Table I; these values are used for all simulation analysis. To
+ensure statistical significance, we conduct 10 Monte Carlo iter-
+
+===== PAGE 5 =====
+Indoor
+Outdoor
+Open
+Type of environment
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+Detection Probability
+CellSense
+2D-FFT
+(a) Detection probability
+Indoor
+Outdoor
+Open
+Type of environment
+0.0
+0.2
+0.4
+0.6
+0.8
+False Alarm Probability
+CellSense
+2D-FFT
+(b) False alarm probability
+Indoor
+Outdoor
+Open
+Type of environment
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+3.0
+3.5
+RMSE (meters)
+CellSense
+2D-FFT
+(c) Localization RMSE
+Fig. 5: Simulation results: Detection and localization performance comparison for CellSense and 2D-FFT
+0
+50
+100 150 200 250 300 350
+Time samples
+2.5
+2.0
+1.5
+1.0
+0.5
+0.0
+0.5
+Phase difference (Radians)
+Antenna 0-1
+Antenna 0-2
+Antenna 0-3
+0 minutes
+6 minutes
+12 minutes
+18 minutes
+24 minutes
+30 minutes
+(a)
+Object 
+of 
+interest
+OAI 
+based 
+5G 
+gNB
+Single 
+antenna 
+UE
+(b)
+Fig. 6: Figure (a) indicates variation of phase offset
+between the RF chains across time. Figure (b) indicates
+the setup of CellSense hardware prototype.
+ations for 3 different trajectories in each scenario. The simula-
+tion results are presented in Fig. 5, where “Indoor” refers to the
+indoor warehouse environment, “Outdoor” denotes the Oval
+area at the NCSU Centennial Campus, and “Open” represents
+a baseline environment consisting solely of the UE, BS, and
+target on a concrete floor. These results demonstrate a clear
+performance advantage for CellSense over the 2D-FFT
+baseline across all environments. In the high-clutter indoor
+warehouse, CellSense achieves a detection probability (Pd)
+of 0.74 with a low false alarm rate (Pfa = 0.10), whereas the
+baseline struggles at Pd = 0.22 and a prohibitive Pfa = 0.88.
+Localization accuracy follows a similar trend: CellSense
+maintains sub-meter RMSE in outdoor (0.33 m) and open
+(0.28 m) settings, while 2D-FFT yields significantly higher
+errors of 2.38 m and 1.65 m, respectively. Even in complex
+indoor environments, CellSense delivers an RMSE of 1.43
+m, outperforming the baseline by 2 meters. This confirms
+that CellSense’s high-resolution parameter estimation and
+clutter suppression provide robust, precise tracking even under
+unfavorable signal-to-clutter ratios.
+TABLE I: Simulation parameters
+Definition (Notation)
+Values
+Definition (Notation)
+Values
+Carrier frequency (fc)
+3.6192
+GHz
+Bandwidth (B)
+20
+MHz
+Subcarrier
+spacing
+(fscs)
+30
+KHz
+Number of antennas at
+the BS (Nant)
+4
+SRS
+transmission
+comb size (KT C)
+2
+Sampling rate (fs)
+30.72
+Msps
+IFFT size (Nfft)
+1024
+Number
+of
+PRBs
+(Nprb)
+51
+Size of cyclic prefix
+(Ncp)
+72
+Transmit power at UE
+(Pt)
+20
+dBmW
+B. Hardware prototype and results
+Hardware setup: To validate the real-world efficacy of
+CellSense, we built a hardware testbed (See Fig. 6b) utiliz-
+4
+2
+0
+2
+4
+X-Coordinate (m)
+0
+1
+2
+3
+4
+5
+Y-Coordinate (m)
+BS
+UE
+CellSense
+4
+2
+0
+2
+4
+X-Coordinate (m)
+BS
+UE
+2D-FFT
+0.5
+1.0
+1.5
+2.0
+2.5
+3.0
+RMSE (Meters)
+(a) RMSE
+4
+2
+0
+2
+4
+X-Coordinate (m)
+0
+1
+2
+3
+4
+5
+Y-Coordinate (m)
+BS
+UE
+CellSense
+4
+2
+0
+2
+4
+X-Coordinate (m)
+BS
+UE
+2D-FFT
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+Detection Probability
+(b) Detection probability
+Fig. 7: Spatial sensing accuracy and detection probability
+across 10 experimental locations. Target ground truth loca-
+tions are color-coded by (a) RMSE (m) and (b) detection
+probability (%) for both CellSense and the 2D-FFT
+baseline.
+ing Software Defined Radios (SDRs) in an indoor laboratory
+environment. The Base Station (BS) is equipped with an
+Ettus USRP N310 configured with a four-element Uniform
+Linear Array (ULA) to facilitate high-resolution Angle of
+Arrival (AoA) estimation, while a single-antenna USRP B210
+is employed as the UE. The 5G cellular protocol stack
+is implemented using the OpenAirInterface (OAI) codebase.
+The system parameters utilized for hardware evaluation are
+identical to those specified in Table I.
+Calibration: Multi-antenna SDR systems suffer from an in-
+herent Initial Phase Offset (IPO) between RF chains, requiring
+baseline calibration for spatial accuracy. As shown in Fig. 6a,
+our empirical analysis confirms that post-initialization, the IPO
+remains stable with negligible drift for at least 30 minutes.
+To validate this across sessions, the UE was power-cycled
+(disconnected and reconnected) every 6 minutes while the BS
+ran continuously. Each colored region in the plot corresponds
+to an individual connection session, representing initial 10
+seconds of continuous time samples used to compute the phase
+difference between the RF chains. For instance, the data points
+included in the 0-minute region illustrate the localized IPO
+variation during the initial 10 seconds of the experiment’s first
+session. This stability enables a single initial calibration to
+maintain accuracy throughout the experiment.
+
+===== PAGE 6 =====
+Results:
+Following
+the
+phase
+calibration,
+we
+evalu-
+ate CellSense’s spatial performance and communica-
+tion–sensing trade-off within an indoor laboratory environ-
+ment (Fig. 6b). The static BS and UE are positioned at
+fixed coordinates to establish the baseline communication
+link, while the target moves across 10 distinct, pre-mapped
+experimental locations to evaluate sensing accuracy. This
+environment presents severe multipath challenges due to the
+dense presence of strong static specular reflectors, including
+concrete laboratory walls, metallic equipment racks, and large
+LED monitor screens. Fig. 7 maps the spatial Root Mean
+Square Error (RMSE) and detection probability across these 10
+experimental locations. The empirical results demonstrate that
+CellSense consistently outperforms the 2D-FFT baseline,
+reducing the average spatial RMSE from 2.2 m to 1.28 m
+while boosting the mean detection probability from 43% to
+76%. Notably, at challenging coordinates such as (2.9, 4.6)
+m and (2.4, 2.7) m, which are located in close proximity to
+the large monitor screens and laboratory walls, CellSense
+mitigates the severe clutter and maintains a detection probabil-
+ity exceeding 91% alongside sub-meter accuracy. Conversely,
+due to the overwhelming static reflections at these coordinates,
+the detection probability for the baseline 2D-FFT drops below
+10%. It shows the robustness of CellSense in high-clutter
+deployment scenarios. We also quantify the communication-
+sensing tradeoff by varying the SRS periodicity (Table II).
+Tuning the SRS period from a sparse 160 slots (80 ms) to a
+dense 20 slots (10 ms) improves RMSE from 0.74 m to 0.66
+m, incurring a minor throughput penalty of
+25 Kbps. This
+confirms CellSense achieves reliable, low-latency tracking
+without sacrificing communication QoS.
+TABLE II: Sensing RMSE vs throughput
+SRS
+period
+(slots/ms)
+Sensing
+RMSE
+(meters)
+Throughput
+(Mbps)
+160/80
+0.74
+1.9804
+80/40
+0.74
+1.9793
+40/20
+0.74
+1.963
+20/10
+0.66
+1.953
+VI. CONCLUSION
+This paper introduced CellSense, a sub-6 GHz ISAC
+architecture integrated into a functional 5G protocol stack.
+To overcome high environmental clutter, we proposed a
+high-resolution SAGE-based multipath estimator paired with
+a bipartite-matching and sliding-window data association
+pipeline. Extensive site-specific simulations across indoor
+warehouse and outdoor campus settings validated high-
+fidelity tracking. Furthermore, a real-world hardware proto-
+type demonstrated an average indoor localization accuracy
+of 1.28 m and a 76% mean detection probability, drastically
+outperforming the 2D-FFT baseline. Future work will extend
+this framework to multi-cell cooperative bistatic sensing for
+expanded coverage and multi-target tracking.
+REFERENCES
+[1] “Framework and overall objectives of the future development of IMT
+for 2030 and beyond,” ITU-R, Recommendation M.2160-0, Jun. 2023,
+iTU-R Internal Document.
+[2] 3GPP, “Feasibility study on integrated sensing and communication,” 3rd
+Generation Partnership Project (3GPP), Tech. Rep. TR 22.837 V19.0.0,
+Jun. 2023.
+[3] ——, “Service requirements for integrated sensing and communication,”
+3rd Generation Partnership Project (3GPP), Tech. Rep. TS 22.137
+V19.1.0, Mar. 2024, stage 1 (Release 19).
+[4] Z. Wei, Y. Wang, L. Ma, S. Yang, Z. Feng, C. Pan, Q. Zhang, Y. Wang,
+H. Wu, and P. Zhang, “5G PRS-based sensing: A sensing reference
+signal approach for joint sensing and communication system,” IEEE
+Trans. on Vehicular Technology, vol. 72, no. 3, pp. 3250–3263, 2022.
+[5] U. Demir, K. Davaslioglu, Y. E. Sagduyu, T. Erpek, G. Anderson, and
+S. Kompella, “I-SCOUT: Integrated sensing and communications to
+uncover moving targets in NextG networks,” in 2024 IEEE Military
+Communications Conference (MILCOM).
+IEEE, 2024, pp. 1–6.
+[6] Y. E. Sagduyu, K. Davaslioglu, T. Erpek, S. Kompella, G. Anderson,
+and J. Ashdown, “MULTI-SCOUT: Multistatic Integrated Sensing and
+Communications in 5G and Beyond for Moving Target Detection,
+Positioning, and Tracking,” in MILCOM 2025-2025 IEEE Military
+Communications Conference (MILCOM).
+IEEE, 2025, pp. 693–698.
+[7] L. Ma, C. Pan, Q. Wang, M. Lou, Y. Wang, and T. Jiang, “A down-
+link pilot based signal processing method for integrated sensing and
+communication towards 6G,” in 2022 IEEE 95th Vehicular Technology
+Conference:(VTC2022-Spring).
+IEEE, 2022, pp. 1–5.
+[8] M. Li, H. Zhu, W. Wang, and E. Ekici, “mSAC: Enhancing Localization
+with mmWave Sensing and Orthogonal Signals,” in IEEE Conference on
+Computer Communications.
+IEEE, 2025, pp. 1–10.
+[9] J. Yang, H. Que, T. Du, L. Liang, X. Li, C.-K. Wen, and S. Jin,
+“ISAC prototype system for multi-domain cooperative communication
+networks,” IEEE Wireless Communications Letters, vol. 14, no. 1, pp.
+108–112, 2024.
+[10] J. Pegoraro, J. O. Lacruz, M. Rossi, and J. Widmer, “HiSAC: high-
+resolution sensing with multiband communication signals,” in Proceed-
+ings of the 22nd ACM Conference on Embedded Networked Sensor
+Systems, 2024, pp. 549–563.
+[11] T. Wild, A. Grudnitsky, S. Mandelli, M. Henninger, J. Guan, and
+F. Schaich, “6G integrated sensing and communication: From vision to
+realization,” in 2023 20th European Radar Conference (EuRAD). IEEE,
+2023, pp. 355–358.
+[12] X. Meng, J. Zhou, X. Liu, X. Tong, W. Qu, and J. Wang, “Secur-Fi:
+A secure wireless sensing system based on commercial Wi-Fi devices,”
+in IEEE Conference on Computer Communications.
+IEEE, 2023, pp.
+1–10.
+[13] Y. He, M. Xu, F. Xiao, and J. Luo, “VersaBeam: Versatile beamforming
+for integrated sensing and communication over commodity Wi-Fi,” in
+IEEE Conference on Computer Communications.
+IEEE, 2025, pp. 1–
+10.
+[14] Y. Xie, J. Xiong, M. Li, and K. Jamieson, “mD-Track: Leveraging
+multi-dimensionality for passive indoor Wi-Fi tracking,” in International
+Conference on Mobile Computing and Networking, 2019, pp. 1–16.
+[15] Y. He, J. Liu, M. Li, G. Yu, J. Han, and K. Ren, “Sencom: Integrated
+sensing and communication with practical wifi,” in Proceedings of
+the 29th Annual International Conference on Mobile Computing and
+Networking, 2023, pp. 1–16.
+[16] M. Kotaru, K. Joshi, D. Bharadia, and S. Katti, “Spotfi: Decimeter level
+localization using wifi,” in Proceedings of the 2015 ACM conference on
+special interest group on data communication, 2015, pp. 269–282.
+[17] K. Joshi, D. Bharadia, M. Kotaru, and S. Katti, “WiDeo: Fine-grained
+device-free motion tracing using RF backscatter,” in 12th USENIX
+Symposium on Networked Systems Design and Implementation (NSDI
+15), 2015, pp. 189–204.
+[18] 3GPP, “5G; NR; Physical channels and modulation,” 3rd Generation
+Partnership Project (3GPP), Tech. Rep. TS 38.211 V16.2.0, 2020, rel.16.
+[19] A. Malik, M. Ahadi, F. Kaltenberger, K. Warnke, N. T. Thinh, N. Bouk-
+nana, C. Thienot, G. Onche, and S. Arora, “From concept to reality: 5G
+positioning with open-source implementation of UL-TDoA in OpenAir-
+Interface,” arXiv preprint arXiv:2409.05217, 2024.
+[20] J. A. Fessler and A. O. Hero, “Space-alternating generalized expectation-
+maximization algorithm,” IEEE Transactions on signal processing,
+vol. 42, no. 10, pp. 2664–2677, 2002.

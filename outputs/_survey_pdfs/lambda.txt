@@ -1,0 +1,1195 @@
+
+===== PAGE 1 =====
+LAMBDA: A Low-Altitude Multimodal Base Dataset for UAV
+Sensing and Communication
+Lin Zhou1, Peichuan Rao1, Chenshuo Zhang1, Jianhua Mo1,*, Shu Sun1,
+Zhiyong Chen1, and Meixia Tao1,*
+Abstract
+Research on low-altitude integrated sensing and communication (ISAC) requires aligned
+multimodal data that jointly describe wireless propagation, visual appearance, unmanned aerial
+vehicle (UAV) motion, light detection and ranging (LiDAR) perception, and radar sensing under
+common trajectories and timestamps. To address this need, a low-altitude multimodal base
+dataset, named LAMBDA, is introduced. LAMBDA is characterized by high fidelity, modality
+diversity, scenario richness, and configuration flexibility. It is generated through a high-fidelity
+digital-twin pipeline with detailed scene geometry, refined material assignment, and electromag-
+netic modeling of UAVs. LAMBDA provides synchronized RGB images, depth maps, LiDAR
+point clouds, inertial measurement unit states, UAV poses, channel state information (CSI), and
+radar-synthesis resources across matched low-altitude operating conditions, shared coordinate
+systems, and synchronized frame indices. The dataset covers urban, suburban, and campus
+scenes, multi-UAV/multi-base-station settings, nighttime conditions, and sunny, rainy, snowy,
+and foggy weather variations. Its CSI and radar resources support user-defined antenna-array
+sizes, bandwidths, subcarrier spacings, chirp parameters, and plane-wave or spherical-wavefront
+channel synthesis. The reliability and usability of LAMBDA are assessed through quality con-
+trol, weather and multimodal visualization, and two UAV ISAC-related use cases: RGB-aided
+beam prediction and RGB–LiDAR-based UAV localization.
+Background & Summary
+The rapid proliferation of unmanned aerial vehicles (UAVs) has enabled a wide range of low-altitude
+applications, including autonomous delivery, emergency rescue, and infrastructure inspection [1,2].
+Unlike conventional terrestrial systems, low-altitude UAV networks involve small aerial targets,
+rapidly varying air–ground channels, three-dimensional mobility, and strong sensitivity to sur-
+rounding geometry and weather conditions. Safe, reliable, and efficient UAV operation therefore
+requires not only robust wireless communication links but also accurate environmental perception
+and motion awareness under highly dynamic and complex propagation and sensing conditions.
+These requirements naturally drive the convergence of communication and sensing functions on
+the same platforms and within the same networks, giving rise to a key research area known as
+integrated sensing and communication (ISAC) [3–5]. ISAC is also recognized as a core capability of
+1School of Information Science and Electronic Engineering, Shanghai Jiao Tong University, Shanghai, China.
+∗e-mail: mjh@sjtu.edu.cn; mxtao@sjtu.edu.cn
+1
+arXiv:2607.03826v1  [eess.SP]  4 Jul 2026
+
+===== PAGE 2 =====
+Table 1: Comparison of representative multimodal wireless and synthetic-city datasets. ✓: included; ×:
+absent or not applicable; △: limited or partially supported.
+Dataset
+Year
+Low-
+altitude CSI
+RGB/
+depth LiDAR Radar
+IMU/
+GPS
+Weather/
+time
+Main focus
+KITTI [8]
+2012
+×
+×
+✓
+✓
+×
+✓
+△
+Terrestrial autonomous-driving perception
+OPV2V [9]
+2022
+×
+×
+✓
+✓
+×
+△
+△
+V2V cooperative perception
+DAIR-V2X [10]
+2022
+×
+×
+✓
+✓
+×
+△
+△
+Real-world vehicle-infrastructure perception
+SDCD [11]
+2024
+×
+×
+✓
+×
+×
+×
+✓
+Synthetic digital-city RGB-depth robustness
+DeepMIMO [12]
+2019
+×
+✓
+×
+×
+×
+×
+△
+Configurable ray-tracing channels
+WAIR-D [13]
+2022
+×
+✓
+×
+×
+×
+×
+×
+Wireless AI channels over real-world maps
+ViWi [14]
+2020
+×
+✓
+✓
+△
+×
+×
+△
+Vision-aided wireless communications
+E-FLASH [15]
+2022
+×
+△
+△
+✓
+×
+✓
+△
+Real-world mmWave V2X beam selection
+DeepSense 6G [16]
+2023
+△
+△
+✓
+✓
+✓
+△
+△
+Real-world multimodal wireless measurements
+DeepVerse 6G [19]
+2024
+△
+✓
+✓
+△
+✓
+△
+△
+Digital-twin wireless datasets
+M3SC [17]
+2023
+×
+✓
+✓
+✓
+✓
+×
+✓
+Mixed multimodal ISAC data
+SynthSoM [18]
+2025
+△
+✓
+✓
+✓
+✓
+×
+✓
+Synthetic SoM dataset with air-ground scenarios
+Multimodal-Wireless [20] 2025
+×
+✓
+✓
+✓
+✓
+✓
+✓
+V2X multimodal communication and perception
+Multimodal-NF [21]
+2026
+✓
+✓
+✓
+✓
+×
+✓
+△
+Near-field low-altitude XL-MIMO
+PML-CellularEye [22]
+2026
+✓
+△
+△
+×
+△
+✓
+✓
+Real-world BS-side low-altitude ISAC data
+LAMBDA (this work)
+2026
+✓
+✓
+✓
+✓
+✓
+✓
+✓
+Low-altitude multimodal ISAC data
+sixth-generation (6G) wireless networks [6,7], enabling applications such as predictive beamform-
+ing, localization, UAV trajectory planning, and environment reconstruction. However, progress in
+these applications is still fundamentally constrained by the scarcity of comprehensive, high-quality
+multimodal datasets for low-altitude UAV scenarios. Such datasets should jointly capture wireless
+propagation, visual appearance, geometric structure, UAV motion, and weather-dependent varia-
+tions under synchronized trajectories and common coordinate systems, thereby providing reliable
+foundations for algorithm validation, benchmarking, and model training.
+Datasets related to perception, wireless communication, and sensing have evolved along several
+related but distinct directions, yet existing representative datasets still do not fully meet the require-
+ments of low-altitude UAV ISAC research. Autonomous-driving and synthetic-city datasets, such
+as KITTI [8], OPV2V [9], DAIR-V2X [10], and SDCD [11], provide benchmarks with camera, light
+detection and ranging (LiDAR), GPS/inertial measurement unit (IMU), cooperative-perception, or
+weather-varied RGB-depth data. However, these datasets are primarily designed for ground-centric
+agents, viewpoints, and motion patterns, and therefore cannot capture infrastructure-side observa-
+tions of small aerial targets in low-altitude airspace. Moreover, they generally lack radio-frequency
+(RF) channel labels, making them insufficient for ISAC studies. Wireless-channel datasets, such as
+DeepMIMO [12] and WAIR-D [13], provide ray-tracing-based RF channels over realistic maps and
+support communication-oriented evaluation. Nevertheless, their channel records are not synchro-
+nized with visual, geometric, LiDAR, inertial, and pose modalities, and their scenarios are mainly
+designed for terrestrial wireless links rather than low-altitude UAV sensing and communication.
+More recently, multimodal sensing-communication datasets have started to narrow this gap.
+ViWi [14] integrates visual scenes with wireless channels, while E-FLASH [15] and DeepSense
+6G [16] provide real-world multimodal measurements for beam selection and other wireless tasks.
+M3SC [17], SynthSoM [18], DeepVerse 6G [19], Multimodal-Wireless [20], Multimodal-NF [21],
+and PML-CellularEye [22] further advance multimodal sensing-communication data generation
+through simulation, hybrid generation, or real-world cellular testbeds. However, these datasets
+still provide only partial coverage of the low-altitude UAV ISAC design space. As summarized
+2
+
+===== PAGE 3 =====
+in Table 1, they do not jointly offer high-fidelity low-altitude digital-twin scenes, synchronized
+visual/geometric/inertial/wireless records, diverse UAV trajectories under controllable weather and
+time-of-day conditions, and configurable CSI and radar-generation support.
+To address this gap, LAMBDA, short for Low-Altitude Multimodal Base DAtaset, is intro-
+duced as a foundational low-altitude data resource that can serve as a benchmark for UAV com-
+munication, sensing, tracking, and multimodal wireless model pretraining. LAMBDA is generated
+on a digital-twin platform that integrates Unreal Engine 5 (UE5) [23] for high-fidelity scene con-
+struction; Cosys-AirSim [24,25] for UAV motion control and synchronized sensor support for RGB,
+depth, LiDAR, pose, and IMU streams; Blender [26] for scene-mesh conversion; Sionna RT [27] for
+material-aware ray tracing; and CADFEKO [28] for UAV radar cross-section (RCS) modeling. The
+resulting dataset contains 2.04 TB of data and 517,939 aligned multimodal data frames.
+LAMBDA is characterized by four key features. First, it offers high physical and visual
+fidelity: the environment maps preserve detailed geometry and decimeter-level textures, refined
+optical and electromagnetic material information is assigned to scene objects, and UAV radar re-
+flection characteristics are modeled using electromagnetic simulation. Second, it contains diverse
+synchronized modalities, including RGB images, depth maps, LiDAR point clouds, IMU states,
+CSI, and millimeter-wave radar-generation resources. Third, it covers rich low-altitude scenar-
+ios, including urban, suburban, open-ground, mountain, and campus scenes, multi-UAV/multi-
+base-station (multi-BS) settings, nighttime conditions, and rain, snow, and fog weather variations.
+Fourth, it provides flexible RF and radar configuration support. The stored path-level CSI
+records and radar-synthesis resources allow users to customize the antenna-array size, bandwidth,
+subcarrier spacing, and frequency-modulated continuous-wave (FMCW) chirp parameters for differ-
+ent sensing and communication tasks. They also support both plane-wave and spherical-wavefront
+channel synthesis, enabling far-field and near-field communication and sensing studies.
+The reliability and usability of LAMBDA are validated through a multi-stage technical val-
+idation procedure. Generation-time quality control is first performed to check archive integrity,
+modality availability, timestamp alignment, pose continuity, and trajectory completeness. Cross-
+modal consistency is then examined using synchronized RGB, depth, LiDAR, pose, CSI, and radar
+visualizations, including weather-dependent RGB/depth/LiDAR comparisons, power-delay-profile
+inspection, and radar range–angle map sanity checks. Finally, two representative UAV ISAC tasks,
+namely RGB-aided beam prediction and RGB–LiDAR-based localization, are used to verify that
+the released data can be directly consumed by learning-based ISAC pipelines. These use cases
+are intended to demonstrate data usability and physical consistency rather than to establish task-
+specific state-of-the-art algorithms.
+Methods
+To generate LAMBDA, we developed a digital-twin pipeline as shown in Fig. 1. For each scene,
+the scenario configuration is specified according to the building layout, including BS positions and
+orientations, UAV initial positions, UAV motion patterns, and weather/time settings. These con-
+figurations are applied to high-fidelity UE5 digital-twin scenes that include detailed geometry, tex-
+tures, rendering materials, lighting, and weather effects. The configured scenes are then processed
+through two coupled generation branches. In the visual sensing and state branch, Cosys-AirSim
+executes the configured UAV trajectory inside the UE5 scene and records RGB images, depth maps,
+3
+
+===== PAGE 4 =====
+Scenario configuration
+scene, BS/UAV layout,
+trajectory, weather/time
+UE5 high-fidelity twin
+fine geometry, textures,
+rendering materials
+UE5/Cosys-AirSim
+RGB, depth,
+LiDAR, IMU
+Global alignment
+frame index, pose
+Blender conversion
+UE5 assets to meshes,
+electromagnetic materials
+Sionna RT
+CSI
+Radar synthesis
+CADFEKO UAV RCS,
+4D radar
+LAMBDA
+quality control
+visual sensing and state branch
+RF channel and radar branch
+Figure 1: Overview of the LAMBDA digital-twin generation pipeline.
+LiDAR point clouds, IMU states, and ground-truth poses. In the RF channel and radar branch, the
+same UE5 assets are exported through Blender, converted into radio-scene meshes, assigned elec-
+tromagnetic material properties, and imported into Sionna RT for ray tracing and CSI generation.
+The radar synthesis module further combines the Sionna RT multipath geometry with CADFEKO-
+derived UAV RCS information to generate radar data. The outputs from both branches are finally
+passed to the LAMBDA quality-control module, which checks modality completeness, frame-index
+consistency, pose continuity, and CSI/radar plausibility.
+The multimodal spatiotemporal alignment is performed offline, rather than by running all sim-
+ulators simultaneously. Specifically, UE5/Cosys-AirSim first executes the UAV trajectory, renders
+the perception modalities, and records frame-indexed UAV and sensor poses. All scene geometry,
+UAV poses, sensor poses, CSI records, and radar-synthesis metadata are represented in a unified
+Sionna right-handed world coordinate system. During generation, UE5/Cosys-AirSim coordinates
+are converted to this common coordinate convention through a left-handed-to-right-handed coor-
+dinate transformation. Consequently, records with the same frame index share the same scene
+geometry, UAV state, timestamp, and coordinate convention across modalities.
+High-Fidelity Scene Construction. LAMBDA uses digital-twin scenes with detailed geometry,
+decimeter-level visual textures, and layered material assignments. The dataset contains three main
+region categories, with representative renderings shown in Fig. 2 and scene-level parameters summa-
+rized in Table 2. The table reports the scene size, material diversity, UAV altitude range, BS–UAV
+configurations, weather setup, and number of frames for each scene. The Urban region is based
+on San Francisco-style geometry, including dense skyscrapers, medium-density blocks, and low-
+density squares. The Suburbs region covers lower-density suburban, mountain, and open-ground
+scenes with vegetation, rough terrain, and winding roads. The Campus region represents part of the
+Shanghai Jiao Tong University (SJTU) campus around the School of Electronic Information and
+Electrical Engineering (SEIEE), comprising five buildings, parking lots, and surrounding lawns.
+The scene design emphasizes rooftop and infrastructure-mounted viewpoints looking into low-
+altitude airspace, where UAVs appear small and challenging to detect in visual, radar, and Li-
+DAR modalities. This setting reflects practical low-altitude monitoring scenarios, in which BSs
+or roadside units observe UAVs at distances ranging from tens to hundreds of meters. The same
+digital-twin scenes are also reused for electromagnetic simulation. UE5 scene assets are exported
+through Blender, assigned customized electromagnetic material properties, and then imported into
+Sionna RT. The customized electromagnetic material set covers common low-altitude scene surfaces,
+including concrete, brick, glass, metal, marble, wood, vegetation, and dry, wet, or snow-covered
+ground.
+4
+
+===== PAGE 5 =====
+(a) Urban Area
+(b) Suburbs
+(c) Campus
+Figure 2: Regions included in the LAMBDA dataset.
+Table 2: Summary of LAMBDA scenes, including scene footprint, material diversity, UAV altitude range,
+BS–UAV configurations, weather setup, and the total number of frames per scene. The frame count aggre-
+gates all listed BS–UAV and weather/time configurations for each scene.
+Region
+Scenario
+Scene
+Footprint
+(m × m)
+Material
+types
+UAV Alt.
+range (m)
+BS–UAV
+setup
+Weather
+setup
+No. of
+frames
+Urban Area
+Block
+Block 1
+249 × 192
+4
+46–129
+1 BS/1 UAV;
+2 BS/2 UAV
+Sunny; rainy;
+snowy; foggy
+190,331
+Block 2
+340 × 221
+5
+50–123
+1 BS/1 UAV
+Sunny
+33,608
+Square
+Square 1
+759 × 453
+7
+50–123
+1 BS/1 UAV
+Sunny
+33,608
+Square 2
+300 × 224
+5
+40–112
+1 BS/1 UAV
+Sunny
+33,608
+Square 3
+482 × 250
+6
+51–123
+1 BS/1 UAV
+Sunny
+33,608
+Skyscraper
+Skyscraper 1
+534 × 425
+4
+41–85
+1 BS/1 UAV
+Sunny
+36,060
+Suburbs
+Suburb
+Suburb 1
+265 × 226
+6
+41–71
+1 BS/1 UAV;
+1 BS/2 UAV
+Sunny; night;
+rainy; snowy;
+foggy
+112,261
+Mountain
+Mountain 1
+1433 × 1237
+3
+62–96
+1 BS/2 UAV Sunny; night
+24,040
+Open ground Open Ground
+63 × 45
+3
+23–55
+1 BS/1 UAV
+Sunny
+8,795
+Campus
+SJTU
+SEIEE
+355 × 271
+7
+16–49
+1 BS/2 UAV
+Sunny
+12,020
+Fig. 3 illustrates the visual difference between a uniform-material baseline and the refined
+material assignment used in LAMBDA. The legend indicates the material-to-color mapping in
+the refined assignment; the asphalt-like ground corresponds to the customized very dry ground
+material used for road-like surfaces. This comparison verifies that the semantic material labels are
+preserved in the rendered scene and can be consistently mapped to electromagnetic parameters for
+downstream simulation.
+Trajectory Control and Pose-based Alignment. The spatiotemporal alignment of LAMBDA
+is built around frame-indexed UAV poses. During data collection, UAV trajectories are executed
+in Cosys-AirSim under a deterministic global simulation clock, and each global frame is assigned a
+timestamp and a realized UAV pose in the unified Sionna right-handed world coordinate system.
+The pose contains the UAV position and quaternion orientation at the corresponding simulation
+instant. Using the realized pose, rather than the idealized trajectory command, avoids mismatches
+caused by controller dynamics and numerical effects in AirSim. This pose-centered design makes
+the trajectory record the common alignment backbone for all sensing, motion, wireless, and radar-
+synthesis modalities.
+RGB, depth, LiDAR, IMU, and sensor-pose records are collected at the
+corresponding simulation frame, while CSI and radar products are generated offline from the same
+frame-wise UAV pose and converted scene geometry. Thus, the frame index acts as the primary
+5
+
+===== PAGE 6 =====
+(a) Uniform concrete baseline
+(b) Refined material assignment
+Brick
+Glass
+Concrete
+Asphalt-like ground
+Wood
+Figure 3: Material-assignment comparison for the LAMBDA Square 2 scene.
+−50
+−40
+−30
+−20
+−10
+x (m)
+140
+150
+160
+170
+180
+y (m)
+90
+100
+110
+120
+z (m)
+−60
+−30
+0
+30
+60
+x (m)
+−60
+−30
+0
+30
+60
+y (m)
+0
+20
+40
+60
+Low mobility
+High mobility
+z (m)
+(a) Realized z-traj segments
+(b) Random dynamic trajectories
+Figure 4: Example trajectories in LAMBDA.
+key that links visual, geometric, inertial, wireless, and radar-synthesis records describing the same
+UAV state in the same world coordinate system.
+The simulation adopts a global frame interval of 1/60 s for temporal alignment. In the data-
+collection loop, the simulator is paused before each acquisition so that all recorded sensor streams
+correspond to the same instantaneous scene state. RGB, depth, pose, and IMU records follow this
+60 Hz global frame clock, while the 20 Hz LiDAR stream is recorded every three global frames
+and assigned the corresponding global frame index. Each global frame is indexed by the prescribed
+simulation instant tk = k∆t, with ∆t = 1/60 s. The collector also records simulator timestamps to
+detect stale or duplicated sensor outputs.
+For trajectory control, LAMBDA provides two types of UAV motion patterns: layered z-traj
+sweeps and random dynamic trajectories with low- and high-mobility presets. The z-traj sweep is
+a deterministic layer-wise trajectory designed to sample the same horizontal footprint at multiple
+UAV altitudes. For a square region with side length L, the generator creates altitude layers spaced
+by ∆h, places parallel scan lanes separated by ∆ℓwithin each layer, and connects adjacent lanes
+6
+
+===== PAGE 7 =====
+in a serpentine order with spatial step v∆t. In LAMBDA, the z-traj sweeps are configured with
+L = 50 m, ∆ℓ= 10 m, ∆h = 10 m, and v = 5 m/s. These records enable controlled altitude-
+dependent comparisons of visual, geometric, and wireless-channel behavior.
+Accordingly, they
+are treated as altitude-layer scan segments rather than as a single continuous 3D maneuver, as
+illustrated in Fig. 4(a).
+The random dynamic trajectories are generated using a Markov-chain maneuvering model
+inspired by maneuvering-target dynamics [29].
+The model switches among constant-velocity,
+constant-acceleration, coordinated-turn, and Singer-style dynamics, with initial positions, speeds,
+headings, and vertical velocities sampled by Latin hypercube sampling to improve flight-volume
+coverage. The UAV state is then evolved frame by frame according to the sampled motion mode,
+process noise, and boundary-handling rules. Low- and high-mobility presets share the same genera-
+tor but use different maneuverability limits: the acceleration components are clipped to ±4.0 m/s2
+and ±6.0 m/s2, and the coordinated-turn-rate limits are 80◦/s and 120◦/s, respectively.
+Both
+presets bound the horizontal speed by 13.5 m/s and the vertical speed by 6.0 m/s. Representative
+low- and high-mobility trajectories are shown in Fig. 4(b).
+Wireless Channel Modeling. CSI-related channel records are generated using Sionna RT. Each
+record contains complex-valued path gains, delays, Doppler shifts, angles of departure and arrival,
+along with interaction labels, UAV position and velocity, carrier frequency, and weather kind. The
+Doppler shifts are determined by the UAV velocity projected onto each propagation path direction.
+The CSI subsets cover multiple candidate carrier frequencies for low-altitude wireless networks and
+typical 5G and 6G bands, including 1.4, 3.5, 4.9, 5.9, 7, 28, 60, and 77 GHz. The CSI generation
+pipeline allows users to customize the subcarrier configuration and antenna arrays and generate
+the channel response of the corresponding orthogonal frequency-division multiplexing (OFDM) sig-
+nals based on these path-level channel records. The pipeline further supports both plane-wave
+and spherical-wavefront channel synthesis because the released path-level records preserve geomet-
+ric propagation parameters, rather than fixed antenna-domain channel tensors, allowing users to
+recompute array responses under either far-field or near-field assumptions.
+At frequencies of 28 GHz, 60 GHz, and 77 GHz, the pipeline uses frequency-dependent radio-
+material and scattering settings together with ITU-based atmospheric attenuation for adverse-
+weather RF paths. The pipeline remaps selected material parameters to support frequencies up
+to the millimeter-wave range and introduces frequency-dependent scattering coefficients for rough
+urban surfaces such as asphalt. It also supports gaseous attenuation models such as oxygen and
+water-vapor absorption. Detailed weather settings are implemented as a modular configuration
+component for weather-specific data subsets.
+Radar Signal Generation.
+Radar signal generation is implemented as a configurable down-
+stream component, rather than as a separately stored raw-radar modality.
+Given the released
+path-level CSI records, UAV pose and attitude, radar configuration, and UAV RCS files, the pro-
+vided code synthesizes dechirped FMCW radar cubes with antenna, chirp, and range-bin dimen-
+sions. The synthesis combines the complex CSI coefficient of each valid path with its two-way delay,
+Doppler shift, virtual-array steering phase, UAV-orientation-dependent RCS, and optional receiver
+noise. The complex-valued CSI coefficient captures the propagation effects computed by the ray-
+tracing channel generator, whereas the RCS term is obtained from CADFEKO simulations of the
+AirSim UAV model and queried according to the UAV attitude. The radar-generation parameters
+7
+
+===== PAGE 8 =====
+Table 3: Modality-specific weather-degradation simulation methods used in LAMBDA.
+Modality
+Rain
+Snow
+Fog
+RF channel
+ITU-R P.838-3 attenuation
+Gunn–East wet-snow path loss
+ITU-R P.840-9 attenuation
+RGB
+Niagara particle system
+Niagara particle system
+UE5 volumetric fog
+Depth
+Niagara particle system
+Niagara particle system
+Physics-based fog modeling
+LiDAR
+LISA algorithm
+LISA algorithm
+Physics-based fog modeling
+are user-configurable, including the bandwidth, chirp duration, sampling rate, number of chirps per
+frame, receiver noise level, and antenna array shape and spacing. As a reference configuration, the
+released code provides a 77 GHz preset with 2 GHz bandwidth, 40 µs chirp duration, a 204.8 MHz
+sampling rate, 64 chirps per frame, and a 4 × 4 antenna array. Users may modify these chirp and
+array parameters to synthesize radar cubes corresponding to different FMCW radar designs. The
+generated radar cubes are stored after a fast Fourier transform (FFT) is applied along the fast-time
+dimension. For visualization and validation, range–Doppler maps are formed from the stored range
+bins and Doppler FFTs over chirps, while range–azimuth and range–elevation maps are obtained
+by applying angle FFTs over the rectangular virtual array.
+Weather Configuration.
+Weather effects are implemented through modality-specific pipelines
+because RF propagation, image rendering, depth sensing, and LiDAR point-cloud formation are
+governed by different degradation mechanisms. For RF data, the CSI generator applies atmospheric
+attenuation to the complex multipath amplitudes, and radar synthesis then uses the resulting mul-
+tipath records together with UAV RCS and FMCW configuration. For RGB, depth, and LiDAR
+streams, weather degradation is simulated with the UE5 Niagara particle system, the LISA algo-
+rithm [30], the UE5 volumetric-fog model, and the physically based fog modeling method of Hahner
+et al. [31]. Table 3 summarizes the method assignment for the weather-varied modalities.
+RF Weather Attenuation Modeling.
+For RF data, weather-dependent propagation loss is
+represented by frequency-dependent electromagnetic attenuation terms rather than by rendered or
+point-cloud artifacts. The CSI generator applies these attenuation terms to the complex multipath
+amplitudes, and radar synthesis then uses the resulting multipath records together with UAV
+RCS and FMCW configuration. Rain attenuation follows ITU-R P.838-3 [33]: the horizontal and
+vertical polarization coefficients are evaluated from the carrier frequency and then projected using
+the elevation angle and polarization tilt. Fog and cloud attenuation follows ITU-R P.840-9 [34],
+using liquid-water density and temperature-dependent dielectric parameters.
+Snow attenuation
+for RF paths follows the Gunn–East snow path-loss model for RF frequencies, using propagation
+distance, carrier frequency, and snow-equivalent precipitation rate as inputs [35].
+Niagara Particle System.
+For rain and snow, RGB images and depth maps are rendered
+in UE5 using Niagara particle systems.
+The particle geometry, opacity, velocity, acceleration,
+spawn rate, and emitter extent jointly determine the precipitation appearance and the density of
+visible hydrometeors within the sensor field of view. To maintain camera-frustum coverage while
+reducing rendering cost, the rain and snow emitters are placed locally around the BS sensors
+rather than across the entire scene. In the released configuration, both weather conditions use
+10 × 10 × 10 m3 local emitters, with weather-specific particle velocities, accelerations, and spawn
+rates.
+The corresponding Niagara settings are released with the weather-configuration files to
+support reproducible rain and snow rendering.
+8
+
+===== PAGE 9 =====
+LISA Algorithm.
+The LiDAR rain and snow point clouds are synthesized from clear-weather
+LiDAR scans using the LISA algorithm [30]. For each laser ray, LISA samples precipitation particles
+along the beam path and compares their simulated backscatter with the return from the original
+scene surface. When the sampled particle return is stronger, the measured point is replaced by
+a precipitation-induced return; otherwise, the original object return is retained with scattering-
+induced range perturbation. This branch therefore models sparse spurious returns and range noise
+caused by discrete hydrometeors, while keeping the LiDAR output synchronized with the same
+trajectory and weather labels as the RGB/depth streams.
+UE5 Volumetric Fog.
+Fog is treated separately from rain and snow because it is a spatially
+continuous participating medium rather than a set of resolvable particles. For RGB images, fog is
+rendered with the UE5 volumetric-fog model instead of Niagara particles. The visual attenuation
+and in-scattered radiance are accumulated along camera rays by the renderer, which yields a con-
+tinuous fog layer that is more consistent with atmospheric extinction than a representation based
+on individually rendered fog particles.
+Physics-based Fog Modeling.
+For depth and LiDAR, fog degradation follows the physics-based simulation method of Hah-
+ner et al. [31].
+The meteorological optical range (MOR) determines the extinction coefficient
+α = ln(20)/MOR, while atmospheric backscatter is modeled using the inverse-visibility scaling
+in [31]. For each sensing ray, the simulator compares the attenuated hard-target return with the
+soft fog backscatter response, which is obtained from a precomputed lookup table accounting for
+the range-dependent fog profile, laser pulse shape, and near-field transmitter–receiver overlap. If
+the soft response dominates, the measured range is replaced by the corresponding fog-return range;
+otherwise, the original target range is retained. The same hard-target/soft-return decision model
+is applied image-wise to depth maps and point-wise to LiDAR scans, with replaced LiDAR points
+moved along their original rays.
+Data Records
+LAMBDA is organized as a synchronized low-altitude multimodal record set in which each global
+frame index is associated with visual, geometric, inertial, wireless channel, and radar information
+from the same UAV trajectory. The whole dataset is deposited in Science Data Bank [32]. As shown
+in Fig. 5, the dataset directory first separates scenes, and each scene is then organized by weather
+condition, BS–UAV setup and trajectory, and modality. The dataset uses ZIP archives to reduce
+storage overhead while preserving the frame-indexed file structure: deterministic trajectory subsets
+are mainly packaged by modality, while random dynamic subsets are separated into low mobility
+and high mobility folders and compressed by individual trajectory as traj *.zip archives.
+The RF data include BS-to-UAV CSI files and radar-generation resources. The CSI files store
+multipath channel information, including complex-valued path gains, delays, Doppler shifts, an-
+gles of departure and arrival, path validity flags, interaction labels, UAV position and velocity,
+carrier frequency, and weather kind. These path-level data are stored as compressed NumPy files
+under carrier-frequency-specific CSI archives, and can be used to generate CSI under configurable
+setups. For radar sensing, LAMBDA follows an FMCW radar model, where each chirp sweeps its
+carrier frequency over time. The target range, velocity, and angle can be estimated from the beat
+9
+
+===== PAGE 10 =====
+LAMBDA
+Dataset
+Urban Area
+Block
+Square
+Skyscraper
+Suburbs
+Open Ground
+Mountain
+SJTU Campus
+Weather Condition
+Sunny
+Rainy
+Snowy
+Foggy
+Night
+BS / UAV Setup 
+& Trajectory
+Number of BSs
+Number of UAVs
+Trajectory Type
+Perception / Motion
+cam/img_000000.png
+depth/depth_000000.npz
+lidar/lidar_000000.pcd
+imu/imu_000000.json
+pose/drone_pose_000000.json
+Scene Metadata
+sensors/cam_world_pose.json
+Wireless Channel
+csi/f1p4GHz/csi_000000.npz
+csi/f3p5GHz/csi_000000.npz
+csi/f4p9GHz/csi_000000.npz
+4D Radar
+generation code + UAV RCS
+sensors/lidar_world_pose.json
+csi/f7p0GHz/csi_000000.npz
+······
+Suburb
++
++
+Figure 5: Data directory hierarchy and files of the LAMBDA dataset.
+Table 4: Representative sensor and wireless configurations.
+Modality
+Configuration
+Values
+CSI
+Carrier frequency
+1.4, 3.5, 4.9, 5.9, 7, 28, 60, and 77 GHz
+RGB
+Field of view (FOV) / frame rate
+100◦horizontal, 63◦vertical, 60 Hz
+Depth
+FOV / frame rate
+100◦horizontal, 63◦vertical, 60 Hz
+LiDAR
+FOV / heading /
+120◦horizontal, 90◦vertical, camera-aligned orientation
+Channels / range / scan rate
+512 lines, 150 m, 20 Hz
+Radar
+Antenna / heading /
+4 × 4 array, camera-aligned heading
+FMCW settings
+77 GHz carrier, 2 GHz bandwidth, 40 µs chirp duration, 64 chirps/frame
+frequency, Doppler shift, and antenna-array phase. Instead of storing raw radar cubes for every
+frame, LAMBDA provides radar-generation and visualization code together with UAV RCS files.
+The provided code combines the stored CSI multipath parameters, the UAV RCS model, and the
+radar configuration to synthesize FMCW radar data, from which range-Doppler and range-angle
+maps can be generated for visualization and analysis.
+The non-RF sensing data include RGB images, depth maps, LiDAR point clouds, IMU states,
+UAV poses, and BS sensor poses. RGB images are rendered from BS viewpoints and stored as PNG
+files. Depth maps are pixel-aligned with the RGB frames and stored under depth/ as compressed
+NumPy files. LiDAR point clouds are stored as PCD files, while IMU and pose streams are stored as
+JSON files. BS camera and LiDAR poses are saved once under the sensors/ folder. Representative
+sensor and wireless configurations are summarized in Table 4.
+Table 5 summarizes the representative file organization of LAMBDA. Frame-indexed modality
+10
+
+===== PAGE 11 =====
+Table 5: Representative file organization for synchronized LAMBDA samples.
+Directory
+Typical content
+Example file / key fields
+csi/
+BS-to-UAV multipath
+channel records
+csi 000000.npz, path gain, delay, angle of
+arrival/departure
+cam/
+BS-view RGB images
+img 000000.png
+depth/
+BS-view depth maps
+depth 000000.npz
+lidar/
+Point clouds
+lidar 000000.pcd, x, y, z
+imu/
+UAV inertial states
+imu 000000.json, linear acceleration, angular
+velocity, orientation
+pose/
+UAV pose
+drone pose 000000.json, position, orientation,
+timestamp
+sensors/
+BS sensor pose
+cam world pose.json, lidar world pose.json,
+extrinsics
+files share the same six-digit index whenever the corresponding modality is available.
+Technical Validation
+The reliability and usability of LAMBDA are evaluated from complementary perspectives, includ-
+ing generation-time quality control, frame-level consistency verification, synchronized multimodal
+visualization, and two UAV ISAC use cases: RGB-aided beam prediction and RGB–LiDAR-based
+UAV localization.
+Quality Control and Consistency Checks. LAMBDA adopts a multi-stage validation proto-
+col to ensure that the released records are complete, synchronized, and physically plausible. During
+data generation, visual playback is used to inspect scene rendering, UAV motion, sensor viewpoints,
+and weather effects. Frame-level timestamp tests and pose-continuity checks are then applied to
+detect stale sensor outputs, duplicated frames, missing modality files, and discontinuous trajecto-
+ries. For the RF and radar branches, ray-tracing path visualization, power-delay-profile inspection,
+and radar-map sanity checks are performed to verify channel-path plausibility and radar-synthesis
+consistency.
+Weather Visualization.
+Fig. 6 compares RGB, depth, and LiDAR outputs under matched
+weather settings. The sunny, rainy, snowy, and foggy rows are generated under the same visualiza-
+tion protocol, while the columns compare RGB appearance, depth map, and LiDAR point cloud
+degradation. The LiDAR panels keep the original top-down point samples and use red points in
+the rainy, snowy, and foggy rows to mark sunny returns that are missing in each adverse-weather
+point cloud, together with blue points for near-range returns caused by raindrops, snowflakes or
+fog droplets. The comparison shows that the weather configuration produces modality-consistent
+degradation: precipitation and fog change the RGB/depth appearance in the expected direction,
+while the LiDAR point clouds show both missing sunny-weather points and near-range weather-
+induced returns rather than unrelated random artifacts.
+Fig. 7 complements this condition-level inspection with a sunny/night pair from the Mountain 1
+scene. This layout helps verify that the weather configuration changes the visible scene in the
+expected direction, that precipitation and fog effects remain compatible with depth rendering, and
+that LiDAR degradation is spatially reasonable instead of producing unrelated random artifacts.
+11
+
+===== PAGE 12 =====
+(a) RGB, sunny
+(b) depth, sunny
+(c) LiDAR, sunny
+(d) RGB, rainy
+(e) depth, rainy
+(f) LiDAR, rainy
+(g) RGB, snowy
+(h) depth, snowy
+(i) LiDAR, snowy
+(j) RGB, foggy
+(k) depth, foggy
+(l) LiDAR, foggy
+Figure 6: Weather visualization examples from the LAMBDA Suburb 1 scene.
+(a) RGB, sunny
+(b) RGB, night
+Figure 7: Sunny and night visualization example from the LAMBDA Mountain 1 scene.
+These checks complement the frame-level timestamp checks by showing that synchronized sensing
+streams remain visually and geometrically coherent across weather settings.
+Synchronized Multimodal Visualization.
+12
+
+===== PAGE 13 =====
+(a) Power-delay profile
+(b) RGB image
+(c) Depth map
+(d) LiDAR point cloud
+(e) Range-azimuth map
+(f) Range-elevation map
+Figure 8: Synchronized multimodal sample from the LAMBDA Block 1 scene.
+Fig. 8 shows a representative synchronized sample loaded from the same frame index in the
+LAMBDA Block 1 scene.
+The synchronized sample is used to visually inspect whether the wireless channel, visual, geo-
+metric, and radar-synthesis outputs describe the same low-altitude event. The power-delay profile
+is checked together with RGB appearance, depth structure, LiDAR geometry, and radar range-
+azimuth/elevation angle maps for the same frame index. This qualitative validation is used to
+detect frame-index mismatches, stale sensor outputs, obvious field-of-view errors, and inconsistent
+radar visualizations or CSI products before dataset deposition.
+Validation via UAV ISAC Use Cases.
+We further conduct two UAV ISAC experiments to
+verify that LAMBDA provides learnable and physically consistent supervision signals. Together,
+they test whether LAMBDA can be used directly in standard machine learning pipelines.
+Use Case 1: RGB-aided Beam Prediction. The first experiment evaluates RGB-aided beam
+prediction, whose workflow is shown in Fig. 9(a). The use case is to infer, from a single RGB image
+collected at the BS side, which beam in a predefined 64-beam codebook should be selected for the
+60 GHz BS–UAV link. In practical beam management this corresponds to using visual context to
+speed up or replace exhaustive beam sweeping, because the image provides information about the
+UAV location and surrounding blockage geometry before the RF beam is selected.
+For this experiment, each synchronized RGB–CSI sample is converted into an RGB-aided beam
+prediction sample. The 60 GHz CSI is projected onto a 64-beam codebook and the beam with the
+maximum energy is used as the class label. The 64-beam codebook is adopted to align the label
+space with Scenario 23 of the DeepSense 6G real-world dataset [16], where the beam prediction
+annotation is also represented by discrete beam indices.
+To keep the validation aligned with a commonly used RGB-aided UAV beam prediction frame-
+work, the network architecture follows the protocol used for RGB-aided drone beam prediction
+in [36], using a ResNet-50 backbone followed by a fully connected classification head.
+Specif-
+13
+
+===== PAGE 14 =====
+(a) RGB-aided beam prediction workflow.
+0.6%
+N=64
+1.1%
+N=128
+2.2%
+N=256
+4.5%
+N=512
+9.0%
+N=1024
+Training ratio and number of training samples from DeepSense Scenario 23
+0
+20
+40
+60
+80
+100
+Accuracy (%)
+Top-1
+Top-3
+Top-5
+Open-Ground pretrained
+ImageNet only
+(b) RGB-aided beam prediction results.
+Figure 9: Algorithm workflow and results for Use Case 1: RGB-aided beam prediction.
+ically, the ResNet-50 backbone initialized with ImageNet weights is trained on the LAMBDA
+Open Ground scene. This source model is trained on 2,639 samples and validated on 293 held-
+out samples. For the external transfer check on DeepSense Scenario 23, this backbone pretrained
+on LAMBDA Open Ground is compared with a control model that uses only ImageNet-pretrained
+backbone weights. To make the comparison fair, the classification heads of both models are ran-
+domly reinitialized before few-shot adaptation to DeepSense Scenario 23, so the results mainly show
+the effect of LAMBDA Open Ground source pretraining on the backbone representation.
+Fig. 9(b) illustrates the RGB-aided beam prediction validation results. It reports the Top-k ac-
+curacy on DeepSense Scenario 23 after few-shot adaptation. Here, Top-k accuracy measures whether
+the ground-truth best beam is included in the top-k visually inferred candidate beams. Solid lines
+correspond to models initialized with LAMBDA Open Ground pretraining, whereas dashed lines
+correspond to ImageNet-only initialization.
+The models pretrained on LAMBDA Open Ground
+converge effectively, confirming that the synthetic visual-wireless representations provided in the
+14
+
+===== PAGE 15 =====
+(a) RGB–LiDAR-based UAV localization workflow.
+0%
+N=0
+5%
+N=138
+10%
+N=276
+25%
+N=689
+50%
+N=1378
+75%
+N=2066
+100%
+N=2755
+Training ratio and number of training samples
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+Success rate
+Success upper bound
+Success upper bound
+PCK@16
+Success@1m
+(b) RGB–LiDAR-based UAV localization results.
+Figure 10: Algorithm workflow and results for Use Case 2: RGB–LiDAR-based UAV localization.
+dataset are physically consistent and can serve as valid supervisory signals for downstream tasks.
+These results support the intended use of LAMBDA as a low-altitude multimodal pretraining
+dataset.
+Use Case 2: RGB–LiDAR-based UAV Localization.
+The second use case evaluates cross-
+scene 3D UAV localization using synchronized BS-side RGB images, LiDAR point clouds, and
+ground-truth UAV position and pixel labels, as illustrated in Fig. 10(a). The training set is con-
+structed from all available Block 1 samples with UAV heights from 60 to 120 m. Testing is con-
+ducted on Square 1; we select the 70–110 m height range for evaluation, with 500 samples at each
+height and 2,500 test samples in total.
+The workflow follows two stages. In the visual query stage, a lightweight heatmap predictor
+takes a 512 × 512 RGB image as input and generates a 128 × 128 UAV heatmap. The heatmap is
+15
+
+===== PAGE 16 =====
+supervised by the ground-truth UAV pixel, which is obtained by projecting the frame-level UAV
+position onto the BS-side camera image using the recorded camera intrinsics and extrinsics. During
+inference, local peaks in the predicted heatmap are extracted as candidate UAV queries. In the
+geometric lifting stage, each candidate query is matched with LiDAR points projected onto the
+image plane through a LiDAR range lookup. The selected 2D query and its associated LiDAR
+range are then back-projected through the camera calibration and BS pose to obtain the predicted
+3D UAV position. This pipeline directly tests whether LAMBDA provides consistent RGB labels,
+LiDAR geometry, camera calibration, and pose alignment across modalities.
+For evaluation, we report PCK@16 and Success@1m, as shown in Fig. 10(b). PCK@16 measures
+whether the predicted UAV location falls within a 16-pixel tolerance in the image plane, while
+Success@1m measures whether the final 3D localization error is within 1 m. The dashed line in
+Fig. 10(b) denotes the Success@1m upper bound obtained by replacing the predicted 2D query with
+the ground-truth UAV pixel while keeping the same LiDAR range lookup and 3D back-projection
+procedure. Thus, this upper bound reflects the maximum 3D localization success rate allowed by
+LiDAR coverage and the geometric lifting rule.
+The results demonstrate that reliable visual queries are essential for RGB–LiDAR localization.
+Without training, the model achieves only 0.0020 ± 0.0025 PCK@16 and 0.00008 ± 0.00018 Suc-
+cess@1m, indicating that LiDAR range lookup alone cannot localize the UAV. With only 5% of the
+training samples, the model reaches 0.8512 ± 0.0480 PCK@16 and 0.7248 ± 0.0275 Success@1m,
+showing that LAMBDA provides effective visual supervision even in a low-data regime. As the
+training ratio increases from 5% to 100%, both metrics improve and then gradually saturate. With
+the full training set, the model achieves 0.9405±0.0301 PCK@16 and 0.7621±0.0025 Success@1m,
+with Success@1m reaching 98.6% of the upper bound.
+Together with the beam prediction experiment, these results show that LAMBDA contains
+usable RGB–CSI and RGB–LiDAR–position supervision for communication and sensing tasks,
+while leaving model optimization itself outside the scope of the dataset paper.
+Usage Notes
+LAMBDA can support a broad range of low-altitude UAV sensing and communication studies,
+including multimodal detection, tracking, localization, channel modeling, beam management, radar-
+label generation, and cross-modal representation learning. The modalities are spatiotemporally
+aligned through the shared frame index and the absolute UAV position recorded for each frame.
+The CSI archives store physically interpretable path-level channel records rather than precomputed
+OFDM tensors. Users requiring CSI can readily construct it from the stored path-level channel
+records under their own antenna array size, bandwidth, and subcarrier spacing assumptions.
+Data Availability
+The complete LAMBDA dataset is deposited in Science Data Bank under the DOI https://doi.
+org/10.57760/sciencedb.36052.
+The project website is available at https://www.lambda6g.
+net/ and provides a download page with subset links.
+16
+
+===== PAGE 17 =====
+Code Availability
+A Git repository is publicly available on GitHub at https://github.com/SJTU-WirelessAI-Lab/
+LAMBDA. This repository provides the public lambda rf Python package and command-line utilities
+for the released LAMBDA data, including scripts and examples for CSI inspection, beam label
+generation, array and subcarrier CSI postprocessing, radar signal synthesis and radar visualization.
+References
+[1] Mohammad Mozaffari, Walid Saad, Mehdi Bennis, Young-Han Nam, and M´erouane Debbah.
+A tutorial on UAVs for wireless networks: Applications, challenges, and open problems. IEEE
+Communications Surveys & Tutorials, 21(3):2334–2360, 2019. https://doi.org/10.1109/
+COMST.2019.2902862.
+[2] Heung-Yeung Shum and Shipeng Li. Low-altitude economy: next frontier in spatial exploration
+and economic development. National Science Review, 13(12):nwag208, June 2026. https:
+//doi.org/10.1093/nsr/nwag208.
+[3] Fan Liu, Yuanhao Cui, Christos Masouros, Jie Xu, Tony Xiao Han, Yonina C. Eldar, and Ste-
+fano Buzzi. Integrated sensing and communications: Towards dual-functional wireless networks
+for 6G and beyond. IEEE Journal on Selected Areas in Communications, 40(6):1728–1767,
+2022. https://doi.org/10.1109/JSAC.2022.3156632.
+[4] Yihang Jiang, Xiaoyang Li, Guangxu Zhu, Hang Li, Jing Deng, Kaifeng Han, Chao Shen,
+Qingjiang Shi, and Rui Zhang. Integrated sensing and communication for low altitude economy:
+Opportunities and challenges. IEEE Communications Magazine, 63(12):72–78, 2025. https:
+//doi.org/10.1109/MCOM.001.2400685.
+[5] Yuxuan Song, Yong Zeng, Yuhang Yang, Zixiang Ren, Gaoyuan Cheng, Xiaoli Xu, Jie Xu, Shi
+Jin, and Rui Zhang. An overview of cellular ISAC for low-altitude UAV: New opportunities
+and challenges. IEEE Communications Magazine, 63(12):88–95, 2025. https://doi.org/10.
+1109/MCOM.002.2400742.
+[6] ITU-R. Framework and overall objectives of the future development of IMT for 2030 and
+beyond. Recommendation ITU-R M.2160-0, International Telecommunication Union, 2023.
+https://www.itu.int/rec/R-REC-M.2160-0-202311-I/en.
+[7] Mohamed-Slim Alouini, Emil Bj¨ornson, Meixia Tao, and Yasamin Mostofi. The road to 6G:
+Driving the next wave of connectivity—Part I [Scanning the Issue]. Proceedings of the IEEE,
+112(7):615–620, 2024. https://doi.org/10.1109/JPROC.2024.3475891.
+[8] Andreas Geiger, Philip Lenz, and Raquel Urtasun. Are we ready for autonomous driving?
+The KITTI vision benchmark suite. In Proceedings of the IEEE Conference on Computer
+Vision and Pattern Recognition, pages 3354–3361, 2012. https://doi.org/10.1109/CVPR.
+2012.6248074.
+17
+
+===== PAGE 18 =====
+[9] Runsheng Xu, Hao Xiang, Zhengzhong Tu, Xin Xia, Ming-Hsuan Yang, and Jiaqi Ma. OPV2V:
+An open benchmark dataset and fusion pipeline for perception with vehicle-to-vehicle commu-
+nication. In Proceedings of the IEEE International Conference on Robotics and Automation,
+pages 2583–2589, 2022. https://doi.org/10.1109/ICRA46639.2022.9812038.
+[10] Haibao Yu, Yizhen Luo, Mao Shu, Yiyi Huo, Zebang Yang, Yifeng Shi, Zhenglong Guo, Hanyu
+Li, Xing Hu, Jirui Yuan, and Zaiqing Nie.
+DAIR-V2X: A large-scale dataset for vehicle-
+infrastructure cooperative 3D object detection. In Proceedings of the IEEE/CVF Conference
+on Computer Vision and Pattern Recognition, pages 21329–21338, 2022. https://doi.org/
+10.1109/CVPR52688.2022.02067.
+[11] Jihao Li, Jincheng Hu, Yanjun Huang, Zheng Chen, Jingjing Jiang, Yuanjian Zhang, and
+Bingzhao Gao. A synthetic digital city dataset for robustness and generalisation of depth esti-
+mation models. Sci. Data, 11:301, 2024. https://doi.org/10.1038/s41597-024-03025-5.
+[12] Ahmed Alkhateeb. DeepMIMO: A generic deep learning dataset for millimeter wave and mas-
+sive MIMO applications. In Proceedings of the Information Theory and Applications Workshop,
+2019. https://doi.org/10.48550/arXiv.1902.06435.
+[13] Yourui Huangfu, Jian Wang, Shengchen Dai, Rong Li, Jun Wang, Chongwen Huang, and
+Zhaoyang Zhang. WAIR-D: Wireless AI research dataset. In Proceedings of the IEEE/CIC
+International Conference on Communications in China, pages 43–48, 2022.
+[14] Muhammad Alrabeiah, Andrew Hredzak, Zhenhao Liu, and Ahmed Alkhateeb.
+ViWi: A
+deep learning dataset framework for vision-aided wireless communications.
+In 2020 IEEE
+91st Vehicular Technology Conference (VTC2020-Spring), pages 1–5. IEEE, 2020.
+https:
+//doi.org/10.1109/VTC2020-Spring48590.2020.9128579.
+[15] Jerry Gu, Batool Salehi, Debashri Roy, and Kaushik R. Chowdhury. Multimodality in mmWave
+MIMO beam selection using deep learning: Datasets and challenges. IEEE Communications
+Magazine, 60(11):36–41, 2022. https://doi.org/10.1109/MCOM.002.2200028.
+[16] Ahmed Alkhateeb et al.
+DeepSense 6G: A large-scale real-world multi-modal sensing and
+communication dataset. IEEE Communications Magazine, 61(9):122–128, 2023. https://
+doi.org/10.1109/MCOM.006.2200730.
+[17] Xiang Cheng, Ziwei Huang, Lu Bai, Haotian Zhang, Mingran Sun, Boxun Liu, Sijiang Li,
+Jianan Zhang, and Minson Lee. M3SC: A generic dataset for mixed multi-modal sensing and
+communication integration. China Communications, 20(11):13–29, 2023. https://doi.org/
+10.23919/JCC.fa.2023-0268.202311.
+[18] Xiang Cheng, Ziwei Huang, Yong Yu, Lu Bai, Mingran Sun, Zengrui Han, Ruide Zhang, and
+Sijiang Li.
+SynthSoM: A synthetic intelligent multi-modal sensing-communication dataset
+for synesthesia of machines (SoM).
+Sci. Data, 12:819, 2025.
+https://doi.org/10.1038/
+s41597-025-05065-x.
+[19] Wireless Intelligence Lab.
+DeepVerse 6G and WI-Lab dataset collection.
+https://www.
+wi-lab.net/datasets-page/, 2025.
+18
+
+===== PAGE 19 =====
+[20] Tianhao Mao, Le Liang, Jie Yang, Hao Ye, Shi Jin, and Geoffrey Ye Li. Multimodal-Wireless:
+A large-scale dataset for sensing and communication. arXiv preprint arXiv:2511.03220, 2025.
+https://arxiv.org/abs/2511.03220.
+[21] Mengyuan Li, Qianfan Lu, Jiachen Tian, Hongjun Hu, Yu Han, Xiao Li, Chao-Kai Wen, and
+Shi Jin. Multimodal-NF: A wireless dataset for near-field low-altitude sensing and communi-
+cations. arXiv preprint arXiv:2603.28280, 2026. https://doi.org/10.48550/arXiv.2603.
+28280.
+[22] Ziguo Zhong, Yongming Huang, Huazhou Hou, Fanfei Xu, Haisheng Feng, Shengheng Liu,
+and Xiaohu You. PML-CellularEye: A multi-modal experimental dataset for 6G ISAC re-
+search. Science China Information Sciences, 69(6):167301, 2026. https://doi.org/10.1007/
+s11432-026-4923-1.
+[23] Epic Games. Unreal Engine 5. https://www.unrealengine.com/.
+[24] Shital Shah, Debadeepta Dey, Chris Lovett, and Ashish Kapoor. AirSim: High-fidelity visual
+and physical simulation for autonomous vehicles. In Field and Service Robotics: Results of the
+11th International Conference, pages 621–635. Springer, 2018. https://doi.org/10.1007/
+978-3-319-67361-5_40.
+[25] Cosys-Lab.
+Cosys-AirSim: Extended AirSim simulation for autonomous mobility systems.
+https://cosys-lab.github.io/Cosys-AirSim/.
+[26] Blender Foundation. Blender. https://www.blender.org/.
+[27] Fay¸cal Ait Aoudia, Jakob Hoydis, Merlin Nimier-David, Sebastian Cammerer, and Alex Keller.
+Sionna RT: Technical report, 2025.
+[28] Altair Engineering Inc.
+Altair Feko: High-frequency electromagnetic simulation software.
+https://altair.com/feko.
+[29] X. Rong Li and Vesselin P. Jilkov. Survey of maneuvering target tracking. Part I: Dynamic
+models. IEEE Transactions on Aerospace and Electronic Systems, 39(4):1333–1364, October
+2003.
+[30] Velat Kilic, Deepti Hegde, Vishwanath Sindagi, A. Brinton Cooper, Mark A. Foster, and
+Vishal M. Patel. LiDAR light scattering augmentation (LISA): Physics-based simulation of
+adverse weather conditions for 3D object detection. In ICASSP 2025 - 2025 IEEE International
+Conference on Acoustics, Speech and Signal Processing (ICASSP), pages 1–5, 2025. https:
+//doi.org/10.1109/ICASSP49660.2025.10889253.
+[31] Martin Hahner, Christos Sakaridis, Dengxin Dai, and Luc Van Gool.
+Fog simulation on
+real LiDAR point clouds for 3D object detection in adverse weather. In Proceedings of the
+IEEE/CVF International Conference on Computer Vision (ICCV), pages 15263–15272, 2021.
+https://doi.org/10.1109/ICCV48922.2021.01500.
+[32] Lin Zhou, Peichuan Rao, Chenshuo Zhang, Jianhua Mo, Shu Sun, Zhiyong Chen, and Meixia
+Tao. LAMBDA: A low-altitude multimodal base dataset for UAV sensing and communication.
+Science Data Bank, 2026. https://doi.org/10.57760/sciencedb.36052.
+19
+
+===== PAGE 20 =====
+[33] ITU-R. Specific attenuation model for rain for use in prediction methods. Recommendation
+ITU-R P.838-3, International Telecommunication Union, 2005.
+[34] ITU-R. Attenuation due to clouds and fog. Recommendation ITU-R P.840-9, International
+Telecommunication Union, 2024.
+[35] K. L. S. Gunn and T. W. R. East.
+The microwave properties of precipitation parti-
+cles. Quarterly Journal of the Royal Meteorological Society, 80(346):522–545, 1954. https:
+//doi.org/10.1002/qj.49708034603.
+[36] Gopala K. Charan, Ammar Hredzak, Christopher Stoddard, Mustafa Al-Sabah, Jaspreet
+Chourasia, and Ahmed Alkhateeb. Towards real-world 6G drone communication: Position
+and camera aided beam prediction. In Proceedings of the IEEE Global Communications Con-
+ference (GLOBECOM), pages 2951–2956, 2022. https://doi.org/10.1109/GLOBECOM48099.
+2022.10000718.
+Acknowledgments
+The authors would like to thank Renjie He, Kejia Bian, Weitao Chen, Yuhe Huang, Lingbang Bu,
+Ziyan Wang, Xiang Li, Xiangwen Gu, and Xinyu Zhang for technical discussions and implementa-
+tion support for radar RCS modeling, wireless channel modeling, data collection, and validation.
+Author Contributions
+L.Z. conceived the dataset framework, implemented the generation and visualization pipeline, or-
+ganized the dataset, and drafted the manuscript. P.R. and C.Z. contributed to scene preparation,
+data collection, validation, and revision. J.M. defined the dataset scope, proposed the integrated
+tool chain for multimodal data generation, and provided technical guidance on data validation.
+M.T. defined the strategic scope of the dataset together with J.M., provided technical leadership,
+supervised the entire workflow, and proposed key methods for dataset validation. S.S. and Z.C.
+made suggestions on weather setup, material configuration, and scene construction. All authors
+discussed the results and reviewed the manuscript.
+Competing Interests
+The authors declare no competing interests.
+20

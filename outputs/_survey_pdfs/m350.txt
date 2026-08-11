@@ -1,0 +1,1544 @@
+
+===== PAGE 1 =====
+1
+A Unified RCS Modeling of Typical Targets for
+3GPP ISAC Channel Standardization and
+Experimental Analysis
+Yuxiang Zhang, Jianhua Zhang, Xidong Hu, Jiwei Zhang, Hongbo Xing, Huiwen Gong, Shilin Luo, Yifeng
+Xiong, Li Yu, Zhiqing Yuan, Guangyi Liu, Tao Jiang
+Abstract—Accurate radar cross section (RCS) modeling is
+crucial for characterizing target scattering and improving the
+precision of Integrated Sensing and Communication (ISAC)
+channel modeling. Existing RCS models are typically designed
+for specific target types, leading to increased complexity and
+lack of generalization. This makes it difficult to standardize
+RCS models for 3GPP ISAC channels, which need to account
+for multiple typical target types simultaneously. Furthermore,
+3GPP models must support both system-level and link-level
+simulations, requiring the integration of large-scale and small-
+scale scattering characteristics. To address these challenges,
+this paper proposes a unified RCS modeling framework that
+consolidates these two aspects. The model decomposes RCS into
+three components: (1) a large-scale power factor representing
+overall scattering strength, (2) a small-scale angular-dependent
+component describing directional scattering, and (3) a random
+component accounting for variations across target instances. We
+validate the model through mono-static RCS measurements for
+UAV, human, and vehicle targets across five frequency bands.
+The results demonstrate that the proposed model can effectively
+capture RCS variations for different target types. Finally, the
+model is incorporated into an ISAC channel simulation platform
+to assess the impact of target RCS characteristics on path loss,
+delay spread, and angular spread, providing valuable insights for
+future ISAC system design.
+Index Terms—Radar cross section modeling, Integrated sens-
+ing and communication, 3GPP standardization, mono-static mea-
+surement.
+I. INTRODUCTION
+This research is supported by Young Scientists Fund of the National Natural
+Science Foundation of China (62201087, 62101069), National Key R&D Pro-
+gram of China (2023YFB2904803), National Natural Science Foundation of
+China (62341128) and Beijing University ot Posts and Telecommunications-
+China Mobile Research Institute Joint innovation Center.(Corresponding au-
+thor: Jianhua Zhang.)
+Yuxiang Zhang, Jianhua Zhang, Xidong Hu, Jiwei Zhang, Hongbo
+Xing,
+Huiwen
+Gong,
+Shilin
+Luo
+and
+Li
+Yu
+are
+with
+the
+State
+Key
+Laboratory
+of
+Networking
+and
+Switching
+Technology,
+Beijing
+University of Posts and Telecommunications, Beijing 100876, China (e-
+mail:
+zhangyx@bupt.edu.cn;
+jhzhang@bupt.edu.cn;
+hxd@bupt.edu.cn;
+rediaose@bupt.edu.cn;
+hbxing@bupt.edu.cn;
+birdsplan@bupt.edu.cn;
+luoshilin@bupt.edu.cn; li.yu@bupt.edu.cn).
+Yifeng Xiong is with the School of Information and Electronic Engineering,
+Beijing University of Posts and Telecommunications, Beijing 100876, China
+(e-mail: yifengxiong@bupt.edu.cn).
+Zhiqiang Yuan is with the National Mobile Communications Research Lab-
+oratory, School of Information Science and Engineering, Southeast University,
+Nanjing 210096, China (email: zqyuan@seu.edu.cn).
+Guangyi Liu and Tao Jiang are with the Future Research Labora-
+tory, China Mobile Research Institute, Beijing 100053, China (e-mail: li-
+uguangyi@chinamobile.com; jiangtao@chinamobile.com).
+I
+NTEGRATED Sensing and Communication (ISAC) is a
+technology that integrates communication and sensing ca-
+pabilities by sharing spectrum, hardware, and signal process-
+ing resources [1], [2]. It enables high-precision localization,
+target detection, and environmental sensing [3], [4]. Recog-
+nized in IMT-2030 as one of the six key application scenarios
+for 6G [5], ISAC is set to become a critical enabler of future
+6G systems [6].
+The successful deployment of the ISAC system relies on
+an accurate and effective channel model [7], [8]. Unlike
+traditional communication channels, the ISAC places emphasis
+on the channel associated with the sensing targets (STs),
+where the accurate modeling of STs is critical [9], [10].
+The radar cross section (RCS) is defined as the effective
+area of a target that captures and reflects the electromagnetic
+wave energy [11], [12], thus characterizing the scattering
+characteristics of the target. As a crucial component in target
+modeling, RCS directly affects key tasks such as detection,
+localization, and tracking. RCS is highly sensitive to factors
+such as the target’s geometry, material properties, surface
+roughness, orientation, frequency, and polarization, resulting in
+significant differences between various types of targets. This is
+particularly important for key ISAC targets, such as unmanned
+aerial vehicles (UAVs), vehicles, and humans, etc, which are
+defined as critical targets by the Third Generation Partnership
+Project (3GPP) [13].
+3GPP established a work item proposal on ISAC in 2021,
+officially initiating research and standardization efforts [13].
+This working group outlined several requirements for ISAC
+channel modeling . First, the channel model must account
+for both large-scale and small-scale effects [14]. Large-scale
+models primarily focus on signal attenuation and shadowing
+effects over long distances, while small-scale models describe
+phenomena such as fast fading and multipath effects over
+short distances [15], [16]. Therefore, in the ISAC channel
+model, the RCS of the target must be modeled in both large-
+scale and small-scale models. Thus, understanding the RCS
+characteristics of different targets is essential for developing
+accurate and scalable ISAC channel models.
+To address the challenges of RCS modeling, extensive
+theoretical and experimental research has been conducted.
+Computational electromagnetics (CEM) methods, including fi-
+nite difference time domain (FDTD) [17], the moment method
+(MoM) [18], and the finite element method (FEM) [19], solve
+Maxwell’s equations to emulate electromagnetic interactions
+arXiv:2505.20673v1  [eess.SP]  27 May 2025
+
+===== PAGE 2 =====
+2
+with targets, offering high accuracy in RCS calculations. How-
+ever, these methods face significant computational challenges
+for large targets having complicated shapes. High-frequency
+methods such as physical optics (PO) [20], geometric optics
+(GO) [21], and the physical theory of diffraction (PTD) [22]
+provide approximate solutions with reduced computational
+complexity but sacrifice accuracy and require corrections for
+specific scenarios. Experimental measurements, on the other
+hand, provide more realistic insights into the characteristics
+of scattering. For example, RCS measurements in anechoic
+chambers reveal that UAVs exhibit significant angular vari-
+ations despite small overall RCS values [23]–[25], while
+human targets show minimal angular dependence under mono-
+static conditions, reflecting omnidirectional scattering [26]–
+[28]. Vehicle measurements, on the contrary, reveal a strong
+angular dependence, with peak RCS values concentrated on
+flat surfaces such as the front, rear and sides [26], [29], [30].
+These theoretical and experimental studies form the foundation
+for understanding ISAC target scattering properties.
+It can be seen that existing RCS modeling methods are typ-
+ically designed for specific target types, and there is currently
+no unified framework that accommodates multiple target types.
+Modeling RCS characteristics for different targets separately
+increases the complexity of target channel models and hinders
+the standardization of ISAC channels. Specifically, building
+separate models for different targets complicates the modeling
+process and makes it difficult to handle the RCS characteristics
+of multiple target types in a unified manner. Additionally,
+for system-level or link-level ISAC performance evaluation,
+RCS models must account for both large-scale and small-
+scale scattering characteristics. However, due to the many
+factors influencing RCS, accurately parameterizing both scales
+is challenging. Finally, while electromagnetic simulations can
+compute RCS, the computational cost becomes prohibitively
+high in large-scale scenarios involving multiple target types,
+making real-time simulations impractical.
+To address these challenges, this study introduces a unified
+RCS modeling framework that simplifies the representation
+of scattering behaviors across different target types. By effec-
+tively integrating both large-scale and small-scale scattering
+characteristics, this framework reduces the complexity of mod-
+eling and facilitates the standardization of ISAC channels. To
+validate the proposed framework, comprehensive monostatic
+RCS measurements were conducted in a large anechoic cham-
+ber, focusing on typical ISAC targets. The main contributions
+of this work are summarized as follows:
+• A unified RCS modeling framework is proposed, which
+can flexibly adapt to different target types, avoiding frag-
+mented modeling and reducing simulation complexity.
+The model consists of three independent components: (i)
+the large-scale power factor, which quantifies the overall
+scattering intensity, (ii) the small-scale angular-dependent
+component, which describes directional scattering behav-
+ior, (iii) the random component, accounting for variations
+between target instances.
+• A parameterization method for the scattering characteris-
+tics of different targets, based on measurements at various
+frequencies and angles, is proposed for the unified RCS
+framework.
+• Mono-static RCS measurements are conducted for three
+typical targets (UAV, human, and vehicle) across five
+central frequencies, with measurements taken over the
+full azimuth angle range from −180◦to 180◦at a 5◦
+step. The experimental results validate the accuracy of the
+proposed model, which is then integrated into the ISAC
+channel simulation platform to analyze the impact of
+different target RCS characteristics on channel properties.
+The remainder of this paper is organized as follows: Section
+II discusses the modeling approach for the ISAC channel
+and provides an overview of the current demand for RCS
+modeling in standardization efforts. It reviews the theoretical
+definition of RCS and existing RCS models, summarizes
+relevant insights, and based on these, proposes a unified RCS
+modeling framework aimed at meeting the requirements for
+both large-scale and small-scale channel modeling. Section
+III describes the measurement setup, experimental procedures,
+data processing methods, and the unique scattering character-
+istics of each target derived from the measurement results.
+Section IV focuses on the parameterization methodology of
+the proposed RCS model, evaluates its accuracy, and outlines
+the simulation steps for incorporating RCS into ISAC channel
+modeling. Additionally, the impact of different targets on
+channel characteristics is explored through the ISAC chan-
+nel simulation platform. Finally, Section V summarizes the
+research findings of this paper.
+II. ISAC CHANNEL MODEL AND RCS MODELING
+FRAMEWORK
+This section first introduces the modeling approach for the
+overall ISAC channel, which has gained some consensus in
+the current 3GPP standardization meetings, and leads into
+the discussion of the current demand for RCS modeling in
+the standardization process. On this basis, the theoretical
+definition of RCS is introduced and a review of existing RCS
+models is provided, including those for typical regular objects
+and general RCS calculation methods for more complex and
+irregular objects that require sophisticated electromagnetic
+equations. Based on these insights, a unified RCS modeling
+framework is proposed from the perspective of channel mod-
+eling requirements, outlining the necessity of these factors and
+their physical and mathematical explanations.
+A. The RCS modeling requirements for the ISAC channel
+model
+With several 3GPP ISAC standardization meetings held,
+there is general agreement to use 3GPP TR 38.901 as the
+starting point to initiate the standardization work [31].
+According to the 5G 3D GBSM model, assuming that
+transmitter (Tx) and receiver (Rx) are equipped with arrays of
+S and U antennas, respectively, the channel coefficient from
+the s-th antenna of the Tx to the u-th antenna of the Rx is
+expressed as
+h5G
+u,s(t, τ) =
+N
+X
+n=1
+M
+X
+m=1
+h5G
+u,s,n,m(t) · δ(τ −τn,m),
+(1)
+
+===== PAGE 3 =====
+3
+Fig. 1: Schematic diagram of 6G ISAC channel model based on GBSM [32].
+where N and M represent the number of clusters and the
+number of paths within each cluster, respectively. The channel
+coefficient h5G
+u,s,n,m(t, τ) stands for the m-th ray within the n-
+th cluster from the s-th antenna of the transmitter to the u-th
+antenna of the receiver.
+Based on this, a consensus was reached at the meetings that
+the sensing channel is divided into two parts: the target channel
+and the background channel, as shown in Equation (2). The
+target channel includes all propagation paths influenced by the
+target, represented by yellow lines in Fig. 1. The background
+channel comprises paths not affected by the target, such as
+environmental clutter, shown in green lines in Fig. 1.
+hsen
+u,s(t, τ) =
+K
+X
+k=1
+htar
+u,s,k(t, τ) + hback
+u,s (t, τ),
+(2)
+For the target channel, we assume a total of K scattering
+points. These scattering points may originate from a large
+target that requires multi scattering points modeling, or from
+multiple distinct targets. For the k-th scattering points, its
+channel coefficient can be represented by
+htar
+u,s,k(t, τ) =
+N1,M1
+X
+n1,m1
+N2,M2
+X
+n2,m2
+hST-Rx
+u,k,n2,m2(t)hTx-ST
+u,k,n1,m1(t)
+·
+q
+σk(θout,n2,m2, ϕout,n2,m2, θin,n1,m1, ϕin,n1,m1)
+· exp
+
+j2π
+λ
+ rT
+in,n1,m1 ·dsp,k + rT
+out,n2,m2 ·dsp,k
+
+· δ(τ −τn1,m1) ∗δ(τ −τn2,m2),
+(3)
+where,
+• ni, mi, i ∈{1, 2} indicate the identifier of cluster and
+path in Tx-ST and ST-Rx links.
+• hTx-ST
+u,k,n1,m1(t) and hST-Rx
+u,k,n2,m2(t) represent the channel
+coefficients of the Tx-ST and ST-Rx links, respectively,
+and their definitions are similar to that of h5G
+u,s,n,m(t).
+• In the ST-Rx link, the Angle of Departure (AoD) of the
+(n2, m2)-th path is characterized by the Azimuth Angle
+of Departure (AAoD) ϕout,n2,m2 and the Elevation Angle
+of Departure (EAoD) θout,n2,m2 in a three-dimensional
+space. Similarly, in the Tx-ST link, the Angle of Ar-
+rival (AoA) of the (n1, m1)-th path is described by the
+Azimuth Angle of Arrival (AAoA) ϕin,n1,m1 and the
+Elevation Angle of Arrival (EAoA) θin,n1,m1.
+• rout,n2,m2, rin,n1,m1 represent the unit direction vectors
+corresponding to the angles of departure and arrival of
+the target, respectively. Correspondingly, dsp,k represents
+the position vectors of the k-th scattering point of the
+target.
+• σk represents the RCS of the k-th scattering point of the
+target, which is dependent on the target itself, as well as
+the angles of arrival and departure.
+It is evident that the ISAC channel model needs to con-
+sider the RCS of targets at different angles. Currently, 3GPP
+standardization efforts focus on five types of sensing targets
+[33], as shown in Table I: automotives, hazardous objects,
+humans, automated guided vehicles (AGVs), and UAVs. Each
+type of target is associated with unique sensing scenarios.
+The differences in these scenarios determine the geometric
+layout of the sensing Tx and Rx. In typical scenarios such as
+Urban Micro (UMi) and Urban Macro (UMa), since targets
+are usually uniformly distributed in the horizontal plane and
+the variation in pitch angle is small, the RCS of targets under
+different azimuth angles is primarily considered. However, in
+emerging scenarios such as UMi-AV and UMa-AV, where
+airb orne receivers may be involved, the RCS of targets
+at different pitch angles must also be taken into account.
+Additionally, there are variations in the size and distribution
+of different targets, which directly impact the RCS. Therefore,
+developing a unified RCS model is crucial for evaluating
+sensing performance under different target conditions.
+B.
+Conventional RCS Definitions and Existing Models
+The concept of RCS has been established in the radar
+domain for decades. The standard definition states that RCS is
+
+===== PAGE 4 =====
+4
+TABLE I: Evaluation Parameters for Different Target Scenarios
+Targets
+Automotive
+Hazardous Object
+Human
+AGV
+UAV
+Scenarios
+Highway,
+Urban grid
+Highway, Urban grid,
+High-speed train
+Indoor office, Indoor
+factory, Indoor room,
+UMi, UMa, RMa
+InF
+UMi, UMa, RMa,
+UMi-AV, UMa-AV, RMa-AV
+Target
+Distribution
+Based on
+TR37.885
+Uniformly distributed in a horizontal plane within a defined range
+Uniformly distributed between 1.5
+and 300 m in vertical plane
+or at specific fixed heights
+Type/Size
+Passenger car,
+Truck/Bus
+Child, Animal,
+Adult pedestrian
+Child, Adult pedestrian
+Option 1: 0.5 ×
+1.0 × 0.5 m, Option2:
+1.5 × 3.0 × 1.5 m
+Option 1: 1.6 ×
+1.5 × 0.7 m, Option2:
+0.3 × 0.4 × 0.2 m
+the hypothetical area required to intercept the incident power
+at a target such that if the intercepted total power is re-radiated
+isotropically, it would produce the observed power density at
+the receiver. Based on this definition, the mathematical expres-
+sion for monostatic RCS can be readily derived. Suppose that
+when propagating in free space, the incident power density SI
+at the sensing target can be expressed as
+SI = PTxGTx
+4πd2 ,
+(4)
+where PTx is the transmitted power, GTx is the Tx antenna
+gain, d is the distance between the sensing Tx and the sensing
+target. Therefore, when the sensing Tx and sensing Rx are
+configured at the same location, the received power PRx caused
+by the isotropic backscatter from the sensing target can be
+expressed as
+PRx = PTAR
+4πd2 Ae = SIσ
+4πd2 Ae,
+(5)
+where PT AR provides the amount of power intercepted by the
+sensing target given σ is the effective scattering area (mono-
+static RCS) and Ae is the effective area of Rx antenna. From
+Equation (5), it is straightforward to see that the scattered
+power density SS at the Rx is
+SS = SIσ
+4πd2 .
+(6)
+From Equation (6), the monostatic RCS is determined by
+the following ratio [34]
+σ = lim
+d→∞
+
+4πd2 SS
+SI
+
+= lim
+d→∞
+ 
+4πd2 |ES|2
+|EI|2
+!
+,
+(7)
+where ES and EI are the far field scattered and incident elec-
+tric field intensities, respectively. It is important to emphasize
+that the RCS defined by Equation (7) depends solely on the
+sensing target itself and is independent of external factors
+such as path loss, distance, or antenna patterns. Although RCS
+tends to be larger for larger targets, it does not have a simple
+linear relationship with the physical size of the target. Instead,
+RCS can vary significantly depending on several factors,
+including the target’s shape, orientation, material composition,
+carrier frequency, polarization, and the relative positions of
+the transmitter and receiver in relation to the geometry of the
+target.
+However, obtaining the RCS of an arbitrary target, as
+described by Equation (7), requires knowledge of the scat-
+tered electric field Es. For real-world objects with complex
+geometries, such as humans, vehicles, and UAVs, determining
+the scattered field intensity is challenging, making it difficult
+to compute the RCS directly. To address this, large targets
+are typically decomposed into smaller facets, each of which
+is located in the far-field region of both the transmitter and
+receiver. Under the assumption that there are no mutual inter-
+actions between these facets, the total RCS can be determined
+as the vector sum of the contributions of the individual facets
+[35]
+σ =
+
+M
+X
+i=1
+√σiej2k⃗r·⃗ciejϕi
+
+2
+,
+(8)
+here, M denotes the number of facets, σi represents the RCS
+of the i-th facet,⃗r represents the unit scattering vector directed
+from the target to the radar,⃗ci is the position vector for the
+i-th scattering center, and ϕi is the phase relative to the first
+facet. The facets can take various simple geometric shapes,
+such as squares and triangles, depending on the decomposition
+method used. If the RCS of each facet is known, the total
+RCS of the target can be obtained by incoherently summing
+the contributions from all facets.
+For well-defined and geometrically simple targets, the RCS
+can be theoretically determined by solving Maxwell’s equa-
+tions under appropriate boundary conditions, which rigorously
+describe the interaction between electromagnetic waves and
+the target. Analytical solutions exist for simple geometries
+such as spheres, cylinders, ellipsoids, flat rectangular plates,
+and triangular plates.
+The interaction between electromagnetic waves and a target
+is primarily influenced by the size of the target relative to the
+wavelength. This relationship determines the scattering behav-
+ior and how RCS is affected by the target’s geometry, material
+properties, and the frequency of the incident wave. RCS is
+typically categorized into three regions-optical, Rayleigh, and
+resonant-based on the dimensionless size parameter ka = 2πa
+λ ,
+where a represents the characteristic size of the target and λ
+is the wavelength.
+At GHz-level frequencies, most practical targets fall into
+the optical region ka ≫1, where the target size is much
+larger than the wavelength. In this region, scattering can be
+
+===== PAGE 5 =====
+5
+𝒚
+𝒙
+𝒛
+𝑬𝒊, 𝑯𝒊
+𝑬𝒔, 𝑯𝒔
+𝒃/𝟐
+𝒃/𝟐
+𝒂/𝟐
+𝒂/2
+𝝓𝑖
+𝝓𝒔
+𝜽𝒊
+𝜽𝒔
+Fig. 2: Diagram of a uniform plane wave incident on a
+rectangular conductive plate.
+approximated by using high-frequency methods such as GO,
+PO, or Geometrical Theory of Diffraction (GTD).
+The rectangular plate serves as the basis for high-frequency
+scattering analysis. Its simple geometry allows for an analyti-
+cal RCS solution using the PO approximation while capturing
+key scattering behaviors. Consider a perfectly conducting
+rectangular plate with dimensions 2a and 2b, where a and
+b are the semilengths of the plate along the x- and y-axes,
+as shown in Fig. 2. A plane wave is incident on the plate
+at angle (θi, ϕi), and the scattered field is observed in the
+direction (θs, ϕs).
+According to the PO approximation, the scattering field of
+the rectangular plate is given by
+Es ∝Ei
+e−jkr
+r
+ZZ
+S
+ejk(sin θi cos ϕi−sin θs cos ϕs)x
+×ejk(sin θi sin ϕi−sin θs sin ϕs)y dS,
+(9)
+where k = 2π/λ is the wave number, and r is the dis-
+tance to the observation point. In the backscattering direction
+(θi = θs, ϕi = ϕs =
+3π
+2 ), the angular terms simplify.
+Substituting this into the RCS definition, we obtain the closed-
+form expression for the RCS
+σplate = 4π
+ab
+λ
+2
+cos2 θi
+sin (βb sin θi)
+βb sin θi
+2
+.
+(10)
+Table II summarizes the RCS expressions for other regular
+shapes in the optical region, including spheres, cylinders, el-
+lipsoids, cones, and triangular reflectors. These simple shapes
+are fundamental models for understanding scattering behavior.
+The RCS of these targets is influenced by several factors, such
+as the observation angle, operating frequency, target geometry,
+and material properties. Small changes in any of these fac-
+tors can lead to significant variations in RCS, complicating
+accurate modeling. It’s also important to note that closed-
+form RCS solutions for these targets are typically derived
+under specific conditions, such as in the optical region or for
+particular incident and scattering angles. Under more general
+conditions, the RCS of simple targets may become a complex
+function, making it challenging to accurately characterize their
+scattering behavior with simplified models.
+Existing models often struggle to systematically character-
+ize RCS due to its inherent complexity. However, a closer anal-
+ysis of these expressions reveals two distinct factors in RCS
+behavior. First, we integrate the RCS over θ and normalize
+by 2π, defining this value as the overall scattering capability.
+Second, the RCS normalized by the overall scattering capabil-
+ity is termed the angular dependency. The overall scattering
+capability quantifies the total scattered power, which depends
+on the target’s size and the wavelength, while the angular
+dependency describes how the RCS varies with changes in the
+observation or incident angle, influenced by phase differences
+and interference effects. Consequently, we can simplify the
+RCS description as a function of wavelength k and incident
+angle θ, i.e., σ(f, θ). This insight is foundational for the unified
+modeling framework proposed in this paper.
+C. Proposed Unified RCS Modeling Framework
+Currently, existing RCS models typically focus on specific
+target types, making it difficult to provide a unified represen-
+tation for a wide range of targets. Moreover, considering that
+different target types exhibit different scattering patterns, mod-
+eling each target type independently significantly increases the
+complexity of channel modeling and ISAC system simula-
+tion. For complex targets, detailed electromagnetic simulations
+are often required, and the computational complexity grows
+with the complexity of the target’s geometry and material
+properties. These challenges motivate the need for a generic
+and flexible model that can accommodate different target
+types while balancing computational efficiency and modeling
+accuracy.
+We propose a unified RCS modeling framework, represented
+as
+σ(f, ϕ) = A(f) × B(f, ϕ),
+(11)
+where f denotes the center frequency, and ϕ represents the
+azimuth angle. The RCS is decomposed into two independent
+components to meet the requirements of the channel model.
+The first component, A(f), represents the large-scale scatter-
+ing power, quantifying the target’s average ability to intercept
+and scatter electromagnetic waves. It is normalized in the
+angular domain and is expressed as
+A(f) = 1
+2π
+Z 2π
+0
+σ(f, ϕ)dϕ.
+(12)
+Thus, A(f) is independent of angular variations and serves
+as a key input to the large-scale path loss model. It is
+determined by the target’s physical properties, such as size and
+material composition, and primarily captures the frequency
+dependence of the RCS. The scattering capability at different
+frequencies often exhibits significant variations, as described
+by A(f).
+The second component, B(f, ϕ), represents the angular
+dependence, describing how the RCS varies with incident
+and observation angles. This component captures the target’s
+directional scattering characteristics, strongly influenced by
+its shape and orientation. Different targets exhibit unique
+angular patterns, crucial for modeling small-scale directional
+
+===== PAGE 6 =====
+6
+TABLE II: RCS Expressions and Trend Decomposition for Common Canonical Shapes
+Shape
+RCS Expression
+(Optical Region)
+Overall Scattering
+Capability (Factor 1)
+Angular Dependency
+(Factor 2)
+Sphere
+σ = πa2
+πa2
+1 (Isotropic)
+Ellipsoid
+σ = πa2b2
+λ2
+1
+
+cos2 θ + a2
+b2 sin2 θ
+2
+π2b3(a2 + b2)
+aλ2
+a3
+πb3(1 + a2
+b2 )
+1
+
+cos2 θ + a2
+b2 sin2 θ
+2
+Cone
+σ = πa2
+λ2
+sin2(θ −α)
+(θ −α)2
+πa2
+λ2 ∗P
+1
+P
+sin2(θ −α)
+(θ −α)2
+Triangle Reflector
+σ = 4π
+λ2
+a4
+(h + b)2 cos2 θ
+4π2
+λ2
+a4
+(h + b)2
+1
+π cos2 θ
+Note: a, b: Semi-length and semi-width of the flat plate. L: Length of the cylinder. k: Wave number. θ: Angle of incidence or observation.
+α: Cone angle. h, b: Dimensions of the triangle reflector. And P = (Si(4π −2α) + Si(2α) + sin2(α) ∗(1/(2π −α) −1/α)), Si(x)
+denotes the sine integral.
+effects in ISAC systems. For instance, flat surfaces produce
+strong specular reflections, while cylindrical or irregular tar-
+gets exhibit more complex angular behaviors. The inclusion of
+B(f, ϕ) enables the framework to accurately model scattering
+directionality for various target types.
+In practical scenarios, even variations within the same
+target type, such as large and small vehicles or people in
+different clothing, can lead to significant fluctuations in RCS.
+This variability arises from numerous factors, such as surface
+roughness, environmental conditions, and multipath effects,
+making RCS a sensitive parameter. To address this, we intro-
+duce a third component, B2, to account for these fluctuations
+σ(f, ϕ) = A(f) × B1(f, ϕ) × B2.
+(13)
+Component B2 captures random variations and is typi-
+cally modeled using statistical distributions like log-normal,
+Weibull, or Gamma. This is particularly important for dynamic
+and irregular targets in real-world environments. The inclusion
+of B2 ensures that the model accounts for the inherent ran-
+domness in scattering behavior, enhancing its accuracy and
+flexibility.
+III. RCS MEASUREMENTS AND OBSERVATIONS
+A. Measurement Setup
+The anechoic chamber effectively minimizes environmental
+interference, providing an ideal setting for measuring the RCS
+of various targets, including UAVs, humans, and vehicles, as
+shown in Fig. 3. The UAV used is the DJI M350, with four
+symmetrically deployed rotor arms and approximate dimen-
+sions of 430 × 420 × 430 mm. The human model represents
+an individual with a height of 180 cm and weight of 70 kg.
+The vehicle is a Volkswagen T-Cross model, measuring 4.218
+× 1.76 × 1.599 m, and the metallic sphere has a diameter of
+0.5 meters.
+The measurement system consists primarily of a vector
+network analyzer (VNA), power amplifiers, two horn antennas
+(to transmit and receive sensing signals), a PC controller
+and other auxiliary components, as shown in Fig. 4. The
+VNA serves as the core device, transmitting frequency-stepped
+signals and receiving and storing frequency domain response
+signals. The two horn antennas are positioned approximately
+10 cm apart to simulate monostatic sensing. The sensing target
+is placed in the center of an automated turntable, which rotates
+360◦in increments of 5◦. This allows measurement of the
+target’s echoes at various angles. It should be noted that this
+study focuses on two-dimensional RCS measurements in the
+horizontal plane, with the elevation angle fixed at 90◦.
+As detailed in Table III, the measurement procedure consists
+of two main parts. First, RCS measurements are conducted for
+UAVs, humans, and vehicles across five carrier frequencies
+(10 GHz, 15 GHz, 20 GHz, 28 GHz, and 36 GHz), aiming
+to assess the scattering characteristics of different targets at
+various angles under monostatic sensing. Second, a 0.5-meter-
+diameter metal sphere is used as a calibration target to ensure
+the accuracy of the RCS measurements and subsequent data
+analysis. The sphere is placed on a foam support to minimize
+measurement errors.
+TABLE III: Measurement Configuration
+Measurement Content
+RCS Modeling
+with Angle
+Validation of
+Data Processing
+Target Type
+UAV Human Vehicle
+Metal Sphere
+Frequency (GHz)
+36 /28 /20 /15 /10
+28
+Number of
+Frequency Samp les
+801
+Bandwidth (GHz)
+3
+Distance between
+Tx/Rx and Target (m)
+6
+12
+12
+6
+Target Rotation Angle
+[0, 360◦], Step 5◦
+[0, 360◦], Step 5◦
+Tx Antenna Gain (dBi)
+13 / 25
+25
+Rx Antenna Gain (dBi)
+13 / 25
+25
+3dB Beamwidth
+34◦/ 10◦
+10◦
+Polarization
+Vertical
+Sensing Mode
+Monostatic
+Monostatic
+
+===== PAGE 7 =====
+7
+(a)
+(b)
+(c)
+(d)
+Fig. 3: RCS measurement scenarios of three typical targets in an anechoic chamber. (a) UAV. (b) Human. (c) Vehicle. (d) Metal sphere.
+Fig. 4: The diagram of VNA measurement platform.
+B. Measurement procedure and data processing
+During the measurement process, the VNA collects the
+transmission coefficient |S21|, which characterizes the trans-
+mission properties between the Tx and Rx. This coefficient
+reflects the combined effects of the two-link propagation paths
+(Tx-ST and ST-Rx) and the target’s scattering response. To
+isolate the target’s scattering characteristics, the radar equation
+is employed
+σ = Pr(4π)3R2
+1R2
+2
+PtGtGrλ2
+,
+(14)
+where σ denotes the RCS , Pr is the received power, Pt is
+the transmitted power, Gt and Gr are the gains of Tx and Rx
+antennas, R1 and R2 are the distances from the target to Tx
+and Rx, and λ is the wavelength.
+To ensure accurate results, the data undergoes additional
+processing. Fig. 5 illustrates the workflow. After system cal-
+ibration to eliminate equipment-induced imperfections, the
+|S21| data, collected in the frequency domain, are converted
+to the time domain. The Power Delay Profile (PDP) identifies
+multipath components based on signal delays, while window-
+ing and denoising techniques are applied to mitigate interfer-
+ence. The Time-Domain CIR is then used to calculate echo
+power by summing the squared signal amplitudes. Finally, the
+results are inserted into Equation (14) to compute the RCS.
+A 0.5-meter-diameter metal sphere is used as a calibration
+target. With its size much larger than the 28 GHz wavelength,
+it operates in the geometric optical region. The theoretical RCS
+is derived from Table II, and a comparison of the measured
+and theoretical RCS values is shown in Fig. 6. The theoretical
+Collect 
+transmission 
+coefficient 
+𝐒𝟐𝟏
+Calibrate 
+measurement 
+system
+Time-domain 
+conversion, 
+obtain CIR
+Windowing 
+processing
+Noise 
+reduction
+Echo power 
+calculation
+Radar 
+equation to 
+Calculate 
+RCS
+Fig. 5: Illustration of data post-processing.
+Fig. 6: Measured vs. Theoretical RCS of the Metal Sphere
+with a diameter of 0.5 m.
+RCS is -7.07 dBsm, while the measured average is -8.96
+dBsm, with a discrepancy of less than 2 dBsm, confirming the
+high accuracy of the measurements. The slight difference is
+attributed to surface roughness and non-ideal reflective prop-
+erties of the sphere. These results validate the experimental
+setup and provide a foundation for further analysis.
+C. Experimental Observations: measurement results for dif-
+ferent targets
+Based on the RCS measurements conducted in the anechoic
+chamber for three typical targets in the previous section, this
+section presents the RCS results at 10 GHz and 28 GHz,
+used as representative frequencies due to space constraints.
+
+===== PAGE 8 =====
+8
+(a)
+(b)
+(c)
+(d)
+(e)
+(f)
+Fig. 7: RCS of three targets versus azimuth angle at 10 GHz and 28 GHz. (a), (b), and (c) are the measurement schematics for UAV, Vehicle,
+and Human, respectively; (d), (e), and (f) are the corresponding measurement results at 10 GHz and 28 GHz, respectively.
+Fig. 7 shows schematic diagrams (a), (b), and (c) to help
+readers identify the corresponding scattering characteristics at
+different angles. The measurement results for the three targets
+are shown in Figs. 7(d), (e), and (f). The following section
+analyzes the observed scattering characteristics for each target.
+a) UAV
+As shown in Fig. 7(d), the UAV exhibits higher RCS values
+around 0◦, 90◦, 180◦, and 270◦, forming a four-leaf shape.
+This is due to the UAV’s rectangular body shape, with most
+electromagnetic waves being reflected back to the receiving
+antenna from these directions, resulting in higher RCS at these
+angles. At other angles, the RCS values are lower, showing
+almost omnidirectional scattering with some fluctuations..
+b) Vehicle
+The RCS of the vehicle, shown in Fig. 7(e), follows a
+similar pattern to the UAV, with larger RCS values around 0◦,
+90◦, 180◦, and 270◦. However, there are notable differences
+compared to the UAV. The peak widths and RCS values differ;
+for the vehicle, each peak has a width of approximately 30◦,
+which is slightly broader than that of the UAV. Furthermore,
+the average RCS of the vehicle is higher than that of the
+UAV. This is attributed to the vehicle’s significantly larger
+size compared to the UAV under identical testing conditions,
+providing a greater reflective surface area for electromagnetic
+waves, resulting in stronger echoes received at the antenna.
+c) Human
+As shown in Fig. 7(f), the human body exhibits a scattering
+pattern that can be approximated as isotropic, with minimal
+angular dependence but some random fluctuations.
+Based on these results, we observe that the scattering char-
+acteristics of the UAV and vehicle show angular dependence,
+whereas the human body has minimal angular dependence.
+This difference is due to the geometric properties of the targets:
+the human body is approximately cylindrical, maintaining a
+consistent reflective area, while the UAV and vehicle are
+similar to rectangular prisms, reflecting signals more strongly
+when facing their sides.
+A
+comparison
+of
+the
+average
+RCS
+values
+across
+the frequency bands reveals the following trend: vehi-
+cle>human>UAV. This aligns with expectations, as the av-
+erage RCS is largely influenced by the physical size of the
+target. Additionally, as the frequency increases, the average
+RCS of all targets rises significantly. This notable finding will
+be discussed further in the next section.
+IV. MODEL PARAMETERIZATION AND VALIDATION
+This section presents the parameterization method for the
+unified RCS model, validates the model, and integrates it
+into the ISAC simulation platform to analyze RCS channel
+characteristics for different targets.
+A. Parameterization Methodology
+In the proposed unified RCS model, the RCS of a sensing
+target is decomposed into three main components. For any type
+of target, the first component, A(f), represents the average
+intensity of the electromagnetic energy intercepted by the
+target and scattered back to the transmitter. This component
+is angle-independent and is typically obtained by calculating
+the linear average of the RCS values measured at all angles,
+as defined below
+A(f) =
+PN
+i=1 σi(f, ϕi)
+N
+,
+(15)
+where N represents the number of angles, and σi(f, ϕi)
+denotes the RCS value at the i-th angle. Component A(f)
+is frequency-dependent, exhibiting significant variations with
+
+===== PAGE 9 =====
+9
+different carrier frequencies. Based on measured results, we
+assume that B1 remains relatively stable with frequency, so
+we parameterize it as B1(f, ϕ) = B1(ϕ).
+The second component, B1(ϕ), can be understood as anal-
+ogous to an antenna radiation pattern, representing the relative
+gain of scattering at different incident and observation angles.
+B1(ϕ) is strongly influenced by the shape of the target’s
+reflective surface. From the RCS patterns of the three targets
+analyzed in the previous section, B1(ϕ) is generated using two
+approaches.
+For targets with shapes that approximate spheres or cylin-
+ders (e.g., the human body), the scattering pattern is predomi-
+nantly isotropic, so an angle-dependent model is not necessary.
+In these cases, B1(ϕ) is set to 1 across all directions. However,
+for targets with significant angular dependence (e.g., UAVs
+and vehicles, which have rectangular shapes), B1(ϕ) must be
+modeled as a function of angle, expressed as B1(ϕ) = F(θ =
+90◦, ϕ), where θ and ϕ are the elevation and azimuth angles,
+respectively.
+To highlight the specific significance of B1(ϕ), the RCS
+value at each angle is normalized by dividing it by A(f),
+i.e.,
+σi
+A(f), to represent the relative gain at different angles.
+This normalization removes the influence of large-scale power
+levels and isolates the angular characteristics of the target’s
+scattering behavior. The normalized data is then used to fit
+and derive B1(ϕ).
+For UAV and vehicles, we observe significant RCS peaks
+around 0◦, 90◦, 180◦, and 270◦, with each peak exhibiting
+a shape that resembles a quadratic function. In other angular
+regions, the RCS approximates an omnidirectional pattern. For
+targets with strong angular dependence, we propose modeling
+B1(ϕ) using a piecewise function, as defined in 3GPP antenna
+radiation power pattern specifications [14]. This method allows
+precise characterization of the four distinct beam peaks. The
+function uses quadratic approximations in peak angular re-
+gions and constant values in off-peak domains, as formalized
+below
+10 log10 B1 (θ = 90◦, ϕ) = −min
+
+
+
+
+
+12
+ϕ −ϕk
+ϕ3dB,k
+2
++ ck,
+Ymax
+
+
+
+
+
+,
+(16)
+where ϕk, ϕ3dB,k, ck denotes the angular center, the 3dB
+beamwidth and the peak gain of the k-th beam peak, re-
+spectively. Within the mainlobe region, the quadratic term
+dominates with smaller values, forcing the minimum operator
+to select the beam peak expression. As angular deviation
+|ϕ−ϕk| increases, the quadratic term become larger than Ymax,
+causing the minimum operator to select −Ymax as the value
+of B1.
+In addition to components A and B1, we introduce a
+stochastic fluctuation factor, B2, which effectively models the
+randomness and variability of RCS in real world environments.
+After isolating the large-scale power component A and the
+small-scale angular component B1 from the RCS data, the
+remaining term,
+σi
+A×B1 , typically exhibits irregular behavior.
+These residual data are used to fit the stochastic fluctuation
+factor B2, which is modeled using statistical distributions.
+Fig. 8: Measured and Fitted A for Different Targets (Human,
+UAV, and Vehicle).
+To accurately represent the stochastic component B2, this
+study incorporates three commonly used distributions for mod-
+eling the superposition of signal fields: log-normal, gamma,
+and Weibull distributions. These distributions are widely ap-
+plied in existing studies and are frequently used to simulate
+the scattering characteristics of various targets.
+B. Model validation
+This section validates the proposed unified model and
+provides parameter values for different targets.
+We begin by extracting the component A(f) from the RCS
+data of three targets. RCS measurements were taken at five
+central frequencies with a 3 GHz bandwidth, divided into 1
+GHz increments, resulting in data at 15 frequency points. As
+A is frequency-dependent, we fit the data for A, as shown in
+Fig. 8.
+The RCS values of the three targets fluctuate with frequency,
+showing a general upward trend. Based on this observation, we
+model the frequency-dependent component A as a monotonic
+linear function of frequency. The fitting equations for the three
+targets are as follows
+
+
+
+
+
+AUAV
+= 0.31 · f −9.26,
+Avehicle = 0.08 · f + 8.21,
+Ahuman = 0.16 · f −4.68,
+(17)
+where f represents the frequency. After extracting A, the
+remaining data are fitted using the proposed B1(ϕ) method.
+The fitting results are shown in Fig. 9.
+Figs. 9(a) and (b) demonstrate that the model accurately
+captures the angular dependence of both the UAV and the
+vehicle, particularly the distribution of the four prominent
+peaks. The fitted curves show good accuracy in identifying
+peak positions and widths, although some deviations are
+observed in peak amplitudes. For the human target, Fig. 9(c)
+shows the B1(ϕ) curve fluctuating irregularly around 0 dB, as
+expected, without distinct peaks.
+
+===== PAGE 10 =====
+10
+(a)
+(b)
+(c)
+Fig. 9: Comparison of Measured and Modeled Results for B1(ϕ) : (a) UAV, (b) Vehicle, (c) Human.
+(a)
+(b)
+(c)
+Fig. 10: PDFs of three statistical distributions for three targets: (a) UAV, (b) Vehicle, (c) Human.
+The Root Mean Square Error (RMSE) is used to evaluate
+the model’s fitting accuracy. A smaller RMSE indicates higher
+predictive accuracy. The formula is as follows
+RMSE =
+v
+u
+u
+t 1
+N
+N
+X
+i=1
+(yi −ˆyi)2,
+(18)
+where yi are the measured values, and ˆyi are the model’s
+predicted values. The RMSE values for the UAV, vehicle, and
+human are 2.414, 1.8309, and 2.2451, respectively. These re-
+sults show better fitting performance for the vehicle, especially
+at peak positions. For the human target, the lack of angular
+dependency leads to irregular oscillations, and the random
+fluctuation factor B2 alone effectively models its behavior.
+After extracting the large-scale component A(f) and small-
+scale component B1(ϕ) from the RCS data, the remaining
+data typically exhibits irregular patterns, attributed to random
+fluctuations in the target’s RCS. This component is modeled
+using statistical distribution functions. Fig. 10 presents the
+PDFs for three distributions along with empirical data, with
+parameters estimated using Maximum Likelihood Estimation
+(MLE).
+To evaluate the performance of fitting of three distribution
+functions, a Kullback-Leibler (KL) divergence metric [36],
+defined as
+DKL(p∥q) =
+N
+X
+i=1
+p (xi) · (log p (xi) −log q (xi)) ,
+(19)
+where pi represents the probability of the actual RCS measure-
+ment at the i-th azimuth angle, and qi is the fitted distribution
+probability from the model. A smaller KL divergence indicates
+a better model fit. Table IV presents the fitting results for
+component B2 using measured data and different distribution
+functions.
+TABLE IV: KL Divergence for Component B2 with Different
+Distribution Functions
+Target
+KL Divergence
+Lognormal
+Weibull
+Gamma
+UAV
+0.0535
+0.1014
+0.0693
+Vehicle
+0.0674
+0.1676
+0.1021
+Human
+0.032
+0.0134
+0.0134
+For all three targets, while the divergence values of the log-
+normal distribution are similar to those of the other two dis-
+tributions, we ultimately selected the log-normal distribution
+for modeling the empirical data. This decision is based on
+two factors: First, the log-normal distribution’s parameters (µ
+
+===== PAGE 11 =====
+11
+TABLE V: The fitting parameter results for UAV, vehicle and human
+Target
+A [dBsm]
+B1 [dBsm]
+B2[dBsm]
+ϕ ∈
+ϕk
+ϕ3dB,k
+ck
+UAV
+A = −9.26 + 0.31 ∗f
+[315◦, 360◦)
+∪[0◦, 45◦]
+0◦
+20.84◦
+0.68
+N(−0.52, 2.312)
+[45◦, 135◦]
+90◦
+10.47◦
+−6.52
+[135◦, 225◦]
+180◦
+15.41◦
+−5.61
+[225◦, 315◦]
+270◦
+14.51◦
+−12.30
+Ymax = 4.47
+Vehicle
+A = 8.21 + 0.08 ∗f
+[315◦, 360◦)
+∪[0◦, 45◦]
+0◦
+12.59◦
+−9.61
+N(−0.53, 2.642)
+[45◦, 135◦]
+90◦
+30.42◦
+−1.67
+[135◦, 225◦]
+180◦
+15.79◦
+−10.06
+[225◦, 315◦]
+270◦
+28.03◦
+1.56
+Ymax = 7.46
+Human
+A = −4.68 + 0.16 ∗f
+0
+N(−0.77, 2.132)
+and σ) have clear physical meanings, corresponding directly
+to the mean and standard deviation of the normal distribution
+in logarithmic space. Second, from an engineering perspective,
+the log-normal distribution offers computational efficiency and
+analytical properties, which enhance its practical applicability
+in engineering tasks. Therefore, we opted to model component
+B2 with the log-normal distribution.
+At this stage, we have thoroughly analyzed the modeling
+and fitting processes for the three components, A, B1, and B2,
+within the overall RCS model framework. Table V presents
+the RCS parameter fitting results for the three target objects
+measured.
+C. Implementation Framework and Simulation Results of the
+Unified RCS Model in ISAC channel
+The proposed unified RCS modeling framework seamlessly
+integrates into the ISAC channel modeling workflow by build-
+ing on the foundational 3GPP TR 38.901 channel model [37].
+This integration introduces a novel enhancement, enabling
+accurate simulation of the Tx-ST-Rx sensing link alongside
+the traditional Tx-Rx communication link.
+Fig. 11 illustrates the updated ISAC target channel modeling
+process, which primarily involves the integration of RCS-
+related steps. It is worth noting that only the modeling steps
+for the sensing target channel are presented here, while the
+communication channel modeling steps are omitted, as the
+communication channel does not account for the target’s RCS.
+In the figure, we emphasize the newly added steps related to
+RCS configuration, detailed as follows:
+• Target RCS Configuration: Based on the target type
+and frequency band specified in the simulation configu-
+ration, the corresponding RCS statistical parameters are
+obtained by consulting a lookup table (e.g., Table V). The
+specific values for A, B1, and B2 are then determined by
+sampling from the corresponding distributions.
+• Target Channel Path Loss Generation: During the
+generation of large-scale parameters, the method for
+generating the target channel path loss is modified. In
+this context, the RCS model introduces the large-scale
+Configure the 
+propagation condition/ 
+target position
+Concatenated  PL 
+generation for Tx-
+TAR-Rx link
+Configure the 
+scenario/antenna
+Calculate the 
+path loss 
+(set 𝑨)
+Large-scale parameter
+General Parameters
+Add new step
+Evolution method:
+Configure the 
+target RCS
+(𝛔= 𝑨× 𝑩𝟏× 𝑩𝟐)
+Generate delays
+Small-scale parameters
+Generate cluster 
+powers
+Generate arrival & 
+departure angles
+Calculate the LSP
+(DS/AS/K/SF)
+Apply RCS pattern
+(set 𝑩𝟏, 𝑩𝟐)
+Generate XPRs
+Generate 
+concatenated 
+channel coefficient
+Apply pathloss and 
+shadowing
+CIR for sensing channel
+Fig. 11: The evolution of ISAC target channel simulation under
+the unified RCS modeling framework.
+scattering power factor (A), which determines the overall
+power level of the scattered signal. A higher value of A
+corresponds to stronger reflected signals, lower path loss,
+and higher received power at the receiver. Since large-
+scale parameters do not account for angular variations
+or specific multipath effects, only the A component is
+required at this stage, while the remaining components,
+B1 and B2, are set to 1.
+• Apply RCS Pattern: During the generation process
+of small-scale parameters, the application of the RCS
+pattern is incorporated. At this stage, the RCS model
+uses B1 to capture the angular properties of the target
+(e.g., geometry and orientation) and their impact on the
+strength of the multipath components, based on the AOD
+and AOA. The random fluctuation factor B2 accounts for
+the variations caused by destructive interference, which
+introduces stochastic changes to the channel. Therefore,
+
+===== PAGE 12 =====
+12
+(a)
+(b)
+(c)
+Fig. 12: Simulation results of different channel parameters for three targets at 10 GHz and 28 GHz: (a) path loss, (b) delay spread, (c)
+angular spread.
+the values of B1 and B2 are the main focus, while the A
+component can simply be set to 1.
+The unified RCS model bridges large-scale and small-
+scale channel modeling by decomposing the RCS into three
+independent and interpretable components: A, B1, and B2.
+This modular structure enhances generality, computational ef-
+ficiency, and scalability, enabling the representation of diverse
+targets, from canonical shapes to complex dynamic objects,
+within a unified mathematical framework. By separately mod-
+eling large-scale scattering, angular dependency, and random
+variability, the model provides a flexible and efficient tool for
+ISAC system simulations across various scenarios.
+To validate its effectiveness, the unified RCS model is
+integrated into the BUPTCMCCCMG-IMT2023 channel sim-
+ulation platform [38], which is specifically designed for ISAC
+channel evaluation. The simulation follows the UMi environ-
+ment defined in ITU-R M.2412 [39], with a baseline setup
+consisting of a single base station and user terminal, both
+equipped with a single antenna. To focus on the impact
+of target RCS, each simulation considers a single target.
+This section presents simulation results for large-scale path
+loss, small-scale delay spread, and angular spread, as shown
+in Fig. 12, analyzing the influence of different target RCS
+characteristics on the sensing channel.
+1) Path loss
+As shown in Fig. 12(a), the RCS of different targets sig-
+nificantly impacts the path loss characteristics of the sensing
+channel. At the same frequency, the path loss is highest for the
+UAV, followed by the human, while the vehicle exhibits the
+lowest path loss. This is because a larger RCS leads to stronger
+signal reflection, resulting in lower path loss and higher
+received power. Therefore, targets with higher RCS values tend
+to achieve better sensing performance under certain conditions.
+Additionally, frequency has a notable effect on path loss.
+High-frequency signals (28 GHz) exhibit much higher path
+loss compared to low-frequency signals (10 GHz), especially
+for targets with lower RCS, such as humans, where scattering
+and absorption effects are more pronounced. As a result,
+the path loss for humans experiences a greater degree of
+attenuation when moving from 10 GHz to 28 GHz compared
+to the UAV.
+2) Delay spread and angular spread
+As shown in Fig. 12 (b) and (c), the RCS characteristics of
+different targets influence the distribution of delay spread and
+angular spread. This is the result of the combined effect of
+the RCS pattern and the power spectrum. First, comparing
+the three targets, the vehicle target exhibits a pronounced
+directional dependence in its B1 parameter, especially along
+four distinct propagation directions where the power is sig-
+nificantly enhanced. This leads to a more dispersed multipath
+distribution, which in turn increases both delay spread and
+angular spread. In contrast, the RCS of the human and
+UAV targets shows weaker angular dependence, resulting in
+a less pronounced effect on the channel’s delay spread and
+angular spread compared to the vehicle target. Furthermore,
+the frequency has minimal impact on delay spread and angular
+spread, as no significant frequency dependence is observed in
+the B1 measurements at 10 GHz and 28 GHz. The results of
+delay spread and angular spread are primarily influenced by
+the profile shape of the target’s RCS, while the A parameter
+has a relatively minor effect.
+V. CONCLUSION AND FUTURE WORK
+This paper proposes a unified RCS modeling framework
+for ISAC channel modeling, designed to accurately represent
+the scattering characteristics of targets and meet the diverse
+requirements of channel modeling. Specifically, the framework
+decomposes the RCS into three independent components,
+each representing the effects of scattering power, angular
+dependence, and random fluctuations. Through experimental
+measurements and data analysis, the model has been validated
+to effectively capture the scattering characteristics of different
+target types, demonstrating its versatility and applicability.
+Furthermore, the RCS model has been integrated into the ISAC
+channel simulation platform, optimizing the ISAC channel
+modeling process. Simulation results for large-scale path loss,
+small-scale delay spread, and angular spread are presented,
+along with an analysis of how different target RCS charac-
+teristics influence the sensing channel. These findings provide
+valuable insights and strong theoretical support for the design
+and optimization of ISAC systems.
+
+===== PAGE 13 =====
+13
+In future work, we aim to expand our research on RCS mod-
+eling by developing a more comprehensive 3D RCS model,
+which will improve the accuracy of the modeling, particularly
+in the context of complex, dynamic targets. This expansion
+will allow for a more precise representation of RCS across
+different target orientations and geometries. Additionally, we
+will focus on exploring dual-station RCS models, which will
+further enhance the modeling capabilities for multi-sensor
+ISAC systems.
+REFERENCES
+[1] H. Tataria, M. Shafi, A. F. Molisch et al., “6G wireless systems: Vision,
+requirements, challenges, insights, and opportunities,” Proc. IEEE, vol.
+109, no. 7, pp. 1166–1199, Jul. 2021.
+[2] G. Liu, R. Xi, Z. Han et al., “Cooperative sensing for 6G mobile cellular
+networks: feasibility, performance and field trial,” IEEE J. Sel. Areas
+Commun., Oct. 2024.
+[3] F. Liu, Y. Cui, C. Masouros et al., “Integrated sensing and communi-
+cations: Toward dual-functional wireless networks for 6G and beyond,”
+IEEE J. Sel. Areas Commun., vol. 40, no. 6, pp. 1728–1767, Jun. 2022.
+[4] Y. Xiong, F. Liu, Y. Cui et al., “On the fundamental tradeoff of integrated
+sensing and communications under Gaussian channels,” IEEE Trans. Inf.
+Theory, vol. 69, no. 9, pp. 5723–5751, Sep. 2023.
+[5] I. R. Sector, “Recommendation ITU-R M. 2160-0 Framework and
+overall objectives of the future development of IMT for 2030 and
+beyond,” ITU, Tech. Rep, Tech. Rep., 2023.
+[6] A. Liu, Z. Huang, M. Li et al., “A survey on fundamental limits of
+integrated sensing and communication,” IEEE Commun. Surv. Tutorials,
+vol. 24, no. 2, pp. 994–1034, Feb. 2022.
+[7] J. Zhang, J. Wang, Y. Zhang et al., “Integrated sensing and commu-
+nication channel: Measurements, characteristics, and modeling,” IEEE
+Commun. Mag., vol. 62, no. 6, pp. 98–104, Jun. 2023.
+[8] J. Zhang, Y. Zhang, Y. Yu et al., “3-D MIMO: How much does it meet
+our expectations observed from channel measurements?” IEEE J. Sel.
+Areas Commun., vol. 35, no. 8, pp. 1887–1903, Jun. 2017.
+[9] J. Zhang, J. Lin, P. Tang et al., “Channel measurement, model-
+ing, and simulation for 6G: A survey and tutorial,” arXiv preprint
+arXiv:2305.16616, 2023.
+[10] F. Dong, F. Liu, S. Lu et al., “Communication-assisted sensing in 6G
+networks,” IEEE J. Sel. Areas Commun., 2025.
+[11] N. N. Youssef, “Radar cross section of complex targets,” Proc. IEEE,
+vol. 77, no. 5, pp. 722–734, May 2002.
+[12] W. Chen, Y. Zhang, Y. Liu et al., “An empirical study of ISAC channel
+characteristics with human target impact at 105 GHz,” Electron. Lett.,
+vol. 60, no. 17, p. e70017, Sep. 2024.
+[13] 3GPP, “Study on Integrated Sensing and Communication (ISAC) in
+5G and Beyond,” 3rd Generation Partnership Project (3GPP), Technical
+Report TR 38.886, Jun. 2021. [Online]. Available: https://www.3gpp.org/
+[14] ——, “Study on channel model for frequencies from 0.5 to 100
+ghz,” 3rd Generation Partnership Project (3GPP), Technical Report TR
+38.901, Mar. 2022. [Online]. Available: https://www.3gpp.org/
+[15] Y. Liu, J. Zhang, Y. Zhang et al., “How to extend 3D GBSM to
+integrated sensing and communication channel with sharing feature?”
+IEEE Wireless Commun. Lett., Aug. 2024.
+[16] ——, “A shared cluster-based stochastic channel model for integrated
+sensing and communication systems,” IEEE Trans. Veh. Technol.,
+vol. 73, no. 5, pp. 6032–6044, May 2023.
+[17] G. Cakir, M. Cakir, and L. Sevgi, “An FDTD-based parallel virtual tool
+for RCS calculations of complex targets,” IEEE Antennas Propag. Mag.,
+vol. 56, no. 5, pp. 74–90, Dec. 2014.
+[18] E. Lucente, A. Monorchio, and R. Mittra, “An iteration-free MoM
+approach based on excitation independent characteristic basis functions
+for solving large multiscale electromagnetic scattering problems,” IEEE
+Trans. Antennas Propag., vol. 56, no. 4, pp. 999–1007, Apr. 2008.
+[19] E. A. Dunn, J.-K. Byun, E. D. Branch et al., “Numerical simulation of
+BOR scattering and radiation using a higher order FEM,” IEEE Trans.
+Antennas Propag., vol. 54, no. 3, pp. 945–952, Mar. 2006.
+[20] F. Weinmann, “Ray tracing with PO/PTD for RCS modeling of large
+complex objects,” IEEE Trans. Antennas Propag., vol. 54, no. 6, pp.
+1797–1806, Jun. 2006.
+[21] T.-Q. Fan and L.-X. Guo, “OpenGL-based hybrid GO/PO computation
+for RCS of electrically large complex objects,” IEEE Antennas Wirel.
+Propag. Lett., vol. 13, pp. 666–669, Apr. 2014.
+[22] P. Y. Ufimtsev, “Improved physical theory of diffraction: Removal of
+the grazing singularity,” IEEE Trans. Antennas Propag., vol. 54, no. 10,
+pp. 2698–2702, Oct. 2006.
+[23] W. Tang, Z.-W. Xu, H.-S. Zhao et al., “Scattering of UAV Swarm
+via Artificial Plasma Cloud for Probable Over-the-Horizon Detection
+at VHF Band,” IEEE Trans. Antennas Propag., May 2024.
+[24] Z. Yuan, L. Yu, Z. Wang et al., “Experimental Analysis and Modeling
+of Mono-static UAV RCS for ISAC Channels,” IEEE Antennas Wirel.
+Propag. Lett., Nov. 2024.
+[25] M. Rosamilia, A. Balleri, A. De Maio et al., “Radar detection perfor-
+mance prediction using measured UAVs RCS data,” IEEE Trans. Aerosp.
+Electron. Syst., vol. 59, no. 4, pp. 3550–3565, Aug. 2022.
+[26] T. Motomura, K. Uchiyama, and A. Kajiwara, “Measurement results of
+vehicular RCS characteristics for 79GHz millimeter band,” in 2018 IEEE
+Topical Conference on Wireless Sensors and Sensor Networks (WiSNet).
+IEEE, Jan. 2018, pp. 103–106.
+[27] S. Abadpour, M. Pauli, C. Schyr et al., “Angular resolved rcs and doppler
+analysis of human body parts in motion,” IEEE Trans. Microwave
+Theory Tech., vol. 71, no. 4, pp. 1761–1771, Apr. 2022.
+[28] J. Li, D. Zhang, Z. Wu et al., “SBRF: A fine-grained radar signal
+generator for human sensing,” IEEE Trans. Mob. Comput., vol. 23,
+no. 12, pp. 13 114–13 130, Dec. 2024.
+[29] Y.-X. Zhang, Y.-C. Jiao, M.-D. Zhu et al., “Wideband near-field RCS
+measurement techniques with improved far-field RCS prediction accu-
+racies,” IEEE Trans. Instrum. Meas., vol. 72, pp. 1–4, Dec. 2022.
+[30] T. Schipper, J. Fortuny-Guasch, D. Tarchi et al., “RCS measurement
+results for automotive related objects at 23-27 GHz,” in Proceedings of
+the 5th European Conference on Antennas and Propagation (EUCAP).
+IEEE, Apr. 2011, pp. 683–686.
+[31] 3GPP, “Chair notes, 3GPP TSG RAN WG1 #116, meeting report
+TSGR1#116,” 3rd Generation Partnership Project (3GPP), Meeting
+Report TSGR1#116, Feb. 2024. [Online]. Available: https://www.3gpp.
+org/ftp/tsg ran/WG1 RL1/TSGR1 116/Inbox/Chair notes
+[32] Y. Zhang, J. Zhang, Y. Pei et al., “Latest progress for 3GPP ISAC chan-
+nel modeling standardization,” Science China: Information Sciences,
+vol. 67, no. 11, pp. 357–358, Oct. 2024.
+[33] AT&T,
+“R1-2410337:
+FL
+summary
+#1
+on
+ISAC
+deployment
+scenarios,”
+3rd
+Generation
+Partnership
+Project
+(3GPP),
+Orlando,
+US, Working Group Document TSGR1#119, Nov. 2024. [Online].
+Available:
+https://www.3gpp.org/ftp/tsg ran/WG1 RL1/TSGR1 119/
+Docs/R1-2410337.zip
+[34] S. A. Hovanessian, “Radar system design and analysis,” Dedham, 1984.
+[35] W. B. Gordon, “Near field calculations with far field formulas,” in
+IEEE Antennas and Propagation Society International Symposium. 1996
+Digest, vol. 2.
+IEEE, Jul. 1996, pp. 950–953.
+[36] J. Jiao, T. A. Courtade, A. No et al., “Information measures: the curious
+case of the binary alphabet,” IEEE Trans. Inf. Theory, vol. 60, no. 12,
+pp. 7616–7626, Dec. 2014.
+[37] 3GPP, “ISAC channel measurements and modeling,” 3rd Generation
+Partnership Project (3GPP), Working Group Document R1-2406107,
+Aug. 2024, 3GPP TSG RAN WG1 Meeting #118, Orlando, US, August
+19th–23rd, 2024. [Online]. Available: https://www.3gpp.org/ftp/TSG
+RAN/WG1 RL1/TSGR1 118/Docs/R1-2406107.zip
+[38] BUPT-CMCC, “BUPTCMCCCMG-IMT2030 channel model platform,”
+Online Platform, Feb. 2023. [Online]. Available: https://scc.bupt.edu.
+cn/dataset-public/datasets/22
+[39] ITU-R, “Guidelines for evaluation of radio interface technologies
+for
+IMT-2020,”
+International
+Telecommunication
+Union
+-
+Radiocommunication Sector (ITU-R), Recommendation M.2412, Oct.
+2017. [Online]. Available: https://www.itu.int/

@@ -1,0 +1,2186 @@
+
+===== PAGE 1 =====
+1
+AirGuard: UAV and Bird Recognition Scheme for
+Integrated Sensing and Communications System
+Hongliang Luo, Zhonghua Chu, Tengyu Zhang, Chuanbin Zhao, Bo Lin, and Feifei Gao, Fellow, IEEE
+Abstract—In this paper, we propose an unmanned aerial
+vehicle (UAV) and bird recognition scheme with signal processing
+and deep learning for integrated sensing and communications
+(ISAC) system. We first provide the basic scene of low-altitude
+targets monitoring, and formulate the motion equations and echo
+signals for UAVs and birds. Next, we extract the centralized
+micro-Doppler (cmD) spectrum and the high resolution range
+profile (HRRP) of the low-altitude target from the echo signals.
+Then we design a dual feature fusion enabled low-altitude target
+recognition network with convolutional neural network (CNN),
+which employs both the images of cmD spectrum and HRRP as
+inputs to jointly distinguish between UAV and bird. Meanwhile,
+we generate 237600 cmD and HRRP image samples to train,
+validate, and evaluate the designed low-altitude target recognition
+network. The proposed scheme is termed as AirGuard, whose
+effectiveness has been demonstrated by simulation results.
+Index Terms—Integrated sensing and communications, UAV
+and bird recognition, micro-Doppler spectrum, high resolution
+range profile (HRRP).
+I. INTRODUCTION
+As a coming evolution of civil aerospace commerce, low-
+altitude economy (LAE) refers to a comprehensive economic
+model that employs various air vehicles as carrier and builds
+multi-scenario flight activities to drive the integrated develop-
+ment of low-altitude production, security, operation, service
+and other related fields below a vertical height of one thousand
+meters [1]–[4]. The core elements of LAE are unmanned
+aerial vehicle (UAV) and manned electric vertical take-off and
+landing (eVTOL) [5], giving rise to plentiful activities such as
+low-altitude logistics, inspections, travel, surveying [6], [7].
+The number of UAVs is rapidly increasing, and inevitably
+leads to many unrestricted and unregulated flight behaviors,
+which poses significant challenges to social security and
+privacy protection. Hence it is necessary to utilize advanced in-
+formation technology to monitor all the cooperative UAVs and
+non-cooperative UAVs simultaneously [8]–[10]. Meanwhile,
+the emerging sixth generation mobile communications (6G)
+network is developing the integrated sensing and communica-
+tions (ISAC) system, which can sense and monitor various
+information of the cooperative UAVs and non-cooperative
+UAVs with the orthogonal frequency division multiplexing
+(OFDM) communications signals [11]–[15].
+The current version of this manuscript has been accepted by IEEE Journal
+on Selected Areas in Communications.
+H. Luo, Z. Chu, T. Zhang, C. Zhao, B. Lin and F. Gao are with
+Department
+of
+Automation,
+Tsinghua
+University,
+Beijing
+100084,
+China
+(email:
+luohl23@mails.tsinghua.edu.cn;
+c3zhua@163.com;
+zhang-ty22@mails.tsinghua.edu.cn;
+zcb23@mails.tsinghua.edu.cn;
+linb20@mails.tsinghua.edu.cn; feifeigao@ieee.org).
+Currently, a large amount of ISAC researches focus on target
+detection, parameter estimation, and trajectory tracking of the
+UAV target. For example, Z. Xiao et al. propose a discrete
+Fourier transform (DFT) based parameter estimation method
+to obtain the angle, distance, and velocity of the UAV target
+[16]. X. Lu et al. apply multiple signal classification (MUSIC)
+algorithm to estimate the position and velocity of the UAV
+target [17]. R. Liu et al. test the performance of ISAC system
+in locating and tracking multiple UAVs and other targets [18].
+R. Li et al. improve the sensing performance by optimizing
+target assignment and resource allocation among multiple base
+stations (BSs) [19]. Although these works conduct sufficient
+research on locating and tracking UAVs, all of them overlook
+a practical problem that the birds would also be illuminated
+by BS and thus cause echoes. Then serious false alarms will
+be disgustingly activated for UAV detection and monitor.
+To deal with these false alarms, a natural idea is to dis-
+tinguish between UAVs and birds, which is termed as UAV
+and Bird Recognition problem. Recently, J. Wei et al. propose
+a UAV feature extraction method to obtain the rotor micro-
+Doppler (rmD) feature caused by UAV’s paddle rotation, and
+the sinusoidal envelope characteristics exhibited in the time-
+Doppler spectrum are expected to be used for the identification
+of rotary UAV [20]. D. Ma et al. evaluate the performance of
+UAV identification using various time-division duplex (TDD)
+patterns under the fifth generation mobile communications
+(5G) network [21]. Although these works preliminarily ana-
+lyze the UAV’s micro-Doppler (mD) effect with ISAC system,
+both of them do not distinguish between UAVs and birds.
+In traditional radar areas, some researchers utilize macro-
+scopic movements and kinematic features such as observation
+trajectory, velocity, acceleration, etc., of the tracked targets to
+distinguish between UAVs and birds [22]–[25]. Some other
+researchers utilize the mD effect caused by UAV’s rotors to
+recognize UAVs and birds. For example, C. Bennett et al.
+apply fast Fourier transform (FFT) to obtain the mD spectrum
+of the target, and then detect the presence and the number of
+symmetrical peaks in each frame of mD spectrum to differen-
+tiate UAVs from other targets [26]. H. Dale et al. visualize the
+FFT based mD spectrum as an image, employ various deep
+learning networks to extract the hidden features from the mD
+image, and utilize these hidden features to classify UAVs and
+other targets [27]. S. Rahman et al. apply short time Fourier
+transform (STFT) to extract the mD spectrum of the target,
+and then recognize three different types of UAVs through
+GoogLeNet [28]. Besides, B. Oh et al. perform empirical
+mode decomposition (EMD) on radar echoes to obtain a set
+of oscillation signals, extract statistical features from them,
+arXiv:2603.13112v1  [eess.SP]  13 Mar 2026
+
+===== PAGE 2 =====
+2
+and utilize support vector machine (SVM) to identify UAVs
+and birds [29]. Moreover, as another important feature, high
+resolution range profile (HRRP) can reflect the distribution of
+scattering intensity of the extended target along the radar’s line
+of sight, and usually contains the key structural features of the
+target [30]–[32]. Hence HRRP can also be used to distinguish
+between UAVs and birds. For example, W. Jiang et al. utilize
+long short term memory (LSTM) network to process the
+HRRP feature and convolutional neural network (CNN) to
+process the mD feature, thus realizing UAVs and other targets
+recognition [33]. Although these works [26]–[29], [33] provide
+plentiful technical reserves for UAV and bird recognition, all
+of them cannot be directly applied to ISAC system.
+In this paper, we propose a dual feature fusion enabled UAV
+and bird recognition scheme with signal processing and deep
+learning for ISAC system. The contributions of this paper are
+summarized as follows.
+• We formulate the motion equations and characterize the
+echo channels of UAVs and birds by processing their 3D
+mesh files and analyzing their physical motion laws. Then
+we compute the expressions for the echo signals of UAVs
+and birds under ISAC system.
+• We develop a low-altitude target feature extraction
+method for ISAC system, in which we utilize grouped
+DFT to obtain the centralized micro-Doppler (cmD)
+spectrum of the target, and utilize DFT estimation and
+filtering algorithm to obtain the HRRP of the target.
+• We design a dual feature fusion enabled low-altitude
+target recognition network with CNN, which employs
+both the images of cmD spectrum and HRRP as inputs
+to jointly recognize the UAVs and birds.
+• We generate a UAV and bird echo signal dataset, and
+then generate 237600 cmD and HRRP image samples
+to train, validate, and evaluate the designed low-altitude
+target recognition network.
+• The generated dataset and the proposed scheme are
+termed as AirGuard, whose effectiveness has been
+demonstrated by simulation results.
+The remainder of this paper is organized as follows. In
+Section II, we construct the basic scene of ISAC system
+monitoring low-altitude targets. In Section III, we formulate
+the echo signals of UAVs and birds under ISAC system.
+In Section IV, we propose a low-altitude target recognition
+scheme with signal processing and deep learning. Simulation
+results and conclusions are given in Section V and Section VI.
+Notation: Lower-case and upper-case boldface letters a and
+A denote a vector and a matrix; a∗, aT and aH denote the
+conjugate, transpose and conjugate transpose of a, respec-
+tively; a[n] denotes the n-th element of the vector a; A[i, j]
+denotes the (i, j)-th element of the matrix A; A[i1 : i2, :] is
+the submatrix composed of all columns elements in rows i1
+to i2 of matrix A; A[:, j1 : j2] is the submatrix composed of
+all rows elements in columns j1 to j2 of matrix A; ⊗denotes
+the Kronecker product; S denotes a set; card(S) represents
+the number of elements in set S; ∅denotes an empty set;
+∩and ∪respectively represent the intersection and union of
+sets; N+ denotes the positive integer space; || · ||2 represents
+sensing signal
+echo signal
+communications signal
+Non-cooperative UAV
+Cooperative UAV
+Bird
+ISAC-BS
+ 
+RU-UPA 
+HU-UPA
+Fig. 1. ISAC scenario for low-altitude target monitoring.
+the Euclidean norm.
+II. SYSTEM MODEL
+In this section, we provide the basic scenario of monitoring
+low-altitude targets with ISAC system, and derive the echo
+channel model for the extended targets.
+A. ISAC Scene and BS Model
+Fig. 1 depicts the basic scenario of monitoring low-altitude
+targets with ISAC system. Generally, the cooperative UAVs
+are obliged to report their positions, velocities, identification
+numbers and other information in real-time. Meanwhile, the
+BS can transmit sensing detection signals, receive and pro-
+cess the sensing echo signals to obtain various information
+of cooperative UAVs, non-cooperative UAVs, and birds. For
+conciseness, cooperative UAVs and non-cooperative UAVs are
+uniformly named as UAVs, and then the BS should recognize
+UAVs and birds by processing the sensing echo signals.
+The ISAC BS employs massive MIMO arrays and OFDM
+signals operating in the mmWave frequency bands to re-
+alize both wireless communications and low-altitude target
+monitoring. As shown in Fig. 1, the BS is equipped with
+one hybrid unit uniform planar array (HU-UPA) and one
+radar unit uniform planar array (RU-UPA). The HU-UPA is
+responsible for transmitting downlink communications signals
+and receiving uplink communications signals, as well as trans-
+mitting downlink sensing signals. The RU-UPA is responsible
+for receiving sensing echo signals. Meanwhile, HU-UPA and
+RU-UPA are each equipped with NH = N x
+H × N z
+H and
+NR = N x
+R × N z
+R antenna elements, respectively, and are
+both vertically mounted on the 2D plane y = 0. The antenna
+spacing between the antennas along x-axis and z-axis are
+dx = dz = d = λ
+2 , where λ = c/f0 is the wavelength, f0 is the
+operating frequency of the system, and c represents the speed
+of light. Without loss of generality, we assume that HU-UPA
+and RU-UPA are co-located at the origin of the coordinate
+system and are parallel to each other, such that they can see the
+
+===== PAGE 3 =====
+3
+low-altitude targets at the same propagation directions1 [34].
+We also assume that HU-UPA and RU-UPA employ the phase
+shifter (PS) based hybrid hardware architecture, in which a
+total of NH,RF ≪NH and NR,RF ≪NR radio frequency
+(RF) chains are deployed, respectively, and each antenna is
+connected to one PS.
+Suppose that ISAC system emits OFDM signals with M
+subcarriers, where the lowest frequency and the subcarrier
+interval are f0 and ∆f, respectively. Then the transmission
+bandwidth is W = M∆f, and the frequency of the m-th
+subcarrier is fm = f0 + m∆f, m = 0, 1, ..., M −1. Define
+one OFDM frame specifically used for low-altitude target
+recognition as one target recognition frame (TCF), which will
+enable idle or dedicated time-frequency resources of the BS
+across multiple OFDM frames in 5G new radio (NR) standard
+[20]. For clarity, we directly consider that one TCF contains N
+consecutive OFDM symbols, where the time interval between
+the adjacent OFDM symbols is Ts = T ′
+s + Tg, with T ′
+s =
+1
+∆f
+and Tg being the OFDM symbol duration and guard interval,
+respectively [35].
+Let us employ the spherical coordinate (r, θ, ϕ) in 3D space,
+where r represents the polar distance with range r ≥0, θ
+represents the horizontal angle with range 0◦≤θ ≤180◦,
+and ϕ represents the pitch angle with range −90◦≤ϕ ≤
+90◦. Noting that BS is located at the origin of the coordinate
+system, we denote the service area of BS as {(r, θ, ϕ)|rmin ≤
+r ≤rmax, θmin ≤θ ≤θmax, ϕmin ≤ϕ ≤ϕmax}. Then we
+assume that all communications users and low-altitude targets
+are within this service area. Since the co-existence design of
+communications and sensing has been extensively discussed
+in many existing works, and the purpose of this work is low-
+altitude target recognition, we will ignore the communications
+stage and focus on how to use ISAC system to realize UAV
+and bird recognition.
+B. Echo Channel Model of the Extended Target
+The ISAC BS first transmits sensing detection signals
+through HU-UPA, which are then scattered by the low-altitude
+targets and cause echoes. These echo signals will be received
+by RU-UPA at the BS. To observe the detailed features
+of low-altitude targets, UAVs and birds should be modeled
+as extended targets that can be represented by the multiple
+scattering points model. In multiple scattering points model,
+the extended target could be modeled as a combination of
+several spatially adjacent point targets, and the echo channel
+of the extended target could be modeled as the sum of the
+echo channels of all corresponding point targets [36].
+Let us first consider a point target with motion parameters
+{r, θ, ϕ, vr, ωθ, ωϕ}, which represent the distance, horizontal
+angle, pitch angle, radial velocity, horizontal angular velocity,
+and pitch angular velocity relative to the BS, respectively.
+Then the echo channel matrix of this point target on the m-th
+subcarrier of the n-th OFDM symbol can be represented as
+Hpoint
+n,m =αe−j4πfmr
+c
+ej4πfm
+vrnTs
+c
+aR(Ψn, Ωn)aT
+H(Ψn, Ωn), (1)
+1Since the communications and sensing distance is much longer than the
+protection distance between HU-UPA and RU-UPA, we can consider that
+HU-UPA and RU-UPA are located in the same position.
+where α represents the channel fading factor, Ψn
+=
+Ψ(θn, ϕn) = cos ϕncos θn = cos(ϕ −ωϕnTs) cos(θ −ωθnTs)
+represents the horizontal spatial-domain direction, Ωn
+=
+Ω(θn, ϕn) = sin ϕn = sin(ϕ −ωϕnTs) represents the pitch
+spatial-domain direction, aR(Ψ, Ω) and aH(Ψ, Ω) are the
+array steering vectors for the spatial-domain direction (Ψ, Ω)
+of RU-UPA and HU-UPA with the form [37], [38]
+aR(Ψ, Ω) = ax
+R(Ψ) ⊗az
+R(Ω) ∈CNR×1,
+(2)
+aH(Ψ, Ω) = ax
+H(Ψ) ⊗az
+H(Ω) ∈CNH×1.
+(3)
+Here, ⊗denotes the Kronecker product, and
+ax
+R(Ψ)=[1, ej 2πf0dΨ
+c
+, ..., ej 2πf0dΨ
+c
+(N x
+R−1)]T∈CNx
+R×1,
+(4)
+az
+R(Ω)=[1, ej 2πf0dΩ
+c
+, ..., ej 2πf0dΩ
+c
+(N z
+R−1)]T∈CNz
+R×1,
+(5)
+ax
+H(Ψ)=[1, ej 2πf0dΨ
+c
+, ..., ej 2πf0dΨ
+c
+(N x
+H−1)]T∈CNx
+H×1,
+(6)
+az
+H(Ω)=[1, ej 2πf0dΩ
+c
+, ..., ej 2πf0dΩ
+c
+(N z
+H−1)]T∈CNz
+H×1.
+(7)
+Note that Eq. (1) can be equivalently rewritten as the
+following set of equations
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+rn = r −vrnTs,
+θn = θ −ωθnTs,
+ϕn = ϕ −ωϕnTs,
+Ψn = cos ϕncos θn,
+Ωn = sin ϕn,
+Hpoint
+n,m =αe−j4πfmrn
+c
+aR(Ψn, Ωn)aT
+H(Ψn, Ωn).
+(8)
+Since equations in (8) contain the motion parameters of the
+point target, target detection and parameter estimation tasks
+are typically implemented based on equations in (8) or the
+simplified form [39], [40]. More importantly, target detection
+and parameter estimation tasks typically require only a small
+amount of symbol observation time, and hence the velocities
+of the point target, i.e., vr, ωθ, and ωϕ are considered constant
+in existing ISAC researches. Then the motion equations of the
+point target in (8), i.e. rn = r −vrnTs, θn = θ −ωθnTs, and
+ϕn = ϕ −ωϕnTs are linear equations.
+However, when the ISAC system attempts to distinguish
+between UAVs and birds, it usually requires a longer symbol
+observation time. Then some scattering points in UAVs and
+birds will exhibit nonlinear motion such as rotation, jitter, etc.
+Therefore, let us rewrite the equations in (8) as
+
+
+
+
+
+(rn, θn, ϕn) = g(r, θ, ϕ, vr, ωθ, ωϕ, n),
+(Ψn, Ωn) = (cos ϕncos θn, sin ϕn),
+Hpoint
+n,m =αe−j4πfmrn
+c
+aR(Ψn, Ωn)aT
+H(Ψn, Ωn),
+(9)
+where g(·) represents the physical motion function. By split-
+ting (rn, θn, ϕn) = g(r, θ, ϕ, vr, ωθ, ωϕ, n) into several mixed
+linear and nonlinear motion update steps, we can use the
+equations in (9) to more accurately characterize the motion
+details of low-altitude targets.
+Based on the equations in (9), for an extended target
+consisting of L scattering points, the sensing echo channel of
+
+===== PAGE 4 =====
+4
+UAV 3D mesh file
+(.obj)
+UAV original point cloud
+(.ply)
+UAV down-sampling point cloud
+(.mat)
+UAV calibration point cloud
+(.mat)
+Fig. 2. Process diagram to obtain the UAV calibration point cloud.
+this extended target on the m-th subcarrier of the n-th OFDM
+symbol can be expressed as
+Hn,m =
+L
+X
+l=1
+Hpoint
+l,n,m
+=
+L
+X
+l=1
+αle−j
+4πfmrl,n
+c
+aR(Ψl,n, Ωl,n)aT
+H(Ψl,n, Ωl,n),
+(10)
+where rl,n, Ψl,n, Ωl,n indicate the position information of the
+l-th scattering point of this extended target at the n-th symbol.
+III. ECHO SIGNALS OF UAVS AND BIRDS
+In this section, we formulate the motion equations and char-
+acterize the echo channels of UAVs and birds by processing
+their 3D mesh files and analyzing their physical motion laws.
+Then we compute the expressions for the echo signals of UAVs
+and birds under ISAC system.
+A. Motion Equations and Echo Channels of the UAVs
+As shown in Fig. 2, we import the 3D mesh file of the UAV
+(.obj file2) into the MeshLab software, an open source system
+that is portable and extensible for processing and editing
+the unstructured large 3D triangular meshes [41]. To obtain
+the effective point cloud that represents the skeleton of the
+UAV, we use the Butterfly Subdivision Surface algorithm to
+interpolate and refine the 3D mesh of the UAV [42]. Then
+we export the interpolated 3D mesh as the original point
+cloud (.ply file) of the UAV. Next, we load the original point
+cloud and perform uniform down-sampling on it. Then we
+manually calibrate the UAV’s body and each paddle from
+the down-sampling point cloud to obtain the calibration point
+cloud (CPC) of the UAV. In CPC, denote the set of scattering
+points of the entire UAV as SU with card (SU) = LU,
+denote the set of scattering points of the UAV’s body as SU,0,
+and denote the set of scattering points of the UAV’s each
+paddle as SU,1, ..., SU,Q, where Q is the number of UAV’s
+paddles with card (SU,i) = LU,i, i = 0, 1, ..., Q. There are
+SQ
+i=0 SU,i = SU, SU,i∩SU,j = ∅for i̸ = j ∈{0, 1, ..., Q}, and
+2The “.obj file” is a plain-text file format used to define 3D geometries,
+including vertices, textures, and normals, commonly utilized in 3D modeling
+and graphics applications. The “.ply file” is a file format used to store 3D
+geometry data, including points, faces, and properties such as color or normals,
+often used in 3D scanning and modeling. The “.mat file” is a binary file format
+used by MATLAB to store variables, arrays, and data structures for efficient
+data management and analysis.
+Coordinate 
+transformation
+Initialization
+…
+Paddle rotation update
+Attitude update
+…
+…
+Position update
+…
+Fig. 3. Update process of UAV motion equations.
+PQ
+i=0 LU,i = LU. Meanwhile, denote the position of the lU,i-
+th scattering point in SU,i as eplU,i,n=−1, with i = 0, 1, ..., Q
+and lU,i = 1, ..., LU,i. Then the CPC of the UAV can be
+denoted as {eplU,i,n=−1|i = 0, 1, ..., Q; lU,i = 1, ..., LU,i},
+whose center position is roughly located at the origin of the
+coordinate system.
+Next, we need to analyze the motion laws of the UAV to
+formulate its motion equations. One of the main characteristics
+of UAV motion is the process of paddle rotation, which can
+be formulated as the scattering points in each paddle rotating
+around a corresponding rotation axis. Let us consider the
+0-th OFDM symbol as the initial moment. We iteratively
+update the paddle rotation from UAV’s CPC to obtain the
+paddle rotation update point cloud (PRUPC) as {eplU,i,n|i =
+0, 1, ..., Q; lU,i = 1, ..., LU,i}, n = 0, ..., N −1. Specifically,
+denote the initial phase and rotation frequency of the i-th
+paddle as βU,i,0 and FU,i, respectively, and denote the phase of
+paddle at the n-th symbol as βU,i,n, i = 1, ..., Q. We manually
+designate two points for the i-th paddle as the rotation axis,
+which are denoted as pa
+U,i and pb
+U,i. Then the unit directional
+vector of the rotation axis is eU,i =
+pa
+U,i−pb
+U,i
+|pa
+U,i−pb
+U,i|2
+. When
+n = 0, ..., N −1, we calculate the phase change of the i-th
+paddle as ∆βU,i,n =βU,i,0 for n = 0, and ∆βU,i,n = 2πFU,iTs
+for n = 1, ..., N −1. Then we should rotate the point eplU,i,n−1
+around the i-th rotation axis by angle ∆βU,i,n to obtain the
+updated point eplU,i,n. According to the Rodrigues’ rotation
+formula [43], eplU,i,n can be represented as
+eplU,i,n = pa
+U,i + ulU,i,n cos ∆βU,i,n
++ (eU,i × ulU,i,n) sin ∆βU,i,n
++ eU,i(eT
+U,iulU,i,n)(1−cos ∆βU,i,n), i = 1, ..., Q,
+(11)
+with ulU,i,n = eplU,i,n−1−pa
+U,i. Meanwhile, the UAV’s body will
+
+===== PAGE 5 =====
+5
+Bird 3D mesh file
+(.obj)
+Bird original point cloud
+(.ply)
+Bird down-sampling point cloud
+(.mat)
+Bird calibration point cloud
+(.mat)
+Fig. 4. Process diagram to obtain the bird calibration point cloud.
+not change in PRUPC, and hence there is eplU,0,n = eplU,0,n−1.
+Another important characteristic of UAV motion is the
+spatial attitude, typically described by three attitude an-
+gles, i.e., roll angle, pitch angle, and yaw angle. Mean-
+while, due to the factors such as atmospheric turbulence
+and body vibration, the motion of UAV will exhibit sig-
+nificant jitter effect, mainly manifested as small-scale fluc-
+tuations in attitude angles [38]. With these motion laws,
+we update the attitude change from PRUPC to obtain the
+UAV’s attitude update point cloud (AUPC) as {ˇplU,i,n|i =
+0, 1, ..., Q; lU,i = 1, ..., LU,i}, n = 0, ..., N −1. Specifically,
+we denote the initial attitude and attitude jitter matrix of the
+UAV as [γU,Y,0, γU,P,0, γU,R,0]T and JU ∈R3×2, respec-
+tively, and then denote the attitude at the n-th symbol as
+[γU,Y,n, γU,P,n, γU,R,n]T . When n = 0, ..., N −1, calculate the
+attitude at the n-th symbol time as [γU,Y,n, γU,P,n, γU,R,n]T =
+[γU,Y,0, γU,P,0, γU,R,0]T +Pn
+j=0[∆γU,Y,n, ∆γU,P,n, ∆γU,R,n]T ,
+where ∆γU,Y,n, ∆γU,P,n, ∆γU,R,n are the Gaussian random
+numbers with mean JU[1, 1], JU[2, 1], JU[3, 1] and variance
+JU[1, 2], JU[2, 2], JU[3, 2], respectively. Then the updated
+point ˇplU,i,n in UAV’s AUPC corresponding to the point
+eplU,i,n in PRUPC can be represented as
+ˇplU,i,n = RY (γU,Y,n)RP (γU,P,n)RR(γU,R,n)eplU,i,n,
+(12)
+where
+RY (γU,Y,n) =
+
+
+cos γU,Y,n
+−sin γU,Y,n
+0
+sin γU,Y,n
+cos γU,Y,n
+0
+0
+0
+1
+
+,
+(13)
+RP (γU,P,n) =
+
+
+cos γU,P,n
+0
+sin γU,P,n
+0
+1
+0
+−sin γU,P,n
+0
+cos γU,P,n
+
+,
+(14)
+RR(γU,R,n) =
+
+
+1
+0
+0
+0
+cos γU,R,n
+−sin γU,R,n
+0
+sin γU,R,n
+cos γU,R,n
+
+,
+(15)
+are the attitude rotation matrices [38].
+Next, we need to update the position change from UAV’s
+AUPC to obtain the UAV’s Cartesian coordinate position point
+cloud (CCPPC) as {plU,i,n|i = 0, 1, ..., Q; lU,i = 1, ..., LU,i},
+n = 0, ..., N −1. Denote the initial position and motion
+velocity of the UAV as pU,0 = [xU,0, yU,0, zU,0]T and vU =
+[vU,x, vU,y, vU,z]T , respectively, and denote the position of the
+UAV at the n-th symbol as pU,n = [xU,n, yU,n, zU,n]T . When
+n = 0, ..., N −1, calculate the position of the UAV at the n-th
+symbol as pU,n = pU,0 + nTsvU. Then the point plU,i,n can
+be represented as
+plU,i,n = ˇplU,i,n + pU,n.
+(16)
+Note that the spherical coordinate (r, θ, ϕ) and Cartesian coor-
+dinate (x, y, z) can be converted into each other through x =
+r cos ϕ cos θ,
+y = r cos ϕ sin θ,
+z = r sin ϕ. Here we con-
+vert the CCPPC into the polar coordinate position point cloud
+(PCPPC), denoted as {p⋆
+lU,i,n = (rlU,i,n, θlU,i,n, ϕlU,i,n)|i =
+0, 1, ..., Q; lU,i = 1, ..., LU,i}, n = 0, ..., N −1. This PCPPC
+is considered as the multiple scattering points model of the
+UAV at the n-th OFDM symbol.
+Fig. 3 summarizes the update process of the UAV motion
+equations. After obtaining the multiple scattering points model
+{p⋆
+lU,i,n
+= (rlU,i,n, θlU,i,n, ϕlU,i,n)|i = 0, 1, ..., Q; lU,i
+=
+1, ..., LU,i} with all N OFDM symbols, based on Eq. (10),
+we can characterize the sensing echo channel matrix of the
+UAV on the m-th subcarrier of the n-th OFDM symbol as
+HUAV
+n,m =
+Q
+X
+i=0
+LU,i
+X
+lU,i=1
+αlU,ie−j
+4πfmrlU,i,n
+c
+×
+aR(ΨlU,i,n, ΩlU,i,n)aT
+H(ΨlU,i,n, ΩlU,i,n),
+(17)
+where ΨlU,i,n =cos ϕlU,i,n cos θlU,i,n and ΩlU,i,n =sin ϕlU,i,n.
+B. Motion Equations and Echo Channels of the Birds
+As shown in Fig. 4, we use MeshLab to convert the 3D
+mesh file of the bird into the original point cloud, and then
+perform uniform down-sampling to obtain the down-sampling
+point cloud. Next we manually calibrate the bird’s body and
+two wings to obtain the CPC of the bird, denoted as SB with
+card (SB) = LB. Since bird only has two wings, we denote
+the set of scattering points of the bird’s body as SB,0, and
+denote the set of scattering points of the bird’s each wing as
+SB,1 and SB,2, where card (SB,i) = LB,i, i = 0, 1, 2. There
+are S2
+i=0 SB,i = SB, SB,i ∩SB,j = ∅for i̸ = j ∈{0, 1, 2},
+and P2
+i=0 LB,i = LB. Meanwhile, denote the position of the
+lB,i-th scattering point in SB,i as eplB,i,n=−1 with i = 0, 1, 2
+and lB,i =1, ..., LB,i. Then the CPC of the bird can be denoted
+as {eplB,i,n=−1|i = 0, 1, 2; lB,i = 1, ..., LB,i}, whose center
+position is roughly located at the origin of coordinate system.
+Next, we need to analyze the motion laws of the bird to
+formulate its motion equations. One of the main characteristics
+of bird motion is the wing flapping, which can be formulated
+as a restricted rotation of scattering points in each wing around
+a corresponding rotation axis. Let us take the 0-th OFDM
+
+===== PAGE 6 =====
+6
+∆βB,1,n =
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+−2βcFBTs
+∆βB,1,n−1 > 0, βB,1,n−1 > βBmax
+2βcFBTs
+∆βB,1,n−1 > 0, βBmin < βB,1,n−1 < βBmax
+2βcFBTs
+∆βB,1,n−1 > 0, βB,1,n−1 < βBmin
+−2βcFBTs
+∆βB,1,n−1 < 0, βB,1,n−1 > βBmax
+−2βcFBTs
+∆βB,1,n−1 < 0, βBmin < βB,1,n−1 < βBmax
+2βcFBTs
+∆βB,1,n−1 < 0, βB,1,n−1 < βBmin
+(18)
+symbol time as the initial moment. We iteratively update the
+wing flapping from the CPC of bird to obtain the wing flapping
+update point cloud (WFUPC) as {eplB,i,n|i = 0, 1, 2; lB,i =
+1, ..., LB,i}, n = 0, ..., N −1. Specifically, assume that the
+two wings of a bird remain symmetrical. Denote the initial
+phase and flapping frequency of the wings as βB,i,0 and FB,
+respectively, and denote the wings’ phase at the n-th symbol
+as βB,i,n. Denote the maximum and minimum angles that can
+be achieved during wing flapping as βBmax and βBmin. We
+manually designate two points for the i-th wing as the rotation
+axis of wing flapping, which are denoted as pa
+B,i and pb
+B,i,
+i = 1, 2. In the same coordinate system, the rotation directions
+of the two wings are opposite.
+Without loss of generality, we only elaborate on the flapping
+process of SB,1 here, whose flapping frequency and rotation
+axis direction are FB and eB,1 =
+pa
+B,1−pb
+B,1
+|pa
+B,1−pb
+B,1|2
+. When n=0,
+we calculate the phase change of the wing as ∆βB,1,n =
+βB,1,0. When n̸ = 0, we calculate ∆βB,1,n as shown in
+Eq. (18) at the top of this page, where βc =βBmax−βBmin >0
+and βB,1,n =βB,1,n−1+∆βB,1,n−1. Then we should rotate the
+point eplB,1,n−1 around the 1-st rotation axis by angle ∆βB,1,n
+to obtain the updated point eplB,1,n. According to Rodrigues’
+rotation formula [43], eplB,1,n can be represented as
+eplB,1,n = pa
+B,1 + ulB,1,n cos ∆βB,1,n
++ (eB,1 × ulB,1,n) sin ∆βB,1,n
++ eB,1(eT
+B,1ulB,1,n)(1 −cos ∆βB,1,n),
+(19)
+where ulB,1,n = eplB,1,n−1−pa
+B,1. Similarly, we can formulate
+eplB,2,n. Meanwhile, since the body of the bird will not change
+in WFUPC, there is eplB,0,n = eplB,0,n−1.
+Similar to the motion equations of the UAV, we also
+need to formulate the bird’s attitude update, position up-
+date, and coordinate transformation based on the bird’s
+WFUPC. Denote the initial attitude and attitude jitter matrix
+of the bird as [γB,Y,0, γB,P,0, γB,R,0]T and JB ∈R3×2,
+respectively, and denote the attitude at the n-th symbol as
+[γB,Y,n, γB,P,n, γB,R,n]T . Meanwhile, denote the initial posi-
+tion and motion velocity of the bird as pB,0 and vB, respec-
+tively, and denote the position of the bird at the n-th symbol
+as pB,n. Note that the bird’s attitude update, position update,
+and coordinate transformation are completely consistent with
+the UAV. Therefore, Similar to Eq. (12) and Eq. (16), we can
+ultimately obtain the multiple scattering points model of the
+bird as {p⋆
+lB,i,n = (rlB,i,n, θlB,i,n, ϕlB,i,n)|i = 0, 1, 2; lB,i =
+1, ..., LB,i}, n = 0, ..., N −1.
+Then based on Eq. (10), we can characterize the sensing
+echo channel matrix of the bird on the m-th subcarrier of the
+n-th OFDM symbol as
+Hbird
+n,m =
+2
+X
+i=0
+LB,i
+X
+lB,i=1
+αlB,ie−j
+4πfmrlB,i,n
+c
+×
+aR(ΨlB,i,n, ΩlB,i,n)aT
+H(ΨlB,i,n, ΩlB,i,n),
+(20)
+where ΨlB,i,n =cos ϕlB,i,n cos θlB,i,n and ΩlB,i,n =sin ϕlB,i,n.
+C. Echo Signals of UAVs and Birds
+Assuming that the BS performs beamforming through HU-
+UPA. The transmission signal on the m-th subcarrier of the
+n-th OFDM symbol is
+xn,m =
+r
+ρsPt
+NH
+aH (Ψt, Ωt) sn,m,
+(21)
+where Pt is the transmission power of BS, ρs is the power
+allocation factor towards the sensing direction, (Ψt, Ωt) is
+the beamforming direction of HU-UPA, and sn,m is the
+sensing detection signal. Meanwhile, assume that RU-UPA
+of the BS also performs receive beamforming with wn,m =
+q
+1
+NR aR (Ψr, Ωr). Then the frequency-domain echo signal
+received by BS on the m-th subcarrier of the n-th symbol
+can be represented as
+yn,m = wH
+n,mHtarget
+n,m x∗
+n,m + nn,m,
+(22)
+where Htarget
+n,m
+= HUAV
+n,m
+when the target is a UAV, while
+Htarget
+n,m
+= Hbird
+n,m when the target is a bird. Moreover, nn,m is
+zero-mean additive Gaussian noise with variance σ2.
+We command the transmitting beam direction and receiving
+beam direction of the BS to directly point towards the initial
+direction of the UAV or the bird. After receiving the echo
+signal yn,m, we erase the influence of sn,m and obtain
+ˇyn,m = yn,m/sn,m.
+(23)
+Then we concatenate the echo signals on all subcarriers and all
+OFDM symbols into a matrix Y ∈CN×M, where Y[n, m] =
+yn,m, n = 0, ..., N −1, and m = 0, ..., M −1.
+IV. DUAL FEATURE FUSION ENABLED LOW-ALTITUDE
+TARGET RECOGNITION SCHEME
+In this section, we develop the low-altitude target feature
+extraction method to obtain the cmD spectrum and HRRP of
+the target, and then design a dual feature fusion enabled low-
+altitude target recognition network with CNN to distinguish
+between UAVs and birds.
+
+===== PAGE 7 =====
+7
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+Time (s)
+-200
+-100
+0
+100
+200
+Velocity Cell of Centralized mD (m/s)
+(a)
+(b)
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+Time (s)
+-200
+-100
+0
+100
+200
+Velocity Cell of Centralized mD (m/s)
+(c)
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+Time (s)
+-200
+-100
+0
+100
+200
+Velocity Cell of Centralized mD (m/s)
+(d)
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+Time (s)
+-200
+-100
+0
+100
+200
+Velocity Cell of Centralized mD (m/s)
+(e)
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+Time (s)
+-200
+-100
+0
+100
+200
+Velocity Cell of Centralized mD (m/s)
+(f)
+Fig. 5. Centralized micro-Doppler spectrum of six different targets. (a) DJI MAVIC 3, a four rotor UAV. (b) Ehang eVTOL, an eight rotor UAV. (c) Six Rotor
+UAV, a six rotor UAV. (d) Crow. (e) Pigeon. (f) Sparrow. f0 = 26 GHz, ∆f = 480 kHz, M = 4096, Ts = 10 us, N = 12800, N0 = 128, G = 100.
+A. cmD Spectrum of Low-Altitude Target
+Let us divide N OFDM symbols into G groups, each
+containing N0 symbols with G, N0, N ∈N+ and N = GN0.
+We then extract the submatrix corresponding to the g-th group
+from the echo signals Y as Yg = Y[(g−1)N0 +1 : gN0, :] ∈
+CN0×M with g = 1, 2, ..., G. It can be inferred from Eq. (17),
+Eq. (20), Eq. (22) and Eq. (23) that Yg contains the distance
+and velocity information for all scattering points of the low-
+altitude target. Hence we perform velocity DFT on Yg, i.e.,
+perform N0 points DFT on each column of Yg to obtain Yg,a
+as
+Yg,a[n0, m] =
+N0−1
+X
+i0=0
+Yg[i0, m]e−j 2πi0
+N0 n0,
+(24)
+with n0 = 0, ..., N0 −1 and m = 0, ..., M −1. Since the
+target’s velocity possesses both positive and negative values,
+we move the zero frequency component of each column in
+Yg,a to the center of each column, and obtain
+Yg,b[n0, m] = Yg,a[(n0 + ⌊N0/2⌋) mod N0, m],
+(25)
+where ⌊·⌋represents the floor function, and mod represents the
+remainder function. Then we perform distance inverse discrete
+Fourier transform (IDFT) on Yg,b, that is, perform M point
+IDFT on each row of Yg,b to obtain the distance-velocity
+spectrum as
+Yg,c[n0, m0] = 1
+M
+M−1
+X
+i0=0
+Yg,b[n0, i0]ej 2πi0
+M m0,
+(26)
+with m0 = 0, ...M −1 and n0 = 0, ..., N0 −1. Next,
+we take the modulus values of Yg,c to obtain Yg,d with
+Yg,d[n0, m0] = abs{Yg,c[n0, m0]}, where abs{·} represents
+taking the modulus value. We sum up all the elements in each
+row of Yg,d to obtain the mD spectrum slice for the g-th time
+period as
+yg,mD =
+M−1
+X
+m=0
+Yg,d[:, m] ∈RN0×1,
+(27)
+which contains all the mD information of the low-altitude
+targets from the (g −1)N0-th symbol to the (gN0 −1)-th
+symbol. Then we concatenate the mD spectrum slices of all
+G groups together to obtain the mD spectrum matrix as
+YmD = [y1,mD, y2,mD, ..., yG,mD] ∈RN0×G.
+(28)
+Note that different velocities of the target will affect the
+central index of the mD spectrum, which in turn affect the
+generalization of subsequent target recognition. Hence we shift
+the Doppler unit where the target’s velocity is located to the
+center row of YmD. For this purpose, let us calculate the index
+of the Doppler unit where the target velocity is located as
+
+===== PAGE 8 =====
+8
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+Time (s)
+-3
+-2
+-1
+0
+1
+2
+3
+Distance Cell of HRRP (m)
+(a)
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+Time (s)
+-3
+-2
+-1
+0
+1
+2
+3
+Distance Cell of HRRP (m)
+(b)
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+Time (s)
+-3
+-2
+-1
+0
+1
+2
+3
+Distance Cell of HRRP (m)
+(c)
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+Time (s)
+-3
+-2
+-1
+0
+1
+2
+3
+Distance Cell of HRRP (m)
+(d)
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+Time (s)
+-3
+-2
+-1
+0
+1
+2
+3
+Distance Cell of HRRP (m)
+(e)
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+Time (s)
+-3
+-2
+-1
+0
+1
+2
+3
+Distance Cell of HRRP (m)
+(f)
+Fig. 6. HRRP temporal sequence of six different targets. (a) DJI MAVIC 3. (b) Ehang eVTOL. (c) Six Rotor UAV. (d) Crow. (e) Pigeon. (f) Sparrow. f0 = 26
+GHz, ∆f = 480 kHz, M = 4096, Ts = 10 us, N = 12800, N0 = 128, G = 100, [−rHRRP,min, rHRRP,max] = [−3m, 3m], ∆rHRRP = 0.01m.
+n⋆
+0 = arg max
+n0
+PG
+g=1 yg,mD. Then the cmD spectrum matrix
+can be represented as
+Ycenter
+mD
+= Yextend
+mD
+
+n⋆
+0 −
+N0
+2
+
++ 1 : n⋆
+0 +
+N0
+2
+
+, :
+
+max{YmD}
+∈RN0×G,
+(29)
+where Yextend
+mD
+=
+
+0T
+N0×G, YT
+mD, 0T
+N0×G
+T ∈R3N0×G, and
+max{·} represents the function of finding the maximum value.
+Fig. 5 shows the cmD spectrum of six different low-altitude
+targets, including DJI MAVIC 3, Ehang eVTOL, Six Rotor
+UAV, crow, pigeon, and sparrow. The specific information
+of these low-altitude targets can be seen in Fig. 8 in the
+subsequent simulations section. It can be seen from Fig. 5(a)
+and Fig. 5(c) that the cmD spectrums of the four rotor UAV
+and the six rotor UAV exhibit obvious sine envelope, which
+corresponds to the high frequency rotation of the UAVs’ pad-
+dles. Besides, since the size of Ehang eVTOL is much larger
+than that of typical UAVs, the multi-layered sine envelopes
+appear in the cmD spectrum as shown in Fig. 5(b), which is
+different from other UAVs. In addition, it can be seen from
+Fig. 5(d), Fig. 5(e) and Fig. 5(f) that only a sinusoidal envelope
+with slower frequency and lower amplitude can be seen in the
+cmD spectrum of the birds within a limited observation time,
+and even the sinusoidal envelope cannot be seen in the cmD
+spectrum of most birds. This phenomenon is mainly due to
+that the frequency of bird flapping wings is relatively low.
+Therefore, we can save the cmD spectrum of low-altitude
+targets as images for subsequent target recognition.
+B. HRRP Sequence Spectrum of Low-Altitude Target
+To obtain the HRRP of low-altitude target with low com-
+plexity, we extract the echo signal vector of the target at
+the ((g −1)N0 + 1)-th OFDM symbol from Y as yg =
+{Y[(g −1)N0 + 1, :]}T ∈CM×1, where g = 1, ..., G. Then
+we perform M point distance IDFT on yg to obtain yg,a with
+yg,a[m0] = 1
+M
+M−1
+X
+i0=0
+yg[i0]ej 2πi0
+M m0,
+(30)
+where m0 = 0, ..., M −1. Then we take the modulus values
+of yg,a to obtain yg,b with Yg,b[m0] = abs{Yg,a[m0]}. By
+calculating the index number of the maximum value in yg,b as
+m⋆
+0,g = arg max
+m0
+yg,b, we can obtain the distance estimation
+result of the target in the g-th group as ˆrg =
+c(m⋆
+0,g−1)
+2W
+.
+Then we construct a distance search vector as rg = (ˆrg −
+rHRRP,min : ∆rHRRP : ˆrg + rHRRP,max)T , where (ζ1 : ∆ζ :
+ζ2)T represents constructing a column vector with ζ1 as the
+initial value, ∆ζ as the step size, and ζ2 as the termina-
+tion value. Moreover, ∆rHRRP and [−rHRRP,min, rHRRP,max]
+are the resolution and range of HRRP set by the system,
+respectively. Denote the length of rg as len(rg), and there
+
+===== PAGE 9 =====
+9
+Inputs-1-mD
+3@256*256
+Convolution
+3*3 kernel
+Max pooling
+2*2 kernel
+Feature maps of mD
+8@256*256
+Convolution
+3*3 kernel
+Feature maps of mD
+16@128*128
+Feature maps of mD
+8@128*128
+Feature maps of mD
+16@64*64
+Max pooling
+2*2 kernel
+Feature maps of mD
+32@64*64
+Convolution
+3*3 kernel
+Feature maps of mD
+32@32*32
+Max pooling
+2*2 kernel
+Hidden units of mD
+32
+Adaptive average pool 2D
+(1,1)
+Hidden units of mD
+32
+......
+Inputs-2-HRRP
+3@256*256
+Convolution
+3*3 kernel
+Max pooling
+2*2 kernel
+Feature maps
+of HRRP
+8@256*256
+Convolution
+3*3 kernel
+Feature maps 
+of HRRP
+16@128*128
+Feature maps 
+of HRRP
+8@128*128
+Feature maps 
+of HRRP
+16@64*64
+Max pooling
+2*2 kernel
+Feature maps 
+of HRRP
+32@64*64
+Convolution
+3*3 kernel
+Feature maps 
+of HRRP
+32@32*32
+Max pooling
+2*2 kernel
+Hidden units of HRRP
+32
+Adaptive average pool 2D
+(1,1)
+Hidden units of HRRP
+32
+......
+Hidden units 16
+Outputs 2
+......
+......
+......
+UAV
+Bird
+Fig. 7. Low-altitude target recognition network based on convolutional neural network combined with micro-Doppler spectrum and HRRP.
+should be len(rg) ≡rHRRP,max+rHRRP,min+∆rHRRP
+∆rHRRP
+≜I. For
+each element rg[i] in rg, we construct a dictionary vector as
+ag,i ∈CM×1 with ag,i[m] = e−j4π
+fmrg[i]
+c
+, where i = 1, ..., I
+and m = 0, ..., M −1. Let us calculate the matching value
+corresponding to rg[i] as
+Gg,i = abs{aH
+g,iyg,a}.
+(31)
+Then we stack {Gg,i|i = 1, ..., I; g = 1, ..., G} into a matrix
+and obtain the HRRP sequence spectrum matrix of the low-
+altitude target as YHRRP ∈RI×G with YHRRP[i, g] = Gg,i.
+Fig. 6 shows the HRRP sequence spectrum of six different
+low-altitude targets, also including DJI MAVIC 3, Ehang
+eVTOL, Six Rotor UAV, crow, pigeon, and sparrow. It is seen
+from Fig. 6(b) that Ehang eVTOL shows significant broad-
+ening throughout the entire HRRP range of [−3m, 3m]. The
+reason is that the size of Ehang eVTOL is much larger than
+other UAVs and birds. Besides, since the rotation frequency of
+the UAV’s paddles is much higher than the wing frequency of
+ordinary birds, the HRRP broadening of the six rotor UAV is
+more continuous as can be seen from Fig. 6(c), Fig. 6(d), and
+Fig. 6(e), which will help distinguish between UAVs and birds.
+From Fig. 6(a), Fig. 6(d), and Fig. 6(e), it can be found that the
+HRRP of DJI MAVIC 3 possesses more obvious periodicity
+than that of crow and pigeon. However, this phenomenon is not
+obvious for DJI MAVIC 3 and sparrow. Therefore, although
+HRRP can help distinguish between UAVs and birds, the gain
+may be limited for some specific low-altitude targets.
+C. Low-Altitude Target Recognition Network
+We next design a dual feature fusion enabled low-altitude
+target recognition network with CNN as shown in Fig. 7.
+The inputs of the low-altitude target recognition network are
+two RGB color images with dimensions of 3@256 × 256.
+Here “3@” represents the number of channels of the image,
+and “256 × 256” represents the data dimensions in each
+image channel. These two images respectively depict the
+visualization results of the target’s cmD spectrum and HRRP
+sequence spectrum. The cmD image and HRRP image are
+processed through three convolutional layers with the kernel
+size 3 × 3 and three max-pooling layers with the kernel size
+2 × 2, respectively, to obtain the deep feature maps with
+the size 32@32 × 32. Then we utilize the adaptive average
+pooling to transform the deep feature maps into 32 hidden
+units, which are then transformed into 32 new hidden units
+through a fully connected layer. Next we concatenate the
+hidden units of the cmD image and HRRP image into 64
+hidden units, and use two fully connected layers to ultimately
+transform these hidden units into an output layer with 2 units.
+In the calculation process, the activation functions of the
+convolutional layer and fully connected layer are Rectified
+Linear Unit (ReLU) functions, while the activation function of
+the output layer is Softmax function, which will be beneficial
+for the recognition of UAV and bird [44]. The designed low-
+altitude target recognition network will use a large amount of
+cmD and HRRP image samples for offline training in a data-
+driven manner. The training process will employ the cross
+entropy loss function and the adaptive moment estimation
+(Adam) optimizer. Once the network training converges, the
+best model will be deployed for online testing.
+D. Computational Complexity Analysis
+The computational complexity of the proposed scheme
+mainly comes from low-altitude target feature extraction
+and AI recognition network. In terms of feature extraction,
+the computational complexity of cmD feature extraction is
+O{G(MN 2
+0 + M 2N0)}, and the computational complexity of
+HRRP feature extraction is O{G(M 2 +MI)}. Different from
+traditional signal processing, the computational complexity of
+AI network is typically represented by the number of model
+parameters. Here the number of parameters for the proposed
+low-altitude target recognition network is 0.15 M, which is a
+lightweight network and easy to deploy on edge devices.
+V. SIMULATION RESULTS
+In this section, we generate a UAV and bird echo signal
+dataset, and then evaluate the performance of the proposed
+low-altitude target recognition scheme.
+
+===== PAGE 10 =====
+10
+DJI MAVIC 3
+DJI MINI 2
+DJI AVATA
+Ehang eVTOL
+DJI INSPIRE 2
+Six Rotor UAV
+Crow
+Eagle
+Kingfisher
+Parrot
+Pigeon
+Ramphastidae
+Sparrow
+Seagull
+Owl
+DJI 
+MAVIC 
+3
+DJI 
+MINI 2
+DJI 
+AVATA
+Ehang 
+eVTOL
+DJI 
+INSPIR
+E 2
+Six 
+Rotor 
+UAV
+Crow
+Eagle
+Kingfis
+her
+Parrot
+Pigeon
+Rampha
+stidae
+Sparrow
+Seagull
+Owl
+Type
+UAV
+UAV
+UAV
+UAV
+UAV
+UAV
+Bird
+Bird
+Bird
+Bird
+Bird
+Bird
+Bird
+Bird
+Bird
+Size (m)
+0.381
+0.219
+0.204
+5.270
+0.684
+0.987
+0.347
+0.432
+0.151
+0.238
+0.219
+0.503
+0.138
+0.378
+0.384
+Paddles/
+Wings 
+Number
+4
+4
+4
+8
+4
+6
+2
+2
+2
+2
+2
+2
+2
+2
+2
+Paddles/
+Wings
+Frequen
+cy (Hz)
+60~100
+80~256
+90~660
+30~60
+30~120
+60~90
+3~5
+2~4
+6.5~8.5
+9~11
+4.5~6
+6~8
+17~19
+2.5~3.5
+3~5
+Velocity
+Range 
+(m/s)
+(15,15,7) (10,10,3) (20,20,9) (25,25,2) (20,20,5) (15,15,4)
+(8,8,7)
+(9,9,8)
+(7,7,6)
+(7,7,6)
+(8,8,7)
+(7,7,6)
+(7,7,6)
+(8,8,7)
+(7,7,6)
+Fig. 8. Calibration point clouds and main information for 15 types of low-altitude targets.
+A. UAV and Bird Echo Signal Dataset
+Based on the echo signal calculation process in Section III,
+we first construct the CPCs for 6 types of UAVs and 9 types
+of birds. The UAVs include DJI MAVIC 3, DJI MINI 2, DJI
+AVATA, Ehang eVTOL, DJI INSPIRE 2, and Six Rotor UAV.
+Among them, DJI MAVIC 3, DJI MINI 2, DJI AVATA, and
+DJI INSPIRE 2 are four rotor UAVs; Six Rotor UAV is a six
+rotor UAV; and Ehang eVTOL is a eight rotor UAV. The birds
+include crow, eagle, kingfisher, parrot, pigeon, ramphastidae,
+sparrow, seagull, and owl. The CPCs and main information of
+these low-altitude targets are shown in Fig. 83, in which the
+size of a UAV refers to the length of the diagonal of its body,
+the size of a bird refers to the length of its body from head
+to toe, the paddle frequency refers to the number of rotations
+of the UAV’s paddle within 1 s, the wing frequency refers to
+the number of times a bird flaps its wings within 1 s, and the
+velocity range refers to the absolute value of the 3D velocity
+not exceeding (vx, vy, vz).
+To generate the UAV and bird echo signal dataset, we set the
+operating frequency of BS as f0 = 26 GHz, set the subcarrier
+spacing as ∆f = 480 kHz, set the number of subcarriers as
+3The information of the birds is mainly obtained through [45]–[47], and
+the information of the UAVs is mainly obtained through [48], [49].
+M = 4096, set the antenna spacing as dx = dz = d = λ
+2 =
+c
+2f0 , set the array size of HU-UPA as N x
+H×N z
+H = 8×8, set the
+array size of RU-UPA as N x
+R×N z
+R = 8×8, and set the OFDM
+symbol interval as Ts = 10 us. To fully extract the cmD and
+HRRP features of low-altitude target, we set the number of
+OFDM symbols contained in one TCF as N = 12800, and
+then the corresponding total observation duration is 0.128 s.
+With these system parameters and CPCs, we generate 300
+motion models corresponding to each type of UAV and 200
+motion models corresponding to each type of bird by randomly
+changing the position, velocity, attitude, paddle frequency,
+wing frequency and other parameters of UAVs and birds. Then
+with these 3600 motion models, based on Eq. (17), Eq. (20),
+and Eq. (22), we finally generate a UAV and bird echo signal
+dataset containing 3600 noiseless echo signal matrices.
+B. Data Preprocessing and Evaluation Metric for the Low-
+Altitude Target Recognition Network
+For the data preprocessing of the low-altitude target recog-
+nition network, we add random noise with SNR belongs to
+{-20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30} dB to the
+noiseless echo signal matrices, where each noiseless echo
+signal matrix independently repeats 6 times at each SNR, and
+
+===== PAGE 11 =====
+11
+Fig. 9. t-SNE analysis on 200 randomly selected samples from 10 dB dataset.
+then 3600 × 11 × 6 = 237600 noisy echo signal matrices are
+obtained. Here based on Eq. (22), the SNR of echo signal can
+be defined as
+SNR = E
+
+|wH
+n,mHtarget
+n,m x∗
+n,m|2	
+E {|nn,m|2}
+.
+(32)
+Next, we set the number of groups for feature extraction as
+G = 100 with each group containing N0 = 128 symbols.
+We set the observation range and resolution of HRRP as
+[−rHRRP,min, rHRRP,max] = [−3m, 3m] and ∆rHRRP =
+0.01m. Then we extract one cmD image and one HRRP image
+from each noisy echo signal matrix, where the image size is
+set as 3@256 × 256. To facilitate the storage and retrieval of
+the images, we concatenate the cmD image and HRRP image
+into an aggregated image with a size 3@512×256, which will
+be re-split into one mD image and one HRRP image during
+the data loading stage of the network. Finally, we save these
+237600 aggregated images to train, validate, and evaluate the
+low-altitude target recognition network.
+Assuming there are a total of ZU,0 UAV image samples and
+ZB,0 bird image samples, the low-altitude target recognition
+network recognizes ZU,1 out of all the UAV image samples as
+UAV, and recognizes ZB,1 out of all the bird image samples
+as bird. Then the recognition accuracy of the network can be
+defined as
+Acc = ZU,1 + ZB,1
+ZU,0 + ZB,0
+,
+(33)
+which will be employed as the performance evaluation metric.
+C. Analysis of t-Distributed Stochastic Neighbor Embedding
+for cmD and HRRP
+To verify the differences in cmD and HRRP features be-
+tween UAVs and birds, we utilize the pre-trained ResNet-50
+model to extract the deep level features from cmD and HRRP
+[50]. These deep level features extracted through convolutional
+layers and fully connected layers are high-dimensional vectors.
+We then utilize the t-distributed stochastic neighbor embedding
+(t-SNE) to reduce these high-dimensional feature vectors to 3D
+vectors and show them within the 3D space in Fig. 9 [51]–
+[53]. It can be seen that the t-SNE feature map of these deep
+0
+20
+40
+60
+80
+100
+120
+140
+160
+180
+Epochs
+0.3
+0.35
+0.4
+0.45
+0.5
+0.55
+0.6
+0.65
+0.7
+Loss
+cmD and HRRP scheme
+cmD only scheme
+HRRP only scheme
+(a)
+-20
+-10
+0
+10
+20
+30
+SNR (dB)
+88
+90
+92
+94
+96
+98
+100
+Acc (%)
+cmD and HRRP scheme
+cmD only scheme
+HRRP only scheme
+(b)
+Fig. 10. Training loss and testing accuracy of low-altitude target recognition.
+(a) The network training loss versus training epochs of different schemes. (b)
+The network testing recognition accuracy versus SNR of different schemes.
+level features exhibit good aggregation results, and hence cmD
+and HRRP can be used for the recognition of UAVs and birds.
+D. Overall Accuracy of Low-Altitude Target Recognition
+To conduct feature comparison, we refer to the scheme
+that combines cmD and HRRP features as “cmD and HRRP
+scheme”, refer to the scheme that only uses cmD feature
+as “cmD only scheme”, and refer to the scheme that only
+uses HRRP feature as “HRRP only scheme”. Then we select
+190080, 23760, and 23760 samples from all the aggregated
+images as the training set, validation set, and testing set,
+respectively. Fig. 10 shows the training loss curve of the low-
+altitude target recognition network on the training set, as well
+as the recognition accuracy versus SNR on the testing set.
+As shown in Fig. 10(a), the loss of network model gradually
+decreases with the increase of training epochs and eventually
+tends to converge. This means that the proposed low-altitude
+target recognition network has good convergence on dataset of
+UAVs and birds. Besides, it can be seen that the convergence
+value of cmD and HRRP scheme is lower than those of cmD
+
+===== PAGE 12 =====
+12
+cmD and HRRP scheme
+Acc (%)
+DJI 
+MAVIC 3
+DJI 
+MINI 2
+DJI 
+AVATA
+Ehang 
+eVTOL
+DJI INSPI
+RE 2
+Six Rotor 
+UAV
+Crow
+Eagle
+Kingfishe
+r
+Parrot
+Pigeon
+Ramphast
+idae
+Sparrow
+Seagull
+Owl
+UAV
+99.55 
+99.49 
+99.31 
+99.85 
+99.34 
+99.61 
+0.38 
+0.28 
+1.39 
+1.21 
+0.43 
+0.53 
+0.81 
+0.58 
+1.31 
+Bird
+0.45 
+0.51 
+0.69 
+0.15 
+0.66 
+0.39 
+99.62 
+99.72 
+98.61 
+98.79 
+99.57 
+99.47 
+99.19 
+99.42 
+98.69 
+cmD only scheme
+Acc (%)
+DJI 
+MAVIC 3
+DJI 
+MINI 2
+DJI 
+AVATA
+Ehang 
+eVTOL
+DJI INSPI
+RE 2
+Six Rotor 
+UAV
+Crow
+Eagle
+Kingfishe
+r
+Parrot
+Pigeon
+Ramphast
+idae
+Sparrow
+Seagull
+Owl
+UAV
+99.26 
+98.55 
+98.45 
+96.35 
+97.85 
+97.53 
+2.10 
+5.00 
+2.85 
+2.05 
+1.19 
+1.97 
+1.39 
+3.46 
+2.40 
+Bird
+0.74 
+1.45 
+1.55 
+3.65 
+2.15 
+2.47 
+97.90 
+95.00 
+97.15 
+97.95 
+98.81 
+98.03 
+98.61 
+96.54 
+97.60 
+HRRP only scheme
+Acc (%)
+DJI 
+MAVIC 3
+DJI 
+MINI 2
+DJI 
+AVATA
+Ehang 
+eVTOL
+DJI INSPI
+RE 2
+Six Rotor 
+UAV
+Crow
+Eagle
+Kingfishe
+r
+Parrot
+Pigeon
+Ramphast
+idae
+Sparrow
+Seagull
+Owl
+UAV
+98.72 
+99.23 
+96.31 
+98.59 
+95.02 
+94.93 
+0.28 
+1.09 
+0.20 
+0.25 
+0.00 
+0.30 
+0.58 
+16.89 
+38.41 
+Bird
+1.28 
+0.77 
+3.69 
+1.41 
+4.98 
+5.07 
+99.72 
+98.91 
+99.80 
+99.75 
+100.00 
+99.70 
+99.42 
+83.11 
+61.59 
+Fig. 11. Confusion matrices of recognition accuracy for all types of UAVs and birds, in which the models used are the trained models in Section V-C.
+Training Set: DJI MAVIC 3 + DJI MINI 2 + Crow + Eagle
+Acc (%)
+DJI 
+MAVIC 3
+DJI 
+MINI 2
+DJI 
+AVATA
+Ehang 
+eVTOL
+DJI INSPI
+RE 2
+Six Rotor 
+UAV
+Crow
+Eagle
+Kingfishe
+r
+Parrot
+Pigeon
+Ramphast
+idae
+Sparrow
+Seagull
+Owl
+UAV
+99.97
+99.93
+99.56
+4.49
+91.21
+66.78
+1.44
+1.06
+11.79
+11.82
+1.87
+0.96
+6.94
+10.56
+2.12
+Bird
+0.03
+0.07
+0.44
+95.51
+8.79
+33.22
+98.56
+98.94
+88.21
+88.18
+98.13
+99.04
+93.06
+89.44
+97.88
+Training Set: DJI MAVIC 3 + Ehang eVTOL + Six Rotor UAV + Crow + Eagle + Kingfisher
+Acc (%)
+DJI 
+MAVIC 3
+DJI 
+MINI 2
+DJI 
+AVATA
+Ehang 
+eVTOL
+DJI INSPI
+RE 2
+Six Rotor 
+UAV
+Crow
+Eagle
+Kingfishe
+r
+Parrot
+Pigeon
+Ramphast
+idae
+Sparrow
+Seagull
+Owl
+UAV
+99.55
+96.21
+88.35
+99.73
+98.99
+99.21
+0.68
+0.63
+1.16
+2.17
+0.53
+0.48
+1.04
+6.21
+6.09
+Bird
+0.45
+3.79
+11.65
+0.27
+1.01
+0.79
+99.32
+99.37
+98.84
+97.83
+99.47
+99.52
+98.96
+93.79
+93.91
+Fig. 12. Confusion matrices of recognition accuracy obtained by training models with different datasets.
+only scheme and HRRP only scheme, which means that the
+cmD and HRRP scheme has learned more comprehensive data
+features from the dataset.
+As shown in Fig. 10(b), the overall recognition accuracy
+of the trained model on the testing set gradually improves
+with the increase of SNR. The average accuracy of cmD and
+HRRP scheme, cmD only scheme, and HRRP only scheme
+on all SNRs are 99.37%, 97.75%, and 95.34%, respectively.
+The average accuracy of cmD and HRRP scheme, cmD only
+scheme, and HRRP only scheme for the samples below 0 dB
+are 98.51%, 95.13%, and 93.94%, respectively. These results
+confirm the effectiveness of the proposed low-altitude target
+recognition scheme. Besides, the overall highest accuracy of
+the HRRP scheme can only reach 96.21%, which means that
+the HRRP cannot recognize some specific targets. Meanwhile,
+it can be seen that in terms of overall recognition ability, the
+accuracy of the cmD and HRRP scheme is higher than that
+of the cmD only scheme, and the accuracy of the cmD only
+scheme is higher than that of the HRRP only scheme.
+E. Accuracy for Different Types of UAVs and Birds
+Based on the models trained in Section IV C, we further
+test the recognition accuracy of the models on different types
+of UAVs and birds, and the confusion matrices are shown in
+Fig. 11. It can be seen that the recognition accuracy of cmD
+and HRRP scheme on all types of low-altitude targets is above
+98%. The cmD only scheme performs poorly in recognizing
+eagle to bird. The HRRP only scheme performs poorly in
+recognizing DJI INSPIRE 2 to UAV, and performs poorly
+in recognizing seagull and owl to bird. Importantly, Fig. 11
+indicates that combining cmD and HRRP can realize better
+recognition performance on most types of low-altitude targets
+than using them alone.
+F. Impact of Datasets on Recognition Generalization
+We train the low-altitude target recognition network with
+different sub-datasets in cmD and HRRP scheme, and then
+the confusion matrices obtained from the converged models
+on the testing set are shown in Fig. 12. When the training set
+only includes two types of four rotor UAV, DJI MAVIC 3 and
+
+===== PAGE 13 =====
+13
+DJI MINI 2, as well as two types of birds, crow and eagle, the
+recognition accuracy for Six Rotor UAV and Ehang eVTOL
+decrease to 66.78% and 4.49%. This indicates that the network
+model trained from the four rotor UAV cannot generalize to the
+six rotor UAV and Ehang eVTOL. Hence Fig. 12 inspires that
+a dataset covering most types of UAVs and birds is necessary
+for training the low-altitude target recognition network.
+VI. CONCLUSIONS
+In this paper, we proposed a UAV and bird recognition
+scheme for ISAC system. We formulated the motion equations
+and echo signals for UAVs and birds. Then we extracted the
+cmD spectrum and the HRRP of low-altitude targets from
+the echoes. Next, we designed a dual feature fusion enabled
+low-altitude target recognition network with CNN, which
+employed the images of cmD spectrum and HRRP as inputs
+to jointly recognize the categories of targets. Meanwhile,
+we generated 237600 cmD and HRRP image samples to
+train, validate, and evaluate the designed low-altitude target
+recognition network. The simulation results confirmed the
+effectiveness of the proposed scheme.
+REFERENCES
+[1] H. Huang, J. Su, and F.-Y. Wang, “The potential of low-altitude airspace:
+The future of urban air transportation,” IEEE Trans. Intell. Veh., vol. 9,
+no. 8, pp. 5250–5254, Aug. 2024.
+[2] B. Zheng and F. Liu, “Random signal design for joint communication
+and SAR imaging towards low-altitude economy,” IEEE Wireless Com-
+mun. Lett., vol. 13, no. 10, pp. 2662–2666, Oct. 2024.
+[3] C. Huang, S. Fang, H. Wu, Y. Wang, and Y. Yang, “Low-altitude
+intelligent transportation: System architecture, infrastructure, and key
+technologies,” J. Ind. Inf. Integr., vol. 42, p. 100694, Nov. 2024.
+[4] Y.
+Jiang
+et
+al.,
+“6G
+non-terrestrial
+networks
+enabled
+low-
+altitude
+economy:
+Opportunities
+and
+challenges,”
+arXiv
+e-prints,
+p. arXiv:2311.09047, Nov. 2023.
+[5] S. Xiang, A. Xie, M. Ye, X. Yan, X. Han, H. Niu, Q. Li, and H. Huang,
+“Autonomous eVTOL: A summary of researches and challenges,” Green
+Energy Intell. Transp., vol. 3, no. 1, p. 100140, Feb. 2024.
+[6] S. H. Alsamhi, O. Ma, M. S. Ansari, and F. A. Almalki, “Survey on
+collaborative smart drones and internet of things for improving smartness
+of smart cities,” IEEE Access, vol. 7, pp. 128125–128152, Aug. 2019.
+[7] M. A. Hoque et al., “IoTaaS: drone-based internet of things as a service
+framework for smart cities,” IEEE Internet Things J., vol. 9, no. 14,
+pp. 12425–12439, Jul. 2022.
+[8] S. H. Alsamhi et al., “Collaboration of drone and internet of public safety
+things in smart cities: An overview of QoS and network performance
+optimization,” Drones, vol. 3, no. 1, Jan. 2019.
+[9] A. Fotouhi et al., “Survey on UAV cellular communications: Practical
+aspects, standardization advancements, regulation, and security chal-
+lenges,” IEEE Commun. Surv. Tutor., vol. 21, no. 4, pp. 3417–3442,
+Mar. 2019.
+[10] S. Javaid, N. Saeed, Z. Qadir, H. Fahim, B. He, H. Song, and M. Bilal,
+“Communication and control in collaborative UAVs: recent advances and
+future trends,” IEEE Trans. Intell. Trans. Sys., vol. 24, no. 6, pp. 5719–
+5739, Jun. 2023.
+[11] F. Liu, Y. Cui, C. Masouros, J. Xu, T. X. Han, Y. C. Eldar, and S. Buzzi,
+“Integrated sensing and communications: Toward dual-functional wire-
+less networks for 6G and beyond,” IEEE J. Sel. Areas Commun., vol. 40,
+no. 6, pp. 1728–1767, Jun. 2022.
+[12] H. Luo, T. Zhang, C. Zhao, Y. Wang, B. Lin, Y. Jiang, D. Luo, and
+F. Gao, “Integrated sensing and communications framework for 6G
+networks,” arXiv e-prints, p. arXiv:2405.19925, May 2024.
+[13] M. Giordani, M. Polese, M. Mezzavilla, S. Rangan, and M. Zorzi,
+“Toward 6G networks: Use cases and technologies,” IEEE Commun.
+Mag., vol. 58, no. 3, pp. 55–61, Mar. 2020.
+[14] Y. Cui, F. Liu, X. Jing, and J. Mu, “Integrating sensing and communi-
+cations for ubiquitous IoT: Applications, trends, and challenges,” IEEE
+Netw., vol. 35, no. 5, pp. 158–167, Nov. 2021.
+[15] ITU, “Future technology trends of terrestrial international mobile
+telecommunications systems towards 2030 and beyond,” 2022.
+[16] Z. Xiao et al., “A novel joint angle-range-velocity estimation method for
+MIMO-OFDM ISAC systems,” IEEE Trans. Signal Process., vol. 72,
+pp. 3805–3818, Aug. 2024.
+[17] X. Lu, Z. Wei, R. Xu, L. Wang, B. Lu, and J. Piao, “Integrated sensing
+and communication enabled multiple base stations cooperative UAV
+detection,” arXiv e-prints, p. arXiv:2404.12705, Apr. 2024.
+[18] R. Liu, M. Jian, D. Chen, X. Lin, Y. Cheng, W. Cheng, and S. Chen,
+“Integrated sensing and communication based outdoor multi-target de-
+tection, tracking, and localization in practical 5G networks,” Intell.
+Converged Netw., vol. 4, no. 3, pp. 261–272, Sep. 2023.
+[19] R. Li, Q. Zhang, D. Ma, K. Yu, and Y. Huang, “Joint target assignment
+and resource allocation for multi-base station cooperative ISAC in UAV
+detection,” IEEE Trans. Veh. Technol., pp. 1–15, Jan. 2025.
+[20] J. Wei, D. Ma, F. He, Q. Zhang, Z. Feng, Z. Liu, and T. Liang,
+“UAV’s rotor micro-Doppler feature extraction using integrated sensing
+and communication signal: Algorithm design and testbed evaluation,”
+arXiv e-prints, p. arXiv:2408.16415, Aug. 2024.
+[21] D. Ma et al., “Performance evaluation of micro-Doppler based UAV
+identification using different 5G frame structures,” in Proc. 2nd Int. Conf.
+Mobile Internet, Cloud Comput. Inf. Security, Changsha City, China,
+Apr. 2024, pp. 173–179.
+[22] N. Mohajerin et al., “Feature extraction and radar track classification
+for detecting UAVs in civillian airspace,” in Proc. IEEE Radar Conf.,
+Cincinnati, OH, USA, May 2014, pp. 674–679.
+[23] X. Zhang, V. Mehta, M. Bolic, and I. Mantegh, “Hybrid AI-enabled
+method for UAS and bird detection and classification,” in Proc. IEEE
+Int. Conf. Syst., Toronto, ON, Canada, Oct. 2020, pp. 2803–2807.
+[24] Jochumsen et al., “Recursive bayesian classification of surveillance radar
+tracks based on kinematic with temporal dynamics and static features,”
+in Proc. Int. Radar Conf., Lille, France, Oct. 2014, pp. 1–6.
+[25] Doumard et al., “Radar discrimination of small airborne targets through
+kinematic features and machine learning,” in Proc. IEEE/AIAA 41st
+Digital Avionics Syst. Conf., Portsmouth, VA, USA, Sep. 2022, pp. 1–10.
+[26] C. Bennett et al., “Use of symmetrical peak extraction in drone micro-
+Doppler classification for staring radar,” in Proc. IEEE Radar Conf.,
+Florence, Italy, Sep. 2020, pp. 1–6.
+[27] H. Dale et al., “A comparison of convolutional neural networks for low
+SNR radar classification of drones,” in Proc. IEEE Radar Conf., Atlanta,
+GA, USA, May 2021, pp. 1–5.
+[28] S. Rahman and D. A. Robertson, “Multiple drone classification using
+millimeter-wave CW radar micro-Doppler data,” in Proc. Radar Sensor
+Technol. XXIV, vol. 11408, Apr. 2020, SPIE.
+[29] B.-S. Oh, X. Guo, F. Wan, K.-A. Toh, and Z. Lin, “Micro-Doppler mini-
+UAV classification using empirical-mode decomposition features,” IEEE
+Geosci. and Remote Sens. Lett., vol. 15, no. 2, pp. 227–231, Dec. 2018.
+[30] L. Du, H. Liu, and Z. Bao, “Radar HRRP statistical recognition:
+Parametric model and model selection,” IEEE Trans. Signal Process.,
+vol. 56, no. 5, pp. 1931–1944, May 2008.
+[31] L. Du, P. Wang, H. Liu, M. Pan, F. Chen, and Z. Bao, “Bayesian
+spatiotemporal multitask learning for radar HRRP target recognition,”
+IEEE Trans. Signal Process., vol. 59, no. 7, pp. 3182–3196, Jul. 2011.
+[32] L. Du, H. Liu, Z. Bao, and J. Zhang, “A two-distribution compounded
+statistical model for radar hrrp target recognition,” IEEE Trans. Signal
+Process., vol. 54, no. 6, pp. 2226–2238, Jun. 2006.
+[33] W. Jiang, Z. Liu, Y. Wang, Y. Lin, Y. Li, and F. Bi, “Realizing small
+UAV targets recognition via multi-dimensional feature fusion of high-
+resolution radar,” Remote Sens., vol. 16, no. 15, Jul. 2024.
+[34] Z. Gao, Z. Wan, D. Zheng, S. Tan, C. Masouros, D. W. K. Ng, and
+S. Chen, “Integrated sensing and communication with mmWave massive
+MIMO: A compressed sampling perspective,” IEEE Trans. Wireless
+Commun., vol. 22, no. 3, pp. 1745–1762, Mar. 2023.
+[35] J. Chen, Y.-c. Wu, S. Ma, and T.-s. Ng, “Ml joint CFO and channel
+estimation in OFDM systems with timing ambiguity,” IEEE Trans.
+Wireless Commun., vol. 7, no. 7, pp. 2436–2440, Jul. 2008.
+[36] Z. Du, F. Liu, W. Yuan, C. Masouros, Z. Zhang, S. Xia, and G. Caire,
+“Integrated sensing and communications for V2I networks: Dynamic
+predictive beamforming for extended vehicle targets,” IEEE Trans.
+Wireless Commun., vol. 22, no. 6, pp. 3612–3627, Jun. 2023.
+[37] R. Shafin, L. Liu, J. Zhang, and Y.-C. Wu, “DoA estimation and capacity
+analysis for 3-D millimeter wave massive-MIMO/FD-MIMO OFDM
+systems,” IEEE Trans. Wireless Commun., vol. 15, no. 10, pp. 6963–
+6978, Oct. 2016.
+[38] W. Wang and W. Zhang, “Jittering effects analysis and beam training
+design for UAV millimeter wave communications,” IEEE Trans. Wireless
+Commun., vol. 21, no. 5, pp. 3131–3146, Oct. 2022.
+
+===== PAGE 14 =====
+14
+[39] H. Luo, Y. Wang, D. Luo, J. Zhao, H. Wu, S. Ma, and F. Gao,
+“Integrated sensing and communications in clutter environment,” IEEE
+Trans. Wireless Commun., pp. 1–1, Mar. 2024.
+[40] H. Luo, F. Gao, F. Liu, and S. Jin, “6D motion parameters estimation in
+monostatic integrated sensing and communications system,” IEEE Trans.
+Commun., pp. 1–1, Jan. 2025.
+[41] P. Cignoni et al., “MeshLab: an open-source mesh processing tool,” in
+Proc. Eurographics Italian Chapter Conf., The Eurographics Associa-
+tion, Jul. 2008.
+[42] N. Dyn, D. Levine, and J. A. Gregory, “A butterfly subdivision scheme
+for surface interpolation with tension control,” ACM Trans. Graph,
+vol. 9, no. 2, pp. 160–169, Apr. 1990.
+[43] J. S. Dai, “Euler–rodrigues formula variations, quaternion conjugation
+and intrinsic connections,” Mech. Mach. Theory, vol. 92, pp. 144–152,
+Oct. 2015.
+[44] Y. LeCun, L. Bottou, Y. Bengio, and P. Haffner, “Gradient-based learning
+applied to document recognition,” Proc. IEEE, vol. 86, no. 11, pp. 2278–
+2324, Nov. 1998.
+[45] C. J. Pennycuick, “Speeds and wingbeat frequencies of migrating
+birds compared with calculated benchmarks,” Journal of Experimental
+Biology, vol. 204, pp. 3283–3294, 10 2001.
+[46] K. Krishnan et al., “The role of wingbeat frequency and amplitude in
+flight power,” Journal of The Royal Society Interface, vol. 19, no. 193,
+p. 20220168, 2022.
+[47] C. J. Pennycuick, “Wingbeat frequency of birds in steady cruising flight:
+New data and improved predictions,” Journal of Experimental Biology,
+vol. 199, pp. 1613–1618, 07 1996.
+[48] H. Dale, M. Jahangir, C. J. Baker, M. Antoniou, S. Harman, and
+B. I. Ahmad, “Convolutional neural networks for robust classification
+of drones,” in 2022 IEEE Radar Conference (RadarConf22), pp. 1–6,
+2022.
+[49] DJI, “Dji website.” https://www.dji.com/cn. [Online; accessed 2025].
+[50] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for
+image recognition,” in Proc. IEEE Conf. Comput. Vis. Pattern Recognit.,
+pp. 770–778, 2016.
+[51] G. E. Hinton and S. Roweis, “Stochastic neighbor embedding,” in Proc.
+Adv. Neural Inf. Process. Syst. (S. Becker, S. Thrun, and K. Obermayer,
+eds.), vol. 15, MIT Press, 2002.
+[52] H. Luo, J. Liu, S. Wu, Z. Nie, H. Li, and J. Wu, “A semi-supervised
+deception jamming discrimination method,” in Proc. IEEE 7th Int. Conf.
+Cloud Comp. Intell. Sys., Xi’an, China, Nov. 2021, pp. 428–432.
+[53] L. Van der Maaten and G. Hinton, “Visualizing data using t-SNE,” J.
+Mach. Learn. Res., vol. 9, no. 11, Nov. 2008.
