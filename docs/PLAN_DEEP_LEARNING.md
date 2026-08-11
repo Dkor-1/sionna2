@@ -49,10 +49,16 @@ mini5pro 0.824 · phantom4 0.799 · **typhoonh480 0.646** ← 유일한 약점
 ### 1-1. ⭐⭐우리와 같은 실험을 한 팀 — White 외 (버밍엄)
 
 **White, Jahangir, Baker, Antoniou, *Urban Bird-Drone Classification With Synthetic
-Micro-Doppler Spectrograms*, IEEE Transactions on Radar Systems, 2023**
-(DOI 10.1109/TRS.2023.3323484)
+Micro-Doppler Spectrograms*, IEEE Transactions on Radar Systems, **vol. 2, pp. 167–179, 2024**
+(DOI 10.1109/TRS.2023.**3326317**)
+⚠2026-08-11 정정 — 내가 적었던 DOI `…3323484` 는 **Crossref 404, 존재하지 않는 번호**였다.
+  연도도 2023 이 아니라 **2024**다(권·호 배정 전 AAM 러닝헤드가 2023 이라 우리 파일 셋이
+  서로 달랐다). `prior_work/rotor_randomness_survey.md:129,454` 가 처음부터 맞았다.
 
-- **합성 스펙트로그램으로만 CNN 을 훈련하고 실측으로 시험**했다.
+- ⚠**«합성으로만» 은 내 과장이었다(2026-08-11 원문 확인).** 실제로는 **반합성**이다 —
+  큰 드론 2 종만 합성이고(학습셋의 **34.5 %**, 드론 클래스의 69 %), 새·Mini 2 는 실측을 쓰며,
+  합성 표적을 **실측 배경 시계열에 더한다.** 그래서 −3.1 pp 라는 격차는 «순수 합성 대 실측»
+  이 아니라 «반합성 대 실측» 이다. ⇒ 우리 목표선으로 그대로 쓰면 안 된다.
 - **정확도 86.6 % (합성 훈련) vs 89.7 % (실측 훈련). 격차 3.1 포인트.**
 - 합성 데이터셋 **4종**을 만들어 비교했는데, 서로 다른 것은 **모터 속도 샘플링 방식 하나뿐**이다.
 - ⭐헤드라인: *"The effect of drone motor speed sampling used when simulating drone
@@ -78,14 +84,15 @@ Micro-Doppler Spectrograms*, IEEE Transactions on Radar Systems, 2023**
 | **스펙트로그램(STFT)** | 시간-주파수 맵. 사실상 기본값 | 거의 전부 |
 | **CVD** (cadence-velocity diagram) | 스펙트로그램의 **시간축을 다시 FFT** 한 것. «주기성»이 선으로 뜬다 | Kim 외 GRSL 2017; IRS 2022 |
 | **병합 이미지** | 스펙트로그램 + CVD 를 한 장으로 | Kim 외 (KAIST), GRSL 14(1):38, 2017 |
-| 켑스트로그램 · 가중 스펙트럼 | 스펙트로그램의 변형 | hal-03602645 |
+| 켑스트로그램 · 가중 스펙트럼 | ⚠**스펙트로그램의 변형이 아니다** — WSP·CP 는 x(t) 에서 바로 나오고 WSP 는 dwell 전체를 창 하나로 FFT 해 **시간분해능이 없다**. SG 에서 파생되는 것은 CVD 뿐 | hal-03602645 |
 | 원시 슬로타임 열 | 드묾 | — |
 
 - **Kim 외 (KAIST), *Drone Classification Using CNN With Merged Doppler Images*,
   IEEE GRSL 14(1):38-42, 2017** — MDS + CVD 를 합쳐 GoogLeNet 에 넣는다.
-- **hal-03602645, *Micro-Doppler Signal Representation for Drone Classification by
+- **EUSIPCO 2020, pp. 1561–1565 (DOI 10.23919/Eusipco47968.2020.9287525) · hal-03602645,
+  *Micro-Doppler Signal Representation for Drone Classification by
   Deep Learning*** — 표현 5종(거리압축 시간신호 · 가중스펙트럼 · 켑스트럼 · 스펙트로그램 · CVD)을
-  같은 AlexNet 에 넣어 비교. **잡음 하에서 가중스펙트럼(WSP)이 92.7 % 로 최고.**
+  같은 **GoogLeNet** 에 넣어 비교(원문 전문에 AlexNet 0 회 — 2026-08-11 정정). **잡음 하에서 가중스펙트럼(WSP)이 92.7 % 로 최고.**
   ⇒ **표현 선택이 잡음 강인성을 바꾼다**는 직접 증거.
 
 ⚠ **CVD 는 우리 «STFT only» 규칙과 충돌하지 않는다** — CVD 는 STFT 크기맵의 시간축 FFT 이지
@@ -150,7 +157,7 @@ Classification*, International Radar Symposium 2022** `[초록 확인]`
 
 | 팔 | 입력 | 왜 | 문헌 대응 |
 |---|---|---|---|
-| **A1** | **STFT dB 맵** (flash_spec 규약 그대로, 창 70 · hop 2 · FFT 560) | 문헌 표준. 비교가 성립한다 | White TRS 2023, 거의 전부 |
+| **A1** | **STFT dB 맵** (flash_spec 규약 그대로, 창 70 · hop 2 · FFT 560) | 문헌 표준. 비교가 성립한다 | White TRS **2024**, 거의 전부 |
 | **A3** | ⭐**접은 프로파일** — `f_flash` 로 접은 한 주기 평균 + 그 분산 | **우리 물리에 가장 맞다.** 접는 순간 f_flash 가 입력에서 사라져 **치트가 원천 차단**된다 | 우리 `fold_h1..h6` 특징의 학습판. 문헌 선례 못 찾음 |
 | **A2** | 원시 슬로타임 `[Re, Im]` 2×4925 | STFT 는 정보를 버린다(창 70 → 분해능 281 Hz). 원시열은 안 버린다 | 드묾 — 해볼 가치 |
 
@@ -213,7 +220,7 @@ A1 이 먼저인 이유는 **문헌과 나란히 놓을 수 있는 유일한 팔
 
 ```
 0층 (선행)   로터 랜덤성을 먼저 고친다 (NOISE_AND_ROTOR_PLAN §2)
-             ↑ White TRS 2023 이 «이것이 정확도를 좌우한다»고 이미 측정했다.
+             ↑ White TRS **2024** 가 «이것이 정확도를 좌우한다»고 이미 측정했다.
                고치기 전에 딥러닝을 돌리면 나중에 전부 다시 돌려야 한다.
 1층         잡음 주입 배선 (NOISE_AND_ROTOR_PLAN §1) — G4 가 이것을 요구한다
 2층         데이터 텐서화 — 표에서 시계열/STFT/접은프로파일 세 종을 뽑아 npz 로

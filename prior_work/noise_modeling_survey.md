@@ -54,8 +54,38 @@
 | `prior_work/isac_standard_scenarios.md:334` | 자기간섭 잔여를 *"modelled e.g. by additional AWGN, −94+X dBm in 100 MHz"* — **잡음항으로 흡수시키는 3GPP 관례**. 우리 §2 의 «잡음에 무엇을 합치나»와 직결. |
 | `prior_work/sionna_sensing_survey.md:269` | Sionna 계열 센싱 논문 하나가 표적을 자유공간 점산란체로 두고 **"AWGN 만"** 두었다는 기록 — 본 조사에서 arXiv:2506.00497 이 **잡음조차 없다**(명시적으로 omit)로 한 단계 더 극단인 사례를 추가한다. |
 | `src/microdoppler_nearfield.py:334-373` | ⭐**이미 있는 것** — `echo_over_noise_db()` 가 `P_n = k·T0·F·B` (T0=290 K, F=5 dB, B=100 MHz)로 **표본당** 에코/잡음비를 세우고, `add_noise()` 가 **시계열에 복소 가우시안**을 더한다. 즉 §2 의 «표준»을 우리는 이미 구현해 두었다. 문제는 **이 경로를 마이크로도플러 맵 생성이 안 쓴다**는 것뿐이다(현재 `experiment_md_range.py:158-162` 만 쓴다). |
-| `src/microdoppler_nearfield.py:353-362` | `ac_snr_db()` — 총전력 SNR 에서 DC/AC 비(33~37 dB)를 빼는 우리 고유 보정. **문헌에서 대응물을 못 찾았다**(§6 참조). Drones 5:149 가 `A_r`(블레이드 반사 진폭) 기준으로 SNR 을 정의한 것이 가장 가까운데, 그쪽은 몸체 DC 항이 모델에 아예 없어서 문제가 발생하지 않는다. |
+| `src/microdoppler_nearfield.py:353-362` | `ac_snr_db()` — 총전력 SNR 에서 DC/AC 비(**5.33 ~ 32.77 dB**, 현행 메쉬 5기체·3.5 GHz. ⚠2026-08-11 두 번 정정 — 아래 상자)를 빼는 우리 고유 보정. **문헌에서 대응물을 못 찾았다**(§6 참조). Drones 5:149 가 `A_r`(블레이드 반사 진폭) 기준으로 SNR 을 정의한 것이 가장 가까운데, 그쪽은 몸체 DC 항이 모델에 아예 없어서 문제가 발생하지 않는다. |
 | `src/freespace_link.py:133-197` | 검출 사슬용 `n0_thermal(kT0F·B_noise)` + DPI/양자화 잡음 합성. 검출 쪽 잡음 모델은 이미 문헌 표준 이상이다. |
+
+> ### ⚠⚠ 2026-08-11 정정 — 「dc_ac 33~37 dB」 를 **두 번** 고친다
+> 이 조사가 처음 쓴 «33~37 dB» 는 함대 전체를 안 본 수였다. 그런데 그것을 고치려고 잡은
+> «17.3 ~ 37.2 dB» **도 이미 낡았다** — 그 사이에 표적 메쉬 세대가 바뀌었다. **두 세대를 건넌다.**
+>
+> | 기체 (5G NR 3.5 GHz) | 옛 메쉬 `dc_ac_db` | ⭐**현행 메쉬** `dc_ac_db` |
+> |---|---|---|
+> | mavic4pro | 37.2 | **5.33** |
+> | matrice4e | 17.3 | 24.86 |
+> | s1000plus | 18.9 | 22.00 |
+> | phantom4 | 32.5 | 32.20 |
+> | mini5pro | 26.5 | **32.77** |
+> | **범위 (5 기체)** | 17.3 ~ 37.2 dB | ⭐**5.33 ~ 32.77 dB** |
+> | 범위 (9 칸, 3 밴드) | 17.3 ~ 50.8 dB | **5.33 ~ 35.42 dB** |
+>
+> **정본은 오른쪽 열**이다 — `outputs/md_range_sweep_mf.json` →
+> `cells[].rows[0].arms.A0_reference.dc_ac_db`.
+> 왼쪽 열은 `outputs/pre37db/md_range_sweep_pre37db.json`(= 2026-07-28 판 `md_range_sweep.json`
+> 의 사본)이고, 같은 옛 범위가 `outputs/noise_rotor_plan.json` 과
+> `outputs/verify_snr_convention.json::_meta.defect` 에도 남아 있다.
+> 옛↔새 짝은 `outputs/verify_noise_injection.json::NI10` 이 싣는다.
+>
+> ⚠ **산포의 순서가 뒤집혔다** — 옛 판의 최대(mavic4pro 37.2)가 새 판의 **최소**(5.33)다.
+> ⚠ **왜 −31.9 dB 나 움직였는지 모른다.** NI10 게이트는 «메쉬 지문이 함께 움직였으면 설명됨»
+> 으로 통과시키므로 **게이트는 통과하지만 이해된 것은 아니다.** 인용 전에 따로 따져야 한다.
+> ⚠ `outputs/md_range_sweep.json` 은 2026-08-11 현재 **재생성 중**이다. 끝나면 오른쪽 열을
+> 그 원장으로 다시 확인한다.
+>
+> ⇒ 세대가 어떻든 **결론은 같다**: 총전력 기준과 블레이드선 기준이 **20~30 dB 폭으로 어긋나므로
+> 두 수를 같은 표에 놓으면 안 된다.** 바뀌는 것은 기체별 수치이지 결론이 아니다.
 
 **결론: 새로 배울 것은 «어떻게 넣나»가 아니라 «어느 층위의 SNR 을 라벨로 쓰나»와 «그림에서 절대
 눈금을 어떻게 유지하나»다.**
@@ -308,8 +338,12 @@ noise_amplitude_mixer = np.sqrt(receiver_noise_watts * load_resistor)
   > sufficient to detect the moving target (via Doppler effect), **but SNR is too low to see the
   > micro-Doppler**, (III) both Doppler and micro-Doppler are seen, (IV) … (V) …"
   ⭐ **«검출은 되는데 마이크로도플러는 안 보이는 구간»이 따로 있다**는 것을 그림 한 장으로
-  보여주는 판. 우리 `ac_snr_db` 서사(총전력 SNR ↔ 블레이드선 SNR 이 33~37 dB 차이)와 **정확히
-  같은 현상**의 실측판이다. 나란히 놓기 좋은 선행자료.
+  보여주는 판. 우리 `ac_snr_db` 서사(총전력 SNR ↔ 블레이드선 SNR 이 **5.33 ~ 32.77 dB** 차이,
+  현행 메쉬·§2.4 의 두 번 정정 상자)와
+  **정확히 같은 현상**의 실측판이다. 나란히 놓기 좋은 선행자료.
+  ⭐그리고 우리 사다리는 그 (II) 구간의 **경계를 계산한다** — `md_snr_vs_range.json` 의
+  `region_ii_detected_but_no_microdoppler` 가 matrice4e·EIRP 12 dBm 에서 **19.10 ~ 79.96 m**
+  (폭 24.88 dB = `dc_ac_off_db`), mini5pro 에서 10.94 ~ 72.16 m (폭 32.77 dB) 로 싣는다.
 
 ### (d) 맵을 포기하고 «성능 대 거리/SNR» 곡선으로
 - **Braun, Fig. 5.5–5.6**: d₀ = 10…400 m 를 1 m 씩, 각 거리마다 10 000 회 몬테카를로.

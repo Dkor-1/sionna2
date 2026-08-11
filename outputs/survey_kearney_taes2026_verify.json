@@ -1,0 +1,181 @@
+{
+  "verify_kearney_gurbuz_taes2026_physguided": {
+    "task": "원문 검증 — Kearney & Gurbuz, Physics-Guided DNNs for Radar-Based UAV Recognition (TAES 2026)",
+    "obtained_fulltext": true,
+    "how_obtained": "IEEE Xplore stampPDF (기관 IP=DGIST, IEL 구독). https://ieeexplore.ieee.org/stampPDF/getPDF.jsp?tp=&arnumber=11509266 . arXiv 판 없음, unpaywall/CORE/scholar.archive.org 모두 OA 없음(oa_status=closed).",
+    "local_pdf": "/home/yunjung/workspace/sionna2/outputs/survey_pdfs/kearney_gurbuz_TAES2026_physics_guided_uav.pdf",
+    "local_text": "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/kearney_taes26.txt",
+    "bibliography_confirmed": {
+      "title": "Physics-Guided Deep Neural Networks for Radar-Based UAV Recognition in Different Environments With No Prior In Situ Data",
+      "authors": [
+        "Sean Kearney (Student Member, IEEE)",
+        "Sevgi Z. Gurbuz (Senior Member, IEEE)"
+      ],
+      "affiliation": "North Carolina State University, Dept. of ECE, Raleigh, NC (이전 소속 Alabama 아님 — 원문 표기 NCSU)",
+      "venue": "IEEE Transactions on Aerospace and Electronic Systems",
+      "volume": 62,
+      "pages": "9875-9891 (17쪽, PDF 쪽번호 9875 확인)",
+      "year": 2026,
+      "doi": "10.1109/TAES.2026.3685229",
+      "arnumber": 11509266,
+      "dates": "received 13 Apr 2025; revised 17 Aug 2025 / 20 Nov 2025 / 16 Feb 2026; accepted 5 Apr 2026; published 5 May 2026; current version 27 May 2026",
+      "handling_editor": "J. Le Kernec",
+      "funding": "AFOSR Dynamic Data and Information Processing Program, Grant FA9550-22-1-0384",
+      "arxiv": null,
+      "open_access": false
+    },
+    "claim_check": {
+      "저충실도 CAD 모델만으로 훈련한 시맨틱 분할망": "확인 — §VI-A. U-Net 백본을 §V-A 의 CAD 포인트클라우드 시뮬 스펙트로그램만으로 학습(무잡음 원본 + AWGN 주입 SINR 5/10/15/20 dB). 실측 라벨 없음.",
+      "(a) GAN 판별기 안": "확인 — §VI-B 'SS-GAN'. WGAN-GP 판별기에 보조 분기 추가, 그 분기 앞단이 PhG-SS(U-Net). 손실 식(5) = {D(x)-D(G(z))} + GP.",
+      "(b) 분류 DNN 앞단": "확인 — §VII 'SS-DNN'. PhG-SS 가 만든 segmentation map(SM)을 스펙트로그램에 곱해 마스킹(디노이저)한 뒤 CNN/CAE 로 입력.",
+      "목표1 HERM 라인 합성": "확인 — §VI-C 운동학 충실도(Table V, σ_ωp).",
+      "목표2 사전 실측 없이 낮은 SINR/다른 클러터": "확인 — §VI-D, §VII-B. 단, ⚠주의: 논문은 '환경'을 물리적 장면이 아니라 SINR 계층으로 재정의했다(§IV, Fig.4: 같은 SINR 이면 장면별 PCA 분포 차이가 유의하지 않았다). 실제로는 동일 레이다·동일 야외 5 m 호버 데이터를 High/Low SINR 로 가른 것."
+    },
+    "numbers_with_location": {
+      "레이다(Table I, p.9879)": "TI AWR2243 단일칩 FMCW, 중심 79 GHz(77-81), 대역 4 GHz, PRF 6.4 kHz, 안테나 높이 1.5 m, 샘플당 30 s",
+      "표적(Table II)": "5기 — Small Hexa(프로펠러 230 mm, span 0.86 m), Large Hexa(230 mm, 1.31 m), Small Quad(147 mm, 0.24 m), Medium Quad(230 mm, 0.55 m), Large Quad(230 mm, 1.4 m)",
+      "수집(Table III, §III-A)": "2회 수집, 전부 호버, 레이다에서 ~5 m. 1차: 공터/차 10 m/나무 10 m, 24°C, 바람 <8 kph, 기체당 배경별 10 샘플. 2차: 공터, 33°C, quad 8 샘플·hexa 3 샘플",
+      "데이터셋(§III-B, Table IV)": "30 s 녹취 79건 → 6 s 분할 395 샘플 → High SINR 인데 HERM 없는 것 정리 후 333 샘플. Table IV: High SINR 107(HERM 있음)/0(없음), Low SINR 28(있음)/198(없음)",
+      "SINR 정의(§IV, 식(2))": "High >10 dB, Low 0~10 dB. P_signal 은 본체 주반사 + HERM 라인 전력, P_interference 는 그 외 전부",
+      "STFT(§III-B)": "N=4096 FFT, Hanning 길이 L=256, overlap 200(step 56). 블레이드 플래시는 PRF 6.4 kHz 로는 불가(최대 65.8 m/s 까지만, 실제 프로펠러 팁 100~150 m/s) → 긴 창으로 HERM 라인 관측",
+      "분할 성능(§VI-A)": "IOU 0.388, Dice 0.559 (잡음 주입 시뮬 데이터 기준)",
+      "저충실도 시뮬 단독 학습(§V-A 끝)": "⭐'random guessing 이상 분류 못 함' — 잡음 주입 유무 무관. 시뮬만으로는 분류기가 안 된다는 원문 자백",
+      "GAN 학습(§VI-B)": "각 GAN 약 25,000 iteration, 클래스당 500 샘플 생성. High SINR 실측 60/40 분할",
+      "Table V (§VI-C, 운동학 지표 σ_ωp, 낮을수록 좋음)": {
+        "Quadcopter Small": {
+          "Real@High": 20.32,
+          "SS-GAN": 25.58,
+          "WGAN": 25.19,
+          "MBGAN": 25.53
+        },
+        "Quadcopter Medium": {
+          "Real@High": 18.96,
+          "SS-GAN": 25.33,
+          "WGAN": 25.81,
+          "MBGAN": 25.44
+        },
+        "Quadcopter Large": {
+          "Real@High": 18.44,
+          "SS-GAN": 25.87,
+          "WGAN": 26.1,
+          "MBGAN": 26.27
+        },
+        "Hexacopter Small": {
+          "Real@High": 18.23,
+          "SS-GAN": 25.29,
+          "WGAN": 25.59,
+          "MBGAN": 26.01
+        },
+        "Hexacopter Large": {
+          "Real@High": 18.19,
+          "SS-GAN": 25.85,
+          "WGAN": 26.03,
+          "MBGAN": 26.35
+        }
+      },
+      "Table VI (§VI-C, 훈련·시험 같은 환경, High SINR, 5회 평균)": {
+        "CNN": {
+          "Real": "66.6%",
+          "WGAN": "75.0%",
+          "MBGAN": "72.6%",
+          "SS-GAN": "76.2%"
+        },
+        "CAE": {
+          "Real": "69.1%",
+          "WGAN": "86.9%",
+          "MBGAN": "80.9%",
+          "SS-GAN": "88.7%"
+        }
+      },
+      "Table VII (§VI-D, High SINR 로 훈련 → Low SINR 시험)": {
+        "CNN Real→Low(전체)": "41.6%",
+        "CNN SS-GAN→Low(전체)": "28.5%",
+        "CNN Real→Low w/HERM": "56.1%",
+        "CNN SS-GAN→Low w/HERM": "57.7%",
+        "CAE Real→Low(전체)": "47.3%",
+        "CAE SS-GAN→Low(전체)": "44.0%",
+        "CAE Real→Low w/HERM": "50.0%",
+        "CAE SS-GAN→Low w/HERM": "71.2%"
+      },
+      "Table VIII (§VII-B, SS-DNN, 6 s, Low SINR w/HERM 시험)": {
+        "SS-CNN Real": "65.4%",
+        "SS-CNN SS-GAN": "73.1%",
+        "SS-CAE Real": "52.6%",
+        "SS-CAE SS-GAN": "73.1%"
+      },
+      "Table IX (§VII-B, 2 s 샘플, 5회 평균±표준편차)": {
+        "SS-CNN Real": "65.38% ± 0.97%",
+        "SS-CNN SS-GAN": "67.94% ± 3.08%",
+        "SS-CAE Real": "65.39% ± 1.77%",
+        "SS-CAE SS-GAN": "74.35% ± 1.72%",
+        "데이터": "6 s→2 s 로 쪼개 High SINR 실측 273 훈련 / 84 시험, 시험셋의 80% 무작위 추출 5회 반복"
+      },
+      "추론 속도(§VII-A)": "CNN 0.068 s, CAE 0.0684 s (Google Colab T4)"
+    },
+    "internal_consistency_audit": {
+      "확인된 것": [
+        "Table VI: WGAN−MBGAN = 2.4 pp(CNN), 6.0 pp(CAE) — 본문 '약 2.4%·6%' 일치",
+        "Table VI: SS-GAN−WGAN = 1.2 pp(CNN), 1.8 pp(CAE) — 본문 '1%·약 2%' 일치",
+        "Table VII+VIII: CAE SS-GAN 71.2% vs Real 50.0% = 21.2 pp — 본문 '대략 21% 개선' 일치",
+        "Table VIII: SS-CNN Real 65.4 − CNN Real 56.1 = 9.3 pp — 본문 '9% 개선' 일치",
+        "Table IV 합계 107+28+198 = 333 — 본문 333 일치"
+      ],
+      "어긋난 것(원문 결함)": [
+        "§VI-C 본문 'WGAN 이 MBGAN 을 일관되게(consistently) 앞섰다' — Table V 에서 Quadcopter Medium 은 MBGAN 25.44 < WGAN 25.81 로 반례. 5기 중 4기만 성립",
+        "§VII-B 본문 '57.7% → 73.1% 로 16% 도약' — 실제 차이는 15.4 pp(반올림 과장)",
+        "§VII-B 본문 'Tables IV 와 VI 를 비교하면' — 내용상 Table VII/VIII 와 IX 의 오기(Table IV 는 SINR 분포표)",
+        "§V-B 본문 '(see Section IV-C)' — 운동학 충실도는 §VI-C 이므로 오기. §VI-A 의 'Section V-C' 도 같은 오기",
+        "저널 Table VII 의 CNN Real→Low w/HERM 56.1% 는 회의판 Table II 의 56.2% 와 0.1 pp 불일치"
+      ]
+    },
+    "conference_vs_journal": {
+      "회의 선행판(원문 확보)": {
+        "제목": "Semantic Segmentation Guided RF Micro-Doppler Synthesis and UAV Classification in Low SINR",
+        "저자": "⭐Sean J. Kearney and Sevgi Z. Gurbuz (Crossref·PDF 표지 모두 동일). CI4R 웹페이지 배치 때문에 'Salehin & Gurbuz' 로 잘못 읽히기 쉬움 — 정정",
+        "게재처": "2025 IEEE International Radar Conference (RADAR), Atlanta, GA, May 2025, pp. 1-6",
+        "doi": "10.1109/RADAR52380.2025.11031708",
+        "수상": "Student Paper Competition 2위",
+        "local_pdf": "/home/yunjung/workspace/sionna2/outputs/survey_pdfs/kearney_gurbuz_RADAR2025_ss_gan_low_sinr.pdf"
+      },
+      "회의판 수치(Table I·II)": {
+        "CNN 같은환경": {
+          "Real": "66.6%",
+          "WGAN": "75.0%",
+          "MBGAN": "72.6%",
+          "SS-GAN": "76.2%"
+        },
+        "CNN Real→Low 전체": "41.6%",
+        "CNN SS-GAN→Low 전체": "28.5%",
+        "CNN Real→Low w/HERM": "56.2%",
+        "CNN SS-GAN→Low w/HERM": "57.7%",
+        "SS-CNN Real": "65.4%",
+        "SS-CNN SS-GAN": "73.1%",
+        "초록 헤드라인": "'improvement of 8% for UAV recognition in low SINR' = 73.1−65.4 = 7.7 pp"
+      },
+      "차이 요약": "핵심 CNN 수치는 두 판이 동일(56.2 vs 56.1 한 칸만 0.1 pp 차). 저널판이 새로 추가한 것: CAE/SS-CAE 계열 전부, Table V 기체별 σ_ωp, Table IX 2 s 샘플, IOU/Dice(0.388/0.559), 관련연구 대폭 확장. ⭐인용할 때 헤드라인 숫자를 고르면: 회의판=8 pp(SS-CNN), 저널판=21 pp(CAE, Table VII) 또는 15.4 pp(SS-CNN, Table VIII). 서로 다른 비교쌍이므로 섞지 말 것",
+      "DDDAS 2024 선행판": {
+        "제목": "CAD Model Guided Semantic Segmentation for Radar Micro-UAV Signature Synthesis Across Different Clutter Environments",
+        "저자": "S. J. Kearney and S. Z. Gurbuz",
+        "게재처": "Dynamic Data Driven Applications Systems (DDDAS 2024), Springer LNCS, chapter 36",
+        "doi": "10.1007/978-3-031-94895-4_36 (Springer 온라인 2025-08-26)",
+        "수상": "Student Paper Award – Honorable Mention",
+        "원문": "⛔못 구했다 — Springer 유료(unpaywall is_oa=false), 기관 접근 실패(HTML 봇 차단 3 KB). 초록도 미확보"
+      }
+    },
+    "relevance_to_our_project": {
+      "패시브/OFDM 아님": "⭐이 논문은 능동 모노스태틱 mmWave FMCW(77-81 GHz, 4 GHz)다. 본문·참고문헌에 패시브 바이스태틱도 OFDM 조명원도 없다(참고문헌 [42] Liu et al. IEEE Aerospace 2021 이 'passive human RF signature GAN' 으로 유일하게 passive 라는 낱말을 쓰지만 사람 점유 검출이다). 부모 질문 Q1·Q2 에는 해당 없음, '딥러닝 프레임워크 선행연구' 축에만 해당",
+      "우리에게 직접 쓰이는 대목": [
+        "⭐저충실도 CAD 시뮬만으로 학습한 망을 '분류기 앞단 마스크'로 쓰는 설계 — 우리 SBR+PO 시뮬을 실측 분류에 잇는 가장 현실적인 경로. 게다가 저자들이 §V-A 에서 '시뮬 단독 학습은 random guessing' 이라고 자백했으므로, 시뮬을 데이터가 아니라 사전(prior)으로 쓰라는 논거가 된다",
+        "§VIII 논의: PhG-SS 는 GAN 판별기에 넣을 때보다 분류기에 넣을 때 이득이 더 컸다 — 우리도 GAN 부터 만들 이유가 없다는 근거",
+        "HERM 라인 관측 조건: PRF 6.4 kHz 에서는 블레이드 플래시 불가(팁속도 65.8 m/s 한계 vs 실제 100~150 m/s)라 긴 STFT 창을 썼다 — 우리 md-time-resolution-first 방침과 정면으로 반대되는 선택이므로, 우리 리포트에서 창 길이 규약을 논할 때 대조군으로 인용 가능",
+        "저자들의 '환경' 정의가 물리적 장면이 아니라 SINR 계층이라는 점 — 우리가 '다른 환경 일반화'를 주장할 때 같은 함정을 피해야 한다",
+        "참고문헌 [27][28] White et al.: 무표적 실측 배경을 시뮬 IQ 에 더하는 방식(=우리 바닥유령/클러터 주입 방식의 선행), [21] Rahman&Robertson thin-wire, [24] Moore&Robertson dynamic point clouds"
+      ]
+    },
+    "quotable": [
+      "\"we propose a physics-guided approach in which a semantic segmentation network trained only using low-fidelity computer aided design (CAD)-models of UAVs is integrated into the discriminator of a generative adversarial network (GAN) for training data synthesis, and on the front end of a DNN for classification.\" (초록)",
+      "\"When utilizing this data for training the deep learning networks discussed in Section VI-D and testing on the Low-SINR samples, it was observed that training with the low-fidelity models either with or without injected noise did not result in networks, which could classify the test set beyond random guessing.\" (§V-A, p.9882-9883)",
+      "\"It is interesting to note that the PhG-SS block offered greater benefits when integrated into the classifier than when utilized to improve the kinematic fidelity of GANs.\" (§VIII, p.9889)"
+    ]
+  }
+}

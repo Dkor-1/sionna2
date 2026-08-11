@@ -1,29 +1,29 @@
-# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 2026-08-11 03:27:56)
+# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 2026-08-11 04:27:59)
 
 ## 프로세스
 198615 bash -c for i in $(seq 1 144); do { echo "# RESUME_LIVE — 10분 자동 스냅샷 (수동 편집 금지, 갱신 $(date "+%F %T"))"; echo; echo "## 프로세스"; pgrep -af "report15b_microdoppler_recompute|experiment_freespace_sigma|rcs_same_span|hover_long" || echo "(없음)"; echo; echo "## GPU"; nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader; echo; echo "## 로그 후미"; for f in md15b3_meshfix sigma_force_m4e sigma_force_mini5 samespan sigma_chain; do echo "── $f.log:"; tail -2 /tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/$f.log 2>/dev/null; done; echo; echo "## git"; git -C /home/yunjung/workspace/sionna2 log --oneline -1; echo "미커밋 $(git -C /home/yunjung/workspace/sionna2 status --porcelain | wc -l)건"; } > /home/yunjung/workspace/sionna2/docs/RESUME_LIVE.md 2>&1; sleep 600; done
-1261774 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset legacy --sec 2.0 --tag _ou_legacy --shard 0 --nshards 8
-1262263 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset legacy --sec 2.0 --tag _ou_legacy --shard 1 --nshards 8
-1262873 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset legacy --sec 2.0 --tag _ou_legacy --shard 2 --nshards 8
-1263374 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset legacy --sec 2.0 --tag _ou_legacy --shard 3 --nshards 8
-1263980 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset legacy --sec 2.0 --tag _ou_legacy --shard 4 --nshards 8
-1264490 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset legacy --sec 2.0 --tag _ou_legacy --shard 5 --nshards 8
-1265012 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset legacy --sec 2.0 --tag _ou_legacy --shard 6 --nshards 8
-1265563 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset legacy --sec 2.0 --tag _ou_legacy --shard 7 --nshards 8
-1266069 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset sitl --sec 2.0 --tag _ou_sitl --shard 0 --nshards 8
-1267832 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset sitl --sec 2.0 --tag _ou_sitl --shard 1 --nshards 8
-1270370 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset sitl --sec 2.0 --tag _ou_sitl --shard 2 --nshards 8
-1272890 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset sitl --sec 2.0 --tag _ou_sitl --shard 3 --nshards 8
-1275014 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset sitl --sec 2.0 --tag _ou_sitl --shard 4 --nshards 8
-1276442 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset sitl --sec 2.0 --tag _ou_sitl --shard 5 --nshards 8
-1276906 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset sitl --sec 2.0 --tag _ou_sitl --shard 6 --nshards 8
-1277376 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset sitl --sec 2.0 --tag _ou_sitl --shard 7 --nshards 8
+1529606 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset indoor --sec 2.0 --tag _ou_indoor --shard 0 --nshards 8
+1530066 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset indoor --sec 2.0 --tag _ou_indoor --shard 1 --nshards 8
+1530725 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset indoor --sec 2.0 --tag _ou_indoor --shard 2 --nshards 8
+1531301 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset indoor --sec 2.0 --tag _ou_indoor --shard 3 --nshards 8
+1531827 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset indoor --sec 2.0 --tag _ou_indoor --shard 4 --nshards 8
+1532402 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset indoor --sec 2.0 --tag _ou_indoor --shard 5 --nshards 8
+1533025 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset indoor --sec 2.0 --tag _ou_indoor --shard 6 --nshards 8
+1533604 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset indoor --sec 2.0 --tag _ou_indoor --shard 7 --nshards 8
+1534210 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset outdoor --sec 2.0 --tag _ou_outdoor --shard 0 --nshards 8
+1534694 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset outdoor --sec 2.0 --tag _ou_outdoor --shard 1 --nshards 8
+1535379 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset outdoor --sec 2.0 --tag _ou_outdoor --shard 2 --nshards 8
+1535944 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset outdoor --sec 2.0 --tag _ou_outdoor --shard 3 --nshards 8
+1536649 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset outdoor --sec 2.0 --tag _ou_outdoor --shard 4 --nshards 8
+1537206 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset outdoor --sec 2.0 --tag _ou_outdoor --shard 5 --nshards 8
+1537701 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset outdoor --sec 2.0 --tag _ou_outdoor --shard 6 --nshards 8
+1538318 /home/yunjung/.venvs/py312/bin/python -W ignore benchmark/report07_hover_long.py --preset outdoor --sec 2.0 --tag _ou_outdoor --shard 7 --nshards 8
 
 ## GPU
-0, 18041 MiB, 100 %
-1, 23304 MiB, 100 %
-2, 21550 MiB, 100 %
-3, 17955 MiB, 100 %
+0, 23952 MiB, 100 %
+1, 23228 MiB, 100 %
+2, 21943 MiB, 100 %
+3, 22050 MiB, 99 %
 
 ## 로그 후미
 ── md15b3_meshfix.log:
@@ -43,5 +43,5 @@ HOVER_OUTDOOR_DONE 05:07:07
 SIGMA_MINI5_DONE 07:13:45
 
 ## git
-93e947c ⭐⭐시드 사다리 8 판 + 탐지 축 판정 — 내 수치 두 개 정정
+fd1c45f 로터 2 초 맵 샤딩 배선 + 시드 사다리 산출물
 미커밋 30건

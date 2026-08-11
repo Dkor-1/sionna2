@@ -1,7 +1,17 @@
 # 3GPP ISAC 표준 시나리오 — 원문 확정본
 
-**작성 2026-08-10 · 접근일 2026-08-10 · 전량 1차 자료(3GPP 원문 docx) 기반**
-기계판: `outputs/isac_standard_scenarios.json`
+**작성 2026-08-10 · 보충 2026-08-11 · 전량 1차 자료(3GPP 원문 docx) 기반**
+기계판: `outputs/isac_standard_scenarios.json` · **`outputs/isac_standard_gaps.json`**(보충분)
+
+> **2026-08-11 보충** — §⑨ 가 결손으로 남긴 **G3(XPR)**·**G4(UMa-AV)** 와 **TR 38.765 §9** 를
+> **§⑩·§⑪·§⑫** 에서 닫았다. TR 36.777 V15.0.0 을 새로 확보했다.
+> 세 줄 요약:
+> · **XPR 은 하나가 아니라 셋**이고(표적 13.75/7.07 + 전파 8/4·7/3), 전력영역 유효값은 **7.99 dB** 다.
+>   ±45 이중편파 기지국에서는 **유효 XPR 이 0 dB** 이며 단일편파 수신은 **3.010 dB** 를 잃는다.
+> · **UMa-AV 의 실체는 TR 36.777 B.1.3 «스톡 UMa + 라이시안 K = 15 dB»** 다. 표적 앙각 중앙
+>   **−38.1°**, 3D 거리 중앙 **242 m**, 그리고 **76.8 %** 가 우리 옛 σ 격자(el ≥ −20°) 밖이었다.
+> · **TR 38.765 의 병목은 정확도가 아니라 탐지다** — 정확도는 어디서나 1~4 m(목표 10 m)인데
+>   떨어진 건 전부 P_md·P_fa Type 2 다. 그리고 130 건 평가에 **바이스태틱은 0 건**이다.
 
 이 문서는 우리 저장소 기록을 쓰지 않고 3GPP 공개 문서(www.3gpp.org/ftp)에서 직접 내려받은
 원문만으로 작성했다. 인용은 전부 해당 docx 본문의 축자 문장이다(수식 기호는 OMML 에서 평문으로
@@ -466,9 +476,531 @@ RP-253012 (RAN#110, 2025-12) → V19.2.0 · RP-260166 (RAN#111, 2026-03) → V19
 |---|---|---|
 | **G1** | **UAV large/small 두 갈래**. 우리는 −12.81(소형·평평)만 M1 으로 쓴다 | 우리 편대의 **S1000+ (1.05 m 급)** 은 규격 기준 **large**(1.6×1.5×0.7 m) 쪽이라 −5.85 dBsm + 6섹터 각도의존이 맞는 대조군이다. 지금 M1 은 소형 5기 전부에 소형 상수를 먹이고 있다 |
 | **G2** | *"The same values are used for monostatic RCS and bistatic RCS"* (Table 7.9.6.2-1) | 우리가 «이등분선 모노스태틱 근사» 를 쓰는 것에 대한 **규격 선례**다(`PAPER_POSITION_0803.md` C5 의 방어논거). 안 쓰고 있었다 |
-| **G3** | XPR μ=13.75 dB, σ=7.07 dB (Table 7.9.2.2-1) | 편파 처리를 규격과 비교할 축 |
-| **G4** | **TR 38.765 / TR 22.837 / TS 22.137 / UMa-AV** 가 저장소 전체에 **0회 언급** | 우리는 «3GPP 표적모형» 은 알고 **«3GPP 시나리오»는 모르는** 상태였다. 배치·전력·격리·간섭 가정이 전부 여기 있다 |
+| **G3** | XPR μ=13.75 dB, σ=7.07 dB (Table 7.9.2.2-1) | 편파 처리를 규격과 비교할 축 → **✅ 2026-08-11 §⑩ 에서 닫음**(그리고 XPR 이 셋이라는 것이 드러남) |
+| **G4** | **TR 38.765 / TR 22.837 / TS 22.137 / UMa-AV** 가 저장소 전체에 **0회 언급** | 우리는 «3GPP 표적모형» 은 알고 **«3GPP 시나리오»는 모르는** 상태였다. 배치·전력·격리·간섭 가정이 전부 여기 있다 → **✅ 2026-08-11 §⑪·§⑫ 에서 닫음** |
 | **G5** | Rel-20 §9 결론(단일 TRP 3/11 · 다중 TRP 9/10) 및 자기간섭 격리 65/80 dB 유도 | §⑥ 의 부수 발견 2건 — **우리 논문에 바로 쓸 수 있는 규격 측 논거** |
 
 **정확 확인(변경 불필요) — 3건**: §④-2 표 상단 3행(σ_M 값·σ_S·주파수 무관·σ_RCS 3성분 구조·
 Step 10/15 주입점) 모두 원문과 일치.
+
+---
+---
+
+# 결손 3건 보충 (2026-08-11)
+
+**추가 작성 2026-08-11 · 접근일 2026-08-11 · 1차자료 3건을 새로 열어 읽었다**
+기계판: `outputs/isac_standard_gaps.json` (생성기 `benchmark/isac_standard_gaps.py`, GPU 미사용)
+
+§⑨ 가 «결손» 으로 남긴 것 중 **G3(XPR)·G4(UMa-AV 시나리오)** 와, `docs/PLAN_0818.md` 4층이
+지목한 **TR 38.765 §9** 를 여기서 닫는다. 위 §①~⑨ 에 이미 있는 것은 되풀이하지 않는다.
+
+이번에 새로 연 원문(전부 직접 내려받아 본문 추출):
+
+| 문서 | 판·날짜 | 이번에 읽은 절 | 비고 |
+|---|---|---|---|
+| **TR 38.901** | V19.4.0 (2026-06) | §7.9.2.1 · **§7.9.2.2** · **§7.9.3** · **§7.9.4.1 Step 10~15** · Table 7.5-6 | 수식은 OMML 을 직접 렌더해 위첨자·근호를 살렸다 |
+| **TR 38.765** | V20.0.0 (2026-06) | **§4 · §5 · §6 · §9 · Annex A** 전문 | §9 를 축자로 옮겼다 |
+| **TR 36.777** | V15.0.0 (2018-01) | **Annex B · B.1.1 · B.1.3** | Word-97 이진 .doc → 조각표 파서로 본문 추출 |
+
+---
+
+## ⑩ XPR — 규격의 편파 처리와 우리 스칼라 커널
+
+### ⑩-1 ⭐먼저 틀을 바로잡는다 — 규격의 σ 도 스칼라다
+
+우리는 «우리 커널이 무편파 스칼라라서 규격과 다르다» 고 적어 왔다. **틀린 대비다.**
+
+> **TR 38.901 §7.9.2.1 첫 문장 (축자):**
+> *"The RCS of a SPST is **a scalar value** defined in LCS of the ST and is dependent on
+> both the incident angle and the scattered angle."*
+
+규격도 σ 를 스칼라로 둔다. 편파는 σ 안에 있지 않고 **곱해지는 별도의 2×2 행렬**
+(cross-polarization matrix, CPM)에 있다. 즉 규격의 구조는
+
+```
+채널 = [수신 안테나 편파벡터]ᵀ · (CPM_rx · CPM_표적 · CPM_tx) · [송신 안테나 편파벡터] · √(전력)
+                                  └──────── 편파(무차원) ────────┘   └─ σ 가 여기 ─┘
+```
+
+**우리 결손은 «σ 가 무편파라서» 가 아니라 «CPM 이 아예 없어서» 다.** 이 구분이 중요한 이유는,
+전자는 σ 격자를 통째로 다시 계산해야 하는 문제로 들리고 후자는 **σ 는 그대로 두고 곱할 항을
+붙이는** 문제이기 때문이다. 규격이 이미 그렇게 인수분해해 두었다.
+
+### ⑩-2 CPM 의 정확한 모양 (원문 수식)
+
+> **eq 7.9.2-5 (UAV·사람·차량·AGV 공통, 축자 렌더):**
+> `CPM_sp,i = [[ exp(jΦ^θθ), √(κ⁻¹)·exp(jΦ^θφ) ], [ √(κ⁻¹)·exp(jΦ^φθ), exp(jΦ^φφ) ]]`
+>
+> **§7.9.4.1 Step 13 (축자):** *"The distribution for initial phases is uniform within
+> (−π, π)"* — 네 위상 **전부 독립**이다.
+>
+> **Table 7.9.2.2-1:** UAV **μ_XPR = 13.75 dB · σ_XPR = 7.07 dB** (로그정규)
+
+읽어야 할 세 가지.
+
+1. **동일편파 진폭이 1 로 고정**되어 있다(α=1). κ 는 오직 **교차편파 누설**의 크기다.
+2. **네 위상이 독립**이다 — 대각의 Φ^θθ 와 Φ^φφ 사이에 어떤 관계도 없다. 이게 §⑩-4 의
+   놀라운 결과를 낳는다.
+3. eq 7.9.4-4 는 이 3중곱을 **자기 대각의 RMS 로 나눈다**:
+   `÷ √((|d^θθ|² + |d^φφ|²)/2)`, 여기서 d 는 `CPM_rx·CPM_표적·CPM_tx` 의 대각 두 원소다.
+   → 편파 사슬은 **레벨을 안 나른다**. 레벨은 전부 σ 가 나른다.
+   ⭐ 이 «전력평균으로 정규화» 는 우리 `src/materials.py:276` 의
+   `g = √((|Γ_TE|²+|Γ_TM|²)/2)` 와 **구조가 같은 선택**이다. 층이 다를 뿐이다(경로 대 면).
+
+### ⑩-3 ⭐XPR 은 **하나가 아니라 셋**이다 — 우리 기록의 진짜 구멍
+
+§④ 는 Table 7.9.2.2-1 의 13.75/7.07 만 적었다. 그런데 eq 7.9.4-4 의 곱에는 CPM 이 **셋** 들어가고
+셋이 서로 다른 XPR 표를 쓴다.
+
+| 자리 | 식 | XPR 출처 | UAV·UMa 값 |
+|---|---|---|---|
+| `CPM_tx` (STX→산란점 링크의 레이) | eq **7.9.4-7** | **Table 7.5-6 Part-1, UMa 열** | LOS μ 8 · σ 4 dB / NLOS μ 7 · σ 3 dB |
+| `CPM_표적` (산란점 자체) | eq **7.9.4-6** | Table 7.9.2.2-1 | **μ 13.75 · σ 7.07 dB** |
+| `CPM_rx` (산란점→SRX 링크의 레이) | eq **7.9.4-8** | Table 7.5-6 Part-1, UMa 열 | LOS μ 8 · σ 4 dB / NLOS μ 7 · σ 3 dB |
+
+LOS 레이일 때만 링크 CPM 이 `[[1,0],[0,−1]]` 로 고정된다(§7.9.4.1 Step 14 축자).
+**즉 «3GPP 의 UAV XPR = 13.75 dB» 라고 쓰면 틀린다.** 그건 표적 항 하나이고, 전파 항 둘이 앞뒤로
+더 곱해진다. 우리 문서가 13.75 만 적어 온 것은 **결손이 아니라 부분인용**이었다.
+
+### ⑩-4 얼마나 큰가 — 정량 ⟨`outputs/isac_standard_gaps.json` : `xpr`⟩
+
+4×10⁶ 몬테카를로. 기준 0 dB = 정렬된 동일편파(V→V)에서 우리 스칼라 커널의 수신전력.
+해석식과 소수 셋째 자리까지 일치한다.
+
+**(가) μ 를 그대로 링크버짓에 쓰면 안 된다**
+
+| | 값 |
+|---|---|
+| Table 7.9.2.2-1 의 μ_XPR | 13.75 dB |
+| **전력영역 유효 XPR** = −10log₁₀ E[1/κ] | **7.99 dB** |
+| 차이 | **5.76 dB** |
+| P(XPR < 0 dB) — 완전 탈편파보다 나쁜 경로 | **2.59 %** |
+| P(XPR < 3 dB) | 6.40 % |
+| P(XPR > 20 dB) | 18.83 % |
+
+σ_XPR = 7.07 dB 의 로그정규 꼬리가 E[1/κ] 를 지배한다. **13.75 dB 는 «평균 XPR» 이지
+«전력이 실제로 나뉘는 비» 가 아니다.** 후자가 7.99 dB 다.
+
+**(나) ⭐⭐±45° 이중편파 기지국에서는 유효 XPR 이 0 dB 다**
+
+TR 38.765 Table 6.2-1 의 기지국 안테나는 축자로 *"dH,dV = (0.5, 0.8)λ, **+45°/−45° polarization**"*
+이다. 그 기저에서 위 CPM 을 통과시키면
+
+| 포트 | 3GPP CPM (κ~로그정규) | 3GPP CPM (κ=μ 고정) | 우리 스칼라 커널 |
+|---|---|---|---|
+| V → V (정렬 동일편파) | 0.000 dB | 0.000 dB | 0.000 dB |
+| V → H (교차편파) | **−7.99 dB** | −13.75 dB | **−∞** |
+| +45 → +45 (동일 슬랜트) | −2.37 dB | −2.83 dB | **0.00 dB** |
+| +45 → −45 (교차 슬랜트) | **−2.37 dB** | −2.83 dB | **−∞** |
+
+**두 슬랜트 포트가 같은 전력을 받는다 — κ 가 얼마든 상관없이.** 유효 XPR 0.0005 dB.
+이유는 κ 가 아니라 **대각의 두 위상이 독립**이라는 데 있다. Φ^θθ 와 Φ^φφ 가 무관하면
+±45 기저에서 합·차가 통계적으로 같아진다. 규격의 표적은 슬랜트 기저를 **완전히 흐트러뜨린다.**
+
+**(다) 그래서 단일편파 수신은 3.010 dB 를 잃는다**
+
+| | 두 포트 합 | 한 포트만 | 손실 |
+|---|---|---|---|
+| 3GPP CPM | +0.64 dB | −2.37 dB | **−3.010 dB** |
+| 우리 스칼라 커널 | 0.00 dB | 0.00 dB | **0.000 dB** |
+
+우리 커널은 «동일편파 포트 하나로 전부 받는다» 고 말하고, 규격은 «절반은 직교 포트에 있다» 고
+말한다. **총 전력은 0.64 dB 밖에 안 다른데 그 전력이 어느 포트에 있느냐가 완전히 다르다.**
+
+### ⑩-5 우리 커널의 결손이 정확히 어디인가
+
+`src/materials.py:259-279` 는 면마다 **프레넬 두 편파를 실제로 계산해 놓고** 276 행에서
+전력평균해 버린다(`g = √((|Γ_TE|²+|Γ_TM|²)/2)`). 3.5 GHz 에서 버려지는 대비
+⟨`isac_standard_gaps.json` : `our_kernel_polarisation`⟩:
+
+| 재질 | 30° | 60° | 75° | 최대 \|대비\| | 그 각도 | 전력평균이 TE 대비 | TM 대비 |
+|---|---|---|---|---|---|---|---|
+| plastic / plastic_blue / prop_plastic | +3.24 | +28.45 | +6.72 | **+37.63 dB** | 58.8° | +3.01 dB | **−34.62 dB** |
+| carbon | +0.03 | +0.15 | +0.36 | +7.62 dB | 89.5° | +2.32 dB | −5.30 dB |
+| absorber | +1.54 | +6.84 | +7.29 | +8.19 dB | 69.2° | +2.40 dB | −5.79 dB |
+
+(metal·pcb·camera_assembly 는 `itu="metal"` PEC 근사라 대비 0 dB.)
+
+⚠ **이 수를 표적 σ 의 오차로 읽으면 안 된다.** 브루스터 널은 각도폭이 좁고, 표적은 수많은 면의
+합이라 대부분 평균된다. **표적 전체에 얼마가 남는지는 편파 커널이 없어서 측정하지 못했다 —
+모른다.** 위 표는 **면 단위 상한**이다.
+
+⛔ 그리고 이 대비는 **3GPP κ 와 나란히 못 놓는다.** 위는 동일편파 두 성분의 비(S_θθ 대 S_φφ)이고
+3GPP κ 는 교차편파 누설(|S_θφ|²/|S_θθ|²)이다. 우리 커널에는 **S_θφ 를 만드는 경로가 없다** —
+면마다의 국소 TE/TM 이 전역 (θ,φ) 기저로 회전·합성되지 않기 때문이다.
+**우리 XPR 은 «높다» 가 아니라 «정의되지 않는다».** 논문에 수를 적을 자리가 아니다.
+
+### ⑩-6 판정 — 지금 말할 수 있는 것과 없는 것
+
+**말할 수 있는 것**
+- 우리 σ 는 **동일편파 σ** 다. 규격의 σ 도 스칼라이므로 이 자리에서는 어긋나지 않는다.
+- 3GPP 와 정합하는 이중편파 기지국을 상대로 우리 링크버짓을 비교하면 **단일편파 수신은
+  −3.010 dB** 를 물어야 한다. 우리 사다리(③′ `snr_slow_ac_db`)에는 **편파 항이 아예 없다.**
+  → 이건 «시나리오 행» 으로 넣을 수 있다. 커널을 안 고쳐도 된다.
+- 3GPP 표적 XPR 을 인용할 때는 **7.99 dB**(전력영역)를 쓰고 13.75 는 μ 라고 밝힌다.
+
+**말할 수 없는 것 (모른다)**
+- 우리 표적의 실제 XPR — 커널에 그 자유도가 없다. **추정치도 내지 않는다.**
+- 편파가 우리 σ 절대레벨에 얼마를 더하는지 — `docs/ENGINE_VALIDATION.md:107` 이 이미
+  *"우리 값이 VV 측정보다 낮게 나온 것을 편파로는 설명하지 못한다"* 고 방향만 못 박아 두었다.
+  이번 라운드가 그 문장을 바꾸지 않는다.
+- 편파 특징이 분류(드론 대 새)에 얼마나 기여하는지 — 우리 분류는 마이크로도플러 단독이다.
+
+**닫으려면 무엇이 필요한가** (⛔이번 라운드에서 하지 않았다)
+- 값싼 쪽: 커널은 그대로 두고 **«우리 σ = 동일편파 σ» 선언 + 단일편파 −3.01 dB 시나리오 행**.
+- 진짜 쪽: `src/rcs_sbr.py` 의 누산기가 지금 **복소 스칼라 `E`** 다(`rcs_sbr.py:335, 515`).
+  이걸 2×2 로 올리고, 면마다 국소 TE/TM 기저를 전역 (θ,φ) 로 회전시켜 코히어런트 누산해야 한다.
+  프레넬 두 갈래는 **이미 있다**(`materials.py:259-268`) — 없는 것은 **기저 회전과 2×2 누산**이다.
+  σ 격자 전면 재계산이 따라온다(`docs/PAPER_DRAFT.md:569` 가 ≈23 h GPU × 2편파로 견적).
+
+---
+
+## ⑪ UMa-AV — 시나리오의 실체와 우리 기하와의 차이
+
+### ⑪-1 ⭐UMa-AV 는 TR 38.901 에 없다 — TR 36.777 로 나간다
+
+§⑤ 는 UMa-AV 를 «시나리오 이름» 으로만 적었다. 실체는 **Rel-15 항공 UE 연구(TR 36.777)** 에 있고
+ISAC 은 그것을 **참조로 끌어다 쓴다.**
+
+> **TR 38.901 Table 7.9.3-1 Case 4 (TRP ↔ aerial UE, 축자):**
+> *"TRP-aerial UE link of scenario UMa-AV, UMi-AV, and RMa-AV in Clause **Annex A and B of
+> TR 36.777** for FR1 / Reuse the channel model of scenario UMa-AV, UMi-AV, and RMa-AV of FR1
+> for FR2"*
+>
+> **TR 38.901 Table 7.9.3-2:** STX/SRX = TRP, Target = UAV → **Case 4**.
+>
+> **TR 38.765 Annex A Table A-1 (축자):** *"gNB-target link | TRP-UAV link in Table 7.9.3-2 in
+> TR 38.901, using **Clause B.1.3 in TR 36.777**"*
+
+즉 사슬은 **TR 38.765 → TR 38.901 §7.9.3 Case 4 → TR 36.777 Annex B.1.3** 이다.
+
+### ⑪-2 ⭐⭐B.1.3 의 전문 — 한 줄이다
+
+> **TR 36.777 §B.1.3 Alternative 3 (축자, 전문):**
+> *"In this alternative, for RMa-AV aerial UEs, UMa-AV aerial UEs, and UMi-AV aerial UEs, the
+> fast fading model in Section 7.5 of [4] is used with **K=15 dB**. In this alternative, all the
+> remaining parameters are reused from [4], including the delay and angular spreads, the
+> cross-correlations among the LSPs, the delay scaling factor, **the XPR**, the number of
+> clusters, the cluster delay and angular spreads, the per-cluster shadowing, and the LSP
+> autocorrelation distances."*
+
+**Rel-20 이 UAV 링크에 쓰는 채널모델의 전부가 «스톡 UMa 에 라이시안 K 를 15 dB 로 못 박은 것»
+이다.** 그리고 *"the XPR"* 이 재사용 목록에 명시돼 있다 → §⑩-3 의 전파 XPR(UMa LOS 8/4 ·
+NLOS 7/3 dB)이 여기서 확정된다.
+
+참고로 다른 두 대안(Rel-20 은 안 쓴다)도 같은 방향을 가리킨다.
+
+| 대안 | UMa-AV LOS | UMa-AV NLOS |
+|---|---|---|
+| **B.1.1 (Alt 1, CDL-D 기반)** | ASA/ASD **0.5°**, ZSA/ZSD **0.1°**, K **20 dB**, DS **10 ns** | ASA/ASD 1°, ZSA/ZSD 0.3°, K 10 dB, DS 30 ns |
+| **B.1.2 (Alt 2)** | **못 읽었다** — 값이 OLE Equation 개체(그림)로 박혀 있다 | 〃 |
+| **B.1.3 (Alt 3)** ← Rel-20 채택 | 스톡 UMa + **K = 15 dB** | 스톡 UMa + K = 15 dB |
+
+⭐ **읽어야 할 것**: 어느 대안을 골라도 공중링크는 **거의 단일 광선**이다. K 15~20 dB,
+각도확산 0.1~1°, 지연확산 10~30 ns. 규격은 «도심 매크로» 라는 이름을 달고 있지만 표적으로 가는
+다리는 사실상 자유공간에 가깝다.
+
+**우리에게 유리한 정량 하나.** K = 15 dB 면 정반사 성분이 K/(K+1) = **96.94 %** 다.
+우리는 표적 링크를 자유공간(K = ∞)으로 놓는다. 그 차이는 코히어런트 성분을 **+0.135 dB**
+과대평가하는 것뿐이다. ⚠ 단, 나머지 **3.06 %** 는 사라지는 게 아니라 **이웃 지연·도플러 칸으로
+퍼지는 성분**이다 — 그건 신호 항이 아니라 클러터 항이고, 우리 자유공간 팔에는 그 항이 없다.
+0.135 dB 는 «작다» 가 맞고, 빠진 3.06 % 는 «다른 종류» 다. 둘을 섞어 읽으면 안 된다.
+
+### ⑪-3 표적 드롭 기하 — 계산해서 우리 축에 겹쳤다
+
+TR 38.765 Annex A Table A-1 의 baseline 그대로 몬테카를로(N ≈ 6.7×10⁵)
+⟨`outputs/isac_standard_gaps.json` : `umaav_geometry`⟩:
+ISD 500 m 육각셀의 한 섹터에 균등, 고도 균등 25~300 m, gNB 25 m, 최소 3D 거리 10 m.
+
+| 양 | p5 | 중앙 | p95 | 최대 |
+|---|---|---|---|---|
+| 2D 거리 | 59.0 m | **185.6 m** | 258.8 m | 288.6 m |
+| 고도 | 38.8 m | 162.7 m | 286.3 m | 300 m |
+| **3D 거리** | 112.7 m | **242.3 m** | 338.1 m | **397.0 m** |
+| **앙각**(우리 규약, belly = 음수) | −69.7° | **−38.1°** | −4.5° | −89.9° |
+
+⭐ **결과 1 — 규격의 UAV 는 «위» 에 있다.** gNB 안테나가 25 m 이고 표적 고도 하한이 **똑같이
+25 m** 라, baseline 에서는 **표적이 안테나보다 낮은 경우가 없다** → 규격 시나리오는 **전부
+배면(belly) 조망**이다. 우리 σ 격자의 음수 el 규약이 바로 그 기하다.
+⚠ 단 Table A-1 은 *"optionally between **1.5 m** and 300 m"* 라는 옵션도 둔다. 그 옵션에서는
+표적이 안테나 아래로 내려가 **정면·상면 조망**이 생기고, **우리 σ 격자에는 양수 el 행이 없다**
+(`el_note` 축자: *"NEGATIVE el only (belly view)"*). 옵션 쪽은 **우리가 못 덮는다.**
+
+⭐ **결과 2 — 우리 el 확장 라운드가 «있으면 좋은 것» 이 아니었다.**
+
+| 구간 | UMa-AV 표적 비중 |
+|---|---|
+| el ∈ (0, −20]° — 2026-08-03 기본 행 | **23.2 %** |
+| el < −20° — el 확장 라운드 행(−24 … −90°) | **76.8 %** |
+| el < −57° — 전 기체·전 밴드가 클램프행보다 밝은 구간 | 15.5 % |
+
+**규격 시나리오의 4분의 3 이 옛 9행 격자 밖이었다.** 옛 −20° 클램프의 오차를 UMa-AV 앙각 분포로
+가중하면 ⟨`outputs/sigma_el_extend_verify.json` : `clamp_direction`⟩
+
+| | 값 |
+|---|---|
+| UMa-AV 분포 가중 평균 편향 | **−0.03 dB** |
+| 조회 하나하나의 rms | **6.23 dB** |
+| 방위평균 레벨만(계통 성분) rms | 2.23 dB |
+| 최대 \|오차\| | 32.79 dB |
+
+⭐ 읽는 법: **옛 클램프는 «레벨 편향» 이 아니라 «산포» 였다.** 얕은 각의 음의 편향과 급한 각의
+양의 편향(−71°에서 +4.07 dB, −90°에서 +7.97 dB)이 평균에서 상쇄된다. 그래서
+«평균은 맞는데 표적 하나하나는 rms 6.2 dB 틀린» 상태였다. 검출은 평균이 아니라 개체로 하므로
+이건 실질적인 결함이었고, el 확장이 그걸 닫았다.
+
+⭐ **결과 3 — 거리축은 우리가 규격에 한참 못 미친다.**
+
+| 기체 | R90 (EIRP 12 dBm, chamber) | UMa-AV 표적 중 그 안에 드는 비율 | R90 (EIRP 63 dBm 로 환산) | 비율 |
+|---|---|---|---|---|
+| mavic4pro | 72.5 m | **1.32 %** | 1366 m | 100 % |
+| s1000plus | 51.2 m | 0.46 % | 964 m | 100 % |
+| matrice4e | 22.1 m | 0.03 % | 416 m | 100 % |
+| mini5pro | 15.7 m | 0.01 % | 297 m | 81.5 % |
+| phantom4 | 15.4 m | 0.01 % | 290 m | 78.5 % |
+
+⟨R90 = `outputs/md_snr_vs_range.json` : `observability_measured`⟩. 환산은 단일정적 1/R⁴ 에서
+R ∝ EIRP^(1/4) → 배율 18.84×.
+⚠ **63 dBm 과 규격의 52/37 dBm 은 직접 비교 금지.** 규격 값은 **도통 전력**이고 배열 이득은
+ITU-R M.2412 Table 9 패턴에 맡겨져 있다. 우리 63 dBm 은 EIRP 선언값이다. 두 수의 차를 «이득» 이라
+읽으면 안 된다. 여기서 말할 수 있는 것은 **«챔버급 12 dBm 으로는 규격 시나리오의 1 % 도 못 본다,
+매크로급 조명이면 대부분 본다»** 는 자릿수 판정뿐이다.
+
+### ⑪-4 ⭐우리 설정과 UMa-AV 의 차이표
+
+| 항목 | 3GPP UMa-AV (TR 38.765 baseline) | 우리 | 판정 |
+|---|---|---|---|
+| **모드** | gNB 모노스태틱 | 패시브 바이스태틱 | **다르다** — §⑥ 판정 그대로 |
+| 반송파 | **4 또는 4.9 GHz** (옵션 6) | 1.8 / **3.5** / 5.2 GHz | 다르다. 규격 σ 는 주파수 무관이라 규격 쪽은 영향 없고, **우리 σ 는 주파수 의존**이라 우리 쪽만 값이 달라진다 |
+| 대역폭 | FR1 **100 MHz** | 5G NR **100 MHz** (LTE 20 · WiFi 80) | **5G 팔은 일치** |
+| Numerology | **SCS 30 kHz** | 5G NR **30 kHz** ⟨`src/waveforms.py:46`⟩ | **일치** |
+| 거리분해능 ΔR = c/2B | (목표는 정확도 10 m) | **1.50 m** (100 MHz) · 7.50 m (LTE) · 1.88 m (WiFi) | 우리가 목표보다 촘촘하다 |
+| 배치 | 육각 7 사이트 × 3 섹터, **ISD 500 m** | 단일 Tx–Rx 쌍, 베이스라인 **L = 0 / 10 / 500 m** ⟨`outputs/mono_link.json` : `placements`⟩ | **다르다** — 우리는 셀룰러 배치를 안 쓴다. L=500 m 만 규격 ISD 와 우연히 같다 |
+| Tx 높이 | **25 m** (UMa-AV) | 야외 사이트 미확정 · 챔버 천장 11 m | **모른다** — 야외 실증 기하가 아직 안 정해졌다 |
+| 표적 고도 | 균등 **25~300 m** | φ 스윕에서 **60 m · 120 m** ⟨`outputs/sigma_el_extend_verify.json` : `pools`⟩ | 규격 범위 **안**에 든다(두 점만 쓴다) |
+| 표적 앙각 | 중앙 **−38.1°**, 76.8 % 가 −20° 아래 | σ 격자 el 23행 **0 … −90°** | **덮는다**. 다만 4분의 3 이 확장 행에 의존한다 |
+| 최소 Tx–표적 3D | **10 m** | 거리 격자가 **1 m** 부터 ⟨`md_snr_vs_range.json` : `R_m`⟩ | ⚠ 우리 R = 1 · 2 · 5 m 행은 **규격이 안 보는 구간**이다. 규격과 나란히 놓을 때 빼야 한다 |
+| 표적 수 | 섹터당 **N = 5** (옵션 1~10, N=0 은 오경보용) | 단일 표적 | **다르다**. 오경보 Type 2(표적 있는데 다른 것을 잡음)를 우리는 잴 수 없다 |
+| 표적 크기 | 소형 **0.3×0.4×0.2 m** 단일 | 5기체, mini5pro~s1000plus(1.05 m급) | s1000plus 는 규격 기준 **대형**(§⑨ G1) |
+| σ 모형 | −12.81 dBsm **상수**, 자세·주파수 무관, 단일 산란점 | az 120 × el 23 × 3밴드 격자, 다면 PO/SBR | 우리가 훨씬 촘촘하다. ⚠ 단 우리 σ 는 `NOT_VALIDATED` ⟨`outputs/das_fleet_validation.json`⟩ |
+| **편파** | 표적 CPM(XPR 13.75/7.07) × 전파 CPM(8/4·7/3) · BS **±45° 이중편파** | 무편파 스칼라, CPM 없음 | **결손** — §⑩. 단일편파 수신이면 3.01 dB |
+| 링크(공중) | 스톡 UMa 소규모페이딩 + **K = 15 dB** | 자유공간 (K = ∞) | 코히어런트 성분 **+0.135 dB** 과대. 확산 3.06 % 는 **우리 모형에 없다** |
+| 이동성 | 수평 **0~180 km/h** 균등, **수직 0** | 호버 + 로터 회전 | **직교한다** — §⑪-5 |
+| CPI | 보고된 값 **≤ 160 ms** ⟨TR 38.765 §6.3⟩ | **250 ms** (L=5000 @ PRF 20 kHz) | 같은 자릿수. 우리가 조금 길다 |
+| 자기간섭 | **−94+X dBm in 100 MHz**, X 는 회사 보고 | 항 없음(패시브) | 우리 구조의 이점 — §⑥ 부수발견 2 |
+| 간섭(사이트간·섹터간·인접채널) | **전부 미모델링** | 미모델링 | **일치**(둘 다 안 한다) |
+
+### ⑪-5 ⭐⭐규격에는 로터가 없다 — 기계 검색 결과
+
+전문 검색(대소문자 무시):
+
+| 낱말 | TR 38.901 | TR 38.765 |
+|---|---|---|
+| `rotor` | **0** | **0** |
+| `blade` | **0** | **0** |
+| `propeller` | **0** | **0** |
+| `micro-Doppler` / `micro Doppler` | **0** | **0** |
+| `micro motion` | **1** | **0** |
+
+그 유일한 1회가 이것이다.
+
+> **TR 38.901 eq 7.9.4-5 아래 정의 (축자):**
+> *"v_k,p(t) is the velocity of SPST p of ST k, **v_k,p(t) = v_ma,k(t) + v_mi,k,p(t)**, where
+> v_ma,k(t) is the velocity of the ST k, **v_mi,k,p(t) is velocity due to micro motion of SPST p
+> of ST k**."*
+
+**규격은 마이크로도플러의 «자리» 만 만들어 놓고 값을 한 번도 채우지 않는다.**
+분포도, 표도, 기본값도 없다. 그리고 소형 UAV 는 RCS model 1 — **단일 산란점 · σ_D ≡ 1**
+(Table 7.9.2.1-1 제목 축자: *"Parameters on RCS for the STs with **angular independent**
+monostatic RCS values"*)이므로 v_mi 를 넣을 산란점 자체가 하나뿐이다.
+
+⭐ **정리하면 3GPP 의 소형 UAV 표적은 «회전하지 않는 등방 점» 이다.** 이것이 우리 과제가
+서 있는 빈칸이고, §⑥ 의 포지셔닝 문장에 **한 줄 더 붙일 수 있는 근거**다 —
+지금까지 우리는 «모드가 규격 밖» 이라고만 논증했는데, **표적 모형에도 우리가 쓰는 축이 통째로
+비어 있다**는 것이 이번에 확인됐다.
+⚠ 정직하게: 이건 «3GPP 가 틀렸다» 가 아니다. Rel-19/20 의 목표는 **검출·측위**이지 분류가
+아니고, 그 목표에는 등방 점이면 충분하다. 우리 주장은 «규격이 부족하다» 가 아니라
+**«우리가 쓰는 축이 규격에 정의돼 있지 않아 규격 위에서 비교할 대상이 없다»** 여야 한다.
+
+### ⑪-6 못 읽은 것 (⛔추측으로 안 메웠다)
+
+| 대상 | 상태 | 영향 |
+|---|---|---|
+| TR 36.777 **Table B-1 (LOS 확률 식)** · **B-2 (경로손실 식)** · **B-3 (섀도잉 표준편차)** 의 수식·적용범위 | **못 읽었다** — Word-97 .doc 안에 **OLE Equation 3.0 개체(그림)** 로 박혀 있어 본문 추출로 안 나온다 | 중. UMa-AV 의 LOS 확률과 경로손실을 **우리가 직접 못 옮긴다**. 읽어 낸 것은 표의 **말** 부분뿐이다 |
+| ETSI 발행 TR 136 777 PDF | **없다** — `etsi.org/deliver/.../136777/15.00.00_60/` 404 | 위 항목의 우회로가 막혔다 |
+| B-2 Note 1 의 «breakpoint 없음» 적용범위 | 문장은 읽었다: *"For UMa-AV LOS, breakpoint distance is not observed for the aerial UE height range […] and 2D distance range […]"* — **대괄호 안이 그림**이다 | 소. «항공 UE 구간에서 UMa-AV LOS 는 단일기울기» 라는 **방향**은 확정, **범위는 모른다** |
+| Rel-20 평가 원자료 **R1-2601668**(결과) · **R1-2601669**(가정) · **R1-2601610**(엑셀) | **미확보** | 중. §⑫-3 의 «어느 소스가 왜 실패했나» 를 항목별로 못 본다 |
+
+---
+
+## ⑫ TR 38.765 — §9 결론과, 그 앞이 우리에게 요구하는 것
+
+§③-3 에 §9 요지가 이미 있다. 여기서는 **축자 전문**과, 우리가 안 읽고 있던 §4·§5·§6 을 더한다.
+
+### ⑫-1 §9 전문 (축자)
+
+> *"The performance for UAV sensing use case with gNB monostatic sensing is evaluated based on
+> the evaluation assumptions in Annex A (including UMa-AV, Sensing Tx/Rx operating
+> simultaneously, FR1) … Among all the reported evaluation results as captured in Annex B,*
+> - *Baseline 1 (high BS TX power 52dBm with 80dB antenna isolation)*
+>   - *By utilizing measurements from multiple or all TRPs, results from **9/10 sources** achieve
+>     the performance objectives.*
+>   - *By utilizing measurements from single TRP, results from **3/11 sources** achieve the
+>     performance objectives.*
+> - *Baseline 2 (low BS TX power 37dBm with 65dB antenna isolation)*
+>   - *multiple or all TRPs: **7/9 sources**. single TRP: **2/9 sources**.*
+>
+> *Due to its higher transport capacity requirement, **Measurement level A is not supported**.
+> … **Level C is agreed for specification** in a potential future normative phase. Whether it is
+> possible to also support **Level D depends on the resolution of potential privacy and security
+> issues** by the appropriate WG(s).*
+> *Coordination with **SA3** is expected in order to resolve potential privacy and security
+> issues, if any.*
+> ***RAN3 aspects of sub-options for all measurement levels have not been discussed.***
+> *Three different protocol stacks for sensing data transmission have been evaluated.
+> **Option 1 (SCTP-based)** should be adopted in a potential future normative phase.*
+> *For control plane signaling, a **dedicated application protocol between gNB and SenF (NsAP)**
+> should be adopted …"*
+
+§③-3 에 없던 것 넷: **SA3 조율(프라이버시·보안)** · **RAN3 미논의 자인** · **SCTP** · **NsAP**.
+그리고 Annex B 가 원자료를 **R1-2601668 / R1-2601669** 로 넘긴다(§⑪-6 미확보).
+
+### ⑫-2 §4 — 성능지표의 **정의**가 우리 지표와 다르다
+
+우리 기록에는 목표값(5 % / 10 m / 5 m/s)만 있었다. 정의가 더 중요하다.
+
+- **오검출 P_md** = `Σ_n (D_n / M_n) / N`, D_n = 검출객체와 **연결되지 않은** 참표적 수.
+- **오경보 Type 1** = 표적이 **없는** 드롭에서 무언가를 잡을 확률. 드롭 단위 0/1.
+- **오경보 Type 2** = 표적이 **있는** 드롭에서 참표적과 **연결되지 않은** 검출객체의 비율.
+  *"NOTE: Both False alarm probability types are mandatory."*
+- **연결(association) 규칙** (축자): *"One true target is associated with at most one detected
+  object. One detected object is associated with at most one true target."* 그리고
+  *"Companies should report the method used for association."*
+
+⭐⭐ **그리고 이 한 줄이 우리에게 직격이다.**
+
+> **§4.1 (축자):** *"**Sensing resolution, sensing service latency and refreshing rate are not
+> considered as performance metrics** for the evaluation of NR ISAC."*
+
+우리 리포트 11권은 **분해능**을 성능처럼 다룬다(제목이 «저속·분해능·관측»이다).
+규격은 분해능을 **성능지표에서 뺐다** — 분해능은 수단이고 성능은 P_md·P_fa·정확도라는 뜻이다.
+⚠ 이건 «우리가 틀렸다» 가 아니다. 우리 분해능 절이 **성능 주장이 아니라 관측가능성 진단**이라는
+것을 문장으로 못 박으라는 요구다. 규격과 나란히 놓을 표에는 **P_md·P_fa1·P_fa2·정확도**만 올라간다.
+
+⚠ 우리에게 **P_fa Type 2 가 아예 없다** — 표적이 하나뿐인 시뮬에서는 정의되지 않는다(§⑪-4).
+규격은 두 Type 을 **둘 다 필수**로 못 박았다. 다표적 드롭 없이는 규격 형식으로 보고할 수 없다.
+
+### ⑫-3 §6 결과 — ⭐병목은 정확도가 아니라 **탐지**다
+
+§9 는 «몇 소스가 통과했나» 만 말한다. §6.3 은 **무엇 때문에 떨어졌나**를 말한다.
+총 **130 건**(baseline 1 = 46 · baseline 2 = 29 · 기타 = 55)이 보고됐다.
+
+**Case 1-4 (단일 TRP · 자원비 ≤10 % · 광폭빔), 20 건 / 6 소스** — 통과는 3 건 / 1 소스뿐이고
+그것도 자기간섭을 **끈**(X = −Inf) 조건이다. 떨어진 17 건의 실패 항목:
+
+| 실패 항목 | 보고된 범위 |
+|---|---|
+| 오검출 P_md (목표 5 %) | **9.21 ~ 23.05 %** (일부 5.17~12.40 %) |
+| 오경보 Type 2 (목표 5 %) | **6.03 ~ 36.41 %** (일부 5.70~8.10 %) |
+| 수평 정확도 (목표 10 m) | 통과 사례 **2.45 ~ 3.73 m** |
+| 수직 정확도 (목표 10 m) | 통과 사례 **1.28 ~ 1.95 m** |
+
+⭐ **정확도는 어디서도 문제가 아니다** — 통과·실패를 가리지 않고 1~4 m 로 목표 10 m 를 크게
+밑돈다. 떨어뜨린 것은 **전부 P_md 와 P_fa Type 2** 다.
+**«gNB 모노스태틱 UAV 센싱의 구속조건은 측위가 아니라 탐지»** 라고 규격 문서가 자기 숫자로
+말하고 있다. 우리 프로젝트가 [[sionna2-main-task-detection]] 으로 탐지·분류에 집중한 판단이
+**규격 측 근거를 얻었다.**
+
+⭐ **클러터를 켜면 무너진다** (§6.3.1, 소스 [19] 1건, 축자):
+*"The result is generated with **clutter mobility and low power clusters enabled**."*
+→ 수평 정확도 11.1 m · **P_md 20.00 % · P_fa Type 1 91.00 % · P_fa Type 2 79.00 %**.
+우리 report09(바닥 유령)의 서사 — **정적 클러터가 아니라 «움직이는 클러터 + 약한 클러스터»가
+오경보를 만든다** — 와 같은 방향이고, 이쪽은 규격 문서의 수치다.
+
+⭐ **속도축이 모노스태틱에서 갈린다.** 다중 TRP 팔은 **3D 속도** 정확도를 보고하고(0.35~0.58 m/s),
+단일 TRP 팔은 **반경방향(radial) 속도**만 보고한다(3.08~4.63 m/s). 그리고 한 소스는 3D 속도
+**52.19~56.28 m/s** 로 목표 5 m/s 를 크게 못 맞춰 그 항목만 떨어졌다(Case 1-1).
+§4.1 축자가 그 이유를 적어 둔다: *"For single TRP monostatic sensing, both the radial velocity
+accuracy and the 3D velocity accuracy can be estimated. The true radial velocity is the
+projection of true 3D velocity on the direction from TRP to target."*
+→ **단일 노드는 시선방향 성분밖에 못 잰다.** `outputs/mono_link.json` 의 «모노의 이점은
+링크버짓이 아니라 속도축» 판정과 **맞물린다**(그쪽은 PRF 통제권, 이쪽은 3D 복원 불가).
+
+⭐ **바이스태틱 평가는 0 건이다.** 130 건 전부 gNB 모노스태틱이고, 문서 전체에서 `bistatic` 은
+**단 1회** 나온다 — 아키텍처 적용가능성 문장(*"Applicability to gNB bistatic sensing may be
+considered … without additional architecture impacts"*)뿐이다.
+**Rel-20 성능평가에 바이스태틱 수치는 존재하지 않는다.** 우리가 «규격 결과와 비교» 할 때
+비교 상대가 모노스태틱밖에 없다는 뜻이고, 동시에 **그 자리가 비어 있다**는 뜻이다.
+
+### ⑫-4 §6.2 · Annex A — 규격이 **회사 재량으로 남긴** 것
+
+이게 우리에게 가장 실용적이다. 규격은 다음을 **고정하지 않고 «회사가 보고하라»** 고 한다
+(Annex A 축자 목록에서):
+
+- **CPI 길이** · **Tx 빔 구성**(개수·광폭/협폭) · **센싱 RS 의 RE 매핑**과 TDD 설정 ·
+  **센싱 자원비** · **상위 신호처리 방법**(*"e.g., 2D FFT, MUSIC, and any other methods"*) ·
+  자기간섭 모델의 **X** 값 · 표적을 단일/다중/전체 STX-SRX 채널 중 어디에 모델링하는지 ·
+  다중 리포트를 어떻게 융합하는지 · 연결(association) 방법.
+
+⭐ 두 방향으로 읽힌다.
+1. **우리 선택이 규격 위반이 아니다.** ECA→CAF→CFAR, CPI 250 ms, 다중 Rx 융합 — 전부
+   규격이 «회사 재량» 이라고 적어 둔 칸이다. 방법을 정당화할 필요는 없고 **보고**하면 된다.
+2. **대신 반드시 보고해야 한다.** 지금 우리 리포트가 저 목록 중 **명시적으로 적지 않는 것**이
+   있다면 규격 형식의 비교표에 못 올린다.
+
+그리고 **센싱 자원비**는 정의까지 주어져 있다(§6.2 축자): Type_1(센싱 송신에 쓴 자원) ·
+Type_2(그중 통신에도 쓰인 부분) · Type_3(센싱 때문에 통신에 못 쓰는 자원),
+Option 1 = (T1+T3)/전체, Option 2 = (T1−T2+T3)/전체, **둘 다 보고**.
+⭐ 우리 report05 의 «점유 대가 18 dB» 축과 **같은 것을 재는 다른 자» 다. 규격 정의로 환산해
+두면 우리 점유 논의를 규격 독자에게 그대로 넘길 수 있다. ⛔ 지금은 환산 안 했다.
+
+### ⑫-5 §5 — 측정 레벨이 곧 «무엇을 내보낼 수 있나»
+
+Level A(원시 CIR/주파수 샘플) · B(지연·도플러·각 프로파일) · C(검출 경로/점) · D(객체).
+결론은 **A 미지원 · C 규격화 · D 조건부**(§⑫-1).
+
+⭐ 우리에게 무엇을 뜻하나: **패시브 수신기는 이 사다리 밖에 있다.** 우리는 자기 안테나에서
+Level A 를 직접 잡는다 — 망이 A 를 «전송 부담이 커서 지원하지 않는다» 고 결론 낸 바로 그
+데이터다. 즉 **«망이 못 내주기로 한 것을 우리는 갖고 있다»** 가 성립하고, 이건
+§⑥ 의 포지셔닝에 붙일 수 있는 새 논거다.
+⚠ 단 대가도 규격 문장으로 있다 — Level A 를 안 쓰기로 한 이유가 **전송 용량**이므로,
+우리 구조의 대가는 «수신단에서 다 처리해야 한다» 는 것이다(중앙 융합이 공짜가 아니다).
+
+---
+
+## ⑬ 이번 라운드가 §⑨ 표에 미치는 변경
+
+| ID | 이전 상태 | 지금 |
+|---|---|---|
+| **G3** (XPR) | 결손 | **닫힘 → §⑩.** 다만 «XPR 이 셋» 이라는 것이 새로 드러났고, 우리 쪽 값은 **정의되지 않는다**로 확정 |
+| **G4** (TR 38.765 / UMa-AV 시나리오) | 결손 | **닫힘 → §⑪·§⑫.** UMa-AV 의 실체는 TR 36.777 B.1.3 «스톡 UMa + K=15 dB» 였다 |
+| **G1** (UAV large/small 두 갈래) | 결손 | **그대로 열려 있다** — s1000plus 대조군 아직 안 만듦 |
+| **G2** (모노=바이 동일값 선례) | 결손 | `docs/PAPER_POSITION_0803.md` C5 에 반영됨(2026-08-10) |
+| **G5** (Rel-20 §9 결론·격리 유도) | 결손 | `docs/PAPER_POSITION_0803.md` P1·P2 에 반영됨. **§⑫-3 이 «왜 떨어졌나»를 추가** |
+
+**새로 생긴 할 일** (⛔이번 라운드에서 안 했다)
+
+1. 사다리에 **편파 시나리오 행** — 단일편파 수신 −3.010 dB. 커널 수정 아님, 선언 항목.
+2. 3GPP 표적 XPR 인용 규약 — **7.99 dB(전력영역)**, 13.75 는 μ 라고 밝힌다.
+3. 규격 비교표에서 **R < 10 m 행 제외**(규격 최소 3D 거리).
+4. **P_fa Type 2** 를 낼 수 있는 다표적 드롭 — 없으면 규격 형식 보고가 불가능하다.
+5. 센싱 **자원비**(Type_1/2/3, 두 옵션)로 우리 점유 축을 환산.
+6. 리포트 11권 «분해능» 절에 **성능지표가 아니라 관측가능성 진단**이라고 명시.
+7. TR 36.777 **Table B-1/B-2/B-3 수식** 확보 경로 찾기(OLE Equation 개체 렌더 또는 다른 판본).
+
+---
+
+## ⑭ 이번 보충의 출처
+
+| # | 문서 | 판·날짜 | URL |
+|---|---|---|---|
+| P1 | **3GPP TR 38.901** (Rel-19) | V19.4.0 (2026-06) | `https://www.3gpp.org/ftp/Specs/archive/38_series/38.901/38901-j40.zip` |
+| P4 | **3GPP TR 38.765** (Rel-20) | V20.0.0 (2026-06) | `https://www.3gpp.org/ftp/Specs/archive/38_series/38.765/38765-k00.zip` |
+| **P11** | **3GPP TR 36.777**, *Study on Enhanced LTE Support for Aerial Vehicles* (Rel-15) | **V15.0.0 (2018-01)** | `https://www.3gpp.org/ftp/Specs/archive/36_series/36.777/36777-f00.zip` |
+
+P1·P4 는 §⑧ 의 P1·P4 와 같은 파일이다. **P11 이 이번에 새로 확보한 1차자료**다.
+
+우리 저장소 쪽 인용:
+`outputs/isac_standard_gaps.json`(이번 생성) · `outputs/md_snr_vs_range.json` ·
+`outputs/sigma_el_extend_verify.json` · `outputs/report13_sigma_grid.json` ·
+`outputs/mono_link.json` · `src/materials.py` · `src/waveforms.py`

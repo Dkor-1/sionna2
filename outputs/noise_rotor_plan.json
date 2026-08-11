@@ -3,10 +3,31 @@
   "title": "잡음 주입·로터 랜덤성 설계안 — 수치 원장",
   "companion_doc": "docs/NOISE_AND_ROTOR_PLAN.md",
   "date": "2026-08-10",
-  "status": "DESIGN ONLY — 코드 미변경. 이 값들은 설계 근거이지 산출물이 아니다.",
+  "status": "REFLECTED — §0-1·§0-2·§1(잡음 주입·SNR 규약·정합필터 이득)은 코드에 반영됐고 게이트가 지킨다: verify_snr_convention 7/7 · verify_matched_filter_gain 5/5 · verify_noise_injection 10/10 (합계 22/22). §2(로터)는 아직 설계안이다.",
   "gpu_used": false,
   "git_touched": false,
-  "provenance_rule": "[조사]=prior_work/{noise_modeling,rotor_randomness}_survey.md, [신규]=이 문서 계산, [선언]=출처없는 가정"
+  "provenance_rule": "[조사]=prior_work/{noise_modeling,rotor_randomness}_survey.md, [신규]=이 문서 계산, [선언]=출처없는 가정",
+  "status_prev": "DESIGN ONLY — 코드 미변경. 이 값들은 설계 근거이지 산출물이 아니다.",
+  "status_changed": "2026-08-11",
+  "reflected": {
+   "gates": {
+    "verify_snr_convention.json": "7/7",
+    "verify_matched_filter_gain.json": "5/5",
+    "verify_noise_injection.json": "10/10"
+   },
+   "canonical_ledgers_now": [
+    "outputs/snr_convention.json",
+    "outputs/md_snr_vs_range.json",
+    "outputs/md_range_sweep_mf.json"
+   ],
+   "still_design_only": [
+    "§2 로터 랜덤성(rotor_dynamics)",
+    "§3-3 G12 사다리↔실사슬",
+    "사다리의 듀티 항",
+    "always_on_pilot 의 tau_on"
+   ]
+  },
+  "superseded_values_ko": "⚠이 파일의 설계값 일부는 PRF 19,700 Hz·옛 표적 메쉬 기준이다. 반영 후 정본은 PRF 20,000 Hz (g_mf_db = 36.9897 dB)이고 기체별 sigma·dc_ac 는 md_range_sweep_mf.json 이다. finding_missing_matched_filter_gain.g_mf_db(37.06)·finding_two_conventions_in_our_code.gap_db_range(17.3~37.2, 옛 메쉬)가 그 예다. 설계 근거로만 읽고 수치 인용은 정본 원장에서 한다."
  },
  "snr_convention": {
   "name": "v2_2026-08",
@@ -81,7 +102,15 @@
    17.3,
    37.2
   ],
-  "consequence_ko": "분류 '표본당 0 dB에서 84%'는 AC 기준, experiment_md_range의 snr_sample_*는 총전력 기준 — 같은 표에 놓으면 최대 37 dB 어긋난다"
+  "consequence_ko": "분류 '표본당 0 dB에서 84%'는 AC 기준, experiment_md_range의 snr_sample_*는 총전력 기준 — 같은 표에 놓으면 최대 37 dB 어긋난다",
+  "superseded_by": {
+   "ledger": "outputs/md_range_sweep_mf.json",
+   "gap_db_range_current_mesh": [
+    5.3,
+    35.4
+   ],
+   "note_ko": "gap_db_range [17.3, 37.2] 는 옛 메쉬(outputs/pre37db/) 값이다. 현행 메쉬 5G 3.5 GHz: mavic4pro 5.33 · s1000plus 22.00 · matrice4e 24.86 · phantom4 32.20 · mini5pro 32.77 dB."
+  }
  },
  "finding_missing_matched_filter_gain": {
   "g_mf_db": 37.06,
@@ -93,7 +122,13 @@
    "err_db": 0.13
   },
   "consequence_ko": "거리 링크버짓을 37 dB 비관적으로 쓰고 있었다. fd_edge NaN 개시가 5 m -> 35~42 m 로 이동",
-  "precondition": "full-waveform capture (PRF 19.7 kHz 로 매 PRI 100 MHz 상관). 상시 기준신호(CRS 1 kHz/SSB 50 Hz)에는 적용 불가"
+  "precondition": "full-waveform capture (PRF 19.7 kHz 로 매 PRI 100 MHz 상관). 상시 기준신호(CRS 1 kHz/SSB 50 Hz)에는 적용 불가",
+  "superseded_by": {
+   "ledger": "outputs/snr_convention.json",
+   "g_mf_db": 36.9897,
+   "prf_hz": 20000.0,
+   "note_ko": "이 항의 37.06 dB 는 PRF 19,700 Hz 설계값이다. 코드 상수는 20,000 Hz."
+  }
  },
  "range_ladder_example": {
   "drone": "matrice4e",
@@ -280,7 +315,13 @@
    "ledger_snr_at_1m_db": 36.673,
    "recompute_with_code_db": 37.775
   },
-  "action": "사다리 도입과 함께 재생성. 그 전까지 SNR 열 인용 금지"
+  "action": "사다리 도입과 함께 재생성. 그 전까지 SNR 열 인용 금지",
+  "third_defect_found_2026_08_11": {
+   "gate": "outputs/verify_noise_injection.json::NI10",
+   "what_ko": "옛 원장은 옛 표적 메쉬/사양으로 계산됐다(점구름 최대 50 % 차, s1000plus 호버 rpm 3600→4467).",
+   "replacement": "outputs/md_range_sweep_mf.json",
+   "old_copy": "outputs/pre37db/md_range_sweep_pre37db.json"
+  }
  },
  "rotor_model": {
   "decision_ko": "정현파 1톤 -> OU(1극 저역통과). 정적 산포는 난수. t=0 회전위상 U(0,360/blades)",

@@ -383,6 +383,101 @@ SNR_RUNGS = [
          ref="peak SNR of the blade line on the spectrogram"),
 ]
 
+# --------------------------------------------------------------------------- #
+#  ⚠ 사다리에 **없는** 제3의 눈금 — 「에코 첨두 기준 SNR」 (2026-08-11 정리)
+# --------------------------------------------------------------------------- #
+#  저장소에 SNR 눈금이 ③(총전력)·③′(AC) 둘만 있는 게 아니었다. **셋째**가 있다:
+#
+#      src/radar_process.py:57-59   make_echo(..., snr_db)
+#      src/passive_process.py:84-86 make_cpi(..., snr_db, abs_noise=False)
+#
+#  둘 다 잡음전력을 **에코의 첨두 표본 전력**에 건다 (x = 표적 에코, 잡음·DPI·클러터 전):
+#
+#      σ_n² = max_n |x[n]|² · 10^(−snr_db/10)
+#   ⇒  snr_peak_pre_mf_db ≜ 10log10( max_n|x[n]|² / σ_n² ) = snr_db  (정의상 항등)
+#
+#  사다리 ① 은 **평균**전력 기준이므로 둘의 차이는 그 기록의 PAPR 이다:
+#
+#      snr_peak_pre_mf_db = (평균전력 기준 SNR) + PAPR_db,
+#      PAPR_db = 10log10( max_n|x[n]|² / mean_n|x[n]|² )
+#
+#  ⛔ **사다리 rung 으로 승격하지 않는다 — 「폐기 예정」으로만 적는다.** 근거 다섯,
+#     전부 측정(`benchmark/verify_snr_convention.py` 게이트 SC7):
+#   1) 절대 잡음바닥이 없다. ① 은 kT0F·B 라는 물리 잡음에 걸리지만 이 눈금은 **에코 자신**에
+#      걸린다. make_echo 에서 전압이득 α 가 에코와 잡음에 똑같이 곱해지므로 **거리 R 과 RCS σ
+#      가 상쇄된다** — σ 를 40 dB 바꿔도 정규화 거리프로파일의 상대편차가 3.3e−16(부동소수
+#      반올림)이다(SC7-P3). 즉 이 눈금에는 탐지성 정보가 0 이다. 「멀면 어려워진다」를 못 그린다.
+#   2) 오프셋 PAPR 이 상수가 아니다. 상시 기준신호 3종에서 26.29 / 14.38 / 16.10 dB
+#      (**11.91 dB 벌어진다**). 점유모드마다 다르고(WiFi G1 26.29 → G3 18.29 dB),
+#      파형 시드마다 p-p 최대 1.01 dB, 기록 길이에 따라서도 움직인다(상시 5G 를 1/8·1/4·1/2·1
+#      로 잘라 재면 11.39 / 10.77 / 13.09 / 16.10 dB — **단조도 아니다**).
+#      ⇒ 「세 표준에 같은 snr_db 를 줬으니 공정하다」가 **거짓**이다.
+#   3) 정합필터 뒤에서도 안 맞는다. 같은 snr_db=20 을 주고 잰 MF 출력 첨두/바닥이
+#      WiFi 28.78 · LTE 22.03 · 5G 20.26 dB — **8.52 dB** 벌어진다(SC7-P6).
+#   4) passive 쪽은 SINR 이 아니다. make_cpi 의 첨두는 **표적 에코만** 보고 DPI·클러터를 빼고
+#      잰다. dpi_amp=55 를 켜도 잡음은 그대로라, 「SNR 12 dB」 라벨이 붙은 감시신호의 실제
+#      평균/잡음은 **31.23 dB** 다(상시 5G 기준신호·M=8·클러터 1탭).
+#   5) 헤드라인 경로가 안 쓴다 — `live_use` 참조. 그래서 «고칠 것»이 아니라 «폐기»다.
+#: 원장(`outputs/snr_convention.json`)의 `non_ladder_conventions` 가 그대로 싣는 자기기술
+NON_LADDER_CONVENTIONS = [
+    dict(
+        id="snr_peak_pre_mf_db",
+        status="deprecated",
+        label="echo-peak-referenced SNR (NOT on the v2 ladder)",
+        formula="sigma_n^2 = max_n|x[n]|^2 * 10^(-snr_db/10)  =>  "
+                "snr_peak_pre_mf_db = 10log10(max_n|x[n]|^2 / sigma_n^2) == snr_db",
+        ref="peak sample of the TARGET ECHO ONLY, before matched filtering; the noise floor is "
+            "defined by the echo itself, not by k*T0*F*B",
+        where=["src/radar_process.py:57-59  make_echo(..., snr_db)",
+               "src/passive_process.py:84-86  make_cpi(..., snr_db, abs_noise=False)"],
+        to_ladder=("snr_peak_pre_mf_db - papr_db(echo record) = mean-power SNR per Rx sample "
+                   "(the FORM of rung 1, never its VALUE - the floor is fictitious). "
+                   "Then + g_mf_db -> snr_slow_db, - dc_ac_off_db -> snr_slow_ac_db."),
+        needs_to_convert=["papr_db of the echo record (waveform-, occupancy-, seed- and "
+                          "record-length dependent; measured in gate SC7)",
+                          "P_echo and k*T0*F*B, to reach ANY absolute rung - the peak convention "
+                          "cancels range and RCS entirely"],
+        why_not_a_rung=[
+            "no absolute noise floor: alpha multiplies echo AND noise, so R and sigma cancel "
+            "(gate SC7-P3: normalized range profile agrees to 3.3e-16 for sigma 40 dB apart)",
+            "the offset to rung 1 is PAPR, which is not a constant: 11.91 dB spread across the "
+            "three always-on standards, and occupancy-, seed- and record-length dependent",
+            "after the matched filter the three standards still differ by 8.52 dB at the same "
+            "requested snr_db (gate SC7-P6)",
+            "in make_cpi the peak excludes DPI and clutter, so it is not an SINR",
+        ],
+        live_use=("figure/demo only. Every production make_cpi call site passes abs_noise=True "
+                  "(noise supplied absolutely), so snr_db is a dead argument there - gate SC7-P5 "
+                  "proves it bit-identically. The only abs_noise=False caller is the "
+                  "passive_process.py __main__ demo (src/viz_bistatic.py:95 legacy_cpi wraps it but "
+                  "is never called). radar_process.make_echo is reached only from src/viz_radar.py, "
+                  "src/viz_occupancy.py, src/viz_animations.py and its own __main__ demo; those "
+                  "figures/GIFs are not embedded in any reports/*.ipynb of the current set."),
+        disposition="do not promote, do not extend; migrate any new use to snr_slow_ac_db",
+    ),
+]
+
+
+def papr_db(x):
+    """PAPR(첨두 대 평균 전력비) [dB] = 10log10( max|x|² / mean|x|² ).
+
+    ⭐제3규약(첨두기준 SNR) ↔ 사다리(평균전력 기준)의 **변환 오프셋**이 정확히 이 값이다.
+    상수가 아니다 — 파형·점유모드·시드·기록길이에 따라 변한다(`NON_LADDER_CONVENTIONS`)."""
+    x = np.asarray(x)
+    pk = float(np.max(np.abs(x)) ** 2)
+    av = float(np.mean(np.abs(x) ** 2))
+    return float(10.0 * np.log10(max(pk, 1e-300) / max(av, 1e-300)))
+
+
+def peak_ref_snr_to_mean_db(snr_peak_db, papr_of_echo_db):
+    """첨두기준 SNR → **평균전력 기준** SNR [dB] (같은 잡음전력에서).
+
+        snr_mean = snr_peak − PAPR
+
+    ⚠ 이것은 rung ① 의 **형식**이지 값이 아니다. 첨두규약의 잡음바닥은 kT0F·B 가 아니라
+    에코 자신이라, 절대 사다리로 올리려면 P_echo 와 kT0F·B 를 따로 알아야 한다."""
+    return float(snr_peak_db) - float(papr_of_echo_db)
+
 
 def window_coh_loss_db(window="hann", n=None):
     """창 코히어런트 이득 손실 L_win [dB] (≤ 0). `n` 을 주면 그 길이에서 정확히 계산한다.

@@ -1,0 +1,150 @@
+{
+  "_note": "Separate shard to avoid clobbering concurrent agents writing survey_passive_ofdm_dl.json. Merge under top-level key 'verify_xue2025_icccs_dcformer'.",
+  "verify_xue2025_icccs_dcformer": {
+    "task": "Verify the DC-Former paper cited in survey arXiv:2604.02680 SS III-C / Table VIII",
+    "fulltext_obtained": false,
+    "obtained_level": "ABSTRACT_ONLY (official publisher abstract) + authoritative bibliographic record + independent third-party citation. Body text NOT obtained.",
+
+    "bibliographic_record": {
+      "status": "CONFIRMED EXACTLY - all claimed fields match",
+      "source_of_truth": "Crossref API record for DOI 10.1109/icccs65393.2025.11069481 (publisher-deposited, IEEE, member 263)",
+      "title": "DC-Former Network Empowered UAV and Bird Recognition Based on Integrated Sensing and Communication System",
+      "authors": [
+        "Junyao Xue (first)",
+        "Qixun Zhang",
+        "Dingyou Ma",
+        "Jiachen Wei"
+      ],
+      "affiliation_all_four": "Beijing University of Posts and Telecommunications (BUPT), Key Laboratory of Universal Wireless Communications, Ministry of Education, Beijing, China",
+      "venue_full": "2025 10th International Conference on Computer and Communication System (ICCCS)",
+      "venue_tier": "minor IEEE-indexed conference, NOT a top venue",
+      "event_location": "Chengdu, China",
+      "event_dates": "2025-04-18 to 2025-04-21",
+      "pages": "927-932  (matches claim exactly)",
+      "doi": "10.1109/ICCCS65393.2025.11069481",
+      "type": "proceedings-article (6 pages)",
+      "reference_count": 17,
+      "funding": [
+        "Beijing Municipal Natural Science Foundation L232003",
+        "NSFC 62341101, 62321001, 62401077",
+        "National Key R&D Program of China 2022YFB4300403"
+      ]
+    },
+
+    "conference_vs_journal": {
+      "verdict": "CONFERENCE-ONLY. No journal version exists.",
+      "evidence": "Crossref author query (Junyao Xue, from 2024-01-01) and Semantic Scholar author profile 2376102584 both list this as the author's ONLY ISAC/UAV paper. No extension found.",
+      "implication": "No conference-vs-journal number discrepancy risk here (unlike the Ziganshin case)."
+    },
+
+    "access": {
+      "arxiv_preprint": "NONE. arXiv API queried for all:\"DC-Former\", au:\"Junyao_Xue\", au:\"Jiachen_Wei\", au:\"Dingyou_Ma\" -> 0 results.",
+      "open_access": "CLOSED. Unpaywall: is_oa=false, oa_status=closed, oa_locations=[]. OpenAlex: is_oa=false, any_repository_has_fulltext=false. Semantic Scholar openAccessPdf.url empty.",
+      "ieee_xplore": "https://ieeexplore.ieee.org/document/11069481 - paywalled, WebFetch returned no content; xplorestaging PDF link returns 301/CloudFront (auth required).",
+      "conclusion": "Full text NOT obtained in this survey round. Body-level numbers are therefore UNVERIFIED, not disproven."
+    },
+
+    "official_abstract_verbatim": "The integrated sensing and communication (ISAC) technology is considered as one of the key features of 6 G networks, with potential far surpassing that of traditional singlefunction systems. At present, there are serious difficulties in the identification of birds and small unmanned aerial vehicles (UAVs) in urban low-altitude scenes. How to use existing base stations and ISAC technology to identify UAVs and birds becomes a new challenge. In order to classify the radar echo images of UAV and bird more accurately, we collected the echo data of rotor UAV and bird through simulation and actual measurement using 5G signals, and performed short-time Fourier transform (STFT) on the data to obtain the spectrograms of the micro-Doppler signatures. We propose a classification method, DC-Former network, which can accurately capture the channel information of the image and periodically extract effective features according to the object's micro-motion. By putting the spectrograms into the DC-Former network, we can extract the effective features and classification results of the target. The experimental results show that compared with the existing classification methods, the DCFormer network can obtain more accurate classification accuracy, so as to effectively distinguish the radar echo images of UAVs and birds.",
+    "abstract_provenance": "Retrieved independently and IDENTICALLY from OpenAlex (doi:10.1109/icccs65393.2025.11069481) and Semantic Scholar Graph API (CorpusId 280182635). Two independent mirrors of publisher metadata agreeing verbatim.",
+
+    "claim_by_claim_verification": [
+      {
+        "claim": "STFT used to generate micro-Doppler spectrograms",
+        "verdict": "CONFIRMED",
+        "where": "Abstract, sentence 4",
+        "quote": "performed short-time Fourier transform (STFT) on the data to obtain the spectrograms of the micro-Doppler signatures"
+      },
+      {
+        "claim": "Uses Transformer",
+        "verdict": "CONFIRMED (indirectly but solidly)",
+        "where": "Crossref reference list, ref17 = DOI 10.48550/ARXIV.1706.03762 (Vaswani et al., 'Attention is all you need')",
+        "note": "The abstract itself never spells out 'depth convolution' or 'Transformer'; the expansion 'depth convolution-former' comes from the survey, not from any text I could open."
+      },
+      {
+        "claim": "5G signal used to collect drone+bird echoes, including real measurement",
+        "verdict": "PARTIALLY CONFIRMED - WITH A MATERIAL CORRECTION (see 'corrections' below)",
+        "where": "Abstract, sentence 4",
+        "quote": "we collected the echo data of rotor UAV and bird through simulation and actual measurement using 5G signals",
+        "note": "Abstract says '5G signals', not '5G NR' verbatim."
+      },
+      {
+        "claim": "Outperforms conventional CNN-based models",
+        "verdict": "PARTIALLY CONFIRMED - wording narrowed by the survey",
+        "where": "Abstract, final sentence",
+        "quote": "compared with the existing classification methods, the DCFormer network can obtain more accurate classification accuracy",
+        "note": "Original says 'existing classification methods' generically. 'conventional CNN-based models' is the survey's narrowing. No baseline is named in the abstract."
+      },
+      {
+        "claim": "10,000 time-frequency spectrograms per class (UAV and bird); survey text says 'a total of 10,000 ... for each class'",
+        "verdict": "NOT VERIFIABLE - not present in the abstract",
+        "where": "Would be in the paywalled body (likely Sec. IV experimental setup). NOT FOUND in any text I could open.",
+        "note": "The '20,000 total' figure in the task brief is arithmetic added downstream; neither the survey nor the abstract states 20,000."
+      },
+      {
+        "claim": "Classification accuracy 96-98%",
+        "verdict": "NOT VERIFIABLE - not present in the abstract",
+        "where": "Abstract states NO numeric accuracy at all, only the qualitative 'more accurate classification accuracy'. The 96-98% figure appears only in survey 2604.02680 Table VIII and SS III-C.",
+        "note": "Cannot confirm or refute without the paywalled body. Do NOT quote 96-98% as an original-verified number."
+      },
+      {
+        "claim": "3D time-frequency image as input",
+        "verdict": "WEAKLY CONSISTENT, not verbatim",
+        "where": "Abstract says the network 'can accurately capture the channel information of the image' - consistent with a multi-channel (3-channel) spectrogram image and with depthwise convolution, but the abstract never says '3D'."
+      },
+      {
+        "claim": "(survey Table VIII only) 3.5 GHz, 100 MHz bandwidth",
+        "verdict": "NOT in the abstract. 3.5 GHz is CORROBORATED indirectly; 100 MHz is NOT corroborated.",
+        "corroboration": "Same BUPT group's companion paper - Wei, Ma, He, Zhang, Feng, Liu, Liang, 'UAV's Rotor Micro-Doppler Feature Extraction Using ISAC Signal: Algorithm Design and Testbed Evaluation', IEEE Trans. Wireless Commun., vol. 24, no. 12, pp. 10166-10182, Dec. 2025 (local copy: /data/public/sionna_jeong/papers_isac_sionna/paper_sionna_Ray_0723/UAVs_Rotor_Micro-Doppler_Feature_Extraction_Using_Integrated_Sensing_and_Communication_Signal_Algorithm_Design_and_Testbed_Evaluation.pdf). Its Sec. V states: 'The proposed algorithm is validated on the Sub-6G ISAC hardware testbed. The ISAC system is based on the 5G NR protocol and consists of UL and DL baseband signal processing, intermediate frequency modulation, 3.5 GHz RF modulation, and antenna modules.' Subcarrier spacing 30 kHz. Test location Ningbo, China. I did NOT find '100 MHz' anywhere in that paper's text.",
+        "note": "So the DC-Former measurements were almost certainly taken on this same 3.5 GHz Sub-6G 5G NR testbed, but that is inference from the sibling paper, not from the DC-Former text."
+      }
+    ],
+
+    "corrections": [
+      {
+        "severity": "MATERIAL - affects how we may cite this paper",
+        "what": "The dataset is SIMULATION + MEASUREMENT MIXED, not purely real measured data.",
+        "the_wrong_version": "Survey 2604.02680 SS III-C prose: 'To address the limitations of simulated datasets, they collect real radar echo data of rotor UAVs and birds using 5G NR signals' - this drops the simulation half and reads as a purely measured dataset. The task brief inherited this error ('시뮬 데이터셋의 한계를 인정하고 실제 레이다 에코를 직접 수집').",
+        "the_original": "Abstract: 'we collected the echo data of rotor UAV and bird through simulation AND actual measurement using 5G signals'",
+        "note": "The survey CONTRADICTS ITSELF: its own Table VIII row for Xue et al. [92] correctly says 'Simulation and measured radar echo data using 5G NR signals at 3.5 GHz, 100 MHz bandwidth'. So the survey's table is right and its prose is wrong.",
+        "consequence": "We cannot cite this as 'a fully measured 5G NR drone-vs-bird micro-Doppler dataset'. The 10,000/class split between simulated and measured is UNKNOWN from the abstract, and may be mostly synthetic."
+      },
+      {
+        "severity": "minor",
+        "what": "'5G NR' vs '5G signals'",
+        "detail": "The abstract says '5G signals'. '5G NR' is the survey's sharpening (defensible given the group's NR testbed, but not verbatim)."
+      },
+      {
+        "severity": "minor",
+        "what": "'20,000 total' is not stated anywhere",
+        "detail": "Survey says 10,000 per class for each of UAV and bird. The 20,000 total is downstream arithmetic. Neither the abstract nor the survey prints '20,000'."
+      },
+      {
+        "severity": "minor",
+        "what": "Semantic Scholar mislabels the venue",
+        "detail": "S2 normalizes the venue to 'International Conference on Communication, Computing & Security' - WRONG. Crossref is authoritative: '2025 10th International Conference on Computer and Communication System (ICCCS)', Chengdu. Do not trust S2's venue string here."
+      }
+    ],
+
+    "independent_third_party_confirmation": {
+      "citing_paper": "Z. Chu, H. Luo, B. Sun, S. Quan, C. Zhao, F. Gao, 'ISAC and Vision Fusion for Fine-Grained Low-Altitude Target Recognition', arXiv:2607.23789 (2026), Tsinghua University",
+      "how_it_cites": "Sec. I: 'J. Xue et al. propose a UAV and bird recognition scheme based on short-time Fourier transform (STFT) and DC-Former network within ISAC system [34].'",
+      "its_reference_34": "J. Xue, Q. Zhang, D. Ma, and J. Wei, 'DC-Former network empowered UAV and bird recognition based on integrated sensing and communication system,' in Proc. Int. Conf. Comput. Commun. Syst., Chengdu, China, Apr. 2025, pp.927-932.",
+      "value": "A group with NO overlap with the BUPT authors independently reproduces the same bibliographic record (Chengdu, Apr 2025, pp. 927-932). Confirms the citation is real and correctly attributed. Provides NO numbers.",
+      "total_citations": "2 (per Semantic Scholar): survey 2604.02680 and arXiv 2607.23789. Crossref is-referenced-by-count = 0."
+    },
+
+    "relevance_to_our_questions": {
+      "Q1_passive_sensing": "NOT a passive-sensing paper. This is base-station ISAC ('How to use existing base stations and ISAC technology'), i.e. the transmitter is cooperative and the same system does sensing. Do NOT list under passive bistatic.",
+      "Q2_microdoppler_with_OFDM": "RELEVANT but weak evidence. It is 5G-signal micro-Doppler with STFT, with some real measurement, and drone-vs-bird is exactly the discrimination problem. However: 6-page minor conference, closed access, 2 citations, no reproducible numbers verifiable from outside the paywall.",
+      "Q3_deep_learning_framework": "RELEVANT as a design datapoint: depthwise-conv + Transformer hybrid on STFT spectrograms for binary drone/bird. But since we cannot open the body, we cannot copy its architecture or training recipe. Prefer the sibling papers we CAN read in full: AirGuard (arXiv:2603.13112, JSAC-accepted, CNN + cmD + HRRP dual fusion, 237600 samples, SIMULATION ONLY) and Wei et al. IEEE TWC 24(12):10166-10182 (real 3.5 GHz 5G NR Sub-6G testbed, rotor micro-Doppler extraction, Ningbo)."
+    },
+
+    "recommended_citation_language_for_our_reports": "Xue et al. (ICCCS 2025, pp. 927-932, BUPT) report a depthwise-convolution + Transformer hybrid ('DC-Former') classifying drone-vs-bird from STFT micro-Doppler spectrograms built from 5G-signal echoes gathered by BOTH simulation and measurement. We were unable to obtain the full text (closed access, no preprint), so the frequently repeated '96-98% accuracy' and '10,000 spectrograms per class' figures are traceable only to the secondary survey arXiv:2604.02680, not to the original.",
+
+    "local_files_written": [
+      "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/survey_02680.txt (full text of citing survey)",
+      "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/twc_wei.txt (full text of companion TWC testbed paper)",
+      "/tmp/claude-1015/-home-yunjung-workspace/a78e7d06-306f-4e2d-b124-5fe972bc4462/scratchpad/v2607.txt (full text of independent citing paper arXiv:2607.23789)"
+    ]
+  }
+}

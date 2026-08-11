@@ -1,24 +1,39 @@
-# 잡음 주입 · 로터 랜덤성 — 착수 설계안 (2026-08-10)
+# 잡음 주입 · 로터 랜덤성 — 설계안 + **반영 기록** (2026-08-10 작성 / 2026-08-11 갱신)
 
-> ## ⭐진행 상태 (2026-08-11 02:xx 갱신)
+> ## ⭐진행 상태 (2026-08-11 03:xx 갱신)
 >
 > | 항 | 상태 |
 > |---|---|
-> | §0-1 SNR 규약 둘 | ✅ **반영 완료.** 규약 v2 코드에 못 박힘 · 게이트 `verify_snr_convention.py` **6/6** |
-> | §0-2 정합필터 이득 누락 | ✅ **반영 완료.** 게이트 `verify_matched_filter_gain.py` **5/5** + 독립 구현 대조 1.4e-14 dB |
+> | §0-1 SNR 규약 둘 | ✅ **반영 완료 · 게이트 통과.** 규약 v2 코드에 못 박힘 · `verify_snr_convention.py` **7/7**(SC7 = 사다리 밖 «에코 첨두» 눈금 판정 포함) |
+> | §0-2 정합필터 이득 누락 | ✅ **반영 완료 · 게이트 통과.** `verify_matched_filter_gain.py` **5/5** + 독립 구현 대조 1.4e-14 dB |
+> | §1 잡음 주입 배선 | ✅ **반영 완료 · 게이트 통과.** `verify_noise_injection.py` **10/10** |
 > | §0-2 의 거리 예측 «35~42 m» | ⛔ **실측이 반박했다** — 아래 §0-2 의 정정 상자 |
-> | §1-2 상시 기준신호 팔(G_mf = 0 dB) | ⛔ **새 결함.** 44~50 dB 비관적이고 거짓 주장을 만든다 — §0-2 두 번째 정정 상자 · `RETRACTION_LOG` R17 |
+> | §1-2 상시 기준신호 팔(G_mf = 0 dB) | ⛔ **새 결함.** 44~50 dB 비관적이고 거짓 주장을 만든다 — §0-2 두 번째 정정 상자 · `RETRACTION_LOG` **R22** |
 > | 사다리의 듀티 항 | ⛔ **없다.** `freespace_link.duty_db_from_cpi` 재사용해서 넣어야 한다 |
 > | §0-3 로터 랜덤성 (§2 전체) | 진행 중(형제 에이전트) — `outputs/rotor_jitter_model.json` · `verify_rotor_dynamics.json` |
 > | §3-3 G12 (사다리 ↔ 실사슬) | ❌ **미착수. «37 dB 를 실제로 번다» 의 유일한 관문이다** |
 >
-> 적대검증 기록과 남은 일은 `docs/RESUME.md` 맨 위 블록에 있다.
-> 정정 4건은 `docs/RETRACTION_LOG.md` R14~R17.
-
-> **이 문서는 «다음 세션이 그대로 착수하는 지시서» 다.** 코드는 한 줄도 안 고쳤다.
-> 각 항목은 «어느 파일의 어느 함수에 어떤 인자를 넣고 어느 원장에 어떤 키를 낸다» 수준으로 쓴다.
+> ### ⭐⭐PRF 를 **20,000 Hz 하나로 못 박는다** (2026-08-11)
+> 이 문서 초판은 사다리를 **PRF 19,700 Hz**(→ `G_mf` 37.06 dB)로 썼는데
+> **코드와 원장은 20,000 Hz**(→ **36.99 dB**)다.
+> · `src/microdoppler_nearfield.py::DECLARED_PRF_HZ = 20000.0`
+> · `src/experiment_md_range.py::PRF = 20000.0`
+> · `outputs/snr_convention.json::constants.prf_hz = 20000.0`
+> ⇒ **사다리는 20,000 Hz · 36.99 dB.** 차이는 0.07 dB 로 작지만 표와 원장이 어긋나면 안 된다.
+> ⚠ **19,700 Hz 는 report07 호버 2 s 팔의 PRF 다**(`benchmark/verify_rotor_dynamics.py` ·
+> `raybudget_seed_ladder.json::_meta.prf_hz`). 그 팔에서는 19,700 이 맞다. **섞지 마라.**
 >
-> **이 문서의 수치 원장**: `outputs/noise_rotor_plan.json` (여기 나오는 모든 수가 들어 있다)
+> 적대검증 기록과 남은 일은 `docs/RESUME.md` 맨 위 블록에 있다.
+> 정정은 `docs/RETRACTION_LOG.md` **R19~R22**(SNR 규약 라운드) · **R23~R27**(PathSolver·시드 라운드).
+> ⚠2026-08-11 오전에 R14~R17 로 적혔다가 **R19~R22 로 옮겨졌다**(옛 R14~R17 은 2026-08-03/04/07 항목).
+
+> **이 문서는 원래 «다음 세션이 그대로 착수하는 지시서» 였다.** §0-1 · §0-2 · §1 은
+> **이제 착수 지시가 아니라 반영 기록이다** — 코드에 들어갔고 게이트가 지킨다(합계 **22/22**).
+> §2(로터)·§3-3 의 일부는 아직 지시서다. 각 절 머리에 어느 쪽인지 적어 두었다.
+>
+> **이 문서의 수치 원장**: `outputs/noise_rotor_plan.json`
+> ⚠ 그 원장의 설계값 일부는 **PRF 19,700 · 옛 메쉬** 기준이다. 반영 후의 정본 수치는
+> `outputs/snr_convention.json` · `md_snr_vs_range.json` · `md_range_sweep_mf.json` 이다.
 >
 > **근거 문서** (먼저 읽어라, 여기서 다시 논증하지 않는다)
 > · `prior_work/noise_modeling_survey.md` + `outputs/noise_modeling_survey.json` — 잡음 조사
@@ -35,19 +50,43 @@
 
 착수 전에 이것부터 읽어야 한다. 셋 다 **설계를 바꾼다**.
 
-### 0-1. 우리 코드에 SNR 규약이 이미 **두 개** 있고 서로 다르다 `[신규]`
+### 0-1. 우리 코드에 SNR 규약이 이미 **두 개** 있고 서로 다르다 `[신규]` — ✅**반영 완료(게이트 7/7)**
+
+> **상태**: 착수 지시 아님. 규약 v2 가 코드에 들어갔고 `benchmark/verify_snr_convention.py`
+> 가 **7/7** 로 지킨다(SC1·SC2 는 2026-08-10 이전 구현을 스크립트 안에 얼려 두고 대조한다).
+> 정본 = `snr_slow_ac_db`(③′). 원장은 ③·③′·`dc_ac_db` 를 **항상 병기**한다.
+> ⚠**남은 구멍**: 원장에 **셋째 눈금**이 산다 — `snr_ac_*_db` = ① − dc_ac(정합필터 **전**).
+> `md_range_sweep_mf.json` matrice4e·R = 10 m 에서 `snr_ac_plane_db` = **−25.74 dB** 인데
+> `snr_slow_ac_plane_db` = **+11.24 dB** 다. **이름이 둘 다 «ac» 인데 36.99 dB 다르다.**
+> ⇒ `snr_ac_premf_*_db` 로 개명하거나 원장에서 빼라(값 재계산 불필요).
 
 | 어디 | 코드 | 기준 |
 |---|---|---|
 | `src/microdoppler_nearfield.py:369-370` `add_noise()` | `p_sig = mean(abs(E)**2)` | **총전력** (몸체 DC 포함) |
 | `benchmark/md_classify_dataset.py:808-809` (`cmd_build`) | `sd = sqrt(mean(abs(E - E.mean())**2))` | **AC 만** (블레이드선) |
 
-두 규약은 `dc_ac_db` 만큼(기체별 **17.3 ~ 37.2 dB**) 다르다. 즉 **«분류가 표본당 0 dB 에서 84 %»**
+두 규약은 `dc_ac_db` 만큼(기체별 **5.33 ~ 32.77 dB**, 현행 메쉬 5기체·3.5 GHz — 초판이 쓴 «17.3 ~ 37.2» 는 옛 메쉬다) 다르다. 즉 **«분류가 표본당 0 dB 에서 84 %»**
 (`outputs/md_classify.json` `noise["0"]["all"]["RF100"] = 0.8403`)는 **AC 기준**이고,
 `experiment_md_range.py` 가 쓰는 `snr_sample_plane_db` 는 **총전력 기준**이다.
-지금 두 수를 같은 표에 나란히 놓으면 **최대 37 dB 어긋난다.** §1-2 가 이것을 못 박는다.
+지금 두 수를 같은 표에 나란히 놓으면 **최대 33 dB 어긋난다**(현행 메쉬 5기체 기준. 3 밴드 9칸까지
+넓히면 35.4 dB, 옛 메쉬로는 37.2 dB 였다). §1-2 가 이것을 못 박는다.
 
-### 0-2. ⭐⭐**정합필터 이득 37 dB 가 통째로 빠져 있다** `[신규]`
+> ⚠**2026-08-11 출처 정정 — 위 «17.3 ~ 37.2 dB» 는 옛 메쉬 값이다.**
+> 그 다섯 수(matrice4e 17.3 · s1000plus 18.9 · mini5pro 26.5 · phantom4 32.5 · mavic4pro 37.2)는
+> `outputs/pre37db/md_range_sweep_pre37db.json`(= 2026-07-28 판 `md_range_sweep.json`)의
+> `rows[0].arms.A0_reference.dc_ac_db`, 5G NR 3.5 GHz 다.
+> **현행 메쉬로 다시 낸 값은 다르다** — `outputs/md_range_sweep_mf.json` 에서
+> mavic4pro **5.33** · matrice4e 24.86 · s1000plus 22.00 · mini5pro 32.77 · phantom4 32.20 dB,
+> 9 칸 전체로는 **5.3 ~ 35.4 dB** 다(`verify_noise_injection.json::NI10` 이 옛↔새를 짝지어 싣는다).
+> ⇒ **결론(«두 규약이 20~30 dB 폭으로 어긋난다»)은 그대로 유효**하지만,
+> **기체별 수치를 인용할 때는 어느 메쉬 세대인지 반드시 적는다.**
+> ⚠ mavic4pro 가 37.2 → 5.33 dB 로 바뀐 이유는 **모른다.** 확인 안 했다.
+
+### 0-2. ⭐⭐**정합필터 이득 37 dB 가 통째로 빠져 있다** `[신규]` — ✅**반영 완료(게이트 5/5)**
+
+> **상태**: 착수 지시 아님. `matched_filter_gain_db()` · `snr_ladder()` 가 코드에 들어갔고
+> `benchmark/verify_matched_filter_gain.py` 가 **5/5** 로 지킨다.
+> 기본 경로(`capture="pre_mf"`)는 **비트동일**이라 옛 원장이 안 깨진다(게이트 MF5).
 
 `echo_over_noise_db()` 는 `P_n = k·T0·F·B`, **B = 100 MHz** 로 잡음을 세운다
 (`microdoppler_nearfield.py:330, 349`). 그런데 그 함수가 돌려준 값을 우리는 **슬로타임 표본
@@ -57,16 +96,26 @@ E[m] 의 SNR** 로 쓴다(`experiment_md_range.py:124-125` → `add_noise` 에 �
 상관» 해서 나온 **정합필터 출력**이다. 시간·대역폭 곱만큼 이득이 붙는다:
 
 ```
-G_mf = 10·log10(B / PRF) = 10·log10(100e6 / 19,700) = 37.06 dB
+G_mf = 10·log10(B / PRF) = 10·log10(100e6 / 20,000) = 36.99 dB       ← ⭐정본(PRF 20 kHz)
 ```
+⚠ 이 문서 초판은 **19,700 Hz → 37.06 dB** 로 썼다. 코드·원장은 **20,000 Hz** 이므로
+**36.99 dB** 가 정본이다(맨 위 상자). 19,700 은 report07 호버 2 s 팔의 PRF 다.
 
 즉 우리는 **거리 링크버짓을 37 dB 비관적으로** 쓰고 있었다. 같은 말로,
 `P_n` 의 대역은 100 MHz 가 아니라 **슬로타임 표본율 PRF** 여야 한다
-(이상적 정합필터 전제에서 두 계산은 동일하다: `kT0F·B / (B/PRF) = kT0F·PRF`).
+(이상적 정합필터 전제에서 두 계산은 동일하다: `kT0F·B / (B/PRF) = kT0F·PRF` —
+게이트 MF4 가 rel **1.95e-16** 으로 확인한다).
 
-**수치 확인(오늘 CPU 로 실측)** — 길이 L=5000 의 백색 기준신호에 표본당 −30 dB 에코를 실어
-정합필터를 통과시키니 출력 SNR **+6.86 dB**, 예측 `−30 + 10log10(5000) = +6.99 dB`.
-차이 0.13 dB(유한 실현). → `G_mf = 10log10(B·T_pri)` 는 맞다.
+**수치 확인 (게이트 실측, `outputs/verify_matched_filter_gain.json`)** — 길이 L = 5000 의
+기준신호에 표본당 −30 dB 에코를 실어 정합필터를 통과시킨다. 예측 출력 SNR **+6.99 dB**.
+
+| 게이트 | 기준신호 | 측정 이득 | 예측 | 오차 |
+|---|---|---|---|---|
+| MF1 | 가우시안 | 37.016 dB | 36.990 | **+0.026 dB** |
+| MF2 | QPSK | 36.971 dB | 36.990 | **−0.019 dB** |
+| MF3 | 끝에서 끝까지(fast-time 잡음 → PRI 상관 → 슬로타임) | 34.870 dB | 34.765 | **+0.105 dB** |
+
+허용 0.30 dB, **3/3 통과**. → `G_mf = 10log10(B·T_pri)` 는 맞다.
 
 **파급**: `md_range_sweep.json` 의 «5 m 부터 `fd_edge` 가 NaN(=블레이드선 묻힘)» 은
 이 37 dB 를 안 넣은 결과다. 넣으면 같은 문턱(`spec_peak_over_floor_db ≥ 10 dB`)이
@@ -88,8 +137,8 @@ G_mf = 10·log10(B / PRF) = 10·log10(100e6 / 19,700) = 37.06 dB
 > (nperseg 256·평활 주기도·중앙값 바닥 추정)로 했다 — **사슬이 다른 두 수를 비교했다.**
 > ⇒ 인용은 위 실측표로만 한다. 방향(«거리가 한 자릿수 밀린다»)은 맞았고 **수는 틀렸다.**
 
-⚠ 단, `G_mf` 는 **풀 웨이브폼 캡처** 전제에서만 성립한다 — PRF 19.7 kHz 로 슬로타임을 뽑으려면
-매 PRI(50.8 µs)마다 100 MHz 를 통째로 상관해야 한다. 상시 기준신호(LTE CRS 1 kHz·5G SSB 50 Hz)
+⚠ 단, `G_mf` 는 **풀 웨이브폼 캡처** 전제에서만 성립한다 — PRF 20 kHz 로 슬로타임을 뽑으려면
+매 PRI(50.0 µs)마다 100 MHz 를 통째로 상관해야 한다. 상시 기준신호(LTE CRS 1 kHz·5G SSB 50 Hz)
 로는 그 PRF 가 안 나온다(`experiment_md_range.py:186-189` `prf_feasibility` 가 이미 판정한다).
 **그래서 이 이득은 «풀 캡처 팔» 에만 붙인다.** §1-2 의 규약 표에 조건으로 박는다.
 
@@ -105,7 +154,7 @@ G_mf = 10·log10(B / PRF) = 10·log10(100e6 / 19,700) = 37.06 dB
 > | 5G SSB 50 Hz (버스트 τ = 4×71.4 µs, 듀티 −18.45 dB) | 0 dB | **+44.6 dB** | 44.6 |
 >
 > 그 팔의 진짜 대가는 **도플러 모호**(f_tip 1,229 Hz 가 PRF 1 kHz 에서 접힌다)와 **듀티**다.
-> ⇒ 고치기 전까지 그 팔의 수치를 원장·리포트·덱에 **싣지 않는다**(`docs/RETRACTION_LOG.md` R17).
+> ⇒ 고치기 전까지 그 팔의 수치를 원장·리포트·덱에 **싣지 않는다**(`docs/RETRACTION_LOG.md` **R22**).
 > ⇒ 그리고 사다리에는 **듀티 항이 아예 없다.** 구현은 `src/freespace_link.py::duty_db_from_cpi`
 >   를 재사용한다(재구현 금지). 측정: LTE 연속 0.00 · 5G SSB 버스트 −18.45 · WiFi 1 kHz −10.00 dB.
 
@@ -177,14 +226,18 @@ SNR … 10log₁₀ A_r²/σ_n²"*, Drones 5:149 식 (7) 도 **블레이드 반�
 
 **그리고 «항상 네 수를 함께 보고한다».** 하나만 쓰면 비교가 성립하지 않는다(조사 §3.1).
 
-| # | 이름 | 정의 | 우리 값의 예 (matrice4e·3.5 GHz·EIRP 12 dBm·R = 10 m) |
+**예시 열의 출처**: `outputs/verify_snr_convention.json` 게이트 **SC6** `example_R10`
+(matrice4e·3.5 GHz·EIRP 12 dBm·R = 10 m·**PRF 20,000 Hz**·σ −18.879 dBsm·dc_ac 17.3 dB·
+N_seg 70 Hann·모노스태틱 등가). ⚠σ·dc_ac 는 **옛 메쉬** 값이다 — 현행 메쉬 기준 표는 §1-4 에 있다.
+
+| # | 이름 | 정의 | SC6 `example_R10` |
 |---|---|---|---|
-| ① | `snr_band_db` | `P_echo / (k·T0·F·B)`, B = 수신 순시대역 100 MHz. **정합필터 전, 수신 표본당** | **−2.23 dB** |
-| ② | `g_mf_db` | `10log10(B / PRF)` — PRI 한 개 상관의 처리이득. **풀 캡처 팔에서만** | **+37.06 dB** |
-| ③ | `snr_slow_db` = ①+② | 슬로타임 표본 E[m] 의 **총전력** SNR | **+34.83 dB** |
-| ③′| **`snr_slow_ac_db`** = ③ − `dc_ac_off_db` | ⭐**정본.** 블레이드선 SNR | **+17.45 dB** |
-| ④ | `g_stft_db` | `10log10(N_seg) + L_win` — STFT 한 조각의 코히어런트 이득 | **+16.69 dB** (N_seg = 70, Hann −1.76) |
-| ⑤ | `snr_map_ac_db` = ③′+④ | 맵 위 블레이드선의 첨두 SNR | **+34.14 dB** |
+| ① | `snr_band_db` | `P_echo / (k·T0·F·B)`, B = 수신 순시대역 100 MHz. **정합필터 전, 수신 표본당** | **−2.2251 dB** |
+| ② | `g_mf_db` | `10log10(B / PRF)` — PRI 한 개 상관의 처리이득. **풀 캡처 팔에서만** | **+36.9897 dB** |
+| ③ | `snr_slow_db` = ①+② | 슬로타임 표본 E[m] 의 **총전력** SNR | **+34.7646 dB** |
+| ③′| **`snr_slow_ac_db`** = ③ − `dc_ac_off_db` | ⭐**정본.** 블레이드선 SNR (`dc_ac_off_db` = 17.3801) | **+17.3845 dB** |
+| ④ | `g_stft_db` | `10log10(N_seg) + L_win` — STFT 한 조각의 코히어런트 이득 | **+16.691 dB** (N_seg = 70, Hann −1.76) |
+| ⑤ | `snr_map_ac_db` = ③′+④ | 맵 위 블레이드선의 첨두 SNR | **+34.0755 dB** |
 
 - `dc_ac_off_db = 10log10(1 + 10^(dc_ac_db/10))` — 총전력→AC 변환의 **정확식**.
   ⚠ 현행 `ac_snr_db()` (`microdoppler_nearfield.py:362`)는 `dc_ac_db` 를 **그냥 뺀다**.
@@ -192,18 +245,18 @@ SNR … 10log₁₀ A_r²/σ_n²"*, Drones 5:149 식 (7) 도 **블레이드 반�
   → 정확식을 opt-in 으로 넣고 기본값은 현행 유지(원장 비트 보존).
 - `L_win` (창 코히어런트 이득 손실) 근거: Braun 식 (3.76)(3.77), Table 3.3 `[조사]`.
   Hann 은 `|Σw|²/(‖w‖²N) = −1.76 dB`.
-- ② 는 **CPI 전체 코히어런트 이득(45.95 dB @2 s·19.7 kHz)과 다른 것**이다. 섞지 마라.
+- ② 는 **CPI 전체 코히어런트 이득과 다른 것**이다. 섞지 마라.
   ④ 가 맵에서 실제로 얻는 이득이고, 이 둘의 차이가 조사 §3.1 의 «20 dB 넘게 다르다» 다. `[조사]`
 - ⭐**2026-08-11 정정: «37 dB 짜리 수» 는 셋이 아니라 다섯이다.** `outputs/snr_convention.json`
   의 `do_not_confuse` 는 셋만 적는다. 원장에 실제로 도는 것은 이렇다.
 
-  | 이름 | 값 | 어디 |
-  |---|---|---|
-  | ② 정합필터 이득 `10log10(B/PRF)` | **36.99 dB** | 사다리 |
-  | CPI 코히어런트 적분, 5000 표본 | 36.99 dB | 이 문서 §0-2 (**우연히 같다**) |
-  | CPI 코히어런트 적분, **6144 표본 Hann** | **36.12 dB** | `md_range_sweep_mf.json` 이 싣는 값 |
-  | CPI 코히어런트 적분, 2 s·19.7 kHz | 45.95 dB | 부록 A |
-  | ④ STFT 한 조각, 70 표본 Hann | **16.69 dB** | 맵에서 눈으로 보는 유일한 이득 |
+  | 이름 | 값 | 어디 | PRF |
+  |---|---|---|---|
+  | ② 정합필터 이득 `10log10(B/PRF)` | **36.9897 dB** | 사다리 | 20,000 |
+  | CPI 코히어런트 적분, 5000 표본 | 36.9897 dB | 이 문서 §0-2 (**우연히 같다**) | 20,000 |
+  | CPI 코히어런트 적분, **6144 표본 Hann** | **36.1245 dB** | `md_range_sweep_mf.json`·`md_snr_vs_range.json` 이 `g_stft_db` 로 싣는 값 | 20,000 |
+  | CPI 코히어런트 적분, 2 s | 45.95 dB | 부록 A | **19,700**(report07 팔) |
+  | ④ STFT 한 조각, 70 표본 Hann | **16.691 dB** | 맵에서 눈으로 보는 유일한 이득 | 20,000 |
 
   ⇒ **CPI 이득은 단일 수가 아니라 기록 길이의 함수다.** 그렇게 적지 않으면 이 규약이 고친 것과
     **같은 종류의 사고**가 다시 난다.
@@ -221,6 +274,101 @@ geometry  : "monostatic_equivalent" (R_t = R_r = R)  /  "bistatic" (R_t, R_r 별
 `sionna.rt` 의 기본 잡음(`rt/scene.py:172-177`)은 **kTB, T = 293 K, F 없음** 이라 우리 규약과
 다르다 — 그대로 믿지 마라. `[조사]`
 
+## 1-2b. ⛔사다리 **밖**의 눈금 — `snr_peak_pre_mf_db` 「에코 첨두 기준 SNR」 (2026-08-11 정리)
+
+> **한 줄**: ③(총전력)·③′(AC) 말고 **또 하나**가 있었다. 사다리에 안 올린다 — **폐기 예정**으로 적는다.
+> 근거는 전부 측정이다: 게이트 **SC7** (`outputs/verify_snr_convention.json`) ·
+> 규약 원장 `outputs/snr_convention.json → non_ladder_conventions`.
+
+⚠ **«셋째 눈금» 이라는 말을 이미 다른 데 썼다 — 세지 말고 이름으로 불러라.**
+§0-1 이 «셋째» 라고 부른 것은 `md_range_sweep_mf.json` 의 `snr_ac_*_db`(= ① − dc_ac,
+정합필터 **전** AC)이고, 이 절이 말하는 것은 **그것과 다른 것**이다. 지금 저장소에 도는
+서로 다른 SNR 눈금은 이렇다.
+
+| 이름 | 정합필터 | 기준 전력 | 잡음바닥 | 지위 |
+|---|---|---|---|---|
+| ① `snr_band_db` | 전 | 평균·총전력 | kT0F·B | 사다리 |
+| ③ `snr_slow_db` | 후 | 평균·총전력 | kT0F·B | 사다리 |
+| ③′ `snr_slow_ac_db` | 후 | 평균·AC | kT0F·B | ⭐**정본** |
+| `snr_ac_*_db` (원장 키) | **전** | 평균·AC | kT0F·B | ⚠이름 충돌 — §0-1 이 `snr_ac_premf_*_db` 로 개명 권고 |
+| **`snr_peak_pre_mf_db`** | 전 | **첨두**(표적 에코) | **에코 자신** | ⛔**이 절 · 폐기 예정** |
+
+맨 앞 넷은 잡음바닥이 같아서 서로 **덧셈으로** 오간다. 맨 아래 하나만 바닥이 다르다 —
+그래서 덧셈으로 못 잇는다.
+
+### 무엇인가 — 식
+
+`src/radar_process.py:57-59` (`make_echo`) 와 `src/passive_process.py:84-86`
+(`make_cpi`, `abs_noise=False` 가지) 이 잡음전력을 **에코의 첨두 표본 전력**에 건다.
+x 는 표적 에코 하나뿐이다(잡음·DPI·클러터를 더하기 **전**).
+
+```
+σ_n²  =  max_n |x[n]|² · 10^(−snr_db/10)
+snr_peak_pre_mf_db  ≜  10log10( max_n|x[n]|² / σ_n² )  =  snr_db      (정의상 항등)
+```
+
+사다리 ① 은 **평균**전력 기준이다. 그래서 둘의 차이는 그 기록의 **PAPR** 이고, 변환은 이것뿐이다.
+
+```
+snr_peak_pre_mf_db  =  (평균전력 기준 SNR)  +  PAPR_db
+PAPR_db             =  10log10( max_n|x[n]|² / mean_n|x[n]|² )
+```
+
+| 변환 | 식 | 필요한 양 |
+|---|---|---|
+| 첨두 → 평균 | `snr_mean = snr_peak − PAPR` | **그 기록의 PAPR** (`nf.papr_db`) |
+| 평균 → ③ | `snr_slow_db = snr_mean + g_mf_db` | `capture="full_waveform"` 배지 |
+| ③ → ③′ | `snr_slow_ac_db = snr_slow_db − dc_ac_off_db` | 기체별 `dc_ac_db` |
+
+⚠ **이 사슬은 «비» 만 옮긴다.** 첨두규약의 잡음바닥은 kT0F·B 가 아니라 **에코 자신**이라,
+결과는 rung ① 의 *형식*이지 *값*이 아니다. 절대 사다리로 올리려면 `P_echo` 와 kT0F·B 를 따로
+알아야 한다. 구현: `src/microdoppler_nearfield.py::papr_db` · `peak_ref_snr_to_mean_db`.
+
+### 왜 rung 으로 승격하지 않나 — 근거 다섯 (전부 SC7 측정치)
+
+1. ⭐**거리와 RCS 가 상쇄된다.** `make_echo` 에서 전압이득 α 가 에코와 잡음에 똑같이 곱해진다.
+   σ 를 **40 dB** 바꿔도 정규화 거리프로파일의 상대편차가 **3.3e−16**(부동소수 반올림)이다.
+   ⇒ 이 눈금에는 탐지성 정보가 **0** 이다. 「멀면 어려워진다」를 원리적으로 못 그린다.
+2. **오프셋(PAPR)이 상수가 아니다.** 상시 기준신호 3종에서
+   WiFi **26.29** · LTE **14.38** · 5G **16.10** dB — **11.91 dB** 벌어진다.
+   점유모드마다 다르고(WiFi G1 26.29 → G3 18.29), 파형 시드마다 p-p 최대 **1.01 dB**(5G),
+   기록 길이에 따라서도 움직인다(상시 5G 를 1/8·1/4·1/2·1 로 잘라 재면
+   11.39 / 10.77 / 13.09 / 16.10 dB — **단조도 아니다**).
+   ⇒ 「세 표준에 같은 `snr_db` 를 줬으니 공정 비교다」가 **거짓**이다.
+3. **정합필터 뒤에서도 안 맞는다.** 같은 `snr_db=20` 에서 잰 MF 출력 첨두/바닥이
+   WiFi **28.78** · LTE **22.03** · 5G **20.26** dB — **8.52 dB** 벌어진다.
+4. **패시브 쪽은 SINR 이 아니다.** `make_cpi` 의 첨두는 표적 에코만 보고 DPI·클러터를 **뺀 채**
+   잰다. `dpi_amp=55` 를 켜도 잡음은 그대로라, 「SNR 12 dB」 라벨이 붙은 감시신호의 실제
+   평균/잡음은 **31.23 dB** 다(상시 5G·M=8·클러터 1탭).
+5. **헤드라인이 안 쓴다** — 아래.
+
+### 실사용인가 — 코드로 확인했다 (⭐«abs_noise=True 라 안 쓴다» 는 **참**)
+
+- `make_cpi` 를 실제로 부르는 곳은 `benchmark/` **7 파일**(`run_min_cell` · `verify_linkbudget` ·
+  `verify_clutter_doppler` · `verify_ghost_impact` · `verify_eca` · `verify_ambiguity` ·
+  `passive_two_channel_md`)이고 **전부 `abs_noise=True, noise_var=…`** 다.
+  `src/` 에서 도달하는 곳은 둘뿐이다 — `src/passive_process.py:223` 의 **`__main__` 데모**
+  (`abs_noise` 기본값 = `False`, 여기서만 첨두규약이 실제로 작동한다) 와
+  `src/viz_bistatic.py:95` 의 `legacy_cpi` 래퍼(**아무도 안 부른다** — 저장소 전체 grep 에서
+  자기 docstring 말고 호출 0 건).
+- 그리고 `abs_noise=True` 에서 `snr_db` 는 **죽은 인자**다 — 값을 `−100 ↔ +100` 으로 바꿔도
+  출력 배열이 **비트동일**임을 SC7-P5 가 증명한다(주장이 아니라 실행).
+- 헤드라인 검출 경로 `src/freespace_detect.py` · `src/experiment_detection.py` 는 `make_cpi` 를
+  **import 조차 하지 않는다**(`ECACanceller` · `range_doppler` · `ca_cfar_2d` 만 가져온다).
+- `radar_process.make_echo` 로 가는 길은 `src/viz_radar.py` · `src/viz_occupancy.py` ·
+  `src/viz_animations.py` **셋**과 `src/radar_process.py:123-137` 의 `__main__` 데모뿐이고, 이 셋이 만드는 그림·GIF 는 **현행 `reports/*.ipynb` 어디에도
+  안 실린다**(`grep -o 'report2_.*\.png' reports/` = 0 건, `.gif` = 0 건).
+  `benchmark/run_matrix.py` 는 `viz_occupancy` 에서 `_grid_image`(그리기 함수)만 가져온다.
+
+⇒ **판정: 「폐기 예정」.** 세 번째 이름을 사다리 `rungs` 에 넣지 않고,
+`outputs/snr_convention.json` 의 **새 키 `non_ladder_conventions`** 에 `status="deprecated"` 로
+싣는다. 기존 키는 하나도 안 건드렸다(회귀 보호 — 재생성 후 diff: 타임스탬프 한 줄 외 변화 0).
+새로 쓰지 말고, 새 코드는 `snr_slow_ac_db` 를 쓴다.
+
+⚠ **안 한 것**: 데모·그림 코드의 `snr_db=` 인자를 **지우지 않았다**. 지우면 그림 코드 셋이
+깨지고, 그 그림들은 지금 리포트에 안 실리므로 급하지 않다. 대신 이름을 `snr_peak_pre_mf_db` 로
+못 박아 두어, 그 수치를 사다리 값과 나란히 못 쓰게 했다.
+
 ## 1-3. 현행 코드와의 대조 — 무엇이 얼마나 바뀌나
 
 | 파일:줄 | 지금 쓰는 규약 | 사다리 어디 | 갈아야 하나 |
@@ -232,6 +380,8 @@ geometry  : "monostatic_equivalent" (R_t = R_r = R)  /  "bistatic" (R_t, R_r 별
 | `md_classify_dataset.py:806-811` | **AC** 기준, 절대 링크 없음 | ③′ | `add_noise(ref="ac")` 로 대체(비트동일 확인 후) + 거리 매핑 추가 |
 | `benchmark/passive_two_channel_md.py:334-378` `calibrate_sigma` | σ 를 역산해 출력 SINR 20 dB 고정 | — | **여기엔 거리가 아예 없다.** 링크버짓 팔을 하나 더 다는 것이 남은 일 |
 | `benchmark/link_budget.py:69-89` `link_terms` | `snr_echo_db` = ① | ① | ⭐**이미 있다. 재구현 금지** — 새 함수가 이걸 부른다 |
+| `src/radar_process.py:57-59` `make_echo` | ⛔**에코 첨두 기준** | **사다리 밖** | 안 고친다 — §1-2b, 「폐기 예정」. 그림 코드 셋만 쓴다 |
+| `src/passive_process.py:84-86` `make_cpi(abs_noise=False)` | ⛔**에코 첨두 기준**(DPI 제외) | **사다리 밖** | 안 고친다 — `__main__` 데모만 도달. 운용 호출부는 전부 `abs_noise=True` |
 
 ## 1-4. ⭐거리 → SNR — 식과 재사용할 원장
 
@@ -246,8 +396,8 @@ P_n              = k · T0 · F · B_eff                                     [W]
 
 | 필요한 것 | 어디서 | 값 |
 |---|---|---|
-| σ (**방위평균**, 36 방위) | `outputs/md_range_sweep.json` → `cells[].rows[].sigma_eq_aspect_mean_plane_dbsm` | matrice4e **−18.88 dBsm** · mavic4pro −15.93 · mini5pro −20.00 · s1000plus −15.90 · phantom4 −16.92 (3.5 GHz). ⚠**단일자세 `sigma_eq_plane_dbsm` 을 쓰지 마라** — 그 파일 자신이 «비인용» 이라 선언한다 |
-| dc_ac (기체별) | 같은 파일 `rows[].arms.A0_reference.dc_ac_db` | matrice4e **17.3** · s1000plus 18.9 · mini5pro 26.5 · phantom4 32.5 · mavic4pro **37.2 dB** |
+| σ (**방위평균**, 36 방위) | ⭐`outputs/md_range_sweep_mf.json` → `cells[].rows[].sigma_eq_aspect_mean_plane_dbsm` | **현행 메쉬**(3.5 GHz): matrice4e **−17.53 dBsm** · mavic4pro −16.79 · mini5pro −19.31 · s1000plus −12.43 · phantom4 −17.91. ⚠**단일자세 `sigma_eq_plane_dbsm` 을 쓰지 마라** — 그 파일 자신이 «비인용» 이라 선언한다 |
+| dc_ac (기체별) | 같은 파일 `rows[0].arms.A0_reference.dc_ac_db` | **현행 메쉬**(3.5 GHz): mavic4pro **5.33** · s1000plus 22.00 · matrice4e 24.86 · phantom4 32.20 · mini5pro **32.77 dB**. ⚠옛 메쉬 값(17.3~37.2)은 `outputs/pre37db/` 에만 있다 — §0-1 의 출처 정정 상자 |
 | EIRP·G·F·B | `microdoppler_nearfield.py:327-331` (챔버 12 dBm) / `benchmark/link_budget.py:46-50` (매크로 63 dBm) | 12 또는 63 dBm · 10 dBi · 5 dB · 100 MHz |
 | 바이스태틱 기하 | `benchmark/geometry.py` TX/RX/CENTER → `bistatic_scene.bistatic_params` | R1·R2·L·β |
 | DTR | `benchmark/passive_two_channel_md.py:108-124` `scene_numbers()` | `4π R1²R2²/(L²σ)` |
@@ -257,34 +407,47 @@ P_n              = k · T0 · F · B_eff                                     [W]
 - 양쪽 다 변함(모노스태틱 등가, 우리 맵 원장이 이것): 40 m vs 3 m = **40log10(40/3) = 45.0 dB**
 - Tx 다리 고정(바이스태틱, 수신국만 이동): **20log10(40/3) = 22.5 dB**
 
-**계산 결과 (matrice4e·σ = −18.88 dBsm·PRF 19,700·N_seg 70·dc_ac 17.3 dB·모노 등가)** `[신규]`
+### ⭐**계산 결과 — 초판(설계값)을 폐기하고 원장 값으로 갈았다** (2026-08-11)
 
-| R [m] | ① snr_band | ③ snr_slow | ③′ snr_slow_ac | ⑤ snr_map_ac |
+초판 표는 `σ = −18.88 dBsm · PRF 19,700 · dc_ac 17.3 dB`(옛 메쉬·옛 PRF)로 손계산한 것이었다.
+**정본은 원장이다** — `outputs/md_snr_vs_range.json`, `benchmark/md_snr_vs_range.py` 생성,
+2026-08-11 01:56, 규약 `v2_2026-08`.
+
+**matrice4e · 5G NR 3.5 GHz · EIRP 12 dBm(챔버) · PRF 20,000 · 모노스태틱 등가**
+(σ **−17.5295 dBsm** · dc_ac **24.8614 dB** → `dc_ac_off_db` 24.8755 · `g_stft_db` **36.1245**
+= 전창 6144 Hann. ⚠이 ⑤ 는 **맵 조각(70 표본, 16.69 dB)이 아니라 전창**이다 — 1층 K-3 개명 대상)
+
+| R [m] | ① `snr_sample_db` | ③ `snr_slow_db` | ③′ `snr_slow_ac_db` | ⑤ `snr_map_ac_db` |
 |---|---|---|---|---|
-| 3 | +18.69 | +55.74 | +38.36 | +55.06 |
-| 10 | −2.23 | +34.83 | +17.45 | +34.14 |
-| 15 | −9.27 | +27.79 | +10.41 | +27.10 |
-| 20 | −14.27 | +22.79 | +5.41 | +22.10 |
-| **40** | −26.31 | +10.75 | **−6.63** | +10.06 |
-| 60 | −33.35 | +3.70 | −13.68 | +3.01 |
-| 100 | −42.23 | −5.17 | −22.55 | −5.86 |
+| 1 | +39.124 | +76.114 | +51.239 | +87.363 |
+| 3 | +20.040 | +57.029 | +32.154 | +68.278 |
+| 10 | −0.876 | +36.114 | +11.239 | +47.363 |
+| 15 | −7.919 | +29.070 | +4.195 | +40.319 |
+| 20 | −12.917 | +24.073 | **−0.803** | +35.322 |
+| **40** | −24.958 | +12.032 | **−12.844** | +23.281 |
+| 100 | −40.876 | −3.886 | −28.761 | +7.363 |
 
-(`snr_band(R=1 m) = +37.77 dB`. 사다리 전부가 이 한 수에서 `−40log10(R)` 로 내려간다.)
+사다리 전부가 R = 1 m 의 한 수에서 `−40log10(R)` 로 내려간다(모노 등가). 바이스태틱으로
+한 다리만 움직이면 −20 dB/decade 다 — 게이트 SC6 이 두 기울기를 **정확히** 확인한다.
 
 **⭐그리고 이것이 «분류 정확도 대 거리»를 준다.** `outputs/md_classify.json` 의 잡음 팔이
-**정확히 ③′ 축** 이므로(§0-1), 거리로 바로 옮겨진다:
+**정확히 ③′ 축** 이므로(§0-1), 거리로 바로 옮겨진다.
+아래는 `md_snr_vs_range.json::classification_vs_range` 를 그대로 옮긴 것이다
+(정확도는 **재계산 안 하고 복사**했고, 붙인 것은 R 뿐이다).
 
-| ③′ AC SNR | 분류 정확도(RF100) | R (EIRP 12 dBm, 챔버) | R (EIRP 63 dBm, 매크로 gNB) |
-|---|---|---|---|
-| +10 dB | 0.879 | **15.4 m** | **289 m** |
-| 0 dB | 0.840 | **27.3 m** | **514 m** |
-| −10 dB | 0.434 | **48.6 m** | **915 m** |
-| −15 dB | 0.286 | 64.7 m | 1,220 m |
-| −20 dB | 0.242 (≈우연 0.167) | 86.3 m | 1,626 m |
+| ③′ AC SNR | RF100 | LDA | R matrice4e (12 dBm) | R matrice4e (63 dBm) | R mini5pro | R mavic4pro |
+|---|---|---|---|---|---|---|
+| +10 dB | 0.8785 | 0.8426 | **10.74 m** | **202.3 m** | 6.15 m | 32.37 m |
+| 0 dB | 0.8403 | 0.7222 | **19.10 m** | **359.7 m** | 10.94 m | 57.57 m |
+| −10 dB | 0.4340 | 0.3611 | **33.96 m** | **639.7 m** | 19.45 m | 102.37 m |
+| −15 dB | 0.2859 | 0.2639 | 45.29 m | 853.0 m | 25.94 m | 136.51 m |
+| −20 dB | 0.2419 (≈우연 0.1667) | 0.2477 | 60.39 m | 1,137.5 m | 34.59 m | 182.04 m |
 
-이 표 한 장이 «멀면 어려워진다» 를 **수로** 말한다. 8/18 덱의 헤드라인 후보다.
-⚠ 전제: 풀 캡처 · 열잡음만 · 모노스태틱 등가 · σ 는 방위평균 · matrice4e 의 dc_ac.
-기체마다 dc_ac 가 17.3~37.2 dB 로 달라 **기체별로 따로 내야 한다.**
+이 표 한 장이 «멀면 어려워진다» 를 **수로** 말한다.
+⚠ 전제: 풀 캡처 · **열잡음만** · 모노스태틱 등가 · σ 는 방위평균 · 창 0.25 s · PRF 20,000.
+정확도 열은 **6 기체 통합**(mini2·mini5pro·phantom4·matrice4e·typhoonh480·s1000plus)이고
+거리 열은 **기체별 dc_ac·σ** 로 갈린다 — 두 축을 한 칸으로 읽지 마라.
+⚠ σ 불확실성 띠가 **안 들어가 있다**(우리 σ 는 Das 실측의 2.39 배 = 3.78 dB = 거리 ×0.79).
 
 ## 1-5. API 설계 — 파일·함수·인자
 
@@ -363,22 +526,42 @@ draw(ax, t, f, S, f_tip, *, t_scale=1e3, ref=None,
 3. **한 장의 연속 스펙트로그램에 구간 라벨** — **(c)**. arXiv:2402.04368 Fig. 4(b) 가
    «(II) 검출은 되는데 마이크로도플러는 안 보임 / (III) 둘 다 보임» 을 한 장에 표시한다 `[조사]`.
    우리 사다리로 그 구간 경계가 **계산된다**: ③ > 0 dB 인데 ③′ < 0 dB 인 구간이 정확히 (II) 다.
-   matrice4e·EIRP 12 dBm 에서 그 구간은 **R = 27.3 ~ 74.3 m** (폭 **17.4 dB** = `dc_ac_off_db`). `[신규]`
+   ⭐**원장이 이 구간을 이미 계산해 싣는다** — `md_snr_vs_range.json` 의
+   `region_ii_detected_but_no_microdoppler`(팔마다 하나씩).
+
+   | 기체 (EIRP 12 dBm) | (II) 안쪽 | (II) 바깥쪽 | 폭 = `dc_ac_off_db` |
+   |---|---|---|---|
+   | **matrice4e** | **19.10 m** | **79.96 m** | 24.88 dB |
+   | mini5pro | 10.94 m | 72.16 m | 32.77 dB |
+
+   ⚠ 초판이 쓴 «27.3 ~ 74.3 m · 폭 17.4 dB» 는 **옛 메쉬의 dc_ac 17.3 dB** 로 낸 값이다. 폐기.
    → 선행연구와 나란히 놓을 수 있는 그림이다(상시규칙 `sionna2-priorwork-methodology`).
 
 ## 1-7. 원장 설계 — 파일과 키
 
-### `outputs/snr_convention.json` (새로, 작다·불변)
+### `outputs/snr_convention.json` — ✅**만들어졌다.** 아래는 초판 스케치이고, **실물이 정본**이다
+
+실물은 `benchmark/verify_snr_convention.py::write_convention` 이 **코드에서 생성**한다
+(게이트를 돌릴 때마다 재생성되고, 타임스탬프 한 줄 빼고 바이트 동일이다).
+실물이 스케치보다 더 싣는 것: `constants.prf_hz = 20000.0` · `capture_badges` ·
+`conversion.dc_ac_off_db` · `who_uses_which` · `matched_filter_verification`(게이트 5 개 요약) ·
+`known_gaps` 3 항.
+
 ```json
-{"_meta": {"convention": "v2_2026-08", "doc": "docs/NOISE_AND_ROTOR_PLAN.md#1-2"},
- "rungs": [{"id":"snr_band_db","def":"P_echo/(k T0 F B)","ref":"pre-matched-filter, per Rx sample"},
-           {"id":"g_mf_db","def":"10log10(B/PRF)","condition":"capture=full_waveform"},
+{"_meta": {"convention": "v2_2026-08", "canonical_rung": "snr_slow_ac_db",
+           "doc": "docs/NOISE_AND_ROTOR_PLAN.md#1-2",
+           "generator": "benchmark/verify_snr_convention.py::write_convention"},
+ "rungs": [{"id":"snr_band_db"}, {"id":"g_mf_db","condition":"capture=full_waveform only"},
            {"id":"snr_slow_db"}, {"id":"snr_slow_ac_db","canonical":true},
-           {"id":"g_stft_db","def":"10log10(N_seg)+L_win"}, {"id":"snr_map_ac_db"}],
- "constants": {"T0_K":290.0,"nf_db":5.0,"b_hz":1.0e8,"window_coh_loss_db":{"hann":-1.76}},
- "verification": {"mf_gain_measured_db": 6.86, "mf_gain_predicted_db": 6.99,
-                  "test": "L=5000 white ref, per-sample SNR -30 dB"}}
+           {"id":"g_stft_db"}, {"id":"snr_map_ac_db"}],
+ "constants": {"T0_K":290.0,"nf_db":5.0,"b_hz":1.0e8,"prf_hz":20000.0,
+               "window_coh_loss_db":{"hann":-1.76}},
+ "do_not_confuse": {"g_mf_db": 36.9897, "cpi_coherent_gain_db_5000": 36.9897,
+                    "g_stft_db_70_hann": 16.691}}
 ```
+⚠ 초판 스케치가 적었던 `"verification": {"mf_gain_measured_db": 6.86, ...}` 는 폐기다.
+실물의 검증 항은 `matched_filter_verification` 이고 값은 **게이트 MF1 오차 +0.026 dB ·
+MF2 −0.019 dB · MF3 +0.105 dB** 다(`outputs/verify_matched_filter_gain.json`).
 
 ### `outputs/md_snr_vs_range.json` (새로) — §1-4 표의 원장
 `cells[]`: `drone, band, fc_hz, capture, eirp_dbm, sigma_dbsm_source, dc_ac_db`
@@ -723,25 +906,56 @@ GPU 단계는 **표시해 두고 뒤로 민다**.
 8. **`prf_feasibility` 와 사다리의 결합을 아직 안 짰다.** 상시 기준신호 팔(LTE CRS 1 kHz ·
    5G SSB 50 Hz)에서는 ② 가 다르고 f_tip 이 접힌다. 그 팔의 거리 곡선은 별도 계산이다.
 
+### ⭐2026-08-11 추가 — 문서 정합 라운드가 새로 찾은 것
+
+9. ⭐**같은 키 이름이 두 뜻을 갖는다** — §1-2b 가 잡은 것은 «사다리 **밖**» 규약이고, 이건
+   **사다리 안**이라 그 게이트가 안 잡는다.
+   · `snr_ac_*_db` (= ① − dc_ac, 정합필터 **전**) ↔ `snr_slow_ac_*_db` (= ③′) —
+     `md_range_sweep_mf.json` matrice4e·R = 10 m 에서 **−25.74 vs +11.24 dB**, 즉 **36.99 dB**.
+     둘 다 이름에 «ac» 가 있다.
+   · `g_stft_db` — `md_range_sweep_mf.json`(N_seg 6144) **36.12 dB** ↔ 맵 조각(N_seg 70)
+     **16.69 dB**, **19.4 dB**.
+   ⇒ ⭐**«눈금 이름을 붙여라» 규칙만으로는 부족하다. 이름이 겹치면 붙여도 못 가른다.**
+     개명(`snr_ac_premf_*_db` · `g_frame_db`/`g_cpi_db`)이 필요하고 **값 재계산은 필요 없다**.
+10. ⭐**`echo_over_noise_db()` 의 기본값이 `capture="pre_mf"` 다.** 옛 원장 비트 보존을 위한
+    선택이고 그 자체는 옳지만, **부주의한 새 호출은 ① 을 받는다.** 지금 그런 호출이
+    `src/experiment_md_range.py:154-155`(의도적, 옛 키 유지)와
+    `src/viz_md_range.py:99`(원장 선언을 따라감, 옳음) 둘이다. 세 번째가 생기면 결함이다.
+11. ⭐**§1-4 의 σ·dc_ac 가 «어느 메쉬 세대인가» 를 문서가 기억해야 했다.** 그건 문서가 할 일이
+    아니다 — 원장 `_meta` 에 `mesh_generation` 배지가 없다. §0-1 의 정정 상자가 지금 그 역할을
+    대신하고 있고, **그건 다음 세대에 또 깨진다.**
+
 ---
 
 ## 부록 A. 이 문서가 계산한 값 — 재현 방법
 
-전부 CPU·수 초. 재현 스크립트를 `benchmark/verify_noise_rotor.py` 의 `--selftest` 로 넣는다.
+⚠⚠ **2026-08-11: 아래 사다리 항목들은 «이 문서가 손계산한 설계값» 이고, 이제 전부
+코드와 원장에 들어갔다.** 손계산과 원장이 어긋나면 **원장이 정본**이다. 아래 표는
+«설계값 ↔ 정본» 을 나란히 둔다. 재현은 `benchmark/verify_snr_convention.py` ·
+`verify_matched_filter_gain.py` · `md_snr_vs_range.py` 를 돌리면 된다(전부 CPU·수 초).
+
+### A-1. 사다리 — ⛔초판 손계산은 폐기, **원장이 정본**
+
+| 값 | 초판 손계산 (PRF 19,700·옛 메쉬) | ⭐정본 (원장) |
+|---|---|---|
+| `g_mf_db` | 37.06 dB = `10log10(100e6/19700)` | **36.9897 dB** = `10log10(100e6/20000)` — `snr_convention.json` |
+| `g_stft_db` (맵 조각) | 16.69 dB, N_seg 70 Hann | **16.691 dB** — 변화 없음 |
+| `g_stft_db` (전창) | (없었다) | **36.1245 dB**, N_seg 6144 Hann — `md_snr_vs_range.json` 이 이 이름으로 싣는다 |
+| CPI 2 s 코히어런트 이득 | 45.95 dB = `10log10(2.0*19700)` | 그대로. ⚠**report07 호버 팔(PRF 19,700)의 값**이고 사다리 항이 아니다 |
+| `snr_band(1 m)` | 37.77 dB (σ = −18.879 dBsm, 옛 메쉬) | **39.124 dB** (σ = **−17.5295**, 현행 메쉬) — `md_snr_vs_range.json` |
+| `dc_ac_off_db` | 17.38 (dc_ac 17.3) | **24.8755** (dc_ac **24.8614**, 현행 메쉬 matrice4e) |
+| §1-4 거리표 | `37.77 − 40log10(R)` | 원장 표 그대로 인용. **손계산 금지** |
+| 구간 (II) matrice4e | 27.3 ~ 74.3 m | **19.10 ~ 79.96 m** (폭 24.88 dB) |
+| 정합필터 이득 실측 | 6.86 dB | 게이트 MF1 **+0.026 dB 오차**(측정 37.016 / 예측 36.990) |
+
+식 자체는 그대로다: `R = 10**((C − s)/40)` (모노 등가) · `dc_ac_off_db = 10log10(1+10**(d/10))`.
+
+### A-2. 로터 — 아직 이 문서가 정본 (§2 는 진행 중)
 
 | 값 | 계산 |
 |---|---|
-| `g_mf_db` = 37.06 dB | `10*log10(100e6/19700)` |
-| `g_stft_db` = 16.69 dB | `nperseg = round(auto_periods(19700,126.667)*19700/126.667) = 70`; `10*log10(70) - 1.76` |
-| CPI 2 s 코히어런트 이득 45.95 dB | `10*log10(2.0*19700)` — **④ 와 혼동 금지** |
-| `snr_band(1 m)` = 37.77 dB | `nf.echo_over_noise_db(10**(-18.879/10), 1.0, 3.5e9)` — σ 는 **방위평균** |
-| §1-4 거리표 | `37.77 − 40log10(R)` (+37.06 → ③) (−17.38 → ③′) (+16.69 → ⑤) |
-| `dc_ac_off_db`(17.3 dB) = 17.38 | `10*log10(1+10**(17.3/10))` |
-| 구간 (II) 27.3~74.3 m | ③′=0 → `10**(57.45/40)`; ③=0 → `10**(74.83/40)` |
-| 분류 SNR→거리 | `R = 10**((C - s)/40)`, `C = 57.45`(12 dBm) / `108.45`(63 dBm) |
-| σ_w 보정 F | `(2/π)*(arctan(2π·f2·T) - arctan(2π·f1·T))`, T = 0.2274 |
-| 창평균 몫 | `(2T/Tw)*(1 - (T/Tw)*(1-exp(-Tw/T)))` |
-| 정합필터 이득 실측 6.86 dB | L=5000 백색 기준, 표본당 −30 dB, 2,000 실현 |
+| σ_w 보정 F | `(2/π)*(arctan(2π·f2·T) − arctan(2π·f1·T))`, T = 0.2274 s |
+| 창평균 몫 | `(2T/Tw)*(1 − (T/Tw)*(1−exp(−Tw/T)))` |
 | 40 m vs 3 m = 45.0 dB | `40*log10(40/3)` |
 | 열잡음 −88.98 dBm | `kT0·F(5 dB)·100 MHz` / Sionna RT 기본 −113.93 dBm(`kTB`, 293 K, F 없음) |
 

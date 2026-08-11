@@ -5,6 +5,7 @@ verify_snr_convention.py — ⭐**SNR 규약 v2 게이트**: 옛 동작 보존 +
 왜 이 스크립트가 있나 (2026-08-10 적대검증이 잡은 결함 ①)
 ------------------------------------------------------------------------------------------------
 저장소에 SNR 기준이 **두 개** 있었고 서로 달랐다.
+(⭐2026-08-11 추가: **셋째**가 더 있었다 — 아래 SC7 · `nf.NON_LADDER_CONVENTIONS`.)
 
     src/microdoppler_nearfield.py  add_noise()          p_sig = mean|E|²        → **총전력**(몸체 DC 포함)
     benchmark/md_classify_dataset.py cmd_build (인라인)  p_sig = mean|E−mean|²   → **AC 만**(블레이드선)
@@ -33,6 +34,9 @@ verify_snr_convention.py — ⭐**SNR 규약 v2 게이트**: 옛 동작 보존 +
   SC5  ⭐두 눈금이 **실제로** dc_ac_off_db 만큼 다르다 — 합성열에 주입해 되재기      ≤ 0.05 dB
   SC6  사다리 자기정합: ③′ = ③ − off,  ⑤ = ③′ + ④,  기울기 −40 dB/decade(모노 등가)
        / −20 dB/decade(바이스태틱 한 다리)                                        ≤ 0.01 dB
+  SC7  ⭐**제3의 눈금**(2026-08-11 추가) — `radar_process.make_echo` / `passive_process.make_cpi`
+       가 쓰는 «에코 첨두 기준» SNR 의 정의·변환(PAPR)·폐기 근거를 측정한다.
+       특히 헤드라인 경로(`abs_noise=True`)에서 `snr_db` 가 **죽은 인자**임을 비트동일로 증명.
 
 실행 (CPU 수 초, GPU 불필요)
     cd sionna2 && PYTHONPATH=src ~/.venvs/py312/bin/python benchmark/verify_snr_convention.py
@@ -212,13 +216,120 @@ def gate_sc6(a):
                 tol_db=0.01, passed=bool(max(errs) <= 0.01))
 
 
+def gate_sc7(a):
+    """⭐제3의 눈금 — 「에코 첨두 기준 SNR」이 무엇인지 **측정**하고, 사다리에 못 올리는 이유를
+    반증가능한 형태로 남긴다 (`nf.NON_LADDER_CONVENTIONS`).
+
+      P1  make_echo 의 실현 첨두/잡음 == 요구한 snr_db                       (≤ 0.20 dB)
+      P2  실현 평균/잡음 == `peak_ref_snr_to_mean_db(snr_db, PAPR)`          (≤ 0.20 dB)
+          ⚠ 정직성: P2 는 P1 과 **수치적으로 축퇴**다(둘 다 같은 실현 잡음전력에서 나온다).
+            P2 가 지키는 것은 «변환 헬퍼의 부호와 구현» 이지 독립적인 물리가 아니다.
+      P3  ⭐σ 를 40 dB 바꿔도 정규화 거리프로파일이 같다(rel ≤ 1e-9) — 이 눈금에서는 α 가
+          에코와 잡음에 똑같이 곱해져 **R·σ 가 상쇄된다**. 비트동일은 아니다(부동소수 반올림).
+      P4  make_cpi(abs_noise=False) 도 같은 식이고, DPI 를 켜면 라벨과 실제가 벌어진다
+      P5  ⭐헤드라인 경로(abs_noise=True)에서 snr_db 는 **죽은 인자** — 값을 200 dB 바꿔도
+          출력 배열이 비트동일
+      P6  (기록만) 같은 snr_db 에서 세 표준의 PAPR·MF 출력 첨두/바닥이 얼마나 벌어지나"""
+    sys.path.insert(0, os.path.join(_ROOT, "src"))
+    from waveforms import always_on_waveforms, all_waveforms              # noqa: E402
+    from radar_process import (_delay_doppler, make_echo, radar_voltage_gain,   # noqa: E402
+                               range_profile)
+    from passive_process import make_cpi                                  # noqa: E402
+
+    wf = always_on_waveforms()["nr"]
+    R, sig, snr = 10.0, 0.01, 20.0
+    y = make_echo(wf, R, sig, snr_db=snr, rng=np.random.default_rng(a.seed))
+    echo = radar_voltage_gain(R, wf.carrier_hz, sig) * \
+        _delay_doppler(wf.tx, wf.fs_hz, R, wf.carrier_hz, 0.0)
+    p_n = float(np.mean(np.abs(y - echo) ** 2))
+    pk_db = 10 * np.log10(float(np.max(np.abs(echo)) ** 2) / p_n)
+    mean_db = 10 * np.log10(float(np.mean(np.abs(echo) ** 2)) / p_n)
+    papr_echo = nf.papr_db(echo)
+    e1 = abs(pk_db - snr)
+    e2 = abs(mean_db - nf.peak_ref_snr_to_mean_db(snr, papr_echo))
+
+    # P3 — σ 40 dB 차이, 같은 시드 → 정규화 프로파일이 같은가(=R·σ 가 상쇄되는가)
+    def _norm_prof(s):
+        _, prof, _, _ = range_profile(wf, R, s, snr_db=snr, passive=True,
+                                      rng=np.random.default_rng(11))
+        return prof / prof.max()
+    pa, pb = _norm_prof(1e-2), _norm_prof(1e-6)
+    e3 = float(np.max(np.abs(pa - pb)) / max(float(np.max(np.abs(pa))), 1e-300))
+
+    # P4 — passive 쪽 같은 식 + DPI 를 켜면 라벨(12 dB)과 실제 평균/잡음이 벌어진다
+    M, tau = 8, 22.0 / 299792458.0
+    s_n, _ = make_cpi(wf.tx, M, wf.fs_hz, tau, 65.0, 1.0, dpi_amp=0.0, clutter=(),
+                      snr_db=12.0, rng=np.random.default_rng(a.seed))
+    s_0, _ = make_cpi(wf.tx, M, wf.fs_hz, tau, 65.0, 1.0, dpi_amp=0.0, clutter=(),
+                      abs_noise=True, noise_var=0.0)
+    pn2 = float(np.mean(np.abs(s_n - s_0) ** 2))
+    e4 = abs(10 * np.log10(float(np.max(np.abs(s_0)) ** 2) / pn2) - 12.0)
+    d_n, _ = make_cpi(wf.tx, M, wf.fs_hz, tau, 65.0, 1.0, dpi_amp=55.0, clutter=((8e-9, 3.0),),
+                      snr_db=12.0, rng=np.random.default_rng(a.seed))
+    d_0, _ = make_cpi(wf.tx, M, wf.fs_hz, tau, 65.0, 1.0, dpi_amp=55.0, clutter=((8e-9, 3.0),),
+                      abs_noise=True, noise_var=0.0)
+    surv_mean_db = 10 * np.log10(float(np.mean(np.abs(d_0) ** 2)) /
+                                 float(np.mean(np.abs(d_n - d_0) ** 2)))
+
+    # P5 — 헤드라인 경로(abs_noise=True)에서 snr_db 는 죽은 인자인가
+    k5 = dict(dpi_amp=30.0, clutter=((8e-9, 3.0),), abs_noise=True, noise_var=1.0)
+    lo, _ = make_cpi(wf.tx, 4, wf.fs_hz, tau, 65.0, 1.0, snr_db=-100.0,
+                     rng=np.random.default_rng(5), **k5)
+    hi, _ = make_cpi(wf.tx, 4, wf.fs_hz, tau, 65.0, 1.0, snr_db=+100.0,
+                     rng=np.random.default_rng(5), **k5)
+    p5_dead = bool(np.array_equal(lo, hi))
+
+    # P6 (기록만) — 같은 snr_db 에서 세 표준이 얼마나 벌어지나
+    tab = []
+    for key, w in always_on_waveforms().items():
+        rm, prof, pkr, pkv = range_profile(w, R, sig, snr_db=snr, passive=True, up=8,
+                                           rng=np.random.default_rng(7))
+        floor = float(np.median(prof[np.abs(rm - pkr) > 3.0]))
+        tab.append(dict(key=key, name=w.name, papr_tx_db=round(nf.papr_db(w.tx), 3),
+                        papr_ref_db=round(nf.papr_db(w.ref), 3), n_tx=int(len(w.tx)),
+                        mf_peak_over_floor_db=round(float(20 * np.log10(pkv / floor)), 2)))
+    occ = {m: {k: round(nf.papr_db(w.tx), 3) for k, w in all_waveforms(m).items()}
+           for m in ("G1", "G2", "G3")}
+    # 기록 길이 의존성 — max 는 표본수의 함수라 «같은 파형»에서도 오프셋이 자란다
+    reclen = {str(max(64, int(len(wf.tx) * f))): round(nf.papr_db(wf.tx[:max(64, int(len(wf.tx) * f))]), 3)
+              for f in (0.125, 0.25, 0.5, 1.0)}
+    # 파형 시드 의존성 — 첨두는 실현마다 다른 확률변수다
+    from waveforms import lte_downlink, nr_downlink, wifi_80211ac        # noqa: E402
+    seed_sd = {}
+    for nm, fn in (("wifi", wifi_80211ac), ("lte", lte_downlink), ("nr", nr_downlink)):
+        v = [nf.papr_db(fn(seed=s).tx) for s in range(1, 9)]
+        seed_sd[nm] = dict(sd_db=round(float(np.std(v, ddof=1)), 3),
+                           pp_db=round(float(max(v) - min(v)), 3))
+    spread_papr = round(max(r["papr_tx_db"] for r in tab) - min(r["papr_tx_db"] for r in tab), 2)
+    spread_mf = round(max(r["mf_peak_over_floor_db"] for r in tab) -
+                      min(r["mf_peak_over_floor_db"] for r in tab), 2)
+
+    ok = bool(e1 <= 0.20 and e2 <= 0.20 and e4 <= 0.20 and e3 <= 1e-9 and p5_dead)
+    return dict(id="SC7",
+                what="third (non-ladder) scale: echo-peak-referenced SNR - definition, conversion, "
+                     "and why it is deprecated",
+                p1_make_echo_peak_err_db=round(float(e1), 4),
+                p2_conversion_err_db=round(float(e2), 4),
+                papr_of_echo_db=round(float(papr_echo), 3),
+                realized_mean_over_noise_db=round(float(mean_db), 3),
+                p3_range_profile_rel_dev_over_40dB_sigma=e3, p3_tol_rel=1e-9,
+                p4_make_cpi_peak_err_db=round(float(e4), 4),
+                p4_label_12db_but_surv_mean_over_noise_db=round(float(surv_mean_db), 2),
+                p5_snr_db_is_dead_when_abs_noise=p5_dead,
+                p6_per_waveform=tab, p6_papr_by_occupancy_db=occ,
+                p6_papr_vs_record_length_db=reclen, p6_papr_seed_spread_db=seed_sd,
+                spread_papr_db=spread_papr, spread_mf_peak_over_floor_db=spread_mf,
+                tol_db=0.20, passed=ok)
+
+
 CONV_OUT = os.path.join(_ROOT, "outputs", "snr_convention.json")
 
 
-def write_convention(path=CONV_OUT):
+def write_convention(path=CONV_OUT, gates=None):
     """⭐ 규약 자체를 원장으로 낸다 — **코드에서 생성**하므로 문서와 어긋날 수 없다.
 
-    게이트가 전부 통과했을 때만 쓴다(규약이 코드와 맞다는 증거가 있을 때만 규약을 공표한다)."""
+    게이트가 전부 통과했을 때만 쓴다(규약이 코드와 맞다는 증거가 있을 때만 규약을 공표한다).
+    `gates` 를 주면 SC7 의 측정치를 `non_ladder_conventions.measured` 에 함께 싣는다."""
     mf = {}
     p = os.path.join(_ROOT, "outputs", "verify_matched_filter_gain.json")
     if os.path.exists(p):
@@ -261,6 +372,33 @@ def write_convention(path=CONV_OUT):
             "benchmark/md_classify_dataset.py": "ac (ref='ac'), capture=full_waveform",
             "src/microdoppler_nearfield.py::echo_over_noise_db": "rung 1 by default (capture='pre_mf')"},
         matched_filter_verification=mf,
+        # ⭐2026-08-11 추가 — 사다리 **밖**의 제3 눈금(첨두기준). 기존 키는 하나도 안 건드린다.
+        non_ladder_conventions=dict(
+            note_ko="사다리(rungs) 에 없는 눈금이다. 「폐기 예정」으로만 적는다 — 새로 쓰지 말고, "
+                    "기존 사용처는 그림·데모뿐이다. 맨 이름 「SNR」은 여전히 snr_slow_ac_db 다.",
+            entries=nf.NON_LADDER_CONVENTIONS,
+            conversion=dict(
+                peak_to_mean="snr_mean_pre_mf_db = snr_peak_pre_mf_db - papr_db(echo record)",
+                mean_to_slow="snr_slow_db = snr_mean_pre_mf_db + g_mf_db  (capture=full_waveform)",
+                slow_to_ac="snr_slow_ac_db = snr_slow_db - dc_ac_off_db",
+                caveat="the chain above converts the RATIO only. The peak convention's noise floor "
+                       "is the echo itself, so the result has the FORM of rung 1 but not its value; "
+                       "an absolute rung additionally needs P_echo and k*T0*F*B.",
+                implemented_in="src/microdoppler_nearfield.py::papr_db / peak_ref_snr_to_mean_db"),
+            measured=(next((dict(gate=g["id"], papr_of_echo_db=g["papr_of_echo_db"],
+                                 spread_papr_db=g["spread_papr_db"],
+                                 spread_mf_peak_over_floor_db=g["spread_mf_peak_over_floor_db"],
+                                 per_waveform=g["p6_per_waveform"],
+                                 papr_by_occupancy_db=g["p6_papr_by_occupancy_db"],
+                                 papr_vs_record_length_db=g["p6_papr_vs_record_length_db"],
+                                 papr_seed_spread_db=g["p6_papr_seed_spread_db"],
+                                 snr_db_is_dead_when_abs_noise=g["p5_snr_db_is_dead_when_abs_noise"],
+                                 range_profile_rel_dev_over_40dB_sigma=(
+                                     g["p3_range_profile_rel_dev_over_40dB_sigma"]),
+                                 label_12db_but_surv_mean_over_noise_db=(
+                                     g["p4_label_12db_but_surv_mean_over_noise_db"]))
+                            for g in (gates or []) if g.get("id") == "SC7"), None)),
+        ),
         known_gaps=[
             "g_stft_db has no primary-literature source for a single STFT frame; it is our extrapolation "
             "of Braun eq (3.37) (2-D periodogram). Recorded as ours, not as literature.",
@@ -285,7 +423,8 @@ def main():
     a = ap.parse_args()
 
     t0 = time.time()
-    gates = [gate_sc1(a), gate_sc2(a), gate_sc3(a), gate_sc4(a), gate_sc5(a), gate_sc6(a)]
+    gates = [gate_sc1(a), gate_sc2(a), gate_sc3(a), gate_sc4(a), gate_sc5(a), gate_sc6(a),
+             gate_sc7(a)]
     n_pass = sum(1 for g in gates if g["passed"])
     doc = dict(
         _meta=dict(
@@ -310,7 +449,7 @@ def main():
         print(f"  [{'PASS' if g['passed'] else 'FAIL'}] {g['id']}  {g['what'][:70]}")
     print(f"\n{n_pass}/{len(gates)} pass  → {a.out}  ({time.time() - t0:.1f} s)")
     if n_pass == len(gates) and not a.no_convention:
-        print(f"→ {write_convention()}   (규약 원장; 게이트 전원 통과 시에만 갱신)")
+        print(f"→ {write_convention(gates=gates)}   (규약 원장; 게이트 전원 통과 시에만 갱신)")
     return 0 if n_pass == len(gates) else 1
 
 

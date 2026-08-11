@@ -3,7 +3,7 @@
   "convention": "v2_2026-08",
   "canonical_rung": "snr_slow_ac_db",
   "doc": "docs/NOISE_AND_ROTOR_PLAN.md#1-2",
-  "generated": "2026-08-11T02:06:24",
+  "generated": "2026-08-11T03:47:48",
   "generator": "benchmark/verify_snr_convention.py::write_convention",
   "rule_ko": "맨 이름 「SNR」은 snr_slow_ac_db(③′) 를 뜻한다. 원장은 ③·③′·dc_ac_db 를 항상 병기한다. 어느 눈금인지 안 적힌 SNR 수치는 인용 금지."
  },
@@ -110,6 +110,114 @@
     "what": "echo_over_noise_db(): default bit-identical; full_waveform = default + G_mf; return_terms carries BOTH (old snr_band_db, new snr_slow_db)",
     "passed": true
    }
+  }
+ },
+ "non_ladder_conventions": {
+  "note_ko": "사다리(rungs) 에 없는 눈금이다. 「폐기 예정」으로만 적는다 — 새로 쓰지 말고, 기존 사용처는 그림·데모뿐이다. 맨 이름 「SNR」은 여전히 snr_slow_ac_db 다.",
+  "entries": [
+   {
+    "id": "snr_peak_pre_mf_db",
+    "status": "deprecated",
+    "label": "echo-peak-referenced SNR (NOT on the v2 ladder)",
+    "formula": "sigma_n^2 = max_n|x[n]|^2 * 10^(-snr_db/10)  =>  snr_peak_pre_mf_db = 10log10(max_n|x[n]|^2 / sigma_n^2) == snr_db",
+    "ref": "peak sample of the TARGET ECHO ONLY, before matched filtering; the noise floor is defined by the echo itself, not by k*T0*F*B",
+    "where": [
+     "src/radar_process.py:57-59  make_echo(..., snr_db)",
+     "src/passive_process.py:84-86  make_cpi(..., snr_db, abs_noise=False)"
+    ],
+    "to_ladder": "snr_peak_pre_mf_db - papr_db(echo record) = mean-power SNR per Rx sample (the FORM of rung 1, never its VALUE - the floor is fictitious). Then + g_mf_db -> snr_slow_db, - dc_ac_off_db -> snr_slow_ac_db.",
+    "needs_to_convert": [
+     "papr_db of the echo record (waveform-, occupancy-, seed- and record-length dependent; measured in gate SC7)",
+     "P_echo and k*T0*F*B, to reach ANY absolute rung - the peak convention cancels range and RCS entirely"
+    ],
+    "why_not_a_rung": [
+     "no absolute noise floor: alpha multiplies echo AND noise, so R and sigma cancel (gate SC7-P3: normalized range profile agrees to 3.3e-16 for sigma 40 dB apart)",
+     "the offset to rung 1 is PAPR, which is not a constant: 11.91 dB spread across the three always-on standards, and occupancy-, seed- and record-length dependent",
+     "after the matched filter the three standards still differ by 8.52 dB at the same requested snr_db (gate SC7-P6)",
+     "in make_cpi the peak excludes DPI and clutter, so it is not an SINR"
+    ],
+    "live_use": "figure/demo only. Every production make_cpi call site passes abs_noise=True (noise supplied absolutely), so snr_db is a dead argument there - gate SC7-P5 proves it bit-identically. The only abs_noise=False caller is the passive_process.py __main__ demo (src/viz_bistatic.py:95 legacy_cpi wraps it but is never called). radar_process.make_echo is reached only from src/viz_radar.py, src/viz_occupancy.py, src/viz_animations.py and its own __main__ demo; those figures/GIFs are not embedded in any reports/*.ipynb of the current set.",
+    "disposition": "do not promote, do not extend; migrate any new use to snr_slow_ac_db"
+   }
+  ],
+  "conversion": {
+   "peak_to_mean": "snr_mean_pre_mf_db = snr_peak_pre_mf_db - papr_db(echo record)",
+   "mean_to_slow": "snr_slow_db = snr_mean_pre_mf_db + g_mf_db  (capture=full_waveform)",
+   "slow_to_ac": "snr_slow_ac_db = snr_slow_db - dc_ac_off_db",
+   "caveat": "the chain above converts the RATIO only. The peak convention's noise floor is the echo itself, so the result has the FORM of rung 1 but not its value; an absolute rung additionally needs P_echo and k*T0*F*B.",
+   "implemented_in": "src/microdoppler_nearfield.py::papr_db / peak_ref_snr_to_mean_db"
+  },
+  "measured": {
+   "gate": "SC7",
+   "papr_of_echo_db": 16.096,
+   "spread_papr_db": 11.91,
+   "spread_mf_peak_over_floor_db": 8.52,
+   "per_waveform": [
+    {
+     "key": "wifi",
+     "name": "WiFi 802.11ac",
+     "papr_tx_db": 26.294,
+     "papr_ref_db": 19.008,
+     "n_tx": 4160,
+     "mf_peak_over_floor_db": 28.78
+    },
+    {
+     "key": "lte",
+     "name": "LTE Rel-9",
+     "papr_tx_db": 14.382,
+     "papr_ref_db": 14.382,
+     "n_tx": 30720,
+     "mf_peak_over_floor_db": 22.03
+    },
+    {
+     "key": "nr",
+     "name": "5G NR Rel-16",
+     "papr_tx_db": 16.099,
+     "papr_ref_db": 16.099,
+     "n_tx": 61440,
+     "mf_peak_over_floor_db": 20.26
+    }
+   ],
+   "papr_by_occupancy_db": {
+    "G1": {
+     "wifi": 26.294,
+     "lte": 14.382,
+     "nr": 16.099
+    },
+    "G2": {
+     "wifi": 24.573,
+     "lte": 12.583,
+     "nr": 13.759
+    },
+    "G3": {
+     "wifi": 18.294,
+     "lte": 10.046,
+     "nr": 11.693
+    }
+   },
+   "papr_vs_record_length_db": {
+    "7680": 11.391,
+    "15360": 10.773,
+    "30720": 13.089,
+    "61440": 16.099
+   },
+   "papr_seed_spread_db": {
+    "wifi": {
+     "sd_db": 0.046,
+     "pp_db": 0.141
+    },
+    "lte": {
+     "sd_db": 0.257,
+     "pp_db": 0.729
+    },
+    "nr": {
+     "sd_db": 0.386,
+     "pp_db": 1.01
+    }
+   },
+   "snr_db_is_dead_when_abs_noise": true,
+   "range_profile_rel_dev_over_40dB_sigma": 3.3306690738754696e-16,
+   "label_12db_but_surv_mean_over_noise_db": 31.23
   }
  },
  "known_gaps": [

@@ -1,3 +1,125 @@
+# ⭐⭐문서 정합 라운드 — 2026-08-11 03:xx KST (CPU 전용, **미커밋**)
+
+> 이 블록은 **문서 담당**이 썼다. 계산은 한 건도 안 했다 — 전부 **원장에서 읽어** 옮긴 것이다.
+> ⛔이 라운드 동안 GPU 는 형제 에이전트(로터, 17 프로세스)가 쓰고 있었다.
+> ⛔`outputs/md_range_sweep.json` · `hover_long_shards_ou_*` · `report07_hover_long_ou_*` 는
+> 재계산 중이라 **읽지도 쓰지도 않았다**(옛 판 사본 `outputs/pre37db/` 만 읽음).
+
+## 지금 도는 것
+형제 에이전트의 로터 계산(GPU 2, 17 프로세스) · `benchmark/deck_ours_by_range.py` 샤드(CPU).
+**이 라운드가 만든 백그라운드 작업은 없다.**
+
+## 오늘 확정된 것 — 문서에 반영 완료
+
+| # | 사실 | 원장 (여기서 읽었다) |
+|---|---|---|
+| 1 | 정합필터 이득 `G_mf = 10log10(B/PRF)` = **36.99 dB** 누락 정정. 게이트 **12/12** (SC7 추가 후) | `verify_matched_filter_gain.json`(5/5) · `verify_snr_convention.json`(**7/7**) |
+| 2 | 「SNR」 이 두 이름이었다 — 총전력 ③ / AC ③′. 정본은 ③′ `snr_slow_ac_db` | `snr_convention.json`(코드가 생성) |
+| 2b | ⛔**셋째 눈금이 더 있었다** — 「에코 첨두 기준」(`radar_process:57-59` · `passive_process:84-86`). **사다리 밖·폐기 예정**. 첨두↔평균 변환은 그 기록의 PAPR(상수 아님, 3 표준에 **11.91 dB** 벌어짐). 헤드라인은 안 쓴다(`abs_noise=True` 에서 `snr_db` 는 **죽은 인자** — 비트동일로 증명) | `snr_convention.json::non_ladder_conventions` · `verify_snr_convention.json` 게이트 **SC7** · 설계서 §1-2b |
+| 3 | 시드는 몬테카를로 잡음이 아니라 **계통 편향** — 관측 산포가 i.i.d. 예측의 **23.4 / 31.2 배** | `raybudget_seed_ladder.json` |
+| 4 | PathSolver 는 σ 를 **안 잰다**(A 판·B 구·C PEC 셋 다) | `rt_no_rcs_verify.json` |
+| 5 | ⚠**우리 σ 도 `NOT_VALIDATED`** — P3 산포 **16.27 dB**(문턱 6.0) | `das_fleet_validation.json::prereg_judgement` |
+| 6 | ⛔얼린 팔의 **절대 레벨 인용 금지** — 판 선택에 **3.452 dB p-p** | `freeze_plate_sensitivity.json::verdict` |
+
+**PRF 는 20,000 Hz 로 통일했다.** 코드 상수가 `microdoppler_nearfield.DECLARED_PRF_HZ = 20000.0`
+이고 `snr_convention.json::constants.prf_hz` 도 20000.0 이다. 설계서가 쓰던 **19,700 Hz(37.06 dB)**
+는 report07 호버 2 s 팔의 PRF 이지 사다리의 PRF 가 아니다 — 표와 원장이 어긋나 있었다(0.07 dB).
+⇒ 사다리 문서는 전부 **20,000 Hz · 36.99 dB**. 19,700 은 report07 팔에만 남긴다.
+
+## ⭐고친 문서 (이 라운드)
+
+| 파일 | 무엇 |
+|---|---|
+| `docs/NOISE_AND_ROTOR_PLAN.md` | §0-1·§0-2 를 «착수 지시»→«반영 완료(게이트 통과)» · PRF 19,700→**20,000** 통일 · §1-2·§1-4·§1-6·부록 A 표를 현행 원장 값으로 |
+| `docs/PLAN_0818.md` | 덱을 5 층 맨 끝으로(사용자: «재료가 쌓인 뒤에 만들자») · 상류부터 재편 |
+| `prior_work/noise_modeling_survey.md` | «dc_ac 33~37 dB» → ⭐**5.33~32.77 dB**(현행 메쉬). **두 세대를 건넌다** — 옛 메쉬 17.3~37.2 는 대조 열로 남겼다 |
+| `outputs/noise_rotor_plan.json` | `_meta.status` «DESIGN ONLY — 코드 미변경» → 반영 상태 |
+| `docs/RETRACTION_LOG.md` | (형제 에이전트가 이미 씀 — **R19~R22** SNR 라운드 · **R23~R27** PathSolver·시드 라운드. 내가 한 것은 다른 문서의 옛 번호 인용을 새 번호로 고친 것뿐) |
+
+## ⚠오늘 철회·정정한 것 넷 — **전부 사용자 반박이 맞았다**
+
+전문은 `docs/PLAN_PATHSOLVER_CLASSIFY.md` §0·§1 과 `docs/RETRACTION_LOG.md` 에 있다.
+
+| # | 철회한 말 | 실측 |
+|---|---|---|
+| (a) | «PathSolver 가 더 싸다» | **예산에 따라 다르다** — 3 m·1 M 0.21 s ↔ 40 m·4 G **4.13 s**. 우리 커널은 거리 무관 0.51~0.64 s |
+| (b) | «시드 잡음이 CNN 에 공짜 증강» | 철회. 세기를 못 지정하고, 분포가 열잡음이 아니며, **거리에 따라 안 커진다** |
+| (c) | «레벨 산포 2.61 → 1.22 dB» | 시드 **2 개 부분집합**이었다. 8 시드 sd 로는 **4.156 → 1.833 dB** |
+| (d) | «40 m 시드 3 판 중 둘은 맞춘다» | 8 시드로는 **2/8** 만 맞춘다(나머지 다섯은 2 배 조화, 하나는 169.6 Hz) |
+
+## ⚠⚠새로 선언하는 미해결 **다섯** (이 라운드가 **문서에 없던 것을 찾아** 적는다)
+
+### U-1 ⭐패시브 호버 사슬이 **안 이어져 있다**
+호버 표적은 ECA 0-도플러 노치가 동체를 지우므로 탐지가 **블레이드선의 절대 레벨**에 걸린다.
+그런데 블레이드선을 낼 수 있는 팔(얼린 격자)은 절대 레벨을 못 내고
+(`freeze_plate_sensitivity.json`: 판 선택 3.452 dB p-p), 절대 σ 를 내는 정적 jitter 팔은
+위상이 없어 **블레이드선을 못 낸다**. 지금 탐지거리를 지탱하는 것은 «가림 없는 PO 점구름의
+방위평균 σ_eq» 하나뿐이다. ⇒ 이 사슬을 잇는 것이 다음 축의 핵심 과제다.
+
+### U-2 ⭐우리 σ 는 `NOT_VALIDATED` 다 — «우리만 σ 를 낸다» ≠ «우리 σ 가 맞다»
+`das_fleet_validation.json::prereg_judgement`
+- 판정 **`NOT_VALIDATED (P3 산포)`** · `P3_spread_db` = **16.267 dB**(사전등록 문턱 6.0)
+- `P2_count_within_4db` = **2 / 4** · `P1_all_within_6db` = false
+- ⭐`box_control`: **부피등가 PEC 구가 mini2·m350rtk 두 기체에서 우리를 이긴다.**
+  phantom2 는 정육면체가 이긴다 ⇒ **통제군 최선 기준으로는 4 중 3 에서 진다**(phantom3 만 이김).
+- 규약을 바꿔도 안 산다 — `alternative_convention_v2_ruler` 네 조합 중 문턱을 넘지 않는 것은
+  «dB영역 + C등급 제외» 하나뿐이고 그것도 **6.75 dB 로 넘는다**.
+⛔ 발표·논문에서 «우리만 σ 를 낸다» 와 «우리 σ 가 맞다» 를 섞지 마라.
+
+### U-3 ⭐눈금이 하나 더 있다 — 그런데 **위 2b 와 다른 것**이다
+⚠ 먼저 갈라 둔다. 형제 에이전트가 찾은 2b(`snr_peak_pre_mf_db`, 에코 첨두 기준)는
+**사다리 밖의 규약**이고 게이트 SC7 이 «폐기 예정» 으로 못 박았다. 아래는 **사다리 안의
+키 이름 충돌**이라 그 게이트가 안 잡는다.
+
+`snr_ac_*_db` = **①(정합필터 전) − dc_ac** 다(`src/experiment_md_range.py:177-178`).
+`md_range_sweep_mf.json` matrice4e·R = 10 m 에서 직접 확인:
+
+| 키 | 값 | 뜻 |
+|---|---|---|
+| `snr_ac_plane_db` | **−25.74 dB** | ① − dc_ac (정합필터 **전**) |
+| `snr_slow_ac_plane_db` | **+11.24 dB** | ③′ 정본 |
+
+**같은 원장 · 같은 행 · 이름이 둘 다 «ac» 인데 36.99 dB 차이다.** 이름이 규약을 못 가른다.
+그리고 `echo_over_noise_db()` 의 **기본값이 `capture="pre_mf"`** 라 부주의한 호출은 ① 을 받는다.
+⇒ 권고: `snr_ac_*_db` 를 `snr_ac_premf_*_db` 로 개명하거나 원장에서 빼라. 값 재계산 불필요.
+⇒ 같은 종류의 충돌이 하나 더 있다: `g_stft_db` 가 `md_range_sweep_mf.json`(N_seg 6144)에서
+**36.12 dB**, `md_snr_vs_range.json` 의 맵 조각(N_seg 70)에서 **16.69 dB** 다 — **19.4 dB**.
+⇒ ⭐**«눈금 이름을 붙여라» 만으로는 부족하다. 이름이 겹치면 붙여도 못 가른다.**
+
+### U-4 ⭐옛 판으로 남은 원장 **둘** — 인용 금지 배지가 아직 없다
+| 파일 | 왜 낡았나 | 대체 |
+|---|---|---|
+| `outputs/md_range_sweep.json` (2026-07-28) | 세 겹 — ① G_mf 누락 ② 단일자세 σ ③ **옛 표적 메쉬/사양**(점구름 최대 50 %, s1000plus 호버 rpm 3600→4467) | `outputs/md_range_sweep_mf.json` |
+| `outputs/das_fleet_*` | `rcs_sbr_multistatic` 이 Γ(θ) 를 안 곱하던 시절 산출물(2026-08-10 배선됨) | 재실행 필요 — **아직 안 함** |
+③ 은 `verify_noise_injection.json::NI10` 이 처음 밝힌 것이다(그 게이트 자신의 `finding`).
+⚠ 8/11 03:xx 현재 `md_range_sweep.json` 은 **재생성 중**이다(37 dB 반영). 옛 판 사본은
+`outputs/pre37db/md_range_sweep_pre37db.json`. 재생성이 끝나면 위 표 첫 줄을 지운다.
+
+### U-5 ⚠`dc_ac` 의 «17.3~37.2 dB» 는 **옛 메쉬** 값이다
+`RETRACTION_LOG` **R20** 과 설계서가 인용하는 기체별 값
+(matrice4e 17.3 · s1000plus 18.9 · mini5pro 26.5 · phantom4 32.5 · mavic4pro 37.2 dB)은
+`outputs/pre37db/md_range_sweep_pre37db.json`(= 옛 `md_range_sweep.json`)의
+`A0_reference.dc_ac_db` 다. **현행 메쉬로 다시 낸 값은 다르다** —
+`md_range_sweep_mf.json` 에서 5G 3.5 GHz 는 mavic4pro **5.33** · matrice4e 24.86 ·
+s1000plus 22.00 · mini5pro 32.77 · phantom4 32.20 dB 이고, 9 칸 전체는 **5.3 ~ 35.4 dB** 다.
+⇒ 두 규약이 «최대 37 dB 어긋난다» 는 **결론은 그대로 유효**하지만(범위가 20~30 dB 폭인 것은
+같다), **기체별 수치를 인용할 때는 어느 메쉬 세대인지 반드시 적어야 한다.**
+⚠ mavic4pro 가 37.2 → 5.33 dB 로 바뀐 이유는 **모른다.** 확인 안 했다.
+
+## ⏭다음 세션이 이어받을 것 (상류부터 — 전체 순서는 `docs/PLAN_0818.md`)
+
+1. ⭐**1층** — D-1(`always_on_pilot` 의 τ_on) · D-2(사다리 듀티 항). 둘 다 사다리를 고치므로
+   원장·리포트·덱보다 **먼저**다. 구현은 `freespace_link.duty_db_from_cpi` 재사용(재구현 금지).
+2. ⭐**1층** — U-3 개명(`snr_ac_*_db` → `snr_ac_premf_*_db`) · `g_stft_db` → `g_frame_db`/`g_cpi_db`.
+   **값 재계산은 필요 없다.** 이름만 갈면 U-3 이 닫힌다.
+3. **2층** — `md_range_sweep.json` 재생성 완료 확인 → U-4 표 첫 줄 삭제 · `das_fleet_*` 재실행.
+4. **3층** — G12(사다리 ↔ 실사슬 `sinr_ideal_db` ≤1 dB). 이것이 없으면 «37 dB 를 실제로 번다» 는
+   여전히 미검증이다.
+5. **4층** — 리포트에 U-1·U-2 를 **한계 절**로 싣는다(과거 서사 금지, 현재 상태만).
+6. **5층** — 덱. ⛔사용자 지시: **재료가 쌓인 뒤에 만든다. 급할 것 없다.**
+
+---
+
 # ⭐⭐SNR 규약 v2 · 정합필터 이득 정정 — 2026-08-11 02:xx KST (적대검증 라운드 완료, **미커밋**)
 
 > 이 블록은 **적대검증 담당**이 쓴다. 구현은 형제 에이전트가 했고 여기서는 반증을 시도했다.
@@ -13,6 +135,11 @@
 |---|---|---|
 | `benchmark/verify_matched_filter_gain.py` | **5/5 PASS** (3.9 s, CPU) | `outputs/verify_matched_filter_gain.json` |
 | `benchmark/verify_snr_convention.py` | **6/6 PASS** (1.0 s, CPU) | `outputs/verify_snr_convention.json` |
+
+⚠ 2026-08-11 이후: 위 표는 **그 시점의 기록**이다. 제3규약 라운드가 게이트 **SC7** 을 더해
+`verify_snr_convention.py` 는 이제 **7/7 PASS** (3.1 s, CPU) 다. 기존 6 게이트의 판정·수치는
+그대로이고, `outputs/snr_convention.json` 도 **기존 키가 전부 바이트 동일**이다
+(새 최상위 키 `non_ladder_conventions` 하나만 추가 — 재생성 후 diff 로 확인).
 
 - 재실행해도 `outputs/snr_convention.json` 은 **타임스탬프 한 줄 빼고 바이트 동일**이다(diff 확인).
 - 게이트가 «아무것도 안 재는 게이트» 가 아닌지 확인했다 — SC1·SC2 는 **2026-08-10 이전 구현을
@@ -295,10 +422,31 @@ GPU 작업·백그라운드 체인이 전부 끝났거나 멈췄다. 세션을 �
 `prior_work/isac_standard_scenarios.md` · `outputs/isac_standard_scenarios.json` (1차자료 10건)
 - ⚠**모순 정정**: `docs/DRONE_ISAC_PRIOR_READING.md:73` 이 −20 dBsm 을 «3GPP 합의 σ» 로 쓴다.
   실제는 **−12.81(소형)/−5.85(대형)**, −20 은 기고 단계 제안치다 → 정정 + 규격 대조 재계산
-- 결손 5건: UAV large 갈래 · 모노=바이 동일값 규격 선례(우리 이등분선 근사의 방어논거) ·
-  XPR · UMa-AV 시나리오 자체 · Rel-20 §9 결론
+- 결손 5건 중 **3건 닫힘(2026-08-11)** → `prior_work/isac_standard_scenarios.md` §⑩⑪⑫⑬⑭ ·
+  원장 `outputs/isac_standard_gaps.json`(생성기 `benchmark/isac_standard_gaps.py`, GPU 미사용).
+  **TR 36.777 V15.0.0 을 새로 확보**했다.
+  - ✅**XPR** — 하나가 아니라 **셋**이다: 표적 CPM(13.75/7.07 dB, Table 7.9.2.2-1) 앞뒤로
+    전파 CPM(UMa LOS 8/4 · NLOS 7/3 dB, Table 7.5-6)이 곱해진다(eq 7.9.4-6/-7/-8).
+    ⭐**전력영역 유효 XPR 은 7.99 dB** 이고 13.75 는 μ 일 뿐이다(σ=7.07 의 꼬리 때문).
+    ⭐⭐**±45° 이중편파 기지국(TR 38.765 baseline)에서는 유효 XPR 이 0 dB** — κ 가 아니라
+    CPM 대각의 **위상 독립성** 때문이다. 단일편파 수신은 **−3.010 dB**.
+    ⛔**우리 XPR 은 «높다» 가 아니라 «정의되지 않는다»** — 커널에 S_θφ 경로가 없다. 수치 인용 금지
+  - ✅**UMa-AV** — 실체는 TR 38.901 이 아니라 **TR 36.777 Annex B.1.3**: *"fast fading model in
+    Section 7.5 … with **K = 15 dB**"* + 나머지 전부 스톡 UMa 재사용. 표적 앙각 중앙 **−38.1°**,
+    3D 거리 중앙 **242 m**(p95 338 · 최대 397). ⭐**76.8 %** 가 옛 9행 σ 격자(el ≥ −20°) 밖이었다
+    — el 확장 라운드는 «있으면 좋은 것» 이 아니라 규격 시나리오의 4분의 3 이었다
+  - ✅**TR 38.765 §9** — §③-3 요지에 더해 **SA3 조율 · RAN3 미논의 자인 · SCTP · NsAP** 가 있다.
+    ⭐⭐§6.3 이 더 중요하다: **병목은 정확도가 아니라 탐지다**(정확도는 어디서나 1~4 m 로 목표
+    10 m 를 크게 밑도는데 떨어진 건 전부 P_md·P_fa Type 2). 클러터를 켠 1건은 **P_fa1 91 %**.
+    **130 건 평가에 바이스태틱 0 건**
+- 남은 결손 2건: **G1 UAV large 갈래**(s1000plus 대조군 미작성) · G2/G5 는 `PAPER_POSITION_0803.md`
+  에 반영 완료
 - ⭐논문에 쓸 새 논거 둘: 3GPP 스스로 **모노스태틱이 성능목표 3/11 만 만족**한다고 적었고,
   모노는 **자기간섭이 Tx 전력 상한**인데 패시브 바이스태틱엔 그 항이 없다
+- ⭐**셋째 논거 추가(2026-08-11)**: 규격의 소형 UAV 표적은 **회전하지 않는 등방 점**이다.
+  `rotor`·`blade`·`propeller`·`micro-Doppler` 가 TR 38.901·TR 38.765 양쪽에 **0회**, `micro motion`
+  은 38.901 에 **1회**(eq 7.9.4-5 의 v_mi 항 정의)뿐이고 파라미터가 없다.
+  ⚠«3GPP 가 틀렸다» 가 아니라 **«우리가 쓰는 축이 규격에 정의돼 있지 않다»** 로 써야 한다
 
 ### 5. 남은 재계산·검증
 - σ 격자: matrice4e 완료(07:13), **mini5pro 는 실패**(watcher cwd 오류) → 다시 돌릴 것

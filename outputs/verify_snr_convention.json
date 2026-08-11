@@ -1,18 +1,18 @@
 {
  "_meta": {
   "title": "SNR convention v2 — regression + cross-scale gates",
-  "generated": "2026-08-11T02:06:24",
+  "generated": "2026-08-11T03:47:48",
   "script": "benchmark/verify_snr_convention.py",
   "convention": "v2_2026-08",
   "canonical": "snr_slow_ac_db",
   "defect": "2026-08-10: two SNR references coexisted (total power in add_noise, AC-only in md_classify_dataset) and differ by 17.3-37.2 dB per airframe",
   "decision_ko": "둘 다 쓴다. 이름을 나누고(③ snr_slow_db · ③′ snr_slow_ac_db) 원장에 병기하며 변환은 dc_ac_offset_db() 하나로만 한다. 맨 이름 「SNR」은 ③′ 를 뜻한다.",
   "gpu_used": false,
-  "runtime_s": 1.0
+  "runtime_s": 2.89
  },
  "summary": {
-  "n_gates": 6,
-  "n_pass": 6,
+  "n_gates": 7,
+  "n_pass": 7,
   "all_pass": true
  },
  "gates": [
@@ -180,6 +180,86 @@
     "gain_stft_db": 16.691
    },
    "tol_db": 0.01,
+   "passed": true
+  },
+  {
+   "id": "SC7",
+   "what": "third (non-ladder) scale: echo-peak-referenced SNR - definition, conversion, and why it is deprecated",
+   "p1_make_echo_peak_err_db": 0.0232,
+   "p2_conversion_err_db": 0.0232,
+   "papr_of_echo_db": 16.096,
+   "realized_mean_over_noise_db": 3.927,
+   "p3_range_profile_rel_dev_over_40dB_sigma": 3.3306690738754696e-16,
+   "p3_tol_rel": 1e-09,
+   "p4_make_cpi_peak_err_db": 0.0009,
+   "p4_label_12db_but_surv_mean_over_noise_db": 31.23,
+   "p5_snr_db_is_dead_when_abs_noise": true,
+   "p6_per_waveform": [
+    {
+     "key": "wifi",
+     "name": "WiFi 802.11ac",
+     "papr_tx_db": 26.294,
+     "papr_ref_db": 19.008,
+     "n_tx": 4160,
+     "mf_peak_over_floor_db": 28.78
+    },
+    {
+     "key": "lte",
+     "name": "LTE Rel-9",
+     "papr_tx_db": 14.382,
+     "papr_ref_db": 14.382,
+     "n_tx": 30720,
+     "mf_peak_over_floor_db": 22.03
+    },
+    {
+     "key": "nr",
+     "name": "5G NR Rel-16",
+     "papr_tx_db": 16.099,
+     "papr_ref_db": 16.099,
+     "n_tx": 61440,
+     "mf_peak_over_floor_db": 20.26
+    }
+   ],
+   "p6_papr_by_occupancy_db": {
+    "G1": {
+     "wifi": 26.294,
+     "lte": 14.382,
+     "nr": 16.099
+    },
+    "G2": {
+     "wifi": 24.573,
+     "lte": 12.583,
+     "nr": 13.759
+    },
+    "G3": {
+     "wifi": 18.294,
+     "lte": 10.046,
+     "nr": 11.693
+    }
+   },
+   "p6_papr_vs_record_length_db": {
+    "7680": 11.391,
+    "15360": 10.773,
+    "30720": 13.089,
+    "61440": 16.099
+   },
+   "p6_papr_seed_spread_db": {
+    "wifi": {
+     "sd_db": 0.046,
+     "pp_db": 0.141
+    },
+    "lte": {
+     "sd_db": 0.257,
+     "pp_db": 0.729
+    },
+    "nr": {
+     "sd_db": 0.386,
+     "pp_db": 1.01
+    }
+   },
+   "spread_papr_db": 11.91,
+   "spread_mf_peak_over_floor_db": 8.52,
+   "tol_db": 0.2,
    "passed": true
   }
  ]

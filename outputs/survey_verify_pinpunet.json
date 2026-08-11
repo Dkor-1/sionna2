@@ -1,0 +1,113 @@
+{
+  "_note": "PinpuNet 원문검증 조각. 공유 파일(survey_passive_ofdm_dl.json)은 동시 편집 위험이 있어 건드리지 않고 별도 파일로 뺐다. 병합 시 키 'verify_pinpunet' 로 넣으면 된다.",
+  "verify_pinpunet": {
+    "target": "PinpuNet: Towards ISAC-Based Drone Monitoring by Learning Micro-Doppler Spectrum",
+    "checked_on": "2026-08-11",
+
+    "bibliographic_record": {
+      "status": "CONFIRMED — 3개 독립 출처(Crossref / Semantic Scholar / DBLP key)",
+      "authors": "Yige Luo, Qianqian Zhu, Ran Guan",
+      "affiliation": "Riemann Laboratory, 2012 Laboratories, Huawei (Crossref 저자 소속 필드)",
+      "venue": "ICC 2025 - IEEE International Conference on Communications",
+      "event": "Montreal, QC, Canada, 2025-06-08 ~ 2025-06-12",
+      "pages": "6007-6012",
+      "doi": "10.1109/ICC52391.2025.11161070",
+      "dblp_key": "conf/icc/LuoZG25",
+      "verdict_on_our_id": "우리 기록 'IEEE ICC 2025, pp.6007-6012' 는 정확하다"
+    },
+
+    "versions": {
+      "arxiv": "없음 (arXiv 검색·OpenAlex 모두 미등재)",
+      "journal_version": "없음 — 저자 논문목록 조회 결과 회의판 단독",
+      "implication": "Ziganshin 류의 회의판/저널판 수치 불일치 문제는 이 논문엔 발생하지 않는다"
+    },
+
+    "full_text_access": {
+      "obtained": false,
+      "what_we_got": "원문 초록 축자 + 원문 자신의 참고문헌 17건(IEEE 가 Crossref 에 기탁한 것)",
+      "what_we_did_not_get": "본문·표·그림 (수치가 실린 곳)",
+      "attempts_failed": [
+        "ieeexplore.ieee.org/document/11161070 → JS 렌더·차단",
+        "ieeexplore.ieee.org/stamp + ielx8 직접 PDF → HTTP 502",
+        "xplorestaging.ieee.org ielx8 PDF (Crossref 가 노출한 링크) → 봇 차단 HTML",
+        "icc2025.ieee-icc.org 프로그램 페이지 → HTTP 418 Cloudflare",
+        "ResearchGate → HTTP 403",
+        "scholar.archive.org / OpenAlex / ouci / colab.ws → 미등재 또는 무응답"
+      ]
+    },
+
+    "original_abstract_verbatim": "Monitoring non-cooperative drones and, by extension, other traffic elements is one major use case of future Integrated Sensing and Communication (ISAC) for 6 G. In our attempt to realise an ISAC-based drone monitoring system, we found that conventional micro-Doppler analysis is highly susceptible to what is coined as the smearing effect that the backscattered signal is blurred due to various reasons, rendering drone target detection intractable. To mitigate the smearing effect, we proposed PinpuNet, a data-driven learning network, to extract drone signatures from highly noisy microDoppler spectrograms. We evaluated PinpuNet on a public drone backscattered signal dataset and the drone classification result shows a substantially improved accuracy compared to generic and commonly used learning networks.",
+    "original_abstract_source": "Semantic Scholar Graph API, DOI:10.1109/ICC52391.2025.11161070 (IEEE 공급 초록). 원문 PDF 아님",
+
+    "claim_by_claim": {
+      "smearing_robustness": "CONFIRMED (원문 초록) — smearing effect 완화가 논문의 명시적 동기이자 기여",
+      "drone_type_classification": "CONFIRMED (원문 초록) — 'the drone classification result'",
+      "STFT_spectrogram_input": "UNVERIFIED against original — 원문 초록엔 STFT 라는 단어가 없다('microDoppler spectrograms' 까지만). STFT 서술은 서베이 2604.02680 p.16 것",
+      "inhomogeneous_2D_conv_plus_residual": "UNVERIFIED against original — 원문 초록에 없다. 서베이 p.16 · Table VIII 의 서술. 본문에 있을 개연성은 높으나 확인 못 함",
+      "numbers_97_17_99_50_91_6_6": "NOT IN ORIGINAL ABSTRACT. 초록은 'a substantially improved accuracy' 라고만 한다. 수치 4개는 전부 서베이 Table VIII 에서 왔다"
+    },
+
+    "where_the_numbers_actually_live": {
+      "source": "arXiv:2604.02680 — Bai, Li, Yin, Qu, Hsu, Liu, Chen, 'MIMO OFDM-Enabled ISAC for Low-Altitude Non-Cooperative UAV Surveillance: A Survey' (24 p, arXiv-only, 2026)",
+      "location": "TABLE VIII (p.18) 'SUMMARY OF EXISTING ISAC-BASED UAV IDENTIFICATION METHODS', 행 'Luo et al. [89]'; 앞의 세 수치는 본문 p.16 에도 중복",
+      "table_row_verbatim": "Achieves 97.17% (4-class) and 99.50% (5-class) classification accuracy on original data. / Maintains above 91% classification accuracy even under the smearing effect. / Achieves at least 6.6% higher accuracy than the second-best model.",
+      "body_text_verbatim_p16": "The proposed method is evaluated on the LSS-FMCWR-1.0 dataset [95], which contains radar echoes of six UAV types including DJI Mavic 2, Phantom, Inspire 2, M350, M600, and a fixed-wing UAV, across K band (4-class) and L band (5-class) classification tasks. PinpuNet achieves classification accuracies of 97.17% on the K band and 99.50% on the L band, and maintains above 91% accuracy under the smearing effect.",
+      "verdict": "우리 과제문의 '서베이 Table VIII' 귀속은 정확하다 — 축자로 그 표에 있다. 다만 이는 2차 출처이고 원문 대조는 못 했다"
+    },
+
+    "corrections": [
+      {
+        "id": "C1-band",
+        "wrong": "K 밴드 (서베이 p.16, 우리 기록이 그대로 승계)",
+        "right": "Ku 밴드",
+        "primary_source": "데이터셋 원문 radars.ac.cn/article/doi/10.12000/JR23142 초록 축자: '基于Ku波段和L波段的FMCW雷达采集6种类型的无人机回波数据'. 표1 에 L波段 1.4~1.5 GHz 명시",
+        "why_it_matters": "Ku 는 12~18 GHz, K 는 18~27 GHz 로 다른 대역이다. 우리 밴드 선택과 비교할 때 파장이 어긋난다"
+      },
+      {
+        "id": "C2-dataset-year",
+        "wrong": "Journal of Radars 13(3):539-553, 2023",
+        "right": "雷达学报(Journal of Radars) 2024, 13(3): 539-553, doi 10.12000/JR23142",
+        "primary_source": "radars.ac.cn 서지 축자: '雷达学报(中英文), 2024, 13(3): 539–553'",
+        "note": "서베이 [95] 도, PinpuNet 자신의 ref17 도 둘 다 2023 이라 적었다. 원문과 서베이가 같은 오류를 공유한다. 우리 survey_passive_ofdm_dl.json papers[12] 도 2023 — 고쳐야 한다"
+      },
+      {
+        "id": "C3-percentage-point",
+        "wrong": "차순위 모델 대비 최소 6.6%p 우위",
+        "right": "표 원문은 'at least 6.6% higher accuracy than the second-best model' — % 이지 %p 라고 안 썼다",
+        "why_it_matters": "%p 는 우리가 붙인 해석이다. 인용할 때 원 표현을 지켜야 한다"
+      }
+    ],
+
+    "non_correction_verified": {
+      "uav_list": "서베이의 'DJI Mavic 2, Phantom, Inspire 2, M350, M600, fixed-wing' 은 맞다",
+      "primary_source": "데이터셋 표2 원문 축자: 大疆御2 / 大疆精灵 / 大疆M350 / 大疆悟2 / 大疆M600 / 固定翼无人机 (御=Mavic, 精灵=Phantom, 悟=Inspire)",
+      "trap_avoided": "중간에 어떤 웹 검색요약이 이 목록을 'DJI Spark, Matrice 200' 으로 오역했다. 1차 출처 중국어 원문으로 기각했다 — 오정정할 뻔했다"
+    },
+
+    "key_finding_dataset_is_FMCW": {
+      "verdict": "CONFIRMED from the ORIGINAL's own bibliography, not via the survey",
+      "evidence": "PinpuNet 원문 참고문헌 ref17 (IEEE 가 Crossref 에 기탁): 'Multiband fmcw radar lss-target detection dataset (lss-fmcwr-1.0) and high-resolution micromotion feature extraction method', Chen, Journal of Radars, 2023",
+      "plus": "원문 초록도 'a public drone backscattered signal dataset' 이라고만 하고 OFDM·5G·통신파형을 일절 말하지 않는다",
+      "implication": "우리 survey_passive_ofdm_dl.json 의 gaps_found 경고 — 'PinpuNet 은 ISAC 을 표방하지만 데이터셋은 FMCW 다, OFDM 마이크로도플러 딥러닝 선례로 인용하면 안 된다' — 는 원문 근거로 지지된다. Q2(OFDM 파형 마이크로도플러 실측)의 답으로 쓰면 안 된다. ISAC 은 이 논문에서 동기부여 서사이고 측정 파형이 아니다"
+    },
+
+    "bonus_for_our_rotor_work": {
+      "source": "LSS-FMCWR-1.0 데이터셋 원문 표2 '无人机主要技术参数' (radars.ac.cn), 열 = 无人机类型 / 旋翼个数 / 转速(r/min) / 叶片长度(cm)",
+      "rows": {
+        "DJI Mavic 2 (大疆御2)": {"rotors": 4, "rpm": 1950, "blade_len_cm": 11},
+        "DJI Phantom (大疆精灵)": {"rotors": 4, "rpm": 1320, "blade_len_cm": 13},
+        "DJI M350": {"rotors": 4, "rpm": 1750, "blade_len_cm": 11},
+        "DJI Inspire 2 (大疆悟2)": {"rotors": 4, "rpm": 1500, "blade_len_cm": 19},
+        "DJI M600": {"rotors": 6, "rpm": 1620, "blade_len_cm": 12},
+        "fixed-wing (固定翼无人机)": {"rotors": 1, "rpm": 360, "blade_len_cm": 12}
+      },
+      "why_useful": "공개 데이터셋이 명시한 로터수·회전수·날개길이 실측 앵커다. 우리가 Mavic 계열과 M350 을 쓰고 있으므로 로터 회전수·블레이드 길이 가정을 직접 대조할 수 있다"
+    },
+
+    "open_questions": [
+      "데이터셋은 6종인데 서베이는 Ku 4클래스 / L 5클래스라고 적는다. 어느 기종을 뺐는지는 원문 본문에만 있을 것 — 확인 못 함",
+      "'inhomogeneous 2D convolution' 의 실제 구조(커널 비대칭 방식)는 본문 확인 필요",
+      "차순위 모델이 무엇인지(비교군 목록)도 본문에만 있다"
+    ]
+  }
+}
