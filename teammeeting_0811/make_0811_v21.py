@@ -32,6 +32,15 @@ make_0811_v21.py — **v20 에서 대본 세 군데만 고친다.** 슬라이드
   **프로펠러 위에서 던져진다** — 변조를 만드는 바로 그 부위다. 이것이 시드가 답을 바꾸는 이유다.
   지금 [4] 대본에 확률어가 **한 개도 없어서**, [8] 의 "random seed" 가 갑자기 튀어나온다.
 
+  ⭐**2 차 정정(발표자가 직접 오해했다)** — 1 차 수정본을 읽고 발표자가 물었다:
+  «랜덤이 뭔데? solver 가 랜덤이 있다고? ray 방사는 결정론적인 거 아니야?
+   그러면 mesh 에 닿는 부분도 결정론적이어야 하지 않나?»
+  그의 추론은 **둘 다 옳다.** 발사는 Fibonacci lattice 라 결정론적이고(ray_tracing.py:16),
+  히트 위치도 결정론적이다. 대본이 «어디가 결정론적인지» 를 안 말하고 «draws at random» 만
+  말해서 생긴 오해다. ⇒ **결정론적인 부분을 먼저 말하고 난수를 나중에** 말하도록 순서를 바꿨다.
+  그리고 확률 값(prop_plastic S=0.20 → P(diffuse)=S²=4 %)과 «경로가 몇 개뿐이라 하나가
+  답을 바꾼다» 를 [if asked] 로 붙였다 — 4 % 가 왜 큰 영향을 주는지가 [8] 의 펀치라인이다.
+
 ■ ⚠ [5] "belongs to the blade tips" 가 과장이다 — 그리고 ⭐**대역은 바꾸지 않기로 했다**
   창 70 샘플 → 빈 281.4 Hz, Hann 주엽 반폭 **563 Hz**. 대역 하단 430 Hz 는 **그 안쪽**이라
   0-도플러 동체선의 창 스커트가 샌다(422 Hz 에서 동체 첨두 대비 −15.3 dB, Hann 누설
@@ -79,14 +88,18 @@ DST = f"{TM}/teammeeting_0811_v21.pptx"
 # 갈아 끼울 대본만. 나머지 슬라이드는 v20 것을 그대로 둔다.
 NOTES = {
     4: "Sionna's Path Solver launches rays isotropically from the transmitter, that is, "
-       "evenly in every direction. When a ray hits a surface, the solver draws at random "
-       "what happens there, a mirror reflection or a diffuse scatter, and the material's "
-       "scattering coefficient sets the odds. The ray carries that material's reflection "
-       "coefficient, and the result comes from the few paths that actually come back.\n\n"
+       "evenly in every direction. The directions are fixed, so where the rays land on the "
+       "drone is always the same. The random part comes after the hit. At each hit the solver "
+       "picks one outcome, a mirror reflection or a diffuse scatter, and the material decides "
+       "how likely each one is. That pick is what the random seed controls. The result then "
+       "comes from the few paths that actually come back.\n\n"
        "Our kernel does something different. We shoot a grid of parallel rays at the target, "
        "take the first point each ray hits, and sum the physical optics scattering integral "
        "over those points. For parts we treat as transmissive, the ray passes through, "
-       "and we add the echo from the metal inside, scaled by how much gets through.",
+       "and we add the echo from the metal inside, scaled by how much gets through.\n\n"
+       "[if asked] For our plastic parts the chance of a scatter is about four percent. "
+       "That sounds small, but only a handful of paths come back at each rotor position, "
+       "so one path more or less changes the answer.",
 
     5: "The centre frequency is 3.5 GHz, a standard 5G band. For the waveform I used a simple "
        "continuous wave. This is an early experiment, and CW is the easiest thing to work "
