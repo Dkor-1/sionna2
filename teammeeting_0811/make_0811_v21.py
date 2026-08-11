@@ -99,7 +99,12 @@ NOTES = {
        "and we add the echo from the metal inside, scaled by how much gets through.\n\n"
        "[if asked] For our plastic parts the chance of a scatter is about four percent. "
        "That sounds small, but only a handful of paths come back at each rotor position, "
-       "so one path more or less changes the answer.",
+       "so one path more or less changes the answer.\n\n"
+       "[if asked] Parallel rays do not mean a flat wave. I put the transmitter at the real "
+       "distance and give every hit point its true two-way path, so 3, 15 and 40 metres are "
+       "three separate runs. At 3 metres the phase across the airframe bends by about "
+       "3.7 radians, so distance really is an input. What I do not model yet is the "
+       "one over r spreading, so the maps do not get weaker with range.",
 
     5: "The centre frequency is 3.5 GHz, a standard 5G band. For the waveform I used a simple "
        "continuous wave. This is an early experiment, and CW is the easiest thing to work "
@@ -121,8 +126,39 @@ NOTES = {
     6: "The previous slide was 3 metres only. Here I ran the same thing at 3, 15 and "
        "40 metres.\n\n"
        "Our kernel gives nearly the same map at every range. The Path Solver does not. "
-       "One of the 40 metre runs looks different, and that turns out to be the random seed, "
-       "not the distance. I will come back to it.",
+       "Its three maps look quite different from each other, and not in order of range. "
+       "The 15 metre one has the clearest flashes. That is the solver's random sampling, "
+       "not the distance, and I show it in two slides.",
+
+    # ⭐오해 감사(wui3paq3q)에서 살아남은 것 둘 — [9] 배경, [11] 야외
+    9: "One last thing. I raised the ray count to the maximum the solver allows. "
+       "It takes a long time to run, so I only got the result just before this meeting. "
+       "The background is much cleaner.\n\n"
+       "[if asked] The specks did not go away. With twenty times more rays the solver finds "
+       "about twenty times more paths, so the signal comes up by more than ten decibels while "
+       "the specks stay where they were. Each map is scaled to its own strongest point, so the "
+       "specks drop below the colour scale. The useful range in the picture really is better, "
+       "but it is the signal coming up, not the noise averaging away.\n\n"
+       "[if asked] The seed still decides which harmonic comes out strongest.",
+
+    11: "For my future work, I want to make the simulation more realistic. "
+        "I have three directions.\n\n"
+        "First, the rotor speeds. Right now each rotor turns at a hard-coded value, and the "
+        "spread between them comes from a flight simulator, not from a real drone. I want to "
+        "use real flight log data instead, and also introduce temporal variation, the way a "
+        "real drone adjusts its rotors while it stays in place.\n\n"
+        "Second, noise. There is no receiver noise in this simulation. That is why nothing "
+        "became harder when the drone moved further away. The echo does get weaker with "
+        "distance, but each map is scaled to its own brightest point, so we cannot see that. "
+        "And with no noise, nothing is ever buried. In the real world, noise is what decides "
+        "how far we can detect, so I want to add it.\n\n"
+        "Third, the geometry and the environment. Everything today uses one station that "
+        "sends and receives at the same place, in empty space. Our real experiment is a "
+        "passive bistatic setup, where the signal comes from someone else's base station, "
+        "and it happens outdoors, over open ground. I want to move to that geometry and add "
+        "the ground reflection and the clutter.\n\n"
+        "All three will make the results worse, and that is the point. "
+        "They bring the simulation closer to a real measurement.",
 }
 
 
