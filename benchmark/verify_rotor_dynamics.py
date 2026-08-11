@@ -326,6 +326,17 @@ def _linewidth_gate():
 # ═══════════════════════════════════════════════════════════════════════════
 _TAB = {}
 
+#  ⭐ 분해 팔 — «정적 산포» 와 «시간 흔들림» 중 무엇이 맵을 바꾸나를 가른다.
+#    `outdoor` 는 둘 다 켜져 있어 단독으로는 원인을 못 가린다.
+_PROBE = {
+    "outdoor_static_only": rd.PRESETS["outdoor"].with_(
+        name="outdoor_static_only", wobble_sigma=0.0),
+    "outdoor_wobble_only": rd.PRESETS["outdoor"].with_(
+        name="outdoor_wobble_only", static_sigma=0.0),
+    "outdoor_aligned_phase": rd.PRESETS["outdoor"].with_(
+        name="outdoor_aligned_phase", random_phase=False),
+}
+
 
 def _load_tab(key, ai):
     import md_classify_dataset as mcd
@@ -365,7 +376,7 @@ def _series(key, ai, arm, seed, prf, n_t, rpm_scale=1.0):
         rpms = base * (1.0 + d)
         p0 = rng.uniform(0.0, mcd.PHASE_PERIOD_DEG, n_rot)
     else:
-        jit = rd.get(arm)
+        jit = _PROBE.get(arm) or rd.get(arm)
         d = rd.static_offsets(n_rot, jit, rng)
         p0 = rd.initial_phase_deg(n_rot, jit, rng, period_deg=mcd.PHASE_PERIOD_DEG)
         if jit.wobble_sigma > 0:
@@ -432,58 +443,214 @@ def effect_features(arms, drones, n_draw=6, prf=20000.0, windows=(0.25, 1.0),
                 scales[(key, ai, di)] = sc
                 for T in windows:
                     for arm in arms:
-                        jobs.append((key, ai, arm, 7_000_000 + 977 * di + 13 * ai, prf, T, sc))
+                        jobs.append((key, ai, di, arm,
+                                     7_000_000 + 977 * di + 13 * ai, prf, T, sc))
     t0 = time.time()
     with Pool(nproc) as pool:
         res = pool.map(_feat_job, jobs, chunksize=8)
     print(f"  특징 {len(jobs)} 건 {time.time()-t0:.0f}s", flush=True)
 
     names = list(mcd.FEATURE_NAMES)
+    nf = len(names)
+    #  (arm, T) → {"X": (n, nf), "drone": [...], "cell": [...]}
     acc = {}
-    for key, arm, T, v in res:
-        acc.setdefault((arm, T), []).append(v)
+    for key, ai, di, arm, T, v, hc in res:
+        a = acc.setdefault((arm, T), {"X": [], "drone": [], "cell": [], "hc": []})
+        a["X"].append(v)
+        a["drone"].append(key)
+        a["cell"].append(f"{key}/a{ai:02d}")
+        a["hc"].append(hc)
+    for a in acc.values():
+        a["X"] = np.asarray(a["X"], float)
+        a["drone"] = np.asarray(a["drone"])
+        a["cell"] = np.asarray(a["cell"])
+        a["hc"] = np.asarray(a["hc"], float)
+
     base_arm = arms[0]
-    out = {"_setting": {"prf_hz": prf, "n_draw_per_aspect": n_draw,
-                        "drones": list(drones), "n_aspects": 18,
-                        "windows_s": list(windows), "arms": list(arms),
-                        "baseline_arm": base_arm, "n_features": len(names),
-                        "note_ko": "효과크기 d = (평균_팔 − 평균_기준)/표준편차_기준. "
-                                   "|d| ≥ 1 이면 «기준 팔의 시행간 산포 하나만큼 움직였다»."},
-           "windows": {}}
+    out = {"_setting": {
+        "prf_hz": prf, "n_draw_per_aspect": n_draw, "drones": list(drones),
+        "n_aspects": 18, "windows_s": list(windows), "arms": list(arms),
+        "baseline_arm": base_arm, "n_features": nf,
+        "effect_size_definition_ko": (
+            "⭐d 는 **(기체,자세) 칸 안에서** 잰다: d = median_칸[(평균_팔 − 평균_기준) / "
+            "표준편차_기준]. 전체를 한 덩이로 재면 분모가 기체·자세 차이에 지배되어 "
+            "효과가 희석된다(그렇게 재면 outdoor 의 중앙 |d| 가 0.22, 칸 안에서 재면 훨씬 크다)."),
+        "fratio_definition_ko": (
+            "F = 기체간 분산 / 기체내 분산. **분류가 쓸 수 있는 정보의 양**이다. "
+            "로터 랜덤성이 분류를 어렵게 만든다면 이 값이 내려가야 한다.")},
+        "windows": {}}
+
+    def _fratio(X, drone):
+        """기체간 분산 / 기체내 분산 (특징별). 표준화한 뒤 잰다."""
+        mu, sd = np.nanmean(X, axis=0), np.nanstd(X, axis=0)
+        Z = (X - mu) / np.where(sd > 0, sd, np.nan)
+        ks = np.unique(drone)
+        gm = np.array([np.nanmean(Z[drone == k], axis=0) for k in ks])
+        wv = np.nanmean([np.nanvar(Z[drone == k], axis=0) for k in ks], axis=0)
+        return np.nanvar(gm, axis=0) / np.where(wv > 0, wv, np.nan)
+
     for T in windows:
-        B = np.asarray(acc[(base_arm, T)], float)
-        mb, sb = np.nanmean(B, axis=0), np.nanstd(B, axis=0)
-        wrow = {"baseline_n": int(B.shape[0]), "arms": {}}
+        B = acc[(base_arm, T)]
+        fb = _fratio(B["X"], B["drone"])
+        wrow = {"baseline_n": int(B["X"].shape[0]),
+                "baseline_half_corr_mean": float(np.nanmean(B["hc"])),
+                "arms": {}}
+        cells = np.unique(B["cell"])
         for arm in arms[1:]:
-            A = np.asarray(acc[(arm, T)], float)
-            ma = np.nanmean(A, axis=0)
-            d = (ma - mb) / np.where(sb > 0, sb, np.nan)
-            per = {n: {"base_mean": float(mb[i]), "arm_mean": float(ma[i]),
-                       "base_std": float(sb[i]), "d": float(d[i])}
+            A = acc[(arm, T)]
+            #  ── 칸 안 효과크기 ────────────────────────────────────────────
+            dcell = np.full((len(cells), nf), np.nan)
+            for ci, c in enumerate(cells):
+                b, a = B["X"][B["cell"] == c], A["X"][A["cell"] == c]
+                sb = np.nanstd(b, axis=0)
+                dcell[ci] = (np.nanmean(a, axis=0) - np.nanmean(b, axis=0)) / \
+                    np.where(sb > 0, sb, np.nan)
+            d = np.nanmedian(dcell, axis=0)
+            #  ── 분류 정보량 ──────────────────────────────────────────────
+            fa = _fratio(A["X"], A["drone"])
+            per = {n: {"d_within_cell": float(d[i]),
+                       "base_mean": float(np.nanmean(B["X"][:, i])),
+                       "arm_mean": float(np.nanmean(A["X"][:, i])),
+                       "rel_shift": float((np.nanmean(A["X"][:, i])
+                                           - np.nanmean(B["X"][:, i]))
+                                          / (abs(np.nanmean(B["X"][:, i])) + 1e-12)),
+                       "f_base": float(fb[i]), "f_arm": float(fa[i]),
+                       "f_ratio_arm_over_base": float(fa[i] / fb[i]) if fb[i] > 0 else None}
                    for i, n in enumerate(names)}
             fin = d[np.isfinite(d)]
+            fr = np.array([per[n]["f_ratio_arm_over_base"] for n in names
+                           if per[n]["f_ratio_arm_over_base"] is not None], float)
             wrow["arms"][arm] = {
-                "n": int(A.shape[0]),
+                "n": int(A["X"].shape[0]),
+                "half_corr_mean": float(np.nanmean(A["hc"])),
                 "n_moved_d_ge_1": int((np.abs(fin) >= 1.0).sum()),
                 "n_moved_d_ge_0p5": int((np.abs(fin) >= 0.5).sum()),
+                "n_moved_d_ge_0p2": int((np.abs(fin) >= 0.2).sum()),
                 "n_features_finite": int(fin.size),
                 "median_abs_d": float(np.median(np.abs(fin))),
                 "max_abs_d": float(np.max(np.abs(fin))),
-                "top10": sorted(per.items(), key=lambda kv: -abs(kv[1]["d"]))[:10],
+                "fratio_median_arm_over_base": float(np.nanmedian(fr)),
+                "n_features_fratio_down_20pct": int((fr < 0.8).sum()),
+                "top10_abs_d": sorted(per.items(),
+                                      key=lambda kv: -abs(kv[1]["d_within_cell"]))[:10],
+                "top10_fratio_loss": sorted(
+                    [kv for kv in per.items()
+                     if kv[1]["f_ratio_arm_over_base"] is not None],
+                    key=lambda kv: kv[1]["f_ratio_arm_over_base"])[:10],
                 "per_feature": per}
         out["windows"][str(T)] = wrow
+
+    np.savez_compressed(
+        os.path.join(OUT, "rotor_jitter_effect_features.npz"),
+        feature_names=np.array(names),
+        **{f"{arm}|{T}|X": acc[(arm, T)]["X"] for arm in arms for T in windows},
+        **{f"{arm}|{T}|drone": acc[(arm, T)]["drone"] for arm in arms for T in windows},
+        **{f"{arm}|{T}|cell": acc[(arm, T)]["cell"] for arm in arms for T in windows},
+        **{f"{arm}|{T}|half_corr": acc[(arm, T)]["hc"] for arm in arms for T in windows})
     return out
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  C. 모델 원장 — 프리셋과 그 근거를 한 파일에
+# ═══════════════════════════════════════════════════════════════════════════
+def model_ledger() -> dict:
+    """`outputs/rotor_jitter_model.json` — 프리셋 표 · σ_w 보정 산술 · 파급 예측."""
+    T = rd.TAU_CTL_S
+    anchors = [
+        {"source": "NeuroBEM (UZH RPG) 실내 무풍", "band_hz": [0.3, 5.0],
+         "amp_equiv_sine_pct": 0.74, "static_spread_pct": 0.54,
+         "dominant_hz": "0.7-2.2", "vehicle": "레이싱 쿼드 0.772 kg (DJI 아님)"},
+        {"source": "PX4 Flight Review CODEV AQUILA V3 야외", "band_hz": [0.3, 2.0],
+         "amp_equiv_sine_pct": 2.52, "static_spread_pct": 2.35,
+         "dominant_hz": "0.74 (사분 0.5-1.5)", "vehicle": "상용 대형 쿼드 (DJI 아님)"},
+        {"source": "DJI Phantom 3 DAT 명령(PWM) 야외", "band_hz": [0.3, 5.0],
+         "amp_equiv_sine_pct": 5.3, "static_spread_pct": 5.8,
+         "dominant_hz": "0.3-0.9", "vehicle": "⭐진짜 DJI. ⚠명령 proxy — rpm 환산 2.3~4.6 %"},
+    ]
+    for a in anchors:
+        f1, f2 = a["band_hz"]
+        a["band_fraction_F"] = round(rd.ou_band_fraction(T, f1, f2), 4)
+        a["sigma_w_pct"] = round(100.0 * rd.sigma_w_from_band_amp(
+            a["amp_equiv_sine_pct"] / 100.0, f1, f2, T), 4)
+
+    wmf = {str(w): round(rd.window_mean_variance_fraction(T, w), 4)
+           for w in (0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 4.0)}
+
+    f_flash, f_tip = 126.6667, 1228.72
+    broaden = []
+    for nm, sw in (("legacy sine 0.15 % (σ 0.106 %)", 0.0015 / np.sqrt(2.0)),
+                   ("sitl 0 %", 0.0), ("indoor σ_w 0.65 %", 0.0065),
+                   ("outdoor σ_w 2.45 %", 0.0245)):
+        broaden.append({"case": nm, "sigma_w": sw,
+                        "dev_ftip_hz": round(f_tip * sw, 3),
+                        "dev_m10_hz": round(10 * f_flash * sw, 3),
+                        "carson_m10_hz": round(2 * (10 * f_flash * sw + 0.7), 3)})
+    return {
+        "_meta": {"script": "benchmark/verify_rotor_dynamics.py --only ledger",
+                  "generated": time.strftime("%Y-%m-%d %H:%M:%S"),
+                  "module": "src/rotor_dynamics.py",
+                  "design": "docs/NOISE_AND_ROTOR_PLAN.md §2",
+                  "survey": "prior_work/rotor_randomness_survey.md",
+                  "model": "rpm_k(t) = rpm0*(1 + s_k + eps_k(t)); "
+                           "s_k ~ N(0,sigma_s) mean-removed; "
+                           "eps_k(t) = OU(sigma_w, T) independent per rotor; "
+                           "theta_k(0) ~ U(0, 360/blades)",
+                  "ou_discretisation": "a=exp(-dt/T); e[n+1]=a*e[n]+sigma*sqrt(1-a^2)*N(0,1); "
+                                       "e[0]~N(0,sigma)  (exact, stationary start)"},
+        "control_loop": {
+            "tau_ctl_s": T, "f_ctl_hz": rd.F_CTL_HZ,
+            "px4_MC_ROLL_P": 4.0, "px4_hz": 0.6366,
+            "ardupilot_ATC_ANG_P": 4.5, "ardupilot_hz": 0.7162,
+            "why_lowpass_ko": "백색이면 PRF(19.7 kHz)까지 평평한 흔들림이 되고, 그 rpm 을 "
+                              "적분하면 위상이 랜덤워크가 되어 선폭이 무한히 넓어진다. "
+                              "자이로 저역통과 20~40 Hz + 로터 관성 τ 5~72 ms 가 상한을 정한다.",
+            "tau_motor_optional_s": list(rd.TAU_MOTOR_RANGE_S),
+            "tau_motor_note_ko": "2극. 8~20 dB 짜리 세부. 기본 끔 — 우리 표적 기체 값을 못 찾았다."},
+        "sigma_w_calibration": {
+            "formula": "sigma_w = (amp_equiv_sine/sqrt(2)) / sqrt(F); "
+                       "F = (2/pi)*(atan(2*pi*f2*T) - atan(2*pi*f1*T))",
+            "why_ko": "원장 rotor_rpm_web_anchor.json 의 wobble amp 는 «등가 사인 진폭»"
+                      "(대역 rms × √2)이다. OU 의 파라미터는 진폭이 아니라 σ 이므로 두 번 고친다.",
+            "anchors": anchors},
+        "presets": rd.preset_table(),
+        "window_mean_variance_fraction": {
+            "formula": "(2T/Tw)*(1 - (T/Tw)*(1-exp(-Tw/T)))", "table": wmf,
+            "consequence_ko": "0.25 s 창(분류 헤드라인)에서는 흔들림 분산의 71.6 % 가 "
+                              "«정적 오프셋»으로 보인다. 그래서 분류 쪽에서 먼저 고칠 것은 "
+                              "흔들림이 아니라 정적 산포 값 자체다."},
+        "line_broadening_prediction": {
+            "drone": "matrice4e", "f_flash_hz": f_flash, "f_tip_hz": f_tip,
+            "entries": broaden,
+            "resolvability_hz": {"cpi_2s_bin": 0.5, "classify_fft_bin_T0p25": 4.0,
+                                 "classify_comb_halfwidth": 0.20 * f_flash,
+                                 "flash_spec_df_nseg70": 19700.0 / 70.0}},
+        "unresolved_ko": [
+            "우리 표적 기체(Mavic 4 Pro · Matrice 4E)의 rpm 통계와 로터 τ 를 못 찾았다 — "
+            "DJI 가 최신 DAT 를 암호화한다. 자체 실측이 유일한 경로다.",
+            "σ_w(시간 흔들림)를 넣은 마이크로도플러 문헌 선례가 0 건이다. 근거는 실기 로그뿐이고 "
+            "셋 다 우리 표적 기체가 아니다. 리포트에서 «문헌이 한다» 라고 쓰면 안 된다.",
+            "OU 를 «참» 이라고 가정하고 대역 몫 F 를 계산했다. 실제 스펙트럼이 OU 가 아니면 "
+            "F 가 달라지고 σ_w 가 통째로 움직인다.",
+            "산란 진폭의 요동은 여전히 미모델이다(White IEEE TRS 2024 도 같은 자백을 한다).",
+            "블레이드 플렉싱·피치 변화는 안 넣는다 — 원문 확인 범위에서 사례 0 건."],
+    }
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--only", default="all", choices=["all", "gates", "effect"])
+    ap.add_argument("--only", default="all",
+                    choices=["all", "gates", "effect", "ledger"])
     ap.add_argument("--nproc", type=int, default=10)
     ap.add_argument("--n-draw", type=int, default=6)
     a = ap.parse_args()
 
     stamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    if a.only in ("all", "ledger"):
+        with open(os.path.join(OUT, "rotor_jitter_model.json"), "w") as f:
+            json.dump(model_ledger(), f, ensure_ascii=False, indent=1, default=float)
+        print("✅ outputs/rotor_jitter_model.json")
+
     if a.only in ("all", "gates"):
         print("═══ 게이트 ═══", flush=True)
         gg = gates()
@@ -500,7 +667,8 @@ def main():
 
     if a.only in ("all", "effect"):
         print("\n═══ 효과 ═══", flush=True)
-        arms_hc = ["locked", "legacy", "current", "sitl", "lit_iid", "indoor", "outdoor"]
+        arms_hc = ["locked", "legacy", "current", "sitl", "lit_iid", "indoor", "outdoor",
+                   "outdoor_static_only", "outdoor_wobble_only", "outdoor_aligned_phase"]
         e1 = effect_half_corr(arms_hc)
         for k, v in e1["arms"].items():
             print(f"  half_corr {k:14s} {v['half_corr_mean']:.4f} "
@@ -510,15 +678,74 @@ def main():
                              n_draw=a.n_draw, nproc=a.nproc)
         for T, row in e2["windows"].items():
             for arm, r in row["arms"].items():
-                print(f"  특징 T={T}s {arm:9s} 움직인 개수 |d|≥1: "
+                print(f"  특징 T={T}s {arm:9s} |d|≥1: "
                       f"{r['n_moved_d_ge_1']}/{r['n_features_finite']} · "
-                      f"|d|≥0.5: {r['n_moved_d_ge_0p5']} · 중앙 |d| {r['median_abs_d']:.2f}")
+                      f"≥0.5: {r['n_moved_d_ge_0p5']} · ≥0.2: {r['n_moved_d_ge_0p2']} · "
+                      f"중앙|d| {r['median_abs_d']:.2f} · "
+                      f"F비 중앙 {r['fratio_median_arm_over_base']:.3f} "
+                      f"(20%↓ {r['n_features_fratio_down_20pct']}개)")
+        #  ⭐ 설계서 §2-5 의 «반증 가능한 예측» 넷 + §0-3 의 창길이 예측을 판정한다.
+        #     예측이 안 맞으면 배선이 안 된 것이다(G24) 또는 규약과 충돌한 것이다.
+        w025 = e2["windows"]["0.25"]["arms"]["outdoor"]
+        w100 = e2["windows"]["1.0"]["arms"]["outdoor"]
+        pf025 = w025["per_feature"]
+        pf100 = w100["per_feature"]
+        hc_base = e1["arms"]["current"]["half_corr_mean"]
+        hc_out = e1["arms"]["outdoor"]["half_corr_mean"]
+        preds = {
+            "P1_ridges_broaden": {
+                "prediction_ko": "2 s 호버 맵의 고차 능선이 눈에 띄게 굵어진다",
+                "evidence": "게이트 G23 — m 차 조화의 rms 폭이 m·f_flash·σ_w 에 비례",
+                "pass": None,
+                "note_ko": "여기서는 안 잰다. G23(verify_rotor_dynamics gates) 과 "
+                           "report07_hover_long.py --preset outdoor 가 잰다"},
+            "P2_classification_degrades": {
+                "prediction_ko": "분류가 어려워진다",
+                "metric": "기체간/기체내 분산비 F 의 중앙 변화",
+                "T0p25": w025["fratio_median_arm_over_base"],
+                "T1p0": w100["fratio_median_arm_over_base"],
+                "f_flash_hat_fratio_ratio_T1p0": pf100["f_flash_hat"]["f_ratio_arm_over_base"],
+                "pass": bool(w025["fratio_median_arm_over_base"] < 1.0
+                             and w100["fratio_median_arm_over_base"] < 1.0)},
+            "P3_half_corr_drops": {
+                "prediction_ko": "반창 스펙트럼 상관이 내려간다",
+                "e1_current": hc_base, "e1_outdoor": hc_out,
+                "e2_T0p25_d": pf025["half_corr"]["d_within_cell"],
+                "e2_T1p0_d": pf100["half_corr"]["d_within_cell"],
+                "pass": bool(hc_out < hc_base and pf025["half_corr"]["d_within_cell"] < 0)},
+            "P4_flash_map_unchanged": {
+                "prediction_ko": "flash_spec 플래시 맵은 거의 안 변한다(Δf 281 Hz ≫ 63 Hz)",
+                "metric": "flash_contrast_db 의 칸 안 효과크기 |d| < 0.5",
+                "T0p25_d": pf025["flash_contrast_db"]["d_within_cell"],
+                "T1p0_d": pf100["flash_contrast_db"]["d_within_cell"],
+                "T0p25_rel_shift": pf025["flash_contrast_db"]["rel_shift"],
+                "pass": bool(abs(pf025["flash_contrast_db"]["d_within_cell"]) < 0.5
+                             and abs(pf100["flash_contrast_db"]["d_within_cell"]) < 0.5),
+                "note_ko": "⚠ 이것이 깨지면 조각 길이 규약과 충돌한 것이므로 멈추고 조사한다"},
+            "P5_longer_window_hurts_more": {
+                "prediction_ko": "0.25 s 창에서는 흔들림의 71.6 % 가 정적 오프셋으로 보이므로 "
+                                 "효과는 1.0 s 팔에서 더 크게 나와야 한다 (설계서 §0-3)",
+                "median_abs_d_T0p25": w025["median_abs_d"],
+                "median_abs_d_T1p0": w100["median_abs_d"],
+                "fratio_T0p25": w025["fratio_median_arm_over_base"],
+                "fratio_T1p0": w100["fratio_median_arm_over_base"],
+                "pass": bool(w100["median_abs_d"] > w025["median_abs_d"]
+                             and w100["fratio_median_arm_over_base"]
+                             < w025["fratio_median_arm_over_base"])},
+        }
         out = {"_meta": {"script": "benchmark/verify_rotor_dynamics.py effect",
                          "generated": stamp,
                          "what_ko": "로터 랜덤성을 켜면 무엇이 달라지나 — 반창 상관과 분류 특징",
-                         "gpu_ko": "안 씀. 위상표(각도의 함수)라 rpm 이 변해도 재계산이 없다"},
+                         "gpu_ko": "안 씀. 위상표(각도의 함수)라 rpm 이 변해도 재계산이 없다",
+                         "validated_against_ko": (
+                             "legacy 팔의 반창상관 0.8074 는 같은 조건의 **실제 SBR** 원장"
+                             "(outputs/report07_hover_long.npz, 0.8085)과 0.13 % 안에서 맞는다 "
+                             "— 위상표 합성이 이 지표에 대해 SBR 을 대신할 수 있다는 근거다.")},
+               "falsification_gates_G24_G25": preds,
                "E1_half_window_spectrum_corr": e1,
                "E2_classification_features": e2}
+        for k, v in preds.items():
+            print(f"  {'✅' if v['pass'] else ('—' if v['pass'] is None else '❌')} {k}")
         with open(os.path.join(OUT, "rotor_jitter_effect.json"), "w") as f:
             json.dump(out, f, ensure_ascii=False, indent=1, default=float)
         print("✅ outputs/rotor_jitter_effect.json")

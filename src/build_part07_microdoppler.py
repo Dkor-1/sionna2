@@ -77,6 +77,8 @@ POC = "outputs/report15_po_control.json"        # PO 대조군 + 감사
 ATK = "outputs/report15_attack_stats.json"      # 적대검증 렌즈 1
 SPP = "outputs/report15_attack_spp_ladder.json"
 SGC = "outputs/sbr_grid_convergence.json"       # 격자 사다리 — 생산·위상고정·얼림
+FSL = "outputs/freeze_signal_loss.json"         # ⭐렌즈 B — 얼리기가 «신호» 도 깎았나
+FPS = "outputs/freeze_plate_sensitivity.json"   # ⭐판 한 장에 절대 dB 가 얼마나 걸리나
 OOB = "outputs/outofband_power.json"            # ⭐대역밖 전력의 잣대(절대·평활 없음)
 BFL = "outputs/report15_blade_flash_ladder.json"  # ⭐프롭 정반사 — 예산 축과 앙각 축
 
@@ -470,6 +472,33 @@ def blocks_36() -> list:
            + " 에서 "
            + _n("in_band_fidelity.rows[1].cos_froz_vs_po", SGC, "{:.3f}")
            + " 으로 오른다. 기전과 대가는 " + ref("kernel-what", "커널이 하는 일") + " 이 잰다.", "",
+           "⭐ 같은 재계산에서 **블레이드 대역 안**의 전력도 중앙값 "
+           + _n("summary.P_in_delta_db_median", FSL, "{:+.1f}", "dB")
+           + " 내려갔다. 그것이 표적의 운동이었다면 얼리기가 물리를 지운 것이므로, 판정을 "
+           "광선을 안 쓰는 엔진에게 맡겼다 — 블레이드 대역이 순수 PO 보다 "
+           + _n("summary.P_in_excess_over_po_db.before_median", FSL, "{:+.1f}", "dB")
+           + " 위에 있던 것이 "
+           + _n("summary.P_in_excess_over_po_db.after_median", FSL, "{:+.1f}", "dB")
+           + " 로 줄었고 PO 밑으로 내려간 열은 "
+           + _n("summary.P_in_excess_over_po_db.n_below_po_after", FSL, "{:.0f}")
+           + " 개다. 같은 대역의 복소 일치는 "
+           + _n("summary.blade_coh_vs_po.before_median", FSL, "{:.2f}") + " → "
+           + _n("summary.blade_coh_vs_po.after_median", FSL, "{:.2f}")
+           + " 로 오르고, 플래시 대조비는 "
+           + _n("summary.flash_contrast_db.n_improved", FSL, "{:.0f}") + "/"
+           + _n("summary.flash_contrast_db.n_series", FSL, "{:.0f}") + " 열에서 "
+           + _n("summary.flash_contrast_db.delta_median", FSL, "{:+.1f}", "dB")
+           + " 올라간다 — 자의 흔들림이 골짜기를 메우고 있었다는 뜻이다"
+           + f" ⟨{FSL} : verdict.headline_ko⟩.", "",
+           "⚠ 대가는 비율 쪽에 있다 — 동체가 든 열에서 «대역밖 ÷ 블레이드 대역» 이 "
+           + _n("summary.by_group.with_body.oob_over_in_db_before_median", FSL, "{:.1f}", "dB")
+           + " 에서 "
+           + _n("summary.by_group.with_body.oob_over_in_db_after_median", FSL, "{:.1f}", "dB")
+           + " 로 올라간다(순수 PO 는 "
+           + _n("summary.oob_over_in_db.po_median", FSL, "{:.1f}", "dB")
+           + "). 잉여가 사라진 만큼 남은 잔차가 상대적으로 커 보이는 것이고, 그 잔차가 지금 "
+           "이 맵의 동적범위 상한이다"
+           + f" ⟨{FSL} : verdict.cost_ko⟩.", "",
            _grid_state_line()),
 
         md("## Sionna 의 빗은 기하에서 온다", "",
@@ -700,6 +729,38 @@ def blocks_38() -> list:
                 _L("arms.G_blade_free.energy_inside_ftip_frac", "{:.4f}"), "—"],
            ])),
 
+        md("## ⭐이 표의 dB 는 «판 한 장» 에도 걸린다", "",
+           "두 팔은 같은 얼린 광선 격자를 쓴다. 그러면 격자를 어디에 놓았느냐는 두 팔에 똑같이 "
+           "실리므로 차이에서 빠질 것 같다 — 그것이 «단일축» 이라는 말의 뒷받침이었다. "
+           "그 가정을 재 봤다: 판의 중심만 **반 칸** 옮긴 같은 크기의 판으로 같은 자세열을 다시 "
+           "태우면 (광선 수·간격이 같고 서브셀 오프셋만 다르다) 이렇게 움직인다.", "",
+           table(["무엇이", "판 셋 사이 p-p", "이 편이 인용하는 값", "읽는 법"],
+                 [["전체 팔의 절대 레벨",
+                   _n("verdict.abs_level_plate_ptp_db", FPS, "{:.2f}", "dB"),
+                   _L("arms.A_sbr_locked.level_db", "{:.2f}", "dB"),
+                   "절대 σ 를 얼린 복소장에서 읽으면 안 되는 이유 — σ 는 정적 경로가 낸다"],
+                  ["가림 · 레벨 (F−G)",
+                   _n("verdict.occlusion_level_plate_ptp_db", FPS, "{:.2f}", "dB"),
+                   _L("findings.occlusion_level_db", "{:+.2f}", "dB"),
+                   "판 흩어짐이 인용값보다 크다 — 이 칸은 **크기를 인용하지 않는다**"],
+                  ["가림 · 변조 깊이 (F−G)",
+                   _n("verdict.occlusion_ptp_plate_ptp_db", FPS, "{:.2f}", "dB"),
+                   _L("findings.occlusion_ptp_db", "{:+.2f}", "dB"),
+                   "같은 이유. 깊이 차의 **부호도** 판에 따라 바뀐다"]]), "",
+           "⭐ 그러니 이 편이 서는 자리를 좁힌다. **«동체가 막으면 두 양이 함께 움직인다» 는 "
+           "그대로 서고, 그 움직임의 dB 크기는 판 선택 위에 있다.** 크기가 필요한 자리에서는 "
+           "판 앙상블 평균(오프셋 여러 판의 평균)이 먼저다"
+           f" ⟨{FPS} : verdict.how_to_read_ko⟩.", "",
+           "두 팔의 기하가 서로 달라서(막는 팔은 동체가 있고 안 막는 팔은 동체 면이 없다) "
+           "판 편향이 공통모드로 빠지지 않는다 — 그것이 이 표가 재서 확인한 내용이다"
+           f" ⟨{FPS} : verdict.common_mode_ko⟩.", "",
+           "이 비교가 같은 물리를 잰 것인지의 게이트도 함께 둔다 — 생산 판(P0)으로 낸 세 팔의 "
+           "레벨이 생산 원장과 최대 "
+           + _n("verdict.p0_vs_production_max_abs_db", FPS, "{:.2f}", "dB")
+           + " 안에서 붙는다"
+           + f" ⟨{FPS} : verdict.validity_ko⟩. 그러니 위 흩어짐은 배선 차이가 아니라 판 "
+           "오프셋 그 자체다."),
+
         md("## 부호를 물리로 단정하지 않는 이유", "",
            "합이 코히런트라 항이 줄어도 남은 항끼리 상쇄가 덜 되면 레벨이 **올라갈 수 있다**. "
            "실제로 그런 칸이 있다.", "",
@@ -850,10 +911,13 @@ def blocks_40() -> list:
                 ("Mini 5 Pro",
                  "프로펠러와 모터 벨이 겹친 삼각형이 남아 있어 헤드라인에서 뺐다. 같은 그림을 "
                  "그 기체로도 그려 따로 뒀다"),
-                ("⚠ 재계산 대기",
-                 "이 절의 원장은 재계산 사슬이 도는 중에 읽은 값이다 — 산출물에 아직 메쉬 "
-                 "지문(`mesh_provenance`)이 안 찍혀 있어 확정본이 아니다. 사슬이 닫히면 "
-                 "빌더를 다시 돌려 이 절의 표를 갱신한다"),
+                ("⭐얼린 광선 격자",
+                 "세 칸의 여섯 팔이 모두 로터 한 바퀴의 합집합 경계상자로 만든 판 한 장을 "
+                 "쓴다. 그래야 프레임 사이 위상차가 표적의 운동만 담는다"),
+                ("⚠ 크기를 인용하는 범위",
+                 "판을 반 칸 옮기면 가림 dB 가 인용값보다 크게 움직인다 — 이 절은 자세에 따라 "
+                 "**부호와 크기가 갈린다**는 사실을 쓰고, dB 크기 자체는 판 앙상블 평균이 "
+                 "설 때까지 남겨 둔다"),
             ],
             prereq=[("앞 편", ref("md-occlusion", "가림 축") + " — 칸마다 도는 단일축")],
             repro=REPRO_15B,
@@ -884,13 +948,21 @@ def blocks_40() -> list:
                 _n(SIDE + ".findings.occlusion_level_db", MDB, "{:+.2f}", "dB")],
            ]), "",
            "세 줄의 부호와 크기가 다르다는 것이 이 편의 내용이다 — 가림은 자세의 함수다.", "",
-           "⚠ **재계산 대기.** 이 표는 재계산 사슬이 도는 중에 읽은 원장에서 나왔다 — "
-           "산출물에 아직 메쉬 지문(`mesh_provenance`)이 안 찍혀 있어 확정본이 아니다.", "",
            "마이크로도플러는 프레임 사이 위상차로 재는 양이라, 광선 격자가 프레임마다 "
            "움직이면 그 움직임이 표적 운동과 같은 자리에 실린다. 그래서 커널은 자세 전체에 "
-           "한 격자를 고정할 수 있고(`grid_ref`), 그 격자로 도는 재계산이 이 표의 자리를 "
-           "채운다. **논지(«가림은 자세의 함수다»)는 자세축 자체가 근거이므로 그대로 서지만, "
-           "위 세 줄의 dB 는 사슬이 닫히기 전까지 인용하지 않는다.**"),
+           "한 격자를 고정하고(`grid_ref`), **이 표는 그 얼린 판으로 다시 난 원장에서 나왔다** "
+           f"⟨{MDB} : _meta.grid_frozen⟩. 옛 판의 값은 `outputs/prefreeze/` 에 사본으로 있다.", "",
+           "⭐ 그 위에 한 겹이 더 있다. 판을 **반 칸** 옮긴 같은 크기의 판으로 다시 태우면 "
+           "가림 · 레벨이 " + _n("verdict.occlusion_level_plate_ptp_db", FPS, "{:.2f}", "dB")
+           + " p-p, 가림 · 변조 깊이가 "
+           + _n("verdict.occlusion_ptp_plate_ptp_db", FPS, "{:.2f}", "dB")
+           + " p-p 움직인다 — 위 세 줄의 크기보다 크다"
+           + f" ⟨{FPS} : verdict.how_to_read_ko⟩.", "",
+           "**자세가 답을 바꾼다는 이 편의 논지는 자세축 자체가 근거이므로 그대로 선다.** "
+           "위 세 줄의 dB 크기는 판 앙상블 평균이 설 때까지 남겨 둔다. 기전은 "
+           + ref("kernel-what", "커널이 하는 일") + " 이 잰다.", "",
+           "⚠ 남은 자리 하나 — 이 원장에는 아직 메쉬 지문(`mesh_provenance`)이 찍혀 있지 "
+           "않다. 지문 도장을 찍으면 표가 어떤 메쉬 세대에서 났는지까지 자기가 말한다."),
 
         md("## 이 결론은 우리 기하 명세와 같은 방향이다", "",
            "자유공간 바이스태틱의 이등분선 앙각은 전 구간 음수라 우리는 드론 배를 본다. "

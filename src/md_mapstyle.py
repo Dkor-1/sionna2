@@ -150,6 +150,30 @@ def noise_rms_from(S_noise):
     return float(np.sqrt(np.mean(S ** 2)))
 
 
+def line_level_over_noise_db(S, noise_rms, mask=None, *, floor_db=-60.0):
+    """⭐ 맵 위 **선의 레벨** [dB, 잡음 rms 위] — 잡음 몫을 빼고 시간평균으로 잰다.
+
+    ⚠ 왜 `S.max()` 를 쓰면 안 되나(2026-08-11 게이트 NI8 이 잡은 것): 맵에는 잡음만 있어도
+      첨두가 있다. 지수분포 빈 N 개의 최대는 rms 대비 10log10(ln N) ≈ **11 dB** 다. 그래서
+      max 로 재면 저 SNR 에서 **5 dB 넘게 낙관적**이 되고, 사다리 예측과 비교하는 순간
+      «사다리가 틀렸다» 는 잘못된 결론이 나온다.
+
+    여기서는 (a) 주파수 빈마다 **시간평균 전력**을 내고 (b) 잡음 1빈 전력(`noise_rms²`)을
+    **빼고** (c) 남은 최대를 잡음 대비 dB 로 낸다. 정상 신호(톤·동체선)에서 편향이 없다.
+
+    mask : 주파수축(1차원) 불리언. 재고 싶은 띠만.
+    """
+    P = np.asarray(S, float) ** 2
+    Pm = P.mean(axis=1) if P.ndim == 2 else P
+    if mask is not None:
+        Pm = Pm[np.asarray(mask, bool)]
+    n2 = float(noise_rms) ** 2
+    p = float(Pm.max()) - n2
+    if p <= 0:
+        return float(floor_db)
+    return float(10.0 * np.log10(p / n2))
+
+
 def draw(ax, t, f, S, f_tip, *, t_scale=1e3, ref=None, mode="peak", noise_rms=None,
          vmin=None, vmax=None):
     """규약대로 한 패널을 그린다. 반환은 컬러메시(공통 컬러바용).

@@ -13,10 +13,12 @@
   얼린 팔만 예측대로 d² 로 수렴한다(기울기 -2.09, R²=0.987).
 
 ⛔계산을 새로 하지 않는다. 얼린 시계열은 이미 디스크에 있다 —
-   outputs/sbr_grid_convergence.npz : E_froz_div12
-   같은 원장의 E_prod_div12 는 report07_three_engines.npz['sbr'] 와 **4096/4096 비트동일**이고
-   (regression_div12_vs_ledger), 아래에서 그 사실을 빌드마다 다시 확인한다.
-   즉 이 그림이 그리는 것은 원본 그림이 그리던 그 시계열의 **얼린 쌍둥이**다.
+   ⭐outputs/report07_three_engines.npz : sbr  (**생산 원장**. 얼린 격자로 다시 났다)
+   이것은 리포트 8 권이 싣는 바로 그 배열이다 — 덱과 리포트가 한 규약으로 말하게 하는 것이
+   이 판의 요점이다. 옛 판(자세마다 격자를 다시 정의)은 outputs/prefreeze/ 사본과
+   sbr_grid_convergence.npz : E_prod_div12 에 남아 있고, «지난주와 왜 다른가» 를 그것으로 잰다.
+   혈통 검사 네 단이 아래에 있다 — 원장의 grid_frozen 선언 · 옛 팔의 비트동일 ·
+   원장이 실제로 옮겨갔는지 · 봉투가 다른 두 얼림(E_froz_div12)이 만나는지.
 
 ⛔원본 산출물(deck0811_r1.png · deck0811_r2.png · deck0811_beat_check.json)은 안 건드린다.
    여기서 내는 것은 전부 `_frozen` 접미사다.
@@ -82,17 +84,57 @@ N0 = int(round(0.020 * PRF))
 NZ = int(round(ZOOM_MS / 1000.0 * PRF))
 
 E_SIONNA = np.asarray(RZ["R3/E"], complex)          # ⭐기선 0 — 기하가 맞는 판
-E_PROD = np.asarray(GZ["E_prod_div12"], complex)    # 생산 팔(대조용, 그리지 않는다)
-E_OURS = np.asarray(GZ["E_froz_div12"], complex)    # ⭐얼린 격자 — 이 판의 우리 팔
+_LEDGER_SBR = np.asarray(OZ["sbr"], complex)        # ⭐생산 원장 — 리포트가 싣는 바로 그 열
+E_OURS = _LEDGER_SBR                                # ⭐우리 팔 = 생산 원장 그대로
+E_PROD = np.asarray(GZ["E_prod_div12"], complex)    # 옛 판(움직이는 격자) — 대조용, 그리지 않는다
+E_FROZ_ALT = np.asarray(GZ["E_froz_div12"], complex)  # 봉투를 달리해 얼린 쌍둥이 — 교차검사용
 
-# ── ⭐혈통 검사 — 얼린 쌍둥이가 정말 그 시계열의 쌍둥이인가 ────────────────
-_LEDGER_SBR = np.asarray(OZ["sbr"], complex)
-_N_SAME = int((E_PROD == _LEDGER_SBR).sum())
-if E_PROD.shape != _LEDGER_SBR.shape or _N_SAME != E_PROD.size:
-    raise SystemExit(f"❌ 생산 div12 가 report07 원장 sbr 열과 다르다 "
-                     f"({_N_SAME}/{E_PROD.size} 일치). 얼린 팔을 그 쌍둥이라 부를 수 없다")
-if E_OURS.shape != _LEDGER_SBR.shape:
-    raise SystemExit("❌ 얼린 시계열 길이가 원장과 다르다")
+# ── ⭐혈통 검사 — 덱이 그리는 팔이 리포트가 싣는 팔과 같은가 ────────────────
+#   생산 원장(report07_three_engines.npz['sbr'])이 **얼린 격자로 다시 났다**. 그래서 덱은
+#   더 이상 수렴 원장의 쌍둥이를 그리지 않고 **원장 그 자체**를 그린다 — 덱과 리포트가
+#   같은 배열을 싣는다는 것이 이 판의 규약이다. 네 단으로 검사한다.
+_GATE: dict[str, object] = {}
+
+# (1) 원장이 스스로 «얼렸다» 고 선언하는가 — 선언 없이 얼린 척하면 안 된다.
+_FROZEN_META = bool(OJ["_meta"].get("grid_frozen", False))
+_FROZEN_ARM = bool(OJ.get("engines", {}).get("sbr", {}).get("grid_frozen", False))
+if not (_FROZEN_META and _FROZEN_ARM):
+    raise SystemExit("❌ report07_three_engines.json 이 grid_frozen 을 선언하지 않는다 — "
+                     "덱이 그릴 얼린 팔이 원장에 없다")
+_GATE["ledger_declares_frozen"] = True
+_GATE["ledger_grid_ref"] = OJ["engines"]["sbr"].get("grid_ref")
+
+# (2) 옛 팔의 혈통 — 수렴 원장의 생산 팔이 **얼리기 전 원장 사본**과 비트동일인가.
+#     이것이 있어야 «지난주 그림» 과 «이번주 그림» 을 같은 실험의 두 판이라 부를 수 있다.
+_PRE = f"{ROOT}/outputs/prefreeze/report07_three_engines.npz"
+if os.path.exists(_PRE):
+    _PRE_SBR = np.asarray(np.load(_PRE)["sbr"], complex)
+    _N_SAME = int((E_PROD == _PRE_SBR).sum()) if E_PROD.shape == _PRE_SBR.shape else -1
+    if _N_SAME != E_PROD.size:
+        raise SystemExit(f"❌ 수렴 원장의 생산 팔이 얼리기 전 원장 사본과 다르다 "
+                         f"({_N_SAME}/{E_PROD.size} 일치). 옛 판을 그 시계열이라 부를 수 없다")
+    _GATE["prod_arm_matches_prefreeze"] = f"{_N_SAME}/{E_PROD.size}"
+else:
+    _GATE["prod_arm_matches_prefreeze"] = "prefreeze 사본 없음 — 검사 못 함"
+
+# (3) 원장이 실제로 옛 팔에서 옮겨갔는가 — 안 옮겼으면 재계산이 안 된 것이다.
+if E_PROD.shape == _LEDGER_SBR.shape and bool((E_PROD == _LEDGER_SBR).all()):
+    raise SystemExit("❌ 생산 원장이 옛 팔과 비트동일이다 — 얼린 격자로 재계산되지 않았다")
+
+# (4) 봉투를 달리한 두 얼림이 서로 만나는가. 수렴 원장의 얼린 팔은 4,096 자세 전부의
+#     합집합 bbox 로, 생산 경로는 로터 한 바퀴 24 등분의 합집합으로 판을 만든다. 봉투가
+#     0.1 mm 남짓 다르므로 비트동일은 아니지만, 얼리기가 판 선택에 둔하다면 붙어야 한다.
+if E_OURS.shape != E_FROZ_ALT.shape:
+    raise SystemExit("❌ 얼린 시계열 길이가 수렴 원장과 다르다")
+_CORR = float(np.corrcoef(np.abs(E_OURS), np.abs(E_FROZ_ALT))[0, 1])
+_DLEV = float(20 * np.log10(np.abs(E_OURS).mean() / np.abs(E_FROZ_ALT).mean()))
+if _CORR < 0.99 or abs(_DLEV) > 0.05:
+    raise SystemExit(f"❌ 봉투가 다른 두 얼림이 안 만난다 — 상관 {_CORR:.4f} · "
+                     f"레벨차 {_DLEV:+.4f} dB. 얼리기가 판 선택에 둔하다는 근거가 무너진다")
+_GATE["plate_choice_corr"] = round(_CORR, 4)
+_GATE["plate_choice_level_db"] = round(_DLEV, 4)
+print(f"✓ 혈통 — 원장 grid_frozen · 옛 팔 {_GATE['prod_arm_matches_prefreeze']} · "
+      f"봉투 교차 상관 {_CORR:.4f} (레벨차 {_DLEV:+.4f} dB)")
 # ⭐2026-08-10 사용자 지시 — «frozen ray grid 가 뭐야? 제목에 꼭 써놔야 하니?»
 #   맞는 지적이다. 이것은 우리가 만든 전문용어이고 청중은 모른다. **그림 제목에서 뺀다.**
 #   대신 사실 자체는 캡션 한 줄과 발표 노트가 진다(어디에도 안 적으면 그건 숨기는 것이다).
@@ -463,11 +505,19 @@ def main():
                       "같은 그림·같은 지표를 다시 낸다. 덱 빌더는 이 파일을 읽는다.",
             "source_npz": {
                 "sionna": "report07_three_engine_ranges.npz : R3/E  (기선 0, 진짜 모노스태틱)",
-                "ours": "⭐sbr_grid_convergence.npz : E_froz_div12  "
-                        "(모든 자세에 같은 ctr0·Rout0·n0 — 얼린 격자)"},
-            "provenance_ko": "같은 원장의 E_prod_div12 는 report07_three_engines.npz['sbr'] "
-                             f"와 {_N_SAME}/{E_PROD.size} 비트동일임을 이 빌드에서 확인했다. "
-                             "즉 얼린 팔은 옛 그림이 그리던 그 시계열의 쌍둥이다.",
+                "ours": "⭐report07_three_engines.npz : sbr  "
+                        "(생산 원장 — 얼린 격자로 다시 난 열. 리포트가 싣는 바로 그 배열)"},
+            "one_convention_ko": "⭐덱과 리포트가 **같은 배열**을 싣는다. 우리 팔은 더 이상 "
+                                 "수렴 원장의 쌍둥이(E_froz_div12)가 아니라 생산 원장 "
+                                 "report07_three_engines.npz['sbr'] 그 자체다.",
+            "provenance_ko": "혈통 4단: (1) 원장이 grid_frozen 을 선언한다 "
+                             f"(n={_GATE['ledger_grid_ref']['n'] if _GATE.get('ledger_grid_ref') else '?'}). "
+                             f"(2) 옛 팔 E_prod_div12 는 얼리기 전 원장 사본과 "
+                             f"{_GATE['prod_arm_matches_prefreeze']} 비트동일이다. "
+                             "(3) 생산 원장은 그 옛 팔에서 실제로 옮겨갔다. "
+                             f"(4) 봉투를 달리해 얼린 E_froz_div12 와 진폭 상관 "
+                             f"{_GATE['plate_choice_corr']} · 레벨차 "
+                             f"{_GATE['plate_choice_level_db']:+.4f} dB — 얼리기는 판 선택에 둔하다.",
             "geometry_note_ko": "⭐report07_three_engines.npz 의 sionna 열(기선 0.20 m)은 "
                                 "쓰지 않았다. 그 판으로 재면 최대선이 2·f_flash 로 넘어가 "
                                 "예측 대비 +99.6 % 가 나온다.",

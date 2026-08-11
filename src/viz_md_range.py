@@ -76,8 +76,11 @@ def _save(fig, name):
 
 
 # --------------------------------------------------------------------------- #
-def _series_for(doc, drone, band, R, arm, rng):
-    """그림용 시계열 재계산 (실험과 같은 설정)."""
+def _series_for(doc, drone, band, R, arm, rng, seed=None):
+    """그림용 시계열 재계산 (실험과 같은 설정).
+
+    seed : 주면 `nf.noisy_series` 로 **재현 가능**하게 뽑는다(시드가 원장·캡션에 적힌다).
+           None 이면 옛 경로(공유 rng)를 그대로 쓴다 — 기존 그림과 비트동일."""
     m = doc["meta"]
     spec = DRONES[drone]
     fc = _cell(doc, drone, band)["fc_hz"]
@@ -95,7 +98,14 @@ def _series_for(doc, drone, band, R, arm, rng):
         cap = m.get("slow_time", {}).get("capture", "pre_mf")
         snr = float(nf.echo_over_noise_db(info["sigma_eq_mean_m2"], R, fc,
                                           capture=cap, prf=prf))
-        E, _ = nf.add_noise(E, snr, rng, ref="total")
+        if seed is None:
+            E, _ = nf.add_noise(E, snr, rng, ref="total")
+        else:
+            #  ⭐ 잡음 주입 입구 하나 — 시드가 기록되므로 이 패널을 그대로 다시 만들 수 있다.
+            En, _prov = nf.noisy_series(E, snr, nf.stable_seed(drone, band, f"{R:g}", arm,
+                                                               base=int(seed)),
+                                        ref="total", n_real=1, capture=cap)
+            E = En[0]
     return E, info, prf
 
 

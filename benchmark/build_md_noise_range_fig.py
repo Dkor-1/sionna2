@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 import microdoppler_nearfield as nf                                 # noqa: E402
 from drones import DRONES                                           # noqa: E402
 from md_mapstyle import (auto_periods, caption_snr, draw, flash_spec,  # noqa: E402
-                         noise_rms_from)
+                         line_level_over_noise_db, noise_rms_from)
 
 FIG = os.path.join(ROOT, "outputs", "figures")
 OUT = os.path.join(ROOT, "outputs", "md_noise_range_fig.json")
@@ -98,6 +98,13 @@ def main():
     n0 = (rng_n.normal(0, np.sqrt(0.5), N_T) + 1j * rng_n.normal(0, np.sqrt(0.5), N_T))
     fN, tN, SN, nper = flash_spec(n0, PRF, f_flash, periods)
     noise_rms = noise_rms_from(SN)
+    #  ⚠ **잡음만 있는 맵에도 첨두는 있다.** 지수분포 빈 ~수십만 개의 최대 순서통계량이라
+    #    rms 대비 10log10(ln N) ≈ 11 dB 다(md_metrics docstring 의 11.0~11.4 dB 실측과 같은 것).
+    #    이 선 아래의 «측정 첨두» 는 잡음과 구별되지 않는다 — 그림에도 선으로 그린다.
+    df_hz = PRF / nper
+    lo_hz = max(BAND_LO * f_tip, 3.0 * df_hz)      # DC 주엽(±2 빈)을 확실히 벗어난 자리
+    bandN = (np.abs(fN) >= lo_hz) & (np.abs(fN) <= BAND_HI * f_tip)
+    noise_map_max_db = float(20 * np.log10(SN[bandN].max() / noise_rms))
 
     panels, ladders = [], []
     for R in ranges:
@@ -114,11 +121,22 @@ def main():
         #  같은 물리량(열잡음 바닥)이고, 신호는 거리에 따라 실제로 가라앉는다.
         x = En[0] / prov["sigma_n"]
         f, t, S, _ = flash_spec(x, PRF, f_flash, periods)
-        band = (np.abs(f) >= BAND_LO * f_tip) & (np.abs(f) <= BAND_HI * f_tip)
+        band = (np.abs(f) >= lo_hz) & (np.abs(f) <= BAND_HI * f_tip)
         dc = np.abs(f) <= 0.5 * f_flash
+        #  ⭐ 선 레벨은 **잡음 몫을 빼고 시간평균**으로 잰다 — raw max 는 잡음의 최대
+        #    순서통계량(≈11 dB)이 얹혀 저 SNR 에서 사다리를 «이겨» 버린다(게이트 NI8).
+        blade_db = line_level_over_noise_db(S, noise_rms, band)
+        body_db = line_level_over_noise_db(S, noise_rms, dc)
+        body_pred = float(lad["snr_slow_db"] + lad["gain_stft_db"])
         meas = dict(
-            blade_band_peak_over_noise_db=float(20 * np.log10(S[band].max() / noise_rms)),
-            body_dc_peak_over_noise_db=float(20 * np.log10(S[dc].max() / noise_rms)),
+            blade_band_line_db=blade_db,
+            blade_band_raw_max_db=float(20 * np.log10(S[band].max() / noise_rms)),
+            #  ⭐ 동체선은 **0 도플러의 정상 톤**이라 사다리 ③+④ 를 그대로 검증한다
+            body_dc_line_db=body_db,
+            body_dc_predicted_db=body_pred,
+            body_dc_pred_minus_meas_db=float(body_pred - body_db),
+            blade_above_noise_only_max=bool(
+                float(20 * np.log10(S[band].max() / noise_rms)) > noise_map_max_db + 3.0),
             map_median_over_noise_db=float(20 * np.log10(np.median(S) / noise_rms)))
         panels.append(dict(R_m=R, S=S, f=f, t=t, meas=meas, seed=seed, lad=lad,
                            sigma_n=prov["sigma_n"]))
@@ -162,9 +180,18 @@ def main():
                       f"{nper}-sample Hann frame)")
     #  측정한 첨두를 사다리 위에 얹는다 — 예측과 측정을 같은 그림에서 대조한다
     ax.semilogx([p["R_m"] for p in panels],
-                [p["meas"]["blade_band_peak_over_noise_db"] for p in panels],
+                [p["meas"]["blade_band_line_db"] for p in panels],
                 "o", ms=8, mfc="white", mec=C_MAP, mew=2.0,
-                label="measured blade-band peak on the maps above")
+                label="measured blade-band line on the maps above (noise share removed)")
+    ax.semilogx([p["R_m"] for p in panels],
+                [p["meas"]["body_dc_line_db"] for p in panels],
+                "s", ms=7, mfc="white", mec=C_TOT, mew=1.8,
+                label="measured body (zero-Doppler) line — validates rung 3 + gain_stft")
+    #  ⚠ 잡음만 있는 맵의 최대값 — 이 선 아래의 «첨두» 는 잡음과 구별되지 않는다
+    ax.axhline(noise_map_max_db, color="#8d6e63", ls="-.", lw=1.5)
+    ax.text(3.2, noise_map_max_db + 1.2,
+            f"peak of a noise-ONLY map ({noise_map_max_db:.1f} dB, order statistic)",
+            fontsize=9, color="#5d4037")
     ax.axhline(0.0, color="k", ls=":", lw=1.2)
     ax.text(3.2, 1.0, "noise floor", fontsize=9)
     r0 = nf.range_for_snr_db(0.0, sigma_m2, FC, rung="snr_slow_ac_db", prf=PRF,
@@ -231,8 +258,28 @@ def main():
             caveat="thermal noise only - no clutter, no direct-path residue, no ECA notch, no "
                    "phase noise; and gain_mf_db assumes an ideal matched filter with a clean "
                    "reference channel"),
-        noise_floor=dict(measured_rms=float(noise_rms),
-                         probe="unit-variance circular complex Gaussian, N_T samples, same STFT"),
+        noise_floor=dict(
+            measured_rms=float(noise_rms),
+            probe="unit-variance circular complex Gaussian, N_T samples, same STFT",
+            noise_only_map_max_over_rms_db=round(noise_map_max_db, 3),
+            noise_only_max_theory_db=round(float(10 * np.log10(np.log(SN[bandN].size))), 3),
+            why="a noise-only map still has a maximum: with ~1e5 exponential bins the largest is "
+                "10log10(ln N) ~ 11 dB over the rms. Any 'measured peak' below this line is not "
+                "distinguishable from noise - the same 11.0-11.4 dB that md_metrics documents",
+            blade_band_hz=[round(lo_hz, 1), round(BAND_HI * f_tip, 1)],
+            blade_band_note=f"lower edge raised to 3 frequency bins ({3 * df_hz:.0f} Hz) so the "
+                            "body line's Hann main lobe cannot leak into the blade band; "
+                            f"one bin is {df_hz:.0f} Hz at this frame length"),
+        why_measured_differs_from_rung5=[
+            "rung 5 assumes ALL the AC power lands in one frequency bin; the blade energy is "
+            "spread over many flash harmonics and over time, so the measured blade LINE sits "
+            "below rung 5 - rung 5 is an upper bound, not a prediction of the line level",
+            "the raw MAX of the blade band is the opposite bias: a noise-only map already peaks "
+            "~11 dB over its rms (order statistic), so the max reads high at low SNR. Both "
+            "numbers are recorded; the line level (noise share removed) is the honest one",
+            "the body (zero-Doppler) line is a pure tone and therefore DOES match rung 3 + "
+            "gain_stft directly - that comparison is the honest end-to-end check of the "
+            "matched-filter-corrected ladder"],
         panels=[dict(R_m=p["R_m"], noise_seed=int(p["seed"]), sigma_n=float(p["sigma_n"]),
                      snr_sample_db=round(float(p["lad"]["snr_sample_db"]), 4),
                      gain_mf_db=round(float(p["lad"]["gain_mf_db"]), 4),
@@ -241,10 +288,13 @@ def main():
                      snr_slow_ac_db=round(float(p["lad"]["snr_slow_ac_db"]), 4),
                      gain_stft_db=round(float(p["lad"]["gain_stft_db"]), 4),
                      snr_map_ac_db=round(float(p["lad"]["snr_map_ac_db"]), 4),
-                     measured=({k: round(v, 3) for k, v in p["meas"].items()}),
-                     predicted_minus_measured_db=round(
-                         float(p["lad"]["snr_map_ac_db"]) -
-                         p["meas"]["blade_band_peak_over_noise_db"], 3),
+                     measured=({k: (round(v, 3) if isinstance(v, (int, float))
+                                    and not isinstance(v, bool) else v)
+                                for k, v in p["meas"].items()}),
+                     #  rung 5 는 «AC 전력이 한 빈에 다 모였다면» 의 **상한**이다.
+                     #  블레이드 에너지는 여러 하모닉·여러 시간슬롯에 흩어지므로 그만큼 낮다.
+                     rung5_minus_measured_blade_db=round(
+                         float(p["lad"]["snr_map_ac_db"]) - p["meas"]["blade_band_line_db"], 3),
                      caption=caption_snr(p["lad"]))
                 for p in panels],
         region_ii=dict(inner_m=round(r0, 2), outer_m=round(r1, 2),
@@ -256,12 +306,16 @@ def main():
         json.dump(led, f, indent=1, ensure_ascii=False, default=float)
     os.replace(tmp, OUT)
 
-    print(f"noise floor rms (STFT, unit-variance noise) = {noise_rms:.5g}")
+    print(f"noise floor rms (STFT, unit-variance noise) = {noise_rms:.5g}   "
+          f"noise-only map max = {noise_map_max_db:+.2f} dB over rms")
     for p in led["panels"]:
         print(f"  R={p['R_m']:6.1f} m  rung3 {p['snr_slow_db']:+7.2f}  "
               f"rung3' {p['snr_slow_ac_db']:+7.2f}  rung5 {p['snr_map_ac_db']:+7.2f}  | "
-              f"measured blade peak {p['measured']['blade_band_peak_over_noise_db']:+7.2f} dB, "
-              f"body DC {p['measured']['body_dc_peak_over_noise_db']:+7.2f} dB")
+              f"blade line {p['measured']['blade_band_line_db']:+7.2f} dB "
+              f"({'above' if p['measured']['blade_above_noise_only_max'] else 'BURIED'})  | "
+              f"body DC {p['measured']['body_dc_line_db']:+7.2f} vs predicted "
+              f"{p['measured']['body_dc_predicted_db']:+7.2f} "
+              f"({-p['measured']['body_dc_pred_minus_meas_db']:+5.2f} dB)")
     print(f"\n→ outputs/figures/md_noise_vs_range.png\n→ {os.path.relpath(OUT, ROOT)} "
           f"({time.time() - t0:.1f} s)")
 

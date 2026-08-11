@@ -51,6 +51,62 @@ OOBR, OOBW = OOB["three_engines_ranking"], OOB["why_old_metric_is_wrong"]
 OOBB = OOB["robustness"]["band_edge_sensitivity_db"]
 OOBF = OOB["freeze_verdict"]
 M, ROWS, CEN, REG, V = J["_meta"], J["rows"], J["census"], J["regression"], J["verdict"]
+
+
+def _mono_lineage() -> dict:
+    """⭐회귀 ② 를 **빌드 시점에** 다시 잰다.
+
+    원장에 적힌 «4096/4096 비트동일» 은 그 원장을 낸 날의 사실이다. 그 뒤 모노 원장
+    `report07_three_engines.npz['sbr']` 이 얼린 격자로 다시 났으면 그 문장은 더 이상
+    현재 파일에 대한 참이 아니다. 그래서 여기서 직접 맞대 보고, **지금 무엇과 같은지**를
+    적는다. 옛 열은 `outputs/prefreeze/` 사본이 진다.
+    """
+    import numpy as _np
+    with _np.load(f"{_ROOT}/outputs/report07b_bistatic_md.npz", allow_pickle=True) as z:
+        col = _np.asarray(z["E"])[:, 0]                      # β=0 열
+    out = {"n": int(col.size)}
+    for tag, path in (("live", f"{_ROOT}/outputs/report07_three_engines.npz"),
+                      ("pre", f"{_ROOT}/outputs/prefreeze/report07_three_engines.npz")):
+        if not os.path.exists(path):
+            out[tag] = None
+            continue
+        with _np.load(path) as z:
+            ref = _np.asarray(z["sbr"])[:col.size]
+        r = _np.abs(col - ref) / (_np.abs(ref) + 1e-300)
+        out[tag] = {"n_bit_identical": int((col == ref).sum()),
+                    "max_rel_err": float(r.max()),
+                    "amp_corr": float(_np.corrcoef(_np.abs(col), _np.abs(ref))[0, 1])}
+    live, pre = out.get("live"), out.get("pre")
+    out["live_matches"] = bool(live and live["n_bit_identical"] == out["n"])
+    out["pre_matches"] = bool(pre and pre["n_bit_identical"] == out["n"])
+    # 둘 다 안 맞으면 서술이 설 자리가 없다 — 조용히 틀린 문장을 내느니 멈춘다.
+    if not (out["live_matches"] or out["pre_matches"]):
+        raise SystemExit(
+            "❌ 이 편의 β=0 열이 모노 원장의 어느 판과도 비트동일이 아니다 "
+            f"(현재 {live}, 얼리기 전 {pre}). 회귀 ② 를 문장으로 쓸 수 없다.")
+    return out
+
+
+MONO_LIN = _mono_lineage()
+
+# 회귀 ② 를 어느 파일에 대해 쓸 것인가 — 지금 실제로 맞는 쪽을 이름으로 박는다.
+if MONO_LIN["live_matches"]:
+    _MONO_SRC = "outputs/report07_three_engines.npz['sbr']"
+    _MONO_HIT = MONO_LIN["live"]["n_bit_identical"]
+    _MONO_REL = MONO_LIN["live"]["max_rel_err"]
+    _MONO_NOTE: list[str] = []
+else:
+    _MONO_SRC = "outputs/prefreeze/report07_three_engines.npz['sbr']"
+    _MONO_HIT = MONO_LIN["pre"]["n_bit_identical"]
+    _MONO_REL = MONO_LIN["pre"]["max_rel_err"]
+    _MONO_NOTE = [
+        "⚠ **회귀 ② 가 가리키는 모노 열은 «얼리기 전» 사본이다.** 8 권 모노 편의 SBR 열은 "
+        "그 뒤 [얼린 광선 격자](08_2_engines.ipynb)로 다시 났고, 이 편의 β 스윕은 아직 "
+        f"옛 판이다 — 현재 원장과는 진폭 상관 {MONO_LIN['live']['amp_corr']:.3f} 로 "
+        "**다른 시계열**이다. 회귀 ② 가 확인하는 것은 «이 편의 β=0 이 모노 편의 그 칸» 이라는 "
+        "사실 그대로이되, 그 «그 칸» 은 두 편이 같은 격자 규약이던 시점의 칸이다. "
+        "두 편의 슬로타임 절대값을 이어 붙여 읽지 마라.", "",
+    ]
 R = {r["label"]: r for r in ROWS}
 DS, SBU, FR, FS_ = V["doppler_scaling"], V["sbr_edge_unusable"], V["flash_rate"], V["forward_scatter"]
 #: 옛 잣대의 세 팔 바닥은 `outputs/outofband_power.json` 이 대신한다 — 위 OOBE 를 쓴다.
@@ -157,17 +213,18 @@ cells = [
        f"| ① 커널 항등 | `sbr_field` ↔ `sbr_field_bistatic(û_s=û_i)`, 같은 씬 객체 | "
        f"{REG['kernel_identity']['max_rel_err']:.1e} | "
        f"{REG['kernel_identity']['n_bit_identical']}/{REG['kernel_identity']['n']} |",
-       f"| ② 모노 원장 | 이 스윕의 β=0 열 ↔ `{REG['mono_ledger']['source']}` | "
-       f"{REG['mono_ledger']['max_rel_err']:.1e} | "
-       f"{REG['mono_ledger']['n_bit_identical']}/{REG['mono_ledger']['n']} |",
+       f"| ② 모노 원장 | 이 스윕의 β=0 열 ↔ `{_MONO_SRC}` | "
+       f"{_MONO_REL:.1e} | {_MONO_HIT}/{MONO_LIN['n']} |",
        f"| ③ PO 대조팔 | 이 편의 PO 팔 β=0 ↔ `{REG['po_control_ledger']['source']}` | "
        f"{REG['po_control_ledger']['max_rel_err']:.1e} | "
        f"{REG['po_control_ledger']['n_bit_identical']}/{REG['po_control_ledger']['n']} |",
        "",
        "세 줄 모두 **검사한 프레임이 전부 비트 단위로 같다** — ①은 커널 두 함수를 맞댄 "
        f"{REG['kernel_identity']['n']} 프레임 표본이고, ②③ 은 슬로타임 "
-       f"{REG['mono_ledger']['n']:,} 프레임 전부다. 즉 이 편의 β=0 칸은 8 권 모노 편의 "
-       "그 칸이지 «비슷한 것» 이 아니다. β>0 에서 달라지는 것은 전부 기하 때문이다.", "",
+       f"{MONO_LIN['n']:,} 프레임 전부다. 즉 이 편의 β=0 칸은 8 권 모노 편이 "
+       "**그 스윕과 같은 격자 규약으로 냈던** 그 칸이지 «비슷한 것» 이 아니다. "
+       "β>0 에서 달라지는 것은 전부 기하 때문이다.", "",
+       *_MONO_NOTE,
        "⭐ β=0 은 부동소수 잔차 없이 **û_s ≡ û_i** 로 특수화한다 — φ 를 arccos 로 풀면 β=0 에서 "
        "1e-8 도쯤의 잔차가 남고, 그 잔차가 위상에 실려 회귀 게이트를 2e-8 만큼 깨뜨린다."),
 
@@ -263,10 +320,12 @@ cells = [
        f"{min(r['sbr_ratio'] for r in ROWS if r['beta_deg'] > 0):.2f} 배 위로 뛴다. "
        "즉 «바이스태틱이 되면 최대 도플러가 커진다» 는, "
        "물리적으로 말이 안 되는 답이다.", "",
-       "원인은 그 팔의 슬로타임 신호가 **광대역 바닥**을 깔고 있기 때문이다. 커널이 자세마다 "
-       "광선 격자를 다시 정의하므로 위상 원점이 흔들리고 히트 집합이 갈리며, 그 흔들림이 "
-       "슬로타임에서 백색에 가까워 도플러축 전체에 평평하게 퍼진다. β 가 커지면 코히어런트 "
-       "합은 줄어드는데 그 바닥은 안 줄어서, 상대적으로 더 두드러진다.", "",
+       "원인은 그 팔의 슬로타임 신호가 **광대역 바닥**을 깔고 있기 때문이다. **이 스윕은 "
+       "자세마다 광선 격자를 다시 정의하는 판으로 냈다** — 그러면 위상 원점이 흔들리고 히트 "
+       "집합이 갈리며, 그 흔들림이 슬로타임에서 백색에 가까워 도플러축 전체에 평평하게 "
+       "퍼진다. β 가 커지면 코히어런트 합은 줄어드는데 그 바닥은 안 줄어서, 상대적으로 더 "
+       "두드러진다. ⭐커널은 이제 슬로타임에서 판 하나를 **얼려** 쓴다(기본값) — 이 편의 "
+       "스윕만 아직 옛 판이고, 다시 내면 이 절의 수치는 달라진다.", "",
        "⭐ **이것은 바이스태틱의 성질이 아니다.** 8 권 모노 편의 모노 원장에 있는 세 팔을 "
        "**같은 추정기**로 재면 바로 보인다.", "",
        "| 모노 원장의 팔 | **전체 전력** 중 f_tip 밖 몫 | 날개끝 밖 바닥 (봉우리 대비) |",

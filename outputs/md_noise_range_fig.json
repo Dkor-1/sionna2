@@ -1,0 +1,195 @@
+{
+ "_meta": {
+  "title": "blade line vs range under thermal noise, absolute (dB-above-noise) scale",
+  "generated": "2026-08-11T00:52:22",
+  "generator": "benchmark/build_md_noise_range_fig.py",
+  "figure": "outputs/figures/md_noise_vs_range.png",
+  "convention": "v2_2026-08",
+  "canonical_rung": "snr_slow_ac_db",
+  "drone": "matrice4e",
+  "band": "5G NR 3.5 GHz",
+  "fc_hz": 3500000000.0,
+  "az_deg": 0.0,
+  "el_deg": 15.0,
+  "capture": "full_waveform",
+  "noise": "thermal_only",
+  "geometry": "monostatic_equivalent",
+  "sigma_dbsm": -18.879044077723254,
+  "sigma_source": "outputs/md_range_sweep.json::rows[0].sigma_eq_aspect_mean_plane_dbsm",
+  "sigma_note": "plane-wave azimuth mean; the spherical-wave value differs by <0.05 dB for R>=10 m in the same ledger, so the link budget is insensitive to it",
+  "dc_ac_db": 17.26067929607295,
+  "eirp_dbm": 12.0,
+  "rx_gain_dbi": 10.0,
+  "nf_db": 5.0,
+  "b_hz": 100000000.0,
+  "prf_hz": 20000.0,
+  "n_t": 6144,
+  "noise_injection": "nf.noisy_series -> complex white Gaussian added to the SLOW-TIME series, THEN STFT. Never added to the map.",
+  "seed_base": 20260811,
+  "seed_rule": "nf.stable_seed(drone, band, R, 'fig', base=seed_base)",
+  "stft": {
+   "nperseg": 71,
+   "periods_of_blade": 0.45,
+   "window": "hann",
+   "hop": 2,
+   "zero_pad": 8,
+   "f_flash_hz": 126.66666666666667,
+   "dt_ms": 3.55,
+   "df_hz": 281.7
+  },
+  "colour": {
+   "mode": "over_noise",
+   "vmin_db": -6.0,
+   "vmax_db": 50.0,
+   "zero_db": "measured noise floor (rms magnitude of a noise-only spectrogram through the identical STFT)",
+   "noise_rms": 0.14582900392928783,
+   "why": "normalising each panel to its own peak hides the range dependence entirely; that is what the previous map figures did"
+  },
+  "three_layers": {
+   "snr_sample_db": "rung 1, per Rx sample before the matched filter",
+   "gain_mf_db": "rung 2, 10log10(B/PRF)",
+   "gain_stft_db": "rung 4, one 71-sample Hann STFT frame (NOT the whole-CPI coherent gain, which is ~20 dB larger)"
+  },
+  "caveat": "thermal noise only - no clutter, no direct-path residue, no ECA notch, no phase noise; and gain_mf_db assumes an ideal matched filter with a clean reference channel"
+ },
+ "noise_floor": {
+  "measured_rms": 0.14582900392928783,
+  "probe": "unit-variance circular complex Gaussian, N_T samples, same STFT",
+  "noise_only_map_max_over_rms_db": 8.715,
+  "noise_only_max_theory_db": 10.457,
+  "why": "a noise-only map still has a maximum: with ~1e5 exponential bins the largest is 10log10(ln N) ~ 11 dB over the rms. Any 'measured peak' below this line is not distinguishable from noise - the same 11.0-11.4 dB that md_metrics documents",
+  "blade_band_hz": [
+   845.1,
+   1229.6
+  ],
+  "blade_band_note": "lower edge raised to 3 frequency bins (845 Hz) so the body line's Hann main lobe cannot leak into the blade band; one bin is 282 Hz at this frame length"
+ },
+ "why_measured_differs_from_rung5": [
+  "rung 5 assumes ALL the AC power lands in one frequency bin; the blade energy is spread over many flash harmonics and over time, so the measured blade LINE sits below rung 5 - rung 5 is an upper bound, not a prediction of the line level",
+  "the raw MAX of the blade band is the opposite bias: a noise-only map already peaks ~11 dB over its rms (order statistic), so the max reads high at low SNR. Both numbers are recorded; the line level (noise share removed) is the honest one",
+  "the body (zero-Doppler) line is a pure tone and therefore DOES match rung 3 + gain_stft directly - that comparison is the honest end-to-end check of the matched-filter-corrected ladder"
+ ],
+ "panels": [
+  {
+   "R_m": 10.0,
+   "noise_seed": 1119602243,
+   "sigma_n": 6.325310933523871e-05,
+   "snr_sample_db": -2.2251,
+   "gain_mf_db": 36.9897,
+   "snr_slow_db": 34.7646,
+   "dc_ac_off_db": 17.3415,
+   "snr_slow_ac_db": 17.4231,
+   "gain_stft_db": 16.7526,
+   "snr_map_ac_db": 34.1757,
+   "measured": {
+    "blade_band_line_db": 24.709,
+    "blade_band_raw_max_db": 31.327,
+    "body_dc_line_db": 51.476,
+    "body_dc_predicted_db": 51.517,
+    "body_dc_pred_minus_meas_db": 0.041,
+    "blade_above_noise_only_max": true,
+    "map_median_over_noise_db": -0.618
+   },
+   "rung5_minus_measured_blade_db": 9.467,
+   "caption": "snr_sample -2.2 dB (per Rx sample, pre-MF)  |  gain_mf +37.0 dB  |  slow-time total +34.8 dB  |  blade line (AC) +17.4 dB  |  gain_stft +16.8 dB (71-sample hann frame)  |  blade line on the map +34.2 dB"
+  },
+  {
+   "R_m": 20.0,
+   "noise_seed": 443438288,
+   "sigma_n": 0.00024702257068310034,
+   "snr_sample_db": -14.2663,
+   "gain_mf_db": 36.9897,
+   "snr_slow_db": 22.7234,
+   "dc_ac_off_db": 17.3415,
+   "snr_slow_ac_db": 5.3819,
+   "gain_stft_db": 16.7526,
+   "snr_map_ac_db": 22.1345,
+   "measured": {
+    "blade_band_line_db": 12.532,
+    "blade_band_raw_max_db": 20.342,
+    "body_dc_line_db": 39.431,
+    "body_dc_predicted_db": 39.476,
+    "body_dc_pred_minus_meas_db": 0.045,
+    "blade_above_noise_only_max": true,
+    "map_median_over_noise_db": -0.981
+   },
+   "rung5_minus_measured_blade_db": 9.603,
+   "caption": "snr_sample -14.3 dB (per Rx sample, pre-MF)  |  gain_mf +37.0 dB  |  slow-time total +22.7 dB  |  blade line (AC) +5.4 dB  |  gain_stft +16.8 dB (71-sample hann frame)  |  blade line on the map +22.1 dB"
+  },
+  {
+   "R_m": 30.0,
+   "noise_seed": 330150346,
+   "sigma_n": 0.0005516760462726323,
+   "snr_sample_db": -21.3099,
+   "gain_mf_db": 36.9897,
+   "snr_slow_db": 15.6798,
+   "dc_ac_off_db": 17.3415,
+   "snr_slow_ac_db": -1.6618,
+   "gain_stft_db": 16.7526,
+   "snr_map_ac_db": 15.0908,
+   "measured": {
+    "blade_band_line_db": 5.497,
+    "blade_band_raw_max_db": 15.335,
+    "body_dc_line_db": 32.396,
+    "body_dc_predicted_db": 32.432,
+    "body_dc_pred_minus_meas_db": 0.036,
+    "blade_above_noise_only_max": true,
+    "map_median_over_noise_db": -1.148
+   },
+   "rung5_minus_measured_blade_db": 9.594,
+   "caption": "snr_sample -21.3 dB (per Rx sample, pre-MF)  |  gain_mf +37.0 dB  |  slow-time total +15.7 dB  |  blade line (AC) -1.7 dB  |  gain_stft +16.8 dB (71-sample hann frame)  |  blade line on the map +15.1 dB"
+  },
+  {
+   "R_m": 40.0,
+   "noise_seed": 635760744,
+   "sigma_n": 0.0009772113397628279,
+   "snr_sample_db": -26.3075,
+   "gain_mf_db": 36.9897,
+   "snr_slow_db": 10.6822,
+   "dc_ac_off_db": 17.3415,
+   "snr_slow_ac_db": -6.6593,
+   "gain_stft_db": 16.7526,
+   "snr_map_ac_db": 10.0933,
+   "measured": {
+    "blade_band_line_db": 0.953,
+    "blade_band_raw_max_db": 12.754,
+    "body_dc_line_db": 27.405,
+    "body_dc_predicted_db": 27.435,
+    "body_dc_pred_minus_meas_db": 0.03,
+    "blade_above_noise_only_max": true,
+    "map_median_over_noise_db": -1.204
+   },
+   "rung5_minus_measured_blade_db": 9.14,
+   "caption": "snr_sample -26.3 dB (per Rx sample, pre-MF)  |  gain_mf +37.0 dB  |  slow-time total +10.7 dB  |  blade line (AC) -6.7 dB  |  gain_stft +16.8 dB (71-sample hann frame)  |  blade line on the map +10.1 dB"
+  },
+  {
+   "R_m": 60.0,
+   "noise_seed": 1951061461,
+   "sigma_n": 0.0021909275309915702,
+   "snr_sample_db": -33.3511,
+   "gain_mf_db": 36.9897,
+   "snr_slow_db": 3.6386,
+   "dc_ac_off_db": 17.3415,
+   "snr_slow_ac_db": -13.703,
+   "gain_stft_db": 16.7526,
+   "snr_map_ac_db": 3.0496,
+   "measured": {
+    "blade_band_line_db": -5.498,
+    "blade_band_raw_max_db": 10.333,
+    "body_dc_line_db": 20.396,
+    "body_dc_predicted_db": 20.391,
+    "body_dc_pred_minus_meas_db": -0.005,
+    "blade_above_noise_only_max": false,
+    "map_median_over_noise_db": -1.282
+   },
+   "rung5_minus_measured_blade_db": 8.548,
+   "caption": "snr_sample -33.4 dB (per Rx sample, pre-MF)  |  gain_mf +37.0 dB  |  slow-time total +3.6 dB  |  blade line (AC) -13.7 dB  |  gain_stft +16.8 dB (71-sample hann frame)  |  blade line on the map +3.0 dB"
+  }
+ ],
+ "region_ii": {
+  "inner_m": 27.26,
+  "outer_m": 73.98,
+  "meaning": "echo above noise but blade line below it"
+ },
+ "runtime_s": 205.45
+}

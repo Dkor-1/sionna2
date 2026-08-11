@@ -74,6 +74,8 @@ AGF = "outputs/adv_grid_freeze_audit.json"   # 얼리기 적대 감사 — 히�
 AGV = "outputs/adv_sbr_grid_verdict.json"    # 위 둘의 종합 판정
 OOB = "outputs/outofband_power.json"         # ⭐대역밖 전력의 잣대(절대·평활 없음)
 VFG = "outputs/verify_frozen_grid.json"      # grid_ref 배선 회귀 게이트
+FSL = "outputs/freeze_signal_loss.json"      # ⭐렌즈 B — 얼리기가 «신호» 도 깎았나(PO 심판)
+FPS = "outputs/freeze_plate_sensitivity.json"  # ⭐판 한 장에 절대 dB 가 얼마나 걸리나
 MCV = "outputs/md_classify_verify.json"      # 가산성 정리 검사(격자 고정 ↔ 이동)
 VBF = "outputs/verify_bistatic_field.json"   # 바이스태틱 복소장 게이트 — Γ(θ) 배선 포함
 GEO = "outputs/geometry_grid.json"           # 검출 사슬이 σ 를 어느 기하에서 읽나
@@ -407,6 +409,20 @@ def report_18_kernel_what():
                    "자세별 무작위 오프셋은 사실상 몬테카를로 평균이다. 얼리면 오프셋 한 판에 "
                    "절대 레벨이 걸린다 — 절대 σ 는 정적 경로에서 가져오고 얼린 복소장은 "
                    "**모양**에만 쓴다"],
+                  ["⭐그 편향이 삼키는 것",
+                   "판을 반 칸 옮기면 절대 레벨이 "
+                   + _n("verdict.abs_level_plate_ptp_db", FPS, "{:.2f}", "dB")
+                   + " p-p, **두 팔의 차**(가림 축)가 "
+                   + _n("verdict.occlusion_level_plate_ptp_db", FPS, "{:.2f}", "dB") + " p-p",
+                   "두 팔이 같은 판을 써도 기하가 달라 편향이 공통모드로 빠지지 않는다 — "
+                   "차가 원본보다 더 흔들린다. 가림 dB 의 **크기**는 "
+                   + ref("md-occlusion", "가림 축") + " 에서 판 앙상블 평균이 설 때까지 "
+                   "보류다"],
+                  ["대역 안도 같이 내려간다",
+                   "블레이드 대역 전력 중앙값 "
+                   + _n("summary.P_in_delta_db_median", FSL, "{:+.1f}", "dB"),
+                   "대역밖만 내려가는 것이 아니다 — 아래 절이 그 몫이 잡음이었는지를 "
+                   "광선을 안 쓰는 엔진으로 판정한다"],
                   ["판을 미리 잡는 일",
                    "덮개 여유 최소 "
                    + _n("gate3_coverage.margin_min_mm", VFG, "{:.1f}", "mm"),
@@ -420,6 +436,65 @@ def report_18_kernel_what():
            f"`SIONNA2_FREEZE_GRID` 가 그 켬·끔을 정한다(기본 켬). 판이 자세를 못 덮으면 커널이 "
            f"예외를 던진다 ⟨{VFG} : negative_controls.too_small_msg⟩.", "",
            _r8_freeze_status()),
+
+        md("## 얼리기가 «신호» 도 깎았나 — 광선을 안 쓰는 엔진에게 묻는다", "",
+           "대역밖 전력이 내려간 것은 좋은 소식이다. 그런데 같은 재계산에서 **블레이드 대역 "
+           "안**의 전력도 함께 내려갔다 — 중앙값 "
+           + _n("summary.P_in_delta_db_median", FSL, "{:+.1f}", "dB")
+           + " 다. 그 몫이 표적의 진짜 운동이었다면 얼리기는 물리를 지운 것이다. 그래서 "
+           "판정을 **광선 격자를 안 쓰는 엔진**에게 맡긴다 — 순수 PO 는 점구름 면적분이라 "
+           "격자가 없고, 이번 재계산에서 비트 그대로였다"
+           f" ⟨{FSL} : _meta.independent_judge_ko⟩.", "",
+           table(["잣대", "얼리기 전", "얼린 뒤", "무엇을 뜻하나"],
+                 [["블레이드 대역이 순수 PO 보다 몇 dB 위인가",
+                   _n("summary.P_in_excess_over_po_db.before_median", FSL, "{:+.1f}", "dB"),
+                   _n("summary.P_in_excess_over_po_db.after_median", FSL, "{:+.1f}", "dB"),
+                   "PO **밑으로** 내려간 열이 "
+                   + _n("summary.P_in_excess_over_po_db.n_below_po_after", FSL, "{:.0f}")
+                   + " 개다 — 깎인 것은 잉여였다"],
+                  ["같은 대역 복소 파형이 PO 와 닮은 정도",
+                   _n("summary.blade_coh_vs_po.before_median", FSL, "{:.2f}"),
+                   _n("summary.blade_coh_vs_po.after_median", FSL, "{:.2f}"),
+                   _n("summary.blade_coh_vs_po.n_improved", FSL, "{:.0f}") + "/"
+                   + _n("summary.blade_coh_vs_po.n_judged", FSL, "{:.0f}")
+                   + " 열에서 올랐다 — 전력이 줄면서 닮음이 오르면 줄어든 것은 잡음이다"],
+                  ["플래시 대조비 (봉우리 ÷ 바닥)",
+                   "—",
+                   _n("summary.flash_contrast_db.delta_median", FSL, "{:+.1f}", "dB") + " (중앙값)",
+                   _n("summary.flash_contrast_db.n_improved", FSL, "{:.0f}") + "/"
+                   + _n("summary.flash_contrast_db.n_series", FSL, "{:.0f}")
+                   + " 열에서 올랐다 — 자의 흔들림이 골짜기를 메우고 있었다는 뜻이다"],
+                  ["플래시 주파수 추정의 상대오차",
+                   _n("summary.f_flash_relerr_abs_median.before", FSL, "{:.2%}"),
+                   _n("summary.f_flash_relerr_abs_median.after", FSL, "{:.2%}"),
+                   "포락 자기상관으로 읽은 f_flash — 두 판 다 예측 위에 선다"],
+                  ["스펙트럼 가장자리 ÷ f_tip (운동학이 맞으면 1)",
+                   _n("summary.width_ratio_20db.before_median", FSL, "{:.2f}"),
+                   _n("summary.width_ratio_20db.after_median", FSL, "{:.2f}"),
+                   "순수 PO 는 " + _n("summary.width_ratio_20db.po_median", FSL, "{:.2f}")
+                   + " 다 — ⚠"
+                   + _n("summary.width_ratio_20db.n_farther_from_one", FSL, "{:.0f}")
+                   + " 열은 얼린 뒤 1 에서 더 멀어진다. 폭 지표는 PO 열에서 읽는다"]]), "",
+           "⚠ **대가는 비율 쪽에 있다.** 절대 대역밖 전력은 내려가지만 블레이드 대역이 더 많이 "
+           "내려가는 열이 있어서, «신호 대 비물리 잔차»(P_out/P_in)로 읽으면 동체가 든 "
+           + _n("summary.by_group.with_body.n", FSL, "{:.0f}") + " 열 중 "
+           + _n("summary.by_group.with_body.n_oob_worse", FSL, "{:.0f}") + " 열이 "
+           + _n("summary.by_group.with_body.oob_over_in_db_before_median", FSL, "{:.1f}", "dB")
+           + " → "
+           + _n("summary.by_group.with_body.oob_over_in_db_after_median", FSL, "{:.1f}", "dB")
+           + " 로 **나빠진다**(순수 PO 는 "
+           + _n("summary.oob_over_in_db.po_median", FSL, "{:.1f}", "dB")
+           + "). 잉여가 사라진 만큼 남은 잔차가 상대적으로 커 보이는 것이고, 그 잔차는 여전히 "
+           "물리가 아니다 — 지금 판이 마이크로도플러에 줄 수 있는 동적범위의 상한이 여기 있다.", "",
+           "반대로 블레이드만 남긴 "
+           + _n("summary.by_group.blade_only.n", FSL, "{:.0f}") + " 열은 빗살 대조비가 "
+           + _n("summary.by_group.blade_only.n_comb_improved", FSL, "{:.0f}") + "/"
+           + _n("summary.by_group.blade_only.n", FSL, "{:.0f}") + " 열에서 "
+           + _n("summary.by_group.blade_only.comb_line_delta_db_median", FSL, "{:+.1f}", "dB")
+           + " 올라온다 — 신호가 약할수록 얼리기가 크게 남는다"
+           + f" ⟨{FSL} : summary.by_group.why_ko⟩.", "",
+           "⚠ 심판이 아직 붙지 않은 자리가 하나 남는다"
+           + f" ⟨{FSL} : verdict.open_ko⟩ — 2 초 호버 두 열은 순수 PO 대조 팔을 기다린다."),
 
         next_steps([
             ("얼린 판으로 **바이스태틱** 스윕 원장과 PO 대조 원장을 다시 낸다",

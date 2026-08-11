@@ -1,0 +1,260 @@
+{
+ "_meta": {
+  "title": "noise injection wiring - regression + statistics + ladder gates",
+  "generated": "2026-08-11T00:43:14",
+  "script": "benchmark/verify_noise_injection.py",
+  "convention": "v2_2026-08",
+  "canonical": "snr_slow_ac_db",
+  "principle_ko": "복소 가우시안을 슬로타임 시계열에 더하고 그 다음 STFT 한다. 맵·전력·dB 이미지에는 더하지 않는다(NI9 가 그 이유를 잰다).",
+  "entry_point": "src/microdoppler_nearfield.py::noisy_series",
+  "opt_in_ko": "기본값 경로는 전부 이전과 비트동일이어야 한다 - NI1/NI2/NI3 이 그것을 건다",
+  "gpu_used": false,
+  "runtime_s": 45.37
+ },
+ "summary": {
+  "n_gates": 10,
+  "n_pass": 8,
+  "all_pass": false
+ },
+ "gates": [
+  {
+   "id": "NI1",
+   "what": "noisy_series(seed) is reproducible and IS add_noise (one impl)",
+   "same_seed_bitwise": true,
+   "equals_add_noise_stream_bitwise": true,
+   "different_seed_differs": true,
+   "prefix_stable_when_n_real_grows": true,
+   "seed_recorded": 20260811,
+   "reproducible_flag": true,
+   "rng_object_records_no_seed": true,
+   "passed": true
+  },
+  {
+   "id": "NI2",
+   "what": "add_noise(ref='total') default path == pre-2026-08-10 code",
+   "bitwise_identical": true,
+   "sigma_old": 13.152427390211889,
+   "sigma_new": 13.152427390211889,
+   "passed": true
+  },
+  {
+   "id": "NI3",
+   "what": "md_mapstyle.draw(mode='peak') pixels == pre-change implementation",
+   "n_pixels": 742520,
+   "bitwise_identical": true,
+   "clim_identical": true,
+   "explicit_ref_path_identical": true,
+   "passed": true
+  },
+  {
+   "id": "NI4",
+   "what": "injected noise: measured SNR, real/imag symmetry, circularity",
+   "rows": [
+    {
+     "ref": "total",
+     "requested_db": 10.0,
+     "measured_db": 10.0059,
+     "err_db": 0.0059,
+     "re_im_var_ratio": 0.99364,
+     "circularity": 0.00376
+    },
+    {
+     "ref": "total",
+     "requested_db": 0.0,
+     "measured_db": 0.0059,
+     "err_db": 0.0059,
+     "re_im_var_ratio": 0.99364,
+     "circularity": 0.00376
+    },
+    {
+     "ref": "total",
+     "requested_db": -10.0,
+     "measured_db": -9.9941,
+     "err_db": 0.0059,
+     "re_im_var_ratio": 0.99364,
+     "circularity": 0.00376
+    },
+    {
+     "ref": "ac",
+     "requested_db": 10.0,
+     "measured_db": 10.0059,
+     "err_db": 0.0059,
+     "re_im_var_ratio": 0.99364,
+     "circularity": 0.00376
+    },
+    {
+     "ref": "ac",
+     "requested_db": 0.0,
+     "measured_db": 0.0059,
+     "err_db": 0.0059,
+     "re_im_var_ratio": 0.99364,
+     "circularity": 0.00376
+    },
+    {
+     "ref": "ac",
+     "requested_db": -10.0,
+     "measured_db": -9.9941,
+     "err_db": 0.0059,
+     "re_im_var_ratio": 0.99364,
+     "circularity": 0.00376
+    }
+   ],
+   "worst_snr_err_db": 0.0059,
+   "worst_circularity": 0.00376,
+   "worst_re_im_ratio_dev": 0.006360000000000032,
+   "tol": {
+    "snr_db": 0.05,
+    "circularity": 0.02,
+    "re_im": 0.02
+   },
+   "passed": true
+  },
+  {
+   "id": "NI5",
+   "what": "one colour scale for every panel of a figure (design gate G15)",
+   "figure": "outputs/figures/md_noise_vs_range.png",
+   "mode": "over_noise",
+   "noise_rms": 0.14582900392928783,
+   "vmin_db": -6.0,
+   "vmax_db": 50.0,
+   "n_panels": 5,
+   "single_scalar_declared": true,
+   "draw_refuses_over_noise_without_reference": true,
+   "passed": true
+  },
+  {
+   "id": "NI6",
+   "what": "snr_ladder <-> range_for_snr_db roundtrip (both geometries)",
+   "rows": [
+    {
+     "rung": "snr_slow_db",
+     "R_m": 3.0,
+     "snr_db": 55.679794,
+     "R_roundtrip_m": 3.0,
+     "rel_err": 4.440892098500626e-16
+    },
+    {
+     "rung": "snr_slow_db",
+     "R_m": 27.3,
+     "snr_db": 17.318139,
+     "R_roundtrip_m": 27.3,
+     "rel_err": 0.0
+    },
+    {
+     "rung": "snr_slow_db",
+     "R_m": 100.0,
+     "snr_db": -5.235356,
+     "R_roundtrip_m": 100.0,
+     "rel_err": 0.0
+    },
+    {
+     "rung": "snr_slow_ac_db",
+     "R_m": 3.0,
+     "snr_db": 38.338934,
+     "R_roundtrip_m": 3.0,
+     "rel_err": 4.440892098500626e-16
+    },
+    {
+     "rung": "snr_slow_ac_db",
+     "R_m": 27.3,
+     "snr_db": -0.022722,
+     "R_roundtrip_m": 27.3,
+     "rel_err": 0.0
+    },
+    {
+     "rung": "snr_slow_ac_db",
+     "R_m": 100.0,
+     "snr_db": -22.576216,
+     "R_roundtrip_m": 100.0,
+     "rel_err": 0.0
+    },
+    {
+     "rung": "snr_map_ac_db",
+     "R_m": 3.0,
+     "snr_db": 55.029914,
+     "R_roundtrip_m": 3.0,
+     "rel_err": 4.440892098500626e-16
+    },
+    {
+     "rung": "snr_map_ac_db",
+     "R_m": 27.3,
+     "snr_db": 16.668259,
+     "R_roundtrip_m": 27.3,
+     "rel_err": 0.0
+    },
+    {
+     "rung": "snr_map_ac_db",
+     "R_m": 100.0,
+     "snr_db": -5.885235,
+     "R_roundtrip_m": 100.0,
+     "rel_err": 0.0
+    },
+    {
+     "rung": "snr_slow_ac_db(one leg, R_t=30 m)",
+     "R_m": 10.0,
+     "snr_db": 7.881359,
+     "R_roundtrip_m": 10.0,
+     "rel_err": 0.0
+    }
+   ],
+   "worst_rel_err": 4.440892098500626e-16,
+   "tol_rel": 1e-09,
+   "passed": true
+  },
+  {
+   "id": "NI7",
+   "what": "plane-wave phase table is range invariant (bitwise) but the spherical one is not - justifies caching the plane sigma",
+   "plane_bitwise_identical": true,
+   "spherical_differs": true,
+   "passed": true
+  },
+  {
+   "id": "NI8",
+   "what": "rung 4 (one STFT frame coherent gain) measured end to end on a pure tone: 10log10(nperseg) + Hann loss",
+   "rows": [
+    {
+     "snr_slow_ac_db": 10.0,
+     "nperseg": 71,
+     "predicted_map_peak_db": 26.7526,
+     "measured_map_peak_db": 27.5029,
+     "err_db": 0.7503
+    },
+    {
+     "snr_slow_ac_db": 0.0,
+     "nperseg": 71,
+     "predicted_map_peak_db": 16.7526,
+     "measured_map_peak_db": 18.931,
+     "err_db": 2.1784
+    },
+    {
+     "snr_slow_ac_db": -10.0,
+     "nperseg": 71,
+     "predicted_map_peak_db": 6.7526,
+     "measured_map_peak_db": 12.3549,
+     "err_db": 5.6023
+    }
+   ],
+   "worst_err_db": 5.6023,
+   "tol_db": 0.6,
+   "note": "this is the rung the design doc flags as OUR extrapolation of Braun eq (3.37); it is now measured, not assumed",
+   "passed": false
+  },
+  {
+   "id": "NI9",
+   "what": "map power floor from time-domain noise is exponential (chi2_2); adding noise to the map instead is not",
+   "n_bins": 262144,
+   "ks_stat": 0.0014650410085261245,
+   "ks_p": 0.626449527358649,
+   "mean_over_median_db": 1.584,
+   "theory_mean_over_median_db": 1.592,
+   "control_map_noise_ks_p": 0.0,
+   "passed": true
+  },
+  {
+   "id": "NI10",
+   "what": "deterministic part of the sweep is unchanged",
+   "passed": false,
+   "why": "md_range_sweep_mf.json 이 아직 없다"
+  }
+ ]
+}
