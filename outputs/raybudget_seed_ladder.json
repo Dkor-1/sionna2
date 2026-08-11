@@ -1,0 +1,138 @@
+{
+ "_meta": {
+  "generator": "benchmark/raybudget_seed_ladder.py",
+  "range_m": 40.0,
+  "drone": "matrice4e",
+  "fc_hz": 3500000000.0,
+  "prf_hz": 19700.0,
+  "f_flash_hz": 126.66666666666667,
+  "f_tip_hz": 1228.7211819358865,
+  "band_hz": [
+   430.05241367756025,
+   1228.7211819358865
+  ],
+  "stft_ko": "md_mapstyle.flash_spec 규약 그대로(덱과 동일)",
+  "shard_dir": "/home/yunjung/workspace/sionna2/outputs/raybudget_ladder",
+  "not_touched_ko": "outputs/range40_shards/ 와 report07_range40.* 는 안 건드린다"
+ },
+ "cells": [
+  {
+   "spp": 178000000,
+   "spp_m": 178.0,
+   "n_seeds": 8,
+   "n_poses": 768,
+   "npaths_median": 8,
+   "level_db_mean": -158.716,
+   "sd_level_db": 4.156,
+   "ptp_level_db": 13.177,
+   "sd_h1_over_h2_db": 10.444,
+   "sd_beat_hz": 59.958,
+   "beats_hz": [
+    127.58,
+    254.33,
+    126.27,
+    254.19,
+    253.78,
+    254.93,
+    253.63,
+    169.63
+   ],
+   "h1_over_h2_db": [
+    5.49,
+    -2.03,
+    1.89,
+    -0.69,
+    -6.59,
+    -4.07,
+    -7.15,
+    25.14
+   ],
+   "structure": {
+    "sd_between_seeds_db": 4.1493,
+    "sd_within_pose_db": 4.9224,
+    "predicted_if_iid_db": 0.1776,
+    "ratio_observed_over_iid": 23.36
+   },
+   "arms": [
+    {
+     "seed": 1,
+     "n": 1024,
+     "seconds": 428.8,
+     "npaths_median": 4,
+     "level_db": -160.072,
+     "beat_hz": 127.58,
+     "h1_over_h2_db": 5.49
+    },
+    {
+     "seed": 2,
+     "n": 1024,
+     "seconds": 315.4,
+     "npaths_median": 7,
+     "level_db": -154.806,
+     "beat_hz": 254.33,
+     "h1_over_h2_db": -2.03
+    },
+    {
+     "seed": 3,
+     "n": 1024,
+     "seconds": 262.6,
+     "npaths_median": 8,
+     "level_db": -160.923,
+     "beat_hz": 126.27,
+     "h1_over_h2_db": 1.89
+    },
+    {
+     "seed": 4,
+     "n": 1024,
+     "seconds": 514.8,
+     "npaths_median": 6,
+     "level_db": -156.163,
+     "beat_hz": 254.19,
+     "h1_over_h2_db": -0.69
+    },
+    {
+     "seed": 5,
+     "n": 1024,
+     "seconds": 561.3,
+     "npaths_median": 8,
+     "level_db": -157.871,
+     "beat_hz": 253.78,
+     "h1_over_h2_db": -6.59
+    },
+    {
+     "seed": 6,
+     "n": 1024,
+     "seconds": 552.2,
+     "npaths_median": 8,
+     "level_db": -160.304,
+     "beat_hz": 254.93,
+     "h1_over_h2_db": -4.07
+    },
+    {
+     "seed": 7,
+     "n": 1024,
+     "seconds": 405.8,
+     "npaths_median": 9,
+     "level_db": -153.208,
+     "beat_hz": 253.63,
+     "h1_over_h2_db": -7.15
+    },
+    {
+     "seed": 8,
+     "n": 768,
+     "seconds": 241.4,
+     "npaths_median": 8,
+     "level_db": -166.385,
+     "beat_hz": 169.63,
+     "h1_over_h2_db": 25.14
+    }
+   ]
+  }
+ ],
+ "verdict": {
+  "question_ko": "광선을 늘리면 시드 간 레벨 산포가 정말 줄어드나",
+  "method_ko": "시드마다 판을 따로 내고 판별 평균 레벨의 **표준편차**를 잰다. p-p(최대−최소)는 표본 수에 따라 커지므로 판정에 쓰지 않는다.",
+  "structure_ko": "⭐시드는 자세마다 다시 뽑는 잡음이 아니라 **광선 방향 집합 하나**를 고르는 것이다(모든 자세에 같은 seed 를 넘긴다). 그래서 관측된 시드 간 표준편차가 i.i.d. 예측(자세 안 산포 ÷ √N)보다 훨씬 크면, 그것은 평균으로 안 지워지는 **계통 편향**이라는 뜻이다. ratio_observed_over_iid 가 그 배수다.",
+  "caveat_ko": "⚠ 이 판정은 40 m·matrice4e·el −15°·기선 0 한 자리에서만 잰 것이다. 다른 거리·기체·앙각에서 같은지는 안 재봤다."
+ }
+}

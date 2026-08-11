@@ -1,14 +1,14 @@
 {
  "_meta": {
   "title": "SNR convention v2 — regression + cross-scale gates",
-  "generated": "2026-08-10T23:43:43",
+  "generated": "2026-08-11T02:06:24",
   "script": "benchmark/verify_snr_convention.py",
   "convention": "v2_2026-08",
   "canonical": "snr_slow_ac_db",
   "defect": "2026-08-10: two SNR references coexisted (total power in add_noise, AC-only in md_classify_dataset) and differ by 17.3-37.2 dB per airframe",
   "decision_ko": "둘 다 쓴다. 이름을 나누고(③ snr_slow_db · ③′ snr_slow_ac_db) 원장에 병기하며 변환은 dc_ac_offset_db() 하나로만 한다. 맨 이름 「SNR」은 ③′ 를 뜻한다.",
   "gpu_used": false,
-  "runtime_s": 0.88
+  "runtime_s": 1.0
  },
  "summary": {
   "n_gates": 6,
@@ -174,7 +174,10 @@
     "window": "hann",
     "window_coh_loss_db": -1.76,
     "g_stft_db": 16.691,
-    "snr_map_ac_db": 34.0755
+    "snr_map_ac_db": 34.0755,
+    "snr_sample_db": -2.2251,
+    "gain_mf_db": 36.9897,
+    "gain_stft_db": 16.691
    },
    "tol_db": 0.01,
    "passed": true

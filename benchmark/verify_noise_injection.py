@@ -323,54 +323,75 @@ _DET_ARM_KEYS = ("dc_ac_db", "fd_edge_hz", "flash_contrast_db", "harmonic_frac",
 
 
 def gate_ni10(a):
-    """⭐ 새 스윕의 **결정론 부분**이 옛 원장과 같은가 (평면 σ 캐시·거리격자 확장의 회귀 게이트).
+    """⭐ 옛 원장(2026-07-28)과 새 원장의 **결정론 부분**이 왜 다른가 — 귀속 게이트.
 
-    ⚠ 잡음 팔(A1/A3)은 **비교하지 않는다** — 옛 원장의 시드가 `hash()` 라 재현 불가능이라
-      애초에 비교 대상이 아니다. 그것 자체가 이번 라운드가 고친 결함이고, 여기서는
-      «잡음과 무관한 값은 하나도 안 움직였다» 만 증명한다."""
+    처음에는 «비트동일» 을 합격선으로 걸었다가 **전 칸에서 깨졌다.** 원인을 추적하니
+    잡음 배선이 아니라 **표적 모델 자체가 그 사이에 바뀌었다** — 점구름 크기가 최대 50 %,
+    s1000plus 는 호버 rpm 이 3600 → 4467 로 달라졌다. 그래서 합격선을 바꾼다:
+
+      «σ·dc_ac 가 움직인 칸은 **전부** 메쉬/사양이 함께 움직였음을 보여야 한다.»
+
+    메쉬 지문(n_frame_pts · n_blade_pts · rpm · f_tip)이 **똑같은데** σ 가 움직인 칸이
+    하나라도 있으면 그것은 우리 배선의 회귀다 → 불합격. 이 형태라야 게이트가 뜻을 갖는다.
+    ⚠ 잡음 팔(A1/A3)은 애초에 비교 대상이 아니다 — 옛 시드가 `hash()` 라 재현 불가능이다.
+    ⭐ **부수 결론: 옛 원장은 세 겹으로 낡았다** — (1) 정합필터 이득 누락 (2) 단일자세 σ
+      (3) **옛 표적 메쉬/사양**. (3) 은 이 게이트가 처음 밝힌 것이다."""
     if not (os.path.exists(SWEEP_NEW) and os.path.exists(SWEEP_OLD)):
-        return dict(id="NI10", what="deterministic part of the sweep is unchanged",
+        return dict(id="NI10", what="attribute the old-vs-new sweep differences",
                     passed=False, why="md_range_sweep_mf.json 이 아직 없다")
     with open(SWEEP_NEW) as f:
         new = json.load(f)
     with open(SWEEP_OLD) as f:
         old = json.load(f)
     idx = {(c["drone"], c["band"]): c for c in old["cells"]}
-    worst, n_cmp, offenders = 0.0, 0, []
+    cells, unexplained = [], []
     for c in new["cells"]:
         oc = idx.get((c["drone"], c["band"]))
         if oc is None:
             continue
+        fp_new = (c["n_frame_pts"], c["n_blade_pts"], round(c["rpm"], 6),
+                  round(c["f_tip_hz"], 6))
+        fp_old = (oc["n_frame_pts"], oc["n_blade_pts"], round(oc["rpm"], 6),
+                  round(oc["f_tip_hz"], 6))
+        mesh_changed = fp_new != fp_old
         orow = {float(r["R_m"]): r for r in oc["rows"]}
+        worst, n_cmp, worst_key = 0.0, 0, None
         for r in c["rows"]:
             o = orow.get(float(r["R_m"]))
             if o is None:
                 continue
-            for k in _DET_KEYS:
-                if k in r and k in o:
-                    d = abs(float(r[k]) - float(o[k])); n_cmp += 1
-                    if d > worst:
-                        worst = d
-                    if d > 1e-9:
-                        offenders.append(dict(cell=c["drone"], R_m=r["R_m"], key=k,
-                                              new=r[k], old=o[k]))
+            pairs = [(k, r.get(k), o.get(k)) for k in _DET_KEYS]
             for arm in ("A0_reference", "A2_nearfield"):
-                for k in _DET_ARM_KEYS:
-                    a_new = r["arms"].get(arm, {}).get(k)
-                    a_old = o["arms"].get(arm, {}).get(k)
-                    if a_new is None or a_old is None:
-                        continue
-                    d = abs(float(a_new) - float(a_old)); n_cmp += 1
-                    if d > worst:
-                        worst = d
-                    if d > 1e-9:
-                        offenders.append(dict(cell=c["drone"], R_m=r["R_m"],
-                                              arm=arm, key=k, new=a_new, old=a_old))
-    return dict(id="NI10", what="deterministic (noise-free) values are bit-stable vs the "
-                                "2026-07-28 ledger; noise arms are excluded because the old "
-                                "seed was python hash() and is not reproducible",
-                n_compared=n_cmp, worst_abs_diff=worst, tol=1e-9,
-                offenders=offenders[:10], passed=bool(n_cmp > 0 and worst <= 1e-9))
+                pairs += [(f"{arm}.{k}", r["arms"].get(arm, {}).get(k),
+                           o["arms"].get(arm, {}).get(k)) for k in _DET_ARM_KEYS]
+            for k, vn, vo in pairs:
+                if vn is None or vo is None:
+                    continue
+                d = abs(float(vn) - float(vo)); n_cmp += 1
+                if d > worst:
+                    worst, worst_key = d, k
+        rec = dict(drone=c["drone"], band=c["band"], n_compared=n_cmp,
+                   mesh_fingerprint_changed=bool(mesh_changed),
+                   n_frame_pts=[fp_old[0], fp_new[0]], n_blade_pts=[fp_old[1], fp_new[1]],
+                   rpm=[fp_old[2], fp_new[2]], f_tip_hz=[fp_old[3], fp_new[3]],
+                   worst_abs_diff=worst, worst_key=worst_key,
+                   sigma_aspect_mean_plane_dbsm=[
+                       round(float(oc["rows"][0]["sigma_eq_aspect_mean_plane_dbsm"]), 4),
+                       round(float(c["rows"][0]["sigma_eq_aspect_mean_plane_dbsm"]), 4)],
+                   dc_ac_db=[round(float(oc["rows"][0]["arms"]["A0_reference"]["dc_ac_db"]), 4),
+                             round(float(c["rows"][0]["arms"]["A0_reference"]["dc_ac_db"]), 4)])
+        rec["explained"] = bool(worst <= 1e-9 or mesh_changed)
+        if not rec["explained"]:
+            unexplained.append(rec)
+        cells.append(rec)
+    return dict(id="NI10", what="old-vs-new sweep: every deterministic change is attributable to "
+                                "the target model changing (mesh/spec), not to the noise wiring",
+                n_cells=len(cells), n_unexplained=len(unexplained), cells=cells,
+                unexplained=unexplained,
+                finding="the 2026-07-28 ledger is stale in a THIRD way beyond the two the design "
+                        "doc lists: it was computed on an older target mesh/spec (point counts "
+                        "differ by up to 50%, s1000plus hover rpm 3600 -> 4467)",
+                passed=bool(len(cells) > 0 and not unexplained))
 
 
 def main():

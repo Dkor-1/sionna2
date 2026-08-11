@@ -175,6 +175,8 @@ def main():
                 label="slow-time sample, total power  (rung 3)")
     ax.semilogx(Rg, [d["snr_slow_ac_db"] for d in L], "-", color=C_AC, lw=2.4,
                 label=f"blade line, AC  (rung 3', canonical) = total − {L[0]['dc_ac_off_db']:.1f} dB")
+    ax.semilogx(Rg, [d["snr_slow_db"] + d["g_stft_db"] for d in L], "--", color=C_TOT, lw=1.4,
+                label="body line on the map  (rung 3 + gain_stft) — prediction for the squares")
     ax.semilogx(Rg, [d["snr_map_ac_db"] for d in L], "--", color=C_MAP, lw=1.8,
                 label=f"blade line on the map  (rung 3' + gain_stft {L[0]['g_stft_db']:+.1f} dB, "
                       f"{nper}-sample Hann frame)")

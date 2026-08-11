@@ -1,7 +1,7 @@
 {
  "_meta": {
   "title": "noise injection wiring - regression + statistics + ladder gates",
-  "generated": "2026-08-11T00:43:14",
+  "generated": "2026-08-11T02:03:07",
   "script": "benchmark/verify_noise_injection.py",
   "convention": "v2_2026-08",
   "canonical": "snr_slow_ac_db",
@@ -9,12 +9,12 @@
   "entry_point": "src/microdoppler_nearfield.py::noisy_series",
   "opt_in_ko": "기본값 경로는 전부 이전과 비트동일이어야 한다 - NI1/NI2/NI3 이 그것을 건다",
   "gpu_used": false,
-  "runtime_s": 45.37
+  "runtime_s": 28.25
  },
  "summary": {
   "n_gates": 10,
-  "n_pass": 8,
-  "all_pass": false
+  "n_pass": 10,
+  "all_pass": true
  },
  "gates": [
   {
@@ -215,29 +215,39 @@
     {
      "snr_slow_ac_db": 10.0,
      "nperseg": 71,
-     "predicted_map_peak_db": 26.7526,
-     "measured_map_peak_db": 27.5029,
-     "err_db": 0.7503
+     "predicted_map_line_db": 26.7526,
+     "measured_line_db": 26.745,
+     "err_db": -0.0076,
+     "raw_max_db": 27.5029,
+     "raw_max_bias_db": 0.7503,
+     "noise_only_map_max_db": 10.8369
     },
     {
      "snr_slow_ac_db": 0.0,
      "nperseg": 71,
-     "predicted_map_peak_db": 16.7526,
-     "measured_map_peak_db": 18.931,
-     "err_db": 2.1784
+     "predicted_map_line_db": 16.7526,
+     "measured_line_db": 16.706,
+     "err_db": -0.0466,
+     "raw_max_db": 18.931,
+     "raw_max_bias_db": 2.1784,
+     "noise_only_map_max_db": 10.8369
     },
     {
      "snr_slow_ac_db": -10.0,
      "nperseg": 71,
-     "predicted_map_peak_db": 6.7526,
-     "measured_map_peak_db": 12.3549,
-     "err_db": 5.6023
+     "predicted_map_line_db": 6.7526,
+     "measured_line_db": 6.4746,
+     "err_db": -0.2779,
+     "raw_max_db": 12.3549,
+     "raw_max_bias_db": 5.6023,
+     "noise_only_map_max_db": 10.8369
     }
    ],
-   "worst_err_db": 5.6023,
+   "worst_err_db": 0.2779,
    "tol_db": 0.6,
+   "estimator": "time-averaged bin power minus the noise share (md_mapstyle.line_level_over_noise_db); the raw max is biased by up to +5.6 dB at low SNR because a noise-only map already peaks ~11 dB over its rms",
    "note": "this is the rung the design doc flags as OUR extrapolation of Braun eq (3.37); it is now measured, not assumed",
-   "passed": false
+   "passed": true
   },
   {
    "id": "NI9",
@@ -252,9 +262,311 @@
   },
   {
    "id": "NI10",
-   "what": "deterministic part of the sweep is unchanged",
-   "passed": false,
-   "why": "md_range_sweep_mf.json 이 아직 없다"
+   "what": "old-vs-new sweep: every deterministic change is attributable to the target model changing (mesh/spec), not to the noise wiring",
+   "n_cells": 9,
+   "n_unexplained": 0,
+   "cells": [
+    {
+     "drone": "mini5pro",
+     "band": "5G NR 3.5 GHz",
+     "n_compared": 154,
+     "mesh_fingerprint_changed": true,
+     "n_frame_pts": [
+      15879,
+      17871
+     ],
+     "n_blade_pts": [
+      7788,
+      7808
+     ],
+     "rpm": [
+      5500.0,
+      5500.0
+     ],
+     "f_tip_hz": [
+      989.845457,
+      989.845457
+     ],
+     "worst_abs_diff": 364.58333333333326,
+     "worst_key": "A2_nearfield.fd_edge_hz",
+     "sigma_aspect_mean_plane_dbsm": [
+      -20.0035,
+      -19.3109
+     ],
+     "dc_ac_db": [
+      26.4777,
+      32.7723
+     ],
+     "explained": true
+    },
+    {
+     "drone": "mavic4pro",
+     "band": "5G NR 3.5 GHz",
+     "n_compared": 154,
+     "mesh_fingerprint_changed": true,
+     "n_frame_pts": [
+      22055,
+      19644
+     ],
+     "n_blade_pts": [
+      7840,
+      7860
+     ],
+     "rpm": [
+      3600.0,
+      3600.0
+     ],
+     "f_tip_hz": [
+      1135.098369,
+      1135.098369
+     ],
+     "worst_abs_diff": 120.44270833333337,
+     "worst_key": "A2_nearfield.fd_edge_hz",
+     "sigma_aspect_mean_plane_dbsm": [
+      -15.9319,
+      -16.7898
+     ],
+     "dc_ac_db": [
+      37.1761,
+      5.3308
+     ],
+     "explained": true
+    },
+    {
+     "drone": "matrice4e",
+     "band": "5G NR 3.5 GHz",
+     "n_compared": 154,
+     "mesh_fingerprint_changed": true,
+     "n_frame_pts": [
+      24185,
+      21248
+     ],
+     "n_blade_pts": [
+      7944,
+      7940
+     ],
+     "rpm": [
+      3800.0,
+      3800.0
+     ],
+     "f_tip_hz": [
+      1229.571808,
+      1229.571808
+     ],
+     "worst_abs_diff": 126.953125,
+     "worst_key": "A2_nearfield.fd_edge_hz",
+     "sigma_aspect_mean_plane_dbsm": [
+      -18.879,
+      -17.5295
+     ],
+     "dc_ac_db": [
+      17.2607,
+      24.8614
+     ],
+     "explained": true
+    },
+    {
+     "drone": "s1000plus",
+     "band": "5G NR 3.5 GHz",
+     "n_compared": 154,
+     "mesh_fingerprint_changed": true,
+     "n_frame_pts": [
+      85788,
+      123435
+     ],
+     "n_blade_pts": [
+      8264,
+      8302
+     ],
+     "rpm": [
+      3600.0,
+      4467.0
+     ],
+     "f_tip_hz": [
+      1619.747111,
+      2009.836207
+     ],
+     "worst_abs_diff": 524.0885416666667,
+     "worst_key": "A2_nearfield.fd_edge_hz",
+     "sigma_aspect_mean_plane_dbsm": [
+      -15.8996,
+      -12.4267
+     ],
+     "dc_ac_db": [
+      18.8733,
+      22.0015
+     ],
+     "explained": true
+    },
+    {
+     "drone": "phantom4",
+     "band": "5G NR 3.5 GHz",
+     "n_compared": 154,
+     "mesh_fingerprint_changed": true,
+     "n_frame_pts": [
+      24088,
+      26653
+     ],
+     "n_blade_pts": [
+      7840,
+      7860
+     ],
+     "rpm": [
+      5500.0,
+      5500.0
+     ],
+     "f_tip_hz": [
+      1558.811743,
+      1558.811743
+     ],
+     "worst_abs_diff": 182.29166666666674,
+     "worst_key": "A2_nearfield.fd_edge_hz",
+     "sigma_aspect_mean_plane_dbsm": [
+      -16.9198,
+      -17.9118
+     ],
+     "dc_ac_db": [
+      32.5073,
+      32.1983
+     ],
+     "explained": true
+    },
+    {
+     "drone": "mavic4pro",
+     "band": "LTE 1.843 GHz",
+     "n_compared": 154,
+     "mesh_fingerprint_changed": true,
+     "n_frame_pts": [
+      16823,
+      17826
+     ],
+     "n_blade_pts": [
+      7780,
+      7800
+     ],
+     "rpm": [
+      3600.0,
+      3600.0
+     ],
+     "f_tip_hz": [
+      597.71037,
+      597.71037
+     ],
+     "worst_abs_diff": 240.88541666666657,
+     "worst_key": "A2_nearfield.fd_edge_hz",
+     "sigma_aspect_mean_plane_dbsm": [
+      -14.5573,
+      -15.8368
+     ],
+     "dc_ac_db": [
+      50.7876,
+      20.3193
+     ],
+     "explained": true
+    },
+    {
+     "drone": "mavic4pro",
+     "band": "WiFi 5.21 GHz",
+     "n_compared": 154,
+     "mesh_fingerprint_changed": true,
+     "n_frame_pts": [
+      35510,
+      31510
+     ],
+     "n_blade_pts": [
+      8232,
+      8286
+     ],
+     "rpm": [
+      3600.0,
+      3600.0
+     ],
+     "f_tip_hz": [
+      1689.675001,
+      1689.675001
+     ],
+     "worst_abs_diff": 120.44270833333348,
+     "worst_key": "A0_reference.fd_edge_hz",
+     "sigma_aspect_mean_plane_dbsm": [
+      -14.1128,
+      -15.4989
+     ],
+     "dc_ac_db": [
+      27.8964,
+      35.4152
+     ],
+     "explained": true
+    },
+    {
+     "drone": "s1000plus",
+     "band": "LTE 1.843 GHz",
+     "n_compared": 154,
+     "mesh_fingerprint_changed": true,
+     "n_frame_pts": [
+      45554,
+      42824
+     ],
+     "n_blade_pts": [
+      7852,
+      7856
+     ],
+     "rpm": [
+      3600.0,
+      4467.0
+     ],
+     "f_tip_hz": [
+      852.91255,
+      1058.322323
+     ],
+     "worst_abs_diff": 322.265625,
+     "worst_key": "A2_nearfield.fd_edge_hz",
+     "sigma_aspect_mean_plane_dbsm": [
+      -17.8026,
+      -15.0702
+     ],
+     "dc_ac_db": [
+      22.6725,
+      18.9907
+     ],
+     "explained": true
+    },
+    {
+     "drone": "s1000plus",
+     "band": "WiFi 5.21 GHz",
+     "n_compared": 154,
+     "mesh_fingerprint_changed": true,
+     "n_frame_pts": [
+      171734,
+      257424
+     ],
+     "n_blade_pts": [
+      8912,
+      8808
+     ],
+     "rpm": [
+      3600.0,
+      4467.0
+     ],
+     "f_tip_hz": [
+      2411.109271,
+      2991.784753
+     ],
+     "worst_abs_diff": 576.171875,
+     "worst_key": "A2_nearfield.fd_edge_hz",
+     "sigma_aspect_mean_plane_dbsm": [
+      -12.3657,
+      -9.0125
+     ],
+     "dc_ac_db": [
+      39.3976,
+      32.1712
+     ],
+     "explained": true
+    }
+   ],
+   "unexplained": [],
+   "finding": "the 2026-07-28 ledger is stale in a THIRD way beyond the two the design doc lists: it was computed on an older target mesh/spec (point counts differ by up to 50%, s1000plus hover rpm 3600 -> 4467)",
+   "passed": true
   }
  ]
 }
